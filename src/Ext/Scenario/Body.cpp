@@ -203,6 +203,7 @@ void ScenarioExtData::ReadMissionMDINI()
 	ini.ReadCCFile(&file);
 	auto pThis = this->AttachedToObject;
 	auto const scenarioName = pThis->FileName;
+	auto const defaultsSection = "Defaults";
 
 	INI_EX exINI(&ini);
 
@@ -219,6 +220,10 @@ void ScenarioExtData::ReadMissionMDINI()
 	this->ShowBriefing.Read(exINI, scenarioName, "ShowBriefing");
 	this->BriefingTheme = ini.ReadTheme(scenarioName, "BriefingTheme", this->BriefingTheme);
 
+	ini.ReadString(defaultsSection, "DefaultLS640BkgdName", pThis->LS640BkgdName, pThis->LS640BkgdName, 64);
+	ini.ReadString(defaultsSection, "DefaultLS800BkgdName", pThis->LS800BkgdName, pThis->LS800BkgdName, 64);
+	ini.ReadString(defaultsSection, "DefaultLS800BkgdPal", pThis->LS800BkgdPal, pThis->LS800BkgdPal, 64);
+
 }
 
 void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -230,6 +235,7 @@ void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ShowBriefing.Read(exINI, GameStrings::Basic, "ShowBriefing");
 	this->BriefingTheme = pINI->ReadTheme(GameStrings::Basic, "BriefingTheme", this->BriefingTheme);
 	this->OriginalFilename.Read(exINI, GameStrings::Basic, "OriginalFilename");
+
 	this->ReadMissionMDINI();
 
 }

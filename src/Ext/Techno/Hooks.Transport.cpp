@@ -88,7 +88,7 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 	GET(TechnoClass*, pThis, ESI);
 	GET(FootClass*, pPassenger, EDI);
 
-	if (pThis && pPassenger)
+	if (pPassenger)
 	{
 		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
@@ -117,7 +117,7 @@ ASMJIT_PATCH(0x4DE722, FootClass_LeaveTransport, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	GET(FootClass*, pPassenger, EAX);
 
-	if (pThis && pPassenger)
+	if (pPassenger)
 	{
 		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
