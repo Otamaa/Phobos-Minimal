@@ -738,8 +738,9 @@ using is_double_double = bool_constant<std::numeric_limits<T>::digits == 106>;
 #endif
 
 // An allocator that uses malloc/free to allow removing dependency on the C++
-// standard libary runtime.
-template <typename T> struct allocator {
+// standard libary runtime. std::decay is used for back_inserter to be found by
+// ADL when applied to memory_buffer.
+template <typename T> struct allocator : private std::decay<void> {
   using value_type = T;
 
   T* allocate(size_t n) {
@@ -1225,7 +1226,7 @@ FMT_CONSTEXPR auto do_format_base2e(int base_bits, Char* out, UInt value,
   out += size;
   do {
     const char* digits = upper ? "0123456789ABCDEF" : "0123456789abcdef";
-    unsigned digit = static_cast<unsigned>(value & ((1 << base_bits) - 1));
+    unsigned digit = static_cast<unsigned>(value & ((1u << base_bits) - 1));
     *--out = static_cast<Char>(base_bits < 4 ? static_cast<char>('0' + digit)
                                              : digits[digit]);
   } while ((value >>= base_bits) != 0);
@@ -2017,7 +2018,7 @@ FMT_CONSTEXPR FMT_INLINE auto write_int(OutputIt out, write_int_arg<T> arg,
                                         const format_specs& specs) -> OutputIt {
   static_assert(std::is_same<T, uint32_or_64_or_128_t<T>>::value, "");
 
-  constexpr int buffer_size = num_bits<T>();
+  constexpr size_t buffer_size = num_bits<T>();
   char buffer[buffer_size];
   if (is_constant_evaluated()) fill_n(buffer, buffer_size, '\0');
   const char* begin = nullptr;
@@ -2109,13 +2110,33 @@ FMT_CONSTEXPR FMT_INLINE auto write(OutputIt out, T value,
   return write_int<Char>(out, make_write_int_arg(value, specs.sign()), specs);
 }
 
+inline auto convert_precision_to_size(string_view s, size_t precision)
+    -> size_t {
+  size_t display_width = 0;
+  size_t num_code_points = 0;
+  for_each_codepoint(s, [&](uint32_t, string_view sv) {
+    display_width += compute_width(sv);
+    // Stop when display width exceeds precision.
+    if (display_width > precision) return false;
+    ++num_code_points;
+    return true;
+  });
+  return code_point_index(s, num_code_points);
+}
+
+template <typename Char, FMT_ENABLE_IF(!std::is_same<Char, char>::value)>
+auto convert_precision_to_size(basic_string_view<Char>, size_t precision)
+    -> size_t {
+  return precision;
+}
+
 template <typename Char, typename OutputIt>
 FMT_CONSTEXPR auto write(OutputIt out, basic_string_view<Char> s,
                          const format_specs& specs) -> OutputIt {
   auto data = s.data();
   auto size = s.size();
   if (specs.precision >= 0 && to_unsigned(specs.precision) < size)
-    size = code_point_index(s, to_unsigned(specs.precision));
+    size = convert_precision_to_size(s, to_unsigned(specs.precision));
 
   bool is_debug = specs.type() == presentation_type::debug;
   if (is_debug) {
@@ -3824,7 +3845,7 @@ struct formatter<T, Char, void_t<detail::format_as_result<T>>>
  *     auto s = fmt::format("{}", fmt::ptr(p));
  */
 template <typename T> auto ptr(T p) -> const void* {
-  static_assert(std::is_pointer<T>::value, "");
+  static_assert(std::is_pointer<T>::value, "fmt::ptr used with non-pointer");
   return detail::bit_cast<const void*>(p);
 }
 
