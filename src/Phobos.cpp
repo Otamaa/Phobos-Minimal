@@ -102,6 +102,10 @@ const wchar_t* Phobos::UI::Spysat_Label { L"" };
 
 const wchar_t* Phobos::UI::SWShotsFormat { L"" };
 
+const wchar_t* Phobos::UI::BattlePoints_Label { L"" };
+const wchar_t* Phobos::UI::BattlePointsSidebar_Label { L"" };
+bool Phobos::UI::BattlePointsSidebar_Label_InvertPosition {};
+
 bool Phobos::Config::HideWarning { false };
 bool Phobos::Config::ToolTipDescriptions { true };
 bool Phobos::Config::ToolTipBlur { false };

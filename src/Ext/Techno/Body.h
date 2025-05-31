@@ -899,6 +899,7 @@ public:
 	static void InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass* pType);
 
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
+	static void ObjectKilledBy(TechnoClass* pThis, HouseClass* pKiller);
 
 	static void DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage, WarheadTypeClass* pWH);
 	static void KillSelf(TechnoClass* pThis, bool isPeaceful = false);

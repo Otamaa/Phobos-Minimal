@@ -190,6 +190,8 @@ public:
 	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs {};
 
 	int ForceEnemyIndex { -1 };
+	int BattlePoints {};
+
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
@@ -230,6 +232,11 @@ public:
 
 	int GetForceEnemyIndex();
 	void SetForceEnemy(int EnemyIndex);
+
+	void UpdateBattlePoints(int modifier);
+	bool AreBattlePointsEnabled();
+	int CalculateBattlePoints(TechnoClass* pTechno);
+	int CalculateBattlePoints(TechnoTypeClass* pTechno);
 
 	static SuperClass* IsSuperAvail(int nIdx, HouseClass* pHouse);
 

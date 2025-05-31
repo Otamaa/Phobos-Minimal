@@ -26,7 +26,7 @@ bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTy
 	LaunchSW_IgnoreInhibitors.Read(exINI, pID, (_buff + ".IgnoreInhibitors").c_str());
 	LaunchSW_IgnoreDesignators.Read(exINI, pID, (_buff + ".IgnoreDesignators").c_str());
 	LauchSW_IgnoreMoney.Read(exINI, pID, (_buff + ".IgnoreMoney").c_str());
-
+	LauchSW_IgnoreBattleData.Read(exINI, pID, (_buff + ".IgnoreBattlePoints").c_str());
 	//
 	std::string _buff_DisplayMoney = (_buff + ".DisplayMoney");
 	LaunchSW_DisplayMoney.Read(exINI, pID, _buff_DisplayMoney.c_str());
@@ -67,6 +67,7 @@ bool LauchSWData::Serialize(T& Stm)
 		.Process(LaunchSW_IgnoreInhibitors)
 		.Process(LaunchSW_IgnoreDesignators)
 		.Process(LauchSW_IgnoreMoney)
+		.Process(LauchSW_IgnoreBattleData)
 		.Process(LaunchSW_DisplayMoney)
 		.Process(LaunchSW_DisplayMoney_Houses)
 		.Process(LaunchSW_DisplayMoney_Offset)

@@ -106,6 +106,10 @@ public:
 	PhobosPCXFile SuperWeaponSidebar_CenterPCX {};
 	PhobosPCXFile SuperWeaponSidebar_BottomPCX {};
 
+	Valueable<Point2D> Sidebar_BattlePoints_Offset {};
+	Nullable<ColorStruct> Sidebar_BattlePoints_Color {};
+	Valueable<TextAlign> Sidebar_BattlePoints_Align { TextAlign::Left };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }

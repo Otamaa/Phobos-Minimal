@@ -1654,6 +1654,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->NewEvaVoice_Priority.Read(exINI, pSection, "NewEVAVoice.Priority");
 		this->NewEvaVoice_RecheckOnDeath.Read(exINI, pSection, "NewEVAVoice.RecheckOnDeath");
 		this->NewEvaVoice_InitialMessage.Read(exINI, pSection, "NewEVAVoice.InitialMessage");
+
+		this->BattlePointsCollector.Read(exINI, pSection, "BattlePointsCollector");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2098,6 +2100,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NewEvaVoice_Priority)
 		.Process(this->NewEvaVoice_RecheckOnDeath)
 		.Process(this->NewEvaVoice_InitialMessage)
+
+		.Process(this->BattlePointsCollector)
 		;
 }
 

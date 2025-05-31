@@ -589,6 +589,7 @@ ASMJIT_PATCH(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 
 	SuperClass* pSuper = HouseClass::CurrentPlayer->Supers.Items[idxSW];
 	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
+	const auto pHouseData = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
 
 	// if this SW is only auto-firable, discard any clicks.
 	// if AutoFire is off, the sw would not be firable at all,
@@ -607,6 +608,13 @@ ASMJIT_PATCH(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 	// prevent firing the SW if the player doesn't have sufficient
 	// funds. play an EVA message in that case.
 	if (!HouseClass::CurrentPlayer->CanTransactMoney(pData->Money_Amount))
+	{
+		VoxClass::PlayIndex(pData->EVA_InsufficientFunds);
+		pData->PrintMessage(pData->Message_InsufficientFunds, HouseClass::CurrentPlayer);
+		return RetImpatientClick;
+	}
+
+	if (pData->BattlePoints_Amount < 0 && pHouseData->AreBattlePointsEnabled() && pHouseData->BattlePoints < Math::abs(pData->BattlePoints_Amount.Get()))
 	{
 		VoxClass::PlayIndex(pData->EVA_InsufficientFunds);
 		pData->PrintMessage(pData->Message_InsufficientFunds, HouseClass::CurrentPlayer);
@@ -955,11 +963,18 @@ ASMJIT_PATCH(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 
 	const auto pSW = HouseClass::CurrentPlayer->Supers.Items[idxSW];
 	const auto pExt = SWTypeExtContainer::Instance.Find(pSW->Type);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
 
 	bool darken = false;
-	if (pSW->CanFire() && !pSW->Owner->CanTransactMoney(pExt->Money_Amount)
-		|| (pExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSW, true)))
+	if (pSW->CanFire())
 	{
+		if(!pSW->Owner->CanTransactMoney(pExt->Money_Amount))
+			darken = true;
+
+		if (pExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled())
+			darken = pHouseExt->BattlePoints < Math::abs(pExt->BattlePoints_Amount.Get());
+	}
+	else if (pExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSW, true)) {
 		darken = true;
 	}
 
@@ -1075,6 +1090,7 @@ ASMJIT_PATCH(0x6CB7B0, SuperClass_Lose, 6)
 
 // activate or deactivate the SW
 // ForceCharged on IDB
+// this weird return , idk
 ASMJIT_PATCH(0x6CB920, SuperClass_ClickFire, 5)
 {
 	GET(SuperClass* const, pThis, ECX);
@@ -1086,6 +1102,7 @@ ASMJIT_PATCH(0x6CB920, SuperClass_ClickFire, 5)
 	auto const pType = pThis->Type;
 	auto const pExt = SWTypeExtContainer::Instance.Find(pType);
 	auto const pOwner = pThis->Owner;
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pOwner);
 
 	if (!pType->UseChargeDrain)
 	{
@@ -1098,84 +1115,91 @@ ASMJIT_PATCH(0x6CB920, SuperClass_ClickFire, 5)
 			return ret(false);
 		}
 
-		// auto-abort if no money
-		if (pOwner->CanTransactMoney(pExt->Money_Amount))
-		{
-			// can this super weapon fire now?
-			if (auto const pNewType = pExt->GetNewSWType())
-			{
-				if (pNewType->AbortFire(pThis, isPlayer))
-				{
-					return ret(false);
-				}
+		bool requireBattlePoints = pExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled();
+		bool canTransactMoney = pOwner->CanTransactMoney(pExt->Money_Amount);
+		bool isCurrentPlayer = pOwner->IsCurrentPlayer();
+
+		// auto-abort if no resources
+		if (!canTransactMoney) {
+			if (isCurrentPlayer) {
+				VoxClass::PlayIndex(pExt->EVA_InsufficientFunds);
+				pExt->PrintMessage(pExt->Message_InsufficientFunds, pOwner);
+				return ret(false);
 			}
+		}
+
+		if (requireBattlePoints) {
+			if (isCurrentPlayer  && pHouseExt->BattlePoints < Math::abs(pExt->BattlePoints_Amount.Get())) {
+				VoxClass::PlayIndex(pExt->EVA_InsufficientBattlePoints);
+				pExt->PrintMessage(pExt->Message_InsufficientBattlePoints, pOwner);
+				return ret(false);
+			}
+		}
+
+		// can this super weapon fire now?
+		if (auto const pNewType = pExt->GetNewSWType())
+		{
+			if (pNewType->AbortFire(pThis, isPlayer))
+			{
+				return ret(false);
+			}
+		}
+
+		pThis->Launch(*pCell, isPlayer);
+
+		// the others will be reset after the PostClick SW fired
+		if (!pType->PostClick && !pType->PreClick)
+		{
+			pThis->IsCharged = false;
+		}
+
+		if (pThis->OneTime || !pExt->CanFire(pOwner))
+		{
+			// remove this SW
+			pThis->OneTime = false;
+			return ret(pThis->Lose());
+		}
+		else if (pType->ManualControl)
+		{
+			// set recharge timer, then pause
+			const auto time = pThis->GetRechargeTime();
+			pThis->CameoChargeState = -1;
+			pThis->RechargeTimer.Start(time);
+			pThis->RechargeTimer.Pause();
+
+		} else if (!pType->PreClick && !pType->PostClick)
+		{
+			pThis->StopPreclickAnim(isPlayer);
+		}
+
+	} else {
+
+		if (pThis->ChargeDrainState == ChargeDrainState::Draining)
+		{
+			// deactivate for human players
+			pThis->ChargeDrainState = ChargeDrainState::Ready;
+			auto const left = pThis->RechargeTimer.GetTimeLeft();
+
+			auto const duration = int(pThis->GetRechargeTime()
+				- (left / pExt->GetChargeToDrainRatio()));
+			pThis->RechargeTimer.Start(duration);
+			pExt->Deactivate(pThis, *pCell, isPlayer);
+
+		}
+		else if (pThis->ChargeDrainState == ChargeDrainState::Ready)
+		{
+			// activate for human players
+			pThis->ChargeDrainState = ChargeDrainState::Draining;
+			auto const left = pThis->RechargeTimer.GetTimeLeft();
+
+			auto const duration = int(
+					(pThis->GetRechargeTime() - left)
+					* pExt->GetChargeToDrainRatio());
+			pThis->RechargeTimer.Start(duration);
 
 			pThis->Launch(*pCell, isPlayer);
-
-			// the others will be reset after the PostClick SW fired
-			if (!pType->PostClick && !pType->PreClick)
-			{
-				pThis->IsCharged = false;
-			}
-
-			if (pThis->OneTime || !pExt->CanFire(pOwner))
-			{
-				// remove this SW
-				pThis->OneTime = false;
-				return ret(pThis->Lose());
-			}else
-			if (pType->ManualControl)
-			{
-				// set recharge timer, then pause
-				const auto time = pThis->GetRechargeTime();
-				pThis->CameoChargeState = -1;
-				pThis->RechargeTimer.Start(time);
-				pThis->RechargeTimer.Pause();
-
-			}else
-			if (!pType->PreClick && !pType->PostClick)
-			{
-				pThis->StopPreclickAnim(isPlayer);
-			}
-
-			return ret(false);
-		}
-		else if (pOwner->IsCurrentPlayer())
-		{
-			VoxClass::PlayIndex(pExt->EVA_InsufficientFunds);
-			pExt->PrintMessage(pExt->Message_InsufficientFunds, pOwner);
-			return ret(false);
 		}
 	}
-
-	if (pThis->ChargeDrainState == ChargeDrainState::Draining)
-	{
-		// deactivate for human players
-		pThis->ChargeDrainState = ChargeDrainState::Ready;
-		auto const left = pThis->RechargeTimer.GetTimeLeft();
-
-		auto const duration = int(pThis->GetRechargeTime()
-			- (left / pExt->GetChargeToDrainRatio()));
-		pThis->RechargeTimer.Start(duration);
-		pExt->Deactivate(pThis, *pCell, isPlayer);
-		return ret(false);
-	}
-
-	if (pThis->ChargeDrainState != ChargeDrainState::Ready)
-	{
-		return ret(false);
-	}
-
-	// activate for human players
-	pThis->ChargeDrainState = ChargeDrainState::Draining;
-	auto const left = pThis->RechargeTimer.GetTimeLeft();
-
-	auto const duration = int(
-			(pThis->GetRechargeTime() - left)
-			* pExt->GetChargeToDrainRatio());
-	pThis->RechargeTimer.Start(duration);
-
-	pThis->Launch(*pCell, isPlayer);
 
 	return ret(false);
 }

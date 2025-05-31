@@ -165,6 +165,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	}
 #endif
 	const int cost = pType->GetActualCost(HouseClass::CurrentPlayer);
+	//const auto pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
 
 	std::wostringstream oss;
 	oss << pType->UIName << L"\n"
@@ -182,6 +183,19 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 			oss << L"+";
 		oss << std::setw(1) << nPower;
 	}
+
+	// the value is not consistent
+	// so showing it here will just cause fuckton of confusion
+	//const int nPoints = pHouseExt->CalculateBattlePoints(pType);
+	//if (Math::abs(nPoints)) {
+	//	oss << L"\n";
+	//
+	//	if (nPoints > 0)
+	//		oss << Phobos::UI::BattlePoints_Label << L"+" << nPoints;
+	//	else if (nPoints < 0)
+	//		oss << Phobos::UI::BattlePoints_Label << L"-" << nPoints;
+	//
+	//}
 
 	if (auto pDesc = this->GetUIDescription(pData))
 		oss << L"\n" << pDesc;
@@ -231,6 +245,18 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 			oss << '+';
 
 		oss << Phobos::UI::CostLabel << nCost;
+		showSth = true;
+	}
+
+	if (int nPoints = Math::abs(pData->BattlePoints_Amount.Get()))
+	{
+		oss << L"\n";
+
+		if (pData->BattlePoints_Amount > 0)
+			oss << Phobos::UI::BattlePoints_Label << L"+" << nPoints;
+		else if (pData->BattlePoints_Amount < 0)
+			oss << Phobos::UI::BattlePoints_Label << L"-" << nPoints;
+
 		showSth = true;
 	}
 

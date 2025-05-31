@@ -348,6 +348,8 @@ public:
 	Valueable<bool> NewEvaVoice_RecheckOnDeath {};
 	ValueableIdx<VoxClass> NewEvaVoice_InitialMessage {};
 
+	Nullable<bool> BattlePointsCollector {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

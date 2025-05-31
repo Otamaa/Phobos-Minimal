@@ -303,6 +303,8 @@ void HouseTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->LoadTextColor.Read(exINI, pSection, "LoadScreenText.Color");
 
+	this->BattlePoints.Read(exINI, pSection, "BattlePoints");
+	this->BattlePoints_CanUseStandardPoints.Read(exINI, pSection, "BattlePoints.CanUseStandardPoints");
 }
 
 void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
@@ -495,6 +497,8 @@ void  HouseTypeExtData::Serialize(T& Stm)
 		.Process(this->ObserverFlagSHP)
 		.Process(this->ObserverFlagYuriPAL)
 
+		.Process(this->BattlePoints)
+		.Process(this->BattlePoints_CanUseStandardPoints)
 		;
 }
 

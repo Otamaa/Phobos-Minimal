@@ -123,6 +123,10 @@ struct Phobos final
 		static const wchar_t* Spysat_Label;
 
 		static const wchar_t* SWShotsFormat;
+
+		static const wchar_t* BattlePoints_Label;
+		static const wchar_t* BattlePointsSidebar_Label;
+		static bool BattlePointsSidebar_Label_InvertPosition;
 	};
 
 	struct Config

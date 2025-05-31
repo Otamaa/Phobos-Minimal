@@ -54,6 +54,17 @@
 //	return announce ? 0 : 0x44848F; //early bailout
 //}
 
+// AFAIK, only used by the teleport of the Chronoshift SW
+ASMJIT_PATCH(0x70337D, HouseClass_RegisterDestruction_SaveKillerInfo, 0x6)
+{
+	GET(HouseClass*, pHouse, EDI);
+	GET(TechnoClass*, pVictim, ESI);
+
+	TechnoExtData::ObjectKilledBy(pVictim, pHouse);
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x51AA40, InfantryClass_Assign_Destination_DisallowMoving, 0x5)
 {
 	GET(InfantryClass*, pThis, ECX);

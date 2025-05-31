@@ -1584,6 +1584,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				}
 			}
 		}
+
+		this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 	}
 
 	// Art tags
@@ -2775,6 +2777,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AlternateFLH_OnTurret)
 		.Process(this->DamagedSpeed)
 		.Process(this->RadarInvisibleToHouse)
+
+		.Process(this->BattlePoints)
 		;
 }
 

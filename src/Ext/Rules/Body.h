@@ -521,6 +521,10 @@ public:
 	Valueable<bool> AttackMove_UpdateTarget { false };
 	Valueable<bool> Infantry_IgnoreBuildingSizeLimit { true };
 
+	Nullable<bool> BattlePoints {};
+	Nullable<int> BattlePoints_DefaultValue {};
+	Nullable<int> BattlePoints_DefaultFriendlyValue {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

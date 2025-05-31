@@ -1094,6 +1094,8 @@ public:
 
 	std::unique_ptr<TiberiumEaterTypeClass> TiberiumEaterType {};
 
+	Nullable<int> BattlePoints {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

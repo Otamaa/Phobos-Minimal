@@ -20,11 +20,15 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 		{
 			auto const pSuper = pSelected;
 			const auto pSWExt = SWTypeExtContainer::Instance.Find(pSelected->Type);
+			const auto pHouseExt = HouseExtContainer::Instance.Find(HouseOwner);
 
 			auto const nWhere = MapClass::Instance->GetCellAt(Where)->MapCoords;
 			bool const lauch = (nData.LaunchWaitcharge) && (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower())) ? false : true;
 			bool const bIsObserver = HouseOwner->IsObserver();
 			bool const MoneyEligible = nData.LauchSW_IgnoreMoney ? true : HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
+			bool const BattleDataEligible = nData.LauchSW_IgnoreBattleData ? true : pSWExt->BattlePoints_Amount >= 0 || pSWExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled()
+				&& pHouseExt->BattlePoints >= Math::abs(pSWExt->BattlePoints_Amount.Get());
+
 			bool const InhibitorEligible = nData.LaunchSW_IgnoreInhibitors ? true : !pSWExt->HasInhibitor(HouseOwner, nWhere);
 			bool const DesignatorEligible = nData.LaunchSW_IgnoreDesignators ? true : !pSWExt->HasDesignator(HouseOwner, nWhere);
 

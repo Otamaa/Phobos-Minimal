@@ -1934,6 +1934,72 @@ void HouseExtData::SetForceEnemy(int EnemyIndex)
 		this->ForceEnemyIndex = EnemyIndex;
 }
 
+void HouseExtData::UpdateBattlePoints(int modifier)
+{
+	this->BattlePoints += modifier;
+	this->BattlePoints = this->BattlePoints < 0 ? 0 : this->BattlePoints;
+}
+
+bool HouseExtData::AreBattlePointsEnabled()
+{
+	const auto pThis = this->AttachedToObject;
+	const auto pOwnerTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
+
+	// Global setting
+	if (RulesExtData::Instance()->BattlePoints.isset())
+		return RulesExtData::Instance()->BattlePoints.Get();
+
+	// House specific setting
+	if (!pOwnerTypeExt->BattlePoints)
+	{
+		// Structures can enable this logic overwriting the house's setting
+		for (const auto& pBuilding : pThis->Buildings)
+		{
+			const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+			if (pBuildingTypeExt->BattlePointsCollector.Get(false))
+				return true;
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+int HouseExtData::CalculateBattlePoints(TechnoClass* pTechno)
+{
+	if (!pTechno)
+		return 0;
+
+	const auto pThis = this->AttachedToObject;
+	const auto pThisTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
+	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+
+	int defaultValue = RulesExtData::Instance()->BattlePoints_DefaultValue.Get(0);
+	int defaultFriendlyValue = RulesExtData::Instance()->BattlePoints_DefaultFriendlyValue.Get(0);
+
+	int points = pThis->IsAlliedWith(pTechno) ? defaultFriendlyValue : defaultValue;
+	points = pTechnoTypeExt->BattlePoints.Get(points);
+	points = points == 0 && pThisTypeExt->BattlePoints_CanUseStandardPoints ? pTechno->GetTechnoType()->Points : points;
+
+	return points;
+}
+
+int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno)
+{
+	const auto pThis = this->AttachedToObject;
+	const auto pThisTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
+	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno);
+
+	int defaultValue = RulesExtData::Instance()->BattlePoints_DefaultValue.Get(0);
+	int defaultFriendlyValue = RulesExtData::Instance()->BattlePoints_DefaultFriendlyValue.Get(0);
+
+	int points = pTechnoTypeExt->BattlePoints.Get(defaultValue);
+	points = points == 0 && pThisTypeExt->BattlePoints_CanUseStandardPoints ? pTechno->Points : points;
+
+	return points;
+}
+
 //void HouseExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
 //{
 //	if (pTechnoType)
@@ -2097,6 +2163,7 @@ void HouseExtData::Serialize(T& Stm)
 
 		.Process(this->SuspendedEMPulseSWs)
 		.Process(this->ForceEnemyIndex)
+		.Process(this->BattlePoints)
 		;
 }
 

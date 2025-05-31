@@ -74,6 +74,9 @@ public:
 	PhobosPCXFile ObserverBackground {};
 	SHPStruct* ObserverBackgroundSHP {};
 
+	Valueable<bool> BattlePoints {};
+	Valueable<bool> BattlePoints_CanUseStandardPoints {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromRulesFile(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

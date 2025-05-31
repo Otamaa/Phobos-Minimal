@@ -87,7 +87,7 @@ ASMJIT_PATCH(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 		0x73B78A : 0x73B790;
 }
 
-#ifndef _old
+#ifdef _old
 
  ASMJIT_PATCH(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
  {
@@ -296,9 +296,8 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 	const Matrix3D mtx = Game::VoxelDefaultMatrix() * draw_matrix;
 
 	const auto pDrawTypeExt = TechnoTypeExtContainer::Instance.Find(pDrawType);
-	const bool notChargeTurret = pThis->Type->TurretCount <= 0 || pThis->Type->IsGattling;
 
-	VoxelStruct* pTurretVoxel = !notChargeTurret ? &pDrawType->TurretVoxel : TechnoTypeExtData::GetTurretsVoxel(pDrawType, currentTurretNumber);
+	VoxelStruct* pTurretVoxel = TechnoTypeExtData::GetTurretsVoxelFixedUp(pDrawType, currentTurretNumber);
 
 	// When in recoiling or have no cache, need to recalculate drawing matrix
 	const bool inRecoil = pDrawType->TurretRecoil && (pThis->TurretRecoil.State != RecoilData::RecoilState::Inactive || pThis->BarrelRecoil.State != RecoilData::RecoilState::Inactive);
@@ -334,8 +333,6 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteTurretDrawing, 0x6)
 						return mtx_barrel;
 					};
 				auto mtx_barrel = shouldRedraw ? getBarrelMatrix() : mtx;
-
-
 				const auto pBarrelVoxel = TechnoTypeExtData::GetBarrelsVoxelFixedUp(pDrawType, currentTurretNumber);
 
 				// draw barrel

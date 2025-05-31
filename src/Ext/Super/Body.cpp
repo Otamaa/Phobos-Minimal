@@ -91,7 +91,8 @@ void SuperExtData::UpdateSuperWeaponStatuses(HouseClass* pHouse)
 		// kill off super weapons that are disallowed and
 		// factor in the player's power status
 		const bool hasPower = pHouse->HasFullPower();
-		const bool bIsSWShellEnabled = Unsorted::SWAllowed || SessionClass::Instance->GameMode == GameMode::Campaign;
+		const bool isCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
+		const bool bIsSWShellEnabled = Unsorted::SWAllowed || isCampaign;
 
 		if (!hasPower || !bIsSWShellEnabled) {
 			pHouse->Supers.for_each([&](SuperClass* pSuper) {

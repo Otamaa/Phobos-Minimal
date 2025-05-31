@@ -147,7 +147,11 @@ void Phobos::Config::Read()
 		 Phobos::UI::BuidingRadarJammedLabel = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"Radar Jammed");
 
 		 pINI->ReadString(GameStrings::ToolTips(), "SWShotsFormat", GameStrings::NoneStr(), Phobos::readBuffer);
-		 Phobos::UI::SWShotsFormat = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"{}/{} shots"); // ⌚
+		 Phobos::UI::SWShotsFormat = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"{}/{} shots");
+
+		 pINI->ReadString(GameStrings::ToolTips, "BattlePoints.Label", GameStrings::NoneStr(), Phobos::readBuffer);
+		 Phobos::UI::BattlePoints_Label = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u2605: "); // ★:
+
 	 }
 
 	 // Sidebar
@@ -214,6 +218,13 @@ void Phobos::Config::Read()
 
 		 Phobos::UI::SuperWeaponSidebar_MaxColumns =
 			 pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.MaxColumns", Phobos::UI::SuperWeaponSidebar_MaxColumns);
+
+		 pINI->ReadString(SIDEBAR_SECTION_T, "BattlePoints.Label", GameStrings::NoneStr(), Phobos::readBuffer);
+			Phobos::UI::BattlePoints_Label = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u2605: "); // ★:
+
+		 Phobos::UI::BattlePointsSidebar_Label_InvertPosition =
+			 pINI->ReadBool(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label.InvertPosition", Phobos::UI::BattlePointsSidebar_Label_InvertPosition);
+
 	 }
 
 	});

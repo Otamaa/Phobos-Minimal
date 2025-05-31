@@ -17,7 +17,7 @@ struct LauchSWData final
 	Valueable<bool> LaunchSW_IgnoreInhibitors { false };
 	Valueable<bool> LaunchSW_IgnoreDesignators { true };
 	Valueable<bool> LauchSW_IgnoreMoney { false };
-
+	Valueable<bool> LauchSW_IgnoreBattleData { false };
 	Valueable<bool> LaunchSW_DisplayMoney { false };
 	Valueable<AffectedHouse> LaunchSW_DisplayMoney_Houses { AffectedHouse::All };
 	Valueable<Point2D> LaunchSW_DisplayMoney_Offset { {  0 , 0  } };

@@ -3240,60 +3240,79 @@ void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 	TechnoClass* pObjectKiller = (pKiller->GetTechnoType()->Spawned || pKiller->GetTechnoType()->MissileSpawn) && pKiller->SpawnOwner ?
 		pKiller->SpawnOwner : pKiller;
 
-	if (pObjectKiller && pObjectKiller->BelongsToATeam()) {
-		if (auto const pFootKiller = flag_cast_to<FootClass*, false>(pObjectKiller)) {
-			auto pKillerExt = TechnoExtContainer::Instance.Find(pObjectKiller);
+	if (pObjectKiller)
+	{
+		TechnoExtData::ObjectKilledBy(pVictim, pObjectKiller->Owner);
 
-			if (auto const pFocus = flag_cast_to<TechnoClass*>(pFootKiller->Team->ArchiveTarget))
-				pKillerExt->LastKillWasTeamTarget =
-				pFocus->GetTechnoType() == pVictim->GetTechnoType()
-				|| TechnoExtContainer::Instance.Find(pFocus)->Type == pVictim->GetTechnoType()
-				|| TechnoExtContainer::Instance.Find(pFocus)->Type == TechnoExtContainer::Instance.Find(pVictim)->Type
-				//|| TeamExtData::GroupAllowed(pFocus->GetTechnoType(), pVictim->GetTechnoType())
-				//|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type, TechnoExtContainer::Instance.Find(pVictim)->Type)
-				//|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type,  pVictim->GetTechnoType())
+		if(pObjectKiller->BelongsToATeam()) {
+			if (auto const pFootKiller = flag_cast_to<FootClass*, false>(pObjectKiller)) {
+				auto pKillerExt = TechnoExtContainer::Instance.Find(pObjectKiller);
 
-				;
+				if (auto const pFocus = flag_cast_to<TechnoClass*>(pFootKiller->Team->ArchiveTarget))
+					pKillerExt->LastKillWasTeamTarget =
+					pFocus->GetTechnoType() == pVictim->GetTechnoType()
+					|| TechnoExtContainer::Instance.Find(pFocus)->Type == pVictim->GetTechnoType()
+					|| TechnoExtContainer::Instance.Find(pFocus)->Type == TechnoExtContainer::Instance.Find(pVictim)->Type
+					//|| TeamExtData::GroupAllowed(pFocus->GetTechnoType(), pVictim->GetTechnoType())
+					//|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type, TechnoExtContainer::Instance.Find(pVictim)->Type)
+					//|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type,  pVictim->GetTechnoType())
 
-			auto pKillerTeamExt = TeamExtContainer::Instance.Find(pFootKiller->Team);
+						;
 
-			if (pKillerTeamExt->ConditionalJump_EnabledKillsCount)
-			{
-				bool isValidKill =
-					 pKillerTeamExt->ConditionalJump_Index < 0 ?
-					 false :
-					 ScriptExtData::EvaluateObjectWithMask(pVictim, pKillerTeamExt->ConditionalJump_Index, -1, -1, pKiller);
+				auto pKillerTeamExt = TeamExtContainer::Instance.Find(pFootKiller->Team);
 
-				if (isValidKill || pKillerExt->LastKillWasTeamTarget)
-				    pKillerTeamExt->ConditionalJump_Counter++;
+				if (pKillerTeamExt->ConditionalJump_EnabledKillsCount)
+				{
+					bool isValidKill =
+						 pKillerTeamExt->ConditionalJump_Index < 0 ?
+						 false :
+						ScriptExtData::EvaluateObjectWithMask(pVictim, pKillerTeamExt->ConditionalJump_Index, -1, -1, pKiller);
+
+					if (isValidKill || pKillerExt->LastKillWasTeamTarget)
+						pKillerTeamExt->ConditionalJump_Counter++;
+				}
+
+				// Special case for interrupting current action
+				if (pKillerTeamExt->AbortActionAfterKilling
+					&& pKillerExt->LastKillWasTeamTarget)
+				{
+					pKillerTeamExt->AbortActionAfterKilling = false;
+					auto pTeam = pFootKiller->Team;
+
+					const auto&[curAction , curArgs] = pTeam->CurrentScript->GetCurrentAction();
+					const auto&[nextAction , nextArgs] = pTeam->CurrentScript->GetNextAction();
+
+					Debug::LogInfo("DEBUG: [{}] [{}] {} = {},{} - Force next script action after successful kill: {} = {},{}"
+						, pTeam->Type->ID
+						, pTeam->CurrentScript->Type->ID
+						, pTeam->CurrentScript->CurrentMission
+						, (int)curAction
+						, curArgs
+						, pTeam->CurrentScript->CurrentMission + 1
+						, (int)nextAction
+						, nextArgs
+					);
+
+					// Jumping to the next line of the script list
+					pTeam->StepCompleted = true;
+
+				}
+
 			}
+		}
+	}
+}
 
-			// Special case for interrupting current action
-			if (pKillerTeamExt->AbortActionAfterKilling
-				&& pKillerExt->LastKillWasTeamTarget)
-			{
-				pKillerTeamExt->AbortActionAfterKilling = false;
-				auto pTeam = pFootKiller->Team;
+void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, HouseClass* pKiller)
+{
+	if (!pKiller || !pVictim)
+		return;
 
-				const auto&[curAction , curArgs] = pTeam->CurrentScript->GetCurrentAction();
-				const auto&[nextAction , nextArgs] = pTeam->CurrentScript->GetNextAction();
+	if (pKiller != pVictim->Owner) {
+		auto pHouseExt = HouseExtContainer::Instance.Find(pKiller);
 
-				Debug::LogInfo("DEBUG: [{}] [{}] {} = {},{} - Force next script action after successful kill: {} = {},{}"
-					, pTeam->Type->ID
-					, pTeam->CurrentScript->Type->ID
-					, pTeam->CurrentScript->CurrentMission
-					, (int)curAction
-					, curArgs
-					, pTeam->CurrentScript->CurrentMission + 1
-					, (int)nextAction
-					, nextArgs
-				);
-
-				// Jumping to the next line of the script list
-				pTeam->StepCompleted = true;
-
-			}
-
+		if (pHouseExt->AreBattlePointsEnabled()) {
+			pHouseExt->UpdateBattlePoints(pHouseExt->CalculateBattlePoints(pVictim));
 		}
 	}
 }

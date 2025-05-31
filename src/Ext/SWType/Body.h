@@ -97,6 +97,7 @@ public:
 	ValueableIdx<VoxClass> EVA_Ready { -1 };
 	ValueableIdx<VoxClass> EVA_Detected { -1 };
 	ValueableIdx<VoxClass> EVA_InsufficientFunds { -1 };
+	ValueableIdx<VoxClass> EVA_InsufficientBattlePoints { -1 };
 	ValueableIdx<VoxClass> EVA_SelectTarget { -1 };
 #pragma endregion
 
@@ -106,6 +107,7 @@ public:
 	Valueable<CSFText> Message_Activate {};
 	Valueable<CSFText> Message_Abort {};
 	Valueable<CSFText> Message_InsufficientFunds {};
+	Valueable<CSFText> Message_InsufficientBattlePoints {};
 	Valueable<CSFText> Message_Detected {};
 	Valueable<CSFText> Message_Ready {};
 
@@ -471,6 +473,8 @@ public:
 
 	Valueable<int> TabIndex { 1 };
 
+	Valueable<int> BattlePoints_Amount {};
+
 	~SWTypeExtData() noexcept;
 
 	void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer);
@@ -539,6 +543,7 @@ public:
 	static bool TryFire(SuperClass* pThis, bool IsPlayer);
 	static bool IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer);
 	static TargetResult PickSuperWeaponTarget(NewSWType* pNewType, const TargetingData* pTargeting, const SuperClass* pSuper);
+	static void ApplyBattlePoints(SuperClass* pSW);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{

@@ -365,10 +365,23 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
+	bool can_fire = true;
+
+	if (pExt->BattlePoints_Amount < 0
+		&& pHouseExt->AreBattlePointsEnabled()
+		&& pHouseExt->BattlePoints < Math::abs(pExt->BattlePoints_Amount.Get())
+		)
+	{
+		can_fire = false;
+	}
+
+	if (!pThis->Owner->CanTransactMoney(pExt->Money_Amount.Get()))
+		can_fire = false;
 
 	// don't try to fire if we obviously haven't enough money
-	if (pThis->Owner->CanTransactMoney(pExt->Money_Amount.Get())) {
+	if (can_fire) {
 
 		if (pExt->SW_AutoFire_CheckAvail && !pExt->IsAvailable(pThis->Owner))
 			return false;
@@ -1550,6 +1563,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	IndexFinder<VoxClass>::getindex(pThis->ImpatientVoice , exINI, pSection, "EVA.Impatient");
 	this->EVA_InsufficientFunds.Read(exINI, pSection, "EVA.InsufficientFunds");
+	this->EVA_InsufficientBattlePoints.Read(exINI, pSection, "EVA.InsufficientBattlePoints");
 	this->EVA_SelectTarget.Read(exINI, pSection, "EVA.SelectTarget");
 
 	this->Message_Detected.Read(exINI, pSection, "Message.Detected");
@@ -1557,6 +1571,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Message_Launch.Read(exINI, pSection, "Message.Launch");
 	this->Message_CannotFire.Read(exINI, pSection, "Message.CannotFire");
 	this->Message_InsufficientFunds.Read(exINI, pSection, "Message.InsufficientFunds");
+	this->Message_InsufficientBattlePoints.Read(exINI, pSection, "Message.InsufficientBattlePoints");
 
 	this->Text_Preparing.Read(exINI, pSection, "Text.Preparing");
 	this->Text_Ready.Read(exINI, pSection, "Text.Ready");
@@ -1609,6 +1624,8 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SuperWeaponSidebar_PriorityHouses = pINI->ReadHouseTypesList(pSection, "SuperWeaponSidebar.PriorityHouses", this->SuperWeaponSidebar_PriorityHouses);
 	this->SuperWeaponSidebar_RequiredHouses = pINI->ReadHouseTypesList(pSection, "SuperWeaponSidebar.RequiredHouses", this->SuperWeaponSidebar_RequiredHouses);
 	this->TabIndex.Read(exINI, pSection, "TabIndex");
+
+	this->BattlePoints_Amount.Read(exINI, pSection, "BattlePoints.Amount");
 
 	// SW.GrantOneTime.RandomWeights
 	this->SW_GrantOneTime_RandomWeightsData.clear();
@@ -1849,6 +1866,9 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 
 	if (this->SW_GrantOneTime.size() > 0)
 		this->GrantOneTimeFromList(pSW);
+
+	if (this->BattlePoints_Amount != 0)
+		SWTypeExtData::ApplyBattlePoints(pSW);
 
 	if (!this->ConvertsPair.empty())
 	{
@@ -2137,7 +2157,25 @@ void SWTypeExtData::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData
 		return;
 
 	const auto pSuperTypeExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-	if (!pLauncherTypeExt->SW_Next_RealLaunch || (pSuper->IsCharged && pHouse->CanTransactMoney(pSuperTypeExt->Money_Amount)))
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+
+	bool can_fire = true;
+
+	if (pLauncherTypeExt->SW_Next_RealLaunch && pSuper->IsCharged)
+	{
+		if (!pHouse->CanTransactMoney(pSuperTypeExt->Money_Amount))
+			can_fire = false;
+
+		if (pSuperTypeExt->BattlePoints_Amount < 0
+			&& pHouseExt->AreBattlePointsEnabled()
+			&& pHouseExt->BattlePoints < Math::abs(pSuperTypeExt->BattlePoints_Amount.Get())
+		)
+		{
+			can_fire = false;
+		}
+	}
+
+	if (can_fire)
 	{
 		if ((pLauncherTypeExt->SW_Next_IgnoreInhibitors || !pSuperTypeExt->HasInhibitor(pHouse, cell))
 			&& (pLauncherTypeExt->SW_Next_IgnoreDesignators || pSuperTypeExt->HasDesignator(pHouse, cell)))
@@ -2325,9 +2363,11 @@ void SWTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AttachedToObject->ImpatientVoice)
 		.Process(this->EVA_InsufficientFunds)
+		.Process(this->EVA_InsufficientBattlePoints)
 		.Process(this->EVA_SelectTarget)
 
 		.Process(this->Message_InsufficientFunds)
+		.Process(this->Message_InsufficientBattlePoints)
 		.Process(this->Message_Detected)
 		.Process(this->Message_Ready)
 
@@ -2479,8 +2519,15 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SuperWeaponSidebar_PriorityHouses)
 		.Process(this->SuperWeaponSidebar_RequiredHouses)
 		.Process(this->TabIndex)
+		.Process(this->BattlePoints_Amount)
 		;
 
+}
+
+void SWTypeExtData::ApplyBattlePoints(SuperClass* pSW)
+{
+	HouseExtContainer::Instance.Find(pSW->Owner)->UpdateBattlePoints
+		(SWTypeExtContainer::Instance.Find(pSW->Type)->BattlePoints_Amount);
 }
 
 void SWTypeExtData::GrantOneTimeFromList(SuperClass* pSW)

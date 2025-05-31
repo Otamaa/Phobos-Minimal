@@ -377,7 +377,12 @@ void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->SuperWeaponSidebar_OffPCX.Read(pINI, pSection, "SuperWeaponSidebar.OffPCX");
 	this->SuperWeaponSidebar_TopPCX.Read(pINI, pSection, "SuperWeaponSidebar.TopPCX");
 	this->SuperWeaponSidebar_CenterPCX.Read(pINI, pSection, "SuperWeaponSidebar.CenterPCX");
-	this->SuperWeaponSidebar_BottomPCX.Read(pINI, pSection, "SuperWeaponSidebar.BottomPCX");}
+	this->SuperWeaponSidebar_BottomPCX.Read(pINI, pSection, "SuperWeaponSidebar.BottomPCX");
+
+	this->Sidebar_BattlePoints_Offset.Read(exINI, pSection, "Sidebar.BattlePoints.Offset");
+	this->Sidebar_BattlePoints_Color.Read(exINI, pSection, "Sidebar.BattlePoints.Color");
+	this->Sidebar_BattlePoints_Align.Read(exINI, pSection, "Sidebar.BattlePoints.Align");
+}
 
 void SideExtData::UpdateGlobalFiles()
 {
@@ -508,6 +513,10 @@ void SideExtData::Serialize(T& Stm)
 		.Process(this->SuperWeaponSidebar_TopPCX)
 		.Process(this->SuperWeaponSidebar_CenterPCX)
 		.Process(this->SuperWeaponSidebar_BottomPCX)
+
+		.Process(this->Sidebar_BattlePoints_Offset)
+		.Process(this->Sidebar_BattlePoints_Color)
+		.Process(this->Sidebar_BattlePoints_Align)
 		;
 }
 
