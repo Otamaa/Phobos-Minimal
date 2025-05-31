@@ -52,12 +52,23 @@
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
+    <ClCompile Include="src\Lib\fmt\format.cc" />
+    <ClCompile Include="src\Lib\fmt\os.cc" />
+    <ClCompile Include="src\Misc\Ares\Audio.cpp" />
+    <ClCompile Include="src\Misc\Ares\CSF.cpp" />
+    <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CopyProtection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
+    <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
+    <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
     <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />
@@ -325,9 +336,6 @@
     <ClCompile Include="src\Lib\Lua\lutf8lib.c" />
     <ClCompile Include="src\Lib\Lua\lvm.c" />
     <ClCompile Include="src\Lib\Lua\lzio.c" />
-    <ClCompile Include="src\Misc\Ares\Audio.cpp" />
-    <ClCompile Include="src\Misc\Ares\CSF.cpp" />
-    <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.cpp" />
     <ClCompile Include="src\New\Entity\PrismForwarding.cpp" />
@@ -347,15 +355,12 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Ammo.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Anim.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bomb.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Building.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.BuildingLight.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.BuildngFoundation.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bullet.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Checksummer.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Colors.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CopyProtection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CustomMissile.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DebugLog.cpp" />
@@ -369,7 +374,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Movies.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Networking.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Particle.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Perf.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Prism.cpp" />
@@ -398,7 +402,6 @@
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\FighterGuardArea\FighterAreaGuard.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Techno\TurretAngle\Status.cpp" />
     <ClCompile Include="src\Misc\DynamicPatcher\Trails\Trails.cpp" />
-    <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Crashes.cpp" />
     <ClCompile Include="src\Misc\Hooks.GameSpeed.cpp" />
     <ClCompile Include="src\Misc\Hooks.HealthBar.cpp" />
@@ -406,7 +409,6 @@
     <ClCompile Include="src\Misc\Hooks.INIClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.cpp" />
     <ClCompile Include="src\Misc\Hooks.LogicUpdater.Logics.cpp" />
-    <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Hooks.PCX.cpp" />
     <ClCompile Include="src\Misc\Hooks.RocketLocomotorClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.Theaters.cpp" />
@@ -1103,7 +1105,7 @@
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalOptions>/w14287 /w15038 /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/w14287 /w15038 /utf-8 /Zc:threadSafeInit- %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

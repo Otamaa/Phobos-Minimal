@@ -318,8 +318,8 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 		}
 
 		auto coord_ = this->Bounce.GetCoords();
-		DamageArea::Apply(&coord_, this->Type->Damage, nullptr, this->Type->Warhead, true, nullptr);
-		MapClass::FlashbangWarheadAt(this->Type->Damage, this->Type->Warhead, coord_);
+		DamageArea::Apply(&coord_, (int)this->Type->Damage, nullptr, this->Type->Warhead, true, nullptr);
+		MapClass::FlashbangWarheadAt((int)this->Type->Damage, this->Type->Warhead, coord_);
 	}
 	else if (this->Type->IsMeteor)
 	{
@@ -738,7 +738,7 @@ int FakeAnimClass::_BounceAI()
 	const BounceClass::Status status  = pBounce->Update();
 
 	if (this->Type->IsMeteor) {
-		pBounce->Velocity.Z += pBounce->Gravity;
+		pBounce->Velocity.Z += (int)pBounce->Gravity;
 	}
 
 	auto _coord = pBounce->GetCoords();

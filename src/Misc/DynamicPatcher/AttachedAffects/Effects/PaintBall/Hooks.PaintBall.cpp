@@ -58,7 +58,7 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 				*tintColor |= paint.second.Color;
 
 			if(calculateIntensity && paint.second.Data->BrightMultiplier != 0.0)
-				*intensity *= paint.second.Data->BrightMultiplier;
+				*intensity = (int)(*intensity * paint.second.Data->BrightMultiplier);
 		}
 	}
 

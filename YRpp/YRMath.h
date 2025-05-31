@@ -175,10 +175,12 @@ namespace Math
 	template<class T>
 	OPTIONALINLINE T abs(T const& x) noexcept
 		requires std::is_arithmetic_v<T> {
-		if constexpr (std::is_floating_point_v<T>)
-			return  static_cast<T>(std::fabs(x));
-		else
+		if constexpr (std::is_same<T, double>::value || std::is_same<T, int>::value || std::is_same<T, short>::value)
 			return static_cast<T>(std::abs(x));
+		else if constexpr (std::is_same<T, float>::value)
+			return static_cast<T>(std::fabs(x));
+		else
+			static_assert("Not supported");
 	}
 
 	template <typename T>
@@ -203,7 +205,7 @@ namespace Math
 			/**
 			 *  Calculate the damage at the furthest point.
 			 */
-			float at_max = static_cast<T>(value) * percent_at_max;
+			T at_max = static_cast<T>(value) * percent_at_max;
 
 			/**
 			 *  Reduce the damage based on the distance and the damage % at max distance.

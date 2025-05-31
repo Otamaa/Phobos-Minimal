@@ -266,7 +266,7 @@ void AnimExtData::DealDamageDelay(AnimClass* pThis)
 				pThis->Accum += (pThis->Type->Damage * damageMultiplier);
 
 				if (pThis->Accum >= 1 && !pThis->IsPlaying) {
-					int damage = pThis->Accum;
+					int damage = (int)pThis->Accum;
 					pThis->Accum -= damage;
 					ApplyDamage(pThis, pExt, pTypeExt, pInvoker, damage);
 				}

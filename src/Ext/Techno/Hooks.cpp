@@ -1104,7 +1104,7 @@ ASMJIT_PATCH(0x521D94, InfantryClass_CurrentSpeed_ProneSpeed, 0x6)
 
 	auto multiplier = pThis->_GetTypeExtData()->ProneSpeed.Get(
 		RulesExtData::Instance()->InfantrySpeedData.getSpeed(pThis->Type->Crawls));
-	currentSpeed *= multiplier;
+	currentSpeed = (int)(currentSpeed * multiplier);
 
 	//if (pThis->Type->Crawls) {
 	//	// Crawling: move at one-third speed

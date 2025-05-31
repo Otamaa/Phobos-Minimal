@@ -268,7 +268,7 @@ inline int Distance_Level_Snap(const Coordinate& coord1, const Coordinate& coord
 	{
 		z2 = coord1.Z;
 	}
-	return CoordStruct(coord1.X - coord2.X, coord1.Y - coord2.Y, z1 - z2).Length();
+	return (int)CoordStruct(coord1.X - coord2.X, coord1.Y - coord2.Y, z1 - z2).Length();
 }
 
 // this function is landmines , hooking it breaking other

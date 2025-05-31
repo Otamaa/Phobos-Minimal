@@ -222,11 +222,10 @@ int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 	{
 		// verify just in case:
 		auto who_are_you = reinterpret_cast<uintptr_t*>(reinterpret_cast<DWORD>(pVXL) - (offsetof(TechnoTypeClass, MainVoxel)));
-		if (who_are_you[0] == UnitTypeClass::vtable)
+		if (who_are_you[0] == UnitTypeClass::vtable) {
 			pType = reinterpret_cast<TechnoTypeClass*>(who_are_you);//you are someone else
-		else {
-				if((&TechnoTypeExtContainer::Instance.Find(pType)->SpawnAltData) != pVXL)
-					return pThis->TurretAnimFrame % pVXL->HVA->FrameCount;
+		} else if ((&TechnoTypeExtContainer::Instance.Find(pType)->SpawnAltData) != pVXL) {
+			return pThis->TurretAnimFrame % pVXL->HVA->FrameCount;
 		}
 
 		// you might also be SpawnAlt voxel, but I can't know
@@ -663,7 +662,7 @@ ASMJIT_PATCH(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 	GET_STACK(VoxelStruct*, main_vxl, STACK_OFFSET(0x18, 0x4));
 
 	if (!pThis->IsAlive)
-		return 0x0;
+		return 0x4DB195;
 
 	auto pType = TechnoExt_ExtData::GetImage(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
