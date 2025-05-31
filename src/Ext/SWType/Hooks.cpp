@@ -33,6 +33,22 @@
 //ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
 std::chrono::high_resolution_clock::time_point lastFrameTime;
 
+//separate the function
+ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
+{
+	HarmlessCommandClass::AI();
+	SWFirerClass::Update();
+	SWStateMachine::UpdateAll();
+	HouseExtData::UpdateAutoDeathObjects();
+	HouseExtData::UpdateTransportReloaders();
+
+	for (auto pHouse : *HouseClass::Array) {
+		AresHouseExt::UpdateTogglePower(pHouse);
+	}
+
+	return 0x0;
+}
+
 ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
 	lastFrameTime = std::chrono::high_resolution_clock::now();
@@ -44,7 +60,6 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	HouseExtData::UpdateTransportReloaders();
 
 	for (auto pHouse : *HouseClass::Array) {
-		//auto pExt = HouseExtContainer::Instance.Find(pHouse);
 		AresHouseExt::UpdateTogglePower(pHouse);
 	}
 
@@ -79,7 +94,7 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	//}
 
 	return 0x0;
-}//ASMJIT_PATCH_AGAIN(0x55B719, LogicClass_Update, 0x5)
+}//
 
 ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 {

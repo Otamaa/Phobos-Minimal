@@ -359,14 +359,11 @@ ASMJIT_PATCH(0x474230, CCINIClass_Load_Inheritance, 0x5)
 			if (nFile.Exists())
 				INIInheritance::LastINIFile->ReadCCFile(&nFile, false, false);
 			else {
-				const char* msg = "Included INI file %s does not exist";
 
 				if(!Phobos::Otamaa::IsAdmin)
-					Debug::FatalErrorAndExit(msg, node.Data->Value);
-				else {
-					Debug::LogError(msg, node.Data->Value);
-				}
-
+					Debug::FatalErrorAndExit("Included INI file %s does not exist", node.Data->Value);
+				else
+					Debug::Log("Included INI file %s does not exist\n", node.Data->Value);
 			}
 		}
 	}
