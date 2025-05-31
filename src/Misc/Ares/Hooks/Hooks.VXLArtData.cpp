@@ -499,14 +499,13 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 {
 	//Debug::LogInfo(__FUNCTION__" Exec");
 	GET(UnitClass*, pThis, EBP);
-	enum { SkipDrawing = 0x73C5C9 };
 
 	auto const loco = pThis->Locomotor.GetInterfacePtr();
 
 	if (pThis->Type->NoShadow
 		|| pThis->CloakState != CloakState::Uncloaked
 		|| !loco->Is_To_Have_Shadow())
-		return SkipDrawing;
+		return 0x73C5C9;
 
 	REF_STACK(Matrix3D, shadow_matrix, STACK_OFFSET(0x1C4, -0x130));
 	GET_STACK(VoxelIndexKey, vxl_index_key, STACK_OFFSET(0x1C4, -0x1B0));
@@ -540,42 +539,42 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 
 	if (!pType->UseTurretShadow ) {
 		if(uTypeExt->ShadowIndices.empty()) {
-		if (pType->ShadowIndex >= 0 && pType->ShadowIndex < main_vxl->HVA->LayerCount)
-			pThis->DrawVoxelShadow(
-				   main_vxl,
-				   pType->ShadowIndex,
-				   vxl_index_key,
-				   &pType->VoxelCaches.Shadow,
-				   bounding,
-				   &why,
-				   &mtx,
-				   true,
-				   surface,
-				   shadow_point
-			);
+			if (pType->ShadowIndex >= 0 && pType->ShadowIndex < main_vxl->HVA->LayerCount)
+				pThis->DrawVoxelShadow(
+					   main_vxl,
+					   pType->ShadowIndex,
+					   vxl_index_key,
+					   &pType->VoxelCaches.Shadow,
+					   bounding,
+					   &why,
+					   &mtx,
+					   true,
+					   surface,
+					   shadow_point
+				);
 		}
-	}
-	else
-	{
-		for (const auto& indices : uTypeExt->ShadowIndices)
-			pThis->DrawVoxelShadow(
-				   main_vxl,
-				   indices.first,
-				   indices.first == pType->ShadowIndex ? vxl_index_key : std::bit_cast<VoxelIndexKey>(-1),
-					&pType->VoxelCaches.Shadow,
-				   bounding,
-				   &why,
-				   &mtx,
-				    indices.first == pType->ShadowIndex,
-				   surface,
-				   shadow_point
-			);
+		else
+		{
+			for (const auto& indices : uTypeExt->ShadowIndices)
+				pThis->DrawVoxelShadow(
+					   main_vxl,
+					   indices.first,
+					   indices.first == pType->ShadowIndex ? vxl_index_key : std::bit_cast<VoxelIndexKey>(-1),
+						&pType->VoxelCaches.Shadow,
+					   bounding,
+					   &why,
+					   &mtx,
+						indices.first == pType->ShadowIndex,
+					   surface,
+					   shadow_point
+				);
+		}
 	}
 
 	if (main_vxl == &pType->TurretVoxel
 		|| (!pType->UseTurretShadow
 			&& !uTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow)))
-		return SkipDrawing;
+		return 0x73C5C9;
 
 	uTypeExt->ApplyTurretOffset(&mtx, Game::Pixel_Per_Lepton());
 	mtx.RotateZ(static_cast<float>(pThis->SecondaryFacing.Current().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>()));
@@ -584,29 +583,29 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 	if (inRecoil)
 		mtx.TranslateX(-pThis->TurretRecoil.TravelSoFar);
 
-	auto tur = TechnoTypeExtData::GetTurretsVoxel(pType , pThis->CurrentTurretNumber);
+	auto tur = TechnoTypeExtData::GetTurretsVoxelFixedUp(pType , pThis->CurrentTurretNumber);
 
 	// sorry but you're fucked
 	if (tur && tur->VXL && tur->HVA) {
 
-		auto bar = TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber);
+		auto bar = TechnoTypeExtData::GetBarrelsVoxelFixedUp(pType, pThis->CurrentTurretNumber);
 		auto haveBar = bar && bar->VXL && bar->HVA && !bar->VXL->LoadFailed;
 
 		if (vxl_index_key.Is_Valid_Key())
 			vxl_index_key.TurretWeapon.Facing = pThis->SecondaryFacing.Current().GetFacing<32>();
 
-			auto* cache = &pType->VoxelCaches.Shadow;
+		auto* cache = &pType->VoxelCaches.Shadow;
 
-			if (!pType->UseTurretShadow)
-			{
-				if (haveBar)
-					cache = nullptr;
-				else
-					cache = tur != &pType->TurretVoxel ?
-					nullptr // man what can I say, you are fucked, for now
-					: reinterpret_cast<decltype(cache)>(&pType->VoxelCaches.TurretBarrel) // excuse me
-					;
-			}
+		if (!pType->UseTurretShadow)
+		{
+			if (haveBar)
+				cache = nullptr;
+			else
+				cache = tur != &pType->TurretVoxel ?
+				nullptr // man what can I say, you are fucked, for now
+				: reinterpret_cast<decltype(cache)>(&pType->VoxelCaches.TurretBarrel) // excuse me
+				;
+		}
 
 		pThis->DrawVoxelShadow(
 			tur,
@@ -644,7 +643,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		}
 	}
 
-	return SkipDrawing;
+	return 0x73C5C9;
 }
 
 #else
@@ -668,9 +667,7 @@ ASMJIT_PATCH(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 
 	auto pType = TechnoExt_ExtData::GetImage(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto tur = pType->Gunner || pType->IsChargeTurret
-		? TechnoTypeExtData::GetTurretsVoxel(pType, pThis->CurrentTurretNumber)
-		: &pType->TurretVoxel;
+	const auto tur = TechnoTypeExtData::GetTurretsVoxelFixedUp(pType, pThis->CurrentTurretNumber);
 
 	if (pTypeExt->TurretShadow.Get(RulesExtData::Instance()->DrawTurretShadow) && tur->VXL && tur->HVA)
 	{
@@ -688,9 +685,7 @@ ASMJIT_PATCH(0x4DB157, FootClass_DrawVoxelShadow_TurretShadow, 0x8)
 
 		pThis->DrawVoxelShadow(tur, 0, index_key, 0, bound, &a3, &mtx, a9, pSurface, pos);
 
-		const auto bar = pType->ChargerBarrels ?
-			TechnoTypeExtData::GetBarrelsVoxel(pType, pThis->CurrentTurretNumber)
-			: &pType->BarrelVoxel;
+		const auto bar = TechnoTypeExtData::GetBarrelsVoxelFixedUp(pType, pThis->CurrentTurretNumber);
 
 		if (bar->VXL && bar->HVA)
 			pThis->DrawVoxelShadow(bar, 0, index_key, 0, bound, &a3, &mtx, a9, pSurface, pos);
