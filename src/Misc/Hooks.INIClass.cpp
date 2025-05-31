@@ -363,8 +363,10 @@ ASMJIT_PATCH(0x474230, CCINIClass_Load_Inheritance, 0x5)
 
 				if(!Phobos::Otamaa::IsAdmin)
 					Debug::FatalErrorAndExit(msg, node.Data->Value);
-				else
-					Debug::Log(msg, node.Data->Value);
+				else {
+					Debug::LogError(msg, node.Data->Value);
+				}
+
 			}
 		}
 	}
