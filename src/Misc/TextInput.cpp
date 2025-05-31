@@ -43,6 +43,9 @@ ASMJIT_PATCH(0x61510E, WWUI_NewEditCtrl, 0x7)
 	return 0x615226;
 }
 
+//55EDD2
+//48D92B
+//55F0A8
 //DEFINE_FUNCTION_JUMP(LJMP,0x7CC2AC, GET_OFFSET(mbstowcs));
 
 // It is required to add Imm32.lib to AdditionalDependencies
