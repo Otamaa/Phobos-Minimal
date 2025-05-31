@@ -6150,7 +6150,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 ASMJIT_PATCH(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
-	HouseExtData::LimboTechno.push_back_unique(pItem);
+	HouseExtData::LimboTechno.emplace(pItem);
 	TechnoExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
@@ -6159,19 +6159,18 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ECX);
 
-	for (auto& item : HouseExtData::AutoDeathObjects) {
-		if (item.first == pItem) {
-			item.first = nullptr;
-			item.second = KillMethod::None;
-		}
-	}
+	HouseExtData::AutoDeathObjects.erase_all_if([pItem](std::pair<TechnoClass*, KillMethod>& item) {
+		return item.first == pItem;
+	});
 
-	HouseExtData::LimboTechno.remove(pItem);
-	TechnoExtContainer::Instance.Remove(pItem);
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing && pItem->WhatAmI() == AbstractType::Unit && pItem->GetTechnoType()->DeploysInto) {
+	HouseExtData::LimboTechno.erase(pItem);
+	const auto pExt = TechnoExtContainer::Instance.Find(pItem);
+
+	if (RulesExtData::Instance()->ExtendedBuildingPlacing && pExt->AbsType == AbstractType::Unit && ((UnitClass*)pItem)->Type->DeploysInto) {
 		HouseExtContainer::Instance.Find(pItem->Owner)->OwnedDeployingUnits.remove((UnitClass*)pItem);
 	}
 
+	TechnoExtContainer::Instance.RemoveExtOf(pItem , pExt);
 	return 0;
 }
 

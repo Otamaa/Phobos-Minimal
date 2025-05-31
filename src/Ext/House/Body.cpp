@@ -25,7 +25,7 @@ std::vector<int> HouseExtData::AIProduction_Values;
 std::vector<int> HouseExtData::AIProduction_BestChoices;
 std::vector<int> HouseExtData::AIProduction_BestChoicesNaval;
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
-HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
+std::set<TechnoClass*> HouseExtData::LimboTechno;
 
 int HouseExtData::LastGrindingBlanceUnit;
 int HouseExtData::LastGrindingBlanceInf;

@@ -63,7 +63,7 @@
 
 // Make sure '#ifdef'ed unit tests are properly highlighted in IDE.
 //#if !defined(ASMJIT_TEST) && defined(__INTELLISENSE__)
-//  #define ASMJIT_TEST
+ // #define ASMJIT_TEST
 //#endif
 
 // Include a unit testing package if this is a `asmjit_test_unit` build.

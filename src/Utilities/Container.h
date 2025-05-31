@@ -208,6 +208,19 @@ public:
 		}
 	}
 
+	void RemoveExtOf(base_type_ptr key , extension_type_ptr Item) {
+
+		if constexpr (!IsMemoryPoolObject<T>) {
+			DLLCallDTOR<false>(Item);
+		}
+		else
+		{
+			Item->deleteInstance();
+		}
+
+		this->ClearExtAttribute(key);
+	}
+
 	void LoadFromINI(base_type_ptr key, CCINIClass* pINI, bool parseFailAddr)
 	{
 		if COMPILETIMEEVAL (CanLoadFromINIFile<T>)

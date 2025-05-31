@@ -380,7 +380,7 @@ public:
 	static std::vector<int> AIProduction_BestChoices;
 	static std::vector<int> AIProduction_BestChoicesNaval;
 	static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
-	static HelperedVector<TechnoClass*> LimboTechno;
+	static std::set<TechnoClass*> LimboTechno;
 
 	static int LastGrindingBlanceUnit;
 	static int LastGrindingBlanceInf;

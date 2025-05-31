@@ -319,12 +319,9 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
 	if (removed) {
-		for (auto& item : HouseExtData::AutoDeathObjects) {
-			if(item.first == pInvalid) {
-				item.first = nullptr;
-				item.second = KillMethod::None;
-			}
-		}
+		HouseExtData::AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
+			return item.first == pInvalid;
+		});
 	}
 
 	HugeBar::InvalidatePointer(pInvalid, removed);
