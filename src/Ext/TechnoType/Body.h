@@ -1104,6 +1104,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	bool IsCountedAsHarvester();
+	bool IsSecondary(int nWeaponIndex);
 
 	void AdjustCrushProperties();
 

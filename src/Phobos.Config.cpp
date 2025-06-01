@@ -219,7 +219,7 @@ void Phobos::Config::Read()
 		 Phobos::UI::SuperWeaponSidebar_MaxColumns =
 			 pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.MaxColumns", Phobos::UI::SuperWeaponSidebar_MaxColumns);
 
-		 pINI->ReadString(SIDEBAR_SECTION_T, "BattlePoints.Label", GameStrings::NoneStr(), Phobos::readBuffer);
+		 pINI->ReadString(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label", GameStrings::NoneStr(), Phobos::readBuffer);
 			Phobos::UI::BattlePoints_Label = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u2605: "); // ★:
 
 		 Phobos::UI::BattlePointsSidebar_Label_InvertPosition =

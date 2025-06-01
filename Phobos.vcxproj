@@ -33,7 +33,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.Gravity.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.JumpJet.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.GattlingRate.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.Gattling.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />

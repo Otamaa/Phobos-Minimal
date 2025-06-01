@@ -1310,7 +1310,14 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 				continue;
 
 			if (pData->SW_ResetType.Contains(pHouseSuper->Type->ArrayIndex))
+			{
 				pHouseSuper->Reset();
+				//auto pTypeExt = SWTypeExtContainer::Instance.Find(pHouseSuper->Type);
+
+				//if(pTypeExt->SW_VirtualCharge)
+
+			}
+
 		}
 	}
 

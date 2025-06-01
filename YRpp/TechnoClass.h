@@ -778,6 +778,20 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x6339B0);
 	}
 
+	void GattlingRateUp(int value)
+	{ JMP_THIS(0x70DE70); }
+
+	void GattlingRateDown(int value)
+	{ JMP_THIS(0x70E000); }
+
+	void ReleaseLocomotor(bool setTarget)
+	{ JMP_THIS(0x70FEE0); }
+
+		// changes locomotor to the given one, Magnetron style
+		//	// mind that this locks up the source too, Magnetron style
+    void ImbueLocomotor(FootClass* target, CLSID clsid)
+	{ JMP_THIS(0x710000); }
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

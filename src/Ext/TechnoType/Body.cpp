@@ -19,6 +19,16 @@
 #include <Utilities/Cast.h>
 #include <Utilities/EnumFunctions.h>
 
+bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
+{
+	const auto pThis = this->AttachedToObject;
+
+	if (pThis->IsGattling)
+		return nWeaponIndex != 0 && nWeaponIndex % 2 != 0;
+
+	return nWeaponIndex != 0;
+}
+
 void TechnoTypeExtData::Initialize()
 {
 	this->ShieldType = ShieldTypeClass::Array.begin()->get();
