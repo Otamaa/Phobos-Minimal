@@ -522,7 +522,7 @@ public:
 	Valueable<bool> Infantry_IgnoreBuildingSizeLimit { true };
 
 	Nullable<bool> BattlePoints {};
-	Nullable<int> BattlePoints_DefaultValue {};
+	Valueable<int> BattlePoints_DefaultValue {};
 	Nullable<int> BattlePoints_DefaultFriendlyValue {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

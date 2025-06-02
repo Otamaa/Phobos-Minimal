@@ -236,7 +236,7 @@ public:
 	void UpdateBattlePoints(int modifier);
 	bool AreBattlePointsEnabled();
 	int CalculateBattlePoints(TechnoClass* pTechno);
-	int CalculateBattlePoints(TechnoTypeClass* pTechno);
+	int CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pOwner);
 
 	static SuperClass* IsSuperAvail(int nIdx, HouseClass* pHouse);
 

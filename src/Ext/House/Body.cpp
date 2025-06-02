@@ -1946,58 +1946,48 @@ bool HouseExtData::AreBattlePointsEnabled()
 	const auto pOwnerTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
 
 	// Global setting
-	if (RulesExtData::Instance()->BattlePoints.isset())
-		return RulesExtData::Instance()->BattlePoints.Get();
+	if (!RulesExtData::Instance()->BattlePoints.isset()) {
+		// House specific setting
+		if (!pOwnerTypeExt->BattlePoints) {
+			// Structures can enable this logic overwriting the house's setting
+			for (const auto& pBuilding : pThis->Buildings) {
+				const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+				if (pBuildingTypeExt->BattlePointsCollector.Get(false))
+					return true;
+			}
 
-	// House specific setting
-	if (!pOwnerTypeExt->BattlePoints)
-	{
-		// Structures can enable this logic overwriting the house's setting
-		for (const auto& pBuilding : pThis->Buildings)
-		{
-			const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-			if (pBuildingTypeExt->BattlePointsCollector.Get(false))
-				return true;
+			return false;
+		} else {
+			return true;
 		}
-
-		return false;
 	}
 
-	return true;
+	return RulesExtData::Instance()->BattlePoints.Get();
 }
 
 int HouseExtData::CalculateBattlePoints(TechnoClass* pTechno)
 {
-	if (!pTechno)
-		return 0;
-
-	const auto pThis = this->AttachedToObject;
-	const auto pThisTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
-	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
-
-	int defaultValue = RulesExtData::Instance()->BattlePoints_DefaultValue.Get(0);
-	int defaultFriendlyValue = RulesExtData::Instance()->BattlePoints_DefaultFriendlyValue.Get(0);
-
-	int points = pThis->IsAlliedWith(pTechno) ? defaultFriendlyValue : defaultValue;
-	points = pTechnoTypeExt->BattlePoints.Get(points);
-	points = points == 0 && pThisTypeExt->BattlePoints_CanUseStandardPoints ? pTechno->GetTechnoType()->Points : points;
-
-	return points;
+	return pTechno  ? CalculateBattlePoints(pTechno->GetTechnoType(), pTechno->Owner) : 0;
 }
 
-int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno)
+int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pOwner)
 {
 	const auto pThis = this->AttachedToObject;
 	const auto pThisTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno);
 
-	int defaultValue = RulesExtData::Instance()->BattlePoints_DefaultValue.Get(0);
-	int defaultFriendlyValue = RulesExtData::Instance()->BattlePoints_DefaultFriendlyValue.Get(0);
+	if (pTechnoTypeExt->BattlePoints.isset() && pTechnoTypeExt->BattlePoints.Get() != 0)
+		return pTechnoTypeExt->BattlePoints.Get();
+	else if(!pTechnoTypeExt->BattlePoints.isset()){
 
-	int points = pTechnoTypeExt->BattlePoints.Get(defaultValue);
-	points = points == 0 && pThisTypeExt->BattlePoints_CanUseStandardPoints ? pTechno->Points : points;
+		const int Points = RulesExtData::Instance()->BattlePoints_DefaultFriendlyValue.isset() && pThis->IsAlliedWith(pOwner) ?
+			RulesExtData::Instance()->BattlePoints_DefaultFriendlyValue.Get() :  RulesExtData::Instance()->BattlePoints_DefaultValue;
 
-	return points;
+		if(Points != 0)
+			return Points;
+	}
+
+	return !pThisTypeExt->BattlePoints_CanUseStandardPoints ? 0 : pTechno->Points;
 }
 
 //void HouseExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
