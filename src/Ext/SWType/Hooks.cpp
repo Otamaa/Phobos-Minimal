@@ -616,8 +616,8 @@ ASMJIT_PATCH(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 
 	if (pData->BattlePoints_Amount < 0 && pHouseData->AreBattlePointsEnabled() && pHouseData->BattlePoints < Math::abs(pData->BattlePoints_Amount.Get()))
 	{
-		VoxClass::PlayIndex(pData->EVA_InsufficientFunds);
-		pData->PrintMessage(pData->Message_InsufficientFunds, HouseClass::CurrentPlayer);
+		VoxClass::PlayIndex(pData->EVA_InsufficientBattlePoints);
+		pData->PrintMessage(pData->Message_InsufficientBattlePoints, HouseClass::CurrentPlayer);
 		return RetImpatientClick;
 	}
 

@@ -1304,21 +1304,34 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 		}
 	}
 
-	if (!pData->SW_ResetType.empty()) {
-		for (auto& pHouseSuper : pOwner->Supers) {
-			if (pHouseSuper == pSuper)
-				continue;
+	//if (!pData->SW_ResetType.empty()) {
+	//	for (auto& pHouseSuper : pOwner->Supers) {
+	//		if (pHouseSuper == pSuper)
+	//			continue;
 
-			if (pData->SW_ResetType.Contains(pHouseSuper->Type->ArrayIndex))
-			{
-				pHouseSuper->Reset();
-				//auto pTypeExt = SWTypeExtContainer::Instance.Find(pHouseSuper->Type);
+	//		if (pData->SW_ResetType.Contains(pHouseSuper->Type->ArrayIndex))
+	//		{
+	//			pHouseSuper->Reset();
+	//			//auto pTypeExt = SWTypeExtContainer::Instance.Find(pHouseSuper->Type);
 
-				//if(pTypeExt->SW_VirtualCharge)
+	//			//if(pTypeExt->SW_VirtualCharge)
 
-			}
+	//		}
 
-		}
+	//	}
+	//}
+
+	for (auto& sw_ : pData->SW_ResetType) {
+
+		if (size_t(sw_) > pOwner->Supers.size())
+			continue;
+
+		const auto pHouseSuper = pOwner->Supers[sw_];
+
+		if (pHouseSuper == pSuper)
+			continue;
+
+		pHouseSuper->Reset();
 	}
 
 	return true;

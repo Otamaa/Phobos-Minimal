@@ -168,11 +168,14 @@ bool SWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
 	return this->ControlClass::Action(flags, pKey, KeyModifier::None);
 }
 
+#include <Ext/House/Body.h>
+
 bool SWButtonClass::LaunchSuper() const
 {
 	const auto pCurrent = HouseClass::CurrentPlayer();
 	const auto pSuper = pCurrent->Supers[this->SuperIndex];
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pCurrent);
 	const bool manual = !pSWExt->SW_ManualFire && pSWExt->SW_AutoFire;
 	const bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining && pSWExt->SW_Unstoppable;
 
@@ -186,8 +189,10 @@ bool SWButtonClass::LaunchSuper() const
 	{
 		VoxClass::PlayIndex(pSWExt->EVA_InsufficientFunds);
 		pSWExt->PrintMessage(pSWExt->Message_InsufficientFunds, pCurrent);
-	}
-	else if (!pSWExt->SW_UseAITargeting || SWTypeExtData::IsTargetConstraintsEligible(pSuper, true))
+	} else if (pSWExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled() && pHouseExt->BattlePoints < Math::abs(pSWExt->BattlePoints_Amount.Get())) {
+		VoxClass::PlayIndex(pSWExt->EVA_InsufficientBattlePoints);
+		pSWExt->PrintMessage(pSWExt->Message_InsufficientBattlePoints, pCurrent);
+	} else if (!pSWExt->SW_UseAITargeting || SWTypeExtData::IsTargetConstraintsEligible(pSuper, true))
 	{
 		if (!manual && !unstoppable)
 		{
