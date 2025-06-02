@@ -1436,6 +1436,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ForceAAWeapon_InRange.Read(exINI, pSection, "ForceAAWeapon.InRange");
 		this->ForceAAWeapon_InRange_Overrides.Read(exINI, pSection, "ForceAAWeapon.InRange.Overrides");
 		this->ForceAAWeapon_InRange_ApplyRangeModifiers.Read(exINI, pSection, "ForceAAWeapon.InRange.ApplyRangeModifiers");
+		this->ForceWeapon_InRange_TechnoOnly.Read(exINI, pSection, "ForceWeapon.InRange.TechnoOnly");
 
 		if (!RefinerySmokeParticleSystemOne.isset()) {
 			RefinerySmokeParticleSystemOne = this->AttachedToObject->RefinerySmokeParticleSystem;
@@ -1596,6 +1597,14 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		}
 
 		this->BattlePoints.Read(exINI, pSection, "BattlePoints");
+		this->ForceWeapon_Check = (
+			this->ForceWeapon_Naval_Decloaked >= 0	||
+			this->ForceWeapon_Cloaked >= 0			||
+			this->ForceWeapon_Disguised >= 0		||
+			this->ForceWeapon_UnderEMP >= 0			||
+			!this->ForceWeapon_InRange.empty()		||
+			!this->ForceAAWeapon_InRange.empty()
+		);
 	}
 
 	// Art tags
@@ -2714,6 +2723,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ForceAAWeapon_InRange)
 		.Process(this->ForceAAWeapon_InRange_Overrides)
 		.Process(this->ForceAAWeapon_InRange_ApplyRangeModifiers)
+		.Process(this->ForceWeapon_InRange_TechnoOnly)
 
 		.Process(this->UnitIdleRotateTurret)
 		.Process(this->UnitIdlePointToMouse)
@@ -2789,6 +2799,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->RadarInvisibleToHouse)
 
 		.Process(this->BattlePoints)
+		.Process(this->ForceWeapon_Check)
 		;
 }
 

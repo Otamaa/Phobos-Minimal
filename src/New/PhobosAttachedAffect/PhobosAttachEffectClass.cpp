@@ -16,8 +16,12 @@ PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
 	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 
-	if (this->Invoker)
-		TechnoExtContainer::Instance.Find(this->Invoker)->AttachedEffectInvokerCount--;
+	if (!Phobos::Otamaa::ExeTerminated)
+	{
+		//there an instance where Ext is nullptr
+		if (auto pExt = TechnoExtContainer::Instance.TryFind(this->Invoker))
+			pExt->AttachedEffectInvokerCount--;
+	}
 }
 
 void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
@@ -170,7 +174,7 @@ void PhobosAttachEffectClass::AI()
 		this->CreateAnim();
 
 	this->AnimCheck();
-	
+
 	if (auto pTag = this->Techno->AttachedTag)
 		pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, this->Techno, CellStruct::Empty);
 }

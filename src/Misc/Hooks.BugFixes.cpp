@@ -1239,7 +1239,7 @@ struct OverlayByteReader
 
 	bool IsAvailable() const { return uuLength > 0; }
 
-	unsigned char Get()
+	unsigned char GetByte()
 	{
 		if (IsAvailable())
 		{
@@ -1250,6 +1250,19 @@ struct OverlayByteReader
 		return 0;
 	}
 
+	unsigned short GetWord()
+	{
+		if (IsAvailable())
+		{
+			unsigned short ret;
+			ls.Get(&ret, sizeof(ret));
+			return ret;
+		}
+
+		return 0;
+	}
+
+public:
 	size_t uuLength;
 	void* pBuffer;
 	LCWStraw ls;
@@ -1258,27 +1271,32 @@ struct OverlayByteReader
 
 struct OverlayReader
 {
-	size_t Get()
+	int Get()
 	{
-		const unsigned char ret[4] {
-			ByteReaders[0].Get(),
-			ByteReaders[1].Get(),
-			ByteReaders[2].Get(),
-			ByteReaders[3].Get()
-		};
+		if (ScenarioClass::NewINIFormat >= 5)
+		{
+			unsigned short shrt = ByteReader.GetWord();
+			if (shrt != static_cast<unsigned short>(-1))
+				return shrt;
+		}
+		else
+		{
+			unsigned char byte = ByteReader.GetByte();
+			if (byte != static_cast<unsigned char>(-1))
+				return byte;
+		}
 
-		return ret[0] == 0xFF ? 0xFFFFFFFF : (ret[0] | (ret[1] << 8) | (ret[2] << 16) | (ret[3] << 24));
+		return -1;
 	}
 
 	OverlayReader(CCINIClass* pINI)
-		:ByteReaders { {pINI, GameStrings::OverlayPack() }, { pINI,"OverlayPack2" }, { pINI,"OverlayPack3" }, { pINI,"OverlayPack4" }, }
-	{
+		: ByteReader{ pINI, GameStrings::OverlayPack() }	{
 	}
 
 	~OverlayReader() = default;
 
 private:
-	OverlayByteReader ByteReaders[4];
+	OverlayByteReader ByteReader;
 };
 
 ASMJIT_PATCH(0x5FD2E0, OverlayClass_ReadINI, 0x7)
@@ -1298,7 +1316,7 @@ ASMJIT_PATCH(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 			for (short j = 0; j < 0x200; ++j)
 			{
 				CellStruct mapCoord { j,i };
-				size_t nOvl = reader.Get();
+				int nOvl = reader.Get();
 
 				if (nOvl != 0xFFFFFFFF)
 				{
@@ -1357,13 +1375,9 @@ ASMJIT_PATCH(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 struct OverlayByteWriter
 {
 	OverlayByteWriter(const char* pSection, size_t nBufferLength)
-		:
-		lpSectionName { pSection },
-		uuLength { 0 },
-		Buffer { YRMemory::Allocate(nBufferLength) },
-		bp { nullptr, 0 },
-		lp { FALSE,0x2000 }
+		: lpSectionName { pSection }, uuLength { 0 }, bp { nullptr,0 }, lp { FALSE,0x2000 }
 	{
+		this->Buffer = YRMemory::Allocate(nBufferLength);
 		bp.Buffer.Buffer = this->Buffer;
 		bp.Buffer.Size = nBufferLength;
 		bp.Buffer.Allocated = false;
@@ -1372,16 +1386,20 @@ struct OverlayByteWriter
 
 	~OverlayByteWriter()
 	{
-		if (this->Buffer)
-			YRMemory::Deallocate(this->Buffer);
+		YRMemory::Deallocate(this->Buffer);
 	}
 
-	void  FORCEDINLINE Put(unsigned char data)
+	void PutByte(unsigned char data)
 	{
-		uuLength += lp.Put(&data, 1);
+		uuLength += lp.Put(&data, sizeof(data));
 	}
 
-	void FORCEDINLINE PutBlock(CCINIClass* pINI) const
+	void PutWord(unsigned short data)
+	{
+		uuLength += lp.Put(&data, sizeof(data));
+	}
+
+	void PutBlock(CCINIClass* pINI)
 	{
 		pINI->Clear(this->lpSectionName, nullptr);
 		pINI->WriteUUBlock(this->lpSectionName, this->Buffer, uuLength);
@@ -1397,42 +1415,24 @@ struct OverlayByteWriter
 struct OverlayWriter
 {
 	OverlayWriter(size_t nLen)
-		: ByteWriters {
-			{ GameStrings::OverlayPack(), nLen },
-			{ "OverlayPack2", nLen },
-			{ "OverlayPack3", nLen },
-			{ "OverlayPack4", nLen }
-		}
-	{
-	}
-
-	~OverlayWriter() = default;
+		: ByteWriter { GameStrings::OverlayPack() , nLen }
+	{ }
 
 	void Put(int nOverlay)
 	{
-		unsigned char bytes[] = {
-			unsigned char(nOverlay & 0xFF),
-			unsigned char((nOverlay >> 8) & 0xFF),
-			unsigned char((nOverlay >> 16) & 0xFF),
-			unsigned char((nOverlay >> 24) & 0xFF),
-		};
-
-		ByteWriters[0].Put(bytes[0]);
-		ByteWriters[1].Put(bytes[1]);
-		ByteWriters[2].Put(bytes[2]);
-		ByteWriters[3].Put(bytes[3]);
+		if (ScenarioClass::NewINIFormat >= 5)
+			ByteWriter.PutWord(static_cast<unsigned char>(nOverlay));
+		else
+			ByteWriter.PutByte(static_cast<unsigned short>(nOverlay));
 	}
 
-	void PutBlock(CCINIClass* pINI) const
+	void PutBlock(CCINIClass* pINI)
 	{
-		ByteWriters[0].PutBlock(pINI);
-		ByteWriters[1].PutBlock(pINI);
-		ByteWriters[2].PutBlock(pINI);
-		ByteWriters[3].PutBlock(pINI);
+		ByteWriter.PutBlock(pINI);
 	}
 
 private:
-	OverlayByteWriter ByteWriters[4];
+	OverlayByteWriter ByteWriter;
 };
 
 ASMJIT_PATCH(0x5FD6A0, OverlayClass_WriteINI, 0x6)
@@ -1452,7 +1452,7 @@ ASMJIT_PATCH(0x5FD6A0, OverlayClass_WriteINI, 0x6)
 			CellStruct mapCoord { j,i };
 			auto const pCell = MapClass::Instance->GetCellAt(mapCoord);
 			writer.Put(pCell->OverlayTypeIndex);
-			datawriter.Put(pCell->OverlayData);
+			datawriter.PutByte(pCell->OverlayData);
 		}
 	}
 
@@ -2509,6 +2509,49 @@ ASMJIT_PATCH(0x73C41B, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
 // Skip incorrect copy, why do copy like this?
 DEFINE_JUMP(LJMP, 0x715326, 0x715333); // TechnoTypeClass::LoadFromINI
 // Then EDI is BarrelAnimData now, not incorrect TurretAnimData
+
+
+DEFINE_HOOK(0x481778, CellClass_ScatterContent_Scatter, 0x6)
+{
+	enum { NextTechno = 0x4817D9 };
+
+	GET(TechnoClass*, pTechno, ESI);
+
+	if (!pTechno)
+		return NextTechno;
+
+	REF_STACK(const CoordStruct, coords, STACK_OFFSET(0x2C, 0x4));
+	GET_STACK(const bool, ignoreMission, STACK_OFFSET(0x2C, 0x8));
+	GET_STACK(const bool, ignoreDestination, STACK_OFFSET(0x2C, 0xC));
+
+	if (ignoreDestination || pTechno->HasAbility(AbilityType::Scatter)
+		|| (pTechno->Owner->IsControlledByHuman() ? RulesClass::Instance->PlayerScatter : pTechno->Owner->IQLevel2 >= RulesClass::Instance->Scatter))
+		pTechno->Scatter(coords, ignoreMission, ignoreDestination);
+
+	return NextTechno;
+}
+
+#include <Ext/WarheadType/Body.h>
+
+// make a minimally permissible attack judgment.
+const bool CanElectricAssault(FootClass* pThis, BuildingClass* pBuilding)
+{
+	const auto pWarhead = pThis->GetWeapon(1)->WeaponType->Warhead;
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+	return pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis , pWarhead)).Verses != 0.0;
+}
+
+DEFINE_HOOK_AGAIN(0x4D51B2, FootClass_ElectricAssultFix, 0x5)	// Mission_Guard
+DEFINE_HOOK(0x4D7005, FootClass_ElectricAssultFix, 0x5)			// Mission_AreaGuard
+{
+	GET(FootClass*, pThis, ESI);
+	GET(BuildingClass*, pBuilding, EDI);
+	enum { SkipGuard = 0x4D5225, SkipAreaGuard = 0x4D7025 };
+
+	return !CanElectricAssault(pThis, pBuilding) ?
+		R->Origin() == 0x4D51B2 ? SkipGuard : SkipAreaGuard
+		: 0;
+}
 
 // I think no one wants to see wild pointers caused by WW's negligence
 //ASMJIT_PATCH(0x4D9A1B, FootClass_PointerExpired_RemoveDestination, 0x6)

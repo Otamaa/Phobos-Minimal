@@ -32,7 +32,7 @@ ASMJIT_PATCH(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
 	GET(InfantryTypeClass*, pThisType, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x8);
 
-	if (pThisType->DeployFireWeapon == -1) {
+	if (pThisType->DeployFireWeapon == -1 || (pThisType->IsGattling && !pThis->IsDeployed())) {
 		R->EAX(pThis->TechnoClass::SelectWeapon(pTarget));
 	} else {
 		R->EAX(pThisType->DeployFireWeapon);

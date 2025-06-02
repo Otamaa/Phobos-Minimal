@@ -1009,6 +1009,7 @@ public:
 	ValueableVector<int> ForceAAWeapon_InRange {};
 	ValueableVector<double> ForceAAWeapon_InRange_Overrides {};
 	Valueable<bool> ForceAAWeapon_InRange_ApplyRangeModifiers {};
+	Valueable<bool> ForceWeapon_InRange_TechnoOnly {};
 
 	Nullable<bool> UnitIdleRotateTurret {};
 	Nullable<bool> UnitIdlePointToMouse {};
@@ -1095,6 +1096,8 @@ public:
 	std::unique_ptr<TiberiumEaterTypeClass> TiberiumEaterType {};
 
 	Nullable<int> BattlePoints {};
+
+	bool ForceWeapon_Check {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

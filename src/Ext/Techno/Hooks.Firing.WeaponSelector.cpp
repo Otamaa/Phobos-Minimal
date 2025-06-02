@@ -147,43 +147,54 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 	//GET(WeaponTypeClass* , pSecondary , EDI);
 	//GET(WeaponTypeClass* , pSecondary , EBX);
 
-	if(ForceWeaponInRangeTemp::SelectWeaponByRange)
+	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pThisTechnoType);
+
+	if(ForceWeaponInRangeTemp::SelectWeaponByRange || !pTechnoTypeExt->ForceWeapon_Check || !pAbsTarget)
 		return 0x0;
 
-	if (auto const pTarget = flag_cast_to<TechnoClass*>(pAbsTarget))
+	int forceWeaponIndex = -1;
+	auto const pTarget = flag_cast_to<TechnoClass*, false>(pAbsTarget);
+
+	if (pTarget)
 	{
 		const auto pTargetType = pTarget->GetTechnoType();
-		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pThisTechnoType);
-		int forceWeaponIndex = -1;
 
 		if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
-			&& pTargetType->Cloakable && pTargetType->Naval
+			&& pTargetType->Cloakable
+			&& pTargetType->Naval
 			&& pTarget->CloakState == CloakState::Uncloaked)
 		{
-			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_Naval_Decloaked.Get());
-		} else if (pTechnoTypeExt->ForceWeapon_Cloaked >= 0 &&
-				pTarget->CloakState == CloakState::Cloaked)
-		{
-			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_Cloaked.Get());
-		} else if (pTechnoTypeExt->ForceWeapon_Disguised >= 0 &&
-			   pTarget->IsDisguised())
-		{
-			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_Disguised.Get());
-		} else if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0 && pTarget->IsUnderEMP())
-		{
-			forceWeaponIndex = (pTechnoTypeExt->ForceWeapon_UnderEMP.Get());
-		} else if ((!pTechnoTypeExt->ForceWeapon_InRange.empty() 
-				|| !pTechnoTypeExt->ForceAAWeapon_InRange.empty()))
-		{
-			ForceWeaponInRangeTemp::SelectWeaponByRange = true;
-			forceWeaponIndex = ApplyForceWeaponInRange(pThis , pTarget);
-			ForceWeaponInRangeTemp::SelectWeaponByRange = false;
+			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Naval_Decloaked;
 		}
+		else if (pTechnoTypeExt->ForceWeapon_Cloaked >= 0
+			&& pTarget->CloakState == CloakState::Cloaked)
+		{
+			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Cloaked;
+		}
+		else if (pTechnoTypeExt->ForceWeapon_Disguised >= 0
+			&& pTarget->IsDisguised())
+		{
+			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Disguised;
+		}
+		else if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0
+			&& pTarget->IsUnderEMP())
+		{
+			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_UnderEMP;
+		}
+	}
 
-		if(forceWeaponIndex >= 0){
-			R->EAX(forceWeaponIndex);
-			return 0x6F37AF;
-		}
+	if (forceWeaponIndex == -1
+		&& (pTarget || !pTechnoTypeExt->ForceWeapon_InRange_TechnoOnly)
+		&& (!pTechnoTypeExt->ForceWeapon_InRange.empty() || !pTechnoTypeExt->ForceAAWeapon_InRange.empty()))
+	{
+		ForceWeaponInRangeTemp::SelectWeaponByRange = true;
+		forceWeaponIndex = ApplyForceWeaponInRange(pThis, pAbsTarget);
+		ForceWeaponInRangeTemp::SelectWeaponByRange = false;
+	}
+
+	if(forceWeaponIndex >= 0){
+		R->EAX(forceWeaponIndex);
+		return 0x6F37AF;
 	}
 
 	return 0;

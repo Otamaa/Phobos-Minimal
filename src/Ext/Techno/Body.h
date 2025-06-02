@@ -759,7 +759,7 @@ public:
 		this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 		this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 		this->ClearElectricBolts();
-	}
+ 	}
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 

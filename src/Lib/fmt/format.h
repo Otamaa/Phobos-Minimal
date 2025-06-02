@@ -731,6 +731,9 @@ struct is_fast_float : bool_constant<std::numeric_limits<T>::is_iec559 &&
 template <typename T> struct is_fast_float<T, false> : std::false_type {};
 
 template <typename T>
+using fast_float_t = conditional_t<sizeof(T) == sizeof(double), double, float>;
+
+template <typename T>
 using is_double_double = bool_constant<std::numeric_limits<T>::digits == 106>;
 
 #ifndef FMT_USE_FULL_CACHE_DRAGONBOX
@@ -2392,7 +2395,7 @@ FMT_CONSTEXPR20 auto write_fixed(OutputIt out, const DecimalFP& f,
   using iterator = reserve_iterator<OutputIt>;
 
   int exp = f.exponent + significand_size;
-  int size = significand_size + (s != sign::none ? 1 : 0);
+  long long size = significand_size + (s != sign::none ? 1 : 0);
   if (f.exponent >= 0) {
     // 1234e5 -> 123400000[.0+]
     size += f.exponent;
@@ -2466,7 +2469,7 @@ FMT_CONSTEXPR20 auto do_write_float(OutputIt out, const DecimalFP& f,
 
   // Write value in the exponential format.
   int num_zeros = 0;
-  int size = significand_size + (s != sign::none ? 1 : 0);
+  long long size = significand_size + (s != sign::none ? 1 : 0);
   if (specs.alt()) {
     num_zeros = max_of(specs.precision - significand_size, 0);
     size += num_zeros;
@@ -3355,8 +3358,7 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value, format_specs specs,
       precision = 6;
     } else if (is_fast_float<T>::value && !is_constant_evaluated()) {
       // Use Dragonbox for the shortest format.
-      using floaty = conditional_t<sizeof(T) >= sizeof(double), double, float>;
-      auto dec = dragonbox::to_decimal(static_cast<floaty>(value));
+      auto dec = dragonbox::to_decimal(static_cast<fast_float_t<T>>(value));
       return write_float<Char>(out, dec, specs, s, exp_upper, loc);
     }
   }
@@ -3394,12 +3396,11 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value) -> OutputIt {
   if (is_constant_evaluated()) return write<Char>(out, value, format_specs());
 
   auto s = detail::signbit(value) ? sign::minus : sign::none;
-  using float_type = conditional_t<sizeof(T) == sizeof(double), double, float>;
-  auto mask = exponent_mask<float_type>();
+  auto mask = exponent_mask<fast_float_t<T>>();
   if ((bit_cast<decltype(mask)>(value) & mask) == mask)
     return write_nonfinite<Char>(out, std::isnan(value), {}, s);
 
-  auto dec = dragonbox::to_decimal<float_type>(value);
+  auto dec = dragonbox::to_decimal(static_cast<fast_float_t<T>>(value));
   int significand_size = count_digits(dec.significand);
   int exp = dec.exponent + significand_size - 1;
   if (use_fixed(exp, detail::exp_upper<T>())) {
