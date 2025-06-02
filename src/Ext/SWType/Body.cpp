@@ -1323,7 +1323,7 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 
 	for (auto& sw_ : pData->SW_ResetType) {
 
-		if (size_t(sw_) > pOwner->Supers.size())
+		if (size_t(sw_) >= pOwner->Supers.size())
 			continue;
 
 		const auto pHouseSuper = pOwner->Supers[sw_];
