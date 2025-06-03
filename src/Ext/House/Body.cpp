@@ -1965,6 +1965,10 @@ bool HouseExtData::AreBattlePointsEnabled()
 	return RulesExtData::Instance()->BattlePoints.Get();
 }
 
+bool HouseExtData::CanTransactBattlePoins(int amount) {
+	return (amount > 0) || this->BattlePoints >= -amount;
+}
+
 int HouseExtData::CalculateBattlePoints(TechnoClass* pTechno)
 {
 	return pTechno  ? CalculateBattlePoints(pTechno->GetTechnoType(), pTechno->Owner) : 0;

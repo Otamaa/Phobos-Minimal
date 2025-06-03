@@ -582,77 +582,14 @@ ASMJIT_PATCH(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
 	{
 		RetImpatientClick = 0x6AAFB1,
 		SendSWLauchEvent = 0x6AAF10,
-		ClearDisplay = 0x6AAF46
+		ClearDisplay = 0x6AAF46 ,
+		ControlClassAction = 0x6AB95A
 	};
 
 	GET(int, idxSW, ESI);
-
-	SuperClass* pSuper = HouseClass::CurrentPlayer->Supers.Items[idxSW];
-	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
-	const auto pHouseData = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
-
-	// if this SW is only auto-firable, discard any clicks.
-	// if AutoFire is off, the sw would not be firable at all,
-	// thus we ignore the setting in that case.
-	const bool manual = !pData->SW_ManualFire && pData->SW_AutoFire;
-	const bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining
-		&& pData->SW_Unstoppable;
-
-	// play impatient voice, if this isn't charged yet
-	if (!manual && !pSuper->CanFire())
-	{
-		VoxClass::PlayIndex(pSuper->Type->ImpatientVoice);
-		return RetImpatientClick;
-	}
-
-	// prevent firing the SW if the player doesn't have sufficient
-	// funds. play an EVA message in that case.
-	if (!HouseClass::CurrentPlayer->CanTransactMoney(pData->Money_Amount))
-	{
-		VoxClass::PlayIndex(pData->EVA_InsufficientFunds);
-		pData->PrintMessage(pData->Message_InsufficientFunds, HouseClass::CurrentPlayer);
-		return RetImpatientClick;
-	}
-
-	if (pData->BattlePoints_Amount < 0 && pHouseData->AreBattlePointsEnabled() && pHouseData->BattlePoints < Math::abs(pData->BattlePoints_Amount.Get()))
-	{
-		VoxClass::PlayIndex(pData->EVA_InsufficientBattlePoints);
-		pData->PrintMessage(pData->Message_InsufficientBattlePoints, HouseClass::CurrentPlayer);
-		return RetImpatientClick;
-	}
-
-	if (!pData->SW_UseAITargeting.Get() || SWTypeExtData::IsTargetConstraintsEligible(pSuper, true))
-	{
-		// disallow manuals and active unstoppables
-		if (manual || unstoppable)
-		{
-			return RetImpatientClick;
-		}
-
-		if (pSuper->Type->Action == Action::None || pData->SW_UseAITargeting.Get())
-		{
-			R->EAX(HouseClass::CurrentPlayer());
-			return SendSWLauchEvent;
-		}
-
-		return ClearDisplay;
-	}
-	else
-	{
-		const auto pHouseID = HouseClass::CurrentPlayer->get_ID();
-		Debug::LogInfo("[{} - {}] SW [{} - {}] CannotFire", pHouseID, (void*)HouseClass::CurrentPlayer(), pSuper->Type->ID, (void*)pSuper);
-		pData->PrintMessage(pData->Message_CannotFire, HouseClass::CurrentPlayer);
-	}
-
-	return RetImpatientClick;
-}
-
-// play a customizable target selection EVA message
-ASMJIT_PATCH(0x6AAF9D, SidebarClass_ProcessCameoClick_SelectTarget, 5)
-{
-	GET(int, index, ESI);
-	VoxClass::PlayIndex(SWTypeExtContainer::Instance.Find(HouseClass::CurrentPlayer->Supers.Items[index]->Type)->EVA_SelectTarget);
-	return 0x6AB95A;
+	//impatient voice is implemented inside
+	SWTypeExtData::LauchSuper(HouseClass::CurrentPlayer->Supers.Items[idxSW]);
+	return ControlClassAction;
 }
 
 // 4AC20C, 7
@@ -960,25 +897,7 @@ ASMJIT_PATCH(0x6CC2B0, SuperClass_NameReadiness, 5)
 ASMJIT_PATCH(0x6A99B7, StripClass_Draw_SuperDarken, 5)
 {
 	GET(int, idxSW, EDI);
-
-	const auto pSW = HouseClass::CurrentPlayer->Supers.Items[idxSW];
-	const auto pExt = SWTypeExtContainer::Instance.Find(pSW->Type);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
-
-	bool darken = false;
-	if (pSW->CanFire())
-	{
-		if(!pSW->Owner->CanTransactMoney(pExt->Money_Amount))
-			darken = true;
-
-		if (pExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled())
-			darken = pHouseExt->BattlePoints < Math::abs(pExt->BattlePoints_Amount.Get());
-	}
-	else if (pExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSW, true)) {
-		darken = true;
-	}
-
-	R->BL(darken);
+	R->BL(SWTypeExtData::DrawDarken(HouseClass::CurrentPlayer->Supers.Items[idxSW]));
 	return 0;
 }
 
@@ -1115,23 +1034,21 @@ ASMJIT_PATCH(0x6CB920, SuperClass_ClickFire, 5)
 			return ret(false);
 		}
 
-		bool requireBattlePoints = pExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled();
-		bool canTransactMoney = pOwner->CanTransactMoney(pExt->Money_Amount);
-		bool isCurrentPlayer = pOwner->IsCurrentPlayer();
+		const bool requireBattlePoints = pExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled();
+		const bool canTransactMoney = pOwner->CanTransactMoney(pExt->Money_Amount);
+		const bool isCurrentPlayer = pOwner->IsCurrentPlayer();
 
 		// auto-abort if no resources
 		if (!canTransactMoney) {
 			if (isCurrentPlayer) {
-				VoxClass::PlayIndex(pExt->EVA_InsufficientFunds);
-				pExt->PrintMessage(pExt->Message_InsufficientFunds, pOwner);
+				pExt->UneableToTransactMoney(pOwner);
 				return ret(false);
 			}
 		}
 
 		if (requireBattlePoints) {
 			if (isCurrentPlayer  && pHouseExt->BattlePoints < Math::abs(pExt->BattlePoints_Amount.Get())) {
-				VoxClass::PlayIndex(pExt->EVA_InsufficientBattlePoints);
-				pExt->PrintMessage(pExt->Message_InsufficientBattlePoints, pOwner);
+				pExt->UneableToTransactBattlePoints(pOwner);
 				return ret(false);
 			}
 		}
@@ -1278,34 +1195,13 @@ ASMJIT_PATCH(0x6CBD6B, SuperClass_Update_DrainMoney, 8)
 	GET(SuperClass*, pSuper, ESI);
 	GET(int, timeLeft, EAX);
 
-	if (timeLeft > 0 && pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining)
-	{
-		SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
-		const int money = pData->Money_DrainAmount;
+	if(!pData->ApplyDrainMoney(timeLeft , pSuper->Owner))
+		return 0x6CBD73;
 
-		if (money != 0 && pData->Money_DrainDelay > 0)
-		{
-			if (!(timeLeft % pData->Money_DrainDelay))
-			{
-				auto pOwner = pSuper->Owner;
-
-				// only abort if SW drains money and there is none
-				if (!pOwner->CanTransactMoney(money))
-				{
-					if (pOwner->IsControlledByHuman())
-					{
-						VoxClass::PlayIndex(pData->EVA_InsufficientFunds);
-						pData->PrintMessage(pData->Message_InsufficientFunds, HouseClass::CurrentPlayer);
-					}
-					return 0x6CBD73;
-				}
-
-				// apply drain money
-				pOwner->TransactMoney(money);
-			}
-		}
-	}
+	if(!pData->ApplyDrainBattlePoint(timeLeft,pSuper->Owner))
+		return 0x6CBD73;
 
 	return (timeLeft ? 0x6CBE7C : 0x6CBD73);
 }

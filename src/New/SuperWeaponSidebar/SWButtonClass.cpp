@@ -71,19 +71,7 @@ bool SWButtonClass::Draw(bool forced)
 		pSurface->Draw_Rect(cameoRect, tooltipColor);
 	}
 
-	bool darken = false;
-	if(pSuper->CanFire()) {
-		if(!pCurrent->CanTransactMoney(pSWExt->Money_Amount))
-			darken = true;
-
-		if (pSWExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled())
-			darken = pHouseExt->BattlePoints < Math::abs(pSWExt->BattlePoints_Amount.Get());
-
-	} else if (pSWExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSuper, true)){
-		darken = true;
-	}
-
-	if (darken)
+	if (SWTypeExtData::DrawDarken(pSuper))
 	{
 		RectangleStruct darkenBounds { 0, 0, location.X + this->Rect.Width, location.Y + this->Rect.Height };
 		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, FileSystem::DARKEN_SHP, 0, &location, &darkenBounds, BlitterFlags::bf_400 | BlitterFlags::Darken, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
@@ -177,70 +165,14 @@ bool SWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
 	{
 		MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 		VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0);
-		this->LaunchSuper();
+		SWTypeExtData::LauchSuper(HouseClass::CurrentPlayer->Supers.Items[this->SuperIndex]);
 	}
 
 	return this->ControlClass::Action(flags, pKey, KeyModifier::None);
 }
 
-#include <Ext/House/Body.h>
-
 bool SWButtonClass::LaunchSuper() const
 {
-	const auto pCurrent = HouseClass::CurrentPlayer();
-	const auto pSuper = pCurrent->Supers[this->SuperIndex];
-	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pCurrent);
-	const bool manual = !pSWExt->SW_ManualFire && pSWExt->SW_AutoFire;
-	const bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining && pSWExt->SW_Unstoppable;
+	return SWTypeExtData::LauchSuper(HouseClass::CurrentPlayer->Supers.Items[this->SuperIndex]);
 
-	if (!pSuper->CanFire() && !manual)
-	{
-		VoxClass::PlayIndex(pSuper->Type->ImpatientVoice);
-		return false;
-	}
-
-	if (!pCurrent->CanTransactMoney(pSWExt->Money_Amount))
-	{
-		VoxClass::PlayIndex(pSWExt->EVA_InsufficientFunds);
-		pSWExt->PrintMessage(pSWExt->Message_InsufficientFunds, pCurrent);
-	} else if (pSWExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled() && pHouseExt->BattlePoints < Math::abs(pSWExt->BattlePoints_Amount.Get())) {
-		VoxClass::PlayIndex(pSWExt->EVA_InsufficientBattlePoints);
-		pSWExt->PrintMessage(pSWExt->Message_InsufficientBattlePoints, pCurrent);
-	} else if (!pSWExt->SW_UseAITargeting || SWTypeExtData::IsTargetConstraintsEligible(pSuper, true))
-	{
-		if (!manual && !unstoppable)
-		{
-			const auto swIndex = pSuper->Type->ArrayIndex;
-
-			if (pSuper->Type->Action == Action::None || pSWExt->SW_UseAITargeting)
-			{
-				EventClass Event { pCurrent->ArrayIndex, EventType::SPECIAL_PLACE, swIndex, CellStruct::Empty };
-				EventClass::AddEvent(&Event);
-			}
-			else
-			{
-				DisplayClass::Instance->CurrentBuilding = nullptr;
-				DisplayClass::Instance->CurrentBuildingType = nullptr;
-				DisplayClass::Instance->CurrentBuildingOwnerArrayIndex = -1;
-				DisplayClass::Instance->SetActiveFoundation(nullptr);
-				MapClass::Instance->SetRepairMode(0);
-				MapClass::Instance->SetSellMode(0);
-				DisplayClass::Instance->PowerToggleMode = false;
-				DisplayClass::Instance->PlanningMode = false;
-				DisplayClass::Instance->PlaceBeaconMode = false;
-				DisplayClass::Instance->CurrentSWTypeIndex = swIndex;
-				MapClass::Instance->UnselectAll();
-				VoxClass::PlayIndex(pSWExt->EVA_SelectTarget);
-			}
-
-			return true;
-		}
-	}
-	else
-	{
-		pSWExt->PrintMessage(pSWExt->Message_CannotFire, pCurrent);
-	}
-
-	return false;
 }

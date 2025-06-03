@@ -108,6 +108,7 @@ public:
 	Valueable<CSFText> Message_Abort {};
 	Valueable<CSFText> Message_InsufficientFunds {};
 	Valueable<CSFText> Message_InsufficientBattlePoints {};
+	Valueable<CSFText> Message_Impatient {};
 	Valueable<CSFText> Message_Detected {};
 	Valueable<CSFText> Message_Ready {};
 
@@ -474,6 +475,9 @@ public:
 	Valueable<int> TabIndex { 1 };
 
 	Valueable<int> BattlePoints_Amount {};
+	Valueable<int> BattlePoints_DrainAmount { 0 };
+	Valueable<int> BattlePoints_DrainDelay { 0 };
+
 	Valueable<int> SuperWeaponSidebar_Significance {};
 
 	~SWTypeExtData() noexcept;
@@ -508,6 +512,7 @@ public:
 	// check shootamount
 	bool CanFire(HouseClass* pOwner) const;
 	bool CanFireAt(HouseClass* pOwner, const CellStruct& coords, bool manual);
+
 	bool IsAnimVisible(HouseClass* pFirer) const;
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse);
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, AffectedHouse value);
@@ -518,6 +523,13 @@ public:
 	bool IsTechnoEligible(TechnoClass* pTechno, SuperWeaponTarget allowed);
 	bool IsTechnoAffected(TechnoClass* pTechno);
 	bool IsAvailable(HouseClass* pHouse);
+
+	void UneableToTransactMoney(HouseClass* pHouse);
+	void UneableToTransactBattlePoints(HouseClass* pHouse);
+	void UneableToFireAtTheMoment(HouseClass* pHouse);
+
+	bool ApplyDrainMoney(int timeLeft, HouseClass* pHouse);
+	bool ApplyDrainBattlePoint(int timeLeft, HouseClass* pHouse);
 
 	//no arg(s)
 	COMPILETIMEEVAL OPTIONALINLINE double GetChargeToDrainRatio() const {
@@ -545,6 +557,9 @@ public:
 	static bool IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer);
 	static TargetResult PickSuperWeaponTarget(NewSWType* pNewType, const TargetingData* pTargeting, const SuperClass* pSuper);
 	static void ApplyBattlePoints(SuperClass* pSW);
+	static bool IsResourceAvailable(SuperClass* pSuper);
+	static bool LauchSuper(SuperClass* pSuper);
+	static bool DrawDarken(SuperClass* pSuper);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
