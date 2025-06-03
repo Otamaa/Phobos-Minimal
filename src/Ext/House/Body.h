@@ -235,7 +235,7 @@ public:
 
 	void UpdateBattlePoints(int modifier);
 	bool AreBattlePointsEnabled();
-	bool CanTransactBattlePoins(int amount);
+	bool CanTransactBattlePoints(int amount);
 	int CalculateBattlePoints(TechnoClass* pTechno);
 	int CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pOwner);
 

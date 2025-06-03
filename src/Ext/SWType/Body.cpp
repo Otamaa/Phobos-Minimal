@@ -344,7 +344,7 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 		return false;
 	}
 
-	if (pSWExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled() && pHouseExt->BattlePoints < Math::abs(pSWExt->BattlePoints_Amount.Get()))
+	if (!pHouseExt->CanTransactBattlePoints(pSWExt->BattlePoints_Amount))
 	{
 		pSWExt->UneableToTransactBattlePoints(pCurrent);
 		return false;
@@ -401,7 +401,7 @@ bool SWTypeExtData::DrawDarken(SuperClass* pSuper)
 		if (!pCurrent->CanTransactMoney(pSWExt->Money_Amount))
 			return true;
 
-		if (pSWExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled() && pHouseExt->BattlePoints < Math::abs(pSWExt->BattlePoints_Amount.Get()))
+		if (!pHouseExt->CanTransactBattlePoints(pSWExt->BattlePoints_Amount))
 			return true;
 	}
 
@@ -2164,12 +2164,12 @@ bool SWTypeExtData::ApplyDrainBattlePoint(int timeLeft, HouseClass* pHouse) {
 	const int money = this->BattlePoints_DrainAmount;
 	auto pExt = HouseExtContainer::Instance.Find(pHouse);
 
-	if (money != 0 && this->BattlePoints_DrainDelay > 0 && pExt->AreBattlePointsEnabled())
+	if (money != 0 && this->BattlePoints_DrainDelay > 0)
 	{
 		if (!(timeLeft % this->BattlePoints_DrainDelay))
 		{
 			// only abort if SW drains and there is none
-			if (!pExt->CanTransactBattlePoins(money))
+			if (!pExt->CanTransactBattlePoints(money))
 			{
 				if (pHouse->IsControlledByHuman())
 				{
@@ -2709,7 +2709,6 @@ bool SWTypeExtData::IsResourceAvailable(SuperClass* pSuper)
 		return false;
 
 	if (pExt->BattlePoints_Amount < 0
-		&& pHouseExt->AreBattlePointsEnabled()
 		&& pHouseExt->BattlePoints < Math::abs(pExt->BattlePoints_Amount.Get())
 		)
 	{

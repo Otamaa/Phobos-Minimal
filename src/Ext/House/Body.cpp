@@ -1965,7 +1965,7 @@ bool HouseExtData::AreBattlePointsEnabled()
 	return RulesExtData::Instance()->BattlePoints.Get();
 }
 
-bool HouseExtData::CanTransactBattlePoins(int amount) {
+bool HouseExtData::CanTransactBattlePoints(int amount) {
 	return (amount > 0) || this->BattlePoints >= -amount;
 }
 

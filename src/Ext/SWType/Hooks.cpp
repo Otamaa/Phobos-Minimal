@@ -1034,23 +1034,20 @@ ASMJIT_PATCH(0x6CB920, SuperClass_ClickFire, 5)
 			return ret(false);
 		}
 
-		const bool requireBattlePoints = pExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled();
-		const bool canTransactMoney = pOwner->CanTransactMoney(pExt->Money_Amount);
-		const bool isCurrentPlayer = pOwner->IsCurrentPlayer();
 
 		// auto-abort if no resources
-		if (!canTransactMoney) {
-			if (isCurrentPlayer) {
+		if (!pOwner->CanTransactMoney(pExt->Money_Amount)) {
+			if (pOwner->IsCurrentPlayer()) {
 				pExt->UneableToTransactMoney(pOwner);
-				return ret(false);
 			}
+			return ret(false);
 		}
 
-		if (requireBattlePoints) {
-			if (isCurrentPlayer  && pHouseExt->BattlePoints < Math::abs(pExt->BattlePoints_Amount.Get())) {
+		if (!pHouseExt->CanTransactBattlePoints(pExt->BattlePoints_Amount)) {
+			if (pOwner->IsCurrentPlayer()) {
 				pExt->UneableToTransactBattlePoints(pOwner);
-				return ret(false);
 			}
+			return ret(false);
 		}
 
 		// can this super weapon fire now?

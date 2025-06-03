@@ -169,6 +169,41 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	const int cost = pType->GetActualCost(HouseClass::CurrentPlayer);
 	//const auto pHouseExt = HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer());
 
+#ifndef _useFMT
+	this->TextBuffer.clear();
+	fmt::format_to(std::back_inserter(this->TextBuffer),
+		L"{}\n{}{}{} {}{:02}:{:02}",
+		pType->UIName,
+		(cost < 0 ? L"+" : L""),
+		Phobos::UI::CostLabel,
+		Math::abs(cost),
+		Phobos::UI::TimeLabel,
+		nMin,
+		nSec
+	);
+
+	if (auto const nPower = this->GetPower(pType)) {
+		fmt::format_to(std::back_inserter(this->TextBuffer),
+			L" {}{}{:01}",
+			Phobos::UI::PowerLabel,
+			nPower > 0 ? L"+" : L"",
+			nPower);
+	}
+
+	if (auto pDesc = this->GetUIDescription(pData)) {
+		fmt::format_to(std::back_inserter(this->TextBuffer), L"\n{}", pDesc);
+	}
+
+	if (pData->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist)) {
+		auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
+
+		if (vec.contains(pType)) {
+			if (auto pExDesc = this->GetUnbuildableUIDescription(pData))
+				fmt::format_to(std::back_inserter(this->TextBuffer), L"\n{}", pExDesc);
+		}
+	}
+
+#else
 	std::wostringstream oss;
 	oss << pType->UIName << L"\n"
 		<< (cost < 0 ? L"+" : L"")
@@ -185,6 +220,7 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 			oss << L"+";
 		oss << std::setw(1) << nPower;
 	}
+
 
 	// the value is not consistent
 	// so showing it here will just cause fuckton of confusion
@@ -212,6 +248,8 @@ void PhobosToolTip::HelpText(TechnoTypeClass* pType)
 	}
 
 	this->TextBuffer = oss.str();
+
+#endif
 }
 
 int PhobosToolTip::TickTimeToSeconds(int tickTime)
@@ -234,6 +272,104 @@ int PhobosToolTip::TickTimeToSeconds(int tickTime)
 void PhobosToolTip::HelpText(SuperClass* pSuper)
 {
 	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
+#ifndef _useFMT
+
+	this->TextBuffer.clear();
+	bool showSth = false;
+
+	fmt::format_to(std::back_inserter(this->TextBuffer),
+		L"{}", pSuper->Type->UIName
+	);
+
+	if (const int nCost = Math::abs(pData->Money_Amount.Get())) {
+		fmt::format_to(std::back_inserter(this->TextBuffer),
+			L"\n{}{}{}",
+			pData->Money_Amount > 0 ? L"+" : L"",
+			Phobos::UI::CostLabel,
+			nCost
+		);
+
+		showSth = true;
+	}
+
+	if (int nPoints = Math::abs(pData->BattlePoints_Amount.Get())) {
+		fmt::format_to(std::back_inserter(this->TextBuffer),
+			L"\n{}{}",
+			Phobos::UI::BattlePoints_Label,
+			pData->Money_Amount > 0 ? L"+" : L"-",
+			nPoints
+		);
+
+		showSth = true;
+	}
+
+	const int rechargeTime = TickTimeToSeconds(pSuper->GetRechargeTime());
+
+	if (rechargeTime > 0) {
+		const int nSec = rechargeTime % 60;
+		const int nMin = rechargeTime / 60 /* % 60*/;
+		const int nHour = rechargeTime / 60 / 60;
+
+		if(nHour) {
+			fmt::format_to(std::back_inserter(this->TextBuffer),
+				L"{}{}{} {:02}{:02}:{:02}",
+				!showSth ? L"\n" : L"",
+				showSth ? L" " : L"",
+				Phobos::UI::TimeLabel,
+				nHour,
+				nMin,
+				nSec
+			);
+		}
+		else
+		{
+			fmt::format_to(std::back_inserter(this->TextBuffer),
+				L"{}{}{} {:02}:{:02}",
+				!showSth ? L"\n" : L"",
+				showSth ? L" " : L"",
+				Phobos::UI::TimeLabel,
+				nMin,
+				nSec
+			);
+		}
+
+		showSth = true;
+
+	}
+
+	auto const& sw_ext = HouseExtContainer::Instance.Find(pSuper->Owner)->GetShotCount(pSuper->Type);
+
+	if (pData->SW_Shots > 0) {
+		wchar_t buffer[64];
+		swprintf_s(buffer, Phobos::UI::SWShotsFormat, (pData->SW_Shots - sw_ext.Count), pData->SW_Shots);
+
+		fmt::format_to(std::back_inserter(this->TextBuffer),
+			L"{}{}{}",
+			!showSth ? L"\n" : L"",
+			(showSth ? L" " : L""),
+			buffer
+		);
+	}
+
+	if (pData->SW_Power.isset()) {
+		const auto nPower = pData->SW_Power.Get();
+
+		if (nPower != 0) {
+			fmt::format_to(std::back_inserter(this->TextBuffer),
+				L" {}{}{:01}",
+				Phobos::UI::PowerLabel,
+				(nPower ? L"+" : L""),
+				nPower
+			);
+		}
+	}
+
+	if (auto pDesc = GetUIDescription(pData))
+		fmt::format_to(std::back_inserter(this->TextBuffer),
+			L"\n{}",
+			pDesc
+		);
+#else
 
 	std::wostringstream oss;
 	oss << pSuper->Type->UIName;
@@ -281,7 +417,6 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		showSth = true;
 	}
 
-
 	auto const& sw_ext = HouseExtContainer::Instance.Find(pSuper->Owner)->GetShotCount(pSuper->Type);
 	int sw_shots = pData->SW_Shots;
 	int remain_shots = pData->SW_Shots - sw_ext.Count;
@@ -311,6 +446,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		oss << L"\n" << pDesc;
 
 	this->TextBuffer = oss.str();
+#endif
 }
 
 // Hooks
