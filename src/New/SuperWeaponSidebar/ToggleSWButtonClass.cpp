@@ -1,9 +1,11 @@
 #include "ToggleSWButtonClass.h"
 #include "SWSidebarClass.h"
 #include "SWColumnClass.h"
+#include "SWButtonClass.h"
 
 #include <Ext/Side/Body.h>
 #include <Ext/Sidebar/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Misc/PhobosToolTip.h>
 
@@ -60,7 +62,6 @@ void ToggleSWButtonClass::OnMouseLeave()
 	this->IsHovering = false;
 	this->IsPressed = false;
 	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
-	CCToolTip::Instance->MarkToRedraw(CCToolTip::Instance->CurrentToolTipData);
 }
 
 bool ToggleSWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
@@ -81,7 +82,6 @@ bool ToggleSWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modi
 	if ((flags & GadgetFlag::LeftRelease) && this->IsPressed)
 	{
 		this->IsPressed = false;
-		VocClass::PlayGlobal(RulesClass::Instance->GUIMainButtonSound, Panning::Center, 1.0);
 		ToggleSWButtonClass::SwitchSidebar();
 	}
 
@@ -110,10 +110,29 @@ void ToggleSWButtonClass::UpdatePosition()
 
 bool ToggleSWButtonClass::SwitchSidebar()
 {
-	SidebarExtData::Instance()->SWSidebar_Enable = !SidebarExtData::Instance()->SWSidebar_Enable;
+	VocClass::PlayGlobal(RulesClass::Instance->GUIMainButtonSound, Panning::Center, 1.0);
+	ScenarioExtData::Instance()->SWSidebar_Enable = !ScenarioExtData::Instance()->SWSidebar_Enable;
+
+	const bool disabled = !SWSidebarClass::IsEnabled();
+	const auto& columns = SWSidebarClass::Global()->Columns;
+
+	if (!columns.empty())
+	{
+		for (const auto& pColumn : columns)
+		{
+			pColumn->Disabled = disabled;
+			const auto& buttons = pColumn->Buttons;
+
+			if (!buttons.empty())
+			{
+				for (const auto& pButton : buttons)
+					pButton->Disabled = disabled;
+			}
+		}
+	}
 
 	if (const auto toggleButton = SWSidebarClass::Global()->ToggleButton)
 		toggleButton->UpdatePosition();
 
-	return SWSidebarClass::Global()->IsEnabled();
+		return !disabled;
 }

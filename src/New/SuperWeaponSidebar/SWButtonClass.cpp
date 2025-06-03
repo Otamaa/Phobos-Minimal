@@ -2,6 +2,7 @@
 
 #include <Ext/SWType/Body.h>
 #include <Ext/Rules/Body.h>
+#include <Ext/House/Body.h>
 
 #include <ControlClass.h>
 #include <EventClass.h>
@@ -18,6 +19,8 @@ SWButtonClass::SWButtonClass(unsigned int id, int superIdx, int x, int y, int wi
 {
 	if (const auto backColumn = SWSidebarClass::Global()->Columns.back())
 		backColumn->Buttons.emplace_back(this);
+
+	this->Disabled = !SWSidebarClass::IsEnabled();
 }
 
 bool SWButtonClass::Draw(bool forced)
@@ -33,6 +36,7 @@ bool SWButtonClass::Draw(bool forced)
 	const auto pCurrent = HouseClass::CurrentPlayer();
 	const auto pSuper = pCurrent->Supers[this->SuperIndex];
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pCurrent);
 
 	// support for pcx cameos
 	if (const auto pPCXCameo = pSWExt->SidebarPCX.GetSurface())
@@ -67,8 +71,19 @@ bool SWButtonClass::Draw(bool forced)
 		pSurface->Draw_Rect(cameoRect, tooltipColor);
 	}
 
-	if (pSuper->IsCharged && !pCurrent->CanTransactMoney(pSWExt->Money_Amount) ||
-		(pSWExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSuper, true)))
+	bool darken = false;
+	if(pSuper->IsCharged) {
+		if(!pCurrent->CanTransactMoney(pSWExt->Money_Amount))
+			darken = true;
+
+		if (pSWExt->BattlePoints_Amount < 0 && pHouseExt->AreBattlePointsEnabled())
+			darken = pHouseExt->BattlePoints < Math::abs(pSWExt->BattlePoints_Amount.Get());
+
+	} else if (pSWExt->SW_UseAITargeting && !SWTypeExtData::IsTargetConstraintsEligible(pSuper, true)){
+		darken = true;
+	}
+
+	if (darken)
 	{
 		RectangleStruct darkenBounds { 0, 0, location.X + this->Rect.Width, location.Y + this->Rect.Height };
 		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, FileSystem::DARKEN_SHP, 0, &location, &darkenBounds, BlitterFlags::bf_400 | BlitterFlags::Darken, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
@@ -135,7 +150,8 @@ void SWButtonClass::OnMouseEnter()
 	this->IsHovering = true;
 	SWSidebarClass::Global()->CurrentButton = this;
 	SWSidebarClass::Global()->Columns[this->ColumnIndex]->OnMouseEnter();
-	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
+	CCToolTip::Instance->SaveTimerDelay();
+	CCToolTip::Instance->SetTimerDelay(0);
 }
 
 void SWButtonClass::OnMouseLeave()
@@ -146,8 +162,7 @@ void SWButtonClass::OnMouseLeave()
 	this->IsHovering = false;
 	SWSidebarClass::Global()->CurrentButton = nullptr;
 	SWSidebarClass::Global()->Columns[this->ColumnIndex]->OnMouseLeave();
-	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
-	CCToolTip::Instance->MarkToRedraw(CCToolTip::Instance->CurrentToolTipData);
+	CCToolTip::Instance->RestoreTimeDelay();
 }
 
 bool SWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)

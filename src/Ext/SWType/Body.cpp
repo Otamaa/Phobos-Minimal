@@ -1646,6 +1646,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->TabIndex.Read(exINI, pSection, "TabIndex");
 
 	this->BattlePoints_Amount.Read(exINI, pSection, "BattlePoints.Amount");
+	this->SuperWeaponSidebar_Significance.Read(exINI, pSection, "SuperWeaponSidebar.Significance");
 
 	// SW.GrantOneTime.RandomWeights
 	this->SW_GrantOneTime_RandomWeightsData.clear();
@@ -2540,6 +2541,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SuperWeaponSidebar_RequiredHouses)
 		.Process(this->TabIndex)
 		.Process(this->BattlePoints_Amount)
+		.Process(this->SuperWeaponSidebar_Significance)
 		;
 
 }

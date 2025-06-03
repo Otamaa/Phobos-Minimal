@@ -2,6 +2,7 @@
 
 #include <Utilities/GeneralUtils.h>
 #include <Ext/Sidebar/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <New/SuperWeaponSidebar/ToggleSWButtonClass.h>
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
@@ -30,7 +31,7 @@ void ToggleSWSidebar::Execute(WWKey eInput) const
 {
 	ToggleSWButtonClass::SwitchSidebar();
 
-	auto pMessage = SidebarExtData::Instance()->SWSidebar_Enable ?
+	const auto pMessage = ScenarioExtData::Instance()->SWSidebar_Enable ?
 		GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_EX_SW_BAR_VISIBLE", L"Set exclusive SW sidebar visible.") :
 		GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_EX_SW_BAR_INVISIBLE", L"Set exclusive SW sidebar invisible.");
 

@@ -32,6 +32,8 @@
 
 #include <New/SuperWeaponSidebar/SWSidebarClass.h>
 #include <New/SuperWeaponSidebar/SWButtonClass.h>
+#include <New/SuperWeaponSidebar/SWColumnClass.h>
+#include <New/SuperWeaponSidebar/ToggleSWButtonClass.h>
 
 #include <YRMath.h>
 #include <Phobos.h>
@@ -314,18 +316,30 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 // Hooks
 ASMJIT_PATCH(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 {
-	if (SWSidebarClass::IsEnabled()) {
-		if (auto button = SWSidebarClass::Global()->CurrentButton) {
+	if (SWSidebarClass::IsEnabled())
+	{
+		const auto swSidebar = SWSidebarClass::Global();
 
+		if (const auto button = swSidebar->CurrentButton)
+		{
+			PhobosToolTip::Instance.IsCameo = true;
 			const auto pSuper = HouseClass::CurrentPlayer->Supers[button->SuperIndex];
 
-			if (Phobos::UI::ExtendedToolTips) {
+			if (Phobos::UI::ExtendedToolTips)
+			{
 				PhobosToolTip::Instance.HelpText(pSuper);
 				R->EAX(PhobosToolTip::Instance.GetBuffer());
-			} else {
+			}
+			else
+			{
 				R->EAX(pSuper->Type->UIName);
 			}
 
+			return 0x4AE69D;
+		}
+		else if (swSidebar->CurrentColumn || (swSidebar->ToggleButton && swSidebar->ToggleButton->IsHovering))
+		{
+			R->EAX(0);
 			return 0x4AE69D;
 		}
 	}
@@ -528,20 +542,59 @@ ASMJIT_PATCH(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 		//GET(int, color, EDI);
 	LEA_STACK(RectangleStruct*, pRect, STACK_OFFS(0x44, 0x10));
 
-	if (PhobosToolTip::Instance.IsCameo &&
-		Phobos::UI::AnchoredToolTips &&
-		Phobos::UI::ExtendedToolTips &&
-		Phobos::Config::ToolTipDescriptions &&
-		// If inspecting a cameo from the super weapon sidebar, "AnchoredToolTips=true" shouldn't apply.
-		!SWSidebarClass::Global()->CurrentButton
-	) {
-		LEA_STACK(LTRBStruct*, a2, STACK_OFFSET(0x44, -0x20));
-		const auto x = DSurface::SidebarBounds->X - pRect->Width - 2;
+	const bool isCameo = PhobosToolTip::Instance.IsCameo;
+	const auto swSidebar = SWSidebarClass::Global();
 
+	if (isCameo && Phobos::UI::AnchoredToolTips
+		&&Phobos::UI::ExtendedToolTips
+		&& Phobos::Config::ToolTipDescriptions)
+	{
+		LEA_STACK(LTRBStruct*, pTextRect, STACK_OFFSET(0x44, -0x20));
+
+
+		if (const auto pButton = swSidebar->CurrentButton)
+		{
+			// Being too far away may actually be bad
+			/*
+			const auto& columns = SWSidebarClass::Instance.Columns;
+			const int size = columns.size();
+			const int y = pButton->Y + 3;
+			auto pColumn = columns.back();
+			if (columns.size() > 1 && y > (pColumn->Y + pColumn->Height))
+				pColumn = columns[size - 2];
+			const int x = pColumn->X + pColumn->Width + 2;
+			*/
+			const auto pColumn = swSidebar->Columns[pButton->ColumnIndex];
+			const int x = pColumn->Rect.X + pColumn->Rect.Width + 2;
+			const int y = pButton->Rect.Y + 3;
+			pRect->X = x;
+			pTextRect->Right += (x - pTextRect->Left);
+			pTextRect->Left = x;
+			pRect->Y = y;
+			pTextRect->Bottom += (y - pTextRect->Top);
+			pTextRect->Top = y;
+		}
+		else
+		{
+			const int x = DSurface::SidebarBounds->X - pRect->Width - 2;
+			pRect->X = x;
+			pTextRect->Left = x;
+			pRect->Y -= 40;
+			pTextRect->Top -= 40;
+		}
+	}
+	else if (const auto pButton = swSidebar->CurrentButton)
+	{
+		LEA_STACK(LTRBStruct*, pTextRect, STACK_OFFSET(0x44, -0x20));
+
+		const int x = pButton->Rect.X + pButton->Rect.Width;
+		const int y = pButton->Rect.Y + 43;
 		pRect->X = x;
-		a2->Left = x;
-		pRect->Y -= 40;
-		a2->Top -= 40;
+		pTextRect->Right += (x - pTextRect->Left);
+		pTextRect->Left = x;
+		pRect->Y = y;
+		pTextRect->Bottom += (y - pTextRect->Top);
+		pTextRect->Top = y;
 	}
 
 	// Should we make some SideExt items as static to improve the effeciency?
@@ -551,7 +604,7 @@ ASMJIT_PATCH(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 	{
 		if (const auto pData = SideExtContainer::Instance.Find(pSide))
 		{
-			if(PhobosToolTip::Instance.IsCameo)
+			if(isCameo)
 				SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 
 			pThis->Fill_Rect_Trans(pRect

@@ -113,8 +113,9 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	Make<TogglePowerCommandClass>();
 
 #pragma region SWSidebar
+	Make<ToggleSWSidebar>();
+
 	if(SWSidebarClass::IsEnabled()){
-		Make<ToggleSWSidebar>();
 
 		SWSidebarClass::Commands[0] = Make<FireTacticalSWCommandClass<1>>();
 		SWSidebarClass::Commands[1] = Make<FireTacticalSWCommandClass<2>>();

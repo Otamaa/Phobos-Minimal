@@ -5,15 +5,16 @@
 
 #include <Ext/Side/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Memory.h>
 
-SWColumnClass::SWColumnClass(unsigned int id, int x, int y, int width, int height)
+SWColumnClass::SWColumnClass(unsigned int id, int maxButtons, int x, int y, int width, int height)
 	: ControlClass(id, x, y, width, height, static_cast<GadgetFlag>(0), true)
+	, MaxButtons(maxButtons)
 {
 	SWSidebarClass::Global()->Columns.emplace_back(this);
-
-	this->MaxButtons = Phobos::UI::SuperWeaponSidebar_Max - (static_cast<int>(SWSidebarClass::Global()->Columns.size()) - 1);
+	this->Disabled = !SWSidebarClass::IsEnabled();
 }
 
 bool SWColumnClass::Draw(bool forced)
@@ -50,7 +51,7 @@ bool SWColumnClass::Draw(bool forced)
 		PCX::Instance->BlitToSurface(&drawRect, DSurface::Composite, pBottomPCX);
 	}
 
-	for (const auto button : this->Buttons)
+	for (const auto& button : this->Buttons)
 		button->Draw(true);
 
 	return true;
@@ -73,44 +74,44 @@ void SWColumnClass::OnMouseLeave()
 
 bool SWColumnClass::Clicked(DWORD* pKey, GadgetFlag flags, int x, int y, KeyModifier modifier)
 {
-	for (const auto& button : this->Buttons)
-	{
-		if (button->Clicked(pKey, flags, x, y, modifier))
-			return true;
-	}
-
 	return false;
 }
 
 bool SWColumnClass::AddButton(int superIdx)
 {
-	if (const auto pSWType = SuperWeaponTypeClass::Array->GetItemOrDefault(superIdx))
+	auto& buttons = this->Buttons;
+	const int buttonCount = static_cast<int>(buttons.size());
+	auto sidebar = SWSidebarClass::Global();
+
+	if (buttonCount >= this->MaxButtons && !sidebar->AddColumn())
 	{
-		const auto pSWExt = SWTypeExtContainer::Instance.Find(pSWType);
-
-		if (!pSWExt->SW_ShowCameo)
-			return true;
-
-		if (!Phobos::UI::SuperWeaponSidebar)
-			return false;
-
-		if (!pSWExt->SuperWeaponSidebar_Allow)
-			return false;
-
 		const unsigned int ownerBits = 1u << HouseClass::CurrentPlayer->Type->ArrayIndex;
 
-		if ((pSWExt->SuperWeaponSidebar_RequiredHouses & ownerBits) == 0)
+		auto Compare = [ownerBits](const int left, const int right)
+		{
+			const auto pExtA = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->GetItemOrDefault(left));
+			const auto pExtB = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->GetItemOrDefault(right));
+
+			if (pExtB && (pExtB->SuperWeaponSidebar_PriorityHouses & ownerBits) && (!pExtA || !(pExtA->SuperWeaponSidebar_PriorityHouses & ownerBits)))
+				return false;
+
+			if ((!pExtB || !(pExtB->SuperWeaponSidebar_PriorityHouses & ownerBits)) && pExtA && (pExtA->SuperWeaponSidebar_PriorityHouses & ownerBits))
+				return true;
+
+			return BuildType::SortsBefore(AbstractType::Special, left, AbstractType::Special, right);
+		};
+
+		const int backIdx = buttons.back()->SuperIndex;
+
+		if (!Compare(superIdx, backIdx))
 			return false;
-	}
-	else
-	{
-		return true;
-	}
 
-	auto& buttons = this->Buttons;
-
-	if (static_cast<int>(buttons.size()) >= this->MaxButtons && !SWSidebarClass::Global()->AddColumn())
-		return false;
+		this->RemoveButton(backIdx);
+		sidebar->DisableEntry = true;
+		SidebarClass::Instance->AddCameo(AbstractType::Special, backIdx);
+		SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(AbstractType::Super, backIdx, false));
+		sidebar->DisableEntry = false;
+	}
 
 	const int cameoWidth = 60, cameoHeight = 48;
 	const auto button = GameCreate<SWButtonClass>(SWButtonClass::StartID + superIdx, superIdx, 0, 0, cameoWidth, cameoHeight);
@@ -130,16 +131,27 @@ bool SWColumnClass::AddButton(int superIdx)
 
 bool SWColumnClass::RemoveButton(int superIdx)
 {
-	for (auto it = this->Buttons.begin(); it != this->Buttons.end(); ++it) {
-		if ((*it)->SuperIndex == superIdx) {
-			AnnounceInvalidPointer(SWSidebarClass::Global()->CurrentButton, *it);
-			GScreenClass::Instance->RemoveButton(*it);
-			this->Buttons.erase(it);
-			return true;
-		}
-	}
+	auto& buttons = this->Buttons;
+	auto sidebar = SWSidebarClass::Global();
 
-	return false;
+	const auto it = std::find_if(buttons.begin(), buttons.end(),
+		[superIdx](SWButtonClass* const button)
+		{ return button->SuperIndex == superIdx; });
+
+	if (it == buttons.end())
+		return false;
+
+	AnnounceInvalidPointer(sidebar->CurrentButton, *it);
+
+	auto& indices = ScenarioExtData::Instance()->SWSidebar_Indices;
+	const auto it_Idx = std::find(indices.cbegin(), indices.cend(), superIdx);
+
+	if (it_Idx != indices.cend())
+		indices.erase(it_Idx);
+
+	GScreenClass::Instance->RemoveButton(*it);
+	buttons.erase(it);
+	return true;
 }
 
 void SWColumnClass::ClearButtons(bool remove)

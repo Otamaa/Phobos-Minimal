@@ -69,6 +69,8 @@ public:
 	int BriefingTheme { -1 };
 
 	HelperedVector<TechnoTypeClass*> OwnedExistCameoTechnoTypes {};
+	bool SWSidebar_Enable { true };
+	HelperedVector<int> SWSidebar_Indices {};
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);

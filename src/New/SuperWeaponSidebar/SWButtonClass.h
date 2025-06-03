@@ -24,7 +24,6 @@ public:
 
 public:
 	static COMPILETIMEEVAL int StartID = 2200;
-	static COMPILETIMEEVAL int ToolTip_Align_Y = 27;
 
 	bool IsHovering { false };
 	int ColumnIndex { -1 };

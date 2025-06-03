@@ -21,9 +21,6 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 
-	bool SWSidebar_Enable { true };
-	HelperedVector<int> SWSidebar_Indices {};
-
 public:
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

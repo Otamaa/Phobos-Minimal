@@ -194,6 +194,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->BattlePoints_DefaultValue.Read(iniEX, GameStrings::General, "BattlePoints.DefaultValue");
 	pData->BattlePoints_DefaultFriendlyValue.Read(iniEX, GameStrings::General, "BattlePoints.DefaultFriendlyValue");
 
+	pData->SuperWeaponSidebar_AllowByDefault.Read(iniEX, GameStrings::AudioVisual, "SuperWeaponSidebar.AllowByDefault");
+
 	pData->DamagedSpeed.Read(iniEX, GameStrings::General, "DamagedSpeed");
 	pData->ColorAddUse8BitRGB.Read(iniEX, GameStrings::AudioVisual, "ColorAddUse8BitRGB");
 	pData->IronCurtain_ExtraTintIntensity.Read(iniEX, GameStrings::AudioVisual, "IronCurtain.ExtraTintIntensity");
@@ -1567,6 +1569,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->BattlePoints)
 		.Process(this->BattlePoints_DefaultValue)
 		.Process(this->BattlePoints_DefaultFriendlyValue)
+
+		.Process(this->SuperWeaponSidebar_AllowByDefault)
 		;
 
 	MyPutData.Serialize(Stm);

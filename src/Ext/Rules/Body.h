@@ -525,6 +525,8 @@ public:
 	Valueable<int> BattlePoints_DefaultValue {};
 	Nullable<int> BattlePoints_DefaultFriendlyValue {};
 
+	Valueable<bool> SuperWeaponSidebar_AllowByDefault { true };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

@@ -83,8 +83,6 @@ void SidebarExtData::Serialize(T& Stm)
 {
 	Stm
 		.Process(this->Initialized)
-		.Process(this->SWSidebar_Enable)
-		.Process(this->SWSidebar_Indices)
 		;
 }
 

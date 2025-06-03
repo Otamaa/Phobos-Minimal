@@ -467,13 +467,14 @@ public:
 	NullableIdx<VoxClass> EVA_GrantOneTimeLaunched {};
 
 	Valueable<bool> CrateGoodies { false };
-	Valueable<bool> SuperWeaponSidebar_Allow { true };
+	Nullable<bool> SuperWeaponSidebar_Allow { };
 	DWORD SuperWeaponSidebar_PriorityHouses { 0u };
 	DWORD SuperWeaponSidebar_RequiredHouses { 0xFFFFFFFFu };
 
 	Valueable<int> TabIndex { 1 };
 
 	Valueable<int> BattlePoints_Amount {};
+	Valueable<int> SuperWeaponSidebar_Significance {};
 
 	~SWTypeExtData() noexcept;
 

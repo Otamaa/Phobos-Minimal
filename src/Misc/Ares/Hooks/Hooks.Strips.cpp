@@ -1006,8 +1006,13 @@ bool NOINLINE RemoveCameo(BuildType* item)
 					return false;
 
 			} else {
-				if (supers[item->ItemIndex]->Granted && !SWSidebarClass::Global()->AddButton(item->ItemIndex)) {
-					return false;
+				if (supers[item->ItemIndex]->Granted) {
+					if(SWSidebarClass::Global()->AddButton(item->ItemIndex)){
+						ScenarioExtData::Instance()->SWSidebar_Indices.emplace_back(item->ItemIndex);
+						return true;
+					} else {
+						return false;
+					}
 				}
 			}
 		}

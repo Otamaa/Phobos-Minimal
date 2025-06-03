@@ -179,6 +179,8 @@ struct Phobos final
 		static bool ScrollSidebarStripWhenHoldKey;
 
 		static bool UnitPowerDrain;
+		static int SuperWeaponSidebar_RequiredSignificance;
+
 	};
 
 	struct Misc

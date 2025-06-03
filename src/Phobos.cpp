@@ -140,6 +140,7 @@ bool Phobos::Config::ScrollSidebarStripInTactical { true };
 bool Phobos::Config::ScrollSidebarStripWhenHoldKey { true };
 
 bool Phobos::Config::UnitPowerDrain { false };
+int Phobos::Config::SuperWeaponSidebar_RequiredSignificance { 0 };
 
 bool Phobos::Misc::CustomGS { false };
 int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };

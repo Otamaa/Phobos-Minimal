@@ -273,6 +273,8 @@ void ScenarioExtData::Serialize(T& Stm)
 		.Process(this->ShowBriefing)
 		.Process(this->BriefingTheme)
 		.Process(this->OwnedExistCameoTechnoTypes)
+		.Process(this->SWSidebar_Enable)
+		.Process(this->SWSidebar_Indices)
 		;
 
 

@@ -75,6 +75,13 @@ void NOINLINE CheckGattling(InfantryClass* pThis)
 	}
 }
 
+ASMJIT_PATCH(0x520AD9, InfantryClass_FiringAI_IsGattling, 0x5)
+{
+	GET(InfantryClass*, pThis, EBP);
+	CheckGattling(pThis);
+	return 0;
+}
+
 ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 {
 	enum { Continue = 0x5209CD, ReturnFromFunction = 0x520AD9 };
@@ -85,14 +92,12 @@ ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	const auto pWeaponstruct = pThis->GetWeapon(FiringAITemp::weaponIndex);
 
 	if (!pWeaponstruct) {
-		CheckGattling(pThis);
 		return ReturnFromFunction;
 	}
 
 	const auto pWeapon = pWeaponstruct->WeaponType;
 
 	if (!pWeapon) {
-		CheckGattling(pThis);
 		return ReturnFromFunction;
 	}
 
@@ -156,13 +161,11 @@ ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 					pExt->CreateDelayedFireAnim(pAnimType, FiringAITemp::weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
 						pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOffset.isset(), pWeaponExt->DelayedFire_AnimOffset.Get());
 
-					CheckGattling(pThis);
 					return ReturnFromFunction;
 
 				}
 				else if (timer.InProgress())
 				{
-					CheckGattling(pThis);
 					return ReturnFromFunction;
 				}
 
@@ -191,7 +194,6 @@ ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 		}
 	}
 
-	CheckGattling(pThis);
 	return ReturnFromFunction;
 }
 
