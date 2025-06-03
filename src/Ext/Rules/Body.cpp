@@ -445,10 +445,10 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
-		if (pItem->Passengers > 0 && pItem->SizeLimit < 1)
+		if (pItem->Passengers > 0 && (int)pItem->SizeLimit < 1)
 		{
 			Debug::LogInfo("[{} - {}]Passengers={} and SizeLimit={}!",
-				pItem->ID, myClassName, pItem->Passengers, pItem->SizeLimit);
+				pItem->ID, myClassName, pItem->Passengers, (int)pItem->SizeLimit);
 			Debug::RegisterParserError();
 		}
 		if (pItem->MainVoxel.VXL)
