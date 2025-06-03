@@ -72,7 +72,7 @@ bool SWButtonClass::Draw(bool forced)
 	}
 
 	bool darken = false;
-	if(pSuper->IsCharged) {
+	if(pSuper->CanFire()) {
 		if(!pCurrent->CanTransactMoney(pSWExt->Money_Amount))
 			darken = true;
 
