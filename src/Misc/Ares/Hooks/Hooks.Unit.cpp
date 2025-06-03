@@ -667,7 +667,7 @@ ASMJIT_PATCH(0x73E730, UnitClass_MissionHarvest_HarvesterScanAfterUnload, 0x5)
 
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	// Focus is set when the harvester is fully loaded and go home.
-	if (pFocus && pTypeExt->HarvesterScanAfterUnload.Get(RulesExtData::Instance()->HarvesterScanAfterUnload))
+	if (pFocus && !pThis->Type->Weeder && pTypeExt->HarvesterScanAfterUnload.Get(RulesExtData::Instance()->HarvesterScanAfterUnload))
 	{
 		auto cellBuffer = CellStruct::Empty;
 		auto long_scan = pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan);
