@@ -2511,7 +2511,7 @@ DEFINE_JUMP(LJMP, 0x715326, 0x715333); // TechnoTypeClass::LoadFromINI
 // Then EDI is BarrelAnimData now, not incorrect TurretAnimData
 
 
-DEFINE_HOOK(0x481778, CellClass_ScatterContent_Scatter, 0x6)
+ASMJIT_PATCH(0x481778, CellClass_ScatterContent_Scatter, 0x6)
 {
 	enum { NextTechno = 0x4817D9 };
 
@@ -2541,8 +2541,7 @@ const bool CanElectricAssault(FootClass* pThis, BuildingClass* pBuilding)
 	return pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis , pWarhead)).Verses != 0.0;
 }
 
-DEFINE_HOOK_AGAIN(0x4D51B2, FootClass_ElectricAssultFix, 0x5)	// Mission_Guard
-DEFINE_HOOK(0x4D7005, FootClass_ElectricAssultFix, 0x5)			// Mission_AreaGuard
+ASMJIT_PATCH(0x4D7005, FootClass_ElectricAssultFix, 0x5)			// Mission_AreaGuard
 {
 	GET(FootClass*, pThis, ESI);
 	GET(BuildingClass*, pBuilding, EDI);
@@ -2551,7 +2550,7 @@ DEFINE_HOOK(0x4D7005, FootClass_ElectricAssultFix, 0x5)			// Mission_AreaGuard
 	return !CanElectricAssault(pThis, pBuilding) ?
 		R->Origin() == 0x4D51B2 ? SkipGuard : SkipAreaGuard
 		: 0;
-}
+}ASMJIT_PATCH_AGAIN(0x4D51B2, FootClass_ElectricAssultFix, 0x5)	// Mission_Guard
 
 // I think no one wants to see wild pointers caused by WW's negligence
 //ASMJIT_PATCH(0x4D9A1B, FootClass_PointerExpired_RemoveDestination, 0x6)
