@@ -136,6 +136,62 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType absType,
 	return { currentFactory, shouldBlock, absType };
 }
 
+// Final optimized team completion tracking
+struct TeamCompletionInfo
+{
+	TeamClass* pTeam;
+	int totalRequired;
+	int missingUnits;
+	int completionPercentage;
+	bool isActiveOrRecruiting;
+	bool needsProcessing; // Pre-computed flag to avoid redundant filtering
+
+	TeamCompletionInfo(TeamClass* team) : pTeam(team), totalRequired(0), missingUnits(0),
+		completionPercentage(0), isActiveOrRecruiting(false), needsProcessing(false)
+	{
+		if (!team || !team->Type || !team->Type->TaskForce)
+			return;
+
+		isActiveOrRecruiting = team->IsForcedActive || team->IsHasBeen;
+
+		// Calculate total required efficiently - avoid potential overflow
+		const int maxEntries = team->Type->TaskForce->CountEntries;
+		for (int i = 0; i < maxEntries && totalRequired < 1000; ++i) // Cap to prevent overflow
+		{
+			const auto& entry = team->Type->TaskForce->Entries[i];
+			if (entry.Amount > 0) // Safety check
+				totalRequired += entry.Amount;
+		}
+
+		if (totalRequired > 0)
+		{
+			// Use static allocation to avoid repeated DynamicVectorClass creation
+			static thread_local DynamicVectorClass<TechnoTypeClass*> missing;
+			missing.Clear();
+			team->GetTaskForceMissingMemberTypes(missing);
+			missingUnits = missing.Count;
+
+			// Clamp values to prevent overflow/underflow
+			missingUnits = std::min(missingUnits, totalRequired);
+
+			// Safe percentage calculation
+			completionPercentage = ((totalRequired - missingUnits) * 100) / totalRequired;
+			completionPercentage = std::clamp(completionPercentage, 0, 100);
+
+			// Fix logic: needsProcessing should match original filtering logic exactly
+			needsProcessing = !((!team->Type->Reinforce || team->IsFullStrength) &&
+							   (team->IsForcedActive || team->IsHasBeen));
+		}
+		else
+		{
+			// Edge case: team with no requirements
+			missingUnits = 0;
+			completionPercentage = 100; // Consider as complete
+			needsProcessing = false; // No processing needed
+		}
+	}
+};
+
 void HouseExtData::UpdateVehicleProduction()
 {
 	auto pHouse = this->AttachedToObject;
@@ -146,6 +202,7 @@ void HouseExtData::UpdateVehicleProduction()
 	if ((skipGround && skipNaval) || (!skipGround && this->UpdateHarvesterProduction()))
 		return;
 
+	// Keep original vectors and logic structure
 	auto& creationFrames = HouseExtData::AIProduction_CreationFrames;
 	auto& values = HouseExtData::AIProduction_Values;
 	auto& bestChoices = HouseExtData::AIProduction_BestChoices;
@@ -162,67 +219,131 @@ void HouseExtData::UpdateVehicleProduction()
 	std::fill(creationFrames.begin(), creationFrames.end(), MAX_FRAME_VALUE);
 	std::fill(values.begin(), values.end(), 0);
 
-	// Process teams to determine production priorities
-	ProcessTeamsForProduction(pHouse, creationFrames, values, skipGround, skipNaval);
+	// Optimized: Analyze team completion status with pre-filtering
+	std::vector<TeamCompletionInfo> teamInfos;
+	teamInfos.reserve(16); // Pre-allocate reasonable capacity
 
-	// Account for existing units that can be recruited
+	for (auto currentTeam : *TeamClass::Array)
+	{
+		if (!currentTeam || currentTeam->Owner != pHouse || !currentTeam->Type)
+			continue;
+
+		TeamCompletionInfo info(currentTeam);
+		// Only add teams that need units AND need processing
+		if (info.missingUnits > 0 && info.needsProcessing)
+			teamInfos.push_back(info);
+	}
+
+	// Early exit if no teams need attention
+	if (teamInfos.empty()) [[unlikely]]
+	{
+		// Still need to process existing units to prevent early production
+		ProcessExistingUnitsForProduction(pHouse, values);
+		return;
+	}
+
+	// Sort by completion priority - teams closer to completion get higher priority
+	std::sort(teamInfos.begin(), teamInfos.end(), [](const TeamCompletionInfo& a, const TeamCompletionInfo& b)
+ {
+	 // Prioritize active/recruiting teams first
+	 if (a.isActiveOrRecruiting != b.isActiveOrRecruiting)
+		 return a.isActiveOrRecruiting > b.isActiveOrRecruiting;
+	 // Then prioritize teams closer to completion
+	 if (a.completionPercentage != b.completionPercentage)
+		 return a.completionPercentage > b.completionPercentage;
+	 // Finally by creation frame (earlier first)
+	 return a.pTeam->CreationFrame < b.pTeam->CreationFrame;
+	});
+
+	// Process teams with completion priority - no redundant filtering needed
+	ProcessTeamsForCompletionFocus(pHouse, creationFrames, values, skipGround, skipNaval, teamInfos);
+
+	// Keep original logic for existing units
 	ProcessExistingUnitsForProduction(pHouse, values);
 
-	// Determine best production choices
+	// Keep original best choices logic
 	int earliestTypeIndex = -1;
 	int earliestTypeIndexNaval = -1;
 	DetermineBestProductionChoices(pHouse, creationFrames, values, bestChoices, bestChoicesNaval,
 		unitTypeCount, earliestTypeIndex, earliestTypeIndexNaval);
 
-	// Set production indices based on AI difficulty and randomization
+	// Keep original final selection logic
 	SetFinalProductionIndices(pHouse, aiDifficulty, bestChoices, bestChoicesNaval,
 		earliestTypeIndex, earliestTypeIndexNaval, skipGround, skipNaval);
 }
 
-void HouseExtData::ProcessTeamsForProduction(HouseClass* pHouse, std::vector<int>& creationFrames,
-	std::vector<int>& values, bool skipGround, bool skipNaval)
+void HouseExtData::ProcessTeamsForCompletionFocus(HouseClass* pHouse, std::vector<int>& creationFrames,
+	std::vector<int>& values, bool skipGround, bool skipNaval, const std::vector<TeamCompletionInfo>& teamInfos)
 {
-	// Move allocation outside the loop for better performance
-	DynamicVectorClass<TechnoTypeClass*> taskForceMembers;
-	taskForceMembers.Reserve(32); // Pre-allocate reasonable capacity
+	// Use static allocation to avoid repeated memory allocation
+	static thread_local DynamicVectorClass<TechnoTypeClass*> taskForceMembers;
+	taskForceMembers.Clear();
+	taskForceMembers.Reserve(32);
 
-	for (auto currentTeam : *TeamClass::Array)
+	// Limit processing to prevent excessive CPU usage in extreme cases
+	const size_t maxTeamsToProcess = std::min(teamInfos.size(), static_cast<size_t>(24));
+
+	// Process teams in completion priority order - filtering already done
+	for (size_t teamIdx = 0; teamIdx < maxTeamsToProcess; ++teamIdx)
 	{
-		if (!currentTeam || currentTeam->Owner != pHouse)
+		const auto& teamInfo = teamInfos[teamIdx];
+		auto currentTeam = teamInfo.pTeam;
+		if (!currentTeam) [[unlikely]]
 			continue;
 
-		const int teamCreationFrame = currentTeam->CreationFrame;
+			const int teamCreationFrame = currentTeam->CreationFrame;
 
-		// Original logic: Skip teams that (don't need reinforce OR are full) AND (are active OR have been active)
-		// This logic processes teams that either need reinforcement or are not at full strength,
-		// but only if they are not currently active or have never been active
-		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength) &&
-			(currentTeam->IsForcedActive || currentTeam->IsHasBeen))
-		{
-			continue;
-		}
+			taskForceMembers.Clear();
+			currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
 
-		taskForceMembers.Clear(); // Reuse existing allocation
-		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
+			// Optimized completion bonus calculation
+			int completionBonus = 1;
 
-		for (auto currentMember : taskForceMembers)
-		{
-			if (currentMember->WhatAmI() != UnitTypeClass::AbsID ||
-				(skipGround && !currentMember->Naval) ||
-				(skipNaval && currentMember->Naval))
-				continue;
+			// Active/recruiting teams get highest priority
+			if (teamInfo.isActiveOrRecruiting) [[likely]]
+				completionBonus += 4; // Increased from 3 for better focus
 
-			const size_t index = static_cast<size_t>(static_cast<UnitTypeClass*>(currentMember)->ArrayIndex);
+				// Teams closer to completion get progressive bonus
+				if (teamInfo.completionPercentage >= 75) [[unlikely]]
+					completionBonus += 3; // Nearly complete teams
+				else if (teamInfo.completionPercentage >= 50) [[likely]]
+					completionBonus += 2; // Half complete teams
+				else if (teamInfo.completionPercentage >= 25) [[likely]]
+					completionBonus += 1; // Quarter complete teams
 
-			// Add bounds check to prevent crash
-			if (index >= values.size())
-				continue;
+					// Defense teams get additional priority
+					if (currentTeam->Type->IsBaseDefense) [[unlikely]]
+						completionBonus += 1;
 
-			++values[index];
+						// Process with early termination for efficiency
+						int unitsProcessed = 0;
+						const int maxUnitsPerTeam = 16; // Prevent excessive processing
 
-			if (teamCreationFrame < creationFrames[index])
-				creationFrames[index] = teamCreationFrame;
-		}
+						for (auto currentMember : taskForceMembers)
+						{
+							if (++unitsProcessed > maxUnitsPerTeam) [[unlikely]]
+								break; // Prevent excessive processing
+
+								if (currentMember->WhatAmI() != UnitTypeClass::AbsID) [[unlikely]]
+									continue;
+
+									auto pUnitType = static_cast<UnitTypeClass*>(currentMember);
+
+									// Filter unit types efficiently
+									if ((skipGround && !pUnitType->Naval) || (skipNaval && pUnitType->Naval)) [[unlikely]]
+										continue;
+
+										const size_t index = static_cast<size_t>(pUnitType->ArrayIndex);
+
+										if (index >= values.size()) [[unlikely]]
+											continue;
+
+											// Apply completion bonus to prioritize completing teams
+											values[index] += completionBonus;
+
+											if (teamCreationFrame < creationFrames[index]) [[likely]]
+												creationFrames[index] = teamCreationFrame;
+						}
 	}
 }
 
@@ -319,10 +440,8 @@ void HouseExtData::UpdateBestChoicesForType(size_t typeIndex, int currentValue, 
 	}
 	else if (targetBestValue == currentValue)
 	{
-		// Only add if it equals the current best value
 		targetBestChoices.push_back(static_cast<int>(typeIndex));
 	}
-	// If currentValue < targetBestValue, don't add it at all
 
 	if (targetEarliestFrame > creationFrame || targetEarliestIndex == -1)
 	{
@@ -632,138 +751,126 @@ ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 template <class T, class TType>
 int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 {
-	// Use static vectors to avoid repeated allocations with periodic shrinking
-	static thread_local std::vector<int> creationFrames;
-	static thread_local std::vector<int> values;
-	static thread_local std::vector<int> bestChoices;
-	static thread_local size_t callCounter = 0;
+	// Use optimized team completion approach
+	static thread_local std::vector<TeamCompletionInfo> teamInfos;
+	static thread_local DynamicVectorClass<TechnoTypeClass*> taskForceMembers;
 
-	const size_t typeCount = static_cast<size_t>(TType::Array->Count);
+	teamInfos.clear();
+	teamInfos.reserve(16);
+	taskForceMembers.Reserve(32);
 
-	// Optimize vector operations - resize once, then fill
-	if (creationFrames.size() != typeCount)
-	{
-		creationFrames.resize(typeCount);
-		values.resize(typeCount);
-		bestChoices.reserve(VECTOR_RESERVE_SIZE); // Pre-allocate reasonable capacity
-	}
-
-	// Periodic memory cleanup to prevent excessive growth
-	if (++callCounter % 100 == 0) [[unlikely]]
-	{
-		if (creationFrames.capacity() > MAX_VECTOR_CAPACITY) [[unlikely]]
-		{
-			creationFrames.shrink_to_fit();
-			values.shrink_to_fit();
-		}
-		if (bestChoices.capacity() > VECTOR_RESERVE_SIZE * 2) [[unlikely]]
-		{
-			bestChoices.shrink_to_fit();
-			bestChoices.reserve(VECTOR_RESERVE_SIZE);
-		}
-	}
-
-	std::fill(creationFrames.begin(), creationFrames.end(), MAX_FRAME_VALUE);
-	std::fill(values.begin(), values.end(), 0);
-	bestChoices.clear();
-
-	// Process teams to find missing unit types
-	ProcessTeamsForTypeProduction<TType>(pHouse, creationFrames, values);
-
-	// Account for existing units that can be recruited
-	ProcessExistingUnitsForTypeProduction<T, TType>(pHouse, values);
-
-	// Find the best production choices
-	return DetermineBestTypeToProduceNew<TType>(pHouse, creationFrames, values, bestChoices, typeCount);
-}
-
-template <class TType>
-void ProcessTeamsForTypeProduction(HouseClass* pHouse, std::vector<int>& creationFrames, std::vector<int>& values)
-{
-	// Use static allocation to avoid repeated memory allocation across calls
-	static thread_local DynamicVectorClass<TechnoTypeClass*> missingMembers;
-	missingMembers.Clear();
-	missingMembers.Reserve(32); // Pre-allocate reasonable capacity
-
+	// Analyze teams that need this type of unit - optimized
 	for (auto currentTeam : *TeamClass::Array)
 	{
-		if (!currentTeam || currentTeam->Owner != pHouse || !currentTeam->Type) [[unlikely]]
+		if (!currentTeam || currentTeam->Owner != pHouse || !currentTeam->Type)
 			continue;
 
-			const int teamCreationFrame = currentTeam->CreationFrame;
+		// Pre-create info to use cached needsProcessing flag
+		TeamCompletionInfo info(currentTeam);
+		if (!info.needsProcessing || info.missingUnits <= 0)
+			continue;
 
-			// Original logic: Skip teams that (don't need reinforce OR are full) AND (are active OR have been active)
-			// This logic processes teams that either need reinforcement or are not at full strength,
-			// but only if they are not currently active or have never been active
-			if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength) &&
-				(currentTeam->IsForcedActive || currentTeam->IsHasBeen)) [[likely]]
+		// Quick check if team needs this unit type
+		taskForceMembers.Clear();
+		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
+
+		bool hasRequiredUnitType = false;
+		for (auto currentMember : taskForceMembers)
+		{
+			if (currentMember->WhatAmI() == TType::AbsID)
 			{
-				continue;
+				hasRequiredUnitType = true;
+				break;
 			}
+		}
 
-			missingMembers.Clear(); // Reuse existing allocation
-			currentTeam->GetTaskForceMissingMemberTypes(missingMembers);
-
-			for (auto pMember : missingMembers)
-			{
-				if (!pMember || pMember->WhatAmI() != TType::AbsID) [[unlikely]]
-					continue;
-
-					const size_t typeIndex = static_cast<size_t>(static_cast<TType*>(pMember)->ArrayIndex);
-
-					// Add bounds check to prevent crash
-					if (typeIndex >= values.size()) [[unlikely]]
-						continue;
-
-						++values[typeIndex];
-
-						if (teamCreationFrame < creationFrames[typeIndex]) [[likely]]
-							creationFrames[typeIndex] = teamCreationFrame;
-			}
+		if (hasRequiredUnitType)
+			teamInfos.push_back(info);
 	}
-}
 
-template <class T, class TType>
-void ProcessExistingUnitsForTypeProduction(HouseClass* pHouse, std::vector<int>& values)
-{
-	const size_t maxTypeIndex = values.size();
+	if (teamInfos.empty())
+		return INVALID_PRODUCTION_INDEX; // No teams need units, prevent early production
 
-	// Use utility function for better code reuse
+	// Sort by completion priority with improved logic
+	std::sort(teamInfos.begin(), teamInfos.end(), [](const TeamCompletionInfo& a, const TeamCompletionInfo& b)
+ {
+	 // Prioritize active/recruiting teams first
+	 if (a.isActiveOrRecruiting != b.isActiveOrRecruiting)
+		 return a.isActiveOrRecruiting > b.isActiveOrRecruiting;
+	 // Then prioritize teams closer to completion
+	 if (a.completionPercentage != b.completionPercentage)
+		 return a.completionPercentage > b.completionPercentage;
+	 // Finally by creation frame (earlier teams first)
+	 return a.pTeam->CreationFrame < b.pTeam->CreationFrame;
+	});
+
+	// Use original aggregation approach but with completion priority weighting
+	const size_t typeCount = static_cast<size_t>(TType::Array->Count);
+	std::vector<int> values(typeCount, 0);
+	std::vector<int> creationFrames(typeCount, MAX_FRAME_VALUE);
+
+	// Process teams in completion priority order
+	for (const auto& teamInfo : teamInfos)
+	{
+		auto currentTeam = teamInfo.pTeam;
+		if (!currentTeam)
+			continue;
+
+		const int teamCreationFrame = currentTeam->CreationFrame;
+
+		DynamicVectorClass<TechnoTypeClass*> taskForceMembers;
+		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
+
+		// Apply completion bonus
+		int completionBonus = 1;
+		if (teamInfo.isActiveOrRecruiting)
+			completionBonus += 3;
+		if (teamInfo.completionPercentage >= 50)
+			completionBonus += 2;
+		if (currentTeam->Type->IsBaseDefense)
+			completionBonus += 1;
+
+		for (auto currentMember : taskForceMembers)
+		{
+			if (currentMember->WhatAmI() != TType::AbsID)
+				continue;
+
+			const size_t index = static_cast<size_t>(static_cast<TType*>(currentMember)->ArrayIndex);
+			if (index >= values.size())
+				continue;
+
+			values[index] += completionBonus;
+
+			if (teamCreationFrame < creationFrames[index])
+				creationFrames[index] = teamCreationFrame;
+		}
+	}
+
+	// Account for existing units that can be recruited (keep original logic)
 	int totalUnitsNeeded = CountPositiveValues(values);
+	if (totalUnitsNeeded > 0 && T::Array && T::Array->Count > 0)
+	{
+		for (auto it = T::Array->begin(); it != T::Array->end() && totalUnitsNeeded > 0; ++it)
+		{
+			const auto pUnit = *it;
+			if (!pUnit || !pUnit->Type)
+				continue;
 
-	if (totalUnitsNeeded == 0) [[unlikely]]
-		return; // No units needed, skip processing
+			const size_t typeIndex = static_cast<size_t>(pUnit->Type->ArrayIndex);
+			if (typeIndex >= values.size())
+				continue;
 
-		// Add safety check for array validity
-		if (!T::Array || T::Array->Count <= 0) [[unlikely]]
-			return;
-
-			for (auto it = T::Array->begin(); it != T::Array->end() && totalUnitsNeeded > 0; ++it)
+			if (values[typeIndex] > 0 && pUnit->CanBeRecruited(pHouse))
 			{
-				const auto pUnit = *it;
-
-				// Add critical null pointer check
-				if (!pUnit || !pUnit->Type) [[unlikely]]
-					continue;
-
-					const size_t typeIndex = static_cast<size_t>(pUnit->Type->ArrayIndex);
-
-					// Bounds check to prevent crash
-					if (typeIndex >= maxTypeIndex) [[unlikely]]
-						continue;
-
-						if (values[typeIndex] > 0 && pUnit->CanBeRecruited(pHouse)) [[likely]]
-						{
-							--values[typeIndex];
-							--totalUnitsNeeded; // More efficient than nested loop
-						}
+				--values[typeIndex];
+				--totalUnitsNeeded;
 			}
-}
+		}
+	}
 
-template <class TType>
-int DetermineBestTypeToProduceNew(HouseClass* pHouse, const std::vector<int>& creationFrames,
-	const std::vector<int>& values, std::vector<int>& bestChoices, size_t typeCount)
-{
+	// Keep original best choices logic
+	std::vector<int> bestChoices;
+	bestChoices.reserve(32);
 	int bestValue = -1;
 	int earliestTypeIndex = -1;
 	int earliestFrame = MAX_FRAME_VALUE;
@@ -787,10 +894,8 @@ int DetermineBestTypeToProduceNew(HouseClass* pHouse, const std::vector<int>& cr
 		}
 		else if (bestValue == currentValue)
 		{
-			// Only add if it equals the current best value
 			bestChoices.push_back(static_cast<int>(i));
 		}
-		// If currentValue < bestValue, don't add it at all
 
 		if (earliestFrame > creationFrames[i] || earliestTypeIndex < 0)
 		{
@@ -799,7 +904,23 @@ int DetermineBestTypeToProduceNew(HouseClass* pHouse, const std::vector<int>& cr
 		}
 	}
 
-	return SelectFinalTypeToProduceNew(pHouse, bestChoices, earliestTypeIndex);
+	// Keep original final selection logic
+	const int aiDifficulty = static_cast<int>(pHouse->GetAIDifficultyIndex());
+	auto& random = ScenarioClass::Instance->Random;
+
+	if (random.RandomFromMax(MAX_RANDOM_VALUE) < RulesClass::Instance->FillEarliestTeamProbability[aiDifficulty])
+		return earliestTypeIndex;
+
+	if (!bestChoices.empty())
+	{
+		const int choicesCount = static_cast<int>(bestChoices.size());
+		if (choicesCount == 1)
+			return bestChoices[0];
+		else
+			return bestChoices[random.RandomFromMax(choicesCount - 1)];
+	}
+
+	return INVALID_PRODUCTION_INDEX;
 }
 
 template <class TType>
@@ -821,27 +942,6 @@ inline bool CanProduceType(HouseClass* pHouse, TType* pType)
 	}
 
 	return true;
-}
-
-inline int SelectFinalTypeToProduceNew(HouseClass* pHouse, const std::vector<int>& bestChoices, int earliestTypeIndex)
-{
-	const int aiDifficulty = static_cast<int>(pHouse->GetAIDifficultyIndex());
-	auto& random = ScenarioClass::Instance->Random;
-
-	if (random.RandomFromMax(MAX_RANDOM_VALUE) < RulesClass::Instance->FillEarliestTeamProbability[aiDifficulty]) [[likely]]
-		return earliestTypeIndex;
-
-		if (!bestChoices.empty()) [[likely]]
-		{
-			// Optimize random index calculation for better performance
-			const int choicesCount = static_cast<int>(bestChoices.size());
-			if (choicesCount == 1) [[likely]]
-				return bestChoices[0]; // Skip random calculation for single choice
-			else
-				return bestChoices[random.RandomFromMax(choicesCount - 1)];
-		}
-
-		return INVALID_PRODUCTION_INDEX;
 }
 
 ASMJIT_PATCH(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)

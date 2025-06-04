@@ -372,8 +372,8 @@ public:
 
 private:
 	bool UpdateHarvesterProduction();
-	void ProcessTeamsForProduction(HouseClass* pHouse, std::vector<int>& creationFrames, 
-		std::vector<int>& values, bool skipGround, bool skipNaval);
+	void ProcessTeamsForCompletionFocus(HouseClass* pHouse, std::vector<int>& creationFrames, 
+		std::vector<int>& values, bool skipGround, bool skipNaval, const std::vector<struct TeamCompletionInfo>& teamInfos);
 	void ProcessExistingUnitsForProduction(HouseClass* pHouse, std::vector<int>& values);
 	void DetermineBestProductionChoices(HouseClass* pHouse, const std::vector<int>& creationFrames,
 		const std::vector<int>& values, std::vector<int>& bestChoices, std::vector<int>& bestChoicesNaval, 
