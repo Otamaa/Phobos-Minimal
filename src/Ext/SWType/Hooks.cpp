@@ -1754,53 +1754,104 @@ ASMJIT_PATCH(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 		pThis->Owner->EMPTarget = pExt->SuperTarget;
 	}
 
+	// Obtain the weapon used by the EMP weapon
+	int weaponIndex = 0;
+	const auto pLinked = TechnoExtContainer::Instance.Find(pThis)->LinkedSW;
+	auto const pSWExt = SWTypeExtContainer::Instance.Find(pLinked->Type);
+	auto pTargetCell = MapClass::Instance->GetCellAt(pThis->Owner->EMPTarget);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+
+	if (pSWExt->EMPulse_WeaponIndex >= 0)
+	{
+		weaponIndex = pSWExt->EMPulse_WeaponIndex;
+	}
+	else
+	{
+		AbstractClass* pTarget = pTargetCell;
+
+		if (const auto pObject = pTargetCell->GetContent())
+			pTarget = pObject;
+
+		weaponIndex = pThis->SelectWeapon(pTarget);
+	}
+
+	const auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
+
+	// Innacurate random strike Area calculation
+	int radius = BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->EMPulseCannon_InaccurateRadius;
+	radius = radius < 0 ? 0 : radius;
+
+	if (radius > 0)
+	{
+		if (pExt->RandomEMPTarget == CellStruct::Empty)
+		{
+			// Calculate a new valid random target coordinate
+			do
+			{
+				pExt->RandomEMPTarget.X = (short)ScenarioClass::Instance->Random.RandomRanged(pThis->Owner->EMPTarget.X - radius, pThis->Owner->EMPTarget.X + radius);
+				pExt->RandomEMPTarget.Y = (short)ScenarioClass::Instance->Random.RandomRanged(pThis->Owner->EMPTarget.Y - radius, pThis->Owner->EMPTarget.Y + radius);
+			}
+			while (!MapClass::Instance->IsWithinUsableArea(pExt->RandomEMPTarget, false));
+		}
+
+		pThis->Owner->EMPTarget = pExt->RandomEMPTarget; // Value overwrited every frame
+	}
+
+	if (pThis->MissionStatus != 3)
+		return 0;
+
+	pExt->RandomEMPTarget = CellStruct::Empty;
+
+	// Restart the super weapon firing process if there is enough ammo set for the current weapon
+	if (pThis->Type->Ammo > 0 && pThis->Ammo > 0)
+	{
+		int ammo = WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo.Get();
+		pThis->Ammo -= ammo;
+		pThis->Ammo = pThis->Ammo < 0 ? 0 : pThis->Ammo;
+
+		if (pThis->Ammo >= ammo)
+			pThis->MissionStatus = 0;
+
+		if (!pThis->ReloadTimer.InProgress())
+			pThis->ReloadTimer.Start(pThis->Type->Reload);
+
+		if (pThis->Ammo == 0 && pThis->Type->EmptyReload >= 0 && pThis->ReloadTimer.GetTimeLeft() > pThis->Type->EmptyReload)
+			pThis->ReloadTimer.Start(pThis->Type->EmptyReload);
+	}
+
+
 	return ProcessEMPulse;
 }
 
 ASMJIT_PATCH(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
 {
-	enum { SkipGameCode = 0x44CEF8 };
-
 	GET(BuildingClass*, pThis, ESI);
 
+	// Obtain the weapon used by the EMP weapon
 	int weaponIndex = 0;
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 	const auto pLinked = TechnoExtContainer::Instance.Find(pThis)->LinkedSW;
-
-	if (pHouseExt->EMPulseWeaponIndex >= 0)
-	{
-		weaponIndex = pHouseExt->EMPulseWeaponIndex;
-	}
-	else if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->EMPulseCannon_UseWeaponSelection) {
-		if (auto const pCell = MapClass::Instance->TryGetCellAt(pThis->Owner->EMPTarget)) {
-			AbstractClass* pTarget = pCell;
-
-			if (auto const pObject = pCell->GetContent())
-				pTarget = pObject;
-
-			weaponIndex = pThis->SelectWeapon(pTarget);
-		}
-	}
-
 	auto const pSWExt = SWTypeExtContainer::Instance.Find(pLinked->Type);
+	auto pTargetCell = MapClass::Instance->GetCellAt(pThis->Owner->EMPTarget);
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
-	//why this fuckery even exist ,..
-	//the SW can be state can be exploited at some point , smh
-	if (pSWExt->EMPulse_SuspendOthers) {
-		auto iter = pHouseExt->SuspendedEMPulseSWs.get_key_iterator(pLinked);
+	if (pSWExt->EMPulse_WeaponIndex >= 0)
+	{
+		weaponIndex = pSWExt->EMPulse_WeaponIndex;
+	}
+	else
+	{
+		AbstractClass* pTarget = pTargetCell;
 
-		if (iter != pHouseExt->SuspendedEMPulseSWs.end()) {
-			for (auto const& pSuper : iter->second) {
-				pSuper->IsOnHold = false;
-			}
+		if (const auto pObject = pTargetCell->GetContent())
+			pTarget = pObject;
 
-			pHouseExt->SuspendedEMPulseSWs.erase(iter);
-		}
+		weaponIndex = pThis->SelectWeapon(pTarget);
 	}
 
 	EMPulseCannonTemp::weaponIndex = weaponIndex;
-	R->EAX(pThis->GetWeapon(weaponIndex));
-	return SkipGameCode;
+
+	R->EAX(pThis->GetWeapon(EMPulseCannonTemp::weaponIndex));
+	return 0x44CEF8;
 }
 
 #include <Misc/Hooks.Otamaa.h>

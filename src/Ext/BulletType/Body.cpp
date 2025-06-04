@@ -206,6 +206,8 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AirburstWeapon_SourceScatterMin.Read(exINI, pSection, "AirburstWeapon.SourceScatterMin");
 		this->AirburstWeapon_SourceScatterMax.Read(exINI, pSection, "AirburstWeapon.SourceScatterMax");
 
+		this->EMPulseCannon_InaccurateRadius.Read(exINI, pSection, "EMPulseCannon.InaccurateRadius");
+
 		if (pThis->Inviso) {
 			trailReaded = true;
 			this->LaserTrail_Types.Read(exINI, pSection, "LaserTrail.Types");
@@ -299,6 +301,8 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->Airburst_TargetAsSource_SkipHeight)
 		.Process(this->AirburstWeapon_SourceScatterMin)
 		.Process(this->AirburstWeapon_SourceScatterMax)
+
+		.Process(this->EMPulseCannon_InaccurateRadius)
 		;
 
 	this->Trails.Serialize(Stm);

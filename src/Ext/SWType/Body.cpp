@@ -1399,6 +1399,24 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 	//	}
 	//}
 
+	if ((AresNewSuperType)this->AttachedToObject->Type == AresNewSuperType::EMPulse)
+	{
+		//why this fuckery even exist ,..
+		//the SW can be state can be exploited at some point , smh
+		if (this->EMPulse_SuspendOthers)
+		{
+			auto iter = pHouseExt->SuspendedEMPulseSWs.get_key_iterator(pSuper);
+
+			if (iter != pHouseExt->SuspendedEMPulseSWs.end()) {
+				for (auto const& ppSuper : iter->second) {
+					ppSuper->IsOnHold = false;
+				}
+
+				pHouseExt->SuspendedEMPulseSWs.erase(iter);
+			}
+		}
+	}
+
 	for (auto& sw_ : pData->SW_ResetType) {
 
 		if (size_t(sw_) >= pOwner->Supers.size())
@@ -2511,6 +2529,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->EMPulse_PulseBall)
 		.Process(this->EMPulse_Cannons)
 		.Process(this->EMPulse_SuspendOthers)
+		.Process(this->EMPulse_WeaponIndex)
 
 		.Process(this->Mutate_Explosion)
 		.Process(this->Mutate_IgnoreCyborg)

@@ -119,6 +119,8 @@ public:
 	Valueable<Leptons> AirburstWeapon_SourceScatterMin {};
 	Valueable<Leptons> AirburstWeapon_SourceScatterMax {};
 
+	Valueable<int> EMPulseCannon_InaccurateRadius {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

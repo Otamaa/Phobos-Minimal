@@ -2127,7 +2127,6 @@ void HouseExtData::Serialize(T& Stm)
 
 		.Process(this->SideTechTree , true)
 		.Process(this->CombatAlertTimer)
-		.Process(this->EMPulseWeaponIndex)
 		.Process(this->RestrictedFactoryPlants, true)
 		.Process(this->AISellAllDelayTimer)
 		//.Process(this->BuiltAircraftTypes)
