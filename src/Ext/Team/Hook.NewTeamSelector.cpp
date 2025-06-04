@@ -38,7 +38,7 @@ namespace TeamSelectorConstants
 }
 
 // Helper function to validate and clamp percentages
-COMPILETIMEEVAL double ValidatePercentage(double percentage)
+FORCEDINLINE constexpr double ValidatePercentage(double percentage) noexcept
 {
 	return (percentage < TeamSelectorConstants::MIN_PERCENTAGE || percentage > TeamSelectorConstants::MAX_PERCENTAGE)
 		? TeamSelectorConstants::MIN_PERCENTAGE
@@ -46,7 +46,7 @@ COMPILETIMEEVAL double ValidatePercentage(double percentage)
 }
 
 // Helper function to check if a team type is already over-represented
-COMPILETIMEEVAL bool IsTeamTypeOverRepresented(TeamTypeClass* pTeamType, const HelperedVector<TeamClass*>& activeTeams)
+FORCEDINLINE bool IsTeamTypeOverRepresented(TeamTypeClass* pTeamType, const HelperedVector<TeamClass*>& activeTeams) noexcept
 {
 	if (!pTeamType)
 		return true;
@@ -69,84 +69,107 @@ COMPILETIMEEVAL bool IsTeamTypeOverRepresented(TeamTypeClass* pTeamType, const H
 	return (activeCount > pTeamType->Max / 2) || (movingCount > activeCount / 2 && activeCount > 1);
 }
 
-struct TriggerElementWeight
+// Pack struct for better cache performance
+struct alignas(16) TriggerElementWeight
 {
-	double Weight { 0.0 };
-	AITriggerTypeClass* Trigger { nullptr };
-	TeamCategory Category { TeamCategory::None };
+	AITriggerTypeClass* Trigger { nullptr };  // 8 bytes - most accessed
+	double Weight { 0.0 };                    // 8 bytes
+	TeamCategory Category { TeamCategory::None }; // 4 bytes
+	// 4 bytes padding for alignment
+
+	// Constructor to fix emplace_back compatibility
+	TriggerElementWeight() = default;
+	TriggerElementWeight(AITriggerTypeClass* trigger, double weight, TeamCategory category)
+		: Trigger(trigger), Weight(weight), Category(category) { }
+	TriggerElementWeight(double weight, AITriggerTypeClass* trigger, TeamCategory category)
+		: Trigger(trigger), Weight(weight), Category(category) { }
 
 	//need to define a == operator so it can be used in array classes
-	COMPILETIMEEVAL bool operator==(const TriggerElementWeight& other) const
+	FORCEDINLINE constexpr bool operator==(const TriggerElementWeight& other) const noexcept
 	{
 		return (Trigger == other.Trigger && Weight == other.Weight && Category == other.Category);
 	}
 
 	//unequality
-	COMPILETIMEEVAL bool operator!=(const TriggerElementWeight& other) const
+	FORCEDINLINE constexpr bool operator!=(const TriggerElementWeight& other) const noexcept
 	{
-		return (Trigger != other.Trigger || Weight != other.Weight || Category != other.Category);
+		return !(*this == other);
 	}
 
-	COMPILETIMEEVAL bool operator<(const TriggerElementWeight& other) const
+	FORCEDINLINE constexpr bool operator<(const TriggerElementWeight& other) const noexcept
 	{
-		return (Weight < other.Weight);
+		return Weight < other.Weight;
 	}
 
-	COMPILETIMEEVAL bool operator<(const double other) const
+	FORCEDINLINE constexpr bool operator<(double other) const noexcept
 	{
-		return (Weight < other);
+		return Weight < other;
 	}
 
-	COMPILETIMEEVAL bool operator>(const TriggerElementWeight& other) const
+	FORCEDINLINE constexpr bool operator>(const TriggerElementWeight& other) const noexcept
 	{
-		return (Weight > other.Weight);
+		return Weight > other.Weight;
 	}
 
-	COMPILETIMEEVAL bool operator>(const double other) const
+	FORCEDINLINE constexpr bool operator>(double other) const noexcept
 	{
-		return (Weight > other);
+		return Weight > other;
 	}
 
-	COMPILETIMEEVAL bool operator==(const double other) const
+	FORCEDINLINE constexpr bool operator==(double other) const noexcept
 	{
-		return (Weight == other);
+		return Weight == other;
 	}
 
-	COMPILETIMEEVAL bool operator!=(const double other) const
+	FORCEDINLINE constexpr bool operator!=(double other) const noexcept
 	{
-		return (Weight != other);
+		return Weight != other;
 	}
 };
 
-COMPILETIMEEVAL bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
+FORCEDINLINE bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed) noexcept
 {
-	if (!pTechno)
+	// Fast path: null check first (most common failure case)
+	if (!pTechno) [[unlikely]]
 		return false;
 
-	bool isAvailable = pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo && pTechno->IsOnMap;
+		// Quick health check (second most common failure)
+		if (pTechno->Health <= 0) [[unlikely]]
+			return false;
 
-	if (checkIfInTransportOrAbsorbed)
-		isAvailable &= !pTechno->Absorbed && !pTechno->Transporter;
+			// Check basic availability (optimized order)
+			bool isAvailable = pTechno->IsAlive && !pTechno->InLimbo && pTechno->IsOnMap;
 
-	return isAvailable;
+			if (checkIfInTransportOrAbsorbed && isAvailable) [[likely]]
+				isAvailable = !pTechno->Absorbed && !pTechno->Transporter;
+
+				return isAvailable;
 }
 
-COMPILETIMEEVAL bool IsValidTechno(TechnoClass* pTechno)
+FORCEDINLINE bool IsValidTechno(TechnoClass* pTechno) noexcept
 {
-	if (!pTechno)
+	// Fast null check
+	if (!pTechno) [[unlikely]]
 		return false;
 
-	// Cache the AbstractType check - it's more efficient to check once
-	const auto technoType = pTechno->WhatAmI();
-	const bool isValidType = (technoType == AbstractType::Infantry
-		|| technoType == AbstractType::Unit
-		|| technoType == AbstractType::Building
-		|| technoType == AbstractType::Aircraft);
+		// Early rejection for common cases
+		if (pTechno->Dirty || !pTechno->Owner) [[unlikely]]
+			return false;
 
-	return !pTechno->Dirty
-		&& IsUnitAvailable(pTechno, true)
-		&& pTechno->Owner
-		&& isValidType;
+			// Cache the AbstractType check - it's more efficient to check once
+			const auto technoType = pTechno->WhatAmI();
+
+			// Use switch for better branch prediction (compiler optimization)
+			switch (technoType)
+			{
+			case AbstractType::Infantry:
+			case AbstractType::Unit:
+			case AbstractType::Building:
+			case AbstractType::Aircraft:
+				return IsUnitAvailable(pTechno, true);
+			default:
+				return false;
+			}
 }
 
 enum class ComparatorOperandTypes
@@ -154,29 +177,33 @@ enum class ComparatorOperandTypes
 	LessThan, LessOrEqual, Equal, MoreOrEqual, More, NotSame
 };
 
-COMPILETIMEEVAL void ModifyOperand(bool& result, int counter, AITriggerConditionComparator& cond)
+FORCEDINLINE void ModifyOperand(bool& result, int counter, const AITriggerConditionComparator& cond) noexcept
 {
-	switch ((ComparatorOperandTypes)cond.ComparatorOperand)
+	const auto operandType = static_cast<ComparatorOperandTypes>(cond.ComparatorOperand);
+	const int target = cond.ComparatorType;
+
+	switch (operandType)
 	{
 	case ComparatorOperandTypes::LessThan:
-		result = counter < cond.ComparatorType;
+		result = counter < target;
 		break;
 	case ComparatorOperandTypes::LessOrEqual:
-		result = counter <= cond.ComparatorType;
+		result = counter <= target;
 		break;
 	case ComparatorOperandTypes::Equal:
-		result = counter == cond.ComparatorType;
+		result = counter == target;
 		break;
 	case ComparatorOperandTypes::MoreOrEqual:
-		result = counter >= cond.ComparatorType;
+		result = counter >= target;
 		break;
 	case ComparatorOperandTypes::More:
-		result = counter > cond.ComparatorType;
+		result = counter > target;
 		break;
 	case ComparatorOperandTypes::NotSame:
-		result = counter != cond.ComparatorType;
+		result = counter != target;
 		break;
 	default:
+		result = false; // Explicit default value
 		break;
 	}
 }
@@ -508,7 +535,7 @@ struct CachedTechnoData
 
 	// Cache recruitable data per house to avoid repeated calculations
 	mutable PhobosMap<HouseClass*, PhobosMap<TechnoTypeClass*, int>> recruitableCache;
-	mutable bool recruitableCacheValid = false;
+	mutable int lastValidationFrame = -1; // Track when cache was last validated
 
 	void Initialize()
 	{
@@ -516,7 +543,7 @@ struct CachedTechnoData
 		destroyedBridgesCount = 0;
 		undamagedBridgesCount = 0;
 		recruitableCache.clear();
-		recruitableCacheValid = false;
+		lastValidationFrame = -1;
 
 		// Single pass through all technos to cache data
 		for (auto const pTechno : *TechnoClass::Array)
@@ -541,31 +568,58 @@ struct CachedTechnoData
 		}
 	}
 
-	// Validate that cached technos are still valid
+	// Validate that cached technos are still valid (with throttling)
 	void ValidateCache()
 	{
-		// Remove dead/invalid technos from cache
+		int currentFrame = Unsorted::CurrentFrame;
+
+		// Don't validate too frequently (max once per 5 frames)
+		if (currentFrame - lastValidationFrame < 5)
+			return;
+
+		lastValidationFrame = currentFrame;
+
+		// Clean up defeated houses from cache to prevent memory leak
+		std::vector<HouseClass*> housesToRemove;
+		for (auto iter = recruitableCache.begin(); iter != recruitableCache.end(); ++iter)
+		{
+			auto pHouse = iter->first;
+			if (!pHouse || pHouse->Defeated)
+			{
+				housesToRemove.push_back(pHouse);
+			}
+		}
+
+		for (auto pHouse : housesToRemove)
+		{
+			recruitableCache.erase(pHouse);
+		}
+
+		// Only remove obviously dead technos to avoid expensive iteration
 		validTechnos.erase(
 			std::remove_if(validTechnos.begin(), validTechnos.end(),
-				[](TechnoClass* pTechno) { return !IsValidTechno(pTechno); }),
+				[](TechnoClass* pTechno)
+				{
+					return !pTechno || pTechno->Health <= 0 || !pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking;
+				}),
 			validTechnos.end()
 		);
 
-		// Invalidate recruitable cache as units might have changed status
-		recruitableCacheValid = false;
+		// Invalidate all house caches as unit status might have changed
+		recruitableCache.clear();
 	}
 
 	// Get recruitable units for a specific house (with proper caching)
 	const PhobosMap<TechnoTypeClass*, int>& GetOwnedRecruitables(HouseClass* pHouse)
 	{
-		// Validate cache first
-		if (!recruitableCacheValid)
+		// Safety check for null/invalid house
+		if (!pHouse || pHouse->Defeated)
 		{
-			recruitableCache.clear();
-			recruitableCacheValid = true;
+			static PhobosMap<TechnoTypeClass*, int> emptyMap;
+			return emptyMap;
 		}
 
-		// Check if we already have data for this house
+		// Check if we already have FRESH data for this house
 		auto houseIter = recruitableCache.get_key_iterator(pHouse);
 		if (houseIter != recruitableCache.end())
 		{
@@ -619,14 +673,21 @@ struct CachedTechnoData
 		return recruitableCache[pHouse];
 	}
 
-	// Reserve units to prevent race conditions
+	// Reserve units to prevent race conditions (with better error handling)
 	bool TryReserveUnits(HouseClass* pHouse, const std::vector<std::pair<TechnoTypeClass*, int>>& requirements)
 	{
+		// Safety checks
+		if (!pHouse || pHouse->Defeated || requirements.empty())
+			return false;
+
 		auto& recruitables = const_cast<PhobosMap<TechnoTypeClass*, int>&>(GetOwnedRecruitables(pHouse));
 
 		// First check if we have enough units
 		for (const auto& req : requirements)
 		{
+			if (!req.first || req.second <= 0)
+				continue;
+
 			auto iter = recruitables.get_key_iterator(req.first);
 			if (iter == recruitables.end() || iter->second < req.second)
 			{
@@ -634,16 +695,27 @@ struct CachedTechnoData
 			}
 		}
 
-		// Reserve the units by reducing the count
+		// Reserve the units by reducing the count (atomic operation)
 		for (const auto& req : requirements)
 		{
+			if (!req.first || req.second <= 0)
+				continue;
+
 			auto iter = recruitables.get_key_iterator(req.first);
-			iter->second -= req.second;
+			if (iter != recruitables.end())
+			{
+				iter->second = std::max(0, iter->second - req.second);
+			}
 		}
 
 		return true;
 	}
 };
+
+// Global cache for better performance - shared between calls
+static CachedTechnoData g_cachedData;
+static int g_lastCacheFrame = -1;
+static constexpr int CACHE_REFRESH_INTERVAL = 15; // Refresh every 15 frames
 
 NOINLINE bool UpdateTeam(HouseClass* pHouse)
 {
@@ -723,22 +795,18 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				if (percentageUnclassifiedTriggers > 0.0 && categoryDice <= unclassifiedValue)
 				{
 					validCategory = TeamCategory::Unclassified;
-					Debug::LogInfo("New AI team category selection: dice {} <= {} (MIXED)", categoryDice, unclassifiedValue);
 				}
 				else if (percentageGroundTriggers > 0.0 && categoryDice <= (unclassifiedValue + groundValue))
 				{
 					validCategory = TeamCategory::Ground;
-					Debug::LogInfo("New AI team category selection: dice {} <= {} (mixed: {}%% + GROUND: {}%%)", categoryDice, (unclassifiedValue + groundValue), unclassifiedValue, groundValue);
 				}
 				else if (percentageAirTriggers > 0.0 && categoryDice <= (unclassifiedValue + groundValue + airValue))
 				{
 					validCategory = TeamCategory::Air;
-					Debug::LogInfo("New AI team category selection: dice {} <= {} (mixed: {}%% + ground: {}%% + AIR: {}%%)", categoryDice, (unclassifiedValue + groundValue + airValue), unclassifiedValue, groundValue, airValue);
 				}
 				else if (percentageNavalTriggers > 0.0 && categoryDice <= (unclassifiedValue + groundValue + airValue + navalValue))
 				{
 					validCategory = TeamCategory::Naval;
-					Debug::LogInfo("New AI team category selection: dice {} <= {} (mixed: {}%% + ground: {}%% + air: {}%% + NAVAL: {}%%)", categoryDice, (unclassifiedValue + groundValue + airValue + navalValue), unclassifiedValue, groundValue, airValue, navalValue);
 				}
 				else
 				{
@@ -818,21 +886,24 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 		if ((defensiveDice < TeamSelectorConstants::DEFENSE_TEAM_SELECTION_THRESHOLD) && !hasReachedMaxDefensiveTeamsLimit)
 			onlyPickDefensiveTeams = true;
 
-		if (hasReachedMaxDefensiveTeamsLimit)
-			Debug::LogInfo("DEBUG: House [{}] (idx: {}) reached the MaximumAIDefensiveTeams value!", pHouse->Type->ID, pHouse->ArrayIndex);
-
+		// Early return for performance - avoid expensive trigger processing
 		if (hasReachedMaxTeamsLimit)
 		{
-			Debug::LogInfo("DEBUG: House [{}] (idx: {}) reached the TotalAITeamCap value!", pHouse->Type->ID, pHouse->ArrayIndex);
 			return true;
 		}
 
-		// Initialize cached techno data for performance
-		CachedTechnoData cachedData;
-		cachedData.Initialize();
+		// Use global cache for better performance
+		int currentFrame = Unsorted::CurrentFrame;
 
-		// Validate cache periodically to remove dead units
-		cachedData.ValidateCache();
+		// Refresh cache periodically or if this is the first time
+		if (g_lastCacheFrame == -1 || (currentFrame - g_lastCacheFrame) >= CACHE_REFRESH_INTERVAL)
+		{
+			g_cachedData.Initialize();
+			g_lastCacheFrame = currentFrame;
+		}
+
+		// Validate cache to remove dead units (throttled internally)
+		g_cachedData.ValidateCache();
 
 		HouseClass* targetHouse = nullptr;
 		if (pHouse->EnemyHouseIndex >= 0)
@@ -849,9 +920,9 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				continue;
 
 			// Throttling: Don't process too many triggers per frame
-			if (++triggersProcessed % TeamSelectorConstants::CACHE_VALIDATION_INTERVAL == 0)
+			if (++triggersProcessed % (TeamSelectorConstants::CACHE_VALIDATION_INTERVAL * 2) == 0)
 			{
-				cachedData.ValidateCache(); // Periodic cache validation
+				g_cachedData.ValidateCache(); // Less frequent validation to improve performance
 			}
 
 			// Ignore offensive teams if the next trigger must be defensive
@@ -1014,13 +1085,13 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 						case 18:
 						{
 							// New case 18: Check destroyed bridges
-							if (!CountConditionMet(pTrigger, cachedData.destroyedBridgesCount))
+							if (!CountConditionMet(pTrigger, g_cachedData.destroyedBridgesCount))
 								continue;
 						}	break;
 						case 19:
 						{
 							// New case 19: Check undamaged bridges
-							if (!CountConditionMet(pTrigger, cachedData.undamagedBridgesCount))
+							if (!CountConditionMet(pTrigger, g_cachedData.undamagedBridgesCount))
 								continue;
 						}	break;
 						default:
@@ -1169,20 +1240,30 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 					{
 						allObjectsCanBeBuiltOrRecruited = true;
 
-						// Prepare requirements list
+						// Prepare requirements list efficiently
 						std::vector<std::pair<TechnoTypeClass*, int>> requirements;
+						requirements.reserve(TeamSelectorConstants::TASKFORCE_MAX_ENTRIES); // Pre-allocate
+
 						for (const auto& entry : pTriggerTeam1Type->TaskForce->Entries)
 						{
 							if (entry.Type && entry.Amount > 0)
 							{
 								requirements.emplace_back(entry.Type, entry.Amount);
 							}
+							else if (entry.Amount <= 0)
+							{
+								break; // Stop at first invalid entry
+							}
 						}
 
 						// Try to reserve units atomically to prevent race conditions
 						if (!requirements.empty())
 						{
-							allObjectsCanBeBuiltOrRecruited = cachedData.TryReserveUnits(pHouse, requirements);
+							allObjectsCanBeBuiltOrRecruited = g_cachedData.TryReserveUnits(pHouse, requirements);
+						}
+						else
+						{
+							allObjectsCanBeBuiltOrRecruited = false; // No valid requirements
 						}
 					}
 
@@ -1249,36 +1330,11 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 			}
 		}
 
-		if (splitTriggersByCategory)
-		{
-			switch (validCategory)
-			{
-			case TeamCategory::Ground:
-				Debug::LogInfo("DEBUG: This time only will be picked GROUND teams.");
-				break;
-
-			case TeamCategory::Unclassified:
-				Debug::LogInfo("DEBUG: This time only will be picked MIXED teams.");
-				break;
-
-			case TeamCategory::Naval:
-				Debug::LogInfo("DEBUG: This time only will be picked NAVAL teams.");
-				break;
-
-			case TeamCategory::Air:
-				Debug::LogInfo("DEBUG: This time only will be picked AIR teams.");
-				break;
-
-			default:
-				Debug::LogInfo("DEBUG: This time teams categories are DISABLED.");
-				break;
-			}
-		}
+		// Category selection debug logging (disabled for performance)
 
 		if (validTriggerCandidates.empty())
 		{
-			Debug::LogInfo("DEBUG: [{}] (idx: {}) No valid triggers for now. A new attempt will be done later...", pHouse->Type->ID, pHouse->ArrayIndex);
-			return true;
+			return true; // No valid triggers - early return for performance
 		}
 
 		if ((validCategory == TeamCategory::Ground && validTriggerCandidatesGroundOnly.empty())
@@ -1286,12 +1342,10 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 			|| (validCategory == TeamCategory::Air && validTriggerCandidatesAirOnly.empty())
 			|| (validCategory == TeamCategory::Naval && validTriggerCandidatesNavalOnly.empty()))
 		{
-			Debug::LogInfo("DEBUG: [{}] (idx: {}) No valid triggers of this category. A new attempt should be done later...", pHouse->Type->ID, pHouse->ArrayIndex);
-
 			if (!isFallbackEnabled)
 				return true;
 
-			Debug::LogInfo("... but fallback mode is enabled so now will be checked all available triggers.");
+			// Fallback to all categories
 			validCategory = TeamCategory::None;
 		}
 
@@ -1428,8 +1482,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 		if (!selectedTrigger)
 		{
-			Debug::LogInfo("AI Team Selector: House [{}] (idx: {}) failed to select Trigger. A new attempt Will be done later...", pHouse->Type->ID, pHouse->ArrayIndex);
-			return true;
+			return true; // Failed to select trigger - early return
 		}
 
 		if (selectedTrigger->Weight_Current >= TeamSelectorConstants::VIP_TRIGGER_THRESHOLD
@@ -1467,17 +1520,32 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				{
 					newTeam1->NeedsToDisappear = false;
 					teamsCreatedThisFrame++;
-					Debug::LogInfo("AI Team Selector: Created new team [{}] for house [{}] (total this frame: {})",
-						pTriggerTeam1Type->ID, pHouse->Type->ID, teamsCreatedThisFrame);
+					Debug::LogInfo("AI Team Selector: Created new team [{}] for house [{}] (existing: {}, understrength: {}, frame total: {})",
+						pTriggerTeam1Type->ID, pHouse->Type->ID, count, underStrengthCount, teamsCreatedThisFrame);
+				}
+				else
+				{
+					Debug::LogInfo("AI Team Selector: Failed to create team [{}] for house [{}] - CreateTeam returned null",
+						pTriggerTeam1Type->ID, pHouse->Type->ID);
 				}
 			}
-			else if (count >= pTriggerTeam1Type->Max)
+			else
 			{
-				Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - reached max limit ({}/{})", pTriggerTeam1Type->ID, count, pTriggerTeam1Type->Max);
-			}
-			else if (underStrengthCount >= 2)
-			{
-				Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - too many understrength teams ({})", pTriggerTeam1Type->ID, underStrengthCount);
+				if (count >= pTriggerTeam1Type->Max)
+				{
+					Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - reached max limit ({}/{})",
+						pTriggerTeam1Type->ID, count, pTriggerTeam1Type->Max);
+				}
+				else if (underStrengthCount >= 2)
+				{
+					Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - too many understrength teams ({})",
+						pTriggerTeam1Type->ID, underStrengthCount);
+				}
+				else if (teamsCreatedThisFrame >= TeamSelectorConstants::MAX_TEAMS_PER_FRAME)
+				{
+					Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - frame limit reached ({}/{})",
+						pTriggerTeam1Type->ID, teamsCreatedThisFrame, TeamSelectorConstants::MAX_TEAMS_PER_FRAME);
+				}
 			}
 		}
 
