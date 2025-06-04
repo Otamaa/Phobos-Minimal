@@ -37,7 +37,7 @@ struct TriggerElementWeight
 	//unequality
 	COMPILETIMEEVAL bool operator!=(const TriggerElementWeight& other) const
 	{
-		return (Trigger != other.Trigger || Weight != other.Weight || Category == other.Category);
+		return (Trigger != other.Trigger || Weight != other.Weight || Category != other.Category);
 	}
 
 	COMPILETIMEEVAL bool operator<(const TriggerElementWeight& other) const
