@@ -457,7 +457,6 @@ bool SWTypeExtData::IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer
 bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 {
 	const auto pExt = SWTypeExtContainer::Instance.Find(pThis->Type);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
 	// don't try to fire if we obviously haven't enough money
 	if (SWTypeExtData::IsResourceAvailable(pThis)) {
@@ -2331,13 +2330,11 @@ void SWTypeExtData::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData
 		return;
 
 	const auto pSuperTypeExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
 	bool can_fire = true;
 
-	if (pLauncherTypeExt->SW_Next_RealLaunch && pSuper->CanFire())
-	{
-		if (!SWTypeExtData::IsResourceAvailable(pSuper))
+	if (pLauncherTypeExt->SW_Next_RealLaunch) {
+		if (!pSuper->CanFire() || !SWTypeExtData::IsResourceAvailable(pSuper))
 			can_fire = false;
 	}
 
@@ -2708,10 +2705,7 @@ bool SWTypeExtData::IsResourceAvailable(SuperClass* pSuper)
 	if(!pSuper->Owner->CanTransactMoney(pExt->Money_Amount.Get()))
 		return false;
 
-	if (pExt->BattlePoints_Amount < 0
-		&& pHouseExt->BattlePoints < Math::abs(pExt->BattlePoints_Amount.Get())
-		)
-	{
+	if (!pHouseExt->CanTransactBattlePoints(pExt->BattlePoints_Amount)) {
 		return false;
 	}
 
