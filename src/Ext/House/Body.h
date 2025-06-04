@@ -372,6 +372,18 @@ public:
 
 private:
 	bool UpdateHarvesterProduction();
+	void ProcessTeamsForProduction(HouseClass* pHouse, std::vector<int>& creationFrames, 
+		std::vector<int>& values, bool skipGround, bool skipNaval);
+	void ProcessExistingUnitsForProduction(HouseClass* pHouse, std::vector<int>& values);
+	void DetermineBestProductionChoices(HouseClass* pHouse, const std::vector<int>& creationFrames,
+		const std::vector<int>& values, std::vector<int>& bestChoices, std::vector<int>& bestChoicesNaval, 
+		size_t unitTypeCount, int& earliestTypeIndex, int& earliestTypeIndexNaval);
+	void UpdateBestChoicesForType(size_t typeIndex, int currentValue, int creationFrame, bool isNaval,
+		int& bestValue, int& bestValueNaval, std::vector<int>& bestChoices, std::vector<int>& bestChoicesNaval,
+		int& earliestTypeIndex, int& earliestTypeIndexNaval, int& earliestFrame, int& earliestFrameNaval);
+	void SetFinalProductionIndices(HouseClass* pHouse, int aiDifficulty,
+		const std::vector<int>& bestChoices, const std::vector<int>& bestChoicesNaval,
+		int earliestTypeIndex, int earliestTypeIndexNaval, bool skipGround, bool skipNaval);
 
 	template <typename T>
 	void Serialize(T& Stm);
