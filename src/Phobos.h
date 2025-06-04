@@ -127,6 +127,7 @@ struct Phobos final
 		static const wchar_t* BattlePoints_Label;
 		static const wchar_t* BattlePointsSidebar_Label;
 		static bool BattlePointsSidebar_Label_InvertPosition;
+		static bool BattlePointsSidebar_AlwaysShow;
 	};
 
 	struct Config

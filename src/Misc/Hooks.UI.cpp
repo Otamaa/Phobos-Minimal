@@ -87,7 +87,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pPlayer);
 
-	if (pHouseExt->AreBattlePointsEnabled())
+	if (Phobos::UI::BattlePointsSidebar_AlwaysShow || pHouseExt->AreBattlePointsEnabled())
 	{
 		fmt::basic_memory_buffer<wchar_t> counter;
 

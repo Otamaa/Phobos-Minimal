@@ -348,7 +348,8 @@ public:
 	Valueable<bool> NewEvaVoice_RecheckOnDeath {};
 	ValueableIdx<VoxClass> NewEvaVoice_InitialMessage {};
 
-	Nullable<bool> BattlePointsCollector {};
+	Valueable<bool> BattlePointsCollector {};
+	Valueable<bool> BattlePointsCollector_RequirePower {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

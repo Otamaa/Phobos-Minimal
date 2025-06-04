@@ -1945,24 +1945,22 @@ bool HouseExtData::AreBattlePointsEnabled()
 	const auto pThis = this->AttachedToObject;
 	const auto pOwnerTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
 
-	// Global setting
-	if (!RulesExtData::Instance()->BattlePoints.isset()) {
-		// House specific setting
-		if (!pOwnerTypeExt->BattlePoints) {
-			// Structures can enable this logic overwriting the house's setting
-			for (const auto& pBuilding : pThis->Buildings) {
-				const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-				if (pBuildingTypeExt->BattlePointsCollector.Get(false))
-					return true;
-			}
-
-			return false;
-		} else {
+		// Structures can enable this logic overwriting the house's setting
+	for (auto& collect : this->BattlePointsCollectors) {
+		if (collect.second > 0) // just bail on one structure found to avoid performance drop
 			return true;
-		}
 	}
 
-	return RulesExtData::Instance()->BattlePoints.Get();
+	// Global setting
+	if (RulesExtData::Instance()->BattlePoints)
+		return true;
+
+	// House specific setting
+	if (pOwnerTypeExt->BattlePoints)
+		return true;
+
+
+	return false;
 }
 
 bool HouseExtData::CanTransactBattlePoints(int amount) {
@@ -1971,7 +1969,7 @@ bool HouseExtData::CanTransactBattlePoints(int amount) {
 
 int HouseExtData::CalculateBattlePoints(TechnoClass* pTechno)
 {
-	return pTechno  ? CalculateBattlePoints(pTechno->GetTechnoType(), pTechno->Owner) : 0;
+	return pTechno ? CalculateBattlePoints(pTechno->GetTechnoType(), pTechno->Owner) : 0;
 }
 
 int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pOwner)
@@ -2082,9 +2080,10 @@ void HouseExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 		.Process(this->Degrades)
-		.Process(this->PowerPlantEnhancerBuildings, true)
-		.Process(this->Building_BuildSpeedBonusCounter, true)
-		.Process(this->Building_OrePurifiersCounter, true)
+		.Process(this->PowerPlantEnhancerBuildings)
+		.Process(this->Building_BuildSpeedBonusCounter)
+		.Process(this->Building_OrePurifiersCounter)
+		.Process(this->BattlePointsCollectors)
 		.Process(this->m_ForceOnlyTargetHouseEnemy)
 		.Process(this->ForceOnlyTargetHouseEnemyMode)
 		//.Process(this->RandomNumber)

@@ -1756,6 +1756,8 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 	pHouseExt->Building_BuildSpeedBonusCounter.clear();
 	pHouseExt->Building_OrePurifiersCounter.clear();
 	pHouseExt->RestrictedFactoryPlants.clear();
+	pHouseExt->BattlePointsCollectors.clear();
+
 	//==========================
 	//const bool LowpOwerHouse = pThis->HasLowPower();
 
@@ -1765,9 +1767,6 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 		{
 			const auto pExt = BuildingExtContainer::Instance.Find(pBld);
 			const bool IsLimboDelivered = pExt->LimboID != -1;
-
-			if (TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat)
-				continue;
 
 			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
 				continue;
@@ -1787,6 +1786,11 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
 				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
 
+				const bool IsBattlePointsCollectorPowered = !pTypeExt->BattlePointsCollector_RequirePower || ((*begin)->Powered && Online);
+				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered) {
+					++pHouseExt->BattlePointsCollectors[(*begin)];
+				}
+
 				const bool IsFactoryPowered = !pTypeExt->FactoryPlant_RequirePower || ((*begin)->Powered && Online);
 
 				//recalculate the multiplier
@@ -1805,13 +1809,15 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				//only pick first spysat
-				const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && Online);
-				if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered)
-				{
-					const bool IsDiscovered = pBld->DiscoveredByCurrentPlayer && SessionClass::Instance->GameMode == GameMode::Campaign;
-					if (IsLimboDelivered || !IsCurrentPlayer || SessionClass::Instance->GameMode != GameMode::Campaign || IsDiscovered)
+				if(!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat){
+					const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && Online);
+					if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered)
 					{
-						Spysat = pBld;
+						const bool IsDiscovered = pBld->DiscoveredByCurrentPlayer && SessionClass::Instance->GameMode == GameMode::Campaign;
+						if (IsLimboDelivered || !IsCurrentPlayer || SessionClass::Instance->GameMode != GameMode::Campaign || IsDiscovered)
+						{
+							Spysat = pBld;
+						}
 					}
 				}
 

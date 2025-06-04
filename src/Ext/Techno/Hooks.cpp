@@ -1249,19 +1249,13 @@ ASMJIT_PATCH(0x41D604, AirstrikeClass_PointerGotInvalid_ResetForTarget, 0x6)
 
 ASMJIT_PATCH(0x65E97F, HouseClass_CreateAirstrike_SetTaretForUnit, 0x6)
 {
-	enum { SkipGameCode = 0x65E992 };
-
 	GET_STACK(AirstrikeClass*, pThis, STACK_OFFSET(0x38, 0x1C));
-	const auto pOwner = pThis->Owner;
 
-	if (!pOwner || !pOwner->Target)
-		return 0;
-
-	if (const auto pTarget = flag_cast_to<TechnoClass* , false>(pOwner->Target))
-	{
-		GET(AircraftClass*, pFirer, ESI);
-		pFirer->SetTarget(pTarget);
-		return SkipGameCode;
+	if(const auto pOwner = pThis->Owner){
+		if (const auto pTarget = flag_cast_to<TechnoClass*>(pOwner->Target)) {
+			R->EAX(pTarget);
+			return 0x65E983;
+		}
 	}
 
 	return 0;

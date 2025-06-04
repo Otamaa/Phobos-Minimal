@@ -1656,6 +1656,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->NewEvaVoice_InitialMessage.Read(exINI, pSection, "NewEVAVoice.InitialMessage");
 
 		this->BattlePointsCollector.Read(exINI, pSection, "BattlePointsCollector");
+		this->BattlePointsCollector_RequirePower.Read(exINI, pSection, "BattlePointsCollector.RequirePower");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2102,6 +2103,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NewEvaVoice_InitialMessage)
 
 		.Process(this->BattlePointsCollector)
+		.Process(this->BattlePointsCollector_RequirePower)
 		;
 }
 

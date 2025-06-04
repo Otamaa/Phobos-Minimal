@@ -521,7 +521,7 @@ public:
 	Valueable<bool> AttackMove_UpdateTarget { false };
 	Valueable<bool> Infantry_IgnoreBuildingSizeLimit { true };
 
-	Nullable<bool> BattlePoints {};
+	Valueable<bool> BattlePoints {};
 	Valueable<int> BattlePoints_DefaultValue {};
 	Nullable<int> BattlePoints_DefaultFriendlyValue {};
 
