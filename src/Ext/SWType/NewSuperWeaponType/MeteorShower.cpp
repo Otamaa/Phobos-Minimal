@@ -50,7 +50,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 						pThis->Owner,
 						nullptr,
 						pFirer,
-						false
+						false, false
 					);
 				}
 			}

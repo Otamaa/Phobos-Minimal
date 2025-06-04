@@ -674,7 +674,7 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 				pThis->Owner->Owner,
 				pTarget->Owner,
 				pThis->Owner,
-				false
+				false, false
 			);
 		}
 

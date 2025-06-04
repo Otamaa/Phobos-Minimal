@@ -104,7 +104,7 @@ ASMJIT_PATCH(0x469D3C, BulletClass_Logics_Debris, 0xA)
 						pOWner,
 						Victim,
 						pThis->Owner,
-						false
+						false, false
 					);
 				}
 			}

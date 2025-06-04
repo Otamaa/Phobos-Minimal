@@ -261,7 +261,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimTypeDecided, nCoord),
 				args->Attacker ? args->Attacker->GetOwningHouse() : args->SourceHouse, pTarget->GetOwningHouse(),
 				args->Attacker,
-				false
+				false, false
 			);
 		}
 	}
@@ -4412,7 +4412,7 @@ bool FirewallFunctions::ImmolateVictim(TechnoClass* pThis, ObjectClass* const pV
 				pThis->Owner,
 				pTarget,
 				pThis,
-				false
+				false, false
 			);
 
 		}
@@ -5815,7 +5815,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 			Attacker->Owner,
 			Target->Owner,
 			Attacker,
-			false
+			false, false
 		);
 	}
 

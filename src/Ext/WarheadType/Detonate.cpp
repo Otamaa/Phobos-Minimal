@@ -991,7 +991,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 			pHouse,
 			pTarget->GetOwningHouse(),
 			pOwner,
-			false);
+			false, false);
 		}
 
 		if (chance < dice) {
@@ -1028,7 +1028,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 				pHouse,
 				pTarget->GetOwningHouse(),
 				pOwner,
-				false
+				false, false
 			);
 		}else{
 			for (auto const& pType : this->Crit_AnimList) {
@@ -1036,7 +1036,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 				pHouse,
 				pTarget->GetOwningHouse(),
 				pOwner,
-				false
+				false, false
 			);
 			}
 		}

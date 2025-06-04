@@ -6437,7 +6437,7 @@ ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
 		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
 			pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner) ? pExt->Owner : nullptr,
-			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
+			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner,
 			false,
 			false
 		);

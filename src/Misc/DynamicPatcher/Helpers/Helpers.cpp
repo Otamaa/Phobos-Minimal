@@ -1151,7 +1151,7 @@ void Helpers_DP::DrawWeaponAnim(WeaponTypeClass* pWeapon, CoordStruct& sourcePos
 				pOwner ? pOwner->GetOwningHouse() : nullptr,
 				pTarget ? pTarget->GetOwningHouse() : nullptr,
 				pOwner,
-				false
+				false, false
 			);
 		}
 	}

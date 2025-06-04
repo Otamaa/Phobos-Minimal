@@ -163,7 +163,7 @@ ASMJIT_PATCH(0x438761, BombClass_Detonate_Handle, 0x7)
 			OwningHouse,
 			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
 			pThis->Owner,
-			false
+			false, false
 		);
 	}
 

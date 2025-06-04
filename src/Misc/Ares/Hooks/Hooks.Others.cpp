@@ -1146,8 +1146,7 @@ ASMJIT_PATCH(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords),
 				pThis->Owner ? pThis->Owner->Owner : nullptr,
 				pThis->Target ? pThis->Target->Owner : nullptr,
-				false,
-				pThis->Owner
+				pThis->Owner, false, false
 			);
 		}
 	}

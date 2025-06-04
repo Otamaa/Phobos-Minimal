@@ -78,7 +78,7 @@ ASMJIT_PATCH(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 				pOwner,
 				nullptr,
 				pInvoker,
-				false
+				false, false
 			);
 		}
 	}
@@ -90,7 +90,7 @@ ASMJIT_PATCH(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 					pOwner,
 					nullptr,
 					pInvoker,
-					false
+					false, false
 				);
 			}
 		}else
@@ -103,7 +103,7 @@ ASMJIT_PATCH(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 						pOwner,
 						nullptr,
 						pInvoker,
-						false
+						false, false
 					);
 				}
 			}
@@ -126,7 +126,7 @@ ASMJIT_PATCH(0x74A83C, VoxelAnimClass_BounceAnim, 0x5) // A
 		pOwner,
 		nullptr,
 		pInvoker,
-		false
+		false, false
 	);
 
 	return 0x74A884;

@@ -69,7 +69,7 @@ ASMJIT_PATCH(0x6B750B, SpawnManagerClass_Update_CustomMissilePreLauchAnim, 0x5)
 				pSpawned->Owner,
 				nullptr,
 				pSpawned,
-				true
+				true, false
 			);
 		}
 	}

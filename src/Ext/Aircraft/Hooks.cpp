@@ -305,7 +305,7 @@ ASMJIT_PATCH(0x414F21, AircraftClass_AI_TrailerInheritOwner, 0x6)
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0xC));
 
 	pAnim->AnimClass::AnimClass(pThis->Type->Trailer, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, pThis, false, false);
 
 	return 0x414F47;
 }

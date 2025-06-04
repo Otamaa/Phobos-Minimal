@@ -118,7 +118,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 					pOwner,
 					nullptr,
 					pTechOwner,
-					false
+					false, false
 				);
 			}
 		}
@@ -139,7 +139,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 						pOwner,
 						nullptr,
 						pTechOwner,
-						false
+						false, false
 					);
 				}
 			}
@@ -154,7 +154,7 @@ bool AnimExtData::OnExpired(AnimClass* pThis, bool LandIsWater, bool EligibleHei
 							pOwner,
 							nullptr,
 							pTechOwner,
-							false
+							false, false
 						);
 					}
 				}
@@ -586,14 +586,12 @@ void AnimExtData::SpawnFireAnims(AnimClass* pThis)
 
 			auto const loopCount = ScenarioClass::Instance->Random.RandomRanged(1, 2);
 			auto const pAnim = GameCreate<AnimClass>(pType, newCoords, 0, loopCount, 0x600u, 0, false);
+			auto const pExtNew = ((FakeAnimClass*)pAnim)->_GetExtData();
 
-			AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, false, true);
+			AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, pExt->Invoker ? pExt->Invoker : nullptr,  false, true);
 
 			if (attach && pThis->OwnerObject)
 				pAnim->SetOwnerObject(pThis->OwnerObject);
-
-			auto const pExtNew = ((FakeAnimClass*)pAnim)->_GetExtData();
-			pExtNew->Invoker = pExt->Invoker ? pExt->Invoker : pExtNew->Invoker;
 		};
 
 	auto LoopAnims = [&coords, SpawnAnim](std::vector<AnimTypeClass*>* const anims, std::vector<double>* const chances, std::vector<double>* const distances,

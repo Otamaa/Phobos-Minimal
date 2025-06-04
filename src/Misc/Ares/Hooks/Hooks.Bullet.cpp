@@ -171,7 +171,7 @@ ASMJIT_PATCH(0x469C4E, BulletClass_DetonateAt_DamageAnimSelected, 5)
 
 						if (pAnim->Type->MakeInfantry > -1)
 						{
-							AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim);
+							AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, nullptr, true ,false);
 						}
 						else
 						{

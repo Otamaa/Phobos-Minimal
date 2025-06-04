@@ -257,7 +257,7 @@ ASMJIT_PATCH(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
 					args.SourceHouse,
 					pThis->GetOwningHouse(),
 					args.Attacker,
-					false
+					false, false
 				);
 			}
 
@@ -382,7 +382,7 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 				? args.Attacker->Owner
 				: args.SourceHouse;
 
-			AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pInf->Owner, args.Attacker, true);
+			AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pInf->Owner, args.Attacker, true, false);
 
 			pThis->Health = int(pInf->Type->Strength * 0.25);
 
@@ -1496,7 +1496,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 									pAnim->SetOwnerObject(pThis);
 									const auto pKiller = Attacker;
 									const auto Invoker = (pKiller) ? pKiller->Owner : SourceHouse;
-									AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false);
+									AnimExtData::SetAnimOwnerHouseKind(pAnim, Invoker, pThis->Owner, pKiller, false, false);
 								}
 							};
 
@@ -1914,7 +1914,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 								? args.Attacker->Owner
 								: args.SourceHouse;
 
-							AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, args.Attacker, true);
+							AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, args.Attacker, true, false);
 
 							if (ParticleSystemClass::Array->ValidIndex(RulesClass::Instance->InfantryVirus->SpawnsParticle))
 							{
@@ -1981,7 +1981,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 										? args.Attacker->Owner
 										: args.SourceHouse;
 
-									AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, args.Attacker, true);
+									AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, args.Attacker, true, false);
 
 									if (ParticleSystemClass::Array->ValidIndex(RulesClass::Instance->InfantryVirus->SpawnsParticle))
 									{
@@ -2147,7 +2147,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 										? args.Attacker->Owner
 										: args.SourceHouse;
 
-									AnimExtData::SetAnimOwnerHouseKind(pAnim_Mutate, pInvoker, pThis->Owner, args.Attacker, true);
+									AnimExtData::SetAnimOwnerHouseKind(pAnim_Mutate, pInvoker, pThis->Owner, args.Attacker, true, false);
 
 									pAnim_Mutate->MarkAllOccupationBits(pThis->Location);
 								}
@@ -2165,7 +2165,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 										? args.Attacker->Owner
 										: args.SourceHouse;
 
-									const auto& [bChanged, result] = AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, args.Attacker, true);
+									const auto& [bChanged, result] = AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, args.Attacker, true, false);
 
 									if (infDeath == InfDeath::Mutate && bChanged && result != OwnerHouseKind::Default)
 									{

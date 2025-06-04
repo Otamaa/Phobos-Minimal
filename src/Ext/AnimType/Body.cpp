@@ -531,7 +531,7 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pAnimType);
 	auto pAnimExt = ((FakeAnimClass*)pAnim)->_GetExtData();
 	HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true, false);
 
 	if(auto& c_type = pAnimTypeExt->CreateUnitType){
 		if (c_type->InheritDeathFacings.Get())

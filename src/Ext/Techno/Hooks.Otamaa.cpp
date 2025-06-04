@@ -210,7 +210,7 @@ ASMJIT_PATCH(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 					pTechno->GetOwningHouse(),
 					nullptr,
 					pTechno,
-					false
+					false, false
 				);
 			}
 		}
@@ -239,7 +239,7 @@ ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 				pAir->GetOwningHouse(),
 				nullptr,
 				pAir,
-				false
+				false, false
 			);
 		}
 	}
@@ -276,7 +276,7 @@ ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 				pLinked->GetOwningHouse(),
 				nullptr,
 				pLinked,
-				false
+				false, false
 			);
 		}
 
@@ -352,7 +352,7 @@ ASMJIT_PATCH(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 		{
 			auto const nCoord = Drainer->GetCoords();
 			auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-			AnimExtData::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, Drainer, false);
+			AnimExtData::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, Drainer, false, false);
 			R->EAX(pDrainAnimCreated);
 			return 0x70FE07;
 		}

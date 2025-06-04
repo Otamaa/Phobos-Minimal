@@ -199,7 +199,7 @@ void NOINLINE FakeAnimClass::_ApplySpawns(CoordStruct& nCoord)
 		pOwner,
 		nullptr,
 		pTech,
-		false
+		false, false
 		);
 	}
 }
@@ -365,7 +365,7 @@ void NOINLINE FakeAnimClass::_DrawTrailerAnim() {
 
 		if(this->Type->TrailerSeperation == 1 || !(Unsorted::CurrentFrame() % this->Type->TrailerSeperation)) {
 
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pTech, false);
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pTech, false, false);
 		}
 	}
 }
@@ -754,7 +754,7 @@ int FakeAnimClass::_BounceAI()
 				pHouse,
 				nullptr,
 				pTechnoInvoker,
-				false
+				false, false
 			);
 		}
 

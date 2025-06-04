@@ -1318,7 +1318,7 @@ static void CrushAffect(UnitClass* pThis, ObjectClass* pVictim, bool victimIsTec
 				if (auto pAnimType = MapClass::SelectDamageAnimation(damage, pWarhead, pThis->GetCell()->LandType, loc))
 				{
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, loc),
-						pThis->Owner, pVictim->GetOwningHouse(), pThis, false);
+						pThis->Owner, pVictim->GetOwningHouse(), pThis, false, false);
 				}
 			}
 		}

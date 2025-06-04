@@ -62,7 +62,7 @@ void BombardTrajectory::CreateRandomAnim(CoordStruct coords, TechnoClass* pTechn
 	if (pType->TurningPointAnims.empty())
 		return;
 
-	auto const pAnimType = pType->TurningPointAnims[pType->TurningPointAnims.size() > 1 ? 
+	auto const pAnimType = pType->TurningPointAnims[pType->TurningPointAnims.size() > 1 ?
 		ScenarioClass::Instance->Random.RandomRanged(0, pType->TurningPointAnims.size() - 1) : 0];
 
 	if (!pAnimType)
@@ -73,7 +73,7 @@ void BombardTrajectory::CreateRandomAnim(CoordStruct coords, TechnoClass* pTechn
 	if (!pTechno)
 		return;
 
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pHouse ? pHouse : pTechno->Owner, nullptr, false, true);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pHouse ? pHouse : pTechno->Owner, nullptr, pTechno, false, true);
 
 	if (ownedObject)
 		pAnim->SetOwnerObject(pTechno);
@@ -115,7 +115,7 @@ void BombardTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 
 	if (WeaponTypeClass* const pWeapon = pBullet->WeaponType)
 		this->CountOfBurst = pWeapon->Burst;
-	
+
 	if (TechnoClass* const pOwner = pBullet->Owner)
 	{
 		this->CurrentBurst = pOwner->CurrentBurstIndex;

@@ -141,7 +141,7 @@ struct DroppodProperties_
 						pLinked->Owner,
 						nullptr,
 						pLinked,
-						false
+						false, false
 					);
 
 					if (DroppodProperties_::GetIsTrailerAttached(tType, pLinked, condition))
@@ -168,7 +168,7 @@ struct DroppodProperties_
 								pLinked->Owner,
 								nullptr,
 								pLinked,
-								false
+								false, false
 							);
 						}
 					}
@@ -194,7 +194,7 @@ struct DroppodProperties_
 						pLinked->Owner,
 						nullptr,
 						pLinked,
-						false
+						false, false
 					);
 				}
 
@@ -203,7 +203,7 @@ struct DroppodProperties_
 						pLinked->Owner,
 						nullptr,
 						pLinked,
-						false
+						false, false
 					);
 				}
 
@@ -222,7 +222,7 @@ struct DroppodProperties_
 						pLinked->Owner,
 						nullptr,
 						pLinked,
-						false
+						false, false
 					);
 				}
 			}
@@ -269,7 +269,7 @@ struct DroppodProperties_
 					pLoco->Owner->Owner,
 					nullptr,
 					pLoco->Owner,
-					false);
+					false, false);
 			}
 		}
 	}

@@ -261,7 +261,7 @@ ASMJIT_PATCH(0x62C23D, ParticleClass_Update_Gas_DamageRange, 6)
 
 	if (pTypeExt->DamageRange.Get() <= 0.0)
 	{
-		if(auto pCell = MapClass::Instance->TryGetCellAt(pThis->Location)) { 
+		if(auto pCell = MapClass::Instance->TryGetCellAt(pThis->Location)) {
 			for (auto pOccupy = pCell->FirstObject; pOccupy; pOccupy = pOccupy->NextObject)
 			{
 				if (pOccupy->IsAlive && pOccupy->Health > 0)
@@ -352,7 +352,7 @@ ASMJIT_PATCH(0x62CCB8, ParticleClass_Update_Fire, 7)
 			if (pTypeExt->Fire_DamagingAnim) {
 				if (auto pAnimType = MapClass::SelectDamageAnimation(pThis->Type->Damage, pThis->Type->Warhead, pCell->LandType, pThis->Location)) {
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->Location),
-						pOwner, pOccupy->GetOwningHouse(), pAttacker, false);
+						pOwner, pOccupy->GetOwningHouse(), pAttacker, false, false);
 				}
 			}
 		}

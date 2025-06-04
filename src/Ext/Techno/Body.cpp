@@ -2478,7 +2478,7 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 				pTransporter->GetOwningHouse(),
 				nullptr,
 				pTransporter,
-				false
+				false, false
 			);
 		}
 
@@ -2516,7 +2516,7 @@ void TechnoExtData::PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker)
 			pInvoker->GetOwningHouse(),
 			nullptr,
 			pInvoker,
-			false
+			false, false
 		);
 	}
 }
@@ -3497,8 +3497,8 @@ void TechnoExtData::UpdateTiberiumEater()
 
 			if (pAnimType)
 			{
-				const auto pAnim = new AnimClass(pAnimType, pos);
-				AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, false, true);
+				const auto pAnim = GameCreate<AnimClass>(pAnimType, pos);
+				AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->Owner, nullptr, pThis, true, false);
 
 				if (pEaterType->AnimMove)
 					pAnim->SetOwnerObject(pThis);
@@ -3795,7 +3795,7 @@ void TechnoExtData::UpdateEatPassengers()
 					{
 						auto const pAnim = GameCreate<AnimClass>(pAnimType, pThis->Location);
 						pAnim->SetOwnerObject(pThis);
-						AnimExtData::SetAnimOwnerHouseKind(pAnim, pThisOwner, pPassenger->GetOwningHouse(), pThis, false);
+						AnimExtData::SetAnimOwnerHouseKind(pAnim, pThisOwner, pPassenger->GetOwningHouse(), pThis, false, false);
 					}
 
 					// Check if there is money refund

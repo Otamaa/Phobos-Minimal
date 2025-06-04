@@ -666,7 +666,7 @@ ASMJIT_PATCH(0x66238A, RocketLocomotionClass_ILocomotion_Process_CustomMissileTa
 			pOwner->Owner,
 			nullptr,
 			pOwner,
-			true
+			true , false
 		);
 
 		return 0x6623F3;
@@ -689,7 +689,7 @@ ASMJIT_PATCH(0x662512, RocketLocomotionClass_ILocomotion_Process_CustomMissileTa
 			pOwner->Owner,
 			nullptr,
 			pOwner,
-			true
+			true, false
 		);
 
 		return 0x66257B;
@@ -712,7 +712,7 @@ ASMJIT_PATCH(0x6627E5, RocketLocomotionClass_ILocomotion_Process_CustomMissileTa
 			pOwner->Owner,
 			nullptr,
 			pOwner,
-			true
+			true, false
 		);
 
 		return 0x662849;
@@ -740,7 +740,7 @@ ASMJIT_PATCH(0x662D85, RocketLocomotionClass_ILocomotion_Process_CustomMissileTr
 				pOwner->Owner,
 				nullptr,
 				pOwner,
-				true
+				true, false
 			);
 		}
 
@@ -827,7 +827,7 @@ ASMJIT_PATCH(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 			pOwner->Owner,
 			pOwner->Target ? pOwner->Target->GetOwningHouse() : nullptr,
 			pOwner,
-			true
+			true, false
 		);
 	}
 
