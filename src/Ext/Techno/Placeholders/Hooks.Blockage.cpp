@@ -10,24 +10,74 @@
 
 class PathfindingBlockageHelper
 {
+private:
+	// Performance optimization: Cache weapon targeting results
+	static std::unordered_map<std::pair<WeaponTypeClass*, ObjectClass*>, bool, std::hash<std::pair<WeaponTypeClass*, ObjectClass*>>> weaponTargetCache;
+	static int lastCacheClearFrame;
+	static constexpr int CACHE_LIFETIME = 30; // Clear cache every 30 frames
+
 public:
 
 	static bool CanTargetObject(TechnoClass* pThis, ObjectClass* pTarget)
 	{
+		if (!pThis || !pTarget)
+			return false;
+
+		// Performance optimization: Clear cache periodically
+		if (Unsorted::CurrentFrame - lastCacheClearFrame > CACHE_LIFETIME)
+		{
+			weaponTargetCache.clear();
+			lastCacheClearFrame = Unsorted::CurrentFrame;
+		}
+
 		int primaryWeaponIndex = pThis->GetTechnoType()->TurretCount > 0 ? pThis->CurrentWeaponNumber : 0;
 		auto const pWeaponPrimary = pThis->GetWeapon(primaryWeaponIndex)->WeaponType;
 
-		if (!pWeaponPrimary || !PathfindingBlockageHelper::CanDealDamageToObject(pWeaponPrimary, pTarget) || pThis->GetFireError(pTarget, primaryWeaponIndex, true) == FireError::ILLEGAL)
+		// Performance optimization: Cache primary weapon check
+		if (pWeaponPrimary)
 		{
-			auto pWeaponSecondary = pThis->GetWeapon(1)->WeaponType;
+			auto cacheKey = std::make_pair(pWeaponPrimary, pTarget);
+			auto cacheIt = weaponTargetCache.find(cacheKey);
 
-			if (pWeaponSecondary && PathfindingBlockageHelper::CanDealDamageToObject(pWeaponSecondary, pTarget) && pThis->GetFireError(pTarget, 1, true) != FireError::ILLEGAL)
-				return true;
+			if (cacheIt != weaponTargetCache.end())
+			{
+				if (cacheIt->second && pThis->GetFireError(pTarget, primaryWeaponIndex, true) != FireError::ILLEGAL)
+					return true;
+			}
+			else
+			{
+				bool canDealDamage = PathfindingBlockageHelper::CanDealDamageToObject(pWeaponPrimary, pTarget);
+				weaponTargetCache[cacheKey] = canDealDamage;
 
-			return false;
+				if (canDealDamage && pThis->GetFireError(pTarget, primaryWeaponIndex, true) != FireError::ILLEGAL)
+					return true;
+			}
 		}
 
-		return true;
+		// Check secondary weapon
+		auto pWeaponSecondary = pThis->GetWeapon(1)->WeaponType;
+
+		if (pWeaponSecondary)
+		{
+			auto cacheKey = std::make_pair(pWeaponSecondary, pTarget);
+			auto cacheIt = weaponTargetCache.find(cacheKey);
+
+			if (cacheIt != weaponTargetCache.end())
+			{
+				if (cacheIt->second && pThis->GetFireError(pTarget, 1, true) != FireError::ILLEGAL)
+					return true;
+			}
+			else
+			{
+				bool canDealDamage = PathfindingBlockageHelper::CanDealDamageToObject(pWeaponSecondary, pTarget);
+				weaponTargetCache[cacheKey] = canDealDamage;
+
+				if (canDealDamage && pThis->GetFireError(pTarget, 1, true) != FireError::ILLEGAL)
+					return true;
+			}
+		}
+
+		return false;
 	}
 
 	static bool CanDealDamageToObject(WeaponTypeClass* pThis, ObjectClass* pTarget)
@@ -52,14 +102,19 @@ public:
 			pWarhead = pExt->AmbientDamage_Warhead.Get(pWarhead);
 		}
 
+		// Performance optimization: Early exit for zero damage
+		if (damage <= 0)
+			return false;
+
 		double multiplier = GeneralUtils::GetWarheadVersusArmor(pWarhead, pTarget->GetType()->Armor);
 
-		if (damage * multiplier > 0)
-			return true;
-
-		return false;
+		return (damage * multiplier > 0);
 	}
 };
+
+// Initialize static members
+std::unordered_map<std::pair<WeaponTypeClass*, ObjectClass*>, bool, std::hash<std::pair<WeaponTypeClass*, ObjectClass*>>> PathfindingBlockageHelper::weaponTargetCache;
+int PathfindingBlockageHelper::lastCacheClearFrame = 0;
 
 // Hooks
 
@@ -160,8 +215,9 @@ ASMJIT_PATCH(0x73FB71, UnitClass_CanEnterCell_BlockageGeneral1, 0x6)
 	GET(ObjectClass*, pOccupier, ESI);
 
 	// Skip blockage checks for passable TerrainTypes.
-	if (auto const pTerrain = abstract_cast<TerrainClass*>(pOccupier)) {
-		if (TerrainExtData::CanMoveHere(pThis , pTerrain))
+	if (auto const pTerrain = abstract_cast<TerrainClass*>(pOccupier))
+	{
+		if (TerrainExtData::CanMoveHere(pThis, pTerrain))
 			return Continue;
 	}
 

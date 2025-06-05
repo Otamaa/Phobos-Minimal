@@ -3,6 +3,10 @@
 #include <Base/Always.h>
 #include <CellClass.h>
 #include <PriorityQueueClass.h>
+#include <unordered_map>
+#include <memory>
+#include <mutex>
+#include <vector>
 
 enum AStarPostProcessType : int
 {
@@ -47,7 +51,8 @@ struct AStarQueueNodeHierarchical
 	int Number;
 };
 
-struct PathType {
+struct PathType
+{
 	CellStruct Start;                // Starting cell number.
 	int Cost;                    // Accumulated terrain cost.
 	int Length;                // Command string length.
@@ -66,7 +71,8 @@ struct PriorityQueueClass_AStarHierarchical
 	void* MaxNodePointer;
 	void* MinNodePointer;
 
-	void Heapify(bool shortitems = true) {
+	void Heapify(bool shortitems = true)
+	{
 		JMP_THIS(0x42DCA0);
 	}
 };
@@ -169,7 +175,6 @@ bool Find_Path_Hierarchical(AStarPathFinderClass* pThis, CellStruct* from, CellS
 		if (threat <= 0.00001)
 		{
 			Avaible = false;
-
 		}
 
 		int some_startIndex = 2;
@@ -204,7 +209,6 @@ bool Find_Path_Hierarchical(AStarPathFinderClass* pThis, CellStruct* from, CellS
 
 				pThis->somearray_BC[500 * some_startIndex] = CellsArray_From;
 				pThis->maxvalues_field_C74[some_startIndex] = 0;
-
 			}
 
 			pThis->BufferForHierarchicalQueue->BufferDelta = -1;
@@ -255,7 +259,6 @@ bool Find_Path_Hierarchical(AStarPathFinderClass* pThis, CellStruct* from, CellS
 					pThis->HierarchicalQueue->Heapify();
 				}
 
-
 				if (!someIdx_here)
 				{
 					return false;
@@ -273,7 +276,6 @@ bool Find_Path_Hierarchical(AStarPathFinderClass* pThis, CellStruct* from, CellS
 					const auto data_Item = data->SubzoneConnections.Items + someIdx_here->Index;
 
 					for (int i = data->SubzoneConnections.Count; i > 0; --i) {
-
 					}
 				}
 			}

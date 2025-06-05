@@ -20,7 +20,6 @@ struct ColorsData
 		Berserk_Color = 0u;
 		Initialized = false;
 	}
-
 };
 
 class AbstractClass;
@@ -42,7 +41,8 @@ public:
 	HelperedVector<CellStruct> TempCoveredCellsData { };
 	std::string LastAnimName {};
 
-	struct CopyArray{
+	struct CopyArray
+	{
 		std::vector<AircraftClass*> Aircraft {};
 		std::vector<BuildingClass*> Building {};
 		std::vector<InfantryClass*> Infantry {};
@@ -70,7 +70,8 @@ public:
 				;
 		}
 
-		COMPILETIMEEVAL void clear() {
+		COMPILETIMEEVAL void clear()
+		{
 			Aircraft.clear();
 			Building.clear();
 			Infantry.clear();
@@ -79,8 +80,10 @@ public:
 
 		void Invalidate(AbstractClass* ptr, bool removed)
 		{
-			for (auto& item : Aircraft) {
-				if (removed && (AbstractClass*)item == ptr) {
+			for (auto& item : Aircraft)
+			{
+				if (removed && (AbstractClass*)item == ptr)
+				{
 					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
 				}
 			}
@@ -113,22 +116,28 @@ public:
 
 	PhobosMap<WarheadTypeClass*, CopyArray> CurCopyArray {};
 
-	struct PathfindLastData {
+	struct PathfindLastData
+	{
 		TechnoClass* Finder;
 		CellStruct From;
 		CellStruct To;
+		MovementZone Movement;
 
-		COMPILETIMEEVAL bool IsValid() const {
+		COMPILETIMEEVAL bool IsValid() const
+		{
 			return Finder != nullptr;
 		}
 
-		COMPILETIMEEVAL void Clear() {
+		COMPILETIMEEVAL void Clear()
+		{
 			Finder = nullptr;
 			From = CellStruct::Empty;
 			To = CellStruct::Empty;
+			Movement = MovementZone::Normal;
 		}
 
-		void InvalidatePointer(AbstractClass* ptr, bool bDetach) {
+		void InvalidatePointer(AbstractClass* ptr, bool bDetach)
+		{
 			if (ptr == (AbstractClass*)Finder)
 				this->Clear();
 		}
@@ -139,6 +148,7 @@ public:
 				.Process(this->Finder, true)
 				.Process(this->From)
 				.Process(this->To)
+				.Process(this->Movement)
 				.Success();
 		}
 
@@ -148,9 +158,9 @@ public:
 				.Process(this->Finder)
 				.Process(this->From)
 				.Process(this->To)
+				.Process(this->Movement)
 				.Success();
 		}
-
 	};
 
 	PathfindLastData PathfindTechno { };
@@ -161,7 +171,8 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& stm);
 	static bool LoadGlobals(PhobosStreamReader& stm);
 
-	COMPILETIMEEVAL FORCEDINLINE static PhobosGlobal* Instance() {
+	COMPILETIMEEVAL FORCEDINLINE static PhobosGlobal* Instance()
+	{
 		return &GlobalObject;
 	}
 
@@ -184,5 +195,4 @@ public:
 			.Process(this->Disappear_removed)
 			.Success();
 	}
-
 };

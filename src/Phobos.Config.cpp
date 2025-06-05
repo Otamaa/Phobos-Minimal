@@ -72,7 +72,6 @@ void Phobos::Config::Read()
 
 	if (!Phobos::Otamaa::IsAdmin)
 	{
-
 		// Custom game speeds, 6 - i so that GS6 is index 0, just like in the engine
 		Phobos::Config::CampaignDefaultGameSpeed = 6 - pRA2MD->ReadInteger(PHOBOS_STR, "CampaignDefaultGameSpeed", 4);
 
@@ -82,7 +81,7 @@ void Phobos::Config::Read()
 		{
 			BYTE defaultspeed = (BYTE)Phobos::Config::CampaignDefaultGameSpeed;
 			// We overwrite the instructions that force GameSpeed to 2 (GS4)
-			Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), PatchType::PATCH_ , &defaultspeed);
+			Patch::Apply_RAW(0x55D77A, sizeof(defaultspeed), PatchType::PATCH_, &defaultspeed);
 
 			// when speed control is off. Doesn't need a hook.
 			Patch::Apply_RAW(0x55D78D, sizeof(defaultspeed), PatchType::PATCH_, &defaultspeed);
@@ -113,7 +112,6 @@ void Phobos::Config::Read()
 		 Phobos::Config::ShowPowerDelta = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowPowerDelta", Phobos::Config::ShowPowerDelta);
 		 Phobos::Config::ShowHarvesterCounter = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowHarvesterCounter", Phobos::Config::ShowHarvesterCounter);
 		 Phobos::Config::ShowWeedsCounter = CCINIClass::INI_RA2MD->ReadBool("Phobos", "ShowWeedsCounter", Phobos::Config::ShowWeedsCounter);
-
 
 		 Phobos::UI::Power_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_POWER_FORMAT_B", L"Power = %d");
 		 Phobos::UI::Drain_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_DRAIN_FORMAT_B", L"Drain = %d");
@@ -152,7 +150,6 @@ void Phobos::Config::Read()
 
 		 pINI->ReadString(GameStrings::ToolTips, "BattlePoints.Label", GameStrings::NoneStr(), Phobos::readBuffer);
 		 Phobos::UI::BattlePoints_Label = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u2605: "); // ★:
-
 	 }
 
 	 // Sidebar
@@ -191,7 +188,7 @@ void Phobos::Config::Read()
 			 pINI->ReadBool(SIDEBAR_SECTION_T, "CenterPauseMenuBackground", Phobos::UI::CenterPauseMenuBackground);
 
 		 Phobos::UI::SuperWeaponSidebar =
-			 pINI->ReadBool(GameStrings::SideBar(), "SuperWeaponSidebar", Phobos::UI::SuperWeaponSidebar );
+			 pINI->ReadBool(GameStrings::SideBar(), "SuperWeaponSidebar", Phobos::UI::SuperWeaponSidebar);
 
 		 Phobos::UI::SuperWeaponSidebar_Interval =
 			 pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.Interval", Phobos::UI::SuperWeaponSidebar_Interval);
@@ -224,12 +221,11 @@ void Phobos::Config::Read()
 		 Phobos::UI::BattlePointsSidebar_Label = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u2605: "); // ★:
 
 		 Phobos::UI::BattlePointsSidebar_Label_InvertPosition =
-			pINI->ReadBool(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label.InvertPosition", Phobos::UI::BattlePointsSidebar_Label_InvertPosition);
+			 pINI->ReadBool(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label.InvertPosition", Phobos::UI::BattlePointsSidebar_Label_InvertPosition);
 
-		Phobos::UI::BattlePointsSidebar_AlwaysShow=
-			pINI->ReadBool(SIDEBAR_SECTION_T, "BattlePointsSidebar.AlwaysVisible", Phobos::UI::BattlePointsSidebar_AlwaysShow);
+		 Phobos::UI::BattlePointsSidebar_AlwaysShow =
+			 pINI->ReadBool(SIDEBAR_SECTION_T, "BattlePointsSidebar.AlwaysVisible", Phobos::UI::BattlePointsSidebar_AlwaysShow);
 	 }
-
 	});
 
 	GameConfig RULESMD { GameStrings::RULESMD_INI() };
@@ -283,5 +279,7 @@ void Phobos::Config::Read()
 	 Phobos::Config::ApplyShadeCountFix = pINI->ReadBool(GameStrings::AudioVisual(), "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 	 Phobos::Config::SaveGameOnScenarioStart = CCINIClass::INI_RA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", Phobos::Config::SaveGameOnScenarioStart);
 
+	 // Pathfinding optimizations - moved to [General] section instead of separate file
+	 Phobos::Config::UseImprovedPathfindingBlockageHandling = pINI->ReadBool(GameStrings::General(), "UseImprovedPathfindingBlockageHandling", Phobos::Config::UseImprovedPathfindingBlockageHandling);
 	});
 }

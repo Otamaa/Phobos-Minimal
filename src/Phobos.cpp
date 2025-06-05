@@ -125,7 +125,7 @@ bool Phobos::Config::ShowBuildingStatistics { false };
 bool Phobos::Config::ApplyShadeCountFi { true };
 bool Phobos::Config::SaveVariablesOnScenarioEnd { false };
 bool Phobos::Config::MultiThreadSinglePlayer { false };
-bool Phobos::Config::UseImprovedPathfindingBlockageHandling { false };
+bool Phobos::Config::UseImprovedPathfindingBlockageHandling { true };
 bool Phobos::Config::HideLightFlashEffects { false };
 bool Phobos::Config::DebugFatalerrorGenerateDump { false };
 bool Phobos::Config::SaveGameOnScenarioStart { true };
@@ -170,14 +170,16 @@ DWORD Phobos::Otamaa::PhobosBaseAddress { false };
 
 struct GraphicsRuntimeAPI
 {
-	enum class Type {
-		UNK , DX , DXGI, OGL , VK
+	enum class Type
+	{
+		UNK, DX, DXGI, OGL, VK
 	};
 
 	GraphicsRuntimeAPI(const std::vector<dllData>& dlls)
 		: name { "Unknown" }, type { Type::UNK }
 	{
-		for (auto& dll : dlls) {
+		for (auto& dll : dlls)
+		{
 			if (_strnicmp(dll.ModuleName.c_str(), "d3d", 3) == 0
 				|| IS_SAME_STR_(dll.ModuleName.c_str(), "dxgi.dll")
 				|| IS_SAME_STR_(dll.ModuleName.c_str(), "ddraw.dll")
@@ -193,7 +195,8 @@ struct GraphicsRuntimeAPI
 				type = Type::OGL;
 				break;
 			}
-			else if (IS_SAME_STR_("vulkan-1.dll", dll.ModuleName.c_str())){
+			else if (IS_SAME_STR_("vulkan-1.dll", dll.ModuleName.c_str()))
+			{
 				name = "Vulkan";
 				type = Type::VK;
 				break;
@@ -203,11 +206,13 @@ struct GraphicsRuntimeAPI
 
 	~GraphicsRuntimeAPI() = default;
 
-	FORCEDINLINE COMPILETIMEEVAL const char* GetName() const {
+	FORCEDINLINE COMPILETIMEEVAL const char* GetName() const
+	{
 		return name.c_str();
 	}
 
-	FORCEDINLINE COMPILETIMEEVAL Type GetType() {
+	FORCEDINLINE COMPILETIMEEVAL Type GetType()
+	{
 		return type;
 	}
 
@@ -221,7 +226,8 @@ std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
 class asmjitErrHandler : public asmjit::ErrorHandler
 {
 public:
-	void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
+	void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override
+	{
 		Debug::LogDeferred("AsmJit ERROR: %s\n", message);
 	}
 };
@@ -237,30 +243,34 @@ namespace Assembly
 		JMP = 0xE9,
 		JLE = 0x7E;
 };
-struct HookSummary {
+struct HookSummary
+{
 	const void* func;
 	size_t size;
 };
 
-struct HooksData {
+struct HooksData
+{
 	std::vector<HookSummary> summary {};
 	std::vector<byte> originalOpcode {};
 };
 
 std::map<unsigned int, HooksData> Hooks { };
 
-void ApplyasmjitPatch() {
-
-	for (auto&[addr , data] : Hooks)
+void ApplyasmjitPatch()
+{
+	for (auto& [addr, data] : Hooks)
 	{
 		auto& [sm_vec, org_vec] = data;
 
-		if (sm_vec.empty()) {
+		if (sm_vec.empty())
+		{
 			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
 			continue;
 		}
 
-		if (sm_vec.size() > 1) {
+		if (sm_vec.size() > 1)
+		{
 			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", addr, sm_vec.size());
 		}
 
@@ -288,7 +298,9 @@ void ApplyasmjitPatch() {
 			assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
 			assembly.jz(l_origin);
 			assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
-		} else {
+		}
+		else
+		{
 			Debug::LogDeferred("remaining hook at 0x%x is ignored !\n", addr);
 		}
 
@@ -349,7 +361,8 @@ void Initasmjit()
 	hookdeclb* end = (hookdeclb*)((DWORD)buffer + len);
 	Debug::LogDeferred("Applying %d asmjit hooks.\n", std::distance((hookdeclb*)buffer, end));
 
-	for (hookdeclb* begin = (hookdeclb*)buffer; begin < end; begin++) {
+	for (hookdeclb* begin = (hookdeclb*)buffer; begin < end; begin++)
+	{
 		auto& hook = Hooks[begin->hookAddr];
 		hook.summary.emplace_back(begin->hookFunc, begin->hookSize);
 	}
@@ -474,19 +487,23 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		else if (!strncasecmp(pArg, "-AFFINITY:", 0xAu))
 		{
 			int result = 1;
-			if (Parser<int>::Parse(pArg + 0xAu, &result) && result < 0) {
+			if (Parser<int>::Parse(pArg + 0xAu, &result) && result < 0)
+			{
 				result = 0;
 			}
 
 			processAffinityMask = result;
-		} else {
+		}
+		else
+		{
 			const std::string cur = pArg;
-			if (cur.starts_with("-ExceptionHandler=")) {
-
+			if (cur.starts_with("-ExceptionHandler="))
+			{
 				const size_t delim = cur.find("=");
 				const std::string value = cur.substr(delim + 1, cur.size() - delim - 1);
 
-				if (!value.empty()) {
+				if (!value.empty())
+				{
 					Parser<bool>::Parse(value.data(), &dontSetExceptionHandler);
 				}
 			}
@@ -495,14 +512,17 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		SpawnerMain::CmdLineParse(pArg);
 	}
 
-	if (Debug::LogEnabled) {
+	if (Debug::LogEnabled)
+	{
 		Debug::InitLogger(); //init the real logger
 
 		Debug::Log("Initialized Phobos " PRODUCT_VERSION ".\n");
 		Debug::Log("args %s\n", args.c_str());
 
 		SpawnerMain::PrintInitializeLog();
-	} else {
+	}
+	else
+	{
 		Debug::DeactivateLogger();
 		Debug::LogFileRemove();
 		Debug::made = false;// reset
@@ -582,7 +602,7 @@ void Phobos::ThrowUsageWarning(CCINIClass* pINI)
 	//just add your mod name or remove these code if you dont like it
 	if (!Phobos::Otamaa::IsAdmin)
 	{
-		if(pINI->ReadString(GameStrings::General(), GameStrings::Name, "", Phobos::readBuffer) <= 0)
+		if (pINI->ReadString(GameStrings::General(), GameStrings::Name, "", Phobos::readBuffer) <= 0)
 			return;
 
 		const std::string ModNameTemp = Phobos::readBuffer;
@@ -665,7 +685,6 @@ void Phobos::InitAdminDebugMode()
 		L"Press OK to continue YR execution.",
 		L"Debugger Notice", MB_OK);
 	}
-
 }
 
 #include <New/Type/TheaterTypeClass.h>
@@ -678,7 +697,8 @@ static std::string GetOsVersionQuick()
 	HMODULE kernel = NULL;
 	HMODULE ntdll = NULL;
 
-	for (auto& module : Patch::ModuleDatas) {
+	for (auto& module : Patch::ModuleDatas)
+	{
 		if (IS_SAME_STR_(module.ModuleName.c_str(), "kernel32.dll"))
 			kernel = module.Handle;
 		else if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll"))
@@ -731,8 +751,8 @@ static std::string GetOsVersionQuick()
 
 			if (NULL == RtlGetVersion_t(&vi2))
 			{
-				if(vi2.dwBuildNumber < 21996) {
-
+				if (vi2.dwBuildNumber < 21996)
+				{
 					if (!bHaveVerFromKernel32) // we failed above; let's hope this would be useful
 						aVer += std::to_string(vi2.dwMajorVersion) + "." + std::to_string(vi2.dwMinorVersion);
 
@@ -740,8 +760,9 @@ static std::string GetOsVersionQuick()
 
 					if (vi2.szCSDVersion[0])
 						aVer += (PhobosCRT::WideStringToString(vi2.szCSDVersion) + " ");
-
-				} else {
+				}
+				else
+				{
 					aVer = "Windows 11 ";
 				}
 
@@ -777,16 +798,20 @@ void Phobos::ExeRun()
 
 	int i = 0;
 
-	for (auto&dlls : Patch::ModuleDatas) {
+	for (auto& dlls : Patch::ModuleDatas)
+	{
 		Debug::LogDeferred("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
 
-		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
+		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll"))
+		{
 			Debug::FatalErrorAndExit("This dll dont need cncnet5.dll to run!, please remove first");
 		}
-		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
+		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S))
+		{
 			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run!, please remove first");
 		}
-		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), PHOBOS_DLL_S)) {
+		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), PHOBOS_DLL_S))
+		{
 			Phobos::Otamaa::PhobosBaseAddress = dlls.BaseAddr;
 		}
 		//else if (ExceptionMode != ExceptionHandlerMode::Default
@@ -810,7 +835,8 @@ void Phobos::ExeTerminate()
 {
 	Debug::DeactivateLogger();
 
-	if(!Phobos::Otamaa::ExeTerminated){
+	if (!Phobos::Otamaa::ExeTerminated)
+	{
 		Phobos::Otamaa::ExeTerminated = true;
 	}
 }
@@ -823,15 +849,17 @@ bool Phobos::DetachFromDebugger()
 	DWORD ret = false;
 	HMODULE ntdll = NULL;
 
-	for (auto& module : Patch::ModuleDatas) {
-		if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll")){
+	for (auto& module : Patch::ModuleDatas)
+	{
+		if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll"))
+		{
 			ntdll = module.Handle;
 			break;
 		}
 	}
 
-	if (ntdll != NULL) {
-
+	if (ntdll != NULL)
+	{
 		auto const NtRemoveProcessDebug =
 			(NTSTATUS(WINAPI*)(HANDLE, HANDLE))GetProcAddress(ntdll, "NtRemoveProcessDebug");
 		auto const NtSetInformationDebugObject =
@@ -845,9 +873,9 @@ bool Phobos::DetachFromDebugger()
 		NTSTATUS status = NtQueryInformationProcess(Patch::CurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
 		if (0 <= status)
 		{
-				ULONG killProcessOnExit = FALSE;
-				status = NtSetInformationDebugObject(
-					hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
+			ULONG killProcessOnExit = FALSE;
+			status = NtSetInformationDebugObject(
+				hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
 
 			if (0 <= status)
 			{
@@ -857,7 +885,7 @@ bool Phobos::DetachFromDebugger()
 				{
 					HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 					if (hDbgProcess != NULL)
-						{
+					{
 						ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
 						CloseHandle(hDbgProcess);
 					}
@@ -872,11 +900,11 @@ bool Phobos::DetachFromDebugger()
 }
 #pragma warning( pop )
 
-
 #pragma endregion
 #include <Misc/Ares/Hooks/Hooks.MouseCursors.h>
 
-static void __cdecl PatchExit(int uExitCode) {
+static void __cdecl PatchExit(int uExitCode)
+{
 	Phobos::ExeTerminate();
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Destroy();
@@ -917,12 +945,10 @@ DECLARE_PATCH(_set_fp_mode)
 #include <Misc/Multithread.h>
 #include <ExtraHeaders/MemoryPool.h>
 
-static CriticalSection critSec3 , critSec4;
+static CriticalSection critSec3, critSec4;
 #ifdef _ReplaceAlloc
 struct GameMemoryReplacer
 {
-
-
 	static char* _strtok_r(char* str, const char* delim, char** saveptr)
 	{
 		char* token;
@@ -954,7 +980,8 @@ struct GameMemoryReplacer
 		return token;
 	}
 
-	static char* _strtok(char* str, const char* delim) {
+	static char* _strtok(char* str, const char* delim)
+	{
 		static char* saveptr = nullptr;
 		return _strtok_r(str, delim, &saveptr);
 	}
@@ -1008,17 +1035,19 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		int len = Patch::GetSection(hInstance, PATCH_SECTION_NAME, &buffer);
 
 		//msvc add padding between them so dont forget !
-		struct _patch : public Patch {
+		struct _patch : public Patch
+		{
 			BYTE _paddings[3];
 		};
 
 		_patch* end = (_patch*)((DWORD)buffer + len);
 
-		for (_patch* begin = (_patch*)buffer; begin < end; begin++) {
+		for (_patch* begin = (_patch*)buffer; begin < end; begin++)
+		{
 			begin->Apply();
 		}
 
-		Debug::LogDeferred("Applying %d Static Patche(s).\n", std::distance((_patch*)buffer,end));
+		Debug::LogDeferred("Applying %d Static Patche(s).\n", std::distance((_patch*)buffer, end));
 		len = Patch::GetSection(hInstance, ".syhks00", &buffer);
 
 		Initasmjit();
@@ -1029,7 +1058,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		Phobos::ExecuteLua();
 
 #ifdef _ReplaceAlloc
-		if(Phobos::Otamaa::ReplaceGameMemoryAllocator)
+		if (Phobos::Otamaa::ReplaceGameMemoryAllocator)
 		{
 			/* There is an issue with these , sometime it will crash when game DynamicVector::resize called
 			  not really sure what is the real cause atm . */
@@ -1043,7 +1072,6 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_LJMP(0x7C93E8, &__free);
 			Patch::Apply_LJMP(0x7C9CC2, &GameMemoryReplacer::_strtok);
 		}
-
 
 #pragma region __malloc
 		Patch::Apply_CALL(0x4011D5, &malloc);
@@ -9137,13 +9165,13 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		char buf[1024] {};
 
-		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf))) {
+		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf)))
+		{
 			Debug::LogDeferred("Compatibility modes detected : %s .\n", buf);
 		}
-
 	}
 	break;
-	case DLL_PROCESS_DETACH :
+	case DLL_PROCESS_DETACH:
 		Multithreading::ShutdownMultitheadMode();
 		Debug::DeactivateLogger();
 		gJitRuntime.reset();
@@ -9187,7 +9215,8 @@ ASMJIT_PATCH(0x55DBCD, MainLoop_SaveGame, 0x6)
 	return SkipSave;
 }
 
-ASMJIT_PATCH(0x6BBE6A, WinMain_AllowMultipleInstances , 0x6) {
+ASMJIT_PATCH(0x6BBE6A, WinMain_AllowMultipleInstances, 0x6)
+{
 	return Phobos::Otamaa::AllowMultipleInstance ? 0x6BBED6 : 0x0;
 }
 
