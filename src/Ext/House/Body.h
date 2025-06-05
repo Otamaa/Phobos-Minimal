@@ -171,7 +171,6 @@ public:
 
 	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
 	CDTimerClass CombatAlertTimer {};
-	int EMPulseWeaponIndex { -1 };
 	HelperedVector<BuildingClass*> RestrictedFactoryPlants {};
 	CDTimerClass AISellAllDelayTimer {};
 

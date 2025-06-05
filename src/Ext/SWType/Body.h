@@ -308,6 +308,8 @@ public:
 	Nullable<AnimTypeClass*> EMPulse_PulseBall {};
 	ValueableVector<BuildingTypeClass*> EMPulse_Cannons {};
 	Valueable<bool> EMPulse_SuspendOthers {};
+	Valueable<int> EMPulse_WeaponIndex { 0 };
+
 #pragma endregion
 
 #pragma region Genetic Mutator

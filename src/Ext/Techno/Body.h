@@ -745,6 +745,7 @@ public:
 	int AttachedEffectInvokerCount {};
 
 	AirstrikeClass* AirstrikeTargetingMe {};
+	CellStruct RandomEMPTarget {};
 
 	~TechnoExtData()
 	{

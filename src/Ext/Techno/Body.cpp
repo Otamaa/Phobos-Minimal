@@ -5913,6 +5913,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->CustomFiringOffset)
 		.Process(this->LastWeaponType)
 		.Process(this->AirstrikeTargetingMe)
+		.Process(this->RandomEMPTarget)
 		;
 }
 

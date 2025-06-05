@@ -124,7 +124,7 @@ void SW_EMPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->EMPulse_PulseDelay.Read(exINI, section, "EMPulse.PulseDelay");
 	pData->EMPulse_PulseBall.Read(exINI, section, "EMPulse.PulseBall");
 	pData->EMPulse_Cannons.Read(exINI, section, "EMPulse.Cannons");
-
+	pData->EMPulse_WeaponIndex.Read(exINI, section, "EMPulse.WeaponIndex");
 	pData->EMPulse_SuspendOthers.Read(exINI, section, "EMPulse.SuspendOthers");
 
 	pData->AttachedToObject->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;

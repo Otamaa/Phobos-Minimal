@@ -187,7 +187,8 @@ enum class PhobosScripts : int
 	ConditionalJumpCheckAliveHumans = 16024,
 	ConditionalJumpCheckObjects = 16025,
 	ConditionalJumpCheckHumanIsMostHated = 16026,
-	count
+	SimpleDeployerDeploy = 127,
+	count = 128
 };
 
 enum class DistanceMode : int
@@ -236,7 +237,6 @@ public:
 	template<bool IsSrcGlobal, bool IsGlobal, class _Pr>
 	static void VariableBinaryOperationHandler(TeamClass* pTeam, int nVariable, int nVarToOperate);
 	static bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed);
-	static void Log(const char* pFormat, ...);
 
 	// Mission_Attack.cpp
 	static void Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType, int IdxAITargetTypeItem);
@@ -297,6 +297,9 @@ public:
 	static void JumpBackToPreviousScript(TeamClass* pTeam);
 	static void RepairDestroyedBridge(TeamClass* pTeam, int mode);
 	static std::pair<WeaponTypeClass*, WeaponTypeClass*> GetWeapon(TechnoClass* pTechno);
+
+	// SimpleDeployer deploy action
+	static void SimpleDeployerDeploy(TeamClass* pTeam, int mode = -1);
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(ScriptExtData) -
