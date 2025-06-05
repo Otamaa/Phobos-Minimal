@@ -187,8 +187,9 @@ enum class PhobosScripts : int
 	ConditionalJumpCheckAliveHumans = 16024,
 	ConditionalJumpCheckObjects = 16025,
 	ConditionalJumpCheckHumanIsMostHated = 16026,
-	SimpleDeployerDeploy = 127,
-	count = 128
+
+	SimpleDeployerDeploy = 19000,
+	count
 };
 
 enum class DistanceMode : int
