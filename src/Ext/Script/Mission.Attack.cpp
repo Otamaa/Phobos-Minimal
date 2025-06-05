@@ -1,3 +1,25 @@
+/*
+ * Mission.Attack.cpp - Refactored AI Team Attack Mission Logic
+ *
+ * PERFORMANCE IMPROVEMENTS:
+ * - Introduced caching structures to avoid repeated expensive lookups
+ * - Reduced redundant calculations in loops
+ * - Early returns to minimize deep nesting
+ * - More efficient iteration patterns
+ *
+ * CODE STRUCTURE IMPROVEMENTS:
+ * - Broke down large functions into focused helper functions
+ * - Added constants for magic numbers
+ * - Improved variable naming and type safety
+ * - Reduced code duplication
+ *
+ * BUG FIXES:
+ * - Fixed potential null pointer dereferences
+ * - Added proper bounds checking
+ * - Improved logical condition ordering
+ * - Enhanced error handling
+ */
+
 #include "Body.h"
 
 #include <Ext/Building/Body.h>
@@ -12,825 +34,952 @@
 
 #include <Utilities/Cast.h>
 
-void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
+ // Constants for improved readability and maintainability
+namespace AttackMissionConstants
 {
-	auto pScript = pTeam->CurrentScript;
-	// This is the target type
-	const auto& [curAct, scriptArgument] = pScript->GetCurrentAction();
-	//const auto& [nextAct, nextArg] = pScript->GetNextAction();
-	//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Executing)",
-	//	pTeam->Type->ID, pScript->Type->ID,
-	//	pScript->CurrentMission,
-	//	curAct,
-	//	scriptArgument,
-	//	pScript->CurrentMission + 1,
-	//	nextAct,
-	//	nextArg);
+	constexpr int WAIT_NO_TARGET_FRAMES = 30;
+	constexpr double THREAT_MULTIPLIER = 128.0;
+	constexpr double DISTANCE_DIVISOR = 256.0;
+	constexpr double VHP_DAMAGE_DIVISOR = 2.0;
+	constexpr double VHP_DAMAGE_MULTIPLIER = 2.0;
+	constexpr double WEAPON_RANGE_MULTIPLIER = 4.0;
+	constexpr double GUARD_RANGE_MULTIPLIER = 2.0;
+}
 
-	if (!pScript){
-		pTeam->StepCompleted = true;
-		return;
-	}
+// Helper structure to cache frequently accessed team data
+struct TeamCacheData
+{
+	TeamExtData* pTeamData;
+	TechnoClass* pFocus;
+	FootClass* pTeamLeader;
+	TechnoTypeClass* pLeaderType;
+	bool bAircraftsWithoutAmmo;
+	bool pacifistTeam;
+	bool agentMode;
+	bool leaderWeaponsHaveAG;
+	bool leaderWeaponsHaveAA;
+};
 
-	//TechnoClass* selectedTarget = nullptr;
-	//HouseClass* enemyHouse = nullptr;
-	bool noWaitLoop = false;
-	//FootClass* pLeaderUnit = nullptr;
-	//TechnoTypeClass* pLeaderUnitType = nullptr;
-	bool bAircraftsWithoutAmmo = false;
-	//TechnoClass* pFocus = nullptr;
-	bool agentMode = false;
-	bool pacifistTeam = true;
-	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
+// Helper function to initialize team cache data
+static TeamCacheData InitializeTeamCache(TeamClass* pTeam)
+{
+	TeamCacheData cache = {};
+	cache.pTeamData = TeamExtContainer::Instance.Find(pTeam);
+	cache.pFocus = flag_cast_to<TechnoClass*>(pTeam->ArchiveTarget);
+	cache.bAircraftsWithoutAmmo = false;
+	cache.pacifistTeam = true;
+	cache.agentMode = false;
+	cache.leaderWeaponsHaveAG = false;
+	cache.leaderWeaponsHaveAA = false;
 
-	// When the new target wasn't found it sleeps some few frames before the new attempt. This can save cycles and cycles of unnecessary executed lines.
-	if (pTeamData->WaitNoTargetCounter > 0)
-	{
-		if (pTeamData->WaitNoTargetTimer.InProgress())
-			return;
+	return cache;
+}
 
-		pTeamData->WaitNoTargetTimer.Stop();
-		noWaitLoop = true;
-		pTeamData->WaitNoTargetCounter = 0;
-
-		if (pTeamData->WaitNoTargetAttempts > 0)
-			pTeamData->WaitNoTargetAttempts--;
-	}
-
-	auto pFocus = flag_cast_to<TechnoClass*>(pTeam->ArchiveTarget);
-
-	if (!ScriptExtData::IsUnitAvailable(pFocus, true))
+// Helper function to validate and clean team focus target
+static void ValidateTeamFocus(TeamClass* pTeam, TeamCacheData& cache)
+{
+	if (!ScriptExtData::IsUnitAvailable(cache.pFocus, true))
 	{
 		pTeam->ArchiveTarget = nullptr;
-		pFocus = nullptr;
+		cache.pFocus = nullptr;
 	}
+}
 
+// Helper function to process team member kills and awards
+static bool ProcessTeamKills(TeamClass* pTeam, TeamCacheData& cache, bool repeatAction)
+{
+	FootClass* pFirst = pTeam->FirstUnit;
+	if (!pFirst) return false;
+
+	bool lastKillTechnoWasTeamTarget = false;
 	FootClass* pCur = nullptr;
-	if (auto pFirst = pTeam->FirstUnit)
+	FootClass* pNext = pFirst->NextTeamMember;
+
+	do
 	{
-		bool LastKillTechnoWasTeamtarget = false;
+		auto pKillerTechnoData = TechnoExtContainer::Instance.Find(pFirst);
 
-		auto pNext = pFirst->NextTeamMember;
-
-		do
+		if (pKillerTechnoData->LastKillWasTeamTarget)
 		{
-			auto pKillerTechnoData = TechnoExtContainer::Instance.Find(pFirst);
-
-			if (pKillerTechnoData->LastKillWasTeamTarget)
+			// Time for Team award check! (if set any)
+			if (cache.pTeamData->NextSuccessWeightAward > 0)
 			{
-				// Time for Team award check! (if set any)
-				if (pTeamData->NextSuccessWeightAward > 0)
-				{
-					ScriptExtData::IncreaseCurrentTriggerWeight(pTeam, false, pTeamData->NextSuccessWeightAward);
-					pTeamData->NextSuccessWeightAward = 0;
-				}
-
-				// Let's clean the Killer mess
-				pKillerTechnoData->LastKillWasTeamTarget = false;
-				pTeam->ArchiveTarget = nullptr;
-				pFocus = nullptr;
-				LastKillTechnoWasTeamtarget = true;
-
-				if (!repeatAction)
-				{
-					// If the previous Team's Target was killed by this Team Member and the script was a 1-time-use then this script action must be finished.
-					for (auto pFootTeam = pTeam->FirstUnit; pFootTeam; pFootTeam = pFootTeam->NextTeamMember)
-					{
-						// Let's reset all Team Members objective
-						auto pKillerTeamUnitData = TechnoExtContainer::Instance.Find(pFootTeam);
-						pKillerTeamUnitData->LastKillWasTeamTarget = false;
-
-						if (pFootTeam->WhatAmI() == AbstractType::Aircraft)
-						{
-							pFootTeam->SetTarget(nullptr);
-							pFootTeam->LastTarget = nullptr;
-							pFootTeam->QueueMission(Mission::Guard, true);
-						}
-					}
-
-					pTeamData->IdxSelectedObjectFromAIList = -1;
-
-					// This action finished
-					pTeam->StepCompleted = true;
-					return;
-				}
+				ScriptExtData::IncreaseCurrentTriggerWeight(pTeam, false, cache.pTeamData->NextSuccessWeightAward);
+				cache.pTeamData->NextSuccessWeightAward = 0;
 			}
 
-			pCur = pNext;
+			// Let's clean the Killer mess
+			pKillerTechnoData->LastKillWasTeamTarget = false;
+			pTeam->ArchiveTarget = nullptr;
+			cache.pFocus = nullptr;
+			lastKillTechnoWasTeamTarget = true;
 
-			if (pNext)
-				pNext = pNext->NextTeamMember;
+			if (!repeatAction)
+			{
+				// If the previous Team's Target was killed by this Team Member and the script was a 1-time-use then this script action must be finished.
+				for (auto pFootTeam = pTeam->FirstUnit; pFootTeam; pFootTeam = pFootTeam->NextTeamMember)
+				{
+					// Let's reset all Team Members objective
+					auto pKillerTeamUnitData = TechnoExtContainer::Instance.Find(pFootTeam);
+					pKillerTeamUnitData->LastKillWasTeamTarget = false;
 
-			pFirst = pCur;
+					if (pFootTeam->WhatAmI() == AbstractType::Aircraft)
+					{
+						pFootTeam->SetTarget(nullptr);
+						pFootTeam->LastTarget = nullptr;
+						pFootTeam->QueueMission(Mission::Guard, true);
+					}
+				}
 
+				cache.pTeamData->IdxSelectedObjectFromAIList = -1;
+				pTeam->StepCompleted = true;
+				return true; // Action completed
+			}
 		}
-		while (pCur);
-	}
 
+		pCur = pNext;
+		if (pNext) pNext = pNext->NextTeamMember;
+		pFirst = pCur;
+	}
+	while (pCur);
+
+	return false; // Continue processing
+}
+
+// Helper function to analyze team composition and capabilities
+static void AnalyzeTeamComposition(TeamClass* pTeam, TeamCacheData& cache)
+{
 	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
 	{
-			if (ScriptExtData::IsUnitAvailable(pFoot, true)) {
+		if (!ScriptExtData::IsUnitAvailable(pFoot, true)) continue;
 
-				auto const pTechnoType = pFoot->GetTechnoType();
+		auto const pTechnoType = pFoot->GetTechnoType();
 
-				if (pFoot->WhatAmI() == AbstractType::Aircraft
-					&& !pFoot->IsInAir()
-					&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound
-					&& pFoot->Ammo < pTechnoType->Ammo)
-				{
-					bAircraftsWithoutAmmo = true;
-				}
-
-				pacifistTeam &= !ScriptExtData::IsUnitArmed(pFoot);
-
-				if (pFoot->WhatAmI() == AbstractType::Infantry)
-				{
-					auto const pTypeInf = static_cast<const InfantryTypeClass*>(pTechnoType);
-
-					// Any Team member (infantry) is a special agent? If yes ignore some checks based on Weapons.
-					if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
-						agentMode = true;
-				}
-			}
-	}
-
-	// Find the Leader
-	if (!ScriptExtData::IsUnitAvailable(pTeamData->TeamLeader, true))
-	{
-		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
-	}
-
-	if (!pTeamData->TeamLeader  || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))
-	{
-		pTeamData->IdxSelectedObjectFromAIList = -1;
-		if (pTeamData->WaitNoTargetAttempts != 0) {
-			pTeamData->WaitNoTargetTimer.Stop();
-			pTeamData->WaitNoTargetCounter = 0;
-			pTeamData->WaitNoTargetAttempts = 0;
+		// Check for aircrafts without ammo
+		if (pFoot->WhatAmI() == AbstractType::Aircraft
+			&& !pFoot->IsInAir()
+			&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound
+			&& pFoot->Ammo < pTechnoType->Ammo)
+		{
+			cache.bAircraftsWithoutAmmo = true;
 		}
 
-		// This action finished
-		pTeam->StepCompleted = true;
-		//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} -> (Reason: No Leader found | Exists Aircrafts without ammo | Team members have no weapons)",
-		//	pTeam->Type->ID,
-		//	pScript->Type->ID,
-		//	pScript->CurrentMission,
-		//	(int)curAct,
-		//	scriptArgument,
-		//	pScript->CurrentMission + 1,
-		//	(int)nextAct,
-		//	nextArg);
+		// Check if team is pacifist
+		cache.pacifistTeam &= !ScriptExtData::IsUnitArmed(pFoot);
 
-		return;
+		// Check for agent mode (special infiltrator units)
+		if (pFoot->WhatAmI() == AbstractType::Infantry)
+		{
+			auto const pTypeInf = static_cast<const InfantryTypeClass*>(pTechnoType);
+			if ((pTypeInf->Agent && pTypeInf->Infiltrate) || pTypeInf->Engineer)
+			{
+				cache.agentMode = true;
+			}
+		}
+	}
+}
+
+// Helper function to find and validate team leader
+static bool ValidateTeamLeader(TeamClass* pTeam, TeamCacheData& cache)
+{
+	// Find the Leader if not available
+	if (!ScriptExtData::IsUnitAvailable(cache.pTeamData->TeamLeader, true))
+	{
+		cache.pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
 	}
 
-	auto pLeaderUnitType = pTeamData->TeamLeader->GetTechnoType();
-	bool leaderWeaponsHaveAG = false;
-	bool leaderWeaponsHaveAA = false;
-	ScriptExtData::CheckUnitTargetingCapabilities(pTeamData->TeamLeader, leaderWeaponsHaveAG, leaderWeaponsHaveAA, agentMode);
+	cache.pTeamLeader = cache.pTeamData->TeamLeader;
+
+	if (!cache.pTeamLeader || cache.bAircraftsWithoutAmmo || (cache.pacifistTeam && !cache.agentMode))
+	{
+		cache.pTeamData->IdxSelectedObjectFromAIList = -1;
+		if (cache.pTeamData->WaitNoTargetAttempts != 0)
+		{
+			cache.pTeamData->WaitNoTargetTimer.Stop();
+			cache.pTeamData->WaitNoTargetCounter = 0;
+			cache.pTeamData->WaitNoTargetAttempts = 0;
+		}
+		pTeam->StepCompleted = true;
+		return false;
+	}
+
+	cache.pLeaderType = cache.pTeamLeader->GetTechnoType();
+	ScriptExtData::CheckUnitTargetingCapabilities(cache.pTeamLeader, cache.leaderWeaponsHaveAG, cache.leaderWeaponsHaveAA, cache.agentMode);
 
 	// Special case: a Leader with OpenTopped tag
-	if (pLeaderUnitType->OpenTopped && pTeamData->TeamLeader->Passengers.NumPassengers > 0)
+	if (cache.pLeaderType->OpenTopped && cache.pTeamLeader->Passengers.NumPassengers > 0)
 	{
-		for (auto pPassenger = pTeamData->TeamLeader->Passengers.GetFirstPassenger(); pPassenger; pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject))
+		for (auto pPassenger = cache.pTeamLeader->Passengers.GetFirstPassenger(); pPassenger; pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject))
 		{
 			bool passengerWeaponsHaveAG = false;
 			bool passengerWeaponsHaveAA = false;
-			ScriptExtData::CheckUnitTargetingCapabilities(pPassenger, passengerWeaponsHaveAG, passengerWeaponsHaveAA, agentMode);
+			ScriptExtData::CheckUnitTargetingCapabilities(pPassenger, passengerWeaponsHaveAG, passengerWeaponsHaveAA, cache.agentMode);
 
-			leaderWeaponsHaveAG |= passengerWeaponsHaveAG;
-			leaderWeaponsHaveAA |= passengerWeaponsHaveAA;
+			cache.leaderWeaponsHaveAG |= passengerWeaponsHaveAG;
+			cache.leaderWeaponsHaveAA |= passengerWeaponsHaveAA;
 		}
 	}
 
-	if (!pFocus && !bAircraftsWithoutAmmo)
-	{
-		// This part of the code is used for picking a new target.
+	return true;
+}
 
-		// Favorite Enemy House case. If set, AI will focus against that House
-		HouseClass* enemyHouse = nullptr;
-		const auto pHouseExt = HouseExtContainer::Instance.Find(pTeam->Owner);
-		const bool onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemyMode != -1 ?
+// Helper function to find new target
+static TechnoClass* FindNewTarget(TeamClass* pTeam, const TeamCacheData& cache, int targetMask, DistanceMode calcThreatMode, int attackAITargetType, int idxAITargetTypeItem)
+{
+	// Favorite Enemy House case. If set, AI will focus against that House
+	HouseClass* enemyHouse = nullptr;
+	const auto pHouseExt = HouseExtContainer::Instance.Find(pTeam->Owner);
+	const bool onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemyMode != -1 ?
 		pHouseExt->m_ForceOnlyTargetHouseEnemy : pTeam->Type->OnlyTargetHouseEnemy;
 
-		if (onlyTargetHouseEnemy && (size_t)pTeamData->TeamLeader->Owner->EnemyHouseIndex < (size_t)HouseClass::Array->Count)
-			enemyHouse = HouseClass::Array->Items[pTeamData->TeamLeader->Owner->EnemyHouseIndex];
+	if (onlyTargetHouseEnemy && (size_t)cache.pTeamLeader->Owner->EnemyHouseIndex < (size_t)HouseClass::Array->Count)
+	{
+		enemyHouse = HouseClass::Array->Items[cache.pTeamLeader->Owner->EnemyHouseIndex];
+	}
 
-		int targetMask = scriptArgument;
-		auto selectedTarget = ScriptExtData::GreatestThreat(pTeamData->TeamLeader, targetMask, calcThreatMode, enemyHouse, attackAITargetType, idxAITargetTypeItem, agentMode);
+	return ScriptExtData::GreatestThreat(cache.pTeamLeader, targetMask, calcThreatMode, enemyHouse, attackAITargetType, idxAITargetTypeItem, cache.agentMode);
+}
 
-		if (selectedTarget)
+// Helper function to assign target to team members
+static void AssignTargetToTeamMembers(TeamClass* pTeam, TechnoClass* selectedTarget)
+{
+	for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
+	{
+		if (!ScriptExtData::IsUnitAvailable(pFoot, false) || !ScriptExtData::IsUnitAvailable(selectedTarget, true)) continue;
+
+		auto const pTechnoType = pFoot->GetTechnoType();
+
+		if (pFoot == selectedTarget || pFoot->Target == selectedTarget)
 		{
-	/*		Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Leader [{}] (UID: %lu) selected [{}] (UID: %lu) as target.",
-				pTeam->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission,
-				curAct,
-				scriptArgument,
-				pTeamData->TeamLeader->get_ID(), pTeamData->TeamLeader->UniqueID,
-				selectedTarget->get_ID(),
-				selectedTarget->UniqueID);*/
+			pFoot->QueueMission(Mission::Attack, true);
+			continue;
+		}
 
-			pTeam->ArchiveTarget = selectedTarget;
-			pFocus = selectedTarget;
-			pTeamData->WaitNoTargetAttempts = 0; // Disable Script Waits if there are any because a new target was selected
-			pTeamData->WaitNoTargetTimer.Stop();
+		// Naval units check
+		if (pTechnoType->Underwater && pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
+			&& selectedTarget->GetCell()->LandType != LandType::Water)
+		{
+			// Naval units like Submarines are unable to target ground targets
+			pFoot->SetTarget(nullptr);
+			pFoot->SetDestination(nullptr, false);
+			pFoot->QueueMission(Mission::Area_Guard, true);
+			continue;
+		}
 
-			for (auto pFoot = pTeam->FirstUnit; pFoot; pFoot = pFoot->NextTeamMember)
+		// Aircraft handling
+		if (pFoot->WhatAmI() == AbstractType::Aircraft && pFoot->Ammo > 0 && pFoot->GetHeight() <= 0)
+		{
+			pFoot->SetDestination(selectedTarget, false);
+			pFoot->QueueMission(Mission::Attack, true);
+		}
+
+		pFoot->SetTarget(selectedTarget);
+
+		// Special mission assignments
+		if (pFoot->IsEngineer())
+		{
+			pFoot->QueueMission(Mission::Capture, true);
+		}
+		else if (pFoot->WhatAmI() != AbstractType::Aircraft)
+		{
+			pFoot->QueueMission(Mission::Attack, true);
+		}
+
+		// Infantry special cases
+		if (pFoot->WhatAmI() == AbstractType::Infantry)
+		{
+			auto const pInfantryType = static_cast<const InfantryTypeClass*>(pTechnoType);
+
+			// Spy case
+			if (pInfantryType && pInfantryType->Infiltrate && pInfantryType->Agent && pFoot->GetCurrentMission() != Mission::Enter)
 			{
-				if (ScriptExtData::IsUnitAvailable(pFoot, false) && ScriptExtData::IsUnitAvailable(selectedTarget, true))
+				pFoot->QueueMission(Mission::Enter, true);
+			}
+
+			// Tanya / Commando C4 case
+			if ((pInfantryType->C4 || pFoot->HasAbility(AbilityType::C4)) && pFoot->GetCurrentMission() != Mission::Sabotage)
+			{
+				pFoot->QueueMission(Mission::Sabotage, true);
+			}
+		}
+	}
+}
+
+// Helper function to handle no target found scenario
+static bool HandleNoTargetFound(TeamClass* pTeam, TeamExtData* pTeamData)
+{
+	if (pTeamData->WaitNoTargetAttempts > 0 && pTeamData->WaitNoTargetTimer.Completed())
+	{
+		pTeamData->WaitNoTargetCounter = AttackMissionConstants::WAIT_NO_TARGET_FRAMES;
+		pTeamData->WaitNoTargetTimer.Start(AttackMissionConstants::WAIT_NO_TARGET_FRAMES);
+		return true; // Wait and return
+	}
+
+	if (pTeamData->IdxSelectedObjectFromAIList >= 0)
+	{
+		pTeamData->IdxSelectedObjectFromAIList = -1;
+	}
+
+	if (pTeamData->WaitNoTargetAttempts != 0 && pTeamData->WaitNoTargetTimer.Completed())
+	{
+		pTeamData->WaitNoTargetCounter = AttackMissionConstants::WAIT_NO_TARGET_FRAMES;
+		pTeamData->WaitNoTargetTimer.Start(AttackMissionConstants::WAIT_NO_TARGET_FRAMES);
+		return true; // Wait and return
+	}
+
+	pTeam->StepCompleted = true;
+	return true; // Action completed
+}
+
+// Helper function to update attack missions for existing target
+static bool UpdateAttackMissions(TeamClass* pTeam, const TeamCacheData& cache)
+{
+	if (!ScriptExtData::IsUnitAvailable(cache.pFocus, true))
+	{
+		pTeam->ArchiveTarget = nullptr;
+		return false; // Target lost, restart
+	}
+
+	bool isAirOK = cache.pFocus->IsInAir() && cache.leaderWeaponsHaveAA;
+	bool isGroundOK = !cache.pFocus->IsInAir() && cache.leaderWeaponsHaveAG;
+
+	if (!cache.pFocus->GetTechnoType()->Immune
+		&& (isAirOK || isGroundOK)
+		&& (!cache.pTeamLeader->Owner->IsAlliedWith(cache.pFocus) || ScriptExtData::IsUnitMindControlledFriendly(cache.pTeamLeader->Owner, cache.pFocus)))
+	{
+		bool bForceNextAction = false;
+
+		for (auto pFoot = pTeam->FirstUnit; pFoot && !bForceNextAction; pFoot = pFoot->NextTeamMember)
+		{
+			if (!ScriptExtData::IsUnitAvailable(pFoot, true)) continue;
+
+			auto const pTechnoType = pFoot->GetTechnoType();
+
+			// Aircraft case 1
+			if (pFoot->WhatAmI() == AbstractType::Aircraft
+				&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound
+				&& pFoot->Ammo > 0
+				&& (pFoot->Target != cache.pFocus && !pFoot->InAir))
+			{
+				pFoot->SetTarget(cache.pFocus);
+				continue;
+			}
+
+			// Naval units check
+			if (pTechnoType->Underwater
+				&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
+				&& cache.pFocus->GetCell()->LandType != LandType::Water)
+			{
+				pFoot->SetTarget(nullptr);
+				pFoot->SetDestination(nullptr, false);
+				pFoot->QueueMission(Mission::Area_Guard, true);
+				bForceNextAction = true;
+				continue;
+			}
+
+			// Aircraft case 2
+			if (pFoot->WhatAmI() == AbstractType::Aircraft
+				&& pFoot->GetCurrentMission() != Mission::Attack
+				&& pFoot->GetCurrentMission() != Mission::Enter)
+			{
+				if (pFoot->Ammo > 0)
 				{
-					auto const pTechnoType = pFoot->GetTechnoType();
-
-					if (pFoot != selectedTarget && pFoot->Target != selectedTarget)
+					if (pFoot->Target != cache.pFocus)
 					{
-						if (pTechnoType->Underwater && pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-							&& selectedTarget->GetCell()->LandType != LandType::Water) // Land not OK for the Naval unit
-						{
-							// Naval units like Submarines are unable to target ground targets
-							// except if they have anti-ground weapons. Ignore the attack
-							pFoot->SetTarget(nullptr);
-							pFoot->SetDestination(nullptr, false);
-							pFoot->QueueMission(Mission::Area_Guard, true);
-
-							continue;
-						}
-
-						// Aircraft hack. I hate how this game auto-manages the aircraft missions.
-						if (pFoot->WhatAmI() == AbstractType::Aircraft
-							&& pFoot->Ammo > 0 && pFoot->GetHeight() <= 0)
-						{
-							pFoot->SetDestination(selectedTarget, false);
-							pFoot->QueueMission(Mission::Attack, true);
-						}
-
-						pFoot->SetTarget(selectedTarget);
-
-						if (pFoot->IsEngineer())
-							pFoot->QueueMission(Mission::Capture, true);
-						else if (pFoot->WhatAmI() != AbstractType::Aircraft) // Aircraft hack. I hate how this game auto-manages the aircraft missions.
-							pFoot->QueueMission(Mission::Attack, true);
-
-						if (pFoot->WhatAmI() == AbstractType::Infantry)
-						{
-							auto const pInfantryType = static_cast<const InfantryTypeClass*>(pTechnoType);
-
-							// Spy case
-							if (pInfantryType && pInfantryType->Infiltrate && pInfantryType->Agent && pFoot->GetCurrentMission() != Mission::Enter)
-								pFoot->QueueMission(Mission::Enter, true); // Check if target is an structure and see if spiable
-
-							// Tanya / Commando C4 case
-							if ((pInfantryType->C4 || pFoot->HasAbility(AbilityType::C4))
-								&& pFoot->GetCurrentMission() != Mission::Sabotage)
-							{
-								pFoot->QueueMission(Mission::Sabotage, true);
-							}
-						}
+						pFoot->SetTarget(cache.pFocus);
 					}
-					else
-					{
-						pFoot->QueueMission(Mission::Attack, true);
-					}
+					pFoot->QueueMission(Mission::Attack, true);
+				}
+				else
+				{
+					pFoot->EnterIdleMode(false, true);
+				}
+				continue;
+			}
+
+			// Tanya / Commando C4 case
+			if ((pFoot->WhatAmI() == AbstractType::Infantry
+				&& static_cast<const InfantryTypeClass*>(pTechnoType)->C4
+				|| pFoot->HasAbility(AbilityType::C4)) && pFoot->GetCurrentMission() != Mission::Sabotage)
+			{
+				pFoot->QueueMission(Mission::Sabotage, true);
+				continue;
+			}
+
+			// Other cases
+			if (pFoot->WhatAmI() != AbstractType::Aircraft)
+			{
+				if (pFoot->Target != cache.pFocus)
+				{
+					pFoot->SetTarget(cache.pFocus);
+				}
+
+				if (pFoot->GetCurrentMission() != Mission::Attack
+					&& pFoot->GetCurrentMission() != Mission::Unload
+					&& pFoot->GetCurrentMission() != Mission::Selling)
+				{
+					pFoot->QueueMission(Mission::Attack, false);
 				}
 			}
 		}
-		else
+
+		if (bForceNextAction)
 		{
-			// No target was found with the specific criteria.
-			if (pTeamData->WaitNoTargetAttempts > 0 && pTeamData->WaitNoTargetTimer.Completed())
-			{
-				pTeamData->WaitNoTargetCounter = 30;
-				pTeamData->WaitNoTargetTimer.Start(30);
-				return;
-			}
-
-			if (pTeamData->IdxSelectedObjectFromAIList >= 0)
-				pTeamData->IdxSelectedObjectFromAIList = -1;
-
-			if (pTeamData->WaitNoTargetAttempts != 0 && pTeamData->WaitNoTargetTimer.Completed())
-			{
-				// No target? let's wait some frames
-				pTeamData->WaitNoTargetCounter = 30;
-				pTeamData->WaitNoTargetTimer.Start(30);
-
-				return;
-			}
-
-			// This action finished
+			cache.pTeamData->IdxSelectedObjectFromAIList = -1;
 			pTeam->StepCompleted = true;
-			//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to next line: {} = {},{} (Leader [{}] (UID: %lu) can't find a new target)",
-			//	pTeam->Type->ID,
-			//	pScript->Type->ID,
-			//	pScript->CurrentMission,
-			//	(int)curAct,
-			//	scriptArgument,
-			//	pScript->CurrentMission + 1,
-			//	(int)nextAct,
-			//	nextArg,
-			//	pTeamData->TeamLeader->get_ID(),
-			//	pTeamData->TeamLeader->UniqueID);
-
-			return;
+			return true; // Action completed
 		}
 	}
 	else
 	{
-		// This part of the code is used for updating the "Attack" mission in each team unit
-		if (!ScriptExtData::IsUnitAvailable(pFocus, true))
+		pTeam->ArchiveTarget = nullptr;
+	}
+
+	return false; // Continue processing
+}
+
+void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
+{
+	auto pScript = pTeam->CurrentScript;
+	const auto& [curAct, scriptArgument] = pScript->GetCurrentAction();
+
+	if (!pScript)
+	{
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	// Initialize cache data
+	TeamCacheData cache = InitializeTeamCache(pTeam);
+	bool noWaitLoop = false;
+
+	// Handle wait timer
+	if (cache.pTeamData->WaitNoTargetCounter > 0)
+	{
+		if (cache.pTeamData->WaitNoTargetTimer.InProgress()) return;
+
+		cache.pTeamData->WaitNoTargetTimer.Stop();
+		noWaitLoop = true;
+		cache.pTeamData->WaitNoTargetCounter = 0;
+
+		if (cache.pTeamData->WaitNoTargetAttempts > 0)
 		{
-			pTeam->ArchiveTarget = nullptr;
-			pFocus = nullptr;
-			return;
+			cache.pTeamData->WaitNoTargetAttempts--;
 		}
+	}
 
-		bool isAirOK = pFocus->IsInAir() && leaderWeaponsHaveAA;
-		bool isGroundOK = !pFocus->IsInAir() && leaderWeaponsHaveAG;
+	// Validate focus target
+	ValidateTeamFocus(pTeam, cache);
 
-		if ( !pFocus->GetTechnoType()->Immune
-			&& (isAirOK || isGroundOK)
-			&& (!pTeamData->TeamLeader->Owner->IsAlliedWith(pFocus) || ScriptExtData::IsUnitMindControlledFriendly(pTeamData->TeamLeader->Owner, pFocus)))
+	// Process team kills and check if action is completed
+	if (ProcessTeamKills(pTeam, cache, repeatAction)) return;
+
+	// Analyze team composition
+	AnalyzeTeamComposition(pTeam, cache);
+
+	// Validate team leader and capabilities
+	if (!ValidateTeamLeader(pTeam, cache)) return;
+
+	// Main logic: find new target or update existing missions
+	if (!cache.pFocus && !cache.bAircraftsWithoutAmmo)
+	{
+		// Find new target
+		auto selectedTarget = FindNewTarget(pTeam, cache, scriptArgument, calcThreatMode, attackAITargetType, idxAITargetTypeItem);
+
+		if (selectedTarget)
 		{
-			bool bForceNextAction = false;
+			pTeam->ArchiveTarget = selectedTarget;
+			cache.pFocus = selectedTarget;
+			cache.pTeamData->WaitNoTargetAttempts = 0;
+			cache.pTeamData->WaitNoTargetTimer.Stop();
 
-			for (auto pFoot = pTeam->FirstUnit; pFoot && !bForceNextAction; pFoot = pFoot->NextTeamMember)
-			{
-				if (ScriptExtData::IsUnitAvailable(pFoot, true))
-				{
-					auto const pTechnoType = pFoot->GetTechnoType();
-
-					// Aircraft case 1
-					if ((pFoot->WhatAmI() == AbstractType::Aircraft
-						&& static_cast<const AircraftTypeClass*>(pTechnoType)->AirportBound)
-						&& pFoot->Ammo > 0
-						&& (pFoot->Target != pFocus && !pFoot->InAir))
-					{
-						pFoot->SetTarget(pFocus);
-
-						continue;
-					}
-
-					// Naval units like Submarines are unable to target ground targets except if they have nti-ground weapons. Ignore the attack
-					if (pTechnoType->Underwater
-						&& pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-						&& pFocus->GetCell()->LandType != LandType::Water) // Land not OK for the Naval unit
-					{
-						pFoot->SetTarget(nullptr);
-						pFoot->SetDestination(nullptr, false);
-						pFoot->QueueMission(Mission::Area_Guard, true);
-						bForceNextAction = true;
-
-						continue;
-					}
-
-					// Aircraft case 2
-					if (pFoot->WhatAmI() == AbstractType::Aircraft
-						&& pFoot->GetCurrentMission() != Mission::Attack
-						&& pFoot->GetCurrentMission() != Mission::Enter)
-					{
-						if (pFoot->Ammo > 0)
-						{
-							if (pFoot->Target != pFocus)
-								pFoot->SetTarget(pFocus);
-
-							pFoot->QueueMission(Mission::Attack, true);
-						}
-						else
-						{
-							pFoot->EnterIdleMode(false, true);
-						}
-
-						continue;
-					}
-
-					// Tanya / Commando C4 case
-					if ((pFoot->WhatAmI() == AbstractType::Infantry
-						&& static_cast<const InfantryTypeClass*>(pTechnoType)->C4
-						|| pFoot->HasAbility(AbilityType::C4)) && pFoot->GetCurrentMission() != Mission::Sabotage)
-					{
-						pFoot->QueueMission(Mission::Sabotage, true);
-
-						continue;
-					}
-
-					// Other cases
-					if (pFoot->WhatAmI() != AbstractType::Aircraft)
-					{
-						if (pFoot->Target != pFocus)
-							pFoot->SetTarget(pFocus);
-
-						if (pFoot->GetCurrentMission() != Mission::Attack
-							&& pFoot->GetCurrentMission() != Mission::Unload
-							&& pFoot->GetCurrentMission() != Mission::Selling)
-						{
-							pFoot->QueueMission(Mission::Attack, false);
-						}
-
-						continue;
-					}
-				}
-			}
-
-			if (bForceNextAction)
-			{
-				pTeamData->IdxSelectedObjectFromAIList = -1;
-				pTeam->StepCompleted = true;
-				//Debug::LogInfo("AI Scripts - Attack: [{}] [{}] (line: {} = {},{}) Jump to NEXT line: {} = {},{} (Naval is unable to target ground)",
-				//	pTeam->Type->ID,
-				//	pScript->Type->ID,
-				//	pScript->CurrentMission,
-				//	(int)curAct,
-				//	scriptArgument,
-				//	pScript->CurrentMission + 1,
-				//	(int)nextAct,
-				//	nextArg);
-
-				return;
-			}
+			AssignTargetToTeamMembers(pTeam, selectedTarget);
 		}
 		else
 		{
-			pTeam->ArchiveTarget = nullptr;
+			// No target found
+			if (HandleNoTargetFound(pTeam, cache.pTeamData)) return;
 		}
+	}
+	else
+	{
+		// Update existing target missions
+		if (UpdateAttackMissions(pTeam, cache)) return;
+	}
+}
+
+// Helper struct to cache frequently accessed data in GreatestThreat
+struct ThreatCalculationCache
+{
+	TechnoTypeClass* pTechnoType;
+	TechnoTypeExtData* pTypeExt;
+	bool leaderArmed;
+	int detectionValue;
+	HouseClass* pOwner;
+	int ownerIndex;
+
+	ThreatCalculationCache(TechnoClass* pTechno)
+	{
+		if (!pTechno)
+		{
+			// Initialize with safe defaults
+			pTechnoType = nullptr;
+			pTypeExt = nullptr;
+			leaderArmed = false;
+			pOwner = nullptr;
+			ownerIndex = -1;
+			detectionValue = 0;
+			return;
+		}
+
+		pTechnoType = pTechno->GetTechnoType();
+		pTypeExt = pTechnoType ? TechnoTypeExtContainer::Instance.Find(pTechnoType) : nullptr;
+		leaderArmed = pTechno->IsArmed();
+		pOwner = pTechno->Owner;
+		ownerIndex = pOwner ? pOwner->ArrayIndex : -1;
+
+		if (pOwner && pTypeExt)
+		{
+			auto const AIDifficulty = static_cast<int>(pOwner->GetAIDifficultyIndex());
+			auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExtData::Instance()->AIDetectDisguise_Percent)->at(AIDifficulty);
+			detectionValue = static_cast<int>(std::round(DisguiseDetectionValue * 100.0));
+		}
+		else
+		{
+			detectionValue = 0;
+		}
+	}
+};
+
+// Helper function to validate basic target requirements
+static bool IsValidTargetCandidate(TechnoClass* object, TechnoClass* pTechno, const ThreatCalculationCache& cache)
+{
+	if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno) return false;
+
+	if (object->Spawned) return false;
+
+	if (cache.pTechnoType && object->EstimatedHealth <= 0 && cache.pTechnoType->VHPScan == 2) return false;
+
+	auto objectType = object->GetTechnoType();
+	if (!objectType) return false;
+
+	auto pObjectTypeExt = TechnoTypeExtContainer::Instance.Find(objectType);
+
+	// Check AI legal target settings - only if cache data is valid
+	if (cache.pTypeExt && cache.pOwner && cache.pTypeExt->AI_LegalTarget.isset() && !cache.pOwner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Get())
+	{
+		return false;
+	}
+	else if (!objectType->LegalTarget)
+	{
+		return false;
+	}
+
+	auto missionControl = object->GetCurrentMissionControl();
+	if (missionControl && missionControl->NoThreat) return false;
+
+	return true;
+}
+
+// Helper function to check weapon capabilities
+static bool CheckWeaponCapabilities(TechnoClass* pTechno, TechnoClass* object, const ThreatCalculationCache& cache, bool agentMode, bool& unitWeaponsHaveAA, bool& unitWeaponsHaveAG)
+{
+	if (!cache.leaderArmed) return true;
+
+	auto weapon = pTechno->GetWeapon(pTechno->SelectWeapon(object));
+	if (!weapon) return false;
+
+	const auto weaponType = weapon->WeaponType;
+	if (!weaponType) return false;
+
+	if (weaponType->Projectile)
+	{
+		unitWeaponsHaveAA = weaponType->Projectile->AA;
+	}
+
+	if ((weaponType->Projectile) || agentMode)
+	{
+		unitWeaponsHaveAG = weaponType->Projectile ? weaponType->Projectile->AG : true;
+	}
+
+	if (!agentMode)
+	{
+		if (weaponType->Warhead)
+		{
+			if (GeneralUtils::GetWarheadVersusArmor(weaponType->Warhead, TechnoExtData::GetTechnoArmor(object, weaponType->Warhead)) == 0.0)
+			{
+				return false;
+			}
+		}
+
+		if (object->IsInAir() && !unitWeaponsHaveAA) return false;
+		if (!object->IsInAir() && !unitWeaponsHaveAG) return false;
+	}
+
+	// Check map zone
+	if (!TechnoExtData::AllowedTargetByZone(pTechno, object, cache.pTypeExt->TargetZoneScanType, weaponType))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+// Helper function to check stealth and special conditions
+static bool CheckStealthAndSpecialConditions(TechnoClass* pTechno, TechnoClass* object, const ThreatCalculationCache& cache, HouseClass* onlyTargetThisHouseEnemy)
+{
+	auto objectType = object->GetTechnoType();
+
+	// Naval targeting checks
+	if (objectType->Naval)
+	{
+		// Submarines aren't a valid target
+		if (object->CloakState == CloakState::Cloaked
+			&& objectType->Underwater
+			&& (cache.pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never
+				|| cache.pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
+		{
+			return false;
+		}
+
+		// Land not OK for the Naval unit
+		if (cache.pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
+			&& (object->GetCell()->LandType != LandType::Water))
+		{
+			return false;
+		}
+	}
+
+	// Stealth check
+	if (object->CloakState == CloakState::Cloaked)
+	{
+		if (!object->GetCell()->Sensors_InclHouse(cache.ownerIndex))
+		{
+			return false;
+		}
+	}
+
+	// Disguise detection
+	if (cache.pTechnoType->DetectDisguise && object->IsDisguised() && cache.detectionValue > 0)
+	{
+		if (ScenarioClass::Instance->Random.PercentChance(cache.detectionValue))
+		{
+			return false;
+		}
+	}
+
+	// House targeting restriction
+	if (onlyTargetThisHouseEnemy && object->Owner != onlyTargetThisHouseEnemy)
+	{
+		return false;
+	}
+
+	// Final validity checks
+	if (objectType->Immune || object->TemporalTargetingMe || object->BeingWarpedOut)
+	{
+		return false;
+	}
+
+	if (object->Owner == cache.pOwner)
+	{
+		return false;
+	}
+
+	if (cache.pOwner->IsAlliedWith(object) && !ScriptExtData::IsUnitMindControlledFriendly(cache.pOwner, object))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+// Helper function to calculate threat value
+static double CalculateThreatValue(TechnoClass* pTechno, TechnoClass* object, DistanceMode calcThreatMode, const ThreatCalculationCache& cache)
+{
+	double value = 0;
+
+	if (calcThreatMode == DistanceMode::idkZero || calcThreatMode == DistanceMode::idkOne)
+	{
+		// Threat affected by distance
+		double objectThreatValue = object->GetThreatValue();
+		auto objectType = object->GetTechnoType();
+
+		if (objectType->SpecialThreatValue > 0)
+		{
+			objectThreatValue += objectType->SpecialThreatValue * RulesClass::Instance->TargetSpecialThreatCoefficientDefault;
+		}
+
+		// Bonus threat if defender is targeting attacker
+		if (object->Owner->EnemyHouseIndex >= 0 && cache.pOwner == HouseClass::Array->Items[object->Owner->EnemyHouseIndex])
+		{
+			objectThreatValue += RulesClass::Instance->EnemyHouseThreatBonus;
+		}
+
+		// Extra threat based on current health (more damaged = higher priority)
+		objectThreatValue += object->Health * (1.0 - object->GetHealthPercentage());
+		value = (objectThreatValue * AttackMissionConstants::THREAT_MULTIPLIER) / ((pTechno->DistanceFrom(object) / AttackMissionConstants::DISTANCE_DIVISOR) + 1.0);
+
+		// VHP scan adjustments
+		if (cache.pTechnoType->VHPScan == 1)
+		{
+			if (object->EstimatedHealth <= 0)
+			{
+				value /= AttackMissionConstants::VHP_DAMAGE_DIVISOR;
+			}
+			else if (object->EstimatedHealth <= object->GetTechnoType()->Strength / 2)
+			{
+				value *= AttackMissionConstants::VHP_DAMAGE_MULTIPLIER;
+			}
+		}
+	}
+	else
+	{
+		// Simple distance-based selection
+		value = pTechno->DistanceFrom(object);
+	}
+
+	return value;
+}
+
+// Helper function to determine if target is better than current best
+static bool IsBetterTarget(double value, double bestVal, DistanceMode calcThreatMode)
+{
+	if (bestVal < 0) return true; // First valid target
+
+	switch (calcThreatMode)
+	{
+	case DistanceMode::idkZero:
+		return value > bestVal; // Higher threat value is better
+	case DistanceMode::idkOne:
+		return value < bestVal; // Lower threat value is better (inverted logic)
+	case DistanceMode::Closest:
+		return value < bestVal; // Lower distance is better (closer)
+	case DistanceMode::Furtherst:
+		return value > bestVal; // Higher distance is better (further)
+	default:
+		return value > bestVal;
 	}
 }
 
 TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false)
 {
+	if (!pTechno) return nullptr;
 
 	TechnoClass* bestObject = nullptr;
-	double bestVal = -1;
-	bool unitWeaponsHaveAA = false;
-	bool unitWeaponsHaveAG = false;
+	double bestVal = -1.0;
 
-	if (!pTechno)
-		return nullptr;
+	// Cache frequently accessed data
+	ThreatCalculationCache cache(pTechno);
 
-	const bool leaderArmed = pTechno->IsArmed();
-	auto pTechnoType = pTechno->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-	auto const AIDifficulty = static_cast<int>(pTechno->Owner->GetAIDifficultyIndex());
-	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExtData::Instance()->AIDetectDisguise_Percent)->at(AIDifficulty);
-	auto const detectionValue = (int)std::round(DisguiseDetectionValue * 100.0);
-
-	// Generic method for targeting
-	for (int i = 0; i < TechnoClass::Array->Count; i++)
+	// Iterate through all technos more efficiently
+	const int technoCount = TechnoClass::Array->Count;
+	for (int i = 0; i < technoCount; ++i)
 	{
 		auto object = TechnoClass::Array->Items[i];
-		if (!ScriptExtData::IsUnitAvailable(object, true) || object == pTechno || object->EstimatedHealth <= 0 && pTechnoType->VHPScan == 2)
-			continue;
 
-		if (object->Spawned)
-			continue;
+		// Quick validation checks
+		if (!IsValidTargetCandidate(object, pTechno, cache)) continue;
 
-		auto objectType = object->GetTechnoType();
-		auto pObjectTypeExt = TechnoTypeExtContainer::Instance.Find(objectType);
+		// Weapon capability checks
+		bool unitWeaponsHaveAA = false;
+		bool unitWeaponsHaveAG = false;
+		if (!CheckWeaponCapabilities(pTechno, object, cache, agentMode, unitWeaponsHaveAA, unitWeaponsHaveAG)) continue;
 
-		if (pTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Get()) {
-			continue;
-		}else if(!objectType->LegalTarget)
-			continue;
+		// Stealth and special condition checks
+		if (!CheckStealthAndSpecialConditions(pTechno, object, cache, onlyTargetThisHouseEnemy)) continue;
 
-		if (object->GetCurrentMissionControl()->NoThreat)
-			continue;
+		// Evaluate object with mask
+		if (!ScriptExtData::EvaluateObjectWithMask(object, method, attackAITargetType, idxAITargetTypeItem, pTechno)) continue;
 
-		// Note: the TEAM LEADER is picked for this task, be careful with leadership values in your mod
-		if(leaderArmed){
-			const auto weaponType = pTechno->GetWeapon(pTechno->SelectWeapon(object))->WeaponType;
+		// Calculate threat value
+		double value = CalculateThreatValue(pTechno, object, calcThreatMode, cache);
 
-			if (weaponType && weaponType->Projectile)
-				unitWeaponsHaveAA = weaponType->Projectile->AA;
-
-			if ((weaponType && weaponType->Projectile) || agentMode)
-				unitWeaponsHaveAG = weaponType->Projectile->AG;
-
-			if (!agentMode)
-			{
-				if (weaponType && weaponType->Warhead){
-					if(GeneralUtils::GetWarheadVersusArmor(
-						weaponType->Warhead,
-						TechnoExtData::GetTechnoArmor(object , weaponType->Warhead))
-						== 0.0
-					)
-						continue;
-					}
-
-				if (object->IsInAir() && !unitWeaponsHaveAA)
-					continue;
-
-				if (!object->IsInAir() && !unitWeaponsHaveAG)
-					continue;
-			}
-
-			// Check map zone
-			if (!TechnoExtData::AllowedTargetByZone(pTechno, object, pTypeExt->TargetZoneScanType, weaponType))
-				continue;
-		}
-
-		// Stealth ground unit check
-		if (objectType->Naval)
+		// Check if this is a better target
+		if (IsBetterTarget(value, bestVal, calcThreatMode))
 		{
-			// Submarines aren't a valid target
-			if (object->CloakState == CloakState::Cloaked
-				&& objectType->Underwater
-				&& (pTechnoType->NavalTargeting == NavalTargetingType::Underwater_never
-					|| pTechnoType->NavalTargeting == NavalTargetingType::Naval_none))
-			{
-				continue;
-			}
-
-			// Land not OK for the Naval unit
-			if (pTechnoType->LandTargeting == LandTargetingType::Land_not_okay
-				&& (object->GetCell()->LandType != LandType::Water))
-			{
-				continue;
-			}
-		}
-
-		// Stealth check.
-		if (object->CloakState == CloakState::Cloaked) {
-			if (!object->GetCell()->Sensors_InclHouse(pTechno->Owner->ArrayIndex))
-				continue;
-		}
-
-		if (pTechnoType->DetectDisguise && object->IsDisguised() && detectionValue > 0) {
-			if (ScenarioClass::Instance->Random.PercentChance(detectionValue))
-				continue;
-		}
-
-		// OnlyTargetHouseEnemy forces targets of a specific (hated) house
-		if (onlyTargetThisHouseEnemy && object->Owner != onlyTargetThisHouseEnemy)
-			continue;
-
-		if (!objectType->Immune
-			&& !object->TemporalTargetingMe
-			&& !object->BeingWarpedOut
-			&& object->Owner != pTechno->Owner
-			&& (!pTechno->Owner->IsAlliedWith(object) || ScriptExtData::IsUnitMindControlledFriendly(pTechno->Owner, object)))
-		{
-			double value = 0;
-
-			if (ScriptExtData::EvaluateObjectWithMask(object, method, attackAITargetType, idxAITargetTypeItem, pTechno))
-			{
-				//CellStruct newCell;
-				//newCell.X = (short)object->Location.X;
-				//newCell.Y = (short)object->Location.Y;
-
-				bool isGoodTarget = false;
-
-				if (calcThreatMode == DistanceMode::idkZero || calcThreatMode == DistanceMode::idkOne)
-				{
-					// Threat affected by distance
-					double threatMultiplier = 128.0;
-					double objectThreatValue = object->GetThreatValue();
-
-					if (objectType->SpecialThreatValue > 0)
-					{
-						double const& TargetSpecialThreatCoefficientDefault = RulesClass::Instance->TargetSpecialThreatCoefficientDefault;
-						objectThreatValue += objectType->SpecialThreatValue * TargetSpecialThreatCoefficientDefault;
-					}
-
-					// Is Defender house targeting Attacker House? if "yes" then more Threat
-					if (object->Owner->EnemyHouseIndex >= 0 && pTechno->Owner == HouseClass::Array->Items[object->Owner->EnemyHouseIndex])
-					{
-						double const& EnemyHouseThreatBonus = RulesClass::Instance->EnemyHouseThreatBonus;
-						objectThreatValue += EnemyHouseThreatBonus;
-					}
-
-					// Extra threat based on current health. More damaged == More threat (almost destroyed objects gets more priority)
-					objectThreatValue += object->Health * (1 - object->GetHealthPercentage());
-					value = (objectThreatValue * threatMultiplier) / ((pTechno->DistanceFrom(object) / 256.0) + 1.0);
-
-					if (pTechnoType->VHPScan == 1) {
-						if (object->EstimatedHealth <= 0)
-							value /= 2;
-						else if (object->EstimatedHealth <= objectType->Strength / 2)
-							value *= 2;
-					}
-
-					if (calcThreatMode == DistanceMode::idkZero)
-					{
-						// Is this object very FAR? then LESS THREAT against pTechno.
-						// More CLOSER? MORE THREAT for pTechno.
-						if (value > bestVal || bestVal < 0)
-							isGoodTarget = true;
-					}
-					else
-					{
-						// Is this object very FAR? then MORE THREAT against pTechno.
-						// More CLOSER? LESS THREAT for pTechno.
-						if (value < bestVal || bestVal < 0)
-							isGoodTarget = true;
-					}
-				}
-				else
-				{
-					// Selection affected by distance
-					if (calcThreatMode == DistanceMode::Closest)
-					{
-						// Is this object very FAR? then LESS THREAT against pTechno.
-						// More CLOSER? MORE THREAT for pTechno.
-						value = pTechno->DistanceFrom(object); // Note: distance is in leptons (*256)
-
-						if (value < bestVal || bestVal < 0)
-							isGoodTarget = true;
-					}
-					else
-					{
-						if (calcThreatMode == DistanceMode::Furtherst)
-						{
-							// Is this object very FAR? then MORE THREAT against pTechno.
-							// More CLOSER? LESS THREAT for pTechno.
-							value = pTechno->DistanceFrom(object); // Note: distance is in leptons (*256)
-
-							if (value > bestVal || bestVal < 0)
-								isGoodTarget = true;
-						}
-					}
-				}
-
-				if (isGoodTarget)
-				{
-					bestObject = object;
-					bestVal = value;
-				}
-			}
+			bestObject = object;
+			bestVal = value;
 		}
 	}
 
 	return bestObject;
 }
 
+// Helper struct to cache evaluation data
+struct EvaluationCache
+{
+	TechnoTypeClass* pTechnoType;
+	TechnoTypeExtData* pTargetTypeExt;
+	AbstractType whatTech;
+	bool isBuilding;
+	bool buildingIsConsideredVehicle;
+	bool isNeutral;
+
+	EvaluationCache(TechnoClass* pTechno)
+	{
+		if (!pTechno)
+		{
+			pTechnoType = nullptr;
+			pTargetTypeExt = nullptr;
+			whatTech = AbstractType::None;
+			isBuilding = false;
+			buildingIsConsideredVehicle = false;
+			isNeutral = true;
+			return;
+		}
+
+		pTechnoType = pTechno->GetTechnoType();
+		pTargetTypeExt = pTechnoType ? TechnoTypeExtContainer::Instance.Find(pTechnoType) : nullptr;
+		whatTech = pTechno->WhatAmI();
+		isBuilding = (whatTech == AbstractType::Building);
+		buildingIsConsideredVehicle = false;
+		isNeutral = pTechno->Owner ? pTechno->Owner->IsNeutral() : true;
+
+		if (isBuilding)
+		{
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			buildingIsConsideredVehicle = pBuilding->Type ? pBuilding->Type->IsUndeployable() : false;
+		}
+	}
+};
+
 bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int attackAITargetType = -1, int idxAITargetTypeItem = -1, TechnoClass* pTeamLeader = nullptr)
 {
-
-	if (!ScriptExtData::IsUnitAvailable(pTechno , false) || !ScriptExtData::IsUnitAvailable(pTeamLeader, false))
-		return false;
-
-	//if (pTechno->Spawned)
-	//	return false;
-
-	TechnoTypeClass* pTechnoType = pTechno->GetTechnoType();
-	auto const pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-	bool buildingIsConsideredVehicle = false;
-
-	if (pTargetTypeExt->IsDummy)
-		return false;
-
-	bool IsBuilding = false;
-	if (const auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
+	if (!ScriptExtData::IsUnitAvailable(pTechno, false) || !ScriptExtData::IsUnitAvailable(pTeamLeader, false))
 	{
-		IsBuilding = true;
-
-		if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
-			return false;
-
-		buildingIsConsideredVehicle = pBuilding->Type->IsUndeployable();
+		return false;
 	}
 
-	const auto whatTech = pTechno->WhatAmI();
-	UnitTypeClass* pTypeUnit = whatTech == AbstractType::Unit ? static_cast<UnitTypeClass*>(pTechnoType) : nullptr;
+	// Cache evaluation data
+	EvaluationCache cache(pTechno);
+
+	if (!cache.pTargetTypeExt || cache.pTargetTypeExt->IsDummy)
+	{
+		return false;
+	}
+
+	// Check building limbo state
+	if (cache.isBuilding)
+	{
+		const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+		if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
+		{
+			return false;
+		}
+	}
 
 	// Special case: validate target if is part of a technos list in [AITargetTypes] section
 	const auto& nAITargetTypes = RulesExtData::Instance()->AITargetTypesLists;
-	if ((size_t)attackAITargetType < nAITargetTypes.size()) {
+	if ((size_t)attackAITargetType < nAITargetTypes.size())
+	{
 		const auto nVec = make_iterator(nAITargetTypes[attackAITargetType]);
-		return nVec.contains(pTechnoType);
+		return nVec.contains(cache.pTechnoType);
 	}
 
-	// mask shoud be replaced with proper enum class
-	// it is more readable
+	// Mask evaluation - TODO: Replace with proper enum class for better readability
 	switch (mask)
 	{
-	case 1:
-	{
-		// Anything ;-)
-		return !pTechno->Owner->IsNeutral();
-	}
-	case 2:
-		// Building
-	{
-		if (!pTechno->Owner->IsNeutral())
+	case 1: // Anything
+		return !cache.isNeutral;
+
+	case 2: // Building
+		if (cache.isNeutral) return false;
+		if (!cache.isBuilding) return false;
+
+		if (!cache.buildingIsConsideredVehicle) return true;
+
+		// Special building types that are not considered regular buildings
+		if (const auto pBuilding = static_cast<BuildingClass*>(pTechno))
 		{
-			if (!buildingIsConsideredVehicle)
-				return true;
+			const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+			return !(pBuilding->Type->Artillary
+				|| pBuilding->Type->TickTank
+				|| pBuilding->Type->ICBMLauncher
+				|| pBuilding->Type->SensorArray
+				|| pBldExt->IsJuggernaut);
+		}
+		return false;
+	case 3: // Harvester
+		if (cache.isNeutral) return false;
 
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
-			{
-				const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
-
-				return !(pBld->Type->Artillary
-					|| pBld->Type->TickTank
-					|| pBld->Type->ICBMLauncher
-					|| pBld->Type->SensorArray
-					|| pBldExt->IsJuggernaut);
-			}
+		switch (cache.whatTech)
+		{
+		case AbstractType::Unit:
+		{
+			const auto pType = static_cast<const UnitClass*>(pTechno)->Type;
+			return pType->Harvester || pType->Weeder;
+		}
+		case AbstractType::Building:
+		{
+			const auto pBuilding = static_cast<const BuildingClass*>(pTechno);
+			return pBuilding->SlaveManager && cache.pTechnoType->ResourceGatherer && pBuilding->Type->Enslaves;
+		}
+		case AbstractType::Infantry:
+		{
+			const auto pInfantry = static_cast<const InfantryClass*>(pTechno);
+			return pInfantry->Type->Slaved && pInfantry->SlaveOwner && cache.pTechnoType->ResourceGatherer;
+		}
+		default:
+			return false;
 		}
 
-		return false;
-	}
-	case 3:
-	{
-		// Harvester
-		if (!pTechno->Owner->IsNeutral())
-		{
-			switch (whatTech)
-			{
-			case UnitClass::AbsID:
-			{
-				const auto pType = static_cast<const UnitClass*>(pTechno)->Type;
-				return pType->Harvester || pType->Weeder;
-			}
-			case BuildingClass::AbsID:
-			{
-				const auto pBldHere = static_cast<const BuildingClass*>(pTechno);
-				return pBldHere->SlaveManager && pTechnoType->ResourceGatherer && pBldHere->Type->Enslaves;
-			}
-			case InfantryClass::AbsID:
-			{
-				const auto pInfHere = static_cast<const InfantryClass*>(pTechno);
-				return pInfHere->Type->Slaved && pInfHere->SlaveOwner && pTechnoType->ResourceGatherer;
-			}
-			}
-		}
+	case 4: // Infantry
+		return !cache.isNeutral && cache.whatTech == AbstractType::Infantry;
 
-		return false;
-	}
-	case 4:
-	{
-		// Infantry
-		return !pTechno->Owner->IsNeutral() && whatTech == InfantryClass::AbsID;
-	}
-	case 5:
-	{
-		// Vehicle, Aircraft, Deployed vehicle into structure
-		if (!pTechno->Owner->IsNeutral())
-		{
-			if (buildingIsConsideredVehicle)
-				return true;
+	case 5: // Vehicle, Aircraft, Deployed vehicle into structure
+		if (cache.isNeutral) return false;
 
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
-			{
-				const auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
-				return (pBld->Type->Artillary
-				|| pBld->Type->TickTank
-				|| pBld->Type->ICBMLauncher
-				|| pBld->Type->SensorArray
+		if (cache.buildingIsConsideredVehicle) return true;
+
+		if (cache.isBuilding)
+		{
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			const auto pExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+			return (pBuilding->Type->Artillary
+				|| pBuilding->Type->TickTank
+				|| pBuilding->Type->ICBMLauncher
+				|| pBuilding->Type->SensorArray
 				|| pExt->IsJuggernaut);
-			}
-
-			return (whatTech == AircraftClass::AbsID || whatTech == UnitClass::AbsID);
 		}
-		return false;
-	}
-	case 6:
-		// Factory
-	{
-		if (!pTechno->Owner->IsNeutral())
-		{
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
-				return pBld->Type->Factory != AbstractType::None;
-		}
-		return false;
-	}
-	case 7:
-	{
-		// Defense
-		if (!pTechno->Owner->IsNeutral())
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
-				return pBld->Type->IsBaseDefense;
 
-		return false;
-	}
-	case 8:
-	{	// House threats
-		if (pTeamLeader && !pTechno->Owner->IsNeutral())
+		return (cache.whatTech == AbstractType::Aircraft || cache.whatTech == AbstractType::Unit);
+	case 6: // Factory
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		return static_cast<BuildingClass*>(pTechno)->Type->Factory != AbstractType::None;
+	case 7: // Defense
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		return static_cast<BuildingClass*>(pTechno)->Type->IsBaseDefense;
+	case 8: // House threats
+		if (pTeamLeader && !cache.isNeutral)
 		{
-
 			if (auto pTarget = flag_cast_to<TechnoClass*>(pTechno->Target))
 			{
 				// The possible Target is aiming against me? Revenge!
 				if (pTarget != pTeamLeader)
 					return pTarget->Target == pTeamLeader
-					|| pTarget->Owner && HouseClass::Array->Items[pTarget->Owner->EnemyHouseIndex] == pTeamLeader->Owner;
+					|| (pTarget->Owner && pTarget->Owner->EnemyHouseIndex >= 0
+						&& pTarget->Owner->EnemyHouseIndex < HouseClass::Array->Count
+						&& HouseClass::Array->Items[pTarget->Owner->EnemyHouseIndex] == pTeamLeader->Owner);
 			}
 
 			auto const curtargetiter = make_iterator(pTechno->CurrentTargets);
 			if (!curtargetiter.empty())
 			{
 				return std::any_of(curtargetiter.begin(), curtargetiter.end(),
-				[pTeamLeader](AbstractClass* pTarget) {
-				const auto pTech = flag_cast_to<TechnoClass*>(pTarget);
-				 return ScriptExtData::IsUnitAvailable(pTech , true) && pTech->GetOwningHouse() == pTeamLeader->Owner;
+				[pTeamLeader](AbstractClass* pTarget)
+ {
+	 const auto pTech = flag_cast_to<TechnoClass*>(pTarget);
+	 return ScriptExtData::IsUnitAvailable(pTech, true) && pTech->GetOwningHouse() == pTeamLeader->Owner;
 				});
 			}
 
 			// Then check if this possible target is too near of the Team Leader
-			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / 256.0;
+			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / AttackMissionConstants::DISTANCE_DIVISOR;
 			const auto pWeaponPrimary = TechnoExtData::GetCurrentWeapon(pTechno);
-			const auto pWeaponSecondary = TechnoExtData::GetCurrentWeapon(pTechno , true);
-			const bool primaryCheck = pWeaponPrimary && distanceToTarget <= (WeaponTypeExtData::GetRangeWithModifiers(pWeaponPrimary, pTechno) / 256.0 * 4.0);
-			const bool secondaryCheck = pWeaponSecondary && distanceToTarget <= (WeaponTypeExtData::GetRangeWithModifiers(pWeaponSecondary, pTechno) / 256.0 * 4.0);
-			const bool guardRangeCheck = pTeamLeader->GetTechnoType()->GuardRange > 0 && distanceToTarget <= (pTeamLeader->GetTechnoType()->GuardRange / 256.0 * 2.0);
+			const auto pWeaponSecondary = TechnoExtData::GetCurrentWeapon(pTechno, true);
+			const bool primaryCheck = pWeaponPrimary && distanceToTarget <= (WeaponTypeExtData::GetRangeWithModifiers(pWeaponPrimary, pTechno) / AttackMissionConstants::DISTANCE_DIVISOR * AttackMissionConstants::WEAPON_RANGE_MULTIPLIER);
+			const bool secondaryCheck = pWeaponSecondary && distanceToTarget <= (WeaponTypeExtData::GetRangeWithModifiers(pWeaponSecondary, pTechno) / AttackMissionConstants::DISTANCE_DIVISOR * AttackMissionConstants::WEAPON_RANGE_MULTIPLIER);
+			const bool guardRangeCheck = pTeamLeader->GetTechnoType()->GuardRange > 0 && distanceToTarget <= (pTeamLeader->GetTechnoType()->GuardRange / AttackMissionConstants::DISTANCE_DIVISOR * AttackMissionConstants::GUARD_RANGE_MULTIPLIER);
 
 			return primaryCheck
 				|| secondaryCheck
@@ -838,34 +987,21 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		}
 
 		return false;
-	}
-	case 9:
-	{
-		// Power Plant
-		if (!pTechno->Owner->IsNeutral())
+
+	case 9: // Power Plant
+		if (cache.isNeutral || !cache.isBuilding) return false;
 		{
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			for (const auto type : pBuilding->GetTypes())
 			{
-				for (const auto type : pBld->GetTypes())
-				{
-					if (type)
-						return type->PowerBonus > 0;
-				}
+				if (type && type->PowerBonus > 0)
+					return true;
 			}
 		}
-
 		return false;
-	}
-	case 10:
-	{
-		// Occupied Building
-		if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
-		{
-			return (pBld->Occupants.Count > 0);
-		}
-
-		return false;
-	}
+	case 10: // Occupied Building
+		if (!cache.isBuilding) return false;
+		return static_cast<BuildingClass*>(pTechno)->Occupants.Count > 0;
 	case 11:
 	{
 		// Civilian Tech
@@ -885,32 +1021,29 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		}
 		return false;
 	}
-	case 12:
-	{
-		// Refinery
-		if (!pTechno->Owner->IsNeutral())
+	case 12: // Refinery
+		if (cache.isNeutral) return false;
 		{
-			if (auto pUnit = cast_to<UnitClass*, false>(pTechno))
+			if (cache.whatTech == AbstractType::Unit)
 			{
+				const auto pUnit = static_cast<UnitClass*>(pTechno);
 				return !(pUnit->Type->Harvester || pUnit->Type->Weeder)
 					&& pUnit->Type->ResourceGatherer
-					&& pUnit->Type->DeploysInto
-					;
+					&& pUnit->Type->DeploysInto;
 			}
 
-			if (auto pBuilding = cast_to<BuildingClass*, false>(pTechno))
+			if (cache.isBuilding)
 			{
+				const auto pBuilding = static_cast<BuildingClass*>(pTechno);
 				return pBuilding->Type->ResourceGatherer
 					|| (pBuilding->Type->Refinery || (pBuilding->SlaveManager && pBuilding->Type->Enslaves));
 			}
 
+			return false;
 		}
 
-		return false;
-	}
-	case 13:
-	{
-		if (!pTechno->Owner->IsNeutral())
+	case 13: // Mind Control Capable
+		if (cache.isNeutral) return false;
 		{
 			auto const& [WeaponType1, WeaponType2] = ScriptExtData::GetWeapon(pTechno);
 
@@ -918,409 +1051,281 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			if (WeaponType1 && WeaponType1->Warhead)
 			{
 				auto pWHExt = WarheadTypeExtContainer::Instance.Find(WeaponType1->Warhead);
-				CanMC = pWHExt && pWHExt->PermaMC.Get() || WeaponType1->Warhead->MindControl;
+				CanMC = (pWHExt && pWHExt->PermaMC.Get()) || WeaponType1->Warhead->MindControl;
 			}
 
 			if (!CanMC && WeaponType2 && WeaponType2->Warhead)
 			{
 				auto pWHExt = WarheadTypeExtContainer::Instance.Find(WeaponType2->Warhead);
-				CanMC = pWHExt && pWHExt->PermaMC.Get() || WeaponType2->Warhead->MindControl;
+				CanMC = (pWHExt && pWHExt->PermaMC.Get()) || WeaponType2->Warhead->MindControl;
 			}
 
 			return CanMC;
 		}
-
-		return false;
-	}
-	case 14:
-	{
-		// Aircraft and Air Unit
-		return (!pTechno->Owner->IsNeutral()
-			&& (whatTech == AircraftClass::AbsID
-				|| pTechnoType->JumpJet
-				|| pTechnoType->BalloonHover
+	case 14: // Aircraft and Air Unit
+		return (!cache.isNeutral
+			&& (cache.whatTech == AbstractType::Aircraft
+				|| (cache.pTechnoType && cache.pTechnoType->JumpJet)
+				|| (cache.pTechnoType && cache.pTechnoType->BalloonHover)
 				|| pTechno->IsInAir()));
-	}
-	case 15:
-	{
-		// Naval Unit & Structure
-		return (!pTechno->Owner->IsNeutral()
-			&& (pTechnoType->Naval
-				|| (pTechno->GetCell()->LandType == LandType::Water)));
-	}
-	case 16:
-	{
-		// Cloak Generator, Gap Generator, Radar Jammer or Inhibitor
-		if (!pTechno->Owner->IsNeutral())
-		{
-			const auto pTypeBuilding = type_cast<BuildingTypeClass*>(pTechnoType);
-			const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
-			return ((pTechnoTypeExt
-				&& (pTechnoTypeExt->RadarJamRadius > 0
-					|| pTechnoTypeExt->InhibitorRange.isset()))
-					|| (pTypeBuilding && (pTypeBuilding->GapGenerator
-						|| pTypeBuilding->CloakGenerator)));
-		}
-		return false;
-	}
-	case 17:
-	{
-		// Ground Vehicle
-		return !pTechno->Owner->IsNeutral()
-			&& ((pTypeUnit || buildingIsConsideredVehicle) && !pTechno->IsInAir() && !pTechnoType->Naval);
-	}
-	case 18:
-	{
-		// Economy: Harvester, Refinery or Resource helper
-		if (!pTechno->Owner->IsNeutral())
+	case 15: // Naval Unit & Structure
+		return (!cache.isNeutral
+			&& ((cache.pTechnoType && cache.pTechnoType->Naval)
+				|| (pTechno->GetCell()->LandType == LandType::Water)));
+	case 16: // Cloak Generator, Gap Generator, Radar Jammer or Inhibitor
+		if (cache.isNeutral) return false;
 		{
-			if (auto pUnitT = type_cast<UnitTypeClass*>(pTechnoType))
+			const auto pTypeBuilding = type_cast<BuildingTypeClass*>(cache.pTechnoType);
+
+			return ((cache.pTargetTypeExt
+				&& (cache.pTargetTypeExt->RadarJamRadius > 0
+					|| cache.pTargetTypeExt->InhibitorRange.isset()))
+		|| (pTypeBuilding && (pTypeBuilding->GapGenerator
+			|| pTypeBuilding->CloakGenerator)));
+		}
+	case 17: // Ground Vehicle
+		return !cache.isNeutral
+			&& ((cache.whatTech == AbstractType::Unit || cache.buildingIsConsideredVehicle) && !pTechno->IsInAir() && !(cache.pTechnoType && cache.pTechnoType->Naval));
+	case 18: // Economy: Harvester, Refinery or Resource helper
+		if (cache.isNeutral) return false;
+		{
+			if (auto pUnitT = type_cast<UnitTypeClass*>(cache.pTechnoType))
 				return pUnitT->Harvester || pUnitT->ResourceGatherer;
 
-			if (auto pInfT = type_cast<InfantryTypeClass*>(pTechnoType))
+			if (auto pInfT = type_cast<InfantryTypeClass*>(cache.pTechnoType))
 				return pInfT->ResourceGatherer && (pInfT->Slaved && pTechno->SlaveOwner);
 
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
+			if (cache.isBuilding)
 			{
-				for (auto const type : pBld->GetTypes())
+				const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+				for (auto const type : pBuilding->GetTypes())
 				{
 					if (type && (type->ProduceCashAmount > 0 || type->OrePurifier))
 						return true;
 				}
 
-				return  pBld->Type->Refinery || pBld->Type->ResourceGatherer
-					|| (pTechno->SlaveManager && pBld->Type->Enslaves)
-					;
+				return pBuilding->Type->Refinery || pBuilding->Type->ResourceGatherer
+					|| (pTechno->SlaveManager && pBuilding->Type->Enslaves);
 			}
+
+			return false;
+		}
+	case 19: // Infantry Factory
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		{
+			auto pBuildingType = type_cast<BuildingTypeClass*>(cache.pTechnoType);
+			return pBuildingType && pBuildingType->Factory == AbstractType::InfantryType;
+		}
+	case 20: // Land Vehicle Factory
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		{
+			auto pBuildingType = type_cast<BuildingTypeClass*>(cache.pTechnoType);
+			return pBuildingType
+				&& pBuildingType->Factory == AbstractType::UnitType
+				&& !pBuildingType->Naval;
 		}
 
-		return false;
-	}
-	case 19:
-	{
-		auto pBuildingType = type_cast<BuildingTypeClass*>(pTechnoType);
-		// Infantry Factory
-		return (!pTechno->Owner->IsNeutral()
-			&& pBuildingType
-			&& pBuildingType->Factory == AbstractType::InfantryType);
-	}
-	case 20:
-	{
-		auto pBuildingType = type_cast<BuildingTypeClass*>(pTechnoType);
-
-		// Land Vehicle Factory
-		return (!pTechno->Owner->IsNeutral()
-			&& pBuildingType
-			&& pBuildingType->Factory == AbstractType::UnitType
-			&& !pBuildingType->Naval);
-	}
-	case 21:
-	{
-		auto pBuildingType = type_cast<BuildingTypeClass*>(pTechnoType);
-
-		// is Aircraft Factory
-		return (!pTechno->Owner->IsNeutral()
-			&& (pBuildingType
+	case 21: // Aircraft Factory
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		{
+			auto pBuildingType = type_cast<BuildingTypeClass*>(cache.pTechnoType);
+			return pBuildingType
 				&& (pBuildingType->Factory == AbstractType::AircraftType
-					|| pBuildingType->Helipad)));
-	}
-	case 22:
-	{
-		// Radar & SpySat
-		if (!pTechno->Owner->IsNeutral())
-		{
-			if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
-			{
-				if(pBld->Type->Radar)
-					return true;
-
-				for (auto const type : pBld->GetTypes()) {
-					if (type && type->SpySat)
-						return true;
-				}
-			}
+					|| pBuildingType->Helipad);
 		}
-
-		return false;
-	}
-	case 23:
-	{
-		// Buildable Tech
-		if (!pTechno->Owner->IsNeutral()
-			&& IsBuilding)
-		{
-			return (RulesClass::Instance->BuildTech.Count > 0 && RulesClass::Instance->BuildTech.Contains(static_cast<BuildingTypeClass*>(pTechnoType)));
-		}
-
-		return false;
-	}
-	case 24:
-	{
-		if (!IsBuilding)
-			return false;
-
-		auto pBuildingType = static_cast<BuildingTypeClass*>(pTechnoType);
-
-		// Naval Factory
-		return (!pTechno->Owner->IsNeutral()
-			&& pBuildingType
-			&& pBuildingType->Factory == AbstractType::UnitType
-			&& pBuildingType->Naval);
-	}
-	case 25:
-	{
-		if (!IsBuilding)
-			return false;
-
-		// Super Weapon building
-		bool IsOK = false;
-		if (!pTechno->Owner->IsNeutral())
-		{
-			const auto pBld = static_cast<BuildingClass*>(pTechno);
-
-			{
-				for (auto type : pBld->GetTypes())
-				{
-					if (!type)
-						continue;
-
-					if (auto typeExt = BuildingTypeExtContainer::Instance.Find(const_cast<BuildingTypeClass*>(type)))
-					{
-						if (typeExt->GetSuperWeaponCount() > 0)
-							return true;
-					}
-				}
-			}
-		}
-
-		return IsOK;
-	}
-	case 26:
-	{
-		// Construction Yard
-		if (!pTechno->Owner->IsNeutral())
-		{
-			if (auto pTypeBuilding = type_cast<BuildingTypeClass*>(pTechnoType))
-			{
-				if (const auto pFake = TechnoTypeExtContainer::Instance.Find(pTypeBuilding)->Fake_Of) {
-					return ((BuildingTypeClass*)pFake.Get())->Factory == AbstractType::BuildingType && ((BuildingTypeClass*)pFake.Get())->ConstructionYard;
-				}
-
-				return (pTypeBuilding && pTypeBuilding->Factory == AbstractType::BuildingType && pTypeBuilding->ConstructionYard);
-			}
-		}
-
-		if (whatTech == UnitClass::AbsID)
-		{
-			return (RulesClass::Instance->BaseUnit.Count > 0 && RulesClass::Instance->BaseUnit.Contains(static_cast<UnitTypeClass*>(pTechnoType)));
-		}
-
-		return false;
-	}
-	case 27:
-	{
-		// Any Neutral object
-		return pTechno->Owner->IsNeutral();
-	}
-	case 28:
-	{
-		if (!IsBuilding)
-			return false;
-
-		// Cloak Generator & Gap Generator
-		if (!pTechno->Owner->IsNeutral())
+	case 22: // Radar & SpySat
+		if (cache.isNeutral || !cache.isBuilding) return false;
 		{
 			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			if (pBuilding->Type->Radar)
+				return true;
 
+			for (auto const type : pBuilding->GetTypes())
 			{
-				for (const auto pBldTypeHere : pBuilding->GetTypes())
+				if (type && type->SpySat)
+					return true;
+			}
+		}
+		return false;
+
+	case 23: // Buildable Tech
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		return (RulesClass::Instance->BuildTech.Count > 0 && RulesClass::Instance->BuildTech.Contains(static_cast<BuildingTypeClass*>(cache.pTechnoType)));
+	case 24: // Naval Factory
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		{
+			auto pBuildingType = static_cast<BuildingTypeClass*>(cache.pTechnoType);
+			return pBuildingType
+				&& pBuildingType->Factory == AbstractType::UnitType
+				&& pBuildingType->Naval;
+		}
+
+	case 25: // Super Weapon building
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		{
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			for (auto type : pBuilding->GetTypes())
+			{
+				if (!type) continue;
+
+				if (auto typeExt = BuildingTypeExtContainer::Instance.Find(const_cast<BuildingTypeClass*>(type)))
 				{
-					if (pBldTypeHere && (pBuilding->Type->GapGenerator || pBuilding->Type->CloakGenerator))
+					if (typeExt->GetSuperWeaponCount() > 0)
 						return true;
 				}
 			}
 		}
-
 		return false;
-	}
-	case 29:
-	{
-		// Radar Jammer
-		const auto pTypeTechnoExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-
-		return (!pTechno->Owner->IsNeutral() &&
-			(pTypeTechnoExt && (pTypeTechnoExt->RadarJamRadius > 0)));
-	}
-	case 30:
-	{
-		// Inhibitor
-		const auto pTypeTechnoExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
-
-		return (!pTechno->Owner->IsNeutral()
-			&& (pTypeTechnoExt
-				&& pTypeTechnoExt->InhibitorRange.isset()));
-	}
-	case 31:
-	{
-		// Naval Unit
-		return (!pTechno->Owner->IsNeutral()
-			&& whatTech == UnitClass::AbsID
-			&& (pTechnoType->Naval
-				|| pTechno->GetCell()->LandType == LandType::Water));
-	}
-	case 32:
-	{
-		// Any non-building unit
-		if (!pTechno->Owner->IsNeutral())
+	case 26: // Construction Yard
+		if (cache.isNeutral) return false;
 		{
-			if (auto pUnit = cast_to<UnitClass*, false>(pTechno))
+			if (cache.isBuilding)
 			{
+				auto pTypeBuilding = type_cast<BuildingTypeClass*>(cache.pTechnoType);
+				if (pTypeBuilding)
+				{
+					if (cache.pTargetTypeExt)
+					{
+						const auto pFake = cache.pTargetTypeExt->Fake_Of;
+						if (pFake)
+						{
+							return ((BuildingTypeClass*)pFake.Get())->Factory == AbstractType::BuildingType && ((BuildingTypeClass*)pFake.Get())->ConstructionYard;
+						}
+					}
+					return pTypeBuilding->Factory == AbstractType::BuildingType && pTypeBuilding->ConstructionYard;
+				}
+			}
+
+			if (cache.whatTech == AbstractType::Unit)
+			{
+				return (RulesClass::Instance->BaseUnit.Count > 0 && RulesClass::Instance->BaseUnit.Contains(static_cast<UnitTypeClass*>(cache.pTechnoType)));
+			}
+
+			return false;
+		}
+
+	case 27: // Any Neutral object
+		return cache.isNeutral;
+	case 28: // Cloak Generator & Gap Generator
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		{
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			for (const auto pBldTypeHere : pBuilding->GetTypes())
+			{
+				if (pBldTypeHere && (pBuilding->Type->GapGenerator || pBuilding->Type->CloakGenerator))
+					return true;
+			}
+		}
+		return false;
+
+	case 29: // Radar Jammer
+		if (cache.isNeutral) return false;
+		return cache.pTargetTypeExt && (cache.pTargetTypeExt->RadarJamRadius > 0);
+
+	case 30: // Inhibitor
+		if (cache.isNeutral) return false;
+		return cache.pTargetTypeExt && cache.pTargetTypeExt->InhibitorRange.isset();
+
+	case 31: // Naval Unit
+		if (cache.isNeutral) return false;
+		return cache.whatTech == AbstractType::Unit
+			&& (cache.pTechnoType->Naval || pTechno->GetCell()->LandType == LandType::Water);
+	case 32: // Any non-building unit
+		if (cache.isNeutral) return false;
+		{
+			if (cache.whatTech == AbstractType::Unit)
+			{
+				const auto pUnit = static_cast<UnitClass*>(pTechno);
 				return !pUnit->Type->DeploysInto;
 			}
 
-			if (buildingIsConsideredVehicle)
+			if (cache.buildingIsConsideredVehicle)
 				return true;
 
-			if (auto pTypeBuilding = type_cast<BuildingTypeClass*>(pTechnoType))
+			if (cache.isBuilding)
 			{
-				const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pTypeBuilding);
-				return (pTypeBuilding->Artillary
-					|| pTypeBuilding->TickTank
-					|| pBuildingExt->IsJuggernaut
-					|| pTypeBuilding->ICBMLauncher
-					|| pTypeBuilding->SensorArray
-					|| pTypeBuilding->ResourceGatherer);
+				auto pTypeBuilding = type_cast<BuildingTypeClass*>(cache.pTechnoType);
+				if (pTypeBuilding)
+				{
+					const auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pTypeBuilding);
+					return (pTypeBuilding->Artillary
+						|| pTypeBuilding->TickTank
+						|| pBuildingExt->IsJuggernaut
+						|| pTypeBuilding->ICBMLauncher
+						|| pTypeBuilding->SensorArray
+						|| pTypeBuilding->ResourceGatherer);
+				}
 			}
+
+			return false;
 		}
 
-		return false;
-	}
-	case 33:
-	{
-		if (!IsBuilding)
-			return false;
-
-		const auto pBuilding = static_cast<BuildingClass*>(pTechno);
-		const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-		// Capturable Structure or Repair Hut
-		return pBldExt->EngineerRepairable.Get(pBuilding->Type->Capturable)
-			|| (pBuilding->Type->BridgeRepairHut && pBuilding->Type->Repairable)
-			;
-	}
-	case 34:
-	{
-		if (!pTeamLeader)
-			return false;
-
-		if (!pTechno->Owner->IsNeutral())
+	case 33: // Capturable Structure or Repair Hut
+		if (!cache.isBuilding) return false;
 		{
-			// Inside the Area Guard of the Team Leader
-			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / 256.0; // Caution, DistanceFrom() return leptons
-			const auto pLEaderType = pTeamLeader->GetTechnoType();
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			const auto pBldExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+			return pBldExt->EngineerRepairable.Get(pBuilding->Type->Capturable)
+				|| (pBuilding->Type->BridgeRepairHut && pBuilding->Type->Repairable);
+		}
+	case 34: // Inside the Area Guard of the Team Leader
+		if (!pTeamLeader || cache.isNeutral) return false;
+		{
+			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / AttackMissionConstants::DISTANCE_DIVISOR;
+			const auto pLeaderType = pTeamLeader->GetTechnoType();
 
-			return (pLEaderType->GuardRange > 0
-					&& distanceToTarget <= ((pLEaderType->GuardRange / 256.0) * 2.0));
+			return (pLeaderType->GuardRange > 0
+				&& distanceToTarget <= ((pLeaderType->GuardRange / AttackMissionConstants::DISTANCE_DIVISOR) * AttackMissionConstants::GUARD_RANGE_MULTIPLIER));
 		}
 
-		return false;
-	}
-	case 35:
-	{
-		if (!IsBuilding)
-			return false;
-
-		auto pBuilding = static_cast<BuildingClass*>(pTechno);
-		// Land Vehicle Factory & Naval Factory
-		return (!pTechno->Owner->IsNeutral()
-			&& pBuilding->Type->Factory == AbstractType::UnitType);
-	}
-	case 36:
-	{
-		if (!IsBuilding)
-			return false;
-
-		// Building that isn't a defense
-		if (!pTechno->Owner->IsNeutral())
+	case 35: // Land Vehicle Factory & Naval Factory
+		if (cache.isNeutral || !cache.isBuilding) return false;
 		{
-			auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			return pBuilding->Type->Factory == AbstractType::UnitType;
+		}
+	case 36: // Building that isn't a defense
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		{
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
 
-			if (pBuilding->Type->IsBaseDefense)
-				return false;
-
-			if (buildingIsConsideredVehicle)
+			if (pBuilding->Type->IsBaseDefense || cache.buildingIsConsideredVehicle)
 				return false;
 
 			auto const pBtypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
-			return !(
-				pBuilding->Type->Artillary
+			return !(pBuilding->Type->Artillary
 				|| pBuilding->Type->TickTank
 				|| pBtypeExt->IsJuggernaut
 				|| pBuilding->Type->ICBMLauncher
-				|| pBuilding->Type->SensorArray
-				);
+				|| pBuilding->Type->SensorArray);
 		}
-
-		return false;
-	}
-	case 39:
-	{
-		if (!IsBuilding)
-			return false;
-
-		// Occupyable Civilian  Building
-		if (auto pBuilding = static_cast<BuildingClass*>(pTechno))
+	case 39: // Occupyable Civilian Building
+		if (!cache.isBuilding) return false;
 		{
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
 			if (pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count == 0 && pBuilding->Owner->IsNeutral() && pBuilding->Type->CanOccupyFire && pBuilding->Type->TechLevel == -1 && pBuilding->GetHealthStatus() != HealthState::Red)
 				return true;
 			if (pBuilding->Type->CanBeOccupied && pBuilding->Occupants.Count < pBuilding->Type->MaxNumberOccupants && pBuilding->Owner == pTeamLeader->Owner && pBuilding->Type->CanOccupyFire)
 				return true;
 		}
-
 		return false;
-	}
-	case 40:
-	{
-		if (!IsBuilding)
-			return false;
-
-		if (!pTechno->Owner->IsNeutral())
+	case 40: // Self Building with Grinding=yes
+		if (cache.isNeutral || !cache.isBuilding) return false;
 		{
-			// Self Building with Grinding=yes
-			if (auto pBuilding = static_cast<BuildingClass*>(pTechno))
-			{
-				return pBuilding->Type->Grinding && pBuilding->Owner == pTeamLeader->Owner;
-			}
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			return pBuilding->Type->Grinding && pBuilding->Owner == pTeamLeader->Owner;
 		}
-
-		return false;
-	}
-	case 41:
-	// Building with Spyable=yes
-	{
-		if (!IsBuilding)
-			return false;
-
-		if (!pTechno->Owner->IsNeutral()) {
-			if (auto pBuilding = static_cast<BuildingClass*>(pTechno)) {
-				return pBuilding->Type->Spyable;
-			}
+	case 41: // Building with Spyable=yes
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		{
+			const auto pBuilding = static_cast<BuildingClass*>(pTechno);
+			return pBuilding->Type->Spyable;
 		}
-
-		return false;
-	}
-	case 37:
-	{
-		if (!IsBuilding)
-			return false;
-
-		if (!pTechno->Owner->IsNeutral()) {
-			return TechnoTypeExtContainer::Instance.Find(pTechnoType)->IsHero.Get();
-		}
-
-		return false;
-	}
+	case 37: // Hero Building
+		if (cache.isNeutral || !cache.isBuilding) return false;
+		return cache.pTargetTypeExt && cache.pTargetTypeExt->IsHero.Get();
 	}
 
 	return false;
@@ -1328,7 +1333,6 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 
 void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
-
 	TeamExtContainer::Instance.Find(pTeam)->IdxSelectedObjectFromAIList = -1;
 	const auto& [curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
 
@@ -1346,7 +1350,6 @@ static std::vector<int> Mission_Attack_List1Random_validIndexes;
 
 void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
-
 	//auto pScript = pTeam->CurrentScript;
 	Mission_Attack_List1Random_validIndexes.clear();
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
@@ -1355,9 +1358,10 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 	if (attackAITargetType < 0)
 		attackAITargetType = curArgs;
 
-	if((size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size()) {
-
-		if ((size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size()) {
+	if ((size_t)attackAITargetType < RulesExtData::Instance()->AITargetTypesLists.size())
+	{
+		if ((size_t)pTeamData->IdxSelectedObjectFromAIList < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size())
+		{
 			ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, pTeamData->IdxSelectedObjectFromAIList);
 			return;
 		}
@@ -1365,30 +1369,30 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 		if (!RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].empty())
 		{
 			// Finding the objects from the list that actually exists in the map
-			TechnoClass::Array->for_each([&](TechnoClass* pTechno) {
+			TechnoClass::Array->for_each([&](TechnoClass* pTechno)
+ {
+	 if (!ScriptExtData::IsUnitAvailable(pTechno, true))
+		 return;
 
-				if (!ScriptExtData::IsUnitAvailable(pTechno, true))
-					return;
+	 //if (pTechno->Spawned)
+	 //	return;
 
-				//if (pTechno->Spawned)
-				//	return;
+	 if (auto pTechnoType = pTechno->GetTechnoType())
+	 {
+		 bool found = false;
 
-				if (auto pTechnoType = pTechno->GetTechnoType())
-				{
-					bool found = false;
+		 for (size_t j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
+		 {
+			 auto const pFirstUnit = pTeam->FirstUnit;
 
-					for (size_t j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)
-					{
-						auto const pFirstUnit = pTeam->FirstUnit;
-
-						if (pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
-								|| ScriptExtData::IsUnitMindControlledFriendly(pFirstUnit->Owner, pTechno)))
-						{
-							Mission_Attack_List1Random_validIndexes.push_back(j);
-							found = true;
-						}
-					}
-				}
+			 if (pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
+				 || ScriptExtData::IsUnitMindControlledFriendly(pFirstUnit->Owner, pTechno)))
+			 {
+				 Mission_Attack_List1Random_validIndexes.push_back(j);
+				 found = true;
+			 }
+		 }
+	 }
 			});
 
 			if (!Mission_Attack_List1Random_validIndexes.empty())
@@ -1429,30 +1433,34 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 
 void ScriptExtData::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& hasAntiGround, bool& hasAntiAir, bool agentMode)
 {
-
 	if (!pTechno || !pTechno->IsAlive)
 		return;
 
-	const auto&[pWeaponPrimary, pWeaponSecondary] = ScriptExtData::GetWeapon(pTechno);
+	const auto& [pWeaponPrimary, pWeaponSecondary] = ScriptExtData::GetWeapon(pTechno);
 
-	if (pWeaponPrimary && pWeaponPrimary->Projectile){
+	if (pWeaponPrimary && pWeaponPrimary->Projectile)
+	{
 		hasAntiAir = pWeaponPrimary->Projectile->AA;
 	}
 
-	if (!hasAntiAir && pWeaponSecondary && pWeaponSecondary->Projectile) {
+	if (!hasAntiAir && pWeaponSecondary && pWeaponSecondary->Projectile)
+	{
 		hasAntiAir = pWeaponSecondary->Projectile->AA;
 	}
 
-	if(agentMode){
+	if (agentMode)
+	{
 		hasAntiGround = true;
 		return;
 	}
 
-	if (pWeaponPrimary && pWeaponPrimary->Projectile) {
+	if (pWeaponPrimary && pWeaponPrimary->Projectile)
+	{
 		hasAntiGround = pWeaponPrimary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponPrimary->Projectile)->AAOnly;
 	}
 
-	if (!hasAntiGround && pWeaponSecondary && pWeaponSecondary->Projectile) {
+	if (!hasAntiGround && pWeaponSecondary && pWeaponSecondary->Projectile)
+	{
 		hasAntiGround = pWeaponSecondary->Projectile->AG && !BulletTypeExtContainer::Instance.Find(pWeaponSecondary->Projectile)->AAOnly;
 	}
 
@@ -1465,7 +1473,6 @@ void ScriptExtData::CheckUnitTargetingCapabilities(TechnoClass* pTechno, bool& h
 
 bool ScriptExtData::IsUnitArmed(TechnoClass* pTechno)
 {
-
 	if (!pTechno || !pTechno->IsAlive)
 		return false;
 
