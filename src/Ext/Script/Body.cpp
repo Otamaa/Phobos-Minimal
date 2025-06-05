@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Utilities/Cast.h>
+#include <Utilities/Debug.h>
 #include <AITriggerTypeClass.h>
 
 #include <Ext/Techno/Body.h>
@@ -12,6 +13,7 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/ScriptType/Body.h>
 #include <Ext/Team/Body.h>
+#include <Locomotor/HoverLocomotionClass.h>
 //#include <ExtraHeaders/StackVector.h>
 
 /*
@@ -366,6 +368,8 @@ static NOINLINE const char* ToStrings(PhobosScripts from)
 		return "GlobalVariableOrByGlobal";
 	case PhobosScripts::GlobalVariableAndByGlobal:
 		return "GlobalVariableAndByGlobal";
+	case PhobosScripts::SimpleDeployerDeploy:
+		return "SimpleDeployerDeploy";
 	default:
 		return GameStrings::NoneStr();
 	}
@@ -523,6 +527,13 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		{
 			// Chronoshift to enemy base, argument is additional distance modifier
 			ScriptExtData::ChronoshiftToEnemyBase(pTeam, argument);
+			break;
+		}
+		case PhobosScripts::SimpleDeployerDeploy:
+		{
+			// Deploy/undeploy SimpleDeployer units
+			Debug::LogInfo("[SCRIPT DEBUG] SimpleDeployerDeploy case triggered! Action: %d, Argument: %d", (int)action, argument);
+			ScriptExtData::SimpleDeployerDeploy(pTeam, argument);
 			break;
 		}
 
@@ -927,7 +938,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 				// Unknown action. This action finished
 				pTeam->StepCompleted = true;
 				auto const pAction = pTeam->CurrentScript->GetCurrentAction();
-				Debug::LogInfo("AI Scripts : [{}] Team [{}][{}]  ( {} CurrentScript {} / {} line {}): Unknown Script Action: {}",
+				Debug::LogInfo("AI Scripts : [{}] Team [{}][{}]  ( {} CurrentScript {} / {} line {}): Unknown Script Action: {} (action={}, Action={})",
 					(void*)pTeam,
 					pTeam->Type->ID,
 					pTeam->Type->Name,
@@ -937,13 +948,11 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 					pTeam->CurrentScript->Type->Name,
 					pTeam->CurrentScript->CurrentMission,
 
-					(int)pAction.Action);
+					(int)pAction.Action, (int)action, Action);
 			}
 
 			return false;
 		}
-
-
 	}
 
 	return true;
@@ -965,7 +974,6 @@ void NOINLINE ScriptExtData::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 
 	if (!Isticking && !TimeLeft)
 	{
-
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
 			if (TechnoExtData::IsInWarfactory(pUnit))
@@ -975,7 +983,6 @@ void NOINLINE ScriptExtData::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
 		}
 
 		pTeam->GuardAreaTimer.Start(15 * pScriptType->ScriptActions[pScript->CurrentMission].Argument);
-
 	}
 	else if (Isticking && !TimeLeft)
 	{
@@ -997,8 +1004,8 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 
 		if (pType->Passengers > 0
 			&& pUnit->Passengers.NumPassengers < pType->Passengers
-			&&  (TechnoTypeExtContainer::Instance.Find(pType)->Passengers_BySize
-			 ? pUnit->Passengers.GetTotalSize() : pUnit->Passengers.NumPassengers)
+			&& (TechnoTypeExtContainer::Instance.Find(pType)->Passengers_BySize
+				? pUnit->Passengers.GetTotalSize() : pUnit->Passengers.NumPassengers)
 			 < pType->Passengers)
 		{
 			transports->push_back(pUnit);
@@ -1227,7 +1234,6 @@ void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown
 					{
 						pUnit->SetDestination(pLeaderUnit, false);
 						pUnit->QueueMission(Mission::Move, true);
-
 					}
 				}
 				else
@@ -1381,7 +1387,7 @@ void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 			if (pNewScript->ActionsCount > 0)
 			{
 				TeamExtContainer::Instance.Find(pTeam)->PreviousScript = pTeam->CurrentScript->Type;
-				GameDelete<true , false>(pTeam->CurrentScript);
+				GameDelete<true, false>(pTeam->CurrentScript);
 				pTeam->CurrentScript = GameCreate<ScriptClass>(pNewScript);
 				// Ready for jumping to the first line of the new script
 				pTeam->CurrentScript->CurrentMission = -1;
@@ -1418,10 +1424,8 @@ void ScriptExtData::SetCloseEnoughDistance(TeamClass* pTeam, double distance = -
 
 	auto const pTeamData = TeamExtContainer::Instance.Find(pTeam);
 
-
 	if (distance > 0)
 		pTeamData->CloseEnough = distance;
-
 
 	if (distance <= 0)
 		pTeamData->CloseEnough = RulesClass::Instance->CloseEnough.ToCell();
@@ -1458,7 +1462,6 @@ void ScriptExtData::SetMoveMissionEndMode(TeamClass* pTeam, int mode = 0)
 
 bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, FootClass* pLeader = nullptr, int mode = 0)
 {
-
 	if (!pTeam || mode < 0)
 		return false;
 
@@ -1976,7 +1979,6 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 	//const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 	//const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
 
-
 	if (!pSuperChronosphere || !pSuperChronowarp)
 	{
 		pTeam->StepCompleted = true;
@@ -2043,7 +2045,7 @@ void ScriptExtData::JumpBackToPreviousScript(TeamClass* pTeam)
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	if (pTeamData->PreviousScript)
 	{
-		GameDelete<true,false>(pTeam->CurrentScript);
+		GameDelete<true, false>(pTeam->CurrentScript);
 		pTeam->CurrentScript = GameCreate<ScriptClass>(pTeamData->PreviousScript);
 		pTeam->CurrentScript->CurrentMission = -1;
 		pTeam->StepCompleted = true;
@@ -2260,7 +2262,6 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		// Find the best repair hut
 		int bestVal = -1;
 
-
 		//auto hut = pTechno;
 
 		if (mode < 0)
@@ -2277,9 +2278,11 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 			{
 				int value = engineers[0]->DistanceFrom(pHut); // Note: distance is in leptons (*256)
 
-				if (mode > 0) {
+				if (mode > 0)
+				{
 					// Pick the farthest target
-					if (value >= bestVal || bestVal < 0) {
+					if (value >= bestVal || bestVal < 0)
+					{
 						bestVal = value;
 						selectedTarget = pHut;
 					}
@@ -2359,6 +2362,343 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 		}
 	}
 }
+
+void ScriptExtData::SimpleDeployerDeploy(TeamClass* pTeam, int mode)
+{
+	// mode: -1 = use argument, 0 = deploy, 1 = undeploy
+	if (!pTeam)
+	{
+		Debug::Log("[SimpleDeployerDeploy] Error: pTeam is null\n");
+		return;
+	}
+
+	auto pScript = pTeam->CurrentScript;
+	if (!pScript)
+	{
+		Debug::Log("[SimpleDeployerDeploy] Error: pScript is null\n");
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	// Static optimization caches - declare at top of function
+	static std::map<UnitClass*, std::pair<CellClass*, int>> cellSearchCache;
+	static std::map<UnitClass*, int> unloadTimeoutCounter;
+	static int frameCounter = 0;
+	static int lastLogFrame = 0;
+	frameCounter++;
+
+	const auto& [curAct, scriptArgument] = pScript->GetCurrentAction();
+	if (mode < 0)
+		mode = scriptArgument;
+
+	// Reduce logging frequency to avoid spam
+	bool shouldLog = (frameCounter - lastLogFrame) > 30; // Log every second
+
+	if (shouldLog)
+	{
+		lastLogFrame = frameCounter;
+		Debug::Log("[SimpleDeployerDeploy] Team: %s, Mode: %d (Frame %d)\n",
+			pTeam->Type ? pTeam->Type->get_ID() : "Unknown", mode, frameCounter);
+	}
+
+	// Clean up dead team members first
+	FootClass* pCur = pTeam->FirstUnit;
+	while (pCur)
+	{
+		FootClass* pNext = pCur->NextTeamMember;
+		if (!ScriptExtData::IsUnitAvailable(pCur, false))
+		{
+			pTeam->RemoveMember(pCur, -1, 1);
+		}
+		pCur = pNext;
+	}
+
+	// Check if team has any units left
+	if (!pTeam->FirstUnit)
+	{
+		Debug::Log("[SimpleDeployerDeploy] Error: No units in team\n");
+		pTeam->StepCompleted = true;
+		return;
+	}
+
+	bool allUnitsProcessed = true;
+	int unitsFound = 0;
+	int simpleDeployerUnits = 0;
+
+	// Process each unit in the team
+	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+	{
+		unitsFound++;
+
+		if (!ScriptExtData::IsUnitAvailable(pUnit, false))
+			continue;
+
+		auto pSimpleUnit = cast_to<UnitClass*, false>(pUnit);
+		if (!pSimpleUnit || !pSimpleUnit->Type->IsSimpleDeployer)
+			continue;
+
+		simpleDeployerUnits++;
+#ifdef _DEBUG
+		Debug::Log("[SimpleDeployerDeploy] Processing SimpleDeployer unit %d (%s), Deployed: %d\n",
+			simpleDeployerUnits, pSimpleUnit->Type->get_ID(), pSimpleUnit->Deployed);
+#endif
+
+		bool shouldDeploy = false;
+		bool shouldUndeploy = false;
+
+		// Determine action based on mode
+		switch (mode)
+		{
+		case 0: // Deploy
+		default:
+			if (!pSimpleUnit->Deployed)
+				shouldDeploy = true;
+			break;
+		case 1: // Undeploy
+			if (pSimpleUnit->Deployed)
+				shouldUndeploy = true;
+			break;
+		}
+
+		// Check if unit is already in deployment process
+		if (pSimpleUnit->Deploying || pSimpleUnit->DeployAnim)
+		{
+			// Unit is busy, wait for it to complete
+			allUnitsProcessed = false;
+			continue;
+		}
+
+		// Special handling for Mission::Unload completion issues with timeout
+		if (pSimpleUnit->CurrentMission == Mission::Unload)
+		{
+			// Initialize timeout counter if not exists
+			if (unloadTimeoutCounter.find(pSimpleUnit) == unloadTimeoutCounter.end())
+			{
+				unloadTimeoutCounter[pSimpleUnit] = frameCounter;
+			}
+
+			// Check if Mission::Unload should complete for SimpleDeployer
+			bool shouldComplete = (!pSimpleUnit->Deploying && !pSimpleUnit->DeployAnim);
+			bool timedOut = (frameCounter - unloadTimeoutCounter[pSimpleUnit]) > 150; // ~5 seconds timeout
+
+			if (shouldComplete || timedOut)
+			{
+				if (timedOut)
+				{
+					Debug::Log("[SimpleDeployerDeploy] Mission::Unload timeout for %s, forcing completion\n", pSimpleUnit->Type->get_ID());
+				}
+				else
+				{
+					Debug::Log("[SimpleDeployerDeploy] Force completing Mission::Unload for %s\n", pSimpleUnit->Type->get_ID());
+				}
+				pSimpleUnit->ForceMission(Mission::Guard);
+				unloadTimeoutCounter.erase(pSimpleUnit); // Clean up timeout counter
+			}
+			else
+			{
+				// Still in unload process, wait
+				allUnitsProcessed = false;
+				continue;
+			}
+		}
+		else
+		{
+			// Clean up timeout counter if unit is not in Mission::Unload
+			unloadTimeoutCounter.erase(pSimpleUnit);
+		}
+
+		// Execute deployment/undeployment action
+		if (shouldDeploy)
+		{
+			// Additional terrain checks before deployment
+			bool canDeploy = pSimpleUnit->CanDeploySlashUnload();
+			bool terrainSuitable = true;
+
+			if (canDeploy)
+			{
+				auto pCell = pSimpleUnit->GetCell();
+				if (pCell)
+				{
+					// Check terrain suitability for deployment
+					bool cellClear = pCell->Cell_Occupier() == nullptr || pCell->Cell_Occupier() == pSimpleUnit;
+					bool flatGround = pCell->GetLevel() == 0; // Level 0 = flat ground
+					bool passableTerrain = pCell->CanThisExistHere(pSimpleUnit->Type->SpeedType, nullptr, pSimpleUnit->Owner);
+					bool noBridge = !pCell->ContainsBridge();
+					bool notRampCliff = !pCell->Tile_Is_Ramp() && !pCell->Tile_Is_Cliff();
+
+					terrainSuitable = cellClear && flatGround && passableTerrain && noBridge && notRampCliff;
+
+					Debug::Log("[SimpleDeployerDeploy] Terrain check for %s: Clear=%d, Flat=%d, Passable=%d, NoBridge=%d, NotRamp=%d\n",
+						pSimpleUnit->Type->get_ID(), cellClear ? 1 : 0, flatGround ? 1 : 0,
+						passableTerrain ? 1 : 0, noBridge ? 1 : 0, notRampCliff ? 1 : 0);
+				}
+			}
+
+			Debug::Log("[SimpleDeployerDeploy] Unit %s shouldDeploy=true, canDeploy=%d, terrainSuitable=%d, deployed=%d\n",
+				pSimpleUnit->Type->get_ID(), canDeploy ? 1 : 0, terrainSuitable ? 1 : 0, pSimpleUnit->Deployed ? 1 : 0);
+
+			if (canDeploy && terrainSuitable)
+			{
+				// Try direct deployment first
+				if (pSimpleUnit->TryToDeploy())
+				{
+					Debug::Log("[SimpleDeployerDeploy] TryToDeploy succeeded for %s\n", pSimpleUnit->Type->get_ID());
+					allUnitsProcessed = false; // Wait for deployment animation
+				}
+				else
+				{
+					// Fallback to Mission::Unload (working method)
+					Debug::Log("[SimpleDeployerDeploy] TryToDeploy failed, using Mission::Unload fallback for %s\n", pSimpleUnit->Type->get_ID());
+					pSimpleUnit->QueueMission(Mission::Unload, false);
+					pSimpleUnit->NextMission();
+					allUnitsProcessed = false; // Wait for deployment to complete
+				}
+			}
+			else if (canDeploy && !terrainSuitable)
+			{
+				// Check cache first to avoid expensive repeated searches
+				CellClass* pBestCell = nullptr;
+				auto currentCell = pSimpleUnit->GetMapCoords();
+
+				// Check if we have a cached result that's still valid
+				auto cacheIt = cellSearchCache.find(pSimpleUnit);
+				if (cacheIt != cellSearchCache.end())
+				{
+					auto [cachedCell, cacheFrame] = cacheIt->second;
+					// Use cache if it's less than 30 frames old (~1 second)
+					if (frameCounter - cacheFrame < 30 && cachedCell)
+					{
+						// Validate cached cell is still suitable
+						bool cellClear = cachedCell->Cell_Occupier() == nullptr;
+						if (cellClear)
+						{
+							pBestCell = cachedCell;
+							Debug::Log("[SimpleDeployerDeploy] Using cached suitable cell for %s\n", pSimpleUnit->Type->get_ID());
+						}
+						else
+						{
+							// Cache invalid, remove it
+							cellSearchCache.erase(cacheIt);
+						}
+					}
+					else
+					{
+						// Cache expired, remove it
+						cellSearchCache.erase(cacheIt);
+					}
+				}
+
+				// If no valid cache, perform search
+				if (!pBestCell)
+				{
+					Debug::Log("[SimpleDeployerDeploy] Current terrain not suitable, searching nearby cells for %s\n", pSimpleUnit->Type->get_ID());
+
+					// Search in 3x3 area around current position
+					for (int dx = -1; dx <= 1 && !pBestCell; dx++)
+					{
+						for (int dy = -1; dy <= 1 && !pBestCell; dy++)
+						{
+							if (dx == 0 && dy == 0) continue; // Skip current cell (already checked)
+
+							CellStruct targetCell = { currentCell.X + dx, currentCell.Y + dy };
+							if (!MapClass::Instance->IsValidCell(targetCell)) continue;
+
+							auto pNearbyCell = MapClass::Instance->GetCellAt(targetCell);
+							if (!pNearbyCell) continue;
+
+							// Check if nearby cell is suitable
+							bool cellClear = pNearbyCell->Cell_Occupier() == nullptr;
+							bool flatGround = pNearbyCell->GetLevel() == 0;
+							bool passableTerrain = pNearbyCell->CanThisExistHere(pSimpleUnit->Type->SpeedType, nullptr, pSimpleUnit->Owner);
+							bool noBridge = !pNearbyCell->ContainsBridge();
+							bool notRampCliff = !pNearbyCell->Tile_Is_Ramp() && !pNearbyCell->Tile_Is_Cliff();
+
+							if (cellClear && flatGround && passableTerrain && noBridge && notRampCliff)
+							{
+								pBestCell = pNearbyCell;
+								// Cache the result
+								cellSearchCache[pSimpleUnit] = std::make_pair(pBestCell, frameCounter);
+								Debug::Log("[SimpleDeployerDeploy] Found suitable cell at [%d,%d] for %s\n",
+									targetCell.X, targetCell.Y, pSimpleUnit->Type->get_ID());
+							}
+						}
+					}
+				}
+
+				if (pBestCell)
+				{
+					// Move to suitable cell first, then deploy
+					Debug::Log("[SimpleDeployerDeploy] Moving %s to suitable cell for deployment\n", pSimpleUnit->Type->get_ID());
+					pSimpleUnit->SetDestination(pBestCell, true);
+					pSimpleUnit->QueueMission(Mission::Move, false);
+					pSimpleUnit->NextMission();
+					allUnitsProcessed = false; // Wait for movement to complete
+				}
+				else
+				{
+					// No suitable cells found - force deploy at current location as fallback
+					Debug::Log("[SimpleDeployerDeploy] No suitable cells found, forcing deployment at current location for %s\n", pSimpleUnit->Type->get_ID());
+					pSimpleUnit->QueueMission(Mission::Unload, false);
+					pSimpleUnit->NextMission();
+					allUnitsProcessed = false; // Wait for deployment to complete
+				}
+			}
+			else
+			{
+				Debug::Log("[SimpleDeployerDeploy] Cannot deploy %s (CanDeploySlashUnload=false)\n", pSimpleUnit->Type->get_ID());
+			}
+		}
+		else if (shouldUndeploy)
+		{
+			// Try to undeploy using proper game method
+			Debug::Log("[SimpleDeployerDeploy] Unit %s shouldUndeploy=true, deployed=%d\n",
+				pSimpleUnit->Type->get_ID(), pSimpleUnit->Deployed ? 1 : 0);
+
+			if (pSimpleUnit->Deployed)
+			{
+				pSimpleUnit->Undeploy();
+				allUnitsProcessed = false; // Wait for undeployment to complete
+			}
+		}
+		else
+		{
+			Debug::Log("[SimpleDeployerDeploy] Unit %s no action (deployed=%d, mode=%d)\n",
+				pSimpleUnit->Type->get_ID(), pSimpleUnit->Deployed ? 1 : 0, mode);
+		}
+	}
+
+	// Clean up cache entries for dead/invalid units every 300 frames (~10 seconds)
+	if (frameCounter % 300 == 0)
+	{
+		for (auto it = cellSearchCache.begin(); it != cellSearchCache.end();)
+		{
+			if (!ScriptExtData::IsUnitAvailable(it->first, false))
+			{
+				it = cellSearchCache.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+
+		for (auto it = unloadTimeoutCounter.begin(); it != unloadTimeoutCounter.end();)
+		{
+			if (!ScriptExtData::IsUnitAvailable(it->first, false))
+			{
+				it = unloadTimeoutCounter.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+
+	// Script action completes when all units have finished their deployment actions
+	pTeam->StepCompleted = allUnitsProcessed;
+}
+
 //
 //ASMJIT_PATCH(0x6913F8, ScriptClass_CTOR, 0x5)
 //{
