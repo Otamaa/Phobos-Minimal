@@ -177,6 +177,39 @@ enum class ComparatorOperandTypes
 	LessThan, LessOrEqual, Equal, MoreOrEqual, More, NotSame
 };
 
+// Helper function to check if a TechnoType is an air unit
+FORCEDINLINE bool IsAirUnit(TechnoTypeClass* pTechnoType) noexcept
+{
+	if (!pTechnoType)
+		return false;
+
+	// Direct aircraft types
+	if (pTechnoType->WhatAmI() == AbstractType::AircraftType || pTechnoType->ConsideredAircraft)
+		return true;
+
+	// Check for jumpjet vehicles
+	if (pTechnoType->WhatAmI() == AbstractType::UnitType)
+	{
+		auto pUnitType = static_cast<UnitTypeClass*>(pTechnoType);
+		if (pUnitType->JumpJet)
+			return true;
+	}
+
+	// Check for hover vehicles and flying movement zones
+	if (pTechnoType->MovementZone == MovementZone::Fly)
+		return true;
+
+	// Check for hover vehicles that can move over water/terrain
+	if (pTechnoType->SpeedType == SpeedType::Hover)
+		return true;
+
+	// Check for balloon hover vehicles (specific to RA2/YR)
+	if (pTechnoType->BalloonHover)
+		return true;
+
+	return false;
+}
+
 FORCEDINLINE void ModifyOperand(bool& result, int counter, const AITriggerConditionComparator& cond) noexcept
 {
 	const auto operandType = static_cast<ComparatorOperandTypes>(cond.ComparatorOperand);
@@ -222,14 +255,14 @@ bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list)
 		}
 	}
 
-	if (auto pItemUnit = cast_to<BuildingTypeClass*, false>(pItem))
+	if (auto pItemBldType = cast_to<BuildingTypeClass*, false>(pItem))
 	{
-		if (auto pListBld = cast_to<UnitClass*, false>(list))
+		if (auto pListUnit = cast_to<UnitClass*, false>(list))
 		{
-			if (pItemUnit->UndeploysInto == pListBld->Type)
+			if (pItemBldType->UndeploysInto == pListUnit->Type)
 				return true;
 
-			if (pListBld->Type->DeploysInto == pItemUnit)
+			if (pListUnit->Type->DeploysInto == pItemBldType)
 				return true;
 		}
 	}
@@ -523,6 +556,136 @@ NOINLINE bool CountConditionMet(AITriggerTypeClass* pThis, int nObjects)
 		return false;
 
 	ModifyOperand(result, nObjects, *pThis->Conditions);
+	return result;
+}
+
+
+
+// Universal helper function to check if any unit is in attacking/threatening state
+FORCEDINLINE bool IsUnitThreatening(TechnoClass* pTechno, HouseClass* pTargetHouse) noexcept
+{
+	if (!pTechno || !pTargetHouse)
+		return false;
+
+	// Check basic validity
+	if (pTechno->Health <= 0 || !pTechno->IsAlive || pTechno->InLimbo)
+		return false;
+
+	// Check if unit is in attacking missions
+	auto mission = pTechno->GetCurrentMission();
+	if (mission == Mission::Attack || mission == Mission::Hunt || 
+		mission == Mission::Area_Guard || mission == Mission::Patrol)
+		return true;
+
+	// Check if unit has a target that belongs to the target house
+	if (auto pTarget = pTechno->Target)
+	{
+		// Check if target is a TechnoClass by checking AbstractClass type
+		if (pTarget->WhatAmI() == AbstractType::Unit || 
+			pTarget->WhatAmI() == AbstractType::Aircraft || 
+			pTarget->WhatAmI() == AbstractType::Infantry ||
+			pTarget->WhatAmI() == AbstractType::Building)
+		{
+			auto pTargetTechno = static_cast<TechnoClass*>(pTarget);
+			if (pTargetTechno->Owner == pTargetHouse || pTargetHouse->IsAlliedWith(pTargetTechno->Owner))
+				return true;
+		}
+	}
+
+	// Check if unit is within threatening range of target house's units/buildings
+	auto location = pTechno->GetCoords();
+	int weaponRange = 0;
+	
+	// Get maximum weapon range
+	if (auto pWeapon = pTechno->GetWeapon(0))
+	{
+		if (pWeapon->WeaponType)
+			weaponRange = pWeapon->WeaponType->Range;
+	}
+	if (auto pWeapon = pTechno->GetWeapon(1))
+	{
+		if (pWeapon->WeaponType && pWeapon->WeaponType->Range > weaponRange)
+			weaponRange = pWeapon->WeaponType->Range;
+	}
+
+	// Add mobility bonus based on unit type
+	int mobilityBonus = 256; // Base mobility for infantry/buildings
+	if (pTechno->WhatAmI() == AbstractType::Aircraft || IsAirUnit(pTechno->GetTechnoType()))
+		mobilityBonus = 1024; // Air units get larger threat radius
+	else if (pTechno->WhatAmI() == AbstractType::Unit)
+		mobilityBonus = 512; // Vehicles get medium threat radius
+
+	int totalThreatRange = weaponRange + mobilityBonus;
+
+	// Check if within threatening distance of target house's assets
+	for (auto const pTargetObject : *TechnoClass::Array)
+	{
+		if (!IsValidTechno(pTargetObject))
+			continue;
+
+		if (pTargetObject->Owner != pTargetHouse && !pTargetHouse->IsAlliedWith(pTargetObject->Owner))
+			continue;
+
+		auto targetLocation = pTargetObject->GetCoords();
+		int distance = static_cast<int>(location.DistanceFrom(targetLocation));
+		
+		if (distance <= totalThreatRange)
+			return true;
+	}
+
+	return false;
+}
+
+// Universal check if enemy has attacking/threatening units (any type)
+// If pThis->ConditionObject is set = check specific unit type  
+// If pThis->ConditionObject is null = check all unit types
+// SUPPORTS: Air units, ground units, navy, V3 missiles, spawned units (all TechnoClass)
+NOINLINE bool EnemyHasAttackingUnits(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy)
+{
+	bool result = false;
+	int counter = 0;
+	TechnoTypeClass* pSpecificUnitType = pThis->ConditionObject;
+
+	// Count threatening units owned by enemies
+	for (auto const pObject : *TechnoClass::Array)
+	{
+		if (!IsValidTechno(pObject))
+			continue;
+
+		// Check if this unit belongs to an enemy
+		bool isValidEnemy = false;
+		if (pEnemy)
+		{
+			isValidEnemy = (pObject->Owner == pEnemy);
+		}
+		else
+		{
+			isValidEnemy = (pObject->Owner != pHouse && !pHouse->IsAlliedWith(pObject->Owner));
+		}
+
+		if (!isValidEnemy || pObject->Owner->Type->MultiplayPassive)
+			continue;
+
+		// Check if unit is threatening
+		if (!IsUnitThreatening(pObject, pHouse))
+			continue;
+
+		// If specific unit type is requested, check for it
+		if (pSpecificUnitType)
+		{
+			if (OwnStuffs(pSpecificUnitType, pObject))
+				counter++;
+		}
+		else
+		{
+			// Count all threatening units (air, ground, navy, missiles, etc.)
+			counter++;
+		}
+	}
+
+	// Always use proper comparator - requires valid ComparatorOperand and ComparatorType
+	ModifyOperand(result, counter, *pThis->Conditions);
+	
 	return result;
 }
 
@@ -1092,6 +1255,15 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 						{
 							// New case 19: Check undamaged bridges
 							if (!CountConditionMet(pTrigger, g_cachedData.undamagedBridgesCount))
+								continue;
+						}	break;
+						case 21:
+						{
+							// New case 21: Enemy has attacking/threatening units (universal condition)
+							// Requires proper ComparatorOperand and ComparatorType to be set
+							// If ConditionObject is set = check specific unit type
+							// If ConditionObject is null = check all unit types  
+							if (!EnemyHasAttackingUnits(pTrigger, pHouse, targetHouse))
 								continue;
 						}	break;
 						default:

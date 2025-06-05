@@ -12,7 +12,9 @@ enum class PhobosAIConditionTypes : int
 enum class PhobosAINewConditionTypes : int
 {
 	CheckPrereq = 8,
-	CheckBridgeCondition = 9
+	CheckBridgeCondition = 9,
+	// Universal threat detection - REQUIRES proper ComparatorOperand and ComparatorValue!
+	EnemyHasAttackingUnits = 21   // Enemy has attacking/threatening units (any type or specific type)
 };
 
 class AITriggerTypeExt
