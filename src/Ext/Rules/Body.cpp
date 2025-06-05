@@ -959,6 +959,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	this->BerserkROFMultiplier.Read(exINI, GameStrings::CombatDamage(), "BerserkROFMultiplier");
 	this->TeamRetaliate.Read(exINI, GameStrings::General(), "TeamRetaliate");
+	this->TeamRetaliate_CheckWeaponCompatibility.Read(exINI, GameStrings::General(), "TeamRetaliate.CheckWeaponCompatibility");
+	this->TeamRetaliate_InterruptCriticalMissions.Read(exINI, GameStrings::General(), "TeamRetaliate.InterruptCriticalMissions");
+	this->TeamRetaliate_MaxRetaliationDistance.Read(exINI, GameStrings::General(), "TeamRetaliate.MaxRetaliationDistance");
 	this->AI_CostMult.Read(exINI, GameStrings::General(), "AICostMult");
 
 	this->DeactivateDim_Powered.Read(exINI, GameStrings::AudioVisual(), "DeactivateDimPowered");
@@ -1328,6 +1331,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->Bounty_Value_Option)
 		.Process(this->BerserkROFMultiplier)
 		.Process(this->TeamRetaliate)
+		.Process(this->TeamRetaliate_CheckWeaponCompatibility)
+		.Process(this->TeamRetaliate_InterruptCriticalMissions)
+		.Process(this->TeamRetaliate_MaxRetaliationDistance)
 		.Process(this->AI_CostMult)
 
 		.Process(this->DeactivateDim_Powered)

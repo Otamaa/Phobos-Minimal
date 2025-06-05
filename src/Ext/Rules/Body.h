@@ -212,6 +212,9 @@ public:
 	Nullable<int> AIFriendlyDistance {};
 	Valueable<double> BerserkROFMultiplier { 0.5 };
 	Valueable<bool> TeamRetaliate { false };
+	Valueable<bool> TeamRetaliate_CheckWeaponCompatibility { true };
+	Valueable<bool> TeamRetaliate_InterruptCriticalMissions { false };
+	Valueable<int> TeamRetaliate_MaxRetaliationDistance { -1 };
 	Valueable<double> AI_CostMult { 1.0 };
 
 	Valueable<double> DeactivateDim_Powered { 0.5 };
