@@ -597,7 +597,7 @@ void TSJumpJetLocomotionClass::Movement_AI()
 		{
 			for (int y = -rad; y <= rad; y++)
 			{
-				CellClass* cellptr = MapClass::Instance->TryGetCellAt(CellStruct(x, y) + CellClass::Coord2Cell(new_coord));
+				CellClass* cellptr = MapClass::Instance->TryGetCellAt(CellStruct(short(x), short(y)) + CellClass::Coord2Cell(new_coord));
 				if (cellptr != nullptr)
 				{
 					ObjectClass* occupier = cellptr->FirstObject;

@@ -1421,9 +1421,9 @@ struct OverlayWriter
 	void Put(int nOverlay)
 	{
 		if (ScenarioClass::NewINIFormat >= 5)
-			ByteWriter.PutWord(static_cast<unsigned char>(nOverlay));
+			ByteWriter.PutByte(static_cast<unsigned char>(nOverlay));
 		else
-			ByteWriter.PutByte(static_cast<unsigned short>(nOverlay));
+			ByteWriter.PutWord(static_cast<unsigned short>(nOverlay));
 	}
 
 	void PutBlock(CCINIClass* pINI)

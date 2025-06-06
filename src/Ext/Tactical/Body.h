@@ -30,7 +30,15 @@ public:
 
 	// Reversed from Is_Selectable, w/o Select call
 	static bool ObjectClass_IsSelectable(ObjectClass* pThis);
+
+#ifndef ___test
+	static void __DrawTimersA(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
+	static void __DrawTimersB(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
+	static void __DrawTimersC(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
+#else
 	static void __DrawTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
+#endif
+
 	static void __DrawTimersSW(SuperClass* pSuper , int value, int interval);
 	static void __DrawRadialIndicator(bool draw_indicator, bool animate, Coordinate center_coord, ColorStruct color, float radius, bool concentric, bool round);
 

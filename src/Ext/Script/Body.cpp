@@ -2564,7 +2564,7 @@ void ScriptExtData::SimpleDeployerDeploy(TeamClass* pTeam, int mode)
 				auto cacheIt = cellSearchCache.find(pSimpleUnit);
 				if (cacheIt != cellSearchCache.end())
 				{
-					auto [cachedCell, cacheFrame] = cacheIt->second;
+					auto&[cachedCell, cacheFrame] = cacheIt->second;
 					// Use cache if it's less than 30 frames old (~1 second)
 					if (frameCounter - cacheFrame < 30 && cachedCell)
 					{
@@ -2600,7 +2600,7 @@ void ScriptExtData::SimpleDeployerDeploy(TeamClass* pTeam, int mode)
 						{
 							if (dx == 0 && dy == 0) continue; // Skip current cell (already checked)
 
-							CellStruct targetCell = { currentCell.X + dx, currentCell.Y + dy };
+							CellStruct targetCell = { short(currentCell.X + dx), short(currentCell.Y + dy) };
 							if (!MapClass::Instance->IsValidCell(targetCell)) continue;
 
 							auto pNearbyCell = MapClass::Instance->GetCellAt(targetCell);

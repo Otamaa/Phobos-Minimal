@@ -51,6 +51,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 			if (!nData.LaunchSW_Manual &&
 				lauch &&
 				MoneyEligible &&
+				BattleDataEligible &&
 				InhibitorEligible &&
 				DesignatorEligible &&
 				!pSuper->IsOnHold)

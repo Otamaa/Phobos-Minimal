@@ -36,7 +36,7 @@ bool SWButtonClass::Draw(bool forced)
 	const auto pCurrent = HouseClass::CurrentPlayer();
 	const auto pSuper = pCurrent->Supers[this->SuperIndex];
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pCurrent);
+	//const auto pHouseExt = HouseExtContainer::Instance.Find(pCurrent);
 
 	// support for pcx cameos
 	if (const auto pPCXCameo = pSWExt->SidebarPCX.GetSurface())

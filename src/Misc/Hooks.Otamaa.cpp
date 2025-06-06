@@ -3175,7 +3175,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							int crateMax = 900;
 
 							if (nAdd > 0)
-								crateMax += ScenarioClass::Instance->Random.RandomFromMax(nAdd);
+								crateMax += ScenarioClass::Instance->Random.RandomFromMax<int>(nAdd);
 
 							soloCrateMoney = ScenarioClass::Instance->Random.RandomRanged((int)something, (int)something + crateMax);
 						}

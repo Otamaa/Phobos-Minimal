@@ -2170,7 +2170,6 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
  * Object should NOT be placed on the map (->Limbo() it or don't Put in the first place)
  * otherwise Bad Things (TM) will happen. Again.
  */
-#pragma optimize("", off )
 bool TechnoExtData::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 {
 	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
@@ -2200,7 +2199,6 @@ bool TechnoExtData::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 		return false;
 	}
 }
-#pragma optimize("", on )
 
 bool TechnoExtData::TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {

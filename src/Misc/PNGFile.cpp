@@ -53,7 +53,7 @@ bool PNGFile::Write(FileClass* name, Surface& pic, const BytePalette* palette, b
 
 	for (int i = 0; i < (pic_width * pic_height); ++i)
 	{
-		unsigned short value = *(bufferptr++);  
+		unsigned short value = *(bufferptr++);
 		imageptr[i].r = (unsigned char((value & 0xF800) >> 11) * 255) / 31;// Extract the 5 R bits
 		imageptr[i].g = (unsigned char((value & 0x07E0) >> 5) * 255) / 63;// Extract the 6 G bits
 		imageptr[i].b = (unsigned char((value & 0x001F)) * 255) / 31;// Extract the 5 B bits
@@ -221,7 +221,7 @@ BSurface* PNGFile::Read(FileClass* name, unsigned char* palette, void* buff, lon
 			int g = *png_image++; // & 0xFF;
 			int b = *png_image++; // & 0xFF;
 
-			*buffptr++ = DSurface::RGBA_To_Pixel(r, g, b);
+			*buffptr++ = (unsigned short)DSurface::RGBA_To_Pixel(r, g, b);
 		}
 
 		pic->Unlock();

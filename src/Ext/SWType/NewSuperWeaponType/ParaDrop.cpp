@@ -264,6 +264,8 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	return true;
 }
 
+#include <Ext/Techno/Body.h>
+
 //A new SendPDPlane function
 //Allows vehicles, sends one single plane for all types
 void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTypeClass* pPlaneType,
@@ -275,6 +277,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 		return;
 	}
 
+
 	++Unsorted::ScenarioInit;
 	auto const pPlane = static_cast<AircraftClass*>(pPlaneType->CreateObject(pOwner));
 	--Unsorted::ScenarioInit;
@@ -284,23 +287,12 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 
 	pPlane->Spawned = true;
 
-	//Get edge (direction for plane to come from)
-	auto edge = pOwner->GetHouseEdge();
-
 	// seems to retrieve a random cell struct at a given edge
 	auto const spawn_cell = MapClass::Instance->PickCellOnEdge(
-		edge, CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true,
+		pOwner->GetHouseEdge(), CellStruct::Empty, CellStruct::Empty, SpeedType::Winged, true,
 		MovementZone::Normal);
 
 	pPlane->QueueMission(Mission::ParadropApproach, false);
-
-	auto const bSpawned = AircraftExt::PlaceReinforcementAircraft(pPlane, spawn_cell);
-
-	if (!bSpawned)
-	{
-		GameDelete<true , false>(pPlane);
-		return;
-	}
 
 	for (auto i = 0u; i < Types.size(); ++i)
 	{
@@ -309,10 +301,11 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 		// find the nearest cell the paradrop troopers can land on
 		// the movement zone etc is checked within first types of the passanger
 		CellClass* pDest = pTarget;
-		bool allowBridges = GroundType::GetCost(LandType::Clear,pType->SpeedType) > 0.0;
+		bool allowBridges = GroundType::GetCost(LandType::Clear, pType->SpeedType) > 0.0;
 		bool isBridge = allowBridges && pDest->ContainsBridge();
 
-		while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, ZoneType::None, pType->MovementZone, -1, isBridge)) {
+		while (!pDest->IsClearToMove(pType->SpeedType, 0, 0, ZoneType::None, pType->MovementZone, -1, isBridge))
+		{
 			pDest = MapClass::Instance->GetCellAt(
 				MapClass::Instance->NearByLocation(
 					pDest->MapCoords,
@@ -341,6 +334,9 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 					pPlane->EnteredOpenTopped(pNew);
 				}
 
+				if (pType->Gunner)
+					pPlane->ReceiveGunner(pNew);
+
 				pNew->Transporter = pPlane;
 				pPlane->AddPassenger(static_cast<FootClass*>(pNew));
 			}
@@ -348,6 +344,15 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 	}
 
 	pPlane->HasPassengers = true;
+
+	auto const bSpawned = AircraftExt::PlaceReinforcementAircraft(pPlane, spawn_cell);
+
+	if (!bSpawned)
+	{
+		GameDelete<true , false>(pPlane);
+		return;
+	}
+
 	pPlane->NextMission();
 }
 

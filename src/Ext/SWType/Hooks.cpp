@@ -1761,7 +1761,6 @@ ASMJIT_PATCH(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	const auto pLinked = TechnoExtContainer::Instance.Find(pThis)->LinkedSW;
 	auto const pSWExt = SWTypeExtContainer::Instance.Find(pLinked->Type);
 	auto pTargetCell = MapClass::Instance->GetCellAt(pThis->Owner->EMPTarget);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
 	if (pSWExt->EMPulse_WeaponIndex >= 0)
 	{
@@ -1834,7 +1833,6 @@ ASMJIT_PATCH(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
 	const auto pLinked = TechnoExtContainer::Instance.Find(pThis)->LinkedSW;
 	auto const pSWExt = SWTypeExtContainer::Instance.Find(pLinked->Type);
 	auto pTargetCell = MapClass::Instance->GetCellAt(pThis->Owner->EMPTarget);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
 	if (pSWExt->EMPulse_WeaponIndex >= 0)
 	{
@@ -2776,7 +2774,6 @@ ASMJIT_PATCH(0x44019D, BuildingClass_Update_Battery, 6)
 }
 
 #include <Ext/HouseType/Body.h>
-#include <Misc/Ares/Hooks/Header.h>
 
 ConvertClass* SWConvert = nullptr;
 BSurface* CameoPCXSurface = nullptr;

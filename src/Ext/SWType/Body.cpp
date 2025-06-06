@@ -1207,8 +1207,6 @@ void SWTypeExtData::PrintMessage(const CSFText& message, HouseClass* pFirer)
 	message.PrintAsMessage<false>(color);
 }
 
-static inline std::vector <TechnoClass*> targetings;
-
 Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget, std::vector<TechnoClass*>& outVec) const
 {
 	const auto require = this->GetAIRequiredTarget();

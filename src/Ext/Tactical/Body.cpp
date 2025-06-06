@@ -306,6 +306,275 @@ void FakeTacticalClass::__DrawRadialIndicator(
 	}
 }
 
+#ifndef ___test
+
+void FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+{
+	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
+
+	const int hour = interval / 60 / 60;
+	const int minute = interval / 60 % 60;
+	const int second = interval % 60;
+	fmt::basic_memory_buffer<wchar_t> buffer;
+
+	if (hour)
+	{
+		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
+	}
+	else
+	{
+		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
+	}
+
+	buffer.push_back(L'\0');
+
+	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
+	labe_buffer.push_back(L'\0');
+
+	int width = 0;
+	RectangleStruct rect_bound = DSurface::ViewBounds();
+	pFont->GetTextDimension(buffer.data(), &width, nullptr, rect_bound.Width);
+	ColorScheme* fore = color;
+
+	if (!interval && _arg && _arg1)
+	{
+		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
+		{
+			auto large = Game::AudioGetTime();
+			_arg->LowPart = large.LowPart + 1000;
+			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+			*_arg1 = !*_arg1;
+		}
+
+		if (*_arg1)
+		{
+			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+		}
+	}
+
+	int value_plusone = value + 1;
+	Point2D point {
+		rect_bound.Width - width - 3 ,
+		rect_bound.Height - (value_plusone) * (pFont->field_1C + 2)
+	};
+
+	auto pComposite = DSurface::Composite();
+	auto rect = pComposite->Get_Rect();
+	Point2D _temp {};
+	ColorStruct out {};
+	color->BaseColor.ToColorStruct(&out);
+
+	Simple_Text_Print_Wide(
+		&_temp,
+		labe_buffer.data(),
+		pComposite,
+		&rect,
+		&point,
+		(COLORREF)out.ToInit(),
+		(COLORREF)0u,
+		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+		true
+	);
+
+	point.X = rect_bound.Width - 3;
+	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
+	rect = pComposite->Get_Rect();
+	fore->BaseColor.ToColorStruct(&out);
+
+	Simple_Text_Print_Wide(
+	&_temp,
+	buffer.data(),
+	pComposite,
+	&rect,
+	&point,
+	(COLORREF)out.ToInit(),
+	(COLORREF)0u,
+	TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+	true
+	);
+}
+
+void FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+{
+	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
+
+	const int hour = interval / 60 / 60;
+	const int minute = interval / 60 % 60;
+	const int second = interval % 60;
+	fmt::basic_memory_buffer<wchar_t> buffer;
+
+	if (hour)
+	{
+		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
+	}
+	else
+	{
+		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
+	}
+
+	buffer.push_back(L'\0');
+
+	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
+	labe_buffer.push_back(L'\0');
+
+	int width = 0;
+	RectangleStruct rect_bound = DSurface::ViewBounds();
+	pFont->GetTextDimension(buffer.data(), &width, nullptr, rect_bound.Width);
+	ColorScheme* fore = color;
+
+	if (!interval && _arg && _arg1)
+	{
+		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
+		{
+			auto large = Game::AudioGetTime();
+			_arg->LowPart = large.LowPart + 1000;
+			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+			*_arg1 = !*_arg1;
+		}
+
+		if (*_arg1)
+		{
+			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+		}
+	}
+
+	int value_plusone = value + 1;
+	Point2D point {
+		rect_bound.Width - width - 3 ,
+		rect_bound.Height - (value_plusone) * (pFont->field_1C + 2)
+	};
+
+	auto pComposite = DSurface::Composite();
+	auto rect = pComposite->Get_Rect();
+	Point2D _temp {};
+	ColorStruct out {};
+	color->BaseColor.ToColorStruct(&out);
+
+	Simple_Text_Print_Wide(
+		&_temp,
+		labe_buffer.data(),
+		pComposite,
+		&rect,
+		&point,
+		(COLORREF)out.ToInit(),
+		(COLORREF)0u,
+		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+		true
+	);
+
+	point.X = rect_bound.Width - 3;
+	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
+	rect = pComposite->Get_Rect();
+	fore->BaseColor.ToColorStruct(&out);
+
+	Simple_Text_Print_Wide(
+	&_temp,
+	buffer.data(),
+	pComposite,
+	&rect,
+	&point,
+	(COLORREF)out.ToInit(),
+	(COLORREF)0u,
+	TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+	true
+	);
+}
+
+void FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+{
+	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
+
+	const int hour = interval / 60 / 60;
+	const int minute = interval / 60 % 60;
+	const int second = interval % 60;
+	fmt::basic_memory_buffer<wchar_t> buffer;
+
+	if (hour)
+	{
+		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
+	}
+	else
+	{
+		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
+	}
+
+	buffer.push_back(L'\0');
+
+	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
+	labe_buffer.push_back(L'\0');
+
+	int width = 0;
+	RectangleStruct rect_bound = DSurface::ViewBounds();
+	pFont->GetTextDimension(buffer.data(), &width, nullptr, rect_bound.Width);
+	ColorScheme* fore = color;
+
+	if (!interval && _arg && _arg1)
+	{
+		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
+		{
+			auto large = Game::AudioGetTime();
+			_arg->LowPart = large.LowPart + 1000;
+			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+			*_arg1 = !*_arg1;
+		}
+
+		if (*_arg1)
+		{
+			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
+		}
+	}
+
+	int value_plusone = value + 1;
+	Point2D point {
+		rect_bound.Width - width - 3 ,
+		rect_bound.Height - (value_plusone) * (pFont->field_1C + 2)
+	};
+
+	auto pComposite = DSurface::Composite();
+	auto rect = pComposite->Get_Rect();
+	Point2D _temp {};
+	ColorStruct out {};
+	color->BaseColor.ToColorStruct(&out);
+
+	Simple_Text_Print_Wide(
+		&_temp,
+		labe_buffer.data(),
+		pComposite,
+		&rect,
+		&point,
+		(COLORREF)out.ToInit(),
+		(COLORREF)0u,
+		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+		true
+	);
+
+	point.X = rect_bound.Width - 3;
+	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
+	rect = pComposite->Get_Rect();
+	fore->BaseColor.ToColorStruct(&out);
+
+	Simple_Text_Print_Wide(
+	&_temp,
+	buffer.data(),
+	pComposite,
+	&rect,
+	&point,
+	(COLORREF)out.ToInit(),
+	(COLORREF)0u,
+	TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
+	true
+	);
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x6D49AA, FakeTacticalClass::__DrawTimersA);
+DEFINE_FUNCTION_JUMP(CALL, 0x6D4B08, FakeTacticalClass::__DrawTimersB);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D4B50, FakeTacticalClass::__DrawTimersC);
+
+#else
+
 void FakeTacticalClass::__DrawTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
@@ -393,6 +662,12 @@ void FakeTacticalClass::__DrawTimers(int value, ColorScheme* color, int interval
 	);
 }
 
+DEFINE_FUNCTION_JUMP(CALL, 0x6D49AA, FakeTacticalClass::__DrawTimers);
+DEFINE_FUNCTION_JUMP(CALL, 0x6D4B08, FakeTacticalClass::__DrawTimers);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D4B50, FakeTacticalClass::__DrawTimers);
+
+#endif
+
 void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interval)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
@@ -479,10 +754,6 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	true
 	);
 }
-
-DEFINE_FUNCTION_JUMP(CALL, 0x6D49AA, FakeTacticalClass::__DrawTimers);
-DEFINE_FUNCTION_JUMP(CALL, 0x6D4B08, FakeTacticalClass::__DrawTimers);
-DEFINE_FUNCTION_JUMP(LJMP, 0x6D4B50, FakeTacticalClass::__DrawTimers);
 
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4B2B, FakeTacticalClass::__DrawAllTacticalText)
 
