@@ -380,18 +380,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Spawner_AttackImmediately.Read(exINI, pSection, "Spawner.AttackImmediately");
 		this->Spawner_UseTurretFacing.Read(exINI, pSection, "Spawner.UseTurretFacing");
 		this->Harvester_Counted.Read(exINI, pSection, "Harvester.Counted");
-	
-		if(!this->Harvester_Counted.isset()) {
-			if(this->AttachedToObject->Enslaves){
-				this->Harvester_Counted = true;
-			}
 
-			if (const auto pUnit = type_cast<UnitTypeClass*>(this->AttachedToObject)){
-				if(pUnit->Harvester || pUnit->Enslaves){
-					this->Harvester_Counted = true;
-				}
-			}
-		}
 		this->Promote_IncludeSpawns.Read(exINI, pSection, "Promote.IncludeSpawns");
 		this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
 		this->MultiMindControl_ReleaseVictim.Read(exINI, pSection, "MultiMindControl.ReleaseVictim");

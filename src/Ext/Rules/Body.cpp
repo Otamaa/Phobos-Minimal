@@ -518,11 +518,19 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
+		if (!pExt->Harvester_Counted.isset() && pItem->Enslaves) {
+			pExt->Harvester_Counted = true;
+		}
+
 		if (isFoot)
 		{
 			if (what == UnitTypeClass::AbsID)
 			{
 				const auto pUnit = (UnitTypeClass*)pItem;
+
+				if (!pExt->Harvester_Counted.isset() && pUnit->Harvester) {
+					pExt->Harvester_Counted = true;
+				}
 
 				if (pUnit->Harvester && pUnit->Weeder)
 				{
