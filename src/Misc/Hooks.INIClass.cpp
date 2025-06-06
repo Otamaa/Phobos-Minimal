@@ -13,6 +13,7 @@
 
 #include <New/Interfaces/LevitateLocomotionClass.h>
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
+#include <New/Interfaces/AdvancedWalkLocomotionClass.h>
 #include <New/Interfaces/TestLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
@@ -60,6 +61,7 @@ namespace detail
 
 			PARSE(Levitate)
 			PARSE(AdvancedDrive)
+			PARSE(AdvancedWalk)
 			PARSE(CustomRocket)
 			PARSE(TSJumpJet)
 

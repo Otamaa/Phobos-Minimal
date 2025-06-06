@@ -4,6 +4,7 @@
 
 #include <New/Interfaces/LevitateLocomotionClass.h>
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
+#include <New/Interfaces/AdvancedWalkLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
 
@@ -114,6 +115,7 @@ ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 	RegisterFactoryForClass<LevitateLocomotionClass>();
 	RegisterFactoryForClass<TSJumpJetLocomotionClass>();
 	RegisterFactoryForClass<AdvancedDriveLocomotionClass>();
+	RegisterFactoryForClass<AdvancedWalkLocomotionClass>();
 	RegisterFactoryForClass<CustomRocketLocomotionClass>();
 
 	Debug::Log("COM registration done!\n");

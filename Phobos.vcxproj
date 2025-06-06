@@ -76,6 +76,7 @@
     <ClCompile Include="src\New\Entity\RadarJammerClass.cpp" />
     <ClCompile Include="src\New\Interfaces\CustomRocketLocomotionClass.cpp" />
     <ClCompile Include="src\New\Interfaces\AdvancedDriveLocomotionClass.cpp" />
+    <ClCompile Include="src\New\Interfaces\AdvancedWalkLocomotionClass.cpp" />
     <ClCompile Include="src\New\Interfaces\TSJumpJetLocomotionClass.cpp" />
     <ClCompile Include="src\New\Type\ActionTypeClass.cpp" />
     <ClCompile Include="src\New\Type\HealthBarTypeClass.cpp" />
@@ -581,6 +582,7 @@
     <ClInclude Include="src\New\AnonymousType\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\CustomRocketLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\AdvancedDriveLocomotionClass.h" />
+    <ClInclude Include="src\New\Interfaces\AdvancedWalkLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\TSJumpJetLocomotionClass.h" />
     <ClInclude Include="src\New\Type\ActionTypeClass.h" />
     <ClInclude Include="src\New\Type\HealthBarTypeClass.h" />
