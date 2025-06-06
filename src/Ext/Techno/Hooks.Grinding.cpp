@@ -210,7 +210,9 @@ ASMJIT_PATCH(0x73A134, UnitClass_PerCellProcess_Grinding, 0x6)
 	GET(UnitClass*, pThis, EBP);
 	GET(BuildingClass*, pBuilding, EBX);
 
-	if (!pBuilding->Type->Grinding || BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->Grinding_PlayDieSound) {
+	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+	if (!pBuilding->Type->Grinding || pTypeExt->Grinding_PlayDieSound) {
 		PlayDieSounds(pThis);
 	}
 
@@ -218,7 +220,8 @@ ASMJIT_PATCH(0x73A134, UnitClass_PerCellProcess_Grinding, 0x6)
 	pBuilding->Owner->TransactMoney(pThis->GetRefund());
 
 	//https://bugs.launchpad.net/ares/+bug/1925359
-	TechnoExt_ExtData::AddPassengers(pBuilding, pThis);
+	if(pTypeExt->ReverseEngineersVictims_Passengers)
+		TechnoExt_ExtData::AddPassengers(pBuilding, pThis);
 
 	if (auto const MyParasite = pThis->ParasiteEatingMe) {
 		pBuilding->Owner->GiveMoney(MyParasite->GetRefund());

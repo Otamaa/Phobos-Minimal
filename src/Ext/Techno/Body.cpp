@@ -4967,6 +4967,25 @@ void TechnoExtData::UpdateOnTunnelEnter()
 
 		this->IsInTunnel = true;
 	}
+
+	const auto pType = this->AttachedToObject->GetTechnoType();
+	const auto pImage = pType->AlphaImage;
+
+	if (pImage)
+	{
+		auto& alphaExt = StaticVars::ObjectLinkedAlphas;
+
+		if (const auto pAlpha = alphaExt.get_or_default(this->AttachedToObject))
+		{
+			GameDelete(pAlpha);
+
+			const auto tacticalPos = TacticalClass::Instance->TacticalPos;
+			Point2D off = { tacticalPos.X - (pImage->Width / 2), tacticalPos.Y - (pImage->Height / 2) };
+			const auto point = TacticalClass::Instance->CoordsToClient(this->AttachedToObject->GetCoords()) + off;
+			RectangleStruct dirty = { point.X - tacticalPos.X, point.Y - tacticalPos.Y, pImage->Width, pImage->Height };
+			TacticalClass::Instance->RegisterDirtyArea(dirty, true);
+		}
+	}
 }
 
 std::pair<WeaponTypeClass*, int> TechnoExtData::GetDeployFireWeapon(TechnoClass* pThis, AbstractClass* pTarget)

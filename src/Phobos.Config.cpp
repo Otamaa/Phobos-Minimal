@@ -220,6 +220,9 @@ void Phobos::Config::Read()
 		 Phobos::UI::SuperWeaponSidebar_MaxColumns =
 			 pINI->ReadInteger(GameStrings::SideBar(), "SuperWeaponSidebar.MaxColumns", Phobos::UI::SuperWeaponSidebar_MaxColumns);
 
+		 Phobos::UI::SuperWeaponSidebar_Pyramid =
+			pINI->ReadBool(GameStrings::SideBar(), "SuperWeaponSidebar.Pyramid", Phobos::UI::SuperWeaponSidebar_Pyramid);
+	
 		 pINI->ReadString(SIDEBAR_SECTION_T, "BattlePointsSidebar.Label", GameStrings::NoneStr(), Phobos::readBuffer);
 		 Phobos::UI::BattlePointsSidebar_Label = GeneralUtils::LoadStringUnlessMissing(Phobos::readBuffer, L"\u2605: "); // ★:
 

@@ -136,8 +136,8 @@ public:
 		};
 	}
 
-	static void __fastcall PrintTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
-		{ JMP_STD(0x6D4B50); }
+	//static void __fastcall PrintTimer(int arg1, ColorScheme* scheme, int interval, const wchar_t* string, LARGE_INTEGER* pBlinkTimer, bool* pBlinkState)
+	//	{ JMP_STD(0x6D4B50); }
 
 	void FocusOn(CoordStruct* pDest, int Velocity)
 		{ JMP_THIS(0x6D2420); }
@@ -153,8 +153,8 @@ public:
 	void RegisterCellAsVisible(CellClass* pCell)
 		{ JMP_THIS(0x6DA7D0) };
 
-	static int __fastcall DrawTimer(int index, ColorScheme *Scheme, int Time, wchar_t *Text, Point2D *someXY1, Point2D *someXY2)
-		{ JMP_STD(0x6D4B50); }
+	//static int __fastcall DrawTimer(int index, ColorScheme *Scheme, int Time, wchar_t *Text, Point2D *someXY1, Point2D *someXY2)
+	//	{ JMP_STD(0x6D4B50); }
 
 	/*
 	*   TacticalRenderMode_0_ALL = 0x0,
@@ -212,6 +212,10 @@ public:
 	}
 
 	int GetRamp(CoordStruct* pCoord) const { JMP_THIS(0x6D6AD0); }
+
+	void DrawAllTacticalText(wchar_t* text) const {
+		JMP_THIS(0x6D4E20);
+	}
 
 	TacticalClass() noexcept
 		: TacticalClass(noinit_t())

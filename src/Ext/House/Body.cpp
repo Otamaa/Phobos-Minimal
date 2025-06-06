@@ -87,7 +87,7 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 	float mult = 1.0;
 	auto const pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
-	for (auto const pBuilding : this->RestrictedFactoryPlants)
+	for (auto const& pBuilding : this->RestrictedFactoryPlants)
 	{
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
@@ -915,8 +915,9 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_VehicleType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
-	AnnounceInvalidPointer<BuildingClass*>(Academies, ptr, bRemoved);
+	AnnounceInvalidPointer(Academies, ptr, bRemoved);
 	AnnounceInvalidPointer<BuildingClass*>(RestrictedFactoryPlants, ptr, bRemoved);
+	AnnounceInvalidPointer(OwnedCountedHarvesters, ptr, bRemoved);
 
 	for (auto& nTun : Tunnels)
 		AnnounceInvalidPointer(nTun.Vector, ptr, bRemoved);
@@ -928,17 +929,19 @@ int HouseExtData::ActiveHarvesterCount(HouseClass* pThis)
 {
 	if (!pThis || !pThis->IsCurrentPlayer()) return 0;
 
+	auto pOwnerExt = HouseExtContainer::Instance.Find(pThis);
+
 	int result =
-		std::count_if(TechnoClass::Array->begin(), TechnoClass::Array->end(),
+		std::count_if(pOwnerExt->OwnedCountedHarvesters.begin(), pOwnerExt->OwnedCountedHarvesters.end(),
 		[pThis](TechnoClass* techno)
 		{
-			if (!techno->IsAlive || techno->Health <= 0 || techno->IsCrashing || techno->IsSinking || techno->Owner != pThis)
+			if (!techno->IsAlive || techno->Health <= 0 || techno->IsCrashing || techno->IsSinking)
 				return false;
 
 			if (techno->WhatAmI() == UnitClass::AbsID && (static_cast<UnitClass*>(techno)->DeathFrameCounter > 0))
 				return false;
 
-			return TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType())->IsCountedAsHarvester() && TechnoExtData::IsHarvesting(techno);
+			return TechnoExtData::IsHarvesting(techno);
 		});
 
 	return result;
@@ -949,13 +952,10 @@ int HouseExtData::TotalHarvesterCount(HouseClass* pThis)
 	if (!pThis || !pThis->IsCurrentPlayer() || pThis->Defeated) return 0;
 
 	int result = 0;
+	auto pOwnerExt = HouseExtContainer::Instance.Find(pThis);
 
-	TechnoTypeClass::Array->for_each([&result, pThis](TechnoTypeClass* techno)
- {
-	 if (TechnoTypeExtContainer::Instance.Find(techno)->IsCountedAsHarvester())
-	 {
-		 result += pThis->CountOwnedAndPresent(techno);
-	 }
+	std::for_each(pOwnerExt->OwnedCountedHarvesters.begin(), pOwnerExt->OwnedCountedHarvesters.end(), [&result, pThis](TechnoClass* techno) {
+		result += pThis->CountOwnedAndPresent(techno->GetTechnoType());
 	});
 
 	return result;
@@ -2116,6 +2116,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->FactoryOwners_GatheredPlansOf, true)
 		.Process(this->Academies, true)
 		.Process(this->Reversed, true)
+		.Process(this->OwnedCountedHarvesters)
 
 		.Process(this->Is_NavalYardSpied)
 		.Process(this->Is_AirfieldSpied)

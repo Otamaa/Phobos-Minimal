@@ -1499,6 +1499,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Cursor_Spy.Read(exINI, pSection, "Cursor.Spy");
 		this->ImmuneToSaboteurs.Read(exINI, pSection, "ImmuneToSaboteurs");
 		this->ReverseEngineersVictims.Read(exINI, pSection, "ReverseEngineersVictims");
+		this->ReverseEngineersVictims_Passengers.Read(exINI, pSection, "ReverseEngineersVictims.IncludePassengers");
+
 		this->Cursor_Sabotage.Read(exINI, pSection, "Cursor.Sabotage");
 
 		this->GateDownSound.Read(exINI, pSection, "GateDownSound");
@@ -1981,6 +1983,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->Cursor_Sabotage)
 		.Process(this->ImmuneToSaboteurs)
 		.Process(this->ReverseEngineersVictims)
+		.Process(this->ReverseEngineersVictims_Passengers)
 
 		.Process(this->GateDownSound)
 		.Process(this->GateUpSound)

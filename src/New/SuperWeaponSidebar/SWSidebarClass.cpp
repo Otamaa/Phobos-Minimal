@@ -22,17 +22,19 @@ CommandClass* SWSidebarClass::Commands[10];
 bool SWSidebarClass::AddColumn()
 {
 	auto& columns = this->Columns;
+	const int columnsCount = static_cast<int>(columns.size());
 
-	if (static_cast<int>(columns.size()) >= Phobos::UI::SuperWeaponSidebar_MaxColumns)
+	if (static_cast<int>(columnsCount) >= Phobos::UI::SuperWeaponSidebar_MaxColumns)
 		return false;
 
-	const int maxButtons = Phobos::UI::SuperWeaponSidebar_Max - static_cast<int>(columns.size());
+	const int firstColumn = Phobos::UI::SuperWeaponSidebar_Max;
+	const int maxButtons = Phobos::UI::SuperWeaponSidebar_Pyramid ? firstColumn - columnsCount : firstColumn;
 
 	if (maxButtons <= 0)
 		return false;
 
 	const int cameoWidth = 60;
-	const auto column = GameCreate<SWColumnClass>(SWButtonClass::StartID + SuperWeaponTypeClass::Array->Count + 1 + static_cast<int>(columns.size()), maxButtons, 0, 0, cameoWidth + Phobos::UI::SuperWeaponSidebar_Interval, Phobos::UI::SuperWeaponSidebar_CameoHeight);
+	const auto column = GameCreate<SWColumnClass>(SWButtonClass::StartID + SuperWeaponTypeClass::Array->Count + 1 + columnsCount, maxButtons, 0, 0, cameoWidth + Phobos::UI::SuperWeaponSidebar_Interval, Phobos::UI::SuperWeaponSidebar_CameoHeight);
 
 	column->Zap();
 	GScreenClass::Instance->AddButton(column);
@@ -208,9 +210,9 @@ void SWSidebarClass::SortButtons()
 
 	const int buttonCount = static_cast<int>(vec_Buttons.size());
 	const int cameoWidth = 60, cameoHeight = 48;
-	const int maximum = Phobos::UI::SuperWeaponSidebar_Max;
+	const int firstColumn = Phobos::UI::SuperWeaponSidebar_Max;
 	const int cameoHarfInterval = (Phobos::UI::SuperWeaponSidebar_CameoHeight - cameoHeight) / 2;
-	int location_Y = (DSurface::ViewBounds().Height - std::min(buttonCount, maximum) * Phobos::UI::SuperWeaponSidebar_CameoHeight) / 2;
+	int location_Y = (DSurface::ViewBounds().Height - std::min(buttonCount, firstColumn) * Phobos::UI::SuperWeaponSidebar_CameoHeight) / 2;
 	Point2D location = { Phobos::UI::SuperWeaponSidebar_LeftOffset, location_Y + cameoHarfInterval };
 	int rowIdx = 0, columnIdx = 0;
 
@@ -229,11 +231,16 @@ void SWSidebarClass::SortButtons()
 		button->SetPosition(location.X, location.Y);
 		rowIdx++;
 
-		if (rowIdx >= maximum - columnIdx)
+		const int currentCapacity = Phobos::UI::SuperWeaponSidebar_Pyramid ? firstColumn - columnIdx : firstColumn;
+
+		if (rowIdx >= currentCapacity)
 		{
 			rowIdx = 0;
 			columnIdx++;
-			location_Y += Phobos::UI::SuperWeaponSidebar_CameoHeight / 2;
+
+			if (Phobos::UI::SuperWeaponSidebar_Pyramid)
+				location_Y += Phobos::UI::SuperWeaponSidebar_CameoHeight / 2;
+
 			location.X += cameoWidth + Phobos::UI::SuperWeaponSidebar_Interval;
 			location.Y = location_Y + cameoHarfInterval;
 		}
@@ -250,8 +257,14 @@ void SWSidebarClass::SortButtons()
 int SWSidebarClass::GetMaximumButtonCount()
 {
 	const int firstColumn = Phobos::UI::SuperWeaponSidebar_Max;
-	const int columns = std::min(firstColumn, Phobos::UI::SuperWeaponSidebar_MaxColumns);
-	return (firstColumn + (firstColumn - (columns - 1))) * columns / 2;
+
+	if (Phobos::UI::SuperWeaponSidebar_Pyramid)
+	{
+		const int columns = std::min(firstColumn, Phobos::UI::SuperWeaponSidebar_MaxColumns);
+		return (firstColumn + (firstColumn - (columns - 1))) * columns / 2;
+	}
+
+	return firstColumn * Phobos::UI::SuperWeaponSidebar_MaxColumns;
 }
 
 bool SWSidebarClass::IsEnabled()

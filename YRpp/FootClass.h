@@ -197,10 +197,10 @@ public:
 	DWORD           unknown_530;
 	DWORD           unknown_534;
 	int				WalkedFramesSoFar;
-	bool            __PlayingMovingSound; //53C
-	int           __MovingSoundDelay; //540
+	bool            IsMoveSoundPlaying ; //53C
+	int           MoveSoundDelay; //540
 
-	DECLARE_PROPERTY(AudioController, Audio7);
+	DECLARE_PROPERTY(AudioController, MoveSoundAudioController);
 
 	CellStruct      CurrentMapCoords;
 	CellStruct      LastMapCoords; // ::UpdatePosition uses this to remove threat from last occupied cell, etc

@@ -528,6 +528,7 @@ public:
 	ValueableVector<int> Convert_Scipt_Prereq {};
 	Valueable<TechnoTypeClass*> Convert_Water { nullptr };
 	Valueable<TechnoTypeClass*> Convert_Land { nullptr };
+	Valueable<bool> Convert_ResetMindControl { false };
 
 	Nullable<Leptons> Harvester_LongScan { };
 	Nullable<Leptons> Harvester_ShortScan { };
@@ -1098,6 +1099,7 @@ public:
 	Nullable<int> BattlePoints {};
 
 	bool ForceWeapon_Check {};
+	Valueable<bool> FiringForceScatter { true };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
@@ -1106,7 +1108,6 @@ public:
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	bool IsCountedAsHarvester();
 	bool IsSecondary(int nWeaponIndex);
 
 	void AdjustCrushProperties();

@@ -14,6 +14,7 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
 #include <Ext/Terrain/Body.h>
+#include <Ext/Tactical/Body.h>
 
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
@@ -1798,7 +1799,7 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				{
 					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0)
 					{
-						pHouseExt->RestrictedFactoryPlants.push_back_unique(pBld);
+						pHouseExt->RestrictedFactoryPlants.emplace(pBld);
 					}
 
 					pThis->CostDefensesMult *= (*begin)->DefensesCostBonus;
@@ -2223,172 +2224,6 @@ ASMJIT_PATCH(0x73B0C5, UnitClass_Render_nullptrradio, 0x6)
 	return !pContact ? 0x73B124 : 0x0;
 }
 
-/**
- *  Draw a radial to the screen.
- *
- *  @authors: CCHyper
- */
-
-static void Tactical_Draw_Radial(
-	bool draw_indicator,
-	bool animate,
-	Coordinate center_coord,
-	ColorStruct color,
-	float radius,
-	bool concentric,
-	bool round)
-{
-	if (round)
-	{
-		radius = std::round(radius);
-	}
-
-	int size;
-
-	if (concentric)
-	{
-		size = (int)radius;
-	}
-	else
-	{
-		size = (int)((radius + 0.5) / Math::sqrt(2.0) * double(Unsorted::CellWidthInPixels)); // should be cell size global?
-	}
-
-	Point2D center_pixel = TacticalClass::Instance->CoordsToClient(center_coord);
-
-	center_pixel.X += DSurface::ViewBounds().X;
-	center_pixel.Y += DSurface::ViewBounds().Y;
-
-	RectangleStruct draw_area(
-		center_pixel.Y - size / 2,
-		center_pixel.X - size,
-		size * 2,
-		size
-	);
-
-	RectangleStruct intersect = draw_area.IntersectWith(DSurface::ViewBounds());
-	if (!intersect.IsValid())
-	{
-		return;
-	}
-
-	ColorStruct draw_color = color;
-
-	if (animate)
-	{
-		draw_color.Adjust(50, ColorStruct::Empty);
-	}
-
-	unsigned ellipse_color = DSurface::RGB_To_Pixel(draw_color.R, draw_color.G, draw_color.B);
-
-	/**
-	 *  Draw the main radial ellipse, then draw one slightly smaller to give a thicker impression.
-	 */
-	DSurface::Temp->Draw_Ellipse(center_pixel, size, size / 2, DSurface::ViewBounds(), ellipse_color);
-	DSurface::Temp->Draw_Ellipse(center_pixel, size - 1, size / 2 - 1, DSurface::ViewBounds(), ellipse_color);
-
-	/**
-	 *  Draw the sweeping indicator line.
-	 */
-	if (!draw_indicator)
-	{
-		return;
-	}
-
-	double d_size = (double)size;
-	double size_half = (double)size / 2;
-
-	/**
-	   *  The alpha values for the lines (producing the fall-off effect).
-	   */
-	static const double _line_alpha[] = {
-		//0.05, 0.20, 0.40, 1.0                     // original values.
-		0.05, 0.10, 0.20, 0.40, 0.60, 0.80, 1.0     // new values.
-	};
-
-	static const int _rate = 50;
-
-	for (size_t i = 0; i < ARRAY_SIZE(_line_alpha); ++i)
-	{
-
-		static int _offset = 0;
-		static MSTimerClass sweep_rate(_rate);
-
-		if (sweep_rate.Expired())
-		{
-			sweep_rate.Start(_rate);
-			++_offset;
-		}
-
-		float angle_offset = float((_offset + i) * 0.05);
-		int angle_increment = int(angle_offset / Math::DEG_TO_RADF(360));
-		float angle = angle_offset - (angle_increment * Math::DEG_TO_RADF(360));
-
-		Point2D line_start {};
-		Point2D line_end {};
-
-		if (std::fabs(angle - Math::DEG_TO_RADF(90)) < 0.001)
-		{
-
-			line_start = center_pixel;
-			line_end = Point2D(center_pixel.X, int(center_pixel.Y + (-size_half)));
-
-		}
-		else if (std::fabs(angle - Math::DEG_TO_RADF(270)) < 0.001)
-		{
-
-			line_start = center_pixel;
-			line_end = Point2D(center_pixel.X, int(center_pixel.Y + size_half));
-
-		}
-		else
-		{
-
-			double angle_tan = Math::tan(angle);
-			double xdist = Math::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
-			double ydist = Math::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
-
-			if (angle > Math::DEG_TO_RADF(90) && angle < Math::DEG_TO_RADF(270))
-			{
-				xdist = -xdist;
-			}
-
-			if (angle < Math::DEG_TO_RADF(180))
-			{
-				ydist = -ydist;
-			}
-
-			line_start = center_pixel;
-			line_end = Point2D(int(center_pixel.X + xdist), int(center_pixel.Y + ydist));
-
-		}
-
-		line_start.X -= DSurface::ViewBounds().X;
-		line_start.Y -= DSurface::ViewBounds().Y;
-
-		line_end.X -= DSurface::ViewBounds().X;
-		line_end.Y -= DSurface::ViewBounds().Y;
-
-		bool enable_red_channel = false;
-		bool enable_green_channel = true;
-		bool enable_blue_channel = false;
-
-		DSurface::Temp->DrawSubtractiveLine_AZ(DSurface::ViewBounds(),
-										line_start,
-										line_end,
-										draw_color,
-										-500,
-										-500,
-										false,
-										enable_red_channel,
-										enable_green_channel,
-										enable_blue_channel,
-										(float)_line_alpha[i]);
-
-	}
-}
-
-
 void FakeObjectClass::_DrawRadialIndicator(int val)
 {
 	if (auto pTechno = flag_cast_to<TechnoClass*, false>(this))
@@ -2427,7 +2262,7 @@ void FakeObjectClass::_DrawRadialIndicator(int val)
 					if (Color != ColorStruct::Empty)
 					{
 						auto nCoord = pTechno->GetCoords();
-						Tactical_Draw_Radial(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
+						FakeTacticalClass::__DrawRadialIndicator(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
 					}
 				}
 			}
@@ -4549,114 +4384,14 @@ ASMJIT_PATCH(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 	return pNthLink ? 0 : 0x7043E1;
 }
 
-template<class T, class U>
-COMPILETIMEEVAL int8 __CFADD__(T x, U y)
-{
-	if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 1)
-		return uint8(x) > uint8(x + y);
-	else if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 2)
-		return uint16(x) > uint16(x + y);
-	else if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 4)
-		return uint32(x) > uint32(x + y);
-	else
-		return unsigned __int64(x) > unsigned __int64(x + y);
-}
+ASMJIT_PATCH(0x6D4A35, TacticalClass_Render_SWText , 0x6) {
+	GET(SuperClass*, pSuper, ECX);
+	GET(int, val, EBX);
+	GET(int, interval, ESI);
 
-// TODO : percent timer draawing , the game dont like it when i do that without adjusting the posisition :S
-static void DrawSWTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
-{
-	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
+	FakeTacticalClass::__DrawTimersSW(pSuper, val, interval/ 15);
 
-	const int hour = interval / 60 / 60;
-	const int minute = interval / 60 % 60;
-	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
-
-	if(hour){
-		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
-	} else {
-		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
-	}
-
-	buffer.push_back(L'\0');
-
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
-	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
-	labe_buffer.push_back(L'\0');
-
-	int width = 0;
-	RectangleStruct rect_bound = DSurface::ViewBounds();
-	pFont->GetTextDimension(buffer.data(), &width, nullptr, rect_bound.Width);
-	ColorScheme* fore = color;
-
-	if (!interval && _arg && _arg1)
-	{
-		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
-			*_arg1 = !*_arg1;
-		}
-
-		if (*_arg1)
-		{
-			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
-		}
-	}
-
-	int value_plusone = value + 1;
-	Point2D point {
-		rect_bound.Width - width - 3 ,
-		rect_bound.Height - (value_plusone) * (pFont->field_1C + 2)
-	};
-
-	auto pComposite = DSurface::Composite();
-	auto rect = pComposite->Get_Rect();
-	Point2D _temp {};
-	ColorStruct out {};
-	color->BaseColor.ToColorStruct(&out);
-
-	Simple_Text_Print_Wide(
-		&_temp,
-		labe_buffer.data(),
-		pComposite,
-		&rect,
-		&point,
-		(COLORREF)out.ToInit(),
-		(COLORREF)0u,
-		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
-		true
-	);
-
-	point.X = rect_bound.Width - 3;
-	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
-	rect = pComposite->Get_Rect();
-	fore->BaseColor.ToColorStruct(&out);
-
-	Simple_Text_Print_Wide(
-	&_temp,
-	buffer.data(),
-	pComposite,
-	&rect,
-	&point,
-	(COLORREF)out.ToInit(),
-	(COLORREF)0u,
-	TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
-	true
-	);
-}
-
-ASMJIT_PATCH(0x6D4B50, PrintOnTactical, 0x6)
-{
-	GET(int, val, ECX);
-	GET(ColorScheme*, pScheme, EDX);
-	GET_STACK(int, interval, 0x4);
-	GET_STACK(const wchar_t*, text, 0x8);
-	GET_STACK(LARGE_INTEGER*, _arg, 0xC);
-	GET_STACK(bool*, _arg1, 0x10);
-	DrawSWTimers(val, pScheme, interval, text, _arg, _arg1);
-	return 0x6D4DAC;
+	return 0x6D4A70;
 }
 
 ASMJIT_PATCH(0x52C5A1, InitGame_SecondaryMixInit, 0x9)

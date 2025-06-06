@@ -113,7 +113,7 @@ bool FireBurst(AircraftClass* pAir, AbstractClass* pTarget)
 		WeaponIdx = pAir->SelectWeapon(pAir->Target);
 
 	const auto pWeaponStruct = pAir->GetWeapon(WeaponIdx);
-	bool Scatter = true;
+	const bool Scatter = TechnoTypeExtContainer::Instance.Find(pAir->Type)->FiringForceScatter ;
 
 	if (pWeaponStruct)
 	{

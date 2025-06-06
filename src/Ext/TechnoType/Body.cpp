@@ -234,23 +234,6 @@ bool TechnoTypeExtData::HasSelectionGroupID(ObjectTypeClass* pType, const std::s
 	return (IS_SAME_STR_(id, pID.c_str()));
 }
 
-bool TechnoTypeExtData::IsCountedAsHarvester()
-{
-	if(!this->Harvester_Counted.isset()) {
-		if(this->AttachedToObject->Enslaves){
-			this->Harvester_Counted = true;
-		}
-
-		if (const auto pUnit = type_cast<UnitTypeClass*>(this->AttachedToObject)){
-			if(pUnit->Harvester || pUnit->Enslaves){
-				this->Harvester_Counted = true;
-			}
-		}
-	}
-
-	return this->Harvester_Counted;
-}
-
 //DO NOT USE !
 void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis,
 	INI_EX& exArtINI,
@@ -397,6 +380,18 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Spawner_AttackImmediately.Read(exINI, pSection, "Spawner.AttackImmediately");
 		this->Spawner_UseTurretFacing.Read(exINI, pSection, "Spawner.UseTurretFacing");
 		this->Harvester_Counted.Read(exINI, pSection, "Harvester.Counted");
+	
+		if(!this->Harvester_Counted.isset()) {
+			if(this->AttachedToObject->Enslaves){
+				this->Harvester_Counted = true;
+			}
+
+			if (const auto pUnit = type_cast<UnitTypeClass*>(this->AttachedToObject)){
+				if(pUnit->Harvester || pUnit->Enslaves){
+					this->Harvester_Counted = true;
+				}
+			}
+		}
 		this->Promote_IncludeSpawns.Read(exINI, pSection, "Promote.IncludeSpawns");
 		this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
 		this->MultiMindControl_ReleaseVictim.Read(exINI, pSection, "MultiMindControl.ReleaseVictim");
@@ -1605,6 +1600,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			!this->ForceWeapon_InRange.empty()		||
 			!this->ForceAAWeapon_InRange.empty()
 		);
+
+		this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
+		this->Convert_ResetMindControl.Read(exINI, pSection, "Convert.ResetMindControl");
+
 	}
 
 	// Art tags
@@ -2800,6 +2799,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->BattlePoints)
 		.Process(this->ForceWeapon_Check)
+		.Process(this->FiringForceScatter)
+		.Process(this->Convert_ResetMindControl)
 		;
 }
 

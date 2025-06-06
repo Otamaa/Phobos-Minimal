@@ -207,6 +207,7 @@ public:
 	ValueableIdx<CursorTypeClass> Cursor_Sabotage { 93 };
 	Nullable<bool> ImmuneToSaboteurs {};
 	Valueable<bool> ReverseEngineersVictims { false };
+	Valueable<bool> ReverseEngineersVictims_Passengers { false };
 
 	// lightning rod
 	Valueable<double> LightningRod_Modifier { 1.0 };

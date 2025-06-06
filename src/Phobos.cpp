@@ -81,6 +81,7 @@ int Phobos::UI::SuperWeaponSidebar_LeftOffset { 0 };
 int Phobos::UI::SuperWeaponSidebar_CameoHeight { 48 };
 int Phobos::UI::SuperWeaponSidebar_Max { 0 };
 int Phobos::UI::SuperWeaponSidebar_MaxColumns { INT32_MAX };
+bool Phobos::UI::SuperWeaponSidebar_Pyramid = true;
 
 const wchar_t* Phobos::UI::CostLabel { L"" };
 const wchar_t* Phobos::UI::PowerLabel { L"" };

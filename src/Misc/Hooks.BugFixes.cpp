@@ -400,7 +400,7 @@ ASMJIT_PATCH(0x4DACDD, FootClass_CrashingVoice, 0x6)
 	{
 		if (pThis->IsCrashing)
 		{
-			pThis->Audio7.ShutUp();
+			pThis->MoveSoundAudioController.ShutUp();
 			auto const nCoord = pThis->GetCoords();
 
 			if (!pThis->IsAttackedByLocomotor)
@@ -410,16 +410,16 @@ ASMJIT_PATCH(0x4DACDD, FootClass_CrashingVoice, 0x6)
 				if (pThis->Owner->IsControlledByHuman())
 					VocClass::PlayIndexAtPos(pType->VoiceCrashing, nCoord);
 
-				VocClass::PlayIndexAtPos(pType->CrashingSound, nCoord, &pThis->Audio7);
+				VocClass::PlayIndexAtPos(pType->CrashingSound, nCoord, &pThis->MoveSoundAudioController);
 
 			}
 			else
 			{
-				VocClass::PlayIndexAtPos(RulesClass::Instance->ScoldSound, nCoord, &pThis->Audio7);
+				VocClass::PlayIndexAtPos(RulesClass::Instance->ScoldSound, nCoord, &pThis->MoveSoundAudioController);
 			}
 		}
-		else if (pThis->__PlayingMovingSound) // done playing
-			pThis->Audio7.ShutUp();
+		else if (pThis->IsMoveSoundPlaying ) // done playing
+			pThis->MoveSoundAudioController.ShutUp();
 
 		pThis->WasCrashingAlready = pThis->IsCrashing;
 	}
@@ -2418,7 +2418,7 @@ ASMJIT_PATCH(0x6F6DEE, TechnoClass_Unlimbo_BarrelFacingBugFix, 0x7)
 	return SkipGameCode;
 }
 
-#ifdef _AI_ZONE_CHECK
+#ifndef _AI_ZONE_CHECK
 ASMJIT_PATCH(0x4DFC39, FootClass_FindBioReactor_CheckValid, 0x6)
 {
 	GET(FootClass*, pThis, ESI);

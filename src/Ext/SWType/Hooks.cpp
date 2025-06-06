@@ -96,7 +96,9 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	return 0x0;
 }//
 
-ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
+#include <Ext/Tactical/Body.h>
+
+void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 {
 	const int AdvCommBarHeight = 32;
 
@@ -136,7 +138,7 @@ ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 	}
 
-	return 0;
+	this->DrawAllTacticalText(text);
 }
 
 ASMJIT_PATCH(0x6CC390, SuperClass_Launch, 0x6)

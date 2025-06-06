@@ -293,12 +293,12 @@ ASMJIT_PATCH(0x6FB9D7, TechnoClass_Cloak_RestoreMCAnim, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x51BAC7, TechnoClass_AI_Tunnel, 0x6) // Inf
+ASMJIT_PATCH(0x51B389, FootClass_TunnelAI_Enter, 0x6) // Inf
 {
 	GET(TechnoClass*, pThis, ESI);
 	TechnoExtContainer::Instance.Find(pThis)->UpdateOnTunnelEnter();
 	return 0x0;
-}ASMJIT_PATCH_AGAIN(0x7363B5, TechnoClass_AI_Tunnel, 0x6) // Unit
+}ASMJIT_PATCH_AGAIN(0x735A26, FootClass_TunnelAI_Enter, 0x6) // Unit
 
 // ASMJIT_PATCH(0x6F9EAD, TechnoClass_AI_AfterAres, 0x7)
 // {

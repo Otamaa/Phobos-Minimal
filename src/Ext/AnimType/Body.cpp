@@ -372,7 +372,7 @@ static TechnoClass* CreateFoot(
 								pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 								pJJLoco->IsMoving = true;
 								pJJLoco->HeadToCoord = location;
-								pJJLoco->Height = pType->JumpjetData.Height;
+								pJJLoco->Height = pType->JumpJetData.Height;
 
 								if (!inAir)
 									AircraftTrackerClass::Instance->Add(pTechno);

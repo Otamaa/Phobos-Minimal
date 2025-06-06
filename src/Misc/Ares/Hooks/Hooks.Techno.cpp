@@ -1069,6 +1069,9 @@ ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
 
 	//AircraftDiveFunctional::Init(pExt, pTypeExt);
 
+	if (pTypeExt->Harvester_Counted)
+		HouseExtContainer::Instance.Find(pThis->Owner)->OwnedCountedHarvesters.emplace(pThis);
+
 	if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID) {
 		if (pTypeExt->MyFighterData.Enable) {
 			pExt->MyFighterData = std::make_unique<FighterAreaGuard>();

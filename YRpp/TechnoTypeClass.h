@@ -552,7 +552,7 @@ public:
 	bool            Underwater;
 	bool            BalloonHover;
 	int             SuppressionThreshold;
-	DECLARE_PROPERTY(JumpjetProperties, JumpjetData);
+	JumpjetProperties JumpJetData;
 	bool            JumpJet;
 	bool            Crashable;
 	bool            ConsideredAircraft;
