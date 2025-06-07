@@ -329,7 +329,7 @@ void FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, int interva
 	buffer.push_back(L'\0');
 
 	fmt::basic_memory_buffer<wchar_t> labe_buffer;
-	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
+	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !label ? L"" : label);
 	labe_buffer.push_back(L'\0');
 
 	int width = 0;
@@ -689,7 +689,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	buffer.push_back(L'\0');
 
 	fmt::basic_memory_buffer<wchar_t> labe_buffer;
-	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", pSuper->Type->UIName);
+	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !pSuper->Type->UIName ? L"" : pSuper->Type->UIName);
 	labe_buffer.push_back(L'\0');
 
 	int width = 0;
