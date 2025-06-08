@@ -3648,7 +3648,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 				hasParasite = true;
 		};
 
-	for (int index = 0; index < TechnoTypeClass::MaxWeapons; index++)
+	for (int index = 0; index < (pCurrentType->WeaponCount > 0 ? pCurrentType->WeaponCount : 2); index++)
 	{
 		checkWeapon(pThis->GetWeapon(index)->WeaponType);
 	}
