@@ -1674,6 +1674,15 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 	return _res;
 }
 
+int FakeBuildingClass::_GetAirstrikeInvulnerabilityIntensity(int currentIntensity) const {
+	int newIntensity = this->GetFlashingIntensity(currentIntensity);
+
+	if (this->IsIronCurtained() || this->_GetTechnoExtData()->AirstrikeTargetingMe)
+		newIntensity = this->GetEffectTintIntensity(newIntensity);
+
+	return newIntensity;
+}
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x442230, FakeBuildingClass::_ReceiveDamage)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4028, FakeBuildingClass::_ReceiveDamage)
 #pragma endregion

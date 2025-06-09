@@ -140,6 +140,7 @@ public:
 	void _Spawn_Refinery_Smoke_Particles();
 	void _DetachAnim(AnimClass* pAnim);
 	DamageState _ReceiveDamage(int* Damage, int DistanceToEpicenter , WarheadTypeClass* WH , TechnoClass* Attacker , bool IgnoreDefenses , bool PreventsPassengerEscape , HouseClass* SourceHouse);
+	int _GetAirstrikeInvulnerabilityIntensity(int currentIntensity) const;
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{
@@ -165,8 +166,16 @@ public:
 		return *reinterpret_cast<BuildingExtData**>(((DWORD)this) + BuildingExtData::ExtOffset);
 	}
 
+	FORCEDINLINE const BuildingExtData* _GetExtData() const{
+		return *reinterpret_cast<const BuildingExtData**>(((DWORD)this) + BuildingExtData::ExtOffset);
+	}
+
 	FORCEDINLINE TechnoExtData* _GetTechnoExtData() {
 		return *reinterpret_cast<TechnoExtData**>(((DWORD)this) + TechnoExtData::ExtOffset);
+	}
+
+	FORCEDINLINE const TechnoExtData* _GetTechnoExtData() const {
+		return *reinterpret_cast<const TechnoExtData**>(((DWORD)this) + TechnoExtData::ExtOffset);
 	}
 
 	FORCEDINLINE BuildingTypeExtData* _GetTypeExtData() {

@@ -2460,13 +2460,10 @@ ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	GET(FakeBuildingClass*, pThis, ESI);
 	TechnoExt_ExtData::UpdateSensorArray(pThis);
 
-	const auto pTechnoExt = pThis->_GetTechnoExtData();
+	//const auto pTechnoExt = pThis->_GetTechnoExtData();
 	const auto pExt = pThis->_GetExtData();
 	pExt->DisplayIncomeString();
 	pExt->UpdatePoweredKillSpawns();
-
-	pTechnoExt->UpdateGattlingRateDownReset();
-
 	pExt->UpdateAutoSellTimer();
 	pExt->UpdateSpyEffecAnimDisplay();
 

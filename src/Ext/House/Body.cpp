@@ -2362,7 +2362,8 @@ int FakeHouseClass::_Expert_AI()
 		}
 	}
 
-	if (SessionClass::Instance->GameMode != GameMode::Campaign && !SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes) {
+	if (SpawnerMain::GetGameConfigs()->SpawnerHackMPNodes || SessionClass::Instance->GameMode != GameMode::Campaign) {
+
 		const std::array<UrgencyType,2u> urgency = {
 			this->AIMode == AIMode::BuildBase ? UrgencyType::None  : this->Check_Fire_Sale()
 			,
@@ -2381,9 +2382,6 @@ int FakeHouseClass::_Expert_AI()
                 }
             }
         }
-
-	} else {
-		this->AI_Fire_Sale(Check_Fire_Sale());
 	}
 
 	return ScenarioClass::Instance->Random.RandomRanged(1, 7) + 105;
