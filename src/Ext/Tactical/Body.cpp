@@ -147,7 +147,7 @@ COMPILETIMEEVAL int8 __CFADD__(T x, U y)
  *  @authors: CCHyper
  */
 
-void FakeTacticalClass::__DrawRadialIndicator(
+void __fastcall FakeTacticalClass::__DrawRadialIndicator(
 	bool draw_indicator,
 	bool animate,
 	Coordinate center_coord,
@@ -308,7 +308,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 
 #ifndef ___test
 
-void FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 
@@ -395,7 +395,7 @@ void FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, int interva
 	);
 }
 
-void FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 
@@ -482,7 +482,7 @@ void FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, int interva
 	);
 }
 
-void FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 
@@ -575,7 +575,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6D4B50, FakeTacticalClass::__DrawTimersC);
 
 #else
 
-void FakeTacticalClass::__DrawTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
+void __fastcall FakeTacticalClass::__DrawTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
 {
 	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
 

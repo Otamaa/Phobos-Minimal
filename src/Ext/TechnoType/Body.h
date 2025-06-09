@@ -1101,6 +1101,13 @@ public:
 	bool ForceWeapon_Check {};
 	Valueable<bool> FiringForceScatter { true };
 
+	Valueable<int> FireUp { -1 };
+	Valueable<bool> FireUp_ResetInRetarget { true };
+
+	Nullable<bool> ExtendedAircraftMissions_SmoothMoving {};
+	Nullable<bool> ExtendedAircraftMissions_EarlyDescend {};
+	Nullable<bool> ExtendedAircraftMissions_RearApproach {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

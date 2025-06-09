@@ -5931,6 +5931,8 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->LastWeaponType)
 		.Process(this->AirstrikeTargetingMe)
 		.Process(this->RandomEMPTarget)
+		.Process(this->FiringAnimationTimer)
+		.Process(this->ForceFullRearmDelay)
 		;
 }
 

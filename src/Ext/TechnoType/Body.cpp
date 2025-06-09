@@ -1593,12 +1593,18 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
 		this->Convert_ResetMindControl.Read(exINI, pSection, "Convert.ResetMindControl");
 
+		this->ExtendedAircraftMissions_SmoothMoving.Read(exINI, pSection, "ExtendedAircraftMissions.SmoothMoving");
+		this->ExtendedAircraftMissions_EarlyDescend.Read(exINI, pSection, "ExtendedAircraftMissions.EarlyDescend");
+		this->ExtendedAircraftMissions_RearApproach.Read(exINI, pSection, "ExtendedAircraftMissions.RearApproach");
 	}
 
 	// Art tags
 	if (pArtIni && pArtIni->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtIni);
+
+		this->FireUp.Read(exArtINI, pArtSection, "FireUp");
+		this->FireUp_ResetInRetarget.Read(exArtINI, pArtSection, "FireUp.ResetInRetarget");
 
 		this->GreyCameoPCX.Read(&CCINIClass::INI_Art, pArtSection, "GreyCameoPCX");
 		this->AlternateFLH_OnTurret.Read(exArtINI, pArtSection, "AlternateFLH.OnTurret");
@@ -2790,6 +2796,13 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ForceWeapon_Check)
 		.Process(this->FiringForceScatter)
 		.Process(this->Convert_ResetMindControl)
+
+		.Process(this->FireUp)
+		.Process(this->FireUp_ResetInRetarget)
+
+		.Process(this->ExtendedAircraftMissions_SmoothMoving)
+		.Process(this->ExtendedAircraftMissions_EarlyDescend)
+		.Process(this->ExtendedAircraftMissions_RearApproach)
 		;
 }
 

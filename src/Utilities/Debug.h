@@ -26,6 +26,10 @@ public:
 	static std::wstring LogFileMainFormattedName;
 	static std::wstring LogFileExt;
 	static std::wstring LogFileFullPath;
+	static std::wstring CrashDumpFileName;
+	static std::string SyncFileFormat;
+	static std::string SyncFileFormat2;
+
 	static char LogMessageBuffer[0x1000];
 	static char DefferedVectorBuffer[0x1000];
 	static std::vector<std::string> DefferedVector;
@@ -121,7 +125,9 @@ public:
 	{
 		if (Debug::LogFileActive()) {
 			for (auto& __log : Debug::DefferedVector) {
-				fprintf_s(Debug::LogFile, "%s", __log.c_str());
+				if(!__log.empty()) {
+					fprintf_s(Debug::LogFile, "%s", __log.c_str());
+				}
 			}
 		}
 
@@ -198,7 +204,8 @@ public:
 		PMINIDUMP_EXCEPTION_INFORMATION const pException = nullptr)
 	{
 		std::wstring filename = std::move(destinationFolder);
-		filename += L"\\extcrashdump.dmp";
+		filename += L"\\";
+		filename += Debug::CrashDumpFileName;
 
 		HANDLE dumpFile = CreateFileW(filename.c_str(), GENERIC_WRITE,
 			0, nullptr, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, nullptr);

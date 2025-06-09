@@ -464,10 +464,11 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 		CoordStruct coords = pThis->GetCoords();
 
 		if (pThis->TargetAndEstimateDamage(&coords, ThreatType::Normal))
-		{
 			pThis->QueueMission(Mission::Attack, false);
-			return SkipGameCode;
-		}
+		else if (pThis->Destination && pThis->Destination != pThis->DockedTo)
+			pThis->EnterIdleMode(false, true);
+
+		return SkipGameCode;
 	}
 
 	return 0;
@@ -495,20 +496,25 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 	GET(AircraftClass* const, pThis, ESI);
 	GET(CoordStruct* const, pCoords, EAX);
 
-	if (!RulesExtData::Instance()->ExpandAircraftMission)
-		return 0;
-
 	const auto pType = pThis->Type;
 
-	if (!pType->AirportBound || pThis->Airstrike || pThis->Spawned)
+	if (pThis->Team || pThis->Airstrike || pThis->Spawned || !pType->AirportBound)
 		return 0;
 
+	const auto extendedMissions = RulesExtData::Instance()->ExpandAircraftMission;
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (!pTypeExt->ExtendedAircraftMissions_SmoothMoving.Get(extendedMissions))
+		return 0;
+
+	const auto rotRadian = Math::abs(pThis->PrimaryFacing.ROT.Raw * (Math::TwoPi / 65536)); // GetRadian<65536>() is an incorrect method
+	const auto turningRadius = rotRadian > 1e-10 ? static_cast<int>(pType->Speed / rotRadian) : 0;
 	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
 
-	if (distance > MaxImpl((pType->SlowdownDistance >> 1), (2048 / pType->ROT)))
+	if (turningRadius > MaxImpl((pType->SlowdownDistance / 2), turningRadius))
 		return (R->Origin() == 0x4168C7 ? ContinueMoving1 : ContinueMoving2);
 
-	if (!pThis->planing_6385C0())
+	if (!extendedMissions || !pThis->TryNextPlanningTokenNode())
 		pThis->EnterIdleMode(false, true);
 
 	return EnterIdleAndReturn;
@@ -580,6 +586,19 @@ ASMJIT_PATCH(0x414D36, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
 // GreatestThreat: for all the mission that should let the aircraft auto select a target
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat);
 
+// Sleep: return to airbase if in incorrect sleep status
+
+
+int FakeAircraftClass::_Mission_Sleep()
+{
+	if (!this->Destination || this->Destination == this->DockedTo)
+		return 450; // Vanilla MissionClass_Mission_Sleep value
+
+	this->EnterIdleMode(false, true);
+	return 1;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E24A8, FakeAircraftClass::_Mission_Sleep)
+
 // Handle assigning area guard mission to aircraft.
 ASMJIT_PATCH(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
 {
@@ -587,12 +606,9 @@ ASMJIT_PATCH(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
 
 	GET(TechnoClass* const, pTechno, EDI);
 
-	if (RulesExtData::Instance()->ExpandAircraftMission && pTechno->WhatAmI() == AbstractType::Aircraft)
+	if (RulesExtData::Instance()->ExpandAircraftMission
+			&& pTechno->WhatAmI() == AbstractType::Aircraft)
 	{
-		// If we're on dock reloading but have ammo, untether from dock and try to scan for targets.
-		if (pTechno->CurrentMission == Mission::Sleep && pTechno->Ammo)
-			pTechno->SendToEachLink(RadioCommand::NotifyUnlink);
-
 		// Skip assigning destination / target here.
 		return SkipGameCode;
 	}
@@ -608,9 +624,13 @@ ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
 	GET(EventClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
 
-	if (RulesExtData::Instance()->ExpandAircraftMission && pTechno->WhatAmI() == AbstractType::Aircraft
-		&& pThis->Data.MegaMission.Mission == (char)Mission::Area_Guard)
+	if (RulesExtData::Instance()->ExpandAircraftMission
+		&& pTechno->WhatAmI() == AbstractType::Aircraft
+		&& pThis->Data.MegaMission.Mission == (char)Mission::Area_Guard
+		&& (pTechno->CurrentMission != Mission::Sleep || !pTechno->Ammo)
+		)
 	{
+		// If we're on dock reloading but have ammo, untether from dock and try to scan for targets.
 		return SkipGameCode;
 	}
 

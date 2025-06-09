@@ -51,15 +51,18 @@ MainWindowString = "Yuri's Revenge"
 
 --Internal DLL name will be put here if needed
 MovieMDINI = "MOVIEMD.INI"
+DebugLogName = "debug"
+CrashDumpFileName= "extcrashdump.dmp"
+
+-- Please dont change the %..d format , it is internal code for _snprintf_s
+-- you can ad more digit by changing the number after the %
+DesyncLogName = "SYNC%01d.TXT"
+DesyncLogName2 = "SYNC%01d_%03d.TXT"
 
 --Activate this to enable certain compatibily settings
 -- Phobos Develop `Convert` tags now readed as it is
--- "PlacementPreview.Show" -> "PlacementPreview"
--- "ShowBuildingPlacementPreview" -> "PlacementPreview"
--- "BuildingPlacementGrid.TranslucentLevel" -> "PlacementGrid.Translucency"
--- "BuildingPlacementPreview.DefaultTranslucentLevel" -> "PlacementPreview.Translucency"
 -- "DockingPoseDir" -> "AircraftDockingDir" , Read From Art -> Read From Rules
 -- "Gas.DriftSpeed" -> Gas.MaxDriftSpeed
 -- Note : that some tag not worked due to them not implemented like :
--- "IronCurtain.EffectOnOrganics" , "IronCurtain.KillOrganicsWarhead" , "IsVoiceCreatedGlobal" ,etc that i may forgot :p
+-- ,  "IsVoiceCreatedGlobal" ,etc that i may forgot :p
 CompatibilityMode=false

@@ -30,10 +30,13 @@ bool Debug::LogEnabled {};
 std::wstring Debug::ApplicationFilePath {};
 std::wstring Debug::DefaultFEMessage {};
 std::wstring Debug::LogFilePathName {};
-std::wstring Debug::LogFileMainName { L"\\debug" };
+std::wstring Debug::LogFileMainName { L"debug" };
 std::wstring Debug::LogFileMainFormattedName {};
 std::wstring Debug::LogFileExt { L".log" };
 std::wstring Debug::LogFileFullPath {};
+std::wstring Debug::CrashDumpFileName { L"extcrashdump.dmp" };
+std::string Debug::SyncFileFormat { "SYNC%01d.TXT" };
+std::string Debug::SyncFileFormat2 { "SYNC%01d_%03d.TXT" };
 char Debug::LogMessageBuffer[0x1000] {};
 char Debug::DefferedVectorBuffer[0x1000] {};
 std::vector<std::string> Debug::DefferedVector {};
@@ -83,7 +86,7 @@ void Debug::DetachLogger()
 }
 
 void Debug::PrepareLogFile()
-{ 
+{
 	if (!made) {
 		wchar_t path[MAX_PATH];
 		GetCurrentDirectoryW(MAX_PATH, path);
@@ -92,8 +95,8 @@ void Debug::PrepareLogFile()
 		Debug::LogFilePathName += L"\\debug";
 		std::filesystem::path logDir = std::filesystem::path(Debug::LogFilePathName);
 		std::filesystem::create_directories(logDir);
-		Debug::LogFileFullPath = logDir.wstring() + (Debug::LogFileMainName + Debug::LogFileExt);
-		Debug::LogFileMainFormattedName = Debug::LogFilePathName + Debug::LogFileMainName + L"." + GetCurTime() + Debug::LogFileExt;
+		Debug::LogFileFullPath = logDir.wstring() + L"\\" +  (Debug::LogFileMainName + Debug::LogFileExt);
+		Debug::LogFileMainFormattedName = Debug::LogFilePathName + L"\\" + Debug::LogFileMainName + L"." + GetCurTime() + Debug::LogFileExt;
 
 		made = 1;
 	}

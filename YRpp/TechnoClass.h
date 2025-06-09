@@ -770,7 +770,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void BaseIsAttacked(TechnoClass* pEnemy) const
 	{ JMP_THIS(0x708080); }
 
-	bool planing_6385C0() const { JMP_THIS(0x6385C0); }
+	bool TryNextPlanningTokenNode() const { JMP_THIS(0x6385C0); }
 	bool AllowToRetaliate(TechnoClass* source, WarheadTypeClass* warhead) const { JMP_THIS(0x7087C0); }
 
 	// returns the house that controls this techno (replaces the ID with player's ID if needed)

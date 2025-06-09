@@ -12,6 +12,7 @@
 
 #include <Lib/fmt/core.h>
 #include <Lib/fmt/xchar.h>
+#include <Lib/fmt/printf.h>
 
 class CCINIClass;
 class AbstractClass;

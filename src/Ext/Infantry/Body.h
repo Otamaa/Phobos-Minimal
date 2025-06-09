@@ -19,7 +19,6 @@ public:
 
 	bool IsUsingDeathSequence { false };
 	int CurrentDoType { -1 };
-	bool ForceFullRearmDelay { false };
 	bool SkipTargetChangeResetSequence { false };
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

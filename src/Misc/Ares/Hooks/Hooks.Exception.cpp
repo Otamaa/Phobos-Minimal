@@ -49,7 +49,7 @@ ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			_bar += L" Copied. - Yuri's Revenge";
 
 			MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
-			CopyFileW(Debug::LogFileFullPath.c_str(), (path + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
+			CopyFileW(Debug::LogFileFullPath.c_str(), (path + L"\\" + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
 		}
 
 		loadCursor = LoadCursor(nullptr, IDC_ARROW);
@@ -177,7 +177,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 			_bar += L" Copied. - Yuri's Revenge";
 
 			MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
-			CopyFileW(Debug::LogFileFullPath.c_str(), (path + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
+			CopyFileW(Debug::LogFileFullPath.c_str(), (path + L"\\" + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
 		}
 
 		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
@@ -677,10 +677,10 @@ void HouseLogger(const DynamicVectorClass<T>* Array, FILE* F, const char* Label 
 #include <Phobos.version.h>
 static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> const Logics {};
 
-static bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullptr)
+static bool LogFrame(const std::string& LogFilename, EventClass* OffendingEvent = nullptr)
 {
 	FILE* LogFile = nullptr;
-	if (!fopen_s(&LogFile, LogFilename, "wt") && LogFile)
+	if (!fopen_s(&LogFile, LogFilename.c_str(), "wt") && LogFile)
 	{
 		std::setvbuf(LogFile, nullptr, _IOFBF, 1024 * 1024); // 1024 kb buffer - should be sufficient for whole log
 
@@ -690,8 +690,7 @@ static bool LogFrame(const char* LogFilename, EventClass* OffendingEvent = nullp
 		fprintf(LogFile, "\n");
 
 		int i = 0;
-		for (auto const& data : Patch::ModuleDatas)
-		{
+		for (auto const& data : Patch::ModuleDatas) {
 			fprintf(LogFile, "Module [(%d) %s: Base address = %08X]\n", i++, data.ModuleName.c_str(), data.BaseAddr);
 		}
 
@@ -777,11 +776,10 @@ ASMJIT_PATCH(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 {
 	GET(EventClass*, OffendingEvent, ECX);
 
-	char LogFilename[0x40];
-	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), GameStrings::SYNCNAME_TXT(), HouseClass::CurrentPlayer->ArrayIndex);
+	const std::string SyncFileName = fmt::sprintf(Debug::SyncFileFormat.c_str(), HouseClass::CurrentPlayer->ArrayIndex);
 
-	LogFrame(LogFilename, OffendingEvent);
-	SyncLogger::WriteSyncLog(LogFilename);
+	LogFrame(SyncFileName, OffendingEvent);
+	SyncLogger::WriteSyncLog(SyncFileName);
 
 	return 0x64DF3D;
 }
@@ -791,11 +789,9 @@ ASMJIT_PATCH(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 	GET(int, SlotNumber, ECX);
 	GET(EventClass*, OffendingEvent, EDX);
 
-	char LogFilename[0x40];
-	IMPL_SNPRNINTF(LogFilename, sizeof(LogFilename), GameStrings::SYNCNAME2_TXT(), HouseClass::CurrentPlayer->ArrayIndex, SlotNumber);
-
-	LogFrame(LogFilename, OffendingEvent);
-	SyncLogger::WriteSyncLog(LogFilename);
+	const std::string SyncFileName = fmt::sprintf(Debug::SyncFileFormat2.c_str(), HouseClass::CurrentPlayer->ArrayIndex, SlotNumber);
+	LogFrame(SyncFileName, OffendingEvent);
+	SyncLogger::WriteSyncLog(SyncFileName);
 
 	return 0x651781;
 }

@@ -1331,7 +1331,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PlacementPreview_Offset.Read(exINI, pSection, "PlacementPreview.Offset");
 		this->PlacementPreview_Remap.Read(exINI, pSection, "PlacementPreview.Remap");
 		this->PlacementPreview_Palette.Read(exINI, pSection, "PlacementPreview.Palette");
-		this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucent");
+		this->PlacementPreview_TranslucentLevel.Read(exINI, pSection, "PlacementPreview.Translucency");
 
 		this->AutoBuilding.Read(exINI, pSection, "AutoBuilding");
 		this->AutoBuilding_Gap.Read(exINI, pSection, "AutoBuilding.Gap");
@@ -1398,7 +1398,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->Power_DegradeWithHealth.Read(exINI, pSection, "Power.DegradeWithHealth");
 		this->AutoSellTime.Read(exINI, pSection, "AutoSell.Time");
-		this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "BuildingPlacementGrid.Shape");
+		this->BuildingPlacementGrid_Shape.Read(exINI, pSection, "PlacementGrid.Shape");
 		this->SpeedBonus.Read(exINI, pSection);
 		this->RadialIndicator_Visibility.Read(exINI, pSection, "RadialIndicatorVisibility");
 

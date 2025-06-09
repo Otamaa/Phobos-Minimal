@@ -747,6 +747,9 @@ public:
 	AirstrikeClass* AirstrikeTargetingMe {};
 	CellStruct RandomEMPTarget {};
 
+	CDTimerClass FiringAnimationTimer {};
+	bool ForceFullRearmDelay { false };
+
 	~TechnoExtData()
 	{
 		if (!Phobos::Otamaa::ExeTerminated)

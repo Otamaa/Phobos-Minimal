@@ -305,17 +305,15 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	GET(WeaponTypeClass*, pWeapon, EDI);
 	GET(int, currentBurstIdx, ECX);
 
-	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = false;
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	pExt->LastRearmWasFullDelay = false;
 
 	bool rearm = currentBurstIdx >= pWeapon->Burst;
 
-	// Currently only used with infantry, so a performance saving measure.
-	if (const auto pInf = cast_to<FakeInfantryClass*, false>(pThis)) {
-		if (pInf->_GetExtData()->ForceFullRearmDelay) {
-			pInf->_GetExtData()->ForceFullRearmDelay = false;
-			pThis->CurrentBurstIndex = 0;
-			rearm = true;
-		}
+	if (pExt->ForceFullRearmDelay) {
+		pExt->ForceFullRearmDelay = false;
+		pThis->CurrentBurstIndex = 0;
+		rearm = true;
 	}
 
 	if (!rearm)
@@ -334,12 +332,12 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 
 	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = true;
 	int nResult = 0;
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if (pExt->ROF_Random.Get())
+	if (pTypeExt->ROF_Random.Get())
 	{
 		const auto nDefault = Point2D { RulesExtData::Instance()->ROF_RandomDelay->X , RulesExtData::Instance()->ROF_RandomDelay->Y };
-		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pExt->Rof_RandomMinMax.Get(nDefault));
+		nResult += GeneralUtils::GetRangedRandomOrSingleValue(pTypeExt->Rof_RandomMinMax.Get(nDefault));
 	}
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
@@ -1393,4 +1391,117 @@ ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Miner, 0x5)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	return pTypeExt->Harvester_CanGuardArea && pThis->Owner->IsControlledByHuman() ? GoGuardArea : 0;
+}
+
+ASMJIT_PATCH(0x6FCF8C, TechnoClass_SetTarget_After, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (const auto pUnit = cast_to<UnitClass*, false>(pThis))
+	{
+		const auto pUnitType = pUnit->Type;
+
+		if (!pUnitType->Turret && !pUnitType->Voxel)
+		{
+			const auto pTarget = pThis->Target;
+			const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pUnitType);
+
+			if (!pTarget || pTypeExt->FireUp < 0 || pTypeExt->FireUp_ResetInRetarget
+				|| !pThis->IsCloseEnough(pTarget, pThis->SelectWeapon(pTarget)))
+			{
+				pUnit->CurrentFiringFrame = -1;
+				pExt->FiringAnimationTimer.Stop();
+			}
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_JUMP(LJMP, 0x741406, 0x741427);
+
+ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	GET(int, weaponIndex, EDI);
+
+	const auto pType = pThis->Type;
+
+	if (pType->Turret || pType->Voxel)
+		return 0;
+
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	// SHP vehicles have no secondary action frames, so it does not need SecondaryFire.
+	const int fireUp = pTypeExt->FireUp;
+	CDTimerClass& Timer = pExt->FiringAnimationTimer;
+
+	if (fireUp >= 0 && !pType->OpportunityFire &&
+		pThis->Locomotor->Is_Really_Moving_Now())
+	{
+		if (Timer.InProgress())
+			Timer.Stop();
+
+		return 0x736F73;
+	}
+
+	const int frames = pType->FiringFrames;
+	if (!Timer.InProgress() && frames >= 1)
+	{
+		pThis->CurrentFiringFrame = 2 * frames - 1;
+		Timer.Start(pThis->CurrentFiringFrame);
+	}
+
+	if (fireUp >= 0 && frames >= 1)
+	{
+		int cumulativeDelay = 0;
+		int projectedDelay = 0;
+		auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
+		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+		const bool allowBurst = pWeaponExt && pWeaponExt->Burst_FireWithinSequence;
+
+		// Calculate cumulative burst delay as well cumulative delay after next shot (projected delay).
+		if (allowBurst)
+		{
+			for (int i = 0; i <= pThis->CurrentBurstIndex; i++)
+			{
+				const int burstDelay = WeaponTypeExtData::GetBurstDelay(pWeapon , i);
+				int delay = 0;
+
+				if (burstDelay > -1)
+					delay = burstDelay;
+				else
+					delay = ScenarioClass::Instance->Random.RandomRanged(3, 5);
+
+				// Other than initial delay, treat 0 frame delays as 1 frame delay due to per-frame processing.
+				if (i != 0)
+					delay = std::max(delay, 1);
+
+				cumulativeDelay += delay;
+
+				if (i == pThis->CurrentBurstIndex)
+					projectedDelay = cumulativeDelay + delay;
+			}
+		}
+
+		const int frame = (Timer.TimeLeft - Timer.GetTimeLeft());
+
+		if (frame % 2 != 0)
+			return 0x736F73;
+
+		if (frame / 2 != fireUp + cumulativeDelay)
+		{
+			return 0x736F73;
+		}
+		else if (allowBurst)
+		{
+			// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
+			if (fireUp + projectedDelay > frames)
+				pExt->ForceFullRearmDelay = true;
+		}
+	}
+
+	return 0;
 }
