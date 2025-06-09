@@ -511,7 +511,7 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 	const auto turningRadius = rotRadian > 1e-10 ? static_cast<int>(pType->Speed / rotRadian) : 0;
 	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
 
-	if (turningRadius > MaxImpl((pType->SlowdownDistance / 2), turningRadius))
+	if (distance > MaxImpl((pType->SlowdownDistance / 2), turningRadius))
 		return (R->Origin() == 0x4168C7 ? ContinueMoving1 : ContinueMoving2);
 
 	if (!extendedMissions || !pThis->TryNextPlanningTokenNode())

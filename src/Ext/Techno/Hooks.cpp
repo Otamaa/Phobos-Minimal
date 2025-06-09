@@ -1371,11 +1371,11 @@ ASMJIT_PATCH(0x456E5A, BuildingClass_Flash_Airstrike, 0x6)
 	return pExt->AirstrikeTargetingMe ? ContinueTintIntensity : NonAirstrike;
 }
 
-DEFINE_FUNCTION_JUMP(CALL, 0x450A5D, FakeBuildingClass:_GetAirstrikeInvulnerabilityIntensity); // BuildingClass_Animation_AI
+DEFINE_FUNCTION_JUMP(CALL, 0x450A5D, FakeBuildingClass::_GetAirstrikeInvulnerabilityIntensity); // BuildingClass_Animation_AI
 
 #pragma endregion
 
-ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Miner, 0x5)
+ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Harvester, 0x5)
 {
 	enum { GoGuardArea = 0x4D6D69 };
 

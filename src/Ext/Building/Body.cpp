@@ -969,6 +969,16 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	TechnoExtData::HandleRemove(pBuilding, nullptr, true, false);
 }
 
+int FakeBuildingClass::_GetAirstrikeInvulnerabilityIntensity(int currentIntensity) const
+{
+	int newIntensity = this->GetFlashingIntensity(currentIntensity);
+
+	if (this->IsIronCurtained() || this->_GetTechnoExtData()->AirstrikeTargetingMe)
+		newIntensity = this->GetEffectTintIntensity(newIntensity);
+
+	return newIntensity;
+}
+
 void FakeBuildingClass::_OnFireAI()
 {
 	const auto pType = this->Type;
