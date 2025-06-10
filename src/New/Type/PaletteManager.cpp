@@ -219,10 +219,9 @@ bool CustomPalette::Allocate(std::string name)
 
 	if (auto pPal = FileSystem::AllocatePalette(name.c_str()))
 	{
+		this->Name = name;
 		this->Palette.reset(pPal);
 		this->CreateConvert();
-
-		this->ColorschemeDataVector = ColorScheme::GeneratePalette(name.data());
 	}
 
 	return this->Convert != nullptr;
@@ -247,8 +246,6 @@ bool CustomPalette::Read(INI_EX& parser, const char* pSection, const char* pKey)
 		{
 			this->Palette.reset(pPal);
 			this->CreateConvert();
-
-			this->ColorschemeDataVector = (ColorScheme::GeneratePalette(parser.value()));
 		}
 
 		return this->Convert != nullptr;
@@ -261,7 +258,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	this->Clear();
 
 	bool hasPalette = false;
-	auto ret = Stm.Load(this->Mode) && Stm.Load(hasPalette);
+	auto ret = Stm.Load(this->Mode) && Stm.Load(this->Name) && Stm.Load(hasPalette);
 
 	if (ret && hasPalette)
 	{
@@ -280,6 +277,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 {
 	Stm.Save(this->Mode);
+	Stm.Save(this->Name);
 	Stm.Save(this->Palette != nullptr);
 	if (this->Palette)
 	{
@@ -310,5 +308,7 @@ void CustomPalette::CreateConvert()
 			*this->Palette.get(), *this->Palette.get(), DSurface::Alternate,
 			1, false);
 	}
+
 	this->Convert.reset(buffer);
+	this->ColorschemeDataVector = (ColorScheme::GeneratePalette(this->Name.data()));
 }
