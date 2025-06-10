@@ -1775,6 +1775,7 @@ enum class SoundControl : unsigned int {
 };
 
 enum class VoxType : int {
+	none = -1,
 	Standard = 0,
 	Queue = 1,
 	Interrupt = 2,
@@ -1782,6 +1783,7 @@ enum class VoxType : int {
 };
 
 enum class VoxPriority : int {
+	none = -1,
 	Low = 0,
 	Normal = 1,
 	Important = 2,

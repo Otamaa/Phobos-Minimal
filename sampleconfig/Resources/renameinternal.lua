@@ -37,16 +37,17 @@ Replaces = {
 	{Addr = 0x00826748, To = "MOVMD*.MIX"                                           }, --29
 	{Addr = 0x00830A18, To = "MPMODESMD.INI"                                        }, --30
 	{Addr = 0x0081F3C0, To = "COOPCAMPMD.INI"                                       }, --31
-	{Addr = 0x008332F4, To = "----------- Loading ".. Replaces[16].To .." settings -----------\n" }, --32
-	{Addr = 0x00825DA0, To = "Reading ".. Replaces[15].To .."\n"	                            }, --33
-	{Addr = 0x00825DB8, To = "Failed to load ".. Replaces[7].To .."\n"              }, --34
-	{Addr = 0x00825DD4, To = "Failed to find ".. Replaces[7].To .."\n"              }, --35
-	{Addr = 0x00825DFC, To = "Reading ".. Replaces[7].To .."\n"                     }, --36
-	{Addr = 0x00825E5C, To = "Reading ".. Replaces[12].To .."\n"                    }, --37
-	{Addr = 0x00825E10, To = "Failed to load ".. Replaces[12].To .."!\n"            }, --38
-	{Addr = 0x00825E30, To = "Failed to find ".. Replaces[12].To .."!\n"            }, --39
-	{Addr = 0x00827DAC, To = "Failed to load ".. Replaces[8].To .."!\n"             }  --40
+	{Addr = 0x008332F4, To = "----------- Loading RA2MD.INI settings -----------\n" }, --32
+	{Addr = 0x00825DA0, To = "Reading THEMEMD.INI\n"	                            }, --33
+	{Addr = 0x00825DB8, To = "Failed to load EVAMD.INI\n"              				}, --34
+	{Addr = 0x00825DD4, To = "Failed to find EVAMD.INI\n"              				}, --35
+	{Addr = 0x00825DFC, To = "Reading EVAMD.INI\n"                     				}, --36
+	{Addr = 0x00825E5C, To = "Reading SOUNDMD.INI\n"                    			}, --37
+	{Addr = 0x00825E10, To = "Failed to load SOUNDMD.INI!\n"            			}, --38
+	{Addr = 0x00825E30, To = "Failed to find SOUNDMD.INI!\n"            			}, --39
+	{Addr = 0x00827DAC, To = "Failed to load UIMD.INI!\n"             				}  --40
 }
+
 --Replace Main Window String is put in here due to character storage limit
 MainWindowString = "Yuri's Revenge"
 

@@ -2795,7 +2795,7 @@ void SWTypeExtData::GrantOneTimeFromList(SuperClass* pSW)
 	if (notObserver && pHouse->IsCurrentPlayer())
 	{
 		if (this->EVA_GrantOneTimeLaunched.isset())
-			VoxClass::PlayIndex(this->EVA_GrantOneTimeLaunched.Get(), -1, -1);
+			VoxClass::PlayIndex(this->EVA_GrantOneTimeLaunched.Get());
 
 		GeneralUtils::PrintMessage(this->Message_GrantOneTimeLaunched.Get());
 	}

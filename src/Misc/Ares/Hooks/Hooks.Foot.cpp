@@ -70,7 +70,7 @@ ASMJIT_PATCH(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (RadarEventClass::Create(RadarEventType::UnitLost, pThis->GetMapCoords()))
-		VoxClass::PlayIndex(pTypeExt->EVA_UnitLost, -1, -1);
+		VoxClass::PlayIndex(pTypeExt->EVA_UnitLost);
 
 	return Skip;
 }

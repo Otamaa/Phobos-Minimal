@@ -4664,7 +4664,11 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 
 			if (!bSilent && pExpReceiver->Owner->ControlledByCurrentPlayer())
 			{
-				VocClass::PlayIndexAtPos(sound, (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location, nullptr);
+				const CoordStruct loc_ = (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location;
+
+				if (loc_.IsValid())
+					VocClass::PlayIndexAtPos(sound, loc_, nullptr);
+
 				VoxClass::PlayIndex(eva);
 			}
 
@@ -5213,7 +5217,7 @@ void AresEMPulse::announceAttack(TechnoClass* Techno)
 	{
 	case AttackEvents::Harvester:
 		if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, Techno->GetMapCoords()))
-			VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack, -1, -1);
+			VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack);
 		break;
 	case AttackEvents::Base:
 		HouseClass::CurrentPlayer->BuildingUnderAttack(cast_to<BuildingClass*, false>(Techno));
