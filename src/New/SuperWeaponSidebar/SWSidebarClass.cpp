@@ -269,7 +269,7 @@ int SWSidebarClass::GetMaximumButtonCount()
 
 bool SWSidebarClass::IsEnabled()
 {
-	return ScenarioExtData::Instance()->SWSidebar_Enable;
+	return !ScenarioClass::Instance->UserInputLocked && ScenarioExtData::Instance()->SWSidebar_Enable;
 }
 
 void SWSidebarClass::RecheckCameo()

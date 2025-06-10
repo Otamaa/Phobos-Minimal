@@ -18,6 +18,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\ForceWin.cpp" />
     <ClCompile Include="src\Commands\Harmless.cpp" />
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
@@ -565,6 +566,7 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Commands\ForceWin.h" />
     <ClInclude Include="src\Commands\Harmless.h" />
     <ClInclude Include="src\ExtraHeaders\AlignedMemory.h" />
     <ClInclude Include="src\ExtraHeaders\CompileTimeDirStruct.h" />
