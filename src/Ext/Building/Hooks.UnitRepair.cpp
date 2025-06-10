@@ -51,7 +51,7 @@ ASMJIT_PATCH(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 				{
 					if (auto const pLink = pThis->GetNthLink(i))
 					{
-						if (!pLink->IsInAir() && pThis->SendCommand(RadioCommand::QueryMoving, pLink) == RadioCommand::AnswerPositive)
+						if (!pLink->IsInAir()  && pLink->Health < pLink->GetTechnoType()->Strength && pThis->SendCommand(RadioCommand::QueryMoving, pLink) == RadioCommand::AnswerPositive)
 							pThis->SendCommand(RadioCommand::RequestRepair, pLink);
 					}
 				}

@@ -2886,3 +2886,16 @@ ASMJIT_PATCH(0x489E47, DamageArea_RockerItemsFix2, 0x6)
 #endif
 
 DEFINE_JUMP(LJMP, 0x4C752A, 0x4C757D); // Skip cell under bridge check
+
+// Fix a potential edge case where aircraft gets stuck in 'sleep' (reload/repair) on dock if it gets assigned target from team mission etc.
+ASMJIT_PATCH(0x41915D, AircraftClass_ReceiveCommand_QueryPreparedness, 0x8)
+{
+	enum { CheckAmmo = 0x419169 };
+
+	GET(AircraftClass*, pThis, ESI);
+
+	if (pThis->Team && pThis->Team->ArchiveTarget == pThis->Target && pThis->CurrentMission == Mission::Sleep)
+		return CheckAmmo;
+
+	return 0;
+}

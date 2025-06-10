@@ -10,7 +10,8 @@
 
 std::unique_ptr<SidebarExtData> SidebarExtData::Data;
 IStream* SidebarExtData::g_pStm;
-std::array<SHPReference*, 4u> SidebarExtData::TabProducingProgress;
+std::array<SHPReference*, 4u> SidebarExtData::TabProducingProgress {};
+std::array<bool, 4u> SidebarExtData::TabProducingProgressIsLoaded {};
 
 void SidebarExtData::Allocate(SidebarClass* pThis)
 {
