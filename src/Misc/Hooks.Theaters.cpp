@@ -293,6 +293,8 @@ ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 		nType = TheaterType::Temperate;
 	}
 
+	//PaletteManager::InitDefaultConverts();
+
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(nType);
 
 	// buffer size 16

@@ -6,6 +6,8 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
+#include <New/Type/PaletteManager.h>
+
 #include <ScenarioClass.h>
 #include <set>
 
@@ -21,7 +23,7 @@ public:
 
 public :
 	Valueable<int> Tileset { -1 };
-	Valueable<PaletteManager*> Palette {};
+	CustomPalette Palette {};
 
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

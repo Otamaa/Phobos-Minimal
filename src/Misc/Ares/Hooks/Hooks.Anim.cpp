@@ -35,11 +35,9 @@ ASMJIT_PATCH(0x4232CE, AnimClass_Draw_SetPalette, 6)
 	const auto pData = AnimTypeExtContainer::Instance.TryFind(pThis->Type);
 
 	if (pData ) {
-		if(const auto pConvertData = pData->Palette) {
-			if(auto pConvert = pConvertData->GetConvert<PaletteManager::Mode::Temperate>()){
-				R->ECX<ConvertClass*>(pConvert);
-				return 0x4232D4;
-			}
+		if(const auto pConvert = pData->Palette.GetConvert()) {
+			R->ECX<ConvertClass*>(pConvert);
+			return 0x4232D4;
 		}
 	}
 

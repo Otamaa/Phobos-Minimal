@@ -73,7 +73,7 @@ public:
 	Nullable<int> PlacementPreview_ShapeFrame {};
 	Valueable<CoordStruct> PlacementPreview_Offset { {0, -15, 1} };
 	Valueable<bool> PlacementPreview_Remap { true };
-	Valueable<PaletteManager*> PlacementPreview_Palette {}; //CustomPalette::PaletteMode::Default
+	CustomPalette PlacementPreview_Palette { CustomPalette::PaletteMode::Temperate }; //
 	Nullable<int> PlacementPreview_TranslucentLevel {};
 
 	Nullable<AffectedHouse> RadialIndicator_Visibility {};
@@ -172,7 +172,7 @@ public:
 	std::vector<AnimTypeClass*> GarrisonAnim_ActiveThree {};
 	std::vector<AnimTypeClass*> GarrisonAnim_ActiveFour {};
 
-	Valueable<PaletteManager*> PipShapes01Palette {}; //CustomPalette::PaletteMode::Temperate
+	CustomPalette PipShapes01Palette { CustomPalette::PaletteMode::Temperate }; //CustomPalette::PaletteMode::Temperate
 	Valueable<bool> PipShapes01Remap { false };
 
 	Nullable<AnimTypeClass*> TurretAnim_LowPower {};
@@ -189,7 +189,7 @@ public:
 	Nullable<SHPStruct*> BuildingPlacementGrid_Shape {};
 	BuildSpeedBonus SpeedBonus {};
 
-	Valueable<PaletteManager*> RubblePalette {}; //CustomPalette::PaletteMode::Temperates
+	CustomPalette RubblePalette { CustomPalette::PaletteMode::Temperate }; //CustomPalette::PaletteMode::Temperates
 
 	ValueableVector<FacingType> DockPoseDir {};
 

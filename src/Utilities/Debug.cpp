@@ -94,7 +94,14 @@ void Debug::PrepareLogFile()
 		Debug::LogFilePathName = path;
 		Debug::LogFilePathName += L"\\debug";
 		std::filesystem::path logDir = std::filesystem::path(Debug::LogFilePathName);
-		std::filesystem::create_directories(logDir);
+		std::error_code ec;
+		std::filesystem::create_directories(logDir , ec);
+
+		if(ec){
+			Debug::FatalErrorAndExit("Failedtocreate dir %ls reason %s!\n" , Debug::LogFilePathName.c_str() , ec.message().c_str());
+			return;
+		}
+
 		Debug::LogFileFullPath = logDir.wstring() + L"\\" +  (Debug::LogFileMainName + Debug::LogFileExt);
 		Debug::LogFileMainFormattedName = Debug::LogFilePathName + L"\\" + Debug::LogFileMainName + L"." + GetCurTime() + Debug::LogFileExt;
 
@@ -162,9 +169,14 @@ void Debug::DumpStack(REGISTERS* R, size_t len, int startAt)
 std::wstring Debug::PrepareSnapshotDirectory()
 {
 	const std::wstring buffer = Debug::LogFilePathName + L"\\snapshot-" + Debug::GetCurTime();
-	if (!std::filesystem::create_directories(buffer)) {
-		std::wstring msg = fmt::format(L"Log file failed to create snapshor dir. Error code = {}", errno);
-		MessageBoxW(Game::hWnd.get(), Debug::LogFileFullPath.c_str(), msg.c_str(), MB_OK | MB_ICONEXCLAMATION);
+	std::error_code ec;
+	std::filesystem::create_directories(buffer,ec);
+
+	if (ec) {
+		std::wstring msg = fmt::format(L"Log file failed to create snapshor dir {} .\n Error code = {}",
+			Debug::LogFileFullPath , PhobosCRT::StringToWideString(ec.message()));
+
+		MessageBoxW(Game::hWnd.get(), msg.c_str(), L"Error!" , MB_OK | MB_ICONEXCLAMATION);
 		Phobos::ExeTerminate();
 		exit(errno);
 	}

@@ -878,17 +878,17 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 
 	if (!pTypeExt->PlacementPreview_Remap.Get())
 	{
-		if (const auto pCustom = pTypeExt->PlacementPreview_Palette)
+		if (const auto pCustom = pTypeExt->PlacementPreview_Palette.GetConvert())
 		{
-			pDecidedPal = pCustom->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pDecidedPal);
+			pDecidedPal = pCustom;
 		}
 
 	}
 	else
 	{
-		if (pTypeExt->PlacementPreview_Palette && pTypeExt->PlacementPreview_Palette->ColorschemeDataVector)
+		if (auto pVecPal = pTypeExt->PlacementPreview_Palette.ColorschemeDataVector)
 		{
-			pDecidedPal = pTypeExt->PlacementPreview_Palette->ColorschemeDataVector->Items[pBuilding->Owner->ColorSchemeIndex]->LightConvert;
+			pDecidedPal = pVecPal->Items[pBuilding->Owner->ColorSchemeIndex]->LightConvert;
 		}
 		else
 		{

@@ -2,6 +2,7 @@
 
 #include <Utilities/Anchor.h>
 #include <Utilities/Constructs.h>
+#include <New/Type/PaletteManager.h>
 
 class HugeBar
 {
@@ -21,8 +22,8 @@ public:
 
 	Valueable<SHPStruct*> HugeBar_Shape;
 	Valueable<SHPStruct*> HugeBar_Pips_Shape;
-	Valueable<PaletteManager*> HugeBar_Palette;
-	Valueable<PaletteManager*> HugeBar_Pips_Palette;
+	CustomPalette HugeBar_Palette;
+	CustomPalette HugeBar_Pips_Palette;
 	Damageable<int> HugeBar_Frame;
 	Damageable<int> HugeBar_Pips_Frame;
 	Valueable<int> HugeBar_Pips_Spacing;
@@ -34,7 +35,7 @@ public:
 	Damageable<ColorStruct> Value_Text_Color;
 
 	Valueable<SHPStruct*> Value_Shape;
-	Valueable<PaletteManager*> Value_Palette;
+	CustomPalette Value_Palette;
 	Valueable<int> Value_Num_BaseFrame;
 	Valueable<int> Value_Sign_BaseFrame;
 	Valueable<int> Value_Shape_Spacing;

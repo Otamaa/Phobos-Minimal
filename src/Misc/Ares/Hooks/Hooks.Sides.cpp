@@ -213,8 +213,8 @@ ASMJIT_PATCH(0x6D4E79, TacticalClass_DrawOverlay_GraphicalText, 6)
 
 ASMJIT_PATCH(0x622223, sub_621E90_DialogBackground, 6)
 {
-	auto pShp = SideExtData::s_DialogBackgroundImage.get();
-	auto pConvert = SideExtData::s_DialogBackgroundConvert;
+	auto pShp = SideExtData::s_DialogBackgroundImage;
+	auto pConvert = SideExtData::s_DialogBackgroundConvert.GetConvert();
 
 	if(pConvert && pShp) {
 		R->EDI(pShp);

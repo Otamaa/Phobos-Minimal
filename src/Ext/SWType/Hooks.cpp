@@ -2782,8 +2782,8 @@ ASMJIT_PATCH(0x6A9948, StripClass_Draw_SuperWeapon, 6)
 {
 	GET(SuperWeaponTypeClass*, pSuper, EAX);
 
-	if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPalette)
-		SWConvert = pManager->GetConvert<PaletteManager::Mode::Default>();
+	if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPalette.GetConvert())
+		SWConvert = pManager;
 
 	return 0x0;
 }
@@ -2794,8 +2794,8 @@ ASMJIT_PATCH(0x6A9A2A, StripClass_Draw_Main, 6)
 
 	ConvertClass* pResult = nullptr;
 	if (pTechno) {
-		if(auto pPal = TechnoTypeExtContainer::Instance.TryFind(pTechno)->CameoPal) {
-			pResult = pPal->GetConvert<PaletteManager::Mode::Default>();
+		if(auto pPal = TechnoTypeExtContainer::Instance.TryFind(pTechno)->CameoPal.GetConvert()) {
+			pResult = pPal;
 		}
 	}
 	else

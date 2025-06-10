@@ -2831,8 +2831,8 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 		return;
 
 	ConvertClass* pPalette = (FileSystem::PALETTE_PAL);
-	if (auto pPal = pSelectBox->Palette)
-		pPalette = pPal->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPalette);
+	if (auto pPal = pSelectBox->Palette.GetConvert())
+		pPalette = pPal;
 
 	const double healthPercentage = pThis->GetHealthPercentage();
 	const Point3D frames = pSelectBox->Frames.Get(whatAmI == AbstractType::Infantry ? Point3D { 1,1,1 } : Point3D { 0,0,0 });

@@ -105,8 +105,8 @@ static	void __fastcall DrawShape_VeinHole
  int ZShapeFrame, int XOffset, int YOffset
 )
 {
-	if (auto pManager = RulesExtData::Instance()->VeinholePal)
-		Pal = pManager->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(Pal);
+	if (auto pManager = RulesExtData::Instance()->VeinholePal.GetConvert())
+		Pal = pManager;
 
 	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
 	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
@@ -976,12 +976,8 @@ namespace Tiberiumpip
 		}
 
 		ConvertClass* nPal = FileSystem::THEATER_PAL();
-		if (auto pConv = pTypeExt->Tiberium_PipShapes_Palette)
-		{
-			if (auto pConv_ = pConv->GetConvert<PaletteManager::Mode::Temperate>())
-			{
-				nPal = pConv_;
-			}
+		if (auto pConv = pTypeExt->Tiberium_PipShapes_Palette.GetConvert()) {
+			nPal = pConv;
 		}
 
 		auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;

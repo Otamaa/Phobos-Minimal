@@ -610,7 +610,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		return 0x702D1F;
 	}
 
-	const bool unkillable = !pWHExt->CanKill || pExt->AE.Unkillable;
+	const bool unkillable =
+		!pWHExt->CanKill || pExt->AE.Unkillable;
 
 	if (!args.IgnoreDefenses)
 	{
@@ -764,7 +765,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	// Check if the warhead can not kill targets
 	//we dont want to kill the thing , dont return
 	bool isActuallyAffected = false;
-	if (!args.IgnoreDefenses && pThis->Health > 0 && unkillable && *args.Damage >= pThis->Health)
+	if (!args.IgnoreDefenses && pThis->Health > 0 && unkillable && args.Damage != 0 && *args.Damage >= pThis->Health)
 	{
 		*args.Damage = 0;
 		pThis->Health = 1;

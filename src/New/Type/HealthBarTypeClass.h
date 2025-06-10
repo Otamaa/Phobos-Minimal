@@ -14,11 +14,11 @@ public:
 	Valueable<Point2D> PipsInterval_Building;
 	Nullable<int> PipsLength;
 	Valueable<SHPStruct*> PipsShape;
-	Valueable<PaletteManager*> PipsPalette;
+	CustomPalette PipsPalette;
 
 	Nullable<int> PipBrd;
 	Nullable<SHPStruct*> PipBrdShape;
-	Valueable<PaletteManager*> PipBrdPalette;
+	CustomPalette PipBrdPalette;
 	Valueable<int> PipBrdXOffset;
 
 	Valueable<int> XOffset;

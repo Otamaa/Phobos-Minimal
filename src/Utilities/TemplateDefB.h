@@ -7,6 +7,8 @@
 
 #include "TemplateDef.h"
 
+#include <New/Type/PaletteManager.h>
+
 namespace detail
 {
 	template <>

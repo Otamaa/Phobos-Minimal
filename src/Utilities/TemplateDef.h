@@ -61,7 +61,7 @@
 #include <Utilities/TechnoTypeConvertData.h>
 #include <Utilities/CSFText.h>
 
-#include <New/Type/PaletteManager.h>
+//#include <New/Type/PaletteManager.h>
 
 #include <array>
 #include <iostream>
@@ -352,35 +352,35 @@ namespace detail
 
 #pragma region Pointers
 
-	template <>
-	OPTIONALINLINE bool read<PaletteManager*>(PaletteManager*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			if (!GeneralUtils::IsValidString(parser.value()))
-				return false;
+	// template <>
+	// OPTIONALINLINE bool read<PaletteManager*>(PaletteManager*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	// {
+	// 	if (parser.ReadString(pSection, pKey))
+	// 	{
+	// 		if (!GeneralUtils::IsValidString(parser.value()))
+	// 			return false;
+	//
+	// 		std::string flag = _strlwr(parser.value());
+	// 		if (flag.find(".pal") == std::string::npos) {
+	// 			flag += ".pal";
+	// 		}
+	//
+	// 		if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
+	// 		{
+	// 			if (!nResult->Palette)
+	// 				return false;
 
-			std::string flag = _strlwr(parser.value());
-			if (flag.find(".pal") == std::string::npos) {
-				flag += ".pal";
-			}
+	// 			value = nResult;
+	// 			return true;
+	// 		}
+	// 		else
+	// 		{
+	// 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a Palette Name");
+	// 		}
+	// 	}
 
-			if (const auto nResult = PaletteManager::FindOrAllocate(flag.c_str()))
-			{
-				if (!nResult->Palette)
-					return false;
-
-				value = nResult;
-				return true;
-			}
-			else
-			{
-				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a Palette Name");
-			}
-		}
-
-		return false;
-	}
+	// 	return false;
+	// }
 
 	template <>
 	OPTIONALINLINE bool read<TechnoTypeClass*>(TechnoTypeClass*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)

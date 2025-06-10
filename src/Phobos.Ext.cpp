@@ -365,12 +365,12 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
-{
-	TheMemoryPoolFactory->reportAllocation();
-	Debug::Log("PaletteManager %d\n", PaletteManager::Array.size());
-	return 0x0;
-}
+//ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
+//{
+//	TheMemoryPoolFactory->reportAllocation();
+//	Debug::Log("PaletteManager %d\n", PaletteManager::Array.size());
+//	return 0x0;
+//}
 
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/LevitateLocomotionClass.h>
@@ -678,7 +678,6 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 
 	bool ret =
 		Process_Load<FakeAnimClass>(pStm) &&
-		Process_Load<PaletteManager>(pStm) &&
 		Process_Load<CursorTypeClass>(pStm) &&
 		Process_Load<MouseClassExt>(pStm) &&
 		Process_Load<DigitalDisplayTypeClass>(pStm) &&
@@ -753,7 +752,6 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 
 		bool ret =
 			Process_Save<FakeAnimClass>(pStm) &&
-			Process_Save<PaletteManager>(pStm) &&
 			Process_Save<CursorTypeClass>(pStm) &&
 			Process_Save<MouseClassExt>(pStm) &&
 			Process_Save<DigitalDisplayTypeClass>(pStm) &&

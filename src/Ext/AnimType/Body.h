@@ -6,6 +6,7 @@
 #include <Utilities/TemplateDefB.h>
 
 #include <New/Entity/LauchSWData.h>
+#include <New/Type/PaletteManager.h>
 
 #include <New/AnonymousType/CreateUnitTypeClass.h>
 
@@ -22,7 +23,7 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
-	Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
+	CustomPalette Palette { CustomPalette::PaletteMode::Temperate }; //CustomPalette::PaletteMode::Temperate
 
 	bool MakeInfantry_Scatter { false };
 	bool MakeInfantry_AI_Scatter { false };

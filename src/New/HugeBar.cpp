@@ -274,13 +274,13 @@ void HugeBar::DrawHugeBar(int iCurrent, int iMax)
 	{
 		SHPStruct* pShp_Bar = this->HugeBar_Shape;
 		ConvertClass* pPal_Bar = FileSystem::PALETTE_PAL;
-		if (this->HugeBar_Palette)
-			pPal_Bar = this->HugeBar_Palette->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPal_Bar);
+		if (auto pCust = this->HugeBar_Palette.GetConvert())
+			pPal_Bar = pCust;
 
 		SHPStruct* pShp_Pips = this->HugeBar_Pips_Shape;
 		ConvertClass* pPal_Pips = FileSystem::PALETTE_PAL;
-		if(this->HugeBar_Pips_Palette)
-			pPal_Pips = this->HugeBar_Pips_Palette->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPal_Pips);
+		if(auto pCust_1 = this->HugeBar_Pips_Palette.GetConvert())
+			pPal_Pips = pCust_1;
 
 		int iPipFrame = this->HugeBar_Pips_Frame.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
 
@@ -478,8 +478,8 @@ void HugeBar::HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax)
 	{
 		SHPStruct* pShp = this->Value_Shape;
 		ConvertClass* pPal = FileSystem::PALETTE_PAL;
-		if(this->Value_Palette)
-			pPal = this->Value_Palette->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPal);
+		if(auto pCust_1 = this->Value_Palette.GetConvert())
+			pPal = pCust_1;
 
 		if (this->Anchor.Vertical == VerticalPosition::Bottom)
 			posDraw.Y -= pShp->Height * (static_cast<int>(this->InfoType) + 1);

@@ -755,8 +755,8 @@ ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 			if (frame >= 0)
 			{
 				ConvertClass* pConvert = FileSystem::PALETTE_PAL;
-				if (pRulesExt->Cameo_OverlayPalette && pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>())
-					pConvert = pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>();
+				if (pRulesExt->Cameo_OverlayPalette.GetConvert())
+					pConvert = pRulesExt->Cameo_OverlayPalette.GetConvert();
 
 				DSurface::Sidebar->DrawSHP(
 					pConvert,
@@ -784,8 +784,8 @@ ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 				if (frames.X >= 0)
 				{
 					ConvertClass* pConvert = FileSystem::PALETTE_PAL;
-					if (pRulesExt->Cameo_OverlayPalette && pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>())
-						pConvert = pRulesExt->Cameo_OverlayPalette->GetConvert<PaletteManager::Mode::Default>();
+					if (pRulesExt->Cameo_OverlayPalette.GetConvert())
+						pConvert = pRulesExt->Cameo_OverlayPalette.GetConvert();
 
 					DSurface::Sidebar->DrawSHP(
 						pConvert,

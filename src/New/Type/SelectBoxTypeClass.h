@@ -5,12 +5,11 @@
 #include <Utilities/Enum.h>
 #include <New/Type/PaletteManager.h>
 
-class PaletteManager;
 CREATEENUMTYPECLASS(SelectBox)
 {
 public:
 	Valueable<SHPStruct*> Shape;
-	Valueable<PaletteManager*> Palette;
+	CustomPalette Palette;
 	Nullable<Point3D> Frames;
 	Valueable<bool> Grounded;
 	Valueable<Point2D> Offset;

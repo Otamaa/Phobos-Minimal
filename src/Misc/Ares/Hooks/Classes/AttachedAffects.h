@@ -4,6 +4,7 @@
 #include <CoordStruct.h>
 #include <Utilities/GameUniquePointers.h>
 #include <AnimClass.h>
+#include <Utilities/Handle.h>
 
 struct AresAEData;
 class WarheadTypeClass;

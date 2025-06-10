@@ -114,9 +114,9 @@ ASMJIT_PATCH(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 	{
 		nPal = pThis->GetRemapColour();
 	}
-	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette)
+	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette.GetConvert())
 	{
-		nPal = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(nPal);
+		nPal = pConvertData;
 	}
 
 	//PipShapes01Palette
@@ -279,8 +279,8 @@ namespace DrawHeathData
 		ConvertClass* pPalette = FileSystem::PALETTE_PAL();
 		if (pTypeExt->HealthbarRemap.Get())
 			pPalette = pTechConvert;
-		else if (const auto pConvertData = pTypeExt->HealthBarSHP_Palette)
-			pPalette = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pPalette);
+		else if (const auto pConvertData = pTypeExt->HealthBarSHP_Palette.GetConvert())
+			pPalette = pConvertData;
 
 		Point2D nLocation = *pLocation;
 		nLocation += pTypeExt->HealthBarSHP_PointOffset.Get();

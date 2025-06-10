@@ -1,8 +1,8 @@
 #pragma once
 #include <Utilities/Enumerable.h>
 #include <Utilities/Anchor.h>
+#include <New/Type/PaletteManager.h>
 
-class PaletteManager;
 class DigitalDisplayTypeClass final : public Enumerable<DigitalDisplayTypeClass>
 {
 public:
@@ -14,7 +14,7 @@ public:
 	Anchor AnchorType;
 	Valueable<BuildingSelectBracketPosition> AnchorType_Building;
 	Valueable<SHPStruct*> Shape;
-	Valueable<PaletteManager*> Palette;
+	CustomPalette Palette;
 	Nullable<Point2D> Shape_Spacing;
 	Valueable<bool> Shape_PercentageFrame;
 	Valueable<bool> Percentage;
@@ -36,7 +36,7 @@ public:
 		, AnchorType(HorizontalPosition::Right, VerticalPosition::Top)
 		, AnchorType_Building(BuildingSelectBracketPosition::Top)
 		, Shape(nullptr)
-		, Palette()
+		, Palette(CustomPalette::PaletteMode::Temperate)
 		, Shape_Spacing()
 		, Shape_PercentageFrame()
 		, Percentage(false)
