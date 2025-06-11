@@ -3,9 +3,6 @@
 #include "NewSWType.h"
 #include "SWStateMachine.h"
 
-// Forward declaration
-struct ParadropPlaneData;
-
 class SW_ParaDrop : public NewSWType
 {
 public:
@@ -19,9 +16,8 @@ public:
 	virtual bool IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const override;
 
 	bool SendParadrop(SuperClass* pThis, CellClass* pCell);
-	std::vector<ParadropPlaneData> GetParadropData(SuperClass* pThis) const;
 
-	static bool SendPDPlane(HouseClass* pOwner, CellClass* pDestination,
+	static void SendPDPlane(HouseClass* pOwner, CellClass* pDestination,
 		AircraftTypeClass* pPlaneType, Iterator<TechnoTypeClass*> Types,
 		Iterator<int> Nums);
 
