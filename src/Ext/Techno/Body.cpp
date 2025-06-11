@@ -435,7 +435,7 @@ Point2D TechnoExtData::GetFootSelectBracketPosition(TechnoClass* pThis, Anchor a
 	return anchor.OffsetPosition(bracketRect);
 }
 
-Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition)
+Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition , Point2D offset)
 {
 	const auto pBuildingType = static_cast<BuildingTypeClass*>(pThis->GetTechnoType());
 	Point2D position = GetScreenLocation(pThis);
@@ -480,7 +480,7 @@ Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, Buil
 		break;
 	}
 
-		return position;
+		return position + offset;
 	}
 
 Iterator<DigitalDisplayTypeClass*> NOINLINE TechnoExtData::GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length) {
