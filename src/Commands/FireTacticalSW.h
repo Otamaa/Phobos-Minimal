@@ -48,7 +48,7 @@ OPTIONALINLINE const wchar_t* FireTacticalSWCommandClass<Index>::GetUIDescriptio
 template<size_t Index>
 OPTIONALINLINE void FireTacticalSWCommandClass<Index>::Execute(WWKey eInput) const
 {
-	if (!SWSidebarClass::IsEnabled())
+	if (!SWSidebarClass::IsEnabled() || ScenarioClass::Instance->UserInputLocked)
 		return;
 
 	const auto& columns = SWSidebarClass::Global()->Columns;

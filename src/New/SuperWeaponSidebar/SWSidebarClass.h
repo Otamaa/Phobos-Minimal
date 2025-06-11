@@ -25,26 +25,14 @@ public:
 
 	static bool IsEnabled();
 	static void RecheckCameo();
-	
-private:
-	static std::unique_ptr<SWSidebarClass> Instance;
-public:
-	static void Allocate() {
-		Instance = std::make_unique<SWSidebarClass>();
-	}
 
-	static void Remove() {
-		Instance = nullptr;
-	}
+private:
+	static SWSidebarClass Instance;
+public:
 
 	static SWSidebarClass* Global()
 	{
-		return Instance.get();
-	}
-
-	static void Clear()
-	{
-		Allocate();
+		return &Instance;
 	}
 
 public:

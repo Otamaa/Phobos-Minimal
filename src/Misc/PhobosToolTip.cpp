@@ -452,7 +452,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 // Hooks
 ASMJIT_PATCH(0x4AE51E, DisplayClass_GetToolTip_TacticalButton, 0x6)
 {
-	if (SWSidebarClass::IsEnabled())
+	if (SWSidebarClass::IsEnabled() && !ScenarioClass::Instance->UserInputLocked)
 	{
 		const auto swSidebar = SWSidebarClass::Global();
 

@@ -1001,7 +1001,7 @@ bool NOINLINE RemoveCameo(BuildType* item)
 		const auto& supers = HouseClass::CurrentPlayer->Supers;
 
 		if (supers.ValidIndex(item->ItemIndex)) {
-			if(!SWSidebarClass::IsEnabled() ){
+			if(!SWSidebarClass::IsEnabled()){
 				if (supers[item->ItemIndex]->Granted)
 					return false;
 
