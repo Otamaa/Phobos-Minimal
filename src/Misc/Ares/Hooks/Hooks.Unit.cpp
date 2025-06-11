@@ -650,28 +650,20 @@ ASMJIT_PATCH(0x73E9F1, UnitClass_Mi_Harvest_ShortScan, 6)
 ASMJIT_PATCH_AGAIN(0x73EAA6, UnitClass_Mi_Harvest_ShortScan, 6)
 ASMJIT_PATCH_AGAIN(0x73EA17, UnitClass_Mi_Harvest_ShortScan, 6)
 
+#include <Locomotor/Cast.h>
 
-ASMJIT_PATCH(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
-{
+#ifdef _eeee
+ASMJIT_PATCH(0x73E735, UnitClass_Mi_Harvest_LongScan, 7){
 	GET(UnitClass*, pThis, EBP);
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan));
-	return R->Origin() + 0x6;
-}ASMJIT_PATCH_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
+	GET(AbstractClass*, pFocus, EAX);
 
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	const auto longScan = pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan);
 
-ASMJIT_PATCH(0x73E730, UnitClass_MissionHarvest_HarvesterScanAfterUnload, 0x5)
-{
-	GET(UnitClass* const, pThis, EBP);
-	GET(AbstractClass* const, pFocus, EAX);
-
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	// Focus is set when the harvester is fully loaded and go home.
 	if (pFocus && !pThis->Type->Weeder && pTypeExt->HarvesterScanAfterUnload.Get(RulesExtData::Instance()->HarvesterScanAfterUnload))
 	{
 		auto cellBuffer = CellStruct::Empty;
-		auto long_scan = pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan);
-		auto pCellStru = pThis->ScanForTiberium(&cellBuffer, long_scan / 256, 0);
+		auto pCellStru = pThis->ScanForTiberium(&cellBuffer, longScan / 256, 0);
 
 		if (*pCellStru != CellStruct::Empty)
 		{
@@ -681,12 +673,84 @@ ASMJIT_PATCH(0x73E730, UnitClass_MissionHarvest_HarvesterScanAfterUnload, 0x5)
 
 			// Check if pCell is better than focus.
 			if (distFromTiberium > 0 && distFromTiberium < distFromFocus)
-				R->EAX(pCell);
+				pFocus = pCell;
 		}
 	}
 
-	return 0;
+	if(pFocus) {
+		pThis->SetDestination(pFocus,true);
+		pThis->SetArchiveTarget(nullptr);
+		R->Stack(0x14, false);
+	}
+
+	pThis->IsHarvesting = false;
+	if(pThis->Type->Weeder) {
+		pThis->MoveToWeed(longScan / 256);
+	}else{
+		//this part is kind a confusing
+		//i feel that this part is actually releasing the previous locomotor that piggybacking the harvester
+		if(!locomotion_cast<TeleportLocomotionClass*>(pThis->Locomotor) && pThis->Destination) {
+			pThis->SetDestination(nullptr, true);
+		}
+
+		pThis->MoveToTiberium(longScan / 256 , R->Stack<BYTE>(0x14));
+		pThis->Locomotor.Release();
+	}
+
+	return 0x73E879;
 }
+#endif
+
+enum class HarvesterMissionStatus : int
+{
+	Scanning = 0,
+	Harvesting = 1,
+	Unload = 2,
+	Enter = 3,
+	Exit = 4,
+};
+
+ASMJIT_PATCH(0x4DCEB3, FootClass_TiberiumScanning_AllowPlayertoScanUderShroud, 0x7) {
+	//GET(FootClass*, pThis, ESI);
+	int diff = GameModeOptionsClass::Instance->AIDifficulty;
+	return RulesExtData::Instance()->CampaignAllowHarvesterScanUnderShroud[diff] ? 0x4DCF26 : 0x0;
+}
+
+ ASMJIT_PATCH(0x73E851, UnitClass_Mi_Harvest_LongScan, 6)
+ {
+ 	GET(UnitClass*, pThis, EBP);
+ 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+ 	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan));
+ 	return R->Origin() + 0x6;
+ }ASMJIT_PATCH_AGAIN(0x73E772, UnitClass_Mi_Harvest_LongScan, 6)
+
+ ASMJIT_PATCH(0x73E730, UnitClass_MissionHarvest_HarvesterScanAfterUnload, 0x5)
+ {
+ 	GET(UnitClass* const, pThis, EBP);
+ 	GET(AbstractClass* const, pFocus, EAX);
+
+ 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+ 	// Focus is set when the harvester is fully loaded and go home.
+ 	if (pFocus && !pThis->Type->Weeder && pTypeExt->HarvesterScanAfterUnload.Get(RulesExtData::Instance()->HarvesterScanAfterUnload))
+ 	{
+ 		auto cellBuffer = CellStruct::Empty;
+ 		auto long_scan = pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->TiberiumLongScan);
+ 		auto pCellStru = pThis->ScanForTiberium(&cellBuffer, long_scan / 256, 0);
+
+ 		if (*pCellStru != CellStruct::Empty)
+ 		{
+ 			const auto pCell = MapClass::Instance->TryGetCellAt(pCellStru);
+ 			const auto distFromTiberium = pCell ? pThis->DistanceFrom(pCell) : -1;
+ 			const auto distFromFocus = pThis->DistanceFrom(pFocus);
+
+ 			// Check if pCell is better than focus.
+ 			if (distFromTiberium > 0 && distFromTiberium < distFromFocus)
+ 				R->EAX(pCell);
+ 		}
+ 	}
+
+ 	return 0;
+ }
 
 ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 {

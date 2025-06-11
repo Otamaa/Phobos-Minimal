@@ -36,6 +36,7 @@ class WWMouseClass
 public:
 	static COMPILETIMEEVAL reference<WWMouseClass*, 0x887640u> const Instance{};
 	static COMPILETIMEEVAL reference<WWMouseClass*, 0xB78164u> const Thread_Instance {};
+	static COMPILETIMEEVAL reference<bool, 0xB04470u> const NeedToRelease {};
 
 	virtual ~WWMouseClass()
 		{ JMP_THIS(0x0); }

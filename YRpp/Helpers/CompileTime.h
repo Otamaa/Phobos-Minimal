@@ -216,7 +216,7 @@ public:
 		return Address;
 	}
 
-	FORCEDINLINE value_type& get() const noexcept {
+	FORCEDINLINE value_type invoke() const noexcept {
 		return *reinterpret_cast<value_type*>(Address);
 	}
 
@@ -228,7 +228,7 @@ public:
 	FORCEDINLINE bool operator=(T2 rhs) const {
 
 		DWORD protection = PAGE_EXECUTE_READWRITE;
-		DWORD protectionb {}; 
+		DWORD protectionb {};
 		if(VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protection) == TRUE) {
 			*reinterpret_cast<LPVOID*>(Address) = rhs;
 			VirtualProtect((LPVOID)Address, sizeof(LPVOID), protection, &protectionb);

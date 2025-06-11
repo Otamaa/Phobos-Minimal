@@ -976,7 +976,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Phobos::hInstance = hInstance;
 		Patch::CurrentProcess = GetCurrentProcess();
-		Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
+		//Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
 
 		const auto time = Debug::GetCurTimeA();
 

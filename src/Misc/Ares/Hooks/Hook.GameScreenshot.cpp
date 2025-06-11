@@ -8,10 +8,10 @@
 void __fastcall ScreenCaptureCommandClass_Process(CommandClass* pThis , DWORD)
 {
 	RECT Viewport = {};
-	if (Imports::GetWindowRect.get()(Game::hWnd, &Viewport))
+	if (Imports::GetWindowRect.invoke()(Game::hWnd, &Viewport))
 	{
 		POINT TL = { Viewport.left, Viewport.top }, BR = { Viewport.right, Viewport.bottom };
-		if (Imports::ClientToScreen.get()(Game::hWnd, &TL) && Imports::ClientToScreen.get()(Game::hWnd, &BR))
+		if (Imports::ClientToScreen.invoke()(Game::hWnd, &TL) && Imports::ClientToScreen.invoke()(Game::hWnd, &BR))
 		{
 			RectangleStruct ClipRect = { TL.x, TL.y, Viewport.right + 1, Viewport.bottom + 1 };
 

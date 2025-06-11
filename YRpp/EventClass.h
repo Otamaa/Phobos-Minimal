@@ -186,7 +186,7 @@ public:
 			return false;
 
 		memcpy((OutList->List + OutList->Tail), pEvent, sizeof(EventClass));
-		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.get()());
+		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.invoke()());
 		OutList->Tail = (OutList->Tail + 1) & 0x7F;
 		++OutList->Count;
 
@@ -200,7 +200,7 @@ public:
 			return false;
 
 		memcpy((OutList->List + OutList->Tail), event, sizeof(EventClass));
-		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.get()());
+		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.invoke()());
 		OutList->Tail = (OutList->Tail + 1) & 0x7F;
 		++OutList->Count;
 		return true;

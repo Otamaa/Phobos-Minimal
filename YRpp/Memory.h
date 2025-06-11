@@ -9,7 +9,7 @@
 #include <memory>
 #include <type_traits>
 #include <utility>
-
+#include <Helpers/CompileTime.h>
 /*
  * The memory (de)allocators have to match!
  * Do not allocate memory in the DLL and hand it to the game to deallocate, or vice versa.
@@ -43,50 +43,25 @@
 // provides access to the game's operator new and operator delete.
 namespace YRMemory {
 
-    using MallocFunc = void* (__cdecl*)(size_t, int);
-    using FreeFunc = void (__cdecl*)(void*);
-    using AllocFunc = void* (__cdecl*)(size_t);
-    using DeallocFunc = void (__cdecl*)(const void*);
-
-    // Define function pointers for redirection
-    constexpr uintptr_t mh_malloc_addr = 0x7C9442;
-    constexpr uintptr_t free_addr = 0x7C93E8;
-    constexpr uintptr_t allocate_addr = 0x7C8E17;
-    constexpr uintptr_t mallocate_addr = 0x7C9430;
-    constexpr uintptr_t deallocate_addr = 0x7C8B3D;
-
-    OPTIONALINLINE void* __cdecl __mh_malloc(size_t size, int flag) {
-        auto func = reinterpret_cast<MallocFunc>(mh_malloc_addr);
-        return func(size, flag);
+	OPTIONALINLINE NAKED void* __cdecl Allocate(size_t sz , int flag= 1) {
+		JMP(0x7C9442);
     }
 
-    OPTIONALINLINE void __cdecl __free(void* mem) {
-        auto func = reinterpret_cast<FreeFunc>(free_addr);
-        func(mem);
+	OPTIONALINLINE void* __cdecl MAllocate(size_t sz) {
+		return Allocate(sz , *reinterpret_cast<int*>(0xB782C4));
+	}
+
+    OPTIONALINLINE NAKED void __cdecl Deallocate( void* mem) {
+		JMP(0x7C93E8);
     }
 
-    OPTIONALINLINE void* __cdecl Allocate(size_t sz) {
-        auto func = reinterpret_cast<AllocFunc>(allocate_addr);
-        return func(sz);
-    }
-
-    OPTIONALINLINE void* __cdecl MAllocate(size_t sz) {
-        auto func = reinterpret_cast<AllocFunc>(mallocate_addr);
-        return func(sz);
-    }
-
-    OPTIONALINLINE void __cdecl Deallocate(const void* mem) {
-        auto func = reinterpret_cast<DeallocFunc>(deallocate_addr);
-        func(mem);
-    }
-
-    OPTIONALINLINE void* AllocateChecked(size_t sz) {
-       // if (auto const ptr = YRMemory::Allocate(sz)) {
-       //     return ptr;
-       // }
-       // std::exit(static_cast<int>(0x30000000u | sz));
-		return YRMemory::Allocate(sz);
-    }
+  //  OPTIONALINLINE void* AllocateChecked(size_t sz) {
+  //     // if (auto const ptr = YRMemory::Allocate(sz)) {
+  //     //     return ptr;
+  //     // }
+  //     // std::exit(static_cast<int>(0x30000000u | sz));
+		//return YRMemory::Allocate(sz);
+  //  }
 }
 
 template<typename T>
@@ -125,7 +100,7 @@ struct GameAllocator {
 	COMPILETIMEEVAL bool operator != (const GameAllocator&) const noexcept { return false; }
 
 	T* allocate(const size_t count) const noexcept {
-		return static_cast<T*>(YRMemory::AllocateChecked(count * sizeof(T)));
+		return static_cast<T*>(YRMemory::Allocate(count * sizeof(T)));
 	}
 
 	void destroy(T* const ptr) const noexcept {

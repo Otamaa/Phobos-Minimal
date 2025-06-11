@@ -35,12 +35,12 @@ public:
 
 	virtual ULONG __stdcall AddRef() override
 	{
-		return Imports::InterlockedIncrementFunc.get()(&this->nRefCount);
+		return Imports::InterlockedIncrementFunc.invoke()(&this->nRefCount);
 	}
 
 	virtual ULONG __stdcall Release() override
 	{
-		int nNewRef = Imports::InterlockedDecrementFunc.get()(&this->nRefCount);
+		int nNewRef = Imports::InterlockedDecrementFunc.invoke()(&this->nRefCount);
 		if (!nNewRef)
 			GameDelete(this);
 		return nNewRef;
@@ -70,9 +70,9 @@ public:
 	virtual HRESULT __stdcall LockServer(BOOL fLock) override
 	{
 		if (fLock)
-			Imports::InterlockedIncrementFunc.get()(&this->nRefCount);
+			Imports::InterlockedIncrementFunc.invoke()(&this->nRefCount);
 		else
-			Imports::InterlockedDecrementFunc.get()(&this->nRefCount);
+			Imports::InterlockedDecrementFunc.invoke()(&this->nRefCount);
 
 		return S_OK;
 	}
