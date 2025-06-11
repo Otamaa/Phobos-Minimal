@@ -563,24 +563,23 @@ ASMJIT_PATCH(0x418CD1, AircraftClass_Mission_Attack_ContinueFlyToDestination, 0x
 }
 
 // Idle: clear the target if no ammo
-ASMJIT_PATCH(0x414D36, AircraftClass_Update_ClearTargetIfNoAmmo, 0x6)
+ASMJIT_PATCH(0x414D36, AircraftClass_Update_ClearTarget, 0x6)
 {
-	enum { ClearTarget = 0x414D3F };
+	enum { ClearTarget = 0x414D3F, DonotClearTarget = 0x414D4D };
+	//GET(AircraftClass* const, pThis, ESI);
 
-	GET(AircraftClass* const, pThis, ESI);
+	// if (RulesExtData::Instance()->ExpandAircraftMission) {
+	// 	if (!pThis->Spawned && !pThis->Airstrike &&
+	// 		!pThis->Ammo && !SessionClass::IsCampaign()) {
+	//
+	// 		if (TeamClass* const pTeam = pThis->Team)
+	// 			pTeam->LiberateMember(pThis);
+	//
+	// 		return ClearTarget;
+	// 	}
+	// }
 
-	if (RulesExtData::Instance()->ExpandAircraftMission) {
-		if (!pThis->Spawned && !pThis->Airstrike &&
-			!pThis->Ammo && !SessionClass::IsCampaign()) {
-
-			if (TeamClass* const pTeam = pThis->Team)
-				pTeam->LiberateMember(pThis);
-
-			return ClearTarget;
-		}
-	}
-
-	return 0x414D4D; //AircraftClass_Update_DontloseTargetInAir
+	return DonotClearTarget; //AircraftClass_Update_DontloseTargetInAir
 }
 
 // GreatestThreat: for all the mission that should let the aircraft auto select a target

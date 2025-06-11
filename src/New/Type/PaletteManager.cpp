@@ -231,19 +231,30 @@ bool CustomPalette::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
-		if (auto const pSuffix = strstr(parser.value(), "~~~"))
-		{
-			auto const theater = ScenarioClass::Instance->Theater;
-			auto const pExtension = Theater::GetTheater(theater).Extension;
-			pSuffix[0] = pExtension[0];
-			pSuffix[1] = pExtension[1];
-			pSuffix[2] = pExtension[2];
+		std::string name = parser.value();
+
+		const std::string target = "~~~";
+
+		if (name.find(target) != std::string::npos) {
+
+			const std::string replacement = Theater::GetTheater(ScenarioClass::Instance->Theater).Extension;
+
+			size_t pos = 0;
+			while ((pos = name.find(target, pos)) != std::string::npos)
+			{
+				name.replace(pos, target.length(), replacement);
+				// If replacement is empty or shorter, don't advance pos
+			}
 		}
+
+		//if(Phobos::Otamaa::IsAdmin)
+		//	Debug::LogInfo("CustomPalette::Read {} - Name: {}", parser.value() , name);
 
 		this->Clear();
 
-		if (auto pPal = FileSystem::AllocatePalette(parser.value()))
+		if (auto pPal = FileSystem::AllocatePalette(name.c_str()))
 		{
+			this->Name = name;
 			this->Palette.reset(pPal);
 			this->CreateConvert();
 		}
@@ -295,6 +306,9 @@ void CustomPalette::Clear()
 
 void CustomPalette::CreateConvert()
 {
+	//if (Phobos::Otamaa::IsAdmin)
+	//	Debug::LogInfo("CustomPalette::CreateConvert - Name: {}", this->Name);
+
 	ConvertClass* buffer = nullptr;
 	if (this->Mode == PaletteMode::Temperate)
 	{
@@ -310,5 +324,11 @@ void CustomPalette::CreateConvert()
 	}
 
 	this->Convert.reset(buffer);
-	this->ColorschemeDataVector = (ColorScheme::GeneratePalette(this->Name.data()));
+	std::string filename = this->Name; // make a copy to avoid modifying the original string
+	size_t last_dot = filename.find_last_of('.');
+	if (last_dot != std::string::npos) {
+		filename.erase(last_dot); // remove from the dot to the end
+	}
+
+	this->ColorschemeDataVector = (ColorScheme::GeneratePalette(filename.data()));
 }

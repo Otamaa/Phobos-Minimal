@@ -931,10 +931,16 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 	if (this->HP == 0 && this->Type->Pips_HideIfNoStrength)
 		return;
 
-	Point2D vLoc = *pLocation;
-	vLoc.X -= 5;
-	vLoc.Y -= 3;
+	static constexpr Point2D selectBracketPositionOffset { -6 , -3 };
+	static constexpr Point2D locationOffset {-5 , -3};
 
+	Point2D selectBracketPosition = TechnoExtData::GetBuildingSelectBracketPosition(
+		this->Techno,
+		BuildingSelectBracketPosition::Top,
+		selectBracketPositionOffset
+	);
+
+	Point2D vLoc = *pLocation + locationOffset;
 	Point2D position = { 0, 0 };
 
 	const int iTotal = DrawShieldBar_PipAmount(iLength);
@@ -947,7 +953,7 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 			frameIdx;
 			frameIdx--, deltaX += 4, deltaY -= 2)
 		{
-			position = TechnoExtData::GetBuildingSelectBracketPosition(Techno, BuildingSelectBracketPosition::Top);
+			position = selectBracketPosition;
 			position.X -= deltaX + 6;
 			position.Y -= deltaY + 3;
 
@@ -965,7 +971,7 @@ void ShieldClass::DrawShieldBar_Building(int iLength, Point2D* pLocation, Rectan
 			frameIdx;
 			frameIdx--, deltaX += 4, deltaY -= 2)
 		{
-			position = TechnoExtData::GetBuildingSelectBracketPosition(Techno, BuildingSelectBracketPosition::Top);
+			position = selectBracketPosition;
 			position.X -= deltaX + 6;
 			position.Y -= deltaY + 3;
 
