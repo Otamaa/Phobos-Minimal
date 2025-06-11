@@ -183,8 +183,10 @@ public:
 	[[nodiscard]] FORCEDINLINE T RandomRangedSpecific(T nMin, T nMax) {
 		return static_cast<T>(RandomRanged(static_cast<int>(nMin), static_cast<int>(nMax)));
 	}
-	[[nodiscard]] FORCEDINLINE int RandomFromMax(int nMax) {
-		return RandomRanged(0, nMax);
+
+	template<typename T> requires std::is_integral<T>::value
+	[[nodiscard]] FORCEDINLINE T RandomFromMax(T nMax) {
+		return (T)RandomRanged(0, (int)nMax);
 	}
 
 public:

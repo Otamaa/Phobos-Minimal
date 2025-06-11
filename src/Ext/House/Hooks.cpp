@@ -353,13 +353,21 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 
 	auto const pType = pThis->GetTechnoType();
 	auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
-	// pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
-	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (!pNewOwner->Type->MultiplayPassive &&  pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 		pNewOwner->RecheckTechTree = true;
+	}
+
+	if (pTypeExt->Harvester_Counted && !HouseClass::IsCurrentPlayerObserver())
+	{
+		auto& vec = pOldOwnerExt->OwnedCountedHarvesters;
+		vec.erase(pThis);
+
+		pNewOwnerExt->OwnedCountedHarvesters.emplace(pThis);
 	}
 
 	//this kind a dangerous

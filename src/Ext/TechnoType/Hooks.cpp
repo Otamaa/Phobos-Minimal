@@ -469,8 +469,8 @@ ASMJIT_PATCH(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 			if (auto pAnimType = pData->OreGathering_Anims.GetItemAtOrMax(idxArray))
 			{
 				pSHP = pAnimType->GetImage();
-				if (const auto pPalette = AnimTypeExtContainer::Instance.Find(pAnimType)->Palette)
-					pDrawer = pPalette->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(FileSystem::ANIM_PAL);
+				if (const auto pPalette = AnimTypeExtContainer::Instance.Find(pAnimType)->Palette.GetConvert())
+					pDrawer = pPalette;
 			}
 
 			idxFrame = nFramesPerFacing * nFacing + (Unsorted::CurrentFrame + pThis->WalkedFramesSoFar) % nFramesPerFacing;

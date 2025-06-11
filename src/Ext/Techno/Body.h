@@ -747,6 +747,9 @@ public:
 	AirstrikeClass* AirstrikeTargetingMe {};
 	CellStruct RandomEMPTarget {};
 
+	CDTimerClass FiringAnimationTimer {};
+	bool ForceFullRearmDelay { false };
+
 	~TechnoExtData()
 	{
 		if (!Phobos::Otamaa::ExeTerminated)
@@ -1042,7 +1045,7 @@ public:
 
 	static Point2D GetScreenLocation(TechnoClass* pThis);
 	static Point2D GetFootSelectBracketPosition(TechnoClass* pThis, Anchor anchor);
-	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition);
+	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition , Point2D offset = Point2D::Empty);
 	static void ProcessDigitalDisplays(TechnoClass* pThis);
 	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex);
 	static Iterator<DigitalDisplayTypeClass*> GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);

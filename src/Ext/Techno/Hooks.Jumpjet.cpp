@@ -14,15 +14,15 @@ ASMJIT_PATCH(0x7115AE, TechnoTypeClass_CTOR_JumpjetControls, 0xA)
 	GET(TechnoTypeClass*, pThis, ESI);
 	const auto pRulesExt = RulesExtData::Instance();
 
-	pThis->JumpjetData.TurnRate = pRulesExt->AttachedToObject->TurnRate;
-	pThis->JumpjetData.Speed = pRulesExt->AttachedToObject->Speed;
-	pThis->JumpjetData.Climb = static_cast<float>(pRulesExt->AttachedToObject->Climb);
-	pThis->JumpjetData.Crash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
-	pThis->JumpjetData.Height = pRulesExt->AttachedToObject->CruiseHeight;
-	pThis->JumpjetData.Accel = static_cast<float>(pRulesExt->AttachedToObject->Acceleration);
-	pThis->JumpjetData.Wobbles = static_cast<float>(pRulesExt->AttachedToObject->WobblesPerSecond);
-	pThis->JumpjetData.NoWobbles = pRulesExt->JumpjetNoWobbles.Get();
-	pThis->JumpjetData.Deviation = pRulesExt->AttachedToObject->WobbleDeviation;
+	pThis->JumpJetData.TurnRate = pRulesExt->AttachedToObject->TurnRate;
+	pThis->JumpJetData.Speed = pRulesExt->AttachedToObject->Speed;
+	pThis->JumpJetData.Climb = static_cast<float>(pRulesExt->AttachedToObject->Climb);
+	pThis->JumpJetData.Crash = static_cast<float>(pRulesExt->JumpjetCrash.Get());
+	pThis->JumpJetData.Height = pRulesExt->AttachedToObject->CruiseHeight;
+	pThis->JumpJetData.Accel = static_cast<float>(pRulesExt->AttachedToObject->Acceleration);
+	pThis->JumpJetData.Wobbles = static_cast<float>(pRulesExt->AttachedToObject->WobblesPerSecond);
+	pThis->JumpJetData.NoWobbles = pRulesExt->JumpjetNoWobbles.Get();
+	pThis->JumpJetData.Deviation = pRulesExt->AttachedToObject->WobbleDeviation;
 
 	return 0x711601;
 }
@@ -121,7 +121,7 @@ ASMJIT_PATCH(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
 		if (TechnoExtData::IsReallyTechno(pLinked) && pLinked->IsAlive) {
 			const double multiplier = TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
-			pThis->Speed = int(pLinked->GetTechnoType()->JumpjetData.Speed * multiplier);
+			pThis->Speed = int(pLinked->GetTechnoType()->JumpJetData.Speed * multiplier);
 		}
 	}
 
@@ -404,7 +404,7 @@ int JumpjetRushHelpers::JumpjetLocomotionPredictHeight(JumpjetLocomotionClass* p
 {
 	FootClass* const pFoot = pThis->LinkedTo;
 	const CoordStruct location = pFoot->Location;
-	const int curHeight = location.Z - pFoot->GetTechnoType()->JumpjetData.Height;
+	const int curHeight = location.Z - pFoot->GetTechnoType()->JumpJetData.Height;
 	Point2D curCoord = { location.X, location.Y };
 	int maxHeight = JumpjetRushHelpers::GetJumpjetHeightWithOccupyTechno(curCoord);
 

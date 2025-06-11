@@ -878,8 +878,8 @@ ASMJIT_PATCH(0x70AA60, TechnoClass_DrawExtraInfo, 6)
 			{
 				if(SHPStruct* pImage = RulesExtData::Instance()->PrimaryFactoryIndicator) {
 						ConvertClass* pPalette = FileSystem::PALETTE_PAL();
-						if(RulesExtData::Instance()->PrimaryFactoryIndicator_Palette)
-							pPalette =  RulesExtData::Instance()->PrimaryFactoryIndicator_Palette->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPalette);
+						if(auto pPall_c = RulesExtData::Instance()->PrimaryFactoryIndicator_Palette.GetConvert())
+							pPalette = pPall_c;
 
 						int const cellsToAdjust = pType->GetFoundationHeight(false) - 1;
 						Point2D pPosition = TacticalClass::Instance->CoordsToClient(pThis->GetCell()->GetCoords());
@@ -1068,6 +1068,9 @@ ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
 	AirstrikeClass* pAirstrike = nullptr;
 
 	//AircraftDiveFunctional::Init(pExt, pTypeExt);
+
+	if (pTypeExt->Harvester_Counted)
+		HouseExtContainer::Instance.Find(pThis->Owner)->OwnedCountedHarvesters.emplace(pThis);
 
 	if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID) {
 		if (pTypeExt->MyFighterData.Enable) {

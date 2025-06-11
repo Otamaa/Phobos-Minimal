@@ -27,7 +27,7 @@ public:
 	void _SetTarget(AbstractClass* pTarget);
 	void _Destroyed(int mult);
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
-
+	int _Mission_Sleep();
 	void _FootClass_Update_Wrapper();
 };
 

@@ -268,7 +268,7 @@ ASMJIT_PATCH(0x71AFD0 , TemporalClass_Logic_Unit_OreMinerUnderAttack, 0x5)
 			if(!pWHExt->Malicious && pTarget->Owner == HouseClass::CurrentPlayer) {
 				auto nDest = pTarget->GetDestination();
 				if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, CellClass::Coord2Cell(nDest))) {
-					VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack(), -1, -1);
+					VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack());
 				}
 			}
 		}

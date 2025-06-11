@@ -3,6 +3,7 @@
 
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDefB.h>
+#include <New/Type/PaletteManager.h>
 
 class TerrainTypeExtData final
 {
@@ -13,7 +14,7 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
-	Valueable<PaletteManager*> CustomPalette { }; //CustomPalette::PaletteMode::Temperate
+	CustomPalette CustomPalette { CustomPalette::PaletteMode::Temperate }; //
 	Valueable<int> SpawnsTiberium_Type { -1 };
 	Valueable<int> SpawnsTiberium_Range { 1 };
 	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage { { 3, 0 } };

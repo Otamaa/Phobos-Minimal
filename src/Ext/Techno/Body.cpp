@@ -228,11 +228,17 @@ void TechnoExtData::UpdateGattlingRateDownReset()
 		if (TechnoTypeExtContainer::Instance.Find(this->Type)->RateDown_Reset
 				&& (!pThis->Target || this->LastTargetID != pThis->Target->UniqueID))
 		{
+			int oldStage = pThis->CurrentGattlingStage;
 			this->LastTargetID = pThis->Target ? pThis->Target->UniqueID : 0xFFFFFFFF;
 			pThis->GattlingValue = 0;
 			pThis->CurrentGattlingStage = 0;
 			this->AccumulatedGattlingValue = 0;
 			this->ShouldUpdateGattlingValue = false;
+
+			if (oldStage != 0)
+			{
+				pThis->GattlingRateDown(0);
+			}
 		}
 	}
 }
@@ -429,7 +435,7 @@ Point2D TechnoExtData::GetFootSelectBracketPosition(TechnoClass* pThis, Anchor a
 	return anchor.OffsetPosition(bracketRect);
 }
 
-Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition)
+Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition , Point2D offset)
 {
 	const auto pBuildingType = static_cast<BuildingTypeClass*>(pThis->GetTechnoType());
 	Point2D position = GetScreenLocation(pThis);
@@ -474,7 +480,7 @@ Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, Buil
 		break;
 	}
 
-		return position;
+		return position + offset;
 	}
 
 Iterator<DigitalDisplayTypeClass*> NOINLINE TechnoExtData::GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length) {
@@ -2170,7 +2176,6 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
  * Object should NOT be placed on the map (->Limbo() it or don't Put in the first place)
  * otherwise Bad Things (TM) will happen. Again.
  */
-#pragma optimize("", off )
 bool TechnoExtData::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 {
 	auto MyCell = MapClass::Instance->GetCellAt(XYZ);
@@ -2200,7 +2205,6 @@ bool TechnoExtData::CreateWithDroppod(FootClass* Object, const CoordStruct& XYZ)
 		return false;
 	}
 }
-#pragma optimize("", on )
 
 bool TechnoExtData::TargetFootAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
@@ -2827,8 +2831,8 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 		return;
 
 	ConvertClass* pPalette = (FileSystem::PALETTE_PAL);
-	if (auto pPal = pSelectBox->Palette)
-		pPalette = pPal->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPalette);
+	if (auto pPal = pSelectBox->Palette.GetConvert())
+		pPalette = pPal;
 
 	const double healthPercentage = pThis->GetHealthPercentage();
 	const Point3D frames = pSelectBox->Frames.Get(whatAmI == AbstractType::Infantry ? Point3D { 1,1,1 } : Point3D { 0,0,0 });
@@ -4967,6 +4971,25 @@ void TechnoExtData::UpdateOnTunnelEnter()
 
 		this->IsInTunnel = true;
 	}
+
+	const auto pType = this->AttachedToObject->GetTechnoType();
+	const auto pImage = pType->AlphaImage;
+
+	if (pImage)
+	{
+		auto& alphaExt = StaticVars::ObjectLinkedAlphas;
+
+		if (const auto pAlpha = alphaExt.get_or_default(this->AttachedToObject))
+		{
+			GameDelete(pAlpha);
+
+			const auto tacticalPos = TacticalClass::Instance->TacticalPos;
+			Point2D off = { tacticalPos.X - (pImage->Width / 2), tacticalPos.Y - (pImage->Height / 2) };
+			const auto point = TacticalClass::Instance->CoordsToClient(this->AttachedToObject->GetCoords()) + off;
+			RectangleStruct dirty = { point.X - tacticalPos.X, point.Y - tacticalPos.Y, pImage->Width, pImage->Height };
+			TacticalClass::Instance->RegisterDirtyArea(dirty, true);
+		}
+	}
 }
 
 std::pair<WeaponTypeClass*, int> TechnoExtData::GetDeployFireWeapon(TechnoClass* pThis, AbstractClass* pTarget)
@@ -5914,6 +5937,8 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->LastWeaponType)
 		.Process(this->AirstrikeTargetingMe)
 		.Process(this->RandomEMPTarget)
+		.Process(this->FiringAnimationTimer)
+		.Process(this->ForceFullRearmDelay)
 		;
 }
 
@@ -5926,6 +5951,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(GarrisonedIn, ptr , bRemoved);
 	AnnounceInvalidPointer(WebbyLastTarget, ptr);
 	AnnounceInvalidPointer(BuildingLight, ptr);
+	AnnounceInvalidPointer(AirstrikeTargetingMe, ptr);
 
 	for (auto& _phobos_AE : PhobosAE) {
 		if(_phobos_AE) {

@@ -96,7 +96,9 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	return 0x0;
 }//
 
-ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
+#include <Ext/Tactical/Body.h>
+
+void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 {
 	const int AdvCommBarHeight = 32;
 
@@ -136,7 +138,7 @@ ASMJIT_PATCH(0x6d4b25, TacticalClass_Draw_TheDarkSideOfTheMoon, 6)
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 	}
 
-	return 0;
+	this->DrawAllTacticalText(text);
 }
 
 ASMJIT_PATCH(0x6CC390, SuperClass_Launch, 0x6)
@@ -1759,7 +1761,6 @@ ASMJIT_PATCH(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	const auto pLinked = TechnoExtContainer::Instance.Find(pThis)->LinkedSW;
 	auto const pSWExt = SWTypeExtContainer::Instance.Find(pLinked->Type);
 	auto pTargetCell = MapClass::Instance->GetCellAt(pThis->Owner->EMPTarget);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
 	if (pSWExt->EMPulse_WeaponIndex >= 0)
 	{
@@ -1832,7 +1833,6 @@ ASMJIT_PATCH(0x44CEEC, BuildingClass_Mission_Missile_EMPulseSelectWeapon, 0x6)
 	const auto pLinked = TechnoExtContainer::Instance.Find(pThis)->LinkedSW;
 	auto const pSWExt = SWTypeExtContainer::Instance.Find(pLinked->Type);
 	auto pTargetCell = MapClass::Instance->GetCellAt(pThis->Owner->EMPTarget);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 
 	if (pSWExt->EMPulse_WeaponIndex >= 0)
 	{
@@ -2774,7 +2774,6 @@ ASMJIT_PATCH(0x44019D, BuildingClass_Update_Battery, 6)
 }
 
 #include <Ext/HouseType/Body.h>
-#include <Misc/Ares/Hooks/Header.h>
 
 ConvertClass* SWConvert = nullptr;
 BSurface* CameoPCXSurface = nullptr;
@@ -2783,8 +2782,8 @@ ASMJIT_PATCH(0x6A9948, StripClass_Draw_SuperWeapon, 6)
 {
 	GET(SuperWeaponTypeClass*, pSuper, EAX);
 
-	if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPalette)
-		SWConvert = pManager->GetConvert<PaletteManager::Mode::Default>();
+	if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPalette.GetConvert())
+		SWConvert = pManager;
 
 	return 0x0;
 }
@@ -2795,8 +2794,8 @@ ASMJIT_PATCH(0x6A9A2A, StripClass_Draw_Main, 6)
 
 	ConvertClass* pResult = nullptr;
 	if (pTechno) {
-		if(auto pPal = TechnoTypeExtContainer::Instance.TryFind(pTechno)->CameoPal) {
-			pResult = pPal->GetConvert<PaletteManager::Mode::Default>();
+		if(auto pPal = TechnoTypeExtContainer::Instance.TryFind(pTechno)->CameoPal.GetConvert()) {
+			pResult = pPal;
 		}
 	}
 	else

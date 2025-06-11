@@ -336,7 +336,6 @@ struct alignas(16) overridehookdecl
 
 __declspec(align(16)) struct hostdecl
 {
-	unsigned int hostChecksum;
 	const char* hostName;
 };
 
@@ -369,12 +368,22 @@ namespace SyringeData
 	};
 };
 
-//#define declhost(exename, checksum) \
-//namespace SyringeData { \
-//namespace Hosts { \
-//__declspec(allocate(".syexe00")) \
-//hostdecl _hst__ ## exename = { checksum, #exename }; \
-//}; };
+#pragma section(".syexe00", read, write)
+#pragma section(".syexe01", read, write)
+
+#define declhost0(exename) \
+namespace SyringeData { \
+namespace Hosts { \
+__declspec(allocate(".syexe00")) \
+hostdecl _hst__ ## exename = { #exename }; \
+}; };
+
+#define declhost1(exename) \
+namespace SyringeData { \
+namespace Hosts { \
+__declspec(allocate(".syexe01")) \
+hostdecl _hst__ ## exename = { #exename }; \
+}; };
 
 #define declhook(hook, funcname, size) \
 namespace SyringeData { \
@@ -424,14 +433,14 @@ hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; \
 //#define DEBUG_HOOK
 
 #ifndef DEBUG_HOOK
-#define DEFINE_HOOK(hook,funcname,size) \
-declhook(hook, funcname, size) \
-EXPORT_FUNC(funcname)
+//#define DEFINE_HOOK(hook,funcname,size) \
+//declhook(hook, funcname, size) \
+//EXPORT_FUNC(funcname)
 
 // Does the same as DEFINE_HOOK but no function opening, use for injgen-declaration when repeating the same hook at multiple addresses.
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
-#define DEFINE_HOOK_AGAIN(hook, funcname, size) \
-declhook(hook, funcname, size)
+//#define DEFINE_HOOK_AGAIN(hook, funcname, size) \
+//declhook(hook, funcname, size)
 
 #define decl_patch_data(hook, funcname, size) \
 namespace AsmjitPatchData { \
@@ -485,14 +494,14 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 //#define DEFINE_STRONG_OVERRIDE_HOOK_AGAIN(hook, funcname, size) \
 //declhook(hook, funcname, size)
 
-#define DEFINE_STRONG_HOOK(hook,funcname,size) \
-declhook(hook, funcname, size) \
-EXPORT_FUNC(funcname)
+//#define DEFINE_STRONG_HOOK(hook,funcname,size) \
+//declhook(hook, funcname, size) \
+//EXPORT_FUNC(funcname)
 
 // Does the same as DEFINE_HOOK but no function opening, use for injgen-declaration when repeating the same hook at multiple addresses.
 // CAUTION: funcname must be the same as in DEFINE_HOOK.
-#define DEFINE_STRONG_HOOK_AGAIN(hook, funcname, size) \
-declhook(hook, funcname, size)
+//#define DEFINE_STRONG_HOOK_AGAIN(hook, funcname, size) \
+//declhook(hook, funcname, size)
 
 #pragma endregion
 
@@ -537,5 +546,5 @@ declhook(hook, funcname, size)
 //DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
 //DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
 
-#define DEFINE_SKIP_HOOK(hook,funcname,size,ret)\
-DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
+//#define DEFINE_SKIP_HOOK(hook,funcname,size,ret)\
+//DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}

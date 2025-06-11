@@ -65,7 +65,7 @@ void Phobos::ExecuteLua()
 					const auto addr = (uintptr_t)lua_tointeger(L, -1);
 					lua_pop(L, 1);
 
-					// i dont know if the address is correct 
+					// i dont know if the address is correct
 					// this is assuming that player not using some kind of weird modded gamemd.exe
 					if (addr > 0 && addr >= 0x401000 && addr <= 0xB79BE4)
 					{
@@ -126,6 +126,33 @@ void Phobos::ExecuteLua()
 			StaticVars::MovieMDINI = lua_tostring(L, -1);
 		}
 
+		lua_getglobal(L, "DebugLogName");
+
+		if (lua_isstring(L, -1) == 1)
+		{
+			Debug::LogFileMainName = PhobosCRT::StringToWideString(lua_tostring(L, -1));
+		}
+
+		lua_getglobal(L, "CrashDumpFileName");
+
+		if (lua_isstring(L, -1) == 1)
+		{
+			Debug::CrashDumpFileName = PhobosCRT::StringToWideString(lua_tostring(L, -1));
+		}
+
+		lua_getglobal(L, "DesyncLogName");
+
+		if (lua_isstring(L, -1) == 1)
+		{
+			Debug::SyncFileFormat = lua_tostring(L, -1);
+		}
+
+		lua_getglobal(L, "DesyncLogName2");
+
+		if (lua_isstring(L, -1) == 1)
+		{
+			Debug::SyncFileFormat2 = lua_tostring(L, -1);
+		}
 		lua_getglobal(L, "CompatibilityMode");
 
 		if (lua_isboolean(L, -1) == 1)

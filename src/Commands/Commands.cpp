@@ -25,6 +25,7 @@
 #include "AutoBuilding.h"
 #include "DistributionMode.h"
 #include "Harmless.h"
+#include "ForceWin.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -98,6 +99,8 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 
 		Make<AIControlCommandClass>();
 		Make<HarmlessCommandClass>();
+
+		Make<ForceWinCommandClass>();
 	}
 #pragma endregion Adminexclusive
 
@@ -114,20 +117,16 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 
 #pragma region SWSidebar
 	Make<ToggleSWSidebar>();
-
-	if(SWSidebarClass::IsEnabled()){
-
-		SWSidebarClass::Commands[0] = Make<FireTacticalSWCommandClass<1>>();
-		SWSidebarClass::Commands[1] = Make<FireTacticalSWCommandClass<2>>();
-		SWSidebarClass::Commands[2] = Make<FireTacticalSWCommandClass<3>>();
-		SWSidebarClass::Commands[3] = Make<FireTacticalSWCommandClass<4>>();
-		SWSidebarClass::Commands[4] = Make<FireTacticalSWCommandClass<5>>();
-		SWSidebarClass::Commands[5] = Make<FireTacticalSWCommandClass<6>>();
-		SWSidebarClass::Commands[6] = Make<FireTacticalSWCommandClass<7>>();
-		SWSidebarClass::Commands[7] = Make<FireTacticalSWCommandClass<8>>();
-		SWSidebarClass::Commands[8] = Make<FireTacticalSWCommandClass<9>>();
-		SWSidebarClass::Commands[9] = Make<FireTacticalSWCommandClass<10>>();
-	}
+	SWSidebarClass::Commands[0] = Make<FireTacticalSWCommandClass<1>>();
+	SWSidebarClass::Commands[1] = Make<FireTacticalSWCommandClass<2>>();
+	SWSidebarClass::Commands[2] = Make<FireTacticalSWCommandClass<3>>();
+	SWSidebarClass::Commands[3] = Make<FireTacticalSWCommandClass<4>>();
+	SWSidebarClass::Commands[4] = Make<FireTacticalSWCommandClass<5>>();
+	SWSidebarClass::Commands[5] = Make<FireTacticalSWCommandClass<6>>();
+	SWSidebarClass::Commands[6] = Make<FireTacticalSWCommandClass<7>>();
+	SWSidebarClass::Commands[7] = Make<FireTacticalSWCommandClass<8>>();
+	SWSidebarClass::Commands[8] = Make<FireTacticalSWCommandClass<9>>();
+	SWSidebarClass::Commands[9] = Make<FireTacticalSWCommandClass<10>>();
 #pragma endregion SWSidebar
 
 	return 0x0;

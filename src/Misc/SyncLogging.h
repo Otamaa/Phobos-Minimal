@@ -5,6 +5,7 @@
 #include <Randomizer.h>
 #include <vector>
 #include <array>
+#include <string>
 
 // These determine how many of each type of sync log event are stored in the buffers.
 // Any events added beyond this count overwrite old ones.
@@ -172,5 +173,5 @@ public:
 	static void AddDestinationChangeSyncLogEvent(AbstractClass* pObject, AbstractClass* pTarget, unsigned int callerAddress);
 	static void AddMissionOverrideSyncLogEvent(AbstractClass* pObject, int mission, unsigned int callerAddress);
 	static void AddAnimCreationSyncLogEvent(const CoordStruct& coords, unsigned int callerAddress);
-	static void WriteSyncLog(const char* logFilename);
+	static void WriteSyncLog(const std::string& logFilename);
 };

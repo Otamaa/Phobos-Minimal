@@ -81,6 +81,7 @@ int Phobos::UI::SuperWeaponSidebar_LeftOffset { 0 };
 int Phobos::UI::SuperWeaponSidebar_CameoHeight { 48 };
 int Phobos::UI::SuperWeaponSidebar_Max { 0 };
 int Phobos::UI::SuperWeaponSidebar_MaxColumns { INT32_MAX };
+bool Phobos::UI::SuperWeaponSidebar_Pyramid = true;
 
 const wchar_t* Phobos::UI::CostLabel { L"" };
 const wchar_t* Phobos::UI::PowerLabel { L"" };
@@ -9230,7 +9231,8 @@ ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 
 //syringe wont inject the dll unless it got atleast one hook
 //so i keep this
-DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
+declhook(0x7CD810, Game_ExeRun, 0x9)
+extern "C" __declspec(dllexport) DWORD __cdecl Game_ExeRun(REGISTERS* R)
 {
 	Phobos::ExeRun();
 	return 0;

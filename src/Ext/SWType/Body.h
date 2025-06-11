@@ -186,7 +186,7 @@ public:
 #pragma region Otamaa
 	Nullable<SHPStruct*> GClock_Shape {};
 	Nullable<int> GClock_Transculency {};
-	Valueable<PaletteManager*> GClock_Palette {}; //CustomPalette::PaletteMode::Default
+	CustomPalette GClock_Palette {}; //CustomPalette::PaletteMode::Default
 	Valueable<bool> ChargeTimer { false };
 	Valueable<bool> ChargeTimer_Backwards { false };
 #pragma endregion
@@ -388,7 +388,7 @@ public:
 	Valueable<int> Money_DrainDelay { 0 };
 #pragma endregion
 
-	Valueable<PaletteManager*> SidebarPalette {}; //PaletteManager::Mode::Default
+	CustomPalette SidebarPalette {}; //PaletteManager::Mode::Default
 	PhobosPCXFile SidebarPCX {};
 
 	ValueableIdxVector<SuperWeaponTypeClass> SW_ResetType {};

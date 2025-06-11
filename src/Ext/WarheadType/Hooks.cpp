@@ -137,8 +137,8 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 				auto const pRBulletExt = BulletExtContainer::Instance.Find(pBullet);
 				pRBulletExt->Owner = BulletExtContainer::Instance.Find(pThis)->Owner;
 
-				BulletExtData::SimulatedFiringUnlimbo(pBullet, pThis->Owner->Owner, pWeapon, pThis->Location, true);
-				BulletExtData::SimulatedFiringEffects(pBullet, pThis->Owner->Owner, nullptr, false, true);
+				BulletExtData::SimulatedFiringUnlimbo(pBullet, pThis->Owner->Owner, pWeapon, pThis->Location, false);
+				BulletExtData::SimulatedFiringEffects(pBullet, pThis->Owner->Owner, nullptr, false, false);
 			}
 		}
 	}

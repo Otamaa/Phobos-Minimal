@@ -85,9 +85,9 @@ bool TEventExtData::AttachedIsUnderAttachedEffectTEvent(TEventClass* pThis, Obje
 	if (!pObject)
 		return false;
 
-	const auto const pDesiredType = PhobosAttachEffectTypeClass::Find(pThis->String);
+	const auto pTypeAttached = PhobosAttachEffectTypeClass::Find(pThis->String);
 
-	if (!pDesiredType)
+	if (!pTypeAttached)
 	{
 		Debug::Log("Error in event %d. The parameter 2 '%s' isn't a valid AttachEffect ID\n", static_cast<PhobosTriggerEvent>(pThis->EventKind), pThis->String);
 		return false;
@@ -98,7 +98,7 @@ bool TEventExtData::AttachedIsUnderAttachedEffectTEvent(TEventClass* pThis, Obje
 	if (!pTechno)
 		return false;
 
-	if (PhobosAEFunctions::HasAttachedEffects(pTechno, pDesiredType, false, false, nullptr, nullptr, nullptr, nullptr))
+	if (PhobosAEFunctions::HasAttachedEffects(pTechno, pTypeAttached, false, false, nullptr, nullptr, nullptr, nullptr))
 		return true;
 
 	return false;
@@ -320,9 +320,9 @@ bool TEventExtData::CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pOb
 {
 	if (pObject) {
 
-		const auto pDesiredType = TechnoTypeClass::Find(pThis->String);
+		const auto pTypeAttached = TechnoTypeClass::Find(pThis->String);
 
-		if (!pDesiredType) {
+		if (!pTypeAttached) {
 			Debug::LogInfo("Error in event {}. The parameter 2 '{}' isn't a valid Techno ID",
 				static_cast<int>(pThis->EventKind),
 				pThis->String
@@ -333,7 +333,7 @@ bool TEventExtData::CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pOb
 		if (auto const pTechno = flag_cast_to<TechnoClass*, false>(pObject)) {
 			auto const pTechnoType = pTechno->GetTechnoType();
 
-			if (pDesiredType == pTechnoType) {
+			if (pTypeAttached == pTechnoType) {
 				if (HouseClass* pHouse = GetHouse(pThis->Value, pEventHouse)) {
 					return pTechno->Owner == pHouse;
 				}

@@ -12,6 +12,7 @@
 
 #include <Lib/fmt/core.h>
 #include <Lib/fmt/xchar.h>
+#include <Lib/fmt/printf.h>
 
 class CCINIClass;
 class AbstractClass;
@@ -107,6 +108,7 @@ struct Phobos final
 		static int SuperWeaponSidebar_CameoHeight;
 		static int SuperWeaponSidebar_Max;
 		static int SuperWeaponSidebar_MaxColumns;
+		static bool SuperWeaponSidebar_Pyramid;
 
 		static const wchar_t* CostLabel;
 		static const wchar_t* PowerLabel;

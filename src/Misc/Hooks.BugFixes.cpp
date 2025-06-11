@@ -400,7 +400,7 @@ ASMJIT_PATCH(0x4DACDD, FootClass_CrashingVoice, 0x6)
 	{
 		if (pThis->IsCrashing)
 		{
-			pThis->Audio7.ShutUp();
+			pThis->MoveSoundAudioController.ShutUp();
 			auto const nCoord = pThis->GetCoords();
 
 			if (!pThis->IsAttackedByLocomotor)
@@ -410,16 +410,16 @@ ASMJIT_PATCH(0x4DACDD, FootClass_CrashingVoice, 0x6)
 				if (pThis->Owner->IsControlledByHuman())
 					VocClass::PlayIndexAtPos(pType->VoiceCrashing, nCoord);
 
-				VocClass::PlayIndexAtPos(pType->CrashingSound, nCoord, &pThis->Audio7);
+				VocClass::PlayIndexAtPos(pType->CrashingSound, nCoord, &pThis->MoveSoundAudioController);
 
 			}
 			else
 			{
-				VocClass::PlayIndexAtPos(RulesClass::Instance->ScoldSound, nCoord, &pThis->Audio7);
+				VocClass::PlayIndexAtPos(RulesClass::Instance->ScoldSound, nCoord, &pThis->MoveSoundAudioController);
 			}
 		}
-		else if (pThis->__PlayingMovingSound) // done playing
-			pThis->Audio7.ShutUp();
+		else if (pThis->IsMoveSoundPlaying ) // done playing
+			pThis->MoveSoundAudioController.ShutUp();
 
 		pThis->WasCrashingAlready = pThis->IsCrashing;
 	}
@@ -1421,9 +1421,9 @@ struct OverlayWriter
 	void Put(int nOverlay)
 	{
 		if (ScenarioClass::NewINIFormat >= 5)
-			ByteWriter.PutWord(static_cast<unsigned char>(nOverlay));
+			ByteWriter.PutByte(static_cast<unsigned char>(nOverlay));
 		else
-			ByteWriter.PutByte(static_cast<unsigned short>(nOverlay));
+			ByteWriter.PutWord(static_cast<unsigned short>(nOverlay));
 	}
 
 	void PutBlock(CCINIClass* pINI)
@@ -1885,6 +1885,7 @@ ASMJIT_PATCH(0x75BD70, WalkLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) 
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(int const, distance, EAX);
 	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
+	//return distance < 17 ? CloseEnough : KeepMoving;
 }
 
 ASMJIT_PATCH(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) {
@@ -1893,6 +1894,7 @@ ASMJIT_PATCH(0x5B11DD, MechLocomotionClass_ProcessMoving_SlowdownDistance, 0x9) 
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(int const, distance, EAX);
 	return distance >= pLinkedTo->GetCurrentSpeed() ? KeepMoving : CloseEnough;
+	//return distance < 16 ? CloseEnough : KeepMoving;
 }
 
 // Apply cell lighting on UseNormalLight=no MakeInfantry anims.
@@ -2418,7 +2420,7 @@ ASMJIT_PATCH(0x6F6DEE, TechnoClass_Unlimbo_BarrelFacingBugFix, 0x7)
 	return SkipGameCode;
 }
 
-#ifdef _AI_ZONE_CHECK
+#ifndef _AI_ZONE_CHECK
 ASMJIT_PATCH(0x4DFC39, FootClass_FindBioReactor_CheckValid, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
@@ -2786,3 +2788,114 @@ ASMJIT_PATCH(0x70D910, FootClass_QueueEnter_NoMoveToBridge, 0x5)
 }
 
 #endif
+
+#pragma region ElectricAssultFix
+
+namespace ElectricAssultTemp
+{
+	WeaponTypeClass* WeaponType;
+}
+
+ASMJIT_PATCH(0x4D6F66, FootClass_ElectricAssultFix_SetWeaponType, 0x6)		// Mission_AreaGuard
+{
+	GET(WeaponTypeClass*, Secondary, ECX);
+
+	ElectricAssultTemp::WeaponType = Secondary;
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x4D5102, FootClass_ElectricAssultFix_SetWeaponType, 0x6)	// Mission_Guard
+
+ASMJIT_PATCH(0x4D6FE1, FootClass_ElectricAssultFix2, 0x7)		// Mission_AreaGuard
+{
+	GET(FootClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pBuilding, EDI);
+	enum
+	{
+		SkipGuard = 0x4D51AE, ContinueGuard = 0x4D5198,
+		SkipAreaGuard = 0x4D7001, ContinueAreaGuard = 0x4D6FF5
+	};
+
+	const auto pWeapon = ElectricAssultTemp::WeaponType;
+	bool InGuard = (R->Origin() == 0x4D5184);
+
+	if (pBuilding->Owner == pThis->Owner &&
+		WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->GetVerses(TechnoExtData::GetTechnoArmor(pBuilding , pWeapon->Warhead))
+			.Verses != 0.0)
+	{
+		return InGuard ? SkipGuard : SkipAreaGuard;
+	}
+
+	return InGuard ? ContinueGuard : ContinueAreaGuard;
+}ASMJIT_PATCH_AGAIN(0x4D5184, FootClass_ElectricAssultFix2, 0x7)	// Mission_Guard
+
+
+#pragma endregion
+
+#ifdef DamageAreaItemsFix
+ASMJIT_PATCH(0x489BDB, DamageArea_RockerItemsFix1, 0x6)
+{
+	enum { SkipGameCode = 0x489C29 };
+	// Get cell coordinates
+	GET(const short, cellX, ESI);
+	GET(const short, cellY, EBX);
+	// Record the current cell for linked list getting
+	const auto pCell = MapClass::Instance->GetCellAt(CellStruct { cellX, cellY });
+	DamageAreaTemp::CheckingCell = pCell;
+	// First, check the FirstObject linked list
+	auto pObject = pCell->FirstObject;
+	// Check if there are objects in the linked list
+	if (pObject)
+	{
+		// When it exists, start the vanilla processing
+		R->EAX(pObject);
+		return SkipGameCode;
+	}
+	// When it does not exist, check AltObject linked list
+	pObject = pCell->AltObject;
+	// If there is an object, record the flag
+	if (pObject)
+		DamageAreaTemp::CheckingCellAlt = true;
+	// Return the original check
+	R->EAX(pObject);
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x489E47, DamageArea_RockerItemsFix2, 0x6)
+{
+	// Prior to this, there was already pObject = pCell->FirstObject;
+	GET(const ObjectClass*, pObject, EDI);
+	// As vanilla, first look at the next object in the linked list
+	if (pObject)
+		return 0;
+	// When it does not exist, check which linked list it is currently in
+	if (DamageAreaTemp::CheckingCellAlt)
+	{
+		// If it is already in the AltObject linked list, reset the flag and return the original check
+		DamageAreaTemp::CheckingCellAlt = false;
+		return 0;
+	}
+	// If it is still in the FirstObject linked list, take the first object in the  linked list and continue checking
+	pObject = DamageAreaTemp::CheckingCell->AltObject;
+	// If there is an object, record the flag
+	if (pObject)
+		DamageAreaTemp::CheckingCellAlt = true;
+	// Return the original check
+	R->EDI(pObject);
+	return 0;
+}
+
+#endif
+
+DEFINE_JUMP(LJMP, 0x4C752A, 0x4C757D); // Skip cell under bridge check
+
+// Fix a potential edge case where aircraft gets stuck in 'sleep' (reload/repair) on dock if it gets assigned target from team mission etc.
+ASMJIT_PATCH(0x41915D, AircraftClass_ReceiveCommand_QueryPreparedness, 0x8)
+{
+	enum { CheckAmmo = 0x419169 };
+
+	GET(AircraftClass*, pThis, ESI);
+
+	if (pThis->Team && pThis->Team->ArchiveTarget == pThis->Target && pThis->CurrentMission == Mission::Sleep)
+		return CheckAmmo;
+
+	return 0;
+}

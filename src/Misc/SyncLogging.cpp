@@ -110,9 +110,9 @@ void SyncLogger::AddAnimCreationSyncLogEvent(const CoordStruct& coords, unsigned
 	}
 }
 
-void SyncLogger::WriteSyncLog(const char* logFilename)
+void SyncLogger::WriteSyncLog(const std::string& logFilename)
 {
-	auto const pLogFile = fopen(logFilename, "at");
+	auto const pLogFile = fopen(logFilename.c_str(), "at");
 
 	if (pLogFile)
 	{

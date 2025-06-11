@@ -21,7 +21,7 @@ public:
 	InitState Initialized { InitState::Blank };
 public:
 
-	Valueable<PaletteManager*> Palette {}; //CustomPalette::PaletteMode::Temperate
+	CustomPalette Palette { CustomPalette::PaletteMode::Temperate }; //
 	Nullable<AnimTypeClass*> OreTwinkle {};
 	Nullable<int> OreTwinkleChance {};
 	Nullable<int> Ore_TintLevel {};

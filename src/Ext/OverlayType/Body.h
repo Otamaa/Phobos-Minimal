@@ -5,6 +5,7 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/PhobosMap.h>
+#include <New/Type/PaletteManager.h>
 
 class OverlayTypeExtData final
 {
@@ -16,7 +17,7 @@ public:
 	InitState Initialized { InitState::Blank };
 public:
 
-	Valueable<PaletteManager*> Palette { };
+	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
 	Valueable<int> ZAdjust { 0 };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

@@ -173,8 +173,8 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
 
 						ConvertClass* pPal = FileSystem::CAMEO_PAL();
-						if (auto pManager = pProdTypeExt->CameoPal)
-							pPal = pManager->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPal);
+						if (auto pManager = pProdTypeExt->CameoPal.GetConvert())
+							pPal = pManager;
 
 						DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
 					}
@@ -231,8 +231,8 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 							cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
 
 							ConvertClass* pPal = FileSystem::CAMEO_PAL();
-							if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPalette)
-								pPal = pManager->GetOrDefaultConvert<PaletteManager::Mode::Default>(pPal);
+							if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPalette.GetConvert())
+								pPal = pManager;
 
 							DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
 						}
@@ -2460,13 +2460,10 @@ ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	GET(FakeBuildingClass*, pThis, ESI);
 	TechnoExt_ExtData::UpdateSensorArray(pThis);
 
-	const auto pTechnoExt = pThis->_GetTechnoExtData();
+	//const auto pTechnoExt = pThis->_GetTechnoExtData();
 	const auto pExt = pThis->_GetExtData();
 	pExt->DisplayIncomeString();
 	pExt->UpdatePoweredKillSpawns();
-
-	pTechnoExt->UpdateGattlingRateDownReset();
-
 	pExt->UpdateAutoSellTimer();
 	pExt->UpdateSpyEffecAnimDisplay();
 

@@ -283,7 +283,7 @@ void NOINLINE FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridg
 								cellptr->MapCoords,
 								-1);
 
-							cellptr->OverlayData = ScenarioClass::Instance->Random.RandomFromMax(2);
+							cellptr->OverlayData = ScenarioClass::Instance->Random.RandomFromMax<unsigned char>(2);
 							RectangleStruct overlayrect = cellptr->GetOverlayShapeRect();
 							overlayrect.Y -= TacticalClass::view_bound->Y;
 							updaterect = RectangleStruct::Union(updaterect, overlayrect);
@@ -698,7 +698,7 @@ void FakeAnimClass::_AI()
 					}
 
 					this->__ToDelete_197 = false;
-					this->RemainingIterations = this->Type->LoopCount;
+					this->RemainingIterations = (BYTE)this->Type->LoopCount;
 					this->Accum = 0.0;
 					int delay = this->Type->Rate;
 					if (this->Type->RandomRate.IsValid())

@@ -1163,8 +1163,8 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 			}
 
 			ConvertClass* pal = FileSystem::ANIM_PAL();
-			if (auto pManager = ParticleTypeExtContainer::Instance.Find(draw.LinkedParticleType)->Palette)
-				pal = pManager->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pal);
+			if (auto pManager = ParticleTypeExtContainer::Instance.Find(draw.LinkedParticleType)->Palette.GetConvert())
+				pal = pManager;
 
 			DSurface::Temp->DrawSHP(
 				pal,

@@ -280,7 +280,7 @@ ASMJIT_PATCH(0x66D55E, Buf_General, 6)
 	detail::ParseVector(pRules->SovParaDropNum, exINI, section, GameStrings::SovParaDropNum, "Expect valid number");
 	detail::ParseVector(pRules->YuriParaDropNum, exINI, section, GameStrings::YuriParaDropNum, "Expect valid number");
 
-	detail::ParseVector<InfantryTypeClass*>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
+	detail::ParseVector<InfantryTypeClass* , true>(pRules->AnimToInfantry, exINI, section, GameStrings::AnimToInfantry, "Expect valid InfantryType");
 
 	//if (!ATOI_Count.has_value() || !ATOI_Count.value())
 	//	ATOI_Count = pRules->AnimToInfantry.Count;

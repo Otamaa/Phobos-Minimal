@@ -534,3 +534,10 @@ ASMJIT_PATCH(0x401640, AudioIndex_GetSampleInformation, 5)
 
 	return 0;
 }
+
+//ASMJIT_PATCH(0x750E4A, VocCClass_Play_DebugMem, 0x6)
+//{
+//	GET(int, _IDX, EBP);
+//	Debug::LogInfo("Playing Audio at idx {}", _IDX);
+//	return 0x0;
+//}

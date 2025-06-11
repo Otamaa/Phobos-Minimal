@@ -147,6 +147,7 @@ public:
 	std::set<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
 	std::set<BuildingClass*> Academies {};
 	std::set<TechnoTypeClass*> Reversed {};
+	std::set<TechnoClass*> OwnedCountedHarvesters {};
 
 	bool Is_NavalYardSpied { false };
 	bool Is_AirfieldSpied { false };
@@ -171,7 +172,7 @@ public:
 
 	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
 	CDTimerClass CombatAlertTimer {};
-	HelperedVector<BuildingClass*> RestrictedFactoryPlants {};
+	std::set<BuildingClass*> RestrictedFactoryPlants {};
 	CDTimerClass AISellAllDelayTimer {};
 
 	HelperedVector<UnitClass*> OwnedDeployingUnits {};

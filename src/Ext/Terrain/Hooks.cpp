@@ -14,7 +14,7 @@
 ASMJIT_PATCH(0x71C5D2, TerrainClass_CatchFire_AttachFireAnim, 0x6)
 {
 	GET(FakeTerrainClass*, pThis, EDI);
-	
+
 	if(pThis->Type->SpawnsTiberium || !pThis->Type->IsFlammable)
 		return 0x71C69D;
 
@@ -75,7 +75,7 @@ ASMJIT_PATCH(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 
 	const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pThisType);
 
-	if (const auto pConvertData = pTerrainExt->CustomPalette) {
+	if (const auto pConvertData = pTerrainExt->CustomPalette.GetConvert()) {
 		auto const pCell = pThis->GetCell();
 		int wallOwnerIndex = pCell->WallOwnerIndex;
 		int colorSchemeIndex = HouseClass::CurrentPlayer->ColorSchemeIndex;
@@ -84,7 +84,7 @@ ASMJIT_PATCH(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 			colorSchemeIndex = HouseClass::Array->GetItem(wallOwnerIndex)->ColorSchemeIndex;
 
 
-		pConvert = pConvertData->ColorschemeDataVector->Items[colorSchemeIndex]->LightConvert;
+		pConvert = pTerrainExt->CustomPalette.ColorschemeDataVector->Items[colorSchemeIndex]->LightConvert;
 		R->EBP(pCell->Intensity_Normal);
 	}
 

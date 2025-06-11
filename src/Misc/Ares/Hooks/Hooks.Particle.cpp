@@ -312,8 +312,8 @@ ASMJIT_PATCH(0x62D015, ParticleClass_Draw_Palette, 6)
 
 	ConvertClass* pConvert = FileSystem::ANIM_PAL();
 	const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pThis->Type);
-	if (const auto pConvertData = pTypeExt->Palette) {
-		pConvert = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(pConvert);
+	if (const auto pConvertData = pTypeExt->Palette.GetConvert()) {
+		pConvert = pConvertData;
 	}
 
 	R->EDX(pConvert);

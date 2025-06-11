@@ -14,6 +14,7 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/InfantryType/Body.h>
 #include <Ext/Terrain/Body.h>
+#include <Ext/Tactical/Body.h>
 
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
@@ -45,6 +46,7 @@
 #include <ExtraHeaders/AStarClass.h>
 #include <BitFont.h>
 #include <format>
+
 
 #include <Ext/SWType/Body.h>
 #include <New/Type/CrateTypeClass.h>
@@ -103,8 +105,8 @@ static	void __fastcall DrawShape_VeinHole
  int ZShapeFrame, int XOffset, int YOffset
 )
 {
-	if (auto pManager = RulesExtData::Instance()->VeinholePal)
-		Pal = pManager->GetOrDefaultConvert<PaletteManager::Mode::Temperate>(Pal);
+	if (auto pManager = RulesExtData::Instance()->VeinholePal.GetConvert())
+		Pal = pManager;
 
 	CC_Draw_Shape(Surface, Pal, SHP, FrameIndex, Position, Bounds, Flags, Remap, ZAdjust, ZGradientDescIndex, Brightness
 	 , TintColor, ZShape, ZShapeFrame, XOffset, YOffset);
@@ -384,6 +386,7 @@ ASMJIT_PATCH(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
 
 	if (pExplType)
 	{
+
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExplType, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
 			pThis->GetOwningHouse(),
 			nullptr,
@@ -487,6 +490,7 @@ ASMJIT_PATCH(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 			&& !owner->IsControlledByHuman()
 			)
 		{
+
 			R->CL(pTypeExt->PassiveAcquire_AI.Get());
 			return 0x709202;
 		}
@@ -661,6 +665,7 @@ ASMJIT_PATCH(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
 		pOwner->EnterIdleMode(false, 1);
 
 	return 0x71AE49;
+
 }
 
 ASMJIT_PATCH(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
@@ -904,6 +909,7 @@ namespace Tiberiumpip
 
 	int GetEmptyShapeIndex(bool isWeeder, TechnoTypeExtData* pTypeData)
 	{
+
 		if (isWeeder && pTypeData->Weeder_PipEmptyIndex.isset())
 			return pTypeData->Weeder_PipEmptyIndex;
 		else if (pTypeData->Tiberium_EmptyPipIdx.isset())
@@ -970,12 +976,8 @@ namespace Tiberiumpip
 		}
 
 		ConvertClass* nPal = FileSystem::THEATER_PAL();
-		if (auto pConv = pTypeExt->Tiberium_PipShapes_Palette)
-		{
-			if (auto pConv_ = pConv->GetConvert<PaletteManager::Mode::Temperate>())
-			{
-				nPal = pConv_;
-			}
+		if (auto pConv = pTypeExt->Tiberium_PipShapes_Palette.GetConvert()) {
+			nPal = pConv;
 		}
 
 		auto storage = &TechnoExtContainer::Instance.Find(pTechno)->TiberiumStorage;
@@ -1037,6 +1039,7 @@ namespace Tiberiumpip
 			nOffs.Y += nOffsetY;
 		}
 	}
+
 }
 
 static void DrawSpawnerPip(TechnoClass* pTechno, Point2D* nPoints, RectangleStruct* pRect, int nOffsetX, int nOffsetY)
@@ -1249,6 +1252,7 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 	{
 		pCell->OccupationFlags &= ~0x20;
 	}
+
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x744210, FakeUnitClass::_ClearOccupyBit);
@@ -1324,6 +1328,7 @@ ASMJIT_PATCH(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6)
 
 		if (pTechnoTypeExt->VoiceCreate >= 0)
 		{
+
 			if (!pTechnoTypeExt->VoiceCreate_Instant)
 				pTechno->QueueVoice(pTechnoTypeExt->VoiceCreate);
 			else
@@ -1427,6 +1432,7 @@ ASMJIT_PATCH(0x70FB50, TechnoClass_Bunkerable, 0x5)
 
 	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis))
 	{
+
 		const auto pType = pFoot->GetTechnoType();
 		if (pType->Bunkerable)
 		{
@@ -1455,6 +1461,7 @@ ASMJIT_PATCH(0x70FB50, TechnoClass_Bunkerable, 0x5)
 				|| loco == RocketLocomotionClass::vtable
 				|| loco == ShipLocomotionClass::vtable)
 			{
+
 				R->EAX(false);
 				return 0x70FBCA;
 			}
@@ -1772,12 +1779,12 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 
 			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin)
 			{
+
 				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
 				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
 
 				const bool IsBattlePointsCollectorPowered = !pTypeExt->BattlePointsCollector_RequirePower || ((*begin)->Powered && Online);
-				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered)
-				{
+				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered) {
 					++pHouseExt->BattlePointsCollectors[(*begin)];
 				}
 
@@ -1788,7 +1795,7 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				{
 					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0)
 					{
-						pHouseExt->RestrictedFactoryPlants.push_back_unique(pBld);
+						pHouseExt->RestrictedFactoryPlants.emplace(pBld);
 					}
 
 					pThis->CostDefensesMult *= (*begin)->DefensesCostBonus;
@@ -1799,8 +1806,7 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				//only pick first spysat
-				if (!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat)
-				{
+				if(!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat){
 					const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && Online);
 					if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered)
 					{
@@ -2214,163 +2220,6 @@ ASMJIT_PATCH(0x73B0C5, UnitClass_Render_nullptrradio, 0x6)
 	return !pContact ? 0x73B124 : 0x0;
 }
 
-/**
- *  Draw a radial to the screen.
- *
- *  @authors: CCHyper
- */
-
-static void Tactical_Draw_Radial(
-	bool draw_indicator,
-	bool animate,
-	Coordinate center_coord,
-	ColorStruct color,
-	float radius,
-	bool concentric,
-	bool round)
-{
-	if (round)
-	{
-		radius = std::round(radius);
-	}
-
-	int size;
-
-	if (concentric)
-	{
-		size = (int)radius;
-	}
-	else
-	{
-		size = (int)((radius + 0.5) / Math::sqrt(2.0) * double(Unsorted::CellWidthInPixels)); // should be cell size global?
-	}
-
-	Point2D center_pixel = TacticalClass::Instance->CoordsToClient(center_coord);
-
-	center_pixel.X += DSurface::ViewBounds().X;
-	center_pixel.Y += DSurface::ViewBounds().Y;
-
-	RectangleStruct draw_area(
-		center_pixel.Y - size / 2,
-		center_pixel.X - size,
-		size * 2,
-		size
-	);
-
-	RectangleStruct intersect = draw_area.IntersectWith(DSurface::ViewBounds());
-	if (!intersect.IsValid())
-	{
-		return;
-	}
-
-	ColorStruct draw_color = color;
-
-	if (animate)
-	{
-		draw_color.Adjust(50, ColorStruct::Empty);
-	}
-
-	unsigned ellipse_color = DSurface::RGB_To_Pixel(draw_color.R, draw_color.G, draw_color.B);
-
-	/**
-	 *  Draw the main radial ellipse, then draw one slightly smaller to give a thicker impression.
-	 */
-	DSurface::Temp->Draw_Ellipse(center_pixel, size, size / 2, DSurface::ViewBounds(), ellipse_color);
-	DSurface::Temp->Draw_Ellipse(center_pixel, size - 1, size / 2 - 1, DSurface::ViewBounds(), ellipse_color);
-
-	/**
-	 *  Draw the sweeping indicator line.
-	 */
-	if (!draw_indicator)
-	{
-		return;
-	}
-
-	double d_size = (double)size;
-	double size_half = (double)size / 2;
-
-	/**
-	   *  The alpha values for the lines (producing the fall-off effect).
-	   */
-	static const double _line_alpha[] = {
-		//0.05, 0.20, 0.40, 1.0                     // original values.
-		0.05, 0.10, 0.20, 0.40, 0.60, 0.80, 1.0     // new values.
-	};
-
-	static const int _rate = 50;
-
-	for (size_t i = 0; i < ARRAY_SIZE(_line_alpha); ++i)
-	{
-		static int _offset = 0;
-		static MSTimerClass sweep_rate(_rate);
-
-		if (sweep_rate.Expired())
-		{
-			sweep_rate.Start(_rate);
-			++_offset;
-		}
-
-		float angle_offset = float((_offset + i) * 0.05);
-		int angle_increment = int(angle_offset / Math::DEG_TO_RADF(360));
-		float angle = angle_offset - (angle_increment * Math::DEG_TO_RADF(360));
-
-		Point2D line_start {};
-		Point2D line_end {};
-
-		if (std::fabs(angle - Math::DEG_TO_RADF(90)) < 0.001)
-		{
-			line_start = center_pixel;
-			line_end = Point2D(center_pixel.X, int(center_pixel.Y + (-size_half)));
-		}
-		else if (std::fabs(angle - Math::DEG_TO_RADF(270)) < 0.001)
-		{
-			line_start = center_pixel;
-			line_end = Point2D(center_pixel.X, int(center_pixel.Y + size_half));
-		}
-		else
-		{
-			double angle_tan = Math::tan(angle);
-			double xdist = Math::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
-			double ydist = Math::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
-
-			if (angle > Math::DEG_TO_RADF(90) && angle < Math::DEG_TO_RADF(270))
-			{
-				xdist = -xdist;
-			}
-
-			if (angle < Math::DEG_TO_RADF(180))
-			{
-				ydist = -ydist;
-			}
-
-			line_start = center_pixel;
-			line_end = Point2D(int(center_pixel.X + xdist), int(center_pixel.Y + ydist));
-		}
-
-		line_start.X -= DSurface::ViewBounds().X;
-		line_start.Y -= DSurface::ViewBounds().Y;
-
-		line_end.X -= DSurface::ViewBounds().X;
-		line_end.Y -= DSurface::ViewBounds().Y;
-
-		bool enable_red_channel = false;
-		bool enable_green_channel = true;
-		bool enable_blue_channel = false;
-
-		DSurface::Temp->DrawSubtractiveLine_AZ(DSurface::ViewBounds(),
-										line_start,
-										line_end,
-										draw_color,
-										-500,
-										-500,
-										false,
-										enable_red_channel,
-										enable_green_channel,
-										enable_blue_channel,
-										(float)_line_alpha[i]);
-	}
-}
-
 void FakeObjectClass::_DrawRadialIndicator(int val)
 {
 	if (auto pTechno = flag_cast_to<TechnoClass*, false>(this))
@@ -2409,7 +2258,7 @@ void FakeObjectClass::_DrawRadialIndicator(int val)
 					if (Color != ColorStruct::Empty)
 					{
 						auto nCoord = pTechno->GetCoords();
-						Tactical_Draw_Radial(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
+						FakeTacticalClass::__DrawRadialIndicator(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
 					}
 				}
 			}
@@ -2471,6 +2320,7 @@ ASMJIT_PATCH(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 			{
 				if (auto const pTeamLeader = pTeam->FetchLeader())
 				{
+
 					if (pTeamLeader != pFoot)
 						Drawing::DrawLinesTo(pTeamLeader->GetRenderCoords(), pThis->Location, pTeamLeader->Owner->Color);
 				}
@@ -2589,7 +2439,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, IonBlastDrawAll)
 ASMJIT_PATCH(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
 {
 	UpdateAllVeinholes();
-	return 0x0;
+	return 0;
 }
 
 ASMJIT_PATCH(0x711F60, TechnoTypeClass_GetSoylent_Disable, 0x8)
@@ -2610,10 +2460,9 @@ ASMJIT_PATCH(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 	GET(FootClass*, pThis, ECX);
 
 	const auto maxSpeed = pThis->GetDefaultSpeed();
-	int speedResult = int(maxSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis));
+	int speedResult = int( maxSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)) ;
 
-	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1)
-	{
+	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1) {
 		speedResult /= 2;
 	}
 
@@ -2626,12 +2475,9 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 	GET(HouseClass*, pHouse, ESI);
 	enum { AllDestroyed = 0x71F1B1, HasAlive = 0x71F163 };
 
-	if (SessionClass::IsCampaign())
-	{
-		if (pHouse->ActiveInfantryTypes.GetTotal() <= 0)
-		{
-			for (auto& bld : pHouse->Buildings)
-			{
+	if(SessionClass::IsCampaign()) {
+		if (pHouse->ActiveInfantryTypes.GetTotal() <= 0) {
+			for (auto& bld : pHouse->Buildings) {
 				if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
 					return HasAlive;
 			}
@@ -2643,8 +2489,7 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 		if (pHouse->ActiveInfantryTypes.GetTotal() > 0)
 			return HasAlive;
 
-		for (auto pItem : *InfantryClass::Array)
-		{
+		for (auto pItem : *InfantryClass::Array) {
 			if (pItem->InLimbo && pHouse == pItem->GetOwningHouse() && pHouse->IsAlliedWith(pItem->Transporter))
 				return HasAlive;
 		}
@@ -2655,7 +2500,7 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6DEA37, TAction_Execute_Win, 0x6)
+ASMJIT_PATCH(0x6DEA37, TAction_Execute_Win, 6)
 {
 	GET(TActionClass*, pThis, ESI);
 
@@ -2702,6 +2547,7 @@ ASMJIT_PATCH(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 	{
 		if (pThis->IsRedHP() && (pThis->Type->TiberiumHeal || pThis->HasAbility(AbilityType::TiberiumHeal)))
 		{
+
 			if (pThis->GetCell()->LandType != LandType::Tiberium)
 			{
 				// search tiberium and abort current mission
@@ -2716,6 +2562,7 @@ ASMJIT_PATCH(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 					pThis->QueueMission(Mission::Move, false);
 					pThis->NextMission();
 				}
+
 			}
 			else
 			{
@@ -2741,6 +2588,7 @@ ASMJIT_PATCH(0x73666A, UnitClass_AI_Viscerid_ZeroStrength, 0x6)
 ASMJIT_PATCH(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
+
 
 	if (pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking
 		|| (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->DeathFrameCounter > 0))
@@ -2902,18 +2750,18 @@ ASMJIT_PATCH(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x
 ASMJIT_PATCH(0x6FDB80, TechnoClass_AdjustDamage_Handle, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(TechnoClass*, pVictim, 0x4);
+	GET_STACK(TechnoClass*, pVictim , 0x4);
 	GET_STACK(WeaponTypeClass*, pWeapon, 0x8);
 
 	int damage = 0;
-	if (pVictim && !pWeapon->IsSonic && !pWeapon->UseFireParticles && pWeapon->Damage > 0)
-	{
+	if(pVictim && !pWeapon->IsSonic && !pWeapon->UseFireParticles && pWeapon->Damage > 0) {
+
 		double _damage = TechnoExtData::GetDamageMult(pThis, (double)pWeapon->Damage);
 		int _damage_int = (int)TechnoExtData::GetArmorMult(pVictim, _damage, pWeapon->Warhead);
 		if (_damage_int < 1)
-			_damage_int = 1;
+		_damage_int = 1;
 
-		damage = (MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pVictim, pWeapon->Warhead), 0));
+		damage =(MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pVictim, pWeapon->Warhead), 0));
 	}
 
 	R->EAX(damage);
@@ -3187,6 +3035,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					case Powerup::Cloak:
 					{
+
 						if (!TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->AE.Cloakable)
 							data = Powerup::Money;
 
@@ -3254,6 +3103,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 #pragma endregion
 
 					HouseExtData::IncremetCrateTracking(pCollectorOwner, data);
+
 				}
 				else if (!pCell->OverlayData)
 				{
@@ -3312,6 +3162,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 				auto GeiveMoney = [&]()
 					{
+
 						Debug::LogInfo("Crate at {},{} contains money", pCell->MapCoords.X, pCell->MapCoords.Y);
 
 						if (!soloCrateMoney)
@@ -3320,7 +3171,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							int crateMax = 900;
 
 							if (nAdd > 0)
-								crateMax += ScenarioClass::Instance->Random.RandomFromMax(nAdd);
+								crateMax += ScenarioClass::Instance->Random.RandomFromMax<int>(nAdd);
 
 							soloCrateMoney = ScenarioClass::Instance->Random.RandomRanged((int)something, (int)something + crateMax);
 						}
@@ -3706,6 +3557,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					if (auto WH = WarheadTypeClass::Array->GetItemOrDefault(WarheadTypeClass::FindIndexById("GAS")))
 					{
+
 						bool randomizeCoord = true;
 						auto collector_loc = pCell->GetCoords();
 
@@ -3951,6 +3803,7 @@ ASMJIT_PATCH(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
 
 			if (amount > 0.0)
 			{
+
 				store.DecreaseLevel((float)amount, i);
 				total.DecreaseLevel((float)amount, i);
 
@@ -4104,7 +3957,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 	const float amountCanBeRemoved = idxTiberium != -1 ?
 		Math::abs((float)unit_storage->GetAmount(idxTiberium)) : 0.0f;//after decreased
 
-	if (dumpAmount > 0.0f)
+	if(dumpAmount > 0.0f)
 		dumpAmount = std::min(dumpAmount, amountCanBeRemoved);
 	else
 		dumpAmount = amountCanBeRemoved;
@@ -4141,6 +3994,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 
 			BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome +=
 				pBld->Owner->Available_Money() - HouseExtData::LastHarvesterBalance;
+
 		}
 
 	return 0x73E539;
@@ -4193,6 +4047,7 @@ ASMJIT_PATCH(0x738749, UnitClass_Destroy_TiberiumExplosive, 0x6)
 
 		if (morePower > 0)
 		{
+
 			CoordStruct crd = pThis->GetCoords();
 			if (auto pWH = RulesExtData::Instance()->Tiberium_ExplosiveWarhead)
 			{
@@ -4525,117 +4380,14 @@ ASMJIT_PATCH(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 	return pNthLink ? 0 : 0x7043E1;
 }
 
-template<class T, class U>
-COMPILETIMEEVAL int8 __CFADD__(T x, U y)
-{
-	if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 1)
-		return uint8(x) > uint8(x + y);
-	else if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 2)
-		return uint16(x) > uint16(x + y);
-	else if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 4)
-		return uint32(x) > uint32(x + y);
-	else
-		return unsigned __int64(x) > unsigned __int64(x + y);
-}
+ASMJIT_PATCH(0x6D4A35, TacticalClass_Render_SWText , 0x6) {
+	GET(SuperClass*, pSuper, ECX);
+	GET(int, val, EBX);
+	GET(int, interval, ESI);
 
-// TODO : percent timer draawing , the game dont like it when i do that without adjusting the posisition :S
-static void DrawSWTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
-{
-	BitFont* pFont = BitFont::BitFontPtr(TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background);
+	FakeTacticalClass::__DrawTimersSW(pSuper, val, interval/ 15);
 
-	const int hour = interval / 60 / 60;
-	const int minute = interval / 60 % 60;
-	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
-
-	if (hour)
-	{
-		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
-	}
-	else
-	{
-		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
-	}
-
-	buffer.push_back(L'\0');
-
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
-	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
-	labe_buffer.push_back(L'\0');
-
-	int width = 0;
-	RectangleStruct rect_bound = DSurface::ViewBounds();
-	pFont->GetTextDimension(buffer.data(), &width, nullptr, rect_bound.Width);
-	ColorScheme* fore = color;
-
-	if (!interval && _arg && _arg1)
-	{
-		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
-			*_arg1 = !*_arg1;
-		}
-
-		if (*_arg1)
-		{
-			fore = ColorScheme::Array->Items[RulesExtData::Instance()->TimerBlinkColorScheme];
-		}
-	}
-
-	int value_plusone = value + 1;
-	Point2D point {
-		rect_bound.Width - width - 3 ,
-		rect_bound.Height - (value_plusone) * (pFont->field_1C + 2)
-	};
-
-	auto pComposite = DSurface::Composite();
-	auto rect = pComposite->Get_Rect();
-	Point2D _temp {};
-	ColorStruct out {};
-	color->BaseColor.ToColorStruct(&out);
-
-	Simple_Text_Print_Wide(
-		&_temp,
-		labe_buffer.data(),
-		pComposite,
-		&rect,
-		&point,
-		(COLORREF)out.ToInit(),
-		(COLORREF)0u,
-		TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
-		true
-	);
-
-	point.X = rect_bound.Width - 3;
-	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
-	rect = pComposite->Get_Rect();
-	fore->BaseColor.ToColorStruct(&out);
-
-	Simple_Text_Print_Wide(
-	&_temp,
-	buffer.data(),
-	pComposite,
-	&rect,
-	&point,
-	(COLORREF)out.ToInit(),
-	(COLORREF)0u,
-	TextPrintType::UseGradPal | TextPrintType::Right | TextPrintType::NoShadow | TextPrintType::Metal12 | TextPrintType::Background,
-	true
-	);
-}
-
-ASMJIT_PATCH(0x6D4B50, PrintOnTactical, 0x6)
-{
-	GET(int, val, ECX);
-	GET(ColorScheme*, pScheme, EDX);
-	GET_STACK(int, interval, 0x4);
-	GET_STACK(const wchar_t*, text, 0x8);
-	GET_STACK(LARGE_INTEGER*, _arg, 0xC);
-	GET_STACK(bool*, _arg1, 0x10);
-	DrawSWTimers(val, pScheme, interval, text, _arg, _arg1);
-	return 0x6D4DAC;
+	return 0x6D4A70;
 }
 
 ASMJIT_PATCH(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
@@ -5006,6 +4758,7 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 			{
 				if (++iter == pBldext->CustomData.end())
 					Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
+
 			}
 		}
 	}
@@ -5033,12 +4786,14 @@ ASMJIT_PATCH(0x447110, BuildingClass_Sell_Handled, 0x9)
 
 	if (pThis->HasBuildup)
 	{
+
 		switch (control)
 		{
 		case -1:
 		{
 			if (pThis->GetCurrentMission() != Mission::Selling)
 			{
+
 				pThis->QueueMission(Mission::Selling, false);
 				pThis->NextMission();
 			}
@@ -5162,6 +4917,7 @@ ASMJIT_PATCH(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 		pPas;
 		pPas = flag_cast_to<FootClass*>(pPas->NextObject))
 	{
+
 		powertotal += abs(TechnoTypeExtContainer::Instance.Find(pPas->GetTechnoType())
 			->ExtraPower_Amount.Get(pThis->Type->ExtraPowerBonus));
 	}
@@ -5334,7 +5090,7 @@ ASMJIT_PATCH(0x42D197, AStarClass_Attempt_Entry, 0x5)
 	GET_STACK(CellStruct*, from, 0x1C);
 	GET_STACK(CellStruct*, to, 0x20);
 
-	PhobosGlobal::Instance()->PathfindTechno = { pTech, *from, *to, pTech->GetTechnoType()->MovementZone };
+	PhobosGlobal::Instance()->PathfindTechno = { pTech  ,*from , *to };
 	return 0x0;
 }
 
@@ -5364,79 +5120,9 @@ public:
 		MovementZone a7,
 		ZoneType cellPath)
 	{
-		// Enhanced pathfinding with performance optimizations
-		auto pPathfindData = PhobosGlobal::Instance();
+		PhobosGlobal::Instance()->PathfindTechno = { a4  ,*a2 , *dest };
 
-		// Performance optimization: Early exit for invalid parameters
-		if (!a2 || !dest || !a4 || !path || max_count <= 0)
-		{
-			if (Phobos::Config::EnablePathfindingDebug)
-			{
-				Debug::LogInfo("PathFinding: Invalid parameters detected for [%s(0x%x)]",
-					a4 ? a4->get_ID() : "NULL", a4);
-			}
-			return nullptr;
-		}
-
-		// Performance optimization: Distance-based early exit
-		const int distance = Math::abs(a2->X - dest->X) + Math::abs(a2->Y - dest->Y);
-		if (distance > max_count * 4) // If path would be impossibly long
-		{
-			if (Phobos::Config::EnablePathfindingDebug)
-			{
-				Debug::LogInfo("PathFinding: Distance too far for [%s(0x%x)] from[%d,%d] to[%d,%d] distance=%d",
-					a4->get_ID(), a4, a2->X, a2->Y, dest->X, dest->Y, distance);
-			}
-			return nullptr;
-		}
-
-		// Enhanced pathfinding data tracking
-		pPathfindData->PathfindTechno = { a4, *a2, *dest };
-
-		// Performance optimization: Zone validation
-		if (Phobos::Config::UseAdvancedMovementZoneCalculation)
-		{
-			// Check if source and destination are in compatible zones
-			auto sourceZone = MapClass::Instance->GetMovementZoneType(*a2, a7, false);
-			auto destZone = MapClass::Instance->GetMovementZoneType(*dest, a7, false);
-
-			if (sourceZone != destZone && !MapClass::Instance->IsZoneTransitionPossible(sourceZone, destZone, a7))
-			{
-				if (Phobos::Config::EnablePathfindingDebug)
-				{
-					Debug::LogInfo("PathFinding: Zone transition impossible for [%s(0x%x)] from zone %d to zone %d",
-						a4->get_ID(), a4, sourceZone, destZone);
-				}
-				return nullptr;
-			}
-		}
-
-		// Call the original pathfinding algorithm with optimizations
-		auto result = this->AStarClass__Find_Path(a2, dest, a4, path, max_count, a7, cellPath);
-
-		// Performance tracking
-		static int pathfindingCallCount = 0;
-		static int pathfindingFailureCount = 0;
-		pathfindingCallCount++;
-
-		if (!result)
-		{
-			pathfindingFailureCount++;
-
-			if (Phobos::Config::EnablePathfindingDebug)
-			{
-				Debug::LogInfo("PathFinding: Failed for [%s(0x%x)] from[%d,%d] to[%d,%d] (Failure rate: %.2f%%)",
-					a4->get_ID(), a4, a2->X, a2->Y, dest->X, dest->Y,
-					(float)pathfindingFailureCount * 100.0f / pathfindingCallCount);
-			}
-		}
-		else if (Phobos::Config::EnablePathfindingDebug)
-		{
-			Debug::LogInfo("PathFinding: Success for [%s(0x%x)] from[%d,%d] to[%d,%d]",
-				a4->get_ID(), a4, a2->X, a2->Y, dest->X, dest->Y);
-		}
-
-		return result;
+		return this->AStarClass__Find_Path(a2, dest, a4, path, max_count, a7, cellPath);
 	}
 #pragma optimize("", off )
 #ifdef _WIP
@@ -5449,8 +5135,7 @@ public:
 
 		for (int idx_star = 2; idx_star >= 0; --idx_star)
 		{
-			for (int i = 0; i < this->HierarchicalQueue->Count; ++i)
-			{
+			for (int i = 0; i < this->HierarchicalQueue->Count; ++i) {
 				this->HierarchicalQueue->Heap[i] = 0;
 			}
 			this->HierarchicalQueue->Count = 0;
@@ -5471,10 +5156,9 @@ public:
 			cur_cost_ptr[pPassabilityFrom] = this->initedcount;
 			cur_cost_ptr[pPassabilityTo] = this->initedcount;
 
-			if (pPassabilityFrom == pPassabilityTo)
-			{
-				if (!idx_star)
-				{
+			if (pPassabilityFrom == pPassabilityTo) {
+
+				if (!idx_star) {
 					this->BufferForHierarchicalQueue->Number = 0;
 					this->BufferForHierarchicalQueue->Index = pPassabilityFrom;
 				}
@@ -5482,8 +5166,7 @@ public:
 				this->somearray_BC[500 * idx_star] = pPassabilityFrom;
 				this->maxvalues_field_C74[idx_star] = 1;
 
-				if (--idx_star >= 0)
-				{
+				if (--idx_star >= 0) {
 					continue;
 				}
 
@@ -5499,13 +5182,10 @@ public:
 			int ele = this->HierarchicalQueue->Count + 1;
 			int ele_shift = ele >> 1;
 
-			if (ele < this->HierarchicalQueue->Capacity)
-			{
-				for (; ele > 1; ele_shift >>= 1)
-				{
+			if (ele < this->HierarchicalQueue->Capacity) {
+				for (; ele > 1; ele_shift >>= 1) {
 					auto pEle = this->HierarchicalQueue->Heap;
-					if (pEle[ele_shift]->Score <= 0.0f)
-					{
+					if (pEle[ele_shift]->Score <= 0.0f) {
 						break;
 					}
 
@@ -5578,8 +5258,7 @@ public:
 
 							int ___first_idx = _first_idx;
 
-							if (_vala < _first_idx)
-							{
+							if (_vala < _first_idx) {
 								___first_idx = _vala;
 								_vala = _first_idx;
 							}
@@ -5618,6 +5297,7 @@ public:
 										this->HierarchicalQueue->MaxNodePointer = pBuffer;
 									if (pBuffer < this->HierarchicalQueue->MinNodePointer)
 										this->HierarchicalQueue->MinNodePointer = pBuffer;
+
 								}
 
 								cur_const_ptr_b[_vala] = this->initedcount;
@@ -5713,15 +5393,9 @@ ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 	GET(TechnoClass*, pTech, ESI);
 	GET_BASE(CellStruct*, from, 0x8);
 	GET_BASE(CellStruct*, to, 0xC);
-	GET_BASE(MovementZone, movementZone, 0x10);  // Get MovementZone parameter
 
 	if (pTech)
-	{
-		// CONSISTENCY FIX: Always use TechnoType MovementZone for cache consistency
-		// This ensures both entry hooks use the same cache key strategy
-		auto* techType = pTech->GetTechnoType();
-		PhobosGlobal::Instance()->PathfindTechno = { pTech, *from, *to, techType ? techType->MovementZone : movementZone };
-	}
+		PhobosGlobal::Instance()->PathfindTechno = { pTech  ,*from , *to };
 
 	return 0x0;
 }
@@ -5731,159 +5405,15 @@ ASMJIT_PATCH(0x42C954, AStarClass_FindPath_Entry, 0x7)
 	GET_STACK(TechnoClass*, pTech, 0x3C);
 	GET_STACK(CellStruct*, from, 0x34);
 	GET_STACK(CellStruct*, to, 0x38);
-	// Note: This hook doesn't have access to MovementZone parameter!
-	// We'll use the TechnoType's default MovementZone as fallback
 
-	PhobosGlobal::Instance()->PathfindTechno = { pTech, *from, *to, pTech->GetTechnoType()->MovementZone };
-
-	// Pathfinding cache optimization - FINAL PERFECT VERSION
-	if (PathfindingCache::IsEnabled())
-	{
-		PathfindingCache::CleanupCache();
-
-		// Safety checks: null pointer protection
-		if (from && to && pTech)
-		{
-			auto* techType = pTech->GetType();
-			if (techType)
-			{  // Null check!
- // CRITICAL: Always use TechnoType MovementZone for cache consistency
- // This ensures both hooks use the same cache key strategy
-				PathfindingCache::PathCacheKey cacheKey = {
-					from->X, from->Y, to->X, to->Y,
-					techType, techType->MovementZone
-				};
-
-				// Check cache with overflow-safe comparison
-				auto it = PathfindingCache::cache.find(cacheKey);
-				if (it != PathfindingCache::cache.end())
-				{
-					const int currentFrame = Unsorted::CurrentFrame;
-					const int cacheFrame = it->second.second;
-
-					// Safe frame comparison (handle overflow)
-					const bool isValid = (currentFrame >= cacheFrame) ?
-						(currentFrame - cacheFrame < PathfindingCache::CACHE_LIFETIME_FRAMES) :
-						(currentFrame < PathfindingCache::CACHE_LIFETIME_FRAMES);
-
-					if (isValid)
-					{
-						// Return cached result without calling expensive pathfinding
-						R->EAX(it->second.first ? 1 : 0);
-						R->ESI(pTech);
-						R->EBX(R->EAX());
-						return it->second.first ? 0x42C95F : 0x42C963;
-					}
-				}
-			}
-		}
-	}
-
+	PhobosGlobal::Instance()->PathfindTechno = { pTech  ,*from , *to };
 	R->ESI(pTech);
 	R->EBX(R->EAX());
 	return R->EDI<int>() == -1 ? 0x42C963 : 0x42C95F;
 }
 
-// Shared cache accessible by both hooks - PERFECT VERSION
-namespace PathfindingCache
-{
-	struct PathCacheKey
-	{
-		int fromX, fromY, toX, toY;
-		TechnoTypeClass* technoType;
-		MovementZone movementZone;
-
-		bool operator==(const PathCacheKey& other) const
-		{
-			return fromX == other.fromX && fromY == other.fromY &&
-				toX == other.toX && toY == other.toY &&
-				technoType == other.technoType &&
-				movementZone == other.movementZone;
-		}
-	};
-
-	struct PathCacheKeyHash
-	{
-		size_t operator()(const PathCacheKey& key) const
-		{
-			// High-quality hash function with better distribution
-			size_t h1 = std::hash<int>()(key.fromX);
-			size_t h2 = std::hash<int>()(key.fromY);
-			size_t h3 = std::hash<int>()(key.toX);
-			size_t h4 = std::hash<int>()(key.toY);
-			size_t h5 = std::hash<void*>()(key.technoType);
-			size_t h6 = std::hash<int>()(static_cast<int>(key.movementZone));
-
-			// Better hash combining using prime multipliers
-			return h1 ^ (h2 * 0x9e3779b9) ^ (h3 * 0x9e3779b7) ^
-				(h4 * 0x9e3779b5) ^ (h5 * 0x9e3779b3) ^ (h6 * 0x9e3779b1);
-		}
-	};
-
-	// Thread-safe static initialization (C++11 guarantees)
-	static std::unordered_map<PathCacheKey, std::pair<bool, int>, PathCacheKeyHash> cache;
-	static int lastCleanup = 0;
-	constexpr int MAX_CACHE_SIZE = 500;  // Prevent memory leak
-	constexpr int CACHE_LIFETIME_FRAMES = 15;
-	constexpr int CLEANUP_INTERVAL_FRAMES = 225;
-
-	void CleanupCache()
-	{
-		const int currentFrame = Unsorted::CurrentFrame;
-
-		// Handle frame counter overflow safely
-		const bool needsCleanup = (currentFrame >= lastCleanup) ?
-			(currentFrame - lastCleanup > CLEANUP_INTERVAL_FRAMES) :
-			(currentFrame > CLEANUP_INTERVAL_FRAMES);  // Overflow case
-
-		if (needsCleanup || cache.size() > MAX_CACHE_SIZE)
-		{
-			cache.clear();
-			lastCleanup = currentFrame;
-		}
-	}
-
-	bool IsEnabled()
-	{
-		// Cache config check to avoid hot path lookup
-		static bool cachedConfig = Phobos::Config::UseImprovedPathfindingBlockageHandling;
-		static int lastConfigCheck = 0;
-
-		const int currentFrame = Unsorted::CurrentFrame;
-		if (currentFrame - lastConfigCheck > 900)
-		{ // Refresh every 60 seconds
-			cachedConfig = Phobos::Config::UseImprovedPathfindingBlockageHandling;
-			lastConfigCheck = currentFrame;
-		}
-
-		return cachedConfig;
-	}
-}
-
 ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 {
-	// Store pathfinding result in shared cache - FINAL PERFECT VERSION
-	const auto& pathData = PhobosGlobal::Instance()->PathfindTechno;
-
-	if (pathData.Finder && PathfindingCache::IsEnabled())
-	{
-		auto* techType = pathData.Finder->GetType();
-		if (techType)
-		{  // Null check!
-// CRITICAL: Use TechnoType MovementZone for cache consistency
-// This ensures cache key matches what the entry hooks use
-			PathfindingCache::PathCacheKey cacheKey = {
-				pathData.From.X, pathData.From.Y,
-				pathData.To.X, pathData.To.Y,
-				techType, techType->MovementZone
-			};
-
-			// Cache result (EAX contains success/failure)
-			const bool success = R->EAX<int>() != 0;
-			PathfindingCache::cache[cacheKey] = { success, Unsorted::CurrentFrame };
-		}
-	}
-
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
@@ -5943,6 +5473,7 @@ static COMPILETIMEEVAL void ShakeScreen(GScreenClass* pScreen)
 
 ASMJIT_PATCH(0x4F4BB9, GSCreenClass_AI_ShakescreenMode, 0x5)
 {
+
 	GET(GScreenClass*, pThis, ECX);
 
 	if (RulesExtData::Instance()->ShakeScreenUseTSCalculation)
@@ -6002,7 +5533,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	}
 
 	auto pExt = TechnoExtContainer::Instance.Find(this);
-	if (pExt->Is_DriverKilled || !RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
+	if (pExt->Is_DriverKilled ||!RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
 		return true;
 
 	if (this->Type->ResourceGatherer || this->Type->Harvester)
@@ -6281,6 +5812,7 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_Dead, 0x6)
 	return pTechno->IsAlive ? 0x0 : 0x6D48FA;
 }
 
+
 ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 {
 	GET(CoordStruct*, pCoord, EDI);
@@ -6293,9 +5825,11 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 		auto pParach_type = ((FakeBulletClass*)pBullet)->_GetTypeExtData()->Parachute.Get(RulesClass::Instance->BombParachute);
 
 		pParach = GameCreate<AnimClass>(pParach_type, pCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+
 	}
 	else
 	{
+
 		auto coord = *pCoord;
 		coord.Z += 75;
 		auto pParach_type = RulesClass::Instance->Parachute;
@@ -6332,6 +5866,7 @@ ASMJIT_PATCH(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
 
 ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
 {
+
 	GET(TechnoClass*, pThis, ESI);
 
 	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
@@ -6423,6 +5958,7 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 		case AbstractType::Aircraft:
 		case AbstractType::Infantry:
 		{
+
 			FootClass* pFoot = static_cast<FootClass*>(pObj);
 			UnitClass* pUnit = cast_to<UnitClass*, false>(pObj);
 
@@ -6447,11 +5983,13 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 
 			if (pRadExt->ApplyRadiationDamage(pObj, damage, static_cast<int>(orDistance)) == RadSiteExtData::DamagingState::Dead)
 				return;
+
 		}
 
 		break;
 		case AbstractType::Building:
 		{
+
 			BuildingClass* pBld = static_cast<BuildingClass*>(pObj);
 
 			if (!pObj->IsBeingWarpedOut())
@@ -6460,13 +5998,12 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 				int maxDamageCount = pRadType->GetBuildingDamageMaxCount();
 				const int delay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetBuildingApplicationDelay() : RulesExtData::Instance()->RadApplicationDelay_Building;
 
-				for (auto pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation)
-				{
+				for (auto pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation) {
 					const auto nLoc = nCurCoord + (*pFoundation);
 					auto& count = pRadExt->damageCounts[pBld];
 
-					if (maxDamageCount <= 0 || count < maxDamageCount)
-					{
+					if (maxDamageCount <= 0 || count < maxDamageCount) {
+
 						if ((delay <= 0) || (Unsorted::CurrentFrame % delay))
 							continue;
 
@@ -6477,6 +6014,7 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 
 						if (pRadExt->ApplyRadiationDamage(pBld, damage, static_cast<int>(orDistance)) == RadSiteExtData::DamagingState::Dead)
 							return;
+
 					}
 				}
 			}
@@ -6485,6 +6023,7 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 		break;
 		default:
 			break;
+
 		}
 	}
 }
@@ -6493,17 +6032,13 @@ ASMJIT_PATCH(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 {
 	GET(RadSiteClass*, pThis, ESI);
 
-	if (pThis->RadTimeLeft <= 0 || pThis->RadLevel <= 0)
-	{
+	if (pThis->RadTimeLeft <= 0 || pThis->RadLevel <= 0) {
 		return 0x65B8D3;
 	}
 
-	for (CellRangeEnumerator it(pThis->BaseCell, pThis->Spread + 0.5); it; it++)
-	{
-		if (const auto pCell = MapClass::Instance->TryGetCellAt(*it))
-		{
-			if (auto pObj = pCell->Cell_Occupier())
-			{
+	for (CellRangeEnumerator it(pThis->BaseCell, pThis->Spread + 0.5); it; it++) {
+		if (const auto pCell = MapClass::Instance->TryGetCellAt(*it)) {
+			if (auto pObj = pCell->Cell_Occupier()) {
 				if (auto pTech = flag_cast_to<TechnoClass*, false>(pObj))
 					ApplyRadDamage(pThis, pTech, pCell);
 			}
@@ -6514,30 +6049,25 @@ ASMJIT_PATCH(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 }
 
 template<bool reduce = false>
-void PopulateCellRadVector(RadSiteClass* pRad, CellStruct* cell, int distance, int timeParam)
-{
+void PopulateCellRadVector(RadSiteClass* pRad , CellStruct* cell , int distance, int timeParam){
 	const auto max = pRad->SpreadInLeptons;
 
-	if (distance <= max)
-	{
-		if (auto pCell = MapClass::Instance->TryGetCellAt(cell))
+	if (distance <= max) {
+		if(auto pCell = MapClass::Instance->TryGetCellAt(cell))
 		{
 			const auto pCellExt = CellExtContainer::Instance.Find(pCell);
 			auto it = pCellExt->RadLevels.find_if([pRad](auto& pair) { return pair.Rad == pRad; });
 
-			if constexpr (!reduce)
-			{
+			if constexpr(!reduce) {
 				const int amount = int(static_cast<double>(max - distance) / max * pRad->RadLevel);
+
 
 				if (it != pCellExt->RadLevels.end())
 					it->Level += MinImpl(it->Level + amount, RadSiteExtContainer::Instance.Find(pRad)->Type->GetLevelMax());
 				else
 					pCellExt->RadLevels.emplace_back(pRad, amount);
-			}
-			else
-			{
-				if (it != pCellExt->RadLevels.end())
-				{
+			} else {
+				if (it != pCellExt->RadLevels.end()){
 					it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps * timeParam);
 				}
 			}
@@ -6552,7 +6082,7 @@ ASMJIT_PATCH(0x65BAC1, RadSiteClass_Radiate_Increase, 0x8)
 	GET(RadSiteClass*, pThis, EDX);
 	GET(int, distance, EAX);
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x60, -0x4C));
-	PopulateCellRadVector<false>(pThis, cell, distance, 0);
+	PopulateCellRadVector<false>(pThis, cell, distance , 0);
 	return SkipGameCode;
 }
 
@@ -6564,7 +6094,7 @@ ASMJIT_PATCH(0x65BC6E, RadSiteClass_Deactivate_Decrease, 0x6)
 	GET(int, distance, EAX);
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x70, -0x5C));
 	GET_STACK(int, timeParam, STACK_OFFSET(0x70, -0x30));
-	PopulateCellRadVector<true>(pThis, cell, distance, timeParam);
+	PopulateCellRadVector<true>(pThis, cell, distance , timeParam);
 	return SkipGameCode;
 }
 
@@ -6640,6 +6170,7 @@ ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
 
 	if (!(Unsorted::CurrentFrame % delay))
 	{
+
 		auto const pExt = BulletExtContainer::Instance.Find(pThis);
 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
 			pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner) ? pExt->Owner : nullptr,
@@ -6654,13 +6185,12 @@ ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
 
 #include <OverlayClass.h>
 
-ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9)
-{
+ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
 	GET(CellClass*, pThis, ESI);
 	GET(TiberiumClass*, pTib, EDI);
 	GET(OverlayClass*, pMemory, EBP);
 	const int random = ScenarioClass::Instance->Random.RandomFromMax(pTib->NumImages - 1);
-	pMemory->OverlayClass::OverlayClass(OverlayTypeClass::Array->Items[pTib->Image->ArrayIndex + random], pThis->MapCoords, -1);
+	pMemory->OverlayClass::OverlayClass(OverlayTypeClass::Array->Items[pTib->Image->ArrayIndex + random], pThis->MapCoords , -1);
 	R->Stack(0x10, pThis->MapCoords);
 	return 0x487291;
 }
@@ -6755,8 +6285,7 @@ ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
 	GET(HouseClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EAX);
 
-	if (!pBld)
-	{
+	if (!pBld) {
 		Debug::FatalErrorAndExit("Cannot Find BuildWeapons For [%s - %ls] , BuildWeapons Count %d\n", pThis->Type->ID, pThis->Type->UIName, RulesClass::Instance->BuildWeapons.Count);
 	}
 
@@ -6813,21 +6342,17 @@ ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
 	GET(UnitClass*, pCandidate, EBX);
 	bool allow = true;
 
-	if (pCandidate->IsTethered)
-	{
+	if (pCandidate->IsTethered){
 		allow = false;
 	}
-	else if (auto pContact = pCandidate->GetRadioContact())
-	{
-		if (auto pBldC = cast_to<BuildingClass*, false>(pContact))
-		{
-			if (pBldC->Type->Bunker)
+	else if (auto pContact = pCandidate->GetRadioContact()) {
+		if (auto pBldC = cast_to<BuildingClass*, false>(pContact)) {
+			if(pBldC->Type->Bunker)
 				allow = false;
 		}
 	}
-	else if (auto pBld = pCandidate->GetCell()->GetBuilding())
-	{
-		if (pBld->Type->Bunker)
+	else if (auto pBld = pCandidate->GetCell()->GetBuilding()) {
+		if(pBld->Type->Bunker)
 			allow = false;
 	}
 
@@ -6858,12 +6383,11 @@ ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
 
 int FakeUnitClass::_Mission_Attack()
 {
-	if (this->BunkerLinkedItem && this->Target)
-	{
+	if (this->BunkerLinkedItem && this->Target){
 		auto err = this->GetFireError(this->Target, this->SelectWeapon(this->Target), false);
 
-		if (err == FireError::CANT || err == FireError::RANGE)
-		{
+		if (err == FireError::CANT || err ==FireError::RANGE) {
+
 			this->SetTarget(nullptr);
 			this->EnterIdleMode(false, 1u);
 
@@ -6876,26 +6400,21 @@ int FakeUnitClass::_Mission_Attack()
 	return FootClass::Mission_Attack();
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x7447A0, FakeUnitClass::_Mission_Attack);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7447A0,  FakeUnitClass::_Mission_Attack);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5E80, FakeUnitClass::_Mission_Attack);
 
-static void ProcessColorAdd(CCINIClass* pINI)
-{
+static void ProcessColorAdd(CCINIClass* pINI) {
 	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
 
-	if (count > 0)
-	{
-		struct temp_rgb
-		{
+	if (count > 0) {
+		struct temp_rgb {
 			byte r, g, b;
 
-			operator ColorStruct()
-			{
+			operator ColorStruct() {
 				return *reinterpret_cast<ColorStruct*>(this);
 			}
 
-			operator byte* ()
-			{
+			operator byte*() {
 				return reinterpret_cast<byte*>(this);
 			}
 		};
@@ -6904,27 +6423,23 @@ static void ProcessColorAdd(CCINIClass* pINI)
 		//the code below can be simplified
 		std::vector<temp_rgb> v_buffer(count);
 
-		for (size_t i = 0; i < v_buffer.size(); ++i)
-		{
-			pINI->Read3Bytes((v_buffer[i]).operator unsigned char* ()
+		for (size_t i = 0; i < v_buffer.size(); ++i) {
+			pINI->Read3Bytes((v_buffer[i]).operator unsigned char *()
 				, GameStrings::ColorAdd
 				, pINI->GetKeyName(GameStrings::ColorAdd, i)
 				, (v_buffer[i]).operator unsigned char* ());
 		}
 
-		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size())
-		{
+		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size()) {
 			Debug::LogInfo("Attempt to read ColorAdd more than array size {}", count);
 			Debug::RegisterParserError();
 		}
 
-		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
-		{
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a) {
 			RulesClass::Instance->ColorAdd[a] = v_buffer[a];
 		}
-	}
-	else
-	{
+
+	} else {
 		Debug::FatalErrorAndExit("Empty ColorAdd\n");
 	}
 }
@@ -6945,7 +6460,7 @@ ASMJIT_PATCH(0x668B29, RulesClass_Init_ColorAdd, 0x6)
 
 ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 {
-	enum { NextLoop = 0x50CAB4, ContinueCheck = 0x0 };
+	enum{ NextLoop = 0x50CAB4 , ContinueCheck = 0x0};
 	GET(FootClass*, pTechno, ESI);
 
 	if (!pTechno->IsAlive || pTechno->InLimbo || pTechno->BunkerLinkedItem)
@@ -7066,7 +6581,7 @@ ASMJIT_PATCH(0x6FBB35, TechnoClass_CloakingAI_detachsensed, 0x6)
 	if (!pTechno || pTechno->Target != pThis || !pTechno->Owner)
 		return 0x6FBBC3; // to next check
 
-	if (!pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+	if(!pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
 		return 0x6FBBC3;
 
 	return 0x6FBB3D;
@@ -7100,16 +6615,13 @@ public:
 
 			int index = 0;
 
-			for (; index < this->Count; ++index)
-			{
-				if (this->Items[index]->GetYSort() > object->GetYSort())
-				{
+			for (; index < this->Count; ++index) {
+				if (this->Items[index]->GetYSort() > object->GetYSort()) {
 					break;
 				}
 			}
 
-			for (int i = this->Count - 1; i >= index; this->Items[i + 2] = this->Items[i + 1])
-			{
+			for (int i = this->Count - 1; i >= index; this->Items[i + 2] = this->Items[i + 1]) {
 				--i;
 			}
 
@@ -7144,4 +6656,4 @@ public:
 	}
 };
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E7F30, FakeDriveLocomotionClass::_Is_Moving_Now);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E7F30, FakeDriveLocomotionClass::_Is_Moving_Now);

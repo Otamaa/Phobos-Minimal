@@ -36,7 +36,7 @@ bool SWButtonClass::Draw(bool forced)
 	const auto pCurrent = HouseClass::CurrentPlayer();
 	const auto pSuper = pCurrent->Supers[this->SuperIndex];
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pCurrent);
+	//const auto pHouseExt = HouseExtContainer::Instance.Find(pCurrent);
 
 	// support for pcx cameos
 	if (const auto pPCXCameo = pSWExt->SidebarPCX.GetSurface())
@@ -59,7 +59,7 @@ bool SWButtonClass::Draw(bool forced)
 		}
 		else
 		{
-			const auto pConvert = pSWExt->SidebarPalette ? pSWExt->SidebarPalette->GetOrDefaultConvert<PaletteManager::Mode::Default>(FileSystem::CAMEO_PAL) : FileSystem::CAMEO_PAL;
+			const auto pConvert = pSWExt->SidebarPalette.GetConvert() ? pSWExt->SidebarPalette.GetConvert() : FileSystem::CAMEO_PAL;
 			pSurface->DrawSHP(pConvert, pCameo, 0, &location, &bounds, BlitterFlags::bf_400, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 		}
 	}

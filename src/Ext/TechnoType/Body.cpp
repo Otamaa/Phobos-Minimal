@@ -234,23 +234,6 @@ bool TechnoTypeExtData::HasSelectionGroupID(ObjectTypeClass* pType, const std::s
 	return (IS_SAME_STR_(id, pID.c_str()));
 }
 
-bool TechnoTypeExtData::IsCountedAsHarvester()
-{
-	if(!this->Harvester_Counted.isset()) {
-		if(this->AttachedToObject->Enslaves){
-			this->Harvester_Counted = true;
-		}
-
-		if (const auto pUnit = type_cast<UnitTypeClass*>(this->AttachedToObject)){
-			if(pUnit->Harvester || pUnit->Enslaves){
-				this->Harvester_Counted = true;
-			}
-		}
-	}
-
-	return this->Harvester_Counted;
-}
-
 //DO NOT USE !
 void TechnoTypeExtData::GetBurstFLHs(TechnoTypeClass* pThis,
 	INI_EX& exArtINI,
@@ -397,6 +380,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Spawner_AttackImmediately.Read(exINI, pSection, "Spawner.AttackImmediately");
 		this->Spawner_UseTurretFacing.Read(exINI, pSection, "Spawner.UseTurretFacing");
 		this->Harvester_Counted.Read(exINI, pSection, "Harvester.Counted");
+
 		this->Promote_IncludeSpawns.Read(exINI, pSection, "Promote.IncludeSpawns");
 		this->ImmuneToCrit.Read(exINI, pSection, "ImmuneToCrit");
 		this->MultiMindControl_ReleaseVictim.Read(exINI, pSection, "MultiMindControl.ReleaseVictim");
@@ -1605,12 +1589,22 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			!this->ForceWeapon_InRange.empty()		||
 			!this->ForceAAWeapon_InRange.empty()
 		);
+
+		this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
+		this->Convert_ResetMindControl.Read(exINI, pSection, "Convert.ResetMindControl");
+
+		this->ExtendedAircraftMissions_SmoothMoving.Read(exINI, pSection, "ExtendedAircraftMissions.SmoothMoving");
+		this->ExtendedAircraftMissions_EarlyDescend.Read(exINI, pSection, "ExtendedAircraftMissions.EarlyDescend");
+		this->ExtendedAircraftMissions_RearApproach.Read(exINI, pSection, "ExtendedAircraftMissions.RearApproach");
 	}
 
 	// Art tags
 	if (pArtIni && pArtIni->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtIni);
+
+		this->FireUp.Read(exArtINI, pArtSection, "FireUp");
+		this->FireUp_ResetInRetarget.Read(exArtINI, pArtSection, "FireUp.ResetInRetarget");
 
 		this->GreyCameoPCX.Read(&CCINIClass::INI_Art, pArtSection, "GreyCameoPCX");
 		this->AlternateFLH_OnTurret.Read(exArtINI, pArtSection, "AlternateFLH.OnTurret");
@@ -2800,6 +2794,15 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->BattlePoints)
 		.Process(this->ForceWeapon_Check)
+		.Process(this->FiringForceScatter)
+		.Process(this->Convert_ResetMindControl)
+
+		.Process(this->FireUp)
+		.Process(this->FireUp_ResetInRetarget)
+
+		.Process(this->ExtendedAircraftMissions_SmoothMoving)
+		.Process(this->ExtendedAircraftMissions_EarlyDescend)
+		.Process(this->ExtendedAircraftMissions_RearApproach)
 		;
 }
 

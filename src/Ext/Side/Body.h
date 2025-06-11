@@ -9,6 +9,8 @@
 
 #include <Misc/Ares/EVAVoices.h>
 
+#include <FileFormats/SHP.h>
+
 class SideExtData final
 {
 public:
@@ -145,23 +147,23 @@ public:
 
 	static int CurrentLoadTextColor;
 
-	static UniqueGamePtrC<SHPStruct> s_GraphicalTextImage;
-	static ConvertClass* s_GraphicalTextConvert;
+	static SHPStruct* s_GraphicalTextImage;
+	static CustomPalette s_GraphicalTextConvert;
 
-	static UniqueGamePtrC<SHPStruct> s_DialogBackgroundImage;
-	static ConvertClass* s_DialogBackgroundConvert;
+	static SHPStruct* s_DialogBackgroundImage;
+	static CustomPalette s_DialogBackgroundConvert;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static COMPILETIMEEVAL SHPStruct* GetGraphicalTextImage() {
 		return SideExtData::s_GraphicalTextImage ?
-		 SideExtData::s_GraphicalTextImage.get() : FileSystem::GRFXTXT_SHP;
+		 SideExtData::s_GraphicalTextImage : FileSystem::GRFXTXT_SHP();
 	}
 
 	static COMPILETIMEEVAL ConvertClass* GetGraphicalTextConvert() {
-		return SideExtData::s_GraphicalTextConvert ?
-		 SideExtData::s_GraphicalTextConvert : FileSystem::GRFXTXT_Convert;
+		return SideExtData::s_GraphicalTextConvert.GetConvert() ?
+		 SideExtData::s_GraphicalTextConvert.GetConvert() : FileSystem::GRFXTXT_Convert();
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()

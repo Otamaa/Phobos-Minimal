@@ -6,7 +6,7 @@ void CreateUnitTypeClass::LoadFromINI(CCINIClass* pINI, const char* pSection)
 {
 	INI_EX exINI(pINI);
 
-	this->Type.Read(exINI, pSection, "CreateUnit");
+	this->Type.Read(exINI, pSection, "CreateUnit", true);
 	this->Facing.Read(exINI, pSection, "CreateUnit.Facing");
 	this->InheritDeathFacings.Read(exINI, pSection, "CreateUnit.InheritFacings");
 	this->InheritTurretFacings.Read(exINI, pSection, "CreateUnit.InheritTurretFacings");

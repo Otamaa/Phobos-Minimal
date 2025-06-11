@@ -72,8 +72,8 @@ ASMJIT_PATCH(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 			{
 				pPipFile = pGarrisonPip;
 				nPipFrameIndex = std::clamp((int)pExt->PipGarrison_FrameIndex, 0, (int)pGarrisonPip->Frames);
-				if (auto const pConvertData = pExt->PipGarrison_Palette)
-					pPalette = pConvertData->GetOrDefaultConvert<PaletteManager::Mode::Default>( FileSystem::THEATER_PAL);
+				if(auto pConvert_c = pExt->PipGarrison_Palette.GetConvert())
+					pPalette = pConvert_c;
 			}
 			else
 			{
