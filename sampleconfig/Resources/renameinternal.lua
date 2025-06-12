@@ -48,6 +48,20 @@ Replaces = {
 	{Addr = 0x00827DAC, To = "Failed to load UIMD.INI!\n"             				}  --40
 }
 
+ FetchHandles = {
+    "expandnw91.mix",
+	"expandnw92.mix",
+	"expandnw93.mix",
+	"expandnw94.mix",
+	"expandnw95.mix",
+	"expandnw96.mix",
+	"expandnw97.mix",
+	"expandnw98.mix",
+	"expandnw99.mix"
+ }
+
+ CoreHandles = "user32.lib"
+
 --Replace Main Window String is put in here due to character storage limit
 MainWindowString = "Yuri's Revenge"
 

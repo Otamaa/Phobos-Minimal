@@ -865,10 +865,25 @@ ASMJIT_PATCH(0x489968, DamageAread_PenetratesIronCurtain, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x489416, MapClass_DamageArea_AirDamageSelfFix, 0x6)
+{
+	enum { DamageSelf = 0x0, Continue = 0x489702};
+
+	GET(TechnoClass*, pAirTechno, EBX);
+	GET_BASE(TechnoClass*, pSourceTechno, 0x8);
+	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
+
+	return  (pAirTechno == pSourceTechno &&
+		( pWarhead->_GetExtData()->AllowDamageOnSelf 
+		|| pSourceTechno->GetTechnoType()->DamageSelf)) ? DamageSelf : Continue;
+}
+
 ASMJIT_PATCH(0x4896EC, DamageAread_DamageSelf, 0x6)
 {
+	enum { DamageSelf = 0x489702, Continue = 0x0};
+
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
-	return pWarhead->_GetExtData()->AllowDamageOnSelf ? 0x489702 : 0;
+	return pWarhead->_GetExtData()->AllowDamageOnSelf ? DamageSelf : Continue;
 }
 
 ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)

@@ -976,6 +976,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Phobos::hInstance = hInstance;
 		Patch::CurrentProcess = GetCurrentProcess();
+
 		//Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
 
 		const auto time = Debug::GetCurTimeA();
@@ -9205,6 +9206,7 @@ ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 declhook(0x7CD810, Game_ExeRun, 0x9)
 extern "C" __declspec(dllexport) DWORD __cdecl Game_ExeRun(REGISTERS* R)
 {
+	LuaData::FetchHandlesAndApply();
 	Phobos::ExeRun();
 	return 0;
 }
