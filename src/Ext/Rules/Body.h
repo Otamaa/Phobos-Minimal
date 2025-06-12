@@ -530,6 +530,8 @@ public:
 
 	Valueable<bool> SuperWeaponSidebar_AllowByDefault { true };
 
+	bool CampaignAllowHarvesterScanUnderShroud[3] {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

@@ -81,17 +81,17 @@ ASMJIT_PATCH(0x558F4E, LoadOptionClass_Dialog_CenterListBox, 0x5)
 		GET(HWND, hListBox, EAX);
 		GET(HWND, hDialog, EDI);
 
-		HWND hLoadButton = Imports::GetDlgItem.get()(hDialog, 1039);
+		HWND hLoadButton = Imports::GetDlgItem.invoke()(hDialog, 1039);
 
 		RECT buttonRect {};
-		Imports::GetWindowRect.get()(hLoadButton, &buttonRect);
+		Imports::GetWindowRect.invoke()(hLoadButton, &buttonRect);
 
 		float scaleX = static_cast<float>(buttonRect.right - buttonRect.left) / 108;
 		float scaleY = static_cast<float>(buttonRect.bottom - buttonRect.top) / 22;
 		int X = buttonRect.left - static_cast<int>(346 * scaleX);
 		int Y = buttonRect.top - static_cast<int>(44 * scaleY);
 
-		Imports::SetWindowPos.get()(hListBox, NULL, X, Y, NULL, NULL, SWP_NOSIZE | SWP_NOZORDER);
+		Imports::SetWindowPos.invoke()(hListBox, NULL, X, Y, NULL, NULL, SWP_NOSIZE | SWP_NOZORDER);
 	}
 
 	return 0;

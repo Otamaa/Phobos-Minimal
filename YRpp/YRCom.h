@@ -46,9 +46,9 @@ public:
 	static HRESULT CreateInstance(const IID& rclsid, LPUNKNOWN pUnkOuter, DWORD dwClsContext, const IID& riid, LPVOID* ppv) {
 		if(dwClsContext & (CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)) {
 			IUnknown* pIUnknown = nullptr;
-			HRESULT hr = Imports::CoCreateInstance.get()(rclsid, pUnkOuter, dwClsContext, __uuidof(IUnknown), reinterpret_cast<LPVOID*>(&pIUnknown));
+			HRESULT hr = Imports::CoCreateInstance.invoke()(rclsid, pUnkOuter, dwClsContext, __uuidof(IUnknown), reinterpret_cast<LPVOID*>(&pIUnknown));
 			if(SUCCEEDED(hr)) {
-				hr = Imports::OleRun.get()(pIUnknown);
+				hr = Imports::OleRun.invoke()(pIUnknown);
 				if(SUCCEEDED(hr)) {
 					hr = pIUnknown->QueryInterface(riid, ppv);
 				}
@@ -56,7 +56,7 @@ public:
 			}
 			return hr;
 		} else {
-			return Imports::CoCreateInstance.get()(rclsid, pUnkOuter, dwClsContext, riid, ppv);
+			return Imports::CoCreateInstance.invoke()(rclsid, pUnkOuter, dwClsContext, riid, ppv);
 		}
 	}
 };

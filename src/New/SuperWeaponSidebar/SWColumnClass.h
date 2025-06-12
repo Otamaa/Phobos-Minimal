@@ -23,6 +23,9 @@ public:
 
 	void SetHeight(int height);
 
+	static constexpr int StartID = 2101;
+
+public:
 	std::vector<SWButtonClass*> Buttons {};
 	int MaxButtons { 0 };
 };

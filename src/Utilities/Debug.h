@@ -137,12 +137,12 @@ public:
 	static FORCEDINLINE void TakeMouse()
 	{
 		WWMouseClass::Instance->ReleaseMouse();
-		Imports::ShowCursor.get()(1);
+		Imports::ShowCursor.invoke()(1);
 	}
 
 	static FORCEDINLINE void ReturnMouse()
 	{
-		Imports::ShowCursor.get()(0);
+		Imports::ShowCursor.invoke()(0);
 		WWMouseClass::Instance->CaptureMouse();
 	}
 

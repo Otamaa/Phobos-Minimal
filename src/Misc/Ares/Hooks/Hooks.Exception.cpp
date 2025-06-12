@@ -776,10 +776,9 @@ ASMJIT_PATCH(0x64DEA0, Multiplay_LogToSYNC_NOMPDEBUG, 6)
 {
 	GET(EventClass*, OffendingEvent, ECX);
 
-	const std::string SyncFileName = fmt::sprintf(Debug::SyncFileFormat.c_str(), HouseClass::CurrentPlayer->ArrayIndex);
-
-	LogFrame(SyncFileName, OffendingEvent);
-	SyncLogger::WriteSyncLog(SyncFileName);
+	sprintf_s(Phobos::readBuffer, std::size(Phobos::readBuffer) - 1, Debug::SyncFileFormat.c_str(), HouseClass::CurrentPlayer->ArrayIndex);
+	LogFrame(Phobos::readBuffer, OffendingEvent);
+	SyncLogger::WriteSyncLog(Phobos::readBuffer);
 
 	return 0x64DF3D;
 }
@@ -789,9 +788,9 @@ ASMJIT_PATCH(0x6516F0, Multiplay_LogToSync_MPDEBUG, 6)
 	GET(int, SlotNumber, ECX);
 	GET(EventClass*, OffendingEvent, EDX);
 
-	const std::string SyncFileName = fmt::sprintf(Debug::SyncFileFormat2.c_str(), HouseClass::CurrentPlayer->ArrayIndex, SlotNumber);
-	LogFrame(SyncFileName, OffendingEvent);
-	SyncLogger::WriteSyncLog(SyncFileName);
+	sprintf_s(Phobos::readBuffer, std::size(Phobos::readBuffer) - 1, Debug::SyncFileFormat2.c_str(), HouseClass::CurrentPlayer->ArrayIndex, SlotNumber);
+	LogFrame(Phobos::readBuffer, OffendingEvent);
+	SyncLogger::WriteSyncLog(Phobos::readBuffer);
 
 	return 0x651781;
 }

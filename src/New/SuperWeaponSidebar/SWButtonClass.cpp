@@ -132,7 +132,7 @@ bool SWButtonClass::Draw(bool forced)
 
 void SWButtonClass::OnMouseEnter()
 {
-	if (!SWSidebarClass::IsEnabled())
+	if (!SWSidebarClass::IsEnabled() || ScenarioClass::Instance->UserInputLocked)
 		return;
 
 	this->IsHovering = true;
@@ -144,7 +144,7 @@ void SWButtonClass::OnMouseEnter()
 
 void SWButtonClass::OnMouseLeave()
 {
-	if (!SWSidebarClass::IsEnabled())
+	if (!SWSidebarClass::IsEnabled() || ScenarioClass::Instance->UserInputLocked)
 		return;
 
 	this->IsHovering = false;
@@ -155,7 +155,7 @@ void SWButtonClass::OnMouseLeave()
 
 bool SWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
 {
-	if (!SWSidebarClass::IsEnabled())
+	if (!SWSidebarClass::IsEnabled() || ScenarioClass::Instance->UserInputLocked)
 		return false;
 
 	if (flags & GadgetFlag::RightPress)
