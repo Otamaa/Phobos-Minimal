@@ -250,8 +250,13 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->TurretRecoil_Suppress.Read(exINI, pSection, "TurretRecoil.Suppress");
 
 	this->SkipWeaponPicking = true;
-	if (this->CanTarget != AffectedTarget::All || this->CanTargetHouses != AffectedHouse::All || this->AttachEffect_RequiredTypes.size()
-		|| this->AttachEffect_RequiredGroups.size() || this->AttachEffect_DisallowedTypes.size() || this->AttachEffect_DisallowedGroups.size())
+	if (this->CanTarget != AffectedTarget::All ||
+		this->CanTargetHouses != AffectedHouse::All
+		|| this->Targeting_Health_Percent.isset()
+		|| this->AttachEffect_RequiredTypes.size()
+		|| this->AttachEffect_RequiredGroups.size()
+		|| this->AttachEffect_DisallowedTypes.size()
+		|| this->AttachEffect_DisallowedGroups.size())
 	{
 		this->SkipWeaponPicking = false;
 	}

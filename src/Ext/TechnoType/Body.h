@@ -1107,6 +1107,7 @@ public:
 	Nullable<bool> ExtendedAircraftMissions_SmoothMoving {};
 	Nullable<bool> ExtendedAircraftMissions_EarlyDescend {};
 	Nullable<bool> ExtendedAircraftMissions_RearApproach {};
+	Valueable<bool> DigitalDisplay_Health_FakeAtDisguise { true };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

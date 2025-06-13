@@ -1006,6 +1006,8 @@ public:
 
 	static bool IsTypeImmune(TechnoClass* pThis, TechnoClass* pSource);
 
+	static bool AllowFiring(AbstractClass* pTargetObj, WeaponTypeClass* pWeapon);
+
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);
 	static bool TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);

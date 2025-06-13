@@ -528,6 +528,7 @@ public:
 	Valueable<bool> SuperWeaponSidebar_AllowByDefault { true };
 
 	bool CampaignAllowHarvesterScanUnderShroud[3] {};
+	Valueable<AffectedHouse> BerzerkTargeting { AffectedHouse::All };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

@@ -245,7 +245,7 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	//if (!TechnoExtData::FireOnceAllowFiring(pThis, pWeapon, pTarget))
 	//	return FireCant;
 
-	if (!TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
+	if (!pWeaponExt->SkipWeaponPicking && !TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
 		return FireIllegal;
 
 	if (PassengersFunctional::CanFire(pThis))
@@ -270,6 +270,9 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 	if (pTargetTechno)
 	{
+		if (pThis->Berzerk && !EnumFunctions::CanTargetHouse(RulesExtData::Instance()->BerzerkTargeting, pThis->Owner, pTargetTechno->Owner))
+			return FireIllegal;
+
 		if (!TechnoExtData::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
 			return FireIllegal;
 

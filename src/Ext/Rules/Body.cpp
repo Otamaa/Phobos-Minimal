@@ -771,7 +771,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	INI_EX exINI(pINI);
 
 	exINI.Read3Bool(GameStrings::General,"CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
-
+	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
 	this->AttackMove_Aggressive.Read(exINI, GameStrings::General, "AttackMove.Aggressive");
@@ -1582,6 +1582,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->SuperWeaponSidebar_AllowByDefault)
 		.Process(this->CampaignAllowHarvesterScanUnderShroud)
+		.Process(this->BerzerkTargeting)
 		;
 
 	MyPutData.Serialize(Stm);

@@ -1665,6 +1665,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	{
 		INI_EX exArtINI(pArtINI);
 
+		this->Storage_ActiveAnimations.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
+
 		if (this->IsCustom)
 		{
 			//Reset

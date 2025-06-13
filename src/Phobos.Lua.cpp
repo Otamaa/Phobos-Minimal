@@ -27,54 +27,6 @@ auto MessageLog = [](const std::string& first , const std::string& second) {
 	MessageBoxA(0, fmt__.c_str(), "Debug", MB_OK);
 };
 
-
-bool load_lua_file(lua_State* L, const std::string& path, std::function<void(const std::string&, const std::string&)> f)
-{
-	if (luaL_dofile(L, path.c_str()) != LUA_OK)
-	{
-		if (f){
-			f(path, lua_tostring(L, -1));
-			lua_pop(L, 1);
-		}
-		return false;
-	}
-	return true;
-}
-
-inline bool lua_get_global_string(lua_State* L, const char* name, std::string& result)
-{
-	lua_getglobal(L, name);
-	if (lua_isstring(L, -1)) {
-		result = lua_tostring(L, -1);
-	}
-	lua_pop(L, 1);
-
-	return !result.empty();
-}
-
-inline bool lua_get_global_string(lua_State* L, const char* name, std::wstring& result)
-{
-	lua_getglobal(L, name);
-	if (lua_isstring(L, -1)) {
-		result = PhobosCRT::StringToWideString(lua_tostring(L, -1));
-	}
-
-	lua_pop(L, 1);
-
-	return !result.empty();
-}
-
-inline void lua_get_global_bool(lua_State* L, const char* name, bool& fallback)
-{
-	lua_getglobal(L, name);
-
-	if (lua_isboolean(L, -1)) {
-		fallback = lua_toboolean(L, -1);
-	}
-	lua_pop(L, 1);
-
-}
-
 using uintptr_string_pair = std::pair<uintptr_t, std::string>;
 
 inline std::vector<uintptr_string_pair> lua_read_ptr_string_array(lua_State* L, const char* global_table_name)
@@ -139,16 +91,87 @@ inline void lua_get_string_array_of_SafeFiles(lua_State* L, const char* global_t
 	lua_pop(L, 1); // pop the table
 }
 
+struct LuaWrapper
+{
+	LuaWrapper() : Internal {} {
+		this->Internal.reset(luaL_newstate());
+		luaL_openlibs(this->Internal.get());
+	}
+
+	~LuaWrapper() = default;
+
+	bool loadfile(const std::string& path, std::function<void(const std::string&, const std::string&)> f)
+	{
+		auto L = Internal.get();
+
+		if (luaL_dofile(L, path.c_str()) != LUA_OK)
+		{
+			if (f)
+			{
+				f(path, lua_tostring(L, -1));
+				lua_pop(L, 1);
+			}
+			return false;
+		}
+		return true;
+	}
+
+	bool getGlobalString(const char* name, std::string& result)
+	{
+		auto L = Internal.get();
+		lua_getglobal(L, name);
+		if (lua_isstring(L, -1))
+		{
+			result = lua_tostring(L, -1);
+		}
+		lua_pop(L, 1);
+
+		return !result.empty();
+	}
+
+	bool getGlobalString(const char* name, std::wstring& result)
+	{
+		auto L = Internal.get();
+		lua_getglobal(L, name);
+		if (lua_isstring(L, -1))
+		{
+			result = PhobosCRT::StringToWideString(lua_tostring(L, -1));
+		}
+
+		lua_pop(L, 1);
+
+		return !result.empty();
+	}
+
+	void getGlobalBool(const char* name, bool& fallback)
+	{
+		auto L = Internal.get();
+		lua_getglobal(L, name);
+
+		if (lua_isboolean(L, -1))
+		{
+			fallback = lua_toboolean(L, -1);
+		}
+		lua_pop(L, 1);
+
+	}
+
+	auto get() {
+		return this->Internal.get();
+	}
+
+	unique_luastate Internal;
+};
+
+
 void Phobos::ExecuteLua()
 {
-	make_unique_luastate(unique_lua);
-	auto L = unique_lua.get();
-	luaL_openlibs(L);
+	LuaWrapper Lua {};
 
-	if (load_lua_file(L, LuaData::LuaDir + "\\AdminMode.lua" , nullptr))
+	if (Lua.loadfile(LuaData::LuaDir + "\\AdminMode.lua", nullptr))
 	{
 		std::string adminName {};
-		if (lua_get_global_string(L, "AdminMode", adminName))
+		if (Lua.getGlobalString("AdminMode", adminName))
 		{
 			if (adminName.size() <= MAX_COMPUTERNAME_LENGTH + 1)
 			{
@@ -156,7 +179,8 @@ void Phobos::ExecuteLua()
 				TCHAR PCName[MAX_COMPUTERNAME_LENGTH + 1];
 				GetComputerName(PCName, &dwSize);
 
-				if (IS_SAME_STR_(PCName, adminName.c_str())) {
+				if (IS_SAME_STR_(PCName, adminName.c_str()))
+				{
 					Phobos::Config::MultiThreadSinglePlayer = false;
 					Phobos::Config::DebugFatalerrorGenerateDump = true;
 					//Phobos::Otamaa::ReplaceGameMemoryAllocator = true;
@@ -166,11 +190,11 @@ void Phobos::ExecuteLua()
 		}
 	}
 
-	auto _renamer = LuaData::LuaDir + filename;
+	const auto _renamer = LuaData::LuaDir + filename;
 
-	if (load_lua_file(L, _renamer, nullptr))
+	if (Lua.loadfile( _renamer, nullptr))
 	{
-
+		auto L = Lua.get();
 		lua_getglobal(L, "Replaces");
 
 		if (lua_istable(L, -1))
@@ -231,7 +255,7 @@ void Phobos::ExecuteLua()
 
 		lua_pop(L, 1);
 
-		if (lua_get_global_string(L,"MainWindowString", MainWindowStr)) {
+		if (Lua.getGlobalString("MainWindowString", MainWindowStr)) {
 			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
 			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
 			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
@@ -244,15 +268,14 @@ void Phobos::ExecuteLua()
 
 		//IsActive = !SafeFiles.empty() && !CoreHandles.empty();
 
-		lua_get_global_string(L, "MovieMDINI", StaticVars::MovieMDINI);
-		lua_get_global_string(L, "DebugLogName", Debug::LogFileMainName);
-		lua_get_global_string(L, "CrashDumpFileName", Debug::CrashDumpFileName);
-		lua_get_global_string(L, "DesyncLogName", Debug::SyncFileFormat);
-		lua_get_global_string(L, "DesyncLogName2", Debug::SyncFileFormat2);
-		lua_get_global_bool(L, "CompatibilityMode", Phobos::Otamaa::CompatibilityMode);
-		lua_get_global_bool(L, "ReplaceGameMemoryAllocator", Phobos::Otamaa::ReplaceGameMemoryAllocator);
-		lua_get_global_bool(L, "AllowMultipleInstances", Phobos::Otamaa::AllowMultipleInstance);
-
+		Lua.getGlobalString("MovieMDINI", StaticVars::MovieMDINI);
+		Lua.getGlobalString("DebugLogName", Debug::LogFileMainName);
+		Lua.getGlobalString("CrashDumpFileName", Debug::CrashDumpFileName);
+		Lua.getGlobalString("DesyncLogName", Debug::SyncFileFormat);
+		Lua.getGlobalString("DesyncLogName2", Debug::SyncFileFormat2);
+		Lua.getGlobalBool("CompatibilityMode", Phobos::Otamaa::CompatibilityMode);
+		Lua.getGlobalBool("ReplaceGameMemoryAllocator", Phobos::Otamaa::ReplaceGameMemoryAllocator);
+		Lua.getGlobalBool("AllowMultipleInstances", Phobos::Otamaa::AllowMultipleInstance);
 	}
 }
 

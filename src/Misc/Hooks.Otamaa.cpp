@@ -5759,14 +5759,28 @@ ASMJIT_PATCH(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 ASMJIT_PATCH(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
 {
 	GET(ConvertClass*, pConvert, EDX);
+	GET_STACK(SHPStruct* , pSHP , 0xA4);
 	GET_STACK(DWORD, caller, 0x0);
 
-	if (!pConvert)
-		Debug::FatalErrorAndExit("Draw SHP missing Convert , caller [%0x]", caller);
+	if (!pConvert) {
+		auto pSHPref= pSHP->AsReference();
+		Debug::FatalErrorAndExit("Draw SHP[%s] missing Convert , caller [%0x]", pSHPref ? pSHPref->Filename : "unknown" , caller);
+	}
 
 	return 0x0;
 }
 
+//ASMJIT_PATCH(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
+//{
+//	GET(ConvertClass*, pConvert, EDX);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	if (!pConvert) {
+//		Debug::FatalErrorAndExit("Draw SHP missing Convert , caller [%0x]" , caller);
+//	}
+//
+//	return 0x0;
+//}
 ASMJIT_PATCH(0x42CB61, AstarClass_Find_Path_FailLog_Hierarchical, 0x5)
 {
 	GET(FootClass*, pFoot, ESI);

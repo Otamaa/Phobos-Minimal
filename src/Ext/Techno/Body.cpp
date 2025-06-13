@@ -624,6 +624,17 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 	}
 }
 
+void GetDigitalDisplayFakeHealth(TechnoClass* pThis, int& value, int& maxValue) {
+	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DigitalDisplay_Health_FakeAtDisguise) {
+		if(auto pType = cast_to<TechnoTypeClass*>(pThis->Disguise)){
+			const int newMaxValue = pType->Strength;
+			const double ratio = static_cast<double>(value) / maxValue;
+			value = static_cast<int>(ratio * newMaxValue);
+			maxValue = newMaxValue;
+		}
+	}
+}
+
 // https://github.com/Phobos-developers/Phobos/pull/1287
 // TODO : update
 void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex)
@@ -1013,6 +1024,10 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 	{
 		value = pThis->Health;
 		maxValue = pType->Strength;
+
+		if (pThis->Disguised && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer))
+			GetDigitalDisplayFakeHealth(pThis, value, maxValue);
+
 		break;
 	}
 	}
@@ -1942,6 +1957,12 @@ std::pair<TechnoClass*, CellClass*> TechnoExtData::GetTargets(ObjectClass* pObjT
 	return { pTargetTechno , targetCell };
 }
 
+bool TechnoExtData::AllowFiring(AbstractClass* pTargetObj, WeaponTypeClass* pWeapon)
+{
+	//fuckoof
+	return true;
+}
+
 bool TechnoExtData::ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon)
 {
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
@@ -1974,9 +1995,12 @@ bool TechnoExtData::CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWea
 bool TechnoExtData::TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);;
+	if(pWeaponExt->SkipWeaponPicking)
+		return true;
 
 	if (!EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget) ||
-		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTarget->Owner))
+		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTarget->Owner) ||
+		!pWeaponExt->HasRequiredAttachedEffects(pThis, pTarget))
 	{
 		return false;
 	}
@@ -5393,17 +5417,24 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 
 	if (auto const pSecondExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponTwo))
 	{
-		auto const pFirstExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponOne);
+		if(!pSecondExt->SkipWeaponPicking){
+			if(pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true , true))
+				return weaponIndexOne;
 
-		if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true , true)) ||
-			(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
-				!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner)
-				|| (pFirstExt && !pFirstExt->HasRequiredAttachedEffects(pTargetTechno, pThis))
-				)))
-		{
-			return weaponIndexOne;
+			if (
+				(pTargetTechno &&
+					(
+						!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
+						!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner) ||
+						!TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponTwo) ||
+						!pSecondExt->HasRequiredAttachedEffects(pTargetTechno, pThis)
+					)))
+			{
+				return weaponIndexOne;
+			}
 		}
-		else if (pFirstExt)
+
+		if (auto const pFirstExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponOne))
 		{
 			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
 			const bool firstAllowedAE = pFirstExt->HasRequiredAttachedEffects(pTargetTechno, pThis);
@@ -5412,13 +5443,16 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 					&& !TechnoExtData::CanFireNoAmmoWeapon(pThis, 1) && firstAllowedAE)
 				return weaponIndexOne;
 
-			if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true , true)) ||
-				(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
-					!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner)
-					|| !firstAllowedAE
-					)))
-			{
-				return weaponIndexTwo;
+			if(!pFirstExt->SkipWeaponPicking){
+				if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true , true)) ||
+					(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
+						!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner)
+						|| !firstAllowedAE
+						|| !TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponOne)
+						)))
+					{
+					return weaponIndexTwo;
+				}
 			}
 		}
 	}
