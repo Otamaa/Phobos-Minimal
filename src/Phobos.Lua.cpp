@@ -33,6 +33,31 @@ auto MessageLog = [](const std::string& first, const std::string& second)
 	};
 
 
+// RC4 stream cipher encryption/decryption
+void rc4_crypt(std::vector<char>& data, const std::string& key)
+{
+	uint8_t S[256];
+	for (int i = 0; i < 256; ++i) S[i] = i;
+
+	uint8_t j = 0;
+	for (int i = 0; i < 256; ++i)
+	{
+		j += S[i] + static_cast<uint8_t>(key[i % key.size()]);
+		std::swap(S[i], S[j]);
+	}
+
+	uint8_t i = 0;
+	j = 0;
+	for (size_t k = 0; k < data.size(); ++k)
+	{
+		i += 1;
+		j += S[i];
+		std::swap(S[i], S[j]);
+		uint8_t rnd = S[(S[i] + S[j]) & 0xFF];
+		data[k] ^= rnd;
+	}
+}
+
 // TEA core encrypts 64-bit block (8 bytes)
 void tea_encrypt_block(uint32_t* v, const uint32_t* k)
 {
