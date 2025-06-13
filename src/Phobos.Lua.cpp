@@ -33,6 +33,74 @@ auto MessageLog = [](const std::string& first, const std::string& second)
 	};
 
 
+// TEA core encrypts 64-bit block (8 bytes)
+void tea_encrypt_block(uint32_t* v, const uint32_t* k)
+{
+	uint32_t v0 = v[0], v1 = v[1];
+	uint32_t sum = 0;
+	const uint32_t delta = 0x9E3779B9;
+	for (int i = 0; i < 32; ++i)
+	{
+		sum += delta;
+		v0 += ((v1 << 4) + k[0]) ^ (v1 + sum) ^ ((v1 >> 5) + k[1]);
+		v1 += ((v0 << 4) + k[2]) ^ (v0 + sum) ^ ((v0 >> 5) + k[3]);
+	}
+	v[0] = v0;
+	v[1] = v1;
+}
+
+// Convert std::string to TEA 128-bit key (4 * 32-bit)
+void key_from_string(const std::string& key, uint32_t k[4])
+{
+	std::memset(k, 0, 4 * sizeof(uint32_t));
+	for (size_t i = 0; i < 16 && i < key.size(); ++i)
+	{
+		reinterpret_cast<uint8_t*>(&k[i / 4])[i % 4] = static_cast<uint8_t>(key[i]);
+	}
+}
+
+// Encrypt buffer in-place (must be multiple of 8 bytes)
+void tea_encrypt_buffer(std::vector<char>& buffer, const std::string& key)
+{
+	if (buffer.size() % 8 != 0)
+	{
+		//throw std::invalid_argument("Buffer size must be multiple of 8 bytes.");
+		return;
+	}
+
+	uint32_t k[4];
+	key_from_string(key, k);
+
+	for (size_t i = 0; i < buffer.size(); i += 8)
+	{
+		uint32_t v[2];
+		std::memcpy(v, buffer.data() + i, 8);
+		tea_encrypt_block(v, k);
+		std::memcpy(buffer.data() + i, v, 8);
+	}
+}
+
+// Optional: overload for std::vector<uint8_t>
+void tea_encrypt_buffer(std::vector<uint8_t>& buffer, const std::string& key)
+{
+	if (buffer.size() % 8 != 0)
+	{
+		//throw std::invalid_argument("Buffer size must be multiple of 8 bytes.");
+		return;
+	}
+
+	uint32_t k[4];
+	key_from_string(key, k);
+
+	for (size_t i = 0; i < buffer.size(); i += 8)
+	{
+		uint32_t v[2];
+		std::memcpy(v, buffer.data() + i, 8);
+		tea_encrypt_block(v, k);
+		std::memcpy(buffer.data() + i, v, 8);
+	}
+}
+
 void ApplyCore(char* pBuffer, char* content, size_t size)
 {
 	if (CoreHandles.empty()) return;
@@ -707,7 +775,6 @@ LPVOID WINAPI _MapViewOfFileEx(
 
 	return MapViewOfFileEx(hFileMappingObject, dwDesiredAccess, dwFileOffsetHigh, dwFileOffsetLow, dwNumberOfBytesToMap, lpBaseAddress);
 }
-
 
 BOOL WINAPI _UnmapViewOfFile(LPCVOID lpBaseAddress)
 {
