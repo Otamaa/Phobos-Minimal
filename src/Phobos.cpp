@@ -9206,7 +9206,7 @@ ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 declhook(0x7CD810, Game_ExeRun, 0x9)
 extern "C" __declspec(dllexport) DWORD __cdecl Game_ExeRun(REGISTERS* R)
 {
-	LuaData::FetchHandlesAndApply();
+	LuaData::ApplyCoreHooks();
 	Phobos::ExeRun();
 	return 0;
 }

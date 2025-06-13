@@ -221,11 +221,11 @@ ASMJIT_PATCH(0x5F9070, ObjectTypeClass_Load2DArt, 6)
 	{
 		const auto forceShp = what == OverlayTypeClass::AbsID || what == AnimTypeClass::AbsID;
 
-		auto pImage = FileSystem::LoadFile(_ext.c_str(), forceShp);
+		auto pImage = FakeFileLoader::_Retrieve(_ext.c_str(), forceShp);
 		if (!pImage)
 		{
 			_ext[1] = 'G';
-			pImage = FileSystem::LoadFile(_ext.c_str(), forceShp);
+			pImage = FakeFileLoader::_Retrieve(_ext.c_str(), forceShp);
 		}
 
 		pType->Image = static_cast<SHPStruct*>(pImage);
@@ -574,7 +574,7 @@ ASMJIT_PATCH(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	CRT::strcat(pNameProcessed, GameStrings::PAL());
 	CRT::strupr(pNameProcessed);
 
-	const auto pFile = MixFileClass::Retrieve(pNameProcessed, false);
+	const auto pFile = FakeFileLoader::_Retrieve(pNameProcessed, false);
 	//const auto nRest = !pFile ? "Failed to" : "Successfully";
 
 	if (!pFile && Phobos::Otamaa::IsAdmin)
@@ -595,7 +595,7 @@ ASMJIT_PATCH(0x74D450, TheaterTypeClass_ProcessVeinhole, 0x7)
 	GET(TheaterType, index, ECX);
 	char buffer[32];
 	CRT::sprintf(buffer, GameStrings::VEINHOLE_(), TheaterTypeClass::FindFromTheaterType_NoCheck(index)->Extension.c_str());
-	VeinholeMonsterClass::VeinSHPData = (SHPFrame*)MixFileClass::Retrieve(buffer);
+	VeinholeMonsterClass::VeinSHPData = (SHPFrame*)FakeFileLoader::_Retrieve(buffer, false);
 	return 0x74D48A;
 }
 
@@ -603,7 +603,7 @@ ASMJIT_PATCH(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 {
 	if (auto const& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteUnit)
 	{
-		R->ESI(MixFileClass::Retrieve(data.c_str(), false));
+		R->ESI(FakeFileLoader::_Retrieve(data.c_str(), false));
 		return 0x534CCA;
 	}
 
@@ -614,7 +614,7 @@ ASMJIT_PATCH(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5
 {
 	if (const auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteOverlay)
 	{
-		R->EAX(MixFileClass::Retrieve(data.c_str(), false));
+		R->EAX(FakeFileLoader::_Retrieve(data.c_str(), false));
 		return 0x534C09;
 	}
 

@@ -1169,9 +1169,9 @@ DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
 
 ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
 {
-	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
+	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix", MixFileClass::Key()));
 	if(SpawnerMain::Configs::Enabled) {
-		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix"));
+		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix", MixFileClass::Key()));
 	}
 
 	MixFileClass::Bootstrap();
@@ -1185,7 +1185,7 @@ ASMJIT_PATCH(0x5301AC, InitBootstrapMixfiles_CustomMixes_Preload, 0x5)
 {
 	if(SpawnerMain::Configs::Enabled) {
 		for(auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes) {
-			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(preloadMix.c_str()));
+			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(preloadMix.c_str(), MixFileClass::Key()));
 			Debug::LogInfo("Loading Preloaded Mix Name : {} ", preloadMix.c_str());
 		}
 	}
@@ -1197,7 +1197,7 @@ ASMJIT_PATCH(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
 {
 	if(SpawnerMain::Configs::Enabled) {
 		for(auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes) {
-			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str()));
+			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str(), MixFileClass::Key()));
 			Debug::LogInfo("Loading Postload Mix Name : {} ", postloadMix.c_str());
 		}
 	}

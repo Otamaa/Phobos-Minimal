@@ -120,19 +120,24 @@ public:
     static bool __fastcall Offset(const char *pFilename, void ** realptr = nullptr, MixFileClass ** mixfile = nullptr, long * offset = nullptr, long * size = nullptr)
 		{ JMP_STD(0x5B4430); }
 
-    static void* __fastcall Retrieve(const char *pFilename, bool bLoadAsSHP = false)
-		{ JMP_STD(0x5B40B0); }
+    //static void* __fastcall Retrieve(const char *pFilename, bool bLoadAsSHP = false)
+	//	{ JMP_STD(0x5B40B0); }
 
 	static bool __fastcall Offset(const char* filename, void*& data,
 		MixFileClass*& mixfile, int& offset, int& length)
 	{ JMP_STD(0x5B4430); }
 
-	MixFileClass(const char* pFileName)
-		: Node<MixFileClass>()
-	{
-		PUSH_IMM(0x886980);
-		PUSH_VAR32(pFileName);
-		THISCALL(0x5B3C20);
+	//MixFileClass(const char* pFileName)
+	//	: Node<MixFileClass>()
+	//{
+	//	PUSH_IMM(0x886980);
+	//	PUSH_VAR32(pFileName);
+	//	THISCALL(0x5B3C20);
+	//}
+
+	MixFileClass(const char* pFileName , void* pKey)
+		: Node<MixFileClass>(){
+		JMP_THIS(0x5B3C20);
 	}
 
 public:

@@ -93,7 +93,7 @@ void FindOrAllocateDefaultConvers(const char* name  , bool noTemperate) {
 	pUnitSno->NoTemperate = noTemperate;
 	pUnitSno->Clear_Internal();
 
-	if (auto pPal = (BytePalette*)MixFileClass::Retrieve(pUnitSno->CachedName.data(), false)) {
+	if (auto pPal = (BytePalette*)FakeFileLoader::_Retrieve(pUnitSno->CachedName.data(), false)) {
 
 
 		for (auto& color : pPal->Entries) {
@@ -155,7 +155,7 @@ bool PaletteManager::LoadFromCachedName()
 	}
 
 	//load pal direcly from game mixes if not found
-	if (auto pPal = (BytePalette*)MixFileClass::Retrieve(this->CachedName.data(), false))
+	if (auto pPal = (BytePalette*)FakeFileLoader::_Retrieve(this->CachedName.data(), false))
 	{
 		for (auto& color : pPal->Entries)
 		{

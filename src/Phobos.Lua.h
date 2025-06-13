@@ -20,9 +20,7 @@ using unique_luastate = std::unique_ptr<lua_State, luastatedeleter>;
 
 struct LuaData {
 	static std::string LuaDir;
-	static void ApplyCore(char* pBuffer, size_t buffersize);
-	static void FetchHandlesAndApply();
-	static void PatchHandles();
+	static void ApplyCoreHooks();
 };
 
 #define make_unique_luastate(to) unique_luastate to {}; to.reset(luaL_newstate())

@@ -12,6 +12,10 @@
 
 #include <MessageBoxLogging.h>
 
+#include <Utilities/Macro.h>
+
+#include <MixFileClass.h>
+
 // TODO : encryption support
 // Otamaa : change this variable if you want to load desired name lua file
 std::string filename = "\\renameinternal.lua";
@@ -19,13 +23,366 @@ std::string LuaData::LuaDir;
 std::string CoreHandles;
 HelperedVector<std::pair<uintptr_t, std::string>> map_replaceAddrTo;
 std::string MainWindowStr;
-std::map<std::string, HANDLE> SafeFiles {};
+std::map<std::string, bool> SafeFiles {};
 bool IsActive;
 
-auto MessageLog = [](const std::string& first , const std::string& second) {
-	std::string fmt__ = fmt::format("fail to load {} && cause {}", first, second);
-	MessageBoxA(0, fmt__.c_str(), "Debug", MB_OK);
+auto MessageLog = [](const std::string& first, const std::string& second)
+	{
+		std::string fmt__ = fmt::format("fail to load {} && cause {}", first, second);
+		MessageBoxA(0, fmt__.c_str(), "Debug", MB_OK);
+	};
+
+
+void ApplyCore(char* pBuffer, char* content, size_t size)
+{
+	if (CoreHandles.empty()) return;
+
+	size_t key_len = CoreHandles.length();
+	for (size_t i = 0; i < size; ++i)
+	{
+		pBuffer[i] = content[i] ^ CoreHandles[i % key_len];
+	}
+}
+
+
+void ApplyCore( char* content, size_t size)
+{
+	if (CoreHandles.empty()) return;
+
+	size_t key_len = CoreHandles.length();
+	for (size_t i = 0; i < size; ++i)
+	{
+		content[i] ^= CoreHandles[i % key_len];
+	}
+}
+
+void* __fastcall FakeFileLoader::_Retrieve(const char* pFilename, bool bLoadAsSHP)
+{
+	void* pData = FakeFileLoader::Retrieve(pFilename, bLoadAsSHP);
+
+	if (pData && IsActive)
+	{
+		if (pFilename)
+		{
+			auto it = SafeFiles.find(pFilename);
+
+			if (it != SafeFiles.end())
+			{
+				long fileSize = 0;
+				if (MixFileClass::Offset(pFilename, nullptr, nullptr, nullptr, &fileSize)) {
+					if (fileSize > 0) {
+						ApplyCore(static_cast<char*>(pData), static_cast<size_t>(fileSize));
+					}
+				}
+			}
+		}
+	}
+
+	return pData;
+}
+
+struct FakeFileData
+{
+	LPVOID memory;
+	HANDLE mapping;
+	size_t size;
 };
+
+std::unordered_map<std::string, FakeFileData> keeper;
+struct HandleData
+{
+	DWORD fileActualSize;
+	LPVOID  basePointer;
+	DWORD currentoffset;
+};
+
+std::unordered_map<HANDLE, HandleData> HandleDataKeeper;
+
+HANDLE __stdcall _CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+{
+
+	auto it = SafeFiles.find(lpFileName);
+	if(it != SafeFiles.end()) {
+		auto it_cache = &keeper[lpFileName];
+
+		if (!it_cache->memory)
+		{
+			auto fileHandle = CreateFileA(lpFileName, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+			LARGE_INTEGER fileSize;
+			if (!GetFileSizeEx(fileHandle, &fileSize) || fileSize.QuadPart == 0) {
+				return fileHandle;
+			}
+
+			HANDLE hMap = CreateFileMapping(fileHandle, nullptr, PAGE_READWRITE, 0, 0, nullptr);
+			if (!hMap) {
+				return fileHandle;
+			}
+
+			LPVOID fileData = MapViewOfFile(hMap, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
+
+			if (!fileData) {
+				CloseHandle(hMap);
+				return fileHandle;
+			}
+
+			it_cache->size = fileSize.QuadPart;
+			it_cache->mapping = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, it_cache->size, NULL);
+			it_cache->memory = MapViewOfFile(it_cache->mapping, FILE_MAP_ALL_ACCESS, 0, 0, it_cache->size);
+			ApplyCore((char*)it_cache->memory, (char*)fileData, it_cache->size);
+			UnmapViewOfFile(fileData);
+			CloseHandle(hMap);
+		}
+
+		HANDLE duplicatedHandle;
+		if (!DuplicateHandle(
+			Patch::CurrentProcess,												// source process
+			it_cache->mapping,									// source handle
+			Patch::CurrentProcess,												// target process
+			&duplicatedHandle,                                   // out duplicated handle
+			0,                                                   // desired access (same)
+			FALSE,                                               // inherit handle
+			DUPLICATE_SAME_ACCESS))								// options
+		{
+			return INVALID_HANDLE_VALUE;
+		}
+
+		// Store size info
+		auto mapped = &HandleDataKeeper[duplicatedHandle];
+		mapped->fileActualSize  = it_cache->size;
+		mapped->basePointer = it_cache->memory;
+		mapped->currentoffset = 0;
+		return duplicatedHandle;
+	}
+
+	return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+}
+
+BOOL __stdcall _CloseHandle(HANDLE hObject)
+{
+	HandleDataKeeper.erase(hObject);
+	return CloseHandle(hObject);
+}
+
+DWORD __stdcall _GetFileSize(HANDLE hFile, LPDWORD lpFileSizeHigh)
+{
+	const auto it = HandleDataKeeper.find(hFile);
+
+	if (it != HandleDataKeeper.end()) {
+		if (lpFileSizeHigh) *lpFileSizeHigh = 0;
+		return it->second.fileActualSize;
+	}
+
+	return GetFileSize(hFile, lpFileSizeHigh);
+}
+
+BOOL WINAPI _ReadFile(
+	HANDLE hFile,
+	LPVOID lpBuffer,
+	DWORD nNumberOfBytesToRead,
+	LPDWORD lpNumberOfBytesRead,
+	LPOVERLAPPED lpOverlapped
+)
+{
+	auto it = HandleDataKeeper.find(hFile);
+
+	if (it != HandleDataKeeper.end())
+	{
+		if (it->second.currentoffset >= it->second.fileActualSize) {
+			if (lpNumberOfBytesRead) *lpNumberOfBytesRead = 0;
+			return TRUE;
+		}
+
+		DWORD toRead = MinImpl(nNumberOfBytesToRead, it->second.fileActualSize - it->second.currentoffset);
+		std::memcpy(lpBuffer, reinterpret_cast<uint8_t*>(it->second.basePointer) + it->second.currentoffset, toRead);
+		it->second.currentoffset += toRead;
+		if (lpNumberOfBytesRead) *lpNumberOfBytesRead = toRead;
+		return TRUE;
+	}
+	return ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped);
+}
+
+DWORD WINAPI _SetFilePointer(
+	HANDLE hFile,
+	LONG lDistanceToMove,
+	PLONG lpDistanceToMoveHigh,
+	DWORD dwMoveMethod
+)
+{
+	auto it = HandleDataKeeper.find(hFile);
+
+	if (it != HandleDataKeeper.end())
+	{
+		DWORD size = it->second.fileActualSize;
+		LONG high = lpDistanceToMoveHigh ? *lpDistanceToMoveHigh : 0;
+		LONGLONG newOffset = it->second.currentoffset;
+		LONGLONG move = ((LONGLONG)high << 32) | (DWORD)lDistanceToMove;
+
+		switch (dwMoveMethod)
+		{
+		case FILE_BEGIN:  newOffset = move; break;
+		case FILE_CURRENT: newOffset += move; break;
+		case FILE_END:    newOffset = size + move; break;
+		default: return INVALID_SET_FILE_POINTER;
+		}
+
+		if (newOffset < 0 || newOffset > size)
+			return INVALID_SET_FILE_POINTER;
+
+		it->second.currentoffset = static_cast<DWORD>(newOffset);
+		if (lpDistanceToMoveHigh) *lpDistanceToMoveHigh = 0;
+		return it->second.currentoffset;
+	}
+
+	return SetFilePointer(hFile, lDistanceToMove, lpDistanceToMoveHigh, dwMoveMethod);
+}
+
+BOOL WINAPI _SetFileTime(
+	HANDLE hFile,
+	const FILETIME* lpCreationTime,
+	const FILETIME* lpLastAccessTime,
+	const FILETIME* lpLastWriteTime
+)
+{
+	if (HandleDataKeeper.find(hFile) != HandleDataKeeper.end()) {
+		return TRUE;
+	}
+
+	return SetFileTime(hFile, lpCreationTime, lpLastAccessTime, lpLastWriteTime);
+}
+
+
+ASMJIT_PATCH(0x473B36, CCFIleClass_ReadBuffer, 0x6)
+{
+	GET(CCFileClass*, pFile, ESI);
+
+	auto it = SafeFiles.find(pFile->FileName);
+	if (it != SafeFiles.end()) {
+		ApplyCore((char*)pFile->Buffer.Buffer, pFile->Buffer.Size);
+	}
+
+	return 0x0;
+}
+
+#pragma region _Retrieve
+
+DEFINE_FUNCTION_JUMP(CALL, 0x41CAF7, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x41CB08, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4279DA, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x427A04, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x427B15, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x427BE9, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x427C07, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x42891E, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4309FD, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x430A61, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45E904, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45E988, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45E999, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45EA16, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45EA79, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F28D, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F2A5, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F525, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F543, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F615, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F6E9, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F7C1, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F82D, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F84B, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45F91D, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45FA0B, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45FA39, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x45FA6B, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x47EFFD, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x47F00E, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x47F26A, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A38DE, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A3985, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A8862, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A8873, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B6D07, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B6D1A, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B6D2D, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B6E52, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B6F41, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B7349, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x4B73A8, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x51916D, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5194FF, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x52BBE3, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x52BC55, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x52BCFD, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x52BE6D, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x52BF26, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x52BFDA, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x52C08E, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x52C142, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x531381, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x534C04, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x534CC3, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x546725, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5468DB, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5468F8, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5469BF, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x560D7B, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x561093, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5D2EBA, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F76EE, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F773C, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F778A, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F77D8, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F9249, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F9267, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F9281, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F9685, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F9931, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5FE68C, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5FE6AE, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5FE6F6, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5FE714, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5FE928, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x5FEBEC, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x62769F, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x66C5F4, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x66C606, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x677FAC, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x677FBE, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x690660, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6906BD, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x69071A, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x690A4D, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x690B1D, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6A5012, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6A8167, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6ABD57, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6ABD68, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6ABD79, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6B1B94, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6B1BCE, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6B57C2, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CE89B, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CE8B1, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CEE20, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6CEE38, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x6DAE07, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x715820, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x715A38, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x715A54, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x715B05, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x716C77, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x716D04, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x716D1A, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x716D6F, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x71DFBB, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x73CEE0, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x73D3EF, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x747490, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x7474A1, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x747BB4, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x748093, FakeFileLoader::_Retrieve);
+DEFINE_FUNCTION_JUMP(CALL, 0x74D47D, FakeFileLoader::_Retrieve);
+#pragma endregion
 
 using uintptr_string_pair = std::pair<uintptr_t, std::string>;
 
@@ -79,10 +436,11 @@ inline void lua_get_string_array_of_SafeFiles(lua_State* L, const char* global_t
 	while (lua_next(L, -2) != 0)
 	{
 		// stack: -1 => value, -2 => key
-		if (lua_isstring(L, -1)) {
+		if (lua_isstring(L, -1))
+		{
 			std::string val = lua_tostring(L, -1);
 			PhobosCRT::uppercase(val);
-			SafeFiles[val] = NULL;
+			SafeFiles[val] = false;
 		}
 
 		lua_pop(L, 1); // pop value
@@ -93,7 +451,8 @@ inline void lua_get_string_array_of_SafeFiles(lua_State* L, const char* global_t
 
 struct LuaWrapper
 {
-	LuaWrapper() : Internal {} {
+	LuaWrapper() : Internal {}
+	{
 		this->Internal.reset(luaL_newstate());
 		luaL_openlibs(this->Internal.get());
 	}
@@ -156,13 +515,13 @@ struct LuaWrapper
 
 	}
 
-	auto get() {
+	auto get()
+	{
 		return this->Internal.get();
 	}
 
 	unique_luastate Internal;
 };
-
 
 void Phobos::ExecuteLua()
 {
@@ -192,7 +551,7 @@ void Phobos::ExecuteLua()
 
 	const auto _renamer = LuaData::LuaDir + filename;
 
-	if (Lua.loadfile( _renamer, nullptr))
+	if (Lua.loadfile(_renamer, nullptr))
 	{
 		auto L = Lua.get();
 		lua_getglobal(L, "Replaces");
@@ -240,7 +599,8 @@ void Phobos::ExecuteLua()
 						lua_pop(L, 1);
 
 						DWORD protectFlag;
-						if (Phobos::Otamaa::IsAdmin) {
+						if (Phobos::Otamaa::IsAdmin)
+						{
 							std::string copy = PhobosCRT::trim(result->second.c_str());
 							Debug::LogDeferred("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result->second.size(), maxlen);
 						}
@@ -255,7 +615,8 @@ void Phobos::ExecuteLua()
 
 		lua_pop(L, 1);
 
-		if (Lua.getGlobalString("MainWindowString", MainWindowStr)) {
+		if (Lua.getGlobalString("MainWindowString", MainWindowStr))
+		{
 			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
 			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
 			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
@@ -263,8 +624,9 @@ void Phobos::ExecuteLua()
 			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
 		}
 
-		//lua_get_string_array_of_SafeFiles(L, "FetchHandles");
-		//lua_get_global_string(L, "CoreHandles", CoreHandles);
+		//core part to activate , disable it for now
+		//lua_get_string_array_of_SafeFiles(Lua.get(), "FetchHandles");
+		//Lua.getGlobalString("CoreHandles", CoreHandles);
 
 		//IsActive = !SafeFiles.empty() && !CoreHandles.empty();
 
@@ -279,55 +641,178 @@ void Phobos::ExecuteLua()
 	}
 }
 
-void LuaData::ApplyCore(char* pBuffer, size_t buffersize) {
-	if (CoreHandles.empty()) return;
-
-	size_t key_len = CoreHandles.length();
-	for (size_t i = 0; i < buffersize; ++i) {
-		pBuffer[i] ^= CoreHandles[i % key_len];
-	}
-}
-
 #include <filesystem>
 
-//#pragma optimize("", off )
-//HANDLE __stdcall _CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
-//{
-//	auto fileHandle = CreateFileA(lpFileName, GENERIC_READ | GENERIC_WRITE, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-//
-//	auto it = SafeFiles.find(lpFileName);
-//	if(it != SafeFiles.end()) {
-//		LARGE_INTEGER fileSize;
-//		if (!GetFileSizeEx(fileHandle, &fileSize) || fileSize.QuadPart == 0) {
-//			auto fmt = std::format("CreateFileMapping failed: {}", lpFileName);
-//			MessageBoxA(0, fmt.c_str(), "Debug", MB_OK);
-//			return fileHandle;
-//		}
-//
-//		HANDLE hMap = CreateFileMapping(fileHandle, nullptr, PAGE_READWRITE, 0, 0, nullptr);
-//		if (!hMap) {
-//			DWORD err = GetLastError();
-//			auto fmt = std::format("CreateFileMapping failed: {}" , err);
-//			MessageBoxA(0, fmt.c_str(), "Debug", MB_OK);
-//		}
-//
-//		LPVOID fileData = MapViewOfFile(hMap, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
-//		LuaData::ApplyCore((char*)fileData, fileSize.QuadPart);
-//		UnmapViewOfFile(fileData);
-//		CloseHandle(hMap);
-//	}
-//
-//	return fileHandle;
-//}
-//#pragma optimize("", on )
+DWORD WINAPI _GetFileType(HANDLE hFile)
+{
+	if (HandleDataKeeper.contains(hFile))
+	{
+		return FILE_TYPE_DISK;
+	}
+	return GetFileType(hFile);
+}
+
+HANDLE WINAPI _CreateFileMappingA(
+	HANDLE hFile,
+	LPSECURITY_ATTRIBUTES lpFileMappingAttributes,
+	DWORD flProtect,
+	DWORD dwMaximumSizeHigh,
+	DWORD dwMaximumSizeLow,
+	LPCSTR lpName
+)
+{
+	if (HandleDataKeeper.contains(hFile)) {
+		for (auto& [_, mapped] : keeper) {
+			if (mapped.mapping == hFile) {
+				return mapped.mapping;
+			}
+		}
+	}
+
+	return CreateFileMappingA(hFile, lpFileMappingAttributes, flProtect,
+							  dwMaximumSizeHigh, dwMaximumSizeLow, lpName);
+}
+
+LPVOID WINAPI _MapViewOfFile(
+	HANDLE hFileMappingObject,
+	DWORD dwDesiredAccess,
+	DWORD dwFileOffsetHigh,
+	DWORD dwFileOffsetLow,
+	SIZE_T dwNumberOfBytesToMap
+)
+{
+	const auto it = HandleDataKeeper.find(hFileMappingObject);
+
+	if (it != HandleDataKeeper.end()) {
+		return it->second.basePointer;
+	}
+
+	return MapViewOfFile(hFileMappingObject, dwDesiredAccess, dwFileOffsetHigh, dwFileOffsetLow, dwNumberOfBytesToMap);
+}
+
+LPVOID WINAPI _MapViewOfFileEx(
+	HANDLE hFileMappingObject,
+	DWORD dwDesiredAccess,
+	DWORD dwFileOffsetHigh,
+	DWORD dwFileOffsetLow,
+	SIZE_T dwNumberOfBytesToMap,
+	LPVOID lpBaseAddress
+)
+{
+	const auto it = HandleDataKeeper.find(hFileMappingObject);
+
+	if (it != HandleDataKeeper.end()) {
+		return it->second.basePointer;
+	}
+
+	return MapViewOfFileEx(hFileMappingObject, dwDesiredAccess, dwFileOffsetHigh, dwFileOffsetLow, dwNumberOfBytesToMap, lpBaseAddress);
+}
 
 
-void LuaData::FetchHandlesAndApply()
+BOOL WINAPI _UnmapViewOfFile(LPCVOID lpBaseAddress)
+{
+	for (auto& [path, mapped] : keeper) {
+		if (mapped.mapping == lpBaseAddress) {
+			return TRUE;
+		}
+	}
+
+	return UnmapViewOfFile(lpBaseAddress);
+}
+
+BOOL WINAPI _FlushFileBuffers(HANDLE hFile)
+{
+	if (HandleDataKeeper.count(hFile))
+	{
+		return TRUE; // fake success
+	}
+	return FlushFileBuffers(hFile);
+}
+
+BOOL WINAPI _GetFileInformationByHandle(HANDLE hFile, BY_HANDLE_FILE_INFORMATION* lpFileInformation)
+{
+	auto it = HandleDataKeeper.find(hFile);
+
+	if (it != HandleDataKeeper.end())
+	{
+		ZeroMemory(lpFileInformation, sizeof(*lpFileInformation));
+		lpFileInformation->dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
+		lpFileInformation->nFileSizeLow = it->second.fileActualSize;
+		lpFileInformation->nFileSizeHigh = 0;
+		return TRUE;
+	}
+
+	return GetFileInformationByHandle(hFile, lpFileInformation);
+}
+
+BOOL WINAPI _WriteFile(
+	HANDLE hFile,
+	LPCVOID lpBuffer,
+	DWORD nNumberOfBytesToWrite,
+	LPDWORD lpNumberOfBytesWritten,
+	LPOVERLAPPED lpOverlapped
+)
+{
+	auto it = HandleDataKeeper.find(hFile);
+
+	if (it != HandleDataKeeper.end())
+	{
+		auto& data = it->second;
+		DWORD size = data.fileActualSize;
+
+		if (data.currentoffset >= size)
+		{
+			if (lpNumberOfBytesWritten) *lpNumberOfBytesWritten = 0;
+			return TRUE;
+		}
+
+		DWORD toWrite = std::min(nNumberOfBytesToWrite, size - data.currentoffset);
+		std::memcpy(reinterpret_cast<uint8_t*>(data.basePointer) + data.currentoffset, lpBuffer, toWrite);
+		data.currentoffset += toWrite;
+		if (lpNumberOfBytesWritten) *lpNumberOfBytesWritten = toWrite;
+		return TRUE;
+	}
+
+	return WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped);
+}
+
+DWORD WINAPI _GetFinalPathNameByHandleA(
+	HANDLE hFile,
+	LPSTR lpszFilePath,
+	DWORD cchFilePath,
+	DWORD dwFlags
+)
+{
+	for (const auto& [name, mapped] : keeper) {
+		if (mapped.mapping == hFile) {
+			const auto path = PhobosCRT::WideStringToString(Debug::ApplicationFilePath + L"\\" + PhobosCRT::StringToWideString(name));
+			if (cchFilePath < path.size() + 1) return path.size() + 1;
+			std::strncpy(lpszFilePath, path.c_str(), cchFilePath);
+			return path.size();
+		}
+	}
+
+	return GetFinalPathNameByHandleA(hFile, lpszFilePath, cchFilePath, dwFlags);
+}
+
+
+void LuaData::ApplyCoreHooks()
 {
 	if (!IsActive)
 		return;
 
-	//Imports::CreateFileA = _CreateFileA;
+	Imports::CreateFileA = _CreateFileA;
+	Imports::CloseHandle = _CloseHandle;
+	Imports::GetFileSize = _GetFileSize;
+	Imports::ReadFile = _ReadFile;
+	Imports::SetFilePointer = _SetFilePointer;
+	Imports::SetFileTime = _SetFileTime;
+	//7C8482 , writefile
+	//7C851E , GetFileInformationByHandle
+	//7DCEEC , FlushFileBuffers
+	//7C8422 , UnmapViewOfFile
+	//7C8410 , MapViewOfFileEx
+	//7DCEFE , GetFileType
 }
 
 
