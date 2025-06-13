@@ -245,7 +245,8 @@ static void NOINLINE Damage_Overlay(CellClass* pCurCell,
 					{
 						Debug::LogInfo("Veinhole at [%d %d] Destroyed!", veinhole->MonsterCell.X, veinhole->MonsterCell.Y);
 
-						if (pCurCell->OverlayTypeIndex == -1) {
+						if (pCurCell->OverlayTypeIndex == -1)
+						{
 							TechnoClass::ClearWhoTargetingThis(pCurCell);
 						}
 					}
@@ -406,8 +407,10 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 			auto cellhere = (cell + (*it));
 			const bool IsCenter = i++ == 0;
 
-			if (auto pCurCell = MapClass::Instance->TryGetCellAt(cellhere)) {
-				if (MapClass::Instance->CoordinatesLegal(cellhere)) {
+			if (auto pCurCell = MapClass::Instance->TryGetCellAt(cellhere))
+			{
+				if (MapClass::Instance->CoordinatesLegal(cellhere))
+				{
 
 					auto cur_cellCoord = pCurCell->GetCoords();
 					auto spawn_distance = cellhere.DistanceFrom(cell);
@@ -439,23 +442,30 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 						auto cur_Group = GameCreate<DamageGroup>(pCur, 0);
 						groupvec.push_back(cur_Group);
 
-						if (what == BuildingClass::AbsID) {
+						if (what == BuildingClass::AbsID)
+						{
 
-							if (IsCenter && !(pCoord->Z - cur_cellCoord.Z <= Unsorted::CellHeight)) {
-									cur_Group->Distance = (int)(cur_cellCoord.operator-(*pCoord).Length()) - Unsorted::CellHeight;
-							} else {
+							if (IsCenter && !(pCoord->Z - cur_cellCoord.Z <= Unsorted::CellHeight))
+							{
+								cur_Group->Distance = (int)(cur_cellCoord.operator-(*pCoord).Length()) - Unsorted::CellHeight;
+							}
+							else
+							{
 								cur_Group->Distance = (int)pCoord->operator-(cur_cellCoord).Length();
 							}
 						}
-						else {
+						else
+						{
 							cur_Group->Distance = (int)pCoord->operator-(pCur->GetTargetCoords()).Length();
 						}
 
-						if (spreadLow && IsCenter) {
+						if (spreadLow && IsCenter)
+						{
 							if (pCur->IsIronCurtained()
 								&& ((BuildingClass*)pCur)->ProtectType == ProtectTypes::IronCurtain
 								&& cur_Group->Distance < 85
-								) {
+								)
+							{
 								HitICEdTechno = !pWHExt->PenetratesIronCurtain;
 							}
 						}
@@ -616,7 +626,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 
 					if (auto pCellHere = MapClass::Instance->TryGetCellAt(cellhere))
 					{
-						if(!MapClass::Instance->CoordinatesLegal(cellhere))
+						if (!MapClass::Instance->CoordinatesLegal(cellhere))
 							continue;
 
 						auto object = pCellHere->Cell_Occupier(alt);
@@ -740,7 +750,7 @@ namespace DamageAreaTemp
 	const CellClass* CheckingCell = nullptr;
 	bool CheckingCellAlt = false;
 }
-bool NOINLINE IsObjectEligible(ObjectClass* pObj , WarheadTypeExtData* pWHExt)
+bool NOINLINE IsObjectEligible(ObjectClass* pObj, WarheadTypeExtData* pWHExt)
 {
 	if (!pObj)
 		return false;
@@ -865,22 +875,22 @@ ASMJIT_PATCH(0x489968, DamageAread_PenetratesIronCurtain, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x489416, MapClass_DamageArea_AirDamageSelfFix, 0x6)
+ASMJIT_PATCH(0x48947F, MapClass_DamageArea_AirDamageSelfFix, 0x6)
 {
-	enum { DamageSelf = 0x0, Continue = 0x489702};
+	enum { DamageSelf = 0x0, Continue = 0x489547 };
 
 	GET(TechnoClass*, pAirTechno, EBX);
 	GET_BASE(TechnoClass*, pSourceTechno, 0x8);
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 
 	return  (pAirTechno == pSourceTechno &&
-		( pWarhead->_GetExtData()->AllowDamageOnSelf 
-		|| pSourceTechno->GetTechnoType()->DamageSelf)) ? DamageSelf : Continue;
+		(pWarhead->_GetExtData()->AllowDamageOnSelf
+			|| pSourceTechno->GetTechnoType()->DamageSelf)) ? DamageSelf : Continue;
 }
 
 ASMJIT_PATCH(0x4896EC, DamageAread_DamageSelf, 0x6)
 {
-	enum { DamageSelf = 0x489702, Continue = 0x0};
+	enum { DamageSelf = 0x489702, Continue = 0x0 };
 
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 	return pWarhead->_GetExtData()->AllowDamageOnSelf ? DamageSelf : Continue;
@@ -1034,27 +1044,37 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 					short ypos = pCell->Y + y;
 					auto _PcellHere = MapClass::Instance->GetCellAt(CellStruct(xpos, ypos));
 
-					for (auto object1 = _PcellHere->FirstObject; object1; object1 = object1->NextObject) {
-						if (FootClass* techno = flag_cast_to<FootClass* , false>(object1)) {
-							if (xpos == pCell->X && ypos == pCell->Y && pSource) {
+					for (auto object1 = _PcellHere->FirstObject; object1; object1 = object1->NextObject)
+					{
+						if (FootClass* techno = flag_cast_to<FootClass*, false>(object1))
+						{
+							if (xpos == pCell->X && ypos == pCell->Y && pSource)
+							{
 								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
 								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
 								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
 								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
-							} else if (pWarhead->CellSpread > 0.0f) {
+							}
+							else if (pWarhead->CellSpread > 0.0f)
+							{
 								techno->RockByValue(pCoord, (float)rockerSpread);
 							}
 						}
 					}
 
-					for (auto object2 = _PcellHere->AltObject; object2; object2 = object2->NextObject) {
-						if (FootClass* techno = flag_cast_to<FootClass*, false>(object2)) {
-							if (xpos == pCell->X && ypos == pCell->Y && pSource) {
+					for (auto object2 = _PcellHere->AltObject; object2; object2 = object2->NextObject)
+					{
+						if (FootClass* techno = flag_cast_to<FootClass*, false>(object2))
+						{
+							if (xpos == pCell->X && ypos == pCell->Y && pSource)
+							{
 								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
 								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
 								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
 								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
-							} else if (pWarhead->CellSpread > 0.0f) {
+							}
+							else if (pWarhead->CellSpread > 0.0f)
+							{
 								techno->RockByValue(pCoord, (float)rockerSpread);
 							}
 						}
