@@ -32,7 +32,6 @@ auto MessageLog = [](const std::string& first, const std::string& second)
 		MessageBoxA(0, fmt__.c_str(), "Debug", MB_OK);
 	};
 
-
 // RC4 stream cipher encryption/decryption
 void rc4_crypt(std::vector<char>& data, const std::string& key)
 {
@@ -58,6 +57,7 @@ void rc4_crypt(std::vector<char>& data, const std::string& key)
 	}
 }
 
+#pragma region TEA
 // TEA core encrypts 64-bit block (8 bytes)
 void tea_encrypt_block(uint32_t* v, const uint32_t* k)
 {
@@ -74,6 +74,43 @@ void tea_encrypt_block(uint32_t* v, const uint32_t* k)
 	v[1] = v1;
 }
 
+void tea_decrypt_block(uint32_t* v, const uint32_t* k)
+{
+	uint32_t v0 = v[0], v1 = v[1];
+	uint32_t sum = 0x9E3779B9 * 32;
+	const uint32_t delta = 0x9E3779B9;
+	for (int i = 0; i < 32; ++i)
+	{
+		v1 -= ((v0 << 4) + k[2]) ^ (v0 + sum) ^ ((v0 >> 5) + k[3]);
+		v0 -= ((v1 << 4) + k[0]) ^ (v1 + sum) ^ ((v1 >> 5) + k[1]);
+		sum -= delta;
+	}
+	v[0] = v0;
+	v[1] = v1;
+}
+
+void tea_encrypt_buffer(std::vector<char>& buffer, const uint32_t k[4])
+{
+	for (size_t i = 0; i < buffer.size(); i += 8)
+	{
+		uint32_t v[2];
+		std::memcpy(v, buffer.data() + i, 8);
+		tea_encrypt_block(v, k);
+		std::memcpy(buffer.data() + i, v, 8);
+	}
+}
+
+void tea_decrypt_buffer(std::vector<char>& buffer, const uint32_t k[4])
+{
+	for (size_t i = 0; i < buffer.size(); i += 8)
+	{
+		uint32_t v[2];
+		std::memcpy(v, buffer.data() + i, 8);
+		tea_decrypt_block(v, k);
+		std::memcpy(buffer.data() + i, v, 8);
+	}
+}
+
 // Convert std::string to TEA 128-bit key (4 * 32-bit)
 void key_from_string(const std::string& key, uint32_t k[4])
 {
@@ -84,46 +121,44 @@ void key_from_string(const std::string& key, uint32_t k[4])
 	}
 }
 
-// Encrypt buffer in-place (must be multiple of 8 bytes)
-void tea_encrypt_buffer(std::vector<char>& buffer, const std::string& key)
-{
-	if (buffer.size() % 8 != 0)
-	{
-		//throw std::invalid_argument("Buffer size must be multiple of 8 bytes.");
-		return;
-	}
+#pragma endregion
 
-	uint32_t k[4];
-	key_from_string(key, k);
-
-	for (size_t i = 0; i < buffer.size(); i += 8)
-	{
-		uint32_t v[2];
-		std::memcpy(v, buffer.data() + i, 8);
-		tea_encrypt_block(v, k);
-		std::memcpy(buffer.data() + i, v, 8);
-	}
+std::string crc_to_mask(uint32_t crc) {
+	return fmt::format("{:08x}", crc);
 }
 
-// Optional: overload for std::vector<uint8_t>
-void tea_encrypt_buffer(std::vector<uint8_t>& buffer, const std::string& key)
+std::string get_dll_name()
 {
-	if (buffer.size() % 8 != 0)
-	{
-		//throw std::invalid_argument("Buffer size must be multiple of 8 bytes.");
-		return;
-	}
+	char path[MAX_PATH] = {};
+	HMODULE hModule = nullptr;
 
-	uint32_t k[4];
-	key_from_string(key, k);
-
-	for (size_t i = 0; i < buffer.size(); i += 8)
+	if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+		GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+		reinterpret_cast<LPCSTR>(&get_dll_name),
+		&hModule))
 	{
-		uint32_t v[2];
-		std::memcpy(v, buffer.data() + i, 8);
-		tea_encrypt_block(v, k);
-		std::memcpy(buffer.data() + i, v, 8);
+		GetModuleFileNameA(hModule, path, MAX_PATH);
+		std::string full_path = std::string(path);
+		size_t last_slash = full_path.find_last_of("/\\");
+		if (last_slash != std::string::npos)
+		{
+			return full_path.substr(last_slash + 1); // filename only
+		}
+		return full_path;
 	}
+	return {};
+}
+
+std::string derive_key(const std::string& first, uint32_t crc, const std::string& salt = "")
+{
+	std::string mask = crc_to_mask(crc);
+	std::string thesalt = salt.empty() ? get_dll_name() : salt;
+	std::string combined_key = first + thesalt;
+	for (size_t i = 0; i < combined_key.size(); ++i)
+	{
+		combined_key[i] ^= mask[i % mask.size()];
+	}
+	return combined_key;
 }
 
 void ApplyCore(char* pBuffer, char* content, size_t size)
@@ -137,8 +172,7 @@ void ApplyCore(char* pBuffer, char* content, size_t size)
 	}
 }
 
-
-void ApplyCore( char* content, size_t size)
+void ApplyCore(char* content, size_t size)
 {
 	if (CoreHandles.empty()) return;
 
@@ -147,6 +181,53 @@ void ApplyCore( char* content, size_t size)
 	{
 		content[i] ^= CoreHandles[i % key_len];
 	}
+}
+
+void ApplyCore(std::vector<char> content, std::string key)
+{
+	if (key.empty()) return;
+
+	size_t key_len = key.length();
+	for (size_t i = 0; i < content.size(); ++i)
+	{
+		content[i] ^= key[i % key_len];
+	}
+}
+
+void Transform_buffer(std::vector<char>& buffer, std::string key, uint32_t crc = 0)
+{
+	if (buffer.size() % 8 != 0)
+	{
+		//throw std::invalid_argument("Buffer size must be multiple of 8 bytes.");
+		return;
+	}
+
+	key = derive_key(key, crc);
+
+	ApplyCore(buffer, key);
+	rc4_crypt(buffer, key);
+
+	uint32_t k[4];
+	key_from_string(key, k);
+	tea_encrypt_buffer(buffer, k);
+}
+
+void UnTranform_buffer(std::vector<char>& buffer, std::string key, uint32_t crc = 0)
+{
+	if (buffer.size() % 8 != 0)
+	{
+		//throw std::invalid_argument("Buffer size must be multiple of 8 bytes.");
+		return;
+	}
+
+	key = derive_key(key, crc);
+
+	uint32_t k[4];
+	key_from_string(key, k);
+	tea_decrypt_buffer(buffer, k);
+
+	rc4_crypt(buffer, key);
+	ApplyCore(buffer, key);
 }
 
 void* __fastcall FakeFileLoader::_Retrieve(const char* pFilename, bool bLoadAsSHP)
