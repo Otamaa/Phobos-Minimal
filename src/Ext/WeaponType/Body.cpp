@@ -10,7 +10,7 @@
 
 #include <EBolt.h>
 
-#pragma region defines 
+#pragma region defines
 int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
 PhobosMap<EBolt*, WeaponTypeExtData::EBoltWeaponStruct> WeaponTypeExtData::boltWeaponTypeExt;
 #pragma endregion
@@ -264,7 +264,7 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 	if (!pThis && !pFirer)
 		return range;
 	else if (pFirer && pFirer->CanOccupyFire())
-		range = RulesClass::Instance->OccupyWeaponRange * Unsorted::LeptonsPerCell;
+		range = (RulesClass::Instance->OccupyWeaponRange + pFirer->GetOccupyRangeBonus()) * Unsorted::LeptonsPerCell;
 	else if (pThis && pFirer){
 		auto pFirerExt = TechnoExtContainer::Instance.Find(pFirer);
 		int range_ = pThis->Range;
