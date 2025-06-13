@@ -147,7 +147,6 @@ void Phobos::ExecuteLua()
 
 	if (load_lua_file(L, LuaData::LuaDir + "\\AdminMode.lua" , nullptr))
 	{
-		MSGBOX_DEBUG("ExecuteLua Found AdminMode")
 		std::string adminName {};
 		if (lua_get_global_string(L, "AdminMode", adminName))
 		{

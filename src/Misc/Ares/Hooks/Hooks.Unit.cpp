@@ -847,6 +847,13 @@ ASMJIT_PATCH(0x417DD2, AircraftClass_GetActionOnObject_NoManualUnload, 6)
 	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ? 0x417DF4u : 0u;
 }
 
+ASMJIT_PATCH(0x73D800, UnitClass_MI_Unload_NoManualUnload, 0x6){
+	enum { Continue = 0x0 , AssignMissionGuard = 0x73D81C };
+	GET(UnitClass const* const, pThis, ESI);
+	return TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload ?
+	AssignMissionGuard : Continue;
+}
+
 ASMJIT_PATCH(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
 {
 	// this techno is known to be a unit
