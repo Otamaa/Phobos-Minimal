@@ -883,9 +883,8 @@ ASMJIT_PATCH(0x48947F, MapClass_DamageArea_AirDamageSelfFix, 0x6)
 	GET_BASE(TechnoClass*, pSourceTechno, 0x8);
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 
-	return  (pAirTechno == pSourceTechno &&
-		(pWarhead->_GetExtData()->AllowDamageOnSelf
-			|| pSourceTechno->GetTechnoType()->DamageSelf)) ? DamageSelf : Continue;
+	return (pAirTechno != pSourceTechno) || (pWarhead->_GetExtData()->AllowDamageOnSelf
+			|| pAirTechno->GetTechnoType()->DamageSelf) ? DamageSelf : Continue;
 }
 
 ASMJIT_PATCH(0x4896EC, DamageAread_DamageSelf, 0x6)
