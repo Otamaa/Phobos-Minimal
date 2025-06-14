@@ -232,27 +232,27 @@ void UnTranform_buffer(std::vector<char>& buffer, std::string key, uint32_t crc 
 
 void* __fastcall FakeFileLoader::_Retrieve(const char* pFilename, bool bLoadAsSHP)
 {
-	void* pData = FakeFileLoader::Retrieve(pFilename, bLoadAsSHP);
+	//void* pData = FakeFileLoader::Retrieve(pFilename, bLoadAsSHP);
 
-	if (pData && IsActive)
-	{
-		if (pFilename)
-		{
-			auto it = SafeFiles.find(pFilename);
+	//if (pData && IsActive)
+	//{
+	//	if (pFilename)
+	//	{
+	//		auto it = SafeFiles.find(pFilename);
 
-			if (it != SafeFiles.end())
-			{
-				long fileSize = 0;
-				if (MixFileClass::Offset(pFilename, nullptr, nullptr, nullptr, &fileSize)) {
-					if (fileSize > 0) {
-						ApplyCore(static_cast<char*>(pData), static_cast<size_t>(fileSize));
-					}
-				}
-			}
-		}
-	}
+	//		if (it != SafeFiles.end())
+	//		{
+	//			long fileSize = 0;
+	//			if (MixFileClass::Offset(pFilename, nullptr, nullptr, nullptr, &fileSize)) {
+	//				if (fileSize > 0) {
+	//					ApplyCore(static_cast<char*>(pData), static_cast<size_t>(fileSize));
+	//				}
+	//			}
+	//		}
+	//	}
+	//}
 
-	return pData;
+	return FakeFileLoader::Retrieve(pFilename, bLoadAsSHP);
 }
 
 struct FakeFileData
@@ -426,17 +426,18 @@ BOOL WINAPI _SetFileTime(
 }
 
 
-ASMJIT_PATCH(0x473B36, CCFIleClass_ReadBuffer, 0x6)
-{
-	GET(CCFileClass*, pFile, ESI);
-
-	auto it = SafeFiles.find(pFile->FileName);
-	if (it != SafeFiles.end()) {
-		ApplyCore((char*)pFile->Buffer.Buffer, pFile->Buffer.Size);
-	}
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x473B36, CCFIleClass_ReadBuffer, 0x6)
+//{
+//	GET(CCFileClass*, pFile, ESI);
+//
+//	auto it = keeper.find(pFile->FileName);
+//	if (it != keeper.end()) {
+//		std::memcpy
+//		ApplyCore((char*)pFile->Buffer.Buffer, pFile->Buffer.Size);
+//	}
+//
+//	return 0x0;
+//}
 
 #pragma region _Retrieve
 
