@@ -79,7 +79,9 @@ struct SHPStruct //header
 	short	Frames;
 };
 
-struct Theater_SHPStruct : public SHPStruct { };
+struct NOVTABLE Theater_SHPStruct : public SHPStruct {
+	SHPStruct* GetBase() { return (SHPStruct*)this; }
+};
 
 struct SHPReference : public SHPStruct
 {

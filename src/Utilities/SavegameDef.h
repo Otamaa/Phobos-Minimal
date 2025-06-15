@@ -824,12 +824,20 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, SHPStruct*& Value, bool RegisterForChange) const
 		{
-			Value = nullptr;
-			std::string name {};
-			if (Stm.Process(name)) {
-				if (auto pSHP = FileSystem::LoadSHPFile(name.c_str())) {
-					Value = pSHP;
+			bool HasAny = false;
+
+			if(Stm.Load(HasAny)){
+
+				if (!HasAny)
 					return true;
+
+				Value = nullptr;
+				std::string name {};
+				if (Stm.Process(name)) {
+					if (auto pSHP = FileSystem::LoadSHPFile(name.c_str())) {
+						Value = pSHP;
+						return true;
+					}
 				}
 			}
 
@@ -838,7 +846,10 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, SHPStruct* const& Value) const
 		{
-			if(!Value)
+			const bool HasAny = Value != nullptr;
+			Stm.Save(HasAny);
+
+			if(!HasAny)
 				return true;
 
 			const char* filename = nullptr;
@@ -858,14 +869,23 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, Theater_SHPStruct*& Value, bool RegisterForChange) const
 		{
-			Value = nullptr;
-			std::string name {};
-			if (Stm.Process(name))
+			bool HasAny = false;
+
+			if (Stm.Load(HasAny))
 			{
-				if (auto pSHP = FileSystem::LoadSHPFile(name.c_str()))
-				{
-					Value = (Theater_SHPStruct*)pSHP;
+
+				if (!HasAny)
 					return true;
+
+				Value = nullptr;
+				std::string name {};
+				if (Stm.Process(name))
+				{
+					if (auto pSHP = FileSystem::LoadSHPFile(name.c_str()))
+					{
+						Value = (Theater_SHPStruct*)pSHP;
+						return true;
+					}
 				}
 			}
 
@@ -874,7 +894,10 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, Theater_SHPStruct* const& Value) const
 		{
-			if (!Value)
+			const bool HasAny = Value != nullptr;
+			Stm.Save(HasAny);
+
+			if (!HasAny)
 				return true;
 
 			const char* filename = nullptr;
