@@ -429,6 +429,8 @@ public:
 	Valueable<AffectedTarget> AirstrikeTargets { AffectedTarget::Building };
 
 	Valueable<bool> CanKill { true };
+	Valueable<bool> ElectricAssault_Requireverses {};
+
 #pragma endregion
 
 public:

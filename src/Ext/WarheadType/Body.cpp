@@ -614,6 +614,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ElectricAssaultLevel.Read(exINI, pSection, "ElectricAssaultLevel");
 	this->AirstrikeTargets.Read(exINI, pSection, "AirstrikeTargets");
 	this->CanKill.Read(exINI, pSection, "CanKill");
+
+	this->ElectricAssault_Requireverses.Read(exINI, pSection, "ElectricAssault.Requireverses");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1620,6 +1622,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->ElectricAssaultLevel)
 		.Process(this->AirstrikeTargets)
 		.Process(this->CanKill)
+		.Process(this->ElectricAssault_Requireverses)
 		;
 
 	PaintBallData.Serialize(Stm);

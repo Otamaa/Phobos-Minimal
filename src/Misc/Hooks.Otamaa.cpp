@@ -6671,3 +6671,58 @@ public:
 };
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E7F30, FakeDriveLocomotionClass::_Is_Moving_Now);
+
+
+#pragma region ElectricAssultStuffs
+
+void ElectrictAssaultCheck(FootClass* pThis)
+{
+	if (pThis->Target)
+		return;
+
+	auto pWeapon = pThis->GetWeapon(1);
+
+	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Warhead->ElectricAssault)
+	{
+
+		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->WeaponType->Warhead);
+		auto myLoc = pThis->GetMapCoords();
+
+		for (int i = 0; i < 8; ++i)
+		{
+			if (auto pBld = MapClass::Instance->GetCellAt(myLoc + CellSpread::AdjacentCell[i])->GetBuilding())
+			{
+				if (pBld->Type->Overpowerable && pBld->Owner == pThis->Owner)
+				{
+
+					if (pWHExt->ElectricAssault_Requireverses && pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pBld, pWeapon->WeaponType->Warhead))
+					.Verses <= 0.0)
+						continue;
+
+					pThis->SetTarget(pBld);
+					pThis->__AssignNewThreat = true;
+					pThis->QueueMission(Mission::Attack, false);
+					return;
+				}
+			}
+		}
+
+		pThis->UpdateIdleAction();
+	}
+}
+
+ASMJIT_PATCH(0x4D6F38, FootClass_ElectricAssultFix_SetWeaponType, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	ElectrictAssaultCheck(pThis);
+	return 0x4D7025;
+}
+
+ASMJIT_PATCH(0x4D50E1, FootClass_MI_Guard_ElectrictAssault, 0xA)
+{
+	GET(FootClass*, pThis, ESI);
+	ElectrictAssaultCheck(pThis);
+	return 0x4D5225;
+}
+
+#pragma endregion

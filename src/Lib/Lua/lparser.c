@@ -854,7 +854,6 @@ static void recfield (LexState *ls, ConsControl *cc) {
   }
   else  /* ls->t.token == '[' */
     yindex(ls, &key);
-  checklimit(fs, cc->nh, MAX_INT, "items in a constructor");
   cc->nh++;
   checknext(ls, '=');
   tab = *cc->t;

@@ -2789,47 +2789,6 @@ ASMJIT_PATCH(0x70D910, FootClass_QueueEnter_NoMoveToBridge, 0x5)
 
 #endif
 
-#pragma region ElectricAssultFix
-
-namespace ElectricAssultTemp
-{
-	WeaponTypeClass* WeaponType;
-}
-
-ASMJIT_PATCH(0x4D6F66, FootClass_ElectricAssultFix_SetWeaponType, 0x6)		// Mission_AreaGuard
-{
-	GET(WeaponTypeClass*, Secondary, ECX);
-
-	ElectricAssultTemp::WeaponType = Secondary;
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x4D5102, FootClass_ElectricAssultFix_SetWeaponType, 0x6)	// Mission_Guard
-
-ASMJIT_PATCH(0x4D6FE1, FootClass_ElectricAssultFix2, 0x7)		// Mission_AreaGuard
-{
-	GET(FootClass*, pThis, ESI);
-	GET(FakeBuildingClass*, pBuilding, EDI);
-	enum
-	{
-		SkipGuard = 0x4D51AE, ContinueGuard = 0x4D5198,
-		SkipAreaGuard = 0x4D7001, ContinueAreaGuard = 0x4D6FF5
-	};
-
-	const auto pWeapon = ElectricAssultTemp::WeaponType;
-	bool InGuard = (R->Origin() == 0x4D5184);
-
-	if (pBuilding->Owner == pThis->Owner &&
-		WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->GetVerses(TechnoExtData::GetTechnoArmor(pBuilding , pWeapon->Warhead))
-			.Verses != 0.0)
-	{
-		return InGuard ? SkipGuard : SkipAreaGuard;
-	}
-
-	return InGuard ? ContinueGuard : ContinueAreaGuard;
-}ASMJIT_PATCH_AGAIN(0x4D5184, FootClass_ElectricAssultFix2, 0x7)	// Mission_Guard
-
-
-#pragma endregion
-
 #ifdef DamageAreaItemsFix
 ASMJIT_PATCH(0x489BDB, DamageArea_RockerItemsFix1, 0x6)
 {
