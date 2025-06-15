@@ -27,26 +27,21 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		// Button3
 		// Button2
 		// I prefer to put the loadgame to the center of them - secsome
+		// Did you??? NO, YOU DIDN'T. Bruhhhh
 		switch (WWMessageBox::Instance().Process(
 			StringTable::FetchString(GameStrings::TXT_TO_REPLAY()),
 			StringTable::FetchString(GameStrings::TXT_OK()),
 			StringTable::FetchString("GUI:LOADGAME"),
 			StringTable::FetchString(GameStrings::TXT_CANCEL())))
 		{
-		case WWMessageBox::Result::Button1:
+			case WWMessageBox::Result::Button3:
 			return OK;
 
 		default:
-		case WWMessageBox::Result::Button3:
-		{
-			//Doesnot get inlined using reference<>
-			Game::IsActive.get() = false;
-			Debug::ExitGame(0u);
-			break;
-		}
-
 		case WWMessageBox::Result::Button2:
-		{
+			return Cancel;
+
+		case WWMessageBox::Result::Button1:
 			auto pDialog = GameCreate<LoadOptionsClass>();
 			RetryDialogFlag::IsCalledFromRetryDialog = true;
 			const bool bIsAboutToLoad = pDialog->LoadDialog();
@@ -57,11 +52,8 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 				continue;
 
 			ThemeClass::Instance->Stop();
+			break;
 		}
-		break;
-		}
-
-		break;
 	}
 
 	EvadeClass::Instance->Do();

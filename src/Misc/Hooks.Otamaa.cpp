@@ -6725,4 +6725,17 @@ ASMJIT_PATCH(0x4D50E1, FootClass_MI_Guard_ElectrictAssault, 0xA)
 	return 0x4D5225;
 }
 
+ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6) {
+	for (int i = 0; i < SpawnManagerClass::Array->Count; ++i) {
+		if (auto pManager = SpawnManagerClass::Array->Items[i]) {
+
+			if (VTable::Get(pManager) != 0x7F3650)
+				continue;
+
+			pManager->~SpawnManagerClass();
+		}
+	}
+
+	return 0x53486B;
+}
 #pragma endregion
