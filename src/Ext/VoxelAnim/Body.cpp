@@ -74,6 +74,7 @@ void VoxelAnimExtData::Serialize(T& Stm)
 		.Process(this->Invoker, true)
 		.Process(this->LaserTrails)
 		.Process(this->Trails)
+		.Process(this->TrailerSpawnDelayTimer)
 		;
 }
 

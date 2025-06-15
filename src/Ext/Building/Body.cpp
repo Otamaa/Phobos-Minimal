@@ -969,6 +969,69 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	TechnoExtData::HandleRemove(pBuilding, nullptr, true, false);
 }
 
+constexpr int GetRepairValue(BuildingClass* pTarget, int repair)
+{
+
+	int repairAmount = pTarget->Type->Strength;
+
+	if (repair > 0)
+	{
+		repairAmount = std::clamp(pTarget->Health + repair, 0, pTarget->Type->Strength);
+	}
+	else if (repair < 0)
+	{
+		const double percentage = std::clamp(pTarget->GetHealthPercentage() - (static_cast<double>(repair) / 100), 0.0, 1.0);
+		repairAmount = static_cast<int>(std::round(pTarget->Type->Strength * percentage));
+	}
+
+	return repairAmount;
+};
+
+void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
+{
+	const bool wasDamaged = this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+
+	this->Mark(MarkType::Change);
+
+	const int repairBuilding = TechnoTypeExtContainer::Instance.Find(this->Type)->EngineerRepairAmount;
+	const int repairEngineer = TechnoTypeExtContainer::Instance.Find(pEngineer->Type)->EngineerRepairAmount;
+	this->Health = MinImpl(GetRepairValue(this, repairBuilding), GetRepairValue(this, repairEngineer));
+	this->EstimatedHealth = this->Health;
+	this->SetRepairState(0);
+
+	if ((this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow) != wasDamaged)
+	{
+		this->ToggleDamagedAnims(!wasDamaged);
+
+		if (wasDamaged && this->DamageParticleSystem)
+			this->DamageParticleSystem->UnInit();
+	}
+
+	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
+	VocClass::PlayAt(sound, this->GetCoords());
+}
+
+void FakeBuildingClass::_OnFinishRepair()
+{
+	const bool wasDamaged = this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+
+	this->Mark(MarkType::Change);
+	this->Health = this->Type->Strength;
+	this->EstimatedHealth = this->Health;
+	this->SetRepairState(0);
+
+	if ((this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow) != wasDamaged)
+	{
+		this->ToggleDamagedAnims(!wasDamaged);
+
+		if (wasDamaged && this->DamageParticleSystem)
+			this->DamageParticleSystem->UnInit();
+	}
+
+	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
+	VocClass::PlayAt(sound, this->GetCoords());
+}
+
 int FakeBuildingClass::_GetAirstrikeInvulnerabilityIntensity(int currentIntensity) const
 {
 	int newIntensity = this->GetFlashingIntensity(currentIntensity);

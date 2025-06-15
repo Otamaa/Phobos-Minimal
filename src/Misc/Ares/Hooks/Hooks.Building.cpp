@@ -564,11 +564,13 @@ ASMJIT_PATCH(0x441F12, BuildingClass_Destroy_RubbleYell, 6)
 	return 0;
 }
 
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7E42C8 , FakeBuildingClass::_OnFinishRepair)
+
 // #664: Advanced Rubble - reconstruction part: Reconstruction
 ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
-	GET(BuildingClass*, Target, EDI);
+	GET(FakeBuildingClass*, Target, EDI);
 
 	const auto TargetTypeExtData = BuildingTypeExtContainer::Instance.Find(Target->Type);
 
@@ -608,8 +610,13 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 		return TargetTypeExtData->EngineerRepairable ? 0x0 : 0x519FB9;
 	}
 
+	if(!Target->Type->Repairable)
+		return 0x519FB9;
+
+	Target->_OnFinishRepairB(pThis);
+
 	//0x51A010 eats the Engineer, 0x51A65D hopefully does not
-	return Target->Type->Repairable ? 0 : 0x519FB9;
+	return 0x51A010;
 }
 
 ASMJIT_PATCH(0x459ed0, BuildingClass_GetUIName, 6)

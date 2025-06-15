@@ -29,6 +29,8 @@ public:
 	Valueable<bool> ExpireDamage_ConsiderInvokerVet { false };
 
 	TrailsReader Trails { };
+
+	Valueable<int> TrailerAnim_SpawnDelay { 2 };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

@@ -352,6 +352,8 @@ public:
 	Valueable<bool> BattlePointsCollector {};
 	Valueable<bool> BattlePointsCollector_RequirePower {};
 
+	NullableIdx<VocClass> BuildingRepairedSound {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

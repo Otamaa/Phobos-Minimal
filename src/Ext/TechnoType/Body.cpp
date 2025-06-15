@@ -1597,6 +1597,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ExtendedAircraftMissions_EarlyDescend.Read(exINI, pSection, "ExtendedAircraftMissions.EarlyDescend");
 		this->ExtendedAircraftMissions_RearApproach.Read(exINI, pSection, "ExtendedAircraftMissions.RearApproach");
 		this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, pSection, "DigitalDisplay.Health.FakeAtDisguise");
+		this->EngineerRepairAmount.Read(exINI, pSection, "EngineerRepairAmount");
+
 	}
 
 	// Art tags
@@ -2805,6 +2807,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ExtendedAircraftMissions_EarlyDescend)
 		.Process(this->ExtendedAircraftMissions_RearApproach)
 		.Process(this->DigitalDisplay_Health_FakeAtDisguise)
+		.Process(this->EngineerRepairAmount)
 		;
 }
 

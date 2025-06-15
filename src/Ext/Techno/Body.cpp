@@ -4640,7 +4640,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 				//}
 				//else
 				{
-					pBuilding->Mark(MarkType::Redraw);
+					pBuilding->Mark(MarkType::Change);
 					pBuilding->ToggleDamagedAnims(false);
 				}
 

@@ -1109,6 +1109,8 @@ public:
 	Nullable<bool> ExtendedAircraftMissions_RearApproach {};
 	Valueable<bool> DigitalDisplay_Health_FakeAtDisguise { true };
 
+	Valueable<int> EngineerRepairAmount { 0 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

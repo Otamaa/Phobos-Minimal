@@ -24,6 +24,7 @@ public:
 	TechnoClass* Invoker { nullptr };
 	std::vector<LaserTrailClass> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
+	CDTimerClass TrailerSpawnDelayTimer {};
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
