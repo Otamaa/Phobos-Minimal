@@ -217,6 +217,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pNewType);
 	bool markForRedraw = false;
+	bool altered = false;
 
 	if (!pExt->PhobosAE.empty()){
 
@@ -242,6 +243,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 				}
 
 				markForRedraw |= pType->HasTint();
+				altered = true;
 				return true;
 			}
 
@@ -265,7 +267,7 @@ void PhobosAEFunctions::UpdateSelfOwnedAttachEffects(TechnoClass* pTechno, Techn
 	// Add new ones.
 	int count = PhobosAttachEffectClass::Attach(pThis, pThis->Owner, pThis, pThis, &pTypeExt->PhobosAttachEffects);
 
-	if (!count){
+	if (altered && !count){
 		AEProperties::Recalculate(pTechno);
 		markForRedraw = true;
 	}
