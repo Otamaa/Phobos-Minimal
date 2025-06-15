@@ -269,7 +269,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	this->Clear();
 
 	bool hasPalette = false;
-	auto ret = Stm.Load(this->Mode) && Stm.Load(this->Name) && Stm.Load(hasPalette);
+	auto ret = Stm.Load(this->Mode) && Stm.Process(this->Name) && Stm.Load(hasPalette);
 
 	if (ret && hasPalette)
 	{
@@ -288,7 +288,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 {
 	Stm.Save(this->Mode);
-	Stm.Save(this->Name);
+	Stm.Process(this->Name);
 	Stm.Save(this->Palette != nullptr);
 	if (this->Palette)
 	{

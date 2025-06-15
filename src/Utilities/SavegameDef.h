@@ -581,7 +581,7 @@ namespace Savegame
 				}
 
 				std::vector<char> buffer(size);
-				if (Stm.Read(reinterpret_cast<BYTE*>(buffer.data()), size)) {
+				if (Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer.data()), size * sizeof(char))) {
 					Value.assign(buffer.begin(), buffer.end());
 					return true;
 				}
@@ -597,7 +597,68 @@ namespace Savegame
 			if (Value.empty())
 				return true;
 
-			Stm.Write(reinterpret_cast<const BYTE*>(Value.c_str()), Value.size());
+			Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(Value.c_str()), Value.size() * sizeof(char));
+			return true;
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<std::string_view>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::string_view& Value, bool RegisterForChange) const
+		{
+			static_assert(true, "Not Implemented !");
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::string_view & Value) const
+		{
+			static_assert(true, "Not Implemented !");
+			return true;
+		}
+	};
+
+
+	template <>
+	struct Savegame::PhobosStreamObject<std::wstring>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::wstring& Value, bool RegisterForChange) const
+		{
+			size_t size = 0;
+
+			if (Stm.Load(size))
+			{
+				if (!size)
+				{
+					Value.clear();
+					return true;
+				}
+
+				if ((int)size == -1)
+				{
+					Debug::FatalError("Loading std::wstring with -1 length ? , something not right !");
+					return true;
+				}
+
+				std::vector<wchar_t> buffer(size);
+				if (Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer.data()), size * sizeof(wchar_t)))
+				{
+					Value.assign(buffer.begin(), buffer.end());
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::string& Value) const
+		{
+			Stm.Save(Value.size());
+
+			if (Value.empty())
+				return true;
+
+			Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(Value.c_str()), Value.size() * sizeof(wchar_t));
 			return true;
 		}
 	};
@@ -731,8 +792,8 @@ namespace Savegame
 			if (ret && hasvalue) {
 				auto ptrNew = GameCreate<BytePalette>();
 				for (int i = 0; i < BytePalette::EntriesCount; ++i) {
-					ColorStruct nDummy;
-					Stm.Load(nDummy);
+					ColorStruct nDummy {};
+					Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(&nDummy), sizeof(ColorStruct));
 					ptrNew->Entries[i] = nDummy;
 				}
 
@@ -750,7 +811,7 @@ namespace Savegame
 			Stm.Save(Exist);
 			if(Exist){
 				for (const auto& color : Value.get()->Entries) {
-					Stm.Save(color);
+					Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(&color), sizeof(ColorStruct));
 				}
 			}
 
@@ -763,48 +824,32 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, SHPStruct*& Value, bool RegisterForChange) const
 		{
-			if (Value && !Value->IsReference())
-				Debug::FatalError("Value contains SHP file data. Possible leak.");
-
 			Value = nullptr;
-
-			bool hasValue = false;
-			if (Savegame::ReadPhobosStream(Stm, hasValue) && hasValue)
-			{
-				std::string name {};
-				if (Savegame::ReadPhobosStream(Stm, name))
-				{
-					if (auto pSHP = FileSystem::LoadSHPFile(name.c_str()))
-					{
-						Value = pSHP;
-						return true;
-					}
+			std::string name {};
+			if (Stm.Process(name)) {
+				if (auto pSHP = FileSystem::LoadSHPFile(name.c_str())) {
+					Value = pSHP;
+					return true;
 				}
 			}
 
-			return !hasValue;
+			return false;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, SHPStruct* const& Value) const
 		{
+			if(!Value)
+				return true;
+
 			const char* filename = nullptr;
-			if (Value) {
-				if (auto pRef = Value->AsReference())
-					filename = pRef->Filename;
-				else
-					Debug::FatalError("Cannot save SHPStruct, because it isn't a reference.");
-			}
+			if (auto pRef = Value->AsReference())
+				filename = pRef->Filename;
 
-			//write it as bool to make sure
-			if (Savegame::WritePhobosStream(Stm, filename != nullptr))
-			{
-				if (filename) {
-					std::string file(filename);
-					return Savegame::WritePhobosStream(Stm, file);
-				}
-			}
+			if (!filename)
+				Debug::FatalErrorAndExit("Invalid SHP !");
 
-			return filename == nullptr;
+			std::string file(filename);
+			return Stm.Process(file);
 		}
 	};
 
@@ -813,49 +858,34 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, Theater_SHPStruct*& Value, bool RegisterForChange) const
 		{
-			if (Value && !Value->IsReference())
-				Debug::LogInfo("Value contains SHP file data. Possible leak.");
-
 			Value = nullptr;
-
-			bool hasValue = true;
-			if (Savegame::ReadPhobosStream(Stm, hasValue) && hasValue)
+			std::string name {};
+			if (Stm.Process(name))
 			{
-				std::string name;
-				if (Savegame::ReadPhobosStream(Stm, name))
+				if (auto pSHP = FileSystem::LoadSHPFile(name.c_str()))
 				{
-					if (auto pSHP = FileSystem::LoadSHPFile(name.c_str()))
-					{
-						Value = static_cast<Theater_SHPStruct*>(pSHP);
-						return true;
-					}
+					Value = (Theater_SHPStruct*)pSHP;
+					return true;
 				}
 			}
 
-			return !hasValue;
+			return false;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, Theater_SHPStruct* const& Value) const
 		{
+			if (!Value)
+				return true;
+
 			const char* filename = nullptr;
-			if (Value)
-			{
-				if (auto pRef = Value->AsReference())
-					filename = pRef->Filename;
-				else
-					Debug::LogInfo("Cannot save SHPStruct, because it isn't a reference.");
-			}
+			if (auto pRef = Value->AsReference())
+				filename = pRef->Filename;
 
-			if (Savegame::WritePhobosStream(Stm, filename != nullptr))
-			{
-				if (filename)
-				{
-					std::string file(filename);
-					return Savegame::WritePhobosStream(Stm, file);
-				}
-			}
+			if (!filename)
+				Debug::FatalErrorAndExit("Invalid SHP !");
 
-			return filename == nullptr;
+			std::string file(filename);
+			return Stm.Process(file);
 		}
 	};
 
@@ -885,7 +915,7 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, BuildType& Value, bool RegisterForChange) const
 		{
-			if (!Stm.Load(Value))
+			if (!Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(&Value), sizeof(BuildType)))
 				return false;
 
 			if (RegisterForChange)
@@ -896,7 +926,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const BuildType& Value) const
 		{
-			Stm.Save(Value);
+			Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(&Value), sizeof(BuildType));
 			return true;
 		}
 	};
@@ -1339,7 +1369,7 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, std::array<T, size>& Value, bool RegisterForChange) const
 		{
-			__stosb(reinterpret_cast<unsigned char*>(Value.data()), 0, sizeof(T) * size);
+			__stosb(reinterpret_cast<PhobosByteStream::data_t*>(Value.data()), 0, sizeof(T) * size);
 
 			for (auto ix = 0u; ix < size; ++ix) {
 				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange)) {
