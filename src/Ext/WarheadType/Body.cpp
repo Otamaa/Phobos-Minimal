@@ -769,7 +769,7 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 	return true;
 }
 
-bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses) const
+bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses , bool CheckImmune) const
 {
 	if (pTechno)
 	{
@@ -783,7 +783,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 		const auto pType = pTechno->GetTechnoType();
 
-		if (pType->Immune)
+		if (CheckImmune && pType->Immune)
 			return false;
 
 		if (auto const pBld = cast_to<BuildingClass*, false>(pTechno))

@@ -2322,7 +2322,7 @@ void TechnoExt_ExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, We
 		const auto pTechno = flag_cast_to <TechnoClass*, false>(pTarget);
 
 		//https://bugs.launchpad.net/ares/+bug/1591335
-		if (pTechno && !pWHExt->CanDealDamage(pTechno))
+		if (pTechno && !pWHExt->CanDealDamage(pTechno , false , false , false))
 			return;
 
 		BombListClass::Instance->Plant(pSource, pTarget);
