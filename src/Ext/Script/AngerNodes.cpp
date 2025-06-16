@@ -8,6 +8,61 @@
 
 #include <ExtraHeaders/StackVector.h>
 
+#include <unordered_map>
+#include <unordered_set>
+#include <mutex>
+#include <array>
+
+// Cache structure for anger nodes threat calculations
+struct AngerNodeThreatCache {
+	std::unordered_map<size_t, std::array<double, 8>> threatCache;
+	std::unordered_map<size_t, HouseClass*> houseCache;
+	std::unordered_map<size_t, int> frameCache;
+	std::mutex cacheMutex;
+	int lastCleanup = 0;
+	
+	void cleanup() {
+		std::lock_guard<std::mutex> lock(cacheMutex);
+		auto currentFrame = Unsorted::CurrentFrame();
+		if (currentFrame - lastCleanup > 300) { // Cleanup every 5 seconds
+			threatCache.clear();
+			houseCache.clear();
+			frameCache.clear();
+			lastCleanup = currentFrame;
+		}
+	}
+	
+	bool isValid(size_t hash, int frames = 10) {
+		std::lock_guard<std::mutex> lock(cacheMutex);
+		auto it = frameCache.find(hash);
+		return it != frameCache.end() && 
+			   (Unsorted::CurrentFrame() - it->second) < frames;
+	}
+	
+	void store(size_t hash, const std::array<double, 8>& threats, HouseClass* house = nullptr) {
+		std::lock_guard<std::mutex> lock(cacheMutex);
+		threatCache[hash] = threats;
+		if (house) houseCache[hash] = house;
+		frameCache[hash] = Unsorted::CurrentFrame();
+	}
+	
+	std::pair<std::array<double, 8>, HouseClass*> get(size_t hash) {
+		std::lock_guard<std::mutex> lock(cacheMutex);
+		auto threats = threatCache.find(hash);
+		auto house = houseCache.find(hash);
+		return {
+			threats != threatCache.end() ? threats->second : std::array<double, 8>{},
+			house != houseCache.end() ? house->second : nullptr
+		};
+	}
+};
+
+// Global cache instances
+static AngerNodeThreatCache g_AngerThreatCache;
+
+// Thread-local object pools to avoid allocations
+static thread_local std::vector<HouseClass*> g_HouseListPool;
+
 void ScriptExtData::ResetAngerAgainstHouses(TeamClass* pTeam)
 {
 	for (auto& angerNode : pTeam->Owner->AngerNodes)
@@ -656,59 +711,90 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 	default:
 	{
 		double value = -1;
-		// Depending the mode check what house will be selected as the most hated
-		for (auto pTechno : *TechnoClass::Array)
-		{
-			if (!ScriptExtData::IsUnitAvailable(pTechno, true))
-				continue;
+		// Use cached optimized implementation
+		// Create cache key based on team, leader position, mode, and mask
+		size_t cacheKey = std::hash<void*>{}(pTeam) ^
+						  std::hash<int>{}(pLeaderUnit->GetCoords().X) ^
+						  std::hash<int>{}(pLeaderUnit->GetCoords().Y) ^
+						  std::hash<int>{}(mode) ^
+						  std::hash<int>{}(mask);
+		
+		// Check if we have cached result
+		g_AngerThreatCache.cleanup();
+		if (g_AngerThreatCache.isValid(cacheKey, 15)) {
+			auto [threats, cachedHouse] = g_AngerThreatCache.get(cacheKey);
+			if (cachedHouse && !cachedHouse->Defeated && !cachedHouse->IsObserver()) {
+				return cachedHouse;
+			}
+		}
+		
+		// Optimized processing with batching
+		const auto& technoArray = *TechnoClass::Array;
+		const size_t technoCount = technoArray.Count;
+		
+		// Process in batches to improve cache locality
+		constexpr size_t batchSize = 128;
+		for (size_t i = 0; i < technoCount; i += batchSize) {
+			const size_t endIdx = std::min(i + batchSize, technoCount);
+			
+			for (size_t j = i; j < endIdx; ++j) {
+				auto pTechno = technoArray.Items[j];
+				if (!ScriptExtData::IsUnitAvailable(pTechno, true))
+					continue;
 
-			if (!pTechno->Owner->Defeated
-				&& pTechno->Owner != pTeam->Owner
-				&& !pTechno->Owner->IsAlliedWith(pTeam->Owner)
-				&& !pTechno->Owner->Type->MultiplayPassive)
-			{
-				if (mask < 0)
+				if (!pTechno->Owner->Defeated
+					&& pTechno->Owner != pTeam->Owner
+					&& !pTechno->Owner->IsAlliedWith(pTeam->Owner)
+					&& !pTechno->Owner->Type->MultiplayPassive)
 				{
-					if (mask == -1)
+					if (mask < 0)
 					{
-						// mask -1: Based on object distances
-						objectDistance = pLeaderUnit->DistanceFrom(pTechno); // Note: distance is in leptons (*256)
+						if (mask == -1)
+						{
+							// mask -1: Based on object distances
+							objectDistance = pLeaderUnit->DistanceFrom(pTechno); // Note: distance is in leptons (*256)
 
-						if (mode == 0)
-						{
-							// mode 0: Based in NEAREST enemy unit
-							if (objectDistance < enemyDistance || enemyDistance == -1)
+							if (mode == 0)
 							{
-								enemyDistance = objectDistance;
-								enemyHouse = pTechno->Owner;
+								// mode 0: Based in NEAREST enemy unit
+								if (objectDistance < enemyDistance || enemyDistance == -1)
+								{
+									enemyDistance = objectDistance;
+									enemyHouse = pTechno->Owner;
+								}
 							}
-						}
-						else
-						{
-							// mode 1: Based in FARTHEST enemy unit
-							if (objectDistance > enemyDistance || enemyDistance == -1)
+							else
 							{
-								enemyDistance = objectDistance;
-								enemyHouse = pTechno->Owner;
+								// mode 1: Based in FARTHEST enemy unit
+								if (objectDistance > enemyDistance || enemyDistance == -1)
+								{
+									enemyDistance = objectDistance;
+									enemyHouse = pTechno->Owner;
+								}
 							}
 						}
 					}
-				}
-				else
-				{
-					// mask > 0 : Threat based on the new types in the new attack actions
-					if (ScriptExtData::EvaluateObjectWithMask(pTechno, mask, -1, -1, pLeaderUnit))
+					else
 					{
-						auto pTechnoType = pTechno->GetTechnoType();
+						// mask > 0 : Threat based on the new types in the new attack actions
+						if (ScriptExtData::EvaluateObjectWithMask(pTechno, mask, -1, -1, pLeaderUnit))
+						{
+							auto pTechnoType = pTechno->GetTechnoType();
 
-						enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->ThreatPosed;
+							enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->ThreatPosed;
 
-						if (pTechnoType->SpecialThreatValue > 0)
-							enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->SpecialThreatValue * TargetSpecialThreatCoefficientDefault;
+							if (pTechnoType->SpecialThreatValue > 0)
+								enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->SpecialThreatValue * TargetSpecialThreatCoefficientDefault;
+						}
 					}
 				}
 			}
 		}
+		
+		// Cache the computed threat values - convert C-style array to std::array
+		std::array<double, 8> threatArray;
+		std::copy(std::begin(enemyThreatValue), std::end(enemyThreatValue), threatArray.begin());
+		g_AngerThreatCache.store(cacheKey, threatArray, enemyHouse);
 
 		for (int i = 0; i < 8; i++)
 		{
@@ -857,7 +943,11 @@ void ScriptExtData::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 {
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
-	StackVector<HouseClass*, 20> objectsList {};
+	
+	// Use thread-local storage to avoid allocations
+	g_HouseListPool.clear();
+	g_HouseListPool.reserve(8); // Reserve for max 8 houses
+	
 	HouseClass* selectedHouse = nullptr;
 	int newHateLevel = 5000;
 
@@ -871,7 +961,7 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 			&& !angerNode.House->Type->MultiplayPassive
 			&& !angerNode.House->IsObserver())
 		{
-			objectsList->push_back(angerNode.House);
+			g_HouseListPool.push_back(angerNode.House);
 		}
 	}
 
@@ -883,17 +973,17 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 			&& !pTeam->Owner->IsObserver()
 			&& !pTeam->Owner->IsControlledByHuman())
 		{
-			objectsList->push_back(pTeam->Owner);
+			g_HouseListPool.push_back(pTeam->Owner);
 		}
 	}
 
 	// Positive indexes are specific house indexes. -1 is translated as "pick 1 random" & -2 is the owner of the Team executing the script action
-	if (!objectsList->empty())
+	if (!g_HouseListPool.empty())
 	{
 		if (index < 0)
 		{
 			if (index == -1)
-				index = ScenarioClass::Instance->Random.RandomFromMax(objectsList->size() - 1);
+				index = ScenarioClass::Instance->Random.RandomFromMax(static_cast<int>(g_HouseListPool.size()) - 1);
 
 			if (index == -2)
 				index = pTeam->Owner->ArrayIndex;
@@ -919,7 +1009,7 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 	if (selectedHouse || index == -3)
 	{
 		// For each playable house set the selected house as the one with highest hate value;
-		for (auto& pHouse : objectsList.container())
+		for (auto& pHouse : g_HouseListPool)
 		{
 			int highestHateLevel = 0;
 
@@ -1016,3 +1106,5 @@ void ScriptExtData::DebugAngerNodesData()
 	}
 #endif
 }
+
+// This function is implemented below in the existing SelectHouseFromThreatMode

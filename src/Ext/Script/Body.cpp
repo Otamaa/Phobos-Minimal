@@ -16,6 +16,86 @@
 #include <Locomotor/HoverLocomotionClass.h>
 //#include <ExtraHeaders/StackVector.h>
 
+#include <Ext/Rules/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/Team/Body.h>
+#include <Ext/House/Body.h>
+#include <Ext/SWType/Body.h>
+
+#include <Utilities/EnumFunctions.h>
+
+// AI Script optimization for ntdll.dll issue
+#include <unordered_map>
+#include <chrono>
+#include <mutex>
+
+// Script action caching to reduce allocations
+struct ScriptActionCache {
+    int lastAction = -1; // Use int instead of PhobosScripts::None
+    int lastArgument = 0;
+    int lastFrame = -1;
+    bool lastResult = false;
+    std::chrono::steady_clock::time_point lastAccess;
+};
+
+static std::unordered_map<TeamClass*, ScriptActionCache> g_ScriptCache;
+static std::mutex g_ScriptCacheMutex;
+static std::chrono::steady_clock::time_point g_LastScriptCacheCleanup;
+
+// Clean up old script cache entries
+void CleanupScriptCache() {
+    auto now = std::chrono::steady_clock::now();
+    if (now - g_LastScriptCacheCleanup < std::chrono::seconds(15)) {
+        return; // Cleanup every 15 seconds
+    }
+    
+    std::lock_guard<std::mutex> lock(g_ScriptCacheMutex);
+    auto it = g_ScriptCache.begin();
+    while (it != g_ScriptCache.end()) {
+        if (now - it->second.lastAccess > std::chrono::minutes(1) || 
+            !it->first) {
+            it = g_ScriptCache.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    g_LastScriptCacheCleanup = now;
+}
+
+// Get/Set cached script result
+bool GetCachedScriptResult(TeamClass* pTeam, int action, int argument, bool& result) {
+    int currentFrame = Unsorted::CurrentFrame;
+    
+    std::lock_guard<std::mutex> lock(g_ScriptCacheMutex);
+    auto it = g_ScriptCache.find(pTeam);
+    
+    if (it != g_ScriptCache.end()) {
+        auto& cache = it->second;
+        // Cache is valid for 1 frame only to prevent stale decisions
+        if (currentFrame - cache.lastFrame < 1 && 
+            cache.lastAction == action && 
+            cache.lastArgument == argument) {
+            cache.lastAccess = std::chrono::steady_clock::now();
+            result = cache.lastResult;
+            return true;
+        }
+    }
+    
+    return false; // Cache miss
+}
+
+void SetCachedScriptResult(TeamClass* pTeam, int action, int argument, bool result) {
+    int currentFrame = Unsorted::CurrentFrame;
+    
+    std::lock_guard<std::mutex> lock(g_ScriptCacheMutex);
+    auto& cache = g_ScriptCache[pTeam];
+    cache.lastAction = action;
+    cache.lastArgument = argument;
+    cache.lastFrame = currentFrame;
+    cache.lastResult = result;
+    cache.lastAccess = std::chrono::steady_clock::now();
+}
+
 /*
 *	Scripts is a part of `TeamClass` that executed sequentally form `ScriptTypeClass`
 *	Each script contains function that behave as it programmed
@@ -381,6 +461,13 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 {
 	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
 
+	// AI Performance optimization: Check script cache first
+	CleanupScriptCache();
+	bool cachedResult = false;
+	if (GetCachedScriptResult(pTeam, static_cast<int>(action), argument, cachedResult)) {
+		return cachedResult;
+	}
+
 	//Debug::LogInfo("[{} - {}] Executing[{} - {}] [{} - {}]",
 	//pTeam->Owner->get_ID(),
 	//pTeam->Owner,
@@ -388,6 +475,8 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 	//pTeam, action ,
 	//argument
 	//);
+
+	bool result = false;
 
 	//only find stuffs on the range , reducing the load
 	//if ((AresScripts)action >= AresScripts::count)
@@ -406,6 +495,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		case PhobosScripts::TimedAreaGuard:
 		{
 			ScriptExtData::ExecuteTimedAreaGuardAction(pTeam); //checked
+			result = true;
 			break;
 		}
 		case PhobosScripts::LoadIntoTransports:
@@ -955,7 +1045,9 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		}
 	}
 
-	return true;
+	// Cache the result for performance optimization
+	SetCachedScriptResult(pTeam, static_cast<int>(action), argument, result);
+	return result || true; // Default to true if no specific result was set
 }
 
 void NOINLINE ScriptExtData::ExecuteTimedAreaGuardAction(TeamClass* pTeam)
@@ -1581,24 +1673,12 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 void ScriptExtData::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 {
 	// This team has no units! END
-	//if (!pTeam)
-	//{
-	//	// This action finished
-	//	pTeam->StepCompleted = true;
-	//	const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
-	//	const auto&[nextAct, nextArg] = pTeam->CurrentScript->GetNextAction();
-	//	Debug::LogInfo("AI Scripts - SkipNextAction: [{}] [{}] (line: {}) Jump to next line: {} = {},{} -> (No team members alive)",
-	//		pTeam->Type->ID,
-	//		pTeam->CurrentScript->Type->ID,
-	//		pTeam->CurrentScript->CurrentMission,
-	//		curAct,
-	//		curArg,
-	//		pTeam->CurrentScript->CurrentMission + 1,
-	//		nextAct,
-	//		nextArg);
-	//
-	//	return;
-	//}
+	if (!pTeam)
+	{
+		// This action finished
+		pTeam->StepCompleted = true;
+		return;
+	}
 
 	if (successPercentage < 0 || successPercentage > 100)
 		successPercentage = pTeam->CurrentScript->GetCurrentAction().Argument;

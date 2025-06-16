@@ -8,6 +8,9 @@
 
 #include <AITriggerTypeClass.h>
 
+#include <unordered_map>
+#include <mutex>
+
 // TODO :
 // - Optimization a lot of duplicate code ,..
 // - Type convert probably not handled properly yet
@@ -160,24 +163,125 @@ bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list) {
 	return TechnoExtContainer::Instance.Find(list)->Type == pItem || list->GetTechnoType() == pItem;
 }
 
+// Cache for team selector operations
+struct TeamSelectorCache {
+	std::unordered_map<size_t, int> ownedCache;
+	std::unordered_map<size_t, int> frameCache;
+	std::mutex cacheMutex;
+	int lastCleanup = 0;
+	
+	void cleanup() {
+		std::lock_guard<std::mutex> lock(cacheMutex);
+		auto currentFrame = Unsorted::CurrentFrame();
+		if (currentFrame - lastCleanup > 450) { // Cleanup every 7.5 seconds
+			ownedCache.clear();
+			frameCache.clear();
+			lastCleanup = currentFrame;
+		}
+	}
+	
+	bool isValid(size_t hash, int frames = 15) {
+		std::lock_guard<std::mutex> lock(cacheMutex);
+		auto it = frameCache.find(hash);
+		return it != frameCache.end() && 
+			   (Unsorted::CurrentFrame() - it->second) < frames;
+	}
+	
+	void store(size_t hash, int count) {
+		std::lock_guard<std::mutex> lock(cacheMutex);
+		ownedCache[hash] = count;
+		frameCache[hash] = Unsorted::CurrentFrame();
+	}
+	
+	int get(size_t hash) {
+		std::lock_guard<std::mutex> lock(cacheMutex);
+		auto it = ownedCache.find(hash);
+		return it != ownedCache.end() ? it->second : -1;
+	}
+};
+
+static TeamSelectorCache g_TeamSelectorCache;
+
+// Optimized HouseOwns function with caching
+int HouseOwns_Cached(HouseClass* pHouse, TechnoTypeClass* pType) {
+	if (!pHouse || !pType) return 0;
+	
+	// Create cache key
+	size_t cacheKey = std::hash<void*>{}(pHouse) ^ std::hash<void*>{}(pType);
+	
+	g_TeamSelectorCache.cleanup();
+	if (g_TeamSelectorCache.isValid(cacheKey, 15)) {
+		int cached = g_TeamSelectorCache.get(cacheKey);
+		if (cached >= 0) return cached;
+	}
+	
+	int count = 0;
+	AbstractType rtti = pType->WhatAmI();
+	
+	// Optimized counting based on type
+	switch (rtti) {
+		case AbstractType::InfantryType:
+			for (const auto pTechno : *InfantryClass::Array) {
+				if (pTechno->IsAlive && pTechno->Owner == pHouse && pTechno->GetTechnoType() == pType) {
+					count++;
+				}
+			}
+			break;
+		case AbstractType::UnitType:
+			for (const auto pTechno : *UnitClass::Array) {
+				if (pTechno->IsAlive && pTechno->Owner == pHouse && pTechno->GetTechnoType() == pType) {
+					count++;
+				}
+			}
+			break;
+		case AbstractType::AircraftType:
+			for (const auto pTechno : *AircraftClass::Array) {
+				if (pTechno->IsAlive && pTechno->Owner == pHouse && pTechno->GetTechnoType() == pType) {
+					count++;
+				}
+			}
+			break;
+		case AbstractType::BuildingType:
+			for (const auto pTechno : *BuildingClass::Array) {
+				if (pTechno->IsAlive && pTechno->Owner == pHouse && pTechno->GetTechnoType() == pType) {
+					count++;
+				}
+			}
+			break;
+		default:
+			// Fallback to original method
+			count = pHouse->CountOwnedNow(pType);
+			break;
+	}
+	
+	g_TeamSelectorCache.store(cacheKey, count);
+	return count;
+}
+
 NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, std::vector<TechnoTypeClass*>& list)
 {
 	bool result = false;
 	int counter = 0;
 
-	// Count all objects of the list, like an OR operator
+	// Use cached optimized counting
 	for (auto pItem : list)
 	{
-		for (auto pObject : *TechnoClass::Array)
+		if (allies)
 		{
-			if (!IsValidTechno(pObject)) continue;
-
-			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
-				&& !pObject->Owner->Type->MultiplayPassive
-				&& OwnStuffs(pItem,pObject))
+			for (auto pTmpHouse : *HouseClass::Array)
 			{
-				counter++;
+				if (pTmpHouse->Defeated || pTmpHouse->Type->MultiplayPassive)
+					continue;
+
+				if (pHouse->IsAlliedWith(pTmpHouse))
+				{
+					counter += HouseOwns_Cached(pTmpHouse, pItem);
+				}
 			}
+		}
+		else
+		{
+			counter += HouseOwns_Cached(pHouse, pItem);
 		}
 	}
 
@@ -190,18 +294,23 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 	bool result = false;
 	int counter = 0;
 
-	// Count all objects of the list, like an OR operator
-
-	for (auto pObject : *TechnoClass::Array)
+	// Use cached optimized counting
+	if (allies)
 	{
-		if (!IsValidTechno(pObject)) continue;
-
-		if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
-			&& !pObject->Owner->Type->MultiplayPassive
-			&& OwnStuffs(pItem, pObject))
+		for (auto pTmpHouse : *HouseClass::Array)
 		{
-			counter++;
+			if (pTmpHouse->Defeated || pTmpHouse->Type->MultiplayPassive)
+				continue;
+
+			if (pHouse->IsAlliedWith(pTmpHouse))
+			{
+				counter += HouseOwns_Cached(pTmpHouse, pItem);
+			}
 		}
+	}
+	else
+	{
+		counter = HouseOwns_Cached(pHouse, pItem);
 	}
 
 	ModifyOperand(result, counter, *pThis->Conditions);

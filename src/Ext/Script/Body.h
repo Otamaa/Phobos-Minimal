@@ -291,6 +291,7 @@ public:
 	static void OverrideOnlyTargetHouseEnemy(TeamClass* pTeam, int mode);
 	static void AggroHouse(TeamClass* pTeam, int index);
 	static HouseClass* GetTheMostHatedHouse(TeamClass* pTeam, int mask, int mode);
+	static HouseClass* SelectHouseFromThreatMode(TeamClass* pTeam, TechnoClass* pLeaderUnit, int mode, int mask);
 	static void DebugAngerNodesData();
 	static void UpdateEnemyHouseIndex(HouseClass* pHouse);
 

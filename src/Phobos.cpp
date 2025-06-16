@@ -233,7 +233,7 @@ struct GraphicsRuntimeAPI
 		return name.c_str();
 	}
 
-	FORCEDINLINE COMPILETIMEEVAL Type GetType() {
+	FORCEDINLINE COMPILETIMEEVAL Type GetType() const {
 		return type;
 	}
 

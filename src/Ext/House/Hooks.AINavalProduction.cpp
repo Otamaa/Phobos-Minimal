@@ -5,6 +5,27 @@
 
 // AI Naval queue bugfix hooks
 
+// AI Performance optimization for ntdll.dll issue
+#include <unordered_map>
+#include <chrono>
+#include <mutex>
+
+// Cache for AI Naval production decisions
+static std::unordered_map<int, int> g_NavalProductionCache;
+static std::mutex g_NavalCacheMutex;
+static std::chrono::steady_clock::time_point g_LastNavalCacheCleanup;
+
+static void CleanupNavalProductionCache() {
+    auto now = std::chrono::steady_clock::now();
+    if (now - g_LastNavalCacheCleanup < std::chrono::seconds(20)) {
+        return; // Cleanup every 20 seconds
+    }
+    
+    std::lock_guard<std::mutex> lock(g_NavalCacheMutex);
+    g_NavalProductionCache.clear(); // Simple cleanup for naval cache
+    g_LastNavalCacheCleanup = now;
+}
+
 namespace ExitObjectTemp
 {
 	int ProducingUnitIndex = -1;
@@ -153,6 +174,9 @@ ASMJIT_PATCH(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 	enum { SkipGameCode = 0x4F9265, CheckBuildingProduction = 0x4F9240 };
 
 	GET(FakeHouseClass* const, pThis, ESI);
+
+	// AI Performance optimization: Cleanup cache periodically
+	CleanupNavalProductionCache();
 
 	auto const pExt = pThis->_GetExtData();
 

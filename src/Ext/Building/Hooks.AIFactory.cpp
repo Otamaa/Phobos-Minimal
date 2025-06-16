@@ -5,7 +5,164 @@
 #include <TeamTypeClass.h>
 #include <InfantryClass.h>
 
-std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
+#include <BuildingTypeClass.h>
+#include <HouseClass.h>
+#include <UnitTypeClass.h>
+#include <UnitClass.h>
+#include <InfantryTypeClass.h>
+#include <AircraftTypeClass.h>
+#include <TeamClass.h>
+#include <ScenarioClass.h>
+#include <RulesClass.h>
+
+#include <Ext/HouseType/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/TechnoType/Body.h>
+#include <Ext/BuildingType/Body.h>
+
+// AI Performance optimizations for ntdll.dll issue
+#include <unordered_map>
+#include <unordered_set>
+#include <memory>
+#include <mutex>
+#include <chrono>
+
+// AI Production caching to reduce named object creation
+struct AIProductionCache {
+	int bestChoice = -1;
+	int lastUpdateFrame = -1;
+	int housePointer = 0;
+	std::vector<int> availableChoices;
+	std::chrono::steady_clock::time_point lastAccess;
+};
+
+static std::unordered_map<int, AIProductionCache> g_ProductionCache;
+static std::mutex g_ProductionCacheMutex;
+static std::chrono::steady_clock::time_point g_LastCacheCleanup;
+
+// Global sets to track harvester production per house
+static std::unordered_set<int> g_HousesProducingHarvesters;
+static std::unordered_set<int> g_HousesProducingSlaveMiners;
+static int g_LastHarvesterCheckFrame = -1;
+
+// Cleanup harvester tracking every 5 seconds (150 frames)
+static void CleanupHarvesterTracking() {
+	int currentFrame = Unsorted::CurrentFrame();
+	if (currentFrame - g_LastHarvesterCheckFrame > 150) {
+		g_HousesProducingHarvesters.clear();
+		g_HousesProducingSlaveMiners.clear();
+		g_LastHarvesterCheckFrame = currentFrame;
+	}
+}
+
+// Check if house should produce harvester (prevent spam)
+static bool ShouldProduceHarvester(HouseClass* pHouse) {
+	CleanupHarvesterTracking();
+	
+	int houseIndex = pHouse->ArrayIndex;
+	
+	// If already producing, don't produce more
+	if (g_HousesProducingHarvesters.count(houseIndex) || 
+		g_HousesProducingSlaveMiners.count(houseIndex)) {
+		return false;
+	}
+	
+	// Check if house has active primary factory
+	if (auto pFactory = pHouse->GetPrimaryFactory(AbstractType::UnitType, false, BuildCat::DontCare)) {
+		if (pFactory->Object) {
+			// Already producing something, don't spam harvesters
+			return false;
+		}
+	}
+	
+	return true;
+}
+
+// Object pool for frequent allocations
+template<typename T>
+class ObjectPool {
+private:
+	std::vector<std::unique_ptr<T>> pool;
+	std::mutex poolMutex;
+	
+public:
+	std::unique_ptr<T> acquire() {
+		std::lock_guard<std::mutex> lock(poolMutex);
+		if (!pool.empty()) {
+			auto obj = std::move(pool.back());
+			pool.pop_back();
+			return obj;
+		}
+		return std::make_unique<T>();
+	}
+	
+	void release(std::unique_ptr<T> obj) {
+		if (obj) {
+			std::lock_guard<std::mutex> lock(poolMutex);
+			if (pool.size() < 50) { // Limit pool size
+				pool.push_back(std::move(obj));
+			}
+		}
+	}
+};
+
+static ObjectPool<std::vector<int>> g_IntVectorPool;
+static ObjectPool<DynamicVectorClass<TechnoTypeClass*>> g_TechnoVectorPool;
+
+// Clean up old cache entries periodically
+static void CleanupAIProductionCache() {
+	auto now = std::chrono::steady_clock::now();
+	    if (now - g_LastCacheCleanup < std::chrono::seconds(5)) {
+		return; // Cleanup every 30 seconds
+	}
+	
+	std::lock_guard<std::mutex> lock(g_ProductionCacheMutex);
+	auto it = g_ProductionCache.begin();
+	while (it != g_ProductionCache.end()) {
+		if (now - it->second.lastAccess > std::chrono::minutes(2)) {
+			it = g_ProductionCache.erase(it);
+		} else {
+			++it;
+		}
+	}
+	g_LastCacheCleanup = now;
+}
+
+// Get cached AI production choice
+static int GetCachedAIProductionChoice(HouseClass* pHouse, AbstractType productionType) {
+	int cacheKey = reinterpret_cast<int>(pHouse) + static_cast<int>(productionType);
+	int currentFrame = Unsorted::CurrentFrame;
+	
+	std::lock_guard<std::mutex> lock(g_ProductionCacheMutex);
+	auto it = g_ProductionCache.find(cacheKey);
+	
+	if (it != g_ProductionCache.end()) {
+		auto& cache = it->second;
+		        // Cache is valid for 5 frames only to prevent stale production choices
+		        if (currentFrame - cache.lastUpdateFrame < 5 && 
+			cache.housePointer == reinterpret_cast<int>(pHouse)) {
+			cache.lastAccess = std::chrono::steady_clock::now();
+			return cache.bestChoice;
+		}
+	}
+	
+	return -1; // Cache miss
+}
+
+// Set cached AI production choice
+static void SetCachedAIProductionChoice(HouseClass* pHouse, AbstractType productionType, int choice) {
+	int cacheKey = reinterpret_cast<int>(pHouse) + static_cast<int>(productionType);
+	int currentFrame = Unsorted::CurrentFrame;
+	
+	std::lock_guard<std::mutex> lock(g_ProductionCacheMutex);
+	auto& cache = g_ProductionCache[cacheKey];
+	cache.bestChoice = choice;
+	cache.lastUpdateFrame = currentFrame;
+	cache.housePointer = reinterpret_cast<int>(pHouse);
+	cache.lastAccess = std::chrono::steady_clock::now();
+}
+
+std::tuple<BuildingClass**, bool, AbstractType> static GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
 {
 	BuildingClass** currFactory = nullptr;
 	bool block = false;
@@ -160,10 +317,12 @@ void HouseExtData::UpdateVehicleProduction()
 			continue;
 		}
 
-		DynamicVectorClass<TechnoTypeClass*> taskForceMembers {};
-		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
+		// AI Performance optimization: Use object pooling for frequent allocations
+		auto pooledTaskForce = g_TechnoVectorPool.acquire();
+		pooledTaskForce->Clear();
+		currentTeam->GetTaskForceMissingMemberTypes(*pooledTaskForce);
 
-		for (auto currentMember : taskForceMembers)
+		for (auto currentMember : *pooledTaskForce)
 		{
 			const auto what = currentMember->WhatAmI();
 
@@ -182,6 +341,9 @@ void HouseExtData::UpdateVehicleProduction()
 			if (teamCreationFrame < creationFrames[index])
 				creationFrames[index] = teamCreationFrame;
 		}
+		
+		// Return pooled object for reuse - AI optimization
+		g_TechnoVectorPool.release(std::move(pooledTaskForce));
 	}
 
 	//	for (int i = 0; i < (int)Teams.size(); ++i) {
@@ -546,9 +708,25 @@ ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 
 	retfunc_fixed<DWORD> ret(R, 0x4FEEDA, 15);
 
+	// AI Performance optimization: Check cache first
+	CleanupAIProductionCache();
+	int cachedChoice = GetCachedAIProductionChoice(pThis, AbstractType::UnitType);
+	if (cachedChoice >= 0) {
+		// Double-check: Make sure cached choice is still valid
+		if (auto pUnitType = UnitTypeClass::Array->GetItemOrDefault(cachedChoice)) {
+			if (pThis->CanBuild(pUnitType, false, false) == CanBuildResult::Buildable) {
+				pThis->ProducingUnitTypeIndex = cachedChoice;
+				return ret();
+			}
+		}
+		// Invalid cache entry, clear it
+		SetCachedAIProductionChoice(pThis, AbstractType::UnitType, -1);
+	}
+
 #ifdef sss
 	if (pThis->ProducingUnitTypeIndex != -1)
 	{
+		SetCachedAIProductionChoice(pThis, AbstractType::UnitType, pThis->ProducingUnitTypeIndex);
 		return ret();
 	}
 
@@ -570,9 +748,12 @@ ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 
 		if (pThis->IQLevel2 >= pRules->Harvester && !pThis->IsTiberiumShort
 			&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
-			&& pThis->TechLevel >= pHarvester->TechLevel)
+			&& pThis->TechLevel >= pHarvester->TechLevel
+			&& ShouldProduceHarvester(pThis))  // ADD HARVESTER SPAM PREVENTION
 		{
 			pThis->ProducingUnitTypeIndex = pHarvester->ArrayIndex;
+			g_HousesProducingHarvesters.insert(pThis->ArrayIndex); // Track production
+			SetCachedAIProductionChoice(pThis, AbstractType::UnitType, pThis->ProducingUnitTypeIndex);
 			return ret();
 		}
 	}
@@ -591,17 +772,23 @@ ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 				//awesome way to find out whether this building is a slave miner, isn't it? ...
 				if (auto const pSlaveMiner = pRefinery->UndeploysInto)
 				{
-					pThis->ProducingUnitTypeIndex = pSlaveMiner->ArrayIndex;
-					return ret();
+					if (ShouldProduceHarvester(pThis)) {  // ADD SLAVE MINER SPAM PREVENTION
+						pThis->ProducingUnitTypeIndex = pSlaveMiner->ArrayIndex;
+						g_HousesProducingSlaveMiners.insert(pThis->ArrayIndex); // Track production
+						SetCachedAIProductionChoice(pThis, AbstractType::UnitType, pThis->ProducingUnitTypeIndex);
+						return ret();
+					}
 				}
 			}
 		}
 	}
 
 	GetTypeToProduce<UnitClass, UnitTypeClass>(pThis, pThis->ProducingUnitTypeIndex);
+	SetCachedAIProductionChoice(pThis, AbstractType::UnitType, pThis->ProducingUnitTypeIndex);
 
 #else
 	HouseExtContainer::Instance.Find(pThis)->UpdateVehicleProduction();
+	SetCachedAIProductionChoice(pThis, AbstractType::UnitType, pThis->ProducingUnitTypeIndex);
 #endif
 	return ret();
 }
@@ -633,10 +820,12 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 
 		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
 		{
-			DynamicVectorClass<TechnoTypeClass*> arr {};
-			CurrentTeam->GetTaskForceMissingMemberTypes(arr);
+			// Use object pooling to reduce allocations
+			auto pooledVector = g_TechnoVectorPool.acquire();
+			pooledVector->Clear();
+			CurrentTeam->GetTaskForceMissingMemberTypes(*pooledVector);
 
-			for (auto pMember : arr)
+			for (auto pMember : *pooledVector)
 			{
 
 				if (pMember->WhatAmI() != Ttype::AbsID)
@@ -652,6 +841,9 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 					CreationFrames[Idx] = TeamCreationFrame;
 				}
 			}
+			
+			// Return pooled object for reuse
+			g_TechnoVectorPool.release(std::move(pooledVector));
 		}
 	}
 

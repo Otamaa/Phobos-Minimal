@@ -427,7 +427,7 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 		//return;
 	}
 
-	// pTeam->StepCompleted = true;
+	pTeam->StepCompleted = true;
 	// Debug::LogInfo("AI Scripts - Mission_Move_List: {}] {}] (line: {} = {},{}) Failed to get the list index [AITargetTypes][{}]! out of bound: {}",
 	// 	pTeam->Type->ID,
 	// 	pTeam->CurrentScript->Type->ID,
@@ -438,12 +438,15 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 	// 	Arr.size());
 }
 
-static std::vector<int> Mission_Move_List1Random_validIndexes;
+// AI Performance optimization: Use thread-local storage for static vectors
+thread_local std::vector<int> Mission_Move_List1Random_validIndexes;
 
 void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies, int attackAITargetType, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
+	// Reserve space to reduce allocations
 	Mission_Move_List1Random_validIndexes.clear();
+	Mission_Move_List1Random_validIndexes.reserve(50);
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArg] = pScript->GetCurrentAction();
 
@@ -508,7 +511,7 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 	}
 
 	// This action finished
-	// pTeam->StepCompleted = true;
+	pTeam->StepCompleted = true;
 	// Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Failed to pick a random Techno from the list index [AITargetTypes][{}]! Valid Technos in the list: {}",
 	// 	pTeam->Type->ID,
 	// 	pTeam->CurrentScript->Type->ID,

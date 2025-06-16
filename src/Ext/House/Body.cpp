@@ -19,6 +19,41 @@
 
 #include <Utilities/Cast.h>
 
+#include <unordered_set>
+#include <mutex>
+
+// Global tracking for UpdateHarvesterProduction anti-spam
+static std::unordered_set<int> g_HousesRecentHarvesterProduction;
+static int g_LastHarvesterProductionCleanup = -1;
+
+// Cleanup and check if house can produce harvester (prevent UpdateHarvesterProduction spam)
+static bool CanProduceHarvesterInUpdate(HouseClass* pHouse) {
+    int currentFrame = Unsorted::CurrentFrame();
+    
+    // Cleanup every 120 frames (4 seconds)
+    if (currentFrame - g_LastHarvesterProductionCleanup > 120) {
+        g_HousesRecentHarvesterProduction.clear();
+        g_LastHarvesterProductionCleanup = currentFrame;
+    }
+    
+    int houseIndex = pHouse->ArrayIndex;
+    
+    // If house recently set harvester production, don't spam
+    if (g_HousesRecentHarvesterProduction.count(houseIndex)) {
+        return false;
+    }
+    
+    // Check if factory is busy or already producing something
+    if (auto pFactory = pHouse->GetPrimaryFactory(AbstractType::UnitType, false, BuildCat::DontCare)) {
+        if (pFactory->Object) {
+            // Factory is busy producing something
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 #pragma region defines
 std::vector<int> HouseExtData::AIProduction_CreationFrames;
 std::vector<int> HouseExtData::AIProduction_Values;
@@ -1242,6 +1277,12 @@ int HouseExtData::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionCl
 bool HouseExtData::UpdateHarvesterProduction()
 {
 	auto pThis = this->AttachedToObject;
+	
+	// CRITICAL: Check if house can produce harvester to prevent spam
+	if (!CanProduceHarvesterInUpdate(pThis)) {
+		return false;
+	}
+	
 	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
 	const auto idxParentCountry = pThis->Type->FindParentCountryIndex();
 	const auto pHarvesterUnit = HouseExtData::FindOwned(pThis, idxParentCountry, make_iterator(RulesClass::Instance->HarvesterUnit));
@@ -1259,6 +1300,8 @@ bool HouseExtData::UpdateHarvesterProduction()
 			&& pThis->StaticData.TechLevel >= pHarvesterUnit->TechLevel)
 		{
 			pThis->ProducingUnitTypeIndex = pHarvesterUnit->ArrayIndex;
+			// CRITICAL: Track harvester production to prevent spam
+			g_HousesRecentHarvesterProduction.insert(pThis->ArrayIndex);
 			return true;
 		}
 	}
@@ -1274,6 +1317,8 @@ bool HouseExtData::UpdateHarvesterProduction()
 					if (pSlaveMiner->ResourceDestination)
 					{
 						pThis->ProducingUnitTypeIndex = pSlaveMiner->ArrayIndex;
+						// CRITICAL: Track slave miner production to prevent spam
+						g_HousesRecentHarvesterProduction.insert(pThis->ArrayIndex);
 						return true;
 					}
 				}

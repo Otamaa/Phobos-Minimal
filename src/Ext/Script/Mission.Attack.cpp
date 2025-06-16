@@ -12,6 +12,88 @@
 
 #include <Utilities/Cast.h>
 
+// AI Target Selection optimization for ntdll.dll issue  
+#include <unordered_map>
+#include <chrono>
+#include <mutex>
+
+// Cache for AI target selection to reduce TechnoClass::Array iterations
+struct AITargetCache {
+    TechnoClass* lastTarget = nullptr;
+    int lastUpdateFrame = -1;
+    double lastBestValue = -1.0;
+    int requestHash = 0; // Hash of request parameters
+    std::chrono::steady_clock::time_point lastAccess;
+};
+
+static std::unordered_map<int, AITargetCache> g_TargetCache;
+static std::mutex g_TargetCacheMutex;
+static std::chrono::steady_clock::time_point g_LastTargetCacheCleanup;
+
+// Generate hash for caching target selection requests
+int GetTargetRequestHash(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, 
+                        HouseClass* onlyTargetThisHouseEnemy, int attackAITargetType, 
+                        int idxAITargetTypeItem, bool agentMode) {
+    int hash = reinterpret_cast<int>(pTechno);
+    hash ^= method << 1;
+    hash ^= static_cast<int>(calcThreatMode) << 2;
+    hash ^= reinterpret_cast<int>(onlyTargetThisHouseEnemy) << 3;
+    hash ^= attackAITargetType << 4;
+    hash ^= idxAITargetTypeItem << 5;
+    hash ^= agentMode ? 1 << 6 : 0;
+    return hash;
+}
+
+// Clean up old target cache entries
+void CleanupTargetCache() {
+    auto now = std::chrono::steady_clock::now();
+    if (now - g_LastTargetCacheCleanup < std::chrono::seconds(10)) {
+        return; // Cleanup every 10 seconds
+    }
+    
+    std::lock_guard<std::mutex> lock(g_TargetCacheMutex);
+    auto it = g_TargetCache.begin();
+    while (it != g_TargetCache.end()) {
+        if (now - it->second.lastAccess > std::chrono::seconds(30) ||
+            !it->second.lastTarget || it->second.lastTarget->IsAlive == false) {
+            it = g_TargetCache.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    g_LastTargetCacheCleanup = now;
+}
+
+// Get cached target result
+bool GetCachedTarget(int requestHash, int currentFrame, TechnoClass*& result) {
+    std::lock_guard<std::mutex> lock(g_TargetCacheMutex);
+    auto it = g_TargetCache.find(requestHash);
+    
+    if (it != g_TargetCache.end()) {
+        auto& cache = it->second;
+        // Cache is valid for 8 frames (~0.25 seconds at 30 FPS)
+        if (currentFrame - cache.lastUpdateFrame < 8 && 
+            cache.lastTarget && cache.lastTarget->IsAlive) {
+            cache.lastAccess = std::chrono::steady_clock::now();
+            result = cache.lastTarget;
+            return true;
+        }
+    }
+    
+    return false; // Cache miss
+}
+
+// Set cached target result
+void SetCachedTarget(int requestHash, int currentFrame, TechnoClass* result, double bestValue) {
+    std::lock_guard<std::mutex> lock(g_TargetCacheMutex);
+    auto& cache = g_TargetCache[requestHash];
+    cache.lastTarget = result;
+    cache.lastUpdateFrame = currentFrame;
+    cache.lastBestValue = bestValue;
+    cache.requestHash = requestHash;
+    cache.lastAccess = std::chrono::steady_clock::now();
+}
+
 void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType = -1, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
@@ -450,12 +532,30 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		else
 		{
 			pTeam->ArchiveTarget = nullptr;
+			// CRITICAL BUG FIX: Add missing StepCompleted to prevent infinite loops
+			pTeam->StepCompleted = true;
 		}
+	}
+	
+	// CRITICAL BUG FIX: Ensure all code paths complete the step
+	if (!pTeam->StepCompleted) {
+		pTeam->StepCompleted = true;
 	}
 }
 
 TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, DistanceMode calcThreatMode, HouseClass* onlyTargetThisHouseEnemy = nullptr, int attackAITargetType = -1, int idxAITargetTypeItem = -1, bool agentMode = false)
 {
+	// AI Performance optimization: Check cache first
+	CleanupTargetCache();
+	int currentFrame = Unsorted::CurrentFrame;
+	int requestHash = GetTargetRequestHash(pTechno, method, calcThreatMode, 
+	                                      onlyTargetThisHouseEnemy, attackAITargetType, 
+	                                      idxAITargetTypeItem, agentMode);
+	
+	TechnoClass* cachedResult = nullptr;
+	if (GetCachedTarget(requestHash, currentFrame, cachedResult)) {
+		return cachedResult;
+	}
 
 	TechnoClass* bestObject = nullptr;
 	double bestVal = -1;
@@ -657,6 +757,8 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 		}
 	}
 
+	// Cache the result for performance optimization
+	SetCachedTarget(requestHash, currentFrame, bestObject, bestVal);
 	return bestObject;
 }
 
@@ -1342,13 +1444,16 @@ void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, Dis
 	}
 }
 
-static std::vector<int> Mission_Attack_List1Random_validIndexes;
+// AI Performance optimization: Use thread-local storage for static vectors
+thread_local std::vector<int> Mission_Attack_List1Random_validIndexes;
 
 void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
 
 	//auto pScript = pTeam->CurrentScript;
+	// Reserve space to reduce allocations
 	Mission_Attack_List1Random_validIndexes.clear();
+	Mission_Attack_List1Random_validIndexes.reserve(50);
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 
