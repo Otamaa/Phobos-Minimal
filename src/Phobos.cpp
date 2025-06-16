@@ -42,6 +42,10 @@
 
 #include <Lib/asmjit/x86.h>
 
+namespace {
+	bool IsRunningInAppContainer();
+}
+
 #pragma region defines
 HANDLE Phobos::hInstance;
 char Phobos::readBuffer[readLength] {};
@@ -168,6 +172,27 @@ bool Phobos::Otamaa::AllowMultipleInstance { false };
 DWORD Phobos::Otamaa::PhobosBaseAddress { false };
 
 #pragma endregion
+
+// App container detection functions
+namespace {
+	bool IsRunningInAppContainer() {
+		static bool s_checked = false;
+		static bool s_isAppContainer = false;
+		
+		if (!s_checked) {
+			HANDLE hToken;
+			if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+				DWORD dwLength = 0;
+				GetTokenInformation(hToken, TokenAppContainerSid, nullptr, 0, &dwLength);
+				s_isAppContainer = (GetLastError() != ERROR_NOT_FOUND);
+				CloseHandle(hToken);
+			}
+			s_checked = true;
+		}
+		
+		return s_isAppContainer;
+	}
+}
 
 struct GraphicsRuntimeAPI
 {
@@ -578,28 +603,6 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 			}
 		}
 	}
-
-	// Workaround for app container environment detection
-	bool IsRunningInAppContainer() {
-		static bool s_checked = false;
-		static bool s_isAppContainer = false;
-		
-		if (!s_checked) {
-			HANDLE hToken;
-			if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
-				DWORD dwLength = 0;
-				GetTokenInformation(hToken, TokenAppContainerSid, nullptr, 0, &dwLength);
-				s_isAppContainer = (GetLastError() != ERROR_NOT_FOUND);
-				CloseHandle(hToken);
-			}
-			s_checked = true;
-		}
-		
-		return s_isAppContainer;
-	}
-	
-
-
 }
 
 // Call the optimization function during initialization
@@ -608,11 +611,20 @@ void Phobos::OptimizeProcessForSecurity()
 	if (IsRunningInAppContainer()) {
 		Debug::Log("App Container detected. Optimizing object creation.\n");
 		
-		// Set process to avoid unnecessary security checks
-		SetProcessMitigationPolicy(ProcessImageLoadPolicy, nullptr, 0);
+		// Set process mitigations only if available (Windows 8+)
+		typedef BOOL (WINAPI *SetProcessMitigationPolicyFunc)(PROCESS_MITIGATION_POLICY, PVOID, SIZE_T);
+		HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
+		if (hKernel32) {
+			SetProcessMitigationPolicyFunc pSetProcessMitigationPolicy = 
+				(SetProcessMitigationPolicyFunc)GetProcAddress(hKernel32, "SetProcessMitigationPolicy");
+			
+			if (pSetProcessMitigationPolicy) {
+				// Use simplified mitigation
+				pSetProcessMitigationPolicy((PROCESS_MITIGATION_POLICY)1, nullptr, 0);
+			}
+		}
 		
 		// Reduce security descriptor checks
-		DWORD dwFlags = SECURITY_SQOS_PRESENT | SECURITY_ANONYMOUS;
 		SetThreadToken(nullptr, nullptr);
 	}
 }
