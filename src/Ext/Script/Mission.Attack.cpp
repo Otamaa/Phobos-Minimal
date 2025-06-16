@@ -450,6 +450,11 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		else
 		{
 			pTeam->ArchiveTarget = nullptr;
+			pTeam->StepCompleted = true;
+		}
+
+		if (!pTeam->StepCompleted) {
+			pTeam->StepCompleted = true;
 		}
 	}
 }
@@ -1342,13 +1347,15 @@ void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, Dis
 	}
 }
 
-static std::vector<int> Mission_Attack_List1Random_validIndexes;
+thread_local std::vector<int> Mission_Attack_List1Random_validIndexes;
 
 void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
 
 	//auto pScript = pTeam->CurrentScript;
 	Mission_Attack_List1Random_validIndexes.clear();
+	Mission_Attack_List1Random_validIndexes.reserve(50);
+
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 

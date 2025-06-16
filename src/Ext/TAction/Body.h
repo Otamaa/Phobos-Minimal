@@ -50,6 +50,10 @@ enum class PhobosTriggerAction : unsigned int
 	ClearAngerNode = 608,
 	SetForceEnemy = 609,
 
+	CreateBannerGlobal = 800, // any banner w/ global variable
+	CreateBannerLocal = 801, // any banner w/ local variable
+	DeleteBanner = 802,
+
 	//#620
 	MessageForSpecifiedHouse = 9931,
 
@@ -174,6 +178,10 @@ public:
 	ACTION_FUNC(EditAngerNode);
 	ACTION_FUNC(ClearAngerNode);
 	ACTION_FUNC(SetForceEnemy);
+
+	ACTION_FUNC(CreateBannerGlobal);
+	ACTION_FUNC(CreateBannerLocal);
+	ACTION_FUNC(DeleteBanner);
 
 #undef ACTION_FUNC
 };

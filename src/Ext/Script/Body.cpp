@@ -1581,10 +1581,10 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 void ScriptExtData::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 {
 	// This team has no units! END
-	//if (!pTeam)
-	//{
+	if (!pTeam)
+	{
 	//	// This action finished
-	//	pTeam->StepCompleted = true;
+		pTeam->StepCompleted = true;
 	//	const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
 	//	const auto&[nextAct, nextArg] = pTeam->CurrentScript->GetNextAction();
 	//	Debug::LogInfo("AI Scripts - SkipNextAction: [{}] [{}] (line: {}) Jump to next line: {} = {},{} -> (No team members alive)",
@@ -1597,8 +1597,8 @@ void ScriptExtData::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 	//		nextAct,
 	//		nextArg);
 	//
-	//	return;
-	//}
+		return;
+	}
 
 	if (successPercentage < 0 || successPercentage > 100)
 		successPercentage = pTeam->CurrentScript->GetCurrentAction().Argument;

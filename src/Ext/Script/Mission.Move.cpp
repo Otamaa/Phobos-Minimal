@@ -438,12 +438,13 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 	// 	Arr.size());
 }
 
-static std::vector<int> Mission_Move_List1Random_validIndexes;
+thread_local std::vector<int> Mission_Move_List1Random_validIndexes;
 
 void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies, int attackAITargetType, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
 	Mission_Move_List1Random_validIndexes.clear();
+	Mission_Move_List1Random_validIndexes.reserve(50);
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	const auto& [curAct, curArg] = pScript->GetCurrentAction();
 

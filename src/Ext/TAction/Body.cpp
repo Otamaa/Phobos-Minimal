@@ -18,6 +18,9 @@
 #include <Ext/Script/Body.h>
 #include <Ext/Techno/Body.h>
 
+#include <New/Entity/BannerClass.h>
+#include <New/Type/BannerTypeClass.h>
+
 #include <TriggerTypeClass.h>
 
 //Static init
@@ -46,6 +49,55 @@ void TActionExt::ExtData::Serialize(T& Stm)
 TActionExt::ExtContainer TActionExt::ExtMap;
 */
 //==============================
+void CreateOrReplaceBanner(TActionClass* pTAction, bool isGlobal)
+{
+	const auto pBannerType = BannerTypeClass::Find(pTAction->Text);
+
+	if (!pBannerType)
+		return;
+
+	auto& banners = BannerClass::Array;
+
+	bool foundAny = false;
+
+	banners.for_each([&](BannerClass& pBanner) {
+		if (pBanner.ID == pTAction->Param3) {
+			foundAny = true;
+			pBanner.Type = pBannerType;
+			pBanner.Position = { static_cast<int>(pTAction->Param4 / 100.0 * DSurface::ViewBounds->Width), static_cast<int>(pTAction->Param5 / 100.0 * DSurface::ViewBounds->Height) };
+			pBanner.Variable = pTAction->Param6;
+			pBanner.IsGlobalVariable = isGlobal;
+			return true;
+		}
+
+		return false;
+	});
+
+	if(!foundAny) {
+		banners.emplace_back(pBannerType, pTAction->Param3, Point2D { pTAction->Param4, pTAction->Param5 }, pTAction->Param6, isGlobal);
+	}
+}
+
+bool TActionExt::CreateBannerGlobal(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	CreateOrReplaceBanner(pThis, true);
+	return true;
+}
+
+bool TActionExt::CreateBannerLocal(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	CreateOrReplaceBanner(pThis, false);
+	return true;
+}
+
+bool TActionExt::DeleteBanner(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	BannerClass::Array.remove_all_if([pThis](const BannerClass& pBanner) {
+		 return pBanner.ID == pThis->Value;
+	});
+
+	return true;
+}
 
 bool TActionExt::ResetHateValue(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
@@ -596,6 +648,14 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		return TActionExt::ClearAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
 	case PhobosTriggerAction::SetForceEnemy:
 		return TActionExt::SetForceEnemy(pThis, pHouse, pObject, pTrigger, args.plocation);
+
+	case PhobosTriggerAction::CreateBannerGlobal:
+		return TActionExt::CreateBannerGlobal(pThis, pHouse, pObject, pTrigger, args.plocation);
+	case PhobosTriggerAction::CreateBannerLocal:
+		return TActionExt::CreateBannerLocal(pThis, pHouse, pObject, pTrigger, args.plocation);
+	case PhobosTriggerAction::DeleteBanner:
+		return TActionExt::DeleteBanner(pThis, pHouse, pObject, pTrigger, args.plocation);
+
 	default:
 	{
 

@@ -640,7 +640,6 @@ enum class BannerNumberType : int
 	Variable = 1,
 	Prefixed = 2,
 	Suffixed = 3,
-	Fraction = 4
 };
 #pragma region Otamaa
 

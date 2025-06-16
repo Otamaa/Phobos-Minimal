@@ -72,9 +72,12 @@ public:
 	CustomPalette() = default;
 	explicit CustomPalette(PaletteMode mode) noexcept : Mode(mode) { };
 
-	ConvertClass* GetConvert() const
-	{
+	ConvertClass* GetConvert() const {
 		return this->Convert.get();
+	}
+
+	ConvertClass* GetOrDefaultConvert(ConvertClass* pDefault) const {
+		return this->Convert.get() ? this->Convert.get() : pDefault;
 	}
 
 	bool Read(INI_EX& parser, const char* pSection, const char* pKey);

@@ -59,6 +59,8 @@
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
 
+#include <New/Entity/BannerClass.h>
+
 #include <New/HugeBar.h>
 
 #pragma region OtamaaStuffs
@@ -438,6 +440,8 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(HugeBar);
 	version += sizeof(StaticVars);
 
+	version += sizeof(BannerClass);
+
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
 		AddTypeOf(Armor)
 		AddTypeOf(Banner)
@@ -517,6 +521,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	ShieldClass::Array.clear();
 	InsigniaTypeClass::Clear();
 	SelectBoxTypeClass::Clear();
+	BannerClass::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -712,7 +717,8 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<InsigniaTypeClass>(pStm) &&
 		Process_Load<SelectBoxTypeClass>(pStm) &&
 		Process_Load<ShieldClass>(pStm) &&
-		Process_Load<PrismForwarding>(pStm)
+		Process_Load<PrismForwarding>(pStm) &&
+		Process_Load<BannerClass>(pStm)
 		;
 
 	if (!ret)
@@ -786,7 +792,8 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<InsigniaTypeClass>(pStm) &&
 			Process_Save<SelectBoxTypeClass>(pStm) &&
 			Process_Save<ShieldClass>(pStm) &&
-			Process_Save<PrismForwarding>(pStm)
+			Process_Save<PrismForwarding>(pStm) &&
+			Process_Save<BannerClass>(pStm)
 			;
 
 		if (!ret)

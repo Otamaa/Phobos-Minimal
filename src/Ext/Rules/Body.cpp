@@ -19,6 +19,7 @@
 #include <New/Type/RocketTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
+#include <New/Type/BannerTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
@@ -159,6 +160,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
 	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	BannerTypeClass::LoadFromINIList(pINI);
 
 	if (Data->HugeBar_Config.empty())
 	{
