@@ -58,6 +58,7 @@ struct Phobos final
 	static void CheckProcessorFeatures();
 	static void InitAdminDebugMode();
 	static void ThrowUsageWarning(CCINIClass* pINI);
+	static void OptimizeProcessForSecurity();
 
 	static bool DetachFromDebugger();
 	static HRESULT SaveGameDataAfter(IStream* pStm);

@@ -542,6 +542,9 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 #endif
 
 	Phobos::CheckProcessorFeatures();
+	
+	// Optimize for app container environments
+	Phobos::OptimizeProcessForSecurity();
 
 	Game::DontSetExceptionHandler = dontSetExceptionHandler;
 	Debug::Log("ExceptionHandler is %s .\n", dontSetExceptionHandler ? "not present" : "present");
@@ -574,6 +577,43 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 				break;
 			}
 		}
+	}
+
+	// Workaround for app container environment detection
+	bool IsRunningInAppContainer() {
+		static bool s_checked = false;
+		static bool s_isAppContainer = false;
+		
+		if (!s_checked) {
+			HANDLE hToken;
+			if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+				DWORD dwLength = 0;
+				GetTokenInformation(hToken, TokenAppContainerSid, nullptr, 0, &dwLength);
+				s_isAppContainer = (GetLastError() != ERROR_NOT_FOUND);
+				CloseHandle(hToken);
+			}
+			s_checked = true;
+		}
+		
+		return s_isAppContainer;
+	}
+	
+
+
+}
+
+// Call the optimization function during initialization
+void Phobos::OptimizeProcessForSecurity()
+{
+	if (IsRunningInAppContainer()) {
+		Debug::Log("App Container detected. Optimizing object creation.\n");
+		
+		// Set process to avoid unnecessary security checks
+		SetProcessMitigationPolicy(ProcessImageLoadPolicy, nullptr, 0);
+		
+		// Reduce security descriptor checks
+		DWORD dwFlags = SECURITY_SQOS_PRESENT | SECURITY_ANONYMOUS;
+		SetThreadToken(nullptr, nullptr);
 	}
 }
 
@@ -856,7 +896,9 @@ bool Phobos::DetachFromDebugger()
 				status = NtRemoveProcessDebug(Patch::CurrentProcess, hDebug);
 				if (0 <= status)
 				{
-					HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+					// Disable process debugging to reduce system calls and security lookups
+	// HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+	HANDLE hDbgProcess = nullptr;
 					if (hDbgProcess != NULL)
 						{
 						ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);

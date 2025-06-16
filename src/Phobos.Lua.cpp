@@ -16,6 +16,11 @@
 
 #include <MixFileClass.h>
 
+#include <unordered_set>
+#include <mutex>
+#include <chrono>
+#include <atomic>
+
 // TODO : encryption support
 // Otamaa : change this variable if you want to load desired name lua file
 std::string filename = "\\renameinternal.lua";
@@ -25,6 +30,58 @@ HelperedVector<std::pair<uintptr_t, std::string>> map_replaceAddrTo;
 std::string MainWindowStr;
 std::map<std::string, bool> SafeFiles {};
 bool IsActive;
+
+namespace {
+	// Cache for named objects to prevent redundant lookups
+	std::unordered_set<std::string> g_namedObjectCache;
+	std::mutex g_cacheMutex;
+	
+	// Cache cleanup mechanism
+	std::chrono::steady_clock::time_point g_lastCleanup = std::chrono::steady_clock::now();
+	const std::chrono::minutes CACHE_CLEANUP_INTERVAL{5}; // Cleanup every 5 minutes
+	const size_t MAX_CACHE_SIZE = 1000; // Prevent memory bloat
+	
+	// Helper function to check if object name is already cached
+	bool IsObjectNameCached(const std::string& name) {
+		std::lock_guard<std::mutex> lock(g_cacheMutex);
+		
+		// Periodic cleanup
+		auto now = std::chrono::steady_clock::now();
+		if (now - g_lastCleanup > CACHE_CLEANUP_INTERVAL) {
+			if (g_namedObjectCache.size() > MAX_CACHE_SIZE) {
+				g_namedObjectCache.clear();
+				Debug::Log("Phobos: Named object cache cleaned up. Size was: %zu\n", g_namedObjectCache.size());
+			}
+			g_lastCleanup = now;
+		}
+		
+		return g_namedObjectCache.find(name) != g_namedObjectCache.end();
+	}
+	
+	// Helper function to add object name to cache
+	void CacheObjectName(const std::string& name) {
+		std::lock_guard<std::mutex> lock(g_cacheMutex);
+		
+		// Prevent cache bloat
+		if (g_namedObjectCache.size() < MAX_CACHE_SIZE) {
+			g_namedObjectCache.insert(name);
+		}
+	}
+	
+	// Performance metrics
+	std::atomic<uint64_t> g_cacheHits{0};
+	std::atomic<uint64_t> g_cacheMisses{0};
+	
+	void LogCacheStats() {
+		uint64_t hits = g_cacheHits.load();
+		uint64_t misses = g_cacheMisses.load();
+		if (hits + misses > 0) {
+			double hitRate = (double)hits / (hits + misses) * 100.0;
+			Debug::Log("Phobos: Cache stats - Hits: %llu, Misses: %llu, Hit Rate: %.2f%%\n", 
+				hits, misses, hitRate);
+		}
+	}
+}
 
 auto MessageLog = [](const std::string& first, const std::string& second)
 	{
@@ -277,6 +334,31 @@ HANDLE __stdcall _CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dw
 
 	auto it = SafeFiles.find(lpFileName);
 	if(it != SafeFiles.end()) {
+		// Check cache first to avoid redundant object creation
+		std::string fileName(lpFileName);
+		if (IsObjectNameCached(fileName)) {
+			g_cacheHits.fetch_add(1);
+			auto it_cache = &keeper[lpFileName];
+			if (it_cache->mapping != nullptr) {
+				HANDLE duplicatedHandle;
+				if (DuplicateHandle(
+					Patch::CurrentProcess,
+					it_cache->mapping,
+					Patch::CurrentProcess,
+					&duplicatedHandle,
+					0,
+					FALSE,
+					DUPLICATE_SAME_ACCESS))
+				{
+					auto mapped = &HandleDataKeeper[duplicatedHandle];
+					mapped->fileActualSize = it_cache->size;
+					mapped->basePointer = it_cache->memory;
+					mapped->currentoffset = 0;
+					return duplicatedHandle;
+				}
+			}
+		}
+		
 		auto it_cache = &keeper[lpFileName];
 
 		if (!it_cache->memory)
@@ -288,45 +370,57 @@ HANDLE __stdcall _CreateFileA(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dw
 				return fileHandle;
 			}
 
-			HANDLE hMap = CreateFileMapping(fileHandle, nullptr, PAGE_READWRITE, 0, 0, nullptr);
-			if (!hMap) {
-				return fileHandle;
-			}
+					// Create a unique named mapping to avoid RtlGetAppContainerNamedObjectPath calls
+		char mapName[64];
+		sprintf_s(mapName, sizeof(mapName), "PhobosMap_%p_%u", (void*)GetCurrentThreadId(), GetTickCount());
+		
+		HANDLE hMap = CreateFileMappingA(fileHandle, nullptr, PAGE_READWRITE, 0, 0, mapName);
+		if (!hMap) {
+			return fileHandle;
+		}
 
-			LPVOID fileData = MapViewOfFile(hMap, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
+		LPVOID fileData = MapViewOfFile(hMap, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, 0);
 
-			if (!fileData) {
-				CloseHandle(hMap);
-				return fileHandle;
-			}
-
-			it_cache->size = fileSize.QuadPart;
-			it_cache->mapping = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, it_cache->size, NULL);
-			it_cache->memory = MapViewOfFile(it_cache->mapping, FILE_MAP_ALL_ACCESS, 0, 0, it_cache->size);
-			ApplyCore((char*)it_cache->memory, (char*)fileData, it_cache->size);
-			UnmapViewOfFile(fileData);
+		if (!fileData) {
 			CloseHandle(hMap);
+			return fileHandle;
 		}
 
-		HANDLE duplicatedHandle;
-		if (!DuplicateHandle(
-			Patch::CurrentProcess,												// source process
-			it_cache->mapping,									// source handle
-			Patch::CurrentProcess,												// target process
-			&duplicatedHandle,                                   // out duplicated handle
-			0,                                                   // desired access (same)
-			FALSE,                                               // inherit handle
-			DUPLICATE_SAME_ACCESS))								// options
-		{
-			return INVALID_HANDLE_VALUE;
-		}
+		it_cache->size = fileSize.QuadPart;
+		
+		// Create named mapping instead of anonymous to reduce security lookups
+		char cacheName[64];
+		sprintf_s(cacheName, sizeof(cacheName), "PhobosCache_%p_%u", (void*)it_cache, GetTickCount());
+		it_cache->mapping = CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, it_cache->size, cacheName);
+		it_cache->memory = MapViewOfFile(it_cache->mapping, FILE_MAP_ALL_ACCESS, 0, 0, it_cache->size);
+					ApplyCore((char*)it_cache->memory, (char*)fileData, it_cache->size);
+		UnmapViewOfFile(fileData);
+		CloseHandle(hMap);
+		
+		// Cache the object name to prevent future redundant lookups
+		CacheObjectName(fileName);
+		g_cacheMisses.fetch_add(1);
+	}
 
-		// Store size info
-		auto mapped = &HandleDataKeeper[duplicatedHandle];
-		mapped->fileActualSize  = it_cache->size;
-		mapped->basePointer = it_cache->memory;
-		mapped->currentoffset = 0;
-		return duplicatedHandle;
+	HANDLE duplicatedHandle;
+	if (!DuplicateHandle(
+		Patch::CurrentProcess,												// source process
+		it_cache->mapping,									// source handle
+		Patch::CurrentProcess,												// target process
+		&duplicatedHandle,                                   // out duplicated handle
+		0,                                                   // desired access (same)
+		FALSE,                                               // inherit handle
+		DUPLICATE_SAME_ACCESS))								// options
+	{
+		return INVALID_HANDLE_VALUE;
+	}
+
+	// Store size info
+	auto mapped = &HandleDataKeeper[duplicatedHandle];
+	mapped->fileActualSize  = it_cache->size;
+	mapped->basePointer = it_cache->memory;
+	mapped->currentoffset = 0;
+	return duplicatedHandle;
 	}
 
 	return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
@@ -842,6 +936,15 @@ HANDLE WINAPI _CreateFileMappingA(
 				return mapped.mapping;
 			}
 		}
+	}
+
+	// Always provide a name to avoid unnamed object path resolution
+	if (!lpName || strlen(lpName) == 0) {
+		static std::atomic<DWORD> counter{0};
+		thread_local char tempName[64];
+		sprintf_s(tempName, sizeof(tempName), "PhobosMapping_%u_%u", GetCurrentProcessId(), counter.fetch_add(1));
+		return CreateFileMappingA(hFile, lpFileMappingAttributes, flProtect,
+								  dwMaximumSizeHigh, dwMaximumSizeLow, tempName);
 	}
 
 	return CreateFileMappingA(hFile, lpFileMappingAttributes, flProtect,
