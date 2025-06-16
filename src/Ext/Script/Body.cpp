@@ -1384,7 +1384,7 @@ void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 			ScriptTypeClass* pNewScript = objectsList[IdxSelectedObject];
 
-			if (pNewScript->ActionsCount > 0)
+			if (pNewScript->ActionsCount > 0 && pNewScript != pTeam->CurrentScript->Type)
 			{
 				TeamExtContainer::Instance.Find(pTeam)->PreviousScript = pTeam->CurrentScript->Type;
 				GameDelete<true, false>(pTeam->CurrentScript);

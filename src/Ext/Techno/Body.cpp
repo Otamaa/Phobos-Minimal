@@ -3929,12 +3929,6 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 		pThis->MarkPassengersAsExited();
 	}
 
-	for(auto pPassenger = pThis->Passengers.FirstPassenger; pPassenger; pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject)) {
-		if (pPassenger->Transporter) {
-			pPassenger->Transporter = nullptr;
-		}
-	}
-
 	pThis->KillPassengers(pSource);
 
 	const auto nWhat = pThis->WhatAmI();
