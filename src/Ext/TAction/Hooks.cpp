@@ -21,9 +21,9 @@
 // ares hooking at the beggining of switch call
 int lastAction;
 
- ASMJIT_PATCH(0x6DD8B0, TActionClass_Execute_IMPL, 0x6)
+ ASMJIT_PATCH_GUARDED(0x6DD8B0, TActionClass_Execute, 0x6)
  {
-    // Otomatis recursive detection!
+    // Manual recursive detection menggunakan sistem baru
     AUTO_RECURSIVE_GUARD(0x6DD8B0, "TActionClass_Execute");
 
  	GET(TActionClass*, pThis, ECX);

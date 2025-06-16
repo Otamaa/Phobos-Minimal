@@ -452,16 +452,17 @@ namespace Patchs { \
 #define ASMJIT_PATCH_AGAIN(hook, funcname, size) \
 decl_patch_data(hook, funcname, size)
 
-// Modified ASMJIT_PATCH to include automatic recursive call detection
+// Original ASMJIT_PATCH - unchanged for backward compatibility
 #define ASMJIT_PATCH(hook, funcname, size) \
 EXPORT_FUNC(funcname); \
 decl_patch_data(hook, funcname, size) \
-EXPORT_FUNC(funcname) \
-{ \
-    AUTO_RECURSIVE_GUARD(hook, #funcname); \
-    return funcname##_IMPL(R); \
-} \
-EXPORT_FUNC(funcname##_IMPL)\
+EXPORT_FUNC(funcname)\
+
+// New guarded version for hooks with HookGuard.h included
+#define ASMJIT_PATCH_GUARDED(hook, funcname, size) \
+EXPORT_FUNC(funcname); \
+decl_patch_data(hook, funcname, size) \
+EXPORT_FUNC(funcname)\
 
 #else
 #include <chrono>

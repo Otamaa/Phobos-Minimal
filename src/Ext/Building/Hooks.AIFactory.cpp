@@ -5,6 +5,8 @@
 #include <TeamTypeClass.h>
 #include <InfantryClass.h>
 
+#include <Utilities/HookGuard.h>
+
 std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
 {
 	BuildingClass** currFactory = nullptr;
@@ -540,8 +542,9 @@ ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
+ASMJIT_PATCH_GUARDED(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x4FEA60, "HouseClass_AI_UnitProduction");
 	GET(HouseClass* const, pThis, ECX);
 
 	retfunc_fixed<DWORD> ret(R, 0x4FEEDA, 15);
@@ -768,8 +771,9 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 //}
 //#pragma optimize("", off )
 
-ASMJIT_PATCH(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
+ASMJIT_PATCH_GUARDED(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 {
+	AUTO_RECURSIVE_GUARD(0x4FEEE0, "HouseClass_AI_InfantryProduction");
 	GET(HouseClass*, pThis, ECX);
 
 	if (pThis->ProducingInfantryTypeIndex < 0)
@@ -784,8 +788,9 @@ ASMJIT_PATCH(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 	return 0x4FF204;
 }
 
-ASMJIT_PATCH(0x4FF210, HouseClass_AI_AircraftProduction, 6)
+ASMJIT_PATCH_GUARDED(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 {
+	AUTO_RECURSIVE_GUARD(0x4FF210, "HouseClass_AI_AircraftProduction");
 	GET(HouseClass*, pThis, ECX);
 
 	if (pThis->ProducingAircraftTypeIndex < 0)
