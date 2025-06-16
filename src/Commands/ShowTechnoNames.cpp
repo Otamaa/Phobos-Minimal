@@ -52,7 +52,8 @@ void ShowTechnoNameCommandClass::AI()
 			if (!pTech->IsAlive)
 				continue;
 
-			if (pTech->InLimbo || pTech->Location == CoordStruct::Empty)
+			if (//pTech->InLimbo ||
+				pTech->Location == CoordStruct::Empty)
 				continue;
 
 			if (!pTech->IsOnMyView())

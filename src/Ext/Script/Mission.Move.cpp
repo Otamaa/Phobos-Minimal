@@ -501,8 +501,7 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 				//	RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxsel]->ID);
 
 				ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, idxsel);
-
-		//		return;
+				return;
 			}
 		}
 	}

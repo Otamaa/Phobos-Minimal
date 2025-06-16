@@ -251,6 +251,90 @@ struct HooksData {
 // remove the comment if you want to run the dll with patched gamemd
 //#define NO_SYRINGE
 
+bool IsRunningInAppContainer() {
+	static bool s_checked = false;
+	static bool s_isAppContainer = false;
+
+	if (!s_checked) {
+		HANDLE hToken;
+		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+			DWORD dwLength = 0;
+			GetTokenInformation(hToken, TokenAppContainerSid, nullptr, 0, &dwLength);
+			s_isAppContainer = (GetLastError() != ERROR_NOT_FOUND);
+			CloseHandle(hToken);
+		}
+		s_checked = true;
+	}
+
+	return s_isAppContainer;
+}
+
+void OptimizeProcessForSecurity()
+{
+	if (IsRunningInAppContainer())
+	{
+		Debug::LogDeferred("App Container detected. Optimizing object creation.\n");
+
+		// Set process mitigations only if available (Windows 8+)
+		typedef BOOL(WINAPI* SetProcessMitigationPolicyFunc)(PROCESS_MITIGATION_POLICY, PVOID, SIZE_T);
+
+
+#ifdef _Enable_these
+		static bool s_checked = false;
+		static bool s_isAppContainer = false;
+		if (!s_checked)
+		{
+			SID_IDENTIFIER_AUTHORITY _ID {};
+			HANDLE _Token {};
+			DWORD _RetLength {};
+			PSID _PID {};
+
+			if (AllocateAndInitializeSid(&_ID, 1u, 0, 0, 0, 0, 0, 0, 0, 0, &_PID))
+			{
+				if (OpenProcessToken(Patch::CurrentProcess, 8u, &_Token))
+				{
+					GetTokenInformation(_Token, TokenUser, 0, 0, &_RetLength);
+					if (_RetLength <= 0x400)
+					{
+						HLOCAL _Alloc = LocalAlloc(0x40u, 0x400u);
+						if (GetTokenInformation(_Token, TokenUser, _Alloc, 0x400u, &_RetLength))
+						{
+							ACL _Acl {};
+							if (InitializeAcl(&_Acl, 0x400u, 2u)
+							&& AddAccessDeniedAce(&_Acl, 2u, 0xFAu, _PID)
+							&& AddAccessAllowedAce(&_Acl, 2u, 0x100701u, _PID))
+							{
+								SetSecurityInfo(Patch::CurrentProcess, SE_KERNEL_OBJECT, 0x80000004, 0, 0, &_Acl, 0);
+							}
+						}
+
+						s_checked = true;
+					}
+				}
+			}
+
+			if (_PID)
+				FreeSid(_PID);
+		}
+#endif
+
+		for (auto& module : Patch::ModuleDatas) {
+			if (IS_SAME_STR_(module.ModuleName.c_str(), "kernel32.dll")) {
+				SetProcessMitigationPolicyFunc pSetProcessMitigationPolicy =
+					(SetProcessMitigationPolicyFunc)GetProcAddress(module.Handle, "SetProcessMitigationPolicy");
+
+				if (pSetProcessMitigationPolicy) {
+					// Use simplified mitigation
+					pSetProcessMitigationPolicy((PROCESS_MITIGATION_POLICY)1, nullptr, 0);
+				}
+			}
+		}
+
+		// Reduce security descriptor checks
+		SetThreadToken(nullptr, nullptr);
+	}
+}
+
 std::map<unsigned int, HooksData> Hooks { };
 #include <Zydis/Zydis.h>
 
@@ -593,45 +677,9 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		Debug::made = false;// reset
 	}
 
-#ifdef _Enable_these
-	static bool s_checked = false;
-	static bool s_isAppContainer = false;
-	if (!s_checked) {
-		SID_IDENTIFIER_AUTHORITY _ID {};
-		HANDLE _Token {};
-		DWORD _RetLength {};
-		PSID _PID {};
-
-		if (AllocateAndInitializeSid(&_ID, 1u, 0, 0, 0, 0, 0, 0, 0, 0, &_PID))
-		{
-			if (OpenProcessToken(Patch::CurrentProcess, 8u, &_Token))
-			{
-				GetTokenInformation(_Token, TokenUser, 0, 0, &_RetLength);
-				if (_RetLength <= 0x400)
-				{
-					HLOCAL _Alloc = LocalAlloc(0x40u, 0x400u);
-					if (GetTokenInformation(_Token, TokenUser, _Alloc, 0x400u, &_RetLength))
-					{
-						ACL _Acl {};
-						if (InitializeAcl(&_Acl, 0x400u, 2u)
-						&& AddAccessDeniedAce(&_Acl, 2u, 0xFAu, _PID)
-						&& AddAccessAllowedAce(&_Acl, 2u, 0x100701u, _PID))
-						{
-							SetSecurityInfo(Patch::CurrentProcess, SE_KERNEL_OBJECT, 0x80000004, 0, 0, &_Acl, 0);
-						}
-					}
-
-					s_checked = true;
-				}
-			}
-		}
-
-		if (_PID)
-			FreeSid(_PID);
-	}
-#endif
-
 	Phobos::CheckProcessorFeatures();
+	// Optimize for app container environments
+	OptimizeProcessForSecurity();
 
 	Game::DontSetExceptionHandler = dontSetExceptionHandler;
 	Debug::Log("ExceptionHandler is %s .\n", dontSetExceptionHandler ? "not present" : "present");
@@ -906,6 +954,14 @@ void Phobos::ExeTerminate()
 
 	if(!Phobos::Otamaa::ExeTerminated){
 		Phobos::Otamaa::ExeTerminated = true;
+
+		for (auto& datas : Patch::ModuleDatas) {
+			if (datas.Handle != INVALID_HANDLE_VALUE) {
+				CloseHandle(datas.Handle);
+			}
+		}
+
+		Patch::ModuleDatas.clear();
 	}
 }
 
