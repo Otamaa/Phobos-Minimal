@@ -225,7 +225,7 @@ void UnitDeliveryStateMachine::PlaceUnits()
 				}
 				else
 				{
-					Debug::LogInfo(__FUNCTION__);
+					//Debug::LogInfo(__FUNCTION__);
 					TechnoExtData::HandleRemove(Item, nullptr, true, true);
 					//Item->UnInit();
 				}

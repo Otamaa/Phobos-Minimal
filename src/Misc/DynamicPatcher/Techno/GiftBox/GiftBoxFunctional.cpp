@@ -80,7 +80,7 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 		if (pTypeExt->MyGiftBoxData.Remove)
 		{
 			pExt->AttachedToObject->Limbo();
-			Debug::LogInfo(__FUNCTION__" Called ");
+			//Debug::LogInfo(__FUNCTION__" Called ");
 			TechnoExtData::HandleRemove(pExt->AttachedToObject,nullptr , false , false);
 			return;
 		}

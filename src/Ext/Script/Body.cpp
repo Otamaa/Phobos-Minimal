@@ -476,6 +476,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			ScriptExtData::ForceGlobalOnlyTargetHouseEnemy(pTeam, -1);
 			break;
 		}
+
 		case PhobosScripts::ChangeTeamGroup:
 		{
 			//	ScriptExtData::TeamMemberSetGroup(pTeam, argument);
@@ -483,7 +484,6 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			pTeam->StepCompleted = true;
 			break;
 		}
-		//TODO
 		case PhobosScripts::DistributedLoading:
 		{
 			//ScriptExtData::DistributedLoadOntoTransport(pTeam, argument); //which branch is this again ?
@@ -505,6 +505,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			pTeam->StepCompleted = true;
 			break;
 		}
+
 		case PhobosScripts::AbortActionAfterSuccessKill:
 		{
 			ScriptExtData::SetAbortActionAfterSuccessKill(pTeam, -1);  //which branch is this again ?
@@ -519,7 +520,6 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		{
 			// Start Timed Jump that jumps to the same line when the countdown finish (in frames)
 			ScriptExtData::RepairDestroyedBridge(pTeam, -1);  //which branch is this again ?
-			Debug::LogInfo("Team[{} - {} , Script [{} - {}] Action [{}] - No AttachedFunction", (void*)pTeam, pTeam->get_ID(), (void*)pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), (int)action);
 			pTeam->StepCompleted = true;
 			break;
 		}

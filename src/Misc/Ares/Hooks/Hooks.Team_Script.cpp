@@ -46,7 +46,7 @@ ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 	return 0x65DBD0;
 }
 
-ASMJIT_PATCH(0x6E9443, TeamClass_AI_HandleAres, 8)
+ASMJIT_PATCH(0x6E9443, TeamClass_AI_Additionals, 8)
 {
 	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
 	GET(TeamClass*, pThis, ESI);

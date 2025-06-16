@@ -3897,7 +3897,7 @@ void TechnoExtData::UpdateEatPassengers()
 
 
 					pPassenger->RegisterDestruction(pDelType->DontScore ? nullptr : pThis);
-					Debug::LogInfo(__FUNCTION__" Called ");
+					//Debug::LogInfo(__FUNCTION__" Called ");
 					TechnoExtData::HandleRemove(pPassenger, pDelType->DontScore ? nullptr : pThis, false, false);
 				}
 
@@ -3997,7 +3997,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, bool isPeaceful)
 			pThis->Limbo();
 		}
 
-		Debug::LogInfo(__FUNCTION__" (2args) Called ");
+		//Debug::LogInfo(__FUNCTION__" (2args) Called ");
 		TechnoExtData::HandleRemove(pThis, nullptr, SkipRemoveTracking, false);
 	}
 	else
@@ -4060,7 +4060,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 		if (RegisterKill)
 			pThis->RegisterKill(pThis->Owner);
 
-		Debug::LogInfo(__FUNCTION__" Called ");
+		//Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(pThis, nullptr, skiptrackingremove, false);
 
 	}break;

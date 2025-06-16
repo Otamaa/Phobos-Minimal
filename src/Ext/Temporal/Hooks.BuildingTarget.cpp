@@ -33,7 +33,7 @@ ASMJIT_PATCH(0x71A9F1, TemporalClass_Update_RemoveBuildingTarget, 0x6)
 						{
 							if ((pExt->Crashable.isset() && !pExt->Crashable) || !pAir->Crash(pThis->Owner))
 							{
-								Debug::LogInfo(__FUNCTION__" Called ");
+								//Debug::LogInfo(__FUNCTION__" Called ");
 								TechnoExtData::HandleRemove(pAir, pThis->Owner, false, false);
 							}
 						}
