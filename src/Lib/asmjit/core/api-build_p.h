@@ -1,6 +1,6 @@
 // This file is part of AsmJit project <https://asmjit.com>
 //
-// See asmjit.h or LICENSE.md for license and copyright information
+// See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
 #ifndef ASMJIT_CORE_API_BUILD_P_H_INCLUDED
@@ -62,9 +62,9 @@
 #endif
 
 // Make sure '#ifdef'ed unit tests are properly highlighted in IDE.
-//#if !defined(ASMJIT_TEST) && defined(__INTELLISENSE__)
- // #define ASMJIT_TEST
-//#endif
+#if !defined(ASMJIT_TEST) && defined(__INTELLISENSE__)
+  #define ASMJIT_TEST
+#endif
 
 // Include a unit testing package if this is a `asmjit_test_unit` build.
 #if defined(ASMJIT_TEST)

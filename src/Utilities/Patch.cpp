@@ -189,7 +189,8 @@ DWORD Patch::GetDebuggerProcessId(DWORD dwSelfProcessId)
 }
 
 void Patch::PrintAllModuleAndBaseAddr()
-{	// Get a handle to the current process
+{
+	// Get a handle to the current process
 	// Enumerate the loaded modules in the process
 	HMODULE hModules[1024];
 	DWORD cbNeeded;

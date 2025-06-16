@@ -53,6 +53,37 @@
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
+    <ClCompile Include="src\Lib\Zycore\Allocator.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Memory.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Process.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Synchronization.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Terminal.c" />
+    <ClCompile Include="src\Lib\Zycore\API\Thread.c" />
+    <ClCompile Include="src\Lib\Zycore\ArgParse.c" />
+    <ClCompile Include="src\Lib\Zycore\Bitset.c" />
+    <ClCompile Include="src\Lib\Zycore\Format.c" />
+    <ClCompile Include="src\Lib\Zycore\List.c" />
+    <ClCompile Include="src\Lib\Zycore\String.c" />
+    <ClCompile Include="src\Lib\Zycore\Vector.c" />
+    <ClCompile Include="src\Lib\Zycore\Zycore.c" />
+    <ClCompile Include="src\Lib\Zydis\Decoder.c" />
+    <ClCompile Include="src\Lib\Zydis\DecoderData.c" />
+    <ClCompile Include="src\Lib\Zydis\Disassembler.c" />
+    <ClCompile Include="src\Lib\Zydis\Encoder.c" />
+    <ClCompile Include="src\Lib\Zydis\EncoderData.c" />
+    <ClCompile Include="src\Lib\Zydis\Formatter.c" />
+    <ClCompile Include="src\Lib\Zydis\FormatterATT.c" />
+    <ClCompile Include="src\Lib\Zydis\FormatterBase.c" />
+    <ClCompile Include="src\Lib\Zydis\FormatterBuffer.c" />
+    <ClCompile Include="src\Lib\Zydis\FormatterIntel.c" />
+    <ClCompile Include="src\Lib\Zydis\MetaInfo.c" />
+    <ClCompile Include="src\Lib\Zydis\Mnemonic.c" />
+    <ClCompile Include="src\Lib\Zydis\Register.c" />
+    <ClCompile Include="src\Lib\Zydis\Segment.c" />
+    <ClCompile Include="src\Lib\Zydis\SharedData.c" />
+    <ClCompile Include="src\Lib\Zydis\String.c" />
+    <ClCompile Include="src\Lib\Zydis\Utils.c" />
+    <ClCompile Include="src\Lib\Zydis\Zydis.c" />
     <ClCompile Include="src\Misc\Ares\Audio.cpp" />
     <ClCompile Include="src\Misc\Ares\CSF.cpp" />
     <ClCompile Include="src\Misc\Ares\EVAVoices.cpp" />
@@ -578,6 +609,56 @@
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
+    <ClInclude Include="src\Lib\Zycore\Allocator.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Memory.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Process.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Synchronization.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Terminal.h" />
+    <ClInclude Include="src\Lib\Zycore\API\Thread.h" />
+    <ClInclude Include="src\Lib\Zycore\ArgParse.h" />
+    <ClInclude Include="src\Lib\Zycore\Atomic.h" />
+    <ClInclude Include="src\Lib\Zycore\Bitset.h" />
+    <ClInclude Include="src\Lib\Zycore\Comparison.h" />
+    <ClInclude Include="src\Lib\Zycore\Defines.h" />
+    <ClInclude Include="src\Lib\Zycore\Format.h" />
+    <ClInclude Include="src\Lib\Zycore\Internal\AtomicGNU.h" />
+    <ClInclude Include="src\Lib\Zycore\Internal\AtomicMSVC.h" />
+    <ClInclude Include="src\Lib\Zycore\LibC.h" />
+    <ClInclude Include="src\Lib\Zycore\List.h" />
+    <ClInclude Include="src\Lib\Zycore\Object.h" />
+    <ClInclude Include="src\Lib\Zycore\Status.h" />
+    <ClInclude Include="src\Lib\Zycore\String.h" />
+    <ClInclude Include="src\Lib\Zycore\Types.h" />
+    <ClInclude Include="src\Lib\Zycore\Vector.h" />
+    <ClInclude Include="src\Lib\Zycore\Zycore.h" />
+    <ClInclude Include="src\Lib\Zydis\Decoder.h" />
+    <ClInclude Include="src\Lib\Zydis\DecoderTypes.h" />
+    <ClInclude Include="src\Lib\Zydis\Defines.h" />
+    <ClInclude Include="src\Lib\Zydis\Disassembler.h" />
+    <ClInclude Include="src\Lib\Zydis\Encoder.h" />
+    <ClInclude Include="src\Lib\Zydis\Formatter.h" />
+    <ClInclude Include="src\Lib\Zydis\FormatterBuffer.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumInstructionCategory.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumISAExt.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumISASet.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumMnemonic.h" />
+    <ClInclude Include="src\Lib\Zydis\Generated\EnumRegister.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\DecoderData.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\EncoderData.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\FormatterATT.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\FormatterBase.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\FormatterIntel.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\SharedData.h" />
+    <ClInclude Include="src\Lib\Zydis\Internal\String.h" />
+    <ClInclude Include="src\Lib\Zydis\MetaInfo.h" />
+    <ClInclude Include="src\Lib\Zydis\Mnemonic.h" />
+    <ClInclude Include="src\Lib\Zydis\Register.h" />
+    <ClInclude Include="src\Lib\Zydis\Segment.h" />
+    <ClInclude Include="src\Lib\Zydis\SharedTypes.h" />
+    <ClInclude Include="src\Lib\Zydis\ShortString.h" />
+    <ClInclude Include="src\Lib\Zydis\Status.h" />
+    <ClInclude Include="src\Lib\Zydis\Utils.h" />
+    <ClInclude Include="src\Lib\Zydis\Zydis.h" />
     <ClInclude Include="src\New\AnonymousType\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Interfaces\CustomRocketLocomotionClass.h" />
@@ -1003,6 +1084,21 @@
     <None Include="cpp.hint" />
     <None Include="Debug DPFeatures\phobos.dll" />
     <None Include="sampleconfig\tools\ExtractTheAlternativeNumbering.cs" />
+    <None Include="src\Lib\Zydis\Generated\AccessedFlags.inc" />
+    <None Include="src\Lib\Zydis\Generated\DecoderTables.inc" />
+    <None Include="src\Lib\Zydis\Generated\EncoderTables.inc" />
+    <None Include="src\Lib\Zydis\Generated\EnumInstructionCategory.inc" />
+    <None Include="src\Lib\Zydis\Generated\EnumISAExt.inc" />
+    <None Include="src\Lib\Zydis\Generated\EnumISASet.inc" />
+    <None Include="src\Lib\Zydis\Generated\EnumMnemonic.inc" />
+    <None Include="src\Lib\Zydis\Generated\EnumRegister.inc" />
+    <None Include="src\Lib\Zydis\Generated\FormatterStrings.inc" />
+    <None Include="src\Lib\Zydis\Generated\GetRelInfo.inc" />
+    <None Include="src\Lib\Zydis\Generated\InstructionDefinitions.inc" />
+    <None Include="src\Lib\Zydis\Generated\InstructionEncodings.inc" />
+    <None Include="src\Lib\Zydis\Generated\OperandDefinitions.inc" />
+    <None Include="src\Lib\Zydis\Generated\RegisterClassLookup.inc" />
+    <None Include="src\Lib\Zydis\Generated\RegisterLookup.inc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />
@@ -1092,7 +1188,7 @@
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -1114,7 +1210,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
