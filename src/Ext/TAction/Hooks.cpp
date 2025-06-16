@@ -14,20 +14,25 @@
 #include <Ext/Scenario/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/HookGuard.h>
 #include <Misc/Ares/Hooks/Header.h>
 
 // we hook at the beggining of the function
 // ares hooking at the beggining of switch call
 int lastAction;
 
- ASMJIT_PATCH(0x6DD8B0, TActionClass_Execute, 0x6)
+ ASMJIT_PATCH(0x6DD8B0, TActionClass_Execute_IMPL, 0x6)
  {
+    // Otomatis recursive detection!
+    AUTO_RECURSIVE_GUARD(0x6DD8B0, "TActionClass_Execute");
+
  	GET(TActionClass*, pThis, ECX);
  	REF_STACK(ActionArgs const, args, 0x4);
 	//GET_STACK(DWORD , caller , 0x0);
 
  	enum { return_value = 0x6DD910, continue_func = 0x0 };
 
+	// Manual detection masih tetap ada sebagai backup untuk case spesifik
 	if(((int)pThis->ActionKind == 14 || (int)pThis->ActionKind == 32) ){
 
 		if (lastAction == (int)pThis->ActionKind)

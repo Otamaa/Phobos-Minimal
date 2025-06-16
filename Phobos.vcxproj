@@ -570,6 +570,7 @@
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
+    <ClCompile Include="src\Utilities\CallStack.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
     <ClCompile Include="src\Utilities\CSFText.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
@@ -1009,8 +1010,10 @@
     <ClInclude Include="src\Utilities\Anchor.h" />
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
+    <ClInclude Include="src\Utilities\CallStack.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
     <ClInclude Include="src\Utilities\CSFText.h" />
+    <ClInclude Include="src\Utilities\HookGuard.h" />
     <ClInclude Include="src\Utilities\Enumerable.h" />
     <ClInclude Include="src\Ext\Aircraft\Body.h" />
     <ClInclude Include="src\Ext\AnimType\Body.h" />
