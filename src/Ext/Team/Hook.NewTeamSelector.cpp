@@ -8,6 +8,8 @@
 
 #include <AITriggerTypeClass.h>
 
+#include <Utilities/HookGuard.h>
+
 // TODO :
 // - Optimization a lot of duplicate code ,..
 // - Type convert probably not handled properly yet
@@ -1275,8 +1277,9 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 	return true;
 }
 
-ASMJIT_PATCH(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
+ASMJIT_PATCH_GUARDED(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
 {
+	AUTO_RECURSIVE_GUARD(0x4F8A27, "TeamTypeClass_SuggestedNewTeam_NewTeamsSelector");
 	enum { UseOriginalSelector = 0x4F8A63, SkipCode = 0x4F8B08 };
 	GET(HouseClass*, pHouse, ESI);
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Windows.h>
 #include <unordered_map>
 #include <chrono>
 #include <string>
@@ -8,12 +9,15 @@
 class CallStackTracker
 {
 private:
-    static thread_local std::unordered_map<DWORD, int> CallCounts;
-    static thread_local std::unordered_map<DWORD, std::chrono::steady_clock::time_point> CallTimes;
-    static thread_local std::vector<DWORD> CallStack;
+    static __declspec(thread) std::unordered_map<DWORD, int>* CallCounts;
+    static __declspec(thread) std::unordered_map<DWORD, std::chrono::steady_clock::time_point>* CallTimes;
+    static __declspec(thread) std::vector<DWORD>* CallStack;
     
     static constexpr int MAX_RECURSIVE_CALLS = 1000;
     static constexpr int MAX_CALL_TIME_MS = 5000;
+
+    static void InitializeThreadLocal();
+    static void CleanupThreadLocal();
 
 public:
     static void OnHookEnter(DWORD address, const char* funcName);
