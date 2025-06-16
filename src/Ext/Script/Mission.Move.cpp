@@ -52,7 +52,7 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 		//	pScript->CurrentMission,
 		//	(int)pScript->Type->ScriptActions[pScript->CurrentMission].Action,
 		//	pScript->Type->ScriptActions[pScript->CurrentMission].Argument,
-		//	pScript->CurrentMission + 1, 
+		//	pScript->CurrentMission + 1,
 		//	(int)pScript->Type->ScriptActions[pScript->CurrentMission + 1].Action,
 		//	pScript->Type->ScriptActions[pScript->CurrentMission + 1].Argument
 		//);
@@ -501,14 +501,13 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 				//	RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][idxsel]->ID);
 
 				ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, idxsel);
-
-		//		return;
+				return;
 			}
 		}
 	}
 
 	// This action finished
-	// pTeam->StepCompleted = true;
+	pTeam->StepCompleted = true;
 	// Debug::LogInfo("AI Scripts - Move: {}] {}] (line: {} = {},{}) Failed to pick a random Techno from the list index [AITargetTypes][{}]! Valid Technos in the list: {}",
 	// 	pTeam->Type->ID,
 	// 	pTeam->CurrentScript->Type->ID,
