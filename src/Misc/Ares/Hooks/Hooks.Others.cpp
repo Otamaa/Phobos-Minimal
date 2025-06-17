@@ -107,9 +107,9 @@ FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& th
     int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
     int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
 
-    int x_distance = our_cell_x - their_cell_x;
-    int y_distance = our_cell_y - their_cell_y;
-    return x_distance * x_distance + y_distance * y_distance;
+    int x_distance = Math::abs(our_cell_x - their_cell_x);
+    int y_distance = Math::abs(our_cell_y - their_cell_y);
+    return (x_distance * x_distance) + (y_distance * y_distance);
 
 	//return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
 }

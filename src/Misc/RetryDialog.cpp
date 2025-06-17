@@ -30,9 +30,9 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		// Did you??? NO, YOU DIDN'T. Bruhhhh
 		switch (WWMessageBox::Instance().Process(
 			StringTable::FetchString(GameStrings::TXT_TO_REPLAY()),
-			StringTable::FetchString(GameStrings::TXT_OK()),
 			StringTable::FetchString("GUI:LOADGAME"),
-			StringTable::FetchString(GameStrings::TXT_CANCEL())))
+			StringTable::FetchString(GameStrings::TXT_CANCEL()),
+			StringTable::FetchString(GameStrings::TXT_OK())))
 		{
 			case WWMessageBox::Result::Button3:
 			return OK;

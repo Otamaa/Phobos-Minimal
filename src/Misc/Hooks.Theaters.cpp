@@ -6,16 +6,10 @@
 #include <MixFileClass.h>
 #include <Utilities/Macro.h>
 
-#define CURRENT_THEATER (*ScenarioClass::Instance).Theater
-
 #ifndef DISABLE_THEATER_HOOKS
 ASMJIT_PATCH(0x48DBE0, TheaterTypeClass_FindIndex, 0x5)
 {
 	GET(char*, nTheaterName, ECX);
-
-	if (TheaterTypeClass::Array.empty())
-		TheaterTypeClass::LoadAllTheatersToArray();
-
 	R->EAX<int>(TheaterTypeClass::FindIndexById(nTheaterName));
 	return 0x48DC12;
 }
@@ -27,7 +21,8 @@ ASMJIT_PATCH(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 	LEA_STACK(char*, outBuffs, 0x6B0);
 	LEA_STACK(CCFileClass*, file_c, 0xA10 - 0x668);
 
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 
 	char* buffer = nullptr;
 	if (auto& data = pTheater->PaletteISO)
@@ -69,7 +64,8 @@ ASMJIT_PATCH(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 
 ASMJIT_PATCH(0x5454F0, IsometricTileTypeClass_ReadINI_TerrainControl, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 
 	if (auto& data = pTheater->TerrainControl)
 	{
@@ -84,7 +80,8 @@ ASMJIT_PATCH(0x5454F0, IsometricTileTypeClass_ReadINI_TerrainControl, 0x6)
 
 ASMJIT_PATCH(0x5452F2, IsometricTileTypeClass_TheaterType_Slope, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
 	return 0x5452F8;
 }
@@ -92,14 +89,16 @@ ASMJIT_PATCH(0x5452F2, IsometricTileTypeClass_TheaterType_Slope, 0x6)
 //here theater index is multiplied by `sizeof(Theater)` !
 ASMJIT_PATCH(0x546662, IsometricTileTypeClass_TheaterType_makepath, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->EAX((pTheater->IsometricTileTypeExtension ? pTheater->IsometricTileTypeExtension : pTheater->Extension).data());
 	return 0x546668;
 }
 
 ASMJIT_PATCH(0x546753, IsometricTileTypeClass_TheaterType_MMx, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->EAX(pTheater->MMExtension.data());
 	return 0x546759;
 }
@@ -110,7 +109,9 @@ ASMJIT_PATCH(0x546833, IsometricTileTypeClass_FallbackTheater, 0x5)
 	LEA_STACK(char*, pBuffer, STACK_OFFS(0x10, 0x2C0));
 	GET_STACK(bool, bSomething, STACK_OFFS(0x10, 0x9FE));
 
-	CRT::_makepath(pBuffer, 0, 0, pFileName, TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->FallbackTheaterExtension.data());
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+	CRT::_makepath(pBuffer, 0, 0, pFileName, pTheater->FallbackTheaterExtension.data());
 	R->AL(bSomething);
 	return 0x54684F;
 }
@@ -253,7 +254,7 @@ ASMJIT_PATCH(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 		{
 			if (c1 == 'A' || c1 == 'T')
 			{
-				basename[1] = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)
+				basename[1] = TheaterTypeClass::FindFromTheaterType_NoCheck(Theater)
 					->Letter.data()[0];
 			}
 		}
@@ -279,21 +280,15 @@ ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
 	GET(TheaterType, nType, EDI);
 
-	Debug::LogInfo("Init For Theater [{}]", (void*)nType);
+	const auto thName = nType == TheaterType::None ? "unknown" : TheaterTypeClass::Array[(size_t)nType]->Name.data();
+	Debug::LogInfo("Init For Theater [{} - {}]", (int)nType , thName);
 	ScenarioClass::Instance->Theater = nType;
 	typedef int(*wsprintfA_ptr)(LPSTR, LPCSTR, ...);
 	GET(wsprintfA_ptr, pFunc, EBP);
 
-	if (nType == TheaterType::None)
-	{
-		//for some stupid reason this return to invalid
-		//that mean it not parsed properly ?
-		Debug::LogInfo("TheaterType is invalid ! , fallback to Temperate!");
-		ScenarioClass::Instance->Theater = TheaterType::Temperate;
-		nType = TheaterType::Temperate;
+	if (nType == TheaterType::None) {
+		Debug::FatalError("TheaterType is invalid ! , fallback to Temperate!");
 	}
-
-	//PaletteManager::InitDefaultConverts();
 
 	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(nType);
 
@@ -355,7 +350,8 @@ ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 ASMJIT_PATCH(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 {
 	enum { AllocateMix = 0x534AA6, NextFunc = 0x534AD6 };
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	//this one usefull for loading additional mix files
 	return pTheater->RootMixMD || pTheater->IsArctic ?
 		AllocateMix : NextFunc;
@@ -364,31 +360,37 @@ ASMJIT_PATCH(0x534A9D, ScenarioClass_initTheater_TheaterType_ArticCheck, 0x6)
 #pragma endregion
 
 #pragma region replacedMakepath
+//#pragma optimize("", off )
+
 ////AnimType
 ASMJIT_PATCH(0x4279BB, AnimTypeClass_TheaterSuffix_1, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->EDX((pTheater->AnimTypeExtension ? pTheater->AnimTypeExtension : pTheater->Extension).data());
 	return 0x4279C1;
 }
 
 ASMJIT_PATCH(0x427AF1, AnimTypeClass_TheaterSuffix_2, 0x5)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->EAX((pTheater->AnimTypeExtension ? pTheater->AnimTypeExtension : pTheater->Extension).data());
 	return 0x427AF6;
 }
 
 ASMJIT_PATCH(0x428903, AnimTypeClass_TheaterSuffix_3, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->ECX((pTheater->AnimTypeExtension ? pTheater->AnimTypeExtension : pTheater->Extension).data());
 	return 0x428909;
 }
 
 ASMJIT_PATCH(0x428CBF, AnimTypeClass_TheaterSuffix_4, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->EAX((pTheater->AnimTypeExtension ? pTheater->AnimTypeExtension : pTheater->Extension).data());
 	return 0x428CC5;
 }
@@ -396,14 +398,16 @@ ASMJIT_PATCH(0x428CBF, AnimTypeClass_TheaterSuffix_4, 0x6)
 //BuildingType
 ASMJIT_PATCH(0x45E9FD, BuildingTypeClass_TheaterSuffix_1, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->ECX((pTheater->BuildingTypeExtension ? pTheater->BuildingTypeExtension : pTheater->Extension).data());
 	return 0x45EA03;
 }
 
 ASMJIT_PATCH(0x45EA60, BuildingTypeClass_TheaterSuffix_2, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->ECX((pTheater->BuildingTypeExtension ? pTheater->BuildingTypeExtension : pTheater->Extension).data());
 	return 0x45EA66;
 }
@@ -411,21 +415,24 @@ ASMJIT_PATCH(0x45EA60, BuildingTypeClass_TheaterSuffix_2, 0x6)
 //OverlayType
 ASMJIT_PATCH(0x5FE673, OverlayTypeClass_TheaterSuffix_1, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->ECX((pTheater->OverlayTypeExtension ? pTheater->OverlayTypeExtension : pTheater->Extension).data());
 	return 0x5FE679;
 }
 
 ASMJIT_PATCH(0x5FEB94, OverlayTypeClass_TheaterSuffix_2, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->ECX((pTheater->OverlayTypeExtension ? pTheater->OverlayTypeExtension : pTheater->Extension).data());
 	return 0x5FEB9A;
 }
 
 ASMJIT_PATCH(0x5FEE42, OverlayTypeClass_TheaterSuffix_3, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->EDX((pTheater->OverlayTypeExtension ? pTheater->OverlayTypeExtension : pTheater->Extension).data());
 	return 0x5FEE48;
 }
@@ -433,14 +440,16 @@ ASMJIT_PATCH(0x5FEE42, OverlayTypeClass_TheaterSuffix_3, 0x6)
 //SmudgeTypes
 ASMJIT_PATCH(0x6B54CF, SmudgeTypesClass_TheaterSuffix_1, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->ECX((pTheater->SmudgeTypeExtension ? pTheater->SmudgeTypeExtension : pTheater->Extension).data());
 	return 0x6B54D5;
 }
 
 ASMJIT_PATCH(0x6B57A7, SmudgeTypesClass_TheaterSuffix_2, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->ECX((pTheater->SmudgeTypeExtension ? pTheater->SmudgeTypeExtension : pTheater->Extension).data());
 	return 0x6B57AD;
 }
@@ -448,7 +457,8 @@ ASMJIT_PATCH(0x6B57A7, SmudgeTypesClass_TheaterSuffix_2, 0x6)
 //TerrainType
 ASMJIT_PATCH(0x71DCE4, TerrainTypeClass_TheaterSuffix, 0x6)
 {
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER);
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
 	R->ECX((pTheater->TerrainTypeExtension ? pTheater->TerrainTypeExtension : pTheater->Extension).data());
 	return 0x71DCEA;
 }
@@ -456,10 +466,13 @@ ASMJIT_PATCH(0x71DCE4, TerrainTypeClass_TheaterSuffix, 0x6)
 //objectType , this maybe alredy overriden by ares
 ASMJIT_PATCH(0x5F915C, ObjectTypeClass_TheaterSuffix_3, 0x6)
 {
-	R->EDX(TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Extension.data());
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+	R->EDX(pTheater->Extension.data());
 	return 0x5F9162;
 }
 
+//#pragma optimize("", on )
 #pragma endregion
 
 ASMJIT_PATCH(0x6DAE3E, TacticalClass_DrawWaypoints_SelectColor, 0x8)
@@ -568,8 +581,11 @@ ASMJIT_PATCH(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	GET_STACK(char*, pOriginalName, STACK_OFFS(0x424, -0x4));
 	LEA_STACK(char*, pNameProcessed, STACK_OFFS(0x424, 0x400));
 
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+
 	CRT::strcpy(pNameProcessed, pOriginalName);
-	CRT::strcat(pNameProcessed, TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->Extension.data());
+	CRT::strcat(pNameProcessed, pTheater->Extension.data());
 	CRT::strcat(pNameProcessed, GameStrings::DOT_SEPARATOR());
 	CRT::strcat(pNameProcessed, GameStrings::PAL());
 	CRT::strupr(pNameProcessed);
@@ -601,7 +617,10 @@ ASMJIT_PATCH(0x74D450, TheaterTypeClass_ProcessVeinhole, 0x7)
 
 ASMJIT_PATCH(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 {
-	if (auto const& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteUnit)
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+
+	if (auto const& data = pTheater->PaletteUnit)
 	{
 		R->ESI(FakeFileLoader::_Retrieve(data.c_str(), false));
 		return 0x534CCA;
@@ -612,7 +631,10 @@ ASMJIT_PATCH(0x534CA9, Init_Theaters_SetPaletteUnit, 0x8)
 
 ASMJIT_PATCH(0x534BEE, ScenarioClass_initTheater_TheaterType_OverlayPalette, 0x5)
 {
-	if (const auto& data = TheaterTypeClass::FindFromTheaterType_NoCheck(CURRENT_THEATER)->PaletteOverlay)
+	auto theater = ScenarioClass::Instance->Theater;
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(theater);
+
+	if (const auto& data = pTheater->PaletteOverlay)
 	{
 		R->EAX(FakeFileLoader::_Retrieve(data.c_str(), false));
 		return 0x534C09;
@@ -626,7 +648,15 @@ ASMJIT_PATCH(0x546C8B, IsometricTileTypeClass_ReadData_LunarLimitation, 0x8)
 	GET_STACK(TheaterType, theater, 0xB4);
 	return TheaterTypeClass::FindFromTheaterType_NoCheck(theater)->IsLunar ? 0x546C95 : 0x546CBF;
 }
-
+// #pragma optimize("", off )
+// ASMJIT_PATCH(0x47589F, CCINIClass_ReadTheater, 0x5) {
+// 	GET(const char*, pBuffer, ECX);
+// 	TheaterTypeClass::AddDefaults();
+// 	auto idx = TheaterTypeClass::FindIndexById(pBuffer);
+// 	R->EAX(idx);
+// 	return 0x4758A4;
+// }
+// #pragma optimize("", on )
 #undef CURRENT_THEATER
 
 #endif
