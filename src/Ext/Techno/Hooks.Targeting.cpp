@@ -7,6 +7,7 @@
 ASMJIT_PATCH_GUARDED(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 {
 	AUTO_RECURSIVE_GUARD(0x6F7E24, "TechnoClass_EvaluateObject_MapZone");
+	// RE-ENABLED: Target evaluation needs recursive guard to prevent infinite loops during Hunt missions
 	
 	enum { AllowedObject = 0x6F7EA2, DisallowedObject = 0x6F894F };
 
@@ -26,6 +27,7 @@ ASMJIT_PATCH_GUARDED(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 ASMJIT_PATCH_GUARDED(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 {
 	AUTO_RECURSIVE_GUARD(0x70982C, "TechnoClass_TargetAndEstimateDamage_ScanDelay");
+	// RE-ENABLED: Hunt targeting needs recursive guard to prevent infinite loops during Hunt missions
 	
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, threat, 0x1C);

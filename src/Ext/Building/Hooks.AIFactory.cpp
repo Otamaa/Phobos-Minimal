@@ -156,14 +156,33 @@ void HouseExtData::UpdateVehicleProduction()
 		//		Teams.push_back(currentTeam);
 		int teamCreationFrame = currentTeam->CreationFrame;
 
-		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength)
-			&& (currentTeam->IsForcedActive || currentTeam->IsHasBeen))
+		// Only produce for teams that actually need reinforcement
+		// Fixed: Better logic to prevent infinite team production
+		bool shouldProduce = (currentTeam->Type->Reinforce && !currentTeam->IsFullStrength) || 
+			(!currentTeam->IsForcedActive && !currentTeam->IsHasBeen && !currentTeam->IsFullStrength);
+		
+		if (!shouldProduce)
 		{
 			continue;
 		}
 
 		DynamicVectorClass<TechnoTypeClass*> taskForceMembers {};
 		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
+
+		// Calculate team completion percentage for priority weighting
+		int totalRequired = 0;
+		int totalMissing = taskForceMembers.Count;
+		
+		// Count total taskforce members
+		if (currentTeam->Type->TaskForce) {
+			for (int i = 0; i < currentTeam->Type->TaskForce->CountEntries; ++i) {
+				totalRequired += currentTeam->Type->TaskForce->Entries[i].Amount;
+			}
+		}
+		
+		// Teams closer to completion get higher priority (weight multiplier)
+		double completionRatio = totalRequired > 0 ? (double)(totalRequired - totalMissing) / totalRequired : 0.0;
+		int priorityWeight = 1 + (int)(completionRatio * 3); // 1-4x weight based on completion
 
 		for (auto currentMember : taskForceMembers)
 		{
@@ -175,7 +194,9 @@ void HouseExtData::UpdateVehicleProduction()
 				continue;
 
 			const auto index = static_cast<size_t>(((UnitTypeClass*)currentMember)->ArrayIndex);
-			++values[index];
+			
+			// Apply priority weight - teams closer to completion get more priority
+			values[index] += priorityWeight;
 
 			//			if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G")) {
 			//				Debug::LogInfo("0100003I Unit %s  idx %d AddedValueResult %d", currentMember->ID, index, values[index]);
@@ -266,13 +287,25 @@ void HouseExtData::UpdateVehicleProduction()
 
 	if (!skipGround)
 	{
+		// IMPROVED: Prioritize completing existing teams first
+		// Higher difficulty = more focus on completing teams
+		int focusThreshold = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
+		
+		// Boost focus threshold for better team completion consistency
+		focusThreshold = std::min(95, focusThreshold + 25);
+
 		int result_ground = earliestTypenameIndex;
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) < focusThreshold && earliestTypenameIndex >= 0)
 		{
-			if (!bestChoices.empty())
-				result_ground = bestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoices.size() - 1))];
-			else
-				result_ground = -1;
+			result_ground = earliestTypenameIndex; // Focus on earliest team
+		}
+		else if (!bestChoices.empty())
+		{
+			result_ground = bestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoices.size() - 1))];
+		}
+		else
+		{
+			result_ground = -1;
 		}
 
 		pThis->ProducingUnitTypeIndex = result_ground;
@@ -280,13 +313,24 @@ void HouseExtData::UpdateVehicleProduction()
 
 	if (!skipNaval)
 	{
+		// IMPROVED: Same logic for naval units - prioritize completing existing teams first
+		int focusThresholdNaval = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
+		
+		// Boost focus threshold for better team completion consistency
+		focusThresholdNaval = std::min(95, focusThresholdNaval + 25);
+
 		int result_naval = earliestTypenameIndexNaval;
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) < focusThresholdNaval && earliestTypenameIndexNaval >= 0)
 		{
-			if (!bestChoicesNaval.empty())
-				result_naval = bestChoicesNaval[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoicesNaval.size() - 1))];
-			else
-				result_naval = -1;
+			result_naval = earliestTypenameIndexNaval; // Focus on earliest team
+		}
+		else if (!bestChoicesNaval.empty())
+		{
+			result_naval = bestChoicesNaval[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoicesNaval.size() - 1))];
+		}
+		else
+		{
+			result_naval = -1;
 		}
 
 		this->ProducingNavalUnitTypeIndex = result_naval;
@@ -636,10 +680,31 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
 
-		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
+		// Only produce for teams that actually need reinforcement
+		// Fixed: Better logic to prevent infinite team production
+		// IMPROVED: Add priority for teams that are closer to completion
+		bool shouldProduce = (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength) || 
+			(!CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen && !CurrentTeam->IsFullStrength);
+		
+		if (shouldProduce)
 		{
 			DynamicVectorClass<TechnoTypeClass*> arr {};
 			CurrentTeam->GetTaskForceMissingMemberTypes(arr);
+
+			// Calculate team completion percentage for priority weighting
+			int totalRequired = 0;
+			int totalMissing = arr.Count;
+			
+			// Count total taskforce members
+			if (CurrentTeam->Type->TaskForce) {
+				for (int i = 0; i < CurrentTeam->Type->TaskForce->CountEntries; ++i) {
+					totalRequired += CurrentTeam->Type->TaskForce->Entries[i].Amount;
+				}
+			}
+			
+			// Teams closer to completion get higher priority (weight multiplier)
+			double completionRatio = totalRequired > 0 ? (double)(totalRequired - totalMissing) / totalRequired : 0.0;
+			int priorityWeight = 1 + (int)(completionRatio * 3); // 1-4x weight based on completion
 
 			for (auto pMember : arr)
 			{
@@ -651,7 +716,8 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 
 				auto const Idx = static_cast<unsigned int>(((Ttype*)pMember)->ArrayIndex);
 
-				++Values[Idx];
+				// Apply priority weight - teams closer to completion get more priority
+				Values[Idx] += priorityWeight;
 				if (TeamCreationFrame < CreationFrames[Idx])
 				{
 					CreationFrames[Idx] = TeamCreationFrame;
@@ -727,7 +793,14 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 
 	const auto AIDiff = static_cast<int>(pHouse->GetAIDifficultyIndex());
 
-	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
+	// IMPROVED: Prioritize completing existing teams first
+	// Higher difficulty = more focus on completing teams
+	int focusThreshold = RulesClass::Instance->FillEarliestTeamProbability[AIDiff];
+	
+	// Boost focus threshold for better team completion consistency
+	focusThreshold = std::min(95, focusThreshold + 25);
+
+	if (ScenarioClass::Instance->Random.RandomFromMax(99) < focusThreshold && EarliestTypenameIndex >= 0)
 		return EarliestTypenameIndex;
 
 	if (!BestChoices.empty())

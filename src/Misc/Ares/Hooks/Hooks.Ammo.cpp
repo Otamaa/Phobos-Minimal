@@ -28,6 +28,7 @@
 ASMJIT_PATCH_GUARDED(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 {
 	AUTO_RECURSIVE_GUARD(0x6FCA0D, "TechnoClass_CanFire_Ammo");
+	// RE-ENABLED: CanFire needs recursive guard to prevent infinite loops during Hunt missions
 	
 	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA26u };
 	GET(TechnoClass* const, pThis, ESI);
@@ -106,6 +107,7 @@ ASMJIT_PATCH(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 ASMJIT_PATCH_GUARDED(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
 {
 	AUTO_RECURSIVE_GUARD(0x6F3410, "TechnoClass_SelectWeapon_NoAmmoWeapon");
+	// RE-ENABLED: SelectWeapon needs recursive guard to prevent infinite loops during Hunt missions
 	
 	GET(TechnoClass*, pThis, ESI);
 	const auto pType = pThis->GetTechnoType();

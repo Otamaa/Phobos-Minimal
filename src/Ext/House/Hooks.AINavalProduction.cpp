@@ -3,6 +3,8 @@
 #include <FactoryClass.h>
 #include <TEventClass.h>
 
+#include <Utilities/HookGuard.h>
+
 // AI Naval queue bugfix hooks
 
 namespace ExitObjectTemp
@@ -148,8 +150,9 @@ ASMJIT_PATCH(0x4CA0B1, FactoryClass_Abandon_NavalProductionFix, 0x6)
 	return 0x4CA0B7;
 }
 
-ASMJIT_PATCH(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
+ASMJIT_PATCH_GUARDED(0x4F91A4, HouseClass_AI_BuildingProductionCheck, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x4F91A4, "HouseClass_AI_BuildingProductionCheck");
 	enum { SkipGameCode = 0x4F9265, CheckBuildingProduction = 0x4F9240 };
 
 	GET(FakeHouseClass* const, pThis, ESI);

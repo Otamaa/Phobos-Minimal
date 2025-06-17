@@ -4524,8 +4524,9 @@ ASMJIT_PATCH(0x522A09, InfantryClass_EnteredThing_Assaulter, 0x6)
 }
 
 //51F580
-ASMJIT_PATCH(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
+ASMJIT_PATCH_GUARDED(0x51F580, InfantryClass_MissionHunt_Assaulter, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x51F580, "InfantryClass_MissionHunt_Assaulter");
 	enum { retTrue = 0x51F58A, retFalse = 0x51F5C0 };
 
 	GET(InfantryClass*, pThis, ESI);
@@ -5070,8 +5071,9 @@ ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 
 #include <SlaveManagerClass.h>
 
-ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
+ASMJIT_PATCH_GUARDED(0x6EDA50, Team_DoMission_Harvest, 0x5)
 {
+	AUTO_RECURSIVE_GUARD(0x6EDA50, "Team_DoMission_Harvest");
 	GET(Mission, setTo, EBX);
 	GET(FootClass*, pMember, ESI);
 
@@ -5393,8 +5395,10 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CBC31, FakeAStarPathFinderClass::__AStarClass__Fin
 DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::Find_Path_Hierarchical)
 #endif
 
-ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
+ASMJIT_PATCH_GUARDED(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 {
+	AUTO_RECURSIVE_GUARD(0x42C2A7, "AStarClass_FindHierarcial_Entry");
+	
 	GET(TechnoClass*, pTech, ESI);
 	GET_BASE(CellStruct*, from, 0x8);
 	GET_BASE(CellStruct*, to, 0xC);
@@ -5405,8 +5409,10 @@ ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x42C954, AStarClass_FindPath_Entry, 0x7)
+ASMJIT_PATCH_GUARDED(0x42C954, AStarClass_FindPath_Entry, 0x7)
 {
+	AUTO_RECURSIVE_GUARD(0x42C954, "AStarClass_FindPath_Entry");
+	
 	GET_STACK(TechnoClass*, pTech, 0x3C);
 	GET_STACK(CellStruct*, from, 0x34);
 	GET_STACK(CellStruct*, to, 0x38);
@@ -5617,8 +5623,10 @@ ASMJIT_PATCH(0x453E02, BuildingClass_Clear_Occupy_Spot_Skip, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
+ASMJIT_PATCH_GUARDED(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
 {
+	AUTO_RECURSIVE_GUARD(0x418072, "AircraftClass_Mission_Attack_PickAttackLocation");
+	
 	GET(AircraftClass*, pAir, ESI);
 
 	if (!pAir->Type->MissileSpawn && !pAir->Type->Fighter && !pAir->Is_Strafe())

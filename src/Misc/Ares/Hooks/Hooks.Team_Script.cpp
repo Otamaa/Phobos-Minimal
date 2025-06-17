@@ -116,8 +116,9 @@ ASMJIT_PATCH_GUARDED(0x6E9443, TeamClass_AI_Additionals, 8)
 	return ScriptExtData::ProcessScriptActions(pThis) ? ReturnFunc : Continue;
 }
 
-ASMJIT_PATCH(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
+ASMJIT_PATCH_GUARDED(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x6EF8A1, "TeamClass_GatherAtEnemyBase_Distance");
 	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x5C, 0x34));
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
 	GET(RulesClass*, pRules, ECX);
@@ -129,8 +130,9 @@ ASMJIT_PATCH(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 	return 0x6EF8A7;
 }
 
-ASMJIT_PATCH(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
+ASMJIT_PATCH_GUARDED(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x6EFB69, "TeamClass_GatherAtFriendlyBase_Distance");
 	//GET_STACK(TeamClass*, pTeam, 0x48 - 0x2C);
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
 	GET(RulesClass*, pRules, ECX);

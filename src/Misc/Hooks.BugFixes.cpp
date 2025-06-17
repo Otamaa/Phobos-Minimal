@@ -25,6 +25,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/EnumFunctions.h>
+#include <Utilities/HookGuard.h>
 
 #include <Locomotor/Cast.h>
 
@@ -337,8 +338,9 @@ ASMJIT_PATCH(0x710021, FootClass_ImbueLocomotor_SpawnRate, 0x5)
 }
 
 // Mitigate DeploysInto vehicles getting stuck trying to deploy while using deploy AI script action
-ASMJIT_PATCH(0x6ED6E5, TeamClass_TMission_Deploy_DeploysInto, 0x6)
+ASMJIT_PATCH_GUARDED(0x6ED6E5, TeamClass_TMission_Deploy_DeploysInto, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x6ED6E5, "TeamClass_TMission_Deploy_DeploysInto");
 	GET(UnitClass*, pThis, ESI);
 
 	// Handle searching for free space in Hunt mission handler
@@ -348,8 +350,9 @@ ASMJIT_PATCH(0x6ED6E5, TeamClass_TMission_Deploy_DeploysInto, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
+ASMJIT_PATCH_GUARDED(0x73EFD8, UnitClass_Mission_Hunt_DeploysInto, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x73EFD8, "UnitClass_Mission_Hunt_DeploysInto");
 	enum { SkipToDeploy = 0x73F015 };
 
 	GET(UnitClass*, pThis, ESI);

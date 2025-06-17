@@ -1,11 +1,14 @@
 #include "Body.h"
+#include <Utilities/HookGuard.h>
 
 #include <Ext/TechnoType/Body.h>
 
 // Take NewINIFormat into account just like the other classes does
 // Author: secsome
-ASMJIT_PATCH(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
+ASMJIT_PATCH_GUARDED(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x6E95B3, "TeamClass_AI_MoveToCell");
+	
 	if (!R->BL())
 		return 0x6E95A4;
 

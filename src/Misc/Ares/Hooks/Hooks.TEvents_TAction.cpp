@@ -26,6 +26,7 @@
 //#include <Lib/gcem/gcem.hpp>
 
 #include <Notifications.h>
+#include <Utilities/HookGuard.h>
 
 #include "Header.h"
 
@@ -115,8 +116,10 @@ ASMJIT_PATCH(0x6E3B60, TActionClass_GetMode, 8)
 
 }
 
-ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
+ASMJIT_PATCH_GUARDED(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
 {
+	AUTO_RECURSIVE_GUARD(0x6DD8D7, "TActionClass_Execute_Ares");
+	
 	GET(TActionClass* const, pAction, ESI);
 	GET(ObjectClass* const, pObject, ECX);
 

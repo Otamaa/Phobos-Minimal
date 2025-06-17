@@ -1,4 +1,5 @@
 #include "Hooks.Otamaa.h"
+#include <Utilities/HookGuard.h>
 
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Building/Body.h>
@@ -9,8 +10,10 @@
 #include <HouseClass.h>
 
 #ifdef _Teamstuffs
-ASMJIT_PATCH(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
+ASMJIT_PATCH_GUARDED(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x6EBB86, "TeamClass_MoveToFocus_IsInStray");
+	
 	GET(FootClass*, pFoot, ESI);
 	GET(TeamClass*, pThis, EBP);
 

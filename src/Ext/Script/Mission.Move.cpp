@@ -427,7 +427,7 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 		//return;
 	}
 
-	// pTeam->StepCompleted = true;
+	pTeam->StepCompleted = true; // FIXED: This was causing teams to never complete!
 	// Debug::LogInfo("AI Scripts - Mission_Move_List: {}] {}] (line: {} = {},{}) Failed to get the list index [AITargetTypes][{}]! out of bound: {}",
 	// 	pTeam->Type->ID,
 	// 	pTeam->CurrentScript->Type->ID,

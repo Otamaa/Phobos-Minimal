@@ -4,6 +4,7 @@
 #include <Ext/Rules/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/HookGuard.h>
 
 #include <Constructable.h>
 
@@ -835,8 +836,10 @@ ASMJIT_PATCH(0x4899B3, DamageArea_DamageItemsFix2, 0x5)
 	return CheckThisObject;
 }
 
-ASMJIT_PATCH(0x489286, DamageAread, 0x6)
+ASMJIT_PATCH_GUARDED(0x489286, DamageAread, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x489286, "DamageAread");
+	
 	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
 	if (auto const pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWH))
 	{
@@ -1087,8 +1090,10 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 }
 
 // hook up the area damage delivery with chain reactions
-ASMJIT_PATCH(0x48964F, DamageArea_CellChainReaction, 5)
+ASMJIT_PATCH_GUARDED(0x48964F, DamageArea_CellChainReaction, 5)
 {
+	AUTO_RECURSIVE_GUARD(0x48964F, "DamageArea_CellChainReaction");
+	
 	GET(CellClass*, pCell, EBX);
 	pCell->ChainReaction();
 	return 0;

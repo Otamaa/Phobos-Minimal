@@ -194,6 +194,7 @@ namespace CalculatePinch
 ASMJIT_PATCH_GUARDED(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 {
 	AUTO_RECURSIVE_GUARD(0x6FDD50, "TechnoClass_FireAt_PreFire");
+	// RE-ENABLED: FireAt needs recursive guard to prevent infinite loops during Hunt missions
 	
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
@@ -281,6 +282,7 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
  ASMJIT_PATCH_GUARDED(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
 {
 	AUTO_RECURSIVE_GUARD(0x6F9039, "TechnoClass_Greatest_Threat_GuardRange");
+	// RE-ENABLED: GreatestThreat needs recursive guard to prevent infinite loops during Hunt missions
 	
 	GET(TechnoClass*, pTechno, ESI);
 	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;

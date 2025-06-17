@@ -109,6 +109,7 @@ void UpdateWebbed(FootClass* pThis)
 ASMJIT_PATCH_GUARDED(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 {
 	AUTO_RECURSIVE_GUARD(0x6F9E5B, "TechnoClass_AI_Early");
+	// RE-ENABLED: Core AI function needs recursive guard to prevent infinite loops during Hunt missions
 	
 	enum { retDead = 0x6FAFFD, Continue = 0x6F9EBB };
 
