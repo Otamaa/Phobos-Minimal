@@ -22,7 +22,7 @@ std::string filename = "\\renameinternal.lua";
 std::string LuaData::LuaDir;
 std::string CoreHandles;
 HelperedVector<std::pair<uintptr_t, std::string>> map_replaceAddrTo;
-std::string MainWindowStr;
+std::string LuaData::MainWindowStr;
 std::map<std::string, bool> SafeFiles {};
 bool IsActive;
 
@@ -790,13 +790,13 @@ void Phobos::ExecuteLua()
 
 		lua_pop(L, 1);
 
-		if (Lua.getGlobalString("MainWindowString", MainWindowStr))
+		if (Lua.getGlobalString("MainWindowString", LuaData::MainWindowStr))
 		{
-			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777D72, (uintptr_t)MainWindowStr.c_str());
-			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CC6, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CCB, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777D6D, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777D72, (uintptr_t)LuaData::MainWindowStr.c_str());
+			Patch::Apply_OFFSET(0x777CA1, (uintptr_t)LuaData::MainWindowStr.c_str());
 		}
 
 		//core part to activate , disable it for now

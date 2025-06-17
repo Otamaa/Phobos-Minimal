@@ -43,6 +43,19 @@ public:
 	virtual bool InsertCDDialog() JMP_THIS(0x479110);
 	virtual void SwapToDisk() JMP_THIS(0x4791F0);
 
+	static COMPILETIMEEVAL void SetReqCD(int cd)
+	{
+		if (CD::IsLocal()) {
+			CD::Disk = -2;
+		} else {
+			if (cd >= 0) {
+				cd = 2;
+			}
+
+			CD::Disk = cd;
+		}
+	}
+
 public:
 
 	DWORD unknown_04;
