@@ -249,7 +249,7 @@ struct HooksData {
 };
 
 // remove the comment if you want to run the dll with patched gamemd
-#define NO_SYRINGE
+//#define NO_SYRINGE
 
 bool IsRunningInAppContainer() {
 	static bool s_checked = false;

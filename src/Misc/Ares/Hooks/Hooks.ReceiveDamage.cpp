@@ -45,6 +45,7 @@
 #include <ExtraHeaders/StackVector.h>
 
 #include <Misc/PhobosGlobal.h>
+#include <Utilities/HookGuard.h>
 
 static DWORD Crashable(FootClass* pThis, TechnoTypeClass* pType, ObjectClass* pKiller)
 {
@@ -582,8 +583,10 @@ static bool IsTechnoImmuneToAffects(TechnoClass* pTechno, Rank rank, WarheadType
 	return false;
 }
 
-ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
+ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x701900, "TechnoClass_ReceiveDamage_Handle");
+	
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
@@ -1683,8 +1686,10 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4028, FakeBuildingClass::_ReceiveDamage)
 #pragma region Foot
 #include <TeamTypeClass.h>
 
-ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
+ASMJIT_PATCH_GUARDED(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 {
+	AUTO_RECURSIVE_GUARD(0x4D7330, "FootClass_ReceiveDamage_Handle");
+	
 	GET(FootClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 	DamageState _res = DamageState::Unaffected;
@@ -1773,8 +1778,10 @@ ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 
 #pragma region Aircraft
 
-ASMJIT_PATCH(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
+ASMJIT_PATCH_GUARDED(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 {
+	AUTO_RECURSIVE_GUARD(0x4165C0, "AircraftClass_ReceiveDamage_Handle");
+	
 	GET(AircraftClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
@@ -1822,8 +1829,10 @@ ASMJIT_PATCH(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 
 #pragma region Infantry
 
-ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
+ASMJIT_PATCH_GUARDED(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 {
+	AUTO_RECURSIVE_GUARD(0x517FA0, "InfantryClass_ReceiveDamage_Handled");
+	
 	GET(FakeInfantryClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
@@ -2267,8 +2276,10 @@ namespace RemoveCellContentTemp
 	bool CheckBeforeUnmark = false;
 }
 
-ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
+ASMJIT_PATCH_GUARDED(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 {
+	AUTO_RECURSIVE_GUARD(0x737C90, "UnitClass_ReceiveDamage_Handled");
+	
 	GET(UnitClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 

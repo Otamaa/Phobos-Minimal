@@ -57,6 +57,7 @@
 #include <ExtraHeaders/StackVector.h>
 
 #include <Ext/RadSite/Body.h>
+#include <Utilities/HookGuard.h>
 
 #pragma endregion
 
@@ -588,8 +589,10 @@ ASMJIT_PATCH(0x51CDB9, InfantryClass_RandomAnimate_CheckIdleRate, 0x6)
 	return R->ESI<InfantryClass* const>()->Type->IdleRate == -1 ? 0x51D0A0 : 0x0;
 }
 
-ASMJIT_PATCH(0x6FDE05, TechnoClass_FireAt_End, 0x5)
+ASMJIT_PATCH_GUARDED(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 {
+	AUTO_RECURSIVE_GUARD(0x6FDE05, "TechnoClass_FireAt_End");
+	
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
 
@@ -775,8 +778,10 @@ ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 		Continue;
 }
 
-ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
+ASMJIT_PATCH_GUARDED(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 {
+	AUTO_RECURSIVE_GUARD(0x6F09C0, "TeamTypeClass_CreateOneOf_Handled");
+	
 	GET(TeamTypeClass*, pThis, ECX);
 	GET_STACK(DWORD, caller, 0x0);
 	GET_STACK(HouseClass*, pHouse, 0x4);

@@ -103,10 +103,13 @@ void UpdateWebbed(FootClass* pThis)
 
 #include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
+#include <Utilities/HookGuard.h>
 
 #ifndef _Uhh
-ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
+ASMJIT_PATCH_GUARDED(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x6F9E5B, "TechnoClass_AI_Early");
+	
 	enum { retDead = 0x6FAFFD, Continue = 0x6F9EBB };
 
 	GET(TechnoClass*, pThis, ESI);

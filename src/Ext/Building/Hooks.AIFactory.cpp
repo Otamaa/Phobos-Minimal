@@ -450,8 +450,10 @@ ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
+ASMJIT_PATCH_GUARDED(0x4502F4, BuildingClass_Update_Factory, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x4502F4, "BuildingClass_Update_Factory");
+	
 	enum { Skip = 0x4503CA };
 
 	GET(BuildingClass*, pThis, ESI);

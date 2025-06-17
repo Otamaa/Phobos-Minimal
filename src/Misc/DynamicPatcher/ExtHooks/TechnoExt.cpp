@@ -15,6 +15,7 @@
 //#include <Misc/DynamicPatcher/Techno/AttackBeacon/AttackBeaconFunctional.h>
 
 #include <SpawnManagerClass.h>
+#include <Utilities/HookGuard.h>
 
 /*
 ASMJIT_PATCH(0x4149EE, AircraftClass_Render2, 0x5)
@@ -190,8 +191,10 @@ namespace CalculatePinch
 // 	return 0x0;
 // }
 
-ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
+ASMJIT_PATCH_GUARDED(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x6FDD50, "TechnoClass_FireAt_PreFire");
+	
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
 	GET_STACK(const int, nWeapon, 0x8);
@@ -275,10 +278,12 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
     return  pBuffer;
 }
 //9
- ASMJIT_PATCH(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
- {
- 	GET(TechnoClass*, pTechno, ESI);
- 	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
+ ASMJIT_PATCH_GUARDED(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
+{
+	AUTO_RECURSIVE_GUARD(0x6F9039, "TechnoClass_Greatest_Threat_GuardRange");
+	
+	GET(TechnoClass*, pTechno, ESI);
+	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
  	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
 
  	if (auto pPri = GetWeaponType(pTechno , 0)) {

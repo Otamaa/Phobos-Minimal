@@ -29,6 +29,7 @@
 #include <New/Type/ArmorTypeClass.h>
 
 #include <Misc/PhobosGlobal.h>
+#include <Utilities/HookGuard.h>
 
 #include <Notifications.h>
 #include <strsafe.h>
@@ -46,8 +47,10 @@ ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 	return 0x65DBD0;
 }
 
-ASMJIT_PATCH(0x6E9443, TeamClass_AI_Additionals, 8)
+ASMJIT_PATCH_GUARDED(0x6E9443, TeamClass_AI_Additionals, 8)
 {
+	AUTO_RECURSIVE_GUARD(0x6E9443, "TeamClass_AI_Additionals");
+	
 	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
 	GET(TeamClass*, pThis, ESI);
 	GET(ScriptActionNode*, pTeamMission, EAX);

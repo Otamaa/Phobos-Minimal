@@ -20,12 +20,15 @@
 #include <Conversions.h>
 
 #include "Header.h"
+#include <Utilities/HookGuard.h>
 
 #include <InfantryClass.h>
 
 //weapons can take more than one round of ammo
-ASMJIT_PATCH(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
+ASMJIT_PATCH_GUARDED(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 {
+	AUTO_RECURSIVE_GUARD(0x6FCA0D, "TechnoClass_CanFire_Ammo");
+	
 	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA26u };
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
@@ -100,8 +103,10 @@ ASMJIT_PATCH(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 	return 0x6FB061;
 }
 
-ASMJIT_PATCH(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
+ASMJIT_PATCH_GUARDED(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
 {
+	AUTO_RECURSIVE_GUARD(0x6F3410, "TechnoClass_SelectWeapon_NoAmmoWeapon");
+	
 	GET(TechnoClass*, pThis, ESI);
 	const auto pType = pThis->GetTechnoType();
 

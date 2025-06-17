@@ -2,9 +2,12 @@
 
 #include "Body.h"
 #include <InfantryClass.h>
+#include <Utilities/HookGuard.h>
 
-ASMJIT_PATCH(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
+ASMJIT_PATCH_GUARDED(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 {
+	AUTO_RECURSIVE_GUARD(0x6F7E24, "TechnoClass_EvaluateObject_MapZone");
+	
 	enum { AllowedObject = 0x6F7EA2, DisallowedObject = 0x6F894F };
 
 	GET(TechnoClass*, pThis, EDI);
@@ -20,8 +23,10 @@ ASMJIT_PATCH(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 	return AllowedObject;
 }
 
-ASMJIT_PATCH(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
+ASMJIT_PATCH_GUARDED(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 {
+	AUTO_RECURSIVE_GUARD(0x70982C, "TechnoClass_TargetAndEstimateDamage_ScanDelay");
+	
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, threat, 0x1C);
 
