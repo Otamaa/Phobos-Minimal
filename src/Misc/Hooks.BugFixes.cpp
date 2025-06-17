@@ -159,7 +159,7 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 		{
 			pThis->TemporalTargetingMe = nullptr;
 			pThis->Limbo();
-			Debug::LogInfo(__FUNCTION__" Called ");
+			//Debug::LogInfo(__FUNCTION__" Called ");
 			TechnoExtData::HandleRemove(pThis, nullptr, true, false);
 		}
 	}

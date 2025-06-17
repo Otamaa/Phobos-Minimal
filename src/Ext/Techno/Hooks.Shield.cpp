@@ -55,7 +55,7 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 
 					if (!pWHExt->CanRemoveParasytes_KickOut.Get() || coord == CoordStruct::Empty)
 					{
-						Debug::LogInfo(__FUNCTION__);
+						//Debug::LogInfo(__FUNCTION__);
 						TechnoExtData::HandleRemove(parasyte, args->Attacker, false, false);
 					}
 					else
@@ -65,7 +65,7 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 
 						if (!parasyte->Unlimbo(coord, parasyte->PrimaryFacing.Current().GetDir()))
 						{
-							Debug::LogInfo(__FUNCTION__);
+							//Debug::LogInfo(__FUNCTION__);
 							TechnoExtData::HandleRemove(parasyte, nullptr, false, false);
 							return;
 						}

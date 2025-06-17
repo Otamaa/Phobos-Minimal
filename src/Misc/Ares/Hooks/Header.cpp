@@ -1455,7 +1455,7 @@ void TechnoExt_ExtData::KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* 
 
 	if (pBuilding->KickOutUnit(Clone, CellStruct::Empty) != KickOutResult::Succeeded)
 	{
-		Debug::LogInfo(__FUNCTION__" Called ");
+		//Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(Clone, nullptr, false, false);
 	}
 }
@@ -1643,7 +1643,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 			if (!TechnoExtData::EjectRandomly(pHijacker, pThis->Location, 144, Select))
 			{
 				pHijacker->RegisterDestruction(pKiller);
-				Debug::LogInfo(__FUNCTION__" Hijacker Called ");
+				//" Hijacker Called ");
 				TechnoExtData::HandleRemove(pHijacker, pKiller, false, true);
 			}
 			else
@@ -1689,7 +1689,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 							if (!TechnoExtData::EjectRandomly(pPilot, pThis->Location, 144, Select))
 							{
 								pPilot->RegisterDestruction(pKiller);
-								Debug::LogInfo(__FUNCTION__" Pilot Called ");
+								//Debug::LogInfo(__FUNCTION__" Pilot Called ");
 								TechnoExtData::HandleRemove(pPilot, pKiller, false, false);
 							}
 							else if (auto const pTag = pThis->AttachedTag)
@@ -1740,7 +1740,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 
 			// kill passenger, if not spawned
 			pPassenger->RegisterDestruction(pKiller);
-			Debug::LogInfo(__FUNCTION__" Passengers Called ");
+			//Debug::LogInfo(__FUNCTION__" Passengers Called ");
 			TechnoExtData::HandleRemove(pPassenger, pKiller, false, false);
 		}
 	}
@@ -3133,7 +3133,7 @@ BuildingClass* TechnoExt_ExtData::CreateBuilding(
 
 		if (!res)
 		{
-			Debug::LogInfo(__FUNCTION__" Called ");
+			//Debug::LogInfo(__FUNCTION__" Called ");
 			TechnoExtData::HandleRemove(pRet, nullptr, true, false);
 			pRet = nullptr;
 		}
@@ -3968,7 +3968,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 	if (pToType->WhatAmI() != rtti || pOldType->Spawned != pToType->Spawned || pOldType->MissileSpawn != pToType->MissileSpawn)
 	{
-		Debug::LogInfo("Incompatible types between {} and {}", pOldType->ID, pToType->ID);
+		//Debug::LogInfo("Incompatible types between {} and {}", pOldType->ID, pToType->ID);
 		return false;
 	}
 
@@ -4237,7 +4237,7 @@ void TechnoExt_ExtData::SpawnVisceroid(CoordStruct& crd, UnitTypeClass* pType, i
 
 				if (!created)
 				{
-					Debug::LogInfo(__FUNCTION__" Called ");
+					//Debug::LogInfo(__FUNCTION__" Called ");
 					TechnoExtData::HandleRemove(pVisc, nullptr, true, true);
 				}
 			}
@@ -5103,7 +5103,7 @@ void FirewallFunctions::BuildLines(BuildingClass* theBuilding, CellStruct select
 					}
 					else
 					{
-						Debug::LogInfo(__FUNCTION__"Called!");
+						//Debug::LogInfo(__FUNCTION__"Called!");
 						TechnoExtData::HandleRemove(tempBuilding, nullptr, true, true);
 					}
 				}
@@ -7444,7 +7444,7 @@ void TunnelFuncs::KillFootClass(FootClass* pFoot, TechnoClass* pKiller)
 		return;
 
 	pFoot->RegisterDestruction(pKiller);
-	Debug::LogInfo(__FUNCTION__" Called ");
+	//Debug::LogInfo(__FUNCTION__" Called ");
 	TechnoExtData::HandleRemove(pFoot, pKiller, false, false);
 }
 

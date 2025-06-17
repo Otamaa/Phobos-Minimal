@@ -965,7 +965,7 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 #endif
 
 	// Remove completely
-	Debug::LogInfo(__FUNCTION__" Called ");
+	//Debug::LogInfo(__FUNCTION__" Called ");
 	TechnoExtData::HandleRemove(pBuilding, nullptr, true, false);
 }
 

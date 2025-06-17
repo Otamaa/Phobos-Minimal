@@ -584,7 +584,7 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 			TargetTypeExtData->RubbleIntactAnim
 		);
 
-		Debug::LogInfo(__FUNCTION__" Called ");
+		//Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(Target, nullptr, false, false);
 
 		if (pRubble)
