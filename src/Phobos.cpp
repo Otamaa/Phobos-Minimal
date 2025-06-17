@@ -1145,6 +1145,8 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		Patch::Apply_CALL(0x7DC70C, &PatchExitB);
 		Patch::Apply_CALL(0x87C2A0, &PatchExitB);
 
+		Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
+
 		const char* loadMode = lpReserved ? "statically" : "dynamicly";
 
 		Debug::GenerateDefaultMessage();
