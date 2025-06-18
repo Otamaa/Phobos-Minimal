@@ -2858,21 +2858,21 @@ ASMJIT_PATCH(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 	return 0x5F9658;
 }
 
- ASMJIT_PATCH(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
- {
- 	GET(TechnoClass*, pTarget, ESI);
-
- 	if (auto pBld = cast_to<BuildingClass*>(pTarget))
- 	{
- 		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
- 		{
- 			BuildingExtData::LimboKill(pBld);
- 			return 0x6E20D8;
- 		}
- 	}
-
- 	return 0x0;
- }
+//  ASMJIT_PATCH(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
+//  {
+//  	GET(TechnoClass*, pTarget, ESI);
+//
+//  	if (auto pBld = cast_to<BuildingClass*>(pTarget))
+//  	{
+//  		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+//  		{
+//  			BuildingExtData::LimboKill(pBld);
+//  			return 0x6E20D8;
+//  		}
+//  	}
+//
+//  	return 0x0;
+//  }
 
 // https://bugs.launchpad.net/ares/+bug/895893
 ASMJIT_PATCH(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
@@ -5883,37 +5883,6 @@ ASMJIT_PATCH(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
-{
-
-	GET(TechnoClass*, pThis, ESI);
-
-	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
-
-	if (!pTechno->IsAlive)
-	{
-		//Debug::LogInfo("TechnoClass::GreatestThread Found DeadTechno[{} - {}] on TechnoArray!", (void*)pTechno, pTechno->get_ID());
-		return  0x6F9D93; // next
-	}
-
-	R->ECX(pThis->Owner);
-	R->EDI(pTechno);
-	return 0x6F9C89;//contunye
-}
-
-ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
-{
-	GET(TechnoClass*, pTrackerTechno, EBP);
-
-	if (!pTrackerTechno->IsAlive)
-	{
-		//Debug::LogInfo("Found DeadTechno[{} - {}] on AircraftTracker!", (void*)pTrackerTechno, pTrackerTechno->get_ID());
-		return 0x6F9377; // next
-	}
-
-	return 0x0;//contunye
-}
-
 //ASMJIT_PATCH(0x6F89D1, TechnoClass_EvaluateCell_DeadTechno, 0x6)
 //{
 //	GET(ObjectClass*, pCellObj, EDI);
@@ -6730,6 +6699,20 @@ ASMJIT_PATCH(0x4D50E1, FootClass_MI_Guard_ElectrictAssault, 0xA)
 	return 0x4D5225;
 }
 
+ASMJIT_PATCH(0x691A32, ReadScenarion_RemoveInline, 0x5)
+{
+	LEA_STACK(char*, pName, 0x18);
+	R->ESI(GameCreate<ScriptTypeClass>(pName));
+	return 0x691B01;
+}
+
+ASMJIT_PATCH(0x691C62, ScriptTypeClass_CreateFromName_RemoveInline, 0x5)
+{
+	GET(char*, pName, EDI);
+	R->ESI(GameCreate<ScriptTypeClass>(pName));
+	return 0x691D2C;
+}
+
 ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6) {
 	for (int i = 0; i < SpawnManagerClass::Array->Count; ++i) {
 		if (auto pManager = SpawnManagerClass::Array->Items[i]) {
@@ -6743,4 +6726,108 @@ ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6) {
 
 	return 0x53486B;
 }
+
+//ASMJIT_PATCH(0x6ED164, TMissionAttack_WhatTarget, 0x8) {
+//	GET(AbstractClass*, pTarget, EAX);
+//	GET(FootClass*, pTeam, EDI);
+//	GET(TeamClass*, pThis, EBP);
+//
+//	if (IS_SAME_STR_("HTNK", pTeam->get_ID()) && flag_cast_to<TechnoClass*>(pTarget))
+//		Debug::Log("HTNK Target %s - %s \n", pTarget->GetThisClassName() , ((TechnoClass*)pTarget)->get_ID());
+//
+//	pThis->AssignMissionTarget(pTarget);
+//
+//	return 0x6ED16C;
+//}
+
+ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
+
+	GET(TechnoClass*, pThis, ESI);
+
+	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
+
+	if (!pTechno->IsAlive)
+	{
+		//Debug::LogInfo("TechnoClass::GreatestThread Found DeadTechno[{} - {}] on TechnoArray!", (void*)pTechno, pTechno->get_ID());
+		return  0x6F9D93; // next
+	}
+
+	R->ECX(pThis->Owner);
+	R->EDI(pTechno);
+	return 0x6F9C89;//contunye
+}
+
+ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6) {
+	GET(TechnoClass*, pTrackerTechno, EBP);
+
+	if (!pTrackerTechno->IsAlive)
+	{
+		//Debug::LogInfo("Found DeadTechno[{} - {}] on AircraftTracker!", (void*)pTrackerTechno, pTrackerTechno->get_ID());
+		return 0x6F9377; // next
+	}
+
+	return 0x0;//contunye
+}
+
+WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
+{
+	WeaponTypeClass* pBuffer = nullptr;
+
+	if (which == -1)
+	{
+		auto const pType = pThis->GetTechnoType();
+
+		if (pType->TurretCount > 0)
+		{
+			if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentGattlingStage))
+			{
+				pBuffer = pCurWeapon->WeaponType;
+			}
+		}
+		else
+		{
+			if (auto const pPriStruct = pThis->GetWeapon(0))
+			{
+				pBuffer = pPriStruct->WeaponType;
+			}
+
+			if (auto const pSecStruct = pThis->GetWeapon(1))
+			{
+				pBuffer = pSecStruct->WeaponType;
+			}
+		}
+	}
+	else
+	{
+		if (auto const pSelected = pThis->GetWeapon(which))
+		{
+			pBuffer = pSelected->WeaponType;
+		}
+	}
+
+	return  pBuffer;
+}
+
+ASMJIT_PATCH(0x6F9039, TechnoClass_GreatestThreat_GuardRange, 0x9)
+{
+	GET(TechnoClass*, pTechno, ESI);
+	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
+	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
+
+	if (auto pPri = GetWeaponType(pTechno, 0))
+	{
+		if (pPri->Range > nGuarRange)
+			nGuarRange = pPri->Range;
+	}
+
+	if (auto pSec = GetWeaponType(pTechno, 1))
+	{
+		if (pSec->Range > nGuarRange)
+			nGuarRange = pSec->Range;
+	}
+
+	R->EDI(nGuarRange);
+	return 0x6F903E;
+}
+
 #pragma endregion

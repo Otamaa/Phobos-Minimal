@@ -1170,7 +1170,7 @@ DEFINE_PATCH(0x6F7563,0x2);
 //		0x5F7A57 : 0x5F7941;
 //}
 
-ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 0x6)
+ASMJIT_PATCH(0x6F90F8, TechnoClass_GreatestThreat_Demacroize, 0x6)
 {
 	GET(int, nVal1, EDI);
 	GET(int, nVal2, EAX);

@@ -203,6 +203,14 @@ struct _VTABLE
 #define DEFINE_PATCH(offset, ...)                                 \
 	DEFINE_PATCH_TYPED(byte, offset, __VA_ARGS__);
 
+#define DEFINE_PATCH_ADDR_OFFSET(type , address , offset , ...)                      \
+	namespace STATIC_PATCH##address## _ ##offset                  \
+	{                                                             \
+		const type data[] = {__VA_ARGS__};                        \
+		__declspec(allocate(PATCH_SECTION_NAME))                  \
+		Patch patch = { PatchType::PATCH_ ,address + offset, sizeof(data), (BYTE*)data};\
+	}
+
 /*
 	Be aware that LJMP is only recomended to use on 5 bytes address
 	using it on other than that , possibly causing stack corruption

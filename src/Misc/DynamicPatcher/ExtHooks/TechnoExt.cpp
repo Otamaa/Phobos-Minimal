@@ -243,58 +243,6 @@ ASMJIT_PATCH(0x6FBFE9, TechnoClass_Select_SkipVoice, 0x6)
 	return TechnoExtContainer::Instance.Find(pThis)->SkipVoice ? 0x6FC01E :0x0;
 }
 
-WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
-{
-	WeaponTypeClass* pBuffer = nullptr;
-
-    if ( which == -1 ) {
-        auto const pType = pThis->GetTechnoType();
-
-        if (pType->TurretCount > 0) {
-			if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentGattlingStage)) {
-				pBuffer = pCurWeapon->WeaponType;
-			}
-		} else {
-            if (auto const pPriStruct = pThis->GetWeapon(0)) {
-				pBuffer = pPriStruct->WeaponType;
-			}
-
-            if (auto const pSecStruct = pThis->GetWeapon(1) ) {
-				pBuffer = pSecStruct->WeaponType;
-            }
-        }
-    }
-    else
-    {
-        if (auto const pSelected = pThis->GetWeapon(which) )
-        {
-            pBuffer = pSelected->WeaponType;
-		}
-    }
-
-    return  pBuffer;
-}
-//9
- ASMJIT_PATCH(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
- {
- 	GET(TechnoClass*, pTechno, ESI);
- 	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
- 	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
-
- 	if (auto pPri = GetWeaponType(pTechno , 0)) {
- 		if (pPri->Range > nGuarRange)
- 			nGuarRange = pPri->Range;
- 	}
-
- 	if(auto pSec = GetWeaponType(pTechno ,1)) {
- 		if (pSec->Range > nGuarRange)
- 			nGuarRange = pSec->Range;
- 	}
-
- 	R->EDI(nGuarRange);
- 	return 0x6F903E;
- }
-
 // ASMJIT_PATCH(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
 // {
 // 	GET(TechnoClass*, pTechno, ESI);

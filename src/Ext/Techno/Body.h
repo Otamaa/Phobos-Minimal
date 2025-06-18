@@ -1080,4 +1080,6 @@ public:
 
 class NOVTABLE FakeTechnoClass final: TechnoClass{
 public:
+
+	int _EvaluateJustCell(CellStruct* where);
 };

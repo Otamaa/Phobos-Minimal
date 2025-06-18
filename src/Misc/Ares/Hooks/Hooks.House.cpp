@@ -1122,7 +1122,7 @@ void FakeHouseClass::_GiveTiberium(float amount, int type){
 	}
 }
 
-DEFINE_FUNCTION_JUMP(LJMP ,0x4F9610,  FakeHouseClass::_GiveTiberium); 
+DEFINE_FUNCTION_JUMP(LJMP ,0x4F9610,  FakeHouseClass::_GiveTiberium);
 DEFINE_FUNCTION_JUMP(CALL ,0x44A272, FakeHouseClass::_GiveTiberium)
 DEFINE_FUNCTION_JUMP(CALL ,0x522E11, FakeHouseClass::_GiveTiberium)
 DEFINE_FUNCTION_JUMP(CALL ,0x522E31, FakeHouseClass::_GiveTiberium)
@@ -1257,10 +1257,10 @@ ASMJIT_PATCH(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
 
 		auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
-		if(pBldExt->LimboID != -1) {
-			BuildingExtData::LimboKill(pBld);
-			return 0x4FC770;
-		}
+		// if(pBldExt->LimboID != -1) {
+		// 	BuildingExtData::LimboKill(pBld);
+		// 	return 0x4FC770;
+		// }
 
 		// do not return structures in campaigns
 		if(!SessionClass::Instance->IsCampaign()) {

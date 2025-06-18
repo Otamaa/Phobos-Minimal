@@ -75,7 +75,7 @@ WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 	else
 		return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
 }
- 
+
 // Spy plane, airstrike etc.
 bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
 {

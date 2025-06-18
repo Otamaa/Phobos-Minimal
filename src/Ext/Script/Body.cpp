@@ -23,10 +23,7 @@
 
 ScriptActionNode NOINLINE ScriptExtData::GetSpecificAction(ScriptClass* pScript, int nIdx)
 {
-	if (nIdx == -1)
-		return { -1 , 0 };
-
-	if (nIdx < pScript->Type->ActionsCount)
+	if ((size_t)nIdx < (size_t)pScript->Type->ActionsCount)
 		return pScript->Type->ScriptActions[nIdx];
 	//	nIdx = pScript->Type->ActionsCount;
 	//

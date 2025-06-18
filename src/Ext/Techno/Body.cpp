@@ -45,6 +45,75 @@
 UnitClass* TechnoExtData::Deployer { nullptr };
 #pragma endregion
 
+int FakeTechnoClass::_EvaluateJustCell(CellStruct* where)
+{
+
+	// /*
+	// **  First, only computer objects are allowed to automatically scan for walls.
+	// */
+	if (this->Owner->IsControlledByHuman())
+	{
+		return 0;
+	}
+
+	// /*
+	// **  Even then, if the difficulty indicates that it shouldn't search for wall
+	// **  targets, then don't allow it to do so.
+	// */
+	if (!RulesClass::Instance->AIDiffs[(int)this->Owner->AIDifficulty].DestroyWalls)
+	{
+		return 0;
+	}
+
+	auto pCell = MapClass::Instance->GetCellAt(where);
+
+	if (pCell->OverlayTypeIndex == -1 || !OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->Wall)
+		return 0;
+
+	auto pSelectedWeapon = this->SelectWeapon(pCell);
+
+	if (!this->IsCloseEnough(pCell, pSelectedWeapon))
+		return 0;
+
+	auto pSelectedWeapon_ = this->GetWeapon(pSelectedWeapon);
+
+	if (!pSelectedWeapon_ || !pSelectedWeapon_->WeaponType || !pSelectedWeapon_->WeaponType->Warhead)
+		return 0;
+
+	// /*
+	// **  If the weapon cannot deal with ground based targets, then don't consider
+	// **  this a valid cell target.
+	// */
+	if (pSelectedWeapon_->WeaponType->Projectile && !pSelectedWeapon_->WeaponType->Projectile->AG)
+		return 0;
+
+	// /*
+	// **  If the primary weapon cannot destroy a wall, then don't give the cell any
+	// **  value as a target.
+	// */
+	if (!pSelectedWeapon_->WeaponType->Warhead->Wall)
+	{
+		return 0;
+	}
+
+	// /*
+	// **  If this is a friendly wall, then don't attack it.
+	// */
+	if (pCell->WallOwnerIndex == -1 || this->Owner->IsAlliedWith(HouseClass::Array->Items[pCell->WallOwnerIndex]))
+	{
+		return 0;
+	}
+
+	const double distance = (this->GetCoords() - CellClass::Cell2Coord(*where)).Length();
+
+	// /*
+	// **  Since a wall was found, then return a value adjusted according to the range the wall
+	// **  is from the object. The greater the range, the lesser the value returned.
+	// */
+
+	return int((double)this->GetWeaponRange(pSelectedWeapon) - distance);
+}
+
 // Check adjacent cells from the center
 // The current MapClass::Instance->PlacePowerupCrate(...) doesn't like slopes and maybe other cases
 bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects selectedPowerup, int maxCellRange)
