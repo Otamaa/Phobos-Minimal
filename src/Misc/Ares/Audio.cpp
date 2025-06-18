@@ -60,7 +60,7 @@ public:
 			pFile = nullptr;
 		}
 
-		return { Data.Size, Data.Offset, pFile, true };
+		return { Data.Size, Data.Offset, pFile, pFile != nullptr };
 	}
 
 	AudioSampleData* GetAudioSampleData()
@@ -309,21 +309,15 @@ public:
 		this->Bags.emplace_back(pFileBase);
 	}
 
-	COMPILETIMEEVAL bool GetFileStruct(FileStruct& file , int idx , AudioIDXEntry*& sample) {
+	COMPILETIMEEVAL std::optional<FileStruct> GetFileStruct(int idx) {
 
-		if (size_t(idx) < this->Files.size()) {
-			sample = &AudioIDXData::Instance->Samples[idx];
-			file = { sample->Size, sample->Offset, this->Files[idx].second, false };
-			return true;
+		const auto& files = this->Files;
+		if (size_t(idx) < files.size()) {
+			const auto sample = &AudioIDXData::Instance->Samples[idx];
+			return FileStruct { sample->Size, sample->Offset, files[idx].second, false };
 		}
 
-		return false;
-	}
-
-	COMPILETIMEEVAL CCFileClass* GetFileFromIndex(int idx)
-	{
-		return size_t(idx) < Files.size() ?
-			this->Files[idx].second : nullptr;
+		return {};
 	}
 
 	COMPILETIMEEVAL size_t TotalSampleSizes() const {
@@ -339,28 +333,9 @@ private:
 
 public:
 	static AudioLuggage Instance;
-
 };
 
 AudioLuggage AudioLuggage::Instance;
-
-// author : Richard Hodges
-// https://stackoverflow.com/questions/40973464/parse-replace-in-c-stdstring
-template<class...Args>
-std::string replace(const char* format, Args const&... args)
-{
-    // determine number of characters in output
-    size_t len = std::snprintf(nullptr, 0, format, args...);
-
-    // allocate buffer space
-    std::string result = std::string(std::size_t(len), ' ');
-
-    // write string into buffer. Note the +1 is allowing for the implicit trailing
-    // zero in a std::string
-	IMPL_SNPRNINTF(&result[0], len + 1, format, args...);
-
-    return result;
-};
 
 bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 {
@@ -473,19 +448,18 @@ ASMJIT_PATCH(0x4016F0, IDXContainer_LoadSample, 6)
 
 	pThis->ClearCurrentSample();
 
-	FileStruct file;
-	AudioIDXEntry* ptr = nullptr;
-	if (!AudioLuggage::Instance.GetFileStruct(file, index , ptr))
-		file = LooseAudioCacheManager::GetFileStructFromIndex(index - pThis->SampleCount);
+	std::optional<FileStruct> file = AudioLuggage::Instance.GetFileStruct(index);
+	if (!file) file = LooseAudioCacheManager::GetFileStructFromIndex(index - pThis->SampleCount);
 
-	pThis->CurrentSampleFile = file.File;
-	pThis->CurrentSampleSize = file.Size;
-	if (file.Allocated) {
-		pThis->ExternalFile = file.File;
+	pThis->CurrentSampleFile = file->File;
+	pThis->CurrentSampleSize = file->Size;
+	if (file->Allocated) {
+		pThis->ExternalFile = file->File;
 	}
 
-	R->EAX(file.File && file.Size
-		&& file.File->Seek(file.Offset, FileSeekMode::Set) == file.Offset);
+	R->EAX(file->File && file->Size
+		&& file->File->Seek(file->Offset, FileSeekMode::Set) == file->Offset);
+
 	return 0x4018B8;
 }
 
@@ -529,7 +503,6 @@ ASMJIT_PATCH(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClas
 
 	return 0x40651E;
 }
-
 
 ASMJIT_PATCH(0x401640, AudioIndex_GetSampleInformation, 5)
 {
