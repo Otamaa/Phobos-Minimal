@@ -1156,9 +1156,9 @@ ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
 // 	GET(AbstractType, pTarget, EAX);
 // 	GET(CoordStruct*, pCoord, ESI);
 // 	R->EAX(pCoord->X);
-// 	return pTarget == AbstractType::Aircraft ? 0x6F75B2 : 0x6F7568;
+//	return pTarget == AbstractType::Aircraft ? 0x6F75B2 : 0x6F7568;
 // }
-DEFINE_PATCH(0x6F7563,0x2);
+DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F7561, 0x2 , 0x2);
 
 // No data found on .inj for this
 //ASMJIT_PATCH(0x5F7933, TechnoTypeClass_FindFactory_ExcludeDisabled, 0x6)

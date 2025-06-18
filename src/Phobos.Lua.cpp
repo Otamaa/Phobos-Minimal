@@ -717,6 +717,7 @@ void Phobos::ExecuteLua()
 				{
 					Phobos::Config::MultiThreadSinglePlayer = false;
 					Phobos::Config::DebugFatalerrorGenerateDump = true;
+					Phobos::Otamaa::OutputAudioLogs = true;
 					//Phobos::Otamaa::ReplaceGameMemoryAllocator = true;
 					Phobos::Otamaa::IsAdmin = true;
 				}

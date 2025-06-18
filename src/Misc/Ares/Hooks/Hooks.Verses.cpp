@@ -126,7 +126,7 @@ ASMJIT_PATCH(0x489235, GetTotalDamage_Verses, 0x8)
 }
 #endif
 
-ASMJIT_PATCH(0x6F7D3D, TechnoClass_CanAutoTargetObject_Verses, 0x7)
+ASMJIT_PATCH(0x6F7D3D, TechnoClass_Evaluate_Verses, 0x7)
 {
 	enum { ReturnFalse = 0x6F894F, ContinueCheck = 0x6F7D55, };
 

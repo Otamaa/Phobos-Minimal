@@ -957,7 +957,7 @@ ASMJIT_PATCH(0x741113, UnitClass_CanFire_Heal, 0xA)
 		retContinue : retFireIllegal;
 }
 
-ASMJIT_PATCH(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
+ASMJIT_PATCH(0x6F7F4F, TechnoClass_EvaluateObject_NegativeDamage, 0x7)
 {
 	enum { SetHealthRatio = 0x6F7F56, ContinueCheck = 0x6F7F6D, retFalse = 0x6F894F };
 	GET(TechnoClass*, pThis, EDI);

@@ -6,17 +6,10 @@
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
 ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
-	if (auto const  pTransport = pThis->Transporter) {\
-		if (TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
-
-#define SET_THREATEVALSB(addr , techreg , name ,size , ret)\
-ASMJIT_PATCH(addr, name, size) {\
-GET(TechnoClass* , pThis , techreg);\
-	if (auto const  pTransport = pThis->Transporter) {\
-	  if (TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
+	return TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())->Passengers_SyncOwner.Get() ?  ret : 0; }
 
 SET_THREATEVALS(0x6FA33C, ESI, TechnoClass_AI_ThreatEvals_OpenToppedOwner, 0x6, 0x6FA37A) //
-SET_THREATEVALSB(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
+SET_THREATEVALS(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
 SET_THREATEVALS(0x6F8FD7, ESI, TechnoClass_Greatest_Threat_ThreatEvals_OpenToppedOwner, 0x5, 0x6F8FDC)
 SET_THREATEVALS(0x6F7EC2, EDI, TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOwner, 0x6, 0x6F7EDA)
 

@@ -98,13 +98,13 @@ void NOINLINE FakeAnimClass::_Start()
 		VocClass::PlayIndexAtPos(pTypeExt->AltReport, _gCoords, nullptr);
 	}
 
-	if (!this->IsPlaying && this->Type->Report != -1)
+	if (this->IsPlaying || this->Type->Report == -1)
 	{
-		VocClass::PlayIndexAtPos(this->Type->Report, _gCoords, &this->Audio3);
+		this->Audio3.AudioEventHandleStop();
 	}
 	else
 	{
-		this->Audio3.AudioEventHandleStop();
+		VocClass::PlayIndexAtPos(this->Type->Report, _gCoords, &this->Audio3);
 	}
 
 	this->Audio4.AudioEventHandleStop();

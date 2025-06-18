@@ -2411,9 +2411,6 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 
 bool TechnoExtData::AllowedTargetByZone(TechnoClass* pThis, ObjectClass* pTarget, const TargetZoneScanType& zoneScanType, WeaponTypeClass* pWeapon, std::optional<std::reference_wrapper<const ZoneType>> zone)
 {
-	if (!pThis || !pTarget)
-		return false;
-
 	if (pThis->WhatAmI() == AircraftClass::AbsID)
 		return true;
 

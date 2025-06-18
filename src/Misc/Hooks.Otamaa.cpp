@@ -517,11 +517,7 @@ ASMJIT_PATCH(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
 
-	if (pTypeExt->AI_LegalTarget.isset())
-	{
-		if (pThis->Owner && pThis->Owner->IsControlledByHuman())
-			return Continue;
-
+	if (pTypeExt->AI_LegalTarget.isset() && !pThis->Owner->IsControlledByHuman()) {
 		return pTypeExt->AI_LegalTarget.Get() ?
 			ContinueChecks : ReturnFalse;
 	}
@@ -4957,7 +4953,7 @@ ASMJIT_PATCH(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 }
 
 //EvalObject
-ASMJIT_PATCH(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
+ASMJIT_PATCH(0x6F7EFE, TechnoClass_EvaluateObject_SelectWeapon, 6)
 {
 	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
 	GET_STACK(int const, nWeapon, 0x14);
@@ -6727,19 +6723,25 @@ ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6) {
 	return 0x53486B;
 }
 
-//ASMJIT_PATCH(0x6ED164, TMissionAttack_WhatTarget, 0x8) {
-//	GET(AbstractClass*, pTarget, EAX);
-//	GET(FootClass*, pTeam, EDI);
-//	GET(TeamClass*, pThis, EBP);
-//
-//	if (IS_SAME_STR_("HTNK", pTeam->get_ID()) && flag_cast_to<TechnoClass*>(pTarget))
-//		Debug::Log("HTNK Target %s - %s \n", pTarget->GetThisClassName() , ((TechnoClass*)pTarget)->get_ID());
-//
-//	pThis->AssignMissionTarget(pTarget);
-//
-//	return 0x6ED16C;
-//}
+#pragma optimize("", off )
+ASMJIT_PATCH(0x6ED155, TMissionAttack_WhatTarget, 0x5) {
+	GET(FootClass*, pTeam, EDI);
+	GET(TeamClass*, pThis, EBP);
+	GET(ThreatType, threat, EAX);
+	LEA_STACK(CoordStruct*, pCoord, 0x18);
 
+	auto pTarget = pTeam->GreatestThreat(threat, pCoord, (bool)R->CL());
+
+	if (IS_SAME_STR_("HTNK", pTeam->get_ID()) && flag_cast_to<TechnoClass*>(pTarget))
+		Debug::Log("HTNK Target %s - %s \n", pTarget->GetThisClassName() , ((TechnoClass*)pTarget)->get_ID());
+
+	pThis->AssignMissionTarget(pTarget);
+
+	return 0x6ED16C;
+}
+#pragma optimize("", on )
+
+#ifdef disabled_
 ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 
 	GET(TechnoClass*, pThis, ESI);
@@ -6829,5 +6831,6 @@ ASMJIT_PATCH(0x6F9039, TechnoClass_GreatestThreat_GuardRange, 0x9)
 	R->EDI(nGuarRange);
 	return 0x6F903E;
 }
+#endif
 
 #pragma endregion
