@@ -34,6 +34,7 @@
 /* Maximum number of registers in a Lua function (must fit in 8 bits) */
 #define MAXREGS		255
 
+
 /* (note that expressions VJMP also have jumps.) */
 #define hasjumps(e)	((e)->t != (e)->f)
 

@@ -195,13 +195,15 @@ static void correctstack (lua_State *L) {
 /* some space for error handling */
 #define ERRORSTACKSIZE	(LUAI_MAXSTACK + 200)
 
+
 /* raise an error while running the message handler */
-l_noret luaD_errerr(lua_State* L) {
-    TString* msg = luaS_newliteral(L, "error in error handling");
-    setsvalue2s(L, L->top.p, msg);
-    L->top.p++;  /* assume EXTRA_STACK */
-    luaD_throw(L, LUA_ERRERR);
+l_noret luaD_errerr (lua_State *L) {
+  TString *msg = luaS_newliteral(L, "error in error handling");
+  setsvalue2s(L, L->top.p, msg);
+  L->top.p++;  /* assume EXTRA_STACK */
+  luaD_throw(L, LUA_ERRERR);
 }
+
 
 /*
 ** Reallocate the stack to a new size, correcting all pointers into it.

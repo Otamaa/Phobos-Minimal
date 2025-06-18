@@ -31,9 +31,9 @@
 /* Enum strings                                                                                   */
 /* ============================================================================================== */
 
-#include <Zydis/Generated/EnumInstructionCategory.inc>
-#include <Zydis/Generated/EnumISASet.inc>
-#include <Zydis/Generated/EnumISAExt.inc>
+#include <Generated/EnumInstructionCategory.inc>
+#include <Generated/EnumISASet.inc>
+#include <Generated/EnumISAExt.inc>
 
 /* ============================================================================================== */
 /* Exported functions                                                                             */

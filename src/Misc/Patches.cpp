@@ -107,6 +107,213 @@ public:
 */
 // Author: Apollo
 
+/*
+#include <cstdint>
+#include <algorithm>
+
+using byte = uint8_t;
+using WORD = uint16_t;
+
+struct AlphaLightingRemapClass {
+	union {
+		WORD Table[256][256];
+		WORD DataArray[65536];
+	};
+	int Steps;
+	int RefCount;
+
+	static AlphaLightingRemapClass* Global;
+	AlphaLightingRemapClass* FindOrAllocate(int shadecount);
+};
+
+struct ZBufferClass {
+	unsigned int BufferEnd;
+	unsigned int BufferSize;
+} *ZBufferPTR;
+
+struct ABufferClass {
+	unsigned int __BufferTail;
+	unsigned int __BufferSize;
+} *ABufferPTR;
+
+template<typename T>
+class RLEBlitter {
+public:
+	virtual ~RLEBlitter() = default;
+	virtual void Blit_Copy(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust) = 0;
+	virtual void Blit_Copy_Tinted(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust, WORD tint) = 0;
+};
+
+template<typename T>
+class RLEBlitTransLucent25AlphaZRead : public RLEBlitter<T> {
+public:
+	explicit RLEBlitTransLucent25AlphaZRead(T* data, WORD mask, int shadecount) noexcept
+		: PaletteData(data), Mask(mask), AlphaRemapper(AlphaLightingRemapClass::Global->FindOrAllocate(shadecount)) {}
+
+	void Blit_Copy(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust) override {
+		auto pDst = static_cast<WORD*>(dst);
+		unsigned int zOffset = zbase;
+		WORD* aOffset = abuf;
+
+		int v15 = (261 * std::max(alvl, 0)) >> 11;
+		v15 = std::min(v15, 254);
+		int v26 = reinterpret_cast<int>(AlphaRemapper->Table[v15]);
+
+		int remain = line;
+		while (remain > 0 && len > 0) {
+			byte val = *src++;
+			if (val) {
+				zOffset += 2;
+				int depth = warp - *zadjust++;
+				if (depth < *(WORD*)(zOffset - 2)) {
+					WORD newPixel = (pDst[0] & Mask) + (Mask & (PaletteData[val | *(WORD*)(v26 + 2 * *aOffset)] >> 1));
+					*pDst = newPixel;
+				}
+				--len;
+				++pDst;
+				++aOffset;
+			} else {
+				byte count = *src++;
+				len -= count;
+				pDst += count;
+				zOffset += count * 2;
+				zadjust += count;
+				aOffset += count;
+			}
+			if (zOffset >= ZBufferPTR->BufferEnd) {
+				zOffset -= ZBufferPTR->BufferSize;
+			}
+			if (reinterpret_cast<uintptr_t>(aOffset) >= ABufferPTR->__BufferTail) {
+				aOffset = reinterpret_cast<WORD*>(reinterpret_cast<uint8_t*>(aOffset) - ABufferPTR->__BufferSize);
+			}
+		}
+	}
+
+	void Blit_Copy_Tinted(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust, WORD tint) override {
+		// Not implemented
+	}
+
+private:
+	T* PaletteData;
+	WORD Mask;
+	AlphaLightingRemapClass* AlphaRemapper;
+};
+
+template<typename T>
+class RLEBlitTransLucent50AlphaZRead : public RLEBlitter<T> {
+public:
+	explicit RLEBlitTransLucent50AlphaZRead(T* data, WORD mask, int shadecount) noexcept
+		: PaletteData(data), Mask(mask), AlphaRemapper(AlphaLightingRemapClass::Global->FindOrAllocate(shadecount)) {}
+
+	void Blit_Copy(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust) override {
+		auto pDst = static_cast<WORD*>(dst);
+		unsigned int zOffset = zbase;
+		WORD* aOffset = abuf;
+
+		int v15 = (261 * std::max(alvl, 0)) >> 11;
+		v15 = std::min(v15, 254);
+		int v26 = reinterpret_cast<int>(AlphaRemapper->Table[v15]);
+
+		int remain = line;
+		while (remain > 0 && len > 0) {
+			byte val = *src++;
+			if (val) {
+				zOffset += 2;
+				int depth = warp - *zadjust++;
+				if (depth < *(WORD*)(zOffset - 2)) {
+					WORD srcPixel = PaletteData[val | *(WORD*)(v26 + 2 * *aOffset)];
+					WORD dstPixel = *pDst;
+					WORD mixed = (dstPixel & Mask) + (srcPixel & Mask);
+					*pDst = mixed;
+				}
+				--len;
+				++pDst;
+				++aOffset;
+			} else {
+				byte count = *src++;
+				len -= count;
+				pDst += count;
+				zOffset += count * 2;
+				zadjust += count;
+				aOffset += count;
+			}
+			if (zOffset >= ZBufferPTR->BufferEnd) {
+				zOffset -= ZBufferPTR->BufferSize;
+			}
+			if (reinterpret_cast<uintptr_t>(aOffset) >= ABufferPTR->__BufferTail) {
+				aOffset = reinterpret_cast<WORD*>(reinterpret_cast<uint8_t*>(aOffset) - ABufferPTR->__BufferSize);
+			}
+		}
+	}
+
+	void Blit_Copy_Tinted(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust, WORD tint) override {
+		// Not implemented
+	}
+
+private:
+	T* PaletteData;
+	WORD Mask;
+	AlphaLightingRemapClass* AlphaRemapper;
+};
+
+template<typename T>
+class RLEBlitTransLucent70AlphaZRead : public RLEBlitter<T> {
+public:
+	explicit RLEBlitTransLucent70AlphaZRead(T* data, WORD mask, int shadecount) noexcept
+		: PaletteData(data), Mask(mask), AlphaRemapper(AlphaLightingRemapClass::Global->FindOrAllocate(shadecount)) {}
+
+	void Blit_Copy(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust) override {
+		auto pDst = static_cast<WORD*>(dst);
+		unsigned int zOffset = zbase;
+		WORD* aOffset = abuf;
+
+		int v15 = (261 * std::max(alvl, 0)) >> 11;
+		v15 = std::min(v15, 254);
+		int v26 = reinterpret_cast<int>(AlphaRemapper->Table[v15]);
+
+		int remain = line;
+		while (remain > 0 && len > 0) {
+			byte val = *src++;
+			if (val) {
+				zOffset += 2;
+				int depth = warp - *zadjust++;
+				if (depth < *(WORD*)(zOffset - 2)) {
+					WORD srcPixel = PaletteData[val | *(WORD*)(v26 + 2 * *aOffset)];
+					WORD dstPixel = *pDst;
+					WORD mixed = 3 * (dstPixel >> 2) + (srcPixel >> 2);
+					*pDst = mixed;
+				}
+				--len;
+				++pDst;
+				++aOffset;
+			} else {
+				byte count = *src++;
+				len -= count;
+				pDst += count;
+				zOffset += count * 2;
+				zadjust += count;
+				aOffset += count;
+			}
+			if (zOffset >= ZBufferPTR->BufferEnd) {
+				zOffset -= ZBufferPTR->BufferSize;
+			}
+			if (reinterpret_cast<uintptr_t>(aOffset) >= ABufferPTR->__BufferTail) {
+				aOffset = reinterpret_cast<WORD*>(reinterpret_cast<uint8_t*>(aOffset) - ABufferPTR->__BufferSize);
+			}
+		}
+	}
+
+	void Blit_Copy_Tinted(void* dst, byte* src, int len, int line, int zbase, WORD* zbuf, WORD* abuf, int alvl, int warp, byte* zadjust, WORD tint) override {
+		// Not implemented
+	}
+
+private:
+	T* PaletteData;
+	WORD Mask;
+	AlphaLightingRemapClass* AlphaRemapper;
+};
+*/
+
 void BlittersFix::Apply() //C3 Z-aware SHP translucency fixes
 {
 	// 25% translucency blitter

@@ -1216,12 +1216,9 @@ void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
 	auto pExt = TechnoExtContainer::Instance.Find(this);
 	pExt->AltOccupation = alt;
 
-	if (alt)
-	{
+	if (alt) {
 		pCell->AltOccupationFlags |= 0x20;
-	}
-	else
-	{
+	} else {
 		pCell->OccupationFlags |= 0x20;
 	}
 }
@@ -1257,8 +1254,10 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x744210, FakeUnitClass::_ClearOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x7441B0, FakeUnitClass::_SetOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
+
 
 ASMJIT_PATCH(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
@@ -2859,21 +2858,21 @@ ASMJIT_PATCH(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 	return 0x5F9658;
 }
 
-ASMJIT_PATCH(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
-{
-	GET(TechnoClass*, pTarget, ESI);
+ ASMJIT_PATCH(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
+ {
+ 	GET(TechnoClass*, pTarget, ESI);
 
-	if (auto pBld = cast_to<BuildingClass*>(pTarget))
-	{
-		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-		{
-			BuildingExtData::LimboKill(pBld);
-			return 0x6E20D8;
-		}
-	}
+ 	if (auto pBld = cast_to<BuildingClass*>(pTarget))
+ 	{
+ 		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+ 		{
+ 			BuildingExtData::LimboKill(pBld);
+ 			return 0x6E20D8;
+ 		}
+ 	}
 
-	return 0x0;
-}
+ 	return 0x0;
+ }
 
 // https://bugs.launchpad.net/ares/+bug/895893
 ASMJIT_PATCH(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
@@ -3834,7 +3833,10 @@ ASMJIT_PATCH(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
 
 ASMJIT_PATCH(0x445FE4, BuildingClass_GrandOpening_GetStorageTotalAmount, 0x6)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(FakeBuildingClass*, pThis, EBP);
+
+	if(pThis->_GetTypeExtData()->Refinery_UseNormalActiveAnim)
+		return 0x446183;
 
 	int result = 0;
 	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
@@ -3859,7 +3861,10 @@ ASMJIT_PATCH(0x450CD7, BuildingClass_AnimAI_GetStorageTotalAmount_A, 0x6)
 
 ASMJIT_PATCH(0x450DAA, BuildingClass_AnimAI_GetStorageTotalAmount_B, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
+
+	if(pThis->_GetTypeExtData()->Refinery_UseNormalActiveAnim)
+		return 0x446183 ;
 
 	int result = 0;
 	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
@@ -4400,7 +4405,7 @@ ASMJIT_PATCH(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
 ASMJIT_PATCH(0x60B865, AdjustWindow_Child, 5)
 {
 	RECT Rect {};
-	GetWindowRect(Game::hWnd(), &Rect);
+	Imports::GetWindowRect.invoke()(Game::hWnd(), &Rect);
 	R->ESI(R->ESI<int>() - Rect.top);
 	R->EDX(R->EDX<int>() - Rect.left);
 	return 0;

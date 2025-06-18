@@ -8679,7 +8679,7 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 		ModIdentifier = Ini->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
 
 		Debug::LogInfo("Color count is {}", colorCount);
-		Debug::LogInfo("Mod is {0} ({1}) with {2:x}",
+		Debug::LogInfo("Mod is {0} ({1}) with 0x{2:x}",
 			ModName,
 			ModVersion,
 			(unsigned)ModIdentifier

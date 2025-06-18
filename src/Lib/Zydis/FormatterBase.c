@@ -31,7 +31,7 @@
 /* Constants                                                                                      */
 /* ============================================================================================== */
 
-#include <Zydis/Generated/FormatterStrings.inc>
+#include <Generated/FormatterStrings.inc>
 
 static const ZydisShortString* const STR_PREF_REX[16] =
 {

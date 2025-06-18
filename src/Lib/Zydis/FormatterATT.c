@@ -30,7 +30,7 @@
 /* Constants                                                                                      */
 /* ============================================================================================== */
 
-#include <Zydis/Generated/FormatterStrings.inc>
+#include <Generated/FormatterStrings.inc>
 
 /* ============================================================================================== */
 /* Formatter functions                                                                            */

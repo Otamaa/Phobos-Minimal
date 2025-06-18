@@ -53,6 +53,7 @@
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
+    <ClCompile Include="src\Lib\Lua\onelua.c" />
     <ClCompile Include="src\Lib\Zycore\Allocator.c" />
     <ClCompile Include="src\Lib\Zycore\API\Memory.c" />
     <ClCompile Include="src\Lib\Zycore\API\Process.c" />
@@ -336,38 +337,6 @@
     <ClCompile Include="src\Lib\asmjit\x86\x86rapass.cpp" />
     <ClCompile Include="src\Lib\lodepng\lodepng.cpp" />
     <ClCompile Include="src\Lib\lodepng\lodepng_util.cpp" />
-    <ClCompile Include="src\Lib\Lua\lapi.c" />
-    <ClCompile Include="src\Lib\Lua\lauxlib.c" />
-    <ClCompile Include="src\Lib\Lua\lbaselib.c" />
-    <ClCompile Include="src\Lib\Lua\lcode.c" />
-    <ClCompile Include="src\Lib\Lua\lcorolib.c" />
-    <ClCompile Include="src\Lib\Lua\lctype.c" />
-    <ClCompile Include="src\Lib\Lua\ldblib.c" />
-    <ClCompile Include="src\Lib\Lua\ldebug.c" />
-    <ClCompile Include="src\Lib\Lua\ldo.c" />
-    <ClCompile Include="src\Lib\Lua\ldump.c" />
-    <ClCompile Include="src\Lib\Lua\lfunc.c" />
-    <ClCompile Include="src\Lib\Lua\lgc.c" />
-    <ClCompile Include="src\Lib\Lua\linit.c" />
-    <ClCompile Include="src\Lib\Lua\liolib.c" />
-    <ClCompile Include="src\Lib\Lua\llex.c" />
-    <ClCompile Include="src\Lib\Lua\lmathlib.c" />
-    <ClCompile Include="src\Lib\Lua\lmem.c" />
-    <ClCompile Include="src\Lib\Lua\loadlib.c" />
-    <ClCompile Include="src\Lib\Lua\lobject.c" />
-    <ClCompile Include="src\Lib\Lua\lopcodes.c" />
-    <ClCompile Include="src\Lib\Lua\loslib.c" />
-    <ClCompile Include="src\Lib\Lua\lparser.c" />
-    <ClCompile Include="src\Lib\Lua\lstate.c" />
-    <ClCompile Include="src\Lib\Lua\lstring.c" />
-    <ClCompile Include="src\Lib\Lua\lstrlib.c" />
-    <ClCompile Include="src\Lib\Lua\ltable.c" />
-    <ClCompile Include="src\Lib\Lua\ltablib.c" />
-    <ClCompile Include="src\Lib\Lua\ltm.c" />
-    <ClCompile Include="src\Lib\Lua\lundump.c" />
-    <ClCompile Include="src\Lib\Lua\lutf8lib.c" />
-    <ClCompile Include="src\Lib\Lua\lvm.c" />
-    <ClCompile Include="src\Lib\Lua\lzio.c" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.cpp" />
     <ClCompile Include="src\New\Entity\PrismForwarding.cpp" />
@@ -610,6 +579,7 @@
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
+    <ClInclude Include="src\Lib\Lua\lua.hpp" />
     <ClInclude Include="src\Lib\Zycore\Allocator.h" />
     <ClInclude Include="src\Lib\Zycore\API\Memory.h" />
     <ClInclude Include="src\Lib\Zycore\API\Process.h" />
@@ -757,34 +727,6 @@
     <ClInclude Include="src\Lib\fast_remove_if.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng.h" />
     <ClInclude Include="src\Lib\lodepng\lodepng_util.h" />
-    <ClInclude Include="src\Lib\Lua\lapi.h" />
-    <ClInclude Include="src\Lib\Lua\lauxlib.h" />
-    <ClInclude Include="src\Lib\Lua\lcode.h" />
-    <ClInclude Include="src\Lib\Lua\lctype.h" />
-    <ClInclude Include="src\Lib\Lua\ldebug.h" />
-    <ClInclude Include="src\Lib\Lua\ldo.h" />
-    <ClInclude Include="src\Lib\Lua\lfunc.h" />
-    <ClInclude Include="src\Lib\Lua\lgc.h" />
-    <ClInclude Include="src\Lib\Lua\ljumptab.h" />
-    <ClInclude Include="src\Lib\Lua\llex.h" />
-    <ClInclude Include="src\Lib\Lua\llimits.h" />
-    <ClInclude Include="src\Lib\Lua\lmem.h" />
-    <ClInclude Include="src\Lib\Lua\lobject.h" />
-    <ClInclude Include="src\Lib\Lua\lopcodes.h" />
-    <ClInclude Include="src\Lib\Lua\lopnames.h" />
-    <ClInclude Include="src\Lib\Lua\lparser.h" />
-    <ClInclude Include="src\Lib\Lua\lprefix.h" />
-    <ClInclude Include="src\Lib\Lua\lstate.h" />
-    <ClInclude Include="src\Lib\Lua\lstring.h" />
-    <ClInclude Include="src\Lib\Lua\ltable.h" />
-    <ClInclude Include="src\Lib\Lua\ltm.h" />
-    <ClInclude Include="src\Lib\Lua\lua.h" />
-    <ClInclude Include="src\Lib\Lua\lua.hpp" />
-    <ClInclude Include="src\Lib\Lua\luaconf.h" />
-    <ClInclude Include="src\Lib\Lua\lualib.h" />
-    <ClInclude Include="src\Lib\Lua\lundump.h" />
-    <ClInclude Include="src\Lib\Lua\lvm.h" />
-    <ClInclude Include="src\Lib\Lua\lzio.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.h" />
     <ClInclude Include="src\Misc\DamageArea.h" />
     <ClInclude Include="src\Misc\Defines.h" />
@@ -1190,10 +1132,10 @@
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -1233,8 +1175,9 @@
       <MapExports>false</MapExports>
       <AdditionalLibraryDirectories>$(MSBuildProjectDirectory)\src\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <LargeAddressAware>true</LargeAddressAware>
+      <LargeAddressAware>false</LargeAddressAware>
       <AdditionalOptions>/VERBOSE %(AdditionalOptions)</AdditionalOptions>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <PostBuildEvent>
       <Command>

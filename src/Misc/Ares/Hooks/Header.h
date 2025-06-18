@@ -339,66 +339,74 @@ public:
 	static void DisableEMPEffect2(TechnoClass* const pVictim);
 };
 
+template<typename T>
 class AresBlitter
 {
 public:
 
 	virtual ~AresBlitter() = default;
-	virtual void Blit_Copy(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp) = 0;
-	virtual void Blit_Copy_Tinted(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint) = 0;
-	virtual void Blit_Move(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp) = 0;
-	virtual void Blit_Move_Tinted(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint) = 0;
+	virtual void Blit_Copy(void* dst, void* src, int len, int zval, T* zbuf, T* abuf, int alvl, int warp) = 0;
+	virtual void Blit_Copy_Tinted(void* dst, void* src, int len, int zval, T* zbuf, T* abuf, int alvl, int warp, T tint) = 0;
+	virtual void Blit_Move(void* dst, void* src, int len, int zval, T* zbuf, T* abuf, int alvl, int warp) = 0;
+	virtual void Blit_Move_Tinted(void* dst, void* src, int len, int zval, T* zbuf, T* abuf, int alvl, int warp, T tint) = 0;
 
 };
 
 template <typename T>
-class AresPcxBlit final : public AresBlitter
+class AresPcxBlit final : public AresBlitter<T>
 {
 public:
-	OPTIONALINLINE explicit AresPcxBlit(WORD mask) noexcept
-	{
-		Mask = mask;
-	}
+	OPTIONALINLINE explicit AresPcxBlit(T mask, int imageWidth, int imageHeight, int cornerSize = 2) noexcept
+		: Mask(mask), Width(imageWidth), Height(imageHeight), CornerSize(cornerSize) { }
+
 
 	virtual ~AresPcxBlit() override final = default;
 
-	virtual void Blit_Copy(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp) override final
+	virtual void Blit_Copy(void* dst, void* src, int len, int zval, T* zbuf, T* abuf, int alvl, int warp) override final
 	{
-		auto dest = reinterpret_cast<T*>(dst);
-		auto source = reinterpret_cast<T*>(src);
+		auto pDst = static_cast<T*>(dst);
+		auto pSrc = static_cast<T*>(src);
 
-		if (len > 0)
+		for (int i = 0; i < len; ++i)
 		{
-			for (auto i = len; i; --i)
-			{
-				if (auto v12 = *source++)
-				{
-					if (v12 != this->Mask)
-						*dest = v12;
-				}
+			int x = i;
+			int y = zval;
+			T pixel = *pSrc++;
 
-				dest++;
+			bool inTopLeft = (x < CornerSize && y < CornerSize);
+			bool inTopRight = (x >= Width - CornerSize && y < CornerSize);
+			bool inBottomLeft = (x < CornerSize && y >= Height - CornerSize);
+			bool inBottomRight = (x >= Width - CornerSize && y >= Height - CornerSize);
+			bool isCorner = inTopLeft || inTopRight || inBottomLeft || inBottomRight;
+
+			if (pixel != 0 && (pixel != Mask || !isCorner))
+			{
+				*pDst = pixel;
 			}
+			++pDst;
 		}
 	}
 
-	virtual void Blit_Copy_Tinted(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint)
+	virtual void Blit_Copy_Tinted(void* dst, void* src, int len, int zval, T* zbuf, T* abuf, int alvl, int warp, T tint)
 	{
 		Blit_Copy(dst, src, len, zval, zbuf, abuf, alvl, 0);
 	}
 
-	virtual void Blit_Move(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp)
+	virtual void Blit_Move(void* dst, void* src, int len, int zval, T* zbuf, T* abuf, int alvl, int warp)
 	{
 		Blit_Copy(dst, src, len, zval, zbuf, abuf, alvl, 0);
 	}
 
-	virtual void Blit_Move_Tinted(void* dst, void* src, int len, int zval, WORD* zbuf, WORD* abuf, int alvl, int warp, WORD tint)
+	virtual void Blit_Move_Tinted(void* dst, void* src, int len, int zval, T* zbuf, T* abuf, int alvl, int warp, T tint)
 	{
 		Blit_Copy(dst, src, len, zval, zbuf, abuf, alvl, 0);
 	}
 
 private:
-	WORD Mask;
+	T Mask;
+	int Width;
+	int Height;
+	int CornerSize;
 };
 
 struct HashData

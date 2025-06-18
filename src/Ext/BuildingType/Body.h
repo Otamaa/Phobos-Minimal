@@ -353,6 +353,7 @@ public:
 	Valueable<bool> BattlePointsCollector_RequirePower {};
 
 	NullableIdx<VocClass> BuildingRepairedSound {};
+	Valueable<bool> Refinery_UseNormalActiveAnim { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

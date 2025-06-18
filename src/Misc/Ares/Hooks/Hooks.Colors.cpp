@@ -285,9 +285,9 @@ ASMJIT_PATCH(0x4E46BB, hWnd_PopulateWithColors, 7)
 
 		if (isCurrent || Color.selectedIndex == -1)
 		{
-			int idx = SendMessageA(hWnd, WW_CB_ADDITEM, 0, 0x822B78);
-			SendMessageA(hWnd, WW_SETCOLOR, idx, Color.colorRGB);
-			SendMessageA(hWnd, CB_SETITEMDATA, idx, i);
+			int idx = Imports::SendMessageA.invoke()(hWnd, WW_CB_ADDITEM, 0, 0x822B78);
+			Imports::SendMessageA.invoke()(hWnd, WW_SETCOLOR, idx, Color.colorRGB);
+			Imports::SendMessageA.invoke()(hWnd, CB_SETITEMDATA, idx, i);
 
 			if (isCurrent)
 			{
@@ -296,8 +296,8 @@ ASMJIT_PATCH(0x4E46BB, hWnd_PopulateWithColors, 7)
 		}
 	}
 
-	SendMessageA(hWnd, CB_SETCURSEL, curSel, 0);
-	SendMessageA(hWnd, 0x4F1, 0, 0);
+	Imports::SendMessageA.invoke()(hWnd, CB_SETCURSEL, curSel, 0);
+	Imports::SendMessageA.invoke()(hWnd, 0x4F1, 0, 0);
 
 	return 0x4E4749;
 }

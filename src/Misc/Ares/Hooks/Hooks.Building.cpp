@@ -108,6 +108,15 @@ ASMJIT_PATCH(0x44EB10, BuildingClass_GetCrew, 9)
 
 #include <Ext/SWType/Body.h>
 
+// Calculate the mask once at initialization (assuming you know ColorStruct at startup)
+constexpr WORD BuildPcxMask() {
+    return (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
+         | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
+}
+
+// Global static instance:
+static AresPcxBlit<WORD> GlobalPcxBlitter(BuildPcxMask() ,60, 48, 2);
+
 ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 {
 	GET(BuildingClass*, pThis, ECX);
@@ -160,8 +169,8 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
 						cameoRect = destRect;
-						AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
-						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
+						//AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &GlobalPcxBlitter, 0, 3, 1000, 0);
 
 					}
 				}
@@ -218,8 +227,8 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 						{
 							cameoRect = destRect;
-							AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
-							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
+							//AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
+							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &GlobalPcxBlitter, 0, 3, 1000, 0);
 						}
 
 					}

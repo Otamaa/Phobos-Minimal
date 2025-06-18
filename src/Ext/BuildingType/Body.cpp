@@ -1667,7 +1667,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	{
 		INI_EX exArtINI(pArtINI);
 
-		this->Storage_ActiveAnimations.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
+		this->Refinery_UseNormalActiveAnim.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
 
 		if (this->IsCustom)
 		{
@@ -2112,6 +2112,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->BattlePointsCollector)
 		.Process(this->BattlePointsCollector_RequirePower)
 		.Process(this->BuildingRepairedSound)
+
+		.Process(this->Refinery_UseNormalActiveAnim)
 		;
 }
 
