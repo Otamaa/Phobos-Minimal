@@ -525,6 +525,9 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			pExt->Harvester_Counted = true;
 		}
 
+		if (pExt->Spawn_LimitedExtraRange)
+			pExt->CalculateSpawnerRange();
+
 		if (isFoot)
 		{
 			if (what == UnitTypeClass::AbsID)
