@@ -6833,4 +6833,84 @@ ASMJIT_PATCH(0x6F9039, TechnoClass_GreatestThreat_GuardRange, 0x9)
 }
 #endif
 
+FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord, CoordStruct& their_coord)
+{
+	int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
+	int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
+	int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
+	int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
+
+	int x_distance = Math::abs(our_cell_x - their_cell_x);
+	int y_distance = Math::abs(our_cell_y - their_cell_y);
+	return (x_distance * x_distance) + (y_distance * y_distance);
+
+	//return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
+}
+
+#ifdef __old
+
+ASMJIT_PATCH(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
+{
+	GET(AbstractClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pThat, 0x4);
+
+	int nResult = 0;
+	if (pThat)
+	{
+		auto nThisCoord = pThis->GetCoords();
+		auto nThatCoord = pThat->GetCoords();
+		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
+			cell_Distance_Squared(nThisCoord, nThatCoord);
+		;
+	}
+
+	R->EAX(nResult);
+	return 0x5F655D;
+}
+
+ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
+{
+	GET(AbstractClass*, pThis, ECX);
+	auto nThisCoord = pThis->GetCoords();
+	GET_STACK(CoordStruct*, pThatCoord, 0x4);
+	R->EAX(
+		//(int)nThisCoord.DistanceFromXY(*pThatCoord)
+		cell_Distance_Squared(nThisCoord, *pThatCoord)
+	);
+	return 0x5F659B;
+}
+
+#else
+int FakeObjectClass::_GetDistanceOfObj(AbstractClass* pThat)
+{
+	int nResult = 0;
+	if (pThat)
+	{
+		auto nThisCoord = this->GetCoords();
+		auto nThatCoord = pThat->GetCoords();
+		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
+			cell_Distance_Squared(nThisCoord, nThatCoord);
+		;
+	}
+
+	return nResult;
+}
+
+int FakeObjectClass::_GetDistanceOfCoord(CoordStruct* pThat)
+{
+	auto nThisCoord = this->GetCoords();
+	return cell_Distance_Squared(nThisCoord, *pThat);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x5F6500 , FakeObjectClass::_GetDistanceOfObj);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x5F6560, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EABCB, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EAC96, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EAD4B, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
+
+#endif
 #pragma endregion

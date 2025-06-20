@@ -158,6 +158,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	if (!ScriptExtData::IsUnitAvailable(pTeamData->TeamLeader, true))
 	{
 		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
+		pTeamData->TeamLeader->IsTeamLeader = true;
 	}
 
 	if (!pTeamData->TeamLeader  || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))

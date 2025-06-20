@@ -100,52 +100,6 @@ ASMJIT_PATCH(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
-FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& their_coord)
-{
-    int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
-    int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
-    int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
-    int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
-
-    int x_distance = Math::abs(our_cell_x - their_cell_x);
-    int y_distance = Math::abs(our_cell_y - their_cell_y);
-    return (x_distance * x_distance) + (y_distance * y_distance);
-
-	//return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
-}
-
-
-ASMJIT_PATCH(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
-{
-	GET(AbstractClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, pThat, 0x4);
-
-	int nResult = 0;
-	if (pThat)
-	{
-		auto nThisCoord = pThis->GetCoords();
-		auto nThatCoord = pThat->GetCoords();
-		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
-		cell_Distance_Squared(nThisCoord, nThatCoord);
-		;
-	}
-
-	R->EAX(nResult);
-	return 0x5F655D;
-}
-
-ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
-{
-	GET(AbstractClass*, pThis, ECX);
-	auto nThisCoord = pThis->GetCoords();
-	GET_STACK(CoordStruct*, pThatCoord, 0x4);
-	R->EAX(
-		//(int)nThisCoord.DistanceFromXY(*pThatCoord)
-		cell_Distance_Squared(nThisCoord, *pThatCoord)
-		);
-	return 0x5F659B;
-}
-
 //ASMJIT_PATCH(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 //{
 //	GET(TActionClass*, pThis, ECX);

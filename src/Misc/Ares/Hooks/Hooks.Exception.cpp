@@ -366,7 +366,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 				if (*ptr >= 0x401000 && *ptr <= 0xB79BE4)
 					suffix = "GameMemory!";
 				else {
-					for(auto begin = Patch::ModuleDatas.begin() + 1; begin != Patch::ModuleDatas.end(); ++begin) {
+					for(auto begin = Patch::ModuleDatas.begin() + 1; begin < Patch::ModuleDatas.end(); ++begin) {
 						if(*ptr >= begin->BaseAddr && *ptr <= (begin->BaseAddr + begin->Size)) {
 							suffix = (begin->ModuleName +" Memory!").c_str();
 							break;

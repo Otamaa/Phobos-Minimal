@@ -355,7 +355,7 @@ ASMJIT_PATCH(0x69192E, ScriptTypeClass_Read_INI_TeamMission, 0x7) {
 
 	for (auto& cur : SriptNumbers) {
 		if (cur.Alternate == team) {
-			Debug::LogInfo("[{}]Replacing TMission[{} to{}]", pThis->ID, team, cur.Original);
+			Debug::LogInfo("[{}]Replacing TMission[{} to {}]", pThis->ID, team, cur.Original);
 			R->ECX(cur.Original);
 			return 0x0;
 		}

@@ -99,8 +99,12 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
+	void _AI();
+	bool _CoordinateRegroup();
+	void _TeamClass_6EA080();
+
 	TeamExtData* _GetExtData() {
-		return *reinterpret_cast<TeamExtData**>(this->unknown_18);
+		return *reinterpret_cast<TeamExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 };

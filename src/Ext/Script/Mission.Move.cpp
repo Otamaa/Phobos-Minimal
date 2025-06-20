@@ -95,6 +95,7 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 	// Find the Leader
 	if (!pTeamData->TeamLeader) {
 		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
+		pTeamData->TeamLeader->IsTeamLeader = true;
 	}
 
 	if (!pTeamData->TeamLeader || bAircraftsWithoutAmmo)

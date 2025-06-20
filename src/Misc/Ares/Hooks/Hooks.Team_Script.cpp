@@ -46,74 +46,76 @@ ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 	return 0x65DBD0;
 }
 
-ASMJIT_PATCH(0x6E9443, TeamClass_AI_Additionals, 8)
-{
-	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
-	GET(TeamClass*, pThis, ESI);
-	GET(ScriptActionNode*, pTeamMission, EAX);
-	GET_STACK(bool, bThirdArg, 0x10);
+// ASMJIT_PATCH(0x6E9443, TeamClass_AI_Additionals, 8)
+// {
+// 	enum { ReturnFunc = 0x6E95AB, Continue = 0x0 };
 
-	if (AresScriptExt::Handle(pThis, pTeamMission, bThirdArg))
-		return ReturnFunc;
+// 	GET(TeamClass*, pThis, ESI);
+// 	GET(ScriptActionNode*, pTeamMission, EAX);
+// 	GET_STACK(bool, bThirdArg, 0x10);
 
-	auto pTeamData = TeamExtContainer::Instance.Find(pThis);
+// 	if (AresScriptExt::Handle(pThis, pTeamMission, bThirdArg))
+// 		return ReturnFunc;
 
-	// Force a line jump. This should support vanilla YR Actions
-	if (pTeamData->ForceJump_InitialCountdown > 0 && pTeamData->ForceJump_Countdown.Expired())
-	{
-		auto pScript = pThis->CurrentScript;
+// 	auto pTeamData = TeamExtContainer::Instance.Find(pThis);
 
-		if (pTeamData->ForceJump_RepeatMode)
-		{
-			pScript->CurrentMission--;
-			pThis->ArchiveTarget = nullptr;
-			pThis->QueuedFocus = nullptr;
-			const auto nextAction = pScript->GetNextAction();
-			Debug::LogInfo("DEBUG: [{}] {}](line: {} = {},{}): Jump to the same line -> (Reason: Timed Jump loop)",
-				pThis->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission + 1,
-				(int)nextAction.Action,
-				nextAction.Argument
-			);
+// 	// Force a line jump. This should support vanilla YR Actions
+// 	if (pTeamData->ForceJump_InitialCountdown > 0 && pTeamData->ForceJump_Countdown.Expired())
+// 	{
+// 		auto pScript = pThis->CurrentScript;
 
-			if (pTeamData->ForceJump_InitialCountdown > 0)
-			{
-				pTeamData->ForceJump_Countdown.Start(pTeamData->ForceJump_InitialCountdown);
-				pTeamData->ForceJump_RepeatMode = true;
-			}
-		}
-		else
-		{
-			const auto& [curAct, curArgs] = pScript->GetCurrentAction();
-			const auto& [nextAct, nextArgs] = pScript->GetNextAction();
+// 		if (pTeamData->ForceJump_RepeatMode)
+// 		{
+// 			pScript->CurrentMission--;
+// 			pThis->ArchiveTarget = nullptr;
+// 			pThis->QueuedFocus = nullptr;
+// 			const auto nextAction = pScript->GetNextAction();
+// 			Debug::LogInfo("DEBUG: [{}] {}](line: {} = {},{}): Jump to the same line -> (Reason: Timed Jump loop)",
+// 				pThis->Type->ID,
+// 				pScript->Type->ID,
+// 				pScript->CurrentMission + 1,
+// 				(int)nextAction.Action,
+// 				nextAction.Argument
+// 			);
 
-			pTeamData->ForceJump_InitialCountdown = -1;
-			pTeamData->ForceJump_Countdown.Stop();
-			Debug::LogInfo("DEBUG: [{}] [{}](line: {} = {},{}): Jump to line: {} = {},{} -> (Reason: Timed Jump)",
-				pThis->Type->ID,
-				pScript->Type->ID,
-				pScript->CurrentMission, (int)curAct, curArgs,
-				pScript->CurrentMission + 1, (int)nextAct, nextArgs
-			);
-		}
+// 			if (pTeamData->ForceJump_InitialCountdown > 0)
+// 			{
+// 				pTeamData->ForceJump_Countdown.Start(pTeamData->ForceJump_InitialCountdown);
+// 				pTeamData->ForceJump_RepeatMode = true;
+// 			}
+// 		}
+// 		else
+// 		{
+// 			const auto& [curAct, curArgs] = pScript->GetCurrentAction();
+// 			const auto& [nextAct, nextArgs] = pScript->GetNextAction();
 
-		for (auto pUnit = pThis->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-		{
-			if (ScriptExtData::IsUnitAvailable(pUnit, true))
-			{
-				pUnit->EnterIdleMode(false, 1);
-			}
-		}
+// 			pTeamData->ForceJump_InitialCountdown = -1;
+// 			pTeamData->ForceJump_Countdown.Stop();
+// 			Debug::LogInfo("DEBUG: [{}] [{}](line: {} = {},{}): Jump to line: {} = {},{} -> (Reason: Timed Jump)",
+// 				pThis->Type->ID,
+// 				pScript->Type->ID,
+// 				pScript->CurrentMission, (int)curAct, curArgs,
+// 				pScript->CurrentMission + 1, (int)nextAct, nextArgs
+// 			);
+// 		}
 
-		pThis->StepCompleted = true;
-		return ReturnFunc;
-	}
+// 		for (auto pUnit = pThis->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
+// 		{
+// 			if (ScriptExtData::IsUnitAvailable(pUnit, true))
+// 			{
+// 				pUnit->EnterIdleMode(false, 1);
+// 			}
+// 		}
 
-	return ScriptExtData::ProcessScriptActions(pThis) ? ReturnFunc : Continue;
-}
+// 		pThis->StepCompleted = true;
+// 		return ReturnFunc;
+// 	}
 
-ASMJIT_PATCH(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
+// 	return ScriptExtData::ProcessScriptActions(pThis) ? ReturnFunc : Continue;
+// }
+
+#ifndef _ENABLE
+ASMJIT_PATCH(0x6EF8A1, TeamClass_TMission_GatherAtEnemyBase_Distance, 0x6)
 {
 	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x5C, 0x34));
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
@@ -126,7 +128,7 @@ ASMJIT_PATCH(0x6EF8A1, TeamClass_GatherAtEnemyBase_Distance, 0x6)
 	return 0x6EF8A7;
 }
 
-ASMJIT_PATCH(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
+ASMJIT_PATCH(0x6EFB69, TeamClass_TMission_GatherAtFriendlyBase_Distance, 0x6)
 {
 	//GET_STACK(TeamClass*, pTeam, 0x48 - 0x2C);
 	GET_BASE(ScriptActionNode*, pTeamM, 0x8);
@@ -150,6 +152,7 @@ ASMJIT_PATCH(0x6EFB69, TeamClass_GatherAtFriendlyBase_Distance, 0x6)
 	R->EDX(distanceresult);
 	return 0x6EFB6F;
 }
+#endif
 
 //ASMJIT_PATCH(0x6EFC54, TeamClass_GatherAtFriendlyBase_TargetAssigned, 0x5)
 //{
@@ -187,7 +190,7 @@ ASMJIT_PATCH(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 	if (RulesExtData::Instance()->TeamRetaliate)
 	{
 		auto pFocus = flag_cast_to<TechnoClass*>(pThis->ArchiveTarget);
-		CellClass* SpawnCell = pThis->SpawnCell;
+		auto SpawnCell = pThis->Zone;
 
 		if (!pFocus
 		  || !pFocus->IsArmed()
