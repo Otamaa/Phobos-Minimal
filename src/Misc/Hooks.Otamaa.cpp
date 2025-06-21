@@ -816,7 +816,8 @@ ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 	}
 
 	const auto pTeam = GameCreate<TeamClass>(pThis, pHouse, false);
-	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].", pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
+	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].",
+		pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
 	R->EAX(pTeam);
 	return 0x6F0A2C;
 }

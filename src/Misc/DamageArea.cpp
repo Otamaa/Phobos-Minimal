@@ -257,8 +257,8 @@ static void NOINLINE Damage_Overlay(CellClass* pCurCell,
 }
 
 static PhobosMap<BuildingClass*, double> MergedDamage {};
-static DynamicVectorClass<ObjectClass*, DllAllocator<ObjectClass*>> Targets;
-static DynamicVectorClass<DamageGroup*, DllAllocator<DamageGroup*>> Handled;
+static DynamicVectorClass<ObjectClass*> Targets;
+static DynamicVectorClass<DamageGroup*> Handled;
 
 inline int Distance_Level_Snap(const Coordinate& coord1, const Coordinate& coord2)
 {

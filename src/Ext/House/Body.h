@@ -405,6 +405,7 @@ public:
 	static HouseClass* Civilian;
 	static HouseClass* Special;
 	static HouseClass* Neutral;
+	static std::unordered_map<HouseClass*, std::set<TeamClass*>> HousesTeams;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

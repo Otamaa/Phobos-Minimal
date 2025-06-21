@@ -103,6 +103,10 @@ public:
 	bool _CoordinateRegroup();
 	void _TeamClass_6EA080();
 
+	//
+	void _TMission_Guard(ScriptActionNode* nNode, bool arg3);
+	//
+
 	TeamExtData* _GetExtData() {
 		return *reinterpret_cast<TeamExtData**>(((DWORD)this) + AbstractExtOffset);
 	}

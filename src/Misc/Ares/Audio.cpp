@@ -30,7 +30,7 @@ class LooseAudioCache
 {
 public:
 	LooseAudioCache(const char* Title)
-		: Name(Title), WavName(Title), Data {}
+		: Name(Title), WavName(Title), Data {}, IsFail {}
 	{
 		WavName += ".wav";
 	}
@@ -45,38 +45,44 @@ public:
 	FileStruct GetFileStruct()
 	{
 		std::lock_guard<std::mutex> lock(ObjectMutex);
-		auto pFile = GameCreate<CCFileClass>(WavName.c_str());
+		CCFileClass* pFile = nullptr;
 
-		if (!pFile->Exists())
-		{
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("LooseAudioCache: File does not exist: %s\n", WavName.c_str());
+		if(!this->IsFail.has_value() || !this->IsFail){
+			pFile = GameCreate<CCFileClass>(WavName.c_str());
 
-			GameDelete<true, false>(pFile);
-			pFile = nullptr;
-		}
-		else if (!pFile->Open(FileAccessMode::Read))
-		{
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("LooseAudioCache: Failed to open file: %s\n", WavName.c_str());
-
-			GameDelete<true, false>(pFile);
-			pFile = nullptr;
-		}
-		else
-		{
-			//if (Phobos::Otamaa::IsAdmin) {
-			//	Debug::Log("LooseAudioCache: Opened file: %s\n", WavName.c_str());
-			//}
-
-			if (Data.Size < 0 && Audio::ReadWAVFile(pFile, &Data.Data, &Data.Size))
-			{
-				Data.Offset = pFile->Seek(0, FileSeekMode::Current);
-			}
-			else if (Data.Size < 0)
+			if (!pFile->Exists())
 			{
 				if (Phobos::Otamaa::IsAdmin)
-					Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
+					Debug::Log("LooseAudioCache: File does not exist: %s\n", WavName.c_str());
+
+				GameDelete<true, false>(pFile);
+				pFile = nullptr;
+				this->IsFail = true;
+			}
+			else if (!pFile->Open(FileAccessMode::Read))
+			{
+				if (Phobos::Otamaa::IsAdmin)
+					Debug::Log("LooseAudioCache: Failed to open file: %s\n", WavName.c_str());
+
+				GameDelete<true, false>(pFile);
+				pFile = nullptr;
+				this->IsFail = true;
+			}
+			else
+			{
+				this->IsFail = false;
+
+				if (Data.Size < 0 && Audio::ReadWAVFile(pFile, &Data.Data, &Data.Size))
+				{
+					Data.Offset = pFile->Seek(0, FileSeekMode::Current);
+				}
+				else if (Data.Size < 0)
+				{
+					if (Phobos::Otamaa::IsAdmin)
+						Debug::Log("LooseAudioCache: Failed to parse WAV file: %s\n", WavName.c_str());
+
+					this->IsFail = true;
+				}
 			}
 		}
 
@@ -104,6 +110,7 @@ private:
 	std::string WavName;
 	LooseAudioFile Data;
 	std::mutex ObjectMutex;
+	std::optional<bool> IsFail;
 };
 
 class LooseAudioCacheManager

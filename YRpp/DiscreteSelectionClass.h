@@ -21,7 +21,7 @@
 
 #include <utility>
 
-template <typename T , class Allocator = GameAllocator<T>>
+template <typename T>
 class DiscreteSelectionClass
 {
 public:
@@ -89,6 +89,6 @@ public:
 	}
 
 private:
-	DynamicVectorClass<T , Allocator> Items{};
+	DynamicVectorClass<T> Items{};
 	int Rating{ 0 };
 };

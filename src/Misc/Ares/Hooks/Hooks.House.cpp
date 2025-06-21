@@ -1255,7 +1255,7 @@ ASMJIT_PATCH(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
 	// check whether this is a building
 	if (auto pBld = cast_to<BuildingClass*>(pTechno)) {
 
-		auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
+		//auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
 		// if(pBldExt->LimboID != -1) {
 		// 	BuildingExtData::LimboKill(pBld);

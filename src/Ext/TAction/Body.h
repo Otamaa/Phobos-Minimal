@@ -185,3 +185,12 @@ public:
 
 #undef ACTION_FUNC
 };
+
+
+class NOVTABLE FakeTActionClass : public TActionClass
+{
+public:
+
+	bool _OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation);
+
+};

@@ -537,7 +537,7 @@ public:
 	};
 
 	static std::array<MappedActions, (size_t)Action::count + 2> CursorIdx;
-	static DynamicVectorClass<BuildType,DllAllocator<BuildType>> TabCameos[4u];
+	static DynamicVectorClass<BuildType> TabCameos[4u];
 
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{

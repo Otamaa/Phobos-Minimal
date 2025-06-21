@@ -580,6 +580,15 @@
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
     <ClInclude Include="src\Lib\Lua\lua.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_all.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_containers.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_flags.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_format.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_fuse.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_iostream.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_switch.hpp" />
+    <ClInclude Include="src\Lib\magic_enum\magic_enum_utility.hpp" />
     <ClInclude Include="src\Lib\Zycore\Allocator.h" />
     <ClInclude Include="src\Lib\Zycore\API\Memory.h" />
     <ClInclude Include="src\Lib\Zycore\API\Process.h" />
@@ -1149,9 +1158,9 @@
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FloatingPointModel>Fast</FloatingPointModel>
+      <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -1161,6 +1170,8 @@
       <MinimalRebuild>false</MinimalRebuild>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <EnableVectorLength>NotSet</EnableVectorLength>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

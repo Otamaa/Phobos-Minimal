@@ -1275,19 +1275,27 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 	return true;
 }
 
-ASMJIT_PATCH(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
-{
-	enum { UseOriginalSelector = 0x4F8A63, SkipCode = 0x4F8B08 };
-	GET(HouseClass*, pHouse, ESI);
+TeamTypeClass *__fastcall Suggested_New_Team(TypeList<TeamTypeClass*> *possible_teams, HouseClass *house, bool alerted){
+	JMP_STD(0x6F0AB0)
+}
 
-	bool houseIsHuman = pHouse->IsHumanPlayer;
-	if (SessionClass::IsCampaign())
-		houseIsHuman = pHouse->IsHumanPlayer || pHouse->IsInPlayerControl;
+ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
+	GET(HouseClass* , pThis , ESI);
 
-	if (houseIsHuman || pHouse->Type->MultiplayPassive)
-		return SkipCode;
+	if(!UpdateTeam(pThis)){
 
-	return UpdateTeam(pHouse) ? SkipCode : UseOriginalSelector;
+		TypeList<TeamTypeClass*> possible_teams;
+		Suggested_New_Team(&possible_teams,pThis, false);
+		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.Count);
+
+		for(int i = 0; i < possible_teams.Count; ++i){
+			possible_teams[i]->CreateTeam(pThis);
+		}
+
+		pThis->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty]);
+	}
+
+	return 0x4F8B08;
 }
 
 #include <ExtraHeaders/StackVector.h>

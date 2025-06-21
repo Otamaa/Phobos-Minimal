@@ -39,7 +39,7 @@ public:
 
 	// fills dest with all types needed to complete this team. each type is
 	// included as often as it is needed.
-	void GetTaskForceMissingMemberTypes(DynamicVectorClass<TechnoTypeClass *>& dest) const { JMP_THIS(0x6EF4D0); }
+	void GetTaskForceMissingMemberTypes(DynamicVectorClass<TechnoTypeClass *>* dest) const { JMP_THIS(0x6EF4D0); }
 	bool IsReallyLeavingMap() const { JMP_THIS(0x6EC300); }
 	void LiberateMember(FootClass* pFoot, int idx=-1, byte count=0) const { JMP_THIS(0x6EA870); }
 	void RemoveMember(FootClass* pFoot, int idx = -1, byte count = 0) const { JMP_THIS(0x6EA870); }

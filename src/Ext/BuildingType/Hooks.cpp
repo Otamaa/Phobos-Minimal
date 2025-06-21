@@ -179,7 +179,7 @@ bool FORCEDINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, 
  }
 
 template<typename Arr>
-void CountPowerOf(HouseClass*pHouse ,CounterClass<GameAllocator<int>>& counter){
+void CountPowerOf(HouseClass*pHouse ,CounterClass& counter){
 	 if(counter.IsAllocated) {
 		 for (int a = 0; a < counter.Capacity; ++a)  {
 			 if (counter.Items[a] > 0) {

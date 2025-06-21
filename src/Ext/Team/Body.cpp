@@ -390,8 +390,24 @@ void FakeTeamClass::_TeamClass_6EA080()
 	this->StepCompleted = 1;
 }
 
+void FakeTeamClass::_TMission_Guard(ScriptActionNode* nNode, bool arg3)
+{
+	if (arg3) {
+		this->GuardAreaTimer.Start(nNode->Argument * 15);
+	}
+
+	this->_CoordinateRegroup();
+
+	if (!this->GuardAreaTimer.IsTicking() || this->GuardAreaTimer.GetTimeLeft() <= 0)
+		this->StepCompleted = true;
+
+	//Debug::LogInfo("Script {} GuardAreaTimer Left {}", this->CurrentScript->Type->ID, );
+}
+
 void FakeTeamClass::_AI()
 {
+	HouseExtContainer::HousesTeams[this->Owner].emplace(this);
+
 	if (this->IsSuspended)
 	{
 		int Started = this->SuspendTimer.StartTime;
@@ -482,10 +498,9 @@ void FakeTeamClass::_AI()
 	FootClass* v8 = this->FirstUnit;
 	bool hasValidMember = false;
 
-	if (!v8)
-	{
+	if (!v8 ) {
 		if (this->IsHasBeen ||
-			(SessionClass::Instance->GameMode != GameMode::Campaign && Unsorted::CurrentFrame() - this->CreationFrame > RulesClass::Instance->DissolveUnfilledTeamDelay))
+				(SessionClass::Instance->GameMode != GameMode::Campaign && Unsorted::CurrentFrame() - this->CreationFrame > RulesClass::Instance->DissolveUnfilledTeamDelay))
 		{
 			if (this->IsLeavingMap)
 			{
@@ -500,14 +515,9 @@ void FakeTeamClass::_AI()
 				}
 			}
 
-			if (this)
-			{
-				((TeamClass*)this)->~TeamClass();
-			}
-
+			((TeamClass*)this)->~TeamClass();
 			return;
 		}
-
 	}
 	else
 	{
@@ -675,7 +685,12 @@ void FakeTeamClass::_AI()
 			fillTMission(Go_bezerk)
 			fillTMission(Move)
 			fillTMission(Movecell)
-			fillTMission(Guard)
+	case TeamMissionType::Guard:
+		{
+			this->_TMission_Guard(&node, arg4);
+			break;
+
+		}
 			fillTMission(Loop)
 			fillTMission(Player_wins)
 			fillTMission(Unload)
@@ -842,6 +857,13 @@ ASMJIT_PATCH(0x55B4F5, LogicClass_Update_Teams, 0x6)
 	{
 		TeamClass::Array->Items[i]->Update();
 	}
+
+	//if(Phobos::Otamaa::IsAdmin){
+	//	for (auto& [house, vec] : HouseExtContainer::HousesTeams) {
+	//		Debug::LogInfo("House {} - {} has {} valid Teams!", (void*)house, house->Type->ID, vec.size());
+	//	}
+	//}
+
 	return 0x55B5A1;
 }
 
@@ -907,6 +929,7 @@ ASMJIT_PATCH(0x6E8D05, TeamClass_CTOR, 0x5)
 ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
+	HouseExtContainer::HousesTeams[pThis->Owner].erase(pThis);
 	TeamExtContainer::Instance.Remove(pThis);
 	return 0;
 }

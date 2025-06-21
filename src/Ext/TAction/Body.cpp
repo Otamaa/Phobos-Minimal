@@ -548,10 +548,16 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 	HouseClass* pHouse = args.pHouse;
 	ObjectClass* pObject = args.pObject;
 	TriggerClass* pTrigger = args.pTrigger;
-	if (pObject && !pObject->IsAlive)
+	// Vanilla overriden
+	switch (pThis->ActionKind)
 	{
-		pObject = nullptr;
+	case TriggerAction::PlaySoundEffectAtWaypoint: {
+		ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
+		return true;
+	default:
+		break;
 	}
+	};
 
 	// Phobos
 	switch ((PhobosTriggerAction)pThis->ActionKind)
@@ -643,34 +649,27 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		ret = TActionExt::SetDropCrate(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::EditAngerNode:
-		return TActionExt::EditAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::EditAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::ClearAngerNode:
-		return TActionExt::ClearAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::ClearAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::SetForceEnemy:
-		return TActionExt::SetForceEnemy(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::SetForceEnemy(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 
 	case PhobosTriggerAction::CreateBannerGlobal:
-		return TActionExt::CreateBannerGlobal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::CreateBannerGlobal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::CreateBannerLocal:
-		return TActionExt::CreateBannerLocal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::CreateBannerLocal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::DeleteBanner:
-		return TActionExt::DeleteBanner(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::DeleteBanner(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 
 	default:
 	{
-
-		// Vanilla overriden
-		switch (pThis->ActionKind)
-		{
-		case TriggerAction::PlaySoundEffectRandom:
-		{
-			ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
-			return true;
-		default:
-			break;
-		}
-		};
-
 		return false;
 	}
 	}
@@ -860,7 +859,6 @@ bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHou
 // #1004906: support more than 100 waypoints
 bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-
 	ScenarioExtData::Instance()->DefinedAudioWaypoints.reserve(ScenarioExtData::Instance()->Waypoints.size());
 
 	auto const pScen = ScenarioClass::Instance();
@@ -1651,3 +1649,188 @@ bool TActionExt::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, Obje
 //
 //	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
 //}
+
+#include <Utilities/Macro.h>
+#include <Misc/Ares/Hooks/Header.h>
+
+bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	Debug::LogInfo("TAction[{}] triggering [{}]", (void*)this, (int)this->ActionKind);
+	bool ret = true;
+	if (pSourceObject && !pSourceObject->IsAlive) {
+		pSourceObject = 0;
+	}
+
+	if (TActionExt::Occured(this, {pTargetHouse,pSourceObject,pTrigger,plocation}, ret))
+	{
+		return ret;
+	}
+
+	if (AresTActionExt::Execute(
+		this, pTargetHouse, pSourceObject, pTrigger, *plocation, ret))
+	{
+		return ret;
+	}
+
+#define fillTAction(miss) \
+	case TriggerAction::## miss: { \
+		ret = this->## miss ##(pTargetHouse, pSourceObject, pTrigger, plocation);\
+		break;\
+	}
+
+	switch (this->ActionKind)
+	{
+		fillTAction(Win)
+			fillTAction(Lose)
+			fillTAction(ProductionBegins)
+			fillTAction(CreateTeam)
+			fillTAction(DestroyTeam)
+			fillTAction(AllToHunt)
+			fillTAction(Reinforcement)
+			fillTAction(DropZoneFlare)
+			fillTAction(FireSale)
+			fillTAction(PlayMovie)
+			fillTAction(TextTrigger)
+			fillTAction(DestroyTrigger)
+			fillTAction(AutocreateBegins)
+			fillTAction(ChangeHouse)
+			//fillTAction(AllowWin)
+			fillTAction(RevealAllMap)
+			fillTAction(RevealAroundWaypoint)
+			fillTAction(RevealWaypointZone)
+			fillTAction(PlaySoundEffect)
+			fillTAction(PlayMusicTheme)
+			fillTAction(PlaySpeech)
+			fillTAction(ForceTrigger)
+			fillTAction(TimerStart)
+			fillTAction(TimerStop)
+			fillTAction(TimerExtend)
+			fillTAction(TimerShorten)
+			fillTAction(TimerSet)
+			fillTAction(GlobalSet)
+			fillTAction(GlobalClear)
+			fillTAction(AutoBaseBuilding)
+			fillTAction(GrowShroud)
+			fillTAction(DestroyAttachedObject)
+			fillTAction(AddOneTimeSuperWeapon)
+			fillTAction(AddRepeatingSuperWeapon)
+			fillTAction(PreferredTarget)
+			fillTAction(AllChangeHouse)
+			fillTAction(MakeAlly)
+			fillTAction(MakeEnemy)
+			//fillTAction(ChangeZoomLevel)
+			fillTAction(ResizePlayerView)
+			fillTAction(PlayAnimAt)
+			fillTAction(DoExplosionAt)
+			fillTAction(CreateVoxelAnim)
+			fillTAction(IonStormStart)
+			fillTAction(IonStormStop)
+			fillTAction(LockInput)
+			fillTAction(UnlockInput)
+			fillTAction(MoveCameraToWaypoint)
+			fillTAction(ZoomIn)
+			fillTAction(ZoomOut)
+			fillTAction(ReshroudMap)
+			fillTAction(ChangeLightBehavior)
+			fillTAction(EnableTrigger)
+			fillTAction(DisableTrigger)
+			fillTAction(CreateRadarEvent)
+			fillTAction(LocalSet)
+			fillTAction(LocalClear)
+			fillTAction(MeteorShower)
+			fillTAction(ReduceTiberium)
+			fillTAction(SellBuilding)
+			fillTAction(TurnOffBuilding)
+			fillTAction(TurnOnBuilding)
+			fillTAction(Apply100Damage)
+			fillTAction(SmallLightFlash)
+			fillTAction(MediumLightFlash)
+			fillTAction(LargeLightFlash)
+			fillTAction(AnnounceWin)
+			fillTAction(AnnounceLose)
+			fillTAction(ForceEnd)
+			fillTAction(DestroyTag)
+			fillTAction(SetAmbientStep)
+			fillTAction(SetAmbientRate)
+			fillTAction(SetAmbientLight)
+			fillTAction(AITriggersBegin)
+			fillTAction(AITriggersStop)
+			fillTAction(RatioOfAITriggerTeams)
+			fillTAction(RatioOfTeamAircraft)
+			fillTAction(RatioOfTeamInfantry)
+			fillTAction(RatioOfTeamUnits)
+			fillTAction(ReinforcementAt)
+			fillTAction(WakeupSelf)
+			fillTAction(WakeupAllSleepers)
+			fillTAction(WakeupAllHarmless)
+			fillTAction(WakeupGroup)
+			fillTAction(VeinGrowth)
+			fillTAction(TiberiumGrowth)
+			fillTAction(IceGrowth)
+			fillTAction(ParticleAnim)
+			fillTAction(RemoveParticleAnim)
+			fillTAction(LightningStrike)
+			fillTAction(GoBerzerk)
+			//fillTAction(ActivateFirestorm)
+			//fillTAction(DeactivateFirestorm)
+			fillTAction(IonCannonStrike)
+			fillTAction(NukeStrike)
+			fillTAction(ChemMissileStrike)
+			fillTAction(ToggleTrainCargo)
+			fillTAction(PlaySoundEffectRandom)
+			fillTAction(PlaySoundEffectAtWaypoint)
+			fillTAction(PlayIngameMovie)
+			fillTAction(ReshroudMapAtWaypoint)
+			fillTAction(LightningStormStrike)
+			fillTAction(TimerText)
+			fillTAction(FlashTeam)
+			fillTAction(TalkBubble)
+			fillTAction(SetObjectTechLevel)
+			fillTAction(ReinforcementByChrono)
+			fillTAction(CreateCrate)
+			fillTAction(IronCurtain)
+			fillTAction(PauseGame)
+			fillTAction(EvictOccupiers)
+			fillTAction(CenterCameraAtWaypoint)
+			fillTAction(MakeHouseCheer)
+			fillTAction(SetTabTo)
+			fillTAction(FlashCameo)
+			fillTAction(StopSounds)
+			fillTAction(PlayIngameMovieAndPause)
+			fillTAction(ClearAllSmudges)
+			fillTAction(DestroyAll)
+			fillTAction(DestroyAllBuildings)
+			fillTAction(DestroyAllLandUnits)
+			fillTAction(DestroyAllNavalUnits)
+			fillTAction(MindControlBase)
+			fillTAction(RestoreMindControlledBase)
+			fillTAction(CreateBuilding)
+			fillTAction(RestoreStartingUnits)
+			fillTAction(StartChronoScreenEffect)
+			fillTAction(TeleportAll)
+			fillTAction(SetSuperWeaponCharge)
+			fillTAction(RestoreStartingBuildings)
+			fillTAction(FlashBuildingsOfType)
+			fillTAction(SuperWeaponSetRechargeTime)
+			fillTAction(SuperWeaponResetRechargeTime)
+			fillTAction(SuperWeaponReset)
+			fillTAction(SetPreferredTargetCell)
+			fillTAction(ClearPreferredTargetCell)
+			fillTAction(SetBaseCenterCell)
+			fillTAction(ClearBaseCenterCell)
+			fillTAction(BlackoutRadar)
+			fillTAction(SetDefensiveTargetCell)
+			fillTAction(ClearDefensiveTargetCell)
+			fillTAction(RetintRed)
+			fillTAction(RetintGreen)
+			fillTAction(RetintBlue)
+			fillTAction(JumpCameraHome)
+
+	default:
+		break;
+	}
+#undef fillTAction
+	return ret;
+}
+
+DEFINE_FUNCTION_JUMP(CALL , 0x726605, FakeTActionClass::_OperatorBracket)

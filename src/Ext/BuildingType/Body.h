@@ -247,7 +247,7 @@ public:
 	int OutlineLength { 0 };
 	std::vector<CellStruct> CustomData {};
 	std::vector<CellStruct> OutlineData {};
-	DynamicVectorClass<Point2D , DllAllocator<Point2D>> FoundationRadarShape {};
+	DynamicVectorClass<Point2D> FoundationRadarShape {};
 
 	// new secret lab
 	NullableVector<TechnoTypeClass*> Secret_Boons {};

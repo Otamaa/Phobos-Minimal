@@ -116,7 +116,7 @@ int AresGlobalData::uiColorDisabledObserver;
 AresGlobalData::ColorData AresGlobalData::Colors[16 + 1];
 
 std::array<MouseClassExt::MappedActions, (size_t)Action::count + 2> MouseClassExt::CursorIdx;
-DynamicVectorClass<BuildType, DllAllocator<BuildType>> MouseClassExt::TabCameos[4u];
+DynamicVectorClass<BuildType> MouseClassExt::TabCameos[4u];
 
 #pragma endregion
 
@@ -6872,6 +6872,46 @@ bool AresTActionExt::Retint(TActionClass* pAction, HouseClass* pHouse, ObjectCla
 
 bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret)
 {
+	//we handle some of vanilla TACtion here
+	switch (pAction->ActionKind)
+	{
+	case TriggerAction::PlayAnimAt:
+		ret = PlayAnimAt(pAction, pHouse, pObject, pTrigger, location);
+		return true;
+	case TriggerAction::MeteorShower:
+		ret = MeteorStrike(pAction, pHouse, pObject, pTrigger, location);
+		return true;
+	case TriggerAction::LightningStrike:
+		ret = LightstormStrike(pAction, pHouse, pObject, pTrigger, location);
+		return true;
+	case TriggerAction::ActivateFirestorm:
+		ret = ActivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
+		return true;
+	case TriggerAction::DeactivateFirestorm:
+		ret = DeactivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
+		return true;
+	case TriggerAction::NukeStrike:
+		ret = LauchhNuke(pAction, pHouse, pObject, pTrigger, location);
+		return true;
+	case TriggerAction::ChemMissileStrike:
+		ret = LauchhChemMissile(pAction, pHouse, pObject, pTrigger, location);
+		return true;
+	case TriggerAction::DoExplosionAt:
+		ret = DoExplosionAt(pAction, pHouse, pObject, pTrigger, location);
+		return true;
+	case TriggerAction::RetintRed:
+		ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Red);
+		return true;
+	case TriggerAction::RetintGreen:
+		ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Green);
+		return true;
+	case TriggerAction::RetintBlue:
+		ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Blue);
+		return true;
+	default:
+		break;
+	}
+
 	switch ((AresNewTriggerAction)pAction->ActionKind)
 	{
 	case AresNewTriggerAction::AuxiliaryPower:
@@ -6896,46 +6936,6 @@ bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectCl
 	}
 	default:
 	{
-
-		switch (pAction->ActionKind)
-		{
-		case TriggerAction::PlayAnimAt:
-			ret = PlayAnimAt(pAction, pHouse, pObject, pTrigger, location);
-			return true;
-		case TriggerAction::MeteorShower:
-			ret = MeteorStrike(pAction, pHouse, pObject, pTrigger, location);
-			return true;
-		case TriggerAction::LightningStrike:
-			ret = LightstormStrike(pAction, pHouse, pObject, pTrigger, location);
-			return true;
-		case TriggerAction::ActivateFirestorm:
-			ret = ActivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
-			return true;
-		case TriggerAction::DeactivateFirestorm:
-			ret = DeactivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
-			return true;
-		case TriggerAction::NukeStrike:
-			ret = LauchhNuke(pAction, pHouse, pObject, pTrigger, location);
-			return true;
-		case TriggerAction::ChemMissileStrike:
-			ret = LauchhChemMissile(pAction, pHouse, pObject, pTrigger, location);
-			return true;
-		case TriggerAction::DoExplosionAt:
-			ret = DoExplosionAt(pAction, pHouse, pObject, pTrigger, location);
-			return true;
-		case TriggerAction::RetintRed:
-			ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Red);
-			return true;
-		case TriggerAction::RetintGreen:
-			ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Green);
-			return true;
-		case TriggerAction::RetintBlue:
-			ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Blue);
-			return true;
-		default:
-			break;
-		}
-
 		return false;
 	}
 	}

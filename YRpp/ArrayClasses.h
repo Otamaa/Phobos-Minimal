@@ -41,7 +41,7 @@ enum class ArrayType : int
 //=== VectorClass ========================================================
 //========================================================================
 
-template <typename T , class Allocator = GameAllocator<T>>
+template <typename T>
 class VectorClass
 {
 public:
@@ -51,9 +51,9 @@ public:
 	static const ArrayType Type = ArrayType::Vector;
 
 	VectorClass(noinit_t const&) { };
-	COMPILETIMEEVAL VectorClass<T, Allocator>() noexcept = default;
+	COMPILETIMEEVAL VectorClass<T>() noexcept = default;
 
-	explicit VectorClass<T, Allocator>(int capacity, T* pMem = nullptr) :
+	explicit VectorClass<T>(int capacity, T* pMem = nullptr) :
 		Items(0),
 		Capacity(capacity),
 		IsInitialized(true),
@@ -65,29 +65,28 @@ public:
 				this->Items = pMem;
 			}
 			else{
-				Allocator alloc {};
+				GameAllocator<T> alloc {};
 				this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(capacity));
 				this->IsAllocated = true;
 			}
 		}
 	}
 
-	VectorClass<T, Allocator>(const VectorClass<T, Allocator>& other)
+	VectorClass<T>(const VectorClass<T>& other)
 	{
 		if (other.Capacity > 0)
 		{
-			Allocator alloc {};
+			GameAllocator<T> alloc {};
 			this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
-			for (auto i = 0; i < other.Capacity; ++i)
-			{
+			for (auto i = 0; i < other.Capacity; ++i) {
 				this->Items[i] = other.Items[i];
 			}
 		}
 	}
 
-	VectorClass<T, Allocator>(VectorClass<T, Allocator>&& other) noexcept :
+	VectorClass<T> (VectorClass<T>&& other) noexcept :
 		Items(other.Items),
 		Capacity(other.Capacity),
 		IsInitialized(other.IsInitialized),
@@ -95,10 +94,10 @@ public:
 	{
 	}
 
-	virtual ~VectorClass<T, Allocator>() noexcept
+	virtual ~VectorClass<T>() noexcept
 	{
 		if (this->IsAllocated) {
-			Allocator alloc {};
+			GameAllocator<T> alloc {};
 			Memory::DeleteArray(alloc, this->Items, static_cast<size_t>(this->Capacity));
 		}
 
@@ -107,19 +106,19 @@ public:
 		this->Capacity = 0;
 	}
 
-	VectorClass<T, Allocator>& operator = (const VectorClass<T, Allocator>& other)
+	VectorClass<T>& operator = (const VectorClass<T>& other)
 	{
-		VectorClass<T, Allocator>(other).Swap(*this);
+		VectorClass<T>(other).Swap(*this);
 		return *this;
 	}
 
-	VectorClass<T, Allocator>& operator = (VectorClass<T, Allocator>&& other) noexcept
+	VectorClass<T>& operator = (VectorClass<T>&& other) noexcept
 	{
-		VectorClass<T, Allocator>(std::move(other)).Swap(*this);
+		VectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	virtual bool operator == (const VectorClass<T, Allocator>& other) const
+	virtual bool operator == (const VectorClass<T>& other) const
 	{
 		if (this->Capacity != other.Capacity)
 		{
@@ -138,7 +137,7 @@ public:
 		return true;
 	}
 
-	bool operator != (const VectorClass<T, Allocator>& other) const
+	bool operator != (const VectorClass<T>& other) const
 	{
 		return !(*this == other);
 	}
@@ -152,7 +151,7 @@ public:
 			bool bMustAllocate = (pMem == nullptr);
 			if (!pMem)
 			{
-				Allocator alloc {};
+				GameAllocator<T> alloc {};
 				pMem = Memory::CreateArray<T>(alloc, (size_t)capacity);
 			}
 
@@ -173,7 +172,7 @@ public:
 
 				if (this->IsAllocated)
 				{
-					Allocator alloc {};
+					GameAllocator<T> alloc {};
 					Memory::DeleteArray(alloc, this->Items,(size_t)this->Capacity);
 					this->Items = nullptr;
 				}
@@ -193,7 +192,7 @@ public:
 	virtual void Clear()
 	{
 		if (this->IsAllocated) {
-			Allocator alloc {};
+			GameAllocator<T> alloc {};
 			Memory::DeleteArray(alloc, this->Items, static_cast<size_t>(this->Capacity));
 		}
 
@@ -258,7 +257,7 @@ public:
 		return SetCapacity(capacity, nullptr);
 	}
 
-	void Swap(VectorClass<T, Allocator>& other) noexcept
+	void Swap(VectorClass<T>& other) noexcept
 	{
 		using std::swap;
 		swap(this->Items, other.Items);
@@ -283,24 +282,24 @@ protected:
 //========================================================================
 
 //TODO : unify the naming !
-template <typename T, class Allocator = GameAllocator<T>>
-class DynamicVectorClass : public VectorClass<T , Allocator>
+template <typename T>
+class DynamicVectorClass : public VectorClass<T>
 {
 public:
 	static const ArrayType Type = ArrayType::DynamicVector;
 
 #pragma region constructorandoperators
-	COMPILETIMEEVAL DynamicVectorClass<T, Allocator>() noexcept = default;
+	COMPILETIMEEVAL DynamicVectorClass<T>() noexcept = default;
 
-	explicit DynamicVectorClass<T, Allocator>(int capacity, T* pMem = nullptr)
-		: VectorClass<T, Allocator>(capacity, pMem) , Count { 0 }, CapacityIncrement { 10 }
+	explicit DynamicVectorClass<T>(int capacity, T* pMem = nullptr)
+		: VectorClass<T>(capacity, pMem) , Count { 0 }, CapacityIncrement { 10 }
 	{ }
 
-	DynamicVectorClass<T, Allocator>(const DynamicVectorClass<T,Allocator>& other)
+	DynamicVectorClass<T>(const DynamicVectorClass<T>& other)
 	{
 		if (other.Capacity > 0)
 		{
-			Allocator alloc {};
+			GameAllocator<T> alloc {};
 			this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
@@ -312,21 +311,21 @@ public:
 		}
 	}
 
-	DynamicVectorClass<T, Allocator>(DynamicVectorClass<T, Allocator>&& other) noexcept
-		: VectorClass<T, Allocator>(std::move(other)), Count(other.Count),
+	DynamicVectorClass<T>(DynamicVectorClass<T>&& other) noexcept
+		: VectorClass<T>(std::move(other)), Count(other.Count),
 		CapacityIncrement(other.CapacityIncrement)
 	{
 	}
 
-	DynamicVectorClass<T, Allocator>& operator = (const DynamicVectorClass<T, Allocator>& other)
+	DynamicVectorClass<T>& operator = (const DynamicVectorClass<T>& other)
 	{
-		DynamicVectorClass<T, Allocator>(other).Swap(*this);
+		DynamicVectorClass<T>(other).Swap(*this);
 		return *this;
 	}
 
-	DynamicVectorClass<T, Allocator>& operator = (DynamicVectorClass<T, Allocator>&& other) noexcept
+	DynamicVectorClass<T>& operator = (DynamicVectorClass<T>&& other) noexcept
 	{
-		DynamicVectorClass<T, Allocator>(std::move(other)).Swap(*this);
+		DynamicVectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
@@ -334,11 +333,11 @@ public:
 
 #pragma region virtuals
 
-	virtual ~DynamicVectorClass<T, Allocator>() = default;
+	virtual ~DynamicVectorClass<T>() = default;
 
 	virtual bool SetCapacity(int capacity, T* pMem = nullptr) override
 	{
-		if (VectorClass<T, Allocator>::SetCapacity(capacity, pMem) && this->Capacity < this->Count) {
+		if (VectorClass<T>::SetCapacity(capacity, pMem) && this->Capacity < this->Count) {
 			this->Count = this->Capacity;
 			return true;
 		}
@@ -348,7 +347,7 @@ public:
 
 	virtual void Clear() override
 	{
-		VectorClass<T, Allocator>::Clear();
+		VectorClass<T>::Clear();
 		this->Count = 0;
 	}
 
@@ -590,9 +589,9 @@ public:
 		return this->RemoveAt(this->FindItemIndex(item));
 	}
 
-	void Swap(DynamicVectorClass<T, Allocator>& other) noexcept
+	void Swap(DynamicVectorClass<T>& other) noexcept
 	{
-		VectorClass<T, Allocator>::Swap(other);
+		VectorClass<T>::Swap(other);
 		using std::swap;
 		swap(this->Count, other.Count);
 		swap(this->CapacityIncrement, other.CapacityIncrement);
@@ -715,41 +714,41 @@ public:
 //=== TypeList ===========================================================
 //========================================================================
 
-template <typename T, class Allocator = GameAllocator<T>>
-class TypeList : public DynamicVectorClass<T , Allocator>
+template <typename T>
+class TypeList : public DynamicVectorClass<T>
 {
 public:
-	COMPILETIMEEVAL TypeList<T, Allocator>() noexcept = default;
+	COMPILETIMEEVAL TypeList<T>() noexcept = default;
 	static const ArrayType Type = ArrayType::TypeList;
-	using VectType = DynamicVectorClass<T, Allocator>;
+	using VectType = DynamicVectorClass<T>;
 
-	explicit TypeList<T, Allocator>(int capacity, T* pMem = nullptr)
+	explicit TypeList<T>(int capacity, T* pMem = nullptr)
 		: VectType(capacity, pMem)
 	{ }
 
-	TypeList<T, Allocator>(const TypeList<T, Allocator>& other)
+	TypeList<T>(const TypeList<T>& other)
 		: VectType(other), unknown_18(other.unknown_18)
 	{ }
 
-	TypeList<T, Allocator>(TypeList<T, Allocator>&& other) noexcept
+	TypeList<T>(TypeList<T>&& other) noexcept
 		: VectType(std::move(other)), unknown_18(other.unknown_18)
 	{ }
 
-	virtual ~TypeList<T, Allocator>() = default;
+	virtual ~TypeList<T>() = default;
 
-	TypeList<T, Allocator>& operator = (const TypeList<T, Allocator>& other)
+	TypeList<T>& operator = (const TypeList<T>& other)
 	{
-		TypeList<T, Allocator>(other).Swap(*this);
+		TypeList<T>(other).Swap(*this);
 		return *this;
 	}
 
-	TypeList<T, Allocator>& operator = (TypeList<T, Allocator>&& other) noexcept
+	TypeList<T>& operator = (TypeList<T>&& other) noexcept
 	{
-		TypeList<T, Allocator>(std::move(other)).Swap(*this);
+		TypeList<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	void Swap(TypeList<T, Allocator>& other) noexcept
+	void Swap(TypeList<T>& other) noexcept
 	{
 		VectType::Swap(other);
 		using std::swap;
@@ -762,31 +761,31 @@ public:
 //========================================================================
 //=== CounterClass =======================================================
 //========================================================================
-template<class Allocator = GameAllocator<int>>
-class CounterClass : public VectorClass<int , Allocator>
+
+class CounterClass : public VectorClass<int>
 {
 public:
-	COMPILETIMEEVAL CounterClass<Allocator>() noexcept = default;
+	COMPILETIMEEVAL CounterClass() noexcept = default;
 	static const ArrayType Type = ArrayType::Counter;
-	using VectType = VectorClass<int, Allocator>;
+	using VectType = VectorClass<int>;
 
-	CounterClass<Allocator>(const CounterClass<Allocator>& other)
+	CounterClass(const CounterClass& other)
 		: VectType(other), Total(other.Total)
 	{ }
 
-	CounterClass<Allocator>(CounterClass<Allocator>&& other) noexcept
+	CounterClass(CounterClass&& other) noexcept
 		: VectType(std::move(other)), Total(other.Total)
 	{ }
 
-	CounterClass<Allocator>& operator = (const CounterClass<Allocator>& other)
+	CounterClass& operator = (const CounterClass& other)
 	{
-		CounterClass<Allocator>(other).Swap(*this);
+		CounterClass(other).Swap(*this);
 		return *this;
 	}
 
-	CounterClass<Allocator>& operator = (CounterClass<Allocator>&& other) noexcept
+	CounterClass& operator = (CounterClass&& other) noexcept
 	{
-		CounterClass<Allocator>(std::move(other)).Swap(*this);
+		CounterClass(std::move(other)).Swap(*this);
 		return *this;
 	}
 
@@ -800,7 +799,7 @@ public:
 		this->Total = 0;
 	}
 
-	virtual ~CounterClass<Allocator>() = default;
+	virtual ~CounterClass() = default;
 
 	int GetTotal() const
 	{
@@ -862,9 +861,9 @@ public:
 		return 0;
 	}
 
-	void Swap(CounterClass<Allocator>& other) noexcept
+	void Swap(CounterClass& other) noexcept
 	{
-		VecInt_type::Swap(other);
+		VectorClass<int>::Swap(other);
 		using std::swap;
 		swap(this->Total, other.Total);
 	}
