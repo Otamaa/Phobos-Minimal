@@ -46,7 +46,8 @@ Replaces = {
 	{Addr = 0x00825E10, To = "Failed to load SOUNDMD.INI!\n"            			}, --38
 	{Addr = 0x00825E30, To = "Failed to find SOUNDMD.INI!\n"            			}, --39
 	{Addr = 0x00827DAC, To = "Failed to load UIMD.INI!\n"             				}, --40
-	{Addr = 0x00840D40, To = "ra2md.str"											}  --41
+	{Addr = 0x00840D40, To = "ra2md.str"											}, --41
+	{Addr = 0x00818B98, To = "GAME.FNT"												}  --42
 }
 
  FetchHandles = {

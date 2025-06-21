@@ -23,6 +23,16 @@
 
 #include <EBolt.h>
 
+#pragma region GetTechnoType
+
+// Avoid secondary jump
+DEFINE_JUMP(VTABLE, 0x7E2328, 0x41C200) // AircraftClass_GetTechnoType -> AircraftClass_GetType
+DEFINE_JUMP(VTABLE, 0x7E3F40, 0x459EE0) // BuildingClass_GetTechnoType -> BuildingClass_GetType
+DEFINE_JUMP(VTABLE, 0x7EB0DC, 0x51FAF0) // InfantryClass_GetTechnoType -> InfantryClass_GetType
+DEFINE_JUMP(VTABLE, 0x7F5CF4, 0x741490) // UnitClass_GetTechnoType -> UnitClass_GetType
+
+#pragma endregion
+
 // Open campaign briefing when pressing Tab
 ASMJIT_PATCH(0x55E08F, KeyboardProcess_PressTab, 0x5)
 {

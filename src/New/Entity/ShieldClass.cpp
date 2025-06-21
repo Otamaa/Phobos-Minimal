@@ -60,7 +60,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 , Type { nullptr }
 {
 	this->UpdateType();
-	SetHP(this->Type->InitialStrength.Get(this->Type->Strength));
+	this->SetHP(this->Type->InitialStrength.Get(this->Type->Strength));
 	this->CurTechnoType = pTechno->GetTechnoType();
 
 	Array.push_back(this);
@@ -137,6 +137,9 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 		pToExt->Shield->Techno = pTo;
 		pToExt->Shield->CreateAnim();
 	}
+
+	if (pFrom->WhatAmI() == AbstractType::Building && pFromExt->Shield)
+		pFromExt->Shield = nullptr;
 }
 
 void ShieldClass::OnRemove() { KillAnim(); }
@@ -557,10 +560,10 @@ void ShieldClass::OnlineCheck()
 
 	if (!isActive)
 	{
-		if (this->Online)
+		if (this->Online){
 			this->UpdateTint();
-
-		this->Online = false;
+			this->Online = false;
+		}
 		timer->Pause();
 
 		if (this->IdleAnim)
@@ -588,10 +591,11 @@ void ShieldClass::OnlineCheck()
 	}
 	else
 	{
-		if (!this->Online)
+		if (!this->Online) {
 			this->UpdateTint();
+			this->Online = true;
+		}
 
-		this->Online = true;
 		timer->Resume();
 
 		if (this->IdleAnim)
@@ -644,6 +648,7 @@ bool ShieldClass::ConvertCheck()
 		this->KillAnim();
 		pTechnoExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
 		pTechnoExt->Shield = nullptr;
+		this->UpdateTint();
 
 		return true;
 	}
@@ -687,6 +692,7 @@ bool ShieldClass::ConvertCheck()
 
 	this->CurTechnoType = newID;
 	this->UpdateTint();
+
 	return false;
 }
 
@@ -750,7 +756,7 @@ void ShieldClass::SelfHealing()
 			timer->Start(rate);
 			this->HP += percentageAmount;
 
-			UpdateIdleAnim();
+			this->UpdateIdleAnim();
 
 			if (this->HP > pType->Strength)
 			{
@@ -759,7 +765,7 @@ void ShieldClass::SelfHealing()
 			}
 			else if (this->HP <= 0)
 			{
-				BreakShield();
+				this->BreakShield();
 			}
 		}
 	}
@@ -873,11 +879,11 @@ void ShieldClass::CreateAnim()
 {
 	auto idleAnimType = this->GetIdleAnimType();
 
-	if (!this->IdleAnim && idleAnimType)
-	{
 		if (this->Cloak && (!idleAnimType || AnimTypeExtContainer::Instance.Find(idleAnimType)->DetachOnCloak))
 			return;
 
+	if (!this->IdleAnim && idleAnimType)
+	{
 		auto const pAnim = GameCreate<AnimClass>(idleAnimType, this->Techno->Location);
 		pAnim->RemainingIterations = 0xFFu;
 		AnimExtData::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false, false);
@@ -914,7 +920,7 @@ AnimTypeClass* ShieldClass::GetIdleAnimType() const
 
 void ShieldClass::DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound)
 {
-	if (this->HP > 0 || this->Type->Respawn)
+	if (this->HP >= 0 || this->Type->Respawn)
 	{
 		if (this->HP <= 0 && this->Type->Pips_HideIfNoStrength)
 			return;
