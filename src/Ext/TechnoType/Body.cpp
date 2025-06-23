@@ -691,6 +691,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
 			this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
 			this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
+
 		}
 
 		this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowICedTargetForAI");
@@ -1596,6 +1597,14 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, pSection, "DigitalDisplay.Health.FakeAtDisguise");
 		this->EngineerRepairAmount.Read(exINI, pSection, "EngineerRepairAmount");
 
+		this->DebrisTypes_Limit.Read(exINI, pSection, "DebrisTypes.Limit");
+		this->DebrisMinimums.Read(exINI, pSection, "DebrisMinimums");
+
+		this->AttackMove_Follow.Read(exINI, pSection, "AttackMove.Follow");
+		this->AttackMove_Follow_IncludeAir.Read(exINI, pSection, "AttackMove.Follow.IncludeAir");
+		this->AttackMove_StopWhenTargetAcquired.Read(exINI, pSection, "AttackMove.StopWhenTargetAcquired");
+		this->AttackMove_PursuitTarget.Read(exINI, pSection, "AttackMove.PursuitTarget");
+		this->SkipCrushSlowdown.Read(exINI, pSection, "SkipCrushSlowdown");
 	}
 
 	// Art tags
@@ -2805,6 +2814,16 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ExtendedAircraftMissions_RearApproach)
 		.Process(this->DigitalDisplay_Health_FakeAtDisguise)
 		.Process(this->EngineerRepairAmount)
+
+		.Process(this->DebrisTypes_Limit)
+		.Process(this->DebrisMinimums)
+
+		.Process(this->AttackMove_Follow)
+		.Process(this->AttackMove_Follow_IncludeAir)
+		.Process(this->AttackMove_StopWhenTargetAcquired)
+		.Process(this->AttackMove_PursuitTarget)
+
+		.Process(this->SkipCrushSlowdown)
 		;
 }
 

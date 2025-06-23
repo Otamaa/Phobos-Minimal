@@ -84,13 +84,13 @@ ASMJIT_PATCH(0x466705, BulletClass_AI, 0x6) //8
 			{
 				// We insert initial position so the first frame of trail doesn't get skipped - Kerbiter
 				// TODO move hack to BulletClass creation
-				if (!trail.LastLocation.isset())
-					trail.LastLocation = location;
+				if (!trail->LastLocation.isset())
+					trail->LastLocation = location;
 
-				if (trail.Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
-					trail.CurrentColor = pBulletExt->Owner->LaserColor;
+				if (trail->Type->IsHouseColor.Get() && bChangeOwner && pBulletExt->Owner)
+					trail->CurrentColor = pBulletExt->Owner->LaserColor;
 
-				trail.Update(drawnCoords);
+				trail->Update(drawnCoords);
 			}
 		}
 
@@ -278,25 +278,6 @@ ASMJIT_PATCH(0x4690C1, BulletClass_Logics_Detonate, 0x8)
 	}
 
 	return 0;
-}
-
-ASMJIT_PATCH(0x469D1A, BulletClass_Logics_Debris_Checks, 0x6)
-{
-	enum { SkipGameCode = 0x469EBA, SetDebrisCount = 0x469D36 };
-
-	GET(FakeBulletClass*, pThis, ESI);
-
-	auto const pCell = pThis->GetCell();
-	const bool isLand = !pCell ? true :
-	pCell->LandType != LandType::Water || pCell->ContainsBridge();
-
-	if (!isLand && pThis->_GetWarheadTypeExtData()->Debris_Conventional.Get())
-		return SkipGameCode;
-
-	// Fix the debris count to be in range of Min, Max instead of Min, Max-1.
-	R->EBX(ScenarioClass::Instance->Random.RandomRanged(pThis->WH->MinDebris, pThis->WH->MaxDebris));
-
-	return SetDebrisCount;
 }
 
 ASMJIT_PATCH(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)

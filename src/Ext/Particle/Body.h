@@ -20,7 +20,7 @@ public:
 	InitState Initialized { InitState::Blank };
 public:
 
-	std::vector<LaserTrailClass> LaserTrails { };
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

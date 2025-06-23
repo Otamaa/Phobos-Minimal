@@ -28,12 +28,12 @@ ASMJIT_PATCH(0x62CE86, ParticleClass_AI, 0x7) // F , this is the end, here's the
 		const CoordStruct drawnCoords = location;
 		for (auto& trail : pParticleExt->LaserTrails)
 		{
-			if (!trail.LastLocation.isset())
-				trail.LastLocation = location;
+			if (!trail->LastLocation.isset())
+				trail->LastLocation = location;
 
 			//trail->Update(GetFLHAbsoluteCoords(trail->FLH, drawnCoords));
-			trail.Update(drawnCoords);
-			trail.Visible = pThis->IsOnMyView();
+			trail->Update(drawnCoords);
+			trail->Visible = pThis->IsOnMyView();
 		}
 	}
 

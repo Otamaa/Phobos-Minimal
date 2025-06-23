@@ -28,6 +28,27 @@ void LaserTrailTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->CloakVisible.Read(exINI, section, "CloakVisible");
 	this->CloakVisible_Houses.Read(exINI, section, "CloakVisible.DetectedOnly");
 	this->DroppodOnly.Read(exINI, section, "DropPodOnly");
+	this->Permanent.Read(exINI, section, "Permanent");
+
+	this->DrawType.Read(exINI, section, "DrawType");
+
+	this->IsAlternateColor.Read(exINI, section, "IsAlternateColor");
+
+	char tempBuffer[0x40];
+	for (int idx = 0; idx < 3; ++idx)
+	{
+		_snprintf_s(tempBuffer, _TRUNCATE, "Bolt.Color%d", idx + 1);
+		this->Bolt_Color[idx].Read(exINI, section, tempBuffer);
+
+		_snprintf_s(tempBuffer, _TRUNCATE, "Bolt.Disable%d", idx + 1);
+		this->Bolt_Disable[idx].Read(exINI, section, tempBuffer);
+	}
+
+	this->Bolt_Arcs.Read(exINI, section, "Bolt.Arcs");
+
+	this->Beam_Color.Read(exINI, section, "Beam.Color");
+	this->Beam_Amplitude.Read(exINI, section, "Beam.Amplitude");
+
 }
 
 template <typename T>
@@ -46,6 +67,15 @@ void LaserTrailTypeClass::Serialize(T& Stm)
 		.Process(this->CloakVisible)
 		.Process(this->CloakVisible_Houses)
 		.Process(this->DroppodOnly)
+		.Process(this->Permanent)
+
+		.Process(this->DrawType)
+		.Process(this->IsAlternateColor)
+		.Process(this->Bolt_Color)
+		.Process(this->Bolt_Disable)
+		.Process(this->Bolt_Arcs)
+		.Process(this->Beam_Color)
+		.Process(this->Beam_Amplitude)
 		;
 }
 

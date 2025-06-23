@@ -31,6 +31,5 @@ struct PhobosAEFunctions
 public:
 
 	static void ApplyRevengeWeapon(TechnoClass* pThis , TechnoClass* pSource , WarheadTypeClass* pWH);
-	static void ApplyExpireWeapon(std::vector<WeaponTypeClass*>& expireWeapons, std::set<PhobosAttachEffectTypeClass*>& cumulativeTypes, TechnoClass* pThis);
 	static void ApplyReflectDamage(TechnoClass* pThis, int* pDamage, TechnoClass* pAttacker, HouseClass* pAttacker_House, WarheadTypeClass* pWH);
 };

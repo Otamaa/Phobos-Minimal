@@ -165,6 +165,7 @@ struct Phobos final
 		static int CampaignDefaultGameSpeed;
 
 		static bool DigitalDisplay_Enable;
+		static bool MessageDisplayInCenter;
 		static bool ShowBuildingStatistics;
 
 		static bool ApplyShadeCountFi;

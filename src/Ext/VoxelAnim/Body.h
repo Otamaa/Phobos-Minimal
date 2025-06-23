@@ -22,7 +22,7 @@ public:
 public:
 
 	TechnoClass* Invoker { nullptr };
-	std::vector<LaserTrailClass> LaserTrails { };
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
 	CDTimerClass TrailerSpawnDelayTimer {};
 

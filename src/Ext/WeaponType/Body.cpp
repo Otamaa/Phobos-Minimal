@@ -12,7 +12,6 @@
 
 #pragma region defines
 int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
-PhobosMap<EBolt*, WeaponTypeExtData::EBoltWeaponStruct> WeaponTypeExtData::boltWeaponTypeExt;
 #pragma endregion
 
 void WeaponTypeExtData::Initialize()
@@ -659,16 +658,6 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 	}
 }
 
-EBolt* WeaponTypeExtData::CreateBolt(WeaponTypeClass* pWeapon, TechnoClass* pFirer)
-{
-	auto ret = GameCreate<EBolt>();
-	auto map = &WeaponTypeExtData::boltWeaponTypeExt[ret];
-	map->Weapon = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	map->BurstIndex = pFirer->CurrentBurstIndex;
-	ret->Lifetime = 1 << (std::clamp(map->Weapon->Bolt_Duration.Get(), 1, 31) - 1);
-	return ret;
-}
-
 // =============================
 // container
 WeaponTypeExtContainer WeaponTypeExtContainer::Instance;
@@ -677,7 +666,6 @@ bool WeaponTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
 		.Process(WeaponTypeExtData::nOldCircumference)
-		.Process(WeaponTypeExtData::boltWeaponTypeExt)
 		.Success();
 }
 
@@ -685,13 +673,11 @@ bool WeaponTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	return Stm
 		.Process(WeaponTypeExtData::nOldCircumference)
-		.Process(WeaponTypeExtData::boltWeaponTypeExt)
 		.Success();
 }
 
 void WeaponTypeExtContainer::Clear()
 {
-	WeaponTypeExtData::boltWeaponTypeExt.clear();
 }
 
 // =============================

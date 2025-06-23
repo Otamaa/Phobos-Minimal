@@ -215,6 +215,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->NotHuman_DeathAnim.Read(exINI, pSection, "NotHuman.DeathAnim");
 	this->AllowDamageOnSelf.Read(exINI, pSection, "AllowDamageOnSelf");
 	this->Debris_Conventional.Read(exINI, pSection, "Debris.Conventional");
+	this->DebrisTypes_Limit.Read(exINI, pSection, "DebrisTypes.Limit");
+	this->DebrisMinimums.Read(exINI, pSection, "DebrisMinimums");
 
 	this->GattlingStage.Read(exINI, pSection, "TargetGattlingStage");
 	this->GattlingRateUp.Read(exINI, pSection, "TargetGattlingRateUp");
@@ -1379,6 +1381,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->NotHuman_DeathSequence)
 		.Process(this->AllowDamageOnSelf)
 		.Process(this->Debris_Conventional)
+		.Process(this->DebrisTypes_Limit)
+		.Process(this->DebrisMinimums)
 
 		.Process(this->GattlingStage)
 		.Process(this->GattlingRateUp)

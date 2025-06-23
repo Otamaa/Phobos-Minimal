@@ -4060,7 +4060,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	// remove previous line trail
 	GameDelete<true, true>(pThis->LineTrailer);
 
-	TechnoExtData::InitializeLaserTrail(pThis, true);
+	TechnoExtData::UpdateLaserTrails(pThis);
 
 	// Reset AutoDeath Timer
 	if (pExt->Death_Countdown.HasStarted())

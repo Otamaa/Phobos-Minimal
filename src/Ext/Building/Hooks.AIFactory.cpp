@@ -144,6 +144,8 @@ NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoT
 	}
 }
 
+thread_local std::vector<TechnoTypeClass*> taskForceMembers {};
+
 void HouseExtData::UpdateVehicleProduction()
 {
 	auto pThis = this->AttachedToObject;
@@ -163,20 +165,10 @@ void HouseExtData::UpdateVehicleProduction()
 	creationFrames.assign(count, 0x7FFFFFFF);
 	values.assign(count, 0);
 
-	//	std::vector<TeamClass*> Teams;
-	std::vector<TechnoTypeClass*> taskForceMembers {};
 
 	for (auto& currentTeam : HouseExtContainer::HousesTeams[pThis])
 	{
 		taskForceMembers.clear();
-
-		if (!currentTeam || currentTeam->Owner != pThis)
-			continue;
-
-		//		if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G"))
-		//			Debug::LogInfo("HereIam");
-
-		//		Teams.push_back(currentTeam);
 		int teamCreationFrame = currentTeam->CreationFrame;
 
 		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength)
@@ -199,44 +191,18 @@ void HouseExtData::UpdateVehicleProduction()
 			const auto index = static_cast<size_t>(((UnitTypeClass*)currentMember)->ArrayIndex);
 			++values[index];
 
-			//			if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G")) {
-			//				Debug::LogInfo("0100003I Unit %s  idx %d AddedValueResult %d", currentMember->ID, index, values[index]);
-			//			}
-
 			if (teamCreationFrame < creationFrames[index])
 				creationFrames[index] = teamCreationFrame;
 		}
 	}
 
-	//	for (int i = 0; i < (int)Teams.size(); ++i) {
-	//		Debug::LogInfo("House [%s] Have [%d] Teams %s.", pThis->get_ID(), i, Teams[i]->get_ID());
-	//	}
-
-		//std::vector<int> Toremove {};
 	for (int i = 0; i < UnitClass::Array->Count; ++i)
 	{
 		const auto pUnit = UnitClass::Array->Items[i];
 
-		//if (VTable::Get(pUnit) != UnitClass::vtable){
-
-		//	const char* Caller = "unk";
-		//	//const char* Type = "unk";
-		//	if (MappedCaller.contains(pUnit)) {
-		//		Caller = MappedCaller[pUnit].c_str();
-		//	}
-
-		//	Debug::LogInfo("UpdateVehicleProduction for [%s] UnitClass Array(%d) at [%d] contains broken pointer[%x allocated from %s] WTF ???", pThis->get_ID() , UnitClass::Array->Count , i, pUnit , Caller);
-		//	Toremove.push_back(i);
-		//	continue;
-		//}
-
 		if (values[pUnit->Type->ArrayIndex] > 0 && pUnit->CanBeRecruited(pThis))
 			--values[pUnit->Type->ArrayIndex];
 	}
-
-	//for (auto ToRemoveIdx : Toremove) {
-	//	UnitClass::Array->RemoveAt(ToRemoveIdx);
-	//}
 
 	bestChoices.clear();
 	bestChoicesNaval.clear();
@@ -630,44 +596,6 @@ ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 	return ret();
 }
 
-//#pragma optimize("", on )
-//ASMJIT_PATCH(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
-//{
-//	GET(TeamClass*, pThis, ECX);
-//	GET_STACK(DynamicVectorClass<TechnoTypeClass*>*, pVec, 0x4);
-//
-//	const auto pType = pThis->Type;
-//	const auto pTaskForce = pType->TaskForce;
-//
-//	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
-//		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
-//			if(auto pTaskType = pTaskForce->Entries[a].Type) {
-//				pVec->AddItem(pTaskType);
-//			}
-//		}
-//	}
-//
-//	//remove first finded similarity
-//	for (auto pMember = pThis->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
-//		for (auto pMemberNeeded : *pVec) {
-//			if ((pMemberNeeded == pMember->GetTechnoType()
-//				|| TechnoExtContainer::Instance.Find(pMember)->Type == pMemberNeeded
-//				//|| TeamExtData::GroupAllowed(pMemberNeeded, pMember->GetTechnoType())
-//				//|| TeamExtData::GroupAllowed(pMemberNeeded, TechnoExtContainer::Instance.Find(pMember)->Type)
-//
-//				)) {
-//
-//				pVec->Remove<true>(pMemberNeeded);
-//				break;
-//			}
-//		}
-//	}
-//
-//	return 0x6EF5B2;
-//}
-//#pragma optimize("", off )
-//
-//#pragma optimize("", off )
 template <class T, class Ttype >
 int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 {
@@ -680,18 +608,17 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	CreationFrames.assign(count, 0x7FFFFFFF);
 	Values.assign(count, 0);
 	BestChoices.clear();
-	std::vector<TechnoTypeClass*> arr {};
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
 	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[pHouse])
 	{
-		arr.clear();
+		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
 
 		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen) {
-			GetRemainingTaskForceMembers(CurrentTeam, arr);
+			GetRemainingTaskForceMembers(CurrentTeam, taskForceMembers);
 
-			for (auto& pMember : arr)
+			for (auto& pMember : taskForceMembers)
 			{
 				if (pMember->WhatAmI() != Ttype::AbsID)
 				{

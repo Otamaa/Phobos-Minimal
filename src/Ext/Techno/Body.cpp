@@ -3666,11 +3666,37 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	{
 		pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 		for (auto const& entry : pTypeExt->LaserTrailData) {
-			pExt->LaserTrails.emplace_back(
-					LaserTrailTypeClass::Array[entry.idxType].get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret);
+			pExt->LaserTrails.emplace_back(std::move(std::make_unique<LaserTrailClass>(
+					LaserTrailTypeClass::Array[entry.idxType].get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret)));
 		}
 	}
 
+}
+
+void TechnoExtData::UpdateLaserTrails(TechnoClass* pThis) {
+
+	HelperedVector<std::unique_ptr<LaserTrailClass>> dummy;
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	dummy.reserve(pExt->LaserTrails.size());
+
+	for (auto& entry : pExt->LaserTrails) {
+		if (entry->Permanent)
+			dummy.emplace_back(std::move(entry));
+	}
+
+	pExt->LaserTrails.clear();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size() + dummy.size());
+
+	for (auto const& entry : pTypeExt->LaserTrailData) {
+		pExt->LaserTrails.emplace_back(std::move(std::make_unique<LaserTrailClass>(
+			LaserTrailTypeClass::Array[entry.idxType].get(), pThis->Owner->LaserColor, entry.FLH, entry.IsOnTurret)));
+	}
+
+	for (auto& entry_d : dummy) {
+		pExt->LaserTrails.emplace_back(std::move(entry_d));
+	}
 }
 
 void TechnoExtData::InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass* pType)
@@ -5043,8 +5069,7 @@ void TechnoExtData::UpdateOnTunnelEnter()
 		if (auto& pShieldData = this->Shield)
 			pShieldData->SetAnimationVisibility(false);
 
-		for (auto pos = this->LaserTrails.begin();
-			pos != this->LaserTrails.end(); ++pos)
+		for (auto& pos : this->LaserTrails)
 		{
 			pos->Visible = false;
 			pos->LastLocation.clear();
@@ -5305,31 +5330,31 @@ void TechnoExtData::UpdateLaserTrails()
 
 	for (auto& trail : LaserTrails)
 	{
-		if (trail.Type->DroppodOnly && !IsDroppod)
+		if (trail->Type->DroppodOnly && !IsDroppod)
 			continue;
 
 		if (pThis->CloakState == CloakState::Cloaked)
 		{
-			if (!trail.Type->CloakVisible)
+			if (!trail->Type->CloakVisible)
 			{
-				trail.Cloaked = true;
-			} else if (trail.Type->CloakVisible_Houses && !HouseClass::IsCurrentPlayerObserver() && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)) {
+				trail->Cloaked = true;
+			} else if (trail->Type->CloakVisible_Houses && !HouseClass::IsCurrentPlayerObserver() && !pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer)) {
 				auto const pCell = pThis->GetCell();
-				trail.Cloaked = !pCell || !pCell->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex);
+				trail->Cloaked = !pCell || !pCell->Sensors_InclHouse(HouseClass::CurrentPlayer->ArrayIndex);
 			}
 		}
 
 		if (!IsInTunnel)
-			trail.Visible = true;
+			trail->Visible = true;
 
-		if (pThis->WhatAmI() == AircraftClass::AbsID && !pThis->IsInAir() && trail.LastLocation.isset())
-			trail.LastLocation.clear();
+		if (pThis->WhatAmI() == AircraftClass::AbsID && !pThis->IsInAir() && trail->LastLocation.isset())
+			trail->LastLocation.clear();
 
-		CoordStruct trailLoc = TechnoExtData::GetFLHAbsoluteCoords(pThis, trail.FLH, trail.IsOnTurret);
-		if (pThis->CloakState == CloakState::Uncloaking && !trail.Type->CloakVisible)
-		trail.LastLocation = trailLoc;
+		CoordStruct trailLoc = TechnoExtData::GetFLHAbsoluteCoords(pThis, trail->FLH, trail->IsOnTurret);
+		if (pThis->CloakState == CloakState::Uncloaking && !trail->Type->CloakVisible)
+		trail->LastLocation = trailLoc;
 		else
-		trail.Update(trailLoc);
+		trail->Update(trailLoc);
 	}
 }
 
@@ -6032,6 +6057,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->RandomEMPTarget)
 		.Process(this->FiringAnimationTimer)
 		.Process(this->ForceFullRearmDelay)
+		.Process(this->AttackMoveFollowerTempCount)
 		;
 }
 
@@ -6089,7 +6115,6 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	bool hasExtraWH = false;
 	bool hasFeedbackWeapon = false;
 
-	_AEProp->ExpireWeaponOnDead.clear();
 	extraRangeData->Clear();
 	extraCritData->Clear();
 	armormultData->Clear();
@@ -6161,15 +6186,6 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 		disableSpySat |= type->DisableSpySat;
 		hasExtraWH |= type->ExtraWarheads.size() > 0;
 		hasFeedbackWeapon |= type->FeedbackWeapon != nullptr;
-
-		if (type->ExpireWeapon && (type->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None) {
-			if (!type->Cumulative || !type->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(type)) {
-				if (type->Cumulative && type->ExpireWeapon_CumulativeOnlyOnce)
-					cumulativeTypes.insert(type);
-
-				_AEProp->ExpireWeaponOnDead.push_back(type->ExpireWeapon);
-			}
-		}
 
 		if (type->ROFMultiplier_ApplyOnCurrentTimer)
 		{

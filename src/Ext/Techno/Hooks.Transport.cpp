@@ -58,23 +58,6 @@ ASMJIT_PATCH(0x6F8FD7, TechnoClass_ThreatEvals_OpenToppedOwner, 0x5)       // Te
 }
 #endif
 
-ASMJIT_PATCH(0x701881, TechnoClass_ChangeHouse_Passenger_SyncOwner, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Passengers_SyncOwner && pThis->Passengers.NumPassengers > 0) {
-		for (NextObject j(pThis->Passengers.GetFirstPassenger());
-			j && ((*j)->AbstractFlags & AbstractFlags::Foot);
-			++j)
-		{
-			((FootClass*)(*j))->SetOwningHouse(pThis->Owner, false);
-
-		}
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -89,13 +72,10 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit)
 			pPassExt->OriginalPassengerOwner = pPassenger->Owner;
 
-		if (!pPassExt->LaserTrails.empty())
+		for (auto& pLaserTrail : pPassExt->LaserTrails)
 		{
-			for (auto& pLaserTrail : pPassExt->LaserTrails)
-			{
-				pLaserTrail.Visible = false;
-				pLaserTrail.LastLocation.clear();
-			}
+			pLaserTrail->Visible = false;
+			pLaserTrail->LastLocation.clear();
 		}
 
 		TrailsManager::Hide((TechnoClass*)pPassenger);

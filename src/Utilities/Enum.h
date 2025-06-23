@@ -34,6 +34,13 @@
 
 #include <GeneralDefinitions.h>
 
+enum class LaserTrailDrawType : BYTE
+{
+	Laser = 0,
+	EBolt = 1,
+	RadBeam = 2
+};
+
 enum class InterpolationMode : BYTE
 {
 	None = 0,

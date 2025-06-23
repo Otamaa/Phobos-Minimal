@@ -8,7 +8,7 @@ class LaserTrailTypeClass final : public Enumerable<LaserTrailTypeClass>
 public:
 	Valueable<bool> IsHouseColor;
 	Valueable<ColorStruct> Color;
-	Valueable<int> FadeDuration;
+	Nullable<int> FadeDuration;
 	Valueable<int> Thickness;
 	Valueable<int> SegmentLength;
 	Valueable<bool> IgnoreVertical;
@@ -17,11 +17,20 @@ public:
 	Valueable<bool> CloakVisible;
 	Valueable<bool> CloakVisible_Houses;
 	Valueable<bool> DroppodOnly;
+	Valueable<bool> Permanent;
+
+	Valueable<LaserTrailDrawType> DrawType;
+	Valueable<bool> IsAlternateColor;
+	Nullable<ColorStruct> Bolt_Color[3];
+	Valueable<bool> Bolt_Disable[3];
+	Valueable<int> Bolt_Arcs;
+	Nullable<ColorStruct> Beam_Color;
+	Valueable<double> Beam_Amplitude;
 
 	LaserTrailTypeClass(const char* pTitle) : Enumerable<LaserTrailTypeClass> { pTitle }
 		, IsHouseColor { false }
 		, Color { Drawing::DefaultColors[(int)DefaultColorList::Red] }
-		, FadeDuration { 64 }
+		, FadeDuration { }
 		, Thickness { 4 }
 		, SegmentLength { 128 }
 		, IgnoreVertical { false }
@@ -30,6 +39,15 @@ public:
 		, CloakVisible { false }
 		, CloakVisible_Houses { false }
 		, DroppodOnly { false }
+		, Permanent { false }
+
+		, DrawType { LaserTrailDrawType::Laser }
+		, IsAlternateColor { false }
+		, Bolt_Color {}
+		, Bolt_Disable { }
+		, Bolt_Arcs { 8 }
+		, Beam_Color {}
+		, Beam_Amplitude { 40.0 }
 	{ }
 
 	void LoadFromINI(CCINIClass* pINI);

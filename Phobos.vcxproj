@@ -22,6 +22,8 @@
     <ClCompile Include="src\Commands\Harmless.cpp" />
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
+    <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
+    <ClCompile Include="src\Ext\Scenario\Hooks.Message.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.AirstrikeFlare.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
@@ -54,6 +56,13 @@
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
     <ClCompile Include="src\Lib\Lua\onelua.c" />
+    <ClCompile Include="src\Lib\spdlog\async.cpp" />
+    <ClCompile Include="src\Lib\spdlog\bundled_fmtlib_format.cpp" />
+    <ClCompile Include="src\Lib\spdlog\cfg.cpp" />
+    <ClCompile Include="src\Lib\spdlog\color_sinks.cpp" />
+    <ClCompile Include="src\Lib\spdlog\file_sinks.cpp" />
+    <ClCompile Include="src\Lib\spdlog\spdlog.cpp" />
+    <ClCompile Include="src\Lib\spdlog\stdout_sinks.cpp" />
     <ClCompile Include="src\Lib\Zycore\Allocator.c" />
     <ClCompile Include="src\Lib\Zycore\API\Memory.c" />
     <ClCompile Include="src\Lib\Zycore\API\Process.c" />
@@ -541,6 +550,7 @@
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
     <ClCompile Include="src\Utilities\CSFText.cpp" />
+    <ClCompile Include="src\Utilities\DebrisSpawners.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
     <ClCompile Include="src\Ext\BuildingType\Body.cpp" />
     <ClCompile Include="src\Ext\WarheadType\Body.cpp" />
@@ -575,6 +585,7 @@
     <ClInclude Include="src\ExtraHeaders\StackAllocator.h" />
     <ClInclude Include="src\ExtraHeaders\StackContainer.h" />
     <ClInclude Include="src\ExtraHeaders\StackVector.h" />
+    <ClInclude Include="src\Ext\Ebolt\Body.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-begin.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
@@ -962,6 +973,7 @@
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
     <ClInclude Include="src\Utilities\CSFText.h" />
+    <ClInclude Include="src\Utilities\DebrisSpawners.h" />
     <ClInclude Include="src\Utilities\Enumerable.h" />
     <ClInclude Include="src\Ext\Aircraft\Body.h" />
     <ClInclude Include="src\Ext\AnimType\Body.h" />
@@ -995,6 +1007,7 @@
     <ClInclude Include="src\Utilities\PhobosFixedString.h" />
     <ClInclude Include="src\Utilities\PhobosMap.h" />
     <ClInclude Include="src\Utilities\PhobosPCXFile.h" />
+    <ClInclude Include="src\Utilities\SafeLogger .h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
@@ -1141,7 +1154,7 @@
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

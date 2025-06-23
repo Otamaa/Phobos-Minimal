@@ -16,6 +16,17 @@ PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
 	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 
+	if (const auto& pTrail = this->LaserTrail) {
+
+		const auto pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
+		const auto it = pTechnoExt->LaserTrails.find_if([pTrail](auto const& item) { return item.get() == pTrail; });
+
+		if (it != pTechnoExt->LaserTrails.cend())
+			pTechnoExt->LaserTrails.erase(it);
+
+		this->LaserTrail = nullptr;
+	}
+
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
 		//there an instance where Ext is nullptr
@@ -37,6 +48,8 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->Type = pType;
 	this->Techno = pTechno;
 
+	const auto pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
+
 	if (auto pWH = pType->Duration_ApplyVersus_Warhead)
 	{
 		const auto armor = TechnoExtData::GetTechnoArmor(pTechno, pType->Duration_ApplyVersus_Warhead);
@@ -55,7 +68,7 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 
 	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
-		const auto _value = this->Duration / pTechno->ArmorMultiplier / TechnoExtContainer::Instance.Find(pTechno)->AE.ArmorMultiplier / this->Type->ArmorMultiplier;
+		const auto _value = this->Duration / pTechno->ArmorMultiplier / pTechnoExt->AE.ArmorMultiplier / this->Type->ArmorMultiplier;
 		this->Duration = MaxImpl(static_cast<int>(_value), 0);
 	}
 
@@ -70,6 +83,14 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->NeedsDurationRefresh = false;
 	this->HasCumulativeAnim = false;
 	this->SelectedAnim = pType->Animation;
+
+	const int laserTrailIdx = pType->LaserTrail_Type;
+
+	if (laserTrailIdx != -1) {
+		pTechnoExt->LaserTrails.emplace_back(
+			std::move(std::make_unique<LaserTrailClass>(LaserTrailTypeClass::Array[laserTrailIdx].get(), pTechno->Owner->LaserColor)));
+		this->LaserTrail = pTechnoExt->LaserTrails.back().get();
+	}
 
 }
 
@@ -751,7 +772,7 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 	if (pTargetExt->PhobosAE.begin() == pTargetExt->PhobosAE.end())
 		return 0;
 
-	StackVector<WeaponTypeClass*, 256> expireWeapons {};
+	std::vector<std::pair<WeaponTypeClass*, TechnoClass*>> expireWeapons {};
 
 	for (auto it = pTargetExt->PhobosAE.begin(); it != pTargetExt->PhobosAE.end(); )
 	{
@@ -765,8 +786,9 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 			detachedCount++;
 
 			if (pType->ExpireWeapon && (pType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Remove) != ExpireWeaponCondition::None) {
-				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || stackCount == 1)
-					expireWeapons->push_back(pType->ExpireWeapon);
+				if (!pType->Cumulative || !pType->ExpireWeapon_CumulativeOnlyOnce || stackCount == 1) {
+					PhobosAttachEffectClass::CumulateExpireWeapon(pType, pTarget, it->get()->Invoker , expireWeapons);
+				}
 			}
 
 			if (pType->Cumulative && pType->CumulativeAnimations.size() > 0)
@@ -790,18 +812,29 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 		}
 	}
 
-	auto const coords = pTarget->GetCoords();
-	auto const pOwner = pTarget->Owner;
-	auto _pTarget = pTarget;
 
-	for (auto const& pWeapon : expireWeapons.container()) {
-		if (_pTarget && !_pTarget->IsAlive)
-			_pTarget = nullptr;
-
-		WeaponTypeExtData::DetonateAt(pWeapon, coords, _pTarget, _pTarget, pWeapon->Damage ,false, pOwner);
-	}
+	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
 
 	return detachedCount;
+}
+
+void PhobosAttachEffectClass::CumulateExpireWeapon(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, TechnoClass* pInvoker, std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer)
+{
+	if (pType->ExpireWeapon_UseInvokerAsOwner && pInvoker)
+	{
+		expireContainer.emplace_back(pType->ExpireWeapon, pInvoker);
+	}
+	else
+	{
+		expireContainer.emplace_back(pType->ExpireWeapon, pTarget);
+	}
+}
+
+void PhobosAttachEffectClass::DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer)
+{
+	for (auto const& [pWeapon, pTarget] : expireContainer) {
+		WeaponTypeExtData::DetonateAt(pWeapon, pTarget->GetCoords(), pTarget, pTarget, pWeapon->Damage, false, pTarget->Owner);
+	}
 }
 
 void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget)
@@ -895,6 +928,7 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 		.Process(this->SelectedAnim)
 		.Process(this->NeedsDurationRefresh)
 		.Process(this->ShouldBeDiscarded)
+		.Process(this->LaserTrail)
 		.Success() && Stm.RegisterChange(this);
 }
 

@@ -1652,9 +1652,9 @@ ASMJIT_PATCH(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 
 		for (auto& trail : pExt->LaserTrails)
 		{
-			if (trail.Type->IsHouseColor)
+			if (trail->Type->IsHouseColor)
 			{
-				trail.CurrentColor = pThis->Owner->LaserColor;
+				trail->CurrentColor = pThis->Owner->LaserColor;
 			}
 		}
 
@@ -6724,25 +6724,25 @@ ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6) {
 	return 0x53486B;
 }
 
-#pragma optimize("", off )
-ASMJIT_PATCH(0x6ED155, TMissionAttack_WhatTarget, 0x5) {
-	GET(FootClass*, pTeam, EDI);
-	GET(TeamClass*, pThis, EBP);
-	GET(ThreatType, threat, EAX);
-	LEA_STACK(CoordStruct*, pCoord, 0x18);
+//#pragma optimize("", off )
+//ASMJIT_PATCH(0x6ED155, TMissionAttack_WhatTarget, 0x5) {
+//	GET(FootClass*, pTeam, EDI);
+//	GET(TeamClass*, pThis, EBP);
+//	GET(ThreatType, threat, EAX);
+//	LEA_STACK(CoordStruct*, pCoord, 0x18);
+//
+//	auto pTarget = pTeam->GreatestThreat(threat, pCoord, (bool)R->CL());
+//
+//	if (IS_SAME_STR_("HTNK", pTeam->get_ID()) && flag_cast_to<TechnoClass*>(pTarget))
+//		Debug::Log("HTNK Target %s - %s \n", pTarget->GetThisClassName() , ((TechnoClass*)pTarget)->get_ID());
+//
+//	pThis->AssignMissionTarget(pTarget);
+//
+//	return 0x6ED16C;
+//}
+//#pragma optimize("", on )
 
-	auto pTarget = pTeam->GreatestThreat(threat, pCoord, (bool)R->CL());
-
-	if (IS_SAME_STR_("HTNK", pTeam->get_ID()) && flag_cast_to<TechnoClass*>(pTarget))
-		Debug::Log("HTNK Target %s - %s \n", pTarget->GetThisClassName() , ((TechnoClass*)pTarget)->get_ID());
-
-	pThis->AssignMissionTarget(pTarget);
-
-	return 0x6ED16C;
-}
-#pragma optimize("", on )
-
-#ifdef disabled_
+#ifndef disabled_
 ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 
 	GET(TechnoClass*, pThis, ESI);

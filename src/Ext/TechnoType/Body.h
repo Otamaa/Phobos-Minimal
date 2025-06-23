@@ -1111,6 +1111,14 @@ public:
 
 	Valueable<int> EngineerRepairAmount { 0 };
 
+	Nullable<bool> DebrisTypes_Limit {};
+	ValueableVector<int> DebrisMinimums {};
+	Valueable<bool> AttackMove_Follow { false };
+	Valueable<bool> AttackMove_Follow_IncludeAir { false };
+	Nullable<bool> AttackMove_StopWhenTargetAcquired { };
+	Valueable<bool> AttackMove_PursuitTarget { false };
+	Valueable<bool> SkipCrushSlowdown { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);

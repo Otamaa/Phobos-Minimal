@@ -25,7 +25,7 @@ public:
 	bool IsInterceptor { false };
 	InterceptedStatus InterceptedStatus { InterceptedStatus::None };
 	bool Intercepted_Detonate { true };
-	std::vector<LaserTrailClass> LaserTrails {};
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails {};
 	bool SnappedToTarget { false };
 	SuperWeaponTypeClass* NukeSW { nullptr };
 
