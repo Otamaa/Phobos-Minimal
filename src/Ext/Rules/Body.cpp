@@ -412,6 +412,16 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Debug::RegisterParserError();
 		}
 
+		if (pExt->RecuitedAs.isset()) {
+			if (pExt->RecuitedAs && pExt->RecuitedAs->WhatAmI() != what) {
+				Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName, pExt->ClonedAs->ID, pExt->ClonedAs->GetThisClassName());
+				Debug::RegisterParserError();
+			}
+			else if (!pExt->RecuitedAs || pExt->RecuitedAs == pItem) {
+				pExt->RecuitedAs.Reset();
+			}
+		}
+
 		if (pExt->ClonedAs && pExt->ClonedAs->WhatAmI() != what)
 		{
 			Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->ClonedAs->ID , pExt->ClonedAs->GetThisClassName());

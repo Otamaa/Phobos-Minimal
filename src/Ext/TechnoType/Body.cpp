@@ -1605,6 +1605,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AttackMove_StopWhenTargetAcquired.Read(exINI, pSection, "AttackMove.StopWhenTargetAcquired");
 		this->AttackMove_PursuitTarget.Read(exINI, pSection, "AttackMove.PursuitTarget");
 		this->SkipCrushSlowdown.Read(exINI, pSection, "SkipCrushSlowdown");
+		this->RecuitedAs.Read(exINI, pSection, "Recuited.As");
 	}
 
 	// Art tags
@@ -2824,6 +2825,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AttackMove_PursuitTarget)
 
 		.Process(this->SkipCrushSlowdown)
+		.Process(this->RecuitedAs)
 		;
 }
 

@@ -73,6 +73,8 @@ public:
 	static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
 	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
 
+	static bool IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement);
+
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(TeamExtData) -

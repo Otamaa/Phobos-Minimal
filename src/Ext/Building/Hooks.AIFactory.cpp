@@ -124,6 +124,19 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 
 #include <Ext/Team/Body.h>
 
+bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
+{
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pGoing->GetTechnoType());
+
+	if (pTypeExt->RecuitedAs.isset() && pTypeExt->RecuitedAs == reinfocement)
+		return true;
+
+	if (TechnoExtContainer::Instance.Find(pGoing)->Type == reinfocement)
+		return true;
+
+	return false;
+}
+
 NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoTypeClass*>& missings) {
 	const auto pType = pTeam->Type;
 	const auto pTaskForce = pType->TaskForce;
@@ -138,7 +151,10 @@ NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoT
 
 	//remove first finded similarity
 	for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
-		auto it = std::find(missings.begin(), missings.end(), pMember->GetTechnoType());
+		auto it = std::find_if(missings.begin(), missings.end(), [&](TechnoTypeClass* pMissType) {
+			return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
+		});
+
 		if(it != missings.end())
 			missings.erase(it);
 	}

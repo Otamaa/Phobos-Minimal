@@ -3345,12 +3345,8 @@ void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, TechnoClass* pKiller)
 				if (auto const pFocus = flag_cast_to<TechnoClass*>(pFootKiller->Team->ArchiveTarget))
 					pKillerExt->LastKillWasTeamTarget =
 					pFocus->GetTechnoType() == pVictim->GetTechnoType()
-					|| TechnoExtContainer::Instance.Find(pFocus)->Type == pVictim->GetTechnoType()
-					|| TechnoExtContainer::Instance.Find(pFocus)->Type == TechnoExtContainer::Instance.Find(pVictim)->Type
-					//|| TeamExtData::GroupAllowed(pFocus->GetTechnoType(), pVictim->GetTechnoType())
-					//|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type, TechnoExtContainer::Instance.Find(pVictim)->Type)
-					//|| TeamExtData::GroupAllowed(TechnoExtContainer::Instance.Find(pFocus)->Type,  pVictim->GetTechnoType())
-
+					|| TeamExtData::IsEligible(pFocus ,pVictim->GetTechnoType())
+					|| TeamExtData::IsEligible(pVictim, pFocus->GetTechnoType())
 						;
 
 				auto pKillerTeamExt = TeamExtContainer::Instance.Find(pFootKiller->Team);
