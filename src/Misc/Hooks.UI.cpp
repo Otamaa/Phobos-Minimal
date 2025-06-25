@@ -203,7 +203,7 @@ ASMJIT_PATCH(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::
 	if (_stricmp(pFilename, GameStrings::XXICON_SHP())
 		&& strstr(pFilename, GameStrings::dot_SHP()))
 	{
-		if (const auto pFile = FileSystem::LoadFile(RulesExtData::Instance()->MissingCameo.data(), false))
+		if (const auto pFile = FakeFileLoader::_Retrieve(RulesExtData::Instance()->MissingCameo.data(), false))
 		{
 			R->EAX(pFile);
 			return R->Origin() + 0xC;

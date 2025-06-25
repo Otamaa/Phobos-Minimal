@@ -176,7 +176,7 @@ public:
 	virtual void StopAirstrikeTimer() RX;
 	virtual void StartAirstrikeTimer(int Duration) RX;
 	virtual bool IsIronCurtained() const R0;
-	virtual bool IsCloseEnough3D(DWORD dwUnk, DWORD dwUnk2) const R0;
+	virtual bool IsCloseEnough3D(CoordStruct* pCoord, int weapon) const R0;
 	virtual int GetWeaponRange(int idxWeapon) const R0;
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
 	  ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) JMP_THIS(0x5F5390);

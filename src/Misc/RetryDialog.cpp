@@ -14,6 +14,8 @@
 namespace RetryDialogFlag
 {
 	bool IsCalledFromRetryDialog = false;
+
+	void ReloadUIParts() JMP_STD(0x72DFB0);
 }
 
 ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
@@ -27,41 +29,33 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		// Button3
 		// Button2
 		// I prefer to put the loadgame to the center of them - secsome
+		// Did you??? NO, YOU DIDN'T. Bruhhhh
 		switch (WWMessageBox::Instance().Process(
 			StringTable::FetchString(GameStrings::TXT_TO_REPLAY()),
-			StringTable::FetchString(GameStrings::TXT_OK()),
 			StringTable::FetchString("GUI:LOADGAME"),
-			StringTable::FetchString(GameStrings::TXT_CANCEL())))
+			StringTable::FetchString(GameStrings::TXT_CANCEL()),
+			StringTable::FetchString(GameStrings::TXT_OK())))
 		{
-		case WWMessageBox::Result::Button1:
+			case WWMessageBox::Result::Button3:
 			return OK;
 
 		default:
-		case WWMessageBox::Result::Button3:
-		{
-			//Doesnot get inlined using reference<>
-			Game::IsActive.get() = false;
-			Debug::ExitGame(0u);
-			break;
-		}
-
 		case WWMessageBox::Result::Button2:
-		{
+			return Cancel;
+
+		case WWMessageBox::Result::Button1:
 			auto pDialog = GameCreate<LoadOptionsClass>();
 			RetryDialogFlag::IsCalledFromRetryDialog = true;
 			const bool bIsAboutToLoad = pDialog->LoadDialog();
 			RetryDialogFlag::IsCalledFromRetryDialog = false;
-			GameDelete(pDialog);
+			GameDelete<true,false>(pDialog);
 
 			if (!bIsAboutToLoad)
 				continue;
 
 			ThemeClass::Instance->Stop();
+			break;
 		}
-		break;
-		}
-
-		break;
 	}
 
 	EvadeClass::Instance->Do();
@@ -70,6 +64,7 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		CCToolTip::Instance->SetState(GameOptionsClass::Instance->Tooltips);
 
 	GScreenClass::Instance->Render();
+	RetryDialogFlag::ReloadUIParts();
 
 	return LoadGame;
 }

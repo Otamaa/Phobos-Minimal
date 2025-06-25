@@ -93,7 +93,7 @@ void FindOrAllocateDefaultConvers(const char* name  , bool noTemperate) {
 	pUnitSno->NoTemperate = noTemperate;
 	pUnitSno->Clear_Internal();
 
-	if (auto pPal = (BytePalette*)MixFileClass::Retrieve(pUnitSno->CachedName.data(), false)) {
+	if (auto pPal = (BytePalette*)FakeFileLoader::_Retrieve(pUnitSno->CachedName.data(), false)) {
 
 
 		for (auto& color : pPal->Entries) {
@@ -155,7 +155,7 @@ bool PaletteManager::LoadFromCachedName()
 	}
 
 	//load pal direcly from game mixes if not found
-	if (auto pPal = (BytePalette*)MixFileClass::Retrieve(this->CachedName.data(), false))
+	if (auto pPal = (BytePalette*)FakeFileLoader::_Retrieve(this->CachedName.data(), false))
 	{
 		for (auto& color : pPal->Entries)
 		{
@@ -269,7 +269,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	this->Clear();
 
 	bool hasPalette = false;
-	auto ret = Stm.Load(this->Mode) && Stm.Load(this->Name) && Stm.Load(hasPalette);
+	auto ret = Stm.Load(this->Mode) && Stm.Process(this->Name) && Stm.Load(hasPalette);
 
 	if (ret && hasPalette)
 	{
@@ -288,7 +288,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 {
 	Stm.Save(this->Mode);
-	Stm.Save(this->Name);
+	Stm.Process(this->Name);
 	Stm.Save(this->Palette != nullptr);
 	if (this->Palette)
 	{

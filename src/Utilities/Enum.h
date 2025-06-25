@@ -34,6 +34,13 @@
 
 #include <GeneralDefinitions.h>
 
+enum class LaserTrailDrawType : BYTE
+{
+	Laser = 0,
+	EBolt = 1,
+	RadBeam = 2
+};
+
 enum class InterpolationMode : BYTE
 {
 	None = 0,
@@ -640,7 +647,6 @@ enum class BannerNumberType : int
 	Variable = 1,
 	Prefixed = 2,
 	Suffixed = 3,
-	Fraction = 4
 };
 #pragma region Otamaa
 

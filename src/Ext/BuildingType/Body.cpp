@@ -1659,11 +1659,15 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->BattlePointsCollector.Read(exINI, pSection, "BattlePointsCollector");
 		this->BattlePointsCollector_RequirePower.Read(exINI, pSection, "BattlePointsCollector.RequirePower");
+
+		this->BuildingRepairedSound.Read(exINI, pSection, "BuildingRepairedSound");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtINI);
+
+		this->Refinery_UseNormalActiveAnim.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
 
 		if (this->IsCustom)
 		{
@@ -2107,6 +2111,9 @@ void BuildingTypeExtData::Serialize(T& Stm)
 
 		.Process(this->BattlePointsCollector)
 		.Process(this->BattlePointsCollector_RequirePower)
+		.Process(this->BuildingRepairedSound)
+
+		.Process(this->Refinery_UseNormalActiveAnim)
 		;
 }
 

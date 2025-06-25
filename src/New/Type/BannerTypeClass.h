@@ -1,67 +1,44 @@
 #pragma once
 
-#include <Utilities/Enumerable.h>
-#include <Utilities/TemplateDefB.h>
-#include <Utilities/Enum.h>
-#include <Utilities/PhobosFixedString.h>
+#include <New/Type/PaletteManager.h>
 
-enum class BannerType : int
-{
-	PCX = 0,
-	CSF = 1,
-	SHP = 2,
-	VariableFormat = 3
-};
+#include <Utilities/PhobosPCXFile.h>
+#include <Utilities/CSFText.h>
+#include <Utilities/TemplateDefB.h>
 
 class BannerTypeClass final : public Enumerable<BannerTypeClass>
 {
 public:
-	// read from INI
-	struct Content
-	{
-		PhobosFixedString<0x20> PCX;
-		struct SHP
-		{
-			PhobosFixedString<0x20> _;
-			PhobosFixedString<0x20> Palette;
-		};
-		SHP SHP;
-		struct CSF
-		{
-			Valueable<CSFText> _;
-			Nullable<ColorStruct> Color;
-			Valueable<bool> DrawBackground;
-		};
-		CSF CSF;
-		struct VariableFormat
-		{
-			Valueable<BannerNumberType> _;
-			Valueable<CSFText> Label;
-		};
-		VariableFormat VariableFormat;
-	};
-	Content Content;
-	// internal
-	BannerType BannerType;
-	SHPStruct* ImageSHP;
-	BSurface* ImagePCX;
-	ConvertClass* Palette;
 
-	BannerTypeClass(const char* pTitle) : Enumerable<BannerTypeClass>(pTitle)
-		, Content {}
-		, BannerType { BannerType::CSF }
-		, ImageSHP {}
-		, ImagePCX {}
-		, Palette {}
+	//PCX
+	PhobosPCXFile PCX;
+
+	//SHP
+	Valueable<SHPStruct*> Shape;
+	CustomPalette Palette;
+
+	//CSF
+	Valueable<CSFText> CSF;
+	Nullable<ColorStruct> CSF_Color;
+	Valueable<bool> CSF_Background;
+	Valueable<BannerNumberType> CSF_VariableFormat;
+
+	BannerTypeClass(const char* const pTitle) : Enumerable<BannerTypeClass>(pTitle)
+		, PCX { }
+		, Shape { }
+		, Palette { }
+		, CSF { }
+		, CSF_Color { }
+		, CSF_Background { false }
+		, CSF_VariableFormat { BannerNumberType::None }
 	{ }
 
-	void LoadImage();
-
-	void LoadFromINI(CCINIClass* pINI);
-	void LoadFromStream(PhobosStreamReader& Stm);
-	void SaveToStream(PhobosStreamWriter& Stm);
+	virtual void LoadFromINI(CCINIClass* pINI);
+	virtual void LoadFromStream(PhobosStreamReader& stm);
+	virtual void SaveToStream(PhobosStreamWriter& stm);
 
 private:
+
 	template <typename T>
 	void Serialize(T& Stm);
 };

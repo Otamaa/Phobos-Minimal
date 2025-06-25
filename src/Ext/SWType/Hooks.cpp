@@ -536,7 +536,7 @@ ASMJIT_PATCH(0x6EFC70, TeamClass_IronCurtain, 5)
 	}
 
 	if (found) {
-		auto nCoord = pThis->SpawnCell->GetCoords();
+		auto nCoord = pThis->Zone->GetCoords();
 		pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;

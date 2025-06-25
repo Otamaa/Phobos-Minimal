@@ -170,9 +170,11 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 		HouseExtData::GetParadropContent(pHouse , FallbackTypes, FallbackNum);
 	}
 
+	const auto pCountry = pData->ParaDropDatas.tryfind(pHouse->Type);
+
 	// use paradrop lists from house, side and default
 	const std::vector<ParadropData>* drops[3] {
-		pData->ParaDropDatas.tryfind(pHouse->Type),
+		pCountry ? pCountry : pData->ParaDropDatas.tryfind(pHouse->Type->FindParentCountry()) ,
 		pData->ParaDropDatas.tryfind(SideClass::Array->Items[pHouse->Type->SideIndex]),
 		pData->ParaDropDatas.tryfind(pType)
 	};
@@ -180,7 +182,7 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 	// how many planes shall we launch?
 	int count = 1;
 	for (auto const& planes : drops) {
-		if (!planes->empty()) {
+		if (planes && !planes->empty()) {
 			count = planes->size();
 			break;
 		}

@@ -129,7 +129,7 @@ public:
 
 	void ValidateSpalshAnims();
 
-	COMPILETIMEEVAL OwnerHouseKind GetAnimOwnerHouseKind()
+	OwnerHouseKind GetAnimOwnerHouseKind()
 	{
 		if(this->CreateUnitType){
 			return this->CreateUnitType->Owner.Get(OwnerHouseKind::Victim);
@@ -153,15 +153,15 @@ public:
 	static void CreateUnit_MarkCell(AnimClass* pThis);
 	static void CreateUnit_Spawn(AnimClass* pThis);
 
-	COMPILETIMEEVAL bool ScatterCreateUnit(bool IsAi) {
+	bool ScatterCreateUnit(bool IsAi) {
 		return IsAi ? this->CreateUnitType->AI_Scatter : this->CreateUnitType->Scatter;
 	}
 
-	COMPILETIMEEVAL bool ScatterAnimToInfantry(bool IsAi) {
+	bool ScatterAnimToInfantry(bool IsAi) {
 		return !IsAi ? this->MakeInfantry_Scatter : this->MakeInfantry_AI_Scatter;
 	}
 
-	COMPILETIMEEVAL  Mission GetCreateUnitMission(bool IsAi) {
+	Mission GetCreateUnitMission(bool IsAi) {
 		auto result = this->CreateUnitType->UnitMission;
 		if (IsAi && this->CreateUnitType->AIUnitMission.isset())
 			result = this->CreateUnitType->AIUnitMission;
@@ -169,7 +169,7 @@ public:
 		return result;
 	}
 
-	COMPILETIMEEVAL Mission GetAnimToInfantryMission(bool IsAi) {
+	Mission GetAnimToInfantryMission(bool IsAi) {
 		auto result = this->MakeInfantry_Mission.Get(Mission::Hunt);
 
 		if (IsAi && this->MakeInfantry_AI_Mission.isset())

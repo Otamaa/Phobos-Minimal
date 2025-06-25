@@ -119,3 +119,11 @@ ASMJIT_PATCH(0x6A108D, ShipLocomotionClass_WhileMoving_CrushTilt, 0xD)
 
 	return 0x0;
 }
+
+ASMJIT_PATCH(0x4B1146, SomeLocomotionClass_WhileMoving_SkipCrushSlowDown, 0x6) // Drive
+{
+	GET(FootClass*, pLinkedTo, ECX);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	return pTypeExt->SkipCrushSlowdown ? R->Origin() + 0x3C : 0;
+}
+ASMJIT_PATCH_AGAIN(0x6A0809, SomeLocomotionClass_WhileMoving_SkipCrushSlowDown, 0x6) // Ship

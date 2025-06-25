@@ -200,14 +200,13 @@ std::array<const char* const, 3u> EnumFunctions::VerticalPosition_ToStrings
 }
 };
 
-std::array<std::pair<const char* const, BannerNumberType>, 5u> EnumFunctions::BannerNumberType_ToStrings
+std::array<std::pair<const char* const, BannerNumberType>, 4> EnumFunctions::BannerNumberType_ToStrings
 {
 {
 	{"none" , BannerNumberType::None} ,
 	{"variable" , BannerNumberType::Variable } ,
 	{"prefixed" , BannerNumberType::Prefixed } ,
-	{"suffixed" , BannerNumberType::Suffixed } ,
-	{"fraction" , BannerNumberType::Fraction }
+	{"suffixed" , BannerNumberType::Suffixed }
 }
 };
 

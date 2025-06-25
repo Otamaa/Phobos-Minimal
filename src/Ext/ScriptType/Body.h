@@ -23,7 +23,7 @@ public:
 
 		ValueableVector<ScriptActionNode> PhobosNode {};
 		ExtData(ScriptTypeClass* OwnerObject) : Extension<ScriptTypeClass>(OwnerObject) {
-			PhobosNode.reserve(ScriptTypeClass::MaxActions);
+			PhobosNode.reserve(ScriptTypeClass::MaxActions ,);
 		}
 
 		virtual ~ExtData() override = default;

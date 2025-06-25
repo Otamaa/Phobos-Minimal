@@ -114,36 +114,36 @@ ASMJIT_PATCH(0x6E3B60, TActionClass_GetMode, 8)
 	return ((int)nAction) > 0x8F ? 0x6E3C49 : 0x6E3B6E;
 
 }
-
-ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
-{
-	GET(TActionClass* const, pAction, ESI);
-	GET(ObjectClass* const, pObject, ECX);
-
-	GET_STACK(HouseClass* const, pHouse, 0x254);
-	GET_STACK(TriggerClass* const, pTrigger, 0x25C);
-	GET_STACK(CellStruct const*, pLocation, 0x260);
-
-	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
-
-	//Debug::LogInfo("TAction[%x] triggering [%d]" , pAction , (int)pAction->ActionKind);
-
-	// check for actions handled in Ares.
-	auto ret = false;
-	if (AresTActionExt::Execute(
-		pAction, pHouse, pObject, pTrigger, *pLocation, ret))
-	{
-		//Debug::LogInfo("TAction[%x] triggering Ares [%d]" , pAction , (int)pAction->ActionKind);
-		// returns true or false
-		R->AL(ret);
-		return Handled;
-	}
-		//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pAction , (int)pAction->ActionKind);
-	// replicate the original instructions, using underflow
-	uint32_t const value = static_cast<uint32_t>(pAction->ActionKind) - 1;
-	R->EDX(value);
-	return (value > 144u) ? Handled : Default;
-}
+//
+//ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
+//{
+//	GET(TActionClass* const, pAction, ESI);
+//	GET(ObjectClass* const, pObject, ECX);
+//
+//	GET_STACK(HouseClass* const, pHouse, 0x254);
+//	GET_STACK(TriggerClass* const, pTrigger, 0x25C);
+//	GET_STACK(CellStruct const*, pLocation, 0x260);
+//
+//	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
+//
+//	Debug::LogInfo("TAction[{}] triggering [{}]" , (void*)pAction , (int)pAction->ActionKind);
+//
+//	// check for actions handled in Ares.
+//	auto ret = false;
+//	if (AresTActionExt::Execute(
+//		pAction, pHouse, pObject, pTrigger, *pLocation, ret))
+//	{
+//		//Debug::LogInfo("TAction[%x] triggering Ares [%d]" , pAction , (int)pAction->ActionKind);
+//		// returns true or false
+//		R->AL(ret);
+//		return Handled;
+//	}
+//		//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pAction , (int)pAction->ActionKind);
+//	// replicate the original instructions, using underflow
+//	uint32_t const value = static_cast<uint32_t>(pAction->ActionKind) - 1;
+//	R->EDX(value);
+//	return (value > 144u) ? Handled : Default;
+//}
 
 ASMJIT_PATCH(0x71F9C0, TEventClass_Persistable_AresNewTriggerEvents, 6)
 {

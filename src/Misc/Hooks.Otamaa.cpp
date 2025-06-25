@@ -517,11 +517,7 @@ ASMJIT_PATCH(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
 
-	if (pTypeExt->AI_LegalTarget.isset())
-	{
-		if (pThis->Owner && pThis->Owner->IsControlledByHuman())
-			return Continue;
-
+	if (pTypeExt->AI_LegalTarget.isset() && !pThis->Owner->IsControlledByHuman()) {
 		return pTypeExt->AI_LegalTarget.Get() ?
 			ContinueChecks : ReturnFalse;
 	}
@@ -820,7 +816,8 @@ ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 	}
 
 	const auto pTeam = GameCreate<TeamClass>(pThis, pHouse, false);
-	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].", pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
+	Debug::LogInfo("[{0} - {1}] Creating a new team named [{2} -{3}] caller [{4:x}].",
+		pHouse->get_ID(), (void*)pHouse, pThis->ID, (void*)pTeam, caller);
 	R->EAX(pTeam);
 	return 0x6F0A2C;
 }
@@ -1216,12 +1213,9 @@ void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
 	auto pExt = TechnoExtContainer::Instance.Find(this);
 	pExt->AltOccupation = alt;
 
-	if (alt)
-	{
+	if (alt) {
 		pCell->AltOccupationFlags |= 0x20;
-	}
-	else
-	{
+	} else {
 		pCell->OccupationFlags |= 0x20;
 	}
 }
@@ -1257,8 +1251,10 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x744210, FakeUnitClass::_ClearOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x7441B0, FakeUnitClass::_SetOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
+
 
 ASMJIT_PATCH(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
@@ -1656,9 +1652,9 @@ ASMJIT_PATCH(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 
 		for (auto& trail : pExt->LaserTrails)
 		{
-			if (trail.Type->IsHouseColor)
+			if (trail->Type->IsHouseColor)
 			{
-				trail.CurrentColor = pThis->Owner->LaserColor;
+				trail->CurrentColor = pThis->Owner->LaserColor;
 			}
 		}
 
@@ -2859,21 +2855,21 @@ ASMJIT_PATCH(0x5F9652, ObjectTypeClass_GetAplha, 0x6)
 	return 0x5F9658;
 }
 
-ASMJIT_PATCH(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
-{
-	GET(TechnoClass*, pTarget, ESI);
-
-	if (auto pBld = cast_to<BuildingClass*>(pTarget))
-	{
-		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-		{
-			BuildingExtData::LimboKill(pBld);
-			return 0x6E20D8;
-		}
-	}
-
-	return 0x0;
-}
+//  ASMJIT_PATCH(0x6E20AC, TActionClass_DetroyAttachedTechno, 0x8)
+//  {
+//  	GET(TechnoClass*, pTarget, ESI);
+//
+//  	if (auto pBld = cast_to<BuildingClass*>(pTarget))
+//  	{
+//  		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+//  		{
+//  			BuildingExtData::LimboKill(pBld);
+//  			return 0x6E20D8;
+//  		}
+//  	}
+//
+//  	return 0x0;
+//  }
 
 // https://bugs.launchpad.net/ares/+bug/895893
 ASMJIT_PATCH(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
@@ -3834,7 +3830,10 @@ ASMJIT_PATCH(0x441B30, BuildingClass_Destroy_Refinery, 0x6)
 
 ASMJIT_PATCH(0x445FE4, BuildingClass_GrandOpening_GetStorageTotalAmount, 0x6)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(FakeBuildingClass*, pThis, EBP);
+
+	if(pThis->_GetTypeExtData()->Refinery_UseNormalActiveAnim)
+		return 0x446183;
 
 	int result = 0;
 	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
@@ -3859,7 +3858,10 @@ ASMJIT_PATCH(0x450CD7, BuildingClass_AnimAI_GetStorageTotalAmount_A, 0x6)
 
 ASMJIT_PATCH(0x450DAA, BuildingClass_AnimAI_GetStorageTotalAmount_B, 0x6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
+
+	if(pThis->_GetTypeExtData()->Refinery_UseNormalActiveAnim)
+		return 0x446183 ;
 
 	int result = 0;
 	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
@@ -4400,7 +4402,7 @@ ASMJIT_PATCH(0x52C5A1, InitGame_SecondaryMixInit, 0x9)
 ASMJIT_PATCH(0x60B865, AdjustWindow_Child, 5)
 {
 	RECT Rect {};
-	GetWindowRect(Game::hWnd(), &Rect);
+	Imports::GetWindowRect.invoke()(Game::hWnd(), &Rect);
 	R->ESI(R->ESI<int>() - Rect.top);
 	R->EDX(R->EDX<int>() - Rect.left);
 	return 0;
@@ -4952,7 +4954,7 @@ ASMJIT_PATCH(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 }
 
 //EvalObject
-ASMJIT_PATCH(0x6F7EFE, TechnoClass_CanAutoTargetObject_SelectWeapon, 6)
+ASMJIT_PATCH(0x6F7EFE, TechnoClass_EvaluateObject_SelectWeapon, 6)
 {
 	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
 	GET_STACK(int const, nWeapon, 0x14);
@@ -5759,14 +5761,28 @@ ASMJIT_PATCH(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 ASMJIT_PATCH(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
 {
 	GET(ConvertClass*, pConvert, EDX);
+	GET_STACK(SHPStruct* , pSHP , 0xA4);
 	GET_STACK(DWORD, caller, 0x0);
 
-	if (!pConvert)
-		Debug::FatalErrorAndExit("Draw SHP missing Convert , caller [%0x]", caller);
+	if (!pConvert) {
+		auto pSHPref= pSHP->AsReference();
+		Debug::FatalErrorAndExit("Draw SHP[%s] missing Convert , caller [%0x]", pSHPref ? pSHPref->Filename : "unknown" , caller);
+	}
 
 	return 0x0;
 }
 
+//ASMJIT_PATCH(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
+//{
+//	GET(ConvertClass*, pConvert, EDX);
+//	GET_STACK(DWORD, caller, 0x0);
+//
+//	if (!pConvert) {
+//		Debug::FatalErrorAndExit("Draw SHP missing Convert , caller [%0x]" , caller);
+//	}
+//
+//	return 0x0;
+//}
 ASMJIT_PATCH(0x42CB61, AstarClass_Find_Path_FailLog_Hierarchical, 0x5)
 {
 	GET(FootClass*, pFoot, ESI);
@@ -5862,37 +5878,6 @@ ASMJIT_PATCH(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)
 	}
 
 	return 0x0;
-}
-
-ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
-{
-
-	GET(TechnoClass*, pThis, ESI);
-
-	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
-
-	if (!pTechno->IsAlive)
-	{
-		//Debug::LogInfo("TechnoClass::GreatestThread Found DeadTechno[{} - {}] on TechnoArray!", (void*)pTechno, pTechno->get_ID());
-		return  0x6F9D93; // next
-	}
-
-	R->ECX(pThis->Owner);
-	R->EDI(pTechno);
-	return 0x6F9C89;//contunye
-}
-
-ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
-{
-	GET(TechnoClass*, pTrackerTechno, EBP);
-
-	if (!pTrackerTechno->IsAlive)
-	{
-		//Debug::LogInfo("Found DeadTechno[{} - {}] on AircraftTracker!", (void*)pTrackerTechno, pTrackerTechno->get_ID());
-		return 0x6F9377; // next
-	}
-
-	return 0x0;//contunye
 }
 
 //ASMJIT_PATCH(0x6F89D1, TechnoClass_EvaluateCell_DeadTechno, 0x6)
@@ -6657,3 +6642,276 @@ public:
 };
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E7F30, FakeDriveLocomotionClass::_Is_Moving_Now);
+
+
+#pragma region ElectricAssultStuffs
+
+void ElectrictAssaultCheck(FootClass* pThis)
+{
+	if (pThis->Target)
+		return;
+
+	auto pWeapon = pThis->GetWeapon(1);
+
+	if (pWeapon && pWeapon->WeaponType && pWeapon->WeaponType->Warhead->ElectricAssault)
+	{
+
+		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->WeaponType->Warhead);
+		auto myLoc = pThis->GetMapCoords();
+
+		for (int i = 0; i < 8; ++i)
+		{
+			if (auto pBld = MapClass::Instance->GetCellAt(myLoc + CellSpread::AdjacentCell[i])->GetBuilding())
+			{
+				if (pBld->Type->Overpowerable && pBld->Owner == pThis->Owner)
+				{
+
+					if (pWHExt->ElectricAssault_Requireverses && pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pBld, pWeapon->WeaponType->Warhead))
+					.Verses <= 0.0)
+						continue;
+
+					pThis->SetTarget(pBld);
+					pThis->__AssignNewThreat = true;
+					pThis->QueueMission(Mission::Attack, false);
+					return;
+				}
+			}
+		}
+
+		pThis->UpdateIdleAction();
+	}
+}
+
+ASMJIT_PATCH(0x4D6F38, FootClass_ElectricAssultFix_SetWeaponType, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	ElectrictAssaultCheck(pThis);
+	return 0x4D7025;
+}
+
+ASMJIT_PATCH(0x4D50E1, FootClass_MI_Guard_ElectrictAssault, 0xA)
+{
+	GET(FootClass*, pThis, ESI);
+	ElectrictAssaultCheck(pThis);
+	return 0x4D5225;
+}
+
+ASMJIT_PATCH(0x691A32, ReadScenarion_RemoveInline, 0x5)
+{
+	LEA_STACK(char*, pName, 0x18);
+	R->ESI(GameCreate<ScriptTypeClass>(pName));
+	return 0x691B01;
+}
+
+ASMJIT_PATCH(0x691C62, ScriptTypeClass_CreateFromName_RemoveInline, 0x5)
+{
+	GET(char*, pName, EDI);
+	R->ESI(GameCreate<ScriptTypeClass>(pName));
+	return 0x691D2C;
+}
+
+ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6) {
+	for (int i = 0; i < SpawnManagerClass::Array->Count; ++i) {
+		if (auto pManager = SpawnManagerClass::Array->Items[i]) {
+
+			if (VTable::Get(pManager) != 0x7F3650)
+				continue;
+
+			pManager->~SpawnManagerClass();
+		}
+	}
+
+	return 0x53486B;
+}
+
+//#pragma optimize("", off )
+//ASMJIT_PATCH(0x6ED155, TMissionAttack_WhatTarget, 0x5) {
+//	GET(FootClass*, pTeam, EDI);
+//	GET(TeamClass*, pThis, EBP);
+//	GET(ThreatType, threat, EAX);
+//	LEA_STACK(CoordStruct*, pCoord, 0x18);
+//
+//	auto pTarget = pTeam->GreatestThreat(threat, pCoord, (bool)R->CL());
+//
+//	if (IS_SAME_STR_("HTNK", pTeam->get_ID()) && flag_cast_to<TechnoClass*>(pTarget))
+//		Debug::Log("HTNK Target %s - %s \n", pTarget->GetThisClassName() , ((TechnoClass*)pTarget)->get_ID());
+//
+//	pThis->AssignMissionTarget(pTarget);
+//
+//	return 0x6ED16C;
+//}
+//#pragma optimize("", on )
+
+#ifndef disabled_
+ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
+
+	GET(TechnoClass*, pThis, ESI);
+
+	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
+
+	if (!pTechno->IsAlive)
+	{
+		//Debug::LogInfo("TechnoClass::GreatestThread Found DeadTechno[{} - {}] on TechnoArray!", (void*)pTechno, pTechno->get_ID());
+		return  0x6F9D93; // next
+	}
+
+	R->ECX(pThis->Owner);
+	R->EDI(pTechno);
+	return 0x6F9C89;//contunye
+}
+
+ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6) {
+	GET(TechnoClass*, pTrackerTechno, EBP);
+
+	if (!pTrackerTechno->IsAlive)
+	{
+		//Debug::LogInfo("Found DeadTechno[{} - {}] on AircraftTracker!", (void*)pTrackerTechno, pTrackerTechno->get_ID());
+		return 0x6F9377; // next
+	}
+
+	return 0x0;//contunye
+}
+
+WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
+{
+	WeaponTypeClass* pBuffer = nullptr;
+
+	if (which == -1)
+	{
+		auto const pType = pThis->GetTechnoType();
+
+		if (pType->TurretCount > 0)
+		{
+			if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentGattlingStage))
+			{
+				pBuffer = pCurWeapon->WeaponType;
+			}
+		}
+		else
+		{
+			if (auto const pPriStruct = pThis->GetWeapon(0))
+			{
+				pBuffer = pPriStruct->WeaponType;
+			}
+
+			if (auto const pSecStruct = pThis->GetWeapon(1))
+			{
+				pBuffer = pSecStruct->WeaponType;
+			}
+		}
+	}
+	else
+	{
+		if (auto const pSelected = pThis->GetWeapon(which))
+		{
+			pBuffer = pSelected->WeaponType;
+		}
+	}
+
+	return  pBuffer;
+}
+
+ASMJIT_PATCH(0x6F9039, TechnoClass_GreatestThreat_GuardRange, 0x9)
+{
+	GET(TechnoClass*, pTechno, ESI);
+	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
+	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
+
+	if (auto pPri = GetWeaponType(pTechno, 0))
+	{
+		if (pPri->Range > nGuarRange)
+			nGuarRange = pPri->Range;
+	}
+
+	if (auto pSec = GetWeaponType(pTechno, 1))
+	{
+		if (pSec->Range > nGuarRange)
+			nGuarRange = pSec->Range;
+	}
+
+	R->EDI(nGuarRange);
+	return 0x6F903E;
+}
+#endif
+
+FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord, CoordStruct& their_coord)
+{
+	int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
+	int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
+	int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
+	int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
+
+	int x_distance = Math::abs(our_cell_x - their_cell_x);
+	int y_distance = Math::abs(our_cell_y - their_cell_y);
+	return (x_distance * x_distance) + (y_distance * y_distance);
+
+	//return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
+}
+
+#ifdef __old
+
+ASMJIT_PATCH(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
+{
+	GET(AbstractClass*, pThis, ECX);
+	GET_STACK(AbstractClass*, pThat, 0x4);
+
+	int nResult = 0;
+	if (pThat)
+	{
+		auto nThisCoord = pThis->GetCoords();
+		auto nThatCoord = pThat->GetCoords();
+		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
+			cell_Distance_Squared(nThisCoord, nThatCoord);
+		;
+	}
+
+	R->EAX(nResult);
+	return 0x5F655D;
+}
+
+ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
+{
+	GET(AbstractClass*, pThis, ECX);
+	auto nThisCoord = pThis->GetCoords();
+	GET_STACK(CoordStruct*, pThatCoord, 0x4);
+	R->EAX(
+		//(int)nThisCoord.DistanceFromXY(*pThatCoord)
+		cell_Distance_Squared(nThisCoord, *pThatCoord)
+	);
+	return 0x5F659B;
+}
+
+#else
+int FakeObjectClass::_GetDistanceOfObj(AbstractClass* pThat)
+{
+	int nResult = 0;
+	if (pThat)
+	{
+		auto nThisCoord = this->GetCoords();
+		auto nThatCoord = pThat->GetCoords();
+		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
+			cell_Distance_Squared(nThisCoord, nThatCoord);
+		;
+	}
+
+	return nResult;
+}
+
+int FakeObjectClass::_GetDistanceOfCoord(CoordStruct* pThat)
+{
+	auto nThisCoord = this->GetCoords();
+	return cell_Distance_Squared(nThisCoord, *pThat);
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x5F6500 , FakeObjectClass::_GetDistanceOfObj);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x5F6560, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EABCB, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EAC96, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EAD4B, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
+
+#endif
+#pragma endregion

@@ -34,12 +34,13 @@ void WeaponTypeExtData::FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapo
 	}
 }
 
+#include <Ext/Ebolt/Body.h>
+
 void WeaponTypeExtData::FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx)
 {
-	auto const supportEBolt = WeaponTypeExtData::CreateBolt(pWeapon, pFirer);
+	auto const supportEBolt = EboltExtData::_CreateOneOf(pWeapon, pFirer);
 	supportEBolt->Owner = pFirer;
 	supportEBolt->WeaponSlot = idx;
-	supportEBolt->AlternateColor = pWeapon->IsAlternateColor;
 	supportEBolt->Fire(source, target, 0); //messing with 3rd arg seems to make bolts more jumpy, and parts of them disappear
 }
 

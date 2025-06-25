@@ -100,52 +100,6 @@ ASMJIT_PATCH(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 
 DEFINE_JUMP(LJMP, 0x565215, 0x56522D);
 
-FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord  , CoordStruct& their_coord)
-{
-    int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
-    int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
-    int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
-    int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
-
-    int x_distance = our_cell_x - their_cell_x;
-    int y_distance = our_cell_y - their_cell_y;
-    return x_distance * x_distance + y_distance * y_distance;
-
-	//return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
-}
-
-
-ASMJIT_PATCH(0x5F6500, AbstractClass_Distance2DSquared_1, 8)
-{
-	GET(AbstractClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, pThat, 0x4);
-
-	int nResult = 0;
-	if (pThat)
-	{
-		auto nThisCoord = pThis->GetCoords();
-		auto nThatCoord = pThat->GetCoords();
-		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
-		cell_Distance_Squared(nThisCoord, nThatCoord);
-		;
-	}
-
-	R->EAX(nResult);
-	return 0x5F655D;
-}
-
-ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
-{
-	GET(AbstractClass*, pThis, ECX);
-	auto nThisCoord = pThis->GetCoords();
-	GET_STACK(CoordStruct*, pThatCoord, 0x4);
-	R->EAX(
-		//(int)nThisCoord.DistanceFromXY(*pThatCoord)
-		cell_Distance_Squared(nThisCoord, *pThatCoord)
-		);
-	return 0x5F659B;
-}
-
 //ASMJIT_PATCH(0x6E2290, ActionClass_PlayAnimAt, 0x6)
 //{
 //	GET(TActionClass*, pThis, ECX);
@@ -1167,43 +1121,198 @@ ASMJIT_PATCH(0x4A76ED, DiskLaserClass_Update_Anim, 7)
 //InitGame_Delay
 DEFINE_JUMP(LJMP, 0x52CA37, 0x52CA65)
 
-ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
-{
-	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix"));
-	if(SpawnerMain::Configs::Enabled) {
-		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix"));
-	}
+#include <CD.h>
 
-	MixFileClass::Bootstrap();
-	R->EAX(YRMemory::Allocate(sizeof(MixFileClass)));
-	return 0x6BD7DF;
-}
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E04> const Language{};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E00> const LangMD{};
+static COMPILETIMEEVAL constant_ptr<const char, 0x840D5C> const LANGMD_MIX {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x840D4C> const LANGUAGE_MIX {};
 
-DEFINE_JUMP(LJMP, 0x52BB64, 0x52BB95) //Expand_MIX_Deorg
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884DF8> const RA2MD {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884DFC> const RA2 {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x82667C> const RA2MD_MIX {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826674> const RA2_MIX {};
 
-ASMJIT_PATCH(0x5301AC, InitBootstrapMixfiles_CustomMixes_Preload, 0x5)
-{
-	if(SpawnerMain::Configs::Enabled) {
-		for(auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes) {
-			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(preloadMix.c_str()));
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E48> const CACHEMD {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E4C> const CACHE {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x82665C> const CACHEMD_MIX {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826650> const CACHE_MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E50> const LOCALMD {};
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E54> const LOCAL {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826644> const LOCALMD_MIX {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826638> const LOCAL_MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E38> const CONQMD {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x826838> const CONQMD_MIX {};
+
+bool NOINLINE  __fastcall MixFilesBoostrap() {
+	int disk = CD::Disk();
+	CD::SetReqCD(-2);
+
+	auto pKey = MixFileClass::Key();
+
+	if (SpawnerMain::Configs::Enabled)
+	{
+		for (auto& preloadMix : SpawnerMain::GetGameConfigs()->PreloadMixes)
+		{
+			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(preloadMix.c_str(), pKey));
 			Debug::LogInfo("Loading Preloaded Mix Name : {} ", preloadMix.c_str());
 		}
 	}
 
-	return 0x0;
-}
+	for (int i = 99; i >= 0; --i)
+	{
+		char buffer[256];
+		_snprintf(buffer, sizeof(buffer) - 1, GameStrings::EXPANDMD02d(), i);
+		RawFileClass _raw(buffer);
+		if (_raw.Exists())
+		{
+			Debug::LogInfo("Loading {}", buffer);
+			MixFileClass::Array->AddItem(GameCreate<MixFileClass>(buffer, pKey));
+		}
+	}
 
-ASMJIT_PATCH(0x53044A, InitBootstrapMixfiles_CustomMixes_Postload, 0x6)
-{
-	if(SpawnerMain::Configs::Enabled) {
-		for(auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes) {
-			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str()));
+	Debug::LogInfo("Loading {}", RA2MD_MIX());
+	RA2MD = GameCreate<MixFileClass>(RA2MD_MIX(), pKey);
+
+	if (!RA2MD())
+		return false;
+
+	Debug::LogInfo("Loading {}", RA2_MIX());
+	RA2 = GameCreate<MixFileClass>(RA2_MIX, pKey);
+
+	if (!RA2())
+		return false;
+
+	Debug::LogInfo("Loading {}", CACHEMD_MIX());
+	CACHEMD = GameCreate<MixFileClass>(CACHEMD_MIX(), pKey);
+
+	if (!CACHEMD())
+		return false;
+
+	Debug::LogInfo("Loading {}", CACHE_MIX());
+	CACHE = GameCreate<MixFileClass>(CACHE_MIX(), pKey);
+
+	if (!CACHE())
+		return false;
+
+	Debug::LogInfo("Loading {}", LOCALMD_MIX());
+	LOCALMD = GameCreate<MixFileClass>(LOCALMD_MIX(), pKey);
+
+	if (!LOCALMD())
+		return false;
+
+	Debug::LogInfo("Loading {}", LOCAL_MIX());
+	LOCAL = GameCreate<MixFileClass>(LOCAL_MIX, pKey);
+
+	if (!LOCAL())
+		return false;
+
+	if (SpawnerMain::Configs::Enabled)
+	{
+		for (auto& postloadMix : SpawnerMain::GetGameConfigs()->PostloadMixes)
+		{
+			SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>(postloadMix.c_str(), pKey));
 			Debug::LogInfo("Loading Postload Mix Name : {} ", postloadMix.c_str());
 		}
 	}
 
-	return 0x0;
+	CD::SetReqCD(disk);
+	return true;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x5301A0, MixFilesBoostrap);
+
+ASMJIT_PATCH(0x6BD7D5, Expand_MIX_Reorg, 7)
+{
+	StaticVars::aresMIX.reset(GameCreate<MixFileClass>("ares.mix", MixFileClass::Key()));
+	if(SpawnerMain::Configs::Enabled) {
+		SpawnerMain::LoadedMixFiles.push_back(GameCreate<MixFileClass>("cncnet.mix", MixFileClass::Key()));
+	}
+
+	MixFilesBoostrap();
+
+	Language = GameCreate<MixFileClass>(LANGUAGE_MIX(), MixFileClass::Key());
+	LangMD = GameCreate<MixFileClass>(LANGMD_MIX(), MixFileClass::Key());
+
+	return 0x6BD835;
+}
+
+DEFINE_JUMP(LJMP, 0x52BB64, 0x52BB95) //Expand_MIX_Deorg
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E58> const NTRLMD {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x827DA0> const NTRLMD_MIX {};
+
+static COMPILETIMEEVAL reference<MixFileClass*, 0x884E5C> const NEUTRAL {};
+static COMPILETIMEEVAL constant_ptr<const char, 0x827D80> const NEUTRAL_MIX {};
+
+void NOINLINE __fastcall Release_Neutral()
+{
+	if (NEUTRAL())
+	{
+		Debug::LogInfo("Releasing {} ", NEUTRAL_MIX());
+		GameDelete<true,false>(NEUTRAL());
+		NEUTRAL = nullptr;
+	}
+
+	if (NTRLMD())
+	{
+		Debug::LogInfo("Releasing {} ", NTRLMD_MIX());
+		GameDelete<true, false>(NTRLMD());
+		NTRLMD = nullptr;
+	}
+}
+
+bool NOINLINE __fastcall Prep_Neutral()
+{
+	Release_Neutral();
+
+	if (!Phobos::Otamaa::ExeTerminated)
+	{
+		Debug::LogInfo("Loading {} ", NTRLMD_MIX());
+		NTRLMD = GameCreate<MixFileClass>(NTRLMD_MIX(), MixFileClass::Key());
+
+		if (!NTRLMD())
+			return false;
+
+		Debug::LogInfo("Loading {} ", NEUTRAL_MIX());
+		NEUTRAL = GameCreate<MixFileClass>(NEUTRAL_MIX(), MixFileClass::Key());
+
+		if (!NEUTRAL())
+			return false;
+	}
+
+	return true;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x534E50, Prep_Neutral);
+DEFINE_FUNCTION_JUMP(CALL, 0x72AB0A, Prep_Neutral);
+DEFINE_FUNCTION_JUMP(CALL, 0x72DDBD, Prep_Neutral);
+DEFINE_FUNCTION_JUMP(CALL, 0x72E071, Prep_Neutral);
+DEFINE_FUNCTION_JUMP(CALL, 0x72E462, Prep_Neutral);
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x534DE0, Release_Neutral);
+DEFINE_FUNCTION_JUMP(CALL, 0x72ACFA, Release_Neutral);
+DEFINE_FUNCTION_JUMP(CALL, 0x72DFA0, Release_Neutral);
+DEFINE_FUNCTION_JUMP(CALL, 0x72E060, Release_Neutral);
+
+//TODO these , aaaa lot
+// static inline bool LoadSecondaryMixFiles()
+// {
+// 	CDFileClass _cd(CONQMD_MIX());
+// 	if(_cd.Exists()) {
+// 		CONQMD = GameCreate<MixFileClass>(CONQMD_MIX() , MixFileClass::Key());
+// 	}
+
+// 	if(!CONQMD())
+// 		return false;
+// }
+
+// ASMJIT_PATCH(0x530460, InitSecondaryMixfiles, 0x6){
+// 	R->EAX(LoadSecondaryMixFiles());
+// 	return 0x5304FE;
+// }
 
 ASMJIT_PATCH(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 {
@@ -1218,13 +1327,15 @@ ASMJIT_PATCH(0x6BE9BD, Game_ProgramEnd_ClearResource, 6)
 ASMJIT_PATCH(0x531413, Game_Start, 5)
 {
 	int topActive = 500;
-
 	DSurface::Hidden->DrawText_Old(L"Ares is active.", 10, topActive, COLOR_GREEN);
 	DSurface::Hidden->DrawText_Old(L"Ares is © The Ares Contributors 2007 - 2021.", 10, 520, COLOR_GREEN);
-
 	DSurface::Hidden->DrawText_Old(L"Ares version: 3.0p1 Backport", 10, 540, COLOR_RED | COLOR_GREEN);
 	return 0;
 }
+
+//
+typedef BOOL(__stdcall* FP_MoveWindow)(HWND hWnd, int X, int Y, int nWidth, int nHeight, BOOL bRepaint);
+static COMPILETIMEEVAL referencefunc<FP_MoveWindow, 0x7E1398> const Game_MoveWindow {};
 
 ASMJIT_PATCH(0x532017, DlgProc_MainMenu_Version, 5)
 {
@@ -1234,7 +1345,7 @@ ASMJIT_PATCH(0x532017, DlgProc_MainMenu_Version, 5)
 	const int MinimumWidth = 168;
 
 	RECT Rect;
-	if (GetWindowRect(hWnd, &Rect))
+	if (Imports::GetWindowRect.invoke()(hWnd, &Rect))
 	{
 		int width = Rect.right - Rect.left;
 
@@ -1250,7 +1361,7 @@ ASMJIT_PATCH(0x532017, DlgProc_MainMenu_Version, 5)
 				Rect.left = 0;
 			}
 
-			MoveWindow(hWnd, Rect.left, Rect.top, Rect.right - Rect.left, Rect.bottom - Rect.top, FALSE);
+			Game_MoveWindow.invoke()(hWnd, Rect.left, Rect.top, Rect.right - Rect.left, Rect.bottom - Rect.top, FALSE);
 		}
 	}
 

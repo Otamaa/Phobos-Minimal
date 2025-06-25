@@ -41,6 +41,15 @@ struct VoxelStruct
 	}
 };
 
+class NOVTABLE FakeFileLoader
+{
+public:
+	static void* __fastcall Retrieve(const char* pFilename, bool bLoadAsSHP = false)
+	{ JMP_STD(0x5B40B0); }
+
+	static void* __fastcall _Retrieve(const char* pFilename, bool bLoadAsSHP);
+};
+
 class FileSystem
 {
 public:
@@ -81,25 +90,22 @@ public:
 	static COMPILETIMEEVAL reference<ConvertClass*, 0xA8F798u> GRFXTXT_Convert{};
 	static COMPILETIMEEVAL reference<ConvertClass*,0xB1D140u > EightBitVoxelDrawer{};
 
-	static void* __fastcall LoadFile(const char* pFileName, bool bLoadAsSHP)
-		{ JMP_STD(0x5B40B0); }
-
 	static void* __fastcall LoadWholeFileEx(const char* pFilename, bool &outAllocated)
 		{ JMP_STD(0x4A38D0); }
 
 	static void* LoadFile(const char* pFileName)
-		{ return LoadFile(pFileName, false); }
+		{ return FakeFileLoader::_Retrieve(pFileName, false); }
 
 	static SHPStruct* LoadSHPFile(const char* pFileName)
-		{ return static_cast<SHPStruct*>(LoadFile(pFileName, true)); }
+		{ return static_cast<SHPStruct*>(FakeFileLoader::_Retrieve(pFileName, true)); }
 
 	static SHPReference* LoadSHPRef(const char* pFileName)
-	{ return reinterpret_cast<SHPReference*>(LoadFile(pFileName, true)); }
+	{ return reinterpret_cast<SHPReference*>(FakeFileLoader::_Retrieve(pFileName, true)); }
 
 	//I'm just making this up for easy palette loading
 	static ConvertClass* LoadPALFile(const char* pFileName, DSurface* pSurface)
 	{
-		auto pRawData = reinterpret_cast<const ColorStruct*>(LoadFile(pFileName, false));
+		auto pRawData = reinterpret_cast<const ColorStruct*>(FakeFileLoader::_Retrieve(pFileName, false));
 
 		BytePalette ColorData { };
 

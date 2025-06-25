@@ -18,43 +18,37 @@
 
 // we hook at the beggining of the function
 // ares hooking at the beggining of switch call
-int lastAction;
+// int lastAction;
 
- ASMJIT_PATCH(0x6DD8B0, TActionClass_Execute, 0x6)
- {
- 	GET(TActionClass*, pThis, ECX);
- 	REF_STACK(ActionArgs const, args, 0x4);
-	//GET_STACK(DWORD , caller , 0x0);
+//  ASMJIT_PATCH(0x6DD8B0, TActionClass_Execute, 0x6)
+//  {
+//  	GET(TActionClass*, pThis, ECX);
+//  	REF_STACK(ActionArgs const, args, 0x4);
+// 	//GET_STACK(DWORD , caller , 0x0);
 
- 	enum { return_value = 0x6DD910, continue_func = 0x0 };
+//  	enum { return_value = 0x6DD910, continue_func = 0x0 };
 
-	if(((int)pThis->ActionKind == 14 || (int)pThis->ActionKind == 32) ){
+// 	if(((int)pThis->ActionKind == 14 || (int)pThis->ActionKind == 32) ){
 
-		if (lastAction == (int)pThis->ActionKind)
-			++StaticVars::TriggerCounts[pThis];
-		else
-			StaticVars::TriggerCounts[pThis] = 0;
+// 		if (lastAction == (int)pThis->ActionKind)
+// 			++StaticVars::TriggerCounts[pThis];
+// 		else
+// 			StaticVars::TriggerCounts[pThis] = 0;
 
-	 	//Debug::LogInfo("TAction[%x] triggering [%d] caller[%x]" , pThis , (int)pThis->ActionKind , caller);
+// 	 	//Debug::LogInfo("TAction[%x] triggering [%d] caller[%x]" , pThis , (int)pThis->ActionKind , caller);
 
-		if (StaticVars::TriggerCounts[pThis] > 1000)
-			Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !", pThis, (int)pThis->ActionKind);
-	}
+// 		if (StaticVars::TriggerCounts[pThis] > 1000)
+// 			Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !", pThis, (int)pThis->ActionKind);
+// 	}
 
-	lastAction = (int)pThis->ActionKind;
+// 	lastAction = (int)pThis->ActionKind;
 
- 	bool handled;
- 	if (TActionExt::Occured(pThis, args, handled))
- 	{
- 		//Debug::LogInfo("TAction[%x] triggering Phobos [%d]" , pThis , (int)pThis->ActionKind);
- 		R->AL(handled);
- 		return return_value;
- 	}
 
- 	//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pThis , (int)pThis->ActionKind);
 
- 	return continue_func;
- }
+//  	//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pThis , (int)pThis->ActionKind);
+
+//  	return continue_func;
+//  }
 
 // Bugfix: TAction 125 Build At do not display the buildups
 // Author: secsome

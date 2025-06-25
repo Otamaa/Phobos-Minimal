@@ -19,6 +19,7 @@
 #include <New/Type/RocketTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
+#include <New/Type/BannerTypeClass.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 
@@ -159,6 +160,8 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
 	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
+
+	BannerTypeClass::LoadFromINIList(pINI);
 
 	if (Data->HugeBar_Config.empty())
 	{
@@ -409,6 +412,16 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			Debug::RegisterParserError();
 		}
 
+		if (pExt->RecuitedAs.isset()) {
+			if (pExt->RecuitedAs && pExt->RecuitedAs->WhatAmI() != what) {
+				Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName, pExt->ClonedAs->ID, pExt->ClonedAs->GetThisClassName());
+				Debug::RegisterParserError();
+			}
+			else if (!pExt->RecuitedAs || pExt->RecuitedAs == pItem) {
+				pExt->RecuitedAs.Reset();
+			}
+		}
+
 		if (pExt->ClonedAs && pExt->ClonedAs->WhatAmI() != what)
 		{
 			Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->ClonedAs->ID , pExt->ClonedAs->GetThisClassName());
@@ -521,6 +534,9 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		if (!pExt->Harvester_Counted.isset() && pItem->Enslaves) {
 			pExt->Harvester_Counted = true;
 		}
+
+		if (pExt->Spawn_LimitedExtraRange)
+			pExt->CalculateSpawnerRange();
 
 		if (isFoot)
 		{
@@ -772,6 +788,10 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	exINI.Read3Bool(GameStrings::General,"CampaignAllowHarvesterScanUnderShroud", this->CampaignAllowHarvesterScanUnderShroud);
 
+	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
+	this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
+
+	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
 	this->AttackMove_Aggressive.Read(exINI, GameStrings::General, "AttackMove.Aggressive");
@@ -1588,6 +1608,10 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->SuperWeaponSidebar_AllowByDefault)
 		.Process(this->CampaignAllowHarvesterScanUnderShroud)
+		.Process(this->BerzerkTargeting)
+
+		.Process(this->AttackMove_IgnoreWeaponCheck)
+		.Process(this->AttackMove_StopWhenTargetAcquired)
 		;
 
 	MyPutData.Serialize(Stm);

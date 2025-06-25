@@ -23,10 +23,7 @@
 
 ScriptActionNode NOINLINE ScriptExtData::GetSpecificAction(ScriptClass* pScript, int nIdx)
 {
-	if (nIdx == -1)
-		return { -1 , 0 };
-
-	if (nIdx < pScript->Type->ActionsCount)
+	if ((size_t)nIdx < (size_t)pScript->Type->ActionsCount)
 		return pScript->Type->ScriptActions[nIdx];
 	//	nIdx = pScript->Type->ActionsCount;
 	//
@@ -377,9 +374,9 @@ static NOINLINE const char* ToStrings(PhobosScripts from)
 
 #include "Lua/Wrapper.h"
 
-bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
+bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd)
 {
-	auto const& [action, argument] = pTeam->CurrentScript->GetCurrentAction();
+	auto const& [action, argument] = *pTeamMission;
 
 	//Debug::LogInfo("[{} - {}] Executing[{} - {}] [{} - {}]",
 	//pTeam->Owner->get_ID(),
@@ -476,6 +473,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			ScriptExtData::ForceGlobalOnlyTargetHouseEnemy(pTeam, -1);
 			break;
 		}
+
 		case PhobosScripts::ChangeTeamGroup:
 		{
 			//	ScriptExtData::TeamMemberSetGroup(pTeam, argument);
@@ -483,7 +481,6 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			pTeam->StepCompleted = true;
 			break;
 		}
-		//TODO
 		case PhobosScripts::DistributedLoading:
 		{
 			//ScriptExtData::DistributedLoadOntoTransport(pTeam, argument); //which branch is this again ?
@@ -505,6 +502,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 			pTeam->StepCompleted = true;
 			break;
 		}
+
 		case PhobosScripts::AbortActionAfterSuccessKill:
 		{
 			ScriptExtData::SetAbortActionAfterSuccessKill(pTeam, -1);  //which branch is this again ?
@@ -519,7 +517,6 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		{
 			// Start Timed Jump that jumps to the same line when the countdown finish (in frames)
 			ScriptExtData::RepairDestroyedBridge(pTeam, -1);  //which branch is this again ?
-			Debug::LogInfo("Team[{} - {} , Script [{} - {}] Action [{}] - No AttachedFunction", (void*)pTeam, pTeam->get_ID(), (void*)pTeam->CurrentScript, pTeam->CurrentScript->get_ID(), (int)action);
 			pTeam->StepCompleted = true;
 			break;
 		}
@@ -923,35 +920,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam)
 		}
 #pragma endregion
 		default:
-			// Do nothing because or it is a wrong Action number or it is an Ares/YR action...
-			if (IsExtVariableAction(Action))
-			{
-				VariablesHandler(pTeam, static_cast<PhobosScripts>(Action), argument);
-				break;
-			}
-
-			//dont prematurely finish the `Script` ,...
-			//bailout the script if the `Action` already -1
-			//this will free the Member and allow them to be recuited
-			if ((TeamMissionType)Action == TeamMissionType::none || (TeamMissionType)Action >= TeamMissionType::count && (AresScripts)action >= AresScripts::count)
-			{
-				// Unknown action. This action finished
-				pTeam->StepCompleted = true;
-				auto const pAction = pTeam->CurrentScript->GetCurrentAction();
-				Debug::LogInfo("AI Scripts : [{}] Team [{}][{}]  ( {} CurrentScript {} / {} line {}): Unknown Script Action: {} (action={}, Action={})",
-					(void*)pTeam,
-					pTeam->Type->ID,
-					pTeam->Type->Name,
-
-					(void*)pTeam->CurrentScript,
-					pTeam->CurrentScript->Type->ID,
-					pTeam->CurrentScript->Type->Name,
-					pTeam->CurrentScript->CurrentMission,
-
-					(int)pAction.Action, (int)action, Action);
-			}
-
-			return false;
+			return ScriptExtData::VariablesHandler(pTeam, PhobosScripts(Action), argument);
 		}
 	}
 
@@ -1063,11 +1032,9 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 
 	auto const pExt = TeamExtContainer::Instance.Find(pTeam);
 
-	if (pExt)
-	{
-		FootClass* pLeaderUnit = FindTheTeamLeader(pTeam);
-		pExt->TeamLeader = pLeaderUnit;
-	}
+	FootClass* pLeaderUnit = FindTheTeamLeader(pTeam);
+	pLeaderUnit->IsTeamLeader = 1;
+	pExt->TeamLeader = pLeaderUnit;
 
 	// This action finished
 	pTeam->StepCompleted = true;
@@ -1168,7 +1135,11 @@ void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown
 
 		if (!ScriptExtData::IsUnitAvailable(pLeaderUnit, true))
 		{
+			if(pLeaderUnit)
+				pLeaderUnit->IsTeamLeader = false;
+
 			pLeaderUnit = ScriptExtData::FindTheTeamLeader(pTeam);
+			pLeaderUnit->IsTeamLeader= true;
 			pExt->TeamLeader = pLeaderUnit;
 		}
 
@@ -1384,7 +1355,7 @@ void ScriptExtData::PickRandomScript(TeamClass* pTeam, int idxScriptsList = -1)
 
 			ScriptTypeClass* pNewScript = objectsList[IdxSelectedObject];
 
-			if (pNewScript->ActionsCount > 0)
+			if (pNewScript->ActionsCount > 0 && pNewScript != pTeam->CurrentScript->Type)
 			{
 				TeamExtContainer::Instance.Find(pTeam)->PreviousScript = pTeam->CurrentScript->Type;
 				GameDelete<true, false>(pTeam->CurrentScript);
@@ -1581,10 +1552,10 @@ bool ScriptExtData::MoveMissionEndStatus(TeamClass* pTeam, TechnoClass* pFocus, 
 void ScriptExtData::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 {
 	// This team has no units! END
-	//if (!pTeam)
-	//{
+	if (!pTeam)
+	{
 	//	// This action finished
-	//	pTeam->StepCompleted = true;
+		pTeam->StepCompleted = true;
 	//	const auto&[curAct, curArg] = pTeam->CurrentScript->GetCurrentAction();
 	//	const auto&[nextAct, nextArg] = pTeam->CurrentScript->GetNextAction();
 	//	Debug::LogInfo("AI Scripts - SkipNextAction: [{}] [{}] (line: {}) Jump to next line: {} = {},{} -> (No team members alive)",
@@ -1597,8 +1568,8 @@ void ScriptExtData::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 	//		nextAct,
 	//		nextArg);
 	//
-	//	return;
-	//}
+		return;
+	}
 
 	if (successPercentage < 0 || successPercentage > 100)
 		successPercentage = pTeam->CurrentScript->GetCurrentAction().Argument;
@@ -1634,7 +1605,7 @@ void ScriptExtData::SkipNextAction(TeamClass* pTeam, int successPercentage = 0)
 	pTeam->StepCompleted = true;
 }
 
-void ScriptExtData::VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg)
+bool ScriptExtData::VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg)
 {
 	struct operation_set { int operator()(const int& a, const int& b) { return b; } };
 	struct operation_add { int operator()(const int& a, const int& b) { return a + b; } };
@@ -1798,7 +1769,11 @@ void ScriptExtData::VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, in
 		VariableBinaryOperationHandler<true, true, operation_or>(pTeam, nLoArg, nHiArg); break;
 	case PhobosScripts::GlobalVariableAndByGlobal:
 		VariableBinaryOperationHandler<true, true, operation_and>(pTeam, nLoArg, nHiArg); break;
+	default:
+		return false;
 	}
+
+	return true;
 }
 
 template<bool IsGlobal, class _Pr>
@@ -1870,6 +1845,9 @@ void ScriptExtData::Set_ForceJump_Countdown(TeamClass* pTeam, bool repeatLine = 
 
 	if (count > 0)
 	{
+		if (IS_SAME_STR_("0100012F-G", pTeam->CurrentScript->Type->ID))
+			Debug::Log("0100012F Update ForceJump_Countdown !\n");
+
 		pTeamData->ForceJump_InitialCountdown = count;
 		pTeamData->ForceJump_Countdown.Start(count);
 		pTeamData->ForceJump_RepeatMode = repeatLine;
@@ -1922,6 +1900,7 @@ void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 	auto const pLeader = ScriptExtData::FindTheTeamLeader(pTeam);
 	//const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 	//const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
+	pLeader->IsTeamLeader = true;
 
 	if (!pLeader)
 	{
@@ -2008,7 +1987,8 @@ void ScriptExtData::ChronoshiftTeamToTarget(TeamClass* pTeam, TechnoClass* pTeam
 
 	if (pTargetCell)
 	{
-		pOwner->Fire_SW(pSuperChronosphere->Type->ArrayIndex, pTeam->SpawnCell->MapCoords);
+		auto coords = pTeam->Zone->GetCoords();
+		pOwner->Fire_SW(pSuperChronosphere->Type->ArrayIndex, CellClass::Coord2Cell(coords));
 		pOwner->Fire_SW(pSuperChronowarp->Type->ArrayIndex, pTargetCell->MapCoords);
 		pTeam->AssignMissionTarget(pTargetCell);
 	}

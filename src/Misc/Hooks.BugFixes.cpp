@@ -159,7 +159,7 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 		{
 			pThis->TemporalTargetingMe = nullptr;
 			pThis->Limbo();
-			Debug::LogInfo(__FUNCTION__" Called ");
+			//Debug::LogInfo(__FUNCTION__" Called ");
 			TechnoExtData::HandleRemove(pThis, nullptr, true, false);
 		}
 	}
@@ -2473,12 +2473,6 @@ ASMJIT_PATCH(0x4C7643, EventClass_RespondToEvent_StopTemporal, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
-}
-
 // I don't know how can WW miscalculated
 // In fact, there should be three different degrees of tilt angles
 // - EBX -> atan((2*104)/(256√2)) should only be used on the steepest slopes (13-16)
@@ -2789,47 +2783,6 @@ ASMJIT_PATCH(0x70D910, FootClass_QueueEnter_NoMoveToBridge, 0x5)
 
 #endif
 
-#pragma region ElectricAssultFix
-
-namespace ElectricAssultTemp
-{
-	WeaponTypeClass* WeaponType;
-}
-
-ASMJIT_PATCH(0x4D6F66, FootClass_ElectricAssultFix_SetWeaponType, 0x6)		// Mission_AreaGuard
-{
-	GET(WeaponTypeClass*, Secondary, ECX);
-
-	ElectricAssultTemp::WeaponType = Secondary;
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x4D5102, FootClass_ElectricAssultFix_SetWeaponType, 0x6)	// Mission_Guard
-
-ASMJIT_PATCH(0x4D6FE1, FootClass_ElectricAssultFix2, 0x7)		// Mission_AreaGuard
-{
-	GET(FootClass*, pThis, ESI);
-	GET(FakeBuildingClass*, pBuilding, EDI);
-	enum
-	{
-		SkipGuard = 0x4D51AE, ContinueGuard = 0x4D5198,
-		SkipAreaGuard = 0x4D7001, ContinueAreaGuard = 0x4D6FF5
-	};
-
-	const auto pWeapon = ElectricAssultTemp::WeaponType;
-	bool InGuard = (R->Origin() == 0x4D5184);
-
-	if (pBuilding->Owner == pThis->Owner &&
-		WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->GetVerses(TechnoExtData::GetTechnoArmor(pBuilding , pWeapon->Warhead))
-			.Verses != 0.0)
-	{
-		return InGuard ? SkipGuard : SkipAreaGuard;
-	}
-
-	return InGuard ? ContinueGuard : ContinueAreaGuard;
-}ASMJIT_PATCH_AGAIN(0x4D5184, FootClass_ElectricAssultFix2, 0x7)	// Mission_Guard
-
-
-#pragma endregion
-
 #ifdef DamageAreaItemsFix
 ASMJIT_PATCH(0x489BDB, DamageArea_RockerItemsFix1, 0x6)
 {
@@ -2898,4 +2851,19 @@ ASMJIT_PATCH(0x41915D, AircraftClass_ReceiveCommand_QueryPreparedness, 0x8)
 		return CheckAmmo;
 
 	return 0;
+}
+
+ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_PlanningFix, 0x5)
+{
+	enum { SkipIdle = 0x418D00 };
+
+	GET(AircraftClass*, pThis, ESI);
+
+	return pThis->Ammo <= 0 || !pThis->TryNextPlanningTokenNode() ? 0 : SkipIdle;
+}
+
+ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
 }

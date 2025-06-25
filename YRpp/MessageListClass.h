@@ -35,6 +35,10 @@ public:
 		JMP_THIS(0x5D3BA0);
 	}
 
+	TextLabelClass* AddMessage(wchar_t* name, int id, const wchar_t* txt, int color, TextPrintType style, int timeout, bool single_player) {
+		JMP_THIS(0x5D3BA0);
+	}
+
 	wchar_t* GetMessage(int id) { JMP_THIS(0x5D3F60); }
 	TextLabelClass* GetLabel(int id) { JMP_THIS(0x5D3F90); }
 	bool ConcatMessage(const wchar_t* name, int id, const wchar_t* txt, int timeout) { JMP_THIS(0x5D3FC0); }

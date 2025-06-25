@@ -13,6 +13,7 @@
 
 #include <New/Entity/PrismForwarding.h>
 
+class InfantryClass;
 class BuildingExtData
 {
 public:
@@ -141,6 +142,8 @@ public:
 	void _DetachAnim(AnimClass* pAnim);
 	DamageState _ReceiveDamage(int* Damage, int DistanceToEpicenter , WarheadTypeClass* WH , TechnoClass* Attacker , bool IgnoreDefenses , bool PreventsPassengerEscape , HouseClass* SourceHouse);
 	int _GetAirstrikeInvulnerabilityIntensity(int currentIntensity) const;
+	void _OnFinishRepairB(InfantryClass* pEngineer);
+	void _OnFinishRepair();
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{

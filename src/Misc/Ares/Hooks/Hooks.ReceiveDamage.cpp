@@ -582,6 +582,8 @@ static bool IsTechnoImmuneToAffects(TechnoClass* pTechno, Rank rank, WarheadType
 	return false;
 }
 
+#include <Utilities/DebrisSpawners.h>
+
 ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
@@ -911,16 +913,37 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 		GiftBoxFunctional::Destroy(pExt, pTypeExt);
 
-		if (pThis->IsAlive)
-		{
-			for (auto const& pWeapon : pExt->AE.ExpireWeaponOnDead) {
-				TechnoClass* pTarget = pThis;
-				if (!pThis->IsAlive)
-					pTarget = nullptr;
+		if(!pExt->PhobosAE.empty()){
+			std::vector<std::pair<WeaponTypeClass*, TechnoClass*>> expireWeapons {};
+			std::set<PhobosAttachEffectTypeClass*> cumulativeTypes {};
 
-				WeaponTypeExtData::DetonateAt(pWeapon, pThis->Location, pTarget, false, pThis->Owner);
+			for (auto const& attachEffect : pExt->PhobosAE) {
+
+				auto const pAEType = attachEffect->GetType();
+
+				if (pAEType->ExpireWeapon && (pAEType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None)
+				{
+					if (!pAEType->Cumulative || !pAEType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pAEType))
+					{
+						if (pAEType->Cumulative && pAEType->ExpireWeapon_CumulativeOnlyOnce)
+							cumulativeTypes.insert(pAEType);
+
+						if (pAEType->ExpireWeapon_UseInvokerAsOwner)
+						{
+							if (auto const pInvoker = attachEffect->GetInvoker())
+								expireWeapons.emplace_back(pAEType->ExpireWeapon, pInvoker);
+						}
+						else
+						{
+							expireWeapons.emplace_back(pAEType->ExpireWeapon, pThis);
+						}
+					}
+				}
 			}
+
+			PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
 		}
+
 
 		if (!pThis->IsAlive)
 			break;
@@ -1059,61 +1082,14 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 		if (pThis->GetHeight() > 0 || !pThis->IsABomb || pThis->GetCell()->LandType != LandType::Water)
 		{
-			if (pType->MaxDebris > 0)
-			{
-				auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(pType->MinDebris, pType->MaxDebris);
-				auto nCoords = pThis->GetCoords();
-
-				if (totalSpawnAmount && pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
-				{
-					for (int currentIndex = 0; currentIndex < pType->DebrisTypes.Count; ++currentIndex)
-					{
-						if (currentIndex >= pType->DebrisMaximums.Count)
-							break;
-
-						if (!pType->DebrisMaximums[currentIndex] || !pType->DebrisTypes.Items[currentIndex])
-							continue;
-
-						//this never goes to 0
-						int amountToSpawn = (Math::abs(int(ScenarioClass::Instance->Random.Random())) % pType->DebrisMaximums[currentIndex]) + 1;
-						amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
-						totalSpawnAmount -= amountToSpawn;
-
-						for (; amountToSpawn > 0; --amountToSpawn)
-						{
-
-							auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.Items[currentIndex],
-							&nCoords, pThis->Owner);
-
-							VoxelAnimExtContainer::Instance.Find(pVoxAnim)->Invoker = pThis;
-						}
-
-						if (totalSpawnAmount <= 0)
-						{
-							totalSpawnAmount = 0;
-							break;
-						}
-					}
-				}
-
-				if (totalSpawnAmount > 0)
-				{
-					if (const auto pArray = GetDebrisAnim(pType))
-					{
-						auto debrisAnim_Coord = nCoords;
-						debrisAnim_Coord.Z += 20;
-
-						for (int b = 0; b < totalSpawnAmount; ++b)
-						{
-							if (auto pDebrisAnimType = pArray->Items[ScenarioClass::Instance->Random.RandomFromMax(pArray->Count - 1)])
-							{
-								AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDebrisAnimType, debrisAnim_Coord, 0, 1, AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400, 0, 0), args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
-								pThis->GetOwningHouse(), false);
-							}
-						}
-					}
-				}
+			std::optional<bool> limited {};
+			if (pTypeExt->DebrisTypes_Limit.isset()) {
+				limited = pTypeExt->DebrisTypes_Limit.Get();
 			}
+
+			DebrisSpawners::Spawn(pType->MinDebris,pType->MaxDebris,
+			pThis->GetCoords() , pType->DebrisTypes,
+			pType->DebrisAnims ,pType->DebrisMaximums, pTypeExt->DebrisMinimums, limited, args.Attacker , args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->Owner);
 
 			auto pWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType;
 			if (pType->Explodes || pThis->HasAbility(AbilityType::Explodes) || (pWeapon && pWeapon->Suicide))

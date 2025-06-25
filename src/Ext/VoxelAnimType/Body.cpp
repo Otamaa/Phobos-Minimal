@@ -24,7 +24,7 @@ void VoxelAnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Damage_DealtByOwner.Read(exINI, pID, "Damage.DealtByOwner");
 	this->ExpireDamage_ConsiderInvokerVet.Read(exINI, pID, "ExpireDamage.ConsiderInvokerVeterancy");
 	this->Weapon.Read(exINI, pID, "Weapon" , true);
-
+	this->TrailerAnim_SpawnDelay.Read(exINI, pID, "Trailer.SpawnDelay");
 	this->Trails.Read(exINI, pID, false);
 #pragma endregion
 }
@@ -45,6 +45,7 @@ void VoxelAnimTypeExtData::Serialize(T& Stm)
 		.Process(Damage_DealtByOwner)
 		.Process(Weapon)
 		.Process(ExpireDamage_ConsiderInvokerVet)
+		.Process(TrailerAnim_SpawnDelay)
 		;
 		this->Trails.Serialize(Stm);
 }

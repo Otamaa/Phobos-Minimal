@@ -120,7 +120,8 @@ struct DroppodProperties_
 		auto pLinked = pLoco->LinkedTo;
 		auto tType = pLinked->GetTechnoType();
 		CoordStruct oldLoc = pLinked->Location;
-		const auto pLinkedSW = TechnoExtContainer::Instance.Find(pLinked)->LinkedSW;
+		auto pLinkedExt = TechnoExtContainer::Instance.Find(pLinked);
+		const auto pLinkedSW = pLinkedExt->LinkedSW;
 		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)AresNewSuperType::DropPod;
 		const double angle = DroppodProperties_::GetAngle(tType, pLinked, condition);
 		const auto maxspeed = DroppodProperties_::GetSpeed(tType, pLinked, condition);
@@ -207,6 +208,8 @@ struct DroppodProperties_
 					);
 				}
 
+				pLinkedExt->LaserTrails.remove_all_if([](auto const& pTrail) { return pTrail->Type->DroppodOnly; });
+	
 				pLinked->Mark(MarkType::Put);
 				pLinked->SetHeight(0);
 				pLinked->EnterIdleMode(false, true);

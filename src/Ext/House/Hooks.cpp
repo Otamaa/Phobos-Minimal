@@ -342,6 +342,16 @@ ASMJIT_PATCH(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 		OldOwner = nullptr;
 	}
 
+	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Passengers_SyncOwner && pThis->Passengers.NumPassengers > 0) {
+		for (NextObject j(pThis->Passengers.GetFirstPassenger());
+			j && ((*j)->AbstractFlags & AbstractFlags::Foot);
+			++j)
+		{
+			((FootClass*)(*j))->SetOwningHouse(pNewOwner, false);
+
+		}
+	}
+
 	return 0x0;
 }
 
@@ -354,6 +364,7 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
 	auto const pType = pThis->GetTechnoType();
 	auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
 	auto pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
+	//auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (!pNewOwner->Type->MultiplayPassive &&  pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())

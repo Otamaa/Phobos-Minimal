@@ -400,10 +400,10 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 
 	if (pWeapon->Report.Count > 0 && !pThis->GetTechnoType()->IsGattling) {
 		if (pWeapon->Report.Count == 1) {
-			VocClass::PlayAt(pWeapon->Report[0], crdTgt, nullptr);
+			VocClass::PlayAt(pWeapon->Report[0], crdSrc, nullptr);
 		} else {
 			auto v116 = pThis->weapon_sound_randomnumber_3C8 % pWeapon->Report.Count;
-			VocClass::PlayAt(pWeapon->Report[v116], crdTgt, nullptr);
+			VocClass::PlayAt(pWeapon->Report[v116], crdSrc, nullptr);
 		}
 	}
 

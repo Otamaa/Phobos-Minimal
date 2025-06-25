@@ -240,7 +240,7 @@ struct SpawnerMain
 			, SavedGameDir { "Saved Games" }
 			, SaveGameName { "" }
 
-			, AutoSaveCount { 5 }
+			, AutoSaveCount { -1 }
 			, AutoSaveInterval { 7200 }
 			, NextAutoSaveNumber { 0 }
 

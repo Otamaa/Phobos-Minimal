@@ -203,13 +203,10 @@ ASMJIT_PATCH(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	//const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if (!pExt->LaserTrails.empty())
+	for (auto& pLaserTrail : pExt->LaserTrails)
 	{
-		for (auto& pLaserTrail : pExt->LaserTrails)
-		{
-			pLaserTrail.LastLocation.clear();
-			pLaserTrail.Visible = true;
-		}
+		pLaserTrail->LastLocation.clear();
+		pLaserTrail->Visible = true;
 	}
 
 	TrailsManager::Hide(pThis);

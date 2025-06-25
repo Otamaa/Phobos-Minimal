@@ -124,9 +124,9 @@ VoxelStruct* TechnoTypeExtData::GetBarrelsVoxel(TechnoTypeClass* const pThis, in
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
 
-	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.size()) {
-		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! ", pThis->ID, nAdditional);
-	}
+	//if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.size()) {
+	//	Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! ", pThis->ID, nAdditional);
+	//}
 
 	return TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.data() +
 		nAdditional;
@@ -141,9 +141,9 @@ VoxelStruct* TechnoTypeExtData::GetTurretsVoxel(TechnoTypeClass* const pThis, in
 		return pThis->ChargerTurrets + nIdx;
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
-	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.size()) {
-		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! ", pThis->ID, nAdditional);
-	}
+	//if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.size()) {
+	//	Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! ", pThis->ID, nAdditional);
+	//}
 
 	return TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.data() + nAdditional;
 }
@@ -158,9 +158,9 @@ VoxelStruct* TechnoTypeExtData::GetBarrelsVoxelFixedUp(TechnoTypeClass* const pT
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
 
-	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.size()) {
-		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! ", pThis->ID, nAdditional);
-	}
+	//if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.size()) {
+	//	Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%s] Is Bigger than BarrelData ! ", pThis->ID, nAdditional);
+	//}
 
 	return TechnoTypeExtContainer::Instance.Find(pThis)->BarrelImageData.data() +
 		nAdditional;
@@ -175,9 +175,9 @@ VoxelStruct* TechnoTypeExtData::GetTurretsVoxelFixedUp(TechnoTypeClass* const pT
 		return pThis->ChargerTurrets + nIdx;
 
 	const auto nAdditional = (nIdx - TechnoTypeClass::MaxWeapons);
-	if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.size()) {
-		Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! ", pThis->ID, nAdditional);
-	}
+	//if ((size_t)nAdditional >= TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.size()) {
+	//	Debug::FatalErrorAndExit(__FUNCTION__" [%s] Size[%d]  Is Bigger than TurretData ! ", pThis->ID, nAdditional);
+	//}
 
 	return TechnoTypeExtContainer::Instance.Find(pThis)->TurretImageData.data() + nAdditional;
 }
@@ -691,6 +691,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->FireSelf_ROF_YellowHeath.Read(exINI, pSection, "FireSelf.ROF.YellowHealth");
 			this->FireSelf_Weapon_RedHeath.Read(exINI, pSection, "FireSelf.Weapon.RedHealth");
 			this->FireSelf_ROF_RedHeath.Read(exINI, pSection, "FireSelf.ROF.RedHealth");
+
 		}
 
 		this->AllowFire_IroncurtainedTarget.Read(exINI, pSection, "Firing.AllowICedTargetForAI");
@@ -1515,9 +1516,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		// Spawner range
 		this->ResetSpawnerRange();
 
-		if (this->Spawn_LimitedExtraRange)
-			this->CalculateSpawnerRange();
-
 		this->AdvancedDrive_ReverseSpeed.Read(exINI, pSection, "AdvancedDrive.ReverseSpeed");
 		this->AdvancedDrive_FaceTargetRange.Read(exINI, pSection, "AdvancedDrive.FaceTargetRange");
 		this->AdvancedDrive_ConfrontEnemies.Read(exINI, pSection, "AdvancedDrive.ConfrontEnemies");
@@ -1596,6 +1594,18 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ExtendedAircraftMissions_SmoothMoving.Read(exINI, pSection, "ExtendedAircraftMissions.SmoothMoving");
 		this->ExtendedAircraftMissions_EarlyDescend.Read(exINI, pSection, "ExtendedAircraftMissions.EarlyDescend");
 		this->ExtendedAircraftMissions_RearApproach.Read(exINI, pSection, "ExtendedAircraftMissions.RearApproach");
+		this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, pSection, "DigitalDisplay.Health.FakeAtDisguise");
+		this->EngineerRepairAmount.Read(exINI, pSection, "EngineerRepairAmount");
+
+		this->DebrisTypes_Limit.Read(exINI, pSection, "DebrisTypes.Limit");
+		this->DebrisMinimums.Read(exINI, pSection, "DebrisMinimums");
+
+		this->AttackMove_Follow.Read(exINI, pSection, "AttackMove.Follow");
+		this->AttackMove_Follow_IncludeAir.Read(exINI, pSection, "AttackMove.Follow.IncludeAir");
+		this->AttackMove_StopWhenTargetAcquired.Read(exINI, pSection, "AttackMove.StopWhenTargetAcquired");
+		this->AttackMove_PursuitTarget.Read(exINI, pSection, "AttackMove.PursuitTarget");
+		this->SkipCrushSlowdown.Read(exINI, pSection, "SkipCrushSlowdown");
+		this->RecuitedAs.Read(exINI, pSection, "Recuited.As");
 	}
 
 	// Art tags
@@ -2803,6 +2813,19 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ExtendedAircraftMissions_SmoothMoving)
 		.Process(this->ExtendedAircraftMissions_EarlyDescend)
 		.Process(this->ExtendedAircraftMissions_RearApproach)
+		.Process(this->DigitalDisplay_Health_FakeAtDisguise)
+		.Process(this->EngineerRepairAmount)
+
+		.Process(this->DebrisTypes_Limit)
+		.Process(this->DebrisMinimums)
+
+		.Process(this->AttackMove_Follow)
+		.Process(this->AttackMove_Follow_IncludeAir)
+		.Process(this->AttackMove_StopWhenTargetAcquired)
+		.Process(this->AttackMove_PursuitTarget)
+
+		.Process(this->SkipCrushSlowdown)
+		.Process(this->RecuitedAs)
 		;
 }
 

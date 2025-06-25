@@ -10,9 +10,8 @@
 
 #include <EBolt.h>
 
-#pragma region defines 
+#pragma region defines
 int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
-PhobosMap<EBolt*, WeaponTypeExtData::EBoltWeaponStruct> WeaponTypeExtData::boltWeaponTypeExt;
 #pragma endregion
 
 void WeaponTypeExtData::Initialize()
@@ -250,8 +249,13 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->TurretRecoil_Suppress.Read(exINI, pSection, "TurretRecoil.Suppress");
 
 	this->SkipWeaponPicking = true;
-	if (this->CanTarget != AffectedTarget::All || this->CanTargetHouses != AffectedHouse::All || this->AttachEffect_RequiredTypes.size()
-		|| this->AttachEffect_RequiredGroups.size() || this->AttachEffect_DisallowedTypes.size() || this->AttachEffect_DisallowedGroups.size())
+	if (this->CanTarget != AffectedTarget::All ||
+		this->CanTargetHouses != AffectedHouse::All
+		|| this->Targeting_Health_Percent.isset()
+		|| this->AttachEffect_RequiredTypes.size()
+		|| this->AttachEffect_RequiredGroups.size()
+		|| this->AttachEffect_DisallowedTypes.size()
+		|| this->AttachEffect_DisallowedGroups.size())
 	{
 		this->SkipWeaponPicking = false;
 	}
@@ -264,7 +268,7 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 	if (!pThis && !pFirer)
 		return range;
 	else if (pFirer && pFirer->CanOccupyFire())
-		range = RulesClass::Instance->OccupyWeaponRange * Unsorted::LeptonsPerCell;
+		range = (RulesClass::Instance->OccupyWeaponRange + pFirer->GetOccupyRangeBonus()) * Unsorted::LeptonsPerCell;
 	else if (pThis && pFirer){
 		auto pFirerExt = TechnoExtContainer::Instance.Find(pFirer);
 		int range_ = pThis->Range;
@@ -654,16 +658,6 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 	}
 }
 
-EBolt* WeaponTypeExtData::CreateBolt(WeaponTypeClass* pWeapon, TechnoClass* pFirer)
-{
-	auto ret = GameCreate<EBolt>();
-	auto map = &WeaponTypeExtData::boltWeaponTypeExt[ret];
-	map->Weapon = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	map->BurstIndex = pFirer->CurrentBurstIndex;
-	ret->Lifetime = 1 << (std::clamp(map->Weapon->Bolt_Duration.Get(), 1, 31) - 1);
-	return ret;
-}
-
 // =============================
 // container
 WeaponTypeExtContainer WeaponTypeExtContainer::Instance;
@@ -672,7 +666,6 @@ bool WeaponTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
 		.Process(WeaponTypeExtData::nOldCircumference)
-		.Process(WeaponTypeExtData::boltWeaponTypeExt)
 		.Success();
 }
 
@@ -680,13 +673,11 @@ bool WeaponTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	return Stm
 		.Process(WeaponTypeExtData::nOldCircumference)
-		.Process(WeaponTypeExtData::boltWeaponTypeExt)
 		.Success();
 }
 
 void WeaponTypeExtContainer::Clear()
 {
-	WeaponTypeExtData::boltWeaponTypeExt.clear();
 }
 
 // =============================

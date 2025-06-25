@@ -108,6 +108,16 @@ ASMJIT_PATCH(0x44EB10, BuildingClass_GetCrew, 9)
 
 #include <Ext/SWType/Body.h>
 
+// Calculate the mask once at initialization (assuming you know ColorStruct at startup)
+constexpr WORD BuildPcxMask() {
+    return (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
+         | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
+}
+
+static bool InitEd = false;
+// Global static instance:
+static AresPcxBlit<WORD> GlobalPcxBlitter(0u ,0, 0, 0);
+
 ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 {
 	GET(BuildingClass*, pThis, ECX);
@@ -160,8 +170,12 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
 						cameoRect = destRect;
-						AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
-						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
+						if(!InitEd) {
+							GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask() ,60, 48, 2);
+							InitEd = true;
+						}
+
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &GlobalPcxBlitter, 0, 3, 1000, 0);
 
 					}
 				}
@@ -218,8 +232,12 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 						{
 							cameoRect = destRect;
-							AresPcxBlit<WORD> blithere((0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft) | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft));
-							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &blithere, 0, 3, 1000, 0);
+							if(!InitEd) {
+								GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask() ,60, 48, 2);
+								InitEd = true;
+							}
+
+							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &GlobalPcxBlitter, 0, 3, 1000, 0);
 						}
 
 					}
@@ -564,11 +582,13 @@ ASMJIT_PATCH(0x441F12, BuildingClass_Destroy_RubbleYell, 6)
 	return 0;
 }
 
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7E42C8 , FakeBuildingClass::_OnFinishRepair)
+
 // #664: Advanced Rubble - reconstruction part: Reconstruction
 ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 {
 	GET(InfantryClass*, pThis, ESI);
-	GET(BuildingClass*, Target, EDI);
+	GET(FakeBuildingClass*, Target, EDI);
 
 	const auto TargetTypeExtData = BuildingTypeExtContainer::Instance.Find(Target->Type);
 
@@ -582,7 +602,7 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 			TargetTypeExtData->RubbleIntactAnim
 		);
 
-		Debug::LogInfo(__FUNCTION__" Called ");
+		//Debug::LogInfo(__FUNCTION__" Called ");
 		TechnoExtData::HandleRemove(Target, nullptr, false, false);
 
 		if (pRubble)
@@ -608,8 +628,13 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 		return TargetTypeExtData->EngineerRepairable ? 0x0 : 0x519FB9;
 	}
 
+	if(!Target->Type->Repairable)
+		return 0x519FB9;
+
+	Target->_OnFinishRepairB(pThis);
+
 	//0x51A010 eats the Engineer, 0x51A65D hopefully does not
-	return Target->Type->Repairable ? 0 : 0x519FB9;
+	return 0x51A010;
 }
 
 ASMJIT_PATCH(0x459ed0, BuildingClass_GetUIName, 6)

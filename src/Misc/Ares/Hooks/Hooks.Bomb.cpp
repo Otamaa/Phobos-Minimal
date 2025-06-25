@@ -167,7 +167,7 @@ ASMJIT_PATCH(0x438761, BombClass_Detonate_Handle, 0x7)
 		);
 	}
 
-	return 0x438857;
+	return pExt->Weapon->Ivan_KillsBridges ? 0x438857 : 0x438989;
 }
 
 //new
@@ -183,15 +183,6 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D38, FakeBombClass::_Detach);
 //	return 0x6F5201;
 //}
 DEFINE_PATCH(0x6F51FD, 0x58);
-
-// 438879, 6
-// custom ivan bomb detonation 3
-ASMJIT_PATCH(0x438879, BombClass_Detonate_CanKillBridge, 6)
-{
-	GET(BombClass* const, Bomb, ESI);
-	return BombExtContainer::Instance.Find(Bomb)->Weapon->Ivan_KillsBridges
-		? 0 : 0x438989;
-}
 
 ASMJIT_PATCH(0x46934D, IvanBombs_Spread, 6)
 {

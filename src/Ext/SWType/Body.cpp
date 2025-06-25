@@ -560,7 +560,7 @@ struct TargetingFuncs
 	{
 		if (first == last) { return nullptr; }
 
-		DiscreteSelectionClass<ObjectClass*, DllAllocator<ObjectClass*>> targets {};
+		DiscreteSelectionClass<ObjectClass*> targets {};
 
 		for (auto it = first; it < last; ++it) {
 			int val = value(*it, targets.GetRating());
@@ -575,7 +575,7 @@ struct TargetingFuncs
 	{
 		if (first == last) { return nullptr; }
 
-		DiscreteDistributionClass<ObjectClass*, DllAllocator<ObjectClass*>> targets {};
+		DiscreteDistributionClass<ObjectClass*> targets {};
 
 		for (auto it = first; it < last; ++it) {
 			int val = value(*it);

@@ -58,7 +58,9 @@ void VoxelAnimExtData::InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt)
 
 	for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
 	{
-		LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), pOwner->LaserColor);
+		LaserTrails.emplace_back(
+			std::move(std::make_unique<LaserTrailClass>(
+			LaserTrailTypeClass::Array[idxTrail].get(), pOwner->LaserColor)));
 	}
 }
 
@@ -74,6 +76,7 @@ void VoxelAnimExtData::Serialize(T& Stm)
 		.Process(this->Invoker, true)
 		.Process(this->LaserTrails)
 		.Process(this->Trails)
+		.Process(this->TrailerSpawnDelayTimer)
 		;
 }
 

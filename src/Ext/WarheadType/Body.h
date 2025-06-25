@@ -166,6 +166,9 @@ public:
 	Nullable<int> NotHuman_DeathSequence { };
 	Valueable<bool> AllowDamageOnSelf { false };
 	Valueable<bool> Debris_Conventional { false };
+	Nullable<bool> DebrisTypes_Limit { };
+	ValueableVector<int> DebrisMinimums { };
+
 	Valueable<int> GattlingStage { 0 };
 	Valueable<int> GattlingRateUp { 0 };
 	Valueable<int> ReloadAmmo { 0 };
@@ -429,6 +432,8 @@ public:
 	Valueable<AffectedTarget> AirstrikeTargets { AffectedTarget::Building };
 
 	Valueable<bool> CanKill { true };
+	Valueable<bool> ElectricAssault_Requireverses {};
+
 #pragma endregion
 
 public:
@@ -479,7 +484,7 @@ public:
 	void InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords) const;
 	bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse) const;
 	bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false) const;
-	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false) const;
+	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false , bool checkImmune = true) const;
 	bool CanAffectInvulnerable(TechnoClass* pTarget) const;
 	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const;
 	void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const;

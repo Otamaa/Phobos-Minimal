@@ -233,14 +233,7 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	struct EBoltWeaponStruct
-	{
-		WeaponTypeExtData* Weapon;
-		int BurstIndex;
-	};
-
 	static int nOldCircumference;
-	static PhobosMap<EBolt*, EBoltWeaponStruct> boltWeaponTypeExt;
 
 	static int GetBurstDelay(WeaponTypeClass* pThis, int burstIndex);
 	static void DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker);

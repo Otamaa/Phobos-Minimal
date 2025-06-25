@@ -73,6 +73,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Damage_DealtByInvoker.Read(exINI, pID, "Damage.DealtByInvoker");
 	this->Damage_ApplyOnce.Read(exINI, pID, "Damage.ApplyOnce");
 	this->Damage_ConsiderOwnerVeterancy.Read(exINI, pID, "Damage.ConsiderOwnerVeterancyBonus");
+	this->Damage_ConsiderOwnerVeterancy.Read(exINI, pID, "Damage.ApplyFirepowerMult");
 	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
 	this->Damage_TargetFlag.Read(exINI, pID, "Damage.TargetFlag");
 

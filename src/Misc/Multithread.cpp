@@ -14,6 +14,7 @@
 #include <SessionClass.h>
 
 #include <Ext/Techno/Body.h>
+#include <Ext/Scenario/Body.h>
 
 // Wait this long in LockOrDemandMutex before getting impatient. Bigger values = less frequent lock demands.
 const std::chrono::duration MainPatienceDuration = std::chrono::milliseconds(5);
@@ -30,12 +31,89 @@ bool Multithreading::DrawingThreadDemandsDrawingMutex = false;
 bool Multithreading::MainThreadDemandsPauseMutex = false;
 bool Multithreading::IsInMultithreadMode = false;
 
+namespace MessageTemp
+{
+	bool OnMessages = false;
+	bool NewMsgList = false;
+}
+
+bool MouseIsOverMessageLists()
+{
+	const auto pMousePosition = &WWMouseClass::Instance->XY1;
+	const auto pMessages = ScenarioExtData::Instance()->NewMessageList.get();
+
+	if (TextLabelClass* pText = pMessages->MessageList)
+	{
+		if (pMousePosition->Y >= pMessages->MessagePos.Y && pMousePosition->X >= pMessages->MessagePos.X && pMousePosition->X <= pMessages->MessagePos.X + pMessages->Width)
+		{
+			const int textHeight = pMessages->Height;
+			int height = pMessages->MessagePos.Y;
+
+			for (; pText; pText = static_cast<TextLabelClass*>(pText->GetNext()))
+				height += textHeight;
+
+			if (pMousePosition->Y < (height + 2))
+				return true;
+		}
+	}
+
+	return false;
+}
+
+ASMJIT_PATCH(0x69300B, ScrollClass_MouseUpdate_SkipMouseActionUpdate, 0x6)
+{
+	if (Phobos::Config::MessageDisplayInCenter)
+		MessageTemp::OnMessages = MouseIsOverMessageLists();
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x55DDA0, MainLoop_FrameStep_NewMessageListManage, 0x5)
+{
+	if (!MessageTemp::OnMessages) {
+		if (const auto pList = ScenarioExtData::Instance()->NewMessageList.get())
+			pList->Manage();
+	}
+
+	return 0;
+
+}
+
+ASMJIT_PATCH(0x6E0DD7, TActionClass_Text_Trigger, 0x5)
+{
+
+	if (const auto pList = ScenarioExtData::Instance()->NewMessageList.get()) {
+		R->ECX(pList);
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x623A9F, DSurface_sub_623880_DrawBitFontStrings, 0x5)
+{
+	if (!MessageTemp::NewMsgList)
+		return 0;
+
+	enum { SkipGameCode = 0x623AAB };
+
+	GET(RectangleStruct* const, pRect, EAX);
+	GET(DSurface* const, pSurface, ECX);
+	GET(const int, height, EBP);
+
+	pRect->Height = height;
+	auto black = ColorStruct { 0, 0, 0 };
+	auto trans = (MessageTemp::OnMessages || ScenarioClass::Instance->UserInputLocked) ? 80 : 40;
+	pSurface->Fill_Rect_Trans(pRect, &black, trans);
+
+	return SkipGameCode;
+}
+
 class NOVTABLE FakeGScreenClass final : GScreenClass
 {
 public:
 	static COMPILETIMEEVAL constant_ptr<FakeGScreenClass, 0x87F7E8u> const Instance {};
 	static FORCEDINLINE void _RenderRaw(GScreenClass* pThis)
-	{ 
+	{
 		auto pTempSurface = DSurface::Temp.get();
 		DSurface::Temp = DSurface::Composite;
 		WWMouseClass::Instance->func_40(DSurface::Composite, false);
@@ -62,6 +140,11 @@ public:
 			Multithreading::Buttons->DrawAll(false);
 
 		MessageListClass::Instance->Draw();
+		if (Phobos::Config::MessageDisplayInCenter) {
+			MessageTemp::NewMsgList = true;
+			ScenarioExtData::Instance()->NewMessageList->Draw();
+			MessageTemp::NewMsgList = false;
+		}
 
 		if (CCToolTip::Instance.get())
 			CCToolTip::Instance->Draw(false);
@@ -71,6 +154,9 @@ public:
 
 		Phobos::DrawVersionWarning();
 		HugeBar::ProcessHugeBar();
+
+
+
 		WWMouseClass::Instance->func_3C(DSurface::Composite, false);
 		pThis->vt_entry_44();
 

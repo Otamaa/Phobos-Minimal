@@ -215,6 +215,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->NotHuman_DeathAnim.Read(exINI, pSection, "NotHuman.DeathAnim");
 	this->AllowDamageOnSelf.Read(exINI, pSection, "AllowDamageOnSelf");
 	this->Debris_Conventional.Read(exINI, pSection, "Debris.Conventional");
+	this->DebrisTypes_Limit.Read(exINI, pSection, "DebrisTypes.Limit");
+	this->DebrisMinimums.Read(exINI, pSection, "DebrisMinimums");
 
 	this->GattlingStage.Read(exINI, pSection, "TargetGattlingStage");
 	this->GattlingRateUp.Read(exINI, pSection, "TargetGattlingRateUp");
@@ -614,6 +616,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ElectricAssaultLevel.Read(exINI, pSection, "ElectricAssaultLevel");
 	this->AirstrikeTargets.Read(exINI, pSection, "AirstrikeTargets");
 	this->CanKill.Read(exINI, pSection, "CanKill");
+
+	this->ElectricAssault_Requireverses.Read(exINI, pSection, "ElectricAssault.Requireverses");
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -767,7 +771,7 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 	return true;
 }
 
-bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses) const
+bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses , bool CheckImmune) const
 {
 	if (pTechno)
 	{
@@ -781,7 +785,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 		const auto pType = pTechno->GetTechnoType();
 
-		if (pType->Immune)
+		if (CheckImmune && pType->Immune)
 			return false;
 
 		if (auto const pBld = cast_to<BuildingClass*, false>(pTechno))
@@ -1377,6 +1381,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->NotHuman_DeathSequence)
 		.Process(this->AllowDamageOnSelf)
 		.Process(this->Debris_Conventional)
+		.Process(this->DebrisTypes_Limit)
+		.Process(this->DebrisMinimums)
 
 		.Process(this->GattlingStage)
 		.Process(this->GattlingRateUp)
@@ -1620,6 +1626,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->ElectricAssaultLevel)
 		.Process(this->AirstrikeTargets)
 		.Process(this->CanKill)
+		.Process(this->ElectricAssault_Requireverses)
 		;
 
 	PaintBallData.Serialize(Stm);

@@ -802,6 +802,16 @@ struct Imports
 
 	typedef void(__stdcall* FP_GetLocalTime)(LPSYSTEMTIME lpSystemTime);
 	static COMPILETIMEEVAL referencefunc<FP_GetLocalTime, 0x7E1284> const GetLocalTime {};
+
+	typedef DWORD(__stdcall* FP_GetFileSize)(HANDLE hFile, LPDWORD lpFileSizeHigh);
+	static COMPILETIMEEVAL referencefunc<FP_GetFileSize, 0x7E1120> const GetFileSize {};
+
+	typedef DWORD(__stdcall* FP_SetFilePointer)(HANDLE hFile, LONG lDistanceToMove, PLONG lpDistanceToMoveHigh, DWORD dwMoveMethod);
+	static COMPILETIMEEVAL referencefunc<FP_SetFilePointer, 0x7E11C0> const SetFilePointer {};
+
+	typedef DWORD(__stdcall* FP_SetFileTime)(HANDLE hFile, const FILETIME* lpCreationTime, const FILETIME* lpLastAccessTime, const FILETIME* lpLastWriteTime);
+	static COMPILETIMEEVAL referencefunc<FP_SetFileTime, 0x7E112C> const SetFileTime {};
+
 };
 
 //DeleterType is required to identify

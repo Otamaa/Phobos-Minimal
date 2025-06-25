@@ -501,7 +501,6 @@ struct AEProperties
 	bool HasFeedbackWeapon { false };
 
 	bool ReflectDamage { false };
-	std::vector<WeaponTypeClass*> ExpireWeaponOnDead { };
 	bool Untrackable { false };
 
 	bool DisableRadar { false };
@@ -551,7 +550,6 @@ protected:
 			.Process(this->HasExtraWarheads)
 			.Process(this->HasFeedbackWeapon)
 			.Process(this->ReflectDamage)
-			.Process(this->ExpireWeaponOnDead)
 			.Process(this->Untrackable)
 			.Process(this->DisableRadar)
 			.Process(this->DisableSpySat)
@@ -606,7 +604,7 @@ public:
 	int TechnoValueAmount { 0 };
 	int Pos { };
 	std::unique_ptr<ShieldClass> Shield { nullptr };
-	HelperedVector<LaserTrailClass> LaserTrails {};
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails {};
 	bool ReceiveDamage { false };
 	bool LastKillWasTeamTarget { false };
 	CDTimerClass PassengerDeletionTimer {};
@@ -749,6 +747,7 @@ public:
 
 	CDTimerClass FiringAnimationTimer {};
 	bool ForceFullRearmDelay { false };
+	int AttackMoveFollowerTempCount {};
 
 	~TechnoExtData()
 	{
@@ -900,6 +899,7 @@ public:
 
 	static void InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType);
 	static void InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted);
+	static void UpdateLaserTrails(TechnoClass* pThis);
 	static void InitializeAttachEffects(TechnoClass* pThis, TechnoTypeClass* pType);
 
 	static void ObjectKilledBy(TechnoClass* pThis, TechnoClass* pKiller);
@@ -1006,6 +1006,8 @@ public:
 
 	static bool IsTypeImmune(TechnoClass* pThis, TechnoClass* pSource);
 
+	static bool AllowFiring(AbstractClass* pTargetObj, WeaponTypeClass* pWeapon);
+
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
 	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);
 	static bool TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
@@ -1078,4 +1080,6 @@ public:
 
 class NOVTABLE FakeTechnoClass final: TechnoClass{
 public:
+
+	int _EvaluateJustCell(CellStruct* where);
 };

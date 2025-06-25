@@ -137,7 +137,7 @@ public:
 	Valueable<AffectedHouse> Interceptor_CanTargetHouses { AffectedHouse::Enemies };
 	Promotable<Leptons> Interceptor_GuardRange {};
 	Promotable<Leptons> Interceptor_MinimumGuardRange {};
-	Valueable<int> Interceptor_Weapon { -1 };
+	Valueable<int> Interceptor_Weapon { 0 };
 	Nullable<bool> Interceptor_DeleteOnIntercept {};
 	Nullable<WeaponTypeClass*> Interceptor_WeaponOverride {};
 	Valueable<bool> Interceptor_WeaponReplaceProjectile { false };
@@ -1107,6 +1107,19 @@ public:
 	Nullable<bool> ExtendedAircraftMissions_SmoothMoving {};
 	Nullable<bool> ExtendedAircraftMissions_EarlyDescend {};
 	Nullable<bool> ExtendedAircraftMissions_RearApproach {};
+	Valueable<bool> DigitalDisplay_Health_FakeAtDisguise { true };
+
+	Valueable<int> EngineerRepairAmount { 0 };
+
+	Nullable<bool> DebrisTypes_Limit {};
+	ValueableVector<int> DebrisMinimums {};
+	Valueable<bool> AttackMove_Follow { false };
+	Valueable<bool> AttackMove_Follow_IncludeAir { false };
+	Nullable<bool> AttackMove_StopWhenTargetAcquired { };
+	Valueable<bool> AttackMove_PursuitTarget { false };
+	Valueable<bool> SkipCrushSlowdown { false };
+
+	Nullable <TechnoTypeClass*> RecuitedAs {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

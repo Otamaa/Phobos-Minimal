@@ -9,6 +9,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/Ebolt/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/IsometricTileType/Body.h>
@@ -58,6 +59,8 @@
 #include <New/Type/BarTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
+
+#include <New/Entity/BannerClass.h>
 
 #include <New/HugeBar.h>
 
@@ -390,6 +393,8 @@ unsigned Phobos::GetVersionNumber() {
 
 	version += sizeof(CellExtData);
 
+	version += sizeof(EboltExtData);
+
 	version += sizeof(HouseExtData);
 	version += sizeof(HouseTypeExtData);
 
@@ -437,6 +442,8 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(PaletteManager);
 	version += sizeof(HugeBar);
 	version += sizeof(StaticVars);
+
+	version += sizeof(BannerClass);
 
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
 		AddTypeOf(Armor)
@@ -503,6 +510,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	HouseExtContainer::Instance.Clear();
 	TunnelTypeClass::Clear();
 	WeaponTypeExtContainer::Instance.Clear();
+	EboltExtData::Clear();
 	WarheadTypeExtContainer::Instance.Clear();
 	GenericPrerequisite::Clear();
 	CrateTypeClass::Clear();
@@ -517,6 +525,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	ShieldClass::Array.clear();
 	InsigniaTypeClass::Clear();
 	SelectBoxTypeClass::Clear();
+	BannerClass::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -687,6 +696,7 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<HouseExtContainer>(pStm) &&
 		Process_Load<IsometricTileTypeExtContainer>(pStm) &&
 		Process_Load<WeaponTypeExtContainer>(pStm) &&
+		Process_Load<EboltExtData>(pStm) &&
 		Process_Load<SWTypeExtContainer>(pStm) &&
 		Process_Load<BuildingTypeExtContainer>(pStm) &&
 		Process_Load<RadTypeClass>(pStm) &&
@@ -712,7 +722,8 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<InsigniaTypeClass>(pStm) &&
 		Process_Load<SelectBoxTypeClass>(pStm) &&
 		Process_Load<ShieldClass>(pStm) &&
-		Process_Load<PrismForwarding>(pStm)
+		Process_Load<PrismForwarding>(pStm) &&
+		Process_Load<BannerClass>(pStm)
 		;
 
 	if (!ret)
@@ -761,6 +772,7 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<HouseExtContainer>(pStm) &&
 			Process_Save<IsometricTileTypeExtContainer>(pStm) &&
 			Process_Save<WeaponTypeExtContainer>(pStm) &&
+			Process_Save<EboltExtData>(pStm) &&
 			Process_Save<SWTypeExtContainer>(pStm) &&
 			Process_Save<BuildingTypeExtContainer>(pStm) &&
 			Process_Save<RadTypeClass>(pStm) &&
@@ -786,7 +798,8 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<InsigniaTypeClass>(pStm) &&
 			Process_Save<SelectBoxTypeClass>(pStm) &&
 			Process_Save<ShieldClass>(pStm) &&
-			Process_Save<PrismForwarding>(pStm)
+			Process_Save<PrismForwarding>(pStm) &&
+			Process_Save<BannerClass>(pStm)
 			;
 
 		if (!ret)

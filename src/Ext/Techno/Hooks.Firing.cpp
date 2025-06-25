@@ -16,6 +16,8 @@
 
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
+#include <Utilities/Macro.h>
+
 #include <TerrainClass.h>
 
 bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
@@ -245,7 +247,7 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	//if (!TechnoExtData::FireOnceAllowFiring(pThis, pWeapon, pTarget))
 	//	return FireCant;
 
-	if (!TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
+	if (!pWeaponExt->SkipWeaponPicking && !TechnoExtData::ObjectHealthAllowFiring(pObjectT, pWeapon))
 		return FireIllegal;
 
 	if (PassengersFunctional::CanFire(pThis))
@@ -270,6 +272,9 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 	if (pTargetTechno)
 	{
+		if (pThis->Berzerk && !EnumFunctions::CanTargetHouse(RulesExtData::Instance()->BerzerkTargeting, pThis->Owner, pTargetTechno->Owner))
+			return FireIllegal;
+
 		if (!TechnoExtData::TechnoTargetAllowFiring(pThis, pTargetTechno, pWeapon))
 			return FireIllegal;
 
@@ -514,32 +519,11 @@ ASMJIT_PATCH(0x70095A, TechnoClass_WhatAction_WallWeapon, 0x6) {
 	return 0;
 }
 
-namespace CellEvalTemp {
-	int weaponIndex;
-}
-
-ASMJIT_PATCH(0x6F8C9D, TechnoClass_EvaluateCell_SetContext, 0x7) {
-	GET(int, weaponIndex, EAX);
-
-	CellEvalTemp::weaponIndex = weaponIndex;
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6F8CDF, TechnoClass_EvaluateCell_GetWeapon, 0xA)
-{
-	GET(TechnoClass*, pThis, ESI);
-	R->EAX(pThis->GetWeapon(CellEvalTemp::weaponIndex));
-	return 0x6F8CE9;
-}
-
-ASMJIT_PATCH(0x6F8DCC, TechnoClass_EvaluateCell_GetWeaponRange, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	R->EAX(pThis->GetWeaponRange(CellEvalTemp::weaponIndex));
-	return 0x6F8DD8;
-}
-
+DEFINE_FUNCTION_JUMP(LJMP, 0x6F8C10, FakeTechnoClass::_EvaluateJustCell);
+DEFINE_FUNCTION_JUMP(CALL, 0x6F9572, FakeTechnoClass::_EvaluateJustCell);
+DEFINE_FUNCTION_JUMP(CALL, 0x6F971F, FakeTechnoClass::_EvaluateJustCell);
+DEFINE_FUNCTION_JUMP(CALL, 0x6F9904, FakeTechnoClass::_EvaluateJustCell);
+DEFINE_FUNCTION_JUMP(CALL, 0x6F9AB8, FakeTechnoClass::_EvaluateJustCell);
 #pragma endregion
 
 ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)

@@ -40,6 +40,7 @@ static const char *funcnamefromcall (lua_State *L, CallInfo *ci,
 static const char strlocal[] = "local";
 static const char strupval[] = "upvalue";
 
+
 static int currentpc (CallInfo *ci) {
   lua_assert(isLua(ci));
   return pcRel(ci->u.l.savedpc, ci_func(ci)->p);
@@ -499,7 +500,7 @@ static const char *basicgetobjname (const Proto *p, int *ppc, int reg,
   int pc = *ppc;
   *name = luaF_getlocalname(p, reg + 1, pc);
   if (*name)  /* is a local? */
-      return strlocal;
+    return strlocal;
   /* else try symbolic execution */
   *ppc = pc = findsetreg(p, pc, reg);
   if (pc != -1) {  /* could find instruction? */
@@ -559,11 +560,10 @@ static const char *isEnv (const Proto *p, int pc, Instruction i, int isup) {
   const char *name;  /* name of indexed variable */
   if (isup)  /* is 't' an upvalue? */
     name = upvalname(p, t);
-  else
-  {  /* 't' is a register */
-      const char* what = basicgetobjname(p, &pc, t, &name);
-      if (what != strlocal && what != strupval)
-          name = NULL;  /* cannot be the variable _ENV */
+  else {  /* 't' is a register */
+    const char *what = basicgetobjname(p, &pc, t, &name);
+    if (what != strlocal && what != strupval)
+      name = NULL;  /* cannot be the variable _ENV */
   }
   return (name && strcmp(name, LUA_ENV) == 0) ? "global" : "field";
 }
