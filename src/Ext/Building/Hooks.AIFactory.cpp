@@ -4,12 +4,20 @@
 
 #include <TeamTypeClass.h>
 #include <InfantryClass.h>
+#include <algorithm>
 
 std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
 {
+	if (!pData || !pData->AttachedToObject)
+		return { nullptr, false, AbsType };
+
 	BuildingClass** currFactory = nullptr;
 	bool block = false;
 	auto pRules = RulesExtData::Instance();
+	auto pHouse = pData->AttachedToObject;
+
+	if (!pRules)
+		return { nullptr, false, AbsType };
 
 	switch (AbsType)
 	{
@@ -17,10 +25,14 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	{
 		currFactory = &pData->Factory_BuildingType;
 		block = pRules->ForbidParallelAIQueues_Building.Get(!pRules->AllowParallelAIQueues);
-		if (pData->AttachedToObject->ProducingBuildingTypeIndex >= 0)
+		if (pHouse->ProducingBuildingTypeIndex >= 0 &&
+			pHouse->ProducingBuildingTypeIndex < BuildingTypeClass::Array->Count)
 		{
-			block = TechnoTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items
-				[pData->AttachedToObject->ProducingBuildingTypeIndex])->ForbidParallelAIQueues.Get(block);
+			auto pBuildingType = BuildingTypeClass::Array->Items[pHouse->ProducingBuildingTypeIndex];
+			if (pBuildingType)
+			{
+				block = TechnoTypeExtContainer::Instance.Find(pBuildingType)->ForbidParallelAIQueues.Get(block);
+			}
 		}
 		break;
 	}
@@ -29,20 +41,28 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 		if (!naval)
 		{
 			block = pRules->ForbidParallelAIQueues_Vehicle.Get(!pRules->AllowParallelAIQueues);
-			if (pData->AttachedToObject->ProducingUnitTypeIndex >= 0)
+			if (pHouse->ProducingUnitTypeIndex >= 0 &&
+				pHouse->ProducingUnitTypeIndex < UnitTypeClass::Array->Count)
 			{
-				block = TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items
-				[pData->AttachedToObject->ProducingUnitTypeIndex])->ForbidParallelAIQueues.Get(block);
+				auto pUnitType = UnitTypeClass::Array->Items[pHouse->ProducingUnitTypeIndex];
+				if (pUnitType)
+				{
+					block = TechnoTypeExtContainer::Instance.Find(pUnitType)->ForbidParallelAIQueues.Get(block);
+				}
 			}
 			currFactory = &pData->Factory_VehicleType;
 		}
 		else
 		{
 			block = pRules->ForbidParallelAIQueues_Navy.Get(!pRules->AllowParallelAIQueues);
-			if (pData->ProducingNavalUnitTypeIndex >= 0)
+			if (pData->ProducingNavalUnitTypeIndex >= 0 &&
+				pData->ProducingNavalUnitTypeIndex < UnitTypeClass::Array->Count)
 			{
-				block = TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items
-				[pData->ProducingNavalUnitTypeIndex])->ForbidParallelAIQueues.Get(block);
+				auto pUnitType = UnitTypeClass::Array->Items[pData->ProducingNavalUnitTypeIndex];
+				if (pUnitType)
+				{
+					block = TechnoTypeExtContainer::Instance.Find(pUnitType)->ForbidParallelAIQueues.Get(block);
+				}
 			}
 			currFactory = &pData->Factory_NavyType;
 		}
@@ -52,10 +72,14 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	case AbstractType::InfantryType:
 	{
 		block = pRules->ForbidParallelAIQueues_Infantry.Get(!pRules->AllowParallelAIQueues);
-		if (pData->AttachedToObject->ProducingInfantryTypeIndex >= 0)
+		if (pHouse->ProducingInfantryTypeIndex >= 0 &&
+			pHouse->ProducingInfantryTypeIndex < InfantryTypeClass::Array->Count)
 		{
-			block = TechnoTypeExtContainer::Instance.Find(InfantryTypeClass::Array->Items
-			[pData->AttachedToObject->ProducingInfantryTypeIndex])->ForbidParallelAIQueues.Get(block);
+			auto pInfantryType = InfantryTypeClass::Array->Items[pHouse->ProducingInfantryTypeIndex];
+			if (pInfantryType)
+			{
+				block = TechnoTypeExtContainer::Instance.Find(pInfantryType)->ForbidParallelAIQueues.Get(block);
+			}
 		}
 		currFactory = &pData->Factory_InfantryType;
 		break;
@@ -64,10 +88,14 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	{
 		currFactory = &pData->Factory_AircraftType;
 		block = pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues);
-		if (pData->AttachedToObject->ProducingAircraftTypeIndex >= 0)
+		if (pHouse->ProducingAircraftTypeIndex >= 0 &&
+			pHouse->ProducingAircraftTypeIndex < AircraftTypeClass::Array->Count)
 		{
-			block = TechnoTypeExtContainer::Instance.Find(AircraftTypeClass::Array->Items
-				[pData->AttachedToObject->ProducingAircraftTypeIndex])->ForbidParallelAIQueues.Get(block);
+			auto pAircraftType = AircraftTypeClass::Array->Items[pHouse->ProducingAircraftTypeIndex];
+			if (pAircraftType)
+			{
+				block = TechnoTypeExtContainer::Instance.Find(pAircraftType)->ForbidParallelAIQueues.Get(block);
+			}
 		}
 
 		break;
@@ -76,7 +104,7 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 		break;
 	}
 
-	return { currFactory  , block ,AbsType };
+	return { currFactory, block, AbsType };
 }
 
 //#include <ostream>
@@ -126,6 +154,9 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 
 bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
 {
+	if (!pGoing || !reinfocement)
+		return false;
+
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pGoing->GetTechnoType());
 
 	if (pTypeExt->RecuitedAs.isset() && pTypeExt->RecuitedAs == reinfocement)
@@ -137,34 +168,145 @@ bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
 	return false;
 }
 
-NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoTypeClass*>& missings) {
+NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoTypeClass*>& missings)
+{
+	if (!pTeam || !pTeam->Type || !pTeam->Type->TaskForce)
+		return;
+
 	const auto pType = pTeam->Type;
 	const auto pTaskForce = pType->TaskForce;
 
-	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
-		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
-			if(auto pTaskType = pTaskForce->Entries[a].Type) {
+	for (int a = 0; a < pTaskForce->CountEntries; ++a)
+	{
+		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i)
+		{
+			if (auto pTaskType = pTaskForce->Entries[a].Type)
+			{
 				missings.emplace_back(pTaskType);
 			}
 		}
 	}
 
 	//remove first finded similarity
-	for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
-		auto it = std::find_if(missings.begin(), missings.end(), [&](TechnoTypeClass* pMissType) {
-			return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
+	for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember)
+	{
+		auto it = std::find_if(missings.begin(), missings.end(), [&](TechnoTypeClass* pMissType)
+ {
+	 return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
 		});
 
-		if(it != missings.end())
+		if (it != missings.end())
 			missings.erase(it);
 	}
 }
 
 thread_local std::vector<TechnoTypeClass*> taskForceMembers {};
 
+// NEW: Helper function to check if cloning building is eligible (power, status, etc.)
+bool IsCloningBuildingEligible(BuildingClass* pBuilding, bool requirePower)
+{
+	if (!pBuilding)
+		return false;
+		
+	// Building must be alive, on map, not being warped, etc.
+	if (pBuilding->InLimbo || !pBuilding->IsAlive || !pBuilding->IsOnMap ||
+		pBuilding->TemporalTargetingMe || pBuilding->IsBeingWarpedOut())
+	{
+		return false;
+	}
+	
+	// Power check: only if building type is powered AND requirePower is true
+	if (pBuilding->Type->Powered && requirePower && !pBuilding->IsPowerOnline())
+		return false;
+	
+	return true;
+}
+
+// NEW: Helper function to calculate effective production multiplier including cloning
+int GetCloningMultiplier(HouseClass* pHouse, TechnoTypeClass* pType)
+{
+	if (!pHouse || !pType)
+		return 1;
+
+	int multiplier = 1; // Base production (the original unit)
+	
+	// Check if InitialStrength.Cloning might affect recruitment
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	double healthFactor = 1.0; // Assume clones will be healthy enough
+	if (pTypeExt->InitialStrength_Cloning.isset())
+	{
+		auto strengthRange = pTypeExt->InitialStrength_Cloning.Get();
+		double minStrength = strengthRange.X < strengthRange.Y ? strengthRange.X : strengthRange.Y;
+		// If clones might be too weak (below 5% health), reduce expected multiplier
+		if (minStrength < 0.05)
+			healthFactor = 0.5; // Assume only half the clones will be recruitable
+	}
+	
+	if (pType->WhatAmI() == AbstractType::InfantryType)
+	{
+		// Infantry cloning: standard CloningVats
+		for (auto pCloningVat : pHouse->CloningVats)
+		{
+			auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pCloningVat->Type);
+			if (IsCloningBuildingEligible(pCloningVat, pBuildingExt->Cloning_RequirePower))
+			{
+				multiplier++;
+			}
+		}
+		
+		// Infantry cloning: custom buildings with Cloning=yes
+		for (auto pBuilding : pHouse->Buildings)
+		{
+			if (pBuilding && pBuilding->Type && pBuilding->Type->Cloning)
+			{
+				auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+				if (IsCloningBuildingEligible(pBuilding, pBuildingExt->Cloning_RequirePower))
+				{
+					multiplier++;
+				}
+			}
+		}
+	}
+	else if (pType->WhatAmI() == AbstractType::UnitType)
+	{
+		// Vehicle cloning: CloningFacility=yes buildings
+		UnitTypeClass* pUnitType = static_cast<UnitTypeClass*>(pType);
+		
+		for (auto pBuilding : pHouse->Buildings)
+		{
+			if (pBuilding && pBuilding->Type)
+			{
+				auto pBuildingExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+				if (pBuildingExt && pBuildingExt->CloningFacility)
+				{
+					// Check if this cloning facility matches the unit type (naval vs ground)
+					if (pBuilding->Type->Naval == pUnitType->Naval)
+					{
+						if (IsCloningBuildingEligible(pBuilding, pBuildingExt->Cloning_RequirePower))
+						{
+							multiplier++;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	// Apply health factor if clones might be too weak to recruit
+	if (healthFactor < 1.0 && multiplier > 1)
+	{
+		multiplier = 1 + static_cast<int>((multiplier - 1) * healthFactor);
+	}
+	
+	return multiplier;
+}
+
 void HouseExtData::UpdateVehicleProduction()
 {
 	auto pThis = this->AttachedToObject;
+	if (!pThis)
+		return;
+
 	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
 	bool skipGround = pThis->ProducingUnitTypeIndex != -1;
 	bool skipNaval = this->ProducingNavalUnitTypeIndex != -1;
@@ -177,26 +319,40 @@ void HouseExtData::UpdateVehicleProduction()
 	auto& bestChoices = HouseExtData::AIProduction_BestChoices;
 	auto& bestChoicesNaval = HouseExtData::AIProduction_BestChoicesNaval;
 
-	auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
-	creationFrames.assign(count, 0x7FFFFFFF);
-	values.assign(count, 0);
+	const auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
 
+	// Optimize: resize only if needed, then fill with values
+	if (creationFrames.size() != count)
+	{
+		creationFrames.resize(count);
+		values.resize(count);
+	}
+	std::fill(creationFrames.begin(), creationFrames.end(), 0x7FFFFFFF);
+	std::fill(values.begin(), values.end(), 0);
 
 	for (auto& currentTeam : HouseExtContainer::HousesTeams[pThis])
 	{
+		if (!currentTeam || !currentTeam->Type)
+			continue;
+
 		taskForceMembers.clear();
 		int teamCreationFrame = currentTeam->CreationFrame;
 
-		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength)
-			&& (currentTeam->IsForcedActive || currentTeam->IsHasBeen))
+		if ((currentTeam->Type->Reinforce && !currentTeam->IsFullStrength) ||
+			(!currentTeam->IsForcedActive && !currentTeam->IsHasBeen))
+		{
+			GetRemainingTaskForceMembers(currentTeam, taskForceMembers);
+		}
+		else
 		{
 			continue;
 		}
 
-		GetRemainingTaskForceMembers(currentTeam , taskForceMembers);
-
 		for (auto& currentMember : taskForceMembers)
 		{
+			if (!currentMember)
+				continue;
+
 			const auto what = currentMember->WhatAmI();
 
 			if (what != UnitTypeClass::AbsID ||
@@ -204,7 +360,12 @@ void HouseExtData::UpdateVehicleProduction()
 				(skipNaval && currentMember->Naval))
 				continue;
 
-			const auto index = static_cast<size_t>(((UnitTypeClass*)currentMember)->ArrayIndex);
+			const auto arrayIndex = ((UnitTypeClass*)currentMember)->ArrayIndex;
+			// Add bounds checking for safety
+			if (arrayIndex < 0 || static_cast<size_t>(arrayIndex) >= count)
+				continue;
+
+			const auto index = static_cast<size_t>(arrayIndex);
 			++values[index];
 
 			if (teamCreationFrame < creationFrames[index])
@@ -212,12 +373,43 @@ void HouseExtData::UpdateVehicleProduction()
 		}
 	}
 
-	for (int i = 0; i < UnitClass::Array->Count; ++i)
+	// Add safety check for UnitClass::Array
+	if (UnitClass::Array && UnitClass::Array->Count > 0)
 	{
-		const auto pUnit = UnitClass::Array->Items[i];
+		// Use consistent indexing type
+		for (size_t i = 0; i < static_cast<size_t>(UnitClass::Array->Count); ++i)
+		{
+			const auto pUnit = UnitClass::Array->Items[static_cast<int>(i)];
+			if (!pUnit || !pUnit->Type)
+				continue;
 
-		if (values[pUnit->Type->ArrayIndex] > 0 && pUnit->CanBeRecruited(pThis))
-			--values[pUnit->Type->ArrayIndex];
+			const auto typeIndex = pUnit->Type->ArrayIndex;
+
+			// Add bounds checking
+			if (typeIndex >= 0 && static_cast<size_t>(typeIndex) < count &&
+				values[typeIndex] > 0 && pUnit->CanBeRecruited(pThis))
+			{
+				--values[typeIndex];
+			}
+		}
+	}
+
+	// NEW: Apply cloning-aware production adjustment
+	for (size_t i = 0; i < count; ++i)
+	{
+		if (values[i] > 0)
+		{
+			auto pType = UnitTypeClass::Array->Items[static_cast<int>(i)];
+			if (pType)
+			{
+				int cloningMultiplier = GetCloningMultiplier(pThis, pType);
+				if (cloningMultiplier > 1)
+				{
+					// Adjust needed production: divide by multiplier, round up
+					values[i] = (values[i] + cloningMultiplier - 1) / cloningMultiplier;
+				}
+			}
+		}
 	}
 
 	bestChoices.clear();
@@ -230,9 +422,12 @@ void HouseExtData::UpdateVehicleProduction()
 	int earliestFrame = 0x7FFFFFFF;
 	int earliestFrameNaval = 0x7FFFFFFF;
 
-	for (auto i = 0u; i < count; ++i)
+	for (size_t i = 0; i < count; ++i)
 	{
 		auto type = UnitTypeClass::Array->Items[static_cast<int>(i)];
+		if (!type)
+			continue;
+
 		int currentValue = values[i];
 
 		if (currentValue <= 0)
@@ -324,17 +519,23 @@ ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 {
 	GET(BuildingClass*, pBuilding, ESI);
 
-	if (!pBuilding->Owner || pBuilding->Owner->IsControlledByHuman() || pBuilding->Owner->IsNeutral())
+	if (!pBuilding || !pBuilding->Owner || pBuilding->Owner->IsControlledByHuman() || pBuilding->Owner->IsNeutral())
 		return 0x0;
 
 	auto pRules = RulesExtData::Instance();
+	if (!pRules)
+		return 0x0;
 
 	bool ForbidParallelAIQueues_ = pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues);
 
-	if (auto const pType = pBuilding->Owner->ProducingAircraftTypeIndex >= 0 ?
-		AircraftTypeClass::Array()->Items[pBuilding->Owner->ProducingAircraftTypeIndex] : nullptr)
+	const int producingIndex = pBuilding->Owner->ProducingAircraftTypeIndex;
+	if (producingIndex >= 0 && producingIndex < AircraftTypeClass::Array->Count)
 	{
-		ForbidParallelAIQueues_ = TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues.Get(ForbidParallelAIQueues_);
+		auto pType = AircraftTypeClass::Array()->Items[producingIndex];
+		if (pType)
+		{
+			ForbidParallelAIQueues_ = TechnoTypeExtContainer::Instance.Find(pType)->ForbidParallelAIQueues.Get(ForbidParallelAIQueues_);
+		}
 	}
 
 	if (!ForbidParallelAIQueues_)
@@ -342,7 +543,7 @@ ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 		return 0;
 	}
 
-	if (pBuilding->Type->Factory == AbstractType::AircraftType)
+	if (pBuilding->Type && pBuilding->Type->Factory == AbstractType::AircraftType)
 	{
 		if (pBuilding->Factory
 			&& !BuildingExtData::HasFreeDocks(pBuilding))
@@ -372,7 +573,12 @@ ASMJIT_PATCH(0x443CCA, BuildingClass_KickOutUnit_AircraftType_Phobos, 0xA)
 	GET(FakeHouseClass*, pHouse, EDX);
 	GET(BuildingClass*, pThis, ESI);
 
+	if (!pHouse || !pThis)
+		return 0;
+
 	auto pExt = pHouse->_GetExtData();
+	if (!pExt)
+		return 0;
 
 	if (pThis == pExt->Factory_AircraftType)
 		pExt->Factory_AircraftType = nullptr;
@@ -385,7 +591,12 @@ ASMJIT_PATCH(0x44531F, BuildingClass_KickOutUnit_BuildingType_Phobos, 0xA)
 	GET(FakeHouseClass*, pHouse, EAX);
 	GET(BuildingClass*, pThis, ESI);
 
+	if (!pHouse || !pThis)
+		return 0;
+
 	auto pExt = pHouse->_GetExtData();
+	if (!pExt)
+		return 0;
 
 	if (pThis == pExt->Factory_BuildingType)
 		pExt->Factory_BuildingType = nullptr;
@@ -398,7 +609,12 @@ ASMJIT_PATCH(0x444131, BuildingClass_KickOutUnit_InfantryType_Phobos, 0x6)
 	GET(FakeHouseClass*, pHouse, EAX);
 	GET(BuildingClass*, pThis, ESI);
 
+	if (!pHouse || !pThis)
+		return 0;
+
 	auto pExt = pHouse->_GetExtData();
+	if (!pExt)
+		return 0;
 
 	if (pThis == pExt->Factory_InfantryType)
 		pExt->Factory_InfantryType = nullptr;
@@ -411,7 +627,12 @@ ASMJIT_PATCH(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
 	GET(UnitClass*, pUnit, EDI);
 	GET(BuildingClass*, pFactory, ESI);
 
+	if (!pUnit || !pFactory || !pFactory->Owner || !pUnit->Type)
+		return 0;
+
 	auto pHouseExt = HouseExtContainer::Instance.Find(pFactory->Owner);
+	if (!pHouseExt)
+		return 0;
 
 	if (pUnit->Type->Naval && pHouseExt->Factory_NavyType == pFactory)
 		pHouseExt->Factory_NavyType = nullptr;
@@ -425,30 +646,32 @@ ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 {
 	GET(FactoryClass*, pFactory, ESI);
 
-	if (HouseClass* pOwner = pFactory->Owner)
-	{
-		HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
+	if (!pFactory || !pFactory->Owner || !pFactory->Object)
+		return 0;
 
-		switch (pFactory->Object->WhatAmI())
-		{
-		case BuildingClass::AbsID:
-			pData->Factory_BuildingType = nullptr;
-			break;
-		case UnitClass::AbsID:
-			if (!pFactory->Object->GetTechnoType()->Naval)
-				pData->Factory_VehicleType = nullptr;
-			else
-				pData->Factory_NavyType = nullptr;
-			break;
-		case InfantryClass::AbsID:
-			pData->Factory_InfantryType = nullptr;
-			break;
-		case AircraftClass::AbsID:
-			pData->Factory_AircraftType = nullptr;
-			break;
-		default:
-			break;
-		}
+	HouseExtData* pData = HouseExtContainer::Instance.Find(pFactory->Owner);
+	if (!pData)
+		return 0;
+
+	switch (pFactory->Object->WhatAmI())
+	{
+	case BuildingClass::AbsID:
+		pData->Factory_BuildingType = nullptr;
+		break;
+	case UnitClass::AbsID:
+		if (!pFactory->Object->GetTechnoType()->Naval)
+			pData->Factory_VehicleType = nullptr;
+		else
+			pData->Factory_NavyType = nullptr;
+		break;
+	case InfantryClass::AbsID:
+		pData->Factory_InfantryType = nullptr;
+		break;
+	case AircraftClass::AbsID:
+		pData->Factory_AircraftType = nullptr;
+		break;
+	default:
+		break;
 	}
 
 	return 0;
@@ -460,16 +683,19 @@ ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 
 	GET(BuildingClass*, pThis, ESI);
 	HouseClass* pOwner = pThis->Owner;
-	if (!pOwner || !pOwner->Production)
+	if (!pOwner || !pOwner->Production || !pThis->Type)
 		return 0x0;
 
-	//	auto pRules = RulesExtData::Instance();
 	HouseExtData* pData = HouseExtContainer::Instance.Find(pOwner);
+	if (!pData)
+		return 0x0;
+
 	const auto& [curFactory, block, type] = GetFactory(pThis->Type->Factory, pThis->Type->Naval, pData);
 
 	if (!curFactory)
 	{
 		_com_issue_error(E_POINTER);
+		return 0x0;
 	}
 	else if (!*curFactory)
 	{
@@ -488,10 +714,11 @@ ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 		{
 		case AircraftTypeClass::AbsID:
 		{
-			if (pOwner->ProducingAircraftTypeIndex >= 0)
+			if (pOwner->ProducingAircraftTypeIndex >= 0 &&
+				pOwner->ProducingAircraftTypeIndex < AircraftTypeClass::Array->Count)
 			{
-				if (TechnoTypeExtContainer::Instance.Find(AircraftTypeClass::Array->Items
-					[pOwner->ProducingAircraftTypeIndex])->ForbidParallelAIQueues)
+				auto pAircraftType = AircraftTypeClass::Array->Items[pOwner->ProducingAircraftTypeIndex];
+				if (pAircraftType && TechnoTypeExtContainer::Instance.Find(pAircraftType)->ForbidParallelAIQueues)
 				{
 					return Skip;
 				}
@@ -500,10 +727,11 @@ ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 		}
 		case InfantryTypeClass::AbsID:
 		{
-			if (pOwner->ProducingInfantryTypeIndex >= 0)
+			if (pOwner->ProducingInfantryTypeIndex >= 0 &&
+				pOwner->ProducingInfantryTypeIndex < InfantryTypeClass::Array->Count)
 			{
-				if (TechnoTypeExtContainer::Instance.Find(InfantryTypeClass::Array->Items
-					[pOwner->ProducingInfantryTypeIndex])->ForbidParallelAIQueues)
+				auto pInfantryType = InfantryTypeClass::Array->Items[pOwner->ProducingInfantryTypeIndex];
+				if (pInfantryType && TechnoTypeExtContainer::Instance.Find(pInfantryType)->ForbidParallelAIQueues)
 				{
 					return Skip;
 				}
@@ -512,10 +740,11 @@ ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 		}
 		case BuildingTypeClass::AbsID:
 		{
-			if (pOwner->ProducingBuildingTypeIndex >= 0)
+			if (pOwner->ProducingBuildingTypeIndex >= 0 &&
+				pOwner->ProducingBuildingTypeIndex < BuildingTypeClass::Array->Count)
 			{
-				if (TechnoTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items
-					[pOwner->ProducingBuildingTypeIndex])->ForbidParallelAIQueues)
+				auto pBuildingType = BuildingTypeClass::Array->Items[pOwner->ProducingBuildingTypeIndex];
+				if (pBuildingType && TechnoTypeExtContainer::Instance.Find(pBuildingType)->ForbidParallelAIQueues)
 				{
 					return Skip;
 				}
@@ -525,10 +754,10 @@ ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 		case UnitTypeClass::AbsID:
 		{
 			const int idx = pThis->Type->Naval ? pData->ProducingNavalUnitTypeIndex : pOwner->ProducingUnitTypeIndex;
-			if (idx >= 0)
+			if (idx >= 0 && idx < UnitTypeClass::Array->Count)
 			{
-				if (TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items
-					[idx])->ForbidParallelAIQueues)
+				auto pUnitType = UnitTypeClass::Array->Items[idx];
+				if (pUnitType && TechnoTypeExtContainer::Instance.Find(pUnitType)->ForbidParallelAIQueues)
 				{
 					return Skip;
 				}
@@ -552,97 +781,61 @@ ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 
 	retfunc_fixed<DWORD> ret(R, 0x4FEEDA, 15);
 
-#ifdef sss
-	if (pThis->ProducingUnitTypeIndex != -1)
-	{
+	if (!pThis)
 		return ret();
-	}
 
-	auto const pRules = RulesClass::Instance();
-	auto const AIDiff = static_cast<int>(pThis->GetAIDifficultyIndex());
-	auto const idxParentCountry = pThis->Type->FindParentCountryIndex();
-	auto const pHarvester = HouseExtData::FindOwned(
-		pThis, idxParentCountry, make_iterator(pRules->HarvesterUnit));
-
-	if (pHarvester)
-	{
-		//Buildable harvester found
-		auto const harvesters = pThis->CountResourceGatherers;
-
-		auto maxHarvesters = HouseExtData::FindBuildable(
-			pThis, idxParentCountry, make_iterator(pRules->BuildRefinery))
-			? pRules->HarvestersPerRefinery[AIDiff] * pThis->CountResourceDestinations
-			: pRules->AISlaveMinerNumber[AIDiff];
-
-		if (pThis->IQLevel2 >= pRules->Harvester && !pThis->IsTiberiumShort
-			&& !pThis->IsControlledByHuman() && harvesters < maxHarvesters
-			&& pThis->TechLevel >= pHarvester->TechLevel)
-		{
-			pThis->ProducingUnitTypeIndex = pHarvester->ArrayIndex;
-			return ret();
-		}
-	}
-	else
-	{
-		//No buildable harvester found
-		auto const maxHarvesters = pRules->AISlaveMinerNumber[AIDiff];
-
-		if (pThis->CountResourceGatherers < maxHarvesters)
-		{
-			auto const pRefinery = HouseExtData::FindBuildable(
-				pThis, idxParentCountry, make_iterator(pRules->BuildRefinery));
-
-			if (pRefinery)
-			{
-				//awesome way to find out whether this building is a slave miner, isn't it? ...
-				if (auto const pSlaveMiner = pRefinery->UndeploysInto)
-				{
-					pThis->ProducingUnitTypeIndex = pSlaveMiner->ArrayIndex;
-					return ret();
-				}
-			}
-		}
-	}
-
-	GetTypeToProduce<UnitClass, UnitTypeClass>(pThis, pThis->ProducingUnitTypeIndex);
-
-#else
 	HouseExtContainer::Instance.Find(pThis)->UpdateVehicleProduction();
-#endif
 	return ret();
 }
 
 template <class T, class Ttype >
 int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 {
+	if (!pHouse)
+		return -1;
 
 	auto& CreationFrames = HouseExtData::AIProduction_CreationFrames;
 	auto& Values = HouseExtData::AIProduction_Values;
 	auto& BestChoices = HouseExtData::AIProduction_BestChoices;
 
-	auto const count = static_cast<unsigned int>(Ttype::Array->Count);
-	CreationFrames.assign(count, 0x7FFFFFFF);
-	Values.assign(count, 0);
+	const auto count = static_cast<size_t>(Ttype::Array->Count);
+
+	// Optimize: resize only if needed, then fill with values
+	if (CreationFrames.size() != count)
+	{
+		CreationFrames.resize(count);
+		Values.resize(count);
+	}
+	std::fill(CreationFrames.begin(), CreationFrames.end(), 0x7FFFFFFF);
+	std::fill(Values.begin(), Values.end(), 0);
 	BestChoices.clear();
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
 	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[pHouse])
 	{
+		if (!CurrentTeam || !CurrentTeam->Type)
+			continue;
+
 		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
 
-		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen) {
+		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
+		{
 			GetRemainingTaskForceMembers(CurrentTeam, taskForceMembers);
 
 			for (auto& pMember : taskForceMembers)
 			{
-				if (pMember->WhatAmI() != Ttype::AbsID)
+				if (!pMember || pMember->WhatAmI() != Ttype::AbsID)
 				{
 					continue;
 				}
 
-				auto const Idx = static_cast<unsigned int>(((Ttype*)pMember)->ArrayIndex);
+				const auto arrayIndex = ((Ttype*)pMember)->ArrayIndex;
+				// Add bounds checking for safety
+				if (arrayIndex < 0 || static_cast<size_t>(arrayIndex) >= count)
+					continue;
 
+				const auto Idx = static_cast<size_t>(arrayIndex);
 				++Values[Idx];
 				if (TeamCreationFrame < CreationFrames[Idx])
 				{
@@ -652,12 +845,43 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 		}
 	}
 
-	for (auto classPos = T::Array->begin(); classPos != T::Array->end(); ++classPos)
+	// Add safety check for T::Array
+	if (T::Array && T::Array->Count > 0)
 	{
-		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(pHouse))
+		for (auto classPos = T::Array->begin(); classPos != T::Array->end(); ++classPos)
 		{
-			--Values[Idx];
+			const auto pUnit = *classPos;
+			if (!pUnit || !pUnit->Type)
+				continue;
+
+			const auto typeIndex = pUnit->Type->ArrayIndex;
+			// Add bounds checking
+			if (typeIndex >= 0 && static_cast<size_t>(typeIndex) < count &&
+				Values[typeIndex] > 0 && pUnit->CanBeRecruited(pHouse))
+			{
+				--Values[typeIndex];
+			}
+		}
+	}
+
+	// NEW: Apply cloning-aware production adjustment
+	if constexpr (std::is_same_v<Ttype, InfantryTypeClass> || std::is_same_v<Ttype, UnitTypeClass>)
+	{
+		for (size_t i = 0; i < count; ++i)
+		{
+			if (Values[i] > 0)
+			{
+				auto pType = Ttype::Array->Items[static_cast<int>(i)];
+				if (pType)
+				{
+					int cloningMultiplier = GetCloningMultiplier(pHouse, pType);
+					if (cloningMultiplier > 1)
+					{
+						// Adjust needed production: divide by multiplier, round up
+						Values[i] = (Values[i] + cloningMultiplier - 1) / cloningMultiplier;
+					}
+				}
+			}
 		}
 	}
 
@@ -665,9 +889,11 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	int EarliestTypenameIndex = -1;
 	int EarliestFrame = 0x7FFFFFFF;
 
-	for (auto i = 0u; i < count; ++i)
+	for (size_t i = 0; i < count; ++i)
 	{
 		auto const TT = Ttype::Array->Items[static_cast<int>(i)];
+		if (!TT)
+			continue;
 
 		int CurrentValue = Values[i];
 
@@ -677,7 +903,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 		const auto buildableResult = pHouse->CanBuild(TT, false, false);
 
 		// Aircraft has it own handling
-		if COMPILETIMEEVAL(Ttype::AbsID == AbstractType::AircraftType)
+		if constexpr (std::is_same_v<Ttype, AircraftTypeClass>)
 		{
 			//Debug::LogInfo("Aircraft [%s][%s] return result [%d] for can build");
 
@@ -693,7 +919,6 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 			{
 				continue;
 			}
-
 		}
 		else
 		{
@@ -732,9 +957,8 @@ ASMJIT_PATCH(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 
-	if (pThis->ProducingInfantryTypeIndex < 0)
+	if (pThis && pThis->ProducingInfantryTypeIndex < 0)
 	{
-
 		const int result = GetTypeToProduceNew<InfantryClass, InfantryTypeClass>(pThis);
 		if (result >= 0)
 			pThis->ProducingInfantryTypeIndex = result;
@@ -748,9 +972,8 @@ ASMJIT_PATCH(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 {
 	GET(HouseClass*, pThis, ECX);
 
-	if (pThis->ProducingAircraftTypeIndex < 0)
+	if (pThis && pThis->ProducingAircraftTypeIndex < 0)
 	{
-
 		const int result = GetTypeToProduceNew<AircraftClass, AircraftTypeClass>(pThis);
 		if (result >= 0)
 			pThis->ProducingAircraftTypeIndex = result;

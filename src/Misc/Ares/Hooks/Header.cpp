@@ -1467,9 +1467,11 @@ void TechnoExt_ExtData::KickOutClone(BuildingClass* pBuilding, TechnoTypeClass* 
 	if (nStr.isset())
 	{
 		const auto rStr = GeneralUtils::GetRangedRandomOrSingleValue(nStr);
-		const int strength = std::clamp(static_cast<int>(ProductionType->Strength * rStr), 1, ProductionType->Strength);
-		Clone->Health = strength;
-		Clone->EstimatedHealth = strength;
+			// Ensure cloned units always have at least 10% health for AI recruitment
+	const int minHealthForAI = static_cast<int>(ProductionType->Strength * 0.1);
+	const int strength = std::clamp(static_cast<int>(ProductionType->Strength * rStr), std::max(1, minHealthForAI), ProductionType->Strength);
+	Clone->Health = strength;
+	Clone->EstimatedHealth = strength;
 	}
 
 	if (pBuilding->KickOutUnit(Clone, CellStruct::Empty) != KickOutResult::Succeeded)

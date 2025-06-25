@@ -92,10 +92,12 @@ public:
 	// Log file not checked
 	static void LogUnflushed(const char* pFormat, ...)
 	{
-		va_list args;
-		va_start(args, pFormat);
-		vfprintf(Debug::LogFile, pFormat, args);
-		va_end(args);
+		if (Debug::LogFile) {
+			va_list args;
+			va_start(args, pFormat);
+			vfprintf(Debug::LogFile, pFormat, args);
+			va_end(args);
+		}
 	}
 
 	void Debug::LogFlushed(const char* const pFormat, ...)
@@ -110,7 +112,9 @@ public:
 	}
 
 	static FORCEINLINE void Flush() {
-		fflush(Debug::LogFile);
+		if (Debug::LogFile) {
+			fflush(Debug::LogFile);
+		}
 	}
 
 	static void LogDeferred(const char* pFormat, ...) {
@@ -123,7 +127,7 @@ public:
 
 	static void LogDeferredFinalize()
 	{
-		if (Debug::LogFileActive()) {
+		if (Debug::LogFileActive() && Debug::LogFile) {
 			for (auto& __log : Debug::DefferedVector) {
 				if(!__log.empty()) {
 					fprintf_s(Debug::LogFile, "%s", __log.c_str());

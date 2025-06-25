@@ -390,6 +390,19 @@ void FakeTeamClass::_TeamClass_6EA080()
 	this->StepCompleted = 1;
 }
 
+void FakeTeamClass::SafeDestroy()
+{
+	// Only clean up from HousesTeams if Owner is valid
+	if (this->Owner)
+	{
+		auto& houseTeams = HouseExtContainer::HousesTeams[this->Owner];
+		houseTeams.erase(this);
+	}
+	
+	// Use proper game deletion instead of manual destructor
+	GameDelete<true, false>(this);
+}
+
 void FakeTeamClass::_TMission_Guard(ScriptActionNode* nNode, bool arg3)
 {
 	if (arg3) {
@@ -406,6 +419,14 @@ void FakeTeamClass::_TMission_Guard(ScriptActionNode* nNode, bool arg3)
 
 void FakeTeamClass::_AI()
 {
+	// Safe Owner check - early return if Owner is null to prevent crashes
+	if (!this->Owner)
+	{
+		Debug::LogInfo("TeamClass::_AI - Team [{}] has null Owner, marking for destruction", (void*)this);
+		this->NeedsToDisappear = true;
+		return;
+	}
+
 	HouseExtContainer::HousesTeams[this->Owner].emplace(this);
 
 	if (this->IsSuspended)
@@ -498,24 +519,31 @@ void FakeTeamClass::_AI()
 	FootClass* v8 = this->FirstUnit;
 	bool hasValidMember = false;
 
-	if (!v8 ) {
+	if (!v8) {
 		if (this->IsHasBeen ||
 				(SessionClass::Instance->GameMode != GameMode::Campaign && Unsorted::CurrentFrame() - this->CreationFrame > RulesClass::Instance->DissolveUnfilledTeamDelay))
 		{
 			if (this->IsLeavingMap)
 			{
+				// Safer iteration - collect items to process first to avoid iterator invalidation
+				std::vector<TagClass*> tagsToProcess;
 				for (int i = 0; i < TagClass::ActiveTags->Count; ++i)
 				{
-					if (TagClass::ActiveTags->Items[i]->SpringEvent(TriggerEvent::TeamLeavesMap, nullptr, CellStruct::Empty))
+					if (TagClass::ActiveTags->Items[i])
+						tagsToProcess.push_back(TagClass::ActiveTags->Items[i]);
+				}
+				
+				// Process collected tags
+				for (auto* pTag : tagsToProcess)
+				{
+					if (pTag && TagClass::ActiveTags->Contains(pTag)) // Verify tag still exists
 					{
-						--i;
-						if (!TagClass::ActiveTags->Count)
-							break;
+						pTag->SpringEvent(TriggerEvent::TeamLeavesMap, nullptr, CellStruct::Empty);
 					}
 				}
 			}
-
-			((TeamClass*)this)->~TeamClass();
+			
+			this->SafeDestroy();
 			return;
 		}
 	}
@@ -560,10 +588,7 @@ void FakeTeamClass::_AI()
 
 		if (!this->CurrentScript->HasMissionsRemaining())
 		{
-			if (this)
-			{
-				((TeamClass*)this)->~TeamClass();
-			}
+			this->SafeDestroy();
 			return;
 		}
 
@@ -662,7 +687,7 @@ void FakeTeamClass::_AI()
 
 			(int)pAction.Action, (int)node.Action, node.Argument);
 
-		((TeamClass*)this)->~TeamClass();
+		this->SafeDestroy();
 		return;
 	}
 
@@ -782,17 +807,29 @@ bool FakeTeamClass::_CoordinateRegroup()
 		return true;
 	}
 
+	// Validate Zone before proceeding
+	if (!this->Zone)
+	{
+		this->NeedsReGrouping = 1;
+		return false;
+	}
+
 	int RelaxedStrayDistance = GetStrayDistanceForMission(this->CurrentScript);
+	CoordStruct zoneCoords = this->Zone->GetCoords();
 
 	// Process each member in the team
 	do
 	{
-		if (Member->IsAlive)
+		if (Member->IsAlive && Member->Health > 0)
 		{
 			// Check if member is valid and ready for regrouping
-			if (Member->Health && (Unsorted::ScenarioInit || !Member->InLimbo) && !Member->IsTeamLeader) {
+			if ((Unsorted::ScenarioInit || !Member->InLimbo) && !Member->IsTeamLeader) 
+			{
+				// Safe distance calculation without unsafe casting
+				int distanceToZone = Member->DistanceFrom(this->Zone);
+				
 				// Check if member is close enough to initiate
-				if (((FakeObjectClass*)Member)->_GetDistanceOfObj(this->Zone) <= RelaxedStrayDistance)
+				if (distanceToZone <= RelaxedStrayDistance)
 				{
 					Member->IsTeamLeader = 1;
 				}
@@ -806,14 +843,14 @@ bool FakeTeamClass::_CoordinateRegroup()
 			}
 
 			// Process initiated members or aircraft
-			if (Member->IsAlive
-				&& Member->Health
-				&& (Unsorted::ScenarioInit || !Member->InLimbo)
-				&& (Member->IsTeamLeader || Member->WhatAmI() == AbstractType::Aircraft))
+			if ((Member->IsTeamLeader || Member->WhatAmI() == AbstractType::Aircraft))
 			{
+				// Safe distance calculation
+				int distanceToZone = Member->DistanceFrom(this->Zone);
+				
 				// Check if member is in position or guarding with target
-				if (((FakeObjectClass*)Member)->_GetDistanceOfObj(this->Zone) <= RelaxedStrayDistance
-					|| (Member->GetCurrentMission()  == Mission::Area_Guard && Member->Target))
+				if (distanceToZone <= RelaxedStrayDistance
+					|| (Member->GetCurrentMission() == Mission::Area_Guard && Member->Target))
 				{
 					// Set to guard mission if not already guarding
 					if (Member->GetCurrentMission() != Mission::Area_Guard)
@@ -828,23 +865,26 @@ bool FakeTeamClass::_CoordinateRegroup()
 					allMembersRegrouped = false;
 					Member->QueueMission(Mission::Move, 0);
 
-					// Calculate destination coordinates
-					CoordStruct centerCoord = this->Zone->GetCoords();
-					CellStruct targetCell = CellClass::Coord2Cell(centerCoord);
-					Member->SetDestination(MapClass::Instance->GetCellAt(targetCell), 1);
+					// Calculate destination coordinates safely
+					CellStruct targetCell = CellClass::Coord2Cell(zoneCoords);
+					if (auto pTargetCell = MapClass::Instance->TryGetCellAt(targetCell))
+					{
+						Member->SetDestination(pTargetCell, 1);
+					}
+					else
+					{
+						// Fallback to zone directly if cell lookup fails
+						Member->SetDestination(this->Zone, 1);
+					}
 				}
 			}
 		}
+
 		Member = Member->NextTeamMember;
-	}
-	while (Member);
+	} while (Member);
 
-	// If all members are regrouped, clear the regrouping flag
-	if (allMembersRegrouped)
-	{
-		this->NeedsReGrouping = 0;
-	}
-
+	// Update regrouping status
+	this->NeedsReGrouping = !allMembersRegrouped;
 	return allMembersRegrouped;
 }
 
@@ -853,9 +893,24 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6ED7A2 , FakeTeamClass::_CoordinateRegroup)
 
 ASMJIT_PATCH(0x55B4F5, LogicClass_Update_Teams, 0x6)
 {
-	for (int i = 0; i < TeamClass::Array->Count; ++i)
+	// Add comprehensive null checks to prevent crashes
+	if (TeamClass::Array && TeamClass::Array->Items && TeamClass::Array->Count > 0)
 	{
-		TeamClass::Array->Items[i]->Update();
+		// Process teams with bounds checking
+		for (int i = 0; i < TeamClass::Array->Count; ++i)
+		{
+			TeamClass* pTeam = TeamClass::Array->Items[i];
+			if (pTeam && pTeam->Owner) // Ensure both team and owner are valid
+			{
+				pTeam->Update();
+			}
+			else if (pTeam && !pTeam->Owner)
+			{
+				// Log and mark teams with null owners for cleanup
+				Debug::LogInfo("Found team [{}] with null Owner during update, marking for cleanup", (void*)pTeam);
+				pTeam->NeedsToDisappear = true;
+			}
+		}
 	}
 
 	//if(Phobos::Otamaa::IsAdmin){
@@ -929,7 +984,13 @@ ASMJIT_PATCH(0x6E8D05, TeamClass_CTOR, 0x5)
 ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
-	HouseExtContainer::HousesTeams[pThis->Owner].erase(pThis);
+	
+	// Safe cleanup - only remove from HousesTeams if Owner is valid
+	if (pThis->Owner)
+	{
+		HouseExtContainer::HousesTeams[pThis->Owner].erase(pThis);
+	}
+	
 	TeamExtContainer::Instance.Remove(pThis);
 	return 0;
 }

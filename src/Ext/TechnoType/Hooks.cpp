@@ -518,7 +518,7 @@ ASMJIT_PATCH(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
 ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
-	return (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DeployingAnim_KeepUnitVisible.Get() &&
+	return (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DeployingAnim_KeepUnitVisible.Get() &&
 		(pThis->Deploying || pThis->Undeploying)) ?
 		0x73CF62 : 0;
 }
@@ -857,4 +857,41 @@ ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 	}
 
 	return 0x73887E;
+}
+
+// Add aircraft-specific support for DeployingAnim.KeepUnitVisible
+ASMJIT_PATCH(0x414900, AircraftClass_Draw_It_KeepUnitVisible, 0x6)
+{
+	GET(AircraftClass*, pThis, EBP);
+	return (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DeployingAnim_KeepUnitVisible.Get() &&
+		(pThis->Deploying || pThis->Undeploying)) ?
+		0x414925 : 0;
+}
+
+// Add aircraft-specific support for deployment animation creation with reverse support
+ASMJIT_PATCH(0x4CD7A0, AircraftClass_Deploy_DeployAnim, 0x6)
+{
+	GET(AircraftClass*, pThis, ECX);
+	
+	auto const pType = pThis->Type;
+	if (!pType->DeployingAnim)
+		return 0;
+
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
+	bool isUndeploying = pThis->Undeploying;
+
+	if (!pThis->DeployAnim) {
+		auto const pAnim = GameCreate<AnimClass>(pType->DeployingAnim,
+			pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
+			isUndeploying ? pExt->DeployingAnim_ReverseForUndeploy.Get() : false);
+
+		pThis->DeployAnim = pAnim;
+		pAnim->SetOwnerObject(pThis);
+
+		if (pExt->DeployingAnim_UseUnitDrawer) {
+			pAnim->LightConvert = pThis->GetRemapColour();
+		}
+	}
+
+	return 0;
 }

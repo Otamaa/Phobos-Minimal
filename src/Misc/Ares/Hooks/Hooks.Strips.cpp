@@ -9,6 +9,17 @@
 #include <FactoryClass.h>
 #include <Misc/PhobosToolTip.h>
 #include <Ext/SWType/Body.h>
+#include "Header.h"
+
+#include <CCToolTip.h>
+#include <EventClass.h>
+#include <ShapeButtonClass.h>
+
+#include <Helpers/Macro.h>
+
+#include <FactoryClass.h>
+#include <Misc/PhobosToolTip.h>
+#include <Ext/SWType/Body.h>
 
 ASMJIT_PATCH(0x6A9304, StripClass_GetTip_Handle, 9)
 {
@@ -27,13 +38,11 @@ ASMJIT_PATCH(0x6A9304, StripClass_GetTip_Handle, 9)
 
 	if (cameo.ItemType == AbstractType::Special)
 	{
-
 		auto pSW = SuperWeaponTypeClass::Array->Items[cameo.ItemIndex];
 		const auto pData = SWTypeExtContainer::Instance.Find(pSW);
 
 		if (pData->Money_Amount < 0)
 		{
-
 			// account for no-name SWs
 			if (CCToolTip::HideName() || !wcslen(pSW->UIName))
 			{
@@ -127,7 +136,6 @@ static FORCEDINLINE void DoStuffs(int idx, StripClass* pStrip, int height, int w
 			i->Rect.Width = 48;
 
 			i++;
-
 		}
 		while (i != (MaxShown + pBegin));
 	}
@@ -299,7 +307,6 @@ ASMJIT_PATCH(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 					nullptr,
 				true };
 			CCToolTip::Instance->Add(_temp);
-
 		}
 	}
 
@@ -427,7 +434,6 @@ ASMJIT_PATCH(0x6A94B0, StripClass_Deactivate, 6)
 
 #ifndef CAMEOS_
 
-
 ASMJIT_PATCH(0x6A4EA5, SidebarClass_CameosList, 6)
 {
 	MouseClassExt::ClearCameos();
@@ -550,13 +556,29 @@ ASMJIT_PATCH(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 	auto lower = lower_bound(cameo.begin(), cameo.Count, newCameo);
 	int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
 
-	if (cameo.IsValidArray())
+	if (cameo.IsValidArray() && cameo.Count < cameo.Capacity)
 	{
-		BuildType* added = cameo.Items + idx;
-		BuildType* added_plusOne = std::next(added);
-		std::memcpy(added_plusOne, added, (char*)(cameo.end()) - ((char*)added));
-		cameo.Items[idx] = std::move_if_noexcept(newCameo);
-		++cameo.Count;
+		// Ensure we have enough capacity for the new element
+		if (cameo.Count >= cameo.Capacity - 1)
+		{
+			cameo.Reserve(cameo.Capacity + 10); // Add some buffer
+		}
+
+		if (cameo.IsValidArray()) // Re-check after potential reallocation
+		{
+			BuildType* added = cameo.Items + idx;
+			BuildType* added_plusOne = std::next(added);
+			
+			// Calculate safe copy size
+			int elementsToCopy = cameo.Count - idx;
+			if (elementsToCopy > 0)
+			{
+				std::memmove(added_plusOne, added, elementsToCopy * sizeof(BuildType));
+			}
+			
+			cameo.Items[idx] = std::move_if_noexcept(newCameo);
+			++cameo.Count;
+		}
 	}
 
 	++pTab->BuildableCount;
@@ -718,13 +740,15 @@ ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 	GET_STACK(TechnoTypeClass* const, pType, STACK_OFFSET(0x48C, -0x458));
 
 	R->EAX(Unsorted::CurrentFrame());
-	if((MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex]
+	if ((MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex]
 		[CameoIndex].FlashEndFrame > Unsorted::CurrentFrame
-	)) {
+		))
+	{
 		return 0x6A9B67;
 	}
 
-	if(pType){
+	if (pType)
+	{
 		//DrawGreyCameoExtraCover
 
 		Point2D position { destX + 30, destY + 24 };
@@ -771,7 +795,7 @@ ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 			}
 		}
 
-		if (const auto pBuildingType = cast_to<BuildingTypeClass* , false>(pType)) // Only count owned buildings
+		if (const auto pBuildingType = cast_to<BuildingTypeClass*, false>(pType)) // Only count owned buildings
 		{
 			const auto pHouse = HouseClass::CurrentPlayer();
 			auto count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, pHouse);
@@ -800,7 +824,7 @@ ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 				}
 
 				if (Phobos::Config::ShowBuildingStatistics
-					&& BuildingTypeExtContainer::Instance.Find(pBuildingType)->Cameo_ShouldCount.Get(pBuildingType->BuildCat != BuildCat::Combat ||( pBuildingType->BuildLimit != INT_MAX))
+					&& BuildingTypeExtContainer::Instance.Find(pBuildingType)->Cameo_ShouldCount.Get(pBuildingType->BuildCat != BuildCat::Combat || (pBuildingType->BuildLimit != INT_MAX))
 					)
 				{
 					GET_STACK(RectangleStruct, surfaceRect, STACK_OFFSET(0x48C, -0x438));
@@ -809,7 +833,7 @@ ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
 					const TextPrintType printType = TextPrintType::Background | TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8;
 					auto textPosition = Point2D { destX , destY + 1 };
 					fmt::basic_memory_buffer<wchar_t> text;
-					fmt::format_to(std::back_inserter(text) , L"{}", count);
+					fmt::format_to(std::back_inserter(text), L"{}", count);
 					text.push_back(L'\0');
 					DSurface::Sidebar->DrawText_Old(text.data(), &surfaceRect, &textPosition, color, 0, (DWORD)printType);
 				}
@@ -1000,24 +1024,30 @@ bool NOINLINE RemoveCameo(BuildType* item)
 	{
 		const auto& supers = HouseClass::CurrentPlayer->Supers;
 
-		if (supers.ValidIndex(item->ItemIndex)) {
-			if(!SWSidebarClass::IsEnabled()){
+		if (supers.ValidIndex(item->ItemIndex))
+		{
+			if (!SWSidebarClass::IsEnabled())
+			{
 				if (supers[item->ItemIndex]->Granted)
 					return false;
-
-			} else {
-				if (supers[item->ItemIndex]->Granted) {
-					if(SWSidebarClass::Global()->AddButton(item->ItemIndex)){
+			}
+			else
+			{
+				if (supers[item->ItemIndex]->Granted)
+				{
+					if (SWSidebarClass::Global()->AddButton(item->ItemIndex))
+					{
 						ScenarioExtData::Instance()->SWSidebar_Indices.emplace_back(item->ItemIndex);
 						return true;
-					} else {
+					}
+					else
+					{
 						return false;
 					}
 				}
 			}
 		}
 	}
-
 
 	if (item->CurrentFactory)
 	{
@@ -1082,7 +1112,8 @@ ASMJIT_PATCH(0x6aa600, StripClass_RecheckCameos, 5)
 	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
 	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
-	tabs.remove_if([=](BuildType& item) {
+	tabs.remove_if([=](BuildType& item)
+ {
 	 return RemoveCameo(&item);
 	});
 

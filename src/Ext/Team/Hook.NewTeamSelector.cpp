@@ -13,6 +13,19 @@
 // - Type convert probably not handled properly yet
 // - Prereq checking use vanilla function instead
 
+// Constants for better code readability
+namespace TeamSelectorConstants
+{
+	constexpr double MIN_WEIGHT = 1.0;
+	constexpr double VIP_TRIGGER_THRESHOLD = 5000.0;
+	constexpr double VIP_TRIGGER_RESET_VALUE = 4999.0;
+	constexpr int DEFENSE_TEAM_SELECTION_THRESHOLD = 50;
+	constexpr int MAX_TEAMS_PER_FRAME = 2;
+	constexpr int MAX_UNDERSTRENGTH_TEAMS = 2;
+	constexpr double MIN_PERCENTAGE = 0.0;
+	constexpr double MAX_PERCENTAGE = 1.0;
+}
+
 enum class TeamCategory
 {
 	None = 0, // No category. Should be default value
@@ -22,6 +35,7 @@ enum class TeamCategory
 	Unclassified = 4
 };
 
+<<<<<<< Updated upstream
 // Constants for magic numbers
 namespace TeamSelectorConstants
 {
@@ -76,6 +90,46 @@ struct alignas(16) TriggerElementWeight
 	double Weight { 0.0 };                    // 8 bytes
 	TeamCategory Category { TeamCategory::None }; // 4 bytes
 	// 4 bytes padding for alignment
+=======
+// Helper function to validate and clamp percentages
+FORCEDINLINE constexpr double ValidatePercentage(double percentage) noexcept
+{
+	return (percentage < TeamSelectorConstants::MIN_PERCENTAGE || percentage > TeamSelectorConstants::MAX_PERCENTAGE)
+		? TeamSelectorConstants::MIN_PERCENTAGE
+		: percentage;
+}
+
+// Helper function to check if a team type is over-represented
+FORCEDINLINE bool IsTeamTypeOverRepresented(TeamTypeClass* pTeamType, const HelperedVector<TeamClass*>& activeTeams) noexcept
+{
+	if (!pTeamType)
+		return true;
+
+	int activeCount = 0;
+	int movingCount = 0;
+
+	for (const auto& team : activeTeams)
+	{
+		if (team && team->Type == pTeamType)
+		{
+			activeCount++;
+			if (team->IsMoving)
+				movingCount++;
+		}
+	}
+
+	// Consider over-represented if we have more than half the max teams of this type,
+	// or if most teams are still moving (not deployed)
+	return (activeCount > pTeamType->Max / 2) || (movingCount > activeCount / 2 && activeCount > 1);
+}
+
+// Pack struct for better cache performance
+struct TriggerElementWeight
+{
+	AITriggerTypeClass* Trigger { nullptr };  // 8 bytes - most accessed
+	double Weight { 0.0 };                    // 8 bytes
+	TeamCategory Category { TeamCategory::None }; // 4 bytes
+>>>>>>> Stashed changes
 
 	// Constructor to fix emplace_back compatibility
 	TriggerElementWeight() = default;
@@ -101,7 +155,11 @@ struct alignas(16) TriggerElementWeight
 		return Weight < other.Weight;
 	}
 
+<<<<<<< Updated upstream
 	FORCEDINLINE constexpr bool operator<(double other) const noexcept
+=======
+	FORCEDINLINE constexpr bool operator<(const double other) const noexcept
+>>>>>>> Stashed changes
 	{
 		return Weight < other;
 	}
@@ -111,17 +169,29 @@ struct alignas(16) TriggerElementWeight
 		return Weight > other.Weight;
 	}
 
+<<<<<<< Updated upstream
 	FORCEDINLINE constexpr bool operator>(double other) const noexcept
+=======
+	FORCEDINLINE constexpr bool operator>(const double other) const noexcept
+>>>>>>> Stashed changes
 	{
 		return Weight > other;
 	}
 
+<<<<<<< Updated upstream
 	FORCEDINLINE constexpr bool operator==(double other) const noexcept
+=======
+	FORCEDINLINE constexpr bool operator==(const double other) const noexcept
+>>>>>>> Stashed changes
 	{
 		return Weight == other;
 	}
 
+<<<<<<< Updated upstream
 	FORCEDINLINE constexpr bool operator!=(double other) const noexcept
+=======
+	FORCEDINLINE constexpr bool operator!=(const double other) const noexcept
+>>>>>>> Stashed changes
 	{
 		return Weight != other;
 	}
@@ -140,10 +210,14 @@ FORCEDINLINE bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportO
 			// Check basic availability (optimized order)
 			bool isAvailable = pTechno->IsAlive && !pTechno->InLimbo && pTechno->IsOnMap;
 
+<<<<<<< Updated upstream
 			if (checkIfInTransportOrAbsorbed && isAvailable) [[likely]]
 				isAvailable = !pTechno->Absorbed && !pTechno->Transporter;
 
 				return isAvailable;
+=======
+	return isAvailable;
+>>>>>>> Stashed changes
 }
 
 FORCEDINLINE bool IsValidTechno(TechnoClass* pTechno) noexcept
@@ -177,8 +251,12 @@ enum class ComparatorOperandTypes
 	LessThan, LessOrEqual, Equal, MoreOrEqual, More, NotSame
 };
 
+<<<<<<< Updated upstream
 // Helper function to check if a TechnoType is an air unit
 FORCEDINLINE bool IsAirUnit(TechnoTypeClass* pTechnoType) noexcept
+=======
+COMPILETIMEEVAL void ModifyOperand(bool& result, int counter, const AITriggerConditionComparator& cond)
+>>>>>>> Stashed changes
 {
 	if (!pTechnoType)
 		return false;
@@ -236,14 +314,27 @@ FORCEDINLINE void ModifyOperand(bool& result, int counter, const AITriggerCondit
 		result = counter != target;
 		break;
 	default:
+<<<<<<< Updated upstream
 		result = false; // Explicit default value
+=======
+		result = false; // Set explicit default value
+>>>>>>> Stashed changes
 		break;
 	}
 }
 
+<<<<<<< Updated upstream
 bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list)
 {
 	if (auto pItemUnit = cast_to<UnitTypeClass*, false>(pItem))
+=======
+bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list) 
+{
+	if (!pItem || !list)
+		return false;
+
+	if (auto pItemUnit = cast_to<UnitTypeClass*, false>(pItem)) 
+>>>>>>> Stashed changes
 	{
 		if (auto pListBld = cast_to<BuildingClass*, false>(list))
 		{
@@ -296,15 +387,22 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 // Overload for backward compatibility
 NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, std::vector<TechnoTypeClass*>& list)
 {
+	if (!pThis || !pHouse)
+		return false;
+
 	bool result = false;
 	int counter = 0;
 
 	// Count all objects of the list, like an OR operator
 	for (auto pItem : list)
 	{
+		if (!pItem)
+			continue;
+
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject)) 
+				continue;
 
 			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
 				&& !pObject->Owner->Type->MultiplayPassive
@@ -321,14 +419,17 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 
 NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, TechnoTypeClass* pItem)
 {
+	if (!pThis || !pHouse || !pItem)
+		return false;
+
 	bool result = false;
 	int counter = 0;
 
 	// Count all objects of the list, like an OR operator
-
 	for (auto pObject : *TechnoClass::Array)
 	{
-		if (!IsValidTechno(pObject)) continue;
+		if (!IsValidTechno(pObject)) 
+			continue;
 
 		if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
 			&& !pObject->Owner->Type->MultiplayPassive
@@ -344,6 +445,9 @@ NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool alli
 
 NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, TechnoTypeClass* pItem)
 {
+	if (!pThis || !pHouse || !pItem)
+		return false;
+
 	bool result = false;
 	int counter = 0;
 
@@ -353,9 +457,14 @@ NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 	// Count all objects of the list, like an OR operator
 	for (auto const pObject : *TechnoClass::Array)
 	{
-		if (!IsValidTechno(pObject)) continue;
+		if (!IsValidTechno(pObject)) 
+			continue;
 
+<<<<<<< Updated upstream
 		// Fixed logic: if pEnemy is set, check if object owner is pEnemy; otherwise check if not allied
+=======
+		// Fixed enemy detection logic
+>>>>>>> Stashed changes
 		bool isValidEnemy = false;
 		if (pEnemy)
 		{
@@ -378,6 +487,9 @@ NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 
 NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, std::vector<TechnoTypeClass*>& list)
 {
+	if (!pThis || !pHouse)
+		return false;
+
 	bool result = false;
 	int counter = 0;
 
@@ -387,11 +499,19 @@ NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 	// Count all objects of the list, like an OR operator
 	for (auto const pItem : list)
 	{
+		if (!pItem)
+			continue;
+
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject)) 
+				continue;
 
+<<<<<<< Updated upstream
 			// Fixed logic: if pEnemy is set, check if object owner is pEnemy; otherwise check if not allied
+=======
+			// Fixed enemy detection logic
+>>>>>>> Stashed changes
 			bool isValidEnemy = false;
 			if (pEnemy)
 			{
@@ -415,6 +535,9 @@ NOINLINE bool EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClas
 
 NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass*>& list)
 {
+	if (!pThis)
+		return false;
+
 	bool result = false;
 	int counter = 0;
 	auto pCiv = HouseExtData::FindFirstCivilianHouse();
@@ -422,9 +545,13 @@ NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass
 	// Count all objects of the list, like an OR operator
 	for (auto const pItem : list)
 	{
+		if (!pItem)
+			continue;
+
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject)) 
+				continue;
 
 			if (pObject->Owner == pCiv && OwnStuffs(pItem, pObject))
 				counter++;
@@ -437,13 +564,17 @@ NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass
 
 NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, TechnoTypeClass* pItem)
 {
+	if (!pThis || !pItem)
+		return false;
+
 	bool result = false;
 	int counter = 0;
 	auto pCiv = HouseExtData::FindFirstCivilianHouse();
 
 	for (auto const pObject : *TechnoClass::Array)
 	{
-		if (!IsValidTechno(pObject)) continue;
+		if (!IsValidTechno(pObject)) 
+			continue;
 
 		if (pObject->Owner == pCiv && pObject->GetTechnoType() == pItem)
 			counter++;
@@ -455,6 +586,9 @@ NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, TechnoTypeClass* pItem)
 
 NOINLINE bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, std::vector<TechnoTypeClass*>& list)
 {
+	if (!pThis || !pHouse)
+		return false;
+
 	bool result = true;
 
 	// Count all objects of the list, like an AND operator
@@ -463,12 +597,19 @@ NOINLINE bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, std::v
 		if (!result)
 			break;
 
+		if (!pItem)
+		{
+			result = false;
+			break;
+		}
+
 		int counter = 0;
 		result = true;
 
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject)) 
+				continue;
 
 			if (pObject->Owner == pHouse && pObject->GetTechnoType() == pItem)
 				counter++;
@@ -482,6 +623,9 @@ NOINLINE bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, std::v
 
 NOINLINE bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, std::vector<TechnoTypeClass*>& list)
 {
+	if (!pThis || !pHouse)
+		return false;
+
 	bool result = true;
 
 	if (pEnemy && pHouse->IsAlliedWith(pEnemy))
@@ -493,14 +637,25 @@ NOINLINE bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 		if (!result)
 			break;
 
+		if (!pItem)
+		{
+			result = false;
+			break;
+		}
+
 		int counter = 0;
 		result = true;
 
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject)) 
+				continue;
 
+<<<<<<< Updated upstream
 			// Fixed logic: if pEnemy is set, check if object owner is pEnemy; otherwise check if not allied
+=======
+			// Fixed enemy detection logic
+>>>>>>> Stashed changes
 			bool isValidEnemy = false;
 			if (pEnemy)
 			{
@@ -525,6 +680,9 @@ NOINLINE bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 
 NOINLINE bool NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector<TechnoTypeClass*>& list)
 {
+	if (!pThis)
+		return false;
+
 	bool result = true;
 
 	auto pCiv = HouseExtData::FindFirstCivilianHouse();
@@ -532,11 +690,18 @@ NOINLINE bool NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector<TechnoTypeCl
 	// Count all objects of the list, like an AND operator
 	for (auto const pItem : list)
 	{
+		if (!pItem)
+		{
+			result = false;
+			break;
+		}
+
 		int counter = 0;
 
 		for (auto const pObject : *TechnoClass::Array)
 		{
-			if (!IsValidTechno(pObject)) continue;
+			if (!IsValidTechno(pObject)) 
+				continue;
 
 			if (pObject->Owner == pCiv && pObject->GetTechnoType() == pItem)
 				counter++;
@@ -550,6 +715,9 @@ NOINLINE bool NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector<TechnoTypeCl
 
 NOINLINE bool CountConditionMet(AITriggerTypeClass* pThis, int nObjects)
 {
+	if (!pThis)
+		return false;
+
 	bool result = true;
 
 	if (nObjects < 0)
@@ -885,7 +1053,13 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 	if (!RulesExtData::Instance()->NewTeamsSelector)
 		return false;
 
+	if (!pHouse || pHouse->Defeated)
+		return false;
+
 	auto pHouseTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+	if (!pHouseTypeExt)
+		return false;
+
 	// Reset Team selection countdown
 	pHouse->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pHouse->AIDifficulty]);
 
@@ -937,13 +1111,21 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				percentageUnclassifiedTriggers = 0.0;
 			}
 
+<<<<<<< Updated upstream
+=======
+			// Validate percentages with simple clamping
+>>>>>>> Stashed changes
 			percentageUnclassifiedTriggers = ValidatePercentage(percentageUnclassifiedTriggers);
 			percentageGroundTriggers = ValidatePercentage(percentageGroundTriggers);
 			percentageNavalTriggers = ValidatePercentage(percentageNavalTriggers);
 			percentageAirTriggers = ValidatePercentage(percentageAirTriggers);
 
 			double totalPercentages = percentageUnclassifiedTriggers + percentageGroundTriggers + percentageNavalTriggers + percentageAirTriggers;
+<<<<<<< Updated upstream
 			if (totalPercentages > TeamSelectorConstants::MAX_PERCENTAGE || totalPercentages <= TeamSelectorConstants::MIN_PERCENTAGE)
+=======
+			if (totalPercentages > 1.0 || totalPercentages <= 0.0)
+>>>>>>> Stashed changes
 				splitTriggersByCategory = false;
 
 			if (splitTriggersByCategory)
@@ -1013,7 +1195,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 			activeTeamsList.push_back(pRunningTeam);
 
-			if (pRunningTeam->Type->IsBaseDefense)
+			if (pRunningTeam->Type && pRunningTeam->Type->IsBaseDefense)
 				activeDefenseTeamsCount++;
 		}
 
@@ -1045,6 +1227,10 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 		// Check if the next team must be a defensive team
 		bool onlyPickDefensiveTeams = false;
 		int defensiveDice = ScenarioClass::Instance->Random.RandomRanged(0, 99);
+<<<<<<< Updated upstream
+=======
+		int defenseTeamSelectionThreshold = TeamSelectorConstants::DEFENSE_TEAM_SELECTION_THRESHOLD;
+>>>>>>> Stashed changes
 
 		if ((defensiveDice < TeamSelectorConstants::DEFENSE_TEAM_SELECTION_THRESHOLD) && !hasReachedMaxDefensiveTeamsLimit)
 			onlyPickDefensiveTeams = true;
@@ -1058,23 +1244,113 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 		// Use global cache for better performance
 		int currentFrame = Unsorted::CurrentFrame;
 
+<<<<<<< Updated upstream
 		// Refresh cache periodically or if this is the first time
 		if (g_lastCacheFrame == -1 || (currentFrame - g_lastCacheFrame) >= CACHE_REFRESH_INTERVAL)
 		{
 			g_cachedData.Initialize();
 			g_lastCacheFrame = currentFrame;
+=======
+		// Clean up defeated houses from the map to prevent stale data access
+		static int lastCleanupFrame = -1;
+		if (Unsorted::CurrentFrame != lastCleanupFrame && (Unsorted::CurrentFrame % 150) == 0) // Every ~5 seconds
+		{
+			// Simple cleanup - just clear the map periodically to prevent stale data
+			// This is safer than trying to iterate and erase specific entries
+			ownedRecruitables.clear();
+			lastCleanupFrame = Unsorted::CurrentFrame;
+		}
+
+		for (auto const pTechno : *TechnoClass::Array)
+		{
+			if (!IsValidTechno(pTechno)) 
+				continue;
+
+			if (pTechno->WhatAmI() == AbstractType::Building)
+			{
+				auto const pBuilding = static_cast<BuildingClass*>(pTechno);
+				if (pBuilding && pBuilding->Type && pBuilding->Type->BridgeRepairHut)
+				{
+					CellStruct cell = pTechno->GetCell()->MapCoords;
+
+					if (MapClass::Instance->IsLinkedBridgeDestroyed(cell))
+						destroyedBridgesCount++;
+					else
+						undamagedBridgesCount++;
+				}
+			}
+			else
+			{
+				auto const pFoot = static_cast<FootClass*>(pTechno);
+
+				bool allow = true;
+				if (auto pContact = pFoot->GetRadioContact()) 
+				{
+					if (auto pBldC = cast_to<BuildingClass*, false>(pContact)) 
+					{
+						if (pBldC->Type && pBldC->Type->Bunker)
+							allow = false;
+					}
+				} 
+				else if (auto pBld = pFoot->GetCell()->GetBuilding()) 
+				{
+					if (pBld->Type && pBld->Type->Bunker)
+						allow = false;
+				}
+
+				if (!allow
+					|| pTechno->IsSinking
+					|| pTechno->IsCrashing
+					|| !pTechno->IsAlive
+					|| pTechno->Health <= 0
+					|| !pTechno->IsOnMap // Note: underground movement is considered "IsOnMap == false"
+					|| pTechno->Transporter
+					|| pTechno->Absorbed
+					|| !pFoot->CanBeRecruited(pHouse))
+				{
+					continue;
+				}
+
+				++ownedRecruitables[pTechno->GetTechnoType()];
+			}
+>>>>>>> Stashed changes
 		}
 
 		// Validate cache to remove dead units (throttled internally)
 		g_cachedData.ValidateCache();
 
 		HouseClass* targetHouse = nullptr;
-		if (pHouse->EnemyHouseIndex >= 0)
+		if (pHouse->EnemyHouseIndex >= 0 && pHouse->EnemyHouseIndex < HouseClass::Array->Count)
+		{
 			targetHouse = HouseClass::Array->GetItem(pHouse->EnemyHouseIndex);
+			// Additional safety: check if target house is still valid and not defeated
+			if (targetHouse && targetHouse->Defeated)
+				targetHouse = nullptr;
+		}
 
 		bool onlyCheckImportantTriggers = false;
+<<<<<<< Updated upstream
 		int triggersProcessed = 0;
 		int teamsCreatedThisFrame = 0;
+=======
+		static int teamsCreatedThisFrame = 0; // Simple throttling counter
+		static int lastFrame = -1;
+		
+		// Reset counter on new frame
+		if (Unsorted::CurrentFrame != lastFrame)
+		{
+			teamsCreatedThisFrame = 0;
+			lastFrame = Unsorted::CurrentFrame;
+		}
+
+		// Basic throttling: don't create too many teams per frame
+		const int maxTeamsPerFrame = TeamSelectorConstants::MAX_TEAMS_PER_FRAME;
+		if (teamsCreatedThisFrame >= maxTeamsPerFrame)
+		{
+			Debug::LogInfo("DEBUG: House [{}] (idx: {}) throttled - max teams per frame reached", pHouse->Type->ID, pHouse->ArrayIndex);
+			return true;
+		}
+>>>>>>> Stashed changes
 
 		// Gather all the trigger candidates into one place for posterior fast calculations
 		for (auto const pTrigger : *AITriggerTypeClass::Array)
@@ -1290,12 +1566,23 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 					if (pTriggerTeam1Type->IsBaseDefense && hasReachedMaxDefensiveTeamsLimit)
 						continue;
 
+<<<<<<< Updated upstream
 					// If this type of Team reached the max or is over-represented then skip it
+=======
+					// Check if this team type is over-represented
+					if (IsTeamTypeOverRepresented(pTriggerTeam1Type, activeTeamsList))
+					{
+						Debug::LogInfo("DEBUG: Team type [{}] is over-represented, skipping", pTriggerTeam1Type->ID);
+						continue;
+					}
+
+					// If this type of Team reached the max then skip it
+>>>>>>> Stashed changes
 					int count = 0;
 
 					for (auto team : activeTeamsList)
 					{
-						if (team->Type == pTriggerTeam1Type)
+						if (team && team->Type == pTriggerTeam1Type)
 							count++;
 					}
 
@@ -1420,7 +1707,24 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 						{
 							if (entry.Type && entry.Amount > 0)
 							{
+<<<<<<< Updated upstream
 								requirements.emplace_back(entry.Type, entry.Amount);
+=======
+								auto iter = ownedRecruitables.get_key_iterator(entry.Type);
+								if (iter != ownedRecruitables.end())
+								{
+									if ((iter->second) < entry.Amount) 
+									{
+										allObjectsCanBeBuiltOrRecruited = false;
+										break;
+									}
+								}
+								else
+								{
+									allObjectsCanBeBuiltOrRecruited = false;
+									break;
+								}
+>>>>>>> Stashed changes
 							}
 							else if (entry.Amount <= 0)
 							{
@@ -1675,18 +1979,31 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 			for (const auto& team : activeTeamsList)
 			{
+<<<<<<< Updated upstream
 				if (team->Type == pTriggerTeam1Type)
 				{
 					count++;
 					// Count teams that are under strength and could use reinforcement
+=======
+				if (team && team->Type == pTriggerTeam1Type)
+				{
+					count++;
+					// Count teams that are under strength (could use reinforcement)
+>>>>>>> Stashed changes
 					if (team->IsUnderStrength && !team->IsFullStrength)
 						underStrengthCount++;
 				}
 			}
 
+<<<<<<< Updated upstream
 			// Only create new team if we haven't reached the max AND there aren't too many understrength teams
 			// This helps prevent unit stacking by prioritizing reinforcing existing teams
 			if (count < pTriggerTeam1Type->Max && underStrengthCount < 2 && teamsCreatedThisFrame < TeamSelectorConstants::MAX_TEAMS_PER_FRAME)
+=======
+			// Only create new team if we haven't reached the max AND don't have too many understrength teams
+			// This helps prevent unit stacking by prioritizing reinforcing existing teams
+			if (count < pTriggerTeam1Type->Max && underStrengthCount < TeamSelectorConstants::MAX_UNDERSTRENGTH_TEAMS && teamsCreatedThisFrame < maxTeamsPerFrame)
+>>>>>>> Stashed changes
 			{
 				if (TeamClass* newTeam1 = pTriggerTeam1Type->CreateTeam(pHouse))
 				{
@@ -1708,15 +2025,26 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 					Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - reached max limit ({}/{})",
 						pTriggerTeam1Type->ID, count, pTriggerTeam1Type->Max);
 				}
+<<<<<<< Updated upstream
 				else if (underStrengthCount >= 2)
+=======
+				else if (underStrengthCount >= TeamSelectorConstants::MAX_UNDERSTRENGTH_TEAMS)
+>>>>>>> Stashed changes
 				{
 					Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - too many understrength teams ({})",
 						pTriggerTeam1Type->ID, underStrengthCount);
 				}
+<<<<<<< Updated upstream
 				else if (teamsCreatedThisFrame >= TeamSelectorConstants::MAX_TEAMS_PER_FRAME)
 				{
 					Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - frame limit reached ({}/{})",
 						pTriggerTeam1Type->ID, teamsCreatedThisFrame, TeamSelectorConstants::MAX_TEAMS_PER_FRAME);
+=======
+				else if (teamsCreatedThisFrame >= maxTeamsPerFrame)
+				{
+					Debug::LogInfo("AI Team Selector: Skipped team [{}] creation - frame limit reached ({}/{})",
+						pTriggerTeam1Type->ID, teamsCreatedThisFrame, maxTeamsPerFrame);
+>>>>>>> Stashed changes
 				}
 			}
 		}
@@ -1729,7 +2057,11 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 			for (const auto& team : activeTeamsList)
 			{
+<<<<<<< Updated upstream
 				if (team->Type == pTriggerTeam2Type)
+=======
+				if (team && team->Type == pTriggerTeam2Type)
+>>>>>>> Stashed changes
 				{
 					count++;
 					if (team->IsUnderStrength && !team->IsFullStrength)
@@ -1737,7 +2069,11 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 				}
 			}
 
+<<<<<<< Updated upstream
 			if (count < pTriggerTeam2Type->Max && underStrengthCount < 2 && teamsCreatedThisFrame < TeamSelectorConstants::MAX_TEAMS_PER_FRAME)
+=======
+			if (count < pTriggerTeam2Type->Max && underStrengthCount < TeamSelectorConstants::MAX_UNDERSTRENGTH_TEAMS && teamsCreatedThisFrame < maxTeamsPerFrame)
+>>>>>>> Stashed changes
 			{
 				if (TeamClass* newTeam2 = pTriggerTeam2Type->CreateTeam(pHouse))
 				{
@@ -1753,21 +2089,25 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 	return true;
 }
 
-TeamTypeClass *__fastcall Suggested_New_Team(TypeList<TeamTypeClass*> *possible_teams, HouseClass *house, bool alerted){
+TeamTypeClass* __fastcall Suggested_New_Team(TypeList<TeamTypeClass*>* possible_teams, HouseClass* house, bool alerted)
+{
 	JMP_STD(0x6F0AB0)
 }
 
-ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
-	GET(HouseClass* , pThis , ESI);
+ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team, 7) 
+{
+	GET(HouseClass*, pThis, ESI);
 
-	if(!UpdateTeam(pThis)){
-
+	if (!UpdateTeam(pThis))
+	{
 		TypeList<TeamTypeClass*> possible_teams;
-		Suggested_New_Team(&possible_teams,pThis, false);
+		Suggested_New_Team(&possible_teams, pThis, false);
 		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.Count);
 
-		for(int i = 0; i < possible_teams.Count; ++i){
-			possible_teams[i]->CreateTeam(pThis);
+		for (int i = 0; i < possible_teams.Count; ++i)
+		{
+			if (possible_teams[i])
+				possible_teams[i]->CreateTeam(pThis);
 		}
 
 		pThis->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty]);
@@ -1783,6 +2123,12 @@ ASMJIT_PATCH(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 	// For each house save a list with only AI Triggers that can be used
 	for (HouseClass* pHouse : *HouseClass::Array)
 	{
+<<<<<<< Updated upstream
+=======
+		if (!pHouse)
+			continue;
+
+>>>>>>> Stashed changes
 		StackVector<int, 256> list {};
 		const int houseIdx = pHouse->ArrayIndex;
 		const int sideIdx = pHouse->SideIndex + 1;

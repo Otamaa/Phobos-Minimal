@@ -113,6 +113,9 @@ public:
 		return *reinterpret_cast<TeamExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
+private:
+	// Helper method for safe cleanup and destruction
+	void SafeDestroy();
 };
 
 static_assert(sizeof(FakeTeamClass) == sizeof(TeamClass), "Invalid Size !");

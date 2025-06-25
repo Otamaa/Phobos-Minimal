@@ -244,14 +244,14 @@ void Debug::FatalErrorCore(bool Dump, const std::string& msg)
 
 	if (msg.empty()) {
 
-		if (log)
+		if (log && Debug::LogFile)
 			fprintf_s(Debug::LogFile, "Fatal Error: %ls\n", DefaultFEMessage.c_str());
 
 		Debug::FreeMouse();
 		MessageBoxW(Game::hWnd, DefaultFEMessage.c_str(), L"Fatal Error - Yuri's Revenge", MB_OK | MB_ICONERROR);
 	} else {
 
-		if (log)
+		if (log && Debug::LogFile)
 			fprintf_s(Debug::LogFile, "Fatal Error: %s\n", msg.c_str());
 
 		Debug::FreeMouse();
@@ -265,7 +265,7 @@ void Debug::FatalErrorCore(bool Dump, const std::string& msg)
 
 void Debug::INIParseFailed(const char* section, const char* flag, const char* value, const char* Message)
 {
-	if (Phobos::Otamaa::TrackParserErrors && Debug::LogEnabled) {
+	if (Phobos::Otamaa::TrackParserErrors && Debug::LogFileActive() && Debug::LogFile) {
 
 		if (!Message) {
 			fprintf_s(Debug::LogFile, "[Phobos] Failed to parse INI file content: [%s]%s=%s.\n", section, flag, value);
