@@ -414,7 +414,7 @@ ASMJIT_PATCH(0x41564C, AircraftClass_Mission_SpyPlaneApproach_MaxCount, 0x6) {
 		auto cameraSound = TechnoTypeExtContainer::Instance.Find(pThis->Type)
 				->SpyplaneCameraSound.Get(RulesClass::Instance->SpyPlaneCamera);
 
-		VocClass::PlayAt(cameraSound, pThis->Location);
+		VocClass::SafeImmedietelyPlayAt(cameraSound, &pThis->Location);
 	}
 
 	return 0x415700;

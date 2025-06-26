@@ -106,20 +106,32 @@ public:
 
 	/* Play a sound at a certain Position.
        n = Index of VocClass in Array to be played */
-	static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioController* pCtrl = nullptr)
+	static void __fastcall ImmedietelyPlayAt(int n, const CoordStruct &coords, AudioController* pCtrl = nullptr)
 		{ JMP_STD(0x7509E0); }
 
-	static void __fastcall PlayAt(int n, const CoordStruct* coords, AudioController* pCtrl)
+	static void __fastcall ImmedietelyPlayAt(int n, const CoordStruct* coords, AudioController* pCtrl)
 		{ JMP_STD(0x7509E0); }
+
+	static void SafeImmedietelyPlayAt(int n, const CoordStruct* coords, AudioController* pCtrl = nullptr){
+		if(n < 0)
+			return;
+
+		ImmedietelyPlayAt(n,coords ,pCtrl);
+	}
+
+	static void SafeImmedietelyPlayAt(int n, const CoordStruct& coords, AudioController* pCtrl = nullptr)
+	{
+		if (n < 0)
+			return;
+
+		ImmedietelyPlayAt(n, coords, pCtrl);
+	}
 
 	// calls `PlayAt` - with sanity check
-	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct& coords, int a3 = 0)
+	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct& coords, bool isGlobal)
 		{ JMP_STD(0x750E20); }
 
-	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct& coords,  AudioController* pCtrl)
-		{ JMP_STD(0x750E20); }
-
-	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct* coords, AudioController* pCtrl)
+	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct* coords, bool isGlobal)
 		{ JMP_STD(0x750E20); }
 	//Properties
 

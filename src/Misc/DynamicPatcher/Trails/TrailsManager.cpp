@@ -278,10 +278,11 @@ void TrailsManager::AI(VoxelAnimClass* pOwner)
 	const auto pExt = VoxelAnimExtContainer::Instance.Find(pOwner);
 	//const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.Find(pOwner->Type);
 	auto const pTechnoOwner = VoxelAnimExtData::GetTechnoOwner(pOwner);
+	auto bounceCoords = (pOwner)->Bounce.GetCoords();
 
 	for (auto& pTrails : pExt->Trails) {
 		auto const pHouseOwner = pTechnoOwner ? pTechnoOwner->GetOwningHouse() : pOwner->GetOwningHouse();
-		pTrails.DrawTrail(pHouseOwner, (pOwner)->Bounce.GetCoords(), pTrails.FLH);
+		pTrails.DrawTrail(pHouseOwner, bounceCoords, pTrails.FLH);
 	}
 }
 

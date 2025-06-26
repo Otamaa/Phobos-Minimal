@@ -90,12 +90,12 @@ void NOINLINE FakeAnimClass::_Start()
 
 	if (pTypeExt->DetachedReport.isset())
 	{
-		VocClass::PlayAt(pTypeExt->DetachedReport.Get(), _gCoords);
+		VocClass::SafeImmedietelyPlayAt(pTypeExt->DetachedReport.Get(), &_gCoords);
 	}
 
 	if (pTypeExt->AltReport.isset())
 	{
-		VocClass::PlayIndexAtPos(pTypeExt->AltReport, _gCoords, nullptr);
+		VocClass::SafeImmedietelyPlayAt(pTypeExt->AltReport, &_gCoords, nullptr);
 	}
 
 	if (this->IsPlaying || this->Type->Report == -1)
@@ -104,7 +104,7 @@ void NOINLINE FakeAnimClass::_Start()
 	}
 	else
 	{
-		VocClass::PlayIndexAtPos(this->Type->Report, _gCoords, &this->Audio3);
+		VocClass::SafeImmedietelyPlayAt(this->Type->Report, &_gCoords, &this->Audio3);
 	}
 
 	this->Audio4.AudioEventHandleStop();
@@ -523,7 +523,7 @@ void FakeAnimClass::_AI()
 		}
 
 		if (!this->IsPlaying && this->Type->Report != -1) {
-			VocClass::PlayIndexAtPos(this->Type->Report, this->GetCoords(), &this->Audio3);
+			VocClass::SafeImmedietelyPlayAt(this->Type->Report, &this->GetCoords(), &this->Audio3);
 		}
 
 		if (this->Type->IsFlamingGuy) {

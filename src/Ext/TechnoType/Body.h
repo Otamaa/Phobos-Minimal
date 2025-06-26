@@ -1121,6 +1121,23 @@ public:
 
 	Nullable <TechnoTypeClass*> RecuitedAs {};
 
+	Valueable<bool> MultiWeapon { false };
+	ValueableVector<bool> MultiWeapon_IsSecondary {};
+	Valueable<int> MultiWeapon_SelectCount { 2 };
+	bool ReadMultiWeapon { false };
+
+	Valueable<int> ForceWeapon_Buildings { -1 };
+	Valueable<int> ForceWeapon_Defenses { -1 };
+	Valueable<int> ForceWeapon_Infantry { -1 };
+	Valueable<int> ForceWeapon_Naval_Units { -1 };
+	Valueable<int> ForceWeapon_Units { -1 };
+	Valueable<int> ForceWeapon_Aircraft { -1 };
+	Valueable<int> ForceAAWeapon_Infantry { -1 };
+	Valueable<int> ForceAAWeapon_Units { -1 };
+	Valueable<int> ForceAAWeapon_Aircraft { -1 };
+
+	Valueable<bool> AttackMove_Follow_IfMindControlIsFull { };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
@@ -1144,6 +1161,8 @@ public:
 	bool IsGenericPrerequisite() const;
 
 	void ApplyTurretOffset(Matrix3D* mtx, double factor);
+
+	static WeaponStruct* GetWeaponStruct(TechnoTypeClass* pThis, int nWeaponIndex, bool isElite);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
@@ -1177,6 +1196,9 @@ static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };
 	static VoxelStruct* GetTurretsVoxelFixedUp(TechnoTypeClass* const pThis, int const nIdx);
 
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
+
+	int SelectMultiWeapon(TechnoClass* const pThis, AbstractClass* const pTarget);
+
 };
 
 class NOVTABLE FakeTechnoTypeClass : public TechnoTypeClass

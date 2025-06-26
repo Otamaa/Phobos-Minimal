@@ -128,13 +128,9 @@ public:
 
 	//Nullable<BoltData> WeaponBolt_Data {};
 
-	Nullable<ColorStruct> Bolt_Color1 {};
-	Nullable<ColorStruct> Bolt_Color2 {};
-	Nullable<ColorStruct> Bolt_Color3 {};
+	Nullable<ColorStruct> Bolt_Colors [3] {};
+	Valueable<bool> Bolt_Disables[3] {};
 
-	Valueable<bool> Bolt_Disable1 { false };
-	Valueable<bool> Bolt_Disable2 { false };
-	Valueable<bool> Bolt_Disable3 { false };
 	Valueable<int> Bolt_Arcs { 8 };
 
 	Valueable<int> Bolt_Duration { 17 };
@@ -241,8 +237,6 @@ public:
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker);
 	static void DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker);
-
-	static EBolt* CreateBolt(WeaponTypeClass* pWeapon, TechnoClass* pFirer);
 
 	static void FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target);
 	static void FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx);

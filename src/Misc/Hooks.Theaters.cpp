@@ -41,12 +41,12 @@ ASMJIT_PATCH(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 	const bool Exist = file_c->Exists();
 
 	if (!Exist)
-		GameDebugLog::Log("Failed to load IsometricTileTypeClass Palette %s For [%s]", outBuffs, pTheater->Name.data());
+		Debug::Log("Failed to load IsometricTileTypeClass Palette %s For [%s]", outBuffs, pTheater->Name.data());
 	else
 	{
 		if (file_c->Read(FileSystem::ISOx_PAL(), sizeof(BytePalette)))
 		{
-			GameDebugLog::Log("Loaded IsometricTileTypeClass Palette %s For [%s]", outBuffs, pTheater->Name.data());
+			Debug::Log("Loaded IsometricTileTypeClass Palette %s For [%s]", outBuffs, pTheater->Name.data());
 
 			for (size_t i = 0; i < BytePalette::EntriesCount; ++i)
 			{
@@ -276,6 +276,8 @@ ASMJIT_PATCH(0x5F96B0, ObjectTypeClass_TheaterSpecificID, 6)
 // ini file for theater control can be specified with : "TerrainControl"
 // if both not specified , game will decide it with their naming convention
 
+TheaterType lastTheater;
+
 ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 {
 	GET(TheaterType, nType, EDI);
@@ -283,6 +285,7 @@ ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	const auto thName = nType == TheaterType::None ? "unknown" : TheaterTypeClass::Array[(size_t)nType]->Name.data();
 	Debug::LogInfo("Init For Theater [{} - {}]", (int)nType , thName);
 	ScenarioClass::Instance->Theater = nType;
+	lastTheater = nType;
 	typedef int(*wsprintfA_ptr)(LPSTR, LPCSTR, ...);
 	GET(wsprintfA_ptr, pFunc, EBP);
 
@@ -332,7 +335,7 @@ ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	else
 		CRT::strcpy(pDataMix, pTheater->DataMix.c_str());
 
-	GameDebugLog::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]", pTheater->Name.data(),
+	Debug::Log("Theater[%s] Mix [%s , %s , %s , %s , %s]", pTheater->Name.data(),
 	pRootMix, pRootMixMD, pExpansionMixMD, pSuffixMix, pDataMix);
 
 	// any errors triggered before this line are irrelevant
@@ -515,15 +518,13 @@ ASMJIT_PATCH(0x483E03, CellClass_CheckPassability_ArtictB, 0x9)
 ASMJIT_PATCH(0x71C076, TerrainClass_ClearOccupyBit_Theater, 0x7)
 {
 	enum { setArticOccupy = 0x71C08D, setTemperatOccupy = 0x71C07F };
-	GET(ScenarioClass*, pScen, EAX);
 
-	if ((int)pScen->Theater == -1)
+	if (lastTheater == TheaterType::None)
 	{
-		Debug::LogInfo(__FUNCTION__" Scenario is negative idx , default to Temperate");
-		return setTemperatOccupy;
+		Debug::FatalErrorAndExit(__FUNCTION__" Scenario is negative idx , default to Temperate");
 	}
 
-	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(pScen->Theater);
+	const auto pTheater = TheaterTypeClass::FindFromTheaterType_NoCheck(lastTheater);
 	return pTheater->IsArctic ?
 		setArticOccupy : setTemperatOccupy;
 }

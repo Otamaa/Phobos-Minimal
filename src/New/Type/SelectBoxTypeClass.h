@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Utilities/Enumerable.h>
-#include <Utilities/TemplateDef.h>
+#include <Utilities/TemplateDefB.h>
 #include <Utilities/Enum.h>
 #include <New/Type/PaletteManager.h>
 
@@ -18,6 +18,15 @@ public:
 	Valueable<bool> VisibleToHouses_Observer;
 	Valueable<bool> DrawAboveTechno;
 
+	Valueable<SHPStruct*> GroundShape;
+	CustomPalette GroundPalette;
+	Nullable<Point3D> GroundFrames;
+	Valueable<Point2D> GroundOffset;
+	Valueable<bool> Ground_AlwaysDraw;
+	Valueable<bool> GroundLine;
+	Damageable<ColorStruct> GroundLineColor;
+	Valueable<bool> GroundLine_Dashed;
+
 	SelectBoxTypeClass(const char* pTitle ) : Enumerable<SelectBoxTypeClass>(pTitle)
 		, Shape {}
 		, Palette {}
@@ -28,6 +37,15 @@ public:
 		, VisibleToHouses { AffectedHouse::All }
 		, VisibleToHouses_Observer { true }
 		, DrawAboveTechno { true }
+
+		, GroundShape { nullptr }
+		, GroundPalette {}
+		, GroundFrames {}
+		, GroundOffset { Point2D::Empty }
+		, Ground_AlwaysDraw { true }
+		, GroundLine { false }
+		, GroundLineColor { { 0,255,0 } }
+		, GroundLine_Dashed { false }
 	{ }
 
 	void LoadFromINI(CCINIClass* pINI);

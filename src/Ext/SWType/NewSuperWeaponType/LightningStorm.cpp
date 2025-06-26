@@ -441,7 +441,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 			RulesClass::Instance->LightningSounds))
 		{
 			auto const rnd = ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1);
-			VocClass::PlayAt(it.at(rnd), coords, nullptr);
+			VocClass::SafeImmedietelyPlayAt(it.at(rnd), &coords, nullptr);
 		}
 
 		auto debris = false;

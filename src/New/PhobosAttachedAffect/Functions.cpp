@@ -137,10 +137,6 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 	if (markForRedraw)
 		pThis->MarkForRedraw();
 
-	auto const coords = pThis->GetCoords();
-	auto const pOwner = pThis->Owner;
-	auto pTarget = pThis;
-
 	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
 }
 

@@ -23,23 +23,18 @@ void EboltExtData::Clear()
 	EboltExtData::Container.clear();
 }
 
-Point3D EboltExtData::GetColors(EBolt* pBolt, Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3)
+void EboltExtData::GetColors(int(&color)[3] , EBolt* pBolt, Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3)
 {
-	Point3D color { };
-
 	const int colrIdx = pBolt->AlternateColor != 0 ? 5 : 10;
-
 	const auto nFirst = FileSystem::PALETTE_PAL()->inline_02(colrIdx);
 	const auto nSec = FileSystem::PALETTE_PAL()->inline_02(15);
 
-	color.X = color.Y = nFirst;
-	color.Z = nSec;
+	color[0] = color[1] = nFirst;
+	color[2] = nSec;
 
-	if (clr1.isset()) { color.X = Drawing::ColorStructToWord(clr1.Get()); }
-	if (clr2.isset()) { color.Y = Drawing::ColorStructToWord(clr2.Get()); }
-	if (clr3.isset()) { color.Z = Drawing::ColorStructToWord(clr3.Get()); }
-
-	return color;
+	if (clr1.isset()) { color[0] = Drawing::RGB_To_Int(clr1.Get()); }
+	if (clr2.isset()) { color[1] = Drawing::RGB_To_Int(clr2.Get()); }
+	if (clr3.isset()) { color[2] = Drawing::RGB_To_Int(clr3.Get()); }
 }
 
 EBolt* EboltExtData::_CreateOneOf(WeaponTypeClass * pWeapon, TechnoClass * pFirer) {
@@ -55,20 +50,15 @@ EBolt* EboltExtData::_CreateOneOf(WeaponTypeClass * pWeapon, TechnoClass * pFire
 	if(pFirer)
 		map->BurstIndex = pFirer->CurrentBurstIndex;
 
-
 	map->ParticleSysEnabled = pWpExt->Bolt_ParticleSys_Enabled;
 	map->pSys = pWpExt->Bolt_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem);
 
-	map->Disable[0] = pWpExt->Bolt_Disable1;
-	map->Disable[1] = pWpExt->Bolt_Disable2;
-	map->Disable[2] = pWpExt->Bolt_Disable3;
-
+	map->Disable[0] = pWpExt->Bolt_Disables[0];
+	map->Disable[1] = pWpExt->Bolt_Disables[1];
+	map->Disable[2] = pWpExt->Bolt_Disables[2];
 	map->Arcs = pWpExt->Bolt_Arcs;
 
-	auto[col1, col2, col3] = GetColors(ret, pWpExt->Bolt_Color1, pWpExt->Bolt_Color2, pWpExt->Bolt_Color3);
-	map->Color[0] = col1;
-	map->Color[0] = col2;
-	map->Color[0] = col3;
+	EboltExtData::GetColors(map->Color , ret, pWpExt->Bolt_Colors[0], pWpExt->Bolt_Colors[1], pWpExt->Bolt_Colors[2]);
 
 	return ret;
 }
@@ -76,14 +66,16 @@ EBolt* EboltExtData::_CreateOneOf(WeaponTypeClass * pWeapon, TechnoClass * pFire
 EBolt* EboltExtData::_CreateOneOf(bool disable1 , bool disable2 , bool dosable3 , bool alternateColor, int arch , int lifetime, Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3) {
 
 	auto ret = GameCreate<EBolt>();
+
 	ret->AlternateColor = alternateColor;
 	ret->Lifetime = 1 << (std::clamp(lifetime, 1, 31) - 1);
+
 	auto map = &EboltExtData::Container[ret];
+
 	map->pSys = RulesClass::Instance->DefaultSparkSystem;
-	auto[col1, col2, col3] = GetColors(ret, clr1, clr2, clr3);
-	map->Color[0] = col1;
-	map->Color[0] = col2;
-	map->Color[0] = col3;
 	map->Arcs = arch;
+
+	EboltExtData::GetColors(map->Color , ret, clr1, clr2, clr3);
+
 	return ret;
 }

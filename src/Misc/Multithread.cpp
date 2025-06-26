@@ -33,27 +33,50 @@ bool Multithreading::IsInMultithreadMode = false;
 
 namespace MessageTemp
 {
-	bool OnMessages = false;
-	bool NewMsgList = false;
+	bool OnOldMessages = false;
+	bool OnNewMessages = false;
+	bool NewMessageList = false;
 }
 
-bool MouseIsOverMessageLists()
+static bool MouseIsOverOldMessageLists()
 {
 	const auto pMousePosition = &WWMouseClass::Instance->XY1;
-	const auto pMessages = ScenarioExtData::Instance()->NewMessageList.get();
+	const auto pMessages = &MessageListClass::Instance;
 
 	if (TextLabelClass* pText = pMessages->MessageList)
 	{
-		if (pMousePosition->Y >= pMessages->MessagePos.Y && pMousePosition->X >= pMessages->MessagePos.X && pMousePosition->X <= pMessages->MessagePos.X + pMessages->Width)
+		const int textHeight = pMessages->Height;
+		int height = pMessages->MessagePos.Y;
+
+		for ( ; pText; pText = static_cast<TextLabelClass*>(pText->GetNext()))
+			height += textHeight;
+
+		if (pMousePosition->Y < (height + 2))
+			return true;
+	}
+
+	return false;
+}
+
+static bool MouseIsOverNewMessageLists()
+{
+	const auto pMousePosition = &WWMouseClass::Instance->XY1;
+
+	if(auto pMessages = ScenarioExtData::Instance()->NewMessageList.get()){
+
+		if (TextLabelClass* pText = pMessages->MessageList)
 		{
-			const int textHeight = pMessages->Height;
-			int height = pMessages->MessagePos.Y;
+			if (pMousePosition->Y >= pMessages->MessagePos.Y && pMousePosition->X >= pMessages->MessagePos.X && pMousePosition->X <= pMessages->MessagePos.X + pMessages->Width)
+			{
+				const int textHeight = pMessages->Height;
+				int height = pMessages->MessagePos.Y;
 
-			for (; pText; pText = static_cast<TextLabelClass*>(pText->GetNext()))
-				height += textHeight;
+				for (; pText; pText = static_cast<TextLabelClass*>(pText->GetNext()))
+					height += textHeight;
 
-			if (pMousePosition->Y < (height + 2))
-				return true;
+				if (pMousePosition->Y < (height + 2))
+					return true;
+			}
 		}
 	}
 
@@ -62,36 +85,32 @@ bool MouseIsOverMessageLists()
 
 ASMJIT_PATCH(0x69300B, ScrollClass_MouseUpdate_SkipMouseActionUpdate, 0x6)
 {
+	if (Phobos::Config::MessageApplyHoverState)
+		MessageTemp::OnOldMessages = MouseIsOverOldMessageLists();
+
 	if (Phobos::Config::MessageDisplayInCenter)
-		MessageTemp::OnMessages = MouseIsOverMessageLists();
+		MessageTemp::OnNewMessages = MouseIsOverNewMessageLists();
 
 	return 0;
 }
 
 ASMJIT_PATCH(0x55DDA0, MainLoop_FrameStep_NewMessageListManage, 0x5)
 {
-	if (!MessageTemp::OnMessages) {
+	if (!Phobos::Config::MessageApplyHoverState || !MessageTemp::OnOldMessages)
+		MessageListClass::Instance->Manage();
+
+	if (!MessageTemp::OnNewMessages)
+	{
 		if (const auto pList = ScenarioExtData::Instance()->NewMessageList.get())
 			pList->Manage();
 	}
+	return 0x55DDAA;
 
-	return 0;
-
-}
-
-ASMJIT_PATCH(0x6E0DD7, TActionClass_Text_Trigger, 0x5)
-{
-
-	if (const auto pList = ScenarioExtData::Instance()->NewMessageList.get()) {
-		R->ECX(pList);
-	}
-
-	return 0;
 }
 
 ASMJIT_PATCH(0x623A9F, DSurface_sub_623880_DrawBitFontStrings, 0x5)
 {
-	if (!MessageTemp::NewMsgList)
+	if (!MessageTemp::NewMessageList)
 		return 0;
 
 	enum { SkipGameCode = 0x623AAB };
@@ -102,7 +121,7 @@ ASMJIT_PATCH(0x623A9F, DSurface_sub_623880_DrawBitFontStrings, 0x5)
 
 	pRect->Height = height;
 	auto black = ColorStruct { 0, 0, 0 };
-	auto trans = (MessageTemp::OnMessages || ScenarioClass::Instance->UserInputLocked) ? 80 : 40;
+	auto trans = (MessageTemp::OnNewMessages || ScenarioClass::Instance->UserInputLocked) ? 80 : 40;
 	pSurface->Fill_Rect_Trans(pRect, &black, trans);
 
 	return SkipGameCode;
@@ -140,11 +159,6 @@ public:
 			Multithreading::Buttons->DrawAll(false);
 
 		MessageListClass::Instance->Draw();
-		if (Phobos::Config::MessageDisplayInCenter) {
-			MessageTemp::NewMsgList = true;
-			ScenarioExtData::Instance()->NewMessageList->Draw();
-			MessageTemp::NewMsgList = false;
-		}
 
 		if (CCToolTip::Instance.get())
 			CCToolTip::Instance->Draw(false);
@@ -155,7 +169,12 @@ public:
 		Phobos::DrawVersionWarning();
 		HugeBar::ProcessHugeBar();
 
+		MessageTemp::NewMessageList = true;
 
+		if (const auto pList = ScenarioExtData::Instance()->NewMessageList.get())
+			pList->Draw();
+
+		MessageTemp::NewMessageList = false;
 
 		WWMouseClass::Instance->func_3C(DSurface::Composite, false);
 		pThis->vt_entry_44();

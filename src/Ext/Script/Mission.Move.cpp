@@ -95,7 +95,9 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 	// Find the Leader
 	if (!pTeamData->TeamLeader) {
 		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
-		pTeamData->TeamLeader->IsTeamLeader = true;
+
+		if(pTeamData->TeamLeader)
+			pTeamData->TeamLeader->IsTeamLeader = true;
 	}
 
 	if (!pTeamData->TeamLeader || bAircraftsWithoutAmmo)
@@ -279,7 +281,7 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 		if (auto pFoot = flag_cast_to<FootClass*, false>(pTechno))
 		{
 			const int enemyHouseIndex = pFoot->Team->FirstUnit->Owner->EnemyHouseIndex;
-			const auto pHouseExt = HouseExtContainer::Instance.Find(pFoot->Team->Owner);
+			const auto pHouseExt = HouseExtContainer::Instance.Find(pFoot->Team->OwnerHouse);
 			const bool onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemyMode != -1 ?
 			pFoot->Team->Type->OnlyTargetHouseEnemy : pHouseExt->m_ForceOnlyTargetHouseEnemy ;
 
@@ -425,10 +427,10 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 	if ((size_t)attackAITargetType < Arr.size() && !Arr[attackAITargetType].empty())
 	{
 		ScriptExtData::Mission_Move(pTeam, calcThreatMode, pickAllies, attackAITargetType, -1);
-		//return;
+		return;
 	}
 
-	// pTeam->StepCompleted = true;
+	 pTeam->StepCompleted = true;
 	// Debug::LogInfo("AI Scripts - Mission_Move_List: {}] {}] (line: {} = {},{}) Failed to get the list index [AITargetTypes][{}]! out of bound: {}",
 	// 	pTeam->Type->ID,
 	// 	pTeam->CurrentScript->Type->ID,
@@ -439,11 +441,10 @@ void ScriptExtData::Mission_Move_List(TeamClass* pTeam, DistanceMode calcThreatM
 	// 	Arr.size());
 }
 
-thread_local std::vector<int> Mission_Move_List1Random_validIndexes;
-
 void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calcThreatMode, bool pickAllies, int attackAITargetType, int idxAITargetTypeItem = -1)
 {
 	auto pScript = pTeam->CurrentScript;
+	std::vector<int> Mission_Move_List1Random_validIndexes;
 	Mission_Move_List1Random_validIndexes.clear();
 	Mission_Move_List1Random_validIndexes.reserve(50);
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);

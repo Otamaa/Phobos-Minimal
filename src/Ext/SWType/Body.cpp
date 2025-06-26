@@ -1341,7 +1341,7 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 			const int sound = pNewType->GetSound(pData);
 
 			if (sound >= 0)
-				VocClass::PlayAt(sound, nCoord, nullptr);
+				VocClass::SafeImmedietelyPlayAt(sound, & nCoord, nullptr);
 		}
 	}
 

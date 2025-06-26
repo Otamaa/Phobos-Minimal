@@ -125,6 +125,7 @@ bool Phobos::Config::RealTimeTimers_Adaptive { false };
 int Phobos::Config::CampaignDefaultGameSpeed { 2 };
 bool Phobos::Config::DigitalDisplay_Enable { false };
 bool Phobos::Config::MessageDisplayInCenter { false };
+bool Phobos::Config::MessageApplyHoverState { false };
 bool Phobos::Config::ShowBuildingStatistics { false };
 bool Phobos::Config::ApplyShadeCountFi { true };
 bool Phobos::Config::SaveVariablesOnScenarioEnd { false };
@@ -971,7 +972,7 @@ void Phobos::ExeTerminate()
 		Phobos::Otamaa::ExeTerminated = true;
 
 		for (auto& datas : Patch::ModuleDatas) {
-			if (datas.Handle != INVALID_HANDLE_VALUE) {
+			if (datas.Handle  && datas.Handle != INVALID_HANDLE_VALUE) {
 				CloseHandle(datas.Handle);
 			}
 		}

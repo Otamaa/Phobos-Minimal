@@ -44,9 +44,6 @@ public:
 	static void __fastcall PlayIndex(int index, VoxType nUnk = VoxType::none, VoxPriority nUnk2 = VoxPriority::none)
 		{ JMP_STD(0x752480); }
 
-	static void __fastcall PlayAtPos(int index, CoordStruct* pCoords, bool isGlobal = false)
-		{ JMP_STD(0x750E20); }
-
 	// no idea what this does, but Super::Launch uses it on "SW Ready" events right after firing said SW
 	static void __fastcall SilenceIndex(int index)
 		{ JMP_STD(0x752A40); }

@@ -24,7 +24,6 @@
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Message.cpp" />
-    <ClCompile Include="src\Ext\Team\Hooks.ConvertedTeam.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.AirstrikeFlare.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />

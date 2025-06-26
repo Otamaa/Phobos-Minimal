@@ -218,8 +218,8 @@ ASMJIT_PATCH(0x62A735, ParasiteClass_ExitUnit_ExitSound, 0xA) //ParasiteClass_Un
 
 	if (auto const pParasiteOwner = pParasite->Owner) {
 		auto nCoord = pParasiteOwner->GetCoords();
-		VoxClass::PlayAtPos(TechnoTypeExtContainer::Instance.Find(pParasiteOwner->GetTechnoType())
-			->ParasiteExit_Sound.Get(), &nCoord);
+		VocClass::PlayIndexAtPos(TechnoTypeExtContainer::Instance.Find(pParasiteOwner->GetTechnoType())
+			->ParasiteExit_Sound.Get(), &nCoord,false);
 	}
 
 	return 0;

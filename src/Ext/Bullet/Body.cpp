@@ -1014,7 +1014,7 @@ void BulletExtData::SimulatedFiringReport(BulletClass* pBullet)
 
 	const auto pFirer = pBullet->Owner;
 	const auto reportIndex = pWeapon->Report[(pFirer ? pFirer->weapon_sound_randomnumber_3C8 : ScenarioClass::Instance->Random.Random()) % pWeapon->Report.Count];
-	VocClass::PlayAt(reportIndex, pBullet->Location, nullptr);
+	VocClass::SafeImmedietelyPlayAt(reportIndex, & pBullet->Location, nullptr);
 }
 
 // Make sure pBullet and pBullet->WeaponType is not empty before call

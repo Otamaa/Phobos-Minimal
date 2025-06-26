@@ -5,7 +5,7 @@
 
 #include <MapClass.h>
 
-CellStruct FakeScenarioClass::_Get_Waypoint_Location(int idx) { 
+CellStruct FakeScenarioClass::_Get_Waypoint_Location(int idx) {
 	return ScenarioExtData::Instance()->Waypoints[idx];
 }
 
@@ -197,7 +197,7 @@ ASMJIT_PATCH(0x68843B, ScenStruct_ScenStruct_2, 0x6)
 	if (ScenarioClass::Instance->IsDefinedWaypoint(i)) {
 		buffer = ScenarioExtData::Instance()->Waypoints[i];
 		if(waypoints.AddItem(buffer))
-			Debug::LogInfo("Multiplayer start waypoint found at cell [{}][{},{}] , With waypoints Size {} ",i, buffer.X, buffer.Y , waypoints.size());
+			Debug::LogInfo("Multiplayer start waypoint found at cell [{}][{},{}] , With waypoints Size {} ",i, buffer.X, buffer.Y , waypoints.Count);
 	}
 
 

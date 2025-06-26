@@ -8,7 +8,7 @@
 #include <TeamClass.h>
 #include <HouseClass.h>
 
-#ifndef _Teamstuffs
+#ifdef _Teamstuffs
 ASMJIT_PATCH(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
 {
 	GET(FootClass*, pFoot, ESI);

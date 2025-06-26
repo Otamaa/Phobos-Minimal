@@ -191,7 +191,7 @@ void PlayDieSounds(TechnoClass* pTechno) {
 	{
 		const int idx = pTechnoType->VoiceDie.Count == 1 ? 0 :
 			Random2Class::NonCriticalRandomNumber->Random() % pTechnoType->VoiceDie.Count;
-		VocClass::PlayIndexAtPos(idx, &pTechno->Location, nullptr);
+		VocClass::SafeImmedietelyPlayAt(idx, &pTechno->Location, nullptr);
 	}
 
 	if (pTechnoType->DieSound.Count > 0)
@@ -199,7 +199,7 @@ void PlayDieSounds(TechnoClass* pTechno) {
 		const int idx = pTechnoType->DieSound.Count == 1 ? 0 :
 			Random2Class::NonCriticalRandomNumber->Random() % pTechnoType->DieSound.Count;
 
-		VocClass::PlayIndexAtPos(idx, &pTechno->Location, nullptr);
+		VocClass::SafeImmedietelyPlayAt(idx, &pTechno->Location, nullptr);
 	}
 }
 

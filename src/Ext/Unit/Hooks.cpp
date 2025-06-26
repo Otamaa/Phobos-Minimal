@@ -40,7 +40,7 @@ ASMJIT_PATCH(0x7394FF, UnitClass_TryToDeploy_CantDeployVoice, 0x8)
 
 	if (pThisTechno->VoiceCantDeploy.isset()) {
 		//pThis->QueueVoice(pThisTechno->VoiceCantDeploy);
-		VocClass::PlayAt(pThisTechno->VoiceCantDeploy, pThis->Location);
+		VocClass::SafeImmedietelyPlayAt(pThisTechno->VoiceCantDeploy, &pThis->Location);
 	}
 
 	return 0x73950F;

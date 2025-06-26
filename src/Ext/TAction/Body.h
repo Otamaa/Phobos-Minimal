@@ -193,4 +193,4 @@ public:
 
 	bool _OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation);
 
-};
+}; static_assert(sizeof(FakeTActionClass) == 0x94, "Invalid Size !");

@@ -490,7 +490,7 @@ ASMJIT_PATCH(0x6EFC70, TeamClass_IronCurtain, 5)
 		pThis->StepCompleted = true;
 		return 0x6EFE4F;
 	}
-	const auto pOwner = pThis->Owner;
+	const auto pOwner = pThis->OwnerHouse;
 
 	if (pOwner->Supers.Count <= 0)
 	{
@@ -2111,7 +2111,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 		{
 			if (pAnim->Animation.Stage >= pAnim->Type->GetImage()->Frames / 2)
 			{
-				LightningStorm::BoltsPresent->RemoveAt<true>(i);
+				LightningStorm::BoltsPresent->RemoveAt(i);
 			}
 		}
 	}
@@ -2127,7 +2127,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 			{
 				auto const crdStrike = pAnim->GetCoords();
 				LightningStorm::Strike2(crdStrike);
-				LightningStorm::CloudsManifesting->RemoveAt<true>(i);
+				LightningStorm::CloudsManifesting->RemoveAt(i);
 			}
 		}
 	}
@@ -2159,7 +2159,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 				auto pAnimImage = pAnim->Type->GetImage();
 				if (pAnim->Animation.Stage >= pAnimImage->Frames - 1)
 				{
-					LightningStorm::CloudsPresent->RemoveAt<true>(i);
+					LightningStorm::CloudsPresent->RemoveAt(i);
 				}
 			}
 		}
@@ -2429,7 +2429,7 @@ ASMJIT_PATCH(0x53A300, LightningStorm_Strike2, 5)
 		if (auto const it = pData->Weather_Sounds.GetElements(
 			RulesClass::Instance->LightningSounds))
 		{
-			VocClass::PlayIndexAtPos(it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1)), coords, nullptr);
+			VocClass::SafeImmedietelyPlayAt(it.at(ScenarioClass::Instance->Random.RandomFromMax(it.size() - 1)), &coords, nullptr);
 		}
 
 		auto debris = false;

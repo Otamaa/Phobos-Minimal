@@ -128,6 +128,7 @@ public:
 	bool _SpreadTiberium_2(TerrainClass* pTerrain, bool force);
 	void _Invalidate(AbstractClass* ptr, bool removed);
 	int _GetTiberiumType();
+	bool _CanTiberiumGerminate(TiberiumClass* tiberium);
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);

@@ -166,6 +166,7 @@ struct Phobos final
 
 		static bool DigitalDisplay_Enable;
 		static bool MessageDisplayInCenter;
+		static bool MessageApplyHoverState;
 		static bool ShowBuildingStatistics;
 
 		static bool ApplyShadeCountFi;

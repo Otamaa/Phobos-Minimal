@@ -2,6 +2,7 @@
 
 #include <AbstractClass.h>
 #include <ScriptClass.h>
+#include <array>
 
 class HouseClass;
 class ObjectClass;
@@ -68,8 +69,20 @@ public:
 	int GetStrayDistance () const { JMP_THIS(0x6F03B0); } //return in lepton
 	bool DoesAnyMemberHaveAmmo() const { JMP_THIS(0x6F03F0); }
 
+	static std::array<const DWORD, (size_t)TeamMissionType::count> TMissionFuncTable;
+
+	void NOINLINE ExecuteTMission(TeamMissionType action, ScriptActionNode* pNode, bool arg3) const
+	{
+		if (action == TeamMissionType::none
+			|| action == TeamMissionType::count
+			)
+			return;
+
+		using fp_type = void(__thiscall*)(const TeamClass*, ScriptActionNode*, bool);
+		reinterpret_cast<fp_type>(TMissionFuncTable[((int)action)])(this, pNode, arg3);
+	}
 //
-#define TMissionFunc(name , addr ) void TMission_## name ## (ScriptActionNode* nNode , bool arg3)  { JMP_THIS(addr); }
+#define TMissionFunc(name , addr ) void TMission_## name ##(ScriptActionNode*, bool) { JMP_THIS(addr);}
 
 	TMissionFunc(Go_bezerk, 0x6EDD90)
 	TMissionFunc(Do, 0x6ED7E0)
@@ -163,8 +176,8 @@ public:
 
 	TeamTypeClass* Type; //24
 	ScriptClass*   CurrentScript; //28
-	HouseClass*    Owner; //2C
-	HouseClass*    Target; //30
+	HouseClass*    OwnerHouse; //2C
+	HouseClass*    TargetHouse; //30
 	AbstractClass* Zone; //34
 	FootClass*	   ClosestMember; //38
 	AbstractClass* QueuedFocus; //3C

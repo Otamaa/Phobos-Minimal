@@ -27,10 +27,10 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	//	nextAct,
 	//	nextArg);
 
-	if (!pScript){
-		pTeam->StepCompleted = true;
-		return;
-	}
+	// if (!pScript){
+	// 	pTeam->StepCompleted = true;
+	// 	return;
+	// }
 
 	//TechnoClass* selectedTarget = nullptr;
 	//HouseClass* enemyHouse = nullptr;
@@ -158,7 +158,9 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	if (!ScriptExtData::IsUnitAvailable(pTeamData->TeamLeader, true))
 	{
 		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
-		pTeamData->TeamLeader->IsTeamLeader = true;
+
+		if(pTeamData->TeamLeader)
+			pTeamData->TeamLeader->IsTeamLeader = true;
 	}
 
 	if (!pTeamData->TeamLeader  || bAircraftsWithoutAmmo || (pacifistTeam && !agentMode))
@@ -210,7 +212,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 		// Favorite Enemy House case. If set, AI will focus against that House
 		HouseClass* enemyHouse = nullptr;
-		const auto pHouseExt = HouseExtContainer::Instance.Find(pTeam->Owner);
+		const auto pHouseExt = HouseExtContainer::Instance.Find(pTeam->OwnerHouse);
 		const bool onlyTargetHouseEnemy = pHouseExt->ForceOnlyTargetHouseEnemyMode != -1 ?
 		pHouseExt->m_ForceOnlyTargetHouseEnemy : pTeam->Type->OnlyTargetHouseEnemy;
 
@@ -451,10 +453,6 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		else
 		{
 			pTeam->ArchiveTarget = nullptr;
-			pTeam->StepCompleted = true;
-		}
-
-		if (!pTeam->StepCompleted) {
 			pTeam->StepCompleted = true;
 		}
 	}
@@ -1345,15 +1343,16 @@ void ScriptExtData::Mission_Attack_List(TeamClass* pTeam, bool repeatAction, Dis
 	if ((size_t)attackAITargetType < targetList.size() && !targetList[attackAITargetType].empty())
 	{
 		ScriptExtData::Mission_Attack(pTeam, repeatAction, calcThreatMode, attackAITargetType, -1);
+		return;
 	}
-}
 
-thread_local std::vector<int> Mission_Attack_List1Random_validIndexes;
+	pTeam->StepCompleted = true;
+}
 
 void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatAction, DistanceMode calcThreatMode, int attackAITargetType)
 {
 
-	//auto pScript = pTeam->CurrentScript;
+	std::vector<int> Mission_Attack_List1Random_validIndexes;
 	Mission_Attack_List1Random_validIndexes.clear();
 	Mission_Attack_List1Random_validIndexes.reserve(50);
 

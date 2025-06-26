@@ -64,7 +64,7 @@ void UnitDeliveryStateMachine::Update()
 
 		if (pData->SW_ActivationSound != -1)
 		{
-			VocClass::PlayAt(pData->SW_ActivationSound, coords, nullptr);
+			VocClass::SafeImmedietelyPlayAt(pData->SW_ActivationSound, &coords, nullptr);
 		}
 
 		this->PlaceUnits();

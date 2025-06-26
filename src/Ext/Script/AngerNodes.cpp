@@ -10,12 +10,12 @@
 
 void ScriptExtData::ResetAngerAgainstHouses(TeamClass* pTeam)
 {
-	for (auto& angerNode : pTeam->Owner->AngerNodes)
+	for (auto& angerNode : pTeam->OwnerHouse->AngerNodes)
 	{
 		angerNode.AngerLevel = 0;
 	}
 
-	pTeam->Owner->EnemyHouseIndex = -1;
+	pTeam->OwnerHouse->EnemyHouseIndex = -1;
 	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
@@ -58,7 +58,7 @@ void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = 
 		{
 			for (const auto pHouseType : houselist)
 			{
-				for (auto& angerNode : pTeam->Owner->AngerNodes)
+				for (auto& angerNode : pTeam->OwnerHouse->AngerNodes)
 				{
 					if (angerNode.House->IsObserver() || angerNode.House->Defeated)
 						continue;
@@ -89,7 +89,7 @@ void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = 
 		return;
 	}
 
-	ScriptExtData::UpdateEnemyHouseIndex(pTeam->Owner);
+	ScriptExtData::UpdateEnemyHouseIndex(pTeam->OwnerHouse);
 	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
@@ -114,7 +114,7 @@ void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHouses
 		{
 			int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
 
-			for (auto& angerNode : pTeam->Owner->AngerNodes)
+			for (auto& angerNode : pTeam->OwnerHouse->AngerNodes)
 			{
 				if (angerNode.House->Defeated || angerNode.House->IsObserver())
 					continue;
@@ -143,7 +143,7 @@ void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHouses
 		return;
 	}
 
-	ScriptExtData::UpdateEnemyHouseIndex(pTeam->Owner);
+	ScriptExtData::UpdateEnemyHouseIndex(pTeam->OwnerHouse);
 	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
@@ -176,11 +176,11 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 		newHateLevel = pTeamData->AngerNodeModifier;
 
 	// Find the highest House hate value
-	for (const auto& angerNode : pTeam->Owner->AngerNodes)
+	for (const auto& angerNode : pTeam->OwnerHouse->AngerNodes)
 	{
-		if (pTeam->Owner == angerNode.House
+		if (pTeam->OwnerHouse == angerNode.House
 			|| angerNode.House->Defeated
-			|| pTeam->Owner->IsAlliedWith(angerNode.House)
+			|| pTeam->OwnerHouse->IsAlliedWith(angerNode.House)
 			|| angerNode.House->Type->MultiplayPassive
 			|| angerNode.House->IsObserver())
 		{
@@ -216,7 +216,7 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 
 	if (selectedHouse)
 	{
-		for (auto& angerNode : pTeam->Owner->AngerNodes)
+		for (auto& angerNode : pTeam->OwnerHouse->AngerNodes)
 		{
 			if (angerNode.House->Defeated || angerNode.House->IsObserver())
 				continue;
@@ -234,7 +234,7 @@ void ScriptExtData::SetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, int mod
 			}
 		}
 
-		ScriptExtData::UpdateEnemyHouseIndex(pTeam->Owner);
+		ScriptExtData::UpdateEnemyHouseIndex(pTeam->OwnerHouse);
 	}
 	//else
 	//{
@@ -664,8 +664,8 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 				continue;
 
 			if (!pTechno->Owner->Defeated
-				&& pTechno->Owner != pTeam->Owner
-				&& !pTechno->Owner->IsAlliedWith(pTeam->Owner)
+				&& pTechno->Owner != pTeam->OwnerHouse
+				&& !pTechno->Owner->IsAlliedWith(pTeam->OwnerHouse)
 				&& !pTechno->Owner->Type->MultiplayPassive)
 			{
 				if (mask < 0)
@@ -826,7 +826,7 @@ void ScriptExtData::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 	}
 	else
 	{
-		for (auto& angerNode : pTeam->Owner->AngerNodes)
+		for (auto& angerNode : pTeam->OwnerHouse->AngerNodes)
 		{
 			if (angerNode.House->ArrayIndex == idxHouse
 				&& !angerNode.House->Defeated
@@ -847,7 +847,7 @@ void ScriptExtData::ModifyHateHouse_Index(TeamClass* pTeam, int idxHouse = -1)
 		}
 	}
 
-	ScriptExtData::UpdateEnemyHouseIndex(pTeam->Owner);
+	ScriptExtData::UpdateEnemyHouseIndex(pTeam->OwnerHouse);
 	ScriptExtData::DebugAngerNodesData();
 
 	// This action finished
@@ -866,7 +866,7 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 		newHateLevel = pTeamData->AngerNodeModifier;
 
 	// Store the list of playable houses for later
-	for (const auto& angerNode : pTeam->Owner->AngerNodes)
+	for (const auto& angerNode : pTeam->OwnerHouse->AngerNodes)
 	{
 		if (!angerNode.House->Defeated
 			&& !angerNode.House->Type->MultiplayPassive
@@ -879,12 +879,12 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 	// Include the own House if we are looking for ANY Human player
 	if (index == -3)
 	{
-		if (!pTeam->Owner->Defeated
-			&& !pTeam->Owner->Type->MultiplayPassive
-			&& !pTeam->Owner->IsObserver()
-			&& !pTeam->Owner->IsControlledByHuman())
+		if (!pTeam->OwnerHouse->Defeated
+			&& !pTeam->OwnerHouse->Type->MultiplayPassive
+			&& !pTeam->OwnerHouse->IsObserver()
+			&& !pTeam->OwnerHouse->IsControlledByHuman())
 		{
-			objectsList->push_back(pTeam->Owner);
+			objectsList->push_back(pTeam->OwnerHouse);
 		}
 	}
 
@@ -897,7 +897,7 @@ void ScriptExtData::AggroHouse(TeamClass* pTeam, int index = -1)
 				index = ScenarioClass::Instance->Random.RandomFromMax(objectsList->size() - 1);
 
 			if (index == -2)
-				index = pTeam->Owner->ArrayIndex;
+				index = pTeam->OwnerHouse->ArrayIndex;
 		}
 	}
 	else

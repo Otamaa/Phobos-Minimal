@@ -60,14 +60,22 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 #endif
 
 	{
-		this->Bolt_Color1.Read(exINI, pSection, "Bolt.Color1");
-		this->Bolt_Color2.Read(exINI, pSection, "Bolt.Color2");
-		this->Bolt_Color3.Read(exINI, pSection, "Bolt.Color3");
-		this->Bolt_Disable1.Read(exINI, pSection, "Bolt.Disable1");
-		this->Bolt_Disable2.Read(exINI, pSection, "Bolt.Disable2");
-		this->Bolt_Disable3.Read(exINI, pSection, "Bolt.Disable3");
+		static constexpr std::array<std::pair<const char*, const char*> , 3u> Bolt_Tags {{
+			{ "Bolt.Color1" , "Bolt.Disable1" } ,
+			{ "Bolt.Color2" , "Bolt.Disable2" } ,
+			{ "Bolt.Color3" , "Bolt.Disable3" }
+		}};
+
+		for(int i = 0; i < 3; ++i) {
+			this->Bolt_Colors[i].Read(exINI, pSection, Bolt_Tags[i].first);
+			this->Bolt_Disables[i].Read(exINI, pSection, Bolt_Tags[i].second);
+		}
+
 		this->Bolt_Arcs.Read(exINI, pSection, "Bolt.Arcs");
 		this->Bolt_Duration.Read(exINI, pSection, "Bolt.Duration");
+		this->Bolt_ParticleSys_Enabled.Read(exINI, pSection, "Bolt.DisableParticleSystems");
+		this->Bolt_ParticleSys.Read(exINI, pSection, "Bolt.ParticleSystem");
+		this->Bolt_FollowFLH.Read(exINI, pSection, "Bolt.FollowFLH");
 	}
 
 	this->RadType.Read(exINI, pSection, "RadType" , true);
@@ -187,10 +195,6 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Cursor_Attack.Read(exINI, pSection, "Cursor.Attack");
 	this->Cursor_AttackOutOfRange.Read(exINI, pSection, "Cursor.AttackOutOfRange");
-
-	this->Bolt_ParticleSys.Read(exINI, pSection, "Bolt.ParticleSystem");
-	this->Bolt_FollowFLH.Read(exINI, pSection, "Bolt.FollowFLH");
-
 	this->Laser_Thickness.Read(exINI, pSection, "LaserThickness");
 
 	this->ExtraWarheads.Read(exINI, pSection, "ExtraWarheads");
@@ -204,8 +208,6 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Beam_Amplitude.Read(exINI, pSection, "Beam.Amplitude");
 	this->Beam_IsHouseColor.Read(exINI, pSection, "Beam.IsHouseColor");
 	this->Beam_Color.Read(exINI, pSection, "Beam.Color");
-
-	this->Bolt_ParticleSys_Enabled.Read(exINI, pSection, "Bolt.DisableParticleSystems");
 
 	this->AmbientDamage_Warhead.Read(exINI, pSection, "AmbientDamage.Warhead");
 	this->AmbientDamage_IgnoreTarget.Read(exINI, pSection, "AmbientDamage.IgnoreTarget");
@@ -306,9 +308,9 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 
 int WeaponTypeExtData::GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* pFirer, bool isMinimum) {
 	const auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
-	const auto keepRange = pExt->KeepRange.Get();
+	const auto keepRange = pExt->KeepRange;
 
-	if (!keepRange || !pFirer || pFirer->Transporter)
+	if (!keepRange.Get() || !pFirer || pFirer->Transporter)
 		return 0;
 
 	const auto absType = pFirer->WhatAmI();
@@ -347,18 +349,18 @@ int WeaponTypeExtData::GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* p
 	}
 
 	if (isMinimum)
-		return (keepRange > 0) ? keepRange : 0;
+		return (keepRange.Get() > 0) ? keepRange.Get() : 0;
 
-	if (keepRange > 0)
+	if (keepRange.Get() > 0)
 		return 0;
 
-	const auto checkRange = -keepRange - 128;
+	const auto checkRange = -keepRange.Get() - 128;
 	const auto pTarget = pFirer->Target;
 
 	if (pTarget && pFirer->DistanceFrom(pTarget) >= checkRange)
 		return (checkRange > 443) ? checkRange : 443; // 1.73 * Unsorted::LeptonsPerCell
 
-	return -keepRange;
+	return -keepRange.Get();
 }
 
 #include <New/PhobosAttachedAffect/Functions.h>
@@ -425,9 +427,9 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->DiskLaser_Radius)
 		.Process(this->DiskLaser_Circumference)
 		.Process(this->Rad_NoOwner)
-		.Process(this->Bolt_Disable1)
-		.Process(this->Bolt_Disable2)
-		.Process(this->Bolt_Disable3)
+		.Process(this->Bolt_Disables[0])
+		.Process(this->Bolt_Disables[1])
+		.Process(this->Bolt_Disables[2])
 		.Process(this->Bolt_Arcs)
 		.Process(this->Bolt_Duration)
 		.Process(this->Strafing)
@@ -508,9 +510,9 @@ void WeaponTypeExtData::Serialize(T& Stm)
 #ifdef _Enable
 		.Process(this->WeaponBolt_Data)
 #endif
-		.Process(this->Bolt_Color1)
-		.Process(this->Bolt_Color2)
-		.Process(this->Bolt_Color3)
+		.Process(this->Bolt_Colors[0])
+		.Process(this->Bolt_Colors[1])
+		.Process(this->Bolt_Colors[2])
 		.Process(this->Bolt_ParticleSys)
 		.Process(this->Bolt_FollowFLH)
 		.Process(this->Laser_Thickness)

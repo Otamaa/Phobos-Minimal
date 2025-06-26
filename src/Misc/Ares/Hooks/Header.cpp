@@ -1097,7 +1097,7 @@ void TechnoExt_ExtData::GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 				pKiller = pKiller->SpawnOwner;
 
 			if (pKillerTypeExt->Bounty_ReceiveSound != -1)
-				VocClass::PlayAt(pKillerTypeExt->Bounty_ReceiveSound, pKiller->Location);
+				VocClass::SafeImmedietelyPlayAt(pKillerTypeExt->Bounty_ReceiveSound, &pKiller->Location);
 
 			pKiller->Owner->TransactMoney(nValueResult);
 			TechnoExtContainer::Instance.Find(pKiller)->TechnoValueAmount += nValueResult;
@@ -1301,7 +1301,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		// let's make a steal
 		pTarget->SetOwningHouse(pThis->Owner, true);
 		pTarget->GotHijacked();
-		VocClass::PlayAt(pTypeExt->HijackerEnterSound, pTarget->Location, nullptr);
+		VocClass::SafeImmedietelyPlayAt(pTypeExt->HijackerEnterSound, &pTarget->Location, nullptr);
 
 		// remove the driverless-marker
 		TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled = 0;
@@ -1675,7 +1675,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
 				}
 
-				VocClass::PlayAt(pHijackerTypeExt->HijackerLeaveSound, pThis->Location, nullptr);
+				VocClass::SafeImmedietelyPlayAt(pHijackerTypeExt->HijackerLeaveSound, &pThis->Location, nullptr);
 
 				// lower than 0: kill all, otherwise, kill n pilots
 				pilotCount = ((pHijackerTypeExt->HijackerKillPilots < 0) ? 0 :
@@ -1961,7 +1961,7 @@ void TechnoExt_ExtData::HandleTunnelLocoStuffs(FootClass* pOwner, bool DugIN, bo
 	const auto pRules = RulesClass::Instance();
 	const auto nSound = (DugIN ? pExt->DigInSound : pExt->DigOutSound).Get(pRules->DigSound);
 
-	VocClass::PlayIndexAtPos(nSound, pOwner->Location);
+	VocClass::SafeImmedietelyPlayAt(nSound, &pOwner->Location);
 
 	if (PlayAnim)
 	{
@@ -2016,7 +2016,7 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 		auto item = currentBuilding->Occupants.Items[0];
 		targetBuilding->Occupants.AddItem(item);
 		TechnoExtContainer::Instance.Find(item)->GarrisonedIn = targetBuilding;
-		currentBuilding->Occupants.Remove<true>(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
+		currentBuilding->Occupants.Remove(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
 	}
 
 	// fix up firing index, as decrementing the source occupants can invalidate it
@@ -2361,8 +2361,8 @@ void TechnoExt_ExtData::PlantBomb(TechnoClass* pSource, ObjectClass* pTarget, We
 
 			if (pSource->Owner && pSource->Owner->ControlledByCurrentPlayer())
 			{
-				VocClass::PlayIndexAtPos(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)
-				, pBomb->Target->Location);
+				VocClass::SafeImmedietelyPlayAt(pWeaponExt->Ivan_AttachSound.Get(RulesClass::Instance->BombAttachSound)
+				, &pBomb->Target->Location);
 			}
 		}
 	}
@@ -3818,7 +3818,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 				// Play a new sound.
 
 				int soundIndex = count == 1 ? 0 : pCurrentType->MoveSound[Random2Class::Global->RandomFromMax(count - 1)];
-				VocClass::PlayAt(soundIndex, pThis->Location, &pThis->MoveSoundAudioController);
+				VocClass::SafeImmedietelyPlayAt(soundIndex, &pThis->Location, &pThis->MoveSoundAudioController);
 				pThis->IsMoveSoundPlaying = true;
 			}
 			else
@@ -4707,7 +4707,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				const CoordStruct loc_ = (pExpReceiver->Transporter ? pExpReceiver->Transporter : pExpReceiver)->Location;
 
 				if (loc_.IsValid())
-					VocClass::PlayIndexAtPos(sound, loc_, nullptr);
+					VocClass::SafeImmedietelyPlayAt(sound, &loc_, nullptr);
 
 				VoxClass::PlayIndex(eva);
 			}
@@ -6064,8 +6064,8 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 	{
 	case AresScripts::AuxilarryPower:
 	{
-		HouseExtContainer::Instance.Find(pTeam->Owner)->AuxPower += pTeamMission->Argument;
-		pTeam->Owner->RecheckPower = true;
+		HouseExtContainer::Instance.Find(pTeam->OwnerHouse)->AuxPower += pTeamMission->Argument;
+		pTeam->OwnerHouse->RecheckPower = true;
 		pTeam->StepCompleted = true;
 		return true;
 	}
@@ -6140,7 +6140,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				if (pTypeExt->Convert_Script)
 				{
 					const auto& pConvertReq = pTypeExt->Convert_Scipt_Prereq;
-					if (pConvertReq.empty() || Prereqs::HouseOwnsAll(pTeam->Owner, (int*)pConvertReq.data(), (int)pConvertReq.size()))
+					if (pConvertReq.empty() || Prereqs::HouseOwnsAll(pTeam->OwnerHouse, (int*)pConvertReq.data(), (int)pConvertReq.size()))
 					{
 						TechnoExt_ExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
 					}
@@ -6436,7 +6436,7 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 
 	if (fatalRate > 0.0 && Random.RandomDouble() < fatalRate)
 	{
-		pBuilding->Occupants.RemoveAt<true>(idxPoorBastard);
+		pBuilding->Occupants.RemoveAt(idxPoorBastard);
 		pPoorBastard->Destroyed(pThis->Owner);
 		pPoorBastard->UnInit();
 		pBuilding->UpdateThreatInCell(pBuilding->GetCell());
@@ -6523,7 +6523,7 @@ std::pair<LogicNeedType, bool> AresTActionExt::GetMode(AresNewTriggerAction nAct
 	}
 }
 
-bool AresTActionExt::ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	if (pHouse->FirestormActive)
 	{
@@ -6533,7 +6533,7 @@ bool AresTActionExt::ActivateFirestorm(TActionClass* pAction, HouseClass* pHouse
 	return true;
 }
 
-bool AresTActionExt::DeactivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::DeactivateFirestorm(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	if (pHouse->FirestormActive)
 	{
@@ -6542,7 +6542,7 @@ bool AresTActionExt::DeactivateFirestorm(TActionClass* pAction, HouseClass* pHou
 	return true;
 }
 
-bool AresTActionExt::AuxiliaryPower(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::AuxiliaryPower(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	const auto pDecidedHouse = pAction->FindHouseByIndex(pTrigger, pAction->Value);
 
@@ -6554,7 +6554,7 @@ bool AresTActionExt::AuxiliaryPower(TActionClass* pAction, HouseClass* pHouse, O
 	return true;
 }
 
-bool AresTActionExt::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	auto pDecidedHouse = pAction->FindHouseByIndex(pTrigger, pAction->Value);
 	if (!pDecidedHouse)
@@ -6578,7 +6578,7 @@ bool AresTActionExt::KillDriversOf(TActionClass* pAction, HouseClass* pHouse, Ob
 	return true;
 }
 
-bool AresTActionExt::SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	if (pAction->Value < (int)EVAVoices::Types.size())
 	{
@@ -6589,7 +6589,7 @@ bool AresTActionExt::SetEVAVoice(TActionClass* pAction, HouseClass* pHouse, Obje
 	return false;
 }
 
-bool AresTActionExt::SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	if (auto pTech = flag_cast_to<TechnoClass*>(pObject))
 	{
@@ -6601,7 +6601,7 @@ bool AresTActionExt::SetGroup(TActionClass* pAction, HouseClass* pHouse, ObjectC
 }
 
 //TODO : re-eval
-bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	const auto pFind = WeaponTypeClass::Find(GameStrings::NukePayload);
 	if (!pFind)
@@ -6639,7 +6639,7 @@ bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, Objec
 //TODO : re-eval
 #include <lib/gcem/gcem.hpp>
 
-bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	const auto pFind = WeaponTypeClass::Find(GameStrings::ChemLauncher);
 	if (!pFind)
@@ -6666,7 +6666,7 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 	return false;
 }
 
-bool AresTActionExt::LightstormStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::LightstormStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
 
@@ -6699,7 +6699,7 @@ bool AresTActionExt::LightstormStrike(TActionClass* pAction, HouseClass* pHouse,
 	return true;
 }
 
-bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	static COMPILETIMEEVAL reference<int, 0x842AFC, 5u> MeteorAddAmount {};
 
@@ -6751,7 +6751,7 @@ bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, Obj
 	return true;
 }
 
-bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	if (const auto pAnimType = AnimTypeClass::Array->GetItemOrDefault(pAction->Value))
 	{
@@ -6777,7 +6777,7 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 	return true;
 }
 
-bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	if (const auto pWeaponType = WeaponTypeClass::Array->GetItemOrDefault(pAction->Value))
 	{
@@ -6811,7 +6811,7 @@ bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, Ob
 	return true;
 }
 
-bool AresTActionExt::EnableTrigger(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+bool AresTActionExt::EnableTrigger(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
 	if (pTrigger)
 	{
@@ -6834,7 +6834,7 @@ bool AresTActionExt::EnableTrigger(TActionClass* pAction, HouseClass* pHouse, Ob
 	return true;
 }
 
-bool AresTActionExt::Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, DefaultColorList col)
+bool AresTActionExt::Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, DefaultColorList col)
 {
 
 	TintStruct copy_ = ScenarioClass::Instance->NormalLighting.Tint;
@@ -6870,48 +6870,8 @@ bool AresTActionExt::Retint(TActionClass* pAction, HouseClass* pHouse, ObjectCla
 	return true;
 }
 
-bool AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret)
+bool NOINLINE AresTActionExt::Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, bool& ret)
 {
-	//we handle some of vanilla TACtion here
-	switch (pAction->ActionKind)
-	{
-	case TriggerAction::PlayAnimAt:
-		ret = PlayAnimAt(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::MeteorShower:
-		ret = MeteorStrike(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::LightningStrike:
-		ret = LightstormStrike(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::ActivateFirestorm:
-		ret = ActivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::DeactivateFirestorm:
-		ret = DeactivateFirestorm(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::NukeStrike:
-		ret = LauchhNuke(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::ChemMissileStrike:
-		ret = LauchhChemMissile(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::DoExplosionAt:
-		ret = DoExplosionAt(pAction, pHouse, pObject, pTrigger, location);
-		return true;
-	case TriggerAction::RetintRed:
-		ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Red);
-		return true;
-	case TriggerAction::RetintGreen:
-		ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Green);
-		return true;
-	case TriggerAction::RetintBlue:
-		ret = Retint(pAction, pHouse, pObject, pTrigger, location, DefaultColorList::Blue);
-		return true;
-	default:
-		break;
-	}
-
 	switch ((AresNewTriggerAction)pAction->ActionKind)
 	{
 	case AresNewTriggerAction::AuxiliaryPower:
@@ -7529,7 +7489,7 @@ void TunnelFuncs::EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClas
 		return;
 	}
 
-	VocClass::PlayIndexAtPos(pTunnel->Type->EnterTransportSound, pTunnel->Location);
+	VocClass::SafeImmedietelyPlayAt(pTunnel->Type->EnterTransportSound, &pTunnel->Location);
 
 	pFoot->Undiscover();
 
@@ -7764,7 +7724,7 @@ bool TunnelFuncs::UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool sile
 	if (Succeeded)
 	{
 		if (!silent)
-			VocClass::PlayIndexAtPos(pTunnel->Type->LeaveTransportSound, pTunnel->Location);
+			VocClass::SafeImmedietelyPlayAt(pTunnel->Type->LeaveTransportSound, &pTunnel->Location);
 
 		pFoot->QueueMission(Mission::Move, false);
 		pFoot->SetDestination(IsLessThanseven ? NextCell : CurrentAdj, true);

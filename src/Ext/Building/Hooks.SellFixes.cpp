@@ -50,7 +50,7 @@ ASMJIT_PATCH(0x44A827, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 
 	if (!BuildingCanUnload(pThis)) {
-		VocClass::PlayIndexAtPos(TechnoTypeExtContainer::Instance.Find(pThis->Type)->SellSound.Get(), pThis->Location);
+		VocClass::SafeImmedietelyPlayAt(TechnoTypeExtContainer::Instance.Find(pThis->Type)->SellSound.Get(), &pThis->Location);
 	}
 
 	return 0x44A85B;

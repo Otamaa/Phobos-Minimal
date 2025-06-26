@@ -404,9 +404,442 @@ void FakeTeamClass::_TMission_Guard(ScriptActionNode* nNode, bool arg3)
 	//Debug::LogInfo("Script {} GuardAreaTimer Left {}", this->CurrentScript->Type->ID, );
 }
 
+void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
+{
+	// If the new target is different than current mission target
+	if (new_target != this->QueuedFocus)
+	{
+		FootClass* unit = this->FirstUnit;
+
+		if (this->QueuedFocus)
+		{
+			while (unit)
+			{
+				FootClass* oldTarget = static_cast<FootClass*>(this->QueuedFocus);
+
+				bool navMatch = (unit->Destination == oldTarget);
+				bool tarMatch = (unit->Target == oldTarget);
+
+				if (navMatch || tarMatch)
+				{
+					// Put unit into guard mode so it's easier to switch missions
+					unit->QueueMission(Mission::Guard, false);
+
+					if (navMatch)
+						unit->SetDestination(nullptr, true);
+
+					if (tarMatch)
+						unit->SetTarget(nullptr);
+				}
+				unit = unit->NextTeamMember;
+			}
+		}
+	}
+
+	// If Target was linked to previous MissionTarget or is null, update Target as well
+	if (this->ArchiveTarget == this->QueuedFocus || !this->ArchiveTarget)
+	{
+		this->ArchiveTarget = new_target;
+	}
+
+	this->QueuedFocus = new_target;
+
+	// If new target is a CellClass (special case for map cells)
+	if (new_target && new_target->WhatAmI() == CellClass::AbsID)
+	{
+		CellClass* cell = static_cast<CellClass*>(new_target);
+
+		if (MapClass::Instance->IsWithinUsableArea(cell, true))
+		{
+			this->IsLeavingMap = false;
+		}
+		else
+		{
+			this->IsLeavingMap = true;
+
+			// Clear destinations for all team members
+			FootClass* member = this->FirstUnit;
+			while (member)
+			{
+				member->SetDestination(nullptr, true);
+				member = member->NextTeamMember;
+			}
+		}
+	}
+}
+
+void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
+{
+	if (arg3) {
+		FootClass* member = this->FirstUnit;
+		TechnoClass* bestLeader = nullptr;
+		int bestLeadership = -1;
+
+		// Find best leader
+		while (member)
+		{
+			TechnoTypeClass* type = member->GetTechnoType();
+			int leadership = type->LeadershipRating;
+
+			if (member->IsThisBreathing() &&
+				(member->IsTeamLeader || type->WhatAmI() == AircraftClass::AbsID) &&
+				leadership > bestLeadership)
+			{
+				bestLeader = member;
+				bestLeadership = leadership;
+			}
+			member = member->NextTeamMember;
+		}
+
+		if (!bestLeader) {
+			this->StepCompleted = true;
+			return;
+		}
+
+		HouseClass* enemyHouse = nullptr;
+		if (bestLeader->Owner->EnemyHouseIndex != -1) {
+			enemyHouse = HouseClass::Array->Items[bestLeader->Owner->EnemyHouseIndex];
+		}
+
+		CoordStruct baseCenter { };
+		this->OwnerHouse->GetBaseCenterCoords(&baseCenter);
+		int baseX = baseCenter.X;
+		int baseY = baseCenter.Y;
+
+		double angleRad = 0.0;
+		if (enemyHouse)
+		{
+			CoordStruct enemyBase {};
+			enemyHouse->GetBaseCenterCoords(&enemyBase);
+			int dx = enemyBase.X - baseX;
+			int dy = enemyBase.Y - baseY;
+
+			angleRad = Math::atan2((double)-dy, (double)dx) - Math::DEG90_AS_RAD;
+		}
+		else
+		{
+			int randomAngle = ScenarioClass::Instance->Random.RandomFromMax(256);
+			angleRad = ((randomAngle - 127) * 256) * Math::BINARY_ANGLE_MAGIC; // assuming BINARY_ANGLE_MAGIC == 256 and angle centered at 0
+		}
+
+		int safeDistance = (RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + nNode->Argument) << 8;
+		double distance = static_cast<double>(safeDistance);
+		double targetX = baseX + Math::cos(angleRad) * distance;
+		double targetY = baseY - Math::sin(angleRad) * distance;
+
+		CellStruct targetCell { (short)(static_cast<int>(targetX) / 256), (short)(static_cast<int>(targetY) / 256) };
+
+		TechnoTypeClass* leaderType = bestLeader->GetTechnoType();
+		CellStruct finalCell = MapClass::Instance->NearByLocation(
+			targetCell,
+			leaderType ? leaderType->SpeedType : SpeedType::Track,
+			ZoneType::None, MovementZone::Normal,
+			0, 3, 3, 0, 0, 0, 1, CellStruct::Empty, 0, 0
+		);
+
+		this->AssignMissionTarget(MapClass::Instance->GetCellAt(finalCell));
+	}
+	this->CoordinateMove();
+}
+
+void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
+{
+	if (arg3)
+	{
+		FootClass* member = this->FirstUnit;
+		TechnoClass* bestLeader = nullptr;
+		int bestLeadership = -1;
+
+		// Find best leader
+		while (member)
+		{
+			TechnoTypeClass* type = member->GetTechnoType();
+			int leadership = type->LeadershipRating;
+
+			if (member->IsThisBreathing() &&
+				(member->IsTeamLeader || type->WhatAmI() == AircraftClass::AbsID) &&
+				leadership > bestLeadership)
+			{
+				bestLeader = member;
+				bestLeadership = leadership;
+			}
+			member = member->NextTeamMember;
+		}
+
+		if (!bestLeader) {
+			this->StepCompleted = true;
+			return;
+		}
+
+		int enemyID = bestLeader->Owner->EnemyHouseIndex;
+		if (enemyID == -1) {
+			this->StepCompleted = true;
+			return;
+		}
+
+		HouseClass* enemyHouse = HouseClass::Array->Items[enemyID];
+		CoordStruct enemyBase {};
+		enemyHouse->GetBaseCenterCoords(&enemyBase);
+
+		if (enemyBase == CoordStruct::Empty) {
+			this->StepCompleted = true;
+			return;
+		}
+
+		// Get own base center, fallback to unit center if no base
+		CoordStruct ownBase {};
+		this->OwnerHouse->GetBaseCenterCoords(&ownBase);
+		if (ownBase == CoordStruct::Empty) {
+			bestLeader->Owner->GetBaseCenterCoords(&ownBase);
+		}
+
+		int dx = ownBase.X - enemyBase.X;
+		int dy = ownBase.Y - enemyBase.Y;
+
+		double angleRad = Math::atan2((double)dy, (double)dx) - Math::DEG90_AS_RAD;
+
+		int safeDistance = (RulesClass::Instance->AISafeDistance + nNode->Argument) << 8;
+		double distance = static_cast<double>(safeDistance);
+
+		double targetX = enemyBase.X + Math::cos(angleRad) * distance;
+		double targetY = enemyBase.Y - Math::sin(angleRad) * distance;
+
+		CellStruct targetCell { (short)(static_cast<int>(targetX) / 256) ,  (short)(static_cast<int>(targetY) / 256) };
+
+		TechnoTypeClass* leaderType = bestLeader->GetTechnoType();
+		CellStruct finalCell = MapClass::Instance->NearByLocation(
+			targetCell,
+			leaderType->SpeedType,
+			ZoneType::None, MovementZone::Normal,
+			0, 3, 3, 0, 0, 0, 1, CellStruct::Empty, 0, 0
+		);
+
+		this->AssignMissionTarget(MapClass::Instance->GetCellAt(finalCell));
+
+		Debug::LogInfo("[{}][{}] Team with Owner '{}' has chosen ({} , {}) for its GatherAtEnemy cell.",
+			(void*)this, this->Type->ID, bestLeader->Owner ? bestLeader->Owner->get_ID() : GameStrings::NoneStrb(), finalCell.X, finalCell.Y);
+
+	}
+
+	this->CoordinateMove();
+}
+
+void FakeTeamClass::_TMission_ChangeHouse(ScriptActionNode* nNode, bool arg3)
+{
+	if (FootClass* Member = this->FirstUnit)
+	{
+		const auto pHouse = HouseClass::FindByCountryIndex(nNode->Argument);
+		if (!pHouse) {
+			const auto nonestr = GameStrings::NoneStr();
+			Debug::FatalErrorAndExit("[%s - %x] Team [%s - %x] ChangeHouse cannot find House by country idx [%d]",
+				this->OwnerHouse ? this->OwnerHouse->get_ID() : nonestr, this->OwnerHouse,
+				this->get_ID(), this, nNode->Argument);
+		} else{
+
+			FootClass* nextTeam = nullptr;
+
+			do
+			{
+				nextTeam = Member->NextTeamMember;
+				Member->SetOwningHouse(pHouse, 1);
+				Member = nextTeam;
+			}
+			while (nextTeam);
+
+		}
+	}
+
+	this->StepCompleted = true;
+}
+
+static NOINLINE int GetStrayDistanceForMission(ScriptClass* script)
+{
+	auto [TMission, arg] = script->GetCurrentAction();
+
+	if (TMission == TeamMissionType::Gather_at_base || TMission == TeamMissionType::Gather_at_enemy)
+	{
+		return RulesClass::Instance->RelaxedStray;
+	}
+
+	return RulesClass::Instance->Stray;
+}
+
+void FakeTeamClass::_CoordinateMove()
+{
+	AbstractClass* MissionTarget;
+	int RelaxedStrayDistance;
+	AbstractClass* NavCom;
+	bool v10;
+	bool v11;
+	bool finished = true;
+	bool found = false;
+	int stray;
+	int dist;
+
+	FootClass* unit = this->FirstUnit;
+
+	if (unit)
+	{
+		if (this->ArchiveTarget || (MissionTarget = this->QueuedFocus, (this->ArchiveTarget = MissionTarget) != 0))
+		{
+			if (!this->LaggingUnits())
+			{
+				while (1)
+				{
+					if (unit->IsAlive && unit->Health && (Unsorted::ScenarioInit() || !unit->InLimbo) && !unit->IsTeamLeader)
+					{
+						RelaxedStrayDistance = GetStrayDistanceForMission(this->CurrentScript);
+
+						//closest one -> leader
+						if (unit->DistanceFromSquared(this->Zone) <= RelaxedStrayDistance)
+						{
+							unit->IsTeamLeader = 1;
+						}
+						else
+						{
+							if (!unit->Destination)
+							{
+								unit->QueueMission(Mission::Move, 0);
+								unit->SetTarget(0);
+								unit->SetDestination(this->Zone, 1);
+							}
+							finished = 0;
+						}
+					}
+
+					if (unit->GetCurrentMission() == Mission::Unload || unit->QueuedMission == Mission::Unload)
+					{
+						finished = 0;
+					}
+
+					if (!unit->IsAlive
+					  || !unit->Health
+					  || !Unsorted::ScenarioInit() && unit->InLimbo
+					  || !unit->IsTeamLeader && unit->WhatAmI() != AircraftClass::AbsID
+					  || unit->GetCurrentMission() == Mission::Unload
+					  || unit->QueuedMission == Mission::Unload)
+					{
+						goto LABEL_80;
+					}
+
+					stray = GetStrayDistanceForMission(this->CurrentScript);
+
+					if (unit->IsInAir())
+					{
+						stray *= 2;
+					}
+
+					found = 1;
+					dist = unit->DistanceFromSquared(this->ArchiveTarget);
+
+					if (dist <= stray
+					  && (unit->GetHeight() >= 0
+						  || this->CurrentScript->GetNextAction().Action == TeamMissionType::Move))
+					{
+						if (unit->WhatAmI() != AircraftClass::AbsID)
+						{
+							break;
+						}
+
+						if (unit->GetZ() <= 0)
+						{
+							break;
+						}
+
+						CoordStruct v8 {};
+						 unit->GetCoords(&v8);
+						if (MapClass::Instance->TryGetCellAt(v8) == this->ArchiveTarget
+						  || this->CurrentScript->GetNextAction().Action == TeamMissionType::Move)
+						{
+							break;
+						}
+					}
+
+					if (!this->Type->Aggressive || !unit->Target)
+					{
+						goto LABEL_55;
+					}
+
+					if (unit->__AssignNewThreat)
+					{
+						unit->SetTarget(0);
+					LABEL_55:
+						if (unit->GetCurrentMission() != Mission::Move)
+						{
+							unit->QueueMission(Mission::Move, 0);
+							if (unit->ReadyToNextMission()) {
+								unit->NextMission();
+							}
+						}
+
+						if (!unit->Destination)
+						{
+							unit->SetDestination(this->ArchiveTarget, 1);
+						}
+
+						NavCom = unit->Destination;
+						if (NavCom != this->ArchiveTarget
+						  && (unit->GetTechnoType()->BalloonHover
+							  || NavCom != this->ArchiveTarget
+							  && unit->WhatAmI() == AircraftClass::AbsID
+							  && NavCom == unit->GetCell()))
+						{
+							unit->SetDestination(this->ArchiveTarget, 1);
+						}
+						finished = 0;
+					LABEL_67:
+						v10 = unit->WhatAmI() == AircraftClass::AbsID
+							&& unit->Destination == unit->GetCell();
+						v11 = unit->GetTechnoType()->BalloonHover
+							&& dist < stray;
+
+						if (unit->Destination && !v10 && !v11)
+						{
+							finished = 0;
+						}
+					}
+				LABEL_80:
+					unit = unit->NextTeamMember;
+					if (!unit)
+					{
+						if (found && finished)
+						{
+							if (this->IsMoving)
+							{
+								this->StepCompleted = 1;
+							}
+						}
+						return;
+					}
+				}
+				if (unit->GetCurrentMission() == Mission::Move)
+				{
+					if (!unit->Destination)
+					{
+						goto LABEL_87;
+					}
+					if (unit->DistanceFromSquared(unit->Destination) <= RulesClass::Instance->CloseEnough)
+					{
+						if (!unit->Locomotor->Is_Moving())
+						{
+						LABEL_87:
+							if (!unit->Target)
+							{
+								unit->SetDestination(0, 1);
+								unit->EnterIdleMode(0, 1);
+							}
+						}
+					}
+				}
+				goto LABEL_67;
+			}
+		}
+	}
+}
+
 void FakeTeamClass::_AI()
 {
-	HouseExtContainer::HousesTeams[this->Owner].emplace(this);
+	HouseExtContainer::HousesTeams[this->OwnerHouse].emplace(this);
 
 	if (this->IsSuspended)
 	{
@@ -472,7 +905,7 @@ void FakeTeamClass::_AI()
 	}
 
 	if ((!this->IsMoving || (!this->IsFullStrength && this->Type->Reinforce))
-		&& (!this->Owner->IsControlledByHuman() || !this->IsHasBeen))
+		&& (!this->OwnerHouse->IsControlledByHuman() || !this->IsHasBeen))
 	{
 
 		int v5 = 0;
@@ -498,7 +931,8 @@ void FakeTeamClass::_AI()
 	FootClass* v8 = this->FirstUnit;
 	bool hasValidMember = false;
 
-	if (!v8 ) {
+	if (!v8)
+	{
 		if (this->IsHasBeen ||
 				(SessionClass::Instance->GameMode != GameMode::Campaign && Unsorted::CurrentFrame() - this->CreationFrame > RulesClass::Instance->DissolveUnfilledTeamDelay))
 		{
@@ -666,109 +1100,40 @@ void FakeTeamClass::_AI()
 		return;
 	}
 
-	if (AresScriptExt::Handle(this, &node, arg4))
-		return;
-
-	if (ScriptExtData::ProcessScriptActions(this, &node, arg4))
-		return;
-
-#define fillTMission(miss) \
-	case TeamMissionType::## miss: { \
-		this->TMission_## miss ##(&node, arg4);\
-		break;\
-	}
-
 	switch (node.Action)
 	{
-		fillTMission(Attack)
-			fillTMission(Att_waypt)
-			fillTMission(Go_bezerk)
-			fillTMission(Move)
-			fillTMission(Movecell)
 	case TeamMissionType::Guard:
-		{
-			this->_TMission_Guard(&node, arg4);
-			break;
-
-		}
-			fillTMission(Loop)
-			fillTMission(Player_wins)
-			fillTMission(Unload)
-			fillTMission(Deploy)
-			fillTMission(Hound_dog)
-			fillTMission(Do)
-			fillTMission(Set_global)
-			fillTMission(Idle_anim)
-			fillTMission(Load)
-			fillTMission(Spy)
-			fillTMission(Patrol)
-			fillTMission(Change_script)
-			fillTMission(Change_team)
-			fillTMission(Panic)
-			fillTMission(Change_house)
-			fillTMission(Scatter)
-			fillTMission(Goto_nearby_shroud)
-			fillTMission(Player_loses)
-			fillTMission(Play_speech)
-			fillTMission(Play_sound)
-			fillTMission(Play_movie)
-			fillTMission(Play_music)
-			fillTMission(Reduce_tiberium)
-			fillTMission(Begin_production)
-			fillTMission(Fire_sale)
-			fillTMission(Self_destruct)
-			fillTMission(Ion_storm_start_in)
-			fillTMission(Ion_storn_end)
-			fillTMission(Center_view_on_team)
-			fillTMission(Reshroud_map)
-			fillTMission(Reveal_map)
-			fillTMission(Delete_team_members)
-			fillTMission(Clear_global)
-			fillTMission(Set_local)
-			fillTMission(Clear_local)
-			fillTMission(Unpanic)
-			fillTMission(Force_facing)
-			fillTMission(Wait_till_fully_loaded)
-			fillTMission(Truck_unload)
-			fillTMission(Truck_load)
-			fillTMission(Attack_enemy_building)
-			fillTMission(Moveto_enemy_building)
-			fillTMission(Scout)
-			fillTMission(Success)
-			fillTMission(Flash)
-			fillTMission(Play_anim)
-			fillTMission(Talk_bubble)
-			fillTMission(Gather_at_enemy)
-			fillTMission(Gather_at_base)
-			fillTMission(Iron_curtain_me)
-			fillTMission(Chrono_prep_for_abwp)
-			fillTMission(Chrono_prep_for_aq)
-			fillTMission(Move_to_own_building)
-			fillTMission(Attack_building_at_waypoint)
-			fillTMission(Enter_grinder)
-			fillTMission(Occupy_tank_bunker)
-			fillTMission(Enter_bio_reactor)
-			fillTMission(Occupy_battle_bunker)
-			fillTMission(Garrison_building)
+	{
+		this->_TMission_Guard(&node, arg4);
+		return;
+	}
+	case TeamMissionType::Change_house:
+	{
+		this->_TMission_ChangeHouse(&node, arg4);
+		return;
+	}
+	case TeamMissionType::Gather_at_enemy:
+	{
+		this->_TMission_GatherAtEnemy(&node, arg4);
+		return;
+	}
+	case TeamMissionType::Gather_at_base:
+	{
+		this->_TMission_GatherAtBase(&node, arg4);
+		return;
+	}
 	default:
+
+		if (AresScriptExt::Handle(this, &node, arg4) || ScriptExtData::ProcessScriptActions(this, &node, arg4))
+			return;
+
 		break;
 	}
 
-#undef fillTMission
+	this->ExecuteTMission(node.Action, &node, arg4);
 }
 
 #include <Misc/Hooks.Otamaa.h>
-
-NOINLINE int GetStrayDistanceForMission(ScriptClass* script)
-{
-	auto[TMission, arg] = script->GetCurrentAction();
-
-	if (TMission == TeamMissionType::Gather_at_base || TMission == TeamMissionType::Gather_at_enemy) {
-		return RulesClass::Instance->RelaxedStray;
-	}
-
-	return RulesClass::Instance->Stray;
-}
 
 bool FakeTeamClass::_CoordinateRegroup()
 {
@@ -849,23 +1214,74 @@ bool FakeTeamClass::_CoordinateRegroup()
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F478C, FakeTeamClass::_AI)
-DEFINE_FUNCTION_JUMP(CALL, 0x6ED7A2 , FakeTeamClass::_CoordinateRegroup)
+DEFINE_FUNCTION_JUMP(CALL, 0x6ED7A2, FakeTeamClass::_CoordinateRegroup)
 
-ASMJIT_PATCH(0x55B4F5, LogicClass_Update_Teams, 0x6)
-{
-	for (int i = 0; i < TeamClass::Array->Count; ++i)
-	{
-		TeamClass::Array->Items[i]->Update();
-	}
+DEFINE_FUNCTION_JUMP(LJMP, 0x6EBAD0 , FakeTeamClass::_CoordinateMove)
+//
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EA3B5, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EC75A, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EC7BD, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EC98B, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECE46, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EDB68, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EE5AC, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EE7EA, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EEB96, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EF9D2, FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EFC62, FakeTeamClass::_CoordinateMove)
+//
 
-	//if(Phobos::Otamaa::IsAdmin){
-	//	for (auto& [house, vec] : HouseExtContainer::HousesTeams) {
-	//		Debug::LogInfo("House {} - {} has {} valid Teams!", (void*)house, house->Type->ID, vec.size());
-	//	}
-	//}
+DEFINE_FUNCTION_JUMP(LJMP, 0x6E9050 , FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x4153F1, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x416EF5, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x417395, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E93F4, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E942A, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6E959F, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EC3A5, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EC753, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EC7B6, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EC889, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EC984, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECA05, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECA44, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECAE3, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECB22, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECD10, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECD3B, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECE22, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECE84, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECEDE, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ECEFC, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6ED167, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EE383, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EE3C2, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EE591, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EE7C7, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EEA8F, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EEAA0, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EF9AB, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6EFC59, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6F0070, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6F0315, FakeTeamClass::_AssignMissionTarget)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6FF911, FakeTeamClass::_AssignMissionTarget)
 
-	return 0x55B5A1;
-}
+
+//ASMJIT_PATCH(0x55B4F5, LogicClass_Update_Teams, 0x6)
+//{
+//	for (int i = 0; i < TeamClass::Array->Count; ++i)
+//	{
+//		TeamClass::Array->Items[i]->Update();
+//	}
+//
+//	//if(Phobos::Otamaa::IsAdmin){
+//	//	for (auto& [house, vec] : HouseExtContainer::HousesTeams) {
+//	//		Debug::LogInfo("House {} - {} has {} valid Teams!", (void*)house, house->Type->ID, vec.size());
+//	//	}
+//	//}
+//
+//	return 0x55B5A1;
+//}
 
 // =============================
 // load / save
@@ -929,12 +1345,10 @@ ASMJIT_PATCH(0x6E8D05, TeamClass_CTOR, 0x5)
 ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 {
 	GET(TeamClass*, pThis, ESI);
-	HouseExtContainer::HousesTeams[pThis->Owner].erase(pThis);
+	HouseExtContainer::HousesTeams[pThis->OwnerHouse].erase(pThis);
 	TeamExtContainer::Instance.Remove(pThis);
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
 
 HRESULT __stdcall FakeTeamClass::_Load(IStream* pStm)
 {

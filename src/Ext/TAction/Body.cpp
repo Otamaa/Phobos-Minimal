@@ -49,7 +49,7 @@ void TActionExt::ExtData::Serialize(T& Stm)
 TActionExt::ExtContainer TActionExt::ExtMap;
 */
 //==============================
-void CreateOrReplaceBanner(TActionClass* pTAction, bool isGlobal)
+static void CreateOrReplaceBanner(TActionClass* pTAction, bool isGlobal)
 {
 	const auto pBannerType = BannerTypeClass::Find(pTAction->Text);
 
@@ -433,14 +433,12 @@ bool TActionExt::SetAllOwnedFootDestinationTo(TActionClass* pThis, HouseClass* p
 	if (!pOwner)
 		return false;
 
-	CellStruct nBufer { };
-	ScenarioClass::Instance->GetWaypointCoords(&nBufer, pThis->Waypoint);
+	CellStruct nBufer = ScenarioExtData::Instance()->Waypoints[pThis->Waypoint];
+
 	const auto pCell = MapClass::Instance->TryGetCellAt(nBufer);
 
-	for (auto pFoot : *FootClass::Array)
-	{
-		if (pFoot->Owner == pOwner)
-		{
+	for (auto pFoot : *FootClass::Array) {
+		if (pFoot->Owner == pOwner) {
 			pFoot->SetDestination(pCell, false);
 		}
 	}
@@ -527,7 +525,7 @@ bool TActionExt::LightningStormStrikeAtObject(TActionClass* pThis, HouseClass* p
 	return true;
 }
 
-CoordStruct* GetSomething(CoordStruct* a1)
+static CoordStruct* GetSomething(CoordStruct* a1)
 {
 	const auto& MapRect = Make_Global<RectangleStruct>(0x87F8DC);
 	auto v1 = 60 * MapRect.Width;
@@ -543,21 +541,11 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	return a1;
 }
 
-bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
+bool NOINLINE TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 {
 	HouseClass* pHouse = args.pHouse;
 	ObjectClass* pObject = args.pObject;
 	TriggerClass* pTrigger = args.pTrigger;
-	// Vanilla overriden
-	switch (pThis->ActionKind)
-	{
-	case TriggerAction::PlaySoundEffectAtWaypoint: {
-		ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
-		return true;
-	default:
-		break;
-	}
-	};
 
 	// Phobos
 	switch ((PhobosTriggerAction)pThis->ActionKind)
@@ -865,8 +853,8 @@ bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, Ob
 
 	if (!ScenarioExtData::Instance()->DefinedAudioWaypoints.empty())
 	{
-		VocClass::PlayIndexAtPos(pThis->Value,
-		CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
+		VocClass::SafeImmedietelyPlayAt(pThis->Value,
+		&CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
 			[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]));
 	}
 	else
@@ -1067,7 +1055,7 @@ bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHous
 	return true;
 }
 
-NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = nullptr)
+static NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = nullptr)
 {
 	if (param == 8997)
 	{
@@ -1404,7 +1392,7 @@ bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectC
 	return true;
 }
 
-COMPILETIMEEVAL bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
+static COMPILETIMEEVAL bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
 {
 	if (!pTechno)
 		return false;
@@ -1652,185 +1640,229 @@ bool TActionExt::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, Obje
 
 #include <Utilities/Macro.h>
 #include <Misc/Ares/Hooks/Header.h>
+#include <Ext/Side/Body.h>
+
+static void __fastcall UnlockImput() {
+	JMP_STD(0x684290);
+}
+
+static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret)
+{
+	switch (pThis->ActionKind)
+	{
+	case TriggerAction::PlaySoundEffectRandom:
+	{
+		ret = TActionExt::PlayAudioAtRandomWP(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::UnlockInput:
+	{
+		UnlockImput();
+		return true;
+	}
+	case TriggerAction::PlaySpeech:
+	{
+		VoxClass::PlayIndex(pThis->Value);
+		return true;
+	}
+	case TriggerAction::PlaySoundEffectAtWaypoint:
+	{
+		const CellStruct waypointCell = ScenarioExtData::Instance()->Waypoints[pThis->Waypoint];
+		const auto pCell = MapClass::Instance->GetCellAt(waypointCell);
+
+		if (waypointCell.IsValid() && pCell)
+		{
+			ObjectClass* pObj = pCell->GetSomeObject(Point2D::Empty, false);
+
+			if (pObj && (pObj->WhatAmI() == BuildingClass::AbsID || pObj->WhatAmI() == TerrainClass::AbsID))
+			{
+				pObj->AttachSound(pThis->Value);
+			}
+			else
+			{
+				VocClass::PlayIndexAtPos(pThis->Value, CellClass::Cell2Coord(waypointCell), true);
+			}
+		}
+
+		return true;
+	}
+	case TriggerAction::CreateCrate:
+	{
+		const CellStruct waypointCell = ScenarioExtData::Instance()->Waypoints[pThis->Waypoint];
+		const auto placed = MapClass::Instance->Place_Crate(waypointCell, (PowerupEffects)pThis->Value);
+		return placed;
+	}
+	case TriggerAction::TextTrigger:
+	{
+		const auto text = std::string(pThis->Text);
+
+		if (!text.empty())
+		{
+			int idx = ScenarioClass::Instance->PlayerSideIndex ? (ScenarioClass::Instance->PlayerSideIndex != 1 ? 5 : 1) : 2;
+			if (SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex))
+			{
+				if (SideExtData* pExt = SideExtContainer::Instance.Find(pSide))
+				{
+					idx = pExt->MessageTextColorIndex;
+				}
+			}
+
+			const int color = SessionClass::Instance->Game_GetLinkedColor(idx);
+			const int delay =(int)(RulesClass::Instance->MessageDelay * TICKS_PER_MINUTE);
+			auto pText = StringTable::FetchString(text.c_str());
+			MessageListClass* pMessage = ScenarioExtData::Instance()->NewMessageList ?
+				ScenarioExtData::Instance()->NewMessageList.get() :
+				&MessageListClass::Instance();
+
+			pMessage->AddMessage(nullptr, 0, pText, color, TextPrintType::UseGradPal | TextPrintType::FullShadow | TextPrintType::Point6Grad, delay, false);
+		}
+
+		return true;
+	}
+	case TriggerAction::PlayAnimAt:
+	{
+		ret = AresTActionExt::PlayAnimAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::MeteorShower:
+	{
+		ret = AresTActionExt::MeteorStrike(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::LightningStrike:
+	{
+		ret = AresTActionExt::LightstormStrike(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ActivateFirestorm:
+	{
+		ret = AresTActionExt::ActivateFirestorm(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::DeactivateFirestorm:
+	{
+		ret = AresTActionExt::DeactivateFirestorm(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::NukeStrike:
+	{
+		ret = AresTActionExt::LauchhNuke(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ChemMissileStrike:
+	{
+		ret = AresTActionExt::LauchhChemMissile(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::DoExplosionAt:
+	{
+		ret = AresTActionExt::DoExplosionAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RetintRed:
+	{
+		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Red);
+		return true;
+	}
+	case TriggerAction::RetintGreen:
+	{
+		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Green);
+		return true;
+	}
+	case TriggerAction::RetintBlue:
+	{
+		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Blue);
+		return true;
+	}
+	default:
+		return false;
+	}
+}
 
 bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	Debug::LogInfo("TAction[{}] triggering [{}]", (void*)this, (int)this->ActionKind);
+	std::string_view name = magic_enum::enum_name(this->ActionKind);
+
+	if(name.empty())
+		name = magic_enum::enum_name((AresNewTriggerAction)this->ActionKind);
+
+	if (name.empty())
+		name = magic_enum::enum_name((PhobosTriggerAction)this->ActionKind);
+
+	Debug::LogInfo("TAction[{} - {}] triggering [{}]", (void*)this, name, (int)this->ActionKind);
 	bool ret = true;
+
 	if (pSourceObject && !pSourceObject->IsAlive) {
 		pSourceObject = 0;
 	}
 
-	if (TActionExt::Occured(this, {pTargetHouse,pSourceObject,pTrigger,plocation}, ret))
+	if (_OverrideOriginalActions(this, pTargetHouse, pSourceObject, pTrigger, plocation, ret))
 	{
 		return ret;
 	}
-
-	if (AresTActionExt::Execute(
-		this, pTargetHouse, pSourceObject, pTrigger, *plocation, ret))
-	{
+	else if (TActionExt::Occured(this, { pTargetHouse,pSourceObject,pTrigger,plocation }, ret)) {
 		return ret;
 	}
-
-#define fillTAction(miss) \
-	case TriggerAction::## miss: { \
-		ret = this->## miss ##(pTargetHouse, pSourceObject, pTrigger, plocation);\
-		break;\
+	else if (AresTActionExt::Execute(this, pTargetHouse, pSourceObject, pTrigger, plocation, ret)) {
+		return ret;
 	}
-
-	switch (this->ActionKind)
-	{
-		fillTAction(Win)
-			fillTAction(Lose)
-			fillTAction(ProductionBegins)
-			fillTAction(CreateTeam)
-			fillTAction(DestroyTeam)
-			fillTAction(AllToHunt)
-			fillTAction(Reinforcement)
-			fillTAction(DropZoneFlare)
-			fillTAction(FireSale)
-			fillTAction(PlayMovie)
-			fillTAction(TextTrigger)
-			fillTAction(DestroyTrigger)
-			fillTAction(AutocreateBegins)
-			fillTAction(ChangeHouse)
-			//fillTAction(AllowWin)
-			fillTAction(RevealAllMap)
-			fillTAction(RevealAroundWaypoint)
-			fillTAction(RevealWaypointZone)
-			fillTAction(PlaySoundEffect)
-			fillTAction(PlayMusicTheme)
-			fillTAction(PlaySpeech)
-			fillTAction(ForceTrigger)
-			fillTAction(TimerStart)
-			fillTAction(TimerStop)
-			fillTAction(TimerExtend)
-			fillTAction(TimerShorten)
-			fillTAction(TimerSet)
-			fillTAction(GlobalSet)
-			fillTAction(GlobalClear)
-			fillTAction(AutoBaseBuilding)
-			fillTAction(GrowShroud)
-			fillTAction(DestroyAttachedObject)
-			fillTAction(AddOneTimeSuperWeapon)
-			fillTAction(AddRepeatingSuperWeapon)
-			fillTAction(PreferredTarget)
-			fillTAction(AllChangeHouse)
-			fillTAction(MakeAlly)
-			fillTAction(MakeEnemy)
-			//fillTAction(ChangeZoomLevel)
-			fillTAction(ResizePlayerView)
-			fillTAction(PlayAnimAt)
-			fillTAction(DoExplosionAt)
-			fillTAction(CreateVoxelAnim)
-			fillTAction(IonStormStart)
-			fillTAction(IonStormStop)
-			fillTAction(LockInput)
-			fillTAction(UnlockInput)
-			fillTAction(MoveCameraToWaypoint)
-			fillTAction(ZoomIn)
-			fillTAction(ZoomOut)
-			fillTAction(ReshroudMap)
-			fillTAction(ChangeLightBehavior)
-			fillTAction(EnableTrigger)
-			fillTAction(DisableTrigger)
-			fillTAction(CreateRadarEvent)
-			fillTAction(LocalSet)
-			fillTAction(LocalClear)
-			fillTAction(MeteorShower)
-			fillTAction(ReduceTiberium)
-			fillTAction(SellBuilding)
-			fillTAction(TurnOffBuilding)
-			fillTAction(TurnOnBuilding)
-			fillTAction(Apply100Damage)
-			fillTAction(SmallLightFlash)
-			fillTAction(MediumLightFlash)
-			fillTAction(LargeLightFlash)
-			fillTAction(AnnounceWin)
-			fillTAction(AnnounceLose)
-			fillTAction(ForceEnd)
-			fillTAction(DestroyTag)
-			fillTAction(SetAmbientStep)
-			fillTAction(SetAmbientRate)
-			fillTAction(SetAmbientLight)
-			fillTAction(AITriggersBegin)
-			fillTAction(AITriggersStop)
-			fillTAction(RatioOfAITriggerTeams)
-			fillTAction(RatioOfTeamAircraft)
-			fillTAction(RatioOfTeamInfantry)
-			fillTAction(RatioOfTeamUnits)
-			fillTAction(ReinforcementAt)
-			fillTAction(WakeupSelf)
-			fillTAction(WakeupAllSleepers)
-			fillTAction(WakeupAllHarmless)
-			fillTAction(WakeupGroup)
-			fillTAction(VeinGrowth)
-			fillTAction(TiberiumGrowth)
-			fillTAction(IceGrowth)
-			fillTAction(ParticleAnim)
-			fillTAction(RemoveParticleAnim)
-			fillTAction(LightningStrike)
-			fillTAction(GoBerzerk)
-			//fillTAction(ActivateFirestorm)
-			//fillTAction(DeactivateFirestorm)
-			fillTAction(IonCannonStrike)
-			fillTAction(NukeStrike)
-			fillTAction(ChemMissileStrike)
-			fillTAction(ToggleTrainCargo)
-			fillTAction(PlaySoundEffectRandom)
-			fillTAction(PlaySoundEffectAtWaypoint)
-			fillTAction(PlayIngameMovie)
-			fillTAction(ReshroudMapAtWaypoint)
-			fillTAction(LightningStormStrike)
-			fillTAction(TimerText)
-			fillTAction(FlashTeam)
-			fillTAction(TalkBubble)
-			fillTAction(SetObjectTechLevel)
-			fillTAction(ReinforcementByChrono)
-			fillTAction(CreateCrate)
-			fillTAction(IronCurtain)
-			fillTAction(PauseGame)
-			fillTAction(EvictOccupiers)
-			fillTAction(CenterCameraAtWaypoint)
-			fillTAction(MakeHouseCheer)
-			fillTAction(SetTabTo)
-			fillTAction(FlashCameo)
-			fillTAction(StopSounds)
-			fillTAction(PlayIngameMovieAndPause)
-			fillTAction(ClearAllSmudges)
-			fillTAction(DestroyAll)
-			fillTAction(DestroyAllBuildings)
-			fillTAction(DestroyAllLandUnits)
-			fillTAction(DestroyAllNavalUnits)
-			fillTAction(MindControlBase)
-			fillTAction(RestoreMindControlledBase)
-			fillTAction(CreateBuilding)
-			fillTAction(RestoreStartingUnits)
-			fillTAction(StartChronoScreenEffect)
-			fillTAction(TeleportAll)
-			fillTAction(SetSuperWeaponCharge)
-			fillTAction(RestoreStartingBuildings)
-			fillTAction(FlashBuildingsOfType)
-			fillTAction(SuperWeaponSetRechargeTime)
-			fillTAction(SuperWeaponResetRechargeTime)
-			fillTAction(SuperWeaponReset)
-			fillTAction(SetPreferredTargetCell)
-			fillTAction(ClearPreferredTargetCell)
-			fillTAction(SetBaseCenterCell)
-			fillTAction(ClearBaseCenterCell)
-			fillTAction(BlackoutRadar)
-			fillTAction(SetDefensiveTargetCell)
-			fillTAction(ClearDefensiveTargetCell)
-			fillTAction(RetintRed)
-			fillTAction(RetintGreen)
-			fillTAction(RetintBlue)
-			fillTAction(JumpCameraHome)
-
-	default:
-		break;
+	else {
+		return this->ExecuteAction(this->ActionKind , pTargetHouse, pSourceObject, pTrigger, plocation);
 	}
-#undef fillTAction
-	return ret;
 }
 
+#ifdef _fucked
 DEFINE_FUNCTION_JUMP(CALL , 0x726605, FakeTActionClass::_OperatorBracket)
+#else
+//DEFINE_FUNCTION_JUMP(LJMP, 0x6E1F60, FakeTActionClass::_TActionClass_Create_Team)
+
+ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
+{
+	GET(FakeTActionClass* const, pAction, ESI);
+	GET(ObjectClass* const, pObject, ECX);
+
+	GET_STACK(HouseClass* const, pHouse, 0x254);
+	GET_STACK(TriggerClass* const, pTrigger, 0x25C);
+	GET_STACK(CellStruct*, pLocation, 0x260);
+
+	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
+
+	auto ret = true;
+
+	std::string_view name = magic_enum::enum_name(pAction->ActionKind);
+	std::string from = "Vanilla";
+
+	if (name.empty()) {
+		name = magic_enum::enum_name((AresNewTriggerAction)pAction->ActionKind);
+		from = "Ares";
+	}
+
+	if (name.empty()){
+		name = magic_enum::enum_name((PhobosTriggerAction)pAction->ActionKind);
+		from = "Phobos";
+	}
+
+	Debug::LogInfo("TAction[{} - {}] triggering [{}] {}", (void*)pAction, name, (int)pAction->ActionKind , from);
+
+	if (_OverrideOriginalActions(pAction, pHouse, pObject, pTrigger, pLocation, ret))
+	{
+		R->AL(ret);
+		return Handled;
+	}
+	else if (TActionExt::Occured(pAction, { pHouse , pObject , pTrigger , pLocation }, ret)) {
+		R->AL(ret);
+		return Handled;
+	}
+	else if (AresTActionExt::Execute(pAction, pHouse, pObject, pTrigger, pLocation, ret))
+	{
+		R->AL(ret);
+		return Handled;
+	}
+
+	// replicate the original instructions, using underflow
+	uint32_t const value = static_cast<uint32_t>(pAction->ActionKind) - 1;
+	R->EDX(value);
+	return (value > 144u) ? Handled : Default;
+}
+
+#endif

@@ -99,7 +99,7 @@ void IonCannonStateMachine::Update()
 
 		const auto sound = pData->SW_ActivationSound.Get();
 		if (sound != -1) {
-			VocClass::PlayAt(sound, coords, nullptr);
+			VocClass::SafeImmedietelyPlayAt(sound, & coords, nullptr);
 		}
 
 		pData->PrintMessage(pData->Message_Activate, this->Owner);

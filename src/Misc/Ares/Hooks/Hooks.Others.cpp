@@ -1003,7 +1003,7 @@ ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 			index = pOwnerExt->VoiceAirstrikeAttack.Get();
 	}
 
-	VocClass::PlayAt(index, pAirstrike->FirstObject->Location, nullptr);
+	VocClass::SafeImmedietelyPlayAt(index, &pAirstrike->FirstObject->Location, nullptr);
 	pAirstrike->Target = pTarget;
 
 	if(pTarget){
@@ -1041,7 +1041,7 @@ ASMJIT_PATCH(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 			index = pOwnerExt->VoiceAirstrikeAbort.Get();
 	}
 
-	VocClass::PlayAt(index, pAirstrike->FirstObject->Location, nullptr);
+	VocClass::SafeImmedietelyPlayAt(index, &pAirstrike->FirstObject->Location, nullptr);
 	return 0x41D5E0;
 }
 

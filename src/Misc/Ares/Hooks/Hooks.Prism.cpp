@@ -307,7 +307,7 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 			auto const SoundArrayIndex = supportWeapon->Report.Items[ReportIndex];
 			if (SoundArrayIndex != -1)
 			{
-				VocClass::PlayAt(SoundArrayIndex, sourceXYZ, nullptr);
+				VocClass::SafeImmedietelyPlayAt(SoundArrayIndex, &sourceXYZ, nullptr);
 			}
 		}
 

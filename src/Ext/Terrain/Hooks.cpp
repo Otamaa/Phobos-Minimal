@@ -135,7 +135,7 @@ ASMJIT_PATCH(0x71C6EE, TerrainClass_FireOut_Crumbling, 0x6)
 	{
 		// Needs to be added to the logic layer for the anim to work.
 		LogicClass::Instance->AddObject(pThis, false);
-		VocClass::PlayIndexAtPos(pTypeExt->CrumblingSound, pThis->GetCoords());
+		VocClass::SafeImmedietelyPlayAt(pTypeExt->CrumblingSound, pThis->GetCoords());
 
 		return StartCrumbling;
 	}

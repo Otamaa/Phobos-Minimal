@@ -448,7 +448,7 @@ struct AresTActionExt
 	static std::pair<LogicNeedType, bool> GetMode(AresNewTriggerAction nAction);
 
 #define DEFINE_ACTION(f)\
-	static bool f##(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location)
+	static bool f##(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 
 	DEFINE_ACTION(ActivateFirestorm);
 	DEFINE_ACTION(DeactivateFirestorm);
@@ -468,8 +468,8 @@ struct AresTActionExt
 	DEFINE_ACTION(DoExplosionAt);
 	DEFINE_ACTION(EnableTrigger);
 
-	static bool Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, DefaultColorList col);
-	static bool Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct const& location, bool& ret);
+	static bool Retint(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, DefaultColorList col);
+	static bool Execute(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location, bool& ret);
 #undef DEFINE_ACTION
 };
 

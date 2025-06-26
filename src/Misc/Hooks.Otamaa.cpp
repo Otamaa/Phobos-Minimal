@@ -831,15 +831,15 @@ ASMJIT_PATCH(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
 	return 0x6E93D6;
 }
 
-ASMJIT_PATCH(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
-{
-	GET_STACK(short const, nCellX, 0x10);
-	GET_STACK(short const, nCellY, 0x12);
-	GET(TeamClass* const, pThis, ESI);
-	GET(TechnoClass* const, pTechno, EDI);
-	Debug::LogInfo("[{}][{}] Team with Owner '{}' has chosen ({} , {}) for its GatherAtEnemy cell.", (void*)pThis, pThis->Type->ID, pTechno->Owner ? pTechno->Owner->get_ID() : GameStrings::NoneStrb(), nCellX, nCellY);
-	return 0x6EF9D0;
-}
+// ASMJIT_PATCH(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
+// {
+// 	GET_STACK(short const, nCellX, 0x10);
+// 	GET_STACK(short const, nCellY, 0x12);
+// 	GET(TeamClass* const, pThis, ESI);
+// 	GET(TechnoClass* const, pTechno, EDI);
+// 	Debug::LogInfo("[{}][{}] Team with Owner '{}' has chosen ({} , {}) for its GatherAtEnemy cell.", (void*)pThis, pThis->Type->ID, pTechno->Owner ? pTechno->Owner->get_ID() : GameStrings::NoneStrb(), nCellX, nCellY);
+// 	return 0x6EF9D0;
+// }
 
 ASMJIT_PATCH(0x6D912B, TacticalClass_Render_BuildingInLimboDeliveryA, 0x9)
 {
@@ -1330,7 +1330,7 @@ ASMJIT_PATCH(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6)
 			else
 			{
 				if (pThis->IsControlledByHuman() && !pThis->IsCurrentPlayerObserver())
-					VocClass::PlayAt(pTechnoTypeExt->VoiceCreate, pTechno->Location);
+					VocClass::SafeImmedietelyPlayAt(pTechnoTypeExt->VoiceCreate, &pTechno->Location);
 			}
 		}
 
@@ -2123,25 +2123,25 @@ ASMJIT_PATCH(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
 		forbidden : allow;
 }
 
-ASMJIT_PATCH(0x6E9690, TeamClass_ChangeHouse_nullptrresult, 0x6)
-{
-	GET(TeamClass*, pThis, ESI);
-	GET(int, args, ECX);
-	GET(FootClass*, pCurMember, EDI);
-
-	const auto pHouse = HouseClass::FindByCountryIndex(args);
-	if (!pHouse)
-	{
-		const auto nonestr = GameStrings::NoneStr();
-		Debug::FatalErrorAndExit("[%s - %x] Team [%s - %x] ChangeHouse cannot find House by country idx [%d]",
-			pThis->Owner ? pThis->Owner->get_ID() : nonestr, pThis->Owner,
-			pThis->get_ID(), pThis, args);
-	}
-
-	pCurMember->SetOwningHouse(pHouse);
-	R->EBP(pCurMember->NextTeamMember);
-	return 0x6E96A8;
-}
+// ASMJIT_PATCH(0x6ECF67, TeamClass_ChangeHouse_nullptrresult, 0x6)
+// {
+// 	GET(TeamClass*, pThis, ESI);
+// 	GET(int, args, ECX);
+// 	GET(FootClass*, pCurMember, EDI);
+//
+// 	const auto pHouse = HouseClass::FindByCountryIndex(args);
+// 	if (!pHouse)
+// 	{
+// 		const auto nonestr = GameStrings::NoneStr();
+// 		Debug::FatalErrorAndExit("[%s - %x] Team [%s - %x] ChangeHouse cannot find House by country idx [%d]",
+// 			pThis->OwnerHouse ? pThis->OwnerHouse->get_ID() : nonestr, pThis->OwnerHouse,
+// 			pThis->get_ID(), pThis, args);
+// 	}
+//
+// 	pCurMember->SetOwningHouse(pHouse);
+// 	R->EBP(pCurMember->NextTeamMember);
+// 	return 0x6E96A8;
+// }
 
 ASMJIT_PATCH(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
 {
@@ -3152,7 +3152,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						if (pCollectorOwner->ControlledByCurrentPlayer())
 						{
 							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-							VocClass::PlayIndexAtPos(CrateTypeClass::Array[(int)idx]->Sound, loc, nullptr);
+							VocClass::SafeImmedietelyPlayAt(CrateTypeClass::Array[(int)idx]->Sound, &loc, nullptr);
 						}
 					};
 
@@ -4370,7 +4370,7 @@ ASMJIT_PATCH(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
 
 	if (!vec.empty())
 	{
-		VocClass::PlayIndexAtPos(Random2Class::Global->RandomFromMax(vec.size() - 1), pThis->GetCoords(), &pThis->Audio3);
+		VocClass::SafeImmedietelyPlayAt(Random2Class::Global->RandomFromMax(vec.size() - 1), &pThis->GetCoords(), &pThis->Audio3);
 	}
 
 	return  0x0;
@@ -4983,7 +4983,7 @@ ASMJIT_PATCH(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
 		sound = RulesClass::Instance->EnterBioReactorSound;
 
 	auto coord = pThis->GetCoords(pBuffer);
-	VocClass::PlayIndexAtPos(sound, coord, 0);
+	VocClass::SafeImmedietelyPlayAt(sound, coord, 0);
 
 	return 0x51A30F;
 }
@@ -4999,7 +4999,7 @@ ASMJIT_PATCH(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7
 		sound = RulesClass::Instance->LeaveBioReactorSound;
 
 	auto coord = pThis->GetCoords(pBuffer);
-	VocClass::PlayIndexAtPos(sound, coord, 0);
+	VocClass::SafeImmedietelyPlayAt(sound, coord, 0);
 	return 0x44DBDA;
 }
 
@@ -6915,3 +6915,26 @@ DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
 
 #endif
 #pragma endregion
+
+#ifndef DEBUG_STUPID_HUMAN_CHECKS
+
+ASMJIT_PATCH(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
+{
+	GET(HouseClass*, pThis, ECX);
+
+	if (!pThis)
+		Debug::LogInfo(__FUNCTION__"Caller [{}]", R->Stack<DWORD>(0x0));
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
+{
+	GET(HouseClass*, pThis, ECX);
+
+	if(!pThis)
+		Debug::LogInfo(__FUNCTION__"Caller [{}]", R->Stack<DWORD>(0x0));
+
+	return 0x0;
+}
+#endif

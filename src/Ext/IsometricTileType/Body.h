@@ -22,9 +22,11 @@ public:
 	InitState Initialized { InitState::Blank };
 
 public :
+
+	std::string TileSetName {};
 	Valueable<int> Tileset { -1 };
 	CustomPalette Palette {};
-
+	ValueableVector<TiberiumClass*> AllowedTiberiums {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

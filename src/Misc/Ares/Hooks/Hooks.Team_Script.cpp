@@ -114,7 +114,7 @@ ASMJIT_PATCH(0x65DBB3, TeamTypeClass_CreateInstance_Plane, 5)
 // 	return ScriptExtData::ProcessScriptActions(pThis) ? ReturnFunc : Continue;
 // }
 
-#ifndef _ENABLE
+#ifdef _ENABLE
 ASMJIT_PATCH(0x6EF8A1, TeamClass_TMission_GatherAtEnemyBase_Distance, 0x6)
 {
 	//GET_STACK(TeamClass*, pTeam, STACK_OFFS(0x5C, 0x34));
@@ -201,7 +201,7 @@ ASMJIT_PATCH(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
 			{
 				auto pAttackerTechno = flag_cast_to<TechnoClass*, false>(pAttacker);
 
-				auto Owner = pThis->Owner;
+				auto Owner = pThis->OwnerHouse;
 				if (pAttackerTechno && Owner->IsAlliedWith(pAttackerTechno->GetOwningHouse())) {
 					return 0x6EB47A;
 				}

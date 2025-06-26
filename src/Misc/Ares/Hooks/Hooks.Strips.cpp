@@ -547,11 +547,11 @@ ASMJIT_PATCH(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 	}
 
 	auto& cameo = MouseClassExt::TabCameos[pTab->TabIndex];
-	auto lower = lower_bound(cameo.begin(), cameo.Count, newCameo);
-	int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
 
-	if (cameo.IsValidArray())
-	{
+	if (cameo.IsValidArray()) {
+		auto lower = lower_bound(cameo.begin(), cameo.Count, newCameo);
+		int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
+
 		BuildType* added = cameo.Items + idx;
 		BuildType* added_plusOne = std::next(added);
 		std::memcpy(added_plusOne, added, (char*)(cameo.end()) - ((char*)added));

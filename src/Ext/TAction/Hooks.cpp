@@ -260,6 +260,7 @@ ASMJIT_PATCH(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
 }
 
 // add/subtract extra values to prevent the AI from attacking the wrong target during the campaign.
+/*
 ASMJIT_PATCH(0x6DE189, TActionClass_MakeEnemy, 0x6)
 {
 	GET(TActionClass*, pThis, ESI);
@@ -295,7 +296,7 @@ ASMJIT_PATCH(0x6DE189, TActionClass_MakeEnemy, 0x6)
 	}
 
 	return OK;
-}
+}*/
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
 // Author: secsome
 //ASMJIT_PATCH_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue

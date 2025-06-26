@@ -786,7 +786,7 @@ bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pT
 
 		if (pTypeExt->Grinding_Sound.isset())
 		{
-			VocClass::PlayIndexAtPos(pTypeExt->Grinding_Sound.Get(), pTechno->GetCoords());
+			VocClass::SafeImmedietelyPlayAt(pTypeExt->Grinding_Sound.Get(), &pTechno->GetCoords());
 			return true;
 		}
 	}
@@ -1008,7 +1008,7 @@ void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
 	}
 
 	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
-	VocClass::PlayAt(sound, this->GetCoords());
+	VocClass::SafeImmedietelyPlayAt(sound, & this->GetCoords());
 }
 
 void FakeBuildingClass::_OnFinishRepair()
@@ -1029,7 +1029,7 @@ void FakeBuildingClass::_OnFinishRepair()
 	}
 
 	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
-	VocClass::PlayAt(sound, this->GetCoords());
+	VocClass::SafeImmedietelyPlayAt(sound, & this->GetCoords());
 }
 
 int FakeBuildingClass::_GetAirstrikeInvulnerabilityIntensity(int currentIntensity) const

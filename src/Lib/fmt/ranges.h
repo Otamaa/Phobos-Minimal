@@ -279,11 +279,13 @@ template <typename FormatContext> struct format_tuple_element {
 
 }  // namespace detail
 
+FMT_EXPORT
 template <typename T> struct is_tuple_like {
   static constexpr bool value =
       detail::is_tuple_like_<T>::value && !detail::is_range_<T>::value;
 };
 
+FMT_EXPORT
 template <typename T, typename C> struct is_tuple_formattable {
   static constexpr bool value = detail::is_tuple_formattable_<T, C>::value;
 };

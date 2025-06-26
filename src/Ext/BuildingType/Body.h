@@ -406,12 +406,12 @@ public:
 			if COMPILETIMEEVAL (UpSound == BunkerSoundMode::Up)
 			{
 				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound, pThis->Location);
 			}
 			else
 			{
 				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound, pThis->Location);
 			}
 		}
 	};

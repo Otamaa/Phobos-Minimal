@@ -241,14 +241,14 @@ ASMJIT_PATCH(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
 			{
 				// Needs to be added to the logic layer for the anim to work.
 				LogicClass::Instance->AddObject(pThis, false);
-				VocClass::PlayIndexAtPos(pTerrainExt->CrumblingSound, pThis->GetCoords());
+				VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &pThis->GetCoords());
 				pThis->Mark(MarkType::Redraw);
 				pThis->Disappear(true);
 				return 0x71BB79;
 			}
 
 			auto const nCoords = pThis->GetCenterCoords();
-			VocClass::PlayIndexAtPos(pTerrainExt->DestroySound, nCoords);
+			VocClass::SafeImmedietelyPlayAt(pTerrainExt->DestroySound, &nCoords);
 			const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
 			if (auto const pAnimType = pTerrainExt->DestroyAnim)
@@ -883,7 +883,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	case DamageState::Unchanged:
 	{
 		if (pType->DamageSound != -1) {
-			VocClass::PlayIndexAtPos(pType->DamageSound, pThis->Location, 0);
+			VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
 		}
 
 		if (!pWHExt->Malicious && args.Attacker && args.Attacker->IsAlive && !pWHExt->Nonprovocative) {
@@ -901,7 +901,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			 && pThis->Owner->ControlledByCurrentPlayer())
 		{
 			const int feedbackIndex = pType->VoiceFeedback.Count > 1 ? Random2Class::NonCriticalRandomNumber->RandomRanged(0, pType->VoiceFeedback.Count - 1) : 0;
-			VocClass::PlayIndexAtPos(pType->VoiceFeedback.Items[feedbackIndex], pThis->Location, 0);
+			VocClass::SafeImmedietelyPlayAt(pType->VoiceFeedback.Items[feedbackIndex], &pThis->Location, 0);
 		}
 
 		break;
@@ -1003,11 +1003,11 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 			if (nSound.isset())
 			{
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound, &pThis->Location);
 			}
 			else
 			{
-				VocClass::PlayIndexAtPos(pType->VoiceDie[pType->VoiceDie.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceDie.Count - 1)], pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(pType->VoiceDie[pType->VoiceDie.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceDie.Count - 1)], &pThis->Location);
 			}
 		}
 
@@ -1017,11 +1017,11 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 			if (nSound.isset())
 			{
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound, &pThis->Location);
 			}
 			else
 			{
-				VocClass::PlayIndexAtPos(pType->DieSound[pType->DieSound.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->DieSound.Count - 1)], pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(pType->DieSound[pType->DieSound.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->DieSound.Count - 1)], &pThis->Location);
 			}
 		}
 
@@ -1161,7 +1161,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		} else {
 			if (pType->DamageSound != -1)
 			{
-				VocClass::PlayIndexAtPos(pType->DamageSound, pThis->Location, 0);
+				VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
 			}
 
 			if (args.Attacker && args.Attacker->IsAlive && (pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman())
@@ -1444,7 +1444,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 		{
 			if (!pTypeExt->DisableDamageSound && pThis->Type->DamageSound == -1)
 			{
-				VocClass::PlayIndexAtPos(RulesClass::Instance->BuildingDamageSound, &pThis->Location, 0);
+				VocClass::SafeImmedietelyPlayAt(RulesClass::Instance->BuildingDamageSound, &pThis->Location, 0);
 			}
 
 			if (WH->Sparky)

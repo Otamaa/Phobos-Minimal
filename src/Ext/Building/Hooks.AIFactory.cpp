@@ -126,6 +126,7 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 
 bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
 {
+#ifdef _Use
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pGoing->GetTechnoType());
 
 	if (pTypeExt->RecuitedAs.isset() && pTypeExt->RecuitedAs == reinfocement)
@@ -133,6 +134,7 @@ bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
 
 	if (TechnoExtContainer::Instance.Find(pGoing)->Type == reinfocement)
 		return true;
+#endif
 
 	return false;
 }
@@ -160,8 +162,6 @@ NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoT
 	}
 }
 
-thread_local std::vector<TechnoTypeClass*> taskForceMembers {};
-
 void HouseExtData::UpdateVehicleProduction()
 {
 	auto pThis = this->AttachedToObject;
@@ -180,7 +180,8 @@ void HouseExtData::UpdateVehicleProduction()
 	auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
 	creationFrames.assign(count, 0x7FFFFFFF);
 	values.assign(count, 0);
-
+	std::vector<TechnoTypeClass*> taskForceMembers;
+	taskForceMembers.reserve(UnitTypeClass::Array->Count);
 
 	for (auto& currentTeam : HouseExtContainer::HousesTeams[pThis])
 	{
@@ -624,6 +625,8 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	CreationFrames.assign(count, 0x7FFFFFFF);
 	Values.assign(count, 0);
 	BestChoices.clear();
+	std::vector<TechnoTypeClass*> taskForceMembers;
+	taskForceMembers.reserve(Ttype::Array->Count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
 	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[pHouse])

@@ -340,6 +340,8 @@ public:
 		JMP_THIS(0x5F6CD0);
 	}
 
+	void AttachSound(int idx) { JMP_THIS(0x5F6CB0); }
+
 	DamageState TakeDamage(int damage, WarheadTypeClass* pWH, bool crewed, bool ignoreDefenses = true, ObjectClass* pAttacker = nullptr, HouseClass* pAttackingHouse = nullptr) {
 		return ReceiveDamage(&damage, 0, pWH, pAttacker, ignoreDefenses, crewed, pAttackingHouse);
 	}

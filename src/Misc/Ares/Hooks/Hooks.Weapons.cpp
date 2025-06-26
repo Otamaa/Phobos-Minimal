@@ -4,6 +4,84 @@
 
 #include <Utilities/Macro.h>
 
+ASMJIT_PATCH(0x7128B2, TechnoTypeClass_ReadINI_MultiWeapon, 0x6)
+{
+	GET(TechnoTypeClass*, pThis, EBP);
+	GET(CCINIClass*, pINI, ESI);
+	enum { ReadWeaponX = 0x7128C0 };
+
+	INI_EX exINI(pINI);
+	const char* pSection = pThis->ID;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
+	pTypeExt->MultiWeapon.Read(exINI, pSection, "MultiWeapon");
+	bool multiWeapon = pThis->HasMultipleTurrets() || pTypeExt->MultiWeapon.Get();
+
+	if (pTypeExt->ReadMultiWeapon != multiWeapon) {
+
+		auto clearWeapon = [pThis](int index) {
+			auto& pWeapon = pThis->Weapon[index];
+			auto& pEliteWeapon = pThis->EliteWeapon[index];
+
+			pWeapon = WeaponStruct();
+			pEliteWeapon = WeaponStruct();
+		};
+
+		clearWeapon(0);
+		clearWeapon(1);
+
+		pTypeExt->ReadMultiWeapon = multiWeapon;
+	}
+
+	auto& SecondaryList = pTypeExt->MultiWeapon_IsSecondary;
+
+	if (pTypeExt->MultiWeapon.Get())
+	{
+		pTypeExt->MultiWeapon_SelectCount.Read(exINI, pSection, "MultiWeapon.SelectCount");
+
+		int weaponCount = pThis->WeaponCount;
+
+		if (weaponCount > 0)
+		{
+			ValueableVector<int> isSecondary;
+			isSecondary.Read(exINI, pSection, "MultiWeapon.IsSecondary");
+
+			if (!isSecondary.empty())
+			{
+				SecondaryList.resize(weaponCount, false);
+
+				for (int weaponIndex : isSecondary)
+				{
+					if (weaponIndex >= weaponCount)
+						continue;
+
+					SecondaryList[weaponIndex] = true;
+				}
+			}
+		}
+	}
+	else
+	{
+		SecondaryList.clear();
+	}
+
+	return multiWeapon ? ReadWeaponX : 0;
+}
+
+ASMJIT_PATCH(0x715B10, TechnoTypeClass_ReadINI_MultiWeapon2, 0x7)
+{
+	GET(TechnoTypeClass*, pThis, EBP);
+	enum { ReadWeaponX = 0x715B1F, Continue = 0x715B17 };
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
+
+	if (pTypeExt->ReadMultiWeapon)
+		return ReadWeaponX;
+
+	R->AL(pThis->HasMultipleTurrets());
+	return Continue;
+}
+
 //TechnoTypeClass_LoadFromINI_Weapons2
 DEFINE_JUMP(LJMP, 0x715B1F, 0x715F9E);
 
@@ -15,7 +93,7 @@ ASMJIT_PATCH(0x7128C0, TechnoTypeClass_LoadFromINI_Weapons1, 6)
 	return 0x712A8F;
 }
 
-WeaponStruct* FakeTechnoTypeClass::GetWeapon(int which) { 
+WeaponStruct* FakeTechnoTypeClass::GetWeapon(int which) {
 	if (which < TechnoTypeClass::MaxWeapons)
 		return this->Weapon + which;
 
@@ -30,7 +108,7 @@ WeaponStruct* FakeTechnoTypeClass::GetWeapon(int which) {
 	return nullptr;
 }
 
-WeaponStruct* FakeTechnoTypeClass::GetEliteWeapon(int which) { 
+WeaponStruct* FakeTechnoTypeClass::GetEliteWeapon(int which) {
 	if (which < TechnoTypeClass::MaxWeapons)
 		return this->EliteWeapon + which;
 
@@ -45,7 +123,7 @@ WeaponStruct* FakeTechnoTypeClass::GetEliteWeapon(int which) {
 	return nullptr;
 }
 
-int FakeTechnoTypeClass::GetWeaponTurretIndex(int which) { 
+int FakeTechnoTypeClass::GetWeaponTurretIndex(int which) {
 	if (which < TechnoTypeClass::MaxWeapons) {
 		return *(this->TurretWeapon + which);
 	}

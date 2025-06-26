@@ -70,7 +70,7 @@ public:
 	void _RemoveThis()
 	{
 		if (this->Type)
-			VocClass::PlayIndexAtPos(this->Type->StopSound, this->Location);
+			VocClass::SafeImmedietelyPlayAt(this->Type->StopSound, &this->Location);
 
 		this->ObjectClass::UnInit();
 	}

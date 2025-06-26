@@ -401,7 +401,7 @@ void TechnoExt::RemoveParasite(TechnoClass* pThis, HouseClass* sourceHouse, Warh
 		return;
 
 	if (pWHExt->CanRemoveParasites_ReportSound.isset() && pWHExt->CanRemoveParasites_ReportSound.Get() >= 0)
-		VocClass::PlayAt(pWHExt->CanRemoveParasites_ReportSound.Get(), parasite->GetCoords());
+		VocClass::SafeImmedietelyPlayAtpWHExt->CanRemoveParasites_ReportSound.Get(), parasite->GetCoords());
 
 	// Kill the parasite
 	CoordStruct coord = TechnoExt::PassengerKickOutLocation(pThis, parasite, 10);

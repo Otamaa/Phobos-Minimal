@@ -41,7 +41,7 @@ struct EboltExtData {
 	}
 
 public:
-	static Point3D GetColors(EBolt* pBolt , Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3);
+	static void GetColors(int(&color)[3], EBolt* pBolt , Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3);
 
 	static EBolt* _CreateOneOf(WeaponTypeClass* pWeapon, TechnoClass* pFirer);
 	static EBolt* _CreateOneOf(bool disable1, bool disable2, bool dosable3, bool alternateColor, int arch, int lifetime, Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3);

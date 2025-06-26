@@ -111,7 +111,7 @@ EboltExtData* data;
 ASMJIT_PATCH(0x4C1F33, EBolt_Draw_Colors, 7)
 {
 	GET(EBolt*, pThis, ECX);
-	GET_BASE(int, nColorIdx, 0x20);
+	//GET_BASE(int, nColorIdx, 0x20);
 	data = EboltExtData::Container.tryfind(pThis);
 	return 0x4C1F66;
 }

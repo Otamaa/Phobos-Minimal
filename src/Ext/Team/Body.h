@@ -104,9 +104,14 @@ public:
 	void _AI();
 	bool _CoordinateRegroup();
 	void _TeamClass_6EA080();
+	void _CoordinateMove();
+	void _AssignMissionTarget(AbstractClass* new_target);
 
 	//
 	void _TMission_Guard(ScriptActionNode* nNode, bool arg3);
+	void _TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3);
+	void _TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3);
+	void _TMission_ChangeHouse(ScriptActionNode* nNode, bool arg3);
 	//
 
 	TeamExtData* _GetExtData() {
