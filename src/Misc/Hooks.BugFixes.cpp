@@ -2874,6 +2874,17 @@ ASMJIT_PATCH(0x71A7BC, TemporalClass_Update_DistCheck, 0x6)
 	GET(TechnoClass*, pTarget, ECX);
 
 	// Vanilla check is incorrect for buildingtargets
-	R->EAX(pThis->Owner->DistanceFrom(pTarget));
-	return 0x71A82C;
+	const auto distance = pThis->Owner->DistanceFrom(pTarget);
+	int disatanceMax = RulesClass::Instance->OpenToppedWarpDistance;
+
+	if (auto const pTransport = pThis->Owner->Transporter) {
+		if(pTransport->IsAlive) {
+			auto& _cDiscance = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
+			->OpenTopped_WarpDistance;
+			if(_cDiscance.isset())
+				disatanceMax = _cDiscance.Get();
+		}
+	}
+
+	return distance > (disatanceMax * 256) ? 0x71A83F : 0x71A84E;
 }
