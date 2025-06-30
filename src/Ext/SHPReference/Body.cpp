@@ -1,76 +1,8 @@
 #include "Body.h"
 
-/*
-void SHPRefExt::ExtData::Initialize()
-{
-	//TODO : WTF ?
-	//auto pThis = this->Get();
-	//std::string nFileName = pThis->Filename;
-	//nFileName.erase(nFileName.begin() + nFileName.find(".SHP"));
-	//nFileName += ".APH";
+// Alpha support functionality has been removed as it was incomplete
+// and not being used. If alpha channel support is needed in the future,
+// it should be implemented as a separate, complete feature.
 
-	//if (!this->Alpha) {
-	//	if (auto pAlpha = GameCreate<SHPReference>(nFileName.c_str()))
-	//	{
-	//		pAlpha->Load();
-
-	//		if (!pAlpha->Loaded)
-	//		{
-	//			GameDelete<true>(pAlpha);
-	//			return;
-	//		}
-
-	//		if (pAlpha->Data->Width != pThis->Data->Width || pAlpha->Data->Height != pThis->Data->Height || pAlpha->Data->Frames != pThis->Data->Frames)
-	//		{
-	//			Debug::LogInfo("Mismatched alpha file. %s.", nFileName.c_str());
-	//			GameDelete<true>(pAlpha);
-	//			return;
-	//		}
-
-	//		this->Alpha = pAlpha;
-
-	//		if (this->Data.X != this->Data.Y && this->Data.Width != this->Data.Height)
-	//		{
-	//			Debug::LogInfo("File %s alpha has been loaded successfully.", pThis->Filename);
-	//		}
-	//	}
-	//} else {
-	//	if (pThis) {
-	//		if (!pThis->Loaded) {
-	//			pThis->Load();
-	//		}
-
-	//		if (this->Alpha->Loaded && pThis->Loaded) {
-	//			Debug::LogInfo("File %s alpha has been loaded successfully.", pThis->Filename);
-	//		}
-	//	}
-	//}
-
-}
-*/
-// =============================
-// container
-//SHPRefExt::ExtContainer SHPRefExt::ExtMap;
-
-//SHPRefExt::ExtContainer::ExtContainer() : Container("SHPReference") { }
-//SHPRefExt::ExtContainer::~ExtContainer() = default;
-
-// =============================
-// container hooks
-
-/*
-ASMJIT_PATCH(0x69E4F0, SHPReference_CTOR, 0x5)
-{
-	GET(SHPReference*, pItem, ESI);
-
-	SHPRefExt::ExtMap.JustAllocate(pItem , pItem , "Trying To Allocate From nullptr !");
-	return 0;
-}
-
-ASMJIT_PATCH(0x69E509, SHPReference_DTOR, 0x5)
-{
-	GET(SHPReference*, pItem, ECX);
-
-	SHPRefExt::ExtMap.Remove(pItem);
-	return 0;
-}*/
+// The SHPReference extension is kept minimal for now but ready for
+// future enhancements if needed.

@@ -9,32 +9,7 @@
 class SHPRefExt
 {
 public:
-	/*
-	class ExtData final : public Extension<SHPReference>
-	{
-	public:
-		static COMPILETIMEEVAL size_t Canary = 0xAB5005BA;
-		using base_type = SHPReference;
-		static COMPILETIMEEVAL size_t ExtOffset = 0x20;
-
-	public:
-
-		SHPReference* Alpha { nullptr };
-		RectangleStruct Data { 0,0,0,0 };
-		ExtData(SHPReference* OwnerObject) : Extension<SHPReference>(OwnerObject)
-		{}
-
-		virtual ~ExtData() override = default;
-		void Initialize();
-
-	};
-
-	class ExtContainer final : public Container<SHPRefExt::ExtData>
-	{
-	public:
-		ExtContainer();
-		~ExtContainer();
-	};
-
-	static ExtContainer ExtMap;*/
+	// Alpha support functionality has been removed as it was incomplete
+	// and not being used. If alpha channel support is needed in the future,
+	// it should be implemented as a separate, complete feature.
 };

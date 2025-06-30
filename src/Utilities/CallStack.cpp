@@ -1,6 +1,7 @@
 #include "CallStack.h"
 #include <Utilities/Debug.h>
 
+//
 // Thread-local storage using __declspec(thread) for MSVC compatibility
 __declspec(thread) std::unordered_map<DWORD, int>* CallStackTracker::CallCounts = nullptr;
 __declspec(thread) std::unordered_map<DWORD, std::chrono::steady_clock::time_point>* CallStackTracker::CallTimes = nullptr;

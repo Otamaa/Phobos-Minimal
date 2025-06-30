@@ -42,6 +42,7 @@
 #include "SavegameDef.h"
 #include "TranslucencyLevel.h"
 #include "GeneralUtils.h"
+#include "SHPUtils.h"
 
 #include <InfantryTypeClass.h>
 #include <AircraftTypeClass.h>
@@ -407,20 +408,13 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			std::string Result = GeneralUtils::ApplyTheaterSuffixToString(parser.c_str());
-
-			if (Result.find(".shp") == std::string::npos)
-			{
-				Result += ".shp";
-			}
-
-			if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))
+			if (auto const pImage = SHPUtils::LoadTheaterSHPWithFallback(parser.value()))
 			{
 				value = reinterpret_cast<Theater_SHPStruct*>(pImage);
 				return true;
 			}
 
-			Debug::LogInfo("[Phobos] Failed to find file {} referenced by [{}]{}={}", Result.c_str(), pSection, pKey, parser.value());
+			Debug::LogInfo("[Phobos] Failed to find theater-specific SHP file '{}' referenced by [{}]{}={}", parser.value(), pSection, pKey, parser.value());
 		}
 		return false;
 	}
@@ -434,16 +428,7 @@ namespace detail
 
 			if (GeneralUtils::IsValidString(pValue))
 			{
-				std::string flag = pValue;
-
-				if (flag.find(".shp") == std::string::npos)
-				{
-					flag += ".shp";
-				}
-
-				GeneralUtils::ApplyTheaterExtToString(flag);
-
-				if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
+				if (auto const pImage = SHPUtils::LoadSHPFileWithFallback(pValue))
 				{
 					value = pImage;
 					return true;

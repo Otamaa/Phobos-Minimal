@@ -548,6 +548,7 @@
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
+    <ClCompile Include="src\Utilities\CallStack.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
     <ClCompile Include="src\Utilities\CSFText.cpp" />
     <ClCompile Include="src\Utilities\DebrisSpawners.cpp" />
@@ -568,6 +569,7 @@
     <ClCompile Include="src\Utilities\Constructs.cpp" />
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
+    <ClCompile Include="src\Utilities\SHPUtils.cpp" />
     <ClCompile Include="src\Utilities\TechnoTypeConvertData.cpp" />
     <ClCompile Include="src\Utilities\TheaterSpecificSHP.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
@@ -972,6 +974,7 @@
     <ClInclude Include="src\Utilities\Anchor.h" />
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
+    <ClInclude Include="src\Utilities\CallStack.h" />
     <ClInclude Include="src\Utilities\Cast.h" />
     <ClInclude Include="src\Utilities\CSFText.h" />
     <ClInclude Include="src\Utilities\DebrisSpawners.h" />
@@ -1032,6 +1035,8 @@
     <ClInclude Include="src\Utilities\Macro.h" />
     <ClInclude Include="src\Utilities\Parser.h" />
     <ClInclude Include="src\Utilities\Patch.h" />
+    <ClInclude Include="src\Utilities\SHPUtils.h" />
+    <ClInclude Include="src\Utilities\SHPWrapper.h" />
     <ClInclude Include="src\Utilities\TechnoTypeConvertData.h" />
     <ClInclude Include="src\Utilities\Template.h" />
     <ClInclude Include="src\Utilities\TemplateDef.h" />

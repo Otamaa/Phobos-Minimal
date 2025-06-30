@@ -1,5 +1,6 @@
 #include "TheaterSpecificSHP.h"
 #include "INIParser.h"
+#include "SHPUtils.h"
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/SavegameDef.h>
@@ -9,20 +10,16 @@ bool TheaterSpecificSHP::Read(INI_EX& parser, const char* pSection, const char* 
 	if (parser.ReadString(pSection, pKey) > 0)
 	{
 		auto pValue = parser.value();
-		GeneralUtils::ApplyTheaterSuffixToString(pValue);
-
-		std::string Result = pValue;
-		if (!strstr(pValue, ".shp"))
-			Result += ".shp";
-
-		if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))
+		
+		// Use the new utility function for better fallback handling
+		if (auto const pImage = SHPUtils::LoadTheaterSHPWithFallback(pValue))
 		{
 			value = pImage;
 			return true;
 		}
 		else
 		{
-			Debug::LogInfo("Failed to find file {} referenced by [{}]{}={}", Result.c_str(), pSection, pKey, pValue);
+			Debug::LogInfo("Failed to find theater-specific SHP file '{}' referenced by [{}]{}={}", pValue, pSection, pKey, pValue);
 		}
 	}
 

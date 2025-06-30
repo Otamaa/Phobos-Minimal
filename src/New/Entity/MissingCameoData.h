@@ -2,28 +2,23 @@
 
 #include <Ext/Rules/Body.h>
 #include <Utilities/PhobosPCXFile.h>
+#include <Utilities/SHPWrapper.h>
 
 struct MissingCameoData
 {
-	SHPStruct* m_SHP_Fallback;
-
-	SHPStruct* m_SHP;
+	SHPWrapper m_SHP_Fallback;
+	SHPWrapper m_SHP;
 	PhobosPCXFile m_PCX;
 	UniqueGamePtrC<BSurface> m_SHPToPcxSurface;
 
-	~MissingCameoData()
-	{
-		m_PCX.~PhobosPCXFile();
-		GameDelete<true>(m_SHP);
-		GameDelete<true>(m_SHP_Fallback);
-	}
-
-	MissingCameoData() : m_SHP { nullptr }, m_PCX {}, m_SHPToPcxSurface {} {
-		m_SHP_Fallback = (SHPStruct*)FileSystem::LoadFile(GameStrings::XXICON_SHP(), true);
+	MissingCameoData() : m_PCX {}, m_SHPToPcxSurface {} {
+		// Load fallback SHP with automatic memory management
+		m_SHP_Fallback = SHPWrapper(GameStrings::XXICON_SHP());
 	}
 
 	void Initialize() {
-		m_SHP = (SHPStruct*)FileSystem::LoadFile(RulesExtData::Instance()->MissingCameo.data(), true);
+		// Load custom SHP with fallback to the default one
+		m_SHP = SHPWrapper(RulesExtData::Instance()->MissingCameo.data(), m_SHP_Fallback.get());
 		m_PCX = RulesExtData::Instance()->MissingCameo;
 
 		// TODO :
@@ -36,6 +31,7 @@ struct MissingCameoData
 	}
 
 	SHPStruct* GetSHPFile() {
-		return !this->m_SHP ? this->m_SHP_Fallback : this->m_SHP;
+		// Return the custom SHP if valid, otherwise fallback
+		return m_SHP ? m_SHP.get() : m_SHP_Fallback.get();
 	}
 };
