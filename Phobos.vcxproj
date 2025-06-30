@@ -868,6 +868,7 @@
     <ClInclude Include="src\Lib\gcem\gcem.hpp" />
     <ClInclude Include="src\Lib\Lua542\include\lua.hpp" />
     <ClInclude Include="src\Misc\Ares\Audio.h" />
+    <ClInclude Include="src\Misc\Ares\AudioPreload.h" />
     <ClInclude Include="src\Misc\Ares\CSF.h" />
     <ClInclude Include="src\Misc\Ares\EVAVoices.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\AresChecksummer.h" />
