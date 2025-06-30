@@ -26,7 +26,9 @@ public :
 	std::string TileSetName {};
 	Valueable<int> Tileset { -1 };
 	CustomPalette Palette {};
+	Valueable<bool> AllowVeins {};
 	ValueableVector<TiberiumClass*> AllowedTiberiums {};
+	ValueableVector<SmudgeTypeClass*> AllowedSmudges{};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

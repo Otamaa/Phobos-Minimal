@@ -11,21 +11,26 @@ class RawFileClass;
 class CCFileClass;
 class VocClass;
 class AudioEventClassTag;
-struct AudioAttribs;
-struct YRAudio
-{
-	static COMPILETIMEEVAL reference<IDirectSound*, 0x87E89Cu> const AUD_sound_object {};
-	static COMPILETIMEEVAL reference<IDirectSoundBuffer*, 0x87E8A0u> const AUD_primary_buffer {};
 
-	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E73Cu> const AudioAttribsunk {};
-	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E740u> const TauntAttribs {};
-	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E744u> const ScoreAttribs {};
-	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E748u> const SoundAttribs {};
-	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E74Cu> const off_87E74C {};
-	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E750u> const TauntFadeAttribs {};
-	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E754u> const ScoreFadeAttribs {};
-	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E758u> const FadeAttribs {};
+template<class T>
+struct SomeNodes
+{
+	T* Next;
+	T* Prev;
+	DWORD Magic;
+
+	void ListNodeInit()
+	{
+		JMP_THIS(0x4072D0);
+	}
+
+	void ListNodeInsert(SomeNodes<T>* pNode)
+	{
+		JMP_THIS(0x407420);
+	}
 };
+
+static_assert(sizeof(SomeNodes<DWORD>) == 0xC, "Invalid Size!");
 
 struct VolumeStruct	//pretty uncreative name, but it's all I can come up with atm
 {
@@ -38,6 +43,7 @@ struct VolumeStruct	//pretty uncreative name, but it's all I can come up with at
 	DWORD		unknown_18;		//default is ds:87E848h
 	int			unknown_int_1C;	//default is 16384
 };
+static_assert(sizeof(VolumeStruct) == 0x20, "Invalid Size!");
 
 struct AudioLevel
 {
@@ -53,6 +59,17 @@ struct AudioLevel
 
 static_assert(sizeof(AudioLevel) == 0x28, "Invalid Size!");
 
+struct AudioAttribs
+{
+	AudioLevel VolumeLevel;
+	AudioLevel PitchLevel;
+	AudioLevel PanPosition;
+	int field_78;
+	int field_7C;
+};
+
+static_assert(sizeof(AudioAttribs) == 0x80, "Invalid Size!");
+
 struct LockTag {
   int count;
   int dbg_struct_type;
@@ -65,22 +82,7 @@ struct AudioIDXHeader {
 	unsigned int Version;
 	unsigned int numSamples;
 };
-
-template<class T>
-struct SomeNodes {
-	T* Next;
-	T* Prev;
-	DWORD Magic;
-
-	void ListNodeInit() {
-		JMP_THIS(0x4072D0);
-	}
-
-	void ListNodeInsert(SomeNodes<T>* pNode) {
-		JMP_THIS(0x407420);
-	}
-};
-
+static_assert(sizeof(AudioIDXHeader) == 0xC, "Invalid Size!");
 
 struct AudioIDXEntry { // assert (IDXHeader.version != 1);
 	char Name[16];
@@ -203,13 +205,62 @@ public:
 		{ JMP_STD(0x408610); }
 };
 
-class AudioStream {
-public:
-	static COMPILETIMEEVAL reference<AudioStream*, 0xB1D4D8u> const Instance{};
-
-	bool __fastcall PlayWAV(const char* pFilename, bool bUnk)
-		{ JMP_STD(0x407B60); }
+struct SBufferDataStruct
+{
+	int databuffer;
+	int bytes_left;
 };
+static_assert(sizeof(SBufferDataStruct) == 0x8, "Invalid Size!");
+
+struct _stm_stream;
+struct __declspec(align(4)) STM_SBUFFER
+{
+	SomeNodes<DWORD> buffernode;
+	int field_C;
+	DWORD buffer;
+	DWORD dword14;
+	DWORD somedata;
+	DWORD somebytes;
+	SBufferDataStruct datastructs[2];
+	_stm_stream* streampointer;
+	int counter_34;
+	int field_38;
+};
+static_assert(sizeof(STM_SBUFFER) == 0x3C, "Invalid Size!");
+
+struct __declspec(align(4)) _stm_access
+{
+	_stm_stream* stream;
+	char* databuffer;
+	int datasize;
+	STM_SBUFFER* sbufferptr1;
+	int bitfield;
+	int id;
+	int mode;
+	DWORD refcount;
+	int field_20;
+	int lasterror;
+	STM_SBUFFER* sbufferptr2;
+	int somepos;
+	int position;
+	int bytes1;
+	int bytes2;
+	int field_3C;
+};
+static_assert(sizeof(_stm_access) == 0x40, "Invalid Size!");
+
+struct __declspec(align(4)) _stm_stream
+{
+	int streamcount;
+	SomeNodes<DWORD> buffernodes;
+	int flags;
+	int totalbytes;
+	_stm_access accessors[2];
+	DWORD refcount;
+	int field_9C;
+	int field_A0;
+};
+static_assert(sizeof(_stm_stream) == 0xA4, "Invalid Size!");
 
 struct TauntDataStruct {
 	DWORD tauntIdx : 4;
@@ -219,17 +270,6 @@ struct TauntDataStruct {
 typedef AudioSampleData AudioFormatTag ;
 
 static_assert(sizeof(AudioFormatTag) == 0x20, "Invalid Size!");
-
-struct AudioAttribs
-{
-  AudioLevel VolumeLevel;
-  AudioLevel PitchLevel;
-  AudioLevel PanPosition;
-  int field_78;
-  int field_7C;
-};
-
-static_assert(sizeof(AudioAttribs) == 0x80, "Invalid Size!");
 
 struct AudioSampleTag
 {
@@ -248,7 +288,7 @@ struct MemoryItemTag
   MemoryItemTag* next;
   int dbg_struct_type;
 };
-//static_assert(sizeof(MemoryItemTag) == 0x8, "Invalid Size!");
+static_assert(sizeof(MemoryItemTag) == 0x8, "Invalid Size!");
 
 struct MemoryPoolTag
 {
@@ -258,7 +298,7 @@ struct MemoryPoolTag
   static void* __fastcall MemoryPoolGetItem(MemoryPoolTag* tag)
   { JMP_STD(0x407520); }
 };
-//static_assert(sizeof(MemoryPoolTag) == 0x8, "Invalid Size!");
+static_assert(sizeof(MemoryPoolTag) == 0x8, "Invalid Size!");
 
 struct AudioCacheTag
 {
@@ -605,8 +645,9 @@ struct AudioController
 	void sub_406310()
 	{ JMP_THIS(0x406310); }
 };
+static_assert(sizeof(AudioController) == 0x14, "Invalid Size!");
 
-struct AudioEventHandleTag
+struct __declspec(align(4)) AudioEventHandleTag
 {
 	AudioEventTag* event;
 	DWORD stamp;
@@ -652,27 +693,22 @@ struct AudioEventHandleTag
 
 static_assert(sizeof(AudioEventHandleTag) == 0x14, "Invalid Size!");
 
-struct _ListNode
-{
-	_ListNode* next;
-	_ListNode* prev;
-	int pri;
-};
-
 struct __declspec(align(4)) AudioFrameTag
 {
-	_ListNode nd;
+	SomeNodes<DWORD> nd;
 	DWORD Data;
 	DWORD Bytes;
 	AudioSampleTag* _AudioSampleTag;
 	int field_18;
 };
+static_assert(sizeof(AudioFrameTag) == 0x1C, "Invalid Size!");
 
 struct __declspec(align(4)) imastruct
 {
 	DWORD Predicted;
 	DWORD Index;
 };
+static_assert(sizeof(imastruct) == 0x8, "Invalid Size!");
 
 struct AudioDriverChannelTag
 {
@@ -732,6 +768,7 @@ struct AudioDriverChannelTag
 	int soundframesizedivplaycursor2;
 	int playcursor2;
 };
+static_assert(sizeof(AudioDriverChannelTag) == 0xE0, "Invalid Size!");
 
 struct AudioDriverTag
 {
@@ -749,12 +786,15 @@ struct AudioDriverTag
 	int(__fastcall* unlock)(AudioChannelTag*);
 };
 
+static_assert(sizeof(AudioDriverTag) == 0x30, "Invalid Size!");
+
 struct AudioControlTag
 {
 	int Priority;
 	int Status;
 	int LoopCount;
 };
+static_assert(sizeof(AudioControlTag) == 0xC, "Invalid Size!");
 
 struct AudioSystemTag;
 struct AudioDeviceTag;
@@ -771,16 +811,18 @@ struct __declspec(align(4)) AudioSystemMasterTag
 	void(__fastcall* close)(AudioDeviceTag* AudioDeviceTag);
 	AudioDriverTag* _AudioDriverTag;
 };
+static_assert(sizeof(AudioSystemMasterTag) == 0x28, "Invalid Size!");
 
 struct __declspec(align(4)) AudioSystemTag
 {
-	_ListNode nd;
+	SomeNodes<DWORD> nd;
 	AudioSystemMasterTag* master;
 	LockTag lock;
 	int numUnits;
 	AudioDeviceTag* unit[16];
 	int dbg_struct_type;
 };
+static_assert(sizeof(AudioSystemTag) == 0x60, "Invalid Size!");
 
 struct AudioServiceInfoTag
 {
@@ -800,10 +842,11 @@ struct AudioServiceInfoTag
 	int field_58;
 	int field_5C;
 };
+static_assert(sizeof(AudioServiceInfoTag) == 0x60, "Invalid Size!");
 
 struct AudioDeviceTag
 {
-	_ListNode nd;
+	SomeNodes<DWORD> nd;
 	int flags;
 	LockTag lock;
 	AudioSystemTag* _AudioSystemTag;
@@ -817,7 +860,7 @@ struct AudioDeviceTag
 	int Unit;
 	int channels;
 	int maxChannels;
-	_ListNode channelList;
+	SomeNodes<DWORD> channelList;
 	LockTag channelAccess;
 	int(__fastcall* deviceHandler)(struct AudioDeviceTag*);
 	AudioServiceInfoTag attribsUpdate;
@@ -829,8 +872,9 @@ struct AudioDeviceTag
 	int frame_lag;
 	int dbg_struct_type;
 };
+static_assert(sizeof(AudioDeviceTag) == 0x1E8, "Invalid Size!");
 
-class AudioChannelTag
+class NOVTABLE AudioChannelTag
 {
 public:
 	static int __fastcall AudioChannelSetFormat(AudioChannelTag* chan, AudioFormatTag* format)
@@ -843,7 +887,7 @@ public:
 		JMP_THIS(0x40A6D0);
 	}
 
-	_ListNode nd;
+	SomeNodes<DWORD> nd;
 	int Type;
 	AudioAttribs ChannelAttribs;
 	AudioAttribs* SfxAttribs;
@@ -852,13 +896,13 @@ public:
 	AudioAttribs* FadeAttribs;
 	AudioControlTag Control;
 	AudioDeviceTag* Device;
-	int(__fastcall* CB_NextFrame)(AudioChannelTag*);
-	int(__fastcall* CB_NextSample)(AudioChannelTag*);
-	int(__fastcall* CB_SampleDone)(AudioChannelTag*);
-	int(__fastcall* CB_Stop)(AudioChannelTag*);
-	AudioEventTag* _AudioEventTag;
+	int(__fastcall* CB_NextFrame)(class AudioChannelTag*);
+	int(__fastcall* CB_NextSample)(class AudioChannelTag*);
+	int(__fastcall* CB_SampleDone)(class AudioChannelTag*);
+	int(__fastcall* CB_Stop)(class AudioChannelTag*);
+	AudioEventTag* Data;
 	int UserField[4];
-	AudioDriverTag* _AudioDriverTag;
+	AudioDriverTag* driver;
 	AudioAttribs attribs;
 	AudioDriverChannelTag* drvData;
 	int drvCBNextFrame;
@@ -872,9 +916,64 @@ public:
 	AudioFormatTag current_format;
 	int format_changed;
 	int drv_format_changed;
-	long long time_min_frame;
+	DWORD time_min_frame;
 	double time_buffer;
 	int field_1B4;
 	int field_1B8;
 	int field_1BC;
+};
+static_assert(sizeof(AudioChannelTag) == 0x1C0, "Invalid Size!");
+
+class FileClass;
+struct AudioStreamerTag
+{
+	static COMPILETIMEEVAL reference<AudioStreamerTag*, 0xB1D4D8u> const Instance {};
+
+	static bool __fastcall PlayWAV(AudioStreamerTag* pStm, const char* pFilename, bool bUnk)
+	{ JMP_STD(0x407B60); }
+
+public:
+
+	SomeNodes<DWORD> listnode;
+	int bitfield;
+	AudioDeviceTag* devicetag;
+	AudioChannelTag* audiochanneltag;
+	DWORD valforAudioFormatBytes;
+	DWORD timing1C;
+	__int64 endtimestamp;
+	__int64 endtimestamp2;
+	_stm_stream* stream;
+	_stm_access* streamaccess1;
+	_stm_access* streamaccess2;
+	AudioSampleTag sample;
+	AudioFormatTag format;
+	FileClass* fileclass;
+	DWORD pauses; int field_84;
+	DWORD locks; float gap8C;
+	int samplebytes;
+	int field_94;
+	int field_98;
+	int samplebytes2;
+	int formatbytes;
+	char streamname[80];
+	char field_F4;
+	char field_F5;
+	char field_F6;
+	char field_F7;
+};
+
+static_assert(sizeof(AudioStreamerTag) == 0xF8, "Invalid Size!");
+struct YRAudio
+{
+	static COMPILETIMEEVAL reference<IDirectSound*, 0x87E89Cu> const AUD_sound_object {};
+	static COMPILETIMEEVAL reference<IDirectSoundBuffer*, 0x87E8A0u> const AUD_primary_buffer {};
+
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E73Cu> const AudioAttribsunk {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E740u> const TauntAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E744u> const ScoreAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E748u> const SoundAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E74Cu> const off_87E74C {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E750u> const TauntFadeAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E754u> const ScoreFadeAttribs {};
+	static COMPILETIMEEVAL reference<AudioAttribs*, 0x87E758u> const FadeAttribs {};
 };

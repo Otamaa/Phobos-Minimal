@@ -74,6 +74,62 @@ HRESULT __stdcall FakeSmudgeTypeClass::_Save(IStream* pStm, bool clearDirty)
 	return res;
 }
 
+#include <Ext/IsometricTileType/Body.h>
+
+bool FakeSmudgeTypeClass::_CanPlaceHere(CellStruct* origin, bool underbuildings) {
+	for (int h = 0; h < this->Height; h++)
+	{
+		for (int w = 0; w < this->Width; w++)
+		{
+			CellStruct trycell = *origin + CellStruct(w, h);
+			CellClass* cell = MapClass::Instance->TryGetCellAt(trycell);
+			if (!!MapClass::Instance->IsWithinUsableArea(trycell, true))
+			{
+				return false;
+			}
+
+			if (cell->SlopeIndex != 0)
+			{
+				return false;
+			}
+
+			if (cell->SmudgeTypeIndex != -1)
+			{
+				return false;
+			}
+
+			if (cell->OverlayTypeIndex != -1)
+			{
+				return false;
+			}
+
+			if (!underbuildings && cell->GetBuilding())
+			{
+				return false;
+			}
+
+			int ittype = cell->IsoTileTypeIndex;
+			if (cell->IsoTileTypeIndex < 0 || cell->IsoTileTypeIndex >= IsometricTileTypeClass::Array->Count)
+			{
+				ittype = 0;
+			}
+
+			if (!IsometricTileTypeClass::Array->Items[ittype]->Morphable)
+			{
+				return false;
+			}
+
+			const auto isotype_ext = IsometricTileTypeExtContainer::Instance.Find(IsometricTileTypeClass::Array->Items[ittype]);
+
+			if (!isotype_ext->AllowedSmudges.empty() && !isotype_ext->AllowedSmudges.Contains(this)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F353C, FakeSmudgeTypeClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3540, FakeSmudgeTypeClass::_Save)
 

@@ -43,24 +43,18 @@ public:
 	int MaxFDelta;	//as in sound.ini
 	int VShift;	//as in sound.ini
 	char Name [0x20]; //as in sound.ini
-	DWORD unknown_8C;
-	DWORD unknown_90;
-	DWORD unknown_94;
-	DWORD unknown_98;
-	DWORD unknown_9C;
-	DWORD unknown_A0;
-	DWORD unknown_A4;
-	DWORD unknown_A8;
-	DWORD unknown_AC;
-	DWORD unknown_B0;
-
+	SomeNodes<DWORD> listnode;
+	int someid;
+	int field_9C;
+	int priority_A0;
+	SomeNodes<DWORD> listnode_A4;
+	int volumelevle_B0;
 	int SampleIndex [0x20];
-
 	int NumSamples;
 	int Attack;
 	int Decay;
-	DWORD unknown_140;
-	DWORD unknown_144;
+	int field_140;
+	int field_144;
 };
 
 static_assert(sizeof(AudioEventClassTag) == 0x148 , "Invalid Size !");

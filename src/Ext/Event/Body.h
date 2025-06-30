@@ -72,10 +72,20 @@ public:
 		static void Raise();
 
 		static COMPILETIMEEVAL int SendResponseTimeInterval = 30;
+		static COMPILETIMEEVAL int SendResponseTimeFrame = 8 * SendResponseTimeInterval;
 
 		static bool Enable;
 		static unsigned char MaxLatencyLevel;
 		static int WorstMaxAhead;
+		static int NextSendFrame;
+
+		static void Init()
+		{
+			Enable = false;
+			WorstMaxAhead = 24;
+			NextSendFrame = -1;
+			MaxLatencyLevel = 0xff;
+		}
 
 #pragma pack(push, 1)
 		char MaxAhead;

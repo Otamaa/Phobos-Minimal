@@ -511,6 +511,9 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AffectsInAir.Read(exINI, pSection, "AffectsInAir");
 	this->CellSpread_Cylinder.Read(exINI, pSection, "CellSpread.Cylinder");
 
+	this->DamageSourceHealthMultiplier.Read(exINI, pSection, "DamageSourceHealthMultiplier");
+	this->DamageTargetHealthMultiplier.Read(exINI, pSection, "DamageTargetHealthMultiplier");
+
 	ValueableVector<InfantryTypeClass*> InfDeathAnims_List {};
 
 	InfDeathAnims_List.Read(exINI, pSection, "InfDeathAnim.LinkedList");
@@ -667,25 +670,29 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	if (pVictimHouse && (this->DamageOwnerMultiplier != 1.0 || this->DamageAlliesMultiplier != 1.0 || this->DamageEnemiesMultiplier != 1.0))
 	{
 		const int sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
-		int calculateDamage = *pArgs->Damage;
 
-		if (pVictimHouse == pArgs->SourceHouse)
-		{
+		if (pVictimHouse == pArgs->SourceHouse) {
 			if (this->DamageOwnerMultiplier != 1.0)
-				calculateDamage = static_cast<int>(*pArgs->Damage * this->DamageOwnerMultiplier.Get(RulesExtData::Instance()->DamageOwnerMultiplier));
+				*pArgs->Damage = static_cast<int>(*pArgs->Damage * this->DamageOwnerMultiplier.Get(RulesExtData::Instance()->DamageOwnerMultiplier));
 		}
 		else if (pVictimHouse->IsAlliedWith(pArgs->SourceHouse))
 		{
 			if (this->DamageAlliesMultiplier != 1.0)
-				calculateDamage = static_cast<int>(*pArgs->Damage * this->DamageAlliesMultiplier.Get(RulesExtData::Instance()->DamageAlliesMultiplier));
+				*pArgs->Damage = static_cast<int>(*pArgs->Damage * this->DamageAlliesMultiplier.Get(RulesExtData::Instance()->DamageAlliesMultiplier));
 		}
 		else
 		{
 			if (this->DamageEnemiesMultiplier != 1.0)
-				calculateDamage = static_cast<int>(*pArgs->Damage * this->DamageEnemiesMultiplier.Get(RulesExtData::Instance()->DamageEnemiesMultiplier));
+				*pArgs->Damage = static_cast<int>(*pArgs->Damage * this->DamageEnemiesMultiplier.Get(RulesExtData::Instance()->DamageEnemiesMultiplier));
 		}
 
-		*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
+		if (this->DamageSourceHealthMultiplier && pArgs->Attacker)
+			*pArgs->Damage = static_cast<int>(*pArgs->Damage *  pArgs->Attacker->GetHealthPercentage());
+
+		if (this->DamageTargetHealthMultiplier)
+			*pArgs->Damage= static_cast<int>(this->DamageTargetHealthMultiplier * pVictim->GetHealthPercentage());
+
+		*pArgs->Damage = *pArgs->Damage ? *pArgs->Damage : sgnDamage;
 	}
 }
 
@@ -1627,6 +1634,8 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AirstrikeTargets)
 		.Process(this->CanKill)
 		.Process(this->ElectricAssault_Requireverses)
+		.Process(this->DamageSourceHealthMultiplier)
+		.Process(this->DamageTargetHealthMultiplier)
 		;
 
 	PaintBallData.Serialize(Stm);

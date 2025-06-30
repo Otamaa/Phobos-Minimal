@@ -106,13 +106,15 @@ ASMJIT_PATCH(0x4C2A02, EBolt_DestroyVector, 0x6)
 	return SkipGameCode;
 }
 
-EboltExtData* data;
+namespace EboltTemp {
+	EboltExtData* Data;
+}
 
 ASMJIT_PATCH(0x4C1F33, EBolt_Draw_Colors, 7)
 {
 	GET(EBolt*, pThis, ECX);
 	//GET_BASE(int, nColorIdx, 0x20);
-	data = EboltExtData::Container.tryfind(pThis);
+	EboltTemp::Data = EboltExtData::Container.tryfind(pThis);
 	return 0x4C1F66;
 }
 
@@ -129,7 +131,7 @@ ASMJIT_PATCH(0x4C24E4, Ebolt_DrawFist_Disable, 0x8)
 {
 	//GET_STACK(EBolt* const, pBolt, 0x40);
 
-	if (data && data->Disable[0]) {
+	if (EboltTemp::Data && EboltTemp::Data->Disable[0]) {
 		return 0x4C2515;
 	}
 
@@ -143,8 +145,8 @@ ASMJIT_PATCH(0x4C20BC, EBolt_DrawArcs, 0x5)
 	//GET_STACK(EBolt*, pBolt, 0x40);
 	GET_STACK(int, plotIndex, STACK_OFFSET(0x408, -0x3E0))
 
-	if(data){
-		return plotIndex < data->Arcs
+	if(EboltTemp::Data){
+		return plotIndex < EboltTemp::Data->Arcs
 		? DoLoop : Break;
 	}
 
@@ -153,7 +155,7 @@ ASMJIT_PATCH(0x4C20BC, EBolt_DrawArcs, 0x5)
 
 ASMJIT_PATCH(0x4C25FD, Ebolt_DrawSecond_Disable, 0xA)
 {
-	if (data && data->Disable[1]) {
+	if (EboltTemp::Data && EboltTemp::Data->Disable[1]) {
 		return 0x4C262A;
 	}
 
@@ -162,7 +164,7 @@ ASMJIT_PATCH(0x4C25FD, Ebolt_DrawSecond_Disable, 0xA)
 
 ASMJIT_PATCH(0x4C26EE, Ebolt_DrawThird_Disable, 0x6)
 {
-	if (data && data->Disable[2]) {
+	if (EboltTemp::Data && EboltTemp::Data->Disable[2]) {
 		return 0x4C2710;
 	}
 
@@ -171,19 +173,19 @@ ASMJIT_PATCH(0x4C26EE, Ebolt_DrawThird_Disable, 0x6)
 
 ASMJIT_PATCH(0x4C24BE, EBolt_Draw_Color1, 5)
 {
-	R->EAX(data->Color[0]);
+	R->EAX(EboltTemp::Data->Color[0]);
 	return 0x4C24E4;
 }
 
 ASMJIT_PATCH(0x4C25CB, EBolt_Draw_Color2, 5)
 {
-	R->Stack<int>(0x18, data->Color[1]);
+	R->Stack<int>(0x18, EboltTemp::Data->Color[1]);
 	return 0x4C25FD;
 }
 
 ASMJIT_PATCH(0x4C26CF, EBolt_Draw_Color3, 5)
 {
-	R->EAX(data->Color[2]);
+	R->EAX(EboltTemp::Data->Color[2]);
 	return 0x4C26EE;
 }
 

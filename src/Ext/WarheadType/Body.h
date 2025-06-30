@@ -434,6 +434,10 @@ public:
 	Valueable<bool> CanKill { true };
 	Valueable<bool> ElectricAssault_Requireverses {};
 
+	Valueable<double> DamageSourceHealthMultiplier { 0.0 };
+	Valueable<double> DamageTargetHealthMultiplier { 0.0 };
+
+
 #pragma endregion
 
 public:

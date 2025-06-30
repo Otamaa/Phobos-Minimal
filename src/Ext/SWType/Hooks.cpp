@@ -931,13 +931,13 @@ ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 			}
 
 			if (!SessionClass::IsCampaign() || pThis->IQLevel2 >= RulesClass::Instance->SuperWeapons)
-				pThis->AI_TryFireSW();
+				pThis->_AITryFireSW();
 		}
 
 		return UpdateAIExpert;
 
 	} else {
-		pThis->AI_TryFireSW();
+		pThis->_AITryFireSW();
 	}
 
 	return Continue;
@@ -1329,30 +1329,7 @@ ASMJIT_PATCH(0x6CB70C, SuperClass_Grant_InitialReady, 0xA)
 
 	return 0x6CB750;
 }
-
-ASMJIT_PATCH(0x5098F0, HouseClass_Update_AI_TryFireSW, 5)
-{
-	GET(HouseClass*, pThis, ECX);
-
-	//if (!pThis->Supers.IsAllocated && !pThis->Supers.IsInitialized)
-	//	return 0x509AE7;
-
-	// this method iterates over every available SW and checks
-	// whether it should be fired automatically. the original
-	// method would abort if this house is human-controlled.
-	const bool humanControlled = pThis->IsControlledByHuman();
-
-	for (const auto& pSuper : pThis->Supers) {
-		//Debug::LogInfo("House[%s - %x] Trying To Fire SW[%s - %x]" , pThis->get_ID() , pThis, pSuper->Type->ID , pSuper);
-		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
-			if (!humanControlled || SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_AutoFire) {
-				SWTypeExtData::TryFire(pSuper, false);
-			}
-		}
-	}
-
-	return 0x509AE7;
-}
+DEFINE_FUNCTION_JUMP(LJMP, 0x5098F0 , FakeHouseClass::_AITryFireSW)
 
 #include <EventClass.h>
 

@@ -176,6 +176,61 @@ bool FakeCellClass::_CanTiberiumGerminate(TiberiumClass* tiberium)
 
 }
 
+bool FakeCellClass::_CanPlaceVeins()
+{
+	if (this->SlopeIndex <= 4)
+	{
+		if (this->LandType != LandType::Water
+			&& this->LandType != LandType::Rock
+			&& this->LandType != LandType::Ice
+			&& this->LandType != LandType::Beach)
+		{
+			if (this->OverlayTypeIndex == -1 || OverlayTypeClass::Array->Items[this->OverlayTypeIndex]->IsVeins)
+			{
+				int ittype = this->IsoTileTypeIndex;
+				if (ittype < 0 || ittype >= IsometricTileTypeClass::Array->Count) {
+					ittype = 0;
+				}
+
+				const auto isotype_ext = IsometricTileTypeExtContainer::Instance.Find(IsometricTileTypeClass::Array->Items[ittype]);
+
+				if (isotype_ext->AllowVeins)
+				{
+					for (int dir = 0; dir < 8; dir += 2)
+					{
+						CellStruct adjacent;
+						MapClass::GetAdjacentCell(&adjacent, &this->MapCoords, static_cast<FacingType>(dir));
+						auto adjacent_cell = MapClass::Instance->TryGetCellAt(adjacent);
+
+						if (adjacent_cell->SlopeIndex > 4 && this->SlopeIndex == 0)
+						{
+							if (adjacent_cell->OverlayTypeIndex == -1 || !OverlayTypeClass::Array->Items[adjacent_cell->OverlayTypeIndex]->IsVeins)
+							{
+								return false;
+							}
+						}
+
+						if (adjacent_cell->LandType != LandType::Water
+							&& adjacent_cell->LandType != LandType::Rock
+							&& adjacent_cell->LandType != LandType::Ice
+							&& adjacent_cell->LandType != LandType::Beach)
+						{
+							return false;
+						}
+
+						if (adjacent_cell->OverlayTypeIndex != -1 || !OverlayTypeClass::Array->Items[adjacent_cell->OverlayTypeIndex]->IsVeins)
+						{
+							return false;
+						}
+					}
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 //DEFINE_FUNCTION_JUMP(LJMP, 0x4838E0, FakeCellClass::_CanTiberiumGerminate);
 
 //seems causing large FPS drop

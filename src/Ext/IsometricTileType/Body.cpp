@@ -2,6 +2,7 @@
 
 #include <ScenarioClass.h>
 #include <TiberiumClass.h>
+#include <SmudgeTypeClass.h>
 
 int IsometricTileTypeExtContainer::CurrentTileset = -1;
 std::map<std::string, std::map<TintStruct, LightConvertClass*>> IsometricTileTypeExtContainer::LightConvertEntities;
@@ -85,6 +86,8 @@ void IsometricTileTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailA
 	//this->Palette.Read(exINI, buffer.data() , "CustomPalette");
 
 	this->AllowedTiberiums.Read(exINI, this->TileSetName.c_str(), "AllowedTiberiums");
+	this->AllowVeins.Read(exINI, this->TileSetName.c_str(), "AlloweVeins");
+	this->AllowedSmudges.Read(exINI, this->TileSetName.c_str(), "AllowedSmudgess");
 }
 
 template <typename T>
@@ -96,6 +99,8 @@ void IsometricTileTypeExtData::Serialize(T& Stm)
 		.Process(this->Tileset)
 		.Process(this->Palette)
 		.Process(this->AllowedTiberiums)
+		.Process(this->AllowVeins)
+		.Process(this->AllowedSmudges)
 		;
 }
 

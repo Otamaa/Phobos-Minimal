@@ -2867,3 +2867,13 @@ ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
 }
+
+ASMJIT_PATCH(0x71A7BC, TemporalClass_Update_DistCheck, 0x6)
+{
+	GET(TemporalClass*, pThis, ESI);
+	GET(TechnoClass*, pTarget, ECX);
+
+	// Vanilla check is incorrect for buildingtargets
+	R->EAX(pThis->Owner->DistanceFrom(pTarget));
+	return 0x71A82C;
+}

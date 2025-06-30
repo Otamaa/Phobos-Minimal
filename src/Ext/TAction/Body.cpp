@@ -1779,15 +1779,70 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 }
 
+NOINLINE std::string AresNewTriggerAction_ToString(AresNewTriggerAction action)
+{
+	switch (action)
+	{
+	case AresNewTriggerAction::AuxiliaryPower: return "AuxiliaryPower";
+	case AresNewTriggerAction::KillDriversOf: return "KillDriversOf";
+	case AresNewTriggerAction::SetEVAVoice: return "SetEVAVoice";
+	case AresNewTriggerAction::SetGroup: return "SetGroup";
+	default: return "";
+	}
+}
+
+NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction action)
+{
+	switch (action)
+	{
+	case PhobosTriggerAction::SaveGame: return "SaveGame";
+	case PhobosTriggerAction::EditVariable: return "EditVariable";
+	case PhobosTriggerAction::GenerateRandomNumber: return "GenerateRandomNumber";
+	case PhobosTriggerAction::PrintVariableValue: return "PrintVariableValue";
+	case PhobosTriggerAction::BinaryOperation: return "BinaryOperation";
+	case PhobosTriggerAction::RunSuperWeaponAtLocation: return "RunSuperWeaponAtLocation";
+	case PhobosTriggerAction::RunSuperWeaponAtWaypoint: return "RunSuperWeaponAtWaypoint";
+	case PhobosTriggerAction::DumpVariables: return "DumpVariables";
+	case PhobosTriggerAction::PrintMessageRemainingTechnos: return "PrintMessageRemainingTechnos";
+	case PhobosTriggerAction::ToggleMCVRedeploy: return "ToggleMCVRedeploy";
+	case PhobosTriggerAction::UndeployToWaypoint: return "UndeployToWaypoint";
+	case PhobosTriggerAction::SetDropCrate: return "SetDropCrate";
+	case PhobosTriggerAction::SetTriggerTechnoVeterancy: return "SetTriggerTechnoVeterancy";
+	case PhobosTriggerAction::TransactMoneyFor: return "TransactMoneyFor";
+	case PhobosTriggerAction::SetAIMode: return "SetAIMode";
+	case PhobosTriggerAction::DrawAnimWithin: return "DrawAnimWithin";
+	case PhobosTriggerAction::SetAllOwnedFootDestinationTo: return "SetAllOwnedFootDestinationTo";
+	case PhobosTriggerAction::FlashTechnoFor: return "FlashTechnoFor";
+	case PhobosTriggerAction::UnInitTechno: return "UnInitTechno";
+	case PhobosTriggerAction::GameDeleteTechno: return "GameDeleteTechno";
+	case PhobosTriggerAction::LightningStormStrikeAtObject: return "LightningStormStrikeAtObject";
+	case PhobosTriggerAction::ResetHateValue: return "ResetHateValue";
+	case PhobosTriggerAction::EditAngerNode: return "EditAngerNode";
+	case PhobosTriggerAction::ClearAngerNode: return "ClearAngerNode";
+	case PhobosTriggerAction::SetForceEnemy: return "SetForceEnemy";
+	case PhobosTriggerAction::CreateBannerGlobal: return "CreateBannerGlobal";
+	case PhobosTriggerAction::CreateBannerLocal: return "CreateBannerLocal";
+	case PhobosTriggerAction::DeleteBanner: return "DeleteBanner";
+	case PhobosTriggerAction::MessageForSpecifiedHouse: return "MessageForSpecifiedHouse";
+	case PhobosTriggerAction::RandomTriggerPut: return "RandomTriggerPut";
+	case PhobosTriggerAction::RandomTriggerRemove: return "RandomTriggerRemove";
+	case PhobosTriggerAction::RandomTriggerEnable: return "RandomTriggerEnable";
+	case PhobosTriggerAction::ScoreCampaignText: return "ScoreCampaignText";
+	case PhobosTriggerAction::ScoreCampaignTheme: return "ScoreCampaignTheme";
+	case PhobosTriggerAction::SetNextMission: return "SetNextMission";
+	default: return "";
+	}
+}
+
 bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	std::string_view name = magic_enum::enum_name(this->ActionKind);
 
 	if(name.empty())
-		name = magic_enum::enum_name((AresNewTriggerAction)this->ActionKind);
+		name = AresNewTriggerAction_ToString((AresNewTriggerAction)this->ActionKind);
 
 	if (name.empty())
-		name = magic_enum::enum_name((PhobosTriggerAction)this->ActionKind);
+		name = PhobosTriggerAction_ToString((PhobosTriggerAction)this->ActionKind);
 
 	Debug::LogInfo("TAction[{} - {}] triggering [{}]", (void*)this, name, (int)this->ActionKind);
 	bool ret = true;
@@ -1833,12 +1888,12 @@ ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
 	std::string from = "Vanilla";
 
 	if (name.empty()) {
-		name = magic_enum::enum_name((AresNewTriggerAction)pAction->ActionKind);
+		name = AresNewTriggerAction_ToString((AresNewTriggerAction)pAction->ActionKind);
 		from = "Ares";
 	}
 
 	if (name.empty()){
-		name = magic_enum::enum_name((PhobosTriggerAction)pAction->ActionKind);
+		name = PhobosTriggerAction_ToString((PhobosTriggerAction)pAction->ActionKind);
 		from = "Phobos";
 	}
 

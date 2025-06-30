@@ -366,8 +366,7 @@ AudioLuggage AudioLuggage::Instance;
 
 bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 {
-	const auto pAudioStream = AudioStream::Instance();
-	if(!pAudioStream || Unsorted::ScenarioInit_Audio() || SampleIdx > 9 || HouseTypeIdx <= -1) {
+	if(!AudioStreamerTag::Instance() || Unsorted::ScenarioInit_Audio() || SampleIdx > 9 || HouseTypeIdx <= -1) {
 		return false;
 	}
 
@@ -382,7 +381,7 @@ bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 		pExt->AttachedToObject->ID, vec[SampleIdx - 1].c_str());
 	}
 
-	return pAudioStream->PlayWAV(vec[SampleIdx - 1].c_str(), false);
+	return AudioStreamerTag::PlayWAV(AudioStreamerTag::Instance() ,vec[SampleIdx - 1].c_str(), false);
 }
 
 ASMJIT_PATCH(0x752b70 , PlayTaunt , 5)

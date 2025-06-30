@@ -45,6 +45,8 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
+	bool _CanPlaceHere(CellStruct*origin, bool underbuildings);
+
 	SmudgeTypeExtData* _GetExtData() {
 		return *reinterpret_cast<SmudgeTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}

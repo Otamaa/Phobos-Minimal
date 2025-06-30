@@ -2416,6 +2416,26 @@ ASMJIT_PATCH(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 				{
 					(*walk)->DrawRadialIndicator(1);
 				}
+				//else if (auto pTechno = flag_cast_to<TechnoClass*>(*walk))
+				//{
+				//	auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)(pObjType));
+
+				//	if (pTypeExt->DesignatorRange > 0)
+				//	{
+				//		if (HouseClass::IsCurrentPlayerObserver()
+				//		|| pTechno->Owner->ControlledByCurrentPlayer())
+				//		{
+				//			int nRadius = pTypeExt->DesignatorRange;
+				//			const auto Color = pTypeExt->RadialIndicatorColor.Get(pTechno->Owner->Color);
+
+				//			if (Color != ColorStruct::Empty)
+				//			{
+				//				auto nCoord = pTechno->GetCoords();
+				//				FakeTacticalClass::__DrawRadialIndicator(false, true, nCoord, Color, (nRadius * 1.0f), false, true);
+				//			}
+				//		}
+				//	}
+				//}
 			}
 		}
 	}
@@ -3565,7 +3585,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (randomizeCoord)
 							{
 								CellStruct dest {};
-								MapClass::GetAdjacentCell(&dest, &pCell->MapCoords, (DirType)i);
+								MapClass::GetAdjacentCell(&dest, &pCell->MapCoords, (FacingType)i);
 								pDestCell = MapClass::Instance->GetCellAt(dest);
 							}
 
@@ -6619,9 +6639,9 @@ public:
 	}
 };
 
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
-//DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
-//DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::_Submit);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
+DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
+DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::_Submit);
 
 class NOVTABLE FakeDriveLocomotionClass final : DriveLocomotionClass
 {
@@ -6938,3 +6958,17 @@ ASMJIT_PATCH(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 	return 0x0;
 }
 #endif
+
+//fix buffer overflow that sometime happen
+#define IonBlastBufferSize 512
+static int IonBlastBuffer[IonBlastBufferSize];
+
+DEFINE_PATCH_TYPED(DWORD, 0x53D362, DWORD(&IonBlastBuffer))// buffer begin
+DEFINE_PATCH_TYPED(DWORD, 0x53CF50, DWORD(&IonBlastBuffer))// buffer begin
+DEFINE_PATCH_TYPED(DWORD, 0x53D552, DWORD(&IonBlastBuffer))// buffer begin
+DEFINE_PATCH_TYPED(DWORD, 0x53D5E1, DWORD(&IonBlastBuffer))// buffer begin
+
+DEFINE_PATCH_TYPED(DWORD, 0x53D56D, DWORD(&(IonBlastBuffer[IonBlastBufferSize])))// buffer end
+DEFINE_PATCH_TYPED(DWORD, 0x53D52C, DWORD(&(IonBlastBuffer[IonBlastBufferSize])))// buffer end
+
+#undef IonBlastBufferSize

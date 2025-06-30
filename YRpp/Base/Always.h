@@ -148,7 +148,7 @@ typedef union {
 #endif
 
 #define OPTIONALINLINE inline
-#define COMPILETIMEEVAL constexpr 
+#define COMPILETIMEEVAL constexpr
 
 #define ALIGN(val) __declspec(align(val))
 #define ALIGNOF(type) (sizeof(type) - sizeof(type) + __alignof(type))
@@ -186,7 +186,7 @@ SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
 #define CAT(A, ...) CAT_LIT(A, __VA_ARGS__)
 #define UIP(...) CAT( DONE_, UNPAREN __VA_ARGS__  )
 
-// fuck these , dont use it , it causing code to avoid compiler optimization most of the time 
+// fuck these , dont use it , it causing code to avoid compiler optimization most of the time
 // also defining those address on the dll massively polluting the segment
 // nor worth the shit
  /*
@@ -204,3 +204,13 @@ SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
    */
 //#define DEFINE_NONSTATIC_POINTER(type, name, address) UIP(type)* const (name) = reinterpret_cast<UIP(type)*>(address);
 //#define DEFINE_POINTER(type, name, address) static inline DEFINE_NONSTATIC_POINTER(type, name, address);
+
+
+/**
+* Use when some function argument is unneeded.
+* Currently that happens when faking __thiscall functions
+* via __fastcall ones (fastcall function accepts args via
+* ECX, EDX, then stack, thiscall via ECX for this and stack
+* for rest, so second arg in fastcall-faked function would need to be discarded).
+*/
+typedef size_t discard_t;

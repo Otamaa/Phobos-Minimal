@@ -2331,7 +2331,7 @@ int FakeHouseClass::_Expert_AI()
 
 	if (!RulesExtData::Instance()->AISuperWeaponDelay.isset()
 		&& (!SessionClass::IsCampaign() || this->IQLevel2 >= RulesClass::Instance->SuperWeapons)) {
-		this->AI_TryFireSW();
+		this->_AITryFireSW();
 	}
 
 	/**
@@ -2425,6 +2425,25 @@ void FakeHouseClass::_UpdateAngerNodes(int score_add, HouseClass* pHouse)
 	}
 
 	this->EnemyHouseIndex = pSelected ? pSelected->ArrayIndex : -1;
+}
+
+void FakeHouseClass::_AITryFireSW() {
+	//if (!pThis->Supers.IsAllocated && !pThis->Supers.IsInitialized)
+	//	return;
+
+	// this method iterates over every available SW and checks
+	// whether it should be fired automatically. the original
+	// method would abort if this house is human-controlled.
+	const bool humanControlled = this->IsControlledByHuman();
+
+	for (const auto& pSuper : this->Supers) {
+		//Debug::LogInfo("House[%s - %x] Trying To Fire SW[%s - %x]" , pThis->get_ID() , pThis, pSuper->Type->ID , pSuper);
+		if (pSuper->IsCharged && pSuper->ChargeDrainState != ChargeDrainState::Draining) {
+			if (!humanControlled || SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_AutoFire) {
+				SWTypeExtData::TryFire(pSuper, false);
+			}
+		}
+	}
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x504790, FakeHouseClass::_UpdateAngerNodes)

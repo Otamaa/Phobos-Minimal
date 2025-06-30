@@ -151,136 +151,141 @@ static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 
 #pragma region Terrain
 
-ASMJIT_PATCH(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
-{
-	GET(TerrainClass*, pThis, ECX);
-	REF_STACK(args_ReceiveDamage, args, 0x4);
+DamageState FakeTerrainClass::__TakeDamage(int* Damage,
+	int DistanceToEpicenter,
+	WarheadTypeClass* WH,
+	TechnoClass* Attacker,
+	bool IgnoreDefenses,
+	bool PreventsPassengerEscape,
+	HouseClass* SourceHouse) {
 
-	DamageState _res = DamageState::Unaffected;
-	auto pWH = args.WH;
-
-	if (pWH->Wood && !pThis->Type->Immune)
-	{
-		auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
-		auto pExt = TerrainExtContainer::Instance.Find(pThis);
-		double PriorHealthRatio = pThis->GetHealthPercentage();
-
-		_res = pThis->ObjectClass::ReceiveDamage(args.Damage, args.DistanceToEpicenter, pWH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
-
-		if (!pThis->IsBurning && *args.Damage > 0 && args.WH->Sparky)
+		DamageState _res = DamageState::Unaffected;
+		auto pThis= this;
+		auto pWH = WH;
+	
+		if (pWH->Wood && !pThis->Type->Immune)
 		{
-			const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(args.WH);
-
-			if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance(Math::abs(pWarheadExt->Flammability.Get())))
-				pThis->Ignite();
-		}
-
-		double condYellow = RulesExtData::Instance()->ConditionYellow_Terrain;
-
-		if (!pThis->Type->IsAnimated && pTypeExt->HasDamagedFrames && PriorHealthRatio > condYellow && pThis->GetHealthPercentage() <= condYellow)
-		{
-			pThis->TimeToDie = true; // Dirty hack to get game to redraw the art reliably.
-			LogicClass::Instance->AddObject(pThis, false);
-		}
-
-		if (_res == DamageState::PostMortem)
-		{
-			R->EAX(_res);
-			return 0x71BB84;
-		}
-
-		if (_res == DamageState::NowDead)
-		{
-			if (auto& pAttached = pExt->AttachedAnim)
+			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
+			auto pExt = TerrainExtContainer::Instance.Find(pThis);
+			double PriorHealthRatio = pThis->GetHealthPercentage();
+	
+			_res = pThis->ObjectClass::ReceiveDamage(Damage, DistanceToEpicenter, pWH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
+	
+			if (!pThis->IsBurning && *Damage > 0 && WH->Sparky)
 			{
-				pAttached->RemainingIterations = 0;
-				pAttached.reset(nullptr);
+				const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(WH);
+	
+				if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance(Math::abs(pWarheadExt->Flammability.Get())))
+					pThis->Ignite();
 			}
-
-			if (pThis->Type->SpawnsTiberium)
+	
+			double condYellow = RulesExtData::Instance()->ConditionYellow_Terrain;
+	
+			if (!pThis->Type->IsAnimated && pTypeExt->HasDamagedFrames && PriorHealthRatio > condYellow && pThis->GetHealthPercentage() <= condYellow)
 			{
-				const auto _damagingDamage = pTypeExt->Damage.Get(100);
-				const auto _adamagingWarhead = pTypeExt->Warhead.Get(RulesClass::Instance->C4Warhead);
-				const auto _thisCell = pThis->GetCell();
-
-				if (auto const pAnim = MapClass::SelectDamageAnimation(_damagingDamage, _adamagingWarhead, _thisCell->LandType, pThis->Location))
+				pThis->TimeToDie = true; // Dirty hack to get game to redraw the art reliably.
+				LogicClass::Instance->AddObject(pThis, false);
+			}
+	
+			if (_res == DamageState::PostMortem)
+			{
+				return _res;
+			}
+	
+			if (_res == DamageState::NowDead)
+			{
+				if (auto& pAttached = pExt->AttachedAnim)
 				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0),
-						nullptr,
-						nullptr,
-						false
+					pAttached->RemainingIterations = 0;
+					pAttached.reset(nullptr);
+				}
+	
+				if (pThis->Type->SpawnsTiberium)
+				{
+					const auto _damagingDamage = pTypeExt->Damage.Get(100);
+					const auto _adamagingWarhead = pTypeExt->Warhead.Get(RulesClass::Instance->C4Warhead);
+					const auto _thisCell = pThis->GetCell();
+	
+					if (auto const pAnim = MapClass::SelectDamageAnimation(_damagingDamage, _adamagingWarhead, _thisCell->LandType, pThis->Location))
+					{
+						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0),
+							nullptr,
+							nullptr,
+							false
+						);
+					}
+	
+					if (pTypeExt->AreaDamage)
+					{
+						auto pCoord = &pThis->Location;
+						DamageArea::Apply(pCoord, _damagingDamage, nullptr, _adamagingWarhead, true, nullptr);
+						MapClass::FlashbangWarheadAt(_damagingDamage, _adamagingWarhead, pThis->Location);
+					}
+	
+					_thisCell->ChainReaction();
+				}
+				else if (pThis->IsBurning)
+				{
+					if (auto& pFire = pExt->AttachedFireAnim)
+					{
+						pFire->RemainingIterations = 0;
+						pFire.release();
+					}
+				}
+				else if (!pThis->TimeToDie)
+				{
+					pThis->TimeToDie = 1;
+					pThis->Animation.Start(2);
+				}
+	
+				const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
+				// Skip over the removal of the tree as well as destroy sound/anim (for now) if the tree has crumble animation.
+				if (pThis->TimeToDie && pTerrainExt->HasCrumblingFrames)
+				{
+					// Needs to be added to the logic layer for the anim to work.
+					LogicClass::Instance->AddObject(pThis, false);
+					VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &pThis->GetCoords());
+					pThis->Mark(MarkType::Redraw);
+					pThis->Disappear(true);
+					return _res;
+				}
+	
+				auto const nCoords = pThis->GetCenterCoords();
+				VocClass::SafeImmedietelyPlayAt(pTerrainExt->DestroySound, &nCoords);
+				const auto pAttackerHoue = Attacker ? Attacker->Owner : SourceHouse;
+	
+				if (auto const pAnimType = pTerrainExt->DestroyAnim)
+				{
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
+						SourceHouse,
+						pThis->GetOwningHouse(),
+						Attacker,
+						false, false
 					);
 				}
-
-				if (pTypeExt->AreaDamage)
+	
+				if (const auto nBounty = pTerrainExt->Bounty.Get())
 				{
-					auto pCoord = &pThis->Location;
-					DamageArea::Apply(pCoord, _damagingDamage, nullptr, _adamagingWarhead, true, nullptr);
-					MapClass::FlashbangWarheadAt(_damagingDamage, _adamagingWarhead, pThis->Location);
+					if (pAttackerHoue && pAttackerHoue->CanTransactMoney(nBounty))
+					{
+						pAttackerHoue->TransactMoney(nBounty);
+						FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords);
+					}
 				}
-
-				_thisCell->ChainReaction();
-			}
-			else if (pThis->IsBurning)
-			{
-				if (auto& pFire = pExt->AttachedFireAnim)
-				{
-					pFire->RemainingIterations = 0;
-					pFire.release();
-				}
-			}
-			else if (!pThis->TimeToDie)
-			{
-				pThis->TimeToDie = 1;
-				pThis->Animation.Start(2);
-			}
-
-			const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
-			// Skip over the removal of the tree as well as destroy sound/anim (for now) if the tree has crumble animation.
-			if (pThis->TimeToDie && pTerrainExt->HasCrumblingFrames)
-			{
-				// Needs to be added to the logic layer for the anim to work.
-				LogicClass::Instance->AddObject(pThis, false);
-				VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &pThis->GetCoords());
-				pThis->Mark(MarkType::Redraw);
+	
+				RectangleStruct _drawDim {};
+				pThis->GetRenderDimensions(&_drawDim);
+				TacticalClass::Instance->RegisterDirtyArea(_drawDim, false);
 				pThis->Disappear(true);
-				return 0x71BB79;
+				pThis->UnInit();
 			}
-
-			auto const nCoords = pThis->GetCenterCoords();
-			VocClass::SafeImmedietelyPlayAt(pTerrainExt->DestroySound, &nCoords);
-			const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
-
-			if (auto const pAnimType = pTerrainExt->DestroyAnim)
-			{
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
-					args.SourceHouse,
-					pThis->GetOwningHouse(),
-					args.Attacker,
-					false, false
-				);
-			}
-
-			if (const auto nBounty = pTerrainExt->Bounty.Get())
-			{
-				if (pAttackerHoue && pAttackerHoue->CanTransactMoney(nBounty))
-				{
-					pAttackerHoue->TransactMoney(nBounty);
-					FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords);
-				}
-			}
-
-			RectangleStruct _drawDim {};
-			pThis->GetRenderDimensions(&_drawDim);
-			TacticalClass::Instance->RegisterDirtyArea(_drawDim, false);
-			pThis->Disappear(true);
-			pThis->UnInit();
 		}
-	}
-
-	R->EAX(_res);
-	return 0x71BB84;
+	
+		return _res;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x71B920 , FakeTerrainClass::__TakeDamage)
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7F5398,FakeTerrainClass::__TakeDamage)
 
 #pragma endregion
 

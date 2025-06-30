@@ -25,6 +25,65 @@ bool FakeTacticalClass::ObjectClass_IsSelectable(ObjectClass* pThis)
 		&& pThis->CanBeSelectedNow();
 }
 
+// Fixes glitches if the map size is smaller than the screen resolution
+// Author: Belonit
+static constexpr float paddingTopInCell = 5;
+static constexpr float paddingBottomInCell = 4.5;
+
+bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
+	bool isUpdated = false;
+
+	const auto pMapRect = &MapClass::Instance->MapRect;
+	const auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
+	const auto pSurfaceViewBounds = &DSurface::ViewBounds();
+
+	{
+		const int xMin = (pSurfaceViewBounds->Width / 2) + (Unsorted::CellWidthInPixels / 2) * (pMapVisibleRect->X * 2 - pMapRect->Width);
+		if (tacticalPos->X < xMin)
+		{
+			tacticalPos->X = xMin;
+			isUpdated = true;
+		}
+		else
+		{
+			const int xMax = MaxImpl(
+				xMin,
+				xMin + (Unsorted::CellWidthInPixels * pMapVisibleRect->Width) - pSurfaceViewBounds->Width
+			);
+
+			if (tacticalPos->X > xMax)
+			{
+				tacticalPos->X = xMax;
+				isUpdated = true;
+			}
+		}
+	}
+
+	{
+		const int yMin = (pSurfaceViewBounds->Height / 2) + (Unsorted::CellHeightInPixels / 2) * (pMapVisibleRect->Y * 2 + pMapRect->Width - int(paddingTopInCell));
+		if (tacticalPos->Y < yMin)
+		{
+			tacticalPos->Y = yMin;
+			isUpdated = true;
+		}
+		else
+		{
+			const int yMax = MaxImpl(
+				yMin,
+				yMin + (Unsorted::CellHeightInPixels * pMapVisibleRect->Height) - pSurfaceViewBounds->Height + int(Unsorted::CellHeightInPixels * paddingBottomInCell)
+			);
+
+			if (tacticalPos->Y > yMax)
+			{
+				tacticalPos->Y = yMax;
+				isUpdated = true;
+			}
+		}
+	}
+
+	return isUpdated;
+}
+
 bool FakeTacticalClass::IsInSelectionRect(LTRBStruct* pRect, const TacticalSelectableStruct& selectable)
 {
 	if (selectable.Techno
@@ -147,7 +206,7 @@ COMPILETIMEEVAL int8 __CFADD__(T x, U y)
  *  @authors: CCHyper
  */
 
-void __fastcall FakeTacticalClass::__DrawRadialIndicator(
+void FakeTacticalClass::__DrawRadialIndicator(
 	bool draw_indicator,
 	bool animate,
 	Coordinate center_coord,
@@ -303,6 +362,44 @@ void __fastcall FakeTacticalClass::__DrawRadialIndicator(
 										enable_blue_channel,
 										(float)_line_alpha[i]);
 
+	}
+}
+
+void FakeTacticalClass::__RenderOverlapForeignMap()
+{
+	auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
+	auto pSurfaceViewBounds = &DSurface::ViewBounds();
+
+	{
+		const int maxWidth = pSurfaceViewBounds->Width - pMapVisibleRect->Width * Unsorted::CellWidthInPixels;
+
+		if (maxWidth > 0)
+		{
+			RectangleStruct rect = {
+				pSurfaceViewBounds->Width - maxWidth,
+				0,
+				maxWidth,
+				pSurfaceViewBounds->Height
+			};
+
+			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+		}
+	}
+
+	{
+		const int maxHeight = pSurfaceViewBounds->Height - (Unsorted::CellHeightInPixels * pMapVisibleRect->Height) - int(Unsorted::CellHeightInPixels * paddingBottomInCell);
+
+		if (maxHeight > 0)
+		{
+			RectangleStruct rect = {
+				0,
+				pSurfaceViewBounds->Height - maxHeight,
+				pSurfaceViewBounds->Width,
+				maxHeight
+			};
+
+			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+		}
 	}
 }
 

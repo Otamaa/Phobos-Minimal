@@ -258,8 +258,6 @@ enum class AresNewTriggerAction : int
 	KillDriversOf = 147,
 	SetEVAVoice = 148,
 	SetGroup = 149,
-
-	count
 };
 
 enum class AresTriggerEvents : int

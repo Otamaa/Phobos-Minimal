@@ -971,11 +971,16 @@ void SpawnerMain::GameConfigs::InitNetwork() {
 	Game::Network::PlanetWestwoodStartTime = time(NULL);
 	Game::Network::GameStockKeepingUnit = 0x2901;
 
+	EventExt::ProtocolZero::Init();
 	EventExt::ProtocolZero::Enable = (SpawnerMain::GameConfigs::m_Ptr.Protocol == 0);
 	if (EventExt::ProtocolZero::Enable)
 	{
 		Game::Network::FrameSendRate = 2;
 		Game::Network::PreCalcMaxAhead = SpawnerMain::GameConfigs::m_Ptr.PreCalcMaxAhead;
+
+		EventExt::ProtocolZero::NextSendFrame = -1;
+		EventExt::ProtocolZero::WorstMaxAhead = LatencyLevel::GetMaxAhead(LatencyLevelEnum::LATENCY_LEVEL_6);
+
 		EventExt::ProtocolZero::MaxLatencyLevel = std::clamp(
 			SpawnerMain::GameConfigs::m_Ptr.MaxLatencyLevel,
 			(byte)LatencyLevelEnum::LATENCY_LEVEL_1,

@@ -120,26 +120,6 @@ ASMJIT_PATCH(0x70AF6C, TechnoClass_70AF50_FixCrash, 0x9)
 	return pTechno ? 0 : 0x70B1C7;
 }
 
-// Fix crash at 4C2C19
-void __fastcall EBolt_SetOwnerAndWeapon_FixCrash(EBolt* pThis, void*, TechnoClass* pTechno, int pWeapon)
-{
-	// vanilla code
-	if (pTechno && pTechno->WhatAmI() == AbstractType::Unit && pTechno->IsAlive && !pTechno->InLimbo)
-	{
-		pThis->Owner = pTechno;
-		pThis->WeaponSlot = pWeapon;
-	}
-	// correction code
-	else
-	{
-		pThis->Owner = 0;
-		pThis->WeaponSlot = 0;
-	}
-}
-
-//DEFINE_FUNCTION_JUMP(CALL, 0x6FD606, EBolt_SetOwnerAndWeapon_FixCrash); // Replace single call
-//DEFINE_FUNCTION_JUMP(LJMP, 0x4C2BD0, EBolt_SetOwnerAndWeapon_FixCrash); // For in case another module tries to call function
-
 // Extend IsoMapPack5 decoding size limit
 // (Large map support)
 
@@ -178,126 +158,11 @@ ASMJIT_PATCH(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 
 #include <DisplayClass.h>
 #include <TacticalClass.h>
+#include <Ext/Tactical/Body.h>
 
-constexpr bool _Clamp_To_Tactical_Rect(Point2D& pixel)
-{
-	auto& TacticalRect = MapClass::Instance->VisibleRect;
-	auto& MapLocalSize = DSurface::ViewBounds();
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D8640, FakeTacticalClass::__ClampTacticalPos)
 
-	int xmin = TacticalRect.Width / 2 - (Unsorted::CellWidthInPixels >> 1) * (MapClass::Instance->MapRect.Width - 2 * MapLocalSize.X);
-	int xmax = MaxImpl(xmin + Unsorted::CellWidthInPixels * MapLocalSize.Width - TacticalRect.Width, xmin);
-
-	int ymin = TacticalRect.Height / 2 + (Unsorted::CellHeightInPixels >> 1) * (MapClass::Instance->MapRect.Width + 2 * MapLocalSize.Y - 5);
-	int ymax = MaxImpl(ymin + Unsorted::CellHeightInPixels * (2 * MapLocalSize.Height + 9) / 2 - TacticalRect.Height, ymin);
-
-	bool clamped = false;
-
-	if (pixel.Y < ymin)
-	{
-		pixel.Y = ymin;
-		clamped = true;
-	}
-	else if (pixel.Y > ymax)
-	{
-		pixel.Y = ymax;
-		clamped = true;
-	}
-
-	if (pixel.X < xmin)
-	{
-		pixel.X = xmin;
-		clamped = true;
-	}
-	else if (pixel.X > xmax)
-	{
-		pixel.X = xmax;
-		clamped = true;
-	}
-
-	return(clamped);
-
-}
-
-// Fixes glitches if the map size is smaller than the screen resolution
-// Author: Belonit
-bool __fastcall Tactical_ClampTacticalPos(TacticalClass* pThis, void*, Point2D* tacticalPos)
-{
-	bool isUpdated = false;
-	auto pMapRect = &MapClass::Instance->MapRect;
-	auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
-	auto pSurfaceViewBounds = &DSurface::ViewBounds;
-
-	{
-		const int xMin = Unsorted::CellWidthInPixels * (pMapVisibleRect->X - (pMapRect->Width >> 1)) + (pSurfaceViewBounds->Width >> 1);
-		if (tacticalPos->X < xMin)
-		{
-			tacticalPos->X = xMin;
-			isUpdated = true;
-		}
-		else
-		{
-			const int xMax = MaxImpl(Unsorted::CellWidthInPixels * pMapVisibleRect->Width - pSurfaceViewBounds->Width + xMin, xMin);
-			if (tacticalPos->X > xMax)
-			{
-				tacticalPos->X = xMax;
-				isUpdated = true;
-			}
-		}
-	}
-
-	{
-		const int yMin = Unsorted::CellHeightInPixels * (pMapVisibleRect->Y + (pMapRect->Width >> 1)) + (pSurfaceViewBounds->Height >> 1) - int(2.5 * Unsorted::CellHeightInPixels);
-		if (tacticalPos->Y < yMin)
-		{
-			tacticalPos->Y = yMin;
-			isUpdated = true;
-		}
-		else
-		{
-			const int yMax = MaxImpl(Unsorted::CellHeightInPixels * pMapVisibleRect->Height - pSurfaceViewBounds->Height + int(4.5 * Unsorted::CellHeightInPixels) + yMin, yMin);
-			if (tacticalPos->Y > yMax)
-			{
-				tacticalPos->Y = yMax;
-				isUpdated = true;
-			}
-		}
-	}
-	return isUpdated;
-}
-// DEFINE_FUNCTION_JUMP(LJMP, 0x6D8640, Tactical_ClampTacticalPos)
-
-/*
-ASMJIT_PATCH(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6)
-{
-	auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
-	auto pSurfaceViewBounds = &DSurface::ViewBounds;
-
-	{
-		const int maxWidth =
-			pSurfaceViewBounds->Width - pMapVisibleRect->Width * Unsorted::CellWidthInPixels;
-		if (maxWidth > 0)
-		{
-			RectangleStruct rect = {
-				pSurfaceViewBounds->Width - maxWidth,
-				0,
-				maxWidth,
-				pSurfaceViewBounds->Height };
-			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
-		}
-	}
-
-	{
-		const int maxHeight = pSurfaceViewBounds->Height - pMapVisibleRect->Height * Unsorted::CellHeightInPixels - int(4.5 * Unsorted::CellHeightInPixels);
-		if (maxHeight > 0)
-		{
-			RectangleStruct rect = {
-				0,
-				pSurfaceViewBounds->Height - maxHeight,
-				pSurfaceViewBounds->Width,
-				maxHeight };
-			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
-		}
-	}
-
+ASMJIT_PATCH(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6) {
+	FakeTacticalClass::__RenderOverlapForeignMap();
 	return 0;
-}*/
+}

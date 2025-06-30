@@ -423,6 +423,7 @@ public:
 	void _GiveTiberium(float amout , int type);
 	bool _IsIonCannonEligibleTarget(TechnoClass* pTechno) const;
 	void _UpdateAngerNodes(int score_add, HouseClass* pHouse);
+	void _AITryFireSW();
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + HouseExtData::ExtOffset);

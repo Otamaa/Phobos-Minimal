@@ -48,6 +48,7 @@ Replaces = {
 	{Addr = 0x00827DAC, To = "Failed to load UIMD.INI!\n"             				}, --40
 	{Addr = 0x00840D40, To = "ra2md.str"											}, --41
 	{Addr = 0x00818B98, To = "GAME.FNT"												}  --42
+	{Addr = 0x00842194, To = "subtitlemd.txt"												}  --43
 }
 
  FetchHandles = {

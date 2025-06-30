@@ -70,6 +70,14 @@ public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	DamageState __TakeDamage(
+		int* Damage,
+		int DistanceToEpicenter,
+		WarheadTypeClass* WH,
+		TechnoClass* Attacker,
+		bool IgnoreDefenses,
+		bool PreventsPassengerEscape,
+		HouseClass* SourceHouse);
 
 	TerrainExtData* _GetExtData() {
 		return *reinterpret_cast<TerrainExtData**>(((DWORD)this) + AbstractExtOffset);
