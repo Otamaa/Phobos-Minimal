@@ -211,7 +211,7 @@ public:
 public:
 	// Nothing yet
 
-	static bool ProcessScriptActions(TeamClass* pTeam);
+	static bool ProcessScriptActions(TeamClass* pTeam, ScriptActionNode* pTeamMission, bool bThirdArd);
 	static void ExecuteTimedAreaGuardAction(TeamClass* pTeam);
 	static void LoadIntoTransports(TeamClass* pTeam);
 	static void WaitUntilFullAmmoAction(TeamClass* pTeam);
@@ -232,7 +232,8 @@ public:
 	static void ForceGlobalOnlyTargetHouseEnemy(TeamClass* pTeam, int mode);
 
 	static bool IsExtVariableAction(int action);
-	static void VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg);
+	static bool VariablesHandler(TeamClass* pTeam, PhobosScripts eAction, int nArg);
+
 	template<bool IsGlobal, class _Pr>
 	static void VariableOperationHandler(TeamClass* pTeam, int nVariable, int Number);
 	template<bool IsSrcGlobal, bool IsGlobal, class _Pr>

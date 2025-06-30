@@ -8,8 +8,6 @@
 
 #include <AITriggerTypeClass.h>
 
-#include <Utilities/HookGuard.h>
-
 // TODO :
 // - Optimization a lot of duplicate code ,..
 // - Type convert probably not handled properly yet
@@ -404,6 +402,8 @@ NOINLINE bool CountConditionMet(AITriggerTypeClass* pThis, int nObjects)
 	return result;
 }
 
+#include <TriggerTypeClass.h>
+
 NOINLINE bool UpdateTeam(HouseClass* pHouse)
 {
 	if (!RulesExtData::Instance()->NewTeamsSelector)
@@ -414,10 +414,15 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 	pHouse->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pHouse->AIDifficulty]);
 
 	HelperedVector<TriggerElementWeight> validTriggerCandidates;
+	validTriggerCandidates.reserve(TriggerTypeClass::Array->Count);
 	HelperedVector<TriggerElementWeight> validTriggerCandidatesGroundOnly;
+	validTriggerCandidatesGroundOnly.reserve(TriggerTypeClass::Array->Count);
 	HelperedVector<TriggerElementWeight> validTriggerCandidatesNavalOnly;
+	validTriggerCandidatesNavalOnly.reserve(TriggerTypeClass::Array->Count);
 	HelperedVector<TriggerElementWeight> validTriggerCandidatesAirOnly;
+	validTriggerCandidatesAirOnly.reserve(TriggerTypeClass::Array->Count);
 	HelperedVector<TriggerElementWeight> validTriggerCandidatesUnclassifiedOnly;
+	validTriggerCandidatesUnclassifiedOnly.reserve(TriggerTypeClass::Array->Count);
 
 	int dice = ScenarioClass::Instance->Random.RandomRanged(1, 100);
 
@@ -508,11 +513,13 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 			}
 		}
 
-		int parentCountryTypeIdx = pHouse->Type->FindParentCountryIndex(); // ParentCountry can change the House in a SP map
+		auto pParentCntry = pHouse->Type->FindParentCountry();
+
+		int parentCountryTypeIdx = !pParentCntry ? -1 : pParentCntry->ArrayIndex; // ParentCountry can change the House in a SP map
 		int houseTypeIdx = parentCountryTypeIdx >= 0 ? parentCountryTypeIdx : pHouse->Type->ArrayIndex; // Indexes in AITriggers section are 1-based
 		int houseIdx = pHouse->ArrayIndex;
 
-		int parentCountrySideTypeIdx = pHouse->Type->FindParentCountry()->SideIndex;
+		int parentCountrySideTypeIdx = !pParentCntry ? -1 : pParentCntry->SideIndex;
 		int sideTypeIdx = parentCountrySideTypeIdx >= 0 ? parentCountrySideTypeIdx + 1 : pHouse->Type->SideIndex + 1; // Side indexes in AITriggers section are 1-based
 		//int sideIdx = pHouse->SideIndex + 1; // Side indexes in AITriggers section are 1-based
 
@@ -529,13 +536,10 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 		// Check if the running teams by the house already reached all the limits
 		HelperedVector<TeamClass*> activeTeamsList;
+		auto& vec = HouseExtContainer::HousesTeams[HouseClass::Array->Items[houseIdx]];
+		activeTeamsList.reserve(vec.size());
 
-		for (auto const pRunningTeam : *TeamClass::Array)
-		{
-			int teamHouseIdx = pRunningTeam->Owner->ArrayIndex;
-
-			if (teamHouseIdx != houseIdx)
-				continue;
+		for (auto const pRunningTeam : vec) {
 
 			activeTeamsList.push_back(pRunningTeam);
 
@@ -1277,20 +1281,27 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 	return true;
 }
 
-ASMJIT_PATCH_GUARDED(0x4F8A27, TeamTypeClass_SuggestedNewTeam_NewTeamsSelector, 0x5)
-{
-	AUTO_RECURSIVE_GUARD(0x4F8A27, "TeamTypeClass_SuggestedNewTeam_NewTeamsSelector");
-	enum { UseOriginalSelector = 0x4F8A63, SkipCode = 0x4F8B08 };
-	GET(HouseClass*, pHouse, ESI);
+TeamTypeClass *__fastcall Suggested_New_Team(TypeList<TeamTypeClass*> *possible_teams, HouseClass *house, bool alerted){
+	JMP_STD(0x6F0AB0)
+}
 
-	bool houseIsHuman = pHouse->IsHumanPlayer;
-	if (SessionClass::IsCampaign())
-		houseIsHuman = pHouse->IsHumanPlayer || pHouse->IsInPlayerControl;
+ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
+	GET(HouseClass* , pThis , ESI);
 
-	if (houseIsHuman || pHouse->Type->MultiplayPassive)
-		return SkipCode;
+	if(!UpdateTeam(pThis)){
 
-	return UpdateTeam(pHouse) ? SkipCode : UseOriginalSelector;
+		TypeList<TeamTypeClass*> possible_teams;
+		Suggested_New_Team(&possible_teams,pThis, false);
+		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.Count);
+
+		for(int i = 0; i < possible_teams.Count; ++i){
+			possible_teams[i]->CreateTeam(pThis);
+		}
+
+		pThis->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty]);
+	}
+
+	return 0x4F8B08;
 }
 
 #include <ExtraHeaders/StackVector.h>

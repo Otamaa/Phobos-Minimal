@@ -16,6 +16,7 @@ std::unordered_map<std::string, CSFLoader::CSFStringStorage> CSFLoader::DynamicS
 
 void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 {
+	bool _loaded = false;
 	//The main stringtable must have been loaded (memory allocation)
 	//To do that, use StringTable::LoadFile.
 	if (StringTable::IsLoaded && std::strlen(pFileName) > 0 && *pFileName)
@@ -35,17 +36,23 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 						|| ignoreLanguage))
 				{
 					++CSFCount;
-					StringTable::ReadFile(pFileName); //must be modified to do the rest ;)
+					const bool succeeded = StringTable::ReadFile(pFileName); //must be modified to do the rest ;)
 
-					std::sort(StringTable::Labels(), StringTable::Labels() + StringTable::LabelCount(),
-						[](const CSFLabel& lhs, const CSFLabel& rhs)
-					{
-						return IMPL_STRCMPI(lhs.Name, rhs.Name) < 0;
-					});
+					if(succeeded){
+						std::sort(StringTable::Labels(), StringTable::Labels() + StringTable::LabelCount(),
+							[](const CSFLabel& lhs, const CSFLabel& rhs) {
+							return IMPL_STRCMPI(lhs.Name, rhs.Name) < 0;
+						});
+					}
+
+					_loaded =  succeeded;
 				}
 			}
 		}
 	}
+
+	if (!_loaded)
+		Debug::LogInfo("Failed to load {} !", pFileName);
 }
 
 
@@ -173,22 +180,37 @@ ASMJIT_PATCH(0x734A97, CSF_SetIndex, 6)
 	return 0x734AA1;
 }
 
-ASMJIT_PATCH(0x6BD886, CSF_LoadExtraFiles, 5)
-{
-	std::string _ares = "ares";
+static COMPILETIMEEVAL constant_ptr<const char, 0x840D40> const ra2md_str {};
 
-	CSFLoader::LoadAdditionalCSF((_ares + ".csf").c_str(), true);
+#include <Phobos.Lua.h>
+ASMJIT_PATCH(0x6BD84E, CSF_LoadExtraFiles, 5)
+{
+	if (!StringTable::LoadFile(ra2md_str())) {
+		const std::string _msg = fmt::format("Unable to initialize '{0}', please reinstall {1}.\n"
+			"Keine Initialisierung von '{0}' möglich. Bitte installieren Sie {1} erneut.\n"
+			"Initialisation de '{0}' impossible. Veuillez réinstaller {1}."
+			, ra2md_str() , LuaData::MainWindowStr);
+
+		Imports::MessageBoxA.invoke()(NULL,
+			_msg.c_str(),
+			LuaData::MainWindowStr.c_str(), 0x10u);
+
+		return 0x6BD86F;
+	}
+
+	fmt::memory_buffer buffer {};
+	CSFLoader::LoadAdditionalCSF("ares.csf", true);
 
 	std::string res = "us";
 	if (const auto language = StringTable::GetLanguage(StringTable::Language()))
 		res = language->Letter;
 
-	_ares += "_";
-	_ares += res;
-	_ares += ".csf";
+	fmt::format_to(std::back_inserter(buffer), "ares_{}.csf", res);
+	buffer.push_back('\0');
 
-	CSFLoader::LoadAdditionalCSF(_ares.data());
-	fmt::memory_buffer buffer {};
+	CSFLoader::LoadAdditionalCSF(buffer.data());
+
+	buffer.clear();
 
 	for (int idx = 0; idx < 100; ++idx) {
 		fmt::format_to(std::back_inserter(buffer), "stringtable{:02}.csf", idx);

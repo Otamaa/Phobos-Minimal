@@ -45,7 +45,6 @@
 #include <ExtraHeaders/StackVector.h>
 
 #include <Misc/PhobosGlobal.h>
-#include <Utilities/HookGuard.h>
 
 static DWORD Crashable(FootClass* pThis, TechnoTypeClass* pType, ObjectClass* pKiller)
 {
@@ -242,14 +241,14 @@ ASMJIT_PATCH(0x71B920, TerrainClass_ReceiveDamage_Handled, 7)
 			{
 				// Needs to be added to the logic layer for the anim to work.
 				LogicClass::Instance->AddObject(pThis, false);
-				VocClass::PlayIndexAtPos(pTerrainExt->CrumblingSound, pThis->GetCoords());
+				VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &pThis->GetCoords());
 				pThis->Mark(MarkType::Redraw);
 				pThis->Disappear(true);
 				return 0x71BB79;
 			}
 
 			auto const nCoords = pThis->GetCenterCoords();
-			VocClass::PlayIndexAtPos(pTerrainExt->DestroySound, nCoords);
+			VocClass::SafeImmedietelyPlayAt(pTerrainExt->DestroySound, &nCoords);
 			const auto pAttackerHoue = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
 			if (auto const pAnimType = pTerrainExt->DestroyAnim)
@@ -583,10 +582,10 @@ static bool IsTechnoImmuneToAffects(TechnoClass* pTechno, Rank rank, WarheadType
 	return false;
 }
 
-ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
+#include <Utilities/DebrisSpawners.h>
+
+ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 {
-	AUTO_RECURSIVE_GUARD(0x701900, "TechnoClass_ReceiveDamage_Handle");
-	
 	GET(TechnoClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
@@ -884,7 +883,7 @@ ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	case DamageState::Unchanged:
 	{
 		if (pType->DamageSound != -1) {
-			VocClass::PlayIndexAtPos(pType->DamageSound, pThis->Location, 0);
+			VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
 		}
 
 		if (!pWHExt->Malicious && args.Attacker && args.Attacker->IsAlive && !pWHExt->Nonprovocative) {
@@ -902,7 +901,7 @@ ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			 && pThis->Owner->ControlledByCurrentPlayer())
 		{
 			const int feedbackIndex = pType->VoiceFeedback.Count > 1 ? Random2Class::NonCriticalRandomNumber->RandomRanged(0, pType->VoiceFeedback.Count - 1) : 0;
-			VocClass::PlayIndexAtPos(pType->VoiceFeedback.Items[feedbackIndex], pThis->Location, 0);
+			VocClass::SafeImmedietelyPlayAt(pType->VoiceFeedback.Items[feedbackIndex], &pThis->Location, 0);
 		}
 
 		break;
@@ -914,16 +913,37 @@ ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 		GiftBoxFunctional::Destroy(pExt, pTypeExt);
 
-		if (pThis->IsAlive)
-		{
-			for (auto const& pWeapon : pExt->AE.ExpireWeaponOnDead) {
-				TechnoClass* pTarget = pThis;
-				if (!pThis->IsAlive)
-					pTarget = nullptr;
+		if(!pExt->PhobosAE.empty()){
+			std::vector<std::pair<WeaponTypeClass*, TechnoClass*>> expireWeapons {};
+			std::set<PhobosAttachEffectTypeClass*> cumulativeTypes {};
 
-				WeaponTypeExtData::DetonateAt(pWeapon, pThis->Location, pTarget, false, pThis->Owner);
+			for (auto const& attachEffect : pExt->PhobosAE) {
+
+				auto const pAEType = attachEffect->GetType();
+
+				if (pAEType->ExpireWeapon && (pAEType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None)
+				{
+					if (!pAEType->Cumulative || !pAEType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pAEType))
+					{
+						if (pAEType->Cumulative && pAEType->ExpireWeapon_CumulativeOnlyOnce)
+							cumulativeTypes.insert(pAEType);
+
+						if (pAEType->ExpireWeapon_UseInvokerAsOwner)
+						{
+							if (auto const pInvoker = attachEffect->GetInvoker())
+								expireWeapons.emplace_back(pAEType->ExpireWeapon, pInvoker);
+						}
+						else
+						{
+							expireWeapons.emplace_back(pAEType->ExpireWeapon, pThis);
+						}
+					}
+				}
 			}
+
+			PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
 		}
+
 
 		if (!pThis->IsAlive)
 			break;
@@ -983,11 +1003,11 @@ ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 			if (nSound.isset())
 			{
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound, &pThis->Location);
 			}
 			else
 			{
-				VocClass::PlayIndexAtPos(pType->VoiceDie[pType->VoiceDie.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceDie.Count - 1)], pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(pType->VoiceDie[pType->VoiceDie.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceDie.Count - 1)], &pThis->Location);
 			}
 		}
 
@@ -997,11 +1017,11 @@ ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 			if (nSound.isset())
 			{
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound, &pThis->Location);
 			}
 			else
 			{
-				VocClass::PlayIndexAtPos(pType->DieSound[pType->DieSound.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->DieSound.Count - 1)], pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(pType->DieSound[pType->DieSound.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->DieSound.Count - 1)], &pThis->Location);
 			}
 		}
 
@@ -1062,61 +1082,14 @@ ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 		if (pThis->GetHeight() > 0 || !pThis->IsABomb || pThis->GetCell()->LandType != LandType::Water)
 		{
-			if (pType->MaxDebris > 0)
-			{
-				auto totalSpawnAmount = ScenarioClass::Instance->Random.RandomRanged(pType->MinDebris, pType->MaxDebris);
-				auto nCoords = pThis->GetCoords();
-
-				if (totalSpawnAmount && pType->DebrisTypes.Count > 0 && pType->DebrisMaximums.Count > 0)
-				{
-					for (int currentIndex = 0; currentIndex < pType->DebrisTypes.Count; ++currentIndex)
-					{
-						if (currentIndex >= pType->DebrisMaximums.Count)
-							break;
-
-						if (!pType->DebrisMaximums[currentIndex] || !pType->DebrisTypes.Items[currentIndex])
-							continue;
-
-						//this never goes to 0
-						int amountToSpawn = (Math::abs(int(ScenarioClass::Instance->Random.Random())) % pType->DebrisMaximums[currentIndex]) + 1;
-						amountToSpawn = LessOrEqualTo(amountToSpawn, totalSpawnAmount);
-						totalSpawnAmount -= amountToSpawn;
-
-						for (; amountToSpawn > 0; --amountToSpawn)
-						{
-
-							auto pVoxAnim = GameCreate<VoxelAnimClass>(pType->DebrisTypes.Items[currentIndex],
-							&nCoords, pThis->Owner);
-
-							VoxelAnimExtContainer::Instance.Find(pVoxAnim)->Invoker = pThis;
-						}
-
-						if (totalSpawnAmount <= 0)
-						{
-							totalSpawnAmount = 0;
-							break;
-						}
-					}
-				}
-
-				if (totalSpawnAmount > 0)
-				{
-					if (const auto pArray = GetDebrisAnim(pType))
-					{
-						auto debrisAnim_Coord = nCoords;
-						debrisAnim_Coord.Z += 20;
-
-						for (int b = 0; b < totalSpawnAmount; ++b)
-						{
-							if (auto pDebrisAnimType = pArray->Items[ScenarioClass::Instance->Random.RandomFromMax(pArray->Count - 1)])
-							{
-								AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDebrisAnimType, debrisAnim_Coord, 0, 1, AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400, 0, 0), args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse,
-								pThis->GetOwningHouse(), false);
-							}
-						}
-					}
-				}
+			std::optional<bool> limited {};
+			if (pTypeExt->DebrisTypes_Limit.isset()) {
+				limited = pTypeExt->DebrisTypes_Limit.Get();
 			}
+
+			DebrisSpawners::Spawn(pType->MinDebris,pType->MaxDebris,
+			pThis->GetCoords() , pType->DebrisTypes,
+			pType->DebrisAnims ,pType->DebrisMaximums, pTypeExt->DebrisMinimums, limited, args.Attacker , args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->Owner);
 
 			auto pWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType;
 			if (pType->Explodes || pThis->HasAbility(AbilityType::Explodes) || (pWeapon && pWeapon->Suicide))
@@ -1188,7 +1161,7 @@ ASMJIT_PATCH_GUARDED(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		} else {
 			if (pType->DamageSound != -1)
 			{
-				VocClass::PlayIndexAtPos(pType->DamageSound, pThis->Location, 0);
+				VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
 			}
 
 			if (args.Attacker && args.Attacker->IsAlive && (pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman())
@@ -1471,7 +1444,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 		{
 			if (!pTypeExt->DisableDamageSound && pThis->Type->DamageSound == -1)
 			{
-				VocClass::PlayIndexAtPos(RulesClass::Instance->BuildingDamageSound, &pThis->Location, 0);
+				VocClass::SafeImmedietelyPlayAt(RulesClass::Instance->BuildingDamageSound, &pThis->Location, 0);
 			}
 
 			if (WH->Sparky)
@@ -1686,10 +1659,8 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4028, FakeBuildingClass::_ReceiveDamage)
 #pragma region Foot
 #include <TeamTypeClass.h>
 
-ASMJIT_PATCH_GUARDED(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
+ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 {
-	AUTO_RECURSIVE_GUARD(0x4D7330, "FootClass_ReceiveDamage_Handle");
-	
 	GET(FootClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 	DamageState _res = DamageState::Unaffected;
@@ -1778,10 +1749,8 @@ ASMJIT_PATCH_GUARDED(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 
 #pragma region Aircraft
 
-ASMJIT_PATCH_GUARDED(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
+ASMJIT_PATCH(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 {
-	AUTO_RECURSIVE_GUARD(0x4165C0, "AircraftClass_ReceiveDamage_Handle");
-	
 	GET(AircraftClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
@@ -1829,10 +1798,8 @@ ASMJIT_PATCH_GUARDED(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 
 #pragma region Infantry
 
-ASMJIT_PATCH_GUARDED(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
+ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 {
-	AUTO_RECURSIVE_GUARD(0x517FA0, "InfantryClass_ReceiveDamage_Handled");
-	
 	GET(FakeInfantryClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 
@@ -2276,10 +2243,8 @@ namespace RemoveCellContentTemp
 	bool CheckBeforeUnmark = false;
 }
 
-ASMJIT_PATCH_GUARDED(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
+ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 {
-	AUTO_RECURSIVE_GUARD(0x737C90, "UnitClass_ReceiveDamage_Handled");
-	
 	GET(UnitClass*, pThis, ECX);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
 

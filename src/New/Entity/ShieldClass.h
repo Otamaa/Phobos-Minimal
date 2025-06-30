@@ -189,9 +189,9 @@ private:
 			return 0;
 
 		if (iStatus >= -1.0 && iStatus <= 1.0)
-			return (int)round(this->Type->Strength * iStatus);
+			return (int)std::round(this->Type->Strength * iStatus);
 
-		return (int)trunc(iStatus);
+		return (int)std::trunc(iStatus);
 	}
 
 	void RespawnShield();

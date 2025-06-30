@@ -30,14 +30,14 @@ struct DistributionObject {
 	unsigned int Weight{ 0u };
 };
 
-template <typename T , class Allocator = GameAllocator<DistributionObject<T>>>
+template <typename T>
 class DiscreteDistributionClass
 {
 public:
 	DiscreteDistributionClass() = default;
 	explicit DiscreteDistributionClass(int capacity, DistributionObject<T>* pMem = nullptr) : Items(capacity, pMem) {}
 
-	const DynamicVectorClass<DistributionObject<T> , Allocator> & GetItems() const {
+	const DynamicVectorClass<DistributionObject<T>> & GetItems() const {
 		return this->Items;
 	}
 
@@ -115,6 +115,6 @@ public:
 	}
 
 private:
-	DynamicVectorClass<DistributionObject<T> , Allocator> Items{};
+	DynamicVectorClass<DistributionObject<T>> Items{};
 	unsigned int TotalWeight{ 0u };
 };

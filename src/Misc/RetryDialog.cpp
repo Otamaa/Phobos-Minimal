@@ -14,6 +14,8 @@
 namespace RetryDialogFlag
 {
 	bool IsCalledFromRetryDialog = false;
+
+	void ReloadUIParts() JMP_STD(0x72DFB0);
 }
 
 ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
@@ -30,9 +32,9 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		// Did you??? NO, YOU DIDN'T. Bruhhhh
 		switch (WWMessageBox::Instance().Process(
 			StringTable::FetchString(GameStrings::TXT_TO_REPLAY()),
-			StringTable::FetchString(GameStrings::TXT_OK()),
 			StringTable::FetchString("GUI:LOADGAME"),
-			StringTable::FetchString(GameStrings::TXT_CANCEL())))
+			StringTable::FetchString(GameStrings::TXT_CANCEL()),
+			StringTable::FetchString(GameStrings::TXT_OK())))
 		{
 			case WWMessageBox::Result::Button3:
 			return OK;
@@ -46,7 +48,7 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 			RetryDialogFlag::IsCalledFromRetryDialog = true;
 			const bool bIsAboutToLoad = pDialog->LoadDialog();
 			RetryDialogFlag::IsCalledFromRetryDialog = false;
-			GameDelete(pDialog);
+			GameDelete<true,false>(pDialog);
 
 			if (!bIsAboutToLoad)
 				continue;
@@ -62,6 +64,7 @@ ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)
 		CCToolTip::Instance->SetState(GameOptionsClass::Instance->Tooltips);
 
 	GScreenClass::Instance->Render();
+	RetryDialogFlag::ReloadUIParts();
 
 	return LoadGame;
 }

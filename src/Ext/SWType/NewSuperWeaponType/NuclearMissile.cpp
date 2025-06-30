@@ -79,7 +79,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 				}
 			}
 
-			VocClass::PlayAt(pData->SW_ActivationSound.Get(RulesClass::Instance->DigSound), target, nullptr);
+			VocClass::SafeImmedietelyPlayAt(pData->SW_ActivationSound.Get(RulesClass::Instance->DigSound), &target, nullptr);
 			pThis->Owner->RecheckTechTree = true;
 			return true;
 		}

@@ -47,10 +47,6 @@ MSVC++
 	_asm{mov esp, ebp} \
 	_asm{pop ebp}
 
-#define JMP_THIS(address) { EPILOG_THISCALL JMP(address); }
-#define JMP_STD(address) { EPILOG_STDCALL JMP(address); }
-#define JMP_FAST(address) { EPILOG_STDCALL JMP(address); }
-
 //Get/set register to a variable
 #define GET_REG32(dst,reg) _asm{mov dst, reg}
 #define SET_REG32(reg,src) _asm{mov reg, src}
@@ -244,5 +240,34 @@ MSVC++
 		_asm { mov eax, address } \
 		_asm { jmp eax } \
 	}
+
+
+#define JMP_THIS(address) { EPILOG_THISCALL JMP(address); }
+#define JMP_STD(address) { EPILOG_STDCALL JMP(address); }
+#define JMP_FAST(address) { EPILOG_STDCALL JMP(address); }
+
+#define CALL_THIS(address) { EPILOG_THISCALL ASM_CALL(address); }
+#define CALL_STD(address) { EPILOG_STDCALL ASM_CALL(address); }
+#define CALL_FAST(address) { EPILOG_STDCALL ASM_CALL(address); }
+
+// __thiscall version
+#define AUTO_FUNC_THIS(name, ret, addr, ...) \
+    using name##_t = ret (__thiscall *)(__VA_ARGS__); \
+    static constexpr name##_t name = reinterpret_cast<name##_t>(addr)
+
+// __stdcall version
+#define AUTO_FUNC_STDCALL(name, ret, addr, ...) \
+    using name##_t = ret (__stdcall *)(__VA_ARGS__); \
+    static constexpr name##_t name = reinterpret_cast<name##_t>(addr)
+
+// __fastcall version
+#define AUTO_FUNC_FASTCALL(name, ret, addr, ...) \
+    using name##_t = ret (__fastcall *)(__VA_ARGS__); \
+    static constexpr name##_t name = reinterpret_cast<name##_t>(addr)
+
+// __cdecl version
+#define AUTO_FUNC_CDECL(name, ret, addr, ...) \
+    using name##_t = ret (__cdecl *)(__VA_ARGS__); \
+    static constexpr name##_t name = reinterpret_cast<name##_t>(addr)
 
 #endif

@@ -166,6 +166,9 @@ public:
 	Nullable<int> NotHuman_DeathSequence { };
 	Valueable<bool> AllowDamageOnSelf { false };
 	Valueable<bool> Debris_Conventional { false };
+	Nullable<bool> DebrisTypes_Limit { };
+	ValueableVector<int> DebrisMinimums { };
+
 	Valueable<int> GattlingStage { 0 };
 	Valueable<int> GattlingRateUp { 0 };
 	Valueable<int> ReloadAmmo { 0 };

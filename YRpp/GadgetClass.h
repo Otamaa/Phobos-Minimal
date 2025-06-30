@@ -98,6 +98,8 @@ static_assert(sizeof(GadgetClass) == 0x24, "Invalid Size ! ");
 
 class NOVTABLE TextLabelClass : public GadgetClass
 {
+public:
+
 	//Destructor
 	virtual ~TextLabelClass() JMP_THIS(0x72A670);
 

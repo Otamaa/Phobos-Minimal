@@ -247,7 +247,7 @@ public:
 	int OutlineLength { 0 };
 	std::vector<CellStruct> CustomData {};
 	std::vector<CellStruct> OutlineData {};
-	DynamicVectorClass<Point2D , DllAllocator<Point2D>> FoundationRadarShape {};
+	DynamicVectorClass<Point2D> FoundationRadarShape {};
 
 	// new secret lab
 	NullableVector<TechnoTypeClass*> Secret_Boons {};
@@ -353,6 +353,7 @@ public:
 	Valueable<bool> BattlePointsCollector_RequirePower {};
 
 	NullableIdx<VocClass> BuildingRepairedSound {};
+	Valueable<bool> Refinery_UseNormalActiveAnim { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
@@ -405,12 +406,12 @@ public:
 			if COMPILETIMEEVAL (UpSound == BunkerSoundMode::Up)
 			{
 				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound, pThis->Location);
 			}
 			else
 			{
 				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
-				VocClass::PlayIndexAtPos(nSound, pThis->Location);
+				VocClass::SafeImmedietelyPlayAt(nSound, pThis->Location);
 			}
 		}
 	};

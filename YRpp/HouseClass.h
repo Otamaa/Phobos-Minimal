@@ -687,7 +687,7 @@ public:
 	{ JMP_THIS(0x4FF550); }
 
 	//  Count owned now
-	COMPILETIMEEVAL int CountOwnedNow(TechnoTypeClass const* pItem) const
+	int CountOwnedNow(TechnoTypeClass const* pItem) const
 	{
 		switch (VTable::Get(pItem))
 		{
@@ -707,19 +707,20 @@ public:
 			return 0;
 		}
 	}
-	COMPILETIMEEVAL int CountOwnedNow(BuildingTypeClass const* const pItem) const {
+
+	int CountOwnedNow(BuildingTypeClass const* const pItem) const {
 		return this->OwnedBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedNow(AircraftTypeClass const* const pItem) const {
+	int CountOwnedNow(AircraftTypeClass const* const pItem) const {
 		return this->OwnedAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedNow(InfantryTypeClass const* const pItem) const {
+	int CountOwnedNow(InfantryTypeClass const* const pItem) const {
 		return this->OwnedInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedNow(UnitTypeClass const* const pItem) const {
+	int CountOwnedNow(UnitTypeClass const* const pItem) const {
 		return this->OwnedUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
@@ -732,7 +733,7 @@ public:
 	{ JMP_THIS(0x5025F0); }
 
 	// Count owned and present
-	COMPILETIMEEVAL int CountOwnedAndPresent(TechnoTypeClass* pItem) const
+	int CountOwnedAndPresent(TechnoTypeClass* pItem) const
 	{
 		switch (VTable::Get(pItem))
 		{
@@ -749,19 +750,19 @@ public:
 		}
 	}
 
-	COMPILETIMEEVAL int CountOwnedAndPresent(BuildingTypeClass* pItem) const {
+	int CountOwnedAndPresent(BuildingTypeClass* pItem) const {
 		return this->ActiveBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedAndPresent(AircraftTypeClass* pItem) const {
+	int CountOwnedAndPresent(AircraftTypeClass* pItem) const {
 		return this->ActiveAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedAndPresent(InfantryTypeClass* pItem) const {
+	int CountOwnedAndPresent(InfantryTypeClass* pItem) const {
 		return this->ActiveInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedAndPresent(UnitTypeClass* pItem) const {
+	int CountOwnedAndPresent(UnitTypeClass* pItem) const {
 		return this->ActiveUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
@@ -769,7 +770,7 @@ public:
 	{ JMP_THIS(0x4FB6B0); }
 
 	// Count owned ever
-	COMPILETIMEEVAL int CountOwnedEver(TechnoTypeClass* pItem) const
+	int CountOwnedEver(TechnoTypeClass* pItem) const
 	{
 		switch (VTable::Get(pItem))
 		{
@@ -786,19 +787,19 @@ public:
 		}
 	}
 
-	COMPILETIMEEVAL int CountOwnedEver(BuildingTypeClass* pItem) const {
+	int CountOwnedEver(BuildingTypeClass* pItem) const {
 		return this->FactoryProducedBuildingTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedEver(AircraftTypeClass* pItem) const {
+	int CountOwnedEver(AircraftTypeClass* pItem) const {
 		return this->FactoryProducedAircraftTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedEver(InfantryTypeClass* pItem) const {
+	int CountOwnedEver(InfantryTypeClass* pItem) const {
 		return this->FactoryProducedInfantryTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
-	COMPILETIMEEVAL int CountOwnedEver(UnitTypeClass* pItem) const {
+	int CountOwnedEver(UnitTypeClass* pItem) const {
 		return this->FactoryProducedUnitTypes.GetItemCount(pItem->ArrayIndex);
 	}
 
@@ -1036,7 +1037,7 @@ public:
 	void UpdateScoutNodes(HouseClass* house) const
 		{ JMP_THIS(0x504860); }
 
-	CoordStruct* GetBaseCenter(CoordStruct* ret) const
+	CoordStruct* GetBaseCenterCoords(CoordStruct* ret) const
 		{ JMP_THIS(0x50DF30); }
 
 	void basecenter_4FAF00(SuperClass* a2,CellStruct& nCell) const
@@ -1101,8 +1102,8 @@ public:
 	}
 
 	bool ai_replace_node_50CAD0(BaseNodeClass* node) const { JMP_THIS(0x50CAD0); }
-	
-	bool ShouldDisableCameo(TechnoTypeClass* pType) { JMP_THIS(0x50B370); } 
+
+	bool ShouldDisableCameo(TechnoTypeClass* pType) { JMP_THIS(0x50B370); }
 	void AssignHandicap(int difficulty) { JMP_THIS(0x4F6EC0); }
 
 	//Constructor
@@ -1316,10 +1317,10 @@ public:
 		// altered on each object's loss or gain
 		// BuildLimit > 0 validation uses this
 		//	XQuantity on topsonIDB
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, OwnedBuildingTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, OwnedUnitTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, OwnedInfantryTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, OwnedAircraftTypes);
+	DECLARE_PROPERTY(CounterClass, OwnedBuildingTypes);
+	DECLARE_PROPERTY(CounterClass, OwnedUnitTypes);
+	DECLARE_PROPERTY(CounterClass, OwnedInfantryTypes);
+	DECLARE_PROPERTY(CounterClass, OwnedAircraftTypes);
 
 		// Used for: Counting objects currently owned and on the map
 		// altered on each object's loss or gain
@@ -1327,18 +1328,18 @@ public:
 		// original PrereqOverride check uses this
 		// original Prerequisite check uses this
 		// AuxBuilding check uses this
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, ActiveBuildingTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, ActiveUnitTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, ActiveInfantryTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, ActiveAircraftTypes);
+	DECLARE_PROPERTY(CounterClass, ActiveBuildingTypes);
+	DECLARE_PROPERTY(CounterClass, ActiveUnitTypes);
+	DECLARE_PROPERTY(CounterClass, ActiveInfantryTypes);
+	DECLARE_PROPERTY(CounterClass, ActiveAircraftTypes);
 
 		// Used for: Counting objects produced from Factory
 		// not altered when things get taken over or removed
 		// BuildLimit < 0 validation uses this
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, FactoryProducedBuildingTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, FactoryProducedUnitTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, FactoryProducedInfantryTypes);
-	DECLARE_PROPERTY(CounterClass<GameAllocator<int>>, FactoryProducedAircraftTypes);
+	DECLARE_PROPERTY(CounterClass, FactoryProducedBuildingTypes);
+	DECLARE_PROPERTY(CounterClass, FactoryProducedUnitTypes);
+	DECLARE_PROPERTY(CounterClass, FactoryProducedInfantryTypes);
+	DECLARE_PROPERTY(CounterClass, FactoryProducedAircraftTypes);
 
 	DECLARE_PROPERTY(CDTimerClass, AttackTimer);
 	int                   InitialAttackDelay; // both unused

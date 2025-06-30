@@ -9,6 +9,7 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/Ebolt/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
 #include <Ext/IsometricTileType/Body.h>
@@ -392,6 +393,8 @@ unsigned Phobos::GetVersionNumber() {
 
 	version += sizeof(CellExtData);
 
+	version += sizeof(EboltExtData);
+
 	version += sizeof(HouseExtData);
 	version += sizeof(HouseTypeExtData);
 
@@ -507,6 +510,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	HouseExtContainer::Instance.Clear();
 	TunnelTypeClass::Clear();
 	WeaponTypeExtContainer::Instance.Clear();
+	EboltExtData::Clear();
 	WarheadTypeExtContainer::Instance.Clear();
 	GenericPrerequisite::Clear();
 	CrateTypeClass::Clear();
@@ -692,6 +696,7 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<HouseExtContainer>(pStm) &&
 		Process_Load<IsometricTileTypeExtContainer>(pStm) &&
 		Process_Load<WeaponTypeExtContainer>(pStm) &&
+		Process_Load<EboltExtData>(pStm) &&
 		Process_Load<SWTypeExtContainer>(pStm) &&
 		Process_Load<BuildingTypeExtContainer>(pStm) &&
 		Process_Load<RadTypeClass>(pStm) &&
@@ -767,6 +772,7 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<HouseExtContainer>(pStm) &&
 			Process_Save<IsometricTileTypeExtContainer>(pStm) &&
 			Process_Save<WeaponTypeExtContainer>(pStm) &&
+			Process_Save<EboltExtData>(pStm) &&
 			Process_Save<SWTypeExtContainer>(pStm) &&
 			Process_Save<BuildingTypeExtContainer>(pStm) &&
 			Process_Save<RadTypeClass>(pStm) &&

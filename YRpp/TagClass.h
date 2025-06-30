@@ -14,6 +14,7 @@ public:
 
 	//Static
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TagClass*>, 0xB0E720u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TagClass*>, 0x8B40C8u> const ActiveTags{};
 
 	// finds an instance using the type, or creates one
 	static TagClass* __fastcall GetInstance(TagTypeClass* pType)
@@ -80,7 +81,7 @@ public:
 		TriggerEvent event, ObjectClass* pTagOwner, CellStruct location,
 		bool forceAllOccured = false, void* pSource = nullptr)
 	{ JMP_THIS(0x6E53A0); }
-	
+
 	bool SpringEvent( TriggerEvent event, ObjectClass* pTagOwner, CellStruct location,
 	bool forceAllOccured = false, void* pSource = nullptr)
 	{ JMP_THIS(0x6E53A0); }
@@ -112,7 +113,7 @@ public:
 
 	void SetDefaultCell(CellStruct Cell) const
 		{ JMP_THIS(0x6E5560); }
-	
+
 	//Constructor
 	TagClass(TagTypeClass* pType) noexcept
 		: TagClass(noinit_t())

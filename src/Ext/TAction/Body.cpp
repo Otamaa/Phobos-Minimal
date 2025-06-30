@@ -49,7 +49,7 @@ void TActionExt::ExtData::Serialize(T& Stm)
 TActionExt::ExtContainer TActionExt::ExtMap;
 */
 //==============================
-void CreateOrReplaceBanner(TActionClass* pTAction, bool isGlobal)
+static void CreateOrReplaceBanner(TActionClass* pTAction, bool isGlobal)
 {
 	const auto pBannerType = BannerTypeClass::Find(pTAction->Text);
 
@@ -433,14 +433,12 @@ bool TActionExt::SetAllOwnedFootDestinationTo(TActionClass* pThis, HouseClass* p
 	if (!pOwner)
 		return false;
 
-	CellStruct nBufer { };
-	ScenarioClass::Instance->GetWaypointCoords(&nBufer, pThis->Waypoint);
+	CellStruct nBufer = ScenarioExtData::Instance()->Waypoints[pThis->Waypoint];
+
 	const auto pCell = MapClass::Instance->TryGetCellAt(nBufer);
 
-	for (auto pFoot : *FootClass::Array)
-	{
-		if (pFoot->Owner == pOwner)
-		{
+	for (auto pFoot : *FootClass::Array) {
+		if (pFoot->Owner == pOwner) {
 			pFoot->SetDestination(pCell, false);
 		}
 	}
@@ -527,7 +525,7 @@ bool TActionExt::LightningStormStrikeAtObject(TActionClass* pThis, HouseClass* p
 	return true;
 }
 
-CoordStruct* GetSomething(CoordStruct* a1)
+static CoordStruct* GetSomething(CoordStruct* a1)
 {
 	const auto& MapRect = Make_Global<RectangleStruct>(0x87F8DC);
 	auto v1 = 60 * MapRect.Width;
@@ -543,15 +541,11 @@ CoordStruct* GetSomething(CoordStruct* a1)
 	return a1;
 }
 
-bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
+bool NOINLINE TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 {
 	HouseClass* pHouse = args.pHouse;
 	ObjectClass* pObject = args.pObject;
 	TriggerClass* pTrigger = args.pTrigger;
-	if (pObject && !pObject->IsAlive)
-	{
-		pObject = nullptr;
-	}
 
 	// Phobos
 	switch ((PhobosTriggerAction)pThis->ActionKind)
@@ -643,34 +637,27 @@ bool TActionExt::Occured(TActionClass* pThis, ActionArgs const& args, bool& ret)
 		ret = TActionExt::SetDropCrate(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::EditAngerNode:
-		return TActionExt::EditAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::EditAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::ClearAngerNode:
-		return TActionExt::ClearAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::ClearAngerNode(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::SetForceEnemy:
-		return TActionExt::SetForceEnemy(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::SetForceEnemy(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 
 	case PhobosTriggerAction::CreateBannerGlobal:
-		return TActionExt::CreateBannerGlobal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::CreateBannerGlobal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::CreateBannerLocal:
-		return TActionExt::CreateBannerLocal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::CreateBannerLocal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::DeleteBanner:
-		return TActionExt::DeleteBanner(pThis, pHouse, pObject, pTrigger, args.plocation);
+		ret = TActionExt::DeleteBanner(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 
 	default:
 	{
-
-		// Vanilla overriden
-		switch (pThis->ActionKind)
-		{
-		case TriggerAction::PlaySoundEffectRandom:
-		{
-			ret = TActionExt::PlayAudioAtRandomWP(pThis, pHouse, pObject, pTrigger, args.plocation);
-			return true;
-		default:
-			break;
-		}
-		};
-
 		return false;
 	}
 	}
@@ -860,15 +847,14 @@ bool TActionExt::DrawLaserBetweenWaypoints(TActionClass* pThis, HouseClass* pHou
 // #1004906: support more than 100 waypoints
 bool TActionExt::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-
 	ScenarioExtData::Instance()->DefinedAudioWaypoints.reserve(ScenarioExtData::Instance()->Waypoints.size());
 
 	auto const pScen = ScenarioClass::Instance();
 
 	if (!ScenarioExtData::Instance()->DefinedAudioWaypoints.empty())
 	{
-		VocClass::PlayIndexAtPos(pThis->Value,
-		CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
+		VocClass::SafeImmedietelyPlayAt(pThis->Value,
+		&CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
 			[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]));
 	}
 	else
@@ -1069,7 +1055,7 @@ bool TActionExt::RunSuperWeaponAtWaypoint(TActionClass* pThis, HouseClass* pHous
 	return true;
 }
 
-NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = nullptr)
+static NOINLINE HouseClass* GetPlayerAt(int param, HouseClass* const pOwnerHouse = nullptr)
 {
 	if (param == 8997)
 	{
@@ -1406,7 +1392,7 @@ bool TActionExt::SetNextMission(TActionClass* pThis, HouseClass* pHouse, ObjectC
 	return true;
 }
 
-COMPILETIMEEVAL bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
+static COMPILETIMEEVAL bool IsUnitAvailable(TechnoClass* pTechno, bool checkIfInTransportOrAbsorbed)
 {
 	if (!pTechno)
 		return false;
@@ -1651,3 +1637,232 @@ bool TActionExt::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, Obje
 //
 //	return pThis->TriggerType == target ? 0x6DD2E3 : 0x6DD2E6;
 //}
+
+#include <Utilities/Macro.h>
+#include <Misc/Ares/Hooks/Header.h>
+#include <Ext/Side/Body.h>
+
+static void __fastcall UnlockImput() {
+	JMP_STD(0x684290);
+}
+
+static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret)
+{
+	switch (pThis->ActionKind)
+	{
+	case TriggerAction::PlaySoundEffectRandom:
+	{
+		ret = TActionExt::PlayAudioAtRandomWP(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::UnlockInput:
+	{
+		UnlockImput();
+		return true;
+	}
+	case TriggerAction::PlaySpeech:
+	{
+		VoxClass::PlayIndex(pThis->Value);
+		return true;
+	}
+	case TriggerAction::PlaySoundEffectAtWaypoint:
+	{
+		const CellStruct waypointCell = ScenarioExtData::Instance()->Waypoints[pThis->Waypoint];
+		const auto pCell = MapClass::Instance->GetCellAt(waypointCell);
+
+		if (waypointCell.IsValid() && pCell)
+		{
+			ObjectClass* pObj = pCell->GetSomeObject(Point2D::Empty, false);
+
+			if (pObj && (pObj->WhatAmI() == BuildingClass::AbsID || pObj->WhatAmI() == TerrainClass::AbsID))
+			{
+				pObj->AttachSound(pThis->Value);
+			}
+			else
+			{
+				VocClass::PlayIndexAtPos(pThis->Value, CellClass::Cell2Coord(waypointCell), true);
+			}
+		}
+
+		return true;
+	}
+	case TriggerAction::CreateCrate:
+	{
+		const CellStruct waypointCell = ScenarioExtData::Instance()->Waypoints[pThis->Waypoint];
+		const auto placed = MapClass::Instance->Place_Crate(waypointCell, (PowerupEffects)pThis->Value);
+		return placed;
+	}
+	case TriggerAction::TextTrigger:
+	{
+		const auto text = std::string(pThis->Text);
+
+		if (!text.empty())
+		{
+			int idx = ScenarioClass::Instance->PlayerSideIndex ? (ScenarioClass::Instance->PlayerSideIndex != 1 ? 5 : 1) : 2;
+			if (SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex))
+			{
+				if (SideExtData* pExt = SideExtContainer::Instance.Find(pSide))
+				{
+					idx = pExt->MessageTextColorIndex;
+				}
+			}
+
+			const int color = SessionClass::Instance->Game_GetLinkedColor(idx);
+			const int delay =(int)(RulesClass::Instance->MessageDelay * TICKS_PER_MINUTE);
+			auto pText = StringTable::FetchString(text.c_str());
+			MessageListClass* pMessage = ScenarioExtData::Instance()->NewMessageList ?
+				ScenarioExtData::Instance()->NewMessageList.get() :
+				&MessageListClass::Instance();
+
+			pMessage->AddMessage(nullptr, 0, pText, color, TextPrintType::UseGradPal | TextPrintType::FullShadow | TextPrintType::Point6Grad, delay, false);
+		}
+
+		return true;
+	}
+	case TriggerAction::PlayAnimAt:
+	{
+		ret = AresTActionExt::PlayAnimAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::MeteorShower:
+	{
+		ret = AresTActionExt::MeteorStrike(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::LightningStrike:
+	{
+		ret = AresTActionExt::LightstormStrike(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ActivateFirestorm:
+	{
+		ret = AresTActionExt::ActivateFirestorm(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::DeactivateFirestorm:
+	{
+		ret = AresTActionExt::DeactivateFirestorm(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::NukeStrike:
+	{
+		ret = AresTActionExt::LauchhNuke(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ChemMissileStrike:
+	{
+		ret = AresTActionExt::LauchhChemMissile(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::DoExplosionAt:
+	{
+		ret = AresTActionExt::DoExplosionAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::RetintRed:
+	{
+		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Red);
+		return true;
+	}
+	case TriggerAction::RetintGreen:
+	{
+		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Green);
+		return true;
+	}
+	case TriggerAction::RetintBlue:
+	{
+		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Blue);
+		return true;
+	}
+	default:
+		return false;
+	}
+}
+
+bool FakeTActionClass::_OperatorBracket(HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	std::string_view name = magic_enum::enum_name(this->ActionKind);
+
+	if(name.empty())
+		name = magic_enum::enum_name((AresNewTriggerAction)this->ActionKind);
+
+	if (name.empty())
+		name = magic_enum::enum_name((PhobosTriggerAction)this->ActionKind);
+
+	Debug::LogInfo("TAction[{} - {}] triggering [{}]", (void*)this, name, (int)this->ActionKind);
+	bool ret = true;
+
+	if (pSourceObject && !pSourceObject->IsAlive) {
+		pSourceObject = 0;
+	}
+
+	if (_OverrideOriginalActions(this, pTargetHouse, pSourceObject, pTrigger, plocation, ret))
+	{
+		return ret;
+	}
+	else if (TActionExt::Occured(this, { pTargetHouse,pSourceObject,pTrigger,plocation }, ret)) {
+		return ret;
+	}
+	else if (AresTActionExt::Execute(this, pTargetHouse, pSourceObject, pTrigger, plocation, ret)) {
+		return ret;
+	}
+	else {
+		return this->ExecuteAction(this->ActionKind , pTargetHouse, pSourceObject, pTrigger, plocation);
+	}
+}
+
+#ifdef _fucked
+DEFINE_FUNCTION_JUMP(CALL , 0x726605, FakeTActionClass::_OperatorBracket)
+#else
+//DEFINE_FUNCTION_JUMP(LJMP, 0x6E1F60, FakeTActionClass::_TActionClass_Create_Team)
+
+ASMJIT_PATCH(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
+{
+	GET(FakeTActionClass* const, pAction, ESI);
+	GET(ObjectClass* const, pObject, ECX);
+
+	GET_STACK(HouseClass* const, pHouse, 0x254);
+	GET_STACK(TriggerClass* const, pTrigger, 0x25C);
+	GET_STACK(CellStruct*, pLocation, 0x260);
+
+	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
+
+	auto ret = true;
+
+	std::string_view name = magic_enum::enum_name(pAction->ActionKind);
+	std::string from = "Vanilla";
+
+	if (name.empty()) {
+		name = magic_enum::enum_name((AresNewTriggerAction)pAction->ActionKind);
+		from = "Ares";
+	}
+
+	if (name.empty()){
+		name = magic_enum::enum_name((PhobosTriggerAction)pAction->ActionKind);
+		from = "Phobos";
+	}
+
+	Debug::LogInfo("TAction[{} - {}] triggering [{}] {}", (void*)pAction, name, (int)pAction->ActionKind , from);
+
+	if (_OverrideOriginalActions(pAction, pHouse, pObject, pTrigger, pLocation, ret))
+	{
+		R->AL(ret);
+		return Handled;
+	}
+	else if (TActionExt::Occured(pAction, { pHouse , pObject , pTrigger , pLocation }, ret)) {
+		R->AL(ret);
+		return Handled;
+	}
+	else if (AresTActionExt::Execute(pAction, pHouse, pObject, pTrigger, pLocation, ret))
+	{
+		R->AL(ret);
+		return Handled;
+	}
+
+	// replicate the original instructions, using underflow
+	uint32_t const value = static_cast<uint32_t>(pAction->ActionKind) - 1;
+	R->EDX(value);
+	return (value > 144u) ? Handled : Default;
+}
+
+#endif

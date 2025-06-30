@@ -25,13 +25,32 @@ public:
 	// else it will be just {$pMessage}
 	explicit MessageListClass() noexcept { JMP_THIS(0x5D39D0); }
 
-	~MessageListClass() noexcept { JMP_THIS(0x5D3A40); }
+	~MessageListClass() noexcept {
+		for (auto i = this->MessageList; this->MessageList; i = this->MessageList) {
+			this->MessageList = (TextLabelClass*)i->Remove();
+
+			if (i) {
+				i->~TextLabelClass();
+			}
+		}
+
+		if (this->IsEdit) {
+			if (this->EditLabel) {
+				this->EditLabel->~TextLabelClass();
+			}
+			this->EditLabel = 0;
+		}
+	}
 
 	void Init(int x, int y, int max_msg, int maxchars, int height, int edit_x, int edit_y, bool overflow_on, int over_start, int over_end, int width) const {
 		JMP_THIS(0x5D3A60);
 	}
 
 	TextLabelClass* AddMessage(wchar_t* name, int id, wchar_t* txt, int color, TextPrintType style, int timeout, bool single_player) {
+		JMP_THIS(0x5D3BA0);
+	}
+
+	TextLabelClass* AddMessage(wchar_t* name, int id, const wchar_t* txt, int color, TextPrintType style, int timeout, bool single_player) {
 		JMP_THIS(0x5D3BA0);
 	}
 

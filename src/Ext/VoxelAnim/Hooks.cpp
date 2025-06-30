@@ -33,11 +33,11 @@ ASMJIT_PATCH(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 
 		for (auto& trail : pThisExt->LaserTrails)
 		{
-			if (!trail.LastLocation.isset())
-				trail.LastLocation = location;
+			if (!trail->LastLocation.isset())
+				trail->LastLocation = location;
 
-			trail.Visible = pThis->IsVisible;
-			trail.Update(drawnCoords);
+			trail->Visible = pThis->IsVisible;
+			trail->Update(drawnCoords);
 		}
 	}
 

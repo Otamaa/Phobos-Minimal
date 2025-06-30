@@ -26,6 +26,7 @@ std::vector<int> HouseExtData::AIProduction_BestChoices;
 std::vector<int> HouseExtData::AIProduction_BestChoicesNaval;
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
 std::set<TechnoClass*> HouseExtData::LimboTechno;
+std::unordered_map<HouseClass*, std::set<TeamClass*>> HouseExtContainer::HousesTeams;
 
 int HouseExtData::LastGrindingBlanceUnit;
 int HouseExtData::LastGrindingBlanceInf;
@@ -1143,7 +1144,7 @@ int HouseExtData::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionCl
 	if (param == 8997)
 	{
 		if (pTAction)
-			return (pTeam ? pTeam->Owner->ArrayIndex : pTAction->TeamType->Owner->ArrayIndex);
+			return (pTeam ? pTeam->OwnerHouse->ArrayIndex : pTAction->TeamType->Owner->ArrayIndex);
 		else
 			return -1;
 	}
@@ -2213,6 +2214,7 @@ void HouseExtContainer::Clear()
 
 	HouseExtData::LimboTechno.clear();
 	HouseExtData::AutoDeathObjects.clear();
+	HouseExtContainer::HousesTeams.clear();
 }
 
 #include <Misc/Spawner/Main.h>

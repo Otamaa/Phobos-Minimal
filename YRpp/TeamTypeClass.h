@@ -102,48 +102,48 @@ protected:
 
 public:
 
-	int      ArrayIndex;
-	int      Group;
-	int      VeteranLevel;
-	bool     Loadable;
-	bool     Full;
-	bool     Annoyance;
-	bool     GuardSlower;
-	bool     Recruiter;
-	bool     Autocreate;
-	bool     Prebuild;
-	bool     Reinforce;
-	bool     Whiner;
-	bool     Aggressive;
-	bool     LooseRecruit;
-	bool     Suicide;
-	bool     DropPod;
-	bool     UseTransportOrigin;
-	bool     DropshipLoadout;
-	bool     OnTransOnly;
-	int      Priority;
-	int      Max;
-	int      field_BC;
-	int      MindControlDecision;
-	HouseClass *     Owner;
-	int      idxHouse; // idx for MP
-	int      TechLevel;
-	TagClass* Tag;
-	int      Waypoint;
-	int      TransportWaypoint;
-	int      cntInstances;
-	ScriptTypeClass*  ScriptType;
-	TaskForceClass*   TaskForce;
-	int      IsGlobal;
-	int      field_EC;
-	bool     field_F0;
-	bool     field_F1;
-	bool     AvoidThreats;
-	bool     IonImmune;
-	bool     TransportsReturnOnUnload;
-	bool     AreTeamMembersRecruitable;
-	bool     IsBaseDefense;
-	bool     OnlyTargetHouseEnemy;
+	int      ArrayIndex; //98
+	int      Group; //9C
+	int      VeteranLevel; //A0
+	bool     Loadable; //A4
+	bool     Full; //A5
+	bool     Annoyance; //A6
+	bool     GuardSlower; //A7
+	bool     Recruiter;  //A8
+	bool     Autocreate;  //A9
+	bool     Prebuild; //AA
+	bool     Reinforce; //AB
+	bool     Whiner; //AC
+	bool     Aggressive; //AD
+	bool     LooseRecruit; //AE
+	bool     Suicide; //AF
+	bool     DropPod; //B0
+	bool     UseTransportOrigin; //B1
+	bool     DropshipLoadout; //B2
+	bool     OnTransOnly; //B3
+	int      Priority; //B4
+	int      Max; //B8
+	int      field_BC; //BC
+	int      MindControlDecision; //C0
+	HouseClass *     Owner; //C4
+	int      idxHouse; //C8 idx for MP
+	int      TechLevel; //CC
+	TagClass* Tag; //D0
+	int      Waypoint; //D4
+	int      TransportWaypoint; //D8
+	int      cntInstances; //DC
+	ScriptTypeClass*  ScriptType; //E0
+	TaskForceClass*   TaskForce; //E4
+	int      IsGlobal; //E8
+	int      field_EC; //EC
+	bool     field_F0; //F0
+	bool     field_F1; //F1
+	bool     AvoidThreats; //F2
+	bool     IonImmune; //F3
+	bool     TransportsReturnOnUnload; //F4
+	bool     AreTeamMembersRecruitable; //F5
+	bool     IsBaseDefense; //F6
+	bool     OnlyTargetHouseEnemy; //F7
 
 };
 #pragma pack(pop)

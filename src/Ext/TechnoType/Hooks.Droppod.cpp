@@ -120,7 +120,8 @@ struct DroppodProperties_
 		auto pLinked = pLoco->LinkedTo;
 		auto tType = pLinked->GetTechnoType();
 		CoordStruct oldLoc = pLinked->Location;
-		const auto pLinkedSW = TechnoExtContainer::Instance.Find(pLinked)->LinkedSW;
+		auto pLinkedExt = TechnoExtContainer::Instance.Find(pLinked);
+		const auto pLinkedSW = pLinkedExt->LinkedSW;
 		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)AresNewSuperType::DropPod;
 		const double angle = DroppodProperties_::GetAngle(tType, pLinked, condition);
 		const auto maxspeed = DroppodProperties_::GetSpeed(tType, pLinked, condition);
@@ -159,7 +160,7 @@ struct DroppodProperties_
 						auto locnear = MapClass::GetRandomCoordsNear(pLoco->CoordDest, 85, false);
 
 						if (int count = dWpn->Report.Count)
-							VocClass::PlayAt(dWpn->Report[Random2Class::Global->RandomFromMax(count - 1)], coords);
+							VocClass::SafeImmedietelyPlayAt(dWpn->Report[Random2Class::Global->RandomFromMax(count - 1)], &coords);
 
 						DamageArea::Apply(&locnear, 2 * dWpn->Damage, pLinked, dWpn->Warhead, true, pLinked->Owner);
 						if (auto dmgAnim = MapClass::SelectDamageAnimation(2 * dWpn->Damage, dWpn->Warhead, LandType::Clear, locnear))
@@ -206,6 +207,8 @@ struct DroppodProperties_
 						false, false
 					);
 				}
+
+				pLinkedExt->LaserTrails.remove_all_if([](auto const& pTrail) { return pTrail->Type->DroppodOnly; });
 
 				pLinked->Mark(MarkType::Put);
 				pLinked->SetHeight(0);
@@ -352,7 +355,7 @@ ASMJIT_PATCH(0x4B5EB0, DropPodLocomotionClass_ILocomotion_Process_Smoke, 6)
 
 				if (pWeapon->Report.Count > 0)
 				{
-					VocClass::PlayIndexAtPos(ScenarioClass::Instance->Random.RandomFromMax(pWeapon->Report.Count - 1), pCoords, nullptr);
+					VocClass::SafeImmedietelyPlayAt(ScenarioClass::Instance->Random.RandomFromMax(pWeapon->Report.Count - 1), pCoords, nullptr);
 				}
 
 				if (pWeapon->Warhead)

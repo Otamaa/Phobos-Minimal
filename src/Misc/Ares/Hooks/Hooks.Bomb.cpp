@@ -363,7 +363,7 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 
 		VoxClass::PlayIndex(pTypeExt->EVA_Sold);
 		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
-		VocClass::PlayAt(pTypeExt->SellSound, loc);
+		VocClass::SafeImmedietelyPlayAt(pTypeExt->SellSound, &loc);
 	}
 
 	FlyingStrings::AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, loc);

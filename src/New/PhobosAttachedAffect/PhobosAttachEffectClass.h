@@ -13,6 +13,7 @@ class TechnoClass;
 class HouseClass;
 struct AEAttachParams;
 class AEAttachInfoTypeClass;
+class LaserTrailClass;
 class PhobosAttachEffectClass
 {
 public:
@@ -30,6 +31,10 @@ public:
 	void UpdateCumulativeAnim(int count);
 	void TransferCumulativeAnim(PhobosAttachEffectClass* pSource);
 	bool CanShowAnim() const;
+	TechnoClass* GetInvoker() const
+	{
+		return this->Invoker;
+	}
 
 	COMPILETIMEEVAL FORCEDINLINE PhobosAttachEffectTypeClass* GetType() const {
 		return this->Type;
@@ -82,6 +87,9 @@ public:
 	static int DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo, std::vector<PhobosAttachEffectTypeClass*> const& types);
 	static int RemoveAllOfType(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, int minCount, int maxCount);
 
+	static void CumulateExpireWeapon(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, TechnoClass* pInvoker,	std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer);
+	static void DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer);
+
 	template <typename T>
 	bool Serialize(T& Stm);
 public:
@@ -110,6 +118,7 @@ public:
 	bool ShouldBeDiscarded { false };
 	int LastDiscardCheckFrame { -1 };
 	bool LastDiscardCheckValue {};
+	LaserTrailClass* LaserTrail {};
 };
 
 template <>

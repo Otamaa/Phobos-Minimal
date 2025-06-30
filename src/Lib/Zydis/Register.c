@@ -30,7 +30,7 @@
 /* Register strings                                                                               */
 /* ============================================================================================== */
 
-#include <Zydis/Generated/EnumRegister.inc>
+#include <Generated/EnumRegister.inc>
 
 /* ============================================================================================== */
 /* Register-class mapping                                                                         */
@@ -59,7 +59,7 @@ typedef struct ZydisRegisterLookupItem
     ZydisRegisterWidth width64;
 } ZydisRegisterLookupItem;
 
-#include <Zydis/Generated/RegisterLookup.inc>
+#include <Generated/RegisterLookup.inc>
 
 /**
  * Defines the `ZydisRegisterClassLookupItem` struct.
@@ -84,7 +84,7 @@ typedef struct ZydisRegisterClassLookupItem_
     ZydisRegisterWidth width64;
 } ZydisRegisterClassLookupItem;
 
-#include <Zydis/Generated/RegisterClassLookup.inc>
+#include <Generated/RegisterClassLookup.inc>
 
 /* ============================================================================================== */
 /* Exported functions                                                                             */

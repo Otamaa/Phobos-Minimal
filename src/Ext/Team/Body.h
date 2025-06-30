@@ -73,6 +73,8 @@ public:
 	static bool NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list);
 	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
 
+	static bool IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement);
+
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(TeamExtData) -
@@ -99,8 +101,21 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
+	void _AI();
+	bool _CoordinateRegroup();
+	void _TeamClass_6EA080();
+	void _CoordinateMove();
+	void _AssignMissionTarget(AbstractClass* new_target);
+
+	//
+	void _TMission_Guard(ScriptActionNode* nNode, bool arg3);
+	void _TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3);
+	void _TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3);
+	void _TMission_ChangeHouse(ScriptActionNode* nNode, bool arg3);
+	//
+
 	TeamExtData* _GetExtData() {
-		return *reinterpret_cast<TeamExtData**>(this->unknown_18);
+		return *reinterpret_cast<TeamExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 };

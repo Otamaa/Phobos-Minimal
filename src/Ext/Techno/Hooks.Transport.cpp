@@ -6,17 +6,10 @@
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
 ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
-	if (auto const  pTransport = pThis->Transporter) {\
-		if (TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
-
-#define SET_THREATEVALSB(addr , techreg , name ,size , ret)\
-ASMJIT_PATCH(addr, name, size) {\
-GET(TechnoClass* , pThis , techreg);\
-	if (auto const  pTransport = pThis->Transporter) {\
-	  if (TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->Passengers_SyncOwner.Get()) return ret; } return 0; }
+	return TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())->Passengers_SyncOwner.Get() ?  ret : 0; }
 
 SET_THREATEVALS(0x6FA33C, ESI, TechnoClass_AI_ThreatEvals_OpenToppedOwner, 0x6, 0x6FA37A) //
-SET_THREATEVALSB(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
+SET_THREATEVALS(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
 SET_THREATEVALS(0x6F8FD7, ESI, TechnoClass_Greatest_Threat_ThreatEvals_OpenToppedOwner, 0x5, 0x6F8FDC)
 SET_THREATEVALS(0x6F7EC2, EDI, TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOwner, 0x6, 0x6F7EDA)
 
@@ -65,23 +58,6 @@ ASMJIT_PATCH(0x6F8FD7, TechnoClass_ThreatEvals_OpenToppedOwner, 0x5)       // Te
 }
 #endif
 
-ASMJIT_PATCH(0x701881, TechnoClass_ChangeHouse_Passenger_SyncOwner, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Passengers_SyncOwner && pThis->Passengers.NumPassengers > 0) {
-		for (NextObject j(pThis->Passengers.GetFirstPassenger());
-			j && ((*j)->AbstractFlags & AbstractFlags::Foot);
-			++j)
-		{
-			((FootClass*)(*j))->SetOwningHouse(pThis->Owner, false);
-
-		}
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -96,13 +72,10 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 		if (pTransTypeExt->Passengers_SyncOwner && pTransTypeExt->Passengers_SyncOwner_RevertOnExit)
 			pPassExt->OriginalPassengerOwner = pPassenger->Owner;
 
-		if (!pPassExt->LaserTrails.empty())
+		for (auto& pLaserTrail : pPassExt->LaserTrails)
 		{
-			for (auto& pLaserTrail : pPassExt->LaserTrails)
-			{
-				pLaserTrail.Visible = false;
-				pLaserTrail.LastLocation.clear();
-			}
+			pLaserTrail->Visible = false;
+			pLaserTrail->LastLocation.clear();
 		}
 
 		TrailsManager::Hide((TechnoClass*)pPassenger);

@@ -182,7 +182,7 @@ static void loadConstants (LoadState *S, Proto *f) {
       case LUA_VLNGSTR:
         setsvalue2n(S->L, o, loadString(S, f));
         break;
-      default: error(S, "invalid constant");
+      default: lua_assert(0);
     }
   }
 }

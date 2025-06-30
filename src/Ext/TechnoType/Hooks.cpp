@@ -87,7 +87,7 @@ ASMJIT_PATCH(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
 		0x73B78A : 0x73B790;
 }
 
-#ifdef _old
+#ifndef _old
 
  ASMJIT_PATCH(0x73BA4C, UnitClass_DrawVXL_TurretMultiOffset1, 0x6) //0
  {
@@ -105,6 +105,7 @@ ASMJIT_PATCH(0x73B780, UnitClass_DrawVXL_TurretMultiOffset, 0x6) //0
  	return 0x73BA68;
  }
 
+#ifdef FUCKED
 ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteCalculateTurretMatrix, 0x6)
 {
 	enum { SkipGameCode = 0x73BEA4 };
@@ -261,6 +262,8 @@ ASMJIT_PATCH(0x73BA12, UnitClass_DrawAsVXL_RewriteCalculateTurretMatrix, 0x6)
 
 	return SkipGameCode;
 }
+#endif
+
 #else
 
 Matrix3D NOINLINE getTurretMatrix(const Matrix3D& mtx , UnitClass* pThis , TechnoTypeExtData* pDrawTypeExt) {
@@ -515,9 +518,13 @@ ASMJIT_PATCH(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
 ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
-	return (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DeployingAnim_KeepUnitVisible.Get() &&
-		(pThis->Deploying || pThis->Undeploying)) ?
-		0x73CF62 : 0;
+
+	if((pThis->Deploying || pThis->Undeploying) &&
+		TechnoTypeExtContainer::Instance.Find(pThis->Type)->DeployingAnim_KeepUnitVisible){
+			return 0x73CF62;
+		}
+
+	return 0;
 }
 
 // Ares hooks in at 739B8A, this goes before it and skips it if needed.
@@ -586,6 +593,7 @@ ASMJIT_PATCH(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
 	GET(UnitClass*, pThis, ESI);
 	auto const pType = pThis->Type;
 	enum { PlayDeploySound = 0x739C70  , SetAnimTimer = 0x739C20 , SetDeployingState = 0x739C62 };
+	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
 	if (!pThis->InAir)
 	{
@@ -653,7 +661,7 @@ ASMJIT_PATCH(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 
 	auto const pAnim = GameCreate<AnimClass>(pAnimType,
 	pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
-				pExt->DeployingAnim_ReverseForUndeploy);
+	pExt->DeployingAnim_ReverseForUndeploy);
 
 	pThis->DeployAnim = pAnim;
 	pAnim->SetOwnerObject(pThis);

@@ -24,7 +24,7 @@ ASMJIT_PATCH_GUARDED(0x6EBB86, TeamClass_MoveToFocus_IsInStray, 0x6)
 		R->EAX((int)nCoord_target.DistanceFrom(nCoord));
 	}
 	else
-		R->EAX(pFoot->DistanceFrom(pThis->SpawnCell));
+		R->EAX(pFoot->DistanceFrom(pThis->Zone));
 
 	return 0x6EBB91;
 }

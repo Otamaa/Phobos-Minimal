@@ -75,7 +75,9 @@ ASMJIT_PATCH(0x62BB13, ParticleClass_CTOR, 0x5)
 
 				for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
 				{
-					pExt->LaserTrails.emplace_back(LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH);
+					pExt->LaserTrails.emplace_back(
+						std::move(std::make_unique<LaserTrailClass>(
+						LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH)));
 				}
 			}
 		}

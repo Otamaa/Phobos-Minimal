@@ -44,72 +44,33 @@ ASMJIT_PATCH(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 //	return (nMaxCount > 0) ? 0x469D1A : 0x0;
 //}
 
-ASMJIT_PATCH(0x469D3C, BulletClass_Logics_Debris, 0xA)
+#include <Utilities/DebrisSpawners.h>
+
+ASMJIT_PATCH(0x469D1A, BulletClass_Logics_Debris, 0x6)
 {
 	GET(FakeBulletClass*, pThis, ESI);
-	GET(int, nTotalSpawn, EBX);
-	GET(FakeWarheadTypeClass*, pWarhead, EAX);
+
+	auto pWHExt = pThis->_GetWarheadTypeExtData();
+	auto const pCell = pThis->GetCell();
+	const bool isLand = !pCell ? true : pCell->LandType != LandType::Water || pCell->ContainsBridge();
+
+	if (!isLand && pWHExt->Debris_Conventional)
+		return 0x469EBA;
+
+	auto pWarhead = pWHExt->AttachedToObject;
+
+	std::optional<bool> limited {};
+	if (pWHExt->DebrisTypes_Limit.isset()) {
+		limited = pWHExt->DebrisTypes_Limit.Get();
+	}
 
 	auto pExt = pThis->_GetExtData();
-	HouseClass* const pOWner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExtData::FindFirstCivilianHouse());
-	HouseClass* const Victim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
-	CoordStruct nCoords { 0,0,0 };
-	auto const& nDebrisTypes = pWarhead->DebrisTypes;
-
-	if (nDebrisTypes.Count > 0 && pWarhead->DebrisMaximums.Count > 0)
-	{
-		nCoords = pThis->GetCoords();
-		for (int nCurIdx = 0; nCurIdx < nDebrisTypes.Count; ++nCurIdx)
-		{
-			if (nCurIdx > pWarhead->DebrisMaximums.Count)
-				break;
-
-			if (!pWarhead->DebrisMaximums[nCurIdx])
-				continue;
-
-				int nAmountToSpawn = Math::abs(int(ScenarioClass::Instance->Random.Random())) % pWarhead->DebrisMaximums[nCurIdx];
-				nAmountToSpawn = LessOrEqualTo(nAmountToSpawn, nTotalSpawn);
-				nTotalSpawn -= nAmountToSpawn;
-
-				for (; nAmountToSpawn > 0; --nAmountToSpawn)
-				{
-					if (auto const pVoxelAnimType = nDebrisTypes[nCurIdx]){
-						auto pVoxAnim = GameCreate<VoxelAnimClass>(pVoxelAnimType, &nCoords, pOWner);
-						VoxelAnimExtContainer::Instance.Find(pVoxAnim)->Invoker = pThis->Owner;
-					}
-				}
-
-			if (nTotalSpawn <= 0)
-			{
-				nTotalSpawn = 0;
-				break;
-			}
-		}
-	}
-
-	if (!nDebrisTypes.Count && (nTotalSpawn > 0))
-	{
-		const auto AnimDebris = pWarhead->_GetExtData()->DebrisAnimTypes.GetElements(RulesClass::Instance->MetallicDebris);
-
-		if (!AnimDebris.empty())
-		{
-			nCoords = pThis->GetCoords();
-			nCoords.Z += 20;
-
-			for (int i = 0; i < nTotalSpawn; ++i)
-			{
-				if (auto const pAnimType = AnimDebris[ScenarioClass::Instance->Random.RandomFromMax(AnimDebris.size() - 1)])
-				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
-						pOWner,
-						Victim,
-						pThis->Owner,
-						false, false
-					);
-				}
-			}
-		}
-	}
+	HouseClass* const pOwner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExtData::FindFirstCivilianHouse());
+	HouseClass* const pVictim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
+	DebrisSpawners::Spawn(pWarhead->MinDebris,pWarhead->MaxDebris,
+		pThis->GetCoords() , pWarhead->DebrisTypes,
+		pWHExt->DebrisAnimTypes.GetElements(RulesClass::Instance->MetallicDebris)
+		,pWarhead->DebrisMaximums,pWHExt->DebrisMinimums, limited, pThis->Owner,pOwner,pVictim);
 
 	return 0x469EBA;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <tuple>
+#include <span>
 
 class Point3D
 {
@@ -17,6 +18,12 @@ public:
 	//	}
 	//	return *this;
 	//}
+
+	COMPILETIMEEVAL void assignto(int(&out)[3]) {
+		out[0] = this->X;
+		out[1] = this->Y;
+		out[2] = this->Z;
+	}
 
 	COMPILETIMEEVAL bool operator==(const Point3D& that) const { return X == that.X && Y == that.Y && Z == that.Z; }
 	COMPILETIMEEVAL bool operator!=(const Point3D& that) const { return X != that.X && Y != that.Y && Z != that.Z; }

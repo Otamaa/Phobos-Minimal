@@ -389,3 +389,4 @@ FodyWeavers.xsd
 *.tlog
 /DebugBuild/IntDir/microsoft/STL
 /DebugBuild/IntDir
+/.vscode/settings.json

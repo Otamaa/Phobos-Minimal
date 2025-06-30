@@ -40,7 +40,7 @@
 #   define ZYDIS_NOTMIN(x) , x
 #endif
 
-#include <Zydis/Generated/InstructionDefinitions.inc>
+#include <Generated/InstructionDefinitions.inc>
 
 #undef ZYDIS_NOTMIN
 
@@ -51,7 +51,7 @@
 #define ZYDIS_OPERAND_DEFINITION(type, encoding, access) \
     { type, encoding, access }
 
-#include <Zydis/Generated/OperandDefinitions.inc>
+#include <Generated/OperandDefinitions.inc>
 
 #undef ZYDIS_OPERAND_DEFINITION
 
@@ -59,7 +59,7 @@
 /* Accessed CPU flags                                                                             */
 /* ---------------------------------------------------------------------------------------------- */
 
-#include <Zydis/Generated/AccessedFlags.inc>
+#include <Generated/AccessedFlags.inc>
 
 /* ---------------------------------------------------------------------------------------------- */
 

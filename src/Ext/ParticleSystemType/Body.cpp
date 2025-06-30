@@ -3,7 +3,7 @@
 
 #include <ParticleSystemClass.h>
 
-void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX, const int* beginY)
+static void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX, const int* beginY)
 {
 	for (size_t i = 0; i < arr.size(); ++i) {
 		if(!detail::read(arr[i], exINI, pID, (std::string("FacingDirectionMult") + std::to_string(i)).c_str())) {

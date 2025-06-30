@@ -190,6 +190,13 @@ ASMJIT_PATCH_GUARDED(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	//pExt->UpdateFireSelf();
 	pExt->UpdateTiberiumEater();
 	pExt->UpdateMCRangeLimit();
+	pExt->UpdateRecountBurst();
+	pExt->UpdateRearmInEMPState();
+
+	if (pExt->AttackMoveFollowerTempCount) {
+		pExt->AttackMoveFollowerTempCount--;
+	}
+
 	pExt->UpdateSpawnLimitRange();
 	pExt->UpdateEatPassengers();
 	if (!pThis->IsAlive){

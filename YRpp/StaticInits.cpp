@@ -33,6 +33,9 @@
 #include <DisplayClass.h>
 #include <MapClass.h>
 
+#include <array>
+#include <Windows.h>
+
 #include <Helpers/Iterators.h>
 
 const CoordStruct CoordStruct::Empty = {};
@@ -1155,6 +1158,224 @@ void Game::Unselect_All_Except(ObjectClass* object)
 		{0x486900},
 	}};
 
+	std::array<TActionClass::ActionFuncEntry, (size_t)TriggerAction::count> TActionClass::ActionFuncTable =
+	{ {
+		{ "Win", 0x6E0440 },
+		{ "Lose", 0x6E0460 },
+		{ "ProductionBegins", 0x6E1E40 },
+		{ "CreateTeam", 0x6E1F60 },
+		{ "DestroyTeam", 0x6E1F90 },
+		{ "AllToHunt", 0x6E1FF0 },
+		{ "Reinforcement", 0x6E1FB0 },
+		{ "DropZoneFlare", 0x6E1CC0 },
+		{ "FireSale", 0x6E1EA0 },
+		{ "PlayMovie", 0x6E16D0 },
+		{ "TextTrigger", 0x6E0D60 },
+		{ "DestroyTrigger", 0x6E2A10 },
+		{ "AutocreateBegins", 0x6E1F00 },
+		{ "ChangeHouse", 0x6E0AA0 },
+		{ "AllowWin", 0x6E1DC0 },
+		{ "RevealAllMap", 0x6E1330 },
+		{ "RevealAroundWaypoint", 0x6E0FE0 },
+		{ "RevealWaypointZone", 0x6E11C0 },
+		{ "PlaySoundEffect", 0x6E1760 },
+		{ "PlayMusicTheme", 0x6E1B90 },
+		{ "PlaySpeech", 0x6E1BB0 },
+		{ "ForceTrigger", 0x6E2AA0 },
+		{ "TimerStart", 0x6E13A0 },
+		{ "TimerStop", 0x6E13E0 },
+		{ "TimerExtend", 0x6E1440 },
+		{ "TimerShorten", 0x6E14A0 },
+		{ "TimerSet", 0x6E1530 },
+		{ "GlobalSet", 0x6E0FA0 },
+		{ "GlobalClear", 0x6E0FC0 },
+		{ "AutoBaseBuilding", 0x6E0EF0 },
+		{ "GrowShroud", 0x6E0F90 },
+		{ "DestroyAttachedObject", 0x6E2050 },
+		{ "AddOneTimeSuperWeapon", 0x6E1BD0 },
+		{ "AddRepeatingSuperWeapon", 0x6E1C40 },
+		{ "PreferredTarget", 0x6E0ED0 },
+		{ "AllChangeHouse", 0x6E0B60 },
+		{ "MakeAlly", 0x6E0DF0 },
+		{ "MakeEnemy", 0x6E0E60 },
+		{ "ChangeZoomLevel", 0 }, // Not found
+		{ "ResizePlayerView", 0x6E21E0 },
+		{ "PlayAnimAt", 0x6E2290 },
+		{ "DoExplosionAt", 0x6E2390 },
+		{ "CreateVoxelAnim", 0x6E2520 },
+		{ "IonStormStart", 0x6E2600 },
+		{ "IonStormStop", 0x6E2640 },
+		{ "LockInput", 0x6E2660 },
+		{ "UnlockInput", 0x6E26C0 },
+		{ "MoveCameraToWaypoint", 0x6E26D0 },
+		{ "ZoomIn", 0x6E2860 },
+		{ "ZoomOut", 0x6E28E0 },
+		{ "ReshroudMap", 0x6E2950 },
+		{ "ChangeLightBehavior", 0x6E2970 },
+		{ "EnableTrigger", 0x6E2AF0 },
+		{ "DisableTrigger", 0x6E2B70 },
+		{ "CreateRadarEvent", 0x6E2BB0 },
+		{ "LocalSet", 0x6E2BE0 },
+		{ "LocalClear", 0x6E2C00 },
+		{ "MeteorShower", 0x6E2C40 },
+		{ "ReduceTiberium", 0x6E1180 },
+		{ "SellBuilding", 0x6E08B0 },
+		{ "TurnOffBuilding", 0x6E09A0 },
+		{ "TurnOnBuilding", 0x6E0A20 },
+		{ "Apply100Damage", 0x6E0490 },
+		{ "SmallLightFlash", 0x6E0790 },
+		{ "MediumLightFlash", 0x6E07F0 },
+		{ "LargeLightFlash", 0x6E0850 },
+		{ "AnnounceWin", 0x6E0440 },
+		{ "AnnounceLose", 0x6E0460 },
+		{ "ForceEnd", 0x6E0480 },
+		{ "DestroyTag", 0x6E2A50 },
+		{ "SetAmbientStep", 0x6E2E20 },
+		{ "SetAmbientRate", 0x6E2E40 },
+		{ "SetAmbientLight", 0x6E2F50 },
+		{ "AITriggersBegin", 0x6E2FA0 },
+		{ "AITriggersStop", 0x6E3000 },
+		{ "RatioOfAITriggerTeams", 0x6E3300 },
+		{ "RatioOfTeamAircraft", 0x6E3320 },
+		{ "RatioOfTeamInfantry", 0x6E3340 },
+		{ "RatioOfTeamUnits", 0x6E3360 },
+		{ "ReinforcementAt", 0x6E1FD0 },
+		{ "WakeupSelf", 0x6E01C0 },
+		{ "WakeupAllSleepers", 0x6E02B0 },
+		{ "WakeupAllHarmless", 0x6E0330 },
+		{ "WakeupGroup", 0x6E03B0 },
+		{ "VeinGrowth", 0x6E0250 },
+		{ "TiberiumGrowth", 0x6E0270 },
+		{ "IceGrowth", 0x6E0290 },
+		{ "ParticleAnim", 0x6E0110 },
+		{ "RemoveParticleAnim", 0x6E0080 },
+		{ "LightningStrike", 0x6E0050 },
+		{ "GoBerzerk", 0x6E0930 },
+		{ "ActivateFirestorm", 0 }, // Not found
+		{ "DeactivateFirestorm", 0 }, // Not found
+		{ "IonCannonStrike", 0x6E3380 },
+		{ "NukeStrike", 0x6E3410 },
+		{ "ChemMissileStrike", 0x6E38F0 },
+		{ "ToggleTrainCargo", 0x6E3B20 },
+		{ "PlaySoundEffectRandom", 0x6E1780 },
+		{ "PlaySoundEffectAtWaypoint", 0x6E18B0 },
+		{ "PlayIngameMovie", 0x6E1720 },
+		{ "ReshroudMapAtWaypoint", 0x6E1A70 },
+		{ "LightningStormStrike", 0x6E35F0 },
+		{ "TimerText", 0x6E15F0 },
+		{ "FlashTeam", 0x6E4020 },
+		{ "TalkBubble", 0x6E4040 },
+		{ "SetObjectTechLevel", 0x6E37F0 },
+		{ "ReinforcementByChrono", 0x6E3890 },
+		{ "CreateCrate", 0x6E38B0 },
+		{ "IronCurtain", 0x6E36E0 },
+		{ "PauseGame", 0x6E4080 },
+		{ "EvictOccupiers", 0x6E4090 },
+		{ "CenterCameraAtWaypoint", 0x6E2790 },
+		{ "MakeHouseCheer", 0x6E3060 },
+		{ "SetTabTo", 0x6E4100 },
+		{ "FlashCameo", 0x6E4150 },
+		{ "StopSounds", 0x6E1980 },
+		{ "PlayIngameMovieAndPause", 0x6E1740 },
+		{ "ClearAllSmudges", 0x6E2C20 },
+		{ "DestroyAll", 0x6E3180 },
+		{ "DestroyAllBuildings", 0x6E31E0 },
+		{ "DestroyAllLandUnits", 0x6E3240 },
+		{ "DestroyAllNavalUnits", 0x6E32A0 },
+		{ "MindControlBase", 0x6E0CA0 },
+		{ "RestoreMindControlledBase", 0x6E0D00 },
+		{ "CreateBuilding", 0x6E4200 },
+		{ "RestoreStartingUnits", 0x6E30C0 },
+		{ "StartChronoScreenEffect", 0x6E2F90 },
+		{ "TeleportAll", 0x6E1A40 },
+		{ "SetSuperWeaponCharge", 0x6E42D0 },
+		{ "RestoreStartingBuildings", 0x6E3120 },
+		{ "FlashBuildingsOfType", 0x6E4560 },
+		{ "SuperWeaponSetRechargeTime", 0x6E4320 },
+		{ "SuperWeaponResetRechargeTime", 0x6E4360 },
+		{ "SuperWeaponReset", 0x6E43A0 },
+		{ "SetPreferredTargetCell", 0x6E43E0 },
+		{ "ClearPreferredTargetCell", 0x6E4440 },
+		{ "SetBaseCenterCell", 0x6E44E0 },
+		{ "ClearBaseCenterCell", 0x6E4540 },
+		{ "BlackoutRadar", 0x6E3B40 },
+		{ "SetDefensiveTargetCell", 0x6E4460 },
+		{ "ClearDefensiveTargetCell", 0x6E44C0 },
+		{ "RetintRed", 0x6E2E60 },
+		{ "RetintGreen", 0x6E2EB0 },
+		{ "RetintBlue", 0x6E2F00 },
+		{ "JumpCameraHome", 0x6E2850 }
+	}};
+
+	std::array<const DWORD, (size_t)TeamMissionType::count> TeamClass::TMissionFuncTable = {
+		0x6ED090, // Attack
+		0x6EC9A0, // Att_waypt
+		0x6EDD90, // Go_bezerk
+		0x6EC7D0, // Move
+		0x6EC770, // Movecell
+		0x6ED770, // Guard
+		0x6EDE10, // Loop
+		0x6EDE40, // Player_wins
+		0x6EF110, // Unload
+		0x6ED4D0, // Deploy
+		0x6EDB50, // Hound_dog
+		0x6ED7E0, // Do
+		0x6EDA90, // Set_global
+		0x6EDDC0, // Idle_anim
+		0x6ED200, // Load
+		0x6ECE60, // Spy
+		0x6ECCE0, // Patrol
+		0x6ED030, // Change_script
+		0x6ECFB0, // Change_team
+		0x6EDD60, // Panic
+		0x6ECF50, // Change_house
+		0x6ECF10, // Scatter
+		0x6EC730, // Goto_nearby_shroud
+		0x6EDE60, // Player_loses
+		0x6EDE80, // Play_speech
+		0x6EDE90, // Play_sound
+		0x6EDEC0, // Play_movie
+		0x6EDEF0, // Play_music
+		0x6EDF10, // Reduce_tiberium
+		0x6EDF90, // Begin_production
+		0x6EDFB0, // Fire_sale
+		0x6EDFD0, // Self_destruct
+		0x6EE0A0, // Ion_storm_start_in
+		0x6EE0E0, // Ion_storn_end
+		0x6EE100, // Center_view_on_team
+		0x6EE1B0, // Reshroud_map
+		0x6EE1D0, // Reveal_map
+		0x6EE050, // Delete_team_members
+		0x6EDAC0, // Clear_global
+		0x6EDAF0, // Set_local
+		0x6EDB20, // Clear_local
+		0x6EDC70, // Unpanic
+		0x6EDCA0, // Force_facing
+		0x6EE1F0, // Wait_till_fully_loaded
+		0x6EE230, // Truck_unload
+		0x6EE2A0, // Truck_load
+		0x6EE310, // Attack_enemy_building
+		0x6EE3F0, // Moveto_enemy_building
+		0x6EE800, // Scout
+		0x6EF450, // Success
+		0x6EF5C0, // Flash
+		0x6EF610, // Play_anim
+		0x6EF6D0, // Talk_bubble
+		0x6EF700, // Gather_at_enemy
+		0x6EFA10, // Gather_at_base
+		0x6EFC70, // Iron_curtain_me
+		0x6EFE60, // Chrono_prep_for_abwp
+		0x6F0130, // Chrono_prep_for_aq
+		0x6EE5C0, // Move_to_own_building
+		0x6ECA70, // Attack_building_at_waypoint
+		0x6ECB50, // Enter_grinder
+		0x6ECBA0, // Occupy_tank_bunker
+		0x6ECBF0, // Enter_bio_reactor
+		0x6ECC40, // Occupy_battle_bunker
+		0x6ECC90  // Garrison_building
+	};
+
+
 const char* const FileClass::FileErrorToString[] =
  {
 		  "Non-error. "
@@ -1340,11 +1561,8 @@ void TechnoClass::DetachSpecificSpawnee(HouseClass* NewSpawneeOwner)
 	if (!this->SpawnOwner)
 		return;
 
-	// setting up the nodes. Funnily, nothing else from the manager is needed
-	const auto& SpawnNodes = this->SpawnOwner->SpawnManager->SpawnedNodes;
-
 	//find the specific spawnee in the node
-	for (auto SpawnNode : SpawnNodes) {
+	for (auto& SpawnNode : this->SpawnOwner->SpawnManager->SpawnedNodes) {
 
 		if (this == SpawnNode->Unit) {
 

@@ -5,6 +5,7 @@
 
 #include <Utilities/Enumerable.h>
 #include <Utilities/TemplateDefB.h>
+#include <New/Type/LaserTrailTypeClass.h>
 
 class PhobosAttachEffectTypeClass final : public Enumerable<PhobosAttachEffectTypeClass>
 {
@@ -32,6 +33,7 @@ public:
 	Valueable<WeaponTypeClass*> ExpireWeapon;
 	Valueable<ExpireWeaponCondition> ExpireWeapon_TriggerOn;
 	Valueable<bool> ExpireWeapon_CumulativeOnlyOnce;
+	Valueable<bool> ExpireWeapon_UseInvokerAsOwner;
 	Nullable<ColorStruct> Tint_Color;
 	Valueable<double> Tint_Intensity;
 	Valueable<AffectedHouse> Tint_VisibleToHouses;
@@ -56,6 +58,7 @@ public:
 	ValueableVector<WarheadTypeClass*> Crit_DisallowWarheads;
 	Valueable<WeaponTypeClass*> RevengeWeapon;
 	Valueable<AffectedHouse> RevengeWeapon_AffectsHouses;
+	Valueable<bool> RevengeWeapon_UseInvokerAsOwner;
 	Valueable<bool> DisableWeapons;
 
 	ValueableVector<std::string> Groups;
@@ -73,7 +76,7 @@ public:
 
 	Nullable<double> ReflectDamage_Chance;
 	Nullable<int> ReflectDamage_Override;
-
+	Valueable<bool> ReflectDamage_UseInvokerAsOwner;
 	Nullable<double> DiscardOn_AbovePercent;
 	Nullable<double> DiscardOn_BelowPercent;
 	Nullable<double> AffectAbovePercent;
@@ -90,6 +93,8 @@ public:
 	ValueableVector<bool> ExtraWarheads_FullDetonation;
 
 	Valueable<WeaponTypeClass*> FeedbackWeapon;
+
+	ValueableIdx<LaserTrailTypeClass> LaserTrail_Type;
 
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
@@ -114,6 +119,7 @@ public:
 		, ExpireWeapon { nullptr }
 		, ExpireWeapon_TriggerOn { ExpireWeaponCondition::Expire }
 		, ExpireWeapon_CumulativeOnlyOnce { false }
+		, ExpireWeapon_UseInvokerAsOwner { false }
 		, Tint_Color {}
 		, Tint_Intensity { 0.0 }
 		, Tint_VisibleToHouses { AffectedHouse::All }
@@ -136,6 +142,7 @@ public:
 		, Crit_DisallowWarheads {}
 		, RevengeWeapon { nullptr }
 		, RevengeWeapon_AffectsHouses { AffectedHouse::All }
+		, RevengeWeapon_UseInvokerAsOwner { false }
 		, DisableWeapons { false }
 		, Groups {}
 		, DisableSelfHeal { false }
@@ -151,6 +158,7 @@ public:
 
 		, ReflectDamage_Chance {}
 		, ReflectDamage_Override {}
+		, ReflectDamage_UseInvokerAsOwner { false }
 
 		, DiscardOn_AbovePercent {}
 		, DiscardOn_BelowPercent {}
@@ -168,6 +176,8 @@ public:
 		, ExtraWarheads_FullDetonation {}
 
 		, FeedbackWeapon {}
+
+		, LaserTrail_Type { -1 }
 	{};
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() {

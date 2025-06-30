@@ -75,7 +75,7 @@ WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 	else
 		return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
 }
- 
+
 // Spy plane, airstrike etc.
 bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
 {
@@ -156,6 +156,9 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 }
 
 #include <Ext/TerrainType/Body.h>
+#include "Body.h"
+#include "Body.h"
+#include "Body.h"
 
 bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 {

@@ -24,6 +24,7 @@ public:
 	bool Cloaked;
 	int InitialDelay;
 	CDTimerClass InitialDelayTimer;
+	bool Permanent { false };
 
 	COMPILETIMEEVAL LaserTrailClass(LaserTrailTypeClass* pTrailType, ColorStruct nHouseColor,
 		CoordStruct flh = { 0, 0, 0 }, bool isOnTurret = false) :
@@ -37,6 +38,7 @@ public:
 		, Cloaked { false }
 		, InitialDelay { pTrailType->InitialDelay.Get() }
 		, InitialDelayTimer { }
+		, Permanent { pTrailType->Permanent }
 	{ }
 
 	COMPILETIMEEVAL LaserTrailClass() :
@@ -50,6 +52,7 @@ public:
 		, Cloaked { false }
 		, InitialDelay {0}
 		, InitialDelayTimer { }
+		, Permanent {}
 	{ }
 
 	virtual ~LaserTrailClass() = default;

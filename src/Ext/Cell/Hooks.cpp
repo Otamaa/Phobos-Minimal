@@ -138,6 +138,45 @@ ASMJIT_PATCH(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 	return 0x47FB86;
 }
 
+#include <TerrainTypeClass.h>
+#include <TerrainClass.h>
+
+bool FakeCellClass::_CanTiberiumGerminate(TiberiumClass* tiberium)
+{
+	if (!MapClass::Instance->IsWithinUsableArea(this->MapCoords, true)) return false;
+
+	if (this->ContainsBridgeEx()) return false;
+
+	/*
+	**  Don't allow Tiberium to grow on a cell with a building unless that building is
+	**  invisible. In such a case, the Tiberium must grow or else the location of the
+	**  building will be revealed.
+	*/
+	BuildingClass const* building = this->GetBuilding();
+	if (building && building->Health > 0 && !building->Type->Invisible && !building->Type->InvisibleInGame) return false;
+
+	TerrainClass* terrain = this->GetTerrain(false);
+	if (terrain && terrain->Type->SpawnsTiberium) return false;
+
+	if (!GroundType::Get(this->LandType)->Build) return false;
+
+	if (this->OverlayTypeIndex != -1 || this->SlopeIndex > 0) return false;
+
+	if (this->IsoTileTypeIndex >= 0 && this->IsoTileTypeIndex < IsometricTileTypeClass::Array->Count)
+	{
+		IsometricTileTypeClass* ittype = IsometricTileTypeClass::Array->Items[this->IsoTileTypeIndex];
+		if (!ittype->AllowTiberium) return false;
+
+		const auto ittype_ext = IsometricTileTypeExtContainer::Instance.Find(ittype);
+
+		if (!ittype_ext->AllowedTiberiums.empty() && !ittype_ext->AllowedTiberiums.Contains(tiberium)) return false;
+	}
+
+	return true;
+
+}
+
+//DEFINE_FUNCTION_JUMP(LJMP, 0x4838E0, FakeCellClass::_CanTiberiumGerminate);
 
 //seems causing large FPS drop
 //ASMJIT_PATCH(0x6D7A46, TacticalClass_DrawPixelFX_Tiberium, 0x7)

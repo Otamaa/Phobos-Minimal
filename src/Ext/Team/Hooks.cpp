@@ -1,28 +1,21 @@
 #include "Body.h"
-#include <Utilities/HookGuard.h>
 
 #include <Ext/TechnoType/Body.h>
 
 // Take NewINIFormat into account just like the other classes does
 // Author: secsome
-ASMJIT_PATCH_GUARDED(0x6E95B3, TeamClass_AI_MoveToCell, 0x6)
+ASMJIT_PATCH(0x6EC77B, TeamClass_AI_MoveToCell, 0x7)
 {
-	AUTO_RECURSIVE_GUARD(0x6E95B3, "TeamClass_AI_MoveToCell");
-	
-	if (!R->BL())
-		return 0x6E95A4;
-
-	GET(int, nCoord, ECX);
-	REF_STACK(CellStruct, cell, STACK_OFFS(0x38, 0x28));
+	GET_STACK(ScriptActionNode*, pNode, 0x4);
 
 	// if ( NewINIFormat < 4 ) then divide 128
 	// in other times we divide 1000
 	const int nDivisor = ScenarioClass::NewINIFormat() < 4 ? 128 : 1000;
-	cell.X = static_cast<short>(nCoord % nDivisor);
-	cell.Y = static_cast<short>(nCoord / nDivisor);
 
-	R->EAX(MapClass::Instance->GetCellAt(cell));
-	return 0x6E959C;
+	R->EAX(MapClass::Instance->GetCellAt(
+		CellStruct(static_cast<short>(pNode->Argument % nDivisor) , static_cast<short>(pNode->Argument / nDivisor))));
+
+	return 0x6EC7B3;
 }
 
 //6EF57F

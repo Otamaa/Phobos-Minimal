@@ -26,7 +26,6 @@
 //#include <Lib/gcem/gcem.hpp>
 
 #include <Notifications.h>
-#include <Utilities/HookGuard.h>
 
 #include "Header.h"
 
@@ -37,19 +36,6 @@ ASMJIT_PATCH(0x6E20D8, TActionClass_DestroyAttached_Loop, 0x5)
 {
 	GET(int, nLoopVal, EAX);
 	return nLoopVal < 4 ? 0x6E20E0 : 0x0;
-}
-
-ASMJIT_PATCH(0x6DE0D3, TActionClass_Execute_MessageColor, 6)
-{
-	int idxColor = 0;
-	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
-		if (SideExtData* pExt = SideExtContainer::Instance.Find(pSide)) {
-			idxColor = pExt->MessageTextColorIndex;
-		}
-	}
-
-	R->EAX(idxColor);
-	return 0x6DE0DE;
 }
 
 ASMJIT_PATCH(0x41E893, AITriggerTypeClass_ConditionMet_SideIndex, 0xA)
@@ -114,38 +100,6 @@ ASMJIT_PATCH(0x6E3B60, TActionClass_GetMode, 8)
 	R->EAX(((int)nAction) - 1);
 	return ((int)nAction) > 0x8F ? 0x6E3C49 : 0x6E3B6E;
 
-}
-
-ASMJIT_PATCH_GUARDED(0x6DD8D7, TActionClass_Execute_Ares, 0xA)
-{
-	AUTO_RECURSIVE_GUARD(0x6DD8D7, "TActionClass_Execute_Ares");
-	
-	GET(TActionClass* const, pAction, ESI);
-	GET(ObjectClass* const, pObject, ECX);
-
-	GET_STACK(HouseClass* const, pHouse, 0x254);
-	GET_STACK(TriggerClass* const, pTrigger, 0x25C);
-	GET_STACK(CellStruct const*, pLocation, 0x260);
-
-	enum { Handled = 0x6DFDDD, Default = 0x6DD8E7u };
-
-	//Debug::LogInfo("TAction[%x] triggering [%d]" , pAction , (int)pAction->ActionKind);
-
-	// check for actions handled in Ares.
-	auto ret = false;
-	if (AresTActionExt::Execute(
-		pAction, pHouse, pObject, pTrigger, *pLocation, ret))
-	{
-		//Debug::LogInfo("TAction[%x] triggering Ares [%d]" , pAction , (int)pAction->ActionKind);
-		// returns true or false
-		R->AL(ret);
-		return Handled;
-	}
-		//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pAction , (int)pAction->ActionKind);
-	// replicate the original instructions, using underflow
-	uint32_t const value = static_cast<uint32_t>(pAction->ActionKind) - 1;
-	R->EDX(value);
-	return (value > 144u) ? Handled : Default;
 }
 
 ASMJIT_PATCH(0x71F9C0, TEventClass_Persistable_AresNewTriggerEvents, 6)
@@ -226,73 +180,6 @@ ASMJIT_PATCH(0x71EE79, EventClass_HasOccured_PlayerAtX3, 9)
 
 	return (pHouse->ArrayIndex == param) ? 0x71EE82u : 0x71F163u;
 }
-
-static std::array<const char* , (size_t)TriggerEvent::count> TriggerEventsName {
-{
-	"None",
-	"EnteredBy" ,
-	"SpiedBy" ,
-	"ThievedBy" ,
-	"DiscoveredByPlayer",
-	"HouseDiscovered" ,
-	"AttackedByAnybody" ,
-	"DestroyedByAnybody" ,
-	"AnyEvent" ,
-	"DestroyedUnitsAll" ,
-	"DestroyedBuildingsAll" ,
-	"DestroyedAll",
-	"CreditsExceed" ,
-	"ElapsedTime" ,
-	"MissionTimerExpired",
-	"DestroyedBuildingsNum" ,
-	"DestroyedUnitsNum" ,
-	"NoFactoriesLeft" ,
-	"CiviliansEvacuated" ,
-	"BuildBuildingType" ,
-	"BuildUnitType",
-	"BuildInfantryType" ,
-	"BuildAircraftType",
-	"TeamLeavesMap",
-	"ZoneEntryBy",
-	"CrossesHorizontalLine",
-	"CrossesVerticalLine",
-	"GlobalSet",
-	"GlobalCleared",
-	"DestroyedFakesAll",
-	"LowPower",
-	"AllBridgesDestroyed",
-	"BuildingExists",
-	"SelectedByPlayer",
-	"ComesNearWaypoint",
-	"EnemyInSpotlight",
-	"LocalSet",
-	"LocalCleared",
-	"FirstDamaged_combatonly",
-	"HalfHealth_combatonly",
-	"QuarterHealth_combatonly",
-	"FirstDamaged_anysource",
-	"HalfHealth_anysource",
-	"QuarterHealth_anysource",
-	"AttackedByHouse",
-	"AmbientLightBelow",
-	"AmbientLightAbove",
-	"ElapsedScenarioTime",
-	"DestroyedByAnything",
-	"PickupCrate",
-	"PickupCrate_any",
-	"RandomDelay",
-	"CreditsBelow",
-	"SpyAsHouse",
-	"SpyAsInfantry",
-	"DestroyedUnitsNaval",
-	"DestroyedUnitsLand",
-	"BuildingDoesNotExist",
-	"PowerFull",
-	"EnteredOrOverflownBy"
-	"TechTypeExists",
-	"TechTypeDoesntExist" ,
-}
-};
 
  ASMJIT_PATCH(0x71E949, TEventClass_HasOccured_Ares, 7)
  {

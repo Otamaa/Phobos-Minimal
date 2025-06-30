@@ -874,6 +874,24 @@ namespace detail
 #pragma endregion
 
 #pragma region Enumstuffs
+
+	template <>
+	inline bool read<LaserTrailDrawType>(LaserTrailDrawType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			for (const auto& [val, name] : EnumFunctions::LaserTrailDrawType_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), name.data())) {
+					value = val;
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a LaserTrail draw type");
+		}
+
+		return false;
+	}
 	template <>
 	OPTIONALINLINE bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{

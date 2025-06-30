@@ -5,8 +5,6 @@
 #include <TeamTypeClass.h>
 #include <InfantryClass.h>
 
-#include <Utilities/HookGuard.h>
-
 std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType, bool naval, HouseExtData* pData)
 {
 	BuildingClass** currFactory = nullptr;
@@ -124,6 +122,46 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 //	return 0x7C8B47;
 //}
 
+#include <Ext/Team/Body.h>
+
+bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
+{
+#ifdef _Use
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pGoing->GetTechnoType());
+
+	if (pTypeExt->RecuitedAs.isset() && pTypeExt->RecuitedAs == reinfocement)
+		return true;
+
+	if (TechnoExtContainer::Instance.Find(pGoing)->Type == reinfocement)
+		return true;
+#endif
+
+	return false;
+}
+
+NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoTypeClass*>& missings) {
+	const auto pType = pTeam->Type;
+	const auto pTaskForce = pType->TaskForce;
+
+	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
+		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
+			if(auto pTaskType = pTaskForce->Entries[a].Type) {
+				missings.emplace_back(pTaskType);
+			}
+		}
+	}
+
+	//remove first finded similarity
+	for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
+		auto it = std::find_if(missings.begin(), missings.end(), [&](TechnoTypeClass* pMissType) {
+			return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
+		});
+
+		if(it != missings.end())
+			missings.erase(it);
+	}
+}
+
 void HouseExtData::UpdateVehicleProduction()
 {
 	auto pThis = this->AttachedToObject;
@@ -142,49 +180,23 @@ void HouseExtData::UpdateVehicleProduction()
 	auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
 	creationFrames.assign(count, 0x7FFFFFFF);
 	values.assign(count, 0);
+	std::vector<TechnoTypeClass*> taskForceMembers;
+	taskForceMembers.reserve(UnitTypeClass::Array->Count);
 
-	//	std::vector<TeamClass*> Teams;
-
-	for (auto currentTeam : *TeamClass::Array)
+	for (auto& currentTeam : HouseExtContainer::HousesTeams[pThis])
 	{
-		if (!currentTeam || currentTeam->Owner != pThis)
-			continue;
-
-		//		if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G"))
-		//			Debug::LogInfo("HereIam");
-
-		//		Teams.push_back(currentTeam);
+		taskForceMembers.clear();
 		int teamCreationFrame = currentTeam->CreationFrame;
 
-		// Only produce for teams that actually need reinforcement
-		// Fixed: Better logic to prevent infinite team production
-		bool shouldProduce = (currentTeam->Type->Reinforce && !currentTeam->IsFullStrength) || 
-			(!currentTeam->IsForcedActive && !currentTeam->IsHasBeen && !currentTeam->IsFullStrength);
-		
-		if (!shouldProduce)
+		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength)
+			&& (currentTeam->IsForcedActive || currentTeam->IsHasBeen))
 		{
 			continue;
 		}
 
-		DynamicVectorClass<TechnoTypeClass*> taskForceMembers {};
-		currentTeam->GetTaskForceMissingMemberTypes(taskForceMembers);
+		GetRemainingTaskForceMembers(currentTeam , taskForceMembers);
 
-		// Calculate team completion percentage for priority weighting
-		int totalRequired = 0;
-		int totalMissing = taskForceMembers.Count;
-		
-		// Count total taskforce members
-		if (currentTeam->Type->TaskForce) {
-			for (int i = 0; i < currentTeam->Type->TaskForce->CountEntries; ++i) {
-				totalRequired += currentTeam->Type->TaskForce->Entries[i].Amount;
-			}
-		}
-		
-		// Teams closer to completion get higher priority (weight multiplier)
-		double completionRatio = totalRequired > 0 ? (double)(totalRequired - totalMissing) / totalRequired : 0.0;
-		int priorityWeight = 1 + (int)(completionRatio * 3); // 1-4x weight based on completion
-
-		for (auto currentMember : taskForceMembers)
+		for (auto& currentMember : taskForceMembers)
 		{
 			const auto what = currentMember->WhatAmI();
 
@@ -194,48 +206,20 @@ void HouseExtData::UpdateVehicleProduction()
 				continue;
 
 			const auto index = static_cast<size_t>(((UnitTypeClass*)currentMember)->ArrayIndex);
-			
-			// Apply priority weight - teams closer to completion get more priority
-			values[index] += priorityWeight;
-
-			//			if (IS_SAME_STR_(currentTeam->Type->ID, "0100003I-G")) {
-			//				Debug::LogInfo("0100003I Unit %s  idx %d AddedValueResult %d", currentMember->ID, index, values[index]);
-			//			}
+			++values[index];
 
 			if (teamCreationFrame < creationFrames[index])
 				creationFrames[index] = teamCreationFrame;
 		}
 	}
 
-	//	for (int i = 0; i < (int)Teams.size(); ++i) {
-	//		Debug::LogInfo("House [%s] Have [%d] Teams %s.", pThis->get_ID(), i, Teams[i]->get_ID());
-	//	}
-
-		//std::vector<int> Toremove {};
 	for (int i = 0; i < UnitClass::Array->Count; ++i)
 	{
 		const auto pUnit = UnitClass::Array->Items[i];
 
-		//if (VTable::Get(pUnit) != UnitClass::vtable){
-
-		//	const char* Caller = "unk";
-		//	//const char* Type = "unk";
-		//	if (MappedCaller.contains(pUnit)) {
-		//		Caller = MappedCaller[pUnit].c_str();
-		//	}
-
-		//	Debug::LogInfo("UpdateVehicleProduction for [%s] UnitClass Array(%d) at [%d] contains broken pointer[%x allocated from %s] WTF ???", pThis->get_ID() , UnitClass::Array->Count , i, pUnit , Caller);
-		//	Toremove.push_back(i);
-		//	continue;
-		//}
-
 		if (values[pUnit->Type->ArrayIndex] > 0 && pUnit->CanBeRecruited(pThis))
 			--values[pUnit->Type->ArrayIndex];
 	}
-
-	//for (auto ToRemoveIdx : Toremove) {
-	//	UnitClass::Array->RemoveAt(ToRemoveIdx);
-	//}
 
 	bestChoices.clear();
 	bestChoicesNaval.clear();
@@ -287,25 +271,13 @@ void HouseExtData::UpdateVehicleProduction()
 
 	if (!skipGround)
 	{
-		// IMPROVED: Prioritize completing existing teams first
-		// Higher difficulty = more focus on completing teams
-		int focusThreshold = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
-		
-		// Boost focus threshold for better team completion consistency
-		focusThreshold = std::min(95, focusThreshold + 25);
-
 		int result_ground = earliestTypenameIndex;
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) < focusThreshold && earliestTypenameIndex >= 0)
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
 		{
-			result_ground = earliestTypenameIndex; // Focus on earliest team
-		}
-		else if (!bestChoices.empty())
-		{
-			result_ground = bestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoices.size() - 1))];
-		}
-		else
-		{
-			result_ground = -1;
+			if (!bestChoices.empty())
+				result_ground = bestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoices.size() - 1))];
+			else
+				result_ground = -1;
 		}
 
 		pThis->ProducingUnitTypeIndex = result_ground;
@@ -313,24 +285,13 @@ void HouseExtData::UpdateVehicleProduction()
 
 	if (!skipNaval)
 	{
-		// IMPROVED: Same logic for naval units - prioritize completing existing teams first
-		int focusThresholdNaval = RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty];
-		
-		// Boost focus threshold for better team completion consistency
-		focusThresholdNaval = std::min(95, focusThresholdNaval + 25);
-
 		int result_naval = earliestTypenameIndexNaval;
-		if (ScenarioClass::Instance->Random.RandomFromMax(99) < focusThresholdNaval && earliestTypenameIndexNaval >= 0)
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
 		{
-			result_naval = earliestTypenameIndexNaval; // Focus on earliest team
-		}
-		else if (!bestChoicesNaval.empty())
-		{
-			result_naval = bestChoicesNaval[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoicesNaval.size() - 1))];
-		}
-		else
-		{
-			result_naval = -1;
+			if (!bestChoicesNaval.empty())
+				result_naval = bestChoicesNaval[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoicesNaval.size() - 1))];
+			else
+				result_naval = -1;
 		}
 
 		this->ProducingNavalUnitTypeIndex = result_naval;
@@ -494,10 +455,8 @@ ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 	return 0;
 }
 
-ASMJIT_PATCH_GUARDED(0x4502F4, BuildingClass_Update_Factory, 0x6)
+ASMJIT_PATCH(0x4502F4, BuildingClass_Update_Factory, 0x6)
 {
-	AUTO_RECURSIVE_GUARD(0x4502F4, "BuildingClass_Update_Factory");
-	
 	enum { Skip = 0x4503CA };
 
 	GET(BuildingClass*, pThis, ESI);
@@ -588,9 +547,8 @@ ASMJIT_PATCH_GUARDED(0x4502F4, BuildingClass_Update_Factory, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH_GUARDED(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
+ASMJIT_PATCH(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 {
-	AUTO_RECURSIVE_GUARD(0x4FEA60, "HouseClass_AI_UnitProduction");
 	GET(HouseClass* const, pThis, ECX);
 
 	retfunc_fixed<DWORD> ret(R, 0x4FEEDA, 15);
@@ -655,8 +613,6 @@ ASMJIT_PATCH_GUARDED(0x4FEA60, HouseClass_AI_UnitProduction, 0x6)
 	return ret();
 }
 
-#include <Ext/Team/Body.h>
-//#pragma optimize("", off )
 template <class T, class Ttype >
 int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 {
@@ -669,46 +625,20 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	CreationFrames.assign(count, 0x7FFFFFFF);
 	Values.assign(count, 0);
 	BestChoices.clear();
+	std::vector<TechnoTypeClass*> taskForceMembers;
+	taskForceMembers.reserve(Ttype::Array->Count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
-	for (auto CurrentTeam : *TeamClass::Array)
+	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[pHouse])
 	{
-		if (!CurrentTeam || CurrentTeam->Owner != pHouse)
-		{
-			continue;
-		}
-
+		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
 
-		// Only produce for teams that actually need reinforcement
-		// Fixed: Better logic to prevent infinite team production
-		// IMPROVED: Add priority for teams that are closer to completion
-		bool shouldProduce = (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength) || 
-			(!CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen && !CurrentTeam->IsFullStrength);
-		
-		if (shouldProduce)
-		{
-			DynamicVectorClass<TechnoTypeClass*> arr {};
-			CurrentTeam->GetTaskForceMissingMemberTypes(arr);
+		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen) {
+			GetRemainingTaskForceMembers(CurrentTeam, taskForceMembers);
 
-			// Calculate team completion percentage for priority weighting
-			int totalRequired = 0;
-			int totalMissing = arr.Count;
-			
-			// Count total taskforce members
-			if (CurrentTeam->Type->TaskForce) {
-				for (int i = 0; i < CurrentTeam->Type->TaskForce->CountEntries; ++i) {
-					totalRequired += CurrentTeam->Type->TaskForce->Entries[i].Amount;
-				}
-			}
-			
-			// Teams closer to completion get higher priority (weight multiplier)
-			double completionRatio = totalRequired > 0 ? (double)(totalRequired - totalMissing) / totalRequired : 0.0;
-			int priorityWeight = 1 + (int)(completionRatio * 3); // 1-4x weight based on completion
-
-			for (auto pMember : arr)
+			for (auto& pMember : taskForceMembers)
 			{
-
 				if (pMember->WhatAmI() != Ttype::AbsID)
 				{
 					continue;
@@ -716,8 +646,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 
 				auto const Idx = static_cast<unsigned int>(((Ttype*)pMember)->ArrayIndex);
 
-				// Apply priority weight - teams closer to completion get more priority
-				Values[Idx] += priorityWeight;
+				++Values[Idx];
 				if (TeamCreationFrame < CreationFrames[Idx])
 				{
 					CreationFrames[Idx] = TeamCreationFrame;
@@ -793,14 +722,7 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 
 	const auto AIDiff = static_cast<int>(pHouse->GetAIDifficultyIndex());
 
-	// IMPROVED: Prioritize completing existing teams first
-	// Higher difficulty = more focus on completing teams
-	int focusThreshold = RulesClass::Instance->FillEarliestTeamProbability[AIDiff];
-	
-	// Boost focus threshold for better team completion consistency
-	focusThreshold = std::min(95, focusThreshold + 25);
-
-	if (ScenarioClass::Instance->Random.RandomFromMax(99) < focusThreshold && EarliestTypenameIndex >= 0)
+	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
 		return EarliestTypenameIndex;
 
 	if (!BestChoices.empty())
@@ -809,46 +731,8 @@ int NOINLINE GetTypeToProduceNew(HouseClass* pHouse)
 	return -1;
 }
 
-//#pragma optimize("", on )
-//ASMJIT_PATCH(0x6EF4D0, TeamClass_GetRemainingTaskForceMembers, 0x8)
-//{
-//	GET(TeamClass*, pThis, ECX);
-//	GET_STACK(DynamicVectorClass<TechnoTypeClass*>*, pVec, 0x4);
-//
-//	const auto pType = pThis->Type;
-//	const auto pTaskForce = pType->TaskForce;
-//
-//	for (int a = 0; a < pTaskForce->CountEntries; ++a) {
-//		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i) {
-//			if(auto pTaskType = pTaskForce->Entries[a].Type) {
-//				pVec->AddItem(pTaskType);
-//			}
-//		}
-//	}
-//
-//	//remove first finded similarity
-//	for (auto pMember = pThis->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
-//		for (auto pMemberNeeded : *pVec) {
-//			if ((pMemberNeeded == pMember->GetTechnoType()
-//				|| TechnoExtContainer::Instance.Find(pMember)->Type == pMemberNeeded
-//				//|| TeamExtData::GroupAllowed(pMemberNeeded, pMember->GetTechnoType())
-//				//|| TeamExtData::GroupAllowed(pMemberNeeded, TechnoExtContainer::Instance.Find(pMember)->Type)
-//
-//				)) {
-//
-//				pVec->Remove<true>(pMemberNeeded);
-//				break;
-//			}
-//		}
-//	}
-//
-//	return 0x6EF5B2;
-//}
-//#pragma optimize("", off )
-
-ASMJIT_PATCH_GUARDED(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
+ASMJIT_PATCH(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 {
-	AUTO_RECURSIVE_GUARD(0x4FEEE0, "HouseClass_AI_InfantryProduction");
 	GET(HouseClass*, pThis, ECX);
 
 	if (pThis->ProducingInfantryTypeIndex < 0)
@@ -863,9 +747,8 @@ ASMJIT_PATCH_GUARDED(0x4FEEE0, HouseClass_AI_InfantryProduction, 6)
 	return 0x4FF204;
 }
 
-ASMJIT_PATCH_GUARDED(0x4FF210, HouseClass_AI_AircraftProduction, 6)
+ASMJIT_PATCH(0x4FF210, HouseClass_AI_AircraftProduction, 6)
 {
-	AUTO_RECURSIVE_GUARD(0x4FF210, "HouseClass_AI_AircraftProduction");
 	GET(HouseClass*, pThis, ECX);
 
 	if (pThis->ProducingAircraftTypeIndex < 0)

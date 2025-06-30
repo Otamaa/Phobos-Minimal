@@ -16,6 +16,7 @@ class EnumFunctions final
 	NO_CONSTRUCT_CLASS(EnumFunctions)
 public:
 
+	static constexpr auto LaserTrailDrawType_ToStrings = magic_enum::enum_entries<LaserTrailDrawType>();
 	static std::array<const char* const, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings;
 	static std::array<const char* const, (size_t)PhobosAbilityType::count> PhobosAbilityType_ToStrings;
 	static std::array<const char* const, 3u> Rank_ToStrings;

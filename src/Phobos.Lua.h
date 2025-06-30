@@ -20,6 +20,7 @@ using unique_luastate = std::unique_ptr<lua_State, luastatedeleter>;
 
 struct LuaData {
 	static std::string LuaDir;
+	static std::string MainWindowStr;
 	static void ApplyCoreHooks();
 };
 

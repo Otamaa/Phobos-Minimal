@@ -354,7 +354,7 @@ void ScriptExtData::ConditionalJump_CheckHumanIsMostHated(TeamClass* pTeam)
 {
 	auto pTeamData = TeamExtContainer::Instance.Find(pTeam);
 	HouseClass* pEnemyHouse = nullptr;
-	auto pHouse = pTeam->Owner;
+	auto pHouse = pTeam->OwnerHouse;
 	int angerLevel = -1;
 	bool isHumanHouse = false;
 
@@ -392,7 +392,7 @@ void ScriptExtData::ConditionalJump_CheckAliveHumans(TeamClass* pTeam, int mode 
 	if (mode < 0 || mode > 2)
 		mode = 0;
 
-	auto pHouse = pTeam->Owner;
+	auto pHouse = pTeam->OwnerHouse;
 
 	{
 		pTeamData->ConditionalJump_Evaluation = false;

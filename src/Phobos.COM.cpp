@@ -88,7 +88,7 @@ void RegisterFactoryForClass()
 	IClassFactory* pFactory = GameCreate<TClassFactory<T>>();
 	DWORD dwRegister = 0;
 	CLSID clsid = __uuidof(T);
-	HRESULT hr = CoRegisterClassObject(clsid, pFactory, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister);
+	HRESULT hr = Imports::CoRegisterClassObject.invoke()(clsid, pFactory, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister);
 
 	const std::string name = typeid(T).name();
 

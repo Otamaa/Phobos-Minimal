@@ -48,7 +48,7 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 				if (pWHExt->CanRemoveParasytes.Get())
 				{
 					if (pWHExt->CanRemoveParasytes_ReportSound.isset() && pWHExt->CanRemoveParasytes_ReportSound.Get() >= 0)
-						VocClass::PlayAt(pWHExt->CanRemoveParasytes_ReportSound.Get(), parasyte->GetCoords());
+						VocClass::SafeImmedietelyPlayAt(pWHExt->CanRemoveParasytes_ReportSound.Get(), &parasyte->GetCoords() , nullptr);
 
 					// Kill the parasyte
 					CoordStruct coord = TechnoExtData::PassengerKickOutLocation(pThis, parasyte, 10);

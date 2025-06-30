@@ -35,49 +35,46 @@ static_assert(sizeof(DummyDynamicVectorClass) == 0x18, "Invalid Size !");
 
 enum class ArrayType : int
 {
-	Vector , DynamicVector , TypeList , Counter
+	Vector, DynamicVector, TypeList, Counter
 };
+
 //========================================================================
 //=== VectorClass ========================================================
 //========================================================================
 
-template <typename T , class Allocator = GameAllocator<T>>
+template <typename T>
 class VectorClass
 {
 public:
 	// the hidden element count messes with alignment. only applies to align 8, 16, ...
 	static_assert(!needs_vector_delete<T>::value || (__alignof(T) <= 4), "Alignment of T needs to be less than or equal to 4.");
-
 	static const ArrayType Type = ArrayType::Vector;
 
-	VectorClass(noinit_t const&) { };
-	COMPILETIMEEVAL VectorClass<T, Allocator>() noexcept = default;
+	constexpr VectorClass() noexcept = default;
 
-	explicit VectorClass<T, Allocator>(int capacity, T* pMem = nullptr) :
-		Items(0),
-		Capacity(capacity),
-		IsInitialized(true),
-		IsAllocated(false)
+	explicit VectorClass(int capacity, T* pMem = nullptr)
 	{
 		if (capacity != 0)
 		{
-			if (pMem) {
+			this->Capacity = capacity;
+
+			if (pMem)
+			{
 				this->Items = pMem;
 			}
-			else{
-				Allocator alloc {};
-				this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(capacity));
+			else
+			{
+				this->Items = GameCreateArray<T>(static_cast<size_t>(capacity));
 				this->IsAllocated = true;
 			}
 		}
 	}
 
-	VectorClass<T, Allocator>(const VectorClass<T, Allocator>& other)
+	VectorClass(const VectorClass<T>& other)
 	{
 		if (other.Capacity > 0)
 		{
-			Allocator alloc {};
-			this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(other.Capacity));
+			this->Items = GameCreateArray<T>(static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
 			for (auto i = 0; i < other.Capacity; ++i)
@@ -87,39 +84,34 @@ public:
 		}
 	}
 
-	VectorClass<T, Allocator>(VectorClass<T, Allocator>&& other) noexcept :
+	VectorClass(VectorClass<T>&& other) noexcept :
 		Items(other.Items),
 		Capacity(other.Capacity),
 		IsInitialized(other.IsInitialized),
 		IsAllocated(std::exchange(other.IsAllocated, false))
-	{
-	}
+	{ }
 
-	virtual ~VectorClass<T, Allocator>() noexcept
+	virtual ~VectorClass() noexcept
 	{
-		if (this->IsAllocated) {
-			Allocator alloc {};
-			Memory::DeleteArray(alloc, this->Items, static_cast<size_t>(this->Capacity));
+		if (this->IsAllocated)
+		{
+			GameDeleteArray(this->Items, static_cast<size_t>(this->Capacity));
 		}
-
-		this->Items = nullptr;
-		this->IsAllocated = false;
-		this->Capacity = 0;
 	}
 
-	VectorClass<T, Allocator>& operator = (const VectorClass<T, Allocator>& other)
+	VectorClass<T>& operator = (const VectorClass<T>& other)
 	{
-		VectorClass<T, Allocator>(other).Swap(*this);
+		VectorClass<T>(other).Swap(*this);
 		return *this;
 	}
 
-	VectorClass<T, Allocator>& operator = (VectorClass<T, Allocator>&& other) noexcept
+	VectorClass<T>& operator = (VectorClass<T>&& other) noexcept
 	{
-		VectorClass<T, Allocator>(std::move(other)).Swap(*this);
+		VectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	virtual bool operator == (const VectorClass<T, Allocator>& other) const
+	virtual bool operator == (const VectorClass<T>& other) const
 	{
 		if (this->Capacity != other.Capacity)
 		{
@@ -138,7 +130,7 @@ public:
 		return true;
 	}
 
-	bool operator != (const VectorClass<T, Allocator>& other) const
+	bool operator != (const VectorClass<T>& other) const
 	{
 		return !(*this == other);
 	}
@@ -152,8 +144,7 @@ public:
 			bool bMustAllocate = (pMem == nullptr);
 			if (!pMem)
 			{
-				Allocator alloc {};
-				pMem = Memory::CreateArray<T>(alloc, (size_t)capacity);
+				pMem = GameCreateArray<T>(static_cast<size_t>(capacity));
 			}
 
 			this->IsInitialized = true;
@@ -173,8 +164,7 @@ public:
 
 				if (this->IsAllocated)
 				{
-					Allocator alloc {};
-					Memory::DeleteArray(alloc, this->Items,(size_t)this->Capacity);
+					GameDeleteArray(this->Items, static_cast<size_t>(this->Capacity));
 					this->Items = nullptr;
 				}
 			}
@@ -192,27 +182,21 @@ public:
 
 	virtual void Clear()
 	{
-		if (this->IsAllocated) {
-			Allocator alloc {};
-			Memory::DeleteArray(alloc, this->Items, static_cast<size_t>(this->Capacity));
-		}
-
-		this->IsAllocated = false;
+		VectorClass<T>(std::move(*this));
 		this->Items = nullptr;
 		this->Capacity = 0;
 	}
 
 	virtual int FindItemIndex(const T& item) const
 	{
-		static_assert(direct_comparable<T>, "Missing equality operator !");
-
-		if (!this->IsInitialized) {
-			return 0;
-		}
-
-		for (auto i = 0; i < this->Capacity; ++i) {
-			if (this->Items[i] == item) {
-				return i;
+		if (this->IsInitialized)
+		{
+			for (auto i = 0; i < this->Capacity; ++i)
+			{
+				if (this->Items[i] == item)
+				{
+					return i;
+				}
 			}
 		}
 
@@ -221,11 +205,12 @@ public:
 
 	virtual int GetItemIndex(const T* pItem) const final
 	{
-		if (!this->IsInitialized) {
-			return 0;
+		if (!this->IsInitialized)
+		{
+			return -1;
 		}
 
-		return(((unsigned long)pItem - (unsigned long)&(*this)[0]) / sizeof(T));
+		return pItem - this->Items;
 	}
 
 	virtual T GetItem(int i) const final
@@ -258,7 +243,7 @@ public:
 		return SetCapacity(capacity, nullptr);
 	}
 
-	void Swap(VectorClass<T, Allocator>& other) noexcept
+	void Swap(VectorClass<T>& other) noexcept
 	{
 		using std::swap;
 		swap(this->Items, other.Items);
@@ -267,113 +252,112 @@ public:
 		swap(this->IsAllocated, other.IsAllocated);
 	}
 
-	int Length() const { return Capacity; }
-
 	T* Items { nullptr };
 	int Capacity { 0 };
 	bool IsInitialized { true };
 	bool IsAllocated { false };
-
-protected:
-	bool VectorClassPad[2];
 };
 
 //========================================================================
 //=== DynamicVectorClass =================================================
 //========================================================================
 
-//TODO : unify the naming !
-template <typename T, class Allocator = GameAllocator<T>>
-class DynamicVectorClass : public VectorClass<T , Allocator>
+template <typename T>
+class DynamicVectorClass : public VectorClass<T>
 {
 public:
+	constexpr DynamicVectorClass() noexcept = default;
 	static const ArrayType Type = ArrayType::DynamicVector;
-
-#pragma region constructorandoperators
-	COMPILETIMEEVAL DynamicVectorClass<T, Allocator>() noexcept = default;
-
-	explicit DynamicVectorClass<T, Allocator>(int capacity, T* pMem = nullptr)
-		: VectorClass<T, Allocator>(capacity, pMem) , Count { 0 }, CapacityIncrement { 10 }
+	explicit DynamicVectorClass(int capacity, T* pMem = nullptr)
+		: VectorClass<T>(capacity, pMem)
 	{ }
 
-	DynamicVectorClass<T, Allocator>(const DynamicVectorClass<T,Allocator>& other)
+	DynamicVectorClass(const DynamicVectorClass<T>& other)
 	{
 		if (other.Capacity > 0)
 		{
-			Allocator alloc {};
-			this->Items = Memory::CreateArray<T>(alloc, static_cast<size_t>(other.Capacity));
+			this->Items = GameCreateArray<T>(static_cast<size_t>(other.Capacity));
 			this->IsAllocated = true;
 			this->Capacity = other.Capacity;
 			this->Count = other.Count;
 			this->CapacityIncrement = other.CapacityIncrement;
-			for (auto i = 0; i < other.Count; ++i) {
+			for (auto i = 0; i < other.Count; ++i)
+			{
 				this->Items[i] = other.Items[i];
 			}
 		}
 	}
 
-	DynamicVectorClass<T, Allocator>(DynamicVectorClass<T, Allocator>&& other) noexcept
-		: VectorClass<T, Allocator>(std::move(other)), Count(other.Count),
+	DynamicVectorClass(DynamicVectorClass<T>&& other) noexcept
+		: VectorClass<T>(std::move(other)), Count(other.Count),
 		CapacityIncrement(other.CapacityIncrement)
-	{
-	}
+	{ }
 
-	DynamicVectorClass<T, Allocator>& operator = (const DynamicVectorClass<T, Allocator>& other)
+	DynamicVectorClass<T>& operator = (const DynamicVectorClass<T>& other)
 	{
-		DynamicVectorClass<T, Allocator>(other).Swap(*this);
+		DynamicVectorClass<T>(other).Swap(*this);
 		return *this;
 	}
 
-	DynamicVectorClass<T, Allocator>& operator = (DynamicVectorClass<T, Allocator>&& other) noexcept
+	DynamicVectorClass<T>& operator = (DynamicVectorClass<T>&& other) noexcept
 	{
-		DynamicVectorClass<T, Allocator>(std::move(other)).Swap(*this);
+		DynamicVectorClass<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
-
-#pragma endregion
-
-#pragma region virtuals
-
-	virtual ~DynamicVectorClass<T, Allocator>() = default;
 
 	virtual bool SetCapacity(int capacity, T* pMem = nullptr) override
 	{
-		if (VectorClass<T, Allocator>::SetCapacity(capacity, pMem) && this->Capacity < this->Count) {
+		bool bRet = VectorClass<T>::SetCapacity(capacity, pMem);
+
+		if (this->Capacity < this->Count)
+		{
 			this->Count = this->Capacity;
-			return true;
 		}
 
-		return false;
+		return bRet;
 	}
 
 	virtual void Clear() override
 	{
-		VectorClass<T, Allocator>::Clear();
+		VectorClass<T>::Clear();
 		this->Count = 0;
 	}
 
 	virtual int FindItemIndex(const T& item) const override final
 	{
-		if (!this->IsInitialized) {
+		if (!this->IsInitialized)
+		{
 			return 0;
 		}
 
-		T* iter = this->Find(item);
-		return iter != this->end() ?  std::distance(this->begin() , iter) : -1;
+		for (int i = 0; i < this->Count; i++)
+		{
+			if (this->Items[i] == item)
+			{
+				return i;
+			}
+		}
+
+		return -1;
 	}
 
-#pragma endregion
+	COMPILETIMEEVAL bool ValidIndex(int index) const
+	{
+		return static_cast<size_t>(index) < static_cast<size_t>(this->Count);
+	}
 
-#pragma region iteratorpointer
-	int FindItemIndexFromIterator(T* iter) {
-		if (!this->IsInitialized) {
-			return 0;
+	T GetItemOrDefault(int i) const
+	{
+		return this->GetItemOrDefault(i, T());
+	}
+
+	T GetItemOrDefault(int i, T def) const
+	{
+		if (this->ValidIndex(i))
+		{
+			return this->Items[i];
 		}
-
-		if (iter == this->end())
-			return -1;
-
-		return std::distance(this->begin(), iter);
+		return def;
 	}
 
 	COMPILETIMEEVAL T* begin() const
@@ -383,321 +367,180 @@ public:
 
 	COMPILETIMEEVAL T* end() const
 	{
+
 		return &this->Items[this->Count];
 	}
 
-	COMPILETIMEEVAL T* front() const {
-		return &this->Items[0];
-	}
-
-	COMPILETIMEEVAL T* back() const {
-		return  &this->Items[(this->Count - 1)];
-	}
-
-	COMPILETIMEEVAL T* begin()
+	COMPILETIMEEVAL T* front() const
 	{
-		return &this->Items[0];
+		return begin();
 	}
 
-	COMPILETIMEEVAL T* end()
+	COMPILETIMEEVAL T* back() const
 	{
-		return &this->Items[this->Count];
+		return end() - 1;
 	}
 
-
-	COMPILETIMEEVAL size_t size() const {
-		return static_cast<size_t>(Count);
+	COMPILETIMEEVAL size_t size() const
+	{
+		return (size_t)Count;
 	}
-
-#pragma endregion
-
-#pragma region Funcs
 
 	// this one doesnt destroy the memory , just reset the count
 	// the vector memory may still contains dangling pointer if it vector of pointer
-	COMPILETIMEEVAL void FORCEDINLINE Reset(int resetCount = 0) {
-		this->Count = resetCount;
-	}
-
-	COMPILETIMEEVAL bool FORCEDINLINE ValidIndex(int index) const {
-		return static_cast<size_t>(index) < static_cast<size_t>(this->Count);
-	}
-
-	COMPILETIMEEVAL bool FORCEDINLINE ValidIndex(size_t index) const {
-		return index < static_cast<size_t>(this->Count);
-	}
-
-	T GetItemOrDefault(size_t i) const
+	COMPILETIMEEVAL void FORCEDINLINE Reset(int resetCount = 0)
 	{
-		return this->GetItemOrDefault(i, T());
+		this->Count = (size_t)resetCount < (size_t)this->Capacity ? resetCount : 0;
 	}
 
-	COMPILETIMEEVAL T GetItemOrDefault(size_t i, T def) const
+	COMPILETIMEEVAL bool Contains(const T& item) const
 	{
-		if (!this->ValidIndex(i))
-			return def;
-
-		return this->Items[i];
-	}
-
-	bool Contains(const T& item) const
-	{
-		if (this->Count <= 0) {
+		if (this->Count <= 0)
+		{
 			return false;
 		}
 
 		return this->Find(item) != this->end();
 	}
 
-	bool AddItem(T&& item)
+	bool AddItem(T item)
 	{
-		if (!this->IsValidArray())
-			return false;
-
-		this->Items[this->Count++] = std::move_if_noexcept(item);
-
-		return true;
-	}
-
-	template< class... Args >
-	void EmpalaceItem(Args&&... args) {
-		AddItem(T(std::forward<Args>(args)...));
-	}
-
-	bool AddItem(const T& item)
-	{
-		if (!this->IsValidArray())
-			return false;
-
-		this->Items[this->Count++] = std::move_if_noexcept(item);
-
-		return true;
-	}
-
-	bool AddHead(const T& object)
-	{
-		if (!this->ValidArray())
-			return false;
-
-		if (this->Count)
+		if (this->Count >= this->Capacity)
 		{
-			T* next = std::next(this->begin());
-			std::memmove(next, this->begin(), this->Count * sizeof(T));
+			if (!this->IsAllocated && this->Capacity != 0)
+			{
+				return false;
+			}
+
+			if (this->CapacityIncrement <= 0)
+			{
+				return false;
+			}
+
+			if (!this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr))
+			{
+				return false;
+			}
 		}
 
-		this->Items[0] = std::move_if_noexcept(object);
-		this->Count++;
-
+		this->Items[Count++] = std::move(item);
 		return true;
 	}
 
-	bool InsertAt(int index, const T& object)
+	template <class... _Valty>
+	COMPILETIMEEVAL decltype(auto) emplace_back(_Valty&&... _Val)
 	{
-		if (!this->ValidIndex(index))
-			return false;
-
-		if (this->IsValidArray()) {
-
-			T* nSource = this->Items + index;
-			T* nDest = std::next(nSource);
-			std::memmove(nDest, nSource, (this->begin() - nSource) * sizeof(T));
-
-			this->Items[index] = std::move_if_noexcept(object);
-			++this->Count;
-
-			return true;
-		}
-
-		return false;
-	}
-
-	T* UninitializedAdd() {
-		return this->IsValidArray() ?
-			&(this->Items[this->Count++]) : nullptr;
+		AddItem(T { _Val... });
+		return *back();
 	}
 
 	bool AddUnique(const T& item)
 	{
-		const int count = this->Count;
-		return count <= 0 || this->Find(item) == this->end() ? this->AddItem(item) : false;
+		int idx = this->FindItemIndex(item);
+		return idx < 0 && this->AddItem(item);
 	}
 
-	bool FORCEDINLINE COMPILETIMEEVAL Empty() { return this->Count <= 0;}
-
-	template<bool avoidmemcpy = false>
 	bool RemoveAt(int index)
 	{
-		if (this->ValidIndex(index)) {
-			if COMPILETIMEEVAL (!avoidmemcpy) {
-				T* find = this->Items + index;
-				T* end = this->Items + this->Count;
-
-				if (find != end)
-				{
-
-					T* next = std::next(find);
-					// move all the items from next to current pos
-					std::memmove(find, next, (end - next) * sizeof(T));
-					--this->Count;//decrease the count
-					return true;
-				}
-			} else {
-
-				--this->Count;
-				for (int i = index; i < this->Count; ++i) {
-					this->Items[i] = std::move_if_noexcept(this->Items[i + 1]);
-				}
-
-				return true;
-			}
-		}
-		return false;
-	}
-
-	template<bool avoidmemcpy = false>
-	bool Remove(const T& item)
-	{
-		if COMPILETIMEEVAL (!avoidmemcpy)
+		if (!this->ValidIndex(index))
 		{
-			T* end = this->Items + this->Count;
-			T* iter = this->Find(item);
-
-			if (iter != this->end())
-			{
-				T* next = std::next(iter);
-				std::memmove(iter, next, (end - next) * sizeof(T));
-				--this->Count;
-				return true;
-			}
-
 			return false;
 		}
-		else
+
+		--this->Count;
+		for (int i = index; i < this->Count; ++i)
 		{
-			return this->RemoveAt<true>(this->FindItemIndex(item));
+			this->Items[i] = std::move_if_noexcept(this->Items[i + 1]);
 		}
+
+		return true;
 	}
 
 	template<typename Func>
 	COMPILETIMEEVAL bool FORCEINLINE remove_if(Func&& act)
 	{
 		if (!this->IsAllocated) return false;
-		this->Reset(std::distance(this->begin() ,std::remove_if(this->begin(), this->end(), act)));
+		T* newEnd = std::remove_if(this->begin(), this->end(), act);
+		this->Count = newEnd ? std::distance(this->begin(), newEnd) : 0;
 		return true;
 	}
 
-	bool FORCEDINLINE FindAndRemove(const T& item) {
-		return this->RemoveAt(this->FindItemIndex(item));
+	bool Remove(const T& item)
+	{
+		int idx = this->FindItemIndex(item);
+		return idx >= 0 && this->RemoveAt(idx);
 	}
 
-	void Swap(DynamicVectorClass<T, Allocator>& other) noexcept
+	void Swap(DynamicVectorClass& other) noexcept
 	{
-		VectorClass<T, Allocator>::Swap(other);
+		VectorClass<T>::Swap(other);
 		using std::swap;
 		swap(this->Count, other.Count);
 		swap(this->CapacityIncrement, other.CapacityIncrement);
 	}
 
-	FORCEDINLINE T* Find(const T& item) const {
-		if COMPILETIMEEVAL (direct_comparable<T>) {
-			return this->find_if([item](const auto item_here) { return item_here == item; });
-		} else {
-			return std::find(this->begin(), this->end(), item);
+	FORCEDINLINE T* Find(const T& item) const
+	{
+		if (this->Count <= 0)
+		{
+			return this->end();
 		}
+		return std::find(this->begin(), this->end(), item);
 	}
-#pragma endregion
 
 #pragma region WrappedSTD
 	template <typename Func>
-	COMPILETIMEEVAL auto FORCEDINLINE find_if(Func&& act) const {
-	    for (auto i = this->begin(); i != this->end(); ++i) {
-			if (act(*i)) {
-				return i;
-			}
-   		}
-
-		return this->end();
-	}
-
-	template <typename Func>
-	COMPILETIMEEVAL auto FORCEDINLINE find_if(Func&& act) {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-			if (act(*i)) {
-				return i;
-			}
-   		}
-
-		return this->end();
-	}
-
-	template <typename Func>
-	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act) const {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-        	act(*i);
-    	}
-	}
-
-	template <typename Func>
-	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act) {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-        	act(*i);
-    	}
-	}
-
-	template<typename func>
-	COMPILETIMEEVAL bool FORCEDINLINE none_of(func&& fn) const {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-       	 	if (fn(*i)) {
-           	 	return false;
-        	}
-    	}
-
-    	return true;
-	}
-
-	template<typename func>
-	COMPILETIMEEVAL bool FORCEDINLINE none_of(func&& fn) {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-       	 	if (fn(*i)) {
-           	 	return false;
-        	}
-    	}
-
-    	return true;
-	}
-
-	template<typename func>
-	COMPILETIMEEVAL bool FORCEDINLINE any_of(func&& fn) const {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-       		if (fn(*i)) {
-            	return true;
-			}
-        }
-
-		return false;
-	}
-
-	template<typename func>
-	COMPILETIMEEVAL bool FORCEDINLINE any_of(func&& fn) {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-       		if (fn(*i)) {
-            	return true;
-			}
-        }
-
-		return false;
-	}
-#pragma endregion
-
-	bool FORCEDINLINE IsValidArray()
+	COMPILETIMEEVAL auto FORCEDINLINE find_if(Func&& act) const
 	{
-		if (this->Count >= this->Capacity)
+		for (auto i = this->begin(); i != this->end(); ++i)
 		{
-			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0)
+			if (act(*i))
 			{
-				return this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr);
+				return i;
 			}
-			else
+		}
+
+		return this->end();
+	}
+
+	template <typename Func>
+	COMPILETIMEEVAL auto FORCEDINLINE find_if(Func&& act)
+	{
+		for (auto i = this->begin(); i != this->end(); ++i)
+		{
+			if (act(*i))
+			{
+				return i;
+			}
+		}
+
+		return this->end();
+	}
+
+	template <typename Func>
+	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act) const
+	{
+		for (auto i = this->begin(); i != this->end(); ++i)
+		{
+			act(*i);
+		}
+	}
+
+	template <typename Func>
+	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act)
+	{
+		for (auto i = this->begin(); i != this->end(); ++i)
+		{
+			act(*i);
+		}
+	}
+
+	template<typename func>
+	COMPILETIMEEVAL bool FORCEDINLINE none_of(func&& fn) const
+	{
+		for (auto i = this->begin(); i != this->end(); ++i)
+		{
+			if (fn(*i))
 			{
 				return false;
 			}
@@ -706,7 +549,63 @@ public:
 		return true;
 	}
 
+	template<typename func>
+	COMPILETIMEEVAL bool FORCEDINLINE none_of(func&& fn)
+	{
+		for (auto i = this->begin(); i != this->end(); ++i)
+		{
+			if (fn(*i))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	template<typename func>
+	COMPILETIMEEVAL bool FORCEDINLINE any_of(func&& fn) const
+	{
+		for (auto i = this->begin(); i != this->end(); ++i)
+		{
+			if (fn(*i))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	template<typename func>
+	COMPILETIMEEVAL bool FORCEDINLINE any_of(func&& fn) {
+		for (auto i = this->begin(); i != this->end(); ++i)
+		{
+			if (fn(*i))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+#pragma endregion
+
+	bool FORCEDINLINE COMPILETIMEEVAL Empty() { return this->Count <= 0; }
+
+	bool FORCEDINLINE IsValidArray() {
+		if (this->Count >= this->Capacity) {
+			if ((this->IsAllocated || !this->Capacity) && this->CapacityIncrement > 0) {
+				return this->SetCapacity(this->Capacity + this->CapacityIncrement, nullptr);
+			} else {
+				return false;
+			}
+		}
+		return true;
+	}
+
 public:
+
 	int Count { 0 };
 	int CapacityIncrement { 10 };
 };
@@ -715,43 +614,39 @@ public:
 //=== TypeList ===========================================================
 //========================================================================
 
-template <typename T, class Allocator = GameAllocator<T>>
-class TypeList : public DynamicVectorClass<T , Allocator>
+template <typename T>
+class TypeList : public DynamicVectorClass<T>
 {
 public:
-	COMPILETIMEEVAL TypeList<T, Allocator>() noexcept = default;
+	constexpr TypeList() noexcept = default;
 	static const ArrayType Type = ArrayType::TypeList;
-	using VectType = DynamicVectorClass<T, Allocator>;
-
-	explicit TypeList<T, Allocator>(int capacity, T* pMem = nullptr)
-		: VectType(capacity, pMem)
+	explicit TypeList(int capacity, T* pMem = nullptr)
+		: DynamicVectorClass<T>(capacity, pMem)
 	{ }
 
-	TypeList<T, Allocator>(const TypeList<T, Allocator>& other)
-		: VectType(other), unknown_18(other.unknown_18)
+	TypeList(const TypeList<T>& other)
+		: DynamicVectorClass<T>(other), unknown_18(other.unknown_18)
 	{ }
 
-	TypeList<T, Allocator>(TypeList<T, Allocator>&& other) noexcept
-		: VectType(std::move(other)), unknown_18(other.unknown_18)
+	TypeList(TypeList<T>&& other) noexcept
+		: DynamicVectorClass<T>(std::move(other)), unknown_18(other.unknown_18)
 	{ }
 
-	virtual ~TypeList<T, Allocator>() = default;
-
-	TypeList<T, Allocator>& operator = (const TypeList<T, Allocator>& other)
+	TypeList<T>& operator = (const TypeList<T>& other)
 	{
-		TypeList<T, Allocator>(other).Swap(*this);
+		TypeList<T>(other).Swap(*this);
 		return *this;
 	}
 
-	TypeList<T, Allocator>& operator = (TypeList<T, Allocator>&& other) noexcept
+	TypeList<T>& operator = (TypeList<T>&& other) noexcept
 	{
-		TypeList<T, Allocator>(std::move(other)).Swap(*this);
+		TypeList<T>(std::move(other)).Swap(*this);
 		return *this;
 	}
 
-	void Swap(TypeList<T, Allocator>& other) noexcept
+	void Swap(TypeList<T>& other) noexcept
 	{
-		VectType::Swap(other);
+		DynamicVectorClass<T>::Swap(other);
 		using std::swap;
 		swap(this->unknown_18, other.unknown_18);
 	}
@@ -762,31 +657,29 @@ public:
 //========================================================================
 //=== CounterClass =======================================================
 //========================================================================
-template<class Allocator = GameAllocator<int>>
-class CounterClass : public VectorClass<int , Allocator>
+
+class CounterClass : public VectorClass<int>
 {
 public:
-	COMPILETIMEEVAL CounterClass<Allocator>() noexcept = default;
+	constexpr CounterClass() noexcept = default;
 	static const ArrayType Type = ArrayType::Counter;
-	using VectType = VectorClass<int, Allocator>;
-
-	CounterClass<Allocator>(const CounterClass<Allocator>& other)
-		: VectType(other), Total(other.Total)
+	CounterClass(const CounterClass& other)
+		: VectorClass<int>(other), Total(other.Total)
 	{ }
 
-	CounterClass<Allocator>(CounterClass<Allocator>&& other) noexcept
-		: VectType(std::move(other)), Total(other.Total)
+	CounterClass(CounterClass&& other) noexcept
+		: VectorClass<int>(std::move(other)), Total(other.Total)
 	{ }
 
-	CounterClass<Allocator>& operator = (const CounterClass<Allocator>& other)
+	CounterClass& operator = (const CounterClass& other)
 	{
-		CounterClass<Allocator>(other).Swap(*this);
+		CounterClass(other).Swap(*this);
 		return *this;
 	}
 
-	CounterClass<Allocator>& operator = (CounterClass<Allocator>&& other) noexcept
+	CounterClass& operator = (CounterClass&& other) noexcept
 	{
-		CounterClass<Allocator>(std::move(other)).Swap(*this);
+		CounterClass(std::move(other)).Swap(*this);
 		return *this;
 	}
 
@@ -799,8 +692,6 @@ public:
 
 		this->Total = 0;
 	}
-
-	virtual ~CounterClass<Allocator>() = default;
 
 	int GetTotal() const
 	{
@@ -837,9 +728,9 @@ public:
 		return this->EnsureItem(index) ? this->Items[index] : 0;
 	}
 
-	COMPILETIMEEVAL int GetItemCount(int index) const
+	int GetItemCount(int index) const
 	{
-		return (index < this->Capacity) ? this->Items[index] : 0;
+		return ((size_t)index < (size_t)this->Capacity) ? this->Items[index] : 0;
 	}
 
 	int Increment(int index)
@@ -862,16 +753,13 @@ public:
 		return 0;
 	}
 
-	void Swap(CounterClass<Allocator>& other) noexcept
+	void Swap(CounterClass& other) noexcept
 	{
-		VecInt_type::Swap(other);
+		VectorClass<int>::Swap(other);
 		using std::swap;
 		swap(this->Total, other.Total);
 	}
 
-	//HRESULT LoadFromStream(IStream* pStm) { JMP_THIS(0x49FBE0); }
-	//HRESULT SaveFromStream(IStream* pStm) { JMP_THIS(0x49FB70); }
-public:
 	int Total { 0 };
 };
 
@@ -879,45 +767,59 @@ template<typename T, const int size>
 class ArrayHelper
 {
 public:
-	operator T* () { return (T*)this; }
-	operator const T* () const { return (T*)this; }
-	T* operator&() { return (T*)this; }
-	const T* operator&() const { return (T*)this; }
-	T& operator[](int index) { return ((T*)this)[index]; }
-	const T& operator[](int index) const { return ((T*)this)[index]; }
+	operator T* () { return reinterpret_cast<T*>(this); }
+	operator const T* () const { return reinterpret_cast<const T*>(this); }
+	T* operator&() { return reinterpret_cast<T*>(this); }
+	const T* operator&() const { return reinterpret_cast<const T*>(this); }
+	T& operator[](int index)
+	{
+		return reinterpret_cast<T*>(this)[index];
+	}
+	const T& operator[](int index) const
+	{
+		return reinterpret_cast<const T*>(this)[index];
+	}
 
-	T& begin() { return ((T*)this)[0]; }
-	T& end() { return ((T*)this)[size]; }
+	T* begin() { return reinterpret_cast<T*>(this); }
+	T* end() { return reinterpret_cast<T*>(this) + size; }
 
-	const T& begin() const { return ((T*)this)[0]; }
-	const T& end() const { return ((T*)this)[size]; }
+	const T* begin() const { return reinterpret_cast<const T*>(this); }
+	const T* end() const { return reinterpret_cast<const T*>(this) + size; }
 
-	int Size() const {
+	constexpr int Size() const
+	{
 		return size;
 	}
 
 protected:
-	char _dummy[size * sizeof(T)];
+	alignas(T) char _dummy[size * sizeof(T)];
 };
 
 template<typename T, const int y, const int x>
 class ArrayHelper2D
 {
 public:
-	operator ArrayHelper<T, x>* () { return (ArrayHelper<T, x> *)this; }
-	operator const ArrayHelper<T, x>* () const { return (ArrayHelper<T, x> *)this; }
-	ArrayHelper<T, x>* operator&() { return (ArrayHelper<T, x> *)this; }
-	const ArrayHelper<T, x>* operator&() const { return (ArrayHelper<T, x> *)this; }
-	ArrayHelper<T, x>& operator[](int index) { return _dummy[index]; }
-	const ArrayHelper<T, x>& operator[](int index) const { return _dummy[index]; }
+	operator ArrayHelper<T, x>* () { return reinterpret_cast<ArrayHelper<T, x>*>(this); }
+	operator const ArrayHelper<T, x>* () const { return reinterpret_cast<const ArrayHelper<T, x>*>(this); }
+	ArrayHelper<T, x>* operator&() { return reinterpret_cast<ArrayHelper<T, x>*>(this); }
+	const ArrayHelper<T, x>* operator&() const { return reinterpret_cast<const ArrayHelper<T, x>*>(this); }
+	ArrayHelper<T, x>& operator[](int index)
+	{
+		return _dummy[index];
+	}
+	const ArrayHelper<T, x>& operator[](int index) const
+	{
+		return _dummy[index];
+	}
 
-	ArrayHelper<T, x>& begin() { return _dummy[0]; }
-	ArrayHelper<T, x>& end() { return _dummy[y]; }
+	ArrayHelper<T, x>* begin() { return _dummy; }
+	ArrayHelper<T, x>* end() { return _dummy + y; }
 
-	const ArrayHelper<T, x>& begin() const  { return _dummy[0]; }
-	const ArrayHelper<T, x>& end() const { return _dummy[y]; }
+	const ArrayHelper<T, x>* begin() const { return _dummy; }
+	const ArrayHelper<T, x>* end() const { return _dummy + y; }
 
-	int Size() const {
+	constexpr int Size() const
+	{
 		return y;
 	}
 

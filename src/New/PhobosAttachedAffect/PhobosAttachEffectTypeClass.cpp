@@ -130,6 +130,13 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ExtraWarheads_FullDetonation.Read(exINI, pSection, "ExtraWarheads.FullDetonation");
 
 	this->FeedbackWeapon.Read(exINI, pSection, "FeedbackWeapon", true);
+
+	this->ExpireWeapon_UseInvokerAsOwner.Read(exINI, pSection, "ExpireWeapon.UseInvokerAsOwner");
+	this->RevengeWeapon_UseInvokerAsOwner.Read(exINI, pSection, "RevengeWeapon.UseInvokerAsOwner");
+	this->ReflectDamage_UseInvokerAsOwner.Read(exINI, pSection, "ReflectDamage.UseInvokerAsOwner");
+
+	this->LaserTrail_Type.Read(exINI, pSection, "LaserTrail.Type");
+
 }
 
 template <typename T>
@@ -158,6 +165,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->ExpireWeapon)
 		.Process(this->ExpireWeapon_TriggerOn)
 		.Process(this->ExpireWeapon_CumulativeOnlyOnce)
+		.Process(this->ExpireWeapon_UseInvokerAsOwner)
 		.Process(this->Tint_Color)
 		.Process(this->Tint_Intensity)
 		.Process(this->Tint_VisibleToHouses)
@@ -180,6 +188,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->Crit_DisallowWarheads)
 		.Process(this->RevengeWeapon)
 		.Process(this->RevengeWeapon_AffectsHouses)
+		.Process(this->RevengeWeapon_UseInvokerAsOwner)
 		.Process(this->ReceiveRelativeDamageMult)
 		.Process(this->DisableWeapons)
 		.Process(this->Groups)
@@ -195,7 +204,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 
 		.Process(this->ReflectDamage_Chance)
 		.Process(this->ReflectDamage_Override)
-
+		.Process(this->ReflectDamage_UseInvokerAsOwner)
 		.Process(this->DiscardOn_AbovePercent)
 		.Process(this->DiscardOn_BelowPercent)
 		.Process(this->AffectAbovePercent)
@@ -211,6 +220,7 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->ExtraWarheads_FullDetonation)
 
 		.Process(this->FeedbackWeapon)
+		.Process(this->LaserTrail_Type)
 		;
 }
 

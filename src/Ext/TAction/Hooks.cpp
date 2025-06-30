@@ -14,52 +14,41 @@
 #include <Ext/Scenario/Body.h>
 
 #include <Utilities/Macro.h>
-#include <Utilities/HookGuard.h>
 #include <Misc/Ares/Hooks/Header.h>
 
 // we hook at the beggining of the function
 // ares hooking at the beggining of switch call
-int lastAction;
+// int lastAction;
 
- ASMJIT_PATCH_GUARDED(0x6DD8B0, TActionClass_Execute, 0x6)
- {
-    // Manual recursive detection menggunakan sistem baru
-    AUTO_RECURSIVE_GUARD(0x6DD8B0, "TActionClass_Execute");
+//  ASMJIT_PATCH(0x6DD8B0, TActionClass_Execute, 0x6)
+//  {
+//  	GET(TActionClass*, pThis, ECX);
+//  	REF_STACK(ActionArgs const, args, 0x4);
+// 	//GET_STACK(DWORD , caller , 0x0);
 
- 	GET(TActionClass*, pThis, ECX);
- 	REF_STACK(ActionArgs const, args, 0x4);
-	//GET_STACK(DWORD , caller , 0x0);
+//  	enum { return_value = 0x6DD910, continue_func = 0x0 };
 
- 	enum { return_value = 0x6DD910, continue_func = 0x0 };
+// 	if(((int)pThis->ActionKind == 14 || (int)pThis->ActionKind == 32) ){
 
-	// Manual detection masih tetap ada sebagai backup untuk case spesifik
-	if(((int)pThis->ActionKind == 14 || (int)pThis->ActionKind == 32) ){
+// 		if (lastAction == (int)pThis->ActionKind)
+// 			++StaticVars::TriggerCounts[pThis];
+// 		else
+// 			StaticVars::TriggerCounts[pThis] = 0;
 
-		if (lastAction == (int)pThis->ActionKind)
-			++StaticVars::TriggerCounts[pThis];
-		else
-			StaticVars::TriggerCounts[pThis] = 0;
+// 	 	//Debug::LogInfo("TAction[%x] triggering [%d] caller[%x]" , pThis , (int)pThis->ActionKind , caller);
 
-	 	//Debug::LogInfo("TAction[%x] triggering [%d] caller[%x]" , pThis , (int)pThis->ActionKind , caller);
+// 		if (StaticVars::TriggerCounts[pThis] > 1000)
+// 			Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !", pThis, (int)pThis->ActionKind);
+// 	}
 
-		if (StaticVars::TriggerCounts[pThis] > 1000)
-			Debug::FatalErrorAndExit("Possible Deadlock Detected From TAction[%x] with Kind[%d] !", pThis, (int)pThis->ActionKind);
-	}
+// 	lastAction = (int)pThis->ActionKind;
 
-	lastAction = (int)pThis->ActionKind;
 
- 	bool handled;
- 	if (TActionExt::Occured(pThis, args, handled))
- 	{
- 		//Debug::LogInfo("TAction[%x] triggering Phobos [%d]" , pThis , (int)pThis->ActionKind);
- 		R->AL(handled);
- 		return return_value;
- 	}
 
- 	//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pThis , (int)pThis->ActionKind);
+//  	//Debug::LogInfo("TAction[%x] triggering vanilla [%d]" , pThis , (int)pThis->ActionKind);
 
- 	return continue_func;
- }
+//  	return continue_func;
+//  }
 
 // Bugfix: TAction 125 Build At do not display the buildups
 // Author: secsome
@@ -271,6 +260,7 @@ ASMJIT_PATCH(0x6DD614, TActionClass_LoadFromINI_GetActionIndex_ParamAsName, 0x6)
 }
 
 // add/subtract extra values to prevent the AI from attacking the wrong target during the campaign.
+/*
 ASMJIT_PATCH(0x6DE189, TActionClass_MakeEnemy, 0x6)
 {
 	GET(TActionClass*, pThis, ESI);
@@ -306,7 +296,7 @@ ASMJIT_PATCH(0x6DE189, TActionClass_MakeEnemy, 0x6)
 	}
 
 	return OK;
-}
+}*/
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
 // Author: secsome
 //ASMJIT_PATCH_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue

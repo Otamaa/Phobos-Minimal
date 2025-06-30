@@ -11,32 +11,35 @@
 // TODO : check
 ASMJIT_PATCH(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 {
-	enum { ReturnGameCode = 0x6F3341, ReturnHandled = 0x6F3406 };
+	enum {
+		ReturnGameCode = 0x6F3341,
+		ReturnHandled = 0x6F3406 ,
+		CheckOccupy = 0x6F3379,
+		SetWeaponSlot = 0x6F3360
+	};
 
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(const AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
 
-	if (pTarget)
-	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor() && pTarget->WhatAmI() == BulletClass::AbsID)
-		{
+	if (pTarget) {
+		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor() && pTarget->WhatAmI() == BulletClass::AbsID) {
 			R->EAX(pTypeExt->Interceptor_Weapon.Get() == -1 ? 0 : pTypeExt->Interceptor_Weapon.Get());
 			return ReturnHandled;
 		}
-
-		//if (pTypeExt->Get()->AttackFriendlies && pTypeExt->AttackFriendlies_WeaponIdx != -1)
-		//{
-		//	R->EAX(pTypeExt->Interceptor_Weapon);
-		//	return ReturnHandled;
-		//}
 	}
 
-	// Restore overridden instructions.
-	R->EAX(pThis->GetTechnoType());
+	if(pThis->HasTurret() && !pThis->GetTechnoType()->IsGattling) {
+		if (pTypeExt->MultiWeapon.Get()
+		&& (pThis->WhatAmI() != AbstractType::Unit || !pTypeExt->AttachedToObject->Gunner)) {
+			return CheckOccupy;
+		}
 
-	return ReturnGameCode;
+		return SetWeaponSlot;
+	}
+
+	return CheckOccupy;
 }
 
 ASMJIT_PATCH(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
@@ -154,10 +157,11 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 
 	int forceWeaponIndex = -1;
 	auto const pTarget = flag_cast_to<TechnoClass*, false>(pAbsTarget);
+	TechnoTypeClass* pTargetType = nullptr;
 
 	if (pTarget)
 	{
-		const auto pTargetType = pTarget->GetTechnoType();
+		pTargetType = pTarget->GetTechnoType();
 
 		if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
 			&& pTargetType->Cloakable
@@ -191,6 +195,50 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 		forceWeaponIndex = ApplyForceWeaponInRange(pThis, pAbsTarget);
 		ForceWeaponInRangeTemp::SelectWeaponByRange = false;
 	}
+
+	if (forceWeaponIndex == -1 && pTargetType)
+	{
+		switch (pTarget->WhatAmI())
+		{
+		case AbstractType::Building:
+		{
+			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Buildings;
+
+			if (pTechnoTypeExt->ForceWeapon_Defenses >= 0)
+			{
+				auto const pBuildingType = static_cast<BuildingTypeClass*>(pTargetType);
+
+				if (pBuildingType->BuildCat == BuildCat::Combat)
+					forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Defenses;
+			}
+
+			break;
+		}
+		case AbstractType::Infantry:
+		{
+			forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Infantry >= 0 && pTarget->IsInAir())
+				? pTechnoTypeExt->ForceAAWeapon_Infantry : pTechnoTypeExt->ForceWeapon_Infantry;
+
+			break;
+		}
+		case AbstractType::Unit:
+		{
+			forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Units >= 0 && pTarget->IsInAir())
+				? pTechnoTypeExt->ForceAAWeapon_Units : ((pTechnoTypeExt->ForceWeapon_Naval_Units >= 0 && pTargetType->Naval)
+				? pTechnoTypeExt->ForceWeapon_Naval_Units : pTechnoTypeExt->ForceWeapon_Units);
+
+			break;
+		}
+		case AbstractType::Aircraft:
+		{
+			forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Aircraft >= 0 && pTarget->IsInAir())
+				? pTechnoTypeExt->ForceAAWeapon_Aircraft : pTechnoTypeExt->ForceWeapon_Aircraft;
+
+			break;
+		}
+		}
+	}
+
 
 	if(forceWeaponIndex >= 0){
 		R->EAX(forceWeaponIndex);

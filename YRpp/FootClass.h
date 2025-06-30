@@ -212,8 +212,8 @@ public:
 	double          SpeedMultiplier;
 	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, unknown_abstract_array_588);
 	AbstractClass*  unknown_5A0;  //TODO
-	AbstractClass*  Destination; //navcom possibly other objects as well
-	AbstractClass*  LastDestination; //suspendednavcom
+	AbstractClass*  Destination; //NavCom, possibly other objects as well
+	AbstractClass*  LastDestination; //SuspendedNavCom
 	DECLARE_PROPERTY(DynamicVectorClass<AbstractClass*>, NavQueue);//unknown_abstract_array_5AC
 	Mission         MegaMission; // only Mission::AttackMove or Mission::None
 	AbstractClass*  MegaDestination; // when AttackMove target is a cell

@@ -517,20 +517,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
 //	return 0x0;
 //}
 // Enable This when needed
-#ifdef DEBUG_STUPID_HUMAN_CHECKS
 
-ASMJIT_PATCH(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
-{
-	Debug::LogInfo(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
-{
-	Debug::LogInfo(__FUNCTION__"Caller [%x]", R->Stack<DWORD>(0x0));
-	return 0x0;
-}
-#endif
 
 //ASMJIT_PATCH(0x448260, Debug_ChangeOwnership_Building, 0x8)
 //{

@@ -176,7 +176,7 @@ public:
 	virtual void StopAirstrikeTimer() RX;
 	virtual void StartAirstrikeTimer(int Duration) RX;
 	virtual bool IsIronCurtained() const R0;
-	virtual bool IsCloseEnough3D(DWORD dwUnk, DWORD dwUnk2) const R0;
+	virtual bool IsCloseEnough3D(CoordStruct* pCoord, int weapon) const R0;
 	virtual int GetWeaponRange(int idxWeapon) const R0;
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
 	  ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) JMP_THIS(0x5F5390);
@@ -339,6 +339,8 @@ public:
 	bool IsCrushable(TechnoClass* pCrusher) {
 		JMP_THIS(0x5F6CD0);
 	}
+
+	void AttachSound(int idx) { JMP_THIS(0x5F6CB0); }
 
 	DamageState TakeDamage(int damage, WarheadTypeClass* pWH, bool crewed, bool ignoreDefenses = true, ObjectClass* pAttacker = nullptr, HouseClass* pAttackingHouse = nullptr) {
 		return ReceiveDamage(&damage, 0, pWH, pAttacker, ignoreDefenses, crewed, pAttackingHouse);

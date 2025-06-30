@@ -94,7 +94,7 @@ public:
 	static COMPILETIMEEVAL reference<DynamicVectorClass<MixFileClass*>, 0x884DC0u> const Array_Alt{};
 	static COMPILETIMEEVAL reference<DynamicVectorClass<MixFileClass*>, 0x884DA8u> const Maps{};
 	static COMPILETIMEEVAL reference<DynamicVectorClass<MixFileClass*>, 0x884DE0u> const Movies{};
-	static COMPILETIMEEVAL reference<PKey*, 0x886980u> const Key {};
+	static COMPILETIMEEVAL constant_ptr<PKey, 0x886980u> const Key {};
 	static COMPILETIMEEVAL reference<MixFileClass, 0x884DD8u> const MULTIMD{};
 	static COMPILETIMEEVAL reference<MixFileClass, 0x884DDCu> const MULTI{};
 

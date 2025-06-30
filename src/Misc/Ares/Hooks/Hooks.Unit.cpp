@@ -924,8 +924,8 @@ DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 //	return 0x6F8F25;
 //}
 
-DEFINE_PATCH(0x6F8F21, 0x3C);
-DEFINE_PATCH(0x6F8EE5, 0x3C);
+DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8F1F , 0x2, 0x3C);
+DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8EE3 , 0x2, 0x3C);
 
 ASMJIT_PATCH(0x51C913, InfantryClass_CanFire_Heal, 7)
 {
@@ -957,7 +957,7 @@ ASMJIT_PATCH(0x741113, UnitClass_CanFire_Heal, 0xA)
 		retContinue : retFireIllegal;
 }
 
-ASMJIT_PATCH(0x6F7F4F, TechnoClass_EvalObject_NegativeDamage, 0x7)
+ASMJIT_PATCH(0x6F7F4F, TechnoClass_EvaluateObject_NegativeDamage, 0x7)
 {
 	enum { SetHealthRatio = 0x6F7F56, ContinueCheck = 0x6F7F6D, retFalse = 0x6F894F };
 	GET(TechnoClass*, pThis, EDI);

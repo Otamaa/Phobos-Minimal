@@ -606,6 +606,10 @@ class SessionClass
 public:
 	static COMPILETIMEEVAL reference<SessionClass, 0xA8B238u> const Instance {};
 
+	int Game_GetLinkedColor(int a1) {
+		JMP_THIS(0x69A310)
+	}
+
 	static bool IsSkirmish()
 	{
 		return Instance->GameMode == GameMode::Skirmish;

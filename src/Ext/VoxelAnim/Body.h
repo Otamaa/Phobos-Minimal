@@ -22,7 +22,7 @@ public:
 public:
 
 	TechnoClass* Invoker { nullptr };
-	std::vector<LaserTrailClass> LaserTrails { };
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
 	CDTimerClass TrailerSpawnDelayTimer {};
 
@@ -70,7 +70,7 @@ public:
 	void _RemoveThis()
 	{
 		if (this->Type)
-			VocClass::PlayIndexAtPos(this->Type->StopSound, this->Location);
+			VocClass::SafeImmedietelyPlayAt(this->Type->StopSound, &this->Location);
 
 		this->ObjectClass::UnInit();
 	}

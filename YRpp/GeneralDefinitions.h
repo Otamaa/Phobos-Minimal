@@ -241,6 +241,7 @@ enum class RGBMode : unsigned int
 
 enum class NavalTargetingType : int
 {
+	NotAvaible = -1,
 	Underwater_never = 0x0,
 	Underwater_secondary = 0x1,
 	Underwater_only = 0x2,

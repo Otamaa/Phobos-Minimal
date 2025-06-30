@@ -15,7 +15,6 @@
 //#include <Misc/DynamicPatcher/Techno/AttackBeacon/AttackBeaconFunctional.h>
 
 #include <SpawnManagerClass.h>
-#include <Utilities/HookGuard.h>
 
 /*
 ASMJIT_PATCH(0x4149EE, AircraftClass_Render2, 0x5)
@@ -191,11 +190,8 @@ namespace CalculatePinch
 // 	return 0x0;
 // }
 
-ASMJIT_PATCH_GUARDED(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
+ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 {
-	AUTO_RECURSIVE_GUARD(0x6FDD50, "TechnoClass_FireAt_PreFire");
-	// RE-ENABLED: FireAt needs recursive guard to prevent infinite loops during Hunt missions
-	
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
 	GET_STACK(const int, nWeapon, 0x8);
@@ -246,61 +242,6 @@ ASMJIT_PATCH(0x6FBFE9, TechnoClass_Select_SkipVoice, 0x6)
 	GET(TechnoClass*, pThis, ESI);
 	return TechnoExtContainer::Instance.Find(pThis)->SkipVoice ? 0x6FC01E :0x0;
 }
-
-WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
-{
-	WeaponTypeClass* pBuffer = nullptr;
-
-    if ( which == -1 ) {
-        auto const pType = pThis->GetTechnoType();
-
-        if (pType->TurretCount > 0) {
-			if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentGattlingStage)) {
-				pBuffer = pCurWeapon->WeaponType;
-			}
-		} else {
-            if (auto const pPriStruct = pThis->GetWeapon(0)) {
-				pBuffer = pPriStruct->WeaponType;
-			}
-
-            if (auto const pSecStruct = pThis->GetWeapon(1) ) {
-				pBuffer = pSecStruct->WeaponType;
-            }
-        }
-    }
-    else
-    {
-        if (auto const pSelected = pThis->GetWeapon(which) )
-        {
-            pBuffer = pSelected->WeaponType;
-		}
-    }
-
-    return  pBuffer;
-}
-//9
- ASMJIT_PATCH_GUARDED(0x6F9039, TechnoClass_Greatest_Threat_GuardRange, 0x9)
-{
-	AUTO_RECURSIVE_GUARD(0x6F9039, "TechnoClass_Greatest_Threat_GuardRange");
-	// RE-ENABLED: GreatestThreat needs recursive guard to prevent infinite loops during Hunt missions
-	
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
- 	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
-
- 	if (auto pPri = GetWeaponType(pTechno , 0)) {
- 		if (pPri->Range > nGuarRange)
- 			nGuarRange = pPri->Range;
- 	}
-
- 	if(auto pSec = GetWeaponType(pTechno ,1)) {
- 		if (pSec->Range > nGuarRange)
- 			nGuarRange = pSec->Range;
- 	}
-
- 	R->EDI(nGuarRange);
- 	return 0x6F903E;
- }
 
 // ASMJIT_PATCH(0x41A697, AircraftClass_Mission_Guard_NoTarget_Enter , 6)
 // {

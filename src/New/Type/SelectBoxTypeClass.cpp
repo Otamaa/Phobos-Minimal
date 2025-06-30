@@ -26,6 +26,15 @@ void SelectBoxTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->VisibleToHouses.Read(exINI, pSection, "VisibleToHouses");
 	this->VisibleToHouses_Observer.Read(exINI, pSection, "VisibleToHouses.Observer");
 	this->DrawAboveTechno.Read(exINI, pSection, "DrawAboveTechno");
+
+	this->GroundShape.Read(exINI, pSection, "GroundShape");
+	this->GroundPalette.Read(exINI, pSection, "GroundPalette");
+	this->GroundFrames.Read(exINI, pSection, "GroundFrames");
+	this->GroundOffset.Read(exINI, pSection, "GroundOffset");
+	this->Ground_AlwaysDraw.Read(exINI, pSection, "Ground.AlwaysDraw");
+	this->GroundLine.Read(exINI, pSection, "GroundLine");
+	this->GroundLineColor.Read(exINI, pSection, "GroundLineColor.%s");
+	this->GroundLine_Dashed.Read(exINI, pSection, "GroundLine.Dashed");
 }
 
 template <typename T>
@@ -41,6 +50,15 @@ void SelectBoxTypeClass::Serialize(T& Stm)
 		.Process(this->VisibleToHouses)
 		.Process(this->VisibleToHouses_Observer)
 		.Process(this->DrawAboveTechno)
+
+		.Process(this->GroundShape)
+		.Process(this->GroundPalette)
+		.Process(this->GroundFrames)
+		.Process(this->GroundOffset)
+		.Process(this->Ground_AlwaysDraw)
+		.Process(this->GroundLine)
+		.Process(this->GroundLineColor)
+		.Process(this->GroundLine_Dashed)
 		;
 }
 

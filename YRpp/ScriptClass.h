@@ -54,7 +54,7 @@ public:
 	bool ClearMission() const { JMP_THIS(0x691590); }
 	bool SetMission(int nLine) const { JMP_THIS(0x6915A0); }
 	bool NextMission() { ++this->CurrentMission; return this->HasNextMission(); }
-	bool HasNextMission() const { JMP_THIS(0x6915B0); }
+	bool HasNextMission() const { return this->CurrentMission < this->Type->ActionsCount; }
 
 	const char* get_ID() const;
 
