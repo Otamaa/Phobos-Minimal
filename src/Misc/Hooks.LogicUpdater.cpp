@@ -395,38 +395,21 @@ bool Spawned_Check_Destruction(AircraftClass* aircraft)
 
 DEFINE_FUNCTION_JUMP(CALL , 0x414DA3  , FakeAircraftClass::_FootClass_Update_Wrapper);
 
-ASMJIT_PATCH(0x4DA677, FootClass_AI_IsMovingNow, 0x6)
+ASMJIT_PATCH(0x4DA63B, FootClass_AI_IsMovingNow, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
-	//GET8(bool, IsMovingNow, AL);
 
-	//if (auto pTeam = pThis->Team) {
-	//	if (pTeam->CurrentScript->CurrentMission == -1) {
-	//		pTeam->RemoveMember(pThis);
-	//
-	//		if (!pTeam->FirstUnit)
-	//			pTeam->StepCompleted = true;
-	//	}
-	//}
+	if(!pThis->IsOnMap && pThis->GetTechnoType()->BalloonHover){
+		if(MapClass::Instance->IsWithinUsableArea(pThis->GetCell(), true))
+			pThis->IsOnMap = true;
+	}
 
-#ifdef ENABLE_THESE
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	DriveDataFunctional::AI(pExt);
 	 //UpdateWebbed(pThis);
-#endif
-	if (pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now())
-	{
-#ifdef ENABLE_THESE
-		// LaserTrails update routine is in TechnoClass::AI hook because TechnoClass::Draw
-		// doesn't run when the object is off-screen which leads to visual bugs - Kerbiter
-		//pExt->UpdateLaserTrails();
 
-#endif
-		return 0x4DA6A0;
-	}
-
-	return 0x4DA7B0;
+	return pThis->Locomotor.GetInterfacePtr() ? 0x4DA689 : 0x4DA67F;
 }
 
 // Ares-hook jmp to this offset

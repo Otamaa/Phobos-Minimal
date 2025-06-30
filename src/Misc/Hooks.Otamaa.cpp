@@ -5051,11 +5051,11 @@ ASMJIT_PATCH(0x447E90, BuildingClass_GetDestinationCoord_Helipad, 0x6)
 DEFINE_JUMP(LJMP, 0x4495FF, 0x44961A);
 DEFINE_JUMP(LJMP, 0x449657, 0x449672);
 
-ASMJIT_PATCH(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
-{
-	GET(UnitTypeClass* const, pType, EAX);
-	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
-}
+// ASMJIT_PATCH(0x4DA64D, FootClass_Update_IsInPlayField, 0x6)
+// {
+// 	GET(UnitTypeClass* const, pType, EAX);
+// 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
+// }
 
 ASMJIT_PATCH(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
 {
