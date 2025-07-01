@@ -379,8 +379,7 @@ public:
 			bool inBottomRight = (x >= Width - CornerSize && y >= Height - CornerSize);
 			bool isCorner = inTopLeft || inTopRight || inBottomLeft || inBottomRight;
 
-			if (pixel != 0 && (pixel != Mask || !isCorner))
-			{
+			if (pixel != Mask || !isCorner) {
 				*pDst = pixel;
 			}
 			++pDst;
