@@ -6,6 +6,52 @@
 #include <CCINIClass.h>
 #include <SwizzleManagerClass.h>
 
+#include <vector>
+#include <stack>
+#include <memory>
+#include <mutex>
+
+class BSurfacePool
+{
+private:
+	std::vector<std::unique_ptr<BSurface>> allSurfaces;
+	std::stack<BSurface*> available;
+	std::mutex poolMutex;
+
+public:
+
+	BSurface* Acquire()
+	{
+		std::lock_guard<std::mutex> lock(poolMutex);
+		if (!available.empty())
+		{
+			BSurface* surf = available.top();
+			available.pop();
+			return surf;
+		}
+
+		// Create a new one if pool is empty
+		auto newSurface = std::make_unique<BSurface>();
+		BSurface* ptr = newSurface.get();
+		allSurfaces.push_back(std::move(newSurface));
+		return ptr;
+	}
+
+	void Release(BSurface* surface)
+	{
+		std::lock_guard<std::mutex> lock(poolMutex);
+		surface->Clear();
+		available.push(surface);
+	}
+
+	void ClearPool()
+	{
+		std::lock_guard<std::mutex> lock(poolMutex);
+		available = std::stack<BSurface*>(); // Clear the stack
+		allSurfaces.clear();
+	}
+};
+
 bool PhobosPCXFile::Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault)
 {
 	char buffer[Capacity];

@@ -43,13 +43,12 @@ void LatencyLevel::Apply(LatencyLevelEnum newLatencyLevel)
 	MessageListClass::Instance->PrintMessage(GetLatencyMessage(newLatencyLevel), (int)(RulesClass::Instance->MessageDelay * 900), ColorScheme::White, true);
 }
 
-ASMJIT_PATCH(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)
-{
-	if (EventExt::ProtocolZero::Enable)
-		EventExt::ProtocolZero::Raise();
-
-	return 0;
-}
+// ASMJIT_PATCH(0x55DDA0, MainLoop_AfterRender_ProtocolZero, 0x5)
+// {
+//
+//
+// 	return 0;
+// }
 
 ASMJIT_PATCH(0x647BEB, QueueAIMultiplayer_ProtocolZero1, 0x9)
 {

@@ -1290,7 +1290,7 @@ ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
 
 	if(!UpdateTeam(pThis)){
 
-		TypeList<TeamTypeClass*> possible_teams;
+		TypeList<TeamTypeClass*> possible_teams {};
 		Suggested_New_Team(&possible_teams,pThis, false);
 		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.Count);
 
