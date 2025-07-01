@@ -79,6 +79,14 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	this->IsUnderTemporal = false;
 	this->IsOnline = true;
 	this->IsCloaked = false;
+
+	if (this->InitialDelay <= 0) {
+		this->HasInitialized = true;
+		if (auto pTag = pTechno->AttachedTag)
+			pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTechno, CellStruct::Empty);
+
+	}
+
 	this->HasInitialized = (initialDelay <= 0);
 	this->NeedsDurationRefresh = false;
 	this->HasCumulativeAnim = false;
@@ -181,6 +189,9 @@ void PhobosAttachEffectClass::AI()
 			this->RefreshDuration();
 		else
 			this->NeedsDurationRefresh = true;
+
+		if (auto pTag = this->Techno->AttachedTag)
+			pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, this->Techno, CellStruct::Empty);
 
 		return;
 	}
@@ -644,9 +655,6 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 			return nullptr;
 	}
 
-	if (auto pTag = pTarget->AttachedTag)
-		pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);
-
 	int currentTypeCount = 0;
 	PhobosAttachEffectClass* match = nullptr;
 	StackVector<PhobosAttachEffectClass* , 256> cumulativeMatches;
@@ -692,6 +700,9 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 					best->RefreshDuration(attachParams.DurationOverride);
 			}
 
+			if (auto pTag = pTarget->AttachedTag)
+				pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);	
+
 			return nullptr;
 		}
 		else if (attachParams.CumulativeRefreshAll && attachParams.CumulativeRefreshAll_OnAttach)
@@ -706,6 +717,9 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	if (!pType->Cumulative && currentTypeCount > 0 && match)
 	{
 		match->RefreshDuration(attachParams.DurationOverride);
+		if (auto pTag = pTarget->AttachedTag)
+			pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);
+
 	}
 	else
 	{
