@@ -671,13 +671,7 @@ struct TargetingFuncs
 					// do not do heavy lifting on objects that
 					// would not be chosen anyhow
 					if (value >= curMax) {
-						if (IS_SAME_STR_("EnemyDetectedSpecial", pTargeting->TypeExt->AttachedToObject->ID))
-							Debug::Log("Here");
-
 							if(pNewType->CanTargetingFireAt(pTargeting, cell, false)){
-								if (IS_SAME_STR_("EnemyDetectedSpecial", pTargeting->TypeExt->AttachedToObject->ID))
-									Debug::Log("Here");
-
 								return value;
 						}
 					}
@@ -685,9 +679,6 @@ struct TargetingFuncs
 
 				return -1;
 			});
-
-		if (pResult && IS_SAME_STR_("EnemyDetectedSpecial", pTargeting->TypeExt->AttachedToObject->ID))
-			Debug::Log("Here");
 
 		return pResult ?
 		TargetResult{ CellClass::Coord2Cell(pResult->GetCoords()) , SWTargetFlags::AllowEmpty } :
@@ -1037,9 +1028,6 @@ struct TargetingFuncs
 
 TargetResult SWTypeExtData::PickSuperWeaponTarget(NewSWType* pNewType , const TargetingData* pTargeting, const SuperClass* pSuper)
 {
-	if (IS_SAME_STR_("EnemyDetectedSpecial", pSuper->Type->ID))
-		Debug::Log("Here");
-
 	switch (pTargeting->TypeExt->GetAITargetingPreference())
 	{
 	case TargetingPreference::Offensive:

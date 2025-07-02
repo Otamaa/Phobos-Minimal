@@ -28,6 +28,10 @@ struct SomeNodes
 	{
 		JMP_THIS(0x407420);
 	}
+
+	static void __fastcall ListNodeAppend(SomeNodes<T>* a1, SomeNodes<T>* a2) {
+		JMP_STD(0x407440);
+	}
 };
 
 static_assert(sizeof(SomeNodes<DWORD>) == 0xC, "Invalid Size!");
@@ -134,17 +138,6 @@ static COMPILETIMEEVAL OPTIONALINLINE size_t AudioIDXEntry_Size = sizeof(AudioID
 static_assert(AudioIDXEntry_Size == 0x24, "Invalid Size!");
 
 struct AudioSampleData {
-	AudioSampleData() :
-		Data(0),
-		Format(0),
-		SampleRate(0),
-		NumChannels(0),
-		BytesPerSample(0),
-		ByteRate(0),
-		BlockAlign(0),
-		Flags(0)
-	{ }
-
 	unsigned int Data;
 	unsigned int Format;
 	unsigned int SampleRate;
@@ -519,7 +512,8 @@ struct AudioCacheItem
 {
   SomeNodes<DWORD>listnode;
   LockTag locks;
-  AudioIDXData* itemindex; // Maybe ?
+  //AudioIDXData* itemindex; // Maybe ?
+  int itemindex;
   int valid;
   AudioSampleTag sampletag;
   AudioCacheTag* cachetag;

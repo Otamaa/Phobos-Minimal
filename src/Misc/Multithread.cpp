@@ -102,7 +102,7 @@ ASMJIT_PATCH(0x55DDA0, MainLoop_FrameStep_NewMessageListManage, 0x5)
 		EventExt::ProtocolZero::Raise();
 	}
 
-	if (!Phobos::Config::MessageApplyHoverState || !MessageTemp::OnOldMessages) {
+	if (!MessageTemp::OnOldMessages) {
 		MessageListClass::Instance->Manage();
 	}
 

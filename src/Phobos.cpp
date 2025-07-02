@@ -971,11 +971,13 @@ void Phobos::ExeTerminate()
 	if(!Phobos::Otamaa::ExeTerminated){
 		Phobos::Otamaa::ExeTerminated = true;
 
-		for (auto& datas : Patch::ModuleDatas) {
-			if (datas.Handle  && datas.Handle != INVALID_HANDLE_VALUE) {
-				CloseHandle(datas.Handle);
-			}
-		}
+		//for (auto& datas : Patch::ModuleDatas) {
+		//	for (size_t i = 0; i < Patch::ModuleDatas.size(); ++i) {
+		//		if (i != 0 || (datas.Handle && datas.Handle != INVALID_HANDLE_VALUE)) {
+		//			CloseHandle(datas.Handle);
+		//		}
+		//	}
+		//}
 
 		Patch::ModuleDatas.clear();
 	}
