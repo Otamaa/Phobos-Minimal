@@ -517,7 +517,8 @@ ASMJIT_PATCH(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
 
-	if (pTypeExt->AI_LegalTarget.isset() && !pThis->Owner->IsControlledByHuman()) {
+	if (pTypeExt->AI_LegalTarget.isset() && !pThis->Owner->IsControlledByHuman())
+	{
 		return pTypeExt->AI_LegalTarget.Get() ?
 			ContinueChecks : ReturnFalse;
 	}
@@ -973,7 +974,8 @@ namespace Tiberiumpip
 		}
 
 		ConvertClass* nPal = FileSystem::THEATER_PAL();
-		if (auto pConv = pTypeExt->Tiberium_PipShapes_Palette.GetConvert()) {
+		if (auto pConv = pTypeExt->Tiberium_PipShapes_Palette.GetConvert())
+		{
 			nPal = pConv;
 		}
 
@@ -1213,9 +1215,12 @@ void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
 	auto pExt = TechnoExtContainer::Instance.Find(this);
 	pExt->AltOccupation = alt;
 
-	if (alt) {
+	if (alt)
+	{
 		pCell->AltOccupationFlags |= 0x20;
-	} else {
+	}
+	else
+	{
 		pCell->OccupationFlags |= 0x20;
 	}
 }
@@ -1780,7 +1785,8 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
 
 				const bool IsBattlePointsCollectorPowered = !pTypeExt->BattlePointsCollector_RequirePower || ((*begin)->Powered && Online);
-				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered) {
+				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered)
+				{
 					++pHouseExt->BattlePointsCollectors[(*begin)];
 				}
 
@@ -1802,7 +1808,8 @@ static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
 				}
 
 				//only pick first spysat
-				if(!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat){
+				if (!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat)
+				{
 					const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && Online);
 					if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered)
 					{
@@ -2445,12 +2452,6 @@ ASMJIT_PATCH(0x6DBE35, TacticalClass_DrawLinesOrCircles, 0x9)
 
 DEFINE_JUMP(LJMP, 0x50BF60, 0x50C04A)// Disable CalcCost mult
 
-static void __fastcall IonBlastDrawAll()
-{
-	VeinholeMonsterClass::DrawAll();
-	IonBlastClass::DrawAll();
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, IonBlastDrawAll)
 
 ASMJIT_PATCH(0x55B4E1, LogicClass_Update_Veinhole, 0x5)
 {
@@ -2476,9 +2477,10 @@ ASMJIT_PATCH(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 	GET(FootClass*, pThis, ECX);
 
 	const auto maxSpeed = pThis->GetDefaultSpeed();
-	int speedResult = int( maxSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)) ;
+	int speedResult = int(maxSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis));
 
-	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1) {
+	if (pThis->WhatAmI() == UnitClass::AbsID && ((UnitClass*)pThis)->FlagHouseIndex != -1)
+	{
 		speedResult /= 2;
 	}
 
@@ -2491,9 +2493,12 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 	GET(HouseClass*, pHouse, ESI);
 	enum { AllDestroyed = 0x71F1B1, HasAlive = 0x71F163 };
 
-	if(SessionClass::IsCampaign()) {
-		if (pHouse->ActiveInfantryTypes.GetTotal() <= 0) {
-			for (auto& bld : pHouse->Buildings) {
+	if (SessionClass::IsCampaign())
+	{
+		if (pHouse->ActiveInfantryTypes.GetTotal() <= 0)
+		{
+			for (auto& bld : pHouse->Buildings)
+			{
 				if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
 					return HasAlive;
 			}
@@ -2505,7 +2510,8 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 		if (pHouse->ActiveInfantryTypes.GetTotal() > 0)
 			return HasAlive;
 
-		for (auto pItem : *InfantryClass::Array) {
+		for (auto pItem : *InfantryClass::Array)
+		{
 			if (pItem->InLimbo && pHouse == pItem->GetOwningHouse() && pHouse->IsAlliedWith(pItem->Transporter))
 				return HasAlive;
 		}
@@ -2766,18 +2772,19 @@ ASMJIT_PATCH(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x
 ASMJIT_PATCH(0x6FDB80, TechnoClass_AdjustDamage_Handle, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(TechnoClass*, pVictim , 0x4);
+	GET_STACK(TechnoClass*, pVictim, 0x4);
 	GET_STACK(WeaponTypeClass*, pWeapon, 0x8);
 
 	int damage = 0;
-	if(pVictim && !pWeapon->IsSonic && !pWeapon->UseFireParticles && pWeapon->Damage > 0) {
+	if (pVictim && !pWeapon->IsSonic && !pWeapon->UseFireParticles && pWeapon->Damage > 0)
+	{
 
 		double _damage = TechnoExtData::GetDamageMult(pThis, (double)pWeapon->Damage);
 		int _damage_int = (int)TechnoExtData::GetArmorMult(pVictim, _damage, pWeapon->Warhead);
 		if (_damage_int < 1)
-		_damage_int = 1;
+			_damage_int = 1;
 
-		damage =(MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pVictim, pWeapon->Warhead), 0));
+		damage = (MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pVictim, pWeapon->Warhead), 0));
 	}
 
 	R->EAX(damage);
@@ -3852,7 +3859,7 @@ ASMJIT_PATCH(0x445FE4, BuildingClass_GrandOpening_GetStorageTotalAmount, 0x6)
 {
 	GET(FakeBuildingClass*, pThis, EBP);
 
-	if(pThis->_GetTypeExtData()->Refinery_UseNormalActiveAnim)
+	if (pThis->_GetTypeExtData()->Refinery_UseNormalActiveAnim)
 		return 0x446183;
 
 	int result = 0;
@@ -3880,8 +3887,8 @@ ASMJIT_PATCH(0x450DAA, BuildingClass_AnimAI_GetStorageTotalAmount_B, 0x6)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 
-	if(pThis->_GetTypeExtData()->Refinery_UseNormalActiveAnim)
-		return 0x446183 ;
+	if (pThis->_GetTypeExtData()->Refinery_UseNormalActiveAnim)
+		return 0x446183;
 
 	int result = 0;
 	if (auto amount = TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts())
@@ -3979,7 +3986,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 	const float amountCanBeRemoved = idxTiberium != -1 ?
 		Math::abs((float)unit_storage->GetAmount(idxTiberium)) : 0.0f;//after decreased
 
-	if(dumpAmount > 0.0f)
+	if (dumpAmount > 0.0f)
 		dumpAmount = std::min(dumpAmount, amountCanBeRemoved);
 	else
 		dumpAmount = amountCanBeRemoved;
@@ -4402,12 +4409,13 @@ ASMJIT_PATCH(0x7043B9, TechnoClass_GetZAdjustment_Link, 0x6)
 	return pNthLink ? 0 : 0x7043E1;
 }
 
-ASMJIT_PATCH(0x6D4A35, TacticalClass_Render_SWText , 0x6) {
+ASMJIT_PATCH(0x6D4A35, TacticalClass_Render_SWText, 0x6)
+{
 	GET(SuperClass*, pSuper, ECX);
 	GET(int, val, EBX);
 	GET(int, interval, ESI);
 
-	FakeTacticalClass::__DrawTimersSW(pSuper, val, interval/ 15);
+	FakeTacticalClass::__DrawTimersSW(pSuper, val, interval / 15);
 
 	return 0x6D4A70;
 }
@@ -5157,7 +5165,8 @@ public:
 
 		for (int idx_star = 2; idx_star >= 0; --idx_star)
 		{
-			for (int i = 0; i < this->HierarchicalQueue->Count; ++i) {
+			for (int i = 0; i < this->HierarchicalQueue->Count; ++i)
+			{
 				this->HierarchicalQueue->Heap[i] = 0;
 			}
 			this->HierarchicalQueue->Count = 0;
@@ -5178,9 +5187,11 @@ public:
 			cur_cost_ptr[pPassabilityFrom] = this->initedcount;
 			cur_cost_ptr[pPassabilityTo] = this->initedcount;
 
-			if (pPassabilityFrom == pPassabilityTo) {
+			if (pPassabilityFrom == pPassabilityTo)
+			{
 
-				if (!idx_star) {
+				if (!idx_star)
+				{
 					this->BufferForHierarchicalQueue->Number = 0;
 					this->BufferForHierarchicalQueue->Index = pPassabilityFrom;
 				}
@@ -5188,7 +5199,8 @@ public:
 				this->somearray_BC[500 * idx_star] = pPassabilityFrom;
 				this->maxvalues_field_C74[idx_star] = 1;
 
-				if (--idx_star >= 0) {
+				if (--idx_star >= 0)
+				{
 					continue;
 				}
 
@@ -5204,10 +5216,13 @@ public:
 			int ele = this->HierarchicalQueue->Count + 1;
 			int ele_shift = ele >> 1;
 
-			if (ele < this->HierarchicalQueue->Capacity) {
-				for (; ele > 1; ele_shift >>= 1) {
+			if (ele < this->HierarchicalQueue->Capacity)
+			{
+				for (; ele > 1; ele_shift >>= 1)
+				{
 					auto pEle = this->HierarchicalQueue->Heap;
-					if (pEle[ele_shift]->Score <= 0.0f) {
+					if (pEle[ele_shift]->Score <= 0.0f)
+					{
 						break;
 					}
 
@@ -5280,7 +5295,8 @@ public:
 
 							int ___first_idx = _first_idx;
 
-							if (_vala < _first_idx) {
+							if (_vala < _first_idx)
+							{
 								___first_idx = _vala;
 								_vala = _first_idx;
 							}
@@ -5555,7 +5571,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	}
 
 	auto pExt = TechnoExtContainer::Instance.Find(this);
-	if (pExt->Is_DriverKilled ||!RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
+	if (pExt->Is_DriverKilled || !RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
 		return true;
 
 	if (this->Type->ResourceGatherer || this->Type->Harvester)
@@ -5781,12 +5797,13 @@ ASMJIT_PATCH(0x674028, RulesClass_ReadLandTypeData_Additionals, 0x7)
 ASMJIT_PATCH(0x4AED70, Game_DrawSHP_WhoCallMe, 0x6)
 {
 	GET(ConvertClass*, pConvert, EDX);
-	GET_STACK(SHPStruct* , pSHP , 0xA4);
+	GET_STACK(SHPStruct*, pSHP, 0xA4);
 	GET_STACK(DWORD, caller, 0x0);
 
-	if (!pConvert) {
-		auto pSHPref= pSHP->AsReference();
-		Debug::FatalErrorAndExit("Draw SHP[%s] missing Convert , caller [%0x]", pSHPref ? pSHPref->Filename : "unknown" , caller);
+	if (!pConvert)
+	{
+		auto pSHPref = pSHP->AsReference();
+		Debug::FatalErrorAndExit("Draw SHP[%s] missing Convert , caller [%0x]", pSHPref ? pSHPref->Filename : "unknown", caller);
 	}
 
 	return 0x0;
@@ -6003,11 +6020,13 @@ static void ApplyRadDamage(RadSiteClass* pRad, TechnoClass* pObj, CellClass* pCe
 				int maxDamageCount = pRadType->GetBuildingDamageMaxCount();
 				const int delay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetBuildingApplicationDelay() : RulesExtData::Instance()->RadApplicationDelay_Building;
 
-				for (auto pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation) {
+				for (auto pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation)
+				{
 					const auto nLoc = nCurCoord + (*pFoundation);
 					auto& count = pRadExt->damageCounts[pBld];
 
-					if (maxDamageCount <= 0 || count < maxDamageCount) {
+					if (maxDamageCount <= 0 || count < maxDamageCount)
+					{
 
 						if ((delay <= 0) || (Unsorted::CurrentFrame % delay))
 							continue;
@@ -6037,13 +6056,17 @@ ASMJIT_PATCH(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 {
 	GET(RadSiteClass*, pThis, ESI);
 
-	if (pThis->RadTimeLeft <= 0 || pThis->RadLevel <= 0) {
+	if (pThis->RadTimeLeft <= 0 || pThis->RadLevel <= 0)
+	{
 		return 0x65B8D3;
 	}
 
-	for (CellRangeEnumerator it(pThis->BaseCell, pThis->Spread + 0.5); it; it++) {
-		if (const auto pCell = MapClass::Instance->TryGetCellAt(*it)) {
-			if (auto pObj = pCell->Cell_Occupier()) {
+	for (CellRangeEnumerator it(pThis->BaseCell, pThis->Spread + 0.5); it; it++)
+	{
+		if (const auto pCell = MapClass::Instance->TryGetCellAt(*it))
+		{
+			if (auto pObj = pCell->Cell_Occupier())
+			{
 				if (auto pTech = flag_cast_to<TechnoClass*, false>(pObj))
 					ApplyRadDamage(pThis, pTech, pCell);
 			}
@@ -6054,16 +6077,19 @@ ASMJIT_PATCH(0x65B8C8, RadSiteClass_AI_cond, 0x5)
 }
 
 template<bool reduce = false>
-void PopulateCellRadVector(RadSiteClass* pRad , CellStruct* cell , int distance, int timeParam){
+void PopulateCellRadVector(RadSiteClass* pRad, CellStruct* cell, int distance, int timeParam)
+{
 	const auto max = pRad->SpreadInLeptons;
 
-	if (distance <= max) {
-		if(auto pCell = MapClass::Instance->TryGetCellAt(cell))
+	if (distance <= max)
+	{
+		if (auto pCell = MapClass::Instance->TryGetCellAt(cell))
 		{
 			const auto pCellExt = CellExtContainer::Instance.Find(pCell);
 			auto it = pCellExt->RadLevels.find_if([pRad](auto& pair) { return pair.Rad == pRad; });
 
-			if constexpr(!reduce) {
+			if constexpr (!reduce)
+			{
 				const int amount = int(static_cast<double>(max - distance) / max * pRad->RadLevel);
 
 
@@ -6071,8 +6097,11 @@ void PopulateCellRadVector(RadSiteClass* pRad , CellStruct* cell , int distance,
 					it->Level += MinImpl(it->Level + amount, RadSiteExtContainer::Instance.Find(pRad)->Type->GetLevelMax());
 				else
 					pCellExt->RadLevels.emplace_back(pRad, amount);
-			} else {
-				if (it != pCellExt->RadLevels.end()){
+			}
+			else
+			{
+				if (it != pCellExt->RadLevels.end())
+				{
 					it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps * timeParam);
 				}
 			}
@@ -6087,7 +6116,7 @@ ASMJIT_PATCH(0x65BAC1, RadSiteClass_Radiate_Increase, 0x8)
 	GET(RadSiteClass*, pThis, EDX);
 	GET(int, distance, EAX);
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x60, -0x4C));
-	PopulateCellRadVector<false>(pThis, cell, distance , 0);
+	PopulateCellRadVector<false>(pThis, cell, distance, 0);
 	return SkipGameCode;
 }
 
@@ -6099,7 +6128,7 @@ ASMJIT_PATCH(0x65BC6E, RadSiteClass_Deactivate_Decrease, 0x6)
 	GET(int, distance, EAX);
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x70, -0x5C));
 	GET_STACK(int, timeParam, STACK_OFFSET(0x70, -0x30));
-	PopulateCellRadVector<true>(pThis, cell, distance , timeParam);
+	PopulateCellRadVector<true>(pThis, cell, distance, timeParam);
 	return SkipGameCode;
 }
 
@@ -6190,12 +6219,13 @@ ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
 
 #include <OverlayClass.h>
 
-ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9) {
+ASMJIT_PATCH(0x48724F, CellClass_PlaceTiberiumAt_RandomMax, 0x9)
+{
 	GET(CellClass*, pThis, ESI);
 	GET(TiberiumClass*, pTib, EDI);
 	GET(OverlayClass*, pMemory, EBP);
 	const int random = ScenarioClass::Instance->Random.RandomFromMax(pTib->NumImages - 1);
-	pMemory->OverlayClass::OverlayClass(OverlayTypeClass::Array->Items[pTib->Image->ArrayIndex + random], pThis->MapCoords , -1);
+	pMemory->OverlayClass::OverlayClass(OverlayTypeClass::Array->Items[pTib->Image->ArrayIndex + random], pThis->MapCoords, -1);
 	R->Stack(0x10, pThis->MapCoords);
 	return 0x487291;
 }
@@ -6290,7 +6320,8 @@ ASMJIT_PATCH(0x4F671D, HouseClass_CanAfforBase_MissingPointer, 0x5)
 	GET(HouseClass*, pThis, ESI);
 	GET(BuildingClass*, pBld, EAX);
 
-	if (!pBld) {
+	if (!pBld)
+	{
 		Debug::FatalErrorAndExit("Cannot Find BuildWeapons For [%s - %ls] , BuildWeapons Count %d\n", pThis->Type->ID, pThis->Type->UIName, RulesClass::Instance->BuildWeapons.Count);
 	}
 
@@ -6347,17 +6378,21 @@ ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
 	GET(UnitClass*, pCandidate, EBX);
 	bool allow = true;
 
-	if (pCandidate->IsTethered){
+	if (pCandidate->IsTethered)
+	{
 		allow = false;
 	}
-	else if (auto pContact = pCandidate->GetRadioContact()) {
-		if (auto pBldC = cast_to<BuildingClass*, false>(pContact)) {
-			if(pBldC->Type->Bunker)
+	else if (auto pContact = pCandidate->GetRadioContact())
+	{
+		if (auto pBldC = cast_to<BuildingClass*, false>(pContact))
+		{
+			if (pBldC->Type->Bunker)
 				allow = false;
 		}
 	}
-	else if (auto pBld = pCandidate->GetCell()->GetBuilding()) {
-		if(pBld->Type->Bunker)
+	else if (auto pBld = pCandidate->GetCell()->GetBuilding())
+	{
+		if (pBld->Type->Bunker)
 			allow = false;
 	}
 
@@ -6388,10 +6423,12 @@ ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
 
 int FakeUnitClass::_Mission_Attack()
 {
-	if (this->BunkerLinkedItem && this->Target){
+	if (this->BunkerLinkedItem && this->Target)
+	{
 		auto err = this->GetFireError(this->Target, this->SelectWeapon(this->Target), false);
 
-		if (err == FireError::CANT || err ==FireError::RANGE) {
+		if (err == FireError::CANT || err == FireError::RANGE)
+		{
 
 			this->SetTarget(nullptr);
 			this->EnterIdleMode(false, 1u);
@@ -6405,21 +6442,26 @@ int FakeUnitClass::_Mission_Attack()
 	return FootClass::Mission_Attack();
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x7447A0,  FakeUnitClass::_Mission_Attack);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7447A0, FakeUnitClass::_Mission_Attack);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5E80, FakeUnitClass::_Mission_Attack);
 
-static void ProcessColorAdd(CCINIClass* pINI) {
+static void ProcessColorAdd(CCINIClass* pINI)
+{
 	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
 
-	if (count > 0) {
-		struct temp_rgb {
+	if (count > 0)
+	{
+		struct temp_rgb
+		{
 			byte r, g, b;
 
-			operator ColorStruct() {
+			operator ColorStruct()
+			{
 				return *reinterpret_cast<ColorStruct*>(this);
 			}
 
-			operator byte*() {
+			operator byte* ()
+			{
 				return reinterpret_cast<byte*>(this);
 			}
 		};
@@ -6428,23 +6470,28 @@ static void ProcessColorAdd(CCINIClass* pINI) {
 		//the code below can be simplified
 		std::vector<temp_rgb> v_buffer(count);
 
-		for (size_t i = 0; i < v_buffer.size(); ++i) {
-			pINI->Read3Bytes((v_buffer[i]).operator unsigned char *()
+		for (size_t i = 0; i < v_buffer.size(); ++i)
+		{
+			pINI->Read3Bytes((v_buffer[i]).operator unsigned char* ()
 				, GameStrings::ColorAdd
 				, pINI->GetKeyName(GameStrings::ColorAdd, i)
 				, (v_buffer[i]).operator unsigned char* ());
 		}
 
-		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size()) {
+		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size())
+		{
 			Debug::LogInfo("Attempt to read ColorAdd more than array size {}", count);
 			Debug::RegisterParserError();
 		}
 
-		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a) {
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
+		{
 			RulesClass::Instance->ColorAdd[a] = v_buffer[a];
 		}
 
-	} else {
+	}
+	else
+	{
 		Debug::FatalErrorAndExit("Empty ColorAdd\n");
 	}
 }
@@ -6465,7 +6512,7 @@ ASMJIT_PATCH(0x668B29, RulesClass_Init_ColorAdd, 0x6)
 
 ASMJIT_PATCH(0x50CA12, HouseClass_RecalcCenter_DeadTechno, 0xA)
 {
-	enum{ NextLoop = 0x50CAB4 , ContinueCheck = 0x0};
+	enum { NextLoop = 0x50CAB4, ContinueCheck = 0x0 };
 	GET(FootClass*, pTechno, ESI);
 
 	if (!pTechno->IsAlive || pTechno->InLimbo || pTechno->BunkerLinkedItem)
@@ -6586,7 +6633,7 @@ ASMJIT_PATCH(0x6FBB35, TechnoClass_CloakingAI_detachsensed, 0x6)
 	if (!pTechno || pTechno->Target != pThis || !pTechno->Owner)
 		return 0x6FBBC3; // to next check
 
-	if(!pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
+	if (!pTechno->IsAlive || pTechno->IsCrashing || pTechno->IsSinking)
 		return 0x6FBBC3;
 
 	return 0x6FBB3D;
@@ -6620,13 +6667,16 @@ public:
 
 			int index = 0;
 
-			for (; index < this->Count; ++index) {
-				if (this->Items[index]->GetYSort() > object->GetYSort()) {
+			for (; index < this->Count; ++index)
+			{
+				if (this->Items[index]->GetYSort() > object->GetYSort())
+				{
 					break;
 				}
 			}
 
-			for (int i = this->Count - 1; i >= index; this->Items[i + 2] = this->Items[i + 1]) {
+			for (int i = this->Count - 1; i >= index; this->Items[i + 2] = this->Items[i + 1])
+			{
 				--i;
 			}
 
@@ -6730,9 +6780,12 @@ ASMJIT_PATCH(0x691C62, ScriptTypeClass_CreateFromName_RemoveInline, 0x5)
 	return 0x691D2C;
 }
 
-ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6) {
-	for (int i = 0; i < SpawnManagerClass::Array->Count; ++i) {
-		if (auto pManager = SpawnManagerClass::Array->Items[i]) {
+ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6)
+{
+	for (int i = 0; i < SpawnManagerClass::Array->Count; ++i)
+	{
+		if (auto pManager = SpawnManagerClass::Array->Items[i])
+		{
 
 			if (VTable::Get(pManager) != 0x7F3650)
 				continue;
@@ -6763,7 +6816,8 @@ ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6) {
 //#pragma optimize("", on )
 
 #ifndef disabled_
-ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
+ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
+{
 
 	GET(TechnoClass*, pThis, ESI);
 
@@ -6780,7 +6834,8 @@ ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9) {
 	return 0x6F9C89;//contunye
 }
 
-ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6) {
+ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
+{
 	GET(TechnoClass*, pTrackerTechno, EBP);
 
 	if (!pTrackerTechno->IsAlive)
@@ -6800,7 +6855,7 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 	{
 		auto const pType = pThis->GetTechnoType();
 
-		if (pType->TurretCount > 0)
+		if (pType->TurretCount > 0 || pType->WeaponCount > 2)
 		{
 			if (auto const pCurWeapon = pThis->GetWeapon(pThis->CurrentGattlingStage))
 			{
@@ -6923,7 +6978,7 @@ int FakeObjectClass::_GetDistanceOfCoord(CoordStruct* pThat)
 	return cell_Distance_Squared(nThisCoord, *pThat);
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x5F6500 , FakeObjectClass::_GetDistanceOfObj);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5F6500, FakeObjectClass::_GetDistanceOfObj);
 DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
 DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
 
@@ -6936,7 +6991,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
 #endif
 #pragma endregion
 
-#ifndef DEBUG_STUPID_HUMAN_CHECKS
+#ifdef DEBUG_STUPID_HUMAN_CHECKS
 
 ASMJIT_PATCH(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
 {
@@ -6952,23 +7007,491 @@ ASMJIT_PATCH(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 {
 	GET(HouseClass*, pThis, ECX);
 
-	if(!pThis)
+	if (!pThis)
 		Debug::LogInfo(__FUNCTION__"Caller [{}]", R->Stack<DWORD>(0x0));
 
 	return 0x0;
 }
+
+
+#include <RectangleStruct.h>
+
+struct IonBlastData
+{
+	int PixX;
+	int PixY;
+};
+
+ASMJIT_PATCH(0x53CB91, IonBlastClass_DTOR, 6)
+{
+	GET(IonBlastClass*, IB, ECX);
+	WarheadTypeExtData::IonBlastExt.erase(IB);
+	return 0;
+}
+
+class NOVTABLE FakeIonBlastClass : public IonBlastClass
+{
+public:
+
+	//static bool IonBlastClass_inited;
+	//static Surface* IonBlastClass_Surfaces[80];
+	//static uint16_t ionblast_A9FAE8[289];
+	//static size_t LUT_SIZE;
+	//static int IonBlastPitch;
+	static COMPILETIMEEVAL reference<bool, 0xAA014C> IonBlastClass_inited {};
+	static COMPILETIMEEVAL reference<Surface*, 0xA9FFC8, 80u> IonBlastClass_Surfaces {};
+	static COMPILETIMEEVAL reference<int, 0xA9FAE8, 289u> ionblast_A9FAE8 {};
+	static COMPILETIMEEVAL reference<int, 0xAA0150> IonBlastPitch {};
+
+	static COMPILETIMEEVAL IonBlastData IonBlastData_53D8E0(int number)
+	{
+		int index = number - 1;
+		int spiralLayer = 1;
+
+		// Find the spiral layer
+		if (index >= 8)
+		{
+			for (int step = 8; step <= index; step += 8)
+			{
+				index -= step;
+				++spiralLayer;
+			}
+		}
+
+		if (index >= 2 * spiralLayer + 1)
+		{
+			if (index >= 4 * spiralLayer + 1)
+			{
+				if (index >= 6 * spiralLayer + 1)
+				{
+					// Right side
+					return { index - 7 * spiralLayer  ,-spiralLayer };
+				}
+				else
+				{
+					// Bottom side
+					return { -spiralLayer  ,5 * spiralLayer - index };
+				}
+			}
+			else
+			{
+				// Left side
+				return { 3 * spiralLayer - index  ,spiralLayer };
+			}
+		}
+
+		// Top side
+		return { spiralLayer  ,index - spiralLayer };
+	}
+
+	static COMPILETIMEEVAL int IonBlastData_Index(int x, int y)
+	{
+		if (x == 0 && y == 0)
+		{
+			return 0;
+		}
+
+		int absX = Math::abs(x);
+		int absY = Math::abs(y);
+		int layer = std::max(absX, absY);  // Spiral layer based on distance from center
+
+		int index = 1;
+		for (int i = 1; i < layer; ++i)
+		{
+			index += 8 * i;
+		}
+
+		if (x == layer)
+		{
+			return index + y + layer;
+		}
+		if (y == layer)
+		{
+			return index + 3 * layer - x;
+		}
+		if (x == -layer)
+		{
+			return index + 5 * layer - y;
+		}
+		// y == -layer
+		return index + x + 7 * layer;
+	}
+
+	static void __fastcall InitOneTime()
+	{
+		if (IonBlastClass_inited)
+			return;
+
+		constexpr int SurfaceCount = 80;
+		constexpr int Width = 512;
+		constexpr int Height = 256;
+		constexpr double RadiusStep = 7.1125;
+
+		double currentMaxRadius = 0.0;
+		double currentMinRadius = -57.0;
+		int step = 0;
+
+		for (int i = 0; i < SurfaceCount; ++i)
+		{
+			IonBlastClass_Surfaces[i] = GameCreate<BSurface>(Width, Height, 1, nullptr);
+			IonBlastClass_Surfaces[i]->Fill(0xFFFFFFFF);
+
+			auto* lockPtr = IonBlastClass_Surfaces[i]->Lock(0, 0);
+			auto* pixels = reinterpret_cast<uint8_t*>(lockPtr) + 0x8080;
+
+			for (int y = 127; y >= 0; --y)
+			{
+				for (int x = 255; x >= 0; --x)
+				{
+					int dx = x;
+					int dy = y;
+					double dist = Math::sqrt(dx * dx + 4 * dy * dy);
+
+					if (dist >= currentMinRadius && dist <= currentMaxRadius)
+					{
+						double wave = (dist - step * RadiusStep + 38.0) * 0.11;
+						double val = (Math::sin(wave) * 3.5 + 3.0) / (dist / 51.0 + 1.0) + 0.5;
+
+						// originally IonBlastData_53D960 was used, but this call would always return 0
+						// since a1 == 0 && a2 == 0 → adjust if you have coordinates instead
+						uint8_t pixelVal = static_cast<uint8_t>(val);
+
+						// 4-way symmetry
+						pixels[256 * y + x] = pixelVal;
+						pixels[256 * y + (255 - x)] = pixelVal;
+						pixels[256 * (255 - y) + x] = pixelVal;
+						pixels[256 * (255 - y) + (255 - x)] = pixelVal;
+					}
+				}
+			}
+
+			if ((256.0 - RadiusStep) > currentMaxRadius)
+				currentMaxRadius += RadiusStep;
+
+			currentMinRadius += RadiusStep * 1.2;
+			if (currentMinRadius > currentMaxRadius)
+				currentMinRadius = currentMaxRadius;
+
+			++step;
+		}
+
+		IonBlastClass_inited = true;
+	}
+
+	static void __fastcall DestroySurfaces()
+	{
+		constexpr int SurfaceCount = 80;
+		for (int i = 0; i < SurfaceCount; ++i)
+		{
+			GameAllocator<BSurface> alloc {};
+			std::allocator_traits<GameAllocator<BSurface>>::destroy(alloc, IonBlastClass_Surfaces[i]);
+			IonBlastClass_Surfaces[i] = nullptr;
+		}
+	}
+
+	static void _DrawAll()
+	{
+		if (DSurface::Temp->Get_Pitch() != IonBlastPitch)
+		{
+			IonBlastPitch = DSurface::Temp->Get_Pitch();
+			ionblast_A9FAE8[0] = 0;
+
+			for (int i = 1; i < ionblast_A9FAE8.size(); ++i)
+			{
+				IonBlastData data = IonBlastData_53D8E0(i);
+				ionblast_A9FAE8[i] = data.PixX + IonBlastPitch * data.PixY;
+			}
+		}
+
+		for (int i = IonBlastClass::Array->Count - 1; i >= 0; --i)
+		{
+			static_cast<FakeIonBlastClass*>(IonBlastClass::Array->Items[i])->_Draw();
+		}
+	}
+
+	void _Draw()
+	{
+		if (!RulesExtData::DetailsCurrentlyEnabled())
+			return;
+
+		auto [screenPos, IsIn] = TacticalClass::Instance->GetCoordsToClientSituation(this->Location);
+
+		if (!IsIn)
+			return;
+
+		DSurface* targetSurface = DSurface::Temp();
+		DSurface* sourceSurface = static_cast<DSurface*>(IonBlastClass_Surfaces[this->Lifetime]);
+
+		RectangleStruct viewportRect {
+			.X = DSurface::ViewBounds->X,
+			.Y = DSurface::ViewBounds->Y,
+			.Width = DSurface::ViewBounds->Width,
+			.Height = DSurface::ViewBounds->Height - 7
+		};
+
+		RectangleStruct destRect {
+			.X = screenPos.X - 256,
+			.Y = screenPos.Y - 128,
+			.Width = 512,
+			.Height = 256
+		};
+
+		RectangleStruct srcRect {
+			.X = 0,
+			.Y = 0,
+			.Width = 512,
+			.Height = 256
+		};
+
+		RectangleStruct srcSubRect {
+			.X = 0,
+			.Y = 0,
+			.Width = 512,
+			.Height = 256
+		};
+
+		bool regionClipped = false;
+		int32_t destBufferOffset = 0;
+		int32_t srcBufferOffset = 0;
+
+		if (!Blit_helper_lockregion(
+			targetSurface,
+			&viewportRect,
+			&destRect,
+			sourceSurface,
+			&srcRect,
+			&srcSubRect,
+			&regionClipped,
+			(int16_t*)(&destBufferOffset),
+			(int16_t*)(&srcBufferOffset)))
+		{
+			return;
+		}
+
+		uint16_t* destBuffer = reinterpret_cast<uint16_t*>(destBufferOffset);
+		int32_t* srcBuffer = reinterpret_cast<int32_t*>(srcBufferOffset);
+		int8_t* srcBuffer_8 = reinterpret_cast<int8_t*>(srcBufferOffset);
+
+		const int pitch = targetSurface->Get_Pitch();
+		const int surfaceWidth = targetSurface->Get_Width();
+		const int zBufferWidth = ZBuffer::Instance->Width;
+
+		const int zCoord = this->Location.Z;
+		const int16_t zRef = static_cast<int16_t>(ZBuffer::Instance->MaxValue - Game::AdjustHeight(zCoord));
+		int16_t zThreshold = zRef - static_cast<int16_t>(destRect.Y) - 3;
+
+		int16_t* zBufferRow = (int16_t*)ZBuffer::Instance->GetBuffer(0, destRect.Y);
+
+		// Safety bounds check before doing optimized access
+		uintptr_t zBufferCheck = reinterpret_cast<uintptr_t>(&zBufferRow[surfaceWidth + (srcSubRect.Height + 1) * zBufferWidth]);
+		if (zBufferCheck >= reinterpret_cast<uintptr_t>(ZBuffer::Instance->BufferTail))
+		{
+			// Fallback path for conservative access
+			for (int row = 0; row < srcSubRect.Height; ++row)
+			{
+				for (int col = 0; col < srcSubRect.Width; ++col)
+				{
+					uint8_t pixel = *srcBuffer_8++;
+					if (pixel > 0)
+					{
+						uint16_t* zPtr = (uint16_t*)ZBuffer::Instance->GetBuffer(destRect.X + col, row + destRect.Y);
+						if (*zPtr > zThreshold && pixel < ionblast_A9FAE8.size())
+						{
+							destBuffer[col] = destBuffer[ionblast_A9FAE8[pixel]];
+						}
+					}
+				}
+
+				destBuffer = reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(destBuffer) + pitch);
+				srcBuffer += 512 - srcSubRect.Width;
+				srcBuffer_8 = reinterpret_cast<int8_t*>(srcBuffer);
+				--zThreshold;
+			}
+		}
+		else
+		{
+			// Fast path: linear access
+			uint16_t* zPtr = reinterpret_cast<uint16_t*>(&zBufferRow[destRect.X]);
+
+			for (int row = 0; row < srcSubRect.Height; ++row)
+			{
+				for (int col = 0; col < srcSubRect.Width; ++col)
+				{
+					uint8_t pixel = *srcBuffer_8++;
+					if (pixel > 0 && zPtr[col] > zThreshold && pixel < ionblast_A9FAE8.size())
+					{
+						destBuffer[col] = destBuffer[ionblast_A9FAE8[pixel]];
+					}
+				}
+
+				destBuffer = reinterpret_cast<uint16_t*>(reinterpret_cast<uint8_t*>(destBuffer) + pitch);
+				zPtr += zBufferWidth;
+				srcBuffer += 512 - srcSubRect.Width;
+				srcBuffer_8 = reinterpret_cast<int8_t*>(srcBuffer);
+				--zThreshold;
+			}
+		}
+
+		targetSurface->Unlock();
+		sourceSurface->Unlock();
+	}
+
+	void _AI()
+	{
+
+		const auto pData = WarheadTypeExtData::IonBlastExt.get_or_default(this);
+		const int Ripple_Radius = pData ? MinImpl((int)ionblast_A9FAE8.Size, pData->Ripple_Radius + 1) : ionblast_A9FAE8.Size;
+
+		if (this->Lifetime >= Ripple_Radius)
+		{
+			GameDelete<true, false>(this);
+			return;
+		}
+
+		const auto screenPos = TacticalClass::Instance->CoordsToClient(this->Location);
+
+		if (!this->DisableIonBeam && this->Lifetime == 0)
+		{
+			CoordStruct spawnCoord = this->Location;
+			spawnCoord.Z += 5;
+			const auto Rules = RulesClass::Instance();
+
+			auto* mapCell = MapClass::Instance->GetCellAt(this->Location);
+			const bool isWater = mapCell->LandType == LandType::Water;
+
+			if (const auto animId = isWater ? Rules->SplashList[Rules->SplashList.Count - 1] :
+				pData ? pData->Ion_Blast.Get(Rules->IonBlast) : Rules->IonBlast)
+			{
+				GameCreate<AnimClass>(animId, spawnCoord);
+			}
+
+			if (const auto pBeam = pData ? pData->Ion_Beam.Get(Rules->IonBeam) : Rules->IonBeam)
+			{
+				GameCreate<AnimClass>(pBeam, spawnCoord);
+			}
+
+			if (const auto pWH = pData ? pData->Ion_WH.Get(Rules->IonCannonWarhead) : Rules->IonCannonWarhead)
+			{
+
+				const int nDamage = pData ? pData->Ion_Damage.Get(Rules->IonCannonDamage) : Rules->IonCannonDamage;
+
+				if (mapCell->ContainsBridge())
+				{
+					CoordStruct target = this->Location;
+					target.Z += CellClass::BridgeHeight;
+					DamageArea::Apply(&target, nDamage, nullptr, pWH, true, nullptr);
+				}
+
+				DamageArea::Apply(&this->Location, nDamage, nullptr, pWH, true, nullptr);
+				MapClass::FlashbangWarheadAt(nDamage, pWH, this->Location, false, SpotlightFlags::None);
+			}
+		}
+
+		if (!pData || pData->Ion_Rocking)
+		{
+			int16_t centerX = static_cast<int16_t>(this->Location.X / 256);
+			int16_t centerY = static_cast<int16_t>(this->Location.Y / 256);
+
+			for (int16_t dy = -3; dy <= 3; ++dy)
+			{
+				for (int16_t dx = -3; dx <= 3; ++dx)
+				{
+					CellStruct cell { static_cast<int16_t>(centerX + dx), static_cast<int16_t>(centerY + dy) };
+					auto* mapCell = MapClass::Instance->GetCellAt(cell);
+					FootClass* unit = flag_cast_to<FootClass*>(mapCell->FirstObject);
+
+					while (unit)
+					{
+						if (unit->WhatAmI() == InfantryClass::AbsID || unit->WhatAmI() == UnitClass::AbsID)
+						{
+
+							CoordStruct unitCoord = unit->Location;
+							Point2D unitScreen = TacticalClass::Instance->CoordsToClient(unitCoord);
+
+							int dxPix = unitScreen.X - screenPos.X;
+							int dyPix = unitScreen.Y - screenPos.Y;
+							int dist = static_cast<int>(Math::sqrt(dxPix * dxPix + dyPix * dyPix)) + 8;
+
+							if (dist < 256)
+							{
+
+								Surface* surf = IonBlastClass_Surfaces[this->Lifetime];
+								char* locked = static_cast<char*>(surf->Lock(dist + 0x100, 128));
+								if (*locked > 0)
+								{
+									unit->SetSpeedPercentage(0.0f);
+									IonBlastData data = IonBlastData_53D8E0(*locked);
+									unit->height_subtract_6B4 = 2 * data.PixY;
+								}
+
+								auto vox = unit->GetTechnoType()->MainVoxel.VXL;
+
+								if (vox && !vox->LoadFailed && *locked >= 0)
+								{
+									float deltax = static_cast<float>(this->Location.X - unit->Location.X);
+									float deltay = static_cast<float>(this->Location.Y - unit->Location.Y);
+									float deltaz = static_cast<float>(this->Location.Z - unit->Location.Z);
+									const float len = Math::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+
+									if (Math::abs(len) > 0.00002f)
+									{
+										deltax /= len;
+										deltay /= len;
+										deltaz /= len;
+
+										const auto& facing_ = unit->PrimaryFacing;
+										const auto facing_Current = facing_.Current();
+
+										const float facingAngle = (facing_Current.Raw - 0x3FFF) * -0.0000958767f;
+										const float sinA = Math::sin((double)facingAngle);
+										const float cosA = Math::cos((double)facingAngle);
+
+										const float ux = deltax * cosA + deltay * sinA;
+										const float uz = deltax * sinA - deltay * cosA;
+										const float uy = deltaz;
+
+										float proj = Math::sqrt(ux * ux + uz * uz + uy * uy);
+										const float align = cosA * ux - sinA * proj;
+
+										if (Math::abs(align - deltax) > 0.0002f || Math::abs(cosA * proj + sinA * ux - deltay) > 0.0002f)
+										{
+											proj = -proj;
+										}
+
+										const float blastDist = len + 51.0f;
+										const float blastOffset = (Math::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
+										const float blastFactor = Math::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
+										const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
+
+										unit->AngleRotatedSideways = proj * curve * 6.2831853f;
+										unit->AngleRotatedForwards = -ux * curve * 6.2831853f;
+									}
+								}
+							}
+						}
+						unit = flag_cast_to<FootClass*>(unit->NextObject);
+					}
+				}
+			}
+		}
+
+		++this->Lifetime;
+	}
+};
+
+//DEFINE_FUNCTION_JUMP(CALL, 0x531758, FakeIonBlastClass::InitOneTime)
+//DEFINE_FUNCTION_JUMP(CALL, 0x6BE3CE, FakeIonBlastClass::DestroySurfaces)
+DEFINE_FUNCTION_JUMP(CALL, 0x53D326, FakeIonBlastClass::_AI)
+
+//bool FakeIonBlastClass::IonBlastClass_inited {};
+//Surface* FakeIonBlastClass::IonBlastClass_Surfaces[80] {};
+//uint16_t FakeIonBlastClass::ionblast_A9FAE8[289] {};
+//size_t FakeIonBlastClass::LUT_SIZE { std::size(FakeIonBlastClass::ionblast_A9FAE8) };
+//int FakeIonBlastClass::IonBlastPitch {};
 #endif
-
-//fix buffer overflow that sometime happen
-#define IonBlastBufferSize 512
-static int IonBlastBuffer[IonBlastBufferSize];
-
-DEFINE_PATCH_TYPED(DWORD, 0x53D362, DWORD(&IonBlastBuffer))// buffer begin
-DEFINE_PATCH_TYPED(DWORD, 0x53CF50, DWORD(&IonBlastBuffer))// buffer begin
-DEFINE_PATCH_TYPED(DWORD, 0x53D552, DWORD(&IonBlastBuffer))// buffer begin
-DEFINE_PATCH_TYPED(DWORD, 0x53D5E1, DWORD(&IonBlastBuffer))// buffer begin
-
-DEFINE_PATCH_TYPED(DWORD, 0x53D56D, DWORD(&(IonBlastBuffer[IonBlastBufferSize])))// buffer end
-DEFINE_PATCH_TYPED(DWORD, 0x53D52C, DWORD(&(IonBlastBuffer[IonBlastBufferSize])))// buffer end
-
-#undef IonBlastBufferSize
+static void __fastcall IonBlastDrawAll()
+{
+	VeinholeMonsterClass::DrawAll();
+	IonBlastClass::DrawAll();
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, IonBlastDrawAll)

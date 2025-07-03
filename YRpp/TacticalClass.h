@@ -79,6 +79,7 @@ public:
         return this->CoordsToClient(coords);
     }
 
+   //6D2140
 	COMPILETIMEEVAL std::pair<Point2D, bool> GetCoordsToClientSituation(const CoordStruct& coords) const {
 		Point2D point = CoordsToScreen(coords) - this->TacticalPos;
 		const bool visible = point.X >= -360 && point.X <= view_bound->Width + 360

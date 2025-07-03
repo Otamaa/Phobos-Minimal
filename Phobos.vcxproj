@@ -24,6 +24,12 @@
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Message.cpp" />
+    <ClCompile Include="src\Ext\SWType\Hook.Psydom.cpp" />
+    <ClCompile Include="src\Ext\SWType\Hooks.Bullet.cpp" />
+    <ClCompile Include="src\Ext\SWType\Hooks.EMPulse.cpp" />
+    <ClCompile Include="src\Ext\SWType\Hooks.Lighning.cpp" />
+    <ClCompile Include="src\Ext\SWType\Hooks.LightningStorm.cpp" />
+    <ClCompile Include="src\Ext\SWType\Hooks.Strips.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.AirstrikeFlare.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
@@ -102,6 +108,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CopyProtection.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.IonBlast.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Locomotor.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
@@ -380,7 +387,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foundation.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.House.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.INIFiles.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.IonBlast.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Movies.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Networking.cpp" />
@@ -1147,13 +1153,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>Disabled</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>false</OmitFramePointers>
+      <OmitFramePointers>true</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
@@ -1175,13 +1181,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableVectorLength>NotSet</EnableVectorLength>
