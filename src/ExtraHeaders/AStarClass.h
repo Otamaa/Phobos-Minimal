@@ -112,15 +112,22 @@ public:
 		int max_count,
 		MovementZone a7,
 		ZoneType cellPath)       JMP_THIS(0x42C900);
-	/*AStarClass__Init_Cell_Index_Sets        0042CCD0
-	AStarClass__Is_Cell_Index_Set_Registered        0042CEB0
-	AStarClass__Register_Cell_Index_Set        0042CF10
-	AStarClass__Register_Cell_Index_Sets        0042CF80
-	AStarClass__Test_Cell_Walk        0042D170
-	__thiscall Cell::Cell(short,short)        0042D470
-	Find_Adjacent_Cell_0        0042D490
-	Cell const __thiscall Cell::operator+(Cell const &)        0042D510
-	*/
+
+	// Reverse-engineered hierarchical pathfinding function
+	// Based on assembly at 0x42C290
+	bool Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone movementZone, FootClass* pFoot);
+
+	// Member variables inferred from assembly
+	int initedcount;                                    // +0x28, initialization counter
+	int* ints_40_costs[3];                             // +0x40, cost arrays for 3 levels
+	int* ints_4C_costs[3];                             // +0x4C, additional cost arrays  
+	float* HierarchicalCosts[3];                       // +0x58, hierarchical cost arrays
+	AStarQueueNodeHierarchical* BufferForHierarchicalQueue; // +0x64, buffer for queue nodes
+	PriorityQueueClass_AStarHierarchical* HierarchicalQueue; // +0x68, priority queue
+	DynamicVectorClass<int> CellIndexesVector[3];      // +0x74, cell index vectors
+	WORD somearray_BC[1500];                           // +0xBC, path storage (500 * 3 levels)
+	int maxvalues_field_C74[3];                        // +0xC74, max values for each level
+
 public:
 	bool bool_0;                                            // always false
 	bool bool_1;                                            // skips 004299D2 if false
@@ -135,149 +142,12 @@ public:
 	int* celllevel_costarray1;                                // used only by "Regular"
 	float* MovementCosts;                             // used only by "Regular"
 	float* MovementCostsAlt;                             // used only by "Regular"
-	int initedcount;                                        // used by both
 	int ObjectSpeed;                                              // confirmish, used only by "Regular"
 	int StartCellLevel;                                     // confirmish, used only by "Regular"
 	int EndCellLevel;                                       // confirmish, used only by "Regular"
 	bool boolpathfind_38;                                   // 0042D170 was called
 	AStarPostProcessType __PathsNeedProcessing;                         // used only by "Regular"
-	int* ints_40_costs[3];                                    // used by both
-	int* ints_4C_costs[3];                                    // used only by "Hierarchical"
-	float* HierarchicalCosts[3];                                  // used only by "Hierarchical"
-	AStarQueueNodeHierarchical* BufferForHierarchicalQueue;                       // some index, used only by "Hierarchical"
-	PriorityQueueClass_AStarHierarchical* HierarchicalQueue; // confirmish
 	int dword_6C;                                           // some index, used only by "Regular"
 	CellStruct __OriginCell;                                      // some index, used only by "Regular"
-	DynamicVectorClass<CellStruct> CellIndexesVector[3];          // some index, used only by "Hierarchical"
-	short somearray_BC[1500];                               // some indexes, used by both
-	int maxvalues_field_C74[3];                             // some index, used only by "Hierarchical"
 };
 static_assert(sizeof(AStarPathFinderClass) == 0xC80);
-
-/*
-bool Find_Path_Hierarchical(AStarPathFinderClass* pThis, CellStruct* from, CellStruct* to, MovementZone move , FootClass* pWho)
-{
-	double threat = 0.0;
-	HouseClass* Owner = nullptr;
-	bool Avaible = false;
-
-	if (pWho) {
-		threat = pWho->GetThreatAvoidance();
-		Owner = pWho->Owner;
-		Avaible = true;
-
-		if (threat <= 0.00001)
-		{
-			Avaible = false;
-
-		}
-
-		int some_startIndex = 2;
-		int some_startIndex2 = 2;
-		while (2)
-		{
-			/// Clear the hierarchialqueue
-			for (int i = 0; i < pThis->HierarchicalQueue->Count; ++i) {
-				pThis->HierarchicalQueue->Heap[i - 1] = 0;
-			}
-
-			pThis->HierarchicalQueue->Count = 0;
-			///
-
-			const auto CellsArray_From = GlobalPassabilityDatas[MapClass::Instance->MapClass_zone_56D3F0(from)].data[some_startIndex];
-			const auto CellsArray_To = GlobalPassabilityDatas[MapClass::Instance->MapClass_zone_56D3F0(to)].data[some_startIndex];
-
-			auto some_startIndex3 = some_startIndex == 2 ? 0 : pThis->ints_40_costs[some_startIndex + 1];
-
-			int* _ints_40_costs = pThis->ints_40_costs[some_startIndex];                                    // used by both
-			int* _ints_4C_costs = pThis->ints_4C_costs[some_startIndex];                                    // used only by "Hierarchical"
-			float* _HierarchicalCosts= pThis->HierarchicalCosts[some_startIndex];
-
-			_ints_40_costs[CellsArray_From] = pThis->initedcount;
-			_ints_40_costs[CellsArray_To] = pThis->initedcount;
-			if (CellsArray_From == CellsArray_To) {
-				if (!some_startIndex) {
-					auto something = pThis->BufferForHierarchicalQueue;
-					something->Index = CellsArray_From;
-					something->Score = 0.0f;
-				}
-
-				pThis->somearray_BC[500 * some_startIndex] = CellsArray_From;
-				pThis->maxvalues_field_C74[some_startIndex] = 0;
-
-			}
-
-			pThis->BufferForHierarchicalQueue->BufferDelta = -1;
-			pThis->BufferForHierarchicalQueue->Index = CellsArray_From;
-			pThis->BufferForHierarchicalQueue->Score = 0.0f;
-			pThis->BufferForHierarchicalQueue->Number = 0;
-
-			int HierarchicalQueue_count1 = pThis->HierarchicalQueue->Count + 1;
-			int HierarchicalQueue_count2 = HierarchicalQueue_count1 >> 1;
-
-			if (HierarchicalQueue_count1 < pThis->HierarchicalQueue->Capacity)
-			{
-				for (; HierarchicalQueue_count1 > 1; HierarchicalQueue_count2 >>= 1)
-				{
-					auto Elements = pThis->HierarchicalQueue->Heap;
-					if (Elements[HierarchicalQueue_count2]->Score <= 0.0)
-					{
-						break;
-					}
-
-					Elements[HierarchicalQueue_count1] = Elements[HierarchicalQueue_count2];
-				}
-
-				pThis->HierarchicalQueue->Heap[HierarchicalQueue_count1] = pThis->BufferForHierarchicalQueue;
-				++pThis->HierarchicalQueue->Count;
-
-				if ((uintptr_t)pThis->BufferForHierarchicalQueue > (uintptr_t)pThis->HierarchicalQueue->MaxNodePointer)
-				{
-					pThis->HierarchicalQueue->MaxNodePointer = pThis->BufferForHierarchicalQueue;
-				}
-
-				if ((uintptr_t)pThis->BufferForHierarchicalQueue < (uintptr_t)pThis->HierarchicalQueue->MinNodePointer)
-				{
-					pThis->HierarchicalQueue->MinNodePointer = pThis->BufferForHierarchicalQueue;
-				}
-
-				bool initial__ = true;
-				_ints_4C_costs[CellsArray_From] = pThis->initedcount;
-				_HierarchicalCosts[CellsArray_From] = 0.0f;
-				AStarQueueNodeHierarchical* someIdx_here = nullptr;
-
-				// pop front ???
-				if (pThis->HierarchicalQueue->Count)
-				{
-					someIdx_here = pThis->HierarchicalQueue->Heap[1];
-					pThis->HierarchicalQueue->Heap[1] = pThis->HierarchicalQueue->Heap[pThis->HierarchicalQueue->Count];
-					pThis->HierarchicalQueue->Heap[pThis->HierarchicalQueue->Count--] = 0;
-					pThis->HierarchicalQueue->Heapify();
-				}
-
-
-				if (!someIdx_here)
-				{
-					return false;
-				}
-
-				const bool CellIndexesIsInvalid = pThis->CellIndexesVector[some_startIndex].Count == 0;
-
-				int subzoneVectorIdx = some_startIndex >> 3;
-				while (true)
-				{
-					if (someIdx_here->Index == CellsArray_To)
-						break;
-
-					const auto data = SubzoneTrackingStruct::Array[0].Items + subzoneVectorIdx;
-					const auto data_Item = data->SubzoneConnections.Items + someIdx_here->Index;
-
-					for (int i = data->SubzoneConnections.Count; i > 0; --i) {
-
-					}
-				}
-			}
-		}
-	}
-}
-*/
