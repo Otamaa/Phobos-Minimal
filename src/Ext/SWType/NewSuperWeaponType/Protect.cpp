@@ -53,10 +53,7 @@ bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 			? RulesClass::Instance->ForceShieldDuration : RulesClass::Instance->IronCurtainDuration);
 
 		// play start sound
-		if (pSW->StartSound > -1)
-		{
-			VocClass::SafeImmedietelyPlayAt(pSW->StartSound, & Crd, nullptr);
-		}
+		VocClass::SafeImmedietelyPlayAt(pSW->StartSound, & Crd, nullptr);
 
 		// set up the special sound when the effect wears off
 		if (pThis->Type->SpecialSound > -1)

@@ -61,11 +61,7 @@ void UnitDeliveryStateMachine::Update()
 		const auto pData = SWTypeExtContainer::Instance.Find(this->Super->Type);
 
 		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
-
-		if (pData->SW_ActivationSound != -1)
-		{
-			VocClass::SafeImmedietelyPlayAt(pData->SW_ActivationSound, &coords, nullptr);
-		}
+		VocClass::SafeImmedietelyPlayAt(pData->SW_ActivationSound, &coords, nullptr);
 
 		this->PlaceUnits();
 	}
@@ -85,6 +81,15 @@ void UnitDeliveryStateMachine::PlaceUnits()
 
 	// get the house the units will belong to
 	const auto pOwner = HouseExtData::GetHouseKind(pData->SW_OwnerHouse, false, this->Super->Owner);
+	if (!pOwner) {
+		Debug::FatalErrorAndExit("nullptr house for SW [%s] , with OwnerKind [%s] , superOwner [%s - %x]",
+			this->Super->Type->ID ,
+			EnumFunctions::OwnerHouseKind_ToStrings[(int)pData->SW_OwnerHouse.Get()].second.data(),
+			this->Super->Owner->Type->ID ,
+			this->Super->Owner
+		);
+	}
+
 	const bool IsHumanControlled = pOwner->IsControlledByHuman();
 	const bool bBaseNormal = pData->SW_BaseNormal;
 	const bool bDeliverBuildup = pData->SW_DeliverBuildups;

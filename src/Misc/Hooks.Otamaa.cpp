@@ -2522,44 +2522,6 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6DEA37, TAction_Execute_Win, 6)
-{
-	GET(TActionClass*, pThis, ESI);
-
-	if (HouseClass::Index_IsMP(pThis->Value))
-	{
-		const auto pHouse_ = pThis->Value == 8997 ?
-			HouseClass::CurrentPlayer() : HouseClass::FindByIndex(pThis->Value);
-
-		auto pHouseBegin = HouseClass::Array->begin();
-		auto pHouseEnd = HouseClass::Array->end();
-
-		if (HouseClass::Array->begin() != pHouseEnd)
-		{
-			do
-			{
-				auto v7 = *pHouseBegin;
-				if (pHouse_->ArrayIndex == (*pHouseBegin)->ArrayIndex
-					|| pHouse_->ArrayIndex != -1 && ((1 << pHouse_->ArrayIndex) & v7->Allies.data) != 0)
-					v7->Win(false);
-
-				++pHouseBegin;
-			}
-			while (pHouseBegin != pHouseEnd);
-		}
-
-		return  0x6DEA58;
-	}
-	else
-	{
-		if (pThis->Value == HouseClass::CurrentPlayer()->Type->ArrayIndex2)
-			HouseClass::CurrentPlayer()->Win(false);
-		else
-			HouseClass::CurrentPlayer()->Lose(false);
-
-		return 0x6DEA58;
-	}
-}
 
 ASMJIT_PATCH(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 {
@@ -4487,11 +4449,7 @@ ASMJIT_PATCH(0x41ECB0, AITriggerClass_NeutralOwns_CivilianHouse, 0x5)
 
 ASMJIT_PATCH(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 {
-	if (RulesExtData::Instance()->CivilianSideIndex == -1)
-	{
-		RulesExtData::Instance()->CivilianSideIndex = SideClass::FindIndexById(GameStrings::Civilian());
-	}
-
+	HouseExtData::FindFirstCivilianHouse();
 	R->EAX(RulesExtData::Instance()->CivilianSideIndex);
 	return 0x501586;
 }
@@ -6998,7 +6956,7 @@ ASMJIT_PATCH(0x50B730, HouseClass_IsControlledByHuman_LogCaller, 0x5)
 	GET(HouseClass*, pThis, ECX);
 
 	if (!pThis)
-		Debug::LogInfo(__FUNCTION__"Caller [{}]", R->Stack<DWORD>(0x0));
+		Debug::LogInfo(__FUNCTION__"Caller [{}]", (uintptr_t)R->Stack<DWORD>(0x0));
 
 	return 0x0;
 }
@@ -7008,11 +6966,13 @@ ASMJIT_PATCH(0x50B6F0, HouseClass_ControlledByCurrentPlayer_LogCaller, 0x5)
 	GET(HouseClass*, pThis, ECX);
 
 	if (!pThis)
-		Debug::LogInfo(__FUNCTION__"Caller [{}]", R->Stack<DWORD>(0x0));
+		Debug::LogInfo(__FUNCTION__"Caller [{}]", (uintptr_t)R->Stack<DWORD>(0x0));
 
 	return 0x0;
 }
+#endif
 
+#ifdef IONSHITS
 
 #include <RectangleStruct.h>
 

@@ -47,7 +47,7 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 
 				if (pWHExt->CanRemoveParasytes.Get())
 				{
-					if (pWHExt->CanRemoveParasytes_ReportSound.isset() && pWHExt->CanRemoveParasytes_ReportSound.Get() >= 0)
+					if (pWHExt->CanRemoveParasytes_ReportSound.isset())
 						VocClass::SafeImmedietelyPlayAt(pWHExt->CanRemoveParasytes_ReportSound.Get(), &parasyte->GetCoords() , nullptr);
 
 					// Kill the parasyte

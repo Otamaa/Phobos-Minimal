@@ -145,12 +145,7 @@ void PsychicDominatorStateMachine::Update()
 		}
 
 		PsyDom::Anim = pAnim;
-
-		auto sound = pData->SW_ActivationSound.Get(RulesClass::Instance->PsychicDominatorActivateSound);
-		if (sound != -1)
-		{
-			VocClass::SafeImmedietelyPlayAt(sound, &coords, nullptr);
-		}
+		VocClass::SafeImmedietelyPlayAt(pData->SW_ActivationSound.Get(RulesClass::Instance->PsychicDominatorActivateSound), &coords, nullptr);
 
 		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
 

@@ -160,7 +160,7 @@ struct DroppodProperties_
 						auto locnear = MapClass::GetRandomCoordsNear(pLoco->CoordDest, 85, false);
 
 						if (int count = dWpn->Report.Count)
-							VocClass::SafeImmedietelyPlayAt(dWpn->Report[Random2Class::Global->RandomFromMax(count - 1)], &coords);
+							VocClass::SafeImmedietelyPlayAt(count == 1 ? dWpn->Report[0] : dWpn->Report[Random2Class::Global->RandomFromMax(count - 1)], &coords);
 
 						DamageArea::Apply(&locnear, 2 * dWpn->Damage, pLinked, dWpn->Warhead, true, pLinked->Owner);
 						if (auto dmgAnim = MapClass::SelectDamageAnimation(2 * dWpn->Damage, dWpn->Warhead, LandType::Clear, locnear))

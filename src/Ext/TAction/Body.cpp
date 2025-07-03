@@ -1650,6 +1650,48 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 {
 	switch (pThis->ActionKind)
 	{
+	case TriggerAction::Win:
+	{
+		//if (HouseClass::Index_IsMP(pThis->Value))
+		//{
+		//	const auto pHouse_ = pThis->Value == 8997 ?
+		//		HouseClass::CurrentPlayer() : HouseClass::FindByIndex(pThis->Value);
+
+		//	auto pHouseBegin = HouseClass::Array->begin();
+		//	auto pHouseEnd = HouseClass::Array->end();
+
+		//	if (HouseClass::Array->begin() != pHouseEnd)
+		//	{
+		//		do
+		//		{
+		//			auto v7 = *pHouseBegin;
+		//			if (pHouse_->ArrayIndex == (*pHouseBegin)->ArrayIndex
+		//				|| pHouse_->ArrayIndex != -1 && ((1 << pHouse_->ArrayIndex) & v7->Allies.data) != 0)
+		//				v7->Win(false);
+
+		//			++pHouseBegin;
+		//		}
+		//		while (pHouseBegin != pHouseEnd);
+		//	}
+		//}
+		//else
+		{
+			if (pThis->Value == HouseClass::CurrentPlayer()->Type->ParentIdx)
+				HouseClass::CurrentPlayer()->Win(false);
+			else
+				HouseClass::CurrentPlayer()->Lose(false);
+		}
+		return true;
+	}
+	case TriggerAction::Lose:
+	{
+		if (pThis->Value != HouseClass::CurrentPlayer()->Type->ParentIdx)
+			HouseClass::CurrentPlayer()->Win(false);
+		else
+			HouseClass::CurrentPlayer()->Lose(false);
+
+		return true;
+	}
 	case TriggerAction::PlaySoundEffectRandom:
 	{
 		ret = TActionExt::PlayAudioAtRandomWP(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);

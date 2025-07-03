@@ -1088,13 +1088,10 @@ namespace detail
 	template <>
 	OPTIONALINLINE bool read<OwnerHouseKind>(OwnerHouseKind& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (size_t i = 0; i < EnumFunctions::OwnerHouseKind_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::OwnerHouseKind_ToStrings[i]))
-				{
-					value = OwnerHouseKind(i);
+		if (parser.ReadString(pSection, pKey)) {
+			for (size_t i = 0; i < EnumFunctions::OwnerHouseKind_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(parser.value(), EnumFunctions::OwnerHouseKind_ToStrings[i].second.data())) {
+					value = EnumFunctions::OwnerHouseKind_ToStrings[i].first;
 					return true;
 				}
 			}

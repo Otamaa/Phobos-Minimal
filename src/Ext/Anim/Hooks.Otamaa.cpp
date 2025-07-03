@@ -522,7 +522,7 @@ void FakeAnimClass::_AI()
 			return;
 		}
 
-		if (!this->IsPlaying && this->Type->Report != -1) {
+		if (!this->IsPlaying) {
 			VocClass::SafeImmedietelyPlayAt(this->Type->Report, &this->GetCoords(), &this->Audio3);
 		}
 

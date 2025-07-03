@@ -887,9 +887,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		break;
 	case DamageState::Unchanged:
 	{
-		if (pType->DamageSound != -1) {
-			VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
-		}
+		VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
 
 		if (!pWHExt->Malicious && args.Attacker && args.Attacker->IsAlive && !pWHExt->Nonprovocative) {
 			if ((pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman()) {
@@ -1164,10 +1162,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			R->EAX(_res);
 			return 0x702D1F;
 		} else {
-			if (pType->DamageSound != -1)
-			{
-				VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
-			}
+
+			VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
 
 			if (args.Attacker && args.Attacker->IsAlive && (pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman())
 			{

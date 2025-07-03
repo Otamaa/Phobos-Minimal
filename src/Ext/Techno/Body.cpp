@@ -4075,7 +4075,8 @@ void TechnoExtData::UpdateEatPassengers()
 					pPassenger->LiberateMember();
 
 					auto const& nReportSound = pDelType->ReportSound;
-					VocClass::SafeImmedietelyPlayAt(nReportSound.Get(), &pThis->Location);
+					if(nReportSound.isset())
+						VocClass::SafeImmedietelyPlayAt(nReportSound, &pThis->Location);
 
 					auto const pThisOwner = pThis->GetOwningHouse();
 
