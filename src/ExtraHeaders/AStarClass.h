@@ -115,7 +115,7 @@ public:
 
 	// Reverse-engineered hierarchical pathfinding function
 	// Based on assembly at 0x42C290
-	bool Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone movementZone, FootClass* pFoot);
+	uint Find_Path_Hierarchical(CellStruct* from, CellStruct* to, int movementZone, FootClass* pFoot);
 
 	// Member variables inferred from assembly
 	int initedcount;                                    // +0x28, initialization counter
