@@ -346,20 +346,6 @@ std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 24u> EnumFu
 }
 };
 
-std::array<const char* const, 8u> EnumFunctions::OwnerHouseKind_ToStrings
-{
-{
-	{"default"} ,
-	{"invoker"} ,
-	{"killer"} ,
-	{"victim"} ,
-	{"civilian"} ,
-	{"special"} ,
-	{"neutral"} ,
-	{"random"}
-}
-};
-
 std::array<std::pair<const char* const, IronCurtainFlag>, 6u>  EnumFunctions::IronCurtainFlag_ToStrings
 {
 {

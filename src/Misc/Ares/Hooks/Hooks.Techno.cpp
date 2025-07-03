@@ -659,7 +659,7 @@ ASMJIT_PATCH(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 		if (auto const wasDeactivated = std::exchange(pThis->Deactivated, false))
 		{
 			// change: don't play sound when mutex active
-			if (!Unsorted::ScenarioInit && pType->ActivateSound != -1)
+			if (!Unsorted::ScenarioInit)
 			{
 				VocClass::SafeImmedietelyPlayAt(pType->ActivateSound, &pThis->Location, nullptr);
 			}
@@ -948,7 +948,7 @@ ASMJIT_PATCH(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
 	if (!wasDeactivated)
 	{
 		// change: don't play sound when mutex active
-		if (!Unsorted::ScenarioInit && pType->DeactivateSound != -1)
+		if (!Unsorted::ScenarioInit)
 		{
 			VocClass::SafeImmedietelyPlayAt(pType->DeactivateSound, &pThis->Location, nullptr);
 		}

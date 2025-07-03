@@ -303,12 +303,9 @@ ASMJIT_PATCH(0x44ABD0, BuildingClass_FireLaser, 5)
 		//Report
 		if (supportWeapon->Report.Count > 0)
 		{
-			auto const ReportIndex = ScenarioClass::Instance->Random.RandomFromMax(supportWeapon->Report.Count - 1);
+			auto const ReportIndex = supportWeapon->Report.Count == 1 ? 0 : ScenarioClass::Instance->Random.RandomFromMax(supportWeapon->Report.Count - 1);
 			auto const SoundArrayIndex = supportWeapon->Report.Items[ReportIndex];
-			if (SoundArrayIndex != -1)
-			{
-				VocClass::SafeImmedietelyPlayAt(SoundArrayIndex, &sourceXYZ, nullptr);
-			}
+			VocClass::SafeImmedietelyPlayAt(SoundArrayIndex, &sourceXYZ, nullptr);
 		}
 
 		//ROF

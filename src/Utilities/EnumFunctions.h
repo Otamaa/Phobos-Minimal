@@ -17,6 +17,7 @@ class EnumFunctions final
 public:
 
 	static constexpr auto LaserTrailDrawType_ToStrings = magic_enum::enum_entries<LaserTrailDrawType>();
+	static constexpr auto OwnerHouseKind_ToStrings = magic_enum::enum_entries<OwnerHouseKind>();
 	static std::array<const char* const, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings;
 	static std::array<const char* const, (size_t)PhobosAbilityType::count> PhobosAbilityType_ToStrings;
 	static std::array<const char* const, 3u> Rank_ToStrings;
@@ -36,7 +37,6 @@ public:
 	static std::array<std::pair<const char* const, AffectedHouse>, 11u> AffectedHouse_ToStrings;
 	static std::array<std::pair<const char* const, AffectedTarget>, 15u> AffectedTarget_ToStrings;
 	static std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 24u> SuperWeaponAITargetingMode_ToStrings;
-	static std::array<const char* const, 8u> OwnerHouseKind_ToStrings;
 	static std::array<std::pair<const char* const, IronCurtainFlag>, 6u> IronCurtainFlag_ToStrings;
 	static std::array<std::pair<const char* const, KillMethod>, 6u> KillMethod_ToStrings;
 	static std::array<std::pair<const char* const, SlaveReturnTo>, 9u> SlaveReturnTo_ToStrings;

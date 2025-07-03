@@ -992,24 +992,52 @@ CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseC
 
 HouseClass* HouseExtData::FindFirstCivilianHouse()
 {
-	if (RulesExtData::Instance()->CivilianSideIndex == -1)
-		RulesExtData::Instance()->CivilianSideIndex = SideClass::FindIndexById(GameStrings::Civilian());
+	if (!HouseExtContainer::Civilian) {
 
-	if(!HouseExtContainer::Civilian){
-		HouseExtContainer::Civilian = HouseClass::FindBySideIndex(RulesExtData::Instance()->CivilianSideIndex);
+		auto idx = SideClass::FindIndexById(GameStrings::Civilian);
+
+		if (RulesExtData::Instance()->CivilianSideIndex == -1 || RulesExtData::Instance()->CivilianSideIndex != idx)
+			RulesExtData::Instance()->CivilianSideIndex = idx;
+
+		if (!HouseExtContainer::Civilian) {
+			for (auto pHouse : *HouseClass::Array) {
+				if (pHouse->Type->SideIndex == idx) {
+					HouseExtContainer::Civilian = pHouse;
+					break;
+				}
+			}
+		}
+
+		if (!HouseExtContainer::Civilian) {
+			Debug::FatalErrorAndExit("Failed to find Civilian House !!");
+		}
 	}
 
 	return HouseExtContainer::Civilian;
 }
 
-
 HouseClass* HouseExtData::FindSpecial()
 {
-	if (RulesExtData::Instance()->SpecialCountryIndex == -1)
-		Debug::FatalError("Special Index is invalid !");
+	if (!HouseExtContainer::Special) {
 
-	if(!HouseExtContainer::Special){
-		HouseExtContainer::Special = HouseClass::FindByCountryIndex(RulesExtData::Instance()->SpecialCountryIndex);
+		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Special);
+
+		if (RulesExtData::Instance()->SpecialCountryIndex == -1 || RulesExtData::Instance()->SpecialCountryIndex != idx)
+			RulesExtData::Instance()->SpecialCountryIndex = idx;
+
+		if (!HouseExtContainer::Special) {
+			for (auto pHouse : *HouseClass::Array) {
+				if (pHouse->Type->ArrayIndex == idx|| pHouse->Type->ParentIdx == idx) {
+					HouseExtContainer::Special = pHouse;
+					break;
+				}
+			}
+		}
+
+		if (!HouseExtContainer::Special) {
+			//HouseExtContainer::Special = GameCreate<HouseClass>(HouseTypeClass::Array->Items[idx]);
+			Debug::FatalErrorAndExit("Cannot Find House with Special Country !");
+		}
 	}
 
 	return HouseExtContainer::Special;
@@ -1017,11 +1045,29 @@ HouseClass* HouseExtData::FindSpecial()
 
 HouseClass* HouseExtData::FindNeutral()
 {
-	if (RulesExtData::Instance()->NeutralCountryIndex == -1)
-		Debug::FatalError("Neutral Index is invalid !");
-
 	if(!HouseExtContainer::Neutral){
-		HouseExtContainer::Neutral = HouseClass::FindByCountryIndex(RulesExtData::Instance()->NeutralCountryIndex);
+		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Neutral);
+
+		if (RulesExtData::Instance()->NeutralCountryIndex == -1 || RulesExtData::Instance()->NeutralCountryIndex != idx)
+			RulesExtData::Instance()->NeutralCountryIndex = idx;
+
+		if (!HouseExtContainer::Neutral) {
+			for (auto pHouse : *HouseClass::Array) {
+				//Debug::LogInfo("House [{} - {}/{}] , side {} country {} parent {}/{}", (void*)pHouse , pHouse->Type->ID , pHouse->Type->Name
+				 ///,	pHouse->Type->SideIndex , pHouse->Type->ArrayIndex, pHouse->Type->ParentIdx , pHouse->Type->ParentCountry.data()
+				//);
+
+				if (pHouse->Type->ArrayIndex == idx || pHouse->Type->ParentIdx == idx) {
+					HouseExtContainer::Neutral = pHouse;
+					break;
+				}
+			}
+		}
+
+		if (!HouseExtContainer::Neutral) {
+			//HouseExtContainer::Neutral = GameCreate<HouseClass>(HouseTypeClass::Array->Items[idx]);
+			Debug::FatalErrorAndExit("Cannot Find House with Neutral Country !");
+		}
 	}
 
 	return HouseExtContainer::Neutral;

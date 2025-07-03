@@ -66,7 +66,7 @@ ASMJIT_PATCH(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
 
 	GET(HouseTypeClass*, pCountry, EAX);
 
-	const auto idx = pCountry->ArrayIndex2;
+	const auto idx = pCountry->ParentIdx;
 
 	//special cases
 	if (idx == -2) {
