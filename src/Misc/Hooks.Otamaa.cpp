@@ -5127,40 +5127,103 @@ public:
 #ifndef DISABLE_HIERARCHICAL_PATHFINDING
 
 
-	// Complete hierarchical pathfinding implementation based on reverse-engineered assembly at 0x42C290
+		// Complete hierarchical pathfinding implementation based on reverse-engineered assembly at 0x42C290
 	uint Find_Path_Hierarchical(CellStruct* from, CellStruct* to, int movementZone, FootClass* foot)
-	{		
-		// Safety checks - ensure all required data structures are initialized
-		if (!from || !to || !this->HierarchicalQueue || !this->BufferForHierarchicalQueue)
+	{
+		// The hierarchical structures ARE allocated by the original constructor!
+		// Constructor at 0x42A6D0 creates:
+		// - HierarchicalQueue (offset 0x68): Priority queue with capacity 10000
+		// - BufferForHierarchicalQueue (offset 0x64): 160KB buffer for nodes
+		// - Cost arrays are initialized in the constructor loop
+		
+		// Safety checks for basic parameters
+		if (!from || !to)
 		{
 			return 0; // Fallback to regular pathfinding
 		}
 
-		// Validate queue structure
-		if (!this->HierarchicalQueue->Heap || this->HierarchicalQueue->Capacity <= 0)
+		// Access hierarchical structures by direct memory offset (as initialized by constructor)
+		char* thisPtr = reinterpret_cast<char*>(this);
+		
+		// Get pointers to the structures allocated by the constructor
+		auto** queuePtr = reinterpret_cast<PriorityQueueClass_AStarHierarchical**>(thisPtr + 0x68);
+		auto** nodeBufferPtr = reinterpret_cast<AStarQueueNodeHierarchical**>(thisPtr + 0x64);
+		
+		// Validate that pointers exist and aren't garbage values
+		if (!queuePtr || !nodeBufferPtr || 
+			*queuePtr == reinterpret_cast<PriorityQueueClass_AStarHierarchical*>(0xFFFFFFFF) ||
+			*nodeBufferPtr == reinterpret_cast<AStarQueueNodeHierarchical*>(0xFFFFFFFF))
+		{
+			return 0; // Fallback to regular pathfinding
+		}
+		
+		auto* queue = *queuePtr;
+		auto* nodeBuffer = *nodeBufferPtr;
+
+		// Validate that the structures were properly allocated by constructor
+		if (!queue || !nodeBuffer)
 		{
 			return 0; // Fallback to regular pathfinding
 		}
 
+		// Basic validation of queue structure  
+		if (!queue->Heap || queue->Capacity <= 0)
+		{
+			return 0; // Fallback to regular pathfinding
+		}
+
+		// Get cost arrays by offset
+		auto** costArrays40 = reinterpret_cast<int**>(thisPtr + 0x40);
+		auto** costArrays4C = reinterpret_cast<int**>(thisPtr + 0x4C);
+		auto** hierarchicalCosts = reinterpret_cast<float**>(thisPtr + 0x58);
+		
 		// Validate cost arrays
 		for (int i = 0; i < 3; ++i)
 		{
-			if (!this->ints_40_costs[i] || !this->ints_4C_costs[i] || !this->HierarchicalCosts[i])
+			if (!costArrays40[i] || !costArrays4C[i] || !hierarchicalCosts[i])
 			{
 				return 0; // Fallback to regular pathfinding
 			}
 		}
 
+		// TEMPORARY: Simple test to verify structures work
+		// If we can access the queue properties without crashing, the structures are valid
+		try 
+		{
+			int testCapacity = queue->Capacity;
+			int testCount = queue->Count;
+			
+			// Basic sanity check on queue properties
+			if (testCapacity != 10000 || testCount < 0 || testCount > testCapacity)
+			{
+				return 0; // Queue structure doesn't match expected values
+			}
+			
+			// For now, still fall back to regular pathfinding until we're sure it's stable
+			// TODO: Remove this return once we verify the basic structure access works
+			return 0; // Temporary fallback
+		}
+		catch (...)
+		{
+			return 0; // Exception accessing queue - structure is invalid
+		}
+
+		// Get commonly used offset pointers
+		int* initedcount = reinterpret_cast<int*>(thisPtr + 0x28);
+		WORD* pathStorage = reinterpret_cast<WORD*>(thisPtr + 0xBC);
+		int* maxValues = reinterpret_cast<int*>(thisPtr + 0xC74);
+		auto* cellIndexVectors = reinterpret_cast<DynamicVectorClass<int>*>(thisPtr + 0x74);
+		
 		// Initialize critical state variables to prevent cleanup function crashes
 		// Store original state to restore later
-		int originalState3C = *(int*)(reinterpret_cast<char*>(this) + 0x3c);
-		int originalState6C = *(int*)(reinterpret_cast<char*>(this) + 0x6c);
-		int originalState70 = *(int*)(reinterpret_cast<char*>(this) + 0x70);
+		int originalState3C = *(int*)(thisPtr + 0x3c);
+		int originalState6C = *(int*)(thisPtr + 0x6c);
+		int originalState70 = *(int*)(thisPtr + 0x70);
 		
 		// Set safe initial state
-		*(int*)(reinterpret_cast<char*>(this) + 0x3c) = 0; // Disable cleanup for hierarchical pathfinding
-		*(int*)(reinterpret_cast<char*>(this) + 0x6c) = 0;
-		*(int*)(reinterpret_cast<char*>(this) + 0x70) = 0;
+		*(int*)(thisPtr + 0x3c) = 0; // Disable cleanup for hierarchical pathfinding
+		*(int*)(thisPtr + 0x6c) = 0;
+		*(int*)(thisPtr + 0x70) = 0;
 
 		float threat = 0.0f;
 		bool usesThreat = false;
@@ -5177,8 +5240,7 @@ public:
 		// Main hierarchical loop - process 3 levels (2, 1, 0)
 		for (int level = 2; level >= 0; --level)
 		{
-			// Clear priority queue safely
-			PriorityQueueClass_AStarHierarchical* queue = this->HierarchicalQueue;
+			// Clear priority queue safely (reuse the cast queue pointer)
 			if (queue && queue->Heap)
 			{
 				// Clear heap entries properly - just set them to null
@@ -5197,9 +5259,9 @@ public:
 		if (zoneFrom < 0 || zoneTo < 0)
 		{
 			// Restore state before returning
-			*(int*)(reinterpret_cast<char*>(this) + 0x3c) = originalState3C;
-			*(int*)(reinterpret_cast<char*>(this) + 0x6c) = originalState6C;
-			*(int*)(reinterpret_cast<char*>(this) + 0x70) = originalState70;
+			*(int*)(thisPtr + 0x3c) = originalState3C;
+			*(int*)(thisPtr + 0x6c) = originalState6C;
+			*(int*)(thisPtr + 0x70) = originalState70;
 			return 0; // Invalid zones
 		}
 			
@@ -5209,9 +5271,9 @@ public:
 					if (!passabilityFrom || !passabilityTo)
 		{
 			// Restore state before returning
-			*(int*)(reinterpret_cast<char*>(this) + 0x3c) = originalState3C;
-			*(int*)(reinterpret_cast<char*>(this) + 0x6c) = originalState6C;
-			*(int*)(reinterpret_cast<char*>(this) + 0x70) = originalState70;
+			*(int*)(thisPtr + 0x3c) = originalState3C;
+			*(int*)(thisPtr + 0x6c) = originalState6C;
+			*(int*)(thisPtr + 0x70) = originalState70;
 			return 0; // Invalid passability data
 		}
 			
@@ -5222,21 +5284,21 @@ public:
 		if (sourceIndex < 0 || destIndex < 0)
 		{
 			// Restore state before returning
-			*(int*)(reinterpret_cast<char*>(this) + 0x3c) = originalState3C;
-			*(int*)(reinterpret_cast<char*>(this) + 0x6c) = originalState6C;
-			*(int*)(reinterpret_cast<char*>(this) + 0x70) = originalState70;
+			*(int*)(thisPtr + 0x3c) = originalState3C;
+			*(int*)(thisPtr + 0x6c) = originalState6C;
+			*(int*)(thisPtr + 0x70) = originalState70;
 			return 0; // Invalid indices
 		}
 
 			// Get cost arrays for this level
-			int* costArray = level == 2 ? nullptr : this->ints_40_costs[level + 1];
-			int* visitedArray = this->ints_4C_costs[level];
-			int* levelCosts = this->ints_40_costs[level];
-			float* hierarchicalCosts = this->HierarchicalCosts[level];
+			int* costArray = level == 2 ? nullptr : costArrays40[level + 1];
+			int* visitedArray = costArrays4C[level];
+			int* levelCosts = costArrays40[level];
+			float* levelHierarchicalCosts = hierarchicalCosts[level];
 
 			// Mark source and destination as visited
-			levelCosts[sourceIndex] = this->initedcount;
-			levelCosts[destIndex] = this->initedcount;
+			levelCosts[sourceIndex] = *initedcount;
+			levelCosts[destIndex] = *initedcount;
 
 			// If source and destination are in the same zone, we're done at this level
 			if (sourceIndex == destIndex)
@@ -5244,18 +5306,18 @@ public:
 				if (level == 0)
 				{
 					// Store final result
-					AStarQueueNodeHierarchical* result = this->BufferForHierarchicalQueue;
+					AStarQueueNodeHierarchical* result = nodeBuffer;
 					result->Number = 0;
 					result->Index = sourceIndex;
 				}
 				
-				this->somearray_BC[level * 500] = static_cast<WORD>(sourceIndex);
-				this->maxvalues_field_C74[level] = 1;
+				pathStorage[level * 500] = static_cast<WORD>(sourceIndex);
+				maxValues[level] = 1;
 				continue;
 			}
 
 			// Initialize the first node
-			AStarQueueNodeHierarchical* startNode = this->BufferForHierarchicalQueue;
+			AStarQueueNodeHierarchical* startNode = nodeBuffer;
 			startNode->BufferDelta = -1;
 			startNode->Index = sourceIndex;
 			startNode->Score = 0.0f;
@@ -5284,8 +5346,8 @@ public:
 			}
 
 			int nodeCounter = 1;
-			visitedArray[sourceIndex] = this->initedcount;
-			hierarchicalCosts[sourceIndex] = 0.0f;
+			visitedArray[sourceIndex] = *initedcount;
+			levelHierarchicalCosts[sourceIndex] = 0.0f;
 
 			// Main pathfinding loop
 			AStarQueueNodeHierarchical* currentNode = nullptr;
@@ -5358,8 +5420,8 @@ public:
 
 						// Check if this path is better
 						bool shouldUpdate = false;
-						if (visitedArray[neighborIndex] != this->initedcount || 
-							hierarchicalCosts[neighborIndex] > totalCost)
+						if (visitedArray[neighborIndex] != *initedcount || 
+							levelHierarchicalCosts[neighborIndex] > totalCost)
 						{
 							shouldUpdate = true;
 						}
@@ -5369,7 +5431,7 @@ public:
 						{
 							if (level != 2)
 							{
-								if (costArray[neighborPassability] != this->initedcount && neighborType != 1)
+								if (costArray[neighborPassability] != *initedcount && neighborType != 1)
 									shouldUpdate = false;
 							}
 							if (MapClass::MovementAdjustArray[movementZone][neighborType] != 1)
@@ -5380,16 +5442,16 @@ public:
 						{
 							// Check for restricted paths
 							bool pathRestricted = false;
-							if (this->CellIndexesVector[level].Count > 0)
+							if (cellIndexVectors[level].Count > 0)
 							{
 								int minIndex = currentIndex < neighborIndex ? currentIndex : neighborIndex;
 								int maxIndex = currentIndex < neighborIndex ? neighborIndex : currentIndex;
 								int packedIndex = minIndex | (maxIndex << 16);
 								
 								// Check if this path is in restricted list
-								for (int j = this->CellIndexesVector[level].Count - 1; j >= 0; --j)
+								for (int j = cellIndexVectors[level].Count - 1; j >= 0; --j)
 								{
-									if (this->CellIndexesVector[level].Items[j] == packedIndex)
+									if (cellIndexVectors[level].Items[j] == packedIndex)
 									{
 										pathRestricted = true;
 										break;
@@ -5400,9 +5462,9 @@ public:
 							if (!pathRestricted)
 							{
 								// Create new node
-								AStarQueueNodeHierarchical* newNode = this->BufferForHierarchicalQueue + nodeCounter;
+								AStarQueueNodeHierarchical* newNode = nodeBuffer + nodeCounter;
 								newNode->Index = neighborIndex;
-								newNode->BufferDelta = static_cast<int>(currentNode - this->BufferForHierarchicalQueue);
+								newNode->BufferDelta = static_cast<int>(currentNode - nodeBuffer);
 								newNode->Score = totalCost;
 								newNode->Number = currentNode->Number + 1;
 
@@ -5428,8 +5490,8 @@ public:
 										queue->MinNodePointer = newNode;
 								}
 
-								visitedArray[neighborIndex] = this->initedcount;
-								hierarchicalCosts[neighborIndex] = totalCost;
+								visitedArray[neighborIndex] = *initedcount;
+								levelHierarchicalCosts[neighborIndex] = totalCost;
 								nodeCounter++;
 								offset += 0x10;
 							}
@@ -5468,9 +5530,9 @@ public:
 					if (!currentNode)
 		{
 			// Restore state before returning
-			*(int*)(reinterpret_cast<char*>(this) + 0x3c) = originalState3C;
-			*(int*)(reinterpret_cast<char*>(this) + 0x6c) = originalState6C;
-			*(int*)(reinterpret_cast<char*>(this) + 0x70) = originalState70;
+			*(int*)(thisPtr + 0x3c) = originalState3C;
+			*(int*)(thisPtr + 0x6c) = originalState6C;
+			*(int*)(thisPtr + 0x70) = originalState70;
 			return 0; // No path found
 		}
 
@@ -5481,32 +5543,32 @@ public:
 				AStarQueueNodeHierarchical* pathNode = currentNode;
 				while (pathNode->BufferDelta != -1)
 				{
-					levelCosts[pathNode->Index] = this->initedcount;
-					pathNode = &this->BufferForHierarchicalQueue[pathNode->BufferDelta];
+					levelCosts[pathNode->Index] = *initedcount;
+					pathNode = &nodeBuffer[pathNode->BufferDelta];
 				}
 
 				// Store path
 				int pathLength = currentNode->Number + 1;
-				this->maxvalues_field_C74[level] = pathLength;
+				maxValues[level] = pathLength;
 				
 				if (pathLength > 1)
 				{
-					WORD* pathPtr = &this->somearray_BC[level * 500 + pathLength - 1];
+					WORD* pathPtr = &pathStorage[level * 500 + pathLength - 1];
 					pathNode = currentNode;
 					for (int i = pathLength - 1; i > 0; --i)
 					{
 						*pathPtr-- = static_cast<WORD>(pathNode->Index);
-						pathNode = &this->BufferForHierarchicalQueue[pathNode->BufferDelta];
+						pathNode = &nodeBuffer[pathNode->BufferDelta];
 					}
 				}
-				this->somearray_BC[level * 500] = static_cast<WORD>(pathNode->Index);
+				pathStorage[level * 500] = static_cast<WORD>(pathNode->Index);
 			}
 		}
 
 		// Restore original state before returning
-		*(int*)(reinterpret_cast<char*>(this) + 0x3c) = originalState3C;
-		*(int*)(reinterpret_cast<char*>(this) + 0x6c) = originalState6C;
-		*(int*)(reinterpret_cast<char*>(this) + 0x70) = originalState70;
+		*(int*)(thisPtr + 0x3c) = originalState3C;
+		*(int*)(thisPtr + 0x6c) = originalState6C;
+		*(int*)(thisPtr + 0x70) = originalState70;
 		
 		return 1; // Path found successfully
 	}
@@ -5518,7 +5580,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CBC31, FakeAStarPathFinderClass::__AStarClass__Fin
 
 #ifndef DISABLE_HIERARCHICAL_PATHFINDING
 // TEMPORARY: Comment out to use regular pathfinding and isolate crash source
-// DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::Find_Path_Hierarchical)
+DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::Find_Path_Hierarchical)
 #endif
 
 ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
