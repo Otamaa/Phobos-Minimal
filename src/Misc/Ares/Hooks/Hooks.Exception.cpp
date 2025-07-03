@@ -1,4 +1,3 @@
-
 #include "Header.h"
 
 #include <Utilities/Patch.h>
@@ -22,6 +21,8 @@
 
 #include <GameModeOptionsClass.h>
 #include <GameOptionsClass.h>
+
+
 
 ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
@@ -105,15 +106,17 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	}
 	case 0x42C554:
 	case 0x42C53E:
-	case 0x42C507: {
-		//FootClass* pFoot = (FootClass*)(ExceptionInfo->ContextRecord->Ebp + 0x14);
-		//CellStruct* pFrom = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0x8);
-		//CellStruct* pTo = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0xC);
-		//MovementZone movementZone = (MovementZone)(ExceptionInfo->ContextRecord->Ebp + 0x10);
-
-		//AstarClass , broken ptr
-		reason = ("PathfindingCrash");
-		break;
+	case 0x42C507:
+	case 0x42C50E:
+	case 0x42C4FE: {
+		// Fallback exception handling for pathfinding crashes
+		// The main fixes are now implemented as ASMJIT patches above
+		// This is only a last resort if the patches fail
+		
+		// Jump to pathfinding failure cleanup
+		*eip_pointer = 0x42C740;  // Jump to pathfinding failure exit
+		reason = "PathfindingCrash";
+		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 	case 0x584DF7:
 		reason = ("SubzoneTrackingCrash");

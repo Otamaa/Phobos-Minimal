@@ -376,6 +376,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.EBolt.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Exception.cpp" />
+    <ClCompile Include="src\Misc\Hooks.PathfindingFix.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Firewall.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foundation.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.House.cpp" />
