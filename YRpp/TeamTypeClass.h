@@ -86,6 +86,10 @@ public:
 	HouseClass* GetHouse() const
 		{ JMP_THIS(0x6F2070); }
 
+	static bool __fastcall DoReinforcement(TeamTypeClass* pTeam, int where) {
+		JMP_STD(0x65D8E0);
+	}
+
 	//Constructor
 	TeamTypeClass(const char* pID) noexcept
 		: TeamTypeClass(noinit_t())

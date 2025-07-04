@@ -191,7 +191,7 @@ void TechnoTypeExtData::Initialize()
 
 void TechnoTypeExtData::CalculateSpawnerRange()
 {
-	auto pTechnoType = this->AttachedToObject;
+	auto pTechnoType = (FakeTechnoTypeClass*)this->AttachedToObject;
 	int weaponRangeExtra = this->Spawn_LimitedExtraRange * Unsorted::LeptonsPerCell;
 
 	auto setWeaponRange = [](int& weaponRange, WeaponTypeClass* pWeaponType)
@@ -200,20 +200,10 @@ void TechnoTypeExtData::CalculateSpawnerRange()
 				weaponRange = pWeaponType->Range;
 		};
 
-	if (pTechnoType->IsGattling)
-	{
-		for (int i = 0; i < pTechnoType->WeaponCount; i++)
-		{
-			setWeaponRange(this->SpawnerRange, pTechnoType->Weapon[i].WeaponType);
-			setWeaponRange(this->EliteSpawnerRange, pTechnoType->EliteWeapon[i].WeaponType);
-		}
-	}
-	else
-	{
-		setWeaponRange(this->SpawnerRange, pTechnoType->Weapon[0].WeaponType);
-		setWeaponRange(this->SpawnerRange, pTechnoType->Weapon[1].WeaponType);
-		setWeaponRange(this->EliteSpawnerRange, pTechnoType->EliteWeapon[0].WeaponType);
-		setWeaponRange(this->EliteSpawnerRange, pTechnoType->EliteWeapon[1].WeaponType);
+	const int wpCount = pTechnoType->IsGattling ? pTechnoType->WeaponCount : 2;
+	for (int i = 0; i < wpCount ; i++) {
+			setWeaponRange(this->SpawnerRange, pTechnoType->GetWeapon(i)->WeaponType);
+			setWeaponRange(this->EliteSpawnerRange, pTechnoType->GetEliteWeapon(i)->WeaponType);
 	}
 
 	this->SpawnerRange += weaponRangeExtra;

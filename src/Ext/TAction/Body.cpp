@@ -1646,6 +1646,18 @@ static void __fastcall UnlockImput() {
 	JMP_STD(0x684290);
 }
 
+static void __fastcall UIStuffs_MenuStuffs(){
+	JMP_STD(0x72DDB0);
+}
+
+static void __fastcall PlayMovie(int id, int theme, bool clrscreen_aft, bool stretch, bool clrscreen_before) {
+	JMP_STD(0x5BF260);
+}
+
+static void __fastcall Reset_SomeShapes_Post_Movie() {
+	JMP_STD(0x72DEF0);
+}
+
 static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret)
 {
 	switch (pThis->ActionKind)
@@ -1681,6 +1693,90 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			else
 				HouseClass::CurrentPlayer()->Lose(false);
 		}
+		return true;
+	}
+	case TriggerAction::ProductionBegins: {
+
+		if (auto pTrigOwner =  pThis->FindHouseByIndex(pTrigger,pThis->Value)) {
+			pTrigOwner->Production = true;
+			ret = true;
+		}
+
+		ret = false;
+		return true;
+	}
+	case TriggerAction::CreateTeam:{
+		++Unsorted::ScenarioInit;
+
+		if (auto pTeam = pThis->TeamType) {
+			pTeam->CreateTeam(nullptr);
+		}
+		--Unsorted::ScenarioInit;
+		return true;
+	}
+	case TriggerAction::DestroyTeam:{
+
+		if (auto pTeam = pThis->TeamType) {
+			pTeam->DestroyAllInstances();
+		}
+
+		return true;
+	}
+	case TriggerAction::AllToHunt:
+	{
+		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value)) {
+			pTrigOwner->All_To_Hunt();
+			ret = true;
+		}
+
+		ret = false;
+
+		return true;
+	}
+	case TriggerAction::Reinforcement:
+	{
+		if (auto pTeam = pThis->TeamType) {
+			ret = TeamTypeClass::DoReinforcement(pTeam, -1);
+		}
+
+		ret = false;
+		return true;
+	}
+	case TriggerAction::DropZoneFlare:
+	{
+		auto cell = ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint);
+		auto coord = CellClass::Cell2Coord(cell);
+		coord.Z = MapClass::Instance->GetCellFloorHeight(coord);
+
+		auto pCell = MapClass::Instance->GetCellAt(coord);
+
+		if (pCell->ContainsBridge() || pCell->ContainsBridgeBody())
+			coord.Z += CellClass::BridgeHeight;
+
+		GameCreate<AnimClass>(RulesClass::Instance->DropZoneAnim, coord)->IsPlaying = true;
+		return true;
+	}
+	case TriggerAction::FireSale:
+	{
+		if (auto pTrigOwner = pThis->FindHouseByIndex(pTrigger, pThis->Value))
+		{
+			pTrigOwner->AIMode = AIMode::SellAll;
+			ret = true;
+		}
+
+		ret = false;
+
+		return true;
+	}
+	case TriggerAction::PlayMovie:
+	{
+		UIStuffs_MenuStuffs();
+		WWMouseClass::Instance->ReleaseMouse();
+		ScenarioClass::ToggleDisplayMode(0);
+		PlayMovie(pThis->Value, -1, 1, 1, 1);
+		ScenarioClass::ToggleDisplayMode(1);
+		WWMouseClass::Instance->CaptureMouse();
+		Reset_SomeShapes_Post_Movie();
 		return true;
 	}
 	case TriggerAction::Lose:

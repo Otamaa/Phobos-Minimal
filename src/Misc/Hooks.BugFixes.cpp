@@ -2888,3 +2888,19 @@ ASMJIT_PATCH(0x71A7BC, TemporalClass_Update_DistCheck, 0x6)
 
 	return distance > (disatanceMax * 256) ? 0x71A83F : 0x71A84E;
 }
+
+ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_ReturnToSpawnOwner, 0x5)
+{
+
+	GET(AircraftClass* const, pThis, ESI);
+
+	const auto pSpawnOwner = pThis->SpawnOwner;
+
+	if (!pSpawnOwner)
+		return 0;
+
+	pThis->SetDestination(pSpawnOwner, true);
+	pThis->QueueMission(Mission::Move, false);
+
+	return 0x418D00;
+}

@@ -48,16 +48,22 @@ ASMJIT_PATCH(0x70982C, TechnoClass_TargetAndEstimateDamage_ScanDelay, 0x8)
 	pThis->TargetingTimer.Start(delay);
 	R->EDI(threat & 3);
 
-	if (pTypeExt->AutoFire) {
-		const auto pTarget = pTypeExt->AutoFire_TargetSelf ? pThis :
-		static_cast<AbstractClass*>(pThis->GetCell());
+	if (pThis->Target && pThis->ShouldLoseTargetNow)
+	{
+		if (pTypeExt->AutoFire)
+		{
+			const auto pTarget = pTypeExt->AutoFire_TargetSelf ? pThis :
+				static_cast<AbstractClass*>(pThis->GetCell());
 
-		pThis->SetTarget(pTarget);
-		return 0x7099B8;
+			pThis->SetTarget(pTarget);
+			return 0x7099B8;
+		}
+
+		R->EAX(pThis->Target);
+		return 0x7098CD;
 	}
 
-	R->EDI(threat & 3);
-	return 0x7098B9;
+	return 0x709918;
 }
 
 ASMJIT_PATCH(0x6FA67D, TechnoClass_Update_DistributeTargetingFrame, 0xA)
@@ -77,7 +83,7 @@ ASMJIT_PATCH(0x6FA67D, TechnoClass_Update_DistributeTargetingFrame, 0xA)
 	}
 
 	if(pThis->MegaMissionIsAttackMove()){
-		if(!RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft && (!pThis->Ammo || pThis->GetHeight() < Unsorted::CellHeight)) 
+		if(!RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft && (!pThis->Ammo || pThis->GetHeight() < Unsorted::CellHeight))
 			return SkipTargeting;
 
 		pThis->UpdateAttackMove();
