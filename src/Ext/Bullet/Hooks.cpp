@@ -156,6 +156,24 @@ ASMJIT_PATCH(0x4671B9, BulletClass_AI_ApplyGravity, 0x6)
 
 // we handle ScreenShake thru warhead
 DEFINE_JUMP(LJMP, 0x4690D4, 0x469130)
+
+ASMJIT_PATCH(0x4690D4, BulletClass_Logics_CheckHealth, 0x6)
+{
+	enum { SkipShaking = 0x469130, GoToExtras = 0x469AA4 };
+
+	GET(BulletClass*, pBullet, ESI);
+	GET(FakeWarheadTypeClass*, pWarhead, EAX);
+	GET_BASE(CoordStruct*, pCoords, 0x8);
+
+	if (auto pTarget = flag_cast_to<ObjectClass*>(pBullet->Target))
+	{
+		// Check if the WH should affect the techno target or skip it
+		if (!pWarhead->_GetExtData()->IsHealthInThreshold(pTarget))
+			return GoToExtras;
+	}
+
+	return 0x469130;
+}
 //DEFINE_SKIP_HOOK(0x4690D4 , BulletClass_Logics_Shake_Handled ,0x6 , 469130);
 
 ASMJIT_PATCH(0x469A75, BulletClass_Logics_DamageHouse, 0x7)

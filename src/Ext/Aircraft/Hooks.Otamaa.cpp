@@ -91,8 +91,14 @@ ASMJIT_PATCH(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
 	if (pTypeExt->Firing_IgnoreGravity.Get())
 		return 0x41631F;
 
+	if (pBullet->Type->Vertical || pBullet->HasParachute)
+	{
+		pBullet->Velocity = { 0, 0, pBullet->Velocity.Z };
+		return 0x41631F;
+	}
 	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 	const bool skipROT0Check = PhobosTrajectory::IgnoreAircraftROT0(pBulletExt->Trajectory);
+
 
 	if (!pBullet->Type->ROT) {
 

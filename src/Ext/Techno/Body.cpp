@@ -278,6 +278,11 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 	return true;
 }
 
+bool TechnoExtData::IsHealthInThreshold(ObjectClass* pObject, double min, double max) {
+	double hp = pObject->GetHealthPercentage();
+	return hp <= max && hp >= min;
+}
+
 // Check adjacent cells from the center
 // The current MapClass::Instance->PlacePowerupCrate(...) doesn't like slopes and maybe other cases
 bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects selectedPowerup, int maxCellRange)
@@ -2200,13 +2205,18 @@ bool TechnoExtData::ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeC
 {
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	if (pTargetObj && pWeaponExt->Targeting_Health_Percent.isset())
+	if (pTargetObj)
 	{
-		auto const pHP = pTargetObj->GetHealthPercentage();
+		if(pWeaponExt->Targeting_Health_Percent.isset()){
+			auto const pHP = pTargetObj->GetHealthPercentage();
 
-		if (!pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP <= pWeaponExt->Targeting_Health_Percent.Get())
-			return false;
-		else if (pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP >= pWeaponExt->Targeting_Health_Percent.Get())
+			if (!pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP <= pWeaponExt->Targeting_Health_Percent.Get())
+				return false;
+			else if (pWeaponExt->Targeting_Health_Percent_Below.Get() && pHP >= pWeaponExt->Targeting_Health_Percent.Get())
+				return false;
+		}
+
+		if(!pWeaponExt->IsHealthInThreshold(pTargetObj))
 			return false;
 	}
 

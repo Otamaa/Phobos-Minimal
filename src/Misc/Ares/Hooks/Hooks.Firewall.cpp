@@ -449,6 +449,11 @@ ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
 	REF_STACK(CoordStruct const, dest, STACK_OFFS(0x54, 0x10));
 
 	auto const pBulletOwner = pThis->Owner ? pThis->Owner->Owner : BulletExtContainer::Instance.Find(pThis)->Owner;
+	if (pThis->HasParachute)
+	{
+		pThis->Velocity = VelocityClass::Empty;
+		return 0x468A3F;
+	}
 
 	if (pThis->Type->Inviso)
 	{

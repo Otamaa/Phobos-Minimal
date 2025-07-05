@@ -250,6 +250,9 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->VisualScatter.Read(exINI, pSection, "VisualScatter");
 	this->TurretRecoil_Suppress.Read(exINI, pSection, "TurretRecoil.Suppress");
 
+	this->CanTarget_MaxHealth.Read(exINI, pSection, "CanTarget.MaxHealth");
+	this->CanTarget_MinHealth.Read(exINI, pSection, "CanTarget.MinHealth");
+
 	this->SkipWeaponPicking = true;
 	if (this->CanTarget != AffectedTarget::All ||
 		this->CanTargetHouses != AffectedHouse::All
@@ -257,7 +260,9 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		|| this->AttachEffect_RequiredTypes.size()
 		|| this->AttachEffect_RequiredGroups.size()
 		|| this->AttachEffect_DisallowedTypes.size()
-		|| this->AttachEffect_DisallowedGroups.size())
+		|| this->AttachEffect_DisallowedGroups.size()
+		|| this->CanTarget_MaxHealth < 1.0 || this->CanTarget_MinHealth > 0.0
+		)
 	{
 		this->SkipWeaponPicking = false;
 	}
@@ -403,6 +408,10 @@ bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoC
 	}
 
 	return true;
+}
+
+bool WeaponTypeExtData::IsHealthInThreshold(ObjectClass* pTarget) const {
+	return TechnoExtData::IsHealthInThreshold(pTarget, this->CanTarget_MinHealth, this->CanTarget_MaxHealth);
 }
 
 ColorStruct WeaponTypeExtData::GetBeamColor() const
@@ -570,6 +579,9 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->KeepRange_AllowPlayer)
 		.Process(this->VisualScatter)
 		.Process(this->TurretRecoil_Suppress)
+
+		.Process(this->CanTarget_MaxHealth)
+		.Process(this->CanTarget_MinHealth)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

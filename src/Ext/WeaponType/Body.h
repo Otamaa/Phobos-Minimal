@@ -197,6 +197,9 @@ public:
 	Valueable<bool> VisualScatter { false };
 	Valueable<bool> TurretRecoil_Suppress { false };
 
+	Valueable<double> CanTarget_MaxHealth { 1.0 };
+	Valueable<double> CanTarget_MinHealth { 0.0 };
+
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
@@ -217,6 +220,7 @@ public:
 
 	ColorStruct GetBeamColor() const;
 	bool HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoClass* pFirer);
+	bool IsHealthInThreshold(ObjectClass* pTarget) const;
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{

@@ -119,9 +119,10 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	// Crits
 	this->Crit_Chance.Read(exINI, pSection, "Crit.Chance");
 	this->Crit_ApplyChancePerTarget.Read(exINI, pSection, "Crit.ApplyChancePerTarget");
-	this->Crit_ExtraDamage_ApplyFirepowerMult.Read(exINI, pSection, "Crit.ExtraDamage.ApplyFirepowerMult");
 	this->Crit_ExtraDamage.Read(exINI, pSection, "Crit.ExtraDamage");
-	this->Crit_Warhead.Read(exINI, pSection, "Crit.Warhead");
+	this->Crit_ExtraDamage_ApplyFirepowerMult.Read(exINI, pSection, "Crit.ExtraDamage.ApplyFirepowerMult");
+	this->Crit_Warhead.Read(exINI, pSection, "Crit.Warhead", true);
+	this->Crit_Warhead_FullDetonation.Read(exINI, pSection, "Crit.Warhead.FullDetonation");
 	this->Crit_Affects.Read(exINI, pSection, "Crit.Affects");
 	this->Crit_AffectsHouses.Read(exINI, pSection, "Crit.AffectsHouses");
 	this->Crit_AnimList.Read(exINI, pSection, "Crit.AnimList");
@@ -130,8 +131,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Crit_ActiveChanceAnims.Read(exINI, pSection, "Crit.ActiveChanceAnims");
 	this->Crit_AnimOnAffectedTargets.Read(exINI, pSection, "Crit.AnimOnAffectedTargets");
 	this->Crit_AffectBelowPercent.Read(exINI, pSection, "Crit.AffectBelowPercent");
-	this->Crit_SuppressOnIntercept.Read(exINI, pSection, "Crit.SuppressWhenIntercepted");
-	this->Crit_GuaranteeAfterHealthTreshold.Read(exINI, pSection, "Crit.%sGuaranteeAfterVictimHealthTreshold");
+	this->Crit_AffectAbovePercent.Read(exINI, pSection, "Crit.AffectAbovePercent");
+	this->Crit_SuppressWhenIntercepted.Read(exINI, pSection, "Crit.SuppressWhenIntercepted");
 
 	this->MindControl_Anim.Read(exINI, pSection, "MindControl.Anim");
 
@@ -619,6 +620,9 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ElectricAssaultLevel.Read(exINI, pSection, "ElectricAssaultLevel");
 	this->AirstrikeTargets.Read(exINI, pSection, "AirstrikeTargets");
 	this->CanKill.Read(exINI, pSection, "CanKill");
+
+	this->AffectsBelowPercent.Read(exINI, pSection, "AffectsBelowPercent");
+	this->AffectsAbovePercent.Read(exINI, pSection, "AffectsAbovePercent");
 
 	this->ElectricAssault_Requireverses.Read(exINI, pSection, "ElectricAssault.Requireverses");
 }
@@ -1315,24 +1319,27 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->DecloakDamagedTargets)
 		.Process(this->ShakeIsLocal)
 		.Process(this->Shake_UseAlternativeCalculation)
+
 		.Process(this->Crit_Chance)
 		.Process(this->Crit_ApplyChancePerTarget)
 		.Process(this->Crit_ExtraDamage)
 		.Process(this->Crit_ExtraDamage_ApplyFirepowerMult)
 		.Process(this->Crit_Warhead)
+		.Process(this->Crit_Warhead_FullDetonation)
 		.Process(this->Crit_Affects)
 		.Process(this->Crit_AffectsHouses)
 		.Process(this->Crit_AnimList)
 		.Process(this->Crit_AnimList_PickRandom)
+		.Process(this->Crit_AnimList_CreateAll)
 		.Process(this->Crit_ActiveChanceAnims)
 		.Process(this->Crit_AnimOnAffectedTargets)
 		.Process(this->Crit_AffectBelowPercent)
-		.Process(this->Crit_SuppressOnIntercept)
-		.Process(this->Crit_GuaranteeAfterHealthTreshold)
-		.Process(this->RandomBuffer)
-		.Process(this->HasCrit)
-		.Process(this->Crit_CurrentChance)
-		.Process(this->Crit_AnimList_CreateAll)
+		.Process(this->Crit_AffectAbovePercent)
+		.Process(this->Crit_SuppressWhenIntercepted)
+		.Process(this->CritActive)
+		.Process(this->CritRandomBuffer)
+		.Process(this->CritCurrentChance)
+
 		.Process(this->MindControl_Anim)
 
 		// Ares tags
@@ -1636,12 +1643,17 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->ElectricAssault_Requireverses)
 		.Process(this->DamageSourceHealthMultiplier)
 		.Process(this->DamageTargetHealthMultiplier)
+
+
+		.Process(this->AffectsBelowPercent)
+		.Process(this->AffectsAbovePercent)
+
 		;
 
 	PaintBallData.Serialize(Stm);
 }
 
-void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>& chances) const
+void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) const
 {
 	chances = this->Crit_Chance;
 
@@ -1650,19 +1662,13 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, std::vector<double>&
 		return;
 	}
 
-	if (chances.empty())
-		chances.push_back(0.0);
-
 	const auto pExt = TechnoExtContainer::Instance.Find(pFirer);
 
 	if (pExt->AE.ExtraCrit.Enabled())
 	{
 		std::vector<AEProperties::ExtraCrit::CritDataOut> valids;
 		pExt->AE.ExtraCrit.FillEligible(this->AttachedToObject, valids);
-
-		for (auto& curChances : chances) {
-			curChances = AEProperties::ExtraCrit::Count(curChances, valids);
-		}
+		chances = AEProperties::ExtraCrit::Count(chances, valids);
 	}
 }
 
@@ -1675,6 +1681,11 @@ void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pI
 	PhobosAttachEffectClass::Attach(pTarget, pInvokerHouse, pInvoker, this->AttachedToObject, info);
 	PhobosAttachEffectClass::Detach(pTarget, info);
 	PhobosAttachEffectClass::DetachByGroups(pTarget, info);
+}
+
+bool WarheadTypeExtData::IsHealthInThreshold(ObjectClass* pTarget) const
+{
+	return TechnoExtData::IsHealthInThreshold(pTarget, this->AffectsAbovePercent, this->AffectsBelowPercent);
 }
 
 bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const

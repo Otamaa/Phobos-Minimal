@@ -78,25 +78,28 @@ public:
 	Valueable<bool> ShakeIsLocal { false };
 	Valueable<bool> Shake_UseAlternativeCalculation { false };
 
-	ValueableVector<double> Crit_Chance { };
+	Valueable<double> Crit_Chance { 0.0 };
 	Valueable<bool> Crit_ApplyChancePerTarget { false };
-	ValueableVector<int> Crit_ExtraDamage { };
+	Valueable<int> Crit_ExtraDamage;
 	Valueable<bool> Crit_ExtraDamage_ApplyFirepowerMult { false };
-	Valueable<WarheadTypeClass*> Crit_Warhead { nullptr };
+	Valueable<WarheadTypeClass*> Crit_Warhead;
+	Valueable<bool> Crit_Warhead_FullDetonation { true };
 	Valueable<AffectedTarget> Crit_Affects { AffectedTarget::All };
 	Valueable<AffectedHouse> Crit_AffectsHouses { AffectedHouse::All };
-	ValueableVector<AnimTypeClass*> Crit_AnimList {};
-	Nullable<bool> Crit_AnimList_PickRandom {};
-	Nullable<bool> Crit_AnimList_CreateAll {};
-	ValueableVector<AnimTypeClass*> Crit_ActiveChanceAnims {};
+	ValueableVector<AnimTypeClass*> Crit_AnimList;
+	Nullable<bool> Crit_AnimList_PickRandom { false };
+	Nullable<bool> Crit_AnimList_CreateAll { false };
+	ValueableVector<AnimTypeClass*> Crit_ActiveChanceAnims;
 	Valueable<bool> Crit_AnimOnAffectedTargets { false };
-	ValueableVector<double> Crit_AffectBelowPercent { };
-	Valueable<bool> Crit_SuppressOnIntercept { false };
-	NullablePromotable<double> Crit_GuaranteeAfterHealthTreshold {};
+	Valueable<double> Crit_AffectBelowPercent { 1.0 };
+	Valueable<double> Crit_AffectAbovePercent { 0.0 };
+	Valueable<bool> Crit_SuppressWhenIntercepted { false };
 
-	double RandomBuffer { 0.0 };
-	bool HasCrit { false };
-	std::vector<double> Crit_CurrentChance { };
+
+	bool CritActive {};
+	double CritRandomBuffer { 0.0 };
+	double CritCurrentChance { 0.0 };
+
 	Nullable<AnimTypeClass*> MindControl_Anim {};
 
 	// Ares tags
@@ -437,7 +440,8 @@ public:
 	Valueable<double> DamageSourceHealthMultiplier { 0.0 };
 	Valueable<double> DamageTargetHealthMultiplier { 0.0 };
 
-
+	Valueable<double> AffectsBelowPercent { 1.0 };
+	Valueable<double> AffectsAbovePercent { 0.0 };
 #pragma endregion
 
 public:
@@ -500,7 +504,7 @@ public:
 	bool ApplySuppressDeathWeapon(TechnoClass* pVictim) const;
 	void ApplyBuildingUndeploy(TechnoClass* pTarget);
 	void ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pInvokerHouse, TechnoClass* pInvoker);
-	void GetCritChance(TechnoClass* pFirer , std::vector<double>& chances) const;
+	void GetCritChance(TechnoClass* pFirer , double& chances) const;
 
 	COMPILETIMEEVAL VersesData& GetVerses(Armor armor) {
 		return this->Verses[static_cast<int>(armor)];
@@ -514,6 +518,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	void Initialize();
+	bool IsHealthInThreshold(ObjectClass* pTarget) const;
 
 	AnimTypeClass* GetArmorHitAnim(int Armor);
 

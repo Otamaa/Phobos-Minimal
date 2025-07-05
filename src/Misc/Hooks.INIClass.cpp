@@ -382,7 +382,9 @@ ASMJIT_PATCH(0x474230, CCINIClass_ReadCCFile1, 5)
 
 				CCFileClass nFile { node.Data->Value };
 				if (nFile.Exists()) {
-					Debug::Log("Reading Included INI file %s !\n", node.Data->Value);
+					if(Phobos::Otamaa::IsAdmin)
+						Debug::Log("Reading Included INI file %s !\n", node.Data->Value);
+
 					INIInheritance::LastINIFile->ReadCCFile(&nFile, false, false);
 				} else {
 

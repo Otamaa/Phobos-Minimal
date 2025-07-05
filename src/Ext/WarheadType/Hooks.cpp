@@ -226,7 +226,7 @@ ASMJIT_PATCH(0x48A4F0, CombatAnimSelect, 0x5)
 				}
 			}
 
-			if (pWHExt->HasCrit && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
+			if (pWHExt->CritActive && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
 				const size_t idx = pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect)) ?
 					ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
 					(MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25);

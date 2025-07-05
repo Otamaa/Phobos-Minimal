@@ -650,16 +650,29 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		this->applyTransactMoney(pOwner, pHouse, pBullet, coords);
 	}
 
-	 this->HasCrit = false;
-	 this->GetCritChance(pOwner, this->Crit_CurrentChance);
+	 this->GetCritChance(pOwner, this->CritCurrentChance);
 
-	this->RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
+	 if (!this->Crit_ApplyChancePerTarget)
+		this->CritRandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
+
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
-	if (IsCellSpreadWH(this) || (this->Crit_CurrentChance.size() == 1 && this->Crit_CurrentChance[0] > 0.0) || this->Crit_CurrentChance.size() > 1)
+	if (IsCellSpreadWH(this) || this->CritCurrentChance > 0.0)
 	{
+		if (this->Crit_ActiveChanceAnims.size() > 0 && this->CritCurrentChance > 0.0)
+		{
+			int idx = ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_ActiveChanceAnims.size() - 1);
+			auto const pAnim = GameCreate<AnimClass>(this->Crit_ActiveChanceAnims[idx], coords);
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_ActiveChanceAnims[idx], coords),
+				pHouse,
+				nullptr,
+				pOwner,
+				false, false);
+		}
+
 		const bool ThisbulletWasIntercepted = pBullet ? BulletExtContainer::Instance.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted : false;
 		const float cellSpread = this->AttachedToObject->CellSpread;
+
 
 		//if the warhead itself has cellspread
 		if (fabs(cellSpread) >= 0.1f)
@@ -668,7 +681,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 			std::for_each(pTargetv.begin(), pTargetv.end(), [&](TechnoClass* pTarget)
  {
-	 this->DetonateOnOneUnit(pHouse, pTarget, damage, pOwner, pBullet, ThisbulletWasIntercepted);
+				this->DetonateOnOneUnit(pHouse, pTarget, damage, pOwner, pBullet, ThisbulletWasIntercepted);
 			});
 
 			if (this->Transact)
@@ -768,7 +781,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (this->PermaMC)
 		this->applyPermaMC(pHouse, pTarget);
 
-	if (!this->Crit_CurrentChance.empty() && (!this->Crit_SuppressOnIntercept || !bulletWasIntercepted))
+	if (this->CritCurrentChance > 0.0 && (!this->Crit_SuppressWhenIntercepted || !bulletWasIntercepted))
 	{
 		this->ApplyCrit(pHouse, pTarget, pOwner);
 
@@ -965,48 +978,27 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 	if (TechnoExtData::IsCritImmune(pTarget))
 		return;
 
-	const auto& tresh = this->Crit_GuaranteeAfterHealthTreshold.Get(pTarget);
-	size_t level = 0;
+	double dice;
 
-	if (!tresh->isset() || pTarget->GetHealthPercentage() > tresh->Get())
-	{
-		if (!this->Crit_AffectBelowPercent.empty()) {
-			for (; level < this->Crit_AffectBelowPercent.size() - 1; level++) {
-				if (pTarget->GetHealthPercentage() > this->Crit_AffectBelowPercent[level + 1])
-					break;
-			}
-		}
+	if (this->Crit_ApplyChancePerTarget)
+		dice = ScenarioClass::Instance->Random.RandomDouble();
+	else
+		dice = this->CritRandomBuffer;
 
-		const double dice = this->Crit_ApplyChancePerTarget ?
-			ScenarioClass::Instance->Random.RandomDouble() : this->RandomBuffer;
+	if (this->CritCurrentChance < dice)
+		return;
 
-		const auto chance = this->Crit_CurrentChance.size() == 1 ? this->Crit_CurrentChance[0] :
-			this->Crit_CurrentChance.size() < level ? this->Crit_CurrentChance[level] : 0.0;
+	auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 
-		if (!this->Crit_ActiveChanceAnims.empty() && chance > 0.0) {
+	auto pSld = pTargetExt->Shield.get();
 
-			int idx = ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_ActiveChanceAnims.size() - 1);
+	if (pSld && pSld->IsActive() && pSld->GetType()->ImmuneToCrit)
+		return;
 
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_ActiveChanceAnims[idx], pTarget->Location),
-			pHouse,
-			pTarget->GetOwningHouse(),
-			pOwner,
-			false, false);
-		}
+	if (!TechnoExtData::IsHealthInThreshold(pTarget, this->Crit_AffectAbovePercent, this->Crit_AffectBelowPercent))
+		return;
 
-		if (chance < dice) {
-			return;
-		}
-	}
-
-	if (auto pExt = TechnoExtContainer::Instance.Find(pTarget))
-	{
-		const auto pSld = pExt->Shield.get();
-		if (pSld && pSld->IsActive() && pSld->GetType()->ImmuneToCrit)
-			return;
-	}
-
-	if (!EnumFunctions::CanTargetHouse(this->Crit_AffectsHouses, pHouse, pTarget->GetOwningHouse()))
+	if (pHouse && !EnumFunctions::CanTargetHouse(this->Crit_AffectsHouses, pHouse, pTarget->Owner))
 		return;
 
 	if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), this->Crit_Affects))
@@ -1015,47 +1007,45 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 	if (!EnumFunctions::IsTechnoEligible(pTarget, this->Crit_Affects))
 		return;
 
-	this->HasCrit = true;
+	this->CritActive = true;
 
-	if (this->Crit_AnimOnAffectedTargets && !this->Crit_AnimList.empty())
+	if (this->Crit_AnimOnAffectedTargets && this->Crit_AnimList.size())
 	{
 		if (!this->Crit_AnimList_CreateAll.Get(false))
 		{
-			const int idx = this->AttachedToObject->EMEffect || this->Crit_AnimList_PickRandom.Get(this->AnimList_PickRandom) ?
-				ScenarioClass::Instance->Random.RandomFromMax(this->Crit_AnimList.size() - 1) : 0;
+			int idx = this->AttachedToObject->EMEffect || this->Crit_AnimList_PickRandom.Get(false) ?
+				ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_AnimList.size() - 1) : 0;
 
+			auto const pAnim = GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location);
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location),
-				pHouse,
-				pTarget->GetOwningHouse(),
-				pOwner,
-				false, false
-			);
-		}else{
-			for (auto const& pType : this->Crit_AnimList) {
+			pHouse,
+			pTarget->GetOwningHouse(),
+			pOwner,
+			false, false);
+		}
+		else
+		{
+			for (auto const& pType : this->Crit_AnimList)
+			{
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pTarget->Location),
 				pHouse,
 				pTarget->GetOwningHouse(),
 				pOwner,
-				false, false
-			);
+				false, false);
 			}
 		}
-
-
-
 	}
 
-	int damage = 0;
-
-	if (this->Crit_ExtraDamage.size() == 1)
-		damage = Crit_ExtraDamage[0];
-	else if (this->Crit_ExtraDamage.size() > level)
-		damage = Crit_ExtraDamage[level];
-
-	damage = static_cast<int>(TechnoExtData::GetDamageMult(pOwner,damage,!this->Crit_ExtraDamage_ApplyFirepowerMult));
+	auto damage = this->Crit_ExtraDamage.Get();
+		damage = static_cast<int>(TechnoExtData::GetDamageMult(pOwner, damage, !this->Crit_ExtraDamage_ApplyFirepowerMult));
 
 	if (this->Crit_Warhead)
-		WarheadTypeExtData::DetonateAt(this->Crit_Warhead.Get(), pTarget, pOwner, damage, pHouse);
+	{
+		if (this->Crit_Warhead_FullDetonation)
+			WarheadTypeExtData::DetonateAt(this->Crit_Warhead.Get(), pTarget, pOwner, damage, pHouse);
+		else
+			this->DamageAreaWithTarget(pTarget->GetCoords(), damage, pOwner, this->Crit_Warhead, true, pHouse, pTarget);
+	}
 	else
 		pTarget->ReceiveDamage(&damage, 0, this->AttachedToObject, pOwner, false, false, pHouse);
 }
