@@ -1083,9 +1083,19 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
+	// Safety checks for critical pointers
+	if (!pThis || !pThis->Type) {
+		return 0x43FDF1;
+	}
+
 	int produceAmount = 0;
 	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 	auto pTExt = TechnoExtContainer::Instance.Find(pThis);
+	
+	// Additional safety checks for extension data
+	if (!pExt || !pTExt) {
+		return 0x43FDF1;
+	}
 
 	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
 	{ {
@@ -1097,7 +1107,8 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 
 	for (auto& [pbld, timer] : Timers)
 	{
-		if (pbld)
+		// Additional safety check for timer pointer
+		if (pbld && timer)
 		{
 			if (pbld->ProduceCashDelay > 0)
 			{
@@ -1113,7 +1124,7 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 		}
 	}
 
-	if (produceAmount && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline())
+	if (produceAmount && pThis->Owner && pThis->Owner->Type && !pThis->Owner->Type->MultiplayPassive && pThis->IsPowerOnline())
 	{
 
 		if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay)
