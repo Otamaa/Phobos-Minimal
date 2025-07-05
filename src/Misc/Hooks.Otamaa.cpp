@@ -5071,7 +5071,6 @@ ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 // END 42CB3F 5 , 42CCCB
 #include <Misc/PhobosGlobal.h>
 
-#ifdef _aaa
 ASMJIT_PATCH(0x42D197, AStarClass_Attempt_Entry, 0x5)
 {
 	GET_STACK(TechnoClass*, pTech, 0x24);
@@ -5113,7 +5112,6 @@ public:
 		return this->AStarClass__Find_Path(a2, dest, a4, path, max_count, a7, cellPath);
 	}
 #pragma optimize("", off )
-#ifdef _WIP
 	bool Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone mzone, FootClass* foot)
 	{
 		const double threat = foot ? foot->GetThreatAvoidance() : 0.0;
@@ -5132,12 +5130,12 @@ public:
 			auto zone_from = MapClass::Instance->MapClass_zone_56D3F0(from);
 			auto passabilityDataFrom = MapClass::GlobalPassabilityDatas() + zone_from;
 			auto pPassabilityFrom = passabilityDataFrom->data[idx_star];
-			auto zone_to = MapClass::Instance->MapClass_zone_56D3F0(from);
+			auto zone_to = MapClass::Instance->MapClass_zone_56D3F0(to);  // Fixed: was using 'from' twice
 			auto passabilityDataTo = MapClass::GlobalPassabilityDatas() + zone_to;
 			auto pPassabilityTo = passabilityDataTo->data[idx_star];
 
 			const bool isFirst = idx_star == 2;
-			const auto next_cost_ptr = !isFirst ? nullptr : this->ints_40_costs[idx_star + 1];
+			const auto next_cost_ptr = !isFirst ? this->ints_40_costs[idx_star + 1] : nullptr;  // Fixed: logic was inverted
 			const auto cur_cost_ptr = this->ints_40_costs[idx_star];
 			const auto cur_const_ptr_b = this->ints_4C_costs[idx_star];
 			const auto cur_cost_hirarcial_ptr = this->HierarchicalCosts[idx_star];
@@ -5287,12 +5285,12 @@ public:
 										ele_B = ele_shift_B;
 									}
 
-									this->HierarchicalQueue->Heap[ele_B] = pBuffer;
+									this->HierarchicalQueue->Heap[ele_B] = &pBuffer[_idxstart_here];
 									++this->HierarchicalQueue->Count;
-									if (pBuffer > this->HierarchicalQueue->MaxNodePointer)
-										this->HierarchicalQueue->MaxNodePointer = pBuffer;
-									if (pBuffer < this->HierarchicalQueue->MinNodePointer)
-										this->HierarchicalQueue->MinNodePointer = pBuffer;
+									if (&pBuffer[_idxstart_here] > this->HierarchicalQueue->MaxNodePointer)
+										this->HierarchicalQueue->MaxNodePointer = &pBuffer[_idxstart_here];
+									if (&pBuffer[_idxstart_here] < this->HierarchicalQueue->MinNodePointer)
+										this->HierarchicalQueue->MinNodePointer = &pBuffer[_idxstart_here];
 
 								}
 
@@ -5333,15 +5331,17 @@ public:
 
 				if (!first)
 				{
-					return 0;
+					return false;
 				}
 			}
 
+			// PATH RECONSTRUCTION - This is the critical missing piece
 			if (!first)
 			{
-				return 0;
+				return false;
 			}
 
+			// Mark all nodes in the path as visited (from decompiled code)
 			auto _copyFirst = first;
 			if (first->BufferDelta != -1)
 			{
@@ -5353,36 +5353,37 @@ public:
 				while (first->BufferDelta != -1);
 			}
 
-			int num__ = _copyFirst->Number + 1;
-			this->maxvalues_field_C74[idx_star] = num__;
-			int _num__ = num__ - 1;
-			if (_num__ > 0)
+			// Store path length and reconstruct path backwards
+			int pathLength = _copyFirst->Number + 1;
+			this->maxvalues_field_C74[idx_star] = pathLength;
+			int remainingSteps = pathLength - 1;
+			
+			if (remainingSteps > 0)
 			{
-				auto __ff = &this->somearray_BC[500 * idx_star + num__];
+				// Fill path array backwards from the goal
+				auto pathPtr = &this->somearray_BC[500 * idx_star + pathLength];
 				do
 				{
-					*__ff-- = _copyFirst->Index;
+					*--pathPtr = _copyFirst->Index;
 					_copyFirst = &this->BufferForHierarchicalQueue[_copyFirst->BufferDelta];
-					--_num__;
+					--remainingSteps;
 				}
-				while (_num__);
+				while (remainingSteps > 0);
 			}
 
+			// Store the start node
 			this->somearray_BC[500 * idx_star] = _copyFirst->Index;
 		}
 
-		return 1;
+		return true;
 	}
 
-#endif
 #pragma optimize("", on )
 };
 
 DEFINE_FUNCTION_JUMP(CALL, 0x4CBC31, FakeAStarPathFinderClass::__AStarClass__Find_Path)
 
-#ifdef _WIP
 DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::Find_Path_Hierarchical)
-#endif
 
 ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 {
@@ -5413,7 +5414,6 @@ ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
-#endif
 
 ASMJIT_PATCH(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
 {
