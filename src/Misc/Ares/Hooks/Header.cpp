@@ -74,7 +74,7 @@
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas { };
 std::vector<unsigned char>  StaticVars::ShpCompression1Buffer { };
 std::map<const TActionClass*, int>  StaticVars::TriggerCounts { };
-UniqueGamePtrC<MixFileClass>  StaticVars::aresMIX { };
+UniqueGamePtr<MixFileClass>  StaticVars::aresMIX { };
 std::string  StaticVars::MovieMDINI { "MOVIEMD.INI" };
 WaveColorData  StaticVars::TempColor { };
 
@@ -1096,8 +1096,7 @@ void TechnoExt_ExtData::GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 			if (pKillerTypeExt->AttachedToObject->MissileSpawn && pKiller->SpawnOwner)
 				pKiller = pKiller->SpawnOwner;
 
-			if (pKillerTypeExt->Bounty_ReceiveSound != -1)
-				VocClass::SafeImmedietelyPlayAt(pKillerTypeExt->Bounty_ReceiveSound, &pKiller->Location);
+			VocClass::SafeImmedietelyPlayAt(pKillerTypeExt->Bounty_ReceiveSound, &pKiller->Location);
 
 			pKiller->Owner->TransactMoney(nValueResult);
 			TechnoExtContainer::Instance.Find(pKiller)->TechnoValueAmount += nValueResult;
@@ -3858,6 +3857,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 
 	// Update open topped state of potential passengers if transport's OpenTopped value changes.
 	// OpenTopped does not work properly with buildings to begin with which is why this is here rather than in the Techno update one.
+	
 	if (pThis->Passengers.NumPassengers > 0)
 	{
 		const bool toOpenTopped = pCurrentType->OpenTopped;
@@ -3898,7 +3898,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 	{
 		pThis->RemoveGunner(nullptr);
 	}
-
+	
 	if (!pCurrentType->CanDisguise || (!pThis->Disguise && pCurrentType->PermaDisguise))
 	{
 		// When it can't disguise or has lost its disguise, update its disguise.
@@ -8684,11 +8684,10 @@ void AresGlobalData::ReadAresRA2MD(CCINIClass* Ini)
 			PhobosCRT::strCopy(ModVersion, Phobos::readBuffer);
 		}
 
-		AresSafeChecksummer crc;
-		crc.Add(ModName, strlen(ModName));
-		crc.Commit();
-		crc.Add(ModVersion, strlen(ModVersion));
-		ModIdentifier = Ini->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.GetValue()));
+		SafeChecksummer crc {};
+		crc.operator()(ModName);
+		crc.operator()(ModVersion);
+		ModIdentifier = Ini->ReadInteger("VersionInfo", "Identifier", static_cast<int>(crc.operator unsigned int()));
 
 		Debug::LogInfo("Color count is {}", colorCount);
 		Debug::LogInfo("Mod is {0} ({1}) with 0x{2:x}",

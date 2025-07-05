@@ -17,6 +17,8 @@
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
 
+#include <Straws.h>
+
 #define PARSE(who)\
 if (IS_SAME_STR_(parser.value(), who ##_data.s_name)) { \
 	CLSID who ##_dummy; \
@@ -98,11 +100,19 @@ struct Passthrough {
 
 struct INIInheritance
 {
-	static COMPILETIMEEVAL const char* const IcludesSection = "$Include";
+	static COMPILETIMEEVAL const char* const AresIncludesSection = "#include";
+	static COMPILETIMEEVAL const char* const IncludesSection = "$include";
+
+	static COMPILETIMEEVAL const char* const AresIncludesSectionB = "#Include";
+	static COMPILETIMEEVAL const char* const IncludesSectionB = "$Include";
+	static COMPILETIMEEVAL DWORD const IncludeSection_CRC = 0x3a6239ac;
+
+	static COMPILETIMEEVAL const char* const InheritsSection = "$Inherits";
 	static COMPILETIMEEVAL int inheritsCRC = -1871638965; // CRCEngine()("$Inherits", 9)
-	static OPTIONALINLINE CCINIClass* LastINIFile;
-	static OPTIONALINLINE std::set<std::string> SavedIncludes;
-	static OPTIONALINLINE PhobosMap<int, std::string> Inherits;
+
+	static CCINIClass* LastINIFile;
+	static std::set<std::string> SavedIncludes;
+	static std::unordered_map<int, std::string, Passthrough> Inherits;
 
 	static int Finalize(char* buffer ,int length, const char* result)
 	{
@@ -123,7 +133,7 @@ struct INIInheritance
 		if (!buffer || length < 2)
 			return 0;
 
-		const INIClass::INISection* pSection = useCurrentSection ?
+		const INISection* pSection = useCurrentSection ?
 			ini->CurrentSection :
 			ini->SectionIndex.IsPresent(sectionCRC) ? ini->SectionIndex.Archive->Data : nullptr;
 
@@ -163,7 +173,7 @@ struct INIInheritance
 			return 0;
 
 		// read $Inherits entry only once per section
-		const auto it = INIInheritance::Inherits.get_key_iterator(sectionCRC);
+		const auto it = INIInheritance::Inherits.find(sectionCRC);
 
 		std::string inherits_result;
 
@@ -172,7 +182,7 @@ struct INIInheritance
 			char stringBuffer[0x100];
 			// if there's no saved $Inherits entry for this section, read now
 			resultLen = INIInheritance::ReadStringUseCRCActual(ini, sectionCRC, inheritsCRC, NULL, stringBuffer, 0x100, useCurrentSection);
-			INIInheritance::Inherits.emplace_unchecked(sectionCRC, std::string(stringBuffer));
+			INIInheritance::Inherits.emplace(sectionCRC, std::string(stringBuffer));
 
 			// if we failed to find $Inherits, stop
 			if (resultLen == 0)
@@ -259,6 +269,10 @@ struct INIInheritance
 	}
 };
 
+CCINIClass* INIInheritance::LastINIFile;
+std::set<std::string> INIInheritance::SavedIncludes;
+std::unordered_map<int, std::string, Passthrough> INIInheritance::Inherits;
+
 // INIClass__GetInt__Hack // pop edi, jmp + 6, nop
 DEFINE_PATCH(0x5278C6, 0x5F, 0xEB, 0x06, 0x90);
 
@@ -328,48 +342,63 @@ ASMJIT_PATCH(0x528BAC, INIClass_GetString_Inheritance_NoEntry, 0x6)
 	return 0x528BB6;
 }
 
-ASMJIT_PATCH(0x474230, CCINIClass_Load_Inheritance, 0x5)
+
+#pragma region INCLUDES
+
+ASMJIT_PATCH(0x474230, CCINIClass_ReadCCFile1, 5)
 {
-	if (!Phobos::Config::UseNewIncludes)
-		return 0x0;
+	GET(CCINIClass*, pINI, ESI);
+	//LEA_STACK(FileStraw*, pStraw, 0xBC);
 
-	GET(CCINIClass*, ini, ESI);
-
-	// if we're in a different CCINIClass now, clear old data
-	if (ini != INIInheritance::LastINIFile)
 	{
-		INIInheritance::LastINIFile = ini;
-		INIInheritance::SavedIncludes.clear();
-	}
+		//auto pFile = pStraw->File;
+		//const char* filename = pFile->GetFileName();
+		// if we're in a different CCINIClass now, clear old data
+		if (pINI != INIInheritance::LastINIFile)
+		{
+			INIInheritance::LastINIFile = pINI;
+			INIInheritance::SavedIncludes.clear();
+		}
 
-	if (auto section = ini->GetSection(INIInheritance::IcludesSection)) {
-		for (auto& node : section->EntryIndex) {
+		auto section = pINI->GetSection(!Phobos::Config::UseNewIncludes ?
+			INIInheritance::AresIncludesSection : INIInheritance::IncludesSection);
 
-			if (!node.Data || !node.Data->Value || !*node.Data->Value)
-				continue;
+		if(!section) section = pINI->GetSection(!Phobos::Config::UseNewIncludes ?
+			INIInheritance::AresIncludesSectionB : INIInheritance::IncludesSectionB);
 
-			auto filename = std::string(node.Data->Value);
+		if (section) {
 
-			if (INIInheritance::SavedIncludes.contains(filename))
-				continue;
+			for (auto& node : section->EntryIndex) {
 
-			INIInheritance::SavedIncludes.insert(std::move(filename));
+				if (!node.Data || !node.Data->Value || !*node.Data->Value)
+					continue;
 
-			CCFileClass nFile { node.Data->Value };
-			if (nFile.Exists())
-				INIInheritance::LastINIFile->ReadCCFile(&nFile, false, false);
-			else {
+				std::string nodefilename = std::string(node.Data->Value);
 
-				if(!Phobos::Otamaa::IsAdmin)
-					Debug::FatalErrorAndExit("Included INI file %s does not exist", node.Data->Value);
-				else
-					Debug::Log("Included INI file %s does not exist\n", node.Data->Value);
+				if (INIInheritance::SavedIncludes.contains(nodefilename))
+					continue;
+
+				INIInheritance::SavedIncludes.insert(std::move(nodefilename));
+
+				CCFileClass nFile { node.Data->Value };
+				if (nFile.Exists()) {
+					Debug::Log("Reading Included INI file %s !\n", node.Data->Value);
+					INIInheritance::LastINIFile->ReadCCFile(&nFile, false, false);
+				} else {
+
+					if(!Phobos::Otamaa::IsAdmin)
+						Debug::FatalErrorAndExit("Included INI file %s does not exist", node.Data->Value);
+					else
+						Debug::Log("Included INI file %s does not exist\n", node.Data->Value);
+				}
 			}
 		}
 	}
 
 	return 0;
 }
+
+#pragma endregion
 
 // Fix issue with TilesInSet caused by incorrect vanilla INIs and the fixed parser returning correct default value (-1) instead of 0 for existing non-integer values
 int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis, void* _, const char* pSection, const char* pKey, int defaultValue)
@@ -381,26 +410,3 @@ int __fastcall IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper(INIClass* pThis
 }
 
 DEFINE_FUNCTION_JUMP(CALL, 0x545FD4, IsometricTileTypeClass_ReadINI_TilesInSet_Wrapper);
-
-//ASMJIT_PATCH(0x527B0A, INIClass_Get_UUID, 0x8)
-//{
-//	GET(wchar_t*, buffer, ECX);
-//	COMPILETIMEEVAL size_t BufferSize = 0x80;
-//
-//	if (buffer[0] != L'{')
-//	{
-//		for (auto const&[name , CLSID] : EnumFunctions::LocomotorPairs_ToWideStrings) {
-//			if (CRT::wcsicmp(buffer, name) == 0) {
-//				wcscpy_s(buffer, BufferSize, CLSID);
-//				return 0;
-//			}
-//		}
-//
-//		if (IS_SAME_WSTR(buffer, Levitate_data.w_name)) {
-//			wcscpy_s(buffer, BufferSize, Levitate_data.w_CLSID);
-//			return 0;
-//		}
-//	}
-//
-//	return 0;
-//}

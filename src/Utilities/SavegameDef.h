@@ -631,6 +631,7 @@ namespace Savegame
 		}
 	};
 
+	/*
 	template <typename T>
 	struct Savegame::PhobosStreamObject<UniqueGamePtrC<T>>
 	{
@@ -660,7 +661,7 @@ namespace Savegame
 		{
 			return PersistObject(Stm, Value.get());
 		}
-	};
+	};*/
 
 	template <>
 	struct Savegame::PhobosStreamObject<UniqueGamePtr<BytePalette>>

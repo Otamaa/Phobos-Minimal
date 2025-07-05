@@ -2,7 +2,7 @@
 
 #include <YRPP.h>
 
-class NOVTABLE Pipe
+class Pipe
 {
 public:
 	explicit Pipe() = default;
@@ -77,9 +77,7 @@ public:
 	{
 	}
 
-	virtual ~BufferPipe() override final
-	{
-	}
+	virtual ~BufferPipe() override { }
 
 	virtual int Put(void const* pSource, int nLength) override final
 	{
@@ -157,4 +155,32 @@ public:
 private:
 	LCWPipe(LCWPipe& rvalue) = delete;
 	LCWPipe& operator=(LCWPipe const& pipe) = delete;
+};
+
+class FilePipe : public Pipe
+{
+public:
+	static OPTIONALINLINE COMPILETIMEEVAL DWORD vtable = 0x7E4DA0;
+
+	virtual ~FilePipe()
+	{
+		if (this->File && this->HasOpened)
+		{
+			this->File->Close();
+			this->HasOpened = 0;
+			this->File = 0;
+		}
+		this->Pipe::~Pipe();
+	}
+
+	void Destroy()
+	{
+		JMP_THIS(0x7BA420);
+	}
+
+	virtual int End() { JMP_THIS(0x7BA450); }
+	virtual int Put(void const* source, int length) { JMP_THIS(0x7BA480); }
+
+	FileClass* File;
+	bool HasOpened;
 };

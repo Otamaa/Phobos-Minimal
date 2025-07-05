@@ -14,75 +14,66 @@
 #include <GameStrings.h>
 #include <Helpers/VTable.h>
 
-class TechnoTypeClass;
+#include <INIComment.h>
+#include <INIEntry.h>
+#include <INISection.h>
 
+class TechnoTypeClass;
+class FileStraw;
 //Basic INI class
 class INIClass
 {
-public:
-	struct INIComment
-	{
-		char* Value;
-		INIComment* Next;
-	};
-	static_assert(sizeof(INIComment) == 0x8, "Invalid size.");
-
-	class INIEntry : public Node<INIEntry>
-	{
-	public:
-		char* Key;
-		char* Value;
-		INIComment* Comments;
-		char* CommentString;
-		int PreIndentCursor;
-		int PostIndentCursor;
-		int CommentCursor;
-	};
-	static_assert(sizeof(INIEntry) == 0x28, "Invalid size.");
-
-	class INISection : public Node<INISection>
-	{
-	public:
-		using EntryIndexes = IndexClass<int, INIEntry*>;
-
-		char* Name;
-		List<INIEntry*> Entries;
-		EntryIndexes EntryIndex;
-		INIComment* Comments;
-
-		void DeallocINISection(){
-			JMP_THIS(0x52AB80);
-		}
-
-		void VectorDealloc(char args) {
-			JMP_THIS(0x52AE00);
-		}
-
-		//virtual ~INISection() = default;
-		//INISection() = delete; //TODO
-	};
-	static_assert(sizeof(INISection) == 0x44, "Invalid size.");
-
 
 public:
 	using IndexType = IndexClass<int, INISection*>;
 
-	char* CurrentSectionName;
+	const char* CurrentSectionName;
 	INISection* CurrentSection;
 	DECLARE_PROPERTY(List<INISection>, Sections);
 	DECLARE_PROPERTY(IndexType, SectionIndex); // <CRCValue of the Name, Pointer to the section>
 	INIComment* LineComments;
 
 public:
+
 	INIClass()
-		{ JMP_THIS(0x535AA0); }
+	{ JMP_THIS(0x535AA0); }
 
-protected:
-	INIClass(bool) { }
+	virtual ~INIClass() { JMP_THIS(0x5256F0); };
 
-public:
+	DWORD CalculateTextCRCChecksums(const char* pText);
 
-	virtual ~INIClass();
+	INISection* GetOrReturnCurrenSection(const char* pSection)
+	{
+		if (this->CurrentSectionName == pSection)
+			return this->CurrentSection;
+
+		if (auto pData = this->SectionIndex.FetchItem(CalculateTextCRCChecksums(pSection), true)) {
+			if (auto pINISection = pData->Data) {
+				this->CurrentSection = pINISection;
+				this->CurrentSectionName = pSection;
+				return pINISection;
+			}
+		}
+
+		return nullptr;
+	}
+
+	const char* GetKeyValue(const char* pSection, const char* pKey, const char* pDefault)
+	{
+		if (INISection* pSectionRes = GetOrReturnCurrenSection(pSection)) {
+			if (auto pResult = pSectionRes->EntryIndex.FetchItem(CalculateTextCRCChecksums(pKey), true)) {
+				if (pResult->Data) {
+					return pResult->Data->Value;
+				}
+			}
+		}
+
+		return pDefault;
+	}
+
+	bool Load(FileStraw* straw, bool loadcomments) {
+		JMP_THIS(0x525A60);
+	}
 
 	void Reset()
 		{ JMP_THIS(0x526B00); }
@@ -438,9 +429,7 @@ public:
 	static COMPILETIMEEVAL reference<CCINIClass, 0x8870C0u> const INI_RA2MD{};
 
 	//non-static
-	CCINIClass() : INIClass(false) {
-		THISCALL(0x535AA0);
-		Digested = false;
+	CCINIClass() : INIClass(), Digested { false } {
 		VTable::Set(this, vtable);
 	}
 

@@ -182,7 +182,7 @@ public:
 				if(Phobos::Otamaa::OutputAudioLogs)
 					Debug::LogInfo("Reading {}" , filename);
 
-				auto pBag = UniqueGamePtrC<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename.c_str()));
+				auto pBag = UniqueGamePtr<CCFileClass>(GameCreateUnchecked<CCFileClass>(filename.c_str()));
 
 				if (pBag->Exists()
 					&& pBag->Open(FileAccessMode::Read))
@@ -239,7 +239,7 @@ public:
 
 	public:
 		std::string BagFile;
-		UniqueGamePtrC<CCFileClass> Bag; //big file that contains the audios
+		UniqueGamePtr<CCFileClass> Bag; //big file that contains the audios
 		std::vector<AudioIDXEntry> Entries; //every audio data that sit inside the file above
 	};
 

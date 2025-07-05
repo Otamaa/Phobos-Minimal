@@ -50,8 +50,8 @@ enum class PhobosTriggerAction : unsigned int
 	ClearAngerNode = 608,
 	SetForceEnemy = 609,
 
-	CreateBannerGlobal = 800, // any banner w/ global variable
-	CreateBannerLocal = 801, // any banner w/ local variable
+	CreateBannerLocal = 800, // any banner w/ local variable
+	CreateBannerGlobal = 801, // any banner w/ global variable
 	DeleteBanner = 802,
 
 	//#620

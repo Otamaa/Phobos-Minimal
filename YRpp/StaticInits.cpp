@@ -82,28 +82,6 @@ std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
 //ALIAS(BombListClass , BombList , 0x87F5D8u)
 //#pragma endregion
 
-INIClass::~INIClass()
-{
-	this->Clear(nullptr, nullptr);
-
-	auto find = this->LineComments;
-	if (this->LineComments)
-	{
-		do
-		{
-			auto cur = std::exchange(find, find->Next);
-			if (cur->Value)
-				CRT::free(cur->Value);
-
-			YRMemory::Deallocate(cur);
-		}
-		while (find);
-	}
-
-	this->Sections.UnlinkAll();
-	this->SectionIndex.~IndexClass<int, INISection*>();
-}
-
 AnimClass* BulletClass::CreateDamagingBulletAnim(HouseClass* pHouse, CellClass* pTarget, BulletClass* pBullet, AnimTypeClass* pAnimType)
 {
 	if (!pAnimType)
@@ -675,6 +653,10 @@ void InfantryClass::UnslaveMe()
 			pManager->LostSlave(this);
 		}
 	}
+}
+
+DWORD INIClass::CalculateTextCRCChecksums(const char* pText) {
+	return SafeChecksummer()(pText);
 }
 
 template<class T>

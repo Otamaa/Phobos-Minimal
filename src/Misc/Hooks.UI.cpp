@@ -61,7 +61,7 @@ ASMJIT_PATCH(0x641EE0, PreviewClass_ReadPreview, 0x6)
 		ini.CurrentSection = nullptr;
 		ini.CurrentSectionName = nullptr;
 
-		ScenarioClass::Instance->ReadStartPoints(ini);
+		ScenarioClass::Instance->ReadStartPoints(&ini);
 
 		bResult = pThis->ReadPreviewPack(ini);
 	}

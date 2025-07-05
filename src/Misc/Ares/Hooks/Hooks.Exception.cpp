@@ -618,11 +618,9 @@ void LogItem(const T* it, int idx, FILE* F)
 {
 	if (it->WhatAmI() != AnimClass::AbsID || it->Fetch_ID() != -2)
 	{
-		DWORD Checksum(0);
-		SafeChecksummer Ch;
+		SafeChecksummer Ch {};
 		it->ComputeCRC(Ch);
-		Checksum = Ch.CRC;
-		WriteLogLine(it, idx, Checksum, F);
+		WriteLogLine(it, idx, Ch.operator unsigned int(), F);
 	}
 }
 

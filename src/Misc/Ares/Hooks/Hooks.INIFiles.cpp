@@ -4,6 +4,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Parser.h>
 #include <Utilities/Constructs.h>
+#include <Utilities/Macro.h>
 
 #include "AresChecksummer.h"
 
@@ -14,103 +15,23 @@
 	Line 2543: [15:45:23] SyringeDebugger::HandleException: Ares.dll [0x525ddb , INIClass_Parse_IniSectionIncludes_PreProcess2 , 5]
 */
 
-INIClass::INISection* SectionCompare;
-int KeyCompareIdx;
-GenericNode* NodeCompare;
+struct AresINIData {
+	static COMPILETIMEEVAL const char* const iteratorChar = "+";
+	static COMPILETIMEEVAL const char* const iteratorReplacementFormat = "var_%d";
 
-COMPILETIMEEVAL const char* const iteratorChar = "+";
-COMPILETIMEEVAL const char* const iteratorReplacementFormat = "var_%d";
+	static INISection* SectionCompare;
+	static int KeyCompareIdx;
+	static int iteratorValue;
+	static GenericNode* NodeCompare;
+};
 
-int iteratorValue = 0;
+INISection* AresINIData::SectionCompare;
+int AresINIData::KeyCompareIdx;
+int AresINIData::iteratorValue = 0;
+GenericNode* AresINIData::NodeCompare;
+
 #include <New/Type/GenericPrerequisite.h>
 
-#pragma region Classes
-
-NOINLINE INIClass::INISection* GetSection(INIClass* pINI, const char* pSection)
-{
-	if (pINI->CurrentSectionName == pSection)
-		return pINI->CurrentSection;
-
-	AresSafeChecksummer cf;
-
-	if (pSection)
-	{
-		if (auto len = strlen(pSection))
-		{
-			const size_t len_t = len & 0xFFFFFFFC;
-
-			if (len_t != 0)
-			{
-				cf.Value = AresSafeChecksummer::Process(pSection, len_t, 0);
-				len -= len_t;
-			}
-
-			if (len)
-	{
-				*cf.Bytes = 0;
-				std::memcpy(cf.Bytes, &pSection[len_t], len);
-				cf.ByteIndex = len;
-			}
-		}
-
-		cf.Value = cf.GetValue();
-	}
-
-	if (auto pData = pINI->SectionIndex.FetchItem(cf.Value, true))
-	{
-		if (pData->Data)
-		{
-			pINI->CurrentSection = pData->Data;
-			pINI->CurrentSectionName = (char*)pSection;
-			return pData->Data;
-		}
-	}
-
-	return nullptr;
-}
-
-NOINLINE const char* GetKeyValue(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault)
-{
-	if (INIClass::INISection* pSectionRes = GetSection(pINI, pSection))
-	{
-		AresSafeChecksummer cf;
-
-		if (pKey)
-		{
-			if (auto len = strlen(pKey))
-			{
-				const size_t len_t = len & 0xFFFFFFFC;
-
-				if (len_t != 0)
-				{
-					cf.Value = AresSafeChecksummer::Process(pKey, len_t, 0);
-					len -= len_t;
-				}
-
-				if (len)
-				{
-					*cf.Bytes = 0;
-					std::memcpy(cf.Bytes, &pKey[len_t], len);
-					cf.ByteIndex = len;
-				}
-			}
-
-			cf.Value = cf.GetValue();
-		}
-
-		if (auto pResult = pSectionRes->EntryIndex.FetchItem(cf.Value, true))
-		{
-			if (pResult->Data)
-			{
-				return pResult->Data->Value;
-			}
-		}
-	}
-
-	return pDefault;
-}
-
-#pragma endregion
 
 ASMJIT_PATCH(0x528A10, INIClass_GetString, 5)
 {
@@ -126,28 +47,20 @@ ASMJIT_PATCH(0x528A10, INIClass_GetString, 5)
 
 	int ret_len = 0;
 
-	if (buffer && bufferlength >= 2 && pSection && pKey)
-	{
-		if (auto result = GetKeyValue(pThis, pSection, pKey, pDefault))
-		{
-			auto resultcopy = result;
-			for (auto i = *result; i <= ' '; i = *++resultcopy) {
-				if (!i)
-					break;
-			}
+	if (buffer && bufferlength >= 2 && pSection && pKey) {
+		if (auto result = pThis->GetKeyValue(pSection, pKey, pDefault)) {
+			// Trim leading whitespace
+			while (*result && *result <= ' ')
+				++result;
 
-			int len = strlen(resultcopy);
-			for (; len; --len)
-			{
-				if (resultcopy[len - 1] > ' ')
-					break;
-			}
+			// Compute trimmed length (excluding trailing spaces)
+			size_t len = strlen(result);
+			while (len > 0 && result[len - 1] <= ' ')
+				--len;
 
-			ret_len = bufferlength - 1;
-			if (bufferlength - 1 >= len)
-				ret_len = len;
-
-			std::memcpy(buffer, resultcopy, (size_t)ret_len);
+			// Copy at most outLength - 1 characters
+			ret_len = MinImpl(len, bufferlength - 1);
+			std::memcpy(buffer, result, (size_t)ret_len);
 		}
 
 		*(ret_len + buffer) = '\0';
@@ -166,20 +79,20 @@ ASMJIT_PATCH(0x526CC0, INIClass_Section_GetKeyName, 7)
 	GET_STACK(const char*, pSection, 0x4);
 	GET_STACK(int, idx, 0x8);
 
-	auto pResult = GetSection(pThis, pSection);
+	auto pResult = pThis->GetOrReturnCurrenSection(pSection);
 
 	if (pResult && idx < pResult->EntryIndex.Count())
 	{
-		if (pResult == SectionCompare
-			&& (KeyCompareIdx + 1) == idx
-			&& NodeCompare != pResult->Entries.GetLast()
+		if (pResult == AresINIData::SectionCompare
+			&& (AresINIData::KeyCompareIdx + 1) == idx
+			&& AresINIData::NodeCompare != pResult->Entries.GetLast()
 			)
 		{
 
-			auto result = NodeCompare->Next();
-			++KeyCompareIdx;
-			NodeCompare = result;
-			R->EAX(((INIClass::INIEntry*)result)->Key);
+			auto result = AresINIData::NodeCompare->Next();
+			++AresINIData::KeyCompareIdx;
+			AresINIData::NodeCompare = result;
+			R->EAX(((INIEntry*)result)->Key);
 			return 0x526D8A;
 		}
 		else
@@ -189,10 +102,10 @@ ASMJIT_PATCH(0x526CC0, INIClass_Section_GetKeyName, 7)
 			for (int i = idx; i > 0; --i)
 				v7 = v7->Next();
 
-			KeyCompareIdx = idx;
-			NodeCompare = v7;
-			SectionCompare = pResult;
-			R->EAX(((INIClass::INIEntry*)v7)->Key);
+			AresINIData::KeyCompareIdx = idx;
+			AresINIData::NodeCompare = v7;
+			AresINIData::SectionCompare = pResult;
+			R->EAX(((INIEntry*)v7)->Key);
 			return 0x526D8A;
 		}
 	}
@@ -201,12 +114,11 @@ ASMJIT_PATCH(0x526CC0, INIClass_Section_GetKeyName, 7)
 	return 0x526D8A;
 }
 
-
 ASMJIT_PATCH(0x5260d9, INIClass_Parse_Override, 7)
 {
 	struct INIClass_ {
 		BYTE gap[44];
-		IndexClass<int, INIClass::INISection*> SectionIndex;
+		IndexClass<int, INISection*> SectionIndex;
 	};
 	static_assert(sizeof(INIClass_) == 0x40, "Invalid Size!");
 
@@ -243,12 +155,12 @@ ASMJIT_PATCH(0x5260d9, INIClass_Parse_Override, 7)
 // Increment `+=` thingy
 ASMJIT_PATCH(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 {
-	GET(CCINIClass::INIEntry*, entry, ESI);
+	GET(INIEntry*, entry, ESI);
 
-	if (!CRT::strcmp(entry->Key, iteratorChar)) {
+	if (!CRT::strcmp(entry->Key, AresINIData::iteratorChar)) {
 
 		char buffer[0x10];
-		sprintf_s(buffer, iteratorReplacementFormat, iteratorValue++);
+		sprintf_s(buffer, AresINIData::iteratorReplacementFormat, AresINIData::iteratorValue++);
 
 		if (auto data = std::exchange(entry->Key, CRT::strdup(buffer)))
 			CRT::free(data);
@@ -262,21 +174,21 @@ ASMJIT_PATCH(0x525D23, INIClass_Parse_IteratorChar2, 5)
 	GET(char*, value, ESI);
 	LEA_STACK(char*, key, 0x78)
 
-		if (!CRT::strcmp(key, iteratorChar))
-		{
-			char buffer[0x200];
-			strcpy_s(buffer, value);
-			int len = sprintf_s(key, sizeof(buffer),
-				iteratorReplacementFormat,
-				iteratorValue++);
+	if (!CRT::strcmp(key, AresINIData::iteratorChar))
+	{
+		char buffer[0x200];
+		strcpy_s(buffer, value);
+		int len = sprintf_s(key, sizeof(buffer),
+			AresINIData::iteratorReplacementFormat,
+			AresINIData::iteratorValue++);
 
-			if (len >= 0)
-			{
-				char* newValue = &key[len + 1];
-				strcpy_s(newValue, 511 - len, buffer);
-				R->ESI<char*>(newValue);
-			}
+		if (len >= 0)
+		{
+			char* newValue = &key[len + 1];
+			strcpy_s(newValue, 511 - len, buffer);
+			R->ESI<char*>(newValue);
 		}
+	}
 
 	return 0;
 }
@@ -284,18 +196,18 @@ ASMJIT_PATCH(0x525D23, INIClass_Parse_IteratorChar2, 5)
 
 struct IniSectionIncludes
 {
-	static INIClass::INISection* includedSection;
-	static void CopySection(CCINIClass* ini, INIClass::INISection* source, const char* dest);
+	static INISection* includedSection;
+	static void CopySection(CCINIClass* ini, INISection* source, const char* dest);
 };
 
-INIClass::INISection* IniSectionIncludes::includedSection = nullptr;
+INISection* IniSectionIncludes::includedSection = nullptr;
 
-void IniSectionIncludes::CopySection(CCINIClass* ini, INIClass::INISection* source, const char* destName)
+void IniSectionIncludes::CopySection(CCINIClass* ini, INISection* source, const char* destName)
 {
 	//browse through section entries and copy them over to the new section
 	for (GenericNode* node = source->Entries.GetFirst()->Next(); node != source->Entries.GetLast(); node = node->Next())
 	{
-		INIClass::INIEntry* entry = static_cast<INIClass::INIEntry*>(node);
+		INIEntry* entry = static_cast<INIEntry*>(node);
 		ini->WriteString(destName, entry->Key, entry->Value);
 	}
 }
@@ -306,7 +218,7 @@ ASMJIT_PATCH(0x525E44, INIClass_Parse_IniSectionIncludes_CopySection2, 7)
 	if (IniSectionIncludes::includedSection)
 	{
 		GET_STACK(CCINIClass*, ini, 0x28);
-		GET(INIClass::INISection*, section, EBX);
+		GET(INISection*, section, EBX);
 		IniSectionIncludes::CopySection(ini, IniSectionIncludes::includedSection, section->Name);
 		IniSectionIncludes::includedSection = nullptr; //reset, very important
 	}
@@ -328,68 +240,70 @@ ASMJIT_PATCH(0x525C28, INIClass_Parse_IniSectionIncludes_CopySection1, 7)
 	return 0x0;
 }
 
-NOINLINE INIClass::INISection* GetInheritedSection(INIClass* pThis, char* ptr)
+NOINLINE INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 {
-	char* copy = ptr;
-	for (auto i = *ptr; i <= ' '; i = *++copy)
+	if (!ptr || !*ptr)
+		return nullptr;
+
+	// Skip leading whitespace
+	char* cursor = ptr;
+	while (*cursor && *cursor <= ' ')
+		++cursor;
+
+	// Expect colon (':') indicating inheritance
+	if (*cursor != ':')
+		return nullptr;
+
+	// Skip whitespace after colon
+	++cursor;
+	while (*cursor && *cursor <= ' ')
+		++cursor;
+
+	// Expect opening bracket
+	if (*cursor != '[')
+		return nullptr;
+
+	// Skip whitespace after '['
+	++cursor;
+	while (*cursor && *cursor <= ' ')
+		++cursor;
+
+	// Now cursor points to start of inherited section name
+	char* start = cursor;
+
+	// Look for closing bracket
+	char* end = strchr(start, ']');
+	if (!end || end == start)
+		return nullptr;
+
+	// Optional: if the character *after* ']' is a semicolon, accept it (Ares-style)
+	if (*(end + 1) && *(end + 1) != ';' && *(end + 1) > ' ')
 	{
-		if (!i)
-			break;
+		// Invalid termination (unexpected non-whitespace/semicolon)
+		return nullptr;
 	}
 
-	if (*copy == ':')
+	// Trim trailing whitespace before ']'
+	char* trim = end - 1;
+	while (trim > start && *trim <= ' ')
+		--trim;
+
+	if (trim < start)
+		return nullptr;
+
+	// Null-terminate the section name
+	*(trim + 1) = '\0';
+
+	// Lookup the section
+	if (auto section = pThis->GetSection(start))
 	{
-		char* copy_1 = copy + 1;
-		for (auto j = *(copy + 1); j <= ' '; j = *++copy_1)
-		{
-			if (!j)
-				break;
-		}
-
-		if (*copy_1 == '[')
-		{
-			char copy_2 = *(copy_1 + 1);
-			char* copy_2_2 = (copy_1 + 1);
-			for (; copy_2 <= ' '; copy_2 = *++copy_2_2)
-			{
-				if (!copy_2)
-					break;
-			}
-
-			// Ares 3.0p1 was "];" , and it is not working ???
-			// change it to "]" it is working fine
-			// what it is really , i dont understand ,..
-			if (char* get = strchr(copy_2_2, ']'))
-			{
-				if (*get == ']' && copy_2_2 != get)
-				{
-					while (*(get - 1) <= ' ')
-					{
-						if (copy_2_2 == --get)
-						{
-							return nullptr;
-						}
-					}
-
-					if (copy_2_2 != get)
-					{
-						*get = 0;
-
-						if (auto section = pThis->GetSection(copy_2_2))
-						{
-							//Debug::LogInfo("Inheritance Result [%s]." , copy_2_2);
-							return section;
-						}
-
-						Debug::LogError("An INI section inherits from section '{}', which doesn't exist or has not been parsed yet.", copy_2_2);
-					}
-				}
-			}
-		}
+		return section;
 	}
 
+	Debug::LogError("An INI section inherits from section '{}', which doesn't exist or has not been parsed yet.", start);
 	return nullptr;
 }
+
 
 ASMJIT_PATCH(0x525CA5, INIClass_Parse_IniSectionIncludes_PreProcess1, 8)
 {
@@ -414,129 +328,32 @@ ASMJIT_PATCH(0x525DDB, INIClass_Parse_IniSectionIncludes_PreProcess2, 5)
 }
 #endif
 
-#ifndef INCLUDES
-static int LastReadIndex = -1;
-static OPTIONALINLINE std::vector<CCINIClass*> LoadedINIs;
-static OPTIONALINLINE std::vector<std::string> LoadedINIFiles;
-
-ASMJIT_PATCH(0x474200, CCINIClass_ReadCCFile1, 6)
-{
-	if (Phobos::Config::UseNewIncludes)
-		return 0x0;
-
-	GET(CCINIClass*, pINI, ECX);
-	GET(CCFileClass*, pFile, EAX);
-
-	const char* filename = pFile->GetFileName();
-
-	if (LoadedINIs.empty())
-		LoadedINIs.push_back(pINI);
-	else
-		LoadedINIs.insert(LoadedINIs.begin(), pINI);
-
-	char* upped = CRT::strdup(filename);
-	if (LoadedINIFiles.empty())
-		LoadedINIFiles.push_back(upped);
-	else
-		LoadedINIFiles.insert(LoadedINIFiles.begin(), upped);
-
-	CRT::free(upped);
-	return 0;
-}
-
-ASMJIT_PATCH(0x474314, CCINIClass_ReadCCFile2, 6)
-{
-	if (Phobos::Config::UseNewIncludes)
-		return 0x0;
-
-	char buffer[0x80];
-	CCINIClass* xINI = LoadedINIs.back();
-
-	if (!xINI)
-	{
-		return 0;
-	}
-
-	const char* section = "#include";
-
-	for (int i = LastReadIndex;
-		i < xINI->GetKeyCount(section);
-		i = LastReadIndex)
-	{
-		const char* key = xINI->GetKeyName(section, i);
-		++LastReadIndex;
-		buffer[0] = '\0';
-		if (xINI->ReadString(section, key, Phobos::readDefval, buffer))
+class NOVTABLE FakeCCIniClass : public CCINIClass {
+public:
+	int __GetPipType(const char* pSection, const char* pKey, int fallback) {
+		if (this->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer) > 0)
 		{
-			bool canLoad = true;
-			for (auto& LoadedINI : LoadedINIFiles)
-			{
-				if (IS_SAME_STR_(LoadedINI.c_str(), buffer))
-				{
-					canLoad = false;
-					break;
+			int nbuffer;
+			if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer)) {
+				return nbuffer;
+			} else {
+				// find the pip value with the name specified
+				for (const auto& data : TechnoTypeClass::PipsTypeName) {
+					if (data == Phobos::readBuffer) {
+						//Debug::LogInfo("[%s]%s=%s ([%d] from [%s]) ", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
+						return data.Value;
+					}
 				}
 			}
 
-			if (canLoad)
-			{
-
-				CCFileClass xFile { buffer };
-				if (xFile.Exists())
-				{
-					xINI->ReadCCFile(&xFile);
-				}
-			}
-		}
-	}
-
-	LoadedINIs.pop_back();
-	if (LoadedINIs.empty())
-	{
-		LoadedINIFiles.clear();
-		LastReadIndex = -1;
-	}
-	return 0;
-}
-
-#endif
-
-// replaces entire function (without the pip distortion bug)
-ASMJIT_PATCH(0x4748A0, INIClass_GetPipIdx, 0x7)
-{
-	GET(INIClass*, pINI, ECX);
-	GET_STACK(const char*, pSection, 0x4);
-	GET_STACK(const char*, pKey, 0x8);
-	GET_STACK(int, fallback, 0xC);
-
-	if (pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer) > 0)
-	{
-		int nbuffer;
-		if (Parser<int>::TryParse(Phobos::readBuffer, &nbuffer))
-		{
-			R->EAX(nbuffer);
-			return 0x474907;
-		}
-		else
-		{
-			// find the pip value with the name specified
-			for (const auto& data : TechnoTypeClass::PipsTypeName)
-			{
-				if (data == Phobos::readBuffer)
-				{
-					//Debug::LogInfo("[%s]%s=%s ([%d] from [%s]) ", pSection, pKey, Phobos::readBuffer, it->Value, it->Name);
-					R->EAX(data.Value);
-					return 0x474907;
-				}
-			}
+			Debug::INIParseFailed(pSection, pKey, Phobos::readBuffer, "Expect valid pip");
 		}
 
-		Debug::INIParseFailed(pSection, pKey, Phobos::readBuffer, "Expect valid pip");
+		return fallback;
 	}
+};
 
-	R->EAX(fallback);
-	return 0x474907;
-}
+DEFINE_FUNCTION_JUMP(LJMP, 0x4748A0, FakeCCIniClass::__GetPipType)
 
 // invalid or not set edge reads array out of bounds
 ASMJIT_PATCH(0x4759D4, INIClass_WriteEdge, 0x7)

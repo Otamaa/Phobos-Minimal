@@ -139,7 +139,7 @@ struct StaticVars {
 	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
 	static std::vector<unsigned char> ShpCompression1Buffer;
 	static std::map<const TActionClass*, int> TriggerCounts;
-	static UniqueGamePtrC<MixFileClass> aresMIX;
+	static UniqueGamePtr<MixFileClass> aresMIX;
 	static std::string MovieMDINI;
 	static WaveColorData TempColor;
 

@@ -109,7 +109,7 @@ public:
 	static HRESULT __fastcall LoadAll(IStream*)
 		{ JMP_STD(0x67E730); }
 
-	void ReadStartPoints(INIClass &ini)
+	void ReadStartPoints(INIClass* ini)
 		{ JMP_THIS(0x689D30); }
 
 	// valid range [0..701]
