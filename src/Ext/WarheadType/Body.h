@@ -442,6 +442,7 @@ public:
 
 	Valueable<double> AffectsBelowPercent { 1.0 };
 	Valueable<double> AffectsAbovePercent { 0.0 };
+	Valueable<bool> AffectsNeutral { true };
 #pragma endregion
 
 public:

@@ -605,11 +605,18 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	pWHExt->ApplyDamageMult(pThis, &args);
 	applyCombatAlert(pThis, &args);
 
-	if (pWHExt->CanTargetHouse(args.SourceHouse, pThis))
-		pExt->LastHurtFrame = Unsorted::CurrentFrame;
-
 	if (args.Attacker && (!args.Attacker->IsAlive || args.Attacker->Health <= 0) && !args.Attacker->Owner)
 		args.Attacker = nullptr; //clean up;
+
+	const auto pSourceHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
+	const bool canTergetHouse = pWHExt->CanTargetHouse(pSourceHouse, pThis);
+
+	if (!canTergetHouse) {
+		*args.Damage = 0;
+		R->EAX(DamageState::Unaffected);
+		return 0x702D1F;
+	} else
+		pExt->LastHurtFrame = Unsorted::CurrentFrame;
 
 	if (!pThis || !pThis->IsAlive || pThis->Health <= 0)
 	{
@@ -709,15 +716,6 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	}
 
 	if (IsTechnoImmuneToAffects(pThis, nRank, args.WH))
-	{
-		*args.Damage = 0;
-		R->EAX(DamageState::Unaffected);
-		return 0x702D1F;
-	}
-
-	const auto pSourceHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
-
-	if (!pWHExt->CanAffectHouse(pThis->Owner, pSourceHouse))
 	{
 		*args.Damage = 0;
 		R->EAX(DamageState::Unaffected);

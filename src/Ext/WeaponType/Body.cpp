@@ -411,6 +411,9 @@ bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoC
 }
 
 bool WeaponTypeExtData::IsHealthInThreshold(ObjectClass* pTarget) const {
+	if(!(this->CanTarget_MinHealth > 0.0 || this->CanTarget_MaxHealth < 1.0))
+		return true;
+
 	return TechnoExtData::IsHealthInThreshold(pTarget, this->CanTarget_MinHealth, this->CanTarget_MaxHealth);
 }
 

@@ -623,6 +623,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->AffectsBelowPercent.Read(exINI, pSection, "AffectsBelowPercent");
 	this->AffectsAbovePercent.Read(exINI, pSection, "AffectsAbovePercent");
+	this->AffectsNeutral.Read(exINI, pSection, "AffectsNeutral");
 
 	this->ElectricAssault_Requireverses.Read(exINI, pSection, "ElectricAssault.Requireverses");
 }
@@ -769,6 +770,9 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 {
 	if (pOwnerHouse && pTargetHouse)
 	{
+		if (!this->AffectsNeutral && pTargetHouse->IsNeutral())
+			return false;
+
 		const bool affect_ally = this->AttachedToObject->AffectsAllies;
 
 		if (pTargetHouse == pOwnerHouse) {
@@ -1647,7 +1651,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AffectsBelowPercent)
 		.Process(this->AffectsAbovePercent)
-
+		.Process(this->AffectsNeutral)
 		;
 
 	PaintBallData.Serialize(Stm);
@@ -1685,6 +1689,9 @@ void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pI
 
 bool WarheadTypeExtData::IsHealthInThreshold(ObjectClass* pTarget) const
 {
+	if(!(this->AffectsAbovePercent > 0.0 || this->AffectsBelowPercent < 1.0))
+		return true;
+
 	return TechnoExtData::IsHealthInThreshold(pTarget, this->AffectsAbovePercent, this->AffectsBelowPercent);
 }
 

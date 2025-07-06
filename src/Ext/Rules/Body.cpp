@@ -657,6 +657,11 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				Debug::LogInfo("Inconsistent verses size of [{} - {}] Warhead with ArmorType Array[{}]", pWH->ID, versesSize, ArmorTypeClass::Array.size());
 				Debug::RegisterParserError();
 			}
+
+			if (pWHExt->Crit_AffectBelowPercent > pWHExt->Crit_AffectAbovePercent)
+				Debug::Log("[Developer warning][%s] Crit.AffectsAbovePercent is bigger than Crit.AffectsBelowPercent, crit will never activate!\n", pWH->ID);
+
+
 		}
 	}
 
