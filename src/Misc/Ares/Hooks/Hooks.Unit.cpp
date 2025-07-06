@@ -810,7 +810,7 @@ ASMJIT_PATCH(0x746C55, UnitClass_GetUIName_Space, 6)
 
 	const auto pName = pThis->Type->UIName;
 	const auto pSpace = (pName && *pName && pGunnerName && *pGunnerName) ? L" " : L"";
-	fmt::format_to_n(pThis->ToolTipText, std::size(pThis->ToolTipText) - 1, L"{}{}{}", pGunnerName, pSpace, pName);
+	_snwprintf_s(pThis->ToolTipText, sizeof(pThis->ToolTipText) - 1, L"%s%s%s", pGunnerName, pSpace, pName);
 
 	R->EAX(pThis->ToolTipText);
 	return 0x746C76;
