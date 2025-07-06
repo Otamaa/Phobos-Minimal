@@ -1132,7 +1132,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	//
 	
 	// Enhanced AI - single setting
-	this->UseEnhancedAI.Read(exINI, "General", "UseEnhancedAI");
+	this->UseEnhancedAI.Read(exINI, "AI", "UseEnhancedAI");
 
 	this->EnemyWrench.Read(exINI, GameStrings::General(), "EnemyWrench");
 	this->Bounty_Value_Option.Read(exINI, GameStrings::General(), "BountyRewardOption");

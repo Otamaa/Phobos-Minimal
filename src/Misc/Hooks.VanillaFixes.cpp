@@ -182,7 +182,6 @@ ASMJIT_PATCH(0x6F0AE8, Suggested_New_Team_EnemyHouseFix, 0x8)
 	
 	return 0x6F0AF8;
 }
-*/
 // Enhanced AI Integration Hook
 // Note: This hook is disabled because it conflicts with New Team Selector
 // The Enhanced Vanilla AI is integrated into the New Team Selector instead

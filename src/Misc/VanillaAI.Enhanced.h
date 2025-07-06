@@ -63,6 +63,7 @@ namespace VanillaAI
     public:
         BattlefieldState AnalyzeBattlefield(HouseClass* house);
         bool ShouldBuildTeam(HouseClass* house, TeamTypeClass* teamType, const BattlefieldState& state);
+        bool IsTeamDefensive(TeamTypeClass* teamType);
         int GetTeamPriority(TeamTypeClass* teamType, const BattlefieldState& state);
     };
 
@@ -97,6 +98,7 @@ namespace VanillaAI
         };
         
         std::vector<TeamCandidate> candidates;
+        TeamCompositionAnalyzer analyzer;
         
     public:
         void FindCandidateTeams(HouseClass* house, bool alerted);

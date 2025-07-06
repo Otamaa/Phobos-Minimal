@@ -122,34 +122,134 @@ namespace VanillaAI
                 // Naval units would need special detection
             }
             
-            // Check if unit is defensive or offensive (simplified check)
-            // Note: IsBaseDefense doesn't exist, so we'll use heuristics for all unit types
+            // Check if unit is defensive or offensive (comprehensive analysis)
             bool isDefensive = false;
             
             switch (pTechno->WhatAmI())
             {
                 case AbstractType::Building:
-                    // Buildings with weapons are generally defensive
-                    isDefensive = (pTechno->GetTechnoType()->Turret || pTechno->GetTechnoType()->GetWeapon(0) != nullptr);
+                {
+                    auto pBuildingType = static_cast<BuildingTypeClass*>(pTechno->GetTechnoType());
+                    // Buildings are defensive if they have base defense properties
+                    isDefensive = pBuildingType->IsBaseDefense 
+                               || pBuildingType->Turret 
+                               || pBuildingType->TickTank
+                               || pBuildingType->SensorArray
+                               || pBuildingType->GapGenerator
+                               || pBuildingType->CloakGenerator
+                               || pBuildingType->Radar
+                               || (pBuildingType->GetWeapon(0) && pBuildingType->GetWeapon(0)->WeaponType && pBuildingType->Factory == AbstractType::None);
                     break;
-                    
+                }
+                
                 case AbstractType::Infantry:
-                    // Infantry units are generally offensive unless they're engineers/support
-                    // Simple heuristic: slow units are more defensive
-                    isDefensive = (pTechno->GetTechnoType()->Speed <= 4);
-                    break;
+                {
+                    auto pInfantryType = static_cast<InfantryTypeClass*>(pTechno->GetTechnoType());
                     
+                    // Engineers, agents, and support units are defensive
+                    if (pInfantryType->Engineer || pInfantryType->Agent || pInfantryType->VehicleThief)
+                    {
+                        isDefensive = true;
+                    }
+                    // Anti-aircraft infantry are defensive
+                    else if (auto weaponStruct = pInfantryType->GetWeapon(0))
+                    {
+                        if (weaponStruct->WeaponType && weaponStruct->WeaponType->Projectile)
+                        {
+                            if (weaponStruct->WeaponType->Projectile->AA && !weaponStruct->WeaponType->Projectile->AG)
+                            {
+                                isDefensive = true;
+                            }
+                            // Mind control units are defensive/support
+                            else if (weaponStruct->WeaponType->Warhead && weaponStruct->WeaponType->Warhead->MindControl)
+                            {
+                                isDefensive = true;
+                            }
+                            // Long-range, slow units are more defensive
+                            else if (pInfantryType->Speed <= 4 && weaponStruct->WeaponType->Range > 6)
+                            {
+                                isDefensive = true;
+                            }
+                        }
+                    }
+                    // Cyborgs and other support infantry
+                    else if (pInfantryType->Cyborg || pInfantryType->C4)
+                    {
+                        isDefensive = true;
+                    }
+                    // Very slow infantry without special abilities are defensive
+                    else if (pInfantryType->Speed <= 2)
+                    {
+                        isDefensive = true;
+                    }
+                    break;
+                }
+                
                 case AbstractType::Unit:
-                    // Units: tanks/vehicles are generally offensive, but some are defensive
-                    // Simple heuristic: slow units are more defensive
-                    isDefensive = (pTechno->GetTechnoType()->Speed <= 4);
-                    break;
+                {
+                    auto pUnitType = static_cast<UnitTypeClass*>(pTechno->GetTechnoType());
                     
+                    // Mobile Construction Vehicles are defensive/support
+                    if (pUnitType->DeploysInto || pUnitType->Harvester || pUnitType->Weeder)
+                    {
+                        isDefensive = true;
+                    }
+                    // Anti-aircraft vehicles
+                    else if (auto weaponStruct = pUnitType->GetWeapon(0))
+                    {
+                        if (weaponStruct->WeaponType && weaponStruct->WeaponType->Projectile)
+                        {
+                            if (weaponStruct->WeaponType->Projectile->AA && !weaponStruct->WeaponType->Projectile->AG)
+                            {
+                                isDefensive = true;
+                            }
+                            // Artillery units (long range, slow) are defensive
+                            else if (weaponStruct->WeaponType->Range > 10 && pUnitType->Speed <= 4)
+                            {
+                                isDefensive = true;
+                            }
+                            // Mind control vehicles
+                            else if (weaponStruct->WeaponType->Warhead && weaponStruct->WeaponType->Warhead->MindControl)
+                            {
+                                isDefensive = true;
+                            }
+                        }
+                    }
+                    // Slow, heavily armored units are more defensive
+                    else if (pUnitType->Speed <= 3 && pUnitType->Armor == Armor::Heavy)
+                    {
+                        isDefensive = true;
+                    }
+                    // Units with deployment capabilities are often defensive
+                    else if (pUnitType->IsSimpleDeployer || pUnitType->DeployToFire)
+                    {
+                        isDefensive = true;
+                    }
+                    break;
+                }
+                
                 case AbstractType::Aircraft:
-                    // Aircraft are generally offensive
-                    isDefensive = false;
-                    break;
+                {
+                    auto pAircraftType = static_cast<AircraftTypeClass*>(pTechno->GetTechnoType());
                     
+                    // Transport aircraft are defensive/support
+                    if (pAircraftType->Passengers > 0 && (!pAircraftType->GetWeapon(0) || !pAircraftType->GetWeapon(0)->WeaponType))
+                    {
+                        isDefensive = true;
+                    }
+                    // Carryall aircraft are support units
+                    else if (pAircraftType->Carryall)
+                    {
+                        isDefensive = true;
+                    }
+                    // Most aircraft are offensive by nature
+                    else
+                    {
+                        isDefensive = false;
+                    }
+                    break;
+                }
+                
                 default:
                     isDefensive = false;
                     break;
@@ -175,8 +275,8 @@ namespace VanillaAI
     {
         if (!house || !teamType) return false;
         
-        // Simple heuristic for team type classification since IsBaseDefense doesn't exist
-        bool isDefensiveTeam = (teamType->Max <= 2); // Small teams are usually defensive
+        // Analyze team composition to determine if it's defensive or offensive
+        bool isDefensiveTeam = this->IsTeamDefensive(teamType);
         
         // Priority 1: If under attack, prioritize defensive teams
         if (state.underAttack && isDefensiveTeam)
@@ -204,14 +304,97 @@ namespace VanillaAI
         return true;
     }
 
+    bool TeamCompositionAnalyzer::IsTeamDefensive(TeamTypeClass* teamType)
+    {
+        if (!teamType) return false;
+        
+        int defensiveUnits = 0;
+        int totalUnits = 0;
+        
+        // Analyze the task force composition
+        for (int i = 0; i < teamType->TaskForce->CountEntries; i++)
+        {
+            auto& entry = teamType->TaskForce->Entries[i];
+            if (!entry.Type) continue;
+            
+            bool isDefensiveUnit = false;
+            
+            switch (entry.Type->WhatAmI())
+            {
+                case AbstractType::InfantryType:
+                {
+                    auto pInfType = static_cast<InfantryTypeClass*>(entry.Type);
+                    // Engineers, support units, AA infantry, mind control
+                    isDefensiveUnit = pInfType->Engineer || pInfType->Agent || pInfType->VehicleThief
+                                   || pInfType->Cyborg || pInfType->C4;
+                    
+                    // Check weapons for AA or mind control
+                    if (!isDefensiveUnit && pInfType->GetWeapon(0) && pInfType->GetWeapon(0)->WeaponType)
+                    {
+                        auto weapon = pInfType->GetWeapon(0)->WeaponType;
+                        if (weapon->Projectile && weapon->Projectile->AA && !weapon->Projectile->AG)
+                            isDefensiveUnit = true;
+                        else if (weapon->Warhead && weapon->Warhead->MindControl)
+                            isDefensiveUnit = true;
+                    }
+                    break;
+                }
+                
+                case AbstractType::UnitType:
+                {
+                    auto pUnitType = static_cast<UnitTypeClass*>(entry.Type);
+                    // MCVs, harvesters, AA vehicles, artillery, repair units
+                    isDefensiveUnit = pUnitType->DeploysInto || pUnitType->Harvester || pUnitType->Weeder
+                                   || pUnitType->IsSimpleDeployer || pUnitType->DeployToFire;
+                    
+                    // Check weapons for AA, artillery, or mind control
+                    if (!isDefensiveUnit && pUnitType->GetWeapon(0) && pUnitType->GetWeapon(0)->WeaponType)
+                    {
+                        auto weapon = pUnitType->GetWeapon(0)->WeaponType;
+                        if (weapon->Projectile && weapon->Projectile->AA && !weapon->Projectile->AG)
+                            isDefensiveUnit = true;
+                        else if (weapon->Range > 10 && pUnitType->Speed <= 4)
+                            isDefensiveUnit = true;
+                        else if (weapon->Warhead && weapon->Warhead->MindControl)
+                            isDefensiveUnit = true;
+                    }
+                    break;
+                }
+                
+                case AbstractType::AircraftType:
+                {
+                    auto pAircraftType = static_cast<AircraftTypeClass*>(entry.Type);
+                    // Transport aircraft, carryall aircraft
+                    isDefensiveUnit = (pAircraftType->Passengers > 0 && (!pAircraftType->GetWeapon(0) || !pAircraftType->GetWeapon(0)->WeaponType))
+                                   || pAircraftType->Carryall;
+                    break;
+                }
+                
+                default:
+                    isDefensiveUnit = false;
+                    break;
+            }
+            
+            totalUnits += entry.Amount;
+            if (isDefensiveUnit)
+            {
+                defensiveUnits += entry.Amount;
+            }
+        }
+        
+        // Team is considered defensive if majority of units are defensive
+        // or if it's a small team (likely patrol/guard duty)
+        return (totalUnits > 0 && defensiveUnits * 2 >= totalUnits) || (totalUnits <= 2);
+    }
+
     int TeamCompositionAnalyzer::GetTeamPriority(TeamTypeClass* teamType, const BattlefieldState& state)
     {
         if (!teamType) return 0;
         
         int priority = 50; // Base priority
         
-        // Simple heuristic for team type classification
-        bool isDefensiveTeam = (teamType->Max <= 2);
+        // Analyze team composition
+        bool isDefensiveTeam = this->IsTeamDefensive(teamType);
         
         // Increase priority for defensive teams when under attack
         if (state.underAttack && isDefensiveTeam)
@@ -219,8 +402,32 @@ namespace VanillaAI
             priority += 30;
         }
         
-        // Decrease priority for expensive teams when resources are low
-        // (This would need access to house resources)
+        // Increase priority for offensive teams when we have defensive advantage
+        if (!state.underAttack && !isDefensiveTeam && state.defenseUnits > state.offenseUnits)
+        {
+            priority += 20;
+        }
+        
+        // Adjust priority based on team size and current unit balance
+        int teamSize = 0;
+        if (teamType->TaskForce)
+        {
+            for (int i = 0; i < teamType->TaskForce->CountEntries; i++)
+            {
+                teamSize += teamType->TaskForce->Entries[i].Amount;
+            }
+        }
+        
+        // Small teams get priority when resources are likely limited
+        if (teamSize <= 3)
+        {
+            priority += 10;
+        }
+        // Large teams get lower priority unless we have good unit balance
+        else if (teamSize > 6 && state.defenseUnits + state.offenseUnits < 20)
+        {
+            priority -= 15;
+        }
         
         return std::clamp(priority, 0, 100);
     }
@@ -464,7 +671,7 @@ namespace VanillaAI
             candidate.teamType = pTeamType;
             candidate.weight = static_cast<int>(pTeamType->Priority);
             candidate.priority = candidate.weight;
-            candidate.isDefensive = (pTeamType->Max <= 2); // Simple heuristic
+            candidate.isDefensive = this->analyzer.IsTeamDefensive(pTeamType); // Use comprehensive analysis
             
             // Adjust priority based on alert status
             if (alerted && candidate.isDefensive)
