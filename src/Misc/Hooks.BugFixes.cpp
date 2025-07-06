@@ -2853,15 +2853,6 @@ ASMJIT_PATCH(0x41915D, AircraftClass_ReceiveCommand_QueryPreparedness, 0x8)
 	return 0;
 }
 
-ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_PlanningFix, 0x5)
-{
-	enum { SkipIdle = 0x418D00 };
-
-	GET(AircraftClass*, pThis, ESI);
-
-	return pThis->Ammo <= 0 || !pThis->TryNextPlanningTokenNode() ? 0 : SkipIdle;
-}
-
 ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -2896,11 +2887,13 @@ ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_ReturnToSpawnOwner, 0x5)
 
 	const auto pSpawnOwner = pThis->SpawnOwner;
 
-	if (!pSpawnOwner)
+	if (!pSpawnOwner || pThis->Ammo <= 0 || !pThis->TryNextPlanningTokenNode())
 		return 0;
 
-	pThis->SetDestination(pSpawnOwner, true);
-	pThis->QueueMission(Mission::Move, false);
+	if(pSpawnOwner) {
+		pThis->SetDestination(pSpawnOwner, true);
+		pThis->QueueMission(Mission::Move, false);
+	}
 
 	return 0x418D00;
 }

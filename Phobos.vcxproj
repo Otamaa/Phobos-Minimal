@@ -62,6 +62,11 @@
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
     <ClCompile Include="src\Lib\Lua\onelua.c" />
+    <ClCompile Include="src\Lib\minhook\buffer.c" />
+    <ClCompile Include="src\Lib\minhook\hde\hde32.c" />
+    <ClCompile Include="src\Lib\minhook\hde\hde64.c" />
+    <ClCompile Include="src\Lib\minhook\hook.c" />
+    <ClCompile Include="src\Lib\minhook\trampoline.c" />
     <ClCompile Include="src\Lib\spdlog\async.cpp" />
     <ClCompile Include="src\Lib\spdlog\bundled_fmtlib_format.cpp" />
     <ClCompile Include="src\Lib\spdlog\cfg.cpp" />
@@ -609,6 +614,14 @@
     <ClInclude Include="src\Lib\magic_enum\magic_enum_iostream.hpp" />
     <ClInclude Include="src\Lib\magic_enum\magic_enum_switch.hpp" />
     <ClInclude Include="src\Lib\magic_enum\magic_enum_utility.hpp" />
+    <ClInclude Include="src\Lib\minhook\buffer.h" />
+    <ClInclude Include="src\Lib\minhook\hde\hde32.h" />
+    <ClInclude Include="src\Lib\minhook\hde\hde64.h" />
+    <ClInclude Include="src\Lib\minhook\hde\pstdint.h" />
+    <ClInclude Include="src\Lib\minhook\hde\table32.h" />
+    <ClInclude Include="src\Lib\minhook\hde\table64.h" />
+    <ClInclude Include="src\Lib\minhook\MinHook.h" />
+    <ClInclude Include="src\Lib\minhook\trampoline.h" />
     <ClInclude Include="src\Lib\Zycore\Allocator.h" />
     <ClInclude Include="src\Lib\Zycore\API\Memory.h" />
     <ClInclude Include="src\Lib\Zycore\API\Process.h" />
@@ -1166,7 +1179,7 @@
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

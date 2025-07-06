@@ -198,7 +198,8 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 				{
 					Point2D textLoc = { cameoRect.X + cameoRect.Width / 2, cameoRect.Y };
 					const auto percent = int(((double)prog / 54.0) * 100.0);
-					const auto text_ = std::to_wstring(percent);
+					std::wstring text_;
+					fmt::format_to(std::back_inserter(text_), L"{}" , percent);
 					RectangleStruct nTextDimension {};
 					COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
 					Drawing::GetTextDimensions(&nTextDimension, text_.c_str(), textLoc, printType, 4, 2);

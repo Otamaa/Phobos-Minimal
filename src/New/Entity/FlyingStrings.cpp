@@ -178,7 +178,9 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 
 	int maxOffset = Unsorted::CellWidthInPixels / 2;
 	int width = 0, height = 0;
-	const std::wstring damagestr(std::to_wstring(damage));
+
+	std::wstring damagestr;
+	fmt::format_to(std::back_inserter(damagestr), L"{}" , damage);
 
 	BitFont::Instance->GetTextDimension(damagestr.c_str(), &width, &height, 120);
 
