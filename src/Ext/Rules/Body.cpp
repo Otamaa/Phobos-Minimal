@@ -658,9 +658,8 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				Debug::RegisterParserError();
 			}
 
-			if (pWHExt->Crit_AffectBelowPercent > pWHExt->Crit_AffectAbovePercent)
+			if (pWHExt->Crit_AffectAbovePercent > pWHExt->Crit_AffectBelowPercent)
 				Debug::Log("[Developer warning][%s] Crit.AffectsAbovePercent is bigger than Crit.AffectsBelowPercent, crit will never activate!\n", pWH->ID);
-
 
 		}
 	}

@@ -5864,10 +5864,25 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 	pThis->Parachute = pParach;
 
 	if(pParach){
-		const bool AllowRemap = !IsBullet;
+		bool AllowRemap = !IsBullet;
+		HouseClass* pOwn = pThis->GetOwningHouse();
+
 		pParach->SetOwnerObject(pThis);
-		if(AllowRemap){
-			pParach->LightConvert = pThis->GetRemapColour();
+
+		if(IsBullet){
+			auto pTypeExt = BulletTypeExtContainer::Instance.Find(((BulletClass*)pThis)->Type);
+			AllowRemap = pTypeExt->Parachuted_Remap;
+
+			if(AllowRemap){
+				auto pExt = BulletExtContainer::Instance.Find((BulletClass*)pThis);
+				pOwn = ((BulletClass*)pThis)->Owner ? ((BulletClass*)pThis)->Owner->Owner : pExt->Owner;
+			}
+		}
+
+		const int idx = pOwn ? pOwn->ColorSchemeIndex : RulesExtData::Instance()->AnimRemapDefaultColorScheme;
+
+		if(AllowRemap && idx >= 0){
+			pParach->LightConvert = ColorScheme::Array->Items[idx]->LightConvert;
 			pParach->TintColor = pThis->GetCell()->Intensity_Normal;
 		}
 	}

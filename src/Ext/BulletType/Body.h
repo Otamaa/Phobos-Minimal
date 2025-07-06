@@ -123,6 +123,7 @@ public:
 
 	Valueable<int> Parachuted_FallRate { 1 };
 	Nullable<int> Parachuted_MaxFallRate {};
+	Valueable<bool> Parachuted_Remap { true };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
