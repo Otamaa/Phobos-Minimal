@@ -135,11 +135,15 @@ public:
 	Valueable<bool> NewTeamsSelector { false };
 	Valueable<bool> NewTeamsSelector_SplitTriggersByCategory { true };
 	Valueable<bool> NewTeamsSelector_EnableFallback { false };
+	Valueable<bool> NewTeamsSelector_UseOptimizedVersion { true };
 	Valueable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith { -1 };
 	Valueable<double> NewTeamsSelector_UnclassifiedCategoryPercentage { 0.25 };
 	Valueable<double> NewTeamsSelector_GroundCategoryPercentage { 0.25 };
 	Valueable<double> NewTeamsSelector_NavalCategoryPercentage { 0.25 };
 	Valueable<double> NewTeamsSelector_AirCategoryPercentage { 0.25 };
+	
+	// Enhanced AI - single setting for all enhancements
+	Valueable<bool> UseEnhancedAI { false };
 
 	Valueable<bool> IC_Flash { true };
 	Valueable<int> VeteranFlashTimer { 0 };

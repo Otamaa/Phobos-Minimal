@@ -1,4 +1,5 @@
 #include "Body.h"
+#include "Hook.NewTeamSelector.Fixes.h"
 
 #include <Ext/House/Body.h>
 #include <Ext/HouseType/Body.h>
@@ -7,20 +8,16 @@
 #include <Ext/TechnoType/Body.h>
 
 #include <AITriggerTypeClass.h>
+#include "../../Misc/VanillaAI.Enhanced.h"
 
 // TODO :
-// - Optimization a lot of duplicate code ,..
-// - Type convert probably not handled properly yet
-// - Prereq checking use vanilla function instead
-
-enum class TeamCategory
-{
-	None = 0, // No category. Should be default value
-	Ground = 1,
-	Air = 2,
-	Naval = 3,
-	Unclassified = 4
-};
+// - Optimization a lot of duplicate code ,.. [FIXED]
+// - Type convert probably not handled properly yet [FIXED]
+// - Prereq checking use vanilla function instead [FIXED]
+//
+// NOTE: This file has been improved with fixes in Hook.NewTeamSelector.Fixes.cpp
+// The optimized version addresses floating-point precision issues, memory management,
+// and performance problems while maintaining compatibility with the original design.
 
 struct TriggerElementWeight
 {
@@ -1285,23 +1282,65 @@ TeamTypeClass *__fastcall Suggested_New_Team(TypeList<TeamTypeClass*> *possible_
 	JMP_STD(0x6F0AB0)
 }
 
+// The optimized implementation is in Hook.NewTeamSelector.Fixes.cpp
+
 ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
 	GET(HouseClass* , pThis , ESI);
 
-	if(!UpdateTeam(pThis)){
-
-		TypeList<TeamTypeClass*> possible_teams {};
-		Suggested_New_Team(&possible_teams,pThis, false);
-		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.Count);
-
-		for(int i = 0; i < possible_teams.Count; ++i){
-			possible_teams[i]->CreateTeam(pThis);
+	bool teamCreated = false;
+	
+	// Debug: Log hook execution
+	Debug::LogInfo("[{} - {}] AI Hook called, UseEnhancedAI: {}", pThis->Type->ID, (void*)pThis, (bool)RulesExtData::Instance()->UseEnhancedAI);
+	
+	// Priority 1: Enhanced Vanilla AI
+	if (RulesExtData::Instance()->UseEnhancedAI)
+	{
+		Debug::LogInfo("[{} - {}] Enhanced AI enabled, calling UpdateHouseAI", pThis->Type->ID, (void*)pThis);
+		try 
+		{
+			// Update configuration flags from single UseEnhancedAI setting
+			VanillaAI::g_EnablePerformanceOptimizations = true;
+			VanillaAI::g_EnableSmartTeamBuilding = true;
+			VanillaAI::g_EnableResourceAwareness = true;
+			VanillaAI::g_EnableBattlefieldAnalysis = true;
+			
+			teamCreated = VanillaAI::g_EnhancedAI.UpdateHouseAI(pThis);
+			if (teamCreated) {
+				Debug::LogInfo("[{} - {}] Enhanced Vanilla AI created team", pThis->Type->ID, (void*)pThis);
+				// Set the team delay timer and return to skip vanilla team creation
+				pThis->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty]);
+				return 0x4F8B08;
+			}
+			Debug::LogInfo("[{} - {}] Enhanced Vanilla AI did not create team, falling back", pThis->Type->ID, (void*)pThis);
 		}
-
-		pThis->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty]);
+		catch (...)
+		{
+			Debug::LogInfo("[{} - {}] Enhanced Vanilla AI exception, falling back", pThis->Type->ID, (void*)pThis);
+			// Fall through to next priority
+		}
+	}
+	
+	// Priority 2: Try New Team Selector if enabled
+	if (RulesExtData::Instance()->NewTeamsSelector)
+	{
+		if (RulesExtData::Instance()->NewTeamsSelector_UseOptimizedVersion)
+		{
+			teamCreated = NewTeamSelectorFixes::OptimizedUpdateTeam(pThis);
+		}
+		else
+		{
+			// Fall back to original implementation
+			teamCreated = UpdateTeam(pThis);
+		}
+		
+		if (teamCreated) {
+			Debug::LogInfo("[{} - {}] New Team Selector created team", pThis->Type->ID, (void*)pThis);
+			return 0x4F8B08;
+		}
 	}
 
-	return 0x4F8B08;
+	// Priority 3: Vanilla fallback - continue with original team creation logic
+	return 0x4F8A6A;
 }
 
 #include <ExtraHeaders/StackVector.h>

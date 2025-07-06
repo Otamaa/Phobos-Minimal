@@ -1123,12 +1123,16 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector.Read(exINI, "AI", "NewTeamsSelector");
 	this->NewTeamsSelector_SplitTriggersByCategory.Read(exINI, "AI", "NewTeamsSelector.SplitTriggersByCategory");
 	this->NewTeamsSelector_EnableFallback.Read(exINI, "AI", "NewTeamsSelector.EnableFallback");
+	this->NewTeamsSelector_UseOptimizedVersion.Read(exINI, "AI", "NewTeamsSelector.UseOptimizedVersion");
 	this->NewTeamsSelector_MergeUnclassifiedCategoryWith.Read(exINI, "AI", "NewTeamsSelector.MergeUnclassifiedCategoryWith");
 	this->NewTeamsSelector_UnclassifiedCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.UnclassifiedCategoryPercentage");
 	this->NewTeamsSelector_GroundCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.GroundCategoryPercentage");
 	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.AirCategoryPercentage");
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI, "AI", "NewTeamsSelector.NavalCategoryPercentage");
 	//
+	
+	// Enhanced AI - single setting
+	this->UseEnhancedAI.Read(exINI, "General", "UseEnhancedAI");
 
 	this->EnemyWrench.Read(exINI, GameStrings::General(), "EnemyWrench");
 	this->Bounty_Value_Option.Read(exINI, GameStrings::General(), "BountyRewardOption");
@@ -1293,11 +1297,14 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->NewTeamsSelector)
 		.Process(this->NewTeamsSelector_SplitTriggersByCategory)
 		.Process(this->NewTeamsSelector_EnableFallback)
+		.Process(this->NewTeamsSelector_UseOptimizedVersion)
 		.Process(this->NewTeamsSelector_MergeUnclassifiedCategoryWith)
 		.Process(this->NewTeamsSelector_UnclassifiedCategoryPercentage)
 		.Process(this->NewTeamsSelector_GroundCategoryPercentage)
 		.Process(this->NewTeamsSelector_NavalCategoryPercentage)
 		.Process(this->NewTeamsSelector_AirCategoryPercentage)
+
+		.Process(this->UseEnhancedAI)
 
 		.Process(this->IC_Flash)
 		.Process(this->VeteranFlashTimer)

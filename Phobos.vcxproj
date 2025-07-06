@@ -119,6 +119,8 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
+    <ClCompile Include="src\Misc\Hooks.VanillaFixes.cpp" />
+    <ClCompile Include="src\Misc\VanillaAI.Enhanced.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\Spawner\AC.cpp" />
@@ -282,6 +284,7 @@
     <ClCompile Include="src\Ext\TeamType\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Body.cpp" />
     <ClCompile Include="src\Ext\Team\Hook.NewTeamSelector.cpp" />
+    <ClCompile Include="src\Ext\Team\Hook.NewTeamSelector.Fixes.cpp" />
     <ClCompile Include="src\Ext\Team\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hook.Tunnel.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
@@ -882,6 +885,7 @@
     <ClInclude Include="src\Ext\TAction\Body.h" />
     <ClInclude Include="src\Ext\TeamType\Body.h" />
     <ClInclude Include="src\Ext\Team\Body.h" />
+    <ClInclude Include="src\Ext\Team\Hook.NewTeamSelector.Fixes.h" />
     <ClInclude Include="src\Ext\Temporal\Body.h" />
     <ClInclude Include="src\Ext\Terrain\Body.h" />
     <ClInclude Include="src\Ext\TEvent\Body.h" />
