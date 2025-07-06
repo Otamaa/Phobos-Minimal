@@ -489,13 +489,13 @@ void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, BulletClass* pBul
 
 	if (cellSpread == 0.0)
 	{
-		if (auto const pBullet = cast_to<BulletClass*>(pOwner->Target))
+		if (auto const pTargetBullet = cast_to<BulletClass*>(pOwner->Target))
 		{
 			// 1/8th of a cell as a margin of error.
-			if (BulletTypeExtContainer::Instance.Find(pBullet->Type)->Interceptable
-					&& (pBullet->Type->Inviso || pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0))
+			if (BulletTypeExtContainer::Instance.Find(pTargetBullet->Type)->Interceptable
+					&& !pBullet->SpawnNextAnim && (pTargetBullet->Type->Inviso || pTargetBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0))
 			{
-				BulletExtData::InterceptBullet(pBullet, pOwner, pBullet);
+				BulletExtData::InterceptBullet(pTargetBullet, pOwner, pBullet);
 			}
 		}
 	}
@@ -664,7 +664,6 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		if (this->Crit_ActiveChanceAnims.size() > 0 && this->CritCurrentChance > 0.0)
 		{
 			int idx = ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_ActiveChanceAnims.size() - 1);
-			auto const pAnim = GameCreate<AnimClass>(this->Crit_ActiveChanceAnims[idx], coords);
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_ActiveChanceAnims[idx], coords),
 				pHouse,
 				nullptr,
@@ -1015,10 +1014,9 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 	{
 		if (!this->Crit_AnimList_CreateAll.Get(false))
 		{
-			int idx = this->AttachedToObject->EMEffect || this->Crit_AnimList_PickRandom.Get(false) ?
+			const int idx = this->AttachedToObject->EMEffect || this->Crit_AnimList_PickRandom.Get(false) ?
 				ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_AnimList.size() - 1) : 0;
 
-			auto const pAnim = GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location);
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location),
 			pHouse,
 			pTarget->GetOwningHouse(),
