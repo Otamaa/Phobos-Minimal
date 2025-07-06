@@ -795,85 +795,72 @@ void BulletExtData::InitializeLaserTrails()
 	}
 }
 
-void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, WeaponTypeClass* pWeapon)
+void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, BulletClass* pInterceptor)
 {
-	if (pSource && pWeapon){
-		auto const pExt = BulletExtContainer::Instance.Find(pThis);
-		auto const pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSource->GetTechnoType());
-		auto const pThisTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
-		bool canAffect = false;
-		bool isIntercepted = false;
+	if (pInterceptor)
+	{
 
-		if (pThisTypeExt->Armor.isset())
+		auto const pExt = BulletExtContainer::Instance.Find(pThis);
+		auto pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+		const auto pInterceptorType = TechnoTypeExtContainer::Instance.Find(BulletExtContainer::Instance.Find(pInterceptor)->InterceptorTechnoType);
+
+		if (!pTypeExt->Armor.isset())
 		{
-			auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-			auto const versus = pWHExt->GetVerses(pThisTypeExt->Armor.Get()).Verses;
-			if (((Math::abs(versus) >= 0.001)))
+			if (!pInterceptorType->Interceptor_KeepIntact)
+				pExt->InterceptedStatus |= InterceptedStatus::Intercepted;
+		}
+		else
+		{
+			auto const pWHExt = WarheadTypeExtContainer::Instance.Find(pInterceptor->WH);
+			const bool canAffect = Math::abs(pWHExt->GetVerses(pTypeExt->Armor.Get()).Verses) >= 0.001;
+
+			if (canAffect)
 			{
-				canAffect = true;
-				const int damage = static_cast<int>(versus * TechnoExtData::GetDamageMult(pSource , pWeapon->Damage , !pTechnoTypeExt->Interceptor_ApplyFirepowerMult));
+
+				const int damage = static_cast<int>(pInterceptor->Health * pWHExt->GetVerses(pTypeExt->Armor.Get()).Verses);
 				pExt->CurrentStrength -= damage;
 
 				FlyingStrings::DisplayDamageNumberString(damage, DamageDisplayType::Intercept, pThis->GetRenderCoords(), pExt->DamageNumberOffset);
 
 				if (pExt->CurrentStrength <= 0)
-					isIntercepted = true;
-				else
-					pExt->InterceptedStatus = InterceptedStatus::None;
-			}
-		}
-		else
-		{
-			canAffect = true;
-			isIntercepted = true;
-		}
+				{
+					pExt->CurrentStrength = 0;
 
-		if (canAffect) {
-
-			{
-
-				pExt->Intercepted_Detonate = !pTechnoTypeExt->Interceptor_DeleteOnIntercept.Get(pThisTypeExt->Interceptable_DeleteOnIntercept);
-
-				if (auto const pWeaponOverride = pTechnoTypeExt->Interceptor_WeaponOverride.Get(pThisTypeExt->Interceptable_WeaponOverride)) {
-
-					pThis->WeaponType = pWeaponOverride;
-					pThis->Health = pTechnoTypeExt->Interceptor_WeaponCumulativeDamage ?
-						pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
-
-					pThis->WH = pWeaponOverride->Warhead;
-					pThis->Bright = pThis->WeaponType->Bright || pThis->WH->Bright;
-					pThis->Speed = pWeaponOverride->Speed;
-
-					if (pTechnoTypeExt->Interceptor_WeaponReplaceProjectile && pWeaponOverride->Projectile != pThis->Type)
-					{
-						const auto pNewProjTypeExt = BulletTypeExtContainer::Instance.Find(pWeaponOverride->Projectile);
-
-						if (!pNewProjTypeExt)
-						{
-							//Debug::LogInfo("Failed to find BulletTypeExt For [%s] ! ", pWeaponOverride->Projectile->get_ID());
-							return;
-						}
-
-						pThis->Type = pWeaponOverride->Projectile;
-
-						pExt->LaserTrails.clear();
-						pExt->InitializeLaserTrails();
-
-						TrailsManager::CleanUp(pExt->AttachedToObject);
-						TrailsManager::Construct(pExt->AttachedToObject);
-
-						//LineTrailExt::DeallocateLineTrail(pThis);
-						//LineTrailExt::ConstructLineTrails(pThis);
-
-					   // Lose target if the current bullet is no longer interceptable.
-						if (!pNewProjTypeExt->Interceptable || (pNewProjTypeExt->Armor.isset() && GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead, pNewProjTypeExt->Armor.Get()) == 0.0))
-							pSource->SetTarget(nullptr);
-					}
+					if (!pInterceptorType->Interceptor_KeepIntact)
+						pExt->InterceptedStatus |= InterceptedStatus::Intercepted;
 				}
 			}
+		}
 
-			if (isIntercepted && !pTechnoTypeExt->Interceptor_KeepIntact.Get()) {
-				pExt->InterceptedStatus = InterceptedStatus::Intercepted;
+		pExt->DetonateOnInterception = !pInterceptorType->Interceptor_DeleteOnIntercept.Get(pTypeExt->Interceptable_DeleteOnIntercept);
+
+		if (const auto pWeaponOverride = pInterceptorType->Interceptor_WeaponOverride.Get(pTypeExt->Interceptable_WeaponOverride))
+		{
+
+			pThis->WeaponType = pWeaponOverride;
+			pThis->Health = pInterceptorType->Interceptor_WeaponCumulativeDamage.Get() ? pThis->Health + pWeaponOverride->Damage : pWeaponOverride->Damage;
+			pThis->WH = pWeaponOverride->Warhead;
+			pThis->Bright = pWeaponOverride->Bright;
+
+			if (pInterceptorType->Interceptor_WeaponReplaceProjectile
+				&& pWeaponOverride->Projectile
+				&& pWeaponOverride->Projectile != pThis->Type)
+			{
+				pThis->Speed = pWeaponOverride->Speed;
+				pThis->Type = pWeaponOverride->Projectile;
+				pTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Type);
+
+				pExt->LaserTrails.clear();
+				pExt->InitializeLaserTrails();
+
+				TrailsManager::CleanUp(pExt->AttachedToObject);
+				TrailsManager::Construct(pExt->AttachedToObject);
+
+				// Lose target if the current bullet is no longer interceptable.
+
+				if (pSource && (!pTypeExt->Interceptable || (pTypeExt->Armor.isset() &&
+							Math::abs(WarheadTypeExtContainer::Instance.Find(pInterceptor->WH)->GetVerses(pTypeExt->Armor.Get()).Verses) < 0.001)))
+					pSource->SetTarget(nullptr);
 			}
 		}
 	}
@@ -1164,9 +1151,9 @@ void BulletExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 		.Process(this->CurrentStrength)
-		.Process(this->IsInterceptor)
+		.Process(this->InterceptorTechnoType)
 		.Process(this->InterceptedStatus)
-		.Process(this->Intercepted_Detonate)
+		.Process(this->DetonateOnInterception)
 		.Process(this->LaserTrails)
 		.Process(this->SnappedToTarget)
 		.Process(this->NukeSW)
@@ -1179,6 +1166,7 @@ void BulletExtData::Serialize(T& Stm)
 		.Process(this->Trails)
 		.Process(this->AttachedSystem)
 		.Process(this->OriginalTarget)
+		.Process(this->ParabombFallRate)
 		;
 
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);

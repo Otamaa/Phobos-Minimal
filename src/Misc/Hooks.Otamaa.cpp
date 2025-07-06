@@ -5830,9 +5830,11 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 	GET(ObjectClass*, pThis, ESI);
 
 	AnimClass* pParach = nullptr;
+	bool IsBullet = false;
 
 	if (auto pBullet = cast_to<BulletClass*, false>(pThis))
 	{
+		IsBullet = true;
 		auto pParach_type = ((FakeBulletClass*)pBullet)->_GetTypeExtData()->Parachute.Get(RulesClass::Instance->BombParachute);
 
 		pParach = GameCreate<AnimClass>(pParach_type, pCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
@@ -5859,8 +5861,18 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 		pParach = GameCreate<AnimClass>(pParach_type, coord);
 	}
 
-	R->EDI(pParach);
-	return 0x5F5AF1;
+	pThis->Parachute = pParach;
+
+	if(pParach){
+		const bool AllowRemap = !IsBullet;
+		pParach->SetOwnerObject(pThis);
+		if(AllowRemap){
+			pParach->LightConvert = pThis->GetRemapColour();
+			pParach->TintColor = pThis->GetCell()->Intensity_Normal;
+		}
+	}
+
+	return 0x5F5B36;
 }
 
 ASMJIT_PATCH(0x687000, ScenarioClass_CheckEmptyUIName, 0x5)

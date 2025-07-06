@@ -480,9 +480,9 @@ void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHo
 	}
 }
 
-void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* pWeapon, CoordStruct coords) const
+void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, BulletClass* pBullet, CoordStruct coords) const
 {
-	if (!pOwner || !pWeapon)
+	if (!pOwner || !pBullet)
 		return;
 
 	const float cellSpread = this->AttachedToObject->CellSpread;
@@ -492,26 +492,28 @@ void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, WeaponTypeClass* 
 		if (auto const pBullet = cast_to<BulletClass*>(pOwner->Target))
 		{
 			// 1/8th of a cell as a margin of error.
-			if (BulletTypeExtContainer::Instance.Find(pBullet->Type)->Interceptable && (pWeapon->Projectile->Inviso || pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0))
-				BulletExtData::InterceptBullet(pBullet, pOwner, pWeapon);
+			if (BulletTypeExtContainer::Instance.Find(pBullet->Type)->Interceptable
+					&& (pBullet->Type->Inviso || pBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0))
+			{
+				BulletExtData::InterceptBullet(pBullet, pOwner, pBullet);
+			}
 		}
 	}
 	else
 	{
-		BulletClass::Array->for_each([&](BulletClass* pTargetBullet)
- {
-	 if (pTargetBullet)
-	 {
-		 const auto pBulletExt = BulletExtContainer::Instance.Find(pTargetBullet);
-		 if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo)
-		 {
-			 auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pTargetBullet->Type);
-			 // Cells don't know about bullets that may or may not be located on them so it has to be this way.
-			 if (pBulletTypeExt->Interceptable &&
-				 pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
-				 BulletExtData::InterceptBullet(pTargetBullet, pOwner, pWeapon);
-		 }
-	 }
+		BulletClass::Array->for_each([&](BulletClass* pTargetBullet) {
+			 if (pTargetBullet)
+			 {
+				 const auto pBulletExt = BulletExtContainer::Instance.Find(pTargetBullet);
+				 if (pBulletExt->CurrentStrength > 0 && !pTargetBullet->InLimbo)
+				 {
+					 auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pTargetBullet->Type);
+					 // Cells don't know about bullets that may or may not be located on them so it has to be this way.
+					 if (pBulletTypeExt->Interceptable && !pBullet->SpawnNextAnim &&
+						 pTargetBullet->Location.DistanceFrom(coords) <= (cellSpread * Unsorted::LeptonsPerCell))
+						 BulletExtData::InterceptBullet(pTargetBullet, pOwner, pBullet);
+				 }
+			 }
 		});
 	}
 }
@@ -583,9 +585,9 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 	if (pOwner && pBullet)
 	{
-		if (pOwner->IsAlive && pBullet->IsAlive)
-			if (TechnoExtContainer::Instance.Find(pOwner)->IsInterceptor() && BulletExtContainer::Instance.Find(pBullet)->IsInterceptor)
-				this->InterceptBullets(pOwner, pBullet->WeaponType, coords);
+		if (pOwner->IsAlive && pBullet->IsAlive && BulletExtContainer::Instance.Find(pBullet)->InterceptorTechnoType){
+				this->InterceptBullets(pOwner, pBullet, coords);
+		}
 
 		//TechnoExtData::PutPassengersInCoords(pBullet->Owner, coords, RulesGlobal->WarpIn, RulesGlobal->BunkerWallsUpSound, false);
 	}
@@ -670,7 +672,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 				false, false);
 		}
 
-		const bool ThisbulletWasIntercepted = pBullet ? BulletExtContainer::Instance.Find(pBullet)->InterceptedStatus == InterceptedStatus::Intercepted : false;
+		const bool ThisbulletWasIntercepted = pBullet ? bool(BulletExtContainer::Instance.Find(pBullet)->InterceptedStatus & InterceptedStatus::Intercepted) : false;
 		const float cellSpread = this->AttachedToObject->CellSpread;
 
 

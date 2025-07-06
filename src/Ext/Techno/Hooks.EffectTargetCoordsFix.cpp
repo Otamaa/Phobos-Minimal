@@ -559,6 +559,7 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 	//remove ammo rounds depending on weapon
 	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeaponType);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 #ifndef PERFORMANCE_HEAVY
 	// Restore original target & coords
@@ -596,14 +597,19 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 	{
 		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor())
 		{
-			BulletExtContainer::Instance.Find(pBullet)->IsInterceptor = true;
-			BulletExtContainer::Instance.Find(pTargetObject)->InterceptedStatus = InterceptedStatus::Targeted;
+			auto pBulletTargetExt = BulletExtContainer::Instance.Find(pTargetObject);
+			auto pBulletTypeTargetExt = BulletTypeExtContainer::Instance.Find(pTargetObject->Type);
 
-			// If using Inviso projectile, can intercept bullets right after firing.
-			// if (pTargetObject->IsAlive && pWeaponType->Projectile->Inviso)
-			// {
-			// 	WarheadTypeExtContainer::Instance.Find(pWeaponType->Warhead)->InterceptBullets(pThis, pWeaponType, pTargetObject->Location);
-			// }
+			if (!pBulletTypeTargetExt->Armor.isset())
+				pBulletTargetExt->InterceptedStatus |= InterceptedStatus::Locked;
+
+			const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+			
+			pBulletExt->InterceptorTechnoType = pThis->GetTechnoType();
+			pBulletExt->InterceptedStatus |= InterceptedStatus::Targeted;
+
+			if (!pTypeExt->Interceptor_ApplyFirepowerMult)
+				pBullet->Health = pWeaponType->Damage;
 		}
 	}
 

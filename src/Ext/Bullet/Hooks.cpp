@@ -56,12 +56,6 @@ ASMJIT_PATCH(0x466705, BulletClass_AI, 0x6) //8
 				return retDead;
 	}
 
-	if (pBulletExt->InterceptedStatus == InterceptedStatus::Intercepted) {
-		if (BulletExtData::HandleBulletRemove(pThis, pBulletExt->Intercepted_Detonate, true))
-			return retDead;
-	}
-
-
 	if(!pBulletExt->Trajectory || !PhobosTrajectory::BlockDrawTrail(pBulletExt->Trajectory)){
 
 		// LaserTrails update routine is in BulletClass::AI hook because BulletClass::Draw
@@ -202,7 +196,7 @@ ASMJIT_PATCH(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 {
 	enum { DetonateBullet = 0x467F9B, Continue = 0x0 };
 	GET(FakeBulletClass*, pThis, EBP);
-	return (pThis->Type->Inviso && pThis->_GetExtData()->IsInterceptor)
+	return (pThis->Type->Inviso && & pThis->_GetExtData()->InterceptorTechnoType)
 		? DetonateBullet : Continue;
 }
 

@@ -194,6 +194,8 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->SubjectToTrenches.Read(exINI, pSection, "SubjectToTrenches");
 		this->Parachuted.Read(exINI, pSection, "Parachuted");
+		this->Parachuted_FallRate.Read(exINI, pSection, "Parachuted.FallRate");
+		this->Parachuted_MaxFallRate.Read(exINI, pSection, "Parachuted.MaxFallRate");
 		this->AnimLength.Read(exINI, pThis->ID, "AnimLength");
 		this->Arcing_AllowElevationInaccuracy.Read(exINI, pSection, "Arcing.AllowElevationInaccuracy");
 		this->AttachedSystem.Read(exINI, pSection, "AttachedSystem");
@@ -290,6 +292,8 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->BallisticScatterMax)
 		.Process(this->ImageConvert)
 		.Process(this->Parachuted)
+		.Process(this->Parachuted_FallRate)
+		.Process(this->Parachuted_MaxFallRate)
 		.Process(this->AnimLength)
 		.Process(this->Arcing_AllowElevationInaccuracy)
 		.Process(this->AttachedSystem)

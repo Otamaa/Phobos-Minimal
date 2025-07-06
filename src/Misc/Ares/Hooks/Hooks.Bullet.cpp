@@ -225,7 +225,7 @@ ASMJIT_PATCH(0x46867F , BulletClass_SetMovement_Parachute, 5)
 	bool result = false;
 	if (pBulletData->Parachuted) {
 		result = Bullet->SpawnParachuted(*XYZ);
-		Bullet->IsABomb = true;
+		//Bullet->IsABomb = true; dev phobos remove this
 	} else {
 		result = Bullet->ObjectClass::Unlimbo(*XYZ, DirType::North);
 	}

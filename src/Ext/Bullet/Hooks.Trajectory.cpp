@@ -12,10 +12,31 @@ ASMJIT_PATCH(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 	GET(FakeBulletClass*, pThis, EBP);
 
 	auto pExt = pThis->_GetExtData();
+	auto pTypeExt  = pThis->_GetTypeExtData();
+
 	auto& pTraj = pExt->Trajectory;
 
 	if (!pThis->SpawnNextAnim && pTraj) {
 		return pTraj->OnAI() ? Detonate : 0x0;
+	}
+
+	if (pExt->InterceptedStatus & InterceptedStatus::Targeted) {
+		if (const auto pTarget = cast_to<BulletClass*>(pThis->Target)) {
+			const auto pTargetTypeExt = BulletTypeExtContainer::Instance.Find(pTarget->Type);
+			const auto pTargetExt = BulletExtContainer::Instance.Find(pTarget);
+
+			if (!pTargetTypeExt->Armor.isset())
+				pTargetExt->InterceptedStatus |= InterceptedStatus::Locked;
+		}
+	}
+
+	if (pExt->InterceptedStatus & InterceptedStatus::Intercepted)
+	{
+		if (const auto pTarget = cast_to<BulletClass*>(pThis->Target))
+			BulletExtContainer::Instance.Find(pTarget)->InterceptedStatus &= ~InterceptedStatus::Locked;
+
+		if (BulletExtData::HandleBulletRemove(pThis, pExt->DetonateOnInterception, true))
+			return 0x467FEE;
 	}
 
 	if (!pThis->IsAlive) {
@@ -43,6 +64,28 @@ ASMJIT_PATCH(0x4666F7, BulletClass_AI_Trajectories, 0x6)
 
 		TrailsManager::AI(pThis->_AsBullet());
 	}
+
+	if (pThis->HasParachute)
+	{
+		int fallRate = pExt->ParabombFallRate - pTypeExt->Parachuted_FallRate;
+		int maxFallRate = pTypeExt->Parachuted_MaxFallRate.Get(RulesClass::Instance->ParachuteMaxFallRate);
+
+		if (fallRate < maxFallRate)
+			fallRate = maxFallRate;
+
+		pExt->ParabombFallRate = fallRate;
+		pThis->FallRate = fallRate;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x467AB2, BulletClass_AI_Parabomb, 0x7)
+{
+	GET(BulletClass*, pThis, EBP);
+
+	if (pThis->HasParachute)
+		return 0x467B1A;
 
 	return 0;
 }
