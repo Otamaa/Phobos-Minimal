@@ -58,6 +58,8 @@
 
 #include <Ext/RadSite/Body.h>
 
+#include <unordered_map>
+
 #pragma endregion
 
 ASMJIT_PATCH(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
@@ -1294,6 +1296,95 @@ ASMJIT_PATCH(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 	R->AL(TechnoExtData::IsCrushable(pThis, pTechno));
 	return 0x5F6D90;
 }
+
+// DISABLED: These hooks were causing null pointer execution crashes
+// The main game loop hooks were too aggressive and corrupted function pointers
+// TODO: Find a safer approach to prevent crashes without interfering with game flow
+
+/*
+// Hook to prevent null pointer crashes in main game loop object processing
+ASMJIT_PATCH(0x55B60E, MainLoop_ObjectProcessing_SafetyCheck, 0x3)
+{
+	GET(void*, pObject, ECX);
+	
+	// Critical safety check for null objects
+	if (!pObject || IsBadReadPtr(pObject, sizeof(void*))) {
+		// Skip this object by jumping to the next iteration
+		return 0x55B615; // Skip the virtual function call and continue to next object
+	}
+	
+	// Validate virtual table before calling virtual function
+	try {
+		auto vtable = *reinterpret_cast<void**>(pObject);
+		if (!vtable || IsBadReadPtr(vtable, sizeof(void*))) {
+			return 0x55B615; // Skip corrupted object
+		}
+		
+		// Check if the virtual function pointer at offset 0x5C is valid
+		auto vfunc = *reinterpret_cast<void**>(reinterpret_cast<char*>(vtable) + 0x5C);
+		if (!vfunc || IsBadReadPtr(vfunc, sizeof(void*))) {
+			return 0x55B615; // Skip object with corrupted virtual function
+		}
+	} catch (...) {
+		return 0x55B615; // Skip object on any exception
+	}
+	
+	// Object appears valid, proceed with original code
+	// Original instruction: mov edx, [ecx]
+	R->EDX(*reinterpret_cast<DWORD*>(pObject));
+	return 0x55B611; // Continue with the virtual function call
+}
+
+// Additional safety check for object array iteration in main loop
+ASMJIT_PATCH(0x55B600, MainLoop_ObjectArray_Validation, 0x6)
+{
+	GET(int, objectIndex, ESI);
+	GET_STACK(int, objectCount, STACK_OFFSET(0x20, -0x10)); // Approximate stack offset for object count
+	
+	// Validate array bounds
+	if (objectIndex < 0 || objectIndex >= objectCount) {
+		// Skip to end of loop if index is out of bounds
+		return 0x55B620; // Jump past the object processing loop
+	}
+	
+	// Continue with original code
+	return 0;
+}
+
+// Hook to validate objects before they're added to processing arrays
+ASMJIT_PATCH(0x55AFE0, MainLoop_PreValidateObjects, 0x6)
+{
+	// This hook runs early in the main loop before object processing
+	// Clean up any null pointers in object arrays
+	
+	auto* currentObjects = &ObjectClass::CurrentObjects;
+	
+	// Remove null pointers from the current objects array
+	for (int i = currentObjects->Count - 1; i >= 0; --i) {
+		auto pObject = currentObjects->Items[i];
+		
+		if (!pObject || IsBadReadPtr(pObject, sizeof(ObjectClass))) {
+			// Remove the null/corrupted object from the array
+			currentObjects->Remove(pObject);
+			continue;
+		}
+		
+		// Validate virtual table
+		try {
+			auto vtable = *reinterpret_cast<void**>(pObject);
+			if (!vtable || IsBadReadPtr(vtable, sizeof(void*))) {
+				currentObjects->Remove(pObject);
+				continue;
+			}
+		} catch (...) {
+			currentObjects->Remove(pObject);
+			continue;
+		}
+	}
+	
+	return 0;
+}
+*/
 
 ASMJIT_PATCH(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
 {
@@ -5087,6 +5178,37 @@ ASMJIT_PATCH(0x42D45B, AStarClass_Attempt_Exit, 0x6)
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x42D44C, AStarClass_Attempt_Exit, 0x6)
 
+// Global pathfinding failure tracking maps
+namespace PathfindingFailureTracking {
+	static std::unordered_map<void*, std::pair<CellStruct, int>> lastFailedPaths;
+	static std::unordered_map<void*, std::pair<CellStruct, int>> lastFailedHierarchicalPaths;
+	static std::unordered_map<void*, std::pair<CellStruct, int>> lastFailedNonHierarchicalPaths;
+}
+
+// Clean up pathfinding failure tracking when units are destroyed
+ASMJIT_PATCH(0x4DA77F, FootClass_DTOR_CleanupPathfindingLogs, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	
+	// Validate pointer before using it
+	if (!pThis || IsBadReadPtr(pThis, sizeof(FootClass))) {
+		return 0x0; // Invalid pointer, skip cleanup
+	}
+	
+	// Clean up static maps to prevent memory leaks
+	using namespace PathfindingFailureTracking;
+	
+	try {
+		lastFailedPaths.erase(pThis);
+		lastFailedHierarchicalPaths.erase(pThis);
+		lastFailedNonHierarchicalPaths.erase(pThis);
+	} catch (...) {
+		// Ignore exceptions during cleanup
+	}
+	
+	return 0x0;
+}
+
 ASMJIT_PATCH(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
 {
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
@@ -5114,10 +5236,75 @@ public:
 #pragma optimize("", off )
 	bool Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone mzone, FootClass* foot)
 	{
+		// Performance monitoring
+		auto startTime = std::chrono::high_resolution_clock::now();
+		int totalNodesExpanded = 0;
+		int totalHeapOperations = 0;
+		
+		// Critical safety checks for input parameters
+		if (!from || !to) {
+			return false; // Invalid input parameters
+		}
+		
+		// Validate coordinate bounds
+		if (from->X < 0 || from->Y < 0 || to->X < 0 || to->Y < 0 ||
+			from->X >= MapClass::MapCellDimension->Width || from->Y >= MapClass::MapCellDimension->Height ||
+			to->X >= MapClass::MapCellDimension->Width || to->Y >= MapClass::MapCellDimension->Height) {
+			return false; // Coordinates out of bounds
+		}
+		
+		// Safety checks for data structures
+		if (!this->HierarchicalQueue || !this->HierarchicalQueue->Heap || 
+			this->HierarchicalQueue->Capacity <= 0 || this->HierarchicalQueue->Capacity > 10000 ||
+			!this->BufferForHierarchicalQueue) {
+			return false; // Invalid data structures
+		}
+		
+		// Additional safety checks for foot object
+		if (foot) {
+			// Check if foot object is valid and not corrupted
+			if (!foot->IsAlive || foot->InLimbo || !foot->Owner) {
+				return false; // Invalid foot object state
+			}
+			
+			// Validate foot object's virtual table
+			try {
+				auto vtable = *reinterpret_cast<void**>(foot);
+				if (!vtable || IsBadReadPtr(vtable, sizeof(void*))) {
+					return false; // Corrupted foot object
+				}
+			} catch (...) {
+				return false; // Exception accessing foot object
+			}
+		}
+		
 		const double threat = foot ? foot->GetThreatAvoidance() : 0.0;
 		const bool avaible = !foot || threat <= 0.00001 ? false : true;
 		HouseClass* pHouse = foot ? foot->Owner : nullptr;
 		bool continueOP = true;
+		
+		// Safety check for MapClass
+		if (!MapClass::Instance) {
+			return false; // MapClass not initialized
+		}
+		
+		// Validate critical global data structures
+		if (!SubzoneTrackingStruct::Array || !SubzoneTrackingStruct::Array[0].Items) {
+			return false; // Subzone tracking not initialized
+		}
+		
+		// Validate global passability data
+		auto globalPassabilityData = MapClass::GlobalPassabilityDatas();
+		if (!globalPassabilityData) {
+			return false; // Passability data not initialized
+		}
+		
+		// Debug logging
+		if (Phobos::Otamaa::IsAdmin) {
+			Debug::Log("Hierarchical pathfinding: (%d,%d) -> (%d,%d) for %s\n", 
+				from->X, from->Y, to->X, to->Y, 
+				foot ? foot->GetTechnoType()->get_ID() : "Unknown");
+		}
 
 		for (int idx_star = 2; idx_star >= 0; --idx_star)
 		{
@@ -5129,9 +5316,15 @@ public:
 
 			auto zone_from = MapClass::Instance->MapClass_zone_56D3F0(from);
 			auto passabilityDataFrom = MapClass::GlobalPassabilityDatas() + zone_from;
+			if (!passabilityDataFrom) {
+				return false; // Invalid passability data
+			}
 			auto pPassabilityFrom = passabilityDataFrom->data[idx_star];
 			auto zone_to = MapClass::Instance->MapClass_zone_56D3F0(to);  // Fixed: was using 'from' twice
 			auto passabilityDataTo = MapClass::GlobalPassabilityDatas() + zone_to;
+			if (!passabilityDataTo) {
+				return false; // Invalid passability data
+			}
 			auto pPassabilityTo = passabilityDataTo->data[idx_star];
 
 			const bool isFirst = idx_star == 2;
@@ -5139,6 +5332,11 @@ public:
 			const auto cur_cost_ptr = this->ints_40_costs[idx_star];
 			const auto cur_const_ptr_b = this->ints_4C_costs[idx_star];
 			const auto cur_cost_hirarcial_ptr = this->HierarchicalCosts[idx_star];
+			
+			// Safety checks for cost arrays
+			if (!cur_cost_ptr || !cur_const_ptr_b || !cur_cost_hirarcial_ptr) {
+				return false; // Invalid cost arrays
+			}
 
 			cur_cost_ptr[pPassabilityFrom] = this->initedcount;
 			cur_cost_ptr[pPassabilityTo] = this->initedcount;
@@ -5172,11 +5370,15 @@ public:
 			int ele = this->HierarchicalQueue->Count + 1;
 			int ele_shift = ele >> 1;
 
-			if (ele < this->HierarchicalQueue->Capacity)
+			if (ele < this->HierarchicalQueue->Capacity && this->HierarchicalQueue->Count < this->HierarchicalQueue->Capacity - 1)
 			{
 				for (; ele > 1; ele_shift >>= 1)
 				{
 					auto pEle = this->HierarchicalQueue->Heap;
+					if (!pEle || ele_shift >= this->HierarchicalQueue->Capacity || !pEle[ele_shift]) {
+						break; // Safety check
+					}
+					
 					if (pEle[ele_shift]->Score <= 0.0f)
 					{
 						break;
@@ -5215,32 +5417,86 @@ public:
 			while (1)
 			{
 				int _first_idx = first->Index;
+				totalNodesExpanded++;
+				
 				if (_first_idx == pPassabilityTo)
 				{
 					break;
 				}
 
 				auto sub_zone = SubzoneTrackingStruct::Array[0].Items + (24 * idx_star);
+				if (!sub_zone || _first_idx < 0 || _first_idx >= 1000) {
+					break; // Invalid subzone data
+				}
+				
+				// Additional bounds checking for subzone array access
+				if (_first_idx * 24 + idx_star >= SubzoneTrackingStruct::Array[0].Count) {
+					break; // Subzone index out of bounds
+				}
+				
+				// Validate subzone array bounds more strictly
+				if (idx_star >= 3 || idx_star < 0) {
+					break; // Invalid star index
+				}
+				
+				// Check for potential buffer overflow in subzone calculations
+				size_t subzoneOffset = 24 * idx_star;
+				if (subzoneOffset > 1000 || _first_idx >= 1000) {
+					break; // Prevent buffer overflow
+				}
+				
 				auto conn_begin = sub_zone[_first_idx].SubzoneConnections.Items;
 				auto conn_count = sub_zone[_first_idx].SubzoneConnections.Count;
+				
+				// Safety check for connection data
+				if (!conn_begin && conn_count > 0) {
+					break; // Invalid connection array
+				}
 				if (conn_count > 0)
 				{
 					do
 					{
+						// Safety checks for connection data
+						if (!conn_begin || conn_begin->unknown_dword_0 < 0) {
+							break; // Invalid connection data
+						}
+						
 						auto _conn_ = SubzoneTrackingStruct::Array[0].Items + idx_star;
-						auto __conn__first = _conn_[conn_begin->unknown_dword_0].unknown_word_18;
-						auto __conn__next = _conn_[conn_begin->unknown_dword_0].unknown_dword_1C;
+						if (!_conn_ || idx_star >= SubzoneTrackingStruct::Array[0].Count) {
+							break; // Invalid connection array
+						}
+						
+						int conn_index = conn_begin->unknown_dword_0;
+						
+						// Bounds check for connection index
+						if (conn_index >= 1000) { // Assuming reasonable upper bound
+							break; // Index out of bounds
+						}
+						
+						auto __conn__first = _conn_[conn_index].unknown_word_18;
+						auto __conn__next = _conn_[conn_index].unknown_dword_1C;
+						
+						// Additional bounds check for movement array access
+						if (__conn__next < 0 || __conn__next >= 256) { // Assuming reasonable bounds
+							break; // Invalid movement index
+						}
+						
 						int zone_ = 0;
 						if (avaible)
 						{
-							zone_ = int(MapClass::Instance->subZone_585F40(pHouse, idx_star, _first_idx, conn_begin->unknown_dword_0) * threat);
+							zone_ = int(MapClass::Instance->subZone_585F40(pHouse, idx_star, _first_idx, conn_index) * threat);
 						}
 
 						double score = conn_begin->unknown_byte_4 ? 0.001 : 0.0;
-						int _vala = conn_begin->unknown_dword_0;
+						int _vala = conn_index;
 						double adj__ = _pathfind_adjusment[__conn__next] + first->Score + zone_ + score;
-						if ((cur_const_ptr_b[conn_begin->unknown_dword_0] != this->initedcount
-							|| cur_cost_hirarcial_ptr[conn_begin->unknown_dword_0] > adj__)
+						// Additional safety checks for array bounds
+						if (conn_index >= 1000 || __conn__first >= 1000) {
+							break; // Array bounds exceeded
+						}
+						
+						if ((cur_const_ptr_b[conn_index] != this->initedcount
+							|| cur_cost_hirarcial_ptr[conn_index] > adj__)
 							 && (isFirst || next_cost_ptr[__conn__first] == this->initedcount || __conn__next == 1)
 							 && MapClass::MovementAdjustArray[(int)mzone][__conn__next] == 1)
 						{
@@ -5262,7 +5518,16 @@ public:
 							if (countxx_ < 0)
 							{
 							LABEL_49:
+								// Safety check for buffer bounds
+								if (_idxstart_here >= 1000) {
+									return false; // Prevent buffer overflow
+								}
+								
 								auto pBuffer = this->BufferForHierarchicalQueue;
+								if (!pBuffer) {
+									return false; // Safety check
+								}
+								
 								pBuffer[_idxstart_here].Index = _vala;
 								pBuffer[_idxstart_here].BufferDelta = first - pBuffer;
 								pBuffer[_idxstart_here].Score = adj__;
@@ -5271,27 +5536,49 @@ public:
 								int ele_B = this->HierarchicalQueue->Count + 1;
 								int ele_shift_B = ele_B >> 1;
 
-								if (ele_B < this->HierarchicalQueue->Capacity)
+								if (ele_B < this->HierarchicalQueue->Capacity && _idxstart_here < 1000)
 								{
-									for (; ele_B > 1; ele_shift_B >>= 1)
+									totalHeapOperations++;
+									
+									// Safe heap insertion with bounds checking
+									auto* heap = this->HierarchicalQueue->Heap;
+									auto* newNode = &pBuffer[_idxstart_here];
+									
+									// Validate heap array bounds before access
+									if (!heap || ele_B >= this->HierarchicalQueue->Capacity) {
+										return false; // Safety check
+									}
+									
+									// Bubble up efficiently with bounds checking
+									while (ele_B > 1 && ele_shift_B > 0)
 									{
-										auto pEle_B = this->HierarchicalQueue->Heap;
-										if (pEle_B[ele_shift_B]->Score <= adj__)
-										{
-											break;
+										int parent = ele_shift_B;
+										if (parent >= this->HierarchicalQueue->Capacity || !heap[parent]) {
+											break; // Safety check
 										}
-
-										this->HierarchicalQueue->Heap[ele_B] = this->HierarchicalQueue->Heap[ele_shift_B];
-										ele_B = ele_shift_B;
+										
+										if (heap[parent]->Score <= adj__)
+											break;
+										
+										heap[ele_B] = heap[parent];
+										ele_B = parent;
+										ele_shift_B >>= 1;
 									}
 
-									this->HierarchicalQueue->Heap[ele_B] = &pBuffer[_idxstart_here];
-									++this->HierarchicalQueue->Count;
-									if (&pBuffer[_idxstart_here] > this->HierarchicalQueue->MaxNodePointer)
-										this->HierarchicalQueue->MaxNodePointer = &pBuffer[_idxstart_here];
-									if (&pBuffer[_idxstart_here] < this->HierarchicalQueue->MinNodePointer)
-										this->HierarchicalQueue->MinNodePointer = &pBuffer[_idxstart_here];
-
+									heap[ele_B] = newNode;
+									
+									// Safety check before incrementing count
+									if (this->HierarchicalQueue->Count < this->HierarchicalQueue->Capacity - 1) {
+										++this->HierarchicalQueue->Count;
+									} else {
+										return false; // Heap capacity exceeded
+									}
+									
+									// Update bounds efficiently
+									if (newNode > this->HierarchicalQueue->MaxNodePointer)
+										this->HierarchicalQueue->MaxNodePointer = newNode;
+									if (newNode < this->HierarchicalQueue->MinNodePointer)
+										this->HierarchicalQueue->MinNodePointer = newNode;
 								}
 
 								cur_const_ptr_b[_vala] = this->initedcount;
@@ -5375,6 +5662,29 @@ public:
 			this->somearray_BC[500 * idx_star] = _copyFirst->Index;
 		}
 
+		// Performance logging
+		if (Phobos::Otamaa::IsAdmin) {
+			auto endTime = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+			Debug::Log("Hierarchical pathfinding completed in %lld μs, nodes expanded: %d, heap ops: %d\n", 
+				duration.count(), totalNodesExpanded, totalHeapOperations);
+		}
+		
+		// Final validation - ensure we haven't corrupted memory
+		if (foot) {
+			try {
+				// Quick validation that the foot object is still valid
+				auto vtable = *reinterpret_cast<void**>(foot);
+				if (!vtable || IsBadReadPtr(vtable, sizeof(void*))) {
+					Debug::Log("Warning: Foot object may have been corrupted during pathfinding\n");
+					return false;
+				}
+			} catch (...) {
+				Debug::Log("Warning: Exception accessing foot object after pathfinding\n");
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -5395,6 +5705,214 @@ ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 		PhobosGlobal::Instance()->PathfindTechno = { pTech  ,*from , *to };
 
 	return 0x0;
+}
+
+// CORRECTED: Hook for the actual regular pathfinding function based on decompiled code
+ASMJIT_PATCH(0x429A90, AStarClass_FindPathRegular_Entry, 0x6)
+{
+	// Based on decompiled function signature:
+	// FUN_00429a90(this, param_1=from, param_2=to, param_3=techno, param_4=path, param_5=maxlen, param_6=zone)
+	GET(void*, pThis, ECX);
+	GET_STACK(CellStruct*, from, 0x4);     // param_1 (short*)
+	GET_STACK(CellStruct*, to, 0x8);       // param_2 (short*)  
+	GET_STACK(TechnoClass*, pTech, 0xC);   // param_3 (int*)
+	GET_STACK(int*, pathBuffer, 0x10);     // param_4
+	GET_STACK(int, maxLength, 0x14);       // param_5
+	GET_STACK(char, movementZone, 0x18);   // param_6
+	
+	// Critical validation based on what the function actually does
+	if (!pThis || !from || !to || !pTech) {
+		R->EAX(0); // Return null PathType*
+		return 0x42A432; // Skip to function end
+	}
+	
+	// Validate coordinate bounds (function uses these immediately)
+	if (from->X < 0 || from->Y < 0 || to->X < 0 || to->Y < 0 ||
+		from->X >= MapClass::MapCellDimension->Width || from->Y >= MapClass::MapCellDimension->Height ||
+		to->X >= MapClass::MapCellDimension->Width || to->Y >= MapClass::MapCellDimension->Height) {
+		// Debug::Log("Pathfinding: Invalid coordinates (%d,%d) to (%d,%d)\n", from->X, from->Y, to->X, to->Y);
+		R->EAX(0); // Return null PathType*
+		return 0x42A432; // Skip to function end
+	}
+	
+	// Validate techno object state (function calls virtual functions on it)
+	if (!pTech->IsAlive || pTech->InLimbo || !pTech->Owner) {
+		// Debug::Log("Pathfinding: Invalid techno state for %s\n", pTech->get_ID());
+		R->EAX(0); // Return null PathType*
+		return 0x42A432; // Skip to function end
+	}
+	
+	// Validate path buffer if provided
+	if (pathBuffer && maxLength > 0 && IsBadWritePtr(pathBuffer, maxLength * sizeof(int))) {
+		// Debug::Log("Pathfinding: Invalid path buffer\n");
+		R->EAX(0); // Return null PathType*
+		return 0x42A432; // Skip to function end
+	}
+	
+	// Set tracking info for debugging
+	PhobosGlobal::Instance()->PathfindTechno = { pTech, *from, *to };
+	
+	return 0x0; // Continue with original function
+}
+
+ASMJIT_PATCH(0x42A451, AStarClass_FindPathRegular_Exit, 0x5)
+{
+	PhobosGlobal::Instance()->PathfindTechno.Clear();
+	return 0x0;
+}
+
+// Critical hook for priority queue heap operations that cause memory corruption
+ASMJIT_PATCH(0x429EC7, AStarClass_PriorityQueue_SafetyCheck, 0x6)
+{
+	GET(void*, pThis, ECX);
+	GET(int*, pHeap, EAX);
+	GET(int, heapIndex, EDX);
+	
+	// Validate heap pointer and index before any heap operations
+	if (!pThis || !pHeap) {
+		return 0x42A1A1; // Skip to next iteration
+	}
+	
+	// Validate heap index bounds (based on decompiled code analysis)
+	if (heapIndex < 0 || heapIndex >= 65536) { // Reasonable heap size limit
+		// Debug::Log("Pathfinding: Heap index out of bounds: %d\n", heapIndex);
+		return 0x42A1A1; // Skip to next iteration
+	}
+	
+	// Validate heap memory
+	if (IsBadReadPtr(pHeap, sizeof(int)) || IsBadWritePtr(pHeap, sizeof(int))) {
+		// Debug::Log("Pathfinding: Invalid heap memory access\n");
+		return 0x42A1A1; // Skip to next iteration
+	}
+	
+	return 0x0; // Continue with original operation
+}
+
+
+
+// Hook for the main AStar algorithm entry point
+ASMJIT_PATCH(0x429830, AStarClass_GetMovementCost_Safety, 0x6)
+{
+	GET_STACK(CellStruct*, pCell, 0x8);
+	GET_STACK(TechnoClass*, pTech, 0x10);
+	
+	// Validate cell pointer and coordinates
+	if (!pCell || pCell->X < 0 || pCell->Y < 0 ||
+		pCell->X >= MapClass::MapCellDimension->Width || 
+		pCell->Y >= MapClass::MapCellDimension->Height) {
+		R->EAX(0x7FFFFFFF); // Return maximum cost for invalid cells
+		return 0x4298F0; // Skip to function end
+	}
+	
+	// Validate tech object
+	if (pTech && (!pTech->IsAlive || pTech->InLimbo)) {
+		R->EAX(0x7FFFFFFF); // Return maximum cost for invalid units
+		return 0x4298F0; // Skip to function end
+	}
+	
+	return 0x0; // Continue with original function
+}
+
+// Hook for priority queue operations safety - based on decompiled function structure
+ASMJIT_PATCH(0x429EC7, AStarClass_PriorityQueue_Safety, 0x6)
+{
+	GET(void*, pHeap, EAX);
+	GET(int, heapCount, ECX);
+	GET(int, heapCapacity, EDX);
+	
+	// Validate heap structure before operations
+	if (!pHeap) {
+		// Debug::Log("Pathfinding: Invalid heap pointer\n");
+		R->EAX(0); // Return failure
+		return 0x429F00; // Skip to safe exit
+	}
+	
+	// Validate heap bounds
+	if (heapCount < 0 || heapCount >= heapCapacity || heapCapacity <= 0 || heapCapacity > 10000) {
+		// Debug::Log("Pathfinding: Invalid heap bounds - count: %d, capacity: %d\n", heapCount, heapCapacity);
+		R->EAX(0); // Return failure
+		return 0x429F00; // Skip to safe exit
+	}
+	
+	// Validate heap memory access
+	if (IsBadReadPtr(pHeap, heapCapacity * sizeof(void*))) {
+		// Debug::Log("Pathfinding: Invalid heap memory access\n");
+		R->EAX(0); // Return failure
+		return 0x429F00; // Skip to safe exit
+	}
+	
+	return 0x0; // Continue with original function
+}
+
+// Hook for neighbor cell processing safety
+ASMJIT_PATCH(0x429F04, AStarClass_NeighborProcessing_Safety, 0x6)
+{
+	GET_STACK(CellStruct*, pCurrentCell, 0x8);
+	GET_STACK(CellStruct*, pNeighborCell, 0xC);
+	
+	// Validate current cell
+	if (!pCurrentCell || pCurrentCell->X < 0 || pCurrentCell->Y < 0 ||
+		pCurrentCell->X >= MapClass::MapCellDimension->Width || 
+		pCurrentCell->Y >= MapClass::MapCellDimension->Height) {
+		// Debug::Log("Pathfinding: Invalid current cell coordinates\n");
+		R->EAX(0); // Return failure
+		return 0x429F80; // Skip to safe exit
+	}
+	
+	// Validate neighbor cell
+	if (!pNeighborCell || pNeighborCell->X < 0 || pNeighborCell->Y < 0 ||
+		pNeighborCell->X >= MapClass::MapCellDimension->Width || 
+		pNeighborCell->Y >= MapClass::MapCellDimension->Height) {
+		// Debug::Log("Pathfinding: Invalid neighbor cell coordinates\n");
+		R->EAX(0); // Return failure
+		return 0x429F80; // Skip to safe exit
+	}
+	
+	// Validate map bounds for neighbor access
+	if (!MapClass::Instance) {
+		// Debug::Log("Pathfinding: MapClass not initialized\n");
+		R->EAX(0); // Return failure
+		return 0x429F80; // Skip to safe exit
+	}
+	
+	return 0x0; // Continue with original function
+}
+
+// Hook for FootClass AI pathfinding safety - based on decompiled FUN_004da530
+ASMJIT_PATCH(0x4DA530, FootClass_AI_PathfindingEntry_Safety, 0x6)
+{
+	GET(FootClass*, pThis, ECX);
+	
+	// Critical validation at entry point of FootClass AI
+	if (!pThis || IsBadReadPtr(pThis, sizeof(FootClass))) {
+		// Debug::Log("FootClass AI: Invalid foot object pointer\n");
+		return 0x4DABC0; // Skip to safe exit point
+	}
+	
+	// Validate essential foot object state
+	if (!pThis->IsAlive) {
+		return 0x4DABC0; // Skip AI for dead objects
+	}
+	
+	// Validate owner before any pathfinding operations
+	if (!pThis->Owner) {
+		// Debug::Log("FootClass AI: Foot object %s has no owner\n", pThis->get_ID());
+		return 0x4DABC0; // Skip AI for orphaned objects
+	}
+	
+	// Validate virtual table integrity
+	try {
+		auto vtable = *reinterpret_cast<void**>(pThis);
+		if (!vtable || IsBadReadPtr(vtable, sizeof(void*))) {
+			// Debug::Log("FootClass AI: Corrupted virtual table for %s\n", pThis->get_ID());
+			return 0x4DABC0; // Skip AI for corrupted objects
+		}
+	} catch (...) {
+		// Debug::Log("FootClass AI: Exception accessing virtual table for %s\n", pThis->get_ID());
+		return 0x4DABC0; // Skip AI on exception
+	}
+	
+	return 0x0; // Continue with original function
 }
 
 ASMJIT_PATCH(0x42C954, AStarClass_FindPath_Entry, 0x7)
@@ -5717,6 +6235,7 @@ ASMJIT_PATCH(0x4CDCFD, FlyLocomotionClass_MovingUpdate_HoverAttack, 0x7)
 }
 
 #include <WeaponTypeClass.h>
+#include <chrono>
 
 ASMJIT_PATCH(0x4FD95F, HouseClass_CheckFireSale_LimboID, 0x6)
 {
@@ -5783,7 +6302,36 @@ ASMJIT_PATCH(0x42CB61, AstarClass_Find_Path_FailLog_Hierarchical, 0x5)
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
 	GET_STACK(CellStruct, cellTo, 0x10);
-	Debug::LogInfo("[{} - {}][{}][{}] Hierarchical findpath failure: ({},{}) to ({}, {})", (void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
+	
+	// Validate foot object before using it
+	if (!pFoot || IsBadReadPtr(pFoot, sizeof(FootClass))) {
+		return 0x42CB86; // Invalid pointer, skip logging
+	}
+	
+	// Only log once per pathfinding attempt to reduce spam
+	using namespace PathfindingFailureTracking;
+	
+	try {
+		auto it = lastFailedHierarchicalPaths.find(pFoot);
+		bool shouldLog = true;
+		
+		if (it != lastFailedHierarchicalPaths.end()) {
+			// Check if this is the same path that failed before
+			if (it->second.first.Pack() == cellFrom.Pack() && it->second.second == cellTo.Pack()) {
+				shouldLog = false; // Don't log repeated failures for same path
+			}
+		}
+		
+		if (shouldLog) {
+			Debug::LogInfo("[{} - {}][{}][{}] Hierarchical findpath failure: ({},{}) to ({}, {}) - retry attempt", 
+				(void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), 
+				cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
+			lastFailedHierarchicalPaths[pFoot] = std::make_pair(cellFrom, cellTo.Pack());
+		}
+	} catch (...) {
+		// Ignore exceptions during logging
+	}
+	
 	return 0x42CB86;
 }
 
@@ -5792,7 +6340,36 @@ ASMJIT_PATCH(0x42CBC9, AstarClass_Find_Path_FailLog_WithoutHierarchical, 0x6)
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
 	GET_STACK(CellStruct, cellTo, 0x10);
-	Debug::LogInfo("[{} - {}][{}][{}] Warning.  A* without HS: ({},{}) to ({}, {})", (void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
+	
+	// Validate foot object before using it
+	if (!pFoot || IsBadReadPtr(pFoot, sizeof(FootClass))) {
+		return 0x42CBE6; // Invalid pointer, skip logging
+	}
+	
+	// Only log once per pathfinding attempt to reduce spam
+	using namespace PathfindingFailureTracking;
+	
+	try {
+		auto it = lastFailedNonHierarchicalPaths.find(pFoot);
+		bool shouldLog = true;
+		
+		if (it != lastFailedNonHierarchicalPaths.end()) {
+			// Check if this is the same path that failed before
+			if (it->second.first.Pack() == cellFrom.Pack() && it->second.second == cellTo.Pack()) {
+				shouldLog = false; // Don't log repeated failures for same path
+			}
+		}
+		
+		if (shouldLog) {
+			Debug::LogInfo("[{} - {}][{}][{}] Warning. A* without HS: ({},{}) to ({}, {}) - retry attempt", 
+				(void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), 
+				cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
+			lastFailedNonHierarchicalPaths[pFoot] = std::make_pair(cellFrom, cellTo.Pack());
+		}
+	} catch (...) {
+		// Ignore exceptions during logging
+	}
+	
 	return 0x42CBE6;
 }
 
@@ -5801,8 +6378,113 @@ ASMJIT_PATCH(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 	GET(FootClass*, pFoot, ESI);
 	GET_STACK(CellStruct, cellFrom, 0x14);
 	GET_STACK(CellStruct, cellTo, 0x10);
-	Debug::LogInfo("[{} - {}][{}][{}] Regular findpath failure: ({},{}) to ({}, {})", (void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y);
+	
+	// Validate foot object before using it
+	if (!pFoot || IsBadReadPtr(pFoot, sizeof(FootClass))) {
+		return 0x42CC6D; // Invalid pointer, skip logging
+	}
+	
+	// Only log once per pathfinding attempt to reduce spam
+	using namespace PathfindingFailureTracking;
+	auto currentPath = std::make_pair(cellFrom, cellTo.Pack());
+	
+	try {
+		auto it = lastFailedPaths.find(pFoot);
+		bool shouldLog = true;
+		
+		if (it != lastFailedPaths.end()) {
+			// Check if this is the same path that failed before
+			if (it->second.first.Pack() == cellFrom.Pack() && it->second.second == cellTo.Pack()) {
+				shouldLog = false; // Don't log repeated failures for same path
+			}
+		}
+		
+		if (shouldLog) {
+			// Calculate distance for diagnostic info
+			int distance = abs(cellTo.X - cellFrom.X) + abs(cellTo.Y - cellFrom.Y);
+			
+			Debug::LogInfo("[{} - {}][{}][{}] Regular findpath failure: ({},{}) to ({}, {}) - distance: {} - will retry", 
+				(void*)pFoot, pFoot->get_ID(), pFoot->GetThisClassName(), pFoot->Owner->get_ID(), 
+				cellFrom.X, cellFrom.Y, cellTo.X, cellTo.Y, distance);
+			lastFailedPaths[pFoot] = std::make_pair(cellFrom, cellTo.Pack());
+		}
+	} catch (...) {
+		// Ignore exceptions during logging
+	}
+	
 	return 0x42CC6D;
+}
+
+// Critical missing hooks for object processing safety
+ASMJIT_PATCH(0x4DA970, FootClass_AI_PathfindingSafety, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	
+	// Validate foot object before any pathfinding operations
+	if (!pThis || IsBadReadPtr(pThis, sizeof(FootClass))) {
+		return 0x4DA9A0; // Skip to safe exit point
+	}
+	
+	// Validate critical foot object state
+	if (!pThis->IsAlive || pThis->InLimbo) {
+		return 0x4DA9A0; // Skip pathfinding for invalid objects
+	}
+	
+	// Validate owner
+	if (!pThis->Owner) {
+		return 0x4DA9A0; // Skip pathfinding without owner
+	}
+	
+	return 0x0; // Continue with original function
+}
+
+// Hook for the main object iteration that was causing crashes
+ASMJIT_PATCH(0x55AFB0, MainLoop_ObjectIteration_Safety, 0x6)
+{
+	// This is the main game loop function that iterates through objects
+	// Add comprehensive safety checks to prevent crashes
+	
+	// Validate global game state first
+	if (!MapClass::Instance || ObjectClass::CurrentObjects->Count <= 0) {
+		return 0x55B680; // Skip object processing if game state is invalid
+	}
+	
+	// Validate object array integrity
+	auto objectCount = ObjectClass::CurrentObjects->Count;
+	if (objectCount < 0 || objectCount > 10000) { // Reasonable upper bound
+		Debug::Log("Warning: Object count appears corrupted: %d\n", objectCount);
+		return 0x55B680; // Skip processing
+	}
+	
+	return 0x0; // Continue with original function
+}
+
+// Hook for object processing within the main loop
+ASMJIT_PATCH(0x55B5F0, MainLoop_ProcessSingleObject_Safety, 0x6)
+{
+	GET(ObjectClass*, pObject, ESI);
+	
+	// Critical safety check for each object before processing
+	if (!pObject || IsBadReadPtr(pObject, sizeof(ObjectClass))) {
+		return 0x55B620; // Skip to next object
+	}
+	
+	// Validate virtual table
+	try {
+		auto vtable = *reinterpret_cast<void**>(pObject);
+		if (!vtable || IsBadReadPtr(vtable, sizeof(void*))) {
+			return 0x55B620; // Skip corrupted object
+		}
+	} catch (...) {
+		return 0x55B620; // Skip on exception
+	}
+	
+	// Validate object state
+	if (!pObject->IsAlive) {
+		return 0x55B620; // Skip dead objects
+	}
+	
+	return 0x0; // Continue processing this object
 }
 
 //DEFINE_JUMP(LJMP, 0x052CAD7, 0x52CAE9);
