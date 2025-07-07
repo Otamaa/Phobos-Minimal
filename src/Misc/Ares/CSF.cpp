@@ -83,7 +83,7 @@ ASMJIT_PATCH(0x7349cf, StringTable_ParseFile_Buffer, 7)
 		const auto size = pFile->GetFileSize();
 		void* ptr = nullptr;
 		if (size > 0)
-			ptr = YRMemory::Allocate(size);
+			ptr = YRMemory::AllocateChecked(size);
 
 		pFile->ReadBytes(ptr, size);
 		const auto IsAllocated = R->Stack<bool>(0x88);

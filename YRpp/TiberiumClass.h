@@ -44,8 +44,8 @@ public:
 
 	void Construct(int nCount = MapSurfaceData::SurfaceDataCount())
 	{
-		Datas = (MapSurfaceData*)YRMemory::Allocate(sizeof(MapSurfaceData) * nCount);
-		States = (bool*)YRMemory::Allocate(sizeof(bool) * nCount);
+		Datas = (MapSurfaceData*)YRMemory::AllocateChecked(sizeof(MapSurfaceData) * nCount);
+		States = (bool*)YRMemory::AllocateChecked(sizeof(bool) * nCount);
 		__stosb(reinterpret_cast<unsigned char*>(States), 0, sizeof(bool) * nCount);
 		//std::memset(States, 0, sizeof(bool) * nCount);
 		Heap = GameCreate<TPQueue>(nCount);

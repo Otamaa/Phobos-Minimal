@@ -18,7 +18,7 @@ public:
 		: Buffer(pBuffer), Size(size)
 	{
 		if(!pBuffer && size > 0) {
-			this->Buffer = YRMemory::Allocate(static_cast<size_t>(size));
+			this->Buffer = YRMemory::AllocateChecked(static_cast<size_t>(size));
 			this->Allocated = true;
 		}
 	}

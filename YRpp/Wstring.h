@@ -595,7 +595,7 @@ private:
 
 	TChar* AllocateBuffer(size_t nLen)
 	{
-		return (TChar*)YRMemory::Allocate(sizeof(TChar) * nLen);
+		return (TChar*)YRMemory::AllocateChecked(sizeof(TChar) * nLen);
 	}
 
 	size_t Length() const

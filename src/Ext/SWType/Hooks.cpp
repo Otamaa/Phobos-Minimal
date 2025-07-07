@@ -128,8 +128,12 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 		DrawText_Helper(AresGlobalData::ModNote, offset, COLOR_RED);
 	}
 
-	if (RulesExtData::Instance()->FPSCounter)
+	switch (RulesExtData::Instance()->FPSCounter)
 	{
+	case FPSCounterMode::disabled: {
+		break;
+	}
+	case FPSCounterMode::Full: {
 		auto currentFrameTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
 		lastFrameTime = currentFrameTime;
@@ -137,6 +141,22 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms | Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
 		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+		break;
+	}
+	case FPSCounterMode::FPSOnly: Debug::Log("FPS Counter: FPS Only\n");  {
+		fmt::basic_memory_buffer<wchar_t> buffer;
+		fmt::format_to(std::back_inserter(buffer), L"FPS: {}", FPSCounter::CurrentFrameRate());
+		buffer.push_back(L'\0');
+		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+		break;
+	}
+	case FPSCounterMode::FPSandAVG: Debug::Log("FPS Counter: FPS and AVG\n"); {
+		fmt::basic_memory_buffer<wchar_t> buffer;
+		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | Avg: {}", FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
+		buffer.push_back(L'\0');
+		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
+		break;
+	}
 	}
 
 	this->DrawAllTacticalText(text);

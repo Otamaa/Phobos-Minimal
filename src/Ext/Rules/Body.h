@@ -16,6 +16,10 @@
 #include <New/AnonymousType/MultipleFactoryCaps.h>
 #include <New/HugeBar.h>
 
+enum class FPSCounterMode {
+	disabled , Full , FPSOnly , FPSandAVG
+};
+
 class AITriggerTypeClass;
 class AnimTypeClass;
 class MouseCursor;
@@ -307,7 +311,7 @@ public:
 	Valueable<bool> TypeSelectUseDeploy { true };
 	Nullable<int> StartInMultiplayerUnitCost { };
 
-	bool FPSCounter { false };
+	FPSCounterMode FPSCounter { FPSCounterMode::disabled };
 
 	Valueable<int> SelectFlashTimer { 0 };
 

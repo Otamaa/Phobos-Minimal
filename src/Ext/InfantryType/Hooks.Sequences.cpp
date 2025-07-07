@@ -432,7 +432,7 @@ ASMJIT_PATCH(0x520E75, InfantryClass_SequenceAI_Sounds, 0x6)
 	const int doType = (int)pThis->SequenceAnim;
 
 	// out of bound read fix
-	if (doType == -1)
+	if (doType <= -1 || doType >= std::size(Sequences_ident))
 		return 0x520EF4;
 
 	//const auto pSeq = &pThis->Type->Sequence->Data[doType];

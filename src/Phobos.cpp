@@ -1181,36 +1181,72 @@ NTSTATUS WINAPI HookedRtlGetAppContainerNamedObjectPath(
 	ULONG length,
 	PUNICODE_STRING path)
 {
-	OutputDebugStringA("[Phobos] RtlGetAppContainerNamedObjectPath was called!\n");
-	LogCallStack(); // Capture caller
+	//OutputDebugStringA("[Phobos] RtlGetAppContainerNamedObjectPath was called!\n");
+	//LogCallStack(); // Capture caller
 	return RealFn(token, directoryHandle, length, path);
 }
 
 #include <minhook/MinHook.h>
 
-BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
+NOINLINE void EnableLargeAddressAwareFlag(HANDLE curProc)
 {
-	switch (ul_reason_for_call)
+	BYTE* base = (BYTE*)curProc; // base of gamemd.exe
+	DWORD peOffset = *(DWORD*)(base + 0x3C);
+	WORD* characteristics = (WORD*)(base + peOffset + 0x18);
+
+	DWORD oldProtect;
+	if (VirtualProtect(characteristics, sizeof(WORD), PAGE_EXECUTE_READWRITE, &oldProtect))
 	{
-	case DLL_PROCESS_ATTACH:
+		*characteristics |= 0x20; // IMAGE_FILE_LARGE_ADDRESS_AWARE
+		VirtualProtect(characteristics, sizeof(WORD), oldProtect, &oldProtect);
+		Debug::LogDeferred("LARGEADDRESSAWARE flag set via injector.\n");
+	} else {
+		Debug::LogDeferred("Failed to change protection for Characteristics.\n");
+	}
+}
+
+NOINLINE bool IsGamemdExe(HMODULE curProc) {
+	wchar_t filename[MAX_PATH];
+	GetModuleFileNameW(curProc, filename, MAX_PATH);
+	const std::wstring path(filename);
+
+	//add more variants;
+
+	if (path.find(L"gamemd.exe") != std::wstring::npos)
+		return true;
+
+	if (path.find(L"gamepp") != std::wstring::npos)
+		return true;
+
+
+	return false;
+}
+
+LPVOID saved_lpReserved;
+
+NOINLINE void ApplyEarlyFuncs() {
+
+	//make sure is correct executable loading the dll
+	//if(IsGamemdExe((HMODULE)Patch::CurrentProcess))
 	{
-		//MH_Initialize();
 
-		//auto mod = GetModuleHandleW(L"ntdll.dll");
+		//std::thread([]() {
+		//	EnableLargeAddressAwareFlag(Patch::CurrentProcess);
+		//}).detach();
 
-		//if (auto target = (FnRtl)GetProcAddress(mod, "RtlGetAppContainerNamedObjectPath")) {
-		//	MH_CreateHook(target, &HookedRtlGetAppContainerNamedObjectPath, (void**)&RealFn);
-		//	MH_EnableHook(target);
-		//};
+		MH_Initialize();
 
-		DisableThreadLibraryCalls((HMODULE)hInstance);
+		auto mod = GetModuleHandleW(L"ntdll.dll");
+
+		if (auto target = (FnRtl)GetProcAddress(mod, "RtlGetAppContainerNamedObjectPath")) {
+			MH_CreateHook(target, &HookedRtlGetAppContainerNamedObjectPath, (void**)&RealFn);
+			MH_EnableHook(target);
+		};
+
 		TheMemoryPoolCriticalSection = &critSec4;
 		TheDmaCriticalSection = &critSec3;
 
 		Mem::preMainInitMemoryManager();
-
-		Phobos::hInstance = hInstance;
-		Patch::CurrentProcess = GetCurrentProcess();
 
 		//Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
 
@@ -1233,7 +1269,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
 
-		const char* loadMode = lpReserved ? "statically" : "dynamicly";
+		const char* loadMode = saved_lpReserved ? "statically" : "dynamicly";
 
 		Debug::GenerateDefaultMessage();
 		Debug::PrepareLogFile(); //prepare directory
@@ -1244,21 +1280,23 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		LuaData::LuaDir += "\\Resources";
 
 		void* buffer {};
-		int len = Patch::GetSection(hInstance, PATCH_SECTION_NAME, &buffer);
+		int len = Patch::GetSection(Phobos::hInstance, PATCH_SECTION_NAME, &buffer);
 
 		//msvc add padding between them so dont forget !
-		struct _patch : public Patch {
+		struct _patch : public Patch
+		{
 			BYTE _paddings[3];
 		};
 
 		_patch* end = (_patch*)((DWORD)buffer + len);
 
-		for (_patch* begin = (_patch*)buffer; begin < end; begin++) {
+		for (_patch* begin = (_patch*)buffer; begin < end; begin++)
+		{
 			begin->Apply();
 		}
 
-		Debug::LogDeferred("Applying %d Static Patche(s).\n", std::distance((_patch*)buffer,end));
-		len = Patch::GetSection(hInstance, ".syhks00", &buffer);
+		Debug::LogDeferred("Applying %d Static Patche(s).\n", std::distance((_patch*)buffer, end));
+		len = Patch::GetSection(Phobos::hInstance, ".syhks00", &buffer);
 
 		Initasmjit();
 
@@ -1269,11 +1307,26 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		char buf[1024] {};
 
-		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf))) {
+		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf)))
+		{
 			Debug::LogDeferred("Compatibility modes detected : %s .\n", buf);
 		}
+	}
+}
+
+BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
+{
+	switch (ul_reason_for_call)
+	{
+	case DLL_PROCESS_ATTACH:
+	{
+		DisableThreadLibraryCalls((HMODULE)hInstance);
+		Patch::CurrentProcess = GetCurrentProcess();
+		Phobos::hInstance = hInstance;
+		saved_lpReserved = lpReserved;
 
 #if defined(NO_SYRINGE)
+		ApplyEarlyFuncs();
 		LuaData::ApplyCoreHooks();
 		Phobos::ExeRun();
 #endif
@@ -1285,6 +1338,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		Debug::DeactivateLogger();
 		gJitRuntime.reset();
 		Mem::shutdownMemoryManager();
+		MH_Uninitialize();
 		break;
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
@@ -1343,6 +1397,7 @@ declhook(0x7CD810, Game_ExeRun, 0x9)
 extern "C" __declspec(dllexport) DWORD __cdecl Game_ExeRun(REGISTERS* R)
 {
 
+	ApplyEarlyFuncs();
 	LuaData::ApplyCoreHooks();
 	Phobos::ExeRun();
 	return 0;

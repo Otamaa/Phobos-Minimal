@@ -14,7 +14,7 @@ public:
 	TPriorityQueueClass(int capacity = 0) :
 		Count(0),
 		Capacity(capacity),
-		Nodes((T**)YRMemory::Allocate(sizeof(T*)* (capacity + 1))),
+		Nodes((T**)YRMemory::AllocateChecked(sizeof(T*)* (capacity + 1))),
 		LMost(0u),
 		RMost(0xffffffff)
 	{
@@ -284,7 +284,7 @@ template<typename TElement, typename TPriority, bool IsMinHeap>
 PriorityQueueClass<TElement, TPriority, IsMinHeap>::PriorityQueueClass(int size)
 	: Count(0), Size(size), MaxNodePointer(std::numeric_limits<decltype(MaxNodePointer)>::min()), MinNodePointer(std::numeric_limits<decltype(MinNodePointer)>::max())
 {
-	Heap = YRMemory::Allocate(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> * [size + 1]);
+	Heap = YRMemory::AllocateChecked(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> * [size + 1]);
 	std::memset(Heap, 0, (size + 1) * sizeof(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> *));
 }
 
@@ -422,7 +422,7 @@ void PriorityQueueClass<TElement, TPriority, IsMinHeap>::Resize(int new_size)
 	}
 
 	PriorityQueueClassNode<TElement, TPriority, IsMinHeap>** new_heap =
-		YRMemory::Allocate(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> *[new_size + 1]);
+	YRMemory::AllocateChecked(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> *[new_size + 1]);
 
 	std::memset(new_heap, 0, (new_size + 1) * sizeof(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> *));
 
@@ -597,7 +597,7 @@ void PriorityQueueClass<TElement, TPriority, IsMinHeap>::Heapify_Down(int index)
 template<typename TElement, typename TPriority, bool IsMinHeap>
 void PriorityQueueClass<TElement, TPriority, IsMinHeap>::Internal_Copy_Heap(const PriorityQueueClass<TElement, TPriority, IsMinHeap>& that)
 {
-	Heap = YRMemory::Allocate(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> *[Size + 1]);
+	Heap = YRMemory::AllocateChecked(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> *[Size + 1]);
 	std::memset(Heap, 0, (Size + 1) * sizeof(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> *));
 	std::memcpy(Heap, that.Heap, (Count + 1) * sizeof(PriorityQueueClassNode<TElement, TPriority, IsMinHeap> *));
 }

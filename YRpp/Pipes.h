@@ -121,8 +121,8 @@ public:
 		this->Buffer = nullptr;
 		this->Buffer2 = nullptr;
 		this->BlockSize = nBlockSize;
-		this->Buffer = YRMemory::Allocate(this->BlockSize + this->SafetyMargin);
-		this->Buffer2 = YRMemory::Allocate(this->BlockSize + this->SafetyMargin);
+		this->Buffer = YRMemory::AllocateChecked(this->BlockSize + this->SafetyMargin);
+		this->Buffer2 = YRMemory::AllocateChecked(this->BlockSize + this->SafetyMargin);
 		this->BlockHeader_CompCount = -1;
 		this->BlockHeader_UncompCount = 0;
 	}

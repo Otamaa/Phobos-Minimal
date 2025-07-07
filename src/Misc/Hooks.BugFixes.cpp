@@ -238,18 +238,16 @@ ASMJIT_PATCH(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 
 	}
 
-	for (auto pObject = pThis->FirstObject; pObject; pObject = pObject->NextObject) {
-		if (pObject->Health > 0) {
-			if (const auto pBuilding = cast_to<BuildingClass*, false>(pObject)) {
-				const auto pBType = pBuilding->Type;
+	if (auto pBuilding = pThis->GetBuilding()) {
+		if (pBuilding->Health > 0) {
+			const auto pBType = pBuilding->Type;
 
-				if ((RulesClass::Instance->EWGates.Contains(pBType)) && (state == 2 || state == 6))
-					return 0x480549;
-				else if ((RulesClass::Instance->NSGates.Contains(pBType)) && (state == 0 || state == 4))
-					return 0x480549;
-				else if (RulesExtData::Instance()->WallTowers.Contains(pBType))
-					return 0x480549;
-			}
+			if ((RulesClass::Instance->EWGates.Contains(pBType)) && (state == 2 || state == 6))
+				return 0x480549;
+			else if ((RulesClass::Instance->NSGates.Contains(pBType)) && (state == 0 || state == 4))
+				return 0x480549;
+			else if (RulesExtData::Instance()->WallTowers.Contains(pBType))
+				return 0x480549;
 		}
 	}
 
@@ -1217,7 +1215,7 @@ struct OverlayByteReader
 	OverlayByteReader(CCINIClass* pINI, const char* pSection)
 		:
 		uuLength { 0u },
-		pBuffer { YRMemory::Allocate(512000) },
+		pBuffer { YRMemory::AllocateChecked(512000) },
 		ls { TRUE, 0x2000 },
 		bs { nullptr, 0 }
 	{
@@ -1338,7 +1336,7 @@ ASMJIT_PATCH(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 			}
 		}
 
-		auto pBuffer = YRMemory::Allocate(256000);
+		auto pBuffer = YRMemory::AllocateChecked(256000);
 		size_t uuLength = pINI->ReadUUBlock(GameStrings::OverlayDataPack(), pBuffer, 256000);
 
 		if (uuLength > 0)
@@ -1377,7 +1375,7 @@ struct OverlayByteWriter
 	OverlayByteWriter(const char* pSection, size_t nBufferLength)
 		: lpSectionName { pSection }, uuLength { 0 }, bp { nullptr,0 }, lp { FALSE,0x2000 }
 	{
-		this->Buffer = YRMemory::Allocate(nBufferLength);
+		this->Buffer = YRMemory::AllocateChecked(nBufferLength);
 		bp.Buffer.Buffer = this->Buffer;
 		bp.Buffer.Size = nBufferLength;
 		bp.Buffer.Allocated = false;
