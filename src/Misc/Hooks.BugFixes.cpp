@@ -2351,49 +2351,60 @@ ASMJIT_PATCH(0x75EE49, WaveClass_DrawSonic_CrashFix, 0x7)
 
 }
 
+ASMJIT_PATCH(0x73FA92, UnitClass_IsCellOccupied_LandType, 0x8)
+{
+	enum { ContinueCheck = 0x73FC24, NoMove = 0x73FACD };
+
+	GET(UnitClass*, pThis, EBX);
+	GET(CellClass*, pCell, EDI);
+	GET_STACK(bool, containsBridge, STACK_OFFSET(0x90, -0x7D));
+
+	return GroundType::Array[static_cast<int>(containsBridge ? LandType::Road : pCell->LandType)].Cost[static_cast<int>(pThis->Type->SpeedType)] == 0.0f ? NoMove : ContinueCheck;
+}
+
 // Change enter to move when unlink
-//ASMJIT_PATCH(0x6F4C50, TechnoClass_ReceiveCommand_NotifyUnlink, 0x6)
-//{
-//	GET(TechnoClass* const, pThis, ESI);
-//	GET_STACK(TechnoClass* const, pCall, STACK_OFFSET(0x18, 0x4));
-//	// If the link connection is cancelled and foot A is entering techno B, it may cause A and B to overlap
-//	if (!pCall->InLimbo // Has not already entered
-//		&& (pCall->AbstractFlags & AbstractFlags::Foot) // Is foot
-//		&& pCall->CurrentMission == Mission::Enter // Is entering
-//		&& static_cast<FootClass*>(pCall)->Destination == pThis // Is entering techno B
-//		&& pCall->WhatAmI() != AbstractType::Aircraft // Not aircraft
-//		&& pThis->GetTechnoType()->Passengers > 0) // Have passenger seats
-//	{
-//		pCall->SetDestination(pThis->GetCell(), false); // Set the destination at its feet
-//		pCall->QueueMission(Mission::Move, false); // Replace entering with moving
-//		pCall->NextMission(); // Immediately respond to the Mission::Move
-//	}
-//
-//	return 0;
-//}
+ASMJIT_PATCH(0x6F4C50, TechnoClass_ReceiveCommand_NotifyUnlink, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET_STACK(TechnoClass* const, pCall, STACK_OFFSET(0x18, 0x4));
+	// If the link connection is cancelled and foot A is entering techno B, it may cause A and B to overlap
+	if (!pCall->InLimbo // Has not already entered
+		&& (pCall->AbstractFlags & AbstractFlags::Foot) // Is foot
+		&& pCall->CurrentMission == Mission::Enter // Is entering
+		&& static_cast<FootClass*>(pCall)->Destination == pThis // Is entering techno B
+		&& pCall->WhatAmI() != AbstractType::Aircraft // Not aircraft
+		&& pThis->GetTechnoType()->Passengers > 0) // Have passenger seats
+	{
+		pCall->SetDestination(pThis->GetCell(), false); // Set the destination at its feet
+		pCall->QueueMission(Mission::Move, false); // Replace entering with moving
+		pCall->NextMission(); // Immediately respond to the Mission::Move
+	}
+
+	return 0;
+}
 
 // Radio: do not untether techno who have other tether link
-//ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_RequestUntether, 0x7)
-//{
-//	// Place the hook after processing to prevent functions from calling each other and getting stuck in a dead loop.
-//	GET(TechnoClass* const, pThis, ESI);
-//	// The radio link capacity of some technos can be greater than 1 (like airport)
-//	// Here is a specific example, there may be other situations as well:
-//	// - Untether without check may result in `AirportBound=no` aircraft being unable to release from `IsTether` status.
-//	// - Specifically, all four aircraft are connected to the airport and have `RadioLink` settings, but when the first aircraft
-//	//   is `Unlink` from the airport, all subsequent aircraft will be stuck in `IsTether` status.
-//	// - This is because when both parties who are `RadioLink` to each other need to `Unlink`, they need to `Untether` first,
-//	//   and this requires ensuring that both parties have `IsTether` flag (0x6F4C50), otherwise `Untether` cannot be successful,
-//	//   which may lead to some unexpected situations.
-//	for (int i = 0; i < pThis->RadioLinks.Capacity; ++i) {
-//		if (const auto pLink = pThis->RadioLinks.Items[i]) {
-//			if (pLink->IsTethered) // If there's another tether link, reset flag to true
-//				pThis->IsTethered = true; // Ensures that other links can be properly untether afterwards
-//		}
-//	}
-//
-//	return 0;
-//}
+ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_RequestUntether, 0x7)
+{
+	// Place the hook after processing to prevent functions from calling each other and getting stuck in a dead loop.
+	GET(TechnoClass* const, pThis, ESI);
+	// The radio link capacity of some technos can be greater than 1 (like airport)
+	// Here is a specific example, there may be other situations as well:
+	// - Untether without check may result in `AirportBound=no` aircraft being unable to release from `IsTether` status.
+	// - Specifically, all four aircraft are connected to the airport and have `RadioLink` settings, but when the first aircraft
+	//   is `Unlink` from the airport, all subsequent aircraft will be stuck in `IsTether` status.
+	// - This is because when both parties who are `RadioLink` to each other need to `Unlink`, they need to `Untether` first,
+	//   and this requires ensuring that both parties have `IsTether` flag (0x6F4C50), otherwise `Untether` cannot be successful,
+	//   which may lead to some unexpected situations.
+	for (int i = 0; i < pThis->RadioLinks.Capacity; ++i) {
+		if (const auto pLink = pThis->RadioLinks.Items[i]) {
+			if (pLink->IsTethered) // If there's another tether link, reset flag to true
+				pThis->IsTethered = true; // Ensures that other links can be properly untether afterwards
+		}
+	}
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x6FC617, TechnoClass_GetFireError_AirCarrierSkipCheckNearBridge, 0x8)
 {
@@ -2546,20 +2557,31 @@ ASMJIT_PATCH(0x4D7005, FootClass_ElectricAssultFix, 0x5)			// Mission_AreaGuard
 		: 0;
 }ASMJIT_PATCH_AGAIN(0x4D51B2, FootClass_ElectricAssultFix, 0x5)	// Mission_Guard
 
+ASMJIT_PATCH(0x7077FD, TechnoClass_PointerExpired_SpawnOwnerFix, 0x6) {
+	GET_STACK(bool, removed, STACK_OFFSET(0x20, 0x8));
+	// Skip the reset for SpawnOwner if !removed.
+	return removed ? 0 : 0x707803;
+}
+
+ASMJIT_PATCH(0x44E910, BuildingClass_PointerExpired_C4ExpFix, 0x6)
+{
+	GET_STACK(bool, removed, STACK_OFFSET(0xC, 0x8));
+	// Skip the reset for C4AppliedBy if !removed.
+	return removed ? 0 : 0x44E916;
+}
+
 // I think no one wants to see wild pointers caused by WW's negligence
-//ASMJIT_PATCH(0x4D9A1B, FootClass_PointerExpired_RemoveDestination, 0x6)
-//{
-//
-//	GET_STACK(bool, removed, STACK_OFFSET(0x1C, 0x8));
-//
-//	if (removed)
-//		return 0x4D9ABD;
-//
-//
-//	R->BL(true);
-//
-//	return 0x4D9A25;
-//}
+ASMJIT_PATCH(0x4D9A1B, FootClass_PointerExpired_RemoveDestination, 0x6)
+{
+
+	GET_STACK(bool, removed, STACK_OFFSET(0x1C, 0x8));
+
+	if (removed)
+		return 0x4D9ABD;
+
+	R->BL(true);
+	return 0x4D9A25;
+}
 
 
 //namespace RemoveSpawneeHelper
@@ -2585,7 +2607,7 @@ ASMJIT_PATCH(0x4D7005, FootClass_ElectricAssultFix, 0x5)			// Mission_AreaGuard
 //	return RemoveSpawneeHelper::removed ? 0x6B7CF4 : 0;
 //}
 
-#ifdef _BalloonHoverFix
+#ifndef _BalloonHoverFix
 ASMJIT_PATCH(0x64D592, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal1, 0x6)
 {
 	enum { SkipTargetCrdRecal = 0x64D598 };
@@ -2835,6 +2857,17 @@ ASMJIT_PATCH(0x489E47, DamageArea_RockerItemsFix2, 0x6)
 }
 
 #endif
+
+ASMJIT_PATCH(0x51A298, InfantryClass_UpdatePosition_EnterBuilding_CheckSize, 0x6)
+{
+	enum { CannotEnter = 0x51A4BF };
+
+	GET(InfantryClass*, pThis, ESI);
+	GET(BuildingClass*, pDestination, EDI);
+	// Compared to `Vehicle entering building` / `Infantry entering vehicle` / `Vehicle entering vehicle`,
+	// `Infantry entering building` lacks the judgment of this
+	return (pThis->SendCommand(RadioCommand::QueryCanEnter, pDestination) == RadioCommand::AnswerPositive) ? 0 : CannotEnter;
+}
 
 DEFINE_JUMP(LJMP, 0x4C752A, 0x4C757D); // Skip cell under bridge check
 

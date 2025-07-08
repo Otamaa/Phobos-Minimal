@@ -2885,6 +2885,9 @@ ASMJIT_PATCH(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x64, -0x54));
 	LEA_STACK(CellStruct*, outBuffer, STACK_OFFSET(0x64, -0x3C));
 
+	if(pThis->Type->Teleporter)
+		return 0x0;
+
 	auto zone = MapClass::Instance->GetMovementZoneType(pThis->InlineMapCoords(), pThis->Type->MovementZone, pThis->OnBridge);
 	R->EAX(MapClass::Instance->NearByLocation(*outBuffer, *cell, pThis->Type->SpeedType, zone, pThis->Type->MovementZone, false, 1, 1, false, false, false, true, *closeTo, false, false));
 
