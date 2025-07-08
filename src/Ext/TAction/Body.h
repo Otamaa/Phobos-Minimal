@@ -1,6 +1,12 @@
 #pragma once
 
 #include <TActionClass.h>
+#include <TriggerClass.h>
+#include <map>
+#include <vector>
+
+#include <Utilities/Savegame.h>
+#include <Helpers/Template.h>
 
 class HouseClass;
 class ObjectClass;
@@ -71,59 +77,10 @@ enum class PhobosTriggerAction : unsigned int
 	count
 };
 
-class TActionExt
+class TActionExtData
 {
 public:
-/*
-	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;
 
-	class ExtData final : public Extension<TActionClass>
-	{
-	public:
-		static COMPILETIMEEVAL size_t Canary = 0x87154321;
-		using base_type = TActionClass;
-
-	public:
-
-		//std::string Value1 { };
-		//std::string Value2 { };
-		//std::string Parm3 { };
-		//std::string Parm4 { };
-		//std::string Parm5 { };
-		//std::string Parm6 { };
-
-		ExtData(TActionClass* const OwnerObject) : Extension<base_type>(OwnerObject)
-		{ }
-
-		virtual ~ExtData() override = default;
-
-		void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-		void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
-	private:
-		template <typename T>
-		void Serialize(T& Stm);
-	};
-
-	class ExtContainer final : public Container<TActionExt::ExtData>
-	{
-	public:
-		CONSTEXPR_NOCOPY_CLASS(TActionExt::ExtData, "TActionClass");
-	public:
-
-		void Clear() {
-			RandomTriggerPool.clear();
-		}
-
-		void InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
-			for (auto& nMap : RandomTriggerPool) {
-				AnnounceInvalidPointer(nMap.second, ptr);
-			}
-		}
-	};
-
-	static ExtContainer ExtMap;
-*/
 	static void RecreateLightSources();
 	static bool Occured(TActionClass* pThis, ActionArgs const& args , bool& bHandled);
 	static bool RunSuperWeaponAt(TActionClass* pThis, int X, int Y);
@@ -145,9 +102,9 @@ public:
 
 	ACTION_FUNC(DrawLaserBetweenWaypoints);
 
-	//ACTION_FUNC(RandomTriggerPut);
-	//ACTION_FUNC(RandomTriggerEnable);
-	//ACTION_FUNC(RandomTriggerRemove);
+	ACTION_FUNC(RandomTriggerPut);
+	ACTION_FUNC(RandomTriggerEnable);
+	ACTION_FUNC(RandomTriggerRemove);
 
 	ACTION_FUNC(ScoreCampaignText);
 	ACTION_FUNC(ScoreCampaignTheme);
@@ -184,6 +141,30 @@ public:
 	ACTION_FUNC(DeleteBanner);
 
 #undef ACTION_FUNC
+
+	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;
+
+	static void Clear() {
+		RandomTriggerPool.clear();
+	}
+
+	static void InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
+		for (auto& nMap : RandomTriggerPool) {
+			if (bRemoved) {
+				fast_remove_if(nMap.second, [ptr](auto _el) { return  ptr == _el; });
+			}
+		}
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm) {
+		Stm.Process(RandomTriggerPool);
+		return Stm.Success();
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm){
+		Stm.Process(RandomTriggerPool);
+		return Stm.Success();
+	}
 };
 
 

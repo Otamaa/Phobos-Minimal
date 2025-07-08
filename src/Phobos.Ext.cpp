@@ -318,6 +318,7 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	if(Phobos::Otamaa::ExeTerminated)
 		return 0;
 
+	TActionExtData::InvalidatePointer(pInvalid, removed);
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
 	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
@@ -431,6 +432,8 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(LaserTrailClass);
 	version += sizeof(LauchSWData);
 
+	version += sizeof(TActionExtData);
+
 	version += sizeof(ShieldClass);
 	version += sizeof(SWFirerClass);
 
@@ -474,6 +477,7 @@ unsigned Phobos::GetVersionNumber() {
 // this function is executed after all game classes already cleared
 ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
+	TActionExtData::Clear();
 	CellExtContainer::Instance.Clear();
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
@@ -723,7 +727,8 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<SelectBoxTypeClass>(pStm) &&
 		Process_Load<ShieldClass>(pStm) &&
 		Process_Load<PrismForwarding>(pStm) &&
-		Process_Load<BannerClass>(pStm)
+		Process_Load<BannerClass>(pStm) &&
+		Process_Load<TActionExtData>(pStm)
 		;
 
 	if (!ret)
@@ -799,7 +804,8 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<SelectBoxTypeClass>(pStm) &&
 			Process_Save<ShieldClass>(pStm) &&
 			Process_Save<PrismForwarding>(pStm) &&
-			Process_Save<BannerClass>(pStm)
+			Process_Save<BannerClass>(pStm) &&
+			Process_Save<TActionExtData>(pStm)
 			;
 
 		if (!ret)
