@@ -568,19 +568,23 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 		}
 
 		auto& timer = pExt->DelayedFireTimer;
-
 		if (pExt->DelayedFireWeaponIndex >= 0 && pExt->DelayedFireWeaponIndex != weaponIndex)
 			pExt->ResetDelayedFireTimer();
 
 		if (pWeaponExt->DelayedFire_Duration.isset() && (!pThis->Transporter || !pWeaponExt->DelayedFire_SkipInTransport))
 		{
-			if (pThis->WhatAmI() == AbstractType::Infantry && pWeaponExt->DelayedFire_PauseFiringSequence)
+			auto const rtti = pThis->WhatAmI();
+
+			if (pWeaponExt->DelayedFire_PauseFiringSequence && (rtti == AbstractType::Infantry
+				|| (rtti == AbstractType::Unit && !pThis->HasTurret() && !pThis->GetTechnoType()->Voxel)))
+			{
 				return 0;
+			}
 
 			if (pWeapon->Burst <= 1 || !pWeaponExt->DelayedFire_OnlyOnInitialBurst || pThis->CurrentBurstIndex == 0)
 			{
 				if (timer.InProgress())
-					return 0x6FDE03 ;
+					return 0x6FDE03;
 
 				if (!timer.HasStarted())
 				{
@@ -591,10 +595,15 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 					if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
 						pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation;
 
-					pExt->CreateDelayedFireAnim(pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
-						pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOffset.isset(), pWeaponExt->DelayedFire_AnimOffset.Get());
+					auto firingCoords = pThis->GetWeapon(weaponIndex)->FLH;
 
-					return 0x6FDE03 ;
+					if (pWeaponExt->DelayedFire_AnimOffset.isset())
+						firingCoords = pWeaponExt->DelayedFire_AnimOffset;
+
+					pExt->CreateDelayedFireAnim( pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
+					pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, firingCoords);
+
+					return 0x6FDE03;
 				}
 				else
 				{
@@ -603,6 +612,7 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 			}
 		}
 	}
+
 	return 0x0;
 }
 

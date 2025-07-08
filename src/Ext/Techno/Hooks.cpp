@@ -1449,6 +1449,9 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 			}
 		}
 
+		if (TechnoExtData::HandleDelayedFireWithPauseSequence(pThis, weaponIndex, fireUp + cumulativeDelay))
+			return 0x736F73;
+
 		const int frame = (Timer.TimeLeft - Timer.GetTimeLeft());
 
 		if (frame % 2 != 0)
@@ -1619,6 +1622,10 @@ ASMJIT_PATCH(0x6FCF3E, TechnoClass_SetTarget_After, 0x6)
 
 	pThis->Target = pTarget;
 	pExt->UpdateGattlingRateDownReset();
+
+	if (!pThis->Target)
+		pExt->ResetDelayedFireTimer();
+
 
 	return 0x6FCF44;
 }

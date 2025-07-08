@@ -55,6 +55,10 @@ namespace YRMemory {
 		JMP(0x7C93E8);
     }
 
+//annoying
+#pragma warning(push)
+#pragma warning(disable : 4702)
+
     OPTIONALINLINE void* AllocateChecked(size_t sz) {
         if (auto const ptr = YRMemory::Allocate(sz)) {
             return ptr;
@@ -64,6 +68,8 @@ namespace YRMemory {
         std::exit(static_cast<int>(0x30000000u | sz));
 		return nullptr;
     }
+
+#pragma warning(pop)
 }
 
 template<typename T>

@@ -134,47 +134,8 @@ ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 	if (R->AL())
 	{
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-		auto& timer = pExt->DelayedFireTimer;
-
-		if (pExt->DelayedFireWeaponIndex >= 0 && pExt->DelayedFireWeaponIndex != FiringAITemp::weaponIndex)
-		{
-			pExt->ResetDelayedFireTimer();
-			pExt->FiringSequencePaused = false;
-		}
-
-		if (pWeaponExt->DelayedFire_PauseFiringSequence && pWeaponExt->DelayedFire_Duration.isset() && (!pThis->Transporter || !pWeaponExt->DelayedFire_SkipInTransport))
-		{
-			if (pWeapon->Burst <= 1 || !pWeaponExt->DelayedFire_OnlyOnInitialBurst || pThis->CurrentBurstIndex == 0)
-			{
-				if (pThis->Animation.Stage == firingFrame + cumulativeDelay)
-					pExt->FiringSequencePaused = true;
-
-				if (!timer.HasStarted())
-				{
-					pExt->DelayedFireWeaponIndex = FiringAITemp::weaponIndex;
-					timer.Start(MaxImpl(GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->DelayedFire_Duration), 0));
-					auto pAnimType = pWeaponExt->DelayedFire_Animation;
-
-					if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
-						pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation;
-
-					pExt->CreateDelayedFireAnim(pAnimType, FiringAITemp::weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
-						pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOffset.isset(), pWeaponExt->DelayedFire_AnimOffset.Get());
-
-					return ReturnFromFunction;
-
-				}
-				else if (timer.InProgress())
-				{
-					return ReturnFromFunction;
-				}
-
-				if (timer.Completed())
-					pExt->ResetDelayedFireTimer();
-			}
-
-			pExt->FiringSequencePaused = false;
-		}
+		if (TechnoExtData::HandleDelayedFireWithPauseSequence(pThis, FiringAITemp::weaponIndex, firingFrame + cumulativeDelay))
+			return ReturnFromFunction;
 
 		if (pThis->Animation.Stage == firingFrame + cumulativeDelay)
 		{

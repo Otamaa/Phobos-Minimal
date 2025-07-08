@@ -56,10 +56,6 @@ public:
 	Valueable<int> Abductor_MaxHealth { 0 };
 	Valueable<bool> Abductor_CheckAbductableWhenTargeting { false };
 
-	Nullable<AnimTypeClass*>DelayedFire_Anim {};
-	Valueable<int> DelayedFire_Anim_LoopCount { 1 };
-	Valueable<bool> DelayedFire_Anim_UseFLH { true };
-	Valueable<int> DelayedFire_DurationTimer { 0 };
 	Valueable<bool> Burst_FireWithinSequence { false };
 	Nullable<PartialVector2D<int>> ROF_RandomDelay {};
 	ValueableVector<int> ChargeTurret_Delays {};
@@ -177,17 +173,6 @@ public:
 	Valueable<bool> AttachEffect_Enable { false };
 	Valueable<int> NoRepeatFire {};
 
-	Nullable<PartialVector2D<int>> DelayedFire_Duration {};
-	Valueable<bool> DelayedFire_SkipInTransport {};
-	Valueable<AnimTypeClass*> DelayedFire_Animation {};
-	Nullable<AnimTypeClass*> DelayedFire_OpenToppedAnimation {};
-	Valueable<bool> DelayedFire_AnimIsAttached { true };
-	Valueable<bool> DelayedFire_CenterAnimOnFirer {};
-	Valueable<bool> DelayedFire_RemoveAnimOnNoDelay {};
-	Valueable<bool> DelayedFire_PauseFiringSequence {};
-	Valueable<bool> DelayedFire_OnlyOnInitialBurst {};
-	Nullable<CoordStruct> DelayedFire_AnimOffset {};
-
 	bool SkipWeaponPicking { true };
 
 	Valueable<Leptons> KeepRange {};
@@ -200,6 +185,17 @@ public:
 	Valueable<double> CanTarget_MaxHealth { 1.0 };
 	Valueable<double> CanTarget_MinHealth { 0.0 };
 
+	Nullable<PartialVector2D<int>> DelayedFire_Duration {};
+	Valueable<bool> DelayedFire_SkipInTransport { false };
+	Valueable<AnimTypeClass*> DelayedFire_Animation {};
+	Nullable<AnimTypeClass*> DelayedFire_OpenToppedAnimation {};
+	Valueable<bool> DelayedFire_AnimIsAttached { true };
+	Valueable<bool> DelayedFire_CenterAnimOnFirer {};
+	Valueable<bool> DelayedFire_RemoveAnimOnNoDelay {};
+	Valueable<bool> DelayedFire_PauseFiringSequence {};
+	Valueable<bool> DelayedFire_OnlyOnInitialBurst {};
+	Nullable<CoordStruct> DelayedFire_AnimOffset {};
+	Valueable<bool> DelayedFire_AnimOnTurret { true };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

@@ -15,7 +15,7 @@
     #include <spdlog/mdc.h>
 #endif
 
-#include <spdlog/fmt/fmt.h>
+#include <Lib/fmt/format.h>
 #include <spdlog/formatter.h>
 
 #include <algorithm>
