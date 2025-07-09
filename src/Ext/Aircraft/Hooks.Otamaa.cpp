@@ -28,131 +28,183 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 
 #include <Locomotor/FlyLocomotionClass.h>
 
-bool IsFlyLoco(const ILocomotion* pLoco)
-{
-	return (((DWORD*)pLoco)[0] == FlyLocomotionClass::ILoco_vtable);
-}
-
-COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* pWeapon)
-{
-	return pWeapon && WeaponTypeExtContainer::Instance.Find(pWeapon)->Strafing
-		.Get(pWeapon->Projectile->ROT <= 1 && !pWeapon->Projectile->Inviso);
-}
-
-ASMJIT_PATCH(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
-{
-	GET(AircraftClass*, pThis, EDI);
-	GET_BASE(int, nWeaponIdx, 0xC);
-
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	bool DropPassengers = pTypeExt->Paradrop_DropPassangers;
-
-	if (pThis->Passengers.FirstPassenger)
-	{
-		if (auto pWewapons = pThis->GetWeapon(nWeaponIdx))
-		{
-			if (pWewapons->WeaponType)
-			{
-				const auto pExt = WeaponTypeExtContainer::Instance.Find(pWewapons->WeaponType);
-				if (pExt->KickOutPassenger.isset())
-					DropPassengers = pExt->KickOutPassenger; //#1151
-			}
-		}
-
-		if (DropPassengers)
-		{
-			pThis->DropOffParadropCargo();
-			return 0x415EFD;
-		}
-	}
-
-	GET_BASE(AbstractClass*, pTarget, 0x8);
-
-	const auto pBullet = pThis->TechnoClass::Fire(pTarget, nWeaponIdx);
-
-	R->ESI(pBullet);
-	R->Stack(0x10, pBullet);
-
-	if (!pBullet)
-		return 0x41659E;
-
-	if (AircraftCanStrafeWithWeapon(pBullet->WeaponType)) {
-		TechnoExtContainer::Instance.Find(pThis)->ShootCount++;
-
-		if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot) {
-			pThis->loseammo_6c8 = false;
-			pThis->Ammo--;
-		}
-	}
-
-	R->EBX(pTarget);
-
-	if (pTypeExt->Firing_IgnoreGravity.Get())
-		return 0x41631F;
-
-	if (pBullet->Type->Vertical || pBullet->HasParachute)
-	{
-		pBullet->Velocity = { 0, 0, pBullet->Velocity.Z };
-		return 0x41631F;
-	}
-	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-	const bool skipROT0Check = PhobosTrajectory::IgnoreAircraftROT0(pBulletExt->Trajectory);
-
-
-	if (!pBullet->Type->ROT) {
-
-		if (skipROT0Check)
-			return 0x41631F;
-
-		if (IsFlyLoco(pThis->Locomotor.GetInterfacePtr())) {
-
-			const auto pLocomotor = static_cast<FlyLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
-			double currentSpeed = !pBullet->Type->Cluster ?
-			pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)
-			: pLocomotor->Apparent_Speed();
-
-#ifdef broken_
-			auto& vel = pBullet->Velocity;
-
-			vel.SetIfZeroXYZ();
-			vel *= (currentSpeed /= vel.Length());
-			DirStruct dir {};
-			vel.GetDirectionFromXY(&dir);
-			auto distancexy_vel = vel.Length();
-			auto rad_ = dir.GetRadian();
-
-			if(rad_ != 0.0){
-				vel.X /= Math::cos(rad_);
-				vel.Y /= Math::cos(rad_);
-			}
-
-			COMPILETIMEEVAL auto sin_ = gcem::sin(-0.00009587672516830327);
-			COMPILETIMEEVAL auto cos_ = gcem::cos(-0.00009587672516830327);
-
-			vel.X *= cos_;
-			vel.Y *= cos_;
-			vel.Z =  sin_* Math::sin(distancexy_vel);
-
-			auto facing_ = pThis->SecondaryFacing.Current();
-			vel.SetIfZeroXY();
-			distancexy_vel = vel.LengthXY();
-			rad_ = facing_.GetRadian();
-			vel.X = Math::cos(rad_) * distancexy_vel;
-			vel.Y = -(Math::sin(rad_) * distancexy_vel);
-			return 0x41631F;
-#else
-			R->EAX(int(currentSpeed));
-			return 0x415F5C;
-
-#endif
-		}
-
-		return 0x415F4D;
-	}
-
-	return !(pBullet->Type->ROT == 1) ? 0x41631F : 0x4160CF;
-}
+//ASMJIT_PATCH(0x415EEE, AircraftClass_FireAt_DropCargo, 0x6) //was 8
+//{
+//	GET(AircraftClass*, pThis, EDI);
+//	GET_BASE(int, nWeaponIdx, 0xC);
+//
+//	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+//
+//	bool DropPassengers = pTypeExt->Paradrop_DropPassangers;
+//
+//	if (pThis->Passengers.FirstPassenger)
+//	{
+//		if (auto pWewapons = pThis->GetWeapon(nWeaponIdx))
+//		{
+//			if (pWewapons->WeaponType)
+//			{
+//				const auto pExt = WeaponTypeExtContainer::Instance.Find(pWewapons->WeaponType);
+//				if (pExt->KickOutPassenger.isset())
+//					DropPassengers = pExt->KickOutPassenger; //#1151
+//			}
+//		}
+//
+//		if (DropPassengers)
+//		{
+//			pThis->DropOffParadropCargo();
+//			return 0x415EFD;
+//		}
+//	}
+//
+//	GET_BASE(AbstractClass*, pTarget, 0x8);
+//
+//	const auto pBullet = pThis->TechnoClass::Fire(pTarget, nWeaponIdx);
+//
+//	R->ESI(pBullet);
+//	R->Stack(0x10, pBullet);
+//
+//	if (!pBullet)
+//		return 0x41659E;
+//
+//	if (AircraftCanStrafeWithWeapon(pBullet->WeaponType)) {
+//		TechnoExtContainer::Instance.Find(pThis)->ShootCount++;
+//
+//		if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot) {
+//			pThis->loseammo_6c8 = false;
+//			pThis->Ammo--;
+//		}
+//	}
+//
+//	R->EBX(pTarget);
+//
+//	if (pTypeExt->Firing_IgnoreGravity.Get())
+//		return 0x41631F;
+//
+//	if (pBullet->Type->Vertical || pBullet->HasParachute)
+//	{
+//		pBullet->Velocity = { 0, 0, pBullet->Velocity.Z };
+//		return 0x41631F;
+//	}
+//	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+//	const bool skipROT0Check = PhobosTrajectory::IgnoreAircraftROT0(pBulletExt->Trajectory);
+//
+//
+//	if (!pBullet->Type->ROT) {
+//
+//		if (skipROT0Check)
+//			return 0x41631F;
+//
+//		const auto pLoco = pThis->Locomotor.GetInterfacePtr();
+//
+//		if (IsFlyLoco(pLoco)) {
+//
+//			const auto pLocomotor = static_cast<FlyLocomotionClass*>(pLoco);
+//			double apparentSpeed = !pBullet->Type->Cluster ?
+//			pThis->Type->Speed * pLocomotor->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)
+//			: pLocomotor->Apparent_Speed();
+//
+//#ifndef broken_
+//			VelocityClass* velocity = &pBullet->Velocity;
+//
+//			velocity->SetIfZeroXYZ();
+//
+//			double dist = velocity->Length();
+//			double scale = apparentSpeed / dist;
+//
+//			velocity->X *= scale;
+//			velocity->Y *= scale;
+//			velocity->Z *= scale;
+//
+//			DirStruct dir;
+//			velocity->GetDirectionFromXY(&dir);
+//			int facingOffset = dir.Raw - 0x3FFF;
+//			double yawRad = facingOffset * -0.00009587672516830327;
+//
+//			double mag = velocity->Length();
+//
+//			if (yawRad != 0.0)
+//			{
+//				velocity->X /= Math::cos(yawRad);
+//				velocity->Y /= Math::cos(yawRad);
+//			}
+//
+//			double pitchRad = -0.00009587672516830327;
+//			velocity->X *= Math::cos(pitchRad);
+//			velocity->Y *= Math::cos(pitchRad);
+//			velocity->Z = Math::sin(pitchRad) * mag;
+//
+//			DirStruct newFacingDir = pThis->SecondaryFacing.Current();
+//
+//			velocity->SetIfZeroXY();
+//
+//			double dist2D = velocity->LengthXY();
+//			int newFacing = newFacingDir.Raw- 0x3FFF;
+//			double newRad = newFacing * -0.00009587672516830327;
+//
+//			velocity->X = Math::cos(newRad) * dist2D;
+//			velocity->Y = -Math::sin(newRad) * dist2D;
+//
+//
+//		}else
+//		if (bullet->Class->ROT == 1) {
+//
+//			// Homing weapon: calculate angle and scale
+//			CoordStruct src = aircraft->Get_Center_Coord();
+//			CoordStruct tgt = target->Get_Center_Coord();
+//
+//			CoordStruct delta = tgt - src;
+//
+//			Vector3 rawVec = {
+//				static_cast<double>(delta.X),
+//				static_cast<double>(delta.Y),
+//				static_cast<double>(delta.Z)
+//			};
+//
+//			// Horizontal aim
+//			double horizAngle = FastMath::Atan2(-rawVec.y, rawVec.x) - DEG90_AS_RAD;
+//			int facingAngle = static_cast<int>(horizAngle * BINARY_ANGLE_MAGIC);
+//
+//			VelocityClass* velocity = &bullet->__Velocity;
+//			VelocityClass::set_if_zero_2(velocity);
+//
+//			double dist2D = VelocityClass::Distance2(velocity);
+//			int facingOffset = facingAngle - 0x3FFF;
+//			double yawRad = facingOffset * -0.00009587672516830327;
+//
+//			if (yawRad != 0.0)
+//			{
+//				velocity->x /= FastMath::Cos(yawRad);
+//				velocity->y /= FastMath::Cos(yawRad);
+//			}
+//
+//			velocity->x *= FastMath::Cos(yawRad);
+//			velocity->y *= FastMath::Cos(yawRad);
+//
+//			// Vertical aim
+//			double horizDist = VelocityClass::Distance_xy(&rawVec);
+//			double pitchAngle = FastMath::Atan2(rawVec.z, horizDist) - DEG90_AS_RAD;
+//			int pitchFacing = static_cast<int>(pitchAngle * BINARY_ANGLE_MAGIC);
+//
+//			int rotOffset = pitchFacing - 0x3FFF;
+//			double pitchRad = rotOffset * -0.00009587672516830327;
+//			double pitchMag = VelocityClass::Distance_xyz(velocity);
+//
+//			velocity->z = FastMath::Sin(pitchRad) * pitchMag;
+//
+//			// Normalize speed
+//			double maxSpeed = static_cast<double>(aircraft->Get_Weapon(0)->WeaponType->MaxSpeed);
+//			VelocityClass::set_if_zero_3(velocity);
+//			double currSpeed = VelocityClass::Distance_xyz(velocity);
+//			double finalScale = maxSpeed / currSpeed;
+//
+//			velocity->x *= finalScale;
+//			velocity->y *= finalScale;
+//			velocity->z *= finalScale;
+//		}
+//	}
+//
+//	return !(pBullet->Type->ROT == 1) ? 0x41631F : 0x4160CF;
+//}
 
 ASMJIT_PATCH(0x415991, AircraftClass_Mission_Paradrop_Overfly_Radius, 0x6)
 {
@@ -174,26 +226,6 @@ ASMJIT_PATCH(0x415934, AircraftClass_Mission_Paradrop_Approach_Radius, 0x6)
 
 	const int nRadius = TechnoTypeExtContainer::Instance.Find(pThis->Type)->ParadropRadius.Get(RulesClass::Instance->ParadropRadius);
 	return  comparator <= nRadius ? ConditionMeet : ConditionFailed;
-}
-
-ASMJIT_PATCH(0x416545, AircraftClass_FireAt_AttackRangeSight_1, 0x7)
-{
-	GET(AircraftClass*, pThis, EDI);
-	GET(RulesClass*, pRules, EAX);
-
-	R->Stack(STACK_OFFS(0x94, 0x48), R->ECX());
-	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->Type)->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
-	return 0x41654C;
-}
-
-ASMJIT_PATCH(0x416580, AircraftClass_FireAt_AttackRangeSight_2, 0x7)
-{
-	GET(AircraftClass*, pThis, EDI);
-	GET(RulesClass*, pRules, ECX);
-
-	R->Stack(STACK_OFFS(0x8C, 0x48), R->EDX());
-	R->EDX(TechnoTypeExtContainer::Instance.Find(pThis->Type)->AttackingAircraftSightRange.Get(pRules->AttackingAircraftSightRange));
-	return 0x416587;
 }
 
 ASMJIT_PATCH(0x417A2E, AircraftClass_EnterIdleMode_Opentopped, 0x5)

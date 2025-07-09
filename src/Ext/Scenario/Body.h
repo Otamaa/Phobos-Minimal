@@ -72,7 +72,7 @@ public:
 	bool SWSidebar_Enable { true };
 	HelperedVector<int> SWSidebar_Indices {};
 
-	UniqueGamePtr<MessageListClass> NewMessageList;
+	UniqueGamePtr<MessageListClass> NewMessageList {};
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);

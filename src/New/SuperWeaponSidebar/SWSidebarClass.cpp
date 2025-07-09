@@ -121,8 +121,8 @@ void SWSidebarClass::InitIO()
 		}
 	}
 
-	for (const auto& superIdx : ScenarioExtData::Instance()->SWSidebar_Indices)
-		SWSidebarClass::Global()->AddButton(superIdx);
+	for (const auto &superIdx : ScenarioExtData::Instance()->SWSidebar_Indices)
+		SWSidebarClass::Instance.AddButton(superIdx);
 }
 
 bool SWSidebarClass::AddButton(int superIdx)
@@ -152,12 +152,7 @@ bool SWSidebarClass::AddButton(int superIdx)
 	if (columns.empty() && !this->AddColumn())
 		return false;
 
-	const bool success = columns.back()->AddButton(superIdx);
-
-	if (success)
-		ScenarioExtData::Instance()->SWSidebar_Indices.push_back_unique(superIdx);
-
-	return success;
+	return columns.back()->AddButton(superIdx);
 }
 
 void SWSidebarClass::SortButtons()
@@ -203,7 +198,7 @@ void SWSidebarClass::SortButtons()
 	const int cameoWidth = 60, cameoHeight = 48;
 	const int firstColumn = Phobos::UI::SuperWeaponSidebar_Max;
 	const int cameoHarfInterval = (Phobos::UI::SuperWeaponSidebar_CameoHeight - cameoHeight) / 2;
-	int location_Y = (DSurface::ViewBounds().Height - std::min(buttonCount, firstColumn) * Phobos::UI::SuperWeaponSidebar_CameoHeight) / 2;
+	int location_Y = (DSurface::ViewBounds->Height - std::min(buttonCount, firstColumn) * Phobos::UI::SuperWeaponSidebar_CameoHeight) / 2;
 	Point2D location = { Phobos::UI::SuperWeaponSidebar_LeftOffset, location_Y + cameoHarfInterval };
 	int rowIdx = 0, columnIdx = 0;
 
@@ -270,6 +265,7 @@ void SWSidebarClass::RecheckCameo()
 	for (const auto& column : sidebar->Columns)
 	{
 		std::vector<int> removeButtons;
+		removeButtons.reserve(column->Buttons.size());
 
 		for (const auto& button : column->Buttons)
 		{

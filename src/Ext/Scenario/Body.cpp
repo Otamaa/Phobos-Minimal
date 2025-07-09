@@ -288,9 +288,9 @@ ASMJIT_PATCH(0x683549, ScenarioClass_CTOR, 0x9)
 	GET(ScenarioClass*, pItem, EAX);
 
 	ScenarioExtData::Allocate(pItem);
-	ScenarioExtData::Instance()->Waypoints.clear();
-	ScenarioExtData::Instance()->Local_Variables.clear();
-	ScenarioExtData::Instance()->Global_Variables.clear();
+	//ScenarioExtData::Instance()->Waypoints.clear();
+	//ScenarioExtData::Instance()->Local_Variables.clear();
+	//ScenarioExtData::Instance()->Global_Variables.clear();
 
 	return 0;
 }
@@ -339,7 +339,7 @@ ASMJIT_PATCH(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 {
 	auto buffer = ScenarioExtData::Instance();
 	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
-	PhobosByteStream saver(sizeof(GameModeOptionsClass) + (sizeof(ScenarioExtData) - 4u));
+	PhobosByteStream saver(sizeof(GameModeOptionsClass) + (sizeof(ScenarioExtData) - 8u));
 	PhobosStreamWriter writer(saver);
 
 	writer.Save(ScenarioExtData::Canary);

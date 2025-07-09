@@ -30,7 +30,7 @@ bool SWColumnClass::Draw(bool forced)
 	{
 		const int cameoHarfInterval = (Phobos::UI::SuperWeaponSidebar_CameoHeight - cameoHeight) / 2;
 
-		for (const auto button : this->Buttons)
+		for (const auto &button : this->Buttons)
 		{
 			RectangleStruct drawRect { this->Rect.X, button->Rect.Y - cameoHarfInterval, cameoBackgroundWidth, Phobos::UI::SuperWeaponSidebar_CameoHeight };
 			PCX::Instance->BlitToSurface(&drawRect, DSurface::Composite, pCenterPCX);
@@ -148,12 +148,7 @@ bool SWColumnClass::RemoveButton(int superIdx)
 
 	AnnounceInvalidPointer(sidebar->CurrentButton, *it);
 
-	auto& indices = ScenarioExtData::Instance()->SWSidebar_Indices;
-	const auto it_Idx = std::find(indices.cbegin(), indices.cend(), superIdx);
-
-	if (it_Idx != indices.cend())
-		indices.erase(it_Idx);
-
+	ScenarioExtData::Instance()->SWSidebar_Indices.remove(superIdx);
 	GScreenClass::Instance->RemoveButton(*it);
 	buttons.erase(it);
 	return true;

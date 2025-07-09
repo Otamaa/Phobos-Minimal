@@ -29,6 +29,8 @@ public:
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
 	int _Mission_Sleep();
 	void _FootClass_Update_Wrapper();
+
+	BulletClass* _FireAt(AbstractClass* target, int which);
 };
 
 static_assert(sizeof(FakeAircraftClass) == sizeof(AircraftClass), "Invalid Size !");
