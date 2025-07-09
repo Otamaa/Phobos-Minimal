@@ -1737,6 +1737,8 @@ ASMJIT_PATCH(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 	return infiltratable ? 0x700531u : 0x700536u;
 }
 
+#include <WWKeyboardClass.h>
+
 ASMJIT_PATCH(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 {
 	enum
@@ -1745,6 +1747,10 @@ ASMJIT_PATCH(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 	};
 
 	GET(InfantryClass*, pThis, EDI);
+
+	if(InputManagerClass::Instance->IsForceFireKeyPressed())
+		return 0x51F05E;
+
 	GET(ObjectClass*, pObject, ESI);
 
 	if (auto pBldObject = cast_to<BuildingClass*>(pObject))
@@ -1835,10 +1841,33 @@ ASMJIT_PATCH(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
 
 ASMJIT_PATCH(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
 {
-	GET(BuildingClass* const, pBuilding, ESI);
-	R->CL(BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
-		->EngineerRepairable.Get(pBuilding->Type->Repairable));
-	return 0x51E4F3;
+	enum { Skip = 0x51E668, Continue = 0x51E501 };
+
+	GET(BuildingClass*, pBuilding, ESI);
+
+	if(!BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
+			->EngineerRepairable.Get(pBuilding->Type->Repairable))
+		return Skip;
+
+	GET(InfantryClass*, pThis, EDI);
+	GET(BuildingTypeClass*, pBuildingType, EAX);
+
+	if (InputManagerClass::Instance->IsForceFireKeyPressed())
+			return Skip;
+
+	bool BridgeRepairHut = pBuildingType->BridgeRepairHut;
+
+	if (!BridgeRepairHut && pThis->Owner->IsAlliedWith(pBuilding->Owner))
+	{
+		if (InputManagerClass::Instance->IsForceMoveKeyPressed()
+			|| pBuilding->Health >= pBuildingType->Strength)
+		{
+			return Skip;
+		}
+	}
+
+	R->CL(BridgeRepairHut);
+	return Continue;
 }
 
 ASMJIT_PATCH(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)

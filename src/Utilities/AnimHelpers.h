@@ -25,17 +25,17 @@ namespace Helper
 		{
 			if (pWarhead)
 			{
-				nDamage = static_cast<int>(nDamage * TechnoExtData::GetDamageMult(pInvoker, !DamageConsiderVet));
+				auto nResultDamage = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, nDamage , !DamageConsiderVet));
 
 				if (bWarheadDetonate)
 				{
-					WarheadTypeExtData::DetonateAt(pWarhead, Where, pInvoker, nDamage , pOwner);
+					WarheadTypeExtData::DetonateAt(pWarhead, Where, pInvoker, nResultDamage, pOwner);
 				}
 				else
 				{
-					DamageArea::Apply(&Where, nDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
-					MapClass::FlashbangWarheadAt(nDamage, pWarhead, Where);
-					return { true, nDamage };
+					DamageArea::Apply(&Where, nResultDamage, pInvoker, pWarhead, pWarhead->Tiberium, pOwner);
+					MapClass::FlashbangWarheadAt(nResultDamage, pWarhead, Where);
+					return { true, nResultDamage };
 				}
 			}
 
@@ -48,8 +48,8 @@ namespace Helper
 				return DetonateWarhead(nDamage, pWarhead, bWarheadDetonate, Where, pInvoker, pOwner, DamageConsiderVet);
 			}
 
-			nDamage = static_cast<int>(nDamage * TechnoExtData::GetDamageMult(pInvoker, !DamageConsiderVet));
-			WeaponTypeExtData::DetonateAt(pWeapon, Where, pInvoker, nDamage, false);
+			auto nResultDamage = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, nDamage , !DamageConsiderVet));
+			WeaponTypeExtData::DetonateAt(pWeapon, Where, pInvoker, nResultDamage, false);
 			return { false , 0 };
 		}
 

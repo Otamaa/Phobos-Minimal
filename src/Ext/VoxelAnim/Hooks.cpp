@@ -88,7 +88,7 @@ ASMJIT_PATCH(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 
 	if (!LandIsWater || EligibleHeight)
 	{
-		Helper::Otamaa::Detonate(pTypeExt->Weapon, pThis->Type->Damage, pThis->Type->Warhead, pTypeExt->Warhead_Detonate, pThis->Bounce.GetCoords(), pInvoker, pOwner, pTypeExt->ExpireDamage_ConsiderInvokerVet);
+		Helper::Otamaa::Detonate(pTypeExt->Weapon, pThis->Type->Damage, pThis->Type->Warhead, pTypeExt->Warhead_Detonate, nLocation, pInvoker, pOwner, pTypeExt->ExpireDamage_ConsiderInvokerVet);
 
 		if (auto const pExpireAnim = pThis->Type->ExpireAnim) {
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0),

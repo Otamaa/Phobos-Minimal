@@ -731,7 +731,7 @@ public:
 
 	bool KeepTargetOnMove { false };
 
-	bool FiringSequencePaused { false };
+	bool DelayedFireSequencePaused { false };
 	int DelayedFireWeaponIndex { -1 };
 	CDTimerClass DelayedFireTimer {};
 	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim { nullptr };

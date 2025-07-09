@@ -72,20 +72,20 @@ COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* p
 }
 
 NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , AbstractClass* pTarget) {
+	auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
-	if (pBullet->Type->Vertical || pBullet->HasParachute) {
+	if (pBullet->HasParachute ||(pBullet->Type->Vertical && pBulletTypeExt->Vertical_AircraftFix)) {
 		pBullet->Velocity = { 0, 0, pBullet->Velocity.Z };
 		return;
 	}
 
 	auto const pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-
 	const auto pLoco = pThis->Locomotor.GetInterfacePtr();
 
 	if (pBullet->Type->ROT == 0 && !PhobosTrajectory::IgnoreAircraftROT0(pBulletExt->Trajectory))
 	{
 		const auto pLocomotor = static_cast<LocomotionClass*>(pLoco);
-		double apparentSpeed = !pBullet->Type->Cluster && IsFlyLoco(pLoco) ?
+		double aircraftSpeed = !pBullet->Type->Cluster && IsFlyLoco(pLoco) ?
 			pThis->Type->Speed * static_cast<FlyLocomotionClass*>(pLoco)->CurrentSpeed * TechnoExtData::GetCurrentSpeedMultiplier(pThis)
 			: pLocomotor->Apparent_Speed();
 
@@ -94,7 +94,7 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 		velocity->SetIfZeroXYZ();
 
 		const double dist = velocity->Length();
-		const double scale = apparentSpeed / dist;
+		const double scale = aircraftSpeed / dist;
 
 		velocity->X *= scale;
 		velocity->Y *= scale;
@@ -135,54 +135,72 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			CoordStruct src = pThis->GetCoords();
 			CoordStruct tgt = pTarget->GetCoords();
 
-			CoordStruct delta = tgt - src;
+			CoordStruct offset = tgt - src;
 
-			const Vector3D rawVec = {
-				static_cast<double>(delta.X),
-				static_cast<double>(delta.Y),
-				static_cast<double>(delta.Z)
+			// Copy offset components into double vector for math
+			Vector3D aimVector = {
+				static_cast<double>(offset.X),
+				static_cast<double>(offset.Y),
+				static_cast<double>(offset.Z)
 			};
 
-			// Horizontal aim
-			const double horizAngle = Math::atan2(-rawVec.Y, rawVec.X) - Math::DEG90_AS_RAD;
-			const int facingAngle = static_cast<int>(horizAngle * Math::BinaryAngleMagic);
+			// Calculate yaw angle to face the target in XY plane
+			double yawRadians = Math::atan2(-aimVector.Y, aimVector.X) - Math::DEG90_AS_RAD;
+			int yawBinaryAngle = static_cast<int>(yawRadians * Math::BINARY_ANGLE_MAGIC);
+			int adjustedYaw = yawBinaryAngle - 0x3FFF;
+			double adjustedYawRad = adjustedYaw * -0.00009587672516830327;
 
+			// Prepare bullet velocity (set if all-zero)
 			VelocityClass* velocity = &pBullet->Velocity;
+
 			velocity->SetIfZeroXY();
 
-			const double dist2D = velocity->Length();
-			const int facingOffset = facingAngle - 0x3FFF;
-			const double yawRad = facingOffset * -0.00009587672516830327;
+			double originalSpeed2D = velocity->LengthXY();
 
-			if (yawRad != 0.0)
+			// Set initial XY velocity facing target yaw
+			velocity->X = Math::cos(adjustedYawRad) * originalSpeed2D;
+			velocity->Y = -Math::sin(adjustedYawRad) * originalSpeed2D;
+
+			// Calculate pitch angle from aim vector
+			double horizontalDistance = aimVector.LengthXY();
+			double pitchRadians = Math::atan2(aimVector.Z, horizontalDistance) - Math::DEG90_AS_RAD;
+			int pitchBinaryAngle = static_cast<int>(pitchRadians * Math::BINARY_ANGLE_MAGIC);
+			int adjustedPitch = pitchBinaryAngle - 0x3FFF;
+			double adjustedPitchRad = adjustedPitch * -0.00009587672516830327;
+
+			// Re-calculate current yaw from bullet velocity
+			DirStruct* currentFacing;
+			velocity->GetDirectionFromXY(currentFacing);
+			int currentFacingOffset = currentFacing->Raw - 0x3FFF;
+			double currentYawRad = currentFacingOffset * -0.00009587672516830327;
+
+			double currentSpeed3D = velocity->Length();
+
+			// If yaw was altered, rescale velocity
+			if (currentYawRad != 0.0)
 			{
-				velocity->X /= Math::cos(yawRad);
-				velocity->Y /= Math::cos(yawRad);
+				double cosYaw = Math::cos(currentYawRad);
+				velocity->X /= cosYaw;
+				velocity->Y /= Math::cos(currentYawRad); // redundant, matches original logic
 			}
 
-			velocity->X *= Math::cos(yawRad);
-			velocity->Y *= Math::cos(yawRad);
+			// Apply pitch to Z velocity
+			velocity->X *= Math::cos(adjustedPitchRad);
+			velocity->Y *= Math::cos(adjustedPitchRad);
+			velocity->Z = Math::sin(adjustedPitchRad) * currentSpeed3D;
 
-			// Vertical aim
-			const double horizDist = rawVec.LengthXY();
-			const double pitchAngle = Math::atan2(rawVec.Z, horizDist) - Math::DEG90_AS_RAD;
-			const int pitchFacing = static_cast<int>(pitchAngle * Math::BINARY_ANGLE_MAGIC);
+			// Normalize speed to weapon's max speed
+			WeaponTypeClass* weapon = pThis->GetPrimaryWeapon()->WeaponType;
+			double maxBulletSpeed = static_cast<double>(weapon->Speed);
 
-			const int rotOffset = pitchFacing - 0x3FFF;
-			const double pitchRad = rotOffset * -0.00009587672516830327;
-			const double pitchMag = velocity->Length();
-
-			velocity->Z = Math::sin(pitchRad) * pitchMag;
-
-			// Normalize speed
-			const double maxSpeed = static_cast<double>(pThis->GetWeapon(0)->WeaponType->Speed);
 			velocity->SetIfZeroXYZ();
-			const double currSpeed = velocity->Length();
-			const double finalScale = maxSpeed / currSpeed;
 
-			velocity->X *= finalScale;
-			velocity->Y *= finalScale;
-			velocity->Z *= finalScale;
+			double finalSpeed = velocity->Length();
+			double speedScale = maxBulletSpeed / finalSpeed;
+
+			velocity->X *= speedScale;
+			velocity->Y *= speedScale;
+			velocity->Z *= speedScale;
 	}
 }
 

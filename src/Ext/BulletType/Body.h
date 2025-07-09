@@ -125,6 +125,9 @@ public:
 	Nullable<int> Parachuted_MaxFallRate {};
 	Valueable<bool> Parachuted_Remap { true };
 
+	Valueable<bool> Vertical_AircraftFix { true };
+
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

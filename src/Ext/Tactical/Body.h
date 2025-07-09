@@ -4,6 +4,8 @@
 #include <CoordStruct.h>
 #include <ColorStruct.h>
 
+#include <Utilities/SavegameDef.h>
+
 class SuperClass;
 class FakeTacticalClass final : public TacticalClass
 {
@@ -66,3 +68,52 @@ public:
 };
 
 static_assert(sizeof(FakeTacticalClass) == sizeof(TacticalClass), "MustBe Same!");
+
+class TacticalExtData final
+{
+private:
+	static std::unique_ptr<TacticalExtData> Data;
+
+public:
+
+	static COMPILETIMEEVAL size_t Canary = 0x51DEBA12;
+	using base_type = TacticalClass;
+
+	base_type* AttachedToObject {};
+	InitState Initialized { InitState::Blank };
+
+	bool IsPendingScreenFlash {};
+	ColorStruct ScreenFlashColor { 255,255,255 };
+	unsigned ScreenFlashTrans { 100 };
+
+public:
+
+	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
+	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+
+	void Screen_Flash_AI();
+
+private:
+	template <typename T>
+	void Serialize(T& Stm);
+
+public:
+	static IStream* g_pStm;
+
+	static void Allocate(TacticalClass* pThis);
+	static void Remove(TacticalClass* pThis);
+
+	static TacticalExtData* Instance()
+	{
+		return Data.get();
+	}
+
+	static void Clear()
+	{
+		Allocate(TacticalClass::Instance());
+	}
+
+	static void DrawProducingProgress();
+};
+

@@ -493,7 +493,7 @@ public:
 	void InterceptBullets(TechnoClass* pOwner, BulletClass* pBullet, CoordStruct coords) const;
 	bool CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTargetHouse) const;
 	bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false) const;
-	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false , bool checkImmune = true) const;
+	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false , bool checkImmune = true , bool checkLimbo = true) const;
 	bool CanAffectInvulnerable(TechnoClass* pTarget) const;
 	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const;
 	void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const;

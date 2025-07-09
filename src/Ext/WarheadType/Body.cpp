@@ -786,12 +786,14 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 	return true;
 }
 
-bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses , bool CheckImmune) const
+bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool SkipVerses , bool CheckImmune, bool checkLimbo) const
 {
 	if (pTechno)
 	{
-		if (pTechno->InLimbo
-			|| !pTechno->IsAlive
+		if (checkLimbo && pTechno->InLimbo)
+			return false;
+
+		if (!pTechno->IsAlive
 			|| !pTechno->Health
 			|| pTechno->IsSinking
 			|| pTechno->IsCrashing

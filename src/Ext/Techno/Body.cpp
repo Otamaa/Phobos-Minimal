@@ -467,7 +467,7 @@ bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int w
 	if (pExt->DelayedFireWeaponIndex >= 0 && pExt->DelayedFireWeaponIndex != weaponIndex)
 	{
 		pExt->ResetDelayedFireTimer();
-		pExt->FiringSequencePaused = false;
+		pExt->DelayedFireSequencePaused = false;
 	}
 
 	if (pWeaponExt->DelayedFire_PauseFiringSequence && pWeaponExt->DelayedFire_Duration.isset() && (!pThis->Transporter || !pWeaponExt->DelayedFire_SkipInTransport))
@@ -475,7 +475,7 @@ bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int w
 		if (pWeapon->Burst <= 1 || !pWeaponExt->DelayedFire_OnlyOnInitialBurst || pThis->CurrentBurstIndex == 0)
 		{
 			if (pThis->Animation.Stage == firingFrame)
-				pExt->FiringSequencePaused = true;
+				pExt->DelayedFireSequencePaused = true;
 
 			if (!timer.HasStarted())
 			{
@@ -505,7 +505,7 @@ bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int w
 				pExt->ResetDelayedFireTimer();
 		}
 
-		pExt->FiringSequencePaused = false;
+		pExt->DelayedFireSequencePaused = false;
 	}
 
 	return false;
@@ -6361,7 +6361,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->AccumulatedGattlingValue)
 		.Process(this->ShouldUpdateGattlingValue)
 		.Process(this->KeepTargetOnMove)
-		.Process(this->FiringSequencePaused)
+		.Process(this->DelayedFireSequencePaused)
 		.Process(this->DelayedFireTimer)
 		.Process(this->DelayedFireWeaponIndex)
 		.Process(this->CurrentDelayedFireAnim)

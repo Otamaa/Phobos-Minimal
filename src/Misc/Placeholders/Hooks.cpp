@@ -395,13 +395,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 //		style);
 //}
 #ifdef _Enable
-static void __fastcall LaserDrawclassDrawAll()
-{
-	LaserDrawClass::DrawAll();
-	EBolt::DrawAll();
-	ElectricBoltManager::Draw_All();
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll))
+
 #endif
 
 //ASMJIT_PATCH(0x6D4669, TacticalClass_Render_Addition, 0x5)

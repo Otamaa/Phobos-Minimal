@@ -57,6 +57,7 @@ public:
 	Valueable<bool> Abductor_CheckAbductableWhenTargeting { false };
 
 	Valueable<bool> Burst_FireWithinSequence { false };
+	Valueable<bool> Burst_NoDelay { false };
 	Nullable<PartialVector2D<int>> ROF_RandomDelay {};
 	ValueableVector<int> ChargeTurret_Delays {};
 	Valueable<bool> OmniFire_TurnToTarget { false };

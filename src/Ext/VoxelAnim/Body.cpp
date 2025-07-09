@@ -23,7 +23,7 @@ TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 
 	auto const pExt  = VoxelAnimExtContainer::Instance.TryFind(pThis);
 
-	if (!pExt || pExt->Initialized < InitState::Constanted || !pExt->Invoker)
+	if (!pExt || !pExt->Invoker)
 		return nullptr;
 
 	const auto pAddr = pExt->Invoker->WhatAmI();

@@ -7534,9 +7534,21 @@ DEFINE_FUNCTION_JUMP(CALL, 0x53D326, FakeIonBlastClass::_AI)
 //size_t FakeIonBlastClass::LUT_SIZE { std::size(FakeIonBlastClass::ionblast_A9FAE8) };
 //int FakeIonBlastClass::IonBlastPitch {};
 #endif
+
+#include <Ext/Tactical/Body.h>
+
 static void __fastcall IonBlastDrawAll()
 {
 	VeinholeMonsterClass::DrawAll();
 	IonBlastClass::DrawAll();
 }
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, IonBlastDrawAll)
+
+static void __fastcall LaserDrawclassDrawAll()
+{
+	LaserDrawClass::DrawAll();
+	EBolt::DrawAll();
+	TacticalExtData::Instance()->Screen_Flash_AI();
+	//ElectricBoltManager::Draw_All();
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll)

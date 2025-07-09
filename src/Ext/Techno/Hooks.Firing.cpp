@@ -553,19 +553,6 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 	if (pWeapon) {
 		auto pWeaponExt = pWeapon->_GetExtData();
-		if (const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget)) {
-				auto const pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
-			if (pWeaponExt->NoRepeatFire > 0) {
-				pTargetExt->LastBeLockedFrame = Unsorted::CurrentFrame;
-			}
-
-			if (pWeaponExt->AttachEffect_Enable) {
-				auto const info = &pWeaponExt->AttachEffects;
-				PhobosAttachEffectClass::Attach(pTargetTechno, pThis->Owner, pThis, pWeapon->Warhead, info);
-				PhobosAttachEffectClass::Detach(pTargetTechno, info);
-				PhobosAttachEffectClass::DetachByGroups(pTargetTechno, info);
-			}
-		}
 
 		auto& timer = pExt->DelayedFireTimer;
 		if (pExt->DelayedFireWeaponIndex >= 0 && pExt->DelayedFireWeaponIndex != weaponIndex)
@@ -611,20 +598,34 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 				}
 			}
 		}
+
+		if (const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget)) {
+				auto const pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
+			if (pWeaponExt->NoRepeatFire > 0) {
+				pTargetExt->LastBeLockedFrame = Unsorted::CurrentFrame;
+			}
+
+			if (pWeaponExt->AttachEffect_Enable) {
+				auto const info = &pWeaponExt->AttachEffects;
+				PhobosAttachEffectClass::Attach(pTargetTechno, pThis->Owner, pThis, pWeapon->Warhead, info);
+				PhobosAttachEffectClass::Detach(pTargetTechno, info);
+				PhobosAttachEffectClass::DetachByGroups(pTargetTechno, info);
+			}
+		}
 	}
 
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x5206B7, InfantryClass_FiringAI_Entry, 0x6)
-{
-	GET(InfantryClass*, pThis, EBP);
-
-	if (!pThis->Target || !pThis->IsFiring)
-		TechnoExtContainer::Instance.Find(pThis)->FiringSequencePaused = false;
-
-	return 0;
-}
+// ASMJIT_PATCH(0x5206B7, InfantryClass_FiringAI_Entry, 0x6)
+// {
+// 	GET(InfantryClass*, pThis, EBP);
+//
+// 	if (!pThis->Target || !pThis->IsFiring)
+// 		TechnoExtContainer::Instance.Find(pThis)->DelayedFireSequencePaused = false;
+//
+// 	return 0;
+// }
 
 ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
 {
@@ -634,7 +635,7 @@ ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->FiringSequencePaused)
+	if (pExt->DelayedFireSequencePaused)
 		return SkipGameCode;
 
 	return 0;

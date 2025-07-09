@@ -1,7 +1,8 @@
 #include "Body.h"
 #include <Ext/TechnoType/Body.h>
+#include <Ext/Infantry/Body.h>
 
-#include <InfantryClass.h>
+#include <Utilities/Macro.h>
 
 //Author : Otamaa
 ASMJIT_PATCH(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
@@ -26,20 +27,8 @@ ASMJIT_PATCH(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 	return 0x5223B9;
 }
 
-ASMJIT_PATCH(0x52190D, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6) //7
-{
-	GET(InfantryClass*, pThis, ESI);
-	GET(InfantryTypeClass*, pThisType, ECX);
-	GET_STACK(AbstractClass*, pTarget, 0x8);
-
-	if (pThisType->DeployFireWeapon == -1 || (pThisType->IsGattling && !pThis->IsDeployed())) {
-		R->EAX(pThis->TechnoClass::SelectWeapon(pTarget));
-	} else {
-		R->EAX(pThisType->DeployFireWeapon);
-	}
-
-	return 0x521913;
-}
+DEFINE_FUNCTION_JUMP(LJMP , 0x5218E0 , FakeInfantryClass::_SelectWeaponAgainst)
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7EB33C , FakeInfantryClass::_SelectWeaponAgainst)
 
 #ifndef DISABLEFORTESTINGS
 ASMJIT_PATCH(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)

@@ -105,6 +105,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Abductor_CheckAbductableWhenTargeting.Read(exINI, pSection, "Abductor.CheckAbductableWhenTargeting");
 
 	this->Burst_FireWithinSequence.Read(exINI, pSection, "Burst.FireWithinSequence");
+	this->Burst_NoDelay.Read(exINI, pSection, "Burst.NoDelay");
 	this->ROF_RandomDelay.Read(exINI, pSection, "ROF.RandomDelay");
 	this->ChargeTurret_Delays.Read(exINI, pSection, "ChargeTurret.Delays");
 	this->OmniFire_TurnToTarget.Read(exINI, pSection, "OmniFire.TurnToTarget");
@@ -463,6 +464,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Abductor_MaxHealth)
 		.Process(this->Abductor_CheckAbductableWhenTargeting)
 		.Process(this->Burst_FireWithinSequence)
+		.Process(this->Burst_NoDelay)
 		.Process(this->ROF_RandomDelay)
 		.Process(this->ChargeTurret_Delays)
 		.Process(this->OmniFire_TurnToTarget)
