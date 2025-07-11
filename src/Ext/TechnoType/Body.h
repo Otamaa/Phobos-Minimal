@@ -987,6 +987,8 @@ public:
 	Nullable<int> AIGuardAreaTargetingDelay {};
 	Nullable<int> PlayerGuardAreaTargetingDelay {};
 	Nullable<bool> DistributeTargetingFrame {};
+	Nullable<int> PlayerAttackMoveTargetingDelay {};
+	Nullable<int> AIAttackMoveTargetingDelay {};
 
 	Valueable<bool> CanBeBuiltOn { false };
 	Valueable<bool> UnitBaseNormal { false };

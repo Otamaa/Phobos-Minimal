@@ -7,26 +7,30 @@
 #include <GScreenClass.h>
 #include <MouseClass.h>
 
+#pragma pack(push, 4)
 struct MouseThreadParameter
 {
 	static COMPILETIMEEVAL reference<bool, 0xB7816Cu> const ThreadNotActive {};
 	static COMPILETIMEEVAL reference<MouseThreadParameter, 0xB78138u> const Thread {};
 	static COMPILETIMEEVAL reference<HANDLE, 0xB78168u> const Mutex {};
 	static COMPILETIMEEVAL reference<HANDLE, 0xB78154u> const Thread_Handle {};
-	static COMPILETIMEEVAL reference<DWORD, 0xB78158u> const ThreadID {};
+	static COMPILETIMEEVAL reference<DWORD, 0xB78158u> const StaticThreadID {};
 
 public:
 
-	DWORD SkipProcessing { 0 };
-	DWORD RefCount { 0 };
-	DWORD SkipSleep { 0 };
-	DWORD field_C { 0 };
-	DWORD SleepTime { 16 };
-	DWORD dword14 { 0 };
-	DWORD SomeState18 { 0 };
+	bool SkipProcessing { 0 };
+	int RefCount { 0 };
+	bool SkipSleep { 0 };
+	int field_C { 0 };
+	unsigned long long SleepTime { 16 };
+	bool dword14 { 0 };
+	HANDLE SomeState18 { 0 };
+	DWORD ThreadID { 0 };
 };
+#pragma pack(pop)
+static_assert(sizeof(MouseThreadParameter) == 0x24);
 
-//static_assert(sizeof(MouseThreadParameter) == 0x1C);
+typedef MouseThreadParameter MouseThreadClass;
 
 struct SHPStruct;
 struct CoordStruct;

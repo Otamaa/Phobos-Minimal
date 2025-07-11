@@ -44,6 +44,8 @@
 
 #include <Utilities/SafeLogger .h>
 
+#include <MessageBoxLogging.h>
+
 #pragma region defines
 HANDLE Phobos::hInstance;
 char Phobos::readBuffer[readLength] {};
@@ -801,24 +803,21 @@ void Phobos::InitAdminDebugMode()
 
 	if (Detached)
 	{
-		MessageBoxW(NULL,
+		EMIT_MSGBOXW(
 		L"You can now attach a debugger.\n\n"
-
 		L"Press OK to continue YR execution.",
-		L"Debugger Notice", MB_OK);
+		L"Debugger Notice");
 	}
 	else
 	{
-		MessageBoxW(NULL,
+		EMIT_MSGBOXW(
 		L"You can now attach a debugger.\n\n"
-
 		L"To attach a debugger find the YR process in Process Hacker "
 		L"/ Visual Studio processes window and detach debuggers from it, "
 		L"then you can attach your own debugger. After this you should "
 		L"terminate Syringe.exe because it won't automatically exit when YR is closed.\n\n"
-
 		L"Press OK to continue YR execution.",
-		L"Debugger Notice", MB_OK);
+		L"Debugger Notice");
 	}
 
 }
@@ -1251,7 +1250,7 @@ NOINLINE void ApplyEarlyFuncs() {
 		//Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
 
 		const auto time = Debug::GetCurTimeA();
-
+		Patch::Apply_TYPED<DWORD>(0x7B853C, {1});
 		Patch::Apply_CALL(0x6BD718, &PatchExit);
 		Patch::Apply_CALL(0x6BD92F, &PatchExit);
 		Patch::Apply_CALL(0x6BDAF4, &PatchExit);

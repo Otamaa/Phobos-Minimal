@@ -143,14 +143,14 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
-	case FPSCounterMode::FPSOnly: Debug::Log("FPS Counter: FPS Only\n");  {
+	case FPSCounterMode::FPSOnly: {
 		fmt::basic_memory_buffer<wchar_t> buffer;
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {}", FPSCounter::CurrentFrameRate());
 		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
-	case FPSCounterMode::FPSandAVG: Debug::Log("FPS Counter: FPS and AVG\n"); {
+	case FPSCounterMode::FPSandAVG: {
 		fmt::basic_memory_buffer<wchar_t> buffer;
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | Avg: {}", FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
 		buffer.push_back(L'\0');

@@ -100,8 +100,7 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 		velocity->Y *= scale;
 		velocity->Z *= scale;
 
-		DirStruct dir;
-		velocity->GetDirectionFromXY(&dir);
+		DirStruct dir = velocity->GetDirectionFromXY();
 		const int facingOffset = dir.Raw - 0x3FFF;
 		const double yawRad = facingOffset * -0.00009587672516830327;
 		const double mag = velocity->Length();
@@ -169,9 +168,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			double adjustedPitchRad = adjustedPitch * -0.00009587672516830327;
 
 			// Re-calculate current yaw from bullet velocity
-			DirStruct* currentFacing;
-			velocity->GetDirectionFromXY(currentFacing);
-			int currentFacingOffset = currentFacing->Raw - 0x3FFF;
+			DirStruct currentFacing = velocity->GetDirectionFromXY();
+			int currentFacingOffset = currentFacing.Raw - 0x3FFF;
 			double currentYawRad = currentFacingOffset * -0.00009587672516830327;
 
 			double currentSpeed3D = velocity->Length();
@@ -228,9 +226,9 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 		}
 	}
 
-	BulletClass* pBullet = nullptr;
+	BulletClass* pBullet = this->TechnoClass::Fire(pTarget, nWeaponIdx);
 
-	if(pBullet = this->TechnoClass::Fire(pTarget, nWeaponIdx)) {
+	if(pBullet) {
 
 		if (AircraftCanStrafeWithWeapon(pBullet->WeaponType))
 		{

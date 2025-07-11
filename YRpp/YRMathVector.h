@@ -258,6 +258,7 @@ public:
 
 
 //=============================Special cases=========================================
+	
 	COMPILETIMEEVAL   double powXY() const {
 		return double(X * X) + double(Y * Y);
 	}

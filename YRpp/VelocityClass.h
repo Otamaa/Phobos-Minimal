@@ -47,8 +47,20 @@ public:
 			+ static_cast<double>(Z * a.Z);
 	}
 
-	DirStruct* GetDirectionFromXY(DirStruct* pRetDir)
-	{ JMP_THIS(0x41C2E0); }
+	DirStruct GetDirectionFromXY()
+	{
+		// Compute 2D magnitude (XZ plane)
+		double horizontalLength = this->LengthXY();
+
+		// Pitch angle in radians (atan2 returns angle above/below horizontal)
+		double pitchAngleRad = Math::atan2(this->Z, horizontalLength);
+
+		// Offset by -90° (engine defines 0° as vertical down)
+		double adjustedPitch = pitchAngleRad - Math::DEG90_AS_RAD;
+
+		// Convert to engine's binary angle format
+		return DirStruct { static_cast<int>(static_cast<int64_t>(adjustedPitch * Math::BINARY_ANGLE_MAGIC))};
+	}
 
 	COMPILETIMEEVAL FORCEDINLINE void SetIfZeroXY() {
 		if ( X == 0.0 && Y == 0.0 )

@@ -389,6 +389,8 @@ public:
 	Nullable<int> PlayerNormalTargetingDelay { };
 	Nullable<int> AIGuardAreaTargetingDelay { };
 	Nullable<int> PlayerGuardAreaTargetingDelay { };
+	Nullable<int> AIAttackMoveTargetingDelay { };
+	Nullable<int> PlayerAttackMoveTargetingDelay { };
 	Valueable<bool> DistributeTargetingFrame { false };
 	Valueable<bool> DistributeTargetingFrame_AIOnly { true };
 

@@ -449,5 +449,6 @@ ASMJIT_PATCH(0x520E75, InfantryClass_SequenceAI_Sounds, 0x6)
 	//}
 	//
 	//return 0x520EF4;
-	return 0x0;
+	R->EAX(doType);
+	return 0x520E7B;
 }

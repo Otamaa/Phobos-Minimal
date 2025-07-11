@@ -1415,6 +1415,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AIGuardAreaTargetingDelay.Read(exINI, pSection, "AIGuardAreaTargetingDelay");
 		this->PlayerGuardAreaTargetingDelay.Read(exINI, pSection, "PlayerGuardAreaTargetingDelay");
 		this->DistributeTargetingFrame.Read(exINI, pSection, "DistributeTargetingFrame");
+		this->AIAttackMoveTargetingDelay.Read(exINI, pSection, "AIAttackMoveTargetingDelay");
+		this->PlayerAttackMoveTargetingDelay.Read(exINI, pSection, "PlayerAttackMoveTargetingDelay");
+	
 		this->CanBeBuiltOn.Read(exINI, pSection, "CanBeBuiltOn");
 		this->UnitBaseNormal.Read(exINI, pSection, "UnitBaseNormal");
 		this->UnitBaseForAllyBuilding.Read(exINI, pSection, "UnitBaseForAllyBuilding");
@@ -2852,6 +2855,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->AIGuardAreaTargetingDelay)
 		.Process(this->PlayerGuardAreaTargetingDelay)
 		.Process(this->DistributeTargetingFrame)
+		.Process(this->AIAttackMoveTargetingDelay)
+		.Process(this->PlayerAttackMoveTargetingDelay)
 		.Process(this->CanBeBuiltOn)
 		.Process(this->UnitBaseNormal)
 		.Process(this->UnitBaseForAllyBuilding)

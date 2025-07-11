@@ -3385,7 +3385,7 @@ std::pair<TechnoTypeClass*, AbstractType> NOINLINE GetOriginalType(TechnoClass* 
 	case AbstractType::Aircraft:
 		return { (TechnoTypeClass*)(((AircraftClass*)pThis)->Type), AbstractType::AircraftType };
 	default:
-		Debug::LogInfo("[{}] {} is not FootClass, conversion to [{}] not allowed", (void*)pThis, pToType->ID, pThis->get_ID());
+		Debug::LogInfo("[{}] {} is not FootClass, conversion to [{}] not allowed", (void*)pThis, pThis->get_ID() , pToType->ID);
 		return { nullptr, AbstractType::None };
 	}
 }
@@ -3857,7 +3857,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 
 	// Update open topped state of potential passengers if transport's OpenTopped value changes.
 	// OpenTopped does not work properly with buildings to begin with which is why this is here rather than in the Techno update one.
-	
+
 	if (pThis->Passengers.NumPassengers > 0)
 	{
 		const bool toOpenTopped = pCurrentType->OpenTopped;
@@ -3898,7 +3898,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 	{
 		pThis->RemoveGunner(nullptr);
 	}
-	
+
 	if (!pCurrentType->CanDisguise || (!pThis->Disguise && pCurrentType->PermaDisguise))
 	{
 		// When it can't disguise or has lost its disguise, update its disguise.

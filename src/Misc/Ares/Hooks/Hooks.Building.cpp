@@ -1738,6 +1738,82 @@ ASMJIT_PATCH(0x7004AD, TechnoClass_GetActionOnObject_Saboteur, 0x6)
 }
 
 #include <WWKeyboardClass.h>
+#include <Ext/Bomb/Body.h>
+
+namespace WhatActionObjectTemp
+{
+	bool ignoreForce = false;
+	bool Fire = false;
+	bool Move = false;
+}
+
+ASMJIT_PATCH(0x51E462, InfantryClass_WhatAction_ObjectClass_SkipBomb, 0x6)
+{
+	GET(InfantryClass*, pThis, EDI);
+	GET(ObjectClass*, pTarget, ESI);
+	GET_STACK(bool, ignoreForce, STACK_OFFSET(0x38, 0x8));
+	enum { Skip = 0x51E668, SkipBomb = 0x51E49E, CanBomb = 0x51E48F };
+
+	WhatActionObjectTemp::ignoreForce = ignoreForce;
+
+	const auto pInuptManager = InputManagerClass::Instance();
+	WhatActionObjectTemp::Fire = pInuptManager->IsForceFireKeyPressed();
+	WhatActionObjectTemp::Move = pInuptManager->IsForceMoveKeyPressed();
+
+	if (!pThis->Type->Engineer)
+		return Skip;
+
+	if (pThis->Owner->ControlledByCurrentPlayer()
+		&& pTarget->AttachedBomb && pTarget->BombVisible)
+	{
+		int index = pThis->SelectWeapon(pTarget);
+		const auto pWeaponType = pThis->GetWeapon(index)->WeaponType;
+		Armor armor = TechnoExtData::GetTechnoArmor(pTarget, pWeaponType->Warhead);
+		const auto vsData = ((FakeWarheadTypeClass*)pWeaponType->Warhead)->GetVersesData(armor);
+
+		if (!vsData->Flags.ForceFire
+			|| Math::abs(vsData->Verses) == 0.0
+			|| (!ignoreForce && WhatActionObjectTemp::Move )
+			|| !BombExtContainer::Instance.Find(pTarget->AttachedBomb)->Weapon->Ivan_Detachable)
+			return SkipBomb;
+
+		return pWeaponType->Warhead->BombDisarm ? CanBomb : SkipBomb;
+	}
+
+	return SkipBomb;
+}
+
+ASMJIT_PATCH(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
+{
+	enum { Skip = 0x51E668, Continue = 0x51E501 };
+
+	GET(BuildingClass*, pBuilding, ESI);
+
+	if(!BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
+			->EngineerRepairable.Get(pBuilding->Type->Repairable))
+		return Skip;
+
+	GET(InfantryClass*, pThis, EDI);
+	GET(BuildingTypeClass*, pBuildingType, EAX);
+
+	bool ignoreForce = WhatActionObjectTemp::ignoreForce;
+
+	if (!ignoreForce && WhatActionObjectTemp::Fire)
+		return Skip;
+
+	bool BridgeRepairHut = pBuildingType->BridgeRepairHut;
+
+	if (!BridgeRepairHut && pThis->Owner->IsAlliedWith(pBuilding->Owner))
+	{
+		if ((!ignoreForce && WhatActionObjectTemp::Move) || pBuilding->Health >= pBuildingType->Strength)
+		{
+			return Skip;
+		}
+	}
+
+	R->CL(BridgeRepairHut);
+	return Continue;
+}
 
 ASMJIT_PATCH(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 {
@@ -1748,7 +1824,7 @@ ASMJIT_PATCH(0x51EE6B, InfantryClass_GetActionOnObject_Saboteur, 6)
 
 	GET(InfantryClass*, pThis, EDI);
 
-	if(InputManagerClass::Instance->IsForceFireKeyPressed())
+	if(!WhatActionObjectTemp::ignoreForce && WhatActionObjectTemp::Fire)
 		return 0x51F05E;
 
 	GET(ObjectClass*, pObject, ESI);
@@ -1837,37 +1913,6 @@ ASMJIT_PATCH(0x51FA82, InfantryClass_GetActionOnCell_EngineerRepairable, 6)
 	R->AL(BuildingTypeExtContainer::Instance.Find(pBuildingType)
 		->EngineerRepairable.Get(pBuildingType->Repairable));
 	return 0x51FA88;
-}
-
-ASMJIT_PATCH(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
-{
-	enum { Skip = 0x51E668, Continue = 0x51E501 };
-
-	GET(BuildingClass*, pBuilding, ESI);
-
-	if(!BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
-			->EngineerRepairable.Get(pBuilding->Type->Repairable))
-		return Skip;
-
-	GET(InfantryClass*, pThis, EDI);
-	GET(BuildingTypeClass*, pBuildingType, EAX);
-
-	if (InputManagerClass::Instance->IsForceFireKeyPressed())
-			return Skip;
-
-	bool BridgeRepairHut = pBuildingType->BridgeRepairHut;
-
-	if (!BridgeRepairHut && pThis->Owner->IsAlliedWith(pBuilding->Owner))
-	{
-		if (InputManagerClass::Instance->IsForceMoveKeyPressed()
-			|| pBuilding->Health >= pBuildingType->Strength)
-		{
-			return Skip;
-		}
-	}
-
-	R->CL(BridgeRepairHut);
-	return Continue;
 }
 
 ASMJIT_PATCH(0x51B2CB, InfantryClass_SetTarget_Saboteur, 0x6)

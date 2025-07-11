@@ -2928,3 +2928,78 @@ ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_ReturnToSpawnOwner, 0x5)
 
 	return 0x418D00;
 }
+
+#include <WWMouseClass.h>
+
+DWORD WINAPI Mouse_Thread(MouseThreadParameter* lpThreadParameter)
+{
+	lpThreadParameter->dword14 = 1;
+	lpThreadParameter->SkipSleep = 0;
+
+	if (lpThreadParameter->SkipProcessing) {
+		lpThreadParameter->SkipSleep = 1;
+
+	} else {
+		do
+		{
+			if (WaitForSingleObject(MouseThreadParameter::Mutex(), 10000u) == 258) {
+				Debug::LogInfo("Warning: Probable deadlock occurred on MouseMutex.");
+			}
+
+			if (WWMouseClass::Thread_Instance()) {
+				WWMouseClass::Thread_Instance->Process();
+			}
+
+			ReleaseMutex(MouseThreadParameter::Mutex());
+			Sleep(lpThreadParameter->SleepTime);
+			++lpThreadParameter->RefCount;
+		}
+		while (!lpThreadParameter->SkipProcessing);
+		lpThreadParameter->SkipSleep = 1;
+	}
+
+	return 0;
+}
+
+void __fastcall StartMouseThread() {
+
+	HANDLE MutexA = MouseThreadParameter::Mutex();
+	char Buffer[1024];
+
+	if (!MouseThreadParameter::Mutex()) {
+		MutexA = CreateMutexA(0, 0, 0);
+		MouseThreadParameter::Mutex = MutexA;
+	}
+
+	if (!MouseThreadParameter::ThreadNotActive())
+	{
+		if (MutexA)
+		{
+			MouseThreadParameter::Thread = MouseThreadParameter {
+				.SleepTime = 1
+			};
+
+			HANDLE Thread = CreateThread(0, 0x1000u, (LPTHREAD_START_ROUTINE)Mouse_Thread, &MouseThreadParameter::Thread, 0, &MouseThreadParameter::Thread->ThreadID);
+			MouseThreadParameter::Thread->SomeState18 = Thread;
+			if (Thread)
+			{
+				MouseThreadParameter::ThreadNotActive = 1;
+				if (!SetThreadPriority(Thread, 15))
+				{
+					DWORD LastError = GetLastError();
+					FormatMessageA(0x1000u, 0, LastError, 0, Buffer, 0x400u, 0);
+					Debug::LogInfo("Unable to change the priority of the mouse thread - %s\n", Buffer);
+					while (!MouseThreadParameter::Thread->SkipSleep)
+					{
+						Sleep(0);
+					}
+					WaitForSingleObject(MouseThreadParameter::Thread->SomeState18, 5000u);
+					CloseHandle(MouseThreadParameter::Thread->SomeState18);
+					MouseThreadParameter::ThreadNotActive = 0;
+				}
+			}
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL , 0x6BD849 , StartMouseThread)
