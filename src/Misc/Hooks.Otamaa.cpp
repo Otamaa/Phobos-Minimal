@@ -4530,13 +4530,13 @@ ASMJIT_PATCH(0x51F493, InfantryClass_MissionAttack_Assaulter, 0x6)
 }
 
 //51968E
-ASMJIT_PATCH(0x51968E, InfantryClass_sub_519633_Assaulter, 0x6)
+ASMJIT_PATCH(0x51968E, InfantryClass_UpdatePosition_Assaulter, 0x6)
 {
 	enum { retTrue = 0x5196A6, retFalse = 0x519698 };
 
 	GET(InfantryClass*, pThis, ESI);
 
-	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
+	return TechnoExtData::IsAssaulter(pThis)? retTrue : retFalse;
 }
 
 //4D4BA0
