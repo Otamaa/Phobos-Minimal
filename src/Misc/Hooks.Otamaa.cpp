@@ -4961,7 +4961,7 @@ ASMJIT_PATCH(0x6F7EFE, TechnoClass_EvaluateObject_SelectWeapon, 6)
 		? AllowAttack : ContinueCheck;
 }
 
-ASMJIT_PATCH(0x51A2EF, InfantryClass_PCP_Enter_Bio_Reactor_Sound, 0x6)
+ASMJIT_PATCH(0x51A2EF, InfantryClass_UpdatePosition_Bio_Reactor_Sound, 0x6)
 {
 	//GET(BuildingClass* const, pBuilding, EDI);
 	GET(InfantryClass* const, pThis, ESI);

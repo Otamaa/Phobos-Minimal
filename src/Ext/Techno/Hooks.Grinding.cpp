@@ -316,7 +316,7 @@ ASMJIT_PATCH(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 		? Continue : Skip;
 }
 
-ASMJIT_PATCH(0x519790, InfantryClass_PerCellProcess_Grinding, 0xA)
+ASMJIT_PATCH(0x519790, InfantryClass_UpdatePositio_Grinding, 0xA)
 {
 	enum { Continue = 0x5198AD, PlayAnims = 0x5198CE  , RemoveInfantry = 0x51A02A };
 

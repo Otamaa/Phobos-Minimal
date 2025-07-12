@@ -619,7 +619,7 @@ ASMJIT_PATCH(0x519F84, InfantryClass_UpdatePosition_EngineerPreUninit, 0x6)
 // }
 
 // Fixes C4=no amphibious infantry being killed in water if Chronoshifted/Paradropped there.
-ASMJIT_PATCH(0x51A996, InfantryClass_PerCellProcess_KillOnImpassable, 0x5)
+ASMJIT_PATCH(0x51A996, InfantryClass_UpdatePositio_KillOnImpassable, 0x5)
 {
 	enum { ContinueChecks = 0x51A9A0, SkipKilling = 0x51A9EB };
 
