@@ -6205,8 +6205,7 @@ ASMJIT_PATCH(0x6B71E7, SpawnManagerClass_Manage_AlreadyNull, 0xA)
 {
 	GET(SpawnNode*, pNode, EDX);
 
-	if (pNode->Unit && pNode->Unit->IsAlive)
-	{
+	if (pNode->Unit && pNode->Unit->IsAlive) {
 		pNode->Unit->UnInit();
 	}
 
@@ -7552,3 +7551,14 @@ static void __fastcall LaserDrawclassDrawAll()
 	//ElectricBoltManager::Draw_All();
 }
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll)
+
+ //ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6) {
+ //    GET(XSurface*, pThis, ECX);
+ //    GET_STACK(uintptr_t, caller, 0x0);
+
+ //    if (!pThis || VTable::Get(pThis) != XSurface::vtable){
+ //   	 Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
+ //    }
+
+ //    return 0x0;
+ //} ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)

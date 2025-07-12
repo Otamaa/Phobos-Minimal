@@ -48,7 +48,7 @@ void DigitalDisplayTypeClass::LoadFromINI(CCINIClass* pINI)
 void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
 	position.X += this->Offset->X;
-	position.Y -= this->Offset->Y;
+	position.Y += this->Offset->Y;
 
 	if (hasShield)
 	{
@@ -81,7 +81,6 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 {
 	fmt::basic_memory_buffer<wchar_t> wbuf;
 
-
 	if (!ValueAsTimer) {
 		const int minute = value / 60;
 
@@ -93,13 +92,12 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 	else
 	{
 		if (Percentage){
-			fmt::format_to(std::back_inserter(wbuf), L"{}%", static_cast<int>(static_cast<double>(value) / maxValue * 100));
+			fmt::format_to(std::back_inserter(wbuf), L"%{}", static_cast<int>(static_cast<double>(value) / maxValue * 100));
 		} else if (!HideMaxValue.Get(isInfantry)) {
 			fmt::format_to(std::back_inserter(wbuf), L"{}/{}", value, maxValue);
 		} else {
 			fmt::format_to(std::back_inserter(wbuf), L"{}", value);
 		}
-
 	}
 
 	wbuf.push_back(L'\0');
@@ -124,10 +122,7 @@ COMPILETIMEEVAL Point2D GetSpacing(const Nullable<Point2D>& shapeSpace, bool isB
 	if (shapeSpace.isset())
 		return shapeSpace.Get();
 
-	if (isBuilding)
-		return { 4, -2 };
-
-	return { 4 , 0 };
+	return isBuilding ? Point2D{ 4, -2 } : Point2D{ 4 , 0 };
 }
 
 struct FrameData

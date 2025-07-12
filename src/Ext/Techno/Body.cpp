@@ -775,7 +775,7 @@ Point2D TechnoExtData::GetBuildingSelectBracketPosition(TechnoClass* pThis, Buil
 		return position + offset;
 	}
 
-Iterator<DigitalDisplayTypeClass*> NOINLINE TechnoExtData::GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length) {
+std::vector<DigitalDisplayTypeClass*>* TechnoExtData::GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length) {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pTypeExt->DigitalDisplayTypes.empty())
@@ -787,30 +787,30 @@ Iterator<DigitalDisplayTypeClass*> NOINLINE TechnoExtData::GetDisplayType(Techno
 			const auto pBuildingType = static_cast<BuildingTypeClass*>(pType);
 			const int height = pBuildingType->GetFoundationHeight(false);
 			length = height * 7 + height / 2;
-			return RulesExtData::Instance()->Buildings_DefaultDigitalDisplayTypes;
+			return &RulesExtData::Instance()->Buildings_DefaultDigitalDisplayTypes;
 		}
 		case AbstractType::Infantry:
 		{
 			length = 8;
-			return RulesExtData::Instance()->Infantry_DefaultDigitalDisplayTypes;
+			return &RulesExtData::Instance()->Infantry_DefaultDigitalDisplayTypes;
 		}
 		case AbstractType::Unit:
 		{
-			return RulesExtData::Instance()->Vehicles_DefaultDigitalDisplayTypes;
+			return &RulesExtData::Instance()->Vehicles_DefaultDigitalDisplayTypes;
 		}
 		case AbstractType::Aircraft:
 		{
-			return RulesExtData::Instance()->Aircraft_DefaultDigitalDisplayTypes;
+			return &RulesExtData::Instance()->Aircraft_DefaultDigitalDisplayTypes;
 		}
 		default:
 		{
-			return {};
+			return nullptr;
 		}
 
 		}
 	}
 
-	return pTypeExt->DigitalDisplayTypes;
+	return &pTypeExt->DigitalDisplayTypes;
 }
 
 static bool GetDisplayTypeData(std::vector<DigitalDisplayTypeClass*>* ret , TechnoClass* pThis , TechnoTypeClass* pType, int& length)
@@ -876,7 +876,7 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 		const bool isInfantry = What == AbstractType::Infantry;
 		const bool IsCurPlayerObserver = HouseClass::IsCurrentPlayerObserver();
 
-		for (auto pDisplayType : DisplayTypes) {
+		for (auto &pDisplayType : *DisplayTypes) {
 
 			if (IsCurPlayerObserver && !pDisplayType->VisibleToHouses_Observer)
 				continue;

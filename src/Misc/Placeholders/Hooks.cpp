@@ -1103,17 +1103,7 @@ COMPILETIMEEVAL int __fastcall charToID(char* string)
  //DEFINE_PATCH_TYPED(BYTE, 0x6B78EA, 0x89 , 0x45 , 0x00 ,0x90, 0x90 );
 
 
-//ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
-//ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6) {
-   // GET(XSurface*, pThis, ECX);
-   // GET_STACK(uintptr_t, caller, 0x0);
 
-   // if (!pThis || VTable::Get(pThis) != XSurface::vtable){
-   //	 Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
-   // }
-
-   // return 0x0;
-//}
 
 //ASMJIT_PATCH(0x6B770D, SpawnManagerClass_AI_doSomething_crashAtRandomAddr, 0x7) {
    // GET(int, pIndex, EBX);
