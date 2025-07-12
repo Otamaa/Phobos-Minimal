@@ -350,6 +350,8 @@ public:
 	Valueable<double> DamageOwnerMultiplier { 1.0 };
 	Valueable<double> DamageAlliesMultiplier { 1.0 };
 	Valueable<double> DamageEnemiesMultiplier { 1.0 };
+	Nullable<double> DamageOwnerMultiplier_NotAffectsEnemies {};
+	Nullable<double> DamageAlliesMultiplier_NotAffectsEnemies {};
 
 	Valueable<bool> FactoryProgressDisplay { false };
 	Valueable<bool> MainSWProgressDisplay { false };

@@ -30,9 +30,8 @@ ASMJIT_PATCH(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 		}
 	}
 
-	if(pThis->HasTurret() && !pThis->GetTechnoType()->IsGattling) {
-		if (pTypeExt->MultiWeapon.Get()
-		&& (pThis->WhatAmI() != AbstractType::Unit || !pTypeExt->AttachedToObject->Gunner)) {
+	if(pTypeExt->AttachedToObject->TurretCount > 0 && !pTypeExt->AttachedToObject->IsGattling) {
+		if (pTypeExt->MultiWeapon && (pThis->WhatAmI() != AbstractType::Unit || !pTypeExt->AttachedToObject->Gunner)) {
 			return CheckOccupy;
 		}
 
@@ -152,98 +151,111 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pThisTechnoType);
 
-	if(ForceWeaponInRangeTemp::SelectWeaponByRange || !pTechnoTypeExt->ForceWeapon_Check || !pAbsTarget)
+	if(!pAbsTarget)
 		return 0x0;
 
 	int forceWeaponIndex = -1;
+
+
 	auto const pTarget = flag_cast_to<TechnoClass*, false>(pAbsTarget);
-	TechnoTypeClass* pTargetType = nullptr;
 
-	if (pTarget)
-	{
-		pTargetType = pTarget->GetTechnoType();
 
-		if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
-			&& pTargetType->Cloakable
-			&& pTargetType->Naval
-			&& pTarget->CloakState == CloakState::Uncloaked)
-		{
-			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Naval_Decloaked;
-		}
-		else if (pTechnoTypeExt->ForceWeapon_Cloaked >= 0
-			&& pTarget->CloakState == CloakState::Cloaked)
-		{
-			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Cloaked;
-		}
-		else if (pTechnoTypeExt->ForceWeapon_Disguised >= 0
-			&& pTarget->IsDisguised())
-		{
-			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Disguised;
-		}
-		else if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0
-			&& pTarget->IsUnderEMP())
-		{
-			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_UnderEMP;
-		}
-	}
+	if (!ForceWeaponInRangeTemp::SelectWeaponByRange && pTechnoTypeExt->ForceWeapon_Check) {
+		TechnoTypeClass* pTargetType = nullptr;
 
-	if (forceWeaponIndex == -1
-		&& (pTarget || !pTechnoTypeExt->ForceWeapon_InRange_TechnoOnly)
-		&& (!pTechnoTypeExt->ForceWeapon_InRange.empty() || !pTechnoTypeExt->ForceAAWeapon_InRange.empty()))
-	{
-		ForceWeaponInRangeTemp::SelectWeaponByRange = true;
-		forceWeaponIndex = ApplyForceWeaponInRange(pThis, pAbsTarget);
-		ForceWeaponInRangeTemp::SelectWeaponByRange = false;
-	}
-
-	if (forceWeaponIndex == -1 && pTargetType)
-	{
-		switch (pTarget->WhatAmI())
+		if (pTarget)
 		{
-		case AbstractType::Building:
-		{
-			forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Buildings;
+			pTargetType = pTarget->GetTechnoType();
 
-			if (pTechnoTypeExt->ForceWeapon_Defenses >= 0)
+			if (pTechnoTypeExt->ForceWeapon_Naval_Decloaked >= 0
+				&& pTargetType->Cloakable
+				&& pTargetType->Naval
+				&& pTarget->CloakState == CloakState::Uncloaked)
 			{
-				auto const pBuildingType = static_cast<BuildingTypeClass*>(pTargetType);
-
-				if (pBuildingType->BuildCat == BuildCat::Combat)
-					forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Defenses;
+				forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Naval_Decloaked;
 			}
-
-			break;
+			else if (pTechnoTypeExt->ForceWeapon_Cloaked >= 0
+				&& pTarget->CloakState == CloakState::Cloaked)
+			{
+				forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Cloaked;
+			}
+			else if (pTechnoTypeExt->ForceWeapon_Disguised >= 0
+				&& pTarget->IsDisguised())
+			{
+				forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Disguised;
+			}
+			else if (pTechnoTypeExt->ForceWeapon_UnderEMP >= 0
+				&& pTarget->IsUnderEMP())
+			{
+				forceWeaponIndex = pTechnoTypeExt->ForceWeapon_UnderEMP;
+			}
 		}
-		case AbstractType::Infantry:
+
+		if (forceWeaponIndex == -1
+			&& (pTarget || !pTechnoTypeExt->ForceWeapon_InRange_TechnoOnly)
+			&& (!pTechnoTypeExt->ForceWeapon_InRange.empty() || !pTechnoTypeExt->ForceAAWeapon_InRange.empty()))
 		{
-			forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Infantry >= 0 && pTarget->IsInAir())
-				? pTechnoTypeExt->ForceAAWeapon_Infantry : pTechnoTypeExt->ForceWeapon_Infantry;
-
-			break;
+			ForceWeaponInRangeTemp::SelectWeaponByRange = true;
+			forceWeaponIndex = ApplyForceWeaponInRange(pThis, pAbsTarget);
+			ForceWeaponInRangeTemp::SelectWeaponByRange = false;
 		}
-		case AbstractType::Unit:
+
+		if (forceWeaponIndex == -1 && pTargetType)
 		{
-			forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Units >= 0 && pTarget->IsInAir())
-				? pTechnoTypeExt->ForceAAWeapon_Units : ((pTechnoTypeExt->ForceWeapon_Naval_Units >= 0 && pTargetType->Naval)
-				? pTechnoTypeExt->ForceWeapon_Naval_Units : pTechnoTypeExt->ForceWeapon_Units);
+			switch (pTarget->WhatAmI())
+			{
+			case AbstractType::Building:
+			{
+				forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Buildings;
 
-			break;
-		}
-		case AbstractType::Aircraft:
-		{
-			forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Aircraft >= 0 && pTarget->IsInAir())
-				? pTechnoTypeExt->ForceAAWeapon_Aircraft : pTechnoTypeExt->ForceWeapon_Aircraft;
+				if (pTechnoTypeExt->ForceWeapon_Defenses >= 0)
+				{
+					auto const pBuildingType = static_cast<BuildingTypeClass*>(pTargetType);
 
-			break;
+					if (pBuildingType->BuildCat == BuildCat::Combat)
+						forceWeaponIndex = pTechnoTypeExt->ForceWeapon_Defenses;
+				}
+
+				break;
+			}
+			case AbstractType::Infantry:
+			{
+				forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Infantry >= 0 && pTarget->IsInAir())
+					? pTechnoTypeExt->ForceAAWeapon_Infantry : pTechnoTypeExt->ForceWeapon_Infantry;
+
+				break;
+			}
+			case AbstractType::Unit:
+			{
+				forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Units >= 0 && pTarget->IsInAir())
+					? pTechnoTypeExt->ForceAAWeapon_Units : ((pTechnoTypeExt->ForceWeapon_Naval_Units >= 0 && pTargetType->Naval)
+					? pTechnoTypeExt->ForceWeapon_Naval_Units : pTechnoTypeExt->ForceWeapon_Units);
+
+				break;
+			}
+			case AbstractType::Aircraft:
+			{
+				forceWeaponIndex = (pTechnoTypeExt->ForceAAWeapon_Aircraft >= 0 && pTarget->IsInAir())
+					? pTechnoTypeExt->ForceAAWeapon_Aircraft : pTechnoTypeExt->ForceWeapon_Aircraft;
+
+				break;
+			}
+			}
 		}
+
+		if (forceWeaponIndex >= 0) {
+			R->EAX(forceWeaponIndex);
+			return 0x6F37AF;
 		}
 	}
 
+	 const int multiWeaponIndex = pTechnoTypeExt->SelectMultiWeapon(pThis, pTarget);
 
-	if(forceWeaponIndex >= 0){
-		R->EAX(forceWeaponIndex);
-		return 0x6F37AF;
-	}
+	 if (multiWeaponIndex >= 0)
+	 {
+ 		R->EAX(multiWeaponIndex);
+ 		return 0x6F37AF;
+	 }
 
 	return 0;
 }

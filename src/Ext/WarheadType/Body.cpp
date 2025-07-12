@@ -674,6 +674,7 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	//Calculate Damage Multiplier
 	if (pVictimHouse && (this->DamageOwnerMultiplier != 1.0 || this->DamageAlliesMultiplier != 1.0 || this->DamageEnemiesMultiplier != 1.0))
 	{
+		const auto pRulesExt = RulesExtData::Instance();
 		const int sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
 
 		if (pVictimHouse == pArgs->SourceHouse) {
@@ -682,13 +683,19 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 		}
 		else if (pVictimHouse->IsAlliedWith(pArgs->SourceHouse))
 		{
-			if (this->DamageAlliesMultiplier != 1.0)
-				*pArgs->Damage = static_cast<int>(*pArgs->Damage * this->DamageAlliesMultiplier.Get(RulesExtData::Instance()->DamageAlliesMultiplier));
+			const auto allyDamage = this->DamageAlliesMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageAlliesMultiplier_NotAffectsEnemies
+					.Get(pRulesExt->DamageAlliesMultiplier) : pRulesExt->DamageAlliesMultiplier);
+
+			if (allyDamage != 1.0)
+				*pArgs->Damage = static_cast<int>(*pArgs->Damage * allyDamage);
 		}
 		else
 		{
-			if (this->DamageEnemiesMultiplier != 1.0)
-				*pArgs->Damage = static_cast<int>(*pArgs->Damage * this->DamageEnemiesMultiplier.Get(RulesExtData::Instance()->DamageEnemiesMultiplier));
+			const auto enemyDamage = this->DamageOwnerMultiplier
+					.Get(!this->AffectsEnemies ? pRulesExt->DamageOwnerMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageOwnerMultiplier) : pRulesExt->DamageOwnerMultiplier);
+
+			if (enemyDamage != 1.0)
+				*pArgs->Damage = static_cast<int>(*pArgs->Damage * enemyDamage);
 		}
 
 		if (this->DamageSourceHealthMultiplier && pArgs->Attacker)

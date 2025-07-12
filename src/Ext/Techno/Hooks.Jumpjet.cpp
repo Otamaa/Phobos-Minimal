@@ -164,8 +164,18 @@ ASMJIT_PATCH(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 // 	return 0x54DE88;
 // }
 
+namespace JumpjetTiltReference
+{
+	constexpr auto BaseSpeed = 32;
+	constexpr auto BaseTilt = Math::HalfPi / 4;
+	constexpr auto BaseTurnRaw = 32768;
+	constexpr auto MaxTilt = static_cast<float>(Math::HalfPi);
+	constexpr auto ForwardBaseTilt = BaseTilt / BaseSpeed;
+	constexpr auto SidewaysBaseTilt = BaseTilt / (BaseTurnRaw * BaseSpeed);
+}
+
 // Just rewrite this completely to avoid headache
-Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matrix3D* ret, int* pIndex)
+Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matrix3D* ret, PhobosVoxelIndexKey* pIndex)
 {
 	auto const pThis = static_cast<JumpjetLocomotionClass*>(iloco);
 	auto linked = pThis->LinkedTo;
@@ -182,10 +192,12 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 
 	float arf = linked->AngleRotatedForwards;
 	float ars = linked->AngleRotatedSideways;
+	size_t arfFace = 0;
+	size_t arsFace = 0;
 
 	if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005)
 	{
-		if (pIndex) *pIndex = -1;
+		if (pIndex) pIndex->Invalidate();
 
 		if (onGround)
 		{
@@ -220,34 +232,68 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			constexpr auto forwardBaseTilt = baseTilt / baseSpeed;
 			const auto forwardSpeedFactor = pThis->Speed * pTypeExt->JumpjetTilt_ForwardSpeedFactor;
 			const auto forwardAccelFactor = pThis->Acceleration * pTypeExt->JumpjetTilt_ForwardAccelFactor;
-			arf += static_cast<float>(MinImpl(32.0, forwardAccelFactor + forwardSpeedFactor) * forwardBaseTilt);
+			arf = std::clamp(static_cast<float>((forwardAccelFactor + forwardSpeedFactor)
+			* forwardBaseTilt), -maxTilt, maxTilt);
+
 
 			const auto& locoFace = pThis->Facing;
 
 			if (locoFace.Is_Rotating()) {
-				constexpr auto baseTurnRaw = 32768;
-				constexpr auto sidewaysBaseTilt = baseTilt / (baseTurnRaw * baseSpeed);
-				const auto sidewaysSpeedFactor = pThis->Speed * pTypeExt->JumpjetTilt_SidewaysSpeedFactor;
-				const auto sidewaysRotationFactor = static_cast<short>(locoFace.Difference().Raw) * pTypeExt->JumpjetTilt_SidewaysRotationFactor;
-				ars += std::clamp(static_cast<float>(sidewaysSpeedFactor * sidewaysRotationFactor * sidewaysBaseTilt), -maxTilt, maxTilt);
+				const float sidewaysSpeedFactor = static_cast<float>(pThis->Speed * pTypeExt->JumpjetTilt_SidewaysSpeedFactor);
+				const float sidewaysRotationFactor = static_cast<float>(static_cast<short>(locoFace.Difference().Raw)
+					* pTypeExt->JumpjetTilt_SidewaysRotationFactor);
+
+				ars = std::clamp(static_cast<float>(sidewaysSpeedFactor * sidewaysRotationFactor
+					* JumpjetTiltReference::SidewaysBaseTilt), -JumpjetTiltReference::MaxTilt, JumpjetTiltReference::MaxTilt);
+
+				const auto arsDir = DirStruct(ars);
+				arsFace = (arsDir.GetFacing<128>() + 96u) & 0x7Fu;
+
+				if (arsFace)
+					ret->RotateX(static_cast<float>(arsDir.GetRadian<128>()));
+				}
 			}
 		}
 
-		if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005) {
-			if (pIndex) *pIndex = -1;
+	if (pIndex && pIndex->IsValidKey())
+	{
+		// It is currently unclear whether the passed key only has two situations:
+		// all 0s and all 1s, so I use the safest approach for now
+		if (pIndex->IsCleanKey() && (arfFace || arsFace))
+		{
+			pIndex->CustomIndexKey.JumpjetTiltVoxel.forwards = arfFace;
+			pIndex->CustomIndexKey.JumpjetTiltVoxel.sideways = arsFace;
 
-			ret->RotateX(ars);
-			ret->RotateY(arf);
+			if (onGround)
+				pIndex->CustomIndexKey.JumpjetTiltVoxel.slopeIndex = slope_idx;
+
+			pIndex->CustomIndexKey.JumpjetTiltVoxel.bodyFace = curf->Current().GetFacing<32>();
+
+			// Outside the function, there is another step to add a frame number to the key for drawing
+			pIndex->Value >>= 5;
+		}
+		else // Keep the original code
+		{
+			if (onGround)
+				pIndex->Value = slope_idx + (pIndex->Value << 6);
+
+			pIndex->Value <<= 5;
+			pIndex->Value |= curf->Current().GetFacing<32>();;
 		}
 	}
 
-	if (pIndex && *pIndex != -1) {
-		if (onGround) *pIndex = slope_idx + (*pIndex << 6);
-		*pIndex *= 32;
-		*pIndex |= curf->Current().GetFacing<32>();
-	}
-
 	return ret;
+}
+
+ASMJIT_PATCH(0x73B748, UnitClass_DrawVXL_ResetKeyForTurretUse, 0x7)
+{
+	REF_STACK(PhobosVoxelIndexKey, key, STACK_OFFSET(0x1C4, -0x1B0));
+
+	// Main body drawing completed, then enable accurate drawing of turrets and barrels
+	if (key.IsValidKey() && key.IsExtraBodyKey()) // Flags used by JumpjetTilt units
+		key.Invalidate();
+
+	return 0;
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECD8C, JumpjetLocomotionClass_Draw_Matrix);
