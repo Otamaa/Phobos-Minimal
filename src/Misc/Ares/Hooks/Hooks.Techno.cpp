@@ -1590,20 +1590,6 @@ ASMJIT_PATCH(0x711E90, TechnoTypeClass_CanAttackMove_IgnoreWeapon, 0x6)
 	return RulesExtData::Instance()->AttackMove_IgnoreWeaponCheck ? SkipGameCode : 0;
 }
 
-ASMJIT_PATCH(0x4DF4DB, TechnoClass_RefreshMegaMission_CheckMissionFix, 0xA)
-{
-	enum { ClearMegaMission = 0x4DF4F9, ContinueMegaMission = 0x4DF4CF };
-	GET(TechnoClass* const, pThis, ESI);
-
-	auto const pType = pThis->GetTechnoType();
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	auto mission = pThis->GetCurrentMission();
-	return (pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire))
-		? (mission != Mission::Move && mission != Mission::Guard) : mission != Mission::Guard)
-		? ClearMegaMission : ContinueMegaMission;
-}
-
 ASMJIT_PATCH(0x4DF3A6, FootClass_UpdateAttackMove_Follow, 0x6)
 {
 	enum { FuncRet = 0x4DF425 };

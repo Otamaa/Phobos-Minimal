@@ -2971,29 +2971,6 @@ void __fastcall StartMouseThread() {
 		MouseThreadParameter::Mutex = MutexA;
 	}
 
-ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
-}
-
-ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	if (const auto pInfantry = cast_to<InfantryClass*>(pThis))
-	{
-		const int deployFireWeapon = pInfantry->Type->DeployFireWeapon;
-
-		R->EAX(deployFireWeapon == -1 ? pInfantry->SelectWeapon(pInfantry->Target) : deployFireWeapon);
-	}
-	else
-	{
-		R->EAX(pThis->IsNotSprayAttack());
-	}
-
-	return 0x70E12C;
-}
 	if (!MouseThreadParameter::ThreadNotActive())
 	{
 		if (MutexA)
@@ -3026,3 +3003,21 @@ ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6
 }
 
 DEFINE_FUNCTION_JUMP(CALL , 0x6BD849 , StartMouseThread)
+
+ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (const auto pInfantry = cast_to<InfantryClass*>(pThis))
+	{
+		const int deployFireWeapon = pInfantry->Type->DeployFireWeapon;
+
+		R->EAX(deployFireWeapon == -1 ? pInfantry->SelectWeapon(pInfantry->Target) : deployFireWeapon);
+	}
+	else
+	{
+		R->EAX(pThis->IsNotSprayAttack());
+	}
+
+	return 0x70E12C;
+}
