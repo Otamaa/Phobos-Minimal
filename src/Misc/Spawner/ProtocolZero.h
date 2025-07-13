@@ -69,23 +69,7 @@ public:
 		return maxAhead[(int)latencyLevel];
 	}
 
-	static COMPILETIMEEVAL wchar_t* message[] = {
-		/* 0 */ L"CnCNet: Latency mode set to: 0 - Initial" // Players should never see this, if it doesn't then it's a bug
-
-		/* 1 */ ,L"CnCNet: Latency mode set to: 1 - Best"
-		/* 2 */ ,L"CnCNet: Latency mode set to: 2 - Super"
-		/* 3 */ ,L"CnCNet: Latency mode set to: 3 - Excellent"
-		/* 4 */ ,L"CnCNet: Latency mode set to: 4 - Very Good"
-		/* 5 */ ,L"CnCNet: Latency mode set to: 5 - Good"
-		/* 6 */ ,L"CnCNet: Latency mode set to: 6 - Good"
-		/* 7 */ ,L"CnCNet: Latency mode set to: 7 - Default"
-		/* 8 */ ,L"CnCNet: Latency mode set to: 8 - Default"
-		/* 9 */ ,L"CnCNet: Latency mode set to: 9 - Default"
-	};
-
-	static FORCEDINLINE COMPILETIMEEVAL wchar_t* GetLatencyMessage(LatencyLevelEnum latencyLevel) {
-		return message[(int)latencyLevel];
-	}
+	static wchar_t* GetLatencyMessage(LatencyLevelEnum latencyLevel);
 
 	static COMPILETIMEEVAL LatencyLevelEnum FromResponseTime(uint8_t rspTime)
 	{
