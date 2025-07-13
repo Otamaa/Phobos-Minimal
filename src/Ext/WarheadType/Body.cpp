@@ -626,6 +626,46 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AffectsNeutral.Read(exINI, pSection, "AffectsNeutral");
 
 	this->ElectricAssault_Requireverses.Read(exINI, pSection, "ElectricAssault.Requireverses");
+
+	this->PenetratesTransport_Level.Read(exINI, pSection, "PenetratesTransport.Level");
+	this->PenetratesTransport_PassThrough.Read(exINI, pSection, "PenetratesTransport.PassThrough");
+	this->PenetratesTransport_FatalRate.Read(exINI, pSection, "PenetratesTransport.FatalRate");
+	this->PenetratesTransport_DamageMultiplier.Read(exINI, pSection, "PenetratesTransport.DamageMultiplier");
+	this->PenetratesTransport_DamageAll.Read(exINI, pSection, "PenetratesTransport.DamageAll");
+	this->PenetratesTransport_CleanSound.Read(exINI, pSection, "PenetratesTransport.CleanSound");
+
+	this->IsCellSpreadWH =
+		//this->RemoveDisguise ||
+		//this->RemoveMindControl ||
+		//this->Crit_Chance ||
+		this->Shield_Break ||
+		!this->ConvertsPair.empty() ||
+		this->Shield_Respawn_Duration > 0 ||
+		this->Shield_SelfHealing_Duration > 0 ||
+		!this->Shield_AttachTypes.empty() ||
+		!this->Shield_RemoveTypes.empty() ||
+		this->Shield_RemoveAll ||
+		this->Transact ||
+		this->PermaMC ||
+		this->GattlingStage > 0 ||
+		this->GattlingRateUp != 0 ||
+		this->AttachTag ||
+		//this->DirectionalArmor ||
+		this->ReloadAmmo != 0
+		|| (this->RevengeWeapon && this->RevengeWeapon_GrantDuration > 0)
+		|| !this->LimboKill_IDs.empty()
+		|| (this->PaintBallData.Color != ColorStruct::Empty)
+		//|| this->InflictLocomotor
+		//|| this->RemoveInflictedLocomotor
+		|| this->PenetratesTransport_Level > 0
+		|| this->IC_Duration != 0
+
+		|| !this->PhobosAttachEffects.AttachTypes.empty()
+		|| !this->PhobosAttachEffects.RemoveTypes.empty()
+		|| !this->PhobosAttachEffects.RemoveGroups.empty()
+		|| this->BuildingSell
+		|| this->BuildingUndeploy
+		;
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1292,6 +1332,127 @@ void WarheadTypeExtData::applyEMP(WarheadTypeClass* pWH, const CoordStruct& coor
 
 }
 
+void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoClass* pInvoker, HouseClass* pInvokerHouse, const CoordStruct& coords, int damage) const
+{
+	auto& passengers = pTarget->Passengers;
+	auto passenger = passengers.GetFirstPassenger();
+
+	if (!passenger)
+		return;
+
+	const auto pTargetType = pTarget->GetTechnoType();
+	const auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
+
+	if (this->PenetratesTransport_Level <= pTargetTypeExt->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+		return;
+
+	const double passThrough = this->PenetratesTransport_PassThrough * pTargetTypeExt->PenetratesTransport_PassThroughMultiplier;
+
+	if (passThrough < 1.0 && ScenarioClass::Instance->Random.RandomDouble() > passThrough)
+		return;
+
+	const double fatalRate = this->PenetratesTransport_FatalRate * pTargetTypeExt->PenetratesTransport_FatalRateMultiplier;
+	const bool fatal = fatalRate > 0.0 && ScenarioClass::Instance->Random.RandomDouble() <= fatalRate;
+	const auto pTargetFoot = flag_cast_to<FootClass*, false>(pTarget);
+	const int distance = static_cast<int>(coords.DistanceFrom(pTarget->GetCoords()));
+	const auto pWH = this->AttachedToObject;
+	bool gunnerRemoved = false;
+
+	if (this->PenetratesTransport_DamageAll)
+	{
+		bool isFirst = true;
+
+		if (fatal)
+		{
+			while (passenger)
+			{
+				const auto nextPassenger = flag_cast_to<FootClass*>(passenger->NextObject);
+
+				if (this->PenetratesTransport_Level > TechnoTypeExtContainer::Instance.Find(passenger->GetTechnoType())->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+				{
+					if (passenger->ReceiveDamage(&passenger->Health, distance, pWH, pInvoker, false, true, pInvokerHouse) == DamageState::NowDead && isFirst && pTargetType->Gunner && pTargetFoot)
+					{
+						pTargetFoot->RemoveGunner(passenger);
+						gunnerRemoved = true;
+					}
+				}
+
+				passenger = nextPassenger;
+				isFirst = false;
+			}
+		}
+		else
+		{
+			const int adjustedDamage = static_cast<int>(std::ceil(damage * this->PenetratesTransport_DamageMultiplier * pTargetTypeExt->PenetratesTransport_DamageMultiplier));
+
+			while (passenger)
+			{
+				const auto nextPassenger = flag_cast_to<FootClass*>(passenger->NextObject);
+
+				if (this->PenetratesTransport_Level > TechnoTypeExtContainer::Instance.Find(passenger->GetTechnoType())->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+				{
+					int applyDamage = adjustedDamage;
+
+					if (passenger->ReceiveDamage(&applyDamage, distance, pWH, pInvoker, false, true, pInvokerHouse) == DamageState::NowDead && isFirst && pTargetType->Gunner && pTargetFoot)
+					{
+						pTargetFoot->RemoveGunner(passenger);
+						gunnerRemoved = true;
+					}
+				}
+
+				passenger = nextPassenger;
+				isFirst = false;
+			}
+		}
+	}
+	else
+	{
+		int poorBastardIdx = ScenarioClass::Instance->Random(0, passengers.NumPassengers - 1);
+		const bool isFirst = poorBastardIdx == 0;
+
+		while (poorBastardIdx > 0 && flag_cast_to<FootClass*>(passenger->NextObject))
+		{
+			passenger = static_cast<FootClass*>(passenger->NextObject);
+			--poorBastardIdx;
+		}
+
+		if (this->PenetratesTransport_Level <= TechnoTypeExtContainer::Instance.Find(passenger->GetTechnoType())->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+			return;
+
+		if (fatal)
+		{
+			if (passenger->ReceiveDamage(&passenger->Health, distance, pWH, pInvoker, false, true, pInvokerHouse) == DamageState::NowDead && isFirst && pTargetType->Gunner && pTargetFoot)
+			{
+				pTargetFoot->RemoveGunner(passenger);
+				gunnerRemoved = true;
+			}
+		}
+		else
+		{
+			int adjustedDamage = static_cast<int>(std::ceil(damage * this->PenetratesTransport_DamageMultiplier * pTargetTypeExt->PenetratesTransport_DamageMultiplier));
+
+			if (passenger->ReceiveDamage(&adjustedDamage, distance, pWH, pInvoker, false, true, pInvokerHouse) == DamageState::NowDead && isFirst && pTargetType->Gunner && pTargetFoot)
+			{
+				pTargetFoot->RemoveGunner(passenger);
+				gunnerRemoved = true;
+			}
+		}
+	}
+
+	passenger = passengers.GetFirstPassenger();
+
+	if (passenger)
+	{
+		if (gunnerRemoved)
+			pTargetFoot->ReceiveGunner(passenger);
+	}
+	else
+	{
+
+		VocClass::SafeImmedietelyPlayAt(this->PenetratesTransport_CleanSound, coords);
+	}
+}
+
 // =============================
 // load / save
 
@@ -1661,6 +1822,15 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AffectsBelowPercent)
 		.Process(this->AffectsAbovePercent)
 		.Process(this->AffectsNeutral)
+
+		.Process(this->PenetratesTransport_Level)
+		.Process(this->PenetratesTransport_PassThrough)
+		.Process(this->PenetratesTransport_FatalRate)
+		.Process(this->PenetratesTransport_DamageMultiplier)
+		.Process(this->PenetratesTransport_DamageAll)
+		.Process(this->PenetratesTransport_CleanSound)
+
+		.Process(this->IsCellSpreadWH)
 		;
 
 	PaintBallData.Serialize(Stm);

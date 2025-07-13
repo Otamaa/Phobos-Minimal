@@ -481,7 +481,7 @@ public:
 	Valueable<bool> NoAirportBound_DisableRadioContact { false };
 	Nullable<AnimTypeClass*> SinkAnim { };
 	Nullable<double> Tunnel_Speed { };
-	Nullable<HoverTypeClass*> HoverType { };
+	Valueable<HoverTypeClass*> HoverType { };
 
 	Valueable<bool> Gattling_Overload { false };
 	Nullable<int> Gattling_Overload_Damage { };
@@ -1211,6 +1211,11 @@ public:
 	Valueable<int> ForceAAWeapon_Aircraft { -1 };
 
 	Valueable<bool> AttackMove_Follow_IfMindControlIsFull { };
+
+	Nullable<int> PenetratesTransport_Level { };
+	Valueable<double> PenetratesTransport_PassThroughMultiplier { 1.0 };
+	Valueable<double> PenetratesTransport_FatalRateMultiplier { 1.0 };
+	Valueable<double> PenetratesTransport_DamageMultiplier { 1.0 };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

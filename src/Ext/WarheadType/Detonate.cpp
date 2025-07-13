@@ -533,35 +533,7 @@ static bool NOINLINE IsCellSpreadWH(WarheadTypeExtData* pData)
 {
 	// List all Warheads here that respect CellSpread
 
-	return //pData->RemoveDisguise ||
-		//pData->RemoveMindControl ||
-		//pData->Crit_Chance ||
-		pData->Shield_Break ||
-		!pData->ConvertsPair.empty() ||
-		pData->Shield_Respawn_Duration > 0 ||
-		pData->Shield_SelfHealing_Duration > 0 ||
-		!pData->Shield_AttachTypes.empty() ||
-		!pData->Shield_RemoveTypes.empty() ||
-		pData->Shield_RemoveAll ||
-		pData->Transact ||
-		pData->PermaMC ||
-		pData->GattlingStage > 0 ||
-		pData->GattlingRateUp != 0 ||
-		pData->AttachTag ||
-		//pData->DirectionalArmor ||
-		pData->ReloadAmmo != 0
-		|| (pData->RevengeWeapon && pData->RevengeWeapon_GrantDuration > 0)
-		|| !pData->LimboKill_IDs.empty()
-		|| (pData->PaintBallData.Color != ColorStruct::Empty)
-		|| pData->InflictLocomotor
-		|| pData->RemoveInflictedLocomotor
-		|| pData->IC_Duration != 0
-
-		|| !pData->PhobosAttachEffects.AttachTypes.empty()
-		|| !pData->PhobosAttachEffects.RemoveTypes.empty()
-		|| !pData->PhobosAttachEffects.RemoveGroups.empty()
-		|| pData->BuildingSell
-		|| pData->BuildingUndeploy
+	return pData->IsCellSpreadWH
 		;
 }
 
@@ -659,7 +631,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
-	if (IsCellSpreadWH(this) || this->CritCurrentChance > 0.0)
+	if (this->IsCellSpreadWH || this->CritCurrentChance > 0.0)
 	{
 		if (this->Crit_ActiveChanceAnims.size() > 0 && this->CritCurrentChance > 0.0)
 		{
@@ -682,7 +654,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 			std::for_each(pTargetv.begin(), pTargetv.end(), [&](TechnoClass* pTarget)
  {
-				this->DetonateOnOneUnit(pHouse, pTarget, damage, pOwner, pBullet, ThisbulletWasIntercepted);
+				this->DetonateOnOneUnit(pHouse, pTarget, coords , damage, pOwner, pBullet, ThisbulletWasIntercepted);
 			});
 
 			if (this->Transact)
@@ -712,7 +684,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 								return static_cast<TechnoClass* const>(nullptr);
 							};
 
-						this->DetonateOnOneUnit(pHouse, static_cast<TechnoClass*>(pBullet->Target), damage, pOwner, pBullet, ThisbulletWasIntercepted);
+						this->DetonateOnOneUnit(pHouse, static_cast<TechnoClass*>(pBullet->Target), coords , damage, pOwner, pBullet, ThisbulletWasIntercepted);
 
 						if (this->Transact)
 							this->TransactOnOneUnit(Eligible(static_cast<TechnoClass*>(pBullet->Target)), pOwner, 1);
@@ -733,7 +705,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		else if (auto pIntended = this->IntendedTarget)
 		{
 			if (coords.DistanceFrom(pIntended->GetCoords()) < double(Unsorted::LeptonsPerCell / 4)) {
-				this->DetonateOnOneUnit(pHouse, pIntended, damage, pOwner, pBullet, ThisbulletWasIntercepted);
+				this->DetonateOnOneUnit(pHouse, pIntended, coords , damage, pOwner, pBullet, ThisbulletWasIntercepted);
 
 				if (this->Transact) {
 
@@ -756,7 +728,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 	}
 }
 
-void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, int damage, TechnoClass* pOwner, BulletClass* pBullet, bool bulletWasIntercepted)
+void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, const CoordStruct& coords, int damage, TechnoClass* pOwner, BulletClass* pBullet, bool bulletWasIntercepted)
 {
 	if (!this->CanDealDamage(pTarget))
 		return;
@@ -842,11 +814,14 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (this->RevengeWeapon && this->RevengeWeapon_GrantDuration > 0)
 		this->ApplyRevengeWeapon(pTarget);
 
-	if (this->InflictLocomotor)
-		this->ApplyLocomotorInfliction(pTarget);
+	if (this->PenetratesTransport_Level > 0 && damage)
+		this->ApplyPenetratesTransport(pTarget, pOwner, pHouse, coords, damage);
 
-	if (this->RemoveInflictedLocomotor)
-		this->ApplyLocomotorInflictionReset(pTarget);
+	//if (this->InflictLocomotor)
+	//	this->ApplyLocomotorInfliction(pTarget);
+
+	//if (this->RemoveInflictedLocomotor)
+	//	this->ApplyLocomotorInflictionReset(pTarget);
 
 	if (!this->PhobosAttachEffects.AttachTypes.empty()
 		|| !this->PhobosAttachEffects.RemoveTypes.empty()

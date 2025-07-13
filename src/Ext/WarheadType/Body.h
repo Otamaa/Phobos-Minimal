@@ -443,6 +443,16 @@ public:
 	Valueable<double> AffectsBelowPercent { 1.0 };
 	Valueable<double> AffectsAbovePercent { 0.0 };
 	Valueable<bool> AffectsNeutral { true };
+
+	Valueable<int> PenetratesTransport_Level { 0 };
+	Valueable<double> PenetratesTransport_PassThrough { 1.0 };
+	Valueable<double> PenetratesTransport_FatalRate { 0.0 };
+	Valueable<double> PenetratesTransport_DamageMultiplier { 1.0 };
+	Valueable<bool> PenetratesTransport_DamageAll { false };
+	ValueableIdx<VocClass> PenetratesTransport_CleanSound { -1 };
+
+	bool IsCellSpreadWH { false };
+
 #pragma endregion
 
 public:
@@ -459,10 +469,11 @@ public:
 	void applyIronCurtain(TechnoClass* items, HouseClass* Owner, int damage) const;
 	void applyIronCurtain(const CoordStruct& coords, HouseClass* pOwner, int damage) const;
 
+	void ApplyPenetratesTransport(TechnoClass* pTarget, TechnoClass* pInvoker, HouseClass* pInvokerHouse, const CoordStruct& coords, int damage) const;
 private:
 
 	void EvaluateArmor(WarheadTypeClass* OwnerObject);
-	void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, int damage, TechnoClass* pOwner = nullptr, BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
+	void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, const CoordStruct& coords, int damage, TechnoClass* pOwner = nullptr, BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
 
 	void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
 	void ApplyShieldModifiers(TechnoClass* pTarget) const;
