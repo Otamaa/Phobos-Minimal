@@ -1916,10 +1916,10 @@ UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 	}
 
 	if (pData->Image_Red && pThis->IsRedHP())
-		return pData->Image_Red;
+		return (UnitTypeClass*)pData->Image_Red.Get();
 
 	if (pData->Image_Yellow && pThis->IsYellowHP())
-		return pData->Image_Yellow;
+		return (UnitTypeClass*)pData->Image_Yellow.Get();
 
 	return nullptr;
 }

@@ -615,8 +615,8 @@ public:
 	Valueable<UnitTypeClass*> WaterImage_Yellow { nullptr };
 	Valueable<UnitTypeClass*> WaterImage_Red { nullptr };
 
-	Valueable<UnitTypeClass*> Image_Yellow { nullptr };
-	Valueable<UnitTypeClass*> Image_Red{ nullptr };
+	Valueable<TechnoTypeClass*> Image_Yellow { nullptr };
+	Valueable<TechnoTypeClass*> Image_Red{ nullptr };
 
 	Valueable<int> FallRate_Parachute { 1 };
 	Valueable<int> FallRate_NoParachute { 1 };

@@ -5561,7 +5561,7 @@ void TechnoExtData::UpdateShield()
 	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !this->Shield)
 	{
 		this->Shield = std::make_unique<ShieldClass>(pThis);
-		//this->Shield->OnInit();
+		this->Shield->UpdateTint();
 	}
 
 	if (const  auto pShieldData = this->GetShield())

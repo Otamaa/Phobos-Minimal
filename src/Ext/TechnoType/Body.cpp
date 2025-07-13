@@ -1417,7 +1417,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DistributeTargetingFrame.Read(exINI, pSection, "DistributeTargetingFrame");
 		this->AIAttackMoveTargetingDelay.Read(exINI, pSection, "AIAttackMoveTargetingDelay");
 		this->PlayerAttackMoveTargetingDelay.Read(exINI, pSection, "PlayerAttackMoveTargetingDelay");
-	
+
 		this->CanBeBuiltOn.Read(exINI, pSection, "CanBeBuiltOn");
 		this->UnitBaseNormal.Read(exINI, pSection, "UnitBaseNormal");
 		this->UnitBaseForAllyBuilding.Read(exINI, pSection, "UnitBaseForAllyBuilding");

@@ -290,6 +290,36 @@ ASMJIT_PATCH(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 	return 0x707331;
 }
 
+AircraftTypeClass* GetAircraftTypeExtra(AircraftClass* pAircraft)
+{
+	auto const pData = TechnoTypeExtContainer::Instance.Find(pAircraft->Type);
+
+	if (pData->Image_Yellow && pAircraft->IsYellowHP())
+	{
+		return (AircraftTypeClass*)pData->Image_Yellow.Get();
+	}
+	else if(pData->Image_Red && pAircraft->IsRedHP())
+	{
+		return (AircraftTypeClass*)pData->Image_Red.Get();
+	}
+
+	return pAircraft->Type;
+}
+
+ASMJIT_PATCH(0x414987, AircraftClass_Draw_Extra, 0x6)
+{
+	GET(AircraftClass*, pThis, EBP);
+	R->ESI<AircraftTypeClass*>(GetAircraftTypeExtra(pThis));
+	return 0x41498D;
+}
+
+ASMJIT_PATCH(0x414665, AircraftClass_Draw_ExtraSHP, 0x6)
+{
+	GET(AircraftClass*, pThis, EBP);
+	R->EAX<AircraftTypeClass*>(GetAircraftTypeExtra(pThis));
+	return 0x41466B;
+}
+
 //aircraft only
 ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 {

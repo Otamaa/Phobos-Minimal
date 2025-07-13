@@ -915,6 +915,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 			{
 				pExt->CurrentShieldType = shieldType;
 				pExt->Shield = std::make_unique<ShieldClass>(pTarget, true);
+				pExt->Shield->UpdateTint();
 
 				if (this->Shield_ReplaceOnly && this->Shield_InheritStateOnReplace)
 				{

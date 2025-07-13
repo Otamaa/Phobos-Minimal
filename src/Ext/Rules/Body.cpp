@@ -351,6 +351,20 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		const auto myClassName = pItem->GetThisClassName();
 		bool WeederAndHarvesterWarning = false;
 
+		if (pExt->Image_Yellow && pExt->Image_Yellow->WhatAmI() != what) {
+			Debug::LogInfo("[{} - {}] has Image.ConditionYellow [{} - {}] but it different ClassType from it!",
+				pItem->ID, myClassName, pExt->Image_Yellow->ID, pExt->Image_Yellow->GetThisClassName());
+			pExt->Image_Yellow = nullptr;
+			Debug::RegisterParserError();
+		}
+
+		if (pExt->Image_Red && pExt->Image_Red->WhatAmI() != what) {
+			Debug::LogInfo("[{} - {}] has Image.ConditionRed [{} - {}] but it different ClassType from it!",
+				pItem->ID, myClassName, pExt->Image_Red->ID, pExt->Image_Red->GetThisClassName());
+			pExt->Image_Red = nullptr;
+			Debug::RegisterParserError();
+		}
+
 		if (pItem->Strength <= 0)
 		{
 			const bool IsUpgradeBld = what == BuildingTypeClass::AbsID && *((BuildingTypeClass*)pItem)->PowersUpBuilding && strlen(((BuildingTypeClass*)pItem)->PowersUpBuilding) > 0;
