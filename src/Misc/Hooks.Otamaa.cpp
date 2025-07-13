@@ -6758,7 +6758,7 @@ public:
 
 #pragma region ElectricAssultStuffs
 
-void ElectrictAssaultCheck(FootClass* pThis)
+void ElectrictAssaultCheck(FootClass* pThis , bool updateIdleAction)
 {
 	if (pThis->Target)
 		return;
@@ -6790,6 +6790,7 @@ void ElectrictAssaultCheck(FootClass* pThis)
 			}
 		}
 
+	} else if (updateIdleAction){
 		pThis->UpdateIdleAction();
 	}
 }
@@ -6797,14 +6798,14 @@ void ElectrictAssaultCheck(FootClass* pThis)
 ASMJIT_PATCH(0x4D6F38, FootClass_ElectricAssultFix_SetWeaponType, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
-	ElectrictAssaultCheck(pThis);
+	ElectrictAssaultCheck(pThis , false);
 	return 0x4D7025;
 }
 
 ASMJIT_PATCH(0x4D50E1, FootClass_MI_Guard_ElectrictAssault, 0xA)
 {
 	GET(FootClass*, pThis, ESI);
-	ElectrictAssaultCheck(pThis);
+	ElectrictAssaultCheck(pThis , true);
 	return 0x4D5225;
 }
 
