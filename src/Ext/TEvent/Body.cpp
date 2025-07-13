@@ -109,14 +109,17 @@ bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& res
 	//int iEvent = args.EventType; // not used here ,.. ares using it compare
 	HouseClass* pHouse = args.Owner;
 	ObjectClass* pObject = args.Object;
+	const PhobosTriggerEvent TEventKind = (PhobosTriggerEvent)pThis->EventKind;
+	const PhobosTriggerEvent ExtcutedEventKind = (PhobosTriggerEvent)args.EventType;
+
 	//CDTimerClass* pTimer = args.ActivationFrame;
 	//bool* isPersitant = args.isRepeating;
 	//AbstractClass* pSource = args.Source;
 
-	//if ((PhobosTriggerEvent)pThis->EventKind < PhobosTriggerEvent::LocalVariableGreaterThan)
-	//	return false;
+	// They must be the same, but for other triggers to take effect normally, this cannot be judged outside case.
+	const auto isSameEvent = [&]() { return TEventKind == ExtcutedEventKind; };
 
-	switch ((PhobosTriggerEvent)pThis->EventKind)
+	switch (TEventKind)
 	{
 
 #pragma region LovalVariableManipulation
@@ -230,13 +233,15 @@ bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& res
 		break;
 #pragma endregion
 
+//TODO compare agains like vanilla does ?
+#pragma region PhobosEvent
 	/*
 	*	- PersistableFlag ?
 	*	- LogcNeed ?
 	*   - AttachFlags ?
 	*/
 	case PhobosTriggerEvent::ShieldBroken:
-		result = ShieldClass::TEventIsShieldBroken(pObject);
+		result = isSameEvent() && ShieldClass::TEventIsShieldBroken(pObject);
 		break;
 	case PhobosTriggerEvent::HouseOwnsTechnoType:
 		result = TEventExtData::HouseOwnsTechnoTypeTEvent(pThis);
@@ -256,6 +261,8 @@ bool TEventExtData::Occured(TEventClass* pThis, EventArgs const& args, bool& res
 		break;
 	case PhobosTriggerEvent::AttachedIsUnderAttachedEffect:
 		result = TEventExtData::AttachedIsUnderAttachedEffectTEvent(pThis, pObject);
+
+#pragma endregion
 
 	default:
 		return false;
