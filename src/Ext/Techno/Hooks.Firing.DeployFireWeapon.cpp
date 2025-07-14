@@ -10,25 +10,39 @@ ASMJIT_PATCH(0x5223B3, InfantryClass_Approach_Target_DeployFireWeapon, 0x6)
 	GET(InfantryClass*, pThis, ESI);
 
 	int weapon = pThis->Type->DeployFireWeapon;
-	if (pThis->Type->DeployFireWeapon == -1)
-	{
-		if (const auto pTarget = flag_cast_to<TechnoClass*>(pThis->Target)) {
-			if (pTarget->IsAlive) {
-				weapon = pThis->SelectWeapon(pTarget);
-			}
-		} else if (pThis->Target && pThis->Target->WhatAmI() == CellClass::AbsID) {
+	if (pThis->Type->DeployFireWeapon == -1) {
+		if (pThis->Target && (pThis->Target->WhatAmI() == CellClass::AbsID || pThis->Target->AbstractFlags & AbstractFlags::Techno && ((TechnoClass*)pThis->Target)->IsAlive)) {
 			weapon = pThis->SelectWeapon(pThis->Target);
+		} else {
+			weapon = 0;
 		}
-
-		weapon = 0;
 	}
 
 	R->EDI(weapon);
 	return 0x5223B9;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP , 0x5218E0 , FakeInfantryClass::_SelectWeaponAgainst)
-DEFINE_FUNCTION_JUMP(VTABLE , 0x7EB33C , FakeInfantryClass::_SelectWeaponAgainst)
+#include <Ext/InfantryType/Body.h>
+
+ASMJIT_PATCH(0x5218F3, InfantryClass_WhatWeaponShouldIUse_DeployFireWeapon, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	if (pThis->Type->DeployFireWeapon == -1)
+		return 0x52194E;
+
+	if (pThis->Type->IsGattling || TechnoTypeExtContainer::Instance.Find(pThis->Type)->MultiWeapon.Get())
+		return !pThis->IsDeployed() ? 0x52194E : 0x52190D;
+
+	if(pThis->IsDeployed())
+		return 0x52190D;
+
+	return 0x521917;
+}
+
+//fuckin broken !
+//DEFINE_FUNCTION_JUMP(LJMP , 0x5218E0 , FakeInfantryClass::_SelectWeaponAgainst)
+//DEFINE_FUNCTION_JUMP(VTABLE , 0x7EB33C , FakeInfantryClass::_SelectWeaponAgainst)
 
 #ifndef DISABLEFORTESTINGS
 ASMJIT_PATCH(0x6FF923, TechnoClass_FireaAt_FireOnce, 0x6)
