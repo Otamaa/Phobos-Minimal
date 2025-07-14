@@ -53,7 +53,18 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
 	this->HideIfNoOre_Threshold.Read(exINI, pID, "HideIfNoOre.Threshold");
 	this->Layer_UseObjectLayer.Read(exINI, pID, "Layer.UseObjectLayer");
-	this->UseCenterCoordsIfAttached.Read(exINI, pID, "UseCenterCoordsIfAttached");
+
+	Nullable<bool> UseCenterCoordsIfAttached {};
+
+	UseCenterCoordsIfAttached.Read(exINI, pID, "UseCenterCoordsIfAttached");
+
+	auto att = this->AttachedAnimPosition.Get();
+	if (UseCenterCoordsIfAttached.isset() && UseCenterCoordsIfAttached.Get()){
+		att |= AttachedAnimPosition::Center;
+		this->AttachedAnimPosition = att;
+	}
+
+	this->AttachedAnimPosition.Read(exINI, pID, "AttachedAnimPosition");
 
 	this->Weapon.Read(exINI, pID, "Weapon", true);
 	this->WeaponToCarry.Read(exINI, pID, "WeaponToCarry", true);
@@ -574,7 +585,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->XDrawOffset)
 		.Process(this->HideIfNoOre_Threshold)
 		.Process(this->Layer_UseObjectLayer)
-		.Process(this->UseCenterCoordsIfAttached)
+		.Process(this->AttachedAnimPosition)
 		.Process(this->Weapon)
 		.Process(this->WeaponToCarry)
 		.Process(this->Damage_Delay)

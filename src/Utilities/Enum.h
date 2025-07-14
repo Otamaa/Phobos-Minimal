@@ -34,6 +34,14 @@
 
 #include <GeneralDefinitions.h>
 
+enum class AttachedAnimPosition : BYTE
+{
+	Default = 0,
+	Center = 1,
+	Ground = 2
+};
+MAKE_ENUM_FLAGS(AttachedAnimPosition);
+
 enum class LaserTrailDrawType : BYTE
 {
 	Laser = 0,
