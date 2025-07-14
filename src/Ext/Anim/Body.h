@@ -187,6 +187,7 @@ public:
 	void _SpreadTiberium(CoordStruct& coords , bool isOnbridge);
 	void _PlayExtraAnims(bool onWater , bool onBridge);
 	void _DrawTrailerAnim();
+	CoordStruct* __GetCenterCoords(CoordStruct* pBuffer);
 
 	int _BounceAI();
 

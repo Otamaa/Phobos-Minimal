@@ -6730,10 +6730,11 @@ public:
 		return this->AddItem(object);
 	}
 };
+static_assert(sizeof(FakeLayerClass) == sizeof(LayerClass), "Invalid Size !");
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
-DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
-DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::_Submit);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
+//DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
+//DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::_Submit);
 
 class NOVTABLE FakeDriveLocomotionClass final : DriveLocomotionClass
 {

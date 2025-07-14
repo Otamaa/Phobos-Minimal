@@ -175,3 +175,37 @@ ASMJIT_PATCH(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 	return 0x746CFD;
 }
 #endif
+
+ASMJIT_PATCH(0x51ECC0, InfantryClass_MouseOverObject_IsAreaFire, 0xA)
+{
+	enum { IsAreaFire = 0x51ECE5, NotAreaFire = 0x51ECEC };
+
+	GET(InfantryClass*, pThis, EDI);
+	GET(ObjectClass*, pObject, ESI);
+	const int deployWeaponIdx = pThis->Type->DeployFireWeapon;
+	const auto deployWeapon = pThis->GetWeapon(deployWeaponIdx >= 0 ? deployWeaponIdx : pThis->SelectWeapon(pObject))->WeaponType;
+
+	return deployWeapon && deployWeapon->AreaFire ? IsAreaFire : NotAreaFire;
+}
+
+ASMJIT_PATCH(0x6F7666, TechnoClass_TriggersCellInset_DeployWeapon, 0x8)
+{
+	enum { NotAreaFire = 0x6F7776, ContinueIn = 0x6F7682 };
+
+	GET(TechnoClass*, pThis, ESI);
+	int weaponIdx;
+
+	if (const auto pInfantry = cast_to<InfantryClass*>(pThis))
+	{
+		GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x28, 0x4));
+		const int deployWeaponIdx = pThis->GetTechnoType()->DeployFireWeapon;
+		weaponIdx = deployWeaponIdx >= 0 ? deployWeaponIdx : pThis->SelectWeapon(pTarget);
+	}
+	else
+	{
+		weaponIdx = pThis->IsNotSprayAttack();
+	}
+
+	const auto deployWeaponStruct = pThis->GetWeapon(weaponIdx);
+	return deployWeaponStruct && deployWeaponStruct->WeaponType && deployWeaponStruct->WeaponType->AreaFire ? ContinueIn : NotAreaFire;
+}
