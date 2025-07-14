@@ -162,36 +162,36 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 		DamageState _res = DamageState::Unaffected;
 		auto pThis= this;
 		auto pWH = WH;
-	
+
 		if (pWH->Wood && !pThis->Type->Immune)
 		{
 			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 			auto pExt = TerrainExtContainer::Instance.Find(pThis);
 			double PriorHealthRatio = pThis->GetHealthPercentage();
-	
+
 			_res = pThis->ObjectClass::ReceiveDamage(Damage, DistanceToEpicenter, pWH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
-	
+
 			if (!pThis->IsBurning && *Damage > 0 && WH->Sparky)
 			{
 				const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(WH);
-	
+
 				if (!pWarheadExt->Flammability.isset() || ScenarioClass::Instance->Random.PercentChance(Math::abs(pWarheadExt->Flammability.Get())))
 					pThis->Ignite();
 			}
-	
+
 			double condYellow = RulesExtData::Instance()->ConditionYellow_Terrain;
-	
+
 			if (!pThis->Type->IsAnimated && pTypeExt->HasDamagedFrames && PriorHealthRatio > condYellow && pThis->GetHealthPercentage() <= condYellow)
 			{
 				pThis->TimeToDie = true; // Dirty hack to get game to redraw the art reliably.
 				LogicClass::Instance->AddObject(pThis, false);
 			}
-	
+
 			if (_res == DamageState::PostMortem)
 			{
 				return _res;
 			}
-	
+
 			if (_res == DamageState::NowDead)
 			{
 				if (auto& pAttached = pExt->AttachedAnim)
@@ -199,13 +199,13 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 					pAttached->RemainingIterations = 0;
 					pAttached.reset(nullptr);
 				}
-	
+
 				if (pThis->Type->SpawnsTiberium)
 				{
 					const auto _damagingDamage = pTypeExt->Damage.Get(100);
 					const auto _adamagingWarhead = pTypeExt->Warhead.Get(RulesClass::Instance->C4Warhead);
 					const auto _thisCell = pThis->GetCell();
-	
+
 					if (auto const pAnim = MapClass::SelectDamageAnimation(_damagingDamage, _adamagingWarhead, _thisCell->LandType, pThis->Location))
 					{
 						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0),
@@ -214,14 +214,14 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 							false
 						);
 					}
-	
+
 					if (pTypeExt->AreaDamage)
 					{
 						auto pCoord = &pThis->Location;
 						DamageArea::Apply(pCoord, _damagingDamage, nullptr, _adamagingWarhead, true, nullptr);
 						MapClass::FlashbangWarheadAt(_damagingDamage, _adamagingWarhead, pThis->Location);
 					}
-	
+
 					_thisCell->ChainReaction();
 				}
 				else if (pThis->IsBurning)
@@ -237,7 +237,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 					pThis->TimeToDie = 1;
 					pThis->Animation.Start(2);
 				}
-	
+
 				const auto pTerrainExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 				// Skip over the removal of the tree as well as destroy sound/anim (for now) if the tree has crumble animation.
 				if (pThis->TimeToDie && pTerrainExt->HasCrumblingFrames)
@@ -249,11 +249,11 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 					pThis->Disappear(true);
 					return _res;
 				}
-	
+
 				auto const nCoords = pThis->GetCenterCoords();
 				VocClass::SafeImmedietelyPlayAt(pTerrainExt->DestroySound, &nCoords);
 				const auto pAttackerHoue = Attacker ? Attacker->Owner : SourceHouse;
-	
+
 				if (auto const pAnimType = pTerrainExt->DestroyAnim)
 				{
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, nCoords),
@@ -263,7 +263,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 						false, false
 					);
 				}
-	
+
 				if (const auto nBounty = pTerrainExt->Bounty.Get())
 				{
 					if (pAttackerHoue && pAttackerHoue->CanTransactMoney(nBounty))
@@ -272,7 +272,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 						FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords);
 					}
 				}
-	
+
 				RectangleStruct _drawDim {};
 				pThis->GetRenderDimensions(&_drawDim);
 				TacticalClass::Instance->RegisterDirtyArea(_drawDim, false);
@@ -280,7 +280,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 				pThis->UnInit();
 			}
 		}
-	
+
 		return _res;
 }
 
@@ -1796,7 +1796,7 @@ ASMJIT_PATCH(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 #pragma endregion
 
 #pragma region Infantry
-
+#pragma optimize("", off )
 ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 {
 	GET(FakeInfantryClass*, pThis, ECX);
@@ -2232,7 +2232,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 	R->EAX(_res);
 	return 0x518D52;
 }
-
+#pragma optimize("", on )
 #pragma endregion
 
 #pragma region Unit

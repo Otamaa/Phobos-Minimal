@@ -3,7 +3,7 @@
 #include <RadSiteClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDef.h>
 
 #include <Ext/WeaponType/Body.h>
@@ -61,8 +61,37 @@ class RadSiteExtContainer final : public Container<RadSiteExtData>
 {
 public:
 	static RadSiteExtContainer Instance;
+	static ObjectPool<RadSiteExtData, true> pools;
 
-	//CONSTEXPR_NOCOPY_CLASSB(RadSiteExtContainer, RadSiteExtData, "RadSiteClass");
+	RadSiteExtData* AllocateUnchecked(RadSiteClass* key)
+	{
+		RadSiteExtData* val = pools.allocate();
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+		}
+		else
+		{
+			Debug::FatalErrorAndExit("The amount of [RadSiteExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
+		}
+
+		return val;
+	}
+
+	void Remove(RadSiteClass* key)
+	{
+		if (RadSiteExtData* Item = TryFind(key))
+		{
+			RemoveExtOf(key, Item);
+		}
+	}
+
+	void RemoveExtOf(RadSiteClass* key, RadSiteExtData* Item)
+	{
+		pools.deallocate(Item);
+		this->ClearExtAttribute(key);
+	}
 };
 
 class NOVTABLE FakeRadSiteClass : public RadSiteClass

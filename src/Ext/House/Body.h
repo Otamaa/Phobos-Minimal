@@ -51,7 +51,7 @@ struct LauchData
 
 struct TunnelData
 {
-	std::vector<FootClass*> Vector;
+	HelperedVector<FootClass*> Vector;
 	int MaxCap;
 
 	COMPILETIMEEVAL TunnelData() noexcept : Vector {}, MaxCap { 1 } { }
@@ -146,6 +146,7 @@ public:
 	IndexBitfield<HouseClass*> RadarPersist {};
 	std::set<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
 	std::set<BuildingClass*> Academies {};
+	std::set<BuildingClass*> TunnelsBuildings {};
 	std::set<TechnoTypeClass*> Reversed {};
 	std::set<TechnoClass*> OwnedCountedHarvesters {};
 

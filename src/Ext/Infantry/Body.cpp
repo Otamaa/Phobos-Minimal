@@ -3,6 +3,13 @@
 #include <Utilities/Macro.h>
 #include <Ext/TechnoType/Body.h>
 
+WeaponStruct* FakeInfantryClass::_GetDeployWeapon()
+{
+	int deployFireWeapon = this->Type->DeployFireWeapon;
+	int weaponIndex = deployFireWeapon == -1 ? this->SelectWeapon(this->Target) : deployFireWeapon;
+	return this->GetWeapon(weaponIndex);
+}
+
 int FakeInfantryClass::_SelectWeaponAgainst(AbstractClass* pTarget)
 {
 	auto pThisType = this->Type;

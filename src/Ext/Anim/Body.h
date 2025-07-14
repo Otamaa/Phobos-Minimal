@@ -1,7 +1,7 @@
 #pragma once
 #include <AnimClass.h>
 
-#include <Utilities/Container.h>
+#include <Utilities/PooledContainer.h>
 #include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDef.h>
 //#include <New/AnonymousType/SpawnsStatus.h>
@@ -98,6 +98,7 @@ class NOVTABLE FakeAnimClass : public AnimClass
 {
 public:
 	static std::list<FakeAnimClass*> AnimsWithAttachedParticles;
+	static ObjectPool<AnimExtData, true> pools;
 
 	static COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(AnimClass* key)
 	{
@@ -124,12 +125,13 @@ public:
 
 	static AnimExtData* AllocateUnchecked(AnimClass* key)
 	{
-		if (AnimExtData* val = new AnimExtData())
+		if (AnimExtData* val = pools.allocate())
 		{
 			val->AttachedToObject = key;
 			return val;
 		}
 
+		Debug::FatalErrorAndExit("The amount of [AnimExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
 		return nullptr;
 	}
 
@@ -153,7 +155,7 @@ public:
 	{
 		if (AnimExtData* Item = FakeAnimClass::TryFind(key))
 		{
-			delete Item;
+			pools.deallocate(Item);
 			FakeAnimClass::ClearExtAttribute(key);
 		}
 	}

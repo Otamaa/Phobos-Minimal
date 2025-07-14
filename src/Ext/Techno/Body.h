@@ -3,7 +3,7 @@
 #include <AnimClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDef.h>
 //#include <Utilities/EventHandler.h>
 
@@ -1079,8 +1079,35 @@ class TechnoExtContainer final : public Container<TechnoExtData>
 {
 public:
 	static TechnoExtContainer Instance;
+	static ObjectPool<TechnoExtData ,true> pools;
 
-	//CONSTEXPR_NOCOPY_CLASSB(TechnoExtContainer, TechnoExtData, "TechnoClass");
+	TechnoExtData* AllocateUnchecked(TechnoClass* key)
+	{
+		TechnoExtData* val = pools.allocate();
+
+		if (val) {
+			val->AttachedToObject = key;
+			if (!Phobos::Otamaa::DoingLoadGame)
+				val->InitializeConstant();
+		} else {
+			Debug::FatalErrorAndExit("The amount of [TecnoExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
+		}
+
+		return val;
+	}
+
+	void Remove(TechnoClass* key)
+	{
+		if (TechnoExtData* Item = TryFind(key)) {
+			RemoveExtOf(key, Item);
+		}
+	}
+
+	void RemoveExtOf(TechnoClass* key, TechnoExtData* Item)
+	{
+		pools.deallocate(Item);
+		this->ClearExtAttribute(key);
+	}
 };
 
 class NOVTABLE FakeTechnoClass final: TechnoClass{

@@ -23,6 +23,8 @@
 
 #pragma region defines
 std::list<FakeAnimClass*> FakeAnimClass::AnimsWithAttachedParticles {};
+ObjectPool<AnimExtData, true> FakeAnimClass::pools;
+
 #pragma endregion
 
 //std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
@@ -175,7 +177,7 @@ void ApplyDamage(AnimClass* pThis , AnimExtData* pExt , AnimTypeExtData* pTypeEx
 	if (auto const pWeapon = pTypeExt->Weapon)
 	{
 		AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
-		WeaponTypeExtData::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
+		WeaponTypeExtData::DetonateAt(pWeapon, nCoord, pThis->OwnerObject, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
 	}
 	else
 	{
@@ -380,6 +382,18 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 
 	if (!pTypeExt->Damage_TargetFlag.isset())
 	{
+		if (pThis->AttachedBullet)
+		{
+			return pThis->AttachedBullet->Owner;
+		}
+		else
+		{
+			if (auto const pBullet = cast_to<BulletClass*, true>(pThis->OwnerObject))
+				return pBullet->Owner;
+			else
+				return pThis->OwnerObject;
+		}
+
 		return MapClass::Instance->GetCellAt(pThis->GetCoords());
 	}
 

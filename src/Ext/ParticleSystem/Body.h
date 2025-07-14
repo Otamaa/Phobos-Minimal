@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Utilities/Container.h>
+#include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDefB.h>
 
 #include <ParticleSystemClass.h>
@@ -152,8 +152,38 @@ class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>
 {
 public:
 	static ParticleSystemExtContainer Instance;
+	static ObjectPool<ParticleSystemExtData, true> pools;
 
-	//CONSTEXPR_NOCOPY_CLASSB(ParticleSystemExtContainer, ParticleSystemExtData, "ParticleSystemClass");
+	ParticleSystemExtData* AllocateUnchecked(ParticleSystemClass* key)
+	{
+		ParticleSystemExtData* val = pools.allocate();
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+			if (!Phobos::Otamaa::DoingLoadGame)
+				val->InitializeConstant();
+		}
+		else
+		{
+			Debug::FatalErrorAndExit("The amount of [ParticleSystemExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
+		}
+
+		return val;
+	}
+
+	void Remove(ParticleSystemClass* key)
+	{
+		if (ParticleSystemExtData* Item = TryFind(key)) {
+			RemoveExtOf(key, Item);
+		}
+	}
+
+	void RemoveExtOf(ParticleSystemClass* key, ParticleSystemExtData* Item)
+	{
+		pools.deallocate(Item);
+		this->ClearExtAttribute(key);
+	}
 };
 
 class ParticleSystemTypeExtData;

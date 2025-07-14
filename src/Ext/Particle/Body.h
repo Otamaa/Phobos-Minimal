@@ -2,7 +2,7 @@
 #include <ParticleClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDef.h>
 #include <New/Entity/LaserTrailClass.h>
 #include <Ext/ParticleType/Body.h>
@@ -44,6 +44,37 @@ class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
 	static ParticleExtContainer Instance;
+	static ObjectPool<ParticleExtData, true> pools;
+
+	ParticleExtData* AllocateUnchecked(ParticleClass* key)
+	{
+		ParticleExtData* val = pools.allocate();
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+		}
+		else
+		{
+			Debug::FatalErrorAndExit("The amount of [ParticleExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
+		}
+
+		return val;
+	}
+
+	void Remove(ParticleClass* key)
+	{
+		if (ParticleExtData* Item = TryFind(key))
+		{
+			RemoveExtOf(key, Item);
+		}
+	}
+
+	void RemoveExtOf(ParticleClass* key, ParticleExtData* Item)
+	{
+		pools.deallocate(Item);
+		this->ClearExtAttribute(key);
+	}
 };
 
 class ParticleTypeExtData;

@@ -7394,30 +7394,34 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 
 bool TunnelFuncs::FindSameTunnel(BuildingClass* pTunnel)
 {
-	const auto pOwner = pTunnel->Owner;
+	FakeHouseClass* pOwner = (FakeHouseClass*)pTunnel->Owner;
+
 	if (!pOwner)
 		return false;
 
 	//found new building
-	return pOwner->Buildings.any_of([pTunnel](BuildingClass* pBld)
-	{
-		if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
-		{
-			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-				return false;
+	return std::any_of(
+		pOwner->_GetExtData()->TunnelsBuildings.begin(),
+		pOwner->_GetExtData()->TunnelsBuildings.end(),
+		[pTunnel](BuildingClass* pBld) {
 
-			const auto nCurMission = pBld->CurrentMission;
-			if (nCurMission != Mission::Construction && nCurMission != Mission::Selling)
+			if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
 			{
-				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->TunnelType == BuildingTypeExtContainer::Instance.Find(pTunnel->Type)->TunnelType)
+				if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+					return false;
+
+				const auto nCurMission = pBld->CurrentMission;
+				if (nCurMission != Mission::Construction && nCurMission != Mission::Selling)
 				{
-					return true;
+					if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->TunnelType == BuildingTypeExtContainer::Instance.Find(pTunnel->Type)->TunnelType)
+					{
+						return true;
+					}
 				}
 			}
-		}
 
-		return false;
-	});
+			return false;
+		});
 }
 
 void TunnelFuncs::KillFootClass(FootClass* pFoot, TechnoClass* pKiller)

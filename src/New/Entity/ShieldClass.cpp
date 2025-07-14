@@ -161,7 +161,7 @@ bool ShieldClass::TEventIsShieldBroken(ObjectClass* pAttached)
 
 int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 {
-	if (!IsActive())
+	if (!this->IsActive())
 		return *args->Damage;
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);

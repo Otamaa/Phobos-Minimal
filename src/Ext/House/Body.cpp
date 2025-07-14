@@ -38,7 +38,6 @@ CDTimerClass HouseExtData::SubTerraneanEVASpeak;
 
 bool HouseExtData::IsAnyFirestormActive;
 
-
 HouseClass* HouseExtContainer::Civilian = nullptr;
 HouseClass* HouseExtContainer::Special = nullptr;
 HouseClass* HouseExtContainer::Neutral = nullptr;
@@ -917,11 +916,13 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
 	AnnounceInvalidPointer(Academies, ptr, bRemoved);
-	AnnounceInvalidPointer<BuildingClass*>(RestrictedFactoryPlants, ptr, bRemoved);
+	AnnounceInvalidPointer(TunnelsBuildings, ptr, bRemoved);
+	AnnounceInvalidPointer(RestrictedFactoryPlants, ptr, bRemoved);
 	AnnounceInvalidPointer(OwnedCountedHarvesters, ptr, bRemoved);
 
-	for (auto& nTun : Tunnels)
-		AnnounceInvalidPointer(nTun.Vector, ptr, bRemoved);
+	for (auto& nTun : Tunnels){
+		AnnounceInvalidPointer<FootClass*>(nTun.Vector, ptr, bRemoved);
+	}
 
 	AnnounceInvalidPointer<SuperClass*>(Batteries, ptr);
 }
@@ -2164,6 +2165,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->FactoryOwners_GatheredPlansOf, true)
 		.Process(this->Academies, true)
 		.Process(this->Reversed, true)
+		.Process(this->TunnelsBuildings, true)
 		.Process(this->OwnedCountedHarvesters)
 
 		.Process(this->Is_NavalYardSpied)

@@ -1909,6 +1909,46 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Blue);
 		return true;
 	}
+	case TriggerAction::DestroyAll:{
+
+		ret = false;
+		if(pTrigger){
+			if (HouseClass* pHouse = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+				pHouse->DestroyAll();
+				ret = 1;
+			}
+		}
+		return true;
+	}
+	case TriggerAction::DestroyAllBuildings: {
+		ret = false;
+		if (pTrigger) {
+			if (HouseClass* pHouse = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+				pHouse->DestroyAllBuildings();
+				ret = 1;
+			}
+		}
+		return true;
+	}
+	case TriggerAction::DestroyAllLandUnits: {
+		ret = false;
+		if (pTrigger) {
+			if (HouseClass* pHouse = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+				pHouse->DestroyAllNonBuildingsNonNaval();
+				ret = 1;
+			}
+		}
+		return true;
+	}
+	case TriggerAction::DestroyAllNavalUnits: {
+		if (pTrigger) {
+			if (HouseClass* pHouse = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+				pHouse->DestroyAllNonBuildingsNaval();
+				ret = 1;
+			}
+		}
+		return true;
+	}
 	default:
 		return false;
 	}

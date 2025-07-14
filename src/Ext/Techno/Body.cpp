@@ -6394,6 +6394,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
+ObjectPool<TechnoExtData, true> TechnoExtContainer::pools;
 
 void TechnoExtData::InitializeConstant()
 {
@@ -6609,6 +6610,9 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ECX);
 
+	FakeHouseClass* pOwner = (FakeHouseClass*)pItem->Owner;
+	auto pOwnerExt = pOwner->_GetExtData();
+
 	HouseExtData::AutoDeathObjects.erase_all_if([pItem](std::pair<TechnoClass*, KillMethod>& item) {
 		return item.first == pItem;
 	});
@@ -6616,8 +6620,16 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 	HouseExtData::LimboTechno.erase(pItem);
 	const auto pExt = TechnoExtContainer::Instance.Find(pItem);
 
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing && pExt->AbsType == AbstractType::Unit && ((UnitClass*)pItem)->Type->DeploysInto) {
-		HouseExtContainer::Instance.Find(pItem->Owner)->OwnedDeployingUnits.remove((UnitClass*)pItem);
+	pOwnerExt->OwnedCountedHarvesters.erase(pItem);
+
+	if(pExt->AbsType != AbstractType::Building) {
+		for (auto& tun : pOwnerExt->Tunnels) {
+			tun.Vector.remove((FootClass*)pItem);
+		}
+
+		if (RulesExtData::Instance()->ExtendedBuildingPlacing && pExt->AbsType == AbstractType::Unit && ((UnitClass*)pItem)->Type->DeploysInto) {
+			pOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pItem);
+		}
 	}
 
 	TechnoExtContainer::Instance.RemoveExtOf(pItem , pExt);
