@@ -3192,7 +3192,7 @@ void TechnoExt_ExtData::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, Hous
 
 	int health = pTechno->Health;
 
-	if (pTechno->IsAlive && health > 0 && !pTechno->IsSinking && !pTechno->IsCrashing)
+	if (!pTechno->IsAlive || health <= 0 || pTechno->IsSinking || pTechno->IsCrashing)
 		return;
 
 	if (pTechno->TemporalTargetingMe)
