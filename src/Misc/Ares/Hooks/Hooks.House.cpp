@@ -539,9 +539,9 @@ ASMJIT_PATCH(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
 
 ASMJIT_PATCH(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 {
-	GET(HouseClass*, pThis, ESI);
+	GET(FakeHouseClass*, pThis, ESI);
 
-	if (HouseExtContainer::Instance.Find(pThis)->KeepAliveCount) {
+	if (pThis->_GetExtData()->KeepAliveCount) {
 		return 0x4F8F87;
 	}
 
@@ -604,7 +604,7 @@ ASMJIT_PATCH(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 		}
 	}
 
-	pThis->DestroyAll();
+	pThis->_BlowUpAll();
 	pThis->AcceptDefeat();
 
 	return 0x4F8F87;
@@ -1244,74 +1244,74 @@ ASMJIT_PATCH(0x50610E, HouseClass_FindPositionForBuilding_FixShipyard, 7)
 	return 0x5060CE;
 }
 
-ASMJIT_PATCH(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
-{
-	GET_STACK(HouseClass*, pThis, STACK_OFFS(0x18, 0x8));
-	GET(TechnoClass*, pTechno, ESI);
+// ASMJIT_PATCH(0x4FC731, HouseClass_DestroyAll_ReturnStructures, 7)
+// {
+// 	GET_STACK(HouseClass*, pThis, STACK_OFFS(0x18, 0x8));
+// 	GET(TechnoClass*, pTechno, ESI);
 
-	if(!pTechno->IsAlive || pTechno->Health <= 0)
-		return 0x4FC770;
+// 	if(!pTechno->IsAlive || pTechno->Health <= 0)
+// 		return 0x4FC770;
 
-	// check whether this is a building
-	if (auto pBld = cast_to<BuildingClass*>(pTechno)) {
+// 	// check whether this is a building
+// 	if (auto pBld = cast_to<BuildingClass*>(pTechno)) {
 
-		//auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
+// 		//auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
-		// if(pBldExt->LimboID != -1) {
-		// 	BuildingExtData::LimboKill(pBld);
-		// 	return 0x4FC770;
-		// }
+// 		// if(pBldExt->LimboID != -1) {
+// 		// 	BuildingExtData::LimboKill(pBld);
+// 		// 	return 0x4FC770;
+// 		// }
 
-		// do not return structures in campaigns
-		if(!SessionClass::Instance->IsCampaign()) {
-			// was the building owned by a neutral country?
-			auto pInitialOwner = pBld->InitialOwner;
+// 		// do not return structures in campaigns
+// 		if(!SessionClass::Instance->IsCampaign()) {
+// 			// was the building owned by a neutral country?
+// 			auto pInitialOwner = pBld->InitialOwner;
 
-			if (!pInitialOwner || pInitialOwner->Type->MultiplayPassive)
-			{
-				auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+// 			if (!pInitialOwner || pInitialOwner->Type->MultiplayPassive)
+// 			{
+// 				auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
 
-				auto occupants = pBld->GetOccupantCount();
-				auto canReturn = (pInitialOwner != pThis) || occupants > 0;
+// 				auto occupants = pBld->GetOccupantCount();
+// 				auto canReturn = (pInitialOwner != pThis) || occupants > 0;
 
-				if (canReturn && pExt->Returnable.Get(RulesExtData::Instance()->ReturnStructures))
-				{
-					// this may change owner
-					if (occupants) {
-						pBld->KillOccupants(nullptr);
-					}
+// 				if (canReturn && pExt->Returnable.Get(RulesExtData::Instance()->ReturnStructures))
+// 				{
+// 					// this may change owner
+// 					if (occupants) {
+// 						pBld->KillOccupants(nullptr);
+// 					}
 
-					// don't do this when killing occupants already changed owner
-					if (pBld->GetOwningHouse() == pThis)
-					{
+// 					// don't do this when killing occupants already changed owner
+// 					if (pBld->GetOwningHouse() == pThis)
+// 					{
 
-						// fallback to first civilian side house, same logic SlaveManager uses
-						if (!pInitialOwner)
-						{
-							pInitialOwner = HouseClass::FindCivilianSide();
-						}
+// 						// fallback to first civilian side house, same logic SlaveManager uses
+// 						if (!pInitialOwner)
+// 						{
+// 							pInitialOwner = HouseClass::FindCivilianSide();
+// 						}
 
-						// give to other house and disable
-						if (pInitialOwner && pBld->SetOwningHouse(pInitialOwner, false))
-						{
-							pBld->Guard();
+// 						// give to other house and disable
+// 						if (pInitialOwner && pBld->SetOwningHouse(pInitialOwner, false))
+// 						{
+// 							pBld->Guard();
 
-							if (pBld->Type->NeedsEngineer)
-							{
-								pBld->HasEngineer = false;
-								pBld->DisableStuff();
-							}
+// 							if (pBld->Type->NeedsEngineer)
+// 							{
+// 								pBld->HasEngineer = false;
+// 								pBld->DisableStuff();
+// 							}
 
-							return 0x4FC770;
-						}
-					}
-				}
-			}
-		}
-	}
+// 							return 0x4FC770;
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
 
 ASMJIT_PATCH(0x4FB2FD, HouseClass_UnitFromFactory_BuildingSlam, 6)
 {

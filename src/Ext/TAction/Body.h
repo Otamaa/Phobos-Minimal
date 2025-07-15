@@ -15,6 +15,15 @@ class HouseClass;
 class CellStruct;
 enum class PhobosTriggerAction : unsigned int
 {
+	AllAssignMission = 492,
+	DeleteObject = 493,
+	DisableAllyReveal = 494,
+	EnableAllyReveal = 495,
+	MakeElite = 496,
+	DisableShortGame = 497,
+	EnableShortGame = 498,
+	GiveCredits = 499,
+
 	SaveGame = 500,
 	EditVariable = 501,
 	GenerateRandomNumber = 502,
@@ -140,6 +149,15 @@ public:
 	ACTION_FUNC(CreateBannerLocal);
 	ACTION_FUNC(DeleteBanner);
 
+	ACTION_FUNC(GiveCredits);
+	ACTION_FUNC(EnableShortGame);
+	ACTION_FUNC(DisableShortGame);
+	ACTION_FUNC(BlowupHouse);
+	ACTION_FUNC(MakeElite);
+	ACTION_FUNC(EnableAllyReveal);
+	ACTION_FUNC(DisableAllyReveal);
+	ACTION_FUNC(DeleteObject);
+	ACTION_FUNC(AllAssignMission);
 #undef ACTION_FUNC
 
 	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;

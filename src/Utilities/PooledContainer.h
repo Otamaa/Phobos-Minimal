@@ -2,139 +2,75 @@
 
 #include "Container.h"
 
-template<typename T, bool CallDestructor = false>
+template<typename T>
 class ObjectPool
 {
-private:
-	struct Node
-	{
-		Node* next;
-		alignas(alignof(T)) T data;
-	};
-
-	Node* pool = nullptr;
-	Node* freeList = nullptr;
-	size_t poolSize = 0;
-
 public:
 	ObjectPool() = default;
+	~ObjectPool() = default;
 
-	size_t getPoolSize() const { return poolSize; }
-
-	// (Re)initialize pool with new size
-	bool init(size_t count)
+	void init(size_t count)
 	{
-		destroy(); // clean up existing pool if any
+		destroy(); // clear everything if already initialized
 
-		pool = static_cast<Node*>(::operator new[](sizeof(Node)* count));
+		storage.reserve(count);
+		freeList.reserve(count);
+
+		for (size_t i = 0; i < count; ++i)
+		{
+			// Allocate raw memory, no constructor
+			storage.emplace_back(std::make_unique<Storage>());
+			freeList.push_back(getPointer(i));
+		}
+
 		poolSize = count;
-
-		reset(); // reset free list
-		return true;
-	}
-
-	void destroy()
-	{
-		if (pool) {
-			if constexpr (CallDestructor) {
-				if(!Phobos::Otamaa::ExeTerminated){
-					for (size_t i = 0; i < poolSize; ++i)
-						pool[i].data.~T();
-				}
-			}
-			::operator delete[](pool);
-			pool = nullptr;
-			freeList = nullptr;
-			poolSize = 0;
-		}
-	}
-
-	T* allocate()
-	{
-		if (!freeList)
-			return nullptr;
-
-		Node* node = freeList;
-		freeList = node->next;
-		return new (&node->data) T();
-	}
-
-	void deallocate(T* ptr)
-	{
-		if (!ptr) return;
-
-		if constexpr (CallDestructor){
-			if (!Phobos::Otamaa::ExeTerminated)
-				ptr->~T();
-		}
-
-		Node* node = reinterpret_cast<Node*>(
-			reinterpret_cast<uint8_t*>(ptr) - offsetof(Node, data)
-		);
-		node->next = freeList;
-		freeList = node;
-	}
-
-	template<typename CleanupFunc>
-	void deallocate(T* ptr, CleanupFunc&& cleanup)
-	{
-		if (!ptr) return;
-
-		cleanup(ptr);
-
-		if constexpr (CallDestructor) {
-			if (!Phobos::Otamaa::ExeTerminated)
-				ptr->~T();
-		}
-
-		Node* node = reinterpret_cast<Node*>(
-			reinterpret_cast<uint8_t*>(ptr) - offsetof(Node, data)
-		);
-		node->next = freeList;
-		freeList = node;
 	}
 
 	void clear()
 	{
-		if constexpr (CallDestructor)
+		freeList.clear();
+		for (size_t i = 0; i < storage.size(); ++i)
 		{
-			if (!Phobos::Otamaa::ExeTerminated){
-				for (size_t i = 0; i < poolSize; ++i)
-					pool[i].data.~T();
-			}
-		}
-		reset();
-	}
-
-	template<typename CleanupFunc>
-	void clear(CleanupFunc&& cleanup)
-	{
-		for (size_t i = 0; i < poolSize; ++i)
-		{
-			cleanup(&pool[i].data);
-			if constexpr (CallDestructor) {
-				if (!Phobos::Otamaa::ExeTerminated)
-				pool[i].data.~T();
-			}
-		}
-		reset();
-	}
-
-	void reset()
-	{
-		freeList = nullptr;
-		for (size_t i = 0; i < poolSize; ++i)
-		{
-			pool[i].next = freeList;
-			freeList = &pool[i];
+			freeList.push_back(getPointer(i));
 		}
 	}
 
-	~ObjectPool()
+	void destroy()
 	{
-		destroy();
+		storage.clear();   // automatically frees memory
+		freeList.clear();
+		poolSize = 0;
 	}
 
-	ObjectPool(const ObjectPool&) = delete;
-	ObjectPool& operator=(const ObjectPool&) = delete;
+	template <typename... Args>
+	T* allocate(Args&&... args)
+	{
+		if (freeList.empty())
+			return nullptr;
+
+		T* ptr = freeList.back();
+		freeList.pop_back();
+
+		// Call constructor only now
+		return new (ptr) T(std::forward<Args>(args)...);
+	}
+
+	void deallocate(T* ptr) {
+		if (!ptr) return;
+		ptr->~T();
+		freeList.push_back(ptr); // you must call destructor manually before
+	}
+
+	size_t getPoolSize() const { return poolSize; }
+
+private:
+	using Storage = std::aligned_storage_t<sizeof(T), alignof(T)>;
+
+	std::vector<std::unique_ptr<Storage>> storage; // owns raw memory
+	std::vector<T*> freeList;
+	size_t poolSize = 0;
+
+	T* getPointer(size_t index) {
+		return reinterpret_cast<T*>(storage[index].get());
+	}
 };

@@ -37,7 +37,9 @@ void EBoltFake::_SetOwner(TechnoClass* pTechno, int weaponIndex)
 
 void EBoltFake::_RemoveFromOwner()
 {
-	TechnoExtContainer::Instance.Find(this->Owner)->ElectricBolts.remove(this);
+	if(!Phobos::Otamaa::ExeTerminated)
+		TechnoExtContainer::Instance.Find(this->Owner)->ElectricBolts.remove(this);
+
 	this->Owner = nullptr;
 }
 

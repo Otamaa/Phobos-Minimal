@@ -83,7 +83,9 @@ void VoxelAnimExtData::Serialize(T& Stm)
 // =============================
 // container
 VoxelAnimExtContainer VoxelAnimExtContainer::Instance;
+ObjectPool<VoxelAnimExtData> VoxelAnimExtContainer::pools;
 
+// =================================
 ASMJIT_PATCH(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);

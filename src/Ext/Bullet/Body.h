@@ -118,7 +118,7 @@ class BulletExtContainer final : public Container<BulletExtData>
 {
 public:
 	static BulletExtContainer Instance;
-	static ObjectPool<BulletExtData, true> pools;
+	static ObjectPool<BulletExtData> pools;
 
 	BulletExtData* AllocateUnchecked(BulletClass* key)
 	{

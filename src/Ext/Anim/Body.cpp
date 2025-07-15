@@ -23,7 +23,7 @@
 
 #pragma region defines
 std::list<FakeAnimClass*> FakeAnimClass::AnimsWithAttachedParticles {};
-ObjectPool<AnimExtData, true> FakeAnimClass::pools;
+ObjectPool<AnimExtData> FakeAnimClass::pools;
 
 #pragma endregion
 

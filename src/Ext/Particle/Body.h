@@ -44,7 +44,7 @@ class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
 	static ParticleExtContainer Instance;
-	static ObjectPool<ParticleExtData, true> pools;
+	static ObjectPool<ParticleExtData> pools;
 
 	ParticleExtData* AllocateUnchecked(ParticleClass* key)
 	{

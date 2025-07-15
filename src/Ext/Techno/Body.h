@@ -1079,7 +1079,7 @@ class TechnoExtContainer final : public Container<TechnoExtData>
 {
 public:
 	static TechnoExtContainer Instance;
-	static ObjectPool<TechnoExtData ,true> pools;
+	static ObjectPool<TechnoExtData> pools;
 
 	TechnoExtData* AllocateUnchecked(TechnoClass* key)
 	{

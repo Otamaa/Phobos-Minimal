@@ -4849,7 +4849,7 @@ constexpr int countSelfHealing(TechnoClass* pThis, const bool infantryHeal)
 		return count;
 	}
 
-	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
+	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign()&& (pOwner->IsHumanPlayer || pOwner->IsInPlayerControl);
 	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
 	const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
 
@@ -5113,7 +5113,7 @@ bool hasSelfHeal(TechnoClass* pThis , const bool infantryHeal)
 	if (infantryHeal ? pOwner->InfantrySelfHeal > 0 : pOwner->UnitsSelfHeal > 0)
 		return true;
 
-	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
+	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign() && (pOwner->IsHumanPlayer || pOwner->IsInPlayerControl);
 	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
 		const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
 
@@ -6394,7 +6394,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
-ObjectPool<TechnoExtData, true> TechnoExtContainer::pools;
+ObjectPool<TechnoExtData> TechnoExtContainer::pools;
 
 void TechnoExtData::InitializeConstant()
 {

@@ -536,6 +536,8 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 		if (TheMemoryPoolFactory)
 			TheMemoryPoolFactory->reset();
 
+		VoxelAnimExtContainer::pools.init(4026);
+		TeamExtContainer::pools.init(4026);
 		RadSiteExtContainer::pools.init(4026);
 		ParticleSystemExtContainer::pools.init(4026);
 		ParticleExtContainer::pools.init(4026);
