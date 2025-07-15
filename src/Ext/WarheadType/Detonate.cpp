@@ -828,6 +828,9 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 		|| !this->PhobosAttachEffects.RemoveGroups.empty()
 	)
 		this->ApplyAttachEffects(pTarget, pHouse, pOwner);
+
+	if (this->BuildingSell || this->BuildingUndeploy)
+		this->ApplyBuildingUndeploy(pTarget);
 }
 
 //void WarheadTypeExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
