@@ -1029,6 +1029,7 @@
     <ClInclude Include="src\Utilities\PhobosFixedString.h" />
     <ClInclude Include="src\Utilities\PhobosMap.h" />
     <ClInclude Include="src\Utilities\PhobosPCXFile.h" />
+    <ClInclude Include="src\Utilities\PooledContainer.h" />
     <ClInclude Include="src\Utilities\SafeLogger .h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />

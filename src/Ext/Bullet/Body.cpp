@@ -1175,6 +1175,7 @@ void BulletExtData::Serialize(T& Stm)
 // =============================
 // container
 BulletExtContainer BulletExtContainer::Instance;
+ObjectPool<BulletExtData> BulletExtContainer::pools;
 
 // =============================
 // container hooks

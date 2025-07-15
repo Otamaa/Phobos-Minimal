@@ -86,10 +86,10 @@ bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
 
 bool FakeTacticalClass::IsInSelectionRect(LTRBStruct* pRect, const TacticalSelectableStruct& selectable)
 {
-	if (selectable.Techno
-		&& selectable.Techno->IsAlive
-		&& !selectable.Techno->InLimbo
-		&& selectable.Techno->AbstractFlags & AbstractFlags::Techno
+	if (selectable.Object
+		&& selectable.Object->IsAlive
+		&& !selectable.Object->InLimbo
+		&& selectable.Object->AbstractFlags & AbstractFlags::Techno
 		)
 	{
 		int nLocalX = selectable.Point.X - this->TacticalPos.X;
@@ -101,6 +101,7 @@ bool FakeTacticalClass::IsInSelectionRect(LTRBStruct* pRect, const TacticalSelec
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -108,9 +109,9 @@ bool FakeTacticalClass::IsHighPriorityInRect(LTRBStruct* rect)
 {
 	for (const auto& selected : Array)
 	{
-		if (this->IsInSelectionRect(rect, selected) && ObjectClass_IsSelectable(selected.Techno))
+		if (this->IsInSelectionRect(rect, selected) && ObjectClass_IsSelectable(selected.Object))
 		{
-			return !TechnoTypeExtContainer::Instance.Find(selected.Techno->GetTechnoType())->LowSelectionPriority;
+			return !TechnoTypeExtContainer::Instance.Find(selected.Object->GetTechnoType())->LowSelectionPriority;
 		}
 	}
 
@@ -125,34 +126,37 @@ void FakeTacticalClass::SelectFiltered(LTRBStruct* pRect, callback_type fpCheckC
 	if (pRect->Right <= 0 || pRect->Bottom <= 0 || this->SelectableCount <= 0)
 		return;
 
-	for (const auto& selected : Array)
-	{
-		if (this->IsInSelectionRect(pRect, selected))
-		{
-			const auto pTechno = selected.Techno;
-			const auto pTechnoType = pTechno->GetTechnoType();
-			const auto TypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
+	for (const auto& selected : Array) {
 
-			if (bPriorityFiltering && TypeExt->LowSelectionPriority)
-				continue;
+		if (this->IsInSelectionRect(pRect, selected)) {
 
-			if (TypeExt && Game::IsTypeSelecting())
-				Game::UICommands_TypeSelect_7327D0(TypeExt->GetSelectionGroupID());
-			else if (fpCheckCallback)
-				(*fpCheckCallback)(pTechno);
-			else
+			const auto pObj = selected.Object;
+			auto pTechno = static_cast<TechnoClass*>(selected.Object);
+			const auto pObjType = pObj->GetType();
+
 			{
-				const auto pBldType = type_cast<BuildingTypeClass*>(pTechnoType);
-				const auto pOwner = pTechno->GetOwningHouse();
+				const auto TypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pObjType);
 
-				if (pOwner
-					&& pOwner->ControlledByCurrentPlayer()
-					&& pTechno->CanBeSelected()
-					&& (!pBldType || pBldType->IsUndeployable())
-					)
-				{
-					Unsorted::MoveFeedback = !pTechno->Select();
+				if (bPriorityFiltering && TypeExt->LowSelectionPriority)
+					continue;
+
+				if (Game::IsTypeSelecting())
+					Game::UICommands_TypeSelect_7327D0(TypeExt->GetSelectionGroupID());
+				else if (fpCheckCallback)
+					(*fpCheckCallback)(pTechno);
+				else {
+					const auto pBldType = type_cast<BuildingTypeClass*>((TechnoTypeClass*)pObjType);
+					const auto pOwner = pTechno->GetOwningHouse();
+
+					if (pOwner
+						&& pOwner->ControlledByCurrentPlayer()
+						&& pTechno->CanBeSelected()
+						&& (!pBldType || pBldType->IsUndeployable())
+						) {
+						Unsorted::MoveFeedback = !pTechno->Select();
+					}
 				}
+
 			}
 		}
 	}

@@ -130,28 +130,39 @@ ASMJIT_PATCH(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x424C3D, AnimClass_AttachTo_BuildingCoords, 0x6)
-{
-	GET(FakeAnimClass*, pThis, ESI);
-	GET(ObjectClass*, pObject, EDI);
-	LEA_STACK(CoordStruct*, pCoords, STACK_OFFS(0x34, 0xC));
-
-	if (pThis->Type) {
-		if (pThis->_GetTypeExtData() ->UseCenterCoordsIfAttached) {
-			pObject->GetRenderCoords(pCoords);
-
-			//save original coords because centering it broke damage
-			pThis->_GetExtData()->BackupCoords = pObject->GetCoords();
-
-			pCoords->X += 128;
-			pCoords->Y += 128;
-			R->EAX(pCoords);
-			return 0x424C49;
-		}
-	}
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x422BF1, AnimClass_AttachTo_AttachedCoords, 0x5)
+//{
+//	GET(FakeAnimClass*, pThis, ESI);
+//	GET_STACK(CoordStruct*, pCoords, STACK_OFFSET(0x20, 0x4));
+//
+//	pThis->OwnerObject->GetRenderCoords(pCoords);
+//	*pCoords = pCoords->operator+(pThis->Location);
+//
+//	if (pThis->Type) {
+//		auto pTypeExt = pThis->_GetTypeExtData();
+//
+//		if (pTypeExt->AttachedAnimPosition != AttachedAnimPosition::Default) {
+//
+//
+//			//save original coords because centering it broke damage
+//			//pThis->_GetExtData()->BackupCoords = pCoords->operator+(pThis->Location);
+//
+//
+//
+//			if (pTypeExt->AttachedAnimPosition & AttachedAnimPosition::Ground){
+//				pCoords->Z = MapClass::Instance->GetCellFloorHeight(pCoords);
+//			}
+//
+//			if(pTypeExt->AttachedAnimPosition & AttachedAnimPosition::Center) {
+//				pCoords->X += 128;
+//				pCoords->Y += 128;
+//			}
+//		}
+//	}
+//
+//	R->EAX(pCoords);
+//	return 0x422C31;
+//}
 
 ASMJIT_PATCH(0x423365, AnimClass_DrawIt_ExtraShadow, 0x8)
 {

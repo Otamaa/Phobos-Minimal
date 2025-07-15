@@ -27,6 +27,8 @@
 #include <TagClass.h>
 #include <numeric>
 
+#include <Misc/Ares/Hooks/Header.h>
+
 std::map<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;
 
 /*
@@ -481,7 +483,7 @@ bool TActionExtData::UnInitTechno(TActionClass* pThis, HouseClass* pHouse, Objec
 		if (pTech && pTech->IsAlive && pTech->IsOnMap && !pTech->InLimbo && !(pTech->IsCrashing || pTech->IsSinking))
 		{
 			auto pOrigOwner = pTech->GetOriginalOwner();
-			if ((pOrigOwner == pOwner && pTech->Owner == pOrigOwner) || !pTech->CaptureManager || !pTech->CaptureManager->SetOriginalOwnerToCivilian())
+			if ((pOrigOwner == pOwner && pTech->Owner == pOrigOwner) || !pTech->CaptureManager || !pTech->CaptureManager->SetOriginalOwnerToCivilian(pTech))
 			{
 				if (auto pTemp = pTech->TemporalTargetingMe)
 					pTemp->JustLetGo();
@@ -551,6 +553,30 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 	// Phobos
 	switch ((PhobosTriggerAction)pThis->ActionKind)
 	{
+	case PhobosTriggerAction::GiveCredits:
+		ret = TActionExtData::GiveCredits(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::EnableShortGame:
+		ret = TActionExtData::EnableShortGame(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::DisableShortGame:
+		ret = TActionExtData::DisableShortGame(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::MakeElite:
+		ret = TActionExtData::MakeElite(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::EnableAllyReveal:
+		ret = TActionExtData::EnableAllyReveal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::DisableAllyReveal:
+		ret = TActionExtData::DisableAllyReveal(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::DeleteObject:
+		ret = TActionExtData::DeleteObject(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::AllAssignMission:
+		ret = TActionExtData::AllAssignMission(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::SaveGame:
 		ret = TActionExtData::SaveGame(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -1313,6 +1339,91 @@ bool TActionExtData::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, O
 	return true;
 }
 
+bool TActionExtData::GiveCredits(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (HouseClass* hptr = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+		hptr->TransactMoney(pThis->Param3);
+	}
+
+	return true;
+}
+
+bool TActionExtData::EnableShortGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	GameModeOptionsClass::Instance->ShortGame = true;
+	return true;
+}
+
+bool TActionExtData::DisableShortGame(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	GameModeOptionsClass::Instance->ShortGame = false;
+	return true;
+}
+
+bool TActionExtData::MakeElite(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	for (int i = 0; i < TechnoClass::Array->Count; i++) {
+		TechnoClass* techno = TechnoClass::Array->Items[i];
+
+		if (techno->IsAlive && techno->IsOnMap && !techno->InLimbo) {
+			if (techno->AttachedTag && techno->AttachedTag->ContainsTrigger(pTrigger)) {
+				techno->Veterancy.SetElite();
+			}
+		}
+	}
+
+	return true;
+}
+
+bool TActionExtData::EnableAllyReveal(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	RulesClass::Instance->AllyReveal = true;
+	return true;
+}
+
+bool TActionExtData::DisableAllyReveal(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	RulesClass::Instance->AllyReveal = false;
+	return true;
+}
+
+bool TActionExtData::DeleteObject(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	std::set<TechnoClass*> Obj;
+
+	for (int i = 0; i < TechnoClass::Array->Count; i++) {
+		TechnoClass* techno = TechnoClass::Array->Items[i];
+
+		if (techno->IsAlive && techno->IsOnMap && !techno->InLimbo) {
+			if (techno->AttachedTag && techno->AttachedTag->ContainsTrigger(pTrigger)) {
+				Obj.emplace(techno);
+			}
+		}
+	}
+
+	for (auto pTech : Obj) {
+		pTech->UnInit();
+	}
+
+	return true;
+}
+
+bool TActionExtData::AllAssignMission(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	for (int i = 0; i < TechnoClass::Array->Count; i++) {
+		TechnoClass* techno = TechnoClass::Array->Items[i];
+
+		if (techno->IsAlive && techno->IsOnMap && !techno->InLimbo) {
+			if (techno->AttachedTag && techno->AttachedTag->ContainsTrigger(pTrigger)) {
+				techno->QueueMission((Mission)pThis->Value, true);
+			}
+		}
+	}
+
+	return true;
+}
+
+
 bool TActionExtData::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	const int iPoolID = pThis->Param3;
@@ -1909,6 +2020,46 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		ret = AresTActionExt::Retint(pThis, pTargetHouse, pSourceObject, pTrigger, plocation, DefaultColorList::Blue);
 		return true;
 	}
+	case TriggerAction::DestroyAll:{
+
+		ret = false;
+		if(pTrigger){
+			if (FakeHouseClass* pHouse = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+				pHouse->_BlowUpAll();
+				ret = 1;
+			}
+		}
+		return true;
+	}
+	case TriggerAction::DestroyAllBuildings: {
+		ret = false;
+		if (pTrigger) {
+			if (FakeHouseClass* pHouse = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+				pHouse->_BlowUpAllBuildings();
+				ret = 1;
+			}
+		}
+		return true;
+	}
+	case TriggerAction::DestroyAllLandUnits: {
+		ret = false;
+		if (pTrigger) {
+			if (HouseClass* pHouse = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+				pHouse->DestroyAllNonBuildingsNonNaval();
+				ret = 1;
+			}
+		}
+		return true;
+	}
+	case TriggerAction::DestroyAllNavalUnits: {
+		if (pTrigger) {
+			if (HouseClass* pHouse = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+				pHouse->DestroyAllNonBuildingsNaval();
+				ret = 1;
+			}
+		}
+		return true;
+	}
 	default:
 		return false;
 	}
@@ -1930,6 +2081,14 @@ NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction action)
 {
 	switch (action)
 	{
+	case PhobosTriggerAction::AllAssignMission:   return "AllAssignMission";
+	case PhobosTriggerAction::DeleteObject:       return "DeleteObject";
+	case PhobosTriggerAction::DisableAllyReveal:  return "DisableAllyReveal";
+	case PhobosTriggerAction::EnableAllyReveal:   return "EnableAllyReveal";
+	case PhobosTriggerAction::MakeElite:          return "MakeElite";
+	case PhobosTriggerAction::DisableShortGame:   return "DisableShortGame";
+	case PhobosTriggerAction::EnableShortGame:    return "EnableShortGame";
+	case PhobosTriggerAction::GiveCredits:        return "GiveCredits";
 	case PhobosTriggerAction::SaveGame: return "SaveGame";
 	case PhobosTriggerAction::EditVariable: return "EditVariable";
 	case PhobosTriggerAction::GenerateRandomNumber: return "GenerateRandomNumber";

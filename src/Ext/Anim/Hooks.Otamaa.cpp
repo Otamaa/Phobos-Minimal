@@ -370,6 +370,40 @@ void NOINLINE FakeAnimClass::_DrawTrailerAnim() {
 	}
 }
 
+CoordStruct* FakeAnimClass::__GetCenterCoords(CoordStruct* pBuffer) {
+
+	if (auto pObj = this->OwnerObject) {
+		pObj->GetRenderCoords(pBuffer);
+		*pBuffer = pBuffer->operator+(this->Location);
+
+		if (this->Type) {
+
+			auto pTypeExt = this->_GetTypeExtData();
+
+			if (pTypeExt->AttachedAnimPosition != AttachedAnimPosition::Default) {
+
+				//save original coords because centering it broke damage
+				//pThis->_GetExtData()->BackupCoords = pCoords->operator+(pThis->Location);
+
+				if (pTypeExt->AttachedAnimPosition & AttachedAnimPosition::Ground) {
+					pBuffer->Z = MapClass::Instance->GetCellFloorHeight(pBuffer);
+				}
+
+				if (pTypeExt->AttachedAnimPosition & AttachedAnimPosition::Center) {
+					pBuffer->X += 128;
+					pBuffer->Y += 128;
+				}
+			}
+		}
+	} else {
+		*pBuffer = this->Location;
+	}
+
+	return pBuffer;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7E339C , FakeAnimClass::__GetCenterCoords)
+
 void NOINLINE FakeAnimClass::_ApplyHideIfNoOre()
 {
 	if (!this->Type->HideIfNoOre)

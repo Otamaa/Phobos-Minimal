@@ -2,7 +2,7 @@
 #include <BulletClass.h>
 
 #include <Helpers/Macro.h>
-#include <Utilities/Container.h>
+#include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDef.h>
 
 #include <New/Entity/LaserTrailClass.h>
@@ -118,7 +118,36 @@ class BulletExtContainer final : public Container<BulletExtData>
 {
 public:
 	static BulletExtContainer Instance;
+	static ObjectPool<BulletExtData> pools;
 
+	BulletExtData* AllocateUnchecked(BulletClass* key)
+	{
+		BulletExtData* val = pools.allocate();
+
+		if (val) {
+			val->AttachedToObject = key;
+		}
+		else
+		{
+			Debug::FatalErrorAndExit("The amount of [BulletExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
+		}
+
+		return val;
+	}
+
+	void Remove(BulletClass* key)
+	{
+		if (BulletExtData* Item = TryFind(key))
+		{
+			RemoveExtOf(key, Item);
+		}
+	}
+
+	void RemoveExtOf(BulletClass* key, BulletExtData* Item)
+	{
+		pools.deallocate(Item);
+		this->ClearExtAttribute(key);
+	}
 	//CONSTEXPR_NOCOPY_CLASSB(BulletExtContainer, BulletExtData, "BulletClass");
 };
 

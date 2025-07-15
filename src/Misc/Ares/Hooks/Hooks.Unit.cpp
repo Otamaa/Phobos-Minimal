@@ -269,6 +269,10 @@ ASMJIT_PATCH(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
 {
 	GET(UnitClass* const, pThis, ESI);
 	GET(TechnoClass const* const, pSender, EDI);
+	GET(TechnoClass* const, pCall, EDI);
+
+	if(pThis->OnBridge && pCall->OnBridge)
+		return 0x73780F;
 
 	auto const pSenderType = pSender->GetTechnoType();
 

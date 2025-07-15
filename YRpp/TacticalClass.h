@@ -11,11 +11,11 @@
 class ObjectClass;
 struct TacticalSelectableStruct
 {
-	ObjectClass* Techno { nullptr };
+	ObjectClass* Object { nullptr };
 	Point2D Point { };
 
 	bool operator==(TacticalSelectableStruct const& rhs) const {
-		return (Point == rhs.Point) && Techno == rhs.Techno;
+		return (Point == rhs.Point) && Object == rhs.Object;
 	}
 
 	bool operator!=(TacticalSelectableStruct const& rhs) const

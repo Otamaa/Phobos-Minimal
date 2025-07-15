@@ -541,6 +541,8 @@ public:
 	Valueable<bool> AttackMove_IgnoreWeaponCheck { false };
 	Nullable<bool> AttackMove_StopWhenTargetAcquired {};
 
+	Valueable<int> PenetratesTransport_Level { 10 };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

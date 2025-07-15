@@ -1330,7 +1330,7 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
-
+ObjectPool<TeamExtData> TeamExtContainer::pools;
 // =============================
 // container hooks
 

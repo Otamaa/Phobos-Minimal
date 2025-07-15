@@ -1,6 +1,6 @@
 #pragma once
 #include <TeamClass.h>
-#include <Utilities/Container.h>
+#include <Utilities/PooledContainer.h>
 
 #include <Utilities/Iterator.h>
 #include <Utilities/MapPathCellElement.h>
@@ -91,8 +91,38 @@ class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
 	static TeamExtContainer Instance;
+	static ObjectPool<TeamExtData> pools;
 
-	//CONSTEXPR_NOCOPY_CLASSB(TeamExtContainer, TeamExtData, "TeamClass");
+	TeamExtData* AllocateUnchecked(TeamClass* key)
+	{
+		TeamExtData* val = pools.allocate();
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+		}
+		else
+		{
+			Debug::FatalErrorAndExit("The amount of [TeamExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
+		}
+
+		return val;
+	}
+
+	void Remove(TeamClass* key)
+	{
+		if (TeamExtData* Item = TryFind(key))
+		{
+			RemoveExtOf(key, Item);
+		}
+	}
+
+	void RemoveExtOf(TeamClass* key, TeamExtData* Item)
+	{
+		pools.deallocate(Item);
+		this->ClearExtAttribute(key);
+	}
+
 };
 
 class NOVTABLE FakeTeamClass : public TeamClass

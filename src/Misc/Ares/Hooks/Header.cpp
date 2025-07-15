@@ -1916,10 +1916,10 @@ UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 	}
 
 	if (pData->Image_Red && pThis->IsRedHP())
-		return pData->Image_Red;
+		return (UnitTypeClass*)pData->Image_Red.Get();
 
 	if (pData->Image_Yellow && pThis->IsYellowHP())
-		return pData->Image_Yellow;
+		return (UnitTypeClass*)pData->Image_Yellow.Get();
 
 	return nullptr;
 }
@@ -7136,54 +7136,45 @@ bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWh
 // the bool result pointer is for the result of the Event itself
 bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result)
 {
+	const AresTriggerEvents TEventKind = (AresTriggerEvents)pThis->EventKind;
+	const AresTriggerEvents ExecutedKind = (AresTriggerEvents)Args.EventType;
+	// They must be the same, but for other triggers to take effect normally, this cannot be judged outside case.
+	const auto isSameEvent = [&]() { return TEventKind == ExecutedKind; };
+
 	{
-		switch ((AresTriggerEvents)pThis->EventKind)
+		switch (TEventKind)
 		{
 		case AresTriggerEvents::UnderEMP:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent() && pTechno->EMPLockRemaining > 0;
+			return true;
+		}
 		case AresTriggerEvents::UnderEMP_ByHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value
+				&& pTechno->EMPLockRemaining > 0;
+
+			return true;
+		}
 		case AresTriggerEvents::RemoveEMP:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent() && pTechno->EMPLockRemaining <= 0;
+			return true;
+		}
 		case AresTriggerEvents::RemoveEMP_ByHouse:
 		{
 			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
-
-			if (pTechno && pThis->EventKind == Args.EventType)
-			{
-
-				switch ((AresTriggerEvents)Args.EventType)
-				{
-				case AresTriggerEvents::UnderEMP:
-				{
-					result = pTechno->EMPLockRemaining > 0;
-					return true;
-				}
-				case AresTriggerEvents::UnderEMP_ByHouse:
-				{
-					if (Args.Source && ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value)
-					{
-						result = pTechno->EMPLockRemaining > 0;
-						return true;
-					}
-					break;
-				}
-				case AresTriggerEvents::RemoveEMP:
-				{
-					result = pTechno->EMPLockRemaining <= 0;
-					return true;
-				}
-				case AresTriggerEvents::RemoveEMP_ByHouse:
-				{
-					if (Args.Source && ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value)
-					{
-						result = pTechno->EMPLockRemaining <= 0;
-						return true;
-					}
-					break;
-				}
-				}
-			}
-
-			result = false;
-			return true;
+			result = pTechno
+				&& isSameEvent()
+				&& Args.Source
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value
+				&& pTechno->EMPLockRemaining <= 0;
 		}
 		case AresTriggerEvents::EnemyInSpotlightNow:
 		{
@@ -7193,14 +7184,14 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		case AresTriggerEvents::DriverKiller:
 		{
 			result = flag_cast_to<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType;
+				&& isSameEvent();
 
 			return true;
 		}
 		case AresTriggerEvents::DriverKilled_ByHouse:
 		{
 			result = flag_cast_to<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
+				&& isSameEvent()
 				&& Args.Source
 				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
 
@@ -7209,14 +7200,14 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		case AresTriggerEvents::VehicleTaken:
 		{
 			result = flag_cast_to<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType;
+				&& isSameEvent();
 
 			return true;
 		}
 		case AresTriggerEvents::VehicleTaken_ByHouse:
 		{
 			result = flag_cast_to<FootClass*>(Args.Object)
-				&& pThis->EventKind == Args.EventType
+				&& isSameEvent()
 				&& Args.Source
 				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
 
@@ -7224,51 +7215,36 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		}
 		case AresTriggerEvents::Abducted:
 		case AresTriggerEvents::AbductSomething:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno && isSameEvent();
+			return true;
+		}
 		case AresTriggerEvents::Abducted_ByHouse:
+		{
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& (flag_cast_to<TechnoClass*>(Args.Source)
+				&& ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value);
+
+			return true;
+		}
 		case AresTriggerEvents::AbductSomething_OfHouse:
 		{
-			const auto pTechno = flag_cast_to<FootClass*>(Args.Object);
+			const auto pTechno = flag_cast_to<TechnoClass*>(Args.Object);
+			result = pTechno
+				&& isSameEvent()
+				&& (cast_to<HouseClass*>(Args.Source)
+				&& ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value);
 
-			if (pTechno && pThis->EventKind == Args.EventType)
-			{
-				switch ((AresTriggerEvents)Args.EventType)
-				{
-				case AresTriggerEvents::Abducted:
-				case AresTriggerEvents::AbductSomething:
-				{
-					result = true;
-					return true;
-				}
-				case AresTriggerEvents::Abducted_ByHouse:
-				{
-					if (flag_cast_to<TechnoClass*>(Args.Source) && ((TechnoClass*)(Args.Source))->Owner->ArrayIndex == pThis->Value)
-					{
-						result = true;
-						return true;
-					}
-
-					break;
-				}
-				case AresTriggerEvents::AbductSomething_OfHouse:
-				{
-					if (cast_to<HouseClass*>(Args.Source) && ((HouseClass*)(Args.Source))->ArrayIndex == pThis->Value)
-					{
-						result = true;
-						return true;
-					}
-
-					break;
-				}
-				}
-			}
-
-			result = false;
 			return true;
+
 		}
 		case AresTriggerEvents::SuperActivated:
 		case AresTriggerEvents::SuperDeactivated:
 		{
-			result = pThis->EventKind == Args.EventType
+			result = isSameEvent()
 				&& Args.Source
 				&& Args.Source->WhatAmI() == AbstractType::Super
 				&& ((SuperClass*)Args.Source)->Type->ArrayIndex == pThis->Value;
@@ -7283,7 +7259,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 				CellStruct Cell;
 			};
 
-			if ((pThis->EventKind == Args.EventType) && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
+			if (isSameEvent() && IS_SAME_STR_(((PackedDatas*)Args.Source)->Super->Type->ID, pThis->String))
 			{
 				const auto nCell = ScenarioClass::Instance->GetWaypointCoords(pThis->Value);
 				CellStruct nDesired = { ((PackedDatas*)Args.Source)->Cell.X - nCell.X ,((PackedDatas*)Args.Source)->Cell.Y - nCell.Y };
@@ -7323,7 +7299,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		}
 		case AresTriggerEvents::ReverseEngineerAnything:
 		{
-			result = (pThis->EventKind == Args.EventType);
+			result = isSameEvent();
 			return true;
 		}
 		case AresTriggerEvents::ReverseEngineerType:
@@ -7343,12 +7319,12 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		}
 		case AresTriggerEvents::AttackedOrDestroyedByAnybody:
 		{
-			result = (pThis->EventKind == Args.EventType);
+			result = isSameEvent();
 			return true;
 		}
 		case AresTriggerEvents::AttackedOrDestroyedByHouse:
 		{
-			result = (pThis->EventKind == Args.EventType)
+			result = isSameEvent()
 				&& Args.Source
 				&& ((TechnoClass*)Args.Source)->Owner->ArrayIndex == pThis->Value;
 
@@ -7356,7 +7332,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		}
 		case AresTriggerEvents::DestroyedByHouse:
 		{
-			result = ((AresTriggerEvents)Args.EventType == AresTriggerEvents::DestroyedByHouse)
+			result = isSameEvent()
 				&& Args.Source
 				&& ((HouseClass*)Args.Source)->ArrayIndex == pThis->Value;
 
@@ -7418,30 +7394,34 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 
 bool TunnelFuncs::FindSameTunnel(BuildingClass* pTunnel)
 {
-	const auto pOwner = pTunnel->Owner;
+	FakeHouseClass* pOwner = (FakeHouseClass*)pTunnel->Owner;
+
 	if (!pOwner)
 		return false;
 
 	//found new building
-	return pOwner->Buildings.any_of([pTunnel](BuildingClass* pBld)
-	{
-		if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
-		{
-			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-				return false;
+	return std::any_of(
+		pOwner->_GetExtData()->TunnelsBuildings.begin(),
+		pOwner->_GetExtData()->TunnelsBuildings.end(),
+		[pTunnel](BuildingClass* pBld) {
 
-			const auto nCurMission = pBld->CurrentMission;
-			if (nCurMission != Mission::Construction && nCurMission != Mission::Selling)
+			if (pTunnel != pBld && pBld->Health > 0 && !pBld->InLimbo && pBld->IsOnMap)
 			{
-				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->TunnelType == BuildingTypeExtContainer::Instance.Find(pTunnel->Type)->TunnelType)
+				if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+					return false;
+
+				const auto nCurMission = pBld->CurrentMission;
+				if (nCurMission != Mission::Construction && nCurMission != Mission::Selling)
 				{
-					return true;
+					if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->TunnelType == BuildingTypeExtContainer::Instance.Find(pTunnel->Type)->TunnelType)
+					{
+						return true;
+					}
 				}
 			}
-		}
 
-		return false;
-	});
+			return false;
+		});
 }
 
 void TunnelFuncs::KillFootClass(FootClass* pFoot, TechnoClass* pKiller)

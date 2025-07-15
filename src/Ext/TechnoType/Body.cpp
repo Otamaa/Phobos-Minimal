@@ -1417,7 +1417,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->DistributeTargetingFrame.Read(exINI, pSection, "DistributeTargetingFrame");
 		this->AIAttackMoveTargetingDelay.Read(exINI, pSection, "AIAttackMoveTargetingDelay");
 		this->PlayerAttackMoveTargetingDelay.Read(exINI, pSection, "PlayerAttackMoveTargetingDelay");
-	
+
 		this->CanBeBuiltOn.Read(exINI, pSection, "CanBeBuiltOn");
 		this->UnitBaseNormal.Read(exINI, pSection, "UnitBaseNormal");
 		this->UnitBaseForAllyBuilding.Read(exINI, pSection, "UnitBaseForAllyBuilding");
@@ -1748,7 +1748,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->RecuitedAs.Read(exINI, pSection, "Recruited.As");
 
 		this->AttackMove_Follow_IfMindControlIsFull.Read(exINI, pSection, "AttackMove.Follow.IfMindControlIsFull");
-
+		this->PenetratesTransport_Level.Read(exINI, pSection, "PenetratesTransport.Level");
+		this->PenetratesTransport_PassThroughMultiplier.Read(exINI, pSection, "PenetratesTransport.PassThroughMultiplier");
+		this->PenetratesTransport_FatalRateMultiplier.Read(exINI, pSection, "PenetratesTransport.FatalRateMultiplier");
+		this->PenetratesTransport_DamageMultiplier.Read(exINI, pSection, "PenetratesTransport.DamageMultiplier");
 	}
 
 	// Art tags
@@ -2989,6 +2992,11 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->ForceAAWeapon_Aircraft)
 
 		.Process(this->AttackMove_Follow_IfMindControlIsFull)
+
+		.Process(this->PenetratesTransport_Level)
+		.Process(this->PenetratesTransport_PassThroughMultiplier)
+		.Process(this->PenetratesTransport_FatalRateMultiplier)
+		.Process(this->PenetratesTransport_DamageMultiplier)
 		;
 }
 

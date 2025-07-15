@@ -38,7 +38,6 @@ CDTimerClass HouseExtData::SubTerraneanEVASpeak;
 
 bool HouseExtData::IsAnyFirestormActive;
 
-
 HouseClass* HouseExtContainer::Civilian = nullptr;
 HouseClass* HouseExtContainer::Special = nullptr;
 HouseClass* HouseExtContainer::Neutral = nullptr;
@@ -917,11 +916,13 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
 	AnnounceInvalidPointer(Academies, ptr, bRemoved);
-	AnnounceInvalidPointer<BuildingClass*>(RestrictedFactoryPlants, ptr, bRemoved);
+	AnnounceInvalidPointer(TunnelsBuildings, ptr, bRemoved);
+	AnnounceInvalidPointer(RestrictedFactoryPlants, ptr, bRemoved);
 	AnnounceInvalidPointer(OwnedCountedHarvesters, ptr, bRemoved);
 
-	for (auto& nTun : Tunnels)
-		AnnounceInvalidPointer(nTun.Vector, ptr, bRemoved);
+	for (auto& nTun : Tunnels){
+		AnnounceInvalidPointer<FootClass*>(nTun.Vector, ptr, bRemoved);
+	}
 
 	AnnounceInvalidPointer<SuperClass*>(Batteries, ptr);
 }
@@ -2164,6 +2165,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->FactoryOwners_GatheredPlansOf, true)
 		.Process(this->Academies, true)
 		.Process(this->Reversed, true)
+		.Process(this->TunnelsBuildings, true)
 		.Process(this->OwnedCountedHarvesters)
 
 		.Process(this->Is_NavalYardSpied)
@@ -2493,6 +2495,219 @@ void FakeHouseClass::_AITryFireSW() {
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x504790, FakeHouseClass::_UpdateAngerNodes)
+
+void FakeHouseClass::_BlowUpAll() {
+	//safer way
+	std::set<TechnoClass*> toBlowUp;
+
+	for (int i = 0; i < TechnoClass::Array->Count; ++i) {
+
+		TechnoClass* techno = TechnoClass::Array->Items[i];
+
+		if (!techno->IsAlive || techno->IsCrashing || techno->IsSinking) {
+			continue;
+		}
+
+		const auto nUnit = cast_to<UnitClass*, false>(techno);
+		if (nUnit && nUnit->DeathFrameCounter > 0) {
+			continue;
+		}
+
+		HouseClass* myOwner = techno->GetOriginalOwner();
+		HouseClass* currentHouse = this;
+
+		const bool isNotOwnedByCurrentHouse = (myOwner != techno->Owner);
+		const bool hasOriginalOwner = (techno->MindControlledBy != nullptr);
+		const bool shouldSetToCivilian = hasOriginalOwner && techno->MindControlledBy->CaptureManager->SetOriginalOwnerToCivilian(techno);
+
+		if (isNotOwnedByCurrentHouse &&
+			(myOwner != currentHouse || shouldSetToCivilian)
+			|| myOwner != currentHouse) {
+			continue;
+		}
+
+		toBlowUp.emplace(techno);
+	}
+
+	// Blow them up afterwards
+	for (TechnoClass* techno : toBlowUp) {
+
+		if (!techno->IsAlive || techno->IsCrashing || techno->IsSinking) {
+			continue;
+		}
+
+		const auto nUnit = cast_to<UnitClass*, false>(techno);
+		if (nUnit && nUnit->DeathFrameCounter > 0) {
+			continue;
+		}
+
+		if (TemporalClass* temporal = techno->TemporalTargetingMe) {
+			temporal->JustLetGo();
+		}
+
+		bool skipDoingDamage = false;
+
+		if (auto pBld = cast_to<BuildingClass* , false>(techno)) {
+			// do not return structures in campaigns
+			if (!SessionClass::Instance->IsCampaign()) {
+				// was the building owned by a neutral country?
+				auto pInitialOwner = pBld->InitialOwner;
+
+				if (!pInitialOwner || pInitialOwner->Type->MultiplayPassive) {
+					auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+
+					auto occupants = pBld->GetOccupantCount();
+					auto canReturn = (pInitialOwner != this) || occupants > 0;
+
+					if (canReturn && pExt->Returnable.Get(RulesExtData::Instance()->ReturnStructures)) {
+						// this may change owner
+						if (occupants) {
+							pBld->KillOccupants(nullptr);
+						}
+
+						// don't do this when killing occupants already changed owner
+						if (pBld->GetOwningHouse() == this)
+						{
+							// fallback to first civilian side house, same logic SlaveManager uses
+							if (!pInitialOwner)
+							{
+								pInitialOwner = HouseClass::FindCivilianSide();
+							}
+
+							// give to other house and disable
+							if (pInitialOwner && pBld->SetOwningHouse(pInitialOwner, false))
+							{
+								pBld->Guard();
+
+								if (pBld->Type->NeedsEngineer)
+								{
+									pBld->HasEngineer = false;
+									pBld->DisableStuff();
+								}
+
+								skipDoingDamage = true;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!skipDoingDamage) {
+			int damage = techno->GetTechnoType()->Strength;
+			techno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4F87FA, FakeHouseClass::_BlowUpAll)
+DEFINE_FUNCTION_JUMP(CALL, 0x4F8F7B, FakeHouseClass::_BlowUpAll)
+DEFINE_FUNCTION_JUMP(CALL, 0x6E31C8, FakeHouseClass::_BlowUpAll)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4FC6D0, FakeHouseClass::_BlowUpAll)
+
+
+void FakeHouseClass::_BlowUpAllBuildings() {
+	//safer way
+	std::set<BuildingClass*> toBlowUp;
+
+	for (int i = 0; i < BuildingClass::Array->Count; ++i)
+	{
+		BuildingClass* techno = BuildingClass::Array->Items[i];
+
+		if (!techno->IsAlive) {
+			continue;
+		}
+
+		HouseClass* myOwner = techno->GetOriginalOwner();
+		HouseClass* currentHouse = this;
+
+		const bool isNotOwnedByCurrentHouse = (myOwner != techno->Owner);
+		const bool hasOriginalOwner = (techno->MindControlledBy != nullptr);
+		const bool shouldSetToCivilian = hasOriginalOwner && techno->MindControlledBy->CaptureManager->SetOriginalOwnerToCivilian(techno);
+
+		if (isNotOwnedByCurrentHouse &&
+			(myOwner != currentHouse || shouldSetToCivilian)
+			|| myOwner != currentHouse)
+		{
+			continue;
+		}
+
+		toBlowUp.emplace(techno);
+	}
+
+	// Blow them up afterwards
+	for (BuildingClass* pBld : toBlowUp) {
+
+		if (!pBld->IsAlive) {
+			continue;
+		}
+
+		if (TemporalClass* temporal = pBld->TemporalTargetingMe) {
+			temporal->JustLetGo();
+		}
+
+		bool skipDoingDamage = false;
+
+		{
+			// do not return structures in campaigns
+			if (!SessionClass::Instance->IsCampaign())
+			{
+				// was the building owned by a neutral country?
+				auto pInitialOwner = pBld->InitialOwner;
+
+				if (!pInitialOwner || pInitialOwner->Type->MultiplayPassive)
+				{
+					auto pExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+
+					auto occupants = pBld->GetOccupantCount();
+					auto canReturn = (pInitialOwner != this) || occupants > 0;
+
+					if (canReturn && pExt->Returnable.Get(RulesExtData::Instance()->ReturnStructures))
+					{
+						// this may change owner
+						if (occupants)
+						{
+							pBld->KillOccupants(nullptr);
+						}
+
+						// don't do this when killing occupants already changed owner
+						if (pBld->GetOwningHouse() == this)
+						{
+							// fallback to first civilian side house, same logic SlaveManager uses
+							if (!pInitialOwner)
+							{
+								pInitialOwner = HouseClass::FindCivilianSide();
+							}
+
+							// give to other house and disable
+							if (pInitialOwner && pBld->SetOwningHouse(pInitialOwner, false))
+							{
+								pBld->Guard();
+
+								if (pBld->Type->NeedsEngineer)
+								{
+									pBld->HasEngineer = false;
+									pBld->DisableStuff();
+								}
+
+								skipDoingDamage = true;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!skipDoingDamage)
+		{
+			int damage = pBld->GetTechnoType()->Strength;
+			pBld->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x6E3228, FakeHouseClass::_BlowUpAllBuildings)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4FC790, FakeHouseClass::_BlowUpAllBuildings)
 
 #include <Ext/Infantry/Body.h>
 

@@ -36,6 +36,103 @@ bool SpawnerMain::Configs::DoSave;
 int SpawnerMain::Configs::NextAutoSaveFrame { -1 };
 int SpawnerMain::Configs::NextAutoSaveNumber;
 
+SpawnerMain::GameConfigs::GameConfigs()
+	: MPModeIndex { 1 }
+	, Bases { true }
+	, Credits { 10000 }
+	, BridgeDestroy { true }
+	, Crates { false }
+	, ShortGame { false }
+	, SuperWeapons { true }
+	, BuildOffAlly { false }
+	, GameSpeed { 0 }
+	, MultiEngineer { false }
+	, UnitCount { 0 }
+	, AIPlayers { 0 }
+	, AIDifficulty { 1 }
+	, AlliesAllowed { false }
+	, HarvesterTruce { false }
+	, FogOfWar { false }
+	, MCVRedeploy { true }
+	, UIGameMode { L"" }
+
+	// SaveGame
+	, LoadSaveGame { false }
+	, SavedGameDir { "Saved Games" }
+	, SaveGameName { "" }
+
+	, AutoSaveCount { -1 }
+	, AutoSaveInterval { 7200 }
+	, NextAutoSaveNumber { 0 }
+
+	, CustomMissionID { 0 }
+	// Scenario Options
+	, Seed { 0 }
+	, TechLevel { 10 }
+	, IsCampaign { false }
+	, Tournament { 0 }
+	, WOLGameID { 0xDEADBEEF }
+	, ScenarioName { "spawnmap.ini" }
+	, MapHash { "" }
+	, UIMapName { L"" }
+
+	// Network Options
+	, Protocol { 2 }
+	, FrameSendRate { 4 }
+	, ReconnectTimeout { 2400 }
+	, ConnTimeout { 3600 }
+	, MaxAhead { -1 }
+	, PreCalcMaxAhead { 0 }
+	, MaxLatencyLevel { 0xFF }
+
+	// Tunnel Options
+	, TunnelId { 0 }
+	, TunnelIp { "0.0.0.0" }
+	, TunnelPort { 0 }
+	, ListenPort { 1234 }
+
+	// Players Options
+	, Players {
+		PlayerConfig(),
+		PlayerConfig(),
+		PlayerConfig(),
+		PlayerConfig(),
+
+		PlayerConfig(),
+		PlayerConfig(),
+		PlayerConfig(),
+		PlayerConfig()
+	}
+
+	// Houses Options
+	, Houses {
+		HouseConfig(),
+		HouseConfig(),
+		HouseConfig(),
+		HouseConfig(),
+
+		HouseConfig(),
+		HouseConfig(),
+		HouseConfig(),
+		HouseConfig()
+	}
+
+	// Extended Options
+	, QuickMatch { false }
+	, SpawnerHackMPNodes { false }
+	, SkipScoreScreen { Configs::m_Ptr.SkipScoreScreen }
+	, WriteStatistics { false }
+	, AINamesByDifficulty { false }
+	, ContinueWithoutHumans { false }
+	, DefeatedBecomesObserver { false }
+	, Observer_ShowAIOnSidebar { true }
+	, Observer_ShowMultiplayPassive { false }
+	// Custom Mixes
+	, PreloadMixes {}
+	, PostloadMixes {}
+{
+}
+
 #pragma endregion
 
 FORCEDINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, std::list<std::string>& strings)

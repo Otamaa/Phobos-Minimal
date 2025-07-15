@@ -173,7 +173,13 @@ ASMJIT_PATCH(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) /
 // 	return 0;
 // }
 
-
+//ASMJIT_PATCH(0x440580, BuildingClass_Unlimbo_Addition, 0x5)
+//{
+//	GET(FakeBuildingClass* const, pThis, ESI);
+//	FakeHouseClass* pHouse = (FakeHouseClass*)pThis->Owner;
+//	pHouse->_GetExtData()->TunnelsBuildings.emplace(pThis);
+//	return 0x0;
+//}
 
 ASMJIT_PATCH(0x440B4F, BuildingClass_Unlimbo_SetShouldRebuild, 0x5)
 {

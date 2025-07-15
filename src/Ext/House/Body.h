@@ -51,7 +51,7 @@ struct LauchData
 
 struct TunnelData
 {
-	std::vector<FootClass*> Vector;
+	HelperedVector<FootClass*> Vector;
 	int MaxCap;
 
 	COMPILETIMEEVAL TunnelData() noexcept : Vector {}, MaxCap { 1 } { }
@@ -146,6 +146,7 @@ public:
 	IndexBitfield<HouseClass*> RadarPersist {};
 	std::set<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
 	std::set<BuildingClass*> Academies {};
+	std::set<BuildingClass*> TunnelsBuildings {};
 	std::set<TechnoTypeClass*> Reversed {};
 	std::set<TechnoClass*> OwnedCountedHarvesters {};
 
@@ -424,6 +425,8 @@ public:
 	bool _IsIonCannonEligibleTarget(TechnoClass* pTechno) const;
 	void _UpdateAngerNodes(int score_add, HouseClass* pHouse);
 	void _AITryFireSW();
+	void _BlowUpAll();
+	void _BlowUpAllBuildings();
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + HouseExtData::ExtOffset);

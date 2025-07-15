@@ -23,6 +23,8 @@
 
 #pragma region defines
 std::list<FakeAnimClass*> FakeAnimClass::AnimsWithAttachedParticles {};
+ObjectPool<AnimExtData> FakeAnimClass::pools;
+
 #pragma endregion
 
 //std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
@@ -380,6 +382,17 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 
 	if (!pTypeExt->Damage_TargetFlag.isset())
 	{
+		if (pThis->AttachedBullet)
+			return pThis->AttachedBullet->Owner;
+
+		if(pThis->OwnerObject) {
+
+			if (auto const pBullet = cast_to<BulletClass* ,false>(pThis->OwnerObject))
+				return pBullet->Owner;
+			else
+				return pThis->OwnerObject;
+		}
+
 		return MapClass::Instance->GetCellAt(pThis->GetCoords());
 	}
 

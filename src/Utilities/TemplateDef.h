@@ -892,6 +892,29 @@ namespace detail
 
 		return false;
 	}
+
+	template <>
+	inline bool read<AttachedAnimPosition>(AttachedAnimPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey)) {
+			for (const auto& [val, name] : EnumFunctions::AttachedAnimPosition_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), name.data())) {
+					value |= val;
+					return true;
+				}
+			}
+
+			if(IS_SAME_STR_(parser.value(), "centre")) {
+				value |= AttachedAnimPosition::Center;
+				return true;
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimPosition type");
+		}
+
+		return false;
+	}
+
 	template <>
 	OPTIONALINLINE bool read<Rank>(Rank& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{

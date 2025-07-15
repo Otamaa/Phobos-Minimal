@@ -4849,7 +4849,7 @@ constexpr int countSelfHealing(TechnoClass* pThis, const bool infantryHeal)
 		return count;
 	}
 
-	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
+	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign()&& (pOwner->IsHumanPlayer || pOwner->IsInPlayerControl);
 	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
 	const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
 
@@ -5113,7 +5113,7 @@ bool hasSelfHeal(TechnoClass* pThis , const bool infantryHeal)
 	if (infantryHeal ? pOwner->InfantrySelfHeal > 0 : pOwner->UnitsSelfHeal > 0)
 		return true;
 
-	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign();
+	const bool allowPlayerControl = RulesExtData::Instance()->GainSelfHealFromPlayerControl && SessionClass::IsCampaign() && (pOwner->IsHumanPlayer || pOwner->IsInPlayerControl);
 	const bool allowAlliesInCampaign = RulesExtData::Instance()->GainSelfHealFromAllies && SessionClass::IsCampaign();
 		const bool allowAlliesDefault = RulesExtData::Instance()->GainSelfHealFromAllies && !SessionClass::IsCampaign();
 
@@ -5561,7 +5561,7 @@ void TechnoExtData::UpdateShield()
 	if (this->CurrentShieldType && this->CurrentShieldType->Strength && !this->Shield)
 	{
 		this->Shield = std::make_unique<ShieldClass>(pThis);
-		//this->Shield->OnInit();
+		this->Shield->UpdateTint();
 	}
 
 	if (const  auto pShieldData = this->GetShield())
@@ -6394,6 +6394,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
+ObjectPool<TechnoExtData> TechnoExtContainer::pools;
 
 void TechnoExtData::InitializeConstant()
 {
@@ -6609,6 +6610,9 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ECX);
 
+	FakeHouseClass* pOwner = (FakeHouseClass*)pItem->Owner;
+	auto pOwnerExt = pOwner->_GetExtData();
+
 	HouseExtData::AutoDeathObjects.erase_all_if([pItem](std::pair<TechnoClass*, KillMethod>& item) {
 		return item.first == pItem;
 	});
@@ -6616,8 +6620,16 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 	HouseExtData::LimboTechno.erase(pItem);
 	const auto pExt = TechnoExtContainer::Instance.Find(pItem);
 
-	if (RulesExtData::Instance()->ExtendedBuildingPlacing && pExt->AbsType == AbstractType::Unit && ((UnitClass*)pItem)->Type->DeploysInto) {
-		HouseExtContainer::Instance.Find(pItem->Owner)->OwnedDeployingUnits.remove((UnitClass*)pItem);
+	pOwnerExt->OwnedCountedHarvesters.erase(pItem);
+
+	if(pExt->AbsType != AbstractType::Building) {
+		for (auto& tun : pOwnerExt->Tunnels) {
+			tun.Vector.remove((FootClass*)pItem);
+		}
+
+		if (RulesExtData::Instance()->ExtendedBuildingPlacing && pExt->AbsType == AbstractType::Unit && ((UnitClass*)pItem)->Type->DeploysInto) {
+			pOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pItem);
+		}
 	}
 
 	TechnoExtContainer::Instance.RemoveExtOf(pItem , pExt);

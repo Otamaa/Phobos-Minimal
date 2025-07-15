@@ -35,7 +35,7 @@ public:
 	Valueable<int> XDrawOffset { 0 };
 	Valueable<int> HideIfNoOre_Threshold { 0 };
 	Nullable<bool> Layer_UseObjectLayer {};
-	Valueable<bool> UseCenterCoordsIfAttached { false };
+	Valueable<AttachedAnimPosition> AttachedAnimPosition { AttachedAnimPosition::Default };
 
 	Valueable<WeaponTypeClass*> Weapon { nullptr };
 	Valueable<WeaponTypeClass*> WeaponToCarry {};

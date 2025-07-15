@@ -14,6 +14,8 @@
 
 void BuildingExtData::InitializeConstant()
 {
+	FakeHouseClass* pHouse = (FakeHouseClass*)this->AttachedToObject->Owner;
+
 	this->MyPrismForwarding = std::make_unique<PrismForwarding>();
 	this->MyPrismForwarding->Owner = this->AttachedToObject;
 	this->TechnoExt = TechnoExtContainer::Instance.Find(this->AttachedToObject);
@@ -22,6 +24,9 @@ void BuildingExtData::InitializeConstant()
 
 	if(!pTypeExt->DamageFire_Offs.empty())
 		this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+
+	pHouse->_GetExtData()->TunnelsBuildings.emplace(this->AttachedToObject);
+
 }
 
 void BuildingExtData::UpdateMainEvaVoice()
@@ -1151,6 +1156,13 @@ ASMJIT_PATCH(0x43BCBD, BuildingClass_CTOR, 0x6)
 ASMJIT_PATCH(0x43C022, BuildingClass_DTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
+
+	FakeHouseClass* pOwner = (FakeHouseClass*)pItem->Owner;
+	auto pOwnerExt = pOwner->_GetExtData();
+
+	pOwnerExt->TunnelsBuildings.erase(pItem);
+	pOwnerExt->Academies.erase(pItem);
+	pOwnerExt->RestrictedFactoryPlants.erase(pItem);
 
 	BuildingExtContainer::Instance.Remove(pItem);
 	return 0;

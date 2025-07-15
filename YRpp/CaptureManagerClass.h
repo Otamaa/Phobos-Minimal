@@ -89,7 +89,8 @@ public:
 		{ JMP_THIS(0x471F90); }
 	bool CanControlOnlyOne() const
 		{ return MaxControlNodes == 1; }
-	bool SetOriginalOwnerToCivilian() const
+
+	bool SetOriginalOwnerToCivilian(TechnoClass* pTarget) const
 		{ JMP_THIS(0x472330); }
 
 	//Constructor

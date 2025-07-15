@@ -16,6 +16,7 @@ class EnumFunctions final
 	NO_CONSTRUCT_CLASS(EnumFunctions)
 public:
 
+	static constexpr auto AttachedAnimPosition_ToStrings = magic_enum::enum_entries<AttachedAnimPosition>();
 	static constexpr auto LaserTrailDrawType_ToStrings = magic_enum::enum_entries<LaserTrailDrawType>();
 	static constexpr auto OwnerHouseKind_ToStrings = magic_enum::enum_entries<OwnerHouseKind>();
 	static std::array<const char* const, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings;

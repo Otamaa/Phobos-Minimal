@@ -2,7 +2,7 @@
 
 #include <VoxelAnimClass.h>
 
-#include <Utilities/Container.h>
+#include <Utilities/PooledContainer.h>
 #include <Utilities/SavegameDef.h>
 
 #include <New/Entity/LaserTrailClass.h>
@@ -54,8 +54,37 @@ class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
 {
 public:
 	static VoxelAnimExtContainer Instance;
+	static ObjectPool<VoxelAnimExtData> pools;
 
-	//CONSTEXPR_NOCOPY_CLASSB(VoxelAnimExtContainer, VoxelAnimExtData, "VoxelAnimClass");
+	VoxelAnimExtData* AllocateUnchecked(VoxelAnimClass* key)
+	{
+		VoxelAnimExtData* val = pools.allocate();
+
+		if (val)
+		{
+			val->AttachedToObject = key;
+		}
+		else
+		{
+			Debug::FatalErrorAndExit("The amount of [VoxelAnimExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
+		}
+
+		return val;
+	}
+
+	void Remove(VoxelAnimClass* key)
+	{
+		if (VoxelAnimExtData* Item = TryFind(key))
+		{
+			RemoveExtOf(key, Item);
+		}
+	}
+
+	void RemoveExtOf(VoxelAnimClass* key, VoxelAnimExtData* Item)
+	{
+		pools.deallocate(Item);
+		this->ClearExtAttribute(key);
+	}
 };
 
 class VoxelAnimTypeExtData;
