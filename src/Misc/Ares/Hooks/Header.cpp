@@ -3195,12 +3195,8 @@ void TechnoExt_ExtData::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, Hous
 	if (!pTechno->IsAlive || health <= 0 || pTechno->IsSinking || pTechno->IsCrashing)
 		return;
 
-	if (pTechno->TemporalTargetingMe)
-	{
-		pTechno->Limbo();
-		pTechno->Destroyed(pTechno->TemporalImUsing->Owner);
-		TechnoExtData::HandleRemove(pTechno, pKiller, false, false);
-		return;
+	if (auto pTemp = pTechno->TemporalTargetingMe) {
+		pTemp->JustLetGo();
 	}
 
 	pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
