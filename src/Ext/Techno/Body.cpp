@@ -3014,19 +3014,19 @@ double TechnoExtData::GetDamageMult(TechnoClass* pSource, double damageIn , bool
 const BurstFLHBundle* TechnoExtData::PickFLHs(TechnoClass* pThis, int weaponidx)
 {
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	std::vector<BurstFLHBundle>* res  = &pExt->WeaponBurstFLHs;
+	std::span<BurstFLHBundle> res  = pExt->WeaponBurstFLHs;
 
 	if (pThis->WhatAmI() == InfantryClass::AbsID) {
 		if (((InfantryClass*)pThis)->IsDeployed() && !pExt->DeployedWeaponBurstFLHs.empty())
-			res = &pExt->DeployedWeaponBurstFLHs;
+			res = pExt->DeployedWeaponBurstFLHs;
 		else if (((InfantryClass*)pThis)->Crawling && !pExt->CrouchedWeaponBurstFLHs.empty())
-			res = &pExt->CrouchedWeaponBurstFLHs;
+			res = pExt->CrouchedWeaponBurstFLHs;
 	}
 
-	if (res->empty() || res->size() <= (size_t)weaponidx)
+	if (res.empty() || res.size() <= (size_t)weaponidx)
 		return nullptr;
 
-	return &(*res)[weaponidx];
+	return &res[weaponidx];
 }
 
 std::pair<bool, CoordStruct> TechnoExtData::GetBurstFLH(TechnoClass* pThis, int weaponIndex)
@@ -3034,15 +3034,15 @@ std::pair<bool, CoordStruct> TechnoExtData::GetBurstFLH(TechnoClass* pThis, int 
 	if (!pThis || weaponIndex < 0)
 		return { false ,  CoordStruct::Empty };
 
-	const auto pickedFLHs = PickFLHs(pThis ,weaponIndex);
+	auto pickedFLHs = PickFLHs(pThis ,weaponIndex);
 
 	if(!pickedFLHs)
 		return  { false ,  CoordStruct::Empty };
 
-	const std::vector<CoordStruct>* selected = (pThis->Veterancy.IsElite() ? &pickedFLHs->EFlh : &pickedFLHs->Flh);
+	std::span<const CoordStruct> selected = pThis->Veterancy.IsElite() ? pickedFLHs->EFlh : pickedFLHs->Flh;
 
-	if (!selected->empty() && (size_t)pThis->CurrentBurstIndex < selected->size()) {
-		return { true , (*selected)[pThis->CurrentBurstIndex] };
+	if (!selected.empty() && (size_t)pThis->CurrentBurstIndex < selected.size()) {
+		return { true , selected[pThis->CurrentBurstIndex] };
 	}
 
 	return { false , CoordStruct::Empty };
@@ -4155,7 +4155,7 @@ bool TechnoExtData::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeapo
 
 Matrix3D TechnoExtData::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey)
 {
-	Matrix3D Mtx = Matrix3D::GetIdentity();
+	Matrix3D Mtx {};
 	// Step 1: get body transform matrix
 	if (pThis && (pThis->AbstractFlags & AbstractFlags::Foot) && ((FootClass*)pThis)->Locomotor) {
 		((FootClass*)pThis)->Locomotor.GetInterfacePtr()->Draw_Matrix(&Mtx, pKey);
@@ -4163,7 +4163,7 @@ Matrix3D TechnoExtData::GetTransform(TechnoClass* pThis, VoxelIndexKey* pKey)
 	}
 
 	// no locomotor means no rotation or transform of any kind (f.ex. buildings) - Kerbiter
-	return 	Mtx;
+	return Matrix3D::GetIdentity();
 }
 
 // reversed from 6F3D60
@@ -4190,8 +4190,10 @@ CoordStruct TechnoExtData::GetFLHAbsoluteCoords(TechnoClass* pThis, const CoordS
 
 	Vector3D<float> result {};
 	Matrix3D::MatrixMultiply(&result, &mtx, &Vector3D<float>::Empty);
-	// Resulting coords are mirrored along X axis, so we mirror it back
+	 //Resulting coords are mirrored along X axis, so we mirror it back
 	result.Y *= -1;
+
+	//auto result = mtx.GetTranslation();
 
 	// Step 5: apply as an offset to global object coords
 	CoordStruct location = pThis->GetRenderCoords();
