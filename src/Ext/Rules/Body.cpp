@@ -692,15 +692,29 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	// for (auto pBullet : *BulletTypeClass::Array) {
-	//
-	// 	auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
-	//
-	// 	if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
-	// 		Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);
-	// 		Debug::RegisterParserError();
-	// 	}
-	// }
+	 for (auto pBullet : *BulletTypeClass::Array) {
+
+		 if(pBullet->Voxel && !pBullet->MainVoxel.VXL) {
+			 Debug::LogInfo("Bullet[{}] has no valid VXL !", pBullet->ID);
+			 pBullet->Voxel = false;//shp bullet has image checking
+			 Debug::RegisterParserError();
+		 }
+		 else if (pBullet->Voxel && pBullet->MainVoxel.VXL && !pBullet->MainVoxel.HVA) {
+			 Debug::LogInfo("Bullet[{}] has no valid HVA !", pBullet->ID);
+			 Debug::RegisterParserError();
+		 }
+		 else if (!pBullet->Voxel && !pBullet->GetImage()) {
+			 Debug::LogInfo("Bullet[{}] has no valid SHP !", pBullet->ID);
+			 Debug::RegisterParserError();
+		 }
+
+	 	auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
+
+	 	//if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
+	 	//	Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);
+	 	//	Debug::RegisterParserError();
+	 	//}
+	 }
 
 	for (auto pHouse : *HouseTypeClass::Array)
 	{
@@ -750,6 +764,10 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	}
 
 	for (auto pAnim : *AnimTypeClass::Array) {
+
+		if (!pAnim->ID || !strlen(pAnim->ID))
+			Debug::FatalError("Empty name Anim [%x]! " , pAnim);
+
 		if (!pAnim->GetImage()) {
 			Debug::LogInfo("Anim[{}] Has no proper Image!", pAnim->ID);
 			Debug::RegisterParserError();
@@ -811,6 +829,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AttackMove_IgnoreWeaponCheck.Read(exINI, GameStrings::General, "AttackMove.IgnoreWeaponCheck");
 	this->AttackMove_StopWhenTargetAcquired.Read(exINI, GameStrings::General, "AttackMove.StopWhenTargetAcquired");
 	this->PenetratesTransport_Level.Read(exINI, GameStrings::CombatDamage, "PenetratesTransport.Level");
+	this->DamageWallRecursivly.Read(exINI, GameStrings::CombatDamage, "DamageWallRecursivly");
+	this->AirstrikeLineZAdjust.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineZAdjust");
+	this->AdjacentWallDamage.Read(exINI, GameStrings::CombatDamage, "AdjacentWallDamage");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -1633,6 +1654,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AttackMove_IgnoreWeaponCheck)
 		.Process(this->AttackMove_StopWhenTargetAcquired)
 		.Process(this->PenetratesTransport_Level)
+		.Process(this->DamageWallRecursivly)
+		.Process(this->AirstrikeLineZAdjust)
+		.Process(this->AdjacentWallDamage)
 		;
 
 	MyPutData.Serialize(Stm);

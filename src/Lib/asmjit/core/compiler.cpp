@@ -27,18 +27,18 @@ class GlobalConstPoolPass : public Pass {
 public:
   using Base = Pass;
 
-  GlobalConstPoolPass() noexcept : Pass("GlobalConstPoolPass") {}
+  GlobalConstPoolPass(BaseCompiler& cc) noexcept : Pass(cc, "GlobalConstPoolPass") {}
 
   Error run(Zone* zone, Logger* logger) override {
     DebugUtils::unused(zone, logger);
 
     // Flush the global constant pool.
-    BaseCompiler* compiler = static_cast<BaseCompiler*>(_cb);
-    ConstPoolNode* globalConstPool = compiler->_constPools[uint32_t(ConstPoolScope::kGlobal)];
+    BaseCompiler& compiler = static_cast<BaseCompiler&>(_cb);
+    ConstPoolNode* globalConstPool = compiler._constPools[uint32_t(ConstPoolScope::kGlobal)];
 
     if (globalConstPool) {
-      compiler->addAfter(globalConstPool, compiler->lastNode());
-      compiler->_constPools[uint32_t(ConstPoolScope::kGlobal)] = nullptr;
+      compiler.addAfter(globalConstPool, compiler.lastNode());
+      compiler._constPools[uint32_t(ConstPoolScope::kGlobal)] = nullptr;
     }
 
     return kErrorOk;
@@ -154,7 +154,7 @@ FuncNode* BaseCompiler::addFunc(FuncNode* func) {
   addNode(func->exitNode()); // Function exit label.
   addNode(func->endNode());  // Function end sentinel.
 
-  _setCursor(prev);
+  setCursor(prev);
   return func;
 }
 
@@ -229,9 +229,9 @@ Error BaseCompiler::addInvokeNode(InvokeNode** out, InstId instId, const Operand
 
 Error BaseCompiler::newVirtReg(VirtReg** out, TypeId typeId, OperandSignature signature, const char* name) {
   *out = nullptr;
-  uint32_t index = _vRegArray.size();
+  size_t index = _vRegArray.size();
 
-  if (ASMJIT_UNLIKELY(index >= uint32_t(Operand::kVirtIdCount))) {
+  if (ASMJIT_UNLIKELY(index >= size_t(Operand::kVirtIdCount))) {
     return reportError(DebugUtils::errored(kErrorTooManyVirtRegs));
   }
 
@@ -245,8 +245,10 @@ Error BaseCompiler::newVirtReg(VirtReg** out, TypeId typeId, OperandSignature si
   }
 
   uint32_t size = TypeUtils::sizeOf(typeId);
-  uint32_t alignment = Support::min<uint32_t>(size, 64);
-  VirtReg* vReg = new(Support::PlacementNew{vRegPtr}) VirtReg(signature, Operand::indexToVirtId(index), size, alignment, typeId);
+  uint32_t alignmentLog2 = 31 - Support::clz(Support::min<uint32_t>(size, 64) | 1u);
+
+  VirtRegFlags flags = VirtReg::_flagsFromAlignmentLog2(alignmentLog2);
+  VirtReg* vReg = new(Support::PlacementNew{vRegPtr}) VirtReg(signature.regType(), flags, Operand::indexToVirtId(uint32_t(index)), size, typeId);
 
 #ifndef ASMJIT_NO_LOGGING
   if (name && name[0] != '\0') {
@@ -379,7 +381,7 @@ Error BaseCompiler::_newRegFmt(Reg* out, const Reg& ref, const char* fmt, ...) {
 Error BaseCompiler::_newStack(BaseMem* out, uint32_t size, uint32_t alignment, const char* name) {
   out->reset();
 
-  if (ASMJIT_UNLIKELY(Support::bool_or(size == 0, !Support::isZeroOrPowerOf2(alignment)))) {
+  if (ASMJIT_UNLIKELY(Support::bool_or(size == 0, !Support::is_zero_or_power_of_2(alignment)))) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
   }
 
@@ -396,8 +398,7 @@ Error BaseCompiler::_newStack(BaseMem* out, uint32_t size, uint32_t alignment, c
   ASMJIT_ASSUME(vReg != nullptr);
 
   vReg->_virtSize = size;
-  vReg->_isStack = true;
-  vReg->_alignment = uint8_t(alignment);
+  vReg->_regFlags |= VirtRegFlags::kIsStackArea | VirtReg::_flagsFromAlignmentLog2(Support::ctz(alignment));
 
   // Set the memory operand to GPD/GPQ and its id to VirtReg.
   *out = BaseMem(OperandSignature::fromOpType(OperandType::kMem) |
@@ -407,34 +408,32 @@ Error BaseCompiler::_newStack(BaseMem* out, uint32_t size, uint32_t alignment, c
   return kErrorOk;
 }
 
-Error BaseCompiler::setStackSize(uint32_t virtId, uint32_t newSize, uint32_t newAlignment) {
-  if (!isVirtIdValid(virtId)) {
+Error BaseCompiler::setStackSize(uint32_t vRegId, uint32_t newSize, uint32_t newAlignment) {
+  if (!isVirtIdValid(vRegId)) {
     return DebugUtils::errored(kErrorInvalidVirtId);
   }
 
-  if (!Support::isZeroOrPowerOf2(newAlignment)) {
+  if (!Support::is_zero_or_power_of_2(newAlignment)) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
   }
 
-  if (newAlignment > 64u) {
-    newAlignment = 64u;
-  }
+  VirtReg* vReg = virtRegById(vRegId);
 
-  VirtReg* vReg = virtRegById(virtId);
   if (newSize) {
     vReg->_virtSize = newSize;
   }
 
   if (newAlignment) {
-    vReg->_alignment = uint8_t(newAlignment);
+    uint32_t alignmentLog2 = Support::ctz(Support::min<uint32_t>(newAlignment, 64u));
+    vReg->_regFlags = (vReg->_regFlags & ~VirtRegFlags::kAlignmentLog2Mask) | VirtReg::_flagsFromAlignmentLog2(alignmentLog2);
   }
 
   // This is required if the RAPass is already running. There is a chance that a stack-slot has been already
   // allocated and in that case it has to be updated as well, otherwise we would allocate wrong amount of memory.
   RAWorkReg* workReg = vReg->_workReg;
   if (workReg && workReg->_stackSlot) {
-    workReg->_stackSlot->_size = vReg->_virtSize;
-    workReg->_stackSlot->_alignment = vReg->_alignment;
+    workReg->_stackSlot->_size = vReg->virtSize();
+    workReg->_stackSlot->_alignment = uint8_t(vReg->alignment());
   }
 
   return kErrorOk;
@@ -443,7 +442,7 @@ Error BaseCompiler::setStackSize(uint32_t virtId, uint32_t newSize, uint32_t new
 Error BaseCompiler::_newConst(BaseMem* out, ConstPoolScope scope, const void* data, size_t size) {
   out->reset();
 
-  if (uint32_t(scope) > 1) {
+  if (uint32_t(scope) > 1u) {
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
   }
 
@@ -524,7 +523,7 @@ JumpAnnotation* BaseCompiler::newJumpAnnotation() {
     return nullptr;
   }
 
-  uint32_t id = _jumpAnnotations.size();
+  uint32_t id = uint32_t(_jumpAnnotations.size());
   JumpAnnotation* jumpAnnotation = _codeZone.newT<JumpAnnotation>(this, id);
 
   if (!jumpAnnotation) {
@@ -547,7 +546,7 @@ static ASMJIT_INLINE void BaseCompiler_clear(BaseCompiler* self) noexcept {
 }
 
 static ASMJIT_INLINE Error BaseCompiler_initDefaultPasses(BaseCompiler* self) noexcept {
-  return self->addPassT<GlobalConstPoolPass>();
+  return self->addPass<GlobalConstPoolPass>();
 }
 
 
@@ -585,26 +584,26 @@ Error BaseCompiler::onReinit(CodeHolder& code) noexcept {
 // FuncPass - Construction & Destruction
 // =====================================
 
-FuncPass::FuncPass(const char* name) noexcept
-  : Pass(name) {}
+FuncPass::FuncPass(BaseCompiler& cc, const char* name) noexcept
+  : Pass(cc, name) {}
 
 // FuncPass - Run
 // ==============
 
 Error FuncPass::run(Zone* zone, Logger* logger) {
-  BaseNode* node = cb()->firstNode();
+  BaseNode* node = cc().firstNode();
 
   while (node) {
-    if (node->type() == NodeType::kFunc) {
+    // Find a function by skipping all nodes that are not `NodeType::kFunc`.
+    if (node->type() != NodeType::kFunc) {
+      node = node->next();
+      continue;
+    }
+    else {
       FuncNode* func = node->as<FuncNode>();
       node = func->endNode();
       ASMJIT_PROPAGATE(runOnFunction(zone, logger, func));
     }
-
-    // Find a function by skipping all nodes that are not `NodeType::kFunc`.
-    do {
-      node = node->next();
-    } while (node && node->type() != NodeType::kFunc);
   }
 
   return kErrorOk;

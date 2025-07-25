@@ -1136,11 +1136,11 @@ ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
 	const auto pPrimary = pThis->GetWeapon(0)->WeaponType;
 
 	if (pPrimary && pThis->GetTechnoType()->LandTargeting != LandTargetingType::Land_not_okay)
-		pThis->DiskLaserTimer.TimeLeft = pPrimary->ROF;
+		pThis->RearmTimer.TimeLeft = pPrimary->ROF;
 	else if (const auto pSecondary = pThis->GetWeapon(1)->WeaponType)
-		pThis->DiskLaserTimer.TimeLeft = pSecondary->ROF;
+		pThis->RearmTimer.TimeLeft = pSecondary->ROF;
 
-	pThis->DiskLaserTimer.StartTime = MinImpl(-2, -pThis->DiskLaserTimer.TimeLeft);
+	pThis->RearmTimer.StartTime = MinImpl(-2, -pThis->RearmTimer.TimeLeft);
 
 	TechnoExtData::InitializeUnitIdleAction(pThis, pType);
 
@@ -1337,7 +1337,7 @@ ASMJIT_PATCH(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 	return 0x6FE562;
 }
 
-ASMJIT_PATCH(0x6F826E, TechnoClass_CanAutoTargetObject_CivilianEnemy, 0x5)
+ASMJIT_PATCH(0x6F826E, TechnoClass_EvaluateObject_CivilianEnemy, 0x5)
 {
 	GET(TechnoClass*, pThis, EDI);
 	GET(TechnoClass*, pTarget, ESI);
@@ -1538,16 +1538,16 @@ ASMJIT_PATCH(0x4DF3A0, FootClass_UpdateAttackMove_SelectNewTarget, 0x6)
 
 #include <Locomotor/Cast.h>
 
-ASMJIT_PATCH(0x4DF4DB, TechnoClass_RefreshMegaMission_CheckMissionFix, 0xA)
+ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
 {
 	enum { ClearMegaMission = 0x4DF4F9, ContinueMegaMission = 0x4DF4CF };
-	GET(TechnoClass* const, pThis, ESI);
+	GET(FootClass*, pThis, ESI);
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const mission = pThis->GetCurrentMission();
 	return (pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire))
-		? (mission != Mission::Move && mission != Mission::Guard) : mission != Mission::Guard)
+		? (!(mission == Mission::Move && pThis->MegaDestination && pThis->DistanceFrom(pThis->MegaDestination) > 256) && mission != Mission::Guard) : mission != Mission::Guard)
 		? ClearMegaMission : ContinueMegaMission;
 }
 
@@ -1665,7 +1665,7 @@ ASMJIT_PATCH(0x4DF3A6, FootClass_UpdateAttackMove_Follow, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6F85AB, TechnoClass_CanAutoTargetObject_AggressiveAttackMove, 0x6)
+ASMJIT_PATCH(0x6F85AB, TechnoClass_EvaluateObject_AggressiveAttackMove, 0x6)
 {
 	enum { ContinueCheck = 0x6F85BA, CanTarget = 0x6F8604 };
 

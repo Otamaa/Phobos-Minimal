@@ -3,6 +3,7 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
 #include <Ext/Techno/Body.h>
 
 #include <LaserDrawClass.h>
@@ -400,7 +401,7 @@ bool DisperseTrajectory::BulletRetargetTechno()
 							continue;
 					}
 
-					if (MapClass::GetTotalDamage(100, pBullet->WH, pTechnoType->Armor, 0) == 0)
+					if (FakeWarheadTypeClass::ModifyDamage(100, pBullet->WH, pTechnoType->Armor, 0) == 0)
 						continue;
 
 					if (pTechno->GetCoords().DistanceFrom(retargetCoords) > retargetRange)
@@ -456,7 +457,7 @@ bool DisperseTrajectory::BulletRetargetTechno()
 					continue;
 			}
 
-			if (MapClass::GetTotalDamage(100, pBullet->WH, pTechnoType->Armor, 0) == 0)
+			if (FakeWarheadTypeClass::ModifyDamage(100, pBullet->WH, pTechnoType->Armor, 0) == 0)
 				continue;
 
 			if (pTechno->GetCoords().DistanceFrom(retargetCoords) > retargetRange)
@@ -951,7 +952,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 									continue;
 							}
 
-							if (MapClass::GetTotalDamage(100, pWeapon->Warhead, pTechnoType->Armor, 0) == 0)
+							if (FakeWarheadTypeClass::ModifyDamage(100, pWeapon->Warhead, pTechnoType->Armor, 0) == 0)
 								continue;
 
 							if (!this->CheckWeaponCanTarget(pWeapon, pBullet->Owner, pTechno))
@@ -994,7 +995,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 							continue;
 					}
 
-					if (MapClass::GetTotalDamage(100, pWeapon->Warhead, pTechnoType->Armor, 0) == 0)
+					if (FakeWarheadTypeClass::ModifyDamage(100, pWeapon->Warhead, pTechnoType->Armor, 0) == 0)
 						continue;
 
 					if (!this->CheckWeaponCanTarget(pWeapon, pBullet->Owner, pTechno))

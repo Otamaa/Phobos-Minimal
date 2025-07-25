@@ -26,7 +26,65 @@
 PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
 
 #pragma endregion
+int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeClass* pWH, Armor armor, int distance)
+{
+	int res = 0;
 
+	if (damage == 0
+		|| ScenarioClass::Instance->SpecialFlags.StructEd.Inert
+		|| !pWH
+		)
+	{
+		return res;
+	}
+
+	const auto pExt = pWH->_GetExtData();
+
+	if (damage > 0 || pExt->ApplyModifiersOnNegativeDamage)
+	{
+		if (pExt->ApplyMindamage)
+			damage = MaxImpl(pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage, damage);
+
+		const double dDamage = (double)damage;
+		const float fDamage = (float)damage;
+		const double dCellSpreadRadius = pWH->CellSpread * Unsorted::d_LeptonsPerCell;
+		const int cellSpreadRadius = int(dCellSpreadRadius);
+
+		const float Atmax = float(dDamage * pWH->PercentAtMax);
+		const auto vsData = pWH->GetVersesData(armor);
+
+		if (Atmax != dDamage && cellSpreadRadius)
+		{
+			res = int((fDamage - Atmax) * (double)(cellSpreadRadius - distance) / (double)cellSpreadRadius + Atmax);
+		}
+		else
+		{
+			res = damage;
+		}
+
+		if (!pExt->ApplyModifiersOnNegativeDamage)
+			res = int(double(res <= 0 ? 0 : res) * vsData->Verses);
+		else
+			res = int(res * vsData->Verses);
+
+		/**
+		 *	Allow damage to drop to zero only if the distance would have
+		 *	reduced damage to less than 1/4 full damage. Otherwise, ensure
+		 *	that at least one damage point is done.
+		 */
+		if (pExt->ApplyMindamage && distance < 4)
+			damage = MaxImpl(damage, pExt->MinDamage >= 0 ? pExt->MinDamage : RulesClass::Instance->MinDamage);
+
+		damage = MinImpl(damage, RulesClass::Instance->MaxDamage);
+
+	}
+	else
+	{
+		res = distance >= 8 ? 0 : damage;
+	}
+
+	return res;
+}
 void WarheadTypeExtData::InitializeConstant()
 {
 	this->AttachedEffect.Owner = this->AttachedToObject;
@@ -178,6 +236,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Shield_AffectTypes.Read(exINI, pSection, "Shield.AffectTypes");
 
 	this->Shield_Penetrate_Types.Read(exINI, pSection, "Shield.Penetrate.Types");
+	this->Shield_Penetrate_Armor_Types.Read(exINI,pSection, "Shield.Penetrates.ArmorTypes");
 	this->Shield_Break_Types.Read(exINI, pSection, "Shield.Break.Types");
 	this->Shield_Respawn_Types.Read(exINI, pSection, "Shield.Respawn.Types");
 	this->Shield_SelfHealing_Types.Read(exINI, pSection, "Shield.SelfHealing.Types");
@@ -426,19 +485,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->ImmunityType.Read(exINI, pSection, "ImmunityType");
 	this->Malicious.Read(exINI, pSection, "Malicious");
 	this->PreImpact_Moves.Read(exINI, pSection, "PreImpactAnim.Moves");
-	this->Launchs.clear();
 
-	for (size_t i = 0; ; ++i)
-	{
-		SuperWeaponTypeClass* LaunchWhat_Dummy;
-		std::string _base_key("LaunchSW");
-		_base_key += std::to_string(i);
-
-		if (!detail::read(LaunchWhat_Dummy, exINI, pSection, (_base_key + ".Type").c_str(), true) || !LaunchWhat_Dummy)
-			break;
-
-		this->Launchs.emplace_back().Read(exINI, pSection, i, LaunchWhat_Dummy);
-	}
+	LauchSWData::ReadVector(this->Launchs, exINI , pSection, Phobos::Otamaa::CompatibilityMode);
 
 	this->Conventional_IgnoreUnits.Read(exINI, pSection, "Conventional.IgnoreUnits");
 
@@ -907,9 +955,9 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int d
 	auto nArmor = TechnoExtData::GetTechnoArmor(pTechno, this->AttachedToObject);
 
 	if (damageIn > 0)
-		DamageResult = MapClass::GetTotalDamage(damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
+		DamageResult = FakeWarheadTypeClass::ModifyDamage(damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
 	else
-		DamageResult = -MapClass::GetTotalDamage(-damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
+		DamageResult = -FakeWarheadTypeClass::ModifyDamage(-damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
 
 	if (damageIn == 0)
 	{
@@ -919,7 +967,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int d
 	{
 		if (EffectsRequireVerses)
 		{
-			if (MapClass::GetTotalDamage(RulesClass::Instance->MaxDamage, this->AttachedToObject, nArmor, 0) == 0.0)
+			if (FakeWarheadTypeClass::ModifyDamage(RulesClass::Instance->MaxDamage, this->AttachedToObject, nArmor, 0) == 0)
 			{
 				return false;
 			}
@@ -1173,7 +1221,7 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 		}
 
 		//Default way game modify duration
-		nDur = MapClass::GetTotalDamage(nDur, this->AttachedToObject,
+		nDur = FakeWarheadTypeClass::ModifyDamage(nDur, this->AttachedToObject,
 					TechnoExtData::GetTechnoArmor(pVictim, this->AttachedToObject), 0);
 
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
@@ -1552,6 +1600,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Shield_MinimumReplaceDelay)
 		.Process(this->Shield_AffectTypes)
 		.Process(this->Shield_Penetrate_Types)
+		.Process(this->Shield_Penetrate_Armor_Types)
 		.Process(this->Shield_Break_Types)
 		.Process(this->Shield_Respawn_Types)
 		.Process(this->Shield_SelfHealing_Types)

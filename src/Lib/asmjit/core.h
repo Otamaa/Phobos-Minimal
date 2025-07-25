@@ -270,7 +270,7 @@ namespace asmjit {
 
 
 //! \defgroup asmjit_breaking_changes Breaking Changes
-//! \brief Documentation of breaking changes
+//! \brief Documentation of breaking changes.
 //!
 //! ### Overview
 //!
@@ -294,11 +294,22 @@ namespace asmjit {
 //!
 //! \section api_changes API Changes
 //!
+//! ### Changes committed at 2025-XX-XX
+//!
+//! Core changes:
+//!
+//!   - Refactored support library to make it reusable across projects. This means that in general it uses
+//!     lowercase_function_names_having_underscores() instead of camelCasedFunctionNames(). The support library
+//!     is mostly designed for AsmJit internal use cases, so renamed functions are not documented here.
+//!
+//!   - Removed `Support::Temporary` in favor of `Span<uint8_t>`. `CodeHolder` and `Zone` now accept
+//!     `Span<uint8_t>` instead of `Support::Temporary`.
+//!
 //! ### Changes committed at 2025-06-15
 //!
 //! Core changes:
 //!
-//!   - No more architecture specific \ref RegTraits - removed `BaseRegTraits` and kept just \ref RegTraits:
+//!   - No more architecture specific `RegTraits` - removed `BaseRegTraits` and kept just `RegTraits`:
 //!
 //!     - `BaseRegTraits` -> `RegTraits`
 //!     - `arm::RegTraits` -> `RegTraits`
@@ -307,7 +318,7 @@ namespace asmjit {
 //!   - Removed register signature and helper functions from ArchTraits. This functionality is now available
 //!     via asmjit::RegTraits and asmjit::RegUtils and doesn't require a valid architecture traits instance.
 //!
-//!   - No more architecture specific Gp/Vec/Mask register types in \ref RegType and \ref RegGroup:
+//!   - No more architecture specific Gp/Vec/Mask register types in `RegType` and `RegGroup`:
 //!
 //!     - `RegGroup::kX86_Rip`  -> `RegGroup::kPC`
 //!     - `RegGroup::kX86_KReg` -> `RegGroup::kMask`
@@ -346,8 +357,8 @@ namespace asmjit {
 //!     - `regOp.type()` -> `regOp.regType()`
 //!     - `regOp.group()` -> `regOp.regGroup()`
 //!
-//!   - Removed some static functions from \ref Operand, \reg Reg, etc... in favor of member functions. Most
-//!     of the operand functionality is now provided by \ref Operand_:
+//!   - Removed some static functions from \ref Operand, \ref Reg, etc... in favor of member functions. Most
+//!     of the operand functionality is now provided by \ref Operand_ class:
 //!
 //!     - `Operand::isGp(op)` -> op.isGp();
 //!     - `x86::Reg::isGp(op, id)` -> op.isGp(id);
@@ -1135,9 +1146,10 @@ namespace asmjit {
 //!        - \ref UniVec - Universal abstraction of a vector register, inherited by:
 //!          - \ref x86::Vec - Vector register operand specific to X86 and X86_64 architectures.
 //!          - \ref a64::Vec - Vector register operand specific to AArch64 architecture.
+//!        - \ref x86::Mm, \ref x86::KReg, \ref x86::Tmm, and other architecture specific register operands.
 //!     - \ref BaseMem - Base class for a memory operand, inherited by:
 //!        - \ref x86::Mem - Memory operand specific to X86 and X86_64 architectures.
-//!        - \ref arm::Mem - Memory operand specific to AArch64 architecture.
+//!        - \ref a64::Mem - Memory operand specific to AArch64 architecture.
 //!     - \ref Imm - Immediate (value) operand.
 //!     - \ref Label - Label operand.
 //!
@@ -1161,18 +1173,23 @@ namespace asmjit {
 //! are commonly accessible by getters and setters:
 //!
 //!   - \ref Operand - Base operand, which only provides accessors that are common to all operand types.
-//!   - \ref BaseReg - Describes either physical or virtual register. Physical registers have id that matches the
-//!     target's machine id directly whereas virtual registers must be allocated into physical registers by a register
-//!     allocator pass. Register operand provides:
+//!   - \ref Reg - Describes either physical or virtual register. Physical registers have ids that match the target's
+//!     machine id directly whereas virtual registers must be allocated into physical registers by a register allocator
+//!     pass. Register operand provides:
 //!     - Register Type (\ref RegType) - Unique id that describes each possible register provided by the target
 //!       architecture - for example X86 backend provides general purpose registers (GPB-LO, GPB-HI, GPW, GPD, and GPQ)
-//!       and all types of other registers like K, MM, BND, XMM, YMM, ZMM, and TMM.
+//!       and various types of other registers like K, MM, BND, XMM, YMM, ZMM, and TMM.
 //!     - Register Group (\ref RegGroup) - Groups multiple register types under a single group - for example all
 //!       general-purpose registers (of all sizes) on X86 are part of \ref RegGroup::kGp and all SIMD registers
-//!      (XMM, YMM, ZMM) are part of \ref RegGroup::kVec.
+//!       (XMM, YMM, ZMM) are part of \ref RegGroup::kVec.
 //!     - Register Size - Contains the size of the register in bytes. If the size depends on the mode (32-bit vs
 //!       64-bit) then generally the higher size is used (for example RIP register has size 8 by default).
 //!     - Register Id - Contains physical or virtual id of the register.
+//!     - Unified interface of general purpose registers is provided by \ref UniGp, which acts as a base of
+//!       all architecture specific GP registers such as \ref x86::Gp and \ref a64::Gp.
+//!     - Unified interface of vector registers is provided by \ref UniVec, which acts as a base of all architecture
+//!       specific vector registers such as \ref x86::Vec and \ref a64::Vec. Please note that X86 MMX registers are
+//!       not part of \ref x86::Vec, instead they are modeled as \ref x86::Mm.
 //!   - \ref BaseMem - Used to reference a memory location. Memory operand provides:
 //!     - Base Register - A base register type and id (physical or virtual).
 //!     - Index Register - An index register type and id (physical or virtual).
@@ -1220,7 +1237,7 @@ namespace asmjit {
 //!   // Reconstruct `idx` stored in mem:
 //!   x86::Gp idx_2 = x86::Gp::fromTypeAndId(m.indexType(), m.indexId());
 //!
-//!   // True, `idx` and idx_2` are identical.
+//!   // True, `idx` and `idx_2` are identical.
 //!   idx == idx_2;
 //!
 //!   // Possible - op will still be the same as `m`.
@@ -1346,7 +1363,6 @@ namespace asmjit {
 //!   mem.setIndex(x86::rax);           // Changes INDEX to RAX.
 //!   mem.hasIndex();                   // true.
 //! }
-//! // ...
 //! ```
 //!
 //! Making changes to memory operand is very comfortable when emitting loads
@@ -1560,7 +1576,7 @@ namespace asmjit {
 //!
 //!   - \ref FormatOptions - Formatting options that can change how instructions and operands are formatted.
 //!
-//!   - \ref Formatter - A namespace that provides functions that can format input data like \ref Operand, \ref BaseReg,
+//!   - \ref Formatter - A namespace that provides functions that can format input data like \ref Operand, \ref Reg,
 //!     \ref Label, and \ref BaseNode into \ref String.
 //!
 //! AsmJit's \ref Logger serves the following purposes:
@@ -1883,19 +1899,19 @@ namespace asmjit {
 //!
 //! AsmJit's virtual memory management is divided into three main categories:
 //!
-//!   - Low level interface that provides cross-platform abstractions for virtual memory allocation. Implemented in
-//!     \ref VirtMem namespace. This API is a thin wrapper around operating system specific calls such as
-//!     `VirtualAlloc()` and `mmap()` and it's intended to be used by AsmJit's higher level API. Low-level virtual
-//!     memory functions can be used to allocate virtual memory, change its permissions, and to release it.
-//!     Additionally, an API that allows to create dual mapping (to support hardened environments) is provided.
+//!   - \ref VirtMem namespace provides low level interface that can be used for cross-platform  virtual memory
+//!     allocation. This API is a thin wrapper around operating system specific calls such as `VirtualAlloc()` and
+//!     `mmap()` and it's intended to be used by AsmJit's higher level API. Low-level virtual memory functions can
+//!     be used to allocate virtual memory, change its permissions, and to release it. Additionally, an API that
+//!     allows to create dual mapping (to support hardened environments) is provided.
 //!
-//!   - Middle level API that is provided by \ref JitAllocator, which uses \ref VirtMem internally and offers nicer
-//!     API that can be used by users to allocate executable memory conveniently. \ref JitAllocator tries to be smart,
-//!     for example automatically using dual mapping or `MAP_JIT` on hardened environments.
+//!   - \ref JitAllocator provides middle level API, which is built on top of \ref VirtMem internally and offers
+//!     nicer API that can be used by users to allocate executable memory conveniently. \ref JitAllocator tries to
+//!     be smart, for example automatically using dual mapping or `MAP_JIT` on hardened environments.
 //!
-//!   - High level API that is provided by \ref JitRuntime, which implements \ref Target interface and uses \ref
-//!     JitAllocator under the hood. Since \ref JitRuntime inherits from \ref Target it makes it easy to use with
-//!     \ref CodeHolder. Many AsmJit examples use \ref JitRuntime for its simplicity and easy integration.
+//!   - \ref JitRuntime provides high level API, which implements \ref Target interface and uses \ref JitAllocator
+//!     under the hood. Since \ref JitRuntime inherits from \ref Target it makes it easy to use with \ref CodeHolder.
+//!     Many AsmJit examples use \ref JitRuntime for its simplicity and easy integration.
 //!
 //! The main difference between \ref VirtMem and \ref JitAllocator is that \ref VirtMem can only be used to allocate
 //! whole pages, whereas \ref JitAllocator has `malloc()` like API that allows to allocate smaller quantities that
@@ -1953,12 +1969,12 @@ namespace asmjit {
 //!
 //! \section zone_allocation Zone Allocation
 //!
-//!   - \ref Zone - Incremental zone memory allocator with minimum features. It can only allocate memory without the
-//!     possibility to return it back to the allocator.
+//!   - \ref Zone - Arena memory allocator that quickly allocates the requested memory from larger chunks and then
+//!     frees everything at once. AsmJit uses Zone allocators almost everywhere as almost everything is short-lived.
 //!
 //!   - \ref ZoneTmp - A temporary \ref Zone with some initial static storage. If the allocation requests fit the
 //!     static storage allocated then there will be no dynamic memory allocation during the lifetime of \ref ZoneTmp,
-//!     otherwise it would act as \ref Zone with one preallocated block on the stack.
+//!     otherwise it would act as \ref Zone with one preallocated block at the beginning.
 //!
 //!   - \ref ZoneAllocator - A wrapper of \ref Zone that provides the capability of returning memory to the allocator.
 //!     Such memory is stored in a pool for later reuse.
@@ -1969,9 +1985,7 @@ namespace asmjit {
 //!   - \ref ZoneHash - Zone allocated hash table.
 //!   - \ref ZoneTree - Zone allocated red-black tree.
 //!   - \ref ZoneList - Zone allocated double-linked list.
-//!   - \ref ZoneStack - Zone allocated stack.
 //!   - \ref ZoneVector - Zone allocated vector.
-//!   - \ref ZoneBitVector - Zone allocated vector of bits.
 //!
 //! \section using_zone_containers Using Zone Allocated Containers
 //!
@@ -1980,20 +1994,20 @@ namespace asmjit {
 //! have to worry about allocations as you should not need to add items to AsmJit's data structures directly as there
 //! should be API for all required operations.
 //!
-//! The following APIs in \ref CodeHolder returns \ref ZoneVector reference:
+//! The following APIs in \ref CodeHolder returns a non-owning \ref Span:
 //!
 //! ```
 //! using namespace asmjit;
 //!
 //! void example(CodeHolder& code) {
 //!   // Contains all section entries managed by CodeHolder.
-//!   const ZoneVector<Section*>& sections = code.sections();
+//!   const Span<Section*> sections = code.sections();
 //!
 //!   // Contains all label entries managed by CodeHolder.
-//!   const ZoneVector<LabelEntry>& labelEntries = code.labelEntries();
+//!   const Span<LabelEntry> labelEntries = code.labelEntries();
 //!
 //!   // Contains all relocation entries managed by CodeHolder.
-//!   const ZoneVector<RelocEntry*>& relocEntries = code.relocEntries();
+//!   const Span<RelocEntry*> relocEntries = code.relocEntries();
 //! }
 //! ```
 //!
@@ -2008,7 +2022,7 @@ namespace asmjit {
 //!   for (uint32_t labelId = 0; labelId < code.labelCount(); labelId++) {
 //!     const LabelEntry& le = code.labelEntry(labelId);
 //!     if (le.isBound()) {
-//!       printf("Bound Label #%u at offset=%llu\n", labelId, (unsigned long long)le->offset());
+//!       printf("Bound Label #%u at offset=%llu\n", labelId, (unsigned long long)le.offset());
 //!     }
 //!   }
 //! }
@@ -2144,7 +2158,6 @@ namespace asmjit {
 #include "core/zonehash.h"
 #include "core/zonelist.h"
 #include "core/zonetree.h"
-#include "core/zonestack.h"
 #include "core/zonestring.h"
 #include "core/zonevector.h"
 #include "asmjit-scope-end.h"

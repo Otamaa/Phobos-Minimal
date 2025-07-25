@@ -219,7 +219,7 @@ static ASMJIT_FAVOR_SIZE void simplifyCpuBrand(char* s) noexcept {
 }
 
 static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
-  using Support::bitTest;
+  using Support::bit_test;
 
   cpuid_t regs;
   xgetbv_t xcr0 { 0, 0 };
@@ -270,32 +270,32 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
     cpu._stepping = (regs.eax) & 0x0F;
     cpu._cacheLineSize  = ((regs.ebx >> 8) & 0xFF) * 8;
 
-    features.addIf(bitTest(regs.ecx,  0), Ext::kSSE3);
-    features.addIf(bitTest(regs.ecx,  1), Ext::kPCLMULQDQ);
-    features.addIf(bitTest(regs.ecx,  3), Ext::kMONITOR);
-    features.addIf(bitTest(regs.ecx,  5), Ext::kVMX);
-    features.addIf(bitTest(regs.ecx,  6), Ext::kSMX);
-    features.addIf(bitTest(regs.ecx,  9), Ext::kSSSE3);
-    features.addIf(bitTest(regs.ecx, 13), Ext::kCMPXCHG16B);
-    features.addIf(bitTest(regs.ecx, 19), Ext::kSSE4_1);
-    features.addIf(bitTest(regs.ecx, 20), Ext::kSSE4_2);
-    features.addIf(bitTest(regs.ecx, 22), Ext::kMOVBE);
-    features.addIf(bitTest(regs.ecx, 23), Ext::kPOPCNT);
-    features.addIf(bitTest(regs.ecx, 25), Ext::kAESNI);
-    features.addIf(bitTest(regs.ecx, 26), Ext::kXSAVE);
-    features.addIf(bitTest(regs.ecx, 27), Ext::kOSXSAVE);
-    features.addIf(bitTest(regs.ecx, 30), Ext::kRDRAND);
-    features.addIf(bitTest(regs.edx,  0), Ext::kFPU);
-    features.addIf(bitTest(regs.edx,  4), Ext::kRDTSC);
-    features.addIf(bitTest(regs.edx,  5), Ext::kMSR);
-    features.addIf(bitTest(regs.edx,  8), Ext::kCMPXCHG8B);
-    features.addIf(bitTest(regs.edx, 15), Ext::kCMOV);
-    features.addIf(bitTest(regs.edx, 19), Ext::kCLFLUSH);
-    features.addIf(bitTest(regs.edx, 23), Ext::kMMX);
-    features.addIf(bitTest(regs.edx, 24), Ext::kFXSR);
-    features.addIf(bitTest(regs.edx, 25), Ext::kSSE, Ext::kMMX2);
-    features.addIf(bitTest(regs.edx, 26), Ext::kSSE2, Ext::kSSE);
-    features.addIf(bitTest(regs.edx, 28), Ext::kMT);
+    features.addIf(bit_test(regs.ecx,  0), Ext::kSSE3);
+    features.addIf(bit_test(regs.ecx,  1), Ext::kPCLMULQDQ);
+    features.addIf(bit_test(regs.ecx,  3), Ext::kMONITOR);
+    features.addIf(bit_test(regs.ecx,  5), Ext::kVMX);
+    features.addIf(bit_test(regs.ecx,  6), Ext::kSMX);
+    features.addIf(bit_test(regs.ecx,  9), Ext::kSSSE3);
+    features.addIf(bit_test(regs.ecx, 13), Ext::kCMPXCHG16B);
+    features.addIf(bit_test(regs.ecx, 19), Ext::kSSE4_1);
+    features.addIf(bit_test(regs.ecx, 20), Ext::kSSE4_2);
+    features.addIf(bit_test(regs.ecx, 22), Ext::kMOVBE);
+    features.addIf(bit_test(regs.ecx, 23), Ext::kPOPCNT);
+    features.addIf(bit_test(regs.ecx, 25), Ext::kAESNI);
+    features.addIf(bit_test(regs.ecx, 26), Ext::kXSAVE);
+    features.addIf(bit_test(regs.ecx, 27), Ext::kOSXSAVE);
+    features.addIf(bit_test(regs.ecx, 30), Ext::kRDRAND);
+    features.addIf(bit_test(regs.edx,  0), Ext::kFPU);
+    features.addIf(bit_test(regs.edx,  4), Ext::kRDTSC);
+    features.addIf(bit_test(regs.edx,  5), Ext::kMSR);
+    features.addIf(bit_test(regs.edx,  8), Ext::kCMPXCHG8B);
+    features.addIf(bit_test(regs.edx, 15), Ext::kCMOV);
+    features.addIf(bit_test(regs.edx, 19), Ext::kCLFLUSH);
+    features.addIf(bit_test(regs.edx, 23), Ext::kMMX);
+    features.addIf(bit_test(regs.edx, 24), Ext::kFXSR);
+    features.addIf(bit_test(regs.edx, 25), Ext::kSSE, Ext::kMMX2);
+    features.addIf(bit_test(regs.edx, 26), Ext::kSSE2, Ext::kSSE);
+    features.addIf(bit_test(regs.edx, 28), Ext::kMT);
 
     // Get the content of XCR0 if supported by the CPU and enabled by the OS.
     if (features.hasXSAVE() && features.hasOSXSAVE()) {
@@ -303,13 +303,13 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
     }
 
     // Detect AVX+.
-    if (bitTest(regs.ecx, 28)) {
+    if (bit_test(regs.ecx, 28)) {
       // - XCR0[2:1] == 11b
       //   XMM & YMM states need to be enabled by OS.
       if ((xcr0.eax & 0x00000006u) == 0x00000006u) {
         features.add(Ext::kAVX);
-        features.addIf(bitTest(regs.ecx, 12), Ext::kFMA);
-        features.addIf(bitTest(regs.ecx, 29), Ext::kF16C);
+        features.addIf(bit_test(regs.ecx, 12), Ext::kFMA);
+        features.addIf(bit_test(regs.ecx, 29), Ext::kF16C);
       }
     }
   }
@@ -339,62 +339,62 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
 
     maxSubLeafId_0x7 = regs.eax;
 
-    features.addIf(bitTest(regs.ebx,  0), Ext::kFSGSBASE);
-    features.addIf(bitTest(regs.ebx,  3), Ext::kBMI);
-    features.addIf(bitTest(regs.ebx,  7), Ext::kSMEP);
-    features.addIf(bitTest(regs.ebx,  8), Ext::kBMI2);
-    features.addIf(bitTest(regs.ebx,  9), Ext::kERMS);
-    features.addIf(bitTest(regs.ebx, 18), Ext::kRDSEED);
-    features.addIf(bitTest(regs.ebx, 19), Ext::kADX);
-    features.addIf(bitTest(regs.ebx, 20), Ext::kSMAP);
-    features.addIf(bitTest(regs.ebx, 23), Ext::kCLFLUSHOPT);
-    features.addIf(bitTest(regs.ebx, 24), Ext::kCLWB);
-    features.addIf(bitTest(regs.ebx, 29), Ext::kSHA);
-    features.addIf(bitTest(regs.ecx,  0), Ext::kPREFETCHWT1);
-    features.addIf(bitTest(regs.ecx,  4), Ext::kOSPKE);
-    features.addIf(bitTest(regs.ecx,  5), Ext::kWAITPKG);
-    features.addIf(bitTest(regs.ecx,  7), Ext::kCET_SS);
-    features.addIf(bitTest(regs.ecx,  8), Ext::kGFNI);
-    features.addIf(bitTest(regs.ecx,  9), Ext::kVAES);
-    features.addIf(bitTest(regs.ecx, 10), Ext::kVPCLMULQDQ);
-    features.addIf(bitTest(regs.ecx, 22), Ext::kRDPID);
-    features.addIf(bitTest(regs.ecx, 23), Ext::kKL);
-    features.addIf(bitTest(regs.ecx, 25), Ext::kCLDEMOTE);
-    features.addIf(bitTest(regs.ecx, 27), Ext::kMOVDIRI);
-    features.addIf(bitTest(regs.ecx, 28), Ext::kMOVDIR64B);
-    features.addIf(bitTest(regs.ecx, 29), Ext::kENQCMD);
-    features.addIf(bitTest(regs.edx,  4), Ext::kFSRM);
-    features.addIf(bitTest(regs.edx,  5), Ext::kUINTR);
-    features.addIf(bitTest(regs.edx, 14), Ext::kSERIALIZE);
-    features.addIf(bitTest(regs.edx, 16), Ext::kTSXLDTRK);
-    features.addIf(bitTest(regs.edx, 18), Ext::kPCONFIG);
-    features.addIf(bitTest(regs.edx, 20), Ext::kCET_IBT);
+    features.addIf(bit_test(regs.ebx,  0), Ext::kFSGSBASE);
+    features.addIf(bit_test(regs.ebx,  3), Ext::kBMI);
+    features.addIf(bit_test(regs.ebx,  7), Ext::kSMEP);
+    features.addIf(bit_test(regs.ebx,  8), Ext::kBMI2);
+    features.addIf(bit_test(regs.ebx,  9), Ext::kERMS);
+    features.addIf(bit_test(regs.ebx, 18), Ext::kRDSEED);
+    features.addIf(bit_test(regs.ebx, 19), Ext::kADX);
+    features.addIf(bit_test(regs.ebx, 20), Ext::kSMAP);
+    features.addIf(bit_test(regs.ebx, 23), Ext::kCLFLUSHOPT);
+    features.addIf(bit_test(regs.ebx, 24), Ext::kCLWB);
+    features.addIf(bit_test(regs.ebx, 29), Ext::kSHA);
+    features.addIf(bit_test(regs.ecx,  0), Ext::kPREFETCHWT1);
+    features.addIf(bit_test(regs.ecx,  4), Ext::kOSPKE);
+    features.addIf(bit_test(regs.ecx,  5), Ext::kWAITPKG);
+    features.addIf(bit_test(regs.ecx,  7), Ext::kCET_SS);
+    features.addIf(bit_test(regs.ecx,  8), Ext::kGFNI);
+    features.addIf(bit_test(regs.ecx,  9), Ext::kVAES);
+    features.addIf(bit_test(regs.ecx, 10), Ext::kVPCLMULQDQ);
+    features.addIf(bit_test(regs.ecx, 22), Ext::kRDPID);
+    features.addIf(bit_test(regs.ecx, 23), Ext::kKL);
+    features.addIf(bit_test(regs.ecx, 25), Ext::kCLDEMOTE);
+    features.addIf(bit_test(regs.ecx, 27), Ext::kMOVDIRI);
+    features.addIf(bit_test(regs.ecx, 28), Ext::kMOVDIR64B);
+    features.addIf(bit_test(regs.ecx, 29), Ext::kENQCMD);
+    features.addIf(bit_test(regs.edx,  4), Ext::kFSRM);
+    features.addIf(bit_test(regs.edx,  5), Ext::kUINTR);
+    features.addIf(bit_test(regs.edx, 14), Ext::kSERIALIZE);
+    features.addIf(bit_test(regs.edx, 16), Ext::kTSXLDTRK);
+    features.addIf(bit_test(regs.edx, 18), Ext::kPCONFIG);
+    features.addIf(bit_test(regs.edx, 20), Ext::kCET_IBT);
 
-    if (bitTest(regs.ebx, 5) && features.hasAVX()) {
+    if (bit_test(regs.ebx, 5) && features.hasAVX()) {
       features.add(Ext::kAVX2);
     }
 
-    if (avx512Enabled && bitTest(regs.ebx, 16)) {
+    if (avx512Enabled && bit_test(regs.ebx, 16)) {
       features.add(Ext::kAVX512_F);
 
-      features.addIf(bitTest(regs.ebx, 17), Ext::kAVX512_DQ);
-      features.addIf(bitTest(regs.ebx, 21), Ext::kAVX512_IFMA);
-      features.addIf(bitTest(regs.ebx, 28), Ext::kAVX512_CD);
-      features.addIf(bitTest(regs.ebx, 30), Ext::kAVX512_BW);
-      features.addIf(bitTest(regs.ebx, 31), Ext::kAVX512_VL);
-      features.addIf(bitTest(regs.ecx,  1), Ext::kAVX512_VBMI);
-      features.addIf(bitTest(regs.ecx,  6), Ext::kAVX512_VBMI2);
-      features.addIf(bitTest(regs.ecx, 11), Ext::kAVX512_VNNI);
-      features.addIf(bitTest(regs.ecx, 12), Ext::kAVX512_BITALG);
-      features.addIf(bitTest(regs.ecx, 14), Ext::kAVX512_VPOPCNTDQ);
-      features.addIf(bitTest(regs.edx,  8), Ext::kAVX512_VP2INTERSECT);
-      features.addIf(bitTest(regs.edx, 23), Ext::kAVX512_FP16);
+      features.addIf(bit_test(regs.ebx, 17), Ext::kAVX512_DQ);
+      features.addIf(bit_test(regs.ebx, 21), Ext::kAVX512_IFMA);
+      features.addIf(bit_test(regs.ebx, 28), Ext::kAVX512_CD);
+      features.addIf(bit_test(regs.ebx, 30), Ext::kAVX512_BW);
+      features.addIf(bit_test(regs.ebx, 31), Ext::kAVX512_VL);
+      features.addIf(bit_test(regs.ecx,  1), Ext::kAVX512_VBMI);
+      features.addIf(bit_test(regs.ecx,  6), Ext::kAVX512_VBMI2);
+      features.addIf(bit_test(regs.ecx, 11), Ext::kAVX512_VNNI);
+      features.addIf(bit_test(regs.ecx, 12), Ext::kAVX512_BITALG);
+      features.addIf(bit_test(regs.ecx, 14), Ext::kAVX512_VPOPCNTDQ);
+      features.addIf(bit_test(regs.edx,  8), Ext::kAVX512_VP2INTERSECT);
+      features.addIf(bit_test(regs.edx, 23), Ext::kAVX512_FP16);
     }
 
     if (amxEnabled) {
-      features.addIf(bitTest(regs.edx, 22), Ext::kAMX_BF16);
-      features.addIf(bitTest(regs.edx, 24), Ext::kAMX_TILE);
-      features.addIf(bitTest(regs.edx, 25), Ext::kAMX_INT8);
+      features.addIf(bit_test(regs.edx, 22), Ext::kAMX_BF16);
+      features.addIf(bit_test(regs.edx, 24), Ext::kAMX_TILE);
+      features.addIf(bit_test(regs.edx, 25), Ext::kAMX_INT8);
     }
   }
 
@@ -404,44 +404,44 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   if (maxSubLeafId_0x7 >= 1) {
     cpuidQuery(&regs, 0x7, 1);
 
-    features.addIf(bitTest(regs.eax,  0), Ext::kSHA512);
-    features.addIf(bitTest(regs.eax,  1), Ext::kSM3);
-    features.addIf(bitTest(regs.eax,  2), Ext::kSM4);
-    features.addIf(bitTest(regs.eax,  3), Ext::kRAO_INT);
-    features.addIf(bitTest(regs.eax,  7), Ext::kCMPCCXADD);
-    features.addIf(bitTest(regs.eax, 10), Ext::kFZRM);
-    features.addIf(bitTest(regs.eax, 11), Ext::kFSRS);
-    features.addIf(bitTest(regs.eax, 12), Ext::kFSRC);
-    features.addIf(bitTest(regs.eax, 19), Ext::kWRMSRNS);
-    features.addIf(bitTest(regs.eax, 22), Ext::kHRESET);
-    features.addIf(bitTest(regs.eax, 26), Ext::kLAM);
-    features.addIf(bitTest(regs.eax, 27), Ext::kMSRLIST);
-    features.addIf(bitTest(regs.eax, 31), Ext::kMOVRS);
-    features.addIf(bitTest(regs.ecx,  5), Ext::kMSR_IMM);
-    features.addIf(bitTest(regs.ebx,  1), Ext::kTSE);
-    features.addIf(bitTest(regs.edx, 14), Ext::kPREFETCHI);
-    features.addIf(bitTest(regs.edx, 18), Ext::kCET_SSS);
-    features.addIf(bitTest(regs.edx, 21), Ext::kAPX_F);
+    features.addIf(bit_test(regs.eax,  0), Ext::kSHA512);
+    features.addIf(bit_test(regs.eax,  1), Ext::kSM3);
+    features.addIf(bit_test(regs.eax,  2), Ext::kSM4);
+    features.addIf(bit_test(regs.eax,  3), Ext::kRAO_INT);
+    features.addIf(bit_test(regs.eax,  7), Ext::kCMPCCXADD);
+    features.addIf(bit_test(regs.eax, 10), Ext::kFZRM);
+    features.addIf(bit_test(regs.eax, 11), Ext::kFSRS);
+    features.addIf(bit_test(regs.eax, 12), Ext::kFSRC);
+    features.addIf(bit_test(regs.eax, 19), Ext::kWRMSRNS);
+    features.addIf(bit_test(regs.eax, 22), Ext::kHRESET);
+    features.addIf(bit_test(regs.eax, 26), Ext::kLAM);
+    features.addIf(bit_test(regs.eax, 27), Ext::kMSRLIST);
+    features.addIf(bit_test(regs.eax, 31), Ext::kMOVRS);
+    features.addIf(bit_test(regs.ecx,  5), Ext::kMSR_IMM);
+    features.addIf(bit_test(regs.ebx,  1), Ext::kTSE);
+    features.addIf(bit_test(regs.edx, 14), Ext::kPREFETCHI);
+    features.addIf(bit_test(regs.edx, 18), Ext::kCET_SSS);
+    features.addIf(bit_test(regs.edx, 21), Ext::kAPX_F);
 
     if (features.hasAVX2()) {
-      features.addIf(bitTest(regs.eax,  4), Ext::kAVX_VNNI);
-      features.addIf(bitTest(regs.eax, 23), Ext::kAVX_IFMA);
-      features.addIf(bitTest(regs.edx,  4), Ext::kAVX_VNNI_INT8);
-      features.addIf(bitTest(regs.edx,  5), Ext::kAVX_NE_CONVERT);
-      features.addIf(bitTest(regs.edx, 10), Ext::kAVX_VNNI_INT16);
+      features.addIf(bit_test(regs.eax,  4), Ext::kAVX_VNNI);
+      features.addIf(bit_test(regs.eax, 23), Ext::kAVX_IFMA);
+      features.addIf(bit_test(regs.edx,  4), Ext::kAVX_VNNI_INT8);
+      features.addIf(bit_test(regs.edx,  5), Ext::kAVX_NE_CONVERT);
+      features.addIf(bit_test(regs.edx, 10), Ext::kAVX_VNNI_INT16);
     }
 
     if (features.hasAVX512_F()) {
-      features.addIf(bitTest(regs.eax,  5), Ext::kAVX512_BF16);
+      features.addIf(bit_test(regs.eax,  5), Ext::kAVX512_BF16);
     }
 
     if (features.hasAVX512_F()) {
-      avx10Enabled = Support::bitTest(regs.edx, 19);
+      avx10Enabled = Support::bit_test(regs.edx, 19);
     }
 
     if (amxEnabled) {
-      features.addIf(bitTest(regs.eax, 21), Ext::kAMX_FP16);
-      features.addIf(bitTest(regs.edx,  8), Ext::kAMX_COMPLEX);
+      features.addIf(bit_test(regs.eax, 21), Ext::kAMX_FP16);
+      features.addIf(bit_test(regs.edx,  8), Ext::kAMX_COMPLEX);
     }
   }
 
@@ -451,9 +451,9 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   if (maxId >= 0x0Du) {
     cpuidQuery(&regs, 0xD, 1);
 
-    features.addIf(bitTest(regs.eax, 0), Ext::kXSAVEOPT);
-    features.addIf(bitTest(regs.eax, 1), Ext::kXSAVEC);
-    features.addIf(bitTest(regs.eax, 3), Ext::kXSAVES);
+    features.addIf(bit_test(regs.eax, 0), Ext::kXSAVEOPT);
+    features.addIf(bit_test(regs.eax, 1), Ext::kXSAVEC);
+    features.addIf(bit_test(regs.eax, 3), Ext::kXSAVES);
   }
 
   // CPUID EAX=0x0E ECX=0 (Processor Trace Enumeration Main Leaf)
@@ -462,7 +462,7 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   if (maxId >= 0x0Eu) {
     cpuidQuery(&regs, 0x0E, 0);
 
-    features.addIf(bitTest(regs.ebx, 4), Ext::kPTWRITE);
+    features.addIf(bit_test(regs.ebx, 4), Ext::kPTWRITE);
   }
 
   // CPUID EAX=0x19 ECX=0 (Key Locker Leaf)
@@ -471,8 +471,8 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
   if (maxId >= 0x19u && features.hasKL()) {
     cpuidQuery(&regs, 0x19, 0);
 
-    features.addIf(bitTest(regs.ebx, 0), Ext::kAESKLE);
-    features.addIf(bitTest(regs.ebx, 0) && bitTest(regs.ebx, 2), Ext::kAESKLEWIDE_KL);
+    features.addIf(bit_test(regs.ebx, 0), Ext::kAESKLE);
+    features.addIf(bit_test(regs.ebx, 0) && bit_test(regs.ebx, 2), Ext::kAESKLEWIDE_KL);
   }
 
   // CPUID EAX=0x1E ECX=1 (TMUL Information Sub-leaf)
@@ -482,15 +482,15 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
     cpuidQuery(&regs, 0x1E, 1);
 
     // NOTE: Some AMX flags are mirrored here from CPUID[0x07, 0x00].
-    features.addIf(bitTest(regs.eax, 0), Ext::kAMX_INT8);
-    features.addIf(bitTest(regs.eax, 1), Ext::kAMX_BF16);
-    features.addIf(bitTest(regs.eax, 2), Ext::kAMX_COMPLEX);
-    features.addIf(bitTest(regs.eax, 3), Ext::kAMX_FP16);
-    features.addIf(bitTest(regs.eax, 4), Ext::kAMX_FP8);
-    features.addIf(bitTest(regs.eax, 5), Ext::kAMX_TRANSPOSE);
-    features.addIf(bitTest(regs.eax, 6), Ext::kAMX_TF32);
-    features.addIf(bitTest(regs.eax, 7), Ext::kAMX_AVX512);
-    features.addIf(bitTest(regs.eax, 8), Ext::kAMX_MOVRS);
+    features.addIf(bit_test(regs.eax, 0), Ext::kAMX_INT8);
+    features.addIf(bit_test(regs.eax, 1), Ext::kAMX_BF16);
+    features.addIf(bit_test(regs.eax, 2), Ext::kAMX_COMPLEX);
+    features.addIf(bit_test(regs.eax, 3), Ext::kAMX_FP16);
+    features.addIf(bit_test(regs.eax, 4), Ext::kAMX_FP8);
+    features.addIf(bit_test(regs.eax, 5), Ext::kAMX_TRANSPOSE);
+    features.addIf(bit_test(regs.eax, 6), Ext::kAMX_TF32);
+    features.addIf(bit_test(regs.eax, 7), Ext::kAMX_AVX512);
+    features.addIf(bit_test(regs.eax, 8), Ext::kAMX_MOVRS);
   }
 
   // CPUID EAX=0x24 ECX=0 (AVX10 Information)
@@ -527,32 +527,32 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
         break;
 
       case 0x80000001u:
-        features.addIf(bitTest(regs.ecx,  0), Ext::kLAHFSAHF);
-        features.addIf(bitTest(regs.ecx,  2), Ext::kSVM);
-        features.addIf(bitTest(regs.ecx,  5), Ext::kLZCNT);
-        features.addIf(bitTest(regs.ecx,  6), Ext::kSSE4A);
-        features.addIf(bitTest(regs.ecx,  7), Ext::kMSSE);
-        features.addIf(bitTest(regs.ecx,  8), Ext::kPREFETCHW);
-        features.addIf(bitTest(regs.ecx, 12), Ext::kSKINIT);
-        features.addIf(bitTest(regs.ecx, 15), Ext::kLWP);
-        features.addIf(bitTest(regs.ecx, 21), Ext::kTBM);
-        features.addIf(bitTest(regs.ecx, 29), Ext::kMONITORX);
-        features.addIf(bitTest(regs.edx, 20), Ext::kNX);
-        features.addIf(bitTest(regs.edx, 21), Ext::kFXSROPT);
-        features.addIf(bitTest(regs.edx, 22), Ext::kMMX2);
-        features.addIf(bitTest(regs.edx, 27), Ext::kRDTSCP);
-        features.addIf(bitTest(regs.edx, 29), Ext::kPREFETCHW);
-        features.addIf(bitTest(regs.edx, 30), Ext::k3DNOW2, Ext::kMMX2);
-        features.addIf(bitTest(regs.edx, 31), Ext::kPREFETCHW);
+        features.addIf(bit_test(regs.ecx,  0), Ext::kLAHFSAHF);
+        features.addIf(bit_test(regs.ecx,  2), Ext::kSVM);
+        features.addIf(bit_test(regs.ecx,  5), Ext::kLZCNT);
+        features.addIf(bit_test(regs.ecx,  6), Ext::kSSE4A);
+        features.addIf(bit_test(regs.ecx,  7), Ext::kMSSE);
+        features.addIf(bit_test(regs.ecx,  8), Ext::kPREFETCHW);
+        features.addIf(bit_test(regs.ecx, 12), Ext::kSKINIT);
+        features.addIf(bit_test(regs.ecx, 15), Ext::kLWP);
+        features.addIf(bit_test(regs.ecx, 21), Ext::kTBM);
+        features.addIf(bit_test(regs.ecx, 29), Ext::kMONITORX);
+        features.addIf(bit_test(regs.edx, 20), Ext::kNX);
+        features.addIf(bit_test(regs.edx, 21), Ext::kFXSROPT);
+        features.addIf(bit_test(regs.edx, 22), Ext::kMMX2);
+        features.addIf(bit_test(regs.edx, 27), Ext::kRDTSCP);
+        features.addIf(bit_test(regs.edx, 29), Ext::kPREFETCHW);
+        features.addIf(bit_test(regs.edx, 30), Ext::k3DNOW2, Ext::kMMX2);
+        features.addIf(bit_test(regs.edx, 31), Ext::kPREFETCHW);
 
         if (features.hasAVX()) {
-          features.addIf(bitTest(regs.ecx, 11), Ext::kXOP);
-          features.addIf(bitTest(regs.ecx, 16), Ext::kFMA4);
+          features.addIf(bit_test(regs.ecx, 11), Ext::kXOP);
+          features.addIf(bit_test(regs.ecx, 16), Ext::kFMA4);
         }
 
         // This feature seems to be only supported by AMD.
         if (cpu.isVendor("AMD")) {
-          features.addIf(bitTest(regs.ecx,  4), Ext::kALTMOVCR8);
+          features.addIf(bit_test(regs.ecx,  4), Ext::kALTMOVCR8);
         }
         break;
 
@@ -570,21 +570,21 @@ static ASMJIT_FAVOR_SIZE void detectX86Cpu(CpuInfo& cpu) noexcept {
         break;
 
       case 0x80000008u:
-        features.addIf(bitTest(regs.ebx,  0), Ext::kCLZERO);
-        features.addIf(bitTest(regs.ebx,  0), Ext::kRDPRU);
-        features.addIf(bitTest(regs.ebx,  8), Ext::kMCOMMIT);
-        features.addIf(bitTest(regs.ebx,  9), Ext::kWBNOINVD);
+        features.addIf(bit_test(regs.ebx,  0), Ext::kCLZERO);
+        features.addIf(bit_test(regs.ebx,  0), Ext::kRDPRU);
+        features.addIf(bit_test(regs.ebx,  8), Ext::kMCOMMIT);
+        features.addIf(bit_test(regs.ebx,  9), Ext::kWBNOINVD);
 
         // Go directly to the next one we are interested in.
         i = 0x8000001Fu - 1;
         break;
 
       case 0x8000001Fu:
-        features.addIf(bitTest(regs.eax,  0), Ext::kSME);
-        features.addIf(bitTest(regs.eax,  1), Ext::kSEV);
-        features.addIf(bitTest(regs.eax,  3), Ext::kSEV_ES);
-        features.addIf(bitTest(regs.eax,  4), Ext::kSEV_SNP);
-        features.addIf(bitTest(regs.eax,  6), Ext::kRMPQUERY);
+        features.addIf(bit_test(regs.eax,  0), Ext::kSME);
+        features.addIf(bit_test(regs.eax,  1), Ext::kSEV);
+        features.addIf(bit_test(regs.eax,  3), Ext::kSEV_ES);
+        features.addIf(bit_test(regs.eax,  4), Ext::kSEV_SNP);
+        features.addIf(bit_test(regs.eax,  6), Ext::kRMPQUERY);
         break;
     }
   } while (++i <= maxId);

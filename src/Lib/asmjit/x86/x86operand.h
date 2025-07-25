@@ -29,8 +29,6 @@ class Bnd;
 class Tmm;
 class Rip;
 
-using Reg = Reg;
-
 //! General purpose register (X86|X86_64).
 //!
 //! To get a specific register you can use:
@@ -38,9 +36,9 @@ using Reg = Reg;
 //!   - construct a register operand dynamically, like `x86::gp8(id)`, `x86::gp64(id)`, etc...
 //!   - use `Gp::make_r[8|8lo|8hi|16|32|64](id)` API for convenience
 //!
-//! To cast a register to a specific type, use \ref r8(), \ref r8Lo(), \ref r8Hi(), \ref r16(), \ref r32(),
-//! and \ref r64() member functions. Each cast first clones the register and then changes its signature to
-//! match the register it has been casted to.
+//! To cast a register to a specific type, use \ref Gp::r8(), \ref Gp::r8Lo(), \ref Gp::r8Hi(), \ref Gp::r16(),
+//! \ref Gp::r32(), and \ref Gp::r64() member functions. Each cast first clones the register and then changes
+//! its signature to match the register it has been casted to.
 class Gp : public UniGp {
 public:
   //! \name Constants
@@ -139,11 +137,11 @@ public:
 //!   - construct a register operand dynamically, like `x86::xmm(id)`, `x86::ymm(id)`, and `x86::zmm(id)`
 //!   - use `Vec::make_v[128|256|512](id)` or `Vec::make_[xmm|ymm|zmm](id)` API for convenience
 //!
-//! To cast a register to a specific type, use \ref v128(), \ref v256(), \ref v512(), \ref xmm(), \ref ymm(),
-//! and \ref zmm() member functions. Each cast first clones the register and then changes its signature to
-//! match the register it has been casted to.
-class Vec : public Reg {
-  ASMJIT_DEFINE_ABSTRACT_REG(Vec, Reg)
+//! To cast a register to a specific type, use \ref Vec::v128(), \ref Vec::v256(), \ref Vec::v512(), \ref Vec::xmm(),
+//! \ref Vec::ymm(), and \ref Vec::zmm() member functions. Each cast first clones the register and then changes its
+//! signature to match the register it has been casted to.
+class Vec : public UniVec {
+  ASMJIT_DEFINE_ABSTRACT_REG(Vec, UniVec)
 
   //! \name Static Constructors
   //! \{
@@ -152,23 +150,29 @@ class Vec : public Reg {
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR Vec make_v128(uint32_t regId) noexcept { return Vec(_signatureOf<RegType::kVec128>(), regId); }
 
-  //! Creates a new 128-bit vector register (YMM) having the given register id `regId`.
+  //! Creates a new 256-bit vector register (YMM) having the given register id `regId`.
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR Vec make_v256(uint32_t regId) noexcept { return Vec(_signatureOf<RegType::kVec256>(), regId); }
 
-  //! Creates a new 128-bit vector register (ZMM) having the given register id `regId`.
+  //! Creates a new 512-bit vector register (ZMM) having the given register id `regId`.
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR Vec make_v512(uint32_t regId) noexcept { return Vec(_signatureOf<RegType::kVec512>(), regId); }
 
   //! Creates a new 128-bit vector register (XMM) having the given register id `regId`.
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref make_v128().
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR Vec make_xmm(uint32_t regId) noexcept { return Vec(_signatureOf<RegType::kVec128>(), regId); }
 
-  //! Creates a new 128-bit vector register (YMM) having the given register id `regId`.
+  //! Creates a new 256-bit vector register (YMM) having the given register id `regId`.
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref make_v256().
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR Vec make_ymm(uint32_t regId) noexcept { return Vec(_signatureOf<RegType::kVec256>(), regId); }
 
-  //! Creates a new 128-bit vector register (ZMM) having the given register id `regId`.
+  //! Creates a new 512-bit vector register (ZMM) having the given register id `regId`.
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref make_v512().
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR Vec make_zmm(uint32_t regId) noexcept { return Vec(_signatureOf<RegType::kVec512>(), regId); }
 
@@ -178,14 +182,20 @@ class Vec : public Reg {
   //! \{
 
   //! Tests whether the register is a 128-bit vector (XMM).
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref Reg::isVec128().
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isXmm() const noexcept { return isVec128(); }
 
   //! Tests whether the register is a 256-bit vector (YMM).
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref Reg::isVec256().
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isYmm() const noexcept { return isVec256(); }
 
   //! Tests whether the register is a 512-bit vector (ZMM).
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref Reg::isVec512().
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR bool isZmm() const noexcept { return isVec512(); }
 
@@ -202,18 +212,29 @@ class Vec : public Reg {
   ASMJIT_INLINE_CONSTEXPR Vec v512() const noexcept { return make_v512(id()); }
 
   //! Clones and casts this register to XMM (Vec128).
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref v128().
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR Vec xmm() const noexcept { return make_v128(id()); }
 
   //! Clones and casts this register to YMM (Vec256).
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref v256().
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR Vec ymm() const noexcept { return make_v256(id()); }
 
   //! Clones and casts this register to ZMM (Vec512).
+  //!
+  //! \note This is an architecture-specific naming that does the same as \ref v512().
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR Vec zmm() const noexcept { return make_v512(id()); }
 
   //! Clones and casts this register to a register that has half the size (or XMM if it's already XMM).
+  //!
+  //! \note AsmJit defines vector registers of various sizes to target multiple architectures, however, this
+  //! function never returns a vector register that would have less than 128 bits as X86|X86_64 architecture
+  //! doesn't provide such registers. So, effectively this function returns either YMM register if the input
+  //! was ZMM, or XMM for whatever else input.
   [[nodiscard]]
   ASMJIT_INLINE_CONSTEXPR Vec half() const noexcept {
     return Vec(isVec512() ? _signatureOf<RegType::kVec256>() : _signatureOf<RegType::kVec512>(), id());
@@ -797,13 +818,13 @@ public:
   //! \name Base & Index
   //! \{
 
-  //! Converts memory `baseType` and `baseId` to `x86::Reg` instance.
+  //! Converts memory `baseType` and `baseId` to `Reg` instance.
   //!
   //! The memory must have a valid base register otherwise the result will be wrong.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Reg baseReg() const noexcept { return Reg::fromTypeAndId(baseType(), baseId()); }
 
-  //! Converts memory `indexType` and `indexId` to `x86::Reg` instance.
+  //! Converts memory `indexType` and `indexId` to `Reg` instance.
   //!
   //! The memory must have a valid index register otherwise the result will be wrong.
   [[nodiscard]]

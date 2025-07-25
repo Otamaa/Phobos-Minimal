@@ -139,7 +139,7 @@ template <typename T>
 struct CellSpreadIterator
 {
 	template <typename Func>
-	void operator () (CellStruct const center, short const spread, Func&& action) const {
+	void operator () (CellStruct const center, unsigned short const spread, Func&& action) const {
 		CellSpreadIterator<ObjectClass>{}(center, spread, [&action](ObjectClass* const pObject)
 		{
 			if(auto const pItem = flag_cast_to<T*>(pObject)) {
@@ -156,7 +156,7 @@ template <>
 struct CellSpreadIterator<ObjectClass>
 {
 	template <typename Func>
-	void operator () (CellStruct const center, short const spread, Func&& action) const {
+	void operator () (CellStruct const center, unsigned short const spread, Func&& action) const {
 		CellSpreadIterator<CellClass>{}(center, spread, [&action](CellClass* const pCell)
 		{
 			for(NextObject object(pCell->GetContent()); object; ++object) {
@@ -172,10 +172,10 @@ struct CellSpreadIterator<ObjectClass>
 template <>
 struct CellSpreadIterator<CellClass> {
 	template <typename Func>
-	void operator () (CellStruct const center, short const spread, Func&& action) const {
+	void operator () (CellStruct const center, unsigned short const spread, Func&& action) const {
 		auto const legacy = MinImpl(spread, 10);
-		auto const count = (short)CellSpread::NumCells(legacy);
-		for(short i = 0; i < count; ++i) {
+		auto const count = (unsigned short)CellSpread::NumCells(legacy);
+		for(unsigned short i = 0; i < count; ++i) {
 			if(auto const pCell = MapClass::Instance->TryGetCellAt(center + CellSpread::GetCell(i))) {
 				if(!action(pCell)) {
 					return;

@@ -249,18 +249,18 @@ protected:
 
 	\author AlexB
 */
-template<short Max = std::numeric_limits<short>::max()>
+template<unsigned short Max = std::numeric_limits<unsigned short>::max()>
 class CellSpreadEnumerator
 {
 	CellStruct current; //4
-	short spread; //4
-	short curspread; // 4
+	unsigned short spread; //4
+	unsigned short curspread; // 4
 	bool hasTwo; //2
 	bool hadTwo; //2
 
 public:
 
-	CellSpreadEnumerator(short Spread, short start= 0) noexcept :
+	CellSpreadEnumerator(unsigned short Spread, unsigned short start= 0) noexcept :
 	current(start ? -1 : 0  , -start),
 	spread(MinImpl(Spread, Max)),
 	curspread(start),
@@ -300,7 +300,7 @@ public:
 		this->hadTwo = false;
 	}
 
-	COMPILETIMEEVAL void setSpread(short Spread, short start = 0) {
+	COMPILETIMEEVAL void setSpread(unsigned short Spread, unsigned short start = 0) {
 		this->spread = MinImpl(Spread, Max);
 		this->reset(start);
 	}
@@ -309,7 +309,7 @@ public:
 		return this->curspread;
 	}
 protected:
-	COMPILETIMEEVAL void reset(short radius) {
+	COMPILETIMEEVAL void reset(unsigned short radius) {
 		curspread = radius;
 		current.X = radius ? -1 : 0;
 		current.Y = -radius;

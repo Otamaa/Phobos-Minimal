@@ -260,7 +260,7 @@ struct ArchTraits {
     if (ASMJIT_UNLIKELY(type > RegType::kMaxValue)) {
       type = RegType::kNone;
     }
-    return Support::bitTest(_supportedRegTypes, uint32_t(type));
+    return Support::bit_test(_supportedRegTypes, uint32_t(type));
   }
 
   //! Returns a table of ISA word names that appear in formatted text. Word names are ISA dependent.

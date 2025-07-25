@@ -233,6 +233,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->KeepRange.Read(exINI, pSection, "KeepRange");
 	this->KeepRange_AllowAI.Read(exINI, pSection, "KeepRange.AllowAI");
 	this->KeepRange_AllowPlayer.Read(exINI, pSection, "KeepRange.AllowPlayer");
+	this->KeepRange_EarlyStopFrame.Read(exINI, pSection, "KeepRange.EarlyStopFrame");
 	this->VisualScatter.Read(exINI, pSection, "VisualScatter");
 	this->TurretRecoil_Suppress.Read(exINI, pSection, "TurretRecoil.Suppress");
 
@@ -334,7 +335,9 @@ int WeaponTypeExtData::GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* p
 		return 0;
 	}
 
-	if (!pFirer->DiskLaserTimer.InProgress())
+	if (pFirer->RearmTimer.GetTimeLeft() < pExt->KeepRange_EarlyStopFrame)
+		return 0;
+
 	{
 		const auto spawnManager = pFirer->SpawnManager;
 
@@ -566,6 +569,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->KeepRange)
 		.Process(this->KeepRange_AllowAI)
 		.Process(this->KeepRange_AllowPlayer)
+		.Process(this->KeepRange_EarlyStopFrame)
 		.Process(this->VisualScatter)
 		.Process(this->TurretRecoil_Suppress)
 

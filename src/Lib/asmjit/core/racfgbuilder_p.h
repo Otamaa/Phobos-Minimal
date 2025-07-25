@@ -3,13 +3,15 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#ifndef ASMJIT_CORE_RABUILDERS_P_H_INCLUDED
-#define ASMJIT_CORE_RABUILDERS_P_H_INCLUDED
+#ifndef ASMJIT_CORE_RACFGBUILDER_P_H_INCLUDED
+#define ASMJIT_CORE_RACFGBUILDER_P_H_INCLUDED
 
 #include "../core/api-config.h"
 #ifndef ASMJIT_NO_COMPILER
 
 #include "../core/formatter.h"
+#include "../core/racfgblock_p.h"
+#include "../core/rainst_p.h"
 #include "../core/rapass_p.h"
 
 ASMJIT_BEGIN_NAMESPACE
@@ -30,15 +32,16 @@ public:
   // NOTE: This is a bit hacky. There are some nodes which are processed twice (see `onBeforeInvoke()` and
   // `onBeforeRet()`) as they can insert some nodes around them. Since we don't have any flags to mark these
   // we just use their position that is [at that time] unassigned.
-  static inline constexpr uint32_t kNodePositionDidOnBefore = 0xFFFFFFFFu;
+  static inline constexpr NodePosition kNodePositionUnassigned = NodePosition(0u);
+  static inline constexpr NodePosition kNodePositionDidOnBefore = NodePosition(0xFFFFFFFFu);
 
   //! \}
 
   //! \name Members
   //! \{
 
-  BaseRAPass* _pass = nullptr;
-  BaseCompiler* _cc = nullptr;
+  BaseRAPass& _pass;
+  BaseCompiler& _cc;
   RABlock* _curBlock = nullptr;
   RABlock* _retBlock = nullptr;
   FuncNode* _funcNode = nullptr;
@@ -58,11 +61,11 @@ public:
 
   //! \}
 
-  inline RACFGBuilderT(BaseRAPass* pass) noexcept
+  inline RACFGBuilderT(BaseRAPass& pass) noexcept
     : _pass(pass),
-      _cc(pass->cc()) {
+      _cc(pass.cc()) {
 #ifndef ASMJIT_NO_LOGGING
-    _logger = _pass->hasDiagnosticOption(DiagnosticOptions::kRADebugCFG) ? _pass->logger() : nullptr;
+    _logger = _pass.hasDiagnosticOption(DiagnosticOptions::kRADebugCFG) ? _pass.logger() : nullptr;
     if (_logger) {
       _formatOptions = _logger->options();
     }
@@ -70,7 +73,7 @@ public:
   }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG BaseCompiler* cc() const noexcept { return _cc; }
+  ASMJIT_INLINE_NODEBUG BaseCompiler& cc() const noexcept { return _cc; }
 
   //! \name Run
   //! \{
@@ -99,7 +102,7 @@ public:
 
     for (;;) {
       BaseNode* next = node->next();
-      ASMJIT_ASSERT(node->position() == 0 || node->position() == kNodePositionDidOnBefore);
+      ASMJIT_ASSERT(node->position() == kNodePositionUnassigned || node->position() == kNodePositionDidOnBefore);
 
       if (node->isInst()) {
         // Instruction | Jump | Invoke | Return
@@ -151,7 +154,7 @@ public:
           }
           else {
             // Change the position back to its original value.
-            node->setPosition(0);
+            node->setPosition(kNodePositionUnassigned);
           }
         }
 
@@ -174,19 +177,19 @@ public:
         if (cf == InstControlFlow::kJump) {
           uint32_t fixedRegCount = 0;
           for (RATiedReg& tiedReg : ib) {
-            RAWorkReg* workReg = _pass->workRegById(tiedReg.workId());
+            RAWorkReg* workReg = tiedReg.workReg();
             if (workReg->group() == RegGroup::kGp) {
               uint32_t useId = tiedReg.useId();
               if (useId == Reg::kIdBad) {
-                useId = _pass->_scratchRegIndexes[fixedRegCount++];
+                useId = _pass._scratchRegIndexes[fixedRegCount++];
                 tiedReg.setUseId(useId);
               }
-              _curBlock->addExitScratchGpRegs(Support::bitMask(useId));
+              _curBlock->addExitScratchGpRegs(Support::bitMask<RegMask>(useId));
             }
           }
         }
 
-        ASMJIT_PROPAGATE(_pass->assignRAInst(inst, _curBlock, ib));
+        ASMJIT_PROPAGATE(_pass.assignRAInst(inst, _curBlock, ib));
         _blockRegStats.combineWith(ib._stats);
 
         if (cf != InstControlFlow::kRegular) {
@@ -197,21 +200,18 @@ public:
             _curBlock->makeConstructed(_blockRegStats);
 
             if (!inst->hasOption(InstOptions::kUnfollow)) {
-              // Jmp/Jcc/Call/Loop/etc...
-              uint32_t opCount = inst->opCount();
-              const Operand* opArray = inst->operands();
-
-              // Cannot jump anywhere without operands.
-              if (ASMJIT_UNLIKELY(!opCount)) {
+              // Jmp/Jcc/Call/Loop/etc... require at least 1 operand that describes the jump target.
+              Span<const Operand> operands = inst->operands();
+              if (ASMJIT_UNLIKELY(operands.is_empty())) {
                 return DebugUtils::errored(kErrorInvalidState);
               }
 
-              if (opArray[opCount - 1].isLabel()) {
+              if (operands.last().isLabel()) {
                 // Labels are easy for constructing the control flow.
                 LabelNode* labelNode;
-                ASMJIT_PROPAGATE(cc()->labelNodeOf(&labelNode, opArray[opCount - 1].as<Label>()));
+                ASMJIT_PROPAGATE(cc().labelNodeOf(&labelNode, operands.last().as<Label>()));
 
-                RABlock* targetBlock = _pass->newBlockOrExistingAt(labelNode);
+                RABlock* targetBlock = _pass.newBlockOrExistingAt(labelNode);
                 if (ASMJIT_UNLIKELY(!targetBlock)) {
                   return DebugUtils::errored(kErrorOutOfMemory);
                 }
@@ -231,12 +231,12 @@ public:
                 }
 
                 if (jumpAnnotation) {
-                  uint64_t timestamp = _pass->nextTimestamp();
+                  RABlockTimestamp timestamp = _pass.nextTimestamp();
                   for (uint32_t id : jumpAnnotation->labelIds()) {
                     LabelNode* labelNode;
-                    ASMJIT_PROPAGATE(cc()->labelNodeOf(&labelNode, id));
+                    ASMJIT_PROPAGATE(cc().labelNodeOf(&labelNode, id));
 
-                    RABlock* targetBlock = _pass->newBlockOrExistingAt(labelNode);
+                    RABlock* targetBlock = _pass.newBlockOrExistingAt(labelNode);
                     if (ASMJIT_UNLIKELY(!targetBlock)) {
                       return DebugUtils::errored(kErrorOutOfMemory);
                     }
@@ -251,7 +251,7 @@ public:
                   ASMJIT_PROPAGATE(shareAssignmentAcrossSuccessors(_curBlock));
                 }
                 else {
-                  ASMJIT_PROPAGATE(blocksWithUnknownJumps.append(_pass->allocator(), _curBlock));
+                  ASMJIT_PROPAGATE(blocksWithUnknownJumps.append(_pass.allocator(), _curBlock));
                 }
               }
             }
@@ -265,8 +265,9 @@ public:
             }
             else {
               node = next;
-              if (ASMJIT_UNLIKELY(!node))
+              if (ASMJIT_UNLIKELY(!node)) {
                 return DebugUtils::errored(kErrorInvalidState);
+              }
 
               RABlock* consecutiveBlock;
               if (node->type() == NodeType::kLabel) {
@@ -274,7 +275,7 @@ public:
                   consecutiveBlock = node->passData<RABlock>();
                 }
                 else {
-                  consecutiveBlock = _pass->newBlock(node);
+                  consecutiveBlock = _pass.newBlock(node);
                   if (ASMJIT_UNLIKELY(!consecutiveBlock)) {
                     return DebugUtils::errored(kErrorOutOfMemory);
                   }
@@ -282,7 +283,7 @@ public:
                 }
               }
               else {
-                consecutiveBlock = _pass->newBlock(node);
+                consecutiveBlock = _pass.newBlock(node);
                 if (ASMJIT_UNLIKELY(!consecutiveBlock)) {
                   return DebugUtils::errored(kErrorOutOfMemory);
                 }
@@ -298,7 +299,7 @@ public:
               if (_curBlock->isConstructed()) {
                 break;
               }
-              ASMJIT_PROPAGATE(_pass->addBlock(consecutiveBlock));
+              ASMJIT_PROPAGATE(_pass.addBlock(consecutiveBlock));
 
               logBlock(_curBlock, kRootIndentation);
               continue;
@@ -332,7 +333,7 @@ public:
           }
           else {
             // No block assigned - create a new one and assign it.
-            _curBlock = _pass->newBlock(node);
+            _curBlock = _pass.newBlock(node);
             if (ASMJIT_UNLIKELY(!_curBlock)) {
               return DebugUtils::errored(kErrorOutOfMemory);
             }
@@ -342,7 +343,7 @@ public:
           _curBlock->makeTargetable();
           _hasCode = false;
           _blockRegStats.reset();
-          ASMJIT_PROPAGATE(_pass->addBlock(_curBlock));
+          ASMJIT_PROPAGATE(_pass.addBlock(_curBlock));
         }
         else {
           if (node->hasPassData()) {
@@ -366,7 +367,7 @@ public:
               _curBlock->makeConstructed(_blockRegStats);
 
               ASMJIT_PROPAGATE(_curBlock->appendSuccessor(consecutive));
-              ASMJIT_PROPAGATE(_pass->addBlock(consecutive));
+              ASMJIT_PROPAGATE(_pass.addBlock(consecutive));
 
               _curBlock = consecutive;
               _hasCode = false;
@@ -383,14 +384,14 @@ public:
               _curBlock->addFlags(RABlockFlags::kHasConsecutive);
               _curBlock->makeConstructed(_blockRegStats);
 
-              RABlock* consecutive = _pass->newBlock(node);
+              RABlock* consecutive = _pass.newBlock(node);
               if (ASMJIT_UNLIKELY(!consecutive)) {
                 return DebugUtils::errored(kErrorOutOfMemory);
               }
               consecutive->makeTargetable();
 
               ASMJIT_PROPAGATE(_curBlock->appendSuccessor(consecutive));
-              ASMJIT_PROPAGATE(_pass->addBlock(consecutive));
+              ASMJIT_PROPAGATE(_pass.addBlock(consecutive));
 
               _curBlock = consecutive;
               _hasCode = false;
@@ -410,7 +411,7 @@ public:
         if (ASMJIT_UNLIKELY(node->as<LabelNode>()->labelId() == _exitLabelId)) {
           _curBlock->setLast(node);
           _curBlock->makeConstructed(_blockRegStats);
-          ASMJIT_PROPAGATE(_pass->addExitBlock(_curBlock));
+          ASMJIT_PROPAGATE(_pass.addExitBlock(_curBlock));
 
           _curBlock = nullptr;
         }
@@ -454,7 +455,7 @@ public:
       }
     }
 
-    if (_pass->hasDanglingBlocks()) {
+    if (_pass.hasDanglingBlocks()) {
       return DebugUtils::errored(kErrorInvalidState);
     }
 
@@ -462,7 +463,7 @@ public:
       ASMJIT_PROPAGATE(handleBlockWithUnknownJump(block));
     }
 
-    return _pass->initSharedAssignments(_sharedAssignmentsMap);
+    return _pass.initSharedAssignments(_sharedAssignmentsMap);
   }
 
   //! \}
@@ -473,21 +474,21 @@ public:
   //! Prepares the CFG builder of the current function.
   [[nodiscard]]
   Error prepare() noexcept {
-    FuncNode* func = _pass->func();
+    FuncNode* func = _pass.func();
     BaseNode* node = nullptr;
 
     // Create entry and exit blocks.
     _funcNode = func;
-    _retBlock = _pass->newBlockOrExistingAt(func->exitNode(), &node);
+    _retBlock = _pass.newBlockOrExistingAt(func->exitNode(), &node);
 
     if (ASMJIT_UNLIKELY(!_retBlock))
       return DebugUtils::errored(kErrorOutOfMemory);
 
     _retBlock->makeTargetable();
-    ASMJIT_PROPAGATE(_pass->addExitBlock(_retBlock));
+    ASMJIT_PROPAGATE(_pass.addExitBlock(_retBlock));
 
     if (node != func) {
-      _curBlock = _pass->newBlock();
+      _curBlock = _pass.newBlock();
       if (ASMJIT_UNLIKELY(!_curBlock))
         return DebugUtils::errored(kErrorOutOfMemory);
     }
@@ -503,7 +504,7 @@ public:
     // Initially we assume there is no code in the function body.
     _hasCode = false;
 
-    return _pass->addBlock(_curBlock);
+    return _pass.addBlock(_curBlock);
   }
 
   //! \}
@@ -514,7 +515,7 @@ public:
   //! Called when a `node` is removed, e.g. because of a dead code elimination.
   void removeNode(BaseNode* node) noexcept {
     logNode(node, kRootIndentation, "<Removed>");
-    cc()->removeNode(node);
+    cc().removeNode(node);
   }
 
   //! Handles block with unknown jump, which could be a jump to a jump table.
@@ -523,13 +524,12 @@ public:
   //! block and a natural successor, if such block exists.
   [[nodiscard]]
   Error handleBlockWithUnknownJump(RABlock* block) noexcept {
-    RABlocks& blocks = _pass->blocks();
-    size_t blockCount = blocks.size();
-
-    // NOTE: Iterate from `1` as the first block is the entry block, we don't
-    // allow the entry to be a successor of any block.
+    // NOTE: Iterate from `1` as the first block is the entry block, we don't allow the entry to be a successor
+    // of any block as it contains a function prolog sequence, which just cannot be re-executed (executed twice).
+    Span blocks = _pass.blocks();
     RABlock* consecutive = block->consecutive();
-    for (size_t i = 1; i < blockCount; i++) {
+
+    for (size_t i = 1; i < blocks.size(); i++) {
       RABlock* candidate = blocks[i];
       if (candidate == consecutive || !candidate->isTargetable()) {
         continue;
@@ -542,7 +542,7 @@ public:
 
   [[nodiscard]]
   Error shareAssignmentAcrossSuccessors(RABlock* block) noexcept {
-    if (block->successors().size() <= 1) {
+    if (block->successors().size() <= 1u) {
       return kErrorOk;
     }
 
@@ -574,8 +574,8 @@ public:
 
   [[nodiscard]]
   Error newSharedAssignmentId(uint32_t* out) noexcept {
-    uint32_t id = _sharedAssignmentsMap.size();
-    ASMJIT_PROPAGATE(_sharedAssignmentsMap.append(_pass->allocator(), id));
+    uint32_t id = uint32_t(_sharedAssignmentsMap.size());
+    ASMJIT_PROPAGATE(_sharedAssignmentsMap.append(_pass.allocator(), id));
 
     *out = id;
     return kErrorOk;
@@ -621,7 +621,7 @@ public:
       _sb.append(action);
       _sb.append(' ');
     }
-    Formatter::formatNode(_sb, _formatOptions, cc(), node);
+    Formatter::formatNode(_sb, _formatOptions, &_cc, node);
     _sb.append('\n');
     _logger->log(_sb);
   }
@@ -650,4 +650,4 @@ public:
 ASMJIT_END_NAMESPACE
 
 #endif // !ASMJIT_NO_COMPILER
-#endif // ASMJIT_CORE_RABUILDERS_P_H_INCLUDED
+#endif // ASMJIT_CORE_RACFGBUILDER_P_H_INCLUDED

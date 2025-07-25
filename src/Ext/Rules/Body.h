@@ -542,6 +542,9 @@ public:
 	Nullable<bool> AttackMove_StopWhenTargetAcquired {};
 
 	Valueable<int> PenetratesTransport_Level { 10 };
+	Valueable<bool> DamageWallRecursivly { true };
+	Valueable<int> AirstrikeLineZAdjust { 0 };
+	Valueable<int> AdjacentWallDamage { 200 };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

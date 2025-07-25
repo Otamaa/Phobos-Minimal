@@ -61,7 +61,7 @@ class RadSiteExtContainer final : public Container<RadSiteExtData>
 {
 public:
 	static RadSiteExtContainer Instance;
-	static ObjectPool<RadSiteExtData> pools;
+	static StaticObjectPool<RadSiteExtData, 1000> pools;
 
 	RadSiteExtData* AllocateUnchecked(RadSiteClass* key)
 	{

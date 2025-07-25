@@ -416,13 +416,6 @@ ASMJIT_PATCH(0x720F2E, ThemeClass_Stop_DisableStopLog, 0x9)
 	return 0x720F42;
 }
 
-ASMJIT_PATCH(0x720A58, ThemeClass_AI_DisableLog, 0x6)
-{
-	GET(ThemeClass*, pThis, ESI);
-	pThis->QueuedTheme = R->EAX<int>();
-	return 0x720A69;
-}
-
 // load more than one audio bag and index.
 // this replaces the entire old parser.
 ASMJIT_PATCH(0x4011C0, Audio_Load, 6)

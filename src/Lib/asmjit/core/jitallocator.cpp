@@ -61,8 +61,8 @@ public:
   size_t _end;
   T _bitWord;
 
-  static inline constexpr uint32_t kBitWordSize = Support::bitSizeOf<T>();
-  static inline constexpr T kXorMask = B == 0 ? Support::allOnes<T>() : T(0);
+  static inline constexpr uint32_t kBitWordSize = Support::bit_size_of<T>;
+  static inline constexpr T kXorMask = B == 0 ? Support::bit_ones<T> : T(0);
 
   ASMJIT_INLINE BitVectorRangeIterator(const T* data, size_t numBitWords) noexcept {
     init(data, numBitWords);
@@ -80,12 +80,12 @@ public:
     ASMJIT_ASSERT(numBitWords >= (end + kBitWordSize - 1) / kBitWordSize);
     DebugUtils::unused(numBitWords);
 
-    size_t idx = Support::alignDown(start, kBitWordSize);
+    size_t idx = Support::align_down(start, kBitWordSize);
     const T* ptr = data + (idx / kBitWordSize);
 
     T bitWord = 0;
     if (idx < end) {
-      bitWord = (*ptr ^ kXorMask) & (Support::allOnes<T>() << (start % kBitWordSize));
+      bitWord = (*ptr ^ kXorMask) & (Support::bit_ones<T> << (start % kBitWordSize));
     }
 
     _ptr = ptr;
@@ -107,7 +107,7 @@ public:
     size_t i = Support::ctz(_bitWord);
 
     *rangeStart = _idx + i;
-    _bitWord = ~(_bitWord ^ ~(Support::allOnes<T>() << i));
+    _bitWord = ~(_bitWord ^ ~(Support::bit_ones<T> << i));
 
     if (_bitWord == 0) {
       *rangeEnd = Support::min(_idx + kBitWordSize, _end);
@@ -118,10 +118,10 @@ public:
         }
 
         _bitWord = (*++_ptr) ^ kXorMask;
-        if (_bitWord != Support::allOnes<T>()) {
+        if (_bitWord != Support::bit_ones<T>) {
           size_t j = Support::ctz(~_bitWord);
           *rangeEnd = Support::min(_idx + j, _end);
-          _bitWord = _bitWord ^ ~(Support::allOnes<T>() << j);
+          _bitWord = _bitWord ^ ~(Support::bit_ones<T> << j);
           break;
         }
 
@@ -136,7 +136,7 @@ public:
       size_t j = Support::ctz(_bitWord);
       *rangeEnd = Support::min(_idx + j, _end);
 
-      _bitWord = ~(_bitWord ^ ~(Support::allOnes<T>() << j));
+      _bitWord = ~(_bitWord ^ ~(Support::bit_ones<T> << j));
       return true;
     }
   }
@@ -197,7 +197,8 @@ public:
   ASMJIT_INLINE_NODEBUG uint32_t areaSizeFromByteSize(size_t size) const noexcept { return uint32_t((size + granularity - 1) >> granularityLog2); }
 
   ASMJIT_INLINE_NODEBUG size_t bitWordCountFromAreaSize(uint32_t areaSize) const noexcept {
-    return Support::alignUp<size_t>(areaSize, Support::kBitWordSizeInBits) / Support::kBitWordSizeInBits;
+    static constexpr uint32_t kBitWordSizeInBits = Support::bit_size_of<Support::BitWord>;
+    return Support::align_up<size_t>(areaSize, kBitWordSizeInBits) / kBitWordSizeInBits;
   }
 };
 
@@ -520,12 +521,12 @@ static inline JitAllocatorPrivateImpl* JitAllocatorImpl_new(const JitAllocator::
   }
 
   // Setup block size [64kB..256MB].
-  if (blockSize < 64 * 1024 || blockSize > 256 * 1024 * 1024 || !Support::isPowerOf2(blockSize)) {
+  if (blockSize < 64 * 1024 || blockSize > 256 * 1024 * 1024 || !Support::is_power_of_2(blockSize)) {
     blockSize = vmInfo.pageGranularity;
   }
 
   // Setup granularity [64..256].
-  if (granularity < 64 || granularity > 256 || !Support::isPowerOf2(granularity)) {
+  if (granularity < 64 || granularity > 256 || !Support::is_power_of_2(granularity)) {
     granularity = kJitAllocatorBaseGranularity;
   }
 
@@ -577,7 +578,7 @@ static ASMJIT_INLINE size_t JitAllocatorImpl_sizeToPoolId(const JitAllocatorPriv
   size_t granularity = size_t(impl->granularity) << poolId;
 
   while (poolId) {
-    if (Support::alignUp(size, granularity) == size) {
+    if (Support::align_up(size, granularity) == size) {
       break;
     }
     poolId--;
@@ -588,7 +589,7 @@ static ASMJIT_INLINE size_t JitAllocatorImpl_sizeToPoolId(const JitAllocatorPriv
 }
 
 static ASMJIT_INLINE size_t JitAllocatorImpl_bitVectorSizeToByteSize(uint32_t areaSize) noexcept {
-  using Support::kBitWordSizeInBits;
+  static constexpr uint32_t kBitWordSizeInBits = Support::bit_size_of<Support::BitWord>;
   return ((areaSize + kBitWordSizeInBits - 1u) / kBitWordSizeInBits) * sizeof(Support::BitWord);
 }
 
@@ -610,7 +611,7 @@ static ASMJIT_INLINE size_t JitAllocatorImpl_calculateIdealBlockSize(JitAllocato
   }
 
   if (allocationSize > blockSize) {
-    blockSize = Support::alignUp(allocationSize, impl->blockSize);
+    blockSize = Support::align_up(allocationSize, impl->blockSize);
     if (ASMJIT_UNLIKELY(blockSize < allocationSize)) {
       return 0; // Overflown.
     }
@@ -653,7 +654,7 @@ ASMJIT_FAVOR_SPEED static void JitAllocatorImpl_fillPattern(void* mem, uint32_t 
 // is only allocated when it's actually needed, so it would be cleared anyway.
 static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocatorBlock** dst, JitAllocatorPool* pool, size_t blockSize) noexcept {
   using Support::BitWord;
-  using Support::kBitWordSizeInBits;
+  static constexpr uint32_t kBitWordSizeInBits = Support::bit_size_of<Support::BitWord>;
 
   uint32_t blockFlags = 0;
   if (!Support::test(impl->options, JitAllocatorOptions::kDisableInitialPadding)) {
@@ -675,7 +676,7 @@ static Error JitAllocatorImpl_newBlock(JitAllocatorPrivateImpl* impl, JitAllocat
 
       // Only proceed if we can actually allocate large pages.
       if (largePageSize && tryLargePage) {
-        size_t largeBlockSize = Support::alignUp(blockSize, largePageSize);
+        size_t largeBlockSize = Support::align_up(blockSize, largePageSize);
         Error err = VirtMem::alloc(&virtMem.rx, largeBlockSize, memFlags | VirtMem::MemoryFlags::kMMapLargePages);
 
         // Fallback to regular pages if large page(s) allocation failed.
@@ -899,7 +900,7 @@ Error JitAllocator::alloc(Span& out, size_t size) noexcept {
   bool notInitialized = _impl == &JitAllocatorImpl_none;
 
   // Align to the minimum granularity by default.
-  size = Support::alignUp<size_t>(size, impl->granularity);
+  size = Support::align_up<size_t>(size, impl->granularity);
   out = Span{};
 
   if (ASMJIT_UNLIKELY(Support::bool_or(notInitialized, size - 1u >= kMaxRequestSize))) {
@@ -1231,43 +1232,29 @@ Error JitAllocator::write(Span& span, WriteFunc writeFunc, void* userData, VirtM
 // ==========================
 
 Error JitAllocator::beginWriteScope(WriteScopeData& scope, VirtMem::CachePolicy policy) noexcept {
-  scope._allocator = this;
-  scope._data[0] = size_t(policy);
+  scope.policy = policy;
+  scope.flags = 0u;
+  scope.data[0] = 0u;
+  scope.data[1] = 0u;
   return kErrorOk;
 }
 
 Error JitAllocator::endWriteScope(WriteScopeData& scope) noexcept {
-  if (ASMJIT_UNLIKELY(!scope._allocator)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
-  }
-
+  DebugUtils::unused(scope);
   return kErrorOk;
 }
 
 Error JitAllocator::flushWriteScope(WriteScopeData& scope) noexcept {
-  if (ASMJIT_UNLIKELY(!scope._allocator)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
-  }
-
+  DebugUtils::unused(scope);
   return kErrorOk;
 }
 
 Error JitAllocator::scopedWrite(WriteScopeData& scope, Span& span, size_t offset, const void* src, size_t size) noexcept {
-  if (ASMJIT_UNLIKELY(!scope._allocator)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
-  }
-
-  VirtMem::CachePolicy policy = VirtMem::CachePolicy(scope._data[0]);
-  return scope._allocator->write(span, offset, src, size, policy);
+  return write(span, offset, src, size, scope.policy);
 }
 
 Error JitAllocator::scopedWrite(WriteScopeData& scope, Span& span, WriteFunc writeFunc, void* userData) noexcept {
-  if (ASMJIT_UNLIKELY(!scope._allocator)) {
-    return DebugUtils::errored(kErrorInvalidArgument);
-  }
-
-  VirtMem::CachePolicy policy = VirtMem::CachePolicy(scope._data[0]);
-  return scope._allocator->write(span, writeFunc, userData, policy);
+  return write(span, writeFunc, userData, scope.policy);
 }
 
 // JitAllocator - Tests
@@ -1279,8 +1266,9 @@ namespace JitAllocatorUtils {
     uint64_t* p = static_cast<uint64_t*>(p_);
     size_t n = sizeInBytes / 8u;
 
-    for (size_t i = 0; i < n; i++)
+    for (size_t i = 0; i < n; i++) {
       p[i] = pattern;
+    }
   }
 
   static bool verifyPattern64(const void* p_, uint64_t pattern, size_t sizeInBytes) noexcept {
@@ -1446,7 +1434,7 @@ static void BitVectorRangeIterator_testRandom(TestUtils::Random& rnd, size_t cou
 
     for (size_t j = 0; j < kPatternSize; j++) {
       in[j] = T(uint64_t(rnd.nextUInt32() & 0xFFu) * 0x0101010101010101);
-      out[j] = Bit == 0 ? Support::allOnes<T>() : T(0);
+      out[j] = Bit == 0 ? Support::bit_ones<T> : T(0);
     }
 
     {

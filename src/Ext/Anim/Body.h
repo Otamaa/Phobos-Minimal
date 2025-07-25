@@ -98,7 +98,7 @@ class NOVTABLE FakeAnimClass : public AnimClass
 {
 public:
 	static std::list<FakeAnimClass*> AnimsWithAttachedParticles;
-	static ObjectPool<AnimExtData> pools;
+	static StaticObjectPool<AnimExtData , 10000> pools;
 
 	static COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(AnimClass* key)
 	{

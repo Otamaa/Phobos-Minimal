@@ -10,8 +10,8 @@
 #include "../core/environment.h"
 #include "../core/func.h"
 #include "../core/operand.h"
-#include "../core/radefs_p.h"
 #include "../core/support.h"
+#include "../core/raconstraints_p.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -113,7 +113,7 @@ public:
     [[nodiscard]]
     inline bool isAssigned(uint32_t regId) const noexcept {
       ASMJIT_ASSERT(regId < 32);
-      return Support::bitTest(_assignedRegs, regId);
+      return Support::bit_test(_assignedRegs, regId);
     }
 
     inline void assign(uint32_t varId, uint32_t regId) noexcept {
@@ -121,7 +121,7 @@ public:
       ASMJIT_ASSERT(_physToVarId[regId] == kVarIdNone);
 
       _physToVarId[regId] = uint8_t(varId);
-      _assignedRegs ^= Support::bitMask(regId);
+      _assignedRegs ^= Support::bitMask<RegMask>(regId);
     }
 
     inline void reassign(uint32_t varId, uint32_t newId, uint32_t oldId) noexcept {
@@ -132,7 +132,7 @@ public:
 
       _physToVarId[oldId] = uint8_t(kVarIdNone);
       _physToVarId[newId] = uint8_t(varId);
-      _assignedRegs ^= Support::bitMask(newId) ^ Support::bitMask(oldId);
+      _assignedRegs ^= Support::bitMask<RegMask>(newId) ^ Support::bitMask<RegMask>(oldId);
     }
 
     inline void swap(uint32_t aVarId, uint32_t aRegId, uint32_t bVarId, uint32_t bRegId) noexcept {
@@ -151,7 +151,7 @@ public:
 
       DebugUtils::unused(varId);
       _physToVarId[regId] = uint8_t(kVarIdNone);
-      _assignedRegs ^= Support::bitMask(regId);
+      _assignedRegs ^= Support::bitMask<RegMask>(regId);
     }
 
     [[nodiscard]]

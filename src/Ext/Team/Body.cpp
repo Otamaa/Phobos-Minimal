@@ -666,175 +666,7 @@ static NOINLINE int GetStrayDistanceForMission(ScriptClass* script)
 
 void FakeTeamClass::_CoordinateMove()
 {
-	AbstractClass* MissionTarget;
-	int RelaxedStrayDistance;
-	AbstractClass* NavCom;
-	bool v10;
-	bool v11;
-	bool finished = true;
-	bool found = false;
-	int stray;
-	int dist;
-
-	FootClass* unit = this->FirstUnit;
-
-	if (unit)
-	{
-		if (this->ArchiveTarget || (MissionTarget = this->QueuedFocus, (this->ArchiveTarget = MissionTarget) != 0))
-		{
-			if (!this->LaggingUnits())
-			{
-				while (1)
-				{
-					if (unit->IsAlive && unit->Health && (Unsorted::ScenarioInit() || !unit->InLimbo) && !unit->IsTeamLeader)
-					{
-						RelaxedStrayDistance = GetStrayDistanceForMission(this->CurrentScript);
-
-						//closest one -> leader
-						if (unit->DistanceFromSquared(this->Zone) <= RelaxedStrayDistance)
-						{
-							unit->IsTeamLeader = 1;
-						}
-						else
-						{
-							if (!unit->Destination)
-							{
-								unit->QueueMission(Mission::Move, 0);
-								unit->SetTarget(0);
-								unit->SetDestination(this->Zone, 1);
-							}
-							finished = 0;
-						}
-					}
-
-					if (unit->GetCurrentMission() == Mission::Unload || unit->QueuedMission == Mission::Unload)
-					{
-						finished = 0;
-					}
-
-					if (!unit->IsAlive
-					  || !unit->Health
-					  || !Unsorted::ScenarioInit() && unit->InLimbo
-					  || !unit->IsTeamLeader && unit->WhatAmI() != AircraftClass::AbsID
-					  || unit->GetCurrentMission() == Mission::Unload
-					  || unit->QueuedMission == Mission::Unload)
-					{
-						goto LABEL_80;
-					}
-
-					stray = GetStrayDistanceForMission(this->CurrentScript);
-
-					if (unit->IsInAir())
-					{
-						stray *= 2;
-					}
-
-					found = 1;
-					dist = unit->DistanceFromSquared(this->ArchiveTarget);
-
-					if (dist <= stray
-					  && (unit->GetHeight() >= 0
-						  || this->CurrentScript->GetNextAction().Action == TeamMissionType::Move))
-					{
-						if (unit->WhatAmI() != AircraftClass::AbsID)
-						{
-							break;
-						}
-
-						if (unit->GetZ() <= 0)
-						{
-							break;
-						}
-
-						CoordStruct v8 {};
-						 unit->GetCoords(&v8);
-						if (MapClass::Instance->TryGetCellAt(v8) == this->ArchiveTarget
-						  || this->CurrentScript->GetNextAction().Action == TeamMissionType::Move)
-						{
-							break;
-						}
-					}
-
-					if (!this->Type->Aggressive || !unit->Target)
-					{
-						goto LABEL_55;
-					}
-
-					if (unit->__AssignNewThreat)
-					{
-						unit->SetTarget(0);
-					LABEL_55:
-						if (unit->GetCurrentMission() != Mission::Move)
-						{
-							unit->QueueMission(Mission::Move, 0);
-							if (unit->ReadyToNextMission()) {
-								unit->NextMission();
-							}
-						}
-
-						if (!unit->Destination)
-						{
-							unit->SetDestination(this->ArchiveTarget, 1);
-						}
-
-						NavCom = unit->Destination;
-						if (NavCom != this->ArchiveTarget
-						  && (unit->GetTechnoType()->BalloonHover
-							  || NavCom != this->ArchiveTarget
-							  && unit->WhatAmI() == AircraftClass::AbsID
-							  && NavCom == unit->GetCell()))
-						{
-							unit->SetDestination(this->ArchiveTarget, 1);
-						}
-						finished = 0;
-					LABEL_67:
-						v10 = unit->WhatAmI() == AircraftClass::AbsID
-							&& unit->Destination == unit->GetCell();
-						v11 = unit->GetTechnoType()->BalloonHover
-							&& dist < stray;
-
-						if (unit->Destination && !v10 && !v11)
-						{
-							finished = 0;
-						}
-					}
-				LABEL_80:
-					unit = unit->NextTeamMember;
-					if (!unit)
-					{
-						if (found && finished)
-						{
-							if (this->IsMoving)
-							{
-								this->StepCompleted = 1;
-							}
-						}
-						return;
-					}
-				}
-				if (unit->GetCurrentMission() == Mission::Move)
-				{
-					if (!unit->Destination)
-					{
-						goto LABEL_87;
-					}
-					if (unit->DistanceFromSquared(unit->Destination) <= RulesClass::Instance->CloseEnough)
-					{
-						if (!unit->Locomotor->Is_Moving())
-						{
-						LABEL_87:
-							if (!unit->Target)
-							{
-								unit->SetDestination(0, 1);
-								unit->EnterIdleMode(0, 1);
-							}
-						}
-					}
-				}
-				goto LABEL_67;
-			}
-		}
-	}
+ //TODO ///
 }
 
 void FakeTeamClass::_AI()
@@ -1157,7 +989,7 @@ bool FakeTeamClass::_CoordinateRegroup()
 			// Check if member is valid and ready for regrouping
 			if (Member->Health && (Unsorted::ScenarioInit || !Member->InLimbo) && !Member->IsTeamLeader) {
 				// Check if member is close enough to initiate
-				if (((FakeObjectClass*)Member)->_GetDistanceOfObj(this->Zone) <= RelaxedStrayDistance)
+				if (FakeObjectClass::_GetDistanceOfObj(Member , discard_t() , this->Zone) <= RelaxedStrayDistance)
 				{
 					Member->IsTeamLeader = 1;
 				}
@@ -1177,7 +1009,7 @@ bool FakeTeamClass::_CoordinateRegroup()
 				&& (Member->IsTeamLeader || Member->WhatAmI() == AbstractType::Aircraft))
 			{
 				// Check if member is in position or guarding with target
-				if (((FakeObjectClass*)Member)->_GetDistanceOfObj(this->Zone) <= RelaxedStrayDistance
+				if (FakeObjectClass::_GetDistanceOfObj(Member, discard_t(), this->Zone) <= RelaxedStrayDistance
 					|| (Member->GetCurrentMission()  == Mission::Area_Guard && Member->Target))
 				{
 					// Set to guard mission if not already guarding
@@ -1216,7 +1048,7 @@ bool FakeTeamClass::_CoordinateRegroup()
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F478C, FakeTeamClass::_AI)
 DEFINE_FUNCTION_JUMP(CALL, 0x6ED7A2, FakeTeamClass::_CoordinateRegroup)
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x6EBAD0 , FakeTeamClass::_CoordinateMove)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x6EBAD0 , FakeTeamClass::_CoordinateMove)
 //
 //DEFINE_FUNCTION_JUMP(CALL, 0x6EA3B5, FakeTeamClass::_CoordinateMove)
 //DEFINE_FUNCTION_JUMP(CALL, 0x6EC75A, FakeTeamClass::_CoordinateMove)
@@ -1330,7 +1162,7 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
-ObjectPool<TeamExtData> TeamExtContainer::pools;
+StaticObjectPool<TeamExtData, 10000> TeamExtContainer::pools;
 // =============================
 // container hooks
 

@@ -180,20 +180,7 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AltPalette_ApplyLighting.Read(exINI, pID, "AltPalette.ApplyLighting");
 
 	//Launchs
-	this->Launchs.clear();
-	for (size_t i = 0; ; ++i)
-	{
-		//char nBuff[0x30];
-		SuperWeaponTypeClass* LaunchWhat_Dummy;
-		std::string _buffer = "LaunchSW";
-		_buffer += std::to_string(i);
-		_buffer += ".Type";
-
-		if (!detail::read(LaunchWhat_Dummy, exINI, pID, _buffer.c_str(), true) || !LaunchWhat_Dummy)
-			break;
-
-		this->Launchs.emplace_back().Read(exINI, pID, i, LaunchWhat_Dummy);
-	}
+	LauchSWData::ReadVector(this->Launchs, exINI , pID, Phobos::Otamaa::CompatibilityMode);
 
 	this->RemapAnim.Read(exINI, pID, "RemapAnim");
 	this->ExtraShadow.Read(exINI, pID, "ExtraShadow");

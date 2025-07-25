@@ -1286,7 +1286,7 @@ void ParticleSystemExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
-ObjectPool<ParticleSystemExtData> ParticleSystemExtContainer::pools;
+StaticObjectPool<ParticleSystemExtData, 10000> ParticleSystemExtContainer::pools;
 // =============================
 // container hooks
 

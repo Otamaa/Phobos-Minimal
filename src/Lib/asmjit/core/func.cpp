@@ -126,13 +126,13 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::init(const FuncDetail& func) noexcept {
   }
 
   // Initial masks of dirty and preserved registers.
-  for (RegGroup group : RegGroupVirtValues{}) {
+  for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
     _dirtyRegs[group] = func.usedRegs(group);
     _preservedRegs[group] = func.preservedRegs(group);
   }
 
   // Exclude stack pointer - this register is never included in saved GP regs.
-  _preservedRegs[RegGroup::kGp] &= ~Support::bitMask(archTraits.spRegId());
+  _preservedRegs[RegGroup::kGp] &= ~Support::bitMask<RegMask>(archTraits.spRegId());
 
   // The size and alignment of save/restore area of registers for each virtual register group
   _saveRestoreRegSize = func.callConv()._saveRestoreRegSize;
@@ -168,12 +168,12 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
 
   // Make frame pointer dirty if the function uses it.
   if (hasFP) {
-    _dirtyRegs[RegGroup::kGp] |= Support::bitMask(kFp);
+    _dirtyRegs[RegGroup::kGp] |= Support::bitMask<RegMask>(kFp);
 
     // Currently required by ARM, if this works differently across architectures we would have to generalize most
     // likely in CallConv.
     if (kLr != Reg::kIdBad) {
-      _dirtyRegs[RegGroup::kGp] |= Support::bitMask(kLr);
+      _dirtyRegs[RegGroup::kGp] |= Support::bitMask<RegMask>(kLr);
     }
   }
 
@@ -191,7 +191,7 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
 
   // Mark as dirty any register but SP if used as SA pointer.
   if (saRegId != kSp) {
-    _dirtyRegs[RegGroup::kGp] |= Support::bitMask(saRegId);
+    _dirtyRegs[RegGroup::kGp] |= Support::bitMask<RegMask>(saRegId);
   }
 
   _spRegId = uint8_t(kSp);
@@ -199,9 +199,9 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
 
   // Setup stack size used to save preserved registers.
   uint32_t saveRestoreSizes[2] {};
-  for (RegGroup group : RegGroupVirtValues{}) {
+  for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
     saveRestoreSizes[size_t(!archTraits.hasInstPushPop(group))]
-      += Support::alignUp(Support::popcnt(savedRegs(group)) * saveRestoreRegSize(group), saveRestoreAlignment(group));
+      += Support::align_up(Support::popcnt(savedRegs(group)) * saveRestoreRegSize(group), saveRestoreAlignment(group));
   }
 
   _pushPopSaveSize  = uint16_t(saveRestoreSizes[0]);
@@ -209,7 +209,7 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
 
   uint32_t v = 0;                            // The beginning of the stack frame relative to SP after prolog.
   v += callStackSize();                      // Count 'callStackSize'      <- This is used to call functions.
-  v  = Support::alignUp(v, stackAlignment);  // Align to function's stack alignment.
+  v  = Support::align_up(v, stackAlignment);  // Align to function's stack alignment.
 
   _localStackOffset = v;                     // Store 'localStackOffset'   <- Function's local stack starts here.
   v += localStackSize();                     // Count 'localStackSize'     <- Function's local stack ends here.
@@ -218,7 +218,7 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
   // `FuncAttributes::kAlignedVecSR` to inform PEI that it can use instructions that perform aligned stores/loads.
   if (stackAlignment >= vectorSize && _extraRegSaveSize) {
     addAttributes(FuncAttributes::kAlignedVecSR);
-    v = Support::alignUp(v, vectorSize);     // Align 'extraRegSaveOffset'.
+    v = Support::align_up(v, vectorSize);     // Align 'extraRegSaveOffset'.
   }
 
   _extraRegSaveOffset = v;                   // Store 'extraRegSaveOffset' <- Non-GP save/restore starts here.
@@ -250,7 +250,7 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
   // it pushes the current EIP|RIP onto the stack, and unaligns it by 12 or 8 bytes (depending on the
   // architecture). So count number of bytes needed to align it up to the function's CallFrame (the beginning).
   if (v || hasFuncCalls() || !returnAddressSize) {
-    v += Support::alignUpDiff(v + pushPopSaveSize() + returnAddressSize, stackAlignment);
+    v += Support::align_up_diff(v + pushPopSaveSize() + returnAddressSize, stackAlignment);
   }
 
   _pushPopSaveOffset = v;                    // Store 'pushPopSaveOffset'  <- Function's push/pop save/restore starts here.
@@ -264,7 +264,7 @@ ASMJIT_FAVOR_SIZE Error FuncFrame::finalize() noexcept {
 
   // If the function performs dynamic stack alignment then the stack-adjustment must be aligned.
   if (hasDA) {
-    _stackAdjustment = Support::alignUp(_stackAdjustment, stackAlignment);
+    _stackAdjustment = Support::align_up(_stackAdjustment, stackAlignment);
   }
 
   // Calculate where the function arguments start relative to SP.

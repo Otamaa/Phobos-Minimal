@@ -674,7 +674,7 @@ ASMJIT_PATCH(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
 
 				if (rof > 0){
 					pThis->ROF = rof;
-					pThis->DiskLaserTimer.Start(rof);
+					pThis->RearmTimer.Start(rof);
 					pThis->CurrentBurstIndex = 0;
 					pExt->LastWeaponType = pWeapon;
 

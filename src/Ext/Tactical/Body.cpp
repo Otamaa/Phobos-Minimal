@@ -308,14 +308,14 @@ void FakeTacticalClass::__DrawRadialIndicator(
 		Point2D line_start {};
 		Point2D line_end {};
 
-		if (std::fabs(angle - Math::DEG_TO_RADF(90)) < 0.001)
+		if (Math::abs(angle - Math::DEG_TO_RADF(90)) < 0.001)
 		{
 
 			line_start = center_pixel;
 			line_end = Point2D(center_pixel.X, int(center_pixel.Y + (-size_half)));
 
 		}
-		else if (std::fabs(angle - Math::DEG_TO_RADF(270)) < 0.001)
+		else if (Math::abs(angle - Math::DEG_TO_RADF(270)) < 0.001)
 		{
 
 			line_start = center_pixel;

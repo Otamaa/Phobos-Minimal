@@ -224,9 +224,9 @@ ASMJIT_PATCH(0x74653C, UnitClass_RemoveGunner, 0xA)
 //			//pThis->SwitchTurretWeapon(7);
 //		}
 //
-//		if (Gunner->DiskLaserTimer.HasTimeLeft()) {
+//		if (Gunner->RearmTimer.HasTimeLeft()) {
 //			++pThis->CurrentBurstIndex;
-//			pThis->DiskLaserTimer.Start(pThis->GetROF(7)); //hardcoded it seems
+//			pThis->RearmTimer.Start(pThis->GetROF(7)); //hardcoded it seems
 //		}
 //
 //		pThis->SwitchTurretWeapon(Gunner->GetTechnoType()->IFVMode);
@@ -242,9 +242,9 @@ ASMJIT_PATCH(0x74653C, UnitClass_RemoveGunner, 0xA)
 //
 //	if(Gunner) {
 //
-//		if(!pThis->DiskLaserTimer.GetTimeLeft()) {
+//		if(!pThis->RearmTimer.GetTimeLeft()) {
 //			++pThis->CurrentBurstIndex;
-//			pThis->DiskLaserTimer.Start(pThis->GetROF(0));
+//			pThis->RearmTimer.Start(pThis->GetROF(0));
 //		}
 //
 //		if (pThis->TemporalImUsing)
@@ -520,7 +520,9 @@ ASMJIT_PATCH(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 	//LineTrailExt::DeallocateLineTrail(pUnit);
 	//LineTrailExt::ConstructLineTrails(pUnit);
 
-	return pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now() ? 0x73E5B1 : 0x0;
+	// Phobos fix disable these 
+	//return pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now() ? 0x73E5B1 : 0x0;
+	return 0;
 }
 
 #include <Ext/CaptureManager/Body.h>
@@ -914,19 +916,18 @@ ASMJIT_PATCH(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
 	return enterable ? 0x740324u : 0x74037Au;
 }
 
-//TechnoClass_CanAutoTargetObject_Heal
+//TechnoClass_EvaluateObject_Heal
 DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 
-//ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_FindTargetType_Heal, 6)
-//ASMJIT_PATCH(0x6F8EE3, TechnoClass_FindTargetType_Heal, 6)
-//{
-//	GET(unsigned int, nVal, EBX);
+// ASMJIT_PATCH(0x6F8EE3, TechnoClass_GreatestThereat_Heal, 6)
+// {
+// 	GET(unsigned int, nVal, EBX);
 //
-//	nVal |= 0x403Cu;
+// 	nVal |= 0x403Cu;
 //
-//	R->EBX(nVal);
-//	return 0x6F8F25;
-//}
+// 	R->EBX(nVal);
+// 	return 0x6F8F25;
+// }ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_GreatestThereat_Heal, 6)
 
 DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8F1F , 0x2, 0x3C);
 DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8EE3 , 0x2, 0x3C);

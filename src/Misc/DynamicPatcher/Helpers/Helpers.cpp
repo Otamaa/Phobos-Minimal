@@ -262,7 +262,7 @@ DirStruct Helpers_DP::Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos)
 	double radians = Math::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
 	// Magic form tomsons26
 	radians -= Math::deg2rad_Alternate(90);
-	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC_ALTERNATE));
+	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC));
 }
 
 Vector3D<float> Helpers_DP::GetFLHAbsoluteOffset(CoordStruct& flh, DirStruct& dir, const CoordStruct& turretOffset)
@@ -384,7 +384,7 @@ double Helpers_DP::GetDamageMult(TechnoClass* pTechno, double damageIn)
 DirStruct Helpers_DP::DirNormalized(int index, int facing)
 {
 	double radians = Math::deg2rad_Alternate((double)(-360 / facing * index));
-	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC_ALTERNATE));
+	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC));
 }
 
 CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruct& targetPos)
@@ -815,7 +815,7 @@ bool Helpers_DP::CanDamageMe(TechnoClass* pTechno, int damage, int distanceFromE
 {
 	// 计算实际伤害
 	auto const Armor = TechnoExtData::GetTechnoArmor(pTechno , pWH);
-	realDamage = MapClass::Instance->GetTotalDamage(damage,pWH, Armor,distanceFromEpicenter);
+	realDamage = FakeWarheadTypeClass::ModifyDamage(damage,pWH, Armor,distanceFromEpicenter);
 	auto const data = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (damage == 0)

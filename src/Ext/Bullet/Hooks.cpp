@@ -96,7 +96,7 @@ ASMJIT_PATCH(0x466705, BulletClass_AI, 0x6) //8
 	return 0;
 }
 
-ASMJIT_PATCH(0x469276, BulletClass_DetonateAt_ApplyLogics , 0xA)
+ASMJIT_PATCH(0x469276, BulletClass_Logics_ApplyMindControl , 0xA)
 {
 	GET(ObjectClass* const, pVictimObject, EDI);
 	GET(FakeBulletClass*, pThis, ESI);
@@ -151,13 +151,100 @@ ASMJIT_PATCH(0x4671B9, BulletClass_AI_ApplyGravity, 0x6)
 // we handle ScreenShake thru warhead
 //DEFINE_JUMP(LJMP, 0x4690D4, 0x469130)
 
-ASMJIT_PATCH(0x4690D4, BulletClass_Logics_CheckHealth, 0x6)
+#include <Misc/PhobosGlobal.h>
+#include <InfantryClass.h>
+
+static FORCEDINLINE void TryDetonateFull(BulletClass* pThis, TechnoClass* pTechno, WarheadTypeExtData* pWHExt, HouseClass* pOwner)
 {
-	enum { SkipShaking = 0x469130, GoToExtras = 0x469AA4 };
+	if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner) == FullMapDetonateResult::TargetValid)
+	{
+		pThis->Target = pTechno;
+		pThis->Location = pTechno->GetCoords();
+		pThis->Detonate(pTechno->GetCoords());
+	}
+}
+
+static FORCEDINLINE void TryDetonateDamageArea(BulletClass* pThis, TechnoClass* pTechno, WarheadTypeExtData* pWHExt, HouseClass* pOwner)
+{
+	if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner) == FullMapDetonateResult::TargetValid)
+	{
+		int damage = (pThis->Health * pThis->DamageMultiplier) >> 8;
+		pWHExt->DamageAreaWithTarget(pTechno->GetCoords(), damage, pThis->Owner, pThis->WH, true, pOwner, pTechno);
+	}
+}
+
+ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
+{
+	enum { SkipShaking = 0x469130, GoToExtras = 0x469AA4  , ReturnFromFunction = 0x46A2FB };
 
 	GET(FakeBulletClass*, pBullet, ESI);
 	GET(FakeWarheadTypeClass*, pWarhead, EAX);
 	//GET_BASE(CoordStruct*, pCoords, 0x8);
+
+	if (pBullet->WH)
+	{
+		const auto pWHExt = pBullet->_GetWarheadTypeExtData();
+
+		if (pWHExt->DetonateOnAllMapObjects &&
+			!pWHExt->WasDetonatedOnAllMapObjects &&
+			pWHExt->DetonateOnAllMapObjects_AffectTargets != AffectedTarget::None &&
+			pWHExt->DetonateOnAllMapObjects_AffectHouses != AffectedHouse::None)
+		{
+			pWHExt->WasDetonatedOnAllMapObjects = true;
+			auto const originalLocation = pBullet->Location;
+			const auto pHouse = BulletExtData::GetHouse(pBullet);
+			BulletExtContainer::Instance.Find(pBullet)->OriginalTarget = pBullet->Target;
+
+			COMPILETIMEEVAL auto copy_dvc = []<typename T>(std::vector<T>&dest, const DynamicVectorClass<T>&dvc)
+			{
+				dest.resize(dvc.Count);
+				std::copy(dvc.begin(), dvc.end(), dest.begin());
+				return &dest;
+			};
+
+			void (*tryDetonate)(BulletClass*, TechnoClass*, WarheadTypeExtData*, HouseClass*)
+				= pWHExt->DetonateOnAllMapObjects_Full ? TryDetonateFull : TryDetonateDamageArea;
+
+			auto& CurCopyArray = PhobosGlobal::Instance()->CurCopyArray[pBullet->WH];
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
+			{
+				auto const aircraft = copy_dvc(CurCopyArray.Aircraft, *AircraftClass::Array);
+
+				for (auto pAircraft : *aircraft)
+					tryDetonate(pBullet, pAircraft, pWHExt, pHouse);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Building) != AffectedTarget::None)
+			{
+				auto const buildings = copy_dvc(CurCopyArray.Building, *BuildingClass::Array);
+
+				for (auto pBuilding : *buildings)
+					tryDetonate(pBullet, pBuilding, pWHExt, pHouse);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
+			{
+				auto const infantry = copy_dvc(CurCopyArray.Infantry, *InfantryClass::Array);
+
+				for (auto pInf : *infantry)
+					tryDetonate(pBullet, pInf, pWHExt, pHouse);
+			}
+
+			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
+			{
+				auto const units = copy_dvc(CurCopyArray.Unit, *UnitClass::Array);
+
+				for (auto const pUnit : *units)
+					tryDetonate(pBullet, pUnit, pWHExt, pHouse);
+			}
+
+			pBullet->Target = pBullet->_GetExtData()->OriginalTarget;
+			pBullet->Location = originalLocation;
+			pWHExt->WasDetonatedOnAllMapObjects = false;
+			return ReturnFromFunction;
+		}
+	}
 
 	if (auto pTarget = flag_cast_to<ObjectClass*>(pBullet->Target)) {
 		// Check if the WH should affect the techno target or skip it
@@ -173,7 +260,7 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_CheckHealth, 0x6)
 		}
 	}
 
-	return 0x469130;
+	return SkipShaking;
 }
 //DEFINE_SKIP_HOOK(0x4690D4 , BulletClass_Logics_Shake_Handled ,0x6 , 469130);
 
@@ -198,105 +285,6 @@ ASMJIT_PATCH(0x4668BD, BulletClass_AI_Interceptor_InvisoSkip, 0x6)
 	GET(FakeBulletClass*, pThis, EBP);
 	return (pThis->Type->Inviso && & pThis->_GetExtData()->InterceptorTechnoType)
 		? DetonateBullet : Continue;
-}
-
-static FORCEDINLINE void TryDetonateFull(BulletClass* pThis, TechnoClass* pTechno, WarheadTypeExtData* pWHExt, HouseClass* pOwner)
-{
-	if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner) == FullMapDetonateResult::TargetValid)
-	{
-		pThis->Target = pTechno;
-		pThis->Location = pTechno->GetCoords();
-		pThis->Detonate(pTechno->GetCoords());
-	}
-}
-
-static FORCEDINLINE void TryDetonateDamageArea(BulletClass* pThis, TechnoClass* pTechno, WarheadTypeExtData* pWHExt, HouseClass* pOwner)
-{
-	if (pWHExt->EligibleForFullMapDetonation(pTechno, pOwner) == FullMapDetonateResult::TargetValid)
-	{
-		int damage = (pThis->Health * pThis->DamageMultiplier) >> 8;
-		pWHExt->DamageAreaWithTarget(pTechno->GetCoords(), damage, pThis->Owner, pThis->WH, true, pOwner, pTechno);
-	}
-}
-
-#include <Misc/PhobosGlobal.h>
-#include <InfantryClass.h>
-
-ASMJIT_PATCH(0x4690C1, BulletClass_Logics_Detonate, 0x8)
-{
-	enum { ReturnFromFunction = 0x46A2FB };
-
-	GET(FakeBulletClass* const, pThis, ESI);
-
-	if (!BulletExtData::IsReallyAlive(pThis)) {
-		return ReturnFromFunction;
-	}
-
-	if (pThis->WH)
-	{
-		const auto pWHExt = pThis->_GetWarheadTypeExtData();
-
-		if (pWHExt->DetonateOnAllMapObjects &&
-			!pWHExt->WasDetonatedOnAllMapObjects &&
-			pWHExt->DetonateOnAllMapObjects_AffectTargets != AffectedTarget::None &&
-			pWHExt->DetonateOnAllMapObjects_AffectHouses != AffectedHouse::None)
-		{
-			pWHExt->WasDetonatedOnAllMapObjects = true;
-			auto const originalLocation = pThis->Location;
-			const auto pHouse = BulletExtData::GetHouse(pThis);
-			BulletExtContainer::Instance.Find(pThis)->OriginalTarget = pThis->Target;
-
-			COMPILETIMEEVAL auto copy_dvc = []<typename T>(std::vector<T>& dest, const DynamicVectorClass<T>&dvc) {
-				dest.resize(dvc.Count);
-				std::copy(dvc.begin(), dvc.end(), dest.begin());
-				return &dest;
-			};
-
-			void (*tryDetonate)(BulletClass*, TechnoClass*, WarheadTypeExtData*, HouseClass*)
-					= pWHExt->DetonateOnAllMapObjects_Full ? TryDetonateFull : TryDetonateDamageArea;
-
-			auto& CurCopyArray = PhobosGlobal::Instance()->CurCopyArray[pThis->WH];
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Aircraft) != AffectedTarget::None)
-			{
-				auto const aircraft = copy_dvc(CurCopyArray.Aircraft ,*AircraftClass::Array);
-
-				for (auto pAircraft : *aircraft)
-					tryDetonate(pThis, pAircraft, pWHExt, pHouse);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Building) != AffectedTarget::None)
-			{
-				auto const buildings = copy_dvc(CurCopyArray.Building ,*BuildingClass::Array);
-
-				for (auto pBuilding : *buildings)
-					tryDetonate(pThis, pBuilding, pWHExt, pHouse);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Infantry) != AffectedTarget::None)
-			{
-				auto const infantry = copy_dvc(CurCopyArray.Infantry ,*InfantryClass::Array);
-
-				for (auto pInf : *infantry)
-					tryDetonate(pThis, pInf, pWHExt, pHouse);
-			}
-
-			if ((pWHExt->DetonateOnAllMapObjects_AffectTargets & AffectedTarget::Unit) != AffectedTarget::None)
-			{
-				auto const units = copy_dvc(CurCopyArray.Unit ,*UnitClass::Array);
-
-				for (auto const pUnit : *units)
-					tryDetonate(pThis, pUnit, pWHExt, pHouse);
-			}
-
-			pThis->Target = pThis->_GetExtData()->OriginalTarget;
-			pThis->Location = originalLocation;
-			pWHExt->WasDetonatedOnAllMapObjects = false;
-			return ReturnFromFunction;
-		}
-	}
-
-	return 0;
 }
 
 ASMJIT_PATCH(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)

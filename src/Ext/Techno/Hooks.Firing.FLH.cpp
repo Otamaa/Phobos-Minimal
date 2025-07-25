@@ -31,7 +31,7 @@ ASMJIT_PATCH(0x6F3AEB, TechnoClass_GetFLH, 0x6)
 				found = res.first;
 				_flh = res.second;
 			}
-				
+
 			if (!found) {
 				_flh = pThis->GetWeapon(weaponIndex)->FLH;
 			}

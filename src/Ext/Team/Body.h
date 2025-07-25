@@ -91,7 +91,7 @@ class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
 	static TeamExtContainer Instance;
-	static ObjectPool<TeamExtData> pools;
+	static StaticObjectPool<TeamExtData, 10000> pools;
 
 	TeamExtData* AllocateUnchecked(TeamClass* key)
 	{

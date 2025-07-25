@@ -27,7 +27,7 @@ public:
 
   //! \cond INTERNAL
   static inline constexpr uint32_t kMaxFeatures = 256;
-  static inline constexpr uint32_t kNumBitWords = kMaxFeatures / Support::kBitWordSizeInBits;
+  static inline constexpr uint32_t kNumBitWords = kMaxFeatures / Support::bit_size_of<Support::BitWord>;
   //! \endcond
 
   //! \}
@@ -97,8 +97,8 @@ public:
     ASMJIT_INLINE_NODEBUG bool has(const FeatureId& featureId) const noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
-      uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
-      uint32_t bit = uint32_t(featureId) % Support::kBitWordSizeInBits;
+      uint32_t idx = uint32_t(featureId) / Support::bit_size_of<BitWord>;
+      uint32_t bit = uint32_t(featureId) % Support::bit_size_of<BitWord>;
 
       return bool((_bits[idx] >> bit) & 0x1);
     }
@@ -142,8 +142,8 @@ public:
     inline void add(const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
-      uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
-      uint32_t bit = uint32_t(featureId) % Support::kBitWordSizeInBits;
+      uint32_t idx = uint32_t(featureId) / Support::bit_size_of<BitWord>;
+      uint32_t bit = uint32_t(featureId) % Support::bit_size_of<BitWord>;
 
       _bits[idx] |= BitWord(1) << bit;
     }
@@ -158,8 +158,8 @@ public:
     inline void addIf(bool condition, const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
-      uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
-      uint32_t bit = uint32_t(featureId) % Support::kBitWordSizeInBits;
+      uint32_t idx = uint32_t(featureId) / Support::bit_size_of<BitWord>;
+      uint32_t bit = uint32_t(featureId) % Support::bit_size_of<BitWord>;
 
       _bits[idx] |= BitWord(condition) << bit;
     }
@@ -175,8 +175,8 @@ public:
     inline void remove(const FeatureId& featureId) noexcept {
       ASMJIT_ASSERT(uint32_t(featureId) < kMaxFeatures);
 
-      uint32_t idx = uint32_t(featureId) / Support::kBitWordSizeInBits;
-      uint32_t bit = uint32_t(featureId) % Support::kBitWordSizeInBits;
+      uint32_t idx = uint32_t(featureId) / Support::bit_size_of<BitWord>;
+      uint32_t bit = uint32_t(featureId) % Support::bit_size_of<BitWord>;
 
       _bits[idx] &= ~(BitWord(1) << bit);
     }

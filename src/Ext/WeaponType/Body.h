@@ -179,6 +179,7 @@ public:
 	Valueable<Leptons> KeepRange {};
 	Valueable<bool> KeepRange_AllowAI {};
 	Valueable<bool> KeepRange_AllowPlayer {};
+	Valueable<int> KeepRange_EarlyStopFrame {};
 
 	Valueable<bool> VisualScatter { false };
 	Valueable<bool> TurretRecoil_Suppress { false };

@@ -324,7 +324,7 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 
 	if (!args.IgnoreDefenses)
 	{
-		MapClass::GetTotalDamage(&args, TechnoExtData::GetTechnoArmor(pThis, args.WH));
+		*args.Damage = FakeWarheadTypeClass::ModifyDamage(*args.Damage, args.WH, TechnoExtData::GetTechnoArmor(pThis, args.WH), args.DistanceToEpicenter);
 		//this already calculate distance damage from epicenter
 		pWHExt->ApplyRecalculateDistanceDamage(pThis, &args);
 	}
@@ -1122,7 +1122,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 					pThis->FireDeathWeapon(0);
 			}
 
-			if (args.Attacker)
+			if (args.Attacker && args.Attacker->IsAlive)
 			{
 				auto SourCoords = args.Attacker->Location;
 
@@ -1130,25 +1130,23 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				{
 					if (pTypeExt->RevengeWeapon &&
 						EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, args.Attacker->Owner) &&
-						!pWHExt->SuppressRevengeWeapons_Types.empty() && !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon))
+						(pWHExt->SuppressRevengeWeapons_Types.empty() || !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon)))
 					{
 						WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), args.Attacker, pThis, true, nullptr);
 					}
 
-					if (pThis->IsAlive)
-					{
-						for (const auto& weapon : pExt->RevengeWeapons)
-						{
-							if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, args.Attacker->Owner) && !pWHExt->SuppressRevengeWeapons_Types.empty() && !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value))
+					if (args.Attacker->IsAlive) {
+						for (const auto& weapon : pExt->RevengeWeapons) {
+							if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, args.Attacker->Owner) && (pWHExt->SuppressRevengeWeapons_Types.empty() || !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value)))
 								WeaponTypeExtData::DetonateAt(weapon.Value, args.Attacker, pThis, true, nullptr);
 						}
 					}
 				}
 
-				if (pThis->IsAlive)
+				if (args.Attacker->IsAlive)
 					TechnoExtData::ApplyKillWeapon(pThis, args.Attacker, args.WH);
 
-				if (pThis->IsAlive)
+				if (args.Attacker->IsAlive)
 					PhobosAEFunctions::ApplyRevengeWeapon(pThis, args.Attacker, args.WH);
 			}
 
@@ -1551,7 +1549,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 
 			if (pThis->Type->CanBeOccupied)
 			{
-				pThis->KickAllOccupants(false, false);
+				((FakeBuildingClass*)pThis)->UnloadOccupants(false, false);
 			}
 
 			if (auto pSource = pThis->LightSource)
@@ -1796,7 +1794,7 @@ ASMJIT_PATCH(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
 #pragma endregion
 
 #pragma region Infantry
-#pragma optimize("", off )
+
 ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 {
 	GET(FakeInfantryClass*, pThis, ECX);
@@ -2232,7 +2230,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 	R->EAX(_res);
 	return 0x518D52;
 }
-#pragma optimize("", on )
+
 #pragma endregion
 
 #pragma region Unit
@@ -2400,7 +2398,8 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 
 			if (!pTypeExt->Sinkable.Get(ShouldSink)
 			   || pThis->GetCell()->LandType != LandType::Water
-			   || pThis->WarpingOut)
+			   || pThis->WarpingOut
+			   || pThis->OnBridge)
 			{
 				pThis->Destroyed(args.Attacker);
 

@@ -187,7 +187,14 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 	if (!iFly || !iFly->Is_Locked())
 	{
 		GET(FootClass** const, pFootPtr, ESI);
-		GET(const int, distance, EBX);
+		//GET(const int, distance, EBX);
+		// No const because it also need to be used by SecondaryFacing
+		REF_STACK(CoordStruct, destination, STACK_OFFSET(0x48, 0x8));
+
+		auto horizontalDistance = [&destination](const CoordStruct& location) {
+			const auto delta = Point2D { location.X, location.Y } - Point2D { destination.X, destination.Y };
+			return static_cast<int>(delta.pow());
+		};
 
 		const auto pFoot = *pFootPtr;
 		const auto pAircraft = cast_to<AircraftClass*, true>(pFoot);
@@ -195,12 +202,10 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 		// Rewrite vanilla implement
 		if (!RulesExtData::Instance()->ExpandAircraftMission || !pAircraft)
 		{
-			REF_STACK(const CoordStruct, destination, STACK_OFFSET(0x48, 0x8));
-
 			const auto footCoords = pFoot->GetCoords();
 			const auto desired = DirStruct(Math::atan2((double)(footCoords.Y - destination.Y), (double)(destination.X - footCoords.X)));
 
-			if (!iFly || !iFly->Is_Strafe() || distance > 768 // I don't know why it's 3 cells' length, but its vanilla, keep it
+			if (!iFly || !iFly->Is_Strafe() || horizontalDistance(footCoords) > 768 // I don't know why it's 3 cells' length, but its vanilla, keep it
 				|| Math::abs(static_cast<short>(static_cast<short>(desired.Raw) - static_cast<short>(pFoot->PrimaryFacing.Current().Raw))) >= 8192)
 			{
 				pFoot->PrimaryFacing.Set_Desired(desired);
@@ -208,8 +213,6 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 		}
 		else
 		{
-			// No const because it also need to be used by SecondaryFacing
-			REF_STACK(CoordStruct, destination, STACK_OFFSET(0x48, 0x8));
 
 			const auto footCoords = pAircraft->GetCoords();
 			const auto landingDir = DirStruct(GetPoseDir(pAircraft , nullptr));
@@ -236,7 +239,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 				if (Math::abs(difference) >= 12288) // 12288 -> 3/16 * 65536 (1/8 < 3/16 < 1/4, so the landing can begin at the appropriate location)
 					cellOffset = (cellOffset + CellSpread::AdjacentPoint[((difference > 0) ? (landingFace + 2) : (landingFace - 2)) & 7]) * turningRadius;
 				else // The purpose of doubling is like using two offsets above, to keep the destination point on the range circle (diameter = 2 * radius)
-					cellOffset *= MinImpl((turningRadius * 2), ((landingFace & 1) ? (distance / 724) : (distance / 512))); // 724 -> 512√2
+					cellOffset *= MinImpl((turningRadius * 2), ((landingFace & 1) ? (horizontalDistance(footCoords) / 724) : (horizontalDistance(footCoords) / 512))); // 724 -> 512√2
 
 				// On the way back, increase the offset value of the destination so that it looks like a real airplane
 				destination.X += cellOffset.X;

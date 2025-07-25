@@ -166,13 +166,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   const BaseNode* node = first;
 //!   while (node) {
 //!     if (node->actsAsInst()) {
-//!       const InstNode* inst = node->as<InstNode>();
-//!       const Operand* opArray = inst->operands();
-//!
-//!       for (uint32_t i = 0, opCount = inst->opCount(); i < opCount; i++) {
-//!         const Operand& op = opArray[i];
+//!       for (Operand& op : node->as<InstNode>()->operands()) {
 //!         if (op.isReg()) {
-//!           const x86::Reg& reg = op.as<x86::Reg>();
+//!           const Reg& reg = op.as<Reg>();
 //!           if (reg.group() <= RegGroup::kMaxVirt) {
 //!             regMask[reg.group()] |= 1u << reg.id();
 //!           }

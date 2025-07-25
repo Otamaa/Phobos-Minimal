@@ -41,11 +41,11 @@ bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, Warhe
 	// 计算实际伤害
 	if (damage > 0)
 	{
-		realDamage = MapClass::GetTotalDamage(damage, warheadTypeExt->Get(),armor , distanceFromEpicenter);
+		realDamage = FakeWarheadTypeClass::ModifyDamage(damage, warheadTypeExt->Get(),armor , distanceFromEpicenter);
 	}
 	else
 	{
-		realDamage = -MapClass::GetTotalDamage(-damage, warheadTypeExt->Get(), armor, distanceFromEpicenter);
+		realDamage = -FakeWarheadTypeClass::ModifyDamage(-damage, warheadTypeExt->Get(), armor, distanceFromEpicenter);
 	}
 
 	{
@@ -57,7 +57,7 @@ bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, Warhe
 		{
 			if (warheadTypeExt->EffectsRequireVerses)
 			{
-				if (MapClass::GetTotalDamage(RulesGlobal->MaxDamage, warheadTypeExt->Get(), armor, 0) == 0)
+				if (FakeWarheadTypeClass::ModifyDamage(RulesGlobal->MaxDamage, warheadTypeExt->Get(), armor, 0) == 0)
 				{
 					return false;
 				}

@@ -375,7 +375,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //!   frame.init(func);
 //!
 //!   // Make XMM0 and XMM1 dirty - RegGroup::kVec describes XMM|YMM|ZMM registers.
-//!   frame.setDirtyRegs(RegGroup::kVec, Support::bitMask(0, 1));
+//!   frame.setDirtyRegs(RegGroup::kVec, Support::bitMask<RegMask>(0, 1));
 //!
 //!   // Alternatively, if you don't want to use register masks you can pass Reg
 //!   // to addDirtyRegs(). The following code would add both xmm0 and xmm1.
@@ -578,7 +578,7 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! adding a prefix is called the prefix is combined with existing instruction options, which will affect the next
 //! instruction generated.
 //!
-//! ### Generating AVX512 code.
+//! ### Generating AVX512 Code
 //!
 //! x86::Assembler can generate AVX512+ code including the use of opmask registers. Opmask can be specified through
 //! \ref x86::Assembler::k() function, which stores it as an extra register, which will be used by the next

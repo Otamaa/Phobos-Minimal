@@ -727,6 +727,7 @@ ASMJIT_PATCH(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
 
 namespace SimpleDeployerTemp {
 	bool HoverDeployedToLand = false;
+	AnimTypeClass* DeployingAnim = nullptr;
 }
 
 ASMJIT_PATCH(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
@@ -755,6 +756,45 @@ ASMJIT_PATCH(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
 	SimpleDeployerTemp::HoverDeployedToLand = false;
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x73DED8, UnitClass_Unload_DeployToLandHover, 0x7)
+
+// // Trick Ares into thinking it can deploy in any direction if anim does not constrain it by temporarily removing the anim.
+// ASMJIT_PATCH(0x514325, HoverLocomotionClass_Process_DeployingAnim1, 0x8)
+// {
+// 	GET(ILocomotion*, iLoco, ESI);
+// 	GET(bool, isMoving, EAX);
+//
+// 	auto const pLinkedTo = static_cast<LocomotionClass*>(iLoco)->LinkedTo;
+// 	auto const pType = pLinkedTo->GetTechnoType();
+//
+// 	if (pType->DeployToLand && pType->DeployingAnim)
+// 	{
+// 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+//
+// 		if (pTypeExt->DeployingAnim_AllowAnyDirection)
+// 		{
+// 			SimpleDeployerTemp::DeployingAnim = pType->DeployingAnim;
+// 			pType->DeployingAnim = nullptr;
+// 		}
+// 	}
+//
+// 	return isMoving ? 0x51432D : 0x514A21;
+// }
+
+// // Restore the DeployingAnim to normal after.
+// ASMJIT_PATCH(0x514AD0, HoverLocomotionClass_Process_DeployingAnim2, 0x5)
+// {
+// 	GET(ILocomotion*, iLoco, ESI);
+//
+// 	if (SimpleDeployerTemp::DeployingAnim)
+// 	{
+// 		auto const pLinkedTo = static_cast<LocomotionClass*>(iLoco)->LinkedTo;
+// 		auto const pType = pLinkedTo->GetTechnoType();
+// 		pType->DeployingAnim = SimpleDeployerTemp::DeployingAnim;
+// 		SimpleDeployerTemp::DeployingAnim = nullptr;
+// 	}
+//
+// 	return 0;
+// }
 
 // Do not display hover bobbing when landed during deploying.
 ASMJIT_PATCH(0x513D2C, HoverLocomotionClass_ProcessBobbing_DeployToLand, 0x6)

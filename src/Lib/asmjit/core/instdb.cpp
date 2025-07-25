@@ -91,7 +91,7 @@ InstId findInstruction(const char* s, size_t len, const uint32_t* nameTable, con
     size_t instId = base + (lim >> 1);
     size_t nameSize = decodeToBuffer(nameData, nameTable[instId], InstStringifyOptions::kNone, stringTable);
 
-    int result = Support::compareStringViews(s, len, nameData, nameSize);
+    int result = Support::compare_string_views(s, len, nameData, nameSize);
     if (result < 0) {
       continue;
     }
@@ -120,7 +120,7 @@ uint32_t findAlias(const char* s, size_t len, const uint32_t* nameTable, const c
     size_t index = base + (lim >> 1);
     size_t nameSize = decodeToBuffer(nameData, nameTable[index], InstStringifyOptions::kNone, stringTable);
 
-    int result = Support::compareStringViews(s, len, nameData, nameSize);
+    int result = Support::compare_string_views(s, len, nameData, nameSize);
     if (result < 0) {
       continue;
     }

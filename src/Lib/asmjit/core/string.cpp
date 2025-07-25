@@ -36,7 +36,7 @@ static ASMJIT_INLINE size_t String_growCapacity(size_t byteSize, size_t minimumB
 
   if (byteSize < minimumByteSize) {
     // Exponential growth before we reach `kGrowThreshold`.
-    byteSize = Support::alignUpPowerOf2(minimumByteSize);
+    byteSize = Support::align_up_power_of_2(minimumByteSize);
 
     // Bail to `minimumByteSize` in case of overflow - most likely whatever that is happening afterwards would just fail.
     if (byteSize < minimumByteSize) {
@@ -110,7 +110,7 @@ char* String::prepare(ModifyOp op, size_t size) noexcept {
         return nullptr;
       }
 
-      size_t newCapacity = Support::alignUp<size_t>(size + 1, kMinAllocSize);
+      size_t newCapacity = Support::align_up<size_t>(size + 1, kMinAllocSize);
       char* newData = static_cast<char*>(::malloc(newCapacity));
 
       if (ASMJIT_UNLIKELY(!newData)) {
@@ -196,7 +196,7 @@ Error String::assign(const char* data, size_t size) noexcept {
       _large.size = size;
     }
     else {
-      size_t capacityPlusOne = Support::alignUp(size + 1, 32);
+      size_t capacityPlusOne = Support::align_up(size + 1, 32);
       if (ASMJIT_UNLIKELY(capacityPlusOne < size)) {
         return DebugUtils::errored(kErrorOutOfMemory);
       }

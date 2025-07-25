@@ -61,6 +61,7 @@
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\zonebitset.cpp" />
     <ClCompile Include="src\Lib\Lua\onelua.c" />
     <ClCompile Include="src\Lib\minhook\buffer.c" />
     <ClCompile Include="src\Lib\minhook\hde\hde32.c" />
@@ -343,7 +344,6 @@
     <ClCompile Include="src\Lib\asmjit\core\zone.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\zonehash.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\zonelist.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\zonestack.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\zonetree.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\zonevector.cpp" />
     <ClCompile Include="src\Lib\asmjit\x86\x86assembler.cpp" />
@@ -594,7 +594,6 @@
     <ClInclude Include="src\Commands\ForceWin.h" />
     <ClInclude Include="src\Commands\Harmless.h" />
     <ClInclude Include="src\ExtraHeaders\AlignedMemory.h" />
-    <ClInclude Include="src\ExtraHeaders\CompileTimeDirStruct.h" />
     <ClInclude Include="src\ExtraHeaders\MemoryPool.h" />
     <ClInclude Include="src\ExtraHeaders\StackAllocator.h" />
     <ClInclude Include="src\ExtraHeaders\StackContainer.h" />
@@ -604,6 +603,15 @@
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
+    <ClInclude Include="src\Lib\asmjit\core\fixup.h" />
+    <ClInclude Include="src\Lib\asmjit\core\racfgblock_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\racfgbuilder_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\raconstraints_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rainst_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\rareg_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\span.h" />
+    <ClInclude Include="src\Lib\asmjit\core\zonebitset_p.h" />
+    <ClInclude Include="src\Lib\asmjit\host.h" />
     <ClInclude Include="src\Lib\Lua\lua.hpp" />
     <ClInclude Include="src\Lib\magic_enum\magic_enum.hpp" />
     <ClInclude Include="src\Lib\magic_enum\magic_enum_all.hpp" />
@@ -688,7 +696,6 @@
     <ClInclude Include="src\Commands\ManualReloadAmmo.h" />
     <ClInclude Include="src\Commands\SelectCaptured.h" />
     <ClInclude Include="src\Commands\ToggleSWSidebar.h" />
-    <ClInclude Include="src\ExtraHeaders\AStarClass.h" />
     <ClInclude Include="src\Ext\AircraftTypeClass\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
@@ -1030,7 +1037,7 @@
     <ClInclude Include="src\Utilities\PhobosMap.h" />
     <ClInclude Include="src\Utilities\PhobosPCXFile.h" />
     <ClInclude Include="src\Utilities\PooledContainer.h" />
-    <ClInclude Include="src\Utilities\SafeLogger .h" />
+    <ClInclude Include="src\Utilities\SafeLogger.h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
@@ -1075,7 +1082,6 @@
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="Debug DPFeatures\phobos.dll" />
-    <None Include="sampleconfig\tools\ExtractTheAlternativeNumbering.cs" />
     <None Include="src\Lib\Zydis\Generated\AccessedFlags.inc" />
     <None Include="src\Lib\Zydis\Generated\DecoderTables.inc" />
     <None Include="src\Lib\Zydis\Generated\EncoderTables.inc" />
@@ -1211,6 +1217,8 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableVectorLength>NotSet</EnableVectorLength>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>$(ProjectDir)src\Phobos.PCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

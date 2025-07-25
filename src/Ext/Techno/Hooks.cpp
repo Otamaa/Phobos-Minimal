@@ -949,7 +949,7 @@ ASMJIT_PATCH(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	int timeLeft = pThis->DiskLaserTimer.GetTimeLeft();
+	int timeLeft = pThis->RearmTimer.GetTimeLeft();
 
 	if (pExt->ChargeTurretTimer.HasStarted())
 		timeLeft = pExt->ChargeTurretTimer.GetTimeLeft();
@@ -1602,6 +1602,9 @@ ASMJIT_PATCH(0x6FCF3E, TechnoClass_SetTarget_After, 0x6)
 	GET(AbstractClass*, pTarget, EDI);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pThis->LocomotorTarget != pTarget)
+		pThis->ReleaseLocomotor(true);
 
 	if (const auto pUnit = cast_to<UnitClass*, false>(pThis))
 	{

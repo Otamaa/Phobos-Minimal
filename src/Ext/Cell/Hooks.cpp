@@ -10,6 +10,21 @@
 #include <Ext/BuildingType/Body.h>
 #include <Ext/IsometricTileType/Body.h>
 
+#include <Ext/Rules/Body.h>
+
+ASMJIT_PATCH(0x480EA8, CellClass_DamageWall_AdjacentWallDamage, 0x7)
+{
+	GET(CellClass*, pThis, EAX);
+	pThis->ReduceWall(RulesExtData::Instance()->AdjacentWallDamage);
+	return 0x480EB4;
+}
+
+ASMJIT_PATCH(0x480E27, CellClass_DamageWall_DamageWallRecursivly, 0x5)
+{
+	enum { SkipGameCode = 0x480EBC };
+	return RulesExtData::Instance()->DamageWallRecursivly ? 0 : SkipGameCode;
+}
+
 ASMJIT_PATCH(0x47FDF9, CellClass_GetOverlayShadowRect, 0xA)
 {
 	GET(CellClass*, pThis, EDI);

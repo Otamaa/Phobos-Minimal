@@ -76,7 +76,7 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 						if (paralysisCountdown > 0)
 						{
 							parasyte->ParalysisTimer.Start(paralysisCountdown);
-							parasyte->DiskLaserTimer.Start(paralysisCountdown);
+							parasyte->RearmTimer.Start(paralysisCountdown);
 						}
 
 						if (pWHExt->CanRemoveParasytes_KickOut_Anim.isset() && pWHExt->CanRemoveParasytes_KickOut_Anim)

@@ -107,16 +107,16 @@ ASMJIT_PATCH(0x5209EE, InfantryClass_UpdateFiring_BurstNoDelay, 0x5)
 					if (!pThis->CurrentBurstIndex)
 						return SkipVanillaFire;
 
-					auto rof = pThis->DiskLaserTimer.TimeLeft;
-					pThis->DiskLaserTimer.Start(0);
+					auto rof = pThis->RearmTimer.TimeLeft;
+					pThis->RearmTimer.Start(0);
 
 					for (auto i = pThis->CurrentBurstIndex; i < pWeapon->Burst && pThis->GetFireError(pTarget, wpIdx, true) == FireError::OK && pThis->Fire(pTarget, wpIdx); ++i)
 					{
-						rof = pThis->DiskLaserTimer.TimeLeft;
-						pThis->DiskLaserTimer.Start(0);
+						rof = pThis->RearmTimer.TimeLeft;
+						pThis->RearmTimer.Start(0);
 					}
 
-					pThis->DiskLaserTimer.Start(rof);
+					pThis->RearmTimer.Start(rof);
 				}
 
 				return SkipVanillaFire;

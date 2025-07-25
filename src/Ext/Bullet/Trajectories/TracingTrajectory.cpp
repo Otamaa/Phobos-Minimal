@@ -13,7 +13,9 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
 #include <Ext/Anim/Body.h>
+
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
 
@@ -613,7 +615,7 @@ AbstractClass* TracingTrajectory::GetBulletTarget(TechnoClass* pTechno, HouseCla
 		if (pOpt->CloakState == CloakState::Cloaked && !pCell->Sensors_InclHouse(pOwner->ArrayIndex))
 			continue;
 
-		if (MapClass::GetTotalDamage(100, pWeapon->Warhead, pOptType->Armor, 0) == 0)
+		if (FakeWarheadTypeClass::ModifyDamage(100, pWeapon->Warhead, pOptType->Armor, 0) == 0)
 			continue;
 
 		auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);

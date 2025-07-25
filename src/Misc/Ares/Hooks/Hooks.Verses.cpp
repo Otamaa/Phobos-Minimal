@@ -50,6 +50,14 @@ void Debug(ObjectClass* pTarget, int nArmor, VersesData* pData, WarheadTypeClass
 }
 
 #ifndef _test
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x489180, FakeWarheadTypeClass::ModifyDamageA);
+DEFINE_FUNCTION_JUMP(CALL, 0x5F540F, FakeWarheadTypeClass::ModifyDamageA);
+DEFINE_FUNCTION_JUMP(CALL, 0x6FDD29, FakeWarheadTypeClass::ModifyDamageA);
+DEFINE_FUNCTION_JUMP(CALL, 0x701D64, FakeWarheadTypeClass::ModifyDamageA);
+
+#else
+
 ASMJIT_PATCH(0x489180, MapClass_GetTotalDamage, 0x6)
 {
 	GET(int, damage, ECX);
@@ -112,7 +120,7 @@ ASMJIT_PATCH(0x489180, MapClass_GetTotalDamage, 0x6)
 	R->EAX(res);
 	return 0x48926A;
 }
-#else
+
 ASMJIT_PATCH(0x489235, GetTotalDamage_Verses, 0x8)
 {
 	GET(FakeWarheadTypeClass*, pWH, EDI);
@@ -126,7 +134,7 @@ ASMJIT_PATCH(0x489235, GetTotalDamage_Verses, 0x8)
 }
 #endif
 
-ASMJIT_PATCH(0x6F7D3D, TechnoClass_Evaluate_Verses, 0x7)
+ASMJIT_PATCH(0x6F7D3D, TechnoClass_EvaluateObject_Verses, 0x7)
 {
 	enum { ReturnFalse = 0x6F894F, ContinueCheck = 0x6F7D55, };
 

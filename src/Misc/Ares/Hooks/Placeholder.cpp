@@ -170,7 +170,7 @@ void PrintBld(const BuildingClass* pThis, FILE* stream)
 			fprintf(stream, "%p\n", pThis->BunkerLinkedItem);
 
 			fprintf(stream, "%fl\n", pThis->PitchAngle); // not exactly, and it doesn't affect the drawing, only internal state of a dropship
-			printTimer(pThis->DiskLaserTimer);
+			printTimer(pThis->RearmTimer);
 			fprintf(stream, "%d\n", pThis->ROF);
 			fprintf(stream, "%d\n", pThis->Ammo);
 			fprintf(stream, "%d\n", pThis->Value); //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C
@@ -442,7 +442,7 @@ void PrintBld(const BuildingClass* pThis, FILE* stream)
 //	pEngine->Compute_bool(pThis->unknown_bool_250);		record.push_back((unsigned int)pEngine->CRC);
 //	pEngine->Compute_int(pThis->LastSightRange);		record.push_back((unsigned int)pEngine->CRC);
 //	pEngine->Compute_float(pThis->PitchAngle);		record.push_back((unsigned int)pEngine->CRC);
-//	pEngine->Compute_int(pThis->DiskLaserTimer.GetTimeLeft());		record.push_back((unsigned int)pEngine->CRC);
+//	pEngine->Compute_int(pThis->RearmTimer.GetTimeLeft());		record.push_back((unsigned int)pEngine->CRC);
 //	pEngine->Compute_int(pThis->Ammo);		record.push_back((unsigned int)pEngine->CRC);
 //	pEngine->Compute_int(pThis->ReloadTimer.GetTimeLeft());		record.push_back((unsigned int)pEngine->CRC);
 //	pEngine->Compute_int(pThis->Value);		record.push_back((unsigned int)pEngine->CRC);

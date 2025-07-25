@@ -10,6 +10,8 @@
 
 #include <Utilities/Macro.h>
 
+#include <InfantryClass.h>
+
 class NOVTABLE EBoltFake final : public EBolt
 {
 public:
@@ -77,14 +79,28 @@ ASMJIT_PATCH(0x4C285D, EBolt_DrawAll_BurstIndex, 0x5)
 	GET(TechnoClass*, pTechno, ECX);
 	GET_STACK(EBolt*, pThis, STACK_OFFSET(0x34, -0x24));
 
-	int burstIndex = pTechno->CurrentBurstIndex;
-	pTechno->CurrentBurstIndex = EboltExtData::Container[pThis].BurstIndex;
-	CoordStruct fireCoords {};
-	pTechno->GetFLH(&fireCoords, pThis->WeaponSlot, CoordStruct::Empty);
-	pTechno->CurrentBurstIndex = burstIndex;
-	R->EAX(&fireCoords);
+	const auto vtable = VTable::Get(pTechno);
+	const bool isAllowed = pTechno->IsAlive &&
+		(
+			vtable == BuildingClass::vtable ||
+			vtable == UnitClass::vtable ||
+			vtable == AircraftClass::vtable ||
+			vtable == InfantryClass::vtable
+		);
 
-	return SkipGameCode;
+	if(isAllowed){
+		int burstIndex = pTechno->CurrentBurstIndex;
+		pTechno->CurrentBurstIndex = EboltExtData::Container[pThis].BurstIndex;
+		CoordStruct fireCoords {};
+		pTechno->GetFLH(&fireCoords, pThis->WeaponSlot, CoordStruct::Empty);
+		pTechno->CurrentBurstIndex = burstIndex;
+		R->EAX(&fireCoords);
+		return SkipGameCode;
+	}
+
+	pThis->Owner = nullptr;
+	return 0x4C28B6;
+
 }
 
 ASMJIT_PATCH(0x4C299F, EBolt_DrawAll_EndOfLife, 0x6)

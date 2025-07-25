@@ -665,6 +665,7 @@ public:
 	bool SupressEVALost { false };
 	CDTimerClass SelfHealing_CombatDelay { };
 	bool PayloadCreated { false };
+	bool PayloadTriggered { false };
 	SuperClass* LinkedSW { nullptr };
 	CellStruct SuperTarget { };
 
@@ -1079,7 +1080,7 @@ class TechnoExtContainer final : public Container<TechnoExtData>
 {
 public:
 	static TechnoExtContainer Instance;
-	static ObjectPool<TechnoExtData> pools;
+	static StaticObjectPool<TechnoExtData, 10000> pools;
 
 	TechnoExtData* AllocateUnchecked(TechnoClass* key)
 	{
@@ -1110,8 +1111,15 @@ public:
 	}
 };
 
-class NOVTABLE FakeTechnoClass final: TechnoClass{
+//we cannot inherit this
+class NOVTABLE FakeTechnoClass //final: TechnoClass
+{
 public:
 
-	int _EvaluateJustCell(CellStruct* where);
+	virtual TechnoTypeClass* GetTechnoType() { JMP_THIS(0x6F3270); }
+
+	static int __fastcall _EvaluateJustCell(TechnoClass* pThis , discard_t, CellStruct* where);
+	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);
+	static int __fastcall __AdjustDamage(TechnoClass* pThis, discard_t, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+
 };

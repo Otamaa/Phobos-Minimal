@@ -16,7 +16,7 @@
 #define ASMJIT_LIBRARY_MAKE_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
 //! AsmJit library version, see \ref ASMJIT_LIBRARY_MAKE_VERSION for a version format reference.
-#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 17, 0)
+#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 18, 0)
 
 //! \def ASMJIT_ABI_NAMESPACE
 //!
@@ -27,7 +27,7 @@
 //! AsmJit default, which makes it possible to use multiple AsmJit libraries within a single project, totally
 //! controlled by users. This is useful especially in cases in which some of such library comes from third party.
 #if !defined(ASMJIT_ABI_NAMESPACE)
-  #define ASMJIT_ABI_NAMESPACE v1_17
+  #define ASMJIT_ABI_NAMESPACE v1_18
 #endif // !ASMJIT_ABI_NAMESPACE
 
 //! \}
@@ -411,18 +411,18 @@ namespace asmjit {
 #endif
 
 // Function attributes.
-#if !defined(ASMJIT_BUILD_DEBUG) && defined(__GNUC__)
+#if !defined(ASMJIT_BUILD_DEBUG) && defined(__GNUC__) && !defined(_DOXYGEN)
   #define ASMJIT_INLINE inline __attribute__((__always_inline__))
-#elif !defined(ASMJIT_BUILD_DEBUG) && defined(_MSC_VER)
+#elif !defined(ASMJIT_BUILD_DEBUG) && defined(_MSC_VER) && !defined(_DOXYGEN)
   #define ASMJIT_INLINE __forceinline
 #else
   #define ASMJIT_INLINE inline
 #endif
 
 
-#if defined(__clang__)
+#if defined(__clang__) && !defined(_DOXYGEN)
   #define ASMJIT_INLINE_NODEBUG inline __attribute__((__always_inline__, __nodebug__))
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !defined(_DOXYGEN)
   #define ASMJIT_INLINE_NODEBUG inline __attribute__((__always_inline__, __artificial__))
 #else
   #define ASMJIT_INLINE_NODEBUG inline
@@ -462,15 +462,6 @@ namespace asmjit {
   #define ASMJIT_VECTORCALL __attribute__((__vectorcall__))
 #else
   #define ASMJIT_VECTORCALL
-#endif
-
-// Type alignment (not allowed by C++17 'alignas' keyword).
-#if defined(__GNUC__)
-  #define ASMJIT_ALIGN_TYPE(N, ...) __attribute__((__aligned__(N))) __VA_ARGS__
-#elif defined(_MSC_VER)
-  #define ASMJIT_ALIGN_TYPE(N, ...) __declspec(align(N)) __VA_ARGS__
-#else
-  #define ASMJIT_ALIGN_TYPE(N, ...) __VA_ARGS__
 #endif
 
 //! \def ASMJIT_MAY_ALIAS
@@ -589,7 +580,7 @@ namespace asmjit {
 //! \def ASMJIT_DEFINE_ENUM_FLAGS(T)
 //!
 //! Defines bit operations for enumeration flags.
-#ifdef _DOXYGEN
+#if defined(_DOXYGEN)
   #define ASMJIT_DEFINE_ENUM_FLAGS(T)
 #else
   #define ASMJIT_DEFINE_ENUM_FLAGS(T)                                          \
@@ -624,7 +615,7 @@ namespace asmjit {
 //! \def ASMJIT_DEFINE_ENUM_COMPARE(T)
 //!
 //! Defines comparison operations for enumeration flags.
-#if defined(_DOXYGEN) || (defined(_MSC_VER) && _MSC_VER <= 1900)
+#if defined(_DOXYGEN)
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)
 #else
   #define ASMJIT_DEFINE_ENUM_COMPARE(T)                                        \
@@ -641,57 +632,5 @@ namespace asmjit {
       return (std::underlying_type_t<T>)(a) >= (std::underlying_type_t<T>)(b); \
     }
 #endif
-
-//! Defines a strong type `C` that wraps a value of `T`.
-#define ASMJIT_DEFINE_STRONG_TYPE(C, T)                                                   \
-struct C {                                                                                \
-  T v;                                                                                    \
-                                                                                          \
-  ASMJIT_INLINE_NODEBUG C() = default;                                                    \
-  ASMJIT_INLINE_CONSTEXPR explicit C(T x) noexcept : v(x) {}                              \
-  ASMJIT_INLINE_CONSTEXPR C(const C& other) noexcept = default;                           \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR T value() const noexcept { return v; }                          \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR T* valuePtr() noexcept { return &v; }                           \
-  ASMJIT_INLINE_CONSTEXPR const T* valuePtr() const noexcept { return &v; }               \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C& operator=(T x) noexcept { v = x; return *this; };            \
-  ASMJIT_INLINE_CONSTEXPR C& operator=(const C& x) noexcept { v = x.v; return *this; }    \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C operator+(T x) const noexcept { return C(v + x); }            \
-  ASMJIT_INLINE_CONSTEXPR C operator-(T x) const noexcept { return C(v - x); }            \
-  ASMJIT_INLINE_CONSTEXPR C operator*(T x) const noexcept { return C(v * x); }            \
-  ASMJIT_INLINE_CONSTEXPR C operator/(T x) const noexcept { return C(v / x); }            \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C operator+(const C& x) const noexcept { return C(v + x.v); }   \
-  ASMJIT_INLINE_CONSTEXPR C operator-(const C& x) const noexcept { return C(v - x.v); }   \
-  ASMJIT_INLINE_CONSTEXPR C operator*(const C& x) const noexcept { return C(v * x.v); }   \
-  ASMJIT_INLINE_CONSTEXPR C operator/(const C& x) const noexcept { return C(v / x.v); }   \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C& operator+=(T x) noexcept { v += x; return *this; }           \
-  ASMJIT_INLINE_CONSTEXPR C& operator-=(T x) noexcept { v -= x; return *this; }           \
-  ASMJIT_INLINE_CONSTEXPR C& operator*=(T x) noexcept { v *= x; return *this; }           \
-  ASMJIT_INLINE_CONSTEXPR C& operator/=(T x) noexcept { v /= x; return *this; }           \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR C& operator+=(const C& x) noexcept { v += x.v; return *this; }  \
-  ASMJIT_INLINE_CONSTEXPR C& operator-=(const C& x) noexcept { v -= x.v; return *this; }  \
-  ASMJIT_INLINE_CONSTEXPR C& operator*=(const C& x) noexcept { v *= x.v; return *this; }  \
-  ASMJIT_INLINE_CONSTEXPR C& operator/=(const C& x) noexcept { v /= x.v; return *this; }  \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR bool operator==(T x) const noexcept { return v == x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator!=(T x) const noexcept { return v != x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator> (T x) const noexcept { return v >  x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator>=(T x) const noexcept { return v >= x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator< (T x) const noexcept { return v <  x; }          \
-  ASMJIT_INLINE_CONSTEXPR bool operator<=(T x) const noexcept { return v <= x; }          \
-                                                                                          \
-  ASMJIT_INLINE_CONSTEXPR bool operator==(const C& x) const noexcept { return v == x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator!=(const C& x) const noexcept { return v != x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator> (const C& x) const noexcept { return v >  x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator>=(const C& x) const noexcept { return v >= x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator< (const C& x) const noexcept { return v <  x.v; } \
-  ASMJIT_INLINE_CONSTEXPR bool operator<=(const C& x) const noexcept { return v <= x.v; } \
-};
 
 #endif // ASMJIT_CORE_API_CONFIG_H_INCLUDED

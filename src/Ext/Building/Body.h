@@ -144,6 +144,7 @@ public:
 	int _GetAirstrikeInvulnerabilityIntensity(int currentIntensity) const;
 	void _OnFinishRepairB(InfantryClass* pEngineer);
 	void _OnFinishRepair();
+	void UnloadOccupants(bool assignMission, bool killIfStuck);
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{

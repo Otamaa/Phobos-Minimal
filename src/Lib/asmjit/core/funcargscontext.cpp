@@ -13,7 +13,7 @@ ASMJIT_BEGIN_NAMESPACE
 //! \{
 
 FuncArgsContext::FuncArgsContext() noexcept {
-  for (RegGroup group : RegGroupVirtValues{}) {
+  for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
     _workData[size_t(group)].reset();
   }
 }
@@ -27,19 +27,21 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
   _arch = arch;
 
   // Initialize `_archRegs`.
-  for (RegGroup group : RegGroupVirtValues{}) {
+  for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
     _workData[group]._archRegs = _constraints->availableRegs(group);
   }
 
   if (frame.hasPreservedFP()) {
-    _workData[size_t(RegGroup::kGp)]._archRegs &= ~Support::bitMask(archTraits().fpRegId());
+    _workData[size_t(RegGroup::kGp)]._archRegs &= ~Support::bitMask<RegMask>(archTraits().fpRegId());
   }
 
   uint32_t reassignmentFlagMask = 0;
 
   // Extract information from all function arguments/assignments and build Var[] array.
   uint32_t varId = 0;
-  for (uint32_t argIndex = 0; argIndex < Globals::kMaxFuncArgs; argIndex++) {
+  uint32_t argCount = args.funcDetail()->argCount();
+
+  for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
     for (uint32_t valueIndex = 0; valueIndex < Globals::kMaxValuePack; valueIndex++) {
       const FuncValue& dst_ = args.arg(argIndex, valueIndex);
       if (!dst_.isAssigned()) {
@@ -86,17 +88,17 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
         dstWd = &_workData[dstGroup];
         dstId = dst.regId();
 
-        if (ASMJIT_UNLIKELY(dstId >= 32 || !Support::bitTest(dstWd->archRegs(), dstId))) {
+        if (ASMJIT_UNLIKELY(dstId >= 32 || !Support::bit_test(dstWd->archRegs(), dstId))) {
           return DebugUtils::errored(kErrorInvalidPhysId);
         }
 
-        if (ASMJIT_UNLIKELY(Support::bitTest(dstWd->dstRegs(), dstId))) {
+        if (ASMJIT_UNLIKELY(Support::bit_test(dstWd->dstRegs(), dstId))) {
           return DebugUtils::errored(kErrorOverlappedRegs);
         }
 
-        dstWd->_dstRegs  |= Support::bitMask(dstId);
-        dstWd->_dstShuf  |= Support::bitMask(dstId);
-        dstWd->_usedRegs |= Support::bitMask(dstId);
+        dstWd->_dstRegs  |= Support::bitMask<RegMask>(dstId);
+        dstWd->_dstShuf  |= Support::bitMask<RegMask>(dstId);
+        dstWd->_usedRegs |= Support::bitMask<RegMask>(dstId);
       }
       else {
         if (!dst.hasTypeId()) {
@@ -107,7 +109,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
         if (ASMJIT_UNLIKELY(!signature.isValid())) {
           return DebugUtils::errored(kErrorInvalidState);
         }
-        _stackDstMask = uint8_t(_stackDstMask | Support::bitMask(signature.regGroup()));
+        _stackDstMask = uint8_t(_stackDstMask | Support::bitMask<uint32_t>(signature.regGroup()));
       }
 
       if (src.isReg()) {
@@ -160,7 +162,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
   }
 
   // Initialize WorkData::workRegs.
-  for (RegGroup group : RegGroupVirtValues{}) {
+  for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
     _workData[group]._workRegs =
       (_workData[group].archRegs() & (frame.dirtyRegs(group) | ~frame.preservedRegs(group))) | _workData[group].dstRegs() | _workData[group].assignedRegs();
     _workData[group]._needsScratch = (reassignmentFlagMask >> uint32_t(group)) & 1u;
@@ -182,7 +184,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
 
   if (saOutRegId != Reg::kIdBad) {
     // Check if the provided `SARegId` doesn't collide with argument assignments.
-    if (ASMJIT_UNLIKELY(Support::bitTest(gpRegs.dstRegs(), saOutRegId))) {
+    if (ASMJIT_UNLIKELY(Support::bit_test(gpRegs.dstRegs(), saOutRegId))) {
       return DebugUtils::errored(kErrorOverlappedRegs);
     }
     saRegRequired = true;
@@ -218,12 +220,12 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
 
     var.cur.initReg(ptrRegType, saCurRegId, ptrTypeId);
     gpRegs.assign(varId, saCurRegId);
-    gpRegs._workRegs |= Support::bitMask(saCurRegId);
+    gpRegs._workRegs |= Support::bitMask<RegMask>(saCurRegId);
 
     if (saOutRegId != Reg::kIdBad) {
       var.out.initReg(ptrRegType, saOutRegId, ptrTypeId);
-      gpRegs._dstRegs  |= Support::bitMask(saOutRegId);
-      gpRegs._workRegs |= Support::bitMask(saOutRegId);
+      gpRegs._dstRegs  |= Support::bitMask<RegMask>(saOutRegId);
+      gpRegs._workRegs |= Support::bitMask<RegMask>(saOutRegId);
     }
     else {
       var.markDone();
@@ -251,7 +253,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
         Var& other = _vars[wd._physToVarId[dstId]];
         if (RegUtils::groupOf(other.out.regType()) == group && other.out.regId() == srcId) {
           wd._numSwaps++;
-          _regSwapsMask = uint8_t(_regSwapsMask | Support::bitMask(group));
+          _regSwapsMask = uint8_t(_regSwapsMask | Support::bitMask<uint32_t>(group));
         }
       }
     }
@@ -261,7 +263,7 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::initWorkData(const FuncFrame& frame, co
 }
 
 ASMJIT_FAVOR_SIZE Error FuncArgsContext::markDstRegsDirty(FuncFrame& frame) noexcept {
-  for (RegGroup group : RegGroupVirtValues{}) {
+  for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
     WorkData& wd = _workData[group];
     uint32_t regs = wd.usedRegs() | wd._dstShuf;
 
@@ -279,14 +281,14 @@ ASMJIT_FAVOR_SIZE Error FuncArgsContext::markScratchRegs(FuncFrame& frame) noexc
   groupMask |= _stackDstMask;
 
   // Handle register swaps.
-  groupMask |= _regSwapsMask & ~Support::bitMask(RegGroup::kGp);
+  groupMask |= _regSwapsMask & ~Support::bitMask<uint32_t>(RegGroup::kGp);
 
   if (!groupMask)
     return kErrorOk;
 
   // Selects one dirty register per affected group that can be used as a scratch register.
-  for (RegGroup group : RegGroupVirtValues{}) {
-    if (Support::bitTest(groupMask, group)) {
+  for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
+    if (Support::bit_test(groupMask, group)) {
       WorkData& wd = _workData[group];
       if (wd._needsScratch) {
         // Initially, pick some clobbered or dirty register.

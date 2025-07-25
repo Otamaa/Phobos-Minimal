@@ -333,7 +333,7 @@ static ASMJIT_INLINE bool x86IsRexInvalid(uint32_t rex) noexcept {
 }
 
 static ASMJIT_INLINE uint32_t x86GetForceEvex3MaskInLastBit(InstOptions options) noexcept {
-  constexpr uint32_t kVex3Bit = Support::ConstCTZ<uint32_t(InstOptions::kX86_Vex3)>::value;
+  constexpr uint32_t kVex3Bit = Support::ctz_const<InstOptions::kX86_Vex3>;
   return uint32_t(options & InstOptions::kX86_Vex3) << (31 - kVex3Bit);
 }
 
@@ -520,12 +520,12 @@ static ASMJIT_INLINE bool x86ShouldUseMovabs(Assembler* self, X86BufferWriter& w
       uint64_t rip64 = baseAddress + self->_section->offset() + virtualOffset + instructionSize;
       uint64_t rel64 = uint64_t(addrValue) - rip64;
 
-      if (Support::isInt32(int64_t(rel64))) {
+      if (Support::is_int_n<32>(int64_t(rel64))) {
         return false;
       }
     }
     else {
-      if (Support::isInt32(addrValue)) {
+      if (Support::is_int_n<32>(addrValue)) {
         return false;
       }
     }
@@ -1061,13 +1061,13 @@ CaseX86M_GPB_MulDiv:
             opcode |= Opcode::kPP_66;
           }
           else if (size == 4) {
-            // Sign extend so isInt8 returns the right result.
+            // Sign extend so is_int_n<8> returns the right result.
             immValue = x86SignExtendI32<int64_t>(immValue);
           }
           else if (size == 8) {
-            bool canTransformTo32Bit = instId == Inst::kIdAnd && Support::isUInt32(immValue);
+            bool canTransformTo32Bit = instId == Inst::kIdAnd && Support::is_uint_n<32>(immValue);
 
-            if (!Support::isInt32(immValue)) {
+            if (!Support::is_int_n<32>(immValue)) {
               // We would do this by default when `kOptionOptimizedForSize` is
               // enabled, however, in this case we just force this as otherwise
               // we would have to fail.
@@ -1084,7 +1084,7 @@ CaseX86M_GPB_MulDiv:
           }
 
           immSize = FastUInt8(Support::min<uint32_t>(size, 4));
-          if (Support::isInt8(immValue) && !Support::test(options, InstOptions::kLongForm))
+          if (Support::is_int_n<8>(immValue) && !Support::test(options, InstOptions::kLongForm))
             immSize = 1;
         }
 
@@ -1109,11 +1109,11 @@ CaseX86M_GPB_MulDiv:
         immValue = o1.as<Imm>().value();
         immSize = FastUInt8(Support::min<uint32_t>(memSize, 4));
 
-        // Sign extend so isInt8 returns the right result.
+        // Sign extend so is_int_n<8> returns the right result.
         if (memSize == 4)
           immValue = x86SignExtendI32<int64_t>(immValue);
 
-        if (Support::isInt8(immValue) && !Support::test(options, InstOptions::kLongForm))
+        if (Support::is_int_n<8>(immValue) && !Support::test(options, InstOptions::kLongForm))
           immSize = 1;
 
         opcode += memSize != 1 ? (immSize != 1 ? 1u : 3u) : 0u;
@@ -1298,7 +1298,7 @@ CaseX86M_GPB_MulDiv:
         immValue = o2.as<Imm>().value();
         immSize = 1;
 
-        if (!Support::isInt8(immValue) || Support::test(options, InstOptions::kLongForm)) {
+        if (!Support::is_int_n<8>(immValue) || Support::test(options, InstOptions::kLongForm)) {
           opcode -= 2;
           immSize = o0.x86RmSize() == 2 ? 2 : 4;
         }
@@ -1316,11 +1316,11 @@ CaseX86M_GPB_MulDiv:
         immValue = o2.as<Imm>().value();
         immSize = 1;
 
-        // Sign extend so isInt8 returns the right result.
+        // Sign extend so is_int_n<8> returns the right result.
         if (o0.x86RmSize() == 4)
           immValue = x86SignExtendI32<int64_t>(immValue);
 
-        if (!Support::isInt8(immValue) || Support::test(options, InstOptions::kLongForm)) {
+        if (!Support::is_int_n<8>(immValue) || Support::test(options, InstOptions::kLongForm)) {
           opcode -= 2;
           immSize = o0.x86RmSize() == 2 ? 2 : 4;
         }
@@ -1368,11 +1368,11 @@ CaseX86M_GPB_MulDiv:
         immValue = o1.as<Imm>().value();
         immSize = 1;
 
-        // Sign extend so isInt8 returns the right result.
+        // Sign extend so is_int_n<8> returns the right result.
         if (o0.x86RmSize() == 4)
           immValue = x86SignExtendI32<int64_t>(immValue);
 
-        if (!Support::isInt8(immValue) || Support::test(options, InstOptions::kLongForm)) {
+        if (!Support::is_int_n<8>(immValue) || Support::test(options, InstOptions::kLongForm)) {
           opcode -= 2;
           immSize = o0.x86RmSize() == 2 ? 2 : 4;
         }
@@ -1739,11 +1739,11 @@ CaseX86M_GPB_MulDiv:
 
           // Optimize the instruction size by using a 32-bit immediate if possible.
           if (immSize == 8 && !Support::test(options, InstOptions::kLongForm)) {
-            if (Support::isUInt32(immValue) && hasEncodingOption(EncodingOptions::kOptimizeForSize)) {
+            if (Support::is_uint_n<32>(immValue) && hasEncodingOption(EncodingOptions::kOptimizeForSize)) {
               // Zero-extend by using a 32-bit GPD destination instead of a 64-bit GPQ.
               immSize = 4;
             }
-            else if (Support::isInt32(immValue)) {
+            else if (Support::is_int_n<32>(immValue)) {
               // Sign-extend, uses 'C7 /0' opcode.
               rbReg = opReg;
 
@@ -1949,7 +1949,7 @@ CaseX86M_GPB_MulDiv:
         immValue = o0.as<Imm>().value();
         immSize = 4;
 
-        if (Support::isInt8(immValue) && !Support::test(options, InstOptions::kLongForm))
+        if (Support::is_int_n<8>(immValue) && !Support::test(options, InstOptions::kLongForm))
           immSize = 1;
 
         opcode = immSize == 1 ? 0x6A : 0x68;
@@ -4099,7 +4099,7 @@ EmitModSib:
           uint32_t cdShift = (opcode & Opcode::kCDSHL_Mask) >> Opcode::kCDSHL_Shift;
           int32_t cdOffset = relOffset >> cdShift;
 
-          if (Support::isInt8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
+          if (Support::is_int_n<8>(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
             writer.emit8(mod + 0x40); // <- MOD(1, opReg, rbReg).
             writer.emit8(x86EncodeSib(0, 4, rbReg));
             writer.emit8(cdOffset & 0xFF);
@@ -4120,7 +4120,7 @@ EmitModSib:
         uint32_t cdShift = (opcode & Opcode::kCDSHL_Mask) >> Opcode::kCDSHL_Shift;
         int32_t cdOffset = relOffset >> cdShift;
 
-        if (Support::isInt8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
+        if (Support::is_int_n<8>(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
           writer.emit8(mod + 0x40);
           writer.emit8(cdOffset & 0xFF);
         }
@@ -4193,7 +4193,7 @@ EmitModSib:
             uint64_t rip64 = baseAddress + _section->offset() + virtualOffset;
             uint64_t rel64 = uint64_t(rmRel->as<Mem>().offset()) - rip64;
 
-            if (Support::isInt32(int64_t(rel64))) {
+            if (Support::is_int_n<32>(int64_t(rel64))) {
               writer.emit8(x86EncodeMod(0, opReg, 5));
               writer.emit32uLE(uint32_t(rel64 & 0xFFFFFFFFu));
               writer.emitImmediate(uint64_t(immValue), immSize);
@@ -4370,7 +4370,7 @@ EmitModVSib:
         uint32_t cdShift = (opcode & Opcode::kCDSHL_Mask) >> Opcode::kCDSHL_Shift;
         int32_t cdOffset = relOffset >> cdShift;
 
-        if (Support::isInt8(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
+        if (Support::is_int_n<8>(cdOffset) && relOffset == int32_t(uint32_t(cdOffset) << cdShift)) {
           // [BASE + INDEX << SHIFT + DISP8].
           writer.emit8(mod + 0x40); // <- MOD(1, opReg, 4).
           writer.emit8(sib);
@@ -4441,7 +4441,7 @@ EmitModVSib:
       if (relOffset == 0 && mod != 0x06) {
         writer.emit8(mod);
       }
-      else if (Support::isInt8(relOffset)) {
+      else if (Support::is_int_n<8>(relOffset)) {
         writer.emit8(mod + 0x40);
         writer.emit8(uint32_t(relOffset));
       }
@@ -4666,7 +4666,7 @@ EmitVexEvexM:
     opReg &= 0x07u;
 
     // Mark invalid VEX (force EVEX) case:                  // [@.......|.LLbXaaa|Vvvvv..R|RXBmmmmm].
-    x |= uint32_t(~commonInfo->flags() & InstDB::InstFlags::kVex) << (31 - Support::ConstCTZ<uint32_t(InstDB::InstFlags::kVex)>::value);
+    x |= uint32_t(~commonInfo->flags() & InstDB::InstFlags::kVex) << (31 - Support::ctz_const<InstDB::InstFlags::kVex>);
 
     // Handle AVX512 options by a single branch.
     const InstOptions kAvx512Options = InstOptions::kX86_ZMask   |
@@ -4863,7 +4863,7 @@ EmitJmpCall:
       // always true in 32-bit mode). Emit relative displacement as it was a bound label if all checks are ok.
       if (baseAddress != Globals::kNoBaseAddress) {
         uint64_t rel64 = jumpAddress - (ip + baseAddress) - inst32Size;
-        if (Environment::is32Bit(arch()) || Support::isInt32(int64_t(rel64))) {
+        if (Environment::is32Bit(arch()) || Support::is_int_n<32>(int64_t(rel64))) {
           rel32 = uint32_t(rel64 & 0xFFFFFFFFu);
           goto EmitJmpCallRel;
         }
@@ -4920,7 +4920,7 @@ EmitJmpCall:
     // Emit jmp/call with relative displacement known at assembly-time. Decide between 8-bit and 32-bit displacement
     // encoding. Some instructions only allow either 8-bit or 32-bit encoding, others allow both encodings.
 EmitJmpCallRel:
-    if (Support::isInt8(int32_t(rel32 + inst32Size - inst8Size)) && opCode8 && !Support::test(options, InstOptions::kLongForm)) {
+    if (Support::is_int_n<8>(int32_t(rel32 + inst32Size - inst8Size)) && opCode8 && !Support::test(options, InstOptions::kLongForm)) {
       options |= InstOptions::kShortForm;
       writer.emit8(opCode8);                                     // Emit opcode
       writer.emit8(rel32 + inst32Size - inst8Size);              // Emit DISP8.
@@ -5027,10 +5027,10 @@ Error Assembler::align(AlignMode alignMode, uint32_t alignment) {
   if (alignment <= 1)
     return kErrorOk;
 
-  if (ASMJIT_UNLIKELY(!Support::isPowerOf2UpTo(alignment, Globals::kMaxAlignment)))
+  if (ASMJIT_UNLIKELY(!Support::is_power_of_2_up_to(alignment, Globals::kMaxAlignment)))
     return reportError(DebugUtils::errored(kErrorInvalidArgument));
 
-  uint32_t i = uint32_t(Support::alignUpDiff<size_t>(offset(), alignment));
+  uint32_t i = uint32_t(Support::align_up_diff<size_t>(offset(), alignment));
   if (i > 0) {
     CodeWriter writer(this);
     ASMJIT_PROPAGATE(writer.ensureSpace(this, i));

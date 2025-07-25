@@ -116,14 +116,11 @@ static constexpr uint32_t kMaxLabelNameSize = 2048;
 //! Maximum section name size.
 static constexpr uint32_t kMaxSectionNameSize = 35;
 
-//! Maximum size of comment.
+//! Maximum size of a comment.
 static constexpr uint32_t kMaxCommentSize = 1024;
 
 //! Invalid identifier.
 static constexpr uint32_t kInvalidId = 0xFFFFFFFFu;
-
-//! Returned by `indexOf()` and similar when working with containers that use 32-bit index/size.
-static constexpr uint32_t kNotFound = 0xFFFFFFFFu;
 
 //! Invalid base address.
 static constexpr uint64_t kNoBaseAddress = ~uint64_t(0);
@@ -139,11 +136,27 @@ static const constexpr Init_ Init {};
 //! A decorator used to not initialize.
 static const constexpr NoInit_ NoInit {};
 
+//! Invalid index, which means not in a string. Used by API that can match items in spans, vectors, etc...
+static constexpr size_t kNPos = ~size_t(0);
+
+static constexpr size_t kDynamicExtent = kNPos;
+
+template<typename T>
+static ASMJIT_INLINE_NODEBUG bool is_npos(const T& index) noexcept { return index == T(~T(0)); }
+
 } // {Globals}
 
 //! Casts a `void*` pointer `func` to a function pointer `Func`.
 template<typename Func>
-static ASMJIT_INLINE_NODEBUG Func ptr_as_func(void* func) noexcept { return Support::ptr_cast_impl<Func, void*>(func); }
+static ASMJIT_INLINE_NODEBUG Func ptr_as_func(void* p) noexcept {
+  return Support::ptr_cast_impl<Func, void*>(p);
+}
+
+//! Casts a `void*` pointer `func` to a function pointer `Func`.
+template<typename Func>
+static ASMJIT_INLINE_NODEBUG Func ptr_as_func(void* p, size_t offset) noexcept {
+  return Support::ptr_cast_impl<Func, void*>(static_cast<void*>(static_cast<char*>(p) + offset));
+}
 
 //! Casts a function pointer `func` to a void pointer `void*`.
 template<typename Func>
@@ -398,13 +411,6 @@ ASMJIT_API void assertionFailed(const char* file, int line, const char* msg) noe
 #else
   #define ASMJIT_ASSERT(...) ((void)0)
 #endif
-
-#define ASMJIT_RUNTIME_ASSERT(...)                                             \
-  do {                                                                         \
-    if (ASMJIT_UNLIKELY(!(__VA_ARGS__))) {                                     \
-      ::asmjit::DebugUtils::assertionFailed(__FILE__, __LINE__, #__VA_ARGS__); \
-    }                                                                          \
-  } while (0)
 
 //! \def ASMJIT_NOT_REACHED()
 //!

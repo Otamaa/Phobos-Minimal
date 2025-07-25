@@ -501,7 +501,7 @@ ASMJIT_PATCH(0x7091FC, TechnoClass_CanPassiveAquire_AI, 0x6)
 	return 0x709202;
 }
 
-ASMJIT_PATCH(0x6F8260, TechnoClass_EvalObject_LegalTarget_AI, 0x6)
+ASMJIT_PATCH(0x6F8260, TechnoClass_EvaluateObject_LegalTarget_AI, 0x6)
 {
 	enum
 	{
@@ -614,9 +614,22 @@ ASMJIT_PATCH(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
 	GET(TemporalClass* const, pThis, ESI);
 
 	const auto pTargetTemp = pThis->Target->TemporalImUsing;
+	const auto pTargetType = pThis->Target->GetTechnoType();
 
-	if (pTargetTemp && pTargetTemp->Target)
+	if (pTargetType->OpenTopped) {
+		for (auto pPassenger = pThis->Target->Passengers.GetFirstPassenger();
+			pPassenger;
+			pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject)) {
+			const auto pTemporal = pPassenger->TemporalImUsing;
+
+			if (pTemporal && pTemporal->Target)
+				pTemporal->LetGo();
+		}
+	}
+
+	if (pTargetTemp && pTargetTemp->Target) {
 		pTargetTemp->LetGo();
+	}
 
 	if (pThis->Target->Owner && pThis->Target->Owner->IsControlledByHuman())
 		pThis->Target->Deselect();
@@ -2223,9 +2236,9 @@ ASMJIT_PATCH(0x73B0C5, UnitClass_Render_nullptrradio, 0x6)
 	return !pContact ? 0x73B124 : 0x0;
 }
 
-void FakeObjectClass::_DrawRadialIndicator(int val)
+void __fastcall FakeObjectClass::_DrawRadialIndicator(ObjectClass* pThis, discard_t, int val)
 {
-	if (auto pTechno = flag_cast_to<TechnoClass*, false>(this))
+	if (auto pTechno = flag_cast_to<TechnoClass*, false>(pThis))
 	{
 		auto pType = pTechno->GetTechnoType();
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -2731,27 +2744,16 @@ ASMJIT_PATCH(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x
 	return pThisType->LargeVisceroid ? 0x737C38 : 0x737C0B;
 }
 
-ASMJIT_PATCH(0x6FDB80, TechnoClass_AdjustDamage_Handle, 0x6)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(TechnoClass*, pVictim, 0x4);
-	GET_STACK(WeaponTypeClass*, pWeapon, 0x8);
-
-	int damage = 0;
-	if (pVictim && !pWeapon->IsSonic && !pWeapon->UseFireParticles && pWeapon->Damage > 0)
-	{
-
-		double _damage = TechnoExtData::GetDamageMult(pThis, (double)pWeapon->Damage);
-		int _damage_int = (int)TechnoExtData::GetArmorMult(pVictim, _damage, pWeapon->Warhead);
-		if (_damage_int < 1)
-			_damage_int = 1;
-
-		damage = (MapClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pVictim, pWeapon->Warhead), 0));
-	}
-
-	R->EAX(damage);
-	return 0x6FDD35;
-}
+// ASMJIT_PATCH(0x6FDB80, TechnoClass_AdjustDamage_Handle, 0x6)
+// {
+// 	GET(TechnoClass*, pThis, ECX);
+// 	GET_STACK(TechnoClass*, pVictim, 0x4);
+// 	GET_STACK(WeaponTypeClass*, pWeapon, 0x8);
+//
+//
+// 	R->EAX(damage);
+// 	return 0x6FDD35;
+// }
 
 ASMJIT_PATCH(0x6FE354, TechnoClass_FireAt_DamageMult, 0x6)
 {
@@ -4600,23 +4602,23 @@ ASMJIT_PATCH(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 	return 0x444167; //continue check
 }
 
-ASMJIT_PATCH(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(FootClass*, pOccupier, EDI);
+// ASMJIT_PATCH(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
+// {
+// 	GET(BuildingClass*, pThis, ESI);
+// 	GET(FootClass*, pOccupier, EDI);
 
-	if (!pThis->Owner)
-	{
-		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !",
-			pThis,
-			pThis->get_ID(),
-			pOccupier,
-			pOccupier->get_ID()
-		);
-	}
+// 	if (!pThis->Owner)
+// 	{
+// 		Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !",
+// 			pThis,
+// 			pThis->get_ID(),
+// 			pOccupier,
+// 			pOccupier->get_ID()
+// 		);
+// 	}
 
-	return 0x0;
-}
+// 	return 0x0;
+// }
 
 ASMJIT_PATCH(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
 {
@@ -5935,10 +5937,25 @@ ASMJIT_PATCH(0x417CC0, AircraftClass_WhatAction_caller, 0x5)
 	GET_STACK(DWORD, caller, 0);
 
 	if (!pThis->IsAlive)
-		Debug::LogInfo(__FUNCTION__" DeadTechno[{}] is used , called from [{}]", (void*)pThis, caller);
+		Debug::LogInfo(__FUNCTION__" DeadTechno[{}] is used , called from [{}]", (void*)pThis, (unsigned)caller);
 
 	return 0x0;
 }
+
+ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4_DeadTechno, 0x6)
+{
+	GET(SpawnManagerClass*, pThis, ESI);
+	GET(int, idx, EBX);
+
+	if (!pThis->SpawnedNodes.Items[idx]->Unit || !pThis->SpawnedNodes.Items[idx]->Unit->IsAlive) {
+		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+		pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
+		return 0x6B727F;
+	}
+
+	return 0x0;
+}
+
 
 static NOINLINE int CalculateRadiationDamage(
 	int baseLevel,
@@ -6930,42 +6947,28 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 	return  pBuffer;
 }
 
-ASMJIT_PATCH(0x6F9039, TechnoClass_GreatestThreat_GuardRange, 0x9)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
-	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
+// ASMJIT_PATCH(0x6F9039, TechnoClass_GreatestThreat_GuardRange, 0x9)
+// {
+// 	GET(TechnoClass*, pTechno, ESI);
+// 	auto const pTypeGuardRange = pTechno->GetTechnoType()->GuardRange;
+// 	auto nGuarRange = pTypeGuardRange == -1 ? 512 : pTypeGuardRange;
 
-	if (auto pPri = GetWeaponType(pTechno, 0))
-	{
-		if (pPri->Range > nGuarRange)
-			nGuarRange = pPri->Range;
-	}
+// 	if (auto pPri = GetWeaponType(pTechno, 0))
+// 	{
+// 		if (pPri->Range > nGuarRange)
+// 			nGuarRange = pPri->Range;
+// 	}
 
-	if (auto pSec = GetWeaponType(pTechno, 1))
-	{
-		if (pSec->Range > nGuarRange)
-			nGuarRange = pSec->Range;
-	}
+// 	if (auto pSec = GetWeaponType(pTechno, 1))
+// 	{
+// 		if (pSec->Range > nGuarRange)
+// 			nGuarRange = pSec->Range;
+// 	}
 
-	R->EDI(nGuarRange);
-	return 0x6F903E;
-}
+// 	R->EDI(nGuarRange);
+// 	return 0x6F903E;
+// }
 #endif
-
-FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord, CoordStruct& their_coord)
-{
-	int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
-	int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
-	int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
-	int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
-
-	int x_distance = Math::abs(our_cell_x - their_cell_x);
-	int y_distance = Math::abs(our_cell_y - their_cell_y);
-	return (x_distance * x_distance) + (y_distance * y_distance);
-
-	//return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
-}
 
 #ifdef __old
 
@@ -7001,27 +7004,6 @@ ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 }
 
 #else
-int FakeObjectClass::_GetDistanceOfObj(AbstractClass* pThat)
-{
-	int nResult = 0;
-	if (pThat)
-	{
-		auto nThisCoord = this->GetCoords();
-		auto nThatCoord = pThat->GetCoords();
-		nResult = //(int)nThisCoord.DistanceFromXY(nThatCoord)
-			cell_Distance_Squared(nThisCoord, nThatCoord);
-		;
-	}
-
-	return nResult;
-}
-
-int FakeObjectClass::_GetDistanceOfCoord(CoordStruct* pThat)
-{
-	auto nThisCoord = this->GetCoords();
-	return cell_Distance_Squared(nThisCoord, *pThat);
-}
-
 DEFINE_FUNCTION_JUMP(LJMP, 0x5F6500, FakeObjectClass::_GetDistanceOfObj);
 DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
 DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
@@ -7554,13 +7536,13 @@ static void __fastcall LaserDrawclassDrawAll()
 }
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll)
 
- //ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6) {
- //    GET(XSurface*, pThis, ECX);
- //    GET_STACK(uintptr_t, caller, 0x0);
+ ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6) {
+    GET(XSurface*, pThis, ECX);
+    GET_STACK(uintptr_t, caller, 0x0);
 
- //    if (!pThis || VTable::Get(pThis) != XSurface::vtable){
- //   	 Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
- //    }
+    if (!pThis || VTable::Get(pThis) != XSurface::vtable){
+   	 	Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
+    }
 
- //    return 0x0;
- //} ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
+    return 0x0;
+ } ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)

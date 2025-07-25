@@ -130,7 +130,7 @@ ASMJIT_FAVOR_SIZE Error ArchUtils::typeIdToRegSignature(Arch arch, TypeId typeId
   }
 
   RegType regType = RegType::kNone;
-  if (TypeUtils::isBetween(typeId, TypeId::_kBaseStart, TypeId::_kVec32Start)) {
+  if (TypeUtils::is_between(typeId, TypeId::_kBaseStart, TypeId::_kVec32Start)) {
     regType = archTraits._typeIdToRegType[uint32_t(typeId) - uint32_t(TypeId::_kBaseStart)];
     if (regType == RegType::kNone) {
       if (typeId == TypeId::kInt64 || typeId == TypeId::kUInt64) {

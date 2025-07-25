@@ -6,6 +6,7 @@
 #ifndef ASMJIT_CORE_ZONEVECTOR_H_INCLUDED
 #define ASMJIT_CORE_ZONEVECTOR_H_INCLUDED
 
+#include "../core/span.h"
 #include "../core/support.h"
 #include "../core/zone.h"
 
@@ -22,7 +23,7 @@ public:
   //! \name Types (C++ compatibility)
   //! \{
 
-  using size_type = uint32_t;
+  using size_type = size_t;
   using difference_type = ptrdiff_t;
 
   //! \}
@@ -31,11 +32,11 @@ public:
   //! \{
 
   //! Vector data (untyped).
-  void* _data = nullptr;
+  void* _data {};
   //! Size of the vector.
-  size_type _size = 0;
+  uint32_t _size {};
   //! Capacity of the vector.
-  size_type _capacity = 0;
+  uint32_t _capacity {};
 
   //! \}
 
@@ -66,22 +67,32 @@ protected:
 
   ASMJIT_INLINE_NODEBUG void _moveFrom(ZoneVectorBase&& other) noexcept {
     void* data = other._data;
-    size_type size = other._size = 0;
-    size_type capacity = other._capacity = 0;
+    uint32_t size = other._size;
+    uint32_t capacity = other._capacity;
 
     other._data = nullptr;
-    other._size = 0;
-    other._capacity = 0;
+    other._size = 0u;
+    other._capacity = 0u;
 
     _data = data;
     _size = size;
     _capacity = capacity;
   }
 
-  ASMJIT_API Error _grow(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
-  ASMJIT_API Error _resize(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
-  ASMJIT_API Error _reserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
-  ASMJIT_API Error _growingReserve(ZoneAllocator* allocator, uint32_t sizeOfT, uint32_t n) noexcept;
+  ASMJIT_API Error _reserve_fit(ZoneAllocator* allocator, size_t n, Support::ByteSize byteSize) noexcept;
+  ASMJIT_API Error _reserve_fit(ZoneAllocator* allocator, size_t n, Support::Log2Size log2Size) noexcept;
+
+  ASMJIT_API Error _reserve_grow(ZoneAllocator* allocator, size_t n, Support::ByteSize byteSize) noexcept;
+  ASMJIT_API Error _reserve_grow(ZoneAllocator* allocator, size_t n, Support::Log2Size log2Size) noexcept;
+
+  ASMJIT_API Error _grow(ZoneAllocator* allocator, size_t n, Support::ByteSize byteSize) noexcept;
+  ASMJIT_API Error _grow(ZoneAllocator* allocator, size_t n, Support::Log2Size log2Size) noexcept;
+
+  ASMJIT_API Error _resize_fit(ZoneAllocator* allocator, size_t n, Support::ByteSize byteSize) noexcept;
+  ASMJIT_API Error _resize_fit(ZoneAllocator* allocator, size_t n, Support::Log2Size log2Size) noexcept;
+
+  ASMJIT_API Error _resize_grow(ZoneAllocator* allocator, size_t n, Support::ByteSize byteSize) noexcept;
+  ASMJIT_API Error _resize_grow(ZoneAllocator* allocator, size_t n, Support::Log2Size log2Size) noexcept;
 
   ASMJIT_INLINE_NODEBUG void _swap(ZoneVectorBase& other) noexcept {
     std::swap(_data, other._data);
@@ -102,11 +113,11 @@ public:
 
   //! Returns the vector size.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG size_type size() const noexcept { return _size; }
+  ASMJIT_INLINE_NODEBUG size_t size() const noexcept { return _size; }
 
   //! Returns the vector capacity.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG size_type capacity() const noexcept { return _capacity; }
+  ASMJIT_INLINE_NODEBUG size_t capacity() const noexcept { return _capacity; }
 
   //! \}
 
@@ -114,7 +125,8 @@ public:
   //! \{
 
   //! Makes the vector empty (won't change the capacity or data pointer).
-  ASMJIT_INLINE_NODEBUG void clear() noexcept { _size = 0; }
+  ASMJIT_INLINE_NODEBUG void clear() noexcept { _size = 0u; }
+
   //! Resets the vector data and set its `size` to zero.
   ASMJIT_INLINE_NODEBUG void reset() noexcept {
     _data = nullptr;
@@ -123,14 +135,14 @@ public:
   }
 
   //! Truncates the vector to at most `n` items.
-  ASMJIT_INLINE_NODEBUG void truncate(size_type n) noexcept {
-    _size = Support::min(_size, n);
+  ASMJIT_INLINE_NODEBUG void truncate(size_t n) noexcept {
+    _size = uint32_t(Support::min<size_t>(_size, n));
   }
 
   //! Sets size of the vector to `n`. Used internally by some algorithms.
-  inline void _setSize(size_type n) noexcept {
+  inline void _setSize(size_t n) noexcept {
     ASMJIT_ASSERT(n <= _capacity);
-    _size = n;
+    _size = uint32_t(n);
   }
 
   //! \}
@@ -171,8 +183,7 @@ public:
   ASMJIT_INLINE_NODEBUG ZoneVector() noexcept : ZoneVectorBase() {}
 
   //! Moves an existing zone vector into this instance and resets the `other` instance.
-  ASMJIT_INLINE_NODEBUG ZoneVector(ZoneVector&& other) noexcept
-    : ZoneVectorBase(std::move(other)) {}
+  ASMJIT_INLINE_NODEBUG ZoneVector(ZoneVector&& other) noexcept : ZoneVectorBase(std::move(other)) {}
 
   //! \}
 
@@ -191,8 +202,35 @@ public:
 
   //! \}
 
+  //! \name Overloaded Operators
+  //! \{
+
+  //! Returns item at index `i`.
+  [[nodiscard]]
+  ASMJIT_INLINE T& operator[](size_t i) noexcept {
+    ASMJIT_ASSERT(i < _size);
+    return data()[i];
+  }
+
+  //! Returns item at index `i`.
+  [[nodiscard]]
+  ASMJIT_INLINE const T& operator[](size_t i) const noexcept {
+    ASMJIT_ASSERT(i < _size);
+    return data()[i];
+  }
+
+  //! Returns a non-owning span of this zone vector.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG operator Span<T>() const noexcept { return Span<T>(static_cast<T*>(_data), _size); }
+
+  //! \}
+
   //! \name Accessors
   //! \{
+
+  //! Returns a non-owning span of this zone vector.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG Span<T> as_span() const noexcept { return Span<T>(static_cast<T*>(_data), _size); }
 
   //! Returns vector data (mutable).
   [[nodiscard]]
@@ -215,12 +253,34 @@ public:
 
   inline void _setEndPtr(T* p) noexcept {
     ASMJIT_ASSERT(p >= data() && p <= data() + _capacity);
-    _setSize(uint32_t((uintptr_t)(p - data())));
+    _setSize(size_t(p - data()));
   }
+
+  //! Returns a reference to the first element of the vector.
+  //!
+  //! \note The vector must have at least one element. Attempting to use `first()` on empty vector will trigger
+  //! an assertion failure in debug builds.
+  [[nodiscard]]
+  ASMJIT_INLINE T& first() noexcept { return operator[](0); }
+
+  //! \overload
+  [[nodiscard]]
+  ASMJIT_INLINE const T& first() const noexcept { return operator[](0); }
+
+  //! Returns a reference to the last element of the vector.
+  //!
+  //! \note The vector must have at least one element. Attempting to use `last()` on empty vector will trigger
+  //! an assertion failure in debug builds.
+  [[nodiscard]]
+  ASMJIT_INLINE T& last() noexcept { return operator[](_size - 1); }
+
+  //! \overload
+  [[nodiscard]]
+  ASMJIT_INLINE const T& last() const noexcept { return operator[](_size - 1); }
 
   //! \}
 
-  //! \name STL Compatibility (Iterators)
+  //! \name C++ Compatibility (Iterators)
   //! \{
 
   [[nodiscard]]
@@ -258,6 +318,21 @@ public:
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const_reverse_iterator crend() const noexcept { return const_reverse_iterator(cbegin()); };
+
+  //! \}
+
+  //! \name Iteration
+  //! \{
+
+  ASMJIT_INLINE_NODEBUG SpanForwardIteratorAdaptor<T> iterate() const noexcept {
+    T* p = static_cast<T*>(_data);
+    return SpanForwardIteratorAdaptor<T>{p, p + _size};
+  }
+
+  ASMJIT_INLINE_NODEBUG SpanReverseIteratorAdaptor<T> iterate_reverse() const noexcept {
+    T* p = static_cast<T*>(_data);
+    return SpanReverseIteratorAdaptor<T>{p, p + _size};
+  }
 
   //! \}
 
@@ -316,6 +391,7 @@ public:
   //! Appends `other` vector at the end of this vector.
   ASMJIT_INLINE Error concat(ZoneAllocator* allocator, const ZoneVector<T>& other) noexcept {
     uint32_t size = other._size;
+
     if (_capacity - _size < size) {
       ASMJIT_PROPAGATE(grow(allocator, size));
     }
@@ -328,6 +404,17 @@ public:
     }
 
     return kErrorOk;
+  }
+
+  ASMJIT_INLINE void assignUnsafe(const ZoneVector<T>& other) noexcept {
+    uint32_t size = other._size;
+    ASMJIT_ASSERT(_capacity >= other._size);
+
+    if (size) {
+      memcpy(_data, other._data, size_t(size) * sizeof(T));
+    }
+
+    _size = size;
   }
 
   //! Prepends `item` to the vector (unsafe case).
@@ -393,24 +480,8 @@ public:
     }
   }
 
-  //! Returns index of the given `val` or `Globals::kNotFound` if it doesn't exist.
-  ASMJIT_INLINE uint32_t indexOf(const T& val) const noexcept {
-    const T* data = static_cast<const T*>(_data);
-    uint32_t size = _size;
-
-    for (uint32_t i = 0; i < size; i++)
-      if (data[i] == val)
-        return i;
-    return Globals::kNotFound;
-  }
-
-  //! Tests whether the vector contains `val`.
-  inline bool contains(const T& val) const noexcept {
-    return indexOf(val) != Globals::kNotFound;
-  }
-
   //! Removes item at index `i`.
-  inline void removeAt(size_t i) noexcept {
+  ASMJIT_INLINE void removeAt(size_t i) noexcept {
     ASMJIT_ASSERT(i < _size);
 
     T* data = static_cast<T*>(_data) + i;
@@ -425,7 +496,7 @@ public:
 
   //! Pops the last element from the vector and returns it.
   [[nodiscard]]
-  inline T pop() noexcept {
+  ASMJIT_INLINE T pop() noexcept {
     ASMJIT_ASSERT(_size > 0);
 
     uint32_t index = --_size;
@@ -433,71 +504,122 @@ public:
   }
 
   template<typename CompareT = Support::Compare<Support::SortOrder::kAscending>>
-  inline void sort(const CompareT& cmp = CompareT()) noexcept {
+  ASMJIT_INLINE void sort(const CompareT& cmp = CompareT()) noexcept {
     Support::qSort<T, CompareT>(data(), size(), cmp);
   }
 
-  //! Returns item at index `i`.
-  [[nodiscard]]
-  inline T& operator[](size_t i) noexcept {
-    ASMJIT_ASSERT(i < _size);
-    return data()[i];
+  //! \}
+
+  //! \name Utility Functions
+  //! \{
+
+  //! Tests whether the vector contains `value`.
+  template<typename Value>
+  ASMJIT_INLINE bool contains(Value&& value) const noexcept {
+    return as_span().contains(std::forward<Value>(value));
   }
 
-  //! Returns item at index `i`.
-  [[nodiscard]]
-  inline const T& operator[](size_t i) const noexcept {
-    ASMJIT_ASSERT(i < _size);
-    return data()[i];
+  //! Returns the first index of the given `value` or `Globals::kNPos` if it wasn't found.
+  template<typename Value>
+  ASMJIT_INLINE size_t index_of(Value&& value) const noexcept {
+    return as_span().index_of(std::forward<Value>(value));
   }
 
-  //! Returns a reference to the first element of the vector.
-  //!
-  //! \note The vector must have at least one element. Attempting to use `first()` on empty vector will trigger
-  //! an assertion failure in debug builds.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG T& first() noexcept { return operator[](0); }
-
-  //! \overload
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const T& first() const noexcept { return operator[](0); }
-
-  //! Returns a reference to the last element of the vector.
-  //!
-  //! \note The vector must have at least one element. Attempting to use `last()` on empty vector will trigger
-  //! an assertion failure in debug builds.
-  [[nodiscard]]
-  inline T& last() noexcept { return operator[](_size - 1); }
-
-  //! \overload
-  [[nodiscard]]
-  inline const T& last() const noexcept { return operator[](_size - 1); }
+  //! Returns the last index of the given `value` or `Globals::kNPos` if it wasn't found.
+  template<typename Value>
+  ASMJIT_INLINE size_t last_index_of(Value&& value) const noexcept {
+    return as_span().index_of(std::forward<Value>(value));
+  }
 
   //! \}
+
+  //! \cond INTERNAL
+  //! \name Memory Management (internal)
+  //! \{
+
+  ASMJIT_INLINE Error _reserve_fit(ZoneAllocator* allocator, size_t n) noexcept {
+    return ZoneVectorBase::_reserve_fit(allocator, n, Support::as_item_size<sizeof(T)>());
+  }
+
+  ASMJIT_INLINE Error _reserve_grow(ZoneAllocator* allocator, size_t n) noexcept {
+    return ZoneVectorBase::_reserve_grow(allocator, n, Support::as_item_size<sizeof(T)>());
+  }
+
+  ASMJIT_INLINE Error _resize_fit(ZoneAllocator* allocator, size_t n) noexcept {
+    return ZoneVectorBase::_resize_fit(allocator, n, Support::as_item_size<sizeof(T)>());
+  }
+
+  ASMJIT_INLINE Error _resize_grow(ZoneAllocator* allocator, size_t n) noexcept {
+    return ZoneVectorBase::_resize_grow(allocator, n, Support::as_item_size<sizeof(T)>());
+  }
+
+  ASMJIT_INLINE Error _grow(ZoneAllocator* allocator, size_t n) noexcept {
+    return ZoneVectorBase::_grow(allocator, n, Support::as_item_size<sizeof(T)>());
+  }
+
+  //! \}
+  //! \endcond
 
   //! \name Memory Management
   //! \{
 
   //! Releases the memory held by `ZoneVector<T>` back to the `allocator`.
-  inline void release(ZoneAllocator* allocator) noexcept {
+  ASMJIT_INLINE void release(ZoneAllocator* allocator) noexcept {
     _release(allocator, sizeof(T));
+  }
+
+  //! Reallocates the underlying array to fit at least `n` items with fit semantics.
+  //!
+  //! \remarks This function uses a fit policy, which means that when possible the underlying array would be
+  //! allocated to hold at least `n` elements exactly or the resulting capacity would be slightly higher.
+  [[nodiscard]]
+  ASMJIT_INLINE Error reserve_fit(ZoneAllocator* allocator, size_t n) noexcept {
+    if (ASMJIT_UNLIKELY(n > _capacity)) {
+      return _reserve_fit(allocator, n);
+    }
+    else {
+      return Error(kErrorOk);
+    }
+  }
+
+  //! Reallocates the underlying array to fit at least `n` items with grow semantics.
+  //!
+  //! If the vector is smaller than `n` the same growing calculations will be used as if `n` items were appended
+  //! to an empty vector, which means reserving additional space for more append operations that could follow.
+  [[nodiscard]]
+  inline Error reserve_grow(ZoneAllocator* allocator, size_t n) noexcept {
+    if (ASMJIT_UNLIKELY(n > _capacity)) {
+      return _reserve_grow(allocator, n);
+    }
+    else {
+      return Error(kErrorOk);
+    }
   }
 
   //! Called to grow the buffer to fit at least 1 element more.
   [[nodiscard]]
-  inline Error grow(ZoneAllocator* allocator) noexcept {
-    if (ASMJIT_LIKELY(_size < _capacity)) {
-      return kErrorOk;
+  ASMJIT_INLINE Error grow(ZoneAllocator* allocator) noexcept {
+    if (ASMJIT_UNLIKELY(_size == _capacity)) {
+      return _grow(allocator, 1u);
     }
     else {
-      return ZoneVectorBase::_grow(allocator, sizeof(T), 1u);
+      return kErrorOk;
     }
   }
 
   //! Called to grow the buffer to fit at least `n` elements more.
   [[nodiscard]]
-  inline Error grow(ZoneAllocator* allocator, uint32_t n) noexcept {
-    return ZoneVectorBase::_grow(allocator, sizeof(T), n);
+  ASMJIT_INLINE Error grow(ZoneAllocator* allocator, size_t n) noexcept {
+    return _grow(allocator, n);
+  }
+
+  //! Resizes the vector to hold `n` elements with fit semantics.
+  //!
+  //! If `n` is greater than the current size then the additional elements' content will be initialized to zero.
+  //! If `n` is less than the current size then the vector will be truncated to exactly `n` elements.
+  [[nodiscard]]
+  ASMJIT_INLINE Error resize_fit(ZoneAllocator* allocator, size_t n) noexcept {
+    return _resize_fit(allocator, n);
   }
 
   //! Resizes the vector to hold `n` elements.
@@ -505,367 +627,27 @@ public:
   //! If `n` is greater than the current size then the additional elements' content will be initialized to zero.
   //! If `n` is less than the current size then the vector will be truncated to exactly `n` elements.
   [[nodiscard]]
-  inline Error resize(ZoneAllocator* allocator, uint32_t n) noexcept {
-    return ZoneVectorBase::_resize(allocator, sizeof(T), n);
-  }
-
-  //! Reallocates the internal array to fit at least `n` items.
-  [[nodiscard]]
-  inline Error reserve(ZoneAllocator* allocator, uint32_t n) noexcept {
-    if (ASMJIT_UNLIKELY(n > _capacity)) {
-      return ZoneVectorBase::_reserve(allocator, sizeof(T), n);
-    }
-    else {
-      return Error(kErrorOk);
-    }
-  }
-
-  //! Reallocates the internal array to fit at least `n` items with growing semantics.
-  //!
-  //! If the vector is smaller than `n` the same growing calculations will be used as if N items were appended
-  //! to an empty vector, which means reserving additional space for more append operations that could follow.
-  [[nodiscard]]
-  inline Error growingReserve(ZoneAllocator* allocator, uint32_t n) noexcept {
-    if (ASMJIT_UNLIKELY(n > _capacity)) {
-      return ZoneVectorBase::_growingReserve(allocator, sizeof(T), n);
-    }
-    else {
-      return Error(kErrorOk);
-    }
+  ASMJIT_INLINE Error resize_grow(ZoneAllocator* allocator, size_t n) noexcept {
+    return _resize_grow(allocator, n);
   }
 
   inline Error willGrow(ZoneAllocator* allocator) noexcept {
-    return _capacity == _size ? grow(allocator, 1u) : Error(kErrorOk);
-  }
-
-  inline Error willGrow(ZoneAllocator* allocator, uint32_t n) noexcept {
-    return _capacity - _size < n ? grow(allocator, n) : Error(kErrorOk);
-  }
-
-  //! \}
-};
-
-//! Zone-allocated bit vector.
-class ZoneBitVector {
-public:
-  ASMJIT_NONCOPYABLE(ZoneBitVector)
-
-  //! \name Types
-  //! \{
-
-  using BitWord = Support::BitWord;
-
-  //! \}
-
-  //! \name Constants
-  //! \{
-
-  static inline constexpr uint32_t kBitWordSizeInBits = Support::kBitWordSizeInBits;
-
-  //! \}
-
-  //! \name Members
-  //! \{
-
-  //! Bits.
-  BitWord* _data = nullptr;
-  //! Size of the bit-vector (in bits).
-  uint32_t _size = 0;
-  //! Capacity of the bit-vector (in bits).
-  uint32_t _capacity = 0;
-
-  //! \}
-
-  //! \cond INTERNAL
-  //! \name Internal
-  //! \{
-
-  static ASMJIT_INLINE_NODEBUG uint32_t _wordsPerBits(uint32_t nBits) noexcept {
-    return ((nBits + kBitWordSizeInBits - 1) / kBitWordSizeInBits);
-  }
-
-  static ASMJIT_INLINE_NODEBUG void _zeroBits(BitWord* dst, uint32_t nBitWords) noexcept {
-    for (uint32_t i = 0; i < nBitWords; i++) {
-      dst[i] = 0;
+    if (ASMJIT_UNLIKELY(_capacity == _size)) {
+      return _grow(allocator, 1u);
+    }
+    else {
+      return kErrorOk;
     }
   }
 
-  static ASMJIT_INLINE_NODEBUG void _fillBits(BitWord* dst, uint32_t nBitWords) noexcept {
-    for (uint32_t i = 0; i < nBitWords; i++) {
-      dst[i] = ~BitWord(0);
+  inline Error willGrow(ZoneAllocator* allocator, size_t n) noexcept {
+    if (ASMJIT_UNLIKELY(_capacity - _size < n)) {
+      return _grow(allocator, n);
+    }
+    else {
+      return kErrorOk;
     }
   }
-
-  static ASMJIT_INLINE_NODEBUG void _copyBits(BitWord* dst, const BitWord* src, uint32_t nBitWords) noexcept {
-    for (uint32_t i = 0; i < nBitWords; i++) {
-      dst[i] = src[i];
-    }
-  }
-
-  //! \}
-  //! \endcond
-
-  //! \name Construction & Destruction
-  //! \{
-
-  ASMJIT_INLINE_NODEBUG ZoneBitVector() noexcept {}
-
-  ASMJIT_INLINE_NODEBUG ZoneBitVector(ZoneBitVector&& other) noexcept
-    : _data(other._data),
-      _size(other._size),
-      _capacity(other._capacity) {}
-
-  //! \}
-
-  //! \name Overloaded Operators
-  //! \{
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool operator==(const ZoneBitVector& other) const noexcept { return  equals(other); }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool operator!=(const ZoneBitVector& other) const noexcept { return !equals(other); }
-
-  //! \}
-
-  //! \name Accessors
-  //! \{
-
-  //! Tests whether the bit-vector is empty (has no bits).
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool empty() const noexcept { return _size == 0; }
-
-  //! Returns the size of this bit-vector (in bits).
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t size() const noexcept { return _size; }
-
-  //! Returns the capacity of this bit-vector (in bits).
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t capacity() const noexcept { return _capacity; }
-
-  //! Returns the size of the `BitWord[]` array in `BitWord` units.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t sizeInBitWords() const noexcept { return _wordsPerBits(_size); }
-
-  //! Returns the capacity of the `BitWord[]` array in `BitWord` units.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t capacityInBitWords() const noexcept { return _wordsPerBits(_capacity); }
-
-  //! Returns bit-vector data as `BitWord[]`.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG BitWord* data() noexcept { return _data; }
-
-  //! \overload
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const BitWord* data() const noexcept { return _data; }
-
-  //! \}
-
-  //! \name Utilities
-  //! \{
-
-  ASMJIT_INLINE_NODEBUG void swap(ZoneBitVector& other) noexcept {
-    std::swap(_data, other._data);
-    std::swap(_size, other._size);
-    std::swap(_capacity, other._capacity);
-  }
-
-  ASMJIT_INLINE_NODEBUG void clear() noexcept {
-    _size = 0;
-  }
-
-  ASMJIT_INLINE_NODEBUG void reset() noexcept {
-    _data = nullptr;
-    _size = 0;
-    _capacity = 0;
-  }
-
-  ASMJIT_INLINE_NODEBUG void truncate(uint32_t newSize) noexcept {
-    _size = Support::min(_size, newSize);
-    _clearUnusedBits();
-  }
-
-  [[nodiscard]]
-  inline bool bitAt(uint32_t index) const noexcept {
-    ASMJIT_ASSERT(index < _size);
-    return Support::bitVectorGetBit(_data, index);
-  }
-
-  inline void setBit(uint32_t index, bool value) noexcept {
-    ASMJIT_ASSERT(index < _size);
-    Support::bitVectorSetBit(_data, index, value);
-  }
-
-  inline void flipBit(uint32_t index) noexcept {
-    ASMJIT_ASSERT(index < _size);
-    Support::bitVectorFlipBit(_data, index);
-  }
-
-  ASMJIT_INLINE Error append(ZoneAllocator* allocator, bool value) noexcept {
-    uint32_t index = _size;
-    if (ASMJIT_UNLIKELY(index >= _capacity))
-      return _append(allocator, value);
-
-    uint32_t idx = index / kBitWordSizeInBits;
-    uint32_t bit = index % kBitWordSizeInBits;
-
-    if (bit == 0)
-      _data[idx] = BitWord(value) << bit;
-    else
-      _data[idx] |= BitWord(value) << bit;
-
-    _size++;
-    return kErrorOk;
-  }
-
-  ASMJIT_API Error copyFrom(ZoneAllocator* allocator, const ZoneBitVector& other) noexcept;
-
-  ASMJIT_INLINE void clearAll() noexcept {
-    _zeroBits(_data, _wordsPerBits(_size));
-  }
-
-  ASMJIT_INLINE void fillAll() noexcept {
-    _fillBits(_data, _wordsPerBits(_size));
-    _clearUnusedBits();
-  }
-
-  ASMJIT_INLINE void clearBits(uint32_t start, uint32_t count) noexcept {
-    ASMJIT_ASSERT(start <= _size);
-    ASMJIT_ASSERT(_size - start >= count);
-
-    Support::bitVectorClear(_data, start, count);
-  }
-
-  ASMJIT_INLINE void fillBits(uint32_t start, uint32_t count) noexcept {
-    ASMJIT_ASSERT(start <= _size);
-    ASMJIT_ASSERT(_size - start >= count);
-
-    Support::bitVectorFill(_data, start, count);
-  }
-
-  //! Performs a logical bitwise AND between bits specified in this array and bits in `other`. If `other` has less
-  //! bits than `this` then all remaining bits are set to zero.
-  //!
-  //! \note The size of the BitVector is unaffected by this operation.
-  ASMJIT_INLINE void and_(const ZoneBitVector& other) noexcept {
-    BitWord* dst = _data;
-    const BitWord* src = other._data;
-
-    uint32_t thisBitWordCount = sizeInBitWords();
-    uint32_t otherBitWordCount = other.sizeInBitWords();
-    uint32_t commonBitWordCount = Support::min(thisBitWordCount, otherBitWordCount);
-
-    uint32_t i = 0;
-    while (i < commonBitWordCount) {
-      dst[i] = dst[i] & src[i];
-      i++;
-    }
-
-    while (i < thisBitWordCount) {
-      dst[i] = 0;
-      i++;
-    }
-  }
-
-  //! Performs a logical bitwise AND between bits specified in this array and negated bits in `other`. If `other`
-  //! has less bits than `this` then all remaining bits are kept intact.
-  //!
-  //! \note The size of the BitVector is unaffected by this operation.
-  ASMJIT_INLINE void andNot(const ZoneBitVector& other) noexcept {
-    BitWord* dst = _data;
-    const BitWord* src = other._data;
-
-    uint32_t commonBitWordCount = _wordsPerBits(Support::min(_size, other._size));
-    for (uint32_t i = 0; i < commonBitWordCount; i++) {
-      dst[i] = dst[i] & ~src[i];
-    }
-  }
-
-  //! Performs a logical bitwise OP between bits specified in this array and bits in `other`. If `other` has less
-  //! bits than `this` then all remaining bits are kept intact.
-  //!
-  //! \note The size of the BitVector is unaffected by this operation.
-  ASMJIT_INLINE void or_(const ZoneBitVector& other) noexcept {
-    BitWord* dst = _data;
-    const BitWord* src = other._data;
-
-    uint32_t commonBitWordCount = _wordsPerBits(Support::min(_size, other._size));
-    for (uint32_t i = 0; i < commonBitWordCount; i++) {
-      dst[i] = dst[i] | src[i];
-    }
-    _clearUnusedBits();
-  }
-
-  ASMJIT_INLINE void _clearUnusedBits() noexcept {
-    uint32_t idx = _size / kBitWordSizeInBits;
-    uint32_t bit = _size % kBitWordSizeInBits;
-
-    if (!bit) {
-      return;
-    }
-
-    _data[idx] &= (BitWord(1) << bit) - 1u;
-  }
-
-  [[nodiscard]]
-  ASMJIT_INLINE bool equals(const ZoneBitVector& other) const noexcept {
-    if (_size != other._size) {
-      return false;
-    }
-
-    const BitWord* aData = _data;
-    const BitWord* bData = other._data;
-    uint32_t numBitWords = _wordsPerBits(_size);
-
-    for (uint32_t i = 0; i < numBitWords; i++) {
-      if (aData[i] != bData[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  //! \}
-
-  //! \name Memory Management
-  //! \{
-
-  inline void release(ZoneAllocator* allocator) noexcept {
-    if (!_data) {
-      return;
-    }
-
-    allocator->release(_data, _capacity / 8u);
-    reset();
-  }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Error resize(ZoneAllocator* allocator, uint32_t newSize, bool newBitsValue = false) noexcept {
-    return _resize(allocator, newSize, newSize, newBitsValue);
-  }
-
-  ASMJIT_API Error _resize(ZoneAllocator* allocator, uint32_t newSize, uint32_t idealCapacity, bool newBitsValue) noexcept;
-  ASMJIT_API Error _append(ZoneAllocator* allocator, bool value) noexcept;
-
-  //! \}
-
-  //! \name Iterators
-  //! \{
-
-  class ForEachBitSet : public Support::BitVectorIterator<BitWord> {
-  public:
-    inline explicit ForEachBitSet(const ZoneBitVector& bitVector) noexcept
-      : Support::BitVectorIterator<BitWord>(bitVector.data(), bitVector.sizeInBitWords()) {}
-  };
-
-  template<class Operator>
-  class ForEachBitOp : public Support::BitVectorOpIterator<BitWord, Operator> {
-  public:
-    inline ForEachBitOp(const ZoneBitVector& a, const ZoneBitVector& b) noexcept
-      : Support::BitVectorOpIterator<BitWord, Operator>(a.data(), b.data(), a.sizeInBitWords()) {
-      ASMJIT_ASSERT(a.size() == b.size());
-    }
-  };
 
   //! \}
 };

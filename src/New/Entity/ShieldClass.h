@@ -124,6 +124,8 @@ public:
 		return pShieldType->Armor.Get();
 	}
 
+	Armor GetOrInheritArmor() const;
+
 	COMPILETIMEEVAL FORCEDINLINE int GetFramesSinceLastBroken() const
 	{
 		return Unsorted::CurrentFrame - this->LastBreakFrame;

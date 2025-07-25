@@ -40,7 +40,7 @@ void FakeAircraftClass::_FootClass_Update_Wrapper()
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
 
-	pExt->UpdateAircraftOpentopped();
+	//pExt->UpdateAircraftOpentopped();
 	AircraftPutDataFunctional::AI(pExt, pTypeExt);
 	AircraftDiveFunctional::AI(pExt, pTypeExt);
 	//FighterAreaGuardFunctional::AI(pExt, pTypeExt);

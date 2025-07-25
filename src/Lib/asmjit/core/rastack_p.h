@@ -100,8 +100,6 @@ struct RAStackSlot {
   //! \}
 };
 
-using RAStackSlots = ZoneVector<RAStackSlot*>;
-
 //! Stack allocator.
 class RAStackAllocator {
 public:
@@ -133,7 +131,7 @@ public:
   //! Minimum stack alignment.
   uint32_t _alignment = 1;
   //! Stack slots vector.
-  RAStackSlots _slots;
+  ZoneVector<RAStackSlot*> _slots;
 
   //! \}
 
@@ -172,13 +170,10 @@ public:
   ASMJIT_INLINE_NODEBUG uint32_t alignment() const noexcept { return _alignment; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RAStackSlots& slots() noexcept { return _slots; }
+  ASMJIT_INLINE_NODEBUG Span<RAStackSlot*> slots() noexcept { return _slots.as_span(); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const RAStackSlots& slots() const noexcept { return _slots; }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t slotCount() const noexcept { return _slots.size(); }
+  ASMJIT_INLINE_NODEBUG size_t slotCount() const noexcept { return _slots.size(); }
 
   //! \}
 

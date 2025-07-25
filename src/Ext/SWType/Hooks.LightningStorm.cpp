@@ -332,23 +332,20 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 					auto const pCellBld = pCell->GetBuilding();
 					const auto& nRodTypes = pExt->Weather_LightningRodTypes;
 
-					if (pCellBld && pCellBld->Type->LightningRod)
-					{
+					if (pCellBld && pCellBld->IsAlive && pCellBld->Type->LightningRod) {
 						if (nRodTypes.empty() || nRodTypes.Contains(pCellBld->Type))
 							return ret;
 					}
 
 					// if a lightning rod is next to this, hit that instead. naive.
 					if (auto const pObj = pCell->FindTechnoNearestTo(
-						Point2D::Empty, false, pCellBld))
-					{
-						if (auto const pBld = cast_to<BuildingClass*, false>(pObj))
-						{
-							if (pBld->Type->LightningRod)
-							{
-								if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type))
-								{
-									return pBld->GetMapCoords();
+						Point2D::Empty, false, pCellBld)) {
+						if (pObj->IsAlive) {
+							if (auto const pBld = cast_to<BuildingClass*, false>(pObj)) {
+								if (pBld->Type->LightningRod) {
+									if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type)) {
+										return pBld->GetMapCoords();
+									}
 								}
 							}
 						}
@@ -504,7 +501,7 @@ ASMJIT_PATCH(0x53A300, LightningStorm_Strike2, 5)
 		auto const isInfantry = cast_to<InfantryClass*>(pObj) != nullptr;
 
 		// empty cell action
-		if (!pBld && !pObj)
+		if ((!pBld || !pBld->IsAlive) && (!pObj || !pObj->IsAlive))
 		{
 			debris = Helpers::Alex::is_any_of(
 				pCell->LandType,

@@ -165,6 +165,7 @@ struct OpSignature {
   //! \}
 };
 
+//! Operand signature table, used by \ref InstSignature.
 ASMJIT_VARAPI const OpSignature _opSignatureTable[];
 
 //! Instruction signature.
@@ -235,6 +236,7 @@ struct InstSignature {
   //! \}
 };
 
+//! Instruction signature table.
 ASMJIT_VARAPI const InstSignature _instSignatureTable[];
 
 //! Instruction flags.
@@ -499,7 +501,7 @@ struct CommonInfo {
   // Returns the size of the broadcast - either 2, 4, or 8, or 0 if broadcast is not supported.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t broadcastSize() const noexcept {
-    constexpr uint32_t kShift = Support::ConstCTZ<uint32_t(Avx512Flags::kB16)>::value;
+    constexpr uint32_t kShift = Support::ctz_const<Avx512Flags::kB16>;
     return (uint32_t(_avx512Flags) & uint32_t(Avx512Flags::kB16 | Avx512Flags::kB32 | Avx512Flags::kB64)) >> (kShift - 1);
   }
 
@@ -532,18 +534,18 @@ ASMJIT_VARAPI const CommonInfo _commonInfoTable[];
 struct InstInfo {
   //! Reserved for future use.
   uint32_t _reserved : 14;
-  //! Index to \ref _commonInfoTable.
+  //! Index to `_commonInfoTable`.
   uint32_t _commonInfoIndex : 10;
-  //! Index to \ref _additionalInfoTable.
+  //! Index to `_additionalInfoTable`.
   uint32_t _additionalInfoIndex : 8;
 
   //! Instruction encoding (internal encoding identifier used by \ref Assembler).
   uint8_t _encoding;
   //! Main opcode value (0..255).
   uint8_t _mainOpcodeValue;
-  //! Index to \ref _mainOpcodeTable` that is combined with \ref _mainOpcodeValue to form the final opcode.
+  //! Index to `InstDB::_mainOpcodeTable` that is combined with `InstDB::_mainOpcodeValue` to form the final opcode.
   uint8_t _mainOpcodeIndex;
-  //! Index to \ref _altOpcodeTable that contains a full alternative opcode.
+  //! Index to `InstDB::_altOpcodeTable` that contains a full alternative opcode.
   uint8_t _altOpcodeIndex;
 
   //! \name Accessors

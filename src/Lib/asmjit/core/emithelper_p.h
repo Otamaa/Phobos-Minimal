@@ -18,9 +18,10 @@ ASMJIT_BEGIN_NAMESPACE
 
 //! Helper class that provides utilities for each supported architecture.
 class BaseEmitHelper {
-public:
+protected:
   BaseEmitter* _emitter;
 
+public:
   ASMJIT_INLINE_NODEBUG explicit BaseEmitHelper(BaseEmitter* emitter = nullptr) noexcept
     : _emitter(emitter) {}
 
@@ -28,8 +29,6 @@ public:
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseEmitter* emitter() const noexcept { return _emitter; }
-
-  ASMJIT_INLINE_NODEBUG void setEmitter(BaseEmitter* emitter) noexcept { _emitter = emitter; }
 
   //! Emits a pure move operation between two registers or the same type or between a register and its home
   //! slot. This function does not handle register conversion.

@@ -25,14 +25,14 @@ static inline uint32_t x86EncodeMod(uint32_t m, uint32_t o, uint32_t rm) noexcep
 // CodeHolder - LabelEntry Globals & Utilities
 // ===========================================
 
-static constexpr LabelEntry::ExtraData _makeSharedLabelExtraData() noexcept {
+static constexpr LabelEntry::ExtraData CodeHolder_makeSharedLabelExtraData() noexcept {
   LabelEntry::ExtraData extraData {};
   extraData._sectionId = Globals::kInvalidId;
   extraData._parentId = Globals::kInvalidId;
   return extraData;
 }
 
-static constexpr LabelEntry::ExtraData CodeHolder_sharedLabelExtraData = _makeSharedLabelExtraData();
+static constexpr LabelEntry::ExtraData CodeHolder_sharedLabelExtraData = CodeHolder_makeSharedLabelExtraData();
 
 class ResolveFixupIterator {
 public:
@@ -160,7 +160,7 @@ static ASMJIT_INLINE void CodeHolder_resetEnvAndAttachedLogAndEH(CodeHolder* sel
 static ASMJIT_INLINE void CodeHolder_resetSections(CodeHolder* self, ResetPolicy resetPolicy) noexcept {
   // Reset all sections except the first one (.text section).
   uint32_t fromSection = resetPolicy == ResetPolicy::kHard ? 0u : 1u;
-  uint32_t sectionCount = self->_sections.size();
+  uint32_t sectionCount = self->_sections._size;
 
   for (uint32_t i = fromSection; i < sectionCount; i++) {
     Section* section = self->_sections[i];
@@ -214,13 +214,13 @@ static ASMJIT_INLINE void CodeHolder_onSettingsUpdated(CodeHolder* self) noexcep
 // CodeHolder - Construction & Destruction
 // =======================================
 
-CodeHolder::CodeHolder(const Support::Temporary* temporary) noexcept
+CodeHolder::CodeHolder(Span<uint8_t> static_arena_memory) noexcept
   : _environment(),
     _cpuFeatures{},
     _baseAddress(Globals::kNoBaseAddress),
     _logger(nullptr),
     _errorHandler(nullptr),
-    _zone(16u * 1024u, temporary),
+    _zone(16u * 1024u, static_arena_memory),
     _allocator(&_zone),
     _attachedFirst(nullptr),
     _attachedLast(nullptr),
@@ -511,7 +511,7 @@ Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t name
   *sectionOut = nullptr;
 
 
-  if (ASMJIT_UNLIKELY(!Support::isZeroOrPowerOf2(alignment))) {
+  if (ASMJIT_UNLIKELY(!Support::is_zero_or_power_of_2(alignment))) {
     return DebugUtils::errored(kErrorInvalidArgument);
   }
 
@@ -523,7 +523,7 @@ Error CodeHolder::newSection(Section** sectionOut, const char* name, size_t name
     return DebugUtils::errored(kErrorInvalidSectionName);
   }
 
-  uint32_t sectionId = _sections.size();
+  uint32_t sectionId = _sections._size;
   if (ASMJIT_UNLIKELY(sectionId == Globals::kInvalidId)) {
     return DebugUtils::errored(kErrorTooManySections);
   }
@@ -647,7 +647,7 @@ static uint32_t CodeHolder_hashNameAndGetSize(const char* name, size_t& nameSize
       if (!c) {
         break;
       }
-      hashCode = Support::hashRound(hashCode, c);
+      hashCode = Support::hash_char(hashCode, c);
       i++;
     }
     nameSize = i;
@@ -658,7 +658,7 @@ static uint32_t CodeHolder_hashNameAndGetSize(const char* name, size_t& nameSize
       if (ASMJIT_UNLIKELY(!c)) {
         return DebugUtils::errored(kErrorInvalidLabelName);
       }
-      hashCode = Support::hashRound(hashCode, c);
+      hashCode = Support::hash_char(hashCode, c);
     }
   }
   return hashCode;
@@ -687,7 +687,7 @@ Fixup* CodeHolder::newFixup(LabelEntry& le, uint32_t sectionId, size_t offset, i
 }
 
 Error CodeHolder::newLabelId(uint32_t* labelIdOut) noexcept {
-  uint32_t labelId = _labelEntries.size();
+  uint32_t labelId = _labelEntries._size;
   Error err = _labelEntries.willGrow(&_allocator);
 
   if (ASMJIT_UNLIKELY(err != kErrorOk)) {
@@ -702,7 +702,7 @@ Error CodeHolder::newLabelId(uint32_t* labelIdOut) noexcept {
 }
 
 Error CodeHolder::newNamedLabelId(uint32_t* labelIdOut, const char* name, size_t nameSize, LabelType type, uint32_t parentId) noexcept {
-  uint32_t labelId = _labelEntries.size();
+  uint32_t labelId = _labelEntries._size;
   uint32_t hashCode = CodeHolder_hashNameAndGetSize(name, nameSize);
 
   *labelIdOut = Globals::kInvalidId;
@@ -731,7 +731,7 @@ Error CodeHolder::newNamedLabelId(uint32_t* labelIdOut, const char* name, size_t
         return DebugUtils::errored(kErrorInvalidParentLabel);
       }
 
-      LabelEntry::ExtraData* extraData = _zone.alloc<LabelEntry::ExtraData>(Support::alignUp(extraDataSize, Globals::kZoneAlignment));
+      LabelEntry::ExtraData* extraData = _zone.alloc<LabelEntry::ExtraData>(Support::align_up(extraDataSize, Globals::kZoneAlignment));
       if (ASMJIT_UNLIKELY(!extraData)) {
         return DebugUtils::errored(kErrorOutOfMemory);
       }
@@ -782,7 +782,7 @@ Error CodeHolder::newNamedLabelId(uint32_t* labelIdOut, const char* name, size_t
     return DebugUtils::errored(kErrorLabelAlreadyDefined);
   }
 
-  namedNode = _zone.alloc<NamedLabelExtraData>(Support::alignUp(extraDataSize, Globals::kZoneAlignment));
+  namedNode = _zone.alloc<NamedLabelExtraData>(Support::align_up(extraDataSize, Globals::kZoneAlignment));
   if (ASMJIT_UNLIKELY(!namedNode)) {
     return DebugUtils::errored(kErrorOutOfMemory);
   }
@@ -842,7 +842,7 @@ ASMJIT_API Error CodeHolder::resolveCrossSectionFixups() noexcept {
 
     Support::FastUInt8 of{};
     Section* toSection = _sections[le.sectionId()];
-    uint64_t toOffset = Support::addOverflow(toSection->offset(), le.offset(), &of);
+    uint64_t toOffset = Support::add_overflow(toSection->offset(), le.offset(), &of);
 
     Section* fromSection = sectionById(fixup->sectionId);
     size_t fixupOffset = fixup->offset;
@@ -851,7 +851,7 @@ ASMJIT_API Error CodeHolder::resolveCrossSectionFixups() noexcept {
     ASMJIT_ASSERT(fixupOffset < buf.size());
 
     // Calculate the offset relative to the start of the virtual base.
-    uint64_t fromOffset = Support::addOverflow<uint64_t>(fromSection->offset(), fixupOffset, &of);
+    uint64_t fromOffset = Support::add_overflow<uint64_t>(fromSection->offset(), fixupOffset, &of);
     int64_t displacement = int64_t(toOffset - fromOffset + uint64_t(int64_t(fixup->rel)));
 
     if (ASMJIT_UNLIKELY(of)) {
@@ -974,7 +974,7 @@ ASMJIT_API Error CodeHolder::bindLabel(const Label& label, uint32_t toSectionId,
 Error CodeHolder::newRelocEntry(RelocEntry** dst, RelocType relocType) noexcept {
   ASMJIT_PROPAGATE(_relocations.willGrow(&_allocator));
 
-  uint32_t relocId = _relocations.size();
+  uint32_t relocId = _relocations._size;
   if (ASMJIT_UNLIKELY(relocId == Globals::kInvalidId)) {
     return DebugUtils::errored(kErrorTooManyRelocations);
   }
@@ -1088,13 +1088,13 @@ Error CodeHolder::flatten() noexcept {
   for (Section* section : _sectionsByOrder) {
     uint64_t realSize = section->realSize();
     if (realSize) {
-      uint64_t alignedOffset = Support::alignUp(offset, section->alignment());
+      uint64_t alignedOffset = Support::align_up(offset, section->alignment());
       if (ASMJIT_UNLIKELY(alignedOffset < offset)) {
         return DebugUtils::errored(kErrorTooLarge);
       }
 
       Support::FastUInt8 of = 0;
-      offset = Support::addOverflow(alignedOffset, realSize, &of);
+      offset = Support::add_overflow(alignedOffset, realSize, &of);
 
       if (ASMJIT_UNLIKELY(of)) {
         return DebugUtils::errored(kErrorTooLarge);
@@ -1108,7 +1108,7 @@ Error CodeHolder::flatten() noexcept {
   for (Section* section : _sectionsByOrder) {
     uint64_t realSize = section->realSize();
     if (realSize) {
-      offset = Support::alignUp(offset, section->alignment());
+      offset = Support::align_up(offset, section->alignment());
     }
     section->_offset = offset;
 
@@ -1132,9 +1132,9 @@ size_t CodeHolder::codeSize() const noexcept {
     uint64_t realSize = section->realSize();
 
     if (realSize) {
-      uint64_t alignedOffset = Support::alignUp(offset, section->alignment());
+      uint64_t alignedOffset = Support::align_up(offset, section->alignment());
       ASMJIT_ASSERT(alignedOffset >= offset);
-      offset = Support::addOverflow(alignedOffset, realSize, &of);
+      offset = Support::add_overflow(alignedOffset, realSize, &of);
     }
   }
 
@@ -1229,7 +1229,7 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress, RelocationSummary* summar
         if (addressSize <= 4) {
           value = uint64_t(int64_t(int32_t(value & 0xFFFFFFFFu)));
         }
-        else if (!Support::isInt32(int64_t(value))) {
+        else if (!Support::is_int_n<32>(int64_t(value))) {
           return DebugUtils::errored(kErrorRelocOffsetOutOfRange);
         }
 
@@ -1244,7 +1244,7 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress, RelocationSummary* summar
 
         // First try whether a relative 32-bit displacement would work.
         value -= baseAddress + sectionOffset + sourceOffset + regionSize;
-        if (!Support::isInt32(int64_t(value))) {
+        if (!Support::is_int_n<32>(int64_t(value))) {
           // Relative 32-bit displacement is not possible, use '.addrtab' section.
           AddressTableEntry* atEntry = _addressTableEntries.get(re->payload());
           if (ASMJIT_UNLIKELY(!atEntry)) {
@@ -1263,7 +1263,7 @@ Error CodeHolder::relocateToBase(uint64_t baseAddress, RelocationSummary* summar
           uint64_t addrDst = addressTableSection->offset() + uint64_t(atEntryIndex);
 
           value = addrDst - addrSrc;
-          if (!Support::isInt32(int64_t(value))) {
+          if (!Support::is_int_n<32>(int64_t(value))) {
             return DebugUtils::errored(kErrorRelocOffsetOutOfRange);
           }
 

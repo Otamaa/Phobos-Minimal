@@ -76,6 +76,78 @@ void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 	//pExt->CollectedCrates.PopulateCounts(CrateTypeClass::Array.size());
 }
 
+// restored from TS
+void FakeHouseClass::_GiveTiberium(float amount, int type)
+{
+	this->SiloMoney += int(amount * 5.0);
+
+	if (SessionClass::Instance->GameMode == GameMode::Campaign || this->IsHumanPlayer)
+	{
+		// don't change, old values are needed for silo update
+		const double lastStorage = (this->_GetExtData()->TiberiumStorage.GetAmounts());
+		const auto lastTotalStorage = this->TotalStorage;
+		const auto curStorage = (double)lastTotalStorage - lastStorage;
+		double rest = 0.0;
+
+		// this is the upper limit for stored tiberium
+		if (amount > curStorage)
+		{
+			rest = amount - curStorage;
+			amount = float(curStorage);
+		}
+
+		// go through all buildings and fill them up until all is in there
+		for (auto const& pBuilding : this->Buildings)
+		{
+			if (amount <= 0.0)
+			{
+				break;
+			}
+
+			auto const storage = pBuilding->Type->Storage;
+			if (pBuilding->IsOnMap && storage > 0)
+			{
+				auto storage_ = &TechnoExtContainer::Instance.Find(pBuilding)->TiberiumStorage;
+				// put as much tiberium into this silo
+				double freeSpace = (double)storage - storage_->GetAmounts();
+
+				if (freeSpace > 0.0)
+				{
+					if (freeSpace > amount)
+					{
+						freeSpace = amount;
+					}
+
+					storage_->IncreaseAmount((float)freeSpace, type);
+					this->_GetExtData()->TiberiumStorage.IncreaseAmount((float)freeSpace, type);
+					amount -= (float)freeSpace;
+				}
+			}
+		}
+
+		if (RulesExtData::Instance()->GiveMoneyIfStorageFull)
+		{
+			amount += (float)rest;
+
+			//no free space , just give the money ,..
+			if (amount > 0.0)
+			{
+				auto const pTib = TiberiumClass::Array->Items[type];
+				this->Balance += int(amount * pTib->Value * this->Type->IncomeMult);
+			}
+		}
+
+		// redraw silos
+		this->UpdateAllSilos((int)lastStorage, lastTotalStorage);
+	}
+	else
+	{
+		// just add the money. this is the only original YR logic
+		auto const pTib = TiberiumClass::Array->Items[type];
+		this->Balance += int(amount * pTib->Value * this->Type->IncomeMult);
+	}
+}
+
 bool HouseExtData::IsMutualAllies(HouseClass const* pThis, HouseClass const* pHouse) {
 	return pHouse == pThis
 		|| (pThis->Allies.Contains(pHouse->ArrayIndex)
@@ -2604,7 +2676,6 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4F87FA, FakeHouseClass::_BlowUpAll)
 DEFINE_FUNCTION_JUMP(CALL, 0x4F8F7B, FakeHouseClass::_BlowUpAll)
 DEFINE_FUNCTION_JUMP(CALL, 0x6E31C8, FakeHouseClass::_BlowUpAll)
 DEFINE_FUNCTION_JUMP(LJMP, 0x4FC6D0, FakeHouseClass::_BlowUpAll)
-
 
 void FakeHouseClass::_BlowUpAllBuildings() {
 	//safer way

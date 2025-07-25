@@ -109,6 +109,22 @@ bool ShieldClass::Save(PhobosStreamWriter& Stm) const
 	return const_cast<ShieldClass*>(this)->Serialize(Stm);
 }
 
+Armor ShieldClass::GetOrInheritArmor() const
+{
+	const auto pShieldType = this->Type;
+
+	if (pShieldType->InheritArmorFromTechno)
+	{
+		const auto pTechnoType = this->Techno->GetTechnoType();
+
+		if (pShieldType->InheritArmor_Allowed.empty() || pShieldType->InheritArmor_Allowed.Contains(pTechnoType)
+			&& (pShieldType->InheritArmor_Disallowed.empty() || !pShieldType->InheritArmor_Disallowed.Contains(pTechnoType)))
+			return TechnoExtData::GetArmor(this->Techno);
+	}
+
+	return pShieldType->Armor.Get();
+}
+
 // Is used for DeploysInto/UndeploysInto
 void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 {
@@ -196,9 +212,9 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	if (pWHExt->CanTargetHouse(pSource, this->Techno) && !args->WH->Temporal)
 	{
 		if (*args->Damage > 0)
-			nDamage = MapClass::GetTotalDamage(*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);
+			nDamage = FakeWarheadTypeClass::ModifyDamage(*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);
 		else
-			nDamage = -MapClass::GetTotalDamage(-*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);
+			nDamage = -FakeWarheadTypeClass::ModifyDamage(-*args->Damage, args->WH, this->Type->Armor, args->DistanceToEpicenter);
 
 		const bool affectsShield = pWHExt->Shield_AffectTypes.empty() || pWHExt->Shield_AffectTypes.Contains(this->Type);
 		const double absorbPercent = affectsShield ? pWHExt->Shield_AbsorbPercent.Get(this->Type->AbsorbPercent) : this->Type->AbsorbPercent;
@@ -312,7 +328,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		// if the shield still in full HP
 		// heal the shield user instead
 		if (ShieldStillInfullHP) {
-			if (MapClass::GetTotalDamage(DamageToShieldAfterMinMax,
+			if (FakeWarheadTypeClass::ModifyDamage(DamageToShieldAfterMinMax,
 				 args->WH,
 				 TechnoExtData::GetArmor(this->Techno),
 				 args->DistanceToEpicenter) < 0
@@ -415,6 +431,12 @@ bool ShieldClass::CanBePenetrated(WarheadTypeClass* pWarhead) const
 
 	if (!affectedTypes.empty() && !affectedTypes.contains(this->Type))
 		return false;
+
+	if (!pWHExt->Shield_Penetrate_Armor_Types.empty()) {
+		Armor shieldArmror = this->GetOrInheritArmor();
+		if(!pWHExt->Shield_Penetrate_Armor_Types.Contains(ArmorTypeClass::Array[(int)shieldArmror].get()))
+			return false;
+	}
 
 	if (pWarhead->Psychedelic)
 		return !this->Type->ImmuneToPsychedelic;

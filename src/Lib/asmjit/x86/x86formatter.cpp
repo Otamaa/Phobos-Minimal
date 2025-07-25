@@ -399,7 +399,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatRegister(String& sb, FormatFlag
         ASMJIT_PROPAGATE(Formatter::formatVirtRegName(sb, vReg));
 
         bool formatType = (Support::test(formatFlags, FormatFlags::kRegType)) ||
-                          (Support::test(formatFlags, FormatFlags::kRegCasts) && vReg->type() != type);
+                          (Support::test(formatFlags, FormatFlags::kRegCasts) && vReg->regType() != type);
 
         if (formatType && uint32_t(type) <= uint32_t(RegType::kMaxValue)) {
           const RegFormatInfo::TypeEntry& typeEntry = info.typeEntries[size_t(type)];
@@ -588,7 +588,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmBits(String& sb, uint3
 
     switch (spec.mode) {
       case ImmBits::kModeLookup:
-        str = Support::findPackedString(spec.text, value);
+        str = Support::find_packed_string(spec.text, value);
         break;
 
       case ImmBits::kModeFormat:
@@ -622,7 +622,7 @@ ASMJIT_FAVOR_SIZE static Error FormatterInternal_formatImmText(String& sb, uint3
   for (uint32_t i = 0; i < count; i++, imm8 >>= bits, pos += advance) {
     uint32_t value = (imm8 & mask) + pos;
     ASMJIT_PROPAGATE(sb.append(i == 0 ? kImmCharStart : kImmCharOr));
-    ASMJIT_PROPAGATE(sb.append(Support::findPackedString(text, value)));
+    ASMJIT_PROPAGATE(sb.append(Support::find_packed_string(text, value)));
   }
 
   return sb.append(kImmCharEnd);
@@ -876,7 +876,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
   FormatFlags formatFlags,
   const BaseEmitter* emitter,
   Arch arch,
-  const BaseInst& inst, const Operand_* operands, size_t opCount) noexcept {
+  const BaseInst& inst, Span<const Operand_> operands) noexcept {
 
   InstId instId = inst.id();
   InstOptions options = inst.options();
@@ -938,34 +938,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
 
     // REX options.
     if (Support::test(options, InstOptions::kX86_Rex)) {
-      const InstOptions kRXBWMask = InstOptions::kX86_OpCodeR |
-                                    InstOptions::kX86_OpCodeX |
-                                    InstOptions::kX86_OpCodeB |
-                                    InstOptions::kX86_OpCodeW ;
-      if (Support::test(options, kRXBWMask)) {
-        ASMJIT_PROPAGATE(sb.append("rex."));
-
-        if (Support::test(options, InstOptions::kX86_OpCodeR)) {
-          ASMJIT_PROPAGATE(sb.append('r'));
-        }
-
-        if (Support::test(options, InstOptions::kX86_OpCodeX)) {
-          ASMJIT_PROPAGATE(sb.append('x'));
-        }
-
-        if (Support::test(options, InstOptions::kX86_OpCodeB)) {
-          ASMJIT_PROPAGATE(sb.append('b'));
-        }
-
-        if (Support::test(options, InstOptions::kX86_OpCodeW)) {
-          ASMJIT_PROPAGATE(sb.append('w'));
-        }
-
-        ASMJIT_PROPAGATE(sb.append(' '));
-      }
-      else {
-        ASMJIT_PROPAGATE(sb.append("rex "));
-      }
+      ASMJIT_PROPAGATE(sb.append("rex "));
     }
 
     InstStringifyOptions stringifyOptions =
@@ -979,8 +952,9 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
     ASMJIT_PROPAGATE(sb.appendFormat("[InstId=#%u]", unsigned(instId)));
   }
 
-  for (uint32_t i = 0; i < opCount; i++) {
+  for (size_t i = 0u; i < operands.size(); i++) {
     const Operand_& op = operands[i];
+
     if (op.isNone()) {
       break;
     }
@@ -990,7 +964,7 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
 
     if (op.isImm() && uint32_t(formatFlags & FormatFlags::kExplainImms)) {
       uint32_t vecSize = 16;
-      for (uint32_t j = 0; j < opCount; j++) {
+      for (size_t j = 0u; j < operands.size(); j++) {
         if (operands[j].isReg()) {
           vecSize = Support::max<uint32_t>(vecSize, operands[j].as<Reg>().size());
         }
@@ -1016,14 +990,14 @@ ASMJIT_FAVOR_SIZE Error FormatterInternal::formatInstruction(
 
     // Support AVX-512 broadcast - {1tox}.
     if (op.isMem() && op.as<Mem>().hasBroadcast()) {
-      ASMJIT_PROPAGATE(sb.appendFormat(" {1to%u}", Support::bitMask(uint32_t(op.as<Mem>().getBroadcast()))));
+      ASMJIT_PROPAGATE(sb.appendFormat(" {1to%u}", Support::bitMask<uint32_t>(uint32_t(op.as<Mem>().getBroadcast()))));
     }
   }
 
   // Support AVX-512 embedded rounding and suppress-all-exceptions {sae}.
   if (inst.hasOption(InstOptions::kX86_ER | InstOptions::kX86_SAE)) {
     if (inst.hasOption(InstOptions::kX86_ER)) {
-      uint32_t bits = uint32_t(inst.options() & InstOptions::kX86_ERMask) >> Support::ConstCTZ<uint32_t(InstOptions::kX86_ERMask)>::value;
+      uint32_t bits = uint32_t(inst.options() & InstOptions::kX86_ERMask) >> Support::ctz_const<InstOptions::kX86_ERMask>;
 
       const char roundingModes[] = "rn\0rd\0ru\0rz";
       ASMJIT_PROPAGATE(sb.appendFormat(", {%s-sae}", roundingModes + bits * 3));

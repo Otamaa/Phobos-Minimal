@@ -151,6 +151,7 @@ public:
 	ValueableVector<ShieldTypeClass*> Shield_AffectTypes { };
 
 	NullableVector<ShieldTypeClass*> Shield_Penetrate_Types { };
+	ValueableVector<ArmorTypeClass*> Shield_Penetrate_Armor_Types { };
 	NullableVector<ShieldTypeClass*> Shield_Break_Types { };
 	NullableVector<ShieldTypeClass*> Shield_Respawn_Types { };
 	NullableVector<ShieldTypeClass*> Shield_SelfHealing_Types { };
@@ -600,6 +601,12 @@ public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	static int __fastcall ModifyDamageA(int damage, FakeWarheadTypeClass* pWH, Armor armor, int distance);
+
+	static FORCEDINLINE int ModifyDamage(int damage, WarheadTypeClass* pWH, Armor armor, int distance) {
+		return ModifyDamageA(damage, (FakeWarheadTypeClass*)pWH, armor, distance);
+	}
 
 	WarheadTypeExtData* _GetExtData() const {
 		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this) + WarheadTypeExtData::ExtOffset);

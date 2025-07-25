@@ -291,9 +291,6 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 	if (VTable::Get(pWarhead) != WarheadTypeClass::vtable)
 		Debug::FatalErrorAndExit("!");
 
-	//if (IS_SAME_STR_("SA", pWarhead->ID))
-	//	DebugBreak();
-
 	const auto pWHExt = ((FakeWarheadTypeClass*)pWarhead)->_GetExtData();
 	CellStruct cell = CellClass::Coord2Cell(*pCoord);
 

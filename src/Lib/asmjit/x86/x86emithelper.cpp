@@ -60,6 +60,51 @@ static inline uint32_t makeCastOp(TypeId dst, TypeId src) noexcept {
   return (uint32_t(dst) << 8) | uint32_t(src);
 }
 
+// x86::EmitHelper - Instruction Data
+// ==================================
+
+const EmitHelperInstructionIds _emitHelperInstructionIds[2] = {
+  // SSE/SSE2
+  {
+    // [movd, movss]
+    { Inst::kIdMovd, Inst::kIdMovss },
+    // [movq, movsd]
+    { Inst::kIdMovq, Inst::kIdMovsd },
+    // [movups, movaps]
+    { Inst::kIdMovups, Inst::kIdMovaps },
+    // [movupd, movapd]
+    { Inst::kIdMovupd, Inst::kIdMovapd },
+    // [movdqu, movdqa]
+    { Inst::kIdMovdqu, Inst::kIdMovdqa },
+    // [movlps]
+    { Inst::kIdMovlps },
+    // [cvtss2sd, cvtsd2ss]
+    { Inst::kIdCvtss2sd, Inst::kIdCvtsd2ss },
+    // [cvtps2pd, cvtpd2ps]
+    { Inst::kIdCvtps2pd, Inst::kIdCvtpd2ps }
+  },
+
+  // AVX/AVX-512
+  {
+    // [movd, movss]
+    { Inst::kIdVmovd, Inst::kIdVmovss },
+    // [movq, movsd]
+    { Inst::kIdVmovq, Inst::kIdVmovsd },
+    // [movups movaps]
+    { Inst::kIdVmovups, Inst::kIdVmovaps },
+    // [movupd movapd]
+    { Inst::kIdVmovupd, Inst::kIdVmovapd },
+    // [movdqu movdqa]
+    { Inst::kIdVmovdqu, Inst::kIdVmovdqa },
+    // [movlps]
+    { Inst::kIdVmovlps },
+    // [cvtss2sd, cvtsd2ss]
+    { Inst::kIdVcvtss2sd, Inst::kIdVcvtsd2ss },
+    // [cvtps2pd, cvtpd2ps]
+    { Inst::kIdVcvtps2pd, Inst::kIdVcvtpd2ps }
+  }
+};
+
 // x86::EmitHelper - Emit Reg Move
 // ===============================
 
@@ -128,35 +173,25 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitRegMove(
     default: {
       TypeId scalarTypeId = TypeUtils::scalarOf(typeId);
       if (TypeUtils::isVec32(typeId) && memFlags) {
+        instId = ids().movd_or_movss(scalarTypeId == TypeId::kFloat32);
         overrideMemSize = 4;
-        if (scalarTypeId == TypeId::kFloat32) {
-          instId = _avxEnabled ? Inst::kIdVmovss : Inst::kIdMovss;
-        }
-        else {
-          instId = _avxEnabled ? Inst::kIdVmovd : Inst::kIdMovd;
-        }
         break;
       }
 
       if (TypeUtils::isVec64(typeId) && memFlags) {
+        instId = ids().movq_or_movsd(scalarTypeId == TypeId::kFloat64);
         overrideMemSize = 8;
-        if (scalarTypeId == TypeId::kFloat64) {
-          instId = _avxEnabled ? Inst::kIdVmovsd : Inst::kIdMovsd;
-        }
-        else {
-          instId = _avxEnabled ? Inst::kIdVmovq : Inst::kIdMovq;
-        }
         break;
       }
 
       if (scalarTypeId == TypeId::kFloat32) {
-        instId = _avxEnabled ? Inst::kIdVmovaps : Inst::kIdMovaps;
+        instId = ids().movaps();
       }
       else if (scalarTypeId == TypeId::kFloat64) {
-        instId = _avxEnabled ? Inst::kIdVmovapd : Inst::kIdMovapd;
+        instId = ids().movapd();
       }
       else if (!_avx512Enabled) {
-        instId = _avxEnabled ? Inst::kIdVmovdqa : Inst::kIdMovdqa;
+        instId = ids().movdqa();
       }
       else {
         instId = Inst::kIdVmovdqa32;
@@ -275,13 +310,13 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
 
       if (TypeUtils::isVec(srcTypeId)) {
         // 64-bit move.
-        instId = _avxEnabled ? Inst::kIdVmovq : Inst::kIdMovq;
+        instId = ids().movq();
         if (srcSize == 8) {
           break;
         }
 
         // 32-bit move.
-        instId = _avxEnabled ? Inst::kIdVmovd : Inst::kIdMovd;
+        instId = ids().movd();
         dst.setSignature(Reg::_signatureOf<RegType::kGp32>());
         break;
       }
@@ -346,13 +381,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
       if (dstScalarId == TypeId::kFloat32 && srcScalarId == TypeId::kFloat64) {
         srcSize = Support::min(dstSize * 2, srcSize);
         dstSize = srcSize / 2;
-
-        if (srcSize <= 8) {
-          instId = _avxEnabled ? Inst::kIdVcvtss2sd : Inst::kIdCvtss2sd;
-        }
-        else {
-          instId = _avxEnabled ? Inst::kIdVcvtps2pd : Inst::kIdCvtps2pd;
-        }
+        instId = (srcSize <= 8) ? ids().cvtss2sd() : ids().cvtps2pd();
 
         if (dstSize == 32) {
           dst.setSignature(Reg::_signatureOf<RegType::kVec256>());
@@ -366,13 +395,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
       if (dstScalarId == TypeId::kFloat64 && srcScalarId == TypeId::kFloat32) {
         srcSize = Support::min(dstSize, srcSize * 2) / 2;
         dstSize = srcSize * 2;
-
-        if (srcSize <= 4) {
-          instId = _avxEnabled ? Inst::kIdVcvtsd2ss : Inst::kIdCvtsd2ss;
-        }
-        else {
-          instId = _avxEnabled ? Inst::kIdVcvtpd2ps : Inst::kIdCvtpd2ps;
-        }
+        instId = (srcSize <= 4) ? ids().cvtsd2ss() : ids().cvtpd2ps();
 
         dst.setSignature(RegUtils::signatureOfVecSize(dstSize));
         if (src.isReg() && srcSize >= 32) {
@@ -385,7 +408,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
       if (src.isGp() || src.isMem()) {
         // 32-bit move.
         if (srcSize <= 4) {
-          instId = _avxEnabled ? Inst::kIdVmovd : Inst::kIdMovd;
+          instId = ids().movd();
           if (src.isReg()) {
             src.setSignature(Reg::_signatureOf<RegType::kGp32>());
           }
@@ -394,20 +417,17 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitArgMove(
 
         // 64-bit move.
         if (srcSize == 8) {
-          instId = _avxEnabled ? Inst::kIdVmovq : Inst::kIdMovq;
+          instId = ids().movq();
           break;
         }
       }
 
       if (src.isVec() || src.isMem()) {
-        instId = _avxEnabled ? Inst::kIdVmovaps : Inst::kIdMovaps;
-
-        if (src.isMem() && srcSize < _emitter->environment().stackAlignment()) {
-          instId = _avxEnabled ? Inst::kIdVmovups : Inst::kIdMovups;
-        }
+        instId = ids().movups_or_movaps(!Support::bool_and(src.isMem(), srcSize < _emitter->environment().stackAlignment()));
 
         OperandSignature signature = RegUtils::signatureOfVecSize(srcSize);
         dst.setSignature(signature);
+
         if (src.isReg()) {
           src.setSignature(signature);
         }
@@ -485,7 +505,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
   // Emit: 'push zbp'
   //       'mov  zbp, zsp'.
   if (frame.hasPreservedFP()) {
-    gpSaved &= ~Support::bitMask(Gp::kIdBp);
+    gpSaved &= ~Support::bitMask<RegMask>(Gp::kIdBp);
     ASMJIT_PROPAGATE(emitter->push(zbp));
     ASMJIT_PROPAGATE(emitter->mov(zbp, zsp));
   }
@@ -533,7 +553,7 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitProlog(const FuncFrame& frame) {
   {
     Mem xBase = ptr(zsp, int32_t(frame.extraRegSaveOffset()));
 
-    for (RegGroup group : Support::EnumValues<RegGroup, RegGroup(1), RegGroup::kMaxVirt>{}) {
+    for (RegGroup group : Support::enumerate(RegGroup(1), RegGroup::kMaxVirt)) {
       Support::BitWordIterator<RegMask> it(frame.savedRegs(group));
       if (it.hasNext()) {
         Reg xReg;
@@ -567,14 +587,14 @@ ASMJIT_FAVOR_SIZE Error EmitHelper::emitEpilog(const FuncFrame& frame) {
 
   // Don't emit 'pop zbp' in the pop sequence, this case is handled separately.
   if (frame.hasPreservedFP()) {
-    gpSaved &= ~Support::bitMask(Gp::kIdBp);
+    gpSaved &= ~Support::bitMask<RegMask>(Gp::kIdBp);
   }
 
   // Emit 'movxxx {[x|y|z]mm, k}, [zsp + X]'.
   {
     Mem xBase = ptr(zsp, int32_t(frame.extraRegSaveOffset()));
 
-    for (RegGroup group : Support::EnumValues<RegGroup, RegGroup(1), RegGroup::kMaxVirt>{}) {
+    for (RegGroup group : Support::enumerate(RegGroup(1), RegGroup::kMaxVirt)) {
       Support::BitWordIterator<RegMask> it(frame.savedRegs(group));
       if (it.hasNext()) {
         Reg xReg;

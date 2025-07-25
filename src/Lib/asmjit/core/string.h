@@ -367,7 +367,7 @@ public:
   ASMJIT_NONCOPYABLE(StringTmp)
 
   //! Embedded data.
-  char _embeddedData[Support::alignUp(N + 1, sizeof(size_t))];
+  char _embeddedData[Support::align_up(N + 1, sizeof(size_t))];
 
   //! \name Construction & Destruction
   //! \{

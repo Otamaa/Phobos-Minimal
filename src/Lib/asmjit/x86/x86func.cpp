@@ -51,7 +51,7 @@ ASMJIT_FAVOR_SIZE Error initCallConv(CallConv& cc, CallConvId ccId, const Enviro
     cc.setSaveRestoreRegSize(RegGroup::kGp, 4);
     cc.setSaveRestoreAlignment(RegGroup::kGp, 4);
 
-    cc.setPreservedRegs(RegGroup::kGp, Support::bitMask(Gp::kIdBx, Gp::kIdSp, Gp::kIdBp, Gp::kIdSi, Gp::kIdDi));
+    cc.setPreservedRegs(RegGroup::kGp, Support::bitMask<RegMask>(Gp::kIdBx, Gp::kIdSp, Gp::kIdBp, Gp::kIdSi, Gp::kIdDi));
     cc.setNaturalStackAlignment(4);
 
     switch (ccId) {
@@ -107,8 +107,8 @@ ASMJIT_FAVOR_SIZE Error initCallConv(CallConv& cc, CallConvId ccId, const Enviro
         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5, 6, 7);
         cc.setPassedOrder(RegGroup::kMask, 0, 1, 2, 3, 4, 5, 6, 7);
         cc.setPassedOrder(RegGroup::kX86_MM, 0, 1, 2, 3, 4, 5, 6, 7);
-        cc.setPreservedRegs(RegGroup::kGp, Support::lsbMask<uint32_t>(8));
-        cc.setPreservedRegs(RegGroup::kVec, Support::lsbMask<uint32_t>(8) & ~Support::lsbMask<uint32_t>(n));
+        cc.setPreservedRegs(RegGroup::kGp, Support::lsb_mask<uint32_t>(8));
+        cc.setPreservedRegs(RegGroup::kVec, Support::lsb_mask<uint32_t>(8) & ~Support::lsb_mask<uint32_t>(n));
 
         cc.setNaturalStackAlignment(16);
         isStandardCallConv = false;
@@ -156,7 +156,7 @@ ASMJIT_FAVOR_SIZE Error initCallConv(CallConv& cc, CallConvId ccId, const Enviro
         cc.setRedZoneSize(128);
         cc.setPassedOrder(RegGroup::kGp, kZdi, kZsi, kZdx, kZcx, 8, 9);
         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5, 6, 7);
-        cc.setPreservedRegs(RegGroup::kGp, Support::bitMask(kZbx, kZsp, kZbp, 12, 13, 14, 15));
+        cc.setPreservedRegs(RegGroup::kGp, Support::bitMask<RegMask>(kZbx, kZsp, kZbp, 12, 13, 14, 15));
         break;
       }
 
@@ -171,8 +171,8 @@ ASMJIT_FAVOR_SIZE Error initCallConv(CallConv& cc, CallConvId ccId, const Enviro
         cc.setSpillZoneSize(4 * 8);
         cc.setPassedOrder(RegGroup::kGp, kZcx, kZdx, 8, 9);
         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3);
-        cc.setPreservedRegs(RegGroup::kGp, Support::bitMask(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));
-        cc.setPreservedRegs(RegGroup::kVec, Support::bitMask(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
+        cc.setPreservedRegs(RegGroup::kGp, Support::bitMask<RegMask>(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));
+        cc.setPreservedRegs(RegGroup::kVec, Support::bitMask<RegMask>(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
         break;
       }
 
@@ -185,8 +185,8 @@ ASMJIT_FAVOR_SIZE Error initCallConv(CallConv& cc, CallConvId ccId, const Enviro
         cc.setSpillZoneSize(6 * 8);
         cc.setPassedOrder(RegGroup::kGp, kZcx, kZdx, 8, 9);
         cc.setPassedOrder(RegGroup::kVec, 0, 1, 2, 3, 4, 5);
-        cc.setPreservedRegs(RegGroup::kGp, Support::bitMask(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));
-        cc.setPreservedRegs(RegGroup::kVec, Support::bitMask(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
+        cc.setPreservedRegs(RegGroup::kGp, Support::bitMask<RegMask>(kZbx, kZsp, kZbp, kZsi, kZdi, 12, 13, 14, 15));
+        cc.setPreservedRegs(RegGroup::kVec, Support::bitMask<RegMask>(6, 7, 8, 9, 10, 11, 12, 13, 14, 15));
         break;
       }
 
@@ -202,8 +202,8 @@ ASMJIT_FAVOR_SIZE Error initCallConv(CallConv& cc, CallConvId ccId, const Enviro
         cc.setPassedOrder(RegGroup::kMask, 0, 1, 2, 3, 4, 5, 6, 7);
         cc.setPassedOrder(RegGroup::kX86_MM, 0, 1, 2, 3, 4, 5, 6, 7);
 
-        cc.setPreservedRegs(RegGroup::kGp, Support::lsbMask<uint32_t>(16));
-        cc.setPreservedRegs(RegGroup::kVec, ~Support::lsbMask<uint32_t>(n));
+        cc.setPreservedRegs(RegGroup::kGp, Support::lsb_mask<uint32_t>(16));
+        cc.setPreservedRegs(RegGroup::kVec, ~Support::lsb_mask<uint32_t>(n));
         break;
       }
 
@@ -364,7 +364,7 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
             if (regId != Reg::kIdBad) {
               RegType regType = typeId <= TypeId::kUInt32 ? RegType::kGp32 : RegType::kGp64;
               arg.assignRegData(regType, regId);
-              func.addUsedRegs(RegGroup::kGp, Support::bitMask(regId));
+              func.addUsedRegs(RegGroup::kGp, Support::bitMask<RegMask>(regId));
               gpzPos++;
             }
             else {
@@ -400,7 +400,7 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
             if (regId != Reg::kIdBad) {
               arg.initTypeId(typeId);
               arg.assignRegData(vecTypeIdToRegType(typeId), regId);
-              func.addUsedRegs(RegGroup::kVec, Support::bitMask(regId));
+              func.addUsedRegs(RegGroup::kVec, Support::bitMask<RegMask>(regId));
               vecPos++;
             }
             else {
@@ -459,7 +459,7 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
             if (regId != Reg::kIdBad) {
               RegType regType = size <= 4 && !TypeUtils::isMmx(typeId) ? RegType::kGp32 : RegType::kGp64;
               arg.assignRegData(regType, regId);
-              func.addUsedRegs(RegGroup::kGp, Support::bitMask(regId));
+              func.addUsedRegs(RegGroup::kGp, Support::bitMask<RegMask>(regId));
             }
             else {
               arg.assignStackOffset(int32_t(stackOffset));
@@ -481,7 +481,7 @@ ASMJIT_FAVOR_SIZE Error initFuncDetail(FuncDetail& func, const FuncSignature& si
               if (TypeUtils::isFloat(typeId) || isVectorCall) {
                 RegType regType = vecTypeIdToRegType(typeId);
                 arg.assignRegData(regType, regId);
-                func.addUsedRegs(RegGroup::kVec, Support::bitMask(regId));
+                func.addUsedRegs(RegGroup::kVec, Support::bitMask<RegMask>(regId));
                 continue;
               }
             }

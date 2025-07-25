@@ -2156,13 +2156,13 @@ DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 #pragma region TeamCloseRangeFix
 
-static int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, AbstractClass* pTarget)
-{
-	return (pSource->IsInAir() && pSource->WhatAmI() != AbstractType::Aircraft) // Jumpjets or sth in the air
-		? pSource->DistanceFrom(pTarget) // 2D distance
-		: pSource->DistanceFromSquared(pTarget); // 3D distance (vanilla)
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x6EBCC9, Check2DDistanceInsteadOf3D);
+  static int __fastcall Check2DDistanceInsteadOf3D(ObjectClass* pSource, void* _, AbstractClass* pTarget)
+  {
+  	return (pSource->IsInAir() && pSource->WhatAmI() != AbstractType::Aircraft) // Jumpjets or sth in the air
+  		? pSource->DistanceFrom(pTarget) // 2D distance
+  		: pSource->DistanceFromSquared(pTarget); // 3D distance (vanilla)
+  }
+  DEFINE_FUNCTION_JUMP(CALL, 0x6EBCC9, Check2DDistanceInsteadOf3D);
 
 #pragma endregion
 
@@ -2351,15 +2351,12 @@ ASMJIT_PATCH(0x75EE49, WaveClass_DrawSonic_CrashFix, 0x7)
 
 }
 
-ASMJIT_PATCH(0x73FA92, UnitClass_IsCellOccupied_LandType, 0x8)
+ASMJIT_PATCH(0x73AE70, UnitClass_UpdatePosition_Bridge, 0x5)
 {
-	enum { ContinueCheck = 0x73FC24, NoMove = 0x73FACD };
-
-	GET(UnitClass*, pThis, EBX);
-	GET(CellClass*, pCell, EDI);
-	GET_STACK(bool, containsBridge, STACK_OFFSET(0x90, -0x7D));
-
-	return GroundType::Array[static_cast<int>(containsBridge ? LandType::Road : pCell->LandType)].Cost[static_cast<int>(pThis->Type->SpeedType)] == 0.0f ? NoMove : ContinueCheck;
+	GET(UnitClass*, pThis, EBP);
+	return pThis->OnBridge
+	&& GroundType::Array[static_cast<int>(LandType::Road)].
+	Cost[static_cast<int>(pThis->Type->SpeedType)] == 0.0f ? 0x73AEB4 : 0;
 }
 
 // Change enter to move when unlink
@@ -2644,10 +2641,11 @@ ASMJIT_PATCH(0x73F0A7, UnitClass_IsCellOccupied_Start, 0x9)
 }
 #endif
 
-#ifdef PassengerRelatedFix
+#ifndef PassengerRelatedFix
 
 #include <Locomotor/LocomotionClass.h>
 #include <Locomotor/ShipLocomotionClass.h>
+#include <Ext/Infantry/Body.h>
 
 DEFINE_FUNCTION_JUMP(CALL6 ,0x51A657 , FakeInfantryClass::_DummyScatter);
 
@@ -2723,7 +2721,6 @@ ASMJIT_PATCH(0x73D7B5, UnitClass_Mission_Unload_CheckInvalidCell, 0x8)
 	return *pCell != CellStruct::Empty ? 0 : CannotUnload;
 }
 
-
 ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
 {
 	enum { SkipGameCode = 0x737952 };
@@ -2739,7 +2736,7 @@ ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetUnloadingHarvester, 0x7)
+ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetStatusses , 0x7)
 {
 	GET(FootClass*, pTarget, ESI);
 
@@ -2747,6 +2744,8 @@ ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetUnloadingHarvester, 0x7)
 	if (const auto pUnit = cast_to<UnitClass* , false>(pTarget))
 		pUnit->Unloading = false;
 
+	pTarget->Mark(MarkType::Up);
+	pTarget->OnBridge = false;
 	return 0;
 }
 
@@ -2942,7 +2941,7 @@ DWORD WINAPI Mouse_Thread(MouseThreadParameter* lpThreadParameter)
 	} else {
 		do
 		{
-			if (WaitForSingleObject(MouseThreadParameter::Mutex(), 10000u) == 258) {
+			if (Imports::WaitForSingleObject.invoke()(MouseThreadParameter::Mutex(), 10000u) == 258) {
 				Debug::LogInfo("Warning: Probable deadlock occurred on MouseMutex.");
 			}
 
@@ -2950,8 +2949,8 @@ DWORD WINAPI Mouse_Thread(MouseThreadParameter* lpThreadParameter)
 				WWMouseClass::Thread_Instance->Process();
 			}
 
-			ReleaseMutex(MouseThreadParameter::Mutex());
-			Sleep(lpThreadParameter->SleepTime);
+			Imports::ReleaseMutex.invoke()(MouseThreadParameter::Mutex());
+			Imports::Sleep.invoke()(lpThreadParameter->SleepTime);
 			++lpThreadParameter->RefCount;
 		}
 		while (!lpThreadParameter->SkipProcessing);
@@ -2967,7 +2966,7 @@ void __fastcall StartMouseThread() {
 	char Buffer[1024];
 
 	if (!MouseThreadParameter::Mutex()) {
-		MutexA = CreateMutexA(0, 0, 0);
+		MutexA = Imports::CreateMutexA.invoke()(0, 0, 0);
 		MouseThreadParameter::Mutex = MutexA;
 	}
 
@@ -2979,22 +2978,22 @@ void __fastcall StartMouseThread() {
 				.SleepTime = 1
 			};
 
-			HANDLE Thread = CreateThread(0, 0x1000u, (LPTHREAD_START_ROUTINE)Mouse_Thread, &MouseThreadParameter::Thread, 0, &MouseThreadParameter::Thread->ThreadID);
+			HANDLE Thread = Imports::CreateThread.invoke()(0, 0x1000u, (LPTHREAD_START_ROUTINE)Mouse_Thread, &MouseThreadParameter::Thread, 0, &MouseThreadParameter::Thread->ThreadID);
 			MouseThreadParameter::Thread->SomeState18 = Thread;
 			if (Thread)
 			{
 				MouseThreadParameter::ThreadNotActive = 1;
-				if (!SetThreadPriority(Thread, 15))
+				if (!Imports::SetThreadPriority.invoke()(Thread, 15))
 				{
 					DWORD LastError = GetLastError();
-					FormatMessageA(0x1000u, 0, LastError, 0, Buffer, 0x400u, 0);
+					Imports::FormatMessageA.invoke()(0x1000u, 0, LastError, 0, Buffer, 0x400u, 0);
 					Debug::LogInfo("Unable to change the priority of the mouse thread - %s\n", Buffer);
 					while (!MouseThreadParameter::Thread->SkipSleep)
 					{
-						Sleep(0);
+						Imports::Sleep.invoke()(0);
 					}
-					WaitForSingleObject(MouseThreadParameter::Thread->SomeState18, 5000u);
-					CloseHandle(MouseThreadParameter::Thread->SomeState18);
+					Imports::WaitForSingleObject.invoke()(MouseThreadParameter::Thread->SomeState18, 5000u);
+					Imports::CloseHandle.invoke()(MouseThreadParameter::Thread->SomeState18);
 					MouseThreadParameter::ThreadNotActive = 0;
 				}
 			}
@@ -3020,4 +3019,13 @@ ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6
 	}
 
 	return 0x70E12C;
+}
+
+DEFINE_JUMP(LJMP, 0x6FBC0B, 0x6FBC38) // TechnoClass::UpdateCloak
+
+ASMJIT_PATCH(0x457DEB, BuildingClass_ClearOccupants_Redraw, 0xA)
+{
+	GET(BuildingClass*, pThis, ESI);
+	pThis->Mark(MarkType::Change);
+	return 0;
 }

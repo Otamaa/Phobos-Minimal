@@ -182,13 +182,17 @@ public:
   //! Destroys the `JitAllocator` instance and release all blocks held.
   ASMJIT_API ~JitAllocator() noexcept;
 
+  //! Tests whether the JitAllocator has been initialized.
+  //!
+  //! \remarks This function is thread-safe.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool isInitialized() const noexcept { return _impl->blockSize == 0; }
 
   //! Free all allocated memory - makes all pointers returned by `alloc()` invalid.
   //!
-  //! \remarks This function is not thread-safe as it's designed to be used when nobody else is using allocator.
-  //! The reason is that there is no point of calling `reset()` when the allocator is still in use.
+  //! \remarks This function is not thread-safe as it's designed to be used when nobody else is using the
+  //! JitAllocator. The reason is that there is no reason to call `reset()` when the allocator is still in use
+  //! by other threads.
   ASMJIT_API void reset(ResetPolicy resetPolicy = ResetPolicy::kSoft) noexcept;
 
   //! \}
@@ -197,22 +201,32 @@ public:
   //! \{
 
   //! Returns allocator options, see `Flags`.
+  //!
+  //! \remarks This function is thread-safe.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG JitAllocatorOptions options() const noexcept { return _impl->options; }
 
   //! Tests whether the allocator has the given `option` set.
+  //!
+  //! \remarks This function is thread-safe.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasOption(JitAllocatorOptions option) const noexcept { return uint32_t(_impl->options & option) != 0; }
 
   //! Returns a base block size (a minimum size of block that the allocator would allocate).
+  //!
+  //! \remarks This function is thread-safe.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t blockSize() const noexcept { return _impl->blockSize; }
 
   //! Returns granularity of the allocator.
+  //!
+  //! \remarks This function is thread-safe.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t granularity() const noexcept { return _impl->granularity; }
 
   //! Returns pattern that is used to fill unused memory if `kFlagUseFillPattern` is set.
+  //!
+  //! \remarks This function is thread-safe.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t fillPattern() const noexcept { return _impl->fillPattern; }
 
@@ -320,6 +334,8 @@ public:
   };
 
   //! Allocates a new memory span of the requested `size`.
+  //!
+  //! \remarks This function is thread-safe.
   [[nodiscard]]
   ASMJIT_API Error alloc(Span& out, size_t size) noexcept;
 
@@ -336,6 +352,8 @@ public:
   //! Queries information about an allocated memory block that contains the given `rx`, and writes it to `out`.
   //!
   //! If the pointer is matched, the function returns `kErrorOk` and fills `out` with the corresponding span.
+  //!
+  //! \remarks This function is thread-safe.
   [[nodiscard]]
   ASMJIT_API Error query(Span& out, void* rx) const noexcept;
 
@@ -346,6 +364,11 @@ public:
 
   using WriteFunc = Error (ASMJIT_CDECL*)(Span& span, void* userData) noexcept;
 
+  //! Makes the memory pointed out by `span` writable and writes data to ot at the given `offset`.
+  //!
+  //! This function reads `src` and writes to `span` at `offset` the number of bytes a specified by `size`.
+  //!
+  //! Use `policy` argument to specify an instruction cache flush behavior.
   ASMJIT_API Error write(
     Span& span,
     size_t offset,
@@ -353,12 +376,20 @@ public:
     size_t size,
     VirtMem::CachePolicy policy = VirtMem::CachePolicy::kDefault) noexcept;
 
+  //! Makes the memory pointed out by `span` writable and calls the provided callback function `writeFunc`
+  //! with `userData` to perform the write operation.
+  //!
+  //! Use `policy` argument to specify an instruction cache flush behavior.
   ASMJIT_API Error write(
     Span& span,
     WriteFunc writeFunc,
     void* userData,
     VirtMem::CachePolicy policy = VirtMem::CachePolicy::kDefault) noexcept;
 
+  //! Makes the memory pointed out by `span` writable and calls the provided lambda function `lambdaFunc`
+  //! to perform the write operation.
+  //!
+  //! Use `policy` argument to specify an instruction cache flush behavior.
   template<class Lambda>
   ASMJIT_INLINE Error write(
     Span& span,
@@ -386,14 +417,12 @@ public:
     //! \name Members
     //! \{
 
-    //! Link to the allocator.
-    JitAllocator* _allocator;
     //! Cache policy passed to \ref JitAllocator::beginWriteScope().
-    VirtMem::CachePolicy _policy;
+    VirtMem::CachePolicy policy;
     //! Internal flags used by the implementation.
-    uint32_t _flags;
-    //! Internal data used by the implementation.
-    size_t _data[64];
+    uint32_t flags;
+    //! Internal data that can be used by the implementation.
+    uintptr_t data[2];
 
     //! \}
   };
@@ -427,7 +456,7 @@ public:
   //!
   //! This is mostly for internal purposes, please use \ref WriteScope::write() instead.
   template<class Lambda>
-  inline Error scopedWrite(WriteScopeData& scope, Span& span, Lambda&& lambdaFunc) noexcept {
+  ASMJIT_INLINE Error scopedWrite(WriteScopeData& scope, Span& span, Lambda&& lambdaFunc) noexcept {
     WriteFunc wrapperFunc = [](Span& span, void* userData) noexcept -> Error {
       Lambda& lambdaFunc = *static_cast<Lambda*>(userData);
       return lambdaFunc(span);
@@ -438,22 +467,35 @@ public:
   //! \endcond
 
   //! Write scope can be used to create a single scope that is optimized for writing multiple spans.
-  class WriteScope : public WriteScopeData {
+  class WriteScope {
   public:
     ASMJIT_NONCOPYABLE(WriteScope)
+
+    //! \name Members
+    //! \{
+
+    //! Link to the allocator.
+    JitAllocator* _allocator;
+
+    //! Write scope data.
+    WriteScopeData _scopeData;
+
+    //! \}
 
     //! \name Construction & Destruction
     //! \{
 
     // Begins a write scope.
-    inline explicit WriteScope(JitAllocator* allocator, VirtMem::CachePolicy policy = VirtMem::CachePolicy::kDefault) noexcept {
-      allocator->beginWriteScope(*this, policy);
+    ASMJIT_INLINE explicit WriteScope(JitAllocator* allocator, VirtMem::CachePolicy policy = VirtMem::CachePolicy::kDefault) noexcept {
+      _allocator = allocator;
+      _allocator->beginWriteScope(_scopeData, policy);
     }
 
     // Ends a write scope.
-    inline ~WriteScope() noexcept {
-      if (_allocator)
-        _allocator->endWriteScope(*this);
+    ASMJIT_INLINE ~WriteScope() noexcept {
+      if (_allocator) {
+        _allocator->endWriteScope(_scopeData);
+      }
     }
 
     //! \}
@@ -467,7 +509,7 @@ public:
 
     //! Returns cache policy this write scope is using.
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG VirtMem::CachePolicy policy() const noexcept { return _policy; }
+    ASMJIT_INLINE_NODEBUG VirtMem::CachePolicy policy() const noexcept { return _scopeData.policy; }
 
     //! \}
 
@@ -476,23 +518,23 @@ public:
 
     //! Similar to `JitAllocator::write(span, offset, src, size)`, but under a write scope.
     ASMJIT_INLINE_NODEBUG Error write(Span& span, size_t offset, const void* src, size_t size) noexcept {
-      return _allocator->scopedWrite(*this, span, offset, src, size);
+      return _allocator->scopedWrite(_scopeData, span, offset, src, size);
     }
 
     //! Similar to `JitAllocator::write(span, writeFunc, userData)`, but under a write scope.
     ASMJIT_INLINE_NODEBUG Error write(Span& span, WriteFunc writeFunc, void* userData) noexcept {
-      return _allocator->scopedWrite(*this, span, writeFunc, userData);
+      return _allocator->scopedWrite(_scopeData, span, writeFunc, userData);
     }
 
     //! Similar to `JitAllocator::write(span, <lambda>)`, but under a write scope.
     template<class Lambda>
     ASMJIT_INLINE_NODEBUG Error write(Span& span, Lambda&& lambdaFunc) noexcept {
-      return _allocator->scopedWrite(*this, span, lambdaFunc);
+      return _allocator->scopedWrite(_scopeData, span, lambdaFunc);
     }
 
     //! Flushes accumulated changes in this write scope.
     ASMJIT_INLINE_NODEBUG Error flush() noexcept {
-      return _allocator->flushWriteScope(*this);
+      return _allocator->flushWriteScope(_scopeData);
     }
 
     //! \}
@@ -503,7 +545,7 @@ public:
   //! \name Statistics
   //! \{
 
-  //! Statistics about `JitAllocator`.
+  //! Statistics provided by `JitAllocator`.
   struct Statistics {
     //! Number of blocks `JitAllocator` maintains.
     size_t _blockCount;

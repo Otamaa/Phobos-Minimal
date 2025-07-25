@@ -70,13 +70,13 @@ static ASMJIT_INLINE RATiedFlags raRegRwFlags(OpRWFlags flags) noexcept {
 
 [[nodiscard]]
 static ASMJIT_INLINE RATiedFlags raMemBaseRwFlags(OpRWFlags flags) noexcept {
-  constexpr uint32_t kShift = Support::ConstCTZ<uint32_t(OpRWFlags::kMemBaseRW)>::value;
+  constexpr uint32_t kShift = Support::ctz_const<OpRWFlags::kMemBaseRW>;
   return (RATiedFlags)raUseOutFlagsFromRWFlags(OpRWFlags(uint32_t(flags) >> kShift) & OpRWFlags::kRW);
 }
 
 [[nodiscard]]
 static ASMJIT_INLINE RATiedFlags raMemIndexRwFlags(OpRWFlags flags) noexcept {
-  constexpr uint32_t kShift = Support::ConstCTZ<uint32_t(OpRWFlags::kMemIndexRW)>::value;
+  constexpr uint32_t kShift = Support::ctz_const<OpRWFlags::kMemIndexRW>;
   return (RATiedFlags)raUseOutFlagsFromRWFlags(OpRWFlags(uint32_t(flags) >> kShift) & OpRWFlags::kRW);
 }
 
@@ -87,22 +87,23 @@ class RACFGBuilder : public RACFGBuilderT<RACFGBuilder> {
 public:
   Arch _arch;
   bool _is64Bit;
-  bool _avxEnabled;
+  const EmitHelperInstructionIds& _ids;
 
-  ASMJIT_INLINE_NODEBUG RACFGBuilder(X86RAPass* pass) noexcept
+  ASMJIT_INLINE_NODEBUG RACFGBuilder(X86RAPass& pass) noexcept
     : RACFGBuilderT<RACFGBuilder>(pass),
-      _arch(pass->cc()->arch()),
-      _is64Bit(pass->registerSize() == 8),
-      _avxEnabled(pass->avxEnabled()) {
+      _arch(pass.cc().arch()),
+      _is64Bit(pass.registerSize() == 8),
+      _ids(pass._emitHelper.ids()) {
   }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Compiler* cc() const noexcept { return static_cast<Compiler*>(_cc); }
+  ASMJIT_INLINE_NODEBUG X86RAPass& pass() const noexcept { return static_cast<X86RAPass&>(_pass); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t choose(uint32_t sseInst, uint32_t avxInst) const noexcept {
-    return _avxEnabled ? avxInst : sseInst;
-  }
+  ASMJIT_INLINE_NODEBUG Compiler& cc() const noexcept { return static_cast<Compiler&>(_cc); }
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG const EmitHelperInstructionIds& ids() const noexcept { return _ids; }
 
   [[nodiscard]]
   Error onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& ib) noexcept;
@@ -136,17 +137,16 @@ public:
 // ==========================
 
 Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& ib) noexcept {
+  InstId instId = inst->id();
   InstRWInfo rwInfo;
 
-  InstId instId = inst->id();
   if (Inst::isDefinedId(instId)) {
-    uint32_t opCount = inst->opCount();
-    const Operand* opArray = inst->operands();
-    ASMJIT_PROPAGATE(InstInternal::queryRWInfo(_arch, inst->baseInst(), opArray, opCount, &rwInfo));
+    Span<const Operand> operands = inst->operands();
+    ASMJIT_PROPAGATE(InstInternal::queryRWInfo(_arch, inst->baseInst(), operands.data(), operands.size(), &rwInfo));
 
     const InstDB::InstInfo& instInfo = InstDB::infoById(instId);
     bool hasGpbHiConstraint = false;
-    uint32_t singleRegOps = 0;
+    size_t singleRegOps = 0;
 
     // Copy instruction RW flags to instruction builder except kMovOp, which is propagated manually later.
     ib.addInstRWFlags(rwInfo.instFlags() & ~InstRWFlags::kMovOp);
@@ -154,15 +154,15 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
     // Mask of all operand types used by the instruction - can be used as an optimization later.
     uint32_t opTypesMask = 0u;
 
-    if (opCount) {
+    if (!operands.is_empty()) {
       // The mask is for all registers, but we are mostly interested in AVX-512 registers at the moment. The mask
       // will be combined with all available registers of the Compiler at the end so we it never use more registers
       // than available.
       RegMask instructionAllowedRegs = 0xFFFFFFFFu;
 
       uint32_t consecutiveOffset = 0;
-      uint32_t consecutiveLeadId = Globals::kInvalidId;
-      uint32_t consecutiveParent = Globals::kInvalidId;
+      RAWorkId consecutiveLeadId = kBadWorkId;
+      RAWorkReg* consecutiveParent = nullptr;
 
       if (instInfo.isEvex()) {
         // EVEX instruction and VEX instructions that can be encoded with EVEX have the possibility to use 32 SIMD
@@ -170,13 +170,13 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
         if (instInfo.isVex() && !instInfo.isEvexCompatible()) {
           if (instInfo.isEvexKRegOnly()) {
             // EVEX encodable only if the first operand is K register (compare instructions).
-            if (!opArray[0].isMaskReg()) {
+            if (!operands[0].isMaskReg()) {
               instructionAllowedRegs = 0xFFFFu;
             }
           }
           else if (instInfo.isEvexTwoOpOnly()) {
             // EVEX encodable only if the instruction has two operands (gather instructions).
-            if (opCount != 2) {
+            if (operands.size() != 2u) {
               instructionAllowedRegs = 0xFFFFu;
             }
           }
@@ -193,8 +193,8 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
         instructionAllowedRegs = 0xFFFFu;
       }
 
-      for (uint32_t i = 0; i < opCount; i++) {
-        const Operand& op = opArray[i];
+      for (size_t i = 0u; i < operands.size(); i++) {
+        const Operand& op = operands[i];
         const OpRWInfo& opRwInfo = rwInfo.operand(i);
 
         opTypesMask |= 1u << uint32_t(op.opType());
@@ -236,7 +236,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
           uint32_t vIndex = Operand::virtIdToIndex(reg.id());
           if (vIndex < Operand::kVirtIdCount) {
             RAWorkReg* workReg;
-            ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
+            ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, vIndex));
 
             // Use RW instead of Write in case that not the whole register is overwritten. This is important
             // for liveness as we cannot kill a register that will be used. For example `mov al, 0xFF` is not
@@ -250,13 +250,13 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
 
             // Do not use RegMem flag if changing Reg to Mem requires a CPU feature that is not available.
             if (rwInfo.rmFeature() && Support::test(flags, RATiedFlags::kUseRM | RATiedFlags::kOutRM)) {
-              if (!cc()->code()->cpuFeatures().has(rwInfo.rmFeature())) {
+              if (!cc().code()->cpuFeatures().has(rwInfo.rmFeature())) {
                 flags &= ~(RATiedFlags::kUseRM | RATiedFlags::kOutRM);
               }
             }
 
             RegGroup group = workReg->group();
-            RegMask useRegs = _pass->_availableRegs[group] & allowedRegs;
+            RegMask useRegs = _pass._availableRegs[group] & allowedRegs;
             RegMask outRegs = useRegs;
 
             uint32_t useId = Reg::kIdBad;
@@ -267,7 +267,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
 
             if (opRwInfo.consecutiveLeadCount()) {
               // There must be a single consecutive register lead, otherwise the RW data is invalid.
-              if (consecutiveLeadId != Globals::kInvalidId) {
+              if (consecutiveLeadId != kBadWorkId) {
                 return DebugUtils::errored(kErrorInvalidState);
               }
 
@@ -291,13 +291,13 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
             }
 
             if (Support::test(flags, RATiedFlags::kUse)) {
-              useRewriteMask = Support::bitMask(inst->_getRewriteIndex(&reg._baseId));
+              useRewriteMask = Support::bitMask<uint32_t>(inst->_getRewriteIndex(&reg._baseId));
               if (opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {
                 useId = opRwInfo.physId();
                 flags |= RATiedFlags::kUseFixed;
               }
               else if (opRwInfo.hasOpFlag(OpRWFlags::kConsecutive)) {
-                if (consecutiveLeadId == Globals::kInvalidId) {
+                if (consecutiveLeadId == kBadWorkId) {
                   return DebugUtils::errored(kErrorInvalidState);
                 }
 
@@ -309,13 +309,13 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
               }
             }
             else {
-              outRewriteMask = Support::bitMask(inst->_getRewriteIndex(&reg._baseId));
+              outRewriteMask = Support::bitMask<uint32_t>(inst->_getRewriteIndex(&reg._baseId));
               if (opRwInfo.hasOpFlag(OpRWFlags::kRegPhysId)) {
                 outId = opRwInfo.physId();
                 flags |= RATiedFlags::kOutFixed;
               }
               else if (opRwInfo.hasOpFlag(OpRWFlags::kConsecutive)) {
-                if (consecutiveLeadId == Globals::kInvalidId) {
+                if (consecutiveLeadId == kBadWorkId) {
                   return DebugUtils::errored(kErrorInvalidState);
                 }
 
@@ -333,7 +333,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
             }
 
             if (Support::test(flags, RATiedFlags::kLeadConsecutive | RATiedFlags::kUseConsecutive | RATiedFlags::kOutConsecutive)) {
-              consecutiveParent = workReg->workId();
+              consecutiveParent = workReg;
             }
           }
         }
@@ -345,8 +345,8 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
 
           if (mem.isRegHome()) {
             RAWorkReg* workReg;
-            ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(mem.baseId()), &workReg));
-            if (ASMJIT_UNLIKELY(!_pass->getOrCreateStackSlot(workReg))) {
+            ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, Operand::virtIdToIndex(mem.baseId())));
+            if (ASMJIT_UNLIKELY(!_pass.getOrCreateStackSlot(workReg))) {
               return DebugUtils::errored(kErrorOutOfMemory);
             }
           }
@@ -354,11 +354,11 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
             uint32_t vIndex = Operand::virtIdToIndex(mem.baseId());
             if (vIndex < Operand::kVirtIdCount) {
               RAWorkReg* workReg;
-              ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
+              ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, vIndex));
 
               RATiedFlags flags = raMemBaseRwFlags(opRwInfo.opFlags());
               RegGroup group = workReg->group();
-              RegMask inOutRegs = _pass->_availableRegs[group];
+              RegMask inOutRegs = _pass._availableRegs[group];
 
               uint32_t useId = Reg::kIdBad;
               uint32_t outId = Reg::kIdBad;
@@ -367,14 +367,14 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
               uint32_t outRewriteMask = 0;
 
               if (Support::test(flags, RATiedFlags::kUse)) {
-                useRewriteMask = Support::bitMask(inst->_getRewriteIndex(&mem._baseId));
+                useRewriteMask = Support::bitMask<uint32_t>(inst->_getRewriteIndex(&mem._baseId));
                 if (opRwInfo.hasOpFlag(OpRWFlags::kMemPhysId)) {
                   useId = opRwInfo.physId();
                   flags |= RATiedFlags::kUseFixed;
                 }
               }
               else {
-                outRewriteMask = Support::bitMask(inst->_getRewriteIndex(&mem._baseId));
+                outRewriteMask = Support::bitMask<uint32_t>(inst->_getRewriteIndex(&mem._baseId));
                 if (opRwInfo.hasOpFlag(OpRWFlags::kMemPhysId)) {
                   outId = opRwInfo.physId();
                   flags |= RATiedFlags::kOutFixed;
@@ -389,11 +389,11 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
             uint32_t vIndex = Operand::virtIdToIndex(mem.indexId());
             if (vIndex < Operand::kVirtIdCount) {
               RAWorkReg* workReg;
-              ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
+              ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, vIndex));
 
               RATiedFlags flags = raMemIndexRwFlags(opRwInfo.opFlags());
               RegGroup group = workReg->group();
-              RegMask inOutRegs = _pass->_availableRegs[group] & instructionAllowedRegs;
+              RegMask inOutRegs = _pass._availableRegs[group] & instructionAllowedRegs;
 
               // Index registers have never fixed id on X86/x64.
               const uint32_t useId = Reg::kIdBad;
@@ -403,10 +403,10 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
               uint32_t outRewriteMask = 0;
 
               if (Support::test(flags, RATiedFlags::kUse)) {
-                useRewriteMask = Support::bitMask(inst->_getRewriteIndex(&mem._data[Operand::kDataMemIndexId]));
+                useRewriteMask = Support::bitMask<uint32_t>(inst->_getRewriteIndex(&mem._data[Operand::kDataMemIndexId]));
               }
               else {
-                outRewriteMask = Support::bitMask(inst->_getRewriteIndex(&mem._data[Operand::kDataMemIndexId]));
+                outRewriteMask = Support::bitMask<uint32_t>(inst->_getRewriteIndex(&mem._data[Operand::kDataMemIndexId]));
               }
 
               ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, useId, useRewriteMask, inOutRegs, outId, outRewriteMask));
@@ -421,16 +421,16 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
       uint32_t vIndex = Operand::virtIdToIndex(inst->extraReg().id());
       if (vIndex < Operand::kVirtIdCount) {
         RAWorkReg* workReg;
-        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
+        ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, vIndex));
 
         RegGroup group = workReg->group();
-        RegMask inOutRegs = _pass->_availableRegs[group];
-        uint32_t rewriteMask = Support::bitMask(inst->_getRewriteIndex(&inst->extraReg()._id));
+        RegMask inOutRegs = _pass._availableRegs[group];
+        uint32_t rewriteMask = Support::bitMask<uint32_t>(inst->_getRewriteIndex(&inst->extraReg()._id));
 
         if (group == RegGroup::kMask) {
           // AVX-512 mask selector {k} register - read-only, allocable to any register except {k0}.
           ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, Reg::kIdBad, rewriteMask, inOutRegs, Reg::kIdBad, 0));
-          singleRegOps = 0;
+          singleRegOps = 0u;
         }
         else {
           // REP {cx|ecx|rcx} register - read & write, allocable to {cx|ecx|rcx} only.
@@ -440,7 +440,7 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
       else {
         RegGroup group = inst->extraReg().group();
         if (group == RegGroup::kMask && inst->extraReg().id() != 0) {
-          singleRegOps = 0;
+          singleRegOps = 0u;
         }
       }
     }
@@ -448,12 +448,12 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
     // If this instruction has move semantics then check whether it could be eliminated if all virtual registers
     // are allocated into the same register. Take into account the virtual size of the destination register as that's
     // more important than a physical register size in this case.
-    if (rwInfo.hasInstFlag(InstRWFlags::kMovOp) && !inst->hasExtraReg() && Support::bitTest(opTypesMask, uint32_t(OperandType::kReg))) {
+    if (rwInfo.hasInstFlag(InstRWFlags::kMovOp) && !inst->hasExtraReg() && Support::bit_test(opTypesMask, uint32_t(OperandType::kReg))) {
       // AVX+ move instructions have 3 operand form - the first two operands must be the same to guarantee move semantics.
-      if (opCount == 2 || (opCount == 3 && opArray[0] == opArray[1])) {
-        uint32_t vIndex = Operand::virtIdToIndex(opArray[0].as<Reg>().id());
+      if (operands.size() == 2 || (operands.size() == 3 && operands[0] == operands[1])) {
+        uint32_t vIndex = Operand::virtIdToIndex(operands.first().as<Reg>().id());
         if (vIndex < Operand::kVirtIdCount) {
-          const VirtReg* vReg = _cc->virtRegByIndex(vIndex);
+          const VirtReg* vReg = _cc.virtRegByIndex(vIndex);
           const OpRWInfo& opRwInfo = rwInfo.operand(0);
 
           uint64_t remainingByteMask = vReg->workReg()->regByteMask() & ~opRwInfo.writeByteMask();
@@ -477,15 +477,15 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
       // Handle special cases of some instructions where all operands share the same
       // register. In such case the single operand becomes read-only or write-only.
       InstSameRegHint sameRegHint = InstSameRegHint::kNone;
-      if (singleRegOps == opCount) {
+      if (singleRegOps == operands.size()) {
         sameRegHint = instInfo.sameRegHint();
       }
-      else if (opCount == 2 && inst->op(1).isImm()) {
+      else if (operands.size() == 2 && operands[1].isImm()) {
         // Handle some tricks used by X86 asm.
-        const Reg& reg = inst->op(0).as<Reg>();
-        const Imm& imm = inst->op(1).as<Imm>();
+        const Reg& reg = operands[0].as<Reg>();
+        const Imm& imm = operands[1].as<Imm>();
 
-        const RAWorkReg* workReg = _pass->workRegById(ib[0]->workId());
+        const RAWorkReg* workReg = ib[0]->workReg();
         uint32_t workRegSize = workReg->signature().size();
 
         switch (inst->id()) {
@@ -518,8 +518,8 @@ Error RACFGBuilder::onInst(InstNode* inst, InstControlFlow& cf, RAInstBuilder& i
           }
         }
       }
-      else if (opCount == 4 && inst->op(3).isImm()) {
-        const Imm& imm = inst->op(3).as<Imm>();
+      else if (operands.size() == 4u && operands[3].isImm()) {
+        const Imm& imm = operands[3].as<Imm>();
 
         switch (inst->id()) {
           case Inst::kIdVpternlogd:
@@ -558,8 +558,8 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
   const FuncDetail& fd = invokeNode->detail();
   uint32_t argCount = invokeNode->argCount();
 
-  cc()->_setCursor(invokeNode->prev());
-  RegType nativeRegType = cc()->_gpSignature.regType();
+  cc().setCursor(invokeNode->prev());
+  RegType nativeRegType = cc()._gpSignature.regType();
 
   for (uint32_t argIndex = 0; argIndex < argCount; argIndex++) {
     const FuncValuePack& argPack = fd.argPack(argIndex);
@@ -578,7 +578,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
       if (op.isReg()) {
         const Reg& reg = op.as<Reg>();
         RAWorkReg* workReg;
-        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
+        ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, Operand::virtIdToIndex(reg.id())));
 
         if (arg.isReg()) {
           RegGroup regGroup = workReg->group();
@@ -637,9 +637,9 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
     }
   }
 
-  cc()->_setCursor(invokeNode);
+  cc().setCursor(invokeNode);
   if (fd.hasFlag(CallConvFlags::kCalleePopsStack) && fd.argStackSize() != 0) {
-    ASMJIT_PROPAGATE(cc()->sub(cc()->zsp(), fd.argStackSize()));
+    ASMJIT_PROPAGATE(cc().sub(cc().zsp(), fd.argStackSize()));
   }
 
   if (fd.hasRet()) {
@@ -653,7 +653,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
       if (op.isReg()) {
         const Reg& reg = op.as<Reg>();
         RAWorkReg* workReg;
-        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
+        ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, Operand::virtIdToIndex(reg.id())));
 
         if (ret.isReg()) {
           if (ret.regType() == RegType::kX86_St) {
@@ -661,7 +661,7 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
               return DebugUtils::errored(kErrorInvalidAssignment);
             }
 
-            Reg dst(workReg->signature(), workReg->virtId());
+            Reg dst(workReg->signature(), workReg->vRegId());
             Mem mem;
 
             TypeId typeId = TypeUtils::scalarOf(workReg->typeId());
@@ -671,17 +671,17 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
 
             switch (typeId) {
               case TypeId::kFloat32:
-                ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 4, 4));
+                ASMJIT_PROPAGATE(_pass.useTemporaryMem(mem, 4, 4));
                 mem.setSize(4);
-                ASMJIT_PROPAGATE(cc()->fstp(mem));
-                ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), dst.as<Vec>(), mem));
+                ASMJIT_PROPAGATE(cc().fstp(mem));
+                ASMJIT_PROPAGATE(cc().emit(ids().movss(), dst.as<Vec>(), mem));
                 break;
 
               case TypeId::kFloat64:
-                ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 8, 4));
+                ASMJIT_PROPAGATE(_pass.useTemporaryMem(mem, 8, 4));
                 mem.setSize(8);
-                ASMJIT_PROPAGATE(cc()->fstp(mem));
-                ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), dst.as<Vec>(), mem));
+                ASMJIT_PROPAGATE(cc().fstp(mem));
+                ASMJIT_PROPAGATE(cc().emit(ids().movsd(), dst.as<Vec>(), mem));
                 break;
 
               default:
@@ -704,8 +704,8 @@ Error RACFGBuilder::onBeforeInvoke(InvokeNode* invokeNode) noexcept {
 
   // This block has function call(s).
   _curBlock->addFlags(RABlockFlags::kHasFuncCalls);
-  _pass->func()->frame().addAttributes(FuncAttributes::kHasFuncCalls);
-  _pass->func()->frame().updateCallStackSize(fd.argStackSize());
+  _pass.func()->frame().addAttributes(FuncAttributes::kHasFuncCalls);
+  _pass.func()->frame().updateCallStackSize(fd.argStackSize());
 
   return kErrorOk;
 }
@@ -731,7 +731,7 @@ Error RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept
       if (op.isReg()) {
         const Reg& reg = op.as<Reg>();
         RAWorkReg* workReg;
-        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
+        ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, Operand::virtIdToIndex(reg.id())));
 
         if (arg.isIndirect()) {
           RegGroup regGroup = workReg->group();
@@ -767,7 +767,7 @@ Error RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept
     if (op.isReg()) {
       const Reg& reg = op.as<Reg>();
       RAWorkReg* workReg;
-      ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(Operand::virtIdToIndex(reg.id()), &workReg));
+      ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, Operand::virtIdToIndex(reg.id())));
 
       if (ret.isReg()) {
         RegGroup regGroup = workReg->group();
@@ -784,8 +784,8 @@ Error RACFGBuilder::onInvoke(InvokeNode* invokeNode, RAInstBuilder& ib) noexcept
   }
 
   // Setup clobbered registers.
-  for (RegGroup group : RegGroupVirtValues{}) {
-    ib._clobbered[group] = Support::lsbMask<RegMask>(_pass->_physRegCount[group]) & ~fd.preservedRegs(group);
+  for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
+    ib._clobbered[group] = Support::lsb_mask<RegMask>(_pass._physRegCount[group]) & ~fd.preservedRegs(group);
   }
 
   return kErrorOk;
@@ -815,29 +815,29 @@ Error RACFGBuilder::moveVecToPtr(InvokeNode* invokeNode, const FuncValue& arg, c
     argSize = 16;
   }
 
-  uint32_t argStackOffset = Support::alignUp(invokeNode->detail()._argStackSize, argSize);
+  uint32_t argStackOffset = Support::align_up(invokeNode->detail()._argStackSize, argSize);
   _funcNode->frame().updateCallStackAlignment(argSize);
   invokeNode->detail()._argStackSize = argStackOffset + argSize;
 
   Vec vecReg(x86VecRegSignatureBySize(argSize), src.id());
-  Mem vecPtr = ptr(_pass->_sp.as<Gp>(), int32_t(argStackOffset));
+  Mem vecPtr = ptr(_pass._sp.as<Gp>(), int32_t(argStackOffset));
 
-  uint32_t vMovInstId = choose(Inst::kIdMovaps, Inst::kIdVmovaps);
+  uint32_t vMovInstId = pass()._emitHelper.ids().movaps();
   if (argSize > 16) {
     vMovInstId = Inst::kIdVmovaps;
   }
 
-  ASMJIT_PROPAGATE(cc()->_newReg(out, RegUtils::typeIdOf(cc()->_gpSignature.regType()), nullptr));
+  ASMJIT_PROPAGATE(cc()._newReg(out, RegUtils::typeIdOf(cc()._gpSignature.regType()), nullptr));
 
-  VirtReg* vReg = cc()->virtRegById(out->id());
+  VirtReg* vReg = cc().virtRegById(out->id());
   vReg->setWeight(BaseRAPass::kCallArgWeight);
 
-  ASMJIT_PROPAGATE(cc()->lea(out->as<Gp>(), vecPtr));
-  ASMJIT_PROPAGATE(cc()->emit(vMovInstId, ptr(out->as<Gp>()), vecReg));
+  ASMJIT_PROPAGATE(cc().lea(out->as<Gp>(), vecPtr));
+  ASMJIT_PROPAGATE(cc().emit(vMovInstId, ptr(out->as<Gp>()), vecReg));
 
   if (arg.isStack()) {
-    Mem stackPtr = ptr(_pass->_sp.as<Gp>(), arg.stackOffset());
-    ASMJIT_PROPAGATE(cc()->mov(stackPtr, out->as<Gp>()));
+    Mem stackPtr = ptr(_pass._sp.as<Gp>(), arg.stackOffset());
+    ASMJIT_PROPAGATE(cc().mov(stackPtr, out->as<Gp>()));
   }
 
   return kErrorOk;
@@ -880,10 +880,10 @@ MovU32:
       return DebugUtils::errored(kErrorInvalidAssignment);
   }
 
-  ASMJIT_PROPAGATE(cc()->_newReg(out, rTypeId, nullptr));
-  cc()->virtRegById(out->id())->setWeight(BaseRAPass::kCallArgWeight);
+  ASMJIT_PROPAGATE(cc()._newReg(out, rTypeId, nullptr));
+  cc().virtRegById(out->id())->setWeight(BaseRAPass::kCallArgWeight);
 
-  return cc()->mov(out->as<x86::Gp>(), imm);
+  return cc().mov(out->as<x86::Gp>(), imm);
 }
 
 // x86::RACFGBuilder - MoveImmToStackArg
@@ -893,7 +893,7 @@ Error RACFGBuilder::moveImmToStackArg(InvokeNode* invokeNode, const FuncValue& a
   DebugUtils::unused(invokeNode);
   ASMJIT_ASSERT(arg.isStack());
 
-  Mem stackPtr = ptr(_pass->_sp.as<Gp>(), arg.stackOffset());
+  Mem stackPtr = ptr(_pass._sp.as<Gp>(), arg.stackOffset());
   Imm imm[2];
 
   stackPtr.setSize(4);
@@ -938,7 +938,7 @@ MovU32:
   }
 
   for (uint32_t i = 0; i < movCount; i++) {
-    ASMJIT_PROPAGATE(cc()->mov(stackPtr, imm[i]));
+    ASMJIT_PROPAGATE(cc().mov(stackPtr, imm[i]));
     stackPtr.addOffsetLo32(int32_t(stackPtr.size()));
   }
 
@@ -952,11 +952,11 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
   DebugUtils::unused(invokeNode);
   ASMJIT_ASSERT(arg.isStack());
 
-  Mem stackPtr = ptr(_pass->_sp.as<Gp>(), arg.stackOffset());
+  Mem stackPtr = ptr(_pass._sp.as<Gp>(), arg.stackOffset());
   Reg r0, r1;
 
-  VirtReg* vr = cc()->virtRegById(reg.id());
-  uint32_t registerSize = cc()->registerSize();
+  VirtReg* vr = cc().virtRegById(reg.id());
+  uint32_t registerSize = cc().registerSize();
   InstId instId = 0;
 
   TypeId dstTypeId = arg.typeId();
@@ -1069,7 +1069,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
     default:
       if (TypeUtils::isVec(dstTypeId) && reg.as<Reg>().isVec()) {
         stackPtr.setSize(TypeUtils::sizeOf(dstTypeId));
-        uint32_t vMovInstId = choose(Inst::kIdMovaps, Inst::kIdVmovaps);
+        uint32_t vMovInstId = pass()._emitHelper.ids().movaps();
 
         if (TypeUtils::isVec128(dstTypeId)) {
           r0.setRegT<RegType::kVec128>(reg.id());
@@ -1084,7 +1084,7 @@ Error RACFGBuilder::moveRegToStackArg(InvokeNode* invokeNode, const FuncValue& a
           break;
         }
 
-        return cc()->emit(vMovInstId, stackPtr, r0);
+        return cc().emit(vMovInstId, stackPtr, r0);
       }
       break;
   }
@@ -1095,8 +1095,8 @@ ExtendMovGpD:
   stackPtr.setSize(4);
   r0.setRegT<RegType::kGp32>(reg.id());
 
-  ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
-  ASMJIT_PROPAGATE(cc()->emit(Inst::kIdMov, stackPtr, r0));
+  ASMJIT_PROPAGATE(cc().emit(instId, r0, r1));
+  ASMJIT_PROPAGATE(cc().emit(Inst::kIdMov, stackPtr, r0));
   return kErrorOk;
 
 ExtendMovGpXQ:
@@ -1104,19 +1104,19 @@ ExtendMovGpXQ:
     stackPtr.setSize(8);
     r0.setRegT<RegType::kGp64>(reg.id());
 
-    ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
-    ASMJIT_PROPAGATE(cc()->emit(Inst::kIdMov, stackPtr, r0));
+    ASMJIT_PROPAGATE(cc().emit(instId, r0, r1));
+    ASMJIT_PROPAGATE(cc().emit(Inst::kIdMov, stackPtr, r0));
   }
   else {
     stackPtr.setSize(4);
     r0.setRegT<RegType::kGp32>(reg.id());
 
-    ASMJIT_PROPAGATE(cc()->emit(instId, r0, r1));
+    ASMJIT_PROPAGATE(cc().emit(instId, r0, r1));
 
 ExtendMovGpDQ:
-    ASMJIT_PROPAGATE(cc()->emit(Inst::kIdMov, stackPtr, r0));
+    ASMJIT_PROPAGATE(cc().emit(Inst::kIdMov, stackPtr, r0));
     stackPtr.addOffsetLo32(4);
-    ASMJIT_PROPAGATE(cc()->emit(Inst::kIdAnd, stackPtr, 0));
+    ASMJIT_PROPAGATE(cc().emit(Inst::kIdAnd, stackPtr, 0));
   }
   return kErrorOk;
 
@@ -1128,46 +1128,45 @@ ZeroExtendGpDQ:
 MovGpD:
   stackPtr.setSize(4);
   r0.setRegT<RegType::kGp32>(reg.id());
-  return cc()->emit(Inst::kIdMov, stackPtr, r0);
+  return cc().emit(Inst::kIdMov, stackPtr, r0);
 
 MovGpQ:
   stackPtr.setSize(8);
   r0.setRegT<RegType::kGp64>(reg.id());
-  return cc()->emit(Inst::kIdMov, stackPtr, r0);
+  return cc().emit(Inst::kIdMov, stackPtr, r0);
 
 MovMmD:
   stackPtr.setSize(4);
   r0.setRegT<RegType::kX86_Mm>(reg.id());
-  return cc()->emit(choose(Inst::kIdMovd, Inst::kIdVmovd), stackPtr, r0);
+  return cc().emit(ids().movd(), stackPtr, r0);
 
 MovMmQ:
   stackPtr.setSize(8);
   r0.setRegT<RegType::kX86_Mm>(reg.id());
-  return cc()->emit(choose(Inst::kIdMovq, Inst::kIdVmovq), stackPtr, r0);
+  return cc().emit(ids().movq(), stackPtr, r0);
 
 MovXmmD:
   stackPtr.setSize(4);
   r0.setRegT<RegType::kVec128>(reg.id());
-  return cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), stackPtr, r0);
+  return cc().emit(ids().movss(), stackPtr, r0);
 
 MovXmmQ:
   stackPtr.setSize(8);
   r0.setRegT<RegType::kVec128>(reg.id());
-  return cc()->emit(choose(Inst::kIdMovlps, Inst::kIdVmovlps), stackPtr, r0);
+  return cc().emit(ids().movlps(), stackPtr, r0);
 }
 
 // x86::RACFGBuilder - OnReg
 // =========================
 
 Error RACFGBuilder::onBeforeRet(FuncRetNode* funcRet) noexcept {
-  const FuncDetail& funcDetail = _pass->func()->detail();
-  const Operand* opArray = funcRet->operands();
-  uint32_t opCount = funcRet->opCount();
+  const FuncDetail& funcDetail = _pass.func()->detail();
+  Span<const Operand> operands = funcRet->operands();
 
-  cc()->_setCursor(funcRet->prev());
+  cc().setCursor(funcRet->prev());
 
-  for (uint32_t i = 0; i < opCount; i++) {
-    const Operand& op = opArray[i];
+  for (size_t i = 0; i < operands.size(); i++) {
+    const Operand& op = operands[i];
     const FuncValue& ret = funcDetail.ret(i);
 
     if (!op.isReg()) {
@@ -1180,13 +1179,13 @@ Error RACFGBuilder::onBeforeRet(FuncRetNode* funcRet) noexcept {
 
       if (vIndex < Operand::kVirtIdCount) {
         RAWorkReg* workReg;
-        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
+        ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, vIndex));
 
         if (workReg->group() != RegGroup::kVec) {
           return DebugUtils::errored(kErrorInvalidAssignment);
         }
 
-        Reg src(workReg->signature(), workReg->virtId());
+        Reg src(workReg->signature(), workReg->vRegId());
         Mem mem;
 
         TypeId typeId = TypeUtils::scalarOf(workReg->typeId());
@@ -1196,17 +1195,17 @@ Error RACFGBuilder::onBeforeRet(FuncRetNode* funcRet) noexcept {
 
         switch (typeId) {
           case TypeId::kFloat32:
-            ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 4, 4));
+            ASMJIT_PROPAGATE(_pass.useTemporaryMem(mem, 4, 4));
             mem.setSize(4);
-            ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovss, Inst::kIdVmovss), mem, src.as<Vec>()));
-            ASMJIT_PROPAGATE(cc()->fld(mem));
+            ASMJIT_PROPAGATE(cc().emit(ids().movss(), mem, src.as<Vec>()));
+            ASMJIT_PROPAGATE(cc().fld(mem));
             break;
 
           case TypeId::kFloat64:
-            ASMJIT_PROPAGATE(_pass->useTemporaryMem(mem, 8, 4));
+            ASMJIT_PROPAGATE(_pass.useTemporaryMem(mem, 8, 4));
             mem.setSize(8);
-            ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovsd, Inst::kIdVmovsd), mem, src.as<Vec>()));
-            ASMJIT_PROPAGATE(cc()->fld(mem));
+            ASMJIT_PROPAGATE(cc().emit(ids().movsd(), mem, src.as<Vec>()));
+            ASMJIT_PROPAGATE(cc().fld(mem));
             break;
 
           default:
@@ -1220,12 +1219,11 @@ Error RACFGBuilder::onBeforeRet(FuncRetNode* funcRet) noexcept {
 }
 
 Error RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
-  const FuncDetail& funcDetail = _pass->func()->detail();
-  const Operand* opArray = funcRet->operands();
-  uint32_t opCount = funcRet->opCount();
+  const FuncDetail& funcDetail = _pass.func()->detail();
+  Span<const Operand> operands = funcRet->operands();
 
-  for (uint32_t i = 0; i < opCount; i++) {
-    const Operand& op = opArray[i];
+  for (size_t i = 0u; i < operands.size(); i++) {
+    const Operand& op = operands[i];
     if (op.isNone()) {
       continue;
     }
@@ -1247,10 +1245,10 @@ Error RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
 
       if (vIndex < Operand::kVirtIdCount) {
         RAWorkReg* workReg;
-        ASMJIT_PROPAGATE(_pass->virtIndexAsWorkReg(vIndex, &workReg));
+        ASMJIT_PROPAGATE(_pass.virtIndexAsWorkReg(&workReg, vIndex));
 
         RegGroup group = workReg->group();
-        RegMask inOutRegs = _pass->_availableRegs[group];
+        RegMask inOutRegs = _pass._availableRegs[group];
         ASMJIT_PROPAGATE(ib.add(workReg, RATiedFlags::kUse | RATiedFlags::kRead, inOutRegs, ret.regId(), 0, inOutRegs, Reg::kIdBad, 0));
       }
     }
@@ -1265,15 +1263,15 @@ Error RACFGBuilder::onRet(FuncRetNode* funcRet, RAInstBuilder& ib) noexcept {
 // x86::X86RAPass - Construction & Destruction
 // ===========================================
 
-X86RAPass::X86RAPass() noexcept
-  : BaseRAPass() { _iEmitHelper = &_emitHelper; }
+X86RAPass::X86RAPass(BaseCompiler& cc) noexcept
+  : BaseRAPass(cc) { _iEmitHelper = &_emitHelper; }
 X86RAPass::~X86RAPass() noexcept {}
 
 // x86::X86RAPass - OnInit & OnDone
 // ================================
 
 void X86RAPass::onInit() noexcept {
-  Arch arch = cc()->arch();
+  Arch arch = cc().arch();
   uint32_t baseRegCount = Environment::is32Bit(arch) ? 8u : 16u;
   uint32_t simdRegCount = baseRegCount;
 
@@ -1281,13 +1279,7 @@ void X86RAPass::onInit() noexcept {
     simdRegCount = 32u;
   }
 
-  bool avxEnabled = _func->frame().isAvxEnabled();
-  bool avx512Enabled = _func->frame().isAvx512Enabled();
-
-  _emitHelper._emitter = _cb;
-  _emitHelper._avxEnabled = avxEnabled || avx512Enabled;
-  _emitHelper._avx512Enabled = avx512Enabled;
-
+  _emitHelper.reset(&_cb, _func->frame().isAvxEnabled(), _func->frame().isAvx512Enabled());
   _archTraits = &ArchTraits::byArch(arch);
   _physRegCount.set(RegGroup::kGp, baseRegCount);
   _physRegCount.set(RegGroup::kVec, simdRegCount);
@@ -1295,10 +1287,10 @@ void X86RAPass::onInit() noexcept {
   _physRegCount.set(RegGroup::kX86_MM, 8);
   _buildPhysIndex();
 
-  _availableRegs[RegGroup::kGp] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kGp));
-  _availableRegs[RegGroup::kVec] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kVec));
-  _availableRegs[RegGroup::kMask] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kMask)) ^ 1u;
-  _availableRegs[RegGroup::kX86_MM] = Support::lsbMask<RegMask>(_physRegCount.get(RegGroup::kX86_MM));
+  _availableRegs[RegGroup::kGp] = Support::lsb_mask<RegMask>(_physRegCount.get(RegGroup::kGp));
+  _availableRegs[RegGroup::kVec] = Support::lsb_mask<RegMask>(_physRegCount.get(RegGroup::kVec));
+  _availableRegs[RegGroup::kMask] = Support::lsb_mask<RegMask>(_physRegCount.get(RegGroup::kMask)) ^ 1u;
+  _availableRegs[RegGroup::kX86_MM] = Support::lsb_mask<RegMask>(_physRegCount.get(RegGroup::kX86_MM));
 
   _scratchRegIndexes[0] = uint8_t(Gp::kIdCx);
   _scratchRegIndexes[1] = uint8_t(baseRegCount - 1);
@@ -1315,8 +1307,8 @@ void X86RAPass::onInit() noexcept {
   }
   makeUnavailable(frame._unavailableRegs);
 
-  _sp = cc()->zsp();
-  _fp = cc()->zbp();
+  _sp = cc().zsp();
+  _fp = cc().zbp();
 }
 
 void X86RAPass::onDone() noexcept {}
@@ -1325,7 +1317,7 @@ void X86RAPass::onDone() noexcept {}
 // =========================
 
 Error X86RAPass::buildCFG() noexcept {
-  return RACFGBuilder(this).run();
+  return RACFGBuilder(*this).run();
 }
 
 // x86::X86RAPass - Rewrite
@@ -1357,164 +1349,170 @@ static InstId transformVexToEvex(InstId instId) {
   }
 }
 
-ASMJIT_FAVOR_SPEED Error X86RAPass::_rewrite(BaseNode* first, BaseNode* stop) noexcept {
-  uint32_t virtCount = cc()->_vRegArray.size();
+ASMJIT_FAVOR_SPEED Error X86RAPass::rewrite() noexcept {
+  size_t virtCount = cc()._vRegArray.size();
 
-  BaseNode* node = first;
-  while (node != stop) {
-    BaseNode* next = node->next();
-    if (node->isInst()) {
-      InstNode* inst = node->as<InstNode>();
-      RAInst* raInst = node->passData<RAInst>();
+  for (RABlock* block : _pov.iterate_reverse()) {
+    BaseNode* node = block->first();
+    BaseNode* stop = block->last();
 
-      Operand* operands = inst->operands();
-      uint32_t opCount = inst->opCount();
-      uint32_t maxRegId = 0;
+    for (;;) {
+      BaseNode* next = node->next();
+      if (node->isInst()) {
+        InstNode* inst = node->as<InstNode>();
+        RAInst* raInst = node->passData<RAInst>();
+        Span<Operand> operands = inst->operands();
 
-      uint32_t i;
+        // Rewrite virtual registers into physical registers.
+        if (raInst) {
+          // This data is allocated by Zone passed to `runOnFunction()`, which will be reset after the RA pass finishes.
+          // So reset this data to prevent having a dead pointer after the RA pass is complete.
+          node->resetPassData();
 
-      // Rewrite virtual registers into physical registers.
-      if (raInst) {
-        // This data is allocated by Zone passed to `runOnFunction()`, which will be reset after the RA pass finishes.
-        // So reset this data to prevent having a dead pointer after the RA pass is complete.
-        node->resetPassData();
+          // If the instruction contains pass data (raInst) then it was a subject for register allocation and must be
+          // rewritten to use physical regs.
+          const RATiedReg* tiedRegs = raInst->tiedRegs();
+          uint32_t tiedCount = raInst->tiedCount();
+          uint32_t combinedRegIds = 0;
 
-        // If the instruction contains pass data (raInst) then it was a subject for register allocation and must be
-        // rewritten to use physical regs.
-        RATiedReg* tiedRegs = raInst->tiedRegs();
-        uint32_t tiedCount = raInst->tiedCount();
+          for (uint32_t i = 0; i < tiedCount; i++) {
+            const RATiedReg& tiedReg = tiedRegs[i];
 
-        for (i = 0; i < tiedCount; i++) {
-          RATiedReg* tiedReg = &tiedRegs[i];
+            Support::BitWordIterator<uint32_t> useIt(tiedReg.useRewriteMask());
+            if (useIt.hasNext()) {
+              uint32_t useId = tiedReg.useId();
+              do {
+                inst->_rewriteIdAtIndex(useIt.next(), useId);
+              } while (useIt.hasNext());
+              combinedRegIds |= useId;
+            }
 
-          Support::BitWordIterator<uint32_t> useIt(tiedReg->useRewriteMask());
-          uint32_t useId = tiedReg->useId();
-          while (useIt.hasNext()) {
-            maxRegId = Support::max(maxRegId, useId);
-            inst->_rewriteIdAtIndex(useIt.next(), useId);
+            Support::BitWordIterator<uint32_t> outIt(tiedReg.outRewriteMask());
+            if (outIt.hasNext()) {
+              uint32_t outId = tiedReg.outId();
+              do {
+                inst->_rewriteIdAtIndex(outIt.next(), outId);
+              } while (outIt.hasNext());
+              combinedRegIds |= outId;
+            }
           }
 
-          Support::BitWordIterator<uint32_t> outIt(tiedReg->outRewriteMask());
-          uint32_t outId = tiedReg->outId();
-          while (outIt.hasNext()) {
-            maxRegId = Support::max(maxRegId, outId);
-            inst->_rewriteIdAtIndex(outIt.next(), outId);
+          // If one operand was rewritten from Reg to Mem, we have to ensure that we are using the correct instruction.
+          if (raInst->isRegToMemPatched()) {
+            switch (inst->id()) {
+              case Inst::kIdKmovb: {
+                if (operands[0].isGp() && operands[1].isMem()) {
+                  // Transform from [V]MOVD to MOV.
+                  operands[1].as<Mem>().setSize(1);
+                  inst->setId(Inst::kIdMovzx);
+                }
+                break;
+              }
+
+              case Inst::kIdVmovw: {
+                if (operands[0].isGp() && operands[1].isMem()) {
+                  // Transform from [V]MOVD to MOV.
+                  operands[1].as<Mem>().setSize(2);
+                  inst->setId(Inst::kIdMovzx);
+                }
+                break;
+              }
+
+              case Inst::kIdMovd:
+              case Inst::kIdVmovd:
+              case Inst::kIdKmovd: {
+                if (operands[0].isGp() && operands[1].isMem()) {
+                  // Transform from [V]MOVD to MOV.
+                  operands[1].as<Mem>().setSize(4);
+                  inst->setId(Inst::kIdMov);
+                }
+                break;
+              }
+
+              case Inst::kIdMovq:
+              case Inst::kIdVmovq:
+              case Inst::kIdKmovq: {
+                if (operands[0].isGp() && operands[1].isMem()) {
+                  // Transform from [V]MOVQ to MOV.
+                  operands[1].as<Mem>().setSize(8);
+                  inst->setId(Inst::kIdMov);
+                }
+                break;
+              }
+
+              default:
+                break;
+            }
+          }
+
+          // Transform VEX instruction to EVEX when necessary.
+          if (raInst->isTransformable()) {
+            if (combinedRegIds >= 16u) {
+              inst->setId(transformVexToEvex(inst->id()));
+            }
+          }
+
+          // Remove moves that do not do anything.
+          //
+          // Usually these moves are inserted during code generation and originally they used different registers. If RA
+          // allocated these into the same register such redundant mov would appear.
+          if (raInst->hasInstRWFlag(InstRWFlags::kMovOp) && !inst->hasExtraReg()) {
+            if (operands.size() == 2u) {
+              if (operands[0] == operands[1]) {
+                cc().removeNode(node);
+                goto Next;
+              }
+            }
+          }
+
+          if (ASMJIT_UNLIKELY(node->type() != NodeType::kInst)) {
+            // FuncRet terminates the flow, it must either be removed if the exit label is next to it (optimization) or
+            // patched to an architecture dependent jump instruction that jumps to the function's exit before the epilog.
+            if (node->type() == NodeType::kFuncRet) {
+              if (!isNextTo(node, _func->exitNode())) {
+                cc().setCursor(node->prev());
+                ASMJIT_PROPAGATE(emitJump(_func->exitNode()->label()));
+              }
+
+              BaseNode* prev = node->prev();
+              cc().removeNode(node);
+              block->setLast(prev);
+            }
           }
         }
 
-        // If one operand was rewritten from Reg to Mem, we have to ensure that we are using the correct instruction.
-        if (raInst->isRegToMemPatched()) {
-          switch (inst->id()) {
-            case Inst::kIdKmovb: {
-              if (operands[0].isGp() && operands[1].isMem()) {
-                // Transform from [V]MOVD to MOV.
-                operands[1].as<Mem>().setSize(1);
-                inst->setId(Inst::kIdMovzx);
+        // Rewrite stack slot addresses.
+        for (Operand& op : operands) {
+          if (op.isMem()) {
+            BaseMem& mem = op.as<BaseMem>();
+            if (mem.isRegHome()) {
+              uint32_t virtIndex = Operand::virtIdToIndex(mem.baseId());
+              if (ASMJIT_UNLIKELY(virtIndex >= virtCount)) {
+                return DebugUtils::errored(kErrorInvalidVirtId);
               }
-              break;
+
+              VirtReg* virtReg = cc().virtRegByIndex(virtIndex);
+              RAWorkReg* workReg = virtReg->workReg();
+              ASMJIT_ASSERT(workReg != nullptr);
+
+              RAStackSlot* slot = workReg->stackSlot();
+              int32_t offset = slot->offset();
+
+              mem._setBase(_sp.regType(), slot->baseRegId());
+              mem.clearRegHome();
+              mem.addOffsetLo32(offset);
             }
-
-            case Inst::kIdVmovw: {
-              if (operands[0].isGp() && operands[1].isMem()) {
-                // Transform from [V]MOVD to MOV.
-                operands[1].as<Mem>().setSize(2);
-                inst->setId(Inst::kIdMovzx);
-              }
-              break;
-            }
-
-            case Inst::kIdMovd:
-            case Inst::kIdVmovd:
-            case Inst::kIdKmovd: {
-              if (operands[0].isGp() && operands[1].isMem()) {
-                // Transform from [V]MOVD to MOV.
-                operands[1].as<Mem>().setSize(4);
-                inst->setId(Inst::kIdMov);
-              }
-              break;
-            }
-
-            case Inst::kIdMovq:
-            case Inst::kIdVmovq:
-            case Inst::kIdKmovq: {
-              if (operands[0].isGp() && operands[1].isMem()) {
-                // Transform from [V]MOVQ to MOV.
-                operands[1].as<Mem>().setSize(8);
-                inst->setId(Inst::kIdMov);
-              }
-              break;
-            }
-
-            default:
-              break;
-          }
-        }
-
-        // Transform VEX instruction to EVEX when necessary.
-        if (raInst->isTransformable()) {
-          if (maxRegId > 15) {
-            inst->setId(transformVexToEvex(inst->id()));
-          }
-        }
-
-        // Remove moves that do not do anything.
-        //
-        // Usually these moves are inserted during code generation and originally they used different registers. If RA
-        // allocated these into the same register such redundant mov would appear.
-        if (raInst->hasInstRWFlag(InstRWFlags::kMovOp) && !inst->hasExtraReg()) {
-          if (inst->opCount() == 2) {
-            if (inst->op(0) == inst->op(1)) {
-              cc()->removeNode(node);
-              goto Next;
-            }
-          }
-        }
-
-        if (ASMJIT_UNLIKELY(node->type() != NodeType::kInst)) {
-          // FuncRet terminates the flow, it must either be removed if the exit label is next to it (optimization) or
-          // patched to an architecture dependent jump instruction that jumps to the function's exit before the epilog.
-          if (node->type() == NodeType::kFuncRet) {
-            RABlock* block = raInst->block();
-            if (!isNextTo(node, _func->exitNode())) {
-              cc()->_setCursor(node->prev());
-              ASMJIT_PROPAGATE(emitJump(_func->exitNode()->label()));
-            }
-
-            BaseNode* prev = node->prev();
-            cc()->removeNode(node);
-            block->setLast(prev);
           }
         }
       }
-
-      // Rewrite stack slot addresses.
-      for (i = 0; i < opCount; i++) {
-        Operand& op = operands[i];
-        if (op.isMem()) {
-          BaseMem& mem = op.as<BaseMem>();
-          if (mem.isRegHome()) {
-            uint32_t virtIndex = Operand::virtIdToIndex(mem.baseId());
-            if (ASMJIT_UNLIKELY(virtIndex >= virtCount)) {
-              return DebugUtils::errored(kErrorInvalidVirtId);
-            }
-
-            VirtReg* virtReg = cc()->virtRegByIndex(virtIndex);
-            RAWorkReg* workReg = virtReg->workReg();
-            ASMJIT_ASSERT(workReg != nullptr);
-
-            RAStackSlot* slot = workReg->stackSlot();
-            int32_t offset = slot->offset();
-
-            mem._setBase(_sp.regType(), slot->baseRegId());
-            mem.clearRegHome();
-            mem.addOffsetLo32(offset);
-          }
-        }
-      }
-    }
 
 Next:
-    node = next;
+      if (node == stop) {
+        break;
+      }
+
+      node = next;
+    }
   }
 
   return kErrorOk;
@@ -1523,8 +1521,7 @@ Next:
 // x86::X86RAPass - OnEmit
 // =======================
 
-Error X86RAPass::emitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysId) noexcept {
-  RAWorkReg* wReg = workRegById(workId);
+Error X86RAPass::emitMove(RAWorkReg* wReg, uint32_t dstPhysId, uint32_t srcPhysId) noexcept {
   Reg dst(wReg->signature(), dstPhysId);
   Reg src(wReg->signature(), srcPhysId);
 
@@ -1541,28 +1538,24 @@ Error X86RAPass::emitMove(uint32_t workId, uint32_t dstPhysId, uint32_t srcPhysI
   return _emitHelper.emitRegMove(dst, src, wReg->typeId(), comment);
 }
 
-Error X86RAPass::emitSwap(uint32_t aWorkId, uint32_t aPhysId, uint32_t bWorkId, uint32_t bPhysId) noexcept {
-  RAWorkReg* waReg = workRegById(aWorkId);
-  RAWorkReg* wbReg = workRegById(bWorkId);
-
-  bool is64Bit = Support::max(waReg->typeId(), wbReg->typeId()) >= TypeId::kInt64;
+Error X86RAPass::emitSwap(RAWorkReg* aReg, uint32_t aPhysId, RAWorkReg* bReg, uint32_t bPhysId) noexcept {
+  bool is64Bit = Support::max(aReg->typeId(), bReg->typeId()) >= TypeId::kInt64;
   OperandSignature sign = is64Bit ? OperandSignature{RegTraits<RegType::kGp64>::kSignature}
                                   : OperandSignature{RegTraits<RegType::kGp32>::kSignature};
 
 #ifndef ASMJIT_NO_LOGGING
   if (hasDiagnosticOption(DiagnosticOptions::kRAAnnotate)) {
     _tmpString.clear();
-    Formatter::formatVirtRegNameWithPrefix(_tmpString, "<SWAP> ", 7u, waReg->virtReg());
-    Formatter::formatVirtRegNameWithPrefix(_tmpString, ", "     , 2u, wbReg->virtReg());
-    cc()->setInlineComment(_tmpString.data());
+    Formatter::formatVirtRegNameWithPrefix(_tmpString, "<SWAP> ", 7u, aReg->virtReg());
+    Formatter::formatVirtRegNameWithPrefix(_tmpString, ", "     , 2u, bReg->virtReg());
+    cc().setInlineComment(_tmpString.data());
   }
 #endif
 
-  return cc()->emit(Inst::kIdXchg, Reg(sign, aPhysId), Reg(sign, bPhysId));
+  return cc().emit(Inst::kIdXchg, Reg(sign, aPhysId), Reg(sign, bPhysId));
 }
 
-Error X86RAPass::emitLoad(uint32_t workId, uint32_t dstPhysId) noexcept {
-  RAWorkReg* wReg = workRegById(workId);
+Error X86RAPass::emitLoad(RAWorkReg* wReg, uint32_t dstPhysId) noexcept {
   Reg dstReg(wReg->signature(), dstPhysId);
   BaseMem srcMem(workRegAsMem(wReg));
 
@@ -1579,8 +1572,7 @@ Error X86RAPass::emitLoad(uint32_t workId, uint32_t dstPhysId) noexcept {
   return _emitHelper.emitRegMove(dstReg, srcMem, wReg->typeId(), comment);
 }
 
-Error X86RAPass::emitSave(uint32_t workId, uint32_t srcPhysId) noexcept {
-  RAWorkReg* wReg = workRegById(workId);
+Error X86RAPass::emitSave(RAWorkReg* wReg, uint32_t srcPhysId) noexcept {
   BaseMem dstMem(workRegAsMem(wReg));
   Reg srcReg(wReg->signature(), srcPhysId);
 
@@ -1598,11 +1590,11 @@ Error X86RAPass::emitSave(uint32_t workId, uint32_t srcPhysId) noexcept {
 }
 
 Error X86RAPass::emitJump(const Label& label) noexcept {
-  return cc()->jmp(label);
+  return cc().jmp(label);
 }
 
 Error X86RAPass::emitPreCall(InvokeNode* invokeNode) noexcept {
-  if (invokeNode->detail().hasVarArgs() && cc()->is64Bit()) {
+  if (invokeNode->detail().hasVarArgs() && cc().is64Bit()) {
     const FuncDetail& fd = invokeNode->detail();
     uint32_t argCount = invokeNode->argCount();
 
@@ -1625,10 +1617,10 @@ Error X86RAPass::emitPreCall(InvokeNode* invokeNode) noexcept {
         }
 
         if (!n) {
-          ASMJIT_PROPAGATE(cc()->xor_(eax, eax));
+          ASMJIT_PROPAGATE(cc().xor_(eax, eax));
         }
         else {
-          ASMJIT_PROPAGATE(cc()->mov(eax, n));
+          ASMJIT_PROPAGATE(cc().mov(eax, n));
         }
         break;
       }
@@ -1646,7 +1638,7 @@ Error X86RAPass::emitPreCall(InvokeNode* invokeNode) noexcept {
             if (arg.isReg() && RegUtils::groupOf(arg.regType()) == RegGroup::kVec) {
               Gp dst = gpq(fd.callConv().passedOrder(RegGroup::kGp)[argIndex]);
               Vec src = xmm(arg.regId());
-              ASMJIT_PROPAGATE(cc()->emit(choose(Inst::kIdMovq, Inst::kIdVmovq), dst, src));
+              ASMJIT_PROPAGATE(cc().emit(_emitHelper.ids().movq(), dst, src));
             }
           }
         }

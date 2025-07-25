@@ -87,27 +87,27 @@ namespace Helper
 			}
 		}
 
-		OPTIONALINLINE std::tuple<bool ,int , int> CheckMinMax(double nMin, double nMax)
+		OPTIONALINLINE std::expected<Point2D ,bool> CheckMinMax(double nMin, double nMax)
 		{
 			int nMinL = (int)(Math::abs(nMin) * 256.0);
 			int nMaxL = (int)(Math::abs(nMax) * 256.0);
 
 			if (!nMinL && !nMaxL)
-				return {false ,0,0};
+				return std::unexpected(false);
 
 			if (nMinL > nMaxL)
 				std::swap(nMinL, nMaxL);
 
-			return { true ,nMinL,nMaxL };
+			return Point2D { nMinL,nMaxL };
 		}
 
 		OPTIONALINLINE CoordStruct GetRandomCoordsInsideLoops(double nMin, double nMax, CoordStruct nPos, int Increment)
 		{
-			auto const& [nMinMax, nMinL, nMaxL] = CheckMinMax(nMin, nMax);
 
-			if (nMinMax) {
+			if (auto nMinMax = CheckMinMax(nMin, nMax))
+			{
 				auto nRandomCoords = MapClass::GetRandomCoordsNear(nPos,
-					(Math::abs(ScenarioClass::Instance->Random.RandomRanged(nMinL, nMaxL)) *
+					(Math::abs(ScenarioClass::Instance->Random.RandomRanged(nMinMax->Y, nMinMax->X)) *
 					MaxImpl(Increment, 1)),
 					ScenarioClass::Instance->Random.RandomBool());
 

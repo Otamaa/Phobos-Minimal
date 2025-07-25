@@ -1530,7 +1530,7 @@ static ZyanBool ZydisIsRegisterOperandCompatible(ZydisEncoderInstructionMatch *m
         }
 
         // MVEX does not require similar policy check
-        if ((match->definition->encoding == ZYDIS_INSTRUCTION_ENCODING_EVEX) &&
+        if ((match->definition->encoding != ZYDIS_INSTRUCTION_ENCODING_EVEX) &&
             (def_op->op.encoding == ZYDIS_OPERAND_ENCODING_MASK))
         {
             const ZydisInstructionDefinitionEVEX *evex_def =

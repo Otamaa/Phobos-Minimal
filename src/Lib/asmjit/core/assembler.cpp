@@ -170,8 +170,8 @@ Error BaseAssembler::embedDataArray(TypeId typeId, const void* data, size_t item
   uint32_t typeSize = TypeUtils::sizeOf(finalTypeId);
   Support::FastUInt8 of = 0;
 
-  size_t dataSize = Support::mulOverflow(itemCount, size_t(typeSize), &of);
-  size_t totalSize = Support::mulOverflow(dataSize, repeatCount, &of);
+  size_t dataSize = Support::mul_overflow(itemCount, size_t(typeSize), &of);
+  size_t totalSize = Support::mul_overflow(dataSize, repeatCount, &of);
 
   if (ASMJIT_UNLIKELY(of)) {
     return reportError(DebugUtils::errored(kErrorOutOfMemory));
@@ -270,7 +270,7 @@ Error BaseAssembler::embedLabel(const Label& label, size_t dataSize) {
     dataSize = registerSize();
   }
 
-  if (ASMJIT_UNLIKELY(!Support::isPowerOf2UpTo(dataSize, 8u))) {
+  if (ASMJIT_UNLIKELY(!Support::is_power_of_2_up_to(dataSize, 8u))) {
     return reportError(DebugUtils::errored(kErrorInvalidOperandSize));
   }
 
@@ -337,7 +337,7 @@ Error BaseAssembler::embedLabelDelta(const Label& label, const Label& base, size
     dataSize = registerSize();
   }
 
-  if (ASMJIT_UNLIKELY(!Support::isPowerOf2UpTo(dataSize, 8u))) {
+  if (ASMJIT_UNLIKELY(!Support::is_power_of_2_up_to(dataSize, 8u))) {
     return reportError(DebugUtils::errored(kErrorInvalidOperandSize));
   }
 

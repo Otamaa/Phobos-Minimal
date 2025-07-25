@@ -23,7 +23,7 @@ ASMJIT_PATCH(0x7058F6, TechnoClass_DrawAirstrikeFlare, 0x5)
 	REF_STACK(ColorStruct, color, STACK_OFFSET(0x70, -0x60));
 
 	// Fix depth buffer value.
-	int zValue = MinImpl(zSrc, zDest);
+	const int zValue = MinImpl(zSrc, zDest)+ RulesExtData::Instance()->AirstrikeLineZAdjust;
 	R->EBP(zValue);
 	R->EBX(zValue);
 
@@ -36,5 +36,12 @@ ASMJIT_PATCH(0x7058F6, TechnoClass_DrawAirstrikeFlare, 0x5)
 	return SkipGameCode;
 }
 
-// Skip setting color for the dot, it is already done in previous hook.
-DEFINE_JUMP(LJMP, 0x705986, 0x7059C7);
+// Always draw the dot and skip setting color, it is already done in previous hook.
+ASMJIT_PATCH(0x70597A, TechnoClass_DrawAirstrikeFlare_DotColor, 0x6)
+{
+	GET_STACK(int, xCoord, STACK_OFFSET(0x70, -0x38));
+
+	// Restore overridden instructions.
+	R->ECX(xCoord);
+	return 0x7059C7;
+}

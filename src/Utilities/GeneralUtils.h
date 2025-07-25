@@ -35,7 +35,7 @@ public:
 	static void IntValidCheck(int* source, const char* section, const char* tag, int defaultValue, int min = MIN_VAL(int), int max = MAX_VAL(int));
 	static void DoubleValidCheck(double* source, const char* section, const char* tag, double defaultValue, double min = MIN_VAL(double), double max = MAX_VAL(double));
 	static const wchar_t* LoadStringOrDefault(const char* key, const wchar_t* defaultValue);
-	
+
 	static const wchar_t* LoadStringUnlessMissing(const char* key, const wchar_t* defaultValue);
 
 	// check were stripped off , make sure to check both strings for validity !
@@ -60,7 +60,7 @@ public:
 		return RulesClass::Instance->ColorAdd[GetColorIndexForColorAdd(colorIndex)];
 	}
 
-	static COMPILETIMEEVAL OPTIONALINLINE int GetColorIndexForColorAdd(int colorIndex) //this one fixup the index 
+	static COMPILETIMEEVAL OPTIONALINLINE int GetColorIndexForColorAdd(int colorIndex) //this one fixup the index
 	{
 		return ((size_t)colorIndex >= RulesClass::Instance->ColorAdd.size()) ? 0 : colorIndex;
 	}
@@ -474,7 +474,7 @@ public:
 		int deltaY = targetCoords.Y - currentCoords.Y;
 
 		double atan = Math::atan2((double)deltaY, (double)deltaX);
-		double radians = (((atan - Math::HalfPi) * (1.0 / Math::GameDegreesToRadiansCoefficient)) - Math::GameDegrees90) * Math::GameDegreesToRadiansCoefficient;
+		double radians = (((atan - Math::HalfPi) * (1.0 / Math::BINARY_ANGLE_MAGIC)) - Math::GameDegrees90) * Math::BINARY_ANGLE_MAGIC;
 		int x = static_cast<int>(targetCoords.X + Math::cos(radians) * distance);
 		int y = static_cast<int>(targetCoords.Y - Math::sin(radians) * distance);
 

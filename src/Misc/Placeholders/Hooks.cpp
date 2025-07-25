@@ -64,7 +64,7 @@
 //	++pThis->CurrentBurstIndex;
 //	int rearm = pThis->GetROF(weapon_idx);
 //	pThis->ROF = rearm;
-//	pThis->DiskLaserTimer.Start(rearm);
+//	pThis->RearmTimer.Start(rearm);
 //	pThis->CurrentBurstIndex %= pWeapon->Burst;
 //	pDiskLaser->Fire(pThis, pTarget, pWeapon, damage);
 //

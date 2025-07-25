@@ -9,7 +9,6 @@
 #include <CCINIClass.h>
 #include <Unsorted.h>
 #include <Drawing.h>
-#include <filesystem>
 
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
@@ -37,12 +36,8 @@
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
 
-#include <mutex>
-#include <unordered_map>
 
-#include <Lib/asmjit/x86.h>
-
-#include <Utilities/SafeLogger .h>
+#include <Utilities/SafeLogger.h>
 
 #include <MessageBoxLogging.h>
 
@@ -251,7 +246,7 @@ struct HookSummary {
 
 struct HooksData {
 	std::vector<HookSummary> summary {};
-	std::vector<byte> originalOpcode {};
+	std::vector<uint8_t> originalOpcode {};
 };
 
 // remove the comment if you want to run the dll with patched gamemd
@@ -420,6 +415,35 @@ static void CheckHookConflict(unsigned int addr, size_t size)
 	{
 		Debug::LogDeferred("Hook %x seems to be conflicted with other hooks! see assembly before address\n", (void*)hookAddress);
 	}
+}
+
+std::string PrintAssembly(const void* code, size_t codeSize, uintptr_t runtimeAddress = 0)
+{
+	ZydisDecoder decoder;
+	ZydisFormatter formatter;
+
+	ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LEGACY_32, ZYDIS_STACK_WIDTH_32);
+	ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+	ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT];
+	std::string disassemblyResult;
+
+	size_t offset = 0;
+	while (offset < codeSize)
+	{
+		ZydisDecodedInstruction instruction;
+		while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(&decoder, reinterpret_cast<const uint8_t*>(code) + offset, codeSize - offset, &instruction, operands)))
+		{
+			// Format & print the binary instruction structure to human-readable format
+			char buffer[256];
+			ZydisFormatterFormatInstruction(&formatter, &instruction, operands,
+				instruction.operand_count_visible, buffer, sizeof(buffer), runtimeAddress + offset, ZYAN_NULL);
+			disassemblyResult += fmt::format("0x{} : {}\n", unsigned(runtimeAddress + offset), buffer);
+
+			offset += instruction.length;
+		}
+	}
+
+	return disassemblyResult;
 }
 
 void ApplyasmjitPatch() {
@@ -1326,7 +1350,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 #if defined(NO_SYRINGE)
 		ApplyEarlyFuncs();
-		LuaData::ApplyCoreHooks();
+		//LuaData::ApplyCoreHooks();
 		Phobos::ExeRun();
 #endif
 
@@ -1397,7 +1421,7 @@ extern "C" __declspec(dllexport) DWORD __cdecl Game_ExeRun(REGISTERS* R)
 {
 
 	ApplyEarlyFuncs();
-	LuaData::ApplyCoreHooks();
+	//LuaData::ApplyCoreHooks();
 	Phobos::ExeRun();
 	return 0;
 }

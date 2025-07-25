@@ -34,48 +34,6 @@ ASMJIT_PATCH(0x46B1D6, BulletClass_DrawVXL_Palette, 0x6)
 	return 0x46B1F2;
 }
 
-#pragma region Otamaa
-
-//ASMJIT_PATCH(0x469D12, BulletClass_Logics_CheckDoAirburst_MaxDebris, 0x8)
-//{
-//	GET(BulletClass*, pThis, ESI);
-//	GET(int, nMaxCount, EAX);
-//
-//	return (nMaxCount > 0) ? 0x469D1A : 0x0;
-//}
-
-#include <Utilities/DebrisSpawners.h>
-
-ASMJIT_PATCH(0x469D1A, BulletClass_Logics_Debris, 0x6)
-{
-	GET(FakeBulletClass*, pThis, ESI);
-
-	auto pWHExt = pThis->_GetWarheadTypeExtData();
-	auto const pCell = pThis->GetCell();
-	const bool isLand = !pCell ? true : pCell->LandType != LandType::Water || pCell->ContainsBridge();
-
-	if (!isLand && pWHExt->Debris_Conventional)
-		return 0x469EBA;
-
-	auto pWarhead = pWHExt->AttachedToObject;
-
-	std::optional<bool> limited {};
-	if (pWHExt->DebrisTypes_Limit.isset()) {
-		limited = pWHExt->DebrisTypes_Limit.Get();
-	}
-
-	auto pExt = pThis->_GetExtData();
-	HouseClass* const pOwner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExtData::FindFirstCivilianHouse());
-	HouseClass* const pVictim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
-	DebrisSpawners::Spawn(pWarhead->MinDebris,pWarhead->MaxDebris,
-		pThis->GetCoords() , pWarhead->DebrisTypes,
-		pWHExt->DebrisAnimTypes.GetElements(RulesClass::Instance->MetallicDebris)
-		,pWarhead->DebrisMaximums,pWHExt->DebrisMinimums, limited, pThis->Owner,pOwner,pVictim);
-
-	return 0x469EBA;
-}
-#pragma endregion
-
 #ifdef ENABLE_CELLSPREAD_LOCOWH
 static void  ManipulateLoco(FootClass* pFirer, AbstractClass* pTarget, BulletClass* pBullet, bool Area)
 {

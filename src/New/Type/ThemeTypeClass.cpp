@@ -100,21 +100,23 @@ ASMJIT_PATCH(0x7209B0, ThemeClass_GetUIName, 0x7)
 	return 0x7209C6;
 }
 
-ASMJIT_PATCH(0x720A69, ThemeClass_AI_Play, 0x6)
-{
-	GET(ThemeClass*, pThis, ESI);
+ASMJIT_PATCH(0x720A48 , ThemeClass_AI_Play , 0x5){
+	GET(int , pending , EAX);
+	GET(ThemeClass*, pThis , ESI);
+
+	if(pending == -2){
+		pThis->QueuedTheme = pThis->GetRandomIndex(pThis->LastTheme);
+	}
 
 	int idx = pThis->QueuedTheme;
 
 	if (pThis->LastTheme >= 0 &&
 		((pThis->LastTheme == idx && pThis->CurrentTheme == idx) ||
-			pThis->LastTheme != idx))
-	{
-		if (auto const pThemeExt = ThemeTypeClass::Array[pThis->LastTheme].get())
-		{
+			pThis->LastTheme != idx)) {
+
+		if (auto const pThemeExt = ThemeTypeClass::Array[pThis->LastTheme].get()) {
 			if (!pThemeExt->Repeat &&
-				strcmp(pThemeExt->NextText.data(), ""))
-			{
+				strcmp(pThemeExt->NextText.data(), "")) {
 				int next = ThemeClass::Instance->FindIndex(pThemeExt->NextText.data());
 
 				if (next >= 0 && next != pThis->LastTheme)

@@ -69,7 +69,7 @@ ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	++pThis->CurrentBurstIndex;
 	int rearm = pThis->GetROF(weapon_idx);
 	TechnoExtData::SetChargeTurretDelay(pThis, rearm, pWeapon);
-	pThis->DiskLaserTimer.Start(rearm);
+	pThis->RearmTimer.Start(rearm);
 	pThis->CurrentBurstIndex %= pWeapon->Burst;
 	pDiskLaser->Fire(pThis, pTarget, pWeapon, nDamage);
 

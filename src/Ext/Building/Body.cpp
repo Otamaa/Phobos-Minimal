@@ -1037,6 +1037,138 @@ void FakeBuildingClass::_OnFinishRepair()
 	VocClass::SafeImmedietelyPlayAt(sound, & this->GetCoords());
 }
 
+void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
+
+	this->FiringOccupantIndex = 0;
+
+	if (!this->Occupants.Count)
+		return;
+
+	this->Mark(MarkType::Change);
+	CoordStruct defaultCoord = CoordStruct::Empty;
+	CellStruct originCell = this->GetMapCoords();
+	CoordStruct scatterCoord{};
+	CellStruct fallbackCell{};
+	bool foundValidCell = false;
+
+	const int width = this->Type->GetFoundationWidth();
+	const int height = this->Type->GetFoundationHeight(false);
+	const int startX = originCell.X;
+	const int startY = originCell.Y;
+	const int endX = startX + width;
+	const int endY = startY + height;
+
+	InfantryClass* firstOccupant = this->Occupants.Items[0];
+	// Define directional priority: up, left, right, down
+	static std::array<CellStruct, 4u> directions = {
+		CellStruct{0, -1},  // up
+		CellStruct{-1, 0},  // left
+		CellStruct{1, 0},   // right
+		CellStruct{0, 1}   // down
+	};
+
+	// Try to find a valid adjacent cell to unload into
+	for (const auto& [dx, dy] : directions)
+	{
+		CellStruct tryCell = { endX, endY };
+
+		while (true)
+		{
+			tryCell.X += dx;
+			tryCell.Y += dy;
+
+			// Stop if out of building bounds
+			if (tryCell.X < startX || tryCell.X >= endX ||
+				tryCell.Y < startY || tryCell.Y >= endY)
+				break;
+
+			CellClass* mapCell = MapClass::Instance->GetCellAt(tryCell);
+			if (firstOccupant->IsCellOccupied(mapCell, FacingType::None, -1, false, true) == Move::OK)
+			{
+				fallbackCell = tryCell;
+				foundValidCell = true;
+				break;
+			}
+		}
+
+		if (foundValidCell)
+			break;
+	}
+
+	if (!foundValidCell)
+	{
+		if (killIfStuck)
+		{
+			this->KillOccupants(nullptr);
+			return;
+		}
+
+		fallbackCell.X = originCell.X + width - 1;
+		fallbackCell.Y = originCell.Y + height - 1;
+	}
+
+	// Unload logic begins
+	CellClass* unloadCell = MapClass::Instance->GetCellAt(fallbackCell);
+	scatterCoord = unloadCell->GetCoords();
+
+	++Unsorted::ScenarioInit;
+
+	for (int i = this->Occupants.Count - 1; i >= 0; --i)
+	{
+		FootClass* foot = this->Occupants.Items[i];
+
+		if (foot->Unlimbo(scatterCoord, DirType::North))
+		{
+			if (!foot->Owner) {
+				Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !",
+					this,
+					this->get_ID(),
+					foot,
+					foot->get_ID()
+				);
+			}
+
+			if (foot->Owner->IsInPlayerControl) {
+				foot->ShouldGarrisonStructure = 0;
+				foot->ShouldEnterOccupiable = 0;
+			}
+
+			foot->SetTarget(nullptr);
+			CoordStruct originCenter = this->GetCoords();
+			foot->Scatter(originCenter, true, true);
+
+			if (assignMission)
+			{
+				if (TeamClass* team = foot->Team)
+					team->RemoveMember(foot, -1, false);
+
+				foot->QueueMission(Mission::Hunt, 0);
+			}
+		}
+		else
+		{
+			foot->UnInit();
+		}
+	}
+
+	--Unsorted::ScenarioInit;
+
+	// Reset Occupants vector while keeping capacity
+	this->Occupants.Reset();
+
+	// Update threat map
+	this->UpdateThreatInCell(this->GetCell());
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x457DE0, FakeBuildingClass::UnloadOccupants);
+DEFINE_FUNCTION_JUMP(CALL, 0x44263B, FakeBuildingClass::UnloadOccupants);
+DEFINE_FUNCTION_JUMP(CALL, 0x44A5CA, FakeBuildingClass::UnloadOccupants);
+DEFINE_FUNCTION_JUMP(CALL, 0x44D89C, FakeBuildingClass::UnloadOccupants);
+DEFINE_FUNCTION_JUMP(CALL, 0x458229, FakeBuildingClass::UnloadOccupants);
+DEFINE_FUNCTION_JUMP(CALL, 0x501509, FakeBuildingClass::UnloadOccupants);
+DEFINE_FUNCTION_JUMP(CALL, 0x6DF77F, FakeBuildingClass::UnloadOccupants);
+DEFINE_FUNCTION_JUMP(CALL, 0x6E40F2, FakeBuildingClass::UnloadOccupants);
+
 int FakeBuildingClass::_GetAirstrikeInvulnerabilityIntensity(int currentIntensity) const
 {
 	int newIntensity = this->GetFlashingIntensity(currentIntensity);

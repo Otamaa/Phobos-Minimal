@@ -787,6 +787,9 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	void ReleaseLocomotor(bool setTarget)
 	{ JMP_THIS(0x70FEE0); }
 
+	void DistributedFire()
+	{ JMP_THIS(0x709550); }
+
 		// changes locomotor to the given one, Magnetron style
 		//	// mind that this locks up the source too, Magnetron style
     void ImbueLocomotor(FootClass* target, CLSID clsid)
@@ -914,7 +917,7 @@ public:
 	TechnoClass*     BunkerLinkedItem;
 
 	float            PitchAngle; // not exactly, and it doesn't affect the drawing, only internal state of a dropship
-	DECLARE_PROPERTY(CDTimerClass, DiskLaserTimer);
+	DECLARE_PROPERTY(CDTimerClass, RearmTimer);
 	int           	 ROF;
 	int              Ammo;
 	int              Value; //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C

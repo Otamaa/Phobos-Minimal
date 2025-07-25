@@ -6,10 +6,16 @@
 #include <Utilities/Patch.h>
 
 #include <Wstring.h>
-#include <format>
 #include <random>
 #include <ColorStruct.h>
+#include <MessageBoxLogging.h>
 
+#include <expected>
+#include <filesystem>
+#include <mutex>
+#include <unordered_map>
+
+#include <Lib/asmjit/x86.h>
 #include <Lib/fmt/core.h>
 #include <Lib/fmt/xchar.h>
 #include <Lib/fmt/printf.h>

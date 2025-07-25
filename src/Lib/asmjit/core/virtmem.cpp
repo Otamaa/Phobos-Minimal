@@ -174,7 +174,7 @@ static void detectVMInfo(Info& vmInfo) noexcept {
   SYSTEM_INFO systemInfo;
 
   ::GetSystemInfo(&systemInfo);
-  vmInfo.pageSize = Support::alignUpPowerOf2<uint32_t>(systemInfo.dwPageSize);
+  vmInfo.pageSize = Support::align_up_power_of_2<uint32_t>(systemInfo.dwPageSize);
   vmInfo.pageGranularity = systemInfo.dwAllocationGranularity;
 }
 
@@ -242,7 +242,7 @@ Error alloc(void** p, size_t size, MemoryFlags memoryFlags) noexcept {
       return DebugUtils::errored(kErrorFeatureNotEnabled);
     }
 
-    if (!Support::isAligned(size, lpSize)) {
+    if (!Support::is_aligned(size, lpSize)) {
       return DebugUtils::errored(kErrorInvalidArgument);
     }
 
@@ -415,13 +415,13 @@ static Error asmjitErrorFromErrno(int e) noexcept {
 
 [[maybe_unused]]
 static MemoryFlags maxAccessFlagsToRegularAccessFlags(MemoryFlags memoryFlags) noexcept {
-  static constexpr uint32_t kMaxProtShift = Support::ConstCTZ<uint32_t(MemoryFlags::kMMapMaxAccessRead)>::value;
+  static constexpr uint32_t kMaxProtShift = Support::ctz_const<MemoryFlags::kMMapMaxAccessRead>;
   return MemoryFlags(uint32_t(memoryFlags & MemoryFlags::kMMapMaxAccessRWX) >> kMaxProtShift);
 }
 
 [[maybe_unused]]
 static MemoryFlags regularAccessFlagsToMaxAccessFlags(MemoryFlags memoryFlags) noexcept {
-  static constexpr uint32_t kMaxProtShift = Support::ConstCTZ<uint32_t(MemoryFlags::kMMapMaxAccessRead)>::value;
+  static constexpr uint32_t kMaxProtShift = Support::ctz_const<MemoryFlags::kMMapMaxAccessRead>;
   return MemoryFlags(uint32_t(memoryFlags & MemoryFlags::kAccessRWX) << kMaxProtShift);
 }
 
@@ -491,7 +491,7 @@ static size_t detectLargePageSize() noexcept {
     largePageSize = largePageSize * 10 + digit;
   }
 
-  if (Support::isPowerOf2(largePageSize))
+  if (Support::is_power_of_2(largePageSize))
     return largePageSize;
   else
     return 0u;
@@ -878,7 +878,7 @@ static Error mapMemory(void** p, size_t size, MemoryFlags memoryFlags, int fd = 
       return DebugUtils::errored(kErrorFeatureNotEnabled);
     }
 
-    if (!Support::isAligned(size, lpSize)) {
+    if (!Support::is_aligned(size, lpSize)) {
       return DebugUtils::errored(kErrorInvalidArgument);
     }
 

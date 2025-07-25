@@ -155,13 +155,13 @@ enum class InstOptions : uint32_t {
   //! AVX-512: Mask of all possible AVX-512 options except EVEX prefix flag.
   kX86_AVX512Mask = 0x00FC0000u,
 
-  //! Force REX.B and/or VEX.B field (X64 only).
+  //! Force REX.B and/or VEX.B field (X64 only, used internally).
   kX86_OpCodeB = 0x01000000u,
-  //! Force REX.X and/or VEX.X field (X64 only).
+  //! Force REX.X and/or VEX.X field (X64 only, used internally).
   kX86_OpCodeX = 0x02000000u,
-  //! Force REX.R and/or VEX.R field (X64 only).
+  //! Force REX.R and/or VEX.R field (X64 only, used internally).
   kX86_OpCodeR = 0x04000000u,
-  //! Force REX.W and/or VEX.W field (X64 only).
+  //! Force REX.W and/or VEX.W field (X64 only, used internally).
   kX86_OpCodeW = 0x08000000u,
   //! Force REX prefix (X64 only).
   kX86_Rex = 0x40000000u,
@@ -283,12 +283,12 @@ public:
   template<InstIdParts kPart>
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t getInstIdPart() const noexcept {
-    return (uint32_t(_id) & uint32_t(kPart)) >> Support::ConstCTZ<uint32_t(kPart)>::value;
+    return (uint32_t(_id) & uint32_t(kPart)) >> Support::ctz_const<kPart>;
   }
 
   template<InstIdParts kPart>
   ASMJIT_INLINE_NODEBUG void setInstIdPart(uint32_t value) noexcept {
-    _id = (_id & ~uint32_t(kPart)) | (value << Support::ConstCTZ<uint32_t(kPart)>::value);
+    _id = (_id & ~uint32_t(kPart)) | (value << Support::ctz_const<kPart>);
   }
 
   //! \}
@@ -363,20 +363,20 @@ public:
 
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR InstId composeARMInstId(uint32_t id, arm::CondCode cc) noexcept {
-    return id | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
+    return id | (uint32_t(cc) << Support::ctz_const<InstIdParts::kARM_Cond>);
   }
 
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR InstId composeARMInstId(uint32_t id, a32::DataType dt, arm::CondCode cc = arm::CondCode::kAL) noexcept {
-    return id | (uint32_t(dt) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT)>::value)
-              | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
+    return id | (uint32_t(dt) << Support::ctz_const<InstIdParts::kA32_DT>)
+              | (uint32_t(cc) << Support::ctz_const<InstIdParts::kARM_Cond>);
   }
 
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR InstId composeARMInstId(uint32_t id, a32::DataType dt, a32::DataType dt2, arm::CondCode cc = arm::CondCode::kAL) noexcept {
-    return id | (uint32_t(dt) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT)>::value)
-              | (uint32_t(dt2) << Support::ConstCTZ<uint32_t(InstIdParts::kA32_DT2)>::value)
-              | (uint32_t(cc) << Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
+    return id | (uint32_t(dt) << Support::ctz_const<InstIdParts::kA32_DT>)
+              | (uint32_t(dt2) << Support::ctz_const<InstIdParts::kA32_DT2>)
+              | (uint32_t(cc) << Support::ctz_const<InstIdParts::kARM_Cond>);
   }
 
   [[nodiscard]]
@@ -386,7 +386,7 @@ public:
 
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR arm::CondCode extractARMCondCode(uint32_t id) noexcept {
-    return (arm::CondCode)((uint32_t(id) & uint32_t(InstIdParts::kARM_Cond)) >> Support::ConstCTZ<uint32_t(InstIdParts::kARM_Cond)>::value);
+    return (arm::CondCode)((uint32_t(id) & uint32_t(InstIdParts::kARM_Cond)) >> Support::ctz_const<InstIdParts::kARM_Cond>);
   }
 
   //! \}
@@ -566,7 +566,7 @@ struct OpRWInfo {
     _consecutiveLeadCount = 0;
     _resetReserved();
 
-    uint64_t mask = Support::lsbMask<uint64_t>(Support::min<uint32_t>(regSize, 64));
+    uint64_t mask = Support::lsb_mask<uint64_t>(Support::min<uint32_t>(regSize, 64));
 
     _readByteMask = Support::test(opFlags, OpRWFlags::kRead) ? mask : uint64_t(0);
     _writeByteMask = Support::test(opFlags, OpRWFlags::kWrite) ? mask : uint64_t(0);

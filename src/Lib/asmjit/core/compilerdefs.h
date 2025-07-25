@@ -8,6 +8,7 @@
 
 #include "../core/api-config.h"
 #include "../core/operand.h"
+#include "../core/support.h"
 #include "../core/type.h"
 #include "../core/zonestring.h"
 
@@ -17,6 +18,32 @@ class RAWorkReg;
 
 //! \addtogroup asmjit_compiler
 //! \{
+
+//! Flags associated with a virtual register \ref VirtReg.
+enum class VirtRegFlags : uint8_t {
+  kNone = 0x00u,
+
+  //! True if this is a fixed register, never reallocated.
+  kIsFixed = 0x01u,
+
+  //! True if the virtual register is only used as a stack area (never accessed as register). Stack area is allocated
+  //! via \ref BaseCompiler::_newStack() and then architecture dependent compilers like \ref x86::Compiler::newStack().
+  kIsStackArea = 0x02u,
+
+  //! True if the virtual register has a stack slot.
+  //!
+  //! Stack slots are assigned by the register allocator - so initially when a \ref VirtReg is created this flag would
+  //! not be set. When a virtual register is spilled, stack slot is automatically created for the register and the
+  //! \ref VirtReg::_stackOffset member is updated. Stack areas will always have associated stack slot during register
+  //! allocation.
+  kHasStackSlot = 0x04u,
+
+  //! Virtual register `log2(alignment)` mask (for spilling) (3 bits in flags).
+  //!
+  //! \note For space purposes the alignment is stored as log2(alignment). So the alignment is `1 << _alignmentLog2`.
+  kAlignmentLog2Mask = 0xE0u
+};
+ASMJIT_DEFINE_ENUM_FLAGS(VirtRegFlags)
 
 //! Public virtual register interface, managed by \ref BaseCompiler.
 //!
@@ -34,36 +61,51 @@ class VirtReg {
 public:
   ASMJIT_NONCOPYABLE(VirtReg)
 
+  //! \name Constants
+  //! \{
+
+  static constexpr inline uint32_t kAlignmentLog2Mask  = uint32_t(VirtRegFlags::kAlignmentLog2Mask);
+  static constexpr inline uint32_t kAlignmentLog2Shift = Support::ctz_const<kAlignmentLog2Mask>;
+
+  static ASMJIT_INLINE_CONSTEXPR VirtRegFlags _flagsFromAlignmentLog2(uint32_t alignmentLog2) noexcept {
+    return VirtRegFlags(alignmentLog2 << kAlignmentLog2Shift);
+  }
+
+  static ASMJIT_INLINE_CONSTEXPR uint32_t _alignmentLog2FromFlags(VirtRegFlags flags) noexcept {
+    return uint32_t(flags) >> kAlignmentLog2Shift;
+  }
+
+  //! \}
+
   //! \name Members
   //! \{
 
-  //! Virtual register signature.
-  OperandSignature _signature {};
   //! Virtual register id.
   uint32_t _id = 0;
-  //! Virtual register size (can be smaller than `_signature._size`).
+  //! Virtual register size (can be smaller than a real register size if only a part of the register is used).
   uint32_t _virtSize = 0;
-  //! Virtual register alignment (for spilling).
-  uint8_t _alignment = 0;
-  //! Type-id.
+
+  //! Virtual register type.
+  RegType _regType = RegType::kNone;
+  //! Virtual register flags.
+  VirtRegFlags _regFlags = VirtRegFlags::kNone;
+
+  //! Virtual register weight.
+  //!
+  //! Weight is used for alloc/spill decisions. Higher weight means a higher priority to keep the virtual
+  //! register always allocated as a physical register. The default weight is zero, which means standard
+  //! weight (no weight is added to the initial priority, which is calculated based on the number of uses
+  //! divided by the sum of widths of all live spans).
+  uint8_t _weight = 0;
+
+  //! Type id.
   TypeId _typeId = TypeId::kVoid;
-  //! Virtual register weight for alloc/spill decisions.
-  uint8_t _weight = 1;
-  //! True if this is a fixed register, never reallocated.
-  uint8_t _isFixed : 1;
-  //! True if the virtual register is only used as a stack (never accessed as register).
-  uint8_t _isStack : 1;
-  //! True if this virtual register has assigned stack offset (can be only valid after register allocation pass).
-  uint8_t _hasStackSlot : 1;
-  uint8_t _reservedBits : 5;
+
   //! Home register hint for the register allocator (initially unassigned).
   uint8_t _homeIdHint = Reg::kIdBad;
 
   //! Stack offset assigned by the register allocator relative to stack pointer (can be negative as well).
   int32_t _stackOffset = 0;
-
-  //! Reserved for future use (padding).
-  uint32_t _reservedU32 = 0;
 
   //! Virtual register name (either empty or user provided).
   ZoneString<16> _name {};
@@ -79,16 +121,12 @@ public:
   //! \name Construction & Destruction
   //! \{
 
-  ASMJIT_INLINE_NODEBUG VirtReg(OperandSignature signature, uint32_t id, uint32_t virtSize, uint32_t alignment, TypeId typeId) noexcept
-    : _signature(signature),
-      _id(id),
+  ASMJIT_INLINE_NODEBUG VirtReg(RegType regType, VirtRegFlags regFlags, uint32_t id, uint32_t virtSize, TypeId typeId) noexcept
+    : _id(id),
       _virtSize(virtSize),
-      _alignment(uint8_t(alignment)),
-      _typeId(typeId),
-      _isFixed(0),
-      _isStack(0),
-      _hasStackSlot(0),
-      _reservedBits(0) {}
+      _regType(regType),
+      _regFlags(regFlags),
+      _typeId(typeId) {}
 
   //! \}
 
@@ -99,33 +137,13 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t id() const noexcept { return _id; }
 
-  //! Returns the virtual register name.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const char* name() const noexcept { return _name.data(); }
-
-  //! Returns the size of the virtual register name.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t nameSize() const noexcept { return _name.size(); }
-
-  //! Returns a register signature of this virtual register.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG OperandSignature signature() const noexcept { return _signature; }
-
   //! Returns a virtual register type (maps to the physical register type as well).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RegType type() const noexcept { return _signature.regType(); }
+  ASMJIT_INLINE_NODEBUG RegType regType() const noexcept { return _regType; }
 
-  //! Returns a virtual register group (maps to the physical register group as well).
+  //! Returns a virtual register flags.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RegGroup group() const noexcept { return _signature.regGroup(); }
-
-  //! Returns a real size of the register this virtual register maps to.
-  //!
-  //! For example if this is a 128-bit SIMD register used for a scalar single precision floating point value then
-  //! its virtSize would be 4, however, the `regSize` would still say 16 (128-bits), because it's the smallest size
-  //! of that register type.
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t regSize() const noexcept { return _signature.size(); }
+  ASMJIT_INLINE_NODEBUG VirtRegFlags regFlags() const noexcept { return _regFlags; }
 
   //! Returns the virtual register size.
   //!
@@ -134,9 +152,9 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t virtSize() const noexcept { return _virtSize; }
 
-  //! Returns the virtual register alignment.
+  //! Returns the virtual register alignment required for memory operations (load/spill).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t alignment() const noexcept { return _alignment; }
+  ASMJIT_INLINE_NODEBUG uint32_t alignment() const noexcept { return 1u << _alignmentLog2FromFlags(_regFlags); }
 
   //! Returns the virtual register type id.
   [[nodiscard]]
@@ -147,32 +165,32 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t weight() const noexcept { return _weight; }
 
-  //! Sets the virtual register weight (0 to 255) - the register allocator can use it as explicit hint for
-  //! alloc/spill decisions and initial bin-packing.
+  //! Sets the virtual register weight (0 to 255) - the register allocator can use it as explicit hint for alloc/spill
+  //! decisions and initial bin-packing.
   ASMJIT_INLINE_NODEBUG void setWeight(uint32_t weight) noexcept { _weight = uint8_t(weight); }
 
   //! Returns whether the virtual register is always allocated to a fixed physical register (and never reallocated).
   //!
   //! \note This is only used for special purposes and it's mostly internal.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isFixed() const noexcept { return bool(_isFixed); }
+  ASMJIT_INLINE_NODEBUG bool isFixed() const noexcept { return Support::test(_regFlags, VirtRegFlags::kIsFixed); }
 
   //! Tests whether the virtual register is in fact a stack that only uses the virtual register id.
   //!
   //! \note It's an error if a stack is accessed as a register.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isStack() const noexcept { return bool(_isStack); }
+  ASMJIT_INLINE_NODEBUG bool isStackArea() const noexcept { return Support::test(_regFlags, VirtRegFlags::kIsStackArea); }
 
   //! Tests whether this virtual register (or stack) has assigned a stack offset.
   //!
   //! If this is a virtual register that was never allocated on stack, it would return false, otherwise if
   //! it's a virtual register that was spilled or explicitly allocated stack, the return value would be true.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasStackSlot() const noexcept { return bool(_hasStackSlot); }
+  ASMJIT_INLINE_NODEBUG bool hasStackSlot() const noexcept { return Support::test(_regFlags, VirtRegFlags::kHasStackSlot); }
 
   //! Assigns a stack offset of this virtual register to `stackOffset` and sets `_hasStackSlot` to true.
   ASMJIT_INLINE_NODEBUG void assignStackSlot(int32_t stackOffset) noexcept {
-    _hasStackSlot = 1;
+    _regFlags |= VirtRegFlags::kHasStackSlot;
     _stackOffset = stackOffset;
   }
 
@@ -195,6 +213,14 @@ public:
   //! value will be zero when the stack offset was not assigned.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG int32_t stackOffset() const noexcept { return _stackOffset; }
+
+  //! Returns the virtual register name.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG const char* name() const noexcept { return _name.data(); }
+
+  //! Returns the size of the virtual register name.
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG uint32_t nameSize() const noexcept { return _name.size(); }
 
   //! Tests whether the virtual register has an associated `RAWorkReg` at the moment.
   [[nodiscard]]

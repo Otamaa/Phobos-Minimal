@@ -45,7 +45,7 @@ Error ASMJIT_CDECL formatInstruction(
   FormatFlags flags,
   const BaseEmitter* emitter,
   Arch arch,
-  const BaseInst& inst, const Operand_* operands, size_t opCount) noexcept;
+  const BaseInst& inst, Span<const Operand_> operands) noexcept;
 
 } // {FormatterInternal}
 

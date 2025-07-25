@@ -47,13 +47,127 @@
 UnitClass* TechnoExtData::Deployer { nullptr };
 #pragma endregion
 
-int FakeTechnoClass::_EvaluateJustCell(CellStruct* where)
+int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,TechnoClass* pTarget, WeaponTypeClass* pWeapon)
+{
+	int damage = 0;
+	if (pTarget && !pWeapon->IsSonic && !pWeapon->UseFireParticles && pWeapon->Damage > 0)
+	{
+
+		double _damage = TechnoExtData::GetDamageMult(pThis, (double)pWeapon->Damage);
+		int _damage_int = (int)TechnoExtData::GetArmorMult(pTarget, _damage, pWeapon->Warhead);
+		if (_damage_int < 1)
+			_damage_int = 1;
+
+		damage = FakeWarheadTypeClass::ModifyDamage(_damage_int, pWeapon->Warhead, TechnoExtData::GetTechnoArmor(pTarget, pWeapon->Warhead), 0);
+	}
+
+	return damage;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x6FDB80, FakeTechnoClass::__AdjustDamage);
+DEFINE_FUNCTION_JUMP(CALL, 0x6FE61D, FakeTechnoClass::__AdjustDamage);
+DEFINE_FUNCTION_JUMP(CALL, 0x7099B0, FakeTechnoClass::__AdjustDamage);
+
+bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat)
+{
+	pThis->__creationframe_4FC = Unsorted::CurrentFrame();
+	auto pType = pThis->GetTechnoType();
+
+	int delay = ScenarioClass::Instance->Random.RandomRanged(0, 2);
+
+	const auto pRules = RulesClass::Instance();
+	const bool IsHuman = pThis->Owner->IsHumanPlayer || pThis->Owner->IsControlledByHuman();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pThis->MegaMissionIsAttackMove())
+	{
+		delay += IsHuman
+			? pTypeExt->PlayerAttackMoveTargetingDelay.Get(RulesExtData::Instance()->PlayerAttackMoveTargetingDelay.Get(RulesClass::Instance->NormalTargetingDelay))
+			: pTypeExt->AIAttackMoveTargetingDelay.Get(RulesExtData::Instance()->AIAttackMoveTargetingDelay.Get(RulesClass::Instance->NormalTargetingDelay));
+	}
+	else if (pThis->CurrentMission == Mission::Area_Guard)
+	{
+		delay +=
+			IsHuman
+			? pTypeExt->PlayerGuardAreaTargetingDelay.Get(RulesExtData::Instance()->PlayerGuardAreaTargetingDelay.Get(pRules->GuardAreaTargetingDelay))
+			: pTypeExt->AIGuardAreaTargetingDelay.Get(RulesExtData::Instance()->AIGuardAreaTargetingDelay.Get(pRules->GuardAreaTargetingDelay));
+
+	}
+	else
+	{
+		delay += IsHuman
+			? pTypeExt->PlayerNormalTargetingDelay.Get(RulesExtData::Instance()->PlayerNormalTargetingDelay.Get(pRules->NormalTargetingDelay))
+			: pTypeExt->AINormalTargetingDelay.Get(RulesExtData::Instance()->AINormalTargetingDelay.Get(pRules->NormalTargetingDelay));
+	}
+
+	pThis->TargetingTimer.Start(delay);
+
+	if (pTypeExt->AutoFire) {
+
+		pThis->SetTarget(pTypeExt->AutoFire_TargetSelf ? pThis :
+			static_cast<AbstractClass*>(pThis->GetCell()));
+		return pThis->Target != nullptr;
+	}
+
+	// Check current target
+	if (pThis->Target && pThis->ShouldLoseTargetNow)
+	{
+		const int weaponIndex = pThis->SelectWeapon(pThis->Target);
+		const auto fire = pThis->GetFireError(pThis->Target, weaponIndex, 1);
+
+		if (fire == FireError::CANT) {
+
+			if(!pThis->SpawnManager) {
+				pThis->SetTarget(nullptr);
+			} else {
+				pThis->SpawnManager->ResetTarget();
+			}
+		}
+
+		if (fire == FireError::ILLEGAL || fire == FireError::RANGE) {
+			pThis->SetTarget(nullptr);
+		}
+	}
+
+	if (!pThis->Target) {
+		if (pType->DistributedFire) {
+			pThis->DistributedFire();
+		} else if (const auto potentialTarget = pThis->GreatestThreat((threat & (ThreatType::Range | ThreatType::Area)).operator ThreatType(), coord, 0)) {
+
+			pThis->SetTarget(potentialTarget);
+
+			if (auto pPotentT = flag_cast_to<TechnoClass* ,false>(potentialTarget)) {
+				const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThis->Target));
+
+				if (pWeapon && pWeapon->WeaponType && !pWeapon->WeaponType->Projectile->Inaccurate) {
+					pPotentT->EstimatedHealth -= FakeTechnoClass::__AdjustDamage(pThis , discard_t() , pPotentT, pWeapon->WeaponType);
+
+				}
+			}
+		}
+	}
+
+	return pThis->Target != nullptr;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x709820, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2640, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4258, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E9030, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB3F4, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4CFC, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F600C, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x6FA6DC, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4D6F06, FakeTechnoClass::__TargetSomethingNearby);
+DEFINE_FUNCTION_JUMP(CALL6, 0x4D5392, FakeTechnoClass::__TargetSomethingNearby);
+
+int __fastcall FakeTechnoClass::_EvaluateJustCell(TechnoClass* pThis , discard_t,CellStruct* where)
 {
 
 	// /*
 	// **  First, only computer objects are allowed to automatically scan for walls.
 	// */
-	if (this->Owner->IsControlledByHuman())
+	if (pThis->Owner->IsControlledByHuman())
 	{
 		return 0;
 	}
@@ -62,7 +176,7 @@ int FakeTechnoClass::_EvaluateJustCell(CellStruct* where)
 	// **  Even then, if the difficulty indicates that it shouldn't search for wall
 	// **  targets, then don't allow it to do so.
 	// */
-	if (!RulesClass::Instance->AIDiffs[(int)this->Owner->AIDifficulty].DestroyWalls)
+	if (!RulesClass::Instance->AIDiffs[(int)pThis->Owner->AIDifficulty].DestroyWalls)
 	{
 		return 0;
 	}
@@ -72,12 +186,12 @@ int FakeTechnoClass::_EvaluateJustCell(CellStruct* where)
 	if (pCell->OverlayTypeIndex == -1 || !OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex]->Wall)
 		return 0;
 
-	auto pSelectedWeapon = this->SelectWeapon(pCell);
+	auto pSelectedWeapon = pThis->SelectWeapon(pCell);
 
-	if (!this->IsCloseEnough(pCell, pSelectedWeapon))
+	if (!pThis->IsCloseEnough(pCell, pSelectedWeapon))
 		return 0;
 
-	auto pSelectedWeapon_ = this->GetWeapon(pSelectedWeapon);
+	auto pSelectedWeapon_ = pThis->GetWeapon(pSelectedWeapon);
 
 	if (!pSelectedWeapon_ || !pSelectedWeapon_->WeaponType || !pSelectedWeapon_->WeaponType->Warhead)
 		return 0;
@@ -101,19 +215,19 @@ int FakeTechnoClass::_EvaluateJustCell(CellStruct* where)
 	// /*
 	// **  If this is a friendly wall, then don't attack it.
 	// */
-	if (pCell->WallOwnerIndex == -1 || this->Owner->IsAlliedWith(HouseClass::Array->Items[pCell->WallOwnerIndex]))
+	if (pCell->WallOwnerIndex == -1 || pThis->Owner->IsAlliedWith(HouseClass::Array->Items[pCell->WallOwnerIndex]))
 	{
 		return 0;
 	}
 
-	const double distance = (this->GetCoords() - CellClass::Cell2Coord(*where)).Length();
+	const double distance = (pThis->GetCoords() - CellClass::Cell2Coord(*where)).Length();
 
 	// /*
 	// **  Since a wall was found, then return a value adjusted according to the range the wall
 	// **  is from the object. The greater the range, the lesser the value returned.
 	// */
 
-	return int((double)this->GetWeaponRange(pSelectedWeapon) - distance);
+	return int((double)pThis->GetWeaponRange(pSelectedWeapon) - distance);
 }
 
 bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* const pTarget, WeaponTypeClass* const pWeaponType)
@@ -378,7 +492,7 @@ void TechnoExtData::UpdateRecountBurst() {
 
 			if (rof > 0) {
 				pThis->ROF = rof;
-				pThis->DiskLaserTimer.Start(rof);
+				pThis->RearmTimer.Start(rof);
 			}
 
 			pThis->CurrentBurstIndex = 0;
@@ -395,8 +509,8 @@ void TechnoExtData::UpdateRearmInEMPState()
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
-	if (pThis->DiskLaserTimer.InProgress() && pTypeExt->NoRearm_UnderEMP.Get(RulesExtData::Instance()->NoRearm_UnderEMP))
-		pThis->DiskLaserTimer.StartTime++;
+	if (pThis->RearmTimer.InProgress() && pTypeExt->NoRearm_UnderEMP.Get(RulesExtData::Instance()->NoRearm_UnderEMP))
+		pThis->RearmTimer.StartTime++;
 
 	if (pThis->ReloadTimer.InProgress() && pTypeExt->NoReload_UnderEMP.Get(RulesExtData::Instance()->NoReload_UnderEMP))
 		pThis->ReloadTimer.StartTime++;
@@ -407,8 +521,8 @@ void TechnoExtData::UpdateRearmInTemporal()
 	const auto pThis = this->AttachedToObject;
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
-	if (pThis->DiskLaserTimer.InProgress() && pTypeExt->NoRearm_Temporal.Get(RulesExtData::Instance()->NoRearm_Temporal))
-		pThis->DiskLaserTimer.StartTime++;
+	if (pThis->RearmTimer.InProgress() && pTypeExt->NoRearm_Temporal.Get(RulesExtData::Instance()->NoRearm_Temporal))
+		pThis->RearmTimer.StartTime++;
 
 	if (pThis->ReloadTimer.InProgress() && pTypeExt->NoReload_Temporal.Get(RulesExtData::Instance()->NoReload_Temporal))
 		pThis->ReloadTimer.StartTime++;
@@ -1107,7 +1221,7 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 		if (!pThis->IsArmed())
 			return;
 
-		value = pThis->DiskLaserTimer.GetTimeLeft();
+		value = pThis->RearmTimer.GetTimeLeft();
 		maxValue = pThis->ROF;
 		break;
 	}
@@ -1615,18 +1729,22 @@ bool TechnoExtData::IsInterceptor()
 
 void TechnoExtData::CreateInitialPayload(bool forced)
 {
-	if (!forced) {
+	auto const pThis = this->AttachedToObject;
+	auto const pType = pThis->GetTechnoType();
 
-		if (this->PayloadCreated)
-		{
+	//if (IS_SAME_STR_("FTNKT", pType->ID))
+	//	Debug::Log("FTNKT Check\n");
+
+	if (!forced) {
+		if (this->PayloadTriggered) {
 			return;
 		}
 
-		this->PayloadCreated = true;
+		this->PayloadTriggered = true;
 	}
-	auto const pThis = this->AttachedToObject;
-	auto const pType = pThis->GetTechnoType();
+
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
 	if (pTypeExt->InitialPayload_Types.empty())
 		return;
 
@@ -1677,7 +1795,12 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 
 		for (auto j = 0; j < count; ++j)
 		{
+			// clear the mutexes temporally
+			// this is really dangerious that can cause issues
+			// since Mutex is there to make stuffs go wrong or overlap eachother
+			int mutex_old = std::exchange(Unsorted::ScenarioInit(), 0);
 			auto const pObject = (TechnoClass*)pPayloadType->CreateObject(pThis->Owner);
+			Unsorted::ScenarioInit = mutex_old;
 
 			if (!pObject)
 				continue;
@@ -1727,10 +1850,9 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 						pPayload->SendCommand(RadioCommand::RequestLink, pBld);
 					}
 
-					pBld->Passengers.AddPassenger(pPayload);
+					pBld->AddPassenger(pPayload);
 					pPayload->AbortMotion();
 				}
-
 			}
 			else
 			{
@@ -4427,6 +4549,15 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	if (!pThis || deathOption == KillMethod::None || !pThis->IsAlive)
 		return;
 
+	if (auto pBld = cast_to<BuildingClass*, false>(pThis)) {
+		auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
+
+		if (pBldExt->LimboID != -1) {
+			BuildingExtData::LimboKill(pBld);
+			return;
+		}
+	}
+
 	auto const pWhat = VTable::Get(pThis);
 
 	switch (GetKillMethod(deathOption))
@@ -6047,10 +6178,6 @@ void TechnoExtData::ReplaceArmor(Armor& armor, ObjectClass* pTarget, WarheadType
 void TechnoExtData::ReplaceArmor(Armor& armor, TechnoClass* pTarget, WarheadTypeClass* pWH)
 {
 	if(const auto& pShieldData = TechnoExtContainer::Instance.Find(pTarget)->Shield){
-		//if (IS_SAME_STR_("CAOILD", pTarget->get_ID())) {
-		//	Debug::LogInfo("CAOILD Armor Replaced with Shield[{}]", pShieldData->GetType()->Name.data());
-		//}
-
 		if(pShieldData->IsActive() && !pShieldData->CanBePenetrated(pWH)){
 			armor = pShieldData->GetArmor(armor);
 		}
@@ -6311,6 +6438,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->SupressEVALost)
 		.Process(this->SelfHealing_CombatDelay)
 		.Process(this->PayloadCreated)
+		.Process(this->PayloadTriggered)
 		.Process(this->LinkedSW, true)
 		.Process(this->SuperTarget)
 		.Process(this->HijackerLastDisguiseType, true)
@@ -6394,7 +6522,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
-ObjectPool<TechnoExtData> TechnoExtContainer::pools;
+StaticObjectPool<TechnoExtData , 10000> TechnoExtContainer::pools;
 
 void TechnoExtData::InitializeConstant()
 {
@@ -6554,15 +6682,15 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	}
 
 	if (cur_timerAE.has_value() && cur_timerAE > 0.0) {
-		const int timeleft = pTechno->DiskLaserTimer.GetTimeLeft();
+		const int timeleft = pTechno->RearmTimer.GetTimeLeft();
 
 		if (timeleft > 0)
 		{
-			pTechno->DiskLaserTimer.Start(int(timeleft * cur_timerAE.value()));
+			pTechno->RearmTimer.Start(int(timeleft * cur_timerAE.value()));
 		}
 		else
 		{
-			pTechno->DiskLaserTimer.Stop();
+			pTechno->RearmTimer.Stop();
 		}
 
 		pTechno->ROF = static_cast<int>(pTechno->ROF * cur_timerAE.value());

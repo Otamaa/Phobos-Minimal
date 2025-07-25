@@ -418,14 +418,14 @@ ASMJIT_PATCH(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
 		advance : ret;
 }
 
-ASMJIT_PATCH(0x6F7D90, TechnoClass_Threat_Forbidden, 0x6)
+ASMJIT_PATCH(0x6F7D90, TechnoClass_EvalueateObject_Forbidden, 0x6)
 {
 	GET(ObjectClass*, pTarget, ESI);
 
 	if (pTarget->InLimbo || !pTarget->IsAlive)
 		return 0x6F894F;
 
-	if (const auto pTechno = flag_cast_to<TechnoClass*>(pTarget))
+	if (const auto pTechno = flag_cast_to<TechnoClass*,false>(pTarget))
 	{
 
 		if (pTechno->IsCrashing || pTechno->IsSinking)

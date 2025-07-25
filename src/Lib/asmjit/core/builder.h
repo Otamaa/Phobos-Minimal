@@ -21,6 +21,8 @@
 #include "../core/zone.h"
 #include "../core/zonevector.h"
 
+#define ASMJIT_NO_NODE_USERDATA
+
 ASMJIT_BEGIN_NAMESPACE
 
 //! \addtogroup asmjit_builder
@@ -108,6 +110,9 @@ enum class NodeFlags : uint8_t {
   kIsActive = 0x80u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(NodeFlags)
+
+//! Node position represents a unique position of a node (most likely an \ref InstNode) in code.
+enum class NodePosition : uint32_t {};
 
 //! Type of the sentinel (purely informative purpose).
 enum class SentinelType : uint8_t {
@@ -202,11 +207,11 @@ public:
   ZoneAllocator _allocator;
 
   //! Array of `Pass` objects.
-  ZoneVector<Pass*> _passes {};
+  ZoneVector<Pass*> _passes;
   //! Maps section indexes to `LabelNode` nodes.
-  ZoneVector<SectionNode*> _sectionNodes {};
+  ZoneVector<SectionNode*> _sectionNodes;
   //! Maps label indexes to `LabelNode` nodes.
-  ZoneVector<LabelNode*> _labelNodes {};
+  ZoneVector<LabelNode*> _labelNodes;
 
   //! Current node (cursor).
   BaseNode* _cursor = nullptr;
@@ -231,6 +236,7 @@ public:
   //! \name Node Management
   //! \{
 
+  //! Returns first and last node of Builder/Compiler wrapped in \ref NodeList.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG NodeList nodeList() const noexcept { return _nodeList; }
 
@@ -245,7 +251,7 @@ public:
   //! Allocates data required for a node.
   template<typename T, typename... Args>
   ASMJIT_INLINE Error _newNodeTWithSize(T** ASMJIT_NONNULL(out), size_t size, Args&&... args) {
-    ASMJIT_ASSERT(Support::isAligned(size, Globals::kZoneAlignment));
+    ASMJIT_ASSERT(Support::is_aligned(size, Globals::kZoneAlignment));
 
     void* ptr =_codeZone.alloc(size);
     if (ASMJIT_UNLIKELY(!ptr)) {
@@ -307,14 +313,15 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG BaseNode* cursor() const noexcept { return _cursor; }
 
-  //! Sets the current node to `node` and return the previous one.
-  ASMJIT_API BaseNode* setCursor(BaseNode* node) noexcept;
-
-  //! Sets the current node without returning the previous node.
+  //! Sets the current cursor to `node` and returns the previous one.
   //!
-  //! Only use this function if you are concerned about performance and want this inlined (for example if you set
-  //! the cursor in a loop, etc...).
-  ASMJIT_INLINE_NODEBUG void _setCursor(BaseNode* node) noexcept { _cursor = node; }
+  //! \remarks This function returns the previous cursor for convenience, but the return value can be safely ignored
+  //! in case it's not important for the user.
+  ASMJIT_INLINE_NODEBUG BaseNode* setCursor(BaseNode* node) noexcept {
+    BaseNode* old = _cursor;
+    _cursor = node;
+    return old;
+  }
 
   //! \}
 
@@ -326,8 +333,8 @@ public:
   //! \note If a section of some id is not associated with the Builder/Compiler it would be null, so always check
   //! for nulls if you iterate over the vector.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const ZoneVector<SectionNode*>& sectionNodes() const noexcept {
-    return _sectionNodes;
+  ASMJIT_INLINE_NODEBUG Span<SectionNode*> sectionNodes() const noexcept {
+    return _sectionNodes.as_span();
   }
 
   //! Tests whether the `SectionNode` of the given `sectionId` was registered.
@@ -362,7 +369,7 @@ public:
   //! \note If a label of some id is not associated with the Builder/Compiler it would be null, so always check for
   //! nulls if you iterate over the vector.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const ZoneVector<LabelNode*>& labelNodes() const noexcept { return _labelNodes; }
+  ASMJIT_INLINE_NODEBUG Span<LabelNode*> labelNodes() const noexcept { return _labelNodes.as_span(); }
 
   //! Tests whether the `LabelNode` of the given `labelId` was registered.
   [[nodiscard]]
@@ -409,7 +416,7 @@ public:
 
   //! Returns a vector of `Pass` instances that will be executed by `runPasses()`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const ZoneVector<Pass*>& passes() const noexcept { return _passes; }
+  ASMJIT_INLINE_NODEBUG Span<Pass*> passes() const noexcept { return _passes.as_span(); }
 
   //! Allocates and instantiates a new pass of type `T` and returns its instance. If the allocation fails `nullptr` is
   //! returned.
@@ -418,20 +425,12 @@ public:
   //!
   //! \remarks The pointer returned (if non-null) is owned by the Builder or Compiler. When the Builder/Compiler is
   //! destroyed it destroys all passes it created so no manual memory management is required.
-  template<typename T>
+  template<typename PassT, typename... Args>
   [[nodiscard]]
-  inline T* newPassT() noexcept { return _codeZone.newT<T>(); }
-
-  //! \overload
-  template<typename T, typename... Args>
-  [[nodiscard]]
-  inline T* newPassT(Args&&... args) noexcept { return _codeZone.newT<T>(std::forward<Args>(args)...); }
-
-  template<typename T>
-  inline Error addPassT() { return addPass(newPassT<T>()); }
+  ASMJIT_INLINE PassT* newPass(Args&&... args) noexcept { return _codeZone.newT<PassT>(*this, std::forward<Args>(args)...); }
 
   template<typename T, typename... Args>
-  inline Error addPassT(Args&&... args) { return addPass(newPassT<T, Args...>(std::forward<Args>(args)...)); }
+  ASMJIT_INLINE Error addPass(Args&&... args) { return _addPass(newPass<T, Args...>(std::forward<Args>(args)...)); }
 
   //! Returns `Pass` by name.
   //!
@@ -440,7 +439,7 @@ public:
   ASMJIT_API Pass* passByName(const char* name) const noexcept;
 
   //! Adds `pass` to the list of passes.
-  ASMJIT_API Error addPass(Pass* pass) noexcept;
+  ASMJIT_API Error _addPass(Pass* pass) noexcept;
 
   //! Runs all passes in order.
   ASMJIT_API Error runPasses();
@@ -585,8 +584,9 @@ public:
   };
 
   //! Node position in code (should be unique).
-  uint32_t _position;
+  NodePosition _position;
 
+#if !defined(ASMJIT_NO_NODE_USERDATA)
   //! Value reserved for AsmJit users never touched by AsmJit itself.
   union {
     //! User data as 64-bit integer.
@@ -594,6 +594,7 @@ public:
     //! User data as pointer.
     void* _userDataPtr;
   };
+#endif
 
   //! Data used exclusively by the current `Pass`.
   void* _passData;
@@ -614,8 +615,10 @@ public:
     _nodeFlags = nodeFlags;
     _any._reserved0 = 0;
     _any._reserved1 = 0;
-    _position = 0;
+    _position = NodePosition(0);
+#if !defined(ASMJIT_NO_NODE_USERDATA)
     _userDataU64 = 0;
+#endif
     _passData = nullptr;
     _inlineComment = nullptr;
   }
@@ -750,11 +753,11 @@ public:
   //!
   //! \remarks Returns `true` if node position is non-zero.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasPosition() const noexcept { return _position != 0; }
+  ASMJIT_INLINE_NODEBUG bool hasPosition() const noexcept { return _position != NodePosition(0); }
 
   //! Returns node position.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t position() const noexcept { return _position; }
+  ASMJIT_INLINE_NODEBUG NodePosition position() const noexcept { return _position; }
 
   //! Sets node position.
   //!
@@ -764,8 +767,9 @@ public:
   //!
   //! If you don't use Compiler then you may use `position()` and `setPosition()` freely for your own purposes if
   //! the 32-bit value limit is okay for you.
-  ASMJIT_INLINE_NODEBUG void setPosition(uint32_t position) noexcept { _position = position; }
+  ASMJIT_INLINE_NODEBUG void setPosition(NodePosition position) noexcept { _position = position; }
 
+#if !defined(ASMJIT_NO_NODE_USERDATA)
   //! Returns user data casted to `T*`.
   //!
   //! User data is dedicated to be used only by AsmJit users and not touched by the library. The data is of a pointer
@@ -793,6 +797,7 @@ public:
 
   //! Resets user data to zero / nullptr.
   ASMJIT_INLINE_NODEBUG void resetUserData() noexcept { _userDataU64 = 0; }
+#endif
 
   //! Tests whether the node has an associated pass data.
   [[nodiscard]]
@@ -840,7 +845,7 @@ public:
   //! embed 5. The rest (up to 6 operands) is considered extended.
   //!
   //! The number of operands InstNode holds is decided when \ref InstNode is created.
-  static inline constexpr uint32_t kBaseOpCapacity = uint32_t((128u - sizeof(BaseNode) - sizeof(BaseInst)) / sizeof(Operand_));
+  static inline constexpr uint32_t kBaseOpCapacity = 3u;
 
   //! Count of maximum number of operands \ref InstNode can hold.
   static inline constexpr uint32_t kFullOpCapacity = Globals::kMaxOpCount;
@@ -866,7 +871,7 @@ public:
   //! This function is used internally to allocate \ref InstNode.
   [[nodiscard]]
   static ASMJIT_INLINE_CONSTEXPR size_t nodeSizeOfOpCapacity(uint32_t opCapacity) noexcept {
-    return Support::alignUp(sizeof(InstNode) + opCapacity * sizeof(Operand), Globals::kZoneAlignment);
+    return Support::align_up(sizeof(InstNode) + opCapacity * sizeof(Operand), Globals::kZoneAlignment);
   }
 
   //! \}
@@ -935,7 +940,7 @@ public:
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG InstOptions options() const noexcept { return _baseInst.options(); }
 
-  //! Tests whether instruction has the given \option` set/enabled.
+  //! Tests whether instruction has the given `option` set/enabled.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG bool hasOption(InstOptions option) const noexcept { return _baseInst.hasOption(option); }
 
@@ -979,61 +984,67 @@ public:
 
   //! Returns operand count.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t opCount() const noexcept { return _inst._opCount; }
+  ASMJIT_INLINE_NODEBUG size_t opCount() const noexcept { return _inst._opCount; }
 
   //! Returns operand capacity.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t opCapacity() const noexcept { return _inst._opCapacity; }
+  ASMJIT_INLINE_NODEBUG size_t opCapacity() const noexcept { return _inst._opCapacity; }
 
   //! Sets operand count.
-  ASMJIT_INLINE_NODEBUG void setOpCount(uint32_t opCount) noexcept { _inst._opCount = uint8_t(opCount); }
+  ASMJIT_INLINE_NODEBUG void setOpCount(size_t opCount) noexcept { _inst._opCount = uint8_t(opCount); }
 
   //! Returns operands array.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG Operand* operands() noexcept { return Support::offsetPtr<Operand>(this, sizeof(InstNode)); }
+  ASMJIT_INLINE_NODEBUG Operand* operands_data() noexcept { return Support::offset_ptr<Operand>(this, sizeof(InstNode)); }
 
   //! Returns operands array (const).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const Operand* operands() const noexcept { return Support::offsetPtr<Operand>(this, sizeof(InstNode)); }
+  ASMJIT_INLINE_NODEBUG const Operand* operands_data() const noexcept { return Support::offset_ptr<Operand>(this, sizeof(InstNode)); }
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG Span<Operand> operands() noexcept { return Span<Operand>(operands_data(), _inst._opCount); }
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG Span<const Operand> operands() const noexcept { return Span<const Operand>(operands_data(), _inst._opCount); }
 
   //! Returns operand at the given `index`.
   [[nodiscard]]
-  inline Operand& op(uint32_t index) noexcept {
+  inline Operand& op(size_t index) noexcept {
     ASMJIT_ASSERT(index < opCapacity());
 
-    Operand* ops = operands();
+    Operand* ops = operands_data();
     return ops[index].as<Operand>();
   }
 
   //! Returns operand at the given `index` (const).
   [[nodiscard]]
-  inline const Operand& op(uint32_t index) const noexcept {
+  inline const Operand& op(size_t index) const noexcept {
     ASMJIT_ASSERT(index < opCapacity());
 
-    const Operand* ops = operands();
+    const Operand* ops = operands_data();
     return ops[index].as<Operand>();
   }
 
   //! Sets operand at the given `index` to `op`.
-  inline void setOp(uint32_t index, const Operand_& op) noexcept {
+  inline void setOp(size_t index, const Operand_& op) noexcept {
     ASMJIT_ASSERT(index < opCapacity());
 
-    Operand* ops = operands();
+    Operand* ops = operands_data();
     ops[index].copyFrom(op);
   }
 
   //! Resets operand at the given `index` to none.
-  inline void resetOp(uint32_t index) noexcept {
+  inline void resetOp(size_t index) noexcept {
     ASMJIT_ASSERT(index < opCapacity());
 
-    Operand* ops = operands();
+    Operand* ops = operands_data();
     ops[index].reset();
   }
 
   //! Resets operands at `[start, end)` range.
-  inline void resetOpRange(uint32_t start, uint32_t end) noexcept {
-    Operand* ops = operands();
-    for (uint32_t i = start; i < end; i++)
+  inline void resetOpRange(size_t start, size_t end) noexcept {
+    Operand* ops = operands_data();
+    for (size_t i = start; i < end; i++)
       ops[i].reset();
   }
 
@@ -1045,9 +1056,8 @@ public:
   //! Tests whether the given operand type `opType` is used by the instruction.
   [[nodiscard]]
   inline bool hasOpType(OperandType opType) const noexcept {
-    const Operand* ops = operands();
-    for (uint32_t i = 0, count = opCount(); i < count; i++) {
-      if (ops[i].opType() == opType) {
+    for (const Operand& op : operands()) {
+      if (op.opType() == opType) {
         return true;
       }
     }
@@ -1073,33 +1083,29 @@ public:
   //! Returns the index of the given operand type `opType`.
   //!
   //! \note If the operand type wa found, the value returned represents its index in \ref operands()
-  //! array, otherwise \ref Globals::kNotFound is returned to signalize that the operand was not found.
+  //! array, otherwise \ref Globals::kNPos is returned to signalize that the operand was not found.
   [[nodiscard]]
-  inline uint32_t indexOfOpType(OperandType opType) const noexcept {
-    uint32_t i = 0;
-    uint32_t count = opCount();
-    const Operand* ops = operands();
-
-    while (i < count) {
+  inline size_t indexOfOpType(OperandType opType) const noexcept {
+    Span<const Operand> ops = operands();
+    for (size_t i = 0u; i < ops.size(); i++) {
       if (ops[i].opType() == opType)
         return i;
-      i++;
     }
 
-    return Globals::kNotFound;
+    return Globals::kNPos;
   }
 
   //! A shortcut that calls `indexOfOpType(OperandType::kMem)`.
   [[nodiscard]]
-  inline uint32_t indexOfMemOp() const noexcept { return indexOfOpType(OperandType::kMem); }
+  inline size_t indexOfMemOp() const noexcept { return indexOfOpType(OperandType::kMem); }
 
   //! A shortcut that calls `indexOfOpType(OperandType::kImm)`.
   [[nodiscard]]
-  inline uint32_t indexOfImmOp() const noexcept { return indexOfOpType(OperandType::kImm); }
+  inline size_t indexOfImmOp() const noexcept { return indexOfOpType(OperandType::kImm); }
 
   //! A shortcut that calls `indexOfOpType(OperandType::kLabel)`.
   [[nodiscard]]
-  inline uint32_t indexOfLabelOp() const noexcept { return indexOfOpType(OperandType::kLabel); }
+  inline size_t indexOfLabelOp() const noexcept { return indexOfOpType(OperandType::kLabel); }
 
   //! \}
 
@@ -1107,7 +1113,7 @@ public:
   //! \name Rewriting
   //! \{
 
-  //! Returns uint32_t[] view that represents BaseInst::RegOnly and instruction operands.
+  //! Returns `uint32_t[]` view that represents BaseInst::RegOnly and instruction operands.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t* _getRewriteArray() noexcept { return &_baseInst._extraReg._id; }
 
@@ -1120,8 +1126,8 @@ public:
 
   //! Returns a rewrite index of the given pointer to `id`.
   //!
-  //! This function returns a value that can be then passed to `\ref _rewriteIdAtIndex() function. It can address
-  //! any id from any operand that is used by the instruction in addition to \ref BaseInst::regOnly field, which
+  //! This function returns a value that can be then passed to \ref _rewriteIdAtIndex() function. It can address
+  //! any id from any operand that is used by the instruction in addition to \ref BaseInst::extraReg field, which
   //! can also be used by the register allocator.
   [[nodiscard]]
   inline uint32_t _getRewriteIndex(const uint32_t* id) const noexcept {
@@ -1336,12 +1342,12 @@ public:
   //! Returns a pointer to the data casted to `T*` - `uint8_t*` by default.
   template<typename T = uint8_t>
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint8_t* data() noexcept { return Support::offsetPtr<T>(this, sizeof(EmbedDataNode)); }
+  ASMJIT_INLINE_NODEBUG uint8_t* data() noexcept { return Support::offset_ptr<T>(this, sizeof(EmbedDataNode)); }
 
   //! Returns a pointer to the data casted to `T*` - `const uint8_t*` by default (const).
   template<typename T = uint8_t>
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const uint8_t* data() const noexcept { return Support::offsetPtr<T>(this, sizeof(EmbedDataNode)); }
+  ASMJIT_INLINE_NODEBUG const uint8_t* data() const noexcept { return Support::offset_ptr<T>(this, sizeof(EmbedDataNode)); }
 
   //! Returns the number of (typed) items in the array.
   [[nodiscard]]
@@ -1606,16 +1612,16 @@ public:
   //! \{
 
   //! BaseBuilder this pass is assigned to.
-  BaseBuilder* _cb = nullptr;
+  BaseBuilder& _cb;
   //! Name of the pass.
-  const char* _name = nullptr;
+  const char* _name {};
 
   //! \}
 
   //! \name Construction & Destruction
   //! \{
 
-  ASMJIT_API Pass(const char* name) noexcept;
+  ASMJIT_API Pass(BaseBuilder& cb, const char* name) noexcept;
   ASMJIT_API virtual ~Pass() noexcept;
 
   //! \}
@@ -1625,7 +1631,7 @@ public:
 
   //! Returns \ref BaseBuilder associated with the pass.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const BaseBuilder* cb() const noexcept { return _cb; }
+  ASMJIT_INLINE_NODEBUG BaseBuilder& cb() const noexcept { return _cb; }
 
   //! Returns the name of the pass.
   [[nodiscard]]

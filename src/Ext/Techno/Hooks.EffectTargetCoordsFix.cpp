@@ -336,7 +336,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 
 	TechnoExtData::SetChargeTurretDelay(pThis, ROF, pWeapon);
 
-	pThis->DiskLaserTimer.Start(ROF);
+	pThis->RearmTimer.Start(ROF);
 
 	// Issue #46: Laser is mirrored relative to FireFLH
 	// Author: Starkku

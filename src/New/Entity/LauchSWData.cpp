@@ -2,18 +2,44 @@
 
 #include <SuperWeaponTypeClass.h>
 
-bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTypeClass* pReaded)
-{
-	if (!pReaded)
-		return false;
+bool LauchSWData::ReadVector(std::vector<LauchSWData>& res , INI_EX& exINI, const char* pSection , bool CompatibilityMode){
+	res.clear();
 
-	LaunchWhat = pReaded->ArrayIndex;
+	if(!CompatibilityMode) {
+		for (size_t i = 0; ; ++i) {
+			SuperWeaponTypeClass* LaunchWhat_Dummy;
+			std::string _base_key("LaunchSW");
+			_base_key += std::to_string(i);
+
+			if (!detail::read(LaunchWhat_Dummy, exINI, pSection, (_base_key + ".Type").c_str(), true) || !LaunchWhat_Dummy)
+				break;
+
+			res.emplace_back().Read(exINI, pSection, i, LaunchWhat_Dummy);
+		}
+	} else {
+		ValueableVector<SuperWeaponTypeClass*> Lch_dummies {};
+
+		Lch_dummies.Read(exINI, pSection , "LaunchSW" , true);
+
+		for(auto pSW : Lch_dummies){
+			if(pSW){
+				res.emplace_back().Read(exINI, pSection,-1 , pSW);
+			}
+		}
+	}
+
+	return true;
+}
+
+bool LauchSWData::ReadSingle(INI_EX& exINI, const char* pID, int Prefix){
 	std::string _buff = "LaunchSW";
-	_buff += std::to_string(Prefix);
+
+	if(Prefix != -1){
+		_buff += std::to_string(Prefix);
+	}
 
 	LaunchWaitcharge.Read(exINI, pID, (_buff + ".WaitForCharge").c_str());
 	LaunchResetCharge.Read(exINI, pID, (_buff + ".ResetCharge").c_str());
-
 	//
 	std::string _buff_grant = (_buff + ".Grant");
 	LaunchGrant.Read(exINI, pID, _buff_grant.c_str());
@@ -21,7 +47,7 @@ bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTy
 	LaunchGrant_OneTime.Read(exINI, pID, (_buff_grant + ".OneTime").c_str());
 	LaunchGrant_OnHold.Read(exINI, pID, (_buff_grant + ".OnHold").c_str());
 	//
-
+	LaunchSW_RealLauch.Read(exINI, pID, (_buff + ".RealLaunch").c_str());
 	LaunchSW_Manual.Read(exINI, pID, (_buff + ".Manual").c_str());
 	LaunchSW_IgnoreInhibitors.Read(exINI, pID, (_buff + ".IgnoreInhibitors").c_str());
 	LaunchSW_IgnoreDesignators.Read(exINI, pID, (_buff + ".IgnoreDesignators").c_str());
@@ -36,10 +62,15 @@ bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTy
 		LaunchSW_DisplayMoney_Offset.Read(exINI, pID, (_buff_DisplayMoney + ".Offset").c_str());
 	}
 	//
-
 	LauchhSW_Owner.Read(exINI, pID, (_buff + ".Owner").c_str());
 
 	return true;
+}
+
+bool LauchSWData::Read(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTypeClass* pReaded)
+{
+	LaunchWhat = pReaded->ArrayIndex;
+	return this->ReadSingle(exINI,pID , Prefix);
 }
 
 bool LauchSWData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -69,6 +100,7 @@ bool LauchSWData::Serialize(T& Stm)
 		.Process(LauchSW_IgnoreMoney)
 		.Process(LauchSW_IgnoreBattleData)
 		.Process(LaunchSW_DisplayMoney)
+		.Process(LaunchSW_RealLauch)
 		.Process(LaunchSW_DisplayMoney_Houses)
 		.Process(LaunchSW_DisplayMoney_Offset)
 		.Process(LauchhSW_Owner)

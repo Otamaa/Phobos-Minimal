@@ -19,13 +19,15 @@ struct LauchSWData final
 	Valueable<bool> LauchSW_IgnoreMoney { false };
 	Valueable<bool> LauchSW_IgnoreBattleData { false };
 	Valueable<bool> LaunchSW_DisplayMoney { false };
+	Valueable<bool> LaunchSW_RealLauch { true };
 	Valueable<AffectedHouse> LaunchSW_DisplayMoney_Houses { AffectedHouse::All };
 	Valueable<Point2D> LaunchSW_DisplayMoney_Offset { {  0 , 0  } };
 
 	Valueable<OwnerHouseKind> LauchhSW_Owner { OwnerHouseKind::Invoker };
 
 	bool Read(INI_EX& exINI, const char* pID, int Prefix , SuperWeaponTypeClass* pReaded);
-
+	bool ReadSingle(INI_EX& exINI, const char* pID, int Prefix);
+	static bool ReadVector(std::vector<LauchSWData>& res , INI_EX& exINI, const char* pSection , bool CompatibilityMode);
 	//LauchSWData() = default;
 	//LauchSWData(INI_EX& exINI, const char* pID, int Prefix, SuperWeaponTypeClass* pReaded)
 	//{

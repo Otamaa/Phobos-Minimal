@@ -13,15 +13,16 @@ ASMJIT_PATCH(0x705860, Sub_705860_AitrstrikeTargetLaser_FetchECX, 0x8)
 
 ASMJIT_PATCH(0x7058F6, Sub_705860_AitrstrikeTargetLaser, 0x5)
 {
-	enum { SkipGameCode = 0x70597A };
-
+	GET(int, zSrc, EBP);
+	GET(int, zDest, EBX);
 	REF_STACK(ColorStruct, color, STACK_OFFSET(0x70, -0x60));
+
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(Sub_705860_Aitrstrike_pThis->Airstrike->Owner->GetTechnoType());
 	const int colorIndex = pTypeExt->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor);
 	Sub_705860_Aitrstrike_Color = GeneralUtils::GetColorFromColorAdd(colorIndex);
 	color = Drawing::Int_To_RGB(Sub_705860_Aitrstrike_Color);
 
-	return SkipGameCode;
+	return 0x705976;
 }
 
 ASMJIT_PATCH(0x705986, Sub_705860_AitrstrikeTargetPoint, 0x6)

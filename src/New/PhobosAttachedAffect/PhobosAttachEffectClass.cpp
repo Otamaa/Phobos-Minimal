@@ -140,7 +140,7 @@ void PhobosAttachEffectClass::AI()
 		{
 			double ROFModifier = this->Type->ROFMultiplier;
 
-			pTechno->DiskLaserTimer.Start(static_cast<int>(pTechno->DiskLaserTimer.GetTimeLeft() * ROFModifier));
+			pTechno->RearmTimer.Start(static_cast<int>(pTechno->RearmTimer.GetTimeLeft() * ROFModifier));
 
 			if (!pExt->ChargeTurretTimer.HasStarted() && pExt->LastRearmWasFullDelay)
 				pTechno->ROF = static_cast<int>(pTechno->ROF * ROFModifier);

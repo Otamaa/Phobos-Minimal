@@ -940,7 +940,7 @@ bool NOINLINE TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
 	}
 
 	if (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Cloakable_IgnoreArmTimer
-		 && pThis->DiskLaserTimer.InProgress())
+		 && pThis->RearmTimer.InProgress())
 	{
 		return false;
 	}
@@ -1781,7 +1781,7 @@ int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 		auto const pWeapon = pTemp->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pTemp->Owner)->idxSlot_Warp)->WeaponType;
 
 		//if (auto const pTarget = pTemp->Target)
-		//	nStepR = MapClass::GetTotalDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor, 0);
+		//	nStepR = FakeWarheadTypeClass::ModifyDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor, 0);
 		//else
 		nStepR = pWeapon->Damage;
 

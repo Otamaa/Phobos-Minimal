@@ -351,15 +351,6 @@ public:
   //! would fail to encode such instruction.
   inline This& rex() noexcept { return _addInstOptions(InstOptions::kX86_Rex); }
 
-  //! Force REX.B prefix (X64) [It exists for special purposes only].
-  inline This& rex_b() noexcept { return _addInstOptions(InstOptions::kX86_OpCodeB); }
-  //! Force REX.X prefix (X64) [It exists for special purposes only].
-  inline This& rex_x() noexcept { return _addInstOptions(InstOptions::kX86_OpCodeX); }
-  //! Force REX.R prefix (X64) [It exists for special purposes only].
-  inline This& rex_r() noexcept { return _addInstOptions(InstOptions::kX86_OpCodeR); }
-  //! Force REX.W prefix (X64) [It exists for special purposes only].
-  inline This& rex_w() noexcept { return _addInstOptions(InstOptions::kX86_OpCodeW); }
-
   //! \}
 
   //! \name VEX and EVEX Options

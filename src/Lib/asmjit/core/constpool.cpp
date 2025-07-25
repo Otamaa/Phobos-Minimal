@@ -61,23 +61,23 @@ static void ConstPool_addGap(ConstPool* self, size_t offset, size_t size) noexce
     size_t gapIndex;
     size_t gapSize;
 
-    if (size >= 32 && Support::isAligned<size_t>(offset, 32)) {
+    if (size >= 32 && Support::is_aligned<size_t>(offset, 32)) {
       gapIndex = ConstPool::kIndex32;
       gapSize = 32;
     }
-    else if (size >= 16 && Support::isAligned<size_t>(offset, 16)) {
+    else if (size >= 16 && Support::is_aligned<size_t>(offset, 16)) {
       gapIndex = ConstPool::kIndex16;
       gapSize = 16;
     }
-    else if (size >= 8 && Support::isAligned<size_t>(offset, 8)) {
+    else if (size >= 8 && Support::is_aligned<size_t>(offset, 8)) {
       gapIndex = ConstPool::kIndex8;
       gapSize = 8;
     }
-    else if (size >= 4 && Support::isAligned<size_t>(offset, 4)) {
+    else if (size >= 4 && Support::is_aligned<size_t>(offset, 4)) {
       gapIndex = ConstPool::kIndex4;
       gapSize = 4;
     }
-    else if (size >= 2 && Support::isAligned<size_t>(offset, 2)) {
+    else if (size >= 2 && Support::is_aligned<size_t>(offset, 2)) {
       gapIndex = ConstPool::kIndex2;
       gapSize = 2;
     }
@@ -142,7 +142,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
       ConstPool_freeGap(this, gap);
 
       offset = gapOffset;
-      ASMJIT_ASSERT(Support::isAligned<size_t>(offset, size));
+      ASMJIT_ASSERT(Support::is_aligned<size_t>(offset, size));
 
       gapSize -= size;
       if (gapSize > 0) {
@@ -155,7 +155,7 @@ Error ConstPool::add(const void* data, size_t size, size_t& dstOffset) noexcept 
 
   if (offset == ~size_t(0)) {
     // Get how many bytes have to be skipped so the address is aligned accordingly to the 'size'.
-    size_t diff = Support::alignUpDiff<size_t>(_size, size);
+    size_t diff = Support::align_up_diff<size_t>(_size, size);
 
     if (diff != 0) {
       ConstPool_addGap(this, _size, diff);

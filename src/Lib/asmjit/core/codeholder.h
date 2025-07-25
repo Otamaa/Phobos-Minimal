@@ -146,11 +146,15 @@ enum class LabelType : uint8_t {
   kMaxValue = kExternal
 };
 
-//! Label flags describe some details about labels, mostly for AsmJit's own use.
+//! Label flags describe some details about labels used by \ref LabelEntry, mostly for AsmJit's own use.
 enum class LabelFlags : uint8_t {
+  //! No flags.
   kNone = 0x00u,
+  //! Label has associated extra data with it that it owns.
   kHasOwnExtraData = 0x01u,
+  //! Label has a name.
   kHasName = 0x02u,
+  //! Label has a parent (only a local label can have a parent).
   kHasParent = 0x04u
 };
 ASMJIT_DEFINE_ENUM_FLAGS(LabelFlags)
@@ -447,13 +451,13 @@ public:
 
     //! Returns a name associated with this extra data - a valid pointer is only returned when the label has a name, which
     //! is marked by \ref LabelFlags::kHasName flag.
-    ASMJIT_INLINE_NODEBUG const char* name() const noexcept { return Support::offsetPtr<char>(this, sizeof(ExtraData)); }
+    ASMJIT_INLINE_NODEBUG const char* name() const noexcept { return Support::offset_ptr<char>(this, sizeof(ExtraData)); }
   };
 
   //! \name Members
   //! \{
 
-  // Either references a \ref Section where the label is bound or \ref ExtraData.
+  //! Either references a \ref Section where the label is bound or \ref ExtraData.
   SectionOrLabelEntryExtraHeader* _objectData;
 
   //! Label entry payload.
@@ -596,7 +600,97 @@ public:
 //! In order to use CodeHolder, it must be first initialized by \ref init(). After the CodeHolder has been successfully
 //! initialized it can be used to hold assembled code, sections, labels, relocations, and to attach / detach code
 //! emitters. After the end of code generation it can be used to query physical locations of labels and to relocate
-//! the assembled code into the right address.
+//! the assembled code into the right address. Please not that calling \ref init() twice doesn't work and would return
+//! an error - to reuse CodeHolder it has to be first \ref reset() or reinitialized by calling \ref reinit().
+//!
+//! Multiple Functions
+//! ------------------
+//!
+//! CodeHolder can be used to hold a single function or multiple functions - when it's holding multiple functions it's
+//! considered like a module (or library, or something that provides more than just a single function). When a code is
+//! relocated and moved into executable memory, you typically get a single pointer back. When CodeHolder holds a single
+//! function, it's the pointer to such function. However, when CodeHolder holds multiple functions, that pointer is
+//! basically start of the code, which is usually the first function.
+//!
+//! In order to get a pointer to more functions, it's necessary to use \ref Label for each function and then to get the
+//! offset to each such function via \ref CodeHolder::labelOffsetFromBase() - which returns an offset, which is relative
+//! to the start of the assembled code. When using higher level emitters such as \ref asmjit_compiler labels are created
+//! automatically - \ref FuncNode inherits from \ref LabelNode, so a function is a label at the same time.
+//!
+//! To query and apply an offset, consider the following code, which uses \ref x86::Compiler to create two functions:
+//!
+//! ```
+//! #include <asmjit/x86.h>
+//! #include <stdio.h>
+//! #include <string.h>
+//!
+//! int main(int argc, char* argv[]) {
+//!   using namespace asmjit;
+//!
+//!   JitRuntime rt;
+//!   CodeHolder code;
+//!   code.init(rt.environment());
+//!
+//!   x86::Compiler cc(&code);
+//!
+//!   // Generate first function.
+//!   FuncNode* func1_node = cc.addFunc(FuncSignature::build<uint32_t>());
+//!   Label func1_label = func1_node->label();
+//!
+//!   {
+//!     x86::Gp r = cc.newGp32("r0");
+//!     cc.mov(r, 0);
+//!     cc.ret(r);
+//!     cc.endFunc();
+//!   }
+//!
+//!   // Generate second function.
+//!   FuncNode* func2_node = cc.addFunc(FuncSignature::build<uint32_t>());
+//!   Label func2_label = func2_node->label();
+//!
+//!   {
+//!     x86::Gp r = cc.newGp32("r1");
+//!     cc.mov(r, 1);
+//!     cc.ret(r);
+//!     cc.endFunc();
+//!   }
+//!
+//!   // Finalize the generated code - this would also call `serializeTo()`.
+//!   Error err = cc.finalize();
+//!   if (err) {
+//!     printf("ERROR during finalization: %s\n", DebugUtils::errorAsString(err));
+//!     return 1;
+//!   }
+//!
+//!   // We have deliberately used void* as a pointer type as it's start of an assembled module.
+//!   void* module;
+//!   err = rt.add(&module, &code);
+//!
+//!   if (err) {
+//!     printf("ERROR during allocation/relocation: %s\n", DebugUtils::errorAsString(err));
+//!     return 1;
+//!   }
+//!
+//!   // Normally both CodeHolder and Compiler are not needed after the code has been finalized
+//!   // and allocated/relocated into an executable memory. However, in order to get the required
+//!   // offsets it's necessary to query CodeHolder for positions in code, and to get these it's
+//!   // required to either have `FuncNode` or `Label`.
+//!   size_t func1_offset = code.labelOffsetFromBase(func1_label);
+//!   size_t func2_offset = code.labelOffsetFromBase(func2_label);
+//!
+//!   using Fn = uint32_t(*)(void);
+//!
+//!   Fn fn1 = ptr_as_func<Fn>(module, func1_offset);
+//!   Fn fn2 = ptr_as_func<Fn>(module, func2_offset);
+//!
+//!   printf("fn1()=%u fn2()=%u\n", fn1(), fn2());
+//!
+//!   // The module has to be released at once - individual functions cannot be released.
+//!   rt.release(module);
+//!
+//!   return 0;
+//! }
+//! ```
 //!
 //! CodeHolder Reusability
 //! ----------------------
@@ -736,11 +830,7 @@ public:
   //!
   //! An optional `temporary` argument can be used to initialize the first block of \ref Zone that the CodeHolder
   //! uses into a temporary memory provided by the user.
-  ASMJIT_API explicit CodeHolder(const Support::Temporary* temporary = nullptr) noexcept;
-
-  //! \overload
-  ASMJIT_INLINE_NODEBUG explicit CodeHolder(const Support::Temporary& temporary) noexcept
-    : CodeHolder(&temporary) {}
+  ASMJIT_API explicit CodeHolder(Span<uint8_t> static_arena_memory = Span<uint8_t>{}) noexcept;
 
   //! Destroys the CodeHolder and frees all resources it has allocated.
   ASMJIT_API ~CodeHolder() noexcept;
@@ -765,10 +855,10 @@ public:
   //! Assembler or Compiler) without paying the cost of complete initialization and then assignment of all the loggers,
   //! error handlers, and emitters.
   //!
-  //! \note Semantically reinit() is the same as using \ref reset(ResetPolicy::kSoft), followed by \ref init(), and
-  //! then by attaching loggers, error handlers, and emitters that were attached previously. This means that after
-  //! reinitialization you will get a clean and ready for use \ref CodeHolder, which was initialized the same way as
-  //! before.
+  //! \note Semantically reinit() is the same as using \ref reset() with \ref ResetPolicy::kSoft parameter followed by
+  //! \ref init(), and then by attaching loggers, error handlers, and emitters that were attached previously. This
+  //! means that after reinitialization you will get a clean and ready for use \ref CodeHolder, which was initialized
+  //! the same way as before.
   ASMJIT_API Error reinit() noexcept;
 
   //! Detaches all code-generators attached and resets the `CodeHolder`.
@@ -898,15 +988,15 @@ public:
 
   //! Returns an array of `Section*` records.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const ZoneVector<Section*>& sections() const noexcept { return _sections; }
+  ASMJIT_INLINE_NODEBUG Span<Section*> sections() const noexcept { return _sections.as_span(); }
 
   //! Returns an array of `Section*` records sorted according to section order first, then section id.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const ZoneVector<Section*>& sectionsByOrder() const noexcept { return _sectionsByOrder; }
+  ASMJIT_INLINE_NODEBUG Span<Section*> sectionsByOrder() const noexcept { return _sectionsByOrder.as_span(); }
 
   //! Returns the number of sections.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t sectionCount() const noexcept { return _sections.size(); }
+  ASMJIT_INLINE_NODEBUG size_t sectionCount() const noexcept { return _sections.size(); }
 
   //! Tests whether the given `sectionId` is valid.
   [[nodiscard]]
@@ -968,11 +1058,11 @@ public:
 
   //! Returns array of `LabelEntry` records.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const ZoneVector<LabelEntry>& labelEntries() const noexcept { return _labelEntries; }
+  ASMJIT_INLINE_NODEBUG Span<LabelEntry> labelEntries() const noexcept { return _labelEntries.as_span(); }
 
   //! Returns number of labels created.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t labelCount() const noexcept { return _labelEntries.size(); }
+  ASMJIT_INLINE_NODEBUG size_t labelCount() const noexcept { return _labelEntries.size(); }
 
   //! Tests whether the label having `labelId` is valid (i.e. created by `newLabelId()`).
   [[nodiscard]]
@@ -1081,7 +1171,7 @@ public:
 
   //! Creates a new named \ref LabelEntry of the given label `type`.
   //!
-  //! \param entryOut Where to store the created \ref LabelEntry.
+  //! \param labelIdOut Where to store the created \ref Label id.
   //! \param name The name of the label.
   //! \param nameSize The length of `name` argument, or `SIZE_MAX` if `name` is a null terminated string, which
   //!        means that the `CodeHolder` will use `strlen()` to determine the length.
@@ -1099,8 +1189,9 @@ public:
 
   //! Returns a label by name.
   //!
-  //! If the named label doesn't a default constructed \ref Label is returned,
-  //! which has its id set to \ref Globals::kInvalidId.
+  //! \remarks If the named label doesn't exist a default constructed \ref Label is returned, which has its id set
+  //! to \ref Globals::kInvalidId. In other words, this function doesn't create new labels, it can only be used to
+  //! query an existing \ref Label by name.
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG Label labelByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept {
     return Label(labelIdByName(name, nameSize, parentId));
@@ -1108,7 +1199,8 @@ public:
 
   //! Returns a label id by name.
   //!
-  //! If the named label doesn't exist \ref Globals::kInvalidId is returned.
+  //! \remarks If the named label doesn't exist \ref Globals::kInvalidId is returned. In other words, this function
+  //! doesn't create new labels, it can only be used to query an existing label identifier by name.
   [[nodiscard]]
   ASMJIT_API uint32_t labelIdByName(const char* name, size_t nameSize = SIZE_MAX, uint32_t parentId = Globals::kInvalidId) noexcept;
 
@@ -1147,7 +1239,7 @@ public:
 
   //! Returns array of `RelocEntry*` records.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const ZoneVector<RelocEntry*>& relocEntries() const noexcept { return _relocations; }
+  ASMJIT_INLINE_NODEBUG Span<RelocEntry*> relocEntries() const noexcept { return _relocations.as_span(); }
 
   //! Returns a RelocEntry of the given `id`.
   [[nodiscard]]
@@ -1182,6 +1274,8 @@ public:
   //! \param baseAddress Absolute base address where the code will be relocated to. Please note that nothing is
   //! copied to such base address, it's just an absolute value used by the relocation code to resolve all stored
   //! relocations.
+  //!
+  //! \param summaryOut Optional argument that can be used to get back information about the relocation.
   //!
   //! \note This should never be called more than once.
   ASMJIT_API Error relocateToBase(uint64_t baseAddress, RelocationSummary* summaryOut = nullptr) noexcept;

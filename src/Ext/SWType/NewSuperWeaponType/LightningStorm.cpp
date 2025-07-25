@@ -354,21 +354,17 @@ void CloneableLighningStormStateMachine::Update()
 				auto const pCellBld = pCell->GetBuilding();
 				const auto& nRodTypes = pExt->Weather_LightningRodTypes;
 
-				if (pCellBld && pCellBld->Type->LightningRod)
-				{
+				if (pCellBld && pCellBld->IsAlive && pCellBld->Type->LightningRod) {
 					if (nRodTypes.empty() || nRodTypes.Contains(pCellBld->Type))
 						return ret;
 				}
 
 				// if a lightning rod is next to this, hit that instead. naive.
 				if (auto const pObj = pCell->FindTechnoNearestTo(
-					Point2D::Empty, false, pCellBld))
-				{
-					if (auto const pBld = cast_to<BuildingClass*, false>(pObj))
-					{
-						if(pBld->Type->LightningRod) {
-							if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type))
-							{
+					Point2D::Empty, false, pCellBld)) {
+					if (auto const pBld = cast_to<BuildingClass*, false>(pObj)) {
+						if(pBld->IsAlive && pBld->Type->LightningRod) {
+							if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type)) {
 								return pBld->GetMapCoords();
 							}
 						}
@@ -452,7 +448,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		auto const isInfantry = cast_to<InfantryClass*>(pObj) != nullptr;
 
 		// empty cell action
-		if (!pBld && !pObj)
+		if ((!pBld || !pBld->IsAlive) && (!pObj || !pObj->IsAlive))
 		{
 			debris = Helpers::Alex::is_any_of(
 				pCell->LandType,
@@ -464,18 +460,19 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 
 		// account for lightning rods
 		auto damage = Type->GetDamage(pData);
-		if (!pData->Weather_IgnoreLightningRod)
-		{
-			if (auto const pBldObj = cast_to<BuildingClass*>(pObj))
-			{
-				const auto& nRodTypes = pData->Weather_LightningRodTypes;
-				auto const pBldType = pBldObj->Type;
-
-				if (pBldType->LightningRod && (nRodTypes.empty() || nRodTypes.Contains(pBldType)))
+		if (!pData->Weather_IgnoreLightningRod) {
+			if(pObj->IsAlive) {
+				if (auto const pBldObj = cast_to<BuildingClass*>(pObj))
 				{
-					// multiply the damage, but never go below zero.
-					auto const pBldExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-					damage = MaxImpl(int(damage * pBldExt->LightningRod_Modifier), 0);
+					const auto& nRodTypes = pData->Weather_LightningRodTypes;
+					auto const pBldType = pBldObj->Type;
+
+					if (pBldType->LightningRod && (nRodTypes.empty() || nRodTypes.Contains(pBldType)))
+					{
+						// multiply the damage, but never go below zero.
+						auto const pBldExt = BuildingTypeExtContainer::Instance.Find(pBldType);
+						damage = MaxImpl(int(damage * pBldExt->LightningRod_Modifier), 0);
+					}
 				}
 			}
 		}

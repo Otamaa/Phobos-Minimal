@@ -248,7 +248,7 @@ static ASMJIT_FAVOR_SIZE Error validate(InstDB::Mode mode, const BaseInst& inst,
 
   InstDB::OpSignature oSigTranslated[Globals::kMaxOpCount];
   InstDB::OpFlags combinedOpFlags = InstDB::OpFlags::kNone;
-  uint32_t combinedRegMask = 0;
+  RegMask combinedRegMask = 0;
   const Mem* memOp = nullptr;
 
   for (i = 0; i < opCount; i++) {
@@ -278,11 +278,11 @@ static ASMJIT_FAVOR_SIZE Error validate(InstDB::Mode mode, const BaseInst& inst,
             return DebugUtils::errored(kErrorInvalidPhysId);
           }
 
-          if (ASMJIT_UNLIKELY(Support::bitTest(vd->allowedRegMask[size_t(regType)], regId) == 0)) {
+          if (ASMJIT_UNLIKELY(Support::bit_test(vd->allowedRegMask[size_t(regType)], regId) == 0)) {
             return DebugUtils::errored(kErrorInvalidPhysId);
           }
 
-          regMask = Support::bitMask(regId);
+          regMask = Support::bitMask<RegMask>(regId);
           combinedRegMask |= regMask;
         }
         else {
@@ -335,7 +335,7 @@ static ASMJIT_FAVOR_SIZE Error validate(InstDB::Mode mode, const BaseInst& inst,
             // Home address of a virtual register. In such case we don't want to validate the type of the
             // base register as it will always be patched to ESP|RSP.
           }
-          else if (ASMJIT_UNLIKELY(!Support::bitTest(vd->allowedMemUniRegs, baseType))) {
+          else if (ASMJIT_UNLIKELY(!Support::bit_test(vd->allowedMemUniRegs, baseType))) {
             return DebugUtils::errored(kErrorInvalidAddress);
           }
 
@@ -348,7 +348,7 @@ static ASMJIT_FAVOR_SIZE Error validate(InstDB::Mode mode, const BaseInst& inst,
             }
 
             // Physical base id.
-            regMask = Support::bitMask(baseId);
+            regMask = Support::bitMask<RegMask>(baseId);
             combinedRegMask |= regMask;
           }
           else {
@@ -370,10 +370,10 @@ static ASMJIT_FAVOR_SIZE Error validate(InstDB::Mode mode, const BaseInst& inst,
         else {
           // Base is a 64-bit address.
           int64_t offset = m.offset();
-          if (!Support::isInt32(offset)) {
+          if (!Support::is_int_n<32>(offset)) {
             if (mode == InstDB::Mode::kX86) {
               // 32-bit mode: Make sure that the address is either `int32_t` or `uint32_t`.
-              if (!Support::isUInt32(offset)) {
+              if (!Support::is_uint_n<32>(offset)) {
                 return DebugUtils::errored(kErrorInvalidAddress64Bit);
               }
             }
@@ -381,7 +381,7 @@ static ASMJIT_FAVOR_SIZE Error validate(InstDB::Mode mode, const BaseInst& inst,
               // 64-bit mode: Zero extension is allowed if the address has 32-bit index register or the address
               // has no index register (it's still encodable).
               if (indexType != RegType::kNone) {
-                if (!Support::isUInt32(offset)) {
+                if (!Support::is_uint_n<32>(offset)) {
                   return DebugUtils::errored(kErrorInvalidAddress64Bit);
                 }
 
@@ -398,7 +398,7 @@ static ASMJIT_FAVOR_SIZE Error validate(InstDB::Mode mode, const BaseInst& inst,
         }
 
         if (indexType != RegType::kNone) {
-          if (ASMJIT_UNLIKELY(!Support::bitTest(vd->allowedMemIndexRegs, indexType))) {
+          if (ASMJIT_UNLIKELY(!Support::bit_test(vd->allowedMemIndexRegs, indexType))) {
             return DebugUtils::errored(kErrorInvalidAddress);
           }
 
@@ -427,7 +427,7 @@ static ASMJIT_FAVOR_SIZE Error validate(InstDB::Mode mode, const BaseInst& inst,
               return DebugUtils::errored(kErrorInvalidPhysId);
             }
 
-            combinedRegMask |= Support::bitMask(indexId);
+            combinedRegMask |= Support::bitMask<RegMask>(indexId);
           }
           else if (uint32_t(validationFlags & ValidationFlags::kEnableVirtRegs) == 0) {
             return DebugUtils::errored(kErrorIllegalVirtReg);
@@ -771,7 +771,7 @@ static ASMJIT_INLINE void rwZeroExtendGp(OpRWInfo& opRwInfo, const Gp& reg, uint
 static ASMJIT_INLINE void rwZeroExtendAvxVec(OpRWInfo& opRwInfo, const Vec& reg) noexcept {
   DebugUtils::unused(reg);
 
-  uint64_t msk = ~Support::fillTrailingBits(opRwInfo.writeByteMask());
+  uint64_t msk = ~Support::fill_trailing_bits(opRwInfo.writeByteMask());
   if (msk) {
     opRwInfo.addOpFlags(OpRWFlags::kZExt);
     opRwInfo.setExtendByteMask(msk);
@@ -779,7 +779,7 @@ static ASMJIT_INLINE void rwZeroExtendAvxVec(OpRWInfo& opRwInfo, const Vec& reg)
 }
 
 static ASMJIT_INLINE void rwZeroExtendNonVec(OpRWInfo& opRwInfo, const Reg& reg) noexcept {
-  uint64_t msk = ~Support::fillTrailingBits(opRwInfo.writeByteMask()) & rwRegGroupByteMask[reg.regGroup()];
+  uint64_t msk = ~Support::fill_trailing_bits(opRwInfo.writeByteMask()) & rwRegGroupByteMask[reg.regGroup()];
   if (msk) {
     opRwInfo.addOpFlags(OpRWFlags::kZExt);
     opRwInfo.setExtendByteMask(msk);
@@ -864,7 +864,7 @@ Error ASMJIT_CDECL queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* 
       const Operand_& srcOp = operands[i];
       const InstDB::RWInfoOp& rwOpData = InstDB::rwInfoOp[instRwInfo.opInfoIndex[i]];
 
-      opTypeMask |= Support::bitMask(srcOp.opType());
+      opTypeMask |= Support::bitMask<uint32_t>(srcOp.opType());
 
       if (!srcOp.isRegOrMem()) {
         op.reset();
@@ -880,11 +880,11 @@ Error ASMJIT_CDECL queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* 
       uint64_t wByteMask = rwOpData.wByteMask;
 
       if (op.isRead()  && !rByteMask) {
-        rByteMask = Support::lsbMask<uint64_t>(srcOp.x86RmSize());
+        rByteMask = Support::lsb_mask<uint64_t>(srcOp.x86RmSize());
       }
 
       if (op.isWrite() && !wByteMask) {
-        wByteMask = Support::lsbMask<uint64_t>(srcOp.x86RmSize());
+        wByteMask = Support::lsb_mask<uint64_t>(srcOp.x86RmSize());
       }
 
       op._readByteMask = rByteMask;
@@ -926,7 +926,7 @@ Error ASMJIT_CDECL queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* 
 
     // Only keep kMovOp if the instruction is actually register to register move of the same kind.
     if (out->hasInstFlag(InstRWFlags::kMovOp)) {
-      if (!(opCount >= 2 && opTypeMask == Support::bitMask(OperandType::kReg) && hasSameRegType(reinterpret_cast<const Reg*>(operands), opCount))) {
+      if (!(opCount >= 2 && opTypeMask == Support::bitMask<uint32_t>(OperandType::kReg) && hasSameRegType(reinterpret_cast<const Reg*>(operands), opCount))) {
         out->_instFlags &= ~InstRWFlags::kMovOp;
       }
     }
@@ -1184,7 +1184,7 @@ Error ASMJIT_CDECL queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* 
         if (operands[0].isGp16() && operands[1].x86RmSize() == 1) {
           // imul ax, r8/m8 <- AX = AL * r8/m8
           out->_operands[0].reset(X | RegPhys, 2, Gp::kIdAx);
-          out->_operands[0].setReadByteMask(Support::lsbMask<uint64_t>(1));
+          out->_operands[0].setReadByteMask(Support::lsb_mask<uint64_t>(1));
           out->_operands[1].reset(R | RegM, 1);
         }
         else {
@@ -1234,7 +1234,7 @@ Error ASMJIT_CDECL queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* 
       if (opCount == 2) {
         if (operands[0].isVec() && operands[1].isMem()) {
           out->_operands[0].reset(W, 8);
-          out->_operands[0].setWriteByteMask(Support::lsbMask<uint64_t>(8) << 8);
+          out->_operands[0].setWriteByteMask(Support::lsb_mask<uint64_t>(8) << 8);
           out->_operands[1].reset(R | MibRead, 8);
           return kErrorOk;
         }
@@ -1242,7 +1242,7 @@ Error ASMJIT_CDECL queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* 
         if (operands[0].isMem() && operands[1].isVec()) {
           out->_operands[0].reset(W | MibRead, 8);
           out->_operands[1].reset(R, 8);
-          out->_operands[1].setReadByteMask(Support::lsbMask<uint64_t>(8) << 8);
+          out->_operands[1].setReadByteMask(Support::lsb_mask<uint64_t>(8) << 8);
           return kErrorOk;
         }
       }
@@ -1348,7 +1348,7 @@ Error ASMJIT_CDECL queryRWInfo(Arch arch, const BaseInst& inst, const Operand_* 
       if (opCount == 2) {
         if (operands[0].isGp() && operands[1].isVec()) {
           out->_operands[0].reset(W, 1);
-          out->_operands[0].setExtendByteMask(Support::lsbMask<uint32_t>(nativeGpSize - 1) << 1);
+          out->_operands[0].setExtendByteMask(Support::lsb_mask<uint32_t>(nativeGpSize - 1) << 1);
           out->_operands[1].reset(R, operands[1].x86RmSize());
           return kErrorOk;
         }
@@ -1520,7 +1520,7 @@ struct RegAnalysis {
   uint32_t highVecUsed;
 
   inline bool hasRegType(RegType regType) const noexcept {
-    return Support::bitTest(regTypeMask, regType);
+    return Support::bit_test(regTypeMask, regType);
   }
 };
 
@@ -1532,16 +1532,18 @@ static RegAnalysis InstInternal_regAnalysis(const Operand_* operands, size_t opC
     const Operand_& op = operands[i];
     if (op.isReg()) {
       const Reg& reg = op.as<Reg>();
-      mask |= Support::bitMask(reg.regType());
+      mask |= Support::bitMask<uint32_t>(reg.regType());
       if (reg.isVec()) {
         highVecUsed |= uint32_t(reg.id() >= 16 && reg.id() < 32);
       }
     }
     else if (op.isMem()) {
       const BaseMem& mem = op.as<BaseMem>();
-      if (mem.hasBaseReg()) mask |= Support::bitMask(mem.baseType());
+      if (mem.hasBaseReg()) {
+        mask |= Support::bitMask<uint32_t>(mem.baseType());
+      }
       if (mem.hasIndexReg()) {
-        mask |= Support::bitMask(mem.indexType());
+        mask |= Support::bitMask<uint32_t>(mem.indexType());
         highVecUsed |= uint32_t(mem.indexId() >= 16 && mem.indexId() < 32);
       }
     }
@@ -1553,7 +1555,7 @@ static RegAnalysis InstInternal_regAnalysis(const Operand_* operands, size_t opC
 static inline uint32_t InstInternal_usesAvx512(InstOptions instOptions, const RegOnly& extraReg, const RegAnalysis& regAnalysis) noexcept {
   uint32_t hasEvex = uint32_t(instOptions & (InstOptions::kX86_Evex | InstOptions::kX86_AVX512Mask));
   uint32_t hasKMask = extraReg.type() == RegType::kMask;
-  uint32_t hasKOrZmm = regAnalysis.regTypeMask & Support::bitMask(RegType::kVec512, RegType::kMask);
+  uint32_t hasKOrZmm = regAnalysis.regTypeMask & Support::bitMask<uint32_t>(RegType::kVec512, RegType::kMask);
 
   return hasEvex | hasKMask | hasKOrZmm;
 }
@@ -1652,7 +1654,7 @@ Error ASMJIT_CDECL queryFeatures(Arch arch, const BaseInst& inst, const Operand_
         // AVX instruction set doesn't support integer operations on YMM registers as these were later introcuced by
         // AVX2. In our case we have to check if YMM register(s) are in use and if that is the case this is an AVX2
         // instruction.
-        if (!(regAnalysis.regTypeMask & Support::bitMask(RegType::kVec256, RegType::kVec512))) {
+        if (!(regAnalysis.regTypeMask & Support::bitMask<uint32_t>(RegType::kVec256, RegType::kVec512))) {
           isAVX2 = false;
         }
       }

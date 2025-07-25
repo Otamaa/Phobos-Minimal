@@ -109,7 +109,7 @@ const double GeneralUtils::GetWarheadVersusArmor(WarheadTypeClass* pWH, Armor co
 {
 	const auto& verses = WarheadTypeExtContainer::Instance.Find(pWH)->GetVerses(ArmorType);
 	return verses.Verses;
-	//return double(MapClass::GetTotalDamage(100, pWH, ArmorType, 0)) / 100.0;
+	//return double(FakeWarheadTypeClass::ModifyDamage(100, pWH, ArmorType, 0)) / 100.0;
 }
 
 const bool GeneralUtils::ProduceBuilding(HouseClass* pOwner, int idxBuilding)

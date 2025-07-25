@@ -537,13 +537,13 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 			TheMemoryPoolFactory->reset();
 
 		VoxelAnimExtContainer::pools.init(4026);
-		TeamExtContainer::pools.init(4026);
-		RadSiteExtContainer::pools.init(4026);
-		ParticleSystemExtContainer::pools.init(4026);
-		ParticleExtContainer::pools.init(4026);
-		BulletExtContainer::pools.init(4026);
-		FakeAnimClass::pools.init(10000);
-		TechnoExtContainer::pools.init(4026);
+		TeamExtContainer::pools.reInit();
+		RadSiteExtContainer::pools.reInit();
+		ParticleSystemExtContainer::pools.reInit();
+		ParticleExtContainer::pools.reInit();
+		BulletExtContainer::pools.reInit();
+		FakeAnimClass::pools.reInit();
+		TechnoExtContainer::pools.reInit();
 		SWFirerClass::Array.reserve(1000);
 		CellExtContainer::Array.reserve(2000);
 	}

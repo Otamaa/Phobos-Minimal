@@ -40,43 +40,42 @@ ASMJIT_PATCH(0x55E08F, KeyboardProcess_PressTab, 0x5)
 	return 0x55E099;
 }
 
-
 // skip error "А mouse is required for playing Yurts Revenge" - remove the GetSystemMetrics check
 DEFINE_JUMP(LJMP, 0x6BD8A4, 0x6BD8C2); // WinMain
 
 // Prevents accidental exit when pressing the spacebar while waiting
 // Remove focus from the Leave Game button in the player waiting window
-// ASMJIT_PATCH(0x648CCC, WaitForPlayers_RemoveFocusFromLeaveGameBtn, 0x6)
-// {
-// 	Imports::SetArchiveTarget.get()(0);
-// 	return 0;
-// }
-
-DECLARE_PATCH(WaitForPlayers_RemoveFocusFromLeaveGameBtn){
-	reinterpret_cast<Imports::FP_SetFocus>(0x7E13CC)(0);
-	_asm { mov ecx, 0x00887640 };
-	_asm { mov edx, [ecx]};
-	_asm { call dword ptr[edx + 0x1C]};
-	JMP_REG(ecx , 0x648CD2);
+ASMJIT_PATCH(0x648CCC, WaitForPlayers_RemoveFocusFromLeaveGameBtn, 0x6)
+{
+	Imports::SetArchiveTarget.invoke()(0);
+	return 0;
 }
-DEFINE_FUNCTION_JUMP(LJMP, 0x648CCC ,WaitForPlayers_RemoveFocusFromLeaveGameBtn)
+
+// DECLARE_PATCH(WaitForPlayers_RemoveFocusFromLeaveGameBtn){
+// 	reinterpret_cast<Imports::FP_SetFocus>(0x7E13CC)(0);
+// 	_asm { mov ecx, 0x00887640 };
+// 	_asm { mov edx, [ecx]};
+// 	_asm { call dword ptr[edx + 0x1C]};
+// 	JMP_REG(ecx , 0x648CD2);
+// }
+// DEFINE_FUNCTION_JUMP(LJMP, 0x648CCC ,WaitForPlayers_RemoveFocusFromLeaveGameBtn)
 
 // A patch to prevent framerate drops when a player spams the 'type select' key
 // Skip call GScreenClass::FlagToRedraw(1)
 DEFINE_JUMP(LJMP, 0x732CED, 0x732CF9); // End_Type_Select_Command
 
-DECLARE_PATCH(WaitForPlayers_OnlineOptimizations)
-{
-	reinterpret_cast<Imports::FP_Sleep>(0x7E11F0)(3);
-    JMP(0x6488B0);
-}
-DEFINE_FUNCTION_JUMP(LJMP, 0x649851,WaitForPlayers_OnlineOptimizations)
-
-// ASMJIT_PATCH(0x649851, WaitForPlayers_OnlineOptimizations, 0x5)
+// DECLARE_PATCH(WaitForPlayers_OnlineOptimizations)
 // {
-// 	Sleep(3); // Sleep yields the remaining CPU cycle time to any other processes
-// 	return 0x6488B0;
+// 	reinterpret_cast<Imports::FP_Sleep>(0x7E11F0)(3);
+//     JMP(0x6488B0);
 // }
+// DEFINE_FUNCTION_JUMP(LJMP, 0x649851,WaitForPlayers_OnlineOptimizations)
+
+ASMJIT_PATCH(0x649851, WaitForPlayers_OnlineOptimizations, 0x5)
+{
+	Imports::Sleep.invoke()(3);// Sleep yields the remaining CPU cycle time to any other processes
+	return 0x6488B0;
+}
 
 // Otamaa : these block of code seems not really nessesary
 //			all the function output were abandoned anyway
@@ -165,4 +164,38 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6D8640, FakeTacticalClass::__ClampTacticalPos)
 ASMJIT_PATCH(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6) {
 	FakeTacticalClass::__RenderOverlapForeignMap();
 	return 0;
+}
+
+// canEnter and ignoreForce should come before GetFireError().
+DEFINE_JUMP(LJMP, 0x70054D, 0x70056C)
+
+namespace WhatActionObjectTemp
+{
+	bool Skip = false;
+}
+
+ASMJIT_PATCH(0x700536, TechnoClass_WhatAction_Object_AllowAttack, 0x6)
+{
+	enum { CanAttack = 0x70055D, Continue = 0x700548 };
+
+	GET_STACK(bool, canEnter, STACK_OFFSET(0x1C, 0x4));
+	GET_STACK(bool, ignoreForce, STACK_OFFSET(0x1C, 0x8));
+
+	if (canEnter || ignoreForce)
+		return CanAttack;
+
+	GET(TechnoClass*, pThis, ESI);
+	GET(ObjectClass*, pObject, EDI);
+	GET_STACK(int, WeaponIndex, STACK_OFFSET(0x1C, -0x8));
+
+	WhatActionObjectTemp::Skip = true;
+	R->EAX(pThis->GetFireError(pObject, WeaponIndex, true));
+	WhatActionObjectTemp::Skip = false;
+
+	return Continue;
+}
+
+ASMJIT_PATCH(0x6FC8F5, TechnoClass_CanFire_SkipROF, 0x6)
+{
+	return WhatActionObjectTemp::Skip ? 0x6FC981 : 0;
 }

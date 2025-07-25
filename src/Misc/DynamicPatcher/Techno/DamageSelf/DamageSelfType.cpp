@@ -3,6 +3,7 @@
 #include <WarheadTypeClass.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 void DamageSelfType::Read(INI_EX& parser, const char* pSection)
 {
@@ -40,11 +41,11 @@ int DamageSelfState::GetRealDamage(ObjectClass* pObj, int damage, bool ignoreArm
 		// 计算实际伤害
 		if (realDamage > 0)
 		{
-			realDamage = MapClass::GetTotalDamage(damage, pWH, TechnoExtData::GetTechnoArmor(pObj, pWH), 0);
+			realDamage = FakeWarheadTypeClass::ModifyDamage(damage, pWH, TechnoExtData::GetTechnoArmor(pObj, pWH), 0);
 		}
 		else
 		{
-			realDamage = -MapClass::GetTotalDamage(-damage, pWH, TechnoExtData::GetTechnoArmor(pObj, pWH), 0);
+			realDamage = -FakeWarheadTypeClass::ModifyDamage(-damage, pWH, TechnoExtData::GetTechnoArmor(pObj, pWH), 0);
 		}
 	}
 	return realDamage;

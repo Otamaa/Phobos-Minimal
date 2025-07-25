@@ -666,7 +666,7 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 		WarheadTypeClass* pAltWarhead = pWarheadExt->MindControl_AlternateWarhead.Get();
 		// Get the damage the alternate warhead can produce against the target
 		auto const armor_ = TechnoExtData::GetArmor(pTarget);
-		int realDamage = MapClass::GetTotalDamage(altDamage, pAltWarhead, armor_, 0);
+		int realDamage = FakeWarheadTypeClass::ModifyDamage(altDamage, pAltWarhead, armor_, 0);
 		const int animDamage = realDamage;
 
 		const auto pAttacker = pThis->Owner;
@@ -1175,7 +1175,7 @@ void BulletExtData::Serialize(T& Stm)
 // =============================
 // container
 BulletExtContainer BulletExtContainer::Instance;
-ObjectPool<BulletExtData> BulletExtContainer::pools;
+StaticObjectPool<BulletExtData , 10000> BulletExtContainer::pools;
 
 // =============================
 // container hooks

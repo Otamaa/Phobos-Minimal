@@ -74,10 +74,10 @@ public:
         _offset(uint32_t(offset)) {}
 
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG void* data() noexcept { return Support::offsetPtr<void>(this, sizeof(*this)); }
+    ASMJIT_INLINE_NODEBUG void* data() noexcept { return Support::offset_ptr<void>(this, sizeof(*this)); }
 
     [[nodiscard]]
-    ASMJIT_INLINE_NODEBUG const void* data() const noexcept { return Support::offsetPtr<void>(this, sizeof(*this)); }
+    ASMJIT_INLINE_NODEBUG const void* data() const noexcept { return Support::offset_ptr<void>(this, sizeof(*this)); }
   };
 
   //! Data comparer used internally.
@@ -176,7 +176,7 @@ public:
 
     [[nodiscard]]
     static inline Node* _newNode(Zone* zone, const void* data, size_t size, size_t offset, bool shared) noexcept {
-      size_t nodeSize = Support::alignUp(sizeof(Node) + size, Globals::kZoneAlignment);
+      size_t nodeSize = Support::align_up(sizeof(Node) + size, Globals::kZoneAlignment);
       Node* node = zone->alloc<Node>(nodeSize);
 
       if (ASMJIT_UNLIKELY(!node)) {
