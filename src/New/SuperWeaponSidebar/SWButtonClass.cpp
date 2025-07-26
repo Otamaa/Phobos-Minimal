@@ -13,8 +13,8 @@
 
 #include <Misc/PhobosToolTip.h>
 
-SWButtonClass::SWButtonClass(unsigned int id, int superIdx, int x, int y, int width, int height)
-	: ControlClass(id, x, y, width, height, (GadgetFlag::LeftPress | GadgetFlag::RightPress), false)
+SWButtonClass::SWButtonClass(int superIdx, int x, int y, int width, int height)
+	: GadgetClass(x, y, width, height, (GadgetFlag::LeftPress | GadgetFlag::RightPress), false)
 	, SuperIndex(superIdx)
 {
 	if (const auto backColumn = SWSidebarClass::Global()->Columns.back())
@@ -168,7 +168,7 @@ bool SWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modifier)
 		SWTypeExtData::LauchSuper(HouseClass::CurrentPlayer->Supers.Items[this->SuperIndex]);
 	}
 
-	return this->ControlClass::Action(flags, pKey, KeyModifier::None);
+	return this->GadgetClass::Action(flags, pKey, KeyModifier::None);
 }
 
 bool SWButtonClass::LaunchSuper() const

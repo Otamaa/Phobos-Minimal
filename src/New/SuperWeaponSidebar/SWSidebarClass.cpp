@@ -34,7 +34,7 @@ bool SWSidebarClass::AddColumn()
 		return false;
 
 	const int cameoWidth = 60;
-	const auto column = GameCreate<SWColumnClass>(SWColumnClass::StartID + columnsCount, maxButtons, 0, 0, cameoWidth + Phobos::UI::SuperWeaponSidebar_Interval, Phobos::UI::SuperWeaponSidebar_CameoHeight);
+	const auto column = GameCreate<SWColumnClass>(maxButtons, 0, 0, cameoWidth + Phobos::UI::SuperWeaponSidebar_Interval, Phobos::UI::SuperWeaponSidebar_CameoHeight);
 
 	column->Zap();
 	GScreenClass::Instance->AddButton(column);
@@ -52,6 +52,7 @@ bool SWSidebarClass::RemoveColumn()
 	{
 		AnnounceInvalidPointer(SWSidebarClass::Global()->CurrentColumn, backColumn);
 		GScreenClass::Instance->RemoveButton(backColumn);
+		GameDelete<true, false>(backColumn);
 		columns.pop_back();
 		return true;
 	}
@@ -67,11 +68,13 @@ void SWSidebarClass::InitClear()
 	if (const auto toggleButton = std::exchange(this->ToggleButton, nullptr))
 	{
 		GScreenClass::Instance->RemoveButton(toggleButton);
+		GameDelete<true, false>(toggleButton);
 	}
 
 	for (auto& column : this->Columns) {
 		column->ClearButtons();
 		GScreenClass::Instance->RemoveButton(column);
+		GameDelete<true, false>(column);
 	}
 
 	this->Columns.clear();
@@ -111,7 +114,7 @@ void SWSidebarClass::InitIO()
 
 		if (width > 0 && height > 0)
 		{
-			if (const auto toggleButton = GameCreate<ToggleSWButtonClass>(SWColumnClass::StartID - 1, 0, 0, width, height))
+			if (const auto toggleButton = GameCreate<ToggleSWButtonClass>(0, 0, width, height))
 			{
 				toggleButton->Zap();
 				GScreenClass::Instance->AddButton(toggleButton);

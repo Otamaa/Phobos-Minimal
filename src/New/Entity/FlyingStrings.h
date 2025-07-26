@@ -12,6 +12,7 @@ By AlexB and Joshy
 #include <Utilities/VectorHelper.h>
 #include <string>
 
+class WarheadTypeClass;
 class TechnoClass;
 class HouseClass;
 class CellClass;
@@ -43,5 +44,5 @@ public:
 	static void AddNumberString(int amount, HouseClass* owner, AffectedHouse const&  displayToHouses, ColorStruct const& color, CoordStruct const& coords, Point2D pixelOffset, bool sign, const wchar_t* prefix);
 	static void UpdateAll();
 
-	static void DisplayDamageNumberString(int damage, DamageDisplayType type, const CoordStruct coords, int& offset);
+	static void DisplayDamageNumberString(int damage, DamageDisplayType type, const CoordStruct coords, int& offset, WarheadTypeClass* pWH = nullptr);
 };

@@ -784,6 +784,18 @@ public:
 		JMP_THIS(0x585F40);
 	}
 
+	void RepairWoodBridgeAt(CellStruct const& cell)
+	{ JMP_THIS(0x570050); }
+
+	void RepairConcreteBridgeAt(CellStruct const& cell)
+	{ JMP_THIS(0x573540); }
+
+	void DestroyWoodBridgeAt(CellStruct const& cell)
+	{ JMP_THIS(0x574C20); }
+
+	void DestroyConcreteBridgeAt(CellStruct const& cell)
+	{ JMP_THIS(0x574000); }
+
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
 		{ JMP_STD(0x6EEBD0); }

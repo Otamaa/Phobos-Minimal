@@ -3396,22 +3396,27 @@ static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pTh
 			 pThis->Passengers.GetTotalSize() : pThis->Passengers.NumPassengers;
 		passengersIndex = MinImpl(passengersIndex, pTypeExt->AttachedToObject->Passengers);
 
-		if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].GetFromSpecificRank(nCurRank))
-		{
-			pShapeFile = pCustomShapeFile;
-			defaultFrameIndex = 0;
-			isCustomInsignia = true;
+		if(!pTypeExt->Insignia_Passengers.empty() && passengersIndex < pTypeExt->Insignia_Passengers.size()){
+			if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].GetFromSpecificRank(nCurRank)) {
+				pShapeFile = pCustomShapeFile;
+				defaultFrameIndex = 0;
+				isCustomInsignia = true;
+			}
 		}
 
-		int frame = pTypeExt->InsigniaFrame_Passengers[passengersIndex].GetFromSpecificRank(nCurRank);
+		if(!pTypeExt->InsigniaFrame_Passengers.empty() && passengersIndex < pTypeExt->InsigniaFrame_Passengers.size()){
+			int frame = pTypeExt->InsigniaFrame_Passengers[passengersIndex].GetFromSpecificRank(nCurRank);
 
-		if (frame != -1)
-			frameIndex = frame;
+			if (frame != -1)
+				frameIndex = frame;
+		}
 
-		auto const& frames = pTypeExt->InsigniaFrames_Passengers[passengersIndex];
+		if(!pTypeExt->InsigniaFrames_Passengers.empty() && passengersIndex < pTypeExt->InsigniaFrames_Passengers.size()){
+			auto const& frames = pTypeExt->InsigniaFrames_Passengers[passengersIndex];
 
-		if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
-			insigniaFrames = frames.Get();
+			if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
+				insigniaFrames = frames.Get();
+		}
 	}
 
 	if (pTypeExt->AttachedToObject->Gunner)

@@ -1,14 +1,23 @@
 #pragma once
 
-#include <ControlClass.h>
+#include <GadgetClass.h>
 
-class SWButtonClass : public ControlClass
+class SWButtonClass : public GadgetClass
 {
 public:
-	SWButtonClass() = default;
-	SWButtonClass(unsigned int id, int superIdx, int x, int y, int width, int height);
+	static COMPILETIMEEVAL reference<GadgetClass*, 0x8B3E94> LastFocused {};
 
-	~SWButtonClass() = default;
+	SWButtonClass() = default;
+	SWButtonClass(int superIdx, int x, int y, int width, int height);
+
+	~SWButtonClass() {
+		// The vanilla game did not consider adding/deleting buttons midway through the game,
+		// so this behavior needs to be made known to the global variable and then remove it
+		if (LastFocused == this) {
+			LastFocused = nullptr;
+			this->OnMouseLeave();
+		}
+	}
 
 	virtual bool Draw(bool forced) override;
 	virtual void OnMouseEnter() override;

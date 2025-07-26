@@ -520,7 +520,7 @@ ASMJIT_PATCH(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 	//LineTrailExt::DeallocateLineTrail(pUnit);
 	//LineTrailExt::ConstructLineTrails(pUnit);
 
-	// Phobos fix disable these 
+	// Phobos fix disable these
 	//return pThis->Locomotor.GetInterfacePtr()->Is_Moving_Now() ? 0x73E5B1 : 0x0;
 	return 0;
 }
@@ -862,11 +862,21 @@ ASMJIT_PATCH(0x73D800, UnitClass_MI_Unload_NoManualUnload, 0x5){
 
 ASMJIT_PATCH(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
 {
-	// this techno is known to be a unit
-	GET(UnitClass const* const, pThis, ESI);
+	GET(TechnoClass const* const, pThis, ESI);
+	const bool disallowed = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoManualUnload
+		|| pThis->BunkerLinkedItem
+		|| pThis->OnBridge;
 
-	return !TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoManualUnload || pThis->BunkerLinkedItem
-		? 0u : 0x700DCEu;
+	if (!disallowed)
+		return 0x700EFAu;
+
+	//if (auto pUnit = cast_to<UnitClass*>(pThis)){
+	//	if (!pUnit->InAir && pUnit->Deployed && pUnit->Type->DeployToLand) {
+
+	//	}
+	//}
+
+	return 0x700DCEu;
 }
 
 ASMJIT_PATCH(0x53C450, TechnoClass_CanBePermaMC, 5)

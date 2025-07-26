@@ -1,16 +1,23 @@
 #pragma once
 
 #include <vector>
-#include <ControlClass.h>
+#include "SWButtonClass.h"
 
-class SWButtonClass;
-class SWColumnClass : public ControlClass
+class SWColumnClass : public GadgetClass
 {
 public:
 	SWColumnClass() = default;
-	SWColumnClass(unsigned int id, int maxButtons, int x, int y, int width, int height);
+	SWColumnClass(int maxButtons, int x, int y, int width, int height);
 
-	virtual ~SWColumnClass() = default;
+	virtual ~SWColumnClass(){
+		// The vanilla game did not consider adding/deleting buttons midway through the game,
+		// so this behavior needs to be made known to the global variable and then remove it
+		if (SWButtonClass::LastFocused == this)
+		{
+			SWButtonClass::LastFocused  = nullptr;
+			this->OnMouseLeave();
+		}
+	}
 
 	virtual bool Draw(bool forced) override;
 	virtual void OnMouseEnter() override;

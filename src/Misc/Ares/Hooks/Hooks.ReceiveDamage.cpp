@@ -782,7 +782,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	const bool Show = Phobos::Otamaa::IsAdmin || *args.Damage;
 
 	if (Phobos::Debug_DisplayDamageNumbers && Show)
-		FlyingStrings::DisplayDamageNumberString(*args.Damage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset);
+		FlyingStrings::DisplayDamageNumberString(*args.Damage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset, args.WH);
 
 	if (!pThis->Health)
 	{

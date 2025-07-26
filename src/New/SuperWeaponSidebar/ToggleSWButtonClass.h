@@ -1,12 +1,12 @@
 #pragma once
 
-#include <ControlClass.h>
+#include <GadgetClass.h>
 
-class ToggleSWButtonClass : public ControlClass
+class ToggleSWButtonClass : public GadgetClass
 {
 public:
 	ToggleSWButtonClass() = default;
-	ToggleSWButtonClass(unsigned int id, int x, int y, int width, int height);
+	ToggleSWButtonClass(int x, int y, int width, int height);
 
 	virtual~ToggleSWButtonClass() = default;
 

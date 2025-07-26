@@ -12,8 +12,8 @@
 #include <CCToolTip.h>
 #include <GameOptionsClass.h>
 
-ToggleSWButtonClass::ToggleSWButtonClass(unsigned int id, int x, int y, int width, int height)
-	: ControlClass(id, x, y, width, height, (GadgetFlag::LeftPress | GadgetFlag::LeftRelease), true)
+ToggleSWButtonClass::ToggleSWButtonClass(int x, int y, int width, int height)
+	: GadgetClass(x, y, width, height, (GadgetFlag::LeftPress | GadgetFlag::LeftRelease), true)
 {
 	SWSidebarClass::Global()->ToggleButton = this;
 }
@@ -85,7 +85,7 @@ bool ToggleSWButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modi
 		ToggleSWButtonClass::SwitchSidebar();
 	}
 
-	return this->ControlClass::Action(flags, pKey, KeyModifier::None);
+	return this->GadgetClass::Action(flags, pKey, KeyModifier::None);
 }
 
 void ToggleSWButtonClass::UpdatePosition()

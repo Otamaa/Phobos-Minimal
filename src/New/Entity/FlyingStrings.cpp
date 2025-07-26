@@ -151,7 +151,7 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 }
 
 
-void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type, CoordStruct coords, int& offset)
+void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type, CoordStruct coords, int& offset , WarheadTypeClass* pWH)
 {
 	if (damage == 0)
 		return;
@@ -180,7 +180,11 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 	int width = 0, height = 0;
 
 	std::wstring damagestr;
-	fmt::format_to(std::back_inserter(damagestr), L"{}" , damage);
+
+	//if(!pWH)
+		fmt::format_to(std::back_inserter(damagestr), L"{}" , damage);
+	//else
+	//	fmt::format_to(std::back_inserter(damagestr), L"{} [{}]", damage , PhobosCRT::StringToWideString(pWH->ID));
 
 	BitFont::Instance->GetTextDimension(damagestr.c_str(), &width, &height, 120);
 
