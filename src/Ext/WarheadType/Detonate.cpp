@@ -742,7 +742,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 	this->ApplyShieldModifiers(pTarget);
 
-	if (this->RemoveMindControl)
+	if (this->RemoveDisguise)
 		this->ApplyRemoveDisguise(pHouse, pTarget);
 
 	if (this->RemoveMindControl)
