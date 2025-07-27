@@ -683,8 +683,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->PenetratesTransport_CleanSound.Read(exINI, pSection, "PenetratesTransport.CleanSound");
 
 	this->IsCellSpreadWH =
-		//this->RemoveDisguise ||
-		//this->RemoveMindControl ||
+		this->RemoveDisguise ||
+		this->RemoveMindControl ||
 		//this->Crit_Chance ||
 		this->Shield_Break ||
 		!this->ConvertsPair.empty() ||

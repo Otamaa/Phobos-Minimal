@@ -179,7 +179,7 @@ ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
 	pItem->Bunkerable = 0;
 
 	pItem->Sequence = (DoControls*)GameCreate<NewDoType>();
-	pItem->Sequence->Initialize();
+	((NewDoType*)(pItem->Sequence))->Initialize();
 
 	if (auto pExt = InfantryTypeExtContainer::Instance.Allocate(pItem))
 		pExt->Type = TechnoTypeExtContainer::Instance.Find(pItem);

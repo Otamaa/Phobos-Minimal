@@ -70,7 +70,7 @@ public:
 
 	HelperedVector<TechnoTypeClass*> OwnedExistCameoTechnoTypes {};
 	bool SWSidebar_Enable { true };
-	HelperedVector<int> SWSidebar_Indices {};
+	std::set<int> SWSidebar_Indices {};
 
 	UniqueGamePtr<MessageListClass> NewMessageList {};
 

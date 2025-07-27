@@ -236,7 +236,7 @@ public:
 
 	Valueable<bool> Death_NoAmmo { false };
 	Valueable<int> Death_Countdown { 0 };
-	Valueable<KillMethod> Death_Method { KillMethod::Explode };
+	Valueable<KillMethod> Death_Method { KillMethod::None };
 	Valueable<bool> Death_WithMaster { false };
 	Valueable<int> AutoDeath_MoneyExceed { -1 };
 	Valueable<int> AutoDeath_MoneyBelow { -1 };

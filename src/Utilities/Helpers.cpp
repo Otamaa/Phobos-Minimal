@@ -39,13 +39,14 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 				}
 			}
 
-			if (!nData.LaunchWaitcharge)
-				pSuper->SetReadiness(true);
 
 			auto const mostCheckPasses = !nData.LaunchSW_RealLauch || pSuper->Granted && lauch && !pSuper->IsOnHold && MoneyEligible && BattleDataEligible && InhibitorEligible && DesignatorEligible;
 
 
 			if (mostCheckPasses && !nData.LaunchSW_Manual) {
+
+				if (!nData.LaunchWaitcharge)
+					pSuper->SetReadiness(true);
 
 				const int oldstart = pSuper->RechargeTimer.StartTime;
 				const int oldleft = pSuper->RechargeTimer.TimeLeft;
@@ -58,7 +59,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 
 				if (nData.LaunchResetCharge)
 					pSuper->Reset();
-				else
+				else if (!nData.LaunchSW_RealLauch)
 				{
 					pSuper->RechargeTimer.StartTime = oldstart;
 					pSuper->RechargeTimer.TimeLeft = oldleft;

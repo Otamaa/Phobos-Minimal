@@ -7,8 +7,8 @@ class SuperWeaponTypeClass;
 struct LauchSWData final
 {
 	int LaunchWhat { -1 };
-	Valueable<bool> LaunchWaitcharge { false };
-	Valueable<bool> LaunchResetCharge { false };
+	Valueable<bool> LaunchWaitcharge { true };
+	Valueable<bool> LaunchResetCharge { true };
 	Valueable<bool> LaunchGrant { false };
 	Valueable<bool> LaunchGrant_RepaintSidebar { true };
 	Valueable<bool> LaunchGrant_OneTime { true };

@@ -1455,15 +1455,7 @@ void HouseExtData::UpdateAutoDeathObjects()
 
 		auto const pExt = TechnoExtContainer::Instance.Find(item.first);
 
-		if (!item.first->IsInLogic && pExt->Death_Countdown.Completed()) {
-			if (auto const pBuilding = cast_to<BuildingClass*, false>(item.first)) {
-				if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1) {
-					BuildingExtData::LimboKill(pBuilding);
-					return true;
-				}
-			}
-
-			TechnoExtData::KillSelf(item.first, item.second, true, TechnoTypeExtContainer::Instance.Find(pExt->Type)->AutoDeath_VanishAnimation);
+		if (!item.first->IsInLogic && pExt->CheckDeathConditions()) {
 			return true;
 		}
 		return false;

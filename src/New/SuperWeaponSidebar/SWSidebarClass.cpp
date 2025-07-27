@@ -152,6 +152,11 @@ bool SWSidebarClass::AddButton(int superIdx)
 
 	auto& columns = this->Columns;
 
+	for (auto& col : columns) {
+		if (std::any_of(col->Buttons.begin() , col->Buttons.end(),
+			[superIdx](SWButtonClass* const button) { return button->SuperIndex == superIdx; }))
+			return true; //already exist
+	}
 	if (columns.empty() && !this->AddColumn())
 		return false;
 
@@ -342,7 +347,7 @@ ASMJIT_PATCH(0x6A6316, SidebarClass_AddCameo_SuperWeapon_SWSidebar, 0x6)
 		return 0;
 
 	if (SWSidebarClass::Global()->AddButton(index)) {
-		ScenarioExtData::Instance()->SWSidebar_Indices.emplace_back(index);
+		ScenarioExtData::Instance()->SWSidebar_Indices.emplace(index);
 		return ReturnFalse;
 	}
 
@@ -374,7 +379,7 @@ ASMJIT_PATCH(0x6AA790, StripClass_RecheckCameo_RemoveCameo, 0x6)
 	if (supers.ValidIndex(pItem->ItemIndex) && supers[pItem->ItemIndex]->Granted)
 	{
 		if (SWSidebarClass::Global()->AddButton(pItem->ItemIndex))
-			ScenarioExtData::Instance()->SWSidebar_Indices.emplace_back(pItem->ItemIndex);
+			ScenarioExtData::Instance()->SWSidebar_Indices.emplace(pItem->ItemIndex);
 		else
 			return ShouldNotRemove;
 	}

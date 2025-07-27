@@ -143,7 +143,7 @@ bool SWColumnClass::RemoveButton(int superIdx)
 
 	AnnounceInvalidPointer(sidebar->CurrentButton, *it);
 
-	ScenarioExtData::Instance()->SWSidebar_Indices.remove(superIdx);
+	ScenarioExtData::Instance()->SWSidebar_Indices.erase(superIdx);
 	const auto pButton = *it;
 	GScreenClass::Instance->RemoveButton(pButton);
 	GameDelete<true,false>(pButton);

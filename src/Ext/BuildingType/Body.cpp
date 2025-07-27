@@ -609,11 +609,11 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		{
 			KillMethod nMethod = pBuildingExt->Type->Type->Death_Method.Get();
 
-			if (nMethod != KillMethod::None
-				&& pBuildingExt->Type->Type->Death_Countdown > 0
-				&& !pBuildingExt->TechnoExt->Death_Countdown.HasStarted())
-			{
-				pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
+			if (nMethod != KillMethod::None) {
+
+				if(pBuildingExt->Type->Type->Death_Countdown > 0)
+					pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
+
 				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
 		}

@@ -517,7 +517,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		bool Death_Peaceful;
 		if(detail::read(Death_Peaceful , exINI, pSection, "Death.Peaceful"))
-			this->Death_Method = Death_Peaceful ? KillMethod::Vanish : KillMethod::Explode;
+			this->Death_Method = Death_Peaceful ? KillMethod::Vanish : this->Death_Method;
 
 		this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.Nonexist");
 		this->AutoDeath_Nonexist.Read(exINI, pSection, "AutoDeath.TechnosDontExist");

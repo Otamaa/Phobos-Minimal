@@ -480,22 +480,19 @@ void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHo
 	}
 }
 
-void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, BulletClass* pBullet, CoordStruct coords) const
+void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, BulletClass* pBullet, CoordStruct coords)
 {
-	if (!pOwner || !pBullet)
-		return;
-
 	const float cellSpread = this->AttachedToObject->CellSpread;
 
 	if (cellSpread == 0.0)
 	{
-		if (auto const pTargetBullet = cast_to<BulletClass*>(pOwner->Target))
+		if (auto const pTargetBullet = cast_to<BulletClass*>(pBullet->Target))
 		{
-			// 1/8th of a cell as a margin of error.
-			if (BulletTypeExtContainer::Instance.Find(pTargetBullet->Type)->Interceptable
-					&& !pBullet->SpawnNextAnim && (pTargetBullet->Type->Inviso || pTargetBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0))
-			{
-				BulletExtData::InterceptBullet(pTargetBullet, pOwner, pBullet);
+			if (BulletTypeExtContainer::Instance.Find(pTargetBullet->Type)->Interceptable) {
+				// 1/8th of a cell as a margin of error.
+				if (!pBullet->SpawnNextAnim && (pTargetBullet->Type->Inviso || pTargetBullet->Location.DistanceFrom(coords) <= Unsorted::LeptonsPerCell / 8.0)) {
+					BulletExtData::InterceptBullet(pTargetBullet, pOwner, pBullet);
+				}
 			}
 		}
 	}
@@ -745,11 +742,11 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 	this->ApplyShieldModifiers(pTarget);
 
-	//if (this->RemoveDisguise)
-	//	this->ApplyRemoveDisguiseToInf(pHouse, pTarget);
+	if (this->RemoveMindControl)
+		this->ApplyRemoveDisguise(pHouse, pTarget);
 
-	//if (this->RemoveMindControl)
-	//	this->ApplyRemoveMindControl(pHouse, pTarget);
+	if (this->RemoveMindControl)
+		this->ApplyRemoveMindControl(pHouse, pTarget);
 
 	if (this->PermaMC)
 		this->applyPermaMC(pHouse, pTarget);

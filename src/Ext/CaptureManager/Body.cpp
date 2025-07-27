@@ -108,9 +108,9 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 
 			const auto pBld = cast_to<BuildingClass*, false>(pTarget);
 
-			if (pBld) {
-				BuildingExtContainer::Instance.Find(pBld)->BeignMCEd = true;
-			}
+			//if (pBld) {
+			//	BuildingExtContainer::Instance.Find(pBld)->BeignMCEd = true;
+			//}
 
 			if (pTarget->SetOwningHouse(pManager->Owner->Owner, !bSilent))
 			{
@@ -142,9 +142,9 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 			}
 			else
 			{
-				if (pBld) {
-					BuildingExtContainer::Instance.Find(pBld)->BeignMCEd = false;
-				}
+				//if (pBld) {
+				//	BuildingExtContainer::Instance.Find(pBld)->BeignMCEd = false;
+				//}
 			}
 		}
 	}

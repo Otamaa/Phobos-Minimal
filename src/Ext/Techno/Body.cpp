@@ -3396,7 +3396,7 @@ static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pTh
 			 pThis->Passengers.GetTotalSize() : pThis->Passengers.NumPassengers;
 		passengersIndex = MinImpl(passengersIndex, pTypeExt->AttachedToObject->Passengers);
 
-		if(!pTypeExt->Insignia_Passengers.empty() && passengersIndex < pTypeExt->Insignia_Passengers.size()){
+		if(!pTypeExt->Insignia_Passengers.empty() && (size_t)passengersIndex < pTypeExt->Insignia_Passengers.size()){
 			if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].GetFromSpecificRank(nCurRank)) {
 				pShapeFile = pCustomShapeFile;
 				defaultFrameIndex = 0;
@@ -3404,14 +3404,14 @@ static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pTh
 			}
 		}
 
-		if(!pTypeExt->InsigniaFrame_Passengers.empty() && passengersIndex < pTypeExt->InsigniaFrame_Passengers.size()){
+		if(!pTypeExt->InsigniaFrame_Passengers.empty() && (size_t)passengersIndex < pTypeExt->InsigniaFrame_Passengers.size()){
 			int frame = pTypeExt->InsigniaFrame_Passengers[passengersIndex].GetFromSpecificRank(nCurRank);
 
 			if (frame != -1)
 				frameIndex = frame;
 		}
 
-		if(!pTypeExt->InsigniaFrames_Passengers.empty() && passengersIndex < pTypeExt->InsigniaFrames_Passengers.size()){
+		if(!pTypeExt->InsigniaFrames_Passengers.empty() && (size_t)passengersIndex < pTypeExt->InsigniaFrames_Passengers.size()){
 			auto const& frames = pTypeExt->InsigniaFrames_Passengers[passengersIndex];
 
 			if (!frames->operator==(Vector3D<int>(-1, -1, -1)))
@@ -3843,7 +3843,6 @@ void TechnoExtData::UpdateInterceptor()
 	const double guardRangeSq = guardRange * guardRange;
 	const auto& minguardRange = pTypeExt->Interceptor_MinimumGuardRange.Get(pThis);
 	const double minguardRangeSq = minguardRange * minguardRange;
-
 
 	// Interceptor weapon is always fixed
 	const auto pWeapon = pThis->GetWeapon(pTypeExt->Interceptor_Weapon)->WeaponType;

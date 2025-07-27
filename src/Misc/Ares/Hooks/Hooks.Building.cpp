@@ -1036,25 +1036,22 @@ ASMJIT_PATCH(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 	auto pExt = BuildingExtContainer::Instance.Find(pThis);
 
 	std::array<std::pair<BuildingTypeClass*, CDTimerClass*>, 4u> Timers
-	{ {
+	= { {
 	 { pThis->Type , &pThis->CashProductionTimer },
 	 { pThis->Upgrades[0] ,&pExt->CashUpgradeTimers[0] },
 	 { pThis->Upgrades[1] ,&pExt->CashUpgradeTimers[1] },
 	 { pThis->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
 	 } };
 
-	for (auto& [bld, timer] : Timers)
-	{
-		if (bld)
-		{
-			if (bld->ProduceCashStartup || bld->ProduceCashAmount)
-			{
+	for (auto& [bld, timer] : Timers) {
+		if (bld) {
 
-				if (!pExt->BeignMCEd)
-				{
-					pExt->BeignMCEd = false;
+			if (bld->ProduceCashStartup || bld->ProduceCashAmount) {
+
+				//if (!pExt->BeignMCEd) {
+				//	pExt->BeignMCEd = false;
 					startup += bld->ProduceCashStartup;
-				}
+				//}
 
 				if (bld->ProduceCashDelay)
 				{
@@ -1064,14 +1061,10 @@ ASMJIT_PATCH(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
 		}
 	}
 
-	if (startup)
-	{
-
-		if (!pNewOwner->Type->MultiplayPassive)
-		{
+	if (startup) {
+		if (!pNewOwner->Type->MultiplayPassive) {
 			pNewOwner->TransactMoney(startup);
-			if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay)
-			{
+			if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->ProduceCashDisplay) {
 				TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount += startup;
 			}
 		}

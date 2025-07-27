@@ -1241,16 +1241,6 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 		{
 			pThis->Flash(pWHExt->Flash_Duration);
 		}
-
-		if (pWHExt->RemoveDisguise)
-		{
-			pWHExt->ApplyRemoveDisguise(pHouse, pThis);
-		}
-
-		if (pWHExt->RemoveMindControl)
-		{
-			pWHExt->ApplyRemoveMindControl(pHouse, pThis);
-		}
 	}
 
 	if (pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
