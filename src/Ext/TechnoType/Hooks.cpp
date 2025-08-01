@@ -427,6 +427,16 @@ ASMJIT_PATCH(0x73CCE1, UnitClass_DrawSHP_TurretOffest, 0x6)
 	return 0;
 }
 
+ASMJIT_PATCH(0x6B7230, SpawnManagerClass_AI_Dead, 0x5)
+{
+	GET(SpawnManagerClass*, pThis, ECX);
+
+	if(!pThis->Owner || !pThis->Owner->IsAlive)
+		return 0x6B7B6A;
+
+	return 0x0;
+}
+
 ASMJIT_PATCH(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
@@ -434,8 +444,8 @@ ASMJIT_PATCH(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 	if(auto pOwner = pThis->Owner) {
 		if (TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType())->Promote_IncludeSpawns) {
 			for (const auto& i : pThis->SpawnedNodes) {
-				if (i->Unit && i->Unit->Veterancy.Veterancy < pThis->Owner->Veterancy.Veterancy)
-					i->Unit->Veterancy.Add(pThis->Owner->Veterancy.Veterancy - i->Unit->Veterancy.Veterancy);
+				if (i->Unit && i->Unit->Veterancy.Veterancy < pOwner->Veterancy.Veterancy)
+					i->Unit->Veterancy.Add(pOwner->Veterancy.Veterancy - i->Unit->Veterancy.Veterancy);
 			}
 		}
 	}

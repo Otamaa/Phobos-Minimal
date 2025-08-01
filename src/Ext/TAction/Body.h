@@ -15,6 +15,8 @@ class HouseClass;
 class CellStruct;
 enum class PhobosTriggerAction : unsigned int
 {
+	MakeAllyOneWay = 490,
+	MakeEnemyOneWay = 491,
 	AllAssignMission = 492,
 	DeleteObject = 493,
 	DisableAllyReveal = 494,
@@ -158,6 +160,8 @@ public:
 	ACTION_FUNC(DisableAllyReveal);
 	ACTION_FUNC(DeleteObject);
 	ACTION_FUNC(AllAssignMission);
+	ACTION_FUNC(MakeAllyOneWay);
+	ACTION_FUNC(MakeEnemyOneWay);
 #undef ACTION_FUNC
 
 	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;

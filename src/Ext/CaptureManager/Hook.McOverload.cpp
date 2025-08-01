@@ -45,6 +45,5 @@ ASMJIT_PATCH(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 	TechnoExtData::ApplyGainedSelfHeal(pThis, wasDamaged);
 
 	//handle everything
-	return //!pThis->IsAlive  ? ReturnFunc :
-		DoNotSelfHeal;
+	return !pThis->IsAlive ? ReturnFunc : DoNotSelfHeal;
 }

@@ -577,6 +577,12 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 	case PhobosTriggerAction::AllAssignMission:
 		ret = TActionExtData::AllAssignMission(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
+	case PhobosTriggerAction::MakeAllyOneWay:
+		ret = TActionExtData::MakeAllyOneWay(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::MakeEnemyOneWay:
+		ret = TActionExtData::MakeEnemyOneWay(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::SaveGame:
 		ret = TActionExtData::SaveGame(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -1423,6 +1429,27 @@ bool TActionExtData::AllAssignMission(TActionClass* pThis, HouseClass* pHouse, O
 	return true;
 }
 
+bool TActionExtData::MakeEnemyOneWay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (HouseClass* hptr = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+		Unsorted::ScenarioInit++;
+		pHouse->MakeEnemy(hptr,false);
+		--Unsorted::ScenarioInit;
+	}
+
+	return true;
+}
+
+bool TActionExtData::MakeAllyOneWay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (HouseClass* hptr = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+		Unsorted::ScenarioInit++;
+		pHouse->MakeAlly(hptr, false);
+		--Unsorted::ScenarioInit;
+	}
+
+	return true;
+}
 
 bool TActionExtData::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
