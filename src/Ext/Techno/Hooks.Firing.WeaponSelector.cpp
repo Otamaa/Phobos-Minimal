@@ -360,13 +360,21 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //	return 0x0;
 //}
 //
+
 //ASMJIT_PATCH(0x6F3330, TechnoClass_SelectWeapon_IsTechnoTargetAlive, 5)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(AbstractClass*, pTarget, 0x4);
 //	GET_STACK(uintptr_t, callerAddress, 0x0);
 //
-//	calleraddr = callerAddress;
+//	if(auto pObj = flag_cast_to<ObjectClass*>(pTarget)){
+//		if(!pObj->IsAlive) {
+//			Debug::LogInfo("[{}] {} {} Attempt to target death Object of {}!"
+//				, callerAddress ,(void*)pThis , pThis->get_ID() , (void*)pTarget);
+//
+//			R->Stack(0x4 , nullptr);
+//		}
+//	}
 //
 //	return 0x0;
 //}

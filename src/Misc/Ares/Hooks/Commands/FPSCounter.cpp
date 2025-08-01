@@ -25,8 +25,8 @@ const wchar_t* FPSCounterCommandClass::GetUIDescription() const
 
 void FPSCounterCommandClass::Execute(WWKey dwUnk) const
 {
-	const int mode = static_cast<int>(RulesExtData::Instance()->FPSCounter);
-	RulesExtData::Instance()->FPSCounter = static_cast<FPSCounterMode>((mode + 1) % 4);
+	const BYTE mode = (BYTE)(RulesExtData::Instance()->FPSCounter);
+	RulesExtData::Instance()->FPSCounter = (FPSCounterMode)((mode + 1) % (BYTE)FPSCounterMode::count);
 
 	// Debug print
 	//switch (RulesExtData::Instance()->FPSCounter)

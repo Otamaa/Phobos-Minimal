@@ -141,7 +141,7 @@ public:
 
 	FORCEDINLINE CellExtData* _GetExtData()
 	{
-		return *reinterpret_cast<CellExtData**>(((DWORD)this) + AbstractExtOffset);
+		return *reinterpret_cast<CellExtData**>(((DWORD)this) + CellExtData::ExtOffset);
 	}
 
 };

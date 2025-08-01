@@ -234,8 +234,8 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	if (DamageToShieldAfterMinMax == 0)
 	{
 		auto nPassableDamageAnountCopy = PassableDamageAnount;
-		if (Phobos::Debug_DisplayDamageNumbers && (nPassableDamageAnountCopy) != 0)
-			FlyingStrings::DisplayDamageNumberString(nPassableDamageAnountCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
+		if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && (nPassableDamageAnountCopy) != 0)
+			FlyingStrings::DisplayDamageNumberString(nPassableDamageAnountCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset, Phobos::Debug_DisplayDamageNumbers);
 
 		nDamageResult = PassableDamageAnount;
 	}
@@ -278,8 +278,8 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			pWHExt->GetVerses(this->Type->Armor).Verses)
 			); //only absord percentage damage
 
-			if (Phobos::Debug_DisplayDamageNumbers && (nHPCopy) != 0)
-				FlyingStrings::DisplayDamageNumberString(nHPCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
+			if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && (nHPCopy) != 0)
+				FlyingStrings::DisplayDamageNumberString(nHPCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset ,Phobos::Debug_DisplayDamageNumbers);
 
 			this->BreakShield(pWHExt->Shield_BreakAnim, pWHExt->Shield_BreakWeapon.Get(nullptr));
 
@@ -289,8 +289,8 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		else //negative residual damage
 			// that mean the damage can be sustained with the sield
 		{
-			if (Phobos::Debug_DisplayDamageNumbers && (-DamageToShield) != 0)
-				FlyingStrings::DisplayDamageNumberString((-DamageToShield), DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
+			if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && (-DamageToShield) != 0)
+				FlyingStrings::DisplayDamageNumberString((-DamageToShield), DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset,Phobos::Debug_DisplayDamageNumbers);
 
 			if (this->Type->HitFlash && pWHExt->Shield_HitFlash)
 			{
@@ -338,8 +338,8 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			if (this->Type->CanBeHealed) {
 				auto nDamageCopy = DamageToShieldAfterMinMax;
 
-				if (Phobos::Debug_DisplayDamageNumbers && DamageToShieldAfterMinMax != 0)
-					FlyingStrings::DisplayDamageNumberString(DamageToShieldAfterMinMax, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset);
+				if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && DamageToShieldAfterMinMax != 0)
+					FlyingStrings::DisplayDamageNumberString(DamageToShieldAfterMinMax, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset , Phobos::Debug_DisplayDamageNumbers);
 
 				this->HP = std::clamp(this->HP + (-nDamageCopy), 0, this->Type->Strength.Get());
 				this->UpdateIdleAnim();
@@ -427,6 +427,10 @@ bool ShieldClass::CanBePenetrated(WarheadTypeClass* pWarhead) const
 		return false;
 
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+
+	if (!pWHExt->Shield_Penetrate_Types_Disallowed_Types.empty() && pWHExt->Shield_Penetrate_Types_Disallowed_Types.Contains(this->Type))
+		return false;
+
 	const auto affectedTypes = pWHExt->Shield_Penetrate_Types.GetElements(pWHExt->Shield_AffectTypes);
 
 	if (!affectedTypes.empty() && !affectedTypes.contains(this->Type))

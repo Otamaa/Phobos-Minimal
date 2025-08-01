@@ -1686,7 +1686,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			for (size_t i = 0; i < passengers; i++)
 			{
 				Nullable<InsigniaTypeClass*> InsigniaType_Passengers;
-				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaType.Passengers%d", i);
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaType.Passengers%d", i);
 				InsigniaType_Passengers.Read(exINI, pSection, tempBuffer);
 
 				if (InsigniaType_Passengers.isset())
@@ -1697,13 +1697,13 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				}
 				else
 				{
-					_snprintf_s(tempBuffer, sizeof(tempBuffer), "Insignia.Passengers%d.%s", i, "%s");
+					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Insignia.Passengers%d.%s", i, "%s");
 					this->Insignia_Passengers[i].Read(exINI, pSection, tempBuffer);
 
-					_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Passengers%d.%s", i, "%s");
+					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Passengers%d.%s", i, "%s");
 					this->InsigniaFrame_Passengers[i].Read(exINI, pSection, tempBuffer);
 
-					_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Passengers%d", i);
+					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Passengers%d", i);
 					this->InsigniaFrames_Passengers[i].Read(exINI, pSection, tempBuffer);
 				}
 			}

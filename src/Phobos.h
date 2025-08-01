@@ -21,6 +21,16 @@
 #include <Lib/fmt/printf.h>
 #include <Lib/magic_enum/magic_enum_all.hpp>
 
+enum class DrawDamageMode : BYTE
+{
+	disabled, damageOnly, withWH, count
+};
+
+enum class FPSCounterMode
+{
+	disabled, Full, FPSOnly, FPSandAVG, count
+};
+
 template <typename E>
 struct fmt::formatter<E, std::enable_if_t<std::is_enum_v<std::decay_t<E>>, char>> : fmt::formatter<std::string_view, char>
 {
@@ -89,7 +99,7 @@ struct Phobos final
 	static const char readDelims[4];
 	static const char readDefval[4];
 	static std::string AppIconPath;
-	static bool Debug_DisplayDamageNumbers;
+	static DrawDamageMode Debug_DisplayDamageNumbers;
 	static const wchar_t* VersionDescription;
 	static bool ShouldQuickSave;
 	static std::wstring CustomGameSaveDescription;

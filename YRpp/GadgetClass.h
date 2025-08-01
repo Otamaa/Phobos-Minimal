@@ -31,7 +31,7 @@ public:
 	static COMPILETIMEEVAL reference<GadgetClass*, 0x8B3E90> Focused {};
 
 	//Destructor
-	virtual ~GadgetClass() RX;
+	virtual ~GadgetClass() override { JMP_THIS(0x4E1390); }
 
 	//LinkClass
 	virtual GadgetClass* GetNext() override JMP_THIS(0x4E14A0);

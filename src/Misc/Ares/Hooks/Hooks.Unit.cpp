@@ -358,13 +358,6 @@ ASMJIT_PATCH(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
 	return pTechno->Berzerk || TechnoExtContainer::Instance.Find(pTechno)->Is_DriverKilled ? 0x730EF7 : 0;
 }
 
-ASMJIT_PATCH(0x6F3283, TechnoClass_CanScatter_KillDriver, 8)
-{
-	// prevent units with killed drivers from scattering when attacked.
-	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x6F32C5u : 0u);
-}
-
 ASMJIT_PATCH(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
 {
 	// prevent units with killed drivers from looking for victims.
@@ -901,13 +894,6 @@ ASMJIT_PATCH(0x53C450, TechnoClass_CanBePermaMC, 5)
 
 	R->AL(bDisaalow);
 	return 0x53C4BA;
-}
-
-ASMJIT_PATCH(0x700536, TechnoClass_GetActionOnObject_NoManualFire, 6)
-{
-	GET(TechnoClass const* const, pThis, ESI);
-	auto const pType = pThis->GetTechnoType();
-	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualFire ? 0x70056Cu : 0u;
 }
 
 ASMJIT_PATCH(0x7008D4, TechnoClass_GetCursorOverCell_NoManualFire, 6)

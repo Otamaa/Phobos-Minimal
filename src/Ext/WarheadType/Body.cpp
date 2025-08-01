@@ -236,6 +236,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Shield_AffectTypes.Read(exINI, pSection, "Shield.AffectTypes");
 
 	this->Shield_Penetrate_Types.Read(exINI, pSection, "Shield.Penetrate.Types");
+	this->Shield_Penetrate_Types_Disallowed_Types.Read(exINI, pSection, "Shield.Penetrate.Disallow.Types");
 	this->Shield_Penetrate_Armor_Types.Read(exINI,pSection, "Shield.Penetrates.ArmorTypes");
 	this->Shield_Break_Types.Read(exINI, pSection, "Shield.Break.Types");
 	this->Shield_Respawn_Types.Read(exINI, pSection, "Shield.Respawn.Types");
@@ -1600,6 +1601,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Shield_MinimumReplaceDelay)
 		.Process(this->Shield_AffectTypes)
 		.Process(this->Shield_Penetrate_Types)
+		.Process(this->Shield_Penetrate_Types_Disallowed_Types)
 		.Process(this->Shield_Penetrate_Armor_Types)
 		.Process(this->Shield_Break_Types)
 		.Process(this->Shield_Respawn_Types)

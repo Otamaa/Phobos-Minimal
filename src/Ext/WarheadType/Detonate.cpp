@@ -645,7 +645,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 
 		//if the warhead itself has cellspread
-		if (fabs(cellSpread) >= 0.1f)
+		if (Math::abs(cellSpread) >= 0.1f)
 		{
 			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(coords, cellSpread, true);
 
@@ -939,11 +939,14 @@ void WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass*
 void WarheadTypeExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	//this is here , just in case i need special treatment for `TankDisguiseAsTank`
-	if (auto const pFoot = flag_cast_to<FootClass*>(pTarget))
+	if(pTarget->IsAlive)
 	{
-		if (pFoot->IsDisguised())
+		if (pTarget->IsDisguised())
 		{
-			pFoot->ClearDisguise();
+			if (auto pSpy = cast_to<InfantryClass*, false>(pTarget))
+			   pSpy->Disguised = false;
+		    else if (auto pMirage = cast_to<UnitClass*, false>(pTarget))
+			   pMirage->ClearDisguise();
 		}
 	}
 }

@@ -4,27 +4,42 @@
 #include "UnitClass.h"
 
 #include <Utilities/GeneralUtils.h>
+
 #include <Ext/TechnoType/Body.h>
+#include <Ext/Techno/Body.h>
+
+#include <PlanningTokenClass.h>
 
 ASMJIT_PATCH(0x740A93, UnitClass_Mission_Move_DisallowMoving, 0x6)
 {
+	enum {
+		QueueGuardInstead = 0x740AEF,
+		ReturnTrue = 0x740AFD,
+		ContinueCheck = 0x0
+	};
+
 	GET(UnitClass*, pThis, ESI);
 
-	return pThis->Type->Speed == 0 ? 0x740AEF : 0;
+	return pThis->Type->Speed == 0
+	? QueueGuardInstead : ContinueCheck;
 }
 
 ASMJIT_PATCH(0x741AA7, UnitClass_Assign_Destination_DisallowMoving, 0x6)
 {
+	enum { ClearNavComsAndReturn = 0x743173, ContinueCheck = 0x0 };
 	GET(UnitClass*, pThis, EBP);
 
-	return pThis->Type->Speed == 0 ? 0x743173 : 0;
+	return pThis->Type->Speed == 0
+	? ClearNavComsAndReturn : ContinueCheck;
 }
 
 ASMJIT_PATCH(0x743B4B, UnitClass_Scatter_DisallowMoving, 0x6)
 {
+	enum { ReleaseReturn = 0x74408E, ContinueCheck = 0x0 };
 	GET(UnitClass*, pThis, EBP);
 
-	return pThis->Type->Speed == 0 ? 0x74408E : 0;
+	return pThis->Type->Speed == 0
+	? ReleaseReturn : ContinueCheck;
 }
 
 ASMJIT_PATCH(0x74038F, UnitClass_What_Action_ObjectClass_DisallowMoving_1, 0x6)

@@ -172,20 +172,6 @@ ASMJIT_PATCH(0x7601FB, WaveClass_Draw_Magnetron2, 0xB)
 		;
 }
 
-ASMJIT_PATCH(0x75F46E, WaveClass_DamageCell_Wall, 6)
-{
-	GET(WeaponTypeClass*, pWeapon, EBX);
-	return pWeapon->Warhead->Wall ? 0x0 : 0x75F47C;
-}
-
-ASMJIT_PATCH(0x75F38F, WaveClass_DamageCell_SelectWeapon, 0x6)
-{
-	GET(WaveClass*, pWave, EBP);
-	R->EDI(R->EAX());
-	R->EBX(WaveExtContainer::Instance.Find(pWave)->Weapon);
-	return 0x75F39D;
-}
-
  /*
  *	YES , this fuckery is removing WaveClass::WaveAI function call for later , replace it with boolean ,
 	so it can be done after all data set is completed !
@@ -314,27 +300,4 @@ ASMJIT_PATCH(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
 	GET(DynamicVectorClass<CellClass*>*, pVec, EBP);
 	pVec->Reset();
 	return 0x761110;
-}
-
-ASMJIT_PATCH(0x75F415, WaveClass_DamageCell_FixNoHouseOwner, 0x6)
-{
-	GET(WaveClass*, pThis, EBP);
-	GET(CellClass*, pCell, EDI);
-	GET(ObjectClass*, pVictim, ESI);
-	GET_STACK(int, nDamage, STACK_OFFS(0x18, 0x4));
-	GET_STACK(WarheadTypeClass*, pWarhead, STACK_OFFS(0x18, 0x8));
-
-	if (const auto pTechnoVictim = flag_cast_to<TechnoClass*>(pVictim)){
-		if (pTechnoVictim->IsSinking || pTechnoVictim->IsCrashing)
-			return 0x75F432;
-
-		if (const auto pUnit = cast_to<UnitClass* , false>(pVictim)) {
-			if (pUnit->DeathFrameCounter > 0)
-				return 0x75F432;
-		}
-	}
-
-	//pVictim->ReceiveDamage(&nDamage, 0, pWarhead, pTechnoOwner, false, false, pTechnoOwner->Owner);
-	WarheadTypeExtData::DetonateAt(pWarhead, pVictim, pCell->GetCoordsWithBridge(), pThis->Owner, nDamage);
-	return 0x75F432;
 }

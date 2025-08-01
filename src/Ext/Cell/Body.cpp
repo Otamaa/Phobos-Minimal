@@ -226,21 +226,26 @@ void FakeCellClass::_Invalidate(AbstractClass* ptr, bool removed)
 
 	if (removed)
 	{
-		if (ptr == static_cast<void*>(this->AltObject)) {
-			Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalud Alt Obj {}", (void*)this, this->MapCoords.X , this->MapCoords.Y , (void*)this->AltObject);
-		}
+		//if (ptr == static_cast<void*>(this->AltObject)) {
+		//	Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Alt Obj {}", (void*)this, this->MapCoords.X , this->MapCoords.Y , (void*)this->AltObject);
+		//}
 
-		if (ptr == static_cast<void*>(this->FirstObject)) {
-			Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalud Obj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
-		}
+		//if (ptr == static_cast<void*>(this->FirstObject)) {
+		//	Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Obj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
+		//}
 
-		if (ptr == static_cast<void*>(pExt->IncomingUnit)) {
-			Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalud IncomingObj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
+		if(pExt) {
+			if (ptr == static_cast<void*>(pExt->IncomingUnit)) {
+				//Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid IncomingObj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)pExt->IncomingUnit);
+				this->OccupationFlags &= ~0x20;
+				pExt->IncomingUnit = nullptr;
+			}
 
-		}
-
-		if (ptr == static_cast<void*>(pExt->IncomingUnitAlt)) {
-			Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalud IncomingAltObj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
+			if (ptr == static_cast<void*>(pExt->IncomingUnitAlt)) {
+				//Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid IncomingAltObj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)pExt->IncomingUnitAlt);
+				this->AltOccupationFlags &= ~0x20;
+				pExt->IncomingUnitAlt = nullptr;
+			}
 		}
 	}
 }
@@ -312,4 +317,4 @@ HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, bool clearDirty)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);

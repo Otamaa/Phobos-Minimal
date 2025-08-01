@@ -22,7 +22,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 			const auto pHouseExt = HouseExtContainer::Instance.Find(HouseOwner);
 
 			auto const nWhere = CellClass::Coord2Cell(Where);
-			bool const lauch = !nData.LaunchWaitcharge || (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower()));
+			bool const lauch = !nData.LaunchWaitcharge || (pSuper->IsCharged && (pSuper->IsPowered() && HouseOwner->HasLowPower()));
 			bool const bIsCurrentPlayer = HouseOwner->IsCurrentPlayer();
 			bool const MoneyEligible = nData.LauchSW_IgnoreMoney || HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
 			bool const BattleDataEligible = nData.LauchSW_IgnoreBattleData || pHouseExt->CanTransactBattlePoints(pSWExt->BattlePoints_Amount);

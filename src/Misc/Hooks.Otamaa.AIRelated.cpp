@@ -418,49 +418,15 @@ ASMJIT_PATCH(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
 		advance : ret;
 }
 
-ASMJIT_PATCH(0x6F7D90, TechnoClass_EvalueateObject_Forbidden, 0x6)
-{
-	GET(ObjectClass*, pTarget, ESI);
-
-	if (pTarget->InLimbo || !pTarget->IsAlive)
-		return 0x6F894F;
-
-	if (const auto pTechno = flag_cast_to<TechnoClass*,false>(pTarget))
-	{
-
-		if (pTechno->IsCrashing || pTechno->IsSinking)
-			return 0x6F894F;
-
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
-
-		if (pTypeExt->IsDummy)
-			return 0x6F894F;
-
-		switch (pTechno->WhatAmI())
-		{
-		case AbstractType::Building:
-		{
-			const auto pBld = (BuildingClass*)pTarget;
-
-			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-				return 0x6F894F;
-
-			break;
-		}
-		case AbstractType::Unit:
-		{
-
-			const auto pUnit = (UnitClass*)pTarget;
-
-			if (pUnit->DeathFrameCounter > 0)
-				return 0x6F894F;
-
-			break;
-		}
-		default:
-			break;
-		}
-	}
-
-	return 0x6F7D9E;
-}
+//ASMJIT_PATCH(0x6F7D90, TechnoClass_EvalueateObject_Forbidden, 0x6)
+//{
+//	GET(ObjectClass*, pTarget, ESI);
+//
+//	// alive check here was too late
+//	if (pTarget->InLimbo)
+//		return 0x6F894F;
+//
+//
+//
+//	return 0x6F7D9E;
+//}

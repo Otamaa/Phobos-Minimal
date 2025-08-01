@@ -48,7 +48,7 @@ wchar_t Phobos::wideBuffer[readLength] {};
 const char Phobos::readDelims[4] { "," };
 const char Phobos::readDefval[4] { "" };
 std::string Phobos::AppIconPath {};
-bool Phobos::Debug_DisplayDamageNumbers { false };
+DrawDamageMode Phobos::Debug_DisplayDamageNumbers { DrawDamageMode::disabled  };
 const wchar_t* Phobos::VersionDescription { L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping." };
 bool Phobos::ShouldQuickSave { false };
 std::wstring Phobos::CustomGameSaveDescription {};
@@ -545,12 +545,11 @@ void Initasmjit()
 	void* buffer {};
 	int len = Patch::GetSection(Phobos::hInstance, ASMJIT_PATCH_SECTION_NAME, &buffer);
 
-	hookdeclb* end = (hookdeclb*)((DWORD)buffer + len);
-	Debug::LogDeferred("Applying %d asmjit hooks.\n", std::distance((hookdeclb*)buffer, end));
+	hookdeclfunc* end = (hookdeclfunc*)((DWORD)buffer + len);
+	Debug::LogDeferred("Applying %d asmjit hooks.\n", std::distance((hookdeclfunc*)buffer, end));
 
-	for (hookdeclb* begin = (hookdeclb*)buffer; begin < end; begin++) {
-		auto& hook = Hooks[begin->hookAddr];
-		hook.summary.emplace_back(begin->hookFunc, begin->hookSize);
+	for (hookdeclfunc* begin = (hookdeclfunc*)buffer; begin < end; begin++) {
+		Hooks[begin->hookAddr].summary.emplace_back(begin->hookFunc, begin->hookSize);
 	}
 
 	ApplyasmjitPatch();
@@ -1319,12 +1318,11 @@ NOINLINE void ApplyEarlyFuncs() {
 		}
 
 		Debug::LogDeferred("Applying %d Static Patche(s).\n", std::distance((_patch*)buffer, end));
-		len = Patch::GetSection(Phobos::hInstance, ".syhks00", &buffer);
+
+		len = Patch::GetSection(Phobos::hInstance, SYRINGE_HOOKS_SECTION_NAME, &buffer);
+		Debug::LogDeferred("Applying %d Syringe hook(s).\n", std::distance((hookdecl*)buffer, (hookdecl*)((DWORD)buffer + len)));
 
 		Initasmjit();
-
-		//hookdecl
-		Debug::LogDeferred("Applying %d Syringe hook(s).\n", std::distance((hookdecl*)buffer, (hookdecl*)((DWORD)buffer + len)));
 
 		Phobos::ExecuteLua();
 
@@ -1416,8 +1414,7 @@ ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 //syringe wont inject the dll unless it got atleast one hook
 //so i keep this
 #if !defined(NO_SYRINGE)
-declhook(0x7CD810, Game_ExeRun, 0x9)
-extern "C" __declspec(dllexport) DWORD __cdecl Game_ExeRun(REGISTERS* R)
+DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 {
 
 	ApplyEarlyFuncs();

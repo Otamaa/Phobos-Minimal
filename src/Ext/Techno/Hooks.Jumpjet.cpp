@@ -197,7 +197,7 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 
 	if (Math::abs(ars) >= 0.005 || Math::abs(arf) >= 0.005)
 	{
-		if (pIndex) pIndex->Invalidate();
+		if (pIndex) pIndex->Base.Invalidate();
 
 		if (onGround)
 		{
@@ -247,15 +247,26 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 					* JumpjetTiltReference::SidewaysBaseTilt), -JumpjetTiltReference::MaxTilt, JumpjetTiltReference::MaxTilt);
 
 				const auto arsDir = DirStruct(ars);
-				arsFace = (arsDir.GetFacing<128>() + 96u) & 0x7Fu;
+				// When changing the radian to DirStruct, it will rotate 90 degrees.
+				// To ensure that 0 is still 0, it needs to be rotated back
+				arsFace = arsDir.GetFacing<128>(96);
+
 
 				if (arsFace)
 					ret->RotateX(static_cast<float>(arsDir.GetRadian<128>()));
 				}
 			}
+
+			const auto arfDir = DirStruct(arf);
+
+			// Similarly, turn it back
+			arfFace = arfDir.GetFacing<128>(96);
+
+			if (arfFace)
+				ret->RotateY(static_cast<float>(arfDir.GetRadian<128>()));
 		}
 
-	if (pIndex && pIndex->IsValidKey())
+	if (pIndex && pIndex->Base.Is_Valid_Key())
 	{
 		// It is currently unclear whether the passed key only has two situations:
 		// all 0s and all 1s, so I use the safest approach for now
@@ -270,15 +281,15 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			pIndex->CustomIndexKey.JumpjetTiltVoxel.bodyFace = curf->Current().GetFacing<32>();
 
 			// Outside the function, there is another step to add a frame number to the key for drawing
-			pIndex->Value >>= 5;
+			pIndex->Base.Value >>= 5;
 		}
 		else // Keep the original code
 		{
 			if (onGround)
-				pIndex->Value = slope_idx + (pIndex->Value << 6);
+				pIndex->Base.Value = slope_idx + (pIndex->Base.Value << 6);
 
-			pIndex->Value <<= 5;
-			pIndex->Value |= curf->Current().GetFacing<32>();;
+			pIndex->Base.Value <<= 5;
+			pIndex->Base.Value |= curf->Current().GetFacing<32>();;
 		}
 	}
 
@@ -290,8 +301,8 @@ ASMJIT_PATCH(0x73B748, UnitClass_DrawVXL_ResetKeyForTurretUse, 0x7)
 	REF_STACK(PhobosVoxelIndexKey, key, STACK_OFFSET(0x1C4, -0x1B0));
 
 	// Main body drawing completed, then enable accurate drawing of turrets and barrels
-	if (key.IsValidKey() && key.IsExtraBodyKey()) // Flags used by JumpjetTilt units
-		key.Invalidate();
+	if (key.Base.Is_Valid_Key() && key.IsJumpjetKey()) // Flags used by JumpjetTilt units
+		key.Base.Invalidate();
 
 	return 0;
 }

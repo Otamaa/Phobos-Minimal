@@ -781,8 +781,8 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	const bool Show = Phobos::Otamaa::IsAdmin || *args.Damage;
 
-	if (Phobos::Debug_DisplayDamageNumbers && Show)
-		FlyingStrings::DisplayDamageNumberString(*args.Damage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset, args.WH);
+	if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && Show)
+		FlyingStrings::DisplayDamageNumberString(*args.Damage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset, Phobos::Debug_DisplayDamageNumbers, args.WH);
 
 	if (!pThis->Health)
 	{
@@ -1821,7 +1821,8 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 
 		if (MyTransport
 		  && MyTransport->WhatAmI() == UnitClass::AbsID
-		  && pThis->Type->Gunner) {
+		  && pThis->Type->Gunner)
+		{
 			static_cast<UnitClass*>(MyTransport)->RemovePassenger(pThis);
 		}
 

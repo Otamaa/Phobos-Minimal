@@ -379,7 +379,7 @@ bool BuildingTypeExtData::AutoPlaceBuilding(BuildingClass* pBuilding)
 
 	auto addPlaceEvent = [&pType, &pHouse](CellStruct cell)
 	{
-		const EventClass event
+		EventClass event
 		(
 			HouseClass::CurrentPlayer->ArrayIndex,
 			EventType::PLACE,
@@ -534,7 +534,7 @@ bool BuildingTypeExtData::BuildLimboBuilding(BuildingClass* pBuilding)
 
 	if (BuildingTypeExtContainer::Instance.Find(pBuildingType)->LimboBuild)
 	{
-		const EventClass event
+		EventClass event
 		(
 			pBuilding->Owner->ArrayIndex,
 			EventType::PLACE,
@@ -1707,7 +1707,9 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		}
 
 		this->BuildUp_UseNormalLIght.Read(exArtINI, pArtSection, "Buildup.UseNormalLight");
-		this->RubblePalette.Read(exArtINI, pArtSection, "Rubble.Palette");
+		this->RubblePalette.Read(exArtINI, pArtSection,
+			(!Phobos::Otamaa::CompatibilityMode ?
+			"Rubble.Palette" : "RubblePalette"));
 
 		if (!Phobos::Otamaa::CompatibilityMode)
 		{
@@ -1827,7 +1829,7 @@ CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(TechnoTypeClass* pType
 				{
 					vec.push_back(pType);
 					SidebarClass::Instance->SidebarNeedsRepaint();
-					const EventClass event
+					EventClass event
 					(
 						HouseClass::CurrentPlayer->ArrayIndex,
 						EventType::ABANDON_ALL,

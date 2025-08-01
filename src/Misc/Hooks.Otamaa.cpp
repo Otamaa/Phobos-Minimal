@@ -1223,6 +1223,7 @@ void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
 	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
 	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + Unsorted::BridgeHeight;
 	bool alt = (pCrd->Z >= height && pCell->ContainsBridge());
+	//auto pCellExt = CellExtContainer::Instance.TryFind(pCell);
 
 	// remember which occupation bit we set
 	auto pExt = TechnoExtContainer::Instance.Find(this);
@@ -1231,10 +1232,15 @@ void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
 	if (alt)
 	{
 		pCell->AltOccupationFlags |= 0x20;
+		//if(pCellExt && !TechnoExtData::DoesntOccupyCellAsChild(this))
+		//	pCellExt->IncomingUnitAlt = this;
 	}
 	else
 	{
 		pCell->OccupationFlags |= 0x20;
+
+		//if(pCellExt && !TechnoExtData::DoesntOccupyCellAsChild(this))
+		//	pCellExt->IncomingUnit = this;
 	}
 }
 
@@ -1243,6 +1249,7 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 	enum { obNormal = 1, obAlt = 2 };
 
 	CellClass* pCell = MapClass::Instance->GetCellAt(pCrd);
+	//auto pCellExt = CellExtContainer::Instance.TryFind(pCell);
 	int height = MapClass::Instance->GetCellFloorHeight(pCrd) + Unsorted::BridgeHeight;
 	int alt = (pCrd->Z >= height) ? obAlt : obNormal;
 
@@ -1258,11 +1265,15 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 	if (alt & obAlt)
 	{
 		pCell->AltOccupationFlags &= ~0x20;
+		//if(pCellExt && !TechnoExtData::DoesntOccupyCellAsChild(this))
+		//	pCellExt->IncomingUnitAlt= this;
 	}
 
 	if (alt & obNormal)
 	{
 		pCell->OccupationFlags &= ~0x20;
+		//if(pCellExt && !TechnoExtData::DoesntOccupyCellAsChild(this))
+		//	pCellExt->IncomingUnit = this;
 	}
 
 }
@@ -5942,7 +5953,7 @@ ASMJIT_PATCH(0x417CC0, AircraftClass_WhatAction_caller, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4_DeadTechno, 0x6)
+ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4And3_DeadTechno, 0x6)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
 	GET(int, idx, EBX);
@@ -5954,8 +5965,66 @@ ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4_DeadTechno, 0x6)
 	}
 
 	return 0x0;
-}
+}//ASMJIT_PATCH_AGAIN(0x6B770D, SpawnManagerClass_AI_State4And3_DeadTechno, 0x6)
 
+//ASMJIT_PATCH(0x6F7CA0, TechnoClass_EvalObject_EarlyObjectEval, 0x5)
+//{
+//	GET_STACK(AbstractClass*, pTarget, 0x10);
+//	retfunc_fixed<bool> _return (R, 0x6F8958, false);
+//
+//	if(!pTarget) {
+//		return _return();
+//	}
+//
+//	if (auto pObj = flag_cast_to<ObjectClass* , false>(pTarget)) {
+//		if (!pObj->IsAlive) {
+//			return _return();
+//		}
+//	}
+//
+//	if (const auto pTechno = flag_cast_to<TechnoClass*, false>(pTarget))
+//	{
+//		if (pTechno->IsCrashing || pTechno->IsSinking) {
+//			return _return();
+//		}
+//
+//
+//		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+//
+//		if (pTypeExt->IsDummy) {
+//			return _return();
+//		}
+//
+//		switch (pTechno->WhatAmI())
+//		{
+//		case AbstractType::Building:
+//		{
+//			const auto pBld = (BuildingClass*)pTarget;
+//
+//			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) {
+//				return _return();
+//			}
+//
+//			break;
+//		}
+//		case AbstractType::Unit:
+//		{
+//
+//			const auto pUnit = (UnitClass*)pTarget;
+//
+//			if (pUnit->DeathFrameCounter > 0) {
+//				return _return();
+//			}
+//
+//			break;
+//		}
+//		default:
+//			break;
+//		}
+//	}
+//
+//	return 0x0;
+//}
 
 static NOINLINE int CalculateRadiationDamage(
 	int baseLevel,

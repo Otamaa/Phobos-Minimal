@@ -154,10 +154,10 @@ public:
 	{
 		struct VoxelCaches
 		{
-			IndexClass<MainVoxelIndexKey, VoxelCacheStruct*> Main;
-			IndexClass<TurretWeaponVoxelIndexKey, VoxelCacheStruct*> TurretWeapon;
+			IndexClass<VoxelIndexKey, VoxelCacheStruct*> Main;
+			IndexClass<VoxelIndexKey, VoxelCacheStruct*> TurretWeapon;
 			IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> Shadow;
-			IndexClass<TurretBarrelVoxelIndexKey, VoxelCacheStruct*> TurretBarrel;
+			IndexClass<ShadowVoxelIndexKey, VoxelCacheStruct*> TurretBarrel;
 		} VoxelCaches;
 
 		IndexClass<int, int> VoxelCaches_[4];

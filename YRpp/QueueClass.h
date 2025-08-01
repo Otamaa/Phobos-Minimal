@@ -1,23 +1,26 @@
 #pragma once
 #include <Base/Always.h>
+#include <Unsorted.h>
 
 template<class T, int size>
 class QueueClass
 {
 public:
-	COMPILETIMEEVAL QueueClass();
-	COMPILETIMEEVAL ~QueueClass() { }
+	QueueClass();
+	~QueueClass() { }
 
 	T& operator[](int index);
 
 	T& First();
 	void Init();
 	int Next();
-	bool Add(const T& q);
 
-	int Get_Head();
-	int Get_Tail();
-	T* Get_Array();
+	bool Add(const T& q);
+	bool Add(const T* q);
+
+	int GetHead();
+	int GetTail();
+	T* GetArray();
 
 public:
 	int Count;
@@ -26,7 +29,9 @@ private:
 	int Head;
 	int Tail;
 	T Array[size];
+	int Timings[size];
 };
+
 
 template<class T, int size>
 OPTIONALINLINE QueueClass<T, size>::QueueClass() :
@@ -34,6 +39,7 @@ OPTIONALINLINE QueueClass<T, size>::QueueClass() :
 {
 	Init();
 }
+
 
 template<class T, int size>
 OPTIONALINLINE void QueueClass<T, size>::Init()
@@ -43,17 +49,28 @@ OPTIONALINLINE void QueueClass<T, size>::Init()
 	Tail = 0;
 }
 
+
 template<class T, int size>
 OPTIONALINLINE bool QueueClass<T, size>::Add(const T& q)
 {
-	if (Count >= size)
-	{
-		return false;
-	}
-
 	if (Count < size)
 	{
 		Array[Tail] = q;
+		Timings[Tail] = static_cast<int>(Imports::TimeGetTime().invoke());
+		Tail = (Tail + 1) & (size - 1);
+		Count = Count + 1;
+		return true;
+	}
+	return false;
+}
+
+template<class T, int size>
+OPTIONALINLINE bool QueueClass<T, size>::Add(const T* q)
+{
+	if (Count < size)
+	{
+		memcpy((Array + Tail), q, sizeof(T));
+		Timings[Tail] = static_cast<int>(Imports::TimeGetTime.invoke()());
 		Tail = (Tail + 1) & (size - 1);
 		Count = Count + 1;
 		return true;
@@ -72,11 +89,13 @@ OPTIONALINLINE int QueueClass<T, size>::Next()
 	return Count;
 }
 
+
 template<class T, int size>
 OPTIONALINLINE T& QueueClass<T, size>::operator[](int index)
 {
 	return Array[(Head + index) & (size - 1)];
 }
+
 
 template<class T, int size>
 OPTIONALINLINE T& QueueClass<T, size>::First()
@@ -84,20 +103,23 @@ OPTIONALINLINE T& QueueClass<T, size>::First()
 	return Array[Head];
 }
 
+
 template<class T, int size>
-OPTIONALINLINE int QueueClass<T, size>::Get_Head()
+OPTIONALINLINE int QueueClass<T, size>::GetHead()
 {
 	return Head;
 }
 
+
 template<class T, int size>
-OPTIONALINLINE int QueueClass<T, size>::Get_Tail()
+OPTIONALINLINE int QueueClass<T, size>::GetTail()
 {
 	return Tail;
 }
 
+
 template<class T, int size>
-OPTIONALINLINE T* QueueClass<T, size>::Get_Array()
+OPTIONALINLINE T* QueueClass<T, size>::GetArray()
 {
 	return Array;
 }

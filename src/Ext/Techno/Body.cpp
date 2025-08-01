@@ -4525,18 +4525,16 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, bool isPeaceful)
 		// this shit is not really good idea to pull of
 		// some stuffs doesnt really handled properly , wtf
 		bool SkipRemoveTracking = false;
-		if (!pThis->InLimbo){
+		if (!pThis->InLimbo)
+		{
 			SkipRemoveTracking = true;
 			pThis->Limbo();
 		}
 
 		//Debug::LogInfo(__FUNCTION__" (2args) Called ");
 		TechnoExtData::HandleRemove(pThis, nullptr, SkipRemoveTracking, false);
-	}
-	else
-	{
-		if(pThis->IsAlive)
-			pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, false, false, pThis->Owner);
+	}else{
+		TechnoExtData::Kill(pThis, nullptr);
 	}
 }
 
@@ -4548,6 +4546,13 @@ static KillMethod NOINLINE GetKillMethod(KillMethod deathOption)
 	}
 
 	return deathOption;
+}
+
+void TechnoExtData::Kill(TechnoClass* pThis, TechnoClass* pKiller) {
+	if (pThis->IsAlive) {
+		auto nHealth = pThis->GetType()->Strength;
+		pThis->ReceiveDamage(&nHealth, 0, RulesClass::Instance()->C4Warhead, pKiller, true, false, pKiller ? pKiller->Owner : nullptr);
+	}
 }
 
 void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill, AnimTypeClass* pVanishAnim)
@@ -4570,12 +4575,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	{
 	case KillMethod::Explode:
 	{
-		if (pThis->IsAlive)
-		{
-			auto nHealth = pThis->GetType()->Strength;
-			pThis->ReceiveDamage(&nHealth, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
-		}
-
+		TechnoExtData::Kill(pThis, nullptr);
 	}break;
 	case KillMethod::Vanish:
 	{
@@ -4639,9 +4639,8 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 			}
 		}
 
-		if (pThis && pThis->IsAlive)
-		{
-			pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
+		if (pThis) {
+			TechnoExtData::Kill(pThis, nullptr);
 		}
 
 	}break;
@@ -5086,7 +5085,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 				if (amount >= healthDeficit)
 					amount = healthDeficit;
 
-				if (Phobos::Debug_DisplayDamageNumbers)
+				if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count )
 					FlyingStrings::AddNumberString(amount, pThis->Owner, AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::White], pThis->Location, Point2D::Empty, false, L"");
 
 				pThis->Health += amount;

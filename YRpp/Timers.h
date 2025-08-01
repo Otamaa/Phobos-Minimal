@@ -1,7 +1,10 @@
 #pragma once
 
+#include <Base/Always.h>
+
 #include <windows.h>
 #include <timeapi.h>
+#include <algorithm>
 
 template<typename T>
 concept TimerType = std::convertible_to<T, int>&& requires (T t)

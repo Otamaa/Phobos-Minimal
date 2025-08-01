@@ -1,7 +1,8 @@
 #include "Body.h"
 
-#include <Ext/TechnoType/Body.h>
 #include <Ext/Super/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/TechnoType/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/Cast.h>
@@ -111,7 +112,10 @@ bool FakeTacticalClass::IsHighPriorityInRect(LTRBStruct* rect)
 	{
 		if (this->IsInSelectionRect(rect, selected) && ObjectClass_IsSelectable(selected.Object))
 		{
-			return !TechnoTypeExtContainer::Instance.Find(selected.Object->GetTechnoType())->LowSelectionPriority;
+			//auto const pExt = TechnoExtContainer::Instance.Find(static_cast<TechnoClass*>(selected.Object));
+			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(selected.Object->GetTechnoType());
+
+			return !pTypeExt->LowSelectionPriority;
 		}
 	}
 
@@ -137,8 +141,15 @@ void FakeTacticalClass::SelectFiltered(LTRBStruct* pRect, callback_type fpCheckC
 			{
 				const auto TypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pObjType);
 
-				if (bPriorityFiltering && TypeExt->LowSelectionPriority)
-					continue;
+				if (bPriorityFiltering){
+
+					//auto const pExt = TechnoExtContainer::Instance.Find(pTechno);
+					// Attached units shouldn't be selected regardless of the setting
+					bool isLowPriorityByTechno = Phobos::Config::PrioritySelectionFiltering && TypeExt->LowSelectionPriority;
+
+					if (isLowPriorityByTechno)
+						continue;
+				}
 
 				if (Game::IsTypeSelecting())
 					Game::UICommands_TypeSelect_7327D0(TypeExt->GetSelectionGroupID());

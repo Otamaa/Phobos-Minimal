@@ -1,6 +1,7 @@
 #include "DamageDisplay.h"
 
 #include <Utilities/GeneralUtils.h>
+#include <Phobos.h>
 
 const char* DamageDisplayCommandClass::GetName() const
 {
@@ -24,5 +25,6 @@ const wchar_t* DamageDisplayCommandClass::GetUIDescription() const
 
 void DamageDisplayCommandClass::Execute(WWKey eInput) const
 {
-	Phobos::Debug_DisplayDamageNumbers = !Phobos::Debug_DisplayDamageNumbers;
+	const BYTE mode = static_cast<BYTE>(Phobos::Debug_DisplayDamageNumbers);
+	Phobos::Debug_DisplayDamageNumbers = static_cast<DrawDamageMode>((mode + 1) % (BYTE)DrawDamageMode::count);
 }

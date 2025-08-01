@@ -14,7 +14,6 @@ public:
 		// so this behavior needs to be made known to the global variable and then remove it
 		if (SWButtonClass::LastFocused == this)
 		{
-			SWButtonClass::LastFocused  = nullptr;
 			this->OnMouseLeave();
 		}
 	}

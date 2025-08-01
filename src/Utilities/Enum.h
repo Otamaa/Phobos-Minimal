@@ -34,6 +34,13 @@
 
 #include <GeneralDefinitions.h>
 
+enum class AttachmentYSortPosition : BYTE
+{
+	Default = 0,
+	UnderParent = 1,
+	OverParent = 2
+};
+
 enum class AttachedAnimPosition : BYTE
 {
 	Default = 0,

@@ -59,8 +59,10 @@
 #include <New/Type/BarTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
+//#include <New/Type/AttachmentTypeClass.h>
 
 #include <New/Entity/BannerClass.h>
+//#include <New/Entity/AttachmentClass.h>
 
 #include <New/HugeBar.h>
 
@@ -315,7 +317,7 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
 
-	if(Phobos::Otamaa::ExeTerminated)
+	if (Phobos::Otamaa::ExeTerminated)
 		return 0;
 
 	TActionExtData::InvalidatePointer(pInvalid, removed);
@@ -335,6 +337,16 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 		}
 
 	 });
+
+	//AttachmentClass::Array.for_each([pInvalid, removed](AttachmentClass* pAttach) {
+	//	pAttach->InvalidatePointer(pInvalid);
+	//});
+
+	//for (int i = 0; i < MapClass::Instance->Cells.Capacity; ++i) {
+	//	if (auto pCell = MapClass::Instance->Cells[i]) {
+	//		pCell->PointerExpired(pInvalid, removed);
+	//	}
+	//}
 
 	//SpawnManagerClass::Array->for_each([&](SpawnManagerClass* pThis) {
 	//	if (pThis->Owner && removed) {
@@ -447,9 +459,11 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(StaticVars);
 
 	version += sizeof(BannerClass);
+	//version += sizeof(AttachmentClass);
 
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
 		AddTypeOf(Armor)
+	//	AddTypeOf(Attachment)
 		AddTypeOf(Banner)
 		AddTypeOf(Bar)
 		AddTypeOf(Color)
@@ -530,6 +544,8 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	InsigniaTypeClass::Clear();
 	SelectBoxTypeClass::Clear();
 	BannerClass::Clear();
+	//AttachmentClass::Array.clear();
+	//AttachmentTypeClass::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -736,7 +752,9 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<ShieldClass>(pStm) &&
 		Process_Load<PrismForwarding>(pStm) &&
 		Process_Load<BannerClass>(pStm) &&
-		Process_Load<TActionExtData>(pStm)
+		Process_Load<TActionExtData>(pStm) //&&
+		//Process_Load<AttachmentClass> (pStm) &&
+		//Process_Load<AttachmentTypeClass> (pStm)
 		;
 
 	if (!ret)
@@ -813,7 +831,9 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<ShieldClass>(pStm) &&
 			Process_Save<PrismForwarding>(pStm) &&
 			Process_Save<BannerClass>(pStm) &&
-			Process_Save<TActionExtData>(pStm)
+			Process_Save<TActionExtData>(pStm) //&&
+			//Process_Save<AttachmentClass>(pStm) &&
+			//Process_Save<AttachmentTypeClass>(pStm)
 			;
 
 		if (!ret)
