@@ -27,16 +27,19 @@ ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	// mimic an increment because decrement happens in the middle of function cleanup and can't be erased nicely
 	++Unsorted::SystemResponseMessages;
+	const auto hwnd = IsWindow(Game::hWnd()) ? Game::hWnd() : nullptr;
 
 	Debug::LogInfo("Reconnection error detected!");
-	if (MessageBoxW(Game::hWnd, L"Yuri's Revenge has detected a desynchronization!\n"
+	if (MessageBoxW(hwnd, L"Yuri's Revenge has detected a desynchronization!\n"
 		L"Would you like to create a full error report for the developers?\n"
 		L"Be advised that reports from at least two players are needed.", L"Reconnection Error!", MB_YESNO | MB_ICONERROR) == IDYES)
 	{
 		Debug::DumpStack(R, 8084);
 
 		HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
-		SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+		if(hwnd)
+			SetClassLong(hwnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+
 		SetCursor(loadCursor);
 
 		std::wstring path = Debug::PrepareSnapshotDirectory();
@@ -48,12 +51,14 @@ ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 			std::wstring _bar = Debug::LogFileMainName + Debug::LogFileExt;
 			_bar += L" Copied. - Yuri's Revenge";
 
-			MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
+			MessageBoxW(hwnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
 			CopyFileW(Debug::LogFileFullPath.c_str(), (path + L"\\" + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
 		}
 
 		loadCursor = LoadCursor(nullptr, IDC_ARROW);
-		SetClassLong(Game::hWnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+		if(hwnd)
+			SetClassLong(hwnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+
 		SetCursor(loadCursor);
 		Debug::FatalError("A desynchronization has occurred.\r\n"
 			"%s"
@@ -79,6 +84,7 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 	DWORD* eip_pointer = reinterpret_cast<DWORD*>(&pExs->ContextRecord->Eip);
 	std::string reason = "Unknown";
+	const auto hwnd = IsWindow(Game::hWnd()) ? Game::hWnd() : nullptr;
 
 	switch (*eip_pointer)
 	{
@@ -142,7 +148,9 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 	//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
 	//so using these oogly
-	SetWindowTextW(*reinterpret_cast<HWND*>(0xB73550), L"Fatal Error - Yuri's Revenge");
+	if(hwnd)
+		SetWindowTextW(hwnd, L"Fatal Error - Yuri's Revenge");
+
 	std::wstring path = Debug::PrepareSnapshotDirectory();
 
 	switch (pExs->ExceptionRecord->ExceptionCode)
@@ -171,12 +179,11 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 	{
 		const std::wstring except_file = path + L"\\except.txt";
 
-		if (Debug::LogEnabled)
-		{
+		if (Debug::LogEnabled) {
 			std::wstring _bar = Debug::LogFileMainName + Debug::LogFileExt;
 			_bar += L" Copied. - Yuri's Revenge";
 
-			MessageBoxW(Game::hWnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
+			MessageBoxW(hwnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
 			CopyFileW(Debug::LogFileFullPath.c_str(), (path + L"\\" + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
 		}
 
@@ -384,12 +391,14 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 
 		//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
 		//so using these oogly
-		if (MessageBoxW(*reinterpret_cast<HWND*>(0xB73550), L"Yuri's Revenge has encountered a fatal error!\nWould you like to create a full crash report for the developers?", L"Fatal Error!", MB_YESNO | MB_ICONERROR) == IDYES)
+		if (MessageBoxW(hwnd, L"Yuri's Revenge has encountered a fatal error!\nWould you like to create a full crash report for the developers?", L"Fatal Error!", MB_YESNO | MB_ICONERROR) == IDYES)
 		{
 			HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
 			//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
 			//so using these oogly
-			SetClassLong(*reinterpret_cast<HWND*>(0xB73550), GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+			if(hwnd)
+				SetClassLong(hwnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+
 			SetCursor(loadCursor);
 			Debug::LogInfo("Making a memory dump");
 
@@ -403,7 +412,9 @@ LONG __fastcall ExceptionHandler(int code , PEXCEPTION_POINTERS const pExs) {
 			loadCursor = LoadCursor(nullptr, IDC_ARROW);
 			//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
 			//so using these oogly
-			SetClassLong(*reinterpret_cast<HWND*>(0xB73550), GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+			if (hwnd)
+				SetClassLong(hwnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+
 			SetCursor(loadCursor);
 			Debug::FatalError("The cause of this error could not be determined.\r\n"
 				"%s"

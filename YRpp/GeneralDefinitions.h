@@ -19,6 +19,21 @@
 #define SDDTOR_NODELETE				0x00
 #define SDDTOR_DELETE				0x01
 
+enum PlayerColorSlot : int
+{
+	Gold = 0,
+	Red = 1,
+	Blue = 2,
+	Green = 3,
+	Orange = 4,
+	SkyBlue = 5,
+	Purple = 6,
+	Pink = 7,
+	White = 8,
+	Random = -2,
+	None = -1
+};
+
 enum ProdFailType : byte
 {
 	OK = 0x0,
