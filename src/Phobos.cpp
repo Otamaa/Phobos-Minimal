@@ -123,6 +123,8 @@ int Phobos::Config::CampaignDefaultGameSpeed { 2 };
 bool Phobos::Config::DigitalDisplay_Enable { false };
 bool Phobos::Config::MessageDisplayInCenter { false };
 bool Phobos::Config::MessageApplyHoverState { false };
+int Phobos::Config::MessageDisplayInCenter_LabelsCount { 4 };
+int Phobos::Config::MessageDisplayInCenter_RecordsCount { 12 };
 bool Phobos::Config::ShowBuildingStatistics { false };
 bool Phobos::Config::ApplyShadeCountFi { true };
 bool Phobos::Config::SaveVariablesOnScenarioEnd { false };
@@ -144,7 +146,7 @@ bool Phobos::Config::ScrollSidebarStripWhenHoldKey { true };
 
 bool Phobos::Config::UnitPowerDrain { false };
 int Phobos::Config::SuperWeaponSidebar_RequiredSignificance { 0 };
-
+bool Phobos::Config::SuperWeaponSidebarCommands { false };
 bool Phobos::Misc::CustomGS { false };
 int Phobos::Misc::CustomGS_ChangeInterval[7] { -1, -1, -1, -1, -1, -1, -1 };
 int Phobos::Misc::CustomGS_ChangeDelay[7] { 0, 1, 2, 3, 4, 5, 6 };

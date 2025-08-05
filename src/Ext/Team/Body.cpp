@@ -1101,8 +1101,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6E9050 , FakeTeamClass::_AssignMissionTarget)
 
 //ASMJIT_PATCH(0x55B4F5, LogicClass_Update_Teams, 0x6)
 //{
-//	for (int i = 0; i < TeamClass::Array->Count; ++i)
-//	{
+//	for (int i = 0; i < TeamClass::Array->Count; ++i) {
 //		TeamClass::Array->Items[i]->Update();
 //	}
 //

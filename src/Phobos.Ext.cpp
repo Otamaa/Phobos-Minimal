@@ -328,65 +328,20 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 		HouseExtData::AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
 			return item.first == pInvalid;
 		});
+
+		ShieldClass::Array.for_each([pInvalid](ShieldClass* pShield) {
+			if (pShield->IdleAnim.get() == pInvalid) {
+				pShield->IdleAnim.release();
+			}
+		});
+
+		HouseExtData::LimboTechno.remove((TechnoClass*)pInvalid);
 	}
 
 	HugeBar::InvalidatePointer(pInvalid, removed);
-	ShieldClass::Array.for_each([pInvalid , removed](ShieldClass* pShield) {
-		if (pShield->IdleAnim.get() == pInvalid) {
-			pShield->IdleAnim.release();
-		}
 
-	 });
-
-	//AttachmentClass::Array.for_each([pInvalid, removed](AttachmentClass* pAttach) {
-	//	pAttach->InvalidatePointer(pInvalid);
-	//});
-
-	//for (int i = 0; i < MapClass::Instance->Cells.Capacity; ++i) {
-	//	if (auto pCell = MapClass::Instance->Cells[i]) {
-	//		pCell->PointerExpired(pInvalid, removed);
-	//	}
-	//}
-
-	//SpawnManagerClass::Array->for_each([&](SpawnManagerClass* pThis) {
-	//	if (pThis->Owner && removed) {
-	//		for (int i = 0; i < pThis->SpawnedNodes.Count; ++i) {
-	//			if (pThis->SpawnedNodes[i] && pThis->SpawnedNodes[i]->Unit == pInvalid) {
-	//				pThis->SpawnedNodes[i]->Unit = nullptr;
-	//				pThis->SpawnedNodes[i]->Status = SpawnNodeStatus::Dead;
-	//			}
-	//		}
-	//	}
-	//});
-
-	//for (int i = 0; i < MapClass::Instance->Cells.Capacity; i++) {
-	//	if (auto pCell = MapClass::Instance->Cells.Items[i]) {
-	//		fast_remove_if(CellExtContainer::Instance.Find(pCell)->RadSites,
-	//		[pInvalid](auto _el) { return pInvalid == _el; });
-	//	}
-	//}
-
-	// EBolt::Array->for_each([&](EBolt* pThis) {
-	// 	if (removed && pThis->Owner == pInvalid) {
-	// 		pThis->Owner = nullptr;
-	// 	}
-	// });
-
-	//PrismForwarding::Array.for_each([&](auto& pThis) {
-	//	if (pThis) {
-	//		pThis->InvalidatePointer(pInvalid, removed);
-	//	}
-	//});
-	//Process_InvalidatePtr<TActionExt>(pInvalid, removed);
 	return 0;
 }
-
-//ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
-//{
-//	TheMemoryPoolFactory->reportAllocation();
-//	Debug::Log("PaletteManager %d\n", PaletteManager::Array.size());
-//	return 0x0;
-//}
 
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/LevitateLocomotionClass.h>

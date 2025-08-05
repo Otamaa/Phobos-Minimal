@@ -183,6 +183,9 @@ struct Phobos final
 		static bool DigitalDisplay_Enable;
 		static bool MessageDisplayInCenter;
 		static bool MessageApplyHoverState;
+		static int MessageDisplayInCenter_LabelsCount;
+		static int MessageDisplayInCenter_RecordsCount;
+	
 		static bool ShowBuildingStatistics;
 
 		static bool ApplyShadeCountFi;
@@ -213,6 +216,7 @@ struct Phobos final
 		static bool UnitPowerDrain;
 		static int SuperWeaponSidebar_RequiredSignificance;
 
+		static bool SuperWeaponSidebarCommands;
 	};
 
 	struct Misc

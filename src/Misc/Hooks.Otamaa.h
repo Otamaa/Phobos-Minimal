@@ -51,7 +51,9 @@ FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord, CoordStruct& thei
 	//return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
 }
 
-//we cannot inherit this
+//limited usability
+//some vtable calling may resulting on broken result
+//be carefull when using function here
 class NOVTABLE FakeObjectClass //: public ObjectClass
 {
 public:

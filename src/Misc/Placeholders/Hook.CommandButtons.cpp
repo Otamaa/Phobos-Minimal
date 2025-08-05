@@ -99,7 +99,7 @@ public:
 		{
 			if (CommandBarButtonShapesLoaded[i])
 			{
-				GameDelete(CommandBarButtonShapes[i]);
+				GameDelete<false,false>(CommandBarButtonShapes[i]);
 				CommandBarButtonShapesLoaded[i] = false;
 				CommandBarButtonShapes[i] = nullptr;
 			}

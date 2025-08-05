@@ -3287,7 +3287,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								}
 							}
 
-							GameDelete<false>(pCreatedUnit);
+							GameDelete<true,false>(pCreatedUnit);
 							GeiveMoney();
 							break;
 						}
@@ -5641,11 +5641,11 @@ ASMJIT_PATCH(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
 			pAir->SetDestination(pCell, true);
 			return 0x418087;
 		}
-		else
+		else if(WeaponTypeClass* pWeapon = pAir->GetWeapon(weaponIdx)->WeaponType)
 		{
 			int dest = pAir->DistanceFrom(pAir->Target);
-			WeaponTypeClass* pWeapon = pAir->GetWeapon(weaponIdx)->WeaponType;
 			CoordStruct nextPos = CoordStruct::Empty;
+
 			if (dest < pWeapon->MinimumRange)
 			{
 				CoordStruct flh = CoordStruct::Empty;
@@ -5832,13 +5832,6 @@ ASMJIT_PATCH(0x42CC48, AstarClass_Find_Path_FailLog_FindPath, 0x5)
 //
 //	return 0x0;
 //}
-
-ASMJIT_PATCH(0x6D471A, TechnoClass_Render_Dead, 0x6)
-{
-	GET(TechnoClass*, pTechno, ESI);
-	return pTechno->IsAlive ? 0x0 : 0x6D48FA;
-}
-
 
 ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 {
@@ -7074,14 +7067,14 @@ ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 
 #else
 DEFINE_FUNCTION_JUMP(LJMP, 0x5F6500, FakeObjectClass::_GetDistanceOfObj);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
-DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
+ DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
+ DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x5F6560, FakeObjectClass::_GetDistanceOfCoord);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EABCB, FakeObjectClass::_GetDistanceOfCoord);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EAC96, FakeObjectClass::_GetDistanceOfCoord);
-DEFINE_FUNCTION_JUMP(CALL, 0x6EAD4B, FakeObjectClass::_GetDistanceOfCoord);
-DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
+ DEFINE_FUNCTION_JUMP(CALL, 0x6EABCB, FakeObjectClass::_GetDistanceOfCoord);
+ DEFINE_FUNCTION_JUMP(CALL, 0x6EAC96, FakeObjectClass::_GetDistanceOfCoord);
+ DEFINE_FUNCTION_JUMP(CALL, 0x6EAD4B, FakeObjectClass::_GetDistanceOfCoord);
+ DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
 
 #endif
 #pragma endregion
@@ -7615,3 +7608,77 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll)
 
     return 0x0;
  } ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
+
+ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
+{
+	 GET(TechnoClass* , pTech, ESI);
+
+	 if (!pTech->IsAlive)
+		 return 0x6D48FA;
+	 auto vtable = VTable::Get(pTech);
+
+	 if(vtable != AircraftClass::vtable
+		 && vtable != BuildingClass::vtable
+		 && vtable != InfantryClass::vtable
+		 && vtable != UnitClass::vtable)
+		 return 0x6D48FA;
+
+	 return 0x0;
+}
+
+ ASMJIT_PATCH(0x438D72, BombListClass_DetectorMissingHouse, 0x7)
+ {
+	 GET(HouseClass*, pDetectorOwner, EAX);
+	 GET(TechnoClass*, pDetector, ESI);
+
+	 if (!pDetectorOwner) {
+		 Debug::FatalErrorAndExit("BombListClass Detector[%s - %s] Missing Ownership !\n", pDetector->GetThisClassName(), pDetector->get_ID());
+		 return 0x438E11;
+	 }
+
+	 R->AL(pDetectorOwner->ControlledByCurrentPlayer());
+	 return 0x438D79;
+ }
+
+ //ASMJIT_PATCH(0x6D4912, TechnoClass_Render_deadRemoval, 0x6)
+ //{
+	// TechnoClass::Array->remove_if([](TechnoClass* ptr) {
+	//	 auto vtable = VTable::Get(ptr);
+	//	 if (vtable != AircraftClass::vtable
+	//		 && vtable != BuildingClass::vtable
+	//		 && vtable != InfantryClass::vtable
+	//		 && vtable != UnitClass::vtable)
+	//		 return true;
+
+	//	 return false;
+	//});
+
+	// return 0x0;
+ //}
+
+ //ASMJIT_PATCH(0x5F4870, ObjectClass_func_BrokenObj, 0x5)
+ //{
+	// GET(ObjectClass*, pObj, ECX);
+	// GET_STACK(DWORD, caller, 0x0);
+
+	// if (!pObj->IsAlive)
+	//	 Debug::Log("Dead obj %x caller %x\n", pObj , caller);
+	// //auto vtable = VTable::Get(pObj);
+	// //BulletClass
+	//	// IsometricTileClass
+	//	// OverlayClass
+	//	// ParticleClass
+	//	// ParticleSystemClass
+	//	// SmudgeClass
+	//	// TerrainClass
+	//	// VeinholeMonsterClass
+	//	// VoxelAnimClass
+	//	// WaveClass
+	// //if (&& vtable != BuildingLightClass::vtable  && vtable != AnimClass::vtable
+	//	// && vtable != AircraftClass::vtable
+	//	// && vtable != BuildingClass::vtable
+	//	// && vtable != InfantryClass::vtable
+	//	// && vtable != UnitClass::vtable)
+
+	// return 0x0;
+ //}

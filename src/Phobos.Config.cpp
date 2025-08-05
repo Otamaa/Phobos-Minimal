@@ -68,9 +68,14 @@ void Phobos::Config::Read()
 	Phobos::Config::DigitalDisplay_Enable = pRA2MD->ReadBool(PHOBOS_STR, "DigitalDisplay.Enable", Phobos::Config::DigitalDisplay_Enable);
 	Phobos::Config::MessageDisplayInCenter = pRA2MD->ReadBool(PHOBOS_STR, "MessageDisplayInCenter", Phobos::Config::MessageDisplayInCenter);
 	Phobos::Config::MessageApplyHoverState =  pRA2MD->ReadBool(PHOBOS_STR, "MessageApplyHoverState", Phobos::Config::MessageApplyHoverState );
+	Phobos::Config::MessageDisplayInCenter_LabelsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.LabelsCount", Phobos::Config::MessageDisplayInCenter_LabelsCount);
+	Phobos::Config::MessageDisplayInCenter_RecordsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.RecordsCount", Phobos::Config::MessageDisplayInCenter_RecordsCount);
+
 	Phobos::Config::ShowBuildingStatistics = pRA2MD->ReadBool(PHOBOS_STR, "ShowBuildingStatistics", Phobos::Config::ShowBuildingStatistics);
 	Phobos::Config::ShowFlashOnSelecting = pRA2MD->ReadBool(PHOBOS_STR, "ShowFlashOnSelecting", Phobos::Config::ShowFlashOnSelecting);
 	Phobos::Config::SuperWeaponSidebar_RequiredSignificance = pRA2MD->ReadInteger(PHOBOS_STR, "SuperWeaponSidebar.RequiredSignificance", Phobos::Config::SuperWeaponSidebar_RequiredSignificance);
+	Phobos::Config::HideLightFlashEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", Phobos::Config::HideLightFlashEffects);
+	Phobos::Config::SaveGameOnScenarioStart = pRA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", Phobos::Config::SaveGameOnScenarioStart);
 
 	if (!Phobos::Otamaa::IsAdmin)
 	{
@@ -306,10 +311,9 @@ void Phobos::Config::Read()
 	 }
 
 	 Phobos::Config::MultiThreadSinglePlayer = pINI->ReadBool(GameStrings::General(), "MultiThreadSinglePlayer", Phobos::Config::MultiThreadSinglePlayer);
-	 Phobos::Config::HideLightFlashEffects = CCINIClass::INI_RA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", Phobos::Config::HideLightFlashEffects);
 	 Phobos::Config::SaveVariablesOnScenarioEnd = pINI->ReadBool(GameStrings::General(), "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 	 Phobos::Config::ApplyShadeCountFix = pINI->ReadBool(GameStrings::AudioVisual(), "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
-	 Phobos::Config::SaveGameOnScenarioStart = CCINIClass::INI_RA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", Phobos::Config::SaveGameOnScenarioStart);
+	 Phobos::Config::SuperWeaponSidebarCommands = pINI->ReadBool("GlobalControls", "SuperWeaponSidebarKeysEnabled", Phobos::Config::SuperWeaponSidebarCommands);
 
 	});
 }

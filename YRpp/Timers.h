@@ -20,6 +20,7 @@ struct FrameTimer
 
 struct SystemTimer
 {
+	static DWORD GetTime() JMP_STD(0x6C8C40);
 	long operator()() const { return timeGetTime() >> 4; }
 	operator long() const { return timeGetTime() >> 4; }
 };

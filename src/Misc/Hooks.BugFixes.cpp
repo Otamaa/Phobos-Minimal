@@ -1488,7 +1488,7 @@ ASMJIT_PATCH(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 
 bool FakeHouseClass::_IsAlliedWith(HouseClass* pOther)
 {
-	return Phobos::Config::DevelopmentCommands
+	return (Phobos::Config::DevelopmentCommands && SessionClass::IsSingleplayer())
 		|| this->ControlledByCurrentPlayer()
 		|| this->IsAlliedWith(pOther);
 }

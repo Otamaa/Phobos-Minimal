@@ -315,18 +315,6 @@ ASMJIT_PATCH(0x4E1A84, GadgetClass_DTOR_ClearCurrentOverGadget, 0x6)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x4E13B2, GadgetClass_DTOR_ClearCurrentOverGadget, 0x6)
 
-ASMJIT_PATCH(0x692419, DisplayClass_ProcessClickCoords_SWSidebar, 0x7)
-{
-	enum { Nothing = 0x6925FC };
-
-	if (SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentColumn)
-		return Nothing;
-
-	const auto toggleButton = SWSidebarClass::Global()->ToggleButton;
-
-	return toggleButton && toggleButton->IsHovering ? Nothing : 0;
-}
-
 ASMJIT_PATCH(0x4F92FB, HouseClass_UpdateTechTree_SWSidebar, 0x7)
 {
 	enum { SkipGameCode = 0x4F9302 };
@@ -358,18 +346,6 @@ ASMJIT_PATCH(0x6A6316, SidebarClass_AddCameo_SuperWeapon_SWSidebar, 0x6)
 		return ReturnFalse;
 	}
 
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A5082, SidebarClass_Init_Clear_InitializeSWSidebar, 0x5)
-{
-	SWSidebarClass::Global()->InitClear();
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A5839, SidebarClass_Init_IO_InitializeSWSidebar, 0x5)
-{
-	SWSidebarClass::Global()->InitIO();
 	return 0;
 }
 

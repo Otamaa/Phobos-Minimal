@@ -56,7 +56,7 @@ static bool HandleBuildingLink(bool bUp)
 	const auto pFactory = 		BuildingExtContainer::Instance.Find(pBld)->FactoryBuildingMe;
 	reference<BuildingClass*, 0xB0FE5C> SidebarBuildingTabObject;
 	const bool bNeedSetSidebar = SidebarBuildingTabObject == pBld;
-	GameDelete(pBld);
+	GameDelete<true , true>(pBld);
 	// create the new building, remember to set the FactoryBuildingMe in Ext!
 	pBld = reinterpret_cast<BuildingClass*>(pNextBldType->CreateObject(pFactory->Owner));
 	pFactory->Object = pBld;

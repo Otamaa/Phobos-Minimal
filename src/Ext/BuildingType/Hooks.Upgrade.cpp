@@ -28,13 +28,15 @@ ASMJIT_PATCH(0x452678, BuildingClass_CanUpgrade_UpgradeBuildings, 0x6) //8
 // Parse Powered(Light|Effect|Special) keys for upgrade anims.
 ASMJIT_PATCH(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 {
-	GET(BuildingTypeClass*, pThis, EBP);
+	GET(FakeBuildingTypeClass*, pThis, EBP);
+
+	pThis->_GetExtData()->HasPowerUpAnim.clear();
+	auto const pINI = &CCINIClass::INI_Art();
 
 	for (int i = 0; i < 3; ++i)
 	{
-		auto const pINI = &CCINIClass::INI_Art();
-		auto const animData = &pThis->BuildingAnim[i];
-		
+		auto animData = &pThis->BuildingAnim[i];
+
 		const std::string baseKey = fmt::format("PowerUp{:01}", i + 1);
 
 		pINI->ReadString(pThis->ImageFile, (baseKey + "Anim").c_str(), Phobos::readDefval, animData->Anim);
@@ -49,6 +51,7 @@ ASMJIT_PATCH(0x464749, BuildingTypeClass_ReadINI_PowerUpAnims, 0x6)
 		animData->PoweredLight = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredLight").c_str(), animData->PoweredLight);
 		animData->PoweredEffect = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredEffect").c_str(), animData->PoweredEffect);
 		animData->PoweredSpecial = pINI->ReadBool(pThis->ImageFile, (baseKey + "PoweredSpecial").c_str(), animData->PoweredSpecial);
+		pThis->_GetExtData()->HasPowerUpAnim.emplace_back(GeneralUtils::IsValidString(animData->Anim));
 	}
 
 	return 0x46492E;
@@ -74,9 +77,9 @@ ASMJIT_PATCH(0x440988, BuildingClass_Unlimbo_UpgradeAnims, 0x7)
 	}
 
 	auto const animData = &pTarget->Type->BuildingAnim[animIndex];
-
-	// Only copy image name to BuildingType anim struct if it is not already set.
-	if (!GeneralUtils::IsValidString(animData->Anim))
+	const bool HasPowerAnim = (size_t)animIndex < pTarget->_GetTypeExtData()->HasPowerUpAnim.size() && !pTarget->_GetTypeExtData()->HasPowerUpAnim[animIndex];
+	// Only copy image name to BuildingType anim struct if theres no explicit PowersUpAnim for this level.
+	if (HasPowerAnim)
 		strncpy_s(animData->Anim, pThis->Type->ImageFile, sizeof(animData->Anim));
 
 	return SkipGameCode;

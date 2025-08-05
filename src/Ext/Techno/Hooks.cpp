@@ -731,6 +731,23 @@ ASMJIT_PATCH(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 	return R->Origin() == 0x6B7600 ? SkipGameCode1 : SkipGameCode2;
 }ASMJIT_PATCH_AGAIN(0x6B769F, SpawnManagerClass_AI_InitDestination, 0x7)
 
+ASMJIT_PATCH(0x6B7663 , SpawnManageClass_AI_Label55 , 0x5){
+	GET(SpawnManagerClass* const, pThis, ESI);
+	GET(AircraftClass* const, pSpawned, EDI);
+	GET(int, idx, EBX);
+
+	if(!pSpawned || !pSpawned->IsAlive || (VTable::Get(pSpawned) != AircraftClass::vtable
+	&& VTable::Get(pSpawned) != UnitClass::vtable
+	&& VTable::Get(pSpawned) != InfantryClass::vtable)
+	){
+		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+		pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
+		return 0x6B795A;
+	}
+
+	return 0x0;
+}
+
 void DrawFactoryProgress(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 	if (pThis->WhatAmI() != AbstractType::Building)

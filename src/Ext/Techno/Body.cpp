@@ -4511,7 +4511,7 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 	if (Delete)
 		GameDelete<true, false>(pThis);
 	else
-		pThis->UnInit();
+	pThis->UnInit();
 
 	// Handle extra power
 	if (pThis->Absorbed && pThis->Transporter)
@@ -5539,7 +5539,7 @@ void TechnoExtData::UpdateOnTunnelEnter()
 
 		if (const auto pAlpha = alphaExt.get_or_default(this->AttachedToObject))
 		{
-			GameDelete(pAlpha);
+			GameDelete<true,false>(pAlpha);
 
 			const auto tacticalPos = TacticalClass::Instance->TacticalPos;
 			Point2D off = { tacticalPos.X - (pImage->Width / 2), tacticalPos.Y - (pImage->Height / 2) };
@@ -6734,7 +6734,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 ASMJIT_PATCH(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
-	HouseExtData::LimboTechno.emplace(pItem);
+	HouseExtData::LimboTechno.push_back_unique(pItem);
 	TechnoExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
@@ -6750,7 +6750,7 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 		return item.first == pItem;
 	});
 
-	HouseExtData::LimboTechno.erase(pItem);
+	HouseExtData::LimboTechno.remove(pItem);
 	const auto pExt = TechnoExtContainer::Instance.Find(pItem);
 
 	pOwnerExt->OwnedCountedHarvesters.erase(pItem);

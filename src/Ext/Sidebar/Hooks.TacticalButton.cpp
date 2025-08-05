@@ -4,43 +4,33 @@
 
 #include <Misc/PhobosToolTip.h>
 
-ASMJIT_PATCH(0x6A5030, SidebarClass_Init_Clear_InitializedTacticalButton, 0x6)
+#include <New/SuperWeaponSidebar/SWSidebarClass.h>
+#include <New/SuperWeaponSidebar/ToggleSWButtonClass.h>
+
+#include <New/MessageHandler/MessageColumnClass.h>
+
+#pragma region NewButtonsRelated
+
+DEFINE_HOOK(0x692419, DisplayClass_ProcessClickCoords_SkipOnNewButtons, 0x7)
 {
-	SWButtonClass::Initialized = false;
-	SWButtonClass::ClearButtons();
+	enum { DoNothing = 0x6925FC };
+
+	return (SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentColumn
+		|| SWSidebarClass::Global()->ToggleButton && SWSidebarClass::Global()->ToggleButton->IsHovering
+		|| MessageColumnClass::Instance.IsBlocked())
+		? DoNothing : 0;
+}
+
+DEFINE_HOOK(0x6A5082, SidebarClass_InitClear_InitializeNewButtons, 0x5)
+{
+	SWSidebarClass::Global()->InitClear();
+	MessageColumnClass::Instance.InitClear();
 	return 0;
 }
 
-ASMJIT_PATCH(0x55B6B3, LogicClass_AI_InitializedTacticalButton, 0x5)
+DEFINE_HOOK(0x6A5839, SidebarClass_InitIO_InitializeNewButtons, 0x5)
 {
-	if (!SWButtonClass::Initialized) {
-		SWButtonClass::Initialized = true;
-		SWButtonClass::ClearButtons();
-		const auto pCurrent = HouseClass::CurrentPlayer();
-
-		if (!pCurrent || pCurrent->Defeated)
-			return 0;
-
-		for (const auto pSuper : pCurrent->Supers)
-		{
-			const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-
-			if (!pSuper->Granted || !pSWExt->IsAvailable(pCurrent))
-				continue;
-
-
-			if (pSWExt->AllowInSuperWeaponSidebar && (pSWExt->SW_ShowCameo || !pSWExt->SW_AutoFire)) {
-
-				auto& buttons = SWButtonClass::Buttons;
-
-				if (buttons.any_of([pSuper](SWButtonClass* const button) { return button->SuperIndex == pSuper->Type->ArrayIndex; }))
-					continue;
-
-				GameCreate<SWButtonClass>(pSuper->Type->ArrayIndex + 2200, pSuper->Type->ArrayIndex, 0, 0, 60, 48);
-			}
-		}
-
-		SWButtonClass::SortButtons();
-	}
+	SWSidebarClass::Global()->InitIO();
+	MessageColumnClass::Instance.InitIO();
 	return 0;
 }

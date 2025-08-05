@@ -29,7 +29,7 @@ class NOVTABLE GadgetClass : public LinkClass
 {
 public:
 	static COMPILETIMEEVAL reference<GadgetClass*, 0x8B3E90> Focused {};
-
+	static COMPILETIMEEVAL reference<GadgetClass*, 0x8B3E88> StickyButton {};
 	//Destructor
 	virtual ~GadgetClass() override { JMP_THIS(0x4E1390); }
 

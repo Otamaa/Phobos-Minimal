@@ -2116,6 +2116,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->BuildingRepairedSound)
 
 		.Process(this->Refinery_UseNormalActiveAnim)
+		.Process(this->HasPowerUpAnim)
 		;
 }
 

@@ -21,6 +21,8 @@
 #include <New/Entity/BannerClass.h>
 #include <New/Type/BannerTypeClass.h>
 
+#include <New/MessageHandler/MessageColumnClass.h>
+
 #include <TriggerTypeClass.h>
 
 //Static init
@@ -1983,11 +1985,11 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			const int color = SessionClass::Instance->Game_GetLinkedColor(idx);
 			const int delay =(int)(RulesClass::Instance->MessageDelay * TICKS_PER_MINUTE);
 			auto pText = StringTable::FetchString(text.c_str());
-			MessageListClass* pMessage = ScenarioExtData::Instance()->NewMessageList ?
-				ScenarioExtData::Instance()->NewMessageList.get() :
-				&MessageListClass::Instance();
 
-			pMessage->AddMessage(nullptr, 0, pText, color, TextPrintType::UseGradPal | TextPrintType::FullShadow | TextPrintType::Point6Grad, delay, false);
+			if (Phobos::Config::MessageDisplayInCenter)
+				MessageColumnClass::Instance.AddMessage(nullptr, pText, delay, false);
+			else
+				MessageListClass::Instance->AddMessage(nullptr, 0, pText, color, TextPrintType::UseGradPal | TextPrintType::FullShadow | TextPrintType::Point6Grad, delay, false);
 		}
 
 		return true;

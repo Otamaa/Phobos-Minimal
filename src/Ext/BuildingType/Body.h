@@ -355,6 +355,8 @@ public:
 	NullableIdx<VocClass> BuildingRepairedSound {};
 	Valueable<bool> Refinery_UseNormalActiveAnim { false };
 
+	ValueableVector<bool> HasPowerUpAnim {};
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

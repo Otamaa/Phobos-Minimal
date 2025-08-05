@@ -708,7 +708,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			 Debug::RegisterParserError();
 		 }
 
-	 	auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
+	 	//auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
 
 	 	//if (pExt->AttachedSystem && pExt->AttachedSystem->BehavesLike != ParticleSystemTypeBehavesLike::Smoke) {
 	 	//	Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);

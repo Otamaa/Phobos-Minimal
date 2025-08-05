@@ -43,7 +43,7 @@ public:
 	{
 		int nNewRef = Imports::InterlockedDecrementFunc.invoke()(&this->nRefCount);
 		if (!nNewRef)
-			GameDelete(this);
+			GameDelete<true,false>(this);
 		return nNewRef;
 	}
 
@@ -63,7 +63,7 @@ public:
 		HRESULT hr = pThis->QueryInterface(riid, ppvObject);
 
 		if (FAILED(hr))
-			GameDelete(pThis);
+			GameDelete<false ,false>(pThis);
 
 		return hr;
 	}
