@@ -192,6 +192,38 @@ ASMJIT_PATCH(0x71B824, TerrainClass_DTOR, 0x5)
 
 #include <Misc/Hooks.Otamaa.h>
 
+void FakeTerrainClass::_AI()
+{
+	this->ObjectClass::Update();
+	if (this->Type->IsAnimated) {
+		if (!this->Animation.Stage) {
+			auto v2 =ScenarioClass::Instance->Random.Random();
+
+			if ((double)((int)Math::abs(v2) % 1000000) * 0.000001 < this->Type->AnimationProbability) {
+				this->Animation.Stage = 0;
+				this->Animation.Start(this->Type->AnimationRate);
+			}
+		}
+	}
+
+	if (this->Animation.Timer.GetTimeLeft() || !this->Animation.Timer.Rate)
+	{
+		// timer is still running or hasn't been set yet.
+		this->Animation.HasChanged = false;
+	}
+	else
+	{
+		// timer expired. move one step forward.
+		this->Animation.Stage += this->Animation.Step;
+		this->Animation.HasChanged = true;
+		this->Animation.Timer.Restart();
+
+		auto const pTypeExt = this->_GetTypeExtData();
+
+		//not sure what here ,..
+	}
+}
+
 HRESULT __stdcall FakeTerrainClass::_Load(IStream* pStm)
 {
 

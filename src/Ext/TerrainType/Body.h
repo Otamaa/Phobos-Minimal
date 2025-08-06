@@ -48,6 +48,7 @@ public:
 	Nullable<int> AnimationLength {};
 
 	NullableVector<AnimTypeClass*> TreeFires {};
+	ValueableIdx<ParticleTypeClass> SpawnsTiberium_Particle { -1 };
 
  	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();

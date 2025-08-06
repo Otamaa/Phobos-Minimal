@@ -1741,6 +1741,12 @@ ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 					{
 						for (int i = 0; i < pTypeExt->GetCellsPerAnim(); i++)
 							((FakeCellClass*)MapClass::Instance->GetCellAt(pThis->Location))->_SpreadTiberium_2(pThis, true);
+
+						const int particleIdx = pTypeExt->SpawnsTiberium_Particle;
+
+						if (particleIdx >= 0) {
+							ParticleSystemClass::Instance->SpawnParticle(ParticleTypeClass::Array->Items[particleIdx], &pThis->Location);
+						}
 					}
 				}
 			}

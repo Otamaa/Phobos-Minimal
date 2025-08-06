@@ -446,6 +446,47 @@ void TechnoTypeExtData::GetFLH(INI_EX& exArtINI, const char* pArtSection, Nullab
 		nEFlh = nFlh;
 }
 
+void TechnoTypeExtData::ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSection, ValueableVector<int>& n, ValueableVector<int>& nE)
+{
+	if (!this->ReadMultiWeapon)
+	{
+		n.clear();
+		nE.clear();
+		return;
+	}
+
+	const auto pThis = this->AttachedToObject;
+	const auto WeaponCount = MaxImpl(pThis->WeaponCount, 0);
+
+	while (int(n.size()) > WeaponCount)
+		n.erase(n.begin() + int(n.size()) - 1);
+
+	while (int(nE.size()) > WeaponCount)
+		nE.erase(nE.begin() + int(nE.size()) - 1);
+
+	char tempBuff[64];
+	for (int index = 0; index < WeaponCount; index++)
+	{
+		NullableIdx<VocClass> VoiceAttack;
+		IMPL_SNPRNINTF(tempBuff, sizeof(tempBuff), "VoiceWeapon%dAttack", index + 1);
+		VoiceAttack.Read(exINI, pSection, tempBuff);
+
+		NullableIdx<VocClass> VoiceEliteAttack;
+		IMPL_SNPRNINTF(tempBuff, sizeof(tempBuff), "VoiceEliteWeapon%dAttack", index + 1);
+		VoiceAttack.Read(exINI, pSection, tempBuff);
+
+		if (int(n.size()) > index) {
+			n[index] = VoiceAttack.Get(n[index]);
+			nE[index] = VoiceEliteAttack.Get(nE[index]);
+		} else {
+			int voiceattack = VoiceAttack.Get(-1);
+
+			n.push_back(voiceattack);
+			nE.push_back(VoiceEliteAttack.Get(voiceattack));
+		}
+	}
+}
+
 void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = this->AttachedToObject;
@@ -1117,6 +1158,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->CloakSound.Read(exINI, pSection, "CloakSound");
 		this->DecloakSound.Read(exINI, pSection, "DecloakSound");
 		this->VoiceRepair.Read(exINI, pSection, "VoiceIFVRepair");
+		this->ParseVoiceWeaponAttacks(exINI, pSection, this->VoiceWeaponAttacks, this->VoiceEliteWeaponAttacks);
 		this->ReloadAmount.Read(exINI, pSection, "ReloadAmount");
 		this->EmptyReloadAmount.Read(exINI, pSection, "EmptyReloadAmount");
 
@@ -1686,7 +1728,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			for (size_t i = 0; i < passengers; i++)
 			{
 				Nullable<InsigniaTypeClass*> InsigniaType_Passengers;
-				_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaType.Passengers%d", i);
+				IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaType.Passengers%d", i);
 				InsigniaType_Passengers.Read(exINI, pSection, tempBuffer);
 
 				if (InsigniaType_Passengers.isset())
@@ -1697,13 +1739,13 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				}
 				else
 				{
-					_snprintf_s(tempBuffer, sizeof(tempBuffer), "Insignia.Passengers%d.%s", i, "%s");
+					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "Insignia.Passengers%d.%s", i, "%s");
 					this->Insignia_Passengers[i].Read(exINI, pSection, tempBuffer);
 
-					_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Passengers%d.%s", i, "%s");
+					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrame.Passengers%d.%s", i, "%s");
 					this->InsigniaFrame_Passengers[i].Read(exINI, pSection, tempBuffer);
 
-					_snprintf_s(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Passengers%d", i);
+					IMPL_SNPRNINTF(tempBuffer, sizeof(tempBuffer), "InsigniaFrames.Passengers%d", i);
 					this->InsigniaFrames_Passengers[i].Read(exINI, pSection, tempBuffer);
 				}
 			}
@@ -2997,6 +3039,10 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->PenetratesTransport_PassThroughMultiplier)
 		.Process(this->PenetratesTransport_FatalRateMultiplier)
 		.Process(this->PenetratesTransport_DamageMultiplier)
+
+		.Process(this->VoiceIFVRepair)
+		.Process(this->VoiceWeaponAttacks)
+		.Process(this->VoiceEliteWeaponAttacks)
 		;
 }
 

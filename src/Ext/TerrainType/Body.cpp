@@ -70,6 +70,7 @@ void TerrainTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->CrumblingSound.Read(exINI, pSection, "CrumblingSound");
 	this->AnimationLength.Read(exINI, pSection, "AnimationLength");
 	this->TreeFires.Read(exINI, pSection, "TreeFire");
+	this->SpawnsTiberium_Particle.Read(exINI, pSection, "SpawnsTiberium.Particle");
 }
 
 void TerrainTypeExtData::PlayDestroyEffects(CoordStruct coords)
@@ -119,6 +120,7 @@ void TerrainTypeExtData::Serialize(T& Stm)
 		.Process(this->AnimationLength)
 
 		.Process(this->TreeFires)
+		.Process(this->SpawnsTiberium_Particle)
 		;
 
 }

@@ -1217,6 +1217,10 @@ public:
 	Valueable<double> PenetratesTransport_FatalRateMultiplier { 1.0 };
 	Valueable<double> PenetratesTransport_DamageMultiplier { 1.0 };
 
+	ValueableIdx<VocClass> VoiceIFVRepair { -1 };
+	ValueableVector<int> VoiceWeaponAttacks { };
+	ValueableVector<int> VoiceEliteWeaponAttacks { };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
 	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
@@ -1277,7 +1281,7 @@ static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
 
 	int SelectMultiWeapon(TechnoClass* const pThis, AbstractClass* const pTarget);
-
+	void ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSection, ValueableVector<int>& n, ValueableVector<int>& nE);
 };
 
 class NOVTABLE FakeTechnoTypeClass : public TechnoTypeClass
