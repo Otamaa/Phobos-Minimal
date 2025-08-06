@@ -275,6 +275,8 @@ void ScenarioExtData::Serialize(T& Stm)
 		.Process(this->OwnedExistCameoTechnoTypes)
 		.Process(this->SWSidebar_Enable)
 		.Process(this->SWSidebar_Indices)
+
+		.Process(this->RecordMessages)
 		;
 
 

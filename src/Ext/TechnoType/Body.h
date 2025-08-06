@@ -42,15 +42,6 @@
 
 #include <Misc/Defines.h>
 
-struct BodyVoxelIndexKey
-{
-	unsigned bodyFrame : 5;
-	unsigned bodyFace : 5;
-	unsigned slopeIndex : 6;
-	unsigned isSpawnAlt : 1;
-	unsigned reserved : 15;
-};
-
 struct JumpjetTiltVoxelIndexKey
 {
 	unsigned bodyFrame : 5;
@@ -66,13 +57,7 @@ struct PhobosVoxelIndexKey
 {
 	union
 	{
-		int Value;
-		union
-		{
-			VoxelIndexKey Base;
-			BodyVoxelIndexKey Body;
-			// add other references here as needed
-		} BaseIndexKey;
+		VoxelIndexKey Base;
 		union
 		{
 			JumpjetTiltVoxelIndexKey JumpjetTiltVoxel;
@@ -81,35 +66,8 @@ struct PhobosVoxelIndexKey
 	};
 
 	// add funcs here if needed
-	constexpr PhobosVoxelIndexKey(int val = 0) noexcept
-	{
-		Value = val;
-	}
-
-	constexpr operator int() const
-	{
-		return Value;
-	}
-
-	constexpr bool IsCleanKey() const
-	{
-		return Value == 0;
-	}
-
-	constexpr bool IsValidKey() const
-	{
-		return Value != -1;
-	}
-
-	constexpr void Invalidate()
-	{
-		Value = -1;
-	}
-
-	constexpr bool IsExtraBodyKey() const
-	{
-		return BaseIndexKey.Body.reserved != 0;
-	}
+	constexpr bool IsCleanKey() const { return Base.Value == 0; }
+	constexpr bool IsJumpjetKey() const { return Base.MainVoxel.Reserved != 0; }
 };
 
 static_assert(sizeof(PhobosVoxelIndexKey) == sizeof(VoxelIndexKey), "PhobosVoxelIndexKey size mismatch");

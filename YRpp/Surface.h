@@ -15,7 +15,7 @@ class Blitter;
 class ConvertClass;
 struct SHPStruct;
 class ColorScheme;
-
+class BitFont;
 class NOVTABLE Surface
 {
 public:
@@ -154,7 +154,6 @@ public:
 		return Draw_Dashed_Line(pStart, pEnd, nColor, Target_Laser_Draw_Pattern.get(), nOffset);
 	}
 
-
 public:
 	int Width;
 	int Height;
@@ -275,6 +274,10 @@ static_assert(sizeof(BSurface) == 0x20, "Invalid Size !");
 #pragma warning(disable : 4505)
 #pragma region CommonFunction
 //static long Surface_Size_Of_Region(Surface& surface, int w, int h);
+
+static bool __fastcall  Animated_Text_Print_623880(Surface *surface ,RectangleStruct* rect, const wchar_t* text, size_t coint , BitFont* font , uint32_t color , size_t* anim, bool hasfocus, bool blankout, bool fillbg, size_t animsize) {
+	JMP_STD(0x623880);
+}
 
 static bool __fastcall Buffer_To_RLE_Surface_With_Z_Shape(Surface *surface1, Point2D *point1, RectangleStruct *rect1, Surface *surface2, Point2D *point2, RectangleStruct *rect2, void* blitter, int height_offset, int somearrayindex, int a10, int arg_20, Surface *z_shape_surface, int shape_x_offset, int shape_y_offset, int useotherblitterset) {
 	JMP_STD(0x437A10);

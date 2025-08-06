@@ -731,6 +731,23 @@ ASMJIT_PATCH(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 	return R->Origin() == 0x6B7600 ? SkipGameCode1 : SkipGameCode2;
 }ASMJIT_PATCH_AGAIN(0x6B769F, SpawnManagerClass_AI_InitDestination, 0x7)
 
+ASMJIT_PATCH(0x6B7663 , SpawnManageClass_AI_Label55 , 0x5){
+	GET(SpawnManagerClass* const, pThis, ESI);
+	GET(AircraftClass* const, pSpawned, EDI);
+	GET(int, idx, EBX);
+
+	if(!pSpawned || !pSpawned->IsAlive || (VTable::Get(pSpawned) != AircraftClass::vtable
+	&& VTable::Get(pSpawned) != UnitClass::vtable
+	&& VTable::Get(pSpawned) != InfantryClass::vtable)
+	){
+		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+		pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
+		return 0x6B795A;
+	}
+
+	return 0x0;
+}
+
 void DrawFactoryProgress(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 	if (pThis->WhatAmI() != AbstractType::Building)
@@ -869,17 +886,29 @@ ASMJIT_PATCH(0x6F5EE3, TechnoClass_DrawExtras_DrawAboveHealth, 0x9)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
+ASMJIT_PATCH(0x6B7793, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 {
 	enum { Recycle = 0x6B77FF, NoRecycle = 0x6B7838 };
 
 	GET(SpawnManagerClass* const, pThis, ESI);
-	GET(TechnoClass* const, pSpawner, EDI);
-	GET(CellStruct* const, pCarrierMapCrd, EBP);
+	GET(TechnoClass* const, pSpawned, EDI);
+	GET(int, idx, EBX);
+
+	if(!pSpawned || !pSpawned->IsAlive || (VTable::Get(pSpawned) != AircraftClass::vtable
+										&& VTable::Get(pSpawned) != UnitClass::vtable
+										&& VTable::Get(pSpawned) != InfantryClass::vtable)
+	){
+
+		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+		pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
+		return 0x6B795A;
+	}
+
+	auto CarrierMapCrd = pThis->Owner->GetMapCoords();
 
 	auto const pCarrier = pThis->Owner;
 	auto const pCarrierTypeExt = TechnoTypeExtContainer::Instance.Find(pCarrier->GetTechnoType());
-	auto const spawnerCrd = pSpawner->GetCoords();
+	auto const spawnerCrd = pSpawned->GetCoords();
 
 	auto shouldRecycleSpawned = [&]()
 	{
@@ -896,7 +925,7 @@ ASMJIT_PATCH(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 			// 182 is √2/2 * 256. 20 is same to vanilla behavior.
 			return (pCarrier->WhatAmI() == AbstractType::Building)
 				? (deltaCrd.X <= 182 && deltaCrd.Y <= 182 && deltaCrd.Z < 20)
-				: (pSpawner->GetMapCoords() == *pCarrierMapCrd && deltaCrd.Z < 20);
+				: (pSpawned->GetMapCoords() == CarrierMapCrd && deltaCrd.Z < 20);
 		}
 		return deltaCrd.Length() <= recycleRange;
 	};
@@ -905,10 +934,10 @@ ASMJIT_PATCH(0x6B77B4, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 	{
 		if (pCarrierTypeExt->Spawner_RecycleAnim)
 		{
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pCarrierTypeExt->Spawner_RecycleAnim, spawnerCrd), pSpawner->Owner, nullptr, pSpawner, false, true);
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pCarrierTypeExt->Spawner_RecycleAnim, spawnerCrd), pSpawned->Owner, nullptr, pSpawned, false, true);
 		}
 
-		pSpawner->SetLocation(pCarrier->GetCoords());
+		pSpawned->SetLocation(pCarrier->GetCoords());
 		return Recycle;
 	}
 
@@ -1634,3 +1663,39 @@ ASMJIT_PATCH(0x6FCF3E, TechnoClass_SetTarget_After, 0x6)
 }
 
 #pragma endregion
+
+//Action __fastcall UnitClass__WhatAction_Wrapper(UnitClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
+//{
+//	auto result = pThis->UnitClass::MouseOverObject(pObj, ignoreForce);
+//	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+//
+//	if (!pExt->ParentAttachment)
+//		return result;
+//
+//	switch (result)
+//	{
+//	case Action::Repair:
+//		result = Action::NoRepair;
+//		break;
+//
+//	case Action::Self_Deploy:
+//		if (pThis->Type->DeploysInto)
+//			result = Action::NoDeploy;
+//		break;
+//
+//	case Action::Sabotage:
+//	case Action::Capture:
+//	case Action::Enter:
+//		result = Action::NoEnter;
+//		break;
+//
+//	case Action::GuardArea:
+//	case Action::AttackMoveNav:
+//	case Action::Move:
+//		result = Action::NoMove;
+//		break;
+//	}
+//
+//	return result;
+//}
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5CE4, UnitClass__WhatAction_Wrapper);

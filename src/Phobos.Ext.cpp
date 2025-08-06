@@ -59,8 +59,10 @@
 #include <New/Type/BarTypeClass.h>
 #include <New/Type/InsigniaTypeClass.h>
 #include <New/Type/SelectBoxTypeClass.h>
+//#include <New/Type/AttachmentTypeClass.h>
 
 #include <New/Entity/BannerClass.h>
+//#include <New/Entity/AttachmentClass.h>
 
 #include <New/HugeBar.h>
 
@@ -315,7 +317,7 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
 
-	if(Phobos::Otamaa::ExeTerminated)
+	if (Phobos::Otamaa::ExeTerminated)
 		return 0;
 
 	TActionExtData::InvalidatePointer(pInvalid, removed);
@@ -326,55 +328,20 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 		HouseExtData::AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
 			return item.first == pInvalid;
 		});
+
+		ShieldClass::Array.for_each([pInvalid](ShieldClass* pShield) {
+			if (pShield->IdleAnim.get() == pInvalid) {
+				pShield->IdleAnim.release();
+			}
+		});
+
+		HouseExtData::LimboTechno.remove((TechnoClass*)pInvalid);
 	}
 
 	HugeBar::InvalidatePointer(pInvalid, removed);
-	ShieldClass::Array.for_each([pInvalid , removed](ShieldClass* pShield) {
-		if (pShield->IdleAnim.get() == pInvalid) {
-			pShield->IdleAnim.release();
-		}
 
-	 });
-
-	//SpawnManagerClass::Array->for_each([&](SpawnManagerClass* pThis) {
-	//	if (pThis->Owner && removed) {
-	//		for (int i = 0; i < pThis->SpawnedNodes.Count; ++i) {
-	//			if (pThis->SpawnedNodes[i] && pThis->SpawnedNodes[i]->Unit == pInvalid) {
-	//				pThis->SpawnedNodes[i]->Unit = nullptr;
-	//				pThis->SpawnedNodes[i]->Status = SpawnNodeStatus::Dead;
-	//			}
-	//		}
-	//	}
-	//});
-
-	//for (int i = 0; i < MapClass::Instance->Cells.Capacity; i++) {
-	//	if (auto pCell = MapClass::Instance->Cells.Items[i]) {
-	//		fast_remove_if(CellExtContainer::Instance.Find(pCell)->RadSites,
-	//		[pInvalid](auto _el) { return pInvalid == _el; });
-	//	}
-	//}
-
-	// EBolt::Array->for_each([&](EBolt* pThis) {
-	// 	if (removed && pThis->Owner == pInvalid) {
-	// 		pThis->Owner = nullptr;
-	// 	}
-	// });
-
-	//PrismForwarding::Array.for_each([&](auto& pThis) {
-	//	if (pThis) {
-	//		pThis->InvalidatePointer(pInvalid, removed);
-	//	}
-	//});
-	//Process_InvalidatePtr<TActionExt>(pInvalid, removed);
 	return 0;
 }
-
-//ASMJIT_PATCH(0x48CFB7, Game_Exit_RecordPoolSize, 0x6)
-//{
-//	TheMemoryPoolFactory->reportAllocation();
-//	Debug::Log("PaletteManager %d\n", PaletteManager::Array.size());
-//	return 0x0;
-//}
 
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/LevitateLocomotionClass.h>
@@ -447,9 +414,11 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(StaticVars);
 
 	version += sizeof(BannerClass);
+	//version += sizeof(AttachmentClass);
 
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
 		AddTypeOf(Armor)
+	//	AddTypeOf(Attachment)
 		AddTypeOf(Banner)
 		AddTypeOf(Bar)
 		AddTypeOf(Color)
@@ -530,6 +499,8 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	InsigniaTypeClass::Clear();
 	SelectBoxTypeClass::Clear();
 	BannerClass::Clear();
+	//AttachmentClass::Array.clear();
+	//AttachmentTypeClass::Clear();
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
@@ -736,7 +707,9 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 		Process_Load<ShieldClass>(pStm) &&
 		Process_Load<PrismForwarding>(pStm) &&
 		Process_Load<BannerClass>(pStm) &&
-		Process_Load<TActionExtData>(pStm)
+		Process_Load<TActionExtData>(pStm) //&&
+		//Process_Load<AttachmentClass> (pStm) &&
+		//Process_Load<AttachmentTypeClass> (pStm)
 		;
 
 	if (!ret)
@@ -813,7 +786,9 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 			Process_Save<ShieldClass>(pStm) &&
 			Process_Save<PrismForwarding>(pStm) &&
 			Process_Save<BannerClass>(pStm) &&
-			Process_Save<TActionExtData>(pStm)
+			Process_Save<TActionExtData>(pStm) //&&
+			//Process_Save<AttachmentClass>(pStm) &&
+			//Process_Save<AttachmentTypeClass>(pStm)
 			;
 
 		if (!ret)

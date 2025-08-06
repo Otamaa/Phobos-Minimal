@@ -22,13 +22,14 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 			const auto pHouseExt = HouseExtContainer::Instance.Find(HouseOwner);
 
 			auto const nWhere = CellClass::Coord2Cell(Where);
-			bool const lauch = !nData.LaunchWaitcharge || (!pSuper->IsCharged || (pSuper->IsPowered() && HouseOwner->HasLowPower()));
+			bool const lauch = !nData.LaunchWaitcharge || pSuper->IsCharged;
 			bool const bIsCurrentPlayer = HouseOwner->IsCurrentPlayer();
 			bool const MoneyEligible = nData.LauchSW_IgnoreMoney || HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
 			bool const BattleDataEligible = nData.LauchSW_IgnoreBattleData || pHouseExt->CanTransactBattlePoints(pSWExt->BattlePoints_Amount);
 
 			bool const InhibitorEligible = nData.LaunchSW_IgnoreInhibitors || !pSWExt->HasInhibitor(HouseOwner, nWhere);
-			bool const DesignatorEligible = nData.LaunchSW_IgnoreDesignators || !pSWExt->HasDesignator(HouseOwner, nWhere);
+			bool const DesignatorEligible = nData.LaunchSW_IgnoreDesignators || pSWExt->HasDesignator(HouseOwner, nWhere);
+
 			if (nData.LaunchGrant || nData.LaunchSW_Manual) {
 				if (pSuper->Grant(nData.LaunchGrant_OneTime, !bIsCurrentPlayer, nData.LaunchGrant_OnHold)) {
 					if (!bIsCurrentPlayer && (nData.LaunchSW_Manual || nData.LaunchGrant_RepaintSidebar)) {
@@ -39,9 +40,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 				}
 			}
 
-
 			auto const mostCheckPasses = !nData.LaunchSW_RealLauch || pSuper->Granted && lauch && !pSuper->IsOnHold && MoneyEligible && BattleDataEligible && InhibitorEligible && DesignatorEligible;
-
 
 			if (mostCheckPasses && !nData.LaunchSW_Manual) {
 
@@ -54,7 +53,6 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 					pSWExt->Money_Amount, HouseOwner,
 					nData.LaunchSW_DisplayMoney_Houses, Where, nData.LaunchSW_DisplayMoney_Offset);
 
-				//SuperExtContainer::Instance.Find(pSelected)->Firer = pFirer;
 				pSuper->Launch(nWhere, bIsCurrentPlayer);
 
 				if (nData.LaunchResetCharge)

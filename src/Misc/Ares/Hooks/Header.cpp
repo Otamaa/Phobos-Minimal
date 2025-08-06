@@ -3439,7 +3439,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 			{
 				// Slaves are not the same, so clear out.
 				pSlaveManager->Killed(nullptr);
-				GameDelete(pSlaveManager);
+				GameDelete<true,false>(pSlaveManager);
 				pSlaveManager = nullptr;
 			}
 
@@ -3489,7 +3489,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 						// Unlink
 						pSlaveNode->Slave = nullptr;
 						pSlaveNode->State = SlaveControlStatus::Dead;
-						GameDelete(pSlaveNode);
+						GameDelete<false,false>(pSlaveNode);
 					}
 
 					// Remove it
@@ -3503,7 +3503,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 	else if (pSlaveManager)
 	{
 		pSlaveManager->Killed(nullptr);
-		GameDelete(pSlaveManager);
+		GameDelete<true,false>(pSlaveManager);
 		pSlaveManager = nullptr;
 	}
 
@@ -3516,7 +3516,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 			{
 				// It may be odd that AircraftType is different, I chose to reset it.
 				pSpawnManager->KillNodes();
-				GameDelete(pSpawnManager);
+				GameDelete<true,false>(pSpawnManager);
 			}
 
 			pSpawnManager = GameCreate<SpawnManagerClass>(pThis, pCurrentType->Spawns, pCurrentType->SpawnsNumber, pCurrentType->SpawnRegenRate, pCurrentType->SpawnReloadRate);
@@ -3587,7 +3587,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 						// Unlink
 						pSpawnNode->Unit = nullptr;
 						pStatus = SpawnNodeStatus::Dead;
-						GameDelete(pSpawnNode);
+						GameDelete<false,false>(pSpawnNode);
 					}
 
 					// Remove it
@@ -3709,7 +3709,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 	{
 		// Remove CaptureManager completely
 		pCaptureManager->FreeAll();
-		GameDelete(pCaptureManager);
+		GameDelete<true,false>(pCaptureManager);
 		pCaptureManager = nullptr;
 	}
 
@@ -3730,7 +3730,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 		}
 
 		// Delete it
-		GameDelete(pTemporalImUsing);
+		GameDelete<true,false>(pTemporalImUsing);
 		pTemporalImUsing = nullptr;
 	}
 
@@ -3755,7 +3755,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 	else if (pAirstrike)
 	{
 		pAirstrike->DetachTarget(pThis);
-		GameDelete(pAirstrike);
+		GameDelete<true,false>(pAirstrike);
 		pAirstrike = nullptr;
 	}
 
@@ -3788,7 +3788,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 			}
 
 			// Delete it
-			GameDelete(pParasiteImUsing);
+			GameDelete<true,false>(pParasiteImUsing);
 			pParasiteImUsing = nullptr;
 		}
 	}

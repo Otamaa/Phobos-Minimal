@@ -1239,7 +1239,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 		}
 		else if (pHouse == HouseClass::CurrentPlayer) // Prevent unexpected wrong event
 		{
-			const EventClass event (pHouse->ArrayIndex, EventType::PLACE, AbstractType::Building, pType->GetArrayIndex(), pType->Naval, cell);
+			EventClass event (pHouse->ArrayIndex, EventType::PLACE, AbstractType::Building, pType->GetArrayIndex(), pType->Naval, cell);
 			EventClass::AddEvent(&event);
 		}
 	};

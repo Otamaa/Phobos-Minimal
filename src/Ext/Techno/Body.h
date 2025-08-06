@@ -749,7 +749,6 @@ public:
 	CDTimerClass FiringAnimationTimer {};
 	bool ForceFullRearmDelay { false };
 	int AttackMoveFollowerTempCount {};
-
 	~TechnoExtData()
 	{
 		if (!Phobos::Otamaa::ExeTerminated)
@@ -909,6 +908,7 @@ public:
 	static void ObjectKilledBy(TechnoClass* pThis, HouseClass* pKiller);
 
 	static void DisplayDamageNumberString(TechnoClass* pThis, int damage, bool isShieldDamage, WarheadTypeClass* pWH);
+	static void Kill(TechnoClass* pThis, TechnoClass* pKiller);
 	static void KillSelf(TechnoClass* pThis, bool isPeaceful = false);
 	static void KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill = true, AnimTypeClass* pVanishAnim = nullptr);
 	static void ForceJumpjetTurnToTarget(TechnoClass* pThis);

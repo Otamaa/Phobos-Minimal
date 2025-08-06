@@ -621,7 +621,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 		auto haveBar = bar && bar->VXL && bar->HVA && !bar->VXL->LoadFailed;
 
 		if (vxl_index_key.Is_Valid_Key())
-			vxl_index_key.TurretWeapon.Facing = pThis->SecondaryFacing.Current().GetFacing<32>();
+			vxl_index_key.MinorVoxel.TurretFacing = pThis->SecondaryFacing.Current().GetFacing<32>();
 
 		auto* cache = &pType->VoxelCaches.Shadow;
 

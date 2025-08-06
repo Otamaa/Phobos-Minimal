@@ -11,6 +11,7 @@
 #include <string>
 #include <atlstr.h>
 
+//#include <New/Interfaces/AttachmentLocomotionClass.h>
 #include <New/Interfaces/LevitateLocomotionClass.h>
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/TestLocomotionClass.h>
@@ -60,6 +61,7 @@ namespace detail
 				}
 			}
 
+			//PARSE(Attachment)
 			PARSE(Levitate)
 			PARSE(AdvancedDrive)
 			PARSE(CustomRocket)

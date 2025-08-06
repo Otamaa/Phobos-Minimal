@@ -29,6 +29,8 @@ public:
 
 	//global array
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ColorScheme*>, 0xB054D0u> const Array{};
+	// Player color scheme slot index to color scheme index lookup table.
+	static COMPILETIMEEVAL reference<byte , 0x83ED14u, 9u> const PlayerColorToColorSchemeLUT {};
 
 	// Game uses a hash table to store color scheme vectors for extra palettes, this table can be iterated by calling this function.
 	static DynamicVectorClass<ColorScheme*>* __fastcall GetPaletteSchemesFromIterator(HashIterator* it)

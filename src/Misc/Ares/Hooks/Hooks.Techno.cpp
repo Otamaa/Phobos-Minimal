@@ -551,8 +551,10 @@ ASMJIT_PATCH(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if(R->Origin() == 0x6F6F20)
+	if(R->Origin() == 0x6F6F20){
 		HugeBar::InitializeHugeBar(pThis);
+		//TechnoExtData::UnlimboAttachments(pThis);
+	}
 
 	//only update the SW if really needed it
 	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty())
@@ -1060,6 +1062,8 @@ ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
+	//TechnoExtData::InitializeAttachments(pThis);
+
 	CaptureManagerClass* pCapturer = nullptr;
 	ParasiteClass* pParasite = nullptr;
 	TemporalClass* pTemporal = nullptr;
@@ -1135,7 +1139,7 @@ ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
 
 	const auto pPrimary = pThis->GetWeapon(0)->WeaponType;
 
-	if (pPrimary && pThis->GetTechnoType()->LandTargeting != LandTargetingType::Land_not_okay)
+	if (pPrimary && pType->LandTargeting != LandTargetingType::Land_not_okay)
 		pThis->RearmTimer.TimeLeft = pPrimary->ROF;
 	else if (const auto pSecondary = pThis->GetWeapon(1)->WeaponType)
 		pThis->RearmTimer.TimeLeft = pSecondary->ROF;

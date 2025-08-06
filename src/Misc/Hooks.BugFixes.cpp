@@ -1488,7 +1488,7 @@ ASMJIT_PATCH(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 
 bool FakeHouseClass::_IsAlliedWith(HouseClass* pOther)
 {
-	return Phobos::Config::DevelopmentCommands
+	return (Phobos::Config::DevelopmentCommands && SessionClass::IsSingleplayer())
 		|| this->ControlledByCurrentPlayer()
 		|| this->IsAlliedWith(pOther);
 }
@@ -2203,6 +2203,10 @@ static void KickOutStuckUnits(BuildingClass* pThis)
 				if (height < 0 || height > Unsorted::CellHeight)
 					continue;
 
+				// Skip attachments - they shouldn't be treated as stuck units
+				//if (TechnoExtData::IsAttached(pUnit))
+				//	continue;
+
 				if (const auto pTeam = pUnit->Team)
 					pTeam->LiberateMember(pUnit);
 
@@ -2772,16 +2776,6 @@ ASMJIT_PATCH(0x7196BB, TeleportLocomotionClass_Process_MarkDown, 0xA)
 	return 0x7196C5;
 }
 
-ASMJIT_PATCH(0x73769E, UnitClass_ReceiveCommand_NoEnterOnBridge, 0x6)
-{
-	enum { NoEnter = 0x73780F };
-
-	GET(UnitClass* const, pThis, ESI);
-	GET(TechnoClass* const, pCall, EDI);
-
-	return pThis->OnBridge && pCall->OnBridge ? NoEnter : 0;
-}
-
 ASMJIT_PATCH(0x70D842, FootClass_UpdateEnter_NoMoveToBridge, 0x5)
 {
 	enum { NoMove = 0x70D84F };
@@ -3001,7 +2995,8 @@ void __fastcall StartMouseThread() {
 	}
 }
 
-DEFINE_FUNCTION_JUMP(CALL , 0x6BD849 , StartMouseThread)
+//massive FPS losses
+//DEFINE_FUNCTION_JUMP(CALL , 0x6BD849 , StartMouseThread)
 
 ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6)
 {

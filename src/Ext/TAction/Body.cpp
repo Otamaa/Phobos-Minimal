@@ -21,6 +21,8 @@
 #include <New/Entity/BannerClass.h>
 #include <New/Type/BannerTypeClass.h>
 
+#include <New/MessageHandler/MessageColumnClass.h>
+
 #include <TriggerTypeClass.h>
 
 //Static init
@@ -576,6 +578,12 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 		break;
 	case PhobosTriggerAction::AllAssignMission:
 		ret = TActionExtData::AllAssignMission(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::MakeAllyOneWay:
+		ret = TActionExtData::MakeAllyOneWay(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::MakeEnemyOneWay:
+		ret = TActionExtData::MakeEnemyOneWay(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
 	case PhobosTriggerAction::SaveGame:
 		ret = TActionExtData::SaveGame(pThis, pHouse, pObject, pTrigger, args.plocation);
@@ -1423,6 +1431,27 @@ bool TActionExtData::AllAssignMission(TActionClass* pThis, HouseClass* pHouse, O
 	return true;
 }
 
+bool TActionExtData::MakeEnemyOneWay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (HouseClass* hptr = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+		Unsorted::ScenarioInit++;
+		pHouse->MakeEnemy(hptr,false);
+		--Unsorted::ScenarioInit;
+	}
+
+	return true;
+}
+
+bool TActionExtData::MakeAllyOneWay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (HouseClass* hptr = (FakeHouseClass*)AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->House)) {
+		Unsorted::ScenarioInit++;
+		pHouse->MakeAlly(hptr, false);
+		--Unsorted::ScenarioInit;
+	}
+
+	return true;
+}
 
 bool TActionExtData::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
@@ -1956,11 +1985,11 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 			const int color = SessionClass::Instance->Game_GetLinkedColor(idx);
 			const int delay =(int)(RulesClass::Instance->MessageDelay * TICKS_PER_MINUTE);
 			auto pText = StringTable::FetchString(text.c_str());
-			MessageListClass* pMessage = ScenarioExtData::Instance()->NewMessageList ?
-				ScenarioExtData::Instance()->NewMessageList.get() :
-				&MessageListClass::Instance();
 
-			pMessage->AddMessage(nullptr, 0, pText, color, TextPrintType::UseGradPal | TextPrintType::FullShadow | TextPrintType::Point6Grad, delay, false);
+			if (Phobos::Config::MessageDisplayInCenter)
+				MessageColumnClass::Instance.AddMessage(nullptr, pText, delay, false);
+			else
+				MessageListClass::Instance->AddMessage(nullptr, 0, pText, color, TextPrintType::UseGradPal | TextPrintType::FullShadow | TextPrintType::Point6Grad, delay, false);
 		}
 
 		return true;

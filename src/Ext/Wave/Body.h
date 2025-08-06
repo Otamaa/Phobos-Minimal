@@ -295,6 +295,7 @@ class NOVTABLE FakeWaveClass : public WaveClass
 public:
 
 	void _Detach(AbstractClass* target, bool all);
+	void _DamageCell(CoordStruct* pLoc);
 
 	WaveExtData* _GetExtData() {
 		return *reinterpret_cast<WaveExtData**>(((DWORD)this) + AbstractExtOffset);

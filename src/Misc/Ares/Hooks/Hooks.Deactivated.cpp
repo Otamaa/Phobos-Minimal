@@ -64,15 +64,6 @@ ASMJIT_PATCH(0x51F808, InfantryClass_GetActionOnCell_Deactivated, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x51D0DD, InfantryClass_Scatter_Deactivated, 0x6)
-{
-	GET(InfantryClass* const, pThis, ESI);
-	return (pThis->Deactivated)
-		? 0x51D6E6
-		: 0
-		;
-}
-
 ASMJIT_PATCH(0x7404B9, UnitClass_GetCursorOverCell_Deactivated, 6)
 {
 	GET(UnitClass* const, pThis, ESI);

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ShowAllFiles>true</ShowAllFiles>
@@ -20,10 +20,12 @@
   <ItemGroup>
     <ClCompile Include="src\Commands\ForceWin.cpp" />
     <ClCompile Include="src\Commands\Harmless.cpp" />
+    <ClCompile Include="src\Commands\ToggleMessageList.cpp" />
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Message.cpp" />
+    <ClCompile Include="src\Ext\Sidebar\Hooks.TacticalButton.cpp" />
     <ClCompile Include="src\Ext\SWType\Hook.Psydom.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.Bullet.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.EMPulse.cpp" />
@@ -52,6 +54,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Shield.Thread.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Targeting.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.TechnoAttachment.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Tint.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
@@ -127,11 +130,16 @@
     <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\BannerClass.cpp" />
+    <ClCompile Include="src\New\MessageHandler\MessageButtonClass.cpp" />
+    <ClCompile Include="src\New\MessageHandler\MessageColumnClass.cpp" />
+    <ClCompile Include="src\New\MessageHandler\MessageLabelClass.cpp" />
     <ClCompile Include="src\New\Entity\PoweredUnitClass.cpp" />
     <ClCompile Include="src\New\Entity\RadarJammerClass.cpp" />
     <ClCompile Include="src\New\Interfaces\CustomRocketLocomotionClass.cpp" />
     <ClCompile Include="src\New\Interfaces\AdvancedDriveLocomotionClass.cpp" />
     <ClCompile Include="src\New\Interfaces\TSJumpJetLocomotionClass.cpp" />
+    <ClCompile Include="src\New\MessageHandler\MessageScrollClass.cpp" />
+    <ClCompile Include="src\New\MessageHandler\MessageToggleClass.cpp" />
     <ClCompile Include="src\New\Type\ActionTypeClass.cpp" />
     <ClCompile Include="src\New\Type\HealthBarTypeClass.cpp" />
     <ClCompile Include="src\New\Type\SelectBoxTypeClass.cpp" />
@@ -593,6 +601,7 @@
   <ItemGroup>
     <ClInclude Include="src\Commands\ForceWin.h" />
     <ClInclude Include="src\Commands\Harmless.h" />
+    <ClInclude Include="src\Commands\ToggleMessageList.h" />
     <ClInclude Include="src\ExtraHeaders\AlignedMemory.h" />
     <ClInclude Include="src\ExtraHeaders\MemoryPool.h" />
     <ClInclude Include="src\ExtraHeaders\StackAllocator.h" />
@@ -683,6 +692,11 @@
     <ClInclude Include="src\New\AnonymousType\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Entity\BannerClass.h" />
+    <ClInclude Include="src\New\MessageHandler\MessageButtonClass.h" />
+    <ClInclude Include="src\New\MessageHandler\MessageColumnClass.h" />
+    <ClInclude Include="src\New\MessageHandler\MessageLabelClass.h" />
+    <ClInclude Include="src\New\MessageHandler\MessageScrollClass.h" />
+    <ClInclude Include="src\New\MessageHandler\MessageToggleClass.h" />
     <ClInclude Include="src\New\Interfaces\CustomRocketLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\AdvancedDriveLocomotionClass.h" />
     <ClInclude Include="src\New\Interfaces\TSJumpJetLocomotionClass.h" />
@@ -1179,13 +1193,13 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>false</ExceptionHandling>
@@ -1207,13 +1221,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableVectorLength>NotSet</EnableVectorLength>

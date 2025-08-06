@@ -25,7 +25,7 @@ std::vector<int> HouseExtData::AIProduction_Values;
 std::vector<int> HouseExtData::AIProduction_BestChoices;
 std::vector<int> HouseExtData::AIProduction_BestChoicesNaval;
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
-std::set<TechnoClass*> HouseExtData::LimboTechno;
+HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
 std::unordered_map<HouseClass*, std::set<TeamClass*>> HouseExtContainer::HousesTeams;
 
 int HouseExtData::LastGrindingBlanceUnit;
@@ -1957,19 +1957,27 @@ int HouseExtData::CountOwnedNowTotal(
 
 void HouseExtData::UpdateTransportReloaders()
 {
-	for (auto& pTech : HouseExtData::LimboTechno)
-	{
-		if (pTech && pTech->IsAlive // the null check is only for Save game load , for some reason it contains nullptr ,...
-			&& pTech->WhatAmI() != AircraftClass::AbsID
-			&& pTech->WhatAmI() != BuildingClass::AbsID
-			&& pTech->Transporter  && pTech->Transporter->IsAlive && pTech->Transporter->IsInLogic)
-		{
-			//const auto pType = pTech->GetTechnoType();
+	HouseExtData::LimboTechno.remove_all_if([](TechnoClass* pTech) {
+		if (!pTech || !pTech->IsAlive)
+			return true;
+
+		auto vtable = VTable::Get(pTech);
+
+		if (vtable != UnitClass::vtable
+			&& vtable != InfantryClass::vtable
+			&& vtable != AircraftClass::vtable
+			&& vtable != BuildingClass::vtable)
+			return true;
+
+		if (pTech->Transporter && pTech->Transporter->IsAlive && pTech->Transporter->IsInLogic) {
 			if (TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->ReloadInTransport) {
 				pTech->Reload();
 			}
 		}
-	}
+
+		return false;
+	});
+
 }
 
 void HouseExtData::UpdateNonMFBFactoryCounts(AbstractType rtti, bool remove, bool isNaval)
@@ -2277,26 +2285,26 @@ void HouseExtData::Serialize(T& Stm)
 bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	return Stm
+		.Process(HouseExtData::LimboTechno)
+		.Process(HouseExtData::AutoDeathObjects)
 		.Process(HouseExtData::LastGrindingBlanceUnit)
 		.Process(HouseExtData::LastGrindingBlanceInf)
 		.Process(HouseExtData::LastHarvesterBalance)
 		.Process(HouseExtData::LastSlaveBalance)
 		.Process(HouseExtData::IsAnyFirestormActive)
-		.Process(HouseExtData::LimboTechno)
-		.Process(HouseExtData::AutoDeathObjects)
 		.Success();
 }
 
 bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	return Stm
+		.Process(HouseExtData::LimboTechno)
+		.Process(HouseExtData::AutoDeathObjects)
 		.Process(HouseExtData::LastGrindingBlanceUnit)
 		.Process(HouseExtData::LastGrindingBlanceInf)
 		.Process(HouseExtData::LastHarvesterBalance)
 		.Process(HouseExtData::LastSlaveBalance)
 		.Process(HouseExtData::IsAnyFirestormActive)
-		.Process(HouseExtData::LimboTechno)
-		.Process(HouseExtData::AutoDeathObjects)
 		.Success();
 }
 

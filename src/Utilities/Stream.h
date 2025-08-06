@@ -163,7 +163,7 @@ public:
 		if (this->IsValid(stream_debugging_t()))
 		{
 			s.clear();
-			size_t size;
+			size_t size = 0;
 			this->Process(size, RegisterForChange);
 			for (size_t i = 0; i < size; i++)
 			{
@@ -181,7 +181,7 @@ public:
 		if (this->IsValid(stream_debugging_t()))
 		{
 			m.clear();
-			size_t size;
+			size_t size = 0;
 			this->Process(size, RegisterForChange);
 			for (size_t i = 0; i < size; i++)
 			{
@@ -201,7 +201,7 @@ public:
 		if (this->IsValid(stream_debugging_t()))
 		{
 			m.clear();
-			size_t size;
+			size_t size = 0;
 			this->Process(size, RegisterForChange);
 			for (size_t i = 0; i < size; i++)
 			{

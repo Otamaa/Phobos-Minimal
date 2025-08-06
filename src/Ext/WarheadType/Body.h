@@ -151,6 +151,7 @@ public:
 	ValueableVector<ShieldTypeClass*> Shield_AffectTypes { };
 
 	NullableVector<ShieldTypeClass*> Shield_Penetrate_Types { };
+	ValueableVector<ShieldTypeClass*> Shield_Penetrate_Types_Disallowed_Types { };
 	ValueableVector<ArmorTypeClass*> Shield_Penetrate_Armor_Types { };
 	NullableVector<ShieldTypeClass*> Shield_Break_Types { };
 	NullableVector<ShieldTypeClass*> Shield_Respawn_Types { };

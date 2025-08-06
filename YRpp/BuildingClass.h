@@ -454,7 +454,7 @@ public:
 	char GateStage;
 	PrismChargeState PrismStage;
 	CoordStruct PrismTargetCoords;
-	DWORD DelayBeforeFiring; //714
+	int DelayBeforeFiring; //714
 
 	int BunkerState; // used in UpdateBunker and friends 0x718
 	DWORD unused_71C;

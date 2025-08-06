@@ -14,6 +14,7 @@ public:
 
 	bool GetTextDimension(const wchar_t* pText, int* pWidth, int* pHeight, int nMaxWidth) { JMP_THIS(0x433CF0); }
 	int Blit(wchar_t wch, int X, int Y, int nColor) { JMP_THIS(0x434120); }
+	int Func_433F50(const wchar_t* chr, int X, int Y, int nColor) { JMP_THIS(0x433F50); }
 
 	bool Lock(Surface* pSurface) { JMP_THIS(0x4348F0); }
 	bool UnLock(Surface* pSurface) { JMP_THIS(0x434990); }

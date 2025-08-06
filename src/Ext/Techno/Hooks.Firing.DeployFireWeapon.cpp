@@ -163,6 +163,7 @@ ASMJIT_PATCH(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
+	//GET_STACK(uintptr_t, callerAddress, 0x0);
 
 	if (pThis->Deployed && pThis->Type->DeployFire) {
 		if (pThis->Type->DeployFireWeapon != -1) {
@@ -170,6 +171,15 @@ ASMJIT_PATCH(0x746CD0, UnitClass_SelectWeapon_Replacements, 0x6)
 			return 0x746CFD;
 		}
 	}
+
+	//if(auto pObj = flag_cast_to<ObjectClass*>(pTarget)){
+	//	if(!pObj->IsAlive) {
+	//		//Debug::LogInfo("[{}] {} {} Attempt to target death Object of {}!"
+	//		//	, callerAddress ,(void*)pThis , pThis->get_ID() , (void*)pTarget);
+
+	//		pTarget = nullptr;
+	//	}
+	//}
 
 	R->EAX(pThis->TechnoClass::SelectWeapon(pTarget));
 	return 0x746CFD;

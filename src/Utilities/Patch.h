@@ -42,9 +42,6 @@ struct dllData
 	COMPILETIMEEVAL ~dllData() = default;
 };
 
-// no more than 8 characters
-#define PATCH_SECTION_NAME ".patch"
-#pragma section(PATCH_SECTION_NAME, read)
 
 #pragma pack(push, 1)
 #pragma warning(push)

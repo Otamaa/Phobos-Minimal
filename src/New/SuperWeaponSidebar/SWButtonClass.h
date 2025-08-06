@@ -14,7 +14,6 @@ public:
 		// The vanilla game did not consider adding/deleting buttons midway through the game,
 		// so this behavior needs to be made known to the global variable and then remove it
 		if (LastFocused == this) {
-			LastFocused = nullptr;
 			this->OnMouseLeave();
 		}
 	}

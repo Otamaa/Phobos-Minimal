@@ -6,6 +6,7 @@
 #include <New/Interfaces/AdvancedDriveLocomotionClass.h>
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 #include <New/Interfaces/TSJumpJetLocomotionClass.h>
+//#include <New/Interfaces/AttachmentLocomotionClass.h>
 
 template<typename T>
 class TClassFactory : public IClassFactory
@@ -42,7 +43,7 @@ public:
 	{
 		int nNewRef = Imports::InterlockedDecrementFunc.invoke()(&this->nRefCount);
 		if (!nNewRef)
-			GameDelete(this);
+			GameDelete<true,false>(this);
 		return nNewRef;
 	}
 
@@ -62,7 +63,7 @@ public:
 		HRESULT hr = pThis->QueryInterface(riid, ppvObject);
 
 		if (FAILED(hr))
-			GameDelete(pThis);
+			GameDelete<false ,false>(pThis);
 
 		return hr;
 	}
@@ -115,6 +116,7 @@ ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 	RegisterFactoryForClass<TSJumpJetLocomotionClass>();
 	RegisterFactoryForClass<AdvancedDriveLocomotionClass>();
 	RegisterFactoryForClass<CustomRocketLocomotionClass>();
+	//RegisterFactoryForClass<AttachmentLocomotionClass>();
 
 	Debug::Log("COM registration done!\n");
 

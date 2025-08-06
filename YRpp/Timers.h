@@ -1,7 +1,10 @@
 #pragma once
 
+#include <Base/Always.h>
+
 #include <windows.h>
 #include <timeapi.h>
+#include <algorithm>
 
 template<typename T>
 concept TimerType = std::convertible_to<T, int>&& requires (T t)
@@ -17,6 +20,7 @@ struct FrameTimer
 
 struct SystemTimer
 {
+	static DWORD GetTime() JMP_STD(0x6C8C40);
 	long operator()() const { return timeGetTime() >> 4; }
 	operator long() const { return timeGetTime() >> 4; }
 };

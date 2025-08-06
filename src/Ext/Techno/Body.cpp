@@ -4511,7 +4511,7 @@ void TechnoExtData::HandleRemove(TechnoClass* pThis, TechnoClass* pSource, bool 
 	if (Delete)
 		GameDelete<true, false>(pThis);
 	else
-		pThis->UnInit();
+	pThis->UnInit();
 
 	// Handle extra power
 	if (pThis->Absorbed && pThis->Transporter)
@@ -4525,18 +4525,16 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, bool isPeaceful)
 		// this shit is not really good idea to pull of
 		// some stuffs doesnt really handled properly , wtf
 		bool SkipRemoveTracking = false;
-		if (!pThis->InLimbo){
+		if (!pThis->InLimbo)
+		{
 			SkipRemoveTracking = true;
 			pThis->Limbo();
 		}
 
 		//Debug::LogInfo(__FUNCTION__" (2args) Called ");
 		TechnoExtData::HandleRemove(pThis, nullptr, SkipRemoveTracking, false);
-	}
-	else
-	{
-		if(pThis->IsAlive)
-			pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, false, false, pThis->Owner);
+	}else{
+		TechnoExtData::Kill(pThis, nullptr);
 	}
 }
 
@@ -4548,6 +4546,13 @@ static KillMethod NOINLINE GetKillMethod(KillMethod deathOption)
 	}
 
 	return deathOption;
+}
+
+void TechnoExtData::Kill(TechnoClass* pThis, TechnoClass* pKiller) {
+	if (pThis->IsAlive) {
+		auto nHealth = pThis->GetType()->Strength;
+		pThis->ReceiveDamage(&nHealth, 0, RulesClass::Instance()->C4Warhead, pKiller, true, false, pKiller ? pKiller->Owner : nullptr);
+	}
 }
 
 void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, bool RegisterKill, AnimTypeClass* pVanishAnim)
@@ -4570,12 +4575,7 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	{
 	case KillMethod::Explode:
 	{
-		if (pThis->IsAlive)
-		{
-			auto nHealth = pThis->GetType()->Strength;
-			pThis->ReceiveDamage(&nHealth, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
-		}
-
+		TechnoExtData::Kill(pThis, nullptr);
 	}break;
 	case KillMethod::Vanish:
 	{
@@ -4639,9 +4639,8 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 			}
 		}
 
-		if (pThis && pThis->IsAlive)
-		{
-			pThis->ReceiveDamage(&pThis->GetType()->Strength, 0, RulesClass::Instance()->C4Warhead, nullptr, true, false, nullptr);
+		if (pThis) {
+			TechnoExtData::Kill(pThis, nullptr);
 		}
 
 	}break;
@@ -5086,7 +5085,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 				if (amount >= healthDeficit)
 					amount = healthDeficit;
 
-				if (Phobos::Debug_DisplayDamageNumbers)
+				if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count )
 					FlyingStrings::AddNumberString(amount, pThis->Owner, AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::White], pThis->Location, Point2D::Empty, false, L"");
 
 				pThis->Health += amount;
@@ -5540,7 +5539,7 @@ void TechnoExtData::UpdateOnTunnelEnter()
 
 		if (const auto pAlpha = alphaExt.get_or_default(this->AttachedToObject))
 		{
-			GameDelete(pAlpha);
+			GameDelete<true,false>(pAlpha);
 
 			const auto tacticalPos = TacticalClass::Instance->TacticalPos;
 			Point2D off = { tacticalPos.X - (pImage->Width / 2), tacticalPos.Y - (pImage->Height / 2) };
@@ -6735,7 +6734,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 ASMJIT_PATCH(0x6F3260, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
-	HouseExtData::LimboTechno.emplace(pItem);
+	HouseExtData::LimboTechno.push_back_unique(pItem);
 	TechnoExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
@@ -6751,7 +6750,7 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 		return item.first == pItem;
 	});
 
-	HouseExtData::LimboTechno.erase(pItem);
+	HouseExtData::LimboTechno.remove(pItem);
 	const auto pExt = TechnoExtContainer::Instance.Find(pItem);
 
 	pOwnerExt->OwnedCountedHarvesters.erase(pItem);

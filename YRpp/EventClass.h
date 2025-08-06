@@ -5,6 +5,7 @@
 #include <TargetClass.h>
 #include <Unsorted.h>
 #include <GeneralDefinitions.h>
+#include <QueueClass.h>
 
 #pragma pack(push, 1)
 union EventData
@@ -165,45 +166,29 @@ public:
 class EventClass
 {
 public:
+	static COMPILETIMEEVAL size_t EventLength_Max = 128;
+
 	static COMPILETIMEEVAL reference<const char*, 0x82091C, 18> const EventNames {};
 	static COMPILETIMEEVAL reference<const char*, 0x82091C, 27> const AddEventNames {};
 	static COMPILETIMEEVAL reference<uint8_t, 0x8208ECu, 46u> const EventLength {};
 
-	static COMPILETIMEEVAL reference<EventList<0x80>, 0xA802C8> OutList {};
+	static COMPILETIMEEVAL reference<QueueClass<EventClass, EventLength_Max>, 0xA802C8> OutList {};
 
 	// If the event is a MegaMission, then add it to this list
-	static COMPILETIMEEVAL reference<EventList<0x100>, 0xA83ED0> MegaMissionList {};
-	static COMPILETIMEEVAL reference<EventList<0x4000>, 0x8B41F8> DoList {};
+	static COMPILETIMEEVAL reference<QueueClass<EventClass,0x100>, 0xA83ED0> MegaMissionList {};
+	static COMPILETIMEEVAL reference<QueueClass<EventClass,0x4000>, 0x8B41F8> DoList {};
 
 	// this points to CRCs from 0x100 last frames
 	static COMPILETIMEEVAL reference<DWORD, 0xB04474, 256> const LatestFramesCRC {};
 	static COMPILETIMEEVAL reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
 
-
-	static bool AddEvent(const EventClass* pEvent)
-	{
-		if (OutList->Count >= 128)
-			return false;
-
-		memcpy((OutList->List + OutList->Tail), pEvent, sizeof(EventClass));
-		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.invoke()());
-		OutList->Tail = (OutList->Tail + 1) & 0x7F;
-		++OutList->Count;
-
-		return true;
+	static bool AddEvent(EventClass* pEvent) {
+		return OutList->Add(pEvent);
 	}
 
-	static bool AddEventWithTimeStamp(EventClass* event)
-	{
-		event->Frame = static_cast<DWORD>(Unsorted::CurrentFrame);
-		if (OutList->Count >= 128)
-			return false;
-
-		memcpy((OutList->List + OutList->Tail), event, sizeof(EventClass));
-		OutList->Timings[OutList->Tail] = static_cast<int>(Imports::TimeGetTime.invoke()());
-		OutList->Tail = (OutList->Tail + 1) & 0x7F;
-		++OutList->Count;
-		return true;
+	static bool AddEventWithTimeStamp(EventClass* pEvent) {
+		pEvent->Frame = static_cast<DWORD>(Unsorted::CurrentFrame);
+		return OutList->Add(pEvent);
 	}
 
 	EventClass()

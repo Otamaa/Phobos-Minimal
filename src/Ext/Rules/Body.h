@@ -16,10 +16,6 @@
 #include <New/AnonymousType/MultipleFactoryCaps.h>
 #include <New/HugeBar.h>
 
-enum class FPSCounterMode {
-	disabled , Full , FPSOnly , FPSandAVG
-};
-
 class AITriggerTypeClass;
 class AnimTypeClass;
 class MouseCursor;

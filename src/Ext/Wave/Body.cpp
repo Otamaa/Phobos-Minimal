@@ -1,6 +1,6 @@
 #include "Body.h"
 
-#include <Ext/WeaponType/Body.h>
+#include <Ext/WarheadType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 
@@ -9,6 +9,62 @@
 #include <InfantryClass.h>
 
 WaveExtData::~WaveExtData() { };
+
+void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
+	if(auto pOwner = this->Owner) {
+		const auto cell = CellClass::Coord2Cell(pLoc);
+		const auto pCell = MapClass::Instance->GetCellAt(cell);
+		const auto pWpn = this->_GetExtData()->Weapon;
+		const auto pWpnExt = WeaponTypeExtContainer::Instance.Find(pWpn);
+		const bool isAlt = pCell->ContainsBridge()  && this->LimboCoords.Z >= Unsorted::LevelHeight * (pCell->Level + 4);
+		const auto pWH = pWpnExt->AmbientDamage_Warhead.Get(pWpn->Warhead);
+
+		for (auto Occupier =  pCell->Cell_Occupier(isAlt); Occupier; Occupier = Occupier->NextObject ) {
+			if (Occupier == this->Target && pWpnExt->AmbientDamage_IgnoreTarget)
+				continue;
+
+            if ( Occupier != pOwner
+              && Occupier->IsAlive
+              && Occupier->IsOnMap
+              && !Occupier->InLimbo
+              && Occupier->Health > 0 )
+            {
+				if (const auto pTechnoVictim = flag_cast_to<TechnoClass* , false>(Occupier)){
+					if (pTechnoVictim->IsSinking || pTechnoVictim->IsCrashing) {
+						continue;
+					}
+
+					if (const auto pUnit = cast_to<UnitClass* , false>(Occupier)) {
+						if (pUnit->DeathFrameCounter > 0) {
+							continue;
+						}
+					}
+				}
+
+				WarheadTypeExtData::DetonateAt(pWH, Occupier, pCell->GetCoordsWithBridge(), pOwner, pWpn->AmbientDamage);
+            }
+        }
+
+		if(pCell->OverlayTypeIndex != -1){
+			auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
+			if(pOverlay->ChainReaction){
+				pCell->ChainReaction();
+			}
+
+			if(pOverlay->Wall && pWH->Wall) {
+				pCell->ReduceWall();
+			}
+		}
+
+		if(pCell->Tile_Is_DestroyableCliff()){
+			if(ScenarioClass::Instance->Random.RandomRanged(0,99) < RulesClass::Instance->CollapseChance) {
+				MapClass::Instance->DestroyCliff(pCell);
+			}
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(LJMP , 0x75F330 ,FakeWaveClass::_DamageCell)
 
 void WaveExtData::InitWeaponData()
 {

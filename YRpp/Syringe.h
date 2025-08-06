@@ -153,7 +153,7 @@ MAKEREG(LI_ESI, LimitedRegister, ESI)
 MAKEREG(ST_EBP, StackRegister, EBP)
 MAKEREG(ST_ESP, StackRegister, ESP)
 MAKEREG(EX_EBX, ExtendedRegister, EBX)
-MAKEREG(EX_EDX , ExtendedRegister, EDX)
+MAKEREG(EX_EDX, ExtendedRegister, EDX)
 MAKEREG(EX_ECX, ExtendedRegister, ECX)
 MAKEREG(EX_EAX, ExtendedRegister, EAX)
 
@@ -291,26 +291,12 @@ public:
 #define EXPORT_FUNC(name) extern "C" __declspec(dllexport) DWORD __cdecl name (REGISTERS *R)
 #define EXPORT_FUNC_NAKED(name) extern "C" __declspec(naked , dllexport) DWORD __cdecl name (REGISTERS *R)
 
-//Handshake definitions
-//struct SyringeHandshakeInfo
-//{
-//	int cbSize;
-//	int num_hooks;
-//	unsigned int checksum;
-//	DWORD exeFilesize;
-//	DWORD exeTimestamp;
-//	unsigned int exeCRC;
-//	int cchMessage;
-//	char* Message;
-//};
-
-//#define SYRINGE_HANDSHAKE(pInfo) static extern "C" __declspec(dllexport) HRESULT __cdecl SyringeHandshake(SyringeHandshakeInfo* pInfo)
-
 #if SYR_VER == 2
 
 #pragma pack(push, 16)
 #pragma warning(push)
 #pragma warning( disable : 4324)
+
 __declspec(align(16)) struct hookdecl
 {
 	unsigned int hookAddr;
@@ -318,28 +304,7 @@ __declspec(align(16)) struct hookdecl
 	const char* hookName;
 };
 
-struct alignas(16) overridehookdecl
-{
-	unsigned int hookAddr;
-	unsigned int hookSize;
-	const char* hookNamePtr;
-	const char* overrideModuleName;
-};
-
-//struct alignas(16) patchdecl
-//{
-//	unsigned int patchAddr;
-//	BYTE* patchData;
-//	unsigned int patchDataSize;
-//	const char* hookNamePtr;
-//};
-
-__declspec(align(16)) struct hostdecl
-{
-	const char* hostName;
-};
-
-__declspec(align(16)) struct hookdeclb{
+__declspec(align(16)) struct hookdeclfunc {
 	unsigned int hookAddr;
 	unsigned int hookSize;
 	const void* hookFunc;
@@ -348,114 +313,62 @@ __declspec(align(16)) struct hookdeclb{
 #pragma warning(pop)
 #pragma pack(pop)
 
-#pragma section(".syhks00", read, write)
+#define SYRINGE_HOOKS_SECTION_NAME ".syhks00"
+#pragma section(SYRINGE_HOOKS_SECTION_NAME, read)
 
-#define ASMJIT_PATCH_SECTION_NAME ".syhks02"
-#pragma section(ASMJIT_PATCH_SECTION_NAME, read, write)
+#define ASMJIT_PATCH_SECTION_NAME ".asmjit0"
+#pragma section(ASMJIT_PATCH_SECTION_NAME, read)
 
-//#pragma section(".syhks01", read, write)
-//#pragma section(".syhks02", read, write)
-//#pragma section(".syexe00", read, write)
-namespace SyringeData
-{
-	namespace Hooks
-	{
+#define PATCH_SECTION_NAME ".patch"
+#pragma section(PATCH_SECTION_NAME, read)
 
-	};
-	namespace Hosts
-	{
-
-	};
+namespace SyringeData {
+	namespace Hooks { };
+	namespace Hosts { };
 };
-
-#pragma section(".syexe00", read, write)
-#pragma section(".syexe01", read, write)
-
-#define declhost0(exename) \
-namespace SyringeData { \
-namespace Hosts { \
-__declspec(allocate(".syexe00")) \
-hostdecl _hst__ ## exename = { #exename }; \
-}; };
-
-#define declhost1(exename) \
-namespace SyringeData { \
-namespace Hosts { \
-__declspec(allocate(".syexe01")) \
-hostdecl _hst__ ## exename = { #exename }; \
-}; };
 
 #define declhook(hook, funcname, size) \
 namespace SyringeData { \
 namespace Hooks { \
-__declspec(allocate(".syhks00"))\
+__declspec(allocate(SYRINGE_HOOKS_SECTION_NAME))\
 hookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname }; \
 }; };
 
-//#define decl_override_hook(hook, funcname, size) \
-//namespace SyringeData { \
-//namespace Hooks { \
-//__declspec(allocate(".syhks01"))\
-//overridehookdecl _hk__ ## hook ## funcname = { ## hook, ## size, #funcname , "Ares.dll" }; \
-//}; };
+#define decl_asmjit_patch_data(hook, funcname, size) \
+namespace AsmjitPatchData { \
+namespace Patchs { \
+__declspec(allocate(ASMJIT_PATCH_SECTION_NAME)) \
+hookdeclfunc _hk__ ## hook ## funcname { hook, size, &funcname }; \
+}; };
+
 
 #endif // SYR_VER == 2
 
-
-// create empty macros
-#ifndef declhost
-#define declhost(exename, checksum)
-#endif // declhost
+#ifndef decl_asmjit_patch_data
+#define decl_asmjit_patch_data(hook, funcname, size)
+#endif // decl_asmjit_patch_data
 
 #ifndef declhook
 #define declhook(hook, funcname, size)
 #endif // declhook
 
-//#ifndef decl_override_hook
-//#define decl_override_hook(hook, funcname, size)
-//#endif // declhook
-
-//#define DEFINE_RAW_PATCH(hook,funcname ,...)								 \
-//	namespace patch##funcname													 \
-//	{																		 \
-//		const BYTE data[] = {__VA_ARGS__};									 \
-//	   __declspec(allocate(".syhks02"))										 \
-//		patchdecl patch = { ##hook, (BYTE*)##data , sizeof(##data), #funcname};	 \
-//	}
-//
-//#define DEFINE_RAW_PATCH_MANUAL(hook,funcname ,size , data)			\
-//	namespace patch##funcname											\
-//	{																\
-//	   __declspec(allocate(".syhks02"))								\
-//		patchdecl patch = { ##hook, (BYTE*)##data , ##size, #funcname};	\
-//	}
-
-//#define DEBUG_HOOK
-
 #ifndef DEBUG_HOOK
-//#define DEFINE_HOOK(hook,funcname,size) \
-//declhook(hook, funcname, size) \
-//EXPORT_FUNC(funcname)
-
-// Does the same as DEFINE_HOOK but no function opening, use for injgen-declaration when repeating the same hook at multiple addresses.
-// CAUTION: funcname must be the same as in DEFINE_HOOK.
-//#define DEFINE_HOOK_AGAIN(hook, funcname, size) \
-//declhook(hook, funcname, size)
-
-#define decl_patch_data(hook, funcname, size) \
-namespace AsmjitPatchData { \
-namespace Patchs { \
-    __declspec(allocate(ASMJIT_PATCH_SECTION_NAME)) \
-    hookdeclb _hk__ ## hook ## funcname { hook, size, &funcname }; \
-}; };
 
 #define ASMJIT_PATCH_AGAIN(hook, funcname, size) \
-decl_patch_data(hook, funcname, size)
+decl_asmjit_patch_data(hook, funcname, size)
 
 #define ASMJIT_PATCH(hook, funcname, size) \
 EXPORT_FUNC(funcname); \
-decl_patch_data(hook, funcname, size) \
-EXPORT_FUNC(funcname)\
+decl_asmjit_patch_data(hook, funcname, size) \
+EXPORT_FUNC(funcname)
+
+#define DEFINE_HOOK(hook,funcname,size) \
+EXPORT_FUNC(funcname); \
+declhook(hook, funcname, size) \
+EXPORT_FUNC(funcname)
+
+#define DEFINE_HOOK_AGAIN(hook, funcname, size) \
+declhook(hook, funcname, size)
 
 #else
 #include <chrono>
@@ -541,10 +454,3 @@ declhook(hook, funcname##_DEBUG_HOOK__LOG_, size)
 //PRAGMA_DISABLEWARNING_S(4838)
 //decl_override_hook(hook, funcname, -1)
 //PRAGMA_DISABLEWARNING_POP()
-
-//#define DEFINE_OVERRIDE_SKIP_HOOK(hook,funcname,size,ret)\
-//DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
-//DEFINE_OVERRIDE_HOOK(hook,funcname,size){ return 0x ##ret## ;}
-
-//#define DEFINE_SKIP_HOOK(hook,funcname,size,ret)\
-//DEFINE_HOOK(hook,funcname,size){ return 0x ##ret## ;}

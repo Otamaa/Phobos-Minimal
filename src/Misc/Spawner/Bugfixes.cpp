@@ -174,17 +174,25 @@ namespace WhatActionObjectTemp
 	bool Skip = false;
 }
 
+#include <Ext/TechnoType/Body.h>
+
 ASMJIT_PATCH(0x700536, TechnoClass_WhatAction_Object_AllowAttack, 0x6)
 {
 	enum { CanAttack = 0x70055D, Continue = 0x700548 };
 
 	GET_STACK(bool, canEnter, STACK_OFFSET(0x1C, 0x4));
 	GET_STACK(bool, ignoreForce, STACK_OFFSET(0x1C, 0x8));
+	GET(TechnoClass const* const, pThis, ESI);
+
+	auto const pType = pThis->GetTechnoType();
+
+	if(TechnoTypeExtContainer::Instance.Find(pType)
+		->NoManualFire)
+		return 0x70056Cu;
 
 	if (canEnter || ignoreForce)
 		return CanAttack;
 
-	GET(TechnoClass*, pThis, ESI);
 	GET(ObjectClass*, pObject, EDI);
 	GET_STACK(int, WeaponIndex, STACK_OFFSET(0x1C, -0x8));
 

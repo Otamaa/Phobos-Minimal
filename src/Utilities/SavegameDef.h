@@ -12,6 +12,7 @@
 #include <set>
 #include <bitset>
 #include <memory>
+#include <string>
 
 #include <ArrayClasses.h>
 #include <FileSystem.h>
@@ -499,7 +500,6 @@ namespace Savegame
 		}
 	};
 
-
 	template <>
 	struct Savegame::PhobosStreamObject<std::wstring>
 	{
@@ -532,7 +532,7 @@ namespace Savegame
 			return false;
 		}
 
-		bool WriteToStream(PhobosStreamWriter& Stm, const std::string& Value) const
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::wstring& Value) const
 		{
 			Stm.Save(Value.size());
 

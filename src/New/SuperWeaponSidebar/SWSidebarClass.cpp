@@ -308,17 +308,12 @@ void SWSidebarClass::RecheckCameo()
 
 // Hooks
 
-ASMJIT_PATCH(0x692419, DisplayClass_ProcessClickCoords_SWSidebar, 0x7)
+ASMJIT_PATCH(0x4E1A84, GadgetClass_DTOR_ClearCurrentOverGadget, 0x6)
 {
-	enum { Nothing = 0x6925FC };
-
-	if (SWSidebarClass::IsEnabled() && SWSidebarClass::Global()->CurrentColumn)
-		return Nothing;
-
-	const auto toggleButton = SWSidebarClass::Global()->ToggleButton;
-
-	return toggleButton && toggleButton->IsHovering ? Nothing : 0;
-}
+	GadgetClass* const pThis = (R->Origin() == 0x4E1A84) ? R->ESI<GadgetClass*>() : R->ECX<GadgetClass*>();
+	AnnounceInvalidPointer(Make_Global<GadgetClass*>(0x8B3E94), pThis);
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x4E13B2, GadgetClass_DTOR_ClearCurrentOverGadget, 0x6)
 
 ASMJIT_PATCH(0x4F92FB, HouseClass_UpdateTechTree_SWSidebar, 0x7)
 {
@@ -351,18 +346,6 @@ ASMJIT_PATCH(0x6A6316, SidebarClass_AddCameo_SuperWeapon_SWSidebar, 0x6)
 		return ReturnFalse;
 	}
 
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A5082, SidebarClass_Init_Clear_InitializeSWSidebar, 0x5)
-{
-	SWSidebarClass::Global()->InitClear();
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A5839, SidebarClass_Init_IO_InitializeSWSidebar, 0x5)
-{
-	SWSidebarClass::Global()->InitIO();
 	return 0;
 }
 
