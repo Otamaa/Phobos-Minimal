@@ -18,8 +18,8 @@ public:
 		JMP_THIS(0x420140);
 	}
 
-	static void __stdcall Release(AlphaLightingRemapClass* pItem) {
-		JMP_STD(0x420270); }
+	void Release(AlphaLightingRemapClass* pWHo) {
+		JMP_THIS(0x420270); }
 
 	AlphaLightingRemapClass(int steps) noexcept
 	{ JMP_THIS(0x4202F0); }

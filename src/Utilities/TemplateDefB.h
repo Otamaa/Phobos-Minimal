@@ -443,16 +443,69 @@ namespace detail
 	}
 
 	template <>
+	inline bool read<AffectedTechno>(AffectedTechno& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			AffectedTechno resultData = AffectedTechno::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::AffectedTechno_ToStrings) {
+					if (IS_SAME_STR_(cur, pStrings.second.data())) {
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found) {
+					if (IS_SAME_STR_(cur, "vehicle")) {
+						found = true;
+						result = 2;
+					}
+				}
+
+				if (!found) {
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AffectedTechno");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: resultData |= AffectedTechno::None; break;
+					case 1: resultData |= AffectedTechno::Infantry; break;
+					case 2: resultData |= AffectedTechno::Unit; break;
+					case 3: resultData |= AffectedTechno::Building; break;
+					case 4: resultData |= AffectedTechno::Aircraft; break;
+						break;//switch break
+						break;//loop break
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
 	OPTIONALINLINE bool read<BountyValueOption>(BountyValueOption& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
 			const auto pVal = parser.value();
 
-			for (size_t i = 0; i < EnumFunctions::BountyValueOption_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(pVal, EnumFunctions::BountyValueOption_ToStrings[i]))
-				{
+			for (size_t i = 0; i < EnumFunctions::BountyValueOption_ToStrings.size(); ++i) {
+				if (IS_SAME_STR_(pVal, EnumFunctions::BountyValueOption_ToStrings[i])) {
 					value = (BountyValueOption)i;
 					return true;
 				}

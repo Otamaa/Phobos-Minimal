@@ -24,15 +24,15 @@ public:
 	IMPL_Find(VoxelAnimTypeClass)
 
 	static VoxelAnimTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x74B960);
+		JMP_FAST(0x74B960);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x74B640);
+		JMP_FAST(0x74B640);
 	}
 
 	static const char* const __fastcall GetNameByIndex(int idx) {
-		JMP_STD(0x74B620);
+		JMP_FAST(0x74B620);
 	}
 
 	//IPersist

@@ -68,7 +68,7 @@ public:
 	GadgetClass* ExtractGadgetAt(int nX, int nY) { JMP_THIS(0x4E15A0); }
 
 	//Statics
-	static int __fastcall GetColorScheme() { JMP_STD(0x4E12D0); }
+	static int __fastcall GetColorScheme() { JMP_FAST(0x4E12D0); }
 
 	//Constructors
 	GadgetClass(int nX,int nY,int nWidth,int nHeight,GadgetFlag eFlag, bool bSticky) noexcept

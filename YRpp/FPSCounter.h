@@ -38,7 +38,7 @@ public:
 	static COMPILETIMEEVAL reference<unsigned int, 0x829FF8u> const BufferZoneWidth{};
 
 	//!< The minimum frame rate considering the buffer zone.
-	static OPTIONALINLINE unsigned int GetMinFrameRate()
+	static unsigned int __cdecl GetMinFrameRate()
 		{ JMP_STD(0x55AF60); }
 
 	//!< Whether effects should be reduced.

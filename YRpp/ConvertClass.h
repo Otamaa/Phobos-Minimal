@@ -28,7 +28,7 @@ public:
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<ConvertClass*>, 0x89ECF8u> const Array {};
 
 	static void __fastcall CreateFromFile(const char* pal_filename, BytePalette*& pPalette, ConvertClass*& pDestination)
-	  { JMP_STD(0x72ADE0); }
+	  { JMP_FAST(0x72ADE0); }
 
 	static ConvertClass* CreateFromFile(const char* pal_filename);
 
@@ -122,7 +122,7 @@ public:
 		{ JMP_THIS(0x556090); }
 
 	static LightConvertClass* __fastcall InitLightConvert(int red, int green, int blue)
-		{ JMP_STD(0x544E70); }
+		{ JMP_FAST(0x544E70); }
 
 	//Constructor
 	LightConvertClass(

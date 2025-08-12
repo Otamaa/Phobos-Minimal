@@ -520,9 +520,9 @@ constexpr auto to_pointer(OutputIt, size_t) -> T* {
   return nullptr;
 }
 template <typename T> FMT_CONSTEXPR auto to_pointer(T*& ptr, size_t n) -> T* {
-	T* begin = ptr;
-	ptr += n;
-	return begin;
+  T* begin = ptr;
+  ptr += n;
+  return begin;
 }
 template <typename T>
 FMT_CONSTEXPR20 auto to_pointer(basic_appender<T> it, size_t n) -> T* {
@@ -560,7 +560,7 @@ template <typename T, typename Size>
 FMT_CONSTEXPR20 auto fill_n(T* out, Size count, char value) -> T* {
   if (is_constant_evaluated()) return fill_n<T*, Size, T>(out, count, value);
   static_assert(sizeof(T) == 1,
-			  "sizeof(T) must be 1 to use char for initialization");
+                "sizeof(T) must be 1 to use char for initialization");
   std::memset(out, value, to_unsigned(count));
   return out + count;
 }
@@ -665,25 +665,25 @@ FMT_CONSTEXPR void for_each_codepoint(string_view s, F f) {
 }
 
 FMT_CONSTEXPR inline auto display_width_of(uint32_t cp) noexcept -> size_t {
-	return to_unsigned(
-		1 + (cp >= 0x1100 &&
-			 (cp <= 0x115f ||  // Hangul Jamo init. consonants
-			  cp == 0x2329 ||  // LEFT-POINTING ANGLE BRACKET
-			  cp == 0x232a ||  // RIGHT-POINTING ANGLE BRACKET
-			  // CJK ... Yi except IDEOGRAPHIC HALF FILL SPACE:
-			  (cp >= 0x2e80 && cp <= 0xa4cf && cp != 0x303f) ||
-			  (cp >= 0xac00 && cp <= 0xd7a3) ||    // Hangul Syllables
-			  (cp >= 0xf900 && cp <= 0xfaff) ||    // CJK Compatibility Ideographs
-			  (cp >= 0xfe10 && cp <= 0xfe19) ||    // Vertical Forms
-			  (cp >= 0xfe30 && cp <= 0xfe6f) ||    // CJK Compatibility Forms
-			  (cp >= 0xff00 && cp <= 0xff60) ||    // Fullwidth Forms
-			  (cp >= 0xffe0 && cp <= 0xffe6) ||    // Fullwidth Forms
-			  (cp >= 0x20000 && cp <= 0x2fffd) ||  // CJK
-			  (cp >= 0x30000 && cp <= 0x3fffd) ||
-			  // Miscellaneous Symbols and Pictographs + Emoticons:
-			  (cp >= 0x1f300 && cp <= 0x1f64f) ||
-			  // Supplemental Symbols and Pictographs:
-			  (cp >= 0x1f900 && cp <= 0x1f9ff))));
+  return to_unsigned(
+      1 + (cp >= 0x1100 &&
+           (cp <= 0x115f ||  // Hangul Jamo init. consonants
+            cp == 0x2329 ||  // LEFT-POINTING ANGLE BRACKET
+            cp == 0x232a ||  // RIGHT-POINTING ANGLE BRACKET
+            // CJK ... Yi except IDEOGRAPHIC HALF FILL SPACE:
+            (cp >= 0x2e80 && cp <= 0xa4cf && cp != 0x303f) ||
+            (cp >= 0xac00 && cp <= 0xd7a3) ||    // Hangul Syllables
+            (cp >= 0xf900 && cp <= 0xfaff) ||    // CJK Compatibility Ideographs
+            (cp >= 0xfe10 && cp <= 0xfe19) ||    // Vertical Forms
+            (cp >= 0xfe30 && cp <= 0xfe6f) ||    // CJK Compatibility Forms
+            (cp >= 0xff00 && cp <= 0xff60) ||    // Fullwidth Forms
+            (cp >= 0xffe0 && cp <= 0xffe6) ||    // Fullwidth Forms
+            (cp >= 0x20000 && cp <= 0x2fffd) ||  // CJK
+            (cp >= 0x30000 && cp <= 0x3fffd) ||
+            // Miscellaneous Symbols and Pictographs + Emoticons:
+            (cp >= 0x1f300 && cp <= 0x1f64f) ||
+            // Supplemental Symbols and Pictographs:
+            (cp >= 0x1f900 && cp <= 0x1f9ff))));
 }
 
 template <typename T> struct is_integral : std::is_integral<T> {};
@@ -751,6 +751,14 @@ template <typename T> struct allocator : private std::decay<void> {
   }
 
   void deallocate(T* p, size_t) { std::free(p); }
+
+  FMT_CONSTEXPR20 friend bool operator==(allocator, allocator) noexcept {
+    return true;  // All instances of this allocator are equivalent.
+  }
+
+  FMT_CONSTEXPR20 friend bool operator!=(allocator a, allocator b) noexcept {
+    return !(a == b);
+  }
 };
 
 }  // namespace detail
@@ -826,11 +834,42 @@ class basic_memory_buffer : public detail::buffer<T> {
   FMT_CONSTEXPR20 ~basic_memory_buffer() { deallocate(); }
 
  private:
+  template <typename Alloc = Allocator>
+  FMT_CONSTEXPR20
+      typename std::enable_if<std::allocator_traits<Alloc>::
+                                  propagate_on_container_move_assignment::value,
+                              bool>::type
+      allocator_move_impl(basic_memory_buffer& other) {
+    alloc_ = std::move(other.alloc_);
+    return true;
+  }
+  // If the allocator does not propagate,
+  // then copy the content from source buffer.
+  template <typename Alloc = Allocator>
+  FMT_CONSTEXPR20
+      typename std::enable_if<!std::allocator_traits<Alloc>::
+                                  propagate_on_container_move_assignment::value,
+                              bool>::type
+      allocator_move_impl(basic_memory_buffer& other) {
+    T* data = other.data();
+    if (alloc_ != other.alloc_ && data != other.store_) {
+      size_t size = other.size();
+      // Perform copy operation, allocators are different
+      this->resize(size);
+      detail::copy<T>(data, data + size, this->data());
+      return false;
+    }
+    return true;
+  }
+
   // Move data from other to this buffer.
   FMT_CONSTEXPR20 void move(basic_memory_buffer& other) {
-    alloc_ = std::move(other.alloc_);
     T* data = other.data();
     size_t size = other.size(), capacity = other.capacity();
+    // Replicate the behaviour of std library containers
+    if (!allocator_move_impl(other)) {
+      return;
+    }
     if (data == other.store_) {
       this->set(store_, capacity);
       detail::copy<T>(other.store_, other.store_ + size, store_);
@@ -1174,9 +1213,8 @@ FMT_CONSTEXPR20 FMT_INLINE void write2digits(Char* out, size_t value) {
   *out = static_cast<Char>('0' + value % 10);
 }
 
-// Formats a decimal unsigned integer value and writes to out pointing to a
-// buffer of specified size. The caller must ensure that the buffer is large
-// enough.
+// Formats a decimal unsigned integer value writing to out pointing to a buffer
+// of specified size. The caller must ensure that the buffer is large enough.
 template <typename Char, typename UInt>
 FMT_CONSTEXPR20 auto do_format_decimal(Char* out, UInt value, int size)
     -> Char* {
@@ -1345,7 +1383,7 @@ template <typename WChar, typename Buffer = memory_buffer> class to_utf8 {
 };
 
 // Computes 128-bit result of multiplication of two 64-bit unsigned integers.
-inline auto umul128(uint64_t x, uint64_t y) noexcept -> uint128_fallback {
+FMT_INLINE auto umul128(uint64_t x, uint64_t y) noexcept -> uint128_fallback {
 #if FMT_USE_INT128
   auto p = static_cast<uint128_opt>(x) * static_cast<uint128_opt>(y);
   return {static_cast<uint64_t>(p >> 64), static_cast<uint64_t>(p)};
@@ -1461,76 +1499,6 @@ template <typename T> struct decimal_fp {
 template <typename T> FMT_API auto to_decimal(T x) noexcept -> decimal_fp<T>;
 }  // namespace dragonbox
 
-// Compilers should be able to optimize this into the ror instruction.
-FMT_CONSTEXPR inline auto rotr(uint32_t n, uint32_t r) noexcept -> uint32_t {
-	r &= 31;
-	return (n >> r) | (n << (32 - r));
-}
-
-FMT_CONSTEXPR inline auto rotr(uint64_t n, uint32_t r) noexcept -> uint64_t {
-	r &= 63;
-	return (n >> r) | (n << (64 - r));
-}
-
-  // Remove trailing zeros from n and return the number of zeros removed (float)
-FMT_INLINE int remove_trailing_zeros(uint32_t& n, int s = 0) noexcept {
-	FMT_ASSERT(n != 0, "");
-	// Modular inverse of 5 (mod 2^32): (mod_inv_5 * 5) mod 2^32 = 1.
-	constexpr uint32_t mod_inv_5 = 0xcccccccd;
-	constexpr uint32_t mod_inv_25 = 0xc28f5c29;  // = mod_inv_5 * mod_inv_5
-
-	while (true) {
-	  auto q = rotr(n * mod_inv_25, 2);
-	  if (q > max_value<uint32_t>() / 100) break;
-	  n = q;
-	  s += 2;
-	}
-	auto q = rotr(n * mod_inv_5, 1);
-	if (q <= max_value<uint32_t>() / 10) {
-	  n = q;
-	  s |= 1;
-	}
-	return s;
-}
-
-  // Removes trailing zeros and returns the number of zeros removed (double)
-FMT_INLINE int remove_trailing_zeros(uint64_t& n) noexcept {
-	FMT_ASSERT(n != 0, "");
-
-	// This magic number is ceil(2^90 / 10^8).
-	constexpr uint64_t magic_number = 12379400392853802749ull;
-	auto nm = umul128(n, magic_number);
-
-	// Is n is divisible by 10^8?
-	if ((nm.high() & ((1ull << (90 - 64)) - 1)) == 0 && nm.low() < magic_number) {
-	  // If yes, work with the quotient...
-	  auto n32 = static_cast<uint32_t>(nm.high() >> (90 - 64));
-	  // ... and use the 32 bit variant of the function
-	  int s = remove_trailing_zeros(n32, 8);
-	  n = n32;
-	  return s;
-	}
-
-	// If n is not divisible by 10^8, work with n itself.
-	constexpr uint64_t mod_inv_5 = 0xcccccccccccccccd;
-	constexpr uint64_t mod_inv_25 = 0x8f5c28f5c28f5c29;  // mod_inv_5 * mod_inv_5
-
-	int s = 0;
-	while (true) {
-	  auto q = rotr(n * mod_inv_25, 2);
-	  if (q > max_value<uint64_t>() / 100) break;
-	  n = q;
-	  s += 2;
-	}
-	auto q = rotr(n * mod_inv_5, 1);
-	if (q <= max_value<uint64_t>() / 10) {
-	  n = q;
-	  s |= 1;
-	}
-
-	return s;
-}
-
 // Returns true iff Float has the implicit bit which is not stored.
 template <typename Float> constexpr auto has_implicit_bit() -> bool {
   // An 80-bit FP number has a 64-bit significand an no implicit bit.
@@ -1562,7 +1530,7 @@ template <typename Float> constexpr auto exponent_bias() -> int {
 FMT_CONSTEXPR inline auto compute_exp_size(int exp) -> int {
   auto prefix_size = 2;  // sign + 'e'
   auto abs_exp = exp >= 0 ? exp : -exp;
-  if (exp < 100) return prefix_size + 2;
+  if (abs_exp < 100) return prefix_size + 2;
   return prefix_size + (abs_exp >= 1000 ? 4 : 3);
 }
 
@@ -1689,6 +1657,15 @@ using convert_float_result =
 template <typename T>
 constexpr auto convert_float(T value) -> convert_float_result<T> {
   return static_cast<convert_float_result<T>>(value);
+}
+
+template <bool C, typename T, typename F, FMT_ENABLE_IF(C)>
+auto select(T true_value, F) -> T {
+  return true_value;
+}
+template <bool C, typename T, typename F, FMT_ENABLE_IF(!C)>
+auto select(T, F false_value) -> F {
+  return false_value;
 }
 
 template <typename Char, typename OutputIt>
@@ -2201,7 +2178,7 @@ FMT_CONSTEXPR auto write(OutputIt out, basic_string_view<Char> s,
   size_t display_width_limit =
       specs.precision < 0 ? SIZE_MAX : to_unsigned(specs.precision);
   size_t display_width =
-      !is_debug || specs.precision == 0 ? 0 : 1;  // Account for opening "
+      !is_debug || specs.precision == 0 ? 0 : 1;  // Account for opening '"'.
   size_t size = !is_debug || specs.precision == 0 ? 0 : 1;
   for_each_codepoint(s, [&](uint32_t cp, string_view sv) {
     if (is_debug && needs_escape(cp)) {
@@ -2214,7 +2191,7 @@ FMT_CONSTEXPR auto write(OutputIt out, basic_string_view<Char> s,
       if (display_width + cp_width <= display_width_limit) {
         display_width += cp_width;
         size += cp_width;
-        // If this is the end of the string, account for closing "
+        // If this is the end of the string, account for closing '"'.
         if (display_width < display_width_limit && sv.end() == s.end()) {
           ++display_width;
           ++size;
@@ -2231,7 +2208,7 @@ FMT_CONSTEXPR auto write(OutputIt out, basic_string_view<Char> s,
     if (cp_width + display_width <= display_width_limit) {
       display_width += cp_width;
       size += sv.size();
-      // If this is the end of the string, account for closing "
+      // If this is the end of the string, account for closing '"'.
       if (is_debug && display_width < display_width_limit &&
           sv.end() == s.end()) {
         ++display_width;
@@ -2264,7 +2241,7 @@ FMT_CONSTEXPR auto write(OutputIt out, basic_string_view<Char> s,
   };
 
   return write_padded<char>(
-      out, specs, size, display_width, [&](reserve_iterator<OutputIt> it) {
+      out, specs, size, display_width, [=](reserve_iterator<OutputIt> it) {
         return is_debug
                    ? write_escaped_string(bounded_output_iterator{it, size}, s)
                          .underlying_iterator
@@ -2289,7 +2266,7 @@ FMT_CONSTEXPR auto write(OutputIt out, basic_string_view<Char> s,
   }
 
   return write_padded<Char>(
-      out, specs, size, [&](reserve_iterator<OutputIt> it) {
+      out, specs, size, [=](reserve_iterator<OutputIt> it) {
         return is_debug ? write_escaped_string(it, s)
                         : copy<Char>(data, data + size, it);
       });
@@ -2902,7 +2879,7 @@ class bigint {
     bigits_.resize(to_unsigned(num_bigits + exp_difference));
     for (int i = num_bigits - 1, j = i + exp_difference; i >= 0; --i, --j)
       bigits_[j] = bigits_[i];
-    memset(bigits_.data(), 0, to_unsigned(exp_difference) * sizeof(bigit));
+    fill_n(bigits_.data(), to_unsigned(exp_difference), 0U);
     exp_ -= exp_difference;
   }
 
@@ -3489,8 +3466,6 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value, format_specs specs,
     } else if (is_fast_float<T>::value && !is_constant_evaluated()) {
       // Use Dragonbox for the shortest format.
       auto dec = dragonbox::to_decimal(static_cast<fast_float_t<T>>(value));
-	  if (dec.significand != 0)
-	    dec.exponent += remove_trailing_zeros(dec.significand);
       return write_float<Char>(out, dec, specs, s, exp_upper, loc);
     }
   }
@@ -3534,69 +3509,48 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value) -> OutputIt {
 
   auto dec = dragonbox::to_decimal(static_cast<fast_float_t<T>>(value));
   auto significand = dec.significand;
-  auto exponent = dec.exponent;
-
-  uint32_t block1, block2 = 0;
-  int num_block2_digits = 0;
-  constexpr unsigned ten_pow_8 = 100000000u;
-  if (significand >= ten_pow_8) {
-    block1 = static_cast<unsigned>(significand / ten_pow_8);
-    block2 = static_cast<unsigned>(significand) - block1 * ten_pow_8;
-    if (block2 != 0) num_block2_digits = 8 - remove_trailing_zeros(block2);
-    exponent += 8;
-  } else {
-    block1 = static_cast<unsigned>(significand);
-  }
-  if (block2 == 0 && block1 != 0) exponent += remove_trailing_zeros(block1);
-
-  int num_block1_digits = count_digits(block1);
-  exponent += num_block1_digits - 1;
-  int significand_size = num_block1_digits + num_block2_digits;
-
+  int significand_size = count_digits(significand);
+  int exponent = dec.exponent + significand_size - 1;
   if (use_fixed(exponent, detail::exp_upper<T>())) {
-    if (dec.significand != 0)
-      dec.exponent += remove_trailing_zeros(dec.significand);
     return write_fixed<Char, fallback_digit_grouping<Char>>(
         out, dec, significand_size, Char('.'), {}, s);
-}
+  }
 
   // Write value in the exponential format.
+  const char* prefix = "e+";
+  int abs_exponent = exponent;
+  if (exponent < 0) {
+    abs_exponent = -exponent;
+    prefix = "e-";
+  }
   auto has_decimal_point = significand_size != 1;
-  size_t size =
-      to_unsigned((s != sign::none ? 1 : 0) + significand_size +
-                  (has_decimal_point ? 1 : 0) + compute_exp_size(exponent));
-
+  size_t size = std::is_pointer<OutputIt>::value
+                    ? 0u
+                    : to_unsigned((s != sign::none ? 1 : 0) + significand_size +
+                                  (has_decimal_point ? 1 : 0) +
+                                  (abs_exponent >= 100 ? 5 : 4));
   if (auto ptr = to_pointer<Char>(out, size)) {
     if (s != sign::none) *ptr++ = Char('-');
     if (has_decimal_point) {
       auto begin = ptr;
-      ptr = format_decimal<Char>(ptr, block1, num_block1_digits + 1);
+      ptr = format_decimal<Char>(ptr, significand, significand_size + 1);
       *begin = begin[1];
       begin[1] = '.';
-      if (num_block2_digits != 0) {
-        int n = num_block2_digits;
-        while (n > 2) {
-          n -= 2;
-          write2digits(ptr + n, block2 % 100);
-          block2 /= 100;
-        }
-        if (n > 1) {
-          n -= 2;
-          write2digits(ptr + n, block2);
-        } else {
-          ptr[--n] = static_cast<Char>('0' + block2);
-        }
-        ptr += num_block2_digits;
-      }
     } else {
-      *ptr++ = static_cast<Char>('0' + block1);
+      *ptr++ = static_cast<Char>('0' + significand);
     }
-    *ptr++ = Char('e');
-    ptr = write_exponent<Char>(exponent, ptr);
-    return out;
+    memcpy(ptr, prefix, 2);
+    ptr += 2;
+    if (abs_exponent >= 100) {
+      *ptr++ = static_cast<Char>('0' + abs_exponent / 100);
+      abs_exponent %= 100;
+    }
+    write2digits(ptr, static_cast<unsigned>(abs_exponent));
+    return select<std::is_pointer<OutputIt>::value>(ptr + 2, out);
   }
   auto it = reserve(out, size);
   if (s != sign::none) *it++ = Char('-');
+  // Insert a decimal point after the first digit and add an exponent.
   it = write_significand(it, significand, significand_size, 1,
                          has_decimal_point ? Char('.') : Char());
   *it++ = Char('e');
@@ -4077,15 +4031,13 @@ constexpr auto format_as(Enum e) noexcept -> underlying_t<Enum> {
 #ifdef __cpp_lib_byte
 template <typename Char>
 struct formatter<std::byte, Char> : formatter<unsigned, Char> {
-	static auto format_as(std::byte b) -> unsigned char
-	{
-		return static_cast<unsigned char>(b);
-	}
-	template <typename Context>
-	auto format(std::byte b, Context& ctx) const -> decltype(ctx.out())
-	{
-		return formatter<unsigned, Char>::format(format_as(b), ctx);
-	}
+  static auto format_as(std::byte b) -> unsigned char {
+    return static_cast<unsigned char>(b);
+  }
+  template <typename Context>
+  auto format(std::byte b, Context& ctx) const -> decltype(ctx.out()) {
+    return formatter<unsigned, Char>::format(format_as(b), ctx);
+  }
 };
 #endif
 
@@ -4436,7 +4388,7 @@ FMT_NODISCARD FMT_INLINE auto format(format_string<T...> fmt, T&&... args)
  *     std::string answer = fmt::to_string(42);
  */
 template <typename T, FMT_ENABLE_IF(std::is_integral<T>::value)>
-FMT_NODISCARD auto to_string(T value) -> std::string {
+FMT_NODISCARD FMT_CONSTEXPR_STRING auto to_string(T value) -> std::string {
   // The buffer should be large enough to store the number including the sign
   // or "false" for bool.
   char buffer[max_of(detail::digits10<T>() + 2, 5)];
@@ -4444,13 +4396,15 @@ FMT_NODISCARD auto to_string(T value) -> std::string {
 }
 
 template <typename T, FMT_ENABLE_IF(detail::use_format_as<T>::value)>
-FMT_NODISCARD auto to_string(const T& value) -> std::string {
+FMT_NODISCARD FMT_CONSTEXPR_STRING auto to_string(const T& value)
+    -> std::string {
   return to_string(format_as(value));
 }
 
 template <typename T, FMT_ENABLE_IF(!std::is_integral<T>::value &&
                                     !detail::use_format_as<T>::value)>
-FMT_NODISCARD auto to_string(const T& value) -> std::string {
+FMT_NODISCARD FMT_CONSTEXPR_STRING auto to_string(const T& value)
+    -> std::string {
   auto buffer = memory_buffer();
   detail::write<char>(appender(buffer), value);
   return {buffer.data(), buffer.size()};

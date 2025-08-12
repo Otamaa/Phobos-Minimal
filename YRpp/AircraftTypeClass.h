@@ -15,11 +15,11 @@ public:
 	IMPL_Find(AircraftTypeClass)
 
 	static AircraftTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x41CEF0);
+		JMP_FAST(0x41CEF0);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x41CAA0);
+		JMP_FAST(0x41CAA0);
 	}
 
 	//IPersist

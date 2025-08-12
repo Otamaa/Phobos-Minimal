@@ -17,13 +17,13 @@ public:
 	}
 
 	static int __fastcall FindIndexById(const char* pName)
-		{ JMP_STD(0x48DBE0); }
+		{ JMP_FAST(0x48DBE0); }
 
 	static void __fastcall Init(TheaterType theater)
-		{ JMP_STD(0x5349C0); }
+		{ JMP_FAST(0x5349C0); }
 
 	static void __fastcall SetTheaterLetter(char* string, int theater)
-		{ JMP_STD(0x5F96B0); }
+		{ JMP_FAST(0x5F96B0); }
 
 	char	Identifier[0x10];		//e.g. "TEMPERATE"
 	char	UIName[0x20];			//e.g. "Name:Temperate"

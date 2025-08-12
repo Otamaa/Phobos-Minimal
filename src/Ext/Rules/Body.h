@@ -541,6 +541,7 @@ public:
 	Valueable<bool> DamageWallRecursivly { true };
 	Valueable<int> AirstrikeLineZAdjust { 0 };
 	Valueable<int> AdjacentWallDamage { 200 };
+	Valueable<bool> InfantryAutoDeploy { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

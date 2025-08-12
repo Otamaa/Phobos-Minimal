@@ -23,11 +23,11 @@ public:
 	IMPL_Find(OverlayTypeClass)
 
 	static OverlayTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x5FEC70);
+		JMP_FAST(0x5FEC70);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x5FE470);
+		JMP_FAST(0x5FE470);
 	}
 
 	//IPersist

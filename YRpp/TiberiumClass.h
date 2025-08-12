@@ -9,8 +9,8 @@
 
 struct MapSurfaceData
 {
-	static int __fastcall SurfaceDataCount() JMP_STD(0x42B1F0);
-	static int __fastcall ToSurfaceIndex(const CellStruct& mapCoord) JMP_STD(0x42B1C0);
+	static int __fastcall SurfaceDataCount() JMP_FAST(0x42B1F0);
+	static int __fastcall ToSurfaceIndex(const CellStruct& mapCoord) JMP_FAST(0x42B1C0);
 
 	int ToSurfaceIndex() const
 	{
@@ -131,7 +131,7 @@ public:
 	void sub_722F00() JMP_THIS(0x722F00);
 	//static
 
-	static bool __fastcall _ReadFromINI(CCINIClass* pINI) JMP_STD(0x721D10);
+	static bool __fastcall _ReadFromINI(CCINIClass* pINI) { JMP_FAST(0x721D10); }
 	static void __stdcall UpdateTiberium() JMP_STD(0x7221B0);
 	static void __stdcall sub_0x722240() JMP_STD(0x722240);
 	static void __stdcall sub_0x722390() JMP_STD(0x722390);
@@ -141,7 +141,7 @@ public:
 	static void __stdcall sub_722E50() JMP_STD(0x722E50);
 
 	static int __fastcall FindIndex(int idxOverlayType) {
-		JMP_STD(0x5FDD20);
+		JMP_FAST(0x5FDD20);
 	}
 
 	static TiberiumClass* Find(int idxOverlayType) {

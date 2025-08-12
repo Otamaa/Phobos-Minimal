@@ -78,7 +78,7 @@ public:
 	}
 
 	static int __fastcall FindIndexById(const char *pName)
-		{ JMP_STD(0x7514D0); }
+		{ JMP_FAST(0x7514D0); }
 
 	/* Play a sound independant of the position.
 	   n = Index of VocClass in Array to be played
@@ -93,18 +93,18 @@ public:
 	//static void __fastcall PlayAt(int n, const CoordStruct &coords, AudioEventHandleTag* pCtrl = nullptr)
 	//	{ JMP_STD(0x7509E0); }
 
-	static int __fastcall PlayIfInRange(const CoordStruct &coords, AudioController* pCtrl) { JMP_STD(0x750D40); }
+	static int __fastcall PlayIfInRange(const CoordStruct &coords, AudioController* pCtrl) { JMP_FAST(0x750D40); }
 
 	static DWORD __fastcall PlayGlobal(int n, Panning Panning, float Volume, AudioController* pCtrl = nullptr)
-		{ JMP_STD(0x750920); }
+		{ JMP_FAST(0x750920); }
 
 	/* Play a sound at a certain Position.
        n = Index of VocClass in Array to be played */
 	static void __fastcall ImmedietelyPlayAt(int n, const CoordStruct &coords, AudioController* pCtrl = nullptr)
-		{ JMP_STD(0x7509E0); }
+		{ JMP_FAST(0x7509E0); }
 
 	static void __fastcall ImmedietelyPlayAt(int n, const CoordStruct* coords, AudioController* pCtrl)
-		{ JMP_STD(0x7509E0); }
+		{ JMP_FAST(0x7509E0); }
 
 	static void SafeImmedietelyPlayAt(int n, const CoordStruct* coords, AudioController* pCtrl = nullptr){
 		if(n < 0)
@@ -123,10 +123,10 @@ public:
 
 	// calls `PlayAt` - with sanity check
 	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct& coords, bool isGlobal)
-		{ JMP_STD(0x750E20); }
+		{ JMP_FAST(0x750E20); }
 
 	static VocAudioStruct* __fastcall PlayIndexAtPos(int n, const CoordStruct* coords, bool isGlobal)
-		{ JMP_STD(0x750E20); }
+		{ JMP_FAST(0x750E20); }
 	//Properties
 
 public:

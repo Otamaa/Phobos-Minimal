@@ -26,11 +26,11 @@ public:
 	IMPL_Find(TeamTypeClass)
 
 	static TeamTypeClass* __fastcall FindByNameAndId(const char* pID) {
-		JMP_STD(0x6F0FC0);
+		JMP_FAST(0x6F0FC0);
 	}
 
 	static TeamTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x6F1920);
+		JMP_FAST(0x6F1920);
 	}
 
 	IMPL_FindIndexById(TeamTypeClass)
@@ -81,13 +81,13 @@ public:
 		{ JMP_THIS(0x6F1FA0); }
 
 	static void __fastcall ProcessAllTaskforces()
-		{ JMP_STD(0x6F2040); }
+		{ JMP_FAST(0x6F2040); }
 
 	HouseClass* GetHouse() const
 		{ JMP_THIS(0x6F2070); }
 
 	static bool __fastcall DoReinforcement(TeamTypeClass* pTeam, int where) {
-		JMP_STD(0x65D8E0);
+		JMP_FAST(0x65D8E0);
 	}
 
 	//Constructor

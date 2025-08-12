@@ -93,11 +93,11 @@ public:
 	IMPL_Find(InfantryTypeClass)
 
 	static InfantryTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x524CB0);
+		JMP_FAST(0x524CB0);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x523C90);
+		JMP_FAST(0x523C90);
 	}
 
 	//IPersist

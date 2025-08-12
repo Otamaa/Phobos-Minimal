@@ -385,7 +385,7 @@ public:
 	// fsldargh who the fuck decided to pass structures by value here
 	static TypeList<int>* __fastcall GetPrerequisites(TypeList<int>* pBuffer, INIClass* pINI,
 		const char* pSection, const char* pKey, TypeList<int> ndefaults)
-			{ JMP_STD(0x4770E0); }
+			{ JMP_FAST(0x4770E0); }
 
 	TypeList<int>* GetTypeList(TypeList<int>* ret , const char* pSection , const char* pKey , TypeList<int> def)
 		{ JMP_THIS(0x475D70); }

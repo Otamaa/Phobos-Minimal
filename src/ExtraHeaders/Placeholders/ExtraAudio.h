@@ -424,7 +424,7 @@ struct AudioChannelTag
 {
 
 	static int __fastcall AudioChannelSetFormat(AudioChannelTag* chan, AudioFormatTag* format) {
-		JMP_STD(0x402800);
+		JMP_FAST(0x402800);
 	}
 
 	int AudioDriver_update() {
@@ -590,7 +590,7 @@ struct AudioDriverChannelTag
 };
 
 static int __fastcall AudioDriverChannelTag_noname_prefil(AudioDriverChannelTag* a1, int a2) {
-	JMP_STD(0x409880);
+	JMP_FAST(0x409880);
 }
 
 struct __declspec(align(4)) AudioFrameTag

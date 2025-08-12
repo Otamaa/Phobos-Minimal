@@ -24,13 +24,13 @@ public:
 	IMPL_Find(HouseTypeClass)
 
 	static HouseTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x512680);
+		JMP_FAST(0x512680);
 	}
 
 	IMPL_FindIndexById(HouseTypeClass)
 
 	static int __fastcall FindIndexByIdAndName(const char* pID) {
-		JMP_STD(0x5117D0);
+		JMP_FAST(0x5117D0);
 	}
 
 	//IUnknown
@@ -65,7 +65,7 @@ public:
 	}
 
 	static signed int __fastcall FindIndexOfNameShiftToTheRightOnce(const char* pName)
-		{ JMP_STD(0x48DEB0); }
+		{ JMP_FAST(0x48DEB0); }
 
 	//Constructor
 	HouseTypeClass(const char* pID) noexcept

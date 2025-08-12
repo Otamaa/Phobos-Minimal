@@ -174,10 +174,10 @@ public:
 
 	// non-virtual
 	static TechnoTypeClass* __fastcall GetByTypeAndIndex(AbstractType abs, int index)
-	{ JMP_STD(0x48DCD0); }
+	{ JMP_FAST(0x48DCD0); }
 
 	static int __fastcall SetPalettes()
-	{ JMP_STD(0x717840); }
+	{ JMP_FAST(0x717840); }
 
 	bool HasMultipleTurrets() const
 	{ return this->TurretCount > 0; }

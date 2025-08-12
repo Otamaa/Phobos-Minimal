@@ -18,7 +18,7 @@ public:
 	static COMPILETIMEEVAL reference2D<Point2D, 0xABC7F8u, 8, 2> const DrawDatas{};
 
 	static void __fastcall DrawAll() {
-		JMP_STD(0x550240);
+		JMP_FAST(0x550240);
 	}
 
 	//Constructor, Destructor

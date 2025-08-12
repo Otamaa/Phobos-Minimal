@@ -230,6 +230,51 @@ int __fastcall FakeTechnoClass::_EvaluateJustCell(TechnoClass* pThis , discard_t
 	return int((double)pThis->GetWeaponRange(pSelectedWeapon) - distance);
 }
 
+void TechnoExtData::AddFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker)
+{
+	if (Attacker->InLimbo || !Attacker->IsAlive || Attacker->IsCrashing || Attacker->IsSinking)
+		return;
+
+	const int index = this->FindFirer(Weapon);
+	const OnlyAttackStruct Data { Weapon ,Attacker };
+
+	if (index < 0)
+	{
+		this->OnlyAttackData.push_back(Data);
+	}
+	else
+	{
+		this->OnlyAttackData[index] = Data;
+	}
+}
+
+bool TechnoExtData::ContainFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker) const
+{
+	const int index = this->FindFirer(Weapon);
+
+	if (index >= 0)
+		return this->OnlyAttackData[index].Attacker == Attacker;
+
+	return true;
+}
+
+int TechnoExtData::FindFirer(WeaponTypeClass* const Weapon) const
+{
+	const auto& AttackerDatas = this->OnlyAttackData;
+	if (!AttackerDatas.empty())
+	{
+		for (int index = 0; index < int(AttackerDatas.size()); index++)
+		{
+			const auto pWeapon = AttackerDatas[index].Weapon;
+
+			if (pWeapon == Weapon && AttackerDatas[index].Attacker)
+				return index;
+		}
+	}
+
+	return -1;
+}
+
 bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* const pTarget, WeaponTypeClass* const pWeaponType)
 {
 	if (!pWeaponType || pWeaponType->NeverUse
@@ -288,6 +333,7 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 	}
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (!pWeaponExt->SkipWeaponPicking)
 	{
@@ -322,6 +368,12 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 
 	if (pTechno)
 	{
+		auto pTechnoType = pTechno->GetTechnoType();
+
+		if (pTechnoType->Immune && !pWHExt->IsFakeEngineer) {
+			return false;
+		}
+
 		if (pThis->Berzerk && !EnumFunctions::CanTargetHouse(RulesExtData::Instance()->BerzerkTargeting, pThis->Owner, pTechno->Owner))
 			return false;
 
@@ -339,8 +391,6 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 		{
 			return false;
 		}
-
-		const auto pTechnoType = pTechno->GetTechnoType();
 
 		if (pWH->MindControl
 			&& (pTechnoType->ImmuneToPsionics || pTechno->IsMindControlled() || pOwner == pTechnoOwner))
@@ -395,6 +445,59 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 bool TechnoExtData::IsHealthInThreshold(ObjectClass* pObject, double min, double max) {
 	double hp = pObject->GetHealthPercentage();
 	return hp <= max && hp >= min;
+}
+
+std::tuple<bool, bool, bool> TechnoExtData::CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge, bool checkCapturableBuilding, bool checkAttachedBombs) {
+
+	const int nWeaponIndex = pThis->SelectWeapon(pTarget);
+
+	if (nWeaponIndex < 0)
+		return { false , false , false };
+
+	const auto pWeapon = pThis->GetWeapon(nWeaponIndex)->WeaponType;
+
+	if (!pWeapon)
+		return { false , false , false };
+
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
+	bool canAffectCapturableBuildings = false;
+	bool canAffectBridges = false;
+	bool canAffectAttachedBombs = false;
+
+	//Check if an attached bomb can be disarmed
+	if (checkAttachedBombs
+		&& pWHExt->FakeEngineer_BombDisarm
+		&& pTarget->AttachedBomb)
+	{
+		canAffectAttachedBombs = true;
+	}
+
+	const auto pBuilding = cast_to<BuildingClass* , false>(pTarget);
+	bool isBuilding = pBuilding && pBuilding->IsAlive && pBuilding->Health > 0;
+
+	// Check if a Bridge Repair Hut can be affected
+	if (checkBridge && isBuilding && pBuilding->Type->BridgeRepairHut)
+	{
+		CellStruct bridgeRepairHutCell = CellClass::Coord2Cell(pBuilding->GetCenterCoords());
+		bool isBridgeDamaged = MapClass::Instance->IsLinkedBridgeDestroyed(bridgeRepairHutCell);
+
+		if ((isBridgeDamaged && pWHExt->FakeEngineer_CanRepairBridges)
+		||  (!isBridgeDamaged && pWHExt->FakeEngineer_CanDestroyBridges)) {
+			canAffectBridges = true;
+		}
+	}
+
+	// Check if a capturable building can be affected
+	if (checkCapturableBuilding
+		&& isBuilding
+		&& pWHExt->FakeEngineer_CanCaptureBuildings
+		&& (pBuilding->Type->Capturable || pBuilding->Type->NeedsEngineer)
+		&& !pThis->Owner->IsAlliedWith(pBuilding)) // Anti-crash check
+	{
+		canAffectCapturableBuildings = true;
+	}
+
+	return  { canAffectCapturableBuildings , canAffectBridges , canAffectAttachedBombs };
 }
 
 // Check adjacent cells from the center
@@ -3286,7 +3389,8 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 
 			const Point3D frames = pSelectBox->GroundFrames.Get(defaultFrame);
 			const int frame = healthPercentage > RulesClass::Instance->ConditionYellow ? frames.X : healthPercentage > RulesClass::Instance->ConditionRed ? frames.Y : frames.Z;
-			pSurface->DrawSHP(pPalette, pGroundShape, frame, &(outClient + pSelectBox->GroundOffset), pBounds, flags, 0, zAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+			auto drawPoint = (outClient + pSelectBox->GroundOffset);
+			pSurface->DrawSHP(pPalette, pGroundShape, frame, &drawPoint, pBounds, flags, 0, zAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 		}
 
 		if (pSelectBox->GroundLine)
@@ -6381,6 +6485,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->Type, true)
 		.Process(this->AbsType)
 		.Process(this->AE)
+		.Process(this->idxSlot_EMPulse)
 		.Process(this->idxSlot_Wave)
 		.Process(this->idxSlot_Beam)
 		.Process(this->idxSlot_Warp)
@@ -6505,6 +6610,7 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->FiringAnimationTimer)
 		.Process(this->ForceFullRearmDelay)
 		.Process(this->AttackMoveFollowerTempCount)
+		.Process(this->OnlyAttackData)
 		;
 }
 
@@ -6520,8 +6626,23 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(AirstrikeTargetingMe, ptr);
 
 	for (auto& _phobos_AE : PhobosAE) {
-		if(_phobos_AE) {
+		if (_phobos_AE) {
 			_phobos_AE->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	if (ptr && bRemoved)
+	{
+		auto& AttackerDatas = this->OnlyAttackData;
+		if (!AttackerDatas.empty())
+		{
+			for (int index = int(AttackerDatas.size()) - 1; index >= 0; --index)
+			{
+				if (AttackerDatas[index].Attacker != ptr)
+					continue;
+
+				AttackerDatas.erase(AttackerDatas.begin() + index);
+			}
 		}
 	}
 }

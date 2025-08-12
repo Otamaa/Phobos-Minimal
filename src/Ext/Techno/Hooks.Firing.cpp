@@ -272,6 +272,11 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 	if (pTargetTechno)
 	{
+		const auto pTargetExt = TechnoExtContainer::Instance.Find(pTargetTechno);
+
+		if (pWeaponExt->OnlyAttacker.Get() && !pTargetExt->ContainFirer(pWeapon, pThis))
+			return FireIllegal;
+
 		if (pThis->Berzerk && !EnumFunctions::CanTargetHouse(RulesExtData::Instance()->BerzerkTargeting, pThis->Owner, pTargetTechno->Owner))
 			return FireIllegal;
 
@@ -292,13 +297,30 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 			if (!TechnoTypeExtContainer::Instance.Find(
 					pTargetTechno->GetTechnoType())->AllowAirstrike.Get(
-						pTargetTechno->AbstractFlags & AbstractFlags::Foot ?
-						true : static_cast<BuildingClass*>(pTargetTechno)->Type->CanC4))
+						pTargetTechno->AbstractFlags & AbstractFlags::Foot || static_cast<BuildingClass*>(pTargetTechno)->Type->CanC4))
 				return FireIllegal;
 		}
 	}
 
 	return Continue;
+}
+
+ASMJIT_PATCH(0x6FDE0E, TechnoClass_FireAt_OnlyAttacker, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBX);
+	GET_BASE(AbstractClass* const, pTarget, 0x8);
+
+	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (pWeaponExt->OnlyAttacker.Get() && pTarget == pThis->Target
+		&& pTarget->AbstractFlags & AbstractFlags::Techno)
+	{
+		const auto pTargetExt = TechnoExtContainer::Instance.Find(static_cast<TechnoClass*>(pTarget));
+		pTargetExt->AddFirer(pWeapon, pThis);
+	}
+
+	return 0;
 }
 
 ASMJIT_PATCH(0x6FE19A, TechnoClass_FireAt_AreaFire, 0x6) //7

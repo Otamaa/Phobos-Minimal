@@ -47,7 +47,7 @@ public:
 		{ JMP_THIS(0x71F390); }
 
 	static TriggerAttachType __fastcall GetAttachType(int eventKind)
-		{ JMP_STD(0x71F680); }
+		{ JMP_FAST(0x71F680); }
 
 	// used in TriggerClass::HaveEventsOccured , when trigger is repeating
 	// both need to be true to check this event as done

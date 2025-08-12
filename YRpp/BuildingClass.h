@@ -76,7 +76,7 @@ public:
 	virtual void Place(bool captured) JMP_THIS(0x445F80);
 	virtual void UpdateConstructionOptions() JMP_THIS(0x4456D0);
 	virtual void Draw(const Point2D& point, const RectangleStruct& rect) JMP_THIS(0x43DA80);
-	virtual DirStruct FireAngleTo(ObjectClass* pObject) const JMP_THIS(0x43ED40);
+	virtual DirStruct FireAngleTo(AbstractClass* pObject) const JMP_THIS(0x43ED40);
 	virtual void Destroy(DWORD dwUnused, TechnoClass* pTechno, bool NoSurvivor, const CellStruct* foundation) JMP_THIS(0x4415F0);
 	virtual bool TogglePrimaryFactory() JMP_THIS(0x448160);
 	virtual void SensorArrayActivate(CellStruct cell=CellStruct::Empty) JMP_THIS(0x455820);

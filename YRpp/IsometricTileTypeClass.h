@@ -25,7 +25,7 @@ public:
 	IMPL_Find(IsometricTileTypeClass)
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x544CE0);
+		JMP_FAST(0x544CE0);
 	}
 
 	//Array
@@ -67,7 +67,7 @@ public:
 	{ JMP_THIS(0x5447C0); }
 
 	static LightConvertClass* __fastcall SetupLightConvert(int r, int g, int b)
-		{ JMP_STD(0x544E70); }
+		{ JMP_FAST(0x544E70); }
 
 protected:
 	explicit __forceinline IsometricTileTypeClass(noinit_t) noexcept

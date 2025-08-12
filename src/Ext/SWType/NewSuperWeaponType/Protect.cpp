@@ -37,65 +37,93 @@ bool SW_Protect::CanTargetingFireAt(const TargetingData* pTargeting, const CellS
 	return ret;
 }
 
-bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
+void ProtectStateMachine::Update()
 {
+	if (this->Finished())
+	{
+		auto pData = this->GetTypeExtData();
+
+		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+
+		const auto sound = pData->SW_ActivationSound.Get(-1);
+		if (sound != -1) {
+			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
+		}
+
+		SW_Protect::ApplyProtect(this->Super, this->Coords , this->Type->GetRange(pData));
+	}
+}
+
+void SW_Protect::ApplyProtect(SuperClass* pThis, const CellStruct& Coords, SWRange range)
+{
+	CellClass* pTarget = MapClass::Instance->GetCellAt(Coords);
+	CoordStruct Crd = pTarget->GetCoords();
 	SuperWeaponTypeClass* pSW = pThis->Type;
 	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pSW);
 
-	if (pThis->IsCharged)
+	bool isForceShield = pData->Protect_IsForceShield;
+
+	int duration = pData->Protect_Duration.Get(isForceShield
+		? RulesClass::Instance->ForceShieldDuration : RulesClass::Instance->IronCurtainDuration);
+
+	// play start sound
+	VocClass::SafeImmedietelyPlayAt(pSW->StartSound, &Crd, nullptr);
+
+	// set up the special sound when the effect wears off
+	if (pThis->Type->SpecialSound > -1)
 	{
-		CellClass* pTarget = MapClass::Instance->GetCellAt(Coords);
-		CoordStruct Crd = pTarget->GetCoords();
+		int playFadeSoundTime = pData->Protect_PlayFadeSoundTime.Get(isForceShield
+			? RulesClass::Instance->ForceShieldPlayFadeSoundTime : 0);
 
-		bool isForceShield = pData->Protect_IsForceShield;
+		pThis->SpecialSoundDuration = duration - playFadeSoundTime;
+		pThis->SpecialSoundLocation = Crd;
+	}
 
-		int duration = pData->Protect_Duration.Get(isForceShield
-			? RulesClass::Instance->ForceShieldDuration : RulesClass::Instance->IronCurtainDuration);
+	// shut down power
+	int powerOutageDuration = pData->Protect_PowerOutageDuration.Get(isForceShield
+		? RulesClass::Instance->ForceShieldBlackoutDuration : 0);
 
-		// play start sound
-		VocClass::SafeImmedietelyPlayAt(pSW->StartSound, & Crd, nullptr);
+	if (powerOutageDuration > 0)
+	{
+		pThis->Owner->CreatePowerOutage(powerOutageDuration);
+	}
 
-		// set up the special sound when the effect wears off
-		if (pThis->Type->SpecialSound > -1)
-		{
-			int playFadeSoundTime = pData->Protect_PlayFadeSoundTime.Get(isForceShield
-				? RulesClass::Instance->ForceShieldPlayFadeSoundTime : 0);
+	// protect everything in range
+	Helpers::Alex::DistinctCollector<TechnoClass*> items;
+	Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(Coords, range.WidthOrRange, range.Height, items);
+	items.apply_function_for_each([=](TechnoClass* pTechno) {
 
-			pThis->SpecialSoundDuration = duration - playFadeSoundTime;
-			pThis->SpecialSoundLocation = Crd;
-		}
-
-		// shut down power
-		int powerOutageDuration = pData->Protect_PowerOutageDuration.Get(isForceShield
-			? RulesClass::Instance->ForceShieldBlackoutDuration : 0);
-
-		if (powerOutageDuration > 0)
-		{
-			pThis->Owner->CreatePowerOutage(powerOutageDuration);
-		}
-
-		const auto range = this->GetRange(pData);
-
-		// protect everything in range
-		Helpers::Alex::DistinctCollector<TechnoClass*> items;
-		Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(Coords, range.WidthOrRange, range.Height, items);
-		items.apply_function_for_each([=](TechnoClass* pTechno) {
-
-			// we shouldn't do anything
-			if (pTechno->IsImmobilized || pTechno->IsBeingWarpedOut())
-				return true;
-
-			// is this thing affected at all?
-			if (!pData->IsHouseAffected(pThis->Owner, pTechno->Owner))
-				return true;
-
-			if (!pData->IsTechnoAffected(pTechno))
-				return true;
-
-			// protect this techno
-			pTechno->IronCurtain(duration, pThis->Owner, pData->Protect_IsForceShield);
+		// we shouldn't do anything
+		if (pTechno->IsImmobilized || pTechno->IsBeingWarpedOut())
 			return true;
-		});
+
+		// is this thing affected at all?
+		if (!pData->IsHouseAffected(pThis->Owner, pTechno->Owner))
+			return true;
+
+		if (!pData->IsTechnoAffected(pTechno))
+			return true;
+
+		// protect this techno
+		pTechno->IronCurtain(duration, pThis->Owner, pData->Protect_IsForceShield);
+		return true;
+	});
+}
+
+bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
+{
+	SWTypeExtData* pData = SWTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pThis->IsCharged) {
+		const auto nDeferement = pData->SW_Deferment.Get(-1);
+
+		if (nDeferement <= 0) {
+			SW_Protect::ApplyProtect(pThis, Coords , this->GetRange(pData));
+		} else {
+			this->newStateMachine(nDeferement, Coords, pThis);
+		}
+
+		return true;
 	}
 
 	return true;

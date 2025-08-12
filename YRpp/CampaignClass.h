@@ -17,11 +17,11 @@ public:
 	IMPL_FindOrAllocate(CampaignClass)	//Was inlined
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x46CC90);
+		JMP_FAST(0x46CC90);
 	}
 
 	static void __fastcall CreateFromINIList(CCINIClass *pINI) {
-		JMP_STD(0x46CE10);
+		JMP_FAST(0x46CE10);
 	}
 
 	//IUnknown

@@ -22,7 +22,6 @@ int FakeBuildingClass::_Mission_Missile()
 	}
 	return this->BuildingClass::Mission_Missile();
 }
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E410C, FakeBuildingClass::_Mission_Missile);
 
 
 CoordStruct* FakeBuildingClass::_GetFLH(CoordStruct* pCrd, int weaponIndex)
@@ -130,7 +129,7 @@ ASMJIT_PATCH(0x44CCE7, BuildingClass_Mi_Missile_GenericSW, 6)
 	return ProcessEMPulse;
 }
 
-ASMJIT_PATCH(0x44CEEC, BuildingClass_Mi_Missile_EMPulseSelectWeapon, 0x6)
+ASMJIT_PATCH(0x44CEEC, BuildingClass_Mi_Missile_State2_EMPulseSelectWeapon, 0x6)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -167,7 +166,7 @@ ASMJIT_PATCH(0x44CEEC, BuildingClass_Mi_Missile_EMPulseSelectWeapon, 0x6)
 
 //=================================================================================
 
-ASMJIT_PATCH(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
+ASMJIT_PATCH(0x44CE46, BuildingClass_Mi_Missile_State1_EMPulse_Pulsball, 5)
 {
 	GET(BuildingClass*, pThis, ESI);
 
@@ -189,7 +188,7 @@ ASMJIT_PATCH(0x44CE46, BuildingClass_Mi_Missile_EMPulse_Pulsball, 5)
 	return 0x44CEC2;
 }
 
-ASMJIT_PATCH(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
+ASMJIT_PATCH(0x44C9F3, BuildingClass_Mi_Missile_State0_NukePsiWarn, 0x5)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET(HouseClass*, pOwner, EBP);
@@ -209,7 +208,7 @@ ASMJIT_PATCH(0x44C9F3, BuildingClass_Mi_Missile_PsiWarn, 0x5)
 }
 
 // Create bullet pointing up to the sky
-ASMJIT_PATCH(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
+ASMJIT_PATCH(0x44CA97, BuildingClass_MI_Missile_State2_NukeBulletCreate, 0x6)
 {
 	enum
 	{
@@ -277,7 +276,7 @@ ASMJIT_PATCH(0x44CA97, BuildingClass_MI_Missile_CreateBullet, 0x6)
 
 }
 
-ASMJIT_PATCH(0x44D46E, BuildingClass_Mi_Missile_EMPPulseBulletWeapon, 0x8)
+ASMJIT_PATCH(0x44D46E, BuildingClass_Mi_Missile_State2_EMPPulseBulletWeapon, 0x8)
 {
 	GET(BuildingClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBP);

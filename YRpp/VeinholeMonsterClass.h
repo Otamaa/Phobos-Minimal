@@ -84,10 +84,10 @@ public:
   ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x74D5D0);
 
 	static VeinholeMonsterClass* __fastcall GetVeinholeMonsterAt(CellStruct* pCell)
-	{ JMP_STD(0x74CDB0); }
+	{ JMP_FAST(0x74CDB0); }
 
 	static VeinholeMonsterClass* __fastcall GetVeinholeMonsterFrom(CellStruct* pCell)
-	{ JMP_STD(0x74CD60); }
+	{ JMP_FAST(0x74CD60); }
 
 	void RemoveFrom(CellClass* pCell) const
 	{ JMP_THIS(0x74EF10); }
@@ -117,44 +117,44 @@ public:
 	{ JMP_THIS(0x74E1C0); }
 
 	static void __fastcall ClearVeinGrowthData()
-	{  JMP_STD(0x74E100); }
+	{  JMP_FAST(0x74E100); }
 
 	//called 687A80
 	static void __fastcall InitVeinGrowhData(bool bAllocate = true)
-	{ JMP_STD(0x74DE90); }
+	{ JMP_FAST(0x74DE90); }
 
 	static bool __fastcall IsCellEligibleForVeinHole(CellStruct& nWhere)
-	{ JMP_STD(0x74D670); }
+	{ JMP_FAST(0x74D670); }
 
 	static bool __fastcall IsCellEligibleForVeinHole(CellStruct* pWhere)
-	{ JMP_STD(0x74D670); }
+	{ JMP_FAST(0x74D670); }
 
 	static void __fastcall TheaterInit(TheaterType nType)
-	{ JMP_STD(0x74D450); }
+	{ JMP_FAST(0x74D450); }
 
 	static TerrainTypeClass* __fastcall GetTerrainType()
-	{ JMP_STD(0x74EF00); }
+	{ JMP_FAST(0x74EF00); }
 
 	static HRESULT __fastcall SaveVector(void* stream, DynamicVectorClass<VeinholeMonsterClass*>* a2)
-	{ JMP_STD(0x74ED60); }
+	{ JMP_FAST(0x74ED60); }
 
 	static HRESULT __fastcall LoadVector(LPSTREAM a1)
-	{ JMP_STD(0x74EA70); }
+	{ JMP_FAST(0x74EA70); }
 
 	static void __fastcall DestroyAll()
-	{ JMP_STD(0x74EA30); }
+	{ JMP_FAST(0x74EA30); }
 
 	static void __fastcall DrawAll()
-	{ JMP_STD(0x74D430); }
+	{ JMP_FAST(0x74D430); }
 
 	static void __fastcall DeleteAll()
-	{ JMP_STD(0x74D760); }
+	{ JMP_FAST(0x74D760); }
 
 	static void __fastcall DeleteVeinholeGrowthData()
-	{ JMP_STD(0x74E880); }
+	{ JMP_FAST(0x74E880); }
 
 	static void __fastcall LoadVeinholeArt(int idxTheatre)
-	{ JMP_STD(0x74D450); }
+	{ JMP_FAST(0x74D450); }
 
 	VeinholeMonsterClass(CellStruct* pWhere) noexcept
 		: VeinholeMonsterClass(noinit_t())

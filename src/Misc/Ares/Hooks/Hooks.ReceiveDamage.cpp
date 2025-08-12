@@ -601,6 +601,33 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pSourceHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
+
+	 //Repair/Destroy bridges at Bridge Repair Huts buildings
+	 if (pWHExt->FakeEngineer_CanRepairBridges || pWHExt->FakeEngineer_CanDestroyBridges) {
+		const bool isBridgeDestroyed = MapClass::Instance->IsLinkedBridgeDestroyed(CellClass::Coord2Cell(pThis->GetCenterCoords()));
+		const bool destroyBridge = !isBridgeDestroyed && pWHExt->FakeEngineer_CanRepairBridges ? false : pWHExt->FakeEngineer_CanDestroyBridges;
+		WarheadTypeExtData::DetonateAtBridgeRepairHut(pThis, nullptr, pSourceHouse, destroyBridge);
+	 }
+
+	 // Capture enemy buildings
+	 auto const pBuilding = cast_to<BuildingClass*, false>(pThis);
+
+	 if (pBuilding && pWHExt->FakeEngineer_CanCaptureBuildings
+	 	&& !pSourceHouse->IsAlliedWith(pThis->Owner)
+	 	&& (pBuilding->Type->Capturable || pBuilding->Type->NeedsEngineer)) {
+
+			// Send engineer's "enter" event
+			auto const pTag = pBuilding->AttachedTag;
+			if (args.Attacker && pTag)
+				pTag->RaiseEvent(TriggerEvent::EnteredBy, args.Attacker, CellStruct::Empty);
+
+	 		pBuilding->SetOwningHouse(pSourceHouse);
+	 }
+
+	 // Disarm bomb
+	 if (pThis->AttachedBomb && pWHExt->FakeEngineer_BombDisarm)
+	 	pThis->AttachedBomb->Disarm();
 
 	pWHExt->ApplyDamageMult(pThis, &args);
 	applyCombatAlert(pThis, &args);
@@ -608,7 +635,6 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	if (args.Attacker && (!args.Attacker->IsAlive || args.Attacker->Health <= 0) && !args.Attacker->Owner)
 		args.Attacker = nullptr; //clean up;
 
-	const auto pSourceHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 	const bool canTergetHouse = pWHExt->CanTargetHouse(pSourceHouse, pThis);
 
 	if (!canTergetHouse) {
@@ -1385,6 +1411,13 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 
 	if (pThis->Type->BridgeRepairHut && pThis->Type->Immune)
 	{
+		if (pWHExt->FakeEngineer_CanRepairBridges || pWHExt->FakeEngineer_CanDestroyBridges) {
+			const bool isBridgeDestroyed = MapClass::Instance->IsLinkedBridgeDestroyed(CellClass::Coord2Cell(pThis->GetCenterCoords()));
+			bool destroyBridge = isBridgeDestroyed && pWHExt->FakeEngineer_CanRepairBridges ? false : pWHExt->FakeEngineer_CanDestroyBridges;			WarheadTypeExtData::DetonateAtBridgeRepairHut(pThis, Attacker, SourceHouse, destroyBridge);
+
+			WarheadTypeExtData::DetonateAtBridgeRepairHut(pThis, Attacker, SourceHouse, destroyBridge);
+		}
+
 		return DamageState::Unaffected;
 	}
 

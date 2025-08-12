@@ -383,6 +383,36 @@ bool NewSWType::IsSWTypeAttachedToThis(const SWTypeExtData* pData, BuildingClass
 	return  BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->AttachedToObject->ArrayIndex, true);
 }
 
+void NewSWType::PlayAnim(SuperClass* pSuper, CoordStruct& coord) {
+
+	const auto pCurrentSWTypeData = SWTypeExtContainer::Instance.Find(pSuper->Type); //previous data
+	const auto flags = this->Flags(pCurrentSWTypeData);
+	const bool bPlayAnim = (flags & SuperWeaponFlags::NoAnim) == SuperWeaponFlags::None;
+	const bool bPlaySound = (flags & SuperWeaponFlags::NoSound) == SuperWeaponFlags::None;
+
+	if (bPlayAnim || bPlaySound)
+	{
+		auto pCell = MapClass::Instance->GetCellAt(CellClass::Coord2Cell(coord));
+		auto nCoord = pCell->GetCoordsWithBridge();
+
+		if (bPlayAnim)
+		{
+			if (auto pAnim = this->GetAnim(pCurrentSWTypeData))
+			{
+				nCoord.Z += pCurrentSWTypeData->SW_AnimHeight;
+				AnimClass* placeholder = GameCreate<AnimClass>(pAnim, nCoord);
+				placeholder->SetHouse(pSuper->Owner);
+				placeholder->Invisible = !pCurrentSWTypeData->IsAnimVisible(pSuper->Owner);
+			}
+		}
+
+		if (bPlaySound)
+		{
+			VocClass::SafeImmedietelyPlayAt(this->GetSound(pCurrentSWTypeData), &nCoord, nullptr);
+		}
+	}
+}
+
 bool NewSWType::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	if (!this->IsLaunchsiteAlive(pBuilding))

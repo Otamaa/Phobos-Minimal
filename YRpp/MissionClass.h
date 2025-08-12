@@ -21,11 +21,11 @@ class NOVTABLE MissionClass : public ObjectClass
 public:
 
 	static Mission __fastcall GetMissionById(const char* pName) {
-		JMP_STD(0x5B3910);
+		JMP_FAST(0x5B3910);
 	}
 
 	static const char* __fastcall MissionToString(Mission nMission) {
-		JMP_STD(0x5B3950);
+		JMP_FAST(0x5B3950);
 	}
 
 	//Destructor
@@ -70,7 +70,7 @@ public:
 	virtual int Mission_SpyPlaneApproach() R0;
 	virtual int Mission_SpyPlaneOverfly() R0;
 
-	static bool __fastcall IsRecruitableMission(Mission mission) { JMP_STD(0x5B36E0); }
+	static bool __fastcall IsRecruitableMission(Mission mission) { JMP_FAST(0x5B36E0); }
 
 	MissionControlClass* GetCurrentMissionControl() const { JMP_THIS(0x5B3A00); }
 	void Shorten_Mission_Timer() { UpdateTimer = 0; }

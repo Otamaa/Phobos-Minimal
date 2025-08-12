@@ -55,6 +55,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, FogOfWar { false }
 	, MCVRedeploy { true }
 	, UIGameMode { L"" }
+	, SpecialHouseIsAlly { true }
 
 	// SaveGame
 	, LoadSaveGame { false }
@@ -532,7 +533,9 @@ void SpawnerMain::GameConfigs::Init() {
 
 		Patch::Apply_LJMP(0x5D74A0, 0x5D7570); // MPGameModeClass_AllyTeams
 		Patch::Apply_LJMP(0x501721, 0x501736); // HouseClass_ComputerParanoid
-		Patch::Apply_LJMP(0x686A9E, 0x686AC6); // RemoveAIPlayers
+		//Patch::Apply_LJMP(0x686A9E, 0x686AC6);
+		// // ReadScenario_InitSomeThings -
+		// Moved to a hook to allow conditional toggling of Special house's alliances.
 	}
 
 	{ // NetHack
@@ -557,6 +560,9 @@ void SpawnerMain::GameConfigs::Init() {
 
 	// Leaves bottom bar closed for losing players during last game frames
 	Patch::Apply_LJMP(0x6D1639, 0x6D1640); // TabClass_6D1610
+
+	// Skip load *.PKT, *.YRO and *.YRM map files
+	Patch::Apply_LJMP(0x699AE0, 0x69A1B2); // SessionClass::Read_Scenario_Descriptions
 }
 
 bool SpawnerMain::GameConfigs::StartGame() {
@@ -611,11 +617,7 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 
 		const auto pHousesConfig = &SpawnerMain::GameConfigs::m_Ptr.Houses[indexOfHouseArray];
 		const int nSpawnLocations = pHousesConfig->SpawnLocations;
-		const bool isObserver = pHouse->IsHumanPlayer && (
-			pHousesConfig->IsObserver
-			|| nSpawnLocations == -1
-			|| nSpawnLocations == 90
-			);
+		const bool isObserver =pHouse->IsHumanPlayer && pHousesConfig->IsObserver;
 
 		// Set Alliances
 		for (char i = 0; i < (char)std::size(pHousesConfig->Alliances); ++i)
@@ -651,9 +653,8 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 		// Set SpawnLocations
 		if (!isObserver)
 		{
-			pHouse->StartingPoint = (nSpawnLocations != -2)
-				? std::clamp(nSpawnLocations, 0, 7)
-				: nSpawnLocations;
+			pHouse->StartingPoint = (nSpawnLocations < 0)
+			? -2 : std::clamp(nSpawnLocations, 0, 7);
 		}
 		else
 		{
@@ -1175,7 +1176,8 @@ ASMJIT_PATCH(0x4FC262, HouseClass_MPlayerDefeated_SkipObserver, 0x6) {
 	if (!MPlayerDefeated::pThis)
 		return 0;
 
-	return MPlayerDefeated::pThis->IsObserver()
+	auto pHouse = MPlayerDefeated::pThis;
+	return pHouse->IsHumanPlayer && pHouse->Defeated && pHouse->IsInitiallyObserver()
 		? ProcEpilogue
 		: 0;
 }ASMJIT_PATCH_AGAIN(0x4FC332, HouseClass_MPlayerDefeated_SkipObserver, 0x5)
@@ -1215,8 +1217,21 @@ ASMJIT_PATCH(0x4FC57C, HouseClass_MPlayerDefeated_CheckAliveAndHumans, 0x7) {
 	GET_STACK(int, numHumans, STACK_OFFSET(0xC0, -0xA8));
 	GET_STACK(int, numAlive, STACK_OFFSET(0xC0, -0xAC));
 
-	bool continueWithoutHumans = SpawnerMain::GameConfigs::m_Ptr.ContinueWithoutHumans ||
-		(SessionClass::IsSkirmish() && HouseClass::CurrentPlayer->IsInitiallyObserver());
+	bool continueWithoutHumans = SpawnerMain::GameConfigs::m_Ptr.ContinueWithoutHumans
+			|| MPlayerDefeated::pThis->IsInitiallyObserver();
+
+	if (!continueWithoutHumans && !MPlayerDefeated::pThis->IsHumanPlayer) {
+		bool isHasAliveHumanPlayers = false;
+		for (auto& pHouse : *HouseClass::Array) {
+			if (pHouse->IsHumanPlayer && !pHouse->Defeated) {
+				isHasAliveHumanPlayers = true;
+				break;
+			}
+		}
+
+		if (!isHasAliveHumanPlayers)
+			continueWithoutHumans = true;
+	}
 
 	if (numAlive > 1 && (numHumans != 0 || continueWithoutHumans))
 	{
@@ -1329,3 +1344,9 @@ ASMJIT_PATCH(0x700594, TechnoClass_WhatAction_AllowAlliesRepair, 0x5)
 //
 // 	return sequence == DoType::Down && !pThis->Crawling ? DisAllow : Allow;
 // }
+
+ASMJIT_PATCH(0x686A9E, ReadScenario_InitSomeThings_SpecialHouseIsAlly, 0x6)
+{
+	return !SpawnerMain::GetGameConfigs()->SpecialHouseIsAlly ?
+		0x686AC6 : 0u;
+}

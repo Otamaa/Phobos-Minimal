@@ -453,8 +453,13 @@ public:
 	Valueable<bool> PenetratesTransport_DamageAll { false };
 	ValueableIdx<VocClass> PenetratesTransport_CleanSound { -1 };
 
-	bool IsCellSpreadWH { false };
+	Valueable<bool> FakeEngineer_CanRepairBridges { false };
+	Valueable<bool> FakeEngineer_CanDestroyBridges { false };
+	Valueable<bool> FakeEngineer_CanCaptureBuildings { false };
+	Valueable<bool> FakeEngineer_BombDisarm { false };
 
+	bool IsCellSpreadWH { false };
+	bool IsFakeEngineer { false };
 #pragma endregion
 
 public:
@@ -581,6 +586,8 @@ public:
 	static void CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords);
 
 	static void applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source);
+
+	static void DetonateAtBridgeRepairHut(AbstractClass* pTarget, TechnoClass* pOwner = nullptr, HouseClass* pFiringHouse = nullptr, bool destroyBridge = false);
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>

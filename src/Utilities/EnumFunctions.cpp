@@ -658,6 +658,25 @@ bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget
 	return false;
 }
 
+bool EnumFunctions::CanAffectTechnoResult(AbstractType type, AffectedTechno allowed) {
+
+	if (allowed != AffectedTechno::None) {
+
+		switch (type) {
+		case AbstractType::Building:
+			return (allowed & AffectedTechno::Building) != AffectedTechno::None;
+		case AbstractType::Infantry:
+			return (allowed & AffectedTechno::Infantry) != AffectedTechno::None;
+		case AbstractType::Unit:
+			return (allowed & AffectedTechno::Unit) != AffectedTechno::None;
+		case AbstractType::Aircraft:
+			return (allowed & AffectedTechno::Aircraft) != AffectedTechno::None;
+
+		}
+	}
+	return false;
+}
+
 bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse const&  allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately, bool allowBridges)
 {
 	if(!EnumFunctions::IsCellEligible(pCell, allowed, explicitEmptyCells , allowBridges))

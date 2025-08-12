@@ -28,7 +28,7 @@ public:
 	}
 
 	static LandType __fastcall GetLandTypeFromName(const char* name) {
-		JMP_STD(0x48DF80);
+		JMP_FAST(0x48DF80);
 	}
 
 	static COMPILETIMEEVAL FORCEDINLINE float GetCost(LandType land, SpeedType speed) {
@@ -117,33 +117,33 @@ struct TrajectoryHelper
 	static bool __fastcall IsCliffHit(
 		CellClass const* pSource, CellClass const* pBefore,
 		CellClass const* pAfter)
-	{ JMP_STD(0x4CC680); }
+	{ JMP_FAST(0x4CC680); }
 
 	// whether the bullet hit a wall when traversing through pCheck
 	static bool __fastcall IsWallHit(
 		CellClass const* pSource, CellClass const* pCheck,
 		CellClass const* pTarget, HouseClass const* pOwner)
-	{ JMP_STD(0x4CC6D0); }
+	{ JMP_FAST(0x4CC6D0); }
 
 	// returns the cell at crdCur if it contains an obstacle, nullptr otherwise
 	static CellClass* __fastcall GetObstacle(
 		CellClass const* pCellSource, CellClass const* pCellTarget,
 		CellClass const* pCellBullet, CoordStruct crdCur,
 		BulletTypeClass const* pType, HouseClass const* pOwner)
-	{ JMP_STD(0x4CC360); }
+	{ JMP_FAST(0x4CC360); }
 
 	// assumes linear movement, returns the first cell that has a cliff or wall
 	// in it, a nullptr otherwise.
 	static CellClass* __fastcall FindFirstObstacle(
 		CoordStruct const& crdSrc, CoordStruct const& crdTarget,
 		BulletTypeClass const* pType, HouseClass const* pOwner)
-	{ JMP_STD(0x4CC100); }
+	{ JMP_FAST(0x4CC100); }
 
 	// if the warhead can destroy walls, walls don't count as obstacle
 	static CellClass* __fastcall FindFirstImpenetrableObstacle(
 		CoordStruct const& crdSrc, CoordStruct const& crdTarget,
 		WeaponTypeClass const* pWeapon, HouseClass const* pOwner)
-	{ JMP_STD(0x4CC310); }
+	{ JMP_FAST(0x4CC310); }
 };
 
 class LayerClass : public DynamicVectorClass<ObjectClass*>
@@ -360,12 +360,12 @@ public:
 	// gets a coordinate in a random direction a fixed distance in leptons away from coords
 	static CoordStruct* __fastcall GetRandomCoordsNear(CoordStruct& outBuffer, const CoordStruct& coords, int distance, bool center)
 	{
-		JMP_STD(0x49F420);
+		JMP_FAST(0x49F420);
 	}
 
 	static CoordStruct* __fastcall GetRandomCoordsNear(CoordStruct* poutBuffer, const CoordStruct& coords, int distance, bool center)
 	{
-		JMP_STD(0x49F420);
+		JMP_FAST(0x49F420);
 	}
 
 	// gets a coordinate in a random direction a fixed distance in leptons away from coords
@@ -387,11 +387,11 @@ public:
 	}
 
 	static void __fastcall UnselectAll()
-	{ JMP_STD(0x48DC90); }
+	{ JMP_FAST(0x48DC90); }
 
 	static CellStruct* __fastcall GetAdjacentCell(CellStruct* ret, CellStruct* from, FacingType dir)
 	{
-		JMP_STD(0x487EA0);
+		JMP_FAST(0x487EA0);
 	}
 
 	void CenterMap()
@@ -439,19 +439,19 @@ public:
 	static AnimTypeClass* __fastcall SelectDamageAnimation
 	(int Damage, WarheadTypeClass* WH, LandType LandType, const CoordStruct& coords)
 	{
-		JMP_STD(0x48A4F0);
+		JMP_FAST(0x48A4F0);
 	}
 
 	static AnimTypeClass* __fastcall SelectDamageAnimation
 	(int Damage, WarheadTypeClass* WH, LandType LandType, CoordStruct* pCoords)
 	{
-		JMP_STD(0x48A4F0);
+		JMP_FAST(0x48A4F0);
 	}
 
 	static void __fastcall FlashbangWarheadAt
 	(int Damage, WarheadTypeClass* WH, CoordStruct coords, bool Force = 0, SpotlightFlags CLDisableFlags = SpotlightFlags::None)
 	{
-		JMP_STD(0x48A620);
+		JMP_FAST(0x48A620);
 	}
 
 	static FORCEDINLINE void FlashbangWarheadAt
@@ -475,7 +475,7 @@ public:
 	//{ *args->Damage = ModifyDamage(*args->Damage, args->WH, armor, args->DistanceToEpicenter); }
 
 	static void __fastcall AtomDamage(int OwnedHouse, CellStruct& nCell)
-	{ JMP_STD(0x4251F0); }
+	{ JMP_FAST(0x4251F0); }
 
 	int GetCellFloorHeight(const CoordStruct& crd) const
 	{ JMP_THIS(0x578080); }
@@ -798,10 +798,10 @@ public:
 
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)
-		{ JMP_STD(0x6EEBD0); }
+		{ JMP_FAST(0x6EEBD0); }
 
 	static BuildingClass* __fastcall FindOwnBuilding(BuildingTypeClass* type, DWORD* unusedptr, TechnoClass* attacker, int find_type)
-		{ JMP_STD(0x6EEEA0); }
+		{ JMP_FAST(0x6EEEA0); }
 
 protected:
 	//Constructor

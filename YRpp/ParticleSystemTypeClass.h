@@ -39,13 +39,13 @@ public:
 	IMPL_Find(ParticleSystemTypeClass)
 
 	static ParticleSystemTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x644890);
+		JMP_FAST(0x644890);
 	}
 
 	IMPL_FindIndexById(ParticleSystemTypeClass)
 
 	static int __fastcall FindIndexByIdOrAllocate(const char* pID) {
-		JMP_STD(0x644630);
+		JMP_FAST(0x644630);
 	}
 
 	//IPersist
@@ -70,7 +70,7 @@ public:
 	virtual ObjectClass* CreateObject(HouseClass* owner) override { return nullptr; }
 
 	static ParticleSystemTypeBehavesLike __fastcall BehavesFromString(const char* pStr) {
-		JMP_STD(0x644850);
+		JMP_FAST(0x644850);
 	}
 
 	//Constructor

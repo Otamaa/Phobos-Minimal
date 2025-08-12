@@ -281,7 +281,7 @@ DamageAreaResult __fastcall DamageArea::Apply(CoordStruct* pCoord,
 		HouseClass* pHouse)
 {
 
-	JMP_STD(0x489280);
+	JMP_FAST(0x489280);
 #ifdef _aaa
 	if (!pWarhead)
 	{

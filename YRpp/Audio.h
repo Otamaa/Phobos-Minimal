@@ -30,7 +30,7 @@ struct SomeNodes
 	}
 
 	static void __fastcall ListNodeAppend(SomeNodes<T>* a1, SomeNodes<T>* a2) {
-		JMP_STD(0x407440);
+		JMP_FAST(0x407440);
 	}
 };
 
@@ -155,7 +155,7 @@ public:
 	static COMPILETIMEEVAL reference<AudioIDXData*, 0x87E294u> const Instance{};
 
 	static AudioIDXData* __fastcall Create(const char* pFilename, const char* pPath)
-		{ JMP_STD(0x4011C0); };
+		{ JMP_FAST(0x4011C0); };
 
 	AudioIDXData() {
 		__stosb(reinterpret_cast<unsigned char*>(this), 0, sizeof(*this));
@@ -168,16 +168,16 @@ public:
 		{ JMP_THIS(0x401910); }
 
 	int __fastcall FindSampleIndex(const char* pName) const
-		{ JMP_STD(0x4015C0); }
+		{ JMP_FAST(0x4015C0); }
 
 	const char* __fastcall GetSampleName(int index) const
-		{ JMP_STD(0x401600); }
+		{ JMP_FAST(0x401600); }
 
 	int __fastcall GetSampleSize(int index) const
-		{ JMP_STD(0x401620); }
+		{ JMP_FAST(0x401620); }
 
 	AudioSampleData* __fastcall GetSampleInformation(int index, AudioSampleData* pBuffer) const
-		{ JMP_STD(0x401640); }
+		{ JMP_FAST(0x401640); }
 
 	AudioIDXEntry* Samples;
 	int SampleCount;
@@ -195,7 +195,7 @@ class Audio {
 public:
 
 	static bool __fastcall ReadWAVFile(RawFileClass* pFile, AudioSampleData* pAudioSample, int* pDataSize)
-		{ JMP_STD(0x408610); }
+		{ JMP_FAST(0x408610); }
 };
 
 struct SBufferDataStruct
@@ -289,7 +289,7 @@ struct MemoryPoolTag
   int dbg_struct_type;
 
   static void* __fastcall MemoryPoolGetItem(MemoryPoolTag* tag)
-  { JMP_STD(0x407520); }
+  { JMP_FAST(0x407520); }
 };
 static_assert(sizeof(MemoryPoolTag) == 0x8, "Invalid Size!");
 
@@ -622,7 +622,7 @@ struct AudioController
 	{ JMP_THIS(0x406060); }
 
 	void __fastcall sub_4060F0(int a1, int a2)
-	{ JMP_STD(0x4060F0); }
+	{ JMP_FAST(0x4060F0); }
 
 	void sub_406130()
 	{ JMP_THIS(0x406130); }
@@ -631,7 +631,7 @@ struct AudioController
 	{ JMP_THIS(0x406170); }
 
 	void __fastcall sub_4061D0(unsigned int arg)
-	{ JMP_STD(0x4061D0); }
+	{ JMP_FAST(0x4061D0); }
 
 	void __fastcall sub_406270(unsigned int arg)
 	{ JMP_THIS(0x406270); }
@@ -714,7 +714,7 @@ struct AudioDriverChannelTag
 
 	static int __fastcall noname_prefil(AudioDriverChannelTag* a1, int a2)
 	{
-		JMP_STD(0x409880);
+		JMP_FAST(0x409880);
 	}
 
 	AudioChannelTag* audiochannel;
@@ -873,7 +873,7 @@ class NOVTABLE AudioChannelTag
 public:
 	static int __fastcall AudioChannelSetFormat(AudioChannelTag* chan, AudioFormatTag* format)
 	{
-		JMP_STD(0x402800);
+		JMP_FAST(0x402800);
 	}
 
 	int AudioDriver_update()
@@ -924,7 +924,7 @@ struct AudioStreamerTag
 	static COMPILETIMEEVAL reference<AudioStreamerTag*, 0xB1D4D8u> const Instance {};
 
 	static bool __fastcall PlayWAV(AudioStreamerTag* pStm, const char* pFilename, bool bUnk)
-	{ JMP_STD(0x407B60); }
+	{ JMP_FAST(0x407B60); }
 
 public:
 

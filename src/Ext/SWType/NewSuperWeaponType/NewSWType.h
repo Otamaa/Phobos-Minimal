@@ -156,6 +156,9 @@ public:
 	virtual void ValidateData(SWTypeExtData* pData) const { }
 	bool IsLaunchsiteAlive(BuildingClass* pBuilding) const;
 	bool IsSWTypeAttachedToThis(const SWTypeExtData* pData ,BuildingClass* pBuilding) const;
+
+	void PlayAnim(SuperClass* pSuper, CoordStruct& coord);
+
 public:
 
 	bool HasDesignator(const SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& Coords) const;

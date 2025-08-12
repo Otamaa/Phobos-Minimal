@@ -207,3 +207,5 @@ ASMJIT_PATCH(0x6FC8F5, TechnoClass_CanFire_SkipROF, 0x6)
 {
 	return WhatActionObjectTemp::Skip ? 0x6FC981 : 0;
 }
+
+DEFINE_PATCH_ADDR_OFFSET(DWORD , 0x7B8536, 6, 1);

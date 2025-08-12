@@ -771,7 +771,6 @@ ASMJIT_PATCH(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
 		0x74416C : 0x744129;
 }
 
-
 ASMJIT_PATCH(0x74689B, UnitClass_Init_Academy, 6)
 {
 	GET(UnitClass*, pThis, ESI);
@@ -1131,7 +1130,6 @@ ASMJIT_PATCH(0x73C655, UnitClass_DrawSHP_ChangeType1, 6)
 }ASMJIT_PATCH_AGAIN(0x73C69D, UnitClass_DrawSHP_ChangeType1, 6)
 ASMJIT_PATCH_AGAIN(0x73C702, UnitClass_DrawSHP_ChangeType1, 6)
 
-
 ASMJIT_PATCH(0x73C5FC, UnitClass_DrawSHP_WaterType, 6)
 {
 	GET(UnitClass*, U, EBP);
@@ -1157,6 +1155,11 @@ static bool ShadowAlreadyDrawn;
 ASMJIT_PATCH(0x73C725, UnitClass_DrawSHP_DrawShadowEarlier, 6)
 {
 	GET(UnitClass*, U, EBP);
+
+	if (UnitTypeClass* pCustomType = TechnoExt_ExtData::GetUnitTypeImage(U)) {
+		if(!pCustomType->Turret)
+			return 0x73CE0D;
+	}
 
 	DWORD retAddr = (U->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
 		? 0
@@ -1221,6 +1224,97 @@ ASMJIT_PATCH(0x705FF3, TechnoClass_Draw_A_SHP_File_SkipUnitShadow, 6)
 	return 0;
 }
 
+ASMJIT_PATCH(0x73BDA3, UnitClass_DrawVoxel_TurretFacing, 0x5)
+{
+	GET(UnitClass*, pThis, EBP);
+
+	if (!pThis->Type->Turret) {
+		if (UnitTypeClass* pCustomType = TechnoExt_ExtData::GetUnitTypeImage(pThis)) {
+			if (pCustomType->Turret) {
+				GET(DirStruct*, dir, EAX);
+				*dir = pThis->PrimaryFacing.Current();
+			}
+		}
+	}
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x73B765, UnitClass_DrawVoxel_TurretFacing, 0x5)
+ASMJIT_PATCH_AGAIN(0x73BA78, UnitClass_DrawVoxel_TurretFacing, 0x6)
+ASMJIT_PATCH_AGAIN(0x73BD8B, UnitClass_DrawVoxel_TurretFacing, 0x5)
+
+ASMJIT_PATCH(0x73B8E3, UnitClass_DrawVoxel_HasChargeTurret, 0x5)
+{
+	GET(UnitClass*, pThis, EBP);
+	GET(UnitTypeClass*, pType, EBX);
+
+	if (pType != pThis->Type)
+	{
+		if (pType->TurretCount > 0 && !pType->IsGattling)
+			return 0x73B8EC;
+		else
+			return 0x73B92F;
+	}
+	else
+	{
+		if (!pType->HasMultipleTurrets() || pType->IsGattling)
+			return 0x73B92F;
+		else
+			return 0x73B8FC;
+	}
+}
+
+ASMJIT_PATCH(0x73BC28, UnitClass_DrawVoxel_HasChargeTurret2, 0x5)
+{
+	GET(UnitClass*, pThis, EBP);
+	GET(UnitTypeClass*, pType, EBX);
+
+	if (pType != pThis->Type)
+	{
+		if (pType->TurretCount > 0 && !pType->IsGattling)
+		{
+			if (pThis->CurrentTurretNumber < 0)
+				R->Stack<int>(0x1C, 0);
+
+			return 0x73BC35;
+		}
+		else
+		{
+			return 0x73BD79;
+		}
+	}
+	else
+	{
+		if (!pType->HasMultipleTurrets() || pType->IsGattling)
+			return 0x73BD79;
+		else
+			return 0x73BC49;
+	}
+}
+
+ASMJIT_PATCH(0x73BA63, UnitClass_DrawVoxel_TurretOffset, 0x5)
+{
+	GET(UnitClass*, pThis, EBP);
+	GET(UnitTypeClass*, pType, EBX);
+
+	if (pType != pThis->Type)
+	{
+		if (pType->TurretCount > 0 && !pType->IsGattling)
+		{
+			if (pThis->CurrentTurretNumber < 0)
+				R->Stack<int>(0x1C, 0);
+
+			return 0x73BC35;
+		}
+		else
+		{
+			return 0x73BD79;
+		}
+	}
+
+	return 0;
+}
+
+DEFINE_JUMP(LJMP, 0x706724, 0x706731);
 
 ASMJIT_PATCH(0x739956, DeploysInto_UndeploysInto_SyncStatuses, 0x6) //UnitClass_Deploy_SyncShieldStatus
 {

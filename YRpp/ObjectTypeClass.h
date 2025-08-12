@@ -28,7 +28,7 @@ public:
 	IMPL_FindOrAllocate(ObjectTypeClass)
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x5F9990);
+		JMP_FAST(0x5F9990);
 	}
 
 	//static
@@ -63,10 +63,10 @@ public:
 	virtual SHPStruct* GetImage() const R0;
 
 	static BuildCat __fastcall IsBuildCat5(AbstractType abstractID, int idx)
-		{ JMP_STD(0x5004E0); }
+		{ JMP_FAST(0x5004E0); }
 
 	static TechnoTypeClass * __fastcall FetchTechnoType(AbstractType abstractID, int idx)
-		{ JMP_STD(0x48DCD0); }
+		{ JMP_FAST(0x48DCD0); }
 
 	void sub_5F8080()
 		{ JMP_THIS(0x5F8080); }

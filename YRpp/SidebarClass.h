@@ -230,10 +230,11 @@ public:
 
 	// which tab does the 'th object of that type belong in?
 	static int __fastcall GetObjectTabIdx(AbstractType abs, int idxType, int unused)
-	{ JMP_STD(0x6ABC60); }
+	{ JMP_FAST(0x6ABC60); }
 
 	// which tab does the 'th object of that type belong in?
-	static int __fastcall GetObjectTabIdx(AbstractType abs, BuildCat buildCat, bool isNaval) { JMP_STD(0x6ABCD0); }
+	static int __fastcall GetObjectTabIdx(AbstractType abs, BuildCat buildCat, bool isNaval) 
+	{ JMP_FAST(0x6ABCD0); }
 
 	void ChangeTab(int nStrip) const { JMP_THIS(0x6A7590); }
 	void Recalc() const { JMP_THIS(0x6A7D20); }

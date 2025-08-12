@@ -16,27 +16,27 @@ class MixCache
 {
 public:
 	static void __fastcall Insert(MixCache* pNew, MixCache* pOld) {
-		JMP_STD(0x5B3FF0);
+		JMP_FAST(0x5B3FF0);
 	}
 
 	static MixCache* __fastcall Find(unsigned int CRC, MixCache* pNode) {
-		JMP_STD(0x5B4020);
+		JMP_FAST(0x5B4020);
 	}
 
 	static MixCache* __fastcall Invalidate(unsigned int crc, MixCache* pNode) {
-		JMP_STD(0x5B4050);
+		JMP_FAST(0x5B4050);
 	}
 
 	static void __fastcall Delete(MixCache* pNode) {
-		JMP_STD(0x5B4080);
+		JMP_FAST(0x5B4080);
 	}
 
 	static void* __fastcall CacheFile(char* filename) {
-		JMP_STD(0x5B4270);
+		JMP_FAST(0x5B4270);
 	}
 
 	static void __fastcall Destroy() {
-		JMP_STD(0x5B4310);
+		JMP_FAST(0x5B4310);
 	}
 
 public:
@@ -109,23 +109,23 @@ public:
 		{ JMP_THIS(0x5B4400); }
 
     static bool __fastcall Free(const char *pFilename)
-		{ JMP_STD(0x5B3E90); }
+		{ JMP_FAST(0x5B3E90); }
 
     bool Cache(const MemoryBuffer * buffer = nullptr)
 		{ JMP_THIS(0x5B43F0); }
 
     static bool __fastcall Cache(const char *pFilename, MemoryBuffer const * buffer = nullptr)
-		{ JMP_STD(0x5B43E0); }
+		{ JMP_FAST(0x5B43E0); }
 
     static bool __fastcall Offset(const char *pFilename, void ** realptr = nullptr, MixFileClass ** mixfile = nullptr, long * offset = nullptr, long * size = nullptr)
-		{ JMP_STD(0x5B4430); }
+		{ JMP_FAST(0x5B4430); }
 
     //static void* __fastcall Retrieve(const char *pFilename, bool bLoadAsSHP = false)
 	//	{ JMP_STD(0x5B40B0); }
 
 	static bool __fastcall Offset(const char* filename, void*& data,
 		MixFileClass*& mixfile, int& offset, int& length)
-	{ JMP_STD(0x5B4430); }
+	{ JMP_FAST(0x5B4430); }
 
 	//MixFileClass(const char* pFileName)
 	//	: Node<MixFileClass>()

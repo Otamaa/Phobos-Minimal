@@ -258,7 +258,7 @@ public:
 	}
 
 	static BSurface* __fastcall GetVoxelSurface() {
-		JMP_STD(0x753C70);
+		JMP_FAST(0x753C70);
 	}
 
 protected:
@@ -276,23 +276,23 @@ static_assert(sizeof(BSurface) == 0x20, "Invalid Size !");
 //static long Surface_Size_Of_Region(Surface& surface, int w, int h);
 
 static bool __fastcall  Animated_Text_Print_623880(Surface *surface ,RectangleStruct* rect, const wchar_t* text, size_t coint , BitFont* font , uint32_t color , size_t* anim, bool hasfocus, bool blankout, bool fillbg, size_t animsize) {
-	JMP_STD(0x623880);
+	JMP_FAST(0x623880);
 }
 
 static bool __fastcall Buffer_To_RLE_Surface_With_Z_Shape(Surface *surface1, Point2D *point1, RectangleStruct *rect1, Surface *surface2, Point2D *point2, RectangleStruct *rect2, void* blitter, int height_offset, int somearrayindex, int a10, int arg_20, Surface *z_shape_surface, int shape_x_offset, int shape_y_offset, int useotherblitterset) {
-	JMP_STD(0x437A10);
+	JMP_FAST(0x437A10);
 }
 
 static bool __fastcall Buffer_To_Surface_with_LastArg(Surface *tosurface, RectangleStruct *rect1, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *a5, RectangleStruct *fromrect, void* blitter, int z_val, int somearrayindex, int alpha_val, int use_new_blitter, int wrap_value) {
-	JMP_STD(0x4373B0);
+	JMP_FAST(0x4373B0);
 }
 
 static bool __fastcall Surface_To_Buffer(Surface& surface, RectangleStruct& rect, MemoryBuffer& buffer) {
-	JMP_STD(0x4371D0);
+	JMP_FAST(0x4371D0);
 }
 
 static bool __fastcall Buffer_To_Surface(Surface& surface, RectangleStruct& rect, MemoryBuffer& buffer) {
-	JMP_STD(0x437290);
+	JMP_FAST(0x437290);
 }
 
 //static bool Copy_To_Surface(Surface& tosurface, RectangleStruct& torect, Surface& fromsurface, RectangleStruct& fromrect, BlitterCore& blitter, int z_val = 0, ZGradient z_gradient = ZGradient::Ground, int alpha_level = 1000, int warp_val = 0);
@@ -304,12 +304,12 @@ static bool __fastcall Buffer_To_Surface(Surface& surface, RectangleStruct& rect
 // Used for linetrail
 static bool __fastcall Surface_4BEAC0_Blit(Surface* Surface, RectangleStruct& nRect, Point2D& nPoint1, Point2D& nPoint2, int& nSomeval, unsigned nSomeval2, int nAdjust_1, int nAdjust2)
 {
-	JMP_STD(0x4BEAC0);
+	JMP_FAST(0x4BEAC0);
 }
 
 static RectangleStruct* __fastcall GetTextBox(RectangleStruct* pRet, char* text, int xpos, int ypos, TextPrintType flag, int x_offset, int y_offset)
 {
-	JMP_STD(0x4A59E0);
+	JMP_FAST(0x4A59E0);
 }
 
 // Comments from thomassneddon
@@ -321,7 +321,7 @@ static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SH
 	int Brightness, // 0~2000. Final color = saturate(OriginalColor * Brightness / 1000.0f)
 	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
-	JMP_STD(0x4AED70);
+	JMP_FAST(0x4AED70);
 }
 
 static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,
@@ -332,32 +332,32 @@ static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SH
 	int Brightness, // 0~2000. Final color = saturate(OriginalColor * Brightness / 1000.0f)
 	int TintColor, SHPStruct* ZShape, int ZShapeFrame, int XOffset, int YOffset)
 {
-	JMP_STD(0x4AED70);
+	JMP_FAST(0x4AED70);
 }
 
 // this text drawing can accept vargs , so just put the thing here , dont need to do it twice
-static Point2D* Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
+static Point2D* __cdecl Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
 	Point2D* Location, unsigned int ForeColor, unsigned int BackColor, TextPrintType Flag, ...)
 {
 	JMP_STD(0x4A60E0);
 }
 
 // this text drawing can accept vargs , so just put the thing here , dont need to do it twice
-static Point2D* Fancy_Text_Print_Wide_REF(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
+static Point2D* __cdecl Fancy_Text_Print_Wide_REF(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
 	Point2D* Location, COLORREF ForeColor, COLORREF BackColor, TextPrintType Flag, ...)
 {
 	JMP_STD(0x4A60E0);
 }
 
 // this text drawing can accept vargs , so just put the thing here , dont need to do it twice
-static Point2D* Fancy_Text_Print_Wide(const Point2D& retBuffer, const wchar_t* Text, Surface* Surface, const RectangleStruct& Bounds,
+static Point2D* __cdecl Fancy_Text_Print_Wide(const Point2D& retBuffer, const wchar_t* Text, Surface* Surface, const RectangleStruct& Bounds,
 	const Point2D& Location, ColorScheme* ForeScheme, ColorScheme* BackScheme, TextPrintType Flag, ...)
 {
 	JMP_STD(0x4A61C0);
 }
 
 // this text drawing can accept vargs , so just put the thing here , dont need to do it twice
-static Point2D* Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
+static Point2D* __cdecl Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
 	Point2D* Location, ColorScheme* fore, unsigned int BackColor, TextPrintType Flag, ...)
 {
 	JMP_STD(0x4A61C0);
@@ -367,23 +367,23 @@ static Point2D* Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surf
 static Point2D* __fastcall Simple_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
 	Point2D* Location, COLORREF ForeColor, COLORREF BackColor, TextPrintType Flag, bool bUkn)
 {
-	JMP_STD(0x4A5EB0);
+	JMP_FAST(0x4A5EB0);
 }
 
 static void __fastcall Draw_Radial_Indicator(bool draw_line, bool adjust_color, CoordStruct coord, ColorStruct rgb, float line_mult, bool a8, bool a9)
 {
-	JMP_STD(0x456980);
+	JMP_FAST(0x456980);
 }
 
 static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect) {
-	JMP_STD(0x7BC1F0);
+	JMP_FAST(0x7BC1F0);
 }
 static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect, void* blitter, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg) {
-  JMP_STD(0x437350);
+	JMP_FAST(0x437350);
 }
 
 static bool __fastcall Blit_helper_lockregion(Surface* dst_surf, RectangleStruct* rect1, RectangleStruct* rect2, Surface* src_surf, RectangleStruct* rect3, RectangleStruct* rect4, bool* checkme, __int16* dst_buffer, __int16* src_buffer)
-{ JMP_STD(0x7BC040) }
+{ JMP_FAST(0x7BC040) }
 
 #pragma warning(pop)
 #pragma endregion CommonFunction

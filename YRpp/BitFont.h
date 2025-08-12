@@ -69,7 +69,7 @@ public:
 	};
 
 	static InternalData* __fastcall LoadInternalData(const char* pFileName)
-		{ JMP_STD(0x433990); }
+		{ JMP_FAST(0x433990); }
 
 	int CharPixelWidth(wchar_t wChar)
 		{ JMP_THIS(0x4349B0); }
@@ -87,10 +87,10 @@ public:
 		{ return bHalf ? InternalPTR->FontHeight / 2 : InternalPTR->FontHeight; }
 
 	static BitFont* __fastcall BitFontPtr(TextPrintType nType)
-		{ JMP_STD(0x4A60D0); }
+		{ JMP_FAST(0x4A60D0); }
 
 	static void __fastcall Print(void* pThis, BitFont* font, Surface* surface, wchar_t* string, int xLeft, int yTop, int a6, int a7)
-		{ JMP_STD(0x434B90); }
+		{ JMP_FAST(0x434B90); }
 
 	InternalData* InternalPTR;
 	void* Pointer_8;

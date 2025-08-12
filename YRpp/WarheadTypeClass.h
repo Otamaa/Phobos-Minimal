@@ -24,15 +24,15 @@ public:
 	IMPL_Find(WarheadTypeClass)
 
 	static WarheadTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x75E3B0);
+		JMP_FAST(0x75E3B0);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x75E4A0);
+		JMP_FAST(0x75E4A0);
 	}
 
 	static int __fastcall FindIndexByIdOrAllocate(const char* pID) {
-		JMP_STD(0x40F510);
+		JMP_FAST(0x40F510);
 	}
 
 	//IPersist

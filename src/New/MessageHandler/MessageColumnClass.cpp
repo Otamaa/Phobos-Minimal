@@ -17,6 +17,9 @@ MessageColumnClass MessageColumnClass::Instance;
 
 void MessageColumnClass::InitClear()
 {
+	if (Phobos::Otamaa::ExeTerminated)
+		return;
+
 	this->Initialize();
 
 	if (this->Button_Toggle)
@@ -138,6 +141,9 @@ void MessageColumnClass::InitIO()
 
 void MessageColumnClass::Initialize(int x, int y, int maxCount, int maxRecord, int maxChars, int width)
 {
+	if (Phobos::Otamaa::ExeTerminated)
+		return;
+
 	this->LabelList = nullptr;
 	this->LabelsPos = Point2D { x, y };
 	this->MaxCount = maxCount;

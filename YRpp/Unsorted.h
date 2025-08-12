@@ -161,37 +161,37 @@ struct Game
 		static COMPILETIMEEVAL reference<int, 0xA8B558u> const RequestedFPS {};
 
 		static bool __fastcall Init()
-		{ JMP_STD(0x5DA6C0); }
+		{ JMP_FAST(0x5DA6C0); }
 	};
 
 	static void __fastcall GetKeyboardKeyString(unsigned short key, wchar_t* buffer)
-		{ JMP_STD(0x61EF70); }
+		{ JMP_FAST(0x61EF70); }
 
 	static bool __fastcall File_Finder_Start(char* filename) {
-		JMP_STD(0x47AF70);
+		JMP_FAST(0x47AF70);
 	}
 
 	static BuildingTypeClass* __fastcall Set_Sidebar_Tab_Object(BuildingClass* pThis) {
-		JMP_STD(0x734250);
+		JMP_FAST(0x734250);
 	}
 
 	static bool __fastcall File_Finder_Next_Name(char* filename) {
-		JMP_STD(0x47B0C0);
+		JMP_FAST(0x47B0C0);
 	}
 
-	static void File_Finder_End() {
+	static void __cdecl File_Finder_End() {
 		JMP_STD(0x47B130);
 	}
 
-	static bool MainLoop()
+	static bool __cdecl MainLoop()
 		{ JMP_STD(0x55D360); }
 
 	static int __fastcall Get_Volume_Index(int timeout) {
-		JMP_STD(0x4790A0);
+		JMP_FAST(0x4790A0);
 	}
 
 	static void __fastcall DestroyVoxelCaches() {
-		JMP_STD(0x755C50);
+		JMP_FAST(0x755C50);
 	}
 
 #ifdef deprecated
@@ -227,51 +227,51 @@ struct Game
 		ASM_CALL(0x6851F0);
 	}
 
-	// actually is SessionClass::Callback
-	static void SetProgress(int progress)
-	{ SET_REG32(ECX, 0xA8B238); JMP_STD(0x69AE90); }
+	// // actually is SessionClass::Callback
+	// static void SetProgress(int progress)
+	// { SET_REG32(ECX, 0xA8B238); JMP_STD(0x69AE90); }
 
-	static void CallBack()
-	{ ASM_CALL(0x48D080); }
+	static void __cdecl CallBack()
+	{ JMP(0x48D080); }
 
 	static int __fastcall GetResource(int ID, int Type)
-	{ JMP_STD(0x4A3B40); }
+	{ JMP_FAST(0x4A3B40); }
 
 	static void __fastcall CenterWindowIn(HWND Child, HWND Parent)
-	{ JMP_STD(0x777080); }
+	{ JMP_FAST(0x777080); }
 
 	static void __fastcall sub_53E420(HWND hWindow)
-	{ JMP_STD(0x53E420); }
+	{ JMP_FAST(0x53E420); }
 
 	static void __fastcall sub_53E3C0(HWND hWindow)
-	{ JMP_STD(0x53E3C0); }
+	{ JMP_FAST(0x53E3C0); }
 
 	static void __stdcall OnWindowMoving(tagRECT* Rect)
-	{ JMP_STD(0x776D80); }
+	{ JMP_FAST(0x776D80); }
 
 	static void __stdcall PlanningManager_WM_RBUTTONUP_63AB00(Point2D XY)
-	{ JMP_STD(0x63AB00); }
+	{ JMP_FAST(0x63AB00); }
 
 	static HRESULT __fastcall Save_Sides(LPSTREAM pStm, DynamicVectorClass<SideClass*>* pVector)
-	{ JMP_STD(0x6805F0); }
+	{ JMP_FAST(0x6805F0); }
 
 	static void __fastcall StreamerThreadFlush()
-	{ JMP_STD(0x53E6B0); }
+	{ JMP_FAST(0x53E6B0); }
 
 	static void __fastcall UICommands_TypeSelect_7327D0(const char* iniName)
-	{ JMP_STD(0x7327D0); }
+	{ JMP_FAST(0x7327D0); }
 
 	static bool __fastcall IsTypeSelecting()
-	{ JMP_STD(0x732D00); }
+	{ JMP_FAST(0x732D00); }
 
-	static double GetFloaterGravity()
-	{ ASM_CALL(0x48ACF0); }
+	static double __cdecl GetFloaterGravity()
+	{ JMP(0x48ACF0); }
 
 	static void __fastcall KeyboardProcess(DWORD& input)
-	{ JMP_STD(0x55DEE0); }
+	{ JMP_FAST(0x55DEE0); }
 
 	static LARGE_INTEGER __fastcall AudioGetTime()
-	{ JMP_STD(0x4093B0); }
+	{ JMP_FAST(0x4093B0); }
 
 	static void InitRandom()
 	{ ASM_CALL(0x52FC20); }
@@ -280,7 +280,7 @@ struct Game
 	{ ASM_CALL(0x48C8B0); }
 
 	static bool __fastcall InitNetwork()
-	{ JMP_STD(0x5DA6C0); }
+	{ JMP_FAST(0x5DA6C0); }
 
 	static void InitUIStuff()
 	{
@@ -303,44 +303,44 @@ struct Game
 		char set_state_1 = -1
 	)
 	{
-		JMP_STD(0x5BED40);
+		JMP_FAST(0x5BED40);
 	}
 
 	static AbstractType __fastcall WhichTab(AbstractType Type, int heapId, int a3 = 0)
-	{ JMP_STD(0x6ABC60); }
+	{ JMP_FAST(0x6ABC60); }
 
 	// convert xyz height to xy height?
 	//static int __fastcall AdjustForZ(int Height) //ZDepth_Adjust_For_Height
-	//{ JMP_STD(0x6D20E0); }
+	//{ JMP_FAST(0x6D20E0); }
 
 	static void __fastcall WriteMapFiles(const char* pFilename, int bArgs = false)
-	{ JMP_STD(0x687CE0); }
+	{ JMP_FAST(0x687CE0); }
 
 	static CoordStruct* __fastcall Coord_Move(CoordStruct* revtal, CoordStruct* start, DirStruct* dir, int distance) {
-		JMP_STD(0x50E3A0);
+		JMP_FAST(0x50E3A0);
 	}
 
 	static int __fastcall Spot_Index(CoordStruct* coord) {
-		JMP_STD(0x4810A0);
+		JMP_FAST(0x4810A0);
 	}
 
 	static bool __fastcall func_007BBE20(RectangleStruct* torect, const RectangleStruct* toarea, RectangleStruct* fromrect, const RectangleStruct* fromarea)
-	{ JMP_STD(0x7BBE20); }
+	{ JMP_FAST(0x7BBE20); }
 
 	static int __fastcall Point2DToDir8(Point2D* pFrom, Point2D* pTo)
-	{ JMP_STD(0x75F230); }
+	{ JMP_FAST(0x75F230); }
 
 	static AbilityType __fastcall GetAbility(const char* pString)
-	{ JMP_STD(0x74FEF0); }
+	{ JMP_FAST(0x74FEF0); }
 
 	static int __fastcall CellStructToIdx(CellStruct* pCell)
-	{ JMP_STD(0x42B1C0); }
+	{ JMP_FAST(0x42B1C0); }
 
 	//static int __fastcall ZDepthAdjust(int nZ)
-	//{ JMP_STD(0x6D20E0); }
+	//{ JMP_FAST(0x6D20E0); }
 
 	static bool __fastcall Clip_Line(Point2D* point1, Point2D* point2, const RectangleStruct* rect)
-	{ JMP_STD(0x7BC2B0) }
+	{ JMP_FAST(0x7BC2B0) }
 
 	static void Unselect_All_Except(AbstractType rtti);
 	static void Unselect_All_Except(ObjectTypeClass* objecttype);
@@ -349,49 +349,49 @@ struct Game
 
 	static void __fastcall Compute_All_CRC()
 	{
-		JMP_STD(0x64DAB0);
+		JMP_FAST(0x64DAB0);
 	}
 
 	static bool __fastcall WillItReachTargetInTime(int speed, int distance, int heignt, double gravity)
 	{
-		JMP_STD(0x48ABC0);
+		JMP_FAST(0x48ABC0);
 	}
 
 	static CellClass* __fastcall GetCellOfFirstObstacle(CoordStruct* start, CoordStruct* end, BulletTypeClass* bullet, HouseClass* house)
 	{
-		JMP_STD(0x4CC100);
+		JMP_FAST(0x4CC100);
 	}
 
 	static CellClass* __fastcall Get_Cell_Of_First_Obstacle_0(CoordStruct* start, CoordStruct* end, WeaponTypeClass* weapon, HouseClass* house)
 	{
-		JMP_STD(0x4CC310);
+		JMP_FAST(0x4CC310);
 	}
 
-	static void __fastcall Init_Voxel_Light(float theta) { JMP_STD(0x754C00); }
-	static void __fastcall Init_Voxel_Projections() { JMP_STD(0x754CB0); }
+	static void __fastcall Init_Voxel_Light(float theta) { JMP_FAST(0x754C00); }
+	static void __fastcall Init_Voxel_Projections() { JMP_FAST(0x754CB0); }
 
 	static Matrix3D* __fastcall GetRampMtx(Matrix3D* pRet, int nRampIdx)
 	{
-		JMP_STD(0x7559B0);
+		JMP_FAST(0x7559B0);
 	}
 
 	// fastcall 48AB90
 	static int __fastcall AdjustRangeWithGravity(int nRange, double Gravity)
 	{
-		JMP_STD(0x48AB90);
+		JMP_FAST(0x48AB90);
 	}
 
 	// fastcall 48A8D0
-	static bool __fastcall func_48A8D0_Legal(bool InRange, int nRange, int x , int y , int z, DirStruct* pDir)
+	static bool __fastcall func_48A8D0_Legal(bool InRange, int x , int y , int z , double something, DirStruct* pDir)
 	{
-		JMP_STD(0x48A8D0);
+		JMP_FAST(0x48A8D0);
 	}
 
 	static void __fastcall ComputeFrameCRC()
-	{ JMP_STD(0x64DAB0); }
+	{ JMP_FAST(0x64DAB0); }
 
 	static void __fastcall LogFrameCRC(int frameIndex)
-	{ JMP_STD(0x650A90); }
+	{ JMP_FAST(0x650A90); }
 };
 
 // this fake class contains the IIDs used by the game

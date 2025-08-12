@@ -343,7 +343,7 @@ ASMJIT_PATCH(0x5349E3, ScenarioClass_InitTheater_Handle, 0x6)
 	// and before other global lists are initialized
 	Phobos::Otamaa::TrackParserErrors = true;
 
-	Game::SetProgress(8);
+	SessionClass::Instance->Callback(8);
 	R->EBX(pTheater->ControlFileName.data());
 	R->Stack(STACK_OFFS(0x6C, 0x58), pTheater->Extension.data());
 

@@ -560,6 +560,32 @@ protected:
 	}
 };
 
+struct OnlyAttackStruct
+{
+	WeaponTypeClass* Weapon { nullptr };
+	TechnoClass* Attacker { nullptr };
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Serialize(Stm);
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<OnlyAttackStruct*>(this)->Serialize(Stm);
+	}
+
+private:
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(this->Weapon)
+			.Process(this->Attacker)
+			.Success();
+	}
+};
+
 class TechnoExtData
 {
 public:
@@ -577,7 +603,7 @@ public:
 	OptionalStruct<AbstractType, true> AbsType {};
 
 	AEProperties AE {};
-
+	BYTE idxSlot_EMPulse { 0 };
 	BYTE idxSlot_Wave { 0 }; //5
 	BYTE idxSlot_Beam { 0 }; //6
 	BYTE idxSlot_Warp { 0 }; //7
@@ -749,6 +775,8 @@ public:
 	CDTimerClass FiringAnimationTimer {};
 	bool ForceFullRearmDelay { false };
 	int AttackMoveFollowerTempCount {};
+	HelperedVector<OnlyAttackStruct> OnlyAttackData {};
+
 	~TechnoExtData()
 	{
 		if (!Phobos::Otamaa::ExeTerminated)
@@ -826,6 +854,10 @@ public:
 	void ResetDelayedFireTimer();
 
 	void CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIndex, bool attach, bool center, bool removeOnNoDelay, bool useOffsetOverride, CoordStruct offsetOverride);
+
+	void AddFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker);
+	bool ContainFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker) const;
+	int FindFirer(WeaponTypeClass* const Weapon) const;
 
 	static bool HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int weaponIndex, int firingFrame);
 
@@ -1070,6 +1102,7 @@ public:
 	static bool MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* const pTarget, WeaponTypeClass* const pWeaponType);
 
 	static bool IsHealthInThreshold(ObjectClass* pObject, double min, double max);
+	static std::tuple<bool, bool , bool> CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge = false, bool checkCapturableBuilding = false, bool checkAttachedBombs = false);
 
 public:
 	static UnitClass* Deployer;

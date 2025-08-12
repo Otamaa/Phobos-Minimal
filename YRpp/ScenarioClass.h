@@ -72,42 +72,42 @@ public:
 	static COMPILETIMEEVAL reference<bool, 0xA8ED5D> const ScenarioIsCampaign {};
 
 	static void __fastcall UpdateCellLighting()
-		{ JMP_STD(0x4AE4C0); }
+		{ JMP_FAST(0x4AE4C0); }
 
 	static void __fastcall UpdateLighting()
-		{ JMP_STD(0x53C280); }
+		{ JMP_FAST(0x53C280); }
 
 	// this function is only being inlined in RecalcLighting, but we can call it for just updating the hashpals
 	static void __fastcall UpdateHashPalLighting(int R, int G, int B, bool tint)
-		{ JMP_STD(0x53AC80); }
+		{ JMP_FAST(0x53AC80); }
 
 	static void  __fastcall ScenarioLighting(int* r,int* g,int* b)
-		{ JMP_STD(0x555AC0); }
+		{ JMP_FAST(0x555AC0); }
 
 	// this calls UpdateCellLighting() from above and does other good stuff
 	// initializers call it with -1, -1, -1, 0 , map retint actions use current tint * 10, 0
 	static void __fastcall RecalcLighting(int R, int G, int B, bool tint)
-		{ JMP_STD(0x53AD00); }
+		{ JMP_FAST(0x53AD00); }
 
 	static bool __fastcall SaveGame(const char* FileName, const wchar_t* Description, bool BarGraph = false)
-		{ JMP_STD(0x67CEF0); }
+		{ JMP_FAST(0x67CEF0); }
 
 	static bool __fastcall LoadGame(const char* FileName)
-		{ JMP_STD(0x67E440); }
+		{ JMP_FAST(0x67E440); }
 
 	static bool __fastcall StartScenario(const char* FileName, bool Briefing, int CampaignIndex)
-		{ JMP_STD(0x683AB0); }
+		{ JMP_FAST(0x683AB0); }
 
 	static void __fastcall AssignHouses()
-		{ JMP_STD(0x687F10); }
+		{ JMP_FAST(0x687F10); }
 
 	//not sure if this correct ?
 	static HRESULT __fastcall SaveAll(IStream*)
-		{ JMP_STD(0x67D300); }
+		{ JMP_FAST(0x67D300); }
 
 	//not sure if this correct ?
 	static HRESULT __fastcall LoadAll(IStream*)
-		{ JMP_STD(0x67E730); }
+		{ JMP_FAST(0x67E730); }
 
 	void ReadStartPoints(INIClass* ini)
 		{ JMP_THIS(0x689D30); }
@@ -128,28 +128,28 @@ public:
 	//IDA
 	//static
 
-	static int __fastcall PauseGame() JMP_STD(0x683EB0);
-	static int __fastcall ResumeGame() JMP_STD(0x683FB0);
-	static void __fastcall PauseGameFor() JMP_STD(0x684060);
-	static int __fastcall PauseGameWait() JMP_STD(0x684180); //
-	static int __fastcall LockInput() JMP_STD(0x684240);
-	static int __fastcall UnlockInput() JMP_STD(0x684290);
-	static int __fastcall ToggleDisplayMode(bool a1) JMP_STD(0x6842F0); //do something with DSurface::WindowBounds
-	static bool __fastcall ReadScenario(const char* pUnk) JMP_STD(0x684620);
-	static int __fastcall FillIn_Data() JMP_STD(0x684C30);
-	static int __fastcall InitScenariostuff() JMP_STD(0x685120);
-	static int __fastcall ClearScenario() JMP_STD(0x6851F0);
-	static int __fastcall DoWin() JMP_STD(0x685670);
-	static int __fastcall DoLose() JMP_STD(0x685DC0);
-	static int __fastcall DoRestart() JMP_STD(0x6863E0);
-	static int __fastcall DoAbort() JMP_STD(0x686570);
-	static bool __fastcall ReadScenarioINI(CCINIClass* pFilename) JMP_STD(0x686730);
-	static bool __fastcall ReadScenarioINI(CCINIClass* INI, char a2) JMP_STD(0x686B20);
-	static int __fastcall  WriteScenarioINI(const char* pFilename, bool bUnk) JMP_STD(0x687CE0);
+	static int __fastcall PauseGame() JMP_FAST(0x683EB0);
+	static int __fastcall ResumeGame() JMP_FAST(0x683FB0);
+	static void __fastcall PauseGameFor() JMP_FAST(0x684060);
+	static int __fastcall PauseGameWait() JMP_FAST(0x684180); //
+	static int __fastcall LockInput() JMP_FAST(0x684240);
+	static int __fastcall UnlockInput() JMP_FAST(0x684290);
+	static int __fastcall ToggleDisplayMode(bool a1) JMP_FAST(0x6842F0); //do something with DSurface::WindowBounds
+	static bool __fastcall ReadScenario(const char* pUnk) JMP_FAST(0x684620);
+	static int __fastcall FillIn_Data() JMP_FAST(0x684C30);
+	static int __fastcall InitScenariostuff() JMP_FAST(0x685120);
+	static int __fastcall ClearScenario() JMP_FAST(0x6851F0);
+	static int __fastcall DoWin() JMP_FAST(0x685670);
+	static int __fastcall DoLose() JMP_FAST(0x685DC0);
+	static int __fastcall DoRestart() JMP_FAST(0x6863E0);
+	static int __fastcall DoAbort() JMP_FAST(0x686570);
+	static bool __fastcall ReadScenarioINI(CCINIClass* pFilename) JMP_FAST(0x686730);
+	static bool __fastcall ReadScenarioINI(CCINIClass* INI, char a2) JMP_FAST(0x686B20);
+	static int __fastcall  WriteScenarioINI(const char* pFilename, bool bUnk) JMP_FAST(0x687CE0);
 
-	static void __fastcall ScenStruct_CTOR(DWORD dwUnk) JMP_STD(0x688380);
-	static void __fastcall GenerateUnitsOfMap(bool bUnk) JMP_STD(0x6886B0);
-	static int __fastcall ScanPlaceObject(int a1, int a2, int a3) JMP_STD(0x688ED0);
+	static void __fastcall ScenStruct_CTOR(DWORD dwUnk) JMP_FAST(0x688380);
+	static void __fastcall GenerateUnitsOfMap(bool bUnk) JMP_FAST(0x6886B0);
+	static int __fastcall ScanPlaceObject(int a1, int a2, int a3) JMP_FAST(0x688ED0);
 
 	//other
 	wchar_t* sub_683610() JMP_THIS(0x683610);
@@ -179,9 +179,9 @@ public:
 
 	int IncrementUniqueID() { JMP_THIS(0x68BCB0); }
 
-	static DWORD __fastcall GetRulesUniqueID() { JMP_STD(0x679D90); }
-	static DWORD __fastcall GetArtUniqueID() { JMP_STD(0x679EC0); }
-	static DWORD __fastcall GetAIUniqueID() { JMP_STD(0x679ED0); }
+	static DWORD __fastcall GetRulesUniqueID() { JMP_FAST(0x679D90); }
+	static DWORD __fastcall GetArtUniqueID() { JMP_FAST(0x679EC0); }
+	static DWORD __fastcall GetAIUniqueID() { JMP_FAST(0x679ED0); }
 
 	//CTOR / DTOR
 	ScenarioClass() { THISCALL(0x6832C0); }

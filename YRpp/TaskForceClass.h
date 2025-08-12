@@ -36,15 +36,15 @@ public:
 	IMPL_FindByName(TaskForceClass)
 
 	static TaskForceClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x6E85F0);
+		JMP_FAST(0x6E85F0);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x6E8180);
+		JMP_FAST(0x6E8180);
 	}
 
 	static int __fastcall FindIndexByName(const char* pID) {
-		JMP_STD(0x6E81D0);
+		JMP_FAST(0x6E81D0);
 	}
 
 	//IPersist

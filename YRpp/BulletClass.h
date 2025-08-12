@@ -90,8 +90,8 @@ public:
 	void Shrapnel() const
 		{ JMP_THIS(0x46A310); }
 
-	static void ApplyRadiationToCell(const CellStruct& cell, int radius, int amount)
-		{ JMP_STD(0x46ADE0); }
+	void ApplyRadiationToCell(const CellStruct& cell, int radius, int amount)
+		{ JMP_THIS(0x46ADE0); }
 
 	// this bullet will miss and hit the ground instead.
 	// if the original target is in air, it will disappear.
@@ -129,7 +129,7 @@ public:
 		bool bVeryHigh,
 		bool bLevel)
 
-	{ JMP_STD(0x5B20F0); }
+	{ JMP_FAST(0x5B20F0); }
 
 	// helpers
 	CoordStruct GetBulletTargetCoords() const {

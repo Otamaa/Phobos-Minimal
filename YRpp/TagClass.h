@@ -18,19 +18,19 @@ public:
 
 	// finds an instance using the type, or creates one
 	static TagClass* __fastcall GetInstance(TagTypeClass* pType)
-		{ JMP_STD(0x6E52A0); }
+		{ JMP_FAST(0x6E52A0); }
 
 	// deletes every tag in array
 	static void __stdcall DeleteAll()
-		{ JMP_STD(0x6E5570); }
+		{ JMP_FAST(0x6E5570); }
 
 	// notifies all tags in array that a global was updated
 	static void __fastcall NotifyGlobalChanged(int idxGlobal)
-		{ JMP_STD(0x6E57F0); }
+		{ JMP_FAST(0x6E57F0); }
 
 	// notifies all tags in array that a global was updated
 	static void __fastcall NotifyLocalChanged(int idxLocal)
-		{ JMP_STD(0x6E5820); }
+		{ JMP_FAST(0x6E5820); }
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

@@ -80,7 +80,7 @@ public:
 	AStarPathFinderClass() JMP_THIS(0x42A6D0);
 	~AStarPathFinderClass() JMP_THIS(0x42A900);
 
-	static CellStruct* __fastcall Find_Some_Cell(CellStruct* retstr, CellStruct* cell, int count, int path) JMP_STD(0x429780);
+	static CellStruct* __fastcall Find_Some_Cell(CellStruct* retstr, CellStruct* cell, int count, int path) JMP_FAST(0x429780);
 	/*
 	AStarClass__Get_Movement_Cost        00429830
 	AStarClass__AStar_Find_Path_Regular        00429A90

@@ -139,7 +139,7 @@ bool SWSidebarClass::AddButton(int superIdx)
 
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSWType);
 
-	if (!pSWExt->SW_ShowCameo || !pSWExt->SuperWeaponSidebar_Allow.Get(RulesExtData::Instance()->SuperWeaponSidebar_AllowByDefault))
+	if (!pSWExt->SW_ShowCameo || pSWExt->SW_AutoFire || !pSWExt->SuperWeaponSidebar_Allow.Get(RulesExtData::Instance()->SuperWeaponSidebar_AllowByDefault))
 		return false;
 
 	const unsigned int ownerBits = 1u << HouseClass::CurrentPlayer->Type->ArrayIndex;

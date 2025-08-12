@@ -49,24 +49,24 @@ struct Drawing
 	static COMPILETIMEEVAL reference<int, 0x8A0DDC> const BlueShiftRight {};
 
 	static bool __fastcall DrawSurfaces(Surface* surface1, ConvertClass* convert, Surface* surface2, RectangleStruct* a2, Point2D* point, RectangleStruct* a6, int drawerval, Blitter* a7, int z_val, int somearrayindex, int alpha_val, int Blit_Move_2_arg, int wrap_value)
-	{ JMP_STD(0x4AF2A0); }
+	{ JMP_FAST(0x4AF2A0); }
 
 	//TextBox dimensions for tooltip-style boxes
 	static RectangleStruct* __fastcall GetTextBox(
 		RectangleStruct* pOutBuffer, const wchar_t* pText,
 		int nX, int nY, DWORD flags, int nMarginX, int nMarginY) {
-		JMP_STD(0x4A59E0);
+		JMP_FAST(0x4A59E0);
 	}
 
 	static RectangleStruct* __fastcall GetTextDimensions(
 		RectangleStruct* pOutBuffer, wchar_t const* pText, Point2D location,
 		WORD flags, int marginX = 0, int marginY = 0)
-			{ JMP_STD(0x4A59E0); }
+			{ JMP_FAST(0x4A59E0); }
 
 	static RectangleStruct* __fastcall GetTextDimensions(
 		RectangleStruct* pOutBuffer, wchar_t const* pText, Point2D location,
 		TextPrintType flags, int marginX = 0, int marginY = 0)
-		{ JMP_STD(0x4A59E0); }
+		{ JMP_FAST(0x4A59E0); }
 
 	static RectangleStruct GetTextBox(const wchar_t* pText, int nX, int nY, int nMargin) {
 		RectangleStruct buffer;
@@ -123,7 +123,7 @@ struct Drawing
 		RectangleStruct* pOutBuffer,
 		const RectangleStruct& rect1,
 		const RectangleStruct& rect2)
-			{ JMP_STD(0x487F40); }
+			{ JMP_FAST(0x487F40); }
 
 	// Rect1 will be changed, notice that - secsome
 	static RectangleStruct Union(
@@ -186,7 +186,7 @@ struct Drawing
 		return ret;
 	}
 	static DWORD __fastcall RGB2DWORD(int red, int green, int blue)
-	{ JMP_STD(0x4355D0); }
+	{ JMP_FAST(0x4355D0); }
 
 	static DWORD RGB2DWORD(const ColorStruct Color) {
 		return RGB2DWORD(Color.R, Color.G, Color.B);

@@ -15,7 +15,7 @@ namespace RetryDialogFlag
 {
 	bool IsCalledFromRetryDialog = false;
 
-	void ReloadUIParts() JMP_STD(0x72DFB0);
+	void __cdecl ReloadUIParts() { JMP(0x72DFB0); }
 }
 
 ASMJIT_PATCH(0x686092, DoLose_RetryDialogForCampaigns, 0x7)

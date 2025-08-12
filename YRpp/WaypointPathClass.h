@@ -52,9 +52,9 @@ public:
 	bool WaypointExistsAt(CoordStruct& nWhere) const
 	{ JMP_THIS(0x763A50); }
 	static int __fastcall StringToWaypointIdx(char* pChar)
-	{ JMP_STD(0x763690); }
+	{ JMP_FAST(0x763690); }
 	static char* __fastcall WaypointIdxToString(int nIdx)
-	{ JMP_STD(0x763610); }
+	{ JMP_FAST(0x763610); }
 
 	// Constructor
 	WaypointPathClass(int idx)

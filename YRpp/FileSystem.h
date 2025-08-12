@@ -45,7 +45,7 @@ class NOVTABLE FakeFileLoader
 {
 public:
 	static void* __fastcall Retrieve(const char* pFilename, bool bLoadAsSHP = false)
-	{ JMP_STD(0x5B40B0); }
+	{ JMP_FAST(0x5B40B0); }
 
 	static void* __fastcall _Retrieve(const char* pFilename, bool bLoadAsSHP);
 };
@@ -91,7 +91,7 @@ public:
 	static COMPILETIMEEVAL reference<ConvertClass*,0xB1D140u > EightBitVoxelDrawer{};
 
 	static void* __fastcall LoadWholeFileEx(const char* pFilename, bool &outAllocated)
-		{ JMP_STD(0x4A38D0); }
+		{ JMP_FAST(0x4A38D0); }
 
 	static void* LoadFile(const char* pFileName)
 		{ return FakeFileLoader::_Retrieve(pFileName, false); }

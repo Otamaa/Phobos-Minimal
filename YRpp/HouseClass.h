@@ -509,28 +509,28 @@ public:
 
 	// these are for mostly for map actions - HouseClass* foo = IsMP() ? Find_YesMP() : Find_NoMP();
 	static bool __fastcall Index_IsMP(int idx)
-		{ JMP_STD(0x510F60); }
+		{ JMP_FAST(0x510F60); }
 
 	static HouseClass * __fastcall FindByCountryIndex(int HouseType) // find first house of this houseType
-		{ JMP_STD(0x502D30); }
+		{ JMP_FAST(0x502D30); }
 
 	static HouseClass * __fastcall FindByIndex(int idxHouse) // find house at given index
-		{ JMP_STD(0x510ED0); }                    // 0..15 map to ScenarioClass::HouseIndices, also supports PlayerAtA and up
+		{ JMP_FAST(0x510ED0); }                    // 0..15 map to ScenarioClass::HouseIndices, also supports PlayerAtA and up
 
 	static signed int __fastcall FindIndexByName(const char *name)
-		{ JMP_STD(0x50C170); }
+		{ JMP_FAST(0x50C170); }
 
 	static int __fastcall GetPlayerAtFromString(const char* name)
-		{ JMP_STD(0x510FB0); }
+		{ JMP_FAST(0x510FB0); }
 
 	static bool __fastcall IsPlayerAtType(int at)
 	{
-		 JMP_STD(0x510F60);
+		JMP_FAST(0x510F60);
 		//return at >= PlayerAtA && at <= PlayerAtH;
 	}
 
 	static HouseClass* __fastcall FindByPlayerAt(int at)
-		{ JMP_STD(0x510ED0); }
+		{ JMP_FAST(0x510ED0); }
 
 	// gets the first house of a type with this name
 	static HouseClass* FindByCountryName(const char* name);
@@ -570,7 +570,7 @@ public:
 	static HouseClass* FindCivilianSide();
 
 	static void __fastcall LoadFromINIList(CCINIClass *pINI)
-		{ JMP_STD(0x5009B0); }
+		{ JMP_FAST(0x5009B0); }
 
 
 	WaypointClass * GetPlanningWaypointAt(CellStruct *coords)
@@ -638,7 +638,7 @@ public:
 
 	// Target ought to be Object, I imagine, but cell doesn't work then
 	void __fastcall SendSpyPlanes(int AircraftTypeIdx, int AircraftAmount, Mission SetMission, AbstractClass *Target, ObjectClass *Destination)
-		{ JMP_STD(0x65EAB0); }
+		{ JMP_FAST(0x65EAB0); }
 
 	// registering in prereq counters (all technoes get logged, but only buildings get checked on validation... wtf)
 	void RegisterGain(TechnoClass* pTechno, bool ownerChange)
@@ -651,7 +651,7 @@ public:
 		{ JMP_THIS(0x4FD060); }
 
 	static AnimClass * __fastcall PsiWarn(HouseClass* pOwner , CellClass *pTarget, BulletClass *Bullet, char *AnimName)
-		JMP_STD(0x43B5E0);
+		{ JMP_FAST(0x43B5E0); }
 
 	bool Fire_LightningStorm(SuperClass* pSuper)
 		{ JMP_THIS(0x509E00); }

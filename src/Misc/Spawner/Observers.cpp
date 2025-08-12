@@ -43,24 +43,32 @@ ASMJIT_PATCH(0x5C98E5, MultiplayerScore_5C98A0_SkipObserverScore, 0x6)
 }
 
 // Use correct colors in diplomacy menu for all observers
-ASMJIT_PATCH(0x65838B, RadarClass__658330_SetObserverColorScheme, 0x5)
+ASMJIT_PATCH(0x6583B2, RadarClass__658330_SetObserverColorScheme, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
 
 	GET(HouseClass*, pHouse, EBX);
-	R->EAX<HouseClass*>(pHouse->IsInitiallyObserver() ? HouseClass::CurrentPlayer : (HouseClass*) nullptr);
-	return 0x65838B + 0x5;
+	if (pHouse->IsHumanPlayer && pHouse->IsInitiallyObserver())
+		return 0x658397;
+
+	return 0;
 }
 
 // Use correct flag icon in diplomacy menu for all observers
-ASMJIT_PATCH(0x65846D, RadarClass_658330_SetObserverFlag, 0x6)
+ASMJIT_PATCH(0x658473, RadarClass_658330_SetObserverFlag, 0x5)
 {
 	if (!SpawnerMain::Configs::Enabled)
 		return 0;
 
 	GET(HouseClass*, pHouse, EBX);
-	R->ECX(pHouse->IsInitiallyObserver() ? -3 : pHouse->Type->ArrayIndex);
+	if (pHouse->IsHumanPlayer 
+			&& pHouse->Defeated 
+			&& pHouse->IsInitiallyObserver()
+		) {
+		R->ECX(-3);
+	}
+
 	return 0x658485;
 }
 

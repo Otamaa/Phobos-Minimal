@@ -76,7 +76,7 @@ public:
 	virtual bool Unlimbo(const CoordStruct& Crd, DirType dFaceDir) override JMP_THIS(0x75F8B0);
 	virtual void DrawIt(Point2D* pLocation, RectangleStruct* pBounds) const  override JMP_THIS(0x7F6D08);
 
-	static void Generate_Tables()
+	static void __cdecl Generate_Tables()
 		{ JMP_STD(0x75F020); }
 
 	//=================================================================================

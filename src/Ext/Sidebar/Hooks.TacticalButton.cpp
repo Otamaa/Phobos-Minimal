@@ -11,7 +11,7 @@
 
 #pragma region NewButtonsRelated
 
-DEFINE_HOOK(0x692419, DisplayClass_ProcessClickCoords_SkipOnNewButtons, 0x7)
+ASMJIT_PATCH(0x692419, DisplayClass_ProcessClickCoords_SkipOnNewButtons, 0x7)
 {
 	enum { DoNothing = 0x6925FC };
 
@@ -21,14 +21,14 @@ DEFINE_HOOK(0x692419, DisplayClass_ProcessClickCoords_SkipOnNewButtons, 0x7)
 		? DoNothing : 0;
 }
 
-DEFINE_HOOK(0x6A5082, SidebarClass_InitClear_InitializeNewButtons, 0x5)
+ASMJIT_PATCH(0x6A5082, SidebarClass_InitClear_InitializeNewButtons, 0x5)
 {
 	SWSidebarClass::Global()->InitClear();
 	MessageColumnClass::Instance.InitClear();
 	return 0;
 }
 
-DEFINE_HOOK(0x6A5839, SidebarClass_InitIO_InitializeNewButtons, 0x5)
+ASMJIT_PATCH(0x6A5839, SidebarClass_InitIO_InitializeNewButtons, 0x5)
 {
 	SWSidebarClass::Global()->InitIO();
 	MessageColumnClass::Instance.InitIO();

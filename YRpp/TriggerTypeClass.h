@@ -23,7 +23,7 @@ public:
 
 	static COMPILETIMEEVAL reference<const char* , 0x8449F8u , 3u> const PersistentName {};
 	static const char* PersistentNameString(Presistance nPr) { return PersistentName[(int)nPr]; }
-	static Presistance __fastcall PresistentFromName(const char* const nString) { JMP_STD(0x727190); }
+	static Presistance __fastcall PresistentFromName(const char* const nString) { JMP_FAST(0x727190); }
 
 	//Array
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TriggerTypeClass*>, 0x8B4178u> const Array {};
@@ -32,7 +32,7 @@ public:
 	IMPL_Find(TriggerTypeClass)
 
 	static TriggerTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x727AA0);
+		JMP_FAST(0x727AA0);
 	}
 
 	IMPL_FindIndexById(TriggerTypeClass)
@@ -59,13 +59,13 @@ public:
 
 	//static
 	static void __fastcall LoadFromINIList(CCINIClass* pINI)
-		{ JMP_STD(0x7275D0); }
+		{ JMP_FAST(0x7275D0); }
 
 	static void __fastcall SaveToINIList(CCINIClass* pINI)
-		{ JMP_STD(0x727880); }
+		{ JMP_FAST(0x727880); }
 
 	TagTypeClass* __fastcall FindByNameOrID(char const* pName)
-		{ JMP_STD(0x727120); }
+		{ JMP_FAST(0x727120); }
 
 	//non-virtual
 	using Flags = BYTE; // same as trigger and event flags?

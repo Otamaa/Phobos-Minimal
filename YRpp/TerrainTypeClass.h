@@ -20,11 +20,11 @@ public:
 	IMPL_Find(TerrainTypeClass)
 
 	static TerrainTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x71E2A0);
+		JMP_FAST(0x71E2A0);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x71DD80);
+		JMP_FAST(0x71DD80);
 	}
 
 	//IPersist

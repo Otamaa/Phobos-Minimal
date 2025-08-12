@@ -17,15 +17,15 @@ public:
 	IMPL_Find(UnitTypeClass)
 
 	static UnitTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x7480D0);
+		JMP_FAST(0x7480D0);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x747370);
+		JMP_FAST(0x747370);
 	}
 
 	//static
-	static void __fastcall InitOneTimeData() JMP_STD(0x7473E0);
+	static void __fastcall InitOneTimeData() { JMP_FAST(0x7473E0); }
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x747F30);
@@ -50,7 +50,7 @@ public:
 
 	//TechnoTypeClass
 	static void __fastcall OneTimeInit()
-		{ JMP_STD(0x7473E0); }
+		{ JMP_FAST(0x7473E0); }
 
 	//Constructor
 	UnitTypeClass(const char* pID) noexcept

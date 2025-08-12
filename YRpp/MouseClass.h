@@ -166,16 +166,16 @@ public:
 	void FlashMoney() const JMP_THIS(0x6D0EC0);
 
 	static void __fastcall LinkTooltip(ShapeButtonClass* pButton , char* pTip) 
-	  { JMP_STD(0x6D09C0); }
+	  { JMP_FAST(0x6D09C0); }
 
 	static ShapeButtonClass* __fastcall GetCommandbarShape(int idx) 
-	  { JMP_STD(0x6CFD40); }
+	  { JMP_FAST(0x6CFD40); }
 
 	static void __fastcall SetCommanbarRect(int at)
-	  { JMP_STD(0x6CFDB0); }
+	  { JMP_FAST(0x6CFDB0); }
 
 	static RectangleStruct __fastcall GetCommanbarRect(int idx)
-	 { JMP_STD(0x6CFD60); }
+	 { JMP_FAST(0x6CFD60); }
 
 	TabClass() JMP_THIS(0x6CFE20);
 

@@ -1882,15 +1882,10 @@ bool TechnoExt_ExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, 
 			if (pThatShield->GetType()->CanBeHealed)
 			{
 				const bool IsFullHP = pThatShield->GetHealthRatio() >= nRulesGreen;
-				if (!IsFullHP)
-				{
-					return true;
-				}
-				else
-				{
-					if (pThatShield->GetType()->PassthruNegativeDamage)
-						return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
-				}
+				if (IsFullHP && pThatShield->GetType()->PassthruNegativeDamage)
+					return !(pTarget->GetHealthPercentage_() >= nRulesGreen);
+
+				return true;
 			}
 
 			return false;
@@ -1902,10 +1897,22 @@ bool TechnoExt_ExtData::FiringAllowed(TechnoClass* pThis, TechnoClass* pTarget, 
 
 UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 {
-	const auto pData = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	UnitTypeClass* pType = pThis->Type;
+	bool isDisguised = false;
+
+	if (pThis->IsDisguised() && !pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
+		const auto pTargetType = pThis->GetDisguise(true);
+
+		if (pTargetType && pTargetType->WhatAmI() == UnitTypeClass::AbsID) {
+			pType = (UnitTypeClass*)pTargetType;
+			isDisguised = true;
+		}
+	}
+
+	const auto pData = TechnoTypeExtContainer::Instance.Find(pType);
+
 	if ((pData->WaterImage || pData->WaterImage_Yellow || pData->WaterImage_Red) && !pThis->OnBridge && pThis->GetCell()->LandType == LandType::Water && !pThis->IsAttackedByLocomotor)
 	{
-
 		if (pData->WaterImage_Red && pThis->IsRedHP())
 			return pData->WaterImage_Red;
 
@@ -1921,7 +1928,7 @@ UnitTypeClass* TechnoExt_ExtData::GetUnitTypeImage(UnitClass* const pThis)
 	if (pData->Image_Yellow && pThis->IsYellowHP())
 		return (UnitTypeClass*)pData->Image_Yellow.Get();
 
-	return nullptr;
+	return isDisguised ? pType : (UnitTypeClass*)nullptr;
 }
 
 TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)
@@ -1940,13 +1947,13 @@ TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)
 			Image = pUnit->Type->UnloadingClass;
 		}
 
-		if (!pUnit->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
-		{
-			if (auto pDisUnit = type_cast<UnitTypeClass*>(pUnit->GetDisguise(true)))
-			{
-				Image = pDisUnit;
-			}
-		}
+		// if (!pUnit->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
+		// {
+		// 	if (auto pDisUnit = type_cast<UnitTypeClass*>(pUnit->GetDisguise(true)))
+		// 	{
+		// 		Image = pDisUnit;
+		// 	}
+		// }
 
 		return Image;
 	}
@@ -6045,7 +6052,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 	{
 		const uint16 lo = pTeamMission->Argument & 0xFFFF;
 
-		if (lo > BuildingTypeClass::Array->Count)
+		if (lo >= BuildingTypeClass::Array->Count)
 		{
 			Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
 				pTeam, pTeam->get_ID(), pTeamMission->Action, lo, BuildingTypeClass::Array->Count);

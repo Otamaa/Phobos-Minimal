@@ -202,7 +202,7 @@ public:
 	}
 
 	// Non virtual
-	static Matrix3D* __fastcall TransposeMatrix(Matrix3D* buffer, const Matrix3D* mat) { JMP_STD(0x5AFC20); }
+	static Matrix3D* __fastcall TransposeMatrix(Matrix3D* buffer, const Matrix3D* mat) { JMP_FAST(0x5AFC20); }
 	static Matrix3D TransposeMatrix(const Matrix3D& A)
 	{
 		Matrix3D v7 {};
@@ -215,7 +215,7 @@ public:
 		*this = TransposeMatrix(*this);
 	}
 
-	static Matrix3D* __fastcall FromQuaternion(Matrix3D* mat, const Quaternion* q) { JMP_STD(0x646980); }
+	static Matrix3D* __fastcall FromQuaternion(Matrix3D* mat, const Quaternion* q) { JMP_FAST(0x646980); }
 	static Matrix3D FromQuaternion(const Quaternion& q)
 	{
 		//double v2; // st7
@@ -378,7 +378,7 @@ public:
 	void RotateZ(float theta) const { JMP_THIS(0x5AF1A0); }
 	void RotateZ(float Sin, float Cos) const { JMP_THIS(0x5AF240); }
 
-	static COMPILETIMEEVAL Matrix3D* __fastcall MatrixMultiply(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B)// { JMP_STD(0x5AF980); }
+	static COMPILETIMEEVAL Matrix3D* __fastcall MatrixMultiply(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B)// { JMP_FAST(0x5AF980); }
 	{
 
 		for (int i = 0; i < 3; ++i)
@@ -459,7 +459,7 @@ public:
 	void LookAt1(Vector3D<float>& p, Vector3D<float>& t, float roll) { JMP_THIS(0x5AF550); }
 	void LookAt2(Vector3D<float>& p, Vector3D<float>& t, float roll) { JMP_THIS(0x5AF710); }
 
-	//static Matrix3D* __fastcall MatrixMultiply__(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B) { JMP_STD(0x5AF980); }
+	//static Matrix3D* __fastcall MatrixMultiply__(Matrix3D* ret, const Matrix3D* A, const Matrix3D* B) { JMP_FAST(0x5AF980); }
 	COMPILETIMEEVAL FORCEDINLINE static Matrix3D MatrixMultiply__(const Matrix3D& A, const Matrix3D& B)
 	{
 		//Matrix3D buffer;
@@ -500,7 +500,7 @@ public:
 		};
 	}
 
-	static Quaternion* __fastcall FromMatrix(Quaternion* ret, Matrix3D* Mtx) { JMP_STD(0x00646730); }
+	static Quaternion* __fastcall FromMatrix(Quaternion* ret, Matrix3D* Mtx) { JMP_FAST(0x00646730); }
 	// Idk : Otamaa
 	static Quaternion FromMatrix(Matrix3D& Mtx)
 	{

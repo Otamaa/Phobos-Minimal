@@ -24,15 +24,15 @@ public:
 	IMPL_Find(AnimTypeClass)
 
 	static AnimTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x428B80);
+		JMP_FAST(0x428B80);
 	}
 
 	static int __fastcall __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x427CB0);
+		JMP_FAST(0x427CB0);
 	}
 
 	//static
-	static int __fastcall LoadAllAnimFile(TheaterType theater) JMP_STD(0x427940);
+	static int __fastcall LoadAllAnimFile(TheaterType theater) JMP_FAST(0x427940);
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x428990);

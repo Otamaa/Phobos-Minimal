@@ -832,6 +832,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 
 			const auto pWeapon = pType->Weapons[curIndex];
 			const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 
 			if (!pType->WeaponRetarget)
 			{
@@ -901,7 +902,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 								{
 									const auto pObjType = pObject->GetType();
 
-									if (pObjType && !pObjType->Immune)
+									if (pObjType && (!pObjType->Immune || pWHExt->IsFakeEngineer))
 										validObjects.push_back(pObject);
 								}
 

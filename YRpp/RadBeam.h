@@ -16,7 +16,7 @@ public:
 	~RadBeam() = default;
 
 	static RadBeam* __fastcall Allocate(RadBeamType mode)
-		{ JMP_STD(0x659110); }
+		{ JMP_FAST(0x659110); }
 
 	static RadBeam* ManualAllocate(RadBeamType mode)
 	{

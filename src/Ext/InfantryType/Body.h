@@ -46,6 +46,7 @@ public:
 	Valueable<bool> AllowReceiveSpeedBoost { false };
 
 	Nullable<double> ProneSpeed {};
+	Nullable<bool> InfantryAutoDeploy { false };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }

@@ -252,6 +252,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DelayedFire_OnlyOnInitialBurst.Read(exINI, pSection, "DelayedFire.OnlyOnInitialBurst");
 	this->DelayedFire_AnimOffset.Read(exINI, pSection, "DelayedFire.AnimOffset");
 
+	this->OnlyAttacker.Read(exINI, pSection, "OnlyAttacker");
 
 	this->SkipWeaponPicking = true;
 	if (this->CanTarget != AffectedTarget::All ||
@@ -587,6 +588,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_OnlyOnInitialBurst)
 		.Process(this->DelayedFire_AnimOffset)
 		.Process(this->DelayedFire_AnimOnTurret)
+		.Process(this->OnlyAttacker)
 		;
 
 	MyAttachFireDatas.Serialize(Stm);

@@ -173,6 +173,9 @@ ASMJIT_PATCH(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 				return SkipResponse;
 			}
 		}
+	}else if (auto const pUnit = cast_to<UnitClass*, false>(pThis)){
+		if (pUnit->Type->Speed == 0)
+			return SkipResponse;
 	}
 
 	return 0;
@@ -1664,38 +1667,195 @@ ASMJIT_PATCH(0x6FCF3E, TechnoClass_SetTarget_After, 0x6)
 
 #pragma endregion
 
-//Action __fastcall UnitClass__WhatAction_Wrapper(UnitClass* pThis, void* _, ObjectClass* pObj, bool ignoreForce)
-//{
-//	auto result = pThis->UnitClass::MouseOverObject(pObj, ignoreForce);
-//	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-//
-//	if (!pExt->ParentAttachment)
-//		return result;
-//
-//	switch (result)
-//	{
-//	case Action::Repair:
-//		result = Action::NoRepair;
-//		break;
-//
-//	case Action::Self_Deploy:
-//		if (pThis->Type->DeploysInto)
-//			result = Action::NoDeploy;
-//		break;
-//
-//	case Action::Sabotage:
-//	case Action::Capture:
-//	case Action::Enter:
-//		result = Action::NoEnter;
-//		break;
-//
-//	case Action::GuardArea:
-//	case Action::AttackMoveNav:
-//	case Action::Move:
-//		result = Action::NoMove;
-//		break;
-//	}
-//
-//	return result;
-//}
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5CE4, UnitClass__WhatAction_Wrapper);
+
+// Skip incorrect retn to restore the auto deploy behavior of infantry
+ASMJIT_PATCH(0x522373, InfantryClass_ApproachTarget_InfantryAutoDeploy, 0x5)
+{
+	enum { Deploy = 0x522378 };
+	GET(FakeInfantryClass*, pThis, ESI);
+	return pThis->_GetTypeExtData()->InfantryAutoDeploy.Get(RulesExtData::Instance()->InfantryAutoDeploy)
+		? Deploy : 0;
+}
+
+ASMJIT_PATCH(0x746720, UnitClass_ClearDisguise_DefaultDisguise, 0x5)
+{
+	GET(UnitClass*, pThis, ECX);
+	const auto pType = pThis->Type;
+
+	if (!pType->PermaDisguise)
+		return 0;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pDefault = pTypeExt->DefaultVehicleDisguise.Get();
+	pThis->Disguise = pDefault ? pDefault : pType;
+	pThis->DisguisedAsHouse = pThis->Owner;
+	pThis->Disguised = true;
+	return 0x746747;
+}
+
+ASMJIT_PATCH(0x7466DC, UnitClass_DisguiseAs_DisguiseAsVehicle, 0x6)
+{
+	GET(UnitClass*, pThis, EDI);
+	GET(UnitClass*, pTarget, ESI);
+	const bool targetDisguised = pTarget->IsDisguised();
+
+	pThis->Disguise = targetDisguised ? pTarget->GetDisguise(true) : pTarget->Type;
+	pThis->DisguisedAsHouse = targetDisguised ? pTarget->GetDisguiseHouse(true) : pTarget->Owner;
+	pThis->TechnoClass::DisguiseAs(pTarget);
+	return 0x746712;
+}
+
+ASMJIT_PATCH(0x74659B, UnitClass_RemoveGunner_ClearDisguise, 0x6)
+{
+	GET(UnitClass*, pThis, EDI);
+
+	if (!pThis->IsDisguised())
+		return 0;
+
+	if (const auto pWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType)
+	{
+		const auto pWarhead = pWeapon->Warhead;
+
+		if (pWarhead && pWarhead->MakesDisguise)
+			return 0;
+	}
+
+	pThis->ClearDisguise();
+	return 0;
+}
+
+#ifndef _disabled
+
+ASMJIT_PATCH(0x740414, UnitClass_WhatAction_Immune_FakeEngineer1, 0x5)
+{
+	enum { ForceNewValue = 0x74049F };
+
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoClass* const, pTarget, EDI);
+
+	if(const auto pBuilding = cast_to<BuildingClass*>(pTarget)){
+		const auto&[allow1 , allow2 , canBeDefused] = TechnoExtData::CanBeAffectedByFakeEngineer(pThis, pBuilding, true, true, true);
+
+		if (allow1 || allow2 || canBeDefused)
+		{
+			if (canBeDefused)
+				R->EBX(Action::DisarmBomb);
+			else
+				R->EBX(Action::Attack);
+
+			return ForceNewValue;
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x74049A, UnitClass_WhatAction_Immune_FakeEngineer2, 0x5)
+{
+	enum { ForceNewValue = 0x74049F };
+
+	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoClass* const, pTarget, EDI);
+
+	if (const auto pBuilding = cast_to<BuildingClass*>(pTarget))
+	{
+		const auto& [allow1, allow2, canBeDefused] = TechnoExtData::CanBeAffectedByFakeEngineer(pThis, pBuilding, true, true, true);
+
+		if (allow1 || allow2 || canBeDefused)
+		{
+			if (canBeDefused)
+				R->EBX(Action::DisarmBomb);
+			else
+				R->EBX(Action::Attack);
+
+			return ForceNewValue;
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x417F63, AircraftClass_WhatAction_Immune_FakeEngineer, 0x5)
+{
+	enum { ForceNewValue = 0x417F68 };
+
+	GET(TechnoClass* const, pThis, ESI);
+	GET(BuildingClass* const, pBuilding, EDI);
+
+	const auto& [allow1, allow2, canBeDefused] = TechnoExtData::CanBeAffectedByFakeEngineer(pThis, pBuilding, true, true, true);
+
+	if (allow1  || allow2 || canBeDefused)
+		return ForceNewValue;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x447527, BuildingClass_WhatAction_Immune_FakeEngineer, 0x5)
+{
+	enum { ForceNewValue = 0x44752C };
+
+	GET(TechnoClass* const, pThis, ESI);
+	GET(BuildingClass* const, pBuilding, EBP);
+
+	const auto& [allow1, allow2, canBeDefused] = TechnoExtData::CanBeAffectedByFakeEngineer(pThis, pBuilding, true, true, true);
+
+	if (allow1 || allow2 || canBeDefused)
+	{
+		if (canBeDefused)
+			R->EBP(Action::DisarmBomb);
+		else
+			R->EBP(Action::Attack);
+
+		return ForceNewValue;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x51F179, InfantryClass_WhatAction_Immune_FakeEngineer, 0x5)
+{
+	enum { ForceNewValue = 0x51F17E };
+
+	GET(TechnoClass* const, pThis, EDI);
+	GET(BuildingClass* const, pBuilding, ESI);
+
+	const auto& [allow1, allow2, canBeDefused] = TechnoExtData::CanBeAffectedByFakeEngineer(pThis, pBuilding, true, true, true);
+
+	if (allow1 || allow2 || canBeDefused)
+	{
+		if (canBeDefused)
+			R->EBP(Action::DisarmBomb);
+		else
+			R->EBP(Action::Attack);
+
+		return ForceNewValue;
+	}
+	return 0;
+}
+
+ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_ForceWeapon, 0xF)
+{
+	enum { UseWeaponIndex = 0x0 };
+
+	GET(TechnoClass* const, pThis, ESI);
+	GET(AbstractClass* const, pTarget, EBX);
+	REF_STACK(int, nWeaponIdx, STACK_OFFSET(0x10, 0xC));
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	// Force weapon check
+	int newIndex = pTypeExt->SelectForceWeapon(pThis, pTarget);
+
+	if (newIndex >= 0) {
+		nWeaponIdx = newIndex;
+	} else {
+		// Multi weapon check
+		newIndex = pTypeExt->SelectMultiWeapon(pThis, pTarget);
+
+		if (newIndex >= 0)
+			nWeaponIdx = newIndex;
+	}
+
+	return 0;
+}
+#endif

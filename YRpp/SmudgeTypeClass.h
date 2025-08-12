@@ -19,11 +19,11 @@ public:
 	IMPL_Find(SmudgeTypeClass)
 
 	static SmudgeTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x6B5910);
+		JMP_FAST(0x6B5910);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x6B5440);
+		JMP_FAST(0x6B5440);
 	}
 
 	//IPersist
@@ -49,17 +49,17 @@ public:
 
 	//craters
 	static void __fastcall CreateRandomSmudgeFromTypeList(CoordStruct& nWhere, int nVal1, int nVal2, bool bIgnoreBuildings)
-		{ JMP_STD(0x6B5C90); }
+		{ JMP_FAST(0x6B5C90); }
 
 	//scorches
 	static void __fastcall CreateRandomSmudge(CoordStruct& nWhere, int nVal1, int nVal2, bool bIgnoreBuildings)
-		{ JMP_STD(0x6B59A0); }
+		{ JMP_FAST(0x6B59A0); }
 
 	bool CanPlace(CellStruct& nCell, bool bIgnoreBuildings)
 		{ JMP_THIS(0x6B5F80); }
 
 	static void __fastcall TheaterInit(TheaterType nType)
-		{ JMP_STD(0x6B5490); }
+		{ JMP_FAST(0x6B5490); }
 
 	//Constructor
 	SmudgeTypeClass(const char* pID) noexcept

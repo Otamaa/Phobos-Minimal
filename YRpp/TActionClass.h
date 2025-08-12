@@ -54,12 +54,12 @@ public:
 	// fuck if I know what's the purpose of this, returns a bitfield of flags for trigger logic
 	//  return AttachType
 	static int __fastcall GetFlags(int actionKind)
-		{ JMP_STD(0x6E3EE0); }
+		{ JMP_FAST(0x6E3EE0); }
 
 	// transforms actionKind to a number saying what to parse arguments as (team/tag/trigger id, waypoint, integer, etc)
 	// return NeedType
 	static int __fastcall GetMode(int actionKind)
-		{ JMP_STD(0x6E3B60); }
+		{ JMP_FAST(0x6E3B60); }
 
 	// main brain, returns whether succeeded (mostly, no consistency in results what so ever)
 	// trigger fires all actions regardless of result of this

@@ -40,7 +40,7 @@ public:
 	}
 
 	static void __fastcall DrawAll()
-	{ JMP_STD(0x4C2830); }
+	{ JMP_FAST(0x4C2830); }
 
 	void Fire(CoordStruct P1, CoordStruct P2, int _ZAdjust)
 		{ JMP_THIS(0x4C2A60); }

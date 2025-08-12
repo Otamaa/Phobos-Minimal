@@ -41,17 +41,10 @@ MSVC++
 	_asm{mov esp, ebp} \
 	_asm{pop ebp}
 
-#define EPILOG_FASTCALL \
-	_asm{pop ecx} \
-	_asm{pop edx} \
-	_asm{mov esp, ebp} \
-	_asm{pop ebp}
-
 //Get/set register to a variable
 #define GET_REG32(dst,reg) _asm{mov dst, reg}
 #define SET_REG32(reg,src) _asm{mov reg, src}
 #define GET_REGISTER_STATIC(dst, reg) static _asm { mov dst, reg }
-
 
 #define GET_REGISTER_TYPE(type, dst, reg) type dst; _asm { mov dst, reg }
 #define GET_REGISTER_STATIC_TYPE(type, dst, reg) static type dst; _asm { mov dst, reg }
@@ -241,14 +234,12 @@ MSVC++
 		_asm { jmp eax } \
 	}
 
-
 #define JMP_THIS(address) { EPILOG_THISCALL JMP(address); }
 #define JMP_STD(address) { EPILOG_STDCALL JMP(address); }
 #define JMP_FAST(address) { EPILOG_STDCALL JMP(address); }
 
 #define CALL_THIS(address) { EPILOG_THISCALL ASM_CALL(address); }
 #define CALL_STD(address) { EPILOG_STDCALL ASM_CALL(address); }
-#define CALL_FAST(address) { EPILOG_STDCALL ASM_CALL(address); }
 
 // __thiscall version
 #define AUTO_FUNC_THIS(name, ret, addr, ...) \

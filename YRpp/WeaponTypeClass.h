@@ -27,11 +27,11 @@ public:
 	IMPL_Find(WeaponTypeClass)
 
 	static WeaponTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x772FA0);
+		JMP_FAST(0x772FA0);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x773030);
+		JMP_FAST(0x773030);
 	}
 
 	//IPersist

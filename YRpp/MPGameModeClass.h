@@ -63,7 +63,7 @@ public:
 	static COMPILETIMEEVAL reference<MPGameModeClass*, 0xA8B23C> const Instance{};
 
 	static MPGameModeClass* __fastcall Get(int index)
-		{ JMP_STD(0x5D5F30); }
+		{ JMP_FAST(0x5D5F30); }
 
 	static bool Set(int index)
 	{

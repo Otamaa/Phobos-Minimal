@@ -31,7 +31,7 @@ public:
 	IMPL_Find(AITriggerTypeClass)
 
 	static AITriggerTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x41FCA0);
+		JMP_FAST(0x41FCA0);
 	}
 
 	IMPL_FindIndexById(AITriggerTypeClass)
@@ -50,13 +50,13 @@ public:
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 
-	static bool LoadFromINIList(CCINIClass *pINI)
-		{ JMP_STD(0x41F2E0); }
+	static bool __fastcall LoadFromINIList(CCINIClass *pINI, bool Global)
+		{ JMP_FAST(0x41F2E0); }
 
 	// Global == saving into AI.ini as opposed to map?
 	// if !Global, [AITriggerTypesEnable] gets saved as well
-	static bool SaveToINIList(CCINIClass *pINI, bool Global)
-		{ JMP_STD(0x41F490); }
+	static bool __fastcall SaveToINIList(CCINIClass *pINI, bool Global)
+		{ JMP_FAST(0x41F490); }
 
 	// non-virtual
 

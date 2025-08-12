@@ -16,6 +16,7 @@ class EnumFunctions final
 	NO_CONSTRUCT_CLASS(EnumFunctions)
 public:
 
+	static constexpr auto AffectedTechno_ToStrings = magic_enum::enum_entries<AffectedTechno>();
 	static constexpr auto AttachedAnimPosition_ToStrings = magic_enum::enum_entries<AttachedAnimPosition>();
 	static constexpr auto LaserTrailDrawType_ToStrings = magic_enum::enum_entries<LaserTrailDrawType>();
 	static constexpr auto OwnerHouseKind_ToStrings = magic_enum::enum_entries<OwnerHouseKind>();
@@ -75,6 +76,7 @@ public:
 	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false, bool considerBridgesLand = false);
 	static bool IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget  const& allowed, bool considerAircraftSeparately = false);
 	static bool IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget const& allowed);
+	static bool CanAffectTechnoResult(AbstractType type, AffectedTechno allowed);
 	static bool AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse  const& allowedHouses, HouseClass* owner, bool explicitEmptyCells = false, bool considerAircraftSeparately = false, bool allowBridges = false);
 	static BlitterFlags GetTranslucentLevel(int const& nInt);
 	static TextPrintType CastAlignToFlags(HorizontalPosition const& pos);

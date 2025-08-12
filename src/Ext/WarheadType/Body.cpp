@@ -683,6 +683,11 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->PenetratesTransport_DamageAll.Read(exINI, pSection, "PenetratesTransport.DamageAll");
 	this->PenetratesTransport_CleanSound.Read(exINI, pSection, "PenetratesTransport.CleanSound");
 
+	this->FakeEngineer_CanRepairBridges.Read(exINI, pSection, "FakeEngineer.CanRepairBridges");
+	this->FakeEngineer_CanDestroyBridges.Read(exINI, pSection, "FakeEngineer.CanDestroyBridges");
+	this->FakeEngineer_CanCaptureBuildings.Read(exINI, pSection, "FakeEngineer.CanCaptureBuildings");
+	this->FakeEngineer_BombDisarm.Read(exINI, pSection, "FakeEngineer.BombDisarm");
+
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
 		this->RemoveMindControl ||
@@ -715,6 +720,12 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		|| this->BuildingSell
 		|| this->BuildingUndeploy
 		;
+
+	this->IsFakeEngineer =
+		this->FakeEngineer_CanRepairBridges ||
+		this->FakeEngineer_CanDestroyBridges ||
+		this->FakeEngineer_CanCaptureBuildings ||
+		this->FakeEngineer_BombDisarm;
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -1881,10 +1892,83 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->PenetratesTransport_DamageAll)
 		.Process(this->PenetratesTransport_CleanSound)
 
+		.Process(this->FakeEngineer_CanRepairBridges)
+		.Process(this->FakeEngineer_CanDestroyBridges)
+		.Process(this->FakeEngineer_CanCaptureBuildings)
+		.Process(this->FakeEngineer_BombDisarm)
+
 		.Process(this->IsCellSpreadWH)
+		.Process(this->IsFakeEngineer)
 		;
 
 	PaintBallData.Serialize(Stm);
+}
+
+#include <RadarEventClass.h>
+
+void WarheadTypeExtData::DetonateAtBridgeRepairHut(AbstractClass* pTarget, TechnoClass* pOwner, HouseClass* pFiringHouse, bool destroyBridge)
+{
+	auto const pBuilding = cast_to<BuildingClass*>(pTarget);
+
+	if (!pBuilding || !pBuilding->Type->BridgeRepairHut || !pBuilding->IsAlive || pBuilding->Health <= 0)
+		return;
+
+	const CoordStruct targetCoords = pTarget->GetCenterCoords();
+	const CellStruct baseCell = CellClass::Coord2Cell(targetCoords);
+
+	// Send engineer's "enter" event
+	auto const pTag = pBuilding->AttachedTag;
+
+	if (pTag && pOwner)
+		pTag->RaiseEvent(TriggerEvent::EnteredBy, pOwner, CellStruct::Empty);
+
+	// Check a 5x5 area for bridge tiles to determine if we should repair or destroy
+	bool foundWoodBridge = false;
+
+	for (int y = -2; y <= 2; ++y)
+	{
+		for (int x = -2; x <= 2; ++x)
+		{
+			CellStruct checkCellCoords = { static_cast<short>(baseCell.X + x), static_cast<short>(baseCell.Y + y) };
+			auto const checkCell = MapClass::Instance->GetCellAt(checkCellCoords);
+
+			if (checkCell->Tile_Is_WoodBridge() || (checkCell->OverlayTypeIndex >= 74 && checkCell->OverlayTypeIndex <= 101))
+				foundWoodBridge = true;
+
+			if (foundWoodBridge)
+				break;
+		}
+
+		if (foundWoodBridge)
+			break;
+	}
+
+	// Destroying bridges
+	if (destroyBridge)
+	{
+		if (foundWoodBridge) // Repair wood bridges
+			MapClass::Instance->DestroyWoodBridgeAt(baseCell);
+		else // Destroy concrete bridges
+			MapClass::Instance->DestroyConcreteBridgeAt(baseCell);
+
+		return;
+	}
+
+	auto const pFiringOwner = pOwner ? pOwner->Owner : pFiringHouse;
+
+	// Repairing bridges
+	if (pFiringOwner && pFiringOwner->ControlledByCurrentPlayer())
+	{
+		if (RadarEventClass::Create(RadarEventType::BridgeRepaired, CellClass::Coord2Cell(targetCoords)))
+			VoxClass::PlayIndex(VoxClass::FindIndexById("EVA_BridgeRepaired"));
+	}
+
+	VocClass::SafeImmedietelyPlayAt(RulesClass::Instance->RepairBridgeSound, targetCoords, nullptr);
+
+	if (foundWoodBridge) // Repair wood bridges
+		MapClass::Instance->RepairWoodBridgeAt(baseCell);
+	else // Repair concrete bridges
+		MapClass::Instance->RepairConcreteBridgeAt(baseCell);
 }
 
 void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) const

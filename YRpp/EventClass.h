@@ -297,7 +297,7 @@ public:
 	static bool __fastcall CreateClickedMissionEvent
 	(Mission Mission, TargetClass* PackedTarget, int selfID, char selfWhatAmI, TargetClass* PackedTargetCell)
 	{
-		JMP_STD(0x646E90);
+		JMP_FAST(0x646E90);
 	}
 
 	explicit EventClass(const EventClass& another)

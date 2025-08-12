@@ -57,7 +57,7 @@ public:
 	//idk
 	Quaternion* Func_645D60(Quaternion* B) const { JMP_THIS(0x645D60); }
 
-	static Quaternion* __fastcall Multiply(Quaternion* ret, Quaternion* A, Quaternion* B) { JMP_STD(0x645ED0); }
+	static Quaternion* __fastcall Multiply(Quaternion* ret, Quaternion* A, Quaternion* B) { JMP_FAST(0x645ED0); }
 	static Quaternion Multiply(const Quaternion& that1, const Quaternion& that2)
 	{
 		float that2X = that2.X;
@@ -92,18 +92,18 @@ public:
 		return x;
 	}
 
-	static Quaternion* __fastcall Func_646040(Quaternion* ret, Quaternion* A, Quaternion* B) { JMP_STD(0x646040); }
+	static Quaternion* __fastcall Func_646040(Quaternion* ret, Quaternion* A, Quaternion* B) { JMP_FAST(0x646040); }
 	static Quaternion Func_646040(const Quaternion& a, const Quaternion& b)
 	{
 		return Multiply(a, { -b.X , -b.Y , -b.Z , b.W });
 	}
 
-	static Quaternion* __fastcall Conjugate(Quaternion* ret, Quaternion* A) { JMP_STD(0x646110); }
+	static Quaternion* __fastcall Conjugate(Quaternion* ret, Quaternion* A) { JMP_FAST(0x646110); }
 	static Quaternion Conjugate(const Quaternion& a) {
 		return { -a.X  ,-a.Y , -a.Z ,a.W };
 	}
 
-	static Quaternion* __fastcall Trackball(Quaternion* ret, float x0, float y0, float x1, float y1, float radius) { JMP_STD(0x646160); }
+	static Quaternion* __fastcall Trackball(Quaternion* ret, float x0, float y0, float x1, float y1, float radius) { JMP_FAST(0x646160); }
 	//idk
 	static Quaternion Trackball(float x0, float y0, float x1, float y1, float radius)
 	{
@@ -112,7 +112,7 @@ public:
 		return buffer;
 	}
 
-	static Quaternion* __fastcall Slerp(Quaternion* ret, Quaternion* A, Quaternion* B, float alpha) { JMP_STD(0x646590); }
+	static Quaternion* __fastcall Slerp(Quaternion* ret, Quaternion* A, Quaternion* B, float alpha) { JMP_FAST(0x646590); }
 	static Quaternion Slerp(Quaternion& A, Quaternion& B, float alpha)
 	{
 		Quaternion buffer;
@@ -120,7 +120,7 @@ public:
 		return buffer;
 	}
 
-	static Quaternion* __fastcall FromAxis(Quaternion* ret, Vector3D<float>* vec, float phi) { JMP_STD(0x646480); }
+	static Quaternion* __fastcall FromAxis(Quaternion* ret, Vector3D<float>* vec, float phi) { JMP_FAST(0x646480); }
 	static Quaternion FromAxis(Vector3D<float>& a, float phi)
 	{
 		float y = a.Y;

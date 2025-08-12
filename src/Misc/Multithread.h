@@ -15,8 +15,8 @@ struct Multithreading
 	static COMPILETIMEEVAL reference<GadgetClass*, 0xA8EF54u> const Buttons {};
 	static COMPILETIMEEVAL reference<bool, 0xA8B8B4u> const EnableMultiplayerDebug {};
 
-	static void MultiplayerDebugPrint()
-		{ JMP_STD(0x55F1E0); }
+	static void __cdecl MultiplayerDebugPrint()
+		{ JMP(0x55F1E0); }
 
 	static std::unique_ptr<std::thread> DrawingThread;
 	static std::timed_mutex DrawingMutex;

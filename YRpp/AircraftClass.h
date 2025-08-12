@@ -25,8 +25,8 @@ public:
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<AircraftClass*>, 0xA8E390u> const Array{};
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E22A4;
 
-	static void __fastcall Read_INI(CCINIClass& ini) JMP_STD(0x41B110);
-	static void __fastcall Write_INI(CCINIClass& ini) JMP_STD(0x41AF80);
+	static void __fastcall Read_INI(CCINIClass& ini) JMP_FAST(0x41B110);
+	static void __fastcall Write_INI(CCINIClass& ini) JMP_FAST(0x41AF80);
 
 	static void AircraftTracker_4134A0(AircraftClass* pThis)
 	{

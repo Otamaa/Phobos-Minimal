@@ -1282,7 +1282,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 }
 
 TeamTypeClass *__fastcall Suggested_New_Team(TypeList<TeamTypeClass*> *possible_teams, HouseClass *house, bool alerted){
-	JMP_STD(0x6F0AB0)
+	JMP_FAST(0x6F0AB0)
 }
 
 ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {

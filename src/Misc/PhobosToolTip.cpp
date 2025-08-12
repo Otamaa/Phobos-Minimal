@@ -296,7 +296,7 @@ void PhobosToolTip::HelpText(SuperClass* pSuper)
 		fmt::format_to(std::back_inserter(this->TextBuffer),
 			L"\n{}{}{}",
 			Phobos::UI::BattlePoints_Label,
-			pData->Money_Amount > 0 ? L"+" : L"-",
+			pData->BattlePoints_Amount > 0 ? L"+" : L"-",
 			nPoints
 		);
 

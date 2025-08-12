@@ -606,6 +606,10 @@ class SessionClass
 public:
 	static COMPILETIMEEVAL reference<SessionClass, 0xA8B238u> const Instance {};
 
+	void Callback(int progress) const {
+		JMP_THIS(0x69AE90);
+	}
+
 	int Game_GetLinkedColor(int a1) {
 		JMP_THIS(0x69A310)
 	}

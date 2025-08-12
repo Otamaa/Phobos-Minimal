@@ -19,7 +19,7 @@ public:
 	IMPL_Find(TagTypeClass)
 
 	static TagTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x6E6310);
+		JMP_FAST(0x6E6310);
 	}
 
 	IMPL_FindIndexById(TagTypeClass)
@@ -60,13 +60,13 @@ public:
 
 	//static
 	static void __fastcall LoadFromINIList(CCINIClass* pINI)
-		{ JMP_STD(0x6E5ED0); }
+		{ JMP_FAST(0x6E5ED0); }
 
 	static void __fastcall SaveToINIList(CCINIClass* pINI)
-		{ JMP_STD(0x6E5FE0); }
+		{ JMP_FAST(0x6E5FE0); }
 
 	static TagTypeClass* __fastcall FindByNameOrID(char const* pName)
-		{ JMP_STD(0x6E5E70); }
+		{ JMP_FAST(0x6E5E70); }
 
 	//non-virtual
 	using Flags = BYTE; // same as trigger and event flags?

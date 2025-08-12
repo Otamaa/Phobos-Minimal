@@ -35,11 +35,11 @@ public:
 	IMPL_Find(BulletTypeClass)
 
 	static BulletTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x46C790);
+		JMP_FAST(0x46C790);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x46C440);
+		JMP_FAST(0x46C440);
 	}
 
 	//IPersist
@@ -78,7 +78,7 @@ public:
 		WarheadTypeClass *WH,
 		int Speed,
 		bool Bright)
-		{ JMP_STD(0x46B050); }
+		{ JMP_FAST(0x46B050); }
 
 	//Constructor
 	BulletTypeClass(const char* pID) noexcept

@@ -198,6 +198,8 @@ public:
 	Valueable<bool> DelayedFire_OnlyOnInitialBurst {};
 	Nullable<CoordStruct> DelayedFire_AnimOffset {};
 	Valueable<bool> DelayedFire_AnimOnTurret { true };
+
+	Valueable<bool> OnlyAttacker { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

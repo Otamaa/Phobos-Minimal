@@ -33,7 +33,7 @@ public:
 	void SetCoordBitfieldInRange() const { JMP_THIS(0x4C58C0);}
 	void Init(TechnoClass* pInvoker) const { JMP_THIS(0x4C54E0);}
 
-	static void __fastcall UpdateAll() { JMP_STD(0x4C54A0); }
+	static void __cdecl UpdateAll() { JMP(0x4C54A0); }
 
 	//Constructor
 	EMPulseClass(CellStruct dwCrd, int nSpread, int nDuration,

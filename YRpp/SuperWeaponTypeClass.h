@@ -27,11 +27,11 @@ public:
 	IMPL_Find(SuperWeaponTypeClass)
 
 	static SuperWeaponTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x6CEEF0);
+		JMP_FAST(0x6CEEF0);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x6CEE60);
+		JMP_FAST(0x6CEE60);
 	}
 
 	//IPersist
@@ -53,7 +53,7 @@ public:
 
 	// non-virtual
 	static SuperWeaponTypeClass * __fastcall FindFirstOfAction(Action Action)
-		{ JMP_STD(0x6CEEB0); }
+		{ JMP_FAST(0x6CEEB0); }
 
 	//Constructor
 	SuperWeaponTypeClass(const char* pID) noexcept

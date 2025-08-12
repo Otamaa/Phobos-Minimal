@@ -981,28 +981,6 @@ ASMJIT_PATCH(0x4D580B, FootClass_ApproachTarget_DeployToFire, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
-{
-	enum { NoNeedToCheck = 0x74132B , SkipGameCode = 0x7410B7,  MustDeploy = 0x7410A8 };
-
-	GET(UnitClass*, pThis, ESI);
-
-	if (pThis->Type->DeployToFire
-		&& pThis->CanDeployNow()
-		&& !TechnoExtData::CanDeployIntoBuilding(pThis, true)
-		)
-	{
-		return MustDeploy;
-	}
-
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (!pTypeExt->NoTurret_TrackTarget.Get(RulesExtData::Instance()->NoTurret_TrackTarget))
-		return NoNeedToCheck;
-
-	return SkipGameCode;
-}
-
 #include <VeinholeMonsterClass.h>
 
 ASMJIT_PATCH(0x5349A5, Map_ClearVectors_Veinhole, 0x5)
@@ -1475,7 +1453,11 @@ ASMJIT_PATCH(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	// Remove mirage disguise if under emp or being flipped, approximately 15 deg
-	if (pThis->IsUnderEMP() || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled || Math::abs(pThis->AngleRotatedForwards) > 0.25 || Math::abs(pThis->AngleRotatedSideways) > 0.25)
+	if (pThis->Deactivated
+		|| pThis->IsUnderEMP() 
+		|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled
+		|| Math::abs(pThis->AngleRotatedForwards) > 0.25
+		|| Math::abs(pThis->AngleRotatedSideways) > 0.25)
 	{
 		pThis->ClearDisguise();
 		R->Stack(0x7 , false);
@@ -2112,7 +2094,7 @@ ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 }
 
 size_t __fastcall Gamestrtohex(char* str) {
-	JMP_STD(0x412610);
+	JMP_FAST(0x412610);
 }
 
 #include <TaskForceClass.h>
@@ -2169,25 +2151,25 @@ DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 static void KickOutStuckUnits(BuildingClass* pThis)
 {
-	if (const auto pTechno = pThis->GetNthLink())
+	if (const auto pUnit = cast_to<UnitClass*>(pThis->GetNthLink()))
 	{
-		if (const auto pUnit = cast_to<UnitClass*>(pTechno))
+		if (!pUnit->IsTethered && !pUnit->Locomotor->Is_Moving())
 		{
-			if (!pUnit->IsTethered && pUnit->GetCurrentSpeed() <= 0)
-			{
-				if (const auto pTeam = pUnit->Team)
-					pTeam->LiberateMember(pUnit);
+			if (const auto pTeam = pUnit->Team)
+				pTeam->LiberateMember(pUnit);
 
-				pThis->SendCommand(RadioCommand::NotifyUnlink, pUnit);
-				pUnit->QueueMission(Mission::Guard, false);
-				return; // one after another
-			}
+			pThis->SendCommand(RadioCommand::NotifyUnlink, pUnit);
+			pUnit->QueueMission(Mission::Guard, false);
+			return; // one after another
 		}
 	}
 
 	auto buffer = CoordStruct::Empty;
-	auto pCell = MapClass::Instance->GetCellAt(pThis->GetExitCoords(&buffer, 0));
-	int i = 0;
+	pThis->GetExitCoords(&buffer, 0);
+
+	auto cell = CellClass::Coord2Cell(buffer);
+	auto pCell = MapClass::Instance->GetCellAt(cell);
+	const int max = pThis->Location.X / Unsorted::LeptonsPerCell + pThis->Type->GetFoundationWidth() - 1;
 
 	while (true)
 	{
@@ -2216,7 +2198,7 @@ static void KickOutStuckUnits(BuildingClass* pThis)
 			}
 		}
 
-		if (++i >= 2)
+		if (++cell.X >= max)
 			return; // no stuck
 
 		pCell = pCell->GetNeighbourCell(FacingType::East);

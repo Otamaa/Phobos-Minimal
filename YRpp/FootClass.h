@@ -40,6 +40,7 @@ public:
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) override JMP_THIS(0x4D8F40);
 	virtual int Mission_AreaGuard() override { JMP_THIS(0x4D6AA0); }
 	virtual int Mission_Attack() override { JMP_THIS(0x4D4DC0); }
+	virtual int Mission_Hunt() override { JMP_THIS(0x4D5350); }
 
 	//TechnoClass
 	virtual bool SetOwningHouse(HouseClass* pHouse, bool announce = true) override JMP_THIS(0x4DBED0);

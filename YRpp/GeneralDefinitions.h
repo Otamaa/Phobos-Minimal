@@ -532,7 +532,9 @@ enum class AbilityType : int {
 	C4 = 14,
 	TiberiumHeal = 15,
 	GuardArea = 16,
-	Crusher = 17
+	Crusher = 17,
+
+	count
 };
 
 enum class AIDifficulty : unsigned int {
@@ -1165,6 +1167,7 @@ enum class InfDeath : unsigned int {
 };
 
 enum class LandType : int {
+	None = -1,
 	Clear = 0,
 	Road = 1,
 	Water = 2,

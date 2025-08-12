@@ -35,7 +35,7 @@ void PrismForwarding::RemoveAllSenders()
 	}
 }
 
-void PrismForwarding::SetChargeDelay_Set(int chain, std::vector<DWORD>& LongestCDelay, std::vector<DWORD>& LongestFDelay, int LongestChain)
+void PrismForwarding::SetChargeDelay_Set(int chain, std::vector<int>& LongestCDelay, std::vector<int>& LongestFDelay, int LongestChain)
 {
 	auto const pTargetTower = this->Owner;
 
@@ -61,8 +61,8 @@ void PrismForwarding::SetChargeDelay_Set(int chain, std::vector<DWORD>& LongestC
 void PrismForwarding::SetChargeDelay(int LongestChain)
 {
 	auto const ArrayLen = LongestChain + 1;
-	std::vector<DWORD> LongestCDelay(ArrayLen, 0);
-	std::vector<DWORD> LongestFDelay(ArrayLen, 0);
+	std::vector<int> LongestCDelay(ArrayLen, 0);
+	std::vector<int> LongestFDelay(ArrayLen, 0);
 
 	for (auto endChain = LongestChain; endChain >= 0; --endChain)
 	{
@@ -72,7 +72,7 @@ void PrismForwarding::SetChargeDelay(int LongestChain)
 	this->SetChargeDelay_Set(0, LongestCDelay, LongestFDelay, LongestChain);
 }
 
-void PrismForwarding::SetChargeDelay_Get(int chain, int endChain, int LongestChain, std::vector<DWORD>& LongestCDelay, std::vector<DWORD>&  LongestFDelay)
+void PrismForwarding::SetChargeDelay_Get(int chain, int endChain, int LongestChain, std::vector<int>& LongestCDelay, std::vector<int>&  LongestFDelay)
 {
 	auto const TargetTower = this->Owner;
 

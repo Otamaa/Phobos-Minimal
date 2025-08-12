@@ -129,6 +129,7 @@ struct SpawnerMain
 		bool FogOfWar;
 		bool MCVRedeploy;
 		wchar_t UIGameMode[60];
+		bool SpecialHouseIsAlly;
 
 		// SaveGame Options
 		bool LoadSaveGame;

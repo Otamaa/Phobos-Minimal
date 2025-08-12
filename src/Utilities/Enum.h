@@ -34,6 +34,17 @@
 
 #include <GeneralDefinitions.h>
 
+enum class AffectedTechno : unsigned char
+{
+	None = 0x0,
+	Infantry = 0x1,
+	Unit = 0x2,
+	Building = 0x3,
+	Aircraft = 0x4
+};
+
+MAKE_ENUM_FLAGS(AffectedTechno);
+
 enum class AttachmentYSortPosition : BYTE
 {
 	Default = 0,

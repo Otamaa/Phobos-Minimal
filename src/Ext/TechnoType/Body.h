@@ -1167,6 +1167,7 @@ public:
 	Valueable<int> ForceAAWeapon_Infantry { -1 };
 	Valueable<int> ForceAAWeapon_Units { -1 };
 	Valueable<int> ForceAAWeapon_Aircraft { -1 };
+	Valueable<int> ForceWeapon_Capture { -1 };
 
 	Valueable<bool> AttackMove_Follow_IfMindControlIsFull { };
 
@@ -1178,6 +1179,8 @@ public:
 	ValueableIdx<VocClass> VoiceIFVRepair { -1 };
 	ValueableVector<int> VoiceWeaponAttacks { };
 	ValueableVector<int> VoiceEliteWeaponAttacks { };
+	Valueable<UnitTypeClass*> DefaultVehicleDisguise { };
+	Nullable<bool> TurretResponse { };
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
@@ -1216,8 +1219,9 @@ private:
 	void Serialize(T& Stm);
 
 public:
-static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };
+	static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };
 	static COMPILETIMEEVAL double TurretMultiOffsetOneByEightMult { 0.125 };
+	static bool SelectWeaponMutex;
 
 	// Ares 0.A
 	static const char* GetSelectionGroupID(ObjectTypeClass* pType);
@@ -1238,7 +1242,9 @@ static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };
 
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
 
+	int SelectForceWeapon(TechnoClass* pThis, AbstractClass* pTarget);
 	int SelectMultiWeapon(TechnoClass* const pThis, AbstractClass* const pTarget);
+
 	void ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSection, ValueableVector<int>& n, ValueableVector<int>& nE);
 };
 

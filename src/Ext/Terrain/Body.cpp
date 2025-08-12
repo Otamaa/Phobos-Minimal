@@ -218,7 +218,7 @@ void FakeTerrainClass::_AI()
 		this->Animation.HasChanged = true;
 		this->Animation.Timer.Restart();
 
-		auto const pTypeExt = this->_GetTypeExtData();
+		//auto const pTypeExt = this->_GetTypeExtData();
 
 		//not sure what here ,..
 	}

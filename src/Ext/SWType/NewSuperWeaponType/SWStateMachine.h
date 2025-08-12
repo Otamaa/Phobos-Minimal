@@ -25,6 +25,9 @@ enum class SWStateMachineIdentifier : int
 	Reveal = 10,
 	GeneticMutator = 11,
 	ParaDrop = 12,
+	Protect = 13,
+	MeteorShower = 14,
+
 	count
 };
 
@@ -45,25 +48,17 @@ public:
 	virtual ~SWStateMachine() = default;
 
 	virtual bool Finished() { return Clock.Completed(); }
-	virtual void Update() { }
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) { }
+	virtual void Update() = 0;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) = 0;
 	virtual SWStateMachineIdentifier GetIdentifier() const = 0;
 	virtual const char* GetIdentifierStrings() const = 0;
+
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 
 	COMPILETIMEEVAL OPTIONALINLINE int TimePassed() const {
 		return Unsorted::CurrentFrame - Clock.StartTime;
 	}
-
-	// static methods
-	//template <typename TMachine , typename... TArgs>
-	//static COMPILETIMEEVAL FORCEINLINE TMachine* Register(TArgs&&... _Args) {
-	//	new(TMachine::ShieldClass_GLUE_NOT_IMPLEMENTED) ShieldClass(pTarget, true);
-
-	//	Array.push_back(std::move(std::make_unique<TMachine>(std::forward<TArgs>(_Args)...)));
-	//	return (TMachine*)Array.back().get();
-	//}
 
 	COMPILETIMEEVAL OPTIONALINLINE SWTypeExtData * GetTypeExtData() const {
 		return SWTypeExtContainer::Instance.Find(Super->Type);
@@ -102,7 +97,8 @@ public:
 	{
 	}
 
-	virtual void Update();
+	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -131,6 +127,7 @@ public:
 	}
 
 	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -161,6 +158,7 @@ public:
 	}
 
 	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -191,6 +189,7 @@ public:
 	}
 
 	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -258,9 +257,8 @@ public:
 	{
 	}
 
-	virtual void Update();
-
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove);
+	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -310,7 +308,8 @@ public:
 		PsyDom::Anim = nullptr;
 	};
 
-	virtual void Update();
+	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -378,7 +377,7 @@ public:
 		}
 	}
 
-	virtual void Update();
+	virtual void Update() override;
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -538,7 +537,7 @@ public:
 		, MaxCountCounter { Math::abs(maxcount) }
 	{ }
 
-	virtual void Update();
+	virtual void Update() override;
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -653,7 +652,7 @@ public:
 			.Success();
 	}
 
-	virtual void InvalidatePointer(AbstractClass* ptr, bool remove)
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override
 	{
 		AnnounceInvalidPointer(Firer, ptr, remove);
 	}
@@ -679,6 +678,7 @@ public:
 	}
 
 	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
 	{
@@ -707,6 +707,8 @@ public:
 	}
 
 	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
+
 	void UpdateProperties();
 
 	virtual SWStateMachineIdentifier GetIdentifier() const override
@@ -748,6 +750,65 @@ protected:
 	std::vector<Iterator<int>> Nums;
 };
 
+class ProtectStateMachine : public SWStateMachine
+{
+public:
+	ProtectStateMachine()
+		: SWStateMachine()
+	{ }
+
+	ProtectStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+		: SWStateMachine(Deferment, XY, pSuper, pSWType)
+	{ }
+
+	virtual void Update() override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
+
+	virtual SWStateMachineIdentifier GetIdentifier() const override
+	{
+		return SWStateMachineIdentifier::Protect;
+	}
+
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::Protect";
+	}
+
+};
+
+class MeteorShowerStateMachine : public SWStateMachine
+{
+public:
+	MeteorShowerStateMachine()
+		: SWStateMachine(), Firer { nullptr }
+	{ }
+
+	explicit MeteorShowerStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer, NewSWType* pSWType)
+		: SWStateMachine(Deferment, XY, pSuper, pSWType), Firer { pfirer }
+	{ }
+
+	virtual void Update() override;
+
+	virtual SWStateMachineIdentifier GetIdentifier() const override
+	{
+		return SWStateMachineIdentifier::MeteorShower;
+	}
+
+	virtual const char* GetIdentifierStrings() const override
+	{
+		return "SWStateMachine::MeteorShower";
+	}
+
+	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
+	virtual bool Save(PhobosStreamWriter& Stm) const override;
+	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
+
+	static void SentMeteorShower(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc);
+
+protected:
+	TechnoClass* Firer;
+};
+
 #define MakeStatemachine(a) \
 case SWStateMachineIdentifier::## a ##:\
 return std::make_unique<a##StateMachine>();\
@@ -775,6 +836,8 @@ struct Savegame::ObjectFactory<SWStateMachine>
 			MakeStatemachine(Reveal)
 			MakeStatemachine(GeneticMutator)
 			MakeStatemachine(ParaDrop)
+			MakeStatemachine(Protect)
+			MakeStatemachine(MeteorShower)
 			default:
 				Debug::FatalErrorAndExit("SWStateMachineType %d not recognized.",
 					static_cast<unsigned int>(type));

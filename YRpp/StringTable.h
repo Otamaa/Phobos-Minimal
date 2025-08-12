@@ -88,7 +88,7 @@ public:
 		char* pOutExtraData = nullptr,
 		const char* pSourceCodeFileName = CSF_SOURCE_NAME,
 		int nSourceCodeFileLine = 0)
-			{ JMP_STD(0x734E60); }
+			{ JMP_FAST(0x734E60); }
 
 	static const wchar_t* TryFetchStringOrReturnDefault(
 		const char* pLabel,
@@ -127,40 +127,40 @@ public:
 	}
 
 	static bool __fastcall LoadFile(const char* pFileName)
-		{ JMP_STD(0x7346A0); }
+		{ JMP_FAST(0x7346A0); }
 
 	static bool __fastcall ReadFile(const char* pFileName)
-		{ JMP_STD(0x734990); }
+		{ JMP_FAST(0x734990); }
 
 	static CSFLanguage const* __fastcall GetLanguage(CSFLanguages language)
-		{ JMP_STD(0x734640); }
+		{ JMP_FAST(0x734640); }
 
 	static const char* __fastcall GetLanguageName(CSFLanguages language)
-		{ JMP_STD(0x734670); }
+		{ JMP_FAST(0x734670); }
 
-	static void Unload()
-		{ JMP_STD(0x734D30); }
+	static void __fastcall Unload()
+		{ JMP_FAST(0x734D30); }
 
 	static bool __fastcall IsInitialized()
-		{ JMP_STD(0x734FD0); }
+		{ JMP_FAST(0x734FD0); }
 
 	static int __fastcall Isstrcmd()
-		{ JMP_STD(0x734FC0); }
+		{ JMP_FAST(0x734FC0); }
 
 	static int __fastcall Isjabber()
-		{ JMP_STD(0x734FB0); }
+		{ JMP_FAST(0x734FB0); }
 
 	static void __fastcall Togglestrcmd()
-		{ JMP_STD(0x734F80); }
+		{ JMP_FAST(0x734F80); }
 
 	static void __fastcall Togglejabber()
-		{ JMP_STD(0x734F50); }
+		{ JMP_FAST(0x734F50); }
 
 	static bool __fastcall IsEnglish()
-		{ JMP_STD(0x734F20); }
+		{ JMP_FAST(0x734F20); }
 
 	static signed int __fastcall NeedToBeTranslated(int16* a1)
-		{ JMP_STD(0x734E30); }
+		{ JMP_FAST(0x734E30); }
 };
 
 typedef StringTable TextManager;

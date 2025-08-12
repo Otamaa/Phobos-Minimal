@@ -98,7 +98,7 @@ namespace CRT
 	{ JMP(0x7CA564); }
 
 	static OPTIONALINLINE wchar_t* __fastcall wcstrim(wchar_t* Buffer)
-	{ JMP_STD(0x727D60); }
+	{ JMP_FAST(0x727D60); }
 
 	static OPTIONALINLINE NAKED wchar_t* __cdecl wcschr(const wchar_t* Str, wchar_t a2)
 	{ JMP(0x7CA8C6); }
@@ -211,7 +211,7 @@ namespace CRT
 	{ JMP(0x7CB7BA); }
 
 	static  OPTIONALINLINE char* __fastcall strtrim(char* Buffer)
-	{ JMP_STD(0x727CF0); }
+	{ JMP_FAST(0x727CF0); }
 
 	static  OPTIONALINLINE NAKED size_t __cdecl strlen(const char* input)
 	{ JMP(0x7D15A0); }

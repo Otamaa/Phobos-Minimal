@@ -112,7 +112,7 @@ public:
 	}
 
 	static TechnoClass* __fastcall SelectLeadingTechno(CellStruct* cellBuffer, ObjectClass* pObj)
-		{ JMP_STD(0x5353D0); }
+		{ JMP_FAST(0x5353D0); }
 
 protected:
 	//Constructor

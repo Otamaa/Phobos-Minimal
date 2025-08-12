@@ -113,10 +113,10 @@ public:
 	virtual void Error(FileErrorType error, bool can_retry = false, const char *filename = nullptr) = 0;
 
 	static void* __fastcall ReadWholeFile(FileClass* pFile)
-	{ JMP_STD(0x4A3890); }
+	{ JMP_FAST(0x4A3890); }
 
 	void* ReadWholeFile()
-	{ return ReadWholeFile(this); }
+	{ JMP_THIS(0x4A3890); }
 
 	off_t Tell() { return Seek(0, FileSeekMode::Current); }
 
@@ -331,19 +331,19 @@ public:
 	void Searching(int on) { IsDisabled = !on; }
 
 	static void __fastcall Refresh()
-	{ JMP_STD(0x47AAC0); }
+	{ JMP_FAST(0x47AAC0); }
 
 	static bool __fastcall SetPath(const char* pPath)
-	{ JMP_STD(0x47AB10); }
+	{ JMP_FAST(0x47AB10); }
 
 	static void __fastcall AddPath(const char* pPath)
-	{ JMP_STD(0x47AD50); }
+	{ JMP_FAST(0x47AD50); }
 
 	static void __fastcall SetCDDrive(int nDriveNumber)
-	{ JMP_STD(0x47ADA0); }
+	{ JMP_FAST(0x47ADA0); }
 
 	static HRESULT __fastcall Clear()
-	{ JMP_STD(0x47ADA0); }
+	{ JMP_FAST(0x47ADA0); }
 
 	//Constructor
 	CDFileClass()

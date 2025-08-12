@@ -19,7 +19,7 @@ public:
 	static COMPILETIMEEVAL constant_ptr<GScreenClass, 0x87F7E8u> const Instance{};
 
 	static void __fastcall DoBlit(bool mouseCaptured, DSurface* surface, RectangleStruct* rect = nullptr)
-		{ JMP_STD(0x4F4780); }
+		{ JMP_FAST(0x4F4780); }
 
 	//IUnknown
 	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) R0;

@@ -38,7 +38,7 @@ public:
 	//	{ JMP_STD(0x5549A0); }
 
 	static void __fastcall UpdateLightConverts(int value)
-		{ JMP_STD(0x554D50); }
+		{ JMP_FAST(0x554D50); }
 
 	//static int Init_Unknown_0xABCA40()
 	//	{ JMP_STD(0x5546C0); }

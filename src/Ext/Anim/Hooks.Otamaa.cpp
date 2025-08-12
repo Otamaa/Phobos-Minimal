@@ -158,7 +158,7 @@ void NOINLINE FakeAnimClass::_Start()
 
 bool __fastcall Is_Visible_To_Psychic(HouseClass* house, CellClass* cell)
 {
-	JMP_STD(0x43B4C0);
+	JMP_FAST(0x43B4C0);
 }
 
 void NOINLINE AnimExtData::OnTypeChange()

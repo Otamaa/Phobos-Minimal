@@ -19,6 +19,8 @@
 #include <Utilities/Cast.h>
 #include <Utilities/EnumFunctions.h>
 
+bool TechnoTypeExtData::SelectWeaponMutex = false;
+
 bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
 {
 	const auto pThis = this->AttachedToObject;
@@ -34,6 +36,165 @@ bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
 
 
 	return nWeaponIndex != 0;
+}
+
+#include <Ext/WeaponType/Body.h>
+
+int ApplyForceWeaponInRange(TechnoClass* pThis, AbstractClass* pTarget)
+{
+	int forceWeaponIndex = -1;
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	const bool useAASetting = !pTypeExt->ForceAAWeapon_InRange.empty() && pTarget->IsInAir();
+	auto const& weaponIndices = useAASetting ? pTypeExt->ForceAAWeapon_InRange : pTypeExt->ForceWeapon_InRange;
+	auto const& rangeOverrides = useAASetting ? pTypeExt->ForceAAWeapon_InRange_Overrides : pTypeExt->ForceWeapon_InRange_Overrides;
+	const bool applyRangeModifiers = useAASetting ? pTypeExt->ForceAAWeapon_InRange_ApplyRangeModifiers : pTypeExt->ForceWeapon_InRange_ApplyRangeModifiers;
+
+	const int defaultWeaponIndex = pThis->SelectWeapon(pTarget);
+	const int currentDistance = pThis->DistanceFrom(pTarget);
+	auto const pDefaultWeapon = pThis->GetWeapon(defaultWeaponIndex)->WeaponType;
+
+	for (size_t i = 0; i < weaponIndices.size(); i++)
+	{
+		int range = 0;
+
+		// Value below 0 means Range won't be overriden
+		if (i < rangeOverrides.size() && rangeOverrides[i] > 0)
+			range = static_cast<int>(rangeOverrides[i] * Unsorted::LeptonsPerCell);
+
+		if (weaponIndices[i] >= 0)
+		{
+			if (range > 0 || applyRangeModifiers)
+			{
+				auto const pWeapon = weaponIndices[i] == defaultWeaponIndex ? pDefaultWeapon : pThis->GetWeapon(weaponIndices[i])->WeaponType;
+				range = range > 0 ? range : pWeapon->Range;
+
+				if (applyRangeModifiers)
+					range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis, range);
+			}
+
+			if (currentDistance <= range)
+			{
+				forceWeaponIndex = weaponIndices[i];
+				break;
+			}
+		}
+		else
+		{
+			if (range > 0 || applyRangeModifiers)
+			{
+				range = range > 0 ? range : pDefaultWeapon->Range;
+
+				if (applyRangeModifiers)
+					range = WeaponTypeExtData::GetRangeWithModifiers(pDefaultWeapon, pThis, range);
+			}
+
+			// Don't force weapon if range satisfied
+			if (currentDistance <= range)
+				break;
+		}
+	}
+
+	return forceWeaponIndex;
+}
+
+int TechnoTypeExtData::SelectForceWeapon(TechnoClass* pThis, AbstractClass* pTarget)
+{
+	if (TechnoTypeExtData::SelectWeaponMutex || !this->ForceWeapon_Check || !pTarget) // In theory, pTarget must exist
+		return -1;
+
+	int forceWeaponIndex = -1;
+	const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget);
+	TechnoTypeClass* pTargetType = nullptr;
+
+	if (pTargetTechno)
+	{
+		pTargetType = pTargetTechno->GetTechnoType();
+
+		if (this->ForceWeapon_Naval_Decloaked >= 0
+			&& pTargetType->Cloakable
+			&& pTargetType->Naval
+			&& pTargetTechno->CloakState == CloakState::Uncloaked)
+		{
+			forceWeaponIndex = this->ForceWeapon_Naval_Decloaked;
+		}
+		else if (this->ForceWeapon_Cloaked >= 0
+			&& pTargetTechno->CloakState == CloakState::Cloaked)
+		{
+			forceWeaponIndex = this->ForceWeapon_Cloaked;
+		}
+		else if (this->ForceWeapon_Disguised >= 0
+			&& pTargetTechno->IsDisguised())
+		{
+			forceWeaponIndex = this->ForceWeapon_Disguised;
+		}
+		else if (this->ForceWeapon_UnderEMP >= 0
+			&& pTargetTechno->IsUnderEMP())
+		{
+			forceWeaponIndex = this->ForceWeapon_UnderEMP;
+		}
+		else if (this->ForceWeapon_Capture >= 0) {
+			if (const auto pBuilding = cast_to<BuildingClass*, false>(pTarget)) {
+				if ((pBuilding->Type->Capturable || pBuilding->Type->NeedsEngineer)
+					&& !pThis->Owner->IsAlliedWith(pBuilding->Owner))
+					forceWeaponIndex = this->ForceWeapon_Capture;
+			}
+		}
+	}
+
+	if (forceWeaponIndex == -1
+		&& (pTargetTechno || !this->ForceWeapon_InRange_TechnoOnly)
+		&& (!this->ForceWeapon_InRange.empty() || !this->ForceAAWeapon_InRange.empty()))
+	{
+		TechnoTypeExtData::SelectWeaponMutex = true;
+		forceWeaponIndex = ApplyForceWeaponInRange(pThis , pTarget);
+		TechnoTypeExtData::SelectWeaponMutex = false;
+	}
+
+	if (forceWeaponIndex == -1 && pTargetType)
+	{
+		switch (pTarget->WhatAmI())
+		{
+		case AbstractType::Building:
+		{
+			forceWeaponIndex = this->ForceWeapon_Buildings;
+
+			if (this->ForceWeapon_Defenses >= 0)
+			{
+				auto const pBuildingType = static_cast<BuildingTypeClass*>(pTargetType);
+
+				if (pBuildingType->BuildCat == BuildCat::Combat)
+					forceWeaponIndex = this->ForceWeapon_Defenses;
+			}
+
+			break;
+		}
+		case AbstractType::Infantry:
+		{
+			forceWeaponIndex = (this->ForceAAWeapon_Infantry >= 0 && pTarget->IsInAir())
+				? this->ForceAAWeapon_Infantry : this->ForceWeapon_Infantry;
+
+			break;
+		}
+		case AbstractType::Unit:
+		{
+			forceWeaponIndex = (this->ForceAAWeapon_Units >= 0 && pTarget->IsInAir())
+				? this->ForceAAWeapon_Units : ((this->ForceWeapon_Naval_Units >= 0 && pTargetType->Naval)
+				? this->ForceWeapon_Naval_Units : this->ForceWeapon_Units);
+
+			break;
+		}
+		case AbstractType::Aircraft:
+		{
+			forceWeaponIndex = (this->ForceAAWeapon_Aircraft >= 0 && pTarget->IsInAir())
+				? this->ForceAAWeapon_Aircraft : this->ForceWeapon_Aircraft;
+
+			break;
+		}
+		}
+	}
+
+	return forceWeaponIndex;
 }
 
 int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* const pThis, AbstractClass* const pTarget)
@@ -701,6 +862,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ForceAAWeapon_Infantry.Read(exINI, pSection, "ForceAAWeapon.Infantry");
 		this->ForceAAWeapon_Units.Read(exINI, pSection, "ForceAAWeapon.Units");
 		this->ForceAAWeapon_Aircraft.Read(exINI, pSection, "ForceAAWeapon.Aircraft");
+		this->ForceWeapon_Capture.Read(exINI, pSection, "ForceWeapon.Capture");
 
 		this->Ammo_Shared.Read(exINI, pSection, "Ammo.Shared");
 		this->Ammo_Shared_Group.Read(exINI, pSection, "Ammo.Shared.Group");
@@ -1711,7 +1873,6 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				this->TiberiumEaterType->LoadFromINI(pINI, pSection);
 		}
 
-
 		if (this->AttachedToObject->Passengers > 0)
 		{
 			size_t passengers = this->AttachedToObject->Passengers + 1;
@@ -1752,6 +1913,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		}
 
 		this->BattlePoints.Read(exINI, pSection, "BattlePoints");
+		this->DefaultVehicleDisguise.Read(exINI, pSection, "DefaultVehicleDisguise");
+		this->TurretResponse.Read(exINI, pSection, "TurretResponse");
+
 		this->ForceWeapon_Check = (
 			this->ForceWeapon_Naval_Decloaked >= 0	||
 			this->ForceWeapon_Cloaked >= 0			||
@@ -1767,7 +1931,8 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->ForceWeapon_Aircraft >= 0			||
 			this->ForceAAWeapon_Infantry >= 0		||
 			this->ForceAAWeapon_Units >= 0			||
-			this->ForceAAWeapon_Aircraft >= 0
+			this->ForceAAWeapon_Aircraft >= 0		||
+			this->ForceWeapon_Capture >= 0
 		);
 
 		this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
@@ -3043,6 +3208,8 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->VoiceIFVRepair)
 		.Process(this->VoiceWeaponAttacks)
 		.Process(this->VoiceEliteWeaponAttacks)
+		.Process(this->DefaultVehicleDisguise)
+		.Process(this->TurretResponse)
 		;
 }
 

@@ -19,7 +19,7 @@ public:
 
 	// finds an instance using the type, or creates one
 	static TriggerClass* __fastcall GetInstance(TriggerTypeClass* pType)
-		{ JMP_STD(0x726630); }
+		{ JMP_FAST(0x726630); }
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

@@ -10,71 +10,19 @@ std::vector<const char*> SW_MeteorShower::GetTypeString() const
 	return { "MeteorShower" };
 }
 
-// TODO : support deferment
 bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	if (pThis->IsCharged)
 	{
-		if (const auto pCell = MapClass::Instance->TryGetCellAt(Coords))
-		{
-			auto const pData = SWTypeExtContainer::Instance.Find(pThis->Type);
-			auto pFirer = this->GetFirer(pThis, Coords, false);
+		auto const pType = pThis->Type;
+		auto const pData = SWTypeExtContainer::Instance.Find(pType);
+		const auto nDeferement = pData->SW_Deferment.Get(-1);
+		const auto pFirer = this->GetFirer(pThis, Coords, false);
 
-			const auto nCoord = pCell->GetCoordsWithBridge();
-
-			const int count =  ScenarioClass::Instance->Random.RandomFromMax<int>(pData->MeteorCounts);
-
-
-			AnimTypeClass* large_meteor = pData->MeteorLarge;
-			AnimTypeClass* small_meteor = pData->MeteorSmall;
-			VoxelAnimTypeClass* large_Impact = pData->MeteorImpactLarge;
-			VoxelAnimTypeClass* small_Impact = pData->MeteorImpactSmall;
-			const int nMaxForrand = count * 70;
-
-			for (int i = 0; i < count; ++i)
-			{
-				const int x_adj = ScenarioClass::Instance->Random.Random() % (nMaxForrand);
-				const int y_adj = ScenarioClass::Instance->Random.Random() % (nMaxForrand);
-
-				Coordinate nwhere = nCoord;
-
-				nwhere.X += x_adj;
-				nwhere.Y += y_adj;
-
-				nwhere.Z = MapClass::Instance->GetCellFloorHeight(nwhere);
-
-				if (AnimTypeClass* anim = ScenarioClass::Instance->Random.PercentChance(pData->MeteorKindChance) ?
-					large_meteor : small_meteor)
-				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(anim, nwhere),
-						pThis->Owner,
-						nullptr,
-						pFirer,
-						false, false
-					);
-				}
-			}
-
-			if (ScenarioClass::Instance->Random.PercentChance(pData->MeteorAddImpactChance))
-			{
-				for (int a = 0; a < pData->MeteorImactCounts; ++a)
-				{
-					Coordinate im_where = nCoord;
-
-					const int x_adj = ScenarioClass::Instance->Random.Random() % (pData->MeteorImactCounts);
-					const int y_adj = ScenarioClass::Instance->Random.Random() % (pData->MeteorImactCounts);
-
-					im_where.X += x_adj;
-					im_where.Y += y_adj;
-
-					im_where.Z = MapClass::Instance->GetCellFloorHeight(im_where);
-					if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(pData->MeteorImpactKindChance) ?
-						large_Impact : small_Impact) {
-						VoxelAnimExtContainer::Instance.Find(GameCreate<VoxelAnimClass>(impact, &im_where, pThis->Owner))->Invoker = pFirer;
-					}
-				}
-			}
-		}
+		if (nDeferement <= 0)
+			MeteorShowerStateMachine::SentMeteorShower(pFirer, pThis, pData, this, Coords);
+		else
+			this->newStateMachine(nDeferement, Coords, pThis, pFirer);
 	}
 
 	return true;
@@ -119,4 +67,104 @@ bool SW_MeteorShower::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pB
 		return true;
 
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}
+
+void MeteorShowerStateMachine::Update()
+{
+	if (this->Finished())
+	{
+		auto pData = this->GetTypeExtData();
+
+		pData->PrintMessage(pData->Message_Activate, this->Super->Owner);
+
+		const auto sound = pData->SW_ActivationSound.Get(-1);
+		if (sound != -1)
+		{
+			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
+		}
+
+		SentMeteorShower(this->Firer, this->Super, pData, this->Type, this->Coords);
+	}
+}
+
+void MeteorShowerStateMachine::SentMeteorShower(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc)
+{
+	if (const auto pCell = MapClass::Instance->TryGetCellAt(loc))
+	{
+		const auto nCoord = pCell->GetCoordsWithBridge();
+
+		const int count = ScenarioClass::Instance->Random.RandomFromMax<int>(pData->MeteorCounts);
+
+		AnimTypeClass* large_meteor = pData->MeteorLarge;
+		AnimTypeClass* small_meteor = pData->MeteorSmall;
+		VoxelAnimTypeClass* large_Impact = pData->MeteorImpactLarge;
+		VoxelAnimTypeClass* small_Impact = pData->MeteorImpactSmall;
+		const int nMaxForrand = count * 70;
+
+		for (int i = 0; i < count; ++i)
+		{
+			const int x_adj = ScenarioClass::Instance->Random.Random() % (nMaxForrand);
+			const int y_adj = ScenarioClass::Instance->Random.Random() % (nMaxForrand);
+
+			Coordinate nwhere = nCoord;
+
+			nwhere.X += x_adj;
+			nwhere.Y += y_adj;
+
+			nwhere.Z = MapClass::Instance->GetCellFloorHeight(nwhere);
+
+			if (AnimTypeClass* anim = ScenarioClass::Instance->Random.PercentChance(pData->MeteorKindChance) ?
+				large_meteor : small_meteor)
+			{
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(anim, nwhere),
+					pSuper->Owner,
+					nullptr,
+					pFirer,
+					false, false
+				);
+			}
+		}
+
+		if (ScenarioClass::Instance->Random.PercentChance(pData->MeteorAddImpactChance))
+		{
+			for (int a = 0; a < pData->MeteorImactCounts; ++a)
+			{
+				Coordinate im_where = nCoord;
+
+				const int x_adj = ScenarioClass::Instance->Random.Random() % (pData->MeteorImactCounts);
+				const int y_adj = ScenarioClass::Instance->Random.Random() % (pData->MeteorImactCounts);
+
+				im_where.X += x_adj;
+				im_where.Y += y_adj;
+
+				im_where.Z = MapClass::Instance->GetCellFloorHeight(im_where);
+				if (VoxelAnimTypeClass* impact = ScenarioClass::Instance->Random.PercentChance(pData->MeteorImpactKindChance) ?
+					large_Impact : small_Impact)
+				{
+					VoxelAnimExtContainer::Instance.Find(GameCreate<VoxelAnimClass>(impact, &im_where, pSuper->Owner))->Invoker = pFirer;
+				}
+			}
+		}
+	}
+}
+
+bool MeteorShowerStateMachine::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	return SWStateMachine::Load(Stm, RegisterForChange)
+		&& Stm
+		.Process(Firer)
+		.Success();
+}
+
+bool MeteorShowerStateMachine::Save(PhobosStreamWriter& Stm) const
+{
+	return SWStateMachine::Save(Stm)
+		&& Stm
+		.Process(Firer)
+		.Success();
+}
+
+void MeteorShowerStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
+{
+	AnnounceInvalidPointer(Firer, ptr, remove);
 }

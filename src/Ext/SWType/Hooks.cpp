@@ -1396,11 +1396,12 @@ ASMJIT_PATCH(0x50B1D0, HouseClass_UpdateSuperWeaponsUnavailable, 6)
 					if (IsCurrentPlayer)
 					{
 						// hide the cameo (only if this is an auto-firing SW)
-						if (pExt->Type->SW_ShowCameo || !pExt->Type->SW_AutoFire)
-						{
-							MouseClass::Instance->AddCameo(AbstractType::Special, index);
-							MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
-						}
+						if(!pExt->Type->SW_ShowCameo || pExt->Type->SW_AutoFire)
+							continue;
+
+						MouseClass::Instance->AddCameo(AbstractType::Special, index);
+						MouseClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(SuperClass::AbsID, index, 0));
+
 					}
 				}
 			}
@@ -1434,8 +1435,12 @@ ASMJIT_PATCH(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 ASMJIT_PATCH(0x508E66, HouseClass_UpdateRadar_Battery, 8)
 {
 	GET(HouseClass*, pThis, ECX);
-	return !HouseExtContainer::Instance.Find(pThis)->Batteries.empty()
-		? 0x508E87 : 0x508F2F;
+
+	if(!HouseExtContainer::Instance.Find(pThis)->Batteries.empty())
+		return 0x508F2A;
+
+	return 0x0;
+		//? 0x508E87 : 0x508F2F;
 }
 
 ASMJIT_PATCH(0x44019D, BuildingClass_Update_Battery, 6)

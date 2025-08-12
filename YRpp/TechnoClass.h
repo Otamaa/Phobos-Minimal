@@ -532,7 +532,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		{ JMP_THIS(0x70DE00); }
 
 	int __fastcall ClearPlanningTokens(EventClass* pEvent)
-		{ JMP_STD(0x6386E0); }
+		{ JMP_FAST(0x6386E0); }
 
 	void SetTargetForPassengers(AbstractClass* pTarget)
 		{ JMP_THIS(0x710550); }
@@ -691,7 +691,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	}
 
 	static void __fastcall ClearWhoTargetingThis(AbstractClass*) {
-		JMP_STD(0x70D4A0);
+		JMP_FAST(0x70D4A0);
 	}
 
 	void SetTargetingDelay() const {

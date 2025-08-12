@@ -1780,19 +1780,19 @@ bool TActionExtData::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, 
 #include <Ext/Side/Body.h>
 
 static void __fastcall UnlockImput() {
-	JMP_STD(0x684290);
+	JMP_FAST(0x684290);
 }
 
 static void __fastcall UIStuffs_MenuStuffs(){
-	JMP_STD(0x72DDB0);
+	JMP_FAST(0x72DDB0);
 }
 
 static void __fastcall PlayMovie(int id, int theme, bool clrscreen_aft, bool stretch, bool clrscreen_before) {
-	JMP_STD(0x5BF260);
+	JMP_FAST(0x5BF260);
 }
 
 static void __fastcall Reset_SomeShapes_Post_Movie() {
-	JMP_STD(0x72DEF0);
+	JMP_FAST(0x72DEF0);
 }
 
 static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret)

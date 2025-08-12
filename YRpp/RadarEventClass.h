@@ -27,10 +27,10 @@ public:
 		{ PUSH_VAR32(nMapCoords); SET_REG32(ecx, nType); ASM_CALL(0x65FA70); }
 
 	static void __fastcall Create(const CellStruct& nMapCoords)
-		{ JMP_STD(0x660B80); }
+		{ JMP_FAST(0x660B80); }
 
 	static void __fastcall Create(CellStruct* pMapCoords)
-		{ JMP_STD(0x660B80); }
+		{ JMP_FAST(0x660B80); }
 
 private:
 	//Constructor, Destructor

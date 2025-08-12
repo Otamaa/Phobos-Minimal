@@ -26,16 +26,16 @@ public:
 	IMPL_Find(ScriptTypeClass)
 
 	static ScriptTypeClass* __fastcall FindOrAllocate(const char* pID) {
-		JMP_STD(0x691C00);
+		JMP_FAST(0x691C00);
 	}
 
 	static int __fastcall FindIndexById(const char* pID) {
-		JMP_STD(0x691BB0);
+		JMP_FAST(0x691BB0);
 	}
 
 	// this compare both ID and ININame ?
 	static int __fastcall FindIndexByIdAndName(const char* pID) {
-		JMP_STD(0x691B40);
+		JMP_FAST(0x691B40);
 	}
 
 	//IPersist
@@ -58,8 +58,8 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x6918A0);
 	virtual bool SaveToINI(CCINIClass* pINI) override JMP_THIS(0x6917F0);
 
-	static bool LoadFromINIList(CCINIClass *pINI, bool IsGlobal)
-		{ JMP_STD(0x691970); }
+	static bool __fastcall LoadFromINIList(CCINIClass *pINI, bool IsGlobal)
+		{ JMP_FAST(0x691970); }
 
 	//Constructor
 	ScriptTypeClass(const char* pID) noexcept

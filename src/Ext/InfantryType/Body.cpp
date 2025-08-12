@@ -101,6 +101,8 @@ void InfantryTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AllowReceiveSpeedBoost.Read(exINI, pID, "AllowReceiveSpeedBoost");
 	this->ProneSpeed.Read(exINI, pID, "ProneSpeed");
 
+	this->InfantryAutoDeploy.Read(exINI, pID, "InfantryAutoDeploy");
+
 	// TODO , this stupid parsing thing
 	//auto const nPriData = this->Get()->GetWeapon(0);
 	//auto const nPriEliteData = this->Get()->GetEliteWeapon(0);
@@ -177,6 +179,7 @@ void InfantryTypeExtData::Serialize(T& Stm)
 		.Process(this->AllSequnceEqualRates)
 		.Process(this->AllowReceiveSpeedBoost)
 		.Process(this->ProneSpeed)
+		.Process(this->InfantryAutoDeploy)
 		;
 }
 

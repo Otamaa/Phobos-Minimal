@@ -762,7 +762,10 @@ ASMJIT_PATCH(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
 		return ContinueLoop;
 
 	// if the `Limboed` Building has radar , just accept it
-	return (pBld->_GetExtData()->LimboID != -1) ? ContinueCheck : EligibleRadar;
+	if(pBld->_GetExtData()->LimboID != -1)
+		return EligibleRadar;
+
+	return ContinueCheck;
 }
 
 ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
@@ -4962,7 +4965,7 @@ ASMJIT_PATCH(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
 }
 
 //EvalObject
-ASMJIT_PATCH(0x6F7EFE, TechnoClass_EvaluateObject_SelectWeapon, 6)
+ASMJIT_PATCH(0x6F7EFE, TechnoClass_EvaluateObject_AttackFriendliesWeapon, 6)
 {
 	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
 	GET_STACK(int const, nWeapon, 0x14);
@@ -7644,6 +7647,17 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 
 	 R->AL(pDetectorOwner->ControlledByCurrentPlayer());
 	 return 0x438D79;
+ }
+
+ ASMJIT_PATCH(0x70D0D0, TechnoClass_HasAbility_Check, 0x5)
+ {
+	 GET_STACK(AbilityType, abi, 0x4);
+	 GET_STACK(DWORD, caller, 0x0);
+
+	 if (abi >= AbilityType::count)
+		 Debug::FatalError("TechnoClass HasAbility input is too big ! %d [caller %x]\n", abi, caller);
+
+	 return 0x0;
  }
 
  //ASMJIT_PATCH(0x6D4912, TechnoClass_Render_deadRemoval, 0x6)

@@ -427,12 +427,17 @@ ASMJIT_PATCH(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
 	{
 		GET(TechnoClass* , pTech , ESI);
 
-		if(pTech->WhatAmI() != InfantryClass::AbsID) {
+		if(pTech->WhatAmI() == UnitClass::AbsID) {
+			if (const auto pDefault = TechnoTypeExtContainer::Instance.Find(((UnitClass*)pTech)->Type)->DefaultVehicleDisguise.Get()) {
+				pTech->Disguise = pDefault;
+				return 0x6F4277;
+			}
+		} else if(pTech->WhatAmI() == InfantryClass::AbsID) {
+			pThis = (InfantryClass*)pTech;
+			dwReturnAddress = 0x6F4277;
+		} else {
 			return 0x0;
 		}
-
-		pThis = (InfantryClass*)pTech;
-		dwReturnAddress = 0x6F4277;
 	}
 
 	if (pThis) {
@@ -443,7 +448,7 @@ ASMJIT_PATCH(0x5227A3, Sides_Disguise, 6) // InfantryClass_SetDefaultDisguise
 			pThis->Disguise = pDefaultDisguiseType;
 			return dwReturnAddress;
 		}
-		}
+	}
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x6F422F, Sides_Disguise, 6) // TechnoClass_Init

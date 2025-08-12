@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NewSWType.h"
+#include "SWStateMachine.h"
 
 class SW_Protect : public NewSWType
 {
@@ -18,4 +19,11 @@ public:
 
 	virtual AnimTypeClass* GetAnim(const SWTypeExtData* pData) const override;
 	virtual SWRange GetRange(const SWTypeExtData* pData) const override;
+
+	static void ApplyProtect(SuperClass* pThis, const CellStruct& Coords, SWRange range);
+
+protected:
+	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper) {
+		SWStateMachine::Array.push_back(std::move(std::make_unique<ProtectStateMachine>(Deferment, XY, pSuper, this)));
+	}
 };

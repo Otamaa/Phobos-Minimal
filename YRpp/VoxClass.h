@@ -39,20 +39,20 @@ public:
 	}
 
 	static void __fastcall Play(const char* pName, VoxType nUnk = VoxType::none, VoxPriority nUnk2 = VoxPriority::none)
-		{ JMP_STD(0x752700); }
+		{ JMP_FAST(0x752700); }
 
 	static void __fastcall PlayIndex(int index, VoxType nUnk = VoxType::none, VoxPriority nUnk2 = VoxPriority::none)
-		{ JMP_STD(0x752480); }
+		{ JMP_FAST(0x752480); }
 
 	// no idea what this does, but Super::Launch uses it on "SW Ready" events right after firing said SW
 	static void __fastcall SilenceIndex(int index)
-		{ JMP_STD(0x752A40); }
+		{ JMP_FAST(0x752A40); }
 
 	static const char* __fastcall GetName(int index)
-		{ JMP_STD(0x753330); }
+		{ JMP_FAST(0x753330); }
 
 	static void __fastcall DeleteAll()
-		{ JMP_STD(0x7531A0); }
+		{ JMP_FAST(0x7531A0); }
 
 	//Properties
 

@@ -1668,20 +1668,3 @@ ASMJIT_PATCH(0x4DF3A6, FootClass_UpdateAttackMove_Follow, 0x6)
 
 	return 0;
 }
-
-ASMJIT_PATCH(0x6F85AB, TechnoClass_EvaluateObject_AggressiveAttackMove, 0x6)
-{
-	enum { ContinueCheck = 0x6F85BA, CanTarget = 0x6F8604 };
-
-	GET(TechnoClass* const, pThis, EDI);
-
-	if (!pThis->Owner->IsControlledByHuman())
-		return CanTarget;
-
-	if (!pThis->MegaMissionIsAttackMove())
-		return ContinueCheck;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	return pTypeExt->AttackMove_Aggressive.Get(RulesExtData::Instance()->AttackMove_UpdateTarget) ? CanTarget : ContinueCheck;
-}
