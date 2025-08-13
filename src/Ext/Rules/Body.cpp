@@ -214,8 +214,6 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->VoxelShadowLightSource.Read(iniEX, GameStrings::AudioVisual, "VoxelShadowLightSource");
 	pData->UseFixedVoxelLighting.Read(iniEX, GameStrings::AudioVisual, "UseFixedVoxelLighting");
 
-	pData->ReplaceVoxelLightSources();
-
 	//got invalidated early , so parse it again
 	detail::ParseVector(iniEX, pData->AITargetTypesLists, "AITargetTypes");
 	detail::ParseVector<ScriptTypeClass*, true>(iniEX, pData->AIScriptsLists, "AIScriptsList");
@@ -296,6 +294,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 		BuildingTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items[i])
 			->CompleteInitialization();
 	}
+
+	pData->ReplaceVoxelLightSources();
 }
 
 static bool NOINLINE IsVanillaDummy(const char* ID)

@@ -2137,6 +2137,10 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->AltCameoPCX.Read(exArtINI.GetINI(), pArtSection, "AltCameoPCX");
 		this->CameoPal.Read(exArtINI, pArtSection, "CameoPalette");
 	}
+
+	if (GeneralUtils::IsValidString(pThis->PaletteFile) && !pThis->Palette)
+		Debug::Log("[Developer warning] [%s] has Palette=%s set but no palette file was loaded (missing file or wrong filename). Missing palettes cause issues with lighting recalculations.\n", pArtSection, pThis->PaletteFile);
+
 }
 
 void TechnoTypeExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)

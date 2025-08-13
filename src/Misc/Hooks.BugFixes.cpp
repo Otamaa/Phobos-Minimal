@@ -2218,7 +2218,8 @@ ASMJIT_PATCH(0x450248, BuildingClass_UpdateFactory_KickOutStuckUnits, 0x6)
 		{
 			const auto mission = pThis->CurrentMission;
 
-			if (mission == Mission::Guard || (mission == Mission::Unload && pThis->MissionStatus == 1))
+			if (mission == Mission::Guard || (mission == Mission::Unload 
+				&& pThis->MissionStatus == 3))
 				KickOutStuckUnits(pThis);
 		}
 	}
@@ -3006,3 +3007,12 @@ ASMJIT_PATCH(0x457DEB, BuildingClass_ClearOccupants_Redraw, 0xA)
 	pThis->Mark(MarkType::Change);
 	return 0;
 }
+
+#pragma region AStarBuffer
+
+// Buffer doubled
+DEFINE_PATCH(0x42A752, 0x08);
+DEFINE_PATCH(0x42A765, 0x02);
+DEFINE_PATCH(0x42A7E3, 0x20);
+
+#pragma endregion

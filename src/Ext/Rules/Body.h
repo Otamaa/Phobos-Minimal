@@ -556,7 +556,6 @@ public:
 
 	void SaveToStream(PhobosStreamWriter& Stm) {
 		this->Serialize(Stm);
-		this->ReplaceVoxelLightSources();
 	}
 
 private:

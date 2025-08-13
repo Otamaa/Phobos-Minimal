@@ -14,7 +14,7 @@ bool CannotMove(UnitClass* pThis)
 {
 	const auto pType = pThis->Type;
 
-	if (pType->Speed == 0)
+	if (pType->Speed <= 0)
 		return true;
 
 	if (!pThis->IsInAir())
@@ -45,7 +45,7 @@ ASMJIT_PATCH(0x740A93, UnitClass_Mission_Move_DisallowMoving, 0x6)
 
 	GET(UnitClass*, pThis, ESI);
 
-	return CannotMove(pThis) == 0
+	return CannotMove(pThis)
 	? QueueGuardInstead : ContinueCheck;
 }
 
@@ -54,7 +54,7 @@ ASMJIT_PATCH(0x741AA7, UnitClass_Assign_Destination_DisallowMoving, 0x6)
 	enum { ClearNavComsAndReturn = 0x743173, ContinueCheck = 0x0 };
 	GET(UnitClass*, pThis, EBP);
 
-	return CannotMove(pThis) == 0
+	return CannotMove(pThis)
 	? ClearNavComsAndReturn : ContinueCheck;
 }
 
@@ -63,7 +63,7 @@ ASMJIT_PATCH(0x743B4B, UnitClass_Scatter_DisallowMoving, 0x6)
 	enum { ReleaseReturn = 0x74408E, ContinueCheck = 0x0 };
 	GET(UnitClass*, pThis, EBP);
 
-	return CannotMove(pThis) == 0
+	return CannotMove(pThis)
 	? ReleaseReturn : ContinueCheck;
 }
 
@@ -116,30 +116,30 @@ ASMJIT_PATCH(0x736B60, UnitClass_Rotation_AI_DisallowMoving, 0x6)
 			->TurretResponse.Get(pThis->Type->Speed != 0) ? 0x736AFB : 0;
 }
 
-ASMJIT_PATCH(0x74416C, UnitClass_Mission_DisallowMoving, 0x7)		//UnitClass::Mission_AreaGuard
-{
-	GET(UnitClass*, pThis, ESI);
-
-	DWORD address = R->Origin();
-
-	if (CannotMove(pThis))
-	{
-		pThis->QueueMission(Mission::Guard, false);
-		pThis->NextMission();
-
-		R->EAX(pThis->FootClass::Mission_Guard());
-	}
-	else if (address == 0x74416C)
-	{
-		R->EAX(pThis->FootClass::Mission_AreaGuard());
-	}
-	else
-	{
-		R->EAX(pThis->FootClass::Mission_Hunt());
-	}
-
-	return R->Origin() + 0x7;
-}ASMJIT_PATCH_AGAIN(0x73F08A, UnitClass_Mission_DisallowMoving, 0x7)	//UnitClass::Mission_Hunt
+// ASMJIT_PATCH(0x74416C, UnitClass_Mission_DisallowMoving, 0x7)		//UnitClass::Mission_AreaGuard
+// {
+// 	GET(UnitClass*, pThis, ESI);
+//
+// 	DWORD address = R->Origin();
+//
+// 	if (CannotMove(pThis))
+// 	{
+// 		pThis->QueueMission(Mission::Guard, false);
+// 		pThis->NextMission();
+//
+// 		R->EAX(pThis->FootClass::Mission_Guard());
+// 	}
+// 	else if (address == 0x74416C)
+// 	{
+// 		R->EAX(pThis->FootClass::Mission_AreaGuard());
+// 	}
+// 	else
+// 	{
+// 		R->EAX(pThis->FootClass::Mission_Hunt());
+// 	}
+//
+// 	return R->Origin() + 0x7;
+// }ASMJIT_PATCH_AGAIN(0x73F08A, UnitClass_Mission_DisallowMoving, 0x7)	//UnitClass::Mission_Hunt
 
 ASMJIT_PATCH(0x74132B, UnitClass_GetFireError_DisallowMoving, 0x7)
 {
@@ -152,29 +152,44 @@ ASMJIT_PATCH(0x74132B, UnitClass_GetFireError_DisallowMoving, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x736E34, UnitClass_UpdateFiring_DisallowMoving, 0x6)
+namespace UnitApproachTargetTemp
 {
-	GET(UnitClass*, pThis, ESI);
-	GET(AbstractClass*, pTarget, EAX);
-	GET(int, nWeaponIndex, EDI);
+	int WeaponIndex;
+}
 
-	const auto pType = pThis->Type;
+ASMJIT_PATCH(0x7414E0, UnitClass_ApproachTarget_DisallowMoving, 0xA)
+{
+	GET(UnitClass*, pThis, ECX);
+
+	int weaponIndex = -1;
 
 	if (CannotMove(pThis))
 	{
-		if (!pThis->IsCloseEnough(pTarget, nWeaponIndex))
-		{
-			if (pType->IsGattling)
-				pThis->GattlingRateDown(1);
+		const auto pTarget = pThis->Target;
+		weaponIndex = pThis->SelectWeapon(pTarget);
 
-			pThis->SetTarget(nullptr);
-			return 0x737140;
-		}
-		else
+		if (!pThis->IsCloseEnough(pTarget, weaponIndex))
 		{
-			R->EAX(pThis->GetFireError(pTarget, nWeaponIndex, false));
-			return 0x736E40;
+			pThis->SetTarget(nullptr);
+			return 0x741690;
 		}
+	}
+
+	UnitApproachTargetTemp::WeaponIndex = weaponIndex;
+	return 0;
+}
+
+ASMJIT_PATCH(0x7415A9, UnitClass_ApproachTarget_SetWeaponIndex, 0x6)
+{
+	if (UnitApproachTargetTemp::WeaponIndex != -1)
+	{
+		GET(UnitClass*, pThis, ESI);
+
+		R->EDI(pThis);
+		R->EAX(UnitApproachTargetTemp::WeaponIndex);
+		UnitApproachTargetTemp::WeaponIndex = -1;
+
+		return 0x7415BA;
 	}
 
 	return 0;
@@ -209,3 +224,19 @@ ASMJIT_PATCH(0x73891D, UnitClass_Active_Click_With_DisallowMoving, 0x6)
 
 	return pThis->Type->Speed == 0 ? 0x738927 : 0;
 }
+
+ASMJIT_PATCH(0x73EFC4, UnitClass_Mission_DisallowMoving, 0x6)		// UnitClass::Mission_Hunt
+{
+	GET(UnitClass*, pThis, ESI);
+
+	if (CannotMove(pThis))
+	{
+		pThis->QueueMission(Mission::Guard, false);
+		pThis->NextMission();
+
+		R->EAX(pThis->Mission_Guard());
+		return R->Origin() == 0x744103 ? 0x744173 : 0x73F091;
+	}
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x744103, UnitClass_Mission_DisallowMoving, 0x6)	// UnitClass::Mission_AreaGuard
