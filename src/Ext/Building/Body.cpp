@@ -1208,7 +1208,7 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 	}
 	case NukeFiringState::SentWeaponPayload:
 	{
-		HouseClass* house = pThis->Owner;
+		//HouseClass* house = pThis->Owner;
 		const auto targetCell = pExt->SuperTarget.IsValid()
 			? pExt->SuperTarget : pThis->Owner->NukeTarget;
 		CellClass* v3 = MapClass::Instance->GetCellAt(targetCell);

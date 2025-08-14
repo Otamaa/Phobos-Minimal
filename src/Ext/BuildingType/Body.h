@@ -276,6 +276,7 @@ public:
 	Valueable<bool> FactoryPlant_RequirePower { false };
 	Valueable<bool> SpySat_RequirePower { false };
 	Valueable<bool> Cloning_RequirePower { false };
+	Valueable<bool> Radar_RequirePower { true };
 
 	Nullable<bool> DisplayIncome {};
 	Nullable<AffectedHouse> DisplayIncome_Houses {};

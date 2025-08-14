@@ -428,6 +428,7 @@ public:
 	void _BlowUpAll();
 	void _BlowUpAllBuildings();
 	void _UpdateRadar();
+	void _UpdateSpySat();
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + HouseExtData::ExtOffset);

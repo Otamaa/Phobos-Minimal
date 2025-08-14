@@ -1587,6 +1587,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->FactoryPlant_RequirePower.Read(exINI, pSection, "FactoryPlant.RequirePower");
 		this->SpySat_RequirePower.Read(exINI, pSection, "SpySat.RequirePower");
 		this->Cloning_RequirePower.Read(exINI, pSection, "Cloning.RequirePower");
+		this->Radar_RequirePower.Read(exINI, pSection, "Radar.RequirePower");
 		this->SpawnCrewOnlyOnce.Read(exINI, pSection, "SpawnCrewOnlyOnce");
 		this->IsDestroyableObstacle.Read(exINI, pSection, "IsDestroyableObstacle");
 
@@ -2048,6 +2049,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->FactoryPlant_RequirePower)
 		.Process(this->SpySat_RequirePower)
 		.Process(this->Cloning_RequirePower)
+		.Process(this->Radar_RequirePower)
 		.Process(this->DisplayIncome)
 		.Process(this->DisplayIncome_Houses)
 		.Process(this->DisplayIncome_Offset)

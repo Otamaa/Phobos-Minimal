@@ -1771,119 +1771,119 @@ ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 	return SkipGameCode;
 }
 
-static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
-{
-	const bool IsCurrentPlayer = pThis->ControlledByCurrentPlayer();
+// static BuildingClass* IsAnySpysatActive(HouseClass* pThis)
+// {
+// 	const bool IsCurrentPlayer = pThis->ControlledByCurrentPlayer();
+// 	const bool IsCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
+// 	const bool IsSpysatActulallyAllowed = !IsCampaign ? pThis == HouseClass::CurrentPlayer() :  IsCurrentPlayer; 
 
-	//===============reset all
-	pThis->CostDefensesMult = 1.0;
-	pThis->CostUnitsMult = 1.0;
-	pThis->CostInfantryMult = 1.0;
-	pThis->CostBuildingsMult = 1.0;
-	pThis->CostAircraftMult = 1.0;
-	BuildingClass* Spysat = nullptr;
-	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis);
+// 	//===============reset all
+// 	pThis->CostDefensesMult = 1.0;
+// 	pThis->CostUnitsMult = 1.0;
+// 	pThis->CostInfantryMult = 1.0;
+// 	pThis->CostBuildingsMult = 1.0;
+// 	pThis->CostAircraftMult = 1.0;
+// 	BuildingClass* Spysat = nullptr;
+// 	const auto pHouseExt = HouseExtContainer::Instance.Find(pThis);
 
-	pHouseExt->Building_BuildSpeedBonusCounter.clear();
-	pHouseExt->Building_OrePurifiersCounter.clear();
-	pHouseExt->RestrictedFactoryPlants.clear();
-	pHouseExt->BattlePointsCollectors.clear();
+// 	pHouseExt->Building_BuildSpeedBonusCounter.clear();
+// 	pHouseExt->Building_OrePurifiersCounter.clear();
+// 	pHouseExt->RestrictedFactoryPlants.clear();
+// 	pHouseExt->BattlePointsCollectors.clear();
 
-	//==========================
-	//const bool LowpOwerHouse = pThis->HasLowPower();
+// 	//==========================
+// 	//const bool LowpOwerHouse = pThis->HasLowPower();
 
-	for (auto const& pBld : pThis->Buildings)
-	{
-		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
-		{
-			const auto pExt = BuildingExtContainer::Instance.Find(pBld);
-			const bool IsLimboDelivered = pExt->LimboID != -1;
+// 	for (auto const& pBld : pThis->Buildings)
+// 	{
+// 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
+// 		{
+// 			const auto pExt = BuildingExtContainer::Instance.Find(pBld);
+// 			const bool IsLimboDelivered = pExt->LimboID != -1;
 
-			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
-				continue;
+// 			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
+// 				continue;
 
-			if (pBld->TemporalTargetingMe
-				|| pExt->AboutToChronoshift
-				|| pBld->IsBeingWarpedOut())
-				continue;
+// 			if (pBld->TemporalTargetingMe
+// 				|| pExt->AboutToChronoshift
+// 				|| pBld->IsBeingWarpedOut())
+// 				continue;
 
-			const bool Online = pBld->IsPowerOnline(); // check power
-			const auto pTypes = pBld->GetTypes(); // building types include upgrades
-			const bool Jammered = !pExt->RegisteredJammers.empty();  // is this building jammed
+// 			const bool Online = pBld->IsPowerOnline(); // check power
+// 			const auto pTypes = pBld->GetTypes(); // building types include upgrades
+// 			const bool Jammered = !pExt->RegisteredJammers.empty();  // is this building jammed
 
-			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin)
-			{
+// 			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin)
+// 			{
 
-				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
-				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
+// 				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
+// 				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
 
-				const bool IsBattlePointsCollectorPowered = !pTypeExt->BattlePointsCollector_RequirePower || ((*begin)->Powered && Online);
-				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered)
-				{
-					++pHouseExt->BattlePointsCollectors[(*begin)];
-				}
+// 				const bool IsBattlePointsCollectorPowered = !pTypeExt->BattlePointsCollector_RequirePower || ((*begin)->Powered && Online);
+// 				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered)
+// 				{
+// 					++pHouseExt->BattlePointsCollectors[(*begin)];
+// 				}
 
-				const bool IsFactoryPowered = !pTypeExt->FactoryPlant_RequirePower || ((*begin)->Powered && Online);
+// 				const bool IsFactoryPowered = !pTypeExt->FactoryPlant_RequirePower || ((*begin)->Powered && Online);
 
-				//recalculate the multiplier
-				if ((*begin)->FactoryPlant && IsFactoryPowered)
-				{
-					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0)
-					{
-						pHouseExt->RestrictedFactoryPlants.emplace(pBld);
-					}
+// 				//recalculate the multiplier
+// 				if ((*begin)->FactoryPlant && IsFactoryPowered)
+// 				{
+// 					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0)
+// 					{
+// 						pHouseExt->RestrictedFactoryPlants.emplace(pBld);
+// 					}
 
-					pThis->CostDefensesMult *= (*begin)->DefensesCostBonus;
-					pThis->CostUnitsMult *= (*begin)->UnitsCostBonus;
-					pThis->CostInfantryMult *= (*begin)->InfantryCostBonus;
-					pThis->CostBuildingsMult *= (*begin)->BuildingsCostBonus;
-					pThis->CostAircraftMult *= (*begin)->AircraftCostBonus;
-				}
+// 					pThis->CostDefensesMult *= (*begin)->DefensesCostBonus;
+// 					pThis->CostUnitsMult *= (*begin)->UnitsCostBonus;
+// 					pThis->CostInfantryMult *= (*begin)->InfantryCostBonus;
+// 					pThis->CostBuildingsMult *= (*begin)->BuildingsCostBonus;
+// 					pThis->CostAircraftMult *= (*begin)->AircraftCostBonus;
+// 				}
 
-				//only pick first spysat
-				if (!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat)
-				{
-					const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && Online);
-					if (!Spysat && (*begin)->SpySat && !Jammered && IsSpySatPowered)
-					{
-						const bool IsDiscovered = pBld->DiscoveredByCurrentPlayer && SessionClass::Instance->GameMode == GameMode::Campaign;
-						if (IsLimboDelivered || !IsCurrentPlayer || SessionClass::Instance->GameMode != GameMode::Campaign || IsDiscovered)
-						{
-							Spysat = pBld;
-						}
-					}
-				}
+// 				if(IsSpysatActulallyAllowed && !Spysat) {
+// 					//only pick avaible spysat
+// 					if (!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat) {
+// 						const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && Online);
+// 						if ((*begin)->SpySat && !Jammered && IsSpySatPowered) {
+// 							if (IsLimboDelivered || !IsCampaign || pBld->DiscoveredByCurrentPlayer) {
+// 								Spysat = pBld;
+// 							}
+// 						}
+// 					}
+// 				}
 
-				// add eligible building
-				if (pTypeExt->SpeedBonus.Enabled && Online)
-					++pHouseExt->Building_BuildSpeedBonusCounter[(*begin)];
+// 				// add eligible building
+// 				if (pTypeExt->SpeedBonus.Enabled && Online)
+// 					++pHouseExt->Building_BuildSpeedBonusCounter[(*begin)];
 
-				const bool IsPurifierRequirePower = !pTypeExt->PurifierBonus_RequirePower || ((*begin)->Powered && Online);
-				// add eligible purifier
-				if ((*begin)->OrePurifier && IsPurifierRequirePower)
-					++pHouseExt->Building_OrePurifiersCounter[(*begin)];
-			}
-		}
-	}
+// 				const bool IsPurifierRequirePower = !pTypeExt->PurifierBonus_RequirePower || ((*begin)->Powered && Online);
+// 				// add eligible purifier
+// 				if ((*begin)->OrePurifier && IsPurifierRequirePower)
+// 					++pHouseExt->Building_OrePurifiersCounter[(*begin)];
+// 			}
+// 		}
+// 	}
 
-	//count them
-	for (auto& purifier : pHouseExt->Building_OrePurifiersCounter)
-		pThis->NumOrePurifiers += purifier.second;
+// 	//count them
+// 	for (auto& purifier : pHouseExt->Building_OrePurifiersCounter)
+// 		pThis->NumOrePurifiers += purifier.second;
 
-	return Spysat;
-}
+// 	return Spysat;
+// }
 
-ASMJIT_PATCH(0x508F79, HouseClass_AI_CheckSpySat, 0x5)
-{
-	enum
-	{
-		ActivateSpySat = 0x509054,
-		DeactivateSpySat = 0x509002
-	};
+// ASMJIT_PATCH(0x508F79, HouseClass_AI_CheckSpySat, 0x5)
+// {
+// 	enum
+// 	{
+// 		ActivateSpySat = 0x509054,
+// 		DeactivateSpySat = 0x509002
+// 	};
 
-	GET(HouseClass*, pThis, ESI);
-	return IsAnySpysatActive(pThis) ? ActivateSpySat : DeactivateSpySat;
-}
+// 	GET(HouseClass*, pThis, ESI);
+// 	return IsAnySpysatActive(pThis) ? ActivateSpySat : DeactivateSpySat;
+// }
 
 ASMJIT_PATCH(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 {

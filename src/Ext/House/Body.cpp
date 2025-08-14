@@ -2814,30 +2814,50 @@ void FakeHouseClass::_UpdateRadar() {
                 }
 
 				if (!building->IsAlive) continue;
-                if (!building->HasPower) continue;
-                if (!building->Type->Radar) continue;
-                if (building->InLimbo) continue;
-                if (!building->IsOnMap) continue;
+				if (building->InLimbo) continue;
+				if (!building->IsOnMap) continue;
 				if (TechnoExtContainer::Instance.Find(building)->AE.DisableRadar) continue;
-				if (!building->_GetExtData()->RegisteredJammers.empty()) continue;
-                if (building->EMPLockRemaining > 0) continue;
-                if (building->IsBeingWarpedOut()) continue;
-                if (building->CurrentMission == Mission::Selling) continue;
-                if (building->QueuedMission == Mission::Selling) continue;
 
-				if	(building->_GetExtData()->LimboID != -1) {
-					radarAvailable = true;
-					break;
+				const auto pExt = building->_GetExtData();
+
+				if (!pExt->RegisteredJammers.empty()) continue;
+				if (building->EMPLockRemaining > 0) continue;
+				if (building->IsBeingWarpedOut()) continue;
+				if (building->CurrentMission == Mission::Selling) continue;
+				if (building->QueuedMission == Mission::Selling) continue;
+
+				BuildingTypeClass* pRadar = nullptr;
+
+				const auto pTypes = building->GetTypes(); // building types include upgrades
+
+				for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin) {
+
+					if (!(*begin)->Radar)
+						continue;
+
+					const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
+					if(!pTypeExt->Radar_RequirePower || ((*begin)->Powered && building->HasPower)){
+						pRadar = (*begin);
+						break;
+					}
 				}
 
-                // Extra campaign/player checks
-                const bool discoveredOrNonCampaign = building->DiscoveredByCurrentPlayer
-							|| SessionClass::Instance->GameMode != GameMode::Campaign;
+				if (pRadar) {
 
-                if (!(campaignAI || discoveredOrNonCampaign)) continue;
+					if	(pExt->LimboID != -1) {
+						radarAvailable = true;
+						break;
+					}
 
-                radarAvailable = true;
-                break; // Found a valid radar
+					// Extra campaign/player checks
+					const bool discoveredOrNonCampaign = building->DiscoveredByCurrentPlayer
+								|| SessionClass::Instance->GameMode != GameMode::Campaign;
+
+					if (!(campaignAI || discoveredOrNonCampaign)) continue;
+
+					radarAvailable = true;
+					break; // Found a valid radar
+				}
             }
         }
 	}
@@ -2849,6 +2869,156 @@ void FakeHouseClass::_UpdateRadar() {
 
 DEFINE_FUNCTION_JUMP(CALL, 0x4F8505, FakeHouseClass::_UpdateRadar)
 DEFINE_FUNCTION_JUMP(LJMP, 0x508DF0, FakeHouseClass::_UpdateRadar)
+
+void FakeHouseClass::_UpdateSpySat()
+{
+	const bool IsCurrentPlayer = this->ControlledByCurrentPlayer();
+	const bool ItIsCurrentPlayer = this == HouseClass::CurrentPlayer();
+	const bool IsCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
+	const bool IsSpysatActulallyAllowed = !IsCampaign ? IsCurrentPlayer : IsCurrentPlayer;
+
+	//===============reset all
+	this->CostDefensesMult = 1.0;
+	this->CostUnitsMult = 1.0;
+	this->CostInfantryMult = 1.0;
+	this->CostBuildingsMult = 1.0;
+	this->CostAircraftMult = 1.0;
+	BuildingClass* Spysat = nullptr;
+
+	const auto pHouseExt = this->_GetExtData();
+
+	pHouseExt->Building_BuildSpeedBonusCounter.clear();
+	pHouseExt->Building_OrePurifiersCounter.clear();
+	pHouseExt->RestrictedFactoryPlants.clear();
+	pHouseExt->BattlePointsCollectors.clear();
+
+	this->RecheckRadar = 0;
+
+	int activeCount = this->Buildings.Count;
+
+	if (activeCount <= 0)
+	{
+		// No buildings, remove shroud if active
+		if (this->SpySatActive) {
+			MapClass::Instance->Reshroud(this);
+			this->SpySatActive = 0;
+
+			if (ItIsCurrentPlayer) {
+				VocClass::PlayGlobal(RulesClass::Instance->SpySatDeactivationSound, Panning::Center, 1.0, 0);
+			}
+		}
+
+		return;
+	}
+
+	for (auto const& pBld : this->Buildings)
+	{
+		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
+		{
+			const auto pExt = BuildingExtContainer::Instance.Find(pBld);
+			const bool IsLimboDelivered = pExt->LimboID != -1;
+
+			if (pBld->GetCurrentMission() == Mission::Selling || pBld->QueuedMission == Mission::Selling)
+				continue;
+
+			if (pBld->TemporalTargetingMe
+				|| pExt->AboutToChronoshift
+				|| pBld->IsBeingWarpedOut())
+				continue;
+
+			//const bool Online = pBld->IsPowerOnline(); // check power
+			const auto pTypes = pBld->GetTypes(); // building types include upgrades
+			const bool Jammered = !pExt->RegisteredJammers.empty();  // is this building jammed
+
+			for (auto begin = pTypes.begin(); begin != pTypes.end() && *begin; ++begin)
+			{
+				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
+				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
+
+				const bool IsBattlePointsCollectorPowered = !pTypeExt->BattlePointsCollector_RequirePower || ((*begin)->Powered && pBld->HasPower);
+				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered)
+				{
+					++pHouseExt->BattlePointsCollectors[(*begin)];
+				}
+
+				const bool IsFactoryPowered = !pTypeExt->FactoryPlant_RequirePower || ((*begin)->Powered && pBld->HasPower);
+
+				//recalculate the multiplier
+				if ((*begin)->FactoryPlant && IsFactoryPowered)
+				{
+					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0)
+					{
+						pHouseExt->RestrictedFactoryPlants.emplace(pBld);
+					}
+
+					this->CostDefensesMult *= (*begin)->DefensesCostBonus;
+					this->CostUnitsMult *= (*begin)->UnitsCostBonus;
+					this->CostInfantryMult *= (*begin)->InfantryCostBonus;
+					this->CostBuildingsMult *= (*begin)->BuildingsCostBonus;
+					this->CostAircraftMult *= (*begin)->AircraftCostBonus;
+				}
+
+				if (IsSpysatActulallyAllowed && !Spysat)
+				{
+					//only pick avaible spysat
+					if (!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat)
+					{
+						const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && pBld->HasPower);
+						if ((*begin)->SpySat && !Jammered && IsSpySatPowered)
+						{
+							if (IsLimboDelivered || !IsCampaign || pBld->DiscoveredByCurrentPlayer)
+							{
+								Spysat = pBld;
+							}
+						}
+					}
+				}
+
+				// add eligible building
+				if (pTypeExt->SpeedBonus.Enabled && pBld->HasPower)
+					++pHouseExt->Building_BuildSpeedBonusCounter[(*begin)];
+
+				const bool IsPurifierRequirePower = !pTypeExt->PurifierBonus_RequirePower || ((*begin)->Powered && pBld->HasPower);
+				// add eligible purifier
+				if ((*begin)->OrePurifier && IsPurifierRequirePower)
+					++pHouseExt->Building_OrePurifiersCounter[(*begin)];
+			}
+		}
+	}
+
+	//count them
+	for (auto& purifier : pHouseExt->Building_OrePurifiersCounter)
+		this->NumOrePurifiers += purifier.second;
+
+	// If no valid spy sat found, turn off
+	if (!Spysat) {
+
+		if (this->SpySatActive) {
+			MapClass::Instance->Reshroud(this);
+			this->SpySatActive = 0;
+
+			if (ItIsCurrentPlayer) {
+				VocClass::PlayGlobal(RulesClass::Instance->SpySatDeactivationSound, Panning::Center, 1.0, 0);
+			}
+		}
+
+		return;
+	}
+
+	// If valid spy sat found and shroud not yet cleared
+	if (!this->SpySatActive) {
+		MapClass::Instance->Reveal(this);
+		this->SpySatActive = 1;
+
+		if (ItIsCurrentPlayer) {
+			VocClass::PlayGlobal(RulesClass::Instance->SpySatActivationSound, Panning::Center, 1.0, 0);
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4F850C, FakeHouseClass::_UpdateSpySat)
+DEFINE_FUNCTION_JUMP(LJMP, 0x508F60, FakeHouseClass::_UpdateSpySat)
+
 #include <Ext/Infantry/Body.h>
 
 bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
