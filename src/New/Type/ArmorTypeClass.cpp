@@ -14,18 +14,27 @@ ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeC
 , DefaultString { }
 , DefaultVersesValue { }
 , IsVanillaArmor { false }
-, BaseTag { "Versus." }
+, BaseTag {}
 , FF_Tag {}
 , RT_Tag {}
 , PA_Tag {}
-, HitAnim_Tag { "HitAnim." }
+, HitAnim_Tag {}
 {
+	BaseTag.reserve(std::char_traits<char>::length("Versus.") + strlen(pTitle) + 16); // small safety margin
+	HitAnim_Tag.reserve(std::char_traits<char>::length("HitAnim.") + strlen(pTitle) + 16); // small safety margin
+	BaseTag = "Versus.";
 	BaseTag += pTitle;
+
+	HitAnim_Tag = "HitAnim.";
+	HitAnim_Tag += pTitle;
+
+	FF_Tag.reserve(BaseTag.size() + std::char_traits<char>::length(".ForceFire") + 1);
+	RT_Tag.reserve(BaseTag.size() + std::char_traits<char>::length(".Retaliate") + 1);
+	PA_Tag.reserve(BaseTag.size() + std::char_traits<char>::length(".PassiveAcquire") + 1);
+
 	FF_Tag = BaseTag + ".ForceFire";
 	RT_Tag = BaseTag + ".Retaliate";
 	PA_Tag = BaseTag + ".PassiveAcquire";
-	HitAnim_Tag += pTitle;
-
 }
 
 const char* Enumerable<ArmorTypeClass>::GetMainSection()
