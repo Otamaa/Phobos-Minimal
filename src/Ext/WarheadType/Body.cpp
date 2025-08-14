@@ -719,6 +719,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		|| !this->PhobosAttachEffects.RemoveGroups.empty()
 		|| this->BuildingSell
 		|| this->BuildingUndeploy
+		|| this->ReverseEngineer
 		;
 
 	this->IsFakeEngineer =
@@ -1896,6 +1897,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->FakeEngineer_CanDestroyBridges)
 		.Process(this->FakeEngineer_CanCaptureBuildings)
 		.Process(this->FakeEngineer_BombDisarm)
+		.Process(this->ReverseEngineer)
 
 		.Process(this->IsCellSpreadWH)
 		.Process(this->IsFakeEngineer)

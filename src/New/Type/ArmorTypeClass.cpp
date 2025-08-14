@@ -123,16 +123,6 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 	const char* section = pWH->get_ID();
 
 	INI_EX exINI(pINI);
-	//for (size_t i = pWHExt->Verses.size(); i < Array.size(); ++i)
-	//{
-	//	auto& pArmor = Array[i];
-	//	const int nDefaultIdx = pArmor->DefaultTo;
-	//	pWHExt->Verses.push_back((nDefaultIdx == -1 || nDefaultIdx > (int)i)
-	//			? pArmor->DefaultVersesValue
-	//			: pWHExt->Verses[nDefaultIdx]
-	//	);
-	//}
-
 	for (size_t i = 0; i < pWHExt->Verses.size(); ++i)
 	{
 		const auto pArmor = ArmorTypeClass::Array[i].get();
@@ -140,9 +130,10 @@ void ArmorTypeClass::LoadForWarhead(CCINIClass* pINI, WarheadTypeClass* pWH)
 		if (exINI.ReadString(section, pArmor->BaseTag.c_str()) > 0)
 		{
 			pWHExt->Verses[i].Parse_NoCheck(exINI.value());
+			pWHExt->Verses[i].LastParseIsValid = true;
 		}
-		else
-		{
+		//if the armor last read value is valid , dont fill it with default value
+		else if(!pWHExt->Verses[i].LastParseIsValid) {
 			if (pArmor->DefaultTo != -1)
 			{
 				const auto nDefault = pArmor->DefaultTo;

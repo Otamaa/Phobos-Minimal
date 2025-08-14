@@ -828,6 +828,10 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 	if (this->BuildingSell || this->BuildingUndeploy)
 		this->ApplyBuildingUndeploy(pTarget);
+
+	if (this->ReverseEngineer) {
+		HouseExtContainer::Instance.Find(pHouse)->ReverseEngineer(pTarget);
+	}
 }
 
 //void WarheadTypeExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)

@@ -457,6 +457,7 @@ public:
 	Valueable<bool> FakeEngineer_CanDestroyBridges { false };
 	Valueable<bool> FakeEngineer_CanCaptureBuildings { false };
 	Valueable<bool> FakeEngineer_BombDisarm { false };
+	Valueable<bool> ReverseEngineer { false };
 
 	bool IsCellSpreadWH { false };
 	bool IsFakeEngineer { false };

@@ -241,6 +241,8 @@ public:
 	int CalculateBattlePoints(TechnoClass* pTechno);
 	int CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pOwner);
 
+	bool ReverseEngineer(TechnoClass* Victim);
+
 	static SuperClass* IsSuperAvail(int nIdx, HouseClass* pHouse);
 
 	static int ActiveHarvesterCount(HouseClass* pThis);

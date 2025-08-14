@@ -202,7 +202,7 @@ public:
 	Valueable<bool> AutoDeath_FullPower { false };
 	Valueable<int> AutoDeath_PassengerExceed { -1 };
 	Valueable<int> AutoDeath_PassengerBelow { -1 };
-	Valueable<bool> AutoDeath_ContentIfAnyMatch { true };
+	Valueable<bool> AutoDeath_ContentIfAnyMatch { false };
 	Valueable<bool> AutoDeath_OwnedByPlayer { false };
 	Valueable<bool> AutoDeath_OwnedByAI { false };
 

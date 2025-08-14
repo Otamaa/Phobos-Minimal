@@ -2113,6 +2113,29 @@ int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pO
 	return !pThisTypeExt->BattlePoints_CanUseStandardPoints ? 0 : pTechno->Points;
 }
 
+bool HouseExtData::ReverseEngineer(TechnoClass* Victim) {
+	auto VictimType = Victim->GetTechnoType();
+	auto pVictimData = TechnoTypeExtContainer::Instance.Find(VictimType);
+
+	if (!pVictimData->CanBeReversed)
+		return false;
+
+	auto VictimAs = pVictimData->ReversedAs.Get(VictimType);
+
+	if (!VictimAs)
+		return false;
+
+	if (HouseExtData::PrereqValidate(this->AttachedToObject, VictimType, false, true) != CanBuildResult::Buildable) {
+		this->Reversed.emplace(VictimAs);
+		if (HouseExtData::RequirementsMet(this->AttachedToObject, VictimType) != RequirementStatus::Forbidden) {
+			this->AttachedToObject->RecheckTechTree = true;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 //void HouseExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
 //{
 //	if (pTechnoType)

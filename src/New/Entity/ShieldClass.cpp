@@ -1028,21 +1028,28 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 	auto position = TechnoExtData::GetFootSelectBracketPosition(Techno, Anchor(HorizontalPosition::Left, VerticalPosition::Top));
 	position.X -= 1;
 	position.Y += this->Techno->GetTechnoType()->PixelSelectionBracketDelta + this->Type->BracketDelta - 3;
-	int	frame = (iLength == 8) ? (pipBoard->Frames > 2 ? 3 : 1) : pipBoard->Frames > 2 ? 2 : 0;
+	int frame = pipBoard->Frames > 2 ? 2 : 0;
 
 	if (this->Techno->IsSelected)
 	{
-		position.X += iLength + 1 + (iLength == 8 ? iLength + 1 : 0);
+		int offset = iLength + 1;
+
+		if (iLength == 8)
+		{
+			frame += 1;
+			offset += iLength + 1;
+		}
+
+		position.X += offset;
 		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, pipBoard,
 			frame, &position, pBound, BlitterFlags(0xE00), 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-		position.X -= iLength + 1 + (iLength == 8 ? iLength + 1 : 0);
+		position.X -= offset;
 	}
 
-	const int iTotal = DrawShieldBar_PipAmount(iLength);
-
 	frame = this->DrawShieldBar_Pip(false);
+	position.Y += 1;
 
-	for (int i = 0; i < iTotal; ++i)
+	for (int i = 0; i < DrawShieldBar_PipAmount(iLength); ++i)
 	{
 		position.X += 2;
 		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
@@ -1057,8 +1064,8 @@ int ShieldClass::DrawShieldBar_Pip(const bool isBuilding)
 	const double condRed = this->Type->GetConditionRed();
 
 	const auto& pips_Shield = isBuilding ? this->Type->Pips_Building : this->Type->Pips;
-	const auto& pips_Global = isBuilding ? RulesExtData::Instance()->Pips_Shield_Building : RulesExtData::Instance()->Pips_Shield;
-	const auto& shieldPip = pips_Shield->X != -1 ? pips_Shield : pips_Global;
+	const auto& shieldPip = pips_Shield->X != -1 ? pips_Shield :
+		(isBuilding ? RulesExtData::Instance()->Pips_Shield_Building : RulesExtData::Instance()->Pips_Shield);
 
 	if (this->HP > condYellow * strength && shieldPip->X != -1)
 		return shieldPip->X;

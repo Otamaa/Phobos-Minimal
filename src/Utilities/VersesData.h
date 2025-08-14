@@ -7,13 +7,14 @@ struct VersesData
 {
 	double Verses;
 	WarheadFlags Flags;
+	bool LastParseIsValid;
 
 	VersesData() : Verses { 1.0 }
-		, Flags { true, true, true }
+		, Flags { true, true, true } , LastParseIsValid { false }
 	{ };
 
 	VersesData(double VS, bool FF, bool Retal, bool Acquire) : Verses { VS }
-		, Flags { FF, Retal, Acquire }
+		, Flags { FF, Retal, Acquire }, LastParseIsValid { false }
 	{ };
 
 	~VersesData() noexcept = default;

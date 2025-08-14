@@ -223,31 +223,10 @@ bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Vic
 		return false;
 	}
 
-	auto VictimType = Victim->GetTechnoType();
-	auto pVictimData = TechnoTypeExtContainer::Instance.Find(VictimType);
-	if (!pVictimData->CanBeReversed)
-		return false;
-
-	auto VictimAs = pVictimData->ReversedAs.Get(VictimType);
-
-	if (!VictimAs)
-		return false;
-
 	const auto pBldOwner = pBuilding->Owner;
 	auto pBldOwnerExt = HouseExtContainer::Instance.Find(pBldOwner);
 
-	if (HouseExtData::PrereqValidate(pBldOwner, VictimType, false, true) != CanBuildResult::Buildable) {
-
-		pBldOwnerExt->Reversed.emplace(VictimAs);
-
-		if (HouseExtData::RequirementsMet(pBldOwner, VictimType) != RequirementStatus::Forbidden)
-		{
-			pBldOwner->RecheckTechTree = true;
-			return true;
-		}
-	}
-
-	return false;
+	return pBldOwnerExt->ReverseEngineer(Victim);
 }
 
 #include <ExtraHeaders/StackVector.h>

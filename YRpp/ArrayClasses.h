@@ -492,6 +492,10 @@ public:
 	template <typename Func>
 	COMPILETIMEEVAL auto FORCEDINLINE find_if(Func&& act) const
 	{
+		if (this->Count <= 0) {
+			return this->end();
+		}
+
 		for (auto i = this->begin(); i != this->end(); ++i)
 		{
 			if (act(*i))
@@ -506,6 +510,10 @@ public:
 	template <typename Func>
 	COMPILETIMEEVAL auto FORCEDINLINE find_if(Func&& act)
 	{
+		if (this->Count <= 0) {
+			return this->end();
+		}
+
 		for (auto i = this->begin(); i != this->end(); ++i)
 		{
 			if (act(*i))
@@ -520,6 +528,10 @@ public:
 	template <typename Func>
 	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act) const
 	{
+		if (this->Count <= 0) {
+			return;
+		}
+
 		for (auto i = this->begin(); i != this->end(); ++i)
 		{
 			act(*i);
@@ -529,6 +541,10 @@ public:
 	template <typename Func>
 	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act)
 	{
+		if (this->Count <= 0) {
+			return;
+		}
+
 		for (auto i = this->begin(); i != this->end(); ++i)
 		{
 			act(*i);
@@ -538,6 +554,10 @@ public:
 	template<typename func>
 	COMPILETIMEEVAL bool FORCEDINLINE none_of(func&& fn) const
 	{
+		if (this->Count <= 0) {
+			return true;
+		}
+
 		for (auto i = this->begin(); i != this->end(); ++i)
 		{
 			if (fn(*i))
@@ -552,6 +572,10 @@ public:
 	template<typename func>
 	COMPILETIMEEVAL bool FORCEDINLINE none_of(func&& fn)
 	{
+		if (this->Count <= 0) {
+			return true;
+		}
+
 		for (auto i = this->begin(); i != this->end(); ++i)
 		{
 			if (fn(*i))
@@ -566,6 +590,10 @@ public:
 	template<typename func>
 	COMPILETIMEEVAL bool FORCEDINLINE any_of(func&& fn) const
 	{
+		if (this->Count <= 0) {
+			return false;
+		}
+
 		for (auto i = this->begin(); i != this->end(); ++i)
 		{
 			if (fn(*i))
@@ -579,6 +607,11 @@ public:
 
 	template<typename func>
 	COMPILETIMEEVAL bool FORCEDINLINE any_of(func&& fn) {
+
+		if (this->Count <= 0) {
+			return false;
+		}
+
 		for (auto i = this->begin(); i != this->end(); ++i)
 		{
 			if (fn(*i))
