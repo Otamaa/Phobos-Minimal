@@ -1432,16 +1432,19 @@ ASMJIT_PATCH(0x4555D5, BuildingClass_IsPowerOnline_KeepOnline, 5)
 	return  Contains ? 0x4555DA : 0x0;
 }
 
-ASMJIT_PATCH(0x508E66, HouseClass_UpdateRadar_Battery, 8)
-{
-	GET(HouseClass*, pThis, ECX);
-
-	if(!HouseExtContainer::Instance.Find(pThis)->Batteries.empty())
-		return 0x508F2A;
-
-	return 0x0;
-		//? 0x508E87 : 0x508F2F;
-}
+// ASMJIT_PATCH(0x508E66, HouseClass_UpdateRadar_Battery, 8)
+// {
+// 	GET(HouseClass*, pThis, ECX);
+//
+// 	if(!HouseExtContainer::Instance.Find(pThis)->Batteries.empty())
+// 		return 0x508F2A;
+//
+// 	int power = pThis->PowerOutput;
+//     int drain = pThis->PowerDrain;
+//
+// 	return (power >= drain || !drain || (power > 0 && (double)power / (double)drain >= 1.0)) ?
+// 		0x508E87 : 0x508F2F;
+// }
 
 ASMJIT_PATCH(0x44019D, BuildingClass_Update_Battery, 6)
 {

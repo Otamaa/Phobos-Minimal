@@ -308,7 +308,7 @@ public:
 
 	Valueable<int> Sonar_Duration { 0 };
 	Valueable<int> DisableWeapons_Duration { 0 };
-	Valueable<int> Flash_Duration { 0 };
+	Nullable<int> Flash_Duration { };
 
 	NullableIdx<ImmunityTypeClass> ImmunityType {};
 

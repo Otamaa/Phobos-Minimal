@@ -427,6 +427,7 @@ public:
 	void _AITryFireSW();
 	void _BlowUpAll();
 	void _BlowUpAllBuildings();
+	void _UpdateRadar();
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + HouseExtData::ExtOffset);

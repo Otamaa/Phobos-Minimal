@@ -742,31 +742,31 @@ ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
-{
-	GET(FakeBuildingClass*, pBld, EAX);
-	enum
-	{
-		ContinueLoop = 0x508F08,
-		ContinueCheck = 0x0,
-		EligibleRadar = 0x508F2A
-	};
-
-	if (TechnoExtContainer::Instance.Find(pBld)->AE.DisableRadar)
-		return ContinueLoop;
-
-	if (!pBld->_GetExtData()->RegisteredJammers.empty())
-		return ContinueLoop;
-
-	if (pBld->EMPLockRemaining > 0)
-		return ContinueLoop;
-
-	// if the `Limboed` Building has radar , just accept it
-	if(pBld->_GetExtData()->LimboID != -1)
-		return EligibleRadar;
-
-	return ContinueCheck;
-}
+// ASMJIT_PATCH(0x508EE5, HouseClass_UpdateRadar_LimboDeliver, 0x6)
+// {
+// 	GET(FakeBuildingClass*, pBld, EAX);
+// 	enum
+// 	{
+// 		ContinueLoop = 0x508F08,
+// 		ContinueCheck = 0x0,
+// 		EligibleRadar = 0x508F2A
+// 	};
+//
+// 	if (TechnoExtContainer::Instance.Find(pBld)->AE.DisableRadar)
+// 		return ContinueLoop;
+//
+// 	if (!pBld->_GetExtData()->RegisteredJammers.empty())
+// 		return ContinueLoop;
+//
+// 	if (pBld->EMPLockRemaining > 0)
+// 		return ContinueLoop;
+//
+// 	// if the `Limboed` Building has radar , just accept it
+// 	if(pBld->_GetExtData()->LimboID != -1)
+// 		return EligibleRadar;
+//
+// 	return ContinueCheck;
+// }
 
 ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 {

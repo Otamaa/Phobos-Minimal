@@ -2780,6 +2780,75 @@ void FakeHouseClass::_BlowUpAllBuildings() {
 DEFINE_FUNCTION_JUMP(CALL, 0x6E3228, FakeHouseClass::_BlowUpAllBuildings)
 DEFINE_FUNCTION_JUMP(LJMP, 0x4FC790, FakeHouseClass::_BlowUpAllBuildings)
 
+void FakeHouseClass::_UpdateRadar() {
+	bool radarAvailable = ScenarioClass::Instance->FreeRadar || !this->_GetExtData()->Batteries.empty();
+    this->RecheckRadar = 0;
+
+	if (this != HouseClass::CurrentPlayer()) {
+    	return;
+    }
+
+    // If blackout still has time remaining,
+	// just update tactical map availability and exit
+    if (this->RadarBlackoutTimer.GetTimeLeft() > 0) {
+        if (RadarClass::Instance->IsAvailableNow != 0) {
+            RadarClass::Instance->UpdateRadarStatus(0);
+        }
+        return;
+    }
+
+	if(!radarAvailable){
+		int power = this->PowerOutput;
+        int drain = this->PowerDrain;
+
+        if (power >= drain || !drain || (power > 0 && (double)power / (double)drain >= 1.0)) {
+
+			const bool campaignAI = this->IsControlledByHuman();
+
+            for (int i = 0; i < this->Buildings.Count; ++i) {
+
+                FakeBuildingClass *building = (FakeBuildingClass*)this->Buildings.Items[i];
+
+				if (!building) {
+                    continue;
+                }
+
+				if (!building->IsAlive) continue;
+                if (!building->HasPower) continue;
+                if (!building->Type->Radar) continue;
+                if (building->InLimbo) continue;
+                if (!building->IsOnMap) continue;
+				if (TechnoExtContainer::Instance.Find(building)->AE.DisableRadar) continue;
+				if (!building->_GetExtData()->RegisteredJammers.empty()) continue;
+                if (building->EMPLockRemaining > 0) continue;
+                if (building->IsBeingWarpedOut()) continue;
+                if (building->CurrentMission == Mission::Selling) continue;
+                if (building->QueuedMission == Mission::Selling) continue;
+
+				if	(building->_GetExtData()->LimboID != -1) {
+					radarAvailable = true;
+					break;
+				}
+
+                // Extra campaign/player checks
+                const bool discoveredOrNonCampaign = building->DiscoveredByCurrentPlayer
+							|| SessionClass::Instance->GameMode != GameMode::Campaign;
+
+                if (!(campaignAI || discoveredOrNonCampaign)) continue;
+
+                radarAvailable = true;
+                break; // Found a valid radar
+            }
+        }
+	}
+
+	if (RadarClass::Instance->IsAvailableNow != radarAvailable) {
+		RadarClass::Instance->UpdateRadarStatus(radarAvailable);
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x4F8505, FakeHouseClass::_UpdateRadar)
+DEFINE_FUNCTION_JUMP(LJMP, 0x508DF0, FakeHouseClass::_UpdateRadar)
 #include <Ext/Infantry/Body.h>
 
 bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const

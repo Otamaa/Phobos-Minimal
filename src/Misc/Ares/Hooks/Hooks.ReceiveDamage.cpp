@@ -543,14 +543,22 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 		return 0x5F584A;
 	}
 
-	int _oldStr = pThis->Health;
-	int _adj = _oldStr - *args.Damage;
-	pThis->Health = MinImpl(_adj, maxstrength);
+	const int flash = Math::abs(pWHExt->Flash_Duration.Get(7));
 
-	if (_oldStr != pThis->Health)
-	{
-		pThis->Flash(7);
+	if(flash > 0){
+		if (auto pTechno = flag_cast_to<TechnoClass*>(pThis)) {
+			int _oldStr = pThis->Health;
+			int _adj = _oldStr - *args.Damage;
+			pThis->Health = MinImpl(_adj, maxstrength);
+
+			if ((_oldStr != pThis->Health || pWHExt->Flash_Duration.isset())
+				&& flash > pTechno->Flashing.DurationRemaining)
+			{
+				pThis->Flash(flash);
+			}
+		}
 	}
+
 
 	R->EAX(_res);
 	return 0x5F584A;
@@ -1261,11 +1269,6 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			{
 				nTimer.Start(pWHExt->DisableWeapons_Duration);
 			}
-		}
-
-		if (pWHExt->Flash_Duration > 0 && pWHExt->Flash_Duration > pThis->Flashing.DurationRemaining)
-		{
-			pThis->Flash(pWHExt->Flash_Duration);
 		}
 	}
 
