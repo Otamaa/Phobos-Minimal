@@ -544,12 +544,13 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 	}
 
 	const int flash = Math::abs(pWHExt->Flash_Duration.Get(7));
+	const int _oldStr = pThis->Health;
+	const int _adj = _oldStr - *args.Damage;
+
+	pThis->Health = MinImpl(_adj, maxstrength);
 
 	if(flash > 0){
 		if (auto pTechno = flag_cast_to<TechnoClass*>(pThis)) {
-			int _oldStr = pThis->Health;
-			int _adj = _oldStr - *args.Damage;
-			pThis->Health = MinImpl(_adj, maxstrength);
 
 			if ((_oldStr != pThis->Health || pWHExt->Flash_Duration.isset())
 				&& flash > pTechno->Flashing.DurationRemaining)
