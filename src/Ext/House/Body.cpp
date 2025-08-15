@@ -2898,7 +2898,7 @@ void FakeHouseClass::_UpdateSpySat()
 	const bool IsCurrentPlayer = this->ControlledByCurrentPlayer();
 	const bool ItIsCurrentPlayer = this == HouseClass::CurrentPlayer();
 	const bool IsCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
-	const bool IsSpysatActulallyAllowed = !IsCampaign ? IsCurrentPlayer : IsCurrentPlayer;
+	const bool IsSpysatActulallyAllowed = !IsCampaign ? ItIsCurrentPlayer : IsCurrentPlayer;
 
 	//===============reset all
 	this->CostDefensesMult = 1.0;
