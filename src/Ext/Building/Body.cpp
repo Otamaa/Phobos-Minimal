@@ -229,8 +229,6 @@ bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Vic
 	return pBldOwnerExt->ReverseEngineer(Victim);
 }
 
-#include <ExtraHeaders/StackVector.h>
-
 void BuildingExtData::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<AffectedHouse>& Affects, HouseClass* pTargetHouse, HouseClass* pAttackerHouse)
 {
 	if (!pAttackerHouse || !pTargetHouse || LimboIDs.empty())
@@ -557,6 +555,7 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	AircraftTypeClass* pAircraft = AircraftTypeClass::Array->Items[pOwner->ProducingAircraftTypeIndex];
 	FactoryClass* currFactory = pOwner->GetFactoryProducing(pAircraft);
 	airFactoryBuilding.clear();
+	airFactoryBuilding.reserve(pOwner->Buildings.Count);
 	BuildingClass* newBuilding = nullptr;
 
 	// Update what is the current air factory for future comparisons

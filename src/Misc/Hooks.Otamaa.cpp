@@ -1287,7 +1287,6 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7441B0, FakeUnitClass::_SetOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
 
-
 ASMJIT_PATCH(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 {
 	GET(FootClass* const, pFoot, EAX);

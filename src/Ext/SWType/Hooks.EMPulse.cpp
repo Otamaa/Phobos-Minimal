@@ -14,25 +14,6 @@ namespace EMPulseCannonTemp
 	int weaponIndex = 0;
 }
 
-int FakeBuildingClass::_Mission_Missile()
-{
-
-	if (!TechnoExtContainer::Instance.Find(this)->LinkedSW){
-		Debug::LogInfo("Building[{}] with Mission::Missile Missing Important Linked SW data !", this->get_ID());
-	}
-	return this->BuildingClass::Mission_Missile();
-}
-
-
-CoordStruct* FakeBuildingClass::_GetFLH(CoordStruct* pCrd, int weaponIndex)
-{
-	CoordStruct coords {};
-	MapClass::Instance->GetCellAt(this->Owner->EMPTarget)->GetCellCoords(&coords);
-	pCrd = this->GetFLH(&coords, EMPulseCannonTemp::weaponIndex, *pCrd);
-	return pCrd;
-}
-DEFINE_FUNCTION_JUMP(CALL6, 0x44D1F9, FakeBuildingClass::_GetFLH);
-
 //=================================================================================
 
 // this one setting the building target

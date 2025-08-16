@@ -136,7 +136,6 @@ class NOVTABLE FakeBuildingClass : public BuildingClass
 public:
 	void _Detach(AbstractClass* target, bool all);
 	bool _IsFactory();
-	CoordStruct* _GetFLH(CoordStruct* pCrd, int weaponIndex);
 	int _Mission_Missile();
 	void _Spawn_Refinery_Smoke_Particles();
 	void _DetachAnim(AnimClass* pAnim);

@@ -45,7 +45,6 @@ ASMJIT_PATCH(0x685078, Generate_OreTwinkle_Anims, 0x7)
 	return 0x6850E5;
 }
 
-
 /// replae this entirely since the function using lea for getting int and seems broke everyone else stacks
 void NOINLINE FakeAnimClass::_Middle()
 {
@@ -117,7 +116,7 @@ void NOINLINE FakeAnimClass::_Start()
 	if (!this->IsPlaying && this->Type->TiberiumChainReaction)
 	{
 		auto gCoords = this->GetCoords();
-		CellClass* cptr = MapClass::Instance->GetCellAt(gCoords);
+		if(CellClass* cptr = MapClass::Instance->TryGetCellAt(gCoords)){
 		int tib = cptr->GetContainedTiberiumIndex();
 
 		if (tib != -1)
@@ -126,7 +125,6 @@ void NOINLINE FakeAnimClass::_Start()
 			auto pExt = TiberiumExtContainer::Instance.Find(tiberium);
 
 			cptr->ReduceTiberium(cptr->OverlayData + 1);
-
 
 			if (tiberium->Debris.size() > 0)
 			{
@@ -151,6 +149,7 @@ void NOINLINE FakeAnimClass::_Start()
 			MapClass::Instance->ResetZones(cptr->MapCoords);
 			MapClass::Instance->RecalculateSubZones(cptr->MapCoords);
 		}
+	}
 	}
 
 	this->_GetExtData()->OnStart();
@@ -416,10 +415,10 @@ void NOINLINE FakeAnimClass::_ApplyHideIfNoOre()
 
 void NOINLINE FakeAnimClass::_CreateFootApplyOccupyBits()
 {
+	if (!this->Location.IsValid())
+		return;
 
 	if (this->Type->MakeInfantry != -1) {
-		if (!this->Location.IsValid())
-			return;
 
 		this->MarkAllOccupationBits(this->Location);
 		this->_GetExtData()->CreateUnitLocation = this->Location;

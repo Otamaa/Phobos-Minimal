@@ -468,6 +468,8 @@ public:
 	Valueable<bool> AISetBaseCenter { true };
 	Valueable<bool> AIBiasSpawnCell { false };
 	Valueable<bool> AIForbidConYard { false };
+	Valueable<bool> AINodeWallsOnly { false };
+	Valueable<bool> AICleanWallNode { false };
 
 	Valueable<bool> JumpjetTilt {};
 
