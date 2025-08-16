@@ -4642,13 +4642,22 @@ ASMJIT_PATCH(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
 
 ASMJIT_PATCH(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
 {
+	enum { PlacingCheck = 0x449493, SkipGameCode = 0x449487 };
+
+	GET(BuildingClass*, pThis, ECX);
+
+	if (pThis->CurrentMission == Mission::None)
+		return PlacingCheck;
+
 	GET(BuildingTypeClass*, pType, EAX);
 	LEA_STACK(CellStruct*, pDest, 0x4);
+
 	const auto pUndeploysInto = pType->UndeploysInto;
 	R->AL(MapClass::Instance->GetCellAt(pDest)
 		->IsClearToMove(pUndeploysInto->SpeedType, 0, 0, ZoneType::None, pUndeploysInto->MovementZone, -1, 1)
 	);
-	return 0x449487;
+
+	return SkipGameCode;
 }
 
 ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)

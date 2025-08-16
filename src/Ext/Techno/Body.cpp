@@ -500,6 +500,31 @@ std::tuple<bool, bool, bool> TechnoExtData::CanBeAffectedByFakeEngineer(TechnoCl
 	return  { canAffectCapturableBuildings , canAffectBridges , canAffectAttachedBombs };
 }
 
+bool TechnoExtData::CannotMove(UnitClass* pThis)
+{
+	const auto pType = pThis->Type;
+
+	if (pType->Speed <= 0)
+		return true;
+
+	if (!pThis->IsInAir())
+	{
+		LandType landType = pThis->GetCell()->LandType;
+		const LandType movementRestrictedTo = pType->MovementRestrictedTo;
+
+		if (pThis->OnBridge
+			&& (landType == LandType::Water || landType == LandType::Beach))
+		{
+			landType = LandType::Road;
+		}
+
+		if (movementRestrictedTo != LandType::None && movementRestrictedTo != landType && landType != LandType::Tunnel)
+			return true;
+	}
+
+	return false;
+}
+
 // Check adjacent cells from the center
 // The current MapClass::Instance->PlacePowerupCrate(...) doesn't like slopes and maybe other cases
 bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects selectedPowerup, int maxCellRange)

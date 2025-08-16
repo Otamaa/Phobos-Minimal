@@ -1104,6 +1104,7 @@ public:
 	static bool IsHealthInThreshold(ObjectClass* pObject, double min, double max);
 	static std::tuple<bool, bool , bool> CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge = false, bool checkCapturableBuilding = false, bool checkAttachedBombs = false);
 
+	static bool CannotMove(UnitClass* pThis);
 public:
 	static UnitClass* Deployer;
 

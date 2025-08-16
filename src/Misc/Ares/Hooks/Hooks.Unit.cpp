@@ -51,34 +51,34 @@ ASMJIT_PATCH(0x7461C5, UnitClass_BallooonHoverExplode_OverrideCheck, 0x6)
 
 #include <TeamClass.h>
 
-ASMJIT_PATCH(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
-{
-	GET(BuildingClass*, pBuilding, ESI);
-	GET(UnitClass*, pThis, EBX);
+// ASMJIT_PATCH(0x73F7DD, UnitClass_IsCellOccupied_Bib, 0x8)
+// {
+// 	GET(BuildingClass*, pBuilding, ESI);
+// 	GET(UnitClass*, pThis, EBX);
 
-	if (pThis && pBuilding->Owner->IsAlliedWith(pThis))
-	{
-		// if (pThis->Type->Passengers > 0)
-		// {
-		// 	if (auto pTeam = pThis->Team)
-		// 	{
-		// 		if (auto pScript = pTeam->CurrentScript)
-		// 		{
-		// 			auto mission = pScript->GetCurrentAction();
-		// 			if (mission.Action == TeamMissionType::Gather_at_base && TeamMissionType((int)mission.Action + 1) == TeamMissionType::Load)
-		// 			{
-		// 				//dont fucking load the passenger here
-		// 				return 0x73F823;
-		// 			}
-		// 		}
-		// 	}
-		// }
+// 	if (pThis && pBuilding->Owner->IsAlliedWith(pThis))
+// 	{
+// 		// if (pThis->Type->Passengers > 0)
+// 		// {
+// 		// 	if (auto pTeam = pThis->Team)
+// 		// 	{
+// 		// 		if (auto pScript = pTeam->CurrentScript)
+// 		// 		{
+// 		// 			auto mission = pScript->GetCurrentAction();
+// 		// 			if (mission.Action == TeamMissionType::Gather_at_base && TeamMissionType((int)mission.Action + 1) == TeamMissionType::Load)
+// 		// 			{
+// 		// 				//dont fucking load the passenger here
+// 		// 				return 0x73F823;
+// 		// 			}
+// 		// 		}
+// 		// 	}
+// 		// }
 
-		return 0x0;
-	}
+// 		return 0x0;
+// 	}
 
-	return 0x73F823;
-}
+// 	return 0x73F823;
+// }
 
 // #1171643: keep the last passenger if this is a gunner, not just
 // when it has multiple turrets. gattling and charge turret is no

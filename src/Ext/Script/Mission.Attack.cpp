@@ -259,8 +259,18 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 							continue;
 						}
 
+						const auto whatAmI = pFoot->WhatAmI();
+
+						// If the vehicle cannot be moved, perhaps it is better this way.
+						if (whatAmI == AbstractType::Unit
+							&& TechnoExtData::CannotMove(static_cast<UnitClass*>(pFoot))
+							&& !pFoot->IsCloseEnough(selectedTarget, pFoot->SelectWeapon(selectedTarget)))
+						{
+							continue;
+						}
+
 						// Aircraft hack. I hate how this game auto-manages the aircraft missions.
-						if (pFoot->WhatAmI() == AbstractType::Aircraft
+						if (whatAmI == AbstractType::Aircraft
 							&& pFoot->Ammo > 0 && pFoot->GetHeight() <= 0)
 						{
 							pFoot->SetDestination(selectedTarget, false);
@@ -271,10 +281,10 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 
 						if (pFoot->IsEngineer())
 							pFoot->QueueMission(Mission::Capture, true);
-						else if (pFoot->WhatAmI() != AbstractType::Aircraft) // Aircraft hack. I hate how this game auto-manages the aircraft missions.
+						else if (whatAmI != AbstractType::Aircraft) // Aircraft hack. I hate how this game auto-manages the aircraft missions.
 							pFoot->QueueMission(Mission::Attack, true);
 
-						if (pFoot->WhatAmI() == AbstractType::Infantry)
+						if (whatAmI == AbstractType::Infantry)
 						{
 							auto const pInfantryType = static_cast<const InfantryTypeClass*>(pTechnoType);
 

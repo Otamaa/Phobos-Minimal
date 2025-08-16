@@ -103,7 +103,7 @@ void RulesExtData::LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI)
 	pData->Shield_ConditionGreen = Shield_ConditionGreen_d.Get(pRules->ConditionGreen);
 	pData->Shield_ConditionYellow = Shield_ConditionYellow_d.Get(pRules->ConditionYellow);
 	pData->Shield_ConditionRed = Shield_ConditionRed_d.Get(pRules->ConditionRed);
-	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(pRules->ConditionRed);
+	pData->ConditionYellow_Terrain = ConditionYellow_Terrain_d.Get(pRules->ConditionYellow);
 }
 
 ASMJIT_PATCH(0x66B8E2, RulesClass_ReadAudioVisual_End, 0x5)

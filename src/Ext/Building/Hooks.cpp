@@ -466,3 +466,106 @@ ASMJIT_PATCH(0x44A541, BuildingClass_LeaveBioReactor, 0x7)
 	pFoot->Transporter = nullptr;
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x442F9B, BuildingClass_LeaveBioReactor, 0x6)
+
+static void KickOutStuckUnits(BuildingClass* pThis)
+{
+	auto buffer = CoordStruct::Empty;
+	pThis->GetExitCoords(&buffer, 0);
+
+	auto cell = CellClass::Coord2Cell(buffer);
+
+	const auto pType = pThis->Type;
+	const short start = static_cast<short>(pThis->Location.X / Unsorted::LeptonsPerCell + pType->GetFoundationWidth() - 2); // door
+	const short end = cell.X; // exit
+	cell.X = start;
+	auto pCell = MapClass::Instance->GetCellAt(cell);
+
+	while (true)
+	{
+		for (auto pObject = pCell->FirstObject; pObject; pObject = pObject->NextObject)
+		{
+			if (const auto pUnit = cast_to<UnitClass*, true>(pObject))
+			{
+				if (pThis->Owner != pUnit->Owner || pUnit->Locomotor->Destination() != CoordStruct::Empty)
+					continue;
+
+				const auto height = pUnit->GetHeight();
+
+				if (height < 0 || height > Unsorted::CellHeight)
+					continue;
+
+				pThis->SendCommand(RadioCommand::RequestLink, pUnit);
+				pThis->QueueMission(Mission::Unload, false);
+				return; // one after another
+			}
+		}
+
+		if (--cell.X < end)
+			return; // no stuck
+
+		pCell = MapClass::Instance->GetCellAt(cell);
+	}
+}
+
+// Attempt to kick the stuck unit out again by setting the destination
+ASMJIT_PATCH(0x44E202, BuildingClass_Mission_Unload_CheckStuck, 0x6)
+{
+	enum { Waiting = 0x44E267, NextStatus = 0x44E20C};
+
+	GET(BuildingClass*, pThis, EBP);
+
+	if (!pThis->IsTethered)
+		return NextStatus;
+
+	if (const auto pUnit = cast_to<UnitClass*>(pThis->GetNthLink()))
+	{
+		// Detecting movement status
+		if (pUnit->Locomotor->Destination() == CoordStruct::Empty)
+		{
+			// Evacuate the congestion at the entrance
+			reinterpret_cast<void(__thiscall*)(BuildingClass*)>(0x449540)(pThis);
+			const auto pType = pThis->Type;
+			const auto cell = pThis->GetMapCoords() + pType->FoundationOutside[10];
+			const auto door = cell - CellStruct { 1, 0 };
+			const auto pDest = MapClass::Instance->GetCellAt(door);
+
+			// Hover units may stop one cell behind their destination, should forcing them to advance one more cell
+			pUnit->SetDestination((pUnit->Destination != pDest ? pDest : MapClass::Instance->GetCellAt(cell)), true);
+		}
+	}
+
+	return Waiting;
+}
+
+ASMJIT_PATCH(0x73F5A7, UnitClass_IsCellOccupied_UnlimboDirection, 0x8)
+{
+	enum { NextObject = 0x73FA87, ContinueCheck = 0x73F5AF };
+
+	GET(const bool, notPassable, EAX);
+
+	if (notPassable)
+		return ContinueCheck;
+
+	GET(BuildingClass* const, pBuilding, ESI);
+
+	const auto pType = pBuilding->Type;
+
+	if (!pType->WeaponsFactory)
+		return NextObject;
+
+	GET(CellClass* const, pCell, EDI);
+
+	return pCell->MapCoords.Y == pBuilding->Location.Y / Unsorted::LeptonsPerCell + pType->FoundationOutside[10].Y
+		? NextObject : ContinueCheck;
+}
+
+// Check for any stuck units inside after successful unload each time. If there is, kick it out
+ASMJIT_PATCH(0x44E260, BuildingClass_Mission_Unload_KickOutStuckUnits, 0x7)
+{
+	GET(BuildingClass*, pThis, EBP);
+
+	KickOutStuckUnits(pThis);
+
+	return 0;
+}
+

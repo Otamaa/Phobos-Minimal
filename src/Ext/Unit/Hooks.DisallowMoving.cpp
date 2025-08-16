@@ -10,31 +10,6 @@
 
 #include <PlanningTokenClass.h>
 
-bool CannotMove(UnitClass* pThis)
-{
-	const auto pType = pThis->Type;
-
-	if (pType->Speed <= 0)
-		return true;
-
-	if (!pThis->IsInAir())
-	{
-		LandType landType = pThis->GetCell()->LandType;
-		const LandType movementRestrictedTo = pType->MovementRestrictedTo;
-
-		if (pThis->OnBridge
-			&& (landType == LandType::Water || landType == LandType::Beach))
-		{
-			landType = LandType::Road;
-		}
-
-		if (movementRestrictedTo != LandType::None && movementRestrictedTo != landType && landType != LandType::Tunnel)
-			return true;
-	}
-
-	return false;
-}
-
 ASMJIT_PATCH(0x740A93, UnitClass_Mission_Move_DisallowMoving, 0x6)
 {
 	enum {
@@ -45,7 +20,7 @@ ASMJIT_PATCH(0x740A93, UnitClass_Mission_Move_DisallowMoving, 0x6)
 
 	GET(UnitClass*, pThis, ESI);
 
-	return CannotMove(pThis)
+	return  TechnoExtData::CannotMove(pThis)
 	? QueueGuardInstead : ContinueCheck;
 }
 
@@ -54,7 +29,7 @@ ASMJIT_PATCH(0x741AA7, UnitClass_Assign_Destination_DisallowMoving, 0x6)
 	enum { ClearNavComsAndReturn = 0x743173, ContinueCheck = 0x0 };
 	GET(UnitClass*, pThis, EBP);
 
-	return CannotMove(pThis)
+	return  TechnoExtData::CannotMove(pThis)
 	? ClearNavComsAndReturn : ContinueCheck;
 }
 
@@ -63,7 +38,7 @@ ASMJIT_PATCH(0x743B4B, UnitClass_Scatter_DisallowMoving, 0x6)
 	enum { ReleaseReturn = 0x74408E, ContinueCheck = 0x0 };
 	GET(UnitClass*, pThis, EBP);
 
-	return CannotMove(pThis)
+	return  TechnoExtData::CannotMove(pThis)
 	? ReleaseReturn : ContinueCheck;
 }
 
@@ -71,21 +46,21 @@ ASMJIT_PATCH(0x74038F, UnitClass_What_Action_ObjectClass_DisallowMoving_1, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	return CannotMove(pThis) ? 0x7403A3 : 0;
+	return  TechnoExtData::CannotMove(pThis) ? 0x7403A3 : 0;
 }
 
 ASMJIT_PATCH(0x7403B7, UnitClass_What_Action_ObjectClass_DisallowMoving_2, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	return CannotMove(pThis) ? 0x7403C1 : 0;
+	return  TechnoExtData::CannotMove(pThis) ? 0x7403C1 : 0;
 }
 
 ASMJIT_PATCH(0x740709, UnitClass_What_Action_DisallowMoving_1, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	return CannotMove(pThis) ? 0x740727 : 0;
+	return  TechnoExtData::CannotMove(pThis) ? 0x740727 : 0;
 }
 
 ASMJIT_PATCH(0x740744, UnitClass_What_Action_DisallowMoving_2, 0x6)
@@ -95,7 +70,7 @@ ASMJIT_PATCH(0x740744, UnitClass_What_Action_DisallowMoving_2, 0x6)
 	GET(UnitClass*, pThis, ESI);
 	GET_STACK(Action, result, 0x30);
 
-	if (CannotMove(pThis))
+	if (TechnoExtData::CannotMove(pThis))
 	{
 		if (result == Action::Move)
 			return ReturnNoMove;
@@ -146,7 +121,7 @@ ASMJIT_PATCH(0x74132B, UnitClass_GetFireError_DisallowMoving, 0x7)
 	GET(UnitClass*, pThis, ESI);
 	GET(FireError, result, EAX);
 
-	if (result == FireError::RANGE && CannotMove(pThis))
+	if (result == FireError::RANGE && TechnoExtData::CannotMove(pThis))
 		R->EAX(FireError::ILLEGAL);
 
 	return 0;
@@ -163,7 +138,7 @@ ASMJIT_PATCH(0x7414E0, UnitClass_ApproachTarget_DisallowMoving, 0xA)
 
 	int weaponIndex = -1;
 
-	if (CannotMove(pThis))
+	if (TechnoExtData::CannotMove(pThis))
 	{
 		const auto pTarget = pThis->Target;
 		weaponIndex = pThis->SelectWeapon(pTarget);
@@ -214,7 +189,7 @@ ASMJIT_PATCH(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 	if (!pTypeExt->NoTurret_TrackTarget.Get(RulesExtData::Instance()->NoTurret_TrackTarget)) {
 		return NoNeedToCheck;
 	}
-	
+
 	return SkipGameCode;
 }
 
@@ -229,7 +204,7 @@ ASMJIT_PATCH(0x73EFC4, UnitClass_Mission_DisallowMoving, 0x6)		// UnitClass::Mis
 {
 	GET(UnitClass*, pThis, ESI);
 
-	if (CannotMove(pThis))
+	if (TechnoExtData::CannotMove(pThis))
 	{
 		pThis->QueueMission(Mission::Guard, false);
 		pThis->NextMission();

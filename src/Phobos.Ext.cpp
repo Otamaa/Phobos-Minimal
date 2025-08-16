@@ -312,10 +312,11 @@ FORCEDINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remo
 	}
 }
 
-ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
+ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 {
 	GET(AbstractClass* const, pInvalid, ECX);
 	GET(bool const, removed, EDX);
+	GET(AbstractType , type, EAX);
 
 	if (Phobos::Otamaa::ExeTerminated)
 		return 0;
@@ -323,19 +324,36 @@ ASMJIT_PATCH(0x7258D0, AnnounceInvalidPointer_PhobosGlobal, 0x6)
 	TActionExtData::InvalidatePointer(pInvalid, removed);
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
+
 	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
+
 	if (removed) {
 		HouseExtData::AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
 			return item.first == pInvalid;
 		});
 
-		ShieldClass::Array.for_each([pInvalid](ShieldClass* pShield) {
-			if (pShield->IdleAnim.get() == pInvalid) {
-				pShield->IdleAnim.release();
-			}
-		});
-
 		HouseExtData::LimboTechno.remove((TechnoClass*)pInvalid);
+
+		if (type == AnimClass::AbsID) {
+
+			ShieldClass::Array.for_each([pInvalid](ShieldClass* pShield) {
+				if (pShield->IdleAnim.get() == pInvalid) {
+					pShield->IdleAnim.release();
+				}
+			});
+
+			LightningStorm::CloudsPresent->remove_if([pInvalid](AnimClass* pAnim) {
+				return pAnim == (AnimClass*)pInvalid;
+			});
+
+			LightningStorm::CloudsManifesting->remove_if([pInvalid](AnimClass* pAnim) {
+				return pAnim == (AnimClass*)pInvalid;
+			});
+
+			LightningStorm::BoltsPresent->remove_if([pInvalid](AnimClass* pAnim) {
+				return pAnim == (AnimClass*)pInvalid;
+			});
+		}
 	}
 
 	HugeBar::InvalidatePointer(pInvalid, removed);
