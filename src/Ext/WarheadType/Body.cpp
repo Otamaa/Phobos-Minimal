@@ -688,6 +688,13 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->FakeEngineer_CanCaptureBuildings.Read(exINI, pSection, "FakeEngineer.CanCaptureBuildings");
 	this->FakeEngineer_BombDisarm.Read(exINI, pSection, "FakeEngineer.BombDisarm");
 
+	this->UnlimboDetonate.Read(exINI, pSection, "UnlimboDetonate");
+	this->UnlimboDetonate_Force.Read(exINI, pSection, "UnlimboDetonate.Force");
+	this->UnlimboDetonate_KeepTarget.Read(exINI, pSection, "UnlimboDetonate.KeepTarget");
+	this->UnlimboDetonate_KeepSelected.Read(exINI, pSection, "UnlimboDetonate.KeepSelected");
+
+	this->ReverseEngineer.Read(exINI, pSection, "ReverseEngineer");
+
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
 		this->RemoveMindControl ||
@@ -1898,6 +1905,11 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->FakeEngineer_CanCaptureBuildings)
 		.Process(this->FakeEngineer_BombDisarm)
 		.Process(this->ReverseEngineer)
+
+		.Process(this->UnlimboDetonate)
+		.Process(this->UnlimboDetonate_Force)
+		.Process(this->UnlimboDetonate_KeepTarget)
+		.Process(this->UnlimboDetonate_KeepSelected)
 
 		.Process(this->IsCellSpreadWH)
 		.Process(this->IsFakeEngineer)

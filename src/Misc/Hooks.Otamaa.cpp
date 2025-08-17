@@ -1774,7 +1774,7 @@ ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 // {
 // 	const bool IsCurrentPlayer = pThis->ControlledByCurrentPlayer();
 // 	const bool IsCampaign = SessionClass::Instance->GameMode == GameMode::Campaign;
-// 	const bool IsSpysatActulallyAllowed = !IsCampaign ? pThis == HouseClass::CurrentPlayer() :  IsCurrentPlayer; 
+// 	const bool IsSpysatActulallyAllowed = !IsCampaign ? pThis == HouseClass::CurrentPlayer() :  IsCurrentPlayer;
 
 // 	//===============reset all
 // 	pThis->CostDefensesMult = 1.0;
@@ -5963,19 +5963,23 @@ ASMJIT_PATCH(0x417CC0, AircraftClass_WhatAction_caller, 0x5)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4And3_DeadTechno, 0x6)
-{
-	GET(SpawnManagerClass*, pThis, ESI);
-	GET(int, idx, EBX);
+ ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4And3_DeadTechno, 0x6)
+ {
+ 	GET(SpawnManagerClass*, pThis, ESI);
+ 	GET(int, idx, EBX);
 
-	if (!pThis->SpawnedNodes.Items[idx]->Unit || !pThis->SpawnedNodes.Items[idx]->Unit->IsAlive) {
-		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
-		pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
-		return 0x6B727F;
-	}
+ 	if (!pThis->SpawnedNodes.Items[idx]->Unit || !pThis->SpawnedNodes.Items[idx]->Unit->IsAlive) {
+ 		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+ 		pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
 
-	return 0x0;
-}ASMJIT_PATCH_AGAIN(0x6B770D, SpawnManagerClass_AI_State4And3_DeadTechno, 0x7)
+		if(!pThis->SpawnedNodes.Items[idx]->Unit->IsAlive)
+			pThis->SpawnedNodes.Items[idx]->NodeSpawnTimer.Start(pThis->RegenRate);
+
+ 		return 0x6B727F;
+ 	}
+
+ 	return 0x0;
+ }ASMJIT_PATCH_AGAIN(0x6B770D, SpawnManagerClass_AI_State4And3_DeadTechno, 0x7)
 
 //ASMJIT_PATCH(0x6F7CA0, TechnoClass_EvalObject_EarlyObjectEval, 0x5)
 //{
@@ -6282,27 +6286,27 @@ ASMJIT_PATCH(0x65BE01, RadSiteClass_DecreaseRadiation_Decrease, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
-{
-	GET(SpawnManagerClass*, pThis, ESI);
-	GET(TechnoClass*, pSpawnee, EDI);
-	GET(int, idx, EBX);
+ ASMJIT_PATCH(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
+ {
+ 	GET(SpawnManagerClass*, pThis, ESI);
+ 	GET(TechnoClass*, pSpawnee, EDI);
+ 	GET(int, idx, EBX);
 
-	if (!pSpawnee)
-	{
-		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
-		return 0x6B727F;
-	}
+ 	if (!pSpawnee)
+ 	{
+ 		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+ 		return 0x6B727F;
+ 	}
 
-	return 0x0;
-}
+ 	return 0x0;
+ }
 
 ASMJIT_PATCH(0x6B71E7, SpawnManagerClass_Manage_AlreadyNull, 0xA)
 {
 	GET(SpawnNode*, pNode, EDX);
 
 	if (pNode->Unit && pNode->Unit->IsAlive) {
-		pNode->Unit->UnInit();
+		pNode->Unit->UnInit(); // call detach function for everyone
 	}
 
 	return 0x6B71F1;
@@ -6920,22 +6924,22 @@ ASMJIT_PATCH(0x691C62, ScriptTypeClass_CreateFromName_RemoveInline, 0x5)
 	return 0x691D2C;
 }
 
-ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6)
-{
-	for (int i = 0; i < SpawnManagerClass::Array->Count; ++i)
-	{
-		if (auto pManager = SpawnManagerClass::Array->Items[i])
-		{
-
-			if (VTable::Get(pManager) != 0x7F3650)
-				continue;
-
-			pManager->~SpawnManagerClass();
-		}
-	}
-
-	return 0x53486B;
-}
+// ASMJIT_PATCH(0x534849, Game_Destroyvector_SpawnManage, 0x6)
+// {
+// 	for (int i = 0; i < SpawnManagerClass::Array->Count; ++i)
+// 	{
+// 		if (auto pManager = SpawnManagerClass::Array->Items[i])
+// 		{
+//
+// 			if (VTable::Get(pManager) != 0x7F3650)
+// 				continue;
+//
+// 			pManager->~SpawnManagerClass();
+// 		}
+// 	}
+//
+// 	return 0x53486B;
+// }
 
 //#pragma optimize("", off )
 //ASMJIT_PATCH(0x6ED155, TMissionAttack_WhatTarget, 0x5) {

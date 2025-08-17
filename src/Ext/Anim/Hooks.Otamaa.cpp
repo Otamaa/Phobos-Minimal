@@ -117,39 +117,39 @@ void NOINLINE FakeAnimClass::_Start()
 	{
 		auto gCoords = this->GetCoords();
 		if(CellClass* cptr = MapClass::Instance->TryGetCellAt(gCoords)){
-		int tib = cptr->GetContainedTiberiumIndex();
+			int tib = cptr->GetContainedTiberiumIndex();
 
-		if (tib != -1)
-		{
-			TiberiumClass* tiberium = TiberiumClass::Array->Items[tib];
-			auto pExt = TiberiumExtContainer::Instance.Find(tiberium);
-
-			cptr->ReduceTiberium(cptr->OverlayData + 1);
-
-			if (tiberium->Debris.size() > 0)
+			if (tib != -1)
 			{
-				int chance = pExt->GetDebrisChance();
-				if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance)
+				TiberiumClass* tiberium = TiberiumClass::Array->Items[tib];
+				auto pExt = TiberiumExtContainer::Instance.Find(tiberium);
+
+				cptr->ReduceTiberium(cptr->OverlayData + 1);
+
+				if (tiberium->Debris.size() > 0)
 				{
-					auto SpawnLoc = gCoords;
-					SpawnLoc.Z += 10;
+					int chance = pExt->GetDebrisChance();
+					if (ScenarioClass::Instance->Random.RandomFromMax(99) < chance)
+					{
+						auto SpawnLoc = gCoords;
+						SpawnLoc.Z += 10;
 
-					auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
-					pSpawn->LightConvert = ColorScheme::Array->Items[tiberium->Color]->LightConvert;
-					pSpawn->TintColor = cptr->Intensity_Normal;
+						auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
+						pSpawn->LightConvert = ColorScheme::Array->Items[tiberium->Color]->LightConvert;
+						pSpawn->TintColor = cptr->Intensity_Normal;
+					}
 				}
+
+				int damage = pExt->GetExplosionDamage();
+				auto pWarhead = pExt->GetExplosionWarhead();
+
+				DamageArea::Apply(&gCoords, damage, nullptr, pWarhead, false, nullptr);
+
+				cptr->RecalcAttributes(-1);
+				MapClass::Instance->ResetZones(cptr->MapCoords);
+				MapClass::Instance->RecalculateSubZones(cptr->MapCoords);
 			}
-
-			int damage = pExt->GetExplosionDamage();
-			auto pWarhead = pExt->GetExplosionWarhead();
-
-			DamageArea::Apply(&gCoords, damage, nullptr, pWarhead, false, nullptr);
-
-			cptr->RecalcAttributes(-1);
-			MapClass::Instance->ResetZones(cptr->MapCoords);
-			MapClass::Instance->RecalculateSubZones(cptr->MapCoords);
 		}
-	}
 	}
 
 	this->_GetExtData()->OnStart();

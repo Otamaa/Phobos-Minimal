@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Ext/Techno/Body.h>
+#include <Utilities/Macro.h>
 
 
 // =============================
@@ -67,3 +68,55 @@
 //}
 
 //Detach Func ! 0x006B7C60
+
+void FakeSpawnManagerClass::_Detach(AbstractClass* pTarget)
+{
+	// default to false , sadly
+	FakeSpawnManagerClass::_DetachB(pTarget, true);
+}
+
+void FakeSpawnManagerClass::_DetachB(AbstractClass* pTarget, bool removed)
+{
+	if (pTarget == this->Target && removed)
+	{
+		this->Target = nullptr;
+
+		if (!this->NewTarget){
+			//will call _Detach function internally
+			this->ResetTarget();
+		}
+	}
+
+	if (pTarget == this->NewTarget && removed) {
+		this->NewTarget = 0;
+	}
+
+	// Search through SpawnControls
+	for (int max = this->SpawnedNodes.Count - 1; max >= 0; --max) {
+		if (auto pSpawnee = this->SpawnedNodes.Items[max]) {
+			if ((pSpawnee->Unit && ((pSpawnee->Unit == pTarget && removed)
+				|| pSpawnee->Unit->Health <= 0
+				|| pSpawnee->Unit->IsSinking
+				|| !pSpawnee->Unit->IsAlive
+				|| pSpawnee->Unit->IsCrashing
+				|| pSpawnee->Unit->IsKamikaze))
+				|| pSpawnee->IsSpawnMissile) {
+				this->SpawnedNodes.Items[max]->Unit = nullptr;
+				this->SpawnedNodes.Items[max]->NodeSpawnTimer.Start(this->RegenRate);
+				this->SpawnedNodes.Items[max]->Status = SpawnNodeStatus::Dead;
+			}
+		}
+	}
+
+	if (pTarget == this->Owner && removed && !Phobos::Otamaa::ExeTerminated) {
+		this->KillNodes();
+		//will call _Detach function internally
+		this->ResetTarget();
+	}
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x6B7637, FakeSpawnManagerClass::_Detach);
+DEFINE_FUNCTION_JUMP(CALL, 0x6B7ACD, FakeSpawnManagerClass::_Detach);
+DEFINE_FUNCTION_JUMP(CALL, 0x6B7C16, FakeSpawnManagerClass::_Detach);
+
+DEFINE_JUMP(LJMP, 0x707B19, 0x707B29);

@@ -25,6 +25,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Script/Body.h>
+#include <Ext/SpawnManager/Body.h>
 
 #include <Locomotor/Cast.h>
 
@@ -6636,11 +6637,16 @@ void TechnoExtData::Serialize(T& Stm)
 		.Process(this->ForceFullRearmDelay)
 		.Process(this->AttackMoveFollowerTempCount)
 		.Process(this->OnlyAttackData)
+		.Process(this->IsSelected)
 		;
 }
 
 void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
+
+	if (auto pSpawn = (FakeSpawnManagerClass*)this->AttachedToObject->SpawnManager)
+		pSpawn->_DetachB(ptr, bRemoved);
+
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
 
 	AnnounceInvalidPointer(LinkedSW, ptr);

@@ -194,6 +194,14 @@ public:
 	int ForceEnemyIndex { -1 };
 	int BattlePoints {};
 
+	struct ProductionData {
+		std::vector<int> CreationFrames;
+		std::vector<int> Values;
+		std::vector<int> BestChoices;
+	}; std::array<ProductionData , 3u> Productions {};
+
+	std::vector<int> BestChoicesNaval {};
+
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
@@ -203,14 +211,16 @@ public:
 			 );
 	}
 
+	void GetUnitTypeToProduce();
+	int GetAircraftTypeToProduce();
+	int GetInfantryTypeToProduce();
+
 	TechTreeTypeClass* GetTechTreeType();
 
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void InitializeConstant();
-
-	void UpdateVehicleProduction();
 
 	void UpdateShotCount(SuperWeaponTypeClass* pFor);
 	void UpdateShotCountB(SuperWeaponTypeClass* pFor);
@@ -380,10 +390,6 @@ private:
 	void Serialize(T& Stm);
 
 public:
-	static std::vector<int> AIProduction_CreationFrames;
-	static std::vector<int> AIProduction_Values;
-	static std::vector<int> AIProduction_BestChoices;
-	static std::vector<int> AIProduction_BestChoicesNaval;
 	static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
 	static HelperedVector<TechnoClass*> LimboTechno;
 

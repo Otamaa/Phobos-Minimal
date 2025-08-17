@@ -529,7 +529,7 @@ bool ScriptExtData::ProcessScriptActions(TeamClass* pTeam, ScriptActionNode* pTe
 		case PhobosScripts::SimpleDeployerDeploy:
 		{
 			// Deploy/undeploy SimpleDeployer units
-			Debug::LogInfo("[SCRIPT DEBUG] SimpleDeployerDeploy case triggered! Action: %d, Argument: %d", (int)action, argument);
+			//Debug::LogInfo("[SCRIPT DEBUG] SimpleDeployerDeploy case triggered! Action: %d, Argument: %d", (int)action, argument);
 			ScriptExtData::SimpleDeployerDeploy(pTeam, argument);
 			break;
 		}

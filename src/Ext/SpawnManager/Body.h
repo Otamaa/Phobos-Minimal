@@ -38,3 +38,11 @@ public:
 	static ExtContainer ExtMap;
 	*/
 };
+
+class FakeSpawnManagerClass : public SpawnManagerClass
+{
+public:
+
+	void _Detach(AbstractClass* pTarget);
+	void _DetachB(AbstractClass* pTarget, bool removed);
+};

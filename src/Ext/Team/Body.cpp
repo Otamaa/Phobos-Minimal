@@ -9,6 +9,21 @@
 
 #include <AITriggerTypeClass.h>
 
+bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
+{
+#ifdef _Use
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pGoing->GetTechnoType());
+
+	if (pTypeExt->RecuitedAs.isset() && pTypeExt->RecuitedAs == reinfocement)
+		return true;
+
+	if (TechnoExtContainer::Instance.Find(pGoing)->Type == reinfocement)
+		return true;
+#endif
+
+	return false;
+}
+
 void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TeamLeader, ptr, bRemoved);

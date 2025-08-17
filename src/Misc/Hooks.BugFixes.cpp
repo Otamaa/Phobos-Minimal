@@ -1454,7 +1454,7 @@ ASMJIT_PATCH(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 	GET(UnitClass*, pThis, ESI);
 	// Remove mirage disguise if under emp or being flipped, approximately 15 deg
 	if (pThis->Deactivated
-		|| pThis->IsUnderEMP() 
+		|| pThis->IsUnderEMP()
 		|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled
 		|| Math::abs(pThis->AngleRotatedForwards) > 0.25
 		|| Math::abs(pThis->AngleRotatedSideways) > 0.25)
@@ -2160,17 +2160,17 @@ ASMJIT_PATCH(0x4444A0, BuildingClass_KickOutUnit_NoKickOutInConstruction, 0xA)
 	return (mission == Mission::Unload || mission == Mission::Construction) ? ThisIsNotOK : ThisIsOK;
 }
 
-ASMJIT_PATCH(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
-{
-	GET(SpawnManagerClass*, pThis, ESI);
-
-	if (Phobos::Otamaa::ExeTerminated)
-		return 0x6B7CCF;
-
-	pThis->KillNodes();
-	pThis->ResetTarget();
-	return 0x6B7CCF;
-}
+// ASMJIT_PATCH(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
+// {
+// 	GET(SpawnManagerClass*, pThis, ESI);
+//
+// 	if (Phobos::Otamaa::ExeTerminated)
+// 		return 0x6B7CCF;
+//
+// 	pThis->KillNodes();
+// 	pThis->ResetTarget();
+// 	return 0x6B7CCF;
+// }
 
 ASMJIT_PATCH(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
 {

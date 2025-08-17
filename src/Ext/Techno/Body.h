@@ -777,6 +777,8 @@ public:
 	int AttackMoveFollowerTempCount {};
 	HelperedVector<OnlyAttackStruct> OnlyAttackData {};
 
+	bool IsSelected {};
+
 	~TechnoExtData()
 	{
 		if (!Phobos::Otamaa::ExeTerminated)

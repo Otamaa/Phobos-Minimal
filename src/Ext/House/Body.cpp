@@ -20,10 +20,6 @@
 #include <Utilities/Cast.h>
 
 #pragma region defines
-std::vector<int> HouseExtData::AIProduction_CreationFrames;
-std::vector<int> HouseExtData::AIProduction_Values;
-std::vector<int> HouseExtData::AIProduction_BestChoices;
-std::vector<int> HouseExtData::AIProduction_BestChoicesNaval;
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
 HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
 std::unordered_map<HouseClass*, std::set<TeamClass*>> HouseExtContainer::HousesTeams;
@@ -951,6 +947,368 @@ bool HouseExtData::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeCla
 	}
 
 	return (Types && Num);
+}
+
+#include <Ext/Team/Body.h>
+
+NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoTypeClass*>& missings)
+{
+	const auto pType = pTeam->Type;
+	const auto pTaskForce = pType->TaskForce;
+
+	for (int a = 0; a < pTaskForce->CountEntries; ++a)
+	{
+		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i)
+		{
+			if (auto pTaskType = pTaskForce->Entries[a].Type)
+			{
+				missings.emplace_back(pTaskType);
+			}
+		}
+	}
+
+	//remove first finded similarity
+	for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember)
+	{
+		auto it = std::find_if(missings.begin(), missings.end(), [&](TechnoTypeClass* pMissType)
+ {
+	 return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
+		});
+
+		if (it != missings.end())
+			missings.erase(it);
+	}
+}
+
+void HouseExtData::GetUnitTypeToProduce()
+{
+	auto pThis = this->AttachedToObject;
+	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
+	bool skipGround = pThis->ProducingUnitTypeIndex != -1;
+	bool skipNaval = this->ProducingNavalUnitTypeIndex != -1;
+
+	if ((skipGround && skipNaval) || (!skipGround && this->UpdateHarvesterProduction()))
+		return;
+
+	auto& creationFrames = this->Productions[0].CreationFrames;
+	auto& values = this->Productions[0].Values;
+	auto& bestChoices = this->Productions[0].BestChoices;
+	auto& bestChoicesNaval = this->BestChoicesNaval;
+
+	auto count = static_cast<size_t>(UnitTypeClass::Array->Count);
+	creationFrames.assign(count, 0x7FFFFFFF);
+	values.assign(count, 0);
+	std::vector<TechnoTypeClass*> taskForceMembers;
+	taskForceMembers.reserve(UnitTypeClass::Array->Count);
+
+	for (auto& currentTeam : HouseExtContainer::HousesTeams[pThis])
+	{
+		taskForceMembers.clear();
+		int teamCreationFrame = currentTeam->CreationFrame;
+
+		if ((!currentTeam->Type->Reinforce || currentTeam->IsFullStrength)
+			&& (currentTeam->IsForcedActive || currentTeam->IsHasBeen))
+		{
+			continue;
+		}
+
+		GetRemainingTaskForceMembers(currentTeam, taskForceMembers);
+
+		for (auto& currentMember : taskForceMembers)
+		{
+			const auto what = currentMember->WhatAmI();
+
+			if (what != UnitTypeClass::AbsID ||
+				(skipGround && !currentMember->Naval) ||
+				(skipNaval && currentMember->Naval))
+				continue;
+
+			const auto index = static_cast<size_t>(((UnitTypeClass*)currentMember)->ArrayIndex);
+			++values[index];
+
+			if (teamCreationFrame < creationFrames[index])
+				creationFrames[index] = teamCreationFrame;
+		}
+	}
+
+	for (int i = 0; i < UnitClass::Array->Count; ++i)
+	{
+		const auto pUnit = UnitClass::Array->Items[i];
+
+		if (values[pUnit->Type->ArrayIndex] > 0 && pUnit->CanBeRecruited(pThis))
+			--values[pUnit->Type->ArrayIndex];
+	}
+
+	bestChoices.clear();
+	bestChoicesNaval.clear();
+
+	int bestValue = -1;
+	int bestValueNaval = -1;
+	int earliestTypenameIndex = -1;
+	int earliestTypenameIndexNaval = -1;
+	int earliestFrame = 0x7FFFFFFF;
+	int earliestFrameNaval = 0x7FFFFFFF;
+
+	for (auto i = 0u; i < count; ++i)
+	{
+		auto type = UnitTypeClass::Array->Items[static_cast<int>(i)];
+		int currentValue = values[i];
+
+		if (currentValue <= 0)
+			continue;
+
+		const auto buildableResult = pThis->CanBuild(type, false, false);
+
+		if (buildableResult == CanBuildResult::Unbuildable
+			|| type->GetActualCost(pThis) > pThis->Available_Money())
+		{
+			continue;
+		}
+
+		bool isNaval = type->Naval;
+		int* cBestValue = !isNaval ? &bestValue : &bestValueNaval;
+		std::vector<int>* cBestChoices = !isNaval ? &bestChoices : &bestChoicesNaval;
+
+		if (*cBestValue < currentValue || *cBestValue == -1)
+		{
+			*cBestValue = currentValue;
+			cBestChoices->clear();
+		}
+
+		cBestChoices->push_back(static_cast<int>(i));
+
+		int* cEarliestTypeNameIndex = !isNaval ? &earliestTypenameIndex : &earliestTypenameIndexNaval;
+		int* cEarliestFrame = !isNaval ? &earliestFrame : &earliestFrameNaval;
+
+		if (*cEarliestFrame > creationFrames[i] || *cEarliestTypeNameIndex == -1)
+		{
+			*cEarliestTypeNameIndex = static_cast<int>(i);
+			*cEarliestFrame = creationFrames[i];
+		}
+	}
+
+	if (!skipGround)
+	{
+		int result_ground = earliestTypenameIndex;
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
+		{
+			if (!bestChoices.empty())
+				result_ground = bestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoices.size() - 1))];
+			else
+				result_ground = -1;
+		}
+
+		pThis->ProducingUnitTypeIndex = result_ground;
+	}
+
+	if (!skipNaval)
+	{
+		int result_naval = earliestTypenameIndexNaval;
+		if (ScenarioClass::Instance->Random.RandomFromMax(99) >= RulesClass::Instance->FillEarliestTeamProbability[AIDifficulty])
+		{
+			if (!bestChoicesNaval.empty())
+				result_naval = bestChoicesNaval[ScenarioClass::Instance->Random.RandomFromMax(int(bestChoicesNaval.size() - 1))];
+			else
+				result_naval = -1;
+		}
+
+		this->ProducingNavalUnitTypeIndex = result_naval;
+	}
+}
+
+int HouseExtData::GetAircraftTypeToProduce()
+{
+	auto& CreationFrames = this->Productions[1].CreationFrames;
+	auto& Values = this->Productions[1].Values;
+	auto& BestChoices = this->Productions[1].BestChoices;
+
+	auto const count = static_cast<unsigned int>(AircraftTypeClass::Array->Count);
+	CreationFrames.assign(count, 0x7FFFFFFF);
+	Values.assign(count, 0);
+	BestChoices.clear();
+	std::vector<TechnoTypeClass*> taskForceMembers;
+	taskForceMembers.reserve(AircraftTypeClass::Array->Count);
+
+	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
+	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[this->AttachedToObject])
+	{
+		taskForceMembers.clear();
+		int TeamCreationFrame = CurrentTeam->CreationFrame;
+
+		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
+		{
+			GetRemainingTaskForceMembers(CurrentTeam, taskForceMembers);
+
+			for (auto& pMember : taskForceMembers)
+			{
+				if (pMember->WhatAmI() != AircraftTypeClass::AbsID)
+				{
+					continue;
+				}
+
+				auto const Idx = static_cast<unsigned int>(((AircraftTypeClass*)pMember)->ArrayIndex);
+
+				++Values[Idx];
+				if (TeamCreationFrame < CreationFrames[Idx])
+				{
+					CreationFrames[Idx] = TeamCreationFrame;
+				}
+			}
+		}
+	}
+
+	for (auto classPos = AircraftClass::Array->begin(); classPos != AircraftClass::Array->end(); ++classPos)
+	{
+		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
+		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(this->AttachedToObject))
+		{
+			--Values[Idx];
+		}
+	}
+
+	int BestValue = -1;
+	int EarliestTypenameIndex = -1;
+	int EarliestFrame = 0x7FFFFFFF;
+
+	for (auto i = 0u; i < count; ++i)
+	{
+		auto const TT = AircraftTypeClass::Array->Items[static_cast<int>(i)];
+
+		int CurrentValue = Values[i];
+
+		if (CurrentValue <= 0)
+			continue;
+
+		const auto buildableResult = this->AttachedToObject->CanBuild(TT, false, false);
+
+		if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(this->AttachedToObject) > this->AttachedToObject->Available_Money()) {
+			continue;
+		}
+
+		//yes , we checked this fucking twice just to make sure
+		const auto factoryresult = HouseExtData::HasFactory(this->AttachedToObject, TT, false, true, false, true).first;
+
+		if (factoryresult == NewFactoryState::NotFound || factoryresult == NewFactoryState::NoFactory) {
+			continue;
+		}
+
+		if (BestValue < CurrentValue || BestValue == -1)
+		{
+			BestValue = CurrentValue;
+			BestChoices.clear();
+		}
+		BestChoices.push_back(static_cast<int>(i));
+		if (EarliestFrame > CreationFrames[i] || EarliestTypenameIndex < 0)
+		{
+			EarliestTypenameIndex = static_cast<int>(i);
+			EarliestFrame = CreationFrames[i];
+		}
+	}
+
+	const auto AIDiff = static_cast<int>(this->AttachedToObject->GetAIDifficultyIndex());
+
+	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
+		return EarliestTypenameIndex;
+
+	if (!BestChoices.empty())
+		return BestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(BestChoices.size() - 1))];
+
+	return -1;
+}
+
+int HouseExtData::GetInfantryTypeToProduce()
+{
+	auto& CreationFrames = this->Productions[2].CreationFrames;
+	auto& Values = this->Productions[2].Values;
+	auto& BestChoices = this->Productions[1].BestChoices;
+
+	auto const count = static_cast<unsigned int>(InfantryTypeClass::Array->Count);
+	CreationFrames.assign(count, 0x7FFFFFFF);
+	Values.assign(count, 0);
+	BestChoices.clear();
+	std::vector<TechnoTypeClass*> taskForceMembers;
+	taskForceMembers.reserve(InfantryTypeClass::Array->Count);
+
+	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
+	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[this->AttachedToObject])
+	{
+		taskForceMembers.clear();
+		int TeamCreationFrame = CurrentTeam->CreationFrame;
+
+		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
+		{
+			GetRemainingTaskForceMembers(CurrentTeam, taskForceMembers);
+
+			for (auto& pMember : taskForceMembers)
+			{
+				if (pMember->WhatAmI() != InfantryTypeClass::AbsID)
+				{
+					continue;
+				}
+
+				auto const Idx = static_cast<unsigned int>(((InfantryTypeClass*)pMember)->ArrayIndex);
+
+				++Values[Idx];
+				if (TeamCreationFrame < CreationFrames[Idx])
+				{
+					CreationFrames[Idx] = TeamCreationFrame;
+				}
+			}
+		}
+	}
+
+	for (auto classPos = InfantryClass::Array->begin(); classPos != InfantryClass::Array->end(); ++classPos)
+	{
+		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
+		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(this->AttachedToObject))
+		{
+			--Values[Idx];
+		}
+	}
+
+	int BestValue = -1;
+	int EarliestTypenameIndex = -1;
+	int EarliestFrame = 0x7FFFFFFF;
+
+	for (auto i = 0u; i < count; ++i)
+	{
+		auto const TT = InfantryTypeClass::Array->Items[static_cast<int>(i)];
+
+		int CurrentValue = Values[i];
+
+		if (CurrentValue <= 0)
+			continue;
+
+		const auto buildableResult = this->AttachedToObject->CanBuild(TT, false, false);
+
+		if (buildableResult == CanBuildResult::Unbuildable
+			|| TT->GetActualCost(this->AttachedToObject) > this->AttachedToObject->Available_Money())
+		{
+			continue;
+		}
+
+		if (BestValue < CurrentValue || BestValue == -1)
+		{
+			BestValue = CurrentValue;
+			BestChoices.clear();
+		}
+		BestChoices.push_back(static_cast<int>(i));
+		if (EarliestFrame > CreationFrames[i] || EarliestTypenameIndex < 0)
+		{
+			EarliestTypenameIndex = static_cast<int>(i);
+			EarliestFrame = CreationFrames[i];
+		}
+	}
+
+	const auto AIDiff = static_cast<int>(this->AttachedToObject->GetAIDifficultyIndex());
+
+	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
+		return EarliestTypenameIndex;
+
+	if (!BestChoices.empty())
+		return BestChoices[ScenarioClass::Instance->Random.RandomFromMax(int(BestChoices.size() - 1))];
+
+	return -1;
 }
 
 TechTreeTypeClass* HouseExtData::GetTechTreeType() {
@@ -2302,6 +2660,12 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->SuspendedEMPulseSWs)
 		.Process(this->ForceEnemyIndex)
 		.Process(this->BattlePoints)
+
+		.Process(this->Productions[0])
+		.Process(this->Productions[1])
+		.Process(this->Productions[2])
+
+		.Process(this->BestChoicesNaval)
 		;
 }
 
@@ -2338,11 +2702,6 @@ HouseExtContainer HouseExtContainer::Instance;
 
 void HouseExtContainer::Clear()
 {
-	HouseExtData::AIProduction_CreationFrames.clear();
-	HouseExtData::AIProduction_Values.clear();
-	HouseExtData::AIProduction_BestChoices.clear();
-	HouseExtData::AIProduction_BestChoicesNaval.clear();
-
 	HouseExtData::LastGrindingBlanceUnit = 0;
 	HouseExtData::LastGrindingBlanceInf = 0;
 	HouseExtData::LastHarvesterBalance = 0;

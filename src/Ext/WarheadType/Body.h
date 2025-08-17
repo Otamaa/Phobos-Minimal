@@ -459,6 +459,11 @@ public:
 	Valueable<bool> FakeEngineer_BombDisarm { false };
 	Valueable<bool> ReverseEngineer { false };
 
+	Valueable<bool> UnlimboDetonate { false };
+	Valueable<bool> UnlimboDetonate_Force { false };
+	Valueable<bool> UnlimboDetonate_KeepTarget { true };
+	Valueable<bool> UnlimboDetonate_KeepSelected { true };
+
 	bool IsCellSpreadWH { false };
 	bool IsFakeEngineer { false };
 #pragma endregion
