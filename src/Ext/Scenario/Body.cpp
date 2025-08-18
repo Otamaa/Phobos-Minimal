@@ -220,10 +220,9 @@ void ScenarioExtData::ReadMissionMDINI()
 	this->ShowBriefing.Read(exINI, scenarioName, "ShowBriefing");
 	this->BriefingTheme = ini.ReadTheme(scenarioName, "BriefingTheme", this->BriefingTheme);
 
-	ini.ReadString(defaultsSection, "DefaultLS640BkgdName", pThis->LS640BkgdName, pThis->LS640BkgdName, 64);
-	ini.ReadString(defaultsSection, "DefaultLS800BkgdName", pThis->LS800BkgdName, pThis->LS800BkgdName, 64);
-	ini.ReadString(defaultsSection, "DefaultLS800BkgdPal", pThis->LS800BkgdPal, pThis->LS800BkgdPal, 64);
-
+	this->DefaultLS640BkgdName.Read(&ini, defaultsSection, "DefaultLS640BkgdName");
+	this->DefaultLS800BkgdName.Read(&ini, defaultsSection, "DefaultLS800BkgdName");
+	this->DefaultLS800BkgdPal.Read(&ini, defaultsSection, "DefaultLS800BkgdPal");
 }
 
 void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
@@ -277,6 +276,10 @@ void ScenarioExtData::Serialize(T& Stm)
 		.Process(this->SWSidebar_Indices)
 
 		.Process(this->RecordMessages)
+
+		.Process(this->DefaultLS640BkgdName)
+		.Process(this->DefaultLS800BkgdName)
+		.Process(this->DefaultLS800BkgdPal)
 		;
 
 

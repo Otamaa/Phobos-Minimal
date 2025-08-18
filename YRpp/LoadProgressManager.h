@@ -18,8 +18,12 @@ class LoadProgressManager
 public:
 	static COMPILETIMEEVAL reference<LoadProgressManager*, 0xABC9BCu> const Instance{};
 	static COMPILETIMEEVAL reference<LoadProgressManager*, 0xABC9BCu> const LPMgr{};
-	
-	static void DrawText(const wchar_t *pText, int X, int Y, DWORD dwColor);
+	static COMPILETIMEEVAL reference<ConvertClass*, 0xB0FB88u> const LoadScreenPal {};
+	static COMPILETIMEEVAL reference<BytePalette*, 0xB0FB84u> const LoadScreenBytePal {};
+
+	//static void DrawText(const wchar_t *pText, int X, int Y, DWORD dwColor);
+
+public:
 
 	LoadProgressManager()
 		{ JMP_THIS(0x552A40); }
@@ -29,6 +33,8 @@ public:
 
 	void Draw()
 		{ JMP_THIS(0x552D60); }
+
+	static void DrawTheText(const wchar_t* pText, int X, int Y, DWORD dwColor);
 
 	static void __fastcall sub_554280(const wchar_t* pWString, Surface* pSurface,
 		RectangleStruct& pRect, DWORD a4, char a5)
@@ -59,20 +65,20 @@ public:
 	DWORD field_4;
 	DWORD field_8;
 	RectangleStruct TitleBarRect;
-	RectangleStruct BackgroundRect;
-	RectangleStruct LoadBarRect;
+	RectangleStruct LoadBarSHPRect;
+	RectangleStruct LoadScreenSHPRect;
 	wchar_t* LoadMessage;
 	wchar_t* LoadBriefing;
-	SHPStruct * TitleBarSHP;
-	SHPStruct * LoadBarSHP;
-	SHPStruct * BackgroundSHP;
+	SHPStruct* TitleBarSHP;
+	SHPStruct* LoadScreenSHP;
+	SHPStruct* LoadBarSHP;
 	bool TitleBarSHP_loaded;
+	bool LoadScreenSHP_loaded;
 	bool LoadBarSHP_loaded;
-	bool BackgroundSHP_loaded;
 	DWORD field_54;
 	DWORD field_58;
 	DWORD field_5C;
-	DSurface * ProgressSurface;
+	DSurface* ProgressSurface;
 };
 
 static_assert(sizeof(LoadProgressManager) == 0x64 , "Invalid Size");

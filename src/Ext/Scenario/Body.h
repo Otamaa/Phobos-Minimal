@@ -7,6 +7,8 @@
 #include <Utilities/TemplateDef.h>
 #include <Utilities/VectorHelper.h>
 
+#include <Utilities/PhobosFixedString.h>
+
 struct ExtendedVariable
 {
 	char Name[0x100];
@@ -73,6 +75,10 @@ public:
 	std::set<int> SWSidebar_Indices {};
 
 	std::vector<std::wstring> RecordMessages {};
+
+	PhobosFixedString<64u> DefaultLS640BkgdName {};
+	PhobosFixedString<64u> DefaultLS800BkgdName {};
+	PhobosFixedString<64u> DefaultLS800BkgdPal {};
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);

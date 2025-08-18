@@ -622,7 +622,7 @@ bool PCX::LoadFile(const char *pFileName, int flag1, int flag2)
 	return Instance->ForceLoadFile(pFileName, flag1, flag2);
 }
 
-void LoadProgressManager::DrawText(const wchar_t *pText, int X, int Y, DWORD dwColor)
+void LoadProgressManager::DrawTheText(const wchar_t *pText, int X, int Y, DWORD dwColor)
 {
 	if (auto pManager = LoadProgressManager::Instance())
 	{
