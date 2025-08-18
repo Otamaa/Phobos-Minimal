@@ -118,6 +118,14 @@
 #  define FMT_NOINLINE
 #endif
 
+#ifdef FMT_DEPRECATED
+// Use the provided definition.
+#elif FMT_HAS_CPP14_ATTRIBUTE(deprecated)
+#  define FMT_DEPRECATED [[deprecated]]
+#else
+#  define FMT_DEPRECATED /* deprecated */
+#endif
+
 // Detect constexpr std::string.
 #if !FMT_USE_CONSTEVAL
 #  define FMT_USE_CONSTEXPR_STRING 0
@@ -752,12 +760,11 @@ template <typename T> struct allocator : private std::decay<void> {
 
   void deallocate(T* p, size_t) { std::free(p); }
 
-  FMT_CONSTEXPR20 friend bool operator==(allocator, allocator) noexcept {
+  constexpr friend auto operator==(allocator, allocator) noexcept -> bool {
     return true;  // All instances of this allocator are equivalent.
   }
-
-  FMT_CONSTEXPR20 friend bool operator!=(allocator a, allocator b) noexcept {
-    return !(a == b);
+  constexpr friend auto operator!=(allocator, allocator) noexcept -> bool {
+    return false;
   }
 };
 
@@ -834,42 +841,32 @@ class basic_memory_buffer : public detail::buffer<T> {
   FMT_CONSTEXPR20 ~basic_memory_buffer() { deallocate(); }
 
  private:
-  template <typename Alloc = Allocator>
-  FMT_CONSTEXPR20
-      typename std::enable_if<std::allocator_traits<Alloc>::
-                                  propagate_on_container_move_assignment::value,
-                              bool>::type
-      allocator_move_impl(basic_memory_buffer& other) {
+  template <typename Alloc = Allocator,
+            FMT_ENABLE_IF(std::allocator_traits<Alloc>::
+                              propagate_on_container_move_assignment::value)>
+  FMT_CONSTEXPR20 auto move_alloc(basic_memory_buffer& other) -> bool {
     alloc_ = std::move(other.alloc_);
     return true;
   }
-  // If the allocator does not propagate,
-  // then copy the content from source buffer.
-  template <typename Alloc = Allocator>
-  FMT_CONSTEXPR20
-      typename std::enable_if<!std::allocator_traits<Alloc>::
-                                  propagate_on_container_move_assignment::value,
-                              bool>::type
-      allocator_move_impl(basic_memory_buffer& other) {
+  // If the allocator does not propagate then copy the data from other.
+  template <typename Alloc = Allocator,
+            FMT_ENABLE_IF(!std::allocator_traits<Alloc>::
+                              propagate_on_container_move_assignment::value)>
+  FMT_CONSTEXPR20 auto move_alloc(basic_memory_buffer& other) -> bool {
     T* data = other.data();
-    if (alloc_ != other.alloc_ && data != other.store_) {
-      size_t size = other.size();
-      // Perform copy operation, allocators are different
-      this->resize(size);
-      detail::copy<T>(data, data + size, this->data());
-      return false;
-    }
-    return true;
+    if (alloc_ == other.alloc_ || data == other.store_) return true;
+    size_t size = other.size();
+    // Perform copy operation, allocators are different.
+    this->resize(size);
+    detail::copy<T>(data, data + size, this->data());
+    return false;
   }
 
   // Move data from other to this buffer.
   FMT_CONSTEXPR20 void move(basic_memory_buffer& other) {
     T* data = other.data();
     size_t size = other.size(), capacity = other.capacity();
-    // Replicate the behaviour of std library containers
-    if (!allocator_move_impl(other)) {
-      return;
-    }
+    if (!move_alloc(other)) return;
     if (data == other.store_) {
       this->set(store_, capacity);
       detail::copy<T>(other.store_, other.store_ + size, store_);
@@ -1323,10 +1320,11 @@ template <typename WChar, typename Buffer = memory_buffer> class to_utf8 {
   explicit to_utf8(basic_string_view<WChar> s,
                    to_utf8_error_policy policy = to_utf8_error_policy::abort) {
     static_assert(sizeof(WChar) == 2 || sizeof(WChar) == 4,
-                  "Expect utf16 or utf32");
-    if (!convert(s, policy))
+                  "expected utf16 or utf32");
+    if (!convert(s, policy)) {
       FMT_THROW(std::runtime_error(sizeof(WChar) == 2 ? "invalid utf16"
                                                       : "invalid utf32"));
+    }
   }
   operator string_view() const { return string_view(&buffer_[0], size()); }
   auto size() const -> size_t { return buffer_.size() - 1; }
@@ -1356,9 +1354,8 @@ template <typename WChar, typename Buffer = memory_buffer> class to_utf8 {
           buf.append(string_view("\xEF\xBF\xBD"));
           --p;
           continue;
-        } else {
-          c = (c << 10) + static_cast<uint32_t>(*p) - 0x35fdc00;
         }
+        c = (c << 10) + static_cast<uint32_t>(*p) - 0x35fdc00;
       }
       if (c < 0x80) {
         buf.push_back(static_cast<char>(c));

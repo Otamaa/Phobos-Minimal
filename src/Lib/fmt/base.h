@@ -201,14 +201,6 @@
 #  define FMT_NODISCARD
 #endif
 
-#ifdef FMT_DEPRECATED
-// Use the provided definition.
-#elif FMT_HAS_CPP14_ATTRIBUTE(deprecated)
-#  define FMT_DEPRECATED [[deprecated]]
-#else
-#  define FMT_DEPRECATED /* deprecated */
-#endif
-
 #if FMT_GCC_VERSION || FMT_CLANG_VERSION
 #  define FMT_VISIBILITY(value) __attribute__((visibility(value)))
 #else
@@ -2677,13 +2669,9 @@ class context {
   FMT_NO_UNIQUE_ADDRESS detail::locale_ref loc_;
 
  public:
-  /// The character type for the output.
-  using char_type = char;
-
+  using char_type = char;  ///< The character type for the output.
   using iterator = appender;
   using format_arg = basic_format_arg<context>;
-  using parse_context_type FMT_DEPRECATED = parse_context<>;
-  template <typename T> using formatter_type FMT_DEPRECATED = formatter<T>;
   enum { builtin_types = FMT_BUILTIN_TYPES };
 
   /// Constructs a `context` object. References to the arguments are stored
@@ -2796,9 +2784,6 @@ using is_formattable = bool_constant<!std::is_same<
 template <typename T, typename Char = char>
 concept formattable = is_formattable<remove_reference_t<T>, Char>::value;
 #endif
-
-template <typename T, typename Char>
-using has_formatter FMT_DEPRECATED = std::is_constructible<formatter<T, Char>>;
 
 // A formatter specialization for natively supported types.
 template <typename T, typename Char>
@@ -2996,9 +2981,9 @@ FMT_INLINE void println(format_string<T...> fmt, T&&... args) {
   return fmt::println(stdout, fmt, static_cast<T&&>(args)...);
 }
 
-FMT_END_EXPORT
 FMT_PRAGMA_CLANG(diagnostic pop)
 FMT_PRAGMA_GCC(pop_options)
+FMT_END_EXPORT
 FMT_END_NAMESPACE
 
 #ifdef FMT_HEADER_ONLY

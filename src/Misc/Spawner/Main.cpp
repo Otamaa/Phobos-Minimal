@@ -785,47 +785,100 @@ void Print_Saving_Game_Message2() {
 void SpawnerMain::GameConfigs::After_Main_Loop() {
 	auto pConfig = &GameConfigs::m_Ptr;
 
-	const bool doSaveCampaign = SessionClass::Instance->GameMode == GameMode::Campaign && pConfig->AutoSaveCount > 0 && pConfig->AutoSaveInterval > 0;
+	const bool doSaveCampaign = SessionClass::IsSingleplayer() && pConfig->AutoSaveCount > 0 && pConfig->AutoSaveInterval > 0;
 	const bool doSaveMP = SpawnerMain::Configs::Active && SessionClass::Instance->GameMode == GameMode::LAN && pConfig->AutoSaveInterval > 0;
+	const bool isAutoSaving = (doSaveCampaign || doSaveMP) && Unsorted::CurrentFrame == SpawnerMain::Configs::NextAutoSaveFrame;
 
-	if (doSaveCampaign || doSaveMP)
-	{
-		if (Unsorted::CurrentFrame == SpawnerMain::Configs::NextAutoSaveFrame)
-		{
-			SpawnerMain::Configs::DoSave = true;
-		}
-	}
+	// Schedule to make a save if it's time to autosave.
+	// The save might be triggered manually, so we have to OR it.
+	SpawnerMain::Configs::DoSave |= isAutoSaving;
 
 	if (SpawnerMain::Configs::DoSave)
 	{
-
-		Print_Saving_Game_Message2();
-
-		// Force a redraw so that our message gets printed.
-		if (Game::SpecialDialog == 0)
+		auto PrintMessage = [](const wchar_t* pMessage)
 		{
-			MapClass::Instance->MarkNeedsRedraw(2);
-			MapClass::Instance->Render();
-		}
+			MessageListClass::Instance->PrintMessage(
+				pMessage,
+				RulesClass::Instance->MessageDelay,
+				HouseClass::CurrentPlayer->ColorSchemeIndex,
+				/* bSilent: */ true
+			);
 
-		if (SessionClass::Instance->GameMode == GameMode::Campaign)
+			// Force a redraw so that our message gets printed.
+			if (Game::SpecialDialog == 0)
+			{
+				MapClass::Instance->MarkNeedsRedraw(2);
+				MapClass::Instance->Render();
+			}
+		};
+
+		auto SaveGame = [PrintMessage](const char* fName, const wchar_t* description)
 		{
-			const std::string saveFileName = fmt::format("AUTOSAVE{}.SAV" , SpawnerMain::Configs::NextAutoSaveNumber + 1);
-			const std::wstring saveDescription = fmt::format(L"Mission Auto-Save (Slot {})", SpawnerMain::Configs::NextAutoSaveNumber + 1);
+			if (ScenarioClass::SaveGame(fName, description))
+				PrintMessage(StringTable::FetchString(GameStrings::TXT_GAME_WAS_SAVED));
+			else
+				PrintMessage(StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME));
+		};
 
-			ScenarioClass::PauseGame();
-			Game::CallBack();
+		// Send the message.
+		PrintMessage(StringTable::FetchString(GameStrings::TXT_SAVING_GAME));
+		std::wstring saveGameDescription;
+		if (SessionClass::IsCampaign())
+			saveGameDescription = ScenarioClass::Instance->UINameLoaded;
+		else
+			saveGameDescription = ScenarioClass::Instance->Name;
+		saveGameDescription += L" - ";
 
-			ScenarioClass::Instance->SaveGame(saveFileName.c_str(), saveDescription.c_str());
-			ScenarioClass::ResumeGame();
+		// This whole situation is a mess, but basically there's a myriad of ways to save
+		// scattered across Phobos (quicksave hotkey and save trigger action) and spawner
+		// (autosave), all in different conditions (multi- or singleplayer).
+
+		// Previously everything only supported singleplayer, so Phobos didn't have to
+		// account for multiplayer. Now we have to support both singleplayer and multiplayer,
+		// but only spawner can do proper multiplayer saves on-demand, *and* also without
+		// spawner there is no point in doing multiplayer saves at all.
+
+		// What I came up with is: for synced situations (trigger action) we save on Phobos
+		// side only if save event code (0x4C7A14) is patched (heuristic, any better ideas
+		// are welcome), and for unsynced situations (quicksave) we also check for that patch
+		// and emit the event that uses it.
+
+		// If anyone wants to untangle that mess in a nice way - be my guest.
+		// - Kerbiter
+
+		// Singleplayer autosave.
+		if (SessionClass::Instance->IsSingleplayer())
+		{
+			// ASSUMPTION: There will be no save events emitted in singleplayer
+			// situations, and the only other way for the spawner to save is
+			// through the autosave, which is what we are doing here.
+
+			// If you want to fixup this - again, be my guest.
+			// - Kerbiter
+
+			assert(isAutoSaving);
+
+			static char saveFileName[32];
+			static wchar_t saveDescription[128];
+
+			saveGameDescription += StringTable::TryFetchStringOrReturnDefaultIfMissing("TXT_AUTOSAVE_SUFFIX", L"Autosave (slot %d)");
+			std::sprintf(saveFileName, "AUTOSAVE%d.SAV", SpawnerMain::Configs::NextAutoSaveNumber + 1);
+			std::swprintf(saveDescription, saveGameDescription.c_str(), SpawnerMain::Configs::NextAutoSaveNumber + 1);
+
+			SaveGame(saveFileName, saveDescription);
+
 			SpawnerMain::Configs::NextAutoSaveNumber = (SpawnerMain::Configs::NextAutoSaveNumber + 1) % pConfig->AutoSaveCount;
-
 			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame + pConfig->AutoSaveInterval;
 		}
 		else if (SessionClass::Instance->GameMode == GameMode::LAN)
 		{
+			// CnCNet client follows the legacy approach of fixed save name and copies it
+			// over to it's own directory. The description isn't read now, but we write it
+			// regardless as it shouldn't impact anything. The suffix for it is unavailable
+			// though as it would require a custom event (seems overkill for such).
+			saveGameDescription += StringTable::FetchString(GameStrings::TXT_MULTIPLAYER_GAME);
+			SaveGame(GameStrings::SAVEGAME_NET, saveGameDescription.c_str());
 
-			ScenarioClass::Instance->SaveGame("SAVEGAME.NET",  StringTable::TryFetchStringOrReturnDefaultIfMissing("TXT_AUTOSAVE_DESCRIPTION_MULTIPLAYER", L"Multiplayer Game"));
 			SpawnerMain::Configs::NextAutoSaveFrame = Unsorted::CurrentFrame + pConfig->AutoSaveInterval;
 		}
 
@@ -1176,8 +1229,7 @@ ASMJIT_PATCH(0x4FC262, HouseClass_MPlayerDefeated_SkipObserver, 0x6) {
 	if (!MPlayerDefeated::pThis)
 		return 0;
 
-	auto pHouse = MPlayerDefeated::pThis;
-	return pHouse->IsHumanPlayer && pHouse->Defeated && pHouse->IsInitiallyObserver()
+	return MPlayerDefeated::pThis->IsInitiallyObserver()
 		? ProcEpilogue
 		: 0;
 }ASMJIT_PATCH_AGAIN(0x4FC332, HouseClass_MPlayerDefeated_SkipObserver, 0x5)
