@@ -150,7 +150,6 @@ public:
 	Valueable<double> Beam_Amplitude { 40.0 };
 	Valueable<bool> Beam_IsHouseColor { false };
 
-	Valueable<bool> Bolt_ParticleSys_Enabled { true };
 	Nullable<WarheadTypeClass*> AmbientDamage_Warhead {};
 	Valueable<bool> AmbientDamage_IgnoreTarget { false };
 

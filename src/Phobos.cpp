@@ -1422,6 +1422,7 @@ DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
 	ApplyEarlyFuncs();
 	//LuaData::ApplyCoreHooks();
 	Phobos::ExeRun();
+
 	return 0;
 }
 #endif
@@ -1432,7 +1433,6 @@ ASMJIT_PATCH(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
-	Debug::LogDeferredFinalize();
 
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Create();

@@ -88,26 +88,6 @@ bool PhobosTrajectoryType::UpdateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	return true;
 }
 
-std::array<const char*, (size_t)TrajectoryFlag::Count> PhobosTrajectoryType::TrajectoryTypeToSrings
-{ {
-	{"Straight"} ,
-	{"Bombard"} ,
-	{"Artillery"} ,
-	{"Bounce"} ,
-	{"Vertical"} ,
-	{"Meteor"} ,
-	{"Spiral"} ,
-	{"Wave"} ,
-	{"Arcing" },
-	{"StraightVarianB" },
-	{"StraightVarianC" },
-	{"Disperse" },
-	{"Engrave" },
-	{"Parabola" },
-	{"Tracing" },
- }
-};
-
 bool PhobosTrajectory::CanSnap(std::unique_ptr<PhobosTrajectory>& traj)
 {
 	COMPILETIMEEVAL TrajectoryFlag flags[] = {
@@ -181,15 +161,15 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	if(pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer)  > 0) {
 		if (!GameStrings::IsBlank(Phobos::readBuffer)) {
 			for (size_t i = 0; i < TrajectoryTypeToSrings.size(); ++i) {
-				if (IS_SAME_STR_(Phobos::readBuffer, TrajectoryTypeToSrings[i])) {
-					nFlag = static_cast<TrajectoryFlag>(i);
+				if (IS_SAME_STR_(Phobos::readBuffer, TrajectoryTypeToSrings[i].second.data())) {
+					nFlag = TrajectoryTypeToSrings[i].first;
 					break;
 				}
 			}
 		}
 	}
 
-	if (pType && pType->Flag == nFlag)
+	if (pType && pType->Flag == nFlag || nFlag == TrajectoryFlag::Invalid)
 		return;
 	else
 	{
@@ -260,7 +240,7 @@ bool PhobosTrajectoryType::TrajectoryValidation(BulletTypeClass* pAttached) {
 			return ret;
 
 		const char* pSection = pAttached->ID;
-		const char* pTrjType = PhobosTrajectoryType::TrajectoryTypeToSrings[(int)pTraj->Flag];
+		auto&pTrjType = PhobosTrajectoryType::TrajectoryTypeToSrings[(int)pTraj->Flag].second;
 
 		if (pAttached->Arcing) {
 			Debug::LogInfo("Bullet[{}] has Trajectory[{}] set together with Arcing. Arcing has been set to false.", pSection , pTrjType);

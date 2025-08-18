@@ -217,17 +217,16 @@ ASMJIT_PATCH(0x4C2AFF, EBolt_Fire_Particles, 5)
 {
 	GET(EBolt*, pThis, ESI);
 
-	auto pParticleSys = RulesClass::Instance->DefaultSparkSystem;
-
 	if (auto pData = EboltExtData::Container.tryfind(pThis)) {
 		if (!pData->ParticleSysEnabled) {
 			return DWORD(_EBolt_Fire_Particles_RET);
 		}
 
-		pParticleSys = pData->pSys;
+		GameCreate<ParticleSystemClass>(pData->pSys, pThis->Point2, nullptr, pThis->Owner, CoordStruct::Empty, pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr);
+		return DWORD(_EBolt_Fire_Particles_RET);
 	}
 
-	if (pParticleSys)
+	if (auto pParticleSys = RulesClass::Instance->DefaultSparkSystem)
 		GameCreate<ParticleSystemClass>(pParticleSys, pThis->Point2, nullptr, pThis->Owner, CoordStruct::Empty, pThis->Owner ? pThis->Owner->GetOwningHouse() : nullptr);
 
 	return DWORD(_EBolt_Fire_Particles_RET);

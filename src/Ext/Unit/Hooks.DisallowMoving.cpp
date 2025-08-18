@@ -160,7 +160,7 @@ ASMJIT_PATCH(0x7415A9, UnitClass_ApproachTarget_SetWeaponIndex, 0x6)
 	{
 		GET(UnitClass*, pThis, ESI);
 
-		R->EDI(pThis);
+		R->EDI(VTable::Get(pThis));
 		R->EAX(UnitApproachTargetTemp::WeaponIndex);
 		UnitApproachTargetTemp::WeaponIndex = -1;
 

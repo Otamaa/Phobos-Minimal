@@ -1,7 +1,11 @@
 #pragma once
+#include <windows.h>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/async.h>
+
 #include <memory>
 #include <mutex>
 #include <atomic>
@@ -27,7 +31,7 @@ struct LogConfig
 	bool console_output = false;
 	bool file_output = true;
 	spdlog::level::level_enum level = spdlog::level::info;
-	std::string log_filename = "injected_dll.log";
+	std::string log_filename = "phobos.log";
 	size_t max_file_size = 1024 * 1024 * 5; // 5MB
 	size_t max_files = 3;
 	bool auto_flush = true;
@@ -250,63 +254,72 @@ private:
 	LogResult InitializeLogger()
 	{
 		// Set spdlog to not throw exceptions
-		spdlog::set_error_handler([](const std::string& msg)
- {
-	 OutputDebugStringA(("spdlog error: " + msg).c_str());
-		});
+		try{
+			spdlog::set_error_handler([](const std::string& msg) {
+				OutputDebugStringA(("spdlog error: " + msg).c_str());
+			});
 
-		spdlog::set_level(config.level);
+			// Configure async logging (queue size = 8192, 1 worker thread)
+			spdlog::init_thread_pool(8192, 1);
 
-		if (config.auto_flush)
-		{
-			spdlog::flush_every(std::chrono::seconds(config.flush_interval_seconds));
-		}
+			spdlog::set_level(config.level);
 
-		std::vector<spdlog::sink_ptr> sinks;
-
-		// Add file sink if enabled
-		if (config.file_output)
-		{
-			auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-				config.log_filename, config.max_file_size, config.max_files);
-			if (file_sink)
+			if (config.auto_flush)
 			{
-				sinks.push_back(file_sink);
+				spdlog::flush_every(std::chrono::seconds(config.flush_interval_seconds));
 			}
-		}
 
-		// Add console sink if enabled
-		if (config.console_output)
-		{
-			auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-			if (console_sink)
+			std::vector<spdlog::sink_ptr> sinks;
+
+			// Add file sink if enabled
+			if (config.file_output)
 			{
-				sinks.push_back(console_sink);
+				auto file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+					config.log_filename, config.max_file_size, config.max_files);
+				if (file_sink)
+				{
+					sinks.push_back(file_sink);
+				}
 			}
-		}
 
-		if (sinks.empty())
+			// Add console sink if enabled
+			if (config.console_output)
+			{
+				auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+				if (console_sink)
+				{
+					sinks.push_back(console_sink);
+				}
+			}
+
+			if (sinks.empty())
+			{
+				OutputDebugStringA("SafeLogger: No sinks configured");
+				return LogResult::NOT_INITIALIZED;
+			}
+
+			logger = std::make_shared<spdlog::logger>("dll_logger", sinks.begin(), sinks.end());
+			if (!logger)
+			{
+				OutputDebugStringA("SafeLogger: Failed to create logger");
+				return LogResult::NOT_INITIALIZED;
+			}
+
+			logger->set_level(config.level);
+			logger->flush_on(spdlog::level::warn);
+
+			spdlog::register_logger(logger);
+
+			is_valid.store(true);
+			is_enabled.store(true);
+			return LogResult::SUCCESS;
+		}
+		catch (const spdlog::spdlog_ex& ex)
 		{
-			OutputDebugStringA("SafeLogger: No sinks configured");
-			return LogResult::NOT_INITIALIZED;
+			MessageBoxA(nullptr, ex.what(), "Logger init failed", MB_ICONERROR);
 		}
 
-		logger = std::make_shared<spdlog::logger>("dll_logger", sinks.begin(), sinks.end());
-		if (!logger)
-		{
-			OutputDebugStringA("SafeLogger: Failed to create logger");
-			return LogResult::NOT_INITIALIZED;
-		}
-
-		logger->set_level(config.level);
-		logger->flush_on(spdlog::level::warn);
-
-		spdlog::register_logger(logger);
-
-		is_valid.store(true);
-		is_enabled.store(true);
-
-		return LogResult::SUCCESS;
+		return LogResult::NOT_INITIALIZED;
 	}
 
 public:

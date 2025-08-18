@@ -73,7 +73,6 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 		this->Bolt_Arcs.Read(exINI, pSection, "Bolt.Arcs");
 		this->Bolt_Duration.Read(exINI, pSection, "Bolt.Duration");
-		this->Bolt_ParticleSys_Enabled.Read(exINI, pSection, "Bolt.DisableParticleSystems");
 		this->Bolt_ParticleSys.Read(exINI, pSection, "Bolt.ParticleSystem");
 		this->Bolt_FollowFLH.Read(exINI, pSection, "Bolt.FollowFLH");
 	}
@@ -540,8 +539,6 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Beam_Duration)
 		.Process(this->Beam_Amplitude)
 		.Process(this->Beam_IsHouseColor)
-
-		.Process(this->Bolt_ParticleSys_Enabled)
 
 		.Process(this->AmbientDamage_Warhead)
 		.Process(this->AmbientDamage_IgnoreTarget)

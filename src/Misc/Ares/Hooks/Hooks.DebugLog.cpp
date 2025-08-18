@@ -37,11 +37,11 @@ ASMJIT_PATCH(0x52E9AA, Frontend_WndProc_Checksum, 5)
 {
 	if (SessionClass::Instance->GameMode == GameMode::LAN || SessionClass::Instance->GameMode == GameMode::Internet) {
 		auto nHashes = HashData::GetINIChecksums();
-		if (Debug::LogFileActive()) {
-			Debug::LogUnflushed("Rules checksum: %s\n", nHashes.Rules);
-			Debug::LogUnflushed("Art checksum: %s\n", nHashes.Art);
-			Debug::LogUnflushed("AI checksum: %s\n", nHashes.AI);
-		}
+		Debug::LogInfo("Checksums : \n Rules {} \n Art {} \n AI {}",
+			(unsigned)nHashes.Rules,
+			(unsigned)nHashes.Art,
+			(unsigned)nHashes.AI
+		);
 	}
 
 	return 0;

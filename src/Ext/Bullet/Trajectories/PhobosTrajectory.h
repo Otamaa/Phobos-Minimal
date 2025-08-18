@@ -20,8 +20,7 @@ enum class TrajectoryFlag : int
 	Disperse = 11 ,
 	Engrave = 12,
 	Parabola = 13,
-	Tracing = 14,
-	Count
+	Tracing = 14
 };
 
 class VelocityClass;
@@ -50,7 +49,7 @@ public:
 	static void ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectoryType>& pType);
 	static bool TrajectoryValidation(BulletTypeClass* pAttached);
 
-	static std::array<const char*, (size_t)TrajectoryFlag::Count> TrajectoryTypeToSrings;
+	static constexpr auto TrajectoryTypeToSrings  = magic_enum::enum_entries<TrajectoryFlag>();;
 
 protected :
 	static bool UpdateType(std::unique_ptr<PhobosTrajectoryType>& pType , TrajectoryFlag flag);

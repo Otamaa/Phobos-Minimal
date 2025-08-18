@@ -35,6 +35,7 @@ CDTimerClass HouseExtData::SubTerraneanEVASpeak;
 bool HouseExtData::IsAnyFirestormActive;
 
 HouseClass* HouseExtContainer::Civilian = nullptr;
+SideClass* HouseExtContainer::CivilianSide = nullptr;
 HouseClass* HouseExtContainer::Special = nullptr;
 HouseClass* HouseExtContainer::Neutral = nullptr;
 
@@ -1420,7 +1421,6 @@ CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseC
 	return MapClass::Instance->TryGetCellAt(cellStruct);
 }
 
-
 HouseClass* HouseExtData::FindFirstCivilianHouse()
 {
 	if (!HouseExtContainer::Civilian) {
@@ -1431,6 +1431,8 @@ HouseClass* HouseExtData::FindFirstCivilianHouse()
 			RulesExtData::Instance()->CivilianSideIndex = idx;
 
 		if (!HouseExtContainer::Civilian) {
+			HouseExtContainer::CivilianSide = SideClass::Array->Items[idx];
+
 			for (auto pHouse : *HouseClass::Array) {
 				if (pHouse->Type->SideIndex == idx) {
 					HouseExtContainer::Civilian = pHouse;
@@ -2679,6 +2681,15 @@ bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		.Process(HouseExtData::LastHarvesterBalance)
 		.Process(HouseExtData::LastSlaveBalance)
 		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::CloakEVASpeak)
+		.Process(HouseExtData::SubTerraneanEVASpeak)
+
+		.Process(HouseExtContainer::HousesTeams)
+		.Process(HouseExtContainer::Civilian)
+		.Process(HouseExtContainer::Special)
+		.Process(HouseExtContainer::Neutral)
+		.Process(HouseExtContainer::CivilianSide)
+
 		.Success();
 }
 
@@ -2692,6 +2703,15 @@ bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 		.Process(HouseExtData::LastHarvesterBalance)
 		.Process(HouseExtData::LastSlaveBalance)
 		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::CloakEVASpeak)
+		.Process(HouseExtData::SubTerraneanEVASpeak)
+
+		.Process(HouseExtContainer::HousesTeams)
+		.Process(HouseExtContainer::Civilian)
+		.Process(HouseExtContainer::Special)
+		.Process(HouseExtContainer::Neutral)
+		.Process(HouseExtContainer::CivilianSide)
+
 		.Success();
 }
 
@@ -2713,6 +2733,7 @@ void HouseExtContainer::Clear()
 	Civilian = 0;
 	Special = 0;
 	Neutral = 0;
+	CivilianSide = 0;
 
 	HouseExtData::LimboTechno.clear();
 	HouseExtData::AutoDeathObjects.clear();
