@@ -28,6 +28,18 @@ bool DisguiseAllowed(const TechnoTypeExtData* pThis, ObjectTypeClass* pThat)
 	return true;
 }
 
+ASMJIT_PATCH(0x6FED2F, TechnoClass_FireAt_VerticalInitialFacing, 0x6)
+{
+	enum { Continue = 0x6FED39, SkipGameCode = 0x6FED8F };
+
+	GET(FakeBulletTypeClass*, pBulletType, EAX);
+
+	if (pBulletType->_GetExtData()->VerticalInitialFacing.Get(pBulletType->Voxel || pBulletType->Vertical))
+		return Continue;
+
+	return SkipGameCode;
+}
+
 ASMJIT_PATCH(0x6FF0DD, TechnoClass_FireAt_TurretRecoil, 0x6)
 {
 	enum { SkipGameCode = 0x6FF15B };

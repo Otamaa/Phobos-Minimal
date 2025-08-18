@@ -133,6 +133,7 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Shrapnel_Chance.Read(exINI, pSection, "Shrapnel.Chance");
 		this->Shrapnel_UseWeaponTargeting.Read(exINI, pSection, "Shrapnel.UseWeaponTargeting");
 		this->Vertical_AircraftFix.Read(exINI, pSection, "Vertical.AircraftFix");
+		this->VerticalInitialFacing.Read(exINI, pSection, "VerticalInitialFacing");
 
 		// Code Disabled , #816 , Bullet/Hooks.obstacles.cpp
 		this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
@@ -311,6 +312,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 
 		.Process(this->EMPulseCannon_InaccurateRadius)
 		.Process(this->Vertical_AircraftFix)
+		.Process(this->VerticalInitialFacing)
 		;
 
 	this->Trails.Serialize(Stm);

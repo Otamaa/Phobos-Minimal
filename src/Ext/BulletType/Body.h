@@ -126,6 +126,7 @@ public:
 	Valueable<bool> Parachuted_Remap { true };
 
 	Valueable<bool> Vertical_AircraftFix { true };
+	Nullable<bool> VerticalInitialFacing {};
 
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

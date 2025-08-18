@@ -75,7 +75,6 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 	auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
 
 	if (pBullet->HasParachute ||(pBullet->Type->Vertical && pBulletTypeExt->Vertical_AircraftFix)) {
-		pBullet->Velocity = { 0, 0, pBullet->Velocity.Z };
 		return;
 	}
 
