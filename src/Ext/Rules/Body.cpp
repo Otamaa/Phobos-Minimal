@@ -1874,7 +1874,32 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 
 DEFINE_FUNCTION_JUMP(CALL, 0x668BFE, FakeRulesClass::_ReadColors);
 DEFINE_FUNCTION_JUMP(CALL, 0x668EE8, FakeRulesClass::_ReadGeneral);
-DEFINE_JUMP(LJMP, 0x668EED, 0x668F6A);
+
+#include <Misc/PhobosGlobal.h>
+
+void RulesExtData::InitializeAfterAllRulesLoaded()
+{
+	const auto pRules = RulesExtData::Instance();
+	// Init master bullet
+	ScenarioExtData::Instance()->MasterDetonationBullet =
+		BulletTypeExtData::GetDefaultBulletType()->CreateBullet(nullptr, nullptr, 0, nullptr, 0, false);
+
+	auto g_instance = PhobosGlobal::Instance();
+	// tint color
+	if (!g_instance->ColorDatas.Initialized) {
+		g_instance->ColorDatas.Initialized = true;
+		g_instance->ColorDatas.Forceshield_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->ForceShieldColor);
+		g_instance->ColorDatas.IronCurtain_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->IronCurtainColor);
+		g_instance->ColorDatas.LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
+		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
+	}
+}
+
+DEFINE_HOOK(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)
+{
+	RulesExtData::InitializeAfterAllRulesLoaded();
+	return 0x668F6A;
+}
 
 ASMJIT_PATCH(0x6744E4, RulesClass_ReadJumpjetControls_Extra, 0x7)
 {

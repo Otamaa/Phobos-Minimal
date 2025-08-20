@@ -579,6 +579,7 @@ public:
 	static void LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI);
 	static void LoadVeryEarlyBeforeAnyData(RulesClass* pRules, CCINIClass* pINI);
 	static void LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI);
+	static void InitializeAfterAllRulesLoaded();
 
 	static RulesExtData* Instance()
 	{
