@@ -153,7 +153,7 @@ struct StaticVars {
 
 struct TechnoExt_ExtData
 {
-	static void AddPassengers(BuildingClass* const Grinder, FootClass* Vic);
+	static void AddPassengers(BuildingClass* const Grinder, FootClass* Vic , bool ParentReversed);
 
 	static bool IsSabotagable(BuildingClass const* const pThis);
 	static Action GetiInfiltrateActionResult(InfantryClass* pInf, BuildingClass* pBuilding);

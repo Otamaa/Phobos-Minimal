@@ -9,7 +9,34 @@ ASMJIT_PATCH(0x518FBC, InfantryClass_DrawIt_DontRenderSHP, 0x6)
 
 	return 0;
 }
+// ASMJIT_PATCH(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
+// {
+// 	enum { Continue = 0x0, ReturnValue = 0x51F17E };
 
+// 	GET(InfantryClass*, pThis, EDI);
+// 	GET(TechnoClass*, pTarget, ESI);
+
+// 	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
+// 	{
+// 		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExtData::CanGrindTechno(pBuilding, pThis);
+// 		Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
+
+// 		if(ret == Action::NoGRepair &&
+// 			(pBuilding->Type->InfantryAbsorb
+// 			|| BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType != -1
+// 			|| pBuilding->Type->Hospital && pThis->GetHealthPercentage() < RulesClass::Instance->ConditionGreen
+// 			|| pBuilding->Type->Armory && pThis->Type->Trainable
+// 		  )){
+// 			ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
+// 				Action::Enter : Action::NoEnter;
+// 		}
+
+// 		R->EBP(ret);
+// 		return ReturnValue;
+// 	}
+
+// 	return Continue;
+// }
 //broke spawner building ?
 //ASMJIT_PATCH(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8) //7
 //{

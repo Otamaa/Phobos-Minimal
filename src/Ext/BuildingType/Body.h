@@ -65,7 +65,7 @@ public:
 	NullableIdx<VocClass> Grinding_Sound {};
 	Valueable<WeaponTypeClass*> Grinding_Weapon { nullptr };
 
-	Valueable<bool> Grinding_PlayDieSound { false };
+	Valueable<bool> Grinding_PlayDieSound { true };
 	Valueable<int> Grinding_Weapon_RequiredCredits { 0 };
 
 	Nullable<bool> PlacementPreview_Show { };

@@ -532,8 +532,10 @@ void TechnoTypeExt_ExtData::ReadWeaponStructDatas(TechnoTypeClass* pType, CCINIC
 
 #pragma region TechnoExt_ExtData
 
-void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, FootClass* Vic)
+void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, FootClass* Vic, bool ParentReversed)
 {
+	auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(Grinder->Type);
+
 	while (Vic->Passengers.FirstPassenger)
 	{
 		if (auto nPass = Vic->RemoveFirstPassenger())
@@ -543,11 +545,10 @@ void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, FootClass* V
 				pTeam->RemoveMember(nPass);
 			}
 
-			if (Grinder->Type->Grinding)
+			if (ParentReversed && Grinder->Type->Grinding && pBldTypeExt->ReverseEngineersVictims_Passengers)
 			{
 				if (BuildingExtData::ReverseEngineer(Grinder, nPass))
 				{
-
 					if (nPass->Owner && nPass->Owner->ControlledByCurrentPlayer())
 					{
 						VoxClass::Play(nPass->WhatAmI() == InfantryClass::AbsID ? "EVA_ReverseEngineeredInfantry" : "EVA_ReverseEngineeredVehicle");
@@ -568,12 +569,11 @@ void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, FootClass* V
 			}
 
 			// #368: refund hijackers
-			if (nPass->HijackerInfantryType != -1)
-			{
+			if (Grinder->Type->Grinding  && nPass->HijackerInfantryType != -1) {
 				Grinder->Owner->TransactMoney(InfantryTypeClass::Array->Items[nPass->HijackerInfantryType]->GetRefund(nPass->Owner, 0));
 			}
 
-			AddPassengers(Grinder, nPass);
+			AddPassengers(Grinder, nPass, ParentReversed);
 			Grinder->Owner->TransactMoney(nPass->GetRefund());
 
 			if (nPass->InOpenToppedTransport)

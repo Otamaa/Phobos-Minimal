@@ -152,35 +152,6 @@ ASMJIT_PATCH(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 
  return Skip;
 }
-
-// ASMJIT_PATCH(0x51E63A, InfantryClass_WhatAction_Grinding_Engineer, 0x6)
-// {
-// 	enum { Continue = 0x0, ReturnValue = 0x51F17E };
-
-// 	GET(InfantryClass*, pThis, EDI);
-// 	GET(TechnoClass*, pTarget, ESI);
-
-// 	if (auto pBuilding = cast_to<BuildingClass*>(pTarget))
-// 	{
-// 		const bool canBeGrinded = pBuilding->Type->Grinding && BuildingExtData::CanGrindTechno(pBuilding, pThis);
-// 		Action ret = canBeGrinded ? Action::Repair : Action::NoGRepair;
-
-// 		if(ret == Action::NoGRepair &&
-// 			(pBuilding->Type->InfantryAbsorb
-// 			|| BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->TunnelType != -1
-// 			|| pBuilding->Type->Hospital && pThis->GetHealthPercentage() < RulesClass::Instance->ConditionGreen
-// 			|| pBuilding->Type->Armory && pThis->Type->Trainable
-// 		  )){
-// 			ret = pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive ?
-// 				Action::Enter : Action::NoEnter;
-// 		}
-
-// 		R->EBP(ret);
-// 		return ReturnValue;
-// 	}
-
-// 	return Continue;
-// }
 #include <Misc/Ares/Hooks/Header.h>
 
 void PlayDieSounds(TechnoClass* pTechno) {
@@ -203,7 +174,7 @@ void PlayDieSounds(TechnoClass* pTechno) {
 	}
 }
 
-ASMJIT_PATCH(0x73A134, UnitClass_PerCellProcess_Grinding, 0x6)
+ASMJIT_PATCH(0x739FBC, UnitClass_PerCellProcess_Grinding, 0x6)
 {
 	enum { Continue = 0x73A1BC , PlayAnim = 0x73A1DE , RemoveUnit = 0x73A222 };
 
@@ -219,9 +190,10 @@ ASMJIT_PATCH(0x73A134, UnitClass_PerCellProcess_Grinding, 0x6)
 	HouseExtData::LastGrindingBlanceUnit = pBuilding->Owner->Available_Money();
 	pBuilding->Owner->TransactMoney(pThis->GetRefund());
 
+	const bool pParentReverseEngineered = pBuilding->Type->Grinding && BuildingExtData::ReverseEngineer(pBuilding, pThis);
+
 	//https://bugs.launchpad.net/ares/+bug/1925359
-	if(pTypeExt->ReverseEngineersVictims_Passengers)
-		TechnoExt_ExtData::AddPassengers(pBuilding, pThis);
+	TechnoExt_ExtData::AddPassengers(pBuilding, pThis , pParentReverseEngineered);
 
 	if (auto const MyParasite = pThis->ParasiteEatingMe) {
 		pBuilding->Owner->GiveMoney(MyParasite->GetRefund());
@@ -236,7 +208,7 @@ ASMJIT_PATCH(0x73A134, UnitClass_PerCellProcess_Grinding, 0x6)
 	if (!pBuilding->Type->Grinding)
 		return RemoveUnit;
 
-	if (BuildingExtData::ReverseEngineer(pBuilding, pThis))
+	if (pParentReverseEngineered)
 	{
 		if (pBuilding->Owner->ControlledByCurrentPlayer())
 		{
@@ -256,8 +228,7 @@ ASMJIT_PATCH(0x73A134, UnitClass_PerCellProcess_Grinding, 0x6)
 	}
 
 	// #368: refund hijackers
-	if (pThis->HijackerInfantryType != -1)
-	{
+	if (pThis->HijackerInfantryType != -1) {
 		pBuilding->Owner->TransactMoney(InfantryTypeClass::Array->Items[pThis->HijackerInfantryType]->GetRefund(pThis->Owner, 0));
 	}
 
@@ -305,8 +276,6 @@ ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	return Continue;
 }
 
-#pragma region PosGrind
-
 ASMJIT_PATCH(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 {
 	enum { Continue = 0x0 , Skip = 0x4DFB30 };
@@ -316,7 +285,7 @@ ASMJIT_PATCH(0x4DFABD, FootClass_Try_Grinding_CheckIfAllowed, 0x8)
 		? Continue : Skip;
 }
 
-ASMJIT_PATCH(0x519790, InfantryClass_UpdatePositio_Grinding, 0xA)
+ASMJIT_PATCH(0x519790, InfantryClass_PerCellProcess_Grinding, 0xA)
 {
 	enum { Continue = 0x5198AD, PlayAnims = 0x5198CE  , RemoveInfantry = 0x51A02A };
 
@@ -370,5 +339,3 @@ ASMJIT_PATCH(0x519790, InfantryClass_UpdatePositio_Grinding, 0xA)
 	// Calculated like this because it is easier than tallying up individual refunds for passengers and parasites.
 	return BuildingExtData::DoGrindingExtras(pBuilding, pThis , totalRefund) ? PlayAnims : Continue;
 }
-
-#pragma endregion
