@@ -5,7 +5,34 @@
 
 #include <Utilities/Enumerable.h>
 #include <Utilities/TemplateDefB.h>
+#include <Utilities/VectorSet.h>
+
 #include <New/Type/LaserTrailTypeClass.h>
+
+class PhobosAttachEffectTypeClass;
+struct GroupData
+{
+    VectorSet<PhobosAttachEffectTypeClass*> types;
+
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange) {
+		return
+				Stm
+					.Process(types ,RegisterForChange)
+					.Success();
+	}
+
+	bool save(PhobosStreamWriter& Stm) const {
+		return
+				Stm
+					.Process(types)
+					.Success();
+	}
+
+    size_t size() const { return types.size(); }
+    auto begin() const { return types.begin(); }
+    auto end() const { return types.end(); }
+    void insert(PhobosAttachEffectTypeClass* item) { types.insert(item); }
+};
 
 class PhobosAttachEffectTypeClass final : public Enumerable<PhobosAttachEffectTypeClass>
 {
@@ -96,6 +123,9 @@ public:
 
 	ValueableIdx<LaserTrailTypeClass> LaserTrail_Type;
 
+	Valueable<double> Block_ChanceMultiplier;
+	Valueable<double> Block_ExtraChance;
+
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Duration_ApplyFirepowerMult { false }
@@ -178,6 +208,8 @@ public:
 		, FeedbackWeapon {}
 
 		, LaserTrail_Type { -1 }
+		, Block_ChanceMultiplier { 1.0 }
+		, Block_ExtraChance { 0.0 }
 	{};
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() {
@@ -225,9 +257,10 @@ public:
 	void LoadFromINI(CCINIClass* pINI);
 	void LoadFromStream(PhobosStreamReader& Stm);
 	void SaveToStream(PhobosStreamWriter& Stm);
+	void AddToGroupsMap();
 
 	static std::vector<PhobosAttachEffectTypeClass*> GetTypesFromGroups(std::vector<std::string>& groupIDs);
-	static PhobosMap<std::string, std::set<PhobosAttachEffectTypeClass*>> GroupsMap;
+	static PhobosMap<std::string, GroupData> GroupsMap;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

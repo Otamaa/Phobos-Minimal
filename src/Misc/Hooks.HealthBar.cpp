@@ -10,6 +10,21 @@
 #include <InfantryClass.h>
 #include <TacticalClass.h>
 
+ASMJIT_PATCH(0x6F5E37, TechnoClass_DrawExtras_DrawHealthBar, 0x6)
+{
+	enum { Permanent = 0x6F5E41 , Continue = 0x0 };
+
+	GET(TechnoClass*, pThis, EBP);
+
+	if ((pThis->IsMouseHovering 
+			|| TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Permanent)
+		&& !MapClass::Instance->IsLocationShrouded(pThis->GetCoords())) {
+		return Permanent;
+	}
+
+	return Continue;
+}
+
 ASMJIT_PATCH(0x6D9076, TacticalClass_RenderLayers_DrawBefore, 0x5)// FootClass
 {
 	GET(TechnoClass*, pTechno, ESI);
@@ -496,11 +511,25 @@ ASMJIT_PATCH(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
 	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
 	TechnoExtData::ProcessDigitalDisplays(pThis);
 
+	if (pTypeExt->HealthBar_HidePips) {
+		R->EDI(pLocation);
+		return 0x6F6A58 ;
+	}
+
 	if (HouseClass::IsCurrentPlayerObserver())
 		return 0x6F6A8E;
 
 	return 0x6F6A58u;
 }
+
+ASMJIT_PATCH(0x6F67E8, TechnoClass_DrawHealthBar_PermanentPipScale, 0xA)			// DrawBuilding
+{
+	enum { Permanent = 0x6F6AB6 };
+
+	GET(TechnoClass*, pThis, ESI);
+	const bool showPipScale = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Permanent_PipScale;
+	return !showPipScale && !pThis->IsMouseHovering && !pThis->IsSelected ? Permanent : 0;
+}ASMJIT_PATCH_AGAIN(0x6F6A58, TechnoClass_DrawHealthBar_PermanentPipScale, 0x6)	// DrawOther
 
 
 //TODO :Draw all the pip
@@ -636,6 +665,16 @@ ASMJIT_PATCH(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
 {
 	GET(BuildingClass*, pBld, ESI);
 	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
+}
+
+DEFINE_HOOK(0x6F6637, TechnoClass_DrawHealthBar_HideBuildingsPips, 0x5)
+{
+	enum { SkipDrawPips = 0x6F677D , Continue = 0x0 };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
+		->HealthBar_HidePips ? SkipDrawPips : Continue;
 }
 
 ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)

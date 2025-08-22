@@ -20,10 +20,10 @@ public:
 public:
 	static PhobosSwizzle Instance;
 
-	HRESULT Swizzle(void** p);
-	HRESULT Here_I_Am(void* was, void* is, bool log = true);
+	HRESULT RegisterForFixup(void** p);
+	HRESULT DeclareMapping(void* was, void* is, bool log = true);
 
-	void ConvertNodes() const;
+	void ApplyFixups() const;
 
 	FORCEDINLINE void Clear()
 	{
@@ -32,24 +32,30 @@ public:
 	}
 
 	template<typename T>
-	FORCEDINLINE void RegisterPointerForChange(T*& ptr) {
-		this->Swizzle(reinterpret_cast<void**>(const_cast<std::remove_cv_t<T>**>(&ptr)));
+	FORCEDINLINE void RegisterPointerForChange(T*& ptr)
+	{
+		// Already a pointer, just forward
+		this->RegisterForFixup(reinterpret_cast<void**>(
+			const_cast<std::remove_cv_t<T>**>(&ptr)
+			));
+	}
+
+	template<typename T>
+	FORCEDINLINE void RegisterPointerForChange(T& obj)
+	{
+		// Non-pointer object: take its address
+		auto* ptr = &obj;
+		this->RegisterPointerForChange(ptr);
 	}
 };
 
 template<typename T>
-struct is_swizzlable : public std::is_pointer<T>::type { };
+concept is_swizzlable = std::is_pointer<T>::value;
 
 struct Swizzle {
 	template <typename T>
 	Swizzle(T& object) {
-		if COMPILETIMEEVAL (std::is_pointer_v<T>) {
+		if COMPILETIMEEVAL(is_swizzlable<T>)
 			PhobosSwizzle::Instance.RegisterPointerForChange(object);
-		}
-#ifdef _DEBUG
-		else {
-			Debug::LogInfo("{} Is Not Swizzeable ! ", typeid(T).name());
-		}
-#endif
 	}
 };

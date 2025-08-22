@@ -52,8 +52,8 @@ struct AEProperties
 		{
 			double rangeMult { 1.0 };
 			double extraRange { 0.0 };
-			std::set<WeaponTypeClass*> allow {};
-			std::set<WeaponTypeClass*> disallow {};
+			VectorSet<WeaponTypeClass*> allow {};
+			VectorSet<WeaponTypeClass*> disallow {};
 
 			bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
 			{
@@ -199,8 +199,8 @@ struct AEProperties
 		{
 			double Mult { 1.0 };
 			double extra { 0.0 };
-			std::set<WarheadTypeClass*> allow {};
-			std::set<WarheadTypeClass*> disallow {};
+			VectorSet<WarheadTypeClass*> allow {};
+			VectorSet<WarheadTypeClass*> disallow {};
 
 			bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
 			{
@@ -346,8 +346,8 @@ struct AEProperties
 		struct MultData
 		{
 			double Mult { 1.0 };
-			std::set<WarheadTypeClass*> allow {};
-			std::set<WarheadTypeClass*> disallow {};
+			VectorSet<WarheadTypeClass*> allow {};
+			VectorSet<WarheadTypeClass*> disallow {};
 
 			bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
 			{
@@ -897,6 +897,9 @@ public:
 		else if (cellMult < 0.0)
 			cellIntensity = 1000;
 	}
+
+	static int CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* args);
+	static std::vector<double> GetBlockChance(TechnoClass* pThis, std::vector<double>& blockChance);
 
 private:
 	template <typename T>

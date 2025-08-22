@@ -627,7 +627,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	int TimeToBuild() const
 	{ JMP_THIS(0x6F47A0); }
 
-	CellStruct* NearbyLocation(CellStruct* pRet, TechnoClass* pOtherTechno)
+	CellStruct* NearbyLocation(CellStruct* pRet, AbstractClass* pDest)
 	{ JMP_THIS(0x703590); }
 
 	bool MoveOnToLinkedBuilding() const

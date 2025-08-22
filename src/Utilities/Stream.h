@@ -165,13 +165,24 @@ public:
 			s.clear();
 			size_t size = 0;
 			this->Process(size, RegisterForChange);
-			for (size_t i = 0; i < size; i++)
-			{
-				_Ty obj;
-				this->Process(obj, RegisterForChange);
-				s.emplace(obj);
+			if(size > 0){
+				if COMPILETIMEEVAL(std::is_pointer<_Ty>::value) {
+					std::vector<_Ty> buff(size, nullptr);
+					for (size_t i = 0; i < size; i++) {
+						this->Process(buff[i], RegisterForChange);
+					}
+
+					s.insert(buff.begin() , buff.end());
+				} else {
+					for (size_t i = 0; i < size; i++) {
+						_Ty obj;
+						this->Process(obj, RegisterForChange);
+						s.emplace(obj);
+					}
+				}
 			}
 		}
+
 		return *this;
 	}
 

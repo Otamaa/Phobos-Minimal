@@ -662,10 +662,10 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	const bool unkillable =
 		!pWHExt->CanKill || pExt->AE.Unkillable;
 
-	if (!args.IgnoreDefenses)
-	{
-		if (auto pShieldData = pExt->GetShield())
-		{
+	if (!args.IgnoreDefenses) {
+		*args.Damage = TechnoExtData::CalculateBlockDamage(pThis, &args);
+
+		if (auto pShieldData = pExt->GetShield()) {
 			pShieldData->OnReceiveDamage(&args);
 		}
 	}

@@ -23,6 +23,7 @@
 
 #include <New/AnonymousType/PassengerDeletionTypeClass.h>
 #include <New/AnonymousType/TiberiumEaterTypeClass.h>
+#include <New/AnonymousType/BlockTypeClass.h>
 
 #include <FileSystem.h>
 
@@ -141,6 +142,9 @@ public:
 
 	AbstractType AttachtoType { AbstractType::None };
 	Valueable<bool> HealthBar_Hide { false };
+	Valueable<bool> HealthBar_HidePips { false };
+	Valueable<bool> HealthBar_Permanent { false };
+	Valueable<bool> HealthBar_Permanent_PipScale { false };
 	Valueable<CSFText> UIDescription {};
 	Valueable<bool> LowSelectionPriority { false };
 	PhobosFixedString<0x20> GroupAs { GameStrings::NoneStrb() };
@@ -1181,6 +1185,9 @@ public:
 	ValueableVector<int> VoiceEliteWeaponAttacks { };
 	Valueable<UnitTypeClass*> DefaultVehicleDisguise { };
 	Nullable<bool> TurretResponse { };
+
+	std::unique_ptr<BlockTypeClass> BlockType {};
+	Valueable<bool> CanBlock {};
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromINIFile_Aircraft(CCINIClass* pINI);

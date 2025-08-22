@@ -498,6 +498,55 @@ namespace detail
 	}
 
 	template <>
+	inline bool read<DisplayShowType>(DisplayShowType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			char* context = nullptr;
+			DisplayShowType resultData = DisplayShowType::None;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+
+				size_t result = 0;
+				bool found = false;
+				for (const auto& pStrings : EnumFunctions::DisplayShowType_ToStrings) {
+					if (IS_SAME_STR_(cur, pStrings)) {
+						found = true;
+						break;
+					}
+					++result;
+				}
+
+				if (!found) {
+					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DisplayShowType");
+					return false;
+				}
+				else
+				{
+					switch (result)
+					{
+					case 0: resultData |= DisplayShowType::None; break;
+					case 1: resultData |= DisplayShowType::CursorHover; break;
+					case 2: resultData |= DisplayShowType::Idle; break;
+					case 3: resultData |= DisplayShowType::Selected; break;
+					case 4: resultData |= DisplayShowType::Select; break;
+					case 5: resultData |= DisplayShowType::All; break;
+						break;//switch break
+						break;//loop break
+					}
+				}
+			}
+
+			value = resultData;
+			return true;
+		}
+		return false;
+	}
+
+	template <>
 	OPTIONALINLINE bool read<BountyValueOption>(BountyValueOption& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))

@@ -21,6 +21,10 @@ public:
 	Valueable<bool> Powered;
 	Valueable<double> Respawn;
 	Valueable<int> Respawn_Rate;
+	Valueable<bool> Respawn_RestartInCombat;
+	Valueable<int> Respawn_RestartInCombatDelay;
+	ValueableVector<AnimTypeClass*> Respawn_Anim;
+	Valueable<WeaponTypeClass*> Respawn_Weapon;
 	Valueable<double> SelfHealing;
 	Valueable<int> SelfHealing_Rate;
 	Valueable<bool> SelfHealing_RestartInCombat;
@@ -73,6 +77,7 @@ public:
 	ValueableVector<TechnoTypeClass*> InheritArmor_Allowed;
 	ValueableVector<TechnoTypeClass*> InheritArmor_Disallowed;
 	Valueable<bool> InheritArmorFromTechno;
+	Valueable<bool> CanBlock;
 public:
 
 	ShieldTypeClass(const char* const pTitle) : Enumerable<ShieldTypeClass> { pTitle }
@@ -84,6 +89,10 @@ public:
 		, Powered { false }
 		, Respawn { 0.0 }
 		, Respawn_Rate { 0 }
+		, Respawn_RestartInCombat { true }
+		, Respawn_RestartInCombatDelay { 0 }
+		, Respawn_Anim { }
+		, Respawn_Weapon { }
 		, SelfHealing { 0.0 }
 		, SelfHealing_Rate { 0 }
 		, SelfHealing_RestartInCombat { true }
@@ -127,6 +136,7 @@ public:
 		, InheritArmor_Allowed {}
 		, InheritArmor_Disallowed {}
 		, InheritArmorFromTechno {}
+		, CanBlock { false }
 	{};
 
 	void LoadFromINI(CCINIClass* pINI);

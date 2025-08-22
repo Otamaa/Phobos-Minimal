@@ -77,6 +77,7 @@ public:
 	static bool OnMiddle(AnimClass* pThis);
 	static bool OnMiddle_SpawnSmudge(AnimClass* pThis, CellClass* pCell, Point2D nOffs);
 	static void OnInit(AnimClass* pThis, CoordStruct* pCoord);
+	static void CreateRandomAnim(Iterator<AnimTypeClass*> AnimList, CoordStruct coords, TechnoClass* pTechno = nullptr, HouseClass* pHouse = nullptr, bool ownedObject = false);
 
 	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _);
 

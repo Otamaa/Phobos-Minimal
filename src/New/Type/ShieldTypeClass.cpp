@@ -36,6 +36,8 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Powered.Read(exINI, pSection, "Powered");
 
 	this->Respawn.Read(exINI, pSection, "Respawn");
+	this->Respawn_Anim.Read(exINI, pSection, "Respawn.Anim");
+	this->Respawn_Weapon.Read(exINI, pSection, "Respawn.Weapon");
 
 	Nullable<double> Respawn_Rate__InMinutes {};
 	Respawn_Rate__InMinutes.Read(exINI, pSection, "Respawn.Rate");
@@ -43,6 +45,8 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	if (Respawn_Rate__InMinutes.isset())
 		this->Respawn_Rate = (int)(Respawn_Rate__InMinutes.Get() * 900);
 
+	this->Respawn_RestartInCombat.Read(exINI, pSection, "Respawn.RestartInCombat");
+	this->Respawn_RestartInCombatDelay.Read(exINI, pSection, "Respawn.RestartInCombatDelay");
 	this->SelfHealing.Read(exINI, pSection, "SelfHealing");
 
 	Nullable<double> SelfHealing_Rate__InMinutes {};
@@ -103,6 +107,7 @@ void ShieldTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->InheritArmor_Allowed.Read(exINI, pSection, "InheritArmor.Allowed");
 	this->InheritArmor_Disallowed.Read(exINI, pSection, "InheritArmor.Disallowed");
 	this->InheritArmorFromTechno.Read(exINI, pSection, "InheritArmorFromTechno");
+	this->CanBlock.Read(exINI, pSection, "CanBlock");
 }
 
 template <typename T>
@@ -117,6 +122,10 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->Powered)
 		.Process(this->Respawn)
 		.Process(this->Respawn_Rate)
+		.Process(this->Respawn_RestartInCombat)
+		.Process(this->Respawn_RestartInCombatDelay)
+		.Process(this->Respawn_Anim)
+		.Process(this->Respawn_Weapon)
 		.Process(this->SelfHealing)
 		.Process(this->SelfHealing_Rate)
 		.Process(this->SelfHealing_RestartInCombat)
@@ -159,6 +168,7 @@ void ShieldTypeClass::Serialize(T& Stm)
 		.Process(this->InheritArmor_Allowed)
 		.Process(this->InheritArmor_Disallowed)
 		.Process(this->InheritArmorFromTechno)
+		.Process(this->CanBlock)
 		;
 }
 

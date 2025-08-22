@@ -47,6 +47,13 @@ ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
 		AresHouseExt::UpdateTogglePower(pHouse);
 	}
 
+	//remove all invalid teams
+	for (auto& [h, teams] : HouseExtContainer::HousesTeams) {
+		teams.remove_all_if([](TeamClass* pTeam) {
+			return !pTeam->Type;
+		});
+	}
+
 	return 0x0;
 }
 
@@ -93,6 +100,13 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	//		}
 	//	}
 	//}
+
+	//remove all invalid teams
+	for (auto&[h, teams] : HouseExtContainer::HousesTeams) {
+		teams.remove_all_if([](TeamClass* pTeam) {
+			return !pTeam->Type;
+		});
+	}
 
 	return 0x0;
 }//

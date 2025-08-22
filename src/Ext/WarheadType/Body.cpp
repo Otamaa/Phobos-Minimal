@@ -219,7 +219,11 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Shield_Respawn_Amount.Read(exINI, pSection, "Shield.Respawn.Amount");
 	this->Shield_Respawn_Rate_InMinutes.Read(exINI, pSection, "Shield.Respawn.Rate");
 	this->Shield_Respawn_Rate = (int)(this->Shield_Respawn_Rate_InMinutes * 900);
+	this->Shield_Respawn_RestartInCombat.Read(exINI, pSection, "Shield.Respawn.RestartInCombat");
+	this->Shield_Respawn_RestartInCombatDelay.Read(exINI, pSection, "Shield.Respawn.RestartInCombatDelay");
 	this->Shield_Respawn_RestartTimer.Read(exINI, pSection, "Shield.Respawn.RestartTimer");
+	this->Shield_Respawn_Anim.Read(exINI, pSection, "Shield.Respawn.Anim");
+	this->Shield_Respawn_Weapon.Read(exINI, pSection, "Shield.Respawn.Weapon");
 	this->Shield_SelfHealing_Duration.Read(exINI, pSection, "Shield.SelfHealing.Duration");
 	this->Shield_SelfHealing_Amount.Read(exINI, pSection, "Shield.SelfHealing.Amount");
 	this->Shield_SelfHealing_Rate_InMinutes.Read(exINI, pSection, "Shield.SelfHealing.Rate");
@@ -694,6 +698,18 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->UnlimboDetonate_KeepSelected.Read(exINI, pSection, "UnlimboDetonate.KeepSelected");
 
 	this->ReverseEngineer.Read(exINI, pSection, "ReverseEngineer");
+
+	this->Block_BasedOnWarhead.Read(exINI, pSection, "Block.BasedOnWarhead");
+	this->Block_AllowOverride.Read(exINI, pSection, "Block.AllowOverride");
+	this->Block_IgnoreChanceModifier.Read(exINI, pSection, "Block.IgnoreChanceModifier");
+	this->Block_ChanceMultiplier.Read(exINI, pSection, "Block.ChanceMultiplier");
+	this->Block_ExtraChance.Read(exINI, pSection, "Block.ExtraChance");
+	this->ImmuneToBlock.Read(exINI, pSection, "ImmuneToBlock");
+
+	if (!this->BlockType)
+		this->BlockType = std::make_unique<BlockTypeClass>();
+
+	this->BlockType->LoadFromINI(pINI, pSection);
 
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
@@ -1605,7 +1621,11 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Shield_Respawn_Duration)
 		.Process(this->Shield_Respawn_Amount)
 		.Process(this->Shield_Respawn_Rate)
+		.Process(this->Shield_Respawn_RestartInCombat)
+		.Process(this->Shield_Respawn_RestartInCombatDelay)
 		.Process(this->Shield_Respawn_RestartTimer)
+		.Process(this->Shield_Respawn_Anim)
+		.Process(this->Shield_Respawn_Weapon)
 		.Process(this->Shield_SelfHealing_Duration)
 		.Process(this->Shield_SelfHealing_Amount)
 		.Process(this->Shield_SelfHealing_Rate)
@@ -1910,6 +1930,14 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->UnlimboDetonate_Force)
 		.Process(this->UnlimboDetonate_KeepTarget)
 		.Process(this->UnlimboDetonate_KeepSelected)
+
+		.Process(this->BlockType)
+		.Process(this->Block_BasedOnWarhead)
+		.Process(this->Block_AllowOverride)
+		.Process(this->Block_IgnoreChanceModifier)
+		.Process(this->Block_ChanceMultiplier)
+		.Process(this->Block_ExtraChance)
+		.Process(this->ImmuneToBlock)
 
 		.Process(this->IsCellSpreadWH)
 		.Process(this->IsFakeEngineer)

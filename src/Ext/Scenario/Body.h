@@ -8,6 +8,7 @@
 #include <Utilities/VectorHelper.h>
 
 #include <Utilities/PhobosFixedString.h>
+#include <Utilities/VectorSet.h>
 
 struct ExtendedVariable
 {
@@ -72,7 +73,7 @@ public:
 
 	HelperedVector<TechnoTypeClass*> OwnedExistCameoTechnoTypes {};
 	bool SWSidebar_Enable { true };
-	std::set<int> SWSidebar_Indices {};
+	VectorSet<int> SWSidebar_Indices {};
 
 	std::vector<std::wstring> RecordMessages {};
 

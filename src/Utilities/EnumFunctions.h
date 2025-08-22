@@ -21,6 +21,7 @@ public:
 	static constexpr auto LaserTrailDrawType_ToStrings = magic_enum::enum_entries<LaserTrailDrawType>();
 	static constexpr auto OwnerHouseKind_ToStrings = magic_enum::enum_entries<OwnerHouseKind>();
 	static constexpr auto AttachmentYSortPosition_ToStrings = magic_enum::enum_entries<AttachmentYSortPosition>();
+	static std::array<const char* const, 6u>  DisplayShowType_ToStrings;
 	static std::array<const char* const, (size_t)FullMapDetonateResult::count> FullMapDetonateResult_ToStrings;
 	static std::array<const char* const, (size_t)PhobosAbilityType::count> PhobosAbilityType_ToStrings;
 	static std::array<const char* const, 3u> Rank_ToStrings;

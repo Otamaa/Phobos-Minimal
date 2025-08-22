@@ -75,39 +75,31 @@ public:
 		return *this;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void Start(int duration)
-	{
+	COMPILETIMEEVAL FORCEDINLINE void Start(int duration) {
 		this->StartTime = this->CurrentTime;
 		this->TimeLeft = duration;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void Stop()
-	{
+	COMPILETIMEEVAL FORCEDINLINE void Stop() {
 		this->StartTime = -1;
 		this->TimeLeft = 0;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void Pause()
-	{
-		if (this->IsTicking())
-		{
+	COMPILETIMEEVAL FORCEDINLINE void Pause() {
+		if (this->IsTicking()) {
 			this->TimeLeft = this->GetTimeLeft();
 			this->StartTime = -1;
 		}
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void Resume()
-	{
-		if (!this->IsTicking())
-		{
+	COMPILETIMEEVAL FORCEDINLINE void Resume() {
+		if (!this->IsTicking()) {
 			this->StartTime = this->CurrentTime;
 		}
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE int GetTimeLeft() const
-	{
-		if (!this->IsTicking())
-		{
+	COMPILETIMEEVAL FORCEDINLINE int GetTimeLeft() const {
+		if (!this->IsTicking()) {
 			return this->TimeLeft;
 		}
 
@@ -119,51 +111,48 @@ public:
 	}
 
 	// returns whether a ticking timer has finished counting down.
-	COMPILETIMEEVAL FORCEDINLINE bool Completed() const
-	{
+	COMPILETIMEEVAL FORCEDINLINE bool Completed() const {
 		return this->IsTicking() && !this->HasTimeLeft();
 	}
 
 	// returns whether a delay is active or a timer is still counting down.
 	// this is the 'opposite' of Completed() (meaning: incomplete / still busy)
 	// and logically the same as !Expired() (meaning: blocked / delay in progress)
-	COMPILETIMEEVAL FORCEDINLINE bool InProgress() const
-	{
+	COMPILETIMEEVAL FORCEDINLINE bool InProgress() const {
 		return this->IsTicking() && this->HasTimeLeft();
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE bool IsNotActive() const
-	{
+	COMPILETIMEEVAL FORCEDINLINE bool IsNotActive() const {
 		return this->IsTicking() && !this->TimeLeft;
 	}
 
 	// returns whether a delay is inactive. same as !InProgress().
-	COMPILETIMEEVAL FORCEDINLINE bool Expired() const
-	{
+	COMPILETIMEEVAL FORCEDINLINE bool Expired() const {
 		return !this->IsTicking() || !this->HasTimeLeft();
 	}
 
 	// Sometimes I want to know if the timer has ever started
-	COMPILETIMEEVAL FORCEDINLINE bool HasStarted() const
-	{
+	COMPILETIMEEVAL FORCEDINLINE bool HasStarted() const {
 		return this->IsTicking() || this->HasTimeLeft();
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void Add(int nTime)
-	{
+	COMPILETIMEEVAL FORCEDINLINE void Add(int nTime) {
 		this->Pause();
 		this->TimeLeft += nTime;
 		this->Resume();
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE bool IsTicking() const
-	{
+	COMPILETIMEEVAL FORCEDINLINE bool IsTicking() const {
 		return this->StartTime != -1;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE bool HasTimeLeft() const
-	{
+	COMPILETIMEEVAL FORCEDINLINE bool HasTimeLeft() const {
 		return this->GetTimeLeft() > 0;
+	}
+
+	COMPILETIMEEVAL FORCEDINLINE double GetRatePassed() const {
+		const int rate = this->Rate;
+		return rate ? static_cast<double>(rate - this->GetTimeLeft()) / static_cast<double>(rate) : 1.0;
 	}
 };
 

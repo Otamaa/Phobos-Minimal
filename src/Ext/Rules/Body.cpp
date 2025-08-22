@@ -1879,12 +1879,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x668EE8, FakeRulesClass::_ReadGeneral);
 
 void RulesExtData::InitializeAfterAllRulesLoaded()
 {
-	const auto pRules = RulesExtData::Instance();
-	// Init master bullet
-	ScenarioExtData::Instance()->MasterDetonationBullet =
-		BulletTypeExtData::GetDefaultBulletType()->CreateBullet(nullptr, nullptr, 0, nullptr, 0, false);
-
 	auto g_instance = PhobosGlobal::Instance();
+
 	// tint color
 	if (!g_instance->ColorDatas.Initialized) {
 		g_instance->ColorDatas.Initialized = true;

@@ -1077,16 +1077,27 @@ namespace Savegame
 			if (!Count)
 				return true;
 
-			for (auto ix = 0u; ix < Count; ++ix) {
-
-				T buffer = T();
-				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
-				{
-					return false;
+			if COMPILETIMEEVAL(std::is_pointer<T>::value) {
+				std::vector<T> buffer(Count, nullptr);
+				for (auto ix = 0u; ix < Count; ++ix) {
+					if (!Savegame::ReadPhobosStream(Stm, buffer[ix], RegisterForChange)) {
+						return false;
+					}
 				}
-				Value.insert(buffer);
-			}
 
+				Value.insert(buffer.begin(), buffer.end());
+			} else{
+
+				for (auto ix = 0u; ix < Count; ++ix) {
+
+					T buffer = T();
+					if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
+					{
+						return false;
+					}
+					Value.insert(buffer);
+				}
+			}
 			return true;
 		}
 

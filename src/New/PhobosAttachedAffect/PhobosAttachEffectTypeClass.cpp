@@ -1,7 +1,14 @@
 #include "PhobosAttachEffectTypeClass.h"
 
 Enumerable<PhobosAttachEffectTypeClass>::container_t Enumerable<PhobosAttachEffectTypeClass>::Array;
-PhobosMap<std::string, std::set<PhobosAttachEffectTypeClass*>> PhobosAttachEffectTypeClass::GroupsMap;
+PhobosMap<std::string, GroupData> PhobosAttachEffectTypeClass::GroupsMap;
+
+void PhobosAttachEffectTypeClass::AddToGroupsMap()
+{
+    for (const auto& group : this->Groups)  {
+        PhobosAttachEffectTypeClass::GroupsMap[group].insert(this);
+    }
+}
 
 template<>
 const char* Enumerable<PhobosAttachEffectTypeClass>::GetMainSection()
@@ -11,19 +18,23 @@ const char* Enumerable<PhobosAttachEffectTypeClass>::GetMainSection()
 
 std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesFromGroups(std::vector<std::string>& groupIDs)
 {
-	std::set<PhobosAttachEffectTypeClass*> types;
+	std::vector<PhobosAttachEffectTypeClass*> types;
 	auto map = &PhobosAttachEffectTypeClass::GroupsMap;
 
-	for (const auto& group : groupIDs)
-	{
+	types.reserve(map->size() * 10);
+
+	for (const auto& group : groupIDs) {
 		auto iter = map->get_key_iterator(group);
-		if (iter != map->end())
-		{
-			types.insert(iter->second.begin(), iter->second.end());
+		if (iter != map->end()) {
+			types.insert(types.end(),iter->second.begin(), iter->second.end());
 		}
 	}
 
-	return { types.begin(), types.end() };
+  	// Deduplicate
+ 	 std::sort(types.begin(), types.end());
+  	 types.erase(std::unique(types.begin(), types.end()), types.end());
+
+	return types;
 }
 
 void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
@@ -91,15 +102,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 
 	// Groups
 	this->Groups.Read(exINI, pSection, "Groups");
-	auto const map = &PhobosAttachEffectTypeClass::GroupsMap;
-
-	for (const auto& group : this->Groups) {
-		auto iter_ = map->get_key_iterator(group);
-		if (iter_ == map->end())
-			map->emplace_unchecked(group.c_str(), std::set<PhobosAttachEffectTypeClass*>{this});
-		else
-			iter_->second.insert(this);
-	}
+	this->AddToGroupsMap();
 
 	this->DisableSelfHeal.Read(exINI, pSection, "DisableSelfHeal");
 	this->Untrackable.Read(exINI, pSection, "Untrackable");
@@ -136,7 +139,8 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ReflectDamage_UseInvokerAsOwner.Read(exINI, pSection, "ReflectDamage.UseInvokerAsOwner");
 
 	this->LaserTrail_Type.Read(exINI, pSection, "LaserTrail.Type");
-
+	this->Block_ChanceMultiplier.Read(exINI, pSection, "Block.ChanceMultiplier");
+	this->Block_ExtraChance.Read(exINI, pSection, "Block.ExtraChance");
 }
 
 template <typename T>
@@ -221,6 +225,8 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 
 		.Process(this->FeedbackWeapon)
 		.Process(this->LaserTrail_Type)
+		.Process(this->Block_ChanceMultiplier)
+		.Process(this->Block_ExtraChance)
 		;
 }
 

@@ -662,6 +662,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Survivors_Pilots.resize(SideClass::Array->Count , nullptr);
 		this->Survivors_PassengerChance.Read(exINI, pSection, "Survivor.%sPassengerChance");
 		this->HealthBar_Hide.Read(exINI, pSection, "HealthBar.Hide");
+		this->HealthBar_HidePips.Read(exINI, pSection, "HealthBar.HidePips");
+		this->HealthBar_Permanent.Read(exINI, pSection, "HealthBar.Permanent");
+		this->HealthBar_Permanent_PipScale.Read(exINI, pSection, "HealthBar.Permanent.PipScale");
 		this->UIDescription.Read(exINI, pSection, "UIDescription");
 		this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
 		this->MindControlRangeLimit.Read(exINI, pSection, "MindControlRangeLimit");
@@ -1959,6 +1962,12 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->PenetratesTransport_PassThroughMultiplier.Read(exINI, pSection, "PenetratesTransport.PassThroughMultiplier");
 		this->PenetratesTransport_FatalRateMultiplier.Read(exINI, pSection, "PenetratesTransport.FatalRateMultiplier");
 		this->PenetratesTransport_DamageMultiplier.Read(exINI, pSection, "PenetratesTransport.DamageMultiplier");
+		this->CanBlock.Read(exINI, pSection, "CanBlock");
+
+		if (this->BlockType == nullptr)
+			this->BlockType = std::make_unique<BlockTypeClass>();
+
+		this->BlockType->LoadFromINI(pINI, pSection);
 	}
 
 	// Art tags
@@ -2288,6 +2297,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Initialized)
 		.Process(this->AttachtoType)
 		.Process(this->HealthBar_Hide)
+		.Process(this->HealthBar_HidePips)
+		.Process(this->HealthBar_Permanent)
+		.Process(this->HealthBar_Permanent_PipScale)
 		.Process(this->UIDescription)
 		.Process(this->LowSelectionPriority)
 		.Process(this->MindControlRangeLimit)
@@ -3214,6 +3226,9 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->VoiceEliteWeaponAttacks)
 		.Process(this->DefaultVehicleDisguise)
 		.Process(this->TurretResponse)
+
+		.Process(this->BlockType)
+		.Process(this->CanBlock)
 		;
 }
 

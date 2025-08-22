@@ -22,7 +22,7 @@
 #pragma region defines
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
 HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
-std::unordered_map<HouseClass*, std::set<TeamClass*>> HouseExtContainer::HousesTeams;
+PhobosMap<HouseClass*, VectorSet<TeamClass*>> HouseExtContainer::HousesTeams;
 
 int HouseExtData::LastGrindingBlanceUnit;
 int HouseExtData::LastGrindingBlanceInf;
@@ -1221,7 +1221,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 {
 	auto& CreationFrames = this->Productions[2].CreationFrames;
 	auto& Values = this->Productions[2].Values;
-	auto& BestChoices = this->Productions[1].BestChoices;
+	auto& BestChoices = this->Productions[2].BestChoices;
 
 	auto const count = static_cast<unsigned int>(InfantryTypeClass::Array->Count);
 	CreationFrames.assign(count, 0x7FFFFFFF);
@@ -1346,10 +1346,11 @@ void HouseExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(Factory_VehicleType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_NavyType, ptr, bRemoved);
 	AnnounceInvalidPointer(Factory_AircraftType, ptr, bRemoved);
-	AnnounceInvalidPointer(Academies, ptr, bRemoved);
-	AnnounceInvalidPointer(TunnelsBuildings, ptr, bRemoved);
-	AnnounceInvalidPointer(RestrictedFactoryPlants, ptr, bRemoved);
-	AnnounceInvalidPointer(OwnedCountedHarvesters, ptr, bRemoved);
+
+	Academies.InvalidatePointer(ptr, bRemoved);
+	TunnelsBuildings.InvalidatePointer(ptr, bRemoved);
+	RestrictedFactoryPlants.InvalidatePointer(ptr, bRemoved);
+	OwnedCountedHarvesters.InvalidatePointer(ptr, bRemoved);
 
 	for (auto& nTun : Tunnels){
 		AnnounceInvalidPointer<FootClass*>(nTun.Vector, ptr, bRemoved);
@@ -2590,39 +2591,40 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->BattlePointsCollectors)
 		.Process(this->m_ForceOnlyTargetHouseEnemy)
 		.Process(this->ForceOnlyTargetHouseEnemyMode)
-		//.Process(this->RandomNumber)
-		.Process(this->Factory_BuildingType, true)
-		.Process(this->Factory_InfantryType, true)
-		.Process(this->Factory_VehicleType, true)
-		.Process(this->Factory_NavyType, true)
-		.Process(this->Factory_AircraftType, true)
+		.Process(this->Factory_BuildingType)
+		.Process(this->Factory_InfantryType)
+		.Process(this->Factory_VehicleType)
+		.Process(this->Factory_NavyType)
+		.Process(this->Factory_AircraftType)
 		.Process(this->AllRepairEventTriggered)
-		.Process(this->LastBuildingTypeArrayIdx)
-		.Process(this->RepairBaseNodes)
-		.Process(this->LastBuiltNavalVehicleType)
-		.Process(this->ProducingNavalUnitTypeIndex)
+		.Process(this->LastBuildingTypeArrayIdx);
 
-		.Process(this->AutoDeathObjects, true)
-		.Process(this->LaunchDatas)
-		.Process(this->CaptureObjectExecuted)
-		.Process(this->DiscoverEvaDelay)
+		for (auto& node : this->RepairBaseNodes)
+			Stm.Process(node);
+		Stm
+			.Process(this->LastBuiltNavalVehicleType)
+			.Process(this->ProducingNavalUnitTypeIndex)
+			.Process(this->LaunchDatas)
+			.Process(this->CaptureObjectExecuted)
+			.Process(this->DiscoverEvaDelay)
+			.Process(this->Tunnels)
+			.Process(this->Seed)
+			.Process(this->SWLastIndex)
+			.Process(this->Batteries)
+			.Process(this->AvaibleDocks)
+			.Process(this->StolenTech)
+			.Process(this->RadarPersist)
+			.Process(this->FactoryOwners_GatheredPlansOf)
+			.Process(this->Academies)
+			.Process(this->TunnelsBuildings)
+			.Process(this->Reversed);
 
-		.Process(this->Tunnels)
-		.Process(this->Seed)
+		//Debug::LogInfo("Before doing OwnedCountedHarvesters");
+   Stm
+			.Process(this->OwnedCountedHarvesters);
 
-		.Process(this->SWLastIndex)
-		.Process(this->Batteries, true)
-
-		.Process(this->AvaibleDocks)
-
-		.Process(this->StolenTech)
-		.Process(this->RadarPersist)
-		.Process(this->FactoryOwners_GatheredPlansOf, true)
-		.Process(this->Academies, true)
-		.Process(this->Reversed, true)
-		.Process(this->TunnelsBuildings, true)
-		.Process(this->OwnedCountedHarvesters)
-
+		//Debug::LogInfo("After doing OwnedCountedHarvesters for");
+	Stm
 		.Process(this->Is_NavalYardSpied)
 		.Process(this->Is_AirfieldSpied)
 		.Process(this->Is_ConstructionYardSpied)
@@ -2630,43 +2632,23 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->KeepAliveCount)
 		.Process(this->KeepAliveBuildingCount)
 		.Process(this->TiberiumStorage)
-
-		.Process(this->SideTechTree , true)
+		.Process(this->SideTechTree)
 		.Process(this->CombatAlertTimer)
-		.Process(this->RestrictedFactoryPlants, true)
+		.Process(this->RestrictedFactoryPlants)
 		.Process(this->AISellAllDelayTimer)
-		//.Process(this->BuiltAircraftTypes)
-		//.Process(this->BuiltInfantryTypes)
-		//.Process(this->BuiltUnitTypes)
-		//.Process(this->BuiltBuildingTypes)
-		//.Process(this->KilledAircraftTypes)
-		//.Process(this->KilledInfantryTypes)
-		//.Process(this->KilledUnitTypes)
-		//.Process(this->KilledBuildingTypes)
-		//.Process(this->CapturedBuildings)
-		//.Process(this->CollectedCrates)
-
-		.Process(this->OwnedDeployingUnits, true)
-
+		.Process(this->OwnedDeployingUnits)
 		.Process(this->Common)
 		.Process(this->Combat)
-
 		.Process(this->AISuperWeaponDelayTimer)
-
 		.Process(this->NumAirpads_NonMFB)
 		.Process(this->NumBarracks_NonMFB)
 		.Process(this->NumWarFactories_NonMFB)
 		.Process(this->NumConYards_NonMFB)
 		.Process(this->NumShipyards_NonMFB)
-
 		.Process(this->SuspendedEMPulseSWs)
 		.Process(this->ForceEnemyIndex)
 		.Process(this->BattlePoints)
-
-		.Process(this->Productions[0])
-		.Process(this->Productions[1])
-		.Process(this->Productions[2])
-
+		.Process(this->Productions)
 		.Process(this->BestChoicesNaval)
 		;
 }

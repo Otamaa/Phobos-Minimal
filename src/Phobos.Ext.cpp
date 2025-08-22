@@ -325,9 +325,20 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
 
-	Process_InvalidatePtr<SWTypeExtContainer>(pInvalid, removed);
+	AnnounceInvalidPointer(SWTypeExtData::TempSuper, pInvalid);
+	AnnounceInvalidPointer(SWTypeExtData::LauchData, pInvalid);
 
 	if (removed) {
+
+		HouseExtContainer::HousesTeams.erase_all_if([pInvalid](std::pair<HouseClass*, VectorSet<TeamClass*>>& item) {
+			if(item.first != pInvalid) {
+				item.second.erase((TeamClass*)pInvalid);
+				return false;
+			}
+
+			return true;
+		});
+
 		HouseExtData::AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
 			return item.first == pInvalid;
 		});
@@ -342,17 +353,9 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 				}
 			});
 
-			LightningStorm::CloudsPresent->remove_if([pInvalid](AnimClass* pAnim) {
-				return pAnim == (AnimClass*)pInvalid;
-			});
-
-			LightningStorm::CloudsManifesting->remove_if([pInvalid](AnimClass* pAnim) {
-				return pAnim == (AnimClass*)pInvalid;
-			});
-
-			LightningStorm::BoltsPresent->remove_if([pInvalid](AnimClass* pAnim) {
-				return pAnim == (AnimClass*)pInvalid;
-			});
+			LightningStorm::CloudsPresent->Remove((AnimClass*)pInvalid);
+			LightningStorm::CloudsManifesting->Remove((AnimClass*)pInvalid);;
+			LightningStorm::BoltsPresent->Remove((AnimClass*)pInvalid);
 		}
 	}
 

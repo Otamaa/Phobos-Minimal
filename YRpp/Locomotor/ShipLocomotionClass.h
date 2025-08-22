@@ -48,14 +48,14 @@ protected:
 
 public:
 
-	DWORD PreviousRamp;
-	DWORD CurrentRamp;
+	int CurrentRamp;
+	int PreviousRamp;
 	RateTimer SlopeTimer;
 	CoordStruct Destination;
 	CoordStruct HeadToCoord;
 	int SpeedAccum;
 	double movementspeed_50;
-	DWORD TrackNumber;
+	int TrackNumber;
 	int TrackIndex;
 	bool IsOnShortTrack;
 	BYTE IsTurretLockedDown;

@@ -842,7 +842,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 //	}
 //}
 
-void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
+void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 {
 	if (!pTarget)
 		return;
@@ -901,7 +901,15 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 					pExt->Shield->SetHP((int)(shieldType->Strength * oldRatio));
 
 					if (pExt->Shield->GetHP() == 0)
-						pExt->Shield->SetRespawn(shieldType->Respawn_Rate, shieldType->Respawn, shieldType->Respawn_Rate, this->Shield_Respawn_RestartTimer);
+						pExt->Shield->SetRespawn(
+							shieldType->Respawn_Rate,
+							shieldType->Respawn,
+							shieldType->Respawn_Rate,
+							shieldType->Respawn_RestartInCombat,
+							-1,
+							true,
+							shieldType->Respawn_Anim.AsVector()
+						);
 				}
 			}
 		}
@@ -918,18 +926,31 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget) const
 		if (this->Shield_Break && pExt->Shield->IsActive() && this->Shield_Break_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 			pExt->Shield->BreakShield(this->Shield_BreakAnim, this->Shield_BreakWeapon);
 
-		if (this->Shield_Respawn_Duration > 0 && this->Shield_Respawn_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
-		{
-				double amount = this->Shield_Respawn_Amount.Get(pExt->Shield->GetType()->Respawn);
-				pExt->Shield->SetRespawn(this->Shield_Respawn_Duration, amount, this->Shield_Respawn_Rate, this->Shield_Respawn_RestartTimer);
+		if ((this->Shield_Respawn_Duration > 0 || this->Shield_Respawn_RestartTimer)
+			&& this->Shield_Respawn_Types.Eligible(this->Shield_AffectTypes, pCurrentType)) {
+				pExt->Shield->SetRespawn(
+					this->Shield_Respawn_Duration,
+					this->Shield_Respawn_Amount.Get(pCurrentType->Respawn),
+					this->Shield_Respawn_Rate,
+					this->Shield_Respawn_RestartInCombat.Get(pCurrentType->Respawn_RestartInCombat),
+					this->Shield_Respawn_RestartInCombatDelay,
+					this->Shield_Respawn_RestartTimer,
+					this->Shield_Respawn_Anim.AsVector(),
+					this->Shield_Respawn_Weapon
+				);
 		}
 
-		if (this->Shield_SelfHealing_Duration > 0 && this->Shield_SelfHealing_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
+		if ((this->Shield_SelfHealing_Duration > 0 || this->Shield_SelfHealing_RestartTimer)
+		 	&& this->Shield_SelfHealing_Types.Eligible(this->Shield_AffectTypes, pCurrentType))
 		{
-			double amount = this->Shield_SelfHealing_Amount.Get(pCurrentType->SelfHealing);
-			pExt->Shield->SetSelfHealing(this->Shield_SelfHealing_Duration, amount, this->Shield_SelfHealing_Rate,
-				this->Shield_SelfHealing_RestartInCombat.Get(pExt->Shield->GetType()->SelfHealing_RestartInCombat),
-				this->Shield_SelfHealing_RestartInCombatDelay, this->Shield_SelfHealing_RestartTimer);
+			pExt->Shield->SetSelfHealing(
+				this->Shield_SelfHealing_Duration,
+				this->Shield_SelfHealing_Amount.Get(pCurrentType->SelfHealing),
+				this->Shield_SelfHealing_Rate,
+				this->Shield_SelfHealing_RestartInCombat.Get(pCurrentType->SelfHealing_RestartInCombat),
+				this->Shield_SelfHealing_RestartInCombatDelay,
+				this->Shield_SelfHealing_RestartTimer
+			);
 		}
 	}
 }

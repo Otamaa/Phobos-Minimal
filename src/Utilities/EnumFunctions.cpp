@@ -35,6 +35,17 @@ std::array<const char*, 6u>  EnumFunctions::ExpireWeaponCondition_to_strings {
  }
 };
 
+std::array<const char* const, 6u> EnumFunctions::DisplayShowType_ToStrings {
+{
+	{ "none" } ,
+	{ "cursorhover" } ,
+	{ "selected" } ,
+	{ "idle" } ,
+	{ "select" } ,
+	{ "all" } ,
+}
+};
+
 std::array<const char* const, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
  {
 	{ "TargetNotDamageable" } ,

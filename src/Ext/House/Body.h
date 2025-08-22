@@ -8,6 +8,7 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/VectorHelper.h>
+#include <Utilities/VectorSet.h>
 
 #include <New/Entity/NewTiberiumStorageClass.h>
 #include <New/Entity/TrackerClass.h>
@@ -144,11 +145,11 @@ public:
 
 	std::bitset<MaxHouseCount> StolenTech {};
 	IndexBitfield<HouseClass*> RadarPersist {};
-	std::set<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
-	std::set<BuildingClass*> Academies {};
-	std::set<BuildingClass*> TunnelsBuildings {};
-	std::set<TechnoTypeClass*> Reversed {};
-	std::set<TechnoClass*> OwnedCountedHarvesters {};
+	VectorSet<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
+	VectorSet<BuildingClass*> Academies {};
+	VectorSet<BuildingClass*> TunnelsBuildings {};
+	VectorSet<TechnoTypeClass*> Reversed {};
+	VectorSet<TechnoClass*> OwnedCountedHarvesters {};
 
 	bool Is_NavalYardSpied { false };
 	bool Is_AirfieldSpied { false };
@@ -173,7 +174,7 @@ public:
 
 	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
 	CDTimerClass CombatAlertTimer {};
-	std::set<BuildingClass*> RestrictedFactoryPlants {};
+	VectorSet<BuildingClass*> RestrictedFactoryPlants {};
 	CDTimerClass AISellAllDelayTimer {};
 
 	HelperedVector<UnitClass*> OwnedDeployingUnits {};
@@ -195,9 +196,28 @@ public:
 	int BattlePoints {};
 
 	struct ProductionData {
-		std::vector<int> CreationFrames;
-		std::vector<int> Values;
-		std::vector<int> BestChoices;
+		std::vector<int> CreationFrames {};
+		std::vector<int> Values {};
+		std::vector<int> BestChoices {};
+
+		bool Load(PhobosStreamReader& stm, bool registerForChange) {
+			return this->Serialize(stm);
+		}
+
+		bool Save(PhobosStreamWriter& stm) const {
+			return const_cast<ProductionData*>(this)->Serialize(stm);
+		}
+
+	private:
+		template <typename T>
+		bool Serialize(T& stm) {
+			return stm
+				.Process(this->CreationFrames)
+				.Process(this->Values)
+				.Process(this->BestChoices)
+				.Success();
+		}
+
 	}; std::array<ProductionData , 3u> Productions {};
 
 	std::vector<int> BestChoicesNaval {};
@@ -416,7 +436,7 @@ public:
 	static HouseClass* Neutral;
 	static SideClass* CivilianSide;
 
-	static std::unordered_map<HouseClass*, std::set<TeamClass*>> HousesTeams;
+	static PhobosMap<HouseClass*, VectorSet<TeamClass*>> HousesTeams;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

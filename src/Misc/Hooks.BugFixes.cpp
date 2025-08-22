@@ -2922,12 +2922,12 @@ ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6
 
 DEFINE_JUMP(LJMP, 0x6FBC0B, 0x6FBC38) // TechnoClass::UpdateCloak
 
-ASMJIT_PATCH(0x457DEB, BuildingClass_ClearOccupants_Redraw, 0xA)
-{
-	GET(BuildingClass*, pThis, ESI);
-	pThis->Mark(MarkType::Change);
-	return 0;
-}
+//ASMJIT_PATCH(0x457DEB, BuildingClass_ClearOccupants_Redraw, 0xA)
+//{
+//	GET(BuildingClass*, pThis, ESI);
+//	pThis->Mark(MarkType::Change);
+//	return 0;
+//}
 
 #pragma region AStarBuffer
 

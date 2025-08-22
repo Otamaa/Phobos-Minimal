@@ -7,6 +7,7 @@
 #include <Utilities/TemplateDef.h>
 
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
+#include <New/AnonymousType/BlockTypeClass.h>
 
 #include <New/Type/ShieldTypeClass.h>
 #include <New/Type/ArmorTypeClass.h>
@@ -126,6 +127,8 @@ public:
 	Valueable<int> Shield_Respawn_Duration { 0 };
 	Nullable<double> Shield_Respawn_Amount { 0.0 };
 	Valueable<int> Shield_Respawn_Rate { -1 };
+	Nullable<bool> Shield_Respawn_RestartInCombat { };
+	Valueable<int> Shield_Respawn_RestartInCombatDelay { -1 };
 
 private:
 	Valueable<double> Shield_Respawn_Rate_InMinutes { -1.0 };
@@ -134,6 +137,8 @@ private:
 public:
 
 	Valueable<bool> Shield_Respawn_RestartTimer { false };
+	ValueableVector<AnimTypeClass*> Shield_Respawn_Anim { };
+	Valueable<WeaponTypeClass*> Shield_Respawn_Weapon { };
 	Valueable<int> Shield_SelfHealing_Duration { 0 };
 	Nullable<double> Shield_SelfHealing_Amount { };
 	Valueable<int> Shield_SelfHealing_Rate { -1 };
@@ -464,6 +469,14 @@ public:
 	Valueable<bool> UnlimboDetonate_KeepTarget { true };
 	Valueable<bool> UnlimboDetonate_KeepSelected { true };
 
+	std::unique_ptr<BlockTypeClass> BlockType {};
+	Valueable<bool> Block_BasedOnWarhead { false };
+	Valueable<bool> Block_AllowOverride { true };
+	Valueable<bool> Block_IgnoreChanceModifier { true };
+	Valueable<double> Block_ChanceMultiplier { 1.0 };
+	Valueable<double> Block_ExtraChance { 0.0 };
+	Valueable<bool> ImmuneToBlock { false };
+
 	bool IsCellSpreadWH { false };
 	bool IsFakeEngineer { false };
 #pragma endregion
@@ -489,7 +502,7 @@ private:
 	void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, const CoordStruct& coords, int damage, TechnoClass* pOwner = nullptr, BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
 
 	void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
-	void ApplyShieldModifiers(TechnoClass* pTarget) const;
+	void ApplyShieldModifiers(TechnoClass* pTarget);
 
 	void ApplyGattlingStage(TechnoClass* pTarget, int Stage) const;
 	void ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp) const;

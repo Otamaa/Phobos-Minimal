@@ -2,7 +2,7 @@
 
 PhobosSwizzle PhobosSwizzle::Instance;
 
-HRESULT PhobosSwizzle::Swizzle(void** p)
+HRESULT PhobosSwizzle::RegisterForFixup(void** p)
 {
 	if (p)
 	{
@@ -17,7 +17,7 @@ HRESULT PhobosSwizzle::Swizzle(void** p)
 	return E_POINTER;
 }
 
-HRESULT PhobosSwizzle::Here_I_Am(void* was, void* is, bool log)
+HRESULT PhobosSwizzle::DeclareMapping(void* was, void* is, bool log)
 {
 	auto exist = this->Changes.find(was);
 
@@ -39,7 +39,7 @@ HRESULT PhobosSwizzle::Here_I_Am(void* was, void* is, bool log)
 	return S_OK;
 }
 
-void PhobosSwizzle::ConvertNodes() const
+void PhobosSwizzle::ApplyFixups() const
 {
 	Debug::LogInfo("PhobosSwizze :: Converting {} nodes.", this->Nodes.size());
 
@@ -64,8 +64,7 @@ void PhobosSwizzle::ConvertNodes() const
 			}
 		}
 
-		if (auto p = it->second)
-		{
+		if (auto p = it->second) {
 			*p = lastRes;
 		}
 	}

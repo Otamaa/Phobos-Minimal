@@ -157,6 +157,7 @@
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\YRPatches\Main.cpp" />
+    <ClCompile Include="src\New\AnonymousType\BlockTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />
     <ClCompile Include="src\New\Entity\BannerClass.cpp" />
@@ -746,6 +747,7 @@
     <ClInclude Include="src\Lib\Zydis\Status.h" />
     <ClInclude Include="src\Lib\Zydis\Utils.h" />
     <ClInclude Include="src\Lib\Zydis\Zydis.h" />
+    <ClInclude Include="src\New\AnonymousType\BlockTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\TiberiumEaterTypeClass.h" />
     <ClInclude Include="src\New\Entity\BannerClass.h" />

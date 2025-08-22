@@ -59,6 +59,28 @@ void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 	//}
 }
 
+void AnimExtData::CreateRandomAnim(Iterator<AnimTypeClass*> AnimList, CoordStruct coords, TechnoClass* pTechno, HouseClass* pHouse, bool ownedObject) {
+	if (AnimList.empty() || !pTechno)
+		return;
+
+	auto const pAnimType = AnimList[AnimList.size() > 1 ? ScenarioClass::Instance->Random.RandomRanged(0, AnimList.size() - 1) : 0];
+
+	if (!pAnimType)
+		return;
+
+	auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
+
+	AnimExtData::SetAnimOwnerHouseKind(pAnim,
+		pHouse ? pHouse : pTechno->Owner,
+		nullptr,
+		pTechno,
+		false, false
+	);
+
+	if (ownedObject)
+		pAnim->SetOwnerObject(pTechno);
+}
+
 bool AnimExtData::OnMiddle_SpawnSmudge(AnimClass* pThis, CellClass* pCell, Point2D nOffs)
 {
 	const auto pType = pThis->Type;
