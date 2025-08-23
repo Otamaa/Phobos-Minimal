@@ -1870,13 +1870,13 @@ void NOINLINE Valueable<T>::Read(INI_EX& parser, const char* pSection, const cha
 template <typename T>
 bool Valueable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange);
+	return Stm.Process(this->Value, RegisterForChange);
 }
 
 template <typename T>
 bool Valueable<T>::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->Value);
+	return Stm.Process(this->Value);
 }
 
 // ValueableIdx
@@ -1908,10 +1908,10 @@ template <typename T>
 bool Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->Reset();
-	auto ret = Savegame::ReadPhobosStream(Stm, this->HasValue);
+	bool ret = Stm.Process(this->HasValue, RegisterForChange);
 	if (ret && this->HasValue)
 	{
-		ret = Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange);
+		ret = Stm.Process(this->Value, RegisterForChange);
 	}
 	return ret;
 }
@@ -1919,10 +1919,10 @@ bool Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 template <typename T>
 bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
 {
-	auto ret = Savegame::WritePhobosStream(Stm, this->HasValue);
+	bool ret = Stm.Process(this->HasValue);
 	if (this->HasValue)
 	{
-		ret = Savegame::WritePhobosStream(Stm, this->Value);
+		ret = Stm.Process(this->Value);
 	}
 	return ret;
 }
@@ -2011,17 +2011,21 @@ void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, co
 template <typename T>
 bool Promotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->Rookie, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->Veteran, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->Elite, RegisterForChange);
+	return Stm
+		.Process(this->Rookie, RegisterForChange)
+		.Process(this->Veteran, RegisterForChange)
+		.Process(this->Elite, RegisterForChange)
+		;
 }
 
 template <typename T>
 bool Promotable<T>::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->Rookie)
-		&& Savegame::WritePhobosStream(Stm, this->Veteran)
-		&& Savegame::WritePhobosStream(Stm, this->Elite);
+	return Stm
+		.Process(this->Rookie)
+		.Process(this->Veteran)
+		.Process(this->Elite)
+		;
 }
 
 // NullablePromotable
@@ -2063,17 +2067,19 @@ void NOINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* const pSec
 template <typename T>
 bool NullablePromotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->Rookie, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->Veteran, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->Elite, RegisterForChange);
+	return Stm
+		.Process(this->Rookie, RegisterForChange)
+		.Process(this->Veteran, RegisterForChange)
+		.Process(this->Elite, RegisterForChange);
 }
 
 template <typename T>
 bool NullablePromotable<T>::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->Rookie)
-		&& Savegame::WritePhobosStream(Stm, this->Veteran)
-		&& Savegame::WritePhobosStream(Stm, this->Elite);
+	return Stm
+		.Process(this->Rookie)
+		.Process(this->Veteran)
+		.Process(this->Elite);
 }
 
 // ValueableVector
@@ -2105,93 +2111,14 @@ void NOINLINE ValueableVector<std::string>::Read(INI_EX& parser, const char* pSe
 template <typename T>
 bool ValueableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	size_t size = 0;
-	if (Savegame::ReadPhobosStream(Stm, size, RegisterForChange))
-	{
-
-		if (!size)
-			return true;
-
-		this->clear();
-		this->reserve(size);
-
-		for (size_t i = 0; i < size; ++i)
-		{
-			value_type buffer = value_type();
-			Savegame::ReadPhobosStream(Stm, buffer, false);
-			this->push_back(std::move(buffer));
-
-			if (RegisterForChange)
-			{
-				Swizzle swizzle(this->back());
-			}
-		}
-		return true;
-	}
-	return false;
+	return Stm.Process(this->AsVector());
 }
 
 template <typename T>
 bool ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
 {
-	auto size = this->size();
-	if (Savegame::WritePhobosStream(Stm, size))
-	{
-		for (auto const& item : *this)
-		{
-			if (!Savegame::WritePhobosStream(Stm, item))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
+	return Stm.Process(this->AsVector());
 }
-
-template <>
-OPTIONALINLINE bool ValueableVector<bool>::Load(PhobosStreamReader& stm, bool registerForChange)
-{
-	size_t size = 0;
-	if (Savegame::ReadPhobosStream(stm, size, registerForChange))
-	{
-		this->clear();
-		this->reserve(size);
-
-		for (size_t i = 0; i < size; ++i)
-		{
-			bool value;
-
-			if (!Savegame::ReadPhobosStream(stm, value, false))
-				return false;
-
-			this->emplace_back(value);
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-template <>
-OPTIONALINLINE bool ValueableVector<bool>::Save(PhobosStreamWriter& stm) const
-{
-	auto size = this->size();
-	if (Savegame::WritePhobosStream(stm, size))
-	{
-		for (bool item : *this)
-		{
-			if (!Savegame::WritePhobosStream(stm, item))
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
 
 // NullableVector
 template <typename T>
@@ -2213,7 +2140,7 @@ template <typename T>
 bool NullableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->clear();
-	if (Savegame::ReadPhobosStream(Stm, this->hasValue, RegisterForChange))
+	if (Stm.Process(this->hasValue, RegisterForChange))
 	{
 		return !this->hasValue || ValueableVector<T>::Load(Stm, RegisterForChange);
 	}
@@ -2223,10 +2150,10 @@ bool NullableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 template <typename T>
 bool NullableVector<T>::Save(PhobosStreamWriter& Stm) const
 {
-	if (Savegame::WritePhobosStream(Stm, this->hasValue))
-	{
+	if (Stm.Process(this->hasValue)) {
 		return !this->hasValue || ValueableVector<T>::Save(Stm);
 	}
+
 	return false;
 }
 
@@ -2287,17 +2214,19 @@ void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, co
 template <typename T>
 bool Damageable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->BaseValue, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->ConditionYellow, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->ConditionRed, RegisterForChange);
+	return Stm
+		.Process(this->BaseValue, RegisterForChange)
+		.Process(this->ConditionYellow, RegisterForChange)
+		.Process(this->ConditionRed, RegisterForChange);
 }
 
 template <typename T>
 bool Damageable<T>::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->BaseValue)
-		&& Savegame::WritePhobosStream(Stm, this->ConditionYellow)
-		&& Savegame::WritePhobosStream(Stm, this->ConditionRed);
+	return Stm
+		.Process(this->BaseValue)
+		.Process(this->ConditionYellow)
+		.Process(this->ConditionRed);
 }
 
 bool NOINLINE HealthOnFireData::Read(INI_EX& parser, const char* pSection, const char* pKey)
@@ -2334,16 +2263,18 @@ bool NOINLINE HealthOnFireData::Read(INI_EX& parser, const char* pSection, const
 
 bool HealthOnFireData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->RedOnFire, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->GreenOnFire, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->YellowOnFire, RegisterForChange);
+	return Stm
+		.Process(this->RedOnFire, RegisterForChange)
+		.Process(this->GreenOnFire, RegisterForChange)
+		.Process(this->YellowOnFire, RegisterForChange);
 }
 
 bool HealthOnFireData::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->RedOnFire)
-		&& Savegame::WritePhobosStream(Stm, this->GreenOnFire)
-		&& Savegame::WritePhobosStream(Stm, this->YellowOnFire);
+	return Stm
+		.Process(this->RedOnFire)
+		.Process(this->GreenOnFire)
+		.Process(this->YellowOnFire);
 }
 
 // DamageableVector
@@ -2378,19 +2309,21 @@ void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSecti
 template <typename T>
 bool DamageableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->BaseValue, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->ConditionYellow, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->ConditionRed, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->MaxValue, RegisterForChange);
+	return Stm
+		.Process(this->BaseValue, RegisterForChange)
+		.Process(this->ConditionYellow, RegisterForChange)
+		.Process(this->ConditionRed, RegisterForChange)
+		.Process(this->MaxValue, RegisterForChange);
 }
 
 template <typename T>
 bool DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->BaseValue)
-		&& Savegame::WritePhobosStream(Stm, this->ConditionYellow)
-		&& Savegame::WritePhobosStream(Stm, this->ConditionRed)
-		&& Savegame::WritePhobosStream(Stm, this->MaxValue);
+	return Stm
+		.Process(this->BaseValue)
+		.Process(this->ConditionYellow)
+		.Process(this->ConditionRed)
+		.Process(this->MaxValue);
 }
 
 /*
@@ -2536,19 +2469,21 @@ bool PromotableVector<T>::Save(PhobosStreamWriter& stm) const
 template <typename T>
 bool TimedWarheadValue<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange) &&
-		Savegame::ReadPhobosStream(Stm, this->Timer, RegisterForChange) &&
-		Savegame::ReadPhobosStream(Stm, this->ApplyToHouses, RegisterForChange) &&
-		Savegame::ReadPhobosStream(Stm, this->SourceWarhead, RegisterForChange);
+	return Stm
+		.Process(this->Value, RegisterForChange)
+		.Process(this->Timer, RegisterForChange)
+		.Process(this->ApplyToHouses, RegisterForChange)
+		.Process(this->SourceWarhead, RegisterForChange);
 }
 
 template <typename T>
 bool TimedWarheadValue<T>::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->Value) &&
-		Savegame::WritePhobosStream(Stm, this->Timer) &&
-		Savegame::WritePhobosStream(Stm, this->ApplyToHouses) &&
-		Savegame::WritePhobosStream(Stm, this->SourceWarhead);
+	return Stm
+		.Process(this->Value)
+		.Process(this->Timer)
+		.Process(this->ApplyToHouses)
+		.Process(this->SourceWarhead);
 }
 
 // MultiflagValueableVector
@@ -2646,15 +2581,17 @@ bool NOINLINE Animatable<TValue>::KeyframeDataEntry::Read(INI_EX& parser, const 
 template <typename TValue>
 bool Animatable<TValue>::KeyframeDataEntry::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->Percentage, RegisterForChange)
-		&& Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange);
+	return Stm
+		.Process(this->Percentage, RegisterForChange)
+		.Process(this->Value, RegisterForChange);
 }
 
 template <typename TValue>
 bool Animatable<TValue>::KeyframeDataEntry::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->Percentage)
-		&& Savegame::WritePhobosStream(Stm, this->Value);
+	return Stm
+		.Process(this->Percentage)
+		.Process(this->Value);
 }
 
 template <typename TValue>
@@ -2749,11 +2686,11 @@ void NOINLINE Animatable<TValue>::Read(INI_EX& parser, const char* const pSectio
 template <typename TValue>
 bool Animatable<TValue>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->KeyframeData, RegisterForChange);
+	return Stm.Process(this->KeyframeData, RegisterForChange);
 }
 
 template <typename TValue>
 bool Animatable<TValue>::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->KeyframeData);
+	return Stm.Process(this->KeyframeData);
 }

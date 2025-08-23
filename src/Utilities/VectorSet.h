@@ -187,42 +187,11 @@ public:
 	}
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange) {
-		this->clear();
-
-		size_t size = 0;
-		auto ret = Stm.Load(size);
-
-		if (ret && size) {
-			//Debug::LogInfo("Loading VectorSet of {} , before loading the changes !" , size);
-
-			data_.resize(size); // no default-init
-
-			for (size_t i = 0; i < size; ++i) {
-				//Debug::LogInfo("Loading VectorSet items at {} - value before {} !" , i , (unsigned)data_[i]);
-
-				if (!Savegame::ReadPhobosStream(Stm, data_[i], RegisterForChange)) {
-					return false;
-				}
-
-				//Debug::LogInfo("Loading VectorSet items at {} - value after {} !", i, (unsigned)data_[i]);
-			}
-		}
-
-		return ret;
+		return Stm.Process(this->data_, RegisterForChange);
 	}
 
 	bool save(PhobosStreamWriter& Stm) const {
-		Stm.Save(this->data_.size());
-		//Debug::LogInfo("Saving VectorSet of {} !", this->data_.size());
-
-		for (size_t i = 0; i < this->data_.size(); ++i) {
-			//Debug::LogInfo("Saving VectorSet items at {} - value before {} !", i, (unsigned)data_[i]);
-			if (!Savegame::WritePhobosStream(Stm, this->data_[i])) {
-				return false;
-			}
-		}
-
-		return true;
+		return Stm.Process(this->data_);
 	}
 
 private:

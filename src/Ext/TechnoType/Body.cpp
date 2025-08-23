@@ -2922,7 +2922,6 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->VoiceCantDeploy)
 		.Process(this->DigitalDisplay_Disable)
 		.Process(this->DigitalDisplayTypes)
-		.Process(this->AmmoPip)
 		.Process(this->EmptyAmmoPip)
 		.Process(this->PipWrapAmmoPip)
 		.Process(this->AmmoPipSize)
@@ -3229,6 +3228,12 @@ void TechnoTypeExtData::Serialize(T& Stm)
 
 		.Process(this->BlockType)
 		.Process(this->CanBlock)
+
+		.Process(this->ForceWeapon_Capture)
+		.Process(this->MultiWeapon)
+		.Process(this->MultiWeapon_IsSecondary)
+		.Process(this->MultiWeapon_SelectCount)
+		.Process(this->ReadMultiWeapon)
 		;
 }
 

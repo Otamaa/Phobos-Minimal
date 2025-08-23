@@ -8,6 +8,7 @@
 #include <Utilities/TemplateDefB.h>
 
 #include <Utilities/Debug.h>
+#include <Utilities/VectorHelper.h>
 
 #include <ScriptTypeClass.h>
 

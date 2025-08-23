@@ -7601,8 +7601,6 @@ DEFINE_FUNCTION_JUMP(CALL, 0x53D326, FakeIonBlastClass::_AI)
 //int FakeIonBlastClass::IonBlastPitch {};
 #endif
 
-#include <Ext/Tactical/Body.h>
-
 static void __fastcall IonBlastDrawAll()
 {
 	VeinholeMonsterClass::DrawAll();

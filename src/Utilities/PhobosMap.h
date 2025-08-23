@@ -137,37 +137,17 @@ public:
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		this->clear();
-
-		size_t size = 0;
-		auto ret = Stm.Load(size);
-
-		if (ret && size)
-		{
-			this->values.resize(size);
-			for (size_t i = 0; i < size; ++i)
-			{
-				if (!Savegame::ReadPhobosStream(Stm, this->values[i].first, RegisterForChange)
-					|| !Savegame::ReadPhobosStream(Stm, this->values[i].second, RegisterForChange))
-				{
-					return false;
-				}
-			}
-		}
-
-		return ret;
+		return
+			Stm
+			.Process(this->values, RegisterForChange)
+			;
 	}
 	bool save(PhobosStreamWriter& Stm) const
 	{
-		Stm.Save(this->values.size());
-
-		for (const auto& [first, second] : this->values)
-		{
-			Savegame::WritePhobosStream(Stm, first);
-			Savegame::WritePhobosStream(Stm, second);
-		}
-
-		return true;
+		return
+			Stm
+			.Process(this->values)
+			;
 	}
 
 	COMPILETIMEEVAL [[nodiscard]] auto begin() noexcept

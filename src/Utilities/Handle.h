@@ -92,16 +92,17 @@ struct Handle
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		return
-			Savegame::ReadPhobosStream(Stm, this->destroy, false)
-			&& Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange)
+		return Stm
+			.Process(this->destroy, false)
+			.Process(this->Value, RegisterForChange)
 			;
 
 	}
 	bool save(PhobosStreamWriter& Stm) const
 	{
-		return Savegame::WritePhobosStream(Stm, this->destroy)
-			&& Savegame::WritePhobosStream(Stm, this->Value)
+		return Stm
+			.Process(this->destroy)
+			.Process(this->Value)
 			;
 	}
 

@@ -72,7 +72,7 @@ struct OptionalStruct
 		{
 			if (Stm.Load(this->HasValue))
 			{
-				if (!this->HasValue || Savegame::ReadPhobosStream(Stm, this->Value, RegisterForChange))
+				if (!this->HasValue || Stm.Process(this->Value, RegisterForChange))
 				{
 					return true;
 				}
@@ -90,7 +90,7 @@ struct OptionalStruct
 			Stm.Save(this->HasValue);
 			if (this->HasValue)
 			{
-				Savegame::WritePhobosStream(Stm, this->Value);
+				Stm.Process(this->Value);
 			}
 			return true;
 		}

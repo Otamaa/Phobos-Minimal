@@ -172,6 +172,30 @@ DWORD Phobos::Otamaa::PhobosBaseAddress { false };
 
 #pragma endregion
 
+bool Phobos::SaveGlobals(PhobosStreamWriter& stm)
+{
+	return stm
+		.Process(Phobos::Config::ArtImageSwap)
+		.Process(Phobos::Config::ShowTechnoNamesIsActive)
+		.Process(Phobos::Misc::CustomGS)
+		.Process(Phobos::Config::ApplyShadeCountFix)
+		.Process(Phobos::Otamaa::CompatibilityMode)
+		.Process(Phobos::Config::UnitPowerDrain)
+		.Success();
+}
+
+bool Phobos::LoadGlobals(PhobosStreamReader& stm)
+{
+	return stm
+		.Process(Phobos::Config::ArtImageSwap)
+		.Process(Phobos::Config::ShowTechnoNamesIsActive)
+		.Process(Phobos::Misc::CustomGS)
+		.Process(Phobos::Config::ApplyShadeCountFix)
+		.Process(Phobos::Otamaa::CompatibilityMode)
+		.Process(Phobos::Config::UnitPowerDrain)
+		.Success();
+}
+
 struct GraphicsRuntimeAPI
 {
 	enum class Type {

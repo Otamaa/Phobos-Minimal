@@ -161,7 +161,7 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 					pTypeExt->ShieldType->Respawn_RestartInCombat,
 					-1,
 					true,
-					pTypeExt->ShieldType->Respawn_Anim.AsVector()
+					&pTypeExt->ShieldType->Respawn_Anim.AsVector()
 				);
 			}
 		}

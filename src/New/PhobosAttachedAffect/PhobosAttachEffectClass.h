@@ -3,6 +3,7 @@
 #include <Utilities/SavegameDef.h>
 #include <Utilities/Constructs.h>
 #include <Utilities/MemoryPoolUniquePointer.h>
+#include <Utilities/VectorHelper.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectTypeClass.h>
 

@@ -1239,14 +1239,6 @@ void RulesExtData::Serialize(T& Stm)
 	Stm
 		.Process(this->Initialized)
 
-		.Process(Phobos::Config::ArtImageSwap)
-
-		.Process(Phobos::Config::ShowTechnoNamesIsActive)
-		.Process(Phobos::Misc::CustomGS)
-		.Process(Phobos::Config::ApplyShadeCountFix)
-		.Process(Phobos::Otamaa::CompatibilityMode)
-		.Process(Phobos::Config::UnitPowerDrain)
-
 		.Process(this->Pips_Shield)
 		.Process(this->Pips_Shield_Buildings)
 
@@ -1548,7 +1540,11 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->SubterraneanSpeed)
 		.Process(this->InfantrySpeedData)
 		.Process(this->DamagedSpeed)
+		.Process(this->DefaultInfantrySelectBox)
+		.Process(this->DefaultUnitSelectBox)
 		.Process(this->ColorAddUse8BitRGB)
+		.Process(this->IronCurtain_ExtraTintIntensity)
+		.Process(this->ForceShield_ExtraTintIntensity)
 		.Process(this->VoxelLightSource)
 		.Process(this->VoxelShadowLightSource)
 		.Process(this->UseFixedVoxelLighting)
@@ -1567,7 +1563,6 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->JumpjetCellLightLevelMultiplier)
 		.Process(this->JumpjetCellLightApplyBridgeHeight)
 
-		.Process(this->UseFixedVoxelLighting)
 		.Process(this->AINormalTargetingDelay)
 		.Process(this->PlayerNormalTargetingDelay)
 		.Process(this->AIGuardAreaTargetingDelay)
@@ -1587,7 +1582,6 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ChronoSphereDelay)
 		.Process(this->EnablePowerSurplus)
 		.Process(this->ShakeScreenUseTSCalculation)
-		.Process(this->SubterraneanSpeed)
 		.Process(this->UnitIdleRotateTurret)
 		.Process(this->UnitIdlePointToMouse)
 		.Process(this->UnitIdleActionRestartMin)
@@ -1733,16 +1727,8 @@ ASMJIT_PATCH(0x678841, RulesClass_Load_Suffix, 0x7)
 ASMJIT_PATCH(0x675205, RulesClass_Save_Suffix, 0x8)
 {
 	auto buffer = RulesExtData::Instance();
-	/* 7 extra boolean that added to the save
-		.Process(Phobos::Config::ArtImageSwap)
-		.Process(Phobos::Config::ShowTechnoNamesIsActive)
-		.Process(Phobos::Misc::CustomGS)
-		.Process(Phobos::Config::ApplyShadeCountFix)
-		.Process(Phobos::Otamaa::CompatibilityMode)
-		.Process(Phobos::Config::UnitPoweDrain)
-	*/
 	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
-	PhobosByteStream saver((sizeof(RulesExtData) - 4u) + (6 * (sizeof(bool))));
+	PhobosByteStream saver((sizeof(RulesExtData) - 4u));
 	PhobosStreamWriter writer(saver);
 
 	writer.Save(RulesExtData::Canary);

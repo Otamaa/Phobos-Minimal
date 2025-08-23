@@ -299,6 +299,7 @@ void DigitalDisplayTypeClass::Serialize(T& Stm)
 		.Process(this->InfoIndex)
 		.Process(this->ValueScaleDivisor)
 		.Process(this->ValueAsTimer)
+		.Process(this->ShowType)
 		;
 }
 

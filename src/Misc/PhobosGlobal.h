@@ -3,6 +3,7 @@
 #include <Utilities/SavegameDef.h>
 #include <Utilities/Constructs.h>
 #include <Utilities/PhobosMap.h>
+#include <Utilities/VectorHelper.h>
 
 struct ColorsData
 {

@@ -908,7 +908,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 							shieldType->Respawn_RestartInCombat,
 							-1,
 							true,
-							shieldType->Respawn_Anim.AsVector()
+							&shieldType->Respawn_Anim.AsVector()
 						);
 				}
 			}
@@ -935,7 +935,7 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 					this->Shield_Respawn_RestartInCombat.Get(pCurrentType->Respawn_RestartInCombat),
 					this->Shield_Respawn_RestartInCombatDelay,
 					this->Shield_Respawn_RestartTimer,
-					this->Shield_Respawn_Anim.AsVector(),
+					&this->Shield_Respawn_Anim.AsVector(),
 					this->Shield_Respawn_Weapon
 				);
 		}

@@ -50,6 +50,8 @@ enum class ExceptionHandlerMode {
 	NoRemove = 2
 };
 
+class PhobosStreamWriter;
+class PhobosStreamReader;
 struct Phobos final
 {
 	static unsigned GetVersionNumber();
@@ -185,7 +187,7 @@ struct Phobos final
 		static bool MessageApplyHoverState;
 		static int MessageDisplayInCenter_LabelsCount;
 		static int MessageDisplayInCenter_RecordsCount;
-	
+
 		static bool ShowBuildingStatistics;
 
 		static bool ApplyShadeCountFi;
@@ -256,4 +258,7 @@ struct Phobos final
 		static OPTIONALINLINE COMPILETIMEEVAL ColorStruct InterceptedPositiveDamageColor = ColorStruct { 255, 128, 128 };
 		static OPTIONALINLINE COMPILETIMEEVAL ColorStruct InterceptedNegativeDamageColor = ColorStruct { 128, 255, 128 };
 	};
+
+	static bool SaveGlobals(PhobosStreamWriter& stm);
+	static bool LoadGlobals(PhobosStreamReader& stm);
 };

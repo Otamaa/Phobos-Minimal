@@ -5,6 +5,7 @@
 #include <Utilities/GameUniquePointers.h>
 #include <AnimClass.h>
 #include <Utilities/Handle.h>
+#include <Utilities/VectorHelper.h>
 
 struct AresAEData;
 class WarheadTypeClass;

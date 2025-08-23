@@ -89,14 +89,12 @@ public:
 
 	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		Stm.Load(this->value);
-		return true;
+		return Stm.Process(this->value, RegisterForChange);
 	}
 
 	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
 	{
-		Stm.Save(this->value);
-		return true;
+		return Stm.Process(this->value);
 	}
 
 private:

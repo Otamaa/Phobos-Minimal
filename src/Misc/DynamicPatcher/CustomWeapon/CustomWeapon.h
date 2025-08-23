@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
+#include <Utilities/VectorHelper.h>
 #include <queue>
 #include "SimulateBurst.h"
 #include "DelayFireWeapon.h"

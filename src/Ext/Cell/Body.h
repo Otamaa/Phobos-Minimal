@@ -4,6 +4,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/Container.h>
 #include <Utilities/SavegameDef.h>
+#include <Utilities/VectorHelper.h>
 
 struct RadLevel
 {

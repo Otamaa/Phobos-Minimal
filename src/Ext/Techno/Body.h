@@ -868,7 +868,6 @@ public:
 		return sizeof(TechnoExtData) -
 			(4u //AttachedToObject
 			+ 4u //DamageNumberOffset
-			- 4u //inheritance
 			 );
 	}
 

@@ -2,6 +2,7 @@
 
 #include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDefB.h>
+#include <Utilities/VectorHelper.h>
 
 #include <ParticleSystemClass.h>
 

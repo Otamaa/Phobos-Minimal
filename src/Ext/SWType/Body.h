@@ -39,28 +39,24 @@ public:
 	Valueable<AircraftTypeClass*> Aircraft;
 	ValueableVector<TechnoTypeClass*> Types;
 	ValueableVector<int> Num;
-};
 
-template <>
-struct Savegame::PhobosStreamObject<ParadropData>
-{
-	bool ReadFromStream(PhobosStreamReader& Stm, ParadropData& Value, bool RegisterForChange) const
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		return Stm
-			.Process(Value.Aircraft, RegisterForChange)
-			.Process(Value.Types, RegisterForChange)
-			.Process(Value.Num, RegisterForChange)
+			.Process(Aircraft, RegisterForChange)
+			.Process(Types, RegisterForChange)
+			.Process(Num, RegisterForChange)
 			.Success();
-	};
+	}
 
-	bool WriteToStream(PhobosStreamWriter& Stm, const ParadropData& Value) const
+	bool save(PhobosStreamWriter& Stm) const
 	{
 		return Stm
-			.Process(Value.Aircraft)
-			.Process(Value.Types)
-			.Process(Value.Num)
+			.Process(Aircraft)
+			.Process(Types)
+			.Process(Num)
 			.Success();
-	};
+	}
 };
 
 struct AITargetingModeInfo

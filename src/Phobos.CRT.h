@@ -30,7 +30,7 @@ public:
 		wstrCopy(Dest, Source, Size);
 	}
 
-	COMPILETIMEEVAL OPTIONALINLINE void EraseSubString(std::string& str, const std::string& erase)
+	static COMPILETIMEEVAL OPTIONALINLINE void EraseSubString(std::string& str, const std::string& erase)
 	{
 		size_t pos = str.find(erase);
 		if (pos != std::string::npos)
@@ -39,8 +39,8 @@ public:
 		}
 	}
 
-	template<typename T>
-	COMPILETIMEEVAL static std::string GetTypeIDName()
+	template <typename T>
+	static COMPILETIMEEVAL OPTIONALINLINE std::string GetTypeIDName()
 	{
 		std::string str = typeid(T).name();
 		EraseSubString(str, "class ");

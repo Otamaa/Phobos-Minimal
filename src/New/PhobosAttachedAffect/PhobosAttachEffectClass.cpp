@@ -701,7 +701,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 			}
 
 			if (auto pTag = pTarget->AttachedTag)
-				pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);	
+				pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);
 
 			return nullptr;
 		}
@@ -935,13 +935,17 @@ bool PhobosAttachEffectClass::Serialize(T& Stm)
 		.Process(this->Source, true)
 		.Process(this->Animation, true)
 		.Process(this->IsAnimHidden)
+		.Process(this->IsInTunnel)
 		.Process(this->IsUnderTemporal)
 		.Process(this->IsOnline)
 		.Process(this->IsCloaked)
 		.Process(this->HasInitialized)
 		.Process(this->SelectedAnim)
 		.Process(this->NeedsDurationRefresh)
+		.Process(this->HasCumulativeAnim)
 		.Process(this->ShouldBeDiscarded)
+		.Process(this->LastDiscardCheckFrame)
+		.Process(this->LastDiscardCheckValue)
 		.Process(this->LaserTrail)
 		.Success() && Stm.RegisterChange(this);
 }

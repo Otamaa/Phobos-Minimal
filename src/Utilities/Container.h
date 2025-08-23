@@ -292,7 +292,7 @@ public:
 	void SaveStatic()
 	{
 		auto obj = this->SavingObject;
-		//Debug::LogInfo("[SaveStatic] For object %p as '%s Start", obj, this->Name.data());
+		Debug::LogInfo("[SaveStatic] For object {} as '{} Start", (void*)obj, PhobosCRT::GetTypeIDName<T>());
 		if (obj && this->SavingStream) {
 			if (!this->Save(obj, this->SavingStream))
 				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!");
@@ -306,7 +306,7 @@ public:
 	bool LoadStatic()
 	{
 		auto obj = this->SavingObject;
-		//Debug::LogInfo("[LoadStatic] For object %p as '%s Start", obj, this->Name.data());
+		Debug::LogInfo("[LoadStatic] For object {} as '{} Start", (void*)obj, PhobosCRT::GetTypeIDName<T>());
 		if (this->SavingObject && this->SavingStream)
 		{
 			if (!this->Load(obj, this->SavingStream)){
@@ -383,9 +383,7 @@ protected:
 			this->SetExtAttribute(key, buffer);
 
 			PhobosByteStream loader { 0 };
-			if (!loader.ReadBlockFromStream(pStm))
-			{
-				//Debug::LogInfo("[LoadKey] Failed to read data from save stream?!");
+			if (!loader.ReadBlockFromStream(pStm)) {
 				return false;
 			}
 

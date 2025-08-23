@@ -491,6 +491,11 @@ void SideExtData::Serialize(T& Stm)
 		.Process(this->ScoreCampaignAnimation)
 		.Process(this->ScoreCampaignPalette)
 
+		.Process(this->GraphicalTextImage)
+		.Process(this->GraphicalTextPalette)
+		.Process(this->DialogBackgroundImage)
+		.Process(this->DialogBackgroundPalette)
+
 		.Process(this->ScoreCampaignThemeUnderPar)
 		.Process(this->ScoreCampaignThemeOverPar)
 		.Process(this->ScoreMultiplayThemeWin)

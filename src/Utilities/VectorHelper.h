@@ -6,6 +6,8 @@
 
 #include <Lib/fast_remove_if.h>
 
+#include <Utilities/Savegame.h>
+
 template<typename T, typename A = std::allocator<T>>
 struct HelperedVector : public std::vector<T , A>
 {
@@ -172,5 +174,17 @@ struct HelperedVector : public std::vector<T , A>
 		}
 
 		return true;
+	}
+
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		std::vector<T>* me = this;
+		return Stm.Process(*me, RegisterForChange);
+	}
+
+	bool save(PhobosStreamWriter& Stm) const
+	{
+		const std::vector<T>* me = this;
+		return Stm.Process(*me);
 	}
 };

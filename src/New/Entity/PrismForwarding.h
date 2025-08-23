@@ -2,6 +2,7 @@
 
 #include <Utilities/SavegameDef.h>
 #include <Utilities/MemoryPoolUniquePointer.h>
+#include <Utilities/VectorHelper.h>
 
 class BuildingClass;
 class PrismForwardingData;

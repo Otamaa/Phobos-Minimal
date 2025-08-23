@@ -2,6 +2,7 @@
 
 #include <SuperClass.h>
 #include <Utilities/SavegameDef.h>
+#include <Utilities/VectorHelper.h>
 
 class SWFirerClass
 {

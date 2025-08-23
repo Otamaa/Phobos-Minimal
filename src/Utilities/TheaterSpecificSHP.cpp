@@ -31,12 +31,12 @@ bool TheaterSpecificSHP::Read(INI_EX& parser, const char* pSection, const char* 
 
 bool TheaterSpecificSHP::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	return Savegame::ReadPhobosStream(Stm, this->value, RegisterForChange);
+	return Stm.Process(this->value, RegisterForChange);
 }
 
 bool TheaterSpecificSHP::Save(PhobosStreamWriter& Stm) const
 {
-	return Savegame::WritePhobosStream(Stm, this->value);
+	return Stm.Process(this->value);
 }
 
 TheaterSpecificSHP::~TheaterSpecificSHP()
