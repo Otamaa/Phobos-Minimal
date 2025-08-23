@@ -145,6 +145,7 @@ struct AnimCreationSyncLogEvent : SyncLogEvent
 	}
 };
 
+class TeamClass;
 class SyncLogger
 {
 private:
@@ -161,11 +162,17 @@ private:
 	static void WriteDestinationChanges(FILE* const pLogFile, int frameDigits);
 	static void WriteMissionOverrides(FILE* const pLogFile, int frameDigits);
 	static void WriteAnimCreations(FILE* const pLogFile, int frameDigits);
+	static void WriteTeams(FILE* const pLogFile);
+
 public:
 	static bool HooksDisabled;
 	static int AnimCreations_HighestX;
 	static int AnimCreations_HighestY;
 	static int AnimCreations_HighestZ;
+	static int TeamTypeClass_MaxIDLength;
+	static int ScriptTypeClass_MaxIDLength;
+	static int HouseTypeClass_MaxIDLength;
+	static int HouseName_MaxIDLength;
 
 	static void AddRNGCallSyncLogEvent(Random2Class* pRandomizer, int type, unsigned int callerAddress, int min = 0, int max = 0);
 	static void AddFacingChangeSyncLogEvent(unsigned short facing, unsigned int callerAddress);
@@ -174,4 +181,5 @@ public:
 	static void AddMissionOverrideSyncLogEvent(AbstractClass* pObject, int mission, unsigned int callerAddress);
 	static void AddAnimCreationSyncLogEvent(const CoordStruct& coords, unsigned int callerAddress);
 	static void WriteSyncLog(const std::string& logFilename);
+	static void SetTeamLoggingPadding(TeamClass* pTeam);
 };

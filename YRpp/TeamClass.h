@@ -181,7 +181,7 @@ public:
 	AbstractClass* Zone; //34
 	FootClass*	   ClosestMember; //38
 	AbstractClass* QueuedFocus; //3C
-	AbstractClass* ArchiveTarget; //40
+	AbstractClass* ArchiveTarget; //40 Focus
 	int            unknown_44;  //44
 	int            TotalObjects;  //48
 	int            TotalThreatValue; //4C
