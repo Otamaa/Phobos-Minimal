@@ -298,12 +298,11 @@ void SyncLogger::WriteTeams(FILE* const pLogFile)
 		}
 
 		if (auto pFocus = pTeam->ArchiveTarget) {
-			auto const rtti = pFocus->WhatAmI();
-			fprintf(pLogFile, " | TargetRTTI: %d (%s) | TargetID: %08d", rtti, pFocus->GetThisClassName(), pFocus->UniqueID);
+			fprintf(pLogFile, " | TargetRTTI: %d (%s) | TargetID: %08d", pFocus->WhatAmI(), pFocus->GetThisClassName(), pFocus->UniqueID);
 		}
 
 		if (auto pQueueedFocus = pTeam->QueuedFocus) {
-			fprintf(pLogFile, " | MissionTargetRTTI: %d (%s) | MissionTargetID: %08d", rtti, pQueueedFocus->GetThisClassName(),
+			fprintf(pLogFile, " | MissionTargetRTTI: %d (%s) | MissionTargetID: %08d", pQueueedFocus->WhatAmI(), pQueueedFocus->GetThisClassName(),
 				pQueueedFocus->UniqueID);
 		}
 
