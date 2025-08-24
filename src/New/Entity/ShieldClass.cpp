@@ -668,9 +668,9 @@ void ShieldClass::TemporalCheck()
 	}
 }
 
-void ShieldClass::UpdateTint()
+void ShieldClass::UpdateTint(bool forceUpdate)
 {
-	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0)
+	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0 || forceUpdate)
 		this->Techno->MarkForRedraw();
 }
 
@@ -678,7 +678,7 @@ void ShieldClass::UpdateTint()
 bool ShieldClass::ConvertCheck()
 {
 	const auto newID = this->Techno->GetTechnoType();
-
+	// If there has been no actual TechnoType conversion then we bail out early.
 	if (this->CurTechnoType == newID)
 		return false;
 
@@ -686,10 +686,10 @@ bool ShieldClass::ConvertCheck()
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(this->Techno->GetTechnoType());
 	const auto pOldType = this->Type;
 	bool allowTransfer = this->Type->AllowTransfer.Get(Attached);
-
-	// Update shield type.
+	
 	if (!allowTransfer && !pTechnoTypeExt->ShieldType->Strength)
 	{
+		// Case 1: Old shield is not allowed to transfer or there's no eligible new shield type -> delete shield.
 		this->KillAnim();
 		pTechnoExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
 		pTechnoExt->Shield = nullptr;
@@ -697,14 +697,17 @@ bool ShieldClass::ConvertCheck()
 
 		return true;
 	}
-	else if (pTechnoTypeExt->ShieldType->Strength)
+	else if (!allowTransfer && pTechnoTypeExt->ShieldType && pTechnoTypeExt->ShieldType->Strength)
 	{
+		// Case 2: Old shield is not allowed to transfer and the new type is eligible for activation -> use the new shield type.
 		pTechnoExt->CurrentShieldType = pTechnoTypeExt->ShieldType;
+		this->Type = pTechnoTypeExt->ShieldType;
 	}
 
+	// Our new type is either the old shield or the changed type from the above two scenarios.
 	const auto pNewType = pTechnoExt->CurrentShieldType;
 
-	// Update shield properties.
+	// Update shield properties. if we still have a shield.
 	if (pNewType->Strength && this->Available)
 	{
 		bool isDamaged = this->Techno->GetHealthPercentage() <= this->Type->GetConditionYellow();
@@ -736,7 +739,8 @@ bool ShieldClass::ConvertCheck()
 	}
 
 	this->CurTechnoType = newID;
-	this->UpdateTint();
+	// Force tint update on shield type conversion.
+	this->UpdateTint(true);
 
 	return false;
 }

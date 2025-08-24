@@ -2120,6 +2120,18 @@ bool ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
 	return Stm.Process(this->AsVector());
 }
 
+template <>
+bool ValueableVector<bool>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+{
+	return Stm.Process(this->AsVector());
+}
+
+template <>
+bool ValueableVector<bool>::Save(PhobosStreamWriter& Stm) const
+{
+	return Stm.Process(this->AsVector());
+}
+
 // NullableVector
 template <typename T>
 void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool allocate)

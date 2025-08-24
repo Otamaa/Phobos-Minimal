@@ -85,6 +85,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 	, MaxAhead { -1 }
 	, PreCalcMaxAhead { 0 }
 	, MaxLatencyLevel { 0xFF }
+	, ForceMultiplayer { false }
 
 	// Tunnel Options
 	, TunnelId { 0 }
@@ -425,6 +426,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 		MaxAhead = pINI->ReadInteger(GameStrings::Settings(), "MaxAhead", MaxAhead);
 		PreCalcMaxAhead = pINI->ReadInteger(GameStrings::Settings(), "PreCalcMaxAhead", PreCalcMaxAhead);
 		MaxLatencyLevel = (byte)pINI->ReadInteger(GameStrings::Settings(), "MaxLatencyLevel", (int)MaxLatencyLevel);
+		ForceMultiplayer = pINI->ReadBool(GameStrings::Settings(), "ForceMultiplayer", ForceMultiplayer);
 	}
 
 	{ // Tunnel Options
@@ -1003,7 +1005,7 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 	{ // Set SessionType
 		if (SpawnerMain::GameConfigs::m_Ptr.IsCampaign)
 			pSession->GameMode = GameMode::Campaign;
-		else if (Game::PlayerCount > 1)
+		else if (Game::PlayerCount > 1|| SpawnerMain::GameConfigs::m_Ptr.ForceMultiplayer)
 			pSession->GameMode = GameMode::Internet; // HACK: will be set to LAN later
 		else
 			pSession->GameMode = GameMode::Skirmish;

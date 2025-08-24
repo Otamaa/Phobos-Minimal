@@ -336,12 +336,6 @@ ASMJIT_PATCH(0x418782, AircraftClass_CurleyShuffle_D, 0x6)
 //}
 
 #ifdef TEST_CODE
-ASMJIT_PATCH(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)
-{
-	GET(AircraftClass*, pThis, EDI);
-	R->EAX(pThis->GetWeaponRange(pThis->SelectWeapon(pThis->Target)));
-	return 0x419808;
-}
 
 ASMJIT_PATCH(0x418072, AircraftClass_MI_Attack_BypasPassangersRangeDeterminer, 0x5)
 {

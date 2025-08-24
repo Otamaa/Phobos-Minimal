@@ -157,7 +157,7 @@ public:
 		return HP <= (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get());
 	}
 
-	void UpdateTint();
+	void UpdateTint(bool forceUpdate = false);
 
 	void InvalidateAnimPointer(AnimClass *ptr);
 

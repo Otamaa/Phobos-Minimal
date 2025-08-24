@@ -711,7 +711,7 @@ public:
 	bool FreeUnitDone { false };
 	AresAEData AeData {};
 
-	int StrafeFireCunt { -1 };
+	int Strafe_BombsDroppedThisRound { -1 };
 	CDTimerClass MergePreventionTimer {};
 
 	NewTiberiumStorageClass TiberiumStorage {};

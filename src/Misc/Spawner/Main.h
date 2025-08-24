@@ -160,6 +160,7 @@ struct SpawnerMain
 		int MaxAhead;
 		int PreCalcMaxAhead;
 		byte MaxLatencyLevel;
+		bool ForceMultiplayer;
 
 		// Tunnel Options
 		int  TunnelId;
