@@ -118,8 +118,7 @@ void SyncLogger::WriteSyncLog(const std::string& logFilename)
 {
 	auto const pLogFile = fopen(logFilename.c_str(), "at");
 
-	if (pLogFile)
-	{
+	if (pLogFile) {
 		Debug::LogInfo("Writing to sync log file '{}'.", logFilename);
 
 		fprintf(pLogFile, "\nPhobos synchronization log:\n\n");
@@ -134,10 +133,8 @@ void SyncLogger::WriteSyncLog(const std::string& logFilename)
 		WriteTeams(pLogFile);
 
 		fclose(pLogFile);
-	}
-	else
-	{
-		Debug::LogInfo("Failed to open sync log file '{}'.", logFilename);
+	} else {
+		Debug::FatalError("Failed to open sync log file '{}'.", logFilename);
 	}
 }
 
@@ -345,7 +342,7 @@ void SyncLogger::SetTeamLoggingPadding(TeamClass* pTeam)
 
 // RNG call logging
 
-ASMJIT_PATCH(0x65C7D0, Random2Class_Random_SyncLog, 0x6)
+DEFINE_HOOK(0x65C7D0, Random2Class_Random_SyncLog, 0x1)
 {
 	GET(Random2Class*, pThis, ECX);
 	GET_STACK(unsigned int, callerAddress, 0x0);
@@ -355,7 +352,7 @@ ASMJIT_PATCH(0x65C7D0, Random2Class_Random_SyncLog, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x65C88A, Random2Class_RandomRanged_SyncLog, 0x6)
+DEFINE_HOOK(0x65C88A, Random2Class_RandomRanged_SyncLog, 0x3)
 {
 	GET(Random2Class*, pThis, EDX);
 	GET_STACK(unsigned int, callerAddress, 0x0);
@@ -441,7 +438,6 @@ ASMJIT_PATCH(0x455D50, BuildingClass_AssignDestination_SyncLog, 0xA)
 	return 0;
 }
 
-
 ASMJIT_PATCH(0x741970, UnitClass_AssignDestination_SyncLog, 0x6)
 {
 	GET(UnitClass*, pThis, ECX);
@@ -503,11 +499,11 @@ ASMJIT_PATCH(0x683AB0, ScenarioClass_Start_DisableSyncLog, 0x6)
 	);
 
 	Patch::Apply_RAW(0x65C7D0, // Disable Random2Class_Random_SyncLog
-	{ 0xC3, 0x90, 0x90, 0x90, 0x90, 0x90 }
+	{ 0xC3, 0x90, 0x90, 0x90, 0x90 }
 	);
 
 	Patch::Apply_RAW(0x65C88A, // Disable Random2Class_RandomRanged_SyncLog
-	{ 0xC2, 0x08, 0x00, 0x90, 0x90, 0x90 }
+	{ 0xC2, 0x08, 0x00, 0x90, 0x90 }
 	);
 
 	Patch::Apply_RAW(0x4C9300, // Disable FacingClass_Set_SyncLog

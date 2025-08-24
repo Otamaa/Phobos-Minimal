@@ -45,8 +45,10 @@ bool GeneralUtils::IsValidString(const wchar_t* str)
 
 void GeneralUtils::IntValidCheck(int* source, const char* section, const char* tag, int defaultValue, int min, int max)
 {
-	if (*source < min || *source>max)
-	{
+	if (defaultValue < min) defaultValue = min;
+	if (defaultValue > max) defaultValue = max;
+
+	if (*source < min || *source>max) {
 		//Debug::LogInfo("[Developer warning][%s]%s=%d is invalid! Reset to %d.", section, tag, *source, defaultValue);
 		*source = defaultValue;
 	}
@@ -54,8 +56,10 @@ void GeneralUtils::IntValidCheck(int* source, const char* section, const char* t
 
 void GeneralUtils::DoubleValidCheck(double* source, const char* section, const char* tag, double defaultValue, double min, double max)
 {
-	if (*source < min || *source>max)
-	{
+	if (defaultValue < min) defaultValue = min;
+	if (defaultValue > max) defaultValue = max;
+
+	if (*source < min || *source>max) {
 		//Debug::LogInfo("[Developer warning][%s]%s=%f is invalid! Reset to %f.", section, tag, *source, defaultValue);
 		*source = defaultValue;
 	}

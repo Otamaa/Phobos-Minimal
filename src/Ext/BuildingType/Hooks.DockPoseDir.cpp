@@ -193,7 +193,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 
 		auto horizontalDistance = [&destination](const CoordStruct& location) {
 			const auto delta = Point2D { location.X, location.Y } - Point2D { destination.X, destination.Y };
-			return static_cast<int>(delta.pow());
+			return static_cast<int>(delta.Length());
 		};
 
 		const auto pFoot = *pFootPtr;
