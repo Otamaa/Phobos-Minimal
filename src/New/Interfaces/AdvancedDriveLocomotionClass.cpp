@@ -1517,57 +1517,81 @@ inline void AdvancedDriveLocomotionClass::UpdateForwardState(int desiredRaw)
 	if (!pTypeExt->AdvancedDrive_Reverse)
 		return;
 
-	const auto pLink = cast_to<BuildingClass*>(pLinked->GetNthLink());
+	// Force forward movement for certain states
+	if (pLinked->Team && pLinked->Team->NeedsReGrouping ||  // Always move forward when regrouping
+		pLinked->CurrentMission == Mission::Move ||          // Always forward for basic movement
+		pLinked->CurrentMission == Mission::Guard)           // Always forward when guarding
+	{
+		this->IsForward = true;
+		return;
+	}
 
+	// Special cases that should always move forward
+	const auto pLink = cast_to<BuildingClass*>(pLinked->GetNthLink());
 	if (pLink && pLink->Type->Bunker)
 	{
 		this->IsForward = true;
 		return;
 	}
 
+	// Harvester/Weeder special logic
 	if (pType->Harvester || pType->Weeder)
 	{
-		if (pLink && pLink->Type->Refinery && pLinked->CurrentMission == Mission::Enter && !pLinked->MissionStatus
-			&& pLinked->DistanceFrom(pLinked->Destination) <= 363 && !pLinked->GetCell()->GetBuilding())
-		{
-			this->IsForward = false;
-			return;
-		}
-		else if (pLinked->CurrentMission == Mission::Harvest)
+		if (pLinked->CurrentMission == Mission::Harvest)
 		{
 			this->IsForward = true;
 			return;
 		}
+
+		// Only reverse when very close to refinery
+		if (pLink && pLink->Type->Refinery &&
+			pLinked->CurrentMission == Mission::Enter &&
+			!pLinked->MissionStatus &&
+			pLinked->DistanceFrom(pLinked->Destination) <= 363 &&
+			!pLinked->GetCell()->GetBuilding())
+		{
+			this->IsForward = false;
+			return;
+		}
 	}
 
-	if (this->ForwardTo != CoordStruct::Empty)
-	{
-		const auto tgtDir = pTypeExt->AdvancedDrive_Reverse_FaceTarget
-			? DirStruct(Math::atan2(double(pLinked->Location.Y - this->ForwardTo.Y), double(this->ForwardTo.X - pLinked->Location.X)))
-			: pLinked->PrimaryFacing.Current();
-		const auto deltaTgtDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw) - static_cast<short>(tgtDir.Raw)));
-		const auto deltaOppDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw + 32768) - static_cast<short>(tgtDir.Raw)));
-		this->IsForward = deltaTgtDir <= deltaOppDir;
+	// Reverse movement decision logic
+	bool shouldReverse = false;
+
+	// Check if we have a target to face
+	if (this->ForwardTo != CoordStruct::Empty) {
+		// Calculate angle to target
+		const DirStruct targetDir = DirStruct(Math::atan2(
+			double(pLinked->Location.Y - this->ForwardTo.Y),
+			double(this->ForwardTo.X - pLinked->Location.X)));
+
+		// Get angle difference
+		const short angleDiff = static_cast<short>(desiredRaw - targetDir.Raw);
+
+		// Reverse if we're facing away from target and reverse is enabled
+		shouldReverse = Math::abs(angleDiff) > 16384 && // More than 90 degrees
+			pTypeExt->AdvancedDrive_Reverse_FaceTarget;
 	}
-	else if ((Unsorted::CurrentFrame - TechnoExtContainer::Instance.Find(pLinked)->LastHurtFrame) <= pTypeExt->AdvancedDrive_Reverse_RetreatDuration
-		|| pLinked->Destination && pLinked->DistanceFrom(pLinked->Destination) <= pTypeExt->AdvancedDrive_Reverse_MinimumDistance.Get())
-	{
-		const auto curDir = pLinked->PrimaryFacing.Current();
-		const auto deltaCurDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw) - static_cast<short>(curDir.Raw)));
-		const auto deltaOppDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw + 32768) - static_cast<short>(curDir.Raw)));
-		this->IsForward = deltaCurDir <= deltaOppDir;
+	// Check if we should retreat
+	else if (Unsorted::CurrentFrame - TechnoExtContainer::Instance.Find(pLinked)->LastHurtFrame
+			 <= pTypeExt->AdvancedDrive_Reverse_RetreatDuration) {
+		// When retreating, reverse if we're facing the threat
+		const auto currentDir = pLinked->PrimaryFacing.Current();
+		const short angleDiff = static_cast<short>(desiredRaw - currentDir.Raw);
+		shouldReverse = Math::abs(angleDiff) < 8192; // Less than 45 degrees
 	}
-	else if (pLinked->ArchiveTarget && pLinked->CurrentMission == Mission::Area_Guard
-		&& pLinked->Owner->IsControlledByHuman() && !pType->DefaultToGuardArea)
-	{
-		const auto defDir = pLinked->GetDirectionOverObject(pLinked->ArchiveTarget);
-		const auto deltaDefDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw) - static_cast<short>(defDir.Raw)));
-		const auto deltaOppDir = Math::abs(static_cast<short>(static_cast<short>(desiredRaw + 32768) - static_cast<short>(defDir.Raw)));
-		this->IsForward = deltaDefDir > deltaOppDir;
+	// Check minimum distance for regular movement
+	else if (pLinked->Destination &&
+			 pLinked->DistanceFrom(pLinked->Destination) <= pTypeExt->AdvancedDrive_Reverse_MinimumDistance.Get()) {
+		// Use reverse for fine positioning at close range
+		shouldReverse = true;
 	}
-	else
-	{
-		this->IsForward = true;
+
+	this->IsForward = !shouldReverse;
+
+	// Apply speed penalties for reverse movement
+	if (!this->IsForward) {
+		this->MovementSpeed *= pTypeExt->AdvancedDrive_Reverse_Speed;
 	}
 }
 
