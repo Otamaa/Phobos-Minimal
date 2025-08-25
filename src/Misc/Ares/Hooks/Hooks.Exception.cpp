@@ -97,7 +97,7 @@ static COMPILETIMEEVAL reference<DynamicVectorClass<ObjectClass*>*, 0x87F778u> c
 
 struct ExceptionHandler
 {
-private:
+public:
 	// Named constants for crash addresses
 	static constexpr DWORD CRASH_ADDRESS_1 = 0x7BC806;
 	static constexpr DWORD CRASH_FIX_1 = 0x7BC80F;
@@ -679,7 +679,386 @@ DEFINE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	return 0x64CD11;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x4C8FE0, ExceptionHandler::Handle)
+LONG __fastcall ExceptionHandler(int code, PEXCEPTION_POINTERS const pExs)
+{
+
+	DWORD* eip_pointer = reinterpret_cast<DWORD*>(&pExs->ContextRecord->Eip);
+	std::string reason = "Unknown";
+	const auto hwnd = IsWindow(Game::hWnd()) ? Game::hWnd() : nullptr;
+
+	switch (*eip_pointer)
+	{
+	case 0x7BC806:
+	{
+		*eip_pointer = 0x7BC80F;
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	case 0x5D6C21:
+	{
+		// This bug most likely happens when a map Doesn't have Waypoint 90
+		*eip_pointer = 0x5D6C36;
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	case 0x7BAEA1:
+	{
+		// A common crash in DSurface::GetPixel
+		*eip_pointer = 0x7BAEA8;
+		pExs->ContextRecord->Ebx = 0;
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	case 0x535DBC:
+	{
+		// Common crash in keyboard command class
+		*eip_pointer = 0x535DCE;
+		pExs->ContextRecord->Esp += 12;
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
+	case 0x42C554:
+	case 0x42C53E:
+	case 0x42C507:
+	{
+		//FootClass* pFoot = (FootClass*)(ExceptionInfo->ContextRecord->Ebp + 0x14);
+		//CellStruct* pFrom = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0x8);
+		//CellStruct* pTo = (CellStruct*)(ExceptionInfo->ContextRecord->Ebp + 0xC);
+		//MovementZone movementZone = (MovementZone)(ExceptionInfo->ContextRecord->Ebp + 0x10);
+
+		//AstarClass , broken ptr
+		reason = ("PathfindingCrash");
+		break;
+	}
+	case 0x584DF7:
+		reason = ("SubzoneTrackingCrash");
+		break;
+		//case 0x755C7F:
+		//{
+		//	Debug::LogInfo("BounceAnimError ");
+		//	return PrintException(exception_id, ExceptionInfo);
+		//}
+	case 0x000000:
+		if (pExs->ContextRecord->Esp && *(DWORD*)pExs->ContextRecord->Esp == 0x55E018)
+		{
+			// A common crash that seems to happen when yuri prime mind controls a building and then dies while the user is pressing hotkeys
+			*eip_pointer = 0x55E018;
+			pExs->ContextRecord->Esp += 8;
+			return EXCEPTION_CONTINUE_EXECUTION;
+		}
+		break;
+	default:
+		break;
+	}
+
+	Debug::FreeMouse();
+	Debug::LogInfo("Exception handler fired reason {} !", reason);
+	Debug::Log("Exception 0x%x at 0x%x\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+	Game::StreamerThreadFlush();
+
+	//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
+	//so using these oogly
+	if (hwnd)
+		SetWindowTextW(hwnd, L"Fatal Error - Yuri's Revenge");
+
+	std::wstring path = Debug::PrepareSnapshotDirectory();
+
+	switch (pExs->ExceptionRecord->ExceptionCode)
+	{
+	case EXCEPTION_ACCESS_VIOLATION:
+	case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+	case EXCEPTION_BREAKPOINT:
+	case EXCEPTION_DATATYPE_MISALIGNMENT:
+	case EXCEPTION_FLT_DENORMAL_OPERAND:
+	case EXCEPTION_FLT_DIVIDE_BY_ZERO:
+	case EXCEPTION_FLT_INEXACT_RESULT:
+	case EXCEPTION_FLT_INVALID_OPERATION:
+	case EXCEPTION_FLT_OVERFLOW:
+	case EXCEPTION_FLT_STACK_CHECK:
+	case EXCEPTION_FLT_UNDERFLOW:
+	case EXCEPTION_ILLEGAL_INSTRUCTION:
+	case EXCEPTION_IN_PAGE_ERROR:
+	case EXCEPTION_INT_DIVIDE_BY_ZERO:
+	case EXCEPTION_INT_OVERFLOW:
+	case EXCEPTION_INVALID_DISPOSITION:
+	case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+	case EXCEPTION_PRIV_INSTRUCTION:
+	case EXCEPTION_SINGLE_STEP:
+	case EXCEPTION_STACK_OVERFLOW:
+	case 0xE06D7363: // exception thrown and not caught
+	{
+		const std::wstring except_file = path + L"\\except.txt";
+
+		if (Debug::LogEnabled)
+		{
+			std::wstring _bar = Debug::LogFileMainName + Debug::LogFileExt;
+			_bar += L" Copied. - Yuri's Revenge";
+
+			MessageBoxW(hwnd, Debug::LogFileFullPath.c_str(), _bar.c_str(), MB_OK | MB_ICONERROR);
+			CopyFileW(Debug::LogFileFullPath.c_str(), (path + L"\\" + Debug::LogFileMainName + Debug::LogFileExt).c_str(), FALSE);
+		}
+
+		if (FILE* except = _wfsopen(except_file.c_str(), L"w", _SH_DENYNO))
+		{
+			COMPILETIMEEVAL auto const pDelim = "------------------------------------------------------------------------------------\n";
+			fprintf(except, "Internal Error encountered!\n");
+			fprintf(except, pDelim);
+			fprintf(except, "Ares version: 21.352.1218 With Phobos %s\n", PRODUCT_VERSION); //TODO
+			fprintf(except, "Running on %s\n", Patch::WindowsVersion.c_str());
+			fprintf(except, pDelim);
+
+			fprintf(except, "\n");
+
+			int i = 0;
+			for (auto const& data : Patch::ModuleDatas)
+			{
+				fprintf(except, "Module [(%d) %s: Base address = %x]\n", i++, data.ModuleName.c_str(), data.BaseAddr);
+			}
+
+			fprintf(except, "\n");
+			switch (pExs->ExceptionRecord->ExceptionCode)
+			{
+			case EXCEPTION_STACK_OVERFLOW:
+				fprintf(except, "Exception is stack overflow! (0x%08X) at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+				break;
+			case EXCEPTION_ACCESS_VIOLATION:
+			{
+				std::string VioType {};
+				switch (pExs->ExceptionRecord->ExceptionInformation[0])
+				{
+				case 0: // Read violation
+					VioType = ("Access address: 0x%08X was read from.\n");
+					break;
+				case 1: // Write violation
+					VioType = ("Access address: 0x%08X was written to.\n");
+					break;
+				case 2: // Execute violation
+					VioType = ("Access address: 0x%08X was written to.\n");
+					break;
+				case 8: // User-mode data execution prevention (DEP).
+					VioType = ("Access address: 0x%08X DEP violation.\n");
+					break;
+				default: // Unknown
+					VioType = ("Access address: 0x%08X Unknown violation.\n");
+					break;
+				};
+				std::string type = "Exception is access violation (0x%08X) at %08p ";
+				type += VioType;
+				fprintf(except, type.c_str(), pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress, pExs->ExceptionRecord->ExceptionInformation[1]);
+			}
+			break;
+			case EXCEPTION_IN_PAGE_ERROR:
+				fprintf(except, "Exception is page fault (0x%08X) at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+				break;
+			default:
+				fprintf(except, "Exception code is 0x%08X at %08p\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
+				break;
+			};
+
+			PCONTEXT pCtxt = pExs->ContextRecord;
+			fprintf(except, "Bytes at CS:EIP (0x%08X)  : ", pCtxt->Eip);
+			uint8_t* _eip_pointer = reinterpret_cast<uint8_t*>(pCtxt->Eip);
+
+			for (int e = 32; e > 0; --e)
+			{
+				if (IsBadReadPtr(_eip_pointer, sizeof(uint8_t)))
+				{
+					fprintf(except, "?? ");
+				}
+				else
+				{
+					fprintf(except, "%02X ", (uintptr_t)*_eip_pointer);
+				}
+				++_eip_pointer;
+			}
+
+			fprintf(except, "\n\nRegisters:\n");
+			fprintf(except, "EIP: %08X\tESP: %08X\tEBP: %08X\t\n", pCtxt->Eip, pCtxt->Esp, pCtxt->Ebp);
+			fprintf(except, "EAX: %08X\tEBX: %08X\tECX: %08X\n", pCtxt->Eax, pCtxt->Ebx, pCtxt->Ecx);
+			fprintf(except, "EDX: %08X\tESI: %08X\tEDI: %08X\n", pCtxt->Edx, pCtxt->Esi, pCtxt->Edi);
+			fprintf(except, "CS:  %04x\tSS:  %04x\tDS:  %04x\n", pCtxt->SegCs, pCtxt->SegSs, pCtxt->SegDs);
+			fprintf(except, "ES:  %04x\tFS:  %04x\tGS:  %04x\n", pCtxt->SegEs, pCtxt->SegFs, pCtxt->SegGs);
+			fprintf(except, "\n");
+
+			fprintf(except, "EFlags: %08X\n", pCtxt->EFlags);
+
+			fprintf(except, "\n");
+
+			fprintf(except, "Floating point status:\n");
+			fprintf(except, "Control word:\t%08x\n", pCtxt->FloatSave.ControlWord);
+			fprintf(except, "Status word:\t%08x\n", pCtxt->FloatSave.StatusWord);
+			fprintf(except, "Tag word:\t%08x\n", pCtxt->FloatSave.TagWord);
+			fprintf(except, "Error Offset:\t%08x\n", pCtxt->FloatSave.ErrorOffset);
+			fprintf(except, "Error Selector:\t%08x\n", pCtxt->FloatSave.ErrorSelector);
+			fprintf(except, "Data Offset:\t%08x\n", pCtxt->FloatSave.DataOffset);
+			fprintf(except, "Data Selector:\t%08x\n", pCtxt->FloatSave.DataSelector);
+			fprintf(except, "Cr0NpxState:\t%08x\n", pCtxt->FloatSave.Spare0);
+
+			fprintf(except, "\n");
+
+			fprintf(except, "Floating point Registers:\n");
+
+			for (int d = 0; d < ExceptionHandler::EXCEPTION_STACK_COLUMNS; ++d)
+			{
+				fprintf(except, "ST%d : ", d);
+
+				for (int j = 0; j < 10; ++j)
+				{
+					fprintf(except, "%02X", pCtxt->FloatSave.RegisterArea[d * 10 + j]);
+				}
+
+				fprintf(except, "   %+#.17e\n", *reinterpret_cast<double*>(&pCtxt->FloatSave.RegisterArea[d * 10]));
+			}
+
+			if (IsProcessorFeaturePresent(PF_MMX_INSTRUCTIONS_AVAILABLE))
+			{
+				fprintf(except, "\n");
+				fprintf(except, "MMX Registers:\n");
+
+				fprintf(except, "MMX0:	%016llX\tMMX1:	%016llX\tMMX2:	%016llX\tMMX3:	%016llX\n",
+					pCtxt->ExtendedRegisters[0],
+					pCtxt->ExtendedRegisters[1],
+					pCtxt->ExtendedRegisters[2],
+					pCtxt->ExtendedRegisters[3]
+				);
+
+				fprintf(except, "MMX4:	%016llX\tMMX5:	%016llX\tMMX6:	%016llX\tMMX7:	%016llX\n",
+					pCtxt->ExtendedRegisters[4],
+					pCtxt->ExtendedRegisters[5],
+					pCtxt->ExtendedRegisters[6],
+					pCtxt->ExtendedRegisters[7]
+				);
+			}
+
+			fprintf(except, "\n");
+
+			fprintf(except, "Debug Registers:\n");
+			fprintf(except, "Dr0: %016llX\tDr1: %016llX\tDr2: %016llX\tDr3: %016llX\n",
+				pCtxt->Dr0,
+				pCtxt->Dr1,
+				pCtxt->Dr2,
+				pCtxt->Dr3
+			);
+
+			fprintf(except, "Dr4: OBSOLETE\tDr5: OBSOLETE\tDr6: %08X\tDr7: %08X\n",
+				pCtxt->Dr6,
+				pCtxt->Dr7
+			);
+
+			{
+				auto& last_anim = PhobosGlobal::Instance()->LastAnimName;
+
+				if (!last_anim.empty())
+				{
+					Debug::LogInfo("LastAnim Calling CTOR ({})", last_anim);
+				}
+			}
+
+			{
+				auto& pp = PhobosGlobal::Instance()->PathfindTechno;
+				if (pp.IsValid())
+				{
+					const char* pTechnoID = GameStrings::NoneStr();
+					const char* what = GameStrings::NoneStr();
+					if (pp.Finder)
+					{
+						const auto vtable = VTable::Get(pp.Finder);
+						if (vtable == UnitClass::vtable)
+						{
+							pTechnoID = pp.Finder->get_ID();
+							what = "UnitClass";
+						}
+						else if (vtable == InfantryClass::vtable)
+						{
+							what = "InfantryClass";
+							pTechnoID = pp.Finder->get_ID();
+						}
+					}
+
+					Debug::LogInfo("LastPathfind ({})[{}] - [{}] from ({} - {}) to ({} - {})", (void*)pp.Finder, what, pTechnoID,
+						pp.From.X, pp.From.Y,
+						pp.To.X, pp.To.Y
+					);
+				}
+				pp.Clear();
+			}
+
+			fprintf(except, "\nStack dump (depth : %d):\n", ExceptionHandler::EXCEPTION_STACK_DEPTH_MAX);
+			DWORD* ptr = reinterpret_cast<DWORD*>(pCtxt->Esp);
+			for (int c = 0; c < ExceptionHandler::EXCEPTION_STACK_DEPTH_MAX; ++c)
+			{
+				const char* suffix = "";
+				if (*ptr >= 0x401000 && *ptr <= 0xB79BE4)
+					suffix = "GameMemory!";
+				else
+				{
+					for (auto begin = Patch::ModuleDatas.begin() + 1; begin < Patch::ModuleDatas.end(); ++begin)
+					{
+						if (*ptr >= begin->BaseAddr && *ptr <= (begin->BaseAddr + begin->Size))
+						{
+							suffix = (begin->ModuleName + " Memory!").c_str();
+							break;
+						}
+					}
+				}
+
+				fprintf(except, "%08p: %08X %s\n", ptr, *ptr, suffix);
+				++ptr;
+			}
+
+			fclose(except);
+			Debug::LogInfo("Exception data has been saved to file: {}", PhobosCRT::WideStringToString(except_file));
+		}
+
+		//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
+		//so using these oogly
+		if (MessageBoxW(hwnd, L"Yuri's Revenge has encountered a fatal error!\nWould you like to create a full crash report for the developers?", L"Fatal Error!", MB_YESNO | MB_ICONERROR) == IDYES)
+		{
+			HCURSOR loadCursor = LoadCursor(nullptr, IDC_WAIT);
+			//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
+			//so using these oogly
+			if (hwnd)
+				SetClassLong(hwnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+
+			SetCursor(loadCursor);
+			Debug::LogInfo("Making a memory dump");
+
+			MINIDUMP_EXCEPTION_INFORMATION expParam {};
+			expParam.ThreadId = GetCurrentThreadId();
+			expParam.ExceptionPointers = pExs;
+			expParam.ClientPointers = FALSE;
+
+			Debug::FullDump(std::move(path), &expParam);
+
+			loadCursor = LoadCursor(nullptr, IDC_ARROW);
+			//the value of `reference<HWND> Game::hWnd` is stored on the stack instead of inlined as memory value, using `.get()` doesnot seems fixed it
+			//so using these oogly
+			if (hwnd)
+				SetClassLong(hwnd, GCL_HCURSOR, reinterpret_cast<LONG>(loadCursor));
+
+			SetCursor(loadCursor);
+			Debug::FatalError("The cause of this error could not be determined.\r\n"
+				"%s"
+				"A crash dump should have been created in your game's \\debug subfolder.\r\n"
+				"You can submit that to the developers (along with debug.txt and syringe.log)."
+				, Phobos::Otamaa::ParserErrorDetected ? "(One or more parser errors have been detected that might be responsible. Check the debug logs.)\r" : ""
+			);
+		}
+		break;
+	}
+	case ERROR_MOD_NOT_FOUND:
+	case ERROR_PROC_NOT_FOUND:
+		Debug::LogInfo("Massive failure: Procedure or module not found!");
+		break;
+	default:
+		Debug::LogInfo("Massive failure: reason unknown, have fun figuring it out");
+		//Debug::DumpObj(reinterpret_cast<byte*>(pExs->ExceptionRecord), sizeof(*(pExs->ExceptionRecord)));
+		//return EXCEPTION_CONTINUE_SEARCH;
+		break;
+	}
+
+	Debug::ExitGame<true>(pExs->ExceptionRecord->ExceptionCode);
+
+	return 0u;
+};
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x4C8FE0, ExceptionHandler)
 
 struct Logger
 {
