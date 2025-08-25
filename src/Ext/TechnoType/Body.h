@@ -1124,10 +1124,20 @@ public:
 
 	Nullable<AffectedHouse> RadarInvisibleToHouse {};
 
-	Valueable<double> AdvancedDrive_ReverseSpeed { 0.85 };
-	Valueable<Leptons> AdvancedDrive_FaceTargetRange { Leptons(4096) };
-	Valueable<bool> AdvancedDrive_ConfrontEnemies { true };
-	Valueable<int> AdvancedDrive_RetreatDuration { 150 };
+	Valueable<bool> AdvancedDrive_Reverse { true };
+	Valueable<bool> AdvancedDrive_Reverse_FaceTarget { true };
+	Valueable<Leptons> AdvancedDrive_Reverse_FaceTargetRange { Leptons(4096) };
+	Valueable<Leptons> AdvancedDrive_Reverse_MinimumDistance { Leptons(640) };
+	Valueable<int> AdvancedDrive_Reverse_RetreatDuration { 150 };
+	Valueable<double> AdvancedDrive_Reverse_Speed { 0.85 };
+	Valueable<bool> AdvancedDrive_Hover {};
+	Valueable<bool> AdvancedDrive_Hover_Sink { true };
+	Valueable<bool> AdvancedDrive_Hover_Spin { true };
+	Valueable<bool> AdvancedDrive_Hover_Tilt { true };
+	Nullable<int> AdvancedDrive_Hover_Height {};
+	Nullable<double> AdvancedDrive_Hover_Dampen {};
+	Nullable<double> AdvancedDrive_Hover_Bob {};
+
 	Valueable<bool> Harvester_CanGuardArea {};
 
 	std::unique_ptr<TiberiumEaterTypeClass> TiberiumEaterType {};

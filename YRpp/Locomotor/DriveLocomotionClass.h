@@ -8,6 +8,8 @@ public:
 	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t vtable = 0x7E7F7C;
 	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t ILoco_vtable = 0x7E7EB0;
 	static COMPILETIMEEVAL reference<CLSID const, 0x7E9A30u> const ClassGUID {};
+	static COMPILETIMEEVAL reference<const TurnTrackType, 0x7E7B28, 72> TurnTrack {};
+	static COMPILETIMEEVAL reference<const RawTrackType, 0x7E7A28, 16>  RawTrack {};
 
 	// TODO stub virtuals implementations
 	//IUnknown

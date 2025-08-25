@@ -632,6 +632,7 @@ public:
 		JMP_THIS(0x486E30);
 	}
 
+	void RevealCellObjects() const { JMP_THIS(0x483480); }
 	void Shimmer() const { JMP_THIS(0x483480); }
 
 	COMPILETIMEEVAL CellClass* GetBridgeOwner() const {

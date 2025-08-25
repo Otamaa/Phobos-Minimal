@@ -215,6 +215,10 @@ public:
 		*this = TransposeMatrix(*this);
 	}
 
+	static Matrix3D *__fastcall used_Voxel_Draw_Matrix(Matrix3D *retarg, int ramp1, int ramp2, double alpha){
+		{ JMP_FAST(0x755A40); }
+	}
+
 	static Matrix3D* __fastcall FromQuaternion(Matrix3D* mat, const Quaternion* q) { JMP_FAST(0x646980); }
 	static Matrix3D FromQuaternion(const Quaternion& q)
 	{

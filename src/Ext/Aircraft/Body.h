@@ -31,6 +31,7 @@ public:
 	void _FootClass_Update_Wrapper();
 
 	BulletClass* _FireAt(AbstractClass* target, int which);
+	int _Mission_Attack();
 };
 
 static_assert(sizeof(FakeAircraftClass) == sizeof(AircraftClass), "Invalid Size !");

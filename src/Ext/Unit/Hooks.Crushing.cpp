@@ -19,12 +19,12 @@ ASMJIT_PATCH(0x073B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
 		return SkipGameCode;
 
 	if (pTypeExt->CrushOverlayExtraForwardTilt.isset())
-		pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt);
+		pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt.Get(-0.05));
 
 	if (AdvancedDriveLocomotionClass::IsReversing(pThis))
-		pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt);
+		pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt.Get(-0.05));
 	else
-		pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt);
+		pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt.Get(-0.05));
 
 	return SkipGameCode;
 }
@@ -46,9 +46,9 @@ ASMJIT_PATCH(0x0741941, UnitClass_OverrunSquare_TiltWhenCrushes, 0x6)
 	}
 
 	if (AdvancedDriveLocomotionClass::IsReversing(pThis))
-		pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt);
+		pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
 	else
-		pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt);
+		pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
 
 
 	return SkipGameCode;

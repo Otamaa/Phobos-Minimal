@@ -116,7 +116,7 @@ public:
 	UnitTypeClass* Type;
 	UnitClass* FollowerCar; // groovy - link defined in the map's [Units] section, looked up on startup
 	int FlagHouseIndex; //Carrying the flag of this House
-	bool HasFollowerCar; // yes, this vehicle has a another vehicle (a train's locomotive towing the cars)
+	bool IsFollowerCar; // yes, this vehicle has a another vehicle (a train's locomotive towing the cars)
 	bool Unloading;
 	bool IsHarvesting; //6D2
 	bool TerrainPalette;

@@ -1967,7 +1967,7 @@ ASMJIT_PATCH(0x743664, UnitClass_ReadFromINI_Follower3, 0x6)
 		{
 			auto const pFollower = units[followerIndex];
 			pUnit->FollowerCar = pFollower;
-			pFollower->HasFollowerCar = true;
+			pFollower->IsFollowerCar = true;
 		}
 	}
 	units.clear();

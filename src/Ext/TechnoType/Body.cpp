@@ -1854,11 +1854,19 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		// Spawner range
 		this->ResetSpawnerRange();
 
-		this->AdvancedDrive_ReverseSpeed.Read(exINI, pSection, "AdvancedDrive.ReverseSpeed");
-		this->AdvancedDrive_FaceTargetRange.Read(exINI, pSection, "AdvancedDrive.FaceTargetRange");
-		this->AdvancedDrive_ConfrontEnemies.Read(exINI, pSection, "AdvancedDrive.ConfrontEnemies");
-		this->AdvancedDrive_RetreatDuration.Read(exINI, pSection, "AdvancedDrive.RetreatDuration");
-
+		this->AdvancedDrive_Reverse.Read(exINI, pSection, "AdvancedDrive.Reverse");
+		this->AdvancedDrive_Reverse_FaceTarget.Read(exINI, pSection, "AdvancedDrive.Reverse.FaceTarget");
+		this->AdvancedDrive_Reverse_FaceTargetRange.Read(exINI, pSection, "AdvancedDrive.Reverse.FaceTargetRange");
+		this->AdvancedDrive_Reverse_MinimumDistance.Read(exINI, pSection, "AdvancedDrive.Reverse.MinimumDistance");
+		this->AdvancedDrive_Reverse_RetreatDuration.Read(exINI, pSection, "AdvancedDrive.Reverse.RetreatDuration");
+		this->AdvancedDrive_Reverse_Speed.Read(exINI, pSection, "AdvancedDrive.Reverse.Speed");
+		this->AdvancedDrive_Hover.Read(exINI, pSection, "AdvancedDrive.Hover");
+		this->AdvancedDrive_Hover_Sink.Read(exINI, pSection, "AdvancedDrive.Hover.Sink");
+		this->AdvancedDrive_Hover_Spin.Read(exINI, pSection, "AdvancedDrive.Hover.Spin");
+		this->AdvancedDrive_Hover_Tilt.Read(exINI, pSection, "AdvancedDrive.Hover.Tilt");
+		this->AdvancedDrive_Hover_Height.Read(exINI, pSection, "AdvancedDrive.Hover.Height");
+		this->AdvancedDrive_Hover_Dampen.Read(exINI, pSection, "AdvancedDrive.Hover.Dampen");
+		this->AdvancedDrive_Hover_Bob.Read(exINI, pSection, "AdvancedDrive.Hover.Bob");
 		this->Harvester_CanGuardArea.Read(exINI, pSection, "Harvester.CanGuardArea");
 
 		Nullable<int> transDelay {};
@@ -2334,10 +2342,19 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->Spawn_LimitedRange)
 		.Process(this->Spawn_LimitedExtraRange)
 
-		.Process(this->AdvancedDrive_ReverseSpeed)
-		.Process(this->AdvancedDrive_FaceTargetRange)
-		.Process(this->AdvancedDrive_ConfrontEnemies)
-		.Process(this->AdvancedDrive_RetreatDuration)
+		.Process(this->AdvancedDrive_Reverse)
+		.Process(this->AdvancedDrive_Reverse_FaceTarget)
+		.Process(this->AdvancedDrive_Reverse_FaceTargetRange)
+		.Process(this->AdvancedDrive_Reverse_MinimumDistance)
+		.Process(this->AdvancedDrive_Reverse_RetreatDuration)
+		.Process(this->AdvancedDrive_Reverse_Speed)
+		.Process(this->AdvancedDrive_Hover)
+		.Process(this->AdvancedDrive_Hover_Sink)
+		.Process(this->AdvancedDrive_Hover_Spin)
+		.Process(this->AdvancedDrive_Hover_Tilt)
+		.Process(this->AdvancedDrive_Hover_Height)
+		.Process(this->AdvancedDrive_Hover_Dampen)
+		.Process(this->AdvancedDrive_Hover_Bob)
 
 		.Process(this->Harvester_CanGuardArea)
 		.Process(this->TiberiumEaterType)

@@ -19,6 +19,488 @@
 
 #include <Locomotor/FlyLocomotionClass.h>
 
+//todo Add the hooks
+int FakeAircraftClass::_Mission_Attack()
+{
+	auto return_to_base = [this]() -> void
+		{
+			this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+		};
+
+	auto get_default_mission_control_return = [this]() -> int
+		{
+			return int(this->GetCurrentMissionControl()->Rate * (double)TICKS_PER_MINUTE) +
+				ScenarioClass::Instance->Random.RandomRanged(0, 2);
+		};
+
+	switch ((AirAttackStatus)this->MissionStatus)
+	{
+	case AirAttackStatus::ValidateAZ:
+	{
+		auto TarCom = this->Target;
+		this->IsLocked = 0;
+		this->MissionStatus = int(TarCom != 0
+			? AirAttackStatus::PickAttackLocation : AirAttackStatus::ReturnToBase);
+
+		return 1;
+	}
+
+	case AirAttackStatus::PickAttackLocation:
+	{
+		bool lose_ammo = this->loseammo_6c8;
+		this->IsLocked = 0;
+
+		if (lose_ammo) {
+			auto Ammo = this->Ammo;
+			this->loseammo_6c8 = 0;
+			this->Ammo = Ammo - 1;
+		}
+
+		auto v7 = this->Target;
+
+		if (v7 && this->Ammo)
+		{
+			this->SetDestination(this->GoodTargetLoc_(v7),true);
+
+			this->MissionStatus = int(this->Destination != 0
+				? AirAttackStatus::FlyToPosition : AirAttackStatus::ReturnToBase);
+		} else {
+			return_to_base();
+		}
+
+		return get_default_mission_control_return();
+	}
+
+	case AirAttackStatus::FlyToPosition:
+	{
+		if (this->loseammo_6c8) {
+			auto v10 = this->Ammo;
+			this->loseammo_6c8 = 0;
+			this->Ammo = v10 - 1;
+		}
+
+		this->IsLocked = 0;
+
+		if (!this->Target || !this->Ammo) {
+			this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			return 1;
+		}
+
+		if (this->Is_Strafe()) {
+			auto WeaponType = this->GetWeapon(0)->WeaponType;
+
+			if (this->DistanceFrom(this->Target) < WeaponType->Range) {
+				this->MissionStatus = (int)AirAttackStatus::FireAtTarget;
+				return 1;
+			}
+
+			this->SetDestination(this->Target, 1);
+		}
+		else
+		{
+			if (this->Is_Locked()) {
+				this->MissionStatus = (int)AirAttackStatus::FireAtTarget;
+				return 1;
+			}
+
+			if (!this->Locomotor.GetInterfacePtr()->Is_Moving_Now()) {
+				this->MissionStatus = (int)AirAttackStatus::FireAtTarget;
+				return 1;
+			}
+		}
+
+		if (this->Destination)
+		{
+			auto v13 = this->DistanceFrom(this->Destination);
+
+			if (v13 >= 512)
+			{
+				auto v16 = this->Destination->GetCenterCoords();
+				CoordStruct v17;
+				this->GetFLH(&v17, 0, CoordStruct::Empty);
+
+				DirStruct fac {};
+
+				if (v17.X == v16.X && v17.Y == v16.Y) {
+					fac.Raw = 0;
+				}
+
+				auto v18 = Math::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X));
+				auto v19 = Math::DEG90_AS_RAD;
+				auto v20 = v18 - v19;
+				auto v21 = Math::BINARY_ANGLE_MAGIC;
+				fac.Raw = (v20 * v21);
+				this->SecondaryFacing.Set_Desired(fac);
+				return 1;
+			}
+			else
+			{
+				this->SecondaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
+
+				if (v13 >= 16)
+				{
+					return 1;
+				}
+				else
+				{
+					this->MissionStatus = (int)AirAttackStatus::FireAtTarget;
+					this->SetDestination(0, 1);
+					return 1;
+				}
+			}
+		}
+		else {
+			this->MissionStatus = (int)AirAttackStatus::PickAttackLocation;
+		}
+
+		return 1;
+	}
+
+	case AirAttackStatus::FireAtTarget:
+	{
+		if (!this->Target || !this->Ammo)
+		{
+			this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			return 1;
+		}
+
+		if (!this->Is_Strafe())
+		{
+			this->PrimaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
+			this->SecondaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
+		}
+
+		switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+		{
+		case FireError::OK:
+		{
+			this->loseammo_6c8 = 1;
+
+			int v28 = 0;
+
+			if (this->GetWeapon(this->SelectWeapon(this->Target))->WeaponType->Burst > 0)
+			{
+				do
+				{
+					this->Fire(this->Target, this->SelectWeapon(this->Target));
+					++v28;
+				}
+				while (v28 < this->GetWeapon(this->SelectWeapon(this->Target))->WeaponType->Burst);
+			}
+
+			MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
+
+			if (this->Is_Strafe())
+			{
+				this->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;
+				this->IsLocked = 1;
+				return this->GetWeapon(0)->WeaponType->ROF;
+			}
+
+			if (!this->Is_Locked())
+			{
+				this->MissionStatus = (int)AirAttackStatus::FireAtTarget2;
+			}
+			else
+			{
+				auto v37 = this->Ammo;
+				auto v38 = v37 == 0;
+				auto v39 = v37 < 0;
+				this->IsLocked = 1;
+				this->MissionStatus = !v39 && !v38 ? (int)AirAttackStatus::PickAttackLocation : (int)AirAttackStatus::ReturnToBase;
+				return this->GetWeapon(0)->WeaponType->ROF;
+			}
+			break;
+		}
+		case FireError::FACING:
+
+		{
+			if (!this->Ammo)
+			{
+				this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+				return 1;
+			}
+
+			if (!this->IsCloseEnoughToAttack(this->Target) || this->Is_Strafe())
+			{
+				this->MissionStatus = int(AirAttackStatus::PickAttackLocation);
+			}
+			else if (this->Is_Locked())
+			{
+				this->MissionStatus = int(AirAttackStatus::FireAtTarget);
+			}
+			else
+			{
+				this->MissionStatus = int(RulesClass::Instance->CurleyShuffle ?
+					AirAttackStatus::PickAttackLocation : AirAttackStatus::FireAtTarget);
+			}
+
+			return this->Is_Strafe() ? 1 : 45;
+		}
+		case FireError::REARM:
+			return 1;
+		case FireError::CLOAKED:
+			this->Uncloak(false);
+			return 1;
+		default:
+		{
+			if (!this->Ammo)
+			{
+				this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			}
+			else if (this->Is_Strafe())
+			{
+				return 1;
+			}
+			else
+			{
+				this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			}
+		}
+		}
+		return 1;
+	}
+
+	case AirAttackStatus::FireAtTarget2:
+	{
+		if (this->Target)
+		{
+			this->PrimaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
+			this->SecondaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
+
+			switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+			{
+			case FireError::OK:
+			{
+				this->Fire(this->Target, this->SelectWeapon(this->Target));
+				MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
+
+				if (!this->Ammo) {
+					return_to_base();
+				} else {
+					this->MissionStatus = int(RulesClass::Instance->CurleyShuffle ? AirAttackStatus::PickAttackLocation : AirAttackStatus::FireAtTarget);
+				}
+				return get_default_mission_control_return();
+			}
+			case FireError::FACING:
+			{
+				if (!this->Ammo)
+				{
+					return_to_base();
+				}
+				else
+				{
+					if (!this->IsCloseEnoughToAttack(this->Target) || this->Is_Strafe()) {
+						this->MissionStatus = (int)AirAttackStatus::PickAttackLocation;
+					} else {
+						this->MissionStatus = (int)(RulesClass::Instance->CurleyShuffle ? AirAttackStatus::PickAttackLocation : AirAttackStatus::FireAtTarget);
+					}
+
+					if (this->Is_Strafe()) {
+						return 45;
+					}
+				}
+				return get_default_mission_control_return();
+			}
+			case FireError::REARM:
+			{
+				return get_default_mission_control_return();
+			}
+			case FireError::CLOAKED:
+			{
+				this->Uncloak(0);
+				return get_default_mission_control_return();
+			}
+			default: {
+				if (!this->Ammo) {
+					return_to_base();
+				} else {
+					this->MissionStatus = int(this->IsCloseEnoughToAttack(this->Target) ?
+						RulesClass::Instance->CurleyShuffle
+						? AirAttackStatus::PickAttackLocation : AirAttackStatus::FireAtTarget :
+						AirAttackStatus::PickAttackLocation);
+				}
+				return get_default_mission_control_return();
+			}
+			}
+		} else {
+			this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			return 1;
+		}
+	}
+
+	case AirAttackStatus::FireAtTarget2_Strafe:
+	{
+		if (this->Target)
+		{
+			switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+			{
+			case FireError::OK:
+			case FireError::FACING:
+			case FireError::CLOAKED:
+				break;
+			case FireError::RANGE:
+				this->SetDestination(this->Target, 1);
+				break;
+			default:
+				if (!this->Ammo)
+				{
+					this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+					this->IsLocked = 0;
+				}
+				return 1;
+			}
+			this->Fire(this->Target, this->SelectWeapon(this->Target));
+			MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
+			this->SetDestination(this->Target, 1);
+			this->MissionStatus = (int)AirAttackStatus::FireAtTarget3_Strafe;
+			return this->GetWeapon(0)->WeaponType->ROF;
+		}
+		else
+		{
+			this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			return 1;
+		}
+	}
+
+	case AirAttackStatus::FireAtTarget3_Strafe:
+	{
+		if (this->Target)
+		{
+			switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+			{
+			case FireError::OK:
+			case FireError::FACING:
+			case FireError::CLOAKED:
+				break;
+			case FireError::RANGE:
+				this->SetDestination(this->Target, 1);
+				break;
+			default:
+				if (!this->Ammo)
+				{
+					this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+					this->IsLocked = 0;
+				}
+				return 1;
+			}
+
+			this->Fire(this->Target, this->SelectWeapon(this->Target));
+			MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
+			this->SetDestination(this->Target, 1);
+			this->MissionStatus = (int)AirAttackStatus::FireAtTarget4_Strafe;
+			return this->GetWeapon(0)->WeaponType->ROF;
+		}
+		else
+		{
+			this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			return 1;
+		}
+	}
+
+	case AirAttackStatus::FireAtTarget4_Strafe:
+	{
+		if (this->Target)
+		{
+			switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+			{
+			case FireError::OK:
+			case FireError::FACING:
+			case FireError::CLOAKED:
+				break;
+			case FireError::RANGE:
+				this->SetDestination(this->Target, 1);
+				break;
+			default:
+				if (!this->Ammo) {
+					this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+					this->IsLocked = 0;
+				}
+				return 1;
+			}
+			this->Fire(this->Target, this->SelectWeapon(this->Target));
+			MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
+			this->SetDestination(this->Target, 1);
+			this->MissionStatus = (int)AirAttackStatus::FireAtTarget5_Strafe;
+			return this->GetWeapon(0)->WeaponType->ROF;
+		}
+		else
+		{
+			this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+			return 1;
+		}
+	}
+
+	case AirAttackStatus::FireAtTarget5_Strafe:
+	{
+		if (this->Target)
+		{
+			switch (this->GetFireError(this->Target,this->SelectWeapon(this->Target),true))
+			{
+			case FireError::OK:
+			case FireError::FACING:
+			case FireError::RANGE:
+			case FireError::CLOAKED:
+				this->Fire(this->Target, this->SelectWeapon(this->Target));
+				MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
+				this->MissionStatus = (int)AirAttackStatus::FlyToPosition;
+				return this->GetWeapon(0)->WeaponType->Range + 1024 / this->Type->Speed;
+			default:
+				if (!this->Ammo) {
+					this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+					this->IsLocked = 0;
+				}
+				break;
+			}
+		}
+		else {
+			this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
+		}
+		return 1;
+	}
+
+	case AirAttackStatus::ReturnToBase:
+	{
+		auto v84 = this->loseammo_6c8;
+		this->IsLocked = 0;
+		if (v84) {
+			auto v85 = this->Ammo;
+			this->loseammo_6c8 = 0;
+			if (v85 > 0) {
+				this->Ammo = v85 - 1;
+			}
+		}
+
+		if (this->Ammo) {
+			if (this->Target) {
+				this->MissionStatus= (int)AirAttackStatus::PickAttackLocation;
+				return 1;
+			}
+		} else if (this->Spawned || this->Owner->IsControlledByHuman()) {
+			this->SetTarget(0);
+		}
+
+		this->IsLocked = 0;
+		CellStruct edgeCell = MapClass::Instance->PickCellOnEdge(this->Owner->GetCurrentEdge()
+			, CellStruct::Empty
+			, CellStruct::Empty
+			, SpeedType::Winged
+			,true
+			,MovementZone::Normal
+		);
+
+		this->SetDestination(MapClass::Instance->GetCellAt(edgeCell), 1);
+		this->NumParadropsLeft = 0;
+		(this->Airstrike && this->Ammo > 0 ? this->QueueMission(Mission::Retreat, false) : this->EnterIdleMode(false,1));
+		this->NumParadropsLeft = 1;
+		return 1;
+	}
+
+	default:
+		return get_default_mission_control_return();
+	}
+}
+
 AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy)
 {
 	if (RulesExtData::Instance()->ExpandAircraftMission && !this->Team && this->Ammo && !this->Airstrike && !this->Spawned)

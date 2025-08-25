@@ -892,6 +892,7 @@ struct ColorPacker
 class BuildingTypeClass;
 namespace Unsorted
 {
+	static COMPILETIMEEVAL reference<Point2D, 0x89F6D8, 8u> const AdjacentCoord {};
 	COMPILETIMEEVAL reference<const char* const, 0x7E5210u, 11u> const ArmorNameArray {};
 
 	COMPILETIMEEVAL reference<int, 0xA8ED84u> const CurrentFrame {};
