@@ -48,7 +48,7 @@ public:
 //	virtual HRESULT __stdcall IsDirty() override { return !this->Dirty; }
 	virtual HRESULT __stdcall Load(IStream* pStm) override
 	{
-		HRESULT hr = this->LocomotionClass::Load(pStm);
+		HRESULT hr = LocomotionClass::Internal_Load(this,pStm);
 
 		if (FAILED(hr))
 			return hr;
@@ -71,7 +71,7 @@ public:
 	}
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override
 	{
-		HRESULT hr = this->LocomotionClass::Save(pStm, fClearDirty);
+		HRESULT hr = LocomotionClass::Internal_Save(this, pStm, fClearDirty);
 
 		if (FAILED(hr))
 			return hr;

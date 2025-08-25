@@ -149,11 +149,6 @@ public:
 	COMPILETIMEEVAL FORCEDINLINE bool HasTimeLeft() const {
 		return this->GetTimeLeft() > 0;
 	}
-
-	COMPILETIMEEVAL FORCEDINLINE double GetRatePassed() const {
-		const int rate = this->Rate;
-		return rate ? static_cast<double>(rate - this->GetTimeLeft()) / static_cast<double>(rate) : 1.0;
-	}
 };
 
 using SystemTimerClass = TimerClass<SystemTimer>;
@@ -228,14 +223,15 @@ public:
 		return remain;
 	}
 
-	COMPILETIMEEVAL OPTIONALINLINE float Percent_Expired() const
-	{
-		unsigned long rate = Rate;
-		if (!rate) {
-			return 1.0;
-		}
+	COMPILETIMEEVAL OPTIONALINLINE float Percent_Expired() const {
+		return (float)(GetRatePassed());
+	}
 
-		return (float)(rate - GetValue()) / (float)rate;
+
+	COMPILETIMEEVAL FORCEDINLINE double GetRatePassed() const
+	{
+		const int rate = this->Rate;
+		return rate ? static_cast<double>(rate - this->GetTimeLeft()) / static_cast<double>(rate) : 1.0;
 	}
 };
 

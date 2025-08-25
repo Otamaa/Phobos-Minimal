@@ -1,6 +1,8 @@
 #pragma once
 #include "LocomotionClass.h"
 
+struct TurnTrackType;
+struct RawTrackType;
 class //DECLSPEC_UUID("4A582741-9839-11d1-B709-00A024DDAFD1")
 	NOVTABLE DriveLocomotionClass : public LocomotionClass, public IPiggyback
 {
@@ -8,8 +10,8 @@ public:
 	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t vtable = 0x7E7F7C;
 	static COMPILETIMEEVAL OPTIONALINLINE uintptr_t ILoco_vtable = 0x7E7EB0;
 	static COMPILETIMEEVAL reference<CLSID const, 0x7E9A30u> const ClassGUID {};
-	static COMPILETIMEEVAL reference<const TurnTrackType, 0x7E7B28, 72> TurnTrack {};
-	static COMPILETIMEEVAL reference<const RawTrackType, 0x7E7A28, 16>  RawTrack {};
+	static COMPILETIMEEVAL reference<TurnTrackType, 0x7E7B28, 72> const TurnTrack {};
+	static COMPILETIMEEVAL reference<RawTrackType, 0x7E7A28, 16> const RawTrack {};
 
 	// TODO stub virtuals implementations
 	//IUnknown
