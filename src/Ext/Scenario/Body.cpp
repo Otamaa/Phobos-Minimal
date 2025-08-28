@@ -185,6 +185,34 @@ void ScenarioExtData::FetchVariables(ScenarioClass* pScen)
 	//CurrentTint_Tiles = pScen->NormalLighting.Tint;
 }
 
+#include <Ext/Bullet/Body.h>
+#include <Ext/BulletType/Body.h>
+
+void ScenarioExtData::DetonateMasterBuller(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead)
+{
+	auto pBullet = ScenarioExtData::Instance()->MasterDetonationBullet;
+
+	if (pWeapon) {
+		pBullet->Type = pWeapon->Projectile;
+		pBullet->SetWeaponType(pWeapon);
+	} else {
+		pBullet->Type = BulletTypeExtData::GetDefaultBulletType();
+	}
+
+	pBullet->Owner = pOwner;
+	pBullet->Health = damage;
+	pBullet->Target = pTarget;
+	pBullet->WH = pWarhead;
+	pBullet->Bright = isBright;
+
+	if (pFiringHouse) {
+		BulletExtContainer::Instance.Find(pBullet)->Owner = pFiringHouse;
+	}
+
+	pBullet->SetLocation(coords);
+	pBullet->Explode(true);
+}
+
 void ScenarioExtData::ReadMissionMDINI()
 {
 	CCFileClass file { GameStrings::MISSIONMD_INI };
@@ -241,6 +269,107 @@ void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 // =============================
 // load / save
+namespace Savegame
+{
+	template <>
+	struct Savegame::PhobosStreamObject<AISlotsStruct>
+	{
+
+		bool ReadFromStream(PhobosStreamReader& Stm, AISlotsStruct& Value, bool RegisterForChange) const
+		{
+			bool result = true;
+
+			for (int i = 0; i < 8; ++i) {
+				result &= Savegame::ReadPhobosStream(Stm, Value.Difficulties[i], RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.Countries[i], RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.Colors[i], RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.Starts[i], RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.Allies[i], RegisterForChange);
+			}
+
+			return result;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const AISlotsStruct& Value) const
+		{
+			bool result = true;
+
+			for (int i = 0; i < 8; ++i) {
+				result &= Savegame::WritePhobosStream(Stm, Value.Difficulties[i]);
+				result &= Savegame::WritePhobosStream(Stm, Value.Countries[i]);
+				result &= Savegame::WritePhobosStream(Stm, Value.Colors[i]);
+				result &= Savegame::WritePhobosStream(Stm, Value.Starts[i]);
+				result &= Savegame::WritePhobosStream(Stm, Value.Allies[i]);
+			}
+
+			return result;
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<GameModeOptionsClass>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, GameModeOptionsClass& Value, bool RegisterForChange) const
+		{
+			bool result = Savegame::ReadPhobosStream(Stm, Value.MPModeIndex, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.ScenarioIndex, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.Bases, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.Money, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.BridgeDestruction, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.Crates, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.ShortGame, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.SWAllowed, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.BuildOffAlly, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.GameSpeed, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.MultiEngineer, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.UnitCount, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.AIPlayers, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.AIDifficulty, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.AISlots, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.AlliesAllowed, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.HarvesterTruce, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.CTF, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.FogOfWar, RegisterForChange);
+				result &= Savegame::ReadPhobosStream(Stm, Value.MCVRedeploy, RegisterForChange);
+				std::wstring saved_ {};
+				result &= Savegame::ReadPhobosStream(Stm, saved_, RegisterForChange);
+
+				if (!saved_.empty())
+					std::memcpy(Value.MapDescription, saved_.data(), saved_.size() * sizeof(wchar_t));
+
+			return result;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const GameModeOptionsClass& Value) const
+		{
+			bool result = Savegame::WritePhobosStream(Stm , Value.MPModeIndex);
+				result &= Savegame::WritePhobosStream(Stm , Value.ScenarioIndex);
+				result &= Savegame::WritePhobosStream(Stm , Value.Bases);
+				result &= Savegame::WritePhobosStream(Stm , Value.Money);
+				result &= Savegame::WritePhobosStream(Stm , Value.BridgeDestruction);
+				result &= Savegame::WritePhobosStream(Stm , Value.Crates);
+				result &= Savegame::WritePhobosStream(Stm , Value.ShortGame);
+				result &= Savegame::WritePhobosStream(Stm , Value.SWAllowed);
+				result &= Savegame::WritePhobosStream(Stm , Value.BuildOffAlly);
+				result &= Savegame::WritePhobosStream(Stm , Value.GameSpeed);
+				result &= Savegame::WritePhobosStream(Stm , Value.MultiEngineer);
+				result &= Savegame::WritePhobosStream(Stm , Value.UnitCount);
+				result &= Savegame::WritePhobosStream(Stm , Value.AIPlayers);
+				result &= Savegame::WritePhobosStream(Stm , Value.AIDifficulty);
+				result &= Savegame::WritePhobosStream(Stm , Value.AISlots);
+				result &= Savegame::WritePhobosStream(Stm , Value.AlliesAllowed);
+				result &= Savegame::WritePhobosStream(Stm , Value.HarvesterTruce);
+				result &= Savegame::WritePhobosStream(Stm , Value.CTF);
+				result &= Savegame::WritePhobosStream(Stm , Value.FogOfWar);
+				result &= Savegame::WritePhobosStream(Stm , Value.MCVRedeploy);
+				std::wstring saved_(Value.MapDescription);
+				result &= Savegame::WritePhobosStream(Stm, saved_);
+
+			return result;
+		}
+	};
+
+}
 
 template <typename T>
 void ScenarioExtData::Serialize(T& Stm)
@@ -280,6 +409,8 @@ void ScenarioExtData::Serialize(T& Stm)
 		.Process(this->DefaultLS640BkgdName)
 		.Process(this->DefaultLS800BkgdName)
 		.Process(this->DefaultLS800BkgdPal)
+
+		.Process(this->MasterDetonationBullet)
 		;
 
 

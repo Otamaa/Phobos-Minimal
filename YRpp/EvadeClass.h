@@ -18,3 +18,4 @@ public:
 	int   CarryOverDifficulty;
 	short CarryOverStage;
 };
+static_assert(sizeof(EvadeClass) == 0x44);

@@ -316,8 +316,8 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 template<typename T>
 static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secrets) {
 
-	for(auto Option : secrets){
-		RulesExtData::Instance()->Secrets.emplace_back(Option);
+	for(auto opt : secrets){
+		RulesExtData::Instance()->Secrets.emplace_back(opt);
 		//Debug::LogInfo("Adding [{} - {}] onto Global Secrets pool" , Option->ID, Option->GetThisClassName());
 	}
 }
@@ -1875,6 +1875,11 @@ void RulesExtData::InitializeAfterAllRulesLoaded()
 		g_instance->ColorDatas.LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
 		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 	}
+
+	auto g_scenario_instance = ScenarioExtData::Instance();
+
+	// Init master bullet
+	g_scenario_instance->MasterDetonationBullet = BulletTypeExtData::GetDefaultBulletType()->CreateBullet(nullptr, nullptr, 0, nullptr, 0, false);
 }
 
 DEFINE_HOOK(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)

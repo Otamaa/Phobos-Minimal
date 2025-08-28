@@ -4,6 +4,12 @@
 #include <Memory.h>
 #include <CRT.h>
 
+static COMPILETIMEEVAL const char SpaceChar { ' ' };
+static COMPILETIMEEVAL const char TabChar { '\t' };
+static COMPILETIMEEVAL const char NewLineChar { '\n' };
+static COMPILETIMEEVAL const char NullChar { '\0' };
+static COMPILETIMEEVAL const char* EmptyString { &NullChar };
+
 struct CharTrait
 {
 	size_t Length(const char* pString) const
@@ -45,7 +51,7 @@ struct CharTrait
 	{
 		return CRT::strcat(_Destination, _Source);
 	}
-	
+
 	template<bool IgnoreCase = false>
 	int Compare(const char* _Str1, const char* _Str2)
 	{
@@ -368,8 +374,8 @@ public:
 
 	void RemoveSpaces()
 	{
-		RemoveCharacter(TCharTraits::Space);
-		RemoveCharacter(TCharTraits::Tab);
+		RemoveCharacter(SpaceChar);
+		RemoveCharacter(TabChar);
 	}
 
 	void TrimToFirstDifference(const My_Type& another)
@@ -590,6 +596,24 @@ public:
 	{
 		return Contains(another.PeekBuffer());
 	}
+
+	TChar* Peek_Buffer() {
+		if (Buffer == nullptr) {
+			return const_cast<TChar*>(EmptyString);
+		}
+		return Buffer;
+	}
+
+	const TChar* Peek_Buffer() const
+	{
+		if (Buffer == nullptr) {
+			return EmptyString;
+		}
+
+		return Buffer;
+	}
+
+	inline int Get_Length() const { return Length(); }
 
 private:
 

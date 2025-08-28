@@ -1,6 +1,8 @@
 #include "Body.h"
 #include "Trajectories/PhobosTrajectory.h"
 
+#include <Ext/Scenario/Body.h>
+
 ASMJIT_PATCH(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 {
 	enum { SkipAirburstCheck = 0x467CDE, SkipSnapFunc = 0x467E53 };
@@ -29,9 +31,12 @@ ASMJIT_PATCH(0x467CCA, BulletClass_AI_TargetSnapChecks, 0x6) //was C
 
 ASMJIT_PATCH(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 {
-	enum { SkipAirburstChecks = 0x468E7B, SkipCoordFunc = 0x468E9F };
+	enum { SkipAirburstChecks = 0x468E7B, SkipCoordFunc = 0x468E9F, SkipChecks = 0x468FF4 };
 
 	GET(FakeBulletClass*, pThis, ESI);
+
+	if (pThis == ScenarioExtData::Instance()->MasterDetonationBullet)
+		return SkipChecks;
 
 	retfunc_fixed nRet(R, SkipAirburstChecks, pThis->Type);
 
@@ -61,9 +66,16 @@ ASMJIT_PATCH(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 
 ASMJIT_PATCH(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 {
-	enum { SkipInitialChecks = 0x468EC7, SkipSetCoordinate = 0x468F23 };
+	enum {
+		SkipInitialChecks = 0x468EC7,
+		SkipSetCoordinate = 0x468F23,
+		SkipChecks = 0x468FF4
+	};
 
 	GET(FakeBulletClass*, pThis, ESI);
+
+	if (pThis == ScenarioExtData::Instance()->MasterDetonationBullet)
+		return SkipChecks;
 
 	// Do not require EMEffect=no & Airburst=no to check target coordinate snapping for Inviso projectiles.
 	if (pThis->Type->Inviso)

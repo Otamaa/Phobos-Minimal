@@ -193,6 +193,11 @@ public:
 	void PointerGotInvalid(AbstractClass* pInvalid, bool removed)
 		{ JMP_THIS(0x678850); }
 
+	HRESULT Load(IStream* pStm)
+		{ JMP_THIS(0x674730); }
+
+	HRESULT Save(IStream* pStm)
+		{ JMP_THIS(0x675210); }
 
 	//CTOR / DTOR
 protected:

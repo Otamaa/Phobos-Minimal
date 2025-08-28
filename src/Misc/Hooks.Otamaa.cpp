@@ -2026,6 +2026,9 @@ ASMJIT_PATCH(0x73D4DA, UnitClass_Harvest_VeinsStorageAmount, 0x6)
 	GET(FakeCellClass*, pCell, EBP);
 
 	auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+	if (storage->m_values.empty())
+		storage->m_values.resize(TiberiumClass::Array->Count);
+
 	double amount = 1.0;
 
 	if (pThis->Type->Weeder)

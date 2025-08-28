@@ -128,8 +128,10 @@ namespace Savegame
 	{
 		bool ret = Stm.Load(Value);
 
-		if (RegisterForChange)
-			Swizzle swizzle(Value);
+		if constexpr (std::is_pointer<T>::value) {
+			if (RegisterForChange)
+				PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(Value, PhobosCRT::GetTypeIDName<T>().c_str());
+		}
 
 		return ret;
 	}
@@ -800,7 +802,7 @@ namespace Savegame
 				return false;
 
 			if (RegisterForChange)
-				Swizzle swizzle(Value.Type);
+				PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(Value.Type, "RocketStruct::AircraftType")
 
 			return true;
 		}
@@ -821,7 +823,7 @@ namespace Savegame
 				return false;
 
 			if (RegisterForChange)
-				Swizzle swizzle(Value.CurrentFactory);
+				PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(Value.CurrentFactory, "BuildType::Factory")
 
 			return true;
 		}

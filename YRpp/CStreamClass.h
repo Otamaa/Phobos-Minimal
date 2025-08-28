@@ -52,8 +52,8 @@ public:
 	CStreamClass() JMP_THIS(0x4A2820);
 	virtual ~CStreamClass() JMP_THIS(0x4A2880);
 
-	NAKEDNOINLINE HRESULT Compress(void* in_buffer, ULONG length) { JMP(0x4A3020); }
-	NAKEDNOINLINE HRESULT Compress() { JMP(0x4A30E0); }
+	HRESULT Compress(void* in_buffer, ULONG length) { JMP_THIS(0x4A3020); }
+	HRESULT Compress() { JMP_THIS(0x4A30E0); }
 
 private:
 	IStreamPtr field_8;

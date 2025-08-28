@@ -30,24 +30,18 @@ public:
 	static COMPILETIMEEVAL reference<SwizzleManagerClass, 0xB0C110u> const Instance{};
 
 	//IUnknown
-	virtual HRESULT __stdcall QueryInterface(REFIID iid, void** ppvObject) override R0;
-
-	virtual ULONG __stdcall AddRef() override R0;
-	virtual ULONG __stdcall Release() override R0;
+	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj);
+	IFACEMETHOD_(ULONG, AddRef)();
+	IFACEMETHOD_(ULONG, Release)();
 
 	//ISwizzle
-	virtual HRESULT __stdcall Reset() override R0;
-
-	virtual HRESULT __stdcall Swizzle(void** pointer) override R0;
-
-	virtual HRESULT __stdcall Fetch_Swizzle_ID(void* pointer, LONG* id) const override R0;
-
-	virtual HRESULT __stdcall Here_I_Am(long id, void* pointer) override R0;
-
-	virtual HRESULT __stdcall Save_Interface(IStream* stream, IUnknown* pointer) override R0;
-	virtual HRESULT __stdcall Load_Interface(IStream* stream, GUID* riid, void** pointer) override R0;
-
-	virtual HRESULT __stdcall Get_Save_Size(LONG* psize) const override R0;
+	STDMETHOD_(LONG, Reset)()override R0;
+	STDMETHOD_(LONG, Swizzle)(void** pointer) override R0;
+	STDMETHOD_(LONG, Fetch_Swizzle_ID)(void* pointer, LONG* id) override R0;
+	STDMETHOD_(LONG, Here_I_Am)(LONG id, void* pointer)  override R0;
+	STDMETHOD(Save_Interface)(IStream* stream, IUnknown* pointer) override R0;
+	STDMETHOD(Load_Interface)(IStream* stream, CLSID* riid, void** pointer)override R0;
+	STDMETHOD_(LONG, Get_Save_Size)(LONG* size) override R0;
 
 	//DTOR
 	virtual ~SwizzleManagerClass() RX;
