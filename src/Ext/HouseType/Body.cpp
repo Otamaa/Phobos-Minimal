@@ -6,7 +6,7 @@
 
 void HouseTypeExtData::Initialize()
 {
-	const char* pID = this->AttachedToObject->ID;
+	const char* pID = This()->ID;
 
 	COMPILETIMEEVAL static char const* const countries[] = {
 		"Americans",
@@ -184,7 +184,7 @@ void HouseTypeExtData::Initialize()
 		break;
 	}
 
-	switch (this->AttachedToObject->SideIndex)
+	switch (This()->SideIndex)
 	{
 	case 0:
 		this->LoadTextColor = ColorScheme::FindIndex("AlliedLoad");
@@ -253,9 +253,9 @@ void HouseTypeExtData::InheritSettings(HouseTypeClass* pThis)
 	this->SettingsInherited = true;
 }
 
-void HouseTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool HouseTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
 	if (!this->SettingsInherited
@@ -266,7 +266,7 @@ void HouseTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 
@@ -305,10 +305,12 @@ void HouseTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 	this->BattlePoints_CanUseStandardPoints.Read(exINI, pSection, "BattlePoints.CanUseStandardPoints");
+
+	return true;
 }
 
 void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
 	INI_EX exINI(pINI);
@@ -410,7 +412,7 @@ Iterator<BuildingTypeClass*> HouseTypeExtData::GetPowerplants() const
 Iterator<BuildingTypeClass*> HouseTypeExtData::GetDefaultPowerplants() const
 {
 	BuildingTypeClass** ppPower = nullptr;
-	switch (this->AttachedToObject->SideIndex)
+	switch (This()->SideIndex)
 	{
 	case 0:
 		ppPower = &RulesClass::Instance->GDIPowerPlant;
@@ -451,7 +453,6 @@ template <typename T>
 void  HouseTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->SettingsInherited)
 
 		.Process(this->SurvivorDivisor)
@@ -506,101 +507,36 @@ void  HouseTypeExtData::Serialize(T& Stm)
 // container
 
 HouseTypeExtContainer HouseTypeExtContainer::Instance;
+std::vector<HouseTypeExtData*> Container<HouseTypeExtData>::Array;
 
-bool HouseTypeExtContainer::Load(HouseTypeClass* key, IStream* pStm)
-{
-	if (!key)
-		return false;
-
-	auto ptr = HouseTypeExtContainer::Instance.Map.get_or_default(key);
-
-	if (!ptr) {
-		ptr = HouseTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
-	}
-
-	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, ptr);
-
-	PhobosByteStream loader { 0 };
-	if (loader.ReadBlockFromStream(pStm))
-	{
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(HouseTypeExtData::Canary)
-			&& reader.RegisterChange(ptr))
-		{
-			ptr->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-			{
-				return true;
-			}
-		}
-	}
-
-
-	return false;
-}
 // =============================
 // container hooks
-
 
 ASMJIT_PATCH(0x511643, HouseTypeClass_CTOR, 0x5)
 {
 	GET(HouseTypeClass*, pItem, EAX);
 
-	auto ptr = HouseTypeExtContainer::Instance.Map.get_or_default(pItem);
-
-	if (!ptr) {
-		ptr = HouseTypeExtContainer::Instance.Map.insert_unchecked(pItem,
-			  HouseTypeExtContainer::Instance.AllocateUnchecked(pItem));
-	}
-
-	HouseTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	HouseTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
+	HouseTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x511635, HouseTypeClass_CTOR, 0x5)
+
+ASMJIT_PATCH(0x51168F, HouseTypeClass_CTOR_NoInit, 0x7)
+{
+	GET(HouseTypeClass*, pItem, ESI);
+
+	HouseTypeExtContainer::Instance.AllocateNoInit(pItem);
+	return 0x0;
+}
+
 
 ASMJIT_PATCH(0x5127CF, HouseTypeClass_DTOR, 0x6)
 {
 	GET(HouseTypeClass*, pItem, ESI);
 
-	auto extData = HouseTypeExtContainer::Instance.GetExtAttribute(pItem);
-	HouseTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	HouseTypeExtContainer::Instance.Map.erase(pItem);
-	if(extData)
-		DLLCallDTOR(extData);
-
+	HouseTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeHouseTypeClass::_Load(IStream* pStm)
-{
-
-	HouseTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->HouseTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		HouseTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeHouseTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	HouseTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->HouseTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		HouseTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB6C, FakeHouseTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB70, FakeHouseTypeClass::_Save)
 
 ASMJIT_PATCH(0x51214F, HouseTypeClass_LoadFromINI, 0x5)
 {

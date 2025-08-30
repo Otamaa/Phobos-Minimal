@@ -43,7 +43,7 @@ const ConvertClass* BulletTypeExtData::GetBulletConvert()
 	else
 	{
 		ConvertClass* pConvert = nullptr;
-		if (const auto pAnimType = AnimTypeClass::Find(this->AttachedToObject->ImageFile)) {
+		if (const auto pAnimType = AnimTypeClass::Find(This()->ImageFile)) {
 			if(const auto pConvertData = AnimTypeExtContainer::Instance.Find(pAnimType)->Palette.GetConvert()){
 				pConvert = pConvertData;
 			}
@@ -93,7 +93,7 @@ BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass
 {
 	damage = (int)(TechnoExtData::GetDamageMult(pOwner , damage , !addDamage));
 
-	auto pBullet = this->AttachedToObject->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
+	auto pBullet = This()->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
 
 	if (pBullet)
 	{
@@ -107,9 +107,12 @@ BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass
 // =============================
 // load / save
 
-void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = This();
 	auto pArtInI = &CCINIClass::INI_Art;
 
 	const char* pSection = pThis->ID;
@@ -230,13 +233,14 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->Trails.Read(exArtINI, pArtSection, false);
 		}
 	}
+
+	return true;
 }
 
 template <typename T>
 void BulletTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Health)
 		.Process(this->Armor)
 		.Process(this->Interceptable)
@@ -324,6 +328,7 @@ void BulletTypeExtData::Serialize(T& Stm)
 // container
 
 BulletTypeExtContainer BulletTypeExtContainer::Instance;
+std::vector<BulletTypeExtData*> Container<BulletTypeExtData>::Array;
 
 bool BulletTypeExtContainer::Load(BulletTypeClass* key, IStream* pStm)
 {

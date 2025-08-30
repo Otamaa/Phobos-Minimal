@@ -373,7 +373,7 @@ public:
 	CDTimerClass GoingToBlowTimer;  // used for warhead DelayKill and also C4
 	BStateType BState;
 	BStateType QueueBState;
-	DWORD OwnerCountryIndex;
+	int OwnerCountryIndex;
 	InfantryClass* C4AppliedBy;
 	DWORD LastStrength; //544
 	AnimClass* FirestormAnim; //pointer

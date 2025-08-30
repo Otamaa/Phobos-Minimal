@@ -12,23 +12,6 @@
 
 #include <Misc/Hooks.Otamaa.h>
 
-void BuildingExtData::InitializeConstant()
-{
-	FakeHouseClass* pHouse = (FakeHouseClass*)this->AttachedToObject->Owner;
-
-	this->MyPrismForwarding = std::make_unique<PrismForwarding>();
-	this->MyPrismForwarding->Owner = this->AttachedToObject;
-	this->TechnoExt = TechnoExtContainer::Instance.Find(this->AttachedToObject);
-	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
-	this->Type = pTypeExt;
-
-	if(!pTypeExt->DamageFire_Offs.empty())
-		this->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
-
-	pHouse->_GetExtData()->TunnelsBuildings.emplace(this->AttachedToObject);
-
-}
-
 void BuildingExtData::UpdateMainEvaVoice()
 {
 	auto const pTypeExt = this->Type;
@@ -36,7 +19,7 @@ void BuildingExtData::UpdateMainEvaVoice()
 	if (!pTypeExt->NewEvaVoice || !pTypeExt->NewEvaVoice_Index.isset())
 		return;
 
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	auto const pHouse = pThis->Owner;
 	int newPriority = -1;
@@ -286,7 +269,7 @@ void BuildingExtData::DisplayIncomeString()
 	if (this->Type->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) &&
 		this->AccumulatedIncome && Unsorted::CurrentFrame % 15 == 0)
 	{
-		if(!RulesExtData::Instance()->DisplayIncome_AllowAI && !this->AttachedToObject->Owner->IsControlledByHuman())
+		if(!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman())
 		{
 			this->AccumulatedIncome = 0;
 			return;
@@ -295,9 +278,9 @@ void BuildingExtData::DisplayIncomeString()
 		FlyingStrings::AddMoneyString(
 			this->AccumulatedIncome,
 			this->AccumulatedIncome,
-			this->AttachedToObject,
+			This(),
 			this->Type->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
-			this->AttachedToObject->GetRenderCoords(),
+			This()->GetRenderCoords(),
 			this->Type->DisplayIncome_Offset
 		);
 
@@ -307,9 +290,9 @@ void BuildingExtData::DisplayIncomeString()
 
 void BuildingExtData::UpdatePoweredKillSpawns() const
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = (BuildingClass*)this->AttachedToObject;
 
-	if (this->Type->Type->Powered_KillSpawns &&
+	if (this->Type->Powered_KillSpawns &&
 		pThis->Type->Powered &&
 		!pThis->IsPowerOnline())
 	{
@@ -332,7 +315,7 @@ void BuildingExtData::UpdatePoweredKillSpawns() const
 
 void BuildingExtData::UpdateSpyEffecAnimDisplay()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 	auto const nMission = pThis->GetCurrentMission();
 
 	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID != -1 || nMission == Mission::Selling)
@@ -360,7 +343,7 @@ void BuildingExtData::UpdateSpyEffecAnimDisplay()
 
 void BuildingExtData::UpdateAutoSellTimer()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = (BuildingClass*)this->AttachedToObject;
 	auto const nMission = pThis->GetCurrentMission();
 
 	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID != -1 || nMission == Mission::Selling)
@@ -452,7 +435,7 @@ bool BuildingExtData::RubbleYell(bool beingRepaired) const
 		return true;
 	};
 
-	auto currentBuilding = AttachedToObject;
+	auto currentBuilding = (BuildingClass*)AttachedToObject;
 	auto pTypeData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
 	if (beingRepaired)
 	{
@@ -469,7 +452,6 @@ bool BuildingExtData::RubbleYell(bool beingRepaired) const
 	}
 }
 
-//unused ?
 bool BuildingExtData::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pInfiltratorHouse)
 {
 	if (!BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->SpyEffect_Custom)
@@ -483,7 +465,7 @@ bool BuildingExtData::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pIn
 
 bool BuildingExtData::HasSuperWeapon(const int index, const bool withUpgrades) const
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = (BuildingClass*)this->AttachedToObject;
 
 	for (auto i = 0; i < this->Type->GetSuperWeaponCount(); ++i) {
 		if (this->Type->GetSuperWeaponIndex(i, pThis->Owner) == index) {
@@ -516,6 +498,8 @@ CoordStruct BuildingExtData::GetCenterCoords(BuildingClass* pBuilding, bool incl
 
 void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
+	this->TechnoExtData::InvalidatePointer(ptr, bRemoved);
+
 	AnnounceInvalidPointer(this->CurrentAirFactory, ptr , bRemoved);
 	AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
 
@@ -551,26 +535,26 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	if (pOwner->ProducingAircraftTypeIndex < 0)
 		return;
 
-	auto BuildingExt = BuildingExtContainer::Instance.Find(pThis);
+	auto pBldExt = BuildingExtContainer::Instance.Find(pThis);
 	AircraftTypeClass* pAircraft = AircraftTypeClass::Array->Items[pOwner->ProducingAircraftTypeIndex];
 	FactoryClass* currFactory = pOwner->GetFactoryProducing(pAircraft);
-	airFactoryBuilding.clear();
-	airFactoryBuilding.reserve(pOwner->Buildings.Count);
+	pBldExt->airFactoryBuilding.clear();
+	pBldExt->airFactoryBuilding.reserve(pOwner->Buildings.Count);
 	BuildingClass* newBuilding = nullptr;
 
 	// Update what is the current air factory for future comparisons
-	if (BuildingExt->CurrentAirFactory)
+	if (pBldExt->CurrentAirFactory)
 	{
 		int nDocks = 0;
-		if (BuildingExt->CurrentAirFactory->Type)
-			nDocks = BuildingExt->CurrentAirFactory->Type->NumberOfDocks;
+		if (pBldExt->CurrentAirFactory->Type)
+			nDocks = pBldExt->CurrentAirFactory->Type->NumberOfDocks;
 
-		int nOccupiedDocks = BuildingExtData::CountOccupiedDocks(BuildingExt->CurrentAirFactory);
+		int nOccupiedDocks = BuildingExtData::CountOccupiedDocks(pBldExt->CurrentAirFactory);
 
 		if (nOccupiedDocks < nDocks)
-			currFactory = BuildingExt->CurrentAirFactory->Factory;
+			currFactory = pBldExt->CurrentAirFactory->Factory;
 		else
-			BuildingExt->CurrentAirFactory = nullptr;
+			pBldExt->CurrentAirFactory = nullptr;
 	}
 
 	// Obtain a list of air factories for optimizing the comparisons
@@ -591,21 +575,21 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 			if (!currFactory && pBuilding->Factory)
 				currFactory = pBuilding->Factory;
 
-			airFactoryBuilding.push_back(pBuilding);
+			pBldExt->airFactoryBuilding.push_back(pBuilding);
 		}
 	}
 
-	if (BuildingExt->CurrentAirFactory)
+	if (pBldExt->CurrentAirFactory)
 	{
-		for (auto& pBuilding : airFactoryBuilding)
+		for (auto& pBuilding : pBldExt->airFactoryBuilding)
 		{
 			if (!pBuilding->IsAlive)
 				continue;
 
-			if (pBuilding == BuildingExt->CurrentAirFactory)
+			if (pBuilding == pBldExt->CurrentAirFactory)
 			{
-				BuildingExt->CurrentAirFactory->Factory = currFactory;
-				BuildingExt->CurrentAirFactory->IsPrimaryFactory = true;
+				pBldExt->CurrentAirFactory->Factory = currFactory;
+				pBldExt->CurrentAirFactory->IsPrimaryFactory = true;
 			}
 			else
 			{
@@ -622,7 +606,7 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	if (!currFactory)
 		return;
 
-	for (auto& pBuilding : airFactoryBuilding)
+	for (auto& pBuilding : pBldExt->airFactoryBuilding)
 	{
 		if (!pBuilding->IsAlive)
 			continue;
@@ -637,7 +621,7 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 				newBuilding = pBuilding;
 				newBuilding->Factory = currFactory;
 				newBuilding->IsPrimaryFactory = true;
-				BuildingExt->CurrentAirFactory = newBuilding;
+				pBldExt->CurrentAirFactory = newBuilding;
 
 				continue;
 			}
@@ -844,24 +828,24 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		}
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->TechnoExt->Shield.release();
-		pBuildingExt->TechnoExt->Trails.clear();
-		pBuildingExt->TechnoExt->RevengeWeapons.clear();
-		pBuildingExt->TechnoExt->DamageSelfState.release();
-		pBuildingExt->TechnoExt->MyGiftBox.release();
-		pBuildingExt->TechnoExt->PaintBallStates.clear();
-		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
-		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
-		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();
+		pBuildingExt->Shield.release();
+		pBuildingExt->Trails.clear();
+		pBuildingExt->RevengeWeapons.clear();
+		pBuildingExt->DamageSelfState.release();
+		pBuildingExt->MyGiftBox.release();
+		pBuildingExt->PaintBallStates.clear();
+		pBuildingExt->ExtraWeaponTimers.clear();
+		pBuildingExt->MyWeaponManager.Clear();
+		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
 
 		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
 		{
-			KillMethod nMethod = pBuildingExt->Type->Type->Death_Method.Get();
+			KillMethod nMethod = pBuildingExt->Type->Death_Method.Get();
 
 			if (nMethod != KillMethod::None) {
 
-				if(pBuildingExt->Type->Type->Death_Countdown > 0)
-					pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
+				if(pBuildingExt->Type->Death_Countdown > 0)
+					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
 
 				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
@@ -1650,14 +1634,12 @@ template <typename T>
 void BuildingExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-		.Process(this->Type, true)
-		.Process(this->TechnoExt, true)
+		.Process(this->Type)
 		.Process(this->MyPrismForwarding)
 		.Process(this->DeployedTechno)
 		.Process(this->LimboID)
 		.Process(this->GrindingWeapon_LastFiredFrame)
-		.Process(this->CurrentAirFactory, true)
+		.Process(this->CurrentAirFactory)
 		.Process(this->AccumulatedIncome)
 		.Process(this->IsCreatedFromMapFile)
 		.Process(this->DamageFireAnims)
@@ -1665,25 +1647,26 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->LighningNeedUpdate)
 		.Process(this->TogglePower_HasPower)
 		.Process(this->C4Damage)
-		.Process(this->C4Owner, true)
-		.Process(this->C4Warhead, true)
+		.Process(this->C4Owner)
+		.Process(this->C4Warhead)
 		.Process(this->Silent)
-		.Process(this->ReceiveDamageWarhead, true)
+		.Process(this->ReceiveDamageWarhead)
 		.Process(this->DockReloadTimers)
-		.Process(this->OwnerBeforeRaid, true)
+		.Process(this->OwnerBeforeRaid)
 		.Process(this->CashUpgradeTimers)
 		.Process(this->SensorArrayActiveCounter)
 		.Process(this->SecretLab_Placed)
 		.Process(this->AboutToChronoshift)
 		.Process(this->IsFromSW)
-		.Process(this->RegisteredJammers, true)
+		.Process(this->RegisteredJammers)
 		.Process(this->GrindingWeapon_AccumulatedCredits)
 		.Process(this->BeignMCEd)
 		.Process(this->LastFlameSpawnFrame)
-		.Process(this->SpyEffectAnim, true)
+		.Process(this->SpyEffectAnim)
 		.Process(this->SpyEffectAnimDuration)
 		.Process(this->PoweredUpToLevel)
-		.Process(this->FactoryBuildingMe, true)
+		.Process(this->FactoryBuildingMe)
+		.Process(this->airFactoryBuilding)
 		;
 }
 
@@ -1693,11 +1676,17 @@ BuildingExtContainer BuildingExtContainer::Instance;
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x43BCBD, BuildingClass_CTOR, 0x6)
+ASMJIT_PATCH(0x43BAD6, BuildingClass_CTOR, 0x5)
 {
 	GET(BuildingClass*, pItem, ESI);
-
 	BuildingExtContainer::Instance.Allocate(pItem);
+	return 0;
+}
+
+ASMJIT_PATCH(0x43B733, BuildingClass_CTOR, 0x7)
+{
+	GET(BuildingClass*, pItem, ESI);
+	BuildingExtContainer::Instance.AllocateNoInit(pItem);
 	return 0;
 }
 
@@ -1715,33 +1704,6 @@ ASMJIT_PATCH(0x43C022, BuildingClass_DTOR, 0x6)
 	BuildingExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-HRESULT __stdcall FakeBuildingClass::_Load(IStream* pStm)
-{
-
-	BuildingExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BuildingClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		BuildingExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeBuildingClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	BuildingExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BuildingClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		BuildingExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)
 
 void FakeBuildingClass::_Detach(AbstractClass* target , bool all) {
 	BuildingExtContainer::Instance.InvalidatePointerFor(this, target, all);

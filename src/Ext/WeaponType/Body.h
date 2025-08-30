@@ -3,7 +3,7 @@
 #include <WeaponTypeClass.h>
 #include <DiskLaserClass.h>
 
-#include <Utilities/TemplateDef.h>
+#include <Ext/AbstractType/Body.h>
 
 #include <New/Type/RadTypeClass.h>
 #include <New/Type/CursorTypeClass.h>
@@ -17,14 +17,11 @@
 #include <Misc/DynamicPatcher/Weapon/AttachFireData.h>
 
 
-class WeaponTypeExtData final
+class WeaponTypeExtData final : public AbstractTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x23222222;
 	using base_type = WeaponTypeClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
 #pragma region ClassMember
@@ -200,11 +197,46 @@ public:
 
 	Valueable<bool> OnlyAttacker { false };
 #pragma endregion
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+public:
 	void Initialize();
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+	WeaponTypeExtData(WeaponTypeClass* pObj) : AbstractTypeExtData(pObj) {
+		this->Initialize ();
+	}
+
+	WeaponTypeExtData(WeaponTypeClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
+
+	virtual ~WeaponTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<WeaponTypeExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
+		const_cast<WeaponTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->AbstractTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual WeaponTypeClass* This() const override { return reinterpret_cast<WeaponTypeClass*>(this->AbstractTypeExtData::This()); }
+	virtual const WeaponTypeClass* This_Const() const override { return reinterpret_cast<const WeaponTypeClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { }
+
+public:
 
 	bool OPTIONALINLINE IsWave() const
 	{
@@ -221,12 +253,6 @@ public:
 	bool HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoClass* pFirer);
 	bool IsHealthInThreshold(ObjectClass* pTarget) const;
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(WeaponTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -254,13 +280,12 @@ class WeaponTypeExtContainer final :public Container<WeaponTypeExtData>
 public:
 	static WeaponTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(WeaponTypeExtContainer, WeaponTypeExtData, "WeaponTypeClass");
-
-public:
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
+
+	virtual bool WriteDataToTheByteStream(WeaponTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(WeaponTypeExtData::base_type* key, IStream* pStm) { };
 };
 
 class BulletTypeExtData;

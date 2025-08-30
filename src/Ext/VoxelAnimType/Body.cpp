@@ -5,13 +5,16 @@ void VoxelAnimTypeExtData::Initialize(){
 	SplashList.reserve(RulesClass::Instance->SplashList.Count);
 }
 
-void VoxelAnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool VoxelAnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pID = this->AttachedToObject->ID;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	const char* pID = this->This()->ID;
 	INI_EX exINI(pINI);
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
 	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
@@ -27,6 +30,8 @@ void VoxelAnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->TrailerAnim_SpawnDelay.Read(exINI, pID, "Trailer.SpawnDelay");
 	this->Trails.Read(exINI, pID, false);
 #pragma endregion
+
+	return true;
 }
 
 // =============================
@@ -35,7 +40,6 @@ template <typename T>
 void VoxelAnimTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(Initialized)
 		.Process(LaserTrail_Types)
 		.Process(SplashList)
 		.Process(SplashList_Pickrandom)
@@ -53,6 +57,7 @@ void VoxelAnimTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 VoxelAnimTypeExtContainer VoxelAnimTypeExtContainer::Instance;
+std::vector<VoxelAnimTypeExtData*> Container<VoxelAnimTypeExtData>::Array;
 
 ASMJIT_PATCH(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
 {
@@ -69,34 +74,6 @@ ASMJIT_PATCH(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
 
 	return 0;
 }
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeVoxelAnimTypeClass::_Load(IStream* pStm)
-{
-
-	VoxelAnimTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->VoxelAnimTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		VoxelAnimTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeVoxelAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	VoxelAnimTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->VoxelAnimTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		VoxelAnimTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F655C, FakeVoxelAnimTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6560, FakeVoxelAnimTypeClass::_Save)
 
 ASMJIT_PATCH(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
 {

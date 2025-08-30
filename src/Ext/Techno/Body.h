@@ -39,6 +39,8 @@
 #include <TemporalClass.h>
 #include <EBolt.h>
 
+#include <Ext/Radio/Body.h>
+
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
@@ -586,19 +588,13 @@ private:
 	}
 };
 
-class TechnoExtData
+class TechnoExtData : public RadioExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x22365555;
 	using base_type = TechnoClass;
-
-	//static COMPILETIMEEVAL size_t ExtOffset = 0x4FC;
-	static COMPILETIMEEVAL size_t ExtOffset = 0x154; //ares
-	//static COMPILETIMEEVAL size_t ExtOffset = 0x34C;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region ClassMembers
 	TechnoTypeClass* Type { nullptr }; //original Type pointer
 	OptionalStruct<AbstractType, true> AbsType {};
 
@@ -646,7 +642,7 @@ public:
 	HouseClass* OriginalPassengerOwner { nullptr };
 
 	bool IsInTunnel { false };
-	bool IsBurrowed { false } ;
+	bool IsBurrowed { false };
 	CDTimerClass DeployFireTimer {};
 	CDTimerClass DisableWeaponTimer {};
 
@@ -670,7 +666,7 @@ public:
 
 	HelperedVector<UniversalTrail> Trails {};
 	std::unique_ptr<GiftBox> MyGiftBox {};
-	PhobosMap<WarheadTypeClass* , PaintBall> PaintBallStates {};
+	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates {};
 	std::unique_ptr<DamageSelfState> DamageSelfState {};
 
 	int CurrentWeaponIdx { -1 };
@@ -762,7 +758,7 @@ public:
 	int DelayedFireWeaponIndex { -1 };
 	CDTimerClass DelayedFireTimer {};
 	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim { nullptr };
-	std::optional<CoordStruct> CustomFiringOffset  {}; // If set any calls to GetFLH() will use this coordinate as
+	std::optional<CoordStruct> CustomFiringOffset {}; // If set any calls to GetFLH() will use this coordinate as
 
 	WeaponTypeClass* LastWeaponType { nullptr };
 	HelperedVector<EBolt*> ElectricBolts {};
@@ -779,7 +775,16 @@ public:
 
 	bool IsSelected {};
 
-	~TechnoExtData()
+#pragma endregion
+
+public:
+
+	TechnoExtData(TechnoClass* abs) : RadioExtData(abs)
+	{ };
+
+	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) { };
+
+	virtual ~TechnoExtData()
 	{
 		if (!Phobos::Otamaa::ExeTerminated)
 		{
@@ -792,9 +797,32 @@ public:
 		this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 		this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 		this->ClearElectricBolts();
- 	}
+	}
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->RadioExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const override
+	{
+		this->RadioExtData::SaveToStream(Stm);
+		const_cast<TechnoExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual TechnoClass* This() const override { return reinterpret_cast<TechnoClass*>(RadioExtData::This()); }
+	virtual const TechnoClass* This_Const() const override { return reinterpret_cast<const TechnoClass*>(RadioExtData::This_Const()); }
+
+	virtual void CalculateCRC(CRCEngine& crc) const override {
+		this->RadioExtData::CalculateCRC(crc);
+	}
+
+public:
 
 	FORCEDINLINE ShieldClass* GetShield() const {
 		return this->Shield.get();
@@ -810,13 +838,6 @@ public:
 		this->ElectricBolts.clear();
 	}
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) {
-		this->Serialize(Stm);
-	}
-
-	void InitializeConstant();
-
 	bool CheckDeathConditions();
 	bool UpdateKillSelf_Slave();
 	void UpdateGattlingRateDownReset();
@@ -825,7 +846,6 @@ public:
 
 	void UpdateGattlingOverloadDamage();
 	void UpdateOnTunnelEnter();
-	void InitFunctionEvents();
 
 	void UpdateShield();
 	void UpdateType(TechnoTypeClass* currentType);
@@ -847,7 +867,6 @@ public:
 	bool IsInterceptor();
 	void CreateInitialPayload(bool forced = false);
 
-	static void InitializeUnitIdleAction(TechnoClass* pThis , TechnoTypeClass* pType);
 	void StopIdleAction();
 	void ApplyIdleAction();
 	void ManualIdleAction();
@@ -861,15 +880,11 @@ public:
 	bool ContainFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker) const;
 	int FindFirer(WeaponTypeClass* const Weapon) const;
 
-	static bool HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int weaponIndex, int firingFrame);
+public:
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TechnoExtData) -
-			(4u //AttachedToObject
-			+ 4u //DamageNumberOffset
-			 );
-	}
+	static void InitializeUnitIdleAction(TechnoClass* pThis, TechnoTypeClass* pType);
+
+	static bool HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int weaponIndex, int firingFrame);
 
 	static bool FORCEDINLINE IsOnBridge(FootClass* pUnit)
 	{
@@ -1118,35 +1133,31 @@ class TechnoExtContainer final : public Container<TechnoExtData>
 {
 public:
 	static TechnoExtContainer Instance;
-	static StaticObjectPool<TechnoExtData, 10000> pools;
-
-	TechnoExtData* AllocateUnchecked(TechnoClass* key)
+	static void Clear()
 	{
-		TechnoExtData* val = pools.allocate();
+		Array.clear();
+	}
 
-		if (val) {
-			val->AttachedToObject = key;
-			if (!Phobos::Otamaa::DoingLoadGame)
-				val->InitializeConstant();
-		} else {
-			Debug::FatalErrorAndExit("The amount of [TecnoExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
-
-		return val;
 	}
 
-	void Remove(TechnoClass* key)
-	{
-		if (TechnoExtData* Item = TryFind(key)) {
-			RemoveExtOf(key, Item);
-		}
-	}
-
-	void RemoveExtOf(TechnoClass* key, TechnoExtData* Item)
-	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
-	}
+	virtual bool WriteDataToTheByteStream(TechnoExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(TechnoExtData::base_type* key, IStream* pStm) { };
 };
 
 //we cannot inherit this

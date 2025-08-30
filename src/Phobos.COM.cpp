@@ -107,6 +107,24 @@ void RegisterFactoryForClass()
 	//CoTaskMemFree(str);
 }
 
+template<typename T>
+void RegisterForClass()
+{
+	IClassFactory* pFactory = GameCreate<TClassFactory<T>>();
+	DWORD dwRegister = 0;
+	CLSID clsid = __uuidof(T);
+	HRESULT hr = Imports::CoRegisterClassObject.invoke()(clsid, pFactory, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &dwRegister);
+
+	const std::string name = typeid(T).name();
+
+	if (FAILED(hr))
+		Debug::Log("CoRegisterClassObject for %s class factory failed with error code %s.\n", name.c_str(), GetLastError());
+	else
+		Debug::Log("Class factory for %s registered.\n", name.c_str());
+
+	Game::ClassFactories->AddItem((ULONG)dwRegister);
+}
+
 ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)
 {
 	Debug::Log("Starting COM registration...\n");

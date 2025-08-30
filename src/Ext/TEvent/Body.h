@@ -61,30 +61,53 @@ enum class PhobosTriggerEvent : int
 };
 
 class TechnoTypeClass;
-class TEventExtData final
+class TEventExtData final : public AbstractExtended
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x91919191;
 	using base_type = TEventClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
 	OptionalStruct<TechnoTypeClass*, false> TechnoType {};
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
+
+	TEventExtData(TEventClass* pObj) : AbstractExtended(pObj) { }
+	TEventExtData(TEventClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+
+	virtual ~TEventExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<TEventExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
+		const_cast<TEventExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+	}
+
+	virtual TEventClass* This() const override { return reinterpret_cast<TEventClass*>(this->AbstractExtended::This()); }
+	virtual const TEventClass* This_Const() const override { return reinterpret_cast<const TEventClass*>(this->AbstractExtended::This_Const()); }
+
+public:
 
 	// support
 	TechnoTypeClass* GetTechnoType();
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TEventExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 
 	template <typename T>
@@ -221,7 +244,6 @@ public:
 		}
 	}
 
-
 	static bool HousesAreDestroyedTEvent(TEventClass* pThis);
 	static bool HouseOwnsTechnoTypeTEvent(TEventClass* pThis);
 	static bool HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis);
@@ -246,7 +268,31 @@ class TEventExtContainer final : public Container<TEventExtData>
 public:
 	static TEventExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(TEventExtContainer, TEventExtData, "TEventClass");
+	static void Clear()
+	{
+		Array.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(TEventExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(TEventExtData::base_type* key, IStream* pStm) { };
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass

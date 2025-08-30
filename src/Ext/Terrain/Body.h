@@ -1,8 +1,6 @@
 #pragma once
 #include <TerrainClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
 #include <Utilities/Debug.h>
 #include <Utilities/Handle.h>
 
@@ -10,40 +8,72 @@
 #include <CellClass.h>
 #include <AnimClass.h>
 
-class TerrainExtData
+#include <Ext/Object/Body.h>
+
+class TerrainExtData final : public ObjectExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xE1E2E3E4;
 	using base_type = TerrainClass;
-	//static COMPILETIMEEVAL size_t ExtOffset = 0xD0;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
+#pragma region ClassMember
 	Handle<LightSourceClass*, UninitLightSource> LighSource { nullptr };
 	Handle<AnimClass*, UninitAnim> AttachedAnim { nullptr };
 	Handle<AnimClass*, UninitAnim> AttachedFireAnim { nullptr };
 	std::vector<CellStruct> Adjencentcells{};
+#pragma endregion
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
 
-	static bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain);
+	TerrainExtData(TerrainClass* pObj) : ObjectExtData(pObj) { }
+	TerrainExtData(TerrainClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+
+	virtual ~TerrainExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
+
+		if (this->LighSource.get() == ptr) {
+			this->LighSource.release();
+		}
+
+		if (this->AttachedAnim.get() == ptr) {
+			this->AttachedAnim.release();
+		}
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<TerrainExtData*>(this)->ObjectExtData::SaveToStream(Stm);
+		const_cast<TerrainExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectExtData::CalculateCRC(crc);
+	}
+
+	virtual TerrainClass* This() const override { return reinterpret_cast<TerrainClass*>(this->ObjectExtData::This()); }
+	virtual const TerrainClass* This_Const() const override { return reinterpret_cast<const TerrainClass*>(this->ObjectExtData::This_Const()); }
+
+public:
 
 	void InitializeLightSource();
 	void InitializeAnim();
 
-	~TerrainExtData();
+public:
+	static bool CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain);
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TerrainExtData) -
-			(4u //AttachedToObject
-			- 4u //inheritance
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -58,7 +88,31 @@ class TerrainExtContainer final : public Container<TerrainExtData>
 public:
 	static TerrainExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(TerrainExtContainer, TerrainExtData, "TerrainClass");
+	static void Clear()
+	{
+		Array.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(TerrainExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(TerrainExtData::base_type* key, IStream* pStm) { };
 };
 
 class TerrainTypeExtData;

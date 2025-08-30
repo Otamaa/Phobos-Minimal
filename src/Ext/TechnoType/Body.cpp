@@ -23,7 +23,7 @@ bool TechnoTypeExtData::SelectWeaponMutex = false;
 
 bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 
 	if (pThis->IsGattling)
 		return nWeaponIndex != 0 && nWeaponIndex % 2 != 0;
@@ -202,7 +202,7 @@ int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* const pThis, AbstractClass
 	if (!pTarget || !this->MultiWeapon.Get())
 		return -1;
 
-	const auto pType = this->AttachedToObject;
+	const auto pType = This();
 
 	if (pType->IsGattling || (pType->HasMultipleTurrets() && pType->Gunner))
 		return -1;
@@ -326,7 +326,7 @@ void TechnoTypeExtData::Initialize()
 	this->SellSound = RulesClass::Instance->SellSound;
 	auto Eva_ready = GameStrings::EVA_ConstructionComplete();
 	auto Eva_sold = GameStrings::EVA_StructureSold() ;
-	this->AttachtoType = this->AttachedToObject->WhatAmI();
+	this->AttachtoType = This()->WhatAmI();
 
 	if (this->AttachtoType != BuildingTypeClass::AbsID)
 	{
@@ -352,7 +352,7 @@ void TechnoTypeExtData::Initialize()
 
 void TechnoTypeExtData::CalculateSpawnerRange()
 {
-	auto pTechnoType = (FakeTechnoTypeClass*)this->AttachedToObject;
+	auto pTechnoType = (FakeTechnoTypeClass*)This();
 	int weaponRangeExtra = this->Spawn_LimitedExtraRange * Unsorted::LeptonsPerCell;
 
 	auto setWeaponRange = [](int& weaponRange, WeaponTypeClass* pWeaponType)
@@ -465,7 +465,7 @@ VoxelStruct* TechnoTypeExtData::GetTurretsVoxelFixedUp(TechnoTypeClass* const pT
 // Ares 0.A source
 const char* TechnoTypeExtData::GetSelectionGroupID() const
 {
-	return GeneralUtils::IsValidString(this->GroupAs) ? this->GroupAs : this->AttachedToObject->ID;
+	return GeneralUtils::IsValidString(this->GroupAs) ? this->GroupAs : This()->ID;
 }
 
 bool TechnoTypeExtData::IsGenericPrerequisite() const
@@ -488,7 +488,7 @@ bool TechnoTypeExtData::IsGenericPrerequisite() const
 			}
 
 			for(; alt_begin != alt_end; ++alt_begin){
-				if((*alt_begin) == this->AttachedToObject){
+				if((*alt_begin) == This()){
 					this->GenericPrerequisite = true;
 					return true;
 				}
@@ -616,7 +616,7 @@ void TechnoTypeExtData::ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSect
 		return;
 	}
 
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto WeaponCount = MaxImpl(pThis->WeaponCount, 0);
 
 	while (int(n.size()) > WeaponCount)
@@ -648,9 +648,12 @@ void TechnoTypeExtData::ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSect
 	}
 }
 
-void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = This();
 	const auto pArtIni = &CCINIClass::INI_Art();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = pThis->ImageFile;
@@ -1762,19 +1765,19 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->ForceWeapon_InRange_TechnoOnly.Read(exINI, pSection, "ForceWeapon.InRange.TechnoOnly");
 
 		if (!RefinerySmokeParticleSystemOne.isset()) {
-			RefinerySmokeParticleSystemOne = this->AttachedToObject->RefinerySmokeParticleSystem;
+			RefinerySmokeParticleSystemOne = This()->RefinerySmokeParticleSystem;
 		}
 
 		if (!RefinerySmokeParticleSystemTwo.isset()) {
-			RefinerySmokeParticleSystemTwo = this->AttachedToObject->RefinerySmokeParticleSystem;
+			RefinerySmokeParticleSystemTwo = This()->RefinerySmokeParticleSystem;
 		}
 
 		if (!RefinerySmokeParticleSystemThree.isset()) {
-			RefinerySmokeParticleSystemThree = this->AttachedToObject->RefinerySmokeParticleSystem;
+			RefinerySmokeParticleSystemThree = This()->RefinerySmokeParticleSystem;
 		}
 
 		if (!RefinerySmokeParticleSystemFour.isset()) {
-			RefinerySmokeParticleSystemFour = this->AttachedToObject->RefinerySmokeParticleSystem;
+			RefinerySmokeParticleSystemFour = This()->RefinerySmokeParticleSystem;
 		}
 
 		char tempBuffer[256];
@@ -1884,9 +1887,9 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				this->TiberiumEaterType->LoadFromINI(pINI, pSection);
 		}
 
-		if (this->AttachedToObject->Passengers > 0)
+		if (This()->Passengers > 0)
 		{
-			size_t passengers = this->AttachedToObject->Passengers + 1;
+			size_t passengers = This()->Passengers + 1;
 
 			if (this->Insignia_Passengers.empty() || this->Insignia_Passengers.size() != passengers)
 			{
@@ -2158,6 +2161,7 @@ void TechnoTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	if (GeneralUtils::IsValidString(pThis->PaletteFile) && !pThis->Palette)
 		Debug::Log("[Developer warning] [%s] has Palette=%s set but no palette file was loaded (missing file or wrong filename). Missing palettes cause issues with lighting recalculations.\n", pArtSection, pThis->PaletteFile);
 
+	return true;
 }
 
 void TechnoTypeExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
@@ -2177,8 +2181,8 @@ void TechnoTypeExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)
 
 void TechnoTypeExtData::InitializeConstant()
 {
-	this->AttachedEffect.Owner = this->AttachedToObject;
-	this->PassengerDeletionType.OwnerType = this->AttachedToObject;
+	this->AttachedEffect.Owner = This();
+	this->PassengerDeletionType.OwnerType = This();
 }
 
 ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
@@ -2220,7 +2224,7 @@ ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 
 void TechnoTypeExtData::AdjustCrushProperties()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	if (this->CrushLevel.Rookie <= 0)
 	{
@@ -2417,7 +2421,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		.Process(this->DefaultDisguise)
 		//;
 
-	//Debug::LogInfo("%s AboutToLoad WeaponFLhA" , this->AttachedToObject->ID);
+	//Debug::LogInfo("%s AboutToLoad WeaponFLhA" , This()->ID);
 	//Stm
 	//	.Process(this->WeaponBurstFLHs)
 	//	;
@@ -2772,6 +2776,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 		//.Process(this->BarrelImageData)
 		//.Process(this->TurretImageData)
 		//.Process(this->SpawnAltData)
+
 		.Process(this->WeaponUINameX)
 		.Process(this->NoShadowSpawnAlt)
 
@@ -3257,40 +3262,7 @@ void TechnoTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 TechnoTypeExtContainer TechnoTypeExtContainer::Instance;
-
-bool TechnoTypeExtContainer::Load(TechnoTypeClass* key, IStream* pStm)
-{
-	// this really shouldn't happen
-	if (!key)
-	{
-		//Debug::LogInfo("[LoadKey] Attempted for a null pointer! WTF!");
-		return false;
-	}
-
-	auto ptr = TechnoTypeExtContainer::Instance.Map.get_or_default(key);
-
-	if (!ptr) {
-		ptr = TechnoTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
-	}
-
-	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, ptr);
-
-	PhobosByteStream loader { 0 };
-	if (loader.ReadBlockFromStream(pStm))
-	{
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(TechnoTypeExtData::Canary)
-			&& reader.RegisterChange(ptr))
-		{
-			ptr->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-				return true;
-		}
-	}
-
-	return false;
-}
+std::vector<TechnoTypeExtData*> Container<TechnoTypeExtData>::Array;
 
 // =============================
 // container hooks
@@ -3299,55 +3271,23 @@ ASMJIT_PATCH(0x711835, TechnoTypeClass_CTOR, 0x5)
 {
 	GET(TechnoTypeClass* , pItem, ESI);
 
-	auto ptr = TechnoTypeExtContainer::Instance.Map.get_or_default(pItem);
-
-	if (!ptr) {
-		ptr = TechnoTypeExtContainer::Instance.Map.insert_unchecked(pItem,
-			  TechnoTypeExtContainer::Instance.AllocateUnchecked(pItem));
-	}
-
-	TechnoTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
-
+	TechnoTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
+
+ASMJIT_PATCH(0x711A67, TechnoTypeClass_CTOR_NoInt, 0x5)
+{
+	GET(TechnoTypeClass*, pItem, ESI);
+
+	TechnoTypeExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 
 ASMJIT_PATCH(0x711AE0, TechnoTypeClass_DTOR, 0x5)
 {
 	GET(TechnoTypeClass*, pItem, ECX);
-
-	auto extData = TechnoTypeExtContainer::Instance.GetExtAttribute(pItem);
-	TechnoTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	TechnoTypeExtContainer::Instance.Map.erase(pItem);
-	if(extData)
-		DLLCallDTOR(extData);
-
-	return 0;
-}
-
-
-ASMJIT_PATCH(0x7162F0, TechnoTypeClass_SaveLoad_Prefix, 0x6)
-{
-	GET_STACK(TechnoTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	TechnoTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x716DC0, TechnoTypeClass_SaveLoad_Prefix, 0x5)
-
-// S/L very early so we properly trigger `Load3DArt` without need to reconstruct the ExtData !
-
-ASMJIT_PATCH(0x716429, TechnoTypeClass_Load_Suffix, 0x6)
-{
-	TechnoTypeExtContainer::Instance.LoadStatic();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x716DDE, TechnoTypeClass_Save_Suffix, 0x6)
-{
-	TechnoTypeExtContainer::Instance.SaveStatic();
-
+	TechnoTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 

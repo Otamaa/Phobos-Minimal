@@ -218,6 +218,7 @@ void WaveExtData::Serialize(T& Stm)
 // =============================
 // container
 WaveExtContainer WaveExtContainer::Instance;
+std::vector<WaveExtData*> Container<WaveExtData>::Array;
 
 // =============================
 // container hooks
@@ -229,33 +230,6 @@ ASMJIT_PATCH(0x75EA66, WaveClass_CTOR, 0x5)
 	WaveExtContainer::Instance.FindOrAllocate(pItem);
 	return 0;
 }
-
-
-ASMJIT_PATCH(0x75F650, WaveClass_SaveLoad_Prefix, 0x6)
-{
-	GET_STACK(WaveClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	WaveExtContainer::Instance.PrepareStream(pItem, pStm);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x75F7D0, WaveClass_SaveLoad_Prefix, 0x5)
-
-//we load it before DVC<CellStruct> get loaded
-ASMJIT_PATCH(0x75F704, WaveClass_Load_Suffix, 0x7)
-{
-	WaveExtContainer::Instance.LoadStatic();
-	return 0;
-}
-
-//write it before DVC<CellStruct>
-ASMJIT_PATCH(0x75F7E7, WaveClass_Save_Suffix, 0x6)
-{
-	//GET(HRESULT, nRes, EAX);
-
-	WaveExtContainer::Instance.SaveStatic();
-
-	return 0;
-}
-
 
 ASMJIT_PATCH(0x763226, WaveClass_DTOR, 0x6)
 {

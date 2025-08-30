@@ -1176,7 +1176,8 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
-StaticObjectPool<TeamExtData, 10000> TeamExtContainer::pools;
+std::vector<TeamExtData*> Container<TeamExtData>::Array;
+
 // =============================
 // container hooks
 
@@ -1195,33 +1196,6 @@ ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 	TeamExtContainer::Instance.Remove(pThis);
 	return 0;
 }
-
-HRESULT __stdcall FakeTeamClass::_Load(IStream* pStm)
-{
-
-	TeamExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TeamClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		TeamExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	TeamExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TeamClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		TeamExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)
 
 ASMJIT_PATCH(0x6EAE60, TeamClass_Detach, 0x7)
 {

@@ -885,7 +885,7 @@ bool TechnoExtData::TryToCreateCrate(CoordStruct location, PowerupEffects select
 }
 
 void TechnoExtData::UpdateRecountBurst() {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pThis->CurrentBurstIndex && !pThis->Target && pTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst)) {
@@ -908,9 +908,10 @@ void TechnoExtData::UpdateRecountBurst() {
 
 void TechnoExtData::UpdateRearmInEMPState()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
+	const bool underEMP = pThis->IsUnderEMP();
 
-	if (!pThis->IsUnderEMP() && !pThis->Deactivated)
+	if (!underEMP && !pThis->Deactivated)
 		return;
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
@@ -924,7 +925,7 @@ void TechnoExtData::UpdateRearmInEMPState()
 
 void TechnoExtData::UpdateRearmInTemporal()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
 
 	if (pThis->RearmTimer.InProgress() && pTypeExt->NoRearm_Temporal.Get(RulesExtData::Instance()->NoRearm_Temporal))
@@ -940,7 +941,7 @@ void TechnoExtData::ResetDelayedFireTimer()
 	this->DelayedFireWeaponIndex = -1;
 
 	if (this->CurrentDelayedFireAnim) {
-		if (FakeAnimClass::GetExtAttribute(this->CurrentDelayedFireAnim)->DelayedFireRemoveOnNoDelay)
+		if (AnimExtContainer::Instance.Find(this->CurrentDelayedFireAnim)->DelayedFireRemoveOnNoDelay)
 			this->CurrentDelayedFireAnim.reset(nullptr);
 	}
 }
@@ -949,13 +950,13 @@ void TechnoExtData::CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIn
 {
 	if (pAnimType)
 	{
-		auto coords = this->AttachedToObject->GetCenterCoords();
+		auto coords = This()->GetCenterCoords();
 
 		if (useOffsetOverride)
 			this->CustomFiringOffset = offsetOverride;
 
 		if (!center)
-			this->AttachedToObject->GetFLH(&coords, weaponIndex, coords);
+			This()->GetFLH(&coords, weaponIndex, coords);
 
 		if (useOffsetOverride)
 			this->CustomFiringOffset.reset();
@@ -963,11 +964,11 @@ void TechnoExtData::CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIn
 		auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 
 		if (attach)
-			pAnim->SetOwnerObject(this->AttachedToObject);
+			pAnim->SetOwnerObject(This());
 
-		auto const pAnimExt = FakeAnimClass::GetExtAttribute(pAnim);
-		pAnim->Owner = this->AttachedToObject->Owner;
-		pAnimExt->Invoker = this->AttachedToObject;
+		auto const pAnimExt = AnimExtContainer::Instance.Find(pAnim);
+		pAnim->Owner = This()->Owner;
+		pAnimExt->Invoker = This();
 
 		if (attach)
 		{
@@ -1035,7 +1036,7 @@ void TechnoExtData::UpdateGattlingRateDownReset()
 {
 	if (this->Type->IsGattling)
 	{
-		const auto pThis = this->AttachedToObject;
+		const auto pThis = This();
 
 		if (TechnoTypeExtContainer::Instance.Find(this->Type)->RateDown_Reset
 				&& (!pThis->Target || this->LastTargetID != pThis->Target->UniqueID))
@@ -1198,8 +1199,8 @@ void TechnoExtData::TransferMindControlOnDeploy(TechnoClass* pTechnoFrom, Techno
 		if (auto Manager = Controller->CaptureManager)
 		{
 			const bool Succeeded =
-				CaptureExt::FreeUnit(Manager, pTechnoFrom, true)
-				&& CaptureExt::CaptureUnit(Manager, pTechnoTo, false, true, nullptr, 0);
+				CaptureExtData::FreeUnit(Manager, pTechnoFrom, true)
+				&& CaptureExtData::CaptureUnit(Manager, pTechnoTo, false, true, nullptr, 0);
 
 			if (Succeeded)
 			{
@@ -2117,7 +2118,7 @@ bool TechnoExtData::ISC4Holder(InfantryClass* pThis) {
 
 bool TechnoExtData::IsInterceptor()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pTypeExt->Interceptor)
@@ -2128,7 +2129,7 @@ bool TechnoExtData::IsInterceptor()
 
 void TechnoExtData::CreateInitialPayload(bool forced)
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 	auto const pType = pThis->GetTechnoType();
 
 	//if (IS_SAME_STR_("FTNKT", pType->ID))
@@ -2993,7 +2994,7 @@ void TechnoExtData::SendPlane(AircraftTypeClass* Aircraft, size_t Amount, HouseC
 		if (pTarget)
 			pPlane->SetTarget(pTarget);
 
-		bool UnLimboSucceeded = AircraftExt::PlaceReinforcementAircraft(pPlane , nCell);
+		bool UnLimboSucceeded = AircraftExtData::PlaceReinforcementAircraft(pPlane , nCell);
 
 		if (!UnLimboSucceeded)  {
 			GameDelete<true, false>(pPlane);
@@ -4173,7 +4174,7 @@ void TechnoExtData::ObjectKilledBy(TechnoClass* pVictim, HouseClass* pKiller)
 
 void TechnoExtData::UpdateMCRangeLimit()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 	auto const pCManager = pThis->CaptureManager;
 
 	if (!pCManager)
@@ -4193,7 +4194,7 @@ void TechnoExtData::UpdateMCRangeLimit()
 
 void TechnoExtData::UpdateInterceptor()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	if (!this->IsInterceptor())
 		return;
@@ -4352,7 +4353,7 @@ void TechnoExtData::UpdateInterceptor()
 
 void TechnoExtData::UpdateTiberiumEater()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	const auto pEaterType = pTypeExt->TiberiumEaterType.get();
 
@@ -4444,7 +4445,7 @@ void TechnoExtData::UpdateTiberiumEater()
 
 void TechnoExtData::UpdateSpawnLimitRange()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	auto const pManager = pThis->SpawnManager;
 
@@ -4619,7 +4620,7 @@ double TechnoExtData::GetROFMult(TechnoClass const* pTech)
 int TechnoExtData::GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData, FootClass const* pPassenger)
 {
 	auto const pData = TechnoTypeExtContainer::Instance.Find(pTransporterData);
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 	auto const pDelType = &pData->PassengerDeletionType;
 
 	int nRate = 0;
@@ -4681,7 +4682,7 @@ static int GetTotalSoylentOfPassengers(TechnoClass* pThis, PassengerDeletionType
 
 void TechnoExtData::UpdateEatPassengers()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	auto const pDelType = &pTypeExt->PassengerDeletionType;
 
@@ -5094,7 +5095,7 @@ bool NOINLINE ImmeditelyReturn(TechnoClass* pTech, bool any, bool& result)
 // TODO : update
 bool TechnoExtData::CheckDeathConditions()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 	const auto pTypeThis = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTypeThis);
 
@@ -5852,7 +5853,7 @@ double TechnoExtData::GetCurrentSpeedMultiplier(FootClass* pThis)
 
 void TechnoExtData::UpdateMindControlAnim()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 
 	if (pThis->IsMindControlled())
 	{
@@ -5892,7 +5893,7 @@ void TechnoExtData::UpdateMindControlAnim()
 
 std::pair<const std::vector<WeaponTypeClass*>*, const std::vector<int>*> TechnoExtData::GetFireSelfData()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pThis->IsRedHP() && !pTypeExt->FireSelf_Weapon_RedHeath.empty() && !pTypeExt->FireSelf_ROF_RedHeath.empty())
@@ -5925,25 +5926,25 @@ void TechnoExtData::UpdateOnTunnelEnter()
 			pos->LastLocation.clear();
 		}
 
-		TrailsManager::Hide(this->AttachedToObject);
+		TrailsManager::Hide(This());
 
 		this->IsInTunnel = true;
 	}
 
-	const auto pType = this->AttachedToObject->GetTechnoType();
+	const auto pType = This()->GetTechnoType();
 	const auto pImage = pType->AlphaImage;
 
 	if (pImage)
 	{
 		auto& alphaExt = StaticVars::ObjectLinkedAlphas;
 
-		if (const auto pAlpha = alphaExt.get_or_default(this->AttachedToObject))
+		if (const auto pAlpha = alphaExt.get_or_default(This()))
 		{
 			GameDelete<true,false>(pAlpha);
 
 			const auto tacticalPos = TacticalClass::Instance->TacticalPos;
 			Point2D off = { tacticalPos.X - (pImage->Width / 2), tacticalPos.Y - (pImage->Height / 2) };
-			const auto point = TacticalClass::Instance->CoordsToClient(this->AttachedToObject->GetCoords()) + off;
+			const auto point = TacticalClass::Instance->CoordsToClient(This()->GetCoords()) + off;
 			RectangleStruct dirty = { point.X - tacticalPos.X, point.Y - tacticalPos.Y, pImage->Width, pImage->Height };
 			TacticalClass::Instance->RegisterDirtyArea(dirty, true);
 		}
@@ -5987,7 +5988,7 @@ std::pair<WeaponTypeClass*, int> TechnoExtData::GetDeployFireWeapon(TechnoClass*
 void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 {
 	static_assert(true, "Donot Use!");
-	//auto const pThis = this->AttachedToObject;
+	//auto const pThis = This();
 	//const auto pOldType = this->Type;
 	//const auto pOldTypeExt = TechnoTypeExtContainer::Instance.Find(pOldType);
 	//this->Type = currentType;
@@ -6066,7 +6067,7 @@ void TechnoExtData::UpdateType(TechnoTypeClass* currentType)
 
 void TechnoExtData::UpdateBuildingLightning()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	if (pThis->WhatAmI() != AbstractType::Building)
 		return;
@@ -6082,7 +6083,7 @@ void TechnoExtData::UpdateBuildingLightning()
 
 void TechnoExtData::UpdateShield()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	if (!this->CurrentShieldType)
 		Debug::FatalErrorAndExit("Techno[%s] Missing CurrentShieldType ! ", pThis->get_ID());
@@ -6115,7 +6116,7 @@ void TechnoExtData::UpdateRevengeWeapons()
 
 void TechnoExtData::UpdateAircraftOpentopped()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	if (!TechnoExtData::IsAlive(pThis, true, true, true))
 		return;
@@ -6149,7 +6150,7 @@ void TechnoExtData::UpdateAircraftOpentopped()
 
 void TechnoExtData::DepletedAmmoActions()
 {
-	const auto pUnit = cast_to<UnitClass*, false>(this->AttachedToObject);
+	const auto pUnit = cast_to<UnitClass*, false>(This());
 
 	if (!pUnit || (pUnit->Type->Ammo <= 0) || !pUnit->Type->IsSimpleDeployer)
 		return;
@@ -6171,7 +6172,7 @@ void TechnoExtData::DepletedAmmoActions()
 
 void TechnoExtData::UpdateLaserTrails()
 {
-	auto const pThis = (FootClass*)this->AttachedToObject;
+	auto const pThis = (FootClass*)This();
 
 	if (LaserTrails.empty())
 		return;
@@ -6210,7 +6211,7 @@ void TechnoExtData::UpdateLaserTrails()
 
 void TechnoExtData::UpdateGattlingOverloadDamage()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	if (!pThis->IsAlive)
 		return;
@@ -6292,7 +6293,7 @@ void TechnoExtData::UpdateGattlingOverloadDamage()
 
 bool TechnoExtData::UpdateKillSelf_Slave()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	if (VTable::Get(pThis) != InfantryClass::vtable)
 		return false;
@@ -6661,14 +6662,14 @@ void TechnoExtData::StopIdleAction()
 	if (this->UnitIdleActionGapTimer.IsTicking())
 	{
 		this->UnitIdleActionGapTimer.Stop();
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject->GetTechnoType());
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(This()->GetTechnoType());
 		this->StopRotateWithNewROT(pTypeExt->TurretRot.Get(pTypeExt->AttachedToObject->ROT));
 	}
 }
 
 void TechnoExtData::ApplyIdleAction()
 {
-	TechnoClass* const pThis = this->AttachedToObject;
+	TechnoClass* const pThis = This();
 	FacingClass* const turret = &pThis->SecondaryFacing;
 
 	if (this->UnitIdleActionTimer.Completed()) // Set first direction
@@ -6731,7 +6732,7 @@ void TechnoExtData::ApplyIdleAction()
 
 void TechnoExtData::ManualIdleAction()
 {
-	TechnoClass* const pThis = this->AttachedToObject;
+	TechnoClass* const pThis = This();
 	FacingClass* const turret = &pThis->SecondaryFacing;
 
 	if (pThis->IsSelected)
@@ -6742,7 +6743,7 @@ void TechnoExtData::ManualIdleAction()
 
 		if (mouseCoords != CoordStruct::Empty) // Mouse in tactical
 		{
-			CoordStruct technoCoords = this->AttachedToObject->GetCoords();
+			CoordStruct technoCoords = This()->GetCoords();
 			const int offset = -static_cast<int>(technoCoords.Z * ((Unsorted::LeptonsPerCell / 2.0) / Unsorted::LevelHeight));
 			const double nowRadian = Math::atan2(double(technoCoords.Y + offset - mouseCoords.Y), double(mouseCoords.X - technoCoords.X - offset)) - 0.125;
 			DirStruct unitIdleFacingDirection;
@@ -6759,7 +6760,7 @@ void TechnoExtData::ManualIdleAction()
 
 void TechnoExtData::StopRotateWithNewROT(int ROT)
 {
-	FacingClass* const turret = &this->AttachedToObject->SecondaryFacing;
+	FacingClass* const turret = &This()->SecondaryFacing;
 
 	const DirStruct currentFacingDirection = turret->Current();
 	turret->DesiredFacing = currentFacingDirection;
@@ -6914,7 +6915,9 @@ void TechnoExtData::Serialize(T& Stm)
 void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 
-	if (auto pSpawn = (FakeSpawnManagerClass*)this->AttachedToObject->SpawnManager)
+	this->RadioExtData::InvalidatePointer(ptr, bRemoved);
+
+	if (auto pSpawn = (FakeSpawnManagerClass*)This()->SpawnManager)
 		pSpawn->_DetachB(ptr, bRemoved);
 
 	MyWeaponManager.InvalidatePointer(ptr, bRemoved);
@@ -6949,13 +6952,7 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
-StaticObjectPool<TechnoExtData , 10000> TechnoExtContainer::pools;
-
-void TechnoExtData::InitializeConstant()
-{
-	//Debug::LogInfo("Initilizing Tiberium storage for [{}] with [{}] count !", this->AttachedToObject, TiberiumClass::Array->Count);
-	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-}
+std::vector<TechnoExtData*> Container<TechnoExtData>::Array;
 
 void AEProperties::Recalculate(TechnoClass* pTechno) {
 
@@ -7153,7 +7150,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x6F3260, TechnoClass_CTOR, 0x5)
+ASMJIT_PATCH(0x6F3183, TechnoClass_CTOR, 0x5)
 {
 	GET(TechnoClass*, pItem, ESI);
 	HouseExtData::LimboTechno.push_back_unique(pItem);
@@ -7189,62 +7186,6 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 
 	TechnoExtContainer::Instance.RemoveExtOf(pItem , pExt);
 	return 0;
-}
-
-//ASMJIT_PATCH_AGAIN(0x70C250, TechnoClass_SaveLoad_Prefix, 0x8)
-ASMJIT_PATCH(0x70BF50, TechnoClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(TechnoClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	TechnoExtContainer::Instance.PrepareStream(pItem, pStm);
-	return 0;
-}
-
-ASMJIT_PATCH(0x70BF6C, TechnoClass_Load_Suffix, 0x6)
-{
-	TechnoExtContainer::Instance.LoadStatic();
-	//auto key = TechnoExtContainer::Instance.GetSavingObject();
-	//TechnoExtContainer::Instance.ClearExtAttribute(key);
-	//auto buffer = TechnoExtContainer::Instance.AllocateUnchecked(key);
-	//TechnoExtContainer::Instance.SetExtAttribute(key, buffer);
-
-	//PhobosByteStream loader { 0 };
-	//if (loader.ReadBlockFromStream(TechnoExtContainer::Instance.GetStream()))
-	//{
-	//	PhobosStreamReader reader { loader };
-	//	if (reader.Expect(TechnoExtData::Canary)
-	//		&& reader.RegisterChange(buffer))
-	//	{
-	//		buffer->LoadFromStream(reader);
-	//		if (reader.ExpectEndOfBlock())
-	//			return 0;
-	//		else
-	//		{
-	//			Debug::FatalErrorAndExit("[LoadStatic] Loading object %p with buffer %p as '{} failed!",
-	//			key,
-	//			buffer,
-	//			TechnoExtContainer::Instance.GetName());
-	//		}
-	//	}
-	//}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x70C250, TechnoClass_Save_Suffix_Prefix, 0x8)
-{
-	GET_STACK(TechnoClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	GET_STACK(BOOL, isDirty, 0xC);
-
-	TechnoExtContainer::Instance.PrepareStream(pItem, pStm);
-	const HRESULT res = pItem->RadioClass::Save(pStm, isDirty);
-
-	if(SUCCEEDED(res))
-		TechnoExtContainer::Instance.SaveStatic();
-
-	R->EAX(res);
-	return 0x70C266;
 }
 
 ASMJIT_PATCH(0x7077C0, TechnoClass_Detach, 0x7)

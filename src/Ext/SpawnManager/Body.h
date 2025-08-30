@@ -5,7 +5,7 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
-class SpawnManagerExt
+class SpawnManagerExtData
 {
 public:
 	/*

@@ -218,7 +218,8 @@ void RadSiteExtData::Serialize(T& Stm)
 // =============================
 // container
 RadSiteExtContainer RadSiteExtContainer::Instance;
-StaticObjectPool<RadSiteExtData, 1000> RadSiteExtContainer::pools;
+std::vector<RadSiteExtData*> Container<RadSiteExtData>::Array;
+
 // =============================
 // container hooks
 
@@ -227,6 +228,15 @@ ASMJIT_PATCH(0x65B243, RadSiteClass_CTOR, 0x6)
 
 	GET(RadSiteClass*, pThis, ESI);
 	RadSiteExtContainer::Instance.Allocate(pThis);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x65B2DB, RadSiteClass_CTOR_NoInt, 0x7)
+{
+
+	GET(RadSiteClass*, pThis, ESI);
+	RadSiteExtContainer::Instance.AllocateNoInit(pThis);
 
 	return 0;
 }
@@ -250,76 +260,6 @@ ASMJIT_PATCH(0x65B344, RadSiteClass_DTOR, 0x6)
 
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
-{
-
-	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->RadSiteClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		RadSiteExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->RadSiteClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		RadSiteExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
-
-//#ifdef AAENABLE_NEWHOOKS
-//ASMJIT_PATCH(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
-//{
-//	GET(RadSiteClass*, pThis, ECX);
-//	if (!Phobos::Otamaa::DisableCustomRadSite)
-//	{
-//		R->EAX(RadSiteExtContainer::Instance.Find(pThis)->Spread);
-//		return 0x65B4B3;
-//	}
-//	return 0x0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x65BD14, RadSiteClass_Spread_Replace, 0x5)
-//ASMJIT_PATCH(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
-//{
-//	GET(RadSiteClass*, pThis, ECX);
-//	if (!Phobos::Otamaa::DisableCustomRadSite)
-//	{
-//		auto nSpread = RadSiteExtContainer::Instance.Find(pThis)->Spread;
-//		R->ESI(nSpread);
-//		R->EDX(R->EDX<int>() - nSpread);
-//		return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
-//	}
-//	return 0x0;
-//}
-//
-//ASMJIT_PATCH(0x65B4D4, RadSiteClass_SetSpread, 0x7)
-//{
-//	GET(RadSiteClass*, pThis, ECX);
-//	GET_STACK(int, spread, 0x4);
-//	if (!Phobos::Otamaa::DisableCustomRadSite)
-//	{
-//		RadSiteExtContainer::Instance.Find(pThis)->Spread = spread;
-//		pThis->SpreadInLeptons = (spread << 8) + 128;
-//		return 0x65B4E2;
-//	}
-//
-//	return 0x0;
-//}
-//#endif
 
 void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {

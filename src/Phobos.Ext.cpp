@@ -556,6 +556,8 @@ FORCEDINLINE bool Process_Load(IStream* pStm)
 	stm.ReadBlockFromStream(pStm);
 	PhobosStreamReader reader(stm);
 
+	Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
+
 	if COMPILETIMEEVAL (HasExtMap<T>)
 		return T::ExtMap.LoadGlobals(reader) && reader.ExpectEndOfBlock();
 	else
@@ -567,6 +569,8 @@ FORCEDINLINE bool Process_Save(IStream* pStm)
 {
 	PhobosByteStream stm;
 	PhobosStreamWriter writer(stm);
+
+	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
 
 	if COMPILETIMEEVAL (HasExtMap<T>)
 		return T::ExtMap.SaveGlobals(writer) && stm.WriteBlockToStream(pStm);

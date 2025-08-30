@@ -12,7 +12,6 @@ template <typename T>
 void BombExtData::Serialize(T& Stm) {
 
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Weapon, true)
 		;
 }
@@ -20,7 +19,7 @@ void BombExtData::Serialize(T& Stm) {
 // =============================
 // container
 BombExtContainer BombExtContainer::Instance;
-
+std::vector<BombExtData*>  Container<BombExtData>::Array;
 
 // =============================
 // container hooks

@@ -2,9 +2,9 @@
 #include <WarheadTypeClass.h>
 #include <CoordStruct.h>
 
-#include <Utilities/Container.h>
+#include <Ext/AbstractType/Body.h>
+
 #include <Utilities/PhobosMap.h>
-#include <Utilities/TemplateDef.h>
 
 #include <New/AnonymousType/AresAttachEffectTypeClass.h>
 #include <New/AnonymousType/BlockTypeClass.h>
@@ -27,17 +27,13 @@ typedef std::vector<std::tuple< std::vector<int>, std::vector<int>, TransactValu
 struct args_ReceiveDamage;
 class ArmorTypeClass;
 class IonBlastClass;
-class WarheadTypeExtData final
+class WarheadTypeExtData final : public AbstractTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x22242222;
 	using base_type = WarheadTypeClass;
 
-	static COMPILETIMEEVAL size_t ExtOffset = 0x1CC; //ares
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+
 #pragma region classmembers
 
 	Valueable<int> Reveal { 0 };
@@ -482,6 +478,43 @@ public:
 #pragma endregion
 
 public:
+	void Initialize();
+
+	WarheadTypeExtData(WarheadTypeClass* pObj) : AbstractTypeExtData(pObj) {
+		this->Initialize();
+		this->InitializeConstant();
+	}
+
+	WarheadTypeExtData(WarheadTypeClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
+
+	virtual ~WarheadTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<WarheadTypeExtData*>(this)->AbstractTypeExtData::Internal_SaveToStream(Stm);
+		const_cast<WarheadTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { }
+
+	virtual WarheadTypeClass* This() const override { return reinterpret_cast<WarheadTypeClass*>(this->AbstractTypeExtData::This()); }
+	virtual const WarheadTypeClass* This_Const() const override { return reinterpret_cast<const WarheadTypeClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { }
+
+public:
 
 	void InitializeConstant();
 	void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const;
@@ -496,7 +529,6 @@ public:
 	void applyIronCurtain(const CoordStruct& coords, HouseClass* pOwner, int damage) const;
 
 	void ApplyPenetratesTransport(TechnoClass* pTarget, TechnoClass* pInvoker, HouseClass* pInvokerHouse, const CoordStruct& coords, int damage) const;
-private:
 
 	void EvaluateArmor(WarheadTypeClass* OwnerObject);
 	void DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, const CoordStruct& coords, int damage, TechnoClass* pOwner = nullptr, BulletClass* pBullet = nullptr, bool bulletWasIntercepted = false);
@@ -524,7 +556,6 @@ private:
 	TransactData TransactGetSourceAndTarget(TechnoClass* pTarget, TechnoTypeClass* pTargetType, TechnoClass* pOwner, TechnoTypeClass* pOwnerType, int targets);
 	int TransactOneValue(TechnoClass* pTechno, TechnoTypeClass* pTechnoType, int transactValue, TransactValueType valueType);
 
-public:
 	void Detonate(TechnoClass* pOwner, HouseClass* pHouse, BulletClass* pBullet, CoordStruct coords, int damage);
 	bool CanTargetHouse(HouseClass* pHouse, TechnoClass* pTechno) const;
 	void InterceptBullets(TechnoClass* pOwner, BulletClass* pBullet, CoordStruct coords);
@@ -552,24 +583,18 @@ public:
 		return this->Verses[static_cast<int>(armor)];
 	}
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	void Initialize();
+
 	bool IsHealthInThreshold(ObjectClass* pTarget) const;
 
 	AnimTypeClass* GetArmorHitAnim(int Armor);
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(WarheadTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
+	DamageAreaResult DamageAreaWithTarget(CoordStruct coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget);
 
 private:
+
 	template <typename T>
 	void Serialize(T& Stm);
+
 public:
 	static PhobosMap<IonBlastClass*, WarheadTypeExtData*> IonBlastExt;
 
@@ -600,12 +625,8 @@ public:
 		HouseClass* pFiringHouse = nullptr
 	);
 
-	DamageAreaResult DamageAreaWithTarget(CoordStruct coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget);
-
 	static void CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords);
-
 	static void applyEMP(WarheadTypeClass* pWH, const CoordStruct& coords, TechnoClass* source);
-
 	static void DetonateAtBridgeRepairHut(AbstractClass* pTarget, TechnoClass* pOwner = nullptr, HouseClass* pFiringHouse = nullptr, bool destroyBridge = false);
 };
 
@@ -614,12 +635,13 @@ class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>
 public:
 	static WarheadTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(WarheadTypeExtContainer, WarheadTypeExtData, "WarheadTypeClass");
-public:
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
+
+	virtual bool WriteDataToTheByteStream(WarheadTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(WarheadTypeExtData::base_type* key, IStream* pStm) { };
+
 };
 
 class NOVTABLE FakeWarheadTypeClass : public WarheadTypeClass

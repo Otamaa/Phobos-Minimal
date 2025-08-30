@@ -18,7 +18,6 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-#include "llimits.h"
 
 
 /*
@@ -56,16 +55,6 @@ static void checktab (lua_State *L, int arg, int what) {
     else
       luaL_checktype(L, arg, LUA_TTABLE);  /* force an error */
   }
-}
-
-
-static int tcreate (lua_State *L) {
-  lua_Unsigned sizeseq = (lua_Unsigned)luaL_checkinteger(L, 1);
-  lua_Unsigned sizerest = (lua_Unsigned)luaL_optinteger(L, 2, 0);
-  luaL_argcheck(L, sizeseq <= cast_uint(INT_MAX), 1, "out of range");
-  luaL_argcheck(L, sizerest <= cast_uint(INT_MAX), 2, "out of range");
-  lua_createtable(L, cast_int(sizeseq), cast_int(sizerest));
-  return 1;
 }
 
 
@@ -207,7 +196,7 @@ static int tunpack (lua_State *L) {
   lua_Integer i = luaL_optinteger(L, 2, 1);
   lua_Integer e = luaL_opt(L, luaL_checkinteger, 3, luaL_len(L, 1));
   if (i > e) return 0;  /* empty range */
-  n = l_castS2U(e) - l_castS2U(i);  /* number of elements minus 1 */
+  n = (lua_Unsigned)e - i;  /* number of elements minus 1 (avoid overflows) */
   if (l_unlikely(n >= (unsigned int)INT_MAX  ||
                  !lua_checkstack(L, (int)(++n))))
     return luaL_error(L, "too many results to unpack");
@@ -231,16 +220,8 @@ static int tunpack (lua_State *L) {
 */
 
 
-/*
-** Type for array indices. These indices are always limited by INT_MAX,
-** so it is safe to cast them to lua_Integer even for Lua 32 bits.
-*/
+/* type for array indices */
 typedef unsigned int IdxT;
-
-
-/* Versions of lua_seti/lua_geti specialized for IdxT */
-#define geti(L,idt,idx)	lua_geti(L, idt, l_castU2S(idx))
-#define seti(L,idt,idx)	lua_seti(L, idt, l_castU2S(idx))
 
 
 /*
@@ -249,8 +230,31 @@ typedef unsigned int IdxT;
 ** of a partition. (If you don't want/need this "randomness", ~0 is a
 ** good choice.)
 */
-#if !defined(l_randomizePivot)
-#define l_randomizePivot(L)	luaL_makeseed(L)
+#if !defined(l_randomizePivot)		/* { */
+
+#include <time.h>
+
+/* size of 'e' measured in number of 'unsigned int's */
+#define sof(e)		(sizeof(e) / sizeof(unsigned int))
+
+/*
+** Use 'time' and 'clock' as sources of "randomness". Because we don't
+** know the types 'clock_t' and 'time_t', we cannot cast them to
+** anything without risking overflows. A safe way to use their values
+** is to copy them to an array of a known type and use the array values.
+*/
+static unsigned int l_randomizePivot (void) {
+  clock_t c = clock();
+  time_t t = time(NULL);
+  unsigned int buff[sof(c) + sof(t)];
+  unsigned int i, rnd = 0;
+  memcpy(buff, &c, sof(c) * sizeof(unsigned int));
+  memcpy(buff + sof(c), &t, sof(t) * sizeof(unsigned int));
+  for (i = 0; i < sof(buff); i++)
+    rnd += buff[i];
+  return rnd;
+}
+
 #endif					/* } */
 
 
@@ -259,8 +263,8 @@ typedef unsigned int IdxT;
 
 
 static void set2 (lua_State *L, IdxT i, IdxT j) {
-  seti(L, 1, i);
-  seti(L, 1, j);
+  lua_seti(L, 1, i);
+  lua_seti(L, 1, j);
 }
 
 
@@ -297,15 +301,15 @@ static IdxT partition (lua_State *L, IdxT lo, IdxT up) {
   /* loop invariant: a[lo .. i] <= P <= a[j .. up] */
   for (;;) {
     /* next loop: repeat ++i while a[i] < P */
-    while ((void)geti(L, 1, ++i), sort_comp(L, -1, -2)) {
-      if (l_unlikely(i == up - 1))  /* a[up - 1] < P == a[up - 1] */
+    while ((void)lua_geti(L, 1, ++i), sort_comp(L, -1, -2)) {
+      if (l_unlikely(i == up - 1))  /* a[i] < P  but a[up - 1] == P  ?? */
         luaL_error(L, "invalid order function for sorting");
       lua_pop(L, 1);  /* remove a[i] */
     }
-    /* after the loop, a[i] >= P and a[lo .. i - 1] < P  (a) */
+    /* after the loop, a[i] >= P and a[lo .. i - 1] < P */
     /* next loop: repeat --j while P < a[j] */
-    while ((void)geti(L, 1, --j), sort_comp(L, -3, -1)) {
-      if (l_unlikely(j < i))  /* j <= i - 1 and a[j] > P, contradicts (a) */
+    while ((void)lua_geti(L, 1, --j), sort_comp(L, -3, -1)) {
+      if (l_unlikely(j < i))  /* j < i  but  a[j] > P ?? */
         luaL_error(L, "invalid order function for sorting");
       lua_pop(L, 1);  /* remove a[j] */
     }
@@ -329,7 +333,7 @@ static IdxT partition (lua_State *L, IdxT lo, IdxT up) {
 */
 static IdxT choosePivot (IdxT lo, IdxT up, unsigned int rnd) {
   IdxT r4 = (up - lo) / 4;  /* range/4 */
-  IdxT p = (rnd ^ lo ^ up) % (r4 * 2) + (lo + r4);
+  IdxT p = rnd % (r4 * 2) + (lo + r4);
   lua_assert(lo + r4 <= p && p <= up - r4);
   return p;
 }
@@ -338,13 +342,14 @@ static IdxT choosePivot (IdxT lo, IdxT up, unsigned int rnd) {
 /*
 ** Quicksort algorithm (recursive function)
 */
-static void auxsort (lua_State *L, IdxT lo, IdxT up, unsigned rnd) {
+static void auxsort (lua_State *L, IdxT lo, IdxT up,
+                                   unsigned int rnd) {
   while (lo < up) {  /* loop for tail recursion */
     IdxT p;  /* Pivot index */
     IdxT n;  /* to be used later */
     /* sort elements 'lo', 'p', and 'up' */
-    geti(L, 1, lo);
-    geti(L, 1, up);
+    lua_geti(L, 1, lo);
+    lua_geti(L, 1, up);
     if (sort_comp(L, -1, -2))  /* a[up] < a[lo]? */
       set2(L, lo, up);  /* swap a[lo] - a[up] */
     else
@@ -355,13 +360,13 @@ static void auxsort (lua_State *L, IdxT lo, IdxT up, unsigned rnd) {
       p = (lo + up)/2;  /* middle element is a good pivot */
     else  /* for larger intervals, it is worth a random pivot */
       p = choosePivot(lo, up, rnd);
-    geti(L, 1, p);
-    geti(L, 1, lo);
+    lua_geti(L, 1, p);
+    lua_geti(L, 1, lo);
     if (sort_comp(L, -2, -1))  /* a[p] < a[lo]? */
       set2(L, p, lo);  /* swap a[p] - a[lo] */
     else {
       lua_pop(L, 1);  /* remove a[lo] */
-      geti(L, 1, up);
+      lua_geti(L, 1, up);
       if (sort_comp(L, -1, -2))  /* a[up] < a[p]? */
         set2(L, p, up);  /* swap a[up] - a[p] */
       else
@@ -369,9 +374,9 @@ static void auxsort (lua_State *L, IdxT lo, IdxT up, unsigned rnd) {
     }
     if (up - lo == 2)  /* only 3 elements? */
       return;  /* already sorted */
-    geti(L, 1, p);  /* get middle element (Pivot) */
+    lua_geti(L, 1, p);  /* get middle element (Pivot) */
     lua_pushvalue(L, -1);  /* push Pivot */
-    geti(L, 1, up - 1);  /* push a[up - 1] */
+    lua_geti(L, 1, up - 1);  /* push a[up - 1] */
     set2(L, p, up - 1);  /* swap Pivot (a[p]) with a[up - 1] */
     p = partition(L, lo, up);
     /* a[lo .. p - 1] <= a[p] == P <= a[p + 1 .. up] */
@@ -386,7 +391,7 @@ static void auxsort (lua_State *L, IdxT lo, IdxT up, unsigned rnd) {
       up = p - 1;  /* tail call for [lo .. p - 1]  (lower interval) */
     }
     if ((up - lo) / 128 > n) /* partition too imbalanced? */
-      rnd = l_randomizePivot(L);  /* try a new randomization */
+      rnd = l_randomizePivot();  /* try a new randomization */
   }  /* tail call auxsort(L, lo, up, rnd) */
 }
 
@@ -408,7 +413,6 @@ static int sort (lua_State *L) {
 
 static const luaL_Reg tab_funcs[] = {
   {"concat", tconcat},
-  {"create", tcreate},
   {"insert", tinsert},
   {"pack", tpack},
   {"unpack", tunpack},

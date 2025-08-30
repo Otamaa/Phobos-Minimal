@@ -31,7 +31,7 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
-std::map<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;
+PhobosMap<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;
 
 /*
 template <typename T>
@@ -1460,7 +1460,7 @@ bool TActionExtData::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse
 
 	auto& nPools = TActionExtData::RandomTriggerPool;
 
-	if (!nPools.contains(iPoolID) || !nPools.count(iPoolID))
+	if (!nPools.contains(iPoolID))
 		return true;
 
 	auto& nPool = nPools[iPoolID];
@@ -1492,7 +1492,7 @@ bool TActionExtData::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse
 
 	auto& nPools = TActionExtData::RandomTriggerPool;
 
-	if (!nPools.contains(iPoolID) || !nPools.count(iPoolID))
+	if (!nPools.contains(iPoolID))
 		return true;
 
 	auto& nPool = nPools[iPoolID];

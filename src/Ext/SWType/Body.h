@@ -1,10 +1,9 @@
 #pragma once
 #include <SuperWeaponTypeClass.h>
 
-#include <Utilities/Container.h>
+#include <Ext/AbstractType/Body.h>
 #include <Utilities/PhobosPCXFile.h>
 #include <Utilities/PhobosFixedString.h>
-#include <Utilities/TemplateDefB.h>
 
 #include <New/Type/CursorTypeClass.h>
 #include <New/Type/DroppodProperties.h>
@@ -66,27 +65,65 @@ struct AITargetingModeInfo
 	AffectedHouse House;
 	TargetingConstraints Constraints;
 	TargetingPreference Preference;
+
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Stm
+			.Process(Mode, RegisterForChange)
+			.Process(Target, RegisterForChange)
+			.Process(House, RegisterForChange)
+			.Process(Constraints, RegisterForChange)
+			.Process(Preference, RegisterForChange)
+			.Success();
+	}
+
+	bool save(PhobosStreamWriter& Stm) const
+	{
+		return Stm
+			.Process(Mode)
+			.Process(Target)
+			.Process(House)
+			.Process(Constraints)
+			.Process(Preference)
+			.Success();
+	}
 };
 
 struct TargetResult
 {
 	CellStruct Target;
 	SWTargetFlags Flags;
+
+	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Stm
+			.Process(Target, RegisterForChange)
+			.Process(Flags, RegisterForChange)
+			.Success();
+	}
+
+	bool save(PhobosStreamWriter& Stm) const
+	{
+		return Stm
+			.Process(Target)
+			.Process(Flags)
+			.Success();
+	}
 };
 
 struct TargetingData;
 class SuperClass;
 class NewSWType;
 class ColorScheme;
-class SWTypeExtData final
+class SWTypeExtData final :public AbstractTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x11111111;
+
 	using base_type = SuperWeaponTypeClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region ClassMembers
 
 #pragma region EVAs
 	ValueableIdx<VoxClass> EVA_Activated { -1 };
@@ -480,7 +517,51 @@ public:
 
 	Valueable<int> SuperWeaponSidebar_Significance {};
 
-	~SWTypeExtData() noexcept;
+	Valueable<int> Music_Theme {};
+	Valueable<int> Music_Duration {};
+	Valueable<AffectedHouse> Music_AffectedHouses { AffectedHouse::All };
+
+#pragma endregion
+
+	SWTypeExtData(SuperWeaponTypeClass* pObj) : AbstractTypeExtData(pObj) { this->Initialize(); }
+	SWTypeExtData(SuperWeaponTypeClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
+
+	virtual ~SWTypeExtData();
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<SWTypeExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
+		const_cast<SWTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->AbstractTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual SuperWeaponTypeClass* This() const override { return reinterpret_cast<SuperWeaponTypeClass*>(this->AbstractTypeExtData::This()); }
+	virtual const SuperWeaponTypeClass* This_Const() const override { return reinterpret_cast<const SuperWeaponTypeClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { }
+
+	void Initialize();
+
+public:
 
 	void FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer);
 
@@ -497,14 +578,10 @@ public:
 	void ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const CellStruct& cell);
 	void ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer);
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromRulesFile(CCINIClass* pINI);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	void Initialize();
 
 	COMPILETIMEEVAL OPTIONALINLINE const char* get_ID(){
-		return this->AttachedToObject->ID;
+		return this->Name();
 	}
 
 	//with arg(s)
@@ -535,6 +612,7 @@ public:
 	COMPILETIMEEVAL OPTIONALINLINE double GetChargeToDrainRatio() const {
 		return this->SW_ChargeToDrainRatio.Get(RulesClass::Instance->ChargeToDrainRatio);
 	}
+
 	SuperWeaponTarget GetAIRequiredTarget() const;
 	AffectedHouse GetAIRequiredHouse() const;
 	std::pair<TargetingConstraints, bool> GetAITargetingConstraints() const;
@@ -547,6 +625,7 @@ public:
 	NewSWType* GetNewSWType() const;
 
 	void ApplyLinkedSW(SuperClass* pSW);
+public:
 
 	//statics
 	static bool Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
@@ -561,12 +640,6 @@ public:
 	static bool LauchSuper(SuperClass* pSuper);
 	static bool DrawDarken(SuperClass* pSuper);
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(SWTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 
 	std::vector<int> WeightedRollsHandler(std::vector<float>* chances, std::vector<std::vector<int>>* weights, size_t size);
@@ -583,6 +656,8 @@ public:
 	static SuperClass* LauchData;
 	static std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> AITargetingModes;
 	static SuperWeaponTypeClass* CurrentSWType;
+
+public:
 
 	static void LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, int ID);
 	static void WeightedRollsHandler(std::vector<int>& nResult, Valueable<double>& RandomBuffer, const ValueableVector<float>& rolls, const ValueableVector<ValueableVector<int>>& weights, size_t size);
@@ -604,6 +679,10 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
+
+	virtual bool WriteDataToTheByteStream(SWTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(SWTypeExtData::base_type* key, IStream* pStm) { };
+
 };
 
 class NOVTABLE FakeSuperWeaponTypeClass : public SuperWeaponTypeClass

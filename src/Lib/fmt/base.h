@@ -348,6 +348,9 @@ template <typename T> constexpr auto max_of(T a, T b) -> T {
   return a > b ? a : b;
 }
 
+FMT_NORETURN FMT_API void assert_fail(const char* file, int line,
+                                      const char* message);
+
 namespace detail {
 // Suppresses "unused variable" warnings with the method described in
 // https://herbsutter.com/2009/10/18/mailbag-shutting-up-compiler-warnings/.
@@ -388,7 +391,7 @@ FMT_NORETURN FMT_API void assert_fail(const char* file, int line,
 #  define FMT_ASSERT(condition, message)                                    \
     ((condition) /* void() fails with -Winvalid-constexpr on clang 4.0.1 */ \
          ? (void)0                                                          \
-         : fmt::detail::assert_fail(__FILE__, __LINE__, (message)))
+         : ::fmt::assert_fail(__FILE__, __LINE__, (message)))
 #endif
 
 #ifdef FMT_USE_INT128
@@ -606,19 +609,6 @@ template <typename Char> class basic_string_view {
 };
 
 using string_view = basic_string_view<char>;
-
-// DEPRECATED! Will be merged with is_char and moved to detail.
-template <typename T> struct is_xchar : std::false_type {};
-template <> struct is_xchar<wchar_t> : std::true_type {};
-template <> struct is_xchar<char16_t> : std::true_type {};
-template <> struct is_xchar<char32_t> : std::true_type {};
-#ifdef __cpp_char8_t
-template <> struct is_xchar<char8_t> : std::true_type {};
-#endif
-
-// Specifies if `T` is a character (code unit) type.
-template <typename T> struct is_char : is_xchar<T> {};
-template <> struct is_char<char> : std::true_type {};
 
 template <typename T> class basic_appender;
 using appender = basic_appender<char>;
@@ -916,10 +906,20 @@ FMT_END_EXPORT
 
 namespace detail {
 
+// Specifies if `T` is a code unit type.
+template <typename T> struct is_code_unit : std::false_type {};
+template <> struct is_code_unit<char> : std::true_type {};
+template <> struct is_code_unit<wchar_t> : std::true_type {};
+template <> struct is_code_unit<char16_t> : std::true_type {};
+template <> struct is_code_unit<char32_t> : std::true_type {};
+#ifdef __cpp_char8_t
+template <> struct is_code_unit<char8_t> : bool_constant<is_utf8_enabled> {};
+#endif
+
 // Constructs fmt::basic_string_view<Char> from types implicitly convertible
 // to it, deducing Char. Explicitly convertible types such as the ones returned
 // from FMT_STRING are intentionally excluded.
-template <typename Char, FMT_ENABLE_IF(is_char<Char>::value)>
+template <typename Char, FMT_ENABLE_IF(is_code_unit<Char>::value)>
 constexpr auto to_string_view(const Char* s) -> basic_string_view<Char> {
   return s;
 }
@@ -1164,7 +1164,7 @@ template <typename Char> struct type_mapper {
   static auto map(ubitint<N>)
       -> conditional_t<N <= 64, unsigned long long, void>;
 
-  template <typename T, FMT_ENABLE_IF(is_char<T>::value)>
+  template <typename T, FMT_ENABLE_IF(is_code_unit<T>::value)>
   static auto map(T) -> conditional_t<
       std::is_same<T, char>::value || std::is_same<T, Char>::value, Char, void>;
 
@@ -2184,7 +2184,7 @@ template <typename Context> class value {
     static_assert(N <= 64, "unsupported _BitInt");
   }
 
-  template <typename T, FMT_ENABLE_IF(is_char<T>::value)>
+  template <typename T, FMT_ENABLE_IF(is_code_unit<T>::value)>
   constexpr FMT_INLINE value(T x FMT_BUILTIN) : char_value(x) {
     static_assert(
         std::is_same<T, char>::value || std::is_same<T, char_type>::value,
@@ -2260,7 +2260,7 @@ template <typename Context> class value {
         custom.value = const_cast<value_type*>(&x);
 #endif
     }
-    custom.format = format_custom<value_type, formatter<value_type, char_type>>;
+    custom.format = format_custom<value_type>;
   }
 
   template <typename T, FMT_ENABLE_IF(!has_formatter<T, char_type>())>
@@ -2271,11 +2271,10 @@ template <typename Context> class value {
   }
 
   // Formats an argument of a custom type, such as a user-defined class.
-  // DEPRECATED! Formatter template parameter will be removed.
-  template <typename T, typename Formatter>
+  template <typename T>
   static void format_custom(void* arg, parse_context<char_type>& parse_ctx,
                             Context& ctx) {
-    auto f = Formatter();
+    auto f = formatter<T, char_type>();
     parse_ctx.advance_to(f.parse(parse_ctx));
     using qualified_type =
         conditional_t<has_formatter<const T, char_type>(), const T, T>;

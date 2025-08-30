@@ -125,7 +125,6 @@ template <typename T>
 void SuperExtData::Serialize(T& Stm) {
 
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Type, true)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
@@ -133,12 +132,16 @@ void SuperExtData::Serialize(T& Stm) {
 		.Process(this->FirstClickAutoFireDone)
 		//.Process(this->Firer)
 		.Process(this->Statusses)
+
+		.Process(this->MusicTimer)
+		.Process(this->MusicActive)
 		;
 }
 
 // =============================
 // container
 SuperExtContainer SuperExtContainer::Instance;
+std::vector<SuperExtData*> Container<SuperExtData>::Array;
 
 // =============================
 // container hooks
@@ -154,41 +157,19 @@ ASMJIT_PATCH(0x6CB10E, SuperClass_CTOR, 0x7)
 	return 0;
 }
 
+ASMJIT_PATCH(0x6CAF32, SuperClass_CTOR_NoInt, 0x6)
+{
+	GET(SuperClass*, pItem, ESI);
+	SuperExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
 	SuperExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeSuperClass::_Load(IStream* pStm)
-{
-
-	SuperExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->SuperClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		SuperExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	SuperExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->SuperClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		SuperExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)
 
 // ASMJIT_PATCH(0x6CE001 , SuperClass_Detach , 0x5)
 // {

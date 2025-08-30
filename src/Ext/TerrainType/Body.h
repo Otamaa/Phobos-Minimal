@@ -1,19 +1,19 @@
 #pragma once
 #include <TerrainTypeClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDefB.h>
+#include <Ext/ObjectType/Body.h>
 #include <New/Type/PaletteManager.h>
 
-class TerrainTypeExtData final
+class TerrainTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xBEE78007;
+
 	using base_type = TerrainTypeClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region ClassMember
+
 	CustomPalette CustomPalette { CustomPalette::PaletteMode::Temperate }; //
 	Valueable<int> SpawnsTiberium_Type { -1 };
 	Valueable<int> SpawnsTiberium_Range { 1 };
@@ -49,11 +49,47 @@ public:
 
 	NullableVector<AnimTypeClass*> TreeFires {};
 	ValueableIdx<ParticleTypeClass> SpawnsTiberium_Particle { -1 };
+#pragma endregion
 
- 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	TerrainTypeExtData(TerrainTypeClass* pObj) : ObjectTypeExtData(pObj) { this->Initialize(); }
+	TerrainTypeExtData(TerrainTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+
+	virtual ~TerrainTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<TerrainTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<TerrainTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual AircraftTypeClass* This() const override { return reinterpret_cast<AircraftTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const AircraftTypeClass* This_Const() const override { return reinterpret_cast<const AircraftTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { }
+
 	void Initialize();
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+public:
 
 	int GetTiberiumGrowthStage();
 	int GetCellsPerAnim();
@@ -78,12 +114,6 @@ public:
 		};
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TerrainTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -97,7 +127,31 @@ class TerrainTypeExtContainer final : public Container<TerrainTypeExtData>
 public:
 	static TerrainTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(TerrainTypeExtContainer, TerrainTypeExtData, "TerrainTypeClass");
+	static void Clear()
+	{
+		Array.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(TerrainTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(TerrainTypeExtData::base_type* key, IStream* pStm) { };
 };
 
 class NOVTABLE FakeTerrainTypeClass : public TerrainTypeClass

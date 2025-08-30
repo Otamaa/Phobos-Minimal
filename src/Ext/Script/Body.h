@@ -203,11 +203,8 @@ enum class DistanceMode : int
 class ScriptExtData final
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x3B3B3B3B;
 	using base_type = ScriptClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 	// Nothing yet
 
@@ -329,5 +326,25 @@ class ScriptExtContainer final : public Container<ScriptExtData>
 public:
 	static ScriptExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(ScriptExtContainer, ScriptExtData, "ScriptClass");
+	static void Clear()
+	{
+		Array.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+	}
+
+	virtual bool WriteDataToTheByteStream(ScriptExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(ScriptExtData::base_type* key, IStream* pStm) { };
 };

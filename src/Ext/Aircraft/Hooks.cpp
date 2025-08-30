@@ -10,6 +10,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/AircraftTypeClass/Body.h>
 
 #include <Misc/MapRevealer.h>
 
@@ -480,8 +481,6 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 }ASMJIT_PATCH_AGAIN(0x41A982, AircraftClass_Mission_AreaGuard, 0x6)
 
 // AttackMove: return when no ammo or arrived destination
-#include <Ext/AircraftTypeClass/Body.h>
-
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E290C,  FakeAircraftTypeClass::_CanAttackMove)
 
 ASMJIT_PATCH(0x4DF3BA, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget, 0x6)

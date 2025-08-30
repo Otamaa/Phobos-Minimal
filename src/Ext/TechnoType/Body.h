@@ -43,6 +43,8 @@
 
 #include <Misc/Defines.h>
 
+#include <Ext/ObjectType/Body.h>
+
 struct JumpjetTiltVoxelIndexKey
 {
 	unsigned bodyFrame : 5;
@@ -91,7 +93,6 @@ struct ImageStatusses
 			std::swap(from.HVA, this->Images.HVA);
 		}
 	}
-
 };
 
 struct BurstFLHBundle
@@ -123,22 +124,15 @@ struct BurstFLHBundle
 class Matrix3D;
 class DigitalDisplayTypeClass;
 class SelectBoxTypeClass;
-class TechnoTypeExtData
+class TechnoTypeExtData : public ObjectTypeExtData
 {
 public:
 	using ImageVector = std::vector<VoxelStruct>;
 	using ColletiveCoordStructVectorData = std::array<std::vector<std::vector<CoordStruct>>*, 3u>;
-
-	static COMPILETIMEEVAL size_t Canary = 0x22544444;
 	using base_type = TechnoTypeClass;
 
-	//static COMPILETIMEEVAL size_t ExtOffset = 0x35C;
-	static COMPILETIMEEVAL size_t ExtOffset = 0x2FC;
-	//static COMPILETIMEEVAL size_t ExtOffset = 0xDF4;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+#pragma region ClassMembers
 
 	AbstractType AttachtoType { AbstractType::None };
 	Valueable<bool> HealthBar_Hide { false };
@@ -1198,18 +1192,58 @@ public:
 
 	std::unique_ptr<BlockTypeClass> BlockType {};
 	Valueable<bool> CanBlock {};
+#pragma endregion
+public:
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
-	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
 	void InitializeConstant();
 	void Initialize();
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+	TechnoTypeExtData(TechnoTypeClass* pObj) : ObjectTypeExtData(pObj) {
+		this->InitializeConstant();
+		this->Initialize();
+	}
+
+	TechnoTypeExtData(TechnoTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+
+	virtual ~TechnoTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<TechnoTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<TechnoTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual TechnoTypeClass* This() const override { return reinterpret_cast<TechnoTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const TechnoTypeClass* This_Const() const override { return reinterpret_cast<const TechnoTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { }
+
+public:
+
+	void LoadFromINIFile_Aircraft(CCINIClass* pINI);
+	void LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI);
+
 	bool IsSecondary(int nWeaponIndex);
-
 	void AdjustCrushProperties();
-
 	void CalculateSpawnerRange();
 	void ResetSpawnerRange() {
 		this->SpawnerRange = 0;
@@ -1225,12 +1259,6 @@ public:
 
 	static WeaponStruct* GetWeaponStruct(TechnoTypeClass* pThis, int nWeaponIndex, bool isElite);
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TechnoTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -1278,23 +1306,29 @@ class TechnoTypeExtContainer final : public Container<TechnoTypeExtData>
 {
 public:
 	static TechnoTypeExtContainer Instance;
-
-	PhobosMap<TechnoTypeClass*, TechnoTypeExtData*> Map {};
-
-	virtual bool Load(TechnoTypeClass* key, IStream* pStm) override;
-
-	void Clear() {
-		this->Map.clear();
+	static void Clear()
+	{
+		Array.clear();
 	}
 
-//	TechnoTypeExtContainer() : Container<TechnoTypeExtData> { "TechnoTypeClass" }
-//		, Map {}
-//	{ }
-//
-//	virtual ~TechnoTypeExtContainer() override = default;
-//
-//private:
-//	TechnoTypeExtContainer(const TechnoTypeExtContainer&) = delete;
-//	TechnoTypeExtContainer(TechnoTypeExtContainer&&) = delete;
-//	TechnoTypeExtContainer& operator=(const TechnoTypeExtContainer& other) = delete;
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(TechnoTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(TechnoTypeExtData::base_type* key, IStream* pStm) { };
 };

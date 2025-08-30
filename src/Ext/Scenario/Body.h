@@ -97,7 +97,7 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	static void DetonateMasterBuller(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead);
+	static void DetonateMasterBullet(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead);
 
 private:
 	template <typename T>

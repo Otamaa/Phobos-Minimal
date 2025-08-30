@@ -25,7 +25,6 @@ template <typename T>
 void OverlayTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Palette)
 		.Process(this->ZAdjust)
 		;
@@ -35,36 +34,7 @@ void OverlayTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 OverlayTypeExtContainer OverlayTypeExtContainer::Instance;
-
-bool OverlayTypeExtContainer::Load(OverlayTypeClass* key, IStream* pStm)
-{
-	if (!key)
-		return false;
-
-	auto ptr = OverlayTypeExtContainer::Instance.Map.get_or_default(key);
-
-	if (!ptr) {
-		ptr = OverlayTypeExtContainer::Instance.Map.insert_unchecked(key,
-			  this->AllocateUnchecked(key));
-	}
-
-	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, ptr);
-
-	PhobosByteStream loader { 0 };
-	if (loader.ReadBlockFromStream(pStm)) {
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(OverlayTypeExtData::Canary)
-			&& reader.RegisterChange(ptr)) {
-			ptr->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock()) {
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
+std::vector<OverlayTypeExtData*> Container< OverlayTypeExtData>::Array;
 
 // =============================
 // container hooks
@@ -73,52 +43,22 @@ ASMJIT_PATCH(0x5FE3A2, OverlayTypeClass_CTOR, 0x5)
 {
 	GET(OverlayTypeClass*, pItem, EAX);
 
-	auto ptr = OverlayTypeExtContainer::Instance.Map.get_or_default(pItem);
-
-	if (!ptr) {
-		ptr = OverlayTypeExtContainer::Instance.Map.insert_unchecked(pItem,
-			  OverlayTypeExtContainer::Instance.AllocateUnchecked(pItem));
-	}
-
-	OverlayTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
+	OverlayTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0;
-}ASMJIT_PATCH_AGAIN(0x5FE3AF, OverlayTypeClass_CTOR, 0x5)
+} ASMJIT_PATCH_AGAIN(0x5FE3AF, OverlayTypeClass_CTOR, 0x5)
+
+ASMJIT_PATCH(0x5FE3E1, OverlayTypeClass_CTOR_NoIint, 0x7)
+{
+	GET(OverlayTypeClass*, pItem, EAX);
+	OverlayTypeExtContainer::Instance.AllocateNoInit(pItem);
+	return 0x0;
+}
 
 ASMJIT_PATCH(0x5FE3F6, OverlayTypeClass_DTOR, 0x6)
 {
 	GET(OverlayTypeClass*, pItem, ESI);
-
-	auto extData = OverlayTypeExtContainer::Instance.GetExtAttribute(pItem);
-	OverlayTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	OverlayTypeExtContainer::Instance.Map.erase(pItem);
-	if(extData)
-		DLLCallDTOR(extData);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x5FEC10, OverlayTypeClass_SaveLoad_Prefix, 0x8)
-{
-	GET_STACK(OverlayTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	OverlayTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x5FEAF0, OverlayTypeClass_SaveLoad_Prefix, 0xA)
-
-ASMJIT_PATCH(0x5FEBFA, OverlayTypeClass_Load_Suffix, 0x6)
-{
-	OverlayTypeExtContainer::Instance.LoadStatic();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x5FEC2A, OverlayTypeClass_Save_Suffix, 0x6)
-{
-	OverlayTypeExtContainer::Instance.SaveStatic();
-
+	OverlayTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 

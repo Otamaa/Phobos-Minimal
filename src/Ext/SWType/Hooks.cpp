@@ -33,6 +33,7 @@
 
 //ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
 std::chrono::high_resolution_clock::time_point lastFrameTime;
+#include <ThemeClass.h>
 
 //separate the function
 ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
@@ -45,6 +46,27 @@ ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
 
 	for (auto pHouse : *HouseClass::Array) {
 		AresHouseExt::UpdateTogglePower(pHouse);
+	}
+
+	for(auto pSuper : *SuperClass::Array){
+		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+
+		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
+
+			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
+
+			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
+				// stop only if same theme and local house is affected
+				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
+
+				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
+					ThemeClass::Instance->Stop();
+				}
+			}
+
+			pSuperExt->MusicTimer.Stop();
+			pSuperExt->MusicActive = false;
+		}
 	}
 
 	//remove all invalid teams
@@ -69,6 +91,27 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 
 	for (auto pHouse : *HouseClass::Array) {
 		AresHouseExt::UpdateTogglePower(pHouse);
+	}
+
+	for(auto pSuper : *SuperClass::Array){
+		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+
+		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
+
+			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
+
+			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
+				// stop only if same theme and local house is affected
+				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
+
+				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
+					ThemeClass::Instance->Stop();
+				}
+			}
+
+			pSuperExt->MusicTimer.Stop();
+			pSuperExt->MusicActive = false;
+		}
 	}
 
 	//auto pCellbegin = MapClass::Instance->Cells.Items;

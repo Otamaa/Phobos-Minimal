@@ -23,6 +23,8 @@
     <ClCompile Include="src\Commands\ToggleMessageList.cpp" />
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
+    <ClCompile Include="src\Ext\AircraftType\Body.cpp" />
+    <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Message.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.TacticalButton.cpp" />
@@ -58,12 +60,15 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
     <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
+    <ClCompile Include="src\Ext\UnitType\Body.cpp" />
+    <ClCompile Include="src\Ext\Unit\Body.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Crushing.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\zonebitset.cpp" />
+    <ClCompile Include="src\Lib\base64\base64.cpp" />
     <ClCompile Include="src\Lib\Lua\lapi.c" />
     <ClCompile Include="src\Lib\Lua\lauxlib.c" />
     <ClCompile Include="src\Lib\Lua\lbaselib.c" />
@@ -156,6 +161,7 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
+    <ClCompile Include="src\Misc\Hooks.SaveGame.cpp" />
     <ClCompile Include="src\Misc\YRPatches\Main.cpp" />
     <ClCompile Include="src\New\AnonymousType\BlockTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
@@ -242,7 +248,6 @@
     <ClCompile Include="src\Ext\CaptureManager\Body.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hook.McOverload.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.GetTiberiumType.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
@@ -638,7 +643,15 @@
     <ClInclude Include="src\ExtraHeaders\StackAllocator.h" />
     <ClInclude Include="src\ExtraHeaders\StackContainer.h" />
     <ClInclude Include="src\ExtraHeaders\StackVector.h" />
+    <ClInclude Include="src\Ext\AbstractType\Body.h" />
     <ClInclude Include="src\Ext\Ebolt\Body.h" />
+    <ClInclude Include="src\Ext\Foot\Body.h" />
+    <ClInclude Include="src\Ext\Mission\Body.h" />
+    <ClInclude Include="src\Ext\ObjectType\Body.h" />
+    <ClInclude Include="src\Ext\Object\Body.h" />
+    <ClInclude Include="src\Ext\Radio\Body.h" />
+    <ClInclude Include="src\Ext\UnitType\Body.h" />
+    <ClInclude Include="src\Ext\Unit\Body.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-begin.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
@@ -652,6 +665,7 @@
     <ClInclude Include="src\Lib\asmjit\core\span.h" />
     <ClInclude Include="src\Lib\asmjit\core\zonebitset_p.h" />
     <ClInclude Include="src\Lib\asmjit\host.h" />
+    <ClInclude Include="src\Lib\base64\base64.h" />
     <ClInclude Include="src\Lib\Lua\lapi.h" />
     <ClInclude Include="src\Lib\Lua\lauxlib.h" />
     <ClInclude Include="src\Lib\Lua\lcode.h" />
@@ -769,7 +783,7 @@
     <ClInclude Include="src\Commands\ManualReloadAmmo.h" />
     <ClInclude Include="src\Commands\SelectCaptured.h" />
     <ClInclude Include="src\Commands\ToggleSWSidebar.h" />
-    <ClInclude Include="src\Ext\AircraftTypeClass\Body.h" />
+    <ClInclude Include="src\Ext\AircraftType\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.h" />
@@ -1252,23 +1266,23 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
       <ConformanceMode>false</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Async</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
@@ -1280,13 +1294,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableVectorLength>NotSet</EnableVectorLength>

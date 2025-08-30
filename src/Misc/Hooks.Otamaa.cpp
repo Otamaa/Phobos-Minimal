@@ -7673,6 +7673,13 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 	 return 0x0;
  }
 
+ ASMJIT_PATCH(0x4101E4, AbstractClass_NoInt_cleaupPtr, 0x7)
+ {
+	 GET(AbstractClass*, pThis, EAX);
+	 pThis->unknown_18 = 0u;
+	 return 0x0;
+ }
+
  //ASMJIT_PATCH(0x6D4912, TechnoClass_Render_deadRemoval, 0x6)
  //{
 	// TechnoClass::Array->remove_if([](TechnoClass* ptr) {

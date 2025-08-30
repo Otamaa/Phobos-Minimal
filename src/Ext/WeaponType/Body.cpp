@@ -7,7 +7,6 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
-
 #include <EBolt.h>
 
 #pragma region defines
@@ -23,13 +22,13 @@ void WeaponTypeExtData::Initialize()
 // =============================
 // load / save
 
-void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 
@@ -266,6 +265,8 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	{
 		this->SkipWeaponPicking = false;
 	}
+
+	return true;
 }
 
 int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
@@ -390,21 +391,21 @@ bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoC
 
 		//auto const pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
 
-		if (hasDisallowedTypes && PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_DisallowedTypes, false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
+		if (hasDisallowedTypes && PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_DisallowedTypes, false, this->AttachEffect_IgnoreFromSameSource, pFirer, This()->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
 			return false;
 
 		if (hasDisallowedGroups) {
 			auto group = PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_DisallowedGroups);
-			if(PhobosAEFunctions::HasAttachedEffects(pTechno, group, false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
+			if(PhobosAEFunctions::HasAttachedEffects(pTechno, group, false, this->AttachEffect_IgnoreFromSameSource, pFirer, This()->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
 				return false;
 		}
 
-		if (hasRequiredTypes && !PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_RequiredTypes, true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
+		if (hasRequiredTypes && !PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_RequiredTypes, true, this->AttachEffect_IgnoreFromSameSource, pFirer, This()->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
 			return false;
 
 		if (hasRequiredGroups){
 			auto req_group = PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_RequiredGroups);
-			if (!PhobosAEFunctions::HasAttachedEffects(pTechno, req_group, true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
+			if (!PhobosAEFunctions::HasAttachedEffects(pTechno, req_group, true, this->AttachEffect_IgnoreFromSameSource, pFirer, This()->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
 				return false;
 		}
 	}
@@ -421,7 +422,7 @@ bool WeaponTypeExtData::IsHealthInThreshold(ObjectClass* pTarget) const {
 
 ColorStruct WeaponTypeExtData::GetBeamColor() const
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto& result = this->Beam_Color;
 
 	if (pThis->IsRadBeam || pThis->IsRadEruption) {
@@ -437,7 +438,6 @@ template <typename T>
 void WeaponTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->DiskLaser_Radius)
 		.Process(this->DiskLaser_Circumference)
 		.Process(this->Rad_NoOwner)
@@ -616,6 +616,8 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarge
 	WeaponTypeExtData::DetonateAt(pThis, pTarget, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
+#include <Ext/Scenario/Body.h>
+
 void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	// if (pThis->Warhead->NukeMaker)
@@ -630,12 +632,22 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarge
 	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
 	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
-	{
-		pBullet->SetWeaponType(pThis);
-		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, CoordStruct::Empty , HouseInveoker);
-	}
+	ScenarioExtData::DetonateMasterBullet(CoordStruct::Empty,
+		pOwner,
+		damage,
+		HouseInveoker,
+		pTarget,
+		 pThis->Bright || pThis->Warhead->Bright,
+		pThis,
+		pThis->Warhead
+	);
+
+	//if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
+	//	damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
+	//{
+	//	pBullet->SetWeaponType(pThis);
+	//	BulletExtData::DetonateAt(pBullet, pTarget, pOwner, CoordStruct::Empty , HouseInveoker);
+	//}
 }
 
 void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
@@ -654,6 +666,8 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 	WeaponTypeExtData::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords), pOwner, damage, AddDamage , HouseInveoker);
 }
 
+#include <Ext/Scenario/Body.h>
+
 void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	// if (pThis->Warhead->NukeMaker)
@@ -665,20 +679,31 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 	// 	}
 	// }
 
-	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
-	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
+	ScenarioExtData::DetonateMasterBullet(coords,
+		pOwner,
+		damage,
+		HouseInveoker,
+		pTarget,
+		pThis->Bright || pThis->Warhead->Bright,
+		pThis,
+		pThis->Warhead
+	);
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
-	{
-		pBullet->SetWeaponType(pThis);
-		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords , HouseInveoker);
-	}
+	//auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
+	//auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
+
+	//if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
+	//	damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
+	//{
+	//	pBullet->SetWeaponType(pThis);
+	//	BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords , HouseInveoker);
+	//}
 }
 
 // =============================
 // container
 WeaponTypeExtContainer WeaponTypeExtContainer::Instance;
+std::vector<WeaponTypeExtData*> Container<WeaponTypeExtData>::Array;
 
 bool WeaponTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -696,6 +721,7 @@ bool WeaponTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 
 void WeaponTypeExtContainer::Clear()
 {
+	Array.clear();
 }
 
 // =============================
@@ -709,42 +735,19 @@ ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
 	return 0;
 }
 
+ASMJIT_PATCH(0x771F3C, WeaponTypeClass_CTOR_NoInt, 0x6)
+{
+	GET(WeaponTypeClass*, pItem, ESI);
+	WeaponTypeExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
 	WeaponTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeWeaponTypeClass::_Load(IStream* pStm)
-{
-
-	WeaponTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->WeaponTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		WeaponTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeWeaponTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	WeaponTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->WeaponTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		WeaponTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73CC, FakeWeaponTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73D0, FakeWeaponTypeClass::_Save)
-
 
 ASMJIT_PATCH(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
 {

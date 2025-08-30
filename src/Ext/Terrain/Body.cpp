@@ -13,18 +13,6 @@ TerrainExtData::~TerrainExtData()
 	AttachedFireAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 }
 
-void TerrainExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
-{
-	if (this->LighSource.get() == ptr) {
-		this->LighSource.release();
-	}
-
-	if (this->AttachedAnim.get() == ptr) {
-		this->AttachedAnim.release();
-	}
-
-}
-
 bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
@@ -47,9 +35,9 @@ bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 
 void TerrainExtData::InitializeLightSource()
 {
-	if (!this->LighSource && this->AttachedToObject->Type)
+	if (!this->LighSource && This()->Type)
 	{
-		auto const TypeData = TerrainTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
+		auto const TypeData = TerrainTypeExtContainer::Instance.Find(This()->Type);
 
 		if (!TypeData->LightEnabled || !TypeData->LightIntensity.isset())
 			return;
@@ -60,7 +48,7 @@ void TerrainExtData::InitializeLightSource()
 			return;
 
 		auto Tint = TypeData->GetLightTint();
-		auto Coords = this->AttachedToObject->GetCoords();
+		auto Coords = This()->GetCoords();
 		const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint);
 		light->Activate();
 		this->LighSource.reset(light);
@@ -69,9 +57,9 @@ void TerrainExtData::InitializeLightSource()
 
 void TerrainExtData::InitializeAnim()
 {
-	if (!AttachedAnim && this->AttachedToObject->Type)
+	if (!AttachedAnim && This()->Type)
 	{
-		auto const TypeData = TerrainTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
+		auto const TypeData = TerrainTypeExtContainer::Instance.Find(This()->Type);
 
 		if (TypeData->AttachedAnim.empty())
 			return;
@@ -122,7 +110,6 @@ template <typename T>
 void TerrainExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->LighSource, true)
 		.Process(this->AttachedAnim, true)
 		.Process(this->AttachedFireAnim, true)
@@ -133,6 +120,7 @@ void TerrainExtData::Serialize(T& Stm)
 // =============================
 // container
 TerrainExtContainer TerrainExtContainer::Instance;
+std::vector<TerrainExtData*> Container<TerrainExtData>::Array;
 
 // container hooks
 #include <Notifications.h>
@@ -223,33 +211,6 @@ void FakeTerrainClass::_AI()
 		//not sure what here ,..
 	}
 }
-
-HRESULT __stdcall FakeTerrainClass::_Load(IStream* pStm)
-{
-
-	TerrainExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TerrainClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		TerrainExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeTerrainClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	TerrainExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TerrainClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		TerrainExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5240, FakeTerrainClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5244, FakeTerrainClass::_Save)
 
 //ASMJIT_PATCH(0x71CFD0, TerrainClass_Detach, 0x5)
 //{

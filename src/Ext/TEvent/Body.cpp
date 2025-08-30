@@ -25,9 +25,8 @@ template <typename T>
 void TEventExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
+		.Process(this->TechnoType)
 		;
-	//Stm;
 }
 
 // helper struct
@@ -61,15 +60,15 @@ TechnoTypeClass* TEventExtData::GetTechnoType()
 {
 	if (this->TechnoType.empty())
 	{
-		const char* eventTechno = this->AttachedToObject->String;
+		const char* eventTechno = This()->String;
 		TechnoTypeClass* pType = TechnoTypeClass::Find(eventTechno);
 
 		if (!pType)
 		{
 			Debug::LogInfo("Event{}] with Team[{} - {}] references non-existing techno type \"%s\".",
-				(void*)this->AttachedToObject,
-				this->AttachedToObject->TeamType ? this->AttachedToObject->TeamType->ID : GameStrings::NoneStr(),
-				(void*)this->AttachedToObject->TeamType,
+				(void*)This(),
+				This()->TeamType ? This()->TeamType->ID : GameStrings::NoneStr(),
+				(void*)This()->TeamType,
 				eventTechno
 			);
 		}
@@ -435,7 +434,7 @@ bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 // =============================
 // container
 TEventExtContainer TEventExtContainer::Instance;
-
+std::vector<TEventExtData*> Container<TEventExtData>::Array;
 // =============================
 // container hooks
 //
@@ -448,38 +447,17 @@ ASMJIT_PATCH(0x71E7F8, TEventClass_CTOR, 5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x71E821, TEventClass_CTOR, 7)
+{
+	GET(TEventClass*, pItem, ESI);
+
+	TEventExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x71E856, TEventClass_SDDTOR, 0x6)
 {
 	GET(TEventClass*, pItem, ESI);
 	TEventExtContainer::Instance.Remove(pItem);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeTEventClass::_Load(IStream* pStm)
-{
-
-	TEventExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TEventClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		TEventExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeTEventClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	TEventExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TEventClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		TEventExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F558C, FakeTEventClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5590, FakeTEventClass::_Save)

@@ -4,9 +4,9 @@
 
 #include <InfantryClass.h>
 
-void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = this->This();
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
@@ -117,10 +117,10 @@ void TiberiumExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 				auto iter = TiberiumExtContainer::LinkedType.get_key_iterator(pOverlay);
 
 				if (iter != TiberiumExtContainer::LinkedType.end()) {
-					if (iter->second != this->AttachedToObject)
+					if (iter->second != this->This())
 						Debug::FatalErrorAndExit("OverlayType[%s] already assigned to [%s] Tiberium! ", pOverlay->ID, iter->second->ID);
 				} else {
-					TiberiumExtContainer::LinkedType.emplace_unchecked(pOverlay, this->AttachedToObject);
+					TiberiumExtContainer::LinkedType.emplace_unchecked(pOverlay, this->This());
 				}
 			}
 			else if (first && pOverlay->ArrayIndex != (first->ArrayIndex + i)) {
@@ -444,7 +444,6 @@ template <typename T>
 void TiberiumExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Palette)
 		.Process(this->OreTwinkle)
 		.Process(this->OreTwinkleChance)
@@ -469,6 +468,7 @@ void TiberiumExtData::Serialize(T& Stm)
 
 TiberiumExtContainer TiberiumExtContainer::Instance;
 PhobosMap<OverlayTypeClass*, TiberiumClass*> TiberiumExtContainer::LinkedType;
+std::vector<TiberiumExtData*> Container<TiberiumExtData>::Array;
 
 bool TiberiumExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -506,35 +506,6 @@ ASMJIT_PATCH(0x721888, TiberiumClass_DTOR, 0x6)
 	TiberiumExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeTiberiumClass::_Load(IStream* pStm)
-{
-
-	TiberiumExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TiberiumClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		TiberiumExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeTiberiumClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	TiberiumExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TiberiumClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		TiberiumExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F573C, FakeTiberiumClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5740, FakeTiberiumClass::_Save)
 
 ASMJIT_PATCH(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 {

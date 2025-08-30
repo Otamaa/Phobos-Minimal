@@ -48,6 +48,15 @@ public:
 		return str;
 	}
 
+	template <typename T>
+	static std::string OPTIONALINLINE GetTypeIDNameOf(const T abstract_ext)
+	{
+		std::string str = typeid(abstract_ext).name();
+		EraseSubString(str, "class ");
+		EraseSubString(str, "struct ");
+		return str;
+	}
+
 	//
 	//  Lowercases string
 	//

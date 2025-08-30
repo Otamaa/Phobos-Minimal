@@ -7,17 +7,20 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Super/Body.h>
+#include <Misc/Spawner/Main.h>
+#include <Ext/Infantry/Body.h>
 
-#include <ScenarioClass.h>
+#include <Misc/Hooks.Otamaa.h>
 
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/CrateTypeClass.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/Cast.h>
 
 #include <ExtraHeaders/StackVector.h>
 
-#include <Utilities/Cast.h>
+#include <ScenarioClass.h>
 
 #pragma region defines
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
@@ -40,23 +43,6 @@ HouseClass* HouseExtContainer::Special = nullptr;
 HouseClass* HouseExtContainer::Neutral = nullptr;
 
 #pragma endregion
-
-void HouseExtData::InitializeConstant()
-{
-	//BuiltAircraftTypes.PopulateCounts(10000);
-	//BuiltInfantryTypes.PopulateCounts(10000);
-	//BuiltUnitTypes.PopulateCounts(10000);
-	//BuiltBuildingTypes.PopulateCounts(10000);
-	//KilledAircraftTypes.PopulateCounts(10000);
-	//KilledInfantryTypes.PopulateCounts(10000);
-	//KilledUnitTypes.PopulateCounts(10000);
-	//KilledBuildingTypes.PopulateCounts(10000);
-	//CapturedBuildings.PopulateCounts(10000);
-	//CollectedCrates.PopulateCounts(10000);
-
-	//Debug::LogInfo("Initilizing Tiberium storage for [%s] with [%d] count !", this->AttachedToObject->Type->ID, TiberiumClass::Array->Count);
-	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-}
 
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 {
@@ -684,12 +670,12 @@ bool HouseExtData::PrerequisitesMet(HouseClass* pThis, int* items, int size)
 	return Prereqs::HouseOwnsAll(pThis, items, size);
 }
 
-void HouseExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool HouseExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pSection = this->AttachedToObject->PlainName;
+	const char* pSection = This()->PlainName;
 
 	if (!pINI->GetSection(pSection))
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 	bool readBaseNodeRepairInfo[3];
@@ -701,6 +687,7 @@ void HouseExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->Degrades.Read(exINI, pSection, "Degrades");
+	return true;
 }
 
 TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
@@ -983,7 +970,7 @@ NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoT
 
 void HouseExtData::GetUnitTypeToProduce()
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
 	bool skipGround = pThis->ProducingUnitTypeIndex != -1;
 	bool skipNaval = this->ProducingNavalUnitTypeIndex != -1;
@@ -1131,7 +1118,7 @@ int HouseExtData::GetAircraftTypeToProduce()
 	taskForceMembers.reserve(AircraftTypeClass::Array->Count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
-	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[this->AttachedToObject])
+	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[This()])
 	{
 		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
@@ -1161,7 +1148,7 @@ int HouseExtData::GetAircraftTypeToProduce()
 	for (auto classPos = AircraftClass::Array->begin(); classPos != AircraftClass::Array->end(); ++classPos)
 	{
 		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(this->AttachedToObject))
+		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(This()))
 		{
 			--Values[Idx];
 		}
@@ -1180,14 +1167,14 @@ int HouseExtData::GetAircraftTypeToProduce()
 		if (CurrentValue <= 0)
 			continue;
 
-		const auto buildableResult = this->AttachedToObject->CanBuild(TT, false, false);
+		const auto buildableResult = This()->CanBuild(TT, false, false);
 
-		if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(this->AttachedToObject) > this->AttachedToObject->Available_Money()) {
+		if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(This()) > This()->Available_Money()) {
 			continue;
 		}
 
 		//yes , we checked this fucking twice just to make sure
-		const auto factoryresult = HouseExtData::HasFactory(this->AttachedToObject, TT, false, true, false, true).first;
+		const auto factoryresult = HouseExtData::HasFactory(This(), TT, false, true, false, true).first;
 
 		if (factoryresult == NewFactoryState::NotFound || factoryresult == NewFactoryState::NoFactory) {
 			continue;
@@ -1206,7 +1193,7 @@ int HouseExtData::GetAircraftTypeToProduce()
 		}
 	}
 
-	const auto AIDiff = static_cast<int>(this->AttachedToObject->GetAIDifficultyIndex());
+	const auto AIDiff = static_cast<int>(This()->GetAIDifficultyIndex());
 
 	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
 		return EarliestTypenameIndex;
@@ -1231,7 +1218,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 	taskForceMembers.reserve(InfantryTypeClass::Array->Count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
-	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[this->AttachedToObject])
+	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[This()])
 	{
 		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
@@ -1261,7 +1248,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 	for (auto classPos = InfantryClass::Array->begin(); classPos != InfantryClass::Array->end(); ++classPos)
 	{
 		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(this->AttachedToObject))
+		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(This()))
 		{
 			--Values[Idx];
 		}
@@ -1280,10 +1267,10 @@ int HouseExtData::GetInfantryTypeToProduce()
 		if (CurrentValue <= 0)
 			continue;
 
-		const auto buildableResult = this->AttachedToObject->CanBuild(TT, false, false);
+		const auto buildableResult = This()->CanBuild(TT, false, false);
 
 		if (buildableResult == CanBuildResult::Unbuildable
-			|| TT->GetActualCost(this->AttachedToObject) > this->AttachedToObject->Available_Money())
+			|| TT->GetActualCost(This()) > This()->Available_Money())
 		{
 			continue;
 		}
@@ -1301,7 +1288,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 		}
 	}
 
-	const auto AIDiff = static_cast<int>(this->AttachedToObject->GetAIDifficultyIndex());
+	const auto AIDiff = static_cast<int>(This()->GetAIDifficultyIndex());
 
 	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
 		return EarliestTypenameIndex;
@@ -1318,14 +1305,14 @@ TechTreeTypeClass* HouseExtData::GetTechTreeType() {
 		TechTreeTypeClass* ret = nullptr;
 
 		for (auto& pType : TechTreeTypeClass::Array) {
-			if (pType->SideIndex == this->AttachedToObject->SideIndex) {
+			if (pType->SideIndex == This()->SideIndex) {
 				ret = pType.get();
 			}
 		}
 
 		if(!ret){
 			Debug::LogInfo("TechTreeTypeClass::GetForSide: Could not find tech tree for side {}, returning tech tree 0: {}",
-				this->AttachedToObject->SideIndex, TechTreeTypeClass::Array.begin()->get()->Name.data());
+				This()->SideIndex, TechTreeTypeClass::Array.begin()->get()->Name.data());
 			ret = TechTreeTypeClass::Array.begin()->get();
 		}
 
@@ -1722,7 +1709,7 @@ int HouseExtData::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionCl
 
 bool HouseExtData::UpdateHarvesterProduction()
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
 	const auto idxParentCountry = pThis->Type->FindParentCountryIndex();
 	const auto pHarvesterUnit = HouseExtData::FindOwned(pThis, idxParentCountry, make_iterator(RulesClass::Instance->HarvesterUnit));
@@ -2374,27 +2361,28 @@ void HouseExtData::UpdateNonMFBFactoryCounts(AbstractType rtti, bool remove, boo
 int HouseExtData::GetFactoryCountWithoutNonMFB(AbstractType rtti, bool isNaval)
 {
 	int count = 0;
+	auto pThis = This();
 
 	switch (rtti)
 	{
 	case AbstractType::Aircraft:
 	case AbstractType::AircraftType:
-		count = this->AttachedToObject->NumAirpads - this->NumAirpads_NonMFB;
+		count = pThis->NumAirpads - this->NumAirpads_NonMFB;
 		break;
 	case AbstractType::Building:
 	case AbstractType::BuildingType:
-		count = this->AttachedToObject->NumConYards - this->NumConYards_NonMFB;
+		count = pThis->NumConYards - this->NumConYards_NonMFB;
 		break;
 	case AbstractType::Infantry:
 	case AbstractType::InfantryType:
-		count = this->AttachedToObject->NumBarracks - this->NumBarracks_NonMFB;
+		count = pThis->NumBarracks - this->NumBarracks_NonMFB;
 		break;
 	case AbstractType::Unit:
 	case AbstractType::UnitType:
 		if (isNaval)
-			count = this->AttachedToObject->NumShipyards - this->NumShipyards_NonMFB;
+			count = pThis->NumShipyards - this->NumShipyards_NonMFB;
 		else
-			count = this->AttachedToObject->NumWarFactories - this->NumWarFactories_NonMFB;
+			count = pThis->NumWarFactories - this->NumWarFactories_NonMFB;
 		break;
 	default:
 		break;
@@ -2424,7 +2412,7 @@ void HouseExtData::UpdateBattlePoints(int modifier)
 
 bool HouseExtData::AreBattlePointsEnabled()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto pOwnerTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
 
 		// Structures can enable this logic overwriting the house's setting
@@ -2456,7 +2444,7 @@ int HouseExtData::CalculateBattlePoints(TechnoClass* pTechno)
 
 int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pOwner)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto pThisTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno);
 
@@ -2486,95 +2474,16 @@ bool HouseExtData::ReverseEngineer(TechnoClass* Victim) {
 	if (!VictimAs)
 		return false;
 
-	if (HouseExtData::PrereqValidate(this->AttachedToObject, VictimType, false, true) != CanBuildResult::Buildable) {
+	if (HouseExtData::PrereqValidate(This(), VictimType, false, true) != CanBuildResult::Buildable) {
 		this->Reversed.emplace(VictimAs);
-		if (HouseExtData::RequirementsMet(this->AttachedToObject, VictimType) != RequirementStatus::Forbidden) {
-			this->AttachedToObject->RecheckTechTree = true;
+		if (HouseExtData::RequirementsMet(This(), VictimType) != RequirementStatus::Forbidden) {
+			This()->RecheckTechTree = true;
 			return true;
 		}
 	}
 
 	return false;
 }
-
-//void HouseExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
-//{
-//	if (pTechnoType)
-//	{
-//		int arrayIndex = pTechnoType->GetArrayIndex();
-//
-//		switch (pTechnoType->WhatAmI())
-//			// I doubt those in LimboDelete being really necessary, they're gonna be updated either next frame or after uninit anyway
-//		{
-//		case AbstractType::AircraftType:
-//			this->LimboAircraft.Increment(arrayIndex);
-//			break;
-//		case AbstractType::BuildingType:
-//			this->LimboBuildings.Increment(arrayIndex);
-//			break;
-//		case AbstractType::InfantryType:
-//			this->LimboInfantry.Increment(arrayIndex);
-//			break;
-//		case AbstractType::UnitType:
-//			this->LimboVehicles.Increment(arrayIndex);
-//			break;
-//		default:
-//			break;
-//		}
-//	}
-//}
-//
-//void HouseExtData::RemoveFromLimboTracking(TechnoTypeClass* pTechnoType)
-//{
-//	if (pTechnoType)
-//	{
-//		int arrayIndex = pTechnoType->GetArrayIndex();
-//
-//		switch (pTechnoType->WhatAmI())
-//		{
-//		case AbstractType::AircraftType:
-//			this->LimboAircraft.Decrement(arrayIndex);
-//			break;
-//		case AbstractType::BuildingType:
-//			this->LimboBuildings.Decrement(arrayIndex);
-//			break;
-//		case AbstractType::InfantryType:
-//			this->LimboInfantry.Decrement(arrayIndex);
-//			break;
-//		case AbstractType::UnitType:
-//			this->LimboVehicles.Decrement(arrayIndex);
-//			break;
-//		default:
-//			break;
-//		}
-//	}
-//}
-//
-//int HouseExtData::CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType)
-//{
-//	int count = this->OwnerObject()->CountOwnedAndPresent(pTechnoType);
-//	int arrayIndex = pTechnoType->GetArrayIndex();
-//
-//	switch (pTechnoType->WhatAmI())
-//	{
-//	case AbstractType::AircraftType:
-//		count += this->LimboAircraft.GetItemCount(arrayIndex);
-//		break;
-//	case AbstractType::BuildingType:
-//		count += this->LimboBuildings.GetItemCount(arrayIndex);
-//		break;
-//	case AbstractType::InfantryType:
-//		count += this->LimboInfantry.GetItemCount(arrayIndex);
-//		break;
-//	case AbstractType::UnitType:
-//		count += this->LimboVehicles.GetItemCount(arrayIndex);
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	return count;
-//}
 
 // =============================
 // load / save
@@ -2583,7 +2492,6 @@ template <typename T>
 void HouseExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Degrades)
 		.Process(this->PowerPlantEnhancerBuildings)
 		.Process(this->Building_BuildSpeedBonusCounter)
@@ -2608,7 +2516,6 @@ void HouseExtData::Serialize(T& Stm)
 			.Process(this->CaptureObjectExecuted)
 			.Process(this->DiscoverEvaDelay)
 			.Process(this->Tunnels)
-			.Process(this->Seed)
 			.Process(this->SWLastIndex)
 			.Process(this->Batteries)
 			.Process(this->AvaibleDocks)
@@ -2701,6 +2608,7 @@ bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 // container
 
 HouseExtContainer HouseExtContainer::Instance;
+std::vector<HouseExtData*> Container<HouseExtData>::Array;
 
 void HouseExtContainer::Clear()
 {
@@ -2722,7 +2630,6 @@ void HouseExtContainer::Clear()
 	HouseExtContainer::HousesTeams.clear();
 }
 
-#include <Misc/Spawner/Main.h>
 
 /**
  *  Handles expert AI processing.
@@ -3404,8 +3311,6 @@ void FakeHouseClass::_UpdateSpySat()
 DEFINE_FUNCTION_JUMP(CALL, 0x4F850C, FakeHouseClass::_UpdateSpySat)
 DEFINE_FUNCTION_JUMP(LJMP, 0x508F60, FakeHouseClass::_UpdateSpySat)
 
-#include <Ext/Infantry/Body.h>
-
 bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 {
 	if (!pTechno->IsAlive)
@@ -3447,6 +3352,7 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 
 	return false;
 }
+
 // =============================
 // container hooks
 
@@ -3461,59 +3367,19 @@ ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x4F5480, HouseClass_CTOR_NoInt, 0x7)
+{
+	GET(HouseClass*, pItem, ESI);
+	HouseExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x4F7186, HouseClass_DTOR, 0x8)
 {
 	GET(HouseClass*, pItem, ESI);
 	HouseExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-ASMJIT_PATCH(0x503040, HouseClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(HouseClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	HouseExtContainer::Instance.PrepareStream(pItem, pStm);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x504080, HouseClass_SaveLoad_Prefix, 0x5)
-
-ASMJIT_PATCH(0x5031E6, HouseClass_Load_Suffix, 0x6)
-{
-	HouseExtContainer::Instance.LoadStatic();
-	return 0;
-}
-
-ASMJIT_PATCH(0x5040A2, HouseClass_Save_Suffix, 0x6)
-{
-	HouseExtContainer::Instance.SaveStatic();
-	return 0;
-}
-
-ASMJIT_PATCH(0x50114D, HouseClass_InitFromINI, 0x5)
-{
-	GET(HouseClass* const, pThis, EBX);
-	GET(CCINIClass* const, pINI, ESI);
-
-	HouseExtContainer::Instance.LoadFromINI(pThis, pINI, false);
-
-	return 0;
-}
-
-//ASMJIT_PATCH(0x4FB9B7, HouseClass_Detach, 0xA)
-//{
-//	GET(HouseClass*, pThis, ECX);
-//	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
-//	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
-//
-//	HouseExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-//
-//	R->ESI(pThis);
-//	R->EBX(0);
-//	return pThis->ToCapture == target ?
-//		0x4FB9C3 : 0x4FB9C9;
-//}
-
-#include <Misc/Hooks.Otamaa.h>
 
 void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
 	HouseExtContainer::Instance.InvalidatePointerFor(this, target, all);

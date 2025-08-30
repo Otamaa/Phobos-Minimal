@@ -1054,13 +1054,35 @@ ASMJIT_PATCH(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 	return 0x6FAFFD;
 }
 
-ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
+ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 {
-	GET(TechnoClass* const, pThis, ESI);
+	GET(TechnoClass* , pThis, ESI);
+
+	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	//require the VTABLE to be initialized
+	//hence why it is here instead of the CTOR
+	pExt->AbsType = pThis->WhatAmI();
+	if(!pExt->AbsType.has_value())
+		Debug::FatalErrorAndExit("Invalid Techno %x" , pThis);
 
 	auto const pType = pThis->GetTechnoType();
+
+	pExt->Type = pType;
+
+	pExt->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+	HouseExtData* pHouseExt = nullptr;
+
+	if (pThis->Owner) {
+		pThis->IsOwnedByCurrentPlayer = pThis->Owner == HouseClass::CurrentPlayer();
+		pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+	}
+
+	if (!pType)
+		return 0x6F42F7;
+
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
 
 	//TechnoExtData::InitializeAttachments(pThis);
 
@@ -1073,8 +1095,8 @@ ASMJIT_PATCH(0x6F3F88, TechnoClass_Init_1, 5)
 
 	//AircraftDiveFunctional::Init(pExt, pTypeExt);
 
-	if (pTypeExt->Harvester_Counted)
-		HouseExtContainer::Instance.Find(pThis->Owner)->OwnedCountedHarvesters.emplace(pThis);
+	if (pHouseExt && pTypeExt->Harvester_Counted)
+		pHouseExt->OwnedCountedHarvesters.emplace(pThis);
 
 	if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID) {
 		if (pTypeExt->MyFighterData.Enable) {

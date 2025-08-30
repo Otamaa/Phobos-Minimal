@@ -30,34 +30,47 @@ private:
 	}
 };
 
-class CellExtData final
+class CellExtData final : public AbstractExtended
 {
 public:
-
-	static COMPILETIMEEVAL size_t Canary = 0x87688621;
 	using base_type = CellClass;
 
-	static COMPILETIMEEVAL size_t ExtOffset = 0x144;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
+#pragma region ClassMembers
 	int NewPowerups { -1 };
 	UnitClass* IncomingUnit { nullptr };
 	UnitClass* IncomingUnitAlt { nullptr };
 	HelperedVector<RadSiteClass*> RadSites {};
 	HelperedVector<RadLevel> RadLevels {};
+#pragma endregion
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(CellExtData) -
-			(4u //AttachedToObject
-			 );
+	CellExtData(AircraftTypeClass* pObj) : AbstractExtended(pObj) { }
+	CellExtData(AircraftTypeClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+
+	virtual ~CellExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override {
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
 	}
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const {
+		const_cast<CellExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
+		const_cast<CellExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { }
+
+	virtual AircraftTypeClass* This() const override { return reinterpret_cast<AircraftTypeClass*>(this->AbstractExtended::This()); }
+	virtual const AircraftTypeClass* This_Const() const override { return reinterpret_cast<const AircraftTypeClass*>(this->AbstractExtended::This_Const()); }
+
+public:
 
 	static int __fastcall GetTiberiumType(int Overlay);
 
@@ -78,48 +91,33 @@ class CellExtContainer final : public Container<CellExtData>
 {
 public:
 	static CellExtContainer Instance;
-	static HelperedVector<CellExtData*> Array;
 
-	CellExtData* AllocateUnchecked(CellClass* key)
+
+	static void Clear()
 	{
-		auto val = Array.emplace_back(new CellExtData());
-		val->AttachedToObject = key;
-		return val;
-
-	}
-
-	CellExtData* Allocate(CellClass* key)
-	{
-		if (!key || Phobos::Otamaa::DoingLoadGame || key == CellClass::Instance())
-			return nullptr;
-
-		this->ClearExtAttribute(key);
-		CellExtData* val = AllocateUnchecked(key);
-		this->SetExtAttribute(key, val);
-		return val;
-	}
-
-	void Remove(CellClass* key)
-	{
-		if (Phobos::Otamaa::DoingLoadGame || key == CellClass::Instance())
-			return;
-
-		if (CellExtData* Item = TryFind(key)) {
-			Array.remove(Item);
-			this->ClearExtAttribute(key);
-			delete Item;
-		}
-	}
-
-	void Clear()
-	{
-		for (auto& item : Array) {
-			if (item)
-				delete item;
-		}
-
 		Array.clear();
 	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(CellExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(CellExtData::base_type* key, IStream* pStm) { };
 };
 
 class NOVTABLE FakeCellClass : public CellClass
@@ -142,7 +140,7 @@ public:
 
 	FORCEDINLINE CellExtData* _GetExtData()
 	{
-		return *reinterpret_cast<CellExtData**>(((DWORD)this) + CellExtData::ExtOffset);
+		return *reinterpret_cast<CellExtData**>(((DWORD)this) + 0x18);
 	}
 
 };

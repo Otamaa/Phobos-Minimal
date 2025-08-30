@@ -42,6 +42,7 @@ ScriptActionNode NOINLINE ScriptExtData::GetSpecificAction(ScriptClass* pScript,
 // =============================
 // container
 ScriptExtContainer ScriptExtContainer::Instance;
+std::vector<ScriptExtData*> Container<ScriptExtData>::Array;
 
 #define stringify( name ) #name
 

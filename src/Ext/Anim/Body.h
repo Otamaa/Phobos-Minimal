@@ -8,16 +8,16 @@
 
 #include <ParticleSystemClass.h>
 
+#include <Ext/Object/Body.h>
+
 class HouseClass;
-class AnimExtData
+class AnimExtData : public ObjectExtData
 {
 public:
 	using base_type = AnimClass;
-	static COMPILETIMEEVAL size_t Canary = 0xAADAAAA;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region ClassMembers
 
 	OptionalStruct<CoordStruct, true> BackupCoords {};
 	OptionalStruct<DirType, true> DeathUnitFacing {};
@@ -40,15 +40,14 @@ public:
 	bool IsShieldIdleAnim { false };
 
 	StageClass	DamagingState { };
+#pragma endregion
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+public:
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	AnimExtData(AnimClass* pObj) : ObjectExtData(pObj) { }
+	AnimExtData(AnimClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
 
-	void CreateAttachedSystem();
-
-	~AnimExtData()
+	virtual ~AnimExtData()
 	{
 		// mimicking how this thing does , since the detach seems not properly handle these
 		if (auto pAttach = AttachedSystem)
@@ -59,13 +58,32 @@ public:
 		}
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		return sizeof(AnimExtData) -
-			(4u //AttachedToObject
-			 -4u //inheritance
-				);
+		this->ObjectExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
 	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		this->ObjectExtData::SaveToStream(Stm);
+		const_cast<AnimExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectExtData::CalculateCRC(crc);
+	}
+
+	virtual AnimClass* This() const override { return reinterpret_cast<AnimClass*>(this->ObjectExtData::This()); }
+	virtual const AnimClass* This_Const() const override { return reinterpret_cast<const AnimClass*>(this->ObjectExtData::This_Const()); }
+
+public:
 
 	static const std::pair<bool, OwnerHouseKind> SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, bool defaultToVictimOwner);
 	static const std::pair<bool, OwnerHouseKind> SetAnimOwnerHouseKind(AnimClass* pAnim, HouseClass* pInvoker, HouseClass* pVictim, TechnoClass* pTechnoInvoker, bool defaultToVictimOwner , bool forceOwnership);
@@ -84,6 +102,8 @@ public:
 	static void SpawnFireAnims(AnimClass* pThis);
 
 public:
+
+	void CreateAttachedSystem();
 	void OnStart() { };
 	void OnMiddle() { };
 	void OnEnd() { };
@@ -94,77 +114,46 @@ private:
 	void Serialize(T& Stm);
 };
 
+class AnimExtContainer final : public Container<AnimExtData>
+{
+public:
+	static AnimExtContainer Instance;
+	static std::list<AnimClass*> AnimsWithAttachedParticles;
+
+	static void Clear()
+	{
+		Array.clear();
+		AnimsWithAttachedParticles.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		Stm.Process(AnimsWithAttachedParticles);
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		Stm.Process(AnimsWithAttachedParticles);
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array) {
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(AnimExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(AnimExtData::base_type* key, IStream* pStm) { };
+};
+
 class AnimTypeExtData;
 class NOVTABLE FakeAnimClass : public AnimClass
 {
 public:
-	static std::list<FakeAnimClass*> AnimsWithAttachedParticles;
-	static StaticObjectPool<AnimExtData , 10000> pools;
 
-	static COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(AnimClass* key)
-	{
-		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
-	}
-
-	static COMPILETIMEEVAL FORCEDINLINE void SetExtAttribute(AnimClass* key, AnimExtData* val)
-	{
-		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
-	}
-
-	static COMPILETIMEEVAL FORCEDINLINE AnimExtData* GetExtAttribute(AnimClass* key)
-	{
-		return (AnimExtData*)(*(uintptr_t*)((char*)key + AbstractExtOffset));
-	}
-
-	static COMPILETIMEEVAL AnimExtData* TryFind(AnimClass* key)
-	{
-		if (!key)
-			return nullptr;
-
-		return FakeAnimClass::GetExtAttribute(key);
-	}
-
-	static AnimExtData* AllocateUnchecked(AnimClass* key)
-	{
-		if (AnimExtData* val = pools.allocate())
-		{
-			val->AttachedToObject = key;
-			return val;
-		}
-
-		Debug::FatalErrorAndExit("The amount of [AnimExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		return nullptr;
-	}
-
-	static AnimExtData* Allocate(AnimClass* key)
-	{
-		if (!key || Phobos::Otamaa::DoingLoadGame)
-			return nullptr;
-
-		FakeAnimClass::ClearExtAttribute(key);
-
-		if (AnimExtData* val = AllocateUnchecked(key))
-		{
-			FakeAnimClass::SetExtAttribute(key, val);
-			return val;
-		}
-
-		return nullptr;
-	}
-
-	static void Remove(AnimClass* key)
-	{
-		if (AnimExtData* Item = FakeAnimClass::TryFind(key))
-		{
-			pools.deallocate(Item);
-			FakeAnimClass::ClearExtAttribute(key);
-		}
-	}
-
-	static void Clear()
-	{
-		AnimsWithAttachedParticles.clear();
-	}
 
 	FORCEDINLINE HouseClass* _GetOwningHouse() {
 		return this->Owner;
@@ -202,18 +191,6 @@ public:
 
 	FORCEDINLINE AnimTypeExtData* _GetTypeExtData() {
 		return *reinterpret_cast<AnimTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
-	}
-
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		Stm.Process(AnimsWithAttachedParticles);
-		return true;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		Stm.Process(AnimsWithAttachedParticles);
-		return true;
 	}
 };
 static_assert(sizeof(FakeAnimClass) == sizeof(AnimClass), "Invalid Size !");

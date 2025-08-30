@@ -164,7 +164,7 @@ public:
 	ACTION_FUNC(MakeEnemyOneWay);
 #undef ACTION_FUNC
 
-	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;
+	static PhobosMap<int, std::vector<TriggerClass*>> RandomTriggerPool;
 
 	static void Clear() {
 		RandomTriggerPool.clear();

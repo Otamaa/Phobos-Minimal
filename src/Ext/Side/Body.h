@@ -11,15 +11,16 @@
 
 #include <FileFormats/SHP.h>
 
-class SideExtData final
+#include <Ext/AbstractType/Body.h>
+
+class SideExtData final : public AbstractTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x05B10501;
 	using base_type = SideClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region ClassMembers
 
 	Valueable<int> ArrayIndex { -1 };
 	Nullable<bool> Sidebar_GDIPositions { };
@@ -111,11 +112,44 @@ public:
 	Valueable<Point2D> Sidebar_BattlePoints_Offset {};
 	Nullable<ColorStruct> Sidebar_BattlePoints_Color {};
 	Valueable<TextAlign> Sidebar_BattlePoints_Align { TextAlign::Left };
+#pragma endregion
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
+
+	SideExtData(SideClass* pObj) : AbstractTypeExtData(pObj) { this->Initialize(); }
+	SideExtData(SideClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
+
+	virtual ~SideExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<SideExtData*>(this)->AbstractTypeExtData::Internal_SaveToStream(Stm);
+		const_cast<SideExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const;
+	virtual SideClass* This() const override { return reinterpret_cast<SideClass*>(this->AbstractTypeExtData::This()); }
+	virtual const SideClass* This_Const() const override { return reinterpret_cast<const SideClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { }
+
 	void Initialize();
+
+public:
 
 	int GetSurvivorDivisor() const;
 	int GetDefaultSurvivorDivisor() const;
@@ -142,6 +176,9 @@ public:
 	InfantryTypeClass* GetDisguise() const;
 	InfantryTypeClass* GetDefaultDisguise() const;
 
+	const char* GetMultiplayerScoreBarFilename(unsigned int index) const;
+public:
+
 	static bool isNODSidebar();
 	static void UpdateGlobalFiles();
 
@@ -166,14 +203,6 @@ public:
 		 SideExtData::s_GraphicalTextConvert.GetConvert() : FileSystem::GRFXTXT_Convert();
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(SideExtData) -
-			(4u //AttachedToObject
-			 );
-	}
-
-	const char* GetMultiplayerScoreBarFilename(unsigned int index) const;
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -183,5 +212,29 @@ class SideExtContainer final : public Container<SideExtData>
 {
 public:
 	static SideExtContainer Instance;
-	//CONSTEXPR_NOCOPY_CLASSB(SideExtContainer, SideExtData, "SideClass");
+	static void Clear()
+	{
+		Array.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(SideExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(SideExtData::base_type* key, IStream* pStm) { };
 };

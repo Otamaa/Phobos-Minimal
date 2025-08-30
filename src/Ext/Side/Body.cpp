@@ -13,7 +13,7 @@ CustomPalette SideExtData::s_DialogBackgroundConvert;
 int SideExtData::CurrentLoadTextColor = -1;
 
 void SideExtData::Initialize() {
-	const char* pID = this->AttachedToObject->ID;
+	const char* pID = This()->ID;
 
 	if (IS_SAME_STR_(pID, "Nod"))
 	{ //Soviets
@@ -283,9 +283,9 @@ InfantryTypeClass* SideExtData::GetDefaultDisguise() const
 	}
 }
 
-void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
@@ -429,7 +429,6 @@ template <typename T>
 void SideExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->ArrayIndex)
 		.Process(this->Sidebar_GDIPositions)
 
@@ -537,6 +536,7 @@ bool SideExtData::SaveGlobals(PhobosStreamWriter& Stm)
 // =============================
 // container
 SideExtContainer SideExtContainer::Instance;
+std::vector<SideExtData*> Container<SideExtData>::Array;
 // =============================
 // container hooks
 
@@ -558,49 +558,3 @@ ASMJIT_PATCH(0x6A499F, SideClass_SDDTOR, 0x6)
 	SideExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-
-ASMJIT_PATCH(0x6A4780, SideClass_SaveLoad_Prefix, 0x6)
-{
-	GET_STACK(SideClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	SideExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x6A48A0, SideClass_SaveLoad_Prefix, 0x5)
-
-ASMJIT_PATCH(0x6A488B, SideClass_Load_Suffix, 0x6)
-{
-   	SideExtContainer::Instance.LoadStatic();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A48FC, SideClass_Save_Suffix, 0x5)
-{
-	SideExtContainer::Instance.SaveStatic();
-	return 0;
-}
-
- //ASMJIT_PATCH(0x679A10, SideClass_LoadAllFromINI, 0x5)
- //{
- //	GET_STACK(CCINIClass*, pINI, 0x4);
-
- //	for (auto pSide : *SideClass::Array) {
- //		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
- //	}
-
- //	return 0;
- //}
-
-/*
-FINE_HOOK(6725C4, RulesClass_Addition_Sides, 8)
-{
-	GET(SideClass *, pItem, EBP);
-	GET_STACK(CCINIClass*, pINI, 0x38);
-
-	SideExtContainer::Instance.LoadFromINI(pItem, pINI);
-	return 0;
-}
-*/

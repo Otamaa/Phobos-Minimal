@@ -126,7 +126,7 @@ void ParticleSystemExtData::UpdateColor()
 
 void ParticleSystemExtData::UpdateSpark()
 {
-	auto pOwner = this->AttachedToObject;
+	auto pOwner = this->This();
 	auto SparkSpawnFrames = pOwner->SparkSpawnFrames;
 	auto SparkSpawnNeg1 = SparkSpawnFrames - 1;
 
@@ -233,7 +233,7 @@ void ParticleSystemExtData::UpdateSpark()
 #ifdef azadasd
 void ParticleSystemExtData::UpdateRailgun()
 {
-	auto pOwnerObj = this->AttachedToObject;
+	auto pOwnerObj = this->This();
 	auto pOwnerObjType = pOwnerObj->Type;
 
 	if (!pOwnerObj->TimeToDie && this->OtherParticleData.empty())
@@ -388,7 +388,7 @@ void ParticleSystemExtData::UpdateRailgun()
 
 void  ParticleSystemExtData::UpdateRailgun()
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = this->This();
 
 	if (!pThis->TimeToDie && !this->OtherParticleData.size())
 	{
@@ -653,7 +653,7 @@ void ParticleSystemExtData::UpdateWindDirection()
 
 void ParticleSystemExtData::UpdateSmoke()
 {
-	auto const pOwnerObj = this->AttachedToObject;
+	auto const pOwnerObj = this->This();
 	auto const pOwnerObjType = pOwnerObj->Type;
 	auto const pOwnerObj_Owner = pOwnerObj->Owner;
 
@@ -906,11 +906,11 @@ bool ParticleSystemExtData::UpdateHandled()
 	default:
 
 
-	//	switch (this->AttachedToObject->Type->BehavesLike)
+	//	switch (this->This()->Type->BehavesLike)
 	//	{
 	//	case ParticleSystemTypeBehavesLike::Smoke:
 	//	{
-	//		const auto pOwner = this->AttachedToObject;
+	//		const auto pOwner = this->This();
 
 	//		pOwner->Smoke_AI();
 	//		/*
@@ -986,9 +986,9 @@ bool ParticleSystemExtData::UpdateHandled()
 
 	//	case ParticleSystemTypeBehavesLike::Fire:
 	//	{
-	//		this->AttachedToObject->Fire_AI();
+	//		this->This()->Fire_AI();
 
-	//		const auto pOwner = this->AttachedToObject;
+	//		const auto pOwner = this->This();
 
 	//		pOwner->Lifetime--;
 	//		if (pOwner->Lifetime == 0)
@@ -1008,9 +1008,9 @@ bool ParticleSystemExtData::UpdateHandled()
 
 	//	case ParticleSystemTypeBehavesLike::Gas:
 	//	{
-	//		this->AttachedToObject->Gas_AI();
+	//		this->This()->Gas_AI();
 
-	//		const auto pOwner = this->AttachedToObject;
+	//		const auto pOwner = this->This();
 
 	//		pOwner->Lifetime--;
 	//		if (pOwner->Lifetime == 0)
@@ -1030,9 +1030,9 @@ bool ParticleSystemExtData::UpdateHandled()
 
 	//	case ParticleSystemTypeBehavesLike::Railgun:
 	//	{
-	//		this->AttachedToObject->Railgun_AI();
+	//		this->This()->Railgun_AI();
 
-	//		const auto pOwner = this->AttachedToObject;
+	//		const auto pOwner = this->This();
 
 	//		pOwner->Lifetime--;
 	//		if (pOwner->Lifetime == 0)
@@ -1054,7 +1054,7 @@ bool ParticleSystemExtData::UpdateHandled()
 	//	}
 	}
 
-	const auto pOwner = this->AttachedToObject;
+	const auto pOwner = this->This();
 
 	if (pOwner->Lifetime-- == 1)
 		pOwner->TimeToDie = true;
@@ -1207,74 +1207,10 @@ void ParticleSystemExtData::UpdateInAir()
 	}
 }
 
-void ParticleSystemExtData::InitializeConstant()
-{
-	if (!this->AttachedToObject->Type)
-		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !", this->AttachedToObject);
-
-	auto pType = this->AttachedToObject->Type;
-	{
-		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
-			return;
-
-		this->HeldType = ParticleTypeClass::Array->Items[pType->HoldsWhat];
-
-		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage)
-		{
-			auto bIsZero = (int)this->HeldType->BehavesLike;
-			auto nBehave = (int)pType->BehavesLike;
-			if (bIsZero <= 1)
-				bIsZero = bIsZero == 0;
-
-			if (nBehave == bIsZero)
-			{
-				if (!nBehave) {
-					this->What = Behave::Smoke;
-					return;
-				}
-
-				auto v11 = nBehave - 3;
-				if (!v11)                       // 0
-				{
-					this->What = Behave::Spark;
-					return;
-				}
-				if (v11 == 1)                   // // 1
-				{
-					this->What = Behave::Railgun;
-					return;
-				}
-			}
-			//else
-			//{
-			//	if (this->HeldType->ColorList.Count < 3) {
-			//		return;
-			//	}
-			//
-			//	switch (pType->BehavesLike)
-			//	{
-			//	case ParticleSystemTypeBehavesLike::Smoke:
-			//		this->What = Behave::Smoke;
-			//		return;
-			//	case ParticleSystemTypeBehavesLike::Spark:
-			//		this->What = Behave::Spark;
-			//		return;
-			//	case ParticleSystemTypeBehavesLike::Railgun:
-			//		this->What = Behave::Railgun;
-			//		return;
-			//	default:
-			//		break;
-			//	}
-			//}
-		}
-	}
-}
-
 template <typename T>
 void ParticleSystemExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->What)
 		.Process(this->OtherParticleData)
 		.Process(this->SmokeData)
@@ -1286,7 +1222,8 @@ void ParticleSystemExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
-StaticObjectPool<ParticleSystemExtData, 10000> ParticleSystemExtContainer::pools;
+std::vector<ParticleSystemExtData*> Container<ParticleSystemExtData>::Array;
+
 // =============================
 // container hooks
 
@@ -1299,14 +1236,23 @@ ASMJIT_PATCH(0x62DF05, ParticleSystemClass_CTOR, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x62DFC4, ParticleSystemClass_CTOR_NoInt, 0x5)
+{
+	GET(ParticleSystemClass*, pItem, ESI);
+	ParticleSystemExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 {
 	GET(ParticleSystemClass* const, pItem, ESI);
 
 	if(pItem->Owner && pItem->Owner->WhatAmI() == AnimClass::AbsID) {
-		for (FakeAnimClass* anim : FakeAnimClass::AnimsWithAttachedParticles) {
-			if (anim->_GetExtData()->AttachedSystem == pItem) {
-				anim->_GetExtData()->AttachedSystem = nullptr;
+		for (AnimClass* anim : AnimExtContainer::AnimsWithAttachedParticles) {
+			auto pAnimExt = AnimExtContainer::Instance.Find(anim);
+
+			if (pAnimExt->AttachedSystem == pItem) {
+				pAnimExt->AttachedSystem = nullptr;
 			}
 		}
 	}
@@ -1314,32 +1260,3 @@ ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 	ParticleSystemExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeParticleSystemClass::_Load(IStream* pStm)
-{
-
-	ParticleSystemExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleSystemClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		ParticleSystemExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeParticleSystemClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	ParticleSystemExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleSystemClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		ParticleSystemExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB0, FakeParticleSystemClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB4, FakeParticleSystemClass::_Save)

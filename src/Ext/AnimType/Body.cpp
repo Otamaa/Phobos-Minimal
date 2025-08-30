@@ -15,23 +15,15 @@
 #include <Locomotor/Cast.h>
 #include <Locomotor/JumpjetLocomotionClass.h>
 
-void AnimTypeExtData::Initialize()
-{
-	const char* pID = this->AttachedToObject->ID;
-
-	SpecialDraw = IS_SAME_STR_(pID, GameStrings::Anim_RING1());
-	IsInviso = IS_SAME_STR_(pID, GameStrings::Anim_INVISO());
-}
-
 // AnimType Class is readed before Unit and weapon
 // so it is safe to `allocate` them before
 
-void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pID = this->AttachedToObject->ID;
+	const char* pID = this->Name();
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 	this->Palette.Read(exINI, pID, "CustomPalette");
@@ -196,8 +188,8 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DetachOnCloak.Read(exINI, pID, "DetachOnCloak");
 	this->Translucency_Cloaked.Read(exINI, pID, "Translucency.Cloaked");
 
-	if (this->AttachedToObject->Translucent) {
-		this->Translucent_Keyframes.Read(exINI, pID, "Translucent.%s", this->AttachedToObject->End);
+	if (This()->Translucent) {
+		this->Translucent_Keyframes.Read(exINI, pID, "Translucent.%s", This()->End);
 	}
 
 #pragma endregion
@@ -216,6 +208,8 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Damaging_UseSeparateState.Read(exINI, pID, "Damaging.UseSeparateState");
 	this->Damaging_Rate.Read(exINI, pID, "Damaging.Rate");
+
+	return true;
 }
 
 void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
@@ -477,7 +471,7 @@ void AnimTypeExtData::ValidateData()
 
 	if (this->CreateUnitType && this->CreateUnitType->Type->Strength == 0)
 	{
-		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", this->AttachedToObject->ID, this->CreateUnitType->Type->ID);
+		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", Name(), this->CreateUnitType->Type->ID);
 		this->CreateUnitType.reset();
 		Debug::RegisterParserError();
 	}
@@ -551,7 +545,7 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 void AnimTypeExtData::ValidateSpalshAnims()
 {
 	AnimTypeClass* pWake = nullptr;
-	if (this->AttachedToObject->IsMeteor)
+	if (This()->IsMeteor)
 		pWake = WakeAnim.Get(RulesClass::Instance->Wake);
 
 	//what if the anim type loaded twice ?
@@ -565,8 +559,6 @@ template <typename T>
 void AnimTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-
 		.Process(this->Palette)
 		.Process(this->CreateUnitType)
 		.Process(this->XDrawOffset)
@@ -652,11 +644,20 @@ void AnimTypeExtData::Serialize(T& Stm)
 }
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
+std::vector<AnimTypeExtContainer*> Container<AnimTypeExtContainer>::Array;
 
 ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
 	AnimTypeExtContainer::Instance.Allocate(pItem);
+	return 0;
+
+}
+
+ASMJIT_PATCH(0x427871, AnimTypeClass_CTOR_NoInit, 0x7)
+{
+	GET(AnimTypeClass*, pItem, ESI);
+	AnimTypeExtContainer::Instance.AllocateNoInit(pItem);
 	return 0;
 }
 
@@ -668,35 +669,6 @@ ASMJIT_PATCH(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
 
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeAnimTypeClass::_Load(IStream* pStm)
-{
-
-	AnimTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->AnimTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		AnimTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	AnimTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->AnimTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		AnimTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)
 
 ASMJIT_PATCH(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
 {

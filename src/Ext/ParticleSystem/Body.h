@@ -6,17 +6,19 @@
 
 #include <ParticleSystemClass.h>
 
-class ParticleClass;
+#include <Ext/Object/Body.h>
+
+class ParticleSystemClass;
 class ParticleTypeClass;
-class ParticleSystemExtData
+class ParticleSystemExtData final : public ObjectExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xAAA2BBBB;
+
 	using base_type = ParticleSystemClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+#pragma region ClassMembers
+
 	enum class Behave : int
 	{
 		None = 0,
@@ -119,11 +121,105 @@ public:
 	HelperedVector<Draw> SmokeData { };
 
 	bool AlphaIsLightFlash { true };
+#pragma endregion
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj) {
+		if (!pObj->Type)
+			Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !", pObj);
 
-	void InitializeConstant();
+		auto pType = pObj->Type;
+		{
+			if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
+				return;
+
+			this->HeldType = ParticleTypeClass::Array->Items[pType->HoldsWhat];
+
+			if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage)
+			{
+				auto bIsZero = (int)this->HeldType->BehavesLike;
+				auto nBehave = (int)pType->BehavesLike;
+				if (bIsZero <= 1)
+					bIsZero = bIsZero == 0;
+
+				if (nBehave == bIsZero)
+				{
+					if (!nBehave)
+					{
+						this->What = Behave::Smoke;
+						return;
+					}
+
+					auto v11 = nBehave - 3;
+					if (!v11)                       // 0
+					{
+						this->What = Behave::Spark;
+						return;
+					}
+					if (v11 == 1)                   // // 1
+					{
+						this->What = Behave::Railgun;
+						return;
+					}
+				}
+				//else
+				//{
+				//	if (this->HeldType->ColorList.Count < 3) {
+				//		return;
+				//	}
+				//
+				//	switch (pType->BehavesLike)
+				//	{
+				//	case ParticleSystemTypeBehavesLike::Smoke:
+				//		this->What = Behave::Smoke;
+				//		return;
+				//	case ParticleSystemTypeBehavesLike::Spark:
+				//		this->What = Behave::Spark;
+				//		return;
+				//	case ParticleSystemTypeBehavesLike::Railgun:
+				//		this->What = Behave::Railgun;
+				//		return;
+				//	default:
+				//		break;
+				//	}
+				//}
+			}
+		}
+	}
+
+	ParticleSystemExtData(ParticleSystemClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+
+	virtual ~ParticleSystemExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<ParticleSystemExtData*>(this)->ObjectExtData::SaveToStream(Stm);
+		const_cast<ParticleSystemExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectExtData::CalculateCRC(crc);
+	}
+
+	virtual ParticleSystemClass* This() const override { return reinterpret_cast<ParticleSystemClass*>(this->ObjectExtData::This()); }
+	virtual const ParticleSystemClass* This_Const() const override { return reinterpret_cast<const ParticleSystemClass*>(this->ObjectExtData::This_Const()); }
+
+public:
+
 	void UpdateLocations();
 	void UpdateState();
 	void UpdateColor();
@@ -134,15 +230,9 @@ public:
 	bool UpdateHandled();
 	void UpdateInAir_Main(bool allowDraw);
 
-	static void UpdateInAir();
+public:
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(ParticleSystemExtData) -
-			(4u //AttachedToObject
-				- 4u //inheritance
-			);
-	}
+	static void UpdateInAir();
 
 private:
 	template <typename T>
@@ -153,38 +243,31 @@ class ParticleSystemExtContainer final : public Container<ParticleSystemExtData>
 {
 public:
 	static ParticleSystemExtContainer Instance;
-	static StaticObjectPool<ParticleSystemExtData, 10000> pools;
-
-	ParticleSystemExtData* AllocateUnchecked(ParticleSystemClass* key)
+	static void Clear()
 	{
-		ParticleSystemExtData* val = pools.allocate();
+		Array.clear();
+	}
 
-		if (val)
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
 		{
-			val->AttachedToObject = key;
-			if (!Phobos::Otamaa::DoingLoadGame)
-				val->InitializeConstant();
-		}
-		else
-		{
-			Debug::FatalErrorAndExit("The amount of [ParticleSystemExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		}
-
-		return val;
-	}
-
-	void Remove(ParticleSystemClass* key)
-	{
-		if (ParticleSystemExtData* Item = TryFind(key)) {
-			RemoveExtOf(key, Item);
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
 
-	void RemoveExtOf(ParticleSystemClass* key, ParticleSystemExtData* Item)
-	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
-	}
+	virtual bool WriteDataToTheByteStream(ParticleSystemExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(ParticleSystemExtData::base_type* key, IStream* pStm) { };
 };
 
 class ParticleSystemTypeExtData;

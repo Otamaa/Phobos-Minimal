@@ -10,7 +10,7 @@
 void TerrainTypeExtData::Initialize()
 {
 	this->AttachedAnim.reserve(1);
-	this->CrushableLevel = this->AttachedToObject->Crushable ? 10 : 0;
+	this->CrushableLevel = this->This()->Crushable ? 10 : 0;
 }
 
 int TerrainTypeExtData::GetTiberiumGrowthStage()
@@ -23,13 +23,16 @@ int TerrainTypeExtData::GetCellsPerAnim()
 	return GeneralUtils::GetRangedRandomOrSingleValue(this->SpawnsTiberium_CellsPerAnim);
 }
 
-void TerrainTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool TerrainTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = this->This();
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 	this->SpawnsTiberium_Type.Read(exINI, pSection, "SpawnsTiberium.Type");
@@ -71,6 +74,8 @@ void TerrainTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->AnimationLength.Read(exINI, pSection, "AnimationLength");
 	this->TreeFires.Read(exINI, pSection, "TreeFire");
 	this->SpawnsTiberium_Particle.Read(exINI, pSection, "SpawnsTiberium.Particle");
+
+	return true;
 }
 
 void TerrainTypeExtData::PlayDestroyEffects(CoordStruct coords)
@@ -88,7 +93,6 @@ template <typename T>
 void TerrainTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->CustomPalette)
 		.Process(this->SpawnsTiberium_Type)
 		.Process(this->SpawnsTiberium_Range)
@@ -140,6 +144,7 @@ void TerrainTypeExtData::Remove(TerrainClass* pTerrain)
 // =============================
 // container
 TerrainTypeExtContainer TerrainTypeExtContainer::Instance;
+std::vector<TerrainTypeExtData*> Container<TerrainTypeExtData>::Array;
 
 // =============================
 // container hooks
@@ -152,6 +157,13 @@ ASMJIT_PATCH(0x71DBC0, TerrainTypeClass_CTOR, 0x7)
 	return 0;
 }
 
+ASMJIT_PATCH(0x71DBF1, TerrainTypeClass_CTOR_NoInit, 0x7)
+{
+	GET(TerrainTypeClass*, pItem, ESI);
+	TerrainTypeExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x71E3A5, TerrainTypeClass_SDDTOR, 0x6)
 {
 	GET(TerrainTypeClass*, pItem, ESI);
@@ -160,35 +172,6 @@ ASMJIT_PATCH(0x71E3A5, TerrainTypeClass_SDDTOR, 0x6)
 
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeTerrainTypeClass::_Load(IStream* pStm)
-{
-
-	TerrainTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TerrainTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		TerrainTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeTerrainTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	TerrainTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TerrainTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		TerrainTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F546C, FakeTerrainTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5470, FakeTerrainTypeClass::_Save)
 
 ASMJIT_PATCH(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
 {

@@ -8,7 +8,7 @@
 #include <RulesClass.h>
 #include <FootClass.h>
 
-class CaptureExt
+class CaptureExtData
 {
 public:
 	/*

@@ -9,32 +9,59 @@
 
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
-class ParticleExtData
+#include <Ext/Object/Body.h>
+
+class ParticleExtData : public ObjectExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xAAAABBBB;
 	using base_type = ParticleClass;
-	//static COMPILETIMEEVAL size_t ExtOffset = 0x134;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+#pragma region ClassMembers
 
 	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails { };
 	std::vector<UniversalTrail> Trails { };
+#pragma endregion
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj) { }
+	ParticleExtData(ParticleClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+
+	virtual ~ParticleExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		return sizeof(ParticleExtData) -
-			(4u //AttachedToObject
-				- 4u //inheritance
-			 );
+		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
 	}
 
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<ParticleExtData*>(this)->ObjectExtData::SaveToStream(Stm);
+		const_cast<ParticleExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectExtData::CalculateCRC(crc);
+	}
+
+	virtual ParticleClass* This() const override { return reinterpret_cast<ParticleClass*>(this->ObjectExtData::This()); }
+	virtual const ParticleClass* This_Const() const override { return reinterpret_cast<const ParticleClass*>(this->ObjectExtData::This_Const()); }
+
+public:
+
 	static std::pair<TechnoClass*, HouseClass*> GetOwnership(ParticleClass* pThis);
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -44,37 +71,32 @@ class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
 	static ParticleExtContainer Instance;
-	static StaticObjectPool<ParticleExtData , 10000> pools;
 
-	ParticleExtData* AllocateUnchecked(ParticleClass* key)
+	static void Clear()
 	{
-		ParticleExtData* val = pools.allocate();
-
-		if (val)
-		{
-			val->AttachedToObject = key;
-		}
-		else
-		{
-			Debug::FatalErrorAndExit("The amount of [ParticleExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		}
-
-		return val;
+		Array.clear();
 	}
 
-	void Remove(ParticleClass* key)
+	static bool LoadGlobals(PhobosStreamReader& Stm)
 	{
-		if (ParticleExtData* Item = TryFind(key))
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
 		{
-			RemoveExtOf(key, Item);
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
 
-	void RemoveExtOf(ParticleClass* key, ParticleExtData* Item)
-	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
-	}
+	virtual bool WriteDataToTheByteStream(ParticleExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(ParticleExtData::base_type* key, IStream* pStm) { };
 };
 
 class ParticleTypeExtData;

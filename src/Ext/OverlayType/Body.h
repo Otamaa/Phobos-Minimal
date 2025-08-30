@@ -7,18 +7,21 @@
 #include <Utilities/PhobosMap.h>
 #include <New/Type/PaletteManager.h>
 
-class OverlayTypeExtData final
+#include <Ext/ObjectType/Body.h>
+
+class OverlayTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = OverlayTypeClass;
-	static COMPILETIMEEVAL size_t Canary = 0x414B4B4A;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region ClassMembeers
 
 	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
 	Valueable<int> ZAdjust { 0 };
+
+#pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
@@ -38,24 +41,31 @@ class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
 {
 public:
 	static OverlayTypeExtContainer Instance;
-	PhobosMap<OverlayTypeClass*, OverlayTypeExtData*> Map {};
 
-	virtual bool Load(OverlayTypeClass* key, IStream* pStm);
-
-	void Clear()
+	static void Clear()
 	{
-		this->Map.clear();
+		Array.clear();
 	}
 
-//	OverlayTypeExtContainer() : Container<OverlayTypeExtData> { "OverlayTypeClass" }
-//		, Map {}
-//	{ }
-//
-//	virtual ~OverlayTypeExtContainer() override = default;
-//
-//private:
-//	OverlayTypeExtContainer(const OverlayTypeExtContainer&) = delete;
-//	OverlayTypeExtContainer(OverlayTypeExtContainer&&) = delete;
-//	OverlayTypeExtContainer& operator=(const OverlayTypeExtContainer& other) = delete;
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(OverlayTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(OverlayTypeExtData::base_type* key, IStream* pStm) { };
 };
 

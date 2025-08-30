@@ -87,13 +87,13 @@ int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeCl
 }
 void WarheadTypeExtData::InitializeConstant()
 {
-	this->AttachedEffect.Owner = this->AttachedToObject;
-	this->EvaluateArmor(this->AttachedToObject);
+	this->AttachedEffect.Owner = This();
+	this->EvaluateArmor(This());
 }
 
 void WarheadTypeExtData::Initialize()
 {
-	if (IS_SAME_STR_(RulesExtData::Instance()->NukeWarheadName.data(), this->AttachedToObject->ID))
+	if (IS_SAME_STR_(RulesExtData::Instance()->NukeWarheadName.data(), This()->ID))
 	{
 		IsNukeWarhead = true;
 		PreImpactAnim = AnimTypeClass::Find(GameStrings::NUKEBALL());
@@ -101,9 +101,9 @@ void WarheadTypeExtData::Initialize()
 	}
 }
 
-void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 	INI_EX exINI(pINI);
 
@@ -119,7 +119,7 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	if (parseFailAddr)
 	{
-		return;
+		return false;
 	}
 
 	// writing custom verses parser just because
@@ -750,6 +750,8 @@ void WarheadTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->FakeEngineer_CanDestroyBridges ||
 		this->FakeEngineer_CanCaptureBuildings ||
 		this->FakeEngineer_BombDisarm;
+
+	return true;
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
@@ -774,7 +776,7 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 
 		if (pHouse && pVictimHouse)
 		{
-			auto const pWH = this->AttachedToObject;
+			auto const pWH = This();
 			const int nDamage = *pArgs->Damage;
 
 			if (pVictimHouse != pHouse)
@@ -879,7 +881,7 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	{
 		nAddDamage *=
 			// GeneralUtils::GetWarheadVersusArmor(this->Get() , pThisType->Armor)
-			this->GetVerses(TechnoExtData::GetTechnoArmor(pVictimTechno, this->AttachedToObject)).Verses
+			this->GetVerses(TechnoExtData::GetTechnoArmor(pVictimTechno, This())).Verses
 			;
 	}
 
@@ -904,7 +906,7 @@ bool WarheadTypeExtData::CanAffectHouse(HouseClass* pOwnerHouse, HouseClass* pTa
 		if (!this->AffectsNeutral && pTargetHouse->IsNeutral())
 			return false;
 
-		const bool affect_ally = this->AttachedToObject->AffectsAllies;
+		const bool affect_ally = This()->AffectsAllies;
 
 		if (pTargetHouse == pOwnerHouse) {
 			return this->AffectsOwner.Get(affect_ally);
@@ -968,7 +970,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 
 		if (!SkipVerses && EffectsRequireVerses.Get())
 		{
-			return (Math::abs(this->GetVerses(TechnoExtData::GetTechnoArmor(pTechno, this->AttachedToObject)).Verses) >= 0.001);
+			return (Math::abs(this->GetVerses(TechnoExtData::GetTechnoArmor(pTechno, This())).Verses) >= 0.001);
 		}
 
 		return true;
@@ -988,12 +990,12 @@ bool WarheadTypeExtData::CanAffectInvulnerable(TechnoClass* pTarget) const {
 
 bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage) const
 {
-	auto nArmor = TechnoExtData::GetTechnoArmor(pTechno, this->AttachedToObject);
+	auto nArmor = TechnoExtData::GetTechnoArmor(pTechno, This());
 
 	if (damageIn > 0)
-		DamageResult = FakeWarheadTypeClass::ModifyDamage(damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
+		DamageResult = FakeWarheadTypeClass::ModifyDamage(damageIn, This(), nArmor, distanceFromEpicenter);
 	else
-		DamageResult = -FakeWarheadTypeClass::ModifyDamage(-damageIn, this->AttachedToObject, nArmor, distanceFromEpicenter);
+		DamageResult = -FakeWarheadTypeClass::ModifyDamage(-damageIn, This(), nArmor, distanceFromEpicenter);
 
 	if (damageIn == 0)
 	{
@@ -1003,7 +1005,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, int damageIn, int d
 	{
 		if (EffectsRequireVerses)
 		{
-			if (FakeWarheadTypeClass::ModifyDamage(RulesClass::Instance->MaxDamage, this->AttachedToObject, nArmor, 0) == 0)
+			if (FakeWarheadTypeClass::ModifyDamage(RulesClass::Instance->MaxDamage, This(), nArmor, 0) == 0)
 			{
 				return false;
 			}
@@ -1144,7 +1146,7 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 
 bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	if (!pThis->Culling || !pSource)
 		return false;
@@ -1257,8 +1259,8 @@ bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 		}
 
 		//Default way game modify duration
-		nDur = FakeWarheadTypeClass::ModifyDamage(nDur, this->AttachedToObject,
-					TechnoExtData::GetTechnoArmor(pVictim, this->AttachedToObject), 0);
+		nDur = FakeWarheadTypeClass::ModifyDamage(nDur, This(),
+					TechnoExtData::GetTechnoArmor(pVictim, This()), 0);
 
 		const int oldValue = (!pVictim->Berzerk ? 0 : pVictim->BerzerkDurationLeft);
 		const int newValue = Helpers::Alex::getCappedDuration(oldValue, nDur, this->Berzerk_cap.Get());
@@ -1352,6 +1354,8 @@ void WarheadTypeExtData::DetonateAt(
 	WarheadTypeExtData::DetonateAt(pThis, pTarget, coords, pOwner, damage, pFiringHouse);
 }
 
+#include <Ext/Scenario/Body.h>
+
 void WarheadTypeExtData::DetonateAt(
 	WarheadTypeClass* pThis,
 	AbstractClass* pTarget,
@@ -1361,10 +1365,10 @@ void WarheadTypeExtData::DetonateAt(
 	HouseClass* pFiringHouse
 )
 {
-	BulletTypeClass* pType = BulletTypeExtData::GetDefaultBulletType();
+	//BulletTypeClass* pType = BulletTypeExtData::GetDefaultBulletType();
 
-	if(!pType)
-		Debug::FatalError("Uneable to Fetch %s BulletType ! " , DEFAULT_STR2);
+	//if(!pType)
+	//	Debug::FatalError("Uneable to Fetch %s BulletType ! " , DEFAULT_STR2);
 
 	//if (pThis->NukeMaker)
 	//{
@@ -1379,18 +1383,28 @@ void WarheadTypeExtData::DetonateAt(
 	//	Debug::LogInfo("WarheadTypeExtData::DetonateAt[%s] delivering damage from unknown source [%x] !", pThis->get_ID(), pOwner);
 	//}
 
-	if (BulletClass* pBullet = BulletTypeExtContainer::Instance.Find(pType)->CreateBullet(pTarget, pOwner,
-		damage, pThis, 0, 0, pThis->Bright, true))
-	{
-		pBullet->MoveTo(coords, VelocityClass::Empty);
+	ScenarioExtData::DetonateMasterBullet(coords,
+		pOwner,
+		damage,
+		pFiringHouse,
+		pTarget,
+		pThis->Bright,
+		nullptr,
+		pThis
+	);
 
-		//something like 0x6FF08B
-		const auto pCellCoord = MapClass::Instance->GetCellAt(coords);
-		if (pBullet->Type->Inviso && pCellCoord->ContainsBridge())
-			pBullet->OnBridge = true;
-
-		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords, pFiringHouse);
-	}
+	//if (BulletClass* pBullet = BulletTypeExtContainer::Instance.Find(pType)->CreateBullet(pTarget, pOwner,
+	//	damage, pThis, 0, 0, pThis->Bright, true))
+	//{
+	//	pBullet->MoveTo(coords, VelocityClass::Empty);
+	//
+	//	//something like 0x6FF08B
+	//	const auto pCellCoord = MapClass::Instance->GetCellAt(coords);
+	//	if (pBullet->Type->Inviso && pCellCoord->ContainsBridge())
+	//		pBullet->OnBridge = true;
+	//
+	//	BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords, pFiringHouse);
+	//}
 }
 
 void WarheadTypeExtData::CreateIonBlast(WarheadTypeClass* pThis, const CoordStruct& coords)
@@ -1439,7 +1453,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 	const bool fatal = fatalRate > 0.0 && ScenarioClass::Instance->Random.RandomDouble() <= fatalRate;
 	const auto pTargetFoot = flag_cast_to<FootClass*, false>(pTarget);
 	const int distance = static_cast<int>(coords.DistanceFrom(pTarget->GetCoords()));
-	const auto pWH = this->AttachedToObject;
+	const auto pWH = This();
 	bool gunnerRemoved = false;
 
 	if (this->PenetratesTransport_DamageAll)
@@ -2029,7 +2043,7 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) con
 	if (pExt->AE.ExtraCrit.Enabled())
 	{
 		std::vector<AEProperties::ExtraCrit::CritDataOut> valids;
-		pExt->AE.ExtraCrit.FillEligible(this->AttachedToObject, valids);
+		pExt->AE.ExtraCrit.FillEligible(This(), valids);
 		chances = AEProperties::ExtraCrit::Count(chances, valids);
 	}
 }
@@ -2040,7 +2054,7 @@ void WarheadTypeExtData::ApplyAttachEffects(TechnoClass* pTarget, HouseClass* pI
 		return;
 
 	auto const info = &this->PhobosAttachEffects;
-	PhobosAttachEffectClass::Attach(pTarget, pInvokerHouse, pInvoker, this->AttachedToObject, info);
+	PhobosAttachEffectClass::Attach(pTarget, pInvokerHouse, pInvoker, This(), info);
 	PhobosAttachEffectClass::Detach(pTarget, info);
 	PhobosAttachEffectClass::DetachByGroups(pTarget, info);
 }
@@ -2209,6 +2223,7 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 // =============================
 // container
 WarheadTypeExtContainer WarheadTypeExtContainer::Instance;
+std::vector<WarheadTypeExtData*> Container<WarheadTypeExtData>::Array;
 
 bool WarheadTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
@@ -2226,6 +2241,7 @@ bool WarheadTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 
 void WarheadTypeExtContainer::Clear()
 {
+	Array.clear();
 	WarheadTypeExtData::IonBlastExt.clear();
 }
 
@@ -2241,42 +2257,19 @@ ASMJIT_PATCH(0x75D1A9, WarheadTypeClass_CTOR, 0x7)
 	return 0;
 }
 
+ASMJIT_PATCH(0x75D21A, WarheadTypeClass_CTOR_NoInt, 0x7)
+{
+	GET(WarheadTypeClass*, pItem, ESI);
+	WarheadTypeExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
 {
 	GET(WarheadTypeClass*, pItem, ESI);
 	WarheadTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeWarheadTypeClass::_Load(IStream* pStm)
-{
-
-	WarheadTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->WarheadTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		WarheadTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeWarheadTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	WarheadTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->WarheadTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		WarheadTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B44, FakeWarheadTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B48, FakeWarheadTypeClass::_Save)
-
-// is return not valid
 
 ASMJIT_PATCH(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
 {

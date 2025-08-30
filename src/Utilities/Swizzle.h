@@ -13,96 +13,104 @@
 class PhobosSwizzleManagerClass : public ISwizzle
 {
 private:
-    struct SwizzlePointerStruct {
-        SwizzlePointerStruct() : ID(-1), Pointer(nullptr), Line(-1) {}
+	struct SwizzlePointerStruct
+	{
+		SwizzlePointerStruct() : ID(-1), Pointer(nullptr), Line(-1) { }
+		SwizzlePointerStruct(LONG id, void* pointer, const char* file = nullptr, const int line = -1, const char* func = nullptr, const char* var = nullptr)
+			: ID(id), Pointer(pointer), Line(line)
+		{
+			if (file != nullptr)
+			{
+				File = file;
+			}
+			if (func != nullptr)
+			{
+				Function = func;
+			}
+			if (var != nullptr)
+			{
+				Variable = var;
+			}
+		}
 
-        SwizzlePointerStruct(LONG id, void* pointer, const char* file = nullptr, const int line = -1, const char* func = nullptr, const char* var = nullptr) : ID(id), Pointer(pointer), Line(line)
-        {
-            if (file != nullptr) {
-                File = file;
-            }
+		/** Enable move semantics. */
+		SwizzlePointerStruct(SwizzlePointerStruct&&) noexcept = default;
+		SwizzlePointerStruct& operator=(SwizzlePointerStruct&&) noexcept = default;
 
-            if (func != nullptr) {
-                Function = func;
-            }
+		/** The id of the pointer to remap. */
+		LONG ID;
+		/** The pointer to fixup. */
+		void* Pointer;
+		/** Debugging information. */
+		std::string File;
+		int Line;
+		std::string Function;
+		std::string Variable;
+	};
 
-            if (var != nullptr) {
-                Variable = var;
-            }
-        }
+	struct UnresolvedPointerInfo
+	{
+		LONG UnresolvedID;
+		std::vector<SwizzlePointerStruct> DanglingPointers;
 
-        /**
-         *  Enable move semantics.
-         */
-        SwizzlePointerStruct(SwizzlePointerStruct&&) noexcept = default;
-        SwizzlePointerStruct& operator=(SwizzlePointerStruct&&) noexcept = default;
-
-        /**
-         *  The id of the pointer to remap.
-         */
-        LONG ID;
-
-        /**
-         *  The pointer to fixup.
-         */
-        void* Pointer;
-
-        /**
-         *  Debugging information.
-         */
-        std::string File;
-        int Line;
-        std::string Function;
-        std::string Variable;
-    };
-
-public:
-    /**
-     *  IUnknown
-     */
-    STDMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) override;
-    STDMETHOD_(ULONG, AddRef)() override;
-    STDMETHOD_(ULONG, Release)() override;
-
-    /**
-     *  ISwizzle
-     */
-    STDMETHOD_(LONG, Reset)() override;
-    STDMETHOD_(LONG, Swizzle)(void** pointer) override;
-    STDMETHOD_(LONG, Fetch_Swizzle_ID)(void* pointer, LONG* id) override;
-    STDMETHOD_(LONG, Here_I_Am)(LONG id, void* pointer) override;
-    STDMETHOD(Save_Interface)(IStream* stream, IUnknown* pointer) override;
-    STDMETHOD(Load_Interface)(IStream* stream, CLSID* riid, void** pointer) override;
-    STDMETHOD_(LONG, Get_Save_Size)(LONG* size) override;
-
-    /**
-     *  New debug routines.
-     */
-    STDMETHOD_(LONG, Swizzle_Dbg)(void** pointer, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
-    STDMETHOD_(LONG, Fetch_Swizzle_ID_Dbg)(void* pointer, LONG* id, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
-    STDMETHOD_(LONG, Here_I_Am_Dbg)(LONG id, void* pointer, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
+		UnresolvedPointerInfo(LONG id) : UnresolvedID(id) { }
+	};
 
 public:
-    PhobosSwizzleManagerClass();
-    ~PhobosSwizzleManagerClass();
+	/** IUnknown */
+	STDMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) override;
+	STDMETHOD_(ULONG, AddRef)() override;
+	STDMETHOD_(ULONG, Release)() override;
+
+	/** ISwizzle */
+	STDMETHOD_(LONG, Reset)() override;
+	STDMETHOD_(LONG, Swizzle)(void** pointer) override;
+	STDMETHOD_(LONG, Fetch_Swizzle_ID)(void* pointer, LONG* id) override;
+	STDMETHOD_(LONG, Here_I_Am)(LONG id, void* pointer) override;
+	STDMETHOD(Save_Interface)(IStream* stream, IUnknown* pointer) override;
+	STDMETHOD(Load_Interface)(IStream* stream, CLSID* riid, void** pointer) override;
+	STDMETHOD_(LONG, Get_Save_Size)(LONG* size) override;
+
+	/** New debug routines. */
+	STDMETHOD_(LONG, Swizzle_Dbg)(void** pointer, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
+	STDMETHOD_(LONG, Fetch_Swizzle_ID_Dbg)(void* pointer, LONG* id, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
+	STDMETHOD_(LONG, Here_I_Am_Dbg)(LONG id, void* pointer, const char* file, const int line, const char* func = nullptr, const char* var = nullptr);
+
+	/** Enhanced cleanup methods */
+	STDMETHOD_(LONG, Register_Dependent_Pointer)(LONG referenced_id, void** dependent_pointer, const char* file = nullptr, const int line = -1, const char* func = nullptr, const char* var = nullptr);
+	STDMETHOD_(void, Cleanup_Dangling_Pointers)();
+	STDMETHOD_(LONG, Get_Unresolved_Count)(LONG* count);
+	STDMETHOD_(void, Set_Cleanup_Mode)(BOOL null_dangling_pointers);
+
+public:
+	PhobosSwizzleManagerClass();
+	~PhobosSwizzleManagerClass();
 
 private:
-    void Process_Tables();
+	void Process_Tables();
+	void Track_Unresolved_Pointer(const SwizzlePointerStruct& request);
+	void Cleanup_References_To_Unresolved(LONG unresolved_id);
 
 private:
-    /**
-     *  List of all the pointers that need remapping.
-     */
-    std::vector<SwizzlePointerStruct> RequestTable;
+	/** List of all the pointers that need remapping. */
+	std::vector<SwizzlePointerStruct> RequestTable;
 
-    /**
-     *  List of all the new pointers.
-     */
-    std::unordered_map<LONG, SwizzlePointerStruct> PointerTable;
+	/** List of all the new pointers. */
+	std::unordered_map<LONG, SwizzlePointerStruct> PointerTable;
+
+	/** Bucket of unresolved pointer IDs and their dependent pointers */
+	std::unordered_map<LONG, UnresolvedPointerInfo> UnresolvedBucket;
+
+	/** Map of dependency relationships: dependent_pointer_address -> referenced_id */
+	std::unordered_map<void**, LONG> DependencyMap;
+
+	/** Whether to automatically null out dangling pointers during cleanup */
+	BOOL AutoNullDanglingPointers;
 };
 
 extern PhobosSwizzleManagerClass PhobosSwizzleManager;
 
+// Enhanced macros
 #define PHOBOS_SWIZZLE_RESET(func) \
     { \
         PhobosSwizzleManager.Reset(); \
@@ -130,3 +138,8 @@ extern PhobosSwizzleManagerClass PhobosSwizzleManager;
         PhobosSwizzleManager.Here_I_Am_Dbg(id, pointer, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
     }
 
+// New macro for registering dependent pointers
+#define PHOBOS_SWIZZLE_REGISTER_DEPENDENT(dependent_ptr, referenced_id, variable) \
+    { \
+        PhobosSwizzleManager.Register_Dependent_Pointer(referenced_id, (void**)&dependent_ptr, __FILE__, __LINE__, __FUNCTION__##"()", variable); \
+    }

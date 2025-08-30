@@ -2,16 +2,21 @@
 
 #include <Helpers\Macro.h>
 
-void SmudgeTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool SmudgeTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 	this->Clearable.Read(exINI, pSection, "Clearable");
+
+	return true;
 }
 
 // =============================
@@ -21,7 +26,6 @@ template <typename T>
 void SmudgeTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Clearable)
 		;
 
@@ -30,7 +34,7 @@ void SmudgeTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 SmudgeTypeExtContainer SmudgeTypeExtContainer::Instance;
-
+std::vector<SmudgeTypeExtData*> Container<SmudgeTypeExtData>::Array;
 // =============================
 // container hooks
 //

@@ -10,15 +10,15 @@ class HouseClass;
 class FootClass;
 class SuperClass;
 class AITriggerTypeClass;
-class TeamExtData
+class TeamExtData final : public AbstractExtended
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x414B4B41;
 	using base_type = TeamClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region ClassMembers
+
 	int WaitNoTargetAttempts { 0 };
 	double NextSuccessWeightAward { 0 };
 	int IdxSelectedObjectFromAIList { -1 };
@@ -52,18 +52,38 @@ public:
 
 	ScriptTypeClass* PreviousScript { nullptr };
 	std::vector<BuildingClass*> BridgeRepairHuts {};
+#pragma endregion
 
-	//{
-	//	//if(!Phobos::Otamaa::ExeTerminated) {
-	//	//	GameDelete<true, true>(PreviousScript);
-	//	//}
-	//
-	//	PreviousScript = nullptr;
-	//}
+public:
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	TeamExtData(TeamClass* pObj) : AbstractExtended(pObj) { }
+	TeamExtData(TeamClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+
+	virtual ~TeamExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<TeamExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
+		const_cast<TeamExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { }
+
+	virtual TeamClass* This() const override { return reinterpret_cast<TeamClass*>(this->AbstractExtended::This()); }
+	virtual const TeamClass* This_Const() const override { return reinterpret_cast<const TeamClass*>(this->AbstractExtended::This_Const()); }
+
+public:
 
 	static bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list);
 	static bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list);
@@ -75,13 +95,6 @@ public:
 
 	static bool IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement);
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TeamExtData) -
-			(4u //AttachedToObject
-				- 4u //inheritance
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -91,37 +104,31 @@ class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
 	static TeamExtContainer Instance;
-	static StaticObjectPool<TeamExtData, 10000> pools;
-
-	TeamExtData* AllocateUnchecked(TeamClass* key)
+	static void Clear()
 	{
-		TeamExtData* val = pools.allocate();
-
-		if (val)
-		{
-			val->AttachedToObject = key;
-		}
-		else
-		{
-			Debug::FatalErrorAndExit("The amount of [TeamExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		}
-
-		return val;
+		Array.clear();
 	}
 
-	void Remove(TeamClass* key)
+	static bool LoadGlobals(PhobosStreamReader& Stm)
 	{
-		if (TeamExtData* Item = TryFind(key))
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
 		{
-			RemoveExtOf(key, Item);
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
 
-	void RemoveExtOf(TeamClass* key, TeamExtData* Item)
-	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
-	}
+	virtual bool WriteDataToTheByteStream(TeamExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(TeamExtData::base_type* key, IStream* pStm) { };
 
 };
 

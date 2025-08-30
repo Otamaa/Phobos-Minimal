@@ -1,21 +1,16 @@
 #pragma once
 #include <VoxelAnimTypeClass.h>
-
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
-
+#include <Ext/ObjectType/Body.h>
 #include <New/Type/LaserTrailTypeClass.h>
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
-class VoxelAnimTypeExtData final
+class VoxelAnimTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xAAAEEEEE;
 	using base_type = VoxelAnimTypeClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+#pragma region ClassMember
 
 	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
 	Valueable<bool> Warhead_Detonate { false };
@@ -32,19 +27,54 @@ public:
 
 	Valueable<int> TrailerAnim_SpawnDelay { 2 };
 #pragma endregion
+#pragma endregion
+public:
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void Initialize();
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj) : ObjectTypeExtData(pObj) { }
+	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	virtual ~VoxelAnimTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		return sizeof(VoxelAnimTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
 	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<VoxelAnimTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<VoxelAnimTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual VoxelAnimTypeClass* This() const override { return reinterpret_cast<VoxelAnimTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const VoxelAnimTypeClass* This_Const() const override { return reinterpret_cast<const VoxelAnimTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
+	{
+		if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+			return false;
+
+		return true;
+	}
+
+	virtual bool WriteToINI(CCINIClass* pINI) const { }
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -55,7 +85,31 @@ class VoxelAnimTypeExtContainer final : public Container<VoxelAnimTypeExtData>
 public:
 	static VoxelAnimTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(VoxelAnimTypeExtContainer, VoxelAnimTypeExtData, "VoxelAnimTypeClass");
+	static void Clear()
+	{
+		Array.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
+	virtual bool WriteDataToTheByteStream(VoxelAnimTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(VoxelAnimTypeExtData::base_type* key, IStream* pStm) { };
 };
 
 class NOVTABLE FakeVoxelAnimTypeClass : public VoxelAnimTypeClass

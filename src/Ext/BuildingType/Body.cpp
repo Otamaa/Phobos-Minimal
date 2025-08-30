@@ -4,6 +4,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
@@ -15,9 +16,7 @@ const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
 #include <Locomotor/Cast.h>
 #include <ExtraHeaders/StackVector.h>
-
 #include <EventClass.h>
-
 
 bool FakeBuildingTypeClass::_CanUseWaypoint() {
 	return RulesExtData::Instance()->BuildingWaypoint;
@@ -595,24 +594,24 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		}
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->TechnoExt->Shield.release();
-		pBuildingExt->TechnoExt->Trails.clear();
-		pBuildingExt->TechnoExt->RevengeWeapons.clear();
-		pBuildingExt->TechnoExt->DamageSelfState.release();
-		pBuildingExt->TechnoExt->MyGiftBox.release();
-		pBuildingExt->TechnoExt->PaintBallStates.clear();
-		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
-		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
-		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();
+		pBuildingExt->Shield.release();
+		pBuildingExt->Trails.clear();
+		pBuildingExt->RevengeWeapons.clear();
+		pBuildingExt->DamageSelfState.release();
+		pBuildingExt->MyGiftBox.release();
+		pBuildingExt->PaintBallStates.clear();
+		pBuildingExt->ExtraWeaponTimers.clear();
+		pBuildingExt->MyWeaponManager.Clear();
+		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
 
 		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
 		{
-			KillMethod nMethod = pBuildingExt->Type->Type->Death_Method.Get();
+			KillMethod nMethod = pBuildingExt->Type->Death_Method.Get();
 
 			if (nMethod != KillMethod::None) {
 
-				if(pBuildingExt->Type->Type->Death_Countdown > 0)
-					pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
+				if(pBuildingExt->Type->Death_Countdown > 0)
+					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
 
 				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
@@ -648,7 +647,7 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 
 	if (this->IsCustom)
 	{
-		auto pType = this->AttachedToObject;
+		auto pType = This();
 		auto pRadar = RadarClass::Global();
 
 		int width = pType->GetFoundationWidth();
@@ -745,7 +744,7 @@ void BuildingTypeExtData::UpdateBuildupFrames(BuildingTypeClass* pThis)
 
 void BuildingTypeExtData::CompleteInitialization()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	// enforce same foundations for rubble/intact building pairs
 	if (this->RubbleDestroyed &&
@@ -792,16 +791,6 @@ bool BuildingTypeExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingT
 		&& pExt1->CustomHeight == pExt2->CustomHeight
 		&& std::is_permutation(
 			data1.begin(), data1.end(), data2.begin(), data2.end());
-}
-
-void BuildingTypeExtData::Initialize()
-{
-	this->Type = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject);
-	this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
-	this->PrismForwarding.Initialize(this->AttachedToObject);
-	this->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());
-	this->EVA_Offline = VoxClass::FindIndexById(GameStrings::EVA_BuildingOffLine());
-	this->NextBuilding_CurrentHeapId = this->AttachedToObject->ArrayIndex;
 }
 
 bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
@@ -1232,9 +1221,12 @@ int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseCl
 	return isUpgrade ? result : -1;
 }
 
-void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	if (!this->TechnoExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = (!pThis->ImageFile || !pThis->ImageFile[0]) ? pSection : pThis->ImageFile;
 	auto pArtINI = &CCINIClass::INI_Art();
@@ -1742,6 +1734,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			"BuildingType [%s] has both UnitRepair=yes and Factory=AircraftType."
 			"This combination causes Internal Errors and other unwanted behaviour.", pSection);
 	}
+
+	return true;
 }
 
 bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
@@ -1806,8 +1800,6 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 	return false;
 }
 
-#include <Ext/Scenario/Body.h>
-
 // Check the cameo change
 CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(TechnoTypeClass* pType, CanBuildResult canBuild)
 {
@@ -1859,8 +1851,6 @@ template <typename T>
 void BuildingTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-		.Process(this->Type)
 		.Process(this->PrismForwarding)
 		.Process(this->PowersUp_Owner)
 		.Process(this->PowersUp_Buildings)
@@ -2125,40 +2115,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
-
-bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
-{
-	if (!key)
-		return false;
-
-	BuildingTypeExtData* pExt = BuildingTypeExtContainer::Instance.Map.get_or_default(key);
-
-	if (!pExt) {
-		pExt = BuildingTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
-	}
-
-	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, pExt);
-
-	PhobosByteStream loader { 0 };
-	if (loader.ReadBlockFromStream(pStm))
-	{
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(BuildingTypeExtData::Canary)
-			&& reader.RegisterChange(pExt))
-		{
-			pExt->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-			{
-				// reset the buildup time
-				BuildingTypeExtData::UpdateBuildupFrames(key);
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
+std::vector<BuildingTypeExtData*> Container<BuildingTypeExtData>::Array;
 
 // =============================
 // container hooks
@@ -2166,61 +2123,21 @@ bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 ASMJIT_PATCH(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
+	BuildingTypeExtContainer::Instance.Allocate(pItem);
+	return 0;
+}
 
-	BuildingTypeExtData* pExt = BuildingTypeExtContainer::Instance.Map.get_or_default(pItem);
-
-	if (!pExt) {
-		pExt = BuildingTypeExtContainer::Instance.Map.insert_unchecked(pItem,
-			   BuildingTypeExtContainer::Instance.AllocateUnchecked(pItem));
-	}
-
-	BuildingTypeExtContainer::Instance.SetExtAttribute(pItem, pExt);
-
+ASMJIT_PATCH(0x45E56C, BuildingClass_CTOR, 0x7)
+{
+	GET(BuildingTypeClass*, pItem, ESI);
+	BuildingTypeExtContainer::Instance.AllocateNoInit(pItem);
 	return 0;
 }
 
 ASMJIT_PATCH(0x45E707, BuildingTypeClass_DTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, ESI);
-
-	auto extData = BuildingTypeExtContainer::Instance.GetExtAttribute(pItem);
-	BuildingTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	BuildingTypeExtContainer::Instance.Map.erase(pItem);
-	if(extData)
-		DLLCallDTOR(extData);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x465300, BuildingTypeClass_Save, 0x5)
-{
-	GET_STACK(BuildingTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	BuildingTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x465010, BuildingTypeClass_Load, 0x5)
-{
-	GET_STACK(BuildingTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	BuildingTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x465151, BuildingTypeClass_Load_Suffix, 0x7)
-{
-	BuildingTypeExtContainer::Instance.LoadStatic();
-	return 0;
-}
-
-ASMJIT_PATCH(0x46531C, BuildingTypeClass_Save_Suffix, 0x6)
-{
-	BuildingTypeExtContainer::Instance.SaveStatic();
+	BuildingTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 

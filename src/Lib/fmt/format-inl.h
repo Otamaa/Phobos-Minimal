@@ -31,13 +31,21 @@
 #endif
 
 FMT_BEGIN_NAMESPACE
-namespace detail {
 
+#ifndef FMT_CUSTOM_ASSERT_FAIL
 FMT_FUNC void assert_fail(const char* file, int line, const char* message) {
   // Use unchecked std::fprintf to avoid triggering another assertion when
   // writing to stderr fails.
   fprintf(stderr, "%s:%d: assertion failed: %s", file, line, message);
   abort();
+}
+#endif
+
+namespace detail {
+
+// For binary compatibility.
+FMT_FUNC void assert_fail(const char* file, int line, const char* message) {
+  ::fmt::assert_fail(file, line, message);
 }
 
 FMT_FUNC void format_error_code(detail::buffer<char>& out, int error_code,
@@ -133,17 +141,17 @@ FMT_FUNC auto write_loc(appender out, loc_value value,
 }  // namespace detail
 
 FMT_FUNC void report_error(const char* message) {
-#if FMT_USE_EXCEPTIONS
-  // Use FMT_THROW instead of throw to avoid bogus unreachable code warnings
-  // from MSVC.
-  FMT_THROW(format_error(message));
-#else
-  // Silence unreachable code warnings in MSVC.
+#if FMT_MSC_VERSION || defined(__NVCC__)
+  // Silence unreachable code warnings in MSVC and NVCC because these
+  // are nearly impossible to fix in a generic code.
   volatile bool b = true;
-  if (b) {
-    fputs(message, stderr);
-    abort();
-  }
+  if (!b) return;
+#endif
+#if FMT_USE_EXCEPTIONS
+  throw format_error(message);
+#else
+  fputs(message, stderr);
+  abort();
 #endif
 }
 

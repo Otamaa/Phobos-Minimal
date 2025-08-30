@@ -188,7 +188,7 @@ void ScenarioExtData::FetchVariables(ScenarioClass* pScen)
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 
-void ScenarioExtData::DetonateMasterBuller(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead)
+void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead)
 {
 	auto pBullet = ScenarioExtData::Instance()->MasterDetonationBullet;
 
@@ -198,6 +198,10 @@ void ScenarioExtData::DetonateMasterBuller(const CoordStruct& coords, TechnoClas
 	} else {
 		pBullet->Type = BulletTypeExtData::GetDefaultBulletType();
 	}
+
+	CoordStruct detonateCoord = coords;
+	if (!coords.IsValid() && pTarget)
+		detonateCoord = pTarget->GetCoords();
 
 	pBullet->Owner = pOwner;
 	pBullet->Health = damage;
@@ -209,7 +213,7 @@ void ScenarioExtData::DetonateMasterBuller(const CoordStruct& coords, TechnoClas
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pFiringHouse;
 	}
 
-	pBullet->SetLocation(coords);
+	pBullet->SetLocation(detonateCoord);
 	pBullet->Explode(true);
 }
 

@@ -86,7 +86,9 @@ struct NewTiberiumStorageClass
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
-		return this->Serialize(stm);
+		bool load_ = this->Serialize(stm);
+		Debug::LogInfo("size after Load {}", this->m_values.size());
+		return load_;
 	}
 
 	bool Save(PhobosStreamWriter& stm) const

@@ -76,7 +76,7 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 // =============================
 // load / save
 
-void IsometricTileTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool IsometricTileTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
 	this->Tileset = IsometricTileTypeExtContainer::CurrentTileset;
 
@@ -94,7 +94,6 @@ template <typename T>
 void IsometricTileTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->TileSetName)
 		.Process(this->Tileset)
 		.Process(this->Palette)
@@ -108,6 +107,7 @@ void IsometricTileTypeExtData::Serialize(T& Stm)
 // container
 
 IsometricTileTypeExtContainer IsometricTileTypeExtContainer::Instance;
+std::vector<IsometricTileTypeExtData*> Container<IsometricTileTypeExtData>::Array;
 
 // =============================
 // container hooks
@@ -121,35 +121,20 @@ ASMJIT_PATCH(0x5449F2, IsometricTileTypeClass_CTOR, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x544A56, IsometricTileTypeClass_CTOR_NoInt, 0x7)
+{
+	GET(IsometricTileTypeClass*, pItem, ESI);
+
+	IsometricTileTypeExtContainer::Instance.AllocateNoInit(pItem);
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x544BC2, IsometricTileTypeClass_DTOR, 0x8)
 {
 	GET(IsometricTileTypeClass*, pItem, ESI);
 
 	IsometricTileTypeExtContainer::Instance.Remove(pItem);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x549C80, IsometricTileTypeClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(IsometricTileTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	IsometricTileTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x549D70, IsometricTileTypeClass_SaveLoad_Prefix, 0x8)
-
-ASMJIT_PATCH(0x549D5D, IsometricTileTypeClass_Load_Suffix, 0x5)
-{
-	IsometricTileTypeExtContainer::Instance.LoadStatic();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x549D8A, IsometricTileTypeClass_Save_Suffix, 0x6)
-{
-	IsometricTileTypeExtContainer::Instance.SaveStatic();
 
 	return 0;
 }

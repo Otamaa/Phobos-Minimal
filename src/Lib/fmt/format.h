@@ -165,28 +165,13 @@ template <typename T> struct iterator_traits<fmt::basic_appender<T>> {
 };
 }  // namespace std
 
-#ifndef FMT_THROW
-#  if FMT_USE_EXCEPTIONS
-#    if FMT_MSC_VERSION || defined(__NVCC__)
-FMT_BEGIN_NAMESPACE
-namespace detail {
-template <typename Exception> inline void do_throw(const Exception& x) {
-  // Silence unreachable code warnings in MSVC and NVCC because these
-  // are nearly impossible to fix in a generic code.
-  volatile bool b = true;
-  if (b) throw x;
-}
-}  // namespace detail
-FMT_END_NAMESPACE
-#      define FMT_THROW(x) detail::do_throw(x)
-#    else
-#      define FMT_THROW(x) throw x
-#    endif
-#  else
-#    define FMT_THROW(x) \
-      ::fmt::detail::assert_fail(__FILE__, __LINE__, (x).what())
-#  endif  // FMT_USE_EXCEPTIONS
-#endif    // FMT_THROW
+#ifdef FMT_THROW
+// Use the provided definition.
+#elif FMT_USE_EXCEPTIONS
+#  define FMT_THROW(x) throw x
+#else
+#  define FMT_THROW(x) ::fmt::assert_fail(__FILE__, __LINE__, (x).what())
+#endif
 
 // Defining FMT_REDUCE_INT_INSTANTIATIONS to 1, will reduce the number of
 // integer formatter template instantiations to just one by only using the
@@ -3536,8 +3521,13 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value) -> OutputIt {
     } else {
       *ptr++ = static_cast<Char>('0' + significand);
     }
-    memcpy(ptr, prefix, 2);
-    ptr += 2;
+    if (std::is_same<Char, char>::value) {
+      memcpy(ptr, prefix, 2);
+      ptr += 2;
+    } else {
+      *ptr++ = prefix[0];
+      *ptr++ = prefix[1];
+    }
     if (abs_exponent >= 100) {
       *ptr++ = static_cast<Char>('0' + abs_exponent / 100);
       abs_exponent %= 100;

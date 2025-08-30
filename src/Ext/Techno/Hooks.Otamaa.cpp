@@ -116,6 +116,8 @@ ASMJIT_PATCH(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
 	return 0x709D11;
 }
 
+#include <Ext/Scenario/Body.h>
+
 void DetonateDeathWeapon(TechnoClass* pThis, TechnoTypeClass* pType, WeaponTypeClass* pDecided, int nMult, bool RulesDeath)
 {
 	if (pDecided)
@@ -123,13 +125,22 @@ void DetonateDeathWeapon(TechnoClass* pThis, TechnoTypeClass* pType, WeaponTypeC
 		auto const pBonus = RulesDeath ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
 		auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pDecided->Projectile);
 
-		if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed,
-			WeaponTypeExtContainer::Instance.Find(pDecided)->GetProjectileRange(),
-			pDecided->Bright || pDecided->Warhead->Bright, true))
-		{
-			pBullet->SetWeaponType(pDecided);
-			BulletExtData::DetonateAt(pBullet, pThis, pThis, pThis->Location);
-		}
+		ScenarioExtData::DetonateMasterBullet(pThis->Location,
+			pThis,
+			pBonus + nMult,
+			pThis->Owner,
+			pThis,
+			pDecided->Bright || pDecided->Warhead->Bright,
+			pDecided,
+			pDecided->Warhead
+		);
+		//if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed,
+		//	WeaponTypeExtContainer::Instance.Find(pDecided)->GetProjectileRange(),
+		//	pDecided->Bright || pDecided->Warhead->Bright, true))
+		//{
+		//	pBullet->SetWeaponType(pDecided);
+		//	BulletExtData::DetonateAt(pBullet, pThis, pThis, pThis->Location);
+		//}
 	}
 }
 

@@ -2179,12 +2179,12 @@ ASMJIT_PATCH(0x448312, BuildingClass_ChangeOwnership_OldSpy1, 0xA)
 
 ASMJIT_PATCH(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 {
-	GET(BuildingClass*, pThis, ECX);
+	GET(FakeBuildingClass*, pThis, ECX);
 
 	const auto what = pThis->Type->Factory;
 
 	if (what == AircraftTypeClass::AbsID
-		|| BuildingTypeExtContainer::Instance.Find(pThis->Type)->CloningFacility)
+		|| pThis->_GetTypeExtData()->CloningFacility)
 		return 0x455DCD;
 
 	return 0x0;
@@ -2192,19 +2192,29 @@ ASMJIT_PATCH(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 
 ASMJIT_PATCH(0x4444B3, BuildingClass_KickOutUnit_NoAlternateKickout, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 	return pThis->Type->Factory == AbstractType::None
-		|| BuildingTypeExtContainer::Instance.Find(pThis->Type)->CloningFacility.Get()
+		||pThis->_GetTypeExtData()->CloningFacility.Get()
 		? 0x4452C5 : 0x0;
 }
 
 ASMJIT_PATCH(0x446366, BuildingClass_Place_Academy, 6)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(FakeBuildingClass*, pThis, EBP);
 
-	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
-	{
+	auto pTypeExt= pThis->_GetTypeExtData();
+	auto pExt = pThis->_GetExtData();
+	HouseExtData* pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+
+	if (pTypeExt->IsAcademy()) {
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, true);
+	}
+
+	if (!pTypeExt->DamageFire_Offs.empty())
+		pExt->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+
+	if (pTypeExt->TunnelType >= 0) {
+		pHouseExt->TunnelsBuildings.emplace(pThis);
 	}
 
 	return 0x446382;
@@ -2212,10 +2222,10 @@ ASMJIT_PATCH(0x446366, BuildingClass_Place_Academy, 6)
 
 ASMJIT_PATCH(0x445905, BuildingClass_Remove_Academy, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
 	if (pThis->IsOnMap &&
-		BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
+		pThis->_GetTypeExtData()->IsAcademy())
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
@@ -2226,9 +2236,9 @@ ASMJIT_PATCH(0x445905, BuildingClass_Remove_Academy, 6)
 
 ASMJIT_PATCH(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
-	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
+	if (pThis->_GetTypeExtData()->IsAcademy())
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
@@ -2241,9 +2251,9 @@ ASMJIT_PATCH(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 6)
 
 ASMJIT_PATCH(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
-	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy()
+	if (pThis->_GetTypeExtData()->IsAcademy()
 		 && pThis->Owner)
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, true);

@@ -41,10 +41,7 @@ std::pair<TechnoClass*, HouseClass*> ParticleExtData::GetOwnership(ParticleClass
 template <typename T>
 void ParticleExtData::Serialize(T& Stm)
 {
-	//Debug::LogInfo("Processing Element From ParticleExt ! ");
-
 	Stm
-		.Process(this->Initialized)
 		.Process(this->LaserTrails)
 		.Process(this->Trails)
 
@@ -54,7 +51,8 @@ void ParticleExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleExtContainer ParticleExtContainer::Instance;
-StaticObjectPool<ParticleExtData , 10000> ParticleExtContainer::pools;
+std::vector<ParticleExtData*> Container<ParticleExtData>::Array;
+
 // =============================
 // container hooks
 
@@ -88,6 +86,12 @@ ASMJIT_PATCH(0x62BB13, ParticleClass_CTOR, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x62BC5E, ParticleClass_CTOR_NoInt, 0x7)
+{
+	GET(ParticleClass*, pItem, ESI);
+	ParticleExtContainer::Instance.AllocateNoInit(pItem);
+	return 0x0;
+}
 
 ASMJIT_PATCH(0x62D9CD, ParticleClass_DTOR, 0xA)
 {
@@ -95,35 +99,6 @@ ASMJIT_PATCH(0x62D9CD, ParticleClass_DTOR, 0xA)
 	ParticleExtContainer::Instance.Remove(pItem);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x62BCED, ParticleClass_DTOR, 0xA)
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeParticleClass::_Load(IStream* pStm)
-{
-
-	ParticleExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		ParticleExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeParticleClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	ParticleExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		ParticleExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF968, FakeParticleClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF96C, FakeParticleClass::_Save)
 
 void FakeParticleClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {

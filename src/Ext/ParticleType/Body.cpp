@@ -1,9 +1,5 @@
 #include "Body.h"
 
-void ParticleTypeExtData::Initialize() {
-	LaserTrail_Types.reserve(2);
-}
-
 void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX , const int* beginY) {
 	for (size_t i = 0; i < arr.size(); ++i) {
 		if(!detail::read(arr[i], exINI, pID, (std::string("WindDirectionMult") + std::to_string(i)).c_str())) {
@@ -13,8 +9,11 @@ void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX&
 	}
 }
 
-void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool ParticleTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
 	auto pThis = this->AttachedToObject;
 	const char* pID = pThis->ID;
 
@@ -99,6 +98,8 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			pID);
 		pThis->StateAIAdvance = 1;
 	}
+
+	return true;
 }
 
 // =============================
@@ -107,7 +108,6 @@ template <typename T>
 void ParticleTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->LaserTrail_Types)
 		.Process(this->ReadjustZ)
 		.Process(this->Palette)
@@ -129,6 +129,7 @@ void ParticleTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleTypeExtContainer ParticleTypeExtContainer::Instance;
+std::vector<ParticleTypeExtData*> Container<ParticleTypeExtData>::Array;
 
 // =============================
 // container hooks
@@ -140,6 +141,13 @@ ASMJIT_PATCH(0x644DBB, ParticleTypeClass_CTOR, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x644E26, ParticleTypeClass_CTOR_NoInt, 0x7)
+{
+	GET(ParticleTypeClass*, pItem, ESI);
+	ParticleTypeExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 {
 	GET(ParticleTypeClass*, pItem, ESI);
@@ -147,36 +155,6 @@ ASMJIT_PATCH(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeParticleTypeClass::_Load(IStream* pStm)
-{
-
-	ParticleTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		ParticleTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeParticleTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	ParticleTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		ParticleTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F019C, FakeParticleTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F01A0, FakeParticleTypeClass::_Save)
-
 
 ASMJIT_PATCH(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
 {

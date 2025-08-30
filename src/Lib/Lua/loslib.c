@@ -20,7 +20,6 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
-#include "llimits.h"
 
 
 /*
@@ -273,9 +272,9 @@ static int getfield (lua_State *L, const char *key, int d, int delta) {
 
 
 static const char *checkoption (lua_State *L, const char *conv,
-                                size_t convlen, char *buff) {
+                                ptrdiff_t convlen, char *buff) {
   const char *option = LUA_STRFTIMEOPTIONS;
-  unsigned oplen = 1;  /* length of options being checked */
+  int oplen = 1;  /* length of options being checked */
   for (; *option != '\0' && oplen <= convlen; option += oplen) {
     if (*option == '|')  /* next block? */
       oplen++;  /* will check options with next length (+1) */
@@ -333,8 +332,7 @@ static int os_date (lua_State *L) {
         size_t reslen;
         char *buff = luaL_prepbuffsize(&b, SIZETIMEFMT);
         s++;  /* skip '%' */
-        /* copy specifier to 'cc' */
-        s = checkoption(L, s, ct_diff2sz(se - s), cc + 1);
+        s = checkoption(L, s, se - s, cc + 1);  /* copy specifier to 'cc' */
         reslen = strftime(buff, SIZETIMEFMT, cc, stm);
         luaL_addsize(&b, reslen);
       }

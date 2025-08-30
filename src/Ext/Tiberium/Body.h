@@ -1,25 +1,20 @@
 #pragma once
 #include <TiberiumClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDefB.h>
+#include <Ext/AbstractType/Body.h>
+
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
 
 class AnimTypeClass;
 
-class TiberiumExtData final
+class TiberiumExtData final : public AbstractTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
 
-	//Dont forget to remove this if ares one re-enabled
-	static COMPILETIMEEVAL size_t ExtOffset = 0xAC;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+#pragma region ClassMember
 
 	CustomPalette Palette { CustomPalette::PaletteMode::Temperate }; //
 	Nullable<AnimTypeClass*> OreTwinkle {};
@@ -45,10 +40,46 @@ public:
 
 	Valueable<std::string> LinkedOverlayType {};
 	Valueable<int> PipIndex { -1 };
+#pragma endregion
+public:
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj) { }
+	TiberiumExtData(TiberiumClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
+
+	virtual ~TiberiumExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	{
+		const_cast<TiberiumExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
+		const_cast<TiberiumExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->AbstractTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual TiberiumClass* This() const override { return reinterpret_cast<TiberiumClass*>(this->AbstractTypeExtData::This()); }
+	virtual const TiberiumClass* This_Const() const override { return reinterpret_cast<const TiberiumClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { }
+
+public:
 
 	COMPILETIMEEVAL FORCEDINLINE AnimTypeClass* GetTwinkleAnim() const
 	{
@@ -92,12 +123,6 @@ public:
 		return this->DebrisChance;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TiberiumExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -111,10 +136,10 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	static void Clear();
 
-	void Clear();
-
-	//CONSTEXPR_NOCOPY_CLASSB(TiberiumExtContainer, TiberiumExtData, "TiberiumClass");
+	virtual bool WriteDataToTheByteStream(TiberiumExtData::base_type* key, IStream* pStm) { };
+	virtual bool ReadDataFromTheByteStream(TiberiumExtData::base_type* key, IStream* pStm) { };
 };
 
 class NOVTABLE FakeTiberiumClass : public TiberiumClass
@@ -136,7 +161,7 @@ public:
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
 	TiberiumExtData* _GetExtData() {
-		return *reinterpret_cast<TiberiumExtData**>(((DWORD)this) + TiberiumExtData::ExtOffset);
+		return *reinterpret_cast<TiberiumExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 };
 static_assert(sizeof(FakeTiberiumClass) == sizeof(TiberiumClass), "Invalid Size !");

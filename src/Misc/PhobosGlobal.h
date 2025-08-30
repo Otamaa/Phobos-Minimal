@@ -108,26 +108,20 @@ public:
 				}
 			}
 
-			for (auto& item : Building)
-			{
-				if (removed && (AbstractClass*)item == ptr)
-				{
+			for (auto& item : Building) {
+				if (removed && (AbstractClass*)item == ptr) {
 					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
 				}
 			}
 
-			for (auto& item : Infantry)
-			{
-				if (removed && (AbstractClass*)item == ptr)
-				{
+			for (auto& item : Infantry) {
+				if (removed && (AbstractClass*)item == ptr) {
 					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
 				}
 			}
 
-			for (auto& item : Unit)
-			{
-				if (removed && (AbstractClass*)item == ptr)
-				{
+			for (auto& item : Unit) {
+				if (removed && (AbstractClass*)item == ptr) {
 					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
 				}
 			}

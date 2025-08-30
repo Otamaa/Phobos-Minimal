@@ -8,16 +8,14 @@
 
 template <typename T>
 void TemporalExtData::Serialize(T& Stm) {
-	Stm
-		.Process(this->Initialized)
-		;
+
 
 }
 
 // =============================
 // container
 TemporalExtContainer TemporalExtContainer::Instance;
-
+std::vector<TemporalExtData*> Container<TemporalExtData>::Array;
 // =============================
 // container hooks
 
@@ -25,6 +23,13 @@ ASMJIT_PATCH(0x71A594, TemporalClass_CTOR, 0x7)
 {
 	GET(TemporalClass*, pItem, ESI);
 	TemporalExtContainer::Instance.Allocate(pItem);
+	return 0;
+}
+
+ASMJIT_PATCH(0x71A5C1, TemporalClass_CTOR_NoInit, 0x7)
+{
+	GET(TemporalClass*, pItem, ESI);
+	TemporalExtContainer::Instance.AllocateNoInit(pItem);
 	return 0;
 }
 
@@ -46,29 +51,29 @@ ASMJIT_PATCH(0x71A5FF, TemporalClass_SDDTOR, 0x7)
 //	return 0x0;
 //}
 
-HRESULT __stdcall FakeTemporalClass::_Load(IStream* pStm)
-{
-
-	TemporalExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TemporalClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		TemporalExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeTemporalClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	TemporalExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TemporalClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		TemporalExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5194, FakeTemporalClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5198, FakeTemporalClass::_Save)
+//HRESULT __stdcall FakeTemporalClass::_Load(IStream* pStm)
+//{
+//
+//	TemporalExtContainer::Instance.PrepareStream(this, pStm);
+//	HRESULT res = this->TemporalClass::Load(pStm);
+//
+//	if (SUCCEEDED(res))
+//		TemporalExtContainer::Instance.LoadStatic();
+//
+//	return res;
+//}
+//
+//HRESULT __stdcall FakeTemporalClass::_Save(IStream* pStm, bool clearDirty)
+//{
+//
+//	TemporalExtContainer::Instance.PrepareStream(this, pStm);
+//	HRESULT res = this->TemporalClass::Save(pStm, clearDirty);
+//
+//	if (SUCCEEDED(res))
+//		TemporalExtContainer::Instance.SaveStatic();
+//
+//	return res;
+//}
+//
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5194, FakeTemporalClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5198, FakeTemporalClass::_Save)

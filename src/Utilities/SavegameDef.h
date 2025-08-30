@@ -128,9 +128,10 @@ namespace Savegame
 	{
 		bool ret = Stm.Load(Value);
 
-		if constexpr (std::is_pointer<T>::value) {
-			if (RegisterForChange)
+		if COMPILETIMEEVAL(std::is_pointer<T>::value) {
+			if (RegisterForChange) {
 				PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(Value, PhobosCRT::GetTypeIDName<T>().c_str());
+			}
 		}
 
 		return ret;
@@ -929,8 +930,20 @@ namespace Savegame
 
 			for (auto ix = 0u; ix < Count; ++ix)
 			{
-				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange))
-					return false;
+				if COMPILETIMEEVAL(std::is_same_v<T, bool>)
+				{
+					bool temp {};
+
+					if (!Savegame::ReadPhobosStream(Stm, temp, RegisterForChange))
+						return false;
+
+					Value[ix] = temp;
+				}
+				else
+				{
+					if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange))
+						return false;
+				}
 			}
 
 			return true;

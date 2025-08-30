@@ -21,12 +21,6 @@
 
 #include <Misc/DamageArea.h>
 
-#pragma region defines
-std::list<FakeAnimClass*> FakeAnimClass::AnimsWithAttachedParticles {};
-StaticObjectPool<AnimExtData, 10000> FakeAnimClass::pools;
-
-#pragma endregion
-
 //std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
@@ -447,19 +441,20 @@ AbstractClass* AnimExtData::GetTarget(AnimClass* pThis)
 
 void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 {
+	this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
 	AnnounceInvalidPointer(this->Invoker, ptr, bRemoved);
 	AnnounceInvalidPointer(this->ParentBuilding, ptr, bRemoved);
 
 	if (this->AttachedSystem == ptr)
 	{
-		FakeAnimClass::AnimsWithAttachedParticles.remove((FakeAnimClass*)this->AttachedToObject);
+		AnimExtContainer::AnimsWithAttachedParticles.remove((FakeAnimClass*)this->This());
 		this->AttachedSystem = nullptr;
 	}
 }
 
 void AnimExtData::CreateAttachedSystem()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	const auto pData = AnimTypeExtContainer::Instance.TryFind(pThis->Type);
 
 	if (!pData || !pData->AttachedSystem || this->AttachedSystem)
@@ -479,7 +474,7 @@ void AnimExtData::CreateAttachedSystem()
 		pThis->GetOwningHouse()
 	));
 
-	FakeAnimClass::AnimsWithAttachedParticles.push_back((FakeAnimClass*)pThis);
+	AnimExtContainer::AnimsWithAttachedParticles.push_back((FakeAnimClass*)pThis);
 }
 
 //Modified from Ares
@@ -754,7 +749,6 @@ template <typename T>
 void AnimExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->BackupCoords)
 		.Process(this->DeathUnitFacing)
 		.Process(this->DeathUnitTurretFacing)
@@ -773,6 +767,9 @@ void AnimExtData::Serialize(T& Stm)
 		;
 }
 
+AnimExtContainer AnimExtContainer::Instance;
+std::list<AnimClass*> AnimExtContainer::AnimsWithAttachedParticles;
+std::vector<AnimExtData*>  Container<AnimExtData>::Array;
 // =============================
 // hooks
 
@@ -795,200 +792,67 @@ ASMJIT_PATCH(0x421EA0, AnimClass_CTOR_SetContext, 0x6)
 	return 0;
 }
 
-
-#ifdef TEST
-#define GET_REGISTER_STATIC_2(type, dst, reg) static type dst; _asm { mov dst, reg }
-
-[[ noreturn ]] static NOINLINE NAKED void AnimClass_DTOR_Ext() noexcept {
-	GET_REGISTER_STATIC_2(AnimClass*, this_ptr, esi);
-	if (!this_ptr->Type) {
-		goto original_code;
-	}
-
-	FakeAnimClass::Remove(this_ptr);
-
-original_code:
-	_asm { mov eax, ds:0xA8E9A0 } // GameActive
-	JMP_REG(ebx, 0x422912);
-}
-
-[[ noreturn ]] static NOINLINE NAKED void AnimClass_CTOR_Ext() noexcept {
-	GET_REGISTER_STATIC_2(AnimClass*, this_ptr, esi); // Current "this" pointer.
-
-	if (Phobos::Otamaa::DoingLoadGame || !this_ptr->Type)
-		goto original_code;
-
-	// Do this here instead of using a duplicate hook in SyncLogger.cpp
-	if (!SyncLogger::HooksDisabled && this_ptr->UniqueID != -2)
-		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
-
-	if (this_ptr->UniqueID == -2)
-	{
-		Debug::LogInfo("Anim[{} - {}] with some weird ID", this_ptr->Type->ID, this_ptr);
-	}
-
-	FakeAnimClass::ClearExtAttribute(this_ptr);
-
-	if (AnimExtData* val = FakeAnimClass::AllocateUnchecked(this_ptr))
-	{
-		FakeAnimClass::SetExtAttribute(this_ptr, val);
-
-		// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
-		if (!this_ptr->HasExtras)
-			val->CreateAttachedSystem();
-	}
-
-
-
-original_code:
-	/**
-	 *  Stolen bytes/code.
-	 */
-	this_ptr->IsAlive = true;
-
-	/**
-	 *  Restore some registers.
-	 */
-	_asm { mov ecx, this_ptr }
-	_asm { mov edx, [ecx + 0xC8] } // this->Class
-	_asm { mov eax, edx }
-
-	JMP_REG(edx, 0x4220B7);
-}
-
-#undef GET_REGISTER_STATIC_2
-DEFINE_FUNCTION_JUMP(LJMP, 0x4220AA, AnimClass_CTOR_Ext));
-DEFINE_FUNCTION_JUMP(LJMP, 0x42290B, AnimClass_DTOR_Ext));
-
-//ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
-//{
-//	GET(AnimClass* const, pItem, ESI);
-//	FakeAnimClass::Remove(pItem);
-//	return 0;
-//}
-
-#else
-ASMJIT_PATCH(0x422131, AnimClass_CTOR, 0x6)
+ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 {
 	GET(AnimClass*, pItem, ESI);
 
-	if (Phobos::Otamaa::DoingLoadGame)
-		return 0x0;
+	if(pItem->Type){
 
-	PhobosGlobal::Instance()->LastAnimName = pItem->Type->ID;
+		PhobosGlobal::Instance()->LastAnimName = pItem->Type->ID;
 
-	// Do this here instead of using a duplicate hook in SyncLogger.cpp
-	if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
-		SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
+		// Do this here instead of using a duplicate hook in SyncLogger.cpp
+		if (!SyncLogger::HooksDisabled && pItem->UniqueID != -2)
+			SyncLogger::AddAnimCreationSyncLogEvent(CTORTemp::coords, CTORTemp::callerAddress);
 
-	if (pItem->UniqueID == -2) {
-		Debug::LogInfo("Anim[{} - {}] with some weird ID", pItem->Type->ID, (void*)pItem);
-	}
-
-	FakeAnimClass::ClearExtAttribute(pItem);
-
-	if (AnimExtData* val = FakeAnimClass::AllocateUnchecked(pItem))
-	{
-		FakeAnimClass::SetExtAttribute(pItem, val);
-
-		// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
-		if (!pItem->HasExtras) {
-
-			auto pFake = (FakeAnimClass*)(pItem);
-			if (pFake->_GetTypeExtData()->Damaging_UseSeparateState) {
-				int damagedelay = pFake->_GetTypeExtData()->Damaging_Rate == -1 ? pFake->Animation.Step : pFake->_GetTypeExtData()->Damaging_Rate;
-				pFake->_GetExtData()->DamagingState.Start(damagedelay);
-			}
-
-			val->CreateAttachedSystem();
+		if (pItem->UniqueID == -2) {
+			Debug::LogInfo("Anim[{} - {}] with some weird ID", pItem->Type->ID, (void*)pItem);
 		}
 
+		AnimExtContainer::Instance.ClearExtAttribute(pItem);
+
+		if (AnimExtData* val = AnimExtContainer::Instance.Allocate(pItem))
+		{
+			AnimExtContainer::Instance.SetExtAttribute(pItem, val);
+
+			// Something about creating this in constructor messes with debris anims, so it has to be done for them later.
+			if (!pItem->HasExtras) {
+
+				auto pFake = (FakeAnimClass*)(pItem);
+				if (pFake->_GetTypeExtData()->Damaging_UseSeparateState) {
+					int damagedelay = pFake->_GetTypeExtData()->Damaging_Rate == -1 ? pFake->Animation.Step : pFake->_GetTypeExtData()->Damaging_Rate;
+					pFake->_GetExtData()->DamagingState.Start(damagedelay);
+				}
+
+				val->CreateAttachedSystem();
+			}
+
+		}
 	}
+	else {
+		PhobosGlobal::Instance()->LastAnimName = "none";
+	}
+
 
 	PhobosGlobal::Instance()->LastAnimName.clear();
 	return 0;
+}
+
+ASMJIT_PATCH(0x4228CB, AnimClass_CTOR_NoInt, 0x7)
+{
+	GET(AnimClass*, pThis, ESI);
+
+	return 0x0;
 }
 
 ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
 
-	FakeAnimClass::AnimsWithAttachedParticles.remove((FakeAnimClass*)pItem);
+	AnimExtContainer::AnimsWithAttachedParticles.remove((FakeAnimClass*)pItem);
 
-	FakeAnimClass::Remove(pItem);
+	AnimExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-#endif
-
-HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm)
-{
-
-	HRESULT res = this->AnimClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-	{
-		FakeAnimClass::ClearExtAttribute(this);
-		auto buffer = FakeAnimClass::AllocateUnchecked(this);
-		FakeAnimClass::SetExtAttribute(this, buffer);
-
-		if (!buffer)
-			return -1;
-
-		PhobosByteStream loader { 0 };
-		if (!loader.ReadBlockFromStream(pStm))
-			return -1;
-
-		PhobosStreamReader reader { loader };
-		if (!reader.Expect(AnimExtData::Canary))
-			return -1;
-
-		reader.RegisterChange(buffer);
-		buffer->LoadFromStream(reader);
-
-		if (reader.ExpectEndOfBlock())
-		{
-			return S_OK;
-		}
-	}
-
-	return res;
-}
-
-HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	HRESULT res = this->AnimClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-	{
-		AnimExtData* const buffer = FakeAnimClass::GetExtAttribute(this);
-
-		// write the current pointer, the size of the block, and the canary
-		PhobosByteStream saver { AnimExtData::size_Of() };
-		PhobosStreamWriter writer { saver };
-
-		writer.Save(AnimExtData::Canary);
-		writer.Save(buffer);
-
-		// save the data
-		buffer->SaveToStream(writer);
-
-		// save the block
-		if (!saver.WriteBlockToStream(pStm))
-		{
-			//Debug::LogInfo("[SaveGame] FakeAnimClass fail to write 0x%X block(s) to stream", saver.Size());
-			return -1;
-		}
-
-		//Debug::LogInfo("[SaveGame] FakeAnimClass used up 0x%X bytes", saver.Size());
-	}
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)
 
 ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 {
