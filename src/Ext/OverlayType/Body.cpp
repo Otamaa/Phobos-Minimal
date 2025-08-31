@@ -3,12 +3,12 @@
 #include <Utilities/GeneralUtils.h>
 #include <Helpers\Macro.h>
 
-void OverlayTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool OverlayTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (parseFailAddr)
-		return;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr) || parseFailAddr)
+		return false;
 
-	auto pThis = this->AttachedToObject;
+	auto pThis = this->This();
 	INI_EX exINI(pINI);
 
 	//auto const pArtINI = &CCINIClass::INI_Art();
@@ -16,6 +16,8 @@ void OverlayTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Palette.Read(exINI , pArtSection, "Palette");
 	this->ZAdjust.Read(exINI, pArtSection, "ZAdjust");
+
+	return true;
 }
 
 // =============================

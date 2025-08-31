@@ -51,10 +51,8 @@ ASMJIT_PATCH(0x442C43, BuildingClass_Init, 0x5)
 
 	pThis->TechnoClass::Init();
 
-	auto pTechnoExt = TechnoExtContainer::Instance.Find(pThis);
 	auto pBldExt = BuildingExtContainer::Instance.Find(pThis);
 
-	pBldExt->TechnoExt = pTechnoExt;
 	pBldExt->MyPrismForwarding = std::make_unique<PrismForwarding>();
 	pBldExt->MyPrismForwarding->Owner = pThis;
 
@@ -74,6 +72,6 @@ ASMJIT_PATCH(0x442C43, BuildingClass_Init, 0x5)
 	pBldExt->Type = pBldTypeExt;
 
 	R->EAX(pThis->Type);
-	R->ECX(pBldTypeExt->Type->InitialStrength.Get(pThis->Type->Strength));
+	R->ECX(pBldTypeExt->InitialStrength.Get(pThis->Type->Strength));
 	return 0x442C7B;
 }

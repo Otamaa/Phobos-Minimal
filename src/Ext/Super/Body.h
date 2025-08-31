@@ -16,11 +16,15 @@ struct SWStatus
 		Charging = 0;
 	}
 
+public:
+
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{ return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<SWStatus*>(this)->Serialize(Stm); }
+
+private:
 
 	template <typename T>
 	bool Serialize(T& Stm)
@@ -71,7 +75,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<SuperExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
 		const_cast<SuperExtData*>(this)->Serialize(Stm);
@@ -122,8 +126,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(SuperExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(SuperExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(SuperExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(SuperExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class SWTypeExtData;

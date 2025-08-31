@@ -854,8 +854,8 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Bu
 				pExt->LaserTrails.clear();
 				pExt->InitializeLaserTrails();
 
-				TrailsManager::CleanUp(pExt->AttachedToObject);
-				TrailsManager::Construct(pExt->AttachedToObject);
+				TrailsManager::CleanUp(pExt->This());
+				TrailsManager::Construct(pExt->This());
 
 				// Lose target if the current bullet is no longer interceptable.
 

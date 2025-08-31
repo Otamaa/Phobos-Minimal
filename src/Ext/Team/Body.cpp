@@ -1136,8 +1136,6 @@ template <typename T>
 void TeamExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-
 		.Process(this->WaitNoTargetAttempts)
 		.Process(this->NextSuccessWeightAward)
 		.Process(this->IdxSelectedObjectFromAIList)

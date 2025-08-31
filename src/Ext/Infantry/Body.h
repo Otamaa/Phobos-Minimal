@@ -38,7 +38,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<InfantryExtData*>(this)->FootExtData::SaveToStream(Stm);
 		const_cast<InfantryExtData*>(this)->Serialize(Stm);
@@ -88,8 +88,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(InfantryExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(InfantryExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(InfantryExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(InfantryExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class InfantryTypeExtData;

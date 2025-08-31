@@ -4,14 +4,11 @@
 
 bool SmudgeTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr) || parseFailAddr)
 		return false;
 
 	auto pThis = This();
 	const char* pSection = pThis->ID;
-
-	if (parseFailAddr)
-		return false;
 
 	INI_EX exINI(pINI);
 	this->Clearable.Read(exINI, pSection, "Clearable");
@@ -45,6 +42,13 @@ ASMJIT_PATCH(0x6B52E1, SmudgeTypeClass_CTOR, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x6B5391, SmudgeTypeClass_CTOR_NoInit, 0x7)
+{
+	GET(SmudgeTypeClass*, pItem, ESI);
+	SmudgeTypeExtContainer::Instance.AllocateNoInit(pItem);
+	return 0;
+}
+
 ASMJIT_PATCH(0x6B61B5, SmudgeTypeClass_SDDTOR, 0x7)
 {
 	GET(SmudgeTypeClass*, pItem, ESI);
@@ -53,31 +57,6 @@ ASMJIT_PATCH(0x6B61B5, SmudgeTypeClass_SDDTOR, 0x7)
 }
 
 #include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeSmudgeTypeClass::_Load(IStream* pStm)
-{
-
-	SmudgeTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->SmudgeTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		SmudgeTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeSmudgeTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	SmudgeTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->SmudgeTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		SmudgeTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
 #include <Ext/IsometricTileType/Body.h>
 
 bool FakeSmudgeTypeClass::_CanPlaceHere(CellStruct* origin, bool underbuildings) {
@@ -133,10 +112,6 @@ bool FakeSmudgeTypeClass::_CanPlaceHere(CellStruct* origin, bool underbuildings)
 
 	return true;
 }
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F353C, FakeSmudgeTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3540, FakeSmudgeTypeClass::_Save)
-
 
 ASMJIT_PATCH(0x6B57CD, SmudgeTypeClass_LoadFromINI, 0xA)
 {

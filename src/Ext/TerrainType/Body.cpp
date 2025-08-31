@@ -5,7 +5,11 @@
 
 #include <TerrainClass.h>
 #include <TacticalClass.h>
+#include <ParticleTypeClass.h>
+
 #include <Helpers/Macro.h>
+
+#include <AnimClass.h>
 
 void TerrainTypeExtData::Initialize()
 {
@@ -82,8 +86,8 @@ void TerrainTypeExtData::PlayDestroyEffects(CoordStruct coords)
 {
 	VocClass::SafeImmedietelyPlayAt(this->DestroySound, &coords);
 
-	if (auto const pAnimType = this->DestroyAnim)
-		GameCreate<AnimClass>(pAnimType, coords);
+	if (auto pAnimType = this->DestroyAnim)
+		GameCreate<AnimClass>(pAnimType.Get(), coords);
 }
 
 // =============================

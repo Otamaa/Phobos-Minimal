@@ -45,12 +45,12 @@ void GiftBoxFunctional::Init(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 
 void GiftBoxFunctional::Destroy(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->MyGiftBox || OpenDisallowed(pExt->AttachedToObject))
+	if (!pExt->MyGiftBox || OpenDisallowed(pExt->This()))
 		return;
 
 	if (pTypeExt->MyGiftBoxData.OpenWhenDestoryed && !pExt->MyGiftBox->IsOpen)
 	{
-		pExt->MyGiftBox->Release(pExt->AttachedToObject, pTypeExt->MyGiftBoxData);
+		pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
 		pExt->MyGiftBox->IsOpen = true;
 	}
 
@@ -58,7 +58,7 @@ void GiftBoxFunctional::Destroy(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt
 
 void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->MyGiftBox || OpenDisallowed(pExt->AttachedToObject))
+	if (!pExt->MyGiftBox || OpenDisallowed(pExt->This()))
 		return;
 
 	if (!pTypeExt->MyGiftBoxData.Enable){
@@ -71,7 +71,7 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 		pExt->MyGiftBox->CanOpen())
 	{
 
-		pExt->MyGiftBox->Release(pExt->AttachedToObject, pTypeExt->MyGiftBoxData);
+		pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
 		pExt->MyGiftBox->IsOpen = true;
 	}
 
@@ -79,23 +79,23 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 	{
 		if (pTypeExt->MyGiftBoxData.Remove)
 		{
-			pExt->AttachedToObject->Limbo();
+			pExt->This()->Limbo();
 			//Debug::LogInfo(__FUNCTION__" Called ");
-			TechnoExtData::HandleRemove(pExt->AttachedToObject,nullptr , false , false);
+			TechnoExtData::HandleRemove(pExt->This(),nullptr , false , false);
 			return;
 		}
 
 		if (pTypeExt->MyGiftBoxData.Destroy)
 		{
 			//take damage from the new type just in case the health is acttually more then old
-			auto nDamage = (pExt->AttachedToObject->GetTechnoType()->Strength);
-			pExt->AttachedToObject->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, nullptr, false,
-				!pTypeExt->AttachedToObject->Crewed, nullptr);
+			auto nDamage = (pExt->This()->GetTechnoType()->Strength);
+			pExt->This()->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, nullptr, false,
+				!pTypeExt->This()->Crewed, nullptr);
 
 			return;
 		}
 
-		if(pExt->AttachedToObject->IsAlive)
+		if(pExt->This()->IsAlive)
 		{
 			auto const nDelay = pTypeExt->MyGiftBoxData.DelayMax == 0 ?
 				pTypeExt->MyGiftBoxData.Delay :
@@ -116,13 +116,13 @@ void GiftBoxFunctional::TakeDamage(TechnoExtData* pExt, TechnoTypeExtData* pType
 		return;
 
 	if (nState != DamageState::NowDead &&
-		(!OpenDisallowed(pExt->AttachedToObject)) &&
+		(!OpenDisallowed(pExt->This())) &&
 		pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.isset())
 	{
-		double healthPercent = pExt->AttachedToObject->GetHealthPercentage();
+		double healthPercent = pExt->This()->GetHealthPercentage();
 		if (healthPercent <= pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.Get())
 		{
-			pExt->MyGiftBox->Release(pExt->AttachedToObject, pTypeExt->MyGiftBoxData);
+			pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
 			pExt->MyGiftBox->IsOpen = true;
 		}
 	}

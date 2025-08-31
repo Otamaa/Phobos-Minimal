@@ -27,7 +27,7 @@ public:
 		this->TechnoTypeExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<AircraftTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
 	}
@@ -49,7 +49,7 @@ public:
 		return true;
 	}
 
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 };
 
 class AircraftTypeExtContainer final : public Container<AircraftTypeExtData>
@@ -79,8 +79,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(AircraftTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(AircraftTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(AircraftTypeExtData::base_type* key, IStream* pStm) { return true; };
+	virtual bool ReadDataFromTheByteStream(AircraftTypeExtData::base_type* key, IStream* pStm) { return true; };
 };
 
 class NOVTABLE FakeAircraftTypeClass : public AircraftTypeClass {

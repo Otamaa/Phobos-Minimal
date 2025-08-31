@@ -497,7 +497,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<WarheadTypeExtData*>(this)->AbstractTypeExtData::Internal_SaveToStream(Stm);
 		const_cast<WarheadTypeExtData*>(this)->Serialize(Stm);
@@ -512,7 +512,7 @@ public:
 	virtual const WarheadTypeClass* This_Const() const override { return reinterpret_cast<const WarheadTypeClass*>(this->AbstractTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 public:
 
@@ -639,8 +639,8 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
 
-	virtual bool WriteDataToTheByteStream(WarheadTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(WarheadTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(WarheadTypeExtData::base_type* key, IStream* pStm) { return true; };
+	virtual bool ReadDataFromTheByteStream(WarheadTypeExtData::base_type* key, IStream* pStm) { return true; };
 
 };
 
@@ -658,7 +658,7 @@ public:
 	}
 
 	WarheadTypeExtData* _GetExtData() const {
-		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this) + WarheadTypeExtData::ExtOffset);
+		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 	COMPILETIMEEVAL VersesData* GetVersesData(Armor armor) {

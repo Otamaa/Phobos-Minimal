@@ -804,13 +804,13 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->RadioExtData::LoadFromStream(Stm);
-		this->Serialize(Stm);
+		this->Serialize<PhobosStreamReader>(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const override
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->RadioExtData::SaveToStream(Stm);
-		const_cast<TechnoExtData*>(this)->Serialize(Stm);
+		this->Serialize<PhobosStreamWriter>(Stm);
 	}
 
 	virtual int GetSize() const { return sizeof(*this); };
@@ -1129,35 +1129,28 @@ public:
 
 };
 
-class TechnoExtContainer final : public Container<TechnoExtData>
-{
+class TechnoExtContainer {
 public:
 	static TechnoExtContainer Instance;
-	static void Clear()
+
+	COMPILETIMEEVAL FORCEDINLINE  TechnoExtData* GetExtAttribute(TechnoClass* key)
 	{
-		Array.clear();
+		return (TechnoExtData*)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
+	COMPILETIMEEVAL FORCEDINLINE TechnoExtData* Find(TechnoClass* key)
 	{
-		return true;
+		return this->GetExtAttribute(key);
 	}
 
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	COMPILETIMEEVAL FORCEDINLINE TechnoExtData* TryFind(TechnoClass* key)
 	{
-		return true;
+		if (!key)
+			return nullptr;
+
+		return this->GetExtAttribute(key);
 	}
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
-
-	virtual bool WriteDataToTheByteStream(TechnoExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(TechnoExtData::base_type* key, IStream* pStm) { };
 };
 
 //we cannot inherit this

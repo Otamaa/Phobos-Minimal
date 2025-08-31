@@ -30,8 +30,8 @@ ASMJIT_PATCH(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 		}
 	}
 
-	if(pTypeExt->AttachedToObject->TurretCount > 0 && !pTypeExt->AttachedToObject->IsGattling) {
-		if (pTypeExt->MultiWeapon && (pThis->WhatAmI() != AbstractType::Unit || !pTypeExt->AttachedToObject->Gunner)) {
+	if(pTypeExt->This()->TurretCount > 0 && !pTypeExt->This()->IsGattling) {
+		if (pTypeExt->MultiWeapon && (pThis->WhatAmI() != AbstractType::Unit || !pTypeExt->This()->Gunner)) {
 			return CheckOccupy;
 		}
 

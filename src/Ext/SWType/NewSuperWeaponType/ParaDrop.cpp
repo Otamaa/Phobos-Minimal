@@ -37,7 +37,7 @@ bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bo
 
 void SW_ParaDrop::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = pData->AttachedToObject->Type == SuperWeaponType::AmerParaDrop ?
+	pData->This()->Action = pData->This()->Type == SuperWeaponType::AmerParaDrop ?
 		Action::AmerParaDrop : Action::ParaDrop;
 
 	pData->SW_RadarEvent = false;
@@ -119,13 +119,13 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 
 	// default
 	CreateParaDropBase(nullptr, _base);
-	GetParadropPlane(_base.c_str(), 1, pData->AttachedToObject);
+	GetParadropPlane(_base.c_str(), 1, pData->This());
 
 	// put all sides into the hash table
 	for (auto const pSide : *SideClass::Array)
 	{
 		CreateParaDropBase(pSide->ID, _base);
-		GetParadropPlane(_base.c_str(), pData->ParaDropDatas[pData->AttachedToObject].size(), pSide);
+		GetParadropPlane(_base.c_str(), pData->ParaDropDatas[pData->This()].size(), pSide);
 	}
 
 	// put all countries into the hash table
@@ -347,7 +347,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 
 	pPlane->HasPassengers = true;
 
-	auto const bSpawned = AircraftExt::PlaceReinforcementAircraft(pPlane, spawn_cell);
+	auto const bSpawned = AircraftExtData::PlaceReinforcementAircraft(pPlane, spawn_cell);
 
 	if (!bSpawned)
 	{

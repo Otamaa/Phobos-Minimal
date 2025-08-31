@@ -282,10 +282,10 @@ public :
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		this->TechnoTypeExtData::SaveToStream(Stm);
-		const_cast<const BuildingTypeExtData*>(this)->Serialize(Stm);
+		const_cast<BuildingTypeExtData*>(this)->Serialize(Stm);
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
@@ -300,7 +300,7 @@ public :
 	virtual const BuildingTypeClass* This_Const() const override { return reinterpret_cast<const BuildingTypeClass*>(this->TechnoTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const {  return true; }
 
 public:
 
@@ -422,8 +422,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(BuildingTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(BuildingTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(BuildingTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(BuildingTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeBuildingTypeClass : public BuildingTypeClass

@@ -79,12 +79,12 @@ void SW_ChronoSphere::Initialize(SWTypeExtData* pData)
 
 	pData->SW_AffectsTarget = SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit;
 	pData->CursorType = (int)MouseCursorType::Chronosphere;
-	pData->AttachedToObject->Action = Action::ChronoSphere;
+	pData->This()->Action = Action::ChronoSphere;
 }
 
 void SW_ChronoSphere::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->AttachedToObject->ID;
+	const char* section = pData->This()->ID;
 
 	INI_EX exINI(pINI);
 

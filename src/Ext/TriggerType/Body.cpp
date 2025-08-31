@@ -7,7 +7,7 @@
 #include <TriggerClass.h>
 #include <TagTypeClass.h>
 
-HouseClass* TriggerTypeExt::ResolveHouseParam(int const param, HouseClass* const pOwnerHouse)
+HouseClass* TriggerTypeExtData::ResolveHouseParam(int const param, HouseClass* const pOwnerHouse)
 {
 	if (param == 8997) {
 		return pOwnerHouse;

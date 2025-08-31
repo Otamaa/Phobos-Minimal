@@ -36,7 +36,7 @@ bool AffectMe(ObjectClass* pVictim , ObjectClass* pAttacker, WarheadTypeClass* p
 
 bool DamageMe(ObjectClass* pVictim, int damage, int distanceFromEpicenter, WarheadTypeExtData* warheadTypeExt, int& realDamage, bool effectsRequireDamage = false)
 {
-	auto armor = TechnoExtData::GetArmor(pVictim , warheadTypeExt->AttachedToObject);
+	auto armor = TechnoExtData::GetArmor(pVictim , warheadTypeExt->This());
 
 	// 计算实际伤害
 	if (damage > 0)

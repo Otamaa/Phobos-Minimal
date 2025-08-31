@@ -218,7 +218,7 @@ ASMJIT_PATCH(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 
 	const bool FoundationEligible = IsCustomEligible || pThis->Foundation == Foundation::_1x1;
 
-	R->EAX(pBldExt->Type->ConsideredVehicle.Get(pThis->UndeploysInto && FoundationEligible));
+	R->EAX(pBldExt->ConsideredVehicle.Get(pThis->UndeploysInto && FoundationEligible));
 	return ReturnFromFunction;
 }
 

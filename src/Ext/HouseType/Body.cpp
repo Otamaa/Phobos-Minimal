@@ -529,7 +529,6 @@ ASMJIT_PATCH(0x51168F, HouseTypeClass_CTOR_NoInit, 0x7)
 	return 0x0;
 }
 
-
 ASMJIT_PATCH(0x5127CF, HouseTypeClass_DTOR, 0x6)
 {
 	GET(HouseTypeClass*, pItem, ESI);

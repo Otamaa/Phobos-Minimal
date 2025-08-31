@@ -29,7 +29,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const {
+	virtual void SaveToStream(PhobosStreamWriter& Stm) {
 		this->Internal_SaveToStream(Stm);
 		const_cast<BombExtData*>(this)->Serialize(Stm);
 	}
@@ -75,8 +75,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(BombExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(BombExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(BombExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(BombExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeBombClass : public BombClass

@@ -12,6 +12,70 @@
 #include <GameOptionsClass.h>
 #include <TacticalClass.h>
 
+ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj)
+{
+	if (!pObj->Type)
+		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !", pObj);
+
+	auto pType = pObj->Type;
+	{
+		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
+			return;
+
+		this->HeldType = ParticleTypeClass::Array->Items[pType->HoldsWhat];
+
+		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage)
+		{
+			auto bIsZero = (int)this->HeldType->BehavesLike;
+			auto nBehave = (int)pType->BehavesLike;
+			if (bIsZero <= 1)
+				bIsZero = bIsZero == 0;
+
+			if (nBehave == bIsZero)
+			{
+				if (!nBehave)
+				{
+					this->What = Behave::Smoke;
+					return;
+				}
+
+				auto v11 = nBehave - 3;
+				if (!v11)                       // 0
+				{
+					this->What = Behave::Spark;
+					return;
+				}
+				if (v11 == 1)                   // // 1
+				{
+					this->What = Behave::Railgun;
+					return;
+				}
+			}
+			//else
+			//{
+			//	if (this->HeldType->ColorList.Count < 3) {
+			//		return;
+			//	}
+			//
+			//	switch (pType->BehavesLike)
+			//	{
+			//	case ParticleSystemTypeBehavesLike::Smoke:
+			//		this->What = Behave::Smoke;
+			//		return;
+			//	case ParticleSystemTypeBehavesLike::Spark:
+			//		this->What = Behave::Spark;
+			//		return;
+			//	case ParticleSystemTypeBehavesLike::Railgun:
+			//		this->What = Behave::Railgun;
+			//		return;
+			//	default:
+			//		break;
+			//	}
+			//}
+		}
+	}
+}
+
 void ParticleSystemExtData::UpdateLocations()
 {
 	const auto gravity = (float)RulesClass::Instance->Gravity;

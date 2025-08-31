@@ -146,7 +146,7 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 						types = pWarheadExt->Crit_AnimList;
 				}
 				else if (createAll) {
-						types = pWarheadExt->AttachedToObject->AnimList;
+						types = pWarheadExt->This()->AnimList;
 				}
 			}
 
@@ -193,7 +193,7 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 	}
 
 	auto pWHExt = pThis->_GetWarheadTypeExtData();
-	auto pWarhead = pWHExt->AttachedToObject;
+	auto pWarhead = pWHExt->This();
 
 	if (pWarhead->MaxDebris > 0)
 	{

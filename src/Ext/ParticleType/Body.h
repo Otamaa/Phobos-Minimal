@@ -41,10 +41,10 @@ public:
 	Valueable<bool> Fire_DamagingAnim { false };
 #pragma endregion
 
-	ParticleTypeExtData(AircraftTypeClass* pObj) : ObjectTypeExtData(pObj) {
+	ParticleTypeExtData(ParticleTypeClass* pObj) : ObjectTypeExtData(pObj) {
 		LaserTrail_Types.reserve(2);
 	}
-	ParticleTypeExtData(AircraftTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+	ParticleTypeExtData(ParticleTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~ParticleTypeExtData() = default;
 
@@ -59,7 +59,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<ParticleTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<ParticleTypeExtData*>(this)->Serialize(Stm);
@@ -73,11 +73,11 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual AircraftTypeClass* This() const override { return reinterpret_cast<AircraftTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const AircraftTypeClass* This_Const() const override { return reinterpret_cast<const AircraftTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	virtual ParticleTypeClass* This() const override { return reinterpret_cast<ParticleTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const ParticleTypeClass* This_Const() const override { return reinterpret_cast<const ParticleTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 private:
 	template <typename T>
@@ -112,8 +112,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(ParticleTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(ParticleTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(ParticleTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(ParticleTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 

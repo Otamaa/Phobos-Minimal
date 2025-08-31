@@ -24,7 +24,7 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	//Adding Owner to RadSite, from bullet
 	if (pWeaponExt)
 	{
-		pRadExt->Weapon = pWeaponExt->AttachedToObject;
+		pRadExt->Weapon = pWeaponExt->This();
 		pRadExt->Type = pWeaponExt->RadType.Get(0);
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
@@ -40,9 +40,9 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	}
 
 	pRadExt->CreationFrame = Unsorted::CurrentFrame;
-	CellExtContainer::Instance.Find(pCell)->RadSites.push_back(pRadExt->AttachedToObject);
-	pRadExt->AttachedToObject->BaseCell = pCell->MapCoords;
-	pRadExt->AttachedToObject->SetSpread(spread);
+	CellExtContainer::Instance.Find(pCell)->RadSites.push_back(pRadExt->This());
+	pRadExt->This()->BaseCell = pCell->MapCoords;
+	pRadExt->This()->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
 }
@@ -50,7 +50,7 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 //RadSiteClass Activate , Rewritten
 void RadSiteExtData::CreateLight()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	const auto nLevelDelay = this->Type->GetLevelDelay();
 	const auto nLightDelay = this->Type->GetLightDelay();
 	const auto nRadcolor = this->Type->GetColor();
@@ -94,7 +94,7 @@ void RadSiteExtData::CreateLight()
 // Rewrite because of crashing craziness
 void RadSiteExtData::Add(int amount)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	pThis->Deactivate();
 	const auto nInput = int(double(pThis->RadLevel * pThis->RadTimeLeft) / (double)pThis->RadDuration) + amount;
 	pThis->RadLevel = nInput;
@@ -107,7 +107,7 @@ void RadSiteExtData::Add(int amount)
 
 void RadSiteExtData::SetRadLevel(int amount)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	const auto nMax = this->Type->GetLevelMax();
 	const auto nDecidedamount = MinImpl(amount,  nMax);
 	const int mult = this->Type->GetDurationMultiple();
@@ -119,7 +119,7 @@ void RadSiteExtData::SetRadLevel(int amount)
 // helper function provided by AlexB
 const double RadSiteExtData::GetRadLevelAt(CellStruct const& cell)
 {
-	return this->GetRadLevelAt(this->AttachedToObject->BaseCell.DistanceFrom(cell));
+	return this->GetRadLevelAt(this->This()->BaseCell.DistanceFrom(cell));
 }
 
 bool NOINLINE IsFiniteNumber(double x) {
@@ -128,7 +128,7 @@ bool NOINLINE IsFiniteNumber(double x) {
 
 const double RadSiteExtData::GetRadLevelAt(double distance)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	const auto nMax = static_cast<double>(pThis->Spread);
 	double radLevel = pThis->RadLevel;
 
@@ -204,7 +204,6 @@ template <typename T>
 void RadSiteExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Weapon, true)
 		.Process(this->Type, true)
 		.Process(this->TechOwner, true)

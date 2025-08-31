@@ -25,7 +25,7 @@ public:
 		this->FootExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<UnitExtData*>(this)->FootExtData::SaveToStream(Stm);
 	}
@@ -69,6 +69,22 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(UnitExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(UnitExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(UnitExtData::base_type* key, IStream* pStm) {  return true; };
+	virtual bool ReadDataFromTheByteStream(UnitExtData::base_type* key, IStream* pStm) { return true;  };
 };
+
+
+class NOVTABLE FakeUnitClass : public UnitClass
+{
+public:
+
+	bool _Paradrop(CoordStruct* pCoords);
+	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, CoordStruct base);
+	int _Mission_Attack();
+
+	void _SetOccupyBit(CoordStruct* pCrd);
+	void _ClearOccupyBit(CoordStruct* pCrd);
+
+	void _Detach(AbstractClass* target, bool all);
+};
+static_assert(sizeof(FakeUnitClass) == sizeof(UnitClass), "Invalid Size !");

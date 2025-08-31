@@ -55,7 +55,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 
 	if(pThisTypeExt->NavalRangeBonus.isset()){
 		if (auto const pFoot = flag_cast_to<FootClass* const>(pTarget)) {
-			if (pThisTypeExt->AttachedToObject->Naval) {
+			if (pThisTypeExt->This()->Naval) {
 				const auto pFootCell = pFoot->GetCell();
 				if (pFootCell->LandType == LandType::Water && !pFootCell->ContainsBridge())
 					range += pThisTypeExt->NavalRangeBonus.Get();
@@ -64,7 +64,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	}
 
 	if (pTarget->IsInAir())
-		range += pThisTypeExt->AttachedToObject->AirRangeBonus;
+		range += pThisTypeExt->This()->AirRangeBonus;
 
 	if (pThis->BunkerLinkedItem) {
 		const auto vtable = VTable::Get(pThis->BunkerLinkedItem);
@@ -74,7 +74,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 			&& (vtable != AircraftClass::vtable)
 			&& (vtable != UnitClass::vtable))
 		{
-			Debug::LogInfo("TechnoClass_InRange Techno[{}] bunker linked item is broken pointer[{}] !", pThisTypeExt->AttachedToObject->ID , (void*)pThis->BunkerLinkedItem);
+			Debug::LogInfo("TechnoClass_InRange Techno[{}] bunker linked item is broken pointer[{}] !", pThisTypeExt->This()->ID , (void*)pThis->BunkerLinkedItem);
 			clear = true;
 			pThis->BunkerLinkedItem = nullptr;
 		}

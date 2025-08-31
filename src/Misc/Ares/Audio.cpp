@@ -370,7 +370,7 @@ bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 
 	if (vec.empty() || vec[SampleIdx - 1].empty()) {
 		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]",
-		pExt->AttachedToObject->ID, vec[SampleIdx - 1].c_str());
+		pExt->Name(), vec[SampleIdx - 1].c_str());
 	}
 
 	return AudioStreamerTag::PlayWAV(AudioStreamerTag::Instance() ,vec[SampleIdx - 1].c_str(), false);

@@ -14,7 +14,7 @@
 
 class TechnoClass;
 class TechnoTypeClass;
-class BulletExtData : public ObjectExtData
+class BulletExtData final : public ObjectExtData
 {
 public:
 	using base_type = BulletClass;
@@ -71,7 +71,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		this->ObjectExtData::SaveToStream(Stm);
 		const_cast<BulletExtData*>(this)->Serialize(Stm);
@@ -150,8 +150,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(BulletExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(BulletExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(BulletExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(BulletExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class FakeWarheadTypeClass;

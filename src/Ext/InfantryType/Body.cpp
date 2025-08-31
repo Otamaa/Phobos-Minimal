@@ -66,14 +66,14 @@ void Phobos_DoControls::ReadSequence(DoInfoStruct* pDoInfo, InfantryTypeClass* p
 
 bool InfantryTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (!this->TecnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
+	if (!this->TechnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
-	const char* pID = this->AttachedToObject->ID;
+	const char* pID = this->This()->ID;
 
 	INI_EX exINI(pINI);
 	INI_EX iniEX_art(CCINIClass::INI_Art());
-	const auto pSection_art = this->AttachedToObject->ImageFile;
+	const auto pSection_art = this->This()->ImageFile;
 
 	this->Is_Deso.Read(exINI, pID,  "IsDesolator");
 	this->Is_Cow.Read(exINI, pID, "IsCow");

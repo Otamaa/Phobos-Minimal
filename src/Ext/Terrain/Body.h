@@ -28,7 +28,7 @@ public:
 	TerrainExtData(TerrainClass* pObj) : ObjectExtData(pObj) { }
 	TerrainExtData(TerrainClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
 
-	virtual ~TerrainExtData() = default;
+	virtual ~TerrainExtData();
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
@@ -49,7 +49,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<TerrainExtData*>(this)->ObjectExtData::SaveToStream(Stm);
 		const_cast<TerrainExtData*>(this)->Serialize(Stm);
@@ -111,8 +111,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(TerrainExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(TerrainExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(TerrainExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(TerrainExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class TerrainTypeExtData;

@@ -162,7 +162,7 @@ bool __fastcall Is_Visible_To_Psychic(HouseClass* house, CellClass* cell)
 
 void NOINLINE AnimExtData::OnTypeChange()
 {
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(this->This()->Type);
 
 	if (this->AttachedSystem && this->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
 		this->AttachedSystem = nullptr;

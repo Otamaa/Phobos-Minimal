@@ -23,7 +23,7 @@ public:
 		this->TechnoTypeExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<UnitTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
 	}
@@ -47,7 +47,7 @@ public:
 		return true;
 	}
 
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 };
 
 class UnitTypeExtContainer final : public Container<UnitTypeExtData>
@@ -78,6 +78,6 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(UnitTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(UnitTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(UnitTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(UnitTypeExtData::base_type* key, IStream* pStm) { return true;  };
 };

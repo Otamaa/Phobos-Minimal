@@ -330,97 +330,29 @@ void BulletTypeExtData::Serialize(T& Stm)
 BulletTypeExtContainer BulletTypeExtContainer::Instance;
 std::vector<BulletTypeExtData*> Container<BulletTypeExtData>::Array;
 
-bool BulletTypeExtContainer::Load(BulletTypeClass* key, IStream* pStm)
-{
-	// this really shouldn't happen
-	if (!key)
-	{
-		//Debug::LogInfo("[LoadKey] Attempted for a null pointer! WTF!");
-		return false;
-	}
-
-	auto ptr = BulletTypeExtContainer::Instance.Map.get_or_default(key);
-
-	if (!ptr) {
-		ptr = BulletTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
-	}
-
-	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, ptr);
-
-	PhobosByteStream loader { 0 };
-	if (loader.ReadBlockFromStream(pStm))
-	{
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(BulletTypeExtData::Canary)
-			&& reader.RegisterChange(ptr))
-		{
-			ptr->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-				return true;
-		}
-	}
-
-	return false;
-}
 // =============================
 // container hooks
 
 ASMJIT_PATCH(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
-	//BulletTypeExtContainer::Instance.Allocate(pItem);
+	BulletTypeExtContainer::Instance.Allocate(pItem);
+	return 0;
+}
 
-	auto ptr = BulletTypeExtContainer::Instance.Map.get_or_default(pItem);
-
-	if (!ptr) {
-		ptr = BulletTypeExtContainer::Instance.Map.insert_unchecked(pItem,
-			  BulletTypeExtContainer::Instance.AllocateUnchecked(pItem));
-	}
-
-	BulletTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
+ASMJIT_PATCH(0x46BE01, BulletTypeClass_CTOR_NoInit, 0x7)
+{
+	GET(BulletTypeClass*, pItem, ESI);
+	BulletTypeExtContainer::Instance.AllocateNoInit(pItem);
 	return 0;
 }
 
 ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 {
 	GET(BulletTypeClass*, pItem, ESI);
-	auto extData = BulletTypeExtContainer::Instance.GetExtAttribute(pItem);
-	BulletTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	BulletTypeExtContainer::Instance.Map.erase(pItem);
-	if(extData)
-		DLLCallDTOR(extData);
+	BulletTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeBulletTypeClass::_Load(IStream* pStm)
-{
-
-	BulletTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BulletTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		BulletTypeExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeBulletTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	BulletTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BulletTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		BulletTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E495C, FakeBulletTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4960, FakeBulletTypeClass::_Save)
 
 ASMJIT_PATCH(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
 {

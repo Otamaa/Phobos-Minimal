@@ -6,11 +6,11 @@
 
 bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
+	if (parseFailAddr)
+		return false;
+
 	auto pThis = this->This();
 	const char* pSection = pThis->ID;
-
-	if (parseFailAddr)
-		return;
 
 	INI_EX exINI(pINI);
 
@@ -135,6 +135,8 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		pThis->SlopeFrames = !slopes ? 0 : 8;
 		pThis->NumImages = MaxCount;
 	}
+
+	return true;
 }
 
 int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const

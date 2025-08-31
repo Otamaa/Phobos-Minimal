@@ -11,7 +11,7 @@ ASMJIT_PATCH(0x6F8721, TechnoClass_EvaleateObject_VHPScan, 0x7)
 	if (nValue <= 0)
 		nValue = 2;
 
-	switch (NewVHPScan(pExt->AttachedToObject->VHPScan))
+	switch (NewVHPScan(pExt->This()->VHPScan))
 	{
 	case NewVHPScan::Normal:
 	{

@@ -20,7 +20,7 @@ public:
 		this->AbstractExtended::Internal_LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		this->AbstractExtended::Internal_SaveToStream(Stm);
 	}
@@ -29,8 +29,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	const char* Name() const { This()->ID; }
-	const char* Full_Name() const { This()->Name; }
+	OPTIONALINLINE const char* Name() const { return This()->ID; }
+	OPTIONALINLINE const char* Full_Name() const { return This()->Name; }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) = 0;
 	virtual bool WriteToINI(CCINIClass* pINI) const = 0;

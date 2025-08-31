@@ -2306,7 +2306,6 @@ template <typename T>
 void TechnoTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->AttachtoType)
 		.Process(this->HealthBar_Hide)
 		.Process(this->HealthBar_HidePips)

@@ -30,7 +30,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 void SW_MeteorShower::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
 	pData->SW_RadarEvent = false;
 	pData->MeteorSmall = AnimTypeClass::Find(GameStrings::METSMALL);
@@ -42,7 +42,7 @@ void SW_MeteorShower::Initialize(SWTypeExtData* pData)
 
 void SW_MeteorShower::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const auto pSection = pData->AttachedToObject->ID;
+	const auto pSection = pData->This()->ID;
 	INI_EX exINI(pINI);
 
 	pData->MeteorCounts.Read(exINI ,pSection,"Meteor.Count");

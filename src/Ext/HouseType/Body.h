@@ -3,12 +3,18 @@
 
 #include <Helpers/Macro.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/PhobosFixedString.h>
-#include <Utilities/PhobosPCXFile.h>
-#include <Utilities/TemplateDef.h>
 #include <Ext/AbstractType/Body.h>
 
+#include <Utilities/PhobosFixedString.h>
+#include <Utilities/PhobosPCXFile.h>
+
+class TechnoTypeClass;
+class InfantryTypeClass;
+class AircraftTypeClass;
+class UnitTypeClass;
+class AnimTypeClass;
+class BuildingTypeClass;
+struct SHPStruct;
 class HouseTypeExtData final : public AbstractTypeExtData
 {
 public:
@@ -62,8 +68,8 @@ public:
 	Valueable<bool> BattlePoints_CanUseStandardPoints {};
 #pragma endregion
 
-	HouseTypeExtData(AircraftTypeClass* pObj) : AbstractTypeExtData(pObj) { this->Initialize(); }
-	HouseTypeExtData(AircraftTypeClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
+	HouseTypeExtData(HouseTypeClass* pObj) : AbstractTypeExtData(pObj) { this->Initialize(); }
+	HouseTypeExtData(HouseTypeClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
 
 	virtual ~HouseTypeExtData() = default;
 
@@ -78,7 +84,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<HouseTypeExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
 		const_cast<HouseTypeExtData*>(this)->Serialize(Stm);
@@ -96,7 +102,7 @@ public:
 	virtual const HouseTypeClass* This_Const() const override { return reinterpret_cast<const HouseTypeClass*>(this->AbstractTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
 
 public:
 
@@ -144,8 +150,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(HouseTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(HouseTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(HouseTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(HouseTypeExtData::base_type* key, IStream* pStm) {  return true; };
 
 };
 

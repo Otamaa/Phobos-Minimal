@@ -73,7 +73,7 @@ void WaveExtData::InitWeaponData()
 
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(this->Weapon);
 
-	switch (this->AttachedToObject->Target->WhatAmI())
+	switch (this->This()->Target->WhatAmI())
 	{
 	case UnitClass::AbsID:
 		this->ReverseAgainstTarget = pWeaponExt->Wave_Reverse[0];
@@ -206,8 +206,7 @@ template <typename T>
 void WaveExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-		.Process(this->Weapon, true)
+		.Process(this->Weapon)
 		.Process(this->WeaponIdx)
 		.Process(this->ReverseAgainstTarget)
 		.Process(this->SourceCoord)

@@ -41,7 +41,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<ParticleExtData*>(this)->ObjectExtData::SaveToStream(Stm);
 		const_cast<ParticleExtData*>(this)->Serialize(Stm);
@@ -95,8 +95,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(ParticleExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(ParticleExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(ParticleExtData::base_type* key, IStream* pStm) {  return true; };
+	virtual bool ReadDataFromTheByteStream(ParticleExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class ParticleTypeExtData;

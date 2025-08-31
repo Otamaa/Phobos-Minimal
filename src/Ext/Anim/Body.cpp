@@ -469,7 +469,7 @@ void AnimExtData::CreateAttachedSystem()
 		pData->AttachedSystem.Get(),
 		nLoc,
 		MapClass::Instance->GetCellAt(nLoc),
-		this->AttachedToObject,
+		this->This(),
 		CoordStruct::Empty,
 		pThis->GetOwningHouse()
 	));

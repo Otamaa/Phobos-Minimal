@@ -539,7 +539,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<SWTypeExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
 		const_cast<SWTypeExtData*>(this)->Serialize(Stm);
@@ -557,7 +557,7 @@ public:
 	virtual const SuperWeaponTypeClass* This_Const() const override { return reinterpret_cast<const SuperWeaponTypeClass*>(this->AbstractTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 	void Initialize();
 
@@ -580,7 +580,7 @@ public:
 
 	void LoadFromRulesFile(CCINIClass* pINI);
 
-	COMPILETIMEEVAL OPTIONALINLINE const char* get_ID(){
+	OPTIONALINLINE const char* get_ID(){
 		return this->Name();
 	}
 
@@ -680,8 +680,8 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
 
-	virtual bool WriteDataToTheByteStream(SWTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(SWTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(SWTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(SWTypeExtData::base_type* key, IStream* pStm) { return true;  };
 
 };
 

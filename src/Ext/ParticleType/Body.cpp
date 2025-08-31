@@ -11,14 +11,11 @@ void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX&
 
 bool ParticleTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr) || parseFailAddr)
 		return false;
 
-	auto pThis = this->AttachedToObject;
+	auto pThis = this->This();
 	const char* pID = pThis->ID;
-
-	if (parseFailAddr)
-		return;
 
 	INI_EX exINI(pINI);
 
@@ -90,7 +87,7 @@ bool ParticleTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DamageRange.Read(exINI, pID, "DamageRange");
 
 	///if (IS_SAME_STR_(pID, "SuperNapalmCloudPart"))
-	//	Debug::LogInfo("AlphaImageNAme [%s] ", this->AttachedToObject->AlphaImageFile);
+	//	Debug::LogInfo("AlphaImageNAme [%s] ", this->This()->AlphaImageFile);
 
 	if (pThis->StateAIAdvance == 0 && pThis->StartStateAI < pThis->EndStateAI) {
 		Debug::RegisterParserError();

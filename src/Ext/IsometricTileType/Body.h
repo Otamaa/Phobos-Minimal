@@ -49,7 +49,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<IsometricTileTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<IsometricTileTypeExtData*>(this)->Serialize(Stm);
@@ -67,7 +67,7 @@ public:
 	virtual const IsometricTileTypeClass* This_Const() const override { return reinterpret_cast<const IsometricTileTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
 
 public:
 
@@ -114,6 +114,6 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(IsometricTileTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(IsometricTileTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(IsometricTileTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(IsometricTileTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };

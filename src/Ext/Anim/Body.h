@@ -66,7 +66,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		this->ObjectExtData::SaveToStream(Stm);
 		const_cast<AnimExtData*>(this)->Serialize(Stm);
@@ -145,8 +145,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(AnimExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(AnimExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(AnimExtData::base_type* key, IStream* pStm) {  return true; };
+	virtual bool ReadDataFromTheByteStream(AnimExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class AnimTypeExtData;

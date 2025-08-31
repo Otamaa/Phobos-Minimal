@@ -33,9 +33,14 @@ private:
 			}
 		}
 
-		/** Enable move semantics. */
 		SwizzlePointerStruct(SwizzlePointerStruct&&) noexcept = default;
 		SwizzlePointerStruct& operator=(SwizzlePointerStruct&&) noexcept = default;
+
+		SwizzlePointerStruct(const SwizzlePointerStruct&) = default;
+		SwizzlePointerStruct& operator=(const SwizzlePointerStruct&) = default;
+
+		~SwizzlePointerStruct() = default;
+	public:
 
 		/** The id of the pointer to remap. */
 		LONG ID;

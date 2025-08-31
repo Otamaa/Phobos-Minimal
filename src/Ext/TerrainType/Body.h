@@ -48,7 +48,7 @@ public:
 	Nullable<int> AnimationLength {};
 
 	NullableVector<AnimTypeClass*> TreeFires {};
-	ValueableIdx<ParticleTypeClass> SpawnsTiberium_Particle { -1 };
+	ValueableIdx<ParticleTypeClass*> SpawnsTiberium_Particle { -1 };
 #pragma endregion
 
 	TerrainTypeExtData(TerrainTypeClass* pObj) : ObjectTypeExtData(pObj) { this->Initialize(); }
@@ -67,7 +67,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<TerrainTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<TerrainTypeExtData*>(this)->Serialize(Stm);
@@ -81,11 +81,11 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual AircraftTypeClass* This() const override { return reinterpret_cast<AircraftTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const AircraftTypeClass* This_Const() const override { return reinterpret_cast<const AircraftTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	virtual TerrainTypeClass* This() const override { return reinterpret_cast<TerrainTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const TerrainTypeClass* This_Const() const override { return reinterpret_cast<const TerrainTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 	void Initialize();
 
@@ -150,8 +150,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(TerrainTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(TerrainTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(TerrainTypeExtData::base_type* key, IStream* pStm) {  return true; };
+	virtual bool ReadDataFromTheByteStream(TerrainTypeExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class NOVTABLE FakeTerrainTypeClass : public TerrainTypeClass

@@ -216,7 +216,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<WeaponTypeExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
 		const_cast<WeaponTypeExtData*>(this)->Serialize(Stm);
@@ -234,13 +234,13 @@ public:
 	virtual const WeaponTypeClass* This_Const() const override { return reinterpret_cast<const WeaponTypeClass*>(this->AbstractTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 public:
 
 	bool OPTIONALINLINE IsWave() const
 	{
-		auto const pThis = this->AttachedToObject;
+		auto const pThis = this->This();
 		return this->Wave_IsLaser || this->Wave_IsBigLaser || pThis->IsSonic || pThis->IsMagBeam;
 	}
 
@@ -284,8 +284,8 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
 
-	virtual bool WriteDataToTheByteStream(WeaponTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(WeaponTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(WeaponTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(WeaponTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class BulletTypeExtData;

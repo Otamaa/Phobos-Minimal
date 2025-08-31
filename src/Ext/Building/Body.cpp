@@ -290,7 +290,7 @@ void BuildingExtData::DisplayIncomeString()
 
 void BuildingExtData::UpdatePoweredKillSpawns() const
 {
-	auto const pThis = (BuildingClass*)this->AttachedToObject;
+	auto const pThis = (BuildingClass*)this->This();
 
 	if (this->Type->Powered_KillSpawns &&
 		pThis->Type->Powered &&
@@ -343,7 +343,7 @@ void BuildingExtData::UpdateSpyEffecAnimDisplay()
 
 void BuildingExtData::UpdateAutoSellTimer()
 {
-	auto const pThis = (BuildingClass*)this->AttachedToObject;
+	auto const pThis = (BuildingClass*)this->This();
 	auto const nMission = pThis->GetCurrentMission();
 
 	if (pThis->InLimbo || !pThis->IsOnMap || this->LimboID != -1 || nMission == Mission::Selling)
@@ -435,7 +435,7 @@ bool BuildingExtData::RubbleYell(bool beingRepaired) const
 		return true;
 	};
 
-	auto currentBuilding = (BuildingClass*)AttachedToObject;
+	auto currentBuilding = (BuildingClass*)This();
 	auto pTypeData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
 	if (beingRepaired)
 	{
@@ -465,7 +465,7 @@ bool BuildingExtData::HandleInfiltrate(BuildingClass* pBuilding, HouseClass* pIn
 
 bool BuildingExtData::HasSuperWeapon(const int index, const bool withUpgrades) const
 {
-	const auto pThis = (BuildingClass*)this->AttachedToObject;
+	const auto pThis = (BuildingClass*)this->This();
 
 	for (auto i = 0; i < this->Type->GetSuperWeaponCount(); ++i) {
 		if (this->Type->GetSuperWeaponIndex(i, pThis->Owner) == index) {
@@ -1180,7 +1180,7 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 			//speed harcoded to 255
 			if (auto pCreated = pWeapon->Projectile->CreateBullet(v3, pThis, pWeapon->Damage, pWeapon->Warhead, 255, pWeapon->Bright || pWeapon->Warhead->Bright))
 			{
-				BulletExtContainer::Instance.Find(pCreated)->NukeSW = pLinkedTypeExt->AttachedToObject;
+				BulletExtContainer::Instance.Find(pCreated)->NukeSW = pLinkedTypeExt->This();
 				pCreated->Range = WeaponTypeExtContainer::Instance.Find(pWeapon)->GetProjectileRange();
 				pCreated->SetWeaponType(pWeapon);
 
@@ -1683,7 +1683,7 @@ ASMJIT_PATCH(0x43BAD6, BuildingClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x43B733, BuildingClass_CTOR, 0x7)
+ASMJIT_PATCH(0x43B733, BuildingClass_CTOR_NoInit, 0x7)
 {
 	GET(BuildingClass*, pItem, ESI);
 	BuildingExtContainer::Instance.AllocateNoInit(pItem);

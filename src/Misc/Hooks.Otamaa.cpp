@@ -15,6 +15,7 @@
 #include <Ext/InfantryType/Body.h>
 #include <Ext/Terrain/Body.h>
 #include <Ext/Tactical/Body.h>
+#include <Ext/Unit/Body.h>
 
 #include <InfantryClass.h>
 #include <VeinholeMonsterClass.h>
@@ -2150,7 +2151,7 @@ ASMJIT_PATCH(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	//only update the SW once the techno is really not present
-	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pTypeExt->AttachedToObject) <= 0)
+	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pTypeExt->This()) <= 0)
 		pThis->Owner->UpdateSuperWeaponsOwned();
 
 	return 0x0;
@@ -7679,6 +7680,28 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 	 pThis->unknown_18 = 0u;
 	 return 0x0;
  }
+
+#include <Utilities/Swizzle.h>
+
+ //ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
+ //{
+	// GET(AbstractClass*, pThis, ESI);
+	// GET_STACK(IStream*, pStream, 0x0);
+
+	// Debug::Log("Loading Ext of %x", pThis->unknown_18);
+	// PHOBOS_SWIZZLE_REGISTER_POINTER((LONG)pThis->unknown_18, )
+	// PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(pThis->unknown_18, "Extension Value");
+
+
+	// return 0x0;
+ //}
+
+ //ASMJIT_PATCH(0x410361, AbstractClass_Save_LogValue, 0x5)
+ //{
+	// GET(AbstractClass*, pThis, ESI);
+	// Debug::Log("Saving Ext of %x", pThis->unknown_18);
+	// return 0x0;
+ //}
 
  //ASMJIT_PATCH(0x6D4912, TechnoClass_Render_deadRemoval, 0x6)
  //{

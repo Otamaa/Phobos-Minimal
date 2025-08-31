@@ -8,6 +8,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Side/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
@@ -2407,7 +2408,6 @@ template <typename T>
 void SWTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->EVA_Activated)
 		.Process(this->EVA_Ready)
 		.Process(this->EVA_Detected)

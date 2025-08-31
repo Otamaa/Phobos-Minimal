@@ -68,7 +68,7 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 
 void SW_LightningStorm::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::LightningStorm;
+	pData->This()->Action = Action::LightningStorm;
 	// Defaults to Lightning Storm values
 	pData->Weather_DebrisMin = 2;
 	pData->Weather_DebrisMax = 4;
@@ -147,7 +147,7 @@ SWRange SW_LightningStorm::GetRange(const SWTypeExtData* pData) const
 
 void SW_LightningStorm::ValidateData(SWTypeExtData* pData) const
 {
-	Debug::LogInfo("{} - {} SW Validating Data ---------------------------:", pData->AttachedToObject->ID, this->GetTypeString()[0]);
+	Debug::LogInfo("{} - {} SW Validating Data ---------------------------:", pData->This()->ID, this->GetTypeString()[0]);
 
 	if (pData->Weather_BoltExplosion.isset()) {
 		if (pData->Weather_BoltExplosion) {

@@ -112,7 +112,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		this->ObjectTypeExtData::Internal_SaveToStream(Stm);
 		const_cast<AnimTypeExtData*>(this)->Serialize(Stm);
@@ -130,7 +130,7 @@ public:
 	virtual const AnimTypeClass* This_Const() const override { return reinterpret_cast<const AnimTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const {  return true; }
 public:
 
 	void ValidateSpalshAnims();
@@ -215,8 +215,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(AnimTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(AnimTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(AnimTypeExtData::base_type* key, IStream* pStm) {  return true; };
+	virtual bool ReadDataFromTheByteStream(AnimTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeAnimTypeClass : public AnimTypeClass

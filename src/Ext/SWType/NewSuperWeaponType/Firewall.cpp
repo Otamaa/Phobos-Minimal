@@ -16,15 +16,15 @@ std::vector<const char*> SW_Firewall::GetTypeString() const
 
 void SW_Firewall::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::None;
-	pData->AttachedToObject->UseChargeDrain = true;
+	pData->This()->Action = Action::None;
+	pData->This()->UseChargeDrain = true;
 	pData->SW_RadarEvent = false;
 };
 
 void SW_Firewall::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	pData->AttachedToObject->Action = Action::None;
-	pData->AttachedToObject->UseChargeDrain = true;
+	pData->This()->Action = Action::None;
+	pData->This()->UseChargeDrain = true;
 	pData->SW_RadarEvent = false;
 };
 

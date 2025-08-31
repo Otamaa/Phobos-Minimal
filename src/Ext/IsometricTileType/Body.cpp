@@ -78,6 +78,9 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 
 bool IsometricTileTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
 	this->Tileset = IsometricTileTypeExtContainer::CurrentTileset;
 
 	INI_EX exINI(pINI);
@@ -88,6 +91,7 @@ bool IsometricTileTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AllowedTiberiums.Read(exINI, this->TileSetName.c_str(), "AllowedTiberiums");
 	this->AllowVeins.Read(exINI, this->TileSetName.c_str(), "AlloweVeins");
 	this->AllowedSmudges.Read(exINI, this->TileSetName.c_str(), "AllowedSmudgess");
+	return true;
 }
 
 template <typename T>

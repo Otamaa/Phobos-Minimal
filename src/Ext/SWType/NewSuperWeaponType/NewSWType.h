@@ -1,12 +1,14 @@
 #pragma once
 
-#include <Ext/Super/Body.h>
-
 #include <Utilities/Enum.h>
+#include <Utilities/VectorHelper.h>
 
 #include <array>
-#include <Utilities/VectorHelper.h>
-#include <Utilities/MemoryPoolUniquePointer.h>
+#include <SWRange.h>
+#include <CoordStruct.h>
+#include <CellStruct.h>
+
+#include <Utilities/TargetingData.h>
 
 enum class AresNewActionType :int
 {
@@ -14,89 +16,15 @@ enum class AresNewActionType :int
 	SuperWeaponAllowed = 127,
 };
 
-struct TargetingData final
-{
-public:
-
-	TargetingData() : TypeExt { nullptr }
-		, Owner { nullptr }
-		, NeedsLaunchSite { false }
-		, NeedsDesignator { false }
-		, NeedsAttractors { false }
-		, NeedsSupressors { false }
-		, NeedsInhibitors { false }
-		, LaunchSites {}
-		, Designators {}
-		, Inhibitors {}
-		, Attractors {}
-		, Suppressors {}
-	{ }
-
-	TargetingData(SWTypeExtData* pTypeExt, HouseClass* pOwner) noexcept : TypeExt { pTypeExt }
-		, Owner { pOwner }
-		, NeedsLaunchSite { false}
-		, NeedsDesignator { false }
-		, NeedsAttractors { false }
-		, NeedsSupressors { false }
-		, NeedsInhibitors { false }
-		, LaunchSites {}
-		, Designators {}
-		, Inhibitors {}
-		, Attractors {}
-		, Suppressors {}
-	{ }
-
-	void reset() {
-		NeedsLaunchSite = false;
-		NeedsDesignator = false;
-		NeedsAttractors = false;
-		NeedsSupressors = false;
-		NeedsInhibitors = false;
-		LaunchSites.clear();
-		Designators.clear();
-		Inhibitors.clear();
-		Attractors.clear();
-		Suppressors.clear();
-	}
-
-	struct LaunchSite
-	{
-		BuildingClass* Building;
-		CellStruct Center;
-		double MinRange;
-		double MaxRange;
-	};
-
-	struct RangedItem
-	{
-		int RangeSqr;
-		CellStruct Center;
-	};
-
-	SWTypeExtData* TypeExt;
-	HouseClass* Owner;
-	bool NeedsLaunchSite;
-
-	bool NeedsDesignator;
-	bool NeedsAttractors;
-	bool NeedsSupressors;
-	bool NeedsInhibitors;
-
-	HelperedVector<LaunchSite> LaunchSites;
-	HelperedVector<RangedItem> Designators;
-	HelperedVector<RangedItem> Inhibitors;
-
-	//Enemy Inhibitors
-	HelperedVector<RangedItem> Attractors;
-	//Enemy Designator
-	HelperedVector<RangedItem> Suppressors;
-
-//private:
-//	TargetingData(const TargetingData&) = delete;
-//	TargetingData(TargetingData&&) = delete;
-//	TargetingData& operator=(const TargetingData& other) = delete;
-};
-
+class TechnoClass;
+class SuperClass;
+class SWTypeExtData;
+class HouseClass;
+class TechnoTypeClass;
+class WarheadTypeClass;
+class AnimTypeClass;
+class BuildingClass;
+class CCINIClass;
 class NewSWType
 {
 	static std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> Array;

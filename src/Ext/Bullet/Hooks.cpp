@@ -127,7 +127,7 @@ ASMJIT_PATCH(0x469276, BulletClass_Logics_ApplyMindControl , 0xA)
 	const auto pTechno = flag_cast_to<TechnoClass*>(pThis->Target);
 	auto const threatDelay = pThis->_GetWarheadTypeExtData()->MindControl_ThreatDelay.Get(RulesExtData::Instance()->AttackMindControlledDelay);
 
-	R->AL(CaptureExt::CaptureUnit(payback->CaptureManager,
+	R->AL(CaptureExtData::CaptureUnit(payback->CaptureManager,
 		pTechno,
 		TechnoTypeExtContainer::Instance.Find(payback->GetTechnoType())->MultiMindControl_ReleaseVictim,
 		false,

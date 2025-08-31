@@ -1843,11 +1843,11 @@ ASMJIT_PATCH(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x
 			pTypeExt->SubterraneanSpeed : RulesExtData::Instance()->SubterraneanSpeed;
 
 	// Calculate speed multipliers.
-	pLoco->LinkedTo->SpeedPercentage = 1.0; // Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.		int maxSpeed = pTypeExt->AttachedToObject->Speed;
-	int maxSpeed = pTypeExt->AttachedToObject->Speed;
-	pTypeExt->AttachedToObject->Speed = currentSpeed;
+	pLoco->LinkedTo->SpeedPercentage = 1.0; // Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.		int maxSpeed = pTypeExt->This()->Speed;
+	int maxSpeed = pTypeExt->This()->Speed;
+	pTypeExt->This()->Speed = currentSpeed;
 	currentSpeed = pLoco->LinkedTo->GetCurrentSpeed();
-	pTypeExt->AttachedToObject->Speed = maxSpeed;
+	pTypeExt->This()->Speed = maxSpeed;
 
 	if (distance > currentSpeed)
 	{

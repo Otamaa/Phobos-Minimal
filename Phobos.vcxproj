@@ -68,7 +68,6 @@
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\zonebitset.cpp" />
-    <ClCompile Include="src\Lib\base64\base64.cpp" />
     <ClCompile Include="src\Lib\Lua\lapi.c" />
     <ClCompile Include="src\Lib\Lua\lauxlib.c" />
     <ClCompile Include="src\Lib\Lua\lbaselib.c" />
@@ -161,7 +160,6 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
-    <ClCompile Include="src\Misc\Hooks.SaveGame.cpp" />
     <ClCompile Include="src\Misc\YRPatches\Main.cpp" />
     <ClCompile Include="src\New\AnonymousType\BlockTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
@@ -604,6 +602,7 @@
     <ClCompile Include="src\Phobos.UI.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
+    <ClCompile Include="src\Utilities\Container.cpp" />
     <ClCompile Include="src\Utilities\CSFText.cpp" />
     <ClCompile Include="src\Utilities\DebrisSpawners.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
@@ -623,6 +622,7 @@
     <ClCompile Include="src\Utilities\Constructs.cpp" />
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
+    <ClCompile Include="src\Utilities\TargetingDatacpp.cpp" />
     <ClCompile Include="src\Utilities\TechnoTypeConvertData.cpp" />
     <ClCompile Include="src\Utilities\TheaterSpecificSHP.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
@@ -666,7 +666,6 @@
     <ClInclude Include="src\Lib\asmjit\core\zonebitset_p.h" />
     <ClInclude Include="src\Lib\asmjit\host.h" />
     <ClInclude Include="src\Lib\base64\base64.h" />
-    <ClInclude Include="src\Lib\Lua\lapi.h" />
     <ClInclude Include="src\Lib\Lua\lauxlib.h" />
     <ClInclude Include="src\Lib\Lua\lcode.h" />
     <ClInclude Include="src\Lib\Lua\lctype.h" />
@@ -1148,6 +1147,7 @@
     <ClInclude Include="src\Utilities\Macro.h" />
     <ClInclude Include="src\Utilities\Parser.h" />
     <ClInclude Include="src\Utilities\Patch.h" />
+    <ClInclude Include="src\Utilities\TargetingData.h" />
     <ClInclude Include="src\Utilities\TechnoTypeConvertData.h" />
     <ClInclude Include="src\Utilities\Template.h" />
     <ClInclude Include="src\Utilities\TemplateDef.h" />
@@ -1156,6 +1156,7 @@
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
     <ClInclude Include="src\Utilities\VectorHelper.h" />
     <ClInclude Include="src\Utilities\VectorNames.h" />
+    <ClInclude Include="src\Utilities\VectorSet.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
     <ClInclude Include="YRpp\INIComment.h" />

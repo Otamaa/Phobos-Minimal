@@ -45,7 +45,7 @@ void WarheadTypeExtData::ApplyLocomotorInfliction(TechnoClass* pTarget) const
 
 	// same locomotor? no point to change
 	CLSID targetCLSID { };
-	CLSID inflictCLSID = this->AttachedToObject->Locomotor;
+	CLSID inflictCLSID = this->This()->Locomotor;
 	IPersistPtr pLocoPersist = pTargetFoot->Locomotor;
 	if (SUCCEEDED(pLocoPersist->GetClassID(&targetCLSID)) && targetCLSID == inflictCLSID)
 		return;
@@ -66,7 +66,7 @@ void WarheadTypeExtData::ApplyLocomotorInflictionReset(TechnoClass* pTarget) con
 		return;
 
 	// remove only specific inflicted locomotor if specified
-	CLSID removeCLSID = this->AttachedToObject->Locomotor;
+	CLSID removeCLSID = this->This()->Locomotor;
 	if (removeCLSID != CLSID())
 	{
 		CLSID targetCLSID { };
@@ -119,7 +119,7 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 	{
 		// set of affected objects. every object can be here only once.
 		// affect each object
-		for (auto curTechno : Helpers::Alex::getCellSpreadItems(coords, this->AttachedToObject->CellSpread, true))
+		for (auto curTechno : Helpers::Alex::getCellSpreadItems(coords, this->This()->CellSpread, true))
 		{
 			// affects enemies or allies respectively?
 			if (!this->CanAffectHouse(curTechno->Owner, Owner))
@@ -129,7 +129,7 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 
 			auto pType = curTechno->GetTechnoType();
 			// respect verses the boolean way
-			if (Math::abs(this->GetVerses(TechnoExtData::GetTechnoArmor(curTechno , this->AttachedToObject)).Verses) < 0.001)
+			if (Math::abs(this->GetVerses(TechnoExtData::GetTechnoArmor(curTechno , this->This())).Verses) < 0.001)
 			{
 				continue;
 			}
@@ -150,7 +150,7 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 				{
 					// damage the victim before ICing it
 					if (damage) {
-						curTechno->ReceiveDamage(&damage, 0, this->AttachedToObject, nullptr, true, false, Owner);
+						curTechno->ReceiveDamage(&damage, 0, this->This(), nullptr, true, false, Owner);
 					}
 
 					// unit may be destroyed already.
@@ -176,7 +176,7 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 						// damage the victim before ICing it
 						if (damage)
 						{
-							curTechno->ReceiveDamage(&damage, 0, this->AttachedToObject, nullptr, true, false, Owner);
+							curTechno->ReceiveDamage(&damage, 0, this->This(), nullptr, true, false, Owner);
 						}
 
 						// unit may be destroyed already.
@@ -239,7 +239,7 @@ void WarheadTypeExtData::applyIronCurtain(TechnoClass* curTechno, HouseClass* Ow
 					// damage the victim before ICing it
 					if (damage)
 					{
-						curTechno->ReceiveDamage(&damage, 0, this->AttachedToObject, nullptr, true, false, Owner);
+						curTechno->ReceiveDamage(&damage, 0, this->This(), nullptr, true, false, Owner);
 					}
 
 					// unit may be destroyed already.
@@ -482,7 +482,7 @@ void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHo
 
 void WarheadTypeExtData::InterceptBullets(TechnoClass* pOwner, BulletClass* pBullet, CoordStruct coords)
 {
-	const float cellSpread = this->AttachedToObject->CellSpread;
+	const float cellSpread = this->This()->CellSpread;
 
 	if (cellSpread == 0.0)
 	{
@@ -641,7 +641,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		}
 
 		const bool ThisbulletWasIntercepted = pBullet ? bool(BulletExtContainer::Instance.Find(pBullet)->InterceptedStatus & InterceptedStatus::Intercepted) : false;
-		const float cellSpread = this->AttachedToObject->CellSpread;
+		const float cellSpread = this->This()->CellSpread;
 
 
 		//if the warhead itself has cellspread
@@ -762,7 +762,7 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	auto pExt = TechnoExtContainer::Instance.Find(pTarget);
 
 	if(this->PaintBallDuration.isset() && this->PaintBallData.Color != ColorStruct::Empty) {
-		auto& paintball = pExt->PaintBallStates[this->AttachedToObject];
+		auto& paintball = pExt->PaintBallStates[this->This()];
 		paintball.SetData(this->PaintBallData);
 		paintball.Init();
 
@@ -1018,7 +1018,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 	{
 		if (!this->Crit_AnimList_CreateAll.Get(false))
 		{
-			const int idx = this->AttachedToObject->EMEffect || this->Crit_AnimList_PickRandom.Get(false) ?
+			const int idx = this->This()->EMEffect || this->Crit_AnimList_PickRandom.Get(false) ?
 				ScenarioClass::Instance->Random.RandomRanged(0, this->Crit_AnimList.size() - 1) : 0;
 
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Crit_AnimList[idx], pTarget->Location),
@@ -1051,7 +1051,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 			this->DamageAreaWithTarget(pTarget->GetCoords(), damage, pOwner, this->Crit_Warhead, true, pHouse, pTarget);
 	}
 	else
-		pTarget->ReceiveDamage(&damage, 0, this->AttachedToObject, pOwner, false, false, pHouse);
+		pTarget->ReceiveDamage(&damage, 0, this->This(), pOwner, false, false, pHouse);
 }
 
 void WarheadTypeExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage) const
@@ -1148,7 +1148,7 @@ void WarheadTypeExtData::ApplyRevengeWeapon(TechnoClass* pTarget) const
 			for (auto& weapon : pExt->RevengeWeapons)
 			{
 				// If it is same weapon just refresh timer.
-				if (weapon.SourceWarhead && weapon.SourceWarhead == this->AttachedToObject)
+				if (weapon.SourceWarhead && weapon.SourceWarhead == this->This())
 				{
 					auto const nDur = this->RevengeWeapon_GrantDuration.Get();
 					auto const nTime = weapon.Timer.GetTimeLeft();
@@ -1163,7 +1163,7 @@ void WarheadTypeExtData::ApplyRevengeWeapon(TechnoClass* pTarget) const
 
 		if (maxCount < 0 || count < maxCount)
 		{
-			pExt->RevengeWeapons.emplace_back(this->RevengeWeapon.Get(), this->RevengeWeapon_GrantDuration, this->RevengeWeapon_AffectsHouses, this->AttachedToObject);
+			pExt->RevengeWeapons.emplace_back(this->RevengeWeapon.Get(), this->RevengeWeapon_GrantDuration, this->RevengeWeapon_AffectsHouses, this->This());
 		}
 	}
 }

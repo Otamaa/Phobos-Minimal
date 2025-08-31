@@ -2,11 +2,11 @@
 
 #include <TActionClass.h>
 #include <TriggerClass.h>
-#include <map>
-#include <vector>
 
 #include <Utilities/Savegame.h>
 #include <Helpers/Template.h>
+#include <Utilities/VectorHelper.h>
+#include <Utilities/PhobosMap.h>
 
 class HouseClass;
 class ObjectClass;

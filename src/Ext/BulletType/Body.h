@@ -116,7 +116,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<BulletTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<BulletTypeExtData*>(this)->Serialize(Stm);
@@ -134,7 +134,7 @@ public:
 	virtual const BulletTypeClass* This_Const() const override { return reinterpret_cast<const BulletTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
 
 public:
 
@@ -220,8 +220,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(BulletTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(BulletTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(BulletTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(BulletTypeExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)

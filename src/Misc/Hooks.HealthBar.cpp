@@ -16,7 +16,7 @@ ASMJIT_PATCH(0x6F5E37, TechnoClass_DrawExtras_DrawHealthBar, 0x6)
 
 	GET(TechnoClass*, pThis, EBP);
 
-	if ((pThis->IsMouseHovering 
+	if ((pThis->IsMouseHovering
 			|| TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Permanent)
 		&& !MapClass::Instance->IsLocationShrouded(pThis->GetCoords())) {
 		return Permanent;
@@ -136,7 +136,7 @@ ASMJIT_PATCH(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
 
 	//PipShapes01Palette
 	R->EDX(nPal);//
-	R->EAX(pBuildingTypeExt->Type->PipShapes01.Get(pDefaultPip));
+	R->EAX(pBuildingTypeExt->PipShapes01.Get(pDefaultPip));
 
 	return 0x6F66B9;
 }

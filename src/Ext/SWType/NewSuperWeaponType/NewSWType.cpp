@@ -26,6 +26,8 @@
 #include "MeteorShower.h"
 #include "LaserStrike.h"
 
+#include <SWRange.h>
+
 std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWType::Array;
 
 bool NewSWType::CanTargetingFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const
@@ -380,7 +382,7 @@ bool NewSWType::IsLaunchsiteAlive(BuildingClass* pBuilding) const
 
 bool NewSWType::IsSWTypeAttachedToThis(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
-	return  BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->AttachedToObject->ArrayIndex, true);
+	return  BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->This()->ArrayIndex, true);
 }
 
 void NewSWType::PlayAnim(SuperClass* pSuper, CoordStruct& coord) {
@@ -418,7 +420,7 @@ bool NewSWType::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuildin
 	if (!this->IsLaunchsiteAlive(pBuilding))
 		return false;
 
-	return BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->AttachedToObject->ArrayIndex, true);
+	return BuildingExtContainer::Instance.Find(pBuilding)->HasSuperWeapon(pData->This()->ArrayIndex, true);
 }
 
 std::pair<double, double> NewSWType::GetLaunchSiteRange(const SWTypeExtData* pData, BuildingClass* pBuilding) const
@@ -754,7 +756,7 @@ SuperWeaponType NewSWType::GetHandledType(SuperWeaponType nType)
 NewSWType* NewSWType::GetNewSWType(const SWTypeExtData* pData)
 {
 	SuperWeaponType iDx = pData->HandledType != SuperWeaponType::Invalid ?
-		pData->HandledType : pData->AttachedToObject->Type;
+		pData->HandledType : pData->This()->Type;
 
 	return iDx >= SuperWeaponType::count ? NewSWType::GetNthItem(iDx) : nullptr;
 }

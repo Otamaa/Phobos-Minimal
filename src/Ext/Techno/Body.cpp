@@ -3613,7 +3613,7 @@ void TechnoExtData::DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pTy
 		RulesExtData::Instance()->SelectBrd_DrawOffset_Infantry : RulesExtData::Instance()->SelectBrd_DrawOffset_Unit));
 
 	XOffset = offs.X;
-	YOffset = pTypeExt->AttachedToObject->PixelSelectionBracketDelta + offs.Y;
+	YOffset = pTypeExt->This()->PixelSelectionBracketDelta + offs.Y;
 	vLoc.Y -= 5;
 
 	if (iLength == 8)
@@ -3791,11 +3791,11 @@ static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pTh
 	int insigniaFrame = insigniaFrames.X;
 	int frameIndex = pTypeExt->InsigniaFrame.GetFromSpecificRank(nCurRank);
 
-	if (pTypeExt->AttachedToObject->Passengers > 0)
+	if (pTypeExt->This()->Passengers > 0)
 	{
 		int passengersIndex = pTypeExt->Passengers_BySize ?
 			 pThis->Passengers.GetTotalSize() : pThis->Passengers.NumPassengers;
-		passengersIndex = MinImpl(passengersIndex, pTypeExt->AttachedToObject->Passengers);
+		passengersIndex = MinImpl(passengersIndex, pTypeExt->This()->Passengers);
 
 		if(!pTypeExt->Insignia_Passengers.empty() && (size_t)passengersIndex < pTypeExt->Insignia_Passengers.size()){
 			if (auto const pCustomShapeFile = pTypeExt->Insignia_Passengers[passengersIndex].GetFromSpecificRank(nCurRank)) {
@@ -3820,7 +3820,7 @@ static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pTh
 		}
 	}
 
-	if (pTypeExt->AttachedToObject->Gunner)
+	if (pTypeExt->This()->Gunner)
 	{
 		int weaponIndex = pThis->CurrentWeaponNumber;
 		auto weaponInsignia = pTypeExt->Insignia_Weapon.data();
@@ -6663,7 +6663,7 @@ void TechnoExtData::StopIdleAction()
 	{
 		this->UnitIdleActionGapTimer.Stop();
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(This()->GetTechnoType());
-		this->StopRotateWithNewROT(pTypeExt->TurretRot.Get(pTypeExt->AttachedToObject->ROT));
+		this->StopRotateWithNewROT(pTypeExt->TurretRot.Get(pTypeExt->This()->ROT));
 	}
 }
 
@@ -6778,7 +6778,6 @@ template <typename T>
 void TechnoExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Type, true)
 		.Process(this->AbsType)
 		.Process(this->AE)
@@ -6952,7 +6951,6 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 }
 
 TechnoExtContainer TechnoExtContainer::Instance;
-std::vector<TechnoExtData*> Container<TechnoExtData>::Array;
 
 void AEProperties::Recalculate(TechnoClass* pTechno) {
 
@@ -7150,13 +7148,13 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x6F3183, TechnoClass_CTOR, 0x5)
-{
-	GET(TechnoClass*, pItem, ESI);
-	HouseExtData::LimboTechno.push_back_unique(pItem);
-	TechnoExtContainer::Instance.Allocate(pItem);
-	return 0;
-}
+//ASMJIT_PATCH(0x6F3183, TechnoClass_CTOR, 0x5)
+//{
+//	GET(TechnoClass*, pItem, ESI);
+//	HouseExtData::LimboTechno.push_back_unique(pItem);
+//	TechnoExtContainer::Instance.Allocate(pItem);
+//	return 0;
+//}
 
 ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 {
@@ -7184,20 +7182,21 @@ ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
 		}
 	}
 
-	TechnoExtContainer::Instance.RemoveExtOf(pItem , pExt);
+	//TechnoExtContainer::Instance.RemoveExtOf(pItem , pExt);
 	return 0;
 }
 
-ASMJIT_PATCH(0x7077C0, TechnoClass_Detach, 0x7)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, target, 0x4);
-	GET_STACK(bool, all, 0x8);
-
-	TechnoExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x7077C0, TechnoClass_Detach, 0x7)
+//{
+//	GET(TechnoClass*, pThis, ECX);
+//	GET_STACK(AbstractClass*, target, 0x4);
+//	GET_STACK(bool, all, 0x8);
+//
+//
+//	TechnoExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
+//
+//	return 0x0;
+//}
 
 ASMJIT_PATCH(0x710415, TechnoClass_AnimPointerExpired_add, 6)
 {

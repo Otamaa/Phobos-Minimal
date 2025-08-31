@@ -447,7 +447,7 @@ ASMJIT_PATCH(0x71E7F8, TEventClass_CTOR, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x71E821, TEventClass_CTOR, 7)
+ASMJIT_PATCH(0x71E821, TEventClass_CTOR_NoInit, 7)
 {
 	GET(TEventClass*, pItem, ESI);
 

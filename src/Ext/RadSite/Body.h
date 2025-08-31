@@ -27,8 +27,8 @@ public:
 
 public:
 
-	RadSiteExtData(AircraftTypeClass* pObj) : AbstractExtended(pObj) { }
-	RadSiteExtData(AircraftTypeClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	RadSiteExtData(RadSiteClass* pObj) : AbstractExtended(pObj) { }
+	RadSiteExtData(RadSiteClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~RadSiteExtData() = default;
 
@@ -40,7 +40,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<RadSiteExtData*>(this)->Internal_SaveToStream(Stm);
 		const_cast<RadSiteExtData*>(this)->Serialize(Stm);
@@ -106,8 +106,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(RadSiteExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(RadSiteExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(RadSiteExtData::base_type* key, IStream* pStm) {  return true; };
+	virtual bool ReadDataFromTheByteStream(RadSiteExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeRadSiteClass : public RadSiteClass

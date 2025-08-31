@@ -107,7 +107,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_EMPulse::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_RangeMaximum = -1.0;
 	pData->SW_RangeMinimum = 0.0;
 	pData->SW_MaxCount = 1;
@@ -134,7 +134,7 @@ void SW_EMPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->EMPulse_WeaponIndex.Read(exINI, section, "EMPulse.WeaponIndex");
 	pData->EMPulse_SuspendOthers.Read(exINI, section, "EMPulse.SuspendOthers");
 
-	pData->AttachedToObject->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->This()->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 
 	if(!pData->EMPulse_PulseBall.isset())
 		pData->EMPulse_PulseBall = AnimTypeClass::Find(GameStrings::PULSBALL);

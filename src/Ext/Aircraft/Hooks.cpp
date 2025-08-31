@@ -10,7 +10,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WarheadType/Body.h>
-#include <Ext/AircraftTypeClass/Body.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <Misc/MapRevealer.h>
 

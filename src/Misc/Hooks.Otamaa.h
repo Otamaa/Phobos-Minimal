@@ -85,18 +85,6 @@ public:
 
 //===================================================================================
 
-class NOVTABLE FakeUnitClass : public UnitClass {
-public:
-
-	bool _Paradrop(CoordStruct* pCoords);
-	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, CoordStruct base);
-	int _Mission_Attack();
-
-	void _SetOccupyBit(CoordStruct* pCrd);
-	void _ClearOccupyBit(CoordStruct* pCrd);
-};
-static_assert(sizeof(FakeUnitClass) == sizeof(UnitClass), "Invalid Size !");
-
 //===================================================================================
 
 class NOVTABLE FakeFootClass //: public FootClass

@@ -26,7 +26,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<SmudgeTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<SmudgeTypeExtData*>(this)->Serialize(Stm);
@@ -44,7 +44,7 @@ public:
 	virtual const SmudgeTypeClass* This_Const() const override { return reinterpret_cast<const SmudgeTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 private:
 	template <typename T>
@@ -79,8 +79,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(SmudgeTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(SmudgeTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(SmudgeTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(SmudgeTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeSmudgeTypeClass : public SmudgeTypeClass

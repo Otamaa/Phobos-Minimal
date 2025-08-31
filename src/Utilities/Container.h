@@ -15,39 +15,37 @@ class AbstractClass;
 static COMPILETIMEEVAL size_t AbstractExtOffset = 0x18;
 
 struct AbstractExtended {
-
+private:
 	AbstractClass* AttachedToObject;
 	InitState Initialized;
 
 public:
 
 	//normal assigned AO
-	AbstractExtended(AbstractClass* abs) : AttachedToObject(abs) , Initialized(InitState::Blank) { };
+	AbstractExtended(AbstractClass* abs);
 
 	//withnoint_t , with less instasiation
-	AbstractExtended(AbstractClass* abs, noinit_t) : AttachedToObject(abs) {};
+	AbstractExtended(AbstractClass* abs, noinit_t);
 
-	~AbstractExtended() { };
+	~AbstractExtended() = default;
 
-	void Internal_LoadFromStream(PhobosStreamReader& Stm) {
-		Stm.Process(Initialized);
-	}
+	void Internal_LoadFromStream(PhobosStreamReader& Stm);
+	void Internal_SaveToStream(PhobosStreamWriter& Stm) const;
 
-	void Internal_SaveToStream(PhobosStreamWriter& Stm) const {
-		Stm.Process(Initialized);
-	}
+	FORCEDINLINE InitState GetInitState() { return Initialized; }
+	FORCEDINLINE void SetInitState(InitState state) { Initialized = state; }
 
 public:
 
 	virtual AbstractType WhatIam() const { return AbstractType::Abstract; }
 	virtual int GetSize() const { return sizeof(AbstractExtended); };
 
-	virtual AbstractClass* This() const = 0;
-	virtual const AbstractClass* This_Const() const = 0;
+	virtual AbstractClass* This() const { return const_cast<AbstractClass*>(AttachedToObject); }
+	virtual const AbstractClass* This_Const() const { return AttachedToObject; }
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) = 0;
 	virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const = 0;
+	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
 
 	virtual void CalculateCRC(CRCEngine& crc) const = 0;
 
@@ -119,7 +117,7 @@ concept CanThisPtrSaveToStream =
 template <typename T>
 class Container
 {
-private:
+public:
 
 	using base_type = typename T::base_type;
 	using extension_type = typename T;
@@ -129,7 +127,6 @@ private:
 	using extension_type_ref_ptr = extension_type**;
 	using const_extension_type_ptr = const extension_type*;
 
-public:
 	static std::vector<extension_type_ptr> Array;
 
 	COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(base_type_ptr key) {
@@ -159,20 +156,11 @@ public:
 public:
 
 	extension_type_ptr Allocate(base_type_ptr key) {
-		if (extension_type_ptr val = DLLCreate<extension_type>(key)) {
-			val->AttachedToObject = key;
-		}
-
-		return nullptr;
+		return new extension_type(key);
 	}
 
-	extension_type_ptr AllocateNoInit(base_type_ptr key)
-	{
-		if (extension_type_ptr val = DLLCreate<extension_type>(key, noinit_t())) {
-			val->AttachedToObject = key;
-		}
-
-		return nullptr;
+	extension_type_ptr AllocateNoInit(base_type_ptr key) {
+		return new extension_type(key, noinit_t());
 	}
 
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
@@ -186,7 +174,7 @@ public:
 	void Remove(base_type_ptr key)
 	{
 		if (extension_type_ptr Item = TryFind(key)) {
-			DLLCallDTOR<false>(Item);
+			delete Item;
 			this->ClearExtAttribute(key);
 		}
 	}
@@ -207,13 +195,10 @@ public:
 					return;
 				}
 
-				switch (ptr->Initialized) {
+				switch (ptr->GetInitState()) {
 					case InitState::Blank:
 					{
-						if COMPILETIMEEVAL (Initable<T>)
-							ptr->Initialize();
-
-						ptr->Initialized = InitState::Inited;
+						ptr->SetInitState(InitState::Inited);
 
 						if COMPILETIMEEVAL (CanLoadFromRulesFile<T>) {
 							if (pINI == CCINIClass::INI_Rules) {
@@ -223,7 +208,7 @@ public:
 
 						//Load from rules INI File
 						ptr->LoadFromINI(pINI, parseFailAddr);
-						ptr->Initialized = InitState::Ruled;
+						ptr->SetInitState(InitState::Ruled);
 					}
 					break;
 					case InitState::Ruled:
@@ -232,7 +217,7 @@ public:
 						//load anywhere other than rules
 						ptr->LoadFromINI(pINI, parseFailAddr);
 						//this function can be called again multiple time but without need to re-init the data
-						ptr->Initialized = InitState::Ruled;
+						ptr->SetInitState(InitState::Ruled);
 					}
 					break;
 					{

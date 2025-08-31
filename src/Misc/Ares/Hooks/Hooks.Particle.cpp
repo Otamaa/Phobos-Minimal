@@ -238,8 +238,8 @@ ASMJIT_PATCH(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 
 static void ParticleClass_Gas_Transmography(ObjectClass* pItem, TechnoClass* pAttacker , HouseClass* pOwner , int distance, const CoordStruct& loc, ParticleTypeExtData* pTypeExt, HouseClass* transmoOwner)
 {
-	int damage = pTypeExt->AttachedToObject->Damage;
-	if (pItem->ReceiveDamage(&damage, distance, pTypeExt->AttachedToObject->Warhead, pAttacker, false, false, pOwner) == DamageState::NowDead) {
+	int damage = pTypeExt->This()->Damage;
+	if (pItem->ReceiveDamage(&damage, distance, pTypeExt->This()->Warhead, pAttacker, false, false, pOwner) == DamageState::NowDead) {
 		if (pTypeExt->TransmogrifyChance >= 0) {
 
 			if (pTypeExt->TransmogrifyOwner != OwnerHouseKind::Neutral)

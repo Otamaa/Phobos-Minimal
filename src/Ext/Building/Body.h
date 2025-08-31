@@ -84,7 +84,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		this->TechnoExtData::SaveToStream(Stm);
 		const_cast<BuildingExtData*>(this)->Serialize(Stm);
@@ -153,8 +153,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(BuildingExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(BuildingExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(BuildingExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(BuildingExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class NOVTABLE FakeBuildingClass : public BuildingClass

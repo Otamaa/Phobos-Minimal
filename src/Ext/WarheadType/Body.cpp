@@ -1558,7 +1558,6 @@ template <typename T>
 void WarheadTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Reveal)
 		.Process(this->BigGap)
 		.Process(this->CreateGap)

@@ -69,7 +69,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<TeamExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
 		const_cast<TeamExtData*>(this)->Serialize(Stm);
@@ -127,8 +127,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(TeamExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(TeamExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(TeamExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(TeamExtData::base_type* key, IStream* pStm) { return true;  };
 
 };
 

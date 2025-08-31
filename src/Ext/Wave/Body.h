@@ -39,7 +39,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<WaveExtData*>(this)->ObjectExtData::SaveToStream(Stm);
 		const_cast<WaveExtData*>(this)->Serialize(Stm);
@@ -102,8 +102,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(WaveExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(WaveExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(WaveExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(WaveExtData::base_type* key, IStream* pStm) { return true;  };
 
 };
 

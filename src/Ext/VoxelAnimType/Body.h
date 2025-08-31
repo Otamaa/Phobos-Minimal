@@ -48,7 +48,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<VoxelAnimTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<VoxelAnimTypeExtData*>(this)->Serialize(Stm);
@@ -65,15 +65,8 @@ public:
 	virtual VoxelAnimTypeClass* This() const override { return reinterpret_cast<VoxelAnimTypeClass*>(this->ObjectTypeExtData::This()); }
 	virtual const VoxelAnimTypeClass* This_Const() const override { return reinterpret_cast<const VoxelAnimTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
-	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
-	{
-		if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
-			return false;
-
-		return true;
-	}
-
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 private:
 	template <typename T>
@@ -108,8 +101,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(VoxelAnimTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(VoxelAnimTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(VoxelAnimTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(VoxelAnimTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeVoxelAnimTypeClass : public VoxelAnimTypeClass

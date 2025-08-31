@@ -59,7 +59,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<TiberiumExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
 		const_cast<TiberiumExtData*>(this)->Serialize(Stm);
@@ -77,7 +77,7 @@ public:
 	virtual const TiberiumClass* This_Const() const override { return reinterpret_cast<const TiberiumClass*>(this->AbstractTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 public:
 
@@ -100,7 +100,7 @@ public:
 
 	COMPILETIMEEVAL FORCEDINLINE int GetDamage() const
 	{
-		return this->Damage.Get(MinImpl((this->AttachedToObject->Power / 10), 1));
+		return this->Damage.Get(MinImpl((this->This()->Power / 10), 1));
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE WarheadTypeClass* GetWarhead() const
@@ -138,8 +138,8 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
 
-	virtual bool WriteDataToTheByteStream(TiberiumExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(TiberiumExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(TiberiumExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(TiberiumExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class NOVTABLE FakeTiberiumClass : public TiberiumClass

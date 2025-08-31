@@ -21,7 +21,7 @@ public:
 		this->Internal_LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const override {
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override {
 		this->Internal_SaveToStream(Stm);
 	}
 

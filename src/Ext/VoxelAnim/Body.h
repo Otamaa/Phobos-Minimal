@@ -45,7 +45,7 @@ public:
 		this->ObjectExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<VoxelAnimExtData*>(this)->ObjectExtData::SaveToStream(Stm);
 	}
@@ -102,8 +102,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(VoxelAnimExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(VoxelAnimExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(VoxelAnimExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(VoxelAnimExtData::base_type* key, IStream* pStm) {  return true; };
 
 };
 
@@ -125,7 +125,7 @@ public:
 	}
 
 	VoxelAnimExtData* _GetExtData() {
-		return *reinterpret_cast<VoxelAnimExtData**>(((DWORD)this) + VoxelAnimExtData::ExtOffset);
+		return *reinterpret_cast<VoxelAnimExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 	VoxelAnimTypeExtData* _GetTypeExtData() {

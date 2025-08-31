@@ -123,7 +123,6 @@ void DetonateDeathWeapon(TechnoClass* pThis, TechnoTypeClass* pType, WeaponTypeC
 	if (pDecided)
 	{
 		auto const pBonus = RulesDeath ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
-		auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pDecided->Projectile);
 
 		ScenarioExtData::DetonateMasterBullet(pThis->Location,
 			pThis,

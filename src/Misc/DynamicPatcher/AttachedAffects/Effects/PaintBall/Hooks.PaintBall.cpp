@@ -70,7 +70,7 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 		// EMP
 		if (pThis->IsUnderEMP())
 		{
-			if (!bInf || pTypeExt->Infantry_DimWhenEMPEd.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
+			if (!bInf || pTypeExt->Infantry_DimWhenEMPEd.Get(((InfantryTypeClass*)(pTypeExt->This()))->Cyborg))
 			{
 				*intensity /= 2;
 				needRedraw = true;
@@ -78,7 +78,7 @@ void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
 		}
 		else if (pThis->IsDeactivated())
 		{
-			if (!bInf || pTypeExt->Infantry_DimWhenDisabled.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
+			if (!bInf || pTypeExt->Infantry_DimWhenDisabled.Get(((InfantryTypeClass*)(pTypeExt->This()))->Cyborg))
 			{
 				*intensity /= 2;
 				needRedraw = true;

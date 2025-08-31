@@ -38,7 +38,7 @@ TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 
 void VoxelAnimExtData::InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = this->This();
 
 	if (!LaserTrails.empty())
 		return;

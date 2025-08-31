@@ -13,7 +13,7 @@ std::vector<const char*> SW_GenericWarhead::GetTypeString() const
 
 void SW_GenericWarhead::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Offensive;
 }
@@ -23,8 +23,8 @@ WarheadTypeClass* SW_GenericWarhead::GetWarhead(const SWTypeExtData* pData) cons
 	if (pData->SW_Warhead.isset())
 		return pData->SW_Warhead;
 
-	if (pData->AttachedToObject->WeaponType)
-		return pData->AttachedToObject->WeaponType->Warhead;
+	if (pData->This()->WeaponType)
+		return pData->This()->WeaponType->Warhead;
 
 	return nullptr;
 }
@@ -34,8 +34,8 @@ int SW_GenericWarhead::GetDamage(const SWTypeExtData* pData) const
 	if (pData->SW_Damage.isset())
 		return pData->SW_Damage;
 
-	if (pData->AttachedToObject->WeaponType)
-		return pData->AttachedToObject->WeaponType->Damage;
+	if (pData->This()->WeaponType)
+		return pData->This()->WeaponType->Damage;
 
 	return 0;
 }
@@ -75,7 +75,7 @@ bool SW_GenericWarhead::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* 
 
 void SW_GenericWarhead::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->AttachedToObject->ID;
+	const char* section = pData->This()->ID;
 
 	INI_EX exINI(pINI);
 	pData->Generic_Warhead_Detonate.Read(exINI, section, "GenericWarhead.Detonate");

@@ -907,7 +907,7 @@ ASMJIT_PATCH(0x6B7793, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 	 									&& VTable::Get(pSpawned) != UnitClass::vtable
 	 									&& VTable::Get(pSpawned) != InfantryClass::vtable)
 	 ){
-	
+
 	 	pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
 	 	pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
 
@@ -1600,7 +1600,8 @@ ASMJIT_PATCH(0x70E01E, TechnoClass_GattlingRateDown_GattlingRateDownDelay, 0x6)
 		return SkipGameCode;
 	}
 
-	const auto rateDown = (pThis->Ammo <= pTypeExt->RateDown_Ammo) ? pTypeExt->RateDown_Cover.Get() : pTypeExt->AttachedToObject->RateDown;
+	const auto rateDown = (pThis->Ammo <= pTypeExt->RateDown_Ammo) ?
+			pTypeExt->RateDown_Cover.Get() : pTypeExt->This()->RateDown;
 
 	if (!rateDown)
 	{

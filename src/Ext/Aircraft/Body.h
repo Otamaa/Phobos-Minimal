@@ -32,7 +32,7 @@ public:
 		this->FootExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const {
+	virtual void SaveToStream(PhobosStreamWriter& Stm) {
 		this->FootExtData::SaveToStream(Stm);
 	}
 
@@ -78,8 +78,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(AircraftExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(AircraftExtData::base_type*, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(AircraftExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(AircraftExtData::base_type*, IStream* pStm) { return true;  };
 };
 
 class AbstractClass;

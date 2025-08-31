@@ -471,7 +471,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	CellExtContainer::Instance.Clear();
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
-	FakeAnimClass::Clear();
+	AnimExtContainer::Clear();
 	TechnoTypeExtContainer::Instance.Clear();
 	BulletTypeExtContainer::Instance.Clear();
 	BuildingTypeExtContainer::Instance.Clear();
@@ -525,17 +525,6 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{
-		if (TheMemoryPoolFactory)
-			TheMemoryPoolFactory->reset();
-
-		VoxelAnimExtContainer::pools.init(4026);
-		TeamExtContainer::pools.reInit();
-		RadSiteExtContainer::pools.reInit();
-		ParticleSystemExtContainer::pools.reInit();
-		ParticleExtContainer::pools.reInit();
-		BulletExtContainer::pools.reInit();
-		FakeAnimClass::pools.reInit();
-		TechnoExtContainer::pools.reInit();
 		SWFirerClass::Array.reserve(1000);
 		CellExtContainer::Array.reserve(2000);
 	}
@@ -695,7 +684,7 @@ ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
 
 	bool ret =
 		Process_Load<Phobos>(pStm) &&
-		Process_Load<FakeAnimClass>(pStm) &&
+		Process_Load<AnimExtContainer>(pStm) &&
 		Process_Load<CursorTypeClass>(pStm) &&
 		Process_Load<MouseClassExt>(pStm) &&
 		Process_Load<DigitalDisplayTypeClass>(pStm) &&
@@ -775,7 +764,7 @@ ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
 
 		bool ret =
 			Process_Save<Phobos>(pStm) &&
-			Process_Save<FakeAnimClass>(pStm) &&
+			Process_Save<AnimExtContainer>(pStm) &&
 			Process_Save<CursorTypeClass>(pStm) &&
 			Process_Save<MouseClassExt>(pStm) &&
 			Process_Save<DigitalDisplayTypeClass>(pStm) &&

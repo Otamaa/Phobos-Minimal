@@ -936,7 +936,7 @@ int BuildingTypeExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse
 
 int BuildingTypeExtData::GetSuperWeaponIndex(const int index) const
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 
 	if (index < 2)
 	{
@@ -1223,7 +1223,7 @@ int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseCl
 
 bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	if (!this->TechnoExtData::LoadFromINI(pINI, parseFailAddr))
+	if (!this->TechnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
 	auto pThis = This();
@@ -2127,7 +2127,7 @@ ASMJIT_PATCH(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x45E56C, BuildingClass_CTOR, 0x7)
+ASMJIT_PATCH(0x45E56C, BuildingTypeClass_CTOR_NoInit, 0x7)
 {
 	GET(BuildingTypeClass*, pItem, ESI);
 	BuildingTypeExtContainer::Instance.AllocateNoInit(pItem);

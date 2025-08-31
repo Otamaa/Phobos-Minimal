@@ -1022,13 +1022,13 @@ int TechnoExt_ExtData::GetVictimBountyValue(TechnoClass* pVictim, TechnoClass* p
 	switch (pKillerTypeExt->Bounty_Value_Option.Get(RulesExtData::Instance()->Bounty_Value_Option))
 	{
 	case BountyValueOption::Cost:
-		Value = pVictimTypeExt->AttachedToObject->GetCost();
+		Value = pVictimTypeExt->This()->GetCost();
 		break;
 	case BountyValueOption::Soylent:
 		Value = pVictim->GetRefund();
 		break;
 	case BountyValueOption::ValuePercentOfConst:
-		Value = int(pVictimTypeExt->AttachedToObject->GetCost() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim));
+		Value = int(pVictimTypeExt->This()->GetCost() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim));
 		break;
 	case BountyValueOption::ValuePercentOfSoylent:
 		Value = int(pVictim->GetRefund() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim));
@@ -1093,7 +1093,7 @@ void TechnoExt_ExtData::GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 	{
 		if (pKillerTypeExt->Bounty_Display.Get(RulesExtData::Instance()->Bounty_Display))
 		{
-			if (pKillerTypeExt->AttachedToObject->MissileSpawn && pKiller->SpawnOwner)
+			if (pKillerTypeExt->This()->MissileSpawn && pKiller->SpawnOwner)
 				pKiller = pKiller->SpawnOwner;
 
 			VocClass::SafeImmedietelyPlayAt(pKillerTypeExt->Bounty_ReceiveSound, &pKiller->Location);
@@ -1294,7 +1294,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		const auto controller = pThis->MindControlledBy;
 		if (controller)
 		{
-			CaptureExt::FreeUnit(controller->CaptureManager, pThis, true);
+			CaptureExtData::FreeUnit(controller->CaptureManager, pThis, true);
 		}
 
 		// let's make a steal
@@ -1318,7 +1318,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		// hook up the original mind-controller with the target #762
 		if (controller)
 		{
-			CaptureExt::CaptureUnit(controller->CaptureManager, pThis, true, 0);
+			CaptureExtData::CaptureUnit(controller->CaptureManager, pThis, true, 0);
 		}
 
 		// reboot the slave manager
@@ -1669,8 +1669,8 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 				// the hijacker will now be controlled instead of the unit
 				if (auto const pController = pThis->MindControlledBy)
 				{
-					CaptureExt::FreeUnit(pController->CaptureManager, pThis, true);
-					CaptureExt::CaptureUnit(pController->CaptureManager, pHijacker, true, 0);
+					CaptureExtData::FreeUnit(pController->CaptureManager, pThis, true);
+					CaptureExtData::CaptureUnit(pController->CaptureManager, pHijacker, true, 0);
 					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
 				}
 
@@ -4313,14 +4313,14 @@ void NOINLINE UpdateType(TechnoClass* pThis, TechnoTypeExtData* pOldTypeExt)
 				Convert = pOldTypeExt->Convert_Water;
 		}
 
-		if (Convert && pOldTypeExt->AttachedToObject != Convert)
+		if (Convert && pOldTypeExt->This() != Convert)
 			TechnoExt_ExtData::ConvertToType(pThis, Convert);
 	}
 }
 
 void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 {
-	const auto pType = pTypeData->AttachedToObject;
+	const auto pType = pTypeData->This();
 	if (pTypeData->PassengerTurret)
 	{
 		// 18 = 1 8 = A H = Adolf Hitler. Clearly we can't allow it to come to that.
@@ -4358,7 +4358,7 @@ void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 
 void NOINLINE UpdateBuildingOperation(TechnoExtData* pData, TechnoTypeExtData* pTypeData)
 {
-	auto const pThis = pData->AttachedToObject;
+	auto const pThis = pData->This();
 
 	if (TechnoExtContainer::Instance.Find(pThis)->Is_Operated && pThis->WhatAmI() == BuildingClass::AbsID)
 	{
@@ -4418,7 +4418,7 @@ void NOINLINE UpdateBuildingOperation(TechnoExtData* pData, TechnoTypeExtData* p
 
 void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeData)
 {
-	auto const pThis = pData->AttachedToObject;
+	auto const pThis = pData->This();
 
 	// prevent disabled units from driving around.
 	if (pThis->Deactivated)
@@ -6226,7 +6226,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		return false;
 	}
 
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pData->AttachedToObject->Warhead);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pData->This()->Warhead);
 	const auto Target = flag_cast_to<FootClass*, false>(pTarget);
 
 	if (!Target)
@@ -6247,7 +6247,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		return false;
 	}
 
-	if (!TechnoExtData::IsAbductable(Attacker, pData->AttachedToObject, Target))
+	if (!TechnoExtData::IsAbductable(Attacker, pData->This(), Target))
 	{
 		return false;
 	}

@@ -1218,7 +1218,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<TechnoTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<TechnoTypeExtData*>(this)->Serialize(Stm);
@@ -1235,7 +1235,7 @@ public:
 	virtual const TechnoTypeClass* This_Const() const override { return reinterpret_cast<const TechnoTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 public:
 
@@ -1329,6 +1329,6 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(TechnoTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(TechnoTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(TechnoTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(TechnoTypeExtData::base_type* key, IStream* pStm) { return true;  };
 };

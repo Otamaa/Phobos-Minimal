@@ -23,7 +23,7 @@ public:
 		this->ObjectExtData::LoadFromStream(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const override {
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override {
 		this->ObjectExtData::SaveToStream(Stm);
 	}
 

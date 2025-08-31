@@ -475,7 +475,7 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 
 
 				//found one factory that avaible for the item , or the building type HasAllPlans
-				if (pBld->Type->Factory == whatItem || BuildingTypeExtContainer::Instance.Find(pBld->Type)->Type->FactoryOwners_HasAllPlans) {
+				if (pBld->Type->Factory == whatItem || BuildingTypeExtContainer::Instance.Find(pBld->Type)->FactoryOwners_HasAllPlans) {
 					return true;
 				}
 			}

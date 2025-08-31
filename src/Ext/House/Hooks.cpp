@@ -165,7 +165,7 @@ ASMJIT_PATCH(0x65EB8D, HouseClass_SendSpyPlanes_PlaceAircraft, 0x6)
 	GET(AircraftClass* const, pAircraft, ESI);
 	GET(CellStruct const, edgeCell, EDI);
 
-	bool result = AircraftExt::PlaceReinforcementAircraft(pAircraft, edgeCell);
+	bool result = AircraftExtData::PlaceReinforcementAircraft(pAircraft, edgeCell);
 
 	return result ? SkipGameCode : SkipGameCodeNoSuccess;
 }
@@ -177,7 +177,7 @@ ASMJIT_PATCH(0x65E997, HouseClass_SendAirstrike_PlaceAircraft, 0x6)
 	GET(AircraftClass* const, pAircraft, ESI);
 	GET(CellStruct const, edgeCell, EDI);
 
-	bool result = AircraftExt::PlaceReinforcementAircraft(pAircraft, edgeCell);
+	bool result = AircraftExtData::PlaceReinforcementAircraft(pAircraft, edgeCell);
 
 	return result ? SkipGameCode : SkipGameCodeNoSuccess;
 }

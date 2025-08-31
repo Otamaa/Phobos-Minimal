@@ -87,7 +87,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<TEventExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
 		const_cast<TEventExtData*>(this)->Serialize(Stm);
@@ -291,8 +291,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(TEventExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(TEventExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(TEventExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(TEventExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass

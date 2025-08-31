@@ -209,7 +209,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<InfantryTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
 		const_cast<InfantryTypeExtData*>(this)->Serialize(Stm);
@@ -227,7 +227,7 @@ public:
 	virtual const InfantryTypeClass* This_Const() const override { return reinterpret_cast<const InfantryTypeClass*>(this->TechnoTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
 
 private:
 	template <typename T>
@@ -258,8 +258,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(InfantryTypeExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(InfantryTypeExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(InfantryTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(InfantryTypeExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class NOVTABLE FakeInfantryTypeClass : public InfantryTypeClass
@@ -267,7 +267,7 @@ class NOVTABLE FakeInfantryTypeClass : public InfantryTypeClass
 public:
 
 	InfantryTypeExtData* _GetExtData() {
-		return *reinterpret_cast<InfantryTypeExtData**>(((DWORD)this) + InfantryTypeExtData::ExtOffset);
+		return *reinterpret_cast<InfantryTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 };
 static_assert(sizeof(FakeInfantryTypeClass) == sizeof(InfantryTypeClass), "Invalid Size !");

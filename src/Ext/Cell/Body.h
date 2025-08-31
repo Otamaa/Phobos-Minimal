@@ -45,8 +45,8 @@ public:
 	HelperedVector<RadLevel> RadLevels {};
 #pragma endregion
 
-	CellExtData(AircraftTypeClass* pObj) : AbstractExtended(pObj) { }
-	CellExtData(AircraftTypeClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	CellExtData(CellClass* pObj) : AbstractExtended(pObj) { }
+	CellExtData(CellClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~CellExtData() = default;
 
@@ -57,7 +57,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const {
+	virtual void SaveToStream(PhobosStreamWriter& Stm) {
 		const_cast<CellExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
 		const_cast<CellExtData*>(this)->Serialize(Stm);
 	}
@@ -67,8 +67,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual AircraftTypeClass* This() const override { return reinterpret_cast<AircraftTypeClass*>(this->AbstractExtended::This()); }
-	virtual const AircraftTypeClass* This_Const() const override { return reinterpret_cast<const AircraftTypeClass*>(this->AbstractExtended::This_Const()); }
+	virtual CellClass* This() const override { return reinterpret_cast<CellClass*>(this->AbstractExtended::This()); }
+	virtual const CellClass* This_Const() const override { return reinterpret_cast<const CellClass*>(this->AbstractExtended::This_Const()); }
 
 public:
 
@@ -91,7 +91,6 @@ class CellExtContainer final : public Container<CellExtData>
 {
 public:
 	static CellExtContainer Instance;
-
 
 	static void Clear()
 	{
@@ -116,8 +115,8 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(CellExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(CellExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(CellExtData::base_type* key, IStream* pStm) { return true; };
+	virtual bool ReadDataFromTheByteStream(CellExtData::base_type* key, IStream* pStm) { return true; };
 };
 
 class NOVTABLE FakeCellClass : public CellClass

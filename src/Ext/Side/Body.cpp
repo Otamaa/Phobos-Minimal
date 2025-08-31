@@ -285,11 +285,11 @@ InfantryTypeClass* SideExtData::GetDefaultDisguise() const
 
 bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
+	if (parseFailAddr)
+		return false;
+
 	auto pThis = This();
 	const char* pSection = pThis->ID;
-
-	if (parseFailAddr)
-		return;
 
 	INI_EX exINI(pINI);
 	this->Sidebar_GDIPositions.Read(exINI, pSection, "Sidebar.GDIPositions");
@@ -382,6 +382,8 @@ bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Sidebar_BattlePoints_Offset.Read(exINI, pSection, "Sidebar.BattlePoints.Offset");
 	this->Sidebar_BattlePoints_Color.Read(exINI, pSection, "Sidebar.BattlePoints.Color");
 	this->Sidebar_BattlePoints_Align.Read(exINI, pSection, "Sidebar.BattlePoints.Align");
+
+	return true;
 }
 
 void SideExtData::UpdateGlobalFiles()

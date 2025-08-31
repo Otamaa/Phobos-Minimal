@@ -131,7 +131,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm) const
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<SideExtData*>(this)->AbstractTypeExtData::Internal_SaveToStream(Stm);
 		const_cast<SideExtData*>(this)->Serialize(Stm);
@@ -140,12 +140,12 @@ public:
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
 	virtual int GetSize() const { return sizeof(*this); };
 
-	virtual void CalculateCRC(CRCEngine& crc) const;
+	virtual void CalculateCRC(CRCEngine& crc) const { };
 	virtual SideClass* This() const override { return reinterpret_cast<SideClass*>(this->AbstractTypeExtData::This()); }
 	virtual const SideClass* This_Const() const override { return reinterpret_cast<const SideClass*>(this->AbstractTypeExtData::This_Const()); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
-	virtual bool WriteToINI(CCINIClass* pINI) const { }
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 
 	void Initialize();
 
@@ -235,6 +235,6 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(SideExtData::base_type* key, IStream* pStm) { };
-	virtual bool ReadDataFromTheByteStream(SideExtData::base_type* key, IStream* pStm) { };
+	virtual bool WriteDataToTheByteStream(SideExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual bool ReadDataFromTheByteStream(SideExtData::base_type* key, IStream* pStm) { return true;  };
 };
