@@ -1,6 +1,8 @@
 #include "Body.h"
 
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/Macro.h>
+
 #include <Helpers\Macro.h>
 
 bool OverlayTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
@@ -64,12 +66,11 @@ ASMJIT_PATCH(0x5FE3F6, OverlayTypeClass_DTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x5FEA1E, OverlayTypeClass_LoadFromINI, 0xA)
+bool FakeOverlayTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(OverlayTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, STACK_OFFSET(0x28C, 0x4));
+	bool status = this->OverlayTypeClass::LoadFromINI(pINI);
+	OverlayTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	OverlayTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x5FEA1E);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x5FEA11, OverlayTypeClass_LoadFromINI, 0xA)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF664, FakeOverlayTypeClass::_ReadFromINI)

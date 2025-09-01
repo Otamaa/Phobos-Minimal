@@ -590,6 +590,145 @@ private:
 
 class TechnoExtData : public RadioExtData
 {
+private:
+	template <typename T>
+	void Serialize(T& Stm)
+	{
+		Stm
+			.Process(this->Type, true)
+			.Process(this->AbsType)
+			.Process(this->AE)
+			.Process(this->idxSlot_EMPulse)
+			.Process(this->idxSlot_Wave)
+			.Process(this->idxSlot_Beam)
+			.Process(this->idxSlot_Warp)
+			.Process(this->idxSlot_Parasite)
+			.Process(this->GarrisonedIn, true)
+			.Process(this->EMPSparkleAnim)
+			.Process(this->EMPLastMission)
+			.Process(this->PoweredUnit)
+			.Process(this->RadarJammer)
+			.Process(this->BuildingLight)
+			.Process(this->OriginalHouseType, true)
+			.Process(this->CloakSkipTimer)
+			.Process(this->HijackerHealth)
+			.Process(this->HijackerOwner, true)
+			.Process(this->HijackerVeterancy)
+			.Process(this->Is_SurvivorsDone)
+			.Process(this->Is_DriverKilled)
+			.Process(this->Is_Operated)
+			.Process(this->Is_UnitLostMuted)
+			.Process(this->TakeVehicleMode)
+			.Process(this->TechnoValueAmount)
+			.Process(this->Pos)
+			.Process(this->Shield)
+			.Process(this->LaserTrails)
+			.Process(this->ReceiveDamage)
+			.Process(this->LastKillWasTeamTarget)
+			.Process(this->PassengerDeletionTimer)
+			.Process(this->CurrentShieldType)
+			.Process(this->LastWarpDistance)
+			.Process(this->Death_Countdown)
+			.Process(this->MindControlRingAnimType)
+			.Process(this->DamageNumberOffset)
+			.Process(this->CurrentLaserWeaponIndex)
+			.Process(this->OriginalPassengerOwner, true)
+			.Process(this->IsInTunnel)
+			.Process(this->IsBurrowed)
+			.Process(this->DeployFireTimer)
+			.Process(this->DisableWeaponTimer)
+			.Process(this->RevengeWeapons)
+			.Process(this->GattlingDmageDelay)
+			.Process(this->GattlingDmageSound)
+			.Process(this->AircraftOpentoppedInitEd)
+			.Process(this->EngineerCaptureDelay)
+			.Process(this->FlhChanged)
+			.Process(this->ReceiveDamageMultiplier)
+			.Process(this->SkipLowDamageCheck)
+			.Process(this->aircraftPutOffsetFlag)
+			.Process(this->aircraftPutOffset)
+			.Process(this->SkipVoice)
+			.Process(this->ExtraWeaponTimers)
+			.Process(this->Trails)
+			.Process(this->MyGiftBox)
+			.Process(this->PaintBallStates, true)
+			.Process(this->DamageSelfState)
+			.Process(this->CurrentWeaponIdx)
+			.Process(this->MyFighterData)
+			.Process(this->WarpedOutDelay)
+			.Process(this->AltOccupation)
+			.Process(this->MyOriginalTemporal, true)
+			.Process(this->SupressEVALost)
+			.Process(this->SelfHealing_CombatDelay)
+			.Process(this->PayloadCreated)
+			.Process(this->PayloadTriggered)
+			.Process(this->LinkedSW, true)
+			.Process(this->SuperTarget)
+			.Process(this->HijackerLastDisguiseType, true)
+			.Process(this->HijackerLastDisguiseHouse, true)
+			.Process(this->Convert_Deploy_Delay)
+			.Process(this->WHAnimRemainingCreationInterval)
+			.Process(this->IsWebbed)
+			.Process(this->WebbedAnim, true)
+			.Process(this->WebbyLastTarget, true)
+			.Process(this->WebbyLastMission)
+			.Process(this->FreeUnitDone)
+			.Process(this->AeData)
+			.Process(this->Strafe_BombsDroppedThisRound)
+			.Process(this->MergePreventionTimer)
+			.Process(this->TiberiumStorage)
+			.Process(this->MyWeaponManager)
+			.Process(this->MyDriveData)
+			.Process(this->MyDiveData)
+			.Process(this->MySpawnSuport)
+			.Process(this->PhobosAE)
+			.Process(this->ShootCount)
+			.Process(this->FiringObstacleCell)
+			.Process(this->AdditionalRange)
+			.Process(this->IsDetachingForCloak)
+			.Process(this->CurrentAircraftWeaponIndex)
+			.Process(this->HasRemainingWarpInDelay)
+			.Process(this->LastWarpInDelay)
+			.Process(this->UnitAutoDeployTimer)
+			.Process(this->SubterraneanHarvRallyPoint, true)
+			.Process(this->IsBeingChronoSphered)
+			.Process(this->TiberiumEaterTimer)
+			.Process(this->LastDamageWH)
+			.Process(this->UnitIdleAction)
+			.Process(this->UnitIdleActionSelected)
+			.Process(this->UnitIdleIsSelected)
+			.Process(this->UnitIdleActionTimer)
+			.Process(this->UnitIdleActionGapTimer)
+			.Process(this->MyTargetingFrame)
+			.Process(this->ChargeTurretTimer)
+			.Process(this->LastRearmWasFullDelay)
+			.Process(this->DropCrate)
+			.Process(this->DropCrateType)
+			.Process(this->LastBeLockedFrame)
+			.Process(this->BeControlledThreatFrame)
+			.Process(this->LastTargetID)
+			.Process(this->LastHurtFrame)
+			.Process(this->AttachedEffectInvokerCount)
+			.Process(this->AccumulatedGattlingValue)
+			.Process(this->ShouldUpdateGattlingValue)
+			.Process(this->KeepTargetOnMove)
+			.Process(this->DelayedFireSequencePaused)
+			.Process(this->DelayedFireTimer)
+			.Process(this->DelayedFireWeaponIndex)
+			.Process(this->CurrentDelayedFireAnim)
+			.Process(this->CustomFiringOffset)
+			.Process(this->LastWeaponType)
+			.Process(this->AirstrikeTargetingMe)
+			.Process(this->RandomEMPTarget)
+			.Process(this->FiringAnimationTimer)
+			.Process(this->ForceFullRearmDelay)
+			.Process(this->AttackMoveFollowerTempCount)
+			.Process(this->OnlyAttackData)
+			.Process(this->IsSelected)
+			;
+	}
+
+
 public:
 	using base_type = TechnoClass;
 public:
@@ -804,13 +943,13 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->RadioExtData::LoadFromStream(Stm);
-		this->Serialize<PhobosStreamReader>(Stm);
+		this->Serialize(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		this->RadioExtData::SaveToStream(Stm);
-		this->Serialize<PhobosStreamWriter>(Stm);
+		this->Serialize(Stm);
 	}
 
 	virtual int GetSize() const { return sizeof(*this); };
@@ -914,10 +1053,6 @@ public:
 
 	static int CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* args);
 	static std::vector<double> GetBlockChance(TechnoClass* pThis, std::vector<double>& blockChance);
-
-private:
-	template <typename T>
-	void Serialize(T& Stm);
 
 protected:
 	std::pair<const std::vector<WeaponTypeClass*>*, const std::vector<int>*> GetFireSelfData();

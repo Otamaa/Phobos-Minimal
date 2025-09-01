@@ -472,20 +472,197 @@ std::string PrintAssembly(const void* code, size_t codeSize, uintptr_t runtimeAd
 	return disassemblyResult;
 }
 
-void ApplyasmjitPatch() {
+#ifdef _New
 
-	for (auto&[addr , data] : Hooks)
+void ApplyasmjitPatch()
+{
+	for (auto& [addr, data] : Hooks)
 	{
 		auto& [sm_vec, org_vec] = data;
-
-		if (sm_vec.empty()) {
+		if (sm_vec.empty())
+		{
 			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
 			continue;
 		}
 
 		CheckHookConflict(addr, sm_vec[0].size);
 
-		if (sm_vec.size() > 1) {
+		// Log if multiple hooks are registered at the same address
+		if (sm_vec.size() > 1)
+		{
+			Debug::LogDeferred("hook at 0x%x has %d functions registered!\n", addr, sm_vec.size());
+		}
+
+		// Calculate maximum overridden bytes needed
+		DWORD maxOverridden = 0;
+		for (const auto& hook : sm_vec)
+		{
+			maxOverridden = MaxImpl(maxOverridden, hook.size);
+		}
+		DWORD hookSize = MaxImpl(maxOverridden, 5u);
+
+		// Create trampoline code
+		asmjit::CodeHolder trampolineCode;
+		trampolineCode.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
+		trampolineCode.setErrorHandler(&gJitErrorHandler);
+		asmjit::x86::Assembler trampolineAsm(&trampolineCode);
+
+		asmjit::Label proceedLabel = trampolineAsm.newLabel();
+
+		// Generate hook chain
+		for (const auto& hook : sm_vec)
+		{
+			if (!hook.func) continue;
+
+			// Save all registers and flags
+			trampolineAsm.pushad();
+			trampolineAsm.pushfd();
+
+			// Push hook address (the original address being hooked)
+			trampolineAsm.push(asmjit::imm(addr));
+
+			// Push ESP (current stack pointer)
+			trampolineAsm.push(asmjit::x86::esp);
+
+			// Call the hook function
+			trampolineAsm.call(asmjit::imm(reinterpret_cast<uintptr_t>(hook.func)));
+
+			// Clean up stack (remove the two pushes)
+			trampolineAsm.add(asmjit::x86::esp, 8);
+
+			// Store return value in FS:[0x14] using inline bytes
+			// MOV fs:0x14, EAX -> 64 A3 14 00 00 00
+			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\xA3\x14\x00\x00\x00"), 6);
+
+			// Restore registers and flags
+			trampolineAsm.popfd();
+			trampolineAsm.popad();
+
+			// Check if hook wants to override using inline bytes
+			// CMP DWORD PTR fs:0x14, 0 -> 64 83 3D 14 00 00 00 00
+			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\x83\x3D\x14\x00\x00\x00\x00"), 8);
+			trampolineAsm.je(proceedLabel); // If 0, continue to next hook or original code
+
+			// Jump to the override address using inline bytes
+			// JMP DWORD PTR fs:0x14 -> 64 FF 25 14 00 00 00
+			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\xFF\x25\x14\x00\x00\x00"), 7);
+		}
+
+		// Bind the proceed label - execute original code
+		trampolineAsm.bind(proceedLabel);
+
+		// Save original bytes
+		void* hookAddress = reinterpret_cast<void*>(addr);
+		org_vec.resize(hookSize);
+		memcpy(org_vec.data(), hookAddress, hookSize);
+
+		// Handle relative instructions in original code
+		std::vector<BYTE> fixedOriginal = org_vec;
+		bool hasRelativeInstr = false;
+
+		if (org_vec.size() >= 5 && (org_vec[0] == 0xE8 || org_vec[0] == 0xE9))
+		{ // CALL or JMP
+			DWORD originalDest = addr + 5 + *reinterpret_cast<DWORD*>(org_vec.data() + 1);
+
+			if (org_vec[0] == 0xE8)
+			{ // CALL
+				trampolineAsm.call(asmjit::imm(originalDest));
+				Debug::LogDeferred("hook at 0x%x: Fixed relative CALL to 0x%x\n", addr, originalDest);
+			}
+			else
+			{ // JMP
+				trampolineAsm.jmp(asmjit::imm(originalDest));
+				Debug::LogDeferred("hook at 0x%x: Fixed relative JMP to 0x%x\n", addr, originalDest);
+			}
+
+			// Remove the original 5-byte instruction since we've handled it
+			fixedOriginal.erase(fixedOriginal.begin(), fixedOriginal.begin() + 5);
+			hasRelativeInstr = true;
+		}
+
+		// Embed remaining original code
+		if (!fixedOriginal.empty())
+		{
+			trampolineAsm.embed(fixedOriginal.data(), fixedOriginal.size());
+		}
+
+		// Jump back to continuation point
+		trampolineAsm.jmp(asmjit::imm(addr + hookSize));
+
+		// Generate the trampoline
+		const void* trampolineFunc = nullptr;
+		auto result = gJitRuntime->add(&trampolineFunc, &trampolineCode);
+		if (result != asmjit::kErrorOk)
+		{
+			Debug::LogDeferred("Failed to generate trampoline for hook at 0x%x\n", addr);
+			continue;
+		}
+
+		// Create the hook patch (jump to trampoline)
+		asmjit::CodeHolder patchCode;
+		patchCode.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
+		patchCode.setErrorHandler(&gJitErrorHandler);
+		asmjit::x86::Assembler patchAsm(&patchCode);
+
+		// Generate jump to trampoline
+		patchAsm.jmp(asmjit::imm(reinterpret_cast<uintptr_t>(trampolineFunc)));
+
+		// Pad with NOPs if needed
+		size_t jumpSize = 5; // JMP instruction is 5 bytes
+		for (size_t i = jumpSize; i < hookSize; ++i)
+		{
+			patchAsm.nop();
+		}
+
+		// Apply the patch
+		patchCode.flatten();
+		patchCode.resolveCrossSectionFixups();
+		patchCode.relocateToBase(addr);
+
+		DWORD oldProtect, dummy;
+		VirtualProtect(hookAddress, hookSize, PAGE_EXECUTE_READWRITE, &oldProtect);
+
+		size_t codeSize = patchCode.codeSize();
+		if (codeSize <= hookSize)
+		{
+			patchCode.copyFlattenedData(hookAddress, codeSize);
+
+			// Fill remaining bytes with NOPs if needed
+			if (codeSize < hookSize)
+			{
+				memset(static_cast<BYTE*>(hookAddress) + codeSize, 0x90, hookSize - codeSize);
+			}
+		}
+		else
+		{
+			Debug::LogDeferred("Generated patch code too large for hook at 0x%x\n", addr);
+		}
+
+		VirtualProtect(hookAddress, hookSize, oldProtect, &dummy);
+		FlushInstructionCache(GetCurrentProcess(), hookAddress, hookSize);
+
+
+		//Debug::LogDeferred("Successfully applied hook at 0x%x with %d functions\n", addr, sm_vec.size());
+	}
+}
+#else
+void ApplyasmjitPatch()
+{
+
+	for (auto& [addr, data] : Hooks)
+	{
+		auto& [sm_vec, org_vec] = data;
+
+		if (sm_vec.empty())
+		{
+			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
+			continue;
+		}
+
+		CheckHookConflict(addr, sm_vec[0].size);
+
+		if (sm_vec.size() > 1)
+		{
 			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", addr, sm_vec.size());
 		}
 
@@ -513,7 +690,9 @@ void ApplyasmjitPatch() {
 			assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
 			assembly.jz(l_origin);
 			assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
-		} else {
+		}
+		else
+		{
 			Debug::LogDeferred("remaining hook at 0x%x is ignored !\n", addr);
 		}
 
@@ -563,6 +742,7 @@ void ApplyasmjitPatch() {
 		FlushInstructionCache(Game::hInstance, hookAddress, hookSize);
 	}
 }
+#endif
 
 void Initasmjit()
 {
@@ -1457,6 +1637,7 @@ ASMJIT_PATCH(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
+	Debug::LogDeferredFinalize();
 
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Create();

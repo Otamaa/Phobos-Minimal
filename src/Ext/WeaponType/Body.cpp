@@ -749,13 +749,11 @@ ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
+bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(WeaponTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0xE4);
+	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
+	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	WeaponTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x7729D6);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x7729C7, WeaponTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x7729D6, WeaponTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)

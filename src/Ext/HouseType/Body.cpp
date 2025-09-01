@@ -2,6 +2,8 @@
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Helpers.h>
+#include <Utilities/Macro.h>
+
 #include <DiscreteDistributionClass.h>
 
 void HouseTypeExtData::Initialize()
@@ -537,12 +539,11 @@ ASMJIT_PATCH(0x5127CF, HouseTypeClass_DTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x51214F, HouseTypeClass_LoadFromINI, 0x5)
+bool FakeHouseTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(HouseTypeClass*, pItem, EBX);
-	GET_BASE(CCINIClass*, pINI, 0x8);
+	bool status = this->HouseTypeClass::LoadFromINI(pINI);
+	HouseTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	HouseTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x51215A);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x51215A, HouseTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EABBC, FakeHouseTypeClass::_ReadFromINI)

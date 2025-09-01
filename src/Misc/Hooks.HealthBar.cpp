@@ -667,7 +667,7 @@ ASMJIT_PATCH(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
 	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
 }
 
-DEFINE_HOOK(0x6F6637, TechnoClass_DrawHealthBar_HideBuildingsPips, 0x5)
+ASMJIT_PATCH(0x6F6637, TechnoClass_DrawHealthBar_HideBuildingsPips, 0x5)
 {
 	enum { SkipDrawPips = 0x6F677D , Continue = 0x0 };
 

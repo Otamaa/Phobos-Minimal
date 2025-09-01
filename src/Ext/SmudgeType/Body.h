@@ -91,6 +91,8 @@ public:
 
 	bool _CanPlaceHere(CellStruct*origin, bool underbuildings);
 
+	bool _ReadFromINI(CCINIClass* pINI);
+
 	SmudgeTypeExtData* _GetExtData() {
 		return *reinterpret_cast<SmudgeTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}

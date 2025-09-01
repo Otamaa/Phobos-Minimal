@@ -81,3 +81,10 @@ public:
 	virtual bool WriteDataToTheByteStream(UnitTypeExtData::base_type* key, IStream* pStm) { return true;  };
 	virtual bool ReadDataFromTheByteStream(UnitTypeExtData::base_type* key, IStream* pStm) { return true;  };
 };
+
+class NOVTABLE FakeUnitTypeClass : public UnitTypeClass
+{
+public:
+
+	bool _ReadFromINI(CCINIClass* pINI);
+};

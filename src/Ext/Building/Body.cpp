@@ -101,6 +101,10 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 
 #include <ExtraHeaders/StackVector.h>
 
+BuildingExtData::BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj)
+{
+}
+
 static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 	StackVector<TechnoTypeClass*, 256>& Options,
 	TechnoTypeClass** Data ,
@@ -1679,6 +1683,7 @@ BuildingExtContainer BuildingExtContainer::Instance;
 ASMJIT_PATCH(0x43BAD6, BuildingClass_CTOR, 0x5)
 {
 	GET(BuildingClass*, pItem, ESI);
+	Debug::Log(__FUNCTION__"\n");
 	BuildingExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
@@ -1693,7 +1698,7 @@ ASMJIT_PATCH(0x43B733, BuildingClass_CTOR_NoInit, 0x7)
 ASMJIT_PATCH(0x43C022, BuildingClass_DTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
-
+	Debug::Log(__FUNCTION__"\n");
 	FakeHouseClass* pOwner = (FakeHouseClass*)pItem->Owner;
 	auto pOwnerExt = pOwner->_GetExtData();
 

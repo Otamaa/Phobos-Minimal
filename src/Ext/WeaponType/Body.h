@@ -299,12 +299,14 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
+	bool _ReadFromINI(CCINIClass* pINI);
+
 	FORCEDINLINE WeaponTypeExtData* _GetExtData() {
 		return *reinterpret_cast<WeaponTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 	FORCEDINLINE BulletTypeExtData* _GetBulletTypeExtData() {
-		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Projectile) + 0x2C4);
+		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Projectile) + AbstractExtOffset);
 	}
 
 	FORCEDINLINE FakeBulletTypeClass* _GetBulletType() {
@@ -316,7 +318,7 @@ public:
 	}
 
 	FORCEDINLINE WarheadTypeExtData* _GetWarheadTypeExtData() {
-		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this->Warhead) + 0x1CC);
+		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this->Warhead) + AbstractExtOffset);
 	}
 
 };

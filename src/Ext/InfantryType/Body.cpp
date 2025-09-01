@@ -2,6 +2,7 @@
 
 #include <Ext/Infantry/Body.h>
 
+#include <Utilities/Macro.h>
 void Phobos_DoControls::ReadSequence(DoInfoStruct* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
 {
 	/*
@@ -254,10 +255,11 @@ ASMJIT_PATCH(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x52473F, InfantryTypeClass_LoadFromINI, 0x5)
+bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(InfantryTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0xD0);
-	InfantryTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x52474E);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x52474E, InfantryTypeClass_LoadFromINI, 0x5)
+	bool status = this->InfantryTypeClass::LoadFromINI(pINI);
+	InfantryTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB674, FakeInfantryTypeClass::_ReadFromINI)

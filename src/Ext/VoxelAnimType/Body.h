@@ -112,6 +112,8 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
+	bool _ReadFromINI(CCINIClass* pINI);
+
 	VoxelAnimTypeExtData* _GetExtData() {
 		return *reinterpret_cast<VoxelAnimTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}

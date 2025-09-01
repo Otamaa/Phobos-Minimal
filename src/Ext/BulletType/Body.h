@@ -235,6 +235,7 @@ public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	BulletTypeExtData* _GetExtData() {
 		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this) + AbstractExtOffset);

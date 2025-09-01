@@ -68,7 +68,7 @@ public:
 
 public:
 
-	BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj) { }
+	BuildingExtData(BuildingClass* pObj);
 	BuildingExtData(BuildingClass* pObj, noinit_t& nn) : TechnoExtData(pObj, nn) { }
 
 	virtual ~BuildingExtData()

@@ -1,6 +1,8 @@
 #include "Body.h"
 #include <Ext/Rules/Body.h>
 
+#include <Utilities/Macro.h>
+
 #include <ParticleSystemClass.h>
 
 static void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX, const int* beginY)
@@ -97,11 +99,11 @@ ASMJIT_PATCH(0x644276, ParticleSystemTypeClass_SDDTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x644617, ParticleSystemTypeClass_LoadFromINI, 0x5)
+bool FakeParticleSystemTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(ParticleSystemTypeClass*, pItem, ESI);
-	GET(CCINIClass*, pINI, EBX);
+	bool status = this->ParticleSystemTypeClass::LoadFromINI(pINI);
+	ParticleSystemTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	ParticleSystemTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x644620);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x644620, ParticleSystemTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F010C, FakeParticleSystemTypeClass::_ReadFromINI)

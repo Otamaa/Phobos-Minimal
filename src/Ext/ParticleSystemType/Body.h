@@ -100,6 +100,8 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
+	bool _ReadFromINI(CCINIClass* pINI);
+
 	ParticleSystemTypeExtData* _GetExtData() {
 		return *reinterpret_cast<ParticleSystemTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}

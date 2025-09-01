@@ -94,3 +94,8 @@ public:
 	virtual bool ReadDataFromTheByteStream(OverlayTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
+class NOVTABLE FakeOverlayTypeClass : public OverlayTypeClass
+{
+public:
+	bool _ReadFromINI(CCINIClass* pINI);
+};

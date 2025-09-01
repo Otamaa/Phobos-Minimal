@@ -2,6 +2,7 @@
 
 #include <TerrainTypeClass.h>
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/Macro.h>
 
 #include <TerrainClass.h>
 #include <TacticalClass.h>
@@ -177,22 +178,11 @@ ASMJIT_PATCH(0x71E3A5, TerrainTypeClass_SDDTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x71E0B4, TerrainTypeClass_LoadFromINI_ReturnFalse, 0xA)
+bool FakeTerrainTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(TerrainTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x20C, -0x4));
-
-	TerrainTypeExtContainer::Instance.LoadFromINI(pItem, pINI , true);
-
-	return 0;
+	bool status = this->TerrainTypeClass::LoadFromINI(pINI);
+	TerrainTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-ASMJIT_PATCH(0x71E0A6, TerrainTypeClass_LoadFromINI, 0x5)
-{
-	GET(TerrainTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x210, -0x4));
-
-	TerrainTypeExtContainer::Instance.LoadFromINI(pItem, pINI , false);
-
-	return 0;
-}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F54BC, FakeTerrainTypeClass::_ReadFromINI)

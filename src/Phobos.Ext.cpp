@@ -472,7 +472,6 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
 	AnimExtContainer::Clear();
-	TechnoTypeExtContainer::Instance.Clear();
 	BulletTypeExtContainer::Instance.Clear();
 	BuildingTypeExtContainer::Instance.Clear();
 	HouseTypeExtContainer::Instance.Clear();

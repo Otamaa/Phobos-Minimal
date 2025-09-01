@@ -156,11 +156,15 @@ public:
 public:
 
 	extension_type_ptr Allocate(base_type_ptr key) {
-		return new extension_type(key);
+		auto pExt = new extension_type(key);
+		this->SetExtAttribute(key ,pExt);
+		return pExt;
 	}
 
 	extension_type_ptr AllocateNoInit(base_type_ptr key) {
-		return new extension_type(key, noinit_t());
+		auto pExt = new extension_type(key, noinit_t());
+		this->SetExtAttribute(key, pExt);
+		return pExt;
 	}
 
 	extension_type_ptr FindOrAllocate(base_type_ptr key)
@@ -188,7 +192,7 @@ public:
 	{
 		if COMPILETIMEEVAL (CanLoadFromINIFile<T>)
 		{
-			if (extension_type_ptr ptr = this->TryFind(key))
+			if (extension_type_ptr ptr = this->Find(key))
 			{
 				if (!pINI) {
 					//Debug::LogInfo("[%s] LoadFrom INI Called WithInvalid CCINIClass ptr ! ", typeid(T).name());

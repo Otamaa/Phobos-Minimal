@@ -691,6 +691,8 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
 
+	bool _ReadFromINI(CCINIClass* pINI);
+
 	SWTypeExtData* _GetExtData() {
 		return *reinterpret_cast<SWTypeExtData**>((DWORD)this + AbstractExtOffset);
 	}

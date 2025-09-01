@@ -673,7 +673,7 @@ private:
 	}
 };
 
-DEFINE_HOOK(0x64CCBF, DoList_ReplaceReconMessage, 6)
+ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	DoRecon(R);
 	return 0x64CD11;

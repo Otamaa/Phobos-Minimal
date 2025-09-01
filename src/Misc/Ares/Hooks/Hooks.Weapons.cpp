@@ -14,6 +14,7 @@ ASMJIT_PATCH(0x7128B2, TechnoTypeClass_ReadINI_MultiWeapon, 0x6)
 	const char* pSection = pThis->ID;
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis);
+
 	pTypeExt->MultiWeapon.Read(exINI, pSection, "MultiWeapon");
 	bool multiWeapon = pThis->HasMultipleTurrets() || pTypeExt->MultiWeapon.Get();
 

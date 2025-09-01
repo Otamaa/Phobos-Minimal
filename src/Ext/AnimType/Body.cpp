@@ -670,11 +670,11 @@ ASMJIT_PATCH(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
+bool FakeAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(AnimTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0xBC);
+	bool status = this->AnimTypeClass::LoadFromINI(pINI);
+	AnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	AnimTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x4287E9);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E366C, FakeAnimTypeClass::_ReadFromINI)

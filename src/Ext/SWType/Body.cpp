@@ -2924,11 +2924,11 @@ ASMJIT_PATCH(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
+bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(SuperWeaponTypeClass*, pItem, EBP);
-	GET_STACK(CCINIClass*, pINI, 0x3FC);
+	bool status = this->SuperWeaponTypeClass::LoadFromINI(pINI);
+	SWTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	SWTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x6CEE50);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x6CEE50, SuperWeaponTypeClass_LoadFromINI, 0xA)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40F4, FakeSuperWeaponTypeClass::_ReadFromINI)

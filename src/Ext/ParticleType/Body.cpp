@@ -1,5 +1,7 @@
 #include "Body.h"
 
+#include <Utilities/Macro.h>
+
 void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX , const int* beginY) {
 	for (size_t i = 0; i < arr.size(); ++i) {
 		if(!detail::read(arr[i], exINI, pID, (std::string("WindDirectionMult") + std::to_string(i)).c_str())) {
@@ -153,11 +155,11 @@ ASMJIT_PATCH(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 	return 0;
 }
 
-ASMJIT_PATCH(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
+bool FakeParticleTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(ParticleTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xDC , -0x4));
+	bool status = this->ParticleTypeClass::LoadFromINI(pINI);
+	ParticleTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	ParticleTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x645414);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x645414, ParticleTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F01EC, FakeParticleTypeClass::_ReadFromINI)

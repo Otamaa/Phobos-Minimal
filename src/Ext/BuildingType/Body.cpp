@@ -2141,13 +2141,13 @@ ASMJIT_PATCH(0x45E707, BuildingTypeClass_DTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
-{
-	GET(BuildingTypeClass*, pItem, EBP);
-	GET_STACK(CCINIClass*, pINI, 0x364);
-
-	BuildingTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x464A56);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x464A56, BuildingTypeClass_LoadFromINI, 0xA)
-
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4610, FakeBuildingTypeClass::_CanUseWaypoint)
+
+bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	bool status = this->BuildingTypeClass::LoadFromINI(pINI);
+	BuildingTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E45D4, FakeBuildingTypeClass::_ReadFromINI)

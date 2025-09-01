@@ -342,7 +342,7 @@ void SyncLogger::SetTeamLoggingPadding(TeamClass* pTeam)
 
 // RNG call logging
 
-DEFINE_HOOK(0x65C7D0, Random2Class_Random_SyncLog, 0x1)
+ASMJIT_PATCH(0x65C7D0, Random2Class_Random_SyncLog, 0x1)
 {
 	GET(Random2Class*, pThis, ECX);
 	GET_STACK(unsigned int, callerAddress, 0x0);
@@ -352,7 +352,7 @@ DEFINE_HOOK(0x65C7D0, Random2Class_Random_SyncLog, 0x1)
 	return 0;
 }
 
-DEFINE_HOOK(0x65C88A, Random2Class_RandomRanged_SyncLog, 0x3)
+ASMJIT_PATCH(0x65C88A, Random2Class_RandomRanged_SyncLog, 0x3)
 {
 	GET(Random2Class*, pThis, EDX);
 	GET_STACK(unsigned int, callerAddress, 0x0);

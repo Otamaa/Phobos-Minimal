@@ -433,7 +433,9 @@ public:
 	bool _CanUseWaypoint();
 
 	BuildingTypeExtData* _GetExtData() {
-		return *reinterpret_cast<BuildingTypeExtData**>(((DWORD)this) + 0x18);
+		return *reinterpret_cast<BuildingTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
+
+	bool _ReadFromINI(CCINIClass* pINI);
 };
 static_assert(sizeof(FakeBuildingTypeClass) == sizeof(BuildingTypeClass), "Invalid Size !");

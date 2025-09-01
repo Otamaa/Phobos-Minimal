@@ -2270,14 +2270,11 @@ ASMJIT_PATCH(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x75DEA0, WarheadTypeClass_LoadFromINI, 0x5)
+bool FakeWarheadTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(WarheadTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0x150);
+	bool status = this->WarheadTypeClass::LoadFromINI(pINI);
+	WarheadTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	WarheadTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x75DEAF);
-
-	//0x75DE9A do net set isOrganic here , just skip it to next adrress to execute ares hook
-	return// R->Origin() == 0x75DE9A ? 0x75DEA0 :
-		0;
-}ASMJIT_PATCH_AGAIN(0x75DEAF, WarheadTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B94, FakeWarheadTypeClass::_ReadFromINI)

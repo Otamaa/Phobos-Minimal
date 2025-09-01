@@ -113,10 +113,11 @@ bool FakeSmudgeTypeClass::_CanPlaceHere(CellStruct* origin, bool underbuildings)
 	return true;
 }
 
-ASMJIT_PATCH(0x6B57CD, SmudgeTypeClass_LoadFromINI, 0xA)
+bool FakeSmudgeTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(SmudgeTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0x208, -0x4));
-	SmudgeTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x6B57DA);
-	return 0x0;
-}ASMJIT_PATCH_AGAIN(0x6B57DA, SmudgeTypeClass_LoadFromINI, 0xA)
+	bool status = this->SmudgeTypeClass::LoadFromINI(pINI);
+	SmudgeTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F358C, FakeSmudgeTypeClass::_ReadFromINI)

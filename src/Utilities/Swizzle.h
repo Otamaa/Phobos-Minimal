@@ -10,6 +10,8 @@
 
 #include <unordered_map>
 
+#include <Interface/ISwizzle.h>
+
 class PhobosSwizzleManagerClass : public ISwizzle
 {
 private:

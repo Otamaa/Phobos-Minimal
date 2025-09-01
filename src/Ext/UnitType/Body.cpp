@@ -1,9 +1,10 @@
 #include "Body.h"
+#include <Utilities/Macro.h>
 
 UnitTypeExtContainer UnitTypeExtContainer::Instance;
 std::vector<UnitTypeExtData*> Container<UnitTypeExtData>::Array;
 
-ASMJIT_PATCH(0x74AF5C, UnitTypeClass_CTOR, 0x7)
+ASMJIT_PATCH(0x7472B1, UnitTypeClass_CTOR, 0x6)
 {
 	GET(UnitTypeClass*, pItem, ESI);
 	UnitTypeExtContainer::Instance.Allocate(pItem);
@@ -13,11 +14,11 @@ ASMJIT_PATCH(0x74AF5C, UnitTypeClass_CTOR, 0x7)
 ASMJIT_PATCH(0x7472E1, UnitTypeClass_CTOR_NoInt, 0x7)
 {
 	GET(UnitTypeClass*, pItem, ESI);
-	UnitTypeExtContainer::Instance.Allocate(pItem);
+	UnitTypeExtContainer::Instance.AllocateNoInit(pItem);
 	return 0;
 }
 
-ASMJIT_PATCH(0x7472B1, UnitTypeClass_DTOR, 0x6)
+ASMJIT_PATCH(0x747316, UnitTypeClass_DTOR, 0x6)
 {
 	GET(UnitTypeClass*, pItem, ESI);
 
@@ -26,12 +27,12 @@ ASMJIT_PATCH(0x7472B1, UnitTypeClass_DTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x747E90, UnitTypeClass_LoadFromINI, 0x5)
+
+bool FakeUnitTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(UnitTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0x4);
+	bool status = this->UnitTypeClass::LoadFromINI(pINI);
+	UnitTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	UnitTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x747E9F);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x747E9F, UnitTypeClass_LoadFromINI, 0xA)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F627C, FakeUnitTypeClass::_ReadFromINI)

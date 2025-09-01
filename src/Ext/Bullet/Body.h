@@ -182,7 +182,7 @@ public:
 	}
 
 	FORCEDINLINE BulletTypeExtData* _GetTypeExtData() {
-		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Type) + 0x2C4);
+		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
 
 	FORCEDINLINE FakeWarheadTypeClass* _GetWarheadType() {
@@ -190,7 +190,7 @@ public:
 	}
 
 	FORCEDINLINE WarheadTypeExtData* _GetWarheadTypeExtData() {
-		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this->WH) + 0x1CC);
+		return *reinterpret_cast<WarheadTypeExtData**>(((DWORD)this->WH) + AbstractExtOffset);
 	}
 
 	FORCEDINLINE FakeWeaponType* _GetWeaponType() {

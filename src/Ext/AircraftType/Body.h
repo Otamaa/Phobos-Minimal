@@ -86,6 +86,7 @@ public:
 class NOVTABLE FakeAircraftTypeClass : public AircraftTypeClass {
 public:
 	bool _CanAttackMove() { return RulesExtData::Instance()->ExpandAircraftMission; };
+	bool _ReadFromINI(CCINIClass* pINI);
 };
 
 static_assert(sizeof(FakeAircraftTypeClass) == sizeof(FakeAircraftTypeClass), "Invalid Size !");

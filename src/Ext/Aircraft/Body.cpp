@@ -891,7 +891,7 @@ bool AircraftExtData::IsValidLandingZone(AircraftClass* pThis)
 std::vector<AircraftExtData*> Container<AircraftExtData>::Array;
 AircraftExtContainer AircraftExtContainer::Instance;
 
-ASMJIT_PATCH(0x413F6A, AircraftClass_CTOR_NoInt, 0x7)
+ASMJIT_PATCH(0x41B4FB, AircraftClass_CTOR_NoInt, 0xA)
 {
 	GET(AircraftClass*, pItem, ESI);
 	AircraftExtContainer::Instance.AllocateNoInit(pItem);

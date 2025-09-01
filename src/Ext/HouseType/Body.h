@@ -160,9 +160,10 @@ class NOVTABLE FakeHouseTypeClass : public HouseTypeClass
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	HouseTypeExtData* _GetExtData() {
-		return *reinterpret_cast<HouseTypeExtData**>(((DWORD)this) + 0x18);
+		return *reinterpret_cast<HouseTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 };
 static_assert(sizeof(FakeHouseTypeClass) == sizeof(HouseTypeClass), "Invalid Size !");

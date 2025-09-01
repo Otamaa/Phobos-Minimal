@@ -1,4 +1,5 @@
 #include "Body.h"
+#include <Utilities/Macro.h>
 
 void VoxelAnimTypeExtData::Initialize(){
 	LaserTrail_Types.reserve(1);
@@ -75,16 +76,11 @@ ASMJIT_PATCH(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
+bool FakeVoxelAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(VoxelAnimTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0x4);
+	bool status = this->VoxelAnimTypeClass::LoadFromINI(pINI);
+	VoxelAnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	VoxelAnimTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x74B612);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x74B612, VoxelAnimTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x74B607, VoxelAnimTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x74B561, VoxelAnimTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x74B54A, VoxelAnimTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x74B51B, VoxelAnimTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F65AC, FakeVoxelAnimTypeClass::_ReadFromINI)

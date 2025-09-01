@@ -6,44 +6,6 @@
 // Replacing DoControls* with own
 // replace the name 0x8255C8u
 
-ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR_Initialize, 6)
-{
-	GET(InfantryTypeClass*, pItem, ESI);
-
-	pItem->ArrayIndex = R->ECX<int>();
-	pItem->OccupyWeapon.FLH.X = 0;
-	pItem->OccupyWeapon.FLH.Y = 0;
-	pItem->OccupyWeapon.FLH.Z = 0;
-	pItem->OccupyWeapon.WeaponType = 0;
-	pItem->OccupyWeapon.BarrelLength = 0;
-	pItem->OccupyWeapon.BarrelThickness = 0;
-	pItem->OccupyWeapon.TurretLocked = 0;
-	pItem->EliteOccupyWeapon.WeaponType = 0;
-	pItem->EliteOccupyWeapon.BarrelLength = 0;
-	pItem->EliteOccupyWeapon.FLH.X = 0;
-	pItem->EliteOccupyWeapon.FLH.Y = 0;
-	pItem->EliteOccupyWeapon.FLH.Z = 0;
-	pItem->EliteOccupyWeapon.BarrelThickness = 0;
-	pItem->EliteOccupyWeapon.TurretLocked = 0;
-	pItem->RotCount = 8;
-	pItem->RadarVisible = 0;
-	pItem->Crushable = 1;
-	pItem->Repairable = 0;
-	pItem->Crewed = 0;
-	pItem->ImmuneToPsionics = 0;
-	pItem->ImmuneToPsionicWeapons = 0;
-	pItem->ImmuneToPoison = 0;
-	pItem->Parasiteable = 1;
-	pItem->Organic = 1;
-	pItem->ConsideredAircraft = 0;
-	pItem->Bunkerable = 0;
-
-	pItem->Sequence = (DoControls*)GameCreate<NewDoType>();
-	((NewDoType*)(pItem->Sequence))->Initialize();
-
-	return 0x523970;
-}
-
 #pragma region S/L
 ASMJIT_PATCH(0x524B10, InfantryTypeClass_Load_DoControls, 0x5)
 {

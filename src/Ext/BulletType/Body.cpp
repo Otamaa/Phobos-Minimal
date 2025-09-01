@@ -354,12 +354,11 @@ ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
+bool FakeBulletTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	GET(BulletTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0x90);
-	BulletTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x46C429);
+	bool status = this->BulletTypeClass::LoadFromINI(pINI);
+	BulletTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
 
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
-
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E49AC, FakeBulletTypeClass::_ReadFromINI)

@@ -266,6 +266,8 @@ class NOVTABLE FakeInfantryTypeClass : public InfantryTypeClass
 {
 public:
 
+	bool _ReadFromINI(CCINIClass* pINI);
+
 	InfantryTypeExtData* _GetExtData() {
 		return *reinterpret_cast<InfantryTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}

@@ -116,13 +116,14 @@ public:
 	virtual bool ReadDataFromTheByteStream(ParticleTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
-
 class NOVTABLE FakeParticleTypeClass : public ParticleTypeClass
 {
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	ParticleTypeExtData* _GetExtData() {
 		return *reinterpret_cast<ParticleTypeExtData**>(((DWORD)this) + AbstractExtOffset);

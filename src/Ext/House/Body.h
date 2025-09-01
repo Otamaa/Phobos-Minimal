@@ -445,11 +445,11 @@ public:
 	void _UpdateSpySat();
 
 	HouseExtData* _GetExtData() {
-		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + 0x18);
+		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 	HouseTypeExtData* _GetTypeExtData() {
-		return *reinterpret_cast<HouseTypeExtData**>(((DWORD)this->Type) + 0x18);
+		return *reinterpret_cast<HouseTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
 };
 static_assert(sizeof(FakeHouseClass) == sizeof(HouseClass), "Invalid Size !");

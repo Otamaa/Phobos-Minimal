@@ -48,6 +48,15 @@ void RulesExtData::Allocate(RulesClass* pThis)
 {
 	Data = std::make_unique<RulesExtData>();
 	Data->AttachedToObject = pThis;
+
+	CursorTypeClass::AddDefaults();
+	CrateTypeClass::AddDefaults();
+	ArmorTypeClass::AddDefaults();
+	RadTypeClass::AddDefaults();
+	GenericPrerequisite::AddDefaults();
+	HoverTypeClass::AddDefaults();
+	ShieldTypeClass::AddDefaults();
+	SelectBoxTypeClass::AddDefaults();
 }
 
 void RulesExtData::Remove(RulesClass* pThis)
@@ -787,14 +796,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
 void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	CursorTypeClass::AddDefaults();
-	CrateTypeClass::AddDefaults();
-	ArmorTypeClass::AddDefaults();
-	RadTypeClass::AddDefaults();
-	GenericPrerequisite::AddDefaults();
-	HoverTypeClass::AddDefaults();
-	ShieldTypeClass::AddDefaults();
-	SelectBoxTypeClass::AddDefaults();
+
 }
 
 void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
@@ -1882,7 +1884,7 @@ void RulesExtData::InitializeAfterAllRulesLoaded()
 	g_scenario_instance->MasterDetonationBullet = BulletTypeExtData::GetDefaultBulletType()->CreateBullet(nullptr, nullptr, 0, nullptr, 0, false);
 }
 
-DEFINE_HOOK(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)
+ASMJIT_PATCH(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)
 {
 	RulesExtData::InitializeAfterAllRulesLoaded();
 	return 0x668F6A;
