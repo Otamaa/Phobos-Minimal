@@ -11,6 +11,18 @@
 #include <New/Entity/FlyingStrings.h>
 
 #include <Misc/Hooks.Otamaa.h>
+BuildingExtData::~BuildingExtData() {
+
+	auto pThis = This();
+	this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+
+	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
+	auto pOwnerExt = pOwner->_GetExtData();
+
+	pOwnerExt->TunnelsBuildings.erase(pThis);
+	pOwnerExt->Academies.erase(pThis);
+	pOwnerExt->RestrictedFactoryPlants.erase(pThis);
+}
 
 void BuildingExtData::UpdateMainEvaVoice()
 {
@@ -1679,7 +1691,6 @@ BuildingExtContainer BuildingExtContainer::Instance;
 ASMJIT_PATCH(0x43BAD6, BuildingClass_CTOR, 0x5)
 {
 	GET(BuildingClass*, pItem, ESI);
-	Debug::Log(__FUNCTION__"\n");
 	BuildingExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
@@ -1694,14 +1705,6 @@ ASMJIT_PATCH(0x43B733, BuildingClass_CTOR_NoInit, 0x7)
 ASMJIT_PATCH(0x43C022, BuildingClass_DTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
-	Debug::Log(__FUNCTION__"\n");
-	FakeHouseClass* pOwner = (FakeHouseClass*)pItem->Owner;
-	auto pOwnerExt = pOwner->_GetExtData();
-
-	pOwnerExt->TunnelsBuildings.erase(pItem);
-	pOwnerExt->Academies.erase(pItem);
-	pOwnerExt->RestrictedFactoryPlants.erase(pItem);
-
 	BuildingExtContainer::Instance.Remove(pItem);
 	return 0;
 }
@@ -1724,4 +1727,3 @@ void FakeBuildingClass::_DetachAnim(AnimClass* pAnim)
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F1C, FakeBuildingClass::_DetachAnim)
-//

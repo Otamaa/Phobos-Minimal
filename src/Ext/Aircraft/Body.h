@@ -96,6 +96,14 @@ public:
 
 	BulletClass* _FireAt(AbstractClass* target, int which);
 	int _Mission_Attack();
+
+	FORCEDINLINE AircraftExtData* _GetExtData() {
+		return *reinterpret_cast<AircraftExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+	FORCEDINLINE const AircraftExtData* _GetExtData() const {
+		return *reinterpret_cast<const AircraftExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
 };
 
 static_assert(sizeof(FakeAircraftClass) == sizeof(AircraftClass), "Invalid Size !");

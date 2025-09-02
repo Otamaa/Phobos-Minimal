@@ -128,6 +128,7 @@ public:
 	}
 
 	void _DestroyThis(char flag) JMP_THIS(0x523350);
+	void _Detach(AbstractClass* target, bool all);
 
 	InfantryExtData* _GetExtData()
 	{

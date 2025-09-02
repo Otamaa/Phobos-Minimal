@@ -2563,8 +2563,9 @@ ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	GET(FakeBuildingClass*, pThis, ESI);
 	TechnoExt_ExtData::UpdateSensorArray(pThis);
 
-	//const auto pTechnoExt = pThis->_GetTechnoExtData();
 	const auto pExt = pThis->_GetExtData();
+
+	pExt->UpdateLaserTrails(); // Mainly for on turret trails
 	pExt->DisplayIncomeString();
 	pExt->UpdatePoweredKillSpawns();
 	pExt->UpdateAutoSellTimer();
@@ -2582,6 +2583,10 @@ ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	//			(!pThis->IsPowerOnline() && pThis->GetPowerDrain() == 0 && pThis->GetPowerOutput() == 0)))
 	//		pTimer->TimeLeft++;
 	//}
+
+	// Force airstrike targets to redraw every frame to account for tint intensity fluctuations.
+	if (pExt->AirstrikeTargetingMe)
+		pThis->Mark(MarkType::Change);
 
 	return 0;
 }

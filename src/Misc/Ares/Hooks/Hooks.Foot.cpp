@@ -269,6 +269,9 @@ ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 	//auto pUnit = cast_to<UnitClass* , false>(pThis);
 
+	// Update laser trails after locomotor process, to ensure that the updated position is not the previous frame's position
+	TechnoExtContainer::Instance.Find(pThis)->UpdateLaserTrails();
+
 	enum { Undecided = 0u,
 			NoChange = 0x4DAA01u,
 			Advance = 0x4DA9FBu,

@@ -264,7 +264,7 @@ public:
 	Nullable<bool> JumpjetTurnToTarget;
 	Nullable<bool> JumpjetCrash_Rotate;
 
-	Valueable<bool> DeployingAnim_AllowAnyDirection;
+	ValueableVector<AnimTypeClass*> DeployingAnims;
 	Valueable<bool> DeployingAnim_KeepUnitVisible;
 	Valueable<bool> DeployingAnim_ReverseForUndeploy;
 	Valueable<bool> DeployingAnim_UseUnitDrawer;
@@ -1260,7 +1260,7 @@ public:
 		NoSecondaryWeaponFallback_AllowAA(false),
 		NoAmmoWeapon(-1),
 		NoAmmoAmount(0),
-		DeployingAnim_AllowAnyDirection(false),
+		DeployAnims(),
 		DeployingAnim_KeepUnitVisible(false),
 		DeployingAnim_ReverseForUndeploy(true),
 		DeployingAnim_UseUnitDrawer(true),
@@ -1806,7 +1806,7 @@ private:
 			.Process(this->JumpjetAllowLayerDeviation)
 			.Process(this->JumpjetTurnToTarget)
 			.Process(this->JumpjetCrash_Rotate)
-			.Process(this->DeployingAnim_AllowAnyDirection)
+			.Process(this->DeployingAnims)
 			.Process(this->DeployingAnim_KeepUnitVisible)
 			.Process(this->DeployingAnim_ReverseForUndeploy)
 			.Process(this->DeployingAnim_UseUnitDrawer)

@@ -254,20 +254,36 @@ ASMJIT_PATCH(0x423420, AnimClass_Draw_ParentBuildingCheck, 0x6)
 
 	enum { SkipGameCode = 0x4235D3 };
 
-	if (!pBuilding)
-		pBuilding = (pThis->_GetExtData()->ParentBuilding);
+	TechnoClass* pTechno = pBuilding;
+	auto const pUnit = cast_to<UnitClass*>(pThis->OwnerObject);
+	bool allowBerserkTint = false;
 
-	if (pBuilding)
+	if (pUnit && pUnit->DeployAnim == pThis)
+	{
+		pTechno = pUnit;
+		allowBerserkTint = true;
+
+		if (!pThis->Type->UseNormalLight)
+			intensity = TechnoExtData::GetDeployingAnimIntensity(pUnit);
+	}
+	else if (!pTechno)
+	{
+		pTechno = pThis->_GetExtData()->ParentBuilding;
+	}
+
+	if (pTechno)
 	{
 		bool UseNormalLight = pThis->Type->UseNormalLight;
 
-		if ((pBuilding->CurrentMission == Mission::Construction)
-				&& pBuilding->BState == BStateType::Construction && pBuilding->Type->Buildup)
-			if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->BuildUp_UseNormalLIght.Get())
+		if(auto pBld = cast_to<BuildingClass*>(pTechno)) {
+			if ((pBld->CurrentMission == Mission::Construction)
+				&& pBld->BState == BStateType::Construction && pBld->Type->Buildup)
+			if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->BuildUp_UseNormalLIght.Get())
 				UseNormalLight = true;
+		}
 
-		ApplyTintColor(pBuilding,true , true , false);
-		ApplyCustomTint(pBuilding, &color, !UseNormalLight ? &intensity : nullptr);
+		ApplyTintColor(pTechno,true , true , allowBerserkTint);
+		ApplyCustomTint(pTechno, &color, !UseNormalLight ? &intensity : nullptr);
 	}
 
 	R->EBP(color);

@@ -2935,5 +2935,20 @@ DEFINE_JUMP(LJMP, 0x6FBC0B, 0x6FBC38) // TechnoClass::UpdateCloak
 DEFINE_PATCH(0x42A752, 0x08);
 DEFINE_PATCH(0x42A765, 0x02);
 DEFINE_PATCH(0x42A7E3, 0x20);
+DEFINE_PATCH(0x42A7FA, 0x02);
 
 #pragma endregion
+
+
+// AStarClass::FindHierarchicalPath
+// Replace sign-extend to zero-extend
+
+// 42C34A: 0F BF 1C 70
+// To avoid incorrect negative int index
+DEFINE_PATCH(0x42C34B, 0xB7);
+// movsx ebx, word ptr [eax+esi*2] -> movzx ebx, word ptr [eax+esi*2]
+
+// 42C36A: 0F BF 04 70
+// To avoid incorrect negative int index
+DEFINE_PATCH(0x42C36B, 0xB7);
+// movsx eax, word ptr [eax+esi*2] -> movzx eax, word ptr [eax+esi*2]

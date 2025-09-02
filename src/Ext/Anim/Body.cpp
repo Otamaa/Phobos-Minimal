@@ -795,7 +795,6 @@ ASMJIT_PATCH(0x421EA0, AnimClass_CTOR_SetContext, 0x6)
 ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 {
 	GET(AnimClass*, pItem, ESI);
-	Debug::Log(__FUNCTION__"\n");
 	if(pItem->Type){
 
 		PhobosGlobal::Instance()->LastAnimName = pItem->Type->ID;
@@ -845,7 +844,6 @@ ASMJIT_PATCH(0x4228CB, AnimClass_CTOR_NoInt, 0x7)
 ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
-	Debug::Log(__FUNCTION__"\n");
 	AnimExtContainer::AnimsWithAttachedParticles.remove((FakeAnimClass*)pItem);
 
 	AnimExtContainer::Instance.Remove(pItem);

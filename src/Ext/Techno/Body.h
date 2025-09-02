@@ -724,7 +724,9 @@ private:
 			.Process(this->ForceFullRearmDelay)
 			.Process(this->AttackMoveFollowerTempCount)
 			.Process(this->OnlyAttackData)
+			.Process(this->Strafe_TargetCell)
 			.Process(this->IsSelected)
+			.Process(this->SimpleDeployerAnimationTimer)
 			;
 	}
 
@@ -910,8 +912,11 @@ public:
 	bool ForceFullRearmDelay;
 	int AttackMoveFollowerTempCount;
 	HelperedVector<OnlyAttackStruct> OnlyAttackData;
-
+	CellClass* Strafe_TargetCell;
 	bool IsSelected;
+	// Replaces use of TechnoClass->Animation StageClass timer for IsSimpleDeployer to simplify
+	// the deploy animation timer calcs and eliminate possibility of outside interference.
+	CDTimerClass SimpleDeployerAnimationTimer;
 
 #pragma endregion
 
@@ -1004,6 +1009,7 @@ public:
 		AirstrikeTargetingMe(nullptr),
 		ForceFullRearmDelay(false),
 		AttackMoveFollowerTempCount(0),
+		Strafe_TargetCell(),
 		IsSelected(false)
 	{
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
@@ -1011,21 +1017,7 @@ public:
 
 	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) { };
 
-	virtual ~TechnoExtData()
-	{
-		if (!Phobos::Otamaa::ExeTerminated)
-		{
-			if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
-			{
-				GameDelete<true, false>(pTemp);
-			}
-		}
-
-		this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		this->ClearElectricBolts();
-	}
-
+	virtual ~TechnoExtData();
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
@@ -1113,31 +1105,10 @@ public:
 
 	static bool HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int weaponIndex, int firingFrame);
 
-	static bool FORCEDINLINE IsOnBridge(FootClass* pUnit)
-	{
-		auto const pCell = MapClass::Instance->GetCellAt(pUnit->GetCoords());
-		auto const pCellAjd = pCell->GetNeighbourCell(FacingType::North);
-		bool containsBridge = pCell->ContainsBridge();
-		bool containsBridgeDir = static_cast<bool>(pCell->Flags & CellFlags::BridgeDir);
-
-		if ((containsBridge || containsBridgeDir || pCellAjd->ContainsBridge()) && (!containsBridge || pCell->GetNeighbourCell(FacingType::West)->ContainsBridge()))
-			return true;
-
-		return false;
-	}
-
-	static FORCEDINLINE void GetLevelIntensity(TechnoClass* pThis, int level, int& levelIntensity, int& cellIntensity, double levelMult, double cellMult, bool applyBridgeBonus = false)
-	{
-		double currentLevel = pThis->GetHeight() / static_cast<double>(Unsorted::LevelHeight);
-		levelIntensity = static_cast<int>(level * currentLevel * levelMult);
-		int bridgeBonus = applyBridgeBonus ? 4 * level : 0;
-		cellIntensity = MapClass::Instance()->GetCellAt(pThis->GetMapCoords())->Intensity_Normal + bridgeBonus;
-
-		if (cellMult > 0.0)
-			cellIntensity = std::clamp(cellIntensity + static_cast<int>((1000 - cellIntensity) * currentLevel * cellMult), 0, 1000);
-		else if (cellMult < 0.0)
-			cellIntensity = 1000;
-	}
+	static bool IsOnBridge(FootClass* pUnit);
+	static int GetJumpjetIntensity(FootClass* pThis);
+	static void GetLevelIntensity(TechnoClass* pThis, int level, int& levelIntensity, int& cellIntensity, double levelMult, double cellMult, bool applyBridgeBonus = false);
+	static int GetDeployingAnimIntensity(FootClass* pThis);
 
 	static int CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* args);
 	static std::vector<double> GetBlockChance(TechnoClass* pThis, std::vector<double>& blockChance);

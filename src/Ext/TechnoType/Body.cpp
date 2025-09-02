@@ -832,7 +832,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->JumpjetTurnToTarget.Read(exINI, pSection, "JumpjetTurnToTarget");
 		this->JumpjetCrash_Rotate.Read(exINI, pSection, "JumpjetCrashRotate");
 
-		this->DeployingAnim_AllowAnyDirection.Read(exINI, pSection, "DeployingAnim.AllowAnyDirection");
+		this->DeployingAnims.Read(exINI, pSection, "DeployingAnims");
 		this->DeployingAnim_KeepUnitVisible.Read(exINI, pSection, "DeployingAnim.KeepUnitVisible");
 		this->DeployingAnim_ReverseForUndeploy.Read(exINI, pSection, "DeployingAnim.ReverseForUndeploy");
 		this->DeployingAnim_UseUnitDrawer.Read(exINI, pSection, "DeployingAnim.UseUnitDrawer");

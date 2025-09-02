@@ -48,6 +48,70 @@
 UnitClass* TechnoExtData::Deployer { nullptr };
 #pragma endregion
 
+bool TechnoExtData::IsOnBridge(FootClass* pUnit)
+{
+	auto const pCell = MapClass::Instance->GetCellAt(pUnit->GetCoords());
+	auto const pCellAjd = pCell->GetNeighbourCell(FacingType::North);
+	bool containsBridge = pCell->ContainsBridge();
+	bool containsBridgeDir = static_cast<bool>(pCell->Flags & CellFlags::BridgeDir);
+
+	if ((containsBridge || containsBridgeDir || pCellAjd->ContainsBridge()) && (!containsBridge || pCell->GetNeighbourCell(FacingType::West)->ContainsBridge()))
+		return true;
+
+	return false;
+}
+
+int TechnoExtData::GetJumpjetIntensity(FootClass* pThis)
+{
+	int level = ScenarioClass::Instance->NormalLighting.Level;
+
+	if (LightningStorm::IsActive())
+		level = ScenarioClass::Instance->IonLighting.Level;
+	else if (PsyDom::IsActive())
+		level = ScenarioClass::Instance->DominatorLighting.Level;
+	else if (NukeFlash::IsFadingIn())
+		level = ScenarioClass::Instance->NukeLighting.Level;
+
+	int levelIntensity = 0;
+	int cellIntensity = 1000;
+	GetLevelIntensity(pThis, level, levelIntensity, cellIntensity, RulesExtData::Instance()->JumpjetLevelLightMultiplier, IsOnBridge(pThis));
+
+	return levelIntensity + cellIntensity;
+}
+
+void TechnoExtData::GetLevelIntensity(TechnoClass* pThis, int level, int& levelIntensity, int& cellIntensity, double levelMult, double cellMult, bool applyBridgeBonus)
+{
+	double currentLevel = pThis->GetHeight() / static_cast<double>(Unsorted::LevelHeight);
+	levelIntensity = static_cast<int>(level * currentLevel * levelMult);
+	int bridgeBonus = applyBridgeBonus ? 4 * level : 0;
+	cellIntensity = MapClass::Instance()->GetCellAt(pThis->GetMapCoords())->Intensity_Normal + bridgeBonus;
+
+	if (cellMult > 0.0)
+		cellIntensity = std::clamp(cellIntensity + static_cast<int>((1000 - cellIntensity) * currentLevel * cellMult), 0, 1000);
+	else if (cellMult < 0.0)
+		cellIntensity = 1000;
+}
+
+int TechnoExtData::GetDeployingAnimIntensity(FootClass* pThis)
+{
+	int intensity = 0;
+
+	if (locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
+		intensity = GetJumpjetIntensity(pThis);
+	else
+		intensity = pThis->GetCell()->Intensity_Normal;
+
+	intensity = pThis->GetFlashingIntensity(intensity);
+
+	if (pThis->IsIronCurtained())
+		intensity = pThis->GetInvulnerabilityTintIntensity(intensity);
+
+	if (TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe)
+		intensity = pThis->GetAirstrikeTintIntensity(intensity);
+
+	return intensity;
+}
+
 int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	int damage = 0;
@@ -921,6 +985,17 @@ void TechnoExtData::UpdateRearmInEMPState()
 
 	if (pThis->ReloadTimer.InProgress() && pTypeExt->NoReload_UnderEMP.Get(RulesExtData::Instance()->NoReload_UnderEMP))
 		pThis->ReloadTimer.StartTime++;
+
+		// Pause building factory production under EMP / Deactivated (AI only)
+	if (auto const pBuilding = cast_to<BuildingClass*,false>(pThis)) {
+		if (pBuilding->Owner && !pBuilding->Owner->IsControlledByHuman()) {
+			if (auto const pFactory = pBuilding->Factory) {
+				if (pFactory->Production.Timer.InProgress()) {
+					pFactory->Production.Timer.StartTime++;
+				}
+			}
+		}
+	}
 }
 
 void TechnoExtData::UpdateRearmInTemporal()
@@ -6949,7 +7024,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 				ranges_.disallow.insert(disallow);
 		}
 
-		if (type->ArmorMultiplier != 1.0) {
+		if (type->ArmorMultiplier != 1.0)
+		{
 			auto& mults_ = armormultData->mults.emplace_back();
 			mults_.Mult = type->ArmorMultiplier;
 
@@ -6966,7 +7042,8 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 
 	}
 
-	if (cur_timerAE.has_value() && cur_timerAE > 0.0) {
+	if (cur_timerAE.has_value() && cur_timerAE > 0.0)
+	{
 		const int timeleft = pTechno->RearmTimer.GetTimeLeft();
 
 		if (timeleft > 0)
@@ -7003,8 +7080,47 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->DisableRadar = disableRadar;
 	_AEProp->DisableSpySat = disableSpySat;
 
-	if (pTechno->AbstractFlags & AbstractFlags::Foot) {
+	if (pTechno->AbstractFlags & AbstractFlags::Foot)
+	{
 		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;
+	}
+}
+
+TechnoExtData::~TechnoExtData()
+{
+	auto pThis = This();
+	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
+	auto pOwnerExt = pOwner->_GetExtData();
+
+	if (!Phobos::Otamaa::ExeTerminated)
+	{
+		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
+		{
+			GameDelete<true, false>(pTemp);
+		}
+	}
+
+	this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+	this->ClearElectricBolts();
+
+	HouseExtData::AutoDeathObjects.erase_all_if([pThis](std::pair<TechnoClass*, KillMethod>& item) {
+		return item.first == pThis;
+	});
+
+	HouseExtData::LimboTechno.remove(pThis);
+
+	pOwnerExt->OwnedCountedHarvesters.erase(pThis);
+
+	if (this->AbsType != AbstractType::Building) {
+		for (auto& tun : pOwnerExt->Tunnels) {
+			tun.Vector.remove((FootClass*)pThis);
+		}
+
+		if (RulesExtData::Instance()->ExtendedBuildingPlacing && this->AbsType == AbstractType::Unit && ((UnitClass*)pThis)->Type->DeploysInto)
+		{
+			pOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
+		}
 	}
 }
 
@@ -7018,36 +7134,15 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 //	TechnoExtContainer::Instance.Allocate(pItem);
 //	return 0;
 //}
-
-ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
-{
-	GET(TechnoClass*, pItem, ECX);
-
-	FakeHouseClass* pOwner = (FakeHouseClass*)pItem->Owner;
-	auto pOwnerExt = pOwner->_GetExtData();
-
-	HouseExtData::AutoDeathObjects.erase_all_if([pItem](std::pair<TechnoClass*, KillMethod>& item) {
-		return item.first == pItem;
-	});
-
-	HouseExtData::LimboTechno.remove(pItem);
-	const auto pExt = TechnoExtContainer::Instance.Find(pItem);
-
-	pOwnerExt->OwnedCountedHarvesters.erase(pItem);
-
-	if(pExt->AbsType != AbstractType::Building) {
-		for (auto& tun : pOwnerExt->Tunnels) {
-			tun.Vector.remove((FootClass*)pItem);
-		}
-
-		if (RulesExtData::Instance()->ExtendedBuildingPlacing && pExt->AbsType == AbstractType::Unit && ((UnitClass*)pItem)->Type->DeploysInto) {
-			pOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pItem);
-		}
-	}
-
-	//TechnoExtContainer::Instance.RemoveExtOf(pItem , pExt);
-	return 0;
-}
+//
+//ASMJIT_PATCH(0x6F4500, TechnoClass_DTOR, 0x5)
+//{
+//	GET(TechnoClass*, pItem, ECX);
+//
+//
+//	//TechnoExtContainer::Instance.RemoveExtOf(pItem , pExt);
+//	return 0;
+//}
 
 //ASMJIT_PATCH(0x7077C0, TechnoClass_Detach, 0x7)
 //{

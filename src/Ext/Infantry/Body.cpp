@@ -69,20 +69,17 @@ ASMJIT_PATCH(0x517AEB, InfantryClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x517D90, InfantryClass_DTOR, 0x5)
+ASMJIT_PATCH(0x517F83, InfantryClass_DTOR, 0x6)
 {
-	GET(InfantryClass* const, pItem, ECX);
+	GET(InfantryClass* const, pItem, ESI);
 	InfantryExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
- ASMJIT_PATCH(0x51AA23, InfantryClass_Detach, 0x6)
- {
- 	GET(InfantryClass* const, pThis, ESI);
- 	GET(AbstractClass*, target, EDI);
- 	GET_STACK(bool, all, STACK_OFFS(0x8, -0x8));
+void FakeInfantryClass::_Detach(AbstractClass* target, bool all)
+{
+	InfantryExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	this->InfantryClass::PointerExpired(target, all);
+}
 
- 	InfantryExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-
- 	return pThis->Type == target ? 0x51AA2B : 0x51AA35;
- }
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB080, FakeInfantryClass::_Detach)

@@ -3773,6 +3773,25 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 		pThis->LocomotorTarget = nullptr;
 	}
 
+	// FireAngle
+	pThis->BarrelFacing.Set_Current(DirStruct(0x4000 - (pCurrentType->FireAngle << 8)));
+
+	// Reset recoil data
+	{
+		auto& turretRecoil = pThis->TurretRecoil.Turret;
+		const auto& turretAnimData = pCurrentType->TurretAnimData;
+		turretRecoil.Travel = turretAnimData.Travel;
+		turretRecoil.CompressFrames = turretAnimData.CompressFrames;
+		turretRecoil.RecoverFrames = turretAnimData.RecoverFrames;
+		turretRecoil.HoldFrames = turretAnimData.HoldFrames;
+		auto& barrelRecoil = pThis->BarrelRecoil.Turret;
+		const auto& barrelAnimData = pCurrentType->BarrelAnimData;
+		barrelRecoil.Travel = barrelAnimData.Travel;
+		barrelRecoil.CompressFrames = barrelAnimData.CompressFrames;
+		barrelRecoil.RecoverFrames = barrelAnimData.RecoverFrames;
+		barrelRecoil.HoldFrames = barrelAnimData.HoldFrames;
+	}
+
 	// Only FootClass* can use this.
 	if (const auto pFoot = flag_cast_to<FootClass*>(pThis))
 	{
@@ -3808,7 +3827,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 	//auto const pOldTypeExt = TechnoTypeExt::ExtMap.Find(pOldType);
 
 	// Update movement sound if still moving while type changed.
-	if (pThis->Locomotor->Is_Moving_Now() && pThis->IsMoveSoundPlaying)
+	if (pThis->IsMoveSoundPlaying && pThis->Locomotor->Is_Moving_Now())
 	{
 		if (pCurrentType->MoveSound != pOldType->MoveSound)
 		{
@@ -4066,8 +4085,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	TechnoExtData::UpdateLaserTrails(pThis);
 
 	// Reset AutoDeath Timer
-	if (pExt->Death_Countdown.HasStarted())
-	{
+	if (pExt->Death_Countdown.HasStarted()) {
 		pExt->Death_Countdown.Stop();
 		HouseExtData::AutoDeathObjects.erase(pThis);
 	}

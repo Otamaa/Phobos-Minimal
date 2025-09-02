@@ -39,6 +39,19 @@ DEFINE_FUNCTION_JUMP(CALL6, 0x4188D3, AircraftClass_MI_Attack_SelectWeapon_Befor
 DEFINE_FUNCTION_JUMP(CALL6, 0x4189E2, AircraftClass_MI_Attack_SelectWeapon_BeforeFiring);
 DEFINE_FUNCTION_JUMP(CALL6, 0x418AF1, AircraftClass_MI_Attack_SelectWeapon_BeforeFiring);
 
+ASMJIT_PATCH(0x418544, AircraftClass_Mission_Attack_StrafingDestinationFix, 0x6)
+{
+	GET(FireError, fireError, EAX);
+	GET(AircraftClass*, pThis, ESI);
+
+	// The aircraft managed by the spawn manager will not update destination after changing target
+	if (fireError == FireError::RANGE && pThis->Is_Strafe())
+		pThis->SetDestination(pThis->Target, true);
+
+	return 0;
+
+}ASMJIT_PATCH_AGAIN(0x41874E, AircraftClass_Mission_Attack_StrafingDestinationFix, 0x6)
+
 ASMJIT_PATCH(0x4180F4, AircraftClass_MI_Attack_WeaponRange, 0x5)
 {
 	enum { SkipGameCode = 0x4180FF };
@@ -169,11 +182,11 @@ bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 		}
 	}
 
-	if (pAir->Target)
-	{
-		if (Scatter)
-		{
-			auto coord = pAir->Target->GetCoords();
+	if (auto pTarget = (pExt->Strafe_TargetCell ? pExt->Strafe_TargetCell : pAir->Target)) {
+		if (Scatter) {
+
+			auto coord = pTarget->GetCoords();
+
 			if (auto pCell = MapClass::Instance->TryGetCellAt(coord))
 			{
 				pCell->ScatterContent(coord, true, false, false);
@@ -241,6 +254,7 @@ static int GetDelay(AircraftClass* pThis, bool isLastShot)
 
 	if (isLastShot || pExt->Strafe_BombsDroppedThisRound == pWeaponExt->Strafing_Shots.Get(5) || (pWeaponExt->Strafing_UseAmmoPerShot && !pThis->Ammo))
 	{
+		pExt->Strafe_TargetCell = nullptr;
 		pThis->MissionStatus = (int)AirAttackStatus::FlyToPosition;
 		delay = pWeaponExt->Strafing_EndDelay.Get((pWeapon->Range + 1024) / pThis->Type->Speed);
 	}
@@ -250,7 +264,11 @@ static int GetDelay(AircraftClass* pThis, bool isLastShot)
 
 ASMJIT_PATCH(0x4184CC, AircraftClass_MI_Attack_Delay1A, 0x6)
 {
-	GET(AircraftClass*, pThis, ESI);
+	GET(FakeAircraftClass*, pThis, ESI);
+
+	auto pExt = pThis->_GetExtData();
+	if (WeaponTypeExtContainer::Instance.Find(pThis->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType)->Strafing_TargetCell)
+		pExt->Strafe_TargetCell = MapClass::Instance->GetCellAt(pThis->Target->GetCoords());
 
 	pThis->IsLocked = true;
 	pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;

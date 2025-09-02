@@ -237,7 +237,7 @@ public:
 	virtual DamageState IronCurtain(int nDuration, HouseClass* pSource, bool ForceShield) override JMP_THIS(0x4DEAE0);
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
 ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x701900);
-	virtual LightConvertClass* GetRemapColour() const override JMP_THIS(0x705D70);;
+	virtual LightConvertClass* GetRemapColour() const override JMP_THIS(0x705D70);
 
 	// remove object from the map
 	virtual bool Limbo() override JMP_THIS(0x6F6AC0);

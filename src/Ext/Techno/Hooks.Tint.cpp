@@ -85,22 +85,7 @@ ASMJIT_PATCH(0x73CFA7, UnitClass_DrawIt_LevelIntensity, 0x6)
 
 	if (locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
 	{
-		int level = ScenarioClass::Instance->NormalLighting.Level;
-
-		if (LightningStorm::IsActive())
-			level = ScenarioClass::Instance->IonLighting.Level;
-		else if (PsyDom::IsActive())
-			level = ScenarioClass::Instance->DominatorLighting.Level;
-		else if (NukeFlash::IsFadingIn())
-			level = ScenarioClass::Instance->NukeLighting.Level;
-
-		auto const pRulesExt = RulesExtData::Instance();
-		int levelIntensity = 0;
-		int cellIntensity = 1000;
-		bool applyBridgeHeightBonus = pRulesExt->JumpjetCellLightApplyBridgeHeight ? TechnoExtData::IsOnBridge(pThis) : false;
-		TechnoExtData::GetLevelIntensity(pThis, level, levelIntensity, cellIntensity, pRulesExt->JumpjetLevelLightMultiplier, pRulesExt->JumpjetCellLightLevelMultiplier, applyBridgeHeightBonus);
-
-		R->EBP(levelIntensity + cellIntensity);
+		R->EBP(TechnoExtData::GetJumpjetIntensity(pThis));
 		return SkipGameCode;
 	}
 

@@ -100,10 +100,7 @@ public:
 
 	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }
 
-	virtual ~BuildingExtData()
-	{
-		this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	}
+	virtual ~BuildingExtData();
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
 

@@ -1696,6 +1696,18 @@ ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 	const CellClass* pCell = pThis->GetCell();
 	const CoordStruct crd = pCell->GetCoordsWithBridge();
 
+	if (pThis->Type->IsSimpleDeployer) {
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+		if (auto const pTypeConvert = pTypeExt->Convert_Deploy) {
+			auto const pCell = pThis->GetCell();
+
+			if (!pCell->IsClearToMove(pTypeConvert->SpeedType, true, true, ZoneType::None, pTypeConvert->MovementZone, -1, pCell->ContainsBridge()))
+				return 0x700DCE;
+	
+		}
+	}
+
 	// recreate replaced check, and also disallow if unit is still warping or dropping in.
 	return TechnoExtContainer::Instance.Find(pThis)->Convert_Deploy_Delay.InProgress()
 		|| pThis->IsUnderEMP()

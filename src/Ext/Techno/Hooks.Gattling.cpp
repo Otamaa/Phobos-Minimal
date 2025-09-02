@@ -35,7 +35,11 @@ ASMJIT_PATCH(0x5206D2, InfantryClass_FiringAI_SetContext, 0x6)
 
 	if (!pWeapon)
 	{
+		if (pThis->Type->IsGattling)
+			pThis->GattlingRateDown(1);
+
 		R->AL(false);
+		FiringAITemp::canFire = false;
 		return SkipGameCode;
 	}
 
@@ -208,7 +212,7 @@ ASMJIT_PATCH(0x5206E4, InfantryClass_FiringAI_SetFireError, 0x6)
 // Do you think the infantry's way of determining that weapons are secondary is stupid?
 ASMJIT_PATCH(0x520968, InfantryClass_UpdateFiring_IsSecondary, 0x6)
 {
-	enum { Secondary = 0x52096C, SkipGameCode = 0x5209A0 };
+	enum { Secondary = 0x520970, SkipGameCode = 0x52098A };
 
 	return FiringAITemp::isSecondary ? Secondary : SkipGameCode;
 }
@@ -217,7 +221,7 @@ ASMJIT_PATCH(0x520968, InfantryClass_UpdateFiring_IsSecondary, 0x6)
 ASMJIT_PATCH(0x520888, InfantryClass_UpdateFiring_IsSecondary2, 0x8)
 {
 	GET(InfantryClass*, pThis, EBP);
-	enum { Primary = 0x5208D6, Secondary = 0x520890 };
+	enum { Primary = 0x5208DC, Secondary = 0x520890 };
 
 	R->AL(pThis->Crawling);
 	return FiringAITemp::isSecondary ? Secondary : Primary;

@@ -1572,9 +1572,13 @@ ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
 	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const mission = pThis->GetCurrentMission();
-	return (pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire))
-		? (!(mission == Mission::Move && pThis->MegaDestination && pThis->DistanceFrom(pThis->MegaDestination) > 256) && mission != Mission::Guard) : mission != Mission::Guard)
-		? ClearMegaMission : ContinueMegaMission;
+	bool stopWhenTargetAcquired = pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire));
+	bool clearMegaMission = mission != Mission::Guard;
+
+	if (stopWhenTargetAcquired && clearMegaMission)
+		clearMegaMission = !(mission == Mission::Move && pThis->MegaDestination && pThis->DistanceFrom(pThis->MegaDestination) > 256);
+
+	return clearMegaMission ? ClearMegaMission : ContinueMegaMission;
 }
 
 ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
@@ -1625,8 +1629,27 @@ ASMJIT_PATCH(0x4DF3A6, FootClass_UpdateAttackMove_Follow, 0x6)
 	Mission mission = pThis->GetCurrentMission();
 
 	// Refresh mega mission if mission is somehow changed to incorrect missions.
-	if (mission != Mission::Attack && mission != Mission::Move)
-		pThis->ContinueMegaMission();
+	if (mission != Mission::Attack && mission != Mission::Move){
+
+		bool continueMission = true;
+
+		// Aug 30, 2025 - Starkku: SimpleDeployer needs special handling here.
+		// Without this if you interrupt waypoint mode path with deploy command
+		// it will not execute properly as it interrupts it with movement.
+
+		if (mission == Mission::Unload) {
+			if (auto const pUnit = cast_to<UnitClass*>(pThis)) {
+				if (pUnit->Type->IsSimpleDeployer)
+					continueMission = false;
+
+
+			}
+		}
+
+		if (continueMission)
+			pThis->ContinueMegaMission();
+
+	}
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 

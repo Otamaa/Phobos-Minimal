@@ -602,14 +602,6 @@ ASMJIT_PATCH(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 	return 0;
 } ASMJIT_PATCH_AGAIN(0x6FF933, TechnoClass_FireAt_End, 0x5);
 
-ASMJIT_PATCH(0x4DA9C9, FootClass_Update_DeployToLandSound, 0xA)
-{
-	GET(TechnoTypeClass* const, pType, EAX);
-	GET(FootClass* const, pThis, ESI);
-
-	return !pType->JumpJet || pThis->GetHeight() <= 0 ? 0x4DAA01 : 0x4DA9D7;
-}
-
 ASMJIT_PATCH(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
 {
 	GET(TemporalClass* const, pThis, ESI);

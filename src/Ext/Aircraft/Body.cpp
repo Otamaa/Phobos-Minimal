@@ -898,7 +898,7 @@ ASMJIT_PATCH(0x41B4FB, AircraftClass_CTOR_NoInt, 0xA)
 	return 0;
 }
 
-ASMJIT_PATCH(0x413F6A, AircraftClass_CTOR, 0x7)
+ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
 {
 	GET(AircraftClass*, pItem, ESI);
 	AircraftExtContainer::Instance.Allocate(pItem);

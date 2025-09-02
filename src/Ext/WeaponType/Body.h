@@ -36,6 +36,7 @@ public:
 	Nullable<bool> Strafing;
 	Valueable<bool> Strafing_UseAmmoPerShot;
 	Nullable<int> Strafing_EndDelay;
+	Valueable<bool> Strafing_TargetCell;
 
 	Valueable<AffectedTarget> CanTarget;
 	Valueable<AffectedHouse> CanTargetHouses;
@@ -206,6 +207,7 @@ public:
 		Rad_NoOwner(true),
 		Strafing_SimulateBurst(false),
 		Strafing_UseAmmoPerShot(false),
+		Strafing_TargetCell(),
 		CanTarget(AffectedTarget::All),
 		CanTargetHouses(AffectedHouse::All),
 		AreaFire_Target(AreaFireTarget::Base),

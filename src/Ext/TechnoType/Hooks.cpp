@@ -497,17 +497,17 @@ ASMJIT_PATCH(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
 	return 0x44F631;
 }
 
-ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
+// ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
+// {
+// 	GET(UnitClass*, pThis, ESI);
 
-	if((pThis->Deploying || pThis->Undeploying) &&
-		TechnoTypeExtContainer::Instance.Find(pThis->Type)->DeployingAnim_KeepUnitVisible){
-			return 0x73CF62;
-		}
+// 	if((pThis->Deploying || pThis->Undeploying) &&
+// 		TechnoTypeExtContainer::Instance.Find(pThis->Type)->DeployingAnim_KeepUnitVisible){
+// 			return 0x73CF62;
+// 		}
 
-	return 0;
-}
+// 	return 0;
+// }
 
 // Ares hooks in at 739B8A, this goes before it and skips it if needed.
 // ASMJIT_PATCH(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
@@ -570,90 +570,90 @@ AnimTypeClass* GetDeployAnim(UnitClass* pThis)
 // 	return false;
 // }
 
-ASMJIT_PATCH(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-	auto const pType = pThis->Type;
-	enum { PlayDeploySound = 0x739C70  , SetAnimTimer = 0x739C20 , SetDeployingState = 0x739C62 };
-	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+//ASMJIT_PATCH(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//	auto const pType = pThis->Type;
+//	enum { PlayDeploySound = 0x739C70  , SetAnimTimer = 0x739C20 , SetDeployingState = 0x739C62 };
+//	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+//
+//	if (!pThis->InAir)
+//	{
+//		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+//
+//		if (!pTypeExt->DeployingAnim_AllowAnyDirection)
+//		{
+//			// not sure what is the bitfrom or bitto so it generate this result
+//			// yes iam dum , iam sorry - otamaa
+//			const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
+//			const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
+//			const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+//
+//			if (nCurrent != (int)nRaw)
+//			{
+//				if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
+//				{
+//					if (!pLoco->Is_Moving_Now())
+//					{
+//						pLoco->Do_Turn(DirStruct { nRaw });
+//					}
+//
+//					return PlayDeploySound; //adjust the facing first
+//				}
+//			}
+//		}
+//
+//		if (const auto pAnimType = GetDeployAnim(pThis))
+//		{
+//			if(!pThis->DeployAnim) {
+//				auto const pAnim = GameCreate<AnimClass>(pAnimType,
+//				pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+//
+//				pThis->DeployAnim = pAnim;
+//				pAnim->SetOwnerObject(pThis);
+//
+//				if (pTypeExt->DeployingAnim_UseUnitDrawer) {
+//					pAnim->LightConvert = pThis->GetRemapColour();
+//				}
+//			}
+//
+//			pThis->Animation.Stage = pAnimType->Start;
+//			pThis->Animation.Timer.Start(pAnimType->Rate);
+//		}
+//
+//		pThis->Deployed = true;
+//	}
+//
+//	return PlayDeploySound;
+//}
 
-	if (!pThis->InAir)
-	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		if (!pTypeExt->DeployingAnim_AllowAnyDirection)
-		{
-			// not sure what is the bitfrom or bitto so it generate this result
-			// yes iam dum , iam sorry - otamaa
-			const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
-			const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
-			const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
-
-			if (nCurrent != (int)nRaw)
-			{
-				if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
-				{
-					if (!pLoco->Is_Moving_Now())
-					{
-						pLoco->Do_Turn(DirStruct { nRaw });
-					}
-
-					return PlayDeploySound; //adjust the facing first
-				}
-			}
-		}
-
-		if (const auto pAnimType = GetDeployAnim(pThis))
-		{
-			if(!pThis->DeployAnim) {
-				auto const pAnim = GameCreate<AnimClass>(pAnimType,
-				pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-
-				pThis->DeployAnim = pAnim;
-				pAnim->SetOwnerObject(pThis);
-
-				if (pTypeExt->DeployingAnim_UseUnitDrawer) {
-					pAnim->LightConvert = pThis->GetRemapColour();
-				}
-			}
-
-			pThis->Animation.Stage = pAnimType->Start;
-			pThis->Animation.Timer.Start(pAnimType->Rate);
-		}
-
-		pThis->Deployed = true;
-	}
-
-	return PlayDeploySound;
-}
-
-ASMJIT_PATCH(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	const auto pAnimType = GetDeployAnim(pThis);
-
-	if(!pAnimType)
-		return 0x739E4F;
-
-	if(pThis->DeployAnim)
-		return 0x739E04;
-
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	auto const pAnim = GameCreate<AnimClass>(pAnimType,
-	pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
-	pExt->DeployingAnim_ReverseForUndeploy);
-
-	pThis->DeployAnim = pAnim;
-	pAnim->SetOwnerObject(pThis);
-
-	if (pExt->DeployingAnim_UseUnitDrawer) {
-		pAnim->LightConvert = pThis->GetRemapColour();
-	}
-
-	return 0x739E04;
-}
+//ASMJIT_PATCH(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	const auto pAnimType = GetDeployAnim(pThis);
+//
+//	if(!pAnimType)
+//		return 0x739E4F;
+//
+//	if(pThis->DeployAnim)
+//		return 0x739E04;
+//
+//	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+//
+//	auto const pAnim = GameCreate<AnimClass>(pAnimType,
+//	pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
+//	pExt->DeployingAnim_ReverseForUndeploy);
+//
+//	pThis->DeployAnim = pAnim;
+//	pAnim->SetOwnerObject(pThis);
+//
+//	if (pExt->DeployingAnim_UseUnitDrawer) {
+//		pAnim->LightConvert = pThis->GetRemapColour();
+//	}
+//
+//	return 0x739E04;
+//}
 
 //ASMJIT_PATCH(0x714706, TechnoTypeClass_read_DeployAnim, 0x9)
 //{
@@ -689,55 +689,55 @@ ASMJIT_PATCH(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 //
 // 	return isDeploying ? Deploy : Undeploy;
 // }
-
-ASMJIT_PATCH(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
-{
-	enum { DeployReturn = 0x739CBF, UndeployReturn = 0x739EB8 };
-
-	GET(UnitClass*, pThis, ESI);
-
-	const bool isDeploying = R->Origin() == 0x739C86;
-	const bool isDoneWithDeployUndeploy = isDeploying ? pThis->Deployed : !pThis->Deployed;
-
-	if (isDoneWithDeployUndeploy)
-		return 0; // Only play sound when done with deploying or undeploying.
-
-	return isDeploying ? DeployReturn : UndeployReturn;
-}ASMJIT_PATCH_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
+//
+//ASMJIT_PATCH(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
+//{
+//	enum { DeployReturn = 0x739CBF, UndeployReturn = 0x739EB8 };
+//
+//	GET(UnitClass*, pThis, ESI);
+//
+//	const bool isDeploying = R->Origin() == 0x739C86;
+//	const bool isDoneWithDeployUndeploy = isDeploying ? pThis->Deployed : !pThis->Deployed;
+//
+//	if (isDoneWithDeployUndeploy)
+//		return 0; // Only play sound when done with deploying or undeploying.
+//
+//	return isDeploying ? DeployReturn : UndeployReturn;
+//}ASMJIT_PATCH_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
 
 #include <Locomotor/HoverLocomotionClass.h>
 
-namespace SimpleDeployerTemp {
-	bool HoverDeployedToLand = false;
-	AnimTypeClass* DeployingAnim = nullptr;
-}
+// namespace SimpleDeployerTemp {
+// 	bool HoverDeployedToLand = false;
+// 	AnimTypeClass* DeployingAnim = nullptr;
+// }
 
-ASMJIT_PATCH(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
-{
-	GET(UnitClass*, pThis, ESI);
+// ASMJIT_PATCH(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
+// {
+// 	GET(UnitClass*, pThis, ESI);
 
-	if (pThis->Deployed && pThis->Type->DeployToLand && pThis->Type->Locomotor == HoverLocomotionClass::ClassGUID())
-		SimpleDeployerTemp::HoverDeployedToLand = true;
+// 	if (pThis->Deployed && pThis->Type->DeployToLand && pThis->Type->Locomotor == HoverLocomotionClass::ClassGUID())
+// 		SimpleDeployerTemp::HoverDeployedToLand = true;
 
-	return 0;
-}
+// 	return 0;
+// }
 
-ASMJIT_PATCH(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
-{
-	if (SimpleDeployerTemp::HoverDeployedToLand)
-	{
-		GET(UnitClass*, pThis, ESI);
+// ASMJIT_PATCH(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
+// {
+// 	if (SimpleDeployerTemp::HoverDeployedToLand)
+// 	{
+// 		GET(UnitClass*, pThis, ESI);
 
-		// Ares' DeployToLand 'fix' for Hover IsSimpleDeployer vehicles does not set/reset certain values
-		// and has a chance to get stuck in Unload mission as a result, following should remedy that.
-		pThis->SetHeight(0);
-		pThis->InAir = false;
-		pThis->ForceMission(Mission::Guard);
-	}
+// 		// Ares' DeployToLand 'fix' for Hover IsSimpleDeployer vehicles does not set/reset certain values
+// 		// and has a chance to get stuck in Unload mission as a result, following should remedy that.
+// 		pThis->SetHeight(0);
+// 		pThis->InAir = false;
+// 		pThis->ForceMission(Mission::Guard);
+// 	}
 
-	SimpleDeployerTemp::HoverDeployedToLand = false;
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x73DED8, UnitClass_Unload_DeployToLandHover, 0x7)
+// 	SimpleDeployerTemp::HoverDeployedToLand = false;
+// 	return 0;
+// }ASMJIT_PATCH_AGAIN(0x73DED8, UnitClass_Unload_DeployToLandHover, 0x7)
 
 // // Trick Ares into thinking it can deploy in any direction if anim does not constrain it by temporarily removing the anim.
 // ASMJIT_PATCH(0x514325, HoverLocomotionClass_Process_DeployingAnim1, 0x8)
@@ -777,21 +777,6 @@ ASMJIT_PATCH(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
 //
 // 	return 0;
 // }
-
-// Do not display hover bobbing when landed during deploying.
-ASMJIT_PATCH(0x513D2C, HoverLocomotionClass_ProcessBobbing_DeployToLand, 0x6)
-{
-	enum { SkipBobbing = 0x513F2A };
-
-	GET(LocomotionClass*, pThis, ECX);
-
-	if (auto const pUnit = cast_to<UnitClass*, false>(pThis->Owner)) {
-		if (pUnit->Deploying && pUnit->Type->DeployToLand)
-			return SkipBobbing;
-	}
-
-	return 0;
-}
 
 // Issue #503
 // Author : Otamaa
