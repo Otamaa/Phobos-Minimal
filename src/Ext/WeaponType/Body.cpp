@@ -16,7 +16,7 @@ int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
 void WeaponTypeExtData::Initialize()
 {
 	Burst_Delays.reserve(10);
-	this->RadType = RadTypeClass::Array.begin()->get();
+	this->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 }
 
 // =============================

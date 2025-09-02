@@ -321,7 +321,7 @@ int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* const pThis, AbstractClass
 
 void TechnoTypeExtData::Initialize()
 {
-	this->ShieldType = ShieldTypeClass::Array.begin()->get();
+	this->ShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
 
 	this->SellSound = RulesClass::Instance->SellSound;
 	auto Eva_ready = GameStrings::EVA_ConstructionComplete();

@@ -11,7 +11,7 @@ public:
 public:
 
 	UnitExtData(UnitClass* pObj) : FootExtData(pObj) { }
-	UnitExtData(UnitClass* pObj, noinit_t& nn) : FootExtData(pObj, nn) { }
+	UnitExtData(UnitClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 
 	virtual ~UnitExtData() = default;
 

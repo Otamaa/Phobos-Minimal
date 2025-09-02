@@ -18,15 +18,14 @@ public:
 
 public:
 #pragma region ClassMembers
-
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails { };
-	std::vector<UniversalTrail> Trails { };
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	std::vector<UniversalTrail> Trails;
 #pragma endregion
 
 public:
-
-	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj) { }
-	ParticleExtData(ParticleClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
+	{ }
+	ParticleExtData(ParticleClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~ParticleExtData() = default;
 

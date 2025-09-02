@@ -593,7 +593,6 @@ bool SpawnerMain::GameConfigs::StartGame() {
 		return false;
 	}
 
-
 	SpawnerMain::GameConfigs::LoadSidesStuff();
 
 	bool result = StartScenario(pScenarioName);

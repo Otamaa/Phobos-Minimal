@@ -11,29 +11,33 @@ public:
 
 public:
 #pragma region ClassMember
-
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
-	Valueable<bool> Warhead_Detonate { false };
+	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
+	Valueable<bool> Warhead_Detonate;
 #pragma region Otamaa
-	NullableVector <AnimTypeClass*> SplashList { };//
-	Valueable<bool> SplashList_Pickrandom { true };
-	Nullable<AnimTypeClass*> WakeAnim { }; //
-	Valueable<bool> ExplodeOnWater { false };
+	NullableVector <AnimTypeClass*> SplashList;//
+	Valueable<bool> SplashList_Pickrandom;
+	Nullable<AnimTypeClass*> WakeAnim; //
+	Valueable<bool> ExplodeOnWater;
 	Valueable<bool> Damage_DealtByOwner;
-	Nullable<WeaponTypeClass*> Weapon { };
-	Valueable<bool> ExpireDamage_ConsiderInvokerVet { false };
-
-	TrailsReader Trails { };
-
-	Valueable<int> TrailerAnim_SpawnDelay { 2 };
+	Nullable<WeaponTypeClass*> Weapon;
+	Valueable<bool> ExpireDamage_ConsiderInvokerVet;
+	TrailsReader Trails;
+	Valueable<int> TrailerAnim_SpawnDelay;
 #pragma endregion
 #pragma endregion
+
 public:
-
+	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj) : ObjectTypeExtData(pObj),
+		Warhead_Detonate(false),
+		SplashList_Pickrandom(true),
+		ExplodeOnWater(false),
+		Damage_DealtByOwner(false),
+		ExpireDamage_ConsiderInvokerVet(false),
+		TrailerAnim_SpawnDelay(2)
+	{ }
 	void Initialize();
 
-	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj) : ObjectTypeExtData(pObj) { }
-	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~VoxelAnimTypeExtData() = default;
 

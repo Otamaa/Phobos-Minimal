@@ -12,25 +12,24 @@
 #include <GameOptionsClass.h>
 #include <TacticalClass.h>
 
-ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj)
+ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj),
+What(Behave::None),
+HeldType(nullptr),
+AlphaIsLightFlash(true)
 {
 	if (!pObj->Type)
 		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !", pObj);
-
 	auto pType = pObj->Type;
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
 			return;
-
 		this->HeldType = ParticleTypeClass::Array->Items[pType->HoldsWhat];
-
 		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage)
 		{
 			auto bIsZero = (int)this->HeldType->BehavesLike;
 			auto nBehave = (int)pType->BehavesLike;
 			if (bIsZero <= 1)
 				bIsZero = bIsZero == 0;
-
 			if (nBehave == bIsZero)
 			{
 				if (!nBehave)
@@ -38,7 +37,6 @@ ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : Object
 					this->What = Behave::Smoke;
 					return;
 				}
-
 				auto v11 = nBehave - 3;
 				if (!v11)                       // 0
 				{

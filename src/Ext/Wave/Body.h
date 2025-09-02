@@ -12,19 +12,21 @@ public:
 	using base_type = WaveClass;
 public:
 #pragma region ClassMembers
-
-	WeaponTypeClass* Weapon { nullptr };
-	int WeaponIdx { -1 };
-	bool ReverseAgainstTarget { false };
-	CoordStruct SourceCoord { };
-	bool CanDoUpdate { false };
-
+	WeaponTypeClass* Weapon;
+	int WeaponIdx;
+	bool ReverseAgainstTarget;
+	CoordStruct SourceCoord;
+	bool CanDoUpdate;
 #pragma endregion
 
 public:
-
-	WaveExtData(WaveClass* pObj) : ObjectExtData(pObj) { }
-	WaveExtData(WaveClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+	WaveExtData(WaveClass* pObj) : ObjectExtData(pObj),
+		Weapon(nullptr),
+		WeaponIdx(-1),
+		ReverseAgainstTarget(false),
+		CanDoUpdate(false)
+	{ }
+	WaveExtData(WaveClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~WaveExtData();
 

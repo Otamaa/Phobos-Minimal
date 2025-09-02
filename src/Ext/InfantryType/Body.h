@@ -156,45 +156,46 @@ public:
 public:
 
 #pragma region ClassMembers
-
-	Valueable<bool> Is_Deso { false };
-	Valueable<bool> Is_Cow { false };
-	Nullable<double> C4Delay {};
-	Nullable<int> C4ROF {};
-	Nullable<int> C4Damage {};
-	Nullable<WarheadTypeClass*> C4Warhead {};
-
-	Valueable<bool> HideWhenDeployAnimPresent { false };
-	Valueable<bool> DeathBodies_UseDieSequenceAsIndex { false };
-	WeaponStruct CrawlingWeaponDatas[4] {};
-	//std::vector<DoInfoStruct> Sequences {};
-
-	ValueableIdxVector<VocClass> VoiceGarrison {};
-
-	Valueable<bool> OnlyUseLandSequences { false };
-	std::vector<int> SquenceRates {};
-
+	Valueable<bool> Is_Deso;
+	Valueable<bool> Is_Cow;
+	Nullable<double> C4Delay;
+	Nullable<int> C4ROF;
+	Nullable<int> C4Damage;
+	Nullable<WarheadTypeClass*> C4Warhead;
+	Valueable<bool> HideWhenDeployAnimPresent;
+	Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
+	WeaponStruct CrawlingWeaponDatas[4];
+	//std::vector<DoInfoStruct> Sequences;
+	ValueableIdxVector<VocClass> VoiceGarrison;
+	Valueable<bool> OnlyUseLandSequences;
+	std::vector<int> SquenceRates;
 	// When infiltrates: detonates a weapon or damage
-	Promotable<WarheadTypeClass*> WhenInfiltrate_Warhead {};
-	Promotable<WeaponTypeClass*> WhenInfiltrate_Weapon {};
-	Promotable<int> WhenInfiltrate_Damage {};
-	Valueable<bool> WhenInfiltrate_Warhead_Full { true };
-
-	Valueable<bool> AllSequnceEqualRates { false };
-	Valueable<bool> AllowReceiveSpeedBoost { false };
-
-	Nullable<double> ProneSpeed {};
-	Nullable<bool> InfantryAutoDeploy { false };
+	Promotable<WarheadTypeClass*> WhenInfiltrate_Warhead;
+	Promotable<WeaponTypeClass*> WhenInfiltrate_Weapon;
+	Promotable<int> WhenInfiltrate_Damage;
+	Valueable<bool> WhenInfiltrate_Warhead_Full;
+	Valueable<bool> AllSequnceEqualRates;
+	Valueable<bool> AllowReceiveSpeedBoost;
+	Nullable<double> ProneSpeed;
+	Nullable<bool> InfantryAutoDeploy;
 #pragma endregion
 
 public:
-
-	InfantryTypeExtData(InfantryTypeClass* pObj) : TechnoTypeExtData(pObj) {
+	InfantryTypeExtData(InfantryTypeClass* pObj) : TechnoTypeExtData(pObj),
+		Is_Deso(false),
+		Is_Cow(false),
+		HideWhenDeployAnimPresent(false),
+		DeathBodies_UseDieSequenceAsIndex(false),
+		OnlyUseLandSequences(false),
+		WhenInfiltrate_Warhead_Full(true),
+		AllSequnceEqualRates(false),
+		AllowReceiveSpeedBoost(false),
+		InfantryAutoDeploy(false)
+	{
 		this->Is_Deso = IS_SAME_STR_(Name(), GameStrings::DESO());
 		this->Is_Cow = IS_SAME_STR_(Name(), GameStrings::COW());
 	}
-
-	InfantryTypeExtData(InfantryTypeClass* pObj, noinit_t& nn) : TechnoTypeExtData(pObj, nn) { }
+	InfantryTypeExtData(InfantryTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 
 	virtual ~InfantryTypeExtData() = default;
 

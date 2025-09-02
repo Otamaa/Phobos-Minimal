@@ -15,14 +15,16 @@ public:
 public:
 
 #pragma region ClassMembeers
-
-	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
-	Valueable<int> ZAdjust { 0 };
-
+	CustomPalette Palette;
+	Valueable<int> ZAdjust;
 #pragma endregion
 
-	OverlayTypeExtData(OverlayTypeClass* pObj) : ObjectTypeExtData(pObj) { }
-	OverlayTypeExtData(OverlayTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+public:
+	OverlayTypeExtData(OverlayTypeClass* pObj) : ObjectTypeExtData(pObj),
+		Palette(CustomPalette::PaletteMode::Temperate),
+		ZAdjust(0)
+	{ }
+	OverlayTypeExtData(OverlayTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~OverlayTypeExtData() = default;
 

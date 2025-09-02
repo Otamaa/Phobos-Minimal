@@ -197,6 +197,7 @@ void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClas
 		pBullet->SetWeaponType(pWeapon);
 	} else {
 		pBullet->Type = BulletTypeExtData::GetDefaultBulletType();
+		pBullet->SetWeaponType(nullptr);
 	}
 
 	CoordStruct detonateCoord = coords;

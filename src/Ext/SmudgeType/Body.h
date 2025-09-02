@@ -8,10 +8,11 @@ public:
 	using base_type = SmudgeTypeClass;
 public:
 
-	Valueable<bool> Clearable { true };
+	Valueable<bool> Clearable;
 
-	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) { }
-	SmudgeTypeExtData(SmudgeTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+public:
+	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) , Clearable (true) { }
+	SmudgeTypeExtData(SmudgeTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~SmudgeTypeExtData() = default;
 

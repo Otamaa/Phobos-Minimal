@@ -13,7 +13,7 @@ public:
 
 public:
 	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) { }
-	TemporalExtData(TemporalClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	TemporalExtData(TemporalClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TemporalExtData() = default;
 

@@ -9,7 +9,7 @@ class AbstractTypeExtData : public AbstractExtended
 public:
 
 	AbstractTypeExtData(AbstractTypeClass* pObj) : AbstractExtended(pObj) { }
-	AbstractTypeExtData(AbstractTypeClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	AbstractTypeExtData(AbstractTypeClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~AbstractTypeExtData() = default;
 

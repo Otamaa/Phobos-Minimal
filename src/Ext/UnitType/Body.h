@@ -9,7 +9,7 @@ public:
 public:
 
 	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj) { }
-	UnitTypeExtData(UnitTypeClass* pObj, noinit_t& nn) : TechnoTypeExtData(pObj, nn) { }
+	UnitTypeExtData(UnitTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 
 	virtual ~UnitTypeExtData() = default;
 

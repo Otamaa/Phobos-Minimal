@@ -16,19 +16,25 @@ public:
 public:
 
 #pragma region ClassMembers
-	RadTypeClass* Type { nullptr };
-	WeaponTypeClass* Weapon { nullptr };
-	TechnoClass* TechOwner { nullptr };
-	HouseClass* HouseOwner { nullptr };
-	bool NoOwner { true };
-	int CreationFrame { 0 };
-	PhobosMap<BuildingClass*, int> damageCounts {};
+	RadTypeClass* Type;
+	WeaponTypeClass* Weapon;
+	TechnoClass* TechOwner;
+	HouseClass* HouseOwner;
+	bool NoOwner;
+	int CreationFrame;
+	PhobosMap<BuildingClass*, int> damageCounts;
 #pragma endregion
 
 public:
-
-	RadSiteExtData(RadSiteClass* pObj) : AbstractExtended(pObj) { }
-	RadSiteExtData(RadSiteClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	RadSiteExtData(RadSiteClass* pObj) : AbstractExtended(pObj),
+		Type(nullptr),
+		Weapon(nullptr),
+		TechOwner(nullptr),
+		HouseOwner(nullptr),
+		NoOwner(true),
+		CreationFrame(0)
+	{ }
+	RadSiteExtData(RadSiteClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~RadSiteExtData() = default;
 

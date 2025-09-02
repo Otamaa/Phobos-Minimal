@@ -22,19 +22,19 @@ public:
 public :
 
 #pragma region ClassMembers
-
-	std::string TileSetName {};
-	Valueable<int> Tileset { -1 };
-	CustomPalette Palette {};
-	Valueable<bool> AllowVeins {};
-	ValueableVector<TiberiumClass*> AllowedTiberiums {};
-	ValueableVector<SmudgeTypeClass*> AllowedSmudges{};
-
+	std::string TileSetName;
+	Valueable<int> Tileset;
+	CustomPalette Palette;
+	Valueable<bool> AllowVeins;
+	ValueableVector<TiberiumClass*> AllowedTiberiums;
+	ValueableVector<SmudgeTypeClass*> AllowedSmudges;
 #pragma endregion
-public:
 
-	IsometricTileTypeExtData(IsometricTileTypeClass* pObj) : ObjectTypeExtData(pObj) { }
-	IsometricTileTypeExtData(IsometricTileTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+public:
+	IsometricTileTypeExtData(IsometricTileTypeClass* pObj) : ObjectTypeExtData(pObj),
+		Tileset(-1)
+	{ }
+	IsometricTileTypeExtData(IsometricTileTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~IsometricTileTypeExtData() = default;
 

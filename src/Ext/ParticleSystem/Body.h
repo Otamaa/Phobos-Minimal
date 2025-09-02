@@ -18,7 +18,6 @@ public:
 
 public:
 #pragma region ClassMembers
-
 	enum class Behave : int
 	{
 		None = 0,
@@ -26,10 +25,8 @@ public:
 		Railgun = 2,
 		Smoke = 3
 	};
-
-	Behave What { Behave::None };
-	ParticleTypeClass* HeldType { nullptr };
-
+	Behave What;
+	ParticleTypeClass* HeldType;
 	//everything else use this
 	struct Movement
 	{
@@ -41,17 +38,14 @@ public:
 		int RemainingEC;
 		BYTE Empty; //state counter
 		ColorStruct Colors;
-
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
 			return Serialize(Stm);
 		}
-
 		bool Save(PhobosStreamWriter& Stm) const
 		{
 			return const_cast<Movement*>(this)->Serialize(Stm);
 		}
-
 	private:
 		template <typename T>
 		bool Serialize(T& Stm)
@@ -71,8 +65,7 @@ public:
 		}
 	};
 	static_assert(sizeof(Movement) == 0x2C, "Invalid Size");
-	HelperedVector<Movement> OtherParticleData { };
-
+	HelperedVector<Movement> OtherParticleData;
 	//used for smoke state
 	struct Draw
 	{
@@ -86,17 +79,14 @@ public:
 		BYTE DeleteOnStateLimit; //state counter //29
 		BYTE byte30; //2A
 		BYTE byte31;//2B
-
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
 			return Serialize(Stm);
 		}
-
 		bool Save(PhobosStreamWriter& Stm) const
 		{
 			return const_cast<Draw*>(this)->Serialize(Stm);
 		}
-
 	private:
 		template <typename T>
 		bool Serialize(T& Stm)
@@ -118,14 +108,14 @@ public:
 		}
 	};
 	static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
-	HelperedVector<Draw> SmokeData { };
-
-	bool AlphaIsLightFlash { true };
+	HelperedVector<Draw> SmokeData;
+	bool AlphaIsLightFlash;
 #pragma endregion
 
-	ParticleSystemExtData(ParticleSystemClass* pObj);
+public:
 
-	ParticleSystemExtData(ParticleSystemClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+	ParticleSystemExtData(ParticleSystemClass* pObj);
+	ParticleSystemExtData(ParticleSystemClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~ParticleSystemExtData() = default;
 

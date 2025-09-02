@@ -15,36 +15,37 @@ public:
 
 public:
 #pragma region ClassMember
-
-	CustomPalette Palette { CustomPalette::PaletteMode::Temperate }; //
-	Nullable<AnimTypeClass*> OreTwinkle {};
-	Nullable<int> OreTwinkleChance {};
-	Nullable<int> Ore_TintLevel {};
-	Nullable<ColorStruct> MinimapColor {};
-	Valueable<bool> EnableLighningFix { true };
-	Valueable<bool> UseNormalLight { true };
-	Valueable<bool> EnablePixelFXAnim { true };
-
-	Nullable<int> Damage {};
-	Nullable<WarheadTypeClass*> Warhead {};
-
-	Nullable<int> Heal_Step {};
-	Nullable<int> Heal_IStep {};
-	Nullable<int> Heal_UStep {};
-	Nullable<double> Heal_Delay {};
-
-	Nullable<WarheadTypeClass*> ExplosionWarhead {};
-	Nullable<int> ExplosionDamage {};
-
-	Valueable<int> DebrisChance { 33 };
-
-	Valueable<std::string> LinkedOverlayType {};
-	Valueable<int> PipIndex { -1 };
+	CustomPalette Palette; //
+	Nullable<AnimTypeClass*> OreTwinkle;
+	Nullable<int> OreTwinkleChance;
+	Nullable<int> Ore_TintLevel;
+	Nullable<ColorStruct> MinimapColor;
+	Valueable<bool> EnableLighningFix;
+	Valueable<bool> UseNormalLight;
+	Valueable<bool> EnablePixelFXAnim;
+	Nullable<int> Damage;
+	Nullable<WarheadTypeClass*> Warhead;
+	Nullable<int> Heal_Step;
+	Nullable<int> Heal_IStep;
+	Nullable<int> Heal_UStep;
+	Nullable<double> Heal_Delay;
+	Nullable<WarheadTypeClass*> ExplosionWarhead;
+	Nullable<int> ExplosionDamage;
+	Valueable<int> DebrisChance;
+	Valueable<std::string> LinkedOverlayType;
+	Valueable<int> PipIndex;
 #pragma endregion
-public:
 
-	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj) { }
-	TiberiumExtData(TiberiumClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
+public:
+	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj),
+		Palette(CustomPalette::PaletteMode::Temperate),
+		EnableLighningFix(true),
+		UseNormalLight(true),
+		EnablePixelFXAnim(true),
+		DebrisChance(33),
+		PipIndex(-1)
+	{ }
+	TiberiumExtData(TiberiumClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 
 	virtual ~TiberiumExtData() = default;
 

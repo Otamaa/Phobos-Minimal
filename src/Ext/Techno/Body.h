@@ -732,194 +732,282 @@ private:
 public:
 	using base_type = TechnoClass;
 public:
-
 #pragma region ClassMembers
-	TechnoTypeClass* Type { nullptr }; //original Type pointer
-	OptionalStruct<AbstractType, true> AbsType {};
+	TechnoTypeClass* Type; //original Type pointer
+	OptionalStruct<AbstractType, true> AbsType;
 
-	AEProperties AE {};
-	BYTE idxSlot_EMPulse { 0 };
-	BYTE idxSlot_Wave { 0 }; //5
-	BYTE idxSlot_Beam { 0 }; //6
-	BYTE idxSlot_Warp { 0 }; //7
-	BYTE idxSlot_Parasite { 0 }; //8
-	BuildingClass* GarrisonedIn { 0 }; //C
-	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
-	Mission EMPLastMission { 0 }; //
+	AEProperties AE;
+	BYTE idxSlot_EMPulse;
+	BYTE idxSlot_Wave; //5
+	BYTE idxSlot_Beam; //6
+	BYTE idxSlot_Warp; //7
+	BYTE idxSlot_Parasite; //8
+	BuildingClass* GarrisonedIn; //C
+	Handle<AnimClass*, UninitAnim> EMPSparkleAnim;
+	Mission EMPLastMission; //
 
-	std::unique_ptr<PoweredUnitClass> PoweredUnit { nullptr };
-	std::unique_ptr<RadarJammerClass> RadarJammer { nullptr };
+	std::unique_ptr<PoweredUnitClass> PoweredUnit;
+	std::unique_ptr<RadarJammerClass> RadarJammer;
 
-	BuildingLightClass* BuildingLight { 0 };
+	BuildingLightClass* BuildingLight;
 
-	HouseTypeClass* OriginalHouseType { 0 };
-	CDTimerClass CloakSkipTimer {}; //
-	int HijackerHealth { 0 };
-	HouseClass* HijackerOwner { 0 };
-	float HijackerVeterancy { 0.0f };
-	BYTE Is_SurvivorsDone { 0 };
-	BYTE Is_DriverKilled { 0 };
-	BYTE Is_Operated { 0 };
-	BYTE Is_UnitLostMuted { 0 };
-	BYTE TakeVehicleMode { 0 };
-	int TechnoValueAmount { 0 };
-	int Pos { };
-	std::unique_ptr<ShieldClass> Shield { nullptr };
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails {};
-	bool ReceiveDamage { false };
-	bool LastKillWasTeamTarget { false };
-	CDTimerClass PassengerDeletionTimer {};
-	ShieldTypeClass* CurrentShieldType { nullptr };
-	int LastWarpDistance {};
-	CDTimerClass Death_Countdown {};
-	AnimTypeClass* MindControlRingAnimType { nullptr };
-	int DamageNumberOffset { INT32_MIN };
-	OptionalStruct<int, true> CurrentLaserWeaponIndex {};
+	HouseTypeClass* OriginalHouseType;
+	CDTimerClass CloakSkipTimer; //
+	int HijackerHealth;
+	HouseClass* HijackerOwner;
+	float HijackerVeterancy;
+	BYTE Is_SurvivorsDone;
+	BYTE Is_DriverKilled;
+	BYTE Is_Operated;
+	BYTE Is_UnitLostMuted;
+	BYTE TakeVehicleMode;
+	int TechnoValueAmount;
+	int Pos;
+	std::unique_ptr<ShieldClass> Shield;
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	bool ReceiveDamage;
+	bool LastKillWasTeamTarget;
+	CDTimerClass PassengerDeletionTimer;
+	ShieldTypeClass* CurrentShieldType;
+	int LastWarpDistance;
+	CDTimerClass Death_Countdown;
+	AnimTypeClass* MindControlRingAnimType;
+	int DamageNumberOffset;
+	OptionalStruct<int, true> CurrentLaserWeaponIndex;
 
 	// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
 	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
-	HouseClass* OriginalPassengerOwner { nullptr };
+	HouseClass* OriginalPassengerOwner;
 
-	bool IsInTunnel { false };
-	bool IsBurrowed { false };
-	CDTimerClass DeployFireTimer {};
-	CDTimerClass DisableWeaponTimer {};
+	bool IsInTunnel;
+	bool IsBurrowed;
+	CDTimerClass DeployFireTimer;
+	CDTimerClass DisableWeaponTimer;
 
-	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
+	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
 
-	int GattlingDmageDelay { -1 };
-	bool GattlingDmageSound { false };
-	bool AircraftOpentoppedInitEd { false };
+	int GattlingDmageDelay;
+	bool GattlingDmageSound;
+	bool AircraftOpentoppedInitEd;
 
-	CDTimerClass EngineerCaptureDelay {};
+	CDTimerClass EngineerCaptureDelay;
 
-	bool FlhChanged { false };
-	OptionalStruct<double, true> ReceiveDamageMultiplier {};
-	bool SkipLowDamageCheck { false };
+	bool FlhChanged;
+	OptionalStruct<double, true> ReceiveDamageMultiplier;
+	bool SkipLowDamageCheck;
 
-	bool aircraftPutOffsetFlag { false };
-	bool aircraftPutOffset { false };
-	bool SkipVoice { false };
+	bool aircraftPutOffsetFlag;
+	bool aircraftPutOffset;
+	bool SkipVoice;
 
-	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers {};
+	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
 
-	HelperedVector<UniversalTrail> Trails {};
-	std::unique_ptr<GiftBox> MyGiftBox {};
-	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates {};
-	std::unique_ptr<DamageSelfState> DamageSelfState {};
+	HelperedVector<UniversalTrail> Trails;
+	std::unique_ptr<GiftBox> MyGiftBox;
+	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
+	std::unique_ptr<DamageSelfState> DamageSelfState;
 
-	int CurrentWeaponIdx { -1 };
+	int CurrentWeaponIdx;
 
-	FireWeaponManager MyWeaponManager { };
-	DriveData MyDriveData { };
-	AircraftDive MyDiveData { };
+	FireWeaponManager MyWeaponManager;
+	DriveData MyDriveData;
+	AircraftDive MyDiveData;
 
-	SpawnSupport MySpawnSuport { };
+	SpawnSupport MySpawnSuport;
 
-	std::unique_ptr<FighterAreaGuard> MyFighterData { };
+	std::unique_ptr<FighterAreaGuard> MyFighterData;
 
-	CDTimerClass WarpedOutDelay { };
+	CDTimerClass WarpedOutDelay;
 
-	OptionalStruct<bool, true> AltOccupation { }; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
-	TemporalClass* MyOriginalTemporal { nullptr };
+	OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
+	TemporalClass* MyOriginalTemporal;
 
-	bool SupressEVALost { false };
-	CDTimerClass SelfHealing_CombatDelay { };
-	bool PayloadCreated { false };
-	bool PayloadTriggered { false };
-	SuperClass* LinkedSW { nullptr };
-	CellStruct SuperTarget { };
+	bool SupressEVALost;
+	CDTimerClass SelfHealing_CombatDelay;
+	bool PayloadCreated;
+	bool PayloadTriggered;
+	SuperClass* LinkedSW;
+	CellStruct SuperTarget;
 
-	InfantryTypeClass* HijackerLastDisguiseType { nullptr };
-	HouseClass* HijackerLastDisguiseHouse { nullptr };
+	InfantryTypeClass* HijackerLastDisguiseType;
+	HouseClass* HijackerLastDisguiseHouse;
 
-	CDTimerClass Convert_Deploy_Delay { };
+	CDTimerClass Convert_Deploy_Delay;
 
-	int WHAnimRemainingCreationInterval { 0 };
+	int WHAnimRemainingCreationInterval;
 
 	//====
-	bool IsWebbed { false };
-	Handle<AnimClass*, UninitAnim> WebbedAnim { nullptr };
-	AbstractClass* WebbyLastTarget { nullptr };
-	Mission WebbyLastMission { Mission::Sleep };
+	bool IsWebbed;
+	Handle<AnimClass*, UninitAnim> WebbedAnim;
+	AbstractClass* WebbyLastTarget;
+	Mission WebbyLastMission;
 
-	bool FreeUnitDone { false };
-	AresAEData AeData {};
+	bool FreeUnitDone;
+	AresAEData AeData;
 
-	int Strafe_BombsDroppedThisRound { 0 };
-	CDTimerClass MergePreventionTimer {};
+	int Strafe_BombsDroppedThisRound;
+	CDTimerClass MergePreventionTimer;
 
-	NewTiberiumStorageClass TiberiumStorage {};
+	NewTiberiumStorageClass TiberiumStorage;
 
-	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE {};
+	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
 
-	int ShootCount { 0 };
-	int CurrentAircraftWeaponIndex { 0 };
+	int ShootCount;
+	int CurrentAircraftWeaponIndex;
 
-	CellClass* FiringObstacleCell { nullptr }; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
-	OptionalStruct<int, true> AdditionalRange {};
-	bool IsDetachingForCloak { false }; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
+	CellClass* FiringObstacleCell; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
+	OptionalStruct<int, true> AdditionalRange;
+	bool IsDetachingForCloak; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
 
-	bool HasRemainingWarpInDelay { false }; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
-	int LastWarpInDelay { 0 };          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay
-	bool IsBeingChronoSphered { false }; // Set to true on units currently being ChronoSphered, does not apply to Ares-ChronoSphere'd buildings or Chrono reinforcements.
+	bool HasRemainingWarpInDelay; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
+	int LastWarpInDelay;          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay
+	bool IsBeingChronoSphered; // Set to true on units currently being ChronoSphered, does not apply to Ares-ChronoSphere'd buildings or Chrono reinforcements.
 
-	CDTimerClass UnitAutoDeployTimer {};
-	CellClass* SubterraneanHarvRallyPoint { nullptr };
+	CDTimerClass UnitAutoDeployTimer;
+	CellClass* SubterraneanHarvRallyPoint;
 
-	CDTimerClass TiberiumEaterTimer {};
-	WarheadTypeClass* LastDamageWH {};
+	CDTimerClass TiberiumEaterTimer;
+	WarheadTypeClass* LastDamageWH;
 
-	bool UnitIdleAction {};
-	bool UnitIdleActionSelected {};
-	bool UnitIdleIsSelected {};
-	CDTimerClass UnitIdleActionTimer {};
-	CDTimerClass UnitIdleActionGapTimer {};
+	bool UnitIdleAction;
+	bool UnitIdleActionSelected;
+	bool UnitIdleIsSelected;
+	CDTimerClass UnitIdleActionTimer;
+	CDTimerClass UnitIdleActionGapTimer;
 
-	int MyTargetingFrame { ScenarioClass::Instance->Random.RandomRanged(0,15) };
+	int MyTargetingFrame;
 
-	CDTimerClass ChargeTurretTimer {};// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
-	bool LastRearmWasFullDelay { false };
+	CDTimerClass ChargeTurretTimer;// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
+	bool LastRearmWasFullDelay;
 
-	int DropCrate { -1 }; // Drop crate on death, modified by map action
-	PowerupEffects DropCrateType { PowerupEffects::Money };
+	int DropCrate; // Drop crate on death, modified by map action
+	PowerupEffects DropCrateType;
 
-	int LastBeLockedFrame {};
-	int BeControlledThreatFrame {};
+	int LastBeLockedFrame;
+	int BeControlledThreatFrame;
 
-	DWORD LastTargetID { 0xFFFFFFFF };
-	int AccumulatedGattlingValue {};
-	bool ShouldUpdateGattlingValue {};
+	DWORD LastTargetID;
+	int AccumulatedGattlingValue;
+	bool ShouldUpdateGattlingValue;
 
-	bool KeepTargetOnMove { false };
+	bool KeepTargetOnMove;
 
-	bool DelayedFireSequencePaused { false };
-	int DelayedFireWeaponIndex { -1 };
-	CDTimerClass DelayedFireTimer {};
-	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim { nullptr };
-	std::optional<CoordStruct> CustomFiringOffset {}; // If set any calls to GetFLH() will use this coordinate as
+	bool DelayedFireSequencePaused;
+	int DelayedFireWeaponIndex;
+	CDTimerClass DelayedFireTimer;
+	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim;
+	std::optional<CoordStruct> CustomFiringOffset; // If set any calls to GetFLH() will use this coordinate as
 
-	WeaponTypeClass* LastWeaponType { nullptr };
-	HelperedVector<EBolt*> ElectricBolts {};
-	int LastHurtFrame {};
-	int AttachedEffectInvokerCount {};
+	WeaponTypeClass* LastWeaponType;
+	HelperedVector<EBolt*> ElectricBolts;
+	int LastHurtFrame;
+	int AttachedEffectInvokerCount;
 
-	AirstrikeClass* AirstrikeTargetingMe {};
-	CellStruct RandomEMPTarget {};
+	AirstrikeClass* AirstrikeTargetingMe;
+	CellStruct RandomEMPTarget;
 
-	CDTimerClass FiringAnimationTimer {};
-	bool ForceFullRearmDelay { false };
-	int AttackMoveFollowerTempCount {};
-	HelperedVector<OnlyAttackStruct> OnlyAttackData {};
+	CDTimerClass FiringAnimationTimer;
+	bool ForceFullRearmDelay;
+	int AttackMoveFollowerTempCount;
+	HelperedVector<OnlyAttackStruct> OnlyAttackData;
 
-	bool IsSelected {};
+	bool IsSelected;
 
 #pragma endregion
 
 public:
 
-	TechnoExtData(TechnoClass* abs) : RadioExtData(abs)
-	{ };
+	TechnoExtData(TechnoClass* abs) : RadioExtData(abs),
+		Type(nullptr),
+		idxSlot_EMPulse(0),
+		idxSlot_Wave(0),
+		idxSlot_Beam(0),
+		idxSlot_Warp(0),
+		idxSlot_Parasite(0),
+		GarrisonedIn(nullptr),
+		EMPSparkleAnim(nullptr),
+		EMPLastMission(Mission(0)),
+		PoweredUnit(nullptr),
+		RadarJammer(nullptr),
+		BuildingLight(nullptr),
+		OriginalHouseType(nullptr),
+		HijackerHealth(0),
+		HijackerOwner(nullptr),
+		HijackerVeterancy(0.0f),
+		Is_SurvivorsDone(0),
+		Is_DriverKilled(0),
+		Is_Operated(0),
+		Is_UnitLostMuted(0),
+		TakeVehicleMode(0),
+		TechnoValueAmount(0),
+		Pos(0),
+		Shield(nullptr),
+		ReceiveDamage(false),
+		LastKillWasTeamTarget(false),
+		CurrentShieldType(nullptr),
+		LastWarpDistance(0),
+		MindControlRingAnimType(nullptr),
+		DamageNumberOffset(INT32_MIN),
+		OriginalPassengerOwner(nullptr),
+		IsInTunnel(false),
+		IsBurrowed(false),
+		GattlingDmageDelay(-1),
+		GattlingDmageSound(false),
+		AircraftOpentoppedInitEd(false),
+		FlhChanged(false),
+		SkipLowDamageCheck(false),
+		aircraftPutOffsetFlag(false),
+		aircraftPutOffset(false),
+		SkipVoice(false),
+		CurrentWeaponIdx(-1),
+		MyOriginalTemporal(nullptr),
+		SupressEVALost(false),
+		PayloadCreated(false),
+		PayloadTriggered(false),
+		LinkedSW(nullptr),
+		HijackerLastDisguiseType(nullptr),
+		HijackerLastDisguiseHouse(nullptr),
+		WHAnimRemainingCreationInterval(0),
+		IsWebbed(false),
+		WebbedAnim(nullptr),
+		WebbyLastTarget(nullptr),
+		WebbyLastMission(Mission::Sleep),
+		FreeUnitDone(false),
+		Strafe_BombsDroppedThisRound(0),
+		ShootCount(0),
+		CurrentAircraftWeaponIndex(0),
+		FiringObstacleCell(nullptr),
+		IsDetachingForCloak(false),
+		HasRemainingWarpInDelay(false),
+		LastWarpInDelay(0),
+		IsBeingChronoSphered(false),
+		SubterraneanHarvRallyPoint(nullptr),
+		LastDamageWH(nullptr),
+		UnitIdleAction(false),
+		UnitIdleActionSelected(false),
+		UnitIdleIsSelected(false),
+		LastRearmWasFullDelay(false),
+		DropCrate(-1),
+		DropCrateType(PowerupEffects::Money),
+		LastBeLockedFrame(0),
+		BeControlledThreatFrame(0),
+		LastTargetID(0xFFFFFFFF),
+		AccumulatedGattlingValue(0),
+		ShouldUpdateGattlingValue(false),
+		KeepTargetOnMove(false),
+		DelayedFireSequencePaused(false),
+		DelayedFireWeaponIndex(-1),
+		CurrentDelayedFireAnim(nullptr),
+		LastWeaponType(nullptr),
+		LastHurtFrame(0),
+		AttachedEffectInvokerCount(0),
+		AirstrikeTargetingMe(nullptr),
+		ForceFullRearmDelay(false),
+		AttackMoveFollowerTempCount(0),
+		IsSelected(false)
+	{
+		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
+	}
 
 	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) { };
 

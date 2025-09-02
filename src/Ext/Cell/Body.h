@@ -38,15 +38,19 @@ public:
 public:
 
 #pragma region ClassMembers
-	int NewPowerups { -1 };
-	UnitClass* IncomingUnit { nullptr };
-	UnitClass* IncomingUnitAlt { nullptr };
-	HelperedVector<RadSiteClass*> RadSites {};
-	HelperedVector<RadLevel> RadLevels {};
+	int NewPowerups;
+	UnitClass* IncomingUnit;
+	UnitClass* IncomingUnitAlt;
+	HelperedVector<RadSiteClass*> RadSites;
+	HelperedVector<RadLevel> RadLevels;
 #pragma endregion
 
-	CellExtData(CellClass* pObj) : AbstractExtended(pObj) { }
-	CellExtData(CellClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	CellExtData(CellClass* pObj) : AbstractExtended(pObj),
+		NewPowerups(-1),
+		IncomingUnit(nullptr),
+		IncomingUnitAlt(nullptr)
+	{ }
+	CellExtData(CellClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~CellExtData() = default;
 

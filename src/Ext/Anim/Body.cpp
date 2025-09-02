@@ -808,8 +808,6 @@ ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 			Debug::LogInfo("Anim[{} - {}] with some weird ID", pItem->Type->ID, (void*)pItem);
 		}
 
-		AnimExtContainer::Instance.ClearExtAttribute(pItem);
-
 		if (AnimExtData* val = AnimExtContainer::Instance.Allocate(pItem))
 		{
 			AnimExtContainer::Instance.SetExtAttribute(pItem, val);
@@ -840,7 +838,7 @@ ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 ASMJIT_PATCH(0x4228CB, AnimClass_CTOR_NoInt, 0x7)
 {
 	GET(AnimClass*, pThis, ESI);
-
+	AnimExtContainer::Instance.AllocateNoInit(pThis);
 	return 0x0;
 }
 

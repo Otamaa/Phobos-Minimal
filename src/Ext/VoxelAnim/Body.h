@@ -20,17 +20,17 @@ public:
 public:
 
 #pragma region ClassMember
-
-	TechnoClass* Invoker { nullptr };
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails { };
-	std::vector<UniversalTrail> Trails { };
-	CDTimerClass TrailerSpawnDelayTimer {};
-
+	TechnoClass* Invoker;
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	std::vector<UniversalTrail> Trails;
+	CDTimerClass TrailerSpawnDelayTimer;
 #pragma endregion
-public:
 
-	VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj) { }
-	VoxelAnimExtData(VoxelAnimClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+public:
+	VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj),
+		Invoker(nullptr)
+	{ }
+	VoxelAnimExtData(VoxelAnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~VoxelAnimExtData() = default;
 

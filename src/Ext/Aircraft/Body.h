@@ -15,7 +15,7 @@ public:
 public:
 
 	AircraftExtData(AircraftClass* pObj) : FootExtData(pObj) { }
-	AircraftExtData(AircraftClass * pObj, noinit_t& nn) : FootExtData(pObj, nn) { }
+	AircraftExtData(AircraftClass * pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 	virtual ~AircraftExtData() = default;
 
 	virtual AircraftClass* This() const override { return reinterpret_cast<AircraftClass*>(this->FootExtData::This()); }

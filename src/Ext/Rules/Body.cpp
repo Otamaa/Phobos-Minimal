@@ -48,15 +48,6 @@ void RulesExtData::Allocate(RulesClass* pThis)
 {
 	Data = std::make_unique<RulesExtData>();
 	Data->AttachedToObject = pThis;
-
-	CursorTypeClass::AddDefaults();
-	CrateTypeClass::AddDefaults();
-	ArmorTypeClass::AddDefaults();
-	RadTypeClass::AddDefaults();
-	GenericPrerequisite::AddDefaults();
-	HoverTypeClass::AddDefaults();
-	ShieldTypeClass::AddDefaults();
-	SelectBoxTypeClass::AddDefaults();
 }
 
 void RulesExtData::Remove(RulesClass* pThis)
@@ -152,6 +143,12 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pThis->Read_WallModel(pINI);
 	pThis->Read_AudioVisual(pINI);
 	pThis->Read_SpecialWeapons(pINI);
+
+	CrateTypeClass::AddDefaults();
+	RadTypeClass::AddDefaults();
+	GenericPrerequisite::AddDefaults();
+	HoverTypeClass::AddDefaults();
+	ShieldTypeClass::AddDefaults();
 
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
@@ -1202,6 +1199,9 @@ void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExtData::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 {
+	ArmorTypeClass::AddDefaults();
+	CursorTypeClass::AddDefaults();
+	SelectBoxTypeClass::AddDefaults();
 }
 
 bool RulesExtData::DetailsCurrentlyEnabled()
@@ -1223,7 +1223,6 @@ bool RulesExtData::DetailsCurrentlyEnabled(int const minDetailLevel)
 
 void RulesExtData::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
 {
-	//Debug::LogInfo(__FUNCTION__" Called ! ");
 }
 
 void RulesExtData::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
@@ -1805,15 +1804,16 @@ void FakeRulesClass::_ReadColors(CCINIClass* pINI)
 	this->Read_JumpjetControls(pINI);
 	this->Read_Colors(pINI);
 
-	RocketTypeClass::AddDefaults();
 	RocketTypeClass::LoadFromINIList(pINI);
 }
 
 void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 {
-
 	RulesExtData::LoadBeforeGeneralData(this, pINI);
 	this->Read_General(pINI);
+
+
+	RocketTypeClass::AddDefaults();
 	RocketTypeClass::ReadListFromINI(pINI);
 
 	SideClass::Array->for_each([pINI](SideClass* pSide) {

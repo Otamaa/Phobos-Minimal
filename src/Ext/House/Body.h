@@ -103,96 +103,120 @@ public:
 public:
 
 #pragma region ClassMembers
-	Nullable<bool> Degrades {};
-	PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings {};
-	PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter {};
-	PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter {};
-	PhobosMap<BuildingTypeClass*, int> BattlePointsCollectors {};
-	bool m_ForceOnlyTargetHouseEnemy { false };
-	int ForceOnlyTargetHouseEnemyMode { -1 };
-	BuildingClass* Factory_BuildingType { nullptr };
-	BuildingClass* Factory_InfantryType { nullptr };
-	BuildingClass* Factory_VehicleType { nullptr };
-	BuildingClass* Factory_NavyType { nullptr };
-	BuildingClass* Factory_AircraftType { nullptr };
-	bool AllRepairEventTriggered { false };
-	int LastBuildingTypeArrayIdx { -1 };
-	Nullable<bool> RepairBaseNodes[3] { };
-	int LastBuiltNavalVehicleType { -1 };
-	int ProducingNavalUnitTypeIndex { -1 };
-	std::vector<LauchData> LaunchDatas {};
-	bool CaptureObjectExecuted { false };
-	CDTimerClass DiscoverEvaDelay {};
-	std::vector<TunnelData> Tunnels {};
-	int SWLastIndex { -1 };
-	HelperedVector<SuperClass*> Batteries {};
-	int AvaibleDocks { 0 };
-	std::bitset<MaxHouseCount> StolenTech {};
-	IndexBitfield<HouseClass*> RadarPersist {};
-	VectorSet<HouseTypeClass*> FactoryOwners_GatheredPlansOf {};
-	VectorSet<BuildingClass*> Academies {};
-	VectorSet<BuildingClass*> TunnelsBuildings {};
-	VectorSet<TechnoTypeClass*> Reversed {};
-	VectorSet<TechnoClass*> OwnedCountedHarvesters {};
-	bool Is_NavalYardSpied { false };
-	bool Is_AirfieldSpied { false };
-	bool Is_ConstructionYardSpied { false };
-	int AuxPower { 0 };
-	int KeepAliveCount { 0 };
-	int KeepAliveBuildingCount { 0 };
-	NewTiberiumStorageClass TiberiumStorage {};
-	OptionalStruct<TechTreeTypeClass*, true> SideTechTree {};
-	CDTimerClass CombatAlertTimer {};
-	VectorSet<BuildingClass*> RestrictedFactoryPlants {};
-	CDTimerClass AISellAllDelayTimer {};
-	HelperedVector<UnitClass*> OwnedDeployingUnits {};
-	PlacingBuildingStruct Common {};
-	PlacingBuildingStruct Combat {};
-	CDTimerClass AISuperWeaponDelayTimer {};
-	int NumAirpads_NonMFB { 0 };
-	int NumBarracks_NonMFB { 0 };
-	int NumWarFactories_NonMFB { 0 };
-	int NumConYards_NonMFB { 0 };
-	int NumShipyards_NonMFB { 0 };
-	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs {};
-	int ForceEnemyIndex { -1 };
-	int BattlePoints {};
-
-	struct ProductionData {
-		std::vector<int> CreationFrames {};
-		std::vector<int> Values {};
-		std::vector<int> BestChoices {};
-
-		bool Load(PhobosStreamReader& stm, bool registerForChange) {
+	Nullable<bool> Degrades;
+	PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings;
+	PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter;
+	PhobosMap<BuildingTypeClass*, int> Building_OrePurifiersCounter;
+	PhobosMap<BuildingTypeClass*, int> BattlePointsCollectors;
+	bool m_ForceOnlyTargetHouseEnemy;
+	int ForceOnlyTargetHouseEnemyMode;
+	BuildingClass* Factory_BuildingType;
+	BuildingClass* Factory_InfantryType;
+	BuildingClass* Factory_VehicleType;
+	BuildingClass* Factory_NavyType;
+	BuildingClass* Factory_AircraftType;
+	bool AllRepairEventTriggered;
+	int LastBuildingTypeArrayIdx;
+	Nullable<bool> RepairBaseNodes[3];
+	int LastBuiltNavalVehicleType;
+	int ProducingNavalUnitTypeIndex;
+	std::vector<LauchData> LaunchDatas;
+	bool CaptureObjectExecuted;
+	CDTimerClass DiscoverEvaDelay;
+	std::vector<TunnelData> Tunnels;
+	int SWLastIndex;
+	HelperedVector<SuperClass*> Batteries;
+	int AvaibleDocks;
+	std::bitset<MaxHouseCount> StolenTech;
+	IndexBitfield<HouseClass*> RadarPersist;
+	VectorSet<HouseTypeClass*> FactoryOwners_GatheredPlansOf;
+	VectorSet<BuildingClass*> Academies;
+	VectorSet<BuildingClass*> TunnelsBuildings;
+	VectorSet<TechnoTypeClass*> Reversed;
+	VectorSet<TechnoClass*> OwnedCountedHarvesters;
+	bool Is_NavalYardSpied;
+	bool Is_AirfieldSpied;
+	bool Is_ConstructionYardSpied;
+	int AuxPower;
+	int KeepAliveCount;
+	int KeepAliveBuildingCount;
+	NewTiberiumStorageClass TiberiumStorage;
+	OptionalStruct<TechTreeTypeClass*, true> SideTechTree;
+	CDTimerClass CombatAlertTimer;
+	VectorSet<BuildingClass*> RestrictedFactoryPlants;
+	CDTimerClass AISellAllDelayTimer;
+	HelperedVector<UnitClass*> OwnedDeployingUnits;
+	PlacingBuildingStruct Common;
+	PlacingBuildingStruct Combat;
+	CDTimerClass AISuperWeaponDelayTimer;
+	int NumAirpads_NonMFB;
+	int NumBarracks_NonMFB;
+	int NumWarFactories_NonMFB;
+	int NumConYards_NonMFB;
+	int NumShipyards_NonMFB;
+	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs;
+	int ForceEnemyIndex;
+	int BattlePoints;
+	struct ProductionData
+	{
+		std::vector<int> CreationFrames;
+		std::vector<int> Values;
+		std::vector<int> BestChoices;
+		bool Load(PhobosStreamReader& stm, bool registerForChange)
+		{
 			return this->Serialize(stm);
 		}
-
-		bool Save(PhobosStreamWriter& stm) const {
+		bool Save(PhobosStreamWriter& stm) const
+		{
 			return const_cast<ProductionData*>(this)->Serialize(stm);
 		}
-
 	private:
 		template <typename T>
-		bool Serialize(T& stm) {
+		bool Serialize(T& stm)
+		{
 			return stm
 				.Process(this->CreationFrames)
 				.Process(this->Values)
 				.Process(this->BestChoices)
 				.Success();
 		}
-
-	}; std::array<ProductionData , 3u> Productions {};
-
-	std::vector<int> BestChoicesNaval {};
+	}; std::array<ProductionData, 3u> Productions;
+	std::vector<int> BestChoicesNaval;
 #pragma endregion
 
-
-	HouseExtData(HouseClass* pObj) : AbstractExtended(pObj) {
-
+public:
+	HouseExtData(HouseClass* pObj) : AbstractExtended(pObj),
+		m_ForceOnlyTargetHouseEnemy(false),
+		ForceOnlyTargetHouseEnemyMode(-1),
+		Factory_BuildingType(nullptr),
+		Factory_InfantryType(nullptr),
+		Factory_VehicleType(nullptr),
+		Factory_NavyType(nullptr),
+		Factory_AircraftType(nullptr),
+		AllRepairEventTriggered(false),
+		LastBuildingTypeArrayIdx(-1),
+		LastBuiltNavalVehicleType(-1),
+		ProducingNavalUnitTypeIndex(-1),
+		CaptureObjectExecuted(false),
+		SWLastIndex(-1),
+		AvaibleDocks(0),
+		Is_NavalYardSpied(false),
+		Is_AirfieldSpied(false),
+		Is_ConstructionYardSpied(false),
+		AuxPower(0),
+		KeepAliveCount(0),
+		KeepAliveBuildingCount(0),
+		NumAirpads_NonMFB(0),
+		NumBarracks_NonMFB(0),
+		NumWarFactories_NonMFB(0),
+		NumConYards_NonMFB(0),
+		NumShipyards_NonMFB(0),
+		ForceEnemyIndex(-1),
+		BattlePoints(0)
+	{
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 	}
-
-	HouseExtData(HouseClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	HouseExtData(HouseClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~HouseExtData() = default;
 

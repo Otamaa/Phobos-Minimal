@@ -11,12 +11,12 @@ public:
 
 public:
 
-	WeaponTypeExtData* Weapon { nullptr };
+	WeaponTypeExtData* Weapon;
 
 public:
 
-	BombExtData(BombClass* pObj) : AbstractExtended(pObj) { }
-	BombExtData(BombClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	BombExtData(BombClass* pObj) : AbstractExtended(pObj) , Weapon(nullptr) { }
+	BombExtData(BombClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~BombExtData() = default;
 

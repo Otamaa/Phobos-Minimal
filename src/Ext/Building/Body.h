@@ -22,40 +22,41 @@ public:
 public:
 
 #pragma region ClassMember
-	BuildingTypeExtData* Type { nullptr };
-	std::unique_ptr<PrismForwarding> MyPrismForwarding { nullptr };
-	bool DeployedTechno { false };
-	int LimboID { -1 };
-	int GrindingWeapon_LastFiredFrame { 0 };
-	BuildingClass* CurrentAirFactory { nullptr };
-	int AccumulatedIncome { 0 };
-	bool IsCreatedFromMapFile { false };
-	std::vector<AnimClass*> DamageFireAnims { };
-	CDTimerClass AutoSellTimer { };
-	bool LighningNeedUpdate { false };
-	bool TogglePower_HasPower { true };
-	bool Silent { false };
-	OptionalStruct<int, true> C4Damage { };
-	HouseClass* C4Owner { nullptr };
-	WarheadTypeClass* C4Warhead { nullptr };
-	WarheadTypeClass* ReceiveDamageWarhead { nullptr };
-	std::vector<int> DockReloadTimers {};
-	HouseClass* OwnerBeforeRaid { nullptr };
-	CDTimerClass CashUpgradeTimers[3] {};
-	int SensorArrayActiveCounter { 0 };
-	bool SecretLab_Placed { false };
-	bool AboutToChronoshift { false };
-	bool IsFromSW { false };
-	bool BeignMCEd { true }; //this tag only use to fix
-	HelperedVector<TechnoClass*> RegisteredJammers { };
-	int GrindingWeapon_AccumulatedCredits { 0 };
-	int LastFlameSpawnFrame { 0 };
-	Handle<AnimClass*, UninitAnim> SpyEffectAnim { nullptr };
-	int SpyEffectAnimDuration {};
-	int PoweredUpToLevel { 0 };
-	FactoryClass* FactoryBuildingMe {};
-	std::vector<BuildingClass*> airFactoryBuilding {};
+	BuildingTypeExtData* Type;
+	std::unique_ptr<PrismForwarding> MyPrismForwarding;
+	bool DeployedTechno;
+	int LimboID;
+	int GrindingWeapon_LastFiredFrame;
+	BuildingClass* CurrentAirFactory;
+	int AccumulatedIncome;
+	bool IsCreatedFromMapFile;
+	std::vector<AnimClass*> DamageFireAnims;
+	CDTimerClass AutoSellTimer;
+	bool LighningNeedUpdate;
+	bool TogglePower_HasPower;
+	bool Silent;
+	OptionalStruct<int, true> C4Damage;
+	HouseClass* C4Owner;
+	WarheadTypeClass* C4Warhead;
+	WarheadTypeClass* ReceiveDamageWarhead;
+	std::vector<int> DockReloadTimers;
+	HouseClass* OwnerBeforeRaid;
+	CDTimerClass CashUpgradeTimers[3];
+	int SensorArrayActiveCounter;
+	bool SecretLab_Placed;
+	bool AboutToChronoshift;
+	bool IsFromSW;
+	bool BeignMCEd; //this tag only use to fix
+	HelperedVector<TechnoClass*> RegisteredJammers;
+	int GrindingWeapon_AccumulatedCredits;
+	int LastFlameSpawnFrame;
+	Handle<AnimClass*, UninitAnim> SpyEffectAnim;
+	int SpyEffectAnimDuration;
+	int PoweredUpToLevel;
+	FactoryClass* FactoryBuildingMe;
+	std::vector<BuildingClass*> airFactoryBuilding;
 #pragma endregion
+
 
 	bool HasSuperWeapon(int index, bool withUpgrades) const;
 	bool RubbleYell(bool beingRepaired) const;
@@ -68,8 +69,36 @@ public:
 
 public:
 
-	BuildingExtData(BuildingClass* pObj);
-	BuildingExtData(BuildingClass* pObj, noinit_t& nn) : TechnoExtData(pObj, nn) { }
+	BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj),
+		Type(nullptr),
+		MyPrismForwarding(nullptr),
+		DeployedTechno(false),
+		LimboID(-1),
+		GrindingWeapon_LastFiredFrame(0),
+		CurrentAirFactory(nullptr),
+		AccumulatedIncome(0),
+		IsCreatedFromMapFile(false),
+		LighningNeedUpdate(false),
+		TogglePower_HasPower(true),
+		Silent(false),
+		C4Owner(nullptr),
+		C4Warhead(nullptr),
+		ReceiveDamageWarhead(nullptr),
+		OwnerBeforeRaid(nullptr),
+		SensorArrayActiveCounter(0),
+		SecretLab_Placed(false),
+		AboutToChronoshift(false),
+		IsFromSW(false),
+		BeignMCEd(true),
+		GrindingWeapon_AccumulatedCredits(0),
+		LastFlameSpawnFrame(0),
+		SpyEffectAnim(nullptr),
+		SpyEffectAnimDuration(0),
+		PoweredUpToLevel(0),
+		FactoryBuildingMe(nullptr)
+	{ }
+
+	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }
 
 	virtual ~BuildingExtData()
 	{

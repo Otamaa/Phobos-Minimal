@@ -30,7 +30,7 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	}
 	else
 	{
-		pRadExt->Type = RadTypeClass::Array.begin()->get();
+		pRadExt->Type = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 	}
 
 	if (pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner())

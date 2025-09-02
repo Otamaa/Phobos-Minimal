@@ -23,53 +23,74 @@ public:
 public:
 
 #pragma region ClassMembers
-
-	bool SettingsInherited { false };
-	Valueable<int> SurvivorDivisor { -1 };
-	Valueable<InfantryTypeClass*> Crew { nullptr };
-	Valueable<InfantryTypeClass*> Engineer { nullptr };
-	Valueable<InfantryTypeClass*> Technician { nullptr };
-	Valueable<AircraftTypeClass*> ParaDropPlane { nullptr };
-	Valueable<AircraftTypeClass*> SpyPlane { nullptr };
-	Valueable<UnitTypeClass*> HunterSeeker { nullptr };
-	ValueableVector<TechnoTypeClass*> ParaDropTypes { };
-	ValueableVector<int> ParaDropNum { };
-	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith { };
-	Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage { };
-	Nullable<double> NewTeamsSelector_GroundCategoryPercentage { };
-	Nullable<double> NewTeamsSelector_NavalCategoryPercentage { };
-	Nullable<double> NewTeamsSelector_AirCategoryPercentage { };
-	Valueable<bool> GivesBounty { true };
-	Nullable<bool> CanBeDriven {};
-	Valueable<AnimTypeClass*> ParachuteAnim { nullptr };
-	Valueable<bool> StartInMultiplayer_WithConst { false };
-	ValueableVector<BuildingTypeClass*> Powerplants {};
-	ValueableVector<BuildingTypeClass*> VeteranBuildings {};
-	ValueableVector<std::string> TauntFile {}; //Taunt filename format (should contain %d !!!)
-	Valueable<std::string> TauntFileName {};
-	Nullable<bool> Degrades {};
-	Valueable<InfantryTypeClass*> Disguise {};
-	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types {};
-	PhobosFixedString<0x20> LoadScreenBackground {};
-	PhobosFixedString<0x20> LoadScreenPalette {};
-	ValueableIdx<ColorScheme> LoadTextColor { -1 }; //The text color used for non-Campaign modes
-	Valueable<unsigned int> RandomSelectionWeight { 1 };
-	Valueable<CSFText> LoadScreenName {};
-	Valueable<CSFText> LoadScreenSpecialName {};
-	Valueable<CSFText> LoadScreenBrief {};
-	Valueable<CSFText> StatusText {};
-	PhobosPCXFile FlagFile {}; //Flag
-	PhobosPCXFile ObserverFlag {};
-	SHPStruct* ObserverFlagSHP {};
-	Valueable<bool> ObserverFlagYuriPAL { false };
-	PhobosPCXFile ObserverBackground {};
-	SHPStruct* ObserverBackgroundSHP {};
-	Valueable<bool> BattlePoints {};
-	Valueable<bool> BattlePoints_CanUseStandardPoints {};
+	bool SettingsInherited;
+	Valueable<int> SurvivorDivisor;
+	Valueable<InfantryTypeClass*> Crew;
+	Valueable<InfantryTypeClass*> Engineer;
+	Valueable<InfantryTypeClass*> Technician;
+	Valueable<AircraftTypeClass*> ParaDropPlane;
+	Valueable<AircraftTypeClass*> SpyPlane;
+	Valueable<UnitTypeClass*> HunterSeeker;
+	ValueableVector<TechnoTypeClass*> ParaDropTypes;
+	ValueableVector<int> ParaDropNum;
+	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
+	Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
+	Nullable<double> NewTeamsSelector_GroundCategoryPercentage;
+	Nullable<double> NewTeamsSelector_NavalCategoryPercentage;
+	Nullable<double> NewTeamsSelector_AirCategoryPercentage;
+	Valueable<bool> GivesBounty;
+	Nullable<bool> CanBeDriven;
+	Valueable<AnimTypeClass*> ParachuteAnim;
+	Valueable<bool> StartInMultiplayer_WithConst;
+	ValueableVector<BuildingTypeClass*> Powerplants;
+	ValueableVector<BuildingTypeClass*> VeteranBuildings;
+	ValueableVector<std::string> TauntFile; //Taunt filename format (should contain %d !!!)
+	Valueable<std::string> TauntFileName;
+	Nullable<bool> Degrades;
+	Valueable<InfantryTypeClass*> Disguise;
+	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types;
+	PhobosFixedString<0x20> LoadScreenBackground;
+	PhobosFixedString<0x20> LoadScreenPalette;
+	ValueableIdx<ColorScheme> LoadTextColor; //The text color used for non-Campaign modes
+	Valueable<unsigned int> RandomSelectionWeight;
+	Valueable<CSFText> LoadScreenName;
+	Valueable<CSFText> LoadScreenSpecialName;
+	Valueable<CSFText> LoadScreenBrief;
+	Valueable<CSFText> StatusText;
+	PhobosPCXFile FlagFile; //Flag
+	PhobosPCXFile ObserverFlag;
+	SHPStruct* ObserverFlagSHP;
+	Valueable<bool> ObserverFlagYuriPAL;
+	PhobosPCXFile ObserverBackground;
+	SHPStruct* ObserverBackgroundSHP;
+	Valueable<bool> BattlePoints;
+	Valueable<bool> BattlePoints_CanUseStandardPoints;
 #pragma endregion
 
-	HouseTypeExtData(HouseTypeClass* pObj) : AbstractTypeExtData(pObj) { this->Initialize(); }
-	HouseTypeExtData(HouseTypeClass* pObj, noinit_t& nn) : AbstractTypeExtData(pObj, nn) { }
+public:
+	HouseTypeExtData(HouseTypeClass* pObj) : AbstractTypeExtData(pObj),
+		SettingsInherited(false),
+		SurvivorDivisor(-1),
+		Crew(nullptr),
+		Engineer(nullptr),
+		Technician(nullptr),
+		ParaDropPlane(nullptr),
+		SpyPlane(nullptr),
+		HunterSeeker(nullptr),
+		GivesBounty(true),
+		ParachuteAnim(nullptr),
+		StartInMultiplayer_WithConst(false),
+		LoadTextColor(-1),
+		RandomSelectionWeight(1),
+		ObserverFlagSHP(nullptr),
+		ObserverFlagYuriPAL(false),
+		ObserverBackgroundSHP(nullptr),
+		BattlePoints(false),
+		BattlePoints_CanUseStandardPoints(false)
+	{
+		this->Initialize();
+	}
+	HouseTypeExtData(HouseTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 
 	virtual ~HouseTypeExtData() = default;
 

@@ -21,32 +21,47 @@ public:
 
 public:
 #pragma region ClassMembers
-
-	int CurrentStrength { 0 };
-	TechnoTypeClass* InterceptorTechnoType { };
-	InterceptedStatus InterceptedStatus { InterceptedStatus::None };
-	bool DetonateOnInterception { true };
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails {};
-	bool SnappedToTarget { false };
-	SuperWeaponTypeClass* NukeSW { nullptr };
-	bool BrightCheckDone { false };
-	HouseClass* Owner { nullptr };
-	bool Bouncing { false };
-	ObjectClass* LastObject { nullptr };
-	int BounceAmount { 0 };
-	OptionalStruct<DirStruct, true> InitialBulletDir {};
-	std::vector<UniversalTrail> Trails {};
-	std::unique_ptr<PhobosTrajectory> Trajectory {};
-	ParticleSystemClass* AttachedSystem { nullptr };
-	int DamageNumberOffset { INT32_MIN };
-	AbstractClass* OriginalTarget { nullptr };
-	int ParabombFallRate { 0 };
+	int CurrentStrength;
+	TechnoTypeClass* InterceptorTechnoType;
+	InterceptedStatus InterceptedStatus;
+	bool DetonateOnInterception;
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	bool SnappedToTarget;
+	SuperWeaponTypeClass* NukeSW;
+	bool BrightCheckDone;
+	HouseClass* Owner;
+	bool Bouncing;
+	ObjectClass* LastObject;
+	int BounceAmount;
+	OptionalStruct<DirStruct, true> InitialBulletDir;
+	std::vector<UniversalTrail> Trails;
+	std::unique_ptr<PhobosTrajectory> Trajectory;
+	ParticleSystemClass* AttachedSystem;
+	int DamageNumberOffset;
+	AbstractClass* OriginalTarget;
+	int ParabombFallRate;
 #pragma endregion
 
 public:
+	BulletExtData(BulletClass* pObj) : ObjectExtData(pObj),
+		CurrentStrength(0),
+		InterceptorTechnoType(nullptr),
+		InterceptedStatus(InterceptedStatus::None),
+		DetonateOnInterception(true),
+		SnappedToTarget(false),
+		NukeSW(nullptr),
+		BrightCheckDone(false),
+		Owner(nullptr),
+		Bouncing(false),
+		LastObject(nullptr),
+		BounceAmount(0),
+		AttachedSystem(nullptr),
+		DamageNumberOffset(INT32_MIN),
+		OriginalTarget(nullptr),
+		ParabombFallRate(0)
+	{ }
 
-	BulletExtData(BulletClass* pObj) : ObjectExtData(pObj) { }
-	BulletExtData(BulletClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+	BulletExtData(BulletClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~BulletExtData()
 	{

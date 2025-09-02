@@ -19,33 +19,48 @@ public:
 
 #pragma region ClassMembers
 
-	OptionalStruct<CoordStruct, true> BackupCoords {};
-	OptionalStruct<DirType, true> DeathUnitFacing {};
-	OptionalStruct<DirStruct, true> DeathUnitTurretFacing {};
-	TechnoClass* Invoker { nullptr };
-	bool OwnerSet { false };
-	bool AllowCreateUnit { false };
-	bool WasOnBridge { false };
+	OptionalStruct<CoordStruct, true> BackupCoords;
+	OptionalStruct<DirType, true> DeathUnitFacing;
+	OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
+	TechnoClass* Invoker;
+	bool OwnerSet;
+	bool AllowCreateUnit;
+	bool WasOnBridge;
 
 	// This is a failsafe that is only set if this is a building animation
 	// and the building is not on same cell as the animation.
-	BuildingClass* ParentBuilding { nullptr };
+	BuildingClass* ParentBuilding;
 
-	ParticleSystemClass* AttachedSystem { nullptr };
-	CoordStruct CreateUnitLocation {};
-	//SpawnsStatus SpawnsStatusData {};
+	ParticleSystemClass* AttachedSystem;
+	CoordStruct CreateUnitLocation;
 
-	bool DelayedFireRemoveOnNoDelay { false };
-	bool IsAttachedEffectAnim { false };
-	bool IsShieldIdleAnim { false };
+	bool DelayedFireRemoveOnNoDelay;
+	bool IsAttachedEffectAnim;
+	bool IsShieldIdleAnim;
 
-	StageClass	DamagingState { };
+	StageClass	DamagingState;
 #pragma endregion
 
 public:
 
-	AnimExtData(AnimClass* pObj) : ObjectExtData(pObj) { }
-	AnimExtData(AnimClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+	AnimExtData(AnimClass* pObj) : ObjectExtData(pObj)
+		, BackupCoords {}
+		, DeathUnitFacing {}
+		, DeathUnitTurretFacing {}
+		, Invoker { nullptr }
+		, OwnerSet { false }
+		, AllowCreateUnit { false }
+		, WasOnBridge { false }
+		, ParentBuilding { nullptr }
+		, AttachedSystem { nullptr }
+		, CreateUnitLocation {}
+		, DelayedFireRemoveOnNoDelay { false }
+		, IsAttachedEffectAnim { false }
+		, IsShieldIdleAnim { false }
+		, DamagingState { }
+	{ }
+
+	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~AnimExtData()
 	{

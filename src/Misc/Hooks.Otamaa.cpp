@@ -7681,6 +7681,18 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 	 return 0x0;
  }
 
+ //ASMJIT_PATCH(0x7399EE, UnitClass_TryToDeploy_BrokenEBP, 0x5)
+ //{
+	// GET(UnitClass*, pThis, EBP);
+
+	// if (pThis->AttachedTag)
+	// {
+	//	 R->EAX(pThis->AttachedTag);
+	//	 return 0x7399F5;
+	// }
+
+	// return 0x739A0E;
+ //}
 #include <Utilities/Swizzle.h>
 
  //ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)

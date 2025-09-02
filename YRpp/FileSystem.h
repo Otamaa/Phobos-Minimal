@@ -131,7 +131,7 @@ public:
 
 		T* buffer = static_cast<T*>(file.ReadWholeFile());
 		if (!buffer)
-			GameDebugLog::Log("File[%s] Doesnt Exist ! ", file.FileName);
+			GameDebugLog::Log("File[%s] Doesnt Exist ! \n ", file.FileName);
 
 		file.Close();
 

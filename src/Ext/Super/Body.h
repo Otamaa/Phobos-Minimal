@@ -48,22 +48,25 @@ public:
 public:
 
 #pragma region ClassMembers
-
-	SWTypeExtData* Type { nullptr };
-	bool Temp_IsPlayer { false };
-	CellStruct Temp_CellStruct { };
-	bool CameoFirstClickDone { false };
-	bool FirstClickAutoFireDone { false };
-	SWStatus Statusses { };
-
-	CDTimerClass MusicTimer {};
-	bool MusicActive {};
+	SWTypeExtData* Type;
+	bool Temp_IsPlayer;
+	CellStruct Temp_CellStruct;
+	bool CameoFirstClickDone;
+	bool FirstClickAutoFireDone;
+	SWStatus Statusses;
+	CDTimerClass MusicTimer;
+	bool MusicActive;
 #pragma endregion
 
 public:
-
-	SuperExtData(SuperClass* pObj) : AbstractExtended(pObj) { }
-	SuperExtData(SuperClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	SuperExtData(SuperClass* pObj) : AbstractExtended(pObj),
+		Type(nullptr),
+		Temp_IsPlayer(false),
+		CameoFirstClickDone(false),
+		FirstClickAutoFireDone(false),
+		MusicActive(false)
+	{ }
+	SuperExtData(SuperClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~SuperExtData() = default;
 

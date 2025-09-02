@@ -18,86 +18,120 @@ public:
 	using base_type = AnimTypeClass;
 
 public:
-
 #pragma region ClassMembers
-	CustomPalette Palette { CustomPalette::PaletteMode::Temperate }; //CustomPalette::PaletteMode::Temperate
-	bool MakeInfantry_Scatter { false };
-	bool MakeInfantry_AI_Scatter { false };
-    std::unique_ptr<CreateUnitTypeClass> CreateUnitType{};
-	Valueable<int> XDrawOffset { 0 };
-	Valueable<int> HideIfNoOre_Threshold { 0 };
-	Nullable<bool> Layer_UseObjectLayer {};
-	Valueable<AttachedAnimPosition> AttachedAnimPosition { AttachedAnimPosition::Default };
-	Valueable<WeaponTypeClass*> Weapon { nullptr };
-	Valueable<WeaponTypeClass*> WeaponToCarry {};
-	Valueable<bool> Warhead_Detonate { false };
-	Valueable<int> Damage_Delay { 0 };
-	Valueable<bool> Damage_DealtByInvoker { false };
-	Valueable<bool> Damage_ApplyOnce { false };
-	Valueable<bool> Damage_ConsiderOwnerVeterancy { true };
-	Nullable<DamageDelayTargetFlag> Damage_TargetFlag {};
-	Nullable<Mission> MakeInfantry_Mission {};
-	Nullable<Mission> MakeInfantry_AI_Mission {};
-	NullableVector <AnimTypeClass*> SplashList {};
-	Valueable<bool> SplashIndexRandom { false };
-	Nullable<AnimTypeClass*> WakeAnim {};
-	Valueable<bool> ExplodeOnWater { false };
-	ValueableVector<AnimTypeClass*> SpawnsMultiple {};
-	Valueable<bool> SpawnsMultiple_Random { false };
-	std::vector<int> SpawnsMultiple_amouts {};
-	Valueable<double> ParticleRangeMin { 0.0 };
-	Valueable<double> ParticleRangeMax { 0.0 };
-	Nullable<int> ParticleChance {};
-	Valueable<bool> SpawnParticleModeUseAresCode { true };
-	std::vector<LauchSWData> Launchs {};
-	Valueable<int> CraterDecreaseTiberiumAmount { 6 };
-	Valueable<double> CraterChance { 0.5 };
-	Nullable<bool> SpawnCrater { };
-	Nullable<double> ScorchChance { };
-	Valueable<bool> SpecialDraw { false };
-	Valueable<bool> NoOwner { false };
-	Valueable<int> Spawns_Delay { 0 };
-	Valueable<double> ConcurrentChance { 0.0 };
-	ValueableVector<AnimTypeClass*> ConcurrentAnim { };
-	Nullable<OwnerHouseKind> MakeInfantryOwner {};
-	Valueable<ParticleSystemTypeClass*> AttachedSystem {};
-	bool IsInviso { false };
-	Valueable<bool> RemapAnim { false };
-	Valueable<bool> AltPalette_ApplyLighting { false };
-	Valueable<bool> ExtraShadow { true };
-	NullableIdx<VocClass> DetachedReport {};
-	Valueable<int> AdditionalHeight {};
-	NullableIdx<VocClass> AltReport {};
-	Valueable<AffectedHouse> VisibleTo { AffectedHouse::All };
-	Valueable<bool> VisibleTo_ConsiderInvokerAsOwner { false };
-	Valueable<bool> RestrictVisibilityIfCloaked { false };
-	Valueable<bool> DetachOnCloak { true };
-	Nullable<int> Translucency_Cloaked {};
-	Animatable<TranslucencyLevel> Translucent_Keyframes {};
-	Valueable<int> CreateUnit_SpawnHeight { -1 };
-	Valueable<bool> ConstrainFireAnimsToCellSpots { true };
-	Nullable<LandTypeFlags> FireAnimDisallowedLandTypes {};
-	Nullable<bool> AttachFireAnimsToParent { false };
-	Nullable<int> SmallFireCount {};
-	ValueableVector<AnimTypeClass*> SmallFireAnims {};
-	ValueableVector<double> SmallFireChances {};
-	ValueableVector<double> SmallFireDistances {};
-	Valueable<int> LargeFireCount { 1 };
-	ValueableVector<AnimTypeClass*> LargeFireAnims {};
-	ValueableVector<double> LargeFireChances {};
-	ValueableVector<double> LargeFireDistances {};
-	Valueable<bool> Damaging_UseSeparateState {};
-	Valueable<int> Damaging_Rate { -1 };
+	CustomPalette Palette;
+	bool MakeInfantry_Scatter;
+	bool MakeInfantry_AI_Scatter;
+	std::unique_ptr<CreateUnitTypeClass> CreateUnitType;
+	Valueable<int> XDrawOffset;
+	Valueable<int> HideIfNoOre_Threshold;
+	Nullable<bool> Layer_UseObjectLayer;
+	Valueable<AttachedAnimPosition> AttachedAnimPosition;
+	Valueable<WeaponTypeClass*> Weapon;
+	Valueable<WeaponTypeClass*> WeaponToCarry;
+	Valueable<bool> Warhead_Detonate;
+	Valueable<int> Damage_Delay;
+	Valueable<bool> Damage_DealtByInvoker;
+	Valueable<bool> Damage_ApplyOnce;
+	Valueable<bool> Damage_ConsiderOwnerVeterancy;
+	Nullable<DamageDelayTargetFlag> Damage_TargetFlag;
+	Nullable<Mission> MakeInfantry_Mission;
+	Nullable<Mission> MakeInfantry_AI_Mission;
+	NullableVector <AnimTypeClass*> SplashList;
+	Valueable<bool> SplashIndexRandom;
+	Nullable<AnimTypeClass*> WakeAnim;
+	Valueable<bool> ExplodeOnWater;
+	ValueableVector<AnimTypeClass*> SpawnsMultiple;
+	Valueable<bool> SpawnsMultiple_Random;
+	std::vector<int> SpawnsMultiple_amouts;
+	Valueable<double> ParticleRangeMin;
+	Valueable<double> ParticleRangeMax;
+	Nullable<int> ParticleChance;
+	Valueable<bool> SpawnParticleModeUseAresCode;
+	std::vector<LauchSWData> Launchs;
+	Valueable<int> CraterDecreaseTiberiumAmount;
+	Valueable<double> CraterChance;
+	Nullable<bool> SpawnCrater;
+	Nullable<double> ScorchChance;
+	Valueable<bool> SpecialDraw;
+	Valueable<bool> NoOwner;
+	Valueable<int> Spawns_Delay;
+	Valueable<double> ConcurrentChance;
+	ValueableVector<AnimTypeClass*> ConcurrentAnim;
+	Nullable<OwnerHouseKind> MakeInfantryOwner;
+	Valueable<ParticleSystemTypeClass*> AttachedSystem;
+	bool IsInviso;
+	Valueable<bool> RemapAnim;
+	Valueable<bool> AltPalette_ApplyLighting;
+	Valueable<bool> ExtraShadow;
+	NullableIdx<VocClass> DetachedReport;
+	Valueable<int> AdditionalHeight;
+	NullableIdx<VocClass> AltReport;
+	Valueable<AffectedHouse> VisibleTo;
+	Valueable<bool> VisibleTo_ConsiderInvokerAsOwner;
+	Valueable<bool> RestrictVisibilityIfCloaked;
+	Valueable<bool> DetachOnCloak;
+	Nullable<int> Translucency_Cloaked;
+	Animatable<TranslucencyLevel> Translucent_Keyframes;
+	Valueable<int> CreateUnit_SpawnHeight;
+	Valueable<bool> ConstrainFireAnimsToCellSpots;
+	Nullable<LandTypeFlags> FireAnimDisallowedLandTypes;
+	Nullable<bool> AttachFireAnimsToParent;
+	Nullable<int> SmallFireCount;
+	ValueableVector<AnimTypeClass*> SmallFireAnims;
+	ValueableVector<double> SmallFireChances;
+	ValueableVector<double> SmallFireDistances;
+	Valueable<int> LargeFireCount;
+	ValueableVector<AnimTypeClass*> LargeFireAnims;
+	ValueableVector<double> LargeFireChances;
+	ValueableVector<double> LargeFireDistances;
+	Valueable<bool> Damaging_UseSeparateState;
+	Valueable<int> Damaging_Rate;
 #pragma endregion
 
 public:
+	AnimTypeExtData(AnimTypeClass* pObj) : ObjectTypeExtData(pObj),
+		Palette(CustomPalette::PaletteMode::Temperate),
+		MakeInfantry_Scatter(false),
+		MakeInfantry_AI_Scatter(false),
+		CreateUnitType(nullptr),
+		XDrawOffset(0),
+		HideIfNoOre_Threshold(0),
+		AttachedAnimPosition(AttachedAnimPosition::Default),
+		Weapon(nullptr),
+		Warhead_Detonate(false),
+		Damage_Delay(0),
+		Damage_DealtByInvoker(false),
+		Damage_ApplyOnce(false),
+		Damage_ConsiderOwnerVeterancy(true),
+		SplashIndexRandom(false),
+		ExplodeOnWater(false),
+		SpawnsMultiple_Random(false),
+		ParticleRangeMin(0.0),
+		ParticleRangeMax(0.0),
+		SpawnParticleModeUseAresCode(true),
+		CraterDecreaseTiberiumAmount(6),
+		CraterChance(0.5),
+		SpecialDraw(IS_SAME_STR_(this->Name(), GameStrings::Anim_RING1())),
+		NoOwner(false),
+		Spawns_Delay(0),
+		ConcurrentChance(0.0),
+		IsInviso(IS_SAME_STR_(this->Name(), GameStrings::Anim_INVISO())),
+		RemapAnim(false),
+		AltPalette_ApplyLighting(false),
+		ExtraShadow(true),
+		VisibleTo(AffectedHouse::All),
+		VisibleTo_ConsiderInvokerAsOwner(false),
+		RestrictVisibilityIfCloaked(false),
+		DetachOnCloak(true),
+		CreateUnit_SpawnHeight(-1),
+		ConstrainFireAnimsToCellSpots(true),
+		AttachFireAnimsToParent(false),
+		LargeFireCount(1),
+		Damaging_Rate(-1)
+	{ }
 
-	AnimTypeExtData(AnimTypeClass* pObj) : ObjectTypeExtData(pObj) {
-		SpecialDraw = IS_SAME_STR_(this->Name(), GameStrings::Anim_RING1());
-		IsInviso = IS_SAME_STR_(this->Name(), GameStrings::Anim_INVISO());
-	}
-
-	AnimTypeExtData(AnimTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+	AnimTypeExtData(AnimTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~AnimTypeExtData() = default;
 

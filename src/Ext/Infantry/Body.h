@@ -15,15 +15,18 @@ public:
 public:
 
 #pragma region ClassMembers
-	bool IsUsingDeathSequence { false };
-	int CurrentDoType { -1 };
-	bool SkipTargetChangeResetSequence { false };
-#pragma region
+	bool IsUsingDeathSequence;
+	int CurrentDoType;
+	bool SkipTargetChangeResetSequence;
+#pragma endregion
 
 public:
-
-	InfantryExtData(InfantryClass* pObj) : FootExtData(pObj) { }
-	InfantryExtData(InfantryClass* pObj, noinit_t& nn) : FootExtData(pObj, nn) { }
+	InfantryExtData(InfantryClass* pObj) : FootExtData(pObj),
+		IsUsingDeathSequence(false),
+		CurrentDoType(-1),
+		SkipTargetChangeResetSequence(false)
+	{ }
+	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 
 	virtual ~InfantryExtData() = default;
 

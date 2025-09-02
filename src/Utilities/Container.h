@@ -142,7 +142,10 @@ public:
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE extension_type_ptr Find(base_type_ptr key) {
-		return this->GetExtAttribute(key);
+		auto pExt = this->GetExtAttribute(key);
+		//if (!pExt)
+		//	Debug::FatalError("Ext broken for %s [%s - %x]", PhobosCRT::GetTypeIDName<T>().c_str(), key->GetThisClassName(), key);
+		return pExt;
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE extension_type_ptr TryFind(base_type_ptr key)

@@ -101,10 +101,6 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 
 #include <ExtraHeaders/StackVector.h>
 
-BuildingExtData::BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj)
-{
-}
-
 static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 	StackVector<TechnoTypeClass*, 256>& Options,
 	TechnoTypeClass** Data ,

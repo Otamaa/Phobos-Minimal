@@ -733,7 +733,7 @@ void BulletExtData::ApplyRadiationToCell(CellClass* pCell, int Spread, int RadLe
 	const auto pThis = This();
 	const auto pWeapon = pThis->GetWeaponType();
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::Array.begin()->get());
+	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::FindOrAllocate(GameStrings::Radiation()));
 	auto const pCellExt = CellExtContainer::Instance.Find(pCell);
 
 	auto const it = pCellExt->RadSites.find_if([=](RadSiteClass* const pSite) {

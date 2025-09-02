@@ -18,46 +18,65 @@ public:
 public:
 
 #pragma region ClassMembers
-
-	int WaitNoTargetAttempts { 0 };
-	double NextSuccessWeightAward { 0 };
-	int IdxSelectedObjectFromAIList { -1 };
-	double CloseEnough { -1 };
-	int Countdown_RegroupAtLeader { -1 };
-	int MoveMissionEndMode { 0 };
-	int WaitNoTargetCounter { 0 };
-	CDTimerClass WaitNoTargetTimer { };
-	CDTimerClass ForceJump_Countdown { };
-	int ForceJump_InitialCountdown { -1 };
-	bool ForceJump_RepeatMode { false };
-	FootClass* TeamLeader { nullptr };
-
-	SuperClass* LastFoundSW { nullptr };
-
-	bool ConditionalJump_Evaluation { false };
-	int ConditionalJump_ComparatorMode { 3 };
-	int ConditionalJump_ComparatorValue { 1 };
-	int ConditionalJump_Counter { 0 };
-	int ConditionalJump_Index { -1000000 };
-	bool AbortActionAfterKilling { false };
-	bool ConditionalJump_EnabledKillsCount { false };
-	bool ConditionalJump_ResetVariablesIfJump { false };
-
-	int TriggersSideIdx { -1 };
-	int TriggersHouseIdx { -1 };
-
-	int AngerNodeModifier { 5000 };
-	bool OnlyTargetHouseEnemy { false };
-	int OnlyTargetHouseEnemyMode { -1 };
-
-	ScriptTypeClass* PreviousScript { nullptr };
-	std::vector<BuildingClass*> BridgeRepairHuts {};
+	int WaitNoTargetAttempts;
+	double NextSuccessWeightAward;
+	int IdxSelectedObjectFromAIList;
+	double CloseEnough;
+	int Countdown_RegroupAtLeader;
+	int MoveMissionEndMode;
+	int WaitNoTargetCounter;
+	CDTimerClass WaitNoTargetTimer;
+	CDTimerClass ForceJump_Countdown;
+	int ForceJump_InitialCountdown;
+	bool ForceJump_RepeatMode;
+	FootClass* TeamLeader;
+	SuperClass* LastFoundSW;
+	bool ConditionalJump_Evaluation;
+	int ConditionalJump_ComparatorMode;
+	int ConditionalJump_ComparatorValue;
+	int ConditionalJump_Counter;
+	int ConditionalJump_Index;
+	bool AbortActionAfterKilling;
+	bool ConditionalJump_EnabledKillsCount;
+	bool ConditionalJump_ResetVariablesIfJump;
+	int TriggersSideIdx;
+	int TriggersHouseIdx;
+	int AngerNodeModifier;
+	bool OnlyTargetHouseEnemy;
+	int OnlyTargetHouseEnemyMode;
+	ScriptTypeClass* PreviousScript;
+	std::vector<BuildingClass*> BridgeRepairHuts;
 #pragma endregion
 
 public:
-
-	TeamExtData(TeamClass* pObj) : AbstractExtended(pObj) { }
-	TeamExtData(TeamClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	TeamExtData(TeamClass* pObj) : AbstractExtended(pObj),
+		WaitNoTargetAttempts(0),
+		NextSuccessWeightAward(0.0),
+		IdxSelectedObjectFromAIList(-1),
+		CloseEnough(-1.0),
+		Countdown_RegroupAtLeader(-1),
+		MoveMissionEndMode(0),
+		WaitNoTargetCounter(0),
+		ForceJump_InitialCountdown(-1),
+		ForceJump_RepeatMode(false),
+		TeamLeader(nullptr),
+		LastFoundSW(nullptr),
+		ConditionalJump_Evaluation(false),
+		ConditionalJump_ComparatorMode(3),
+		ConditionalJump_ComparatorValue(1),
+		ConditionalJump_Counter(0),
+		ConditionalJump_Index(-1000000),
+		AbortActionAfterKilling(false),
+		ConditionalJump_EnabledKillsCount(false),
+		ConditionalJump_ResetVariablesIfJump(false),
+		TriggersSideIdx(-1),
+		TriggersHouseIdx(-1),
+		AngerNodeModifier(5000),
+		OnlyTargetHouseEnemy(false),
+		OnlyTargetHouseEnemyMode(-1),
+		PreviousScript(nullptr)
+	{ }
+	TeamExtData(TeamClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TeamExtData() = default;
 

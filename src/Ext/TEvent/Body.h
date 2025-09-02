@@ -68,12 +68,12 @@ public:
 
 public:
 
-	OptionalStruct<TechnoTypeClass*, false> TechnoType {};
+	OptionalStruct<TechnoTypeClass*, false> TechnoType;
 
 public:
 
-	TEventExtData(TEventClass* pObj) : AbstractExtended(pObj) { }
-	TEventExtData(TEventClass* pObj, noinit_t& nn) : AbstractExtended(pObj, nn) { }
+	TEventExtData(TEventClass* pObj) : AbstractExtended(pObj) , TechnoType() { }
+	TEventExtData(TEventClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TEventExtData() = default;
 

@@ -359,7 +359,7 @@ public:
 
 	COMPILETIMEEVAL FORCEDINLINE const T* GetEx(TechnoClass* pTechno) const noexcept {
 		const auto rank = pTechno->Veterancy.GetRemainingLevel();
-		return this->GetValue(rank);
+		return &this->GetValue(rank);
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE const T& GetFromSpecificRank(Rank rank)const noexcept
@@ -415,7 +415,7 @@ public:
 	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 
 private:
-	COMPILETIMEEVAL FORCEDINLINE T* GetValue(Rank rank) {
+	COMPILETIMEEVAL FORCEDINLINE T GetValue(Rank rank) {
 		if (rank == Rank::Elite) {
 			if COMPILETIMEEVAL (std::is_pointer<T>::type())
 				return &this->Elite;

@@ -16,17 +16,21 @@ public:
 	using base_type = TerrainClass;
 public:
 
+
 #pragma region ClassMember
-	Handle<LightSourceClass*, UninitLightSource> LighSource { nullptr };
-	Handle<AnimClass*, UninitAnim> AttachedAnim { nullptr };
-	Handle<AnimClass*, UninitAnim> AttachedFireAnim { nullptr };
-	std::vector<CellStruct> Adjencentcells{};
+	Handle<LightSourceClass*, UninitLightSource> LighSource;
+	Handle<AnimClass*, UninitAnim> AttachedAnim;
+	Handle<AnimClass*, UninitAnim> AttachedFireAnim;
+	std::vector<CellStruct> Adjencentcells;
 #pragma endregion
 
 public:
-
-	TerrainExtData(TerrainClass* pObj) : ObjectExtData(pObj) { }
-	TerrainExtData(TerrainClass* pObj, noinit_t& nn) : ObjectExtData(pObj, nn) { }
+	TerrainExtData(TerrainClass* pObj) : ObjectExtData(pObj),
+		LighSource(nullptr),
+		AttachedAnim(nullptr),
+		AttachedFireAnim(nullptr)
+	{ }
+	TerrainExtData(TerrainClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~TerrainExtData();
 

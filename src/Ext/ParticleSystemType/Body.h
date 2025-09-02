@@ -14,15 +14,17 @@ public:
 public:
 
 #pragma region ClassMembers
-	Valueable<bool> ApplyOptimization { true };
-	std::array<Point2D, (size_t)FacingType::Count> FacingMult {};
-	Valueable<bool> AdjustTargetCoordsOnRotation { true };
+	Valueable<bool> ApplyOptimization;
+	std::array<Point2D, (size_t)FacingType::Count> FacingMult;
+	Valueable<bool> AdjustTargetCoordsOnRotation;
 #pragma endregion
 
 public:
-
-	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj) : ObjectTypeExtData(pObj) { }
-	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj, noinit_t& nn) : ObjectTypeExtData(pObj, nn) { }
+	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj) : ObjectTypeExtData(pObj),
+		ApplyOptimization(true),
+		AdjustTargetCoordsOnRotation(true)
+	{ }
+	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~ParticleSystemTypeExtData() = default;
 
