@@ -112,12 +112,18 @@ public:
 	static COMPILETIMEEVAL reference<MissionControlClass, 0xA8E3A8u, 32> const Controls {};
 	static COMPILETIMEEVAL reference<const char*, 0x816CACu, 31> const Names {};
 
+	//with safety check
 	static MissionControlClass* GetMissionControl(Mission nIN) {
 		if (nIN >= Mission::count) {
 			return nullptr;
 		}
 
 		return &Controls[(size_t)nIN + 1];
+	}
+
+	//without safety check
+	static MissionControlClass* GetMissionControlOf(Mission m) {
+		return &MissionControlClass::Controls[(int)m];
 	}
 
 	const char* MissionTypeToString() {

@@ -31,6 +31,30 @@ class GeneralUtils final
 	NO_CONSTRUCT_CLASS(GeneralUtils)
 public:
 
+	static COMPILETIMEEVAL int GeneralUtils::SafeMultiply(int value, int mult)
+	{
+		long long product = static_cast<long long>(value) * mult;
+
+		if (product > INT32_MAX)
+			product = INT32_MAX;
+		else if (product < INT32_MIN)
+			product = INT32_MIN;
+
+		return static_cast<int>(product);
+	}
+
+	static COMPILETIMEEVAL int SafeMultiply(int value, double mult)
+	{
+		double product = static_cast<double>(value) * mult;
+
+		if (product > INT32_MAX)
+			product = INT32_MAX;
+		else if (product < INT32_MIN)
+			product = INT32_MIN;
+
+		return static_cast<int>(product);
+	}
+
 	static bool IsValidString(const char* str);
 	static bool IsValidString(const wchar_t* str);
 	static void IntValidCheck(int* source, const char* section, const char* tag, int defaultValue, int min = MIN_VAL(int), int max = MAX_VAL(int));

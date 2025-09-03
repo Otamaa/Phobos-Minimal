@@ -73,7 +73,7 @@ public:
 	virtual bool ReadDataFromTheByteStream(UnitExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
-
+class UnitTypeExtData;
 class NOVTABLE FakeUnitClass : public UnitClass
 {
 public:
@@ -81,10 +81,19 @@ public:
 	bool _Paradrop(CoordStruct* pCoords);
 	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, CoordStruct base);
 	int _Mission_Attack();
+	int _Mission_AreaGuard();
 
 	void _SetOccupyBit(CoordStruct* pCrd);
 	void _ClearOccupyBit(CoordStruct* pCrd);
 
 	void _Detach(AbstractClass* target, bool all);
+
+	FORCEDINLINE UnitExtData* _GetExtData() {
+		return *reinterpret_cast<UnitExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
+
+	FORCEDINLINE UnitTypeExtData* _GetTypeExtData() {
+		return *reinterpret_cast<UnitTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
+	}
 };
 static_assert(sizeof(FakeUnitClass) == sizeof(UnitClass), "Invalid Size !");

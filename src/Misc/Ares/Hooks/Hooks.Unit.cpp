@@ -761,15 +761,15 @@ ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 		0x740854 : 0x74083B;
 }
 
-ASMJIT_PATCH(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
-{
-	GET(UnitClass*, pThis, ESI);
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
+// ASMJIT_PATCH(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
+// {
+// 	GET(UnitClass*, pThis, ESI);
+// 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+// 	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
-		0x74416C : 0x744129;
-}
+// 	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
+// 		0x74416C : 0x744129;
+// }
 
 ASMJIT_PATCH(0x74689B, UnitClass_Init_Academy, 6)
 {

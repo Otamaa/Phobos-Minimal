@@ -785,8 +785,12 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 }
 
 bool TechnoExtData::IsHealthInThreshold(ObjectClass* pObject, double min, double max) {
+
+	if (!pObject->Health && !pObject->GetType()->Strength)
+		return true;
+
 	double hp = pObject->GetHealthPercentage();
-	return hp <= max && hp >= min;
+	return (hp > 0 ? hp > min : hp >= min) && hp <= max;
 }
 
 std::tuple<bool, bool, bool> TechnoExtData::CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge, bool checkCapturableBuilding, bool checkAttachedBombs) {

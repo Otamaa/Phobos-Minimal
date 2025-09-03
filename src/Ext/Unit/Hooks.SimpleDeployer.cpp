@@ -259,11 +259,11 @@ ASMJIT_PATCH(0x54C2DF, JumpjetLocomotionClass_Cruising_DeployToLand, 0xA)
 
 	auto const pType = pLinkedTo->GetTechnoType();
 
-	if (!pType->BalloonHover || pType->DeployToLand)
-	{
+	//if (!pType->BalloonHover || pType->DeployToLand)
+	//{
 		pThis->Height = 0;
 		pThis->NextState = JumpjetLocomotionClass::State::Descending;
-	}
+	//}
 
 	pLinkedTo->TryNextPlanningTokenNode();
 	return SkipGameCode;

@@ -247,8 +247,8 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	int nDamageResult = 0;
 	bool IsShielRequreFeeback = true;
 	DamageToShieldAfterMinMax = std::clamp(DamageToShield,
-		int(pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum) * pWHExt->Shield_ReceivedDamage_MinMultiplier),
-		int(pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum) * pWHExt->Shield_ReceivedDamage_MaxMultiplier));
+		GeneralUtils::SafeMultiply(pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum) , pWHExt->Shield_ReceivedDamage_MinMultiplier),
+			GeneralUtils::SafeMultiply(pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum) , pWHExt->Shield_ReceivedDamage_MaxMultiplier));
 
 	if (DamageToShieldAfterMinMax == 0)
 	{
@@ -686,7 +686,7 @@ bool ShieldClass::ConvertCheck()
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(this->Techno->GetTechnoType());
 	const auto pOldType = this->Type;
 	bool allowTransfer = this->Type->AllowTransfer.Get(Attached);
-	
+
 	if (!allowTransfer && !pTechnoTypeExt->ShieldType->Strength)
 	{
 		// Case 1: Old shield is not allowed to transfer or there's no eligible new shield type -> delete shield.

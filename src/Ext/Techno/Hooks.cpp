@@ -1289,11 +1289,12 @@ ASMJIT_PATCH(0x41D604, AirstrikeClass_PointerGotInvalid_ResetForTarget, 0x6)
 ASMJIT_PATCH(0x65E97F, HouseClass_CreateAirstrike_SetTargetForUnit, 0x6)
 {
 	GET_STACK(AirstrikeClass*, pThis, STACK_OFFSET(0x38, 0x1C));
+	GET(AircraftClass*, pFirer, ESI);
 
 	if(const auto pOwner = pThis->Owner){
 		if (const auto pTarget = flag_cast_to<TechnoClass*>(pOwner->Target)) {
-			R->EAX(pTarget);
-			return 0x65E983;
+			pFirer->SetTarget(pTarget);
+			return 0x65E992;
 		}
 	}
 

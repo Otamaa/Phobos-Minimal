@@ -193,25 +193,48 @@ ASMJIT_PATCH(0x741050, UnitClass_CanFire_DeployToFire, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x73891D, UnitClass_Active_Click_With_DisallowMoving, 0x6)
-{
+ASMJIT_PATCH(0x73891D, UnitClass_Active_Click_With_DisallowMoving, 0x6) {
 	GET(UnitClass*, pThis, ESI);
 
 	return pThis->Type->Speed == 0 ? 0x738927 : 0;
 }
 
-ASMJIT_PATCH(0x73EFC4, UnitClass_Mission_DisallowMoving, 0x6)		// UnitClass::Mission_Hunt
+ASMJIT_PATCH(0x73EFC4, UnitClass_Mission_Hunt_DisallowMoving, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	if (TechnoExtData::CannotMove(pThis))
-	{
+	if (TechnoExtData::CannotMove(pThis)) {
 		pThis->QueueMission(Mission::Guard, false);
 		pThis->NextMission();
 
 		R->EAX(pThis->Mission_Guard());
-		return R->Origin() == 0x744103 ? 0x744173 : 0x73F091;
+		return 0x73F091;
 	}
 
 	return 0;
-}ASMJIT_PATCH_AGAIN(0x744103, UnitClass_Mission_DisallowMoving, 0x6)	// UnitClass::Mission_AreaGuard
+}
+
+// 3 Sep, 2025 - Starkku: Separated from above, do not change to guard mission
+// and only handle the target acquisition part of area guard for immobile units.
+// ASMJIT_PATCH(0x744103, UnitClass_Mission_AreaGuard_DisallowMoving, 0x6)
+// {
+// 	GET(UnitClass*, pThis, ESI);
+
+// 	if (TechnoExtData::CannotMove(pThis)) {
+
+// 		if (pThis->CanPassiveAcquireTargets() && pThis->TargetingTimer.Completed())
+// 			pThis->TargetAndEstimateDamage(&pThis->Location, ThreatType::Area);
+
+// 		int delay = 1;
+
+// 		if (!pThis->Target) {
+// 			pThis->UpdateIdleAction();
+// 			delay = static_cast<int>(MissionClass::GetMissionControlOf(Mission::Area_Guard)->Rate * 900) + ScenarioClass::Instance->Random(1, 5);
+// 		}
+
+// 		R->EAX(delay);
+// 		return 0x744173;
+// 	}
+
+// 	return 0;
+// }

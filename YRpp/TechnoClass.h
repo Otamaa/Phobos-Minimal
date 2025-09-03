@@ -778,20 +778,23 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x6339B0);
 	}
 
-	void GattlingRateUp(int value)
+	void GattlingRateUp(int value) const
 	{ JMP_THIS(0x70DE70); }
 
-	void GattlingRateDown(int value)
+	void GattlingRateDown(int value) const
 	{ JMP_THIS(0x70E000); }
 
-	void ReleaseLocomotor(bool setTarget)
+	void ReleaseLocomotor(bool setTarget) const
 	{ JMP_THIS(0x70FEE0); }
 
-	void DistributedFire()
+	void DistributedFire() const
 	{ JMP_THIS(0x709550); }
 
-		// changes locomotor to the given one, Magnetron style
-		//	// mind that this locks up the source too, Magnetron style
+	bool CanPassiveAcquireTargets() const
+	{ JMP_THIS(0x7091D0); }
+
+	// changes locomotor to the given one, Magnetron style
+	//	// mind that this locks up the source too, Magnetron style
     void ImbueLocomotor(FootClass* target, CLSID clsid)
 	{ JMP_THIS(0x710000); }
 
