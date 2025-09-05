@@ -16,6 +16,7 @@ class ParticleTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = ParticleTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -118,9 +119,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(ParticleTypeExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(ParticleTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeParticleTypeClass : public ParticleTypeClass
@@ -128,7 +126,7 @@ class NOVTABLE FakeParticleTypeClass : public ParticleTypeClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

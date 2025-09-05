@@ -7,6 +7,7 @@ class UnitExtData : public FootExtData
 {
 public:
 	using base_type = UnitClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -69,19 +70,25 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(UnitExtData::base_type* key, IStream* pStm) {  return true; };
-	virtual bool ReadDataFromTheByteStream(UnitExtData::base_type* key, IStream* pStm) { return true;  };
+	static bool HasDeployingAnim(UnitTypeClass* pUnitType);
+	static bool CheckDeployRestrictions(FootClass* pUnit, bool isDeploying);
+	static void CreateDeployingAnim(UnitClass* pUnit, bool isDeploying);
 };
 
 class UnitTypeExtData;
 class NOVTABLE FakeUnitClass : public UnitClass
 {
 public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _Paradrop(CoordStruct* pCoords);
 	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, CoordStruct base);
 	int _Mission_Attack();
 	int _Mission_AreaGuard();
+
+	void _Deploy();
+	void _UnDeploy();
 
 	void _SetOccupyBit(CoordStruct* pCrd);
 	void _ClearOccupyBit(CoordStruct* pCrd);

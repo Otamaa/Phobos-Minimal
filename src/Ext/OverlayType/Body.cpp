@@ -52,13 +52,6 @@ ASMJIT_PATCH(0x5FE3A2, OverlayTypeClass_CTOR, 0x5)
 	return 0;
 } ASMJIT_PATCH_AGAIN(0x5FE3AF, OverlayTypeClass_CTOR, 0x5)
 
-ASMJIT_PATCH(0x5FE3E1, OverlayTypeClass_CTOR_NoIint, 0x7)
-{
-	GET(OverlayTypeClass*, pItem, EAX);
-	OverlayTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0x0;
-}
-
 ASMJIT_PATCH(0x5FE3F6, OverlayTypeClass_DTOR, 0x6)
 {
 	GET(OverlayTypeClass*, pItem, ESI);
@@ -74,3 +67,31 @@ bool FakeOverlayTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF664, FakeOverlayTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeOverlayTypeClass::_Load(IStream* pStm)
+{
+	auto hr = this->OverlayTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = OverlayTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+			OverlayTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeOverlayTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->OverlayTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = OverlayTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF614, FakeOverlayTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF618, FakeOverlayTypeClass::_Save)

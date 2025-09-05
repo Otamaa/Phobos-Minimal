@@ -17,6 +17,7 @@ class SideExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = SideClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 #pragma region ClassMembers
@@ -240,6 +241,14 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(SideExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(SideExtData::base_type* key, IStream* pStm) { return true;  };
 };
+
+class FakeSideClass final : public SideClass
+{
+public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+};
+
+static_assert(sizeof(FakeSideClass) == sizeof(SideClass), "Invalid Size !");

@@ -172,42 +172,6 @@ namespace Savegame
 	//};
 
 	template <typename T>
-	struct Savegame::PhobosStreamObject<VectorClass<T>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, VectorClass<T>& Value, bool RegisterForChange) const
-		{
-			Value.Clear();
-			int Capacity = 0;
-
-			if (!Stm.Load(Capacity))
-				return false;
-
-			Value.Reserve(Capacity);
-
-			for (auto ix = 0; ix < Capacity; ++ix)
-			{
-				if (!Savegame::ReadPhobosStream(Stm, Value.Items[ix], RegisterForChange))
-					return false;
-			}
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const VectorClass<T>& Value) const
-		{
-			Stm.Save(Value.Capacity);
-
-			for (auto ix = 0; ix < Value.Capacity; ++ix)
-			{
-				if (!Savegame::WritePhobosStream(Stm, Value.Items[ix]))
-					return false;
-			}
-
-			return true;
-		}
-	};
-
-	template <typename T>
 	struct Savegame::PhobosStreamObject<DynamicVectorClass<T>>
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, DynamicVectorClass<T>& Value, bool RegisterForChange) const

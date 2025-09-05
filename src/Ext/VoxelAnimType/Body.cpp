@@ -84,3 +84,31 @@ bool FakeVoxelAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F65AC, FakeVoxelAnimTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeVoxelAnimTypeClass::_Load(IStream* pStm)
+{
+	auto hr = this->VoxelAnimTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = VoxelAnimTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+			VoxelAnimTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeVoxelAnimTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->VoxelAnimTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = VoxelAnimTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F655C, FakeVoxelAnimTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6560, FakeVoxelAnimTypeClass::_Save)

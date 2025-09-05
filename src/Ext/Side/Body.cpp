@@ -2,6 +2,7 @@
 
 #include <ThemeClass.h>
 #include <Utilities/Helpers.h>
+#include <Utilities/Macro.h>
 
 SHPStruct* SideExtData::s_GraphicalTextImage = nullptr;
 CustomPalette SideExtData::s_GraphicalTextConvert;
@@ -560,3 +561,31 @@ ASMJIT_PATCH(0x6A499F, SideClass_SDDTOR, 0x6)
 	SideExtContainer::Instance.Remove(pItem);
 	return 0;
 }
+
+HRESULT __stdcall FakeSideClass::_Load(IStream* pStm)
+{
+	auto hr = this->SideClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		auto pExt = SideExtContainer::Instance.AllocateNoInit(this);
+		//refresh the index
+		pExt->ArrayIndex = SideClass::Array->FindItemIndex(const_cast<SideClass* const>(reinterpret_cast<SideClass*>(this)));
+		hr = SideExtContainer::Instance.ReadDataFromTheByteStream(this,pExt, pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeSideClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->SideClass::Save(pStm , clearDirty);
+
+	if (SUCCEEDED(hr)) {
+		hr = SideExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7F2ED4 , FakeSideClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F2ED8, FakeSideClass::_Save)

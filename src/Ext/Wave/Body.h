@@ -10,6 +10,8 @@ class WaveExtData final : public ObjectExtData
 {
 public:
 	using base_type = WaveClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+
 public:
 #pragma region ClassMembers
 	WeaponTypeClass* Weapon;
@@ -103,15 +105,14 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(WaveExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(WaveExtData::base_type* key, IStream* pStm) { return true;  };
-
 };
 
 class NOVTABLE FakeWaveClass : public WaveClass
 {
 public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 	void _DamageCell(CoordStruct* pLoc);

@@ -12,6 +12,7 @@ class TiberiumExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = TiberiumClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 #pragma region ClassMember
@@ -138,9 +139,6 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
-
-	virtual bool WriteDataToTheByteStream(TiberiumExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(TiberiumExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class NOVTABLE FakeTiberiumClass : public TiberiumClass
@@ -159,7 +157,7 @@ public:
 #pragma endregion
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	TiberiumExtData* _GetExtData() {
 		return *reinterpret_cast<TiberiumExtData**>(((DWORD)this) + AbstractExtOffset);

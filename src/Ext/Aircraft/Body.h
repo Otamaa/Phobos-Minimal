@@ -11,6 +11,7 @@ class AircraftExtData : public FootExtData
 {
 public:
 	using base_type = AircraftClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -77,15 +78,14 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(AircraftExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(AircraftExtData::base_type*, IStream* pStm) { return true;  };
 };
 
 class AbstractClass;
 class NOVTABLE FakeAircraftClass : public AircraftClass
 {
 public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	WeaponStruct* _GetWeapon(int weaponIndex);
 	void _SetTarget(AbstractClass* pTarget);

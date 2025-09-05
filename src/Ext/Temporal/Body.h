@@ -10,6 +10,7 @@ class TemporalExtData final : public AbstractExtended
 {
 public:
 	 using base_type = TemporalClass;
+	 static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) { }
@@ -71,9 +72,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(TemporalExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(TemporalExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class NOVTABLE FakeTemporalClass : public TemporalClass
@@ -81,7 +79,7 @@ class NOVTABLE FakeTemporalClass : public TemporalClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE TemporalClass* _AsTemporal() const {
 		return (TemporalClass*)this;

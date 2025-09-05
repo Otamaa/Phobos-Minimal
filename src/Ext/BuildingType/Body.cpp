@@ -2116,6 +2116,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
 std::vector<BuildingTypeExtData*> Container<BuildingTypeExtData>::Array;
+std::map<TechnoTypeClass*, BuildingTypeExtData*>BuildingTypeExtContainer::Mapped;
 
 // =============================
 // container hooks
@@ -2127,13 +2128,12 @@ ASMJIT_PATCH(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x45E56C, BuildingTypeClass_CTOR_NoInit, 0x7)
+ASMJIT_PATCH(0x45E573, BuildingTypeClass_NoInit_CTOR, 0x6)
 {
-	GET(BuildingTypeClass*, pItem, ESI);
+	GET(BuildingTypeClass*, pItem, EAX);
 	BuildingTypeExtContainer::Instance.AllocateNoInit(pItem);
 	return 0;
 }
-
 ASMJIT_PATCH(0x45E707, BuildingTypeClass_DTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, ESI);
@@ -2151,3 +2151,32 @@ bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E45D4, FakeBuildingTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeBuildingTypeClass::_Load(IStream* pStm)
+{
+	auto hr = BuildingTypeExtContainer::Instance
+		.ReadDataFromTheByteStream(this,
+			BuildingTypeExtContainer::Instance.Mapped[this], pStm);
+
+	if (SUCCEEDED(hr)) {
+		hr = this->BuildingTypeClass::Load(pStm);
+
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeBuildingTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = BuildingTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+
+	if (SUCCEEDED(hr)) {
+		hr = this->BuildingTypeClass::Save(pStm, clearDirty);
+
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4584, FakeBuildingTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4588, FakeBuildingTypeClass::_Save)

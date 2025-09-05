@@ -14,6 +14,12 @@
 class AbstractClass;
 static COMPILETIMEEVAL size_t AbstractExtOffset = 0x18;
 
+template<typename T>
+struct UuidFirstPart {
+	static constexpr unsigned int value = __uuidof(T).Data1;
+};
+
+
 struct AbstractExtended {
 private:
 	AbstractClass* AttachedToObject;
@@ -56,6 +62,9 @@ private:
 
 template <class T>
 concept HasAbsID = requires(T) { T::AbsID; };
+
+template <class T>
+concept HasMarker = requires(T) { T::Marker; };
 
 template <class T>
 concept HasTypeBase = requires(T) { T::AbsTypeBase; };
@@ -142,10 +151,7 @@ public:
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE extension_type_ptr Find(base_type_ptr key) {
-		auto pExt = this->GetExtAttribute(key);
-		//if (!pExt)
-		//	Debug::FatalError("Ext broken for %s [%s - %x]", PhobosCRT::GetTypeIDName<T>().c_str(), key->GetThisClassName(), key);
-		return pExt;
+		return this->GetExtAttribute(key);
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE extension_type_ptr TryFind(base_type_ptr key)
@@ -161,12 +167,13 @@ public:
 	extension_type_ptr Allocate(base_type_ptr key) {
 		auto pExt = new extension_type(key);
 		this->SetExtAttribute(key ,pExt);
+		Array.emplace_back(pExt);
 		return pExt;
 	}
 
 	extension_type_ptr AllocateNoInit(base_type_ptr key) {
 		auto pExt = new extension_type(key, noinit_t());
-		this->SetExtAttribute(key, pExt);
+		Array.emplace_back(pExt);
 		return pExt;
 	}
 
@@ -181,6 +188,7 @@ public:
 	void Remove(base_type_ptr key)
 	{
 		if (extension_type_ptr Item = TryFind(key)) {
+			Array.erase(std::find(Array.begin() , Array.end(), Item));
 			delete Item;
 			this->ClearExtAttribute(key);
 		}
@@ -259,36 +267,72 @@ public:
 				Extptr->InvalidatePointer(ptr, bRemoved);
 	}
 
-public: //array Operation
-
-	static void Clear()
-	{
-	}
-
-	static bool SaveToGlobal()
-	{
-
-	}
-
-	static bool LoadFromGlobal()
-	{
-
-	}
-
-	static void Swizzle()
-	{
-
-	}
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)	{
-		for (auto& ext : Array) {
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
-
 public: //not sure if these needed ?
 
-	virtual bool WriteDataToTheByteStream(base_type_ptr key, IStream* pStm) = 0;
-	virtual bool ReadDataFromTheByteStream(base_type_ptr key, IStream * pStm) = 0;
+	virtual HRESULT WriteDataToTheByteStream(base_type_ptr key, IStream* pStm)
+	{
+		if COMPILETIMEEVAL(HasMarker<T>)
+		{
+			// get the value data
+			auto buffer = this->Find(key);
+
+			if (!buffer)
+			{
+				Debug::Log("SaveKey - Could not find value.\n");
+				return E_POINTER;
+			}
+
+			// write the current pointer, the size of the block, and the canary
+			// the size is initial size of the class for reserving the ByteStream vector
+			PhobosByteStream saver(buffer->GetSize());
+			PhobosStreamWriter writer(saver);
+
+			//write the marker begin
+			writer.Save(T::Marker);
+
+			// save the data
+			buffer->SaveToStream(writer);
+
+			// save the block
+			if (!saver.WriteBlockToStream(pStm))
+			{
+				Debug::Log("SaveKey - Failed to save data.\n");
+				return E_FAIL;
+			}
+		}
+		return S_OK;
+	}
+
+	virtual HRESULT ReadDataFromTheByteStream(base_type_ptr key, extension_type_ptr pExt, IStream * pStm)
+	{
+		if COMPILETIMEEVAL(HasMarker<T>)
+		{
+			if (!pExt) {
+				Debug::Log("SaveKey - Could not find value.\n");
+				return E_POINTER;
+			}
+
+			PhobosByteStream loader(0);
+			if (!loader.ReadBlockFromStream(pStm)) {
+				Debug::Log("LoadKey - Failed to read data from save stream?!\n");
+				return E_FAIL;
+			}
+
+			PhobosStreamReader reader(loader);
+
+			if (reader.Expect(T::Marker)) {
+				pExt->LoadFromStream(reader);
+				if(reader.ExpectEndOfBlock()){
+					auto old = (LONG)key->unknown_18;
+					SwizzleManagerClass::Instance->Here_I_Am(old, pExt);
+					key->unknown_18 = (LONG)pExt;
+					return S_OK;
+				}
+			}
+			return E_FAIL;
+		}
+
+		return S_OK;
+	}
 
 };

@@ -523,14 +523,6 @@ ASMJIT_PATCH(0x511643, HouseTypeClass_CTOR, 0x5)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x511635, HouseTypeClass_CTOR, 0x5)
 
-ASMJIT_PATCH(0x51168F, HouseTypeClass_CTOR_NoInit, 0x7)
-{
-	GET(HouseTypeClass*, pItem, ESI);
-
-	HouseTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0x0;
-}
-
 ASMJIT_PATCH(0x5127CF, HouseTypeClass_DTOR, 0x6)
 {
 	GET(HouseTypeClass*, pItem, ESI);
@@ -547,3 +539,32 @@ bool FakeHouseTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EABBC, FakeHouseTypeClass::_ReadFromINI)
+
+
+HRESULT __stdcall FakeHouseTypeClass::_Load(IStream* pStm)
+{
+	auto hr = this->HouseTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = HouseTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+			HouseTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeHouseTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->HouseTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = HouseTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB6C, FakeHouseTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB70, FakeHouseTypeClass::_Save)

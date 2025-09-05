@@ -231,15 +231,6 @@ ASMJIT_PATCH(0x65B243, RadSiteClass_CTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x65B2DB, RadSiteClass_CTOR_NoInt, 0x7)
-{
-
-	GET(RadSiteClass*, pThis, ESI);
-	RadSiteExtContainer::Instance.AllocateNoInit(pThis);
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x65B344, RadSiteClass_DTOR, 0x6)
 {
 	GET(RadSiteClass*, pThis, ESI);
@@ -273,3 +264,31 @@ HouseClass* FakeRadSiteClass::_GetOwningHouse()
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F084C, FakeRadSiteClass::_GetOwningHouse);
+
+HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
+{
+	auto hr = this->RadSiteClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = RadSiteExtContainer::Instance.ReadDataFromTheByteStream(this,
+			RadSiteExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->RadSiteClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = RadSiteExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)

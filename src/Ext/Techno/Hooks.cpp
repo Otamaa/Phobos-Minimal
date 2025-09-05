@@ -1873,3 +1873,22 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_ForceWeapon, 0xF)
 	return 0;
 }
 #endif
+
+#include <Locomotor/TunnelLocomotionClass.h>
+
+// Prevent subterranean units from deploying while underground.
+ASMJIT_PATCH(0x73D6E6, UnitClass_Unload_Subterranean, 0x6)
+{
+	enum { ReturnFromFunction = 0x73DFB0 };
+
+	GET(UnitClass*, pThis, ESI);
+
+	if (pThis->Type->Locomotor == TunnelLocomotionClass::ClassGUID) {
+		auto const pLoco = static_cast<TunnelLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
+
+		if (pLoco->State != TunnelLocomotionClass::State::IDLE)
+			return ReturnFromFunction;
+	}
+
+	return 0;
+}

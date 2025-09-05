@@ -1094,6 +1094,10 @@ bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int w
 				pExt->CreateDelayedFireAnim(pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
 					pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, firingCoords);
 
+				if (pWeaponExt->DelayedFire_InitialBurstSymmetrical)
+					pExt->CreateDelayedFireAnim(pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
+						pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, {firingCoords.X, -firingCoords.Y, firingCoords.Z});
+
 				return true;
 			}
 			else if (timer.InProgress())
@@ -6227,26 +6231,98 @@ void TechnoExtData::UpdateAircraftOpentopped()
 	}
 }
 
+bool TechnoExtData::HasAmmoToDeploy(TechnoClass* pThis)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	const int min = pTypeExt->Ammo_DeployUnlockMinimumAmount;
+	const int max = pTypeExt->Ammo_DeployUnlockMaximumAmount;
+
+	if (min < 0 && max < 0)
+		return true;
+
+	const int ammo = pThis->Ammo;
+
+	if ((min < 0 || ammo >= min) && (max < 0 || ammo <= max))
+		return true;
+
+	return false;
+}
+
+void TechnoExtData::HandleOnDeployAmmoChange(TechnoClass* pThis, int maxAmmoOverride)
+{
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	int add = pTypeExt->Ammo_AddOnDeploy;
+
+	if (add != 0)
+	{
+		int maxAmmo = pType->Ammo;
+
+		if (maxAmmoOverride >= 0)
+			maxAmmo = maxAmmoOverride;
+
+		int originalAmmo = pThis->Ammo;
+		pThis->Ammo = std::clamp(pThis->Ammo + add, 0, maxAmmo);
+
+		if (originalAmmo != pThis->Ammo)
+		{
+			pThis->StartReloading();
+			pThis->Mark(MarkType::Change);
+		}
+	}
+}
+
 void TechnoExtData::DepletedAmmoActions()
 {
-	const auto pUnit = cast_to<UnitClass*, false>(This());
+	auto const pThis = this->This();
+	auto const pType = pThis->GetTechnoType();
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (!pUnit || (pUnit->Type->Ammo <= 0) || !pUnit->Type->IsSimpleDeployer)
+	if (pType->Ammo <= 0)
 		return;
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pUnit->Type);
+	auto const rtti = pThis->WhatAmI();
+	UnitClass* pUnit = nullptr;
 
-	const bool skipMinimum = pTypeExt->Ammo_AutoDeployMinimumAmount < 0;
-	const bool skipMaximum = pTypeExt->Ammo_AutoDeployMaximumAmount < 0;
+	if (rtti == AbstractType::Unit)
+	{
+		pUnit = static_cast<UnitClass*>(pThis);
+		auto const pUnitType = pUnit->Type;
 
-	if (skipMinimum && skipMaximum)
+		if (!pUnitType->IsSimpleDeployer && !pUnitType->DeploysInto && !pUnitType->DeployFire
+			&& pUnitType->Passengers < 1 && pUnit->Passengers.NumPassengers < 1)
+		{
+			return;
+		}
+	}
+
+	int const min = pTypeExt->Ammo_AutoDeployMinimumAmount;
+	int const max = pTypeExt->Ammo_AutoDeployMaximumAmount;
+
+	if (min < 0 && max < 0)
 		return;
 
-	const bool moreThanMinimum = pUnit->Ammo >= pTypeExt->Ammo_AutoDeployMinimumAmount;
-	const bool lessThanMaximum = pUnit->Ammo <= pTypeExt->Ammo_AutoDeployMaximumAmount;
+	int const ammo = pThis->Ammo;
+	bool canDeploy = TechnoExtData::HasAmmoToDeploy(pThis) && (min < 0 || ammo >= min) && (max < 0 || ammo <= max);
+	bool isDeploying = pThis->CurrentMission == Mission::Unload || pThis->QueuedMission == Mission::Unload;
 
-	if ((skipMinimum || moreThanMinimum) && (skipMaximum || lessThanMaximum))
-		pUnit->QueueMission(Mission::Unload, true);
+	if (canDeploy && !isDeploying)
+	{
+		pThis->QueueMission(Mission::Unload, true);
+	}
+	else if (!canDeploy && isDeploying)
+	{
+		pThis->QueueMission(Mission::Guard, true);
+
+		if (pUnit && pUnit->Type->IsSimpleDeployer && pThis->InAir)
+		{
+			if (auto const pJJLoco = locomotion_cast<JumpjetLocomotionClass*>(pUnit->Locomotor))
+				pJJLoco->NextState = JumpjetLocomotionClass::State::Ascending;
+		}
+	}
 }
 
 void TechnoExtData::UpdateLaserTrails()

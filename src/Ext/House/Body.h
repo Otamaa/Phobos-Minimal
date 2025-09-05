@@ -99,6 +99,7 @@ class HouseExtData final : public AbstractExtended
 {
 public:
 	using base_type = HouseClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -447,15 +448,16 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved);
-
-	virtual bool WriteDataToTheByteStream(HouseExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(HouseExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class HouseTypeExtData;
 class NOVTABLE FakeHouseClass : public HouseClass
 {
 public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
 	bool _IsAlliedWith(HouseClass* pOther);
 	void _Detach(AbstractClass* target, bool all);
 	int _Expert_AI();

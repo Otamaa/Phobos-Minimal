@@ -31,6 +31,7 @@ class WarheadTypeExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = WarheadTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -878,9 +879,6 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
 
-	virtual bool WriteDataToTheByteStream(WarheadTypeExtData::base_type* key, IStream* pStm) { return true; };
-	virtual bool ReadDataFromTheByteStream(WarheadTypeExtData::base_type* key, IStream* pStm) { return true; };
-
 };
 
 class NOVTABLE FakeWarheadTypeClass : public WarheadTypeClass
@@ -888,7 +886,7 @@ class NOVTABLE FakeWarheadTypeClass : public WarheadTypeClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

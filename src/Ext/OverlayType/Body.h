@@ -11,6 +11,7 @@ class OverlayTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = OverlayTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -91,13 +92,13 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(OverlayTypeExtData::base_type* key, IStream* pStm) {  return true; };
-	virtual bool ReadDataFromTheByteStream(OverlayTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeOverlayTypeClass : public OverlayTypeClass
 {
 public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
 	bool _ReadFromINI(CCINIClass* pINI);
 };

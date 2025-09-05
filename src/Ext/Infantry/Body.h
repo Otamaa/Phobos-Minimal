@@ -11,6 +11,7 @@ class InfantryExtData : public FootExtData
 {
 public:
 	using base_type = InfantryClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -90,9 +91,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(InfantryExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(InfantryExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class InfantryTypeExtData;
@@ -100,7 +98,7 @@ class NOVTABLE FakeInfantryClass : public InfantryClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Dummy(Mission, bool) RX;
 	void _DummyScatter(const CoordStruct& crd, bool ignoreMission, bool ignoreDestination) RX;

@@ -2907,16 +2907,6 @@ ASMJIT_PATCH(0x6CE6F2, SuperWeaponTypeClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6CE72B, SuperWeaponTypeClass_CTOR_NoInit, 0x7)
-{
-	GET(SuperWeaponTypeClass*, pItem, ESI);
-
-	NewSWType::Init();
-	SWTypeExtContainer::Instance.AllocateNoInit(pItem);
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
 {
 	GET(SuperWeaponTypeClass*, pItem, ECX);
@@ -2932,3 +2922,31 @@ bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40F4, FakeSuperWeaponTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeSuperWeaponTypeClass::_Load(IStream* pStm)
+{
+	auto hr = this->SuperWeaponTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = SWTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+			SWTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeSuperWeaponTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->SuperWeaponTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = SWTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A4, FakeSuperWeaponTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A8, FakeSuperWeaponTypeClass::_Save)

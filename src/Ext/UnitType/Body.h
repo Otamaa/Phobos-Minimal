@@ -5,6 +5,7 @@ class UnitTypeExtData : public TechnoTypeExtData
 {
 public:
 	using base_type = UnitTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -54,9 +55,19 @@ class UnitTypeExtContainer final : public Container<UnitTypeExtData>
 {
 public:
 	static UnitTypeExtContainer Instance;
+	static std::map<TechnoTypeClass*, UnitTypeExtData*> Mapped;
+
+	UnitTypeExtData* AllocateNoInit(UnitTypeExtData::base_type* key)
+	{
+		auto pExt = new UnitTypeExtData(key, noinit_t());
+		Mapped[key] = pExt;
+
+		return pExt;
+	}
 
 	static void Clear()
 	{
+		Mapped.clear();
 		Array.clear();
 	}
 
@@ -78,13 +89,42 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(UnitTypeExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(UnitTypeExtData::base_type* key, IStream* pStm) { return true;  };
+	virtual HRESULT ReadDataFromTheByteStream(base_type_ptr key, extension_type_ptr pExt, IStream* pStm)
+	{
+			if (!pExt) {
+				Debug::Log("SaveKey - Could not find value.\n");
+				return E_POINTER;
+			}
+
+			PhobosByteStream loader(0);
+			if (!loader.ReadBlockFromStream(pStm)) {
+				Debug::Log("LoadKey - Failed to read data from save stream?!\n");
+				return E_FAIL;
+			}
+
+			PhobosStreamReader reader(loader);
+
+		if (reader.Expect(UnitTypeExtData::Marker)) {
+			pExt->LoadFromStream(reader);
+
+			if (reader.ExpectEndOfBlock()) {
+				auto old = (LONG)key->unknown_18;
+				SwizzleManagerClass::Instance->Here_I_Am(old, pExt);
+				key->unknown_18 = (LONG)pExt;
+				return S_OK;
+			}
+		}
+
+		return E_FAIL;
+	}
 };
 
 class NOVTABLE FakeUnitTypeClass : public UnitTypeClass
 {
 public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 };

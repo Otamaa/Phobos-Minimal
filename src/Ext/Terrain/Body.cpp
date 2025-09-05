@@ -244,3 +244,31 @@ void FakeTerrainClass::_AnimPointerExpired(AnimClass* pAnim) {
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7F528C, FakeTerrainClass::_AnimPointerExpired)
+
+HRESULT __stdcall FakeTerrainClass::_Load(IStream* pStm)
+{
+	auto hr = this->TerrainClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = TerrainExtContainer::Instance.ReadDataFromTheByteStream(this,
+			TerrainExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeTerrainClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->TerrainClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = TerrainExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5240, FakeTerrainClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5244, FakeTerrainClass::_Save)

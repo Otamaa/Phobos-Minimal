@@ -18,6 +18,7 @@ class BuildingExtData : public TechnoExtData
 {
 public:
 	using base_type = BuildingClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -178,9 +179,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(BuildingExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(BuildingExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class NOVTABLE FakeBuildingClass : public BuildingClass
@@ -211,7 +209,7 @@ public:
 	void _OnFireAI();
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE BuildingClass* _AsBuilding() const {
 		return (BuildingClass*)this;

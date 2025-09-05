@@ -15,6 +15,7 @@ class ParticleSystemExtData final : public ObjectExtData
 public:
 
 	using base_type = ParticleSystemClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 #pragma region ClassMembers
@@ -194,9 +195,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(ParticleSystemExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(ParticleSystemExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class ParticleSystemTypeExtData;
@@ -205,7 +203,7 @@ class NOVTABLE FakeParticleSystemClass : public ParticleSystemClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	ParticleSystemExtData* _GetExtData() {
 		return *reinterpret_cast<ParticleSystemExtData**>(((DWORD)this) + AbstractExtOffset);

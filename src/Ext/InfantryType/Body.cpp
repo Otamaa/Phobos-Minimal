@@ -184,6 +184,7 @@ void InfantryTypeExtData::Serialize(T& Stm)
 // container
 InfantryTypeExtContainer InfantryTypeExtContainer::Instance;
 std::vector<InfantryTypeExtData*> Container<InfantryTypeExtData>::Array;
+std::map<TechnoTypeClass*, InfantryTypeExtData*> InfantryTypeExtContainer::Mapped;
 
 // =============================
 // container hooks
@@ -228,11 +229,11 @@ ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR, 6)
 	return 0x523970;
 }
 
-ASMJIT_PATCH(0x5239BC, InfantryTypeClass_CTOR_NoInit, 7)
+ASMJIT_PATCH(0x5239C3, InfantryTypeClass_NoInit_CTOR, 6)
 {
 	GET(InfantryTypeClass*, pItem, ESI);
 	InfantryTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0x0;
+	return 0;
 }
 
 ASMJIT_PATCH(0x5239D0, InfantryTypeClass_DTOR, 0x5)
@@ -263,3 +264,29 @@ bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB674, FakeInfantryTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeInfantryTypeClass::_Load(IStream* pStm)
+{
+	auto hr = InfantryTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+			InfantryTypeExtContainer::Instance.Mapped[this], pStm);
+
+	if (SUCCEEDED(hr)) {
+		hr = this->InfantryTypeClass::Load(pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeInfantryTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = InfantryTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+
+	if (SUCCEEDED(hr)) {
+		hr = this->InfantryTypeClass::Save(pStm, clearDirty);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB628, FakeInfantryTypeClass::_Save)

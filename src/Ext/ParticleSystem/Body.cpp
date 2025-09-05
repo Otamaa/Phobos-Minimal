@@ -1298,13 +1298,6 @@ ASMJIT_PATCH(0x62DF05, ParticleSystemClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x62DFC4, ParticleSystemClass_CTOR_NoInt, 0x5)
-{
-	GET(ParticleSystemClass*, pItem, ESI);
-	ParticleSystemExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
-
 ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 {
 	GET(ParticleSystemClass* const, pItem, ESI);
@@ -1322,3 +1315,31 @@ ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 	ParticleSystemExtContainer::Instance.Remove(pItem);
 	return 0;
 }
+
+HRESULT __stdcall FakeParticleSystemClass::_Load(IStream* pStm)
+{
+	auto hr = this->ParticleSystemClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = ParticleSystemExtContainer::Instance.ReadDataFromTheByteStream(this,
+			ParticleSystemExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeParticleSystemClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->ParticleSystemClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = ParticleSystemExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB0, FakeParticleSystemClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB4, FakeParticleSystemClass::_Save)

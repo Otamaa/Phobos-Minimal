@@ -14,6 +14,8 @@ class TerrainExtData final : public ObjectExtData
 {
 public:
 	using base_type = TerrainClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+
 public:
 
 
@@ -114,9 +116,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(TerrainExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(TerrainExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class TerrainTypeExtData;
@@ -128,7 +127,8 @@ public:
 	void _AI();
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
 	DamageState __TakeDamage(
 		int* Damage,
 		int DistanceToEpicenter,

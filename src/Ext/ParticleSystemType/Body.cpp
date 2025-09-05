@@ -85,12 +85,6 @@ ASMJIT_PATCH(0x644217, ParticleSystemTypeClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x644241, ParticleSystemTypeClass_CTOR_NoOmt, 0x7){
-	GET(ParticleSystemTypeClass*, pItem, ESI);
-	ParticleSystemTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
-
 ASMJIT_PATCH(0x644276, ParticleSystemTypeClass_SDDTOR, 0x6)
 {
 	GET(ParticleSystemTypeClass*, pItem, ESI);
@@ -107,3 +101,31 @@ bool FakeParticleSystemTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F010C, FakeParticleSystemTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeParticleSystemTypeClass::_Load(IStream* pStm)
+{
+	auto hr = this->ParticleSystemTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = ParticleSystemTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+			ParticleSystemTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeParticleSystemTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->ParticleSystemTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = ParticleSystemTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F00BC, FakeParticleSystemTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F00C0, FakeParticleSystemTypeClass::_Save)

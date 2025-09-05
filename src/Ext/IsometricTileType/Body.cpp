@@ -4,6 +4,8 @@
 #include <TiberiumClass.h>
 #include <SmudgeTypeClass.h>
 
+#include <Utilities/Macro.h>
+
 int IsometricTileTypeExtContainer::CurrentTileset = -1;
 std::map<std::string, std::map<TintStruct, LightConvertClass*>> IsometricTileTypeExtContainer::LightConvertEntities;
 
@@ -116,45 +118,64 @@ std::vector<IsometricTileTypeExtData*> Container<IsometricTileTypeExtData>::Arra
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x5449F2, IsometricTileTypeClass_CTOR, 0x5)
-{
-	GET(IsometricTileTypeClass*, pItem, EBP);
-
-	IsometricTileTypeExtContainer::Instance.Allocate(pItem);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x544A56, IsometricTileTypeClass_CTOR_NoInt, 0x7)
-{
-	GET(IsometricTileTypeClass*, pItem, ESI);
-
-	IsometricTileTypeExtContainer::Instance.AllocateNoInit(pItem);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x544BC2, IsometricTileTypeClass_DTOR, 0x8)
-{
-	GET(IsometricTileTypeClass*, pItem, ESI);
-
-	IsometricTileTypeExtContainer::Instance.Remove(pItem);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x54642E, IsometricTileTypeClass_LoadFromINI, 0x6)
-{
-	GET(IsometricTileTypeClass*, pItem, EBP);
-	LEA_STACK(CCINIClass*, pINI, STACK_OFFS(0xA10, 0x9D8));
-
-	IsometricTileTypeExtContainer::Instance.LoadFromINI(pItem, pINI, false);
-	return 0;
-}
-
-ASMJIT_PATCH(0x545FA3, IsometricTileTypeClass_LoadFromINI_SetTileSet, 0x8)
-{
-	IsometricTileTypeExtContainer::CurrentTileset = R->EDI();
-
-	return 0;
-}
+//ASMJIT_PATCH(0x5449F2, IsometricTileTypeClass_CTOR, 0x5)
+//{
+//	GET(IsometricTileTypeClass*, pItem, EBP);
+//
+//	IsometricTileTypeExtContainer::Instance.Allocate(pItem);
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x544BC2, IsometricTileTypeClass_DTOR, 0x8)
+//{
+//	GET(IsometricTileTypeClass*, pItem, ESI);
+//
+//	IsometricTileTypeExtContainer::Instance.Remove(pItem);
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x54642E, IsometricTileTypeClass_LoadFromINI, 0x6)
+//{
+//	GET(IsometricTileTypeClass*, pItem, EBP);
+//	LEA_STACK(CCINIClass*, pINI, STACK_OFFS(0xA10, 0x9D8));
+//
+//	IsometricTileTypeExtContainer::Instance.LoadFromINI(pItem, pINI, false);
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x545FA3, IsometricTileTypeClass_LoadFromINI_SetTileSet, 0x8)
+//{
+//	IsometricTileTypeExtContainer::CurrentTileset = R->EDI();
+//
+//	return 0;
+//}
+//
+//HRESULT __stdcall FakeIsometricTileTypeClass::_Load(IStream* pStm)
+//{
+//	auto hr = this->IsometricTileTypeClass::Load(pStm);
+//
+//	if (SUCCEEDED(hr))
+//	{
+//		hr = IsometricTileTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+//			IsometricTileTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+//	}
+//
+//	return hr;
+//}
+//
+//HRESULT __stdcall FakeIsometricTileTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+//{
+//	auto hr = this->IsometricTileTypeClass::Save(pStm, clearDirty);
+//
+//	if (SUCCEEDED(hr))
+//	{
+//		hr = IsometricTileTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+//	}
+//
+//	return hr;
+//}
+//
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECC5C, FakeIsometricTileTypeClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECC60, FakeIsometricTileTypeClass::_Save)

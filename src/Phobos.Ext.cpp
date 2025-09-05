@@ -468,16 +468,15 @@ unsigned Phobos::GetVersionNumber() {
 ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
 	TActionExtData::Clear();
-	CellExtContainer::Instance.Clear();
+	CellExtContainer::Clear();
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
 	AnimExtContainer::Clear();
-	BulletTypeExtContainer::Instance.Clear();
-	BuildingTypeExtContainer::Instance.Clear();
-	HouseTypeExtContainer::Instance.Clear();
-	IsometricTileTypeExtContainer::Instance.Clear();
-	OverlayTypeExtContainer::Instance.Clear();
-	TiberiumExtContainer::Instance.Clear();
+	BulletTypeExtContainer::Clear();
+	BuildingTypeExtContainer::Clear();
+	HouseTypeExtContainer::Clear();
+	OverlayTypeExtContainer::Clear();
+	TiberiumExtContainer::Clear();
 	PhobosGlobal::Clear();
 	SWStateMachine::Clear();
 	ArmorTypeClass::Clear();
@@ -492,7 +491,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	RadTypeClass::Clear();
 	RulesExtData::Clear();
 	ScenarioExtData::Clear();
-	SWTypeExtContainer::Instance.Clear();
+	SWTypeExtContainer::Clear();
 	SidebarExtData::Clear();
 	ShieldTypeClass::Clear();
 	//TacticalExt::Clear();
@@ -500,11 +499,11 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	HoverTypeClass::Clear();
 	LaserTrailTypeClass::Clear();
 	//TActionExt::ExtMap.Clear();
-	HouseExtContainer::Instance.Clear();
+	HouseExtContainer::Clear();
 	TunnelTypeClass::Clear();
-	WeaponTypeExtContainer::Instance.Clear();
+	WeaponTypeExtContainer::Clear();
 	EboltExtData::Clear();
-	WarheadTypeExtContainer::Instance.Clear();
+	WarheadTypeExtContainer::Clear();
 	GenericPrerequisite::Clear();
 	CrateTypeClass::Clear();
 	StaticVars::Clear();
@@ -606,7 +605,7 @@ ASMJIT_PATCH(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
 {
 //	Debug::LogInfo("Loading global Phobos data");
 //	GET(IStream*, pStm, ESI);
-	Phobos::Otamaa::DoingLoadGame = true;
+
 //
 //	bool ret =
 //		Process_Load<PaletteManager>(pStm) &&

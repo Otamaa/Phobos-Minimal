@@ -8,6 +8,7 @@ class BombExtData final : public AbstractExtended
 {
 public:
 	using base_type = BombClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -74,9 +75,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(BombExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(BombExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeBombClass : public BombClass
@@ -90,7 +88,7 @@ public:
 	void _Detach(AbstractClass* target, bool all) { };
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	BombExtData* _GetExtData() {
 		return *reinterpret_cast<BombExtData**>(((DWORD)this) + AbstractExtOffset);

@@ -18,6 +18,7 @@ class BulletExtData final : public ObjectExtData
 {
 public:
 	using base_type = BulletClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 #pragma region ClassMembers
@@ -164,9 +165,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(BulletExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(BulletExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class FakeWarheadTypeClass;
@@ -184,7 +182,7 @@ public:
 	}
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 

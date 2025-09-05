@@ -65,6 +65,7 @@ class TEventExtData final : public AbstractExtended
 {
 public:
 	using base_type = TEventClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -290,9 +291,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(TEventExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(TEventExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass
@@ -300,7 +298,7 @@ class NOVTABLE FakeTEventClass : public TEventClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	TEventExtData* _GetExtData() {
 		return *reinterpret_cast<TEventExtData**>(((DWORD)this) + AbstractExtOffset);

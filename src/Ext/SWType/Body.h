@@ -120,6 +120,7 @@ class SWTypeExtData final :public AbstractTypeExtData
 public:
 
 	using base_type = SuperWeaponTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 #pragma region ClassMembers
@@ -861,8 +862,6 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
 
-	virtual bool WriteDataToTheByteStream(SWTypeExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(SWTypeExtData::base_type* key, IStream* pStm) { return true;  };
 
 };
 
@@ -870,7 +869,7 @@ class NOVTABLE FakeSuperWeaponTypeClass : public SuperWeaponTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

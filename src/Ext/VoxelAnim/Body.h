@@ -16,6 +16,7 @@ class VoxelAnimExtData final : public ObjectExtData
 {
 public:
 	using base_type = VoxelAnimClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -101,10 +102,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(VoxelAnimExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(VoxelAnimExtData::base_type* key, IStream* pStm) {  return true; };
-
 };
 
 class VoxelAnimTypeExtData;
@@ -113,7 +110,7 @@ class NOVTABLE FakeVoxelAnimClass : public VoxelAnimClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 	void _RemoveThis()

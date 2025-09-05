@@ -5,6 +5,8 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
+#include <Utilities/Macro.h>
+
 // This function controls the availability of super weapons. If a you want to
 // add to or change the way the game thinks a building provides a super weapon,
 // change the lambda UpdateStatus. Available means this super weapon exists at
@@ -157,13 +159,6 @@ ASMJIT_PATCH(0x6CB10E, SuperClass_CTOR, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6CAF32, SuperClass_CTOR_NoInt, 0x6)
-{
-	GET(SuperClass*, pItem, ESI);
-	SuperExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
-
 ASMJIT_PATCH(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
@@ -188,3 +183,32 @@ ASMJIT_PATCH(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 //	pThis->SuperClass::PointerExpired(target , all);
 //}
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))
+
+
+HRESULT __stdcall FakeSuperClass::_Load(IStream* pStm)
+{
+	auto hr = this->SuperClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = SuperExtContainer::Instance.ReadDataFromTheByteStream(this,
+			SuperExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->SuperClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = SuperExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)

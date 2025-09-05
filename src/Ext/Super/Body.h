@@ -44,6 +44,7 @@ class SuperExtData final : public AbstractExtended
 {
 public:
 	using base_type = SuperClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -129,8 +130,6 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(SuperExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(SuperExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 class SWTypeExtData;
@@ -138,7 +137,7 @@ class NOVTABLE FakeSuperClass : public SuperClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	SuperExtData* _GetExtData() {
 		return *reinterpret_cast<SuperExtData**>((DWORD)this + AbstractExtOffset);

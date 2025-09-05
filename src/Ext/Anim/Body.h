@@ -15,6 +15,8 @@ class AnimExtData : public ObjectExtData
 {
 public:
 	using base_type = AnimClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+
 public:
 
 #pragma region ClassMembers
@@ -159,9 +161,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(AnimExtData::base_type* key, IStream* pStm) {  return true; };
-	virtual bool ReadDataFromTheByteStream(AnimExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class AnimTypeExtData;
@@ -175,11 +174,11 @@ public:
 	}
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
 	void _Middle();
 	void _Start();
 	void _AI();
-
 
 	void _ApplyVeinsDamage();
 	void _ApplyDeformTerrrain();

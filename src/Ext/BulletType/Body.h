@@ -18,6 +18,7 @@ class BulletTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = BulletTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -271,9 +272,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(BulletTypeExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(BulletTypeExtData::base_type* key, IStream* pStm) { return true;  };
 };
 
 double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
@@ -286,7 +284,7 @@ class NOVTABLE FakeBulletTypeClass : public BulletTypeClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	BulletTypeExtData* _GetExtData() {

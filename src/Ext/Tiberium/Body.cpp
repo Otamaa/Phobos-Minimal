@@ -524,3 +524,31 @@ ASMJIT_PATCH(0x721C7B, TiberiumClass_LoadFromINI, 0xA)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x721CDC, TiberiumClass_LoadFromINI, 0xA)
 ASMJIT_PATCH_AGAIN(0x721CE9, TiberiumClass_LoadFromINI, 0xA)
+
+HRESULT __stdcall FakeTiberiumClass::_Load(IStream* pStm)
+{
+	auto hr = this->TiberiumClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = TiberiumExtContainer::Instance.ReadDataFromTheByteStream(this,
+			TiberiumExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeTiberiumClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->TiberiumClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = TiberiumExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F573C, FakeTiberiumClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5740, FakeTiberiumClass::_Save)

@@ -21,6 +21,7 @@ class WeaponTypeExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = WeaponTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -193,6 +194,7 @@ public:
 	Valueable<bool> DelayedFire_RemoveAnimOnNoDelay;
 	Valueable<bool> DelayedFire_PauseFiringSequence;
 	Valueable<bool> DelayedFire_OnlyOnInitialBurst;
+	Valueable<bool> DelayedFire_InitialBurstSymmetrical;
 	Nullable<CoordStruct> DelayedFire_AnimOffset;
 	Valueable<bool> DelayedFire_AnimOnTurret;
 
@@ -279,6 +281,7 @@ public:
 		DelayedFire_RemoveAnimOnNoDelay(false),
 		DelayedFire_PauseFiringSequence(false),
 		DelayedFire_OnlyOnInitialBurst(false),
+		DelayedFire_InitialBurstSymmetrical(false),
 		DelayedFire_AnimOnTurret(true),
 		OnlyAttacker(false)
 	{
@@ -378,9 +381,6 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static void Clear();
-
-	virtual bool WriteDataToTheByteStream(WeaponTypeExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(WeaponTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class BulletTypeExtData;
@@ -392,7 +392,7 @@ class NOVTABLE FakeWeaponTypeClass : public WeaponTypeClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

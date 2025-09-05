@@ -709,17 +709,6 @@ ASMJIT_PATCH(0x6DAAB2, TacticalClass_DrawRallyPointLines_NoUndeployBlyat, 0x6)
 	return 0x6DAD45;
 }
 
-static FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
-{
-	// do not use explicit toggle for this
-	if (static_cast<JumpjetLocomotionClass*>(pThis)->NextState == JumpjetLocomotionClass::State::Crashing)
-		return FireError::CANT;
-
-	return FireError::OK;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDF4, JumpjetLocomotionClass_Can_Fire)
-
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
 //DEFINE_SKIP_HOOK(0x447380, BuildingClass_What_Action_RemoveAGCheckA, 0x6, 44739E);
 //DEFINE_SKIP_HOOK(0x447709, BuildingClass_What_Action_RemoveAGCheckB, 0x6, 447727);
@@ -848,45 +837,6 @@ ASMJIT_PATCH(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 //}ASMJIT_PATCH_AGAIN(0x44E997, BuildingClass_Detach_RestoreAnims, 0x6)
 
 
-// Fix initial facing when jumpjet locomotor is being attached
-// there is bug with preplaced units , wait for fix
-//ASMJIT_PATCH(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
-//{
-//	GET(ILocomotion*, iLoco, EBP);
-//	auto const pThis = static_cast<JumpjetLocomotionClass*>(iLoco);
-//
-//	pThis->Facing.Set_Current(pThis->LinkedTo->PrimaryFacing.Current());
-//	pThis->Facing.Set_Desired(pThis->LinkedTo->PrimaryFacing.Desired());
-//
-//	return 0;
-//}
-
-// Fix initial facing when jumpjet locomotor is being attached
-static void __stdcall JumpjetLocomotionClass_Unlimbo(ILocomotion* pThis)
-{
-	auto const pThisLoco = static_cast<JumpjetLocomotionClass*>(pThis);
-	pThisLoco->Facing.Set_Current(pThisLoco->LinkedTo->PrimaryFacing.Current());
-	pThisLoco->Facing.Set_Desired(pThisLoco->LinkedTo->PrimaryFacing.Desired());
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDB8, JumpjetLocomotionClass_Unlimbo)
-
-// This fixes the issue when locomotor is crashing in grounded or
-// hovering state and the crash processing code won't be reached.
-// Can be observed easily when Crashable=yes jumpjet is attached to
-// a unit and then destroyed.
-ASMJIT_PATCH(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x9)
-{
-	enum { ProcessMovement = 0x54AEED, Skip = 0x54B16C };
-
-	GET(ILocomotion*, iLoco, ESI);
-	auto const pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
-
-	return pLoco->Is_Moving_Now()  // stolen code
-		|| pLoco->LinkedTo->IsCrashing
-		? ProcessMovement
-		: Skip;
-}
 
 // WWP for some reason passed nullptr as source to On_Destroyed even though the real source existed
 ASMJIT_PATCH(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
@@ -2183,26 +2133,6 @@ ASMJIT_PATCH(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
 	return (pFoot && !pFoot->InLimbo && pFoot->IsAlive && pFoot->Health > 0 && !pFoot->IsSinking) ? 0 : SkipMarkOccupation;
 }
 
-ASMJIT_PATCH(0x54BC99, JumpjetLocomotionClass_Ascending_BarracksExitCell, 0x6)
-{
-	GET(BuildingTypeClass*, pType, EAX);
-	return BuildingTypeExtContainer::Instance.Find(pType)->BarracksExitCell.isset() ? 0x54BCA3 : 0;
-}
-
-ASMJIT_PATCH(0x4DB36C, FootClass_Limbo_RemoveSensorsAt, 0x5)
-{
-	GET(FootClass*, pThis, EDI);
-	pThis->RemoveSensorsAt(pThis->LastMapCoords);
-	return 0x4DB37C;
-}
-
-ASMJIT_PATCH(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
-{
-	GET(FootClass*, pThis, ESI);
-	pThis->RemoveSensorsAt(pThis->LastMapCoords);
-	return 0x4DBF01;
-}
-
 // Fix a crash at 0x7BAEA1 when trying to access a point outside of surface bounds.
 class NOVTABLE FakeXSurface final : public XSurface {
 public:
@@ -2406,12 +2336,10 @@ DEFINE_PATCH(0x755698, 0x55) // push ebp
 DEFINE_PATCH(0x7556B9, 0x55) // push ebp
 // Although it is not the perfectest
 // It can still solve the most common situations on slopes - CrimRecya
-ASMJIT_PATCH(0x73C41B, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
+ASMJIT_PATCH(0x73C43F, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
 {
 	GET(UnitClass*, pThis, EBP);
-	GET_STACK(DWORD, surface, 0x18);
-	UnitTypeClass* pType = pThis->Type;
-	R->Stack(0x1C, surface);
+	GET(UnitTypeClass*, pType, EAX);
 	R->AL(pType->BalloonHover || pThis->IsAttackedByLocomotor);
 	return 0x73C445;
 }

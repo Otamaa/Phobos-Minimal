@@ -34,6 +34,7 @@ class CellExtData final : public AbstractExtended
 {
 public:
 	using base_type = CellClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -118,9 +119,6 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(CellExtData::base_type* key, IStream* pStm) { return true; };
-	virtual bool ReadDataFromTheByteStream(CellExtData::base_type* key, IStream* pStm) { return true; };
 };
 
 class NOVTABLE FakeCellClass : public CellClass
@@ -134,7 +132,7 @@ public:
 	bool _CanPlaceVeins();
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE CellClass* _AsCell() const
 	{

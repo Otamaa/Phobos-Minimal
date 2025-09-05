@@ -108,36 +108,36 @@ ASMJIT_PATCH(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 		? Continue : Skip;
 }
 
-ASMJIT_PATCH(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
+// ASMJIT_PATCH(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
+// {
+// 	GET(UnitClass*, pUnit, EBP);
+// 	GET(FakeBuildingClass*, pStructure, EBX);
+
+// 	if (R->AL())
+// 	{
+// 		if (pUnit->Type->DeployToFire && pUnit->Target)
+// 			pStructure->LastTarget = pUnit->Target;
+
+// 		pStructure->_GetExtData()->DeployedTechno = true;
+
+// 		return 0x73971F;
+// 	}
+
+// 	return 0x739A6E;
+// }
+
+ASMJIT_PATCH(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
 {
 	GET(UnitClass*, pUnit, EBP);
-	GET(FakeBuildingClass*, pStructure, EBX);
+	GET(BuildingClass*, pStructure, EBX);
 
-	if (R->AL())
-	{
-		if (pUnit->Type->DeployToFire && pUnit->Target)
-			pStructure->LastTarget = pUnit->Target;
+	if (pUnit->Type->DeployToFire && pUnit->Target)
+		pStructure->LastTarget = pUnit->Target;
 
-		pStructure->_GetExtData()->DeployedTechno = true;
+	BuildingExtContainer::Instance.Find(pStructure)->DeployedTechno = true;
 
-		return 0x73971F;
-	}
-
-	return 0x739A6E;
+	return 0;
 }
-
-//ASMJIT_PATCH(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
-//{
-//	GET(UnitClass*, pUnit, EBP);
-//	GET(BuildingClass*, pStructure, EBX);
-//
-//	if (pUnit->Type->DeployToFire && pUnit->Target)
-//		pStructure->LastTarget = pUnit->Target;
-//
-//	BuildingExtContainer::Instance.Find(pStructure)->DeployedTechno = true;
-//
-//	return 0;
-//}
 
 ASMJIT_PATCH(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //was 0
 {

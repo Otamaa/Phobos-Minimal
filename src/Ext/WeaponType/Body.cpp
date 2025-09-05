@@ -249,6 +249,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DelayedFire_RemoveAnimOnNoDelay.Read(exINI, pSection, "DelayedFire.RemoveAnimOnNoDelay");
 	this->DelayedFire_PauseFiringSequence.Read(exINI, pSection, "DelayedFire.PauseFiringSequence");
 	this->DelayedFire_OnlyOnInitialBurst.Read(exINI, pSection, "DelayedFire.OnlyOnInitialBurst");
+	this->DelayedFire_InitialBurstSymmetrical.Read(exINI, pSection, "DelayedFire.InitialBurstSymmetrical");
 	this->DelayedFire_AnimOffset.Read(exINI, pSection, "DelayedFire.AnimOffset");
 
 	this->OnlyAttacker.Read(exINI, pSection, "OnlyAttacker");
@@ -585,6 +586,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_RemoveAnimOnNoDelay)
 		.Process(this->DelayedFire_PauseFiringSequence)
 		.Process(this->DelayedFire_OnlyOnInitialBurst)
+		.Process(this->DelayedFire_InitialBurstSymmetrical)
 		.Process(this->DelayedFire_AnimOffset)
 		.Process(this->DelayedFire_AnimOnTurret)
 		.Process(this->OnlyAttacker)
@@ -737,13 +739,6 @@ ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x771F3C, WeaponTypeClass_CTOR_NoInt, 0x6)
-{
-	GET(WeaponTypeClass*, pItem, ESI);
-	WeaponTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
-
 ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
@@ -759,3 +754,31 @@ bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeWeaponTypeClass::_Load(IStream* pStm)
+{
+	auto hr = this->WeaponTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = WeaponTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+			WeaponTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeWeaponTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->WeaponTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = WeaponTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73CC, FakeWeaponTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73D0, FakeWeaponTypeClass::_Save)

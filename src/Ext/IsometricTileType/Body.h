@@ -18,6 +18,7 @@ class IsometricTileTypeExtData final : public ObjectTypeExtData
 public:
 
 	using base_type = IsometricTileTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public :
 
@@ -60,7 +61,7 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const
 	{
-		this->IsometricTileTypeExtData::CalculateCRC(crc);
+		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
 	virtual IsometricTileTypeClass* This() const override { return reinterpret_cast<IsometricTileTypeClass*>(this->ObjectTypeExtData::This()); }
@@ -113,7 +114,12 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
+};
 
-	virtual bool WriteDataToTheByteStream(IsometricTileTypeExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(IsometricTileTypeExtData::base_type* key, IStream* pStm) {  return true; };
+class FakeIsometricTileTypeClass : public IsometricTileTypeClass
+{
+public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 };

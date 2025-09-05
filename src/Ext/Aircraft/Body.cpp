@@ -19,6 +19,7 @@
 #include <lib/gcem/gcem.hpp>
 
 #include <Locomotor/FlyLocomotionClass.h>
+#include "Body.h"
 
 //todo Add the hooks
 int FakeAircraftClass::_Mission_Attack()
@@ -781,6 +782,33 @@ void FakeAircraftClass::_Destroyed(int mult)
 	AircraftExtData::TriggerCrashWeapon(this, mult);
 }
 
+HRESULT __stdcall FakeAircraftClass::_Load(IStream* pStm)
+{
+	auto hr = this->AircraftClass::Load(pStm);
+
+	if (SUCCEEDED(hr)) {
+		hr = AircraftExtContainer::Instance.ReadDataFromTheByteStream(this,
+			AircraftExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeAircraftClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->AircraftClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = AircraftExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)
+
 WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(this);
@@ -890,13 +918,6 @@ bool AircraftExtData::IsValidLandingZone(AircraftClass* pThis)
 
 std::vector<AircraftExtData*> Container<AircraftExtData>::Array;
 AircraftExtContainer AircraftExtContainer::Instance;
-
-ASMJIT_PATCH(0x41B4FB, AircraftClass_CTOR_NoInt, 0xA)
-{
-	GET(AircraftClass*, pItem, ESI);
-	AircraftExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
 
 ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
 {

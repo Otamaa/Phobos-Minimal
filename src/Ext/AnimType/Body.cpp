@@ -644,7 +644,7 @@ void AnimTypeExtData::Serialize(T& Stm)
 }
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
-std::vector<AnimTypeExtContainer*> Container<AnimTypeExtContainer>::Array;
+std::vector<AnimTypeExtData*> Container<AnimTypeExtData>::Array;
 
 ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
@@ -652,13 +652,6 @@ ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
 	AnimTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 
-}
-
-ASMJIT_PATCH(0x427871, AnimTypeClass_CTOR_NoInit, 0x7)
-{
-	GET(AnimTypeClass*, pItem, ESI);
-	AnimTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
 }
 
 ASMJIT_PATCH(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
@@ -678,3 +671,31 @@ bool FakeAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E366C, FakeAnimTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeAnimTypeClass::_Load(IStream* pStm)
+{
+	auto hr = this->AnimTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = AnimTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
+			AnimTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->AnimTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = AnimTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)

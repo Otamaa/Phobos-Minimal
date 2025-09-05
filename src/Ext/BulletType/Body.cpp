@@ -340,13 +340,6 @@ ASMJIT_PATCH(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x46BE01, BulletTypeClass_CTOR_NoInit, 0x7)
-{
-	GET(BulletTypeClass*, pItem, ESI);
-	BulletTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
-
 ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 {
 	GET(BulletTypeClass*, pItem, ESI);
@@ -362,3 +355,30 @@ bool FakeBulletTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E49AC, FakeBulletTypeClass::_ReadFromINI)
+
+HRESULT __stdcall FakeBulletTypeClass::_Load(IStream* pStm)
+{
+	auto hr = this->BulletTypeClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = BulletTypeExtContainer::Instance.ReadDataFromTheByteStream(this, BulletTypeExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeBulletTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->BulletTypeClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = BulletTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E495C, FakeBulletTypeClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4960, FakeBulletTypeClass::_Save)

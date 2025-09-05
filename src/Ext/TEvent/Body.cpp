@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Utilities/SavegameDef.h>
+#include <Utilities/Macro.h>
 
 #include <Ext/Rules/Body.h>
 #include <Ext/Scenario/Body.h>
@@ -447,17 +448,37 @@ ASMJIT_PATCH(0x71E7F8, TEventClass_CTOR, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x71E821, TEventClass_CTOR_NoInit, 7)
-{
-	GET(TEventClass*, pItem, ESI);
-
-	TEventExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
-
 ASMJIT_PATCH(0x71E856, TEventClass_SDDTOR, 0x6)
 {
 	GET(TEventClass*, pItem, ESI);
 	TEventExtContainer::Instance.Remove(pItem);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
+
+HRESULT __stdcall FakeTEventClass::_Load(IStream* pStm)
+{
+	auto hr = this->TEventClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = TEventExtContainer::Instance.ReadDataFromTheByteStream(this,
+			TEventExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeTEventClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->TEventClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = TEventExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F558C, FakeTEventClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5590, FakeTEventClass::_Save)

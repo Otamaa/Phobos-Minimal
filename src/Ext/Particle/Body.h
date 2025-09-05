@@ -15,6 +15,7 @@ class ParticleExtData : public ObjectExtData
 {
 public:
 	using base_type = ParticleClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 #pragma region ClassMembers
@@ -94,8 +95,6 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(ParticleExtData::base_type* key, IStream* pStm) {  return true; };
-	virtual bool ReadDataFromTheByteStream(ParticleExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class ParticleTypeExtData;
@@ -105,7 +104,7 @@ public:
 	void _Detach(AbstractClass* target, bool all);
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE ParticleClass* _AsParticle() const {
 		return (ParticleClass*)this;

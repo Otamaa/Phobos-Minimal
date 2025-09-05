@@ -345,6 +345,4 @@ public:
 	{
 	}
 
-	virtual bool WriteDataToTheByteStream(ScriptExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(ScriptExtData::base_type* key, IStream* pStm) { return true;  };
 };

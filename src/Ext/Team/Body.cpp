@@ -1213,3 +1213,31 @@ ASMJIT_PATCH(0x6EAE60, TeamClass_Detach, 0x7)
 //	pThis->TeamClass::PointerExpired(target , all);
 //}
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, GET_OFFSET(TeamClass_Detach_Wrapper))
+
+HRESULT __stdcall FakeTeamClass::_Load(IStream* pStm)
+{
+	auto hr = this->TeamClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = TeamExtContainer::Instance.ReadDataFromTheByteStream(this,
+			TeamExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->TeamClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = TeamExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)

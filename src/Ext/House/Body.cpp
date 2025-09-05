@@ -3367,13 +3367,6 @@ ASMJIT_PATCH(0x4F6532, HouseClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4F5480, HouseClass_CTOR_NoInt, 0x7)
-{
-	GET(HouseClass*, pItem, ESI);
-	HouseExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
-
 ASMJIT_PATCH(0x4F7186, HouseClass_DTOR, 0x8)
 {
 	GET(HouseClass*, pItem, ESI);
@@ -3387,3 +3380,30 @@ void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8C8,  FakeHouseClass::_Detach)
+
+HRESULT __stdcall FakeHouseClass::_Load(IStream* pStm)
+{
+	auto hr = this->HouseClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = HouseExtContainer::Instance.ReadDataFromTheByteStream(this, HouseExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeHouseClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->HouseClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = HouseExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B8, FakeHouseClass::_Save)

@@ -624,6 +624,10 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 					pExt->CreateDelayedFireAnim( pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
 					pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, firingCoords);
 
+					if (pWeaponExt->DelayedFire_InitialBurstSymmetrical)
+						pExt->CreateDelayedFireAnim(pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
+							pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, {firingCoords.X, -firingCoords.Y, firingCoords.Z});
+
 					return 0x6FDE03;
 				}
 				else

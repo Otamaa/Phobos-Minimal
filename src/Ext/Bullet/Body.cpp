@@ -1176,7 +1176,7 @@ void BulletExtData::Serialize(T& Stm)
 // =============================
 // container
 BulletExtContainer BulletExtContainer::Instance;
-std::vector<BulletExtContainer*> Container<BulletExtContainer>::Array;
+std::vector<BulletExtData*> Container<BulletExtData>::Array;
 
 // =============================
 // container hooks
@@ -1204,3 +1204,30 @@ void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E470C, FakeBulletClass::_Detach)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4744, FakeBulletClass::_AnimPointerExpired)
+
+HRESULT __stdcall FakeBulletClass::_Load(IStream* pStm)
+{
+	auto hr = this->BulletClass::Load(pStm);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = BulletExtContainer::Instance.ReadDataFromTheByteStream(this, BulletExtContainer::Instance.AllocateNoInit(this), pStm);
+	}
+
+	return hr;
+}
+
+HRESULT __stdcall FakeBulletClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	auto hr = this->BulletClass::Save(pStm, clearDirty);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = BulletExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	}
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46F8, FakeBulletClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46FC, FakeBulletClass::_Save)

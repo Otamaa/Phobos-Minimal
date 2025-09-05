@@ -19,6 +19,7 @@ class HouseTypeExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = HouseTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 
@@ -171,16 +172,13 @@ public:
 		}
 	}
 
-	virtual bool WriteDataToTheByteStream(HouseTypeExtData::base_type* key, IStream* pStm) { return true;  };
-	virtual bool ReadDataFromTheByteStream(HouseTypeExtData::base_type* key, IStream* pStm) {  return true; };
-
 };
 
 class NOVTABLE FakeHouseTypeClass : public HouseTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	HouseTypeExtData* _GetExtData() {

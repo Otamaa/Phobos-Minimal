@@ -472,7 +472,7 @@ std::string PrintAssembly(const void* code, size_t codeSize, uintptr_t runtimeAd
 	return disassemblyResult;
 }
 
-#ifndef _New
+#ifdef _New
 
 void ApplyasmjitPatch()
 {

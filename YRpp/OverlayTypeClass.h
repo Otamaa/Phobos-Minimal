@@ -34,8 +34,8 @@ public:
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
-	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x5FEAF0);
+	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x5FEC10);
 
 	//Destructor
 	virtual ~OverlayTypeClass() RX;

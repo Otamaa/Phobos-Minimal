@@ -712,6 +712,7 @@ private:
 			.Process(this->AccumulatedGattlingValue)
 			.Process(this->ShouldUpdateGattlingValue)
 			.Process(this->KeepTargetOnMove)
+			.Process(this->LastSensorsMapCoords)
 			.Process(this->DelayedFireSequencePaused)
 			.Process(this->DelayedFireTimer)
 			.Process(this->DelayedFireWeaponIndex)
@@ -893,7 +894,7 @@ public:
 	bool ShouldUpdateGattlingValue;
 
 	bool KeepTargetOnMove;
-
+	CellStruct LastSensorsMapCoords;
 	bool DelayedFireSequencePaused;
 	int DelayedFireWeaponIndex;
 	CDTimerClass DelayedFireTimer;
@@ -1000,6 +1001,7 @@ public:
 		AccumulatedGattlingValue(0),
 		ShouldUpdateGattlingValue(false),
 		KeepTargetOnMove(false),
+		LastSensorsMapCoords(),
 		DelayedFireSequencePaused(false),
 		DelayedFireWeaponIndex(-1),
 		CurrentDelayedFireAnim(nullptr),
@@ -1318,6 +1320,9 @@ public:
 	static std::tuple<bool, bool , bool> CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge = false, bool checkCapturableBuilding = false, bool checkAttachedBombs = false);
 
 	static bool CannotMove(UnitClass* pThis);
+
+	static bool HasAmmoToDeploy(TechnoClass* pThis);
+	static void HandleOnDeployAmmoChange(TechnoClass* pThis, int maxAmmoOverride = -1);
 public:
 	static UnitClass* Deployer;
 

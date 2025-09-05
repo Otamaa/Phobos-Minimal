@@ -771,7 +771,8 @@ ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 ASMJIT_PATCH(0x67E74A, LoadGame_EarlyLoadSides, 5)
 {
 	GET(LPSTREAM, pStm, ESI);
-
+	Phobos::Otamaa::DoingLoadGame = true;
+	
 	int length = 0;
 	LPVOID out;
 	if (pStm->Read(&length, 4, 0) < 0)

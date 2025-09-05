@@ -177,9 +177,13 @@ ASMJIT_PATCH(0x753380, VoxClass_GetFilename, 5)
 }
 
 void __fastcall VoxClass_SetEvaIndex(int house) {
-	if (auto pSide = SideClass::Array->GetItemOrDefault(house)) {
+
+	if (Phobos::Otamaa::DoingLoadGame) {
+		VoxClass::EVAIndex = 0;
+	}
+	else if (auto pSide = SideClass::Array->GetItemOrDefault(house)) {
 		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
-	} else if(house == -1) {
+	} else if (house < 0) {
 		VoxClass::EVAIndex = 0;
 	}
 }

@@ -84,6 +84,10 @@ struct ImageStatusses
 	static ImageStatusses ReadVoxel(const char* const nKey, bool a4);
 
 	void swap(VoxelStruct& from) {
+		if(Phobos::Otamaa::DoingLoadGame){
+			from.VXL = nullptr;
+			from.HVA = nullptr;
+		}
 
 		if (from.VXL != this->Images.VXL) {
 			std::swap(from.VXL, this->Images.VXL);
@@ -92,6 +96,22 @@ struct ImageStatusses
 		if (from.HVA != this->Images.HVA) {
 			std::swap(from.HVA, this->Images.HVA);
 		}
+	}
+
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		if(Phobos::Otamaa::DoingLoadGame){
+			Images.VXL = nullptr;
+			Images.HVA = nullptr;
+			Loaded = false;
+		}
+
+		return true;
+	}
+
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
+	{
+		return true;
 	}
 };
 
@@ -2679,5 +2699,4 @@ public:
 
 		return this->GetExtAttribute(key);
 	}
-
 };

@@ -16,6 +16,7 @@ class AnimTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = AnimTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
 #pragma region ClassMembers
@@ -248,16 +249,13 @@ public:
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
-
-	virtual bool WriteDataToTheByteStream(AnimTypeExtData::base_type* key, IStream* pStm) {  return true; };
-	virtual bool ReadDataFromTheByteStream(AnimTypeExtData::base_type* key, IStream* pStm) {  return true; };
 };
 
 class NOVTABLE FakeAnimTypeClass : public AnimTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 
 	bool _ReadFromINI(CCINIClass* pINI);
