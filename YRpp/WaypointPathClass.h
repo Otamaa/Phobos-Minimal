@@ -22,6 +22,7 @@ class DECLSPEC_UUID("F73125BA-1054-11D2-8172-006008055BB5")
 {
 public:
 	static const AbstractType AbsID = AbstractType::Waypoint;
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<WaypointPathClass*>, 0xB72608u> const Array {};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;

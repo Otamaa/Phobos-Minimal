@@ -24,7 +24,7 @@ void ExtensionSwizzleManager::RegisterExtensionPointer(void* savedAddress, void*
 
 bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj)
 {
-	if (*ptrToFix) // nothing to fix
+	if (!*ptrToFix) // nothing to fix
 		return true;
 
 	auto it = extensionPointerMap.find((uintptr_t)*ptrToFix);
