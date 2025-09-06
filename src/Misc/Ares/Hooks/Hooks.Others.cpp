@@ -768,27 +768,27 @@ ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 	return 0x4B9445;
 }
 
-ASMJIT_PATCH(0x67E74A, LoadGame_EarlyLoadSides, 5)
-{
-	GET(LPSTREAM, pStm, ESI);
-	Phobos::Otamaa::DoingLoadGame = true;
-	
-	int length = 0;
-	LPVOID out;
-	if (pStm->Read(&length, 4, 0) < 0)
-	{
-		return 0x67F7A3;
-	}
-	for (int i = 0; i < length; ++i)
-	{
-		if ((Imports::OleLoadFromStream.invoke()(pStm, &IIDs::IUnknown, &out)) < 0)
-		{
-			return 0x67F7A3;
-		}
-	}
-
-	return 0;
-}
+// ASMJIT_PATCH(0x67E74A, LoadGame_EarlyLoadSides, 5)
+// {
+// 	GET(LPSTREAM, pStm, ESI);
+//
+//	
+// 	int length = 0;
+// 	LPVOID out;
+// 	if (pStm->Read(&length, 4, 0) < 0)
+// 	{
+// 		return 0x67F7A3;
+// 	}
+// 	for (int i = 0; i < length; ++i)
+// 	{
+// 		if ((Imports::OleLoadFromStream.invoke()(pStm, &IIDs::IUnknown, &out)) < 0)
+// 		{
+// 			return 0x67F7A3;
+// 		}
+// 	}
+//
+// 	return 0;
+// }
 
 //LoadGame_LateSkipSides
 DEFINE_JUMP(LJMP, 0x67F281, 0x67F2BF);

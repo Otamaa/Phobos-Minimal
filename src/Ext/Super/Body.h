@@ -112,15 +112,8 @@ public:
 		Array.clear();
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return true;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return true;
-	}
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{

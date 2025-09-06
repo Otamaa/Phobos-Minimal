@@ -280,7 +280,7 @@ public:
 
 	bool Respawn_RestartInCombat_Warhead;
 	int Respawn_RestartInCombatDelay_Warhead;
-	Iterator<AnimTypeClass*> Respawn_Anim_Warhead;
+	HelperedVector<AnimTypeClass*> Respawn_Anim_Warhead;
 	WeaponTypeClass* Respawn_Weapon_Warhead;
 
 	int LastBreakFrame;

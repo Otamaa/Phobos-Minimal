@@ -522,7 +522,7 @@ namespace Savegame
 				std::unique_ptr<T> ptrNew = ObjectFactory<T>()(Stm);
 
 				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange)) {
-					SwizzleManagerClass::Instance->Here_I_Am((long)ptrOld, ptrNew.get());
+					PHOBOS_SWIZZLE_REGISTER_POINTER((long)ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str())
 					ptrOld = ptrNew.release();
 				}
 			}
@@ -551,7 +551,7 @@ namespace Savegame
 				MemoryPoolUniquePointer<T> ptrNew = ObjectFactory<T>()(Stm);
 
 				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange)) {
-					SwizzleManagerClass::Instance->Here_I_Am((long)ptrOld, ptrNew.get());
+					PHOBOS_SWIZZLE_REGISTER_POINTER((long)ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str())
 					ptrOld = ptrNew.release();
 				}
 			}
@@ -580,7 +580,7 @@ namespace Savegame
 				UniqueGamePtr<T> ptrNew = ObjectFactory<T>()(Stm);
 
 				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange)) {
-					SwizzleManagerClass::Instance->Here_I_Am((long)ptrOld, ptrNew.get());
+					PHOBOS_SWIZZLE_REGISTER_POINTER((long)ptrOld, ptrNew.get(), PhobosCRT::GetTypeIDName<T>().c_str())
 					ptrOld = ptrNew.release();
 				}
 			}
@@ -594,38 +594,6 @@ namespace Savegame
 			return PersistObject(Stm, Value.get());
 		}
 	};
-
-	/*
-	template <typename T>
-	struct Savegame::PhobosStreamObject<UniqueGamePtrC<T>>
-	{
-		bool ReadFromStream(PhobosStreamReader& Stm, UniqueGamePtrC<T>& Value, bool RegisterForChange) const
-		{
-			T* ptrOld = nullptr;
-			if (!Stm.Load(ptrOld))
-				return false;
-
-			if (ptrOld)
-			{
-
-				UniqueGamePtrC<T> ptrNew = ObjectFactory<T>()(Stm);
-
-				if (Savegame::ReadPhobosStream(Stm, *ptrNew, RegisterForChange))
-				{
-					SwizzleManagerClass::Instance->Here_I_Am((long)ptrOld, ptrNew.get());
-					ptrOld = ptrNew.release();
-				}
-			}
-
-			Value.reset(ptrOld);
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, const UniqueGamePtrC<T>& Value) const
-		{
-			return PersistObject(Stm, Value.get());
-		}
-	};*/
 
 	template <>
 	struct Savegame::PhobosStreamObject<UniqueGamePtr<BytePalette>>

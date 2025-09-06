@@ -383,7 +383,10 @@ static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleSt
 }
 
 static bool __fastcall Blit_helper_lockregion(Surface* dst_surf, RectangleStruct* rect1, RectangleStruct* rect2, Surface* src_surf, RectangleStruct* rect3, RectangleStruct* rect4, bool* checkme, __int16* dst_buffer, __int16* src_buffer)
-{ JMP_FAST(0x7BC040) }
+{ JMP_FAST(0x7BC040); }
+
+static bool __fastcall Allocate_Surfaces(RectangleStruct *common_rect, RectangleStruct *composite_rect, RectangleStruct *tile_rect, RectangleStruct *sidebar_rect, char alloc_hidden_surf)
+{ JMP_FAST(0x533FD0); }
 
 #pragma warning(pop)
 #pragma endregion CommonFunction

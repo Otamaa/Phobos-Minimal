@@ -10,7 +10,6 @@ CustomPalette SideExtData::s_GraphicalTextConvert;
 SHPStruct* SideExtData::s_DialogBackgroundImage = nullptr;
 CustomPalette SideExtData::s_DialogBackgroundConvert;
 
-
 int SideExtData::CurrentLoadTextColor = -1;
 
 void SideExtData::Initialize() {
@@ -518,28 +517,57 @@ void SideExtData::Serialize(T& Stm)
 		;
 }
 
-bool SideExtData::LoadGlobals(PhobosStreamReader& Stm)
-{
-	auto ret = Stm
-		.Process(SideExtData::CurrentLoadTextColor)
-		.Success();
-
-	SideExtData::UpdateGlobalFiles();
-
-	return ret;
-}
-
-bool SideExtData::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Process(SideExtData::CurrentLoadTextColor)
-		.Success();
-}
 
 // =============================
 // container
 SideExtContainer SideExtContainer::Instance;
 std::vector<SideExtData*> Container<SideExtData>::Array;
+
+bool SideExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i) {
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new SideExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "SideExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	auto ret = Stm
+	.Process(SideExtData::CurrentLoadTextColor)
+	.Success();
+	return ret;
+}
+
+bool SideExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return Stm
+	.Process(SideExtData::CurrentLoadTextColor)
+	.Success();
+}
+
 // =============================
 // container hooks
 
@@ -567,10 +595,8 @@ HRESULT __stdcall FakeSideClass::_Load(IStream* pStm)
 	auto hr = this->SideClass::Load(pStm);
 
 	if (SUCCEEDED(hr)) {
-		auto pExt = SideExtContainer::Instance.AllocateNoInit(this);
-		//refresh the index
+		auto pExt = SideExtContainer::Instance.Find(this);
 		pExt->ArrayIndex = SideClass::Array->FindItemIndex(const_cast<SideClass* const>(reinterpret_cast<SideClass*>(this)));
-		hr = SideExtContainer::Instance.ReadDataFromTheByteStream(this,pExt, pStm);
 	}
 
 	return hr;
@@ -587,5 +613,5 @@ HRESULT __stdcall FakeSideClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE , 0x7F2ED4 , FakeSideClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F2ED8, FakeSideClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE , 0x7F2ED4 , FakeSideClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F2ED8, FakeSideClass::_Save)

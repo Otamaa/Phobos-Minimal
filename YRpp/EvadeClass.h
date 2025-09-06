@@ -9,6 +9,8 @@ public:
 	static COMPILETIMEEVAL reference<EvadeClass, 0x8A38E0> Instance {};
 
 	void Do() { JMP_THIS(0x4C6210); }
+	bool Save(IStream* pStm) JMP_THIS(0x4C6340);
+	bool Load(IStream* pStm) JMP_THIS(0x4C6320);
 
 	//Properties
 public:

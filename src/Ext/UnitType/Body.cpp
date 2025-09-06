@@ -3,7 +3,6 @@
 
 UnitTypeExtContainer UnitTypeExtContainer::Instance;
 std::vector<UnitTypeExtData*> Container<UnitTypeExtData>::Array;
-std::map<TechnoTypeClass*, UnitTypeExtData*> UnitTypeExtContainer::Mapped;
 
 ASMJIT_PATCH(0x7472B1, UnitTypeClass_CTOR, 0x6)
 {
@@ -21,11 +20,44 @@ ASMJIT_PATCH(0x747316, UnitTypeClass_DTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x7472E8, UnitTypeClass_NoInt_CTOR, 0x6)
+bool UnitTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	GET(UnitTypeClass*, pItem, ESI);
-	UnitTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i) {
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new UnitTypeExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "UnitTypeExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool UnitTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array) {
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
 }
 
 bool FakeUnitTypeClass::_ReadFromINI(CCINIClass* pINI)
@@ -36,29 +68,3 @@ bool FakeUnitTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F627C, FakeUnitTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeUnitTypeClass::_Load(IStream* pStm)
-{
-	auto hr = UnitTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			UnitTypeExtContainer::Instance.Mapped[this], pStm);
-
-	if (SUCCEEDED(hr)) {
-		hr = this->UnitTypeClass::Load(pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeUnitTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = UnitTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-
-	if (SUCCEEDED(hr)) {
-		hr = this->UnitTypeClass::Save(pStm, clearDirty);
-	}
-
-	return hr;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F622C, FakeUnitTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6230, FakeUnitTypeClass::_Save)

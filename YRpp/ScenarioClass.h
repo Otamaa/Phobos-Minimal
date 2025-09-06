@@ -70,6 +70,8 @@ public:
 	static COMPILETIMEEVAL reference<TheaterType, 0x822CF8> const LastTheater {};
 	static COMPILETIMEEVAL reference<char, 0xA83E48, 128u> const CampaignScenarioName {};
 	static COMPILETIMEEVAL reference<bool, 0xA8ED5D> const ScenarioIsCampaign {};
+	static COMPILETIMEEVAL reference<bool, 0xA8ED9C> const IsUserInputLocked {};
+	static COMPILETIMEEVAL reference<bool, 0xABCE08> const ScenarioSaved {};
 
 	static void __fastcall UpdateCellLighting()
 		{ JMP_FAST(0x4AE4C0); }

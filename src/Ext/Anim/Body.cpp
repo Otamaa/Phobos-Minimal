@@ -770,6 +770,51 @@ void AnimExtData::Serialize(T& Stm)
 AnimExtContainer AnimExtContainer::Instance;
 std::list<AnimClass*> AnimExtContainer::AnimsWithAttachedParticles;
 std::vector<AnimExtData*>  Container<AnimExtData>::Array;
+
+bool AnimExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new AnimExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "AnimExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	Stm.Process(AnimsWithAttachedParticles);
+	return true;
+}
+
+bool AnimExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	Stm.Process(AnimsWithAttachedParticles);
+	return true;
+}
+
 // =============================
 // hooks
 
@@ -901,5 +946,5 @@ HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)

@@ -17,7 +17,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
-
+	virtual const char* Name() { return "BounceTrajectoryType"; }
 };
 
 class BounceTrajectory final : public PhobosTrajectory
@@ -28,8 +28,8 @@ public:
 	int BounceLeft { 0 };
 
 	BounceTrajectory() : PhobosTrajectory { TrajectoryFlag::Bounce } {}
-	BounceTrajectory(BulletClass* pBullet , PhobosTrajectoryType* pType) : 
-		PhobosTrajectory { TrajectoryFlag::Bounce , pBullet , pType } 
+	BounceTrajectory(BulletClass* pBullet , PhobosTrajectoryType* pType) :
+		PhobosTrajectory { TrajectoryFlag::Bounce , pBullet , pType }
 	{}
 	virtual ~BounceTrajectory() override = default;
 
@@ -45,5 +45,5 @@ public:
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
-
+	virtual const char* Name() { return "BounceTrajectory"; }
 };

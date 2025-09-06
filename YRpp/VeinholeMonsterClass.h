@@ -135,10 +135,10 @@ public:
 	static TerrainTypeClass* __fastcall GetTerrainType()
 	{ JMP_FAST(0x74EF00); }
 
-	static HRESULT __fastcall SaveVector(void* stream, DynamicVectorClass<VeinholeMonsterClass*>* a2)
+	static bool __fastcall SaveVector(LPSTREAM a1)
 	{ JMP_FAST(0x74ED60); }
 
-	static HRESULT __fastcall LoadVector(LPSTREAM a1)
+	static bool __fastcall LoadVector(LPSTREAM a1)
 	{ JMP_FAST(0x74EA70); }
 
 	static void __fastcall DestroyAll()

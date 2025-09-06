@@ -40,6 +40,7 @@ public:
 
 	FORCEDINLINE InitState GetInitState() { return Initialized; }
 	FORCEDINLINE void SetInitState(InitState state) { Initialized = state; }
+	FORCEDINLINE void SetAttached(AbstractClass* abs) { AttachedToObject = abs; }
 
 public:
 
@@ -300,11 +301,13 @@ public: //not sure if these needed ?
 				return E_FAIL;
 			}
 		}
+
 		return S_OK;
 	}
 
 	virtual HRESULT ReadDataFromTheByteStream(base_type_ptr key, extension_type_ptr pExt, IStream * pStm)
 	{
+		Debug::Log(__FUNCTION__ " for %s !\n", PhobosCRT::GetTypeIDName<base_type>().c_str());
 		if COMPILETIMEEVAL(HasMarker<T>)
 		{
 			if (!pExt) {
@@ -324,15 +327,15 @@ public: //not sure if these needed ?
 				pExt->LoadFromStream(reader);
 				if(reader.ExpectEndOfBlock()){
 					auto old = (LONG)key->unknown_18;
-					SwizzleManagerClass::Instance->Here_I_Am(old, pExt);
+					PHOBOS_SWIZZLE_REGISTER_POINTER(old, pExt, PhobosCRT::GetTypeIDName<extension_type>().c_str())
 					key->unknown_18 = (LONG)pExt;
 					return S_OK;
 				}
 			}
 			return E_FAIL;
+		} else {
+			return S_OK;
 		}
-
-		return S_OK;
 	}
 
 };

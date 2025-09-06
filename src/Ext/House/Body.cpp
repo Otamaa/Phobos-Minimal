@@ -44,6 +44,82 @@ HouseClass* HouseExtContainer::Neutral = nullptr;
 
 #pragma endregion
 
+bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new HouseExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "HouseExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return Stm
+		.Process(HouseExtData::LimboTechno)
+		.Process(HouseExtData::AutoDeathObjects)
+		.Process(HouseExtData::LastGrindingBlanceUnit)
+		.Process(HouseExtData::LastGrindingBlanceInf)
+		.Process(HouseExtData::LastHarvesterBalance)
+		.Process(HouseExtData::LastSlaveBalance)
+		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::CloakEVASpeak)
+		.Process(HouseExtData::SubTerraneanEVASpeak)
+
+		.Process(HouseExtContainer::HousesTeams)
+		.Process(HouseExtContainer::Civilian)
+		.Process(HouseExtContainer::Special)
+		.Process(HouseExtContainer::Neutral)
+		.Process(HouseExtContainer::CivilianSide)
+
+		.Success();
+}
+
+bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return Stm
+		.Process(HouseExtData::LimboTechno)
+		.Process(HouseExtData::AutoDeathObjects)
+		.Process(HouseExtData::LastGrindingBlanceUnit)
+		.Process(HouseExtData::LastGrindingBlanceInf)
+		.Process(HouseExtData::LastHarvesterBalance)
+		.Process(HouseExtData::LastSlaveBalance)
+		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::CloakEVASpeak)
+		.Process(HouseExtData::SubTerraneanEVASpeak)
+
+		.Process(HouseExtContainer::HousesTeams)
+		.Process(HouseExtContainer::Civilian)
+		.Process(HouseExtContainer::Special)
+		.Process(HouseExtContainer::Neutral)
+		.Process(HouseExtContainer::CivilianSide)
+
+		.Success();
+}
+
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
 {
 	//auto pExt = HouseExtContainer::Instance.Find(pHouse);
@@ -2560,50 +2636,6 @@ void HouseExtData::Serialize(T& Stm)
 		;
 }
 
-bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Process(HouseExtData::LimboTechno)
-		.Process(HouseExtData::AutoDeathObjects)
-		.Process(HouseExtData::LastGrindingBlanceUnit)
-		.Process(HouseExtData::LastGrindingBlanceInf)
-		.Process(HouseExtData::LastHarvesterBalance)
-		.Process(HouseExtData::LastSlaveBalance)
-		.Process(HouseExtData::IsAnyFirestormActive)
-		.Process(HouseExtData::CloakEVASpeak)
-		.Process(HouseExtData::SubTerraneanEVASpeak)
-
-		.Process(HouseExtContainer::HousesTeams)
-		.Process(HouseExtContainer::Civilian)
-		.Process(HouseExtContainer::Special)
-		.Process(HouseExtContainer::Neutral)
-		.Process(HouseExtContainer::CivilianSide)
-
-		.Success();
-}
-
-bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Process(HouseExtData::LimboTechno)
-		.Process(HouseExtData::AutoDeathObjects)
-		.Process(HouseExtData::LastGrindingBlanceUnit)
-		.Process(HouseExtData::LastGrindingBlanceInf)
-		.Process(HouseExtData::LastHarvesterBalance)
-		.Process(HouseExtData::LastSlaveBalance)
-		.Process(HouseExtData::IsAnyFirestormActive)
-		.Process(HouseExtData::CloakEVASpeak)
-		.Process(HouseExtData::SubTerraneanEVASpeak)
-
-		.Process(HouseExtContainer::HousesTeams)
-		.Process(HouseExtContainer::Civilian)
-		.Process(HouseExtContainer::Special)
-		.Process(HouseExtContainer::Neutral)
-		.Process(HouseExtContainer::CivilianSide)
-
-		.Success();
-}
-
 // =============================
 // container
 
@@ -2612,6 +2644,8 @@ std::vector<HouseExtData*> Container<HouseExtData>::Array;
 
 void HouseExtContainer::Clear()
 {
+	Array.clear();
+
 	HouseExtData::LastGrindingBlanceUnit = 0;
 	HouseExtData::LastGrindingBlanceInf = 0;
 	HouseExtData::LastHarvesterBalance = 0;
@@ -3405,5 +3439,5 @@ HRESULT __stdcall FakeHouseClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B8, FakeHouseClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B8, FakeHouseClass::_Save)

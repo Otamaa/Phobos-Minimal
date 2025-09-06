@@ -314,5 +314,5 @@ HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)

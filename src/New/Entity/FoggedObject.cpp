@@ -35,7 +35,7 @@ void FoggedObject::LoadGlobal(IStream* pStm)
 		auto pObject = GameCreate<FoggedObject>();
 		long pOldObject;
 		pStm->Read(&pOldObject, sizeof(pOldObject), nullptr);
-		SwizzleManagerClass::Instance->Here_I_Am(pOldObject, pObject);
+		PHOBOS_SWIZZLE_REGISTER_POINTER(pOldObject, pObject, "FoggedObject")
 		pObject->Load(pStm);
 	}
 

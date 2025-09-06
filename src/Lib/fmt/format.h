@@ -33,6 +33,10 @@
 #ifndef FMT_FORMAT_H_
 #define FMT_FORMAT_H_
 
+#pragma warning(push)
+#pragma warning(disable: 4267)  // 'argument': conversion from 'size_t' to 'type', possible loss of data
+#pragma warning(disable: 4244)  // 'argument': conversion from 'unsigned __int64' to 'size_t', possible loss of data
+
 #ifndef _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
 #  define _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
 #  define FMT_REMOVE_TRANSITIVE_INCLUDES
@@ -4392,4 +4396,5 @@ FMT_END_NAMESPACE
 #  undef _LIBCPP_REMOVE_TRANSITIVE_INCLUDES
 #endif
 
+#pragma warning(pop)
 #endif  // FMT_FORMAT_H_

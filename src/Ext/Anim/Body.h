@@ -143,17 +143,8 @@ public:
 		AnimsWithAttachedParticles.clear();
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		Stm.Process(AnimsWithAttachedParticles);
-		return true;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		Stm.Process(AnimsWithAttachedParticles);
-		return true;
-	}
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{

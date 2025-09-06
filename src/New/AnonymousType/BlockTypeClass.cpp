@@ -67,8 +67,8 @@ bool BlockTypeClass::Serialize(T& stm)
 		.Process(this->Block_ReflectDamage_Warhead)
 		.Process(this->Block_ReflectDamage_Warhead_Detonate)
 		.Process(this->Block_ReflectDamage_Multiplier)
-		.Process(this->Block_ReflectDamage_AffectsHouses)
 		.Process(this->Block_ReflectDamage_Override)
+		.Process(this->Block_ReflectDamage_AffectsHouses)
 		.Success();
 }
 

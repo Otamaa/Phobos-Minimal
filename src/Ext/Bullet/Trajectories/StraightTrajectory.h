@@ -23,6 +23,8 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
+
+	virtual const char* Name() { return "StraightTrajectoryType"; }
 };
 
 class StraightVariantBTrajectoryType final : public StraightTrajectoryType
@@ -30,6 +32,7 @@ class StraightVariantBTrajectoryType final : public StraightTrajectoryType
 public:
 	StraightVariantBTrajectoryType() : StraightTrajectoryType { TrajectoryFlag::StraightVariantB } { }
 	virtual ~StraightVariantBTrajectoryType() = default;
+	virtual const char* Name() { return "StraightVariantBTrajectoryType"; }
 };
 
 class StraightTrajectory : public PhobosTrajectory
@@ -67,6 +70,7 @@ public:
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
+	virtual const char* Name() { return "StraightTrajectory"; }
 private:
 	int GetVelocityZ(CoordStruct& source) const;
 	int GetFirerZPosition() const;
@@ -97,7 +101,7 @@ public:
 	virtual void OnAIPreDetonate() override;
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
-
+	virtual const char* Name() { return "StraightTrajectoryVarianB"; }
 private:
 	int GetVelocityZ(CoordStruct& source) const;
 };

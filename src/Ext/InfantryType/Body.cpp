@@ -184,7 +184,48 @@ void InfantryTypeExtData::Serialize(T& Stm)
 // container
 InfantryTypeExtContainer InfantryTypeExtContainer::Instance;
 std::vector<InfantryTypeExtData*> Container<InfantryTypeExtData>::Array;
-std::map<TechnoTypeClass*, InfantryTypeExtData*> InfantryTypeExtContainer::Mapped;
+
+bool InfantryTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new InfantryTypeExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "InfantryTypeExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool InfantryTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
 
 // =============================
 // container hooks
@@ -229,13 +270,6 @@ ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR, 6)
 	return 0x523970;
 }
 
-ASMJIT_PATCH(0x5239C3, InfantryTypeClass_NoInit_CTOR, 6)
-{
-	GET(InfantryTypeClass*, pItem, ESI);
-	InfantryTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
-
 ASMJIT_PATCH(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 {
 	GET(InfantryTypeClass* const, pItem, ESI);
@@ -265,28 +299,5 @@ bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB674, FakeInfantryTypeClass::_ReadFromINI)
 
-HRESULT __stdcall FakeInfantryTypeClass::_Load(IStream* pStm)
-{
-	auto hr = InfantryTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			InfantryTypeExtContainer::Instance.Mapped[this], pStm);
-
-	if (SUCCEEDED(hr)) {
-		hr = this->InfantryTypeClass::Load(pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeInfantryTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = InfantryTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-
-	if (SUCCEEDED(hr)) {
-		hr = this->InfantryTypeClass::Save(pStm, clearDirty);
-	}
-
-	return hr;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB628, FakeInfantryTypeClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB628, FakeInfantryTypeClass::_Save)

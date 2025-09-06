@@ -36,6 +36,7 @@ public:
 
 	//Static
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<BuildingClass*>, 0xA8EB40u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<BuildingClass*>, 0x8B41E0u> const Secrets{};
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E3EBC;
 
 	//IPersist

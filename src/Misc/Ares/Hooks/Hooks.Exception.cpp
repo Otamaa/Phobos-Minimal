@@ -676,7 +676,7 @@ private:
 ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 {
 	DoRecon(R);
-	return 0x64CD11;
+	//return 0x64CD11;
 }
 
 LONG __fastcall ExceptionHandler(int code, PEXCEPTION_POINTERS const pExs)

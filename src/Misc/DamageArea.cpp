@@ -1049,7 +1049,8 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
 								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
 								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
-								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
+								auto _result_rock = pCoord->operator+(rock_);
+								techno->RockByValue(&_result_rock, (float)rockerSpread);
 							}
 							else if (pWarhead->CellSpread > 0.0f)
 							{
@@ -1067,7 +1068,8 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
 								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
 								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
-								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
+								auto _result_rock = pCoord->operator+(rock_);
+								techno->RockByValue(&_result_rock, (float)rockerSpread);
 							}
 							else if (pWarhead->CellSpread > 0.0f)
 							{

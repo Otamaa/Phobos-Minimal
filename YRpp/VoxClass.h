@@ -14,6 +14,13 @@ class CCINIClass;
 class VoxClass
 {
 public:
+
+	static HRESULT __fastcall Load(IStream* pStm)
+	{ JMP_THIS(0x7533F0); }
+
+	static HRESULT __fastcall Save(IStream* pStm)
+	{ JMP_THIS(0x7533B0); }
+
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<VoxClass*>, 0xB1D4A0u> const Array{};
 
 	static COMPILETIMEEVAL reference<int, 0xB1D4C8u> const EVAIndex{};

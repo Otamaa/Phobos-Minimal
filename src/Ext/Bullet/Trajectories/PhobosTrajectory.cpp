@@ -197,8 +197,8 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::uniqu
 	bool bExist = false;
 	Stm.Load(bExist);
 
-	if (bExist)
-	{
+	if (bExist) {
+
 		TrajectoryFlag nFlag = TrajectoryFlag::Invalid;
 		Stm.Process(nFlag, false);
 
@@ -210,8 +210,8 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::uniqu
 		//create the new type
 		if(PhobosTrajectoryType::UpdateType(pType, nFlag)) {
 			// register the change if succeeded
-			SwizzleManagerClass::Instance->Here_I_Am((long)pOld ,pType.get());
-			pType->Load(Stm, false);
+			PHOBOS_SWIZZLE_REGISTER_POINTER((long)pOld, pType.get(), pType->Name())
+			pType->Load(Stm, true);
 		}
 	}
 }
@@ -220,8 +220,8 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamWriter& Stm, std::uniqu
 {
 	const bool Exist = pType.get();
 	Stm.Save(Exist);
-	if (Exist)
-	{
+
+	if (Exist) {
 		Stm.Process(pType->Flag, false);
 		//write the pointer value
 		if(Savegame::WritePhobosStream(Stm, pType.get()))

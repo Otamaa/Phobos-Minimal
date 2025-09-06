@@ -120,7 +120,7 @@ ASMJIT_PATCH(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
 {
 	if (ScenarioExtData::UpdateLightSources)
 	{
-		for (auto light : LightSourceClass::Array()){
+		for (auto light : *LightSourceClass::Array){
 			if (light->Activated) {
 				light->Activated = false;
 				light->Activate();

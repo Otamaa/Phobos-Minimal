@@ -7,8 +7,6 @@ class BlockTypeClass
 {
 public:
 
-	BlockTypeClass() = default;
-
 	ValueableVector<double> Block_Chances;
 	ValueableVector<double> Block_DamageMultipliers;
 	ValueableVector<double> Block_AffectBelowPercents;
@@ -36,6 +34,8 @@ public:
 	Nullable<double> Block_ReflectDamage_Multiplier;
 	Nullable<int> Block_ReflectDamage_Override;
 	Nullable<AffectedHouse> Block_ReflectDamage_AffectsHouses;
+
+public:
 
 	void LoadFromINI(CCINIClass* pINI, const char* pSection);
 	bool Load(PhobosStreamReader& stm, bool registerForChange);

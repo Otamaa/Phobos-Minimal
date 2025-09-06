@@ -953,17 +953,6 @@ void TacticalExtData::Screen_Flash_AI()
 }
 
 // =============================
-// load / save
-
-template <typename T>
-void TacticalExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->Initialized)
-		;
-}
-
-// =============================
 // container hooks
 
 ASMJIT_PATCH(0x6D1E24, TacticalClass_CTOR, 0x5)
@@ -989,48 +978,48 @@ ASMJIT_PATCH(0x6D1E9B, TacticalClass_DTOR_B, 0xA)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6DBE00, TacticalClass_SaveLoad_Prefix, 0x8)
-{
-	GET_STACK(IStream*, pStm, 0x8);
-
-	TacticalExtData::g_pStm = pStm;
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x6DBD20, TacticalClass_SaveLoad_Prefix, 0x7)
-
-ASMJIT_PATCH(0x6DBDED, TacticalClass_Load_Suffix, 0x6)
-{
-	auto buffer = TacticalExtData::Instance();
-	if (!buffer)
-		Debug::FatalErrorAndExit("TacticalClassExt_Load Apparently TacticalExtData Global Pointer is missing !/n ");
-
-	PhobosByteStream Stm(0);
-	if (Stm.ReadBlockFromStream(TacticalExtData::g_pStm))
-	{
-		PhobosStreamReader Reader(Stm);
-
-		if (Reader.Expect(TacticalExtData::Canary) && Reader.RegisterChange(buffer))
-			buffer->LoadFromStream(Reader);
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
-{
-	auto buffer = TacticalExtData::Instance();
-
-	if (!buffer)
-		Debug::FatalErrorAndExit("TacticalClassExt_Save Apparently TacticalExtData Global Pointer is missing !/n ");
-
-	PhobosByteStream saver(sizeof(TacticalExtData));
-	PhobosStreamWriter writer(saver);
-
- writer.Save(TacticalExtData::Canary);
- writer.Save(buffer);
-
-	buffer->SaveToStream(writer);
-	saver.WriteBlockToStream(TacticalExtData::g_pStm);
-
-	return 0;
-}
+//ASMJIT_PATCH(0x6DBE00, TacticalClass_SaveLoad_Prefix, 0x8)
+//{
+//	GET_STACK(IStream*, pStm, 0x8);
+//
+//	TacticalExtData::g_pStm = pStm;
+//
+//	return 0;
+//}ASMJIT_PATCH_AGAIN(0x6DBD20, TacticalClass_SaveLoad_Prefix, 0x7)
+//
+//ASMJIT_PATCH(0x6DBDED, TacticalClass_Load_Suffix, 0x6)
+//{
+//	auto buffer = TacticalExtData::Instance();
+//	if (!buffer)
+//		Debug::FatalErrorAndExit("TacticalClassExt_Load Apparently TacticalExtData Global Pointer is missing !/n ");
+//
+//	PhobosByteStream Stm(0);
+//	if (Stm.ReadBlockFromStream(TacticalExtData::g_pStm))
+//	{
+//		PhobosStreamReader Reader(Stm);
+//
+//		if (Reader.Expect(TacticalExtData::Canary) && Reader.RegisterChange(buffer))
+//			buffer->LoadFromStream(Reader);
+//	}
+//
+//	return 0;
+//}
+//
+//ASMJIT_PATCH(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
+//{
+//	auto buffer = TacticalExtData::Instance();
+//
+//	if (!buffer)
+//		Debug::FatalErrorAndExit("TacticalClassExt_Save Apparently TacticalExtData Global Pointer is missing !/n ");
+//
+//	PhobosByteStream saver(sizeof(TacticalExtData));
+//	PhobosStreamWriter writer(saver);
+//
+// writer.Save(TacticalExtData::Canary);
+// writer.Save(buffer);
+//
+//	buffer->SaveToStream(writer);
+//	saver.WriteBlockToStream(TacticalExtData::g_pStm);
+//
+//	return 0;
+//}

@@ -14,6 +14,48 @@
 UnitExtContainer UnitExtContainer::Instance;
 std::vector<UnitExtData*> Container<UnitExtData>::Array;
 
+bool UnitExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new UnitExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "UnitExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool UnitExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 bool UnitExtContainer::HasDeployingAnim(UnitTypeClass* pUnitType) {
 	return pUnitType->DeployingAnim || !TechnoTypeExtContainer::Instance.Find(pUnitType)->DeployingAnims.empty();
 }
@@ -310,5 +352,5 @@ HRESULT __stdcall FakeUnitClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C84, FakeUnitClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C88, FakeUnitClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C84, FakeUnitClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C88, FakeUnitClass::_Save)

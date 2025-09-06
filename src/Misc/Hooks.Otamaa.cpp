@@ -4379,7 +4379,9 @@ ASMJIT_PATCH(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
 
 	if (!vec.empty())
 	{
-		VocClass::SafeImmedietelyPlayAt(Random2Class::Global->RandomFromMax(vec.size() - 1), &pThis->GetCoords(), &pThis->Audio3);
+		auto coord = pThis->GetCoords();
+		VocClass::SafeImmedietelyPlayAt(Random2Class::Global->RandomFromMax(vec.size() - 1)
+			, &coord, &pThis->Audio3);
 	}
 
 	return  0x0;
@@ -7648,7 +7650,7 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 
 	 if (!pDetectorOwner) {
 		 Debug::FatalErrorAndExit("BombListClass Detector[%s - %s] Missing Ownership !\n", pDetector->GetThisClassName(), pDetector->get_ID());
-		 return 0x438E11;
+		 //return 0x438E11;
 	 }
 
 	 R->AL(pDetectorOwner->ControlledByCurrentPlayer());
@@ -7687,18 +7689,15 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
  //}
 #include <Utilities/Swizzle.h>
 
- //ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
- //{
-	// GET(AbstractClass*, pThis, ESI);
-	// GET_STACK(IStream*, pStream, 0x0);
+ ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
+ {
+	 GET(AbstractClass*, pThis, ESI);
+	 GET_STACK(IStream*, pStream, 0x0);
 
-	// Debug::Log("Loading Ext of %x", pThis->unknown_18);
-	// PHOBOS_SWIZZLE_REGISTER_POINTER((LONG)pThis->unknown_18, )
-	// PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(pThis->unknown_18, "Extension Value");
-
-
-	// return 0x0;
- //}
+	 //immedietely update the extension pointer value and the extension AttachedToObject itself !
+	 ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
+	 return 0x0;
+ }
 
  //ASMJIT_PATCH(0x410361, AbstractClass_Save_LogValue, 0x5)
  //{

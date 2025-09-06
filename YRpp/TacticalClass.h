@@ -45,6 +45,13 @@ public:
 	//Destructor
 	virtual ~TacticalClass() override JMP_THIS(0x6DC470);
 
+	void Destroy(char mode) { JMP_THIS(0x6DC470); }
+
+	static void ClearPtr() {
+		Instance->Destroy(1);
+		Instance = nullptr;
+	}
+
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x6DA560);
 	virtual AbstractType WhatAmI() const override { return AbstractType::TacticalMap; }

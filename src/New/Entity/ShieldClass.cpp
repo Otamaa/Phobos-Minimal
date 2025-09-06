@@ -915,7 +915,7 @@ void ShieldClass::SetRespawn(int duration, double amount, int rate, bool restart
 	this->Respawn_RestartInCombatDelay_Warhead = restartInCombatDelay >= 0 ? restartInCombatDelay : pType->Respawn_RestartInCombatDelay;
 
 	if(anim)
-		this->Respawn_Anim_Warhead = Iterator(*anim);
+		std::copy(anim->begin(),anim->end(), std::back_inserter(this->Respawn_Anim_Warhead));
 
 	this->Respawn_Weapon_Warhead = weapon ? weapon : pType->Respawn_Weapon;
 	this->Respawn_Rate_Warhead = rate >= 0 ? rate : Type->Respawn_Rate;

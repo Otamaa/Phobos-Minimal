@@ -1581,10 +1581,9 @@ ASMJIT_PATCH(0x55DBCD, MainLoop_SaveGame, 0x6)
 	// This happens right before LogicClass::Update()
 	enum { SkipSave = 0x55DC99, InitialSave = 0x55DBE6 };
 
-	bool& scenario_saved = *reinterpret_cast<bool*>(0xABCE08);
-	if (SessionClass::IsSingleplayer() && !scenario_saved)
+	if (SessionClass::IsSingleplayer() && !ScenarioClass::ScenarioSaved())
 	{
-		scenario_saved = true;
+		ScenarioClass::ScenarioSaved = true;
 		if (Phobos::ShouldQuickSave)
 		{
 			Phobos::PassiveSaveGame();

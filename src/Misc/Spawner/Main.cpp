@@ -25,6 +25,16 @@
 #include <MessageBox.h>
 #include <BeaconManagerClass.h>
 
+bool GameSpeedSlider::IsEnabled()
+{
+	auto cfg = &SpawnerMain::GameConfigs::m_Ptr;
+	return SpawnerMain::Configs::Enabled && !cfg->DisableGameSpeed;
+}
+
+bool GameSpeedSlider::IsDisabled() {
+	return !IsEnabled();
+}
+
 #pragma region defines
 std::list<MixFileClass*> SpawnerMain::LoadedMixFiles;
 SpawnerMain::GameConfigs SpawnerMain::GameConfigs::m_Ptr {};
@@ -121,6 +131,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 
 	// Extended Options
 	, QuickMatch { false }
+	, DisableGameSpeed { false }
 	, SpawnerHackMPNodes { false }
 	, SkipScoreScreen { Configs::m_Ptr.SkipScoreScreen }
 	, WriteStatistics { false }
@@ -449,6 +460,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 
 	// Extended Options
 	SpawnerHackMPNodes = pINI->ReadBool(GameStrings::Settings(), "UseMPAIBaseNodes", SpawnerHackMPNodes);
+	DisableGameSpeed = pINI->ReadBool(GameStrings::Settings(), "DisableGameSpeed", DisableGameSpeed);
 	QuickMatch = pINI->ReadBool(GameStrings::Settings(), "QuickMatch", QuickMatch);
 	SkipScoreScreen = pINI->ReadBool(GameStrings::Settings(), "SkipScoreScreen", SkipScoreScreen);
 	WriteStatistics = pINI->ReadBool(GameStrings::Settings(), "WriteStatistics", WriteStatistics);
@@ -1402,4 +1414,35 @@ ASMJIT_PATCH(0x686A9E, ReadScenario_InitSomeThings_SpecialHouseIsAlly, 0x6)
 {
 	return !SpawnerMain::GetGameConfigs()->SpecialHouseIsAlly ?
 		0x686AC6 : 0u;
+}
+
+// Hide the GameSpeed (FPS) slider group only when feature disabled.
+// Skirmish observers must always retain the slider regardless of config.
+ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
+{
+	bool const isSkirmishObserver = (SessionClass::IsSkirmish() && HouseClass::CurrentPlayer && HouseClass::CurrentPlayer->IsObserver());
+
+	if (GameSpeedSlider::IsDisabled() && !isSkirmishObserver)
+	{
+		GET(void*, fnGetCtrlById, EDI);
+		GET(void*, fnShowWindow, EBP);
+		GET(void*, hDlg, ESI);
+
+		using GetCtrlById_t = void* (__stdcall*)(void* hDlg, int id);
+		using ShowWindow_t = void(__stdcall*)(void* hWnd, int nCmdShow);
+
+		auto getCtrl = reinterpret_cast<GetCtrlById_t>(fnGetCtrlById);
+		auto showWnd = reinterpret_cast<ShowWindow_t>(fnShowWindow);
+
+		if (getCtrl && showWnd)
+		{
+			if (auto ctrl = getCtrl(hDlg, 0x529)) { showWnd(ctrl, 0); }
+			if (auto ctrl = getCtrl(hDlg, 0x714)) { showWnd(ctrl, 0); }
+			if (auto ctrl = getCtrl(hDlg, 0x671)) { showWnd(ctrl, 0); }
+		}
+
+		return 0x4E211A;
+	}
+
+	return 0;
 }

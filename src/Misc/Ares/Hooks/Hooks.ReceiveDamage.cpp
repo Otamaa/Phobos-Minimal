@@ -244,7 +244,8 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 				{
 					// Needs to be added to the logic layer for the anim to work.
 					LogicClass::Instance->AddObject(pThis, false);
-					VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &pThis->GetCoords());
+					auto coordsound_ = pThis->GetCoords();
+					VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &coordsound_);
 					pThis->Mark(MarkType::Redraw);
 					pThis->Disappear(true);
 					return _res;
@@ -1123,8 +1124,9 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				limited = pTypeExt->DebrisTypes_Limit.Get();
 			}
 
+			auto spawn_coords = pThis->GetCoords();
 			DebrisSpawners::Spawn(pType->MinDebris,pType->MaxDebris,
-			pThis->GetCoords() , pType->DebrisTypes,
+			spawn_coords, pType->DebrisTypes,
 			pType->DebrisAnims ,pType->DebrisMaximums, pTypeExt->DebrisMinimums, limited, args.Attacker , args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->Owner);
 
 			auto pWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType;

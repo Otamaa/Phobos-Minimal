@@ -91,13 +91,19 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-
 	void Screen_Flash_AI();
 
 private:
 	template <typename T>
-	void Serialize(T& Stm);
-
+	void Serialize(T& Stm)
+	{
+		Stm
+			.Process(this->Initialized)
+			.Process(this->IsPendingScreenFlash)
+			.Process(this->ScreenFlashColor)
+			.Process(this->ScreenFlashTrans)
+			;
+	}
 public:
 	static IStream* g_pStm;
 

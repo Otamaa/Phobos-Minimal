@@ -71,6 +71,12 @@ public:
 	void Scan()
 		{ JMP_THIS(0x7207F0) }
 
+	HRESULT Load(IStream* pStm)
+	{ JMP_THIS(0x721040); }
+
+	HRESULT Save(IStream* pStm)
+	{ JMP_THIS(0x721010); }
+
 public:
 
 	int CurrentTheme; // the playing theme's index

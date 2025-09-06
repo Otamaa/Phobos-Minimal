@@ -219,6 +219,48 @@ void RadSiteExtData::Serialize(T& Stm)
 RadSiteExtContainer RadSiteExtContainer::Instance;
 std::vector<RadSiteExtData*> Container<RadSiteExtData>::Array;
 
+bool RadSiteExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new RadSiteExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "RadSiteExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool RadSiteExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 // =============================
 // container hooks
 
@@ -254,6 +296,7 @@ ASMJIT_PATCH(0x65B344, RadSiteClass_DTOR, 0x6)
 void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
 	RadSiteExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemove);
+	//this->RadSiteClass::PointerExpired(pTarget, bRemove);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0838, FakeRadSiteClass::_Detach);
@@ -290,5 +333,5 @@ HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)

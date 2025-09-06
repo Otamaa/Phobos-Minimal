@@ -853,7 +853,7 @@ bool TechnoExtData::CannotMove(UnitClass* pThis)
 	if (pType->Speed <= 0)
 		return true;
 
-	if (!pThis->IsInAir())
+	if (!locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
 	{
 		LandType landType = pThis->GetCell()->LandType;
 		const LandType movementRestrictedTo = pType->MovementRestrictedTo;

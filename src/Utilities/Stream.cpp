@@ -1,7 +1,7 @@
 #include "Stream.h"
 #include "Debug.h"
 
-#include <SwizzleManagerClass.h>
+#include <Utilities/Swizzle.h>
 
 #include <Objidl.h>
 
@@ -77,15 +77,16 @@ bool PhobosByteStream::WriteBlockToStream(IStream* pStm) const
 	return false;
 }
 
+const char* RCFunc = "PhobosStreamReader::RegisterChange()";
+
 bool PhobosStreamReader::RegisterChange(void* newPtr)
 {
 	static_assert(sizeof(long) == sizeof(void*), "long and void* need to be of same size.");
 
 	long oldPtr = 0;
 	if (this->Load(oldPtr)) {
-		if (SUCCEEDED(SwizzleManagerClass::Instance().Here_I_Am(oldPtr, newPtr)))
+		if (SUCCEEDED(PhobosSwizzleManager.Here_I_Am_Dbg(oldPtr, newPtr, __FILE__, __LINE__, RCFunc, "Unkown")))
 			return true;
-
 		//GameDebugLog::Log("[PhobosStreamReader] Failed To RegisterChange for [%p] to [%p]", oldPtr, newPtr);
 	}
 

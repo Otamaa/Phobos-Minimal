@@ -746,8 +746,8 @@ public:
 protected:
 	CellClass* Target;
 	std::vector<AircraftTypeClass*> PlaneType;
-	std::vector<Iterator<TechnoTypeClass*>> Types;
-	std::vector<Iterator<int>> Nums;
+	std::vector<std::vector<TechnoTypeClass*>> Types;
+	std::vector<std::vector<int>> Nums;
 };
 
 class ProtectStateMachine : public SWStateMachine

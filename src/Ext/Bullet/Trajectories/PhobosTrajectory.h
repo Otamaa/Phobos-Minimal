@@ -41,6 +41,7 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
 	virtual bool Read(CCINIClass* const pINI, const char* pSection);
+	virtual const char* Name() = 0;
 
 	virtual ~PhobosTrajectoryType() = default;
 	static void CreateType(std::unique_ptr<PhobosTrajectoryType>& pType, CCINIClass* const pINI, const char* pSection, const char* pKey);
@@ -83,6 +84,7 @@ public:
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	virtual bool Save(PhobosStreamWriter& Stm) const;
+	virtual const char* Name() = 0;
 
 	virtual PhobosTrajectoryType* GetTrajectoryType() const { return const_cast<PhobosTrajectoryType*>(Type); }
 

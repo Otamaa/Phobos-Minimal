@@ -129,15 +129,8 @@ public:
 		Array.clear();
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return true;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return true;
-	}
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
@@ -154,6 +147,8 @@ class NOVTABLE FakeTeamClass : public TeamClass
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+	void _Detach(AbstractClass* target, bool all);
 
 	void _AI();
 	bool _CoordinateRegroup();

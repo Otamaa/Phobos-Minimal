@@ -270,8 +270,11 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 
 //A new SendPDPlane function
 //Allows vehicles, sends one single plane for all types
-void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTypeClass* pPlaneType,
-	Iterator<TechnoTypeClass*> const Types, Iterator<int> const Nums)
+void SW_ParaDrop::SendPDPlane(HouseClass* pOwner
+	, CellClass* pTarget
+	, AircraftTypeClass* pPlaneType
+	, Iterator<TechnoTypeClass*> Types
+	, Iterator<int> Nums)
 {
 	if (Nums.size() != Types.size() || !Nums.size()
 		|| !pOwner || !pPlaneType)
@@ -367,6 +370,18 @@ bool SW_ParaDrop::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuild
 		return true;
 
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}
+
+template<typename T>
+COMPILETIMEEVAL void insertFromIterator(std::vector<std::vector<T>>& vec2d, const Iterator<T>& iter) {
+	std::vector<T> newRow;
+    newRow.reserve(iter.size());
+
+	for (size_t i = 0; i < iter.size(); ++i) {
+        newRow.push_back(iter[i]);
+    }
+
+    vec2d.push_back(std::move(newRow));
 }
 
 void ParaDropStateMachine::UpdateProperties()
@@ -482,8 +497,8 @@ void ParaDropStateMachine::UpdateProperties()
 		// finally, send the plane
 		if (ParaDropTypes && ParaDropNum && pParaDropPlane) {
 			this->PlaneType.push_back(pParaDropPlane);
-			this->Types.push_back(ParaDropTypes);
-			this->Nums.push_back(ParaDropNum);
+			insertFromIterator(this->Types, ParaDropTypes);
+			insertFromIterator(this->Nums, ParaDropNum);
 		}
 	}
 }

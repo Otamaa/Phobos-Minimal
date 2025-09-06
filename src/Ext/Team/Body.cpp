@@ -1176,6 +1176,48 @@ void TeamExtData::Serialize(T& Stm)
 TeamExtContainer TeamExtContainer::Instance;
 std::vector<TeamExtData*> Container<TeamExtData>::Array;
 
+bool TeamExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new TeamExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "TeamExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool TeamExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 // =============================
 // container hooks
 
@@ -1195,24 +1237,13 @@ ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6EAE60, TeamClass_Detach, 0x7)
+void FakeTeamClass::_Detach(AbstractClass* target, bool all)
 {
-	GET(TeamClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, target, 0x4);
-	GET_STACK(bool, all, 0x8);
-
-	TeamExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-
-	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
-	return 0x0;
+	TeamExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	this->TeamClass::PointerExpired(target, all);
 }
 
-//void __fastcall TeamClass_Detach_Wrapper(TeamClass* pThis ,DWORD , AbstractClass* target , bool all)\
-//{
-//	TeamExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
-//	pThis->TeamClass::PointerExpired(target , all);
-//}
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, GET_OFFSET(TeamClass_Detach_Wrapper))
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, FakeTeamClass::_Detach)
 
 HRESULT __stdcall FakeTeamClass::_Load(IStream* pStm)
 {
@@ -1239,5 +1270,5 @@ HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)

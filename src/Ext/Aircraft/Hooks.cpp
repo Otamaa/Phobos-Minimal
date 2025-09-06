@@ -150,6 +150,7 @@ bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 	const auto pExt = TechnoExtContainer::Instance.Find(pAir);
 	const int weaponIndex = pExt->CurrentAircraftWeaponIndex;
 	const bool Scatter = TechnoTypeExtContainer::Instance.Find(pAir->Type)->FiringForceScatter ;
+	auto pDecideTarget = (pExt->Strafe_TargetCell ? pExt->Strafe_TargetCell : pTarget);
 
 	if (const auto pWeaponStruct = pAir->GetWeapon(weaponIndex)) {
 		if (const auto weaponType = pWeaponStruct->WeaponType) {
@@ -161,7 +162,7 @@ bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 					if (isStrafe && weaponType->Burst < 2 && pWeaponExt->Strafing_SimulateBurst)
 						pAir->CurrentBurstIndex = TechnoExtContainer::Instance.Find(pAir)->ShootCount % 2 == 0;
 
-					pAir->Fire(pTarget, weaponIndex);
+					pAir->Fire(pDecideTarget, weaponIndex);
 				}
 
 				if (isStrafe) {
@@ -182,10 +183,10 @@ bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 		}
 	}
 
-	if (auto pTarget = (pExt->Strafe_TargetCell ? pExt->Strafe_TargetCell : pAir->Target)) {
+	if (pDecideTarget) {
 		if (Scatter) {
 
-			auto coord = pTarget->GetCoords();
+			auto coord = pDecideTarget->GetCoords();
 
 			if (auto pCell = MapClass::Instance->TryGetCellAt(coord))
 			{

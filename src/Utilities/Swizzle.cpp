@@ -13,6 +13,51 @@ void Clear_All_Surfaces()
 	if (DSurface::Composite()) DSurface::Composite->Clear();
 }
 
+#include <Utilities/Container.h>
+
+std::unordered_map<uintptr_t, uintptr_t>  ExtensionSwizzleManager::extensionPointerMap;
+
+void ExtensionSwizzleManager::RegisterExtensionPointer(void* savedAddress, void* currentExtension)
+{
+	extensionPointerMap[(uintptr_t)savedAddress] = (uintptr_t)currentExtension;
+}
+
+bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj)
+{
+	if (*ptrToFix) // nothing to fix
+		return true;
+
+	auto it = extensionPointerMap.find((uintptr_t)*ptrToFix);
+	if (it != extensionPointerMap.end())
+	{
+		auto currentExtension = (AbstractExtended*)it->second;
+
+		// Fix bidirectional pointers
+		*ptrToFix = currentExtension;
+		currentExtension->SetAttached(OwnerObj);
+		it->second = 0u;
+		return true;
+	}
+
+	Debug::Log("Cannot Find ext pointer of %x from %x !\n", *ptrToFix, OwnerObj);
+	return false;
+}
+
+// Clean up orphaned extensions
+void ExtensionSwizzleManager::CleanupUnmappedExtensions()
+{
+	for (const auto& [savedAddr, extension] : extensionPointerMap) {
+		if(extension > 0) {
+			Debug::Log("Cleaning up unmapped extension: %x -> %x\n",
+				savedAddr , extension);
+
+			delete (AbstractExtended*)extension;
+		}
+	}
+
+	extensionPointerMap.clear();
+}
+
 /*
 # Phobos Swizzle Manager - Complete System Analysis
 
@@ -529,6 +574,7 @@ PhobosSwizzleManagerClass::~PhobosSwizzleManagerClass()
 {
 	Process_Tables();
 	Cleanup_Dangling_Pointers();
+	ExtensionSwizzleManager::CleanupUnmappedExtensions();
 }
 
 #define ENABLE_SWIZZLE_DEBUG_PRINTING

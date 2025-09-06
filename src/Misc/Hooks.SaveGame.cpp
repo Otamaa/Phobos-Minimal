@@ -1,45 +1,45 @@
 
 #include <CStreamClass.h>
 
-//void __fastcall Decode_All_Pointers(CStreamClass* stream)
-//{
-//	// Section 1: Initialize and Load Scenario
-//	Clear_Scenario();
-//	ScenarioClass::Load(Scen, stream);
-//	UserInputLocked = Scen->UserInputLocked;
-//
-//	if (!Prep_For_Side(Scen->SideBarTypeseems))
-//	{
-//		return; // Early exit if preparation fails
-//	}
-//
-//	// Section 2: Setup Display and Surfaces
-//	SetupDisplaySurfaces();
-//
-//	// Section 3: Load Core Game Systems
-//	if (!LoadCoreGameSystems(stream))
-//	{
-//		return; // Exit if core systems fail to load
-//	}
-//
-//	// Section 4: Load Game Object Collections
-//	if (!LoadGameObjectCollections(stream))
-//	{
-//		return; // Exit if object collections fail to load
-//	}
-//
-//	// Section 5: Load Specialized Game Data
-//	if (!LoadSpecializedGameData(stream))
-//	{
-//		return; // Exit if specialized data fails to load
-//	}
-//
-//	// Section 6: Load Session-Specific Data
-//	LoadSessionSpecificData(stream);
-//
-//	// Section 7: Finalize Loading
-//	FinalizeGameLoading();
-//}
+void __fastcall Decode_All_Pointers(CStreamClass* stream)
+{
+	// Section 1: Initialize and Load Scenario
+	Clear_Scenario();
+	ScenarioClass::Load(Scen, stream);
+	UserInputLocked = Scen->UserInputLocked;
+
+	if (!Prep_For_Side(Scen->SideBarTypeseems))
+	{
+		return; // Early exit if preparation fails
+	}
+
+	// Section 2: Setup Display and Surfaces
+	SetupDisplaySurfaces();
+
+	// Section 3: Load Core Game Systems
+	if (!LoadCoreGameSystems(stream))
+	{
+		return; // Exit if core systems fail to load
+	}
+
+	// Section 4: Load Game Object Collections
+	if (!LoadGameObjectCollections(stream))
+	{
+		return; // Exit if object collections fail to load
+	}
+
+	// Section 5: Load Specialized Game Data
+	if (!LoadSpecializedGameData(stream))
+	{
+		return; // Exit if specialized data fails to load
+	}
+
+	// Section 6: Load Session-Specific Data
+	LoadSessionSpecificData(stream);
+
+	// Section 7: Finalize Loading
+	FinalizeGameLoading();
+}
 //
 //// Section 1 Helper: Setup Display Surfaces
 //void SetupDisplaySurfaces()
@@ -379,42 +379,42 @@
 //
 //// Broken into logical sections for better readability
 //
-//void __fastcall Put_All(LPSTREAM pStm)
-//{
-//	// Section 1: Save Core Game State
-//	if (!SaveCoreGameState(pStm))
-//	{
-//		WWDebugString("Failed to save core game state\n");
-//		return;
-//	}
-//
-//	// Section 2: Save Game Object Collections
-//	if (!SaveGameObjectCollections(pStm))
-//	{
-//		WWDebugString("Failed to save game object collections\n");
-//		return;
-//	}
-//
-//	// Section 3: Save AI and Scripting Systems
-//	if (!SaveAIAndScriptingSystems(pStm))
-//	{
-//		WWDebugString("Failed to save AI and scripting systems\n");
-//		return;
-//	}
-//
-//	// Section 4: Save Specialized Game Data
-//	if (!SaveSpecializedGameData(pStm))
-//	{
-//		WWDebugString("Failed to save specialized game data\n");
-//		return;
-//	}
-//
-//	// Section 5: Save Session-Specific Data
-//	SaveSessionSpecificData(pStm);
-//
-//	WWDebugString("Game save completed successfully\n");
-//}
-//
+void __fastcall Put_All(LPSTREAM pStm)
+{
+	// Section 1: Save Core Game State
+	if (!SaveCoreGameState(pStm))
+	{
+		WWDebugString("Failed to save core game state\n");
+		return;
+	}
+
+	// Section 2: Save Game Object Collections
+	if (!SaveGameObjectCollections(pStm))
+	{
+		WWDebugString("Failed to save game object collections\n");
+		return;
+	}
+
+	// Section 3: Save AI and Scripting Systems
+	if (!SaveAIAndScriptingSystems(pStm))
+	{
+		WWDebugString("Failed to save AI and scripting systems\n");
+		return;
+	}
+
+	// Section 4: Save Specialized Game Data
+	if (!SaveSpecializedGameData(pStm))
+	{
+		WWDebugString("Failed to save specialized game data\n");
+		return;
+	}
+
+	// Section 5: Save Session-Specific Data
+	SaveSessionSpecificData(pStm);
+
+	WWDebugString("Game save completed successfully\n");
+}
+
 
 //
 //// Section 2: Save Game Object Collections
@@ -1096,35 +1096,7 @@ private:
 std::unique_ptr<JSONSaveGameStream> g_jsonStream;
 
 // Section 1: Save Core Game State
-//bool SaveCoreGameState(LPSTREAM pStm)
-//{
-//	// Save scenario data
-//	ScenarioClass::Save(Scen, pStm);
-//
-//	// Save evade and rules systems
-//	EvadeClass::Code_Pointers(&Evade, pStm);
-//	RulesClass::Code_Pointers(Rule, pStm);
-//
-//	// Save mouse and input state
-//	MouseClass::Save(&Map, pStm);
-//
-//	// Save miscellaneous values
-//	if (Save_Misc_Values(pStm) < 0)
-//	{
-//		return false;
-//	}
-//
-//	// Save layer and logic systems
-//	LayerClass::Code_Pointers(&Logic.l, pStm);
-//
-//	// Save tactical map
-//	if (OleSaveToStream(TacticalMap, pStm) < 0)
-//	{
-//		return false;
-//	}
-//
-//	return true;
-//}
+
 
 #include <EvadeClass.h>
 
@@ -1241,5 +1213,3 @@ void __fastcall Hooked_Decode_All_Pointers(LPSTREAM stream)
 	Debug::Log("RA2 Load intercepted\n");
 }
 
-//DEFINE_FUNCTION_JUMP(CALL , 0x67E659 , Hooked_Decode_All_Pointers)
-//DEFINE_FUNCTION_JUMP(CALL, 0x67D1AF, Hooked_Put_All)

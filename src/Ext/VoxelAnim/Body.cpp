@@ -77,6 +77,48 @@ void VoxelAnimExtData::Serialize(T& Stm)
 VoxelAnimExtContainer VoxelAnimExtContainer::Instance;
 std::vector<VoxelAnimExtData*> Container<VoxelAnimExtData>::Array;
 
+bool VoxelAnimExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new VoxelAnimExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "VoxelAnimExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool VoxelAnimExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 // =================================
 ASMJIT_PATCH(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
@@ -140,5 +182,5 @@ HRESULT __stdcall FakeVoxelAnimClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)

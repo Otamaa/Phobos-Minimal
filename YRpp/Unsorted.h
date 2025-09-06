@@ -194,6 +194,20 @@ struct Game
 		JMP_FAST(0x755C50);
 	}
 
+	static bool __fastcall Prep_For_Side(int house) {
+		JMP_FAST(0x534FA0);
+	}
+
+	static RectangleStruct* __fastcall Get_Sidebar_Clip_Bounds(RectangleStruct* ree) {
+		JMP_FAST(0x72AD20);
+	}
+
+	static HRESULT __fastcall Save_Misc_Values(LPSTREAM a1) {
+		JMP_FAST(0x67F7E0);
+	}
+	static HRESULT __fastcall Load_Misc_Values(LPSTREAM a1) {
+		JMP_FAST(0x67F9C0);
+	}
 #ifdef deprecated
 
 	// the game's own rounding function

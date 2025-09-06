@@ -2776,7 +2776,7 @@ DWORD WINAPI Mouse_Thread(MouseThreadParameter* lpThreadParameter)
 			}
 
 			Imports::ReleaseMutex.invoke()(MouseThreadParameter::Mutex());
-			Imports::Sleep.invoke()(lpThreadParameter->SleepTime);
+			Imports::Sleep.invoke()((long long)lpThreadParameter->SleepTime);
 			++lpThreadParameter->RefCount;
 		}
 		while (!lpThreadParameter->SkipProcessing);

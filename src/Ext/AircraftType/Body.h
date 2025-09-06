@@ -57,68 +57,20 @@ class AircraftTypeExtContainer final : public Container<AircraftTypeExtData>
 {
 public:
 	static AircraftTypeExtContainer Instance;
-	static std::map<TechnoTypeClass*, AircraftTypeExtData*> Mapped;
-
-	AircraftTypeExtData* AllocateNoInit(AircraftTypeExtData::base_type* key) {
-		auto pExt = new AircraftTypeExtData(key, noinit_t());
-		Mapped[key] = pExt;
-		return pExt;
-	}
 
 	static void Clear()
 	{
-		Mapped.clear();
 		Array.clear();
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return true;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return true;
-	}
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
 		for (auto& ext : Array) {
 			ext->InvalidatePointer(ptr, bRemoved);
 		}
-	}
-
-	virtual HRESULT ReadDataFromTheByteStream(base_type_ptr key, extension_type_ptr pExt, IStream* pStm)
-	{
-		if (!pExt)
-		{
-			Debug::Log("SaveKey - Could not find value.\n");
-			return E_POINTER;
-		}
-
-		PhobosByteStream loader(0);
-		if (!loader.ReadBlockFromStream(pStm))
-		{
-			Debug::Log("LoadKey - Failed to read data from save stream?!\n");
-			return E_FAIL;
-		}
-
-		PhobosStreamReader reader(loader);
-
-		if (reader.Expect(extension_type::Marker))
-		{
-			pExt->LoadFromStream(reader);
-
-			if (reader.ExpectEndOfBlock())
-			{
-				auto old = (LONG)key->unknown_18;
-				SwizzleManagerClass::Instance->Here_I_Am(old, pExt);
-				key->unknown_18 = (LONG)pExt;
-				return S_OK;
-			}
-		}
-
-		return E_FAIL;
 	}
 };
 

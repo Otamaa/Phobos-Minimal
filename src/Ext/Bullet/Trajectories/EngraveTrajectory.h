@@ -32,6 +32,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
+	virtual const char* Name() { return "EngraveTrajectoryType"; }
 };
 
 class EngraveTrajectory : public PhobosTrajectory
@@ -83,6 +84,7 @@ public:
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
+	virtual const char* Name() { return "EngraveTrajectory"; }
 private:
 	int GetFloorCoordHeight(CoordStruct Coord) const;
 

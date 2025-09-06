@@ -782,33 +782,6 @@ void FakeAircraftClass::_Destroyed(int mult)
 	AircraftExtData::TriggerCrashWeapon(this, mult);
 }
 
-HRESULT __stdcall FakeAircraftClass::_Load(IStream* pStm)
-{
-	auto hr = this->AircraftClass::Load(pStm);
-
-	if (SUCCEEDED(hr)) {
-		hr = AircraftExtContainer::Instance.ReadDataFromTheByteStream(this,
-			AircraftExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeAircraftClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->AircraftClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = AircraftExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)
-
 WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(this);
@@ -919,6 +892,48 @@ bool AircraftExtData::IsValidLandingZone(AircraftClass* pThis)
 std::vector<AircraftExtData*> Container<AircraftExtData>::Array;
 AircraftExtContainer AircraftExtContainer::Instance;
 
+bool AircraftExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new AircraftExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "AircraftExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+			newPtr->LoadFromStream(Stm);
+			Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool AircraftExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
 {
 	GET(AircraftClass*, pItem, ESI);
@@ -933,13 +948,38 @@ ASMJIT_PATCH(0x41426F, AircraftClass_DTOR, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x41B685, AircraftClass_Detach, 0x6)
+void FakeAircraftClass::_Detach(AbstractClass* target, bool all)
 {
-	GET(AircraftClass*, pThis, ESI);
-	GET(AbstractClass*, target, EDI);
-	GET_STACK(bool, all, STACK_OFFSET(0x8, 0x8));
-
-	AircraftExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-
-	return 0x0;
+	AircraftExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	//will detach type pointer
+	this->AircraftClass::PointerExpired(target, all);
 }
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7E22CC , FakeAircraftClass::_Detach)
+
+//HRESULT __stdcall FakeAircraftClass::_Load(IStream* pStm)
+//{
+//	auto hr = this->AircraftClass::Load(pStm);
+//
+//	if (SUCCEEDED(hr))
+//	{
+//		hr = AircraftExtContainer::Instance.ReadDataFromTheByteStream(this,
+//			AircraftExtContainer::Instance.AllocateNoInit(this), pStm);
+//	}
+//
+//	return hr;
+//}
+//
+//HRESULT __stdcall FakeAircraftClass::_Save(IStream* pStm, BOOL clearDirty)
+//{
+//	auto hr = this->AircraftClass::Save(pStm, clearDirty);
+//
+//	if (SUCCEEDED(hr))
+//	{
+//		hr = AircraftExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+//	}
+//
+//	return hr;
+//}
+
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)

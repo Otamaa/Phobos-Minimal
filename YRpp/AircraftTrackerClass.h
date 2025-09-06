@@ -32,8 +32,8 @@ public:
 	// Fills CurrentVector with items from TrackerVectors matching given range around cell.
 	void FillCurrentVector(CellClass* pCell, int range) { JMP_THIS(0x412B40) }
 
-	//HRESULT LoadFromStream(IStream* pStm) { JMP_THIS(0x4136C0); }
-	//HRESULT SaveFromStream(IStream* pStm) { JMP_THIS(0x413850); }
+	HRESULT Load(IStream* pStm) { JMP_THIS(0x4136C0); }
+	HRESULT Save(IStream* pStm) { JMP_THIS(0x413850); }
 	// TODO write other entries
 
 private:

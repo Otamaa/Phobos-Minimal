@@ -19,7 +19,7 @@ public:
 
 	//Static
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<SuperClass*>, 0xA83CB8u> const Array{};
-	static COMPILETIMEEVAL reference<DynamicVectorClass<SuperClass*>, 0xA83D50u> const ShowTimers{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<SuperClass*>, 0xA83D50u> const ShowTimers{};
 
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x6CDEB0);

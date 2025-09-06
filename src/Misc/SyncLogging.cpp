@@ -134,7 +134,7 @@ void SyncLogger::WriteSyncLog(const std::string& logFilename)
 
 		fclose(pLogFile);
 	} else {
-		Debug::FatalError("Failed to open sync log file '{}'.", logFilename);
+		Debug::FatalError("Failed to open sync log file '%s'.", logFilename.c_str());
 	}
 }
 

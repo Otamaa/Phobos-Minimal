@@ -187,7 +187,7 @@ void PaletteManager::LoadFromStream(PhobosStreamReader& Stm)
 
 	if (hasPalette) {
 		this->Palette = GameCreate<BytePalette>();
-		SwizzleManagerClass::Instance->Here_I_Am((long)was, this->Palette);
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)was, this->Palette, "BytePalette")
 		if (!Stm.Load(*this->Palette))
 			return;
 

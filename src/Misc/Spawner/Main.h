@@ -27,6 +27,14 @@
 #include <vector>
 #include <string>
 
+class GameSpeedSlider
+{
+public:
+	// Enabled only when spawner active and config flag set.
+	static bool IsEnabled();
+	static bool IsDisabled();
+};
+
 class CCINIClass;
 class EventClass;
 struct SpawnerMain
@@ -176,6 +184,7 @@ struct SpawnerMain
 
 		// Extended Options
 		bool QuickMatch;
+		bool DisableGameSpeed;
 		bool SpawnerHackMPNodes;
 		bool SkipScoreScreen;
 		bool WriteStatistics;

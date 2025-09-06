@@ -2116,7 +2116,6 @@ void BuildingTypeExtData::Serialize(T& Stm)
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
 std::vector<BuildingTypeExtData*> Container<BuildingTypeExtData>::Array;
-std::map<TechnoTypeClass*, BuildingTypeExtData*>BuildingTypeExtContainer::Mapped;
 
 // =============================
 // container hooks
@@ -2128,12 +2127,6 @@ ASMJIT_PATCH(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x45E573, BuildingTypeClass_NoInit_CTOR, 0x6)
-{
-	GET(BuildingTypeClass*, pItem, EAX);
-	BuildingTypeExtContainer::Instance.AllocateNoInit(pItem);
-	return 0;
-}
 ASMJIT_PATCH(0x45E707, BuildingTypeClass_DTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, ESI);
@@ -2152,31 +2145,49 @@ bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E45D4, FakeBuildingTypeClass::_ReadFromINI)
 
-HRESULT __stdcall FakeBuildingTypeClass::_Load(IStream* pStm)
+bool BuildingTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	auto hr = BuildingTypeExtContainer::Instance
-		.ReadDataFromTheByteStream(this,
-			BuildingTypeExtContainer::Instance.Mapped[this], pStm);
+	Clear();
 
-	if (SUCCEEDED(hr)) {
-		hr = this->BuildingTypeClass::Load(pStm);
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
 
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new BuildingTypeExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "BuildingTypeExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
 	}
 
-	return hr;
+	return Stm
+		.Process(BuildingTypeExtData::trenchKinds)
+		.Success()
+		;
 }
 
-HRESULT __stdcall FakeBuildingTypeClass::_Save(IStream* pStm, BOOL clearDirty)
+bool BuildingTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	auto hr = BuildingTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
+	Stm.Save(Array.size());
 
-	if (SUCCEEDED(hr)) {
-		hr = this->BuildingTypeClass::Save(pStm, clearDirty);
-
+	for (auto& item : Array) {
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
 	}
 
-	return hr;
+	return Stm
+		.Process(BuildingTypeExtData::trenchKinds)
+		.Success()
+		;
 }
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4584, FakeBuildingTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4588, FakeBuildingTypeClass::_Save)

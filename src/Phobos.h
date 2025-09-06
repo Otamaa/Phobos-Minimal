@@ -90,7 +90,7 @@ struct Phobos final
 
 	static bool DetachFromDebugger();
 	static HRESULT SaveGameDataAfter(IStream* pStm);
-	static void LoadGameDataAfter(IStream* pStm);
+	static HRESULT LoadGameDataAfter(IStream* pStm);
 	static void PassiveSaveGame();
 
 	//variables

@@ -145,6 +145,48 @@ void SuperExtData::Serialize(T& Stm) {
 SuperExtContainer SuperExtContainer::Instance;
 std::vector<SuperExtData*> Container<SuperExtData>::Array;
 
+bool SuperExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new SuperExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "SuperExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool SuperExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 // =============================
 // container hooks
 
@@ -210,5 +252,5 @@ HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)

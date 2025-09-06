@@ -108,8 +108,8 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 		{
 			pExt->Trails.emplace_back(pType, pTrails.FLHs, pTrails.Onturrents);
 			auto& pBackTrail = pExt->Trails.back();
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
+			std::copy(pTrails.OnLand.begin() , pTrails.OnLand.end() ,std::back_inserter(pBackTrail.OnLandTypes));
+			std::copy(pTrails.OnTileTypes.begin(), pTrails.OnTileTypes.end(), std::back_inserter(pBackTrail.OnTileTypes));
 		}
 	}
 }
@@ -139,8 +139,9 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted)
 		{
 			pExt->Trails.emplace_back(pType, pTrails.FLHs, false);
 			auto& pBackTrail = pExt->Trails.back();
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
+			std::copy(pTrails.OnLand.begin(), pTrails.OnLand.end(), std::back_inserter(pBackTrail.OnLandTypes));
+			std::copy(pTrails.OnTileTypes.begin(), pTrails.OnTileTypes.end(), std::back_inserter(pBackTrail.OnTileTypes));
+
 		}
 	}
 }
@@ -170,8 +171,9 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted)
 		{
 			pExt->Trails.emplace_back(pType, pTrails.FLHs, false);
 			auto& pBackTrail = pExt->Trails.back();
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
+			std::copy(pTrails.OnLand.begin(), pTrails.OnLand.end(), std::back_inserter(pBackTrail.OnLandTypes));
+			std::copy(pTrails.OnTileTypes.begin(), pTrails.OnTileTypes.end(), std::back_inserter(pBackTrail.OnTileTypes));
+
 		}
 	}
 }
@@ -199,8 +201,9 @@ void TrailsManager::Construct(ParticleClass* pOwner, bool IsConverted)
 		{
 			pExt->Trails.emplace_back(pType, pTrails.FLHs, false);
 			auto& pBackTrail = pExt->Trails.back();
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
+			std::copy(pTrails.OnLand.begin(), pTrails.OnLand.end(), std::back_inserter(pBackTrail.OnLandTypes));
+			std::copy(pTrails.OnTileTypes.begin(), pTrails.OnTileTypes.end(), std::back_inserter(pBackTrail.OnTileTypes));
+
 		}
 	}
 

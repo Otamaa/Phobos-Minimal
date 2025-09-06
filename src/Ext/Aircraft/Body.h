@@ -62,15 +62,8 @@ public:
 		Array.clear();
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return true;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return true;
-	}
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
@@ -96,6 +89,8 @@ public:
 
 	BulletClass* _FireAt(AbstractClass* target, int which);
 	int _Mission_Attack();
+
+	void _Detach(AbstractClass* target, bool all);
 
 	FORCEDINLINE AircraftExtData* _GetExtData() {
 		return *reinterpret_cast<AircraftExtData**>(((DWORD)this) + AbstractExtOffset);

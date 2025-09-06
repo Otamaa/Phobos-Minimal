@@ -73,7 +73,7 @@
 #pragma region defines
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas { };
 std::vector<unsigned char>  StaticVars::ShpCompression1Buffer { };
-std::map<const TActionClass*, int>  StaticVars::TriggerCounts { };
+PhobosMap<const TActionClass*, int>  StaticVars::TriggerCounts { };
 UniqueGamePtr<MixFileClass>  StaticVars::aresMIX { };
 std::string  StaticVars::MovieMDINI { "MOVIEMD.INI" };
 WaveColorData  StaticVars::TempColor { };

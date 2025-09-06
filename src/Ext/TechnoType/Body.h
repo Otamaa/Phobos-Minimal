@@ -888,7 +888,7 @@ public:
 	Valueable<TechnoTypeClass*> AI_ClonedAs;
 	Valueable<bool> Cloneable;
 	ValueableVector<BuildingTypeClass*> ClonedAt;
-	ValueableVector<BuildingTypeClass const*> BuiltAt;
+	ValueableVector<BuildingTypeClass*> BuiltAt;
 	Nullable<AnimTypeClass*> EMP_Sparkles;
 	Valueable<double> EMP_Modifier;
 	int EMP_Threshold;

@@ -22,6 +22,14 @@ public:
 	// this is the same as SessionClass::Instance->Config
 	static COMPILETIMEEVAL reference<GameModeOptionsClass, 0xA8B250u> const Instance{};
 
+	bool Load(IStream* pStm)
+	{ JMP_THIS(0x69B5B0); }
+
+	bool Save(IStream* pStm)
+	{ JMP_THIS(0x69B560); }
+
+public:
+
 	int MPModeIndex;
 	int ScenarioIndex;
 	bool Bases;

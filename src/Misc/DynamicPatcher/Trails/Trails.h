@@ -25,8 +25,8 @@ public:
 	bool IsOnTurret;
 	bool Visible;
 	DrivingState drivingState;
-	Iterator<LandType> OnLandTypes;
-	Iterator<TileType> OnTileTypes;
+	HelperedVector<LandType> OnLandTypes;
+	HelperedVector<TileType> OnTileTypes;
 
 	UniversalTrail(TrailType* type ,CoordStruct flh, bool onturret) :
 		Type { type }

@@ -194,10 +194,10 @@ public:
 		{ JMP_THIS(0x678850); }
 
 	HRESULT Load(IStream* pStm)
-		{ JMP_THIS(0x674730); }
+		{ JMP_THIS(0x675210); }
 
 	HRESULT Save(IStream* pStm)
-		{ JMP_THIS(0x675210); }
+		{ JMP_THIS(0x674730); }
 
 	//CTOR / DTOR
 protected:

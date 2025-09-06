@@ -218,7 +218,7 @@ public:
 				return false;
 
 			auto newPtr = FindOrAllocate(name);
-			SwizzleManagerClass::Instance->Here_I_Am((long)oldPtr, newPtr);
+			PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, PhobosCRT::GetTypeIDName<T>().c_str())
 			newPtr->LoadFromStream(Stm);
 		}
 

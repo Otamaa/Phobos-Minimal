@@ -1703,11 +1703,8 @@ ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 			return 0x700DCE;
 
 		if (auto const pTypeConvert = pTypeExt->Convert_Deploy) {
-			auto const pCell = pThis->GetCell();
-
 			if (!pCell->IsClearToMove(pTypeConvert->SpeedType, true, true, ZoneType::None, pTypeConvert->MovementZone, -1, pCell->ContainsBridge()))
 				return 0x700DCE;
-
 		}
 	}
 

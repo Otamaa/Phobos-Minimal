@@ -765,7 +765,8 @@ bool BuildingExtData::DoGrindingExtras(BuildingClass* pBuilding, TechnoClass* pT
 
 		if (pTypeExt->Grinding_Sound.isset())
 		{
-			VocClass::SafeImmedietelyPlayAt(pTypeExt->Grinding_Sound.Get(), &pTechno->GetCoords());
+			auto coord = pTechno->GetCoords();
+			VocClass::SafeImmedietelyPlayAt(pTypeExt->Grinding_Sound.Get(), &coord);
 			return true;
 		}
 	}
@@ -987,7 +988,8 @@ void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
 	}
 
 	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
-	VocClass::SafeImmedietelyPlayAt(sound, & this->GetCoords());
+	auto coord = this->GetCoords();
+	VocClass::SafeImmedietelyPlayAt(sound, &coord);
 }
 
 void FakeBuildingClass::_OnFinishRepair()
@@ -1008,7 +1010,8 @@ void FakeBuildingClass::_OnFinishRepair()
 	}
 
 	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
-	VocClass::SafeImmedietelyPlayAt(sound, & this->GetCoords());
+	auto coord = this->GetCoords();
+	VocClass::SafeImmedietelyPlayAt(sound, &coord);
 }
 
 void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
@@ -1687,6 +1690,48 @@ void BuildingExtData::Serialize(T& Stm)
 BuildingExtContainer BuildingExtContainer::Instance;
 std::vector<BuildingExtData*> Container<BuildingExtData>::Array;
 
+bool BuildingExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new BuildingExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "BuildingExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool BuildingExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 // =============================
 // container hooks
 
@@ -1747,5 +1792,5 @@ HRESULT __stdcall FakeBuildingClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)

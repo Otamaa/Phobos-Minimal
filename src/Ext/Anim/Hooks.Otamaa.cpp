@@ -556,7 +556,8 @@ void FakeAnimClass::_AI()
 		}
 
 		if (!this->IsPlaying) {
-			VocClass::SafeImmedietelyPlayAt(this->Type->Report, &this->GetCoords(), &this->Audio3);
+			auto coord = this->GetCoords();
+			VocClass::SafeImmedietelyPlayAt(this->Type->Report, &coord, &this->Audio3);
 		}
 
 		if (this->Type->IsFlamingGuy) {

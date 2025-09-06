@@ -84,8 +84,6 @@ public:
 		UIName = theater->UIName;
 	}
 
-	void LoadFromStream(PhobosStreamReader& Stm);
-	void SaveToStream(PhobosStreamWriter& Stm);
 	void LoadFromINI(CCINIClass* pINI);
 
 	static void AddDefaults();
@@ -103,13 +101,18 @@ public:
 		Array.emplace_back(std::move(std::make_unique<TheaterTypeClass>(Title, &theater , IsArtic , AllowMapGen , islunar)));
 	}
 
-	// no !
-	static OPTIONALINLINE void Clear() {}
+	void LoadFromStream(PhobosStreamReader& Stm) {
+		this->Serialize(Stm);
+	}
+
+	void SaveToStream(PhobosStreamWriter& Stm) {
+		this->Serialize(Stm);
+	}
 
 private:
 
 	template<typename T>
-	void Swizzle(T& Stm)
+	void Serialize(T& Stm)
 	{
 		Stm
 			.Process(UIName)

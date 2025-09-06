@@ -31,7 +31,7 @@ void QuickSaveCommandClass::Execute(WWKey eInput) const
 
 	if (SessionClass::IsSingleplayer())
 	{
-		*reinterpret_cast<bool*>(0xABCE08) = false;
+		ScenarioClass::ScenarioSaved = false;
 		Phobos::ShouldQuickSave = true;
 
 		if (SessionClass::IsCampaign())

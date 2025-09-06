@@ -9,8 +9,22 @@
 #include <Utilities/Debug.h>
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include <Interface/ISwizzle.h>
+
+class ExtensionSwizzleManager
+{
+	static std::unordered_map<uintptr_t, uintptr_t> extensionPointerMap;
+
+public:
+	static void RegisterExtensionPointer(void* savedAddress, void* currentExtension);
+
+	static bool SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj);
+
+	// Clean up orphaned extensions
+	static void CleanupUnmappedExtensions();
+};
 
 class PhobosSwizzleManagerClass : public ISwizzle
 {

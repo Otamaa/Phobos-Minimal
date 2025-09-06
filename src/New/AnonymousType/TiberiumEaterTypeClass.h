@@ -18,7 +18,7 @@ public:
 	std::vector<NullableVector<AnimTypeClass*>> Anims_Tiberiums {};
 	Valueable<bool> AnimMove { true };
 
-	TiberiumEaterTypeClass() = default;
+public:
 
 	void LoadFromINI(CCINIClass* pINI, const char* pSection);
 	bool Load(PhobosStreamReader& stm, bool registerForChange);

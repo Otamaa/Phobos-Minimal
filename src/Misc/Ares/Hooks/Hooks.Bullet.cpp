@@ -188,7 +188,8 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 		if (!createdAnim && pWarheadExt->IsNukeWarhead.Get()) {
 			int HouseIdx = pThis->Owner ? pThis->Owner->Owner->ArrayIndex : -1;
 			auto _loc = pThis->GetCoords();
-			MapClass::AtomDamage(HouseIdx, CellClass::Coord2Cell(_loc));
+			auto _loc_result = CellClass::Coord2Cell(_loc);
+			MapClass::AtomDamage(HouseIdx, _loc_result);
 		}
 	}
 
@@ -213,8 +214,9 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 			auto pExt = pThis->_GetExtData();
 			HouseClass* const pOwner = pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner ? pExt->Owner : HouseExtData::FindFirstCivilianHouse());
 			HouseClass* const pVictim = (pThis->Target) ? pThis->Target->GetOwningHouse() : nullptr;
+			auto spawn_coords = pThis->GetCoords();
 			DebrisSpawners::Spawn(pWarhead->MinDebris, pWarhead->MaxDebris,
-				pThis->GetCoords(), pWarhead->DebrisTypes,
+				spawn_coords, pWarhead->DebrisTypes,
 				pWHExt->DebrisAnimTypes.GetElements(RulesClass::Instance->MetallicDebris)
 				, pWarhead->DebrisMaximums, pWHExt->DebrisMinimums, limited, pThis->Owner, pOwner, pVictim);
 		}

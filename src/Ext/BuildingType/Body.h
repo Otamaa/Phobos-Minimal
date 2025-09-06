@@ -522,35 +522,12 @@ class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
 {
 public:
 	static BuildingTypeExtContainer Instance;
-	static std::map<TechnoTypeClass*, BuildingTypeExtData*> Mapped;
 
-	BuildingTypeExtData* AllocateNoInit(BuildingTypeExtData::base_type* key)
-	{
-		auto pExt = new BuildingTypeExtData(key, noinit_t());
-		Mapped[key] = pExt;
-
-		return pExt;
-	}
-
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return Stm
-			.Process(BuildingTypeExtData::trenchKinds)
-			.Success()
-			;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return Stm
-			.Process(BuildingTypeExtData::trenchKinds)
-			.Success()
-			;
-	}
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void Clear()
 	{
-		Mapped.clear();
 		Array.clear();
 		BuildingTypeExtData::trenchKinds.clear();
 	}
@@ -563,38 +540,6 @@ public:
 		}
 	}
 
-	virtual HRESULT ReadDataFromTheByteStream(base_type_ptr key, extension_type_ptr pExt, IStream* pStm)
-	{
-		if (!pExt)
-		{
-			Debug::Log("SaveKey - Could not find value.\n");
-			return E_POINTER;
-		}
-
-		PhobosByteStream loader(0);
-		if (!loader.ReadBlockFromStream(pStm))
-		{
-			Debug::Log("LoadKey - Failed to read data from save stream?!\n");
-			return E_FAIL;
-		}
-
-		PhobosStreamReader reader(loader);
-
-		if (reader.Expect(extension_type::Marker))
-		{
-			pExt->LoadFromStream(reader);
-
-			if (reader.ExpectEndOfBlock())
-			{
-				auto old = (LONG)key->unknown_18;
-				SwizzleManagerClass::Instance->Here_I_Am(old, pExt);
-				key->unknown_18 = (LONG)pExt;
-				return S_OK;
-			}
-		}
-
-		return E_FAIL;
-	}
 };
 
 class NOVTABLE FakeBuildingTypeClass : public BuildingTypeClass

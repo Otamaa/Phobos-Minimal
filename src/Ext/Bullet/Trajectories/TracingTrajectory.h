@@ -26,6 +26,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
+	virtual const char* Name() { return "TracingTrajectoryType"; }
 
 	Valueable<TraceTargetMode> TraceMode { TraceTargetMode::Connection };
 	Valueable<int> TheDuration { 0 };
@@ -75,6 +76,7 @@ public:
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+	virtual const char* Name() { return "TracingTrajectory"; }
 
 	int WeaponIndex {};
 	int WeaponCount {};

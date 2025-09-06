@@ -40,6 +40,48 @@ void OverlayTypeExtData::Serialize(T& Stm)
 OverlayTypeExtContainer OverlayTypeExtContainer::Instance;
 std::vector<OverlayTypeExtData*> Container< OverlayTypeExtData>::Array;
 
+bool OverlayTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i)
+	{
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new OverlayTypeExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "OverlayTypeExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool OverlayTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array)
+	{
+		// write old pointer and name, then delegate
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 // =============================
 // container hooks
 
@@ -93,5 +135,5 @@ HRESULT __stdcall FakeOverlayTypeClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF614, FakeOverlayTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF618, FakeOverlayTypeClass::_Save)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF614, FakeOverlayTypeClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF618, FakeOverlayTypeClass::_Save)

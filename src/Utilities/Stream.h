@@ -251,10 +251,6 @@ public:
 					return *this;
 				}
 
-				if ((int)size == -1) {
-					return *this;
-				}
-
 				std::vector<char> buffer(size);
 				if (this->Read(reinterpret_cast<BYTE*>(buffer.data()), size))
 				{

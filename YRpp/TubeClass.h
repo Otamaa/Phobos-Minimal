@@ -7,7 +7,7 @@ class DECLSPEC_UUID("0B4CA41C-B3A7-11D1-B457-006097C6A979")
 	NOVTABLE TubeClass : public AbstractClass
 {
 public:
-	static COMPILETIMEEVAL reference<DynamicVectorClass<TubeClass*>, 0x8B4138u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TubeClass*>, 0x8B4138u> const Array{};
 	static const AbstractType AbsID = AbstractType::Tube;
 
 	void Read_INI(CCINIClass& ini) JMP_THIS(0x7283C0);

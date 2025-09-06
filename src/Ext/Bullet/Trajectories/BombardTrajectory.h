@@ -66,6 +66,8 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
+
+	virtual const char* Name() { return "BombardTrajectoryType"; }
 };
 
 class BombardTrajectory final : public PhobosTrajectory
@@ -125,6 +127,8 @@ public:
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+
+	virtual const char* Name() { return "BombardTrajectory"; }
 
 	void PrepareForOpenFire();
 	CoordStruct CalculateMiddleCoords();

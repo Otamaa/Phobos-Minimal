@@ -4,7 +4,7 @@
 #include "Debug.h"
 
 #include <CCINIClass.h>
-#include <SwizzleManagerClass.h>
+#include <Utilities/Swizzle.h>
 
 #include <vector>
 #include <stack>
@@ -98,7 +98,7 @@ bool PhobosPCXFile::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 			Debug::LogInfo("PCX file[{}] not found.", this->filename.data());
 		}
 
-		SwizzleManagerClass::Instance().Here_I_Am((long)oldPtr, this->Surface);
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr,  this->Surface, "BSurface")
 	}
 
 	return true;

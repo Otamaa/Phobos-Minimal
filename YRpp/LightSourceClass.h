@@ -16,7 +16,7 @@ public:
 	static const AbstractType AbsID = AbstractType::LightSource;
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7ED028;
 
-	static COMPILETIMEEVAL reference<DynamicVectorClass<LightSourceClass*>, 0xABCA10u> const Array {};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<LightSourceClass*>, 0xABCA10u> const Array {};
 	static COMPILETIMEEVAL reference<DynamicVectorClass<PendingCellClass*>, 0xABCA40u> const Unknown_0xABCA40 {};
 	//IPersist
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override JMP_STD(0x555080);
