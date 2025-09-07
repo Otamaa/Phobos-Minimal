@@ -175,33 +175,12 @@ bool PaletteManager::LoadFromCachedName()
 
 void PaletteManager::LoadFromStream(PhobosStreamReader& Stm)
 {
-	this->Clear_Internal();
-	this->CachedName =
-		GeneralUtils::ApplyTheaterSuffixToString((const char*)this->Name.data()).c_str();
-
-	bool hasPalette = false;
-	uintptr_t was = 0u;
-
-	if (!Stm.Load(hasPalette) || !Stm.Load(was))
-		return;
-
-	if (hasPalette) {
-		this->Palette = GameCreate<BytePalette>();
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)was, this->Palette, "BytePalette")
-		if (!Stm.Load(*this->Palette))
-			return;
-
-		this->CreateConvert();
-	}
+	static_assert("Not implemented!");
 }
 
 void PaletteManager::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Stm.Save(this->Palette != nullptr);
-	Stm.Save((uintptr_t)this->Palette);
-	if (this->Palette) {
-		Stm.Save(*this->Palette);
-	}
+	static_assert("Not implemented!");
 }
 
 bool CustomPalette::Allocate(std::string name)
@@ -269,31 +248,40 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	this->Clear();
 
 	bool hasPalette = false;
-	auto ret = Stm.Load(this->Mode) && Stm.Process(this->Name) && Stm.Load(hasPalette);
+	if (!Stm.Load(hasPalette))
+		return false;
 
-	if (ret && hasPalette)
-	{
+	if (!Stm.Load(this->Mode))
+		return false;
+
+	if (hasPalette) {
+		if (!Stm.Process(this->Name, RegisterForChange))
+			return false;
+
 		this->Palette.reset(GameCreate<BytePalette>());
-		ret = Stm.Load(*this->Palette);
 
-		if (ret)
-		{
-			this->CreateConvert();
+		if (!Stm.Load(*this->Palette)) {
+			return false;
 		}
+
+		this->CreateConvert();
 	}
 
-	return ret;
+	return true;
 }
 
 bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 {
+	const bool hasPalette = this->Palette != nullptr;
+
+	Stm.Save(hasPalette);
 	Stm.Save(this->Mode);
-	Stm.Process(this->Name);
-	Stm.Save(this->Palette != nullptr);
-	if (this->Palette)
-	{
+
+	if(hasPalette){
+		Stm.Process(this->Name);
 		Stm.Save(*this->Palette);
 	}
+
 	return true;
 }
 

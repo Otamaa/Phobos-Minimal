@@ -9,7 +9,7 @@ bool PhobosByteStream::ReadFromStream(IStream* pStm, const size_t Length)
 {
 	auto size = this->Data.size();
 	this->Data.resize(size + Length);
-	auto pv = reinterpret_cast<void*>(this->Data.data());
+	auto pv = reinterpret_cast<void*>(this->Data.data() + size);
 
 	ULONG out = 0;
 	auto success = pStm->Read(pv, Length, &out);
@@ -34,17 +34,14 @@ bool PhobosByteStream::WriteToStream(IStream* pStm) const
 
 bool PhobosByteStream::Read(data_t* Value, size_t Size)
 {
-	bool ret = false;
-
-	if (this->Data.size() >= this->CurrentOffset + Size)
-	{
-		auto Position = &this->Data[this->CurrentOffset];
-		std::memcpy(Value, Position, Size);
-		ret = true;
+	if (this->Data.size() < this->CurrentOffset + Size) {
+		return false;
 	}
 
+	auto Position = &this->Data[this->CurrentOffset];
+	std::memcpy(Value, Position, Size);
 	this->CurrentOffset += Size;
-	return ret;
+	return true;
 }
 
 void PhobosByteStream::Write(const data_t* Value, size_t Size)

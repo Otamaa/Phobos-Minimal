@@ -2571,7 +2571,6 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->Text_Active)
 #pragma endregion
 
-		.Process(This()->ImpatientVoice)
 		.Process(this->EVA_InsufficientFunds)
 		.Process(this->EVA_InsufficientBattlePoints)
 		.Process(this->EVA_SelectTarget)
