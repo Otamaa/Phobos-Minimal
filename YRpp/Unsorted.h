@@ -205,9 +205,27 @@ struct Game
 	static HRESULT __fastcall Save_Misc_Values(LPSTREAM a1) {
 		JMP_FAST(0x67F7E0);
 	}
+
 	static HRESULT __fastcall Load_Misc_Values(LPSTREAM a1) {
 		JMP_FAST(0x67F9C0);
 	}
+
+	static void __fastcall UnlockImput() {
+		JMP_FAST(0x684290);
+	}
+
+	static void __fastcall UIStuffs_MenuStuffs() {
+		JMP_FAST(0x72DDB0);
+	}
+
+	static void __fastcall PlayMovie(int id, int theme, bool clrscreen_aft, bool stretch, bool clrscreen_before) {
+		JMP_FAST(0x5BF260);
+	}
+
+	static void __fastcall Reset_SomeShapes_Post_Movie() {
+		JMP_FAST(0x72DEF0);
+	}
+
 #ifdef deprecated
 
 	// the game's own rounding function

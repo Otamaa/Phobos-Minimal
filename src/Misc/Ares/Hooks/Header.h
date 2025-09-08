@@ -408,13 +408,16 @@ private:
 	int CornerSize;
 };
 
-struct HashData
+struct ConfigurationHashData
 {
-	DWORD Rules { 0 };
-	DWORD Art { 0 };
-	DWORD AI { 0 };
+	struct Result
+	{
+		DWORD Rules { 0 };
+		DWORD Art { 0 };
+		DWORD AI { 0 };
+	};
 
-	static HashData GetINIChecksums();
+	static Result GetINIChecksums();
 };
 
 struct OwnFunc

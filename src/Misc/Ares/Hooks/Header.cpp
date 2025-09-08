@@ -187,9 +187,9 @@ static COMPILETIMEEVAL std::array<std::pair<const char*, const char*>, 17u> cons
  } };
 
 
-HashData HashData::GetINIChecksums()
+ConfigurationHashData::Result ConfigurationHashData::GetINIChecksums()
 {
-	HashData nBuffer;
+	Result nBuffer;
 	if (SessionClass::Instance->GameMode != GameMode::LAN)
 	{
 		nBuffer = { CCINIClass::RulesHash() , CCINIClass::ArtHash() ,  CCINIClass::AIHash() };

@@ -36,7 +36,7 @@ ASMJIT_PATCH(0x534f89, Game_ReloadNeutralMIX_NewLine, 5)
 ASMJIT_PATCH(0x52E9AA, Frontend_WndProc_Checksum, 5)
 {
 	if (SessionClass::Instance->GameMode == GameMode::LAN || SessionClass::Instance->GameMode == GameMode::Internet) {
-		auto nHashes = HashData::GetINIChecksums();
+		auto nHashes = ConfigurationHashData::GetINIChecksums();
 		Debug::LogInfo("Checksums : \n Rules {} \n Art {} \n AI {}",
 			(unsigned)nHashes.Rules,
 			(unsigned)nHashes.Art,

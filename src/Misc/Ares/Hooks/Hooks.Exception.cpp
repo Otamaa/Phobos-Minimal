@@ -1301,7 +1301,7 @@ public:
 				write_to_file(LogFile, "Player Name: {}\n", HouseClass::CurrentPlayer->PlainName);
 			}
 
-			const auto nHashes = HashData::GetINIChecksums();
+			const auto nHashes = ConfigurationHashData::GetINIChecksums();
 
 			write_to_file(LogFile, "Rules checksum: {:08X}\n", nHashes.Rules);
 			write_to_file(LogFile, "Art checksum: {:08X}\n", nHashes.Art);

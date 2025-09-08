@@ -52,7 +52,7 @@ bool UnitTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 	Stm.Save(Array.size());
 
 	for (auto& item : Array) {
-		// write old pointer and name, then delegate
+		
 		Stm.Save(item);
 		item->SaveToStream(Stm);
 	}

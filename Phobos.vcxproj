@@ -162,6 +162,7 @@
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.GlobalLoadGame.cpp" />
     <ClCompile Include="src\Misc\Hooks.GlobalSaveGame.cpp" />
+    <ClCompile Include="src\Misc\Hooks.LoadOptionClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\YRPatches\Main.cpp" />
@@ -603,6 +604,7 @@
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
+    <ClCompile Include="src\PhobosSaveVersionInfo.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
     <ClCompile Include="src\Utilities\Container.cpp" />
@@ -763,6 +765,7 @@
     <ClInclude Include="src\Lib\Zydis\Status.h" />
     <ClInclude Include="src\Lib\Zydis\Utils.h" />
     <ClInclude Include="src\Lib\Zydis\Zydis.h" />
+    <ClInclude Include="src\Misc\Spawner\SavedGamesInSubdir.h" />
     <ClInclude Include="src\New\AnonymousType\BlockTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\TiberiumEaterTypeClass.h" />
@@ -1086,6 +1089,7 @@
     <ClInclude Include="src\New\Type\TheaterTypeClass.h" />
     <ClInclude Include="src\Phobos.Ext.h" />
     <ClInclude Include="src\Phobos.UI.h" />
+    <ClInclude Include="src\PhobosSaveVersionInfo.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
@@ -1131,6 +1135,7 @@
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
     <ClInclude Include="src\Utilities\Stream.h" />
+    <ClInclude Include="src\Utilities\StreamUtils.h" />
     <ClInclude Include="src\Utilities\Swizzle.h" />
     <ClInclude Include="src\Phobos.CRT.h" />
     <ClInclude Include="src\Phobos.version.h" />
@@ -1162,6 +1167,7 @@
     <ClInclude Include="src\Utilities\VectorSet.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
+    <ClInclude Include="YRpp\IndexBitfield.h" />
     <ClInclude Include="YRpp\INIComment.h" />
     <ClInclude Include="YRpp\INIEntry.h" />
     <ClInclude Include="YRpp\INISection.h" />
@@ -1205,6 +1211,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <WholeProgramOptimization>false</WholeProgramOptimization>
+    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugBuild|Win32'" Label="Configuration">
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1294,7 +1301,7 @@
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

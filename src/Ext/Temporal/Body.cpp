@@ -49,9 +49,7 @@ bool TemporalExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	Stm.Save(Array.size());
 
-	for (auto& item : Array)
-	{
-		// write old pointer and name, then delegate
+	for (auto& item : Array) {
 		Stm.Save(item);
 		item->SaveToStream(Stm);
 	}

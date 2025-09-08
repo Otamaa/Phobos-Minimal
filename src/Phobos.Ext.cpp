@@ -376,7 +376,7 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 
 unsigned Phobos::GetVersionNumber() {
-	unsigned version = AresGlobalData::InternalVersion;
+	unsigned version = AresGlobalData::InternalVersion + PHOBOSSAVEGAME_ID;
 
 	version += sizeof(AnimExtData);
 	version += sizeof(AnimTypeExtData);
@@ -501,7 +501,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	SWTypeExtContainer::Clear();
 	SidebarExtData::Clear();
 	ShieldTypeClass::Clear();
-	//TacticalExt::Clear();
+	TacticalExtData::Clear();
 	TrailType::Clear();
 	HoverTypeClass::Clear();
 	LaserTrailTypeClass::Clear();

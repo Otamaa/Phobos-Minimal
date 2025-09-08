@@ -13,7 +13,8 @@
 _COM_SMARTPTR_TYPEDEF(IStream, __uuidof(IStream));
 _COM_SMARTPTR_TYPEDEF(ILinkStream, __uuidof(ILinkStream));
 
-class CStreamClass : public IStream, public ILinkStream
+class DECLSPEC_UUID("B48FA168-646F-11D2-9B74-00104B972FE8")
+NOVTABLE CStreamClass : public IStream, public ILinkStream
 {
 public:
 	/**

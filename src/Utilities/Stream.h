@@ -29,67 +29,55 @@ namespace Savegame
 
 class PhobosByteStream
 {
-public:
+public :
 	using data_t = unsigned char;
+private:
+	std::vector<data_t> data;
+	size_t position;
 
-protected:
-	std::vector<data_t> Data;
-	size_t CurrentOffset;
+	// Markers for identification and validation
+	static constexpr const char* START_MARKER = "PHOBOS_DATA_START";
+	static constexpr const char* END_MARKER = "PHOBOS_DATA_END";
+	static constexpr size_t START_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_START");
+	static constexpr size_t END_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_END");
 
 public:
-
-	COMPILETIMEEVAL PhobosByteStream(size_t Reserve = 0x1000) : Data(), CurrentOffset(0) {
-		this->Data.reserve(Reserve);
+	PhobosByteStream() : data() , position(0) {}
+	PhobosByteStream(size_t initialSize) : data() , position(0) {
+		data.reserve(initialSize);
 	}
 
-	COMPILETIMEEVAL ~PhobosByteStream() = default;
+	~PhobosByteStream() = default;
 
-	COMPILETIMEEVAL size_t Size() const
+	bool Write(const void* buffer, size_t size);
+	bool Read(void* buffer, size_t size);
+
+	bool WriteToStream(LPSTREAM stream) const;
+	bool ReadFromStream(LPSTREAM stream);
+
+	FORCEDINLINE bool WriteBlockToStream(LPSTREAM stream) const {
+		return WriteToStream(stream);
+	}
+
+	FORCEDINLINE bool ReadBlockFromStream(LPSTREAM stream) {
+		return ReadFromStream(stream);
+	}
+
+	COMPILETIMEEVAL size_t GetStreamSize() const
 	{
-		return this->Data.size();
+		return START_MARKER_LEN +     // Start marker
+			sizeof(DWORD) +            // Data size
+			data.size() +              // Actual data
+			END_MARKER_LEN;        // End marker
 	}
 
-	COMPILETIMEEVAL size_t Offset() const
-	{
-		return this->CurrentOffset;
-	}
+	// Existing interface methods - unchanged
+	COMPILETIMEEVAL size_t Size() const { return data.size(); }
+	COMPILETIMEEVAL size_t Offset() const { return position; }
+	COMPILETIMEEVAL void Reset() { data.clear(); position = 0; }
 
-	/**
-	* reads {Length} bytes from {pStm} into its storage
-	*/
-	bool ReadFromStream(IStream* pStm, const size_t Length);
-
-	/**
-	* writes all internal storage to {pStm}
-	*/
-	bool WriteToStream(IStream* pStm) const;
-
-	/**
-	* reads the next block of bytes from {pStm} into its storage,
-	* the block size is prepended to the block
-	*/
-	size_t ReadBlockFromStream(IStream* pStm);
-
-	/**
-	* writes all internal storage to {pStm}, prefixed with its length
-	*/
-	bool WriteBlockToStream(IStream* pStm) const;
-
-
-	// primitive save/load - should not be specialized
-
-	/**
-	* if it has {Size} bytes left, assigns the first {Size} unread bytes to {Value}
-	* moves the internal position forward
-	*/
-	bool Read(data_t* Value, size_t Size);
-
-	/**
-	* ensures there are at least {Size} bytes left in the internal storage, and assigns {Value} casted to byte to that buffer
-	* moves the internal position forward
-	*/
-	bool Write(const data_t* Value, size_t Size);
-
+	// Debug: dump markers and size info
+	void LogStreamInfo() const;
 
 	/**
 	* attempts to read the data from internal storage into {Value}

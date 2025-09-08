@@ -163,40 +163,7 @@ FORCEDINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, st
 	}
 }
 
-
-class NOVTABLE StaticLoadOptionsClass {
-public:
-	// constructor
-	StaticLoadOptionsClass() {
-		JMP_THIS(0x558740);
-	}
-
-	// virtuals
-	virtual ~StaticLoadOptionsClass() {
-		JMP_THIS(0x55A0D0);
-	}
-
-	static bool LoadMission(const char* pFilename) {
-		JMP_THIS(0x559D60);
-	}
-
-	//Properties
-	LoadOptionsMode Mode;
-	const char* Extension; //"SAV", "SED" for MapSeedClass
-	const wchar_t* Description;
-	unsigned int SpaceRequirement; //default is 0x800 = 2048
-	DWORD unknown_14;
-	DWORD unknown_18;
-	DWORD unknown_1C;
-	DECLARE_PROPERTY(DynamicVectorClass<FileEntryClass*>, FileEntries);
-};
-
-#ifdef IS_ANTICHEAT_VER
-#define SPAWNER_PRODUCT_NAME "YR-Spawner (AntiCheat)"
-#else
 #define SPAWNER_PRODUCT_NAME "YR-Spawner"
-#endif
-
 #define SPAWNER_FILE_DESCRIPTION "CnCNet5: Spawner"
 
 void SpawnerMain::CmdLineParse(char* pArg)
@@ -1102,7 +1069,7 @@ bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
 	// for some reason beacons are only inited on scenario init, which doesn't happen on load
 	//BeaconManagerClass::Instance->LoadArt();
 
-	if (!saveGameName[0] || !StaticLoadOptionsClass::LoadMission(saveGameName))
+	if (!saveGameName[0] || !LoadOptionsClass::DoLoadMission(saveGameName))
 	{
 		Debug::LogInfo("[Spawner] Failed Load Game [{}]", saveGameName);
 

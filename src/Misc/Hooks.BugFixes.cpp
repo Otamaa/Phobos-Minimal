@@ -2895,3 +2895,34 @@ DEFINE_HOOK(0x6B72FE, SpawnerManagerClass_AI_MissileCheck, 0x9)
 		|| (!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && pLocoInterface->Is_Moving())) // Jumpjet should only check Is_Moving_Now.
 		? NoSpawn : SpawnMissile;
 }
+
+
+#pragma region FixPlanningNodeConnect
+
+#include <PlanningTokenClass.h>
+
+void NAKED _PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET_0x638F81() {
+	POP_REG(edi);
+	POP_REG(ebp);
+	POP_REG(ebx);
+	JMP(0x638F81);
+}
+
+void NAKED _PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET_CHECK_VALIDITY() {
+	POP_REG(edi);
+	POP_REG(ebp);
+	POP_REG(ebx);
+	JMP(0x638F2A);
+}
+
+ASMJIT_PATCH(0x638F1E, PlanningNodeClass_UpdateHoverNode_FixCheckValidity, 0x5) {
+
+	GET(PlanningNodeClass*, iter, ESI);
+
+	//original check
+	return PlanningNodeClass::PlanningModeActive() || iter != PlanningNodeClass::LastPlanning() ?
+		(DWORD)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET_CHECK_VALIDITY :
+		(DWORD)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET_0x638F81;
+}
+
+#pragma endregion

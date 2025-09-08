@@ -1779,21 +1779,6 @@ bool TActionExtData::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, 
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/Side/Body.h>
 
-static void __fastcall UnlockImput() {
-	JMP_FAST(0x684290);
-}
-
-static void __fastcall UIStuffs_MenuStuffs(){
-	JMP_FAST(0x72DDB0);
-}
-
-static void __fastcall PlayMovie(int id, int theme, bool clrscreen_aft, bool stretch, bool clrscreen_before) {
-	JMP_FAST(0x5BF260);
-}
-
-static void __fastcall Reset_SomeShapes_Post_Movie() {
-	JMP_FAST(0x72DEF0);
-}
 
 static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret)
 {
@@ -1907,13 +1892,13 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 	case TriggerAction::PlayMovie:
 	{
-		UIStuffs_MenuStuffs();
+		Game::UIStuffs_MenuStuffs();
 		WWMouseClass::Instance->ReleaseMouse();
 		ScenarioClass::ToggleDisplayMode(0);
-		PlayMovie(pThis->Value, -1, 1, 1, 1);
+		Game::PlayMovie(pThis->Value, -1, 1, 1, 1);
 		ScenarioClass::ToggleDisplayMode(1);
 		WWMouseClass::Instance->CaptureMouse();
-		Reset_SomeShapes_Post_Movie();
+		Game::Reset_SomeShapes_Post_Movie();
 		return true;
 	}
 	case TriggerAction::Lose:
@@ -1932,7 +1917,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 	case TriggerAction::UnlockInput:
 	{
-		UnlockImput();
+		Game::UnlockImput();
 		return true;
 	}
 	case TriggerAction::PlaySpeech:

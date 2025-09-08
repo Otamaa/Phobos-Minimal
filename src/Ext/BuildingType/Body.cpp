@@ -2461,7 +2461,7 @@ bool BuildingTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
 		newPtr->LoadFromStream(Stm);
 
-		Debug::Log("Reading (%s)BuildingTypeExtData[%d] %x \n", newPtr->GetAttachedObjectName(), i, (uintptr_t)oldPtr);
+		//Debug::Log("Reading (%s)BuildingTypeExtData[%d] %x \n", newPtr->GetAttachedObjectName(), i, (uintptr_t)oldPtr);
 
 		Array.push_back(newPtr);
 	}
@@ -2478,7 +2478,7 @@ bool BuildingTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 
 	for (size_t i = 0; i < Array.size(); ++i) {
 		Stm.Save((uintptr_t)Array[i]);
-		Debug::Log("Writing (%s)BuildingTypeExtData[%d] %x \n", Array[i]->GetAttachedObjectName() , i,(uintptr_t)Array[i]);
+		//Debug::Log("Writing (%s)BuildingTypeExtData[%d] %x \n", Array[i]->GetAttachedObjectName() , i,(uintptr_t)Array[i]);
 		Array[i]->SaveToStream(Stm);
 	}
 

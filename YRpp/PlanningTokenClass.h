@@ -25,6 +25,7 @@ public:
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<PlanningNodeClass*>, 0xAC4C18u> const Unknown2 {};
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<PlanningNodeClass*>, 0xAC4C98u> const Unknown3 {};
 	static COMPILETIMEEVAL reference<bool, 0xAC4CF4u> const PlanningModeActive {};
+	static COMPILETIMEEVAL reference <PlanningNodeClass* , 0xAC4CCC> const LastPlanning {};
 
 	~PlanningNodeClass() { JMP_THIS(0x633D30); }
  	PlanningNodeClass(int nDword18) { JMP_THIS(0x633CC0);}

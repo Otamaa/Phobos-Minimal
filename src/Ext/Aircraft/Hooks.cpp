@@ -58,7 +58,7 @@ ASMJIT_PATCH(0x4180F4, AircraftClass_MI_Attack_WeaponRange, 0x5)
 
 	GET(AircraftClass*, pThis, ESI);
 
-	R->EAX(pThis->GetWeapon(TechnoExtContainer::Instance.Find(pThis)->CurrentAircraftWeaponIndex)->WeaponType);
+	R->EAX(pThis->GetWeapon(TechnoExtContainer::Instance.Find(pThis)->CurrentAircraftWeaponIndex));
 	return SkipGameCode;
 }
 

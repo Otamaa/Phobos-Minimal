@@ -230,7 +230,7 @@ public:
 		Stm.Save(Array.size());
 
 		for (auto& item : Array) {
-			// write old pointer and name, then delegate
+			
 			Stm.Save(item.get());
 			Stm.Save(item->Name);
 			item->SaveToStream(Stm);
