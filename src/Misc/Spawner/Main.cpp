@@ -28,7 +28,7 @@
 bool GameSpeedSlider::IsEnabled()
 {
 	auto cfg = &SpawnerMain::GameConfigs::m_Ptr;
-	return SpawnerMain::Configs::Enabled && !cfg->DisableGameSpeed;
+	return SpawnerMain::Configs::Enabled && cfg->DisableGameSpeed;
 }
 
 bool GameSpeedSlider::IsDisabled() {
@@ -1424,18 +1424,14 @@ ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
 
 	if (GameSpeedSlider::IsDisabled() && !isSkirmishObserver)
 	{
-		GET(void*, fnGetCtrlById, EDI);
-		GET(void*, fnShowWindow, EBP);
-		GET(void*, hDlg, ESI);
-
 		using GetCtrlById_t = void* (__stdcall*)(void* hDlg, int id);
 		using ShowWindow_t = void(__stdcall*)(void* hWnd, int nCmdShow);
 
-		auto getCtrl = reinterpret_cast<GetCtrlById_t>(fnGetCtrlById);
-		auto showWnd = reinterpret_cast<ShowWindow_t>(fnShowWindow);
+		GET(GetCtrlById_t, getCtrl, EDI);
+		GET(ShowWindow_t, showWnd, EBP);
+		GET(void*, hDlg, ESI);
 
-		if (getCtrl && showWnd)
-		{
+		if (getCtrl && showWnd) {
 			if (auto ctrl = getCtrl(hDlg, 0x529)) { showWnd(ctrl, 0); }
 			if (auto ctrl = getCtrl(hDlg, 0x714)) { showWnd(ctrl, 0); }
 			if (auto ctrl = getCtrl(hDlg, 0x671)) { showWnd(ctrl, 0); }

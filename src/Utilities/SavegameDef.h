@@ -855,32 +855,133 @@ namespace Savegame
 		bool ReadFromStream(PhobosStreamReader& Stm, std::string& Value, bool RegisterForChange) const
 		{
 			Value.clear();
+
+			// Get underlying stream and check integrity
+			//auto* stream = Stm.Getstream();
+			//size_t streamOffset = stream->Offset();
+			//GameDebugLog::Log("[std::string] READ start at offset %zu\n", streamOffset);
+
 			size_t size = 0;
-
-			if (Stm.Load(size)) {
-
-				if (!size) {
-					return true;
-				}
-
-				std::vector<char> buffer(size);
-				if (Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer.data()), size * sizeof(char))) {
-					Value.assign(buffer.begin(), buffer.end());
-					return true;
-				}
+			if (!Stm.Load(size))
+			{
+				//GameDebugLog::Log("[std::string] CRITICAL: Failed to load size at offset %zu\n", streamOffset);
+				return false;
 			}
 
-			return false;
+			//size_t afterSizeOffset = stream->Offset();
+			//GameDebugLog::Log("[std::string] Loaded size=%zu, offset %zu->%zu (+%zu bytes)\n",
+			//	size, streamOffset, afterSizeOffset, afterSizeOffset - streamOffset);
+
+			// Sanity checks for corruption
+			if (size > 10000)
+			{
+				GameDebugLog::Log("[std::string] CRITICAL: size %zu seems too large! Possible corruption\n", size);
+				__debugbreak();
+				return false;
+			}
+
+			if ((int)size == -1)
+			{
+				GameDebugLog::Log("[std::string] CRITICAL: size is -1! Stream corruption detected\n");
+				__debugbreak();
+				return false;
+			}
+
+			if (!size)
+			{
+				//GameDebugLog::Log("[std::string] Empty string loaded successfully\n");
+				return true;
+			}
+
+			std::vector<char> buffer(size);
+			if (!Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer.data()), size))
+			{
+				GameDebugLog::Log("[std::string] CRITICAL: Failed to read %zu bytes of string data\n", size);
+				return false;
+			}
+
+			Value.assign(buffer.begin(), buffer.end());
+			//GameDebugLog::Log("[std::string] Successfully loaded: '%s' (length %zu)\n",
+			//	Value.c_str(), Value.length());
+
+			return true;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::string& Value) const
 		{
-			Stm.Save(Value.size());
+			// Get underlying stream
+			//auto* stream = Stm.Getstream();
+
+			//size_t streamSizeBefore = stream->Size();
+			//GameDebugLog::Log("[std::string] WRITE start at size %zu, string='%s' (length %zu)\n",
+			//	streamSizeBefore, Value.c_str(), Value.size());
+
+			// Store size in local variable to prevent optimization issues
+			size_t stringSize = Value.size();
+
+			//GameDebugLog::Log("[std::string] About to save size %zu\n", stringSize);
+
+			// Write size with validation
+			if (!Stm.Save(stringSize))
+			{
+				//GameDebugLog::Log("[std::string] CRITICAL: Failed to save size %zu\n", stringSize);
+				return false;
+			}
+
+			//size_t afterSizeWrite = stream->Size();
+			//size_t sizeBytes = afterSizeWrite - streamSizeBefore;
+			//GameDebugLog::Log("[std::string] Wrote size=%zu, stream %zu->%zu (+%zu bytes)\n",
+			//	stringSize, streamSizeBefore, afterSizeWrite, sizeBytes);
+
+			// Validate size was written correctly
+			//if (sizeBytes != sizeof(size_t))
+			//{
+			//	GameDebugLog::Log("[std::string] ERROR: Expected %zu bytes for size_t, but wrote %zu bytes\n",
+			//		sizeof(size_t), sizeBytes);
+			//	__debugbreak();
+			//	return false;
+			//}
 
 			if (Value.empty())
+			{
+				//GameDebugLog::Log("[std::string] Empty string, not writing data\n");
+				//size_t totalBytes = afterSizeWrite - streamSizeBefore;
+				//GameDebugLog::Log("[std::string] Total bytes written: %zu\n", totalBytes);
 				return true;
+			}
 
-			Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(Value.c_str()), Value.size() * sizeof(char));
+			//GameDebugLog::Log("[std::string] About to write %zu bytes of string data\n", stringSize);
+
+			// Write string data with validation
+			const char* dataPtr = Value.c_str();
+
+			if (!Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(dataPtr), stringSize))
+			{
+				//GameDebugLog::Log("[std::string] CRITICAL: Failed to write %zu bytes of string data\n", stringSize);
+				return false;
+			}
+
+			//size_t finalSize = stream->Size();
+			//size_t totalBytesWritten = finalSize - streamSizeBefore;
+			//size_t expectedTotal = sizeof(size_t) + stringSize;
+
+			//GameDebugLog::Log("[std::string] Wrote data, final size %zu (+%zu total bytes)\n",
+			//	finalSize, totalBytesWritten);
+
+			// Critical validation - this is where we catch the corruption
+			//if (totalBytesWritten != expectedTotal)
+			//{
+			//	GameDebugLog::Log("[std::string] CRITICAL CORRUPTION: Expected %zu total bytes, but wrote %zu bytes\n",
+			//		expectedTotal, totalBytesWritten);
+			//	GameDebugLog::Log("[std::string] Size bytes: %zu, String bytes: %zu, Actual total: %zu\n",
+			//		sizeof(size_t), stringSize, totalBytesWritten);
+			//	__debugbreak();
+			//	return false;
+			//}
+
+			//GameDebugLog::Log("[std::string] Successfully wrote string '%s' (%zu + %zu = %zu bytes)\n",
+			//	Value.c_str(), sizeof(size_t), stringSize, totalBytesWritten);
+
 			return true;
 		}
 	};
@@ -1078,24 +1179,41 @@ namespace Savegame
 		bool ReadFromStream(PhobosStreamReader& Stm, SHPStruct*& Value, bool RegisterForChange) const
 		{
 			bool HasAny = false;
+			//GameDebugLog::Log("[SHPStruct] Loading HasAny...\n");
 
-			if(Stm.Load(HasAny)){
-
-				if (!HasAny)
-					return true;
-
-				Value = nullptr;
-				std::string name {};
-
-				if (Savegame::ReadPhobosStream(Stm, name, RegisterForChange)) {
-					if (auto pSHP = FileSystem::LoadSHPFile(name.c_str())) {
-						Value = pSHP;
-						return true;
-					}
-				}
+			if (!Stm.Load(HasAny)) {
+				//GameDebugLog::Log("[SHPStruct] Failed to load HasAny!\n");
+				return false;
 			}
 
-			return false;
+			//GameDebugLog::Log("[SHPStruct] HasAny = %s\n", HasAny ? "true" : "false");
+
+			if (!HasAny) {
+				Value = nullptr;
+				return true;
+			}
+
+			Value = nullptr;
+			std::string name {};
+			//GameDebugLog::Log("[SHPStruct] Loading filename...\n");
+
+			if (!Savegame::ReadPhobosStream(Stm, name, RegisterForChange)) {
+				//GameDebugLog::Log("[SHPStruct] Failed to load filename!\n");
+				return false;
+			}
+
+			//GameDebugLog::Log("[SHPStruct] Loaded filename: '%s' (length: %zu)\n",
+			//	name.c_str(), name.length());
+
+			if (auto pSHP = FileSystem::LoadSHPFile(name.c_str())) {
+				Value = pSHP;
+				//GameDebugLog::Log("[SHPStruct] Successfully loaded SHP\n");
+				return true;
+			} else {
+				//GameDebugLog::Log("[SHPStruct] Warning: Could not load SHP '%s', setting to nullptr\n", name.c_str());
+				Value = nullptr;
+				return true;  // This is likely where it's failing
+			}
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, SHPStruct* const& Value) const
@@ -1106,37 +1224,20 @@ namespace Savegame
 			if(!HasAny)
 				return true;
 
+			//GameDebugLog::Log("[SHPStruct] Value = %p\n", Value);
+
 			const char* filename = nullptr;
-			if (auto pRef = Value->AsReference())
+			if (auto pRef = Value->AsReference()) {
 				filename = pRef->Filename;
+				//GameDebugLog::Log("[SHPStruct] AsReference() = %p\n", pRef);
+				//GameDebugLog::Log("[SHPStruct] Filename = %s\n", pRef->Filename ? pRef->Filename : "NULL");
+			}
 
 			if (!filename)
 				Debug::FatalErrorAndExit("Invalid SHP !");
 
 			std::string file(filename);
 			return Savegame::WritePhobosStream(Stm, file);
-		}
-	};
-
-	template <>
-	struct Savegame::PhobosStreamObject<Theater_SHPStruct*>
-	{
-		static_assert(sizeof(Theater_SHPStruct) == sizeof(SHPStruct), "Invalid Size !");
-
-		bool ReadFromStream(PhobosStreamReader& Stm, Theater_SHPStruct*& Value, bool RegisterForChange) const
-		{
-			SHPStruct* dummy {};
-			if (!Savegame::ReadPhobosStream<SHPStruct*>(Stm, dummy, RegisterForChange))
-				return false;
-
-			Value = (Theater_SHPStruct*)dummy;
-
-			return true;
-		}
-
-		bool WriteToStream(PhobosStreamWriter& Stm, Theater_SHPStruct* const& Value) const
-		{
-			return Savegame::WritePhobosStream<const SHPStruct*>(Stm, Value);
 		}
 	};
 

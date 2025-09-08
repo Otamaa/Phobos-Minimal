@@ -221,31 +221,3 @@ bool FakeTerrainTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F54BC, FakeTerrainTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeTerrainTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->TerrainTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = TerrainTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			TerrainTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeTerrainTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->TerrainTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = TerrainTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F546C, FakeTerrainTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5470, FakeTerrainTypeClass::_Save)

@@ -39,7 +39,7 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 		return true;
 	}
 
-	Debug::Log("Cannot Find ext pointer of %x from %x !\n", *ptrToFix, OwnerObj);
+	Debug::Log("[ExtensionSwizzleManager] Cannot Find ext pointer of %x from %x !\n", *ptrToFix, OwnerObj);
 	return false;
 }
 
@@ -48,7 +48,7 @@ void ExtensionSwizzleManager::CleanupUnmappedExtensions()
 {
 	for (const auto& [savedAddr, extension] : extensionPointerMap) {
 		if(extension > 0) {
-			Debug::Log("Cleaning up unmapped extension: %x -> %x\n",
+			Debug::Log("[ExtensionSwizzleManager] Cleaning up unmapped extension: %x -> %x\n",
 				savedAddr , extension);
 
 			delete (AbstractExtended*)extension;

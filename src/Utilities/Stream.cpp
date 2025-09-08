@@ -34,6 +34,10 @@ bool PhobosByteStream::WriteToStream(IStream* pStm) const
 
 bool PhobosByteStream::Read(data_t* Value, size_t Size)
 {
+	//there is nothing , just skip
+	if (this->Data.empty())
+		return true;
+
 	if (this->Data.size() < this->CurrentOffset + Size) {
 		return false;
 	}
@@ -44,9 +48,17 @@ bool PhobosByteStream::Read(data_t* Value, size_t Size)
 	return true;
 }
 
-void PhobosByteStream::Write(const data_t* Value, size_t Size)
+bool PhobosByteStream::Write(const data_t* Value, size_t Size)
 {
+	// Check for potential overflow
+	if (this->Data.size() + Size < this->Data.size()) {
+		return false;  // Size overflow
+	}
+
+	const size_t oldSize = this->Data.size();
 	this->Data.insert(this->Data.end(), Value, Value + Size);
+	size_t newSize = this->Data.size();
+	return newSize == oldSize + Size;
 }
 
 size_t PhobosByteStream::ReadBlockFromStream(IStream* pStm)

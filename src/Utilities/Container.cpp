@@ -9,9 +9,11 @@ AbstractExtended::AbstractExtended(AbstractClass* abs, noinit_t) : AttachedToObj
 void AbstractExtended::Internal_LoadFromStream(PhobosStreamReader& Stm)
 {
 	Stm.Process(Initialized);
+	Stm.Process(Name);
 }
 
 void AbstractExtended::Internal_SaveToStream(PhobosStreamWriter& Stm) const
 {
 	Stm.Process(Initialized);
+	Stm.Process(Name);
 }

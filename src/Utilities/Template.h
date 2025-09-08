@@ -58,7 +58,12 @@ public:
 	//using value_type = T;
 	//using base_type = std::remove_pointer_t<T>;
 
-	COMPILETIMEEVAL Valueable() = default;
+	COMPILETIMEEVAL Valueable() {
+		if COMPILETIMEEVAL (std::is_pointer_v<T>) {
+			Value = nullptr;
+		}
+	}
+
 	COMPILETIMEEVAL explicit Valueable(T value) noexcept(noexcept(T { std::move(value) })) : Value(std::move(value)) { }
 	COMPILETIMEEVAL Valueable(Valueable const& other) = default;
 	COMPILETIMEEVAL Valueable(Valueable&& other) = default;

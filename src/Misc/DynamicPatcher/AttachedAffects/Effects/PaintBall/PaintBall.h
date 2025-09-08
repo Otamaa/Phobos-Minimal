@@ -68,7 +68,7 @@ public:
 			.Process(IgnoreShroud, false)
 			.Process(Override, false)
 			.Success()
-			//&& Stm.RegisterChange(this)
+			&& Stm.RegisterChange(this)
 			; // announce this type
 	}
 };

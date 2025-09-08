@@ -2363,17 +2363,19 @@ private:
 #pragma endregion
 			;
 
-		this->MyExtraFireData.Serialize(Stm);
-		this->MyDiveData.Serialize(Stm);
-		this->MyPutData.Serialize(Stm);
-		this->MyGiftBoxData.Serialize(Stm);
+		Stm
+			.Process(this->MyExtraFireData)
+			.Process(this->MyDiveData)
+			.Process(this->MyPutData)
+			.Process(this->MyGiftBoxData)
 		//this->MyJJData.Serialize(Stm);
-		this->MyPassangersData.Serialize(Stm);
-		this->MySpawnSupportFLH.Serialize(Stm);
-		this->MySpawnSupportDatas.Serialize(Stm);
-		this->Trails.Serialize(Stm);
-		this->MyFighterData.Serialize(Stm);
-		this->DamageSelfData.Serialize(Stm);
+			.Process(this->MyPassangersData)
+			.Process(this->MySpawnSupportFLH)
+			.Process(this->MySpawnSupportDatas)
+			.Process(this->Trails)
+			.Process(this->MyFighterData)
+			.Process(this->DamageSelfData)
+			;
 
 
 		Stm.Process(this->AttachedEffect)

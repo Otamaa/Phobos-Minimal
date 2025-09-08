@@ -590,9 +590,8 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_AnimOffset)
 		.Process(this->DelayedFire_AnimOnTurret)
 		.Process(this->OnlyAttacker)
+		.Process(this->MyAttachFireDatas)
 		;
-
-	MyAttachFireDatas.Serialize(Stm);
 };
 
 int WeaponTypeExtData::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
@@ -786,31 +785,3 @@ bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeWeaponTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->WeaponTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = WeaponTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			WeaponTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeWeaponTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->WeaponTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = WeaponTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73CC, FakeWeaponTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73D0, FakeWeaponTypeClass::_Save)

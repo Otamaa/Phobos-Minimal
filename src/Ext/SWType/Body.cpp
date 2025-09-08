@@ -2954,31 +2954,3 @@ bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40F4, FakeSuperWeaponTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeSuperWeaponTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->SuperWeaponTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = SWTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			SWTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeSuperWeaponTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->SuperWeaponTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = SWTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A4, FakeSuperWeaponTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A8, FakeSuperWeaponTypeClass::_Save)

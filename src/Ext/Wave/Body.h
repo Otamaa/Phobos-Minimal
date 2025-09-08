@@ -27,7 +27,10 @@ public:
 		WeaponIdx(-1),
 		ReverseAgainstTarget(false),
 		CanDoUpdate(false)
-	{ }
+	{
+		this->AbstractExtended::SetName("WaveClass");
+	}
+
 	WaveExtData(WaveClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~WaveExtData();

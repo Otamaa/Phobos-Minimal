@@ -713,31 +713,3 @@ bool FakeAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E366C, FakeAnimTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeAnimTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->AnimTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = AnimTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			AnimTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->AnimTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = AnimTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)

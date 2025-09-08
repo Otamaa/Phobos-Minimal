@@ -35,7 +35,10 @@ public:
 		HouseOwner(nullptr),
 		NoOwner(true),
 		CreationFrame(0)
-	{ }
+	{
+		this->AbstractExtended::SetName("RadSiteClass");
+	}
+
 	RadSiteExtData(RadSiteClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~RadSiteExtData() = default;

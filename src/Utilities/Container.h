@@ -1,15 +1,11 @@
 #pragma once
 
 #include <CCINIClass.h>
-#include <SwizzleManagerClass.h>
 #include <Memory.h>
 
 #include "Debug.h"
-#include "Stream.h"
+#include "SavegameDef.h"
 #include "Swizzle.h"
-
-#include <string>
-#include <ExtraHeaders/MemoryPool.h>
 
 class AbstractClass;
 static COMPILETIMEEVAL size_t AbstractExtOffset = 0x18;
@@ -24,13 +20,14 @@ struct AbstractExtended {
 private:
 	AbstractClass* AttachedToObject;
 	InitState Initialized;
+	FixedString<0x24> Name;
 
 public:
 
 	//normal assigned AO
 	AbstractExtended(AbstractClass* abs);
 
-	//withnoint_t , with less instasiation
+	//with noint_t less instasiation
 	AbstractExtended(AbstractClass* abs, noinit_t);
 
 	~AbstractExtended() = default;
@@ -38,9 +35,11 @@ public:
 	void Internal_LoadFromStream(PhobosStreamReader& Stm);
 	void Internal_SaveToStream(PhobosStreamWriter& Stm) const;
 
-	FORCEDINLINE InitState GetInitState() { return Initialized; }
+	FORCEDINLINE InitState GetInitState() const { return Initialized; }
 	FORCEDINLINE void SetInitState(InitState state) { Initialized = state; }
 	FORCEDINLINE void SetAttached(AbstractClass* abs) { AttachedToObject = abs; }
+	FORCEDINLINE void SetName(const char* name) { Name = name; }
+	FORCEDINLINE const char* GetAttachedObjectName() const { return Name.data(); }
 
 public:
 
@@ -196,7 +195,7 @@ public:
 	}
 
 	void RemoveExtOf(base_type_ptr key , extension_type_ptr Item) {
-		DLLCallDTOR<false>(Item);
+		delete Item;
 		this->ClearExtAttribute(key);
 	}
 
@@ -267,75 +266,4 @@ public:
 		if (extension_type_ptr Extptr = this->TryFind(key))
 				Extptr->InvalidatePointer(ptr, bRemoved);
 	}
-
-public: //not sure if these needed ?
-
-	virtual HRESULT WriteDataToTheByteStream(base_type_ptr key, IStream* pStm)
-	{
-		if COMPILETIMEEVAL(HasMarker<T>)
-		{
-			// get the value data
-			auto buffer = this->Find(key);
-
-			if (!buffer)
-			{
-				Debug::Log("SaveKey - Could not find value.\n");
-				return E_POINTER;
-			}
-
-			// write the current pointer, the size of the block, and the canary
-			// the size is initial size of the class for reserving the ByteStream vector
-			PhobosByteStream saver(buffer->GetSize());
-			PhobosStreamWriter writer(saver);
-
-			//write the marker begin
-			writer.Save(T::Marker);
-
-			// save the data
-			buffer->SaveToStream(writer);
-
-			// save the block
-			if (!saver.WriteBlockToStream(pStm))
-			{
-				Debug::Log("SaveKey - Failed to save data.\n");
-				return E_FAIL;
-			}
-		}
-
-		return S_OK;
-	}
-
-	virtual HRESULT ReadDataFromTheByteStream(base_type_ptr key, extension_type_ptr pExt, IStream * pStm)
-	{
-		Debug::Log(__FUNCTION__ " for %s !\n", PhobosCRT::GetTypeIDName<base_type>().c_str());
-		if COMPILETIMEEVAL(HasMarker<T>)
-		{
-			if (!pExt) {
-				Debug::Log("SaveKey - Could not find value.\n");
-				return E_POINTER;
-			}
-
-			PhobosByteStream loader(0);
-			if (!loader.ReadBlockFromStream(pStm)) {
-				Debug::Log("LoadKey - Failed to read data from save stream?!\n");
-				return E_FAIL;
-			}
-
-			PhobosStreamReader reader(loader);
-
-			if (reader.Expect(T::Marker)) {
-				pExt->LoadFromStream(reader);
-				if(reader.ExpectEndOfBlock()){
-					auto old = (LONG)key->unknown_18;
-					PHOBOS_SWIZZLE_REGISTER_POINTER(old, pExt, PhobosCRT::GetTypeIDName<extension_type>().c_str())
-					key->unknown_18 = (LONG)pExt;
-					return S_OK;
-				}
-			}
-			return E_FAIL;
-		} else {
-			return S_OK;
-		}
-	}
-
 };

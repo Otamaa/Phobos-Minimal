@@ -13,17 +13,24 @@ public:
 
 	void Read(INI_EX& nParser, const char* pSection);
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<SpawnSupportFLHData*>(this)->Serialize(Stm); }
+
+private:
+
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(SpawnSupportFLH)
 			.Process(EliteSpawnSupportFLH)
 			.Process(SpawnHitFLH)
 			.Process(EliteSpawnHitFLH)
 			;
 
-		//Stm.RegisterChange(this);
 	}
 };
 
@@ -42,10 +49,18 @@ public:
 
 	void Read(INI_EX& nParser, const char* pSection);
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<SpawnSupportData*>(this)->Serialize(Stm); }
+
+private:
+
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(Enable)
 			.Process(SupportWeapon)
 			.Process(EliteSupportWeapon)
@@ -54,7 +69,5 @@ public:
 			.Process(FireOnce)
 			.Process(Delay)
 			;
-
-		//Stm.RegisterChange(this);
 	}
 };

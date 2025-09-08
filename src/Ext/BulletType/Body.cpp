@@ -317,9 +317,8 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->EMPulseCannon_InaccurateRadius)
 		.Process(this->Vertical_AircraftFix)
 		.Process(this->VerticalInitialFacing)
-		;
 
-	this->Trails.Serialize(Stm);
+		.Process(this->Trails);
 
 	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
 }
@@ -397,30 +396,3 @@ bool FakeBulletTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E49AC, FakeBulletTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeBulletTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->BulletTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = BulletTypeExtContainer::Instance.ReadDataFromTheByteStream(this, BulletTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeBulletTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->BulletTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = BulletTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E495C, FakeBulletTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4960, FakeBulletTypeClass::_Save)

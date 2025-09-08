@@ -955,31 +955,3 @@ void FakeAircraftClass::_Detach(AbstractClass* target, bool all)
 	this->AircraftClass::PointerExpired(target, all);
 }
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7E22CC , FakeAircraftClass::_Detach)
-
-//HRESULT __stdcall FakeAircraftClass::_Load(IStream* pStm)
-//{
-//	auto hr = this->AircraftClass::Load(pStm);
-//
-//	if (SUCCEEDED(hr))
-//	{
-//		hr = AircraftExtContainer::Instance.ReadDataFromTheByteStream(this,
-//			AircraftExtContainer::Instance.AllocateNoInit(this), pStm);
-//	}
-//
-//	return hr;
-//}
-//
-//HRESULT __stdcall FakeAircraftClass::_Save(IStream* pStm, BOOL clearDirty)
-//{
-//	auto hr = this->AircraftClass::Save(pStm, clearDirty);
-//
-//	if (SUCCEEDED(hr))
-//	{
-//		hr = AircraftExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-//	}
-//
-//	return hr;
-//}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)

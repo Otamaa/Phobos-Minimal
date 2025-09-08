@@ -403,29 +403,6 @@ namespace detail
 	}
 
 	template <>
-	OPTIONALINLINE bool read<Theater_SHPStruct*>(Theater_SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			std::string Result = GeneralUtils::ApplyTheaterSuffixToString(parser.c_str());
-
-			if (Result.find(".shp") == std::string::npos)
-			{
-				Result += ".shp";
-			}
-
-			if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))
-			{
-				value = reinterpret_cast<Theater_SHPStruct*>(pImage);
-				return true;
-			}
-
-			Debug::LogInfo("[Phobos] Failed to find file {} referenced by [{}]{}={}", Result.c_str(), pSection, pKey, parser.value());
-		}
-		return false;
-	}
-
-	template <>
 	OPTIONALINLINE bool read<SHPStruct*>(SHPStruct*& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))
@@ -1908,23 +1885,27 @@ template <typename T>
 bool Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->Reset();
-	bool ret = Stm.Process(this->HasValue, RegisterForChange);
-	if (ret && this->HasValue)
-	{
-		ret = Stm.Process(this->Value, RegisterForChange);
+	if (!Stm.Load(this->HasValue))
+		return false;
+
+	if (this->HasValue) {
+		return Stm.Process(this->Value, RegisterForChange);
 	}
-	return ret;
+
+	return true;
 }
 
 template <typename T>
 bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
 {
-	bool ret = Stm.Process(this->HasValue);
-	if (this->HasValue)
-	{
-		ret = Stm.Process(this->Value);
+	if (!Stm.Save(this->HasValue))
+		return false;
+
+	if (this->HasValue) {
+		return Stm.Process(this->Value);
 	}
-	return ret;
+
+	return true;
 }
 
 // NullableIdx

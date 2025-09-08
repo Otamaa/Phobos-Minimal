@@ -50,7 +50,10 @@ public:
 		NewPowerups(-1),
 		IncomingUnit(nullptr),
 		IncomingUnitAlt(nullptr)
-	{ }
+	{
+		this->AbstractExtended::SetName("CellClass");
+	}
+
 	CellExtData(CellClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~CellExtData() = default;
@@ -102,15 +105,8 @@ public:
 		Array.clear();
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return true;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return true;
-	}
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{

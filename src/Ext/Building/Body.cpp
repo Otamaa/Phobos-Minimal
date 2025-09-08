@@ -1767,30 +1767,3 @@ void FakeBuildingClass::_DetachAnim(AnimClass* pAnim)
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F1C, FakeBuildingClass::_DetachAnim)
-
-HRESULT __stdcall FakeBuildingClass::_Load(IStream* pStm)
-{
-	auto hr = this->BuildingClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = BuildingExtContainer::Instance.ReadDataFromTheByteStream(this, BuildingExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeBuildingClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->BuildingClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = BuildingExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)

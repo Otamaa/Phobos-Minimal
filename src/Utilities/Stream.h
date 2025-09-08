@@ -37,6 +37,7 @@ protected:
 	size_t CurrentOffset;
 
 public:
+
 	COMPILETIMEEVAL PhobosByteStream(size_t Reserve = 0x1000) : Data(), CurrentOffset(0) {
 		this->Data.reserve(Reserve);
 	}
@@ -87,7 +88,7 @@ public:
 	* ensures there are at least {Size} bytes left in the internal storage, and assigns {Value} casted to byte to that buffer
 	* moves the internal position forward
 	*/
-	void Write(const data_t* Value, size_t Size);
+	bool Write(const data_t* Value, size_t Size);
 
 
 	/**
@@ -110,7 +111,7 @@ public:
 	* writes the data from {Value} into internal storage
 	*/
 	template<typename T>
-	void Save(const T& Value)
+	bool Save(const T& Value)
 	{
 		//static_assert(std::is_trivially_copyable_v<T>,
 		//	"Type must be trivially copyable for binary serialization");
@@ -122,7 +123,7 @@ public:
 			"Cannot serialize empty types");
 
 		auto Bytes = &reinterpret_cast<const data_t&>(Value);
-		this->Write(Bytes, sizeof(T));
+		return this->Write(Bytes, sizeof(T));
 	};
 };
 
@@ -275,6 +276,7 @@ public :
 class PhobosStreamWriter : public PhobosStreamWorkerBase
 {
 public:
+
 	COMPILETIMEEVAL explicit PhobosStreamWriter(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
 	COMPILETIMEEVAL PhobosStreamWriter(const PhobosStreamWriter&) = delete;
 
@@ -293,15 +295,15 @@ public:
 
 	// helpers
 	template <typename T>
-	void Save(const T& buffer)
+	bool Save(const T& buffer)
 	{
-		this->stream->Save(buffer);
+		return this->stream->Save(buffer);
 	}
 
 	template<typename T> requires IsDataTypeCorrect<T>
-	void Write(const T* Value, size_t Size)
+	bool Write(const T* Value, size_t Size)
 	{
-		this->stream->Write(Value, Size);
+		return this->stream->Write(Value, Size);
 	}
 
 public:

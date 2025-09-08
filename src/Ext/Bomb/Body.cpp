@@ -86,30 +86,3 @@ ASMJIT_PATCH(0x4393F2, BombClass_SDDTOR, 0x5)
 	return 0;
 }
 
-HRESULT __stdcall FakeBombClass::_Load(IStream* pStm)
-{
-	auto hr = this->BombClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = BombExtContainer::Instance.ReadDataFromTheByteStream(this,
-			BombExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeBombClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->BombClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = BombExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D24, FakeBombClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D28, FakeBombClass::_Save)

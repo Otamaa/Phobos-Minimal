@@ -75,6 +75,7 @@
 #include <Ext/Building/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
+#include <Ext/Cell/Body.h>
 #include <Ext/Bomb/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/UnitType/Body.h>
@@ -92,6 +93,7 @@
 #include <Ext/SmudgeType/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Super/Body.h>
+#include <Ext/TAction/Body.h>
 #include <Ext/Tactical/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Terrain/Body.h>
@@ -231,6 +233,9 @@ HRESULT Put_All(LPSTREAM pStm)
 	hr = SaveObjectVector(pStm, *AnimTypeClass::Array);
 	if (FAILED(hr)) return hr;
 
+	if (!Process_Global_Save<CellExtContainer>(pStm))
+		return E_FAIL;
+
 	if (!Process_Global_Save<MouseClassExt>(pStm))
 		return E_FAIL;
 
@@ -353,6 +358,9 @@ HRESULT Put_All(LPSTREAM pStm)
 
 	hr = SaveObjectVector(pStm, *TActionClass::Array);
 	if (FAILED(hr)) return hr;
+
+	if (!Process_Global_Save<TActionExtData>(pStm))
+		return E_FAIL;
 
 	if (!Process_Global_Save<TEventExtContainer>(pStm))
 		return E_FAIL;
@@ -546,9 +554,11 @@ HRESULT Put_All(LPSTREAM pStm)
 	hr = SaveObjectVector(pStm, *RadSiteClass::Array);
 	if (FAILED(hr)) return hr;
 
-	if (SessionClass::Instance->GameMode == GameMode::Campaign) {
+	if (SessionClass::Instance->GameMode == GameMode::Skirmish) {
 		Debug::Log("Writing Skirmish Session.Options\n");
-		if (!GameOptionsType::Instance->Save(pStm)) {
+		const bool save_GameOptionsType = GameOptionsType::Instance->Save(pStm);
+
+		if (!save_GameOptionsType) {
 			Debug::Log("\t***** FAILED!\n");
 			return E_FAIL;
 		}

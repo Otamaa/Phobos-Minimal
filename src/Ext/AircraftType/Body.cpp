@@ -70,29 +70,3 @@ bool FakeAircraftTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E28CC, FakeAircraftTypeClass::_ReadFromINI)
-
-//HRESULT __stdcall FakeAircraftTypeClass::_Load(IStream* pStm)
-//{
-//	auto hr = this->AircraftTypeClass::Load(pStm);
-//
-//	if (SUCCEEDED(hr)) {
-//		hr = AircraftTypeExtContainer::Instance
-//			.ReadDataFromTheByteStream(this, AircraftTypeExtContainer::Instance.Mapped[this], pStm);
-//	}
-//
-//	return hr;
-//}
-//
-//HRESULT __stdcall FakeAircraftTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-//{
-//	auto hr = this->AircraftTypeClass::Save(pStm, clearDirty);
-//
-//	if (SUCCEEDED(hr)) {
-//		hr = AircraftTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-//	}
-//
-//	return hr;
-//}
-//
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E287C, FakeAircraftTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2880, FakeAircraftTypeClass::_Save)

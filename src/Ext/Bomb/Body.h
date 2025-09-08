@@ -16,7 +16,9 @@ public:
 
 public:
 
-	BombExtData(BombClass* pObj) : AbstractExtended(pObj) , Weapon(nullptr) { }
+	BombExtData(BombClass* pObj) : AbstractExtended(pObj) , Weapon(nullptr) {
+		this->AbstractExtended::SetName("BombClass");
+	}
 	BombExtData(BombClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~BombExtData() = default;

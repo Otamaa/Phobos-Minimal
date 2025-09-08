@@ -36,7 +36,6 @@ public:
 public:
 
 #pragma region ClassMembers
-
 	PrismForwardingData PrismForwarding;
 	Valueable<AffectedHouse> PowersUp_Owner;
 	ValueableVector<BuildingTypeClass*> PowersUp_Buildings;
@@ -55,7 +54,7 @@ public:
 	Valueable<bool> Grinding_PlayDieSound;
 	Valueable<int> Grinding_Weapon_RequiredCredits;
 	Nullable<bool> PlacementPreview_Show;
-	Nullable<Theater_SHPStruct*> PlacementPreview_Shape;
+	Nullable<SHPStruct*> PlacementPreview_Shape;
 	Nullable<int> PlacementPreview_ShapeFrame;
 	Valueable<CoordStruct> PlacementPreview_Offset;
 	Valueable<bool> PlacementPreview_Remap;

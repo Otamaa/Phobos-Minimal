@@ -76,6 +76,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/Bomb/Body.h>
+#include <Ext/Cell/Body.h>
 #include <Ext/Side/Body.h>
 #include <Ext/UnitType/Body.h>
 #include <Ext/Unit/Body.h>
@@ -92,6 +93,7 @@
 #include <Ext/SmudgeType/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Super/Body.h>
+#include <Ext/TAction/Body.h>
 #include <Ext/Tactical/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Terrain/Body.h>
@@ -142,11 +144,13 @@ HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
 	hr = stream->Read(&count, sizeof(int), 0);
 	if (FAILED(hr)) return hr;
 
+	Debug::Log("Loaded Object %s Count %d \n", PhobosCRT::GetTypeIDName<T>().c_str(), count);
+
 	// Load each object
 	for (int i = 0; i < count; ++i)
 	{
-		T objPtr = nullptr;
-		hr = OleLoadFromStream(stream, IID_IUnknown, &((LPVOID)objPtr));
+		LPVOID objPtr = nullptr;
+		hr = OleLoadFromStream(stream, IID_IUnknown, &objPtr);
 		if (FAILED(hr)) return hr;
 	}
 
@@ -295,6 +299,9 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	hr = LoadObjectVector(stream, *AnimTypeClass::Array);
 	if (FAILED(hr)) return hr;
 
+	if (!Process_Global_Load<CellExtContainer>(stream))
+		return E_FAIL;
+
 	if (!Process_Global_Load<MouseClassExt>(stream))
 		return E_FAIL;
 
@@ -426,6 +433,9 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 
 	hr = LoadObjectVector(stream, *TActionClass::Array);
 	if (FAILED(hr)) return hr;
+
+	if (!Process_Global_Load<TActionExtData>(stream))
+		return E_FAIL;
 
 	if (!Process_Global_Load<TEventExtContainer>(stream))
 		return E_FAIL;
@@ -618,7 +628,9 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 
 	if (SessionClass::Instance->GameMode == GameMode::Skirmish) {
 		Debug::Log("Reading Skirmish Session.Options\n");
-		if (!GameOptionsType::Instance->Load(stream)) {
+		const bool save_GameOptionsType = GameOptionsType::Instance->Load(stream);
+
+		if (!save_GameOptionsType) {
 			Debug::Log("\t***** FAILED!\n");
 			return E_FAIL;
 		}

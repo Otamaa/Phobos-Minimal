@@ -28,12 +28,17 @@ public:
 
 	void Read(INI_EX& parser, const char* pSection);
 
-	template <typename T>
-	void Serialize(T& Stm)
-	{
-		//Debug::LogInfo("Processing Element From GiftBoxData ! ");
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
 
-		Stm
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<GiftBoxData*>(this)->Serialize(Stm); }
+
+private:
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
 			.Process(Enable)
 			.Process(Gifts)
 			.Process(Nums)
@@ -51,7 +56,5 @@ public:
 			.Process(OpenWhenHealthPercent)
 			.Process(CheckPathfind)
 			;
-
-		//Stm.RegisterChange(this);
 	}
 };

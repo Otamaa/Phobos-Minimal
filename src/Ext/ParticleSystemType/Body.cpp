@@ -143,31 +143,3 @@ bool FakeParticleSystemTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F010C, FakeParticleSystemTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeParticleSystemTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->ParticleSystemTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = ParticleSystemTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			ParticleSystemTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeParticleSystemTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->ParticleSystemTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = ParticleSystemTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F00BC, FakeParticleSystemTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F00C0, FakeParticleSystemTypeClass::_Save)

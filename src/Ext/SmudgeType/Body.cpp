@@ -157,31 +157,3 @@ bool FakeSmudgeTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F358C, FakeSmudgeTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeSmudgeTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->SmudgeTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = SmudgeTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			SmudgeTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeSmudgeTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->SmudgeTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = SmudgeTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F353C, FakeSmudgeTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3540, FakeSmudgeTypeClass::_Save)

@@ -120,9 +120,10 @@ void ParticleTypeExtData::Serialize(T& Stm)
 		.Process(this->TransmogrifyType)
 		.Process(this->TransmogrifyOwner)
 		.Process(this->Fire_DamagingAnim)
+		.Process(this->Trails)
 		;
 
-	this->Trails.Serialize(Stm);
+
 }
 
 // =============================
@@ -198,31 +199,3 @@ bool FakeParticleTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F01EC, FakeParticleTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeParticleTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->ParticleTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = ParticleTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			ParticleTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeParticleTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->ParticleTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = ParticleTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F019C, FakeParticleTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F01A0, FakeParticleTypeClass::_Save)

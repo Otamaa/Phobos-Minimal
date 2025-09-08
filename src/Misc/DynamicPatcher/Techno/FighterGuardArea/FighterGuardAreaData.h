@@ -21,10 +21,18 @@ struct FighterAreaGuardData
 
 	void Read(INI_EX& parser, const char* pSection, TechnoTypeClass* pType);
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<FighterAreaGuardData*>(this)->Serialize(Stm); }
+
+private:
+
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(Enable)
 
 			.Process(AreaGuard)
@@ -41,6 +49,5 @@ struct FighterAreaGuardData
 			.Process(Randomwise)
 			;
 
-		//Stm.RegisterChange(this);
 	}
 };

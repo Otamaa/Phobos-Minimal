@@ -269,6 +269,46 @@ void CellExtData::Serialize(T& Stm) {
 CellExtContainer CellExtContainer::Instance;
 std::vector<CellExtData*> Container<CellExtData>::Array;
 
+bool CellExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	Clear();
+
+	size_t Count = 0;
+	if (!Stm.Load(Count))
+		return false;
+
+	Array.reserve(Count);
+
+	for (size_t i = 0; i < Count; ++i) {
+
+		void* oldPtr = nullptr;
+
+		if (!Stm.Load(oldPtr))
+			return false;
+
+		auto newPtr = new CellExtData(nullptr, noinit_t());
+		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "CellExtData")
+		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
+		newPtr->LoadFromStream(Stm);
+		Array.push_back(newPtr);
+	}
+
+	return true;
+}
+
+bool CellExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	Stm.Save(Array.size());
+
+	for (auto& item : Array) {
+		// write old pointer
+		Stm.Save(item);
+		item->SaveToStream(Stm);
+	}
+
+	return true;
+}
+
 // =============================
 // container hooks
 
@@ -279,8 +319,7 @@ ASMJIT_PATCH(0x47BDA1, CellClass_CTOR, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6)
-{
+ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6) {
 	GET(CellClass*, pItem, ECX);
 
 	CellExtContainer::Instance.Remove(pItem);
@@ -289,30 +328,3 @@ ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6)
 }
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
-
-HRESULT __stdcall FakeCellClass::_Load(IStream* pStm)
-{
-	auto hr = this->CellClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = CellExtContainer::Instance.ReadDataFromTheByteStream(this, CellExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->CellClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = CellExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)

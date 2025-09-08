@@ -61,6 +61,8 @@ public:
 	bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<DamageSelfType*>(this)->Serialize(Stm); }
 
+private:
+
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
@@ -76,7 +78,7 @@ public:
 			.Process(IgnoreArmor)
 			.Process(Decloak)
 			.Process(Type)
-			.Success() 
+			.Success()
 			//&& Stm.RegisterChange(this)
 			;
 	}

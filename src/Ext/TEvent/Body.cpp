@@ -498,31 +498,3 @@ ASMJIT_PATCH(0x71E856, TEventClass_SDDTOR, 0x6)
 	TEventExtContainer::Instance.Remove(pItem);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
-
-HRESULT __stdcall FakeTEventClass::_Load(IStream* pStm)
-{
-	auto hr = this->TEventClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = TEventExtContainer::Instance.ReadDataFromTheByteStream(this,
-			TEventExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeTEventClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->TEventClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = TEventExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F558C, FakeTEventClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5590, FakeTEventClass::_Save)

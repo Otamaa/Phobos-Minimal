@@ -326,31 +326,3 @@ void FakeUnitClass::_Detach(AbstractClass* target, bool all)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C98, FakeUnitClass::_Detach)
-
-HRESULT __stdcall FakeUnitClass::_Load(IStream* pStm)
-{
-	auto hr = this->UnitClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = UnitExtContainer::Instance.ReadDataFromTheByteStream(this,
-			UnitExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeUnitClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->UnitClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = UnitExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C84, FakeUnitClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C88, FakeUnitClass::_Save)

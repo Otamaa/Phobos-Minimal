@@ -7748,3 +7748,181 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 
 	// return 0x0;
  //}
+
+ /*******************************************************************************
+ * Cohen-Sutherland Line Clipping Algorithm
+ * Cleaned up version
+ ******************************************************************************/
+
+ /*
+  * Build bits that indicate which end points lie outside the clipping rectangle.
+  * Quick checks against these flag bits will speed the clipping process.
+  */
+ constexpr inline int CODE_INSIDE = 0;  // 0000
+ constexpr inline int CODE_LEFT = 1;    // 0001
+ constexpr inline int CODE_RIGHT = 2;   // 0010
+ constexpr inline int CODE_BOTTOM = 4;  // 0100
+ constexpr inline int CODE_TOP = 8;     // 1000
+
+ /***********************************************************************************************
+  * Compute_Out_Code
+  *
+  * Compute the bit code for a point (x, y) using the clip rectangle.
+  * Bounded diagonally by (xmin, ymin), and (xmax, ymax).
+  *
+  * INPUT:   x     -- X coordinate of point
+  *          y     -- Y coordinate of point
+  *          rect  -- Clipping rectangle
+  *
+  * OUTPUT:  OutCode indicating which boundaries the point is outside of
+  ***********************************************************************************************/
+ int __forceinline Compute_Out_Code(double x, double y, RectangleStruct const* rect)
+ {
+	 int code = CODE_INSIDE;
+
+	 int right_edge = rect->X + rect->Width;
+	 if (x >= right_edge)
+	 {
+		 code |= CODE_RIGHT;
+	 }
+	 else if (x < rect->X)
+	 {
+		 code |= CODE_LEFT;
+	 }
+
+	 int bottom_edge = rect->Y + rect->Height;
+	 if (y >= bottom_edge)
+	 {
+		 code |= CODE_BOTTOM;
+	 }
+	 else if (y < rect->Y)
+	 {
+		 code |= CODE_TOP;
+	 }
+
+	 return code;
+ }
+
+ /***********************************************************************************************
+  * Clip_Line
+  *
+  * Cohen-Sutherland line clipping algorithm implementation.
+  * Clips a line segment to fit within the specified rectangle.
+  *
+  * INPUT:   pt1   -- First point of line segment (modified in place)
+  *          pt2   -- Second point of line segment (modified in place)
+  *          rect  -- Clipping rectangle
+  *
+  * OUTPUT:  true if line segment intersects rectangle, false otherwise
+  *
+  * NOTES:   Based on algorithm from "Computer Graphics: Principles and Practice in C"
+  *          Modified version of: https://en.wikipedia.org/wiki/Cohen–Sutherland_algorithm
+  ***********************************************************************************************/
+ bool __fastcall Clip_Line(Point2D* pt1, Point2D* pt2, RectangleStruct* rect)
+ {
+	 int outcode0;
+	 int outcode1;
+	 int outcodeOut;
+
+	 double x0 = pt1->X;
+	 double y0 = pt1->Y;
+	 double x1 = pt2->X;
+	 double y1 = pt2->Y;
+
+	 // Pre-calculate slopes to avoid division in the loop
+	 double slope_y = (x1 - x0) / (y1 - y0); // slope to use for possibly-vertical lines
+	 double slope_x = (y1 - y0) / (x1 - x0); // slope to use for possibly-horizontal lines
+
+	 /*
+	  * Compute outcodes for both endpoints
+	  */
+	 outcode0 = Compute_Out_Code(x0, y0, rect);
+	 outcode1 = Compute_Out_Code(x1, y1, rect);
+
+	 while (true)
+	 {
+		 if (outcode0 == CODE_INSIDE && outcode1 == CODE_INSIDE)
+		 {
+			 /*
+			  * Both points inside window; trivially accept and return true.
+			  */
+			 pt1->X = x0;
+			 pt1->Y = y0;
+			 pt2->X = x1;
+			 pt2->Y = y1;
+			 return true;
+		 }
+
+		 /*
+		  * Check to see if the line segment falls outside of the viewing rectangle.
+		  */
+		 if (outcode0 & outcode1)
+		 {
+			 /*
+			  * Bitwise AND is not 0: both points share an outside zone (LEFT, RIGHT, TOP,
+			  * or BOTTOM), so both must be outside window; exit (result is false).
+			  */
+			 return false;
+		 }
+
+		 /*
+		  * Failed both tests, so calculate the line segment to clip
+		  * from an outside point to an intersection with clip edge.
+		  */
+
+		  /*
+		   * At least one endpoint is outside the clip rectangle; pick it.
+		   */
+		 outcodeOut = (outcode0 != CODE_INSIDE) ? outcode0 : outcode1;
+
+		 /*
+		  * Now find the intersection point using formulas:
+		  * slope = (y1 - y0) / (x1 - x0)
+		  * x = x0 + (1 / slope) * (ym - y0), where ym is ymin or ymax
+		  * y = y0 + slope * (xm - x0), where xm is xmin or xmax
+		  * No need to worry about divide-by-zero because, in each case, the
+		  * outcode bit being tested guarantees the denominator is non-zero
+		  */
+		 double x, y;
+
+		 if (outcodeOut & CODE_TOP)
+		 {            // point is above the clip window
+			 x = (rect->Y - y0) * slope_y + x0;
+			 y = rect->Y;
+		 }
+		 else if (outcodeOut & CODE_BOTTOM)
+		 {    // point is below the clip window
+			 x = ((rect->Y + rect->Height - 1) - y0) * slope_y + x0;
+			 y = (rect->Height + rect->Y - 1);
+		 }
+		 else if (outcodeOut & CODE_RIGHT)
+		 {     // point is to the right of clip window
+			 y = ((rect->X + rect->Width - 1) - x0) * slope_x + y0;
+			 x = (rect->Width + rect->X - 1);
+		 }
+		 else if (outcodeOut & CODE_LEFT)
+		 {      // point is to the left of clip window
+			 y = (rect->X - x0) * slope_x + y0;
+			 x = rect->X;
+		 }
+
+		 /*
+		  * Now we move outside point to intersection point to clip
+		  * and get ready for next pass.
+		  */
+		 if (outcodeOut == outcode0)
+		 {
+			 x0 = x;
+			 y0 = y;
+			 outcode0 = Compute_Out_Code(x0, y0, rect);
+		 }
+		 else
+		 {
+			 x1 = x;
+			 y1 = y;
+			 outcode1 = Compute_Out_Code(x1, y1, rect);
+		 }
+	 }
+ }
+
+ DEFINE_FUNCTION_JUMP(LJMP , 0x7BC2B0 , Clip_Line)

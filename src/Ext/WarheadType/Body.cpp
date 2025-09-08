@@ -2303,31 +2303,3 @@ bool FakeWarheadTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B94, FakeWarheadTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeWarheadTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->WarheadTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = WarheadTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			WarheadTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeWarheadTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->WarheadTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = WarheadTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B44, FakeWarheadTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6B48, FakeWarheadTypeClass::_Save)

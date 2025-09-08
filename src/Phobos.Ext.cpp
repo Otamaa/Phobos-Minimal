@@ -586,15 +586,8 @@ bool PhobosExt::LoadGlobal(LPSTREAM pStm)
 	VoxClass::EVAIndex = value;
 
 	bool ret =
-		Process_Load<AnimExtContainer>(pStm) &&
-		Process_Load<MouseClassExt>(pStm) &&
 		Process_Load<ColorTypeClass>(pStm) &&
-		Process_Load<HouseExtContainer>(pStm) &&
-		Process_Load<IsometricTileTypeExtContainer>(pStm) &&
-		Process_Load<WeaponTypeExtContainer>(pStm) &&
 		Process_Load<EboltExtData>(pStm) &&
-		Process_Load<SWTypeExtContainer>(pStm) &&
-		Process_Load<BuildingTypeExtContainer>(pStm) &&
 		Process_Load<RadTypeClass>(pStm) &&
 		Process_Load<ShieldTypeClass>(pStm) &&
 		Process_Load<HoverTypeClass>(pStm) &&
@@ -615,8 +608,7 @@ bool PhobosExt::LoadGlobal(LPSTREAM pStm)
 		Process_Load<SWFirerClass>(pStm) &&
 		Process_Load<ShieldClass>(pStm) &&
 		Process_Load<PrismForwarding>(pStm) &&
-		Process_Load<BannerClass>(pStm) &&
-		Process_Load<TActionExtData>(pStm) //&&
+		Process_Load<BannerClass>(pStm)//&&
 		//Process_Load<AttachmentClass> (pStm) &&
 		//Process_Load<AttachmentTypeClass> (pStm)
 		;
@@ -650,16 +642,8 @@ bool PhobosExt::SaveGlobal(LPSTREAM pStm)
 	}
 
 	bool ret =
-		Process_Save<AnimExtContainer>(pStm) &&
-		Process_Save<MouseClassExt>(pStm) &&
 		Process_Save<ColorTypeClass>(pStm) &&
-		Process_Save<HouseExtContainer>(pStm) &&
-		Process_Save<IsometricTileTypeExtContainer>(pStm) &&
-		Process_Save<WeaponTypeExtContainer>(pStm) &&
 		Process_Save<EboltExtData>(pStm) &&
-		Process_Save<SWTypeExtContainer>(pStm) &&
-		Process_Save<BuildingTypeExtContainer>(pStm) &&
-		Process_Save<RadTypeClass>(pStm) &&
 		Process_Save<ShieldTypeClass>(pStm) &&
 		Process_Save<HoverTypeClass>(pStm) &&
 		Process_Save<BannerTypeClass>(pStm) &&
@@ -669,7 +653,6 @@ bool PhobosExt::SaveGlobal(LPSTREAM pStm)
 		Process_Save<GenericPrerequisite>(pStm) &&
 		Process_Save<CrateTypeClass>(pStm) &&
 		Process_Save<NewSWType>(pStm) &&
-		Process_Save<TiberiumExtContainer>(pStm) &&
 		Process_Save<PhobosAttachEffectTypeClass>(pStm) &&
 		Process_Save<TechTreeTypeClass>(pStm) &&
 		Process_Save<StaticVars>(pStm) &&
@@ -679,8 +662,7 @@ bool PhobosExt::SaveGlobal(LPSTREAM pStm)
 		Process_Save<SWFirerClass>(pStm) &&
 		Process_Save<ShieldClass>(pStm) &&
 		Process_Save<PrismForwarding>(pStm) &&
-		Process_Save<BannerClass>(pStm) &&
-		Process_Save<TActionExtData>(pStm) //&&
+		Process_Save<BannerClass>(pStm)
 		//Process_Save<AttachmentClass>(pStm) &&
 		//Process_Save<AttachmentTypeClass>(pStm)
 		;

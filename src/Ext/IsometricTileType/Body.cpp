@@ -151,31 +151,3 @@ std::vector<IsometricTileTypeExtData*> Container<IsometricTileTypeExtData>::Arra
 //
 //	return 0;
 //}
-//
-//HRESULT __stdcall FakeIsometricTileTypeClass::_Load(IStream* pStm)
-//{
-//	auto hr = this->IsometricTileTypeClass::Load(pStm);
-//
-//	if (SUCCEEDED(hr))
-//	{
-//		hr = IsometricTileTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-//			IsometricTileTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-//	}
-//
-//	return hr;
-//}
-//
-//HRESULT __stdcall FakeIsometricTileTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-//{
-//	auto hr = this->IsometricTileTypeClass::Save(pStm, clearDirty);
-//
-//	if (SUCCEEDED(hr))
-//	{
-//		hr = IsometricTileTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-//	}
-//
-//	return hr;
-//}
-//
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECC5C, FakeIsometricTileTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECC60, FakeIsometricTileTypeClass::_Save)

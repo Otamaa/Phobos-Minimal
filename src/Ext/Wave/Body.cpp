@@ -309,32 +309,3 @@ void FakeWaveClass::_Detach(AbstractClass* target , bool all)\
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C1C, FakeWaveClass::_Detach)
-
-
-HRESULT __stdcall FakeWaveClass::_Load(IStream* pStm)
-{
-	auto hr = this->WaveClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = WaveExtContainer::Instance.ReadDataFromTheByteStream(this,
-			WaveExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeWaveClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->WaveClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = WaveExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-//
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C08, FakeWaveClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C0C, FakeWaveClass::_Save)

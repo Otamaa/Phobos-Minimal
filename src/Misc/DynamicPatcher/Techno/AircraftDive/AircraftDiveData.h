@@ -14,11 +14,19 @@ public:
 
 	void Read(INI_EX& parser, const char* pSection, bool Allocate = false);
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<AircraftDiveData*>(this)->Serialize(Stm); }
+
+private:
+
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
 		//Debug::LogInfo("Loading Element From AircraftDiveData ! ");
-		Stm
+		return Stm
 			.Process(Enable)
 			.Process(Distance)
 			.Process(Speed)
@@ -26,6 +34,5 @@ public:
 			.Process(FlightLevel)
 			.Process(PullUpAfterFire)
 			;
-		//Stm.RegisterChange(this);
 	}
 };

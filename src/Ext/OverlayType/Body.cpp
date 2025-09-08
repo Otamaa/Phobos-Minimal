@@ -109,31 +109,3 @@ bool FakeOverlayTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF664, FakeOverlayTypeClass::_ReadFromINI)
-
-HRESULT __stdcall FakeOverlayTypeClass::_Load(IStream* pStm)
-{
-	auto hr = this->OverlayTypeClass::Load(pStm);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = OverlayTypeExtContainer::Instance.ReadDataFromTheByteStream(this,
-			OverlayTypeExtContainer::Instance.AllocateNoInit(this), pStm);
-	}
-
-	return hr;
-}
-
-HRESULT __stdcall FakeOverlayTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	auto hr = this->OverlayTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = OverlayTypeExtContainer::Instance.WriteDataToTheByteStream(this, pStm);
-	}
-
-	return hr;
-}
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF614, FakeOverlayTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF618, FakeOverlayTypeClass::_Save)
