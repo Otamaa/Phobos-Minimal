@@ -2864,62 +2864,37 @@ void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 bool SWTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
+	auto result = LoadGlobalArrayData(Stm);;
 
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new SWTypeExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "SWTypeExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Array.push_back(newPtr);
-	}
-
-
-	const bool First = Stm
+	result &= Stm
 		.Process(SWTypeExtData::CurrentSWType)
 		.Process(SWTypeExtData::TempSuper)
 		.Process(SWTypeExtData::Handled)
 		.Process(SWTypeExtData::LauchData)
 		.Success();
 
-	return First && NewSWType::LoadGlobals(Stm);
+	result &= NewSWType::LoadGlobals(Stm);
+
+	return result;
 }
 
 bool SWTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
+	auto result = SaveGlobalArrayData(Stm);;
 
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
-
-	const bool First = Stm
+		result &= Stm
 		.Process(SWTypeExtData::CurrentSWType)
 		.Process(SWTypeExtData::TempSuper)
 		.Process(SWTypeExtData::Handled)
 		.Process(SWTypeExtData::LauchData)
 		.Success();
 
-	return First && NewSWType::SaveGlobals(Stm);
+		result &= NewSWType::SaveGlobals(Stm);
+
+	return result;
 }
 
-void SWTypeExtContainer::Clear()
+void Container<SWTypeExtData>::Clear()
 {
 	Array.clear();
 	SWTypeExtData::LauchData = nullptr;

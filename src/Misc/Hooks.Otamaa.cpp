@@ -7820,8 +7820,6 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
   ***********************************************************************************************/
  bool __fastcall Clip_Line(Point2D* pt1, Point2D* pt2, RectangleStruct* rect)
  {
-	 int outcode0;
-	 int outcode1;
 	 int outcodeOut;
 
 	 double x0 = pt1->X;
@@ -7836,8 +7834,8 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 	 /*
 	  * Compute outcodes for both endpoints
 	  */
-	 outcode0 = Compute_Out_Code(x0, y0, rect);
-	 outcode1 = Compute_Out_Code(x1, y1, rect);
+	 int outcode0 = Compute_Out_Code(x0, y0, rect);
+	 int outcode1 = Compute_Out_Code(x1, y1, rect);
 
 	 while (true)
 	 {

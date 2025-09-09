@@ -250,11 +250,6 @@ class BulletTypeExtContainer final : public Container<BulletTypeExtData>
 public:
 	static BulletTypeExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

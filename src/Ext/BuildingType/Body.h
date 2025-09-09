@@ -525,12 +525,6 @@ public:
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	static void Clear()
-	{
-		Array.clear();
-		BuildingTypeExtData::trenchKinds.clear();
-	}
-
 	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
 		for (auto& ext : Array)

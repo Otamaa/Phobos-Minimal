@@ -1178,46 +1178,19 @@ void BulletExtData::Serialize(T& Stm)
 BulletExtContainer BulletExtContainer::Instance;
 std::vector<BulletExtData*> Container<BulletExtData>::Array;
 
+void Container<BulletExtData>::Clear()
+{
+	Array.clear();
+}
+
 bool BulletExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
-
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new BulletExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "BulletExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Array.push_back(newPtr);
-	}
-
-	return true;
+	return LoadGlobalArrayData(Stm);
 }
 
 bool BulletExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
-
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
-
-	return true;
+	return SaveGlobalArrayData(Stm);
 }
 
 // =============================

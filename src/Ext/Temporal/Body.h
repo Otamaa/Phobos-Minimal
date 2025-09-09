@@ -50,11 +50,6 @@ class TemporalExtContainer final : public Container<TemporalExtData>
 public:
 	static TemporalExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

@@ -443,7 +443,6 @@ public:
 
 	static PhobosMap<HouseClass*, VectorSet<TeamClass*>> HousesTeams;
 
-	static void Clear();
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

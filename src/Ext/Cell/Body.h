@@ -100,11 +100,6 @@ class CellExtContainer final : public Container<CellExtData>
 public:
 	static CellExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

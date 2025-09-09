@@ -137,12 +137,6 @@ public:
 	static AnimExtContainer Instance;
 	static std::list<AnimClass*> AnimsWithAttachedParticles;
 
-	static void Clear()
-	{
-		Array.clear();
-		AnimsWithAttachedParticles.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

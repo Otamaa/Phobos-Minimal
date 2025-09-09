@@ -83,11 +83,6 @@ class VoxelAnimTypeExtContainer final : public Container<VoxelAnimTypeExtData>
 public:
 	static VoxelAnimTypeExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

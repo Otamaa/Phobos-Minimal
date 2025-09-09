@@ -65,6 +65,8 @@ public:
 		if (SUCCEEDED(hr) && pcbRead)
 		{
 			totalBytesProcessed.QuadPart += *pcbRead;
+			Debug::Log("StreamWrapper: Read %lu bytes, total now %llu\n",
+						*pcbRead, totalBytesProcessed.QuadPart);
 		}
 		return hr;
 	}
@@ -75,10 +77,30 @@ public:
 		Debug::Log("StreamWrapper::Write: %lu bytes\n", cb);
 
 		HRESULT hr = baseStream->Write(pv, cb, pcbWritten);
-		if (SUCCEEDED(hr) && pcbWritten)
+
+		if (SUCCEEDED(hr))
 		{
-			totalBytesProcessed.QuadPart += *pcbWritten;
+			ULONG actualBytesWritten;
+			if (pcbWritten)
+			{
+				// Caller wants to know how many bytes were written
+				actualBytesWritten = *pcbWritten;
+			}
+			else
+			{
+				// Caller doesn't care - assume all bytes were written
+				actualBytesWritten = cb;
+			}
+
+			totalBytesProcessed.QuadPart += actualBytesWritten;
+			Debug::Log("StreamWrapper: Wrote %lu bytes, total now %llu\n",
+					   actualBytesWritten, totalBytesProcessed.QuadPart);
 		}
+		else
+		{
+			Debug::Log("StreamWrapper: Write failed with hr=0x%08X\n", hr);
+		}
+
 		return hr;
 	}
 
@@ -220,14 +242,14 @@ public:
 
 		size_t actualBytes = static_cast<size_t>(op.endPos.QuadPart - op.startPos.QuadPart);
 
-		Debug::Log("[%sTracker] END %s: %s, processed %zu bytes (expected %zu), pos %llu->%llu\n",
+		Debug::Log("[%sTracker] END %s: %s, processed %zu bytes (expected %zu), pos %llu->%llu diff=%llu \n",
 				  operationType.c_str(),
 				  op.name.c_str(),
 				  operationSuccess ? "SUCCESS" : "FAILED",
 				  actualBytes,
 				  expectedBytes,
 				  op.startPos.QuadPart,
-				  op.endPos.QuadPart);
+				  op.endPos.QuadPart , op.endPos.QuadPart - op.startPos.QuadPart);
 
 		if (!operationSuccess)
 		{

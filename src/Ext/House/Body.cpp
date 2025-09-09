@@ -46,30 +46,9 @@ HouseClass* HouseExtContainer::Neutral = nullptr;
 
 bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
+	auto ret = LoadGlobalArrayData(Stm);
 
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new HouseExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "HouseExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Array.push_back(newPtr);
-	}
-
-	return Stm
+	ret &= Stm
 		.Process(HouseExtData::LimboTechno)
 		.Process(HouseExtData::AutoDeathObjects)
 		.Process(HouseExtData::LastGrindingBlanceUnit)
@@ -87,20 +66,15 @@ bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		.Process(HouseExtContainer::CivilianSide)
 
 		.Success();
+
+	return ret;
 }
 
 bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
+	auto ret = SaveGlobalArrayData(Stm);
 
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
-
-	return Stm
+	ret &= Stm
 		.Process(HouseExtData::LimboTechno)
 		.Process(HouseExtData::AutoDeathObjects)
 		.Process(HouseExtData::LastGrindingBlanceUnit)
@@ -118,6 +92,8 @@ bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 		.Process(HouseExtContainer::CivilianSide)
 
 		.Success();
+
+	return ret;
 }
 
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
@@ -2642,7 +2618,7 @@ void HouseExtData::Serialize(T& Stm)
 HouseExtContainer HouseExtContainer::Instance;
 std::vector<HouseExtData*> Container<HouseExtData>::Array;
 
-void HouseExtContainer::Clear()
+void Container<HouseExtData>::Clear()
 {
 	Array.clear();
 
@@ -2654,16 +2630,15 @@ void HouseExtContainer::Clear()
 	HouseExtData::CloakEVASpeak.Stop();
 	HouseExtData::SubTerraneanEVASpeak.Stop();
 
-	Civilian = 0;
-	Special = 0;
-	Neutral = 0;
-	CivilianSide = 0;
+	HouseExtContainer::Civilian = 0;
+	HouseExtContainer::Special = 0;
+	HouseExtContainer::Neutral = 0;
+	HouseExtContainer::CivilianSide = 0;
 
 	HouseExtData::LimboTechno.clear();
 	HouseExtData::AutoDeathObjects.clear();
 	HouseExtContainer::HousesTeams.clear();
 }
-
 
 /**
  *  Handles expert AI processing.

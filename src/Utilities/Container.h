@@ -266,4 +266,60 @@ public:
 		if (extension_type_ptr Extptr = this->TryFind(key))
 				Extptr->InvalidatePointer(ptr, bRemoved);
 	}
+
+public : //default Save/Load functions
+		//define your own with same name to override these
+
+	static void Clear();
+
+	static bool SaveGlobalArrayData(PhobosStreamWriter& Stm)
+	{
+		//save it as int instead of size_t
+		const int Count = (int)Array.size();
+		Stm.Save(Count);
+
+		for (int i = 0; i < Count; ++i) {
+			Stm.Save((long)Array[i]); // important !
+			Array[i]->SaveToStream(Stm); // call the internal Ext save load function
+		}
+
+		return true;
+	}
+
+	static bool LoadGlobalArrayData(PhobosStreamReader& Stm)
+	{
+		Clear(); //clear the global data
+
+		int Count = 0;
+
+		if (Stm.Load(Count)) {
+			if (Count > 0) {
+
+				//reserve !
+				Array.reserve(Count);
+
+				const auto name = PhobosCRT::GetTypeIDName<T>();
+
+				for (int i = 0; i < Count; ++i) {
+
+					long oldPtr = 0l;
+
+					if (!Stm.Load(oldPtr))
+						return false;
+
+					auto newPtr = new T(nullptr, noinit_t());
+
+					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, name.c_str())
+					ExtensionSwizzleManager::RegisterExtensionPointer((void*)oldPtr, newPtr);
+					newPtr->LoadFromStream(Stm);
+					Array.push_back(newPtr);
+				}
+			}
+
+			return true;
+		}
+
+		return false;
+	}
 };
+

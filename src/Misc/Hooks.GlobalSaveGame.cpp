@@ -201,7 +201,7 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 #ifndef TRACK
 #include <Utilities/StreamUtils.h>
 
-HRESULT Put_All_WithValidation(LPSTREAM pStm, SavePositionTracker& tracker)
+HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& tracker)
 {
 	Debug::Log("=== ENHANCED SAVE WITH POSITION VALIDATION ===\n");
 	HRESULT hr = S_OK;
@@ -693,7 +693,6 @@ HRESULT Put_All_WithValidation(LPSTREAM pStm, SavePositionTracker& tracker)
 	hr = SaveObjectVector(pStm, *ParasiteClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	// Critical section - Temporal system
 	tracker.StartOperation("Process_Global_Save<TemporalExtContainer>");
 	success = Process_Global_Save<TemporalExtContainer>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
@@ -1254,10 +1253,6 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 		return false;
 	}
 
-	Debug::Log("Creating stream wrapper for tracking.\n");
-	StreamWrapperWithTracking* wrappedDocFile = new StreamWrapperWithTracking(docfile);
-	SavePositionTracker tracker(wrappedDocFile, "SAVE");
-
 	Debug::Log("Linking content stream to compressor.\n");
 	IUnknown* pUnknown = nullptr;
 	ATL::CComPtr<ILinkStream> linkstream;
@@ -1270,7 +1265,7 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 		pUnknown->Release();
 	}
 
-	hr = linkstream->Link_Stream(wrappedDocFile);
+	hr = linkstream->Link_Stream(docfile);
 	if (FAILED(hr)) {
 		Debug::FatalError("Failed to link stream to compressor.\n");
 		return false;
@@ -1279,7 +1274,15 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	ATL::CComPtr<IStream> stream;
 	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
 
-	bool result = SUCCEEDED(Put_All_WithValidation(stream , tracker));
+	Debug::Log("Creating stream wrapper for tracking.\n");
+	StreamWrapperWithTracking* wrappedStream = new StreamWrapperWithTracking(stream);
+	SavePositionTracker tracker(wrappedStream, "SAVE");
+
+	Debug::Log("Calling Put_All_Pointers().\n");
+
+	bool result = SUCCEEDED(Put_All_Pointers_WithValidation(wrappedStream, tracker));
+
+	wrappedStream->Release();
 
 	Debug::Log("Unlinking content stream from compressor.\n");
 	hr = linkstream->Unlink_Stream(nullptr);

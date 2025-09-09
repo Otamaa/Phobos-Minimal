@@ -86,10 +86,6 @@ class WaveExtContainer final : public Container<WaveExtData>
 {
 public:
 	static WaveExtContainer Instance;
-	static void Clear()
-	{
-		Array.clear();
-	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

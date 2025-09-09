@@ -14,6 +14,11 @@
 UnitExtContainer UnitExtContainer::Instance;
 std::vector<UnitExtData*> Container<UnitExtData>::Array;
 
+void Container<UnitExtData>::Clear()
+{
+	Array.clear();
+}
+
 bool UnitExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
 	Clear();
@@ -36,6 +41,7 @@ bool UnitExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "UnitExtData")
 		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
 		newPtr->LoadFromStream(Stm);
+		Debug::Log("Reading (%s)UnitExtData[%d] %x \n", newPtr->GetAttachedObjectName(), i, (uintptr_t)oldPtr);
 		Array.push_back(newPtr);
 	}
 
@@ -46,11 +52,10 @@ bool UnitExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
 	Stm.Save(Array.size());
 
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
+	for (size_t i = 0; i < Array.size(); ++i) {
+		Stm.Save((uintptr_t)Array[i]);
+		Debug::Log("Writing (%s)UnitExtData[%d] %x \n", Array[i]->GetAttachedObjectName() , i,(uintptr_t)Array[i]);
+		Array[i]->SaveToStream(Stm);
 	}
 
 	return true;

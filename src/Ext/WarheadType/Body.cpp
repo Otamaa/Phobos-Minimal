@@ -2226,51 +2226,27 @@ std::vector<WarheadTypeExtData*> Container<WarheadTypeExtData>::Array;
 
 bool WarheadTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
+	auto ret = LoadGlobalArrayData(Stm);
 
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new WarheadTypeExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "WarheadTypeExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Array.push_back(newPtr);
-	}
-
-	return Stm
+	ret &= Stm
 		.Process(WarheadTypeExtData::IonBlastExt)
 		.Success();
+
+	return ret;
 }
 
 bool WarheadTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
+	auto ret = SaveGlobalArrayData(Stm);
 
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
-
-	return Stm
+	ret &=  Stm
 		.Process(WarheadTypeExtData::IonBlastExt)
 		.Success();
+
+	return ret;
 }
 
-void WarheadTypeExtContainer::Clear()
+void Container<WarheadTypeExtData>::Clear()
 {
 	Array.clear();
 	WarheadTypeExtData::IonBlastExt.clear();

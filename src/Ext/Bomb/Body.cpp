@@ -21,46 +21,19 @@ void BombExtData::Serialize(T& Stm) {
 BombExtContainer BombExtContainer::Instance;
 std::vector<BombExtData*>  Container<BombExtData>::Array;
 
+void Container<BombExtData>::Clear()
+{
+	Array.clear();
+}
+
 bool BombExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
-
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new BombExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "BombExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Array.push_back(newPtr);
-	}
-
-	return true;
+	return LoadGlobalArrayData(Stm);
 }
 
 bool BombExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
-
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
-
-	return true;
+	return SaveGlobalArrayData(Stm);
 }
 
 // =============================

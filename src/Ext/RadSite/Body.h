@@ -94,11 +94,6 @@ class RadSiteExtContainer final : public Container<RadSiteExtData>
 public:
 	static RadSiteExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

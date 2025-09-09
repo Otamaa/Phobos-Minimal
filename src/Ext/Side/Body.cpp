@@ -523,49 +523,32 @@ void SideExtData::Serialize(T& Stm)
 SideExtContainer SideExtContainer::Instance;
 std::vector<SideExtData*> Container<SideExtData>::Array;
 
+void Container<SideExtData>::Clear()
+{
+	Array.clear();
+}
+
 bool SideExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
+	auto ret = LoadGlobalArrayData(Stm);
 
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
+	ret &= Stm
+		.Process(SideExtData::CurrentLoadTextColor)
+		.Success();
 
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i) {
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new SideExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "SideExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Array.push_back(newPtr);
-	}
-
-	auto ret = Stm
-	.Process(SideExtData::CurrentLoadTextColor)
-	.Success();
 	return ret;
 }
 
 bool SideExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
+	auto ret = SaveGlobalArrayData(Stm);
 
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
+		ret &=  Stm
+		.Process(SideExtData::CurrentLoadTextColor)
+		.Success();
 
-	return Stm
-	.Process(SideExtData::CurrentLoadTextColor)
-	.Success();
+	return ret;
+
 }
 
 // =============================

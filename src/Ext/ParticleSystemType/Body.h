@@ -70,10 +70,6 @@ class ParticleSystemTypeExtContainer final : public Container<ParticleSystemType
 {
 public:
 	static ParticleSystemTypeExtContainer Instance;
-	static void Clear()
-	{
-		Array.clear();
-	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

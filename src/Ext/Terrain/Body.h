@@ -94,11 +94,6 @@ class TerrainExtContainer final : public Container<TerrainExtData>
 public:
 	static TerrainExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

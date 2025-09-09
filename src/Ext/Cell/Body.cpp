@@ -266,47 +266,22 @@ void CellExtData::Serialize(T& Stm) {
 
 // =============================
 // container
+
 CellExtContainer CellExtContainer::Instance;
 std::vector<CellExtData*> Container<CellExtData>::Array;
+void Container<CellExtData>::Clear()
+{
+	Array.clear();
+}
 
 bool CellExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
-
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i) {
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new CellExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "CellExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Array.push_back(newPtr);
-	}
-
-	return true;
+	return LoadGlobalArrayData(Stm);
 }
 
 bool CellExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
-
-	for (auto& item : Array) {
-		// write old pointer
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
-
-	return true;
+	return SaveGlobalArrayData(Stm);
 }
 
 // =============================

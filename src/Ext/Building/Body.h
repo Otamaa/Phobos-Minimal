@@ -158,11 +158,6 @@ class BuildingExtContainer final : public Container<BuildingExtData>
 public:
 	static BuildingExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

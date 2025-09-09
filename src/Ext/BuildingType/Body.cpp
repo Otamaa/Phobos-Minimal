@@ -2409,6 +2409,12 @@ void BuildingTypeExtData::Serialize(T& Stm)
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
 std::vector<BuildingTypeExtData*> Container<BuildingTypeExtData>::Array;
 
+void Container<BuildingTypeExtData>::Clear()
+{
+	Array.clear();
+	BuildingTypeExtData::trenchKinds.clear();
+}
+
 // =============================
 // container hooks
 
@@ -2439,51 +2445,22 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E45D4, FakeBuildingTypeClass::_ReadFromINI)
 
 bool BuildingTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
-
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-
-		auto newPtr = new BuildingTypeExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "BuildingTypeExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-
-		//Debug::Log("Reading (%s)BuildingTypeExtData[%d] %x \n", newPtr->GetAttachedObjectName(), i, (uintptr_t)oldPtr);
-
-		Array.push_back(newPtr);
-	}
-
-	return Stm
+	auto ret = LoadGlobalArrayData(Stm);
+	ret &= Stm
 		.Process(BuildingTypeExtData::trenchKinds)
 		.Success()
 		;
+
+	return ret;
 }
 
 bool BuildingTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
-
-	for (size_t i = 0; i < Array.size(); ++i) {
-		Stm.Save((uintptr_t)Array[i]);
-		//Debug::Log("Writing (%s)BuildingTypeExtData[%d] %x \n", Array[i]->GetAttachedObjectName() , i,(uintptr_t)Array[i]);
-		Array[i]->SaveToStream(Stm);
-	}
-
-	return Stm
+	auto ret =  SaveGlobalArrayData(Stm);
+	ret &= Stm
 		.Process(BuildingTypeExtData::trenchKinds)
 		.Success()
 		;
+
+	return ret;
 }

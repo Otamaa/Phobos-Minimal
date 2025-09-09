@@ -107,11 +107,6 @@ class SuperExtContainer final : public Container<SuperExtData>
 public:
 	static SuperExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

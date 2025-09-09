@@ -138,7 +138,6 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-	static void Clear();
 };
 
 class NOVTABLE FakeTiberiumClass : public TiberiumClass

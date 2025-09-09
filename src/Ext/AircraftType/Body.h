@@ -58,11 +58,6 @@ class AircraftTypeExtContainer final : public Container<AircraftTypeExtData>
 public:
 	static AircraftTypeExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

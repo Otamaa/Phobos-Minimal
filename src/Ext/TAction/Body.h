@@ -162,6 +162,10 @@ public:
 	ACTION_FUNC(AllAssignMission);
 	ACTION_FUNC(MakeAllyOneWay);
 	ACTION_FUNC(MakeEnemyOneWay);
+
+	ACTION_FUNC(CreateBuildingAt);
+	ACTION_FUNC(ChangeHouse);
+	ACTION_FUNC(AllChangeHouse);
 #undef ACTION_FUNC
 
 	static PhobosMap<int, std::vector<TriggerClass*>> RandomTriggerPool;

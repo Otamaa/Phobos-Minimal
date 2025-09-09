@@ -733,7 +733,14 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = LoadObjectVector(stream, *WaveClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	// Special systems (Note: VeinholeMonster and RadarEvent loads are missing in original - handled elsewhere)
+	tracker.StartOperation("VeinholeMonsterClass::LoadVector");
+	success = VeinholeMonsterClass::LoadVector(stream);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
+	tracker.StartOperation("RadarEventClass::LoadVector");
+	success = RadarEventClass::LoadVector(stream);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
 	tracker.StartOperation("LoadObjectVector(CaptureManagerClass::Array)");
 	hr = LoadObjectVector(stream, *CaptureManagerClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -1332,10 +1339,6 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 		return false;
 	}
 
-	Debug::Log("Creating stream wrapper for tracking.\n");
-	StreamWrapperWithTracking* wrappedDocFile = new StreamWrapperWithTracking(docfile);
-	LoadPositionTracker tracker(wrappedDocFile, "LOAD");
-
 	Debug::Log("Linking content stream to decompressor.\n");
 	IUnknown* pUnknown = nullptr;
 	ATL::CComPtr<ILinkStream> linkstream;
@@ -1348,7 +1351,7 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 		pUnknown->Release();
 	}
 
-	hr = linkstream->Link_Stream(wrappedDocFile);
+	hr = linkstream->Link_Stream(docfile);
 	if (FAILED(hr)) {
 		Debug::FatalError("Failed to link stream to decompressor.\n");
 		return false;
@@ -1356,14 +1359,20 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 
 	ATL::CComPtr<IStream> stream;
 	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
+	Debug::Log("Creating stream wrapper for tracking.\n");
 
-	Debug::Log("Calling Vinifera_Get_All().\n");
+	StreamWrapperWithTracking* wrappedStream = new StreamWrapperWithTracking(stream);
+	LoadPositionTracker tracker(wrappedStream, "LOAD");
 
-	if (FAILED(Decode_All_Pointers_WithValidation(stream , tracker))) {
+	Debug::Log("Calling Decode_All_Pointers().\n");
+
+	if (FAILED(Decode_All_Pointers_WithValidation(wrappedStream, tracker))) {
+		wrappedStream->Release();
 		Debug::FatalErrorAndExit("Error loading save game \"%s\"!\n", file_name);
 		return false;
 	}
 
+	wrappedStream->Release();
 	Debug::Log("Unlinking content stream from decompressor.\n");
 	linkstream->Unlink_Stream(nullptr);
 

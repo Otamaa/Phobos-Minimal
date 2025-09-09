@@ -4,46 +4,20 @@
 std::vector<AircraftTypeExtData*> Container<AircraftTypeExtData>::Array;
 AircraftTypeExtContainer AircraftTypeExtContainer::Instance;
 
+void Container<AircraftTypeExtData>::Clear()
+{
+	Array.clear();
+}
+
+
 bool AircraftTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
-
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new AircraftTypeExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "AircraftTypeExtContainer")
-			ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-			newPtr->LoadFromStream(Stm);
-			Array.push_back(newPtr);
-	}
-
-	return true;
+	return LoadGlobalArrayData(Stm);
 }
 
 bool AircraftTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
-
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
-
-	return true;
+	return SaveGlobalArrayData(Stm);
 }
 
 ASMJIT_PATCH(0x41C91F,AircraftTypeClass_CTOR, 0x5)

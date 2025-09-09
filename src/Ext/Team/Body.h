@@ -124,10 +124,6 @@ class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
 	static TeamExtContainer Instance;
-	static void Clear()
-	{
-		Array.clear();
-	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

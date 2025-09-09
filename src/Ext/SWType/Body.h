@@ -860,9 +860,6 @@ public:
 	static void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-	static void Clear();
-
-
 };
 
 class NOVTABLE FakeSuperWeaponTypeClass : public SuperWeaponTypeClass

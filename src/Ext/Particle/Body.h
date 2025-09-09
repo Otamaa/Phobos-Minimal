@@ -72,11 +72,6 @@ class ParticleExtContainer final : public Container<ParticleExtData>
 public:
 	static ParticleExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

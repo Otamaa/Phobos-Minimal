@@ -47,11 +47,6 @@ class UnitExtContainer final : public Container<UnitExtData>
 public:
 	static UnitExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

@@ -69,11 +69,6 @@ class InfantryExtContainer final : public Container<InfantryExtData>
 public:
 	static InfantryExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 

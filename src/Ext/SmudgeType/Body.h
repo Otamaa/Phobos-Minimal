@@ -59,11 +59,6 @@ class SmudgeTypeExtContainer final : public Container<SmudgeTypeExtData>
 public:
 	static SmudgeTypeExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter & Stm);
 
