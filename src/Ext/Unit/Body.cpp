@@ -21,44 +21,12 @@ void Container<UnitExtData>::Clear()
 
 bool UnitExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
-
-	size_t Count = 0;
-	if (!Stm.Load(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new UnitExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "UnitExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Debug::Log("Reading (%s)UnitExtData[%d] %x \n", newPtr->GetAttachedObjectName(), i, (uintptr_t)oldPtr);
-		Array.push_back(newPtr);
-	}
-
-	return true;
+	return LoadGlobalArrayData(Stm);
 }
 
 bool UnitExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
-
-	for (size_t i = 0; i < Array.size(); ++i) {
-		Stm.Save((uintptr_t)Array[i]);
-		Debug::Log("Writing (%s)UnitExtData[%d] %x \n", Array[i]->GetAttachedObjectName() , i,(uintptr_t)Array[i]);
-		Array[i]->SaveToStream(Stm);
-	}
-
-	return true;
+	return SaveGlobalArrayData(Stm);
 }
 
 bool UnitExtContainer::HasDeployingAnim(UnitTypeClass* pUnitType) {

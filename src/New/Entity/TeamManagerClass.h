@@ -23,7 +23,7 @@ public:
 
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{
-		Stm.Save(Array.size());
+		Stm.Process(Array.size());
 
 		for (auto& item : Array) {
 			item.Save(Stm);
@@ -36,7 +36,7 @@ public:
 	{
 		Clear();
 
-		size_t Count = 0;
+		int Count = 0;
 		if (!Stm.Load(Count))
 			return false;
 

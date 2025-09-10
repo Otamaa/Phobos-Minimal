@@ -7668,12 +7668,7 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 	 return 0x0;
  }
 
- //ASMJIT_PATCH(0x4101E4, AbstractClass_NoInt_cleaupPtr, 0x7)
- //{
-	// GET(AbstractClass*, pThis, EAX);
-	// pThis->unknown_18 = 0u;
-	// return 0x0;
- //}
+
 
  //ASMJIT_PATCH(0x7399EE, UnitClass_TryToDeploy_BrokenEBP, 0x5)
  //{
@@ -7689,6 +7684,8 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
  //}
 #include <Utilities/Swizzle.h>
 
+DWORD LastKnown;
+
  ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
  {
 	 GET(AbstractClass*, pThis, ESI);
@@ -7696,9 +7693,54 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 
 	 //immedietely update the extension pointer value and the extension AttachedToObject itself !
 	 ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
+	 LastKnown = pThis->unknown_18;
 	 return 0x0;
  }
 
+ //this bullshit
+ ASMJIT_PATCH(0x4101E4, AbstractClass_NoInt_cleaupPtr, 0x7)
+ {
+	 GET(AbstractClass*, pThis, EAX);
+	 pThis->unknown_18 = std::exchange(LastKnown, 0u);
+	 return 0x0;
+ }
+
+ ASMJIT_PATCH(0x410182 , AbstractClass_NoInt_cleaupPtr_B , 0x6){
+	 GET(AbstractClass*, pThis, EAX);
+	 pThis->unknown_18 = std::exchange(LastKnown, 0u);
+	 pThis->RefCount = 0l;
+	 return 0x410188;
+ }
+
+ //ASMJIT_PATCH(0x5F3B5D, ObjectClass_Load_checkExt, 0x5)
+ //{
+	// GET(ObjectClass*, pThis, ESI);
+	// return 0x0;
+ //}
+
+ //ASMJIT_PATCH(0x65A7F7, RadioClass_Load_checkExt, 0x5)
+ //{
+	// GET(RadioClass*, pThis, ESI);
+	// return 0x0;
+ //}
+
+ //ASMJIT_PATCH(0x6F44E9, TechnoClass_Load_checkExt, 0x5)
+ //{
+	// GET(TechnoClass*, pThis, ESI);
+	// return 0x0;
+ //}
+
+ //ASMJIT_PATCH(0x4D3568, FootClass_Load_checkExt, 0x6)
+ //{
+	// GET(FootClass*, pThis, ESI);
+	// return 0x0;
+ //}
+
+ //ASMJIT_PATCH(0x744527, UnitClass_Load_checkExt, 0x6)
+ //{
+	// GET(UnitClass*, pThis, ESI);
+	// return 0x0;
+ //}
  //ASMJIT_PATCH(0x410361, AbstractClass_Save_LogValue, 0x5)
  //{
 	// GET(AbstractClass*, pThis, ESI);

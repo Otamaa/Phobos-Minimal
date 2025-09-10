@@ -156,6 +156,33 @@ namespace Savegame
 
 #pragma region Spe
 
+	template <typename T, size_t N>
+	struct Savegame::PhobosStreamObject<T[N]>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, T(&Value)[N], bool RegisterForChange) const
+		{
+			// Read each element of the array
+			for (size_t i = 0; i < N; ++i) {
+				if (!Savegame::ReadPhobosStream(Stm, Value[i], RegisterForChange)) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const T(&Value)[N]) const
+		{
+			// Write each element of the array
+			for (size_t i = 0; i < N; ++i) {
+				if (!Savegame::WritePhobosStream(Stm, Value[i])) {
+					return false;
+				}
+			}
+			return true;
+		}
+	};
+
 	template <typename T>
 	struct Savegame::PhobosStreamObject<MinMaxValue<T>>
 	{
@@ -298,6 +325,26 @@ namespace Savegame
 	};
 
 	template <>
+	struct Savegame::PhobosStreamObject<bool>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, bool& Value, bool RegisterForChange) const
+		{
+			int rad = 0;
+			if (!Stm.Load(rad))
+				return false;
+			Value = (rad != 0);  // Convert int to bool: 0=false, non-zero=true
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const bool& Value) const
+		{
+			if (!Savegame::WritePhobosStream(Stm, (int)Value))  // true=1, false=0
+				return false;
+			return true;
+		}
+	};
+
+	template <>
 	struct Savegame::PhobosStreamObject<CellStruct>
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, CellStruct& Value, bool RegisterForChange) const
@@ -371,20 +418,88 @@ namespace Savegame
 	};
 
 	template <>
+	struct Savegame::PhobosStreamObject<size_t>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, size_t& Value, bool RegisterForChange) const
+		{
+			int rad = 0;
+			if (!Stm.Load(rad))
+				return false;
+
+			Value = rad;
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const size_t& Value) const
+		{
+			if (!Savegame::WritePhobosStream(Stm, (int)Value))
+				return false;
+
+			return true;
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<unsigned short>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, unsigned short& Value, bool RegisterForChange) const
+		{
+			int rad = 0;
+			if (!Stm.Load(rad))
+				return false;
+
+			Value = rad;
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const unsigned short& Value) const
+		{
+			if (!Savegame::WritePhobosStream(Stm, (int)Value))
+				return false;
+
+			return true;
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<short>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, short& Value, bool RegisterForChange) const
+		{
+			int rad = 0;
+			if (!Stm.Load(rad))
+				return false;
+
+			Value = rad;
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const short& Value) const
+		{
+			if (!Savegame::WritePhobosStream(Stm, (int)Value))
+				return false;
+
+			return true;
+		}
+	};
+
+	template <>
 	struct Savegame::PhobosStreamObject<DirStruct>
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, DirStruct& Value, bool RegisterForChange) const
 		{
-			if (!Stm.Load(Value.Raw))
+			int rad = 0;
+			if (!Stm.Load(rad))
 				return false;
 
+			Value.Raw = rad;
 			// Note: Pad is not serialized as it appears to be just alignment padding
 			return true;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const DirStruct& Value) const
 		{
-			if (!Savegame::WritePhobosStream(Stm, Value.Raw))
+			if (!Savegame::WritePhobosStream(Stm, (int)Value.Raw))
 				return false;
 
 			// Note: Pad is not serialized as it appears to be just alignment padding
@@ -861,7 +976,7 @@ namespace Savegame
 			//size_t streamOffset = stream->Offset();
 			//GameDebugLog::Log("[std::string] READ start at offset %zu\n", streamOffset);
 
-			size_t size = 0;
+			int size = 0;
 			if (!Stm.Load(size))
 			{
 				//GameDebugLog::Log("[std::string] CRITICAL: Failed to load size at offset %zu\n", streamOffset);
@@ -880,7 +995,7 @@ namespace Savegame
 				return false;
 			}
 
-			if ((int)size == -1)
+			if (size == -1)
 			{
 				GameDebugLog::Log("[std::string] CRITICAL: size is -1! Stream corruption detected\n");
 				__debugbreak();
@@ -894,7 +1009,7 @@ namespace Savegame
 			}
 
 			std::vector<char> buffer(size);
-			if (!Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer.data()), size))
+			if (!Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer.data()), (size_t)size))
 			{
 				GameDebugLog::Log("[std::string] CRITICAL: Failed to read %zu bytes of string data\n", size);
 				return false;
@@ -917,7 +1032,7 @@ namespace Savegame
 			//	streamSizeBefore, Value.c_str(), Value.size());
 
 			// Store size in local variable to prevent optimization issues
-			size_t stringSize = Value.size();
+			const int stringSize = Value.size();
 
 			//GameDebugLog::Log("[std::string] About to save size %zu\n", stringSize);
 
@@ -955,7 +1070,7 @@ namespace Savegame
 			// Write string data with validation
 			const char* dataPtr = Value.c_str();
 
-			if (!Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(dataPtr), stringSize))
+			if (!Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(dataPtr), (size_t)stringSize))
 			{
 				//GameDebugLog::Log("[std::string] CRITICAL: Failed to write %zu bytes of string data\n", stringSize);
 				return false;
@@ -1008,7 +1123,7 @@ namespace Savegame
 		bool ReadFromStream(PhobosStreamReader& Stm, std::wstring& Value, bool RegisterForChange) const
 		{
 			Value.clear();
-			size_t size = 0;
+			int size = 0;
 
 			if (Stm.Load(size)) {
 				if (!size) {
@@ -1028,7 +1143,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::wstring& Value) const
 		{
-			Stm.Save(Value.size());
+			Stm.Save((int)Value.size());
 
 			if (Value.empty())
 				return true;
@@ -1386,7 +1501,7 @@ namespace Savegame
 		{
 			Value.clear();
 
-			size_t Count = 0;
+			int Count = 0;
 
 			if (!Stm.Load(Count))
 				return false;
@@ -1416,7 +1531,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::vector<T, Alloc>& Value) const
 		{
-			Stm.Save(Value.size());
+			Stm.Save((int)Value.size());
 
 			for (auto ix = 0u; ix < Value.size(); ++ix) {
 				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
@@ -1460,7 +1575,7 @@ namespace Savegame
 		{
 			Value.clear();
 
-			size_t Count = 0;
+			int Count = 0;
 			if (!Stm.Load(Count))
 				return false;
 
@@ -1478,7 +1593,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::map<TKey, TValue>& Value) const
 		{
-			size_t const nSize = Value.size();
+			int const nSize = Value.size();
 			Stm.Save(nSize);
 
 			if (nSize) {
@@ -1501,7 +1616,7 @@ namespace Savegame
 		{
 			Value.clear();
 
-			size_t Count = 0;
+			int Count = 0;
 			if (!Stm.Load(Count)) {
 				return false;
 			}
@@ -1536,7 +1651,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::set<T>& Value) const
 		{
-			Stm.Save(Value.size());
+			Stm.Save((int)Value.size());
 			//Debug::LogInfo("Saving std::set with(%s) size %d", typeid(T).name(), Value.size());
 
 			if(Value.empty()){
@@ -1558,7 +1673,7 @@ namespace Savegame
 		{
 			Value.clear();
 
-			size_t Count = 0;
+			int Count = 0;
 			if (!Stm.Load(Count)) {
 				return false;
 			}
@@ -1576,7 +1691,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::list<T>& Value) const
 		{
-			Stm.Save(Value.size());
+			Stm.Save((int)Value.size());
 
 			if(!Value.empty()){
 				for (const auto& item : Value) {
@@ -1596,7 +1711,7 @@ namespace Savegame
 		{
 			Value.clear();
 
-			size_t count = 0;
+			int count = 0;
 
 			if (!Stm.Load(count))
 				return false;
@@ -1617,7 +1732,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::deque<T>& Value) const
 		{
-			Stm.Save(Value.size());
+			Stm.Save((int)Value.size());
 
 			for (auto ix = 0u; ix < Value.size(); ++ix) {
 				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
@@ -1633,14 +1748,14 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, std::queue<T>& Value, bool RegisterForChange) const
 		{
-			size_t nSize = 0;
+			int nSize = 0;
 			if (!Stm.Load(nSize))
 				return false;
 
 			if (!nSize)
 				return true;
 
-			for (size_t ix = 0u; ix < nSize; ++ix)
+			for (int ix = 0u; ix < nSize; ++ix)
 			{
 				T buffer { };
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
@@ -1654,7 +1769,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::queue<T>& Value) const
 		{
-			Stm.Save(Value.size());
+			Stm.Save((int)Value.size());
 
 			if (Value.size() > 0)
 			{
@@ -1679,7 +1794,7 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, std::priority_queue<T>& Value, bool RegisterForChange) const
 		{
-			size_t nSize = 0;
+			int nSize = 0;
 			if (!Stm.Load(nSize))
 				return false;
 
@@ -1687,7 +1802,7 @@ namespace Savegame
 				return true;
 
 
-			for (size_t ix = 0u; ix < nSize; ++ix)
+			for (int ix = 0u; ix < nSize; ++ix)
 			{
 				T buffer { };
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
@@ -1701,7 +1816,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::priority_queue<T>& Value) const
 		{
-			Stm.Save(Value.size());
+			Stm.Save((int)Value.size());
 
 			if (Value.size() > 0)
 			{
@@ -1755,7 +1870,7 @@ namespace Savegame
 		{
 			Value.clear();
 
-			size_t Count = 0;
+			int Count = 0;
 			if (!Stm.Load(Count)) {
 				return false;
 			}
@@ -1778,7 +1893,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::unordered_map<TKey, TValue>& Value) const
 		{
-			size_t const nSize = Value.size();
+			int const nSize = Value.size();
 			Stm.Save(nSize);
 
 			if (!nSize)
@@ -1804,7 +1919,7 @@ namespace Savegame
 		{
 			Value.clear();
 
-			size_t Count = 0;
+			int Count = 0;
 			if (!Stm.Load(Count)) {
 				return false;
 			}
@@ -1832,7 +1947,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::multimap<TKey, TValue, Cmp>& Value) const
 		{
-			Stm.Save(Value.size());
+			Stm.Save((int)Value.size());
 
 			if(!Value.empty()){
 				for (const auto&[key , val] : Value)

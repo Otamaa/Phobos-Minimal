@@ -33,10 +33,10 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 		auto currentExtension = (AbstractExtended*)it->second;
 
 		// Fix bidirectional pointers
-		*ptrToFix = currentExtension;
 		Debug::Log("ExtensionSwizzleManager::SwizzleExtensionPointer Fixing Up Extension Pointer of %s from %x to %x \n"
-			, currentExtension->GetAttachedObjectName(), *ptrToFix, currentExtension);
+	,	currentExtension->GetAttachedObjectName(), *ptrToFix, currentExtension);
 		currentExtension->SetAttached(OwnerObj);
+		*ptrToFix = currentExtension;
 		it->second = 0u;
 		return true;
 	}

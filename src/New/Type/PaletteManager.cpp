@@ -274,7 +274,7 @@ bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 {
 	const bool hasPalette = this->Palette != nullptr;
 
-	Stm.Save(hasPalette);
+	Stm.Process(hasPalette);
 	Stm.Save(this->Mode);
 
 	if(hasPalette){

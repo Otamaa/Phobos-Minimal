@@ -1898,7 +1898,7 @@ bool Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 template <typename T>
 bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
 {
-	if (!Stm.Save(this->HasValue))
+	if (!Stm.Process(this->HasValue))
 		return false;
 
 	if (this->HasValue) {

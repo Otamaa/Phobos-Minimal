@@ -200,17 +200,17 @@ public:
 	{
 		Clear();
 
-		size_t Count = 0;
+		int Count = 0;
 		if (!Stm.Load(Count))
 			return false;
 
 		Array.reserve(Count);
 
-		for (size_t i = 0; i < Count; ++i)
+		for (int i = 0; i < Count; ++i)
 		{
-			void* oldPtr = nullptr;
+			long oldPtr = 0l;
 
-			if (!Stm.Load(oldPtr))
+			if (!Stm.Load((long)oldPtr))
 				return false;
 
 			decltype(Name) name;
@@ -218,7 +218,7 @@ public:
 				return false;
 
 			auto newPtr = FindOrAllocate(name);
-			PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, PhobosCRT::GetTypeIDName<T>().c_str())
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, PhobosCRT::GetTypeIDName<T>().c_str())
 			newPtr->LoadFromStream(Stm);
 		}
 
@@ -227,12 +227,12 @@ public:
 
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{
-		Stm.Save(Array.size());
+		Stm.Save((int)Array.size());
 
 		for (auto& item : Array) {
-			
-			Stm.Save(item.get());
-			Stm.Save(item->Name);
+
+			Stm.Save((long)item.get());
+			Stm.Process(item->Name);
 			item->SaveToStream(Stm);
 		}
 

@@ -219,13 +219,13 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::uniqu
 void PhobosTrajectoryType::ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectoryType>& pType)
 {
 	const bool Exist = pType.get();
-	Stm.Save(Exist);
+	Stm.Process(Exist);
 
 	if (Exist) {
 		Stm.Process(pType->Flag, false);
 		//write the pointer value
-		if(Savegame::WritePhobosStream(Stm, pType.get()))
-			pType->Save(Stm);
+		Stm.Save(pType.get());
+		pType->Save(Stm);
 	}
 }
 
@@ -391,7 +391,7 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_pt
 void PhobosTrajectory::ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectory>& pTraj)
 {
 	const bool Exist = pTraj.get();
-	Stm.Save(Exist);
+	Stm.Process(Exist);
 	if (Exist)
 	{
 		Stm.Process(pTraj->Flag);

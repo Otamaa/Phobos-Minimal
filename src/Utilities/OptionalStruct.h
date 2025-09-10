@@ -87,7 +87,7 @@ struct OptionalStruct
 			return true;
 		else
 		{
-			Stm.Save(this->HasValue);
+			Stm.Process(this->HasValue);
 			if (this->HasValue)
 			{
 				Stm.Process(this->Value);

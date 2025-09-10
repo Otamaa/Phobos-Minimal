@@ -70,11 +70,6 @@ class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
 public:
 	static OverlayTypeExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
