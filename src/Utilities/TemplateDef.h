@@ -407,24 +407,17 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto const pValue = _strlwr(parser.value());
+			std::string flag =  _strlwr(parser.value());
 
-			if (GeneralUtils::IsValidString(pValue))
-			{
-				std::string flag = pValue;
-
-				if (flag.find(".shp") == std::string::npos)
-				{
+			if (flag.size() < 4 || !std::equal(flag.end() - 4, flag.end(), ".shp", []
+										(char input, char expected) { return input == expected; }))
 					flag += ".shp";
-				}
 
-				GeneralUtils::ApplyTheaterExtToString(flag);
-
-				if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str()))
-				{
-					value = pImage;
-					return true;
-				}
+			if (auto const pImage = FileSystem::LoadSHPFile(flag.c_str())) {
+				value = pImage;
+				return true;
+			} else {
+					Debug::Log("Failed to find file %s referenced by [%s]%s=%s\n", flag.c_str(), pSection, pKey, parser.value());
 			}
 		}
 
@@ -1885,7 +1878,7 @@ template <typename T>
 bool Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->Reset();
-	if (!Stm.Load(this->HasValue))
+	if (!Stm.Process(this->HasValue))
 		return false;
 
 	if (this->HasValue) {

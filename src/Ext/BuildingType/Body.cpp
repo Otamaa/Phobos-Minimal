@@ -826,24 +826,15 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	if (!MapClass::Instance->IsWithinUsableArea(pCell->GetCoords()))
 		return;
 
-	SHPStruct* Selected = nullptr;
+	SHPStruct* Selected = pTypeExt->PlacementPreview_Shape.GetSHP();
 	int nDecidedFrame = 0;
 
-	if (!pTypeExt->PlacementPreview_Shape.isset())
-	{
-		if (const auto pBuildup = pType->LoadBuildup())
-		{
+	if (!Selected) {
+		if (const auto pBuildup = pType->LoadBuildup()) {
 			nDecidedFrame = ((pBuildup->Frames / 2) - 1);
-			Selected = pBuildup;
-		}
-		else
-		{
+			Selected = pBuildup; } else {
 			Selected = pType->GetImage();
 		}
-	}
-	else
-	{
-		Selected = pTypeExt->PlacementPreview_Shape.Get(nullptr);
 	}
 
 	if (!Selected)

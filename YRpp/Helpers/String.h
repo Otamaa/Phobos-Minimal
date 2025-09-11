@@ -92,6 +92,10 @@ struct FixedString {
 		return this->chars;
 	}
 
+	COMPILETIMEEVAL const T* c_str() const{
+		return ((*this).data());
+	}
+
 private:
 	data_type chars;
 };

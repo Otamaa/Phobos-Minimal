@@ -198,7 +198,6 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 	return S_OK;
 }
 
-#ifndef TRACK
 #include <Utilities/StreamUtils.h>
 
 HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& tracker)
@@ -217,6 +216,60 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 
 	tracker.StartOperation("Process_Global_Save<CursorTypeClass>");
 	success = Process_Global_Save<CursorTypeClass>(pStm);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
+	tracker.StartOperation("ScenarioClass::Instance->Save");
+	hr = ScenarioClass::Instance->Save(pStm);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+
+	tracker.StartOperation("Process_Global_Save<SideExtContainer>");
+	success = Process_Global_Save<SideExtContainer>(pStm);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
+	tracker.StartOperation("SaveObjectVector(SideClass::Array)");
+	hr = SaveObjectVector(pStm, *SideClass::Array);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+
+	tracker.StartOperation("Process_Global_Save<TheaterTypeClass>");
+	success = Process_Global_Save<TheaterTypeClass>(pStm);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
+	tracker.StartOperation("EvadeClass::Instance->Save");
+	hr = EvadeClass::Instance->Save(pStm);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+
+	tracker.StartOperation("RulesClass::Instance->Save");
+	hr = RulesClass::Instance->Save(pStm);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+
+	tracker.StartOperation("Process_Global_Save<CellExtContainer>");
+	success = Process_Global_Save<CellExtContainer>(pStm);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
+	tracker.StartOperation("Process_Global_Save<MouseClassExt>");
+	success = Process_Global_Save<MouseClassExt>(pStm);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
+	tracker.StartOperation("MouseClass::Instance->Save");
+	hr = MouseClass::Instance->Save(pStm);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+
+	// Game misc data
+	tracker.StartOperation("Game::Save_Misc_Values");
+	hr = Game::Save_Misc_Values(pStm);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+
+	// Logic and tactical systems
+	tracker.StartOperation("LogicClass::Instance->Save");
+	hr = LogicClass::Instance->Save(pStm);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+
+	tracker.StartOperation("OleSaveToStream(TacticalClass::Instance())");
+	hr = OleSaveToStream(TacticalClass::Instance(), pStm);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+
+	tracker.StartOperation("Process_Global_Save_SingleInstanceObject<TacticalExtData>");
+	success = Process_Global_Save_SingleInstanceObject<TacticalExtData>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("Process_Global_Save<DigitalDisplayTypeClass>");
@@ -247,34 +300,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	success = Process_Global_Save<SelectBoxTypeClass>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
 
-	// Core scenario
-	tracker.StartOperation("ScenarioClass::Instance->Save");
-	hr = ScenarioClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	// Side system
-	tracker.StartOperation("Process_Global_Save<SideExtContainer>");
-	success = Process_Global_Save<SideExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(SideClass::Array)");
-	hr = SaveObjectVector(pStm, *SideClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Save<TheaterTypeClass>");
-	success = Process_Global_Save<TheaterTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	// Core game rules
-	tracker.StartOperation("EvadeClass::Instance->Save");
-	hr = EvadeClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("RulesClass::Instance->Save");
-	hr = RulesClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	// Animation system
 	tracker.StartOperation("Process_Global_Save<AnimTypeExtContainer>");
 	success = Process_Global_Save<AnimTypeExtContainer>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
@@ -283,41 +308,17 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *AnimTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	// Cell and mouse data
-	tracker.StartOperation("Process_Global_Save<CellExtContainer>");
-	success = Process_Global_Save<CellExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<MouseClassExt>");
-	success = Process_Global_Save<MouseClassExt>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("MouseClass::Instance->Save");
-	hr = MouseClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	// Tube system
 	tracker.StartOperation("SaveObjectVector(TubeClass::Array)");
 	hr = SaveObjectVector(pStm, *TubeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	// Game misc data
-	tracker.StartOperation("Game::Save_Misc_Values");
-	hr = Game::Save_Misc_Values(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	// Logic and tactical systems
-	tracker.StartOperation("LogicClass::Instance->Save");
-	hr = LogicClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("OleSaveToStream(TacticalClass::Instance())");
-	hr = OleSaveToStream(TacticalClass::Instance(), pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Save_SingleInstanceObject<TacticalExtData>");
-	success = Process_Global_Save_SingleInstanceObject<TacticalExtData>(pStm);
+	tracker.StartOperation("Process_Global_Save<TiberiumExtContainer>");
+	success = Process_Global_Save<TiberiumExtContainer>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
+
+	tracker.StartOperation("SaveObjectVector(TiberiumClass::Array)");
+	hr = SaveObjectVector(pStm, *TiberiumClass::Array);
+	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
 	// House system
 	tracker.StartOperation("Process_Global_Save<HouseTypeExtContainer>");
@@ -596,15 +597,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *BuildingLightClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	// Tiberium system
-	tracker.StartOperation("Process_Global_Save<TiberiumExtContainer>");
-	success = Process_Global_Save<TiberiumExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(TiberiumClass::Array)");
-	hr = SaveObjectVector(pStm, *TiberiumClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
 	// EMP system
 	tracker.StartOperation("SaveObjectVector(EMPulseClass::Array)");
 	hr = SaveObjectVector(pStm, *EMPulseClass::Array);
@@ -785,415 +777,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	return hr;
 }
 
-#else
-HRESULT Put_All(LPSTREAM pStm)
-{
-	Debug::Log("About to save the game");
-	HRESULT hr = S_OK;
-
-	if (!Process_Global_Save<Phobos>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<CursorTypeClass>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<DigitalDisplayTypeClass>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<ArmorTypeClass>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<ImmunityTypeClass>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<LaserTrailTypeClass>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<TunnelTypeClass>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<InsigniaTypeClass>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<SelectBoxTypeClass>(pStm))
-		return E_FAIL;
-
-	hr = ScenarioClass::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<SideExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *SideClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<TheaterTypeClass>(pStm))
-		return E_FAIL;
-
-	hr = EvadeClass::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = RulesClass::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<AnimTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *AnimTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<CellExtContainer>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<MouseClassExt>(pStm))
-		return E_FAIL;
-
-	hr = MouseClass::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *TubeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = Game::Save_Misc_Values(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = LogicClass::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = OleSaveToStream(TacticalClass::Instance(), pStm);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save_SingleInstanceObject<TacticalExtData>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<HouseTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *HouseTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<HouseExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *HouseClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<UnitTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *UnitTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<UnitExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *UnitClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<InfantryTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *InfantryTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<InfantryExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *InfantryClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<BuildingTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *BuildingTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<BuildingExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *BuildingClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<AircraftTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *AircraftTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<AircraftExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *AircraftClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<AnimExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *AnimClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *TaskForceClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *TeamTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<TeamExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *TeamClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *ScriptTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *ScriptClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *TagTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *TagClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *TriggerTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *TriggerClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *AITriggerTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *TActionClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<TActionExtData>(pStm))
-		return E_FAIL;
-
-	if (!Process_Global_Save<TEventExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *TEventClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *FactoryClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<VoxelAnimTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *VoxelAnimTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<VoxelAnimExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *VoxelAnimClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<WarheadTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *WarheadTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<WeaponTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *WeaponTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<ParticleTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *ParticleTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<ParticleExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *ParticleClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<ParticleSystemTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *ParticleSystemTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<ParticleSystemExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *ParticleSystemClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<BulletTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *BulletTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<BulletExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *BulletClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *WaypointPathClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<SmudgeTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *SmudgeTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<OverlayTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *OverlayTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *LightSourceClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *BuildingLightClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<TiberiumExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *TiberiumClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *EMPulseClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<SWTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *SuperWeaponTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<SuperExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *SuperClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveSimpleArray(pStm, *SuperClass::ShowTimers);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveSimpleArray(pStm, *BuildingClass::Secrets);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<TerrainTypeExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *TerrainTypeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<TerrainExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *TerrainClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *FoggedObjectClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *AlphaShapeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<WaveExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *WaveClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!VeinholeMonsterClass::SaveVector(pStm))
-		return E_FAIL;
-
-	if (!RadarEventClass::SaveVector(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *CaptureManagerClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *DiskLaserClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *ParasiteClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<TemporalExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *TemporalClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *AirstrikeClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *SpawnManagerClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = SaveObjectVector(pStm, *SlaveManagerClass::Array);
-	if (FAILED(hr)) return hr;
-
-	hr = AircraftTrackerClass::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = Kamikaze::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = BombListClass::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<BombExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *BombClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (!Process_Global_Save<RadSiteExtContainer>(pStm))
-		return E_FAIL;
-
-	hr = SaveObjectVector(pStm, *RadSiteClass::Array);
-	if (FAILED(hr)) return hr;
-
-	if (SessionClass::Instance->GameMode == GameMode::Skirmish) {
-		Debug::Log("Writing Skirmish Session.Options\n");
-		const bool save_GameOptionsType = GameOptionsType::Instance->Save(pStm);
-
-		if (!save_GameOptionsType) {
-			Debug::Log("\t***** FAILED!\n");
-			return E_FAIL;
-		}
-	}
-
-	hr = VocClass::Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = VoxClass::Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = ThemeClass::Instance->Save(pStm);
-	if (FAILED(hr)) return hr;
-
-	hr = Phobos::SaveGameDataAfter(pStm);
-	if (FAILED(hr)) return hr;
-
-	return hr;
-}
-#endif
-
-//bool __fastcall wrap_SaveCoreScenarioData(LPSTREAM pStm) {
-//	return SUCCEEDED(Put_All_WithValidation(pStm));
-//}
-//DEFINE_FUNCTION_JUMP(CALL, 0x67D1AF, wrap_SaveCoreScenarioData)
-
 bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool)
 {
 	WCHAR wide_file_name[PATH_MAX];
@@ -1275,14 +858,12 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
 
 	Debug::Log("Creating stream wrapper for tracking.\n");
-	StreamWrapperWithTracking* wrappedStream = new StreamWrapperWithTracking(stream);
-	SavePositionTracker tracker(wrappedStream, "SAVE");
+	auto wrappedStream = std::make_unique<StreamWrapperWithTracking>(stream);
+	SavePositionTracker tracker(wrappedStream.get(), "SAVE");
 
 	Debug::Log("Calling Put_All_Pointers().\n");
 
-	bool result = SUCCEEDED(Put_All_Pointers_WithValidation(wrappedStream, tracker));
-
-	wrappedStream->Release();
+	bool result = SUCCEEDED(Put_All_Pointers_WithValidation(wrappedStream.get(), tracker));
 
 	Debug::Log("Unlinking content stream from compressor.\n");
 	hr = linkstream->Unlink_Stream(nullptr);

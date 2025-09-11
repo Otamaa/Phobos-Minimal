@@ -38,6 +38,8 @@ struct LauchData
 	bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<LauchData*>(this)->Serialize(Stm); }
 
+protected:
+
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
@@ -66,11 +68,13 @@ struct TunnelData
 	bool Save(PhobosStreamWriter& Stm) const
 	{ return const_cast<TunnelData*>(this)->Serialize(Stm); }
 
+private:
+
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
 		return Stm
-			.Process(Vector, true)
+			.Process(Vector)
 			.Process(MaxCap)
 			.Success()
 			//&& Stm.RegisterChange(this)
@@ -85,6 +89,28 @@ struct PlacingBuildingStruct
 	int Times;
 	CDTimerClass Timer;
 	CellStruct TopLeft;
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<PlacingBuildingStruct*>(this)->Serialize(Stm); }
+
+private:
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(Type)
+			.Process(DrawType)
+			.Process(Times)
+			.Process(Timer)
+			.Process(TopLeft)
+			.Success()
+			//&& Stm.RegisterChange(this)
+			; // announce this type
+	}
 };
 
 //TODO : validate check

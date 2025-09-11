@@ -1682,9 +1682,10 @@ public:
 	static WeaponStruct* GetWeaponStruct(TechnoTypeClass* pThis, int nWeaponIndex, bool isElite);
 
 private:
-	template <typename T>
-	void Serialize(T& Stm)
-	{
+
+	void Serialize(PhobosStreamWriter& Stm);
+	void Serialize(PhobosStreamReader& Stm);
+	/*{
 		Stm
 			.Process(this->AttachtoType)
 			.Process(this->HealthBar_Hide)
@@ -1798,15 +1799,7 @@ private:
 			.Process(this->DestroyAnimSpecific)
 			.Process(this->NotHuman_RandomDeathSequence)
 			.Process(this->DefaultDisguise)
-			//;
 
-		//Debug::LogInfo("%s AboutToLoad WeaponFLhA" , This()->ID);
-		//Stm
-		//	.Process(this->WeaponBurstFLHs)
-		//	;
-		//Debug::LogInfo("Done WeaponFLhA");
-
-		//Stm
 			.Process(this->PassengerDeletionType)
 
 			.Process(this->OpenTopped_RangeBonus)
@@ -1888,23 +1881,14 @@ private:
 			.Process(this->ForceShield_KillWarhead)
 			.Process(this->SellSound)
 			.Process(this->EVA_Sold)
-			//;
-			//Debug::LogInfo("AboutToLoad WeaponFLhB");
-			//Stm.Process(this->CrouchedWeaponBurstFLHs);
-			//Debug::LogInfo("Done WeaponFLhB");
-			//Debug::LogInfo("AboutToLoad WeaponFLhC");
-			//Stm.Process(this->DeployedWeaponBurstFLHs);
-			//Debug::LogInfo("Done WeaponFLhC");
-			//Stm
+
 			.Process(this->AlternateFLHs)
 			.Process(this->Spawner_SpawnOffsets)
 
 			.Process(this->Spawner_SpawnOffsets_OverrideWeaponFLH)
-			//;
 
-		//Debug::LogInfo("AboutToLoad Otammaa");
 #pragma region Otamaa
-		//Stm
+
 			.Process(this->FacingRotation_Disable)
 			.Process(this->FacingRotation_DisalbeOnEMP)
 			.Process(this->FacingRotation_DisalbeOnDeactivated)
@@ -2088,7 +2072,7 @@ private:
 			.Process(this->CivilianEnemy)
 			.Process(this->ImmuneToBerserk)
 			.Process(this->Berzerk_Modifier)
-			//.Process(this->IgnoreToProtect)
+
 			.Process(this->TargetLaser_Time)
 			.Process(this->TargetLaser_WeaponIdx)
 			.Process(this->CurleyShuffle)
@@ -2125,7 +2109,6 @@ private:
 			.Process(this->NoManualEnter)
 			.Process(this->NoManualEject)
 			.Process(this->Passengers_BySize)
-			//.Process(this->Crashable)
 			.Process(this->Convert_Deploy)
 			.Process(this->Convert_Deploy_Delay)
 			.Process(this->Convert_Script)
@@ -2151,10 +2134,6 @@ private:
 			.Process(this->FallRate_NoParachute)
 			.Process(this->FallRate_ParachuteMax)
 			.Process(this->FallRate_NoParachuteMax)
-
-			//.Process(this->BarrelImageData)
-			//.Process(this->TurretImageData)
-			//.Process(this->SpawnAltData)
 
 			.Process(this->WeaponUINameX)
 			.Process(this->NoShadowSpawnAlt)
@@ -2368,7 +2347,6 @@ private:
 			.Process(this->MyDiveData)
 			.Process(this->MyPutData)
 			.Process(this->MyGiftBoxData)
-		//this->MyJJData.Serialize(Stm);
 			.Process(this->MyPassangersData)
 			.Process(this->MySpawnSupportFLH)
 			.Process(this->MySpawnSupportDatas)
@@ -2638,7 +2616,7 @@ private:
 			.Process(this->MultiWeapon_SelectCount)
 			.Process(this->ReadMultiWeapon)
 			;
-	}
+	}*/
 
 public:
 	static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };

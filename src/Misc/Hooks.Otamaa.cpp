@@ -7712,6 +7712,11 @@ DWORD LastKnown;
 	 return 0x410188;
  }
 
+ ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
+ {
+	 GET(AbstractClass*, pThis, EAX);
+	 return 0x0;
+ }
  //ASMJIT_PATCH(0x5F3B5D, ObjectClass_Load_checkExt, 0x5)
  //{
 	// GET(ObjectClass*, pThis, ESI);

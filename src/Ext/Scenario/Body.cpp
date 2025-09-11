@@ -285,6 +285,7 @@ void ScenarioExtData::Serialize(T& Stm)
 		.Process(this->Waypoints)
 		.Process(this->Local_Variables)
 		.Process(this->Global_Variables)
+		.Process(this->TriggerTypePlayerAtXOwners)
 		.Process(this->DefinedAudioWaypoints)
 		.Process(this->ParTitle)
 		.Process(this->ParMessage)
@@ -377,7 +378,7 @@ ASMJIT_PATCH(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 {
 	auto buffer = ScenarioExtData::Instance();
 	// negative 4 for the AttachedToObjectPointer , it doesnot get S/L
-	PhobosByteStream saver(sizeof(GameModeOptionsClass) + (sizeof(ScenarioExtData) - 8u));
+	PhobosByteStream saver((sizeof(ScenarioExtData) - 4u));
 	PhobosStreamWriter writer(saver);
 
 	writer.Save(ScenarioExtData::Canary);

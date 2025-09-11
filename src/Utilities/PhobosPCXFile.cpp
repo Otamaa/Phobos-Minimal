@@ -1,6 +1,6 @@
 #include "PhobosPCXFile.h"
 
-#include "Savegame.h"
+#include "SavegameDef.h"
 #include "Debug.h"
 
 #include <CCINIClass.h>
@@ -79,10 +79,12 @@ bool PhobosPCXFile::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 
 	this->Clear();
-	void* oldPtr;
-	const auto ret = Stm.Load(oldPtr) && Stm.Load(this->filename);
+	long oldPtr = 0l;
 
-	if (!ret)
+	if (!Stm.Load(oldPtr))
+		return false;
+
+	if (!Stm.Process(this->filename))
 		return false;
 
 	if (oldPtr && this->filename)
@@ -106,7 +108,10 @@ bool PhobosPCXFile::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 bool PhobosPCXFile::Save(PhobosStreamWriter& Stm) const
 {
-	Stm.Save(this->Surface);
-	Stm.Save(this->filename);
-	return true;
+	auto ptr = (long)this->Surface;
+	return Stm
+		.Process(ptr)
+		.Process(this->filename)
+		.Success()
+		;
 }

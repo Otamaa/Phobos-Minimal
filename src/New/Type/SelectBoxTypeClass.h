@@ -5,7 +5,8 @@
 #include <Utilities/Enum.h>
 #include <New/Type/PaletteManager.h>
 
-CREATEENUMTYPECLASS(SelectBox)
+class SelectBoxTypeClass final : public Enumerable<SelectBoxTypeClass>
+
 {
 public:
 	Valueable<SHPStruct*> Shape;
@@ -56,6 +57,15 @@ public:
 
 		if (!pDefault->Shape)
 			pDefault->Shape = FileSystem::LoadSHPFile("select.shp");
+
+
+#ifdef _Print
+//the first item usually fine , the second item is for debugging
+		auto pDefault2 = FindOrAllocate(DEFAULT_STR);
+
+		if (!pDefault2->Shape)
+			pDefault2->Shape = FileSystem::LoadSHPFile("select.shp");
+#endif
 	}
 
 private:

@@ -9,6 +9,7 @@
 #include <CCINIClass.h>
 
 #include <Utilities/PhobosFixedString.h>
+#include <Utilities/Debug.h>
 
 // an wrapper class to make `Type` like in the game
 // remember to not modify the array ouside allocation new item(s) from the back
@@ -38,7 +39,7 @@ public:
 		for (auto pos = Array.begin();
 			pos != Array.end();
 			++pos) {
-			if (IS_SAME_STR_(pos->get()->Name.data(), Title)) {
+			if (IS_SAME_STR_(pos->get()->Name.c_str(), Title)) {
 				return std::distance(Array.begin(), pos);
 			}
 		}
@@ -201,39 +202,44 @@ public:
 		Clear();
 
 		int Count = 0;
-		if (!Stm.Load(Count))
-			return false;
+		if (Stm.Load(Count)) {
+			if (Count > 0) {
+				Array.reserve(Count);
+				const auto name = PhobosCRT::GetTypeIDName<T>();
+				for (int i = 0; i < Count; ++i) {
+					long oldPtr = 0l;
 
-		Array.reserve(Count);
+					if (!Stm.Load((long)oldPtr))
+						return false;
 
-		for (int i = 0; i < Count; ++i)
-		{
-			long oldPtr = 0l;
+					decltype(Name) name;
+					if (!Stm.Load(name))
+						return false;
 
-			if (!Stm.Load((long)oldPtr))
-				return false;
+					auto newPtr = FindOrAllocate(name.data());
+					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, name.data())
+					newPtr->LoadFromStream(Stm);
+				}
+			}
 
-			decltype(Name) name;
-			if (!Stm.Load(name))
-				return false;
-
-			auto newPtr = FindOrAllocate(name);
-			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, PhobosCRT::GetTypeIDName<T>().c_str())
-			newPtr->LoadFromStream(Stm);
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		Stm.Save((int)Array.size());
+	static bool SaveGlobals(PhobosStreamWriter& Stm) {
 
-		for (auto& item : Array) {
+		//save it as int instead of size_t
+		const int Count = (int)Array.size();
+		Stm.Save(Count);
+		const auto name = PhobosCRT::GetTypeIDName<T>();
 
-			Stm.Save((long)item.get());
-			Stm.Process(item->Name);
-			item->SaveToStream(Stm);
+		for (int i = 0; i < Count; ++i) {
+			Debug::Log("Saving %s [%s - %x] to stream\n", name.c_str(), Array[i]->Name.data(), (long)Array[i].get());
+			Stm.Save((long)Array[i].get());
+			Stm.Process(Array[i]->Name);
+			Array[i]->SaveToStream(Stm);
 		}
 
 		return true;
@@ -247,5 +253,3 @@ public:
 
 	virtual ~Enumerable() = default;
 };
-
-#define CREATEENUMTYPECLASS(x) class x##TypeClass final : public Enumerable<x##TypeClass>

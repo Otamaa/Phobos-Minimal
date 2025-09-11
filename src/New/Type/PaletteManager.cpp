@@ -248,7 +248,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	this->Clear();
 
 	bool hasPalette = false;
-	if (!Stm.Load(hasPalette))
+	if (!Stm.Process(hasPalette))
 		return false;
 
 	if (!Stm.Load(this->Mode))

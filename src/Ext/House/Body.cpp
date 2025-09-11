@@ -2540,6 +2540,100 @@ bool HouseExtData::ReverseEngineer(TechnoClass* Victim) {
 // =============================
 // load / save
 
+#ifdef _Log
+template <typename T>
+void HouseExtData::Serialize(T& Stm)
+{
+	auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				size_t afterSize = Stm.Getstream()->Size();
+				GameDebugLog::Log("[HouseExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+					fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				size_t beforeOffset = Stm.Getstream()->Offset();
+				bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				size_t afterOffset = Stm.Getstream()->Offset();
+				bool afterSuccess = Stm.Success();
+
+				GameDebugLog::Log("[HouseExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				if (!afterSuccess && beforeSuccess)
+				{
+					GameDebugLog::Log("[HouseExtData] ERROR: %s caused stream failure!\n", fieldName);
+				}
+				return result;
+			}
+		};
+
+	debugProcess(this->Degrades, "Degrades");
+	debugProcess(this->PowerPlantEnhancerBuildings, "PowerPlantEnhancerBuildings");
+	debugProcess(this->Building_BuildSpeedBonusCounter, "Building_BuildSpeedBonusCounter");
+	debugProcess(this->Building_OrePurifiersCounter, "Building_OrePurifiersCounter");
+	debugProcess(this->BattlePointsCollectors, "BattlePointsCollectors");
+	debugProcess(this->m_ForceOnlyTargetHouseEnemy, "m_ForceOnlyTargetHouseEnemy");
+	debugProcess(this->ForceOnlyTargetHouseEnemyMode, "ForceOnlyTargetHouseEnemyMode");
+	debugProcess(this->Factory_BuildingType, "Factory_BuildingType");
+	debugProcess(this->Factory_InfantryType, "Factory_InfantryType");
+	debugProcess(this->Factory_VehicleType, "Factory_VehicleType");
+	debugProcess(this->Factory_NavyType, "Factory_NavyType");
+	debugProcess(this->Factory_AircraftType, "Factory_AircraftType");
+	debugProcess(this->AllRepairEventTriggered, "AllRepairEventTriggered");
+	debugProcess(this->LastBuildingTypeArrayIdx, "LastBuildingTypeArrayIdx");
+	debugProcess(this->RepairBaseNodes, "RepairBaseNode");
+	debugProcess(this->LastBuiltNavalVehicleType, "LastBuiltNavalVehicleType");
+	debugProcess(this->ProducingNavalUnitTypeIndex, "ProducingNavalUnitTypeIndex");
+	debugProcess(this->LaunchDatas, "LaunchDatas");
+	debugProcess(this->CaptureObjectExecuted, "CaptureObjectExecuted");
+	debugProcess(this->DiscoverEvaDelay, "DiscoverEvaDelay");
+	debugProcess(this->Tunnels, "Tunnels");
+	debugProcess(this->SWLastIndex, "SWLastIndex");
+	debugProcess(this->Batteries, "Batteries");
+	debugProcess(this->AvaibleDocks, "AvaibleDocks");
+	debugProcess(this->StolenTech, "StolenTech");
+	debugProcess(this->RadarPersist, "RadarPersist");
+	debugProcess(this->FactoryOwners_GatheredPlansOf, "FactoryOwners_GatheredPlansOf");
+	debugProcess(this->Academies, "Academies");
+	debugProcess(this->TunnelsBuildings, "TunnelsBuildings");
+	debugProcess(this->Reversed, "Reversed");
+	debugProcess(this->OwnedCountedHarvesters, "OwnedCountedHarvesters");
+	debugProcess(this->Is_NavalYardSpied, "Is_NavalYardSpied");
+	debugProcess(this->Is_AirfieldSpied, "Is_AirfieldSpied");
+	debugProcess(this->Is_ConstructionYardSpied, "Is_ConstructionYardSpied");
+	debugProcess(this->AuxPower, "AuxPower");
+	debugProcess(this->KeepAliveCount, "KeepAliveCount");
+	debugProcess(this->KeepAliveBuildingCount, "KeepAliveBuildingCount");
+	debugProcess(this->TiberiumStorage, "TiberiumStorage");
+	debugProcess(this->SideTechTree, "SideTechTree");
+	debugProcess(this->CombatAlertTimer, "CombatAlertTimer");
+	debugProcess(this->RestrictedFactoryPlants, "RestrictedFactoryPlants");
+	debugProcess(this->AISellAllDelayTimer, "AISellAllDelayTimer");
+	debugProcess(this->OwnedDeployingUnits, "OwnedDeployingUnits");
+	debugProcess(this->Common, "Common");
+	debugProcess(this->Combat, "Combat");
+	debugProcess(this->AISuperWeaponDelayTimer, "AISuperWeaponDelayTimer");
+	debugProcess(this->NumAirpads_NonMFB, "NumAirpads_NonMFB");
+	debugProcess(this->NumBarracks_NonMFB, "NumBarracks_NonMFB");
+	debugProcess(this->NumWarFactories_NonMFB, "NumWarFactories_NonMFB");
+	debugProcess(this->NumConYards_NonMFB, "NumConYards_NonMFB");
+	debugProcess(this->NumShipyards_NonMFB, "NumShipyards_NonMFB");
+	debugProcess(this->SuspendedEMPulseSWs, "SuspendedEMPulseSWs");
+	debugProcess(this->ForceEnemyIndex, "ForceEnemyIndex");
+	debugProcess(this->BattlePoints, "BattlePoints");
+	debugProcess(this->Productions, "Productions");
+	debugProcess(this->BestChoicesNaval, "BestChoicesNaval");
+}
+
+#else
 template <typename T>
 void HouseExtData::Serialize(T& Stm)
 {
@@ -2557,33 +2651,24 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->Factory_NavyType)
 		.Process(this->Factory_AircraftType)
 		.Process(this->AllRepairEventTriggered)
-		.Process(this->LastBuildingTypeArrayIdx);
-
-		for (auto& node : this->RepairBaseNodes)
-			Stm.Process(node);
-		Stm
-			.Process(this->LastBuiltNavalVehicleType)
-			.Process(this->ProducingNavalUnitTypeIndex)
-			.Process(this->LaunchDatas)
-			.Process(this->CaptureObjectExecuted)
-			.Process(this->DiscoverEvaDelay)
-			.Process(this->Tunnels)
-			.Process(this->SWLastIndex)
-			.Process(this->Batteries)
-			.Process(this->AvaibleDocks)
-			.Process(this->StolenTech)
-			.Process(this->RadarPersist)
-			.Process(this->FactoryOwners_GatheredPlansOf)
-			.Process(this->Academies)
-			.Process(this->TunnelsBuildings)
-			.Process(this->Reversed);
-
-		//Debug::LogInfo("Before doing OwnedCountedHarvesters");
-   Stm
-			.Process(this->OwnedCountedHarvesters);
-
-		//Debug::LogInfo("After doing OwnedCountedHarvesters for");
-	Stm
+		.Process(this->LastBuildingTypeArrayIdx)
+		.Process(this->RepairBaseNodes)
+		.Process(this->LastBuiltNavalVehicleType)
+		.Process(this->ProducingNavalUnitTypeIndex)
+		.Process(this->LaunchDatas)
+		.Process(this->CaptureObjectExecuted)
+		.Process(this->DiscoverEvaDelay)
+		.Process(this->Tunnels)
+		.Process(this->SWLastIndex)
+		.Process(this->Batteries)
+		.Process(this->AvaibleDocks)
+		.Process(this->StolenTech)
+		.Process(this->RadarPersist)
+		.Process(this->FactoryOwners_GatheredPlansOf)
+		.Process(this->Academies)
+		.Process(this->TunnelsBuildings)
+		.Process(this->Reversed)
+   		.Process(this->OwnedCountedHarvesters)
 		.Process(this->Is_NavalYardSpied)
 		.Process(this->Is_AirfieldSpied)
 		.Process(this->Is_ConstructionYardSpied)
@@ -2611,6 +2696,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->BestChoicesNaval)
 		;
 }
+#endif
 
 // =============================
 // container

@@ -3,26 +3,25 @@
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/SavegameDef.h>
+#include <Utilities/TemplateDef.h>
 
 bool TheaterSpecificSHP::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
-	if (parser.ReadString(pSection, pKey) > 0)
+	if (parser.ReadString(pSection, pKey))
 	{
 		auto pValue = parser.value();
 		GeneralUtils::ApplyTheaterSuffixToString(pValue);
+		std::string Result = _strlwr(pValue);
 
-		std::string Result = pValue;
-		if (!strstr(pValue, ".shp"))
+		if (Result.size() < 4 || !std::equal(Result.end() - 4, Result.end(), ".shp",
+			[](char input, char expected) { return input == expected; }))
 			Result += ".shp";
 
-		if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str()))
-		{
+		if (auto const pImage = FileSystem::LoadSHPFile(Result.c_str())) {
 			value = pImage;
 			return true;
-		}
-		else
-		{
-			Debug::LogInfo("Failed to find file {} referenced by [{}]{}={}", Result.c_str(), pSection, pKey, pValue);
+		} else {
+			Debug::Log("Failed to find file %s referenced by [%s]%s=%s\n", Result.c_str(), pSection, pKey, pValue);
 		}
 	}
 

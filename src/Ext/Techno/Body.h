@@ -1014,6 +1014,7 @@ public:
 		Strafe_TargetCell(),
 		IsSelected(false)
 	{
+		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
 	}
 

@@ -70,7 +70,7 @@ struct OptionalStruct
 			return true;
 		else
 		{
-			if (Stm.Load(this->HasValue))
+			if (Stm.Process(this->HasValue))
 			{
 				if (!this->HasValue || Stm.Process(this->Value, RegisterForChange))
 				{

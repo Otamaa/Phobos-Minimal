@@ -51,6 +51,8 @@ void LaserTrailTypeClass::LoadFromINI(CCINIClass* pINI)
 
 }
 
+#ifdef _Print
+
 template <typename T>
 void LaserTrailTypeClass::Serialize(T& Stm)
 {
@@ -106,6 +108,35 @@ void LaserTrailTypeClass::Serialize(T& Stm)
 	debugProcess(this->Beam_Color, "Beam_Color");
 	debugProcess(this->Beam_Amplitude, "Beam_Amplitude");
 }
+#else
+template <typename T>
+void LaserTrailTypeClass::Serialize(T& Stm)
+{
+	//Debug::LogInfo("Processing Element From LaserTrailTypeClass ! ");
+	Stm
+		.Process(this->IsHouseColor)
+		.Process(this->Color)
+		.Process(this->FadeDuration)
+		.Process(this->Thickness)
+		.Process(this->SegmentLength)
+		.Process(this->IgnoreVertical)
+		.Process(this->IsIntense)
+		.Process(this->InitialDelay)
+		.Process(this->CloakVisible)
+		.Process(this->CloakVisible_Houses)
+		.Process(this->DroppodOnly)
+		.Process(this->Permanent)
+		.Process(this->DrawType)
+		.Process(this->IsAlternateColor)
+		.Process(this->Bolt_Color)
+		.Process(this->Bolt_Disable)
+		.Process(this->Bolt_Arcs)
+		.Process(this->Beam_Color)
+		.Process(this->Beam_Amplitude)
+		;
+}
+
+#endif
 
 void LaserTrailTypeClass::LoadFromStream(PhobosStreamReader& Stm)
 {

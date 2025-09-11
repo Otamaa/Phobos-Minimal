@@ -3,10 +3,10 @@
 #include <SuperClass.h>
 #include <SuperWeaponTypeClass.h>
 
-
 #include <Helpers/Macro.h>
 #include <Utilities/PhobosMap.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/TheaterSpecificSHP.h>
 
 #include <DirStruct.h>
 
@@ -54,7 +54,7 @@ public:
 	Valueable<bool> Grinding_PlayDieSound;
 	Valueable<int> Grinding_Weapon_RequiredCredits;
 	Nullable<bool> PlacementPreview_Show;
-	Nullable<SHPStruct*> PlacementPreview_Shape;
+	TheaterSpecificSHP PlacementPreview_Shape;
 	Nullable<int> PlacementPreview_ShapeFrame;
 	Valueable<CoordStruct> PlacementPreview_Offset;
 	Valueable<bool> PlacementPreview_Remap;

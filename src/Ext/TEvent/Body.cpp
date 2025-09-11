@@ -442,7 +442,7 @@ bool TEventExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 	Clear();
 
 	size_t Count = 0;
-	if (!Stm.Load(Count))
+	if (Stm.Process(Count))
 		return false;
 
 	Array.reserve(Count);

@@ -5,14 +5,6 @@
 
 struct NewTiberiumStorageClass
 {
-	NewTiberiumStorageClass::NewTiberiumStorageClass() :
-		m_values {}
-	{
-		m_values.resize(TiberiumClass::Array->Count);
-	}
-
-	~NewTiberiumStorageClass() = default;
-
 	std::vector<float> m_values;
 
 	double GetStoragePercentage(int total) const
@@ -86,9 +78,7 @@ struct NewTiberiumStorageClass
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
-		bool load_ = this->Serialize(stm);
-		Debug::LogInfo("size after Load {}", this->m_values.size());
-		return load_;
+		return this->Serialize(stm);
 	}
 
 	bool Save(PhobosStreamWriter& stm) const

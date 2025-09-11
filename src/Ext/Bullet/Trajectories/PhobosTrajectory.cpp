@@ -195,7 +195,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectoryType>& pType)
 {
 	bool bExist = false;
-	Stm.Load(bExist);
+	Stm.Process(bExist);
 
 	if (bExist) {
 
@@ -357,7 +357,7 @@ bool PhobosTrajectory::CreateInstance(BulletClass* pBullet, CoordStruct* pCoord,
 void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectory>& pTraj)
 {
 	bool bExist = false;
-	Stm.Load(bExist);
+	Stm.Process(bExist);
 
 	if (bExist)
 	{

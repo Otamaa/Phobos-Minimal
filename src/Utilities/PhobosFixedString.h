@@ -16,7 +16,7 @@ public:
 
 	bool Read(INIClass* pINI, const char* pSection, const char* pKey, const char* pDefault = "");
 
-	OPTIONALINLINE const char* c_str() const
-	{ return ((*this).data()); }
+	//OPTIONALINLINE const char* c_str() const
+	//{ return ((*this).data()); }
 
 };

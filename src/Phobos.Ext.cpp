@@ -108,6 +108,7 @@
 
 #include <utility>
 #include <LoadOptionsClass.h>
+#include <BeaconManagerClass.h>
 
 #pragma region Implementation details
 
@@ -182,7 +183,7 @@ struct LoadGlobalsAction
 			PhobosByteStream stm(0);
 			stm.ReadBlockFromStream(pStm);
 			PhobosStreamReader reader(stm);
-
+			Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
 			return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
 		}
 		else
@@ -203,7 +204,7 @@ struct SaveGlobalsAction
 		{
 			PhobosByteStream stm;
 			PhobosStreamWriter writer(stm);
-
+			Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
 			return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
 		}
 		else
@@ -219,27 +220,42 @@ struct SaveGlobalsAction
 template <typename... RegisteredTypes>
 struct TypeRegistry
 {
-	COMPILETIMEEVAL __forceinline static void Clear()
+	COMPILETIMEEVAL FORCEDINLINE static void Clear()
 	{
-		va_list args;
-		va_start(args, count);
-
 		dispatch_void_mass_action<ClearAction>();
 	}
 
-	__forceinline static void InvalidatePointer(AbstractClass* ptr, bool removed)
+	FORCEDINLINE static void InvalidatePointer(AbstractClass* ptr, bool removed)
 	{
 		dispatch_void_mass_action<InvalidatePointerAction>(ptr, removed);
 	}
 
-	__forceinline static bool LoadGlobals(IStream* pStm)
+	FORCEDINLINE static bool LoadGlobals(IStream* pStm)
 	{
 		return dispatch_bool_mass_action<LoadGlobalsAction>(pStm);
 	}
 
-	__forceinline static bool SaveGlobals(IStream* pStm)
+	FORCEDINLINE static bool SaveGlobals(IStream* pStm)
 	{
 		return dispatch_bool_mass_action<SaveGlobalsAction>(pStm);
+	}
+
+	// return array of sizeof(T) for each RegisteredType
+	COMPILETIMEEVAL FORCEDINLINE static auto Sizes()
+	{
+		return std::array { sizeof(RegisteredTypes)... };
+	}
+
+	// return sum of sizeof(T) for all RegisteredTypes
+	COMPILETIMEEVAL FORCEDINLINE static std::size_t TotalSize()
+	{
+		return (sizeof(RegisteredTypes) + ...);
+	}
+
+	// return the largest sizeof(T) among RegisteredTypes
+	COMPILETIMEEVAL FORCEDINLINE static std::size_t MaxSize()
+	{
+		return std::max({ sizeof(RegisteredTypes)... });
 	}
 
 private:
@@ -247,7 +263,7 @@ private:
 	// ArgTypes: the argument types to call the method dispatcher's Process() method
 	template <typename TAction, typename... ArgTypes>
 		requires (DispatchesAction<TAction, RegisteredTypes, ArgTypes...> && ...)
-	__forceinline static void dispatch_void_mass_action(ArgTypes... args)
+	FORCEDINLINE static void dispatch_void_mass_action(ArgTypes... args)
 	{
 		// (pack expression op ...) is a fold expression which
 		// unfolds the parameter pack into a full expression
@@ -256,13 +272,22 @@ private:
 
 	template <typename TAction, typename... ArgTypes>
 		requires (DispatchesAction<TAction, RegisteredTypes, ArgTypes...> && ...)
-	__forceinline static bool dispatch_bool_mass_action(ArgTypes... args)
+	FORCEDINLINE static bool dispatch_bool_mass_action(ArgTypes... args)
 	{
 		// (pack expression op ...) is a fold expression which
 		// unfolds the parameter pack into a full expression
 		return (TAction::template Process<RegisteredTypes>(args...) && ...);
 	}
+
 };
+
+#ifdef _fixMe
+using PhobosTypeRegistry = TypeRegistry <> ;
+PhobosTypeRegistry::InvalidatePointer(pInvalid, removed);
+PhobosTypeRegistry::Clear();
+PhobosTypeRegistry::SaveGlobals(pStm);
+PhobosTypeRegistry::LoadGlobals(pStm);
+#endif
 
 #pragma endregion
 
@@ -274,8 +299,6 @@ HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 	Debug::LogInfo("[Phobos] Finished saving the game");
 	return S_OK;
 }
-
-#include <BeaconManagerClass.h>
 
 HRESULT Phobos::LoadGameDataAfter(IStream* pStm)
 {
@@ -528,11 +551,6 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	//AttachmentClass::Array.clear();
 	//AttachmentTypeClass::Clear();
 
-	if (!Phobos::Otamaa::ExeTerminated)
-	{
-		SWFirerClass::Array.reserve(1000);
-		CellExtContainer::Array.reserve(2000);
-	}
 
 	return 0;
 }
