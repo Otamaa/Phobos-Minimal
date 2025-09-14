@@ -88,7 +88,8 @@ const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) cons
 
 	if (auto const pMarker = strstr(filename, "~~"))
 	{
-		fmt::memory_buffer buffer {};
+		static fmt::basic_memory_buffer<char, 3> buffer {};
+		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), "{:02}" ,index + 1);
 		pMarker[0] = buffer[0];
 		pMarker[1] = buffer[1];

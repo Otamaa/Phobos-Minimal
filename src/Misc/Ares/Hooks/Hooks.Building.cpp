@@ -198,16 +198,18 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 				{
 					Point2D textLoc = { cameoRect.X + cameoRect.Width / 2, cameoRect.Y };
 					const auto percent = int(((double)prog / 54.0) * 100.0);
-					std::wstring text_;
+					static fmt::basic_memory_buffer<wchar_t> text_;
+					text_.clear();
 					fmt::format_to(std::back_inserter(text_), L"{}" , percent);
+					text_.push_back(L'\0');
 					RectangleStruct nTextDimension {};
 					COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
-					Drawing::GetTextDimensions(&nTextDimension, text_.c_str(), textLoc, printType, 4, 2);
+					Drawing::GetTextDimensions(&nTextDimension, text_.data(), textLoc, printType, 4, 2);
 					auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
 					const COLORREF foreColor = pThis->Owner->Color.ToInit();
 					DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
 					DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)foreColor);
-					DSurface::Temp->DrawText_Old(text_.c_str(), pBounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
+					DSurface::Temp->DrawText_Old(text_.data(), pBounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
 				}
 
 			}
@@ -1089,21 +1091,10 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 	 { pThis->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
 	} };
 
-	for (auto& [pbld, timer] : Timers)
-	{
-		if (pbld)
-		{
-			if (pbld->ProduceCashDelay > 0)
-			{
-				if (timer->HasTimeLeft())
-					timer->Resume();
-
-				if (timer->GetTimeLeft() == 1)
-				{
-					timer->Start(pbld->ProduceCashDelay + 1);
-					produceAmount += pbld->ProduceCashAmount;
-				}
-			}
+	for (auto& [pbld, timer] : Timers) {
+		if (pbld && pbld->ProduceCashDelay > 0 && timer->GetTimeLeft() == 1) {
+			timer->Start(pbld->ProduceCashDelay + 1);
+			produceAmount += pbld->ProduceCashAmount;
 		}
 	}
 

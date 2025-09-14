@@ -948,24 +948,6 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 	return 0x5F413F;
 }
 
-// temporal per-slot
-ASMJIT_PATCH(0x71A84E, TemporalClass_UpdateA, 5)
-{
-	GET(TemporalClass* const, pThis, ESI);
-
-	// it's not guaranteed that there is a target
-	if (auto const pTarget = pThis->Target)
-	{
-		TechnoExtContainer::Instance.Find(pTarget)->RadarJammer.reset();
-		AresAE::UpdateTempoal(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
-	}
-
-	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
-
-	R->EAX(pThis->WarpRemaining);
-	return 0x71A88D;
-}
-
 ASMJIT_PATCH(0x413FD2, AircraftClass_Init_Academy, 6)
 {
 	GET(AircraftClass*, pThis, ESI);
@@ -1045,9 +1027,6 @@ ASMJIT_PATCH(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 	VocClass::SafeImmedietelyPlayAt(index, &pAirstrike->FirstObject->Location, nullptr);
 	return 0x41D5E0;
 }
-
-//DEFINE_SKIP_HOOK(0x71B09C, TemporalClass_Logic_BuildingUnderAttack_NullptrShit, 0x5, 71B0E7);
-DEFINE_JUMP(LJMP, 0x71B09C, 0x71B0E7);
 
 ASMJIT_PATCH(0x6BED08, Game_Terminate_Mouse, 7)
 {

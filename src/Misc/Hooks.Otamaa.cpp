@@ -602,75 +602,6 @@ ASMJIT_PATCH(0x6FDE05, TechnoClass_FireAt_End, 0x5)
 	return 0;
 } ASMJIT_PATCH_AGAIN(0x6FF933, TechnoClass_FireAt_End, 0x5);
 
-ASMJIT_PATCH(0x71B14E, TemporalClass_FireAt_ClearTarget, 0x9)
-{
-	GET(TemporalClass* const, pThis, ESI);
-
-	const auto pTargetTemp = pThis->Target->TemporalImUsing;
-	const auto pTargetType = pThis->Target->GetTechnoType();
-
-	if (pTargetType->OpenTopped) {
-		for (auto pPassenger = pThis->Target->Passengers.GetFirstPassenger();
-			pPassenger;
-			pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject)) {
-			const auto pTemporal = pPassenger->TemporalImUsing;
-
-			if (pTemporal && pTemporal->Target)
-				pTemporal->LetGo();
-		}
-	}
-
-	if (pTargetTemp && pTargetTemp->Target) {
-		pTargetTemp->LetGo();
-	}
-
-	if (pThis->Target->Owner && pThis->Target->Owner->IsControlledByHuman())
-		pThis->Target->Deselect();
-
-	return 0x71B17B;
-}
-
-// Also fix :
-// https://bugs.launchpad.net/ares/+bug/1901825
-ASMJIT_PATCH(0x71ADE0, TemporalClass_LetGo_Replace, 0x6)
-{
-	GET(TemporalClass*, pThis, ECX);
-
-	if (auto pTarget = pThis->Target)
-	{
-		pTarget->BeingWarpedOut = 0;
-		pTarget->TemporalTargetingMe = nullptr;
-		pThis->Target = nullptr;
-	}
-
-	if (auto pPrevTemp = pThis->PrevTemporal)
-	{
-		if (pThis->NextTemporal == pThis)
-			pThis->NextTemporal = nullptr;
-
-		pPrevTemp->Detach();
-	}
-
-	if (auto pNextTemp = pThis->NextTemporal)
-	{
-		if (pNextTemp->PrevTemporal == pThis)
-			pNextTemp->PrevTemporal = nullptr;
-
-		pNextTemp->Detach();
-	}
-
-	pThis->PrevTemporal = nullptr;
-	pThis->NextTemporal = nullptr;
-	pThis->unknown_pointer_38 = nullptr;
-	pThis->SourceSW = nullptr;
-
-	if (auto pOwner = pThis->Owner)
-		pOwner->EnterIdleMode(false, 1);
-
-	return 0x71AE49;
-
-}
-
 ASMJIT_PATCH(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 {
 	if (Phobos::Otamaa::IsAdmin)
@@ -1611,12 +1542,6 @@ ASMJIT_PATCH(0x6F357F, TechnoClass_SelectWeapon_DrainWeaponTarget, 0x6)
 	const bool IsTargetEligible = !pThis->DrainTarget && !pTarget->DrainingMe;
 	return IsTargetEligible ?
 		CheckAlly : ContinueCheck;
-}
-
-ASMJIT_PATCH(0x71AA13, TemporalClass_AI_BunkerLinked_Check, 0x7)
-{
-	GET(BuildingClass* const, pBld, EAX);
-	return pBld ? 0x0 : 0x71AA1A;
 }
 
 ASMJIT_PATCH(0x51F885, InfantryClass_WhatAction_TubeStuffs_FixGetCellAtCallTwice, 0x7)
@@ -7705,18 +7630,36 @@ DWORD LastKnown;
 	 return 0x0;
  }
 
- ASMJIT_PATCH(0x410182 , AbstractClass_NoInt_cleaupPtr_B , 0x6){
-	 GET(AbstractClass*, pThis, EAX);
-	 pThis->unknown_18 = std::exchange(LastKnown, 0u);
-	 pThis->RefCount = 0l;
-	 return 0x410188;
- }
+ //ASMJIT_PATCH(0x521960, InfantryClass_Load_test, 0x5)
+ // {
+	// GET(InfantryClass*, pThis, ESI);
+	// return 0x0;
+ //}
 
- ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
- {
-	 GET(AbstractClass*, pThis, EAX);
-	 return 0x0;
- }
+ //ASMJIT_PATCH(0x410182 , AbstractClass_NoInt_cleaupPtr_B , 0x6){
+	// GET(AbstractClass*, pThis, EAX);
+
+	// if(!LastKnown)
+	//	ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
+	// else
+	//	pThis->unknown_18 = std::exchange(LastKnown, 0u);
+
+	// pThis->RefCount = 0l;
+	// return 0x410188;
+ //}
+
+ //ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
+ //{
+	// GET(AbstractClass*, pThis, EAX);
+	// return 0x0;
+ //}
+
+ //ASMJIT_PATCH(0x5219E8, InfantryClass_Load_test, 0x5)
+ //{
+	// GET(InfantryClass*, pThis, ESI);
+	// return 0x0;
+ //}
+
  //ASMJIT_PATCH(0x5F3B5D, ObjectClass_Load_checkExt, 0x5)
  //{
 	// GET(ObjectClass*, pThis, ESI);

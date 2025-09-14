@@ -55,6 +55,10 @@ public:
 
 	bool ShouldBeDiscardedNow();
 
+	COMPILETIMEEVAL FORCEDINLINE bool HasAnim() const{
+		return this->Animation != nullptr;
+	}
+
 	COMPILETIMEEVAL FORCEDINLINE bool IsActive() const {
 		if (this->IsSelfOwned())
 			return this->InitialDelay <= 0 && this->CurrentDelay == 0 && this->HasInitialized && this->IsOnline && !this->NeedsDurationRefresh;
@@ -82,7 +86,7 @@ public:
 
 	void OnlineCheck();
 	void CloakCheck();
-	void AnimCheck();
+	void UpdateAnimLogic();
 
 	static PhobosAttachEffectClass* CreateAndAttach(PhobosAttachEffectTypeClass* pType, TechnoClass* pTarget, HelperedVector<std::unique_ptr<PhobosAttachEffectClass>>& targetAEs, HouseClass* pInvokerHouse, TechnoClass* pInvoker, AbstractClass* pSource, AEAttachParams const& attachInfo);
 	static int DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo, std::vector<PhobosAttachEffectTypeClass*> const& types);

@@ -75,23 +75,21 @@ ASMJIT_PATCH(0x62BB13, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
 
-	if (auto pExt = ParticleExtContainer::Instance.Allocate(pItem))
-	{
-		if (const auto pTypeExt = ParticleTypeExtContainer::Instance.TryFind(pItem->Type))
+	if (pItem->Type) {
+		auto pExt = ParticleExtContainer::Instance.Allocate(pItem);
+		const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pItem->Type);
+		CoordStruct nFLH = CoordStruct::Empty;
+		const ColorStruct nColor = pItem->GetOwningHouse() ? pItem->GetOwningHouse()->LaserColor : ColorStruct::Empty;
+
+		if (pExt->LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
 		{
-			CoordStruct nFLH = CoordStruct::Empty;
-			const ColorStruct nColor = pItem->GetOwningHouse() ? pItem->GetOwningHouse()->LaserColor : ColorStruct::Empty;
+			pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
-			if (pExt->LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
+			for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
 			{
-				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
-
-				for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
-				{
-					pExt->LaserTrails.emplace_back(
-						std::move(std::make_unique<LaserTrailClass>(
+				pExt->LaserTrails.emplace_back(
+					std::move(std::make_unique<LaserTrailClass>(
 						LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH)));
-				}
 			}
 		}
 

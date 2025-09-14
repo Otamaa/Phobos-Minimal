@@ -1766,8 +1766,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 
 int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 {
-	int nAddStep = 0;
-	int nStepR = 0;
+	int totalStep = 0;
 
 	if (!pThis)
 		return 0;
@@ -1778,23 +1777,23 @@ int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 			break;
 
 		++nStep;
-		auto const pWeapon = pTemp->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pTemp->Owner)->idxSlot_Warp)->WeaponType;
 
-		//if (auto const pTarget = pTemp->Target)
-		//	nStepR = FakeWarheadTypeClass::ModifyDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor, 0);
-		//else
-		nStepR = pWeapon->Damage;
+		if(auto pTempOwner = pTemp->Owner){
 
-		nAddStep += nStepR;
-		pTemp->WarpPerStep = nStepR;
+			auto const pWeapon = pTempOwner->GetWeapon(TechnoExtContainer::Instance.Find(pTempOwner)->idxSlot_Warp)
+					->WeaponType;
+
+			totalStep += pWeapon->Damage;
+			pTemp->WarpPerStep = pWeapon->Damage;
+		}
 	}
 
-	return nAddStep;
+	return totalStep;
 }
 
 bool TechnoExt_ExtData::Warpable(TechnoClass* pTarget)
 {
-	if (!pTarget || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
+	if (!pTarget || !pTarget->IsAlive || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
 		return false;
 
 	if (TechnoExtData::IsUnwarpable(pTarget))
@@ -4509,13 +4508,15 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto value = pExt->TechnoValueAmount;
+	static fmt::basic_memory_buffer<wchar_t> moneyStr;
+
 	if (value && (forcedraw || Unsorted::CurrentFrame >= pExt->Pos))
 	{
 		pExt->Pos = Unsorted::CurrentFrame - int32_t(RulesExtData::Instance()->DisplayCreditsDelay * -900.0);
 		pExt->TechnoValueAmount = 0;
 		bool isPositive = value > 0;
-		fmt::basic_memory_buffer<wchar_t> moneyStr;
 
+		moneyStr.clear();
 		const ColorStruct& color = isPositive
 			? Drawing::DefaultColors[(int)DefaultColorList::Green] :
 			Drawing::DefaultColors[(int)DefaultColorList::Red];
@@ -6513,7 +6514,7 @@ void AresWPWHExt::applyKillDriver(WarheadTypeClass* pWH, TechnoClass* pKiller, T
 
 #pragma region AresTActionExt
 
-std::pair<TriggerAttachType, bool> AresTActionExt::GetFlag(AresNewTriggerAction nAction)
+std::pair<TriggerAttachType, bool> AresTActionExt::GetTriggetAttach(AresNewTriggerAction nAction)
 {
 	switch (nAction)
 	{
@@ -6528,7 +6529,7 @@ std::pair<TriggerAttachType, bool> AresTActionExt::GetFlag(AresNewTriggerAction 
 	}
 }
 
-std::pair<LogicNeedType, bool> AresTActionExt::GetMode(AresNewTriggerAction nAction)
+std::pair<LogicNeedType, bool> AresTActionExt::GetLogicNeed(AresNewTriggerAction nAction)
 {
 	switch (nAction)
 	{
@@ -6945,7 +6946,7 @@ NOINLINE HouseClass* AresTEventExt::ResolveHouseParam(int const param, HouseClas
 	return HouseClass::FindByCountryIndex(param);
 }
 
-std::pair<Persistable, bool> AresTEventExt::GetPersistableFlag(AresTriggerEvents nAction)
+std::pair<bool, bool> AresTEventExt::GetPersistableFlag(AresTriggerEvents nAction)
 {
 	switch (nAction)
 	{
@@ -6960,7 +6961,7 @@ std::pair<Persistable, bool> AresTEventExt::GetPersistableFlag(AresTriggerEvents
 	case AresTriggerEvents::AttackedOrDestroyedByAnybody:
 	case AresTriggerEvents::AttackedOrDestroyedByHouse:
 	case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
-		return { Persistable::unk_0x100  , true };
+		return { false , true };
 	case AresTriggerEvents::DriverKiller:
 	case AresTriggerEvents::DriverKilled_ByHouse:
 	case AresTriggerEvents::VehicleTaken:
@@ -6977,9 +6978,9 @@ std::pair<Persistable, bool> AresTEventExt::GetPersistableFlag(AresTriggerEvents
 	case AresTriggerEvents::DestroyedByHouse:
 	case AresTriggerEvents::AllKeepAlivesDestroyed:
 	case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
-		return { Persistable::unk_0x101  , true };
+		return { true  , true };
 	default:
-		return { Persistable::None  , false };
+		return { false  , false };
 	}
 }
 
@@ -7022,7 +7023,7 @@ std::pair<LogicNeedType, bool > AresTEventExt::GetLogicNeed(AresTriggerEvents nA
 	}
 }
 
-std::pair<bool, TriggerAttachType> AresTEventExt::GetAttachFlags(AresTriggerEvents nEvent)
+std::pair<TriggerAttachType , bool> AresTEventExt::GetAttachFlags(AresTriggerEvents nEvent)
 {
 	switch (nEvent)
 	{
@@ -7044,7 +7045,7 @@ std::pair<bool, TriggerAttachType> AresTEventExt::GetAttachFlags(AresTriggerEven
 	case AresTriggerEvents::AttackedOrDestroyedByAnybody:
 	case AresTriggerEvents::AttackedOrDestroyedByHouse:
 	{
-		return { true , TriggerAttachType::Object };
+		return { TriggerAttachType::Object , true  };
 	}
 	case AresTriggerEvents::SuperActivated:
 	case AresTriggerEvents::SuperDeactivated:
@@ -7056,15 +7057,15 @@ std::pair<bool, TriggerAttachType> AresTEventExt::GetAttachFlags(AresTriggerEven
 	case AresTriggerEvents::AllKeepAlivesDestroyed:
 	case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
 	{
-		return { true ,TriggerAttachType::House };
+		return { TriggerAttachType::House , true };
 	}
 	case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
 	{
-		return { true ,TriggerAttachType::Logic };
+		return { TriggerAttachType::Logic , true };
 	}
 	}
 
-	return { false ,TriggerAttachType::None };
+	return { TriggerAttachType::None , false};
 }
 
 bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWho)

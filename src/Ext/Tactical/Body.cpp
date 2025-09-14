@@ -418,6 +418,22 @@ void FakeTacticalClass::__RenderOverlapForeignMap()
 	}
 }
 
+#include <WWKeyboardClass.h>
+
+void DrawTransRect(BitFont* pBitInst, int* width , int index ) {
+
+	width += 6;
+	const int lineSpace = pBitInst->field_1C + 2;
+	Point2D location { DSurface::ViewBounds->Width, (DSurface::ViewBounds->Height - ((index + 1) * lineSpace)) };
+	RectangleStruct rect { (location.X - *width), location.Y, *width, lineSpace };
+
+	ColorStruct fillColor { 0, 0, 0 };
+	DSurface::Composite->Fill_Rect_Trans(&rect, &fillColor, (InputManagerClass::Instance->IsForceMoveKeyPressed() ? 80 : 40));
+	Point2D top { rect.X - 1, rect.Y };
+	Point2D bot { top.X, top.Y + lineSpace - 1 };
+	DSurface::Composite->Draw_Line(top, bot, COLOR_BLACK);
+}
+
 #ifndef ___test
 
 void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
@@ -427,8 +443,8 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
-
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
 	if (hour)
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
@@ -440,7 +456,8 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 
 	buffer.push_back(L'\0');
 
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !label ? L"" : label);
 	labe_buffer.push_back(L'\0');
 
@@ -514,8 +531,8 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
-
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
 	if (hour)
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
@@ -527,7 +544,8 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 
 	buffer.push_back(L'\0');
 
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !label ? L"" : label);
 	labe_buffer.push_back(L'\0');
 
@@ -601,7 +619,8 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
 
 	if (hour)
 	{
@@ -614,7 +633,8 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 
 	buffer.push_back(L'\0');
 
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
 	labe_buffer.push_back(L'\0');
 
@@ -793,20 +813,19 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
 
-	if (hour)
-	{
+	if (hour) {
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
-	}
-	else
-	{
+	} else {
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
 
 	buffer.push_back(L'\0');
 
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !pSuper->Type->UIName ? L"" : pSuper->Type->UIName);
 	labe_buffer.push_back(L'\0');
 

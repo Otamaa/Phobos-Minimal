@@ -154,6 +154,14 @@ HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
 	if (FAILED(hr)) return hr;
 	Debug::Log("LoadObjectVector<%s>: Loaded Count %d\n", typeName.c_str(), count);
 
+	if (count > 0) {
+		//the game memory is quite sensitive at this state
+		//do pre allocation of the vector instead of dynamicly expand
+		//this will relive memory system quite a much
+		//and also avoiding crash
+		collection.Reserve(count);
+	}
+
 	// Load each object
 	for (int i = 0; i < count; ++i)
 	{
@@ -179,6 +187,8 @@ HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
 
 	if (count > 0)
 	{
+		collection.Reserve(count);
+
 		// Load array data
 		for (int i = 0; i < count; ++i)
 		{

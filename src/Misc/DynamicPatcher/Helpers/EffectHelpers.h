@@ -26,6 +26,8 @@ public:
 	Valueable<bool> IsSupported;
 	Valueable<bool> Fade;
 
+	LaserType() = default;
+
 	LaserType(bool def)
 		:InnerColor { ColorStruct::Empty }
 		, OuterColor { ColorStruct::Empty }
@@ -57,6 +59,18 @@ public:
 	void SetOuterSpread(int R, int G, int B)
 	{ OuterSpread = ColorStruct((byte)R, (byte)G, (byte)B); }
 
+	bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<LaserType*>(this)->Serialize(Stm);
+	}
+
+private:
+
 	template <typename T>
 	bool Serialize(T& Stm)
 	{
@@ -84,6 +98,8 @@ public:
 	Valueable<int> Period;
 	Valueable<double> Amplitude;
 
+	BeamType() = default;
+
 	BeamType(RadBeamType radBeamType) :
 		Period { 15 }
 		, Amplitude { 40.0 }
@@ -109,6 +125,18 @@ public:
 			break;
 		}
 	}
+
+	bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<BeamType*>(this)->Serialize(Stm);
+	}
+
+private:
 
 	template <typename T>
 	bool Serialize(T& Stm)
@@ -157,6 +185,18 @@ public:
 
 	BoltType(const BoltType& other) = default;
 	BoltType& operator=(const BoltType& other) = default;
+
+	bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<BoltType*>(this)->Serialize(Stm);
+	}
+
+private:
 
 	template <typename T>
 	bool Serialize(T& Stm)

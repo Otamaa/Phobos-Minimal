@@ -1,5 +1,4 @@
 #include "Body.h"
-#include <Ext/WeaponType/Body.h>
 
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
@@ -19,7 +18,6 @@
 #include <lib/gcem/gcem.hpp>
 
 #include <Locomotor/FlyLocomotionClass.h>
-#include "Body.h"
 
 //todo Add the hooks
 int FakeAircraftClass::_Mission_Attack()
@@ -53,9 +51,9 @@ int FakeAircraftClass::_Mission_Attack()
 		this->IsLocked = 0;
 
 		if (lose_ammo) {
-			auto Ammo = this->Ammo;
+			auto ammo = this->Ammo;
 			this->loseammo_6c8 = 0;
-			this->Ammo = Ammo - 1;
+			this->Ammo = ammo - 1;
 		}
 
 		auto v7 = this->Target;

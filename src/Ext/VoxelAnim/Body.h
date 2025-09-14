@@ -44,11 +44,13 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->ObjectExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		const_cast<VoxelAnimExtData*>(this)->ObjectExtData::SaveToStream(Stm);
+		const_cast<VoxelAnimExtData*>(this)->Serialize(Stm);
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }

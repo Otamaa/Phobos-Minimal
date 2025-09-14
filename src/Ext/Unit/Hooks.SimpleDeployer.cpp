@@ -12,6 +12,20 @@
 
 #pragma region JUMPJET
 
+ASMJIT_PATCH(0x54C58E, JumpjetLocomotionClass_Descending_PathfindingChecks, 0x7)
+{
+	enum { SkipGameCode = 0x54C65F };
+
+	GET(JumpjetLocomotionClass*, pThis, ESI);
+
+	auto const pUnit = cast_to<UnitClass*>(pThis->LinkedTo);
+
+	if (pUnit && pUnit->CurrentMission == Mission::Unload && TechnoExtData::SimpleDeployerAllowedToDeploy(pUnit, false, true))
+		return SkipGameCode;
+
+	return 0;
+}
+
 // Disable Ares Jumpjet DeployDir hook.
 //DEFINE_PATCH(0x54C767, 0x8B, 0x15, 0xE0, 0x71, 0x88, 0x00);
 

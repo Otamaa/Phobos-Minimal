@@ -197,9 +197,9 @@ ASMJIT_PATCH(0x6BD84E, CSF_LoadExtraFiles, 5)
 		return 0x6BD86F;
 	}
 
-	fmt::memory_buffer buffer {};
+	static fmt::basic_memory_buffer<char , 60> buffer {};
 	CSFLoader::LoadAdditionalCSF("ares.csf", true);
-
+	buffer.clear();
 	std::string res = "us";
 	if (const auto language = StringTable::GetLanguage(StringTable::Language()))
 		res = language->Letter;

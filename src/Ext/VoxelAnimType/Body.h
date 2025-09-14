@@ -53,7 +53,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		const_cast<VoxelAnimTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
 		const_cast<VoxelAnimTypeExtData*>(this)->Serialize(Stm);

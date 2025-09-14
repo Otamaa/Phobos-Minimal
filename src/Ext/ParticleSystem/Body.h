@@ -131,7 +131,7 @@ public:
 		this->Serialize(Stm);
 	}
 
-	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
 	{
 		const_cast<ParticleSystemExtData*>(this)->ObjectExtData::SaveToStream(Stm);
 		const_cast<ParticleSystemExtData*>(this)->Serialize(Stm);

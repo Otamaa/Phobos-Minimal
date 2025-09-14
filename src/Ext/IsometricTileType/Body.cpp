@@ -87,6 +87,7 @@ bool IsometricTileTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	INI_EX exINI(pINI);
 
+	this->TileSetName.clear();
 	fmt::format_to(std::back_inserter(this->TileSetName) ,"Tileset{:04}" ,IsometricTileTypeExtContainer::CurrentTileset);
 	//this->Palette.Read(exINI, buffer.data() , "CustomPalette");
 

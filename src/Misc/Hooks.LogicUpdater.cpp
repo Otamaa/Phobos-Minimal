@@ -413,51 +413,6 @@ ASMJIT_PATCH(0x4DA63B, FootClass_AI_IsMovingNow, 0x6)
 }
 
 // Ares-hook jmp to this offset
-ASMJIT_PATCH(0x71A88D, TemporalClass_AI_Add, 0x8) //0
-{
-	GET(TemporalClass*, pThis, ESI);
-
-	if (auto const pTarget = pThis->Target)
-	{
-		if (pTarget->IsMouseHovering)
-			pTarget->IsMouseHovering = false;
-
-		auto const pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
-		//auto const pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
-
-		if (const auto pShieldData = pTargetExt->GetShield())
-		{
-			if (pShieldData->IsAvailable())
-				pShieldData->OnTemporalUpdate(pThis);
-		}
-
-		//pTargetExt->UpdateFireSelf();
-		//pTargetExt->UpdateRevengeWeapons();
-
-		for (auto& ae : pTargetExt->PhobosAE) {
-			if(ae)
-				ae->AI_Temporal();
-		}
-
-		pTargetExt->UpdateRearmInTemporal();
-
-		if (auto pBldTarget = cast_to<BuildingClass*, false>(pTarget))
-		{
-			auto pExt = BuildingExtContainer::Instance.Find(pBldTarget);
-
-			pBldTarget->CashProductionTimer.Pause();
-			for (size_t i = 0; i < std::size(pBldTarget->Upgrades); ++i) {
-				if (pBldTarget->Upgrades[i]) {
-					pExt->CashUpgradeTimers[i].Pause();
-				}
-			}
-		}
-	}
-
-	// Recovering vanilla instructions that were broken by a hook call
-	return R->EAX<int>() <= 0 ? 0x71A895 : 0x71AB08;
-}
-
 //ASMJIT_PATCH_AGAIN(0x6FAFFD, TechnoClass_LateUpdate,  7)
 //ASMJIT_PATCH(0x6FAF7A, TechnoClass_LateUpdate, 7)
 //{

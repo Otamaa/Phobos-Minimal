@@ -1210,6 +1210,9 @@ public:
 
 	std::unique_ptr<BlockTypeClass> BlockType;
 	Valueable<bool> CanBlock;
+
+	Valueable<bool> IsSimpleDeployer_ConsiderPathfinding;
+	Nullable<LandTypeFlags> IsSimpleDeployer_DisallowedLandTypes;
 #pragma endregion
 
 public:
@@ -1616,7 +1619,9 @@ public:
 		PenetratesTransport_DamageMultiplier(1.0),
 		VoiceIFVRepair(-1),
 		CameoCheckMutex(false),
-		CanBlock(false)
+		CanBlock(false),
+		IsSimpleDeployer_ConsiderPathfinding(false),
+		IsSimpleDeployer_DisallowedLandTypes()
 	{
 		this->InitializeConstant();
 		this->Initialize();
@@ -1682,10 +1687,16 @@ public:
 	static WeaponStruct* GetWeaponStruct(TechnoTypeClass* pThis, int nWeaponIndex, bool isElite);
 
 private:
+#ifdef _Track
 
 	void Serialize(PhobosStreamWriter& Stm);
 	void Serialize(PhobosStreamReader& Stm);
-	/*{
+
+#else
+
+	template<typename T>
+	void Serialize(T& Stm)
+	{
 		Stm
 			.Process(this->AttachtoType)
 			.Process(this->HealthBar_Hide)
@@ -2615,8 +2626,13 @@ private:
 			.Process(this->MultiWeapon_IsSecondary)
 			.Process(this->MultiWeapon_SelectCount)
 			.Process(this->ReadMultiWeapon)
+
+			.Process(this->IsSimpleDeployer_ConsiderPathfinding)
+			.Process(this->IsSimpleDeployer_DisallowedLandTypes)
 			;
-	}*/
+	}
+
+#endif
 
 public:
 	static COMPILETIMEEVAL double TurretMultiOffsetDefaultMult { 1.0 };

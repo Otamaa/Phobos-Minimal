@@ -43,6 +43,10 @@ bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
+	this->YDrawOffset_ApplyBracketHeight.Read(exINI, pID, "YDrawOffset.ApplyBracketHeight");
+	this->YDrawOffset_InvertBracketShift.Read(exINI, pID, "YDrawOffset.InvertBracketShift");
+	this->YDrawOffset_BracketAdjust.Read(exINI, pID, "YDrawOffset.BracketAdjust");
+	this->YDrawOffset_BracketAdjust_Buildings.Read(exINI, pID, "YDrawOffset.BracketAdjust.Buildings");
 	this->HideIfNoOre_Threshold.Read(exINI, pID, "HideIfNoOre.Threshold");
 	this->Layer_UseObjectLayer.Read(exINI, pID, "Layer.UseObjectLayer");
 
@@ -562,6 +566,10 @@ void AnimTypeExtData::Serialize(T& Stm)
 		.Process(this->Palette)
 		.Process(this->CreateUnitType)
 		.Process(this->XDrawOffset)
+		.Process(this->YDrawOffset_ApplyBracketHeight)
+		.Process(this->YDrawOffset_InvertBracketShift)
+		.Process(this->YDrawOffset_BracketAdjust)
+		.Process(this->YDrawOffset_BracketAdjust_Buildings)
 		.Process(this->HideIfNoOre_Threshold)
 		.Process(this->Layer_UseObjectLayer)
 		.Process(this->AttachedAnimPosition)

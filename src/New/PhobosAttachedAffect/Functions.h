@@ -20,10 +20,10 @@ struct PhobosAEFunctions
 	static void UpdateAttachEffects(TechnoClass* pTechno);
 
 	static bool HasAttachedEffects(TechnoClass* pTechno, std::vector<PhobosAttachEffectTypeClass*>& attachEffectTypes, bool requireAll, bool ignoreSameSource,
-		TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts);
+		TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts , bool requireAnims = false);
 
-	static bool HasAttachedEffects(TechnoClass* pTechno, PhobosAttachEffectTypeClass* attachEffectType, bool requireAll, bool ignoreSameSource,
-	TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts);
+	//static bool HasAttachedEffects(TechnoClass* pTechno, PhobosAttachEffectTypeClass* attachEffectType, bool requireAll, bool ignoreSameSource,
+	//TechnoClass* pInvoker, AbstractClass* pSource, std::vector<int> const* minCounts, std::vector<int> const* maxCounts, bool requireAnims = false);
 
 
 	static void UpdateSelfOwnedAttachEffects(TechnoClass* pTechno , TechnoTypeClass* pNewType);

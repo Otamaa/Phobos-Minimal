@@ -693,7 +693,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->FakeEngineer_BombDisarm.Read(exINI, pSection, "FakeEngineer.BombDisarm");
 
 	this->UnlimboDetonate.Read(exINI, pSection, "UnlimboDetonate");
-	this->UnlimboDetonate_Force.Read(exINI, pSection, "UnlimboDetonate.Force");
+	this->UnlimboDetonate_Force.Read(exINI, pSection, "UnlimboDetonate.ForceLocation");
 	this->UnlimboDetonate_KeepTarget.Read(exINI, pSection, "UnlimboDetonate.KeepTarget");
 	this->UnlimboDetonate_KeepSelected.Read(exINI, pSection, "UnlimboDetonate.KeepSelected");
 

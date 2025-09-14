@@ -454,7 +454,7 @@ namespace Savegame
 			if (!Savegame::ReadPhobosStream(Stm, rad))
 				return false;
 
-			Value = rad;
+			Value = (size_t)rad;
 			return true;
 		}
 
@@ -476,7 +476,7 @@ namespace Savegame
 			if (!Savegame::ReadPhobosStream(Stm, rad))
 				return false;
 
-			Value = rad;
+			Value = (unsigned short)rad;
 			return true;
 		}
 
@@ -498,7 +498,7 @@ namespace Savegame
 			if (!Savegame::ReadPhobosStream(Stm, rad))
 				return false;
 
-			Value = rad;
+			Value = (short)rad;
 			return true;
 		}
 
@@ -520,7 +520,7 @@ namespace Savegame
 			if (!Savegame::ReadPhobosStream(Stm, rad))
 				return false;
 
-			Value.Raw = rad;
+			Value.Raw = (unsigned short)rad;
 			// Note: Pad is not serialized as it appears to be just alignment padding
 			return true;
 		}
@@ -906,17 +906,17 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, TintStruct& Value, bool RegisterForChange) const
 		{
-			if (!Savegame::ReadPhobosStream(Stm, Value.Red, RegisterForChange)) return false;
-			if (!Savegame::ReadPhobosStream(Stm, Value.Green, RegisterForChange)) return false;
-			if (!Savegame::ReadPhobosStream(Stm, Value.Blue, RegisterForChange)) return false;
+			if (!Stm.Load(Value.Red)) return false;
+			if (!Stm.Load(Value.Green)) return false;
+			if (!Stm.Load(Value.Blue)) return false;
 			return true;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const TintStruct& Value) const
 		{
-			if (!Savegame::WritePhobosStream(Stm, Value.Red)) return false;
-			if (!Savegame::WritePhobosStream(Stm, Value.Green)) return false;
-			if (!Savegame::WritePhobosStream(Stm, Value.Blue)) return false;
+			if (!Stm.Save(Value.Red)) return false;
+			if (!Stm.Save(Value.Green)) return false;
+			if (!Stm.Save(Value.Blue)) return false;
 			return true;
 		}
 	};
@@ -926,17 +926,17 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, LightingStruct& Value, bool RegisterForChange) const
 		{
-			if (!Savegame::ReadPhobosStream(Stm, Value.Tint, RegisterForChange)) return false;
-			if (!Savegame::ReadPhobosStream(Stm, Value.Ground, RegisterForChange)) return false;
-			if (!Savegame::ReadPhobosStream(Stm, Value.Level, RegisterForChange)) return false;
+			if (!Stm.Load(Value.Tint)) return false;
+			if (!Stm.Load(Value.Ground)) return false;
+			if (!Stm.Load(Value.Level)) return false;
 			return true;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const LightingStruct& Value) const
 		{
-			if (!Savegame::WritePhobosStream(Stm, Value.Tint)) return false;
-			if (!Savegame::WritePhobosStream(Stm, Value.Ground)) return false;
-			if (!Savegame::WritePhobosStream(Stm, Value.Level)) return false;
+			if (!Stm.Save(Value.Tint)) return false;
+			if (!Stm.Save(Value.Ground)) return false;
+			if (!Stm.Save(Value.Level)) return false;
 			return true;
 		}
 	};
@@ -977,10 +977,10 @@ namespace Savegame
 		};
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const ScriptActionNode& Value) const {
-			if (!Savegame::WritePhobosStream(Stm, Value.Action))
+			if (!Stm.Save(Value.Action))
 				return false;
 
-			if (!Savegame::WritePhobosStream(Stm, Value.Argument))
+			if (!Stm.Save(Value.Argument))
 				return false;
 
 			return true;
@@ -994,131 +994,51 @@ namespace Savegame
 		{
 			Value.clear();
 
-			// Get underlying stream and check integrity
-			//auto* stream = Stm.Getstream();
-			//size_t streamOffset = stream->Offset();
-			//GameDebugLog::Log("[std::string] READ start at offset %zu\n", streamOffset);
-
 			int size = 0;
-			if (!Stm.Load(size))
-			{
-				//GameDebugLog::Log("[std::string] CRITICAL: Failed to load size at offset %zu\n", streamOffset);
+			if (!Savegame::ReadPhobosStream(Stm, size, RegisterForChange)) {
 				return false;
 			}
 
-			//size_t afterSizeOffset = stream->Offset();
-			//GameDebugLog::Log("[std::string] Loaded size=%zu, offset %zu->%zu (+%zu bytes)\n",
-			//	size, streamOffset, afterSizeOffset, afterSizeOffset - streamOffset);
-
-			// Sanity checks for corruption
-			if (size > 10000)
-			{
+			if (size > 10000) {
 				GameDebugLog::Log("[std::string] CRITICAL: size %zu seems too large! Possible corruption\n", size);
 				__debugbreak();
 				return false;
 			}
 
-			if (size == -1)
-			{
+			if (size == -1) {
 				GameDebugLog::Log("[std::string] CRITICAL: size is -1! Stream corruption detected\n");
 				__debugbreak();
 				return false;
 			}
 
-			if (!size)
-			{
-				//GameDebugLog::Log("[std::string] Empty string loaded successfully\n");
+			if (!size) {
 				return true;
 			}
 
-			std::vector<char> buffer(size);
-			if (!Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer.data()), (size_t)size))
-			{
+			Value.resize(size);
+			if (!Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(&Value[0]), (size_t)size * sizeof(char))) {
 				GameDebugLog::Log("[std::string] CRITICAL: Failed to read %zu bytes of string data\n", size);
 				return false;
 			}
-
-			Value.assign(buffer.begin(), buffer.end());
-			//GameDebugLog::Log("[std::string] Successfully loaded: '%s' (length %zu)\n",
-			//	Value.c_str(), Value.length());
 
 			return true;
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::string& Value) const
 		{
-			// Get underlying stream
-			//auto* stream = Stm.Getstream();
+			const auto stringSize = Value.size();
 
-			//size_t streamSizeBefore = stream->Size();
-			//GameDebugLog::Log("[std::string] WRITE start at size %zu, string='%s' (length %zu)\n",
-			//	streamSizeBefore, Value.c_str(), Value.size());
-
-			// Store size in local variable to prevent optimization issues
-			const int stringSize = Value.size();
-
-			//GameDebugLog::Log("[std::string] About to save size %zu\n", stringSize);
-
-			// Write size with validation
-			if (!Stm.Save(stringSize))
-			{
-				//GameDebugLog::Log("[std::string] CRITICAL: Failed to save size %zu\n", stringSize);
+			if (!Savegame::WritePhobosStream(Stm, stringSize)) {
 				return false;
 			}
 
-			//size_t afterSizeWrite = stream->Size();
-			//size_t sizeBytes = afterSizeWrite - streamSizeBefore;
-			//GameDebugLog::Log("[std::string] Wrote size=%zu, stream %zu->%zu (+%zu bytes)\n",
-			//	stringSize, streamSizeBefore, afterSizeWrite, sizeBytes);
-
-			// Validate size was written correctly
-			//if (sizeBytes != sizeof(size_t))
-			//{
-			//	GameDebugLog::Log("[std::string] ERROR: Expected %zu bytes for size_t, but wrote %zu bytes\n",
-			//		sizeof(size_t), sizeBytes);
-			//	__debugbreak();
-			//	return false;
-			//}
-
-			if (Value.empty())
-			{
-				//GameDebugLog::Log("[std::string] Empty string, not writing data\n");
-				//size_t totalBytes = afterSizeWrite - streamSizeBefore;
-				//GameDebugLog::Log("[std::string] Total bytes written: %zu\n", totalBytes);
+			if (Value.empty()) {
 				return true;
 			}
 
-			//GameDebugLog::Log("[std::string] About to write %zu bytes of string data\n", stringSize);
-
-			// Write string data with validation
-			const char* dataPtr = Value.c_str();
-
-			if (!Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(dataPtr), (size_t)stringSize))
-			{
-				//GameDebugLog::Log("[std::string] CRITICAL: Failed to write %zu bytes of string data\n", stringSize);
+			if (!Stm.Getstream()->SaveChar(Value.data(), (size_t)stringSize * sizeof(char))) {
 				return false;
 			}
-
-			//size_t finalSize = stream->Size();
-			//size_t totalBytesWritten = finalSize - streamSizeBefore;
-			//size_t expectedTotal = sizeof(size_t) + stringSize;
-
-			//GameDebugLog::Log("[std::string] Wrote data, final size %zu (+%zu total bytes)\n",
-			//	finalSize, totalBytesWritten);
-
-			// Critical validation - this is where we catch the corruption
-			//if (totalBytesWritten != expectedTotal)
-			//{
-			//	GameDebugLog::Log("[std::string] CRITICAL CORRUPTION: Expected %zu total bytes, but wrote %zu bytes\n",
-			//		expectedTotal, totalBytesWritten);
-			//	GameDebugLog::Log("[std::string] Size bytes: %zu, String bytes: %zu, Actual total: %zu\n",
-			//		sizeof(size_t), stringSize, totalBytesWritten);
-			//	__debugbreak();
-			//	return false;
-			//}
-
-			//GameDebugLog::Log("[std::string] Successfully wrote string '%s' (%zu + %zu = %zu bytes)\n",
-			//	Value.c_str(), sizeof(size_t), stringSize, totalBytesWritten);
 
 			return true;
 		}
@@ -1153,10 +1073,8 @@ namespace Savegame
 					return true;
 				}
 
-				std::vector<wchar_t> buffer(size);
-				if (Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer.data()), size * sizeof(wchar_t)))
-				{
-					Value.assign(buffer.begin(), buffer.end());
+				Value.resize(size);
+				if (Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(Value.data()), size * sizeof(wchar_t))) {
 					return true;
 				}
 			}
@@ -1171,7 +1089,7 @@ namespace Savegame
 			if (Value.empty())
 				return true;
 
-			Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(Value.c_str()), Value.size() * sizeof(wchar_t));
+			Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(Value.data()), Value.size() * sizeof(wchar_t));
 			return true;
 		}
 	};
@@ -1536,8 +1454,12 @@ namespace Savegame
 			Debug::Log("Vector %s loading %d elements \n", name.c_str(), Count);
 
 			Value.resize(Count);
+			if ((int)Value.size() != Count) {
+				Debug::Log("Vector %s resize failed! Expected %d, got %zu\n", name.c_str(), Count, Value.size());
+				__debugbreak();
+			}
 
-			for (auto ix = 0u; ix < Count; ++ix) {
+			for (auto ix = 0; ix < Count; ++ix) {
 				Debug::Log("Loading vector %s element %u/%d\n", name.c_str(), ix, Count);
 
 				if COMPILETIMEEVAL(std::is_same_v<T, bool>) {
@@ -1611,8 +1533,7 @@ namespace Savegame
 			if (!Stm.Load(Count))
 				return false;
 
-			for (auto ix = 0u; ix < Count; ++ix)
-			{
+			for (auto ix = 0; ix < Count; ++ix) {
 				std::pair<TKey, TValue> buffer;
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
 					return false;
@@ -1625,18 +1546,13 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::map<TKey, TValue>& Value) const
 		{
-			int const nSize = Value.size();
-			Stm.Save(nSize);
+			Stm.Save((int)Value.size());
 
-			if (nSize) {
-				for (const auto& [first, second] : Value) {
-					if (!Savegame::WritePhobosStream(Stm, first))
-						return false;
-
-					if (!Savegame::WritePhobosStream(Stm, second))
-						return false;
-				}
+			for (const std::pair<const TKey, TValue>& internal : Value) {
+				if (!Savegame::WritePhobosStream(Stm, internal))
+					return false;
 			}
+
 			return true;
 		}
 	};
@@ -1659,22 +1575,23 @@ namespace Savegame
 
 			if COMPILETIMEEVAL(std::is_pointer<T>::value) {
 				std::vector<T> buffer(Count, nullptr);
-				for (auto ix = 0u; ix < Count; ++ix) {
+				for (auto ix = 0; ix < Count; ++ix) {
 					if (!Savegame::ReadPhobosStream(Stm, buffer[ix], RegisterForChange)) {
 						return false;
 					}
 				}
 
 				Value.insert(buffer.begin(), buffer.end());
-			} else{
 
-				for (auto ix = 0u; ix < Count; ++ix) {
+			} else {
+
+				for (auto ix = 0; ix < Count; ++ix) {
 
 					T buffer = T();
-					if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
-					{
+					if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange)) {
 						return false;
 					}
+
 					Value.insert(buffer);
 				}
 			}
@@ -1684,13 +1601,10 @@ namespace Savegame
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::set<T>& Value) const
 		{
 			Stm.Save((int)Value.size());
-			//Debug::LogInfo("Saving std::set with(%s) size %d", typeid(T).name(), Value.size());
 
-			if(Value.empty()){
-				for (const auto& item : Value) {
-					if (!Savegame::WritePhobosStream(Stm, item)) {
-						return false;
-					}
+			for (const auto& item : Value) {
+				if (!Savegame::WritePhobosStream(Stm, item)) {
+					return false;
 				}
 			}
 
@@ -1710,7 +1624,7 @@ namespace Savegame
 				return false;
 			}
 
-			for (auto ix = 0u; ix < Count; ++ix) {
+			for (auto ix = 0; ix < Count; ++ix) {
 				T buffer = T();
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange)) {
 					return false;
@@ -1725,13 +1639,12 @@ namespace Savegame
 		{
 			Stm.Save((int)Value.size());
 
-			if(!Value.empty()){
-				for (const auto& item : Value) {
-					if (!Savegame::WritePhobosStream(Stm, item)) {
-						return false;
-					}
+			for (const auto& item : Value) {
+				if (!Savegame::WritePhobosStream(Stm, item)) {
+					return false;
 				}
 			}
+
 			return true;
 		}
 	};
@@ -1753,7 +1666,7 @@ namespace Savegame
 
 			Value.resize(count);
 
-			for (auto ix = 0u; ix < count; ++ix)
+			for (auto ix = 0; ix < count; ++ix)
 			{
 				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange))
 					return false;
@@ -1787,7 +1700,7 @@ namespace Savegame
 			if (!nSize)
 				return true;
 
-			for (int ix = 0u; ix < nSize; ++ix)
+			for (int ix = 0; ix < nSize; ++ix)
 			{
 				T buffer { };
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
@@ -1833,8 +1746,7 @@ namespace Savegame
 			if (!nSize)
 				return true;
 
-
-			for (int ix = 0u; ix < nSize; ++ix)
+			for (int ix = 0; ix < nSize; ++ix)
 			{
 				T buffer { };
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange))
@@ -1874,7 +1786,7 @@ namespace Savegame
 		{
 			__stosb(reinterpret_cast<PhobosByteStream::data_t*>(Value.data()), 0, sizeof(T) * size);
 
-			for (auto ix = 0u; ix < size; ++ix) {
+			for (auto ix = 0; ix < size; ++ix) {
 				if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange)) {
 					return false;
 				}
@@ -1910,7 +1822,7 @@ namespace Savegame
 			if (!Count)
 				return true;
 
-			for (auto ix = 0u; ix < Count; ++ix)
+			for (auto ix = 0; ix < Count; ++ix)
 			{
 				std::pair<TKey, TValue> buffer;
 				if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange)) {
@@ -1925,18 +1837,11 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::unordered_map<TKey, TValue>& Value) const
 		{
-			int const nSize = Value.size();
-			Stm.Save(nSize);
 
-			if (!nSize)
-				return true;
+			Stm.Save((int)Value.size());
 
-			for (const auto&[first , second] : Value)
-			{
-				if (!Savegame::WritePhobosStream(Stm, first))
-					return false;
-
-				if(!Savegame::WritePhobosStream(Stm, second))
+			for (const std::pair<const TKey, TValue>& internal : Value) {
+				if (!Savegame::WritePhobosStream(Stm, internal))
 					return false;
 			}
 
@@ -1959,7 +1864,7 @@ namespace Savegame
 			if (!Count)
 				return true;
 
-			for (auto ix = 0u; ix < Count; ++ix)
+			for (auto ix = 0; ix < Count; ++ix)
 			{
 				TKey key = TKey();
 
@@ -1981,17 +1886,11 @@ namespace Savegame
 		{
 			Stm.Save((int)Value.size());
 
-			if(!Value.empty()){
-				for (const auto&[key , val] : Value)
-				{
-					if (!Savegame::WritePhobosStream(Stm, key))
-						return false;
-
-					if (!Savegame::WritePhobosStream(Stm, val))
-						return false;
-
-				}
+			for (const std::pair<const TKey, TValue>& internal : Value) {
+				if (!Savegame::WritePhobosStream(Stm, internal))
+					return false;
 			}
+
 			return true;
 		}
 	};

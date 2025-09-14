@@ -25,6 +25,10 @@ public:
 	bool MakeInfantry_AI_Scatter;
 	std::unique_ptr<CreateUnitTypeClass> CreateUnitType;
 	Valueable<int> XDrawOffset;
+	Valueable<bool> YDrawOffset_ApplyBracketHeight;
+	Valueable<bool> YDrawOffset_InvertBracketShift;
+	Valueable<int> YDrawOffset_BracketAdjust;
+	Nullable<int> YDrawOffset_BracketAdjust_Buildings;
 	Valueable<int> HideIfNoOre_Threshold;
 	Nullable<bool> Layer_UseObjectLayer;
 	Valueable<AttachedAnimPosition> AttachedAnimPosition;
@@ -97,6 +101,10 @@ public:
 		MakeInfantry_AI_Scatter(false),
 		CreateUnitType(nullptr),
 		XDrawOffset(0),
+		YDrawOffset_ApplyBracketHeight(false),
+		YDrawOffset_InvertBracketShift(false),
+		YDrawOffset_BracketAdjust(),
+		YDrawOffset_BracketAdjust_Buildings(),
 		HideIfNoOre_Threshold(0),
 		AttachedAnimPosition(AttachedAnimPosition::Default),
 		Weapon(nullptr),

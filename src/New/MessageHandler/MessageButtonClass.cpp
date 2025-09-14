@@ -5,8 +5,7 @@
 #include <Drawing.h>
 
 MessageButtonClass::MessageButtonClass(int id, int x, int y, int width, int height)
-	: MessageToggleClass(x, y, width, height)
-	, ID(id)
+	: MessageToggleClass(id, x, y, width, height)
 {
 	this->Disabled = true;
 	this->Flags |= GadgetFlag::LeftHeld;
@@ -21,7 +20,7 @@ bool MessageButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modif
 			this->CheckTime = MessageColumnClass::GetSystemTime() + MessageButtonClass::HoldInitialDelay;
 			this->Clicking = true;
 
-			if (this->ID)
+			if (this->ID == 3)
 				MessageColumnClass::Instance.ScrollDown();
 			else
 				MessageColumnClass::Instance.ScrollUp();
@@ -39,7 +38,7 @@ bool MessageButtonClass::Action(GadgetFlag flags, DWORD* pKey, KeyModifier modif
 		{
 			this->CheckTime += MessageButtonClass::HoldTriggerDelay;
 
-			if (this->ID)
+			if (this->ID == 3)
 				MessageColumnClass::Instance.ScrollDown();
 			else
 				MessageColumnClass::Instance.ScrollUp();
@@ -60,7 +59,7 @@ void MessageButtonClass::DrawShape() const
 	RectangleStruct drawRect = this->Rect;
 	ColorStruct color = MessageColumnClass::Instance.GetColor();
 	MessageColumnClass::Instance.IncreaseBrightness(color, 3);
-	const bool can = this->ID ? MessageColumnClass::Instance.CanScrollDown() : MessageColumnClass::Instance.CanScrollUp();
+	const bool can = this->ID == 3 ? MessageColumnClass::Instance.CanScrollDown() : MessageColumnClass::Instance.CanScrollUp();
 	const bool highLight = can && this->Hovering;
 	const int opacity = highLight ? MessageColumnClass::MediumOpacity : MessageColumnClass::LowOpacity;
 

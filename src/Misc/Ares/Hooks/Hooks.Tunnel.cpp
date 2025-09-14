@@ -99,17 +99,6 @@ ASMJIT_PATCH(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x71A995, TemporalClass_Update_Tunnel, 5)
-{
-	GET(TemporalClass*, pThis, ESI);
-	GET(BuildingClass*, pTarget, EBP);
-
-	if (const auto pTunnelData = HouseExtData::GetTunnelVector(pTarget->Type, pTarget->Owner))
-		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, pThis->Owner);
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x73A23F, UnitClass_UpdatePosition_Tunnel, 0x6)
 {
 	enum { Entered = 0x73A315, FailedToEnter = 0x73A796, Nothing = 0x0 };

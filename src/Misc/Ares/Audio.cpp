@@ -439,8 +439,9 @@ ASMJIT_PATCH(0x4011C0, Audio_Load, 6)
 	instance.Append("ares");
 
 	// audio01.bag to audio99.bag
-	fmt::memory_buffer buffer {};
+	static fmt::basic_memory_buffer<char, 20> buffer {};
 	for(auto i = 1; i < 100; ++i) {
+		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), "audio{:02}", i);
 		buffer.push_back('\0');
 		instance.Append(buffer.data());

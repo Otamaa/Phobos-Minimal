@@ -622,7 +622,7 @@ public:
 		SuppressDeathWeapon_Infantry(false),
 		DeployedDamage(1.00),
 		Supress_LostEva(false),
-		Temporal_HealthFactor(1.0),
+		Temporal_HealthFactor(0.0),
 		Sonar_Duration(0),
 		DisableWeapons_Duration(0),
 		Malicious(true),

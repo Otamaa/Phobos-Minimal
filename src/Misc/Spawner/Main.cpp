@@ -736,7 +736,8 @@ bool SpawnerMain::GameConfigs::Reconcile_Players() {
 			pHouse->Production = true;
 			pHouse->StaticData.IQLevel = RulesClass::Instance->MaxIQLevels;
 
-			fmt::basic_memory_buffer<wchar_t> buffer;
+			static fmt::basic_memory_buffer<wchar_t> buffer;
+			buffer.clear();
 			fmt::format_to(std::back_inserter(buffer), L"{} (AI)", pHouse->UIName);
 			buffer.push_back(L'\0');
 			std::wcscpy(pHouse->UIName, buffer.data());

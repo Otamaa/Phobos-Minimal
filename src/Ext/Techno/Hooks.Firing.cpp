@@ -700,8 +700,19 @@ ASMJIT_PATCH(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	GET(TechnoClass*, pThis, ESI);
 
+	const auto pWH = pWeapon->Warhead;
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto pWHExt =  WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (pWeapon->LimboLaunch) {
+		if (!pWH->Parasite && pWHExt->UnlimboDetonate) {
+			if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis)) {
+				if (pFoot->Locomotor->Is_Really_Moving_Now())
+					return CanNotFire;
+			}
+		}
+	}
 
 	{
 		if (pThis->CurrentBurstIndex && pWeapon != pExt->LastWeaponType && pTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst)) {

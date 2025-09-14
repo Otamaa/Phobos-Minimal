@@ -436,6 +436,7 @@ ColorStruct WeaponTypeExtData::GetBeamColor() const
 	return result.Get(RulesClass::Instance->RadColor);
 }
 
+#ifdef _Track
 template <typename T>
 void WeaponTypeExtData::Serialize(T& Stm)
 {
@@ -593,6 +594,233 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->MyAttachFireDatas)
 		;
 };
+#else
+template <typename T>
+void WeaponTypeExtData::Serialize(T& Stm)
+{
+	auto debugProcess = [this ,&Stm](auto& field, const char* fieldName) -> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				size_t afterSize = Stm.Getstream()->Size();
+				GameDebugLog::Log("[WeaponTypeExtData] %s SAVE %s: size %zu -> %zu (+%zu)\n",
+					this->Name(), fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				size_t beforeOffset = Stm.Getstream()->Offset();
+				bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				size_t afterOffset = Stm.Getstream()->Offset();
+				bool afterSuccess = Stm.Success();
+
+				GameDebugLog::Log("[WeaponTypeExtData] %s LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					this->Name(), fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				if (!afterSuccess && beforeSuccess)
+				{
+					GameDebugLog::Log("[WeaponTypeExtData] %s ERROR: %s caused stream failure!\n", this->Name(), fieldName);
+				}
+				return result;
+			}
+		};
+
+	// DiskLaser fields
+	debugProcess(this->DiskLaser_Radius, "DiskLaser_Radius");
+	debugProcess(this->DiskLaser_Circumference, "DiskLaser_Circumference");
+	debugProcess(this->Rad_NoOwner, "Rad_NoOwner");
+
+	// Bolt fields
+	debugProcess(this->Bolt_Disables[0], "Bolt_Disables[0]");
+	debugProcess(this->Bolt_Disables[1], "Bolt_Disables[1]");
+	debugProcess(this->Bolt_Disables[2], "Bolt_Disables[2]");
+	debugProcess(this->Bolt_Arcs, "Bolt_Arcs");
+	debugProcess(this->Bolt_Duration, "Bolt_Duration");
+
+	// Strafing fields
+	debugProcess(this->Strafing, "Strafing");
+	debugProcess(this->Strafing_Shots, "Strafing_Shots");
+	debugProcess(this->Strafing_SimulateBurst, "Strafing_SimulateBurst");
+	debugProcess(this->Strafing_UseAmmoPerShot, "Strafing_UseAmmoPerShot");
+	debugProcess(this->Strafing_EndDelay, "Strafing_EndDelay");
+	debugProcess(this->Strafing_TargetCell, "Strafing_TargetCell");
+
+	// Targeting fields
+	debugProcess(this->CanTarget, "CanTarget");
+	debugProcess(this->CanTargetHouses, "CanTargetHouses");
+	debugProcess(this->RadType, "RadType");
+	debugProcess(this->Burst_Delays, "Burst_Delays");
+	debugProcess(this->AreaFire_Target, "AreaFire_Target");
+
+	// Feedback and laser fields
+	debugProcess(this->FeedbackWeapon, "FeedbackWeapon");
+	debugProcess(this->Laser_IsSingleColor, "Laser_IsSingleColor");
+	debugProcess(this->Trajectory_Speed, "Trajectory_Speed");
+
+	// Abductor fields
+	debugProcess(this->Abductor, "Abductor");
+	debugProcess(this->Abductor_AnimType, "Abductor_AnimType");
+	debugProcess(this->Abductor_ChangeOwner, "Abductor_ChangeOwner");
+	debugProcess(this->Abductor_AbductBelowPercent, "Abductor_AbductBelowPercent");
+	debugProcess(this->Abductor_Temporal, "Abductor_Temporal");
+	debugProcess(this->Abductor_MaxHealth, "Abductor_MaxHealth");
+	debugProcess(this->Abductor_CheckAbductableWhenTargeting, "Abductor_CheckAbductableWhenTargeting");
+
+	// Burst and ROF fields
+	debugProcess(this->Burst_FireWithinSequence, "Burst_FireWithinSequence");
+	debugProcess(this->Burst_NoDelay, "Burst_NoDelay");
+	debugProcess(this->ROF_RandomDelay, "ROF_RandomDelay");
+	debugProcess(this->ChargeTurret_Delays, "ChargeTurret_Delays");
+
+	// Omni fire and coordinate fields
+	debugProcess(this->OmniFire_TurnToTarget, "OmniFire_TurnToTarget");
+	debugProcess(this->Ylo, "Ylo");
+	debugProcess(this->Xlo, "Xlo");
+	debugProcess(this->Xhi, "Xhi");
+	debugProcess(this->Yhi, "Yhi");
+	debugProcess(this->ShakeLocal, "ShakeLocal");
+
+	// Occupant animation fields
+	debugProcess(this->OccupantAnims, "OccupantAnims");
+	debugProcess(this->OccupantAnim_UseMultiple, "OccupantAnim_UseMultiple");
+
+	// Range and projectile fields
+	debugProcess(this->Range_IgnoreVertical, "Range_IgnoreVertical");
+	debugProcess(this->ProjectileRange, "ProjectileRange");
+	debugProcess(this->Decloak_InstantFire, "Decloak_InstantFire");
+
+	// Feedback animation fields
+	debugProcess(this->Feedback_Anim, "Feedback_Anim");
+	debugProcess(this->Feedback_Anim_Offset, "Feedback_Anim_Offset");
+	debugProcess(this->Feedback_Anim_UseFLH, "Feedback_Anim_UseFLH");
+
+	// Techno destruction fields
+	debugProcess(this->DestroyTechnoAfterFiring, "DestroyTechnoAfterFiring");
+	debugProcess(this->RemoveTechnoAfterFiring, "RemoveTechnoAfterFiring");
+	debugProcess(this->OpentoppedAnim, "OpentoppedAnim");
+	debugProcess(this->DiskLaser_FiringOffset, "DiskLaser_FiringOffset");
+
+	// Health targeting fields
+	debugProcess(this->Targeting_Health_Percent, "Targeting_Health_Percent");
+	debugProcess(this->Targeting_Health_Percent_Below, "Targeting_Health_Percent_Below");
+	debugProcess(this->RockerPitch, "RockerPitch");
+	debugProcess(this->Ammo, "Ammo");
+	debugProcess(this->IsDetachedRailgun, "IsDetachedRailgun");
+
+	// Wave fields
+	debugProcess(this->Wave_IsHouseColor, "Wave_IsHouseColor");
+	debugProcess(this->Wave_IsLaser, "Wave_IsLaser");
+	debugProcess(this->Wave_IsBigLaser, "Wave_IsBigLaser");
+	debugProcess(this->Wave_Color, "Wave_Color");
+	debugProcess(this->Wave_Intent, "Wave_Intent");
+	debugProcess(this->Wave_Reverse, "Wave_Reverse");
+
+	// Ivan bomb fields
+	debugProcess(this->Ivan_KillsBridges, "Ivan_KillsBridges");
+	debugProcess(this->Ivan_Detachable, "Ivan_Detachable");
+	debugProcess(this->Ivan_Damage, "Ivan_Damage");
+	debugProcess(this->Ivan_Delay, "Ivan_Delay");
+	debugProcess(this->Ivan_TickingSound, "Ivan_TickingSound");
+	debugProcess(this->Ivan_AttachSound, "Ivan_AttachSound");
+	debugProcess(this->Ivan_WH, "Ivan_WH");
+	debugProcess(this->Ivan_Image, "Ivan_Image");
+	debugProcess(this->Ivan_FlickerRate, "Ivan_FlickerRate");
+	debugProcess(this->Ivan_CanDetonateTimeBomb, "Ivan_CanDetonateTimeBomb");
+	debugProcess(this->Ivan_CanDetonateDeathBomb, "Ivan_CanDetonateDeathBomb");
+	debugProcess(this->Ivan_DetonateOnSell, "Ivan_DetonateOnSell");
+	debugProcess(this->Ivan_DeathBombOnAllies, "Ivan_DeathBombOnAllies");
+	debugProcess(this->Ivan_DeathBomb, "Ivan_DeathBomb");
+
+	// Damage and cursor fields
+	debugProcess(this->ApplyDamage, "ApplyDamage");
+	debugProcess(this->Cursor_Attack, "Cursor_Attack");
+	debugProcess(this->Cursor_AttackOutOfRange, "Cursor_AttackOutOfRange");
+
+#ifdef _Enable
+	debugProcess(this->WeaponBolt_Data, "WeaponBolt_Data");
+#endif
+
+	// Bolt color and particle fields
+	debugProcess(this->Bolt_Colors[0], "Bolt_Colors[0]");
+	debugProcess(this->Bolt_Colors[1], "Bolt_Colors[1]");
+	debugProcess(this->Bolt_Colors[2], "Bolt_Colors[2]");
+	debugProcess(this->Bolt_ParticleSys, "Bolt_ParticleSys");
+	debugProcess(this->Bolt_FollowFLH, "Bolt_FollowFLH");
+	debugProcess(this->Laser_Thickness, "Laser_Thickness");
+
+	// Extra warheads fields
+	debugProcess(this->ExtraWarheads, "ExtraWarheads");
+	debugProcess(this->ExtraWarheads_DamageOverrides, "ExtraWarheads_DamageOverrides");
+	debugProcess(this->ExtraWarheads_DetonationChances, "ExtraWarheads_DetonationChances");
+	debugProcess(this->ExtraWarheads_FullDetonation, "ExtraWarheads_FullDetonation");
+	debugProcess(this->Burst_Retarget, "Burst_Retarget");
+	debugProcess(this->KickOutPassenger, "KickOutPassenger");
+
+	// Beam fields
+	debugProcess(this->Beam_Color, "Beam_Color");
+	debugProcess(this->Beam_Duration, "Beam_Duration");
+	debugProcess(this->Beam_Amplitude, "Beam_Amplitude");
+	debugProcess(this->Beam_IsHouseColor, "Beam_IsHouseColor");
+
+	// Ambient damage fields
+	debugProcess(this->AmbientDamage_Warhead, "AmbientDamage_Warhead");
+	debugProcess(this->AmbientDamage_IgnoreTarget, "AmbientDamage_IgnoreTarget");
+	debugProcess(this->RecoilForce, "RecoilForce");
+
+	// Attach effect fields
+	debugProcess(this->AttachEffect_RequiredTypes, "AttachEffect_RequiredTypes");
+	debugProcess(this->AttachEffect_DisallowedTypes, "AttachEffect_DisallowedTypes");
+	debugProcess(this->AttachEffect_RequiredGroups, "AttachEffect_RequiredGroups");
+	debugProcess(this->AttachEffect_DisallowedGroups, "AttachEffect_DisallowedGroups");
+	debugProcess(this->AttachEffect_RequiredMinCounts, "AttachEffect_RequiredMinCounts");
+	debugProcess(this->AttachEffect_RequiredMaxCounts, "AttachEffect_RequiredMaxCounts");
+	debugProcess(this->AttachEffect_DisallowedMinCounts, "AttachEffect_DisallowedMinCounts");
+	debugProcess(this->AttachEffect_DisallowedMaxCounts, "AttachEffect_DisallowedMaxCounts");
+	debugProcess(this->AttachEffect_CheckOnFirer, "AttachEffect_CheckOnFirer");
+	debugProcess(this->AttachEffect_IgnoreFromSameSource, "AttachEffect_IgnoreFromSameSource");
+
+	// Fire control fields
+	debugProcess(this->FireOnce_ResetSequence, "FireOnce_ResetSequence");
+	debugProcess(this->AttachEffects, "AttachEffects");
+	debugProcess(this->AttachEffect_Enable, "AttachEffect_Enable");
+	debugProcess(this->NoRepeatFire, "NoRepeatFire");
+	debugProcess(this->SkipWeaponPicking, "SkipWeaponPicking");
+
+	// Range keeping fields
+	debugProcess(this->KeepRange, "KeepRange");
+	debugProcess(this->KeepRange_AllowAI, "KeepRange_AllowAI");
+	debugProcess(this->KeepRange_AllowPlayer, "KeepRange_AllowPlayer");
+	debugProcess(this->KeepRange_EarlyStopFrame, "KeepRange_EarlyStopFrame");
+	debugProcess(this->VisualScatter, "VisualScatter");
+	debugProcess(this->TurretRecoil_Suppress, "TurretRecoil_Suppress");
+
+	// Health targeting constraints
+	debugProcess(this->CanTarget_MaxHealth, "CanTarget_MaxHealth");
+	debugProcess(this->CanTarget_MinHealth, "CanTarget_MinHealth");
+
+	// Delayed fire fields
+	debugProcess(this->DelayedFire_Duration, "DelayedFire_Duration");
+	debugProcess(this->DelayedFire_SkipInTransport, "DelayedFire_SkipInTransport");
+	debugProcess(this->DelayedFire_Animation, "DelayedFire_Animation");
+	debugProcess(this->DelayedFire_OpenToppedAnimation, "DelayedFire_OpenToppedAnimation");
+	debugProcess(this->DelayedFire_AnimIsAttached, "DelayedFire_AnimIsAttached");
+	debugProcess(this->DelayedFire_CenterAnimOnFirer, "DelayedFire_CenterAnimOnFirer");
+	debugProcess(this->DelayedFire_RemoveAnimOnNoDelay, "DelayedFire_RemoveAnimOnNoDelay");
+	debugProcess(this->DelayedFire_PauseFiringSequence, "DelayedFire_PauseFiringSequence");
+	debugProcess(this->DelayedFire_OnlyOnInitialBurst, "DelayedFire_OnlyOnInitialBurst");
+	debugProcess(this->DelayedFire_InitialBurstSymmetrical, "DelayedFire_InitialBurstSymmetrical");
+	debugProcess(this->DelayedFire_AnimOffset, "DelayedFire_AnimOffset");
+	debugProcess(this->DelayedFire_AnimOnTurret, "DelayedFire_AnimOnTurret");
+
+	// Final fields
+	debugProcess(this->OnlyAttacker, "OnlyAttacker");
+	debugProcess(this->MyAttachFireDatas, "MyAttachFireDatas");
+}
+#endif
 
 int WeaponTypeExtData::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 {

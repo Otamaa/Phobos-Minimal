@@ -69,6 +69,19 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
+	void CreateWarpAwayAnimation(WeaponTypeClass* pWeapon);
+
+	void ResetTemporalState() {
+		this->Target = 0;
+		this->PrevTemporal = 0;
+		this->NextTemporal = 0;
+		this->SourceSW = 0;
+		this->unknown_pointer_38 = 0;
+	}
+
+	void _Update();
+	void _Detonate(TechnoClass* pTarget);
+
 	FORCEDINLINE TemporalClass* _AsTemporal() const {
 		return (TemporalClass*)this;
 	}

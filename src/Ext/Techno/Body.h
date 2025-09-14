@@ -512,7 +512,7 @@ struct AEProperties
 public :
 
 	static void Recalculate(TechnoClass* pTechno);
-
+	static void UpdateAEAnimLogic(TechnoClass* pTechno);
 public :
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -1324,6 +1324,8 @@ public:
 
 	static bool HasAmmoToDeploy(TechnoClass* pThis);
 	static void HandleOnDeployAmmoChange(TechnoClass* pThis, int maxAmmoOverride = -1);
+
+	static bool SimpleDeployerAllowedToDeploy(UnitClass* pThis, bool defaultValue, bool alwaysCheckLandTypes);
 public:
 	static UnitClass* Deployer;
 

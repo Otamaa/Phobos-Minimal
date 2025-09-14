@@ -9,6 +9,8 @@
 
 #include <New/Type/LaserTrailTypeClass.h>
 
+#include <New/Entity/AnimationDrawOffsetClass.h>
+
 class PhobosAttachEffectTypeClass;
 struct GroupData
 {
@@ -126,6 +128,8 @@ public:
 	Valueable<double> Block_ChanceMultiplier;
 	Valueable<double> Block_ExtraChance;
 
+	std::vector<AnimationDrawOffsetClass> Animation_DrawOffsets;
+
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
 		, Duration { 0 }
 		, Duration_ApplyFirepowerMult { false }
@@ -210,7 +214,16 @@ public:
 		, LaserTrail_Type { -1 }
 		, Block_ChanceMultiplier { 1.0 }
 		, Block_ExtraChance { 0.0 }
+
+		, Animation_DrawOffsets {}
 	{};
+
+	COMPILETIMEEVAL FORCEDINLINE bool HasAnim() {
+		if (this->Cumulative)
+			return this->CumulativeAnimations.size() > 0 || this->Animation != nullptr;
+		else
+			return this->Animation != nullptr;
+	}
 
 	COMPILETIMEEVAL FORCEDINLINE bool HasTint() {
 		return this->Tint_Color.isset() || this->Tint_Intensity != 0.0;

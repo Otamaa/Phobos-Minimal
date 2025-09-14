@@ -2715,27 +2715,6 @@ ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
 	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
 }
 
-ASMJIT_PATCH(0x71A7BC, TemporalClass_Update_DistCheck, 0x6)
-{
-	GET(TemporalClass*, pThis, ESI);
-	GET(TechnoClass*, pTarget, ECX);
-
-	// Vanilla check is incorrect for buildingtargets
-	const auto distance = pThis->Owner->DistanceFrom(pTarget);
-	int disatanceMax = RulesClass::Instance->OpenToppedWarpDistance;
-
-	if (auto const pTransport = pThis->Owner->Transporter) {
-		if(pTransport->IsAlive) {
-			auto& _cDiscance = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
-			->OpenTopped_WarpDistance;
-			if(_cDiscance.isset())
-				disatanceMax = _cDiscance.Get();
-		}
-	}
-
-	return distance > (disatanceMax * 256) ? 0x71A83F : 0x71A84E;
-}
-
 ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_ReturnToSpawnOwner, 0x5)
 {
 
@@ -2896,33 +2875,79 @@ DEFINE_HOOK(0x6B72FE, SpawnerManagerClass_AI_MissileCheck, 0x9)
 		? NoSpawn : SpawnMissile;
 }
 
+DEFINE_PATCH(0x6656B3, 0x89, 0x4E);
 
 #pragma region FixPlanningNodeConnect
 
 #include <PlanningTokenClass.h>
 
-void NAKED _PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET_0x638F81() {
-	POP_REG(edi);
-	POP_REG(ebp);
-	POP_REG(ebx);
-	JMP(0x638F81);
-}
-
-void NAKED _PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET_CHECK_VALIDITY() {
-	POP_REG(edi);
-	POP_REG(ebp);
-	POP_REG(ebx);
+// Restore the original three pop to prevent stack imbalance
+void NAKED _PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET()
+{
+	POP_REG(EDI);
+	POP_REG(EBP);
+	POP_REG(EBX);
 	JMP(0x638F2A);
 }
+DEFINE_HOOK(0x638F1E, PlanningNodeClass_UpdateHoverNode_FixCheckValidity, 0x5)
+{
+	// Newly added checks to prevent not in-time updates
+	return PlanningNodeClass::PlanningModeActive ? (int)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET : 0;
+}
 
-ASMJIT_PATCH(0x638F1E, PlanningNodeClass_UpdateHoverNode_FixCheckValidity, 0x5) {
+DEFINE_HOOK(0x638F70, PlanningNodeClass_UpdateHoverNode_SkipDuplicateLog, 0x8)
+{
+	enum { SkipLogString = 0x638F81 };
 
-	GET(PlanningNodeClass*, iter, ESI);
+	GET(const PlanningNodeClass* const, pCurrentNode, ESI);
 
-	//original check
-	return PlanningNodeClass::PlanningModeActive() || iter != PlanningNodeClass::LastPlanning() ?
-		(DWORD)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET_CHECK_VALIDITY :
-		(DWORD)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET_0x638F81;
+	const auto& pHoveringNode = Make_Global<const PlanningNodeClass* const>(0xAC4CCC);
+
+	// Only output logs when they are not the same, to avoid outputting every frame
+	return (pCurrentNode != pHoveringNode) ? 0 : SkipLogString;
+}
+
+#pragma endregion
+
+#pragma region JumpjetSetDestFix
+
+// Fix JJ infantries stop incorrectly when assigned a target out of range.
+ASMJIT_PATCH(0x51AB5C, InfantryClass_SetDestination_JJInfFix, 0x6)
+{
+	enum { FuncRet = 0x51B1D7 };
+
+	GET(InfantryClass* const, pThis, EBP);
+	GET(AbstractClass* const, pDest, EBX);
+
+	auto pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor);
+
+	if (pThis->Type->BalloonHover && !pDest && pThis->Destination && pJumpjetLoco && pThis->Target)
+	{
+		if (pThis->IsCloseEnoughToAttack(pThis->Target))
+		{
+			pThis->StopMoving();
+		}
+
+		pThis->ForceMission(Mission::Attack);
+		return FuncRet;
+	}
+
+	return 0;
+}
+
+// Fix JJ vehicles can not stop correctly when assigned a target in range.
+ASMJIT_PATCH(0x741A66, UnitClass_SetDestination_JJVehFix, 0x5)
+{
+	GET(UnitClass* const, pThis, EBP);
+
+	auto pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor);
+
+	if (pJumpjetLoco && pThis->IsCloseEnoughToAttack(pThis->Target))
+	{
+		pThis->StopMoving();
+	}
+
+	return 0;
 }
 
 #pragma endregion

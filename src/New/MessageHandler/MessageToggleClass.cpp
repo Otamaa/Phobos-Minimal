@@ -4,10 +4,11 @@
 #include <Surface.h>
 #include <Drawing.h>
 
-MessageToggleClass::MessageToggleClass(int x, int y, int width, int height)
+MessageToggleClass::MessageToggleClass(int id, int x, int y, int width, int height)
 	: GadgetClass(x, y, width, height, GadgetFlag::LeftPress | GadgetFlag::LeftRelease, false)
+	, ID(id)
 {
-	this->Disabled = true;
+	this->Disabled = id != 0;
 }
 
 bool MessageToggleClass::Draw(bool forced)

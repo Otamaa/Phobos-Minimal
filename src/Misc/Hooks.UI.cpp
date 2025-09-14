@@ -86,11 +86,12 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	const auto pSideExt = SideExtContainer::Instance.Find(pSide);
 	RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pPlayer);
+	static fmt::basic_memory_buffer<wchar_t , 50> counter;
+	static fmt::basic_memory_buffer<wchar_t , 50> ShowPower;
 
 	if (Phobos::UI::BattlePointsSidebar_AlwaysShow || pHouseExt->AreBattlePointsEnabled())
 	{
-		fmt::basic_memory_buffer<wchar_t> counter;
-
+		counter.clear();
 		ColorStruct clrToolTip = pSideExt->Sidebar_BattlePoints_Color.Get(Drawing::TooltipColor);
 
 		int points = pHouseExt->BattlePoints;
@@ -138,8 +139,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	if (Phobos::UI::ShowPowerDelta && Phobos::Config::ShowPowerDelta && pPlayer->Buildings.Count)
 	{
 		ColorStruct clrToolTip { };
-
-		fmt::basic_memory_buffer<wchar_t> ShowPower;
+		ShowPower.clear();
 
 		if (pPlayer->PowerBlackoutTimer.InProgress())
 		{
@@ -177,7 +177,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 	if (Phobos::UI::WeedsCounter_Show && Phobos::Config::ShowWeedsCounter)
 	{
-		fmt::basic_memory_buffer<wchar_t> counter;
+		counter.clear();
 		ColorStruct clrToolTip = pSideExt->Sidebar_WeedsCounter_Color.Get(Drawing::TooltipColor());
 
 		fmt::format_to(std::back_inserter(counter), L"{}", static_cast<int>(pPlayer->OwnedWeed.GetTotalAmount()));

@@ -446,8 +446,8 @@ struct AresWPWHExt
 
 struct AresTActionExt
 {
-	static std::pair<TriggerAttachType, bool> GetFlag(AresNewTriggerAction nAction);
-	static std::pair<LogicNeedType, bool> GetMode(AresNewTriggerAction nAction);
+	static std::pair<TriggerAttachType, bool> GetTriggetAttach(AresNewTriggerAction nAction);
+	static std::pair<LogicNeedType, bool> GetLogicNeed(AresNewTriggerAction nAction);
 
 #define DEFINE_ACTION(f)\
 	static bool f##(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
@@ -482,9 +482,9 @@ struct AresTEventExt
 
 	// original game using between 0 - 2 ?
 	// why these were 256 257 ? , something not right ,..
-	static std::pair<Persistable, bool> GetPersistableFlag(AresTriggerEvents nAction);
+	static std::pair<bool, bool> GetPersistableFlag(AresTriggerEvents nAction);
 	static std::pair<LogicNeedType, bool >  GetLogicNeed(AresTriggerEvents nAction);
-	static std::pair<bool, TriggerAttachType> GetAttachFlags(AresTriggerEvents nEvent);
+	static std::pair<TriggerAttachType , bool> GetAttachFlags(AresTriggerEvents nEvent);
 
 	static bool FindTechnoType(TEventClass* pThis, int args, HouseClass* pWho);
 

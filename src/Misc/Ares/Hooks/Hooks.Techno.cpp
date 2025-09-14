@@ -1058,120 +1058,121 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 {
 	GET(TechnoClass* , pThis, ESI);
 
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	//require the VTABLE to be initialized
-	//hence why it is here instead of the CTOR
-	pExt->AbsType = pThis->WhatAmI();
-	if(!pExt->AbsType.has_value())
-		Debug::FatalErrorAndExit("Invalid Techno %x" , pThis);
-
 	auto const pType = pThis->GetTechnoType();
 
-	pExt->Type = pType;
+	if(pType)
+	{
+		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	pExt->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-	HouseExtData* pHouseExt = nullptr;
+		pExt->Type = pType;
 
-	if (pThis->Owner) {
-		pThis->IsOwnedByCurrentPlayer = pThis->Owner == HouseClass::CurrentPlayer();
-		pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
-	}
+		//require the VTABLE to be initialized
+		//hence why it is here instead of the CTOR
+		pExt->AbsType = pThis->WhatAmI();
+		if (!pExt->AbsType.has_value())
+			Debug::FatalErrorAndExit("Invalid Techno %x", pThis);
 
-	if (!pType)
-		return 0x6F42F7;
+		pExt->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+		HouseExtData* pHouseExt = nullptr;
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-
-	//TechnoExtData::InitializeAttachments(pThis);
-
-	CaptureManagerClass* pCapturer = nullptr;
-	ParasiteClass* pParasite = nullptr;
-	TemporalClass* pTemporal = nullptr;
-	SpawnManagerClass* pSpawnManager = nullptr;
-	SlaveManagerClass* pSlaveManager = nullptr;
-	AirstrikeClass* pAirstrike = nullptr;
-
-	//AircraftDiveFunctional::Init(pExt, pTypeExt);
-
-	if (pHouseExt && pTypeExt->Harvester_Counted)
-		pHouseExt->OwnedCountedHarvesters.emplace(pThis);
-
-	if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID) {
-		if (pTypeExt->MyFighterData.Enable) {
-			pExt->MyFighterData = std::make_unique<FighterAreaGuard>();
-			pExt->MyFighterData->OwnerObject = (AircraftClass*)pThis;
-		}
-	}
-
-	if (pType->Spawns) {
-		pSpawnManager = GameCreate<SpawnManagerClass>(pThis, pType->Spawns, pType->SpawnsNumber, pType->SpawnRegenRate, pType->SpawnReloadRate);
-	}
-
-	if (pType->Enslaves) {
-		pSlaveManager = GameCreate<SlaveManagerClass>(pThis, pType->Enslaves, pType->SlavesNumber, pType->SlaveRegenRate, pType->SlaveReloadRate);
-	}
-
-	if (pType->AirstrikeTeam > 0 && pType->AirstrikeTeamType) {
-		pAirstrike = GameCreate<AirstrikeClass>(pThis);
-	}
-
-	const bool IsFoot = pThis->WhatAmI() != BuildingClass::AbsID;
-	const int WeaponCount = pType->TurretCount <= 0 ? 2 : pType->WeaponCount;
-
-	for (auto i = 0; i < WeaponCount; ++i) {
-
-		if (auto const pWeapon = pType->GetWeapon(i)->WeaponType) {
-			TechnoExt_ExtData::InitWeapon(pThis, pType, pWeapon, i, pCapturer, pParasite, pTemporal, "Weapon", IsFoot);
+		if (pThis->Owner) {
+			pThis->IsOwnedByCurrentPlayer = pThis->Owner == HouseClass::CurrentPlayer();
+			pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
 		}
 
-		if (auto const pWeaponE = pType->GetEliteWeapon(i)->WeaponType) {
-			TechnoExt_ExtData::InitWeapon(pThis, pType, pWeaponE, i, pCapturer, pParasite, pTemporal, "EliteWeapon", IsFoot);
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+
+		//TechnoExtData::InitializeAttachments(pThis);
+
+		CaptureManagerClass* pCapturer = nullptr;
+		ParasiteClass* pParasite = nullptr;
+		TemporalClass* pTemporal = nullptr;
+		SpawnManagerClass* pSpawnManager = nullptr;
+		SlaveManagerClass* pSlaveManager = nullptr;
+		AirstrikeClass* pAirstrike = nullptr;
+
+		//AircraftDiveFunctional::Init(pExt, pTypeExt);
+
+		if (pHouseExt && pTypeExt->Harvester_Counted)
+			pHouseExt->OwnedCountedHarvesters.emplace(pThis);
+
+		if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID) {
+			if (pTypeExt->MyFighterData.Enable) {
+				pExt->MyFighterData = std::make_unique<FighterAreaGuard>();
+				pExt->MyFighterData->OwnerObject = (AircraftClass*)pThis;
+			}
 		}
+
+		if (pType->Spawns) {
+			pSpawnManager = GameCreate<SpawnManagerClass>(pThis, pType->Spawns, pType->SpawnsNumber, pType->SpawnRegenRate, pType->SpawnReloadRate);
+		}
+
+		if (pType->Enslaves) {
+			pSlaveManager = GameCreate<SlaveManagerClass>(pThis, pType->Enslaves, pType->SlavesNumber, pType->SlaveRegenRate, pType->SlaveReloadRate);
+		}
+
+		if (pType->AirstrikeTeam > 0 && pType->AirstrikeTeamType) {
+			pAirstrike = GameCreate<AirstrikeClass>(pThis);
+		}
+
+		const bool IsFoot = pThis->WhatAmI() != BuildingClass::AbsID;
+		const int WeaponCount = pType->TurretCount <= 0 ? 2 : pType->WeaponCount;
+
+		for (auto i = 0; i < WeaponCount; ++i) {
+
+			if (auto const pWeapon = pType->GetWeapon(i)->WeaponType) {
+				TechnoExt_ExtData::InitWeapon(pThis, pType, pWeapon, i, pCapturer, pParasite, pTemporal, "Weapon", IsFoot);
+			}
+
+			if (auto const pWeaponE = pType->GetEliteWeapon(i)->WeaponType) {
+				TechnoExt_ExtData::InitWeapon(pThis, pType, pWeaponE, i, pCapturer, pParasite, pTemporal, "EliteWeapon", IsFoot);
+			}
+		}
+
+		pThis->CaptureManager = pCapturer;
+		pThis->TemporalImUsing = pTemporal;
+		if (IsFoot) {
+			((FootClass*)pThis)->ParasiteImUsing = pParasite;
+		}
+
+		pThis->SpawnManager = pSpawnManager;
+		pThis->SlaveManager = pSlaveManager;
+		pThis->Airstrike = pAirstrike;
+
+		if (auto pOwner = pThis->Owner) {
+			const auto pHouseType = pOwner->Type;
+			const auto pParentHouseType = pHouseType->FindParentCountry();
+			TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
+		} else {
+			Debug::LogInfo("Techno[{}] Init Without any ownership!", pType->ID);
+		}
+
+		// if override is in effect, do not create initial payload.
+		// this object might have been deployed, undeployed, ...
+		if (Unsorted::ScenarioInit && Unsorted::CurrentFrame) {
+			TechnoExtContainer::Instance.Find(pThis)->PayloadCreated = true;
+		}
+
+		TechnoExtData::InitializeItems(pThis, pType);
+		TechnoExtData::InitializeAttachEffects(pThis, pType);
+
+		const auto pPrimary = pThis->GetWeapon(0)->WeaponType;
+
+		if (pPrimary && pType->LandTargeting != LandTargetingType::Land_not_okay)
+			pThis->RearmTimer.TimeLeft = pPrimary->ROF;
+		else if (const auto pSecondary = pThis->GetWeapon(1)->WeaponType)
+			pThis->RearmTimer.TimeLeft = pSecondary->ROF;
+
+		pThis->RearmTimer.StartTime = MinImpl(-2, -pThis->RearmTimer.TimeLeft);
+
+		TechnoExtData::InitializeUnitIdleAction(pThis, pType);
+
+		R->EAX(pType);
+		return 0x6F4212;
 	}
 
-	pThis->CaptureManager = pCapturer;
-	pThis->TemporalImUsing = pTemporal;
-	if (IsFoot) {
-		((FootClass*)pThis)->ParasiteImUsing = pParasite;
-	}
-
-	pThis->SpawnManager = pSpawnManager;
-	pThis->SlaveManager = pSlaveManager;
-	pThis->Airstrike = pAirstrike;
-
-	if (auto pOwner = pThis->Owner) {
-		const auto pHouseType = pOwner->Type;
-		const auto pParentHouseType = pHouseType->FindParentCountry();
-		TechnoExtContainer::Instance.Find(pThis)->OriginalHouseType = pParentHouseType ? pParentHouseType : pHouseType;
-	}
-	else {
-		Debug::LogInfo("Techno[{}] Init Without any ownership!", pType->ID);
-	}
-
-	// if override is in effect, do not create initial payload.
-	// this object might have been deployed, undeployed, ...
-	if (Unsorted::ScenarioInit && Unsorted::CurrentFrame) {
-		TechnoExtContainer::Instance.Find(pThis)->PayloadCreated = true;
-	}
-
-	TechnoExtData::InitializeItems(pThis, pType);
-	TechnoExtData::InitializeAttachEffects(pThis, pType);
-
-	const auto pPrimary = pThis->GetWeapon(0)->WeaponType;
-
-	if (pPrimary && pType->LandTargeting != LandTargetingType::Land_not_okay)
-		pThis->RearmTimer.TimeLeft = pPrimary->ROF;
-	else if (const auto pSecondary = pThis->GetWeapon(1)->WeaponType)
-		pThis->RearmTimer.TimeLeft = pSecondary->ROF;
-
-	pThis->RearmTimer.StartTime = MinImpl(-2, -pThis->RearmTimer.TimeLeft);
-
-	TechnoExtData::InitializeUnitIdleAction(pThis, pType);
-
-	R->EAX(pType);
-	return 0x6F4212;
+	return 0x6F42F7;
 }
 
 // westwood does firingUnit->WhatAmI() == abs_AircraftType
@@ -1340,6 +1341,13 @@ DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);
 // 	return 0x6FF31B;
 // }
 
+namespace UnlimboDetonateFireTemp
+{
+	BulletClass* Bullet;
+	bool InSelected;
+	bool InLimbo;
+}
+
 ASMJIT_PATCH(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -1347,6 +1355,7 @@ ASMJIT_PATCH(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 	GET(int, speed, EAX);
 	GET(int, damage, EDI);
 	GET_BASE(AbstractClass*, pTarget, 0x8);
+
 
 	// replace skipped instructions
 	REF_STACK(int, Speed, 0x28);
@@ -1359,8 +1368,46 @@ ASMJIT_PATCH(0x6FE53F, TechnoClass_FireAt_CreateBullet, 0x6)
 	const auto ret = pBulletExt->CreateBullet(pTarget, pThis, damage, pWeapon->Warhead,
 		speed, pWeaponExt->GetProjectileRange(), pWeapon->Bright, false);
 
+	UnlimboDetonateFireTemp::Bullet = ret;
+	UnlimboDetonateFireTemp::InSelected = pThis->IsSelected;
+	UnlimboDetonateFireTemp::InLimbo = pThis->InLimbo;
 	R->EAX(ret);
 	return 0x6FE562;
+}
+
+#include <Ext/Scenario/Body.h>
+
+
+ASMJIT_PATCH(0x6FF7FF, TechnoClass_Fire_UnlimboDetonate, 0x6)
+{
+	GET(TechnoClass* const, pThis, ESI);
+	GET(WarheadTypeClass* const, pWH, EAX);
+
+	const auto pBullet = UnlimboDetonateFireTemp::Bullet;
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (pThis->IsAlive && pThis->Health > 0 && pBullet
+		&& !UnlimboDetonateFireTemp::InLimbo && !pWH->Parasite && pWHExt->UnlimboDetonate) {
+		if (pWHExt->UnlimboDetonate_KeepSelected) {
+			TechnoExtContainer::Instance.Find(pThis)->IsSelected = UnlimboDetonateFireTemp::InSelected;
+			ScenarioExtData::Instance()->LimboLaunchers.emplace(pThis);
+		}
+
+		pBullet->Owner = pThis;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x48DC90, MapClass_UnselectAll_ClearLimboLaunchers, 0x5)
+{
+	for (const auto pExt : ScenarioExtData::Instance()->LimboLaunchers) {
+		TechnoExtContainer::Instance.Find(pExt)->IsSelected = false;
+	}
+
+	ScenarioExtData::Instance()->LimboLaunchers.clear();
+
+	return 0;
 }
 
 ASMJIT_PATCH(0x6F826E, TechnoClass_EvaluateObject_CivilianEnemy, 0x5)

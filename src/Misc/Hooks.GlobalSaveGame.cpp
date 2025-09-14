@@ -887,3 +887,11 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x67CEF0, Make_Save_Game)
+
+
+//const DLGTEMPLATE* __fastcall Show_Message_With_Cancel_Only(LPARAM lParam, LPARAM a2, LONG dwNewLong)
+//{
+//	return nullptr;
+//}
+//
+//DEFINE_FUNCTION_JUMP(CALL ,0x559E5E, Show_Message_With_Cancel_Only)

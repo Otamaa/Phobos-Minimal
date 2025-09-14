@@ -97,17 +97,16 @@ ASMJIT_PATCH(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
 
-	if (auto pExt = VoxelAnimExtContainer::Instance.Allocate(pItem))
-	{
-		if (const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pItem->Type))
-		{
-			//ID = Get()->Type->ID;
-			if (!pTypeExt->LaserTrail_Types.empty())
+	if(pItem->Type){
+
+		auto pExt = VoxelAnimExtContainer::Instance.Allocate(pItem);
+		const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.Find(pItem->Type);
+
+		if (!pTypeExt->LaserTrail_Types.empty())
 				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
-			pExt->InitializeLaserTrails(pTypeExt);
-			TrailsManager::Construct(pItem);
-		}
+		pExt->InitializeLaserTrails(pTypeExt);
+		TrailsManager::Construct(pItem);
 	}
 
 	return 0;

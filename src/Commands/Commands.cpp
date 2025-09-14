@@ -140,6 +140,7 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 
 #include <Helpers/Macro.h>
 #include <WWKeyboardClass.h>
+#include <New/MessageHandler/MessageColumnClass.h>
 
 ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 {
@@ -153,12 +154,30 @@ ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 			return SkipScrollSidebar;
 	}
 
-	if (!Phobos::Config::ScrollSidebarStripInTactical)
-	{
+	if (!Phobos::Config::ScrollSidebarStripInTactical) {
 		const auto pMouse = WWMouseClass::Instance();
 
 		if (pMouse->XY1.X < Make_Global<int>(0xB0CE30)) // TacticalClass::view_bound.Width
 			return SkipScrollSidebar;
+	}
+
+	if(MessageColumnClass::Instance.IsHovering())
+		return SkipScrollSidebar ;
+
+	return 0;
+}
+
+
+ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
+{
+	GET(const WPARAM, WParam, ECX);
+
+	if (WParam & 0x80000000u) {
+		 if(MessageColumnClass::Instance.IsHovering())
+			 MessageColumnClass::Instance.ScrollDown();
+	} else {
+		if (MessageColumnClass::Instance.IsHovering())
+			MessageColumnClass::Instance.ScrollUp();
 	}
 
 	return 0;

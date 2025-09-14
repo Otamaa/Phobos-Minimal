@@ -65,8 +65,8 @@ public:
 		if (SUCCEEDED(hr) && pcbRead)
 		{
 			totalBytesProcessed.QuadPart += *pcbRead;
-			Debug::Log("StreamWrapper: Read %lu bytes, total now %llu\n",
-						*pcbRead, totalBytesProcessed.QuadPart);
+			//Debug::Log("StreamWrapper: Read %lu bytes, total now %llu\n",
+			//			*pcbRead, totalBytesProcessed.QuadPart);
 		}
 		return hr;
 	}
@@ -74,7 +74,7 @@ public:
 	STDMETHODIMP Write(const void* pv, ULONG cb, ULONG* pcbWritten) override
 	{
 		if (!baseStream) return E_FAIL;
-		Debug::Log("StreamWrapper::Write: %lu bytes\n", cb);
+		//Debug::Log("StreamWrapper::Write: %lu bytes\n", cb);
 
 		HRESULT hr = baseStream->Write(pv, cb, pcbWritten);
 
@@ -93,8 +93,8 @@ public:
 			}
 
 			totalBytesProcessed.QuadPart += actualBytesWritten;
-			Debug::Log("StreamWrapper: Wrote %lu bytes, total now %llu\n",
-					   actualBytesWritten, totalBytesProcessed.QuadPart);
+			//Debug::Log("StreamWrapper: Wrote %lu bytes, total now %llu\n",
+			//		   actualBytesWritten, totalBytesProcessed.QuadPart);
 		}
 		else
 		{
@@ -287,15 +287,3 @@ public:
 // Typedefs for easy use
 typedef UniversalPositionTracker SavePositionTracker;
 typedef UniversalPositionTracker LoadPositionTracker;
-
-inline SavePositionTracker* CreateSaveTracker(LPSTREAM baseStream)
-{
-	StreamWrapperWithTracking* wrapper = new StreamWrapperWithTracking(baseStream);
-	return new SavePositionTracker(wrapper, "SAVE");
-}
-
-inline LoadPositionTracker* CreateLoadTracker(LPSTREAM baseStream)
-{
-	StreamWrapperWithTracking* wrapper = new StreamWrapperWithTracking(baseStream);
-	return new LoadPositionTracker(wrapper, "LOAD");
-}

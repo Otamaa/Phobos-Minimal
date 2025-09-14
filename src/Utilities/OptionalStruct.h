@@ -68,12 +68,9 @@ struct OptionalStruct
 
 		if COMPILETIMEEVAL (!Persistable)
 			return true;
-		else
-		{
-			if (Stm.Process(this->HasValue))
-			{
-				if (!this->HasValue || Stm.Process(this->Value, RegisterForChange))
-				{
+		else {
+			if (Stm.Process(this->HasValue)) {
+				if (!this->HasValue || Stm.Process(this->Value, RegisterForChange)) {
 					return true;
 				}
 			}

@@ -181,22 +181,6 @@ ASMJIT_PATCH(0x708FC0, TechnoClass_ResponseMove_Pickup, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x71A82C, TemporalClass_AI_Opentopped_WarpDistance, 0x6) //C
-{
-	GET(TemporalClass* const, pThis, ESI);
-
-	if (auto const pTransport = pThis->Owner->Transporter)
-	{
-		if(pTransport->IsAlive) {
-			R->EDX(TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
-				->OpenTopped_WarpDistance.Get(RulesClass::Instance->OpenToppedWarpDistance));
-			return 0x71A838;
-		}
-	}
-
-	return 0;
-}
-
 #include <Ext/Super/Body.h>
 
 ASMJIT_PATCH(0x6F6CFE, TechnoClass_Unlimbo_LaserTrails, 0x6)

@@ -98,7 +98,9 @@ bool TEventExtData::AttachedIsUnderAttachedEffectTEvent(TEventClass* pThis, Obje
 	if (!pTechno)
 		return false;
 
-	if (PhobosAEFunctions::HasAttachedEffects(pTechno, pTypeAttached, false, false, nullptr, nullptr, nullptr, nullptr))
+	std::vector<PhobosAttachEffectTypeClass*> attach { pTypeAttached };
+
+	if (PhobosAEFunctions::HasAttachedEffects(pTechno, attach, false, false, nullptr, nullptr, nullptr, nullptr))
 		return true;
 
 	return false;
@@ -436,49 +438,20 @@ bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 // container
 TEventExtContainer TEventExtContainer::Instance;
 std::vector<TEventExtData*> Container<TEventExtData>::Array;
+void Container<TEventExtData>::Clear()
+{
+	Array.clear();
+}
 
 bool TEventExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	Clear();
-
-	size_t Count = 0;
-	if (Stm.Process(Count))
-		return false;
-
-	Array.reserve(Count);
-
-	for (size_t i = 0; i < Count; ++i)
-	{
-
-		void* oldPtr = nullptr;
-
-		if (!Stm.Load(oldPtr))
-			return false;
-
-		auto newPtr = new TEventExtData(nullptr, noinit_t());
-		PHOBOS_SWIZZLE_REGISTER_POINTER((long)oldPtr, newPtr, "TEventExtData")
-		ExtensionSwizzleManager::RegisterExtensionPointer(oldPtr, newPtr);
-		newPtr->LoadFromStream(Stm);
-		Array.push_back(newPtr);
-	}
-
-	return true;
+	return LoadGlobalArrayData(Stm);
 }
 
 bool TEventExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	Stm.Save(Array.size());
-
-	for (auto& item : Array)
-	{
-		
-		Stm.Save(item);
-		item->SaveToStream(Stm);
-	}
-
-	return true;
+	return SaveGlobalArrayData(Stm);
 }
-
 
 // =============================
 // container hooks

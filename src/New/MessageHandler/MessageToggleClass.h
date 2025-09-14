@@ -10,7 +10,7 @@ public:
 	static constexpr int ButtonHeight = ButtonIconWidth + 2;
 
 	MessageToggleClass() = default;
-	MessageToggleClass(int x, int y, int width, int height);
+	MessageToggleClass(int id, int x, int y, int width, int height);
 
 	~MessageToggleClass() = default;
 
@@ -23,6 +23,7 @@ public:
 
 public:
 
+	int ID { 0 };
 	bool Hovering { false };
 	bool Clicking { false };
 };

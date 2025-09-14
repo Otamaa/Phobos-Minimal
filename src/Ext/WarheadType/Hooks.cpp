@@ -10,6 +10,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Helpers.h>
@@ -90,6 +91,7 @@ void ApplyExtraWarheads(
 void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * pThis , CoordStruct* coords) {
 	auto const pBulletExt = BulletExtContainer::Instance.Find(pThis);
 	auto const pOwner = pThis->Owner ? pThis->Owner->Owner : pBulletExt->Owner;
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if(pThis->WeaponType){
 		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pThis->WeaponType);
@@ -144,6 +146,87 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 	}
 
 	PhobosGlobal::Instance()->DetonateDamageArea = true;
+
+	if (pThis->Owner && pThis->Owner->InLimbo && !pWH->Parasite && pWHExt->UnlimboDetonate)
+	{
+		CoordStruct location = *coords;
+		const auto pTarget = pThis->Target;
+		const bool isInAir = pTarget && pTarget->AbstractFlags & AbstractFlags::Foot ? static_cast<FootClass*>(pTarget)->IsInAir() : false;
+		bool success = false;
+
+		if (!pWHExt->UnlimboDetonate_Force)
+		{
+			const auto pType = pThis->Owner->GetTechnoType();
+			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(location),
+									pType->SpeedType, ZoneType::None, pType->MovementZone, false, 1, 1, true,
+									false, false, true, CellStruct::Empty, false, false);
+
+			if (const auto pCell = MapClass::Instance->TryGetCellAt(nCell))
+			{
+				pThis->Owner->OnBridge = pCell->ContainsBridge();
+				location = pCell->GetCoordsWithBridge();
+			}
+			else
+			{
+				pThis->Owner->OnBridge = false;
+			}
+
+			if (isInAir)
+				location.Z = coords->Z;
+
+			success = pThis->Owner->Unlimbo(location, pThis->Owner->PrimaryFacing.Current().GetDir());
+		}
+		else
+		{
+			if (const auto pCell = MapClass::Instance->TryGetCellAt(location))
+				pThis->Owner->OnBridge = pCell->ContainsBridge();
+			else
+				pThis->Owner->OnBridge = false;
+
+			++Unsorted::ScenarioInit;
+			success = pThis->Owner->Unlimbo(location, pThis->Owner->PrimaryFacing.Current().GetDir());
+			--Unsorted::ScenarioInit;
+		}
+
+		const auto pTechnoExt = TechnoExtContainer::Instance.Find(pThis->Owner);
+
+		if (success)
+		{
+			if (isInAir)
+			{
+				pThis->Owner->IsFallingDown = true;
+				pThis->Owner->FallRate = 0;
+			}
+
+			if (pWHExt->UnlimboDetonate_KeepTarget
+				&& pTarget && pTarget->AbstractFlags & AbstractFlags::Object)
+			{
+				pThis->Owner->SetTarget(pTarget);
+			}
+			else
+			{
+				pThis->Owner->SetTarget(nullptr);
+			}
+
+			if (pTechnoExt->IsSelected)
+			{
+				ScenarioExtData::Instance()->LimboLaunchers.erase(pThis->Owner);
+				pThis->Owner->Select();
+				pTechnoExt->IsSelected = false;
+			}
+		}
+		else
+		{
+			if (pTechnoExt->IsSelected)
+			{
+				ScenarioExtData::Instance()->LimboLaunchers.erase(pThis->Owner);
+				pTechnoExt->IsSelected = false;
+			}
+
+			pThis->Owner->SetLocation(location);
+			pThis->Owner->ReceiveDamage(&pThis->Owner->Health, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, pThis->Owner->Owner);
+		}
+	}
 }
 
 // ASMJIT_PATCH(0x46A2A1, BulletClass_Logics_ReturnB, 0x5){

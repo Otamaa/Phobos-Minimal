@@ -1696,25 +1696,22 @@ ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 	const CellClass* pCell = pThis->GetCell();
 	const CoordStruct crd = pCell->GetCoordsWithBridge();
 
-	if (pThis->Type->IsSimpleDeployer && !pThis->BunkerLinkedItem) {
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	if (!pThis->BunkerLinkedItem) {
 
 		if (!TechnoExtData::HasAmmoToDeploy(pThis))
 			return 0x700DCE;
 
-		if (auto const pTypeConvert = pTypeExt->Convert_Deploy) {
-			if (!pCell->IsClearToMove(pTypeConvert->SpeedType, true, true, ZoneType::None, pTypeConvert->MovementZone, -1, pCell->ContainsBridge()))
-				return 0x700DCE;
+		if (pThis->Type->IsSimpleDeployer && !TechnoExtData::SimpleDeployerAllowedToDeploy(pThis, true, false)) {
+			return 0x700DCE;
 		}
 	}
-
-	// recreate replaced check, and also disallow if unit is still warping or dropping in.
+		// recreate replaced check, and also disallow if unit is still warping or dropping in.
 	return TechnoExtContainer::Instance.Find(pThis)->Convert_Deploy_Delay.InProgress()
-		|| pThis->IsUnderEMP()
-		|| pThis->IsWarpingIn()
-		|| pThis->IsFallingDown
-		|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled
-		? 0x700DCE : 0x700E59;
+			|| pThis->IsUnderEMP()
+			|| pThis->IsWarpingIn()
+			|| pThis->IsFallingDown
+			|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled
+			? 0x700DCE : 0x700E59;
 }
 
 ASMJIT_PATCH(0x736135, UnitClass_Update_Deactivated, 6)

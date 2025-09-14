@@ -116,7 +116,7 @@ private:
 
 public:
 
-	static std::pair<TriggerAttachType, bool> GetFlag(PhobosTriggerEvent nAction)
+	static std::pair<TriggerAttachType, bool> GetTriggetAttach(PhobosTriggerEvent nAction)
 	{
 		switch (nAction)
 		{
@@ -173,7 +173,7 @@ public:
 		}
 	}
 
-	static std::pair<LogicNeedType, bool> GetMode(PhobosTriggerEvent nAction)
+	static std::pair<LogicNeedType, bool> GetLogicNeed(PhobosTriggerEvent nAction)
 	{
 		switch (nAction)
 		{
@@ -183,7 +183,7 @@ public:
 		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsTo:
 		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsTo:
 		case PhobosTriggerEvent::LocalVariableAndIsTrue:
-			return { LogicNeedType::Local , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::GlobalVariableGreaterThan:
 		case PhobosTriggerEvent::GlobalVariableLessThan:
@@ -191,7 +191,7 @@ public:
 		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsTo:
 		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsTo:
 		case PhobosTriggerEvent::GlobalVariableAndIsTrue:
-			return { LogicNeedType::Global , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
 		case PhobosTriggerEvent::LocalVariableLessThanLocalVariable:
@@ -199,7 +199,7 @@ public:
 		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToLocalVariable:
 		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToLocalVariable:
 		case PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable:
-			return { LogicNeedType::Local , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable:
 		case PhobosTriggerEvent::GlobalVariableLessThanLocalVariable:
@@ -207,7 +207,7 @@ public:
 		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToLocalVariable:
 		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToLocalVariable:
 		case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
-			return { LogicNeedType::Global , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
 		case PhobosTriggerEvent::LocalVariableLessThanGlobalVariable:
@@ -215,7 +215,7 @@ public:
 		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToGlobalVariable:
 		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToGlobalVariable:
 		case PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable:
-			return { LogicNeedType::Local , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable:
 		case PhobosTriggerEvent::GlobalVariableLessThanGlobalVariable:
@@ -223,7 +223,7 @@ public:
 		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToGlobalVariable:
 		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
 		case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
-			return { LogicNeedType::Global , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::HouseOwnsTechnoType:
 		case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
@@ -243,6 +243,11 @@ public:
 		default:
 			return { LogicNeedType::None , false };
 		}
+	}
+
+	static std::pair<bool, bool> GetPersistableFlag(PhobosTriggerEvent nAction)
+	{
+		return { true , true };
 	}
 
 	static bool HousesAreDestroyedTEvent(TEventClass* pThis);
@@ -268,11 +273,6 @@ class TEventExtContainer final : public Container<TEventExtData>
 {
 public:
 	static TEventExtContainer Instance;
-
-	static void Clear()
-	{
-		Array.clear();
-	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

@@ -14,13 +14,21 @@
 #include <Ext/Side/Body.h>
 
 MessageColumnClass MessageColumnClass::Instance;
+MessageColumnClass::~MessageColumnClass()
+{
+	this->Initialize();
+}
 
 void MessageColumnClass::InitClear()
 {
-	if (Phobos::Otamaa::ExeTerminated)
-		return;
-
 	this->Initialize();
+
+	if (this->Button_Main)
+	{
+		GScreenClass::Instance->RemoveButton(this->Button_Main);
+		GameDelete(this->Button_Main);
+		this->Button_Main = nullptr;
+	}
 
 	if (this->Button_Toggle)
 	{
@@ -80,11 +88,21 @@ void MessageColumnClass::InitIO()
 	posX -= 1;
 	width += 2;
 
+	// Button_Main
+	{
+		const int locX = rect.Width - MessageToggleClass::ButtonSide;
+		const int locY = 0;
+		const auto pButton = GameCreate<MessageToggleClass>(0, locX, locY, MessageToggleClass::ButtonSide, MessageToggleClass::ButtonSide);
+		pButton->Zap();
+		GScreenClass::Instance->AddButton(pButton);
+		this->Button_Main = pButton;
+	}
+
 	// Button_Toggle
 	{
 		const int locX = posX + width - MessageToggleClass::ButtonSide;
 		const int locY = posY - MessageToggleClass::ButtonSide;
-		const auto pButton = GameCreate<MessageToggleClass>(locX, locY, MessageToggleClass::ButtonSide, MessageToggleClass::ButtonSide);
+		const auto pButton = GameCreate<MessageToggleClass>(1, locX, locY, MessageToggleClass::ButtonSide, MessageToggleClass::ButtonSide);
 		pButton->Zap();
 		GScreenClass::Instance->AddButton(pButton);
 		this->Button_Toggle = pButton;
@@ -94,7 +112,7 @@ void MessageColumnClass::InitIO()
 	{
 		const int locX = rect.Width * 5 / 12;
 		const int locY = posY - (MessageToggleClass::ButtonSide * this->MaxRecord) - 1 - MessageToggleClass::ButtonHeight;
-		const auto pButton = GameCreate<MessageButtonClass>(0, locX, locY, sideWidth, MessageToggleClass::ButtonHeight);
+		const auto pButton = GameCreate<MessageButtonClass>(2, locX, locY, sideWidth, MessageToggleClass::ButtonHeight);
 		pButton->Zap();
 		GScreenClass::Instance->AddButton(pButton);
 		this->Button_Up = pButton;
@@ -104,7 +122,7 @@ void MessageColumnClass::InitIO()
 	{
 		const int locX = rect.Width * 5 / 12;
 		const int locY = posY;
-		const auto pButton = GameCreate<MessageButtonClass>(1, locX, locY, sideWidth, MessageToggleClass::ButtonHeight);
+		const auto pButton = GameCreate<MessageButtonClass>(3, locX, locY, sideWidth, MessageToggleClass::ButtonHeight);
 		pButton->Zap();
 		GScreenClass::Instance->AddButton(pButton);
 		this->Button_Down = pButton;
@@ -168,10 +186,7 @@ MessageLabelClass* MessageColumnClass::AddMessage(const wchar_t* name, const wch
 	if (!pBit)
 		return nullptr;
 
-	std::wstring buffer;
-
-	if (name)
-		buffer = std::wstring(name) + L":";
+	std::wstring buffer(name ? std::wstring(name) + L":" : L"");
 
 	int prefixWidth = 0;
 	pBit->GetTextDimension(buffer.c_str(), &prefixWidth, nullptr, 0);
@@ -252,10 +267,14 @@ void MessageColumnClass::MouseEnter(bool block)
 	if (block)
 		this->Blocked = true;
 
+	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
+
+	if (this->Button_Main && this->Button_Main->Hovering)
+		return;
+
 	if (const auto pButton = this->Button_Toggle)
 		pButton->Disabled = false;
 
-	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 }
 
 void MessageColumnClass::MouseLeave(bool block)
@@ -265,13 +284,13 @@ void MessageColumnClass::MouseLeave(bool block)
 	if (block)
 		this->Blocked = false;
 
+	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
+
 	if (!this->IsExpanded())
 	{
 		if (const auto pButton = this->Button_Toggle)
 			pButton->Disabled = true;
 	}
-
-	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
 }
 
 bool MessageColumnClass::CanScrollUp()
@@ -379,7 +398,7 @@ void MessageColumnClass::CleanUp()
 	for (auto pLabel = this->LabelList; pLabel; pLabel = this->LabelList)
 	{
 		this->LabelList = static_cast<MessageLabelClass*>(pLabel->Remove());
-		delete pLabel;
+		GameDelete<false, false>(pLabel);
 	}
 
 	if (const auto pButton = this->Scroll_Board)
@@ -462,6 +481,9 @@ void MessageColumnClass::DrawAll()
 		pButton->DrawShape();
 
 	if (const auto pButton = this->Scroll_Bar)
+		pButton->DrawShape();
+
+	if (const auto pButton = this->Button_Main)
 		pButton->DrawShape();
 
 	if (const auto pButton = this->Button_Toggle)
@@ -551,7 +573,7 @@ bool MessageColumnClass::AddRecordString(const std::wstring& message, size_t cop
 void MessageColumnClass::RemoveTextLabel(MessageLabelClass* pLabel)
 {
 	this->LabelList = static_cast<MessageLabelClass*>(pLabel->Remove());
-	delete pLabel;
+	GameDelete<false, false>(pLabel);
 }
 
 int MessageColumnClass::GetLabelCount() const

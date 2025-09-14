@@ -276,11 +276,17 @@ public : //default Save/Load functions
 	{
 		//save it as int instead of size_t
 		const int Count = (int)Array.size();
-		Stm.Save(Count);
+		if(Stm.Save(Count)){
+			Debug::Log("Saving %s count %d \n", PhobosCRT::GetTypeIDName<extension_type>().c_str(), Count);
 
-		for (int i = 0; i < Count; ++i) {
-			Stm.Save((long)Array[i]); // important !
-			Array[i]->SaveToStream(Stm); // call the internal Ext save load function
+			for (int i = 0; i < Count; ++i) {
+				if (!Stm.Save((long)Array[i]))
+					return false; // important !
+
+				Debug::Log("Saving[%d] of %d \n",i , Count);
+
+				Array[i]->SaveToStream(Stm); // call the internal Ext save load function
+			}
 		}
 
 		return true;

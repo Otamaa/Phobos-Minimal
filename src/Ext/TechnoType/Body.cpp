@@ -1635,6 +1635,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->ChronoSphereDelay.Read(exINI, pSection, "ChronoSphereDelay");
 		this->PassengerWeapon.Read(exINI, pSection, "PassengerWeapon");
 
+
+		this->IsSimpleDeployer_ConsiderPathfinding.Read(exINI, pSection, "IsSimpleDeployer.ConsiderPathfinding");
+		this->IsSimpleDeployer_DisallowedLandTypes.Read(exINI, pSection, "IsSimpleDeployer.DisallowedLandTypes");
+
 #pragma region AircraftOnly
 		if (this->AttachtoType == AircraftTypeClass::AbsID)
 		{
@@ -2302,6 +2306,7 @@ WeaponStruct* TechnoTypeExtData::GetWeaponStruct(TechnoTypeClass* pThis, int nWe
 	return isElite ? pThis->GetEliteWeapon(nWeaponIndex) : pThis->GetWeapon(nWeaponIndex);
 }
 
+#ifdef _Track
 void TechnoTypeExtData::Serialize(PhobosStreamWriter& Stm)
 {
 	auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto&
@@ -2808,6 +2813,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamReader& Stm)
 	debugProcess(this->ReloadInTransport, "ReloadInTransport");
 	// ... continue for all remaining fields following the same pattern
 }
+#endif
 
 // =============================
 // container

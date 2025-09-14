@@ -26,6 +26,7 @@
 #include <Ext/Team/Body.h>
 #include <Ext/Script/Body.h>
 #include <Ext/SpawnManager/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Locomotor/Cast.h>
 
@@ -4088,7 +4089,8 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 	const ColorStruct color = isShieldDamage ? damage > 0 ? Phobos::Defines::ShieldPositiveDamageColor : Phobos::Defines::ShieldPositiveDamageColor :
 		damage > 0 ? Drawing::DefaultColors[(int)DefaultColorList::Red] : Drawing::DefaultColors[(int)DefaultColorList::Green];
 
-	fmt::basic_memory_buffer<wchar_t> damageStr;
+	static fmt::basic_memory_buffer<wchar_t> damageStr;
+	damageStr.clear();
 
 	if (Phobos::Otamaa::IsAdmin)
 		fmt::format_to(std::back_inserter(damageStr) ,L"[{}] {} ({})", PhobosCRT::StringToWideString(pThis->get_ID()), PhobosCRT::StringToWideString(pWH->ID), damage);
@@ -6275,6 +6277,42 @@ void TechnoExtData::HandleOnDeployAmmoChange(TechnoClass* pThis, int maxAmmoOver
 	}
 }
 
+bool TechnoExtData::SimpleDeployerAllowedToDeploy(UnitClass* pThis, bool defaultValue, bool alwaysCheckLandTypes) {
+	auto const pType = pThis->Type;
+
+	if (!pType->IsSimpleDeployer)
+		return defaultValue;
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto const pTypeConvert = pTypeExt->Convert_Deploy;
+
+	if (alwaysCheckLandTypes || pTypeExt->IsSimpleDeployer_ConsiderPathfinding) {
+		bool isHover = pType->Locomotor == HoverLocomotionClass::ClassGUID();
+		bool isJumpjet = pType->Locomotor == JumpjetLocomotionClass::ClassGUID();
+		bool isLander = pType->DeployToLand && (isJumpjet || isHover);
+		auto const defaultLandTypes = isLander ? (LandTypeFlags)(LandTypeFlags::Water | LandTypeFlags::Beach) : LandTypeFlags::None;
+		auto const disallowedLandTypes = pTypeExt->IsSimpleDeployer_DisallowedLandTypes.Get(defaultLandTypes);
+
+		if (IsLandTypeInFlags(disallowedLandTypes, pThis->GetCell()->LandType))
+			return false;
+
+		if (alwaysCheckLandTypes && !pTypeExt->IsSimpleDeployer_ConsiderPathfinding)
+			return true;
+	} else {
+		return defaultValue;
+	}
+
+	const SpeedType speed = pTypeConvert ? pTypeConvert->SpeedType : pType->SpeedType;
+	const MovementZone mZone = pTypeConvert ? pTypeConvert->MovementZone : pType->MovementZone;
+
+	if (speed != SpeedType::None && mZone != MovementZone::None) {
+		auto const pCell = pThis->GetCell();
+		return pCell->IsClearToMove(speed, true, true, ZoneType::None, mZone, -1, pCell->ContainsBridge());
+	}
+
+	return true;
+}
+
 void TechnoExtData::DepletedAmmoActions()
 {
 	auto const pThis = this->This();
@@ -7166,11 +7204,20 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	}
 }
 
+void AEProperties::UpdateAEAnimLogic(TechnoClass* pTechno)
+{
+	for (auto const& attachEffect : TechnoExtContainer::Instance.Find(pTechno)->PhobosAE) {
+		attachEffect->UpdateAnimLogic();
+	}
+}
+
 TechnoExtData::~TechnoExtData()
 {
 	auto pThis = This();
 	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
 	auto pOwnerExt = pOwner->_GetExtData();
+
+	ScenarioExtData::Instance()->LimboLaunchers.erase(pThis);
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{

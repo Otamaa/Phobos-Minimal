@@ -314,6 +314,7 @@ void ScenarioExtData::Serialize(T& Stm)
 		.Process(this->DefaultLS800BkgdPal)
 
 		.Process(this->MasterDetonationBullet)
+		.Process(this->LimboLaunchers)
 		;
 
 

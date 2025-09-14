@@ -205,7 +205,7 @@ void PhobosAttachEffectClass::AI()
 	if (!this->Animation && this->CanShowAnim())
 		this->CreateAnim();
 
-	this->AnimCheck();
+	this->UpdateAnimLogic();
 
 	if (auto pTag = this->Techno->AttachedTag)
 		pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, this->Techno, CellStruct::Empty);
@@ -244,12 +244,12 @@ void PhobosAttachEffectClass::AI_Temporal()
 				break;
 			}
 
-			this->AnimCheck();
+			this->UpdateAnimLogic();
 		}
 	}
 }
 
-void PhobosAttachEffectClass::AnimCheck()
+void PhobosAttachEffectClass::UpdateAnimLogic()
 {
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
 
@@ -268,6 +268,17 @@ void PhobosAttachEffectClass::AnimCheck()
 
 			if (!this->Animation && this->CanShowAnim())
 				this->CreateAnim();
+		}
+	}
+
+	if (this->Animation && this->Type->Animation_DrawOffsets.size() > 0) {
+		auto const pAnimExt = AnimExtContainer::Instance.Find(this->Animation);
+		auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
+		pAnimExt->AEDrawOffset = Point2D::Empty;
+
+		for (auto& drawOffset : this->Type->Animation_DrawOffsets) {
+			if (drawOffset.RequiredTypes.size() < 1 || PhobosAEFunctions::HasAttachedEffects(this->Techno, drawOffset.RequiredTypes, false, false, nullptr, nullptr, nullptr, nullptr, true))
+				pAnimExt->AEDrawOffset += drawOffset.Offset;
 		}
 	}
 }
@@ -405,6 +416,8 @@ void PhobosAttachEffectClass::CreateAnim()
 		if (this->Type->Animation_UseInvokerAsOwner) {
 			pAnimExt->Invoker = Invoker;
 		}
+
+		AEProperties::UpdateAEAnimLogic(this->Techno);
 	}
 }
 
@@ -413,7 +426,9 @@ void PhobosAttachEffectClass::KillAnim()
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
 	if (this->Animation) {
 		this->Animation.clear();
+		AEProperties::UpdateAEAnimLogic(this->Techno);
 	}
+
 }
 
 void PhobosAttachEffectClass::SetAnimationTunnelState(bool visible)
@@ -729,6 +744,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 		if (!currentTypeCount && pType->Cumulative && pType->CumulativeAnimations.size() > 0)
 			pAE->HasCumulativeAnim = true;
 
+		AEProperties::UpdateAEAnimLogic(pTarget);
 		return pAE;
 	}
 
@@ -758,8 +774,10 @@ int PhobosAttachEffectClass::DetachTypes(TechnoClass* pTarget, AEAttachInfoTypeC
 		index++;
 	}
 
-	if (detachedCount > 0)
+	if (detachedCount > 0) {
 		AEProperties::Recalculate(pTarget);
+		AEProperties::UpdateAEAnimLogic(pTarget);
+	}
 
 	if (markForRedraw)
 		pTarget->MarkForRedraw();
@@ -826,7 +844,6 @@ int PhobosAttachEffectClass::RemoveAllOfType(PhobosAttachEffectTypeClass* pType,
 		}
 	}
 
-
 	PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
 
 	return detachedCount;
@@ -856,6 +873,7 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pTarget->GetThisClassName(), pTarget->get_ID());
 	const auto pSourceExt = TechnoExtContainer::Instance.Find(pSource);
 	const auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
+	int transferCount = 0;
 
 	for (auto it = pSourceExt->PhobosAE.begin(); it != pSourceExt->PhobosAE.end(); )
 	{
@@ -909,7 +927,13 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 				pAE->Duration = attachEffect->Duration;
 		}
 
+		transferCount++;
 		it = pSourceExt->PhobosAE.erase(it);
+	}
+
+	if (transferCount) {
+		AEProperties::UpdateAEAnimLogic(pSource);
+		AEProperties::UpdateAEAnimLogic(pTarget);
 	}
 }
 

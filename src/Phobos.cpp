@@ -1463,13 +1463,15 @@ NOINLINE void ApplyEarlyFuncs() {
 		//}).detach();
 
 		MH_Initialize();
+		//Imports::SetCapture = SetCapture_Hook;
+		//Imports::SetCursorPos = SetCursorPos_Hook;
 
-		auto mod = GetModuleHandleW(L"ntdll.dll");
+		//auto mod = GetModuleHandleW(L"ntdll.dll");
 
-		if (auto target = (FnRtl)GetProcAddress(mod, "RtlGetAppContainerNamedObjectPath")) {
-			MH_CreateHook(target, &HookedRtlGetAppContainerNamedObjectPath, (void**)&RealFn);
-			MH_EnableHook(target);
-		};
+		//if (auto target = (FnRtl)GetProcAddress(mod, "RtlGetAppContainerNamedObjectPath")) {
+		//	MH_CreateHook(target, &HookedRtlGetAppContainerNamedObjectPath, (void**)&RealFn);
+		//	MH_EnableHook(target);
+		//};
 
 		TheMemoryPoolCriticalSection = &critSec4;
 		TheDmaCriticalSection = &critSec3;

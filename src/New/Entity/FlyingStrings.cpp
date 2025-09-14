@@ -43,12 +43,13 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* 
 	if (!coords.IsValid() || !Display || !owner)
 		return;
 
+	static fmt::basic_memory_buffer<wchar_t> moneyStr;
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::CurrentPlayer()))
 	{
 		if (owner->VisualCharacter(0, HouseClass::CurrentPlayer()) == VisualType::Hidden)
 			return;
 
-		fmt::basic_memory_buffer<wchar_t> moneyStr;
+		moneyStr.clear();
 		ColorStruct color = nOverrideColor;
 
 		if (color == ColorStruct::Empty) {
@@ -77,9 +78,10 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, HouseClass* o
 	if (!coords.IsValid() || !Display || !owner)
 		return;
 
+	static fmt::basic_memory_buffer<wchar_t> moneyStr;
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner, HouseClass::CurrentPlayer()))
 	{
-		fmt::basic_memory_buffer<wchar_t> moneyStr;
+		moneyStr.clear();
 		ColorStruct color = nOverrideColor;
 
 		if (color == ColorStruct::Empty)
