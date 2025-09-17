@@ -274,6 +274,10 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	success = Process_Global_Load<CursorTypeClass>(stream);
 	if (!tracker.EndOperation(success)) return E_FAIL;
 
+	tracker.StartOperation("Process_Global_Load<ColorTypeClass>");
+	success = Process_Global_Load<ColorTypeClass>(stream);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
 	tracker.StartOperation("ScenarioClass::Instance->Load");
 	hr = ScenarioClass::Instance->Load(stream);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -921,7 +925,7 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 	TabClass::Instance->Activate(1);
 	SidebarClass::Instance->CloseWindow();
 	TiberiumClass::sub_722D00();
-	TiberiumClass::sub_722E50();
+	TiberiumClass::sub_0x722240();
 	RadarClass::Instance->Map_AI();
 	Game::InScenario2 = 1;
 	Game::InScenario1 = 1;

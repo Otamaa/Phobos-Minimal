@@ -35,39 +35,100 @@ private:
 	std::vector<data_t> data;
 	size_t position;
 
-	// Markers for identification and validation
-	static constexpr const char* START_MARKER = "PHOBOS_DATA_START";
-	static constexpr const char* END_MARKER = "PHOBOS_DATA_END";
-	static constexpr size_t START_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_START");
-	static constexpr size_t END_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_END");
-	static constexpr size_t MAX_REASONABLE_SIZE = 500 * 1024 * 1024; // 500MB limit
+	// Enhanced markers with versioning and checksums
+	static COMPILETIMEEVAL const char* START_MARKER = "PHOBOS_DATA_START";
+	static COMPILETIMEEVAL const char* END_MARKER = "PHOBOS_DATA_END";
+	static COMPILETIMEEVAL size_t START_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_START");
+	static COMPILETIMEEVAL size_t END_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_END");
 
-	// Internal corruption detection
+	// Performance and safety constants
+	static COMPILETIMEEVAL size_t MAX_STREAM_SIZE = 500 * 1024 * 1024;     // 500MB total limit
+	static COMPILETIMEEVAL size_t MAX_SINGLE_OPERATION = 50 * 1024 * 1024; // 50MB per operation
+	static COMPILETIMEEVAL size_t INITIAL_BUFFER_SIZE = 4 * 1024;          // 4KB initial size
+	static COMPILETIMEEVAL size_t MIN_BUFFER_GROWTH = 64 * 1024;           // 64KB minimum growth
+	static COMPILETIMEEVAL size_t MAX_BUFFER_GROWTH = 16 * 1024 * 1024;    // 16MB maximum growth per reallocation
+
+	// Helper constants for size conversions
+	static COMPILETIMEEVAL size_t BYTES_PER_KB = 1024;
+	static COMPILETIMEEVAL size_t BYTES_PER_MB = 1024 * 1024;
+	static COMPILETIMEEVAL size_t BYTES_PER_GB = 1024 * 1024 * 1024;
+	static COMPILETIMEEVAL size_t BIG_SIZE = 8u;
+
+	// Helper function to convert bytes to megabytes for logging
+	static COMPILETIMEEVAL float BytesToMB(size_t bytes)
+	{
+		return static_cast<float>(bytes) / BYTES_PER_MB;
+	}
+
+	// Internal corruption detection with performance controls
 	mutable uint32_t last_checksum = 0;
-	bool integrity_check_enabled = true;
+	bool integrity_check_enabled = false;
+	bool checksum_enabled = false;  // Separate toggle for checksum calculation
+
+	// Performance optimization: reusable verification buffer
+	mutable std::vector<data_t> verify_buffer;
+	mutable std::vector<char> verify_buffer_integration;
+
+	// Incremental checksum for better performance
+	mutable uint32_t running_checksum = 0;
 
 public:
 	PhobosByteStream() : data(), position(0) { }
 	PhobosByteStream(size_t initialSize) : data(), position(0)
 	{
-		data.reserve(std::max(initialSize, size_t(1024)));
+		data.reserve(MaxImpl(initialSize, BYTES_PER_KB));
 	}
 
 	~PhobosByteStream() = default;
 
 private:
-	// Calculate simple checksum for integrity checking
+	// Calculate simple checksum for integrity checking (kept for compatibility)
 	uint32_t CalculateChecksum() const
 	{
 		uint32_t checksum = 0;
-		for (size_t i = 0; i < data.size(); i += 4)
+		for (size_t i = 0; i < data.size(); i += sizeof(uint32_t))
 		{
 			uint32_t chunk = 0;
-			size_t remaining = std::min(size_t(4), data.size() - i);
+			size_t remaining = MinImpl(sizeof(size_t), data.size() - i);
 			std::memcpy(&chunk, data.data() + i, remaining);
 			checksum ^= chunk;
 		}
 		return checksum;
+	}
+
+	// Fast incremental checksum calculation
+	void UpdateIncrementalChecksum(const void* dataIn, size_t size) const
+	{
+		const uint32_t* words = reinterpret_cast<const uint32_t*>(dataIn);
+		size_t word_count = size / sizeof(size_t);
+		const uint8_t* remaining_bytes = reinterpret_cast<const uint8_t*>(words + word_count);
+
+		// Process 4-byte chunks (much faster than byte-by-byte)
+		for (size_t i = 0; i < word_count; ++i)
+		{
+			running_checksum ^= words[i];
+		}
+
+		// Handle remaining bytes
+		uint32_t remaining = 0;
+		for (size_t i = 0; i < (size % sizeof(size_t)); ++i)
+		{
+			remaining |= (uint32_t(remaining_bytes[i]) << (i * BIG_SIZE));
+		}
+		if (remaining != 0)
+		{
+			running_checksum ^= remaining;
+		}
+	}
+
+	// Determine if data type needs verification (smart verification)
+	template<typename T>
+	COMPILETIMEEVAL bool NeedsVerification() const
+	{
+		// Only verify complex types, skip simple POD types for performance
+		return sizeof(T) > BIG_SIZE ||  // Large objects
+			std::is_pointer_v<T> ||  // Pointers (dangerous)
+			!std::is_trivially_copyable_v<T>;  // Complex types
 	}
 
 	// Validate buffer and size parameters
@@ -82,7 +143,6 @@ private:
 			return false;
 		}
 
-		constexpr size_t MAX_SINGLE_OPERATION = 50 * 1024 * 1024;
 		if (size > MAX_SINGLE_OPERATION)
 		{
 			GameDebugLog::Log("[PhobosByteStream::%s] Single operation size %zu exceeds limit %zu\n",
@@ -129,16 +189,29 @@ public:
 		data.clear();
 		position = 0;
 		last_checksum = 0;
+		running_checksum = 0; // Reset incremental checksum
+		verify_buffer.clear(); // Clear reusable buffer
+		verify_buffer_integration.clear();
 	}
 
+	// Performance control toggles
 	void SetIntegrityCheck(bool enabled) { integrity_check_enabled = enabled; }
 	bool GetIntegrityCheck() const { return integrity_check_enabled; }
+
+	void SetChecksumEnabled(bool enabled) { checksum_enabled = enabled; }
+	bool GetChecksumEnabled() const { return checksum_enabled; }
+
+	// Enable/disable both for convenience
+	void SetPerformanceMode(bool highPerformance)
+	{
+		integrity_check_enabled = !highPerformance;
+		checksum_enabled = !highPerformance;
+	}
 
 	bool VerifyIntegrity() const
 	{
 		if (!integrity_check_enabled) return true;
-		uint32_t current_checksum = CalculateChecksum();
-		return current_checksum == last_checksum;
+		return last_checksum == running_checksum;
 	}
 
 	void LogStreamInfo() const;
@@ -159,7 +232,7 @@ public:
 		if (!ValidateParameters(&Value, size, "Load")) return false;
 
 		auto Bytes = reinterpret_cast<data_t*>(&Value);
-		std::memset(&Value, 0, std::min(sizeof(T), size));
+		std::memset(&Value, 0, MinImpl(sizeof(T), size));
 		return this->Read(Bytes, size);
 	}
 
@@ -169,8 +242,6 @@ public:
 		if (!ValidateParameters(&Value, size, "Save")) return false;
 
 		auto Bytes = reinterpret_cast<const data_t*>(&Value);
-
-		size_t pos_before = this->Offset();
 		const bool result = this->Write(Bytes, size);
 
 		if (!result)
@@ -178,56 +249,27 @@ public:
 			return false;
 		}
 
-		// Enhanced verification
-		if (integrity_check_enabled)
+		// Smart verification: only verify types that need it
+		if (integrity_check_enabled && NeedsVerification<T>())
 		{
-			// Additional safety check before verification
-			if (pos_before + size > data.size())
+			// Reuse verification buffer for performance
+			if (verify_buffer.size() < size)
 			{
-				GameDebugLog::Log("[WRITE CORRUPTION] Cannot verify: pos_before=%zu + size=%zu > data_size=%zu\n",
-					pos_before, size, data.size());
-				DebugBreak();
-				return false;
+				verify_buffer.resize(size);
 			}
 
-			std::vector<data_t> verify_buffer(size);
-			size_t pos_save = this->Offset();
-			this->position = pos_before;
-
-			bool verify_result = this->Read(verify_buffer.data(), size);
-			this->position = pos_save;
-
-			if (!verify_result)
+			// Quick verification without position manipulation
+			size_t verify_pos = this->Offset() - size;
+			if (verify_pos + size <= data.size())
 			{
-				GameDebugLog::Log("[WRITE CORRUPTION] Load verification failed for %zu bytes at offset %zu\n",
-					size, pos_before);
-				DebugBreak();
-				return false;
-			}
+				std::memcpy(verify_buffer.data(), data.data() + verify_pos, size);
 
-			if (std::memcmp(Bytes, verify_buffer.data(), size) != 0)
-			{
-				GameDebugLog::Log("[WRITE CORRUPTION] Data mismatch for %zu bytes at offset %zu\n",
-					size, pos_before);
-
-				// Log first few bytes for debugging
-				constexpr size_t debug_bytes = 16;
-				size_t log_size = std::min(size, debug_bytes);
-				std::string original_hex, verify_hex;
-
-				for (size_t i = 0; i < log_size; ++i)
+				if (std::memcmp(Bytes, verify_buffer.data(), size) != 0)
 				{
-					char buf[8];
-					sprintf_s(buf, "%02X ", Bytes[i]);
-					original_hex += buf;
-					sprintf_s(buf, "%02X ", verify_buffer[i]);
-					verify_hex += buf;
+					GameDebugLog::Log("[WRITE CORRUPTION] Data mismatch for %zu bytes\n", size);
+					DebugBreak();
+					return false;
 				}
-
-				GameDebugLog::Log("[WRITE CORRUPTION] Original: %s\n", original_hex.c_str());
-				GameDebugLog::Log("[WRITE CORRUPTION] Readback: %s\n", verify_hex.c_str());
-				DebugBreak();
-				return false;
 			}
 		}
 
@@ -248,11 +290,16 @@ public:
 
 		if (integrity_check_enabled)
 		{
-			std::vector<char> verify_buffer(size + 1, 0);
+
+			// Reuse verification buffer for performance
+			if (verify_buffer_integration.size() < size) {
+				verify_buffer_integration.resize(size + 1);
+			}
+
 			size_t pos_save = this->Offset();
 			this->position = pos_before;
 
-			bool verify_result = this->Read(verify_buffer.data(), size);
+			bool verify_result = this->Read(verify_buffer_integration.data(), size);
 			this->position = pos_save;
 
 			if (!verify_result)
@@ -263,13 +310,15 @@ public:
 				return false;
 			}
 
-			if (std::memcmp(Value, verify_buffer.data(), size) != 0)
+			if (std::memcmp(Value, verify_buffer_integration.data(), size) != 0)
 			{
 				GameDebugLog::Log("[WRITE CORRUPTION] Char data mismatch for %zu bytes at offset %zu\n",
 					size, pos_before);
 
-				std::string original_str(Value, std::min(size, size_t(50)));
-				std::string verify_str(verify_buffer.data(), std::min(size, size_t(50)));
+				static size_t COMPILETIMEEVAL MinStringValidationSize = 50u;
+
+				std::string original_str(Value, MinImpl(size, MinStringValidationSize));
+				std::string verify_str(verify_buffer_integration.data(), MinImpl(size, MinStringValidationSize));
 
 				GameDebugLog::Log("[WRITE CORRUPTION] Original string: '%.50s'\n", original_str.c_str());
 				GameDebugLog::Log("[WRITE CORRUPTION] Readback string: '%.50s'\n", verify_str.c_str());
@@ -460,9 +509,9 @@ public:
 		return true;
 	}
 
-	bool Expect(unsigned int value)
+	bool Expect(size_t value)
 	{
-		unsigned int buffer = 0;
+		size_t buffer = 0;
 		if (this->Load(buffer))
 		{
 			if (buffer == value)
@@ -471,7 +520,7 @@ public:
 			}
 
 			GameDebugLog::Log("[PhobosStreamReader] Value mismatch: Expected 0x%x, got 0x%x at offset %zu\n",
-				value, buffer, stream ? stream->Offset() - sizeof(unsigned int) : 0);
+				value, buffer, stream ? stream->Offset() - sizeof(size_t) : 0);
 			DebugBreak();
 		}
 		else

@@ -1021,7 +1021,6 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
 	if (!this->Occupants.Count)
 		return;
 
-	this->Mark(MarkType::Change);
 	CoordStruct defaultCoord = CoordStruct::Empty;
 	CellStruct originCell = this->GetMapCoords();
 	CoordStruct scatterCoord{};
@@ -1047,7 +1046,7 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
 	// Try to find a valid adjacent cell to unload into
 	for (const auto& [dx, dy] : directions)
 	{
-		CellStruct tryCell = { endX, endY };
+		CellStruct tryCell = { (short)endX, (short)endY };
 
 		while (true)
 		{
@@ -1077,6 +1076,7 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
 		if (killIfStuck)
 		{
 			this->KillOccupants(nullptr);
+			this->Mark(MarkType::Change);
 			return;
 		}
 
@@ -1132,7 +1132,7 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
 
 	// Reset Occupants vector while keeping capacity
 	this->Occupants.Reset();
-
+	this->Mark(MarkType::Change);
 	// Update threat map
 	this->UpdateThreatInCell(this->GetCell());
 }

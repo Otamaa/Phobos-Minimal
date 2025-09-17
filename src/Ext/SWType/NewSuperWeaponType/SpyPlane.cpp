@@ -80,7 +80,7 @@ void SpyPlaneStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		this->SendSpyPlane(this->Super, pData, this->Type, this->target);
+		this->SendSpyPlane(this->Super, pData, NewSWType::GetNewSWType(pData), this->target);
 	}
 }
 

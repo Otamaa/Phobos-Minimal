@@ -604,8 +604,6 @@ bool PhobosExt::LoadGlobal(LPSTREAM pStm)
 	VoxClass::EVAIndex = value;
 
 	bool ret =
-		Process_Load<ColorTypeClass>(pStm) &&
-		Process_Load<EboltExtData>(pStm) &&
 		Process_Load<RadTypeClass>(pStm) &&
 		Process_Load<ShieldTypeClass>(pStm) &&
 		Process_Load<HoverTypeClass>(pStm) &&
@@ -615,8 +613,6 @@ bool PhobosExt::LoadGlobal(LPSTREAM pStm)
 		Process_Load<PhobosGlobal>(pStm) &&
 		Process_Load<GenericPrerequisite>(pStm) &&
 		Process_Load<CrateTypeClass>(pStm) &&
-		Process_Load<NewSWType>(pStm) &&
-		Process_Load<TiberiumExtContainer>(pStm) &&
 		Process_Load<PhobosAttachEffectTypeClass>(pStm) &&
 		Process_Load<TechTreeTypeClass>(pStm) &&
 		Process_Load<StaticVars>(pStm) &&
@@ -660,8 +656,7 @@ bool PhobosExt::SaveGlobal(LPSTREAM pStm)
 	}
 
 	bool ret =
-		Process_Save<ColorTypeClass>(pStm) &&
-		Process_Save<EboltExtData>(pStm) &&
+		Process_Save<RadTypeClass>(pStm) &&
 		Process_Save<ShieldTypeClass>(pStm) &&
 		Process_Save<HoverTypeClass>(pStm) &&
 		Process_Save<BannerTypeClass>(pStm) &&
@@ -670,7 +665,6 @@ bool PhobosExt::SaveGlobal(LPSTREAM pStm)
 		Process_Save<PhobosGlobal>(pStm) &&
 		Process_Save<GenericPrerequisite>(pStm) &&
 		Process_Save<CrateTypeClass>(pStm) &&
-		Process_Save<NewSWType>(pStm) &&
 		Process_Save<PhobosAttachEffectTypeClass>(pStm) &&
 		Process_Save<TechTreeTypeClass>(pStm) &&
 		Process_Save<StaticVars>(pStm) &&

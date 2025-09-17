@@ -52,7 +52,6 @@ bool SWStateMachine::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	return Stm
 		.Process(this->Clock)
 		.Process(this->Super, RegisterForChange)
-		.Process(this->Type, RegisterForChange)
 		.Process(this->Coords)
 		.Success();
 }
@@ -65,7 +64,6 @@ bool SWStateMachine::Save(PhobosStreamWriter& Stm) const
 	return Stm
 		.Process(this->Clock)
 		.Process(this->Super)
-		.Process(this->Type)
 		.Process(this->Coords)
 		.Success();
 }

@@ -205,7 +205,7 @@ public:
 		if (Stm.Load(Count)) {
 			if (Count > 0) {
 				Array.reserve(Count);
-				const auto name = PhobosCRT::GetTypeIDName<T>();
+				const auto className = PhobosCRT::GetTypeIDName<T>();
 				for (int i = 0; i < Count; ++i) {
 					long oldPtr = 0l;
 
@@ -217,7 +217,7 @@ public:
 						return false;
 
 					auto newPtr = FindOrAllocate(name.data());
-					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, name.data())
+					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, className.data())
 					newPtr->LoadFromStream(Stm);
 				}
 			}

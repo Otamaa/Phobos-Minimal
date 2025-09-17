@@ -2873,8 +2873,6 @@ bool SWTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		.Process(SWTypeExtData::LauchData)
 		.Success();
 
-	result &= NewSWType::LoadGlobals(Stm);
-
 	return result;
 }
 
@@ -2888,8 +2886,6 @@ bool SWTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 		.Process(SWTypeExtData::Handled)
 		.Process(SWTypeExtData::LauchData)
 		.Success();
-
-		result &= NewSWType::SaveGlobals(Stm);
 
 	return result;
 }
@@ -2908,7 +2904,6 @@ ASMJIT_PATCH(0x6CE6F2, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EBP);
 
-	NewSWType::Init();
 	SWTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0;

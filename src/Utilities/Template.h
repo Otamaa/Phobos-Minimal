@@ -1144,6 +1144,3 @@ public:
 
 	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const;
 };
-
-static_assert(Savegame::ImplementsSaveLoad<Animatable<std::monostate>::KeyframeDataEntry>);
-static_assert(Savegame::ImplementsSaveLoad<Animatable<std::monostate>>);

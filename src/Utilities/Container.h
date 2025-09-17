@@ -283,7 +283,7 @@ public : //default Save/Load functions
 				if (!Stm.Save((long)Array[i]))
 					return false; // important !
 
-				Debug::Log("Saving[%d] of %d \n",i , Count);
+				//Debug::Log("Saving[%d] of %d \n",i , Count);
 
 				Array[i]->SaveToStream(Stm); // call the internal Ext save load function
 			}

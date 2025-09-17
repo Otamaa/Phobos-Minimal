@@ -77,7 +77,7 @@ void SonarPulseStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		SendSonarPulse(this->Super, this->GetTypeExtData(), this->Type, this->Coords);
+		SendSonarPulse(this->Super, this->GetTypeExtData(), NewSWType::GetNewSWType(this->GetTypeExtData()), this->Coords);
 	}
 }
 

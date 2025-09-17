@@ -7614,7 +7614,7 @@ DWORD LastKnown;
  ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
  {
 	 GET(AbstractClass*, pThis, ESI);
-	 GET_STACK(IStream*, pStream, 0x0);
+	 //GET_STACK(IStream*, pStream, 0x0);
 
 	 //immedietely update the extension pointer value and the extension AttachedToObject itself !
 	 ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
@@ -7636,17 +7636,16 @@ DWORD LastKnown;
 	// return 0x0;
  //}
 
- //ASMJIT_PATCH(0x410182 , AbstractClass_NoInt_cleaupPtr_B , 0x6){
-	// GET(AbstractClass*, pThis, EAX);
+ ASMJIT_PATCH(0x410182 , AbstractClass_NoInt_cleaupPtr_B , 0x6){
+	 GET(AbstractClass*, pThis, EAX);
 
-	// if(!LastKnown)
-	//	ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
-	// else
-	//	pThis->unknown_18 = std::exchange(LastKnown, 0u);
+	 //set the last known value if it on load mode , because some stuffs using different abstract constructor , duh
+	 if(LastKnown && Phobos::Otamaa::DoingLoadGame)
+		pThis->unknown_18 = std::exchange(LastKnown, 0u);
 
-	// pThis->RefCount = 0l;
-	// return 0x410188;
- //}
+	 pThis->RefCount = 0l;
+	 return 0x410188;
+ }
 
  //ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
  //{

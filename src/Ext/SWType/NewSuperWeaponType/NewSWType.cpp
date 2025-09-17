@@ -28,7 +28,7 @@
 
 #include <SWRange.h>
 
-std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> NewSWType::Array;
+NewSWTypeContainer NewSWTypeContainer::Instance;
 
 bool NewSWType::CanTargetingFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const
 {
@@ -674,80 +674,25 @@ bool NewSWType::CanHaveLauchSite(SWTypeExtData* pData, BuildingClass* pBuilding)
 	return false;
 }
 
-void NewSWType::Init()
-{
-	if (NewSWTypeInited)
-		return;
-
-	SW_Firewall::FirewallType = SuperWeaponType((int)AresNewSuperType::Firestorm + (int)SuperWeaponType::count);
-
-	NewSWTypeInited = true;
-#define RegSW(name ,type) Register(std::make_unique<name>(), type);
-
-		RegSW(SW_SonarPulse, AresNewSuperType::SonarPulse)
-		RegSW(SW_UnitDelivery, AresNewSuperType::UnitDelivery)
-		RegSW(SW_GenericWarhead, AresNewSuperType::GenericWarhead)
-		RegSW(SW_Firewall, AresNewSuperType::Firestorm)
-		RegSW(SW_Protect, AresNewSuperType::Protect)
-		RegSW(SW_Reveal, AresNewSuperType::Reveal)
-		RegSW(SW_ParaDrop, AresNewSuperType::ParaDrop)
-		RegSW(SW_SpyPlane, AresNewSuperType::SpyPlane)
-		RegSW(SW_ChronoSphere, AresNewSuperType::ChronoSphere)
-		RegSW(SW_ChronoWarp, AresNewSuperType::ChronoWarp)
-		RegSW(SW_GeneticMutator, AresNewSuperType::GeneticMutator)
-		RegSW(SW_PsychicDominator, AresNewSuperType::PsychicDominator)
-		RegSW(SW_LightningStorm, AresNewSuperType::LightningStorm)
-		RegSW(SW_NuclearMissile, AresNewSuperType::NuclearMissile)
-		RegSW(SW_HunterSeeker, AresNewSuperType::HunterSeeker)
-		RegSW(SW_DropPod, AresNewSuperType::DropPod)
-		RegSW(SW_EMPulse, AresNewSuperType::EMPulse)
-		RegSW(SW_Battery, AresNewSuperType::Battery)
-		RegSW(SW_EMPField, AresNewSuperType::EMPField)
-		RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
-		RegSW(SW_MeteorShower, AresNewSuperType::MeteorShower)
-		RegSW(SW_LaserStrike , AresNewSuperType::LaserStrike)
-#undef RegSW
-}
-
 bool NewSWType::IsOriginalType(SuperWeaponType nType)
 {
 	return nType < SuperWeaponType::count;
 }
 
-bool NewSWType::LoadGlobals(PhobosStreamReader& Stm)
-{
-	for (const auto& ptr : Array)
-	{
-		Stm.RegisterChange(ptr.get());
-	}
-
-	return Stm.Success();
-}
-
-bool NewSWType::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	for (const auto& ptr : Array)
-	{
-		Stm.Save(ptr.get());
-	}
-
-	return Stm.Success();
-}
-
 NewSWType* NewSWType::GetNthItem(SuperWeaponType i)
 {
-	return Array[static_cast<size_t>(i) - (size_t)SuperWeaponType::count].get();
+	return NewSWTypeContainer::Instance.Array[static_cast<size_t>(i) - (size_t)SuperWeaponType::count].get();
 }
 
 SuperWeaponType NewSWType::GetHandledType(SuperWeaponType nType)
 {
-	const auto It = std::find_if(Array.begin(), Array.end(),
+	const auto It = std::find_if(NewSWTypeContainer::Instance.Array.begin(), NewSWTypeContainer::Instance.Array.end(),
 		[&](const auto& Item) {
 			return Item && Item->HandleThisType(nType);
 		}
 	);
 
-	if (It != Array.end())
+	if (It != NewSWTypeContainer::Instance.Array.end())
 		return SuperWeaponType((int)SuperWeaponType::count + (int)(*It)->TypeIndex);
 
 	return SuperWeaponType::Invalid;
@@ -771,7 +716,7 @@ SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 	if(!*pType || !strlen(pType))
 		return SuperWeaponType::Invalid;
 
-	const auto It = std::find_if(Array.begin(), Array.end(),
+	const auto It = std::find_if(NewSWTypeContainer::Instance.Array.begin(), NewSWTypeContainer::Instance.Array.end(),
 		[pType](const std::unique_ptr<NewSWType>& item) {
 
 			if (!item)
@@ -788,7 +733,7 @@ SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 		}
 	);
 
-	if (It != Array.end()) {
+	if (It != NewSWTypeContainer::Instance.Array.end()) {
 		return static_cast<SuperWeaponType>(
 			(size_t)SuperWeaponType::count + (size_t)(*It)->TypeIndex);
 	}
@@ -831,4 +776,37 @@ bool NewSWType::HasLaunchSite(SWTypeExtData* pSWType, HouseClass* pOwner, const 
 		([=, &Coords](BuildingClass* pBld)
 		{ return this->IsLaunchSiteEligible(pSWType, Coords, pBld, false); }
 	);
+}
+
+NewSWTypeContainer::NewSWTypeContainer()
+{
+	SW_Firewall::FirewallType = SuperWeaponType((int)AresNewSuperType::Firestorm + (int)SuperWeaponType::count);
+
+	NewSWTypeInited = true;
+#define RegSW(name ,type) Register(std::make_unique<name>(), type);
+
+	RegSW(SW_SonarPulse, AresNewSuperType::SonarPulse)
+		RegSW(SW_UnitDelivery, AresNewSuperType::UnitDelivery)
+		RegSW(SW_GenericWarhead, AresNewSuperType::GenericWarhead)
+		RegSW(SW_Firewall, AresNewSuperType::Firestorm)
+		RegSW(SW_Protect, AresNewSuperType::Protect)
+		RegSW(SW_Reveal, AresNewSuperType::Reveal)
+		RegSW(SW_ParaDrop, AresNewSuperType::ParaDrop)
+		RegSW(SW_SpyPlane, AresNewSuperType::SpyPlane)
+		RegSW(SW_ChronoSphere, AresNewSuperType::ChronoSphere)
+		RegSW(SW_ChronoWarp, AresNewSuperType::ChronoWarp)
+		RegSW(SW_GeneticMutator, AresNewSuperType::GeneticMutator)
+		RegSW(SW_PsychicDominator, AresNewSuperType::PsychicDominator)
+		RegSW(SW_LightningStorm, AresNewSuperType::LightningStorm)
+		RegSW(SW_NuclearMissile, AresNewSuperType::NuclearMissile)
+		RegSW(SW_HunterSeeker, AresNewSuperType::HunterSeeker)
+		RegSW(SW_DropPod, AresNewSuperType::DropPod)
+		RegSW(SW_EMPulse, AresNewSuperType::EMPulse)
+		RegSW(SW_Battery, AresNewSuperType::Battery)
+		RegSW(SW_EMPField, AresNewSuperType::EMPField)
+		RegSW(SW_IonCannon, AresNewSuperType::IonCannon)
+		RegSW(SW_MeteorShower, AresNewSuperType::MeteorShower)
+		RegSW(SW_LaserStrike, AresNewSuperType::LaserStrike)
+#undef RegSW
+
 }

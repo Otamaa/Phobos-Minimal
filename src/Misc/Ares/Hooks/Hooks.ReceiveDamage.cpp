@@ -1238,7 +1238,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	}
 	else { bAffected = true; }
 
-	const auto pHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
+	//const auto pHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
 	if (IsAffected && pWHExt->DecloakDamagedTargets.Get())
 		pThis->Reveal();

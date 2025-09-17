@@ -860,8 +860,8 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarge
 	// 	}
 	// }
 
-	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
-	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
+	//auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
+	//auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
 
 	ScenarioExtData::DetonateMasterBullet(CoordStruct::Empty,
 		pOwner,

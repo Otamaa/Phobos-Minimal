@@ -145,7 +145,7 @@ bool TActionExtData::CreateBuildingAt(TActionClass* pThis, HouseClass* pHouse, O
 
 	if(HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Param5, pHouse)){
 		auto coord = CellClass::Cell2Coord(ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint));
-		const auto pCell = MapClass::Instance->GetCellAt(coord);
+		//const auto pCell = MapClass::Instance->GetCellAt(coord);
 		const auto v8 = BuildingTypeClass::FindIndexById(pThis->Text);
 
 		if (v8 < 0)

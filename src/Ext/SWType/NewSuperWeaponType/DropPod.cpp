@@ -67,7 +67,7 @@ void DroppodStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		SendDroppods(this->Super , this->GetTypeExtData() , this->Type , this->Coords);
+		SendDroppods(this->Super , this->GetTypeExtData() , NewSWType::GetNewSWType(this->GetTypeExtData()), this->Coords);
 	}
 }
 

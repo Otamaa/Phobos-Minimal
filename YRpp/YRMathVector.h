@@ -23,6 +23,9 @@ public:
 	//	return *this;
 	//}
 
+	COMPILETIMEEVAL T& operator[](int i) { return (&X)[i]; }
+	COMPILETIMEEVAL const T& operator[](int i) const { return (&X)[i]; }
+
 	//operator overloads
 	//addition
 	COMPILETIMEEVAL Vector2D operator+(const Vector2D& a) const

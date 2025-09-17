@@ -230,8 +230,9 @@ void IonCannonStateMachine::Fire()
 	}
 
 	// kill
-	auto damage = this->Type->GetDamage(pData);
-	auto pWarhead = this->Type->GetWarhead(pData);
+	auto pNewType = NewSWType::GetNewSWType(pData);
+	auto damage = pNewType->GetDamage(pData);
+	auto pWarhead = pNewType->GetWarhead(pData);
 
 	if (pWarhead && damage != 0) {
 		WarheadTypeExtData::DetonateAt(pWarhead, pTarget, coords, this->Firer, damage, this->Owner);

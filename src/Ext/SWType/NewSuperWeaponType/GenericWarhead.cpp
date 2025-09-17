@@ -94,7 +94,7 @@ void GenericWarheadStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		SentPayload(this->Firer , this->Super , pData, this->Type , this->Coords);
+		SentPayload(this->Firer , this->Super , pData, NewSWType::GetNewSWType(pData), this->Coords);
 	}
 }
 

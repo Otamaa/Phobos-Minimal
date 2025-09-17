@@ -181,19 +181,21 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 	int maxOffset = Unsorted::CellWidthInPixels / 2;
 	int width = 0, height = 0;
 
-	std::wstring damagestr;
+	static fmt::basic_memory_buffer<wchar_t> damagestr;
 
 	if(!pWH || mode != DrawDamageMode::withWH)
-		fmt::format_to(std::back_inserter(damagestr), L"{}" , damage);
+		fmt::format_to(std::back_inserter(damagestr), L"{}\0" , damage);
 	else
-		fmt::format_to(std::back_inserter(damagestr), L"{} [{}]", damage , PhobosCRT::StringToWideString(pWH->ID));
+		fmt::format_to(std::back_inserter(damagestr), L"{} [{}]\0", damage , PhobosCRT::StringToWideString(pWH->ID));
 
-	BitFont::Instance->GetTextDimension(damagestr.c_str(), &width, &height, 120);
+	//damagestr.push_back(L'\0');
+
+	BitFont::Instance->GetTextDimension(damagestr.data(), &width, &height, 120);
 
 	if (offset >= maxOffset || offset == INT32_MIN)
 		offset = -maxOffset;
 
-	FlyingStrings::Add(damagestr.c_str(), coords, color, Point2D { offset - (width / 2), 0 });
+	FlyingStrings::Add(damagestr.data(), coords, color, Point2D { offset - (width / 2), 0 });
 
 	offset = offset + width;
 }

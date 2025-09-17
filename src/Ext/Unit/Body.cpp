@@ -217,7 +217,7 @@ void FakeUnitClass::_UnDeploy()
 		{
 			if (UnitExtContainer::HasDeployingAnim(pType))
 			{
-				UnitExtContainer::CreateDeployingAnim(pThis, true);
+				UnitExtContainer::CreateDeployingAnim(pThis, false);
 				pThis->Undeploying = true;
 			}
 			else

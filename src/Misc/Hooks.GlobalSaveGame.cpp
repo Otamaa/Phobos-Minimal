@@ -199,6 +199,7 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 }
 
 #include <Utilities/StreamUtils.h>
+#include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
 HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& tracker)
 {
@@ -216,6 +217,10 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 
 	tracker.StartOperation("Process_Global_Save<CursorTypeClass>");
 	success = Process_Global_Save<CursorTypeClass>(pStm);
+	if (!tracker.EndOperation(success)) return E_FAIL;
+
+	tracker.StartOperation("Process_Global_Save<ColorTypeClass>");
+	success = Process_Global_Save<ColorTypeClass>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("ScenarioClass::Instance->Save");

@@ -273,7 +273,7 @@ void PhobosAttachEffectClass::UpdateAnimLogic()
 
 	if (this->Animation && this->Type->Animation_DrawOffsets.size() > 0) {
 		auto const pAnimExt = AnimExtContainer::Instance.Find(this->Animation);
-		auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
+		//auto const pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
 		pAnimExt->AEDrawOffset = Point2D::Empty;
 
 		for (auto& drawOffset : this->Type->Animation_DrawOffsets) {

@@ -182,7 +182,7 @@ void LaserStrikeStateMachine::Update()
 					if (this->LaserStrikeROF <= 0)
 					{
 						if (auto pWeapon = pData->This()->WeaponType)
-							WeaponTypeExtData::DetonateAt(pWeapon, pos, Firer, this->Type->GetDamage(pData), false);
+							WeaponTypeExtData::DetonateAt(pWeapon, pos, Firer, NewSWType::GetNewSWType(pData)->GetDamage(pData), false);
 					}
 				}
 

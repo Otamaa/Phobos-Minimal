@@ -27,19 +27,6 @@ class BuildingClass;
 class CCINIClass;
 class NewSWType
 {
-	static std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> Array;
-
-	static OPTIONALINLINE
-#if _HAS_CXX23 == 1
-		COMPILETIMEEVAL
-#endif
-		void Register(std::unique_ptr<NewSWType> pType, AresNewSuperType nType)
-	{
-		pType->TypeIndex = nType;
-		Array[size_t(nType)] = (std::move(pType));
-	}
-
-	AresNewSuperType TypeIndex { AresNewSuperType(-1) };
 
 public:
 
@@ -111,14 +98,38 @@ public:
 
 public:
 	// static methods
-	static void Init();
 	static bool IsOriginalType(SuperWeaponType nType);
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 	static NewSWType* GetNthItem(SuperWeaponType i);
 	static SuperWeaponType GetHandledType(SuperWeaponType nType);
 	static NewSWType* GetNewSWType(const SWTypeExtData* pData);
 	static NewSWType* GetNewSWType(const SuperClass* pSuper);
 	static SuperWeaponType FindFromTypeID(const char* pType);
+
+public:
+
+	AresNewSuperType TypeIndex { AresNewSuperType(-1) };
+};
+
+struct NewSWTypeContainer {
+	std::array<std::unique_ptr<NewSWType>, (size_t)AresNewSuperType::count> Array;
+
+public:
+
+	NewSWTypeContainer();
+	~NewSWTypeContainer() = default;
+
+	static NewSWTypeContainer Instance;
+
+private:
+
+	OPTIONALINLINE
+#if _HAS_CXX23 == 1
+		COMPILETIMEEVAL
+#endif
+	void Register(std::unique_ptr<NewSWType> pType, AresNewSuperType nType)
+	{
+		pType->TypeIndex = nType;
+		Array[size_t(nType)] = (std::move(pType));
+	}
 
 };

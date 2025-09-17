@@ -31,6 +31,10 @@ enum class SWStateMachineIdentifier : int
 	count
 };
 
+#define DEFINE_SWSTATEMACHINE_IDENT(n) \
+virtual SWStateMachineIdentifier GetIdentifier() const override { return SWStateMachineIdentifier::##n##; }\
+virtual const char* GetIdentifierStrings() const override { return "SWStateMachine::"#n; }
+
 // state machines - create one to use delayed effects [create a child class per NewSWType, obviously]
 // i.e. start anim/sound 1 frame after clicking, fire a damage wave 25 frames later, and play second sound 50 frames after that...
 class SWStateMachine
@@ -40,7 +44,7 @@ public:
 
 	SWStateMachine() = default;
 	SWStateMachine(int Duration, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
-		: Type(pSWType), Super(pSuper), Coords(XY)
+		: Super(pSuper), Coords(XY)
 	{
 		Clock.Start(Duration);
 	}
@@ -73,7 +77,6 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 protected:
-	NewSWType* Type;
 	SuperClass* Super;
 	CellStruct Coords;
 	CDTimerClass Clock;
@@ -100,15 +103,7 @@ public:
 	virtual void Update() override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::UnitDelivery;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::UnitDelivery";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(UnitDelivery)
 
 	void PlaceUnits();
 };
@@ -129,15 +124,7 @@ public:
 	virtual void Update() override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::Droppod;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::Droppod";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(Droppod)
 
 	static void SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc);
 	static void PlaceUnits(SuperClass* pSuper, double veterancy, Iterator<TechnoTypeClass*> const Types, int cMin, int cMax, const CellStruct& Coords ,bool retries);
@@ -160,15 +147,7 @@ public:
 	virtual void Update() override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::SonarPulse;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::SonarPulse";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(SonarPulse)
 
 	static void SendSonarPulse(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc);
 	static void ApplySonarPulse(SuperClass* pSuper, const CellStruct& Coords , const SWRange& range);
@@ -191,15 +170,7 @@ public:
 	virtual void Update() override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::SpyPlane;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::SpyPlane";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(SpyPlane)
 
 	static void SendSpyPlane(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, CellClass* target);
 
@@ -235,16 +206,36 @@ public:
 			target(target),
 			origin(origin),
 			isVehicle(isVehicle)
-		{
-		}
+		{ }
 
 		COMPILETIMEEVAL ChronoWarpContainer() = default;
 
-		COMPILETIMEEVAL bool operator == (const ChronoWarpContainer& other) const {
+		COMPILETIMEEVAL bool operator == (const ChronoWarpContainer& other) const
+		{
 			return this->building == other.building;
 		}
 
 		COMPILETIMEEVAL ~ChronoWarpContainer() = default;
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return Stm
+				.Process(this->building, RegisterForChange)
+				.Process(this->target)
+				.Process(this->origin)
+				.Process(this->isVehicle)
+				.Success();
+		}
+
+		bool Save(PhobosStreamWriter& Stm)
+		{
+			return Stm
+				.Process(this->building)
+				.Process(this->target)
+				.Process(this->origin)
+				.Process(this->isVehicle)
+				.Success();
+		}
 	};
 
 	ChronoWarpStateMachine()
@@ -260,15 +251,7 @@ public:
 	virtual void Update() override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::ChronoWarp;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::ChronoWarp";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(ChronoWarp)
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 
@@ -311,15 +294,7 @@ public:
 	virtual void Update() override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::PsychicDominator;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::PsyhicDominator";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(PsychicDominator)
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 
@@ -379,15 +354,7 @@ public:
 
 	virtual void Update() override;
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::IonCannon;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::IonCannon";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(IonCannon)
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
@@ -461,15 +428,7 @@ public:
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::CloneableLighningStorm;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::CloneableLighningStorm";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(CloneableLighningStorm)
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 
@@ -539,15 +498,7 @@ public:
 
 	virtual void Update() override;
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::LaserStrike;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::LaserStrike";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(LaserStrike)
 
 	virtual bool Finished() override { return SWStateMachine::Finished() || MaxCountCounter <= 0; }
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
@@ -588,15 +539,7 @@ public:
 
 	virtual void Update() override;
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::GenericWarhead;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::GenericWarhead";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(GenericWarhead)
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
@@ -624,15 +567,7 @@ public:
 
 	virtual void Update() override;
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::GeneticMutator;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::GeneticMutator";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(GeneticMutator)
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
@@ -680,16 +615,7 @@ public:
 	virtual void Update() override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::Reveal;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::Reveal";
-	}
-
+	DEFINE_SWSTATEMACHINE_IDENT(Reveal)
 };
 
 class ParaDropStateMachine : public SWStateMachine
@@ -710,11 +636,6 @@ public:
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
 	void UpdateProperties();
-
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::ParaDrop;
-	}
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
@@ -738,10 +659,7 @@ public:
 			.Success();
 	}
 
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::ParaDrop";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(ParaDrop)
 
 protected:
 	CellClass* Target;
@@ -764,15 +682,7 @@ public:
 	virtual void Update() override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override { };
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::Protect;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::Protect";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(Protect)
 
 };
 
@@ -789,15 +699,7 @@ public:
 
 	virtual void Update() override;
 
-	virtual SWStateMachineIdentifier GetIdentifier() const override
-	{
-		return SWStateMachineIdentifier::MeteorShower;
-	}
-
-	virtual const char* GetIdentifierStrings() const override
-	{
-		return "SWStateMachine::MeteorShower";
-	}
+	DEFINE_SWSTATEMACHINE_IDENT(MeteorShower)
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
@@ -847,4 +749,6 @@ struct Savegame::ObjectFactory<SWStateMachine>
 		return nullptr;
 	}
 };
+
 #undef MakeStatemachine
+#undef DEFINE_SWSTATEMACHINE_IDENT

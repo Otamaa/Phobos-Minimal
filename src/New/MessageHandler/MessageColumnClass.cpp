@@ -355,7 +355,7 @@ void MessageColumnClass::PackUp(bool clear)
 	}
 
 	this->Expanded = false;
-	this->ScrollIndex = this->GetMaxScroll();
+	this->ScrollIndex = this->GetMaxScroll<true>();
 
 	if (const auto pButton = this->Button_Up)
 		pButton->Disabled = true;
@@ -600,8 +600,14 @@ MessageLabelClass* MessageColumnClass::GetLastLabel() const
 
 	return pLabel;
 }
-
+template <bool check>
 int MessageColumnClass::GetMaxScroll() const
 {
+	if constexpr (check) {
+		if (!ScenarioExtData::Instance())
+			return 0;
+	}
+
+
 	return MaxImpl(0, static_cast<int>(ScenarioExtData::Instance()->RecordMessages.size()) - this->MaxRecord);
 }

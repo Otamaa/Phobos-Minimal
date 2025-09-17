@@ -2951,3 +2951,32 @@ ASMJIT_PATCH(0x741A66, UnitClass_SetDestination_JJVehFix, 0x5)
 }
 
 #pragma endregion
+
+// 42A80A: 89 98 00 00 10 00
+// Set new Count offset
+DEFINE_PATCH(0x42A80E, 0x20);
+// mov [eax+100000h], ebx -> mov [eax+200000h], ebx
+// 42A840: 89 98 00 00 10 00
+
+// Set new Count offset
+DEFINE_PATCH(0x42A844, 0x20);
+// mov [eax+100000h], ebx -> mov [eax+200000h], ebx
+
+// AStarClass::CleanUp
+
+// 42A5C3: 89 B2 00 00 10 00
+// Set new Count offset
+DEFINE_PATCH(0x42A5C7, 0x20);
+// mov [edx+100000h], esi -> mov [edx+200000h], esi
+
+// AStarClass::CreatePathNode
+
+// 42A466: 8B 90 00 00 10 00
+// Set new Count offset
+DEFINE_PATCH(0x42A46A, 0x20);
+// mov edx, [eax+100000h] -> mov edx, [eax+200000h]
+
+// 42A479: 89 90 00 00 10 00
+// Set new Count offset
+DEFINE_PATCH(0x42A47D, 0x20);
+// mov [eax+100000h], edx -> mov [eax+200000h], edx

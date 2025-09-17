@@ -143,7 +143,7 @@ void RevealStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		auto const range = this->Type->GetRange(pData);
+		auto const range = NewSWType::GetNewSWType(pData)->GetRange(pData);
 
 		SW_Reveal::RevealMap(this->Coords, range.WidthOrRange, range.Height, this->Super->Owner);
 	}

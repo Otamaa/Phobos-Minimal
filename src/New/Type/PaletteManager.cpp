@@ -1,6 +1,7 @@
 #include "PaletteManager.h"
 
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/SavegameDef.h>
 
 #include <MixFileClass.h>
 
@@ -251,7 +252,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	if (!Stm.Process(hasPalette))
 		return false;
 
-	if (!Stm.Load(this->Mode))
+	if (!Stm.Process(this->Mode))
 		return false;
 
 	if (hasPalette) {
@@ -260,7 +261,7 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 
 		this->Palette.reset(GameCreate<BytePalette>());
 
-		if (!Stm.Load(*this->Palette)) {
+		if (!Stm.Process(*this->Palette)) {
 			return false;
 		}
 
@@ -275,11 +276,11 @@ bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 	const bool hasPalette = this->Palette != nullptr;
 
 	Stm.Process(hasPalette);
-	Stm.Save(this->Mode);
+	Stm.Process(this->Mode);
 
 	if(hasPalette){
 		Stm.Process(this->Name);
-		Stm.Save(*this->Palette);
+		Stm.Process(*this->Palette);
 	}
 
 	return true;

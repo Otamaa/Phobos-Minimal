@@ -50,7 +50,7 @@ void ProtectStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		SW_Protect::ApplyProtect(this->Super, this->Coords , this->Type->GetRange(pData));
+		SW_Protect::ApplyProtect(this->Super, this->Coords , NewSWType::GetNewSWType(pData)->GetRange(pData));
 	}
 }
 
