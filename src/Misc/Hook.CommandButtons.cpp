@@ -219,7 +219,12 @@ public:
 		this->AddButton(TabThumbButtonActivated.operator->());
 
 		for (int i = 0; i < CommandBarLinks.size(); ++i) {
-			TabClass::LinkTooltip(TabClass::GetCommandbarShape(CommandBarLinks[i]), (char*)CommandBarTypes_Tip[i]);
+			int linked = CommandBarLinks[i];
+
+			if (linked == -1 ||  !TabClass::GetCommandbarShape(linked) )
+				continue;
+
+			TabClass::LinkTooltip(TabClass::GetCommandbarShape(linked), (char*)CommandBarTypes_Tip[i]);
 		}
 
 		TabClass::LinkTooltip(TabThumbButtonActivated.operator->(), "Tip:ThumbOpen");
@@ -248,11 +253,11 @@ public:
 			command.SetShape(nullptr, 0, 0);
 		}
 
-		int i = 0;
 		int __val = tabclassrect_B0FC64->Width + tabclassrect_B0FC64->X;
-		do
-		{
+		for(int i = 0; i < std::size(CommandBarLinks); ++i){
+
 			int idx_ = CommandBarLinks[i];
+
 			if (auto pShpeBtn = _GetShapeButton(idx_))
 			{
 				int v5 = rect_B0FC68->X + dword_B0CC38 * idx_;
@@ -264,29 +269,22 @@ public:
 					pShpeBtn->Drawer = FileSystem::SIDEBAR_PAL;
 					pShpeBtn->IsOn = 0;
 
-					if(idx_ == (int)CommandBarTypes::PlanningMode){
+					if(i == (int)CommandBarTypes::PlanningMode){
 						pShpeBtn->ToggleType = 1;
 						pShpeBtn->UseFlash = 1;
 					} else{
 						pShpeBtn->ToggleType = 0;
-						pShpeBtn->UseFlash = 1;
 					}
 
-					GadgetFlag flag= GadgetFlag::LeftPress | GadgetFlag::LeftRelease;
-					if(idx_ == (int)CommandBarTypes::Team01
-						|| idx_ == (int)CommandBarTypes::Team02
-						|| idx_ == (int)CommandBarTypes::Team03)
-						flag = GadgetFlag(85);
+					pShpeBtn->Flags = GadgetFlag::LeftPress | GadgetFlag::LeftRelease;
+					if(i == (int)CommandBarTypes::Team01 || i == (int)CommandBarTypes::Team02 || i == (int)CommandBarTypes::Team03)
+						pShpeBtn->Flags |= GadgetFlag::RightPress | GadgetFlag::RightRelease;
 
-					pShpeBtn->Flags = flag;
 					pShpeBtn->SetPosition(v5, v6);
 					pShpeBtn->SetShape(GetCommandButtonShape(i), 0, 0);
 				}
 			}
-
-			++i;
 		}
-		while (i < 25);
 	}
 
 	static void __fastcall AttackMoveCommand() { JMP_STD(0x731AF0); } // AttackMoveCommand
@@ -294,8 +292,8 @@ public:
 	static void __fastcall CheerCommand() { JMP_STD(0x730F30); } // CheerCommand
 	static void __fastcall DeployCommand() { JMP_STD(0x730AF0); } // DeployCommand
 	static void __fastcall GuardCommand() { JMP_STD(0x730D60); } // GuardCommand
-	static void __fastcall TurnOffPlanningMode(bool idk) { JMP_STD(0x731A50); } // TurnOffPlaningMode
-	static void __fastcall TurnOnPlanningMode(bool idk) { JMP_STD(0x731A70); } // TurnOnPlanningMode
+	static void __fastcall TurnOnPlanningMode(bool idk) { JMP_STD(0x731A50); } // TurnOffPlaningMode
+	static void __fastcall TurnOffPlanningMode(bool idk) { JMP_STD(0x731A70); } // TurnOnPlanningMode
 	static void __fastcall StopCommand() { JMP_STD(0x730EA0); } // StopCommand
 	static void __fastcall TypeSelectCommand() { JMP_STD(0x732950); } // TypeSelectCommand
 
@@ -318,76 +316,50 @@ public:
 		}
 	}
 
-	static void Proces(int key)
+	static void TestCommand()
 	{
 		static bool WhiteColorSearchedG = false;
 		static int ColorIdxG = 5;
 
-		switch ((CommandBarTypes)CommandBarLinks[key])
+		if (!WhiteColorSearchedG)
 		{
-		case CommandBarTypes::AttackMove:
-			AttackMoveCommand();
-			break;
-		case CommandBarTypes::Beacon:
-			BeaconCommand();
-			break;
-		case CommandBarTypes::Cheer:
-			CheerCommand();
-			break;
-		case CommandBarTypes::Deploy:
-			DeployCommand();
-			break;
-		case CommandBarTypes::Guard:
-			GuardCommand();
-			break;
-		case CommandBarTypes::Stop:
-			StopCommand();
-			break;
-		case CommandBarTypes::PlanningMode:
-		{
-			if (auto pButton = GetCommandbarShape(key))
+			const auto WhiteIndex = ColorScheme::FindIndex("White", 53);
+
+			if (WhiteIndex != -1)
 			{
+				ColorIdxG = WhiteIndex;
+			}
+
+			WhiteColorSearchedG = true;
+		}
+
+		MessageListClass::Instance->PrintMessage(L"Hello world!", 600, ColorIdxG, true);
+	}
+
+	static void Proces(int key)
+	{
+		switch ((CommandBarTypes)key)
+		{
+		case CommandBarTypes::Team01: { TeamCommand(1); }break;
+		case CommandBarTypes::Team02: { TeamCommand(2);  }break;
+		case CommandBarTypes::Team03: { TeamCommand(3);  }break;
+		case CommandBarTypes::TypeSelect: { TypeSelectCommand();  }break;
+		case CommandBarTypes::Deploy: { DeployCommand();  }break;
+		case CommandBarTypes::AttackMove: { AttackMoveCommand();  }break;
+		case CommandBarTypes::Guard: { GuardCommand(); }break;
+		case CommandBarTypes::Beacon: { BeaconCommand();  }break;
+		case CommandBarTypes::Stop: { StopCommand();  }break;
+		case CommandBarTypes::PlanningMode: {
+			if (auto pButton = GetCommandbarShape(key)) {
 				if (pButton->IsOn)
 					TurnOffPlanningMode(1);
 				else
 					TurnOnPlanningMode(1);
 			}
-		}
-			break;
-		case CommandBarTypes::TypeSelect:
-			TypeSelectCommand();
-			break;
-		case CommandBarTypes::Team01:
-		{
-			TeamCommand(1);
-			break;
-		}
-		case CommandBarTypes::Team02:
-		{
-			TeamCommand(2);
-			break;
-		}
-		case CommandBarTypes::Team03:
-		{
-			TeamCommand(3);
-			break;
-		}
-		case CommandBarTypes::Test:
-			if (!WhiteColorSearchedG)
-			{
-				const auto WhiteIndex = ColorScheme::FindIndex("White", 53);
-
-				if (WhiteIndex != -1) {
-					ColorIdxG = WhiteIndex;
-				}
-
-				WhiteColorSearchedG = true;
-			}
-
-			MessageListClass::Instance->PrintMessage(L"Hello world!", 600, ColorIdxG, true);
-
-		break;
-		case CommandBarTypes::none:break;
+		}break;
+		case CommandBarTypes::Cheer: { CheerCommand();  }break;
+		case CommandBarTypes::Test: { TestCommand();  }break;
+		default:break;
 		}
 	}
 };
@@ -407,29 +379,36 @@ ASMJIT_PATCH(0x6D02C0, InitForHouse_RemoveInline, 0x5)
 	return 0x6D0304;
 }
 
-ASMJIT_PATCH(0x6D1780, TabClass_noticeSink_Planning_TurnOn, 0x7)
+ASMJIT_PATCH(0x6D1770, TabClass_noticeSink_Planning_ChangeState, 0x7)
 {
-	GET(int, index, EAX);
-	if (auto pShape = FakeTabClass::_GetShapeButton(index))
-		pShape->TurnOn();
+	GET_STACK(int, someID , 0x4);
+	GET_STACK(int, something, 0x8);
 
-	return 0x6D17AC;
-}
+	bool result = false;
+	switch (someID)
+	{
+	case 4551:
+	{
+		if (auto pShape = FakeTabClass::_GetShapeButton((int)CommandBarTypes::PlanningMode))
+			pShape->TurnOn();
 
-ASMJIT_PATCH(0x6D17BE, TabClass_noticeSink_Planning_TurnOff, 0x7)
-{
-	GET(int, index, ECX);
-	if (auto pShape = FakeTabClass::_GetShapeButton(index))
-		pShape->TurnOff();
+		result = true;
+		break;
+	}
+	case 4552:
+	{
+		if (auto pShape = FakeTabClass::_GetShapeButton((int)CommandBarTypes::PlanningMode))
+			pShape->TurnOff();
 
-	return 0x6D17EA;
-}
+		result = true;
+		break;
+	}
+	default:break;
+	}
 
-ASMJIT_PATCH(0x6D078C, TabClass_AI_Planning, 0x7)
-{
-	GET(int, index, ECX);
-	R->EAX(FakeTabClass::_GetShapeButton(index));
-	return 0x6D07AB;
+
+	R->AL(result);
+	return 0x6D17F1;
 }
 
 ASMJIT_PATCH(0x67468B, RulesClass_AdcancedCommandBar_Parse, 0x6)
@@ -454,11 +433,19 @@ ASMJIT_PATCH(0x6D1674, TabClass_ToggleThumb_RemoveInline, 0x6)
 	return 0x6D16E2;
 }
 
-ASMJIT_PATCH(0x6D0D5A, TabClass_DrawIt_DrawCommandBar2, 0x5)
+ASMJIT_PATCH(0x6D0D4F, TabClass_DrawIt_DrawCommandBar, 0x5)
 {
-	GET(int, index, EAX);
-	R->ESI(FakeTabClass::_GetShapeButton(index));
-	return 0x6D0D6B;
+	for (int i = 0; i < std::size(CommandBarLinks); ++i) {
+		if (auto pShpeBtn = FakeTabClass::_GetShapeButton(CommandBarLinks[i])) {
+			if (pShpeBtn->ShapeData) {
+				pShpeBtn->Draw(true);
+				pShpeBtn->IsDrawn = false;
+			}
+
+		}
+	}
+
+	return 0x6D0D8C;
 }
 
 ASMJIT_PATCH(0x6D0A87, TabClass_DrawIt_DrawCommandBar1, 0x5)
