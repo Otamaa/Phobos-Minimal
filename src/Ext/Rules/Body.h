@@ -546,6 +546,8 @@ public:
 	Valueable<int> AdjacentWallDamage { 200 };
 	Valueable<bool> InfantryAutoDeploy { false };
 
+	Valueable<bool> EnablePassiveAcquireMode { false };
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();

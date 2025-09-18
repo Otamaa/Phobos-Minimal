@@ -1645,6 +1645,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BattlePointsCollector_RequirePower.Read(exINI, pSection, "BattlePointsCollector.RequirePower");
 
 		this->BuildingRepairedSound.Read(exINI, pSection, "BuildingRepairedSound");
+		this->AggressiveModeExempt.Read(exINI, pSection, "AggressiveModeExempt");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2096,6 +2097,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->BuildingRepairedSound)
 
 		.Process(this->Refinery_UseNormalActiveAnim)
+		.Process(this->AggressiveModeExempt)
 		.Process(this->HasPowerUpAnim)
 		;
 }

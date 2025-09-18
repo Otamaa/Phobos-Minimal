@@ -781,18 +781,16 @@ void Container<AnimExtData>::Clear()
 
 bool AnimExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	auto ret = LoadGlobalArrayData(Stm);
-		ret &= Stm.Process(AnimsWithAttachedParticles);
-
-	return ret;
+	return Stm.Process(AnimsWithAttachedParticles);
 }
 
 bool AnimExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	auto ret = SaveGlobalArrayData(Stm);
-	ret &= Stm.Process(AnimsWithAttachedParticles);
 
-	return ret;
+	return Stm
+		.Process(AnimsWithAttachedParticles)
+
+		;
 }
 
 // =============================
@@ -900,3 +898,24 @@ ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3390, FakeAnimClass::_GetOwningHouse);
+
+HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->AnimClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = AnimExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->AnimClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = AnimExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)

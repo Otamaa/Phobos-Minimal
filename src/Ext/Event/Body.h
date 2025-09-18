@@ -1,6 +1,7 @@
 #pragma once
 #include <EventClass.h>
 #include <TargetClass.h>
+#include <Utilities/Enum.h>
 
 #define SET_DEFAULT_PROP(c) \
 static OPTIONALINLINE COMPILETIMEEVAL size_t size() { return sizeof(##c##); } \
@@ -21,9 +22,10 @@ public:
 		ProtocolZero = 0x61,
 		FirewallToggle = 0x62,
 		ManualReload = 0x63,
+		TogglePassiveAcquireMode = 0x64,
 
 		First = TrenchRedirectClick,
-		Last = FirewallToggle
+		Last = TogglePassiveAcquireMode
 	};
 
 	template<bool timestamp, bool setData, class T, typename... ArgTypes>
@@ -40,16 +42,29 @@ public:
 			return EventClass::AddEvent(&event);
 	}
 
+	struct TogglePassiveAcquireMode
+	{
+		TogglePassiveAcquireMode(TechnoClass* pTechno, PassiveAcquireMode mode);
+
+		SET_DEFAULT_PROP(TogglePassiveAcquireMode)
+
+		static void Raise(TechnoClass* pTechno, PassiveAcquireMode mode);
+
+		TargetClass Who;
+		PassiveAcquireMode Mode;
+	};
+
 	struct ManualReload
 	{
 		ManualReload(TechnoClass* source);
 
 		SET_DEFAULT_PROP(ManualReload)
 
-		static void Raise(TechnoClass* Source);
+			static void Raise(TechnoClass* Source);
 
 		TargetClass Who;
 	};
+
 
 	struct TrenchRedirectClick
 	{
@@ -114,6 +129,7 @@ public:
 			GET_SIZE_EV(ProtocolZero)
 			GET_SIZE_EV(FirewallToggle)
 			GET_SIZE_EV(ManualReload)
+			GET_SIZE_EV(TogglePassiveAcquireMode)
 		default:
 			return 0;
 		}
@@ -130,6 +146,7 @@ public:
 			GET_NAME_EV(ProtocolZero)
 			GET_NAME_EV(FirewallToggle)
 			GET_NAME_EV(ManualReload)
+			GET_NAME_EV(TogglePassiveAcquireMode)
 		default:
 			return "Unknown";
 		}
@@ -145,6 +162,7 @@ public:
 			RESPOND_TO_EV(ProtocolZero)
 			RESPOND_TO_EV(FirewallToggle)
 			RESPOND_TO_EV(ManualReload)
+			RESPOND_TO_EV(TogglePassiveAcquireMode)
 		default:
 			break;
 		}

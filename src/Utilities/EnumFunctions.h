@@ -16,6 +16,7 @@ class EnumFunctions final
 	NO_CONSTRUCT_CLASS(EnumFunctions)
 public:
 
+	static constexpr auto PassiveAcquireMode_ToStrings = magic_enum::enum_entries<PassiveAcquireMode>();
 	static constexpr auto AffectedTechno_ToStrings = magic_enum::enum_entries<AffectedTechno>();
 	static constexpr auto AttachedAnimPosition_ToStrings = magic_enum::enum_entries<AttachedAnimPosition>();
 	static constexpr auto LaserTrailDrawType_ToStrings = magic_enum::enum_entries<LaserTrailDrawType>();

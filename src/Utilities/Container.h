@@ -172,7 +172,9 @@ public:
 	}
 
 	extension_type_ptr AllocateNoInit(base_type_ptr key) {
+		this->ClearExtAttribute(key);
 		auto pExt = new extension_type(key, noinit_t());
+		this->SetExtAttribute(key, pExt);
 		Array.emplace_back(pExt);
 		return pExt;
 	}
@@ -188,7 +190,12 @@ public:
 	void Remove(base_type_ptr key)
 	{
 		if (extension_type_ptr Item = TryFind(key)) {
-			Array.erase(std::find(Array.begin() , Array.end(), Item));
+
+			auto iter = std::find(Array.begin(), Array.end(), Item);
+
+			if(iter != Array.end())
+				Array.erase(iter);
+
 			delete Item;
 			this->ClearExtAttribute(key);
 		}
@@ -326,6 +333,73 @@ public : //default Save/Load functions
 		}
 
 		return false;
+	}
+
+	HRESULT SaveKey(base_type_ptr key, IStream* pStm)
+	{
+		// get the value data
+		auto buffer = this->Find(key);
+
+		if (!buffer) {
+			Debug::Log("SaveKey - Could not find value.\n");
+			return E_POINTER;
+		}
+
+		// write the current pointer, the size of the block, and the canary
+		PhobosByteStream saver(sizeof(*buffer));
+		PhobosStreamWriter writer(saver);
+
+		writer.Process(T::Marker);
+		writer.Save((long)buffer);
+
+		// save the data
+		buffer->SaveToStream(writer);
+
+		// save the block
+		if (!saver.WriteBlockToStream(pStm))
+		{
+			Debug::Log("SaveKey - Failed to save data.\n");
+			return E_FAIL;
+		}
+
+		//Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
+		return NO_ERROR;
+	}
+
+	HRESULT LoadKey(base_type_ptr key, IStream* pStm)
+	{
+		// get or allocate the value data
+		extension_type_ptr buffer = this->AllocateNoInit(key);
+		if (!buffer)
+		{
+			Debug::Log("LoadKey - Could not find or allocate value.\n");
+			return E_POINTER;
+		}
+
+		PhobosByteStream loader(0);
+		if (!loader.ReadBlockFromStream(pStm))
+		{
+			Debug::Log("LoadKey - Failed to read data from save stream?!\n");
+			return E_FAIL;
+		}
+
+		PhobosStreamReader reader(loader);
+
+		if (reader.Expect(T::Marker))
+		{
+			long oldPtr = 0l;
+
+			if (!reader.Load(oldPtr))
+				return E_FAIL;
+
+			const auto name = PhobosCRT::GetTypeIDName<T>();
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, name.c_str())
+			buffer->LoadFromStream(reader);
+			if (reader.ExpectEndOfBlock())
+				return NO_ERROR;
+		}
+
+		return E_FAIL;
 	}
 };
 

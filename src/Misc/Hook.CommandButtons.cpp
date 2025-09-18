@@ -1,4 +1,19 @@
 #include <CCToolTip.h>
+#include <FileFormats/SHP.h>
+#include <ShapeButtonClass.h>
+#include <CCFileClass.h>
+#include <CCINIClass.h>
+
+#include <MouseClass.h>
+
+#include <Phobos.h>
+#include <Syringe.h>
+
+#include <Utilities/Macro.h>
+#include <Utilities/Debug.h>
+
+#include <MessageListClass.h>
+#include <Phobos.Defines.h>
 
 enum class CommandBarTypes
 {
@@ -14,13 +29,46 @@ enum class CommandBarTypes
 	Stop,
 	PlanningMode,
 	Cheer,
-	Test
+	Test,
+
+	last = Test,
+	first = Team01
+};
+
+static COMPILETIMEEVAL const char* CommandBarTypes_ident[] = {
+		"Team01",
+		"Team02",
+		"Team03",
+		"TypeSelect",
+		"Deploy",
+		"AttackMove",
+		"Guard",
+		"Beacon",
+		"Stop",
+		"PlanningMode",
+		"Cheer",
+		"Test",
+};
+
+static COMPILETIMEEVAL const char* CommandBarTypes_Tip[] = {
+		"Tip:Team01",
+		"Tip:Team02",
+		"Tip:Team03",
+		"Tip:TypeSelect",
+		"Tip:Deploy",
+		"Tip:AttackMove",
+		"Tip:Guard",
+		"Tip:Beacon",
+		"Tip:Stop",
+		"Tip:PlanningMode",
+		"Tip:Cheer",
+		"Tip:Test",
 };
 
 static COMPILETIMEEVAL reference<ShapeButtonClass, 0xB0C1C0, 25u> CommandBarButtons {};
+
+//link the button with the slot in sidebar
 static COMPILETIMEEVAL reference<int, 0xB0CB78, 25u> CommandBarLinks {};
-static COMPILETIMEEVAL reference<const char*, 0x8427D0, 11u> CommandBarNames {};
-//constexpr const char* CommandBarNames[] = { "Team01" ,"Team02" ,"Team03" ,"TypeSelect" ,"Deploy" ,"AttackMove" , "Guard" ,"Beacon" ,"Stop" ,"PlanningMode" , "Cheer" };
 
 static COMPILETIMEEVAL reference<ShapeButtonClass, 0xB0CCB0> TabThumbButtonActivated {};
 static COMPILETIMEEVAL reference<ShapeButtonClass, 0xB0CC40> TabThumbButtonDeactivated {};
@@ -28,29 +76,6 @@ static COMPILETIMEEVAL reference<int, 0xB0CB20, 7u> ActiveCommandBarButtons {};
 
 static COMPILETIMEEVAL constant_ptr<char, 0x842838> Tip_ThumbClosed {};
 static COMPILETIMEEVAL constant_ptr<char, 0x842848> Tip_ThumbOpen {};
-static COMPILETIMEEVAL constant_ptr<char, 0x842858> Tip_TypeSelect {};
-static COMPILETIMEEVAL constant_ptr<char, 0x842868> Tip_Team03 {};
-static COMPILETIMEEVAL constant_ptr<char, 0x842874> Tip_Team02 {};
-static COMPILETIMEEVAL constant_ptr<char, 0x842880> Tip_Team01 {};
-static COMPILETIMEEVAL constant_ptr<char, 0x84288C> Tip_Stop {};
-static COMPILETIMEEVAL constant_ptr<char, 0x842898> Tip_PlanningMode {};
-static COMPILETIMEEVAL constant_ptr<char, 0x8428AC> Tip_Guard {};
-static COMPILETIMEEVAL constant_ptr<char, 0x8428B8> Tip_Deploy {};
-static COMPILETIMEEVAL constant_ptr<char, 0x8428C4> Tip_Cheer {};
-static COMPILETIMEEVAL constant_ptr<char, 0x8428D0> Tip_Beacon {};
-static COMPILETIMEEVAL constant_ptr<char, 0x8428DC> Tip_AttackMove {};
-
-static COMPILETIMEEVAL reference<int, 0xB0CD24> AttackMove_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CB3C> Beacon_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0C1B8> Cheer_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CB20> Deploy_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CB68> Guard_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CC1C> PlanningMode_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CB6C> Stop_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CC20> Team01_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CC28> Team02_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CD28> Team03_Index {};
-static COMPILETIMEEVAL reference<int, 0xB0CB38> TypeSelect_Index {};
 
 static COMPILETIMEEVAL reference<SHPStruct*, 0xB0C148, 25u> CommandBarButtonShapes {};
 static COMPILETIMEEVAL reference<bool, 0xB0CBDC, 25u> CommandBarButtonShapesLoaded {};
@@ -82,7 +107,6 @@ public:
 
 	static void _InitCommandBarShapes()
 	{
-
 		char filename[256] {};
 		for (size_t i = 0; i < CommandBarButtonShapes.size(); ++i)
 		{
@@ -90,7 +114,6 @@ public:
 			CommandBarButtonShapes[i] = (SHPStruct*)FileSystem::LoadWholeFileEx(filename, CommandBarButtonShapesLoaded[i]);
 		}
 
-		CommandBarButtonShapes[11] = CommandBarButtonShapes[0];
 	}
 
 	static void _DestroyCommandBarShapes()
@@ -112,8 +135,9 @@ public:
 
 	static void _InitDefaultIdx()
 	{
-		//start : 0x6CFE8E
-		//this thing stupidly compare name ,..
+		for (int i = 0; i < (int)CommandBarTypes::last; ++i)
+			CommandBarLinks[i] = (int)_GetCommandBarIndexByName(CommandBarTypes_ident[i]);
+
 	}
 
 	static NOINLINE void _ParseButtonList(CCINIClass* pINI, const char* pSection)
@@ -141,22 +165,13 @@ public:
 			TabClass::SetCommanbarRect(nCount);
 		}
 	}
+
 	static NOINLINE CommandBarTypes _GetCommandBarIndexByName(const char* pName)
 	{
-		for (size_t i = 0; i < std::size(CommandBarNames); ++i)
-		{
-			if (IS_SAME_STR_N(CommandBarNames[i], pName))
-			{
+		for (size_t i = 0; i < std::size(CommandBarTypes_ident); ++i) {
+			if (IS_SAME_STR_N(CommandBarTypes_ident[i], pName)) {
 				return CommandBarTypes(i);
 			}
-		}
-
-		static COMPILETIMEEVAL const char* add[] = { "Test" };
-
-		for (size_t a = 0; a < std::size(add); ++a)
-		{
-			if (IS_SAME_STR_N(add[a], pName))
-				return CommandBarTypes(a + std::size(CommandBarNames));
 		}
 
 		return CommandBarTypes::none;
@@ -177,10 +192,8 @@ public:
 		}
 	}
 
-	void _RemoveButtons()
-	{
-		for (auto& command : CommandBarButtons)
-		{
+	void _RemoveButtons() {
+		for (auto& command : CommandBarButtons) {
 			this->RemoveButton(&command);
 		}
 	}
@@ -189,10 +202,8 @@ public:
 	{
 		this->_RemoveButtons();
 
-		for (auto& idx : CommandBarLinks)
-		{
-			if (auto pShape = _GetShapeButton(idx))
-			{
+		for (auto& idx : CommandBarLinks) {
+			if (auto pShape = _GetShapeButton(idx)) {
 				CCToolTip::Instance->Remove(pShape->ID);
 			}
 		}
@@ -207,41 +218,9 @@ public:
 		this->_AddButtons();
 		this->AddButton(TabThumbButtonActivated.operator->());
 
-		auto AttackMove = TabClass::GetCommandbarShape(AttackMove_Index);
-		TabClass::LinkTooltip(AttackMove, "Tip:AttackMove");
-
-		auto Beacon = TabClass::GetCommandbarShape(Beacon_Index);
-		TabClass::LinkTooltip(Beacon, "Tip:Beacon");
-
-		auto Cheer = TabClass::GetCommandbarShape(Cheer_Index);
-		TabClass::LinkTooltip(Cheer, "Tip:Cheer");
-
-		auto test = TabClass::GetCommandbarShape(std::size(CommandBarButtons));
-		TabClass::LinkTooltip(test, "Tip:Fuck");
-
-		auto Deploy = TabClass::GetCommandbarShape(Deploy_Index);
-		TabClass::LinkTooltip(Deploy, "Tip:Deploy");
-
-		auto Guard = TabClass::GetCommandbarShape(Guard_Index);
-		TabClass::LinkTooltip(Guard, "Tip:Guard");
-
-		auto PlanningMode = TabClass::GetCommandbarShape(PlanningMode_Index);
-		TabClass::LinkTooltip(PlanningMode, "Tip:PlanningMode");
-
-		auto Stop = TabClass::GetCommandbarShape(Stop_Index);
-		TabClass::LinkTooltip(Stop, "Tip:Stop");
-
-		auto Team01 = TabClass::GetCommandbarShape(Team01_Index);
-		TabClass::LinkTooltip(Team01, "Tip:Team01");
-
-		auto Team02 = TabClass::GetCommandbarShape(Team02_Index);
-		TabClass::LinkTooltip(Team02, "Tip:Team02");
-
-		auto Team03 = TabClass::GetCommandbarShape(Team03_Index);
-		TabClass::LinkTooltip(Team03, "Tip:Team03");
-
-		auto TypeSelect = TabClass::GetCommandbarShape(TypeSelect_Index);
-		TabClass::LinkTooltip(TypeSelect, "Tip:TypeSelect");
+		for (int i = 0; i < CommandBarLinks.size(); ++i) {
+			TabClass::LinkTooltip(TabClass::GetCommandbarShape(CommandBarLinks[i]), (char*)CommandBarTypes_Tip[i]);
+		}
 
 		TabClass::LinkTooltip(TabThumbButtonActivated.operator->(), "Tip:ThumbOpen");
 	}
@@ -252,11 +231,6 @@ public:
 			return nullptr;
 
 		return &CommandBarButtons[idx];
-	}
-
-	static ShapeButtonClass* __fastcall _GetShapeButton2(int idx)
-	{
-		return _GetShapeButton(CommandBarLinks[idx]);
 	}
 
 	static NOINLINE SHPStruct* GetCommandButtonShape(int idx)
@@ -286,12 +260,25 @@ public:
 
 				if (v5 + rect_B0FC68->Width <= __val)
 				{
-
 					pShpeBtn->ID = i + 214;
 					pShpeBtn->Drawer = FileSystem::SIDEBAR_PAL;
 					pShpeBtn->IsOn = 0;
-					pShpeBtn->ToggleType = 0;
-					pShpeBtn->Flags = GadgetFlag::LeftPress | GadgetFlag::LeftRelease;
+
+					if(idx_ == (int)CommandBarTypes::PlanningMode){
+						pShpeBtn->ToggleType = 1;
+						pShpeBtn->UseFlash = 1;
+					} else{
+						pShpeBtn->ToggleType = 0;
+						pShpeBtn->UseFlash = 1;
+					}
+
+					GadgetFlag flag= GadgetFlag::LeftPress | GadgetFlag::LeftRelease;
+					if(idx_ == (int)CommandBarTypes::Team01
+						|| idx_ == (int)CommandBarTypes::Team02
+						|| idx_ == (int)CommandBarTypes::Team03)
+						flag = GadgetFlag(85);
+
+					pShpeBtn->Flags = flag;
 					pShpeBtn->SetPosition(v5, v6);
 					pShpeBtn->SetShape(GetCommandButtonShape(i), 0, 0);
 				}
@@ -300,44 +287,119 @@ public:
 			++i;
 		}
 		while (i < 25);
+	}
 
-		if (auto pShape = _GetShapeButton2(PlanningMode_Index))
-		{
-			pShape->ToggleType = 1;
-			pShape->UseFlash = 1;
-		}
+	static void __fastcall AttackMoveCommand() { JMP_STD(0x731AF0); } // AttackMoveCommand
+	static void __fastcall BeaconCommand() { JMP_STD(0x731A30); } // BeaconCommand
+	static void __fastcall CheerCommand() { JMP_STD(0x730F30); } // CheerCommand
+	static void __fastcall DeployCommand() { JMP_STD(0x730AF0); } // DeployCommand
+	static void __fastcall GuardCommand() { JMP_STD(0x730D60); } // GuardCommand
+	static void __fastcall TurnOffPlanningMode(bool idk) { JMP_STD(0x731A50); } // TurnOffPlaningMode
+	static void __fastcall TurnOnPlanningMode(bool idk) { JMP_STD(0x731A70); } // TurnOnPlanningMode
+	static void __fastcall StopCommand() { JMP_STD(0x730EA0); } // StopCommand
+	static void __fastcall TypeSelectCommand() { JMP_STD(0x732950); } // TypeSelectCommand
 
-		auto v9 = Team01_Index();
-		if (Team01_Index <= Team03_Index)
-		{
-			auto v10 = &CommandBarLinks[Team01_Index];
-			do
-			{
-				auto v11 = *v10;
-				if (*v10 >= 0 && v11 < 25)
-				{
-					auto v12 = &CommandBarButtons[v11];
-					if (v12)
-					{
-						v12->Flags = GadgetFlag(85);
-					}
-				}
-				++v9;
-				++v10;
+	// Team / group related helpers (argument renamed to groupnumber)
+	static int __fastcall Get_Group_Index(int groupnumber) { JMP_STD(0x730A10); } // Get_Group_Index
+	static bool __fastcall Is_Group_Assigned(int groupnumber) { JMP_STD(0x730990); } // Is_Group_Assigned
+	static void __fastcall Center_On_Team_Command(int groupnumber) { JMP_STD(0x7313A0); } // Center_On_Team_Command
+	static void __fastcall Select_Team_Command(int groupnumber) { JMP_STD(0x7311C0); } // Select_Team_Command
+	static void __fastcall Create_Team_Command(int groupnumber) { JMP_STD(0x731060); } // Create_Team_Command
+
+	static void TeamCommand(int teamNumber) {
+		if (Get_Group_Index(teamNumber)) {
+			if (Is_Group_Assigned(teamNumber)) {
+				Center_On_Team_Command(teamNumber);
+			} else {
+				Select_Team_Command(teamNumber);
 			}
-			while (v9 <= Team03_Index);
+		} else {
+			Create_Team_Command(teamNumber);
+		}
+	}
+
+	static void Proces(int key)
+	{
+		static bool WhiteColorSearchedG = false;
+		static int ColorIdxG = 5;
+
+		switch ((CommandBarTypes)CommandBarLinks[key])
+		{
+		case CommandBarTypes::AttackMove:
+			AttackMoveCommand();
+			break;
+		case CommandBarTypes::Beacon:
+			BeaconCommand();
+			break;
+		case CommandBarTypes::Cheer:
+			CheerCommand();
+			break;
+		case CommandBarTypes::Deploy:
+			DeployCommand();
+			break;
+		case CommandBarTypes::Guard:
+			GuardCommand();
+			break;
+		case CommandBarTypes::Stop:
+			StopCommand();
+			break;
+		case CommandBarTypes::PlanningMode:
+		{
+			if (auto pButton = GetCommandbarShape(key))
+			{
+				if (pButton->IsOn)
+					TurnOffPlanningMode(1);
+				else
+					TurnOnPlanningMode(1);
+			}
+		}
+			break;
+		case CommandBarTypes::TypeSelect:
+			TypeSelectCommand();
+			break;
+		case CommandBarTypes::Team01:
+		{
+			TeamCommand(1);
+			break;
+		}
+		case CommandBarTypes::Team02:
+		{
+			TeamCommand(2);
+			break;
+		}
+		case CommandBarTypes::Team03:
+		{
+			TeamCommand(3);
+			break;
+		}
+		case CommandBarTypes::Test:
+			if (!WhiteColorSearchedG)
+			{
+				const auto WhiteIndex = ColorScheme::FindIndex("White", 53);
+
+				if (WhiteIndex != -1) {
+					ColorIdxG = WhiteIndex;
+				}
+
+				WhiteColorSearchedG = true;
+			}
+
+			MessageListClass::Instance->PrintMessage(L"Hello world!", 600, ColorIdxG, true);
+
+		break;
+		case CommandBarTypes::none:break;
 		}
 	}
 };
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x6CFD40, FakeTabClass::_GetShapeButton2));
-DEFINE_FUNCTION_JUMP(LJMP, 0x6D1200, FakeTabClass::_ShowAdvCommand));
-DEFINE_FUNCTION_JUMP(LJMP, 0x6D14F0, FakeTabClass::_HideAdvCommand));
-DEFINE_FUNCTION_JUMP(LJMP, 0x6D0F70, FakeTabClass::_DestroyCommandBarShapes));
-DEFINE_FUNCTION_JUMP(LJMP, 0x6D0F10, FakeTabClass::_InitCommandBarShapes));
-DEFINE_FUNCTION_JUMP(LJMP, 0x6D04A0, FakeTabClass::_AddButtons));
-DEFINE_FUNCTION_JUMP(LJMP, 0x6D04D0, FakeTabClass::_RemoveButtons));
-DEFINE_FUNCTION_JUMP(LJMP, 0x6D0FD0, FakeTabClass::InitAdvCommand));
+DEFINE_FUNCTION_JUMP(LJMP, 0x6CFD40, FakeTabClass::_GetShapeButton);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D1200, FakeTabClass::_ShowAdvCommand);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D14F0, FakeTabClass::_HideAdvCommand);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D0F70, FakeTabClass::_DestroyCommandBarShapes);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D0F10, FakeTabClass::_InitCommandBarShapes);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D04A0, FakeTabClass::_AddButtons);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D04D0, FakeTabClass::_RemoveButtons);
+DEFINE_FUNCTION_JUMP(LJMP, 0x6D0FD0, FakeTabClass::InitAdvCommand);
 
 ASMJIT_PATCH(0x6D02C0, InitForHouse_RemoveInline, 0x5)
 {
@@ -406,29 +468,11 @@ ASMJIT_PATCH(0x6D0A87, TabClass_DrawIt_DrawCommandBar1, 0x5)
 	return 0x6D0A97;
 }
 
-bool WhiteColorSearchedG = false;
-int ColorIdxG = 5;
-
-ASMJIT_PATCH(0x6D07E4, TabClass_AI_AdditionalAffect, 0x6)
+ASMJIT_PATCH(0x6D072C, TabClass_AI_AdditionalAffect, 0x6)
 {
 	GET(int, index, EAX);
-	if (index == 11)
-	{
-		if (!WhiteColorSearchedG)
-		{
-			const auto WhiteIndex = ColorScheme::FindIndex("White", 53);
-
-			if (WhiteIndex != -1)
-			{
-				ColorIdxG = WhiteIndex;
-			}
-
-			WhiteColorSearchedG = true;
-		}
-
-		MessageListClass::Instance->PrintMessage(L"Hello world!", 600, ColorIdxG, true);
-		return 0x6D0827;
-	}
-
-	return 0x0;
+	FakeTabClass::Proces(index);
+	return 0x6D0827;
 }
+
+DEFINE_JUMP(LJMP, 0x6CFE8C, 0x6D0233)

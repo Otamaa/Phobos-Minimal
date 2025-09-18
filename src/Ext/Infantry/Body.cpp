@@ -98,3 +98,24 @@ void FakeInfantryClass::_Detach(AbstractClass* target, bool all)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB080, FakeInfantryClass::_Detach)
+
+HRESULT __stdcall FakeInfantryClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->InfantryClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = InfantryExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeInfantryClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->InfantryClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = InfantryExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB06C, FakeInfantryClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB070, FakeInfantryClass::_Save)

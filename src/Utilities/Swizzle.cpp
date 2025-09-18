@@ -28,7 +28,7 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 		return true;
 
 	auto it = extensionPointerMap.find((uintptr_t)*ptrToFix);
-	if (it != extensionPointerMap.end())
+	if (it != extensionPointerMap.end() && it->second)
 	{
 		auto currentExtension = (AbstractExtended*)it->second;
 

@@ -59,3 +59,23 @@ ASMJIT_PATCH(0x4393F2, BombClass_SDDTOR, 0x5)
 	return 0;
 }
 
+HRESULT __stdcall FakeBombClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->BombClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = BombExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeBombClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->BombClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = BombExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D24, FakeBombClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D28, FakeBombClass::_Save)

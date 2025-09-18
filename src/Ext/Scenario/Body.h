@@ -85,6 +85,8 @@ public:
 	BulletClass* MasterDetonationBullet {}; // Used to do warhead/weapon detonations on spot without having to create new BulletClass instance every time.
 	VectorSet<TechnoClass*> LimboLaunchers {};
 
+	VectorSet<TechnoClass*> UndergroundTracker {};
+	
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
 	void ReadVariables(const bool IsGlobal, CCINIClass* pINI);

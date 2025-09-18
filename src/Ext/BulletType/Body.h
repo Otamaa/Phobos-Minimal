@@ -96,6 +96,7 @@ public:
 	Valueable<bool> Parachuted_Remap;
 	Valueable<bool> Vertical_AircraftFix;
 	Nullable<bool> VerticalInitialFacing;
+	Valueable<bool> AU;
 #pragma endregion
 
 public:
@@ -151,7 +152,8 @@ public:
 		EMPulseCannon_InaccurateRadius(0),
 		Parachuted_FallRate(1),
 		Parachuted_Remap(true),
-		Vertical_AircraftFix(true)
+		Vertical_AircraftFix(true),
+		AU(false)
 	{ }
 
 	BulletTypeExtData(BulletTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

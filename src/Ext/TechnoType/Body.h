@@ -1213,6 +1213,13 @@ public:
 
 	Valueable<bool> IsSimpleDeployer_ConsiderPathfinding;
 	Nullable<LandTypeFlags> IsSimpleDeployer_DisallowedLandTypes;
+
+	Valueable<PassiveAcquireMode> PassiveAcquireMode;
+	Valueable<bool> PassiveAcquireMode_Togglable;
+	ValueableIdx<VocClass> VoiceEnterAggressiveMode;
+	ValueableIdx<VocClass> VoiceExitAggressiveMode;
+	ValueableIdx<VocClass> VoiceEnterCeasefireMode;
+	ValueableIdx<VocClass> VoiceExitCeasefireMode;
 #pragma endregion
 
 public:
@@ -1621,7 +1628,13 @@ public:
 		VoiceIFVRepair(-1),
 		CanBlock(false),
 		IsSimpleDeployer_ConsiderPathfinding(false),
-		IsSimpleDeployer_DisallowedLandTypes()
+		IsSimpleDeployer_DisallowedLandTypes(),
+		PassiveAcquireMode { PassiveAcquireMode::Normal } ,
+		PassiveAcquireMode_Togglable(true),
+		VoiceEnterAggressiveMode(-1),
+		VoiceExitAggressiveMode(-1),
+		VoiceEnterCeasefireMode(-1),
+		VoiceExitCeasefireMode(-1)
 	{
 		this->InitializeConstant();
 		this->Initialize();
@@ -2629,6 +2642,12 @@ private:
 
 			.Process(this->IsSimpleDeployer_ConsiderPathfinding)
 			.Process(this->IsSimpleDeployer_DisallowedLandTypes)
+			.Process(this->PassiveAcquireMode)
+			.Process(this->PassiveAcquireMode_Togglable)
+			.Process(this->VoiceEnterAggressiveMode)
+			.Process(this->VoiceExitAggressiveMode)
+			.Process(this->VoiceEnterCeasefireMode)
+			.Process(this->VoiceExitCeasefireMode)
 			;
 	}
 

@@ -104,92 +104,99 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 	if(AnimType){
 
 		const auto pWarheadExt = WarheadTypeExtContainer::Instance.Find(pThis->WH);
-		bool createdAnim = false;
 
-		int creationInterval = pWarheadExt->Splashed ?
-				pWarheadExt->SplashList_CreationInterval : pWarheadExt->AnimList_CreationInterval;
+		int cellHeight = MapClass::Instance->GetCellFloorHeight(XYZ);
+		auto newCrds = pWarheadExt->PlayAnimAboveSurface ? CoordStruct{ XYZ->X, XYZ->Y, MaxImpl(cellHeight, XYZ->Z) } : *XYZ;
 
-		int* remainingInterval = &pWarheadExt->RemainingAnimCreationInterval;
-		int scatterMin = pWarheadExt->Splashed ? pWarheadExt->SplashList_ScatterMin.Get() : pWarheadExt->AnimList_ScatterMin.Get();
-		int scatterMax = pWarheadExt->Splashed ? pWarheadExt->SplashList_ScatterMax.Get() : pWarheadExt->AnimList_ScatterMax.Get();
-		bool allowScatter = scatterMax != 0 || scatterMin != 0;
-
-		if (creationInterval > 0 && pThis->Owner)
-				remainingInterval = &TechnoExtContainer::Instance.Find(pThis->Owner)->WHAnimRemainingCreationInterval;
-
-		if (creationInterval < 1 || *remainingInterval <= 0)
+		if (!(cellHeight > newCrds.Z && !pWarheadExt->PlayAnimUnderground))
 		{
-			HouseClass* pInvoker = nullptr ;
-			HouseClass* pVictim = nullptr;
+			bool createdAnim = false;
 
-			if (const TechnoClass* Target = flag_cast_to<TechnoClass*>(pThis->Target)) {
-				pVictim = Target->Owner;
-			}
+			int creationInterval = pWarheadExt->Splashed ?
+					pWarheadExt->SplashList_CreationInterval : pWarheadExt->AnimList_CreationInterval;
 
-			if (const auto pTech = pThis->Owner) {
-				pInvoker = pThis->Owner->GetOwningHouse();
+			int* remainingInterval = &pWarheadExt->RemainingAnimCreationInterval;
+			int scatterMin = pWarheadExt->Splashed ? pWarheadExt->SplashList_ScatterMin.Get() : pWarheadExt->AnimList_ScatterMin.Get();
+			int scatterMax = pWarheadExt->Splashed ? pWarheadExt->SplashList_ScatterMax.Get() : pWarheadExt->AnimList_ScatterMax.Get();
+			bool allowScatter = scatterMax != 0 || scatterMin != 0;
 
-			} else {
-				if (auto const pBulletExt = BulletExtContainer::Instance.Find(pThis))
-					pInvoker = pBulletExt->Owner;
-			}
+			if (creationInterval > 0 && pThis->Owner)
+					remainingInterval = &TechnoExtContainer::Instance.Find(pThis->Owner)->WHAnimRemainingCreationInterval;
 
-			auto types = make_iterator_single(AnimType);
+			if (creationInterval < 1 || *remainingInterval <= 0)
+			{
+				HouseClass* pInvoker = nullptr ;
+				HouseClass* pVictim = nullptr;
 
-			if (pWarheadExt->SplashList_CreateAll && pWarheadExt->Splashed)
-				types = pWarheadExt->SplashList.GetElements(RulesClass::Instance->SplashList);
-			else if (!pWarheadExt->Splashed){
-				bool createAll = pWarheadExt->AnimList_CreateAll;
-				if (pWarheadExt->CritActive && !pWarheadExt->Crit_AnimList.empty() && !pWarheadExt->Crit_AnimOnAffectedTargets) {
-					createAll = pWarheadExt->Crit_AnimList_CreateAll.Get(createAll);
-					if (createAll)
-						types = pWarheadExt->Crit_AnimList;
+				if (const TechnoClass* Target = flag_cast_to<TechnoClass*>(pThis->Target)) {
+					pVictim = Target->Owner;
 				}
-				else if (createAll) {
-						types = pWarheadExt->This()->AnimList;
+
+				if (const auto pTech = pThis->Owner) {
+					pInvoker = pThis->Owner->GetOwningHouse();
+
+				} else {
+					if (auto const pBulletExt = BulletExtContainer::Instance.Find(pThis))
+						pInvoker = pBulletExt->Owner;
 				}
-			}
 
-				for (auto pType : types)
-				{
-					if (!pType)
-						continue;
+				auto types = make_iterator_single(AnimType);
 
-						auto animCoords = *XYZ;
+				if (pWarheadExt->SplashList_CreateAll && pWarheadExt->Splashed)
+					types = pWarheadExt->SplashList.GetElements(RulesClass::Instance->SplashList);
+				else if (!pWarheadExt->Splashed){
+					bool createAll = pWarheadExt->AnimList_CreateAll;
+					if (pWarheadExt->CritActive && !pWarheadExt->Crit_AnimList.empty() && !pWarheadExt->Crit_AnimOnAffectedTargets) {
+						createAll = pWarheadExt->Crit_AnimList_CreateAll.Get(createAll);
+						if (createAll)
+							types = pWarheadExt->Crit_AnimList;
+					}
+					else if (createAll) {
+							types = pWarheadExt->This()->AnimList;
+					}
+				}
 
-						if (allowScatter) {
-							int distance = ScenarioClass::Instance->Random.RandomRanged(scatterMin, scatterMax);
-							animCoords = MapClass::GetRandomCoordsNear(animCoords, distance, false);
-						}
+					for (auto pType : types)
+					{
+						if (!pType)
+							continue;
 
-						{
-							auto const pAnim = GameCreate<AnimClass>(pType, animCoords, 0, 1, (AnimFlag)0x2600, -15, false);
-							createdAnim = true;
+							auto animCoords = newCrds;
 
-							if (const auto pTech = pThis->Owner) {
-								((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pTech;
+							if (allowScatter) {
+								int distance = ScenarioClass::Instance->Random.RandomRanged(scatterMin, scatterMax);
+								animCoords = MapClass::GetRandomCoordsNear(animCoords, distance, false);
 							}
 
-							if (pAnim->Type->MakeInfantry > -1)
 							{
-								AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, nullptr, true ,false);
-							}
-							else
-							{
-								AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
-							}
-						}
-				}
-		}else
-		{
-			(*remainingInterval)--;
-		}
+								auto const pAnim = GameCreate<AnimClass>(pType, animCoords, 0, 1, (AnimFlag)0x2600, -15, false);
+								createdAnim = true;
 
-		if (!createdAnim && pWarheadExt->IsNukeWarhead.Get()) {
-			int HouseIdx = pThis->Owner ? pThis->Owner->Owner->ArrayIndex : -1;
-			auto _loc = pThis->GetCoords();
-			auto _loc_result = CellClass::Coord2Cell(_loc);
-			MapClass::AtomDamage(HouseIdx, _loc_result);
+								if (const auto pTech = pThis->Owner) {
+									((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pTech;
+								}
+
+								if (pAnim->Type->MakeInfantry > -1)
+								{
+									AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, nullptr, true ,false);
+								}
+								else
+								{
+									AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pVictim, pInvoker);
+								}
+							}
+					}
+			}else
+			{
+				(*remainingInterval)--;
+			}
+
+			if (!createdAnim && pWarheadExt->IsNukeWarhead.Get()) {
+				int HouseIdx = pThis->Owner ? pThis->Owner->Owner->ArrayIndex : -1;
+				auto _loc = pThis->GetCoords();
+				auto _loc_result = CellClass::Coord2Cell(_loc);
+				MapClass::AtomDamage(HouseIdx, _loc_result);
+			}
 		}
 	}
 

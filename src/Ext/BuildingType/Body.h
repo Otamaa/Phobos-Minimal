@@ -255,6 +255,7 @@ public:
 	NullableIdx<VocClass> BuildingRepairedSound;
 	Valueable<bool> Refinery_UseNormalActiveAnim;
 	ValueableVector<bool> HasPowerUpAnim;
+	Valueable<bool> AggressiveModeExempt;
 #pragma endregion
 
 public:
@@ -388,7 +389,8 @@ public:
 		NewEvaVoice_InitialMessage(-1),
 		BattlePointsCollector(false),
 		BattlePointsCollector_RequirePower(false),
-		Refinery_UseNormalActiveAnim(false)
+		Refinery_UseNormalActiveAnim(false),
+		AggressiveModeExempt(false)
 	{
 		this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
 		this->PrismForwarding.Initialize(This());

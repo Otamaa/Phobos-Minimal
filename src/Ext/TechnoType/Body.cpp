@@ -1977,6 +1977,14 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->PenetratesTransport_PassThroughMultiplier.Read(exINI, pSection, "PenetratesTransport.PassThroughMultiplier");
 		this->PenetratesTransport_FatalRateMultiplier.Read(exINI, pSection, "PenetratesTransport.FatalRateMultiplier");
 		this->PenetratesTransport_DamageMultiplier.Read(exINI, pSection, "PenetratesTransport.DamageMultiplier");
+
+		this->PassiveAcquireMode.Read(exINI, pSection, "PassiveAcquireMode");
+		this->PassiveAcquireMode_Togglable.Read(exINI, pSection, "PassiveAcquireMode.Togglable");
+		this->VoiceEnterAggressiveMode.Read(exINI, pSection, "VoiceEnterAggressiveMode");
+		this->VoiceExitAggressiveMode.Read(exINI, pSection, "VoiceExitAggressiveMode");
+		this->VoiceEnterCeasefireMode.Read(exINI, pSection, "VoiceEnterCeasefireMode");
+		this->VoiceExitCeasefireMode.Read(exINI, pSection, "VoiceExitCeasefireMode");
+
 		this->CanBlock.Read(exINI, pSection, "CanBlock");
 
 		if (this->BlockType == nullptr)

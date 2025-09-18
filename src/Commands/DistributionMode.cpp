@@ -81,7 +81,9 @@ void DistributionMode::Draw(ObjectClass* const pTarget , const Action mouseActio
 
 			const auto range = (2 << mode1);
 			const auto pItems = Helpers::Alex::getCellSpreadItems(pTarget->Location, range);
-			std::map<TechnoClass*, int> record {};
+			static std::map<TechnoClass*, int> record {};
+			record.clear();
+
 			int current = 1;
 
 			for (const auto& pItem : pItems)

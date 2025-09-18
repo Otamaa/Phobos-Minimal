@@ -1217,3 +1217,24 @@ void FakeTeamClass::_Detach(AbstractClass* target, bool all)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, FakeTeamClass::_Detach)
+
+HRESULT __stdcall FakeTeamClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->TeamClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = TeamExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->TeamClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = TeamExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)

@@ -436,7 +436,7 @@ ColorStruct WeaponTypeExtData::GetBeamColor() const
 	return result.Get(RulesClass::Instance->RadColor);
 }
 
-#ifdef _Track
+#ifndef _Track
 template <typename T>
 void WeaponTypeExtData::Serialize(T& Stm)
 {
@@ -525,9 +525,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 #ifdef _Enable
 		.Process(this->WeaponBolt_Data)
 #endif
-		.Process(this->Bolt_Colors[0])
-		.Process(this->Bolt_Colors[1])
-		.Process(this->Bolt_Colors[2])
+		.Process(this->Bolt_Colors)
 		.Process(this->Bolt_ParticleSys)
 		.Process(this->Bolt_FollowFLH)
 		.Process(this->Laser_Thickness)

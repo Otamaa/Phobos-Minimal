@@ -365,12 +365,6 @@ ASMJIT_PATCH(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
 	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
 }
 
-ASMJIT_PATCH(0x7087EB, TechnoClass_ShouldRetaliate_KillDriver, 6)
-{
-	// prevent units with killed drivers from retaliating.
-	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x708B17u : 0u);
-}
 
 ASMJIT_PATCH(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
 {

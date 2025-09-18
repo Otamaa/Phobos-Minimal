@@ -919,6 +919,27 @@ ASMJIT_PATCH(0x41426F, AircraftClass_DTOR, 0x7)
 	return 0;
 }
 
+HRESULT __stdcall FakeAircraftClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->AircraftClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = AircraftExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeAircraftClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->AircraftClass::Save(pStm,clearDirty);
+	if (SUCCEEDED(hr))
+		hr = AircraftExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)
+
 void FakeAircraftClass::_Detach(AbstractClass* target, bool all)
 {
 	AircraftExtContainer::Instance.InvalidatePointerFor(this, target, all);

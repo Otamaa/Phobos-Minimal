@@ -846,6 +846,23 @@ namespace detail
 #pragma region Enumstuffs
 
 	template <>
+	inline bool read<PassiveAcquireMode>(PassiveAcquireMode& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (parser.ReadString(pSection, pKey)) {
+			for (const auto& [val, name] : EnumFunctions::PassiveAcquireMode_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), name.data())) {
+					value = val;
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a PassiveAcquireMode type");
+		}
+
+		return false;
+	}
+
+	template <>
 	inline bool read<LaserTrailDrawType>(LaserTrailDrawType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey))

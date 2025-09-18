@@ -11,16 +11,24 @@ public :
 
 	void Read(INI_EX& parser, const char* pSection);
 
-	template <typename T>
-	void Serialize(T& Stm)
+	bool Load(PhobosStreamReader& stm, bool registerForChange)
 	{
-		//Debug::LogInfo("Loading Element From AircraftPutDataRules ! ");
-		Stm
+		return this->Serialize(stm);
+	}
+
+	bool Save(PhobosStreamWriter& stm) const
+	{
+		return const_cast<AircraftPutDataRules*>(this)->Serialize(stm);
+	}
+
+private:
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
 			.Process(PosOffset)
 			.Process(RemoveIfNoDocks)
 			.Process(ForceOffset)
 			;
-
-		//Stm.RegisterChange(this);
 	}
 };

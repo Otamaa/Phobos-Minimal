@@ -308,10 +308,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = RulesClass::Instance->Load(stream);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<CellExtContainer>");
-	success = Process_Global_Load<CellExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("Process_Global_Load<MouseClassExt>");
 	success = Process_Global_Load<MouseClassExt>(stream);
 	if (!tracker.EndOperation(success)) return E_FAIL;
@@ -373,10 +369,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	success = Process_Global_Load<SelectBoxTypeClass>(stream);
 	if (!tracker.EndOperation(success)) return E_FAIL;
 
-	tracker.StartOperation("Process_Global_Load<AnimTypeExtContainer>");
-	success = Process_Global_Load<AnimTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(AnimTypeClass::Array)");
 	hr = LoadObjectVector(stream, *AnimTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -417,10 +409,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = LoadObjectVector(stream, *UnitTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<UnitExtContainer>");
-	success = Process_Global_Load<UnitExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(UnitClass::Array)");
 	hr = LoadObjectVector(stream, *UnitClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -432,10 +420,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	tracker.StartOperation("LoadObjectVector(InfantryTypeClass::Array)");
 	hr = LoadObjectVector(stream, *InfantryTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Load<InfantryExtContainer>");
-	success = Process_Global_Load<InfantryExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("LoadObjectVector(InfantryClass::Array)");
 	hr = LoadObjectVector(stream, *InfantryClass::Array);
@@ -449,10 +433,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = LoadObjectVector(stream, *BuildingTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<BuildingExtContainer>");
-	success = Process_Global_Load<BuildingExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(BuildingClass::Array)");
 	hr = LoadObjectVector(stream, *BuildingClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -464,10 +444,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	tracker.StartOperation("LoadObjectVector(AircraftTypeClass::Array)");
 	hr = LoadObjectVector(stream, *AircraftTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Load<AircraftExtContainer>");
-	success = Process_Global_Load<AircraftExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("LoadObjectVector(AircraftClass::Array)");
 	hr = LoadObjectVector(stream, *AircraftClass::Array);
@@ -488,10 +464,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	tracker.StartOperation("LoadObjectVector(TeamTypeClass::Array)");
 	hr = LoadObjectVector(stream, *TeamTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Load<TeamExtContainer>");
-	success = Process_Global_Load<TeamExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("LoadObjectVector(TeamClass::Array)");
 	hr = LoadObjectVector(stream, *TeamClass::Array);
@@ -553,10 +525,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = LoadObjectVector(stream, *VoxelAnimTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<VoxelAnimExtContainer>");
-	success = Process_Global_Load<VoxelAnimExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(VoxelAnimClass::Array)");
 	hr = LoadObjectVector(stream, *VoxelAnimClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -585,10 +553,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = LoadObjectVector(stream, *ParticleTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<ParticleExtContainer>");
-	success = Process_Global_Load<ParticleExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(ParticleClass::Array)");
 	hr = LoadObjectVector(stream, *ParticleClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -601,10 +565,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = LoadObjectVector(stream, *ParticleSystemTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<ParticleSystemExtContainer>");
-	success = Process_Global_Load<ParticleSystemExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(ParticleSystemClass::Array)");
 	hr = LoadObjectVector(stream, *ParticleSystemClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -616,10 +576,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	tracker.StartOperation("LoadObjectVector(BulletTypeClass::Array)");
 	hr = LoadObjectVector(stream, *BulletTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Load<BulletExtContainer>");
-	success = Process_Global_Load<BulletExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("LoadObjectVector(BulletClass::Array)");
 	hr = LoadObjectVector(stream, *BulletClass::Array);
@@ -665,10 +621,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = LoadObjectVector(stream, *SuperWeaponTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<SuperExtContainer>");
-	success = Process_Global_Load<SuperExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(SuperClass::Array)");
 	hr = LoadObjectVector(stream, *SuperClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -689,10 +641,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = LoadObjectVector(stream, *TerrainTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<TerrainExtContainer>");
-	success = Process_Global_Load<TerrainExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(TerrainClass::Array)");
 	hr = LoadObjectVector(stream, *TerrainClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -704,10 +652,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	tracker.StartOperation("LoadObjectVector(AlphaShapeClass::Array)");
 	hr = LoadObjectVector(stream, *AlphaShapeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Load<WaveExtContainer>");
-	success = Process_Global_Load<WaveExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("LoadObjectVector(WaveClass::Array)");
 	hr = LoadObjectVector(stream, *WaveClass::Array);
@@ -732,10 +676,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	tracker.StartOperation("LoadObjectVector(ParasiteClass::Array)");
 	hr = LoadObjectVector(stream, *ParasiteClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Load<TemporalExtContainer>");
-	success = Process_Global_Load<TemporalExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("LoadObjectVector(TemporalClass::Array)");
 	hr = LoadObjectVector(stream, *TemporalClass::Array);
@@ -768,17 +708,9 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	hr = BombListClass::Instance->Load(stream);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Load<BombExtContainer>");
-	success = Process_Global_Load<BombExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("LoadObjectVector(BombClass::Array)");
 	hr = LoadObjectVector(stream, *BombClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Load<RadSiteExtContainer>");
-	success = Process_Global_Load<RadSiteExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("LoadObjectVector(RadSiteClass::Array)");
 	hr = LoadObjectVector(stream, *RadSiteClass::Array);

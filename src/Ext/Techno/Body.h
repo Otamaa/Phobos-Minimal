@@ -728,6 +728,8 @@ private:
 			.Process(this->Strafe_TargetCell)
 			.Process(this->IsSelected)
 			.Process(this->SimpleDeployerAnimationTimer)
+			.Process(this->UndergroundTracked)
+			.Process(this->PassiveAquireMode)
 			;
 	}
 
@@ -919,6 +921,8 @@ public:
 	// the deploy animation timer calcs and eliminate possibility of outside interference.
 	CDTimerClass SimpleDeployerAnimationTimer;
 
+	bool UndergroundTracked;
+	PassiveAcquireMode PassiveAquireMode;
 #pragma endregion
 
 public:
@@ -1012,7 +1016,9 @@ public:
 		ForceFullRearmDelay(false),
 		AttackMoveFollowerTempCount(0),
 		Strafe_TargetCell(),
-		IsSelected(false)
+		IsSelected(false),
+		UndergroundTracked(false),
+		PassiveAquireMode(PassiveAcquireMode::Normal)
 	{
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
@@ -1101,6 +1107,11 @@ public:
 	void AddFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker);
 	bool ContainFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker) const;
 	int FindFirer(WeaponTypeClass* const Weapon) const;
+
+	void InitPassiveAcquireMode();
+	PassiveAcquireMode GetPassiveAcquireMode() const;
+	void TogglePassiveAcquireMode(PassiveAcquireMode mode);
+	bool CanTogglePassiveAcquireMode();
 
 public:
 

@@ -11,6 +11,31 @@
 #include <Misc/Spawner/ProtocolZero.h>
 #include <IPXManagerClass.h>
 
+EventExt::TogglePassiveAcquireMode::TogglePassiveAcquireMode(TechnoClass* pTechno, PassiveAcquireMode mode) : Who { pTechno } , Mode { mode }
+{ }
+
+void EventExt::TogglePassiveAcquireMode::Raise(TechnoClass* pTechno, PassiveAcquireMode mode)
+{
+	EventClass eventExt {};
+	eventExt.Type = AsEventType();
+	eventExt.HouseIndex = byte(pTechno->Owner->ArrayIndex);
+	EventExt::AddToEvent<true, true, TogglePassiveAcquireMode>(eventExt ,pTechno, mode);
+}
+
+void EventExt::TogglePassiveAcquireMode::Respond(EventClass* Event)
+{
+	TogglePassiveAcquireMode* ID = Event->Data.nothing.As<TogglePassiveAcquireMode>();
+
+	if (const auto pTechno = ID->Who.As_Techno()) {
+		if (pTechno->IsAlive && !pTechno->Berzerk) {
+			const auto pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
+
+			if (pTechnoExt->CanTogglePassiveAcquireMode())
+				pTechnoExt->TogglePassiveAcquireMode(ID->Mode);
+		}
+	}
+}
+
 EventExt::ManualReload::ManualReload(TechnoClass* pTechno) : Who { pTechno }
 { }
 

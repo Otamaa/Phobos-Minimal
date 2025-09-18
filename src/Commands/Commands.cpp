@@ -27,6 +27,8 @@
 #include "Harmless.h"
 #include "ForceWin.h"
 #include "ToggleMessageList.h"
+#include "CeasefireModeClass.h"
+#include "AggressiveModeClass.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -105,17 +107,19 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	}
 #pragma endregion Adminexclusive
 
-	Make<NextIdleHarvesterCommandClass>();
+	Make<AggressiveModeClass>();
+	Make<AutoBuildingCommandClass>();
+	Make<CeasefireModeClass>();
+	Make<DistributionMode1CommandClass>();
+	Make<DistributionMode2CommandClass>();
 	Make<QuickSaveCommandClass>();
 	Make<SaveVariablesToFileCommandClass>();
-	Make<AutoBuildingCommandClass>();
+	Make<TogglePowerCommandClass>();
 	Make<ToggleRadialIndicatorDrawModeClass>();
 	Make<ToggleDigitalDisplayCommandClass>();
 	Make<ToggleDesignatorRangeCommandClass>();
-	Make<DistributionMode1CommandClass>();
-	Make<DistributionMode2CommandClass>();
-	Make<TogglePowerCommandClass>();
 	Make<ToggleMessageListCommandClass>();
+	Make<NextIdleHarvesterCommandClass>();
 
 #pragma region SWSidebar
 	Make<ToggleSWSidebar>();
@@ -132,6 +136,7 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 		SWSidebarClass::Commands[9] = Make<FireTacticalSWCommandClass<10>>();
 	}
 #pragma endregion SWSidebar
+
 
 	return 0x0;
 }

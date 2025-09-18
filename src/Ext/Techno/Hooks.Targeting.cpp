@@ -92,3 +92,30 @@ ASMJIT_PATCH(0x6FA67D, TechnoClass_Update_DistributeTargetingFrame, 0xA)
 
 	return 0x6FA697;
 }
+
+#pragma region PassiveAcquireMode
+
+ASMJIT_PATCH(0x6F8E1F, TechnoClass_SelectAutoTarget_CeasefireMode, 0x6)
+{
+	GET(TechnoTypeClass*, pType, EAX);
+	GET(TechnoClass*, pThis, ESI);
+
+	if(TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+		return 0x6F8E38;
+
+	R->CL(pType->NoAutoFire || (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode()) == PassiveAcquireMode::Ceasefire);
+	return R->Origin() + 0x6;
+}
+
+ASMJIT_PATCH(0x7087DD, TechnoClass_CanRetaliateToAttacker_CeasefireMode, 0x6)
+{
+	GET(TechnoTypeClass*, pType, EAX);
+	GET(TechnoClass*, pThis, ESI);
+
+	if(TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled) return 0x73761Fu;
+
+	R->CL(pType->CanRetaliate && (TechnoExtContainer::Instance.Find(pThis)->GetPassiveAcquireMode() != PassiveAcquireMode::Ceasefire));
+	return R->Origin() + 0x6;
+}
+
+#pragma endregion

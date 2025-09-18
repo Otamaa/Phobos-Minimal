@@ -398,3 +398,23 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x71AF20, FakeTemporalClass::_Detonate);
 //	return 0x0;
 //}
 
+HRESULT __stdcall FakeTemporalClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->TemporalClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = TemporalExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeTemporalClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->TemporalClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = TemporalExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5194, FakeTemporalClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5198, FakeTemporalClass::_Save)

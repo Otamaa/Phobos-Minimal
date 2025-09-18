@@ -303,3 +303,24 @@ ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6) {
 }
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
+
+HRESULT __stdcall FakeCellClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->CellClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = CellExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->CellClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = CellExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)

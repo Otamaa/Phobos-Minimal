@@ -247,10 +247,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = RulesClass::Instance->Save(pStm);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Save<CellExtContainer>");
-	success = Process_Global_Save<CellExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("Process_Global_Save<MouseClassExt>");
 	success = Process_Global_Save<MouseClassExt>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
@@ -305,10 +301,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	success = Process_Global_Save<SelectBoxTypeClass>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
 
-	tracker.StartOperation("Process_Global_Save<AnimTypeExtContainer>");
-	success = Process_Global_Save<AnimTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(AnimTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *AnimTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -351,10 +343,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *UnitTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Save<UnitExtContainer>");
-	success = Process_Global_Save<UnitExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(UnitClass::Array)");
 	hr = SaveObjectVector(pStm, *UnitClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -367,10 +355,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	tracker.StartOperation("SaveObjectVector(InfantryTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *InfantryTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Save<InfantryExtContainer>");
-	success = Process_Global_Save<InfantryExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("SaveObjectVector(InfantryClass::Array)");
 	hr = SaveObjectVector(pStm, *InfantryClass::Array);
@@ -385,10 +369,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *BuildingTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Save<BuildingExtContainer>");
-	success = Process_Global_Save<BuildingExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(BuildingClass::Array)");
 	hr = SaveObjectVector(pStm, *BuildingClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -402,16 +382,11 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *AircraftTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Save<AircraftExtContainer>");
-	success = Process_Global_Save<AircraftExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(AircraftClass::Array)");
 	hr = SaveObjectVector(pStm, *AircraftClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	// Animation system
-	tracker.StartOperation("Process_Global_Save<AnimExtContainer>");
+	tracker.StartOperation("Process_Global_Load<AnimExtContainer>");
 	success = Process_Global_Save<AnimExtContainer>(pStm);
 	if (!tracker.EndOperation(success)) return E_FAIL;
 
@@ -427,10 +402,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	tracker.StartOperation("SaveObjectVector(TeamTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *TeamTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Save<TeamExtContainer>");
-	success = Process_Global_Save<TeamExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("SaveObjectVector(TeamClass::Array)");
 	hr = SaveObjectVector(pStm, *TeamClass::Array);
@@ -495,10 +466,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *VoxelAnimTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Save<VoxelAnimExtContainer>");
-	success = Process_Global_Save<VoxelAnimExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(VoxelAnimClass::Array)");
 	hr = SaveObjectVector(pStm, *VoxelAnimClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -529,10 +496,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *ParticleTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Save<ParticleExtContainer>");
-	success = Process_Global_Save<ParticleExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(ParticleClass::Array)");
 	hr = SaveObjectVector(pStm, *ParticleClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -544,10 +507,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	tracker.StartOperation("SaveObjectVector(ParticleSystemTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *ParticleSystemTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Save<ParticleSystemExtContainer>");
-	success = Process_Global_Save<ParticleSystemExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("SaveObjectVector(ParticleSystemClass::Array)");
 	hr = SaveObjectVector(pStm, *ParticleSystemClass::Array);
@@ -561,10 +520,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	tracker.StartOperation("SaveObjectVector(BulletTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *BulletTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Save<BulletExtContainer>");
-	success = Process_Global_Save<BulletExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("SaveObjectVector(BulletClass::Array)");
 	hr = SaveObjectVector(pStm, *BulletClass::Array);
@@ -616,10 +571,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *SuperWeaponTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Save<SuperExtContainer>");
-	success = Process_Global_Save<SuperExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(SuperClass::Array)");
 	hr = SaveObjectVector(pStm, *SuperClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -642,10 +593,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = SaveObjectVector(pStm, *TerrainTypeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	tracker.StartOperation("Process_Global_Save<TerrainExtContainer>");
-	success = Process_Global_Save<TerrainExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(TerrainClass::Array)");
 	hr = SaveObjectVector(pStm, *TerrainClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
@@ -658,11 +605,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	tracker.StartOperation("SaveObjectVector(AlphaShapeClass::Array)");
 	hr = SaveObjectVector(pStm, *AlphaShapeClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	// Wave system
-	tracker.StartOperation("Process_Global_Save<WaveExtContainer>");
-	success = Process_Global_Save<WaveExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("SaveObjectVector(WaveClass::Array)");
 	hr = SaveObjectVector(pStm, *WaveClass::Array);
@@ -689,10 +631,6 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	tracker.StartOperation("SaveObjectVector(ParasiteClass::Array)");
 	hr = SaveObjectVector(pStm, *ParasiteClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Save<TemporalExtContainer>");
-	success = Process_Global_Save<TemporalExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("SaveObjectVector(TemporalClass::Array)");
 	hr = SaveObjectVector(pStm, *TemporalClass::Array);
@@ -724,19 +662,9 @@ HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& trac
 	hr = BombListClass::Instance->Save(pStm);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
 
-	// Bomb system
-	tracker.StartOperation("Process_Global_Save<BombExtContainer>");
-	success = Process_Global_Save<BombExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
 	tracker.StartOperation("SaveObjectVector(BombClass::Array)");
 	hr = SaveObjectVector(pStm, *BombClass::Array);
 	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	// Radiation system
-	tracker.StartOperation("Process_Global_Save<RadSiteExtContainer>");
-	success = Process_Global_Save<RadSiteExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
 
 	tracker.StartOperation("SaveObjectVector(RadSiteClass::Array)");
 	hr = SaveObjectVector(pStm, *RadSiteClass::Array);

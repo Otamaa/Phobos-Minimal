@@ -315,6 +315,7 @@ void ScenarioExtData::Serialize(T& Stm)
 
 		.Process(this->MasterDetonationBullet)
 		.Process(this->LimboLaunchers)
+		.Process(this->UndergroundTracker)
 		;
 
 

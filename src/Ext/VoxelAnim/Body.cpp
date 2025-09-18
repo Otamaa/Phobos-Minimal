@@ -128,3 +128,24 @@ void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7F6340 , FakeVoxelAnimClass::_Detach)
+
+HRESULT __stdcall FakeVoxelAnimClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->VoxelAnimClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = VoxelAnimExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeVoxelAnimClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->VoxelAnimClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = VoxelAnimExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)

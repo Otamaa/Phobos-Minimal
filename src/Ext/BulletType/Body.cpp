@@ -137,6 +137,7 @@ bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Shrapnel_UseWeaponTargeting.Read(exINI, pSection, "Shrapnel.UseWeaponTargeting");
 		this->Vertical_AircraftFix.Read(exINI, pSection, "Vertical.AircraftFix");
 		this->VerticalInitialFacing.Read(exINI, pSection, "VerticalInitialFacing");
+		this->AU.Read(exINI, pSection, "AU");
 
 		// Code Disabled , #816 , Bullet/Hooks.obstacles.cpp
 		this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
@@ -318,7 +319,11 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->Vertical_AircraftFix)
 		.Process(this->VerticalInitialFacing)
 
-		.Process(this->Trails);
+		.Process(this->AU)
+
+		.Process(this->Trails)
+
+		;
 
 	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
 }

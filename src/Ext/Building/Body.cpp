@@ -1740,3 +1740,24 @@ void FakeBuildingClass::_DetachAnim(AnimClass* pAnim)
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F1C, FakeBuildingClass::_DetachAnim)
+
+HRESULT __stdcall FakeBuildingClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->BuildingClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = BuildingExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeBuildingClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->BuildingClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = BuildingExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)

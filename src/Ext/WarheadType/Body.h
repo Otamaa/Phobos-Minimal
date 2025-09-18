@@ -473,6 +473,10 @@ public:
 	Valueable<double> Block_ExtraChance;
 	Valueable<bool> ImmuneToBlock;
 
+	Valueable<bool> AffectsUnderground;
+	Valueable<bool> PlayAnimUnderground;
+	Valueable<bool> PlayAnimAboveSurface;
+
 	bool IsCellSpreadWH;
 	bool IsFakeEngineer;
 #pragma endregion
@@ -716,6 +720,9 @@ public:
 		Block_ChanceMultiplier(1.0),
 		Block_ExtraChance(0.0),
 		ImmuneToBlock(false),
+		AffectsUnderground(false),
+		PlayAnimUnderground(true),
+		PlayAnimAboveSurface(false),
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false)
 	{

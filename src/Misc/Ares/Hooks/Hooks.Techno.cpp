@@ -1168,6 +1168,8 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 
 		TechnoExtData::InitializeUnitIdleAction(pThis, pType);
 
+		pExt->InitPassiveAcquireMode();
+
 		R->EAX(pType);
 		return 0x6F4212;
 	}
@@ -1308,15 +1310,15 @@ ASMJIT_PATCH(0x71136F, TechnoTypeClass_CTOR_Initialize, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x7119D5, TechnoTypeClass_CTOR_NoInit_Particles, 0x6)
-{
-	GET(TechnoTypeClass*, pThis, ESI)
+// ASMJIT_PATCH(0x7119D5, TechnoTypeClass_CTOR_NoInit_Particles, 0x6)
+// {
+// 	GET(TechnoTypeClass*, pThis, ESI)
 
-	(*(uintptr_t*)((char*)pThis + offsetof(TechnoTypeClass, DamageParticleSystems))) = ParticleSystemTypeClass::TypeListArray.getAddrs();
-	(*(uintptr_t*)((char*)pThis + offsetof(TechnoTypeClass, DestroyParticleSystems))) = ParticleSystemTypeClass::TypeListArray.getAddrs();
+// 	(*(uintptr_t*)((char*)pThis + offsetof(TechnoTypeClass, DamageParticleSystems))) = ParticleSystemTypeClass::TypeListArray.getAddrs();
+// 	(*(uintptr_t*)((char*)pThis + offsetof(TechnoTypeClass, DestroyParticleSystems))) = ParticleSystemTypeClass::TypeListArray.getAddrs();
 
-	return 0x711A00;
-}
+// 	return 0x711A00;
+// }
 
 //TechnoClass_GetActionOnObject_IvanBombsB
 DEFINE_JUMP(LJMP, 0x6FFF9E, 0x700006);

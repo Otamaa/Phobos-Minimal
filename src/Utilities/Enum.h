@@ -34,6 +34,13 @@
 
 #include <GeneralDefinitions.h>
 
+enum class PassiveAcquireMode : BYTE
+{
+	Normal = 0,
+	Aggressive = 1,
+	Ceasefire = 2,
+};
+
 enum class DisplayShowType : unsigned char
 {
 	None = 0x0,

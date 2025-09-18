@@ -280,3 +280,24 @@ HouseClass* FakeRadSiteClass::_GetOwningHouse()
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F084C, FakeRadSiteClass::_GetOwningHouse);
+
+HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->RadSiteClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = RadSiteExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->RadSiteClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = RadSiteExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)

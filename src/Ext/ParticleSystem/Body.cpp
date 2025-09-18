@@ -1330,3 +1330,24 @@ ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 	ParticleSystemExtContainer::Instance.Remove(pItem);
 	return 0;
 }
+
+HRESULT __stdcall FakeParticleSystemClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->ParticleSystemClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = ParticleSystemExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeParticleSystemClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->ParticleSystemClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = ParticleSystemExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB0, FakeParticleSystemClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB4, FakeParticleSystemClass::_Save)

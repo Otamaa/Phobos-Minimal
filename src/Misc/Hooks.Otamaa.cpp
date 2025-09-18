@@ -7622,13 +7622,21 @@ DWORD LastKnown;
 	 return 0x0;
  }
 
- //this bullshit
- ASMJIT_PATCH(0x4101E4, AbstractClass_NoInt_cleaupPtr, 0x7)
+ //more specific
+ ASMJIT_PATCH(0x41096D, AbstractTypeClass_NoInt_cleaupPtr,0x6)
  {
-	 GET(AbstractClass*, pThis, EAX);
-	 pThis->unknown_18 = std::exchange(LastKnown, 0u);
-	 return 0x0;
+	  GET(AbstractClass*, pThis, EAX);
+	  pThis->unknown_18 = std::exchange(LastKnown, 0u);
+	  return 0x0;
  }
+
+ //this bullshit
+ //ASMJIT_PATCH(0x4101E4, AbstractClass_NoInt_cleaupPtr, 0x7)
+ //{
+	// GET(AbstractClass*, pThis, EAX);
+	// pThis->unknown_18 = std::exchange(LastKnown, 0u);
+	// return 0x0;
+ //}
 
  //ASMJIT_PATCH(0x521960, InfantryClass_Load_test, 0x5)
  // {
@@ -7636,16 +7644,16 @@ DWORD LastKnown;
 	// return 0x0;
  //}
 
- ASMJIT_PATCH(0x410182 , AbstractClass_NoInt_cleaupPtr_B , 0x6){
-	 GET(AbstractClass*, pThis, EAX);
+ //ASMJIT_PATCH(0x410182 , AbstractClass_NoInt_cleaupPtr_B , 0x6){
+	// GET(AbstractClass*, pThis, EAX);
 
-	 //set the last known value if it on load mode , because some stuffs using different abstract constructor , duh
-	 if(LastKnown && Phobos::Otamaa::DoingLoadGame)
-		pThis->unknown_18 = std::exchange(LastKnown, 0u);
+	// //set the last known value if it on load mode , because some stuffs using different abstract constructor , duh
+	// if(LastKnown && Phobos::Otamaa::DoingLoadGame)
+	//	pThis->unknown_18 = std::exchange(LastKnown, 0u);
 
-	 pThis->RefCount = 0l;
-	 return 0x410188;
- }
+	// pThis->RefCount = 0l;
+	// return 0x410188;
+ //}
 
  //ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
  //{

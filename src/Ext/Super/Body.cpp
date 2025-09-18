@@ -198,3 +198,24 @@ ASMJIT_PATCH(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 //	pThis->SuperClass::PointerExpired(target , all);
 //}
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))
+
+HRESULT __stdcall FakeSuperClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->SuperClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = SuperExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->SuperClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = SuperExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)
