@@ -594,144 +594,164 @@ private:
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		Stm
-			.Process(this->Type, true)
-			.Process(this->AbsType)
-			.Process(this->AE)
-			.Process(this->idxSlot_EMPulse)
-			.Process(this->idxSlot_Wave)
-			.Process(this->idxSlot_Beam)
-			.Process(this->idxSlot_Warp)
-			.Process(this->idxSlot_Parasite)
-			.Process(this->GarrisonedIn, true)
-			.Process(this->EMPSparkleAnim)
-			.Process(this->EMPLastMission)
-			.Process(this->PoweredUnit)
-			.Process(this->RadarJammer)
-			.Process(this->BuildingLight)
-			.Process(this->OriginalHouseType, true)
-			.Process(this->CloakSkipTimer)
-			.Process(this->HijackerHealth)
-			.Process(this->HijackerOwner, true)
-			.Process(this->HijackerVeterancy)
-			.Process(this->Is_SurvivorsDone)
-			.Process(this->Is_DriverKilled)
-			.Process(this->Is_Operated)
-			.Process(this->Is_UnitLostMuted)
-			.Process(this->TakeVehicleMode)
-			.Process(this->TechnoValueAmount)
-			.Process(this->Pos)
-			.Process(this->Shield)
-			.Process(this->LaserTrails)
-			.Process(this->ReceiveDamage)
-			.Process(this->LastKillWasTeamTarget)
-			.Process(this->PassengerDeletionTimer)
-			.Process(this->CurrentShieldType)
-			.Process(this->LastWarpDistance)
-			.Process(this->Death_Countdown)
-			.Process(this->MindControlRingAnimType)
-			.Process(this->DamageNumberOffset)
-			.Process(this->CurrentLaserWeaponIndex)
-			.Process(this->OriginalPassengerOwner, true)
-			.Process(this->IsInTunnel)
-			.Process(this->IsBurrowed)
-			.Process(this->DeployFireTimer)
-			.Process(this->DisableWeaponTimer)
-			.Process(this->RevengeWeapons)
-			.Process(this->GattlingDmageDelay)
-			.Process(this->GattlingDmageSound)
-			.Process(this->AircraftOpentoppedInitEd)
-			.Process(this->EngineerCaptureDelay)
-			.Process(this->FlhChanged)
-			.Process(this->ReceiveDamageMultiplier)
-			.Process(this->SkipLowDamageCheck)
-			.Process(this->aircraftPutOffsetFlag)
-			.Process(this->aircraftPutOffset)
-			.Process(this->SkipVoice)
-			.Process(this->ExtraWeaponTimers)
-			.Process(this->Trails)
-			.Process(this->MyGiftBox)
-			.Process(this->PaintBallStates, true)
-			.Process(this->DamageSelfState)
-			.Process(this->CurrentWeaponIdx)
-			.Process(this->MyFighterData)
-			.Process(this->WarpedOutDelay)
-			.Process(this->AltOccupation)
-			.Process(this->MyOriginalTemporal, true)
-			.Process(this->SupressEVALost)
-			.Process(this->SelfHealing_CombatDelay)
-			.Process(this->PayloadCreated)
-			.Process(this->PayloadTriggered)
-			.Process(this->LinkedSW, true)
-			.Process(this->SuperTarget)
-			.Process(this->HijackerLastDisguiseType, true)
-			.Process(this->HijackerLastDisguiseHouse, true)
-			.Process(this->Convert_Deploy_Delay)
-			.Process(this->WHAnimRemainingCreationInterval)
-			.Process(this->IsWebbed)
-			.Process(this->WebbedAnim, true)
-			.Process(this->WebbyLastTarget, true)
-			.Process(this->WebbyLastMission)
-			.Process(this->FreeUnitDone)
-			.Process(this->AeData)
-			.Process(this->Strafe_BombsDroppedThisRound)
-			.Process(this->MergePreventionTimer)
-			.Process(this->TiberiumStorage)
-			.Process(this->MyWeaponManager)
-			.Process(this->MyDriveData)
-			.Process(this->MyDiveData)
-			.Process(this->MySpawnSuport)
-			.Process(this->PhobosAE)
-			.Process(this->ShootCount)
-			.Process(this->FiringObstacleCell)
-			.Process(this->AdditionalRange)
-			.Process(this->IsDetachingForCloak)
-			.Process(this->CurrentAircraftWeaponIndex)
-			.Process(this->HasRemainingWarpInDelay)
-			.Process(this->LastWarpInDelay)
-			.Process(this->UnitAutoDeployTimer)
-			.Process(this->SubterraneanHarvRallyPoint, true)
-			.Process(this->IsBeingChronoSphered)
-			.Process(this->TiberiumEaterTimer)
-			.Process(this->LastDamageWH)
-			.Process(this->UnitIdleAction)
-			.Process(this->UnitIdleActionSelected)
-			.Process(this->UnitIdleIsSelected)
-			.Process(this->UnitIdleActionTimer)
-			.Process(this->UnitIdleActionGapTimer)
-			.Process(this->MyTargetingFrame)
-			.Process(this->ChargeTurretTimer)
-			.Process(this->LastRearmWasFullDelay)
-			.Process(this->DropCrate)
-			.Process(this->DropCrateType)
-			.Process(this->LastBeLockedFrame)
-			.Process(this->BeControlledThreatFrame)
-			.Process(this->LastTargetID)
-			.Process(this->LastHurtFrame)
-			.Process(this->AttachedEffectInvokerCount)
-			.Process(this->AccumulatedGattlingValue)
-			.Process(this->ShouldUpdateGattlingValue)
-			.Process(this->KeepTargetOnMove)
-			.Process(this->LastSensorsMapCoords)
-			.Process(this->DelayedFireSequencePaused)
-			.Process(this->DelayedFireTimer)
-			.Process(this->DelayedFireWeaponIndex)
-			.Process(this->CurrentDelayedFireAnim)
-			.Process(this->CustomFiringOffset)
-			.Process(this->LastWeaponType)
-			.Process(this->AirstrikeTargetingMe)
-			.Process(this->RandomEMPTarget)
-			.Process(this->FiringAnimationTimer)
-			.Process(this->ForceFullRearmDelay)
-			.Process(this->AttackMoveFollowerTempCount)
-			.Process(this->OnlyAttackData)
-			.Process(this->Strafe_TargetCell)
-			.Process(this->IsSelected)
-			.Process(this->SimpleDeployerAnimationTimer)
-			.Process(this->UndergroundTracked)
-			.Process(this->PassiveAquireMode)
-			;
+		auto debugProcess = [&Stm](auto& field, const char* fieldName)-> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				size_t afterSize = Stm.Getstream()->Size();
+				GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+					fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				size_t beforeOffset = Stm.Getstream()->Offset();
+				bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				size_t afterOffset = Stm.Getstream()->Offset();
+				bool afterSuccess = Stm.Success();
+
+				GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				if (!afterSuccess && beforeSuccess)
+				{
+					GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
+				}
+				return result;
+			}
+		};
+
+		debugProcess(this->Type, "Type");
+		debugProcess(this->AbsType, "AbsType");
+		debugProcess(this->AE, "AE");
+		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
+		debugProcess(this->idxSlot_Wave, "idxSlot_Wave");
+		debugProcess(this->idxSlot_Beam, "idxSlot_Beam");
+		debugProcess(this->idxSlot_Warp, "idxSlot_Warp");
+		debugProcess(this->idxSlot_Parasite, "idxSlot_Parasite");
+		debugProcess(this->EMPSparkleAnim, "EMPSparkleAnim");
+		debugProcess(this->EMPLastMission, "EMPLastMission");
+		debugProcess(this->PoweredUnit, "PoweredUnit");
+		debugProcess(this->RadarJammer, "RadarJammer");
+		debugProcess(this->BuildingLight, "BuildingLight");
+		debugProcess(this->OriginalHouseType, "OriginalHouseType");
+		debugProcess(this->CloakSkipTimer, "CloakSkipTimer");
+		debugProcess(this->HijackerHealth, "HijackerHealth");
+		debugProcess(this->HijackerOwner, "HijackerOwner");
+		debugProcess(this->HijackerVeterancy, "HijackerVeterancy");
+		debugProcess(this->Is_SurvivorsDone, "Is_SurvivorsDone");
+		debugProcess(this->Is_DriverKilled, "Is_DriverKilled");
+		debugProcess(this->Is_Operated, "Is_Operated");
+		debugProcess(this->Is_UnitLostMuted, "Is_UnitLostMuted");
+		debugProcess(this->TakeVehicleMode, "TakeVehicleMode");
+		debugProcess(this->TechnoValueAmount, "TechnoValueAmount");
+		debugProcess(this->Pos, "Pos");
+		debugProcess(this->Shield, "Shield");
+		debugProcess(this->LaserTrails, "LaserTrails");
+		debugProcess(this->ReceiveDamage, "ReceiveDamage");
+		debugProcess(this->LastKillWasTeamTarget, "LastKillWasTeamTarget");
+		debugProcess(this->PassengerDeletionTimer, "PassengerDeletionTimer");
+		debugProcess(this->CurrentShieldType, "CurrentShieldType");
+		debugProcess(this->LastWarpDistance, "LastWarpDistance");
+		debugProcess(this->Death_Countdown, "Death_Countdown");
+		debugProcess(this->MindControlRingAnimType, "MindControlRingAnimType");
+		debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
+		debugProcess(this->CurrentLaserWeaponIndex, "CurrentLaserWeaponIndex");
+		debugProcess(this->OriginalPassengerOwner, "OriginalPassengerOwner");
+		debugProcess(this->IsInTunnel, "IsInTunnel");
+		debugProcess(this->IsBurrowed, "IsBurrowed");
+		debugProcess(this->DeployFireTimer, "DeployFireTimer");
+		debugProcess(this->DisableWeaponTimer, "DisableWeaponTimer");
+		debugProcess(this->RevengeWeapons, "RevengeWeapons");
+		debugProcess(this->GattlingDmageDelay, "GattlingDmageDelay");
+		debugProcess(this->GattlingDmageSound, "GattlingDmageSound");
+		debugProcess(this->AircraftOpentoppedInitEd, "AircraftOpentoppedInitEd");
+		debugProcess(this->EngineerCaptureDelay, "EngineerCaptureDelay");
+		debugProcess(this->FlhChanged, "FlhChanged");
+		debugProcess(this->ReceiveDamageMultiplier, "ReceiveDamageMultiplier");
+		debugProcess(this->SkipLowDamageCheck, "SkipLowDamageCheck");
+		debugProcess(this->aircraftPutOffsetFlag, "aircraftPutOffsetFlag");
+		debugProcess(this->aircraftPutOffset, "aircraftPutOffset");
+		debugProcess(this->SkipVoice, "SkipVoice");
+		debugProcess(this->ExtraWeaponTimers, "ExtraWeaponTimers");
+		debugProcess(this->Trails, "Trails");
+		debugProcess(this->MyGiftBox, "MyGiftBox");
+		debugProcess(this->PaintBallStates, "PaintBallStates");
+		debugProcess(this->DamageSelfState, "DamageSelfState");
+		debugProcess(this->CurrentWeaponIdx, "CurrentWeaponIdx");
+		debugProcess(this->WarpedOutDelay, "WarpedOutDelay");
+
+		debugProcess(this->MyOriginalTemporal, "MyOriginalTemporal");
+		debugProcess(this->SupressEVALost, "SupressEVALost");
+		debugProcess(this->SelfHealing_CombatDelay, "SelfHealing_CombatDelay");
+		debugProcess(this->PayloadCreated, "PayloadCreated");
+		debugProcess(this->PayloadTriggered, "PayloadTriggered");
+		debugProcess(this->LinkedSW, "LinkedSW");
+		debugProcess(this->SuperTarget, "SuperTarget");
+		debugProcess(this->HijackerLastDisguiseType, "HijackerLastDisguiseType");
+		debugProcess(this->HijackerLastDisguiseHouse, "HijackerLastDisguiseHouse");
+		debugProcess(this->WHAnimRemainingCreationInterval, "WHAnimRemainingCreationInterval");
+		debugProcess(this->IsWebbed, "IsWebbed");
+		debugProcess(this->WebbedAnim, "WebbedAnim");
+		debugProcess(this->WebbyLastTarget, "WebbyLastTarget");
+		debugProcess(this->WebbyLastMission, "WebbyLastMission");
+		debugProcess(this->AeData, "AeData");
+		debugProcess(this->MergePreventionTimer, "MergePreventionTimer");
+		debugProcess(this->TiberiumStorage, "TiberiumStorage");
+		debugProcess(this->MyWeaponManager, "MyWeaponManager");
+		debugProcess(this->MyDriveData, "MyDriveData");
+		debugProcess(this->MyDiveData, "MyDiveData");
+		debugProcess(this->MySpawnSuport, "MySpawnSuport");
+		debugProcess(this->PhobosAE, "PhobosAE");
+		debugProcess(this->FiringObstacleCell, "FiringObstacleCell");
+		debugProcess(this->AdditionalRange, "AdditionalRange");
+		debugProcess(this->IsDetachingForCloak, "IsDetachingForCloak");
+		debugProcess(this->HasRemainingWarpInDelay, "HasRemainingWarpInDelay");
+		debugProcess(this->LastWarpInDelay, "LastWarpInDelay");
+		debugProcess(this->SubterraneanHarvRallyPoint, "SubterraneanHarvRallyPoint");
+		debugProcess(this->IsBeingChronoSphered, "IsBeingChronoSphered");
+		debugProcess(this->TiberiumEaterTimer, "TiberiumEaterTimer");
+		debugProcess(this->LastDamageWH, "LastDamageWH");
+		debugProcess(this->MyTargetingFrame, "MyTargetingFrame");
+		debugProcess(this->ChargeTurretTimer, "ChargeTurretTimer");
+		debugProcess(this->LastRearmWasFullDelay, "LastRearmWasFullDelay");
+		debugProcess(this->DropCrate, "DropCrate");
+		debugProcess(this->DropCrateType, "DropCrateType");
+		debugProcess(this->LastBeLockedFrame, "LastBeLockedFrame");
+		debugProcess(this->BeControlledThreatFrame, "BeControlledThreatFrame");
+		debugProcess(this->LastTargetID, "LastTargetID");
+		debugProcess(this->LastHurtFrame, "LastHurtFrame");
+		debugProcess(this->AttachedEffectInvokerCount, "AttachedEffectInvokerCount");
+		debugProcess(this->AccumulatedGattlingValue, "AccumulatedGattlingValue");
+		debugProcess(this->ShouldUpdateGattlingValue, "ShouldUpdateGattlingValue");
+		debugProcess(this->KeepTargetOnMove, "KeepTargetOnMove");
+		debugProcess(this->LastSensorsMapCoords, "LastSensorsMapCoords");
+		debugProcess(this->DelayedFireSequencePaused, "DelayedFireSequencePaused");
+		debugProcess(this->DelayedFireTimer, "DelayedFireTimer");
+		debugProcess(this->DelayedFireWeaponIndex, "DelayedFireWeaponIndex");
+		debugProcess(this->CurrentDelayedFireAnim, "CurrentDelayedFireAnim");
+		debugProcess(this->CustomFiringOffset, "CustomFiringOffset");
+		debugProcess(this->LastWeaponType, "LastWeaponType");
+		debugProcess(this->AirstrikeTargetingMe, "AirstrikeTargetingMe");
+		debugProcess(this->RandomEMPTarget, "RandomEMPTarget");
+		debugProcess(this->FiringAnimationTimer, "FiringAnimationTimer");
+		debugProcess(this->ForceFullRearmDelay, "ForceFullRearmDelay");
+		debugProcess(this->AttackMoveFollowerTempCount, "AttackMoveFollowerTempCount");
+		debugProcess(this->OnlyAttackData, "OnlyAttackData");
+		debugProcess(this->IsSelected, "IsSelected");
+		debugProcess(this->UndergroundTracked, "UndergroundTracked");
+		debugProcess(this->PassiveAquireMode, "PassiveAquireMode");
+		debugProcess(this->UnitIdleAction, "UnitIdleAction");
+		debugProcess(this->UnitIdleActionSelected, "UnitIdleActionSelected");
+		debugProcess(this->UnitIdleIsSelected, "UnitIdleIsSelected");
+		debugProcess(this->UnitIdleActionTimer, "UnitIdleActionTimer");
+		debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
 	}
+
 
 
 public:
@@ -747,7 +767,7 @@ public:
 	BYTE idxSlot_Beam; //6
 	BYTE idxSlot_Warp; //7
 	BYTE idxSlot_Parasite; //8
-	BuildingClass* GarrisonedIn; //C
+
 	Handle<AnimClass*, UninitAnim> EMPSparkleAnim;
 	Mission EMPLastMission; //
 
@@ -820,11 +840,8 @@ public:
 
 	SpawnSupport MySpawnSuport;
 
-	std::unique_ptr<FighterAreaGuard> MyFighterData;
-
 	CDTimerClass WarpedOutDelay;
 
-	OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
 	TemporalClass* MyOriginalTemporal;
 
 	bool SupressEVALost;
@@ -837,8 +854,6 @@ public:
 	InfantryTypeClass* HijackerLastDisguiseType;
 	HouseClass* HijackerLastDisguiseHouse;
 
-	CDTimerClass Convert_Deploy_Delay;
-
 	int WHAnimRemainingCreationInterval;
 
 	//====
@@ -847,18 +862,13 @@ public:
 	AbstractClass* WebbyLastTarget;
 	Mission WebbyLastMission;
 
-	bool FreeUnitDone;
 	AresAEData AeData;
 
-	int Strafe_BombsDroppedThisRound;
 	CDTimerClass MergePreventionTimer;
 
 	NewTiberiumStorageClass TiberiumStorage;
 
 	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
-
-	int ShootCount;
-	int CurrentAircraftWeaponIndex;
 
 	CellClass* FiringObstacleCell; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
 	OptionalStruct<int, true> AdditionalRange;
@@ -868,17 +878,10 @@ public:
 	int LastWarpInDelay;          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay
 	bool IsBeingChronoSphered; // Set to true on units currently being ChronoSphered, does not apply to Ares-ChronoSphere'd buildings or Chrono reinforcements.
 
-	CDTimerClass UnitAutoDeployTimer;
 	CellClass* SubterraneanHarvRallyPoint;
 
 	CDTimerClass TiberiumEaterTimer;
 	WarheadTypeClass* LastDamageWH;
-
-	bool UnitIdleAction;
-	bool UnitIdleActionSelected;
-	bool UnitIdleIsSelected;
-	CDTimerClass UnitIdleActionTimer;
-	CDTimerClass UnitIdleActionGapTimer;
 
 	int MyTargetingFrame;
 
@@ -915,14 +918,17 @@ public:
 	bool ForceFullRearmDelay;
 	int AttackMoveFollowerTempCount;
 	HelperedVector<OnlyAttackStruct> OnlyAttackData;
-	CellClass* Strafe_TargetCell;
 	bool IsSelected;
-	// Replaces use of TechnoClass->Animation StageClass timer for IsSimpleDeployer to simplify
-	// the deploy animation timer calcs and eliminate possibility of outside interference.
-	CDTimerClass SimpleDeployerAnimationTimer;
 
 	bool UndergroundTracked;
 	PassiveAcquireMode PassiveAquireMode;
+
+	bool UnitIdleAction;
+	bool UnitIdleActionSelected;
+	bool UnitIdleIsSelected;
+	CDTimerClass UnitIdleActionTimer;
+	CDTimerClass UnitIdleActionGapTimer;
+
 #pragma endregion
 
 public:
@@ -934,7 +940,6 @@ public:
 		idxSlot_Beam(0),
 		idxSlot_Warp(0),
 		idxSlot_Parasite(0),
-		GarrisonedIn(nullptr),
 		EMPSparkleAnim(nullptr),
 		EMPLastMission(Mission(0)),
 		PoweredUnit(nullptr),
@@ -982,10 +987,7 @@ public:
 		WebbedAnim(nullptr),
 		WebbyLastTarget(nullptr),
 		WebbyLastMission(Mission::Sleep),
-		FreeUnitDone(false),
-		Strafe_BombsDroppedThisRound(0),
-		ShootCount(0),
-		CurrentAircraftWeaponIndex(0),
+
 		FiringObstacleCell(nullptr),
 		IsDetachingForCloak(false),
 		HasRemainingWarpInDelay(false),
@@ -993,9 +995,6 @@ public:
 		IsBeingChronoSphered(false),
 		SubterraneanHarvRallyPoint(nullptr),
 		LastDamageWH(nullptr),
-		UnitIdleAction(false),
-		UnitIdleActionSelected(false),
-		UnitIdleIsSelected(false),
 		LastRearmWasFullDelay(false),
 		DropCrate(-1),
 		DropCrateType(PowerupEffects::Money),
@@ -1015,10 +1014,12 @@ public:
 		AirstrikeTargetingMe(nullptr),
 		ForceFullRearmDelay(false),
 		AttackMoveFollowerTempCount(0),
-		Strafe_TargetCell(),
 		IsSelected(false),
 		UndergroundTracked(false),
-		PassiveAquireMode(PassiveAcquireMode::Normal)
+		PassiveAquireMode(PassiveAcquireMode::Normal),
+		UnitIdleAction(false),
+		UnitIdleActionSelected(false),
+		UnitIdleIsSelected(false)
 	{
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
@@ -1066,6 +1067,10 @@ public:
 		this->ElectricBolts.clear();
 	}
 
+	void StopIdleAction();
+	void ApplyIdleAction();
+	void ManualIdleAction();
+
 	bool CheckDeathConditions();
 	bool UpdateKillSelf_Slave();
 	void UpdateGattlingRateDownReset();
@@ -1095,9 +1100,6 @@ public:
 	bool IsInterceptor();
 	void CreateInitialPayload(bool forced = false);
 
-	void StopIdleAction();
-	void ApplyIdleAction();
-	void ManualIdleAction();
 	void StopRotateWithNewROT(int ROT = -1);
 
 	void ResetDelayedFireTimer();

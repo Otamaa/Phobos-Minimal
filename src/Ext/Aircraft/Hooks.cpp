@@ -22,7 +22,7 @@
 
 int __fastcall AircraftClass_MI_Attack_SelectWeapon_BeforeFiring(AircraftClass* pThis, discard_t, AbstractClass* pTarget)
 {
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pExt = AircraftExtContainer::Instance.Find(pThis);
 
 	// Re-evaluate weapon selection only if not mid-strafing run before firing.
 	if (!pExt->Strafe_BombsDroppedThisRound)
@@ -58,7 +58,7 @@ ASMJIT_PATCH(0x4180F4, AircraftClass_MI_Attack_WeaponRange, 0x5)
 
 	GET(AircraftClass*, pThis, ESI);
 
-	R->EAX(pThis->GetWeapon(TechnoExtContainer::Instance.Find(pThis)->CurrentAircraftWeaponIndex));
+	R->EAX(pThis->GetWeapon(AircraftExtContainer::Instance.Find(pThis)->CurrentAircraftWeaponIndex));
 	return SkipGameCode;
 }
 
@@ -76,7 +76,7 @@ ASMJIT_PATCH(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 	if (!pObject || !pObject->IsInAir())
 		return 0;
 
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
 	auto const fireError = pThis->GetFireError(pTarget, pExt->CurrentAircraftWeaponIndex, false);
 
 	if (fireError != FireError::OK)
@@ -90,7 +90,7 @@ ASMJIT_PATCH(0x4197F3, AircraftClass_GetFireLocation_Strafing, 0x5)
 ASMJIT_PATCH(0x4197FC, AircraftClass_MI_Attack_GoodFireLoc_Range, 0x6)
 {
 	GET(AircraftClass*, pThis, EDI);
-	R->EAX(pThis->GetWeaponRange(TechnoExtContainer::Instance.Find(pThis)->CurrentAircraftWeaponIndex));
+	R->EAX(pThis->GetWeaponRange(AircraftExtContainer::Instance.Find(pThis)->CurrentAircraftWeaponIndex));
 	return 0x419808;
 }
 
@@ -100,7 +100,7 @@ ASMJIT_PATCH(0x417FF1, AircraftClass_MI_Attack_StrafeShots, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 
 	AirAttackStatus const state = (AirAttackStatus)pThis->MissionStatus;
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pExt = AircraftExtContainer::Instance.Find(pThis);
 
 	// Re-evaluate weapon choice due to potentially changing targeting conditions here
 	// only when aircraft is adjusting position or picking attack location.
@@ -113,7 +113,7 @@ ASMJIT_PATCH(0x417FF1, AircraftClass_MI_Attack_StrafeShots, 0x6)
 		|| pThis->MissionStatus >(int)AirAttackStatus::FireAtTarget5_Strafe
 		)
 	{
-		pExt->ShootCount = 0;
+		pExt->Strafe_BombsDroppedThisRound = 0;
 	}
 
 	// No need to evaluate this before any strafing shots have been fired.
@@ -125,7 +125,7 @@ ASMJIT_PATCH(0x417FF1, AircraftClass_MI_Attack_StrafeShots, 0x6)
 
 		if (count > 5) {
 			if (pThis->MissionStatus == (int)AirAttackStatus::FireAtTarget3_Strafe) {
-				if ((count - 3 - pExt->ShootCount) > 0) {
+				if ((count - 3 - pExt->Strafe_BombsDroppedThisRound) > 0) {
 					pThis->MissionStatus = (int)AirAttackStatus::FireAtTarget2_Strafe;
 				}
 			}
@@ -147,7 +147,7 @@ COMPILETIMEEVAL FORCEDINLINE bool AircraftCanStrafeWithWeapon(WeaponTypeClass* p
 
 bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 {
-	const auto pExt = TechnoExtContainer::Instance.Find(pAir);
+	const auto pExt = AircraftExtContainer::Instance.Find(pAir);
 	const int weaponIndex = pExt->CurrentAircraftWeaponIndex;
 	const bool Scatter = TechnoTypeExtContainer::Instance.Find(pAir->Type)->FiringForceScatter ;
 	auto pDecideTarget = (pExt->Strafe_TargetCell ? pExt->Strafe_TargetCell : pTarget);
@@ -160,13 +160,13 @@ bool FireWeapon(AircraftClass* pAir, AbstractClass* pTarget)
 			if (weaponType->Burst > 0) {
 				for (int i = 0; i < weaponType->Burst; i++) {
 					if (isStrafe && weaponType->Burst < 2 && pWeaponExt->Strafing_SimulateBurst)
-						pAir->CurrentBurstIndex = TechnoExtContainer::Instance.Find(pAir)->ShootCount % 2 == 0;
+						pAir->CurrentBurstIndex = pExt->Strafe_BombsDroppedThisRound % 2 == 0;
 
 					pAir->Fire(pDecideTarget, weaponIndex);
 				}
 
 				if (isStrafe) {
-					TechnoExtContainer::Instance.Find(pAir)->Strafe_BombsDroppedThisRound++;
+					pExt->Strafe_BombsDroppedThisRound++;
 
 					if (pWeaponExt->Strafing_UseAmmoPerShot) {
 						pAir->Ammo--;
@@ -248,7 +248,7 @@ ASMJIT_PATCH(0x418403, AircraftClass_MI_Attack_FireAtTarget_BurstFix, 0x6) //8
 
 static int GetDelay(AircraftClass* pThis, bool isLastShot)
 {
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
 	auto const pWeapon = pThis->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 	int delay = pWeapon->ROF;
@@ -391,7 +391,7 @@ long __stdcall AircraftClass_IFlyControl_IsStrafe(IFlyControl* ifly)
 {
 	auto pThis = static_cast<AircraftClass*>(ifly);
 	WeaponTypeClass* pWeapon = nullptr;
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
 
 	pWeapon = pThis->GetWeapon(pExt->CurrentAircraftWeaponIndex)->WeaponType;
 
@@ -405,17 +405,17 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2268, AircraftClass_IFlyControl_IsStrafe);
 
 static FORCEDINLINE bool CheckSpyPlaneCameraCount(AircraftClass* pThis ,WeaponTypeClass* pWeapon)
 {
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto const pExt = AircraftExtContainer::Instance.Find(pThis);
 
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	if (!pWeaponExt->Strafing_Shots.isset())
 		return true;
 
-	if (pExt->ShootCount >= pWeaponExt->Strafing_Shots)
+	if (pExt->Strafe_BombsDroppedThisRound >= pWeaponExt->Strafing_Shots)
 		return false;
 
-	pExt->ShootCount++;
+	pExt->Strafe_BombsDroppedThisRound++;
 	return true;
 }
 
@@ -478,11 +478,6 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 	GET(AircraftClass*, pThis, ESI);
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->MyFighterData) {
-		pExt->MyFighterData->StartAreaGuard();
-		return SkipGameCode;
-	}
 
 	if (RulesExtData::Instance()->ExpandAircraftMission && !pThis->Team && pThis->Ammo && pThis->IsArmed())
 	{

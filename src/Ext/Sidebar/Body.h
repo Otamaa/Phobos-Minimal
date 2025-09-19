@@ -38,12 +38,12 @@ public:
 	static void Allocate(SidebarClass* pThis);
 	static void Remove(SidebarClass* pThis);
 
-	static SidebarExtData* Instance()
+	COMPILETIMEEVAL FORCEDINLINE static SidebarExtData* Instance()
 	{
 		return Data.get();
 	}
 
-	static void Clear()
+	FORCEDINLINE static void Clear()
 	{
 		Allocate(SidebarClass::Instance);
 	}

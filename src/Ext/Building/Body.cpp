@@ -1682,6 +1682,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->PoweredUpToLevel)
 		.Process(this->FactoryBuildingMe)
 		.Process(this->airFactoryBuilding)
+		.Process(this->FreeUnitDone)
 		;
 }
 

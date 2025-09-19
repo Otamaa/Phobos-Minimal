@@ -142,17 +142,17 @@ public:
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 	static bool TEventIsShieldBroken(ObjectClass* pThis);
 
-	FORCEDINLINE bool IsGreenSP()
+	COMPILETIMEEVAL FORCEDINLINE bool IsGreenSP()
 	{
 		return (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get()) < HP;
 	}
 
-	FORCEDINLINE bool IsYellowSP()
+	COMPILETIMEEVAL FORCEDINLINE bool IsYellowSP()
 	{
 		return (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get());
 	}
 
-	FORCEDINLINE bool IsRedSP()
+	COMPILETIMEEVAL FORCEDINLINE bool IsRedSP()
 	{
 		return HP <= (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get());
 	}
@@ -185,7 +185,7 @@ private:
 
 	void SelfHealing();
 
-	int GetPercentageAmount(double iStatus) const
+	COMPILETIMEEVAL FORCEDINLINE int GetPercentageAmount(double iStatus) const
 	{
 		if (iStatus == 0)
 			return 0;
@@ -215,7 +215,7 @@ private:
 	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);
 	int DrawShieldBar_Pip(const bool isBuilding);
 
-	int DrawShieldBar_PipAmount(int iLength) const
+	COMPILETIMEEVAL FORCEDINLINE int DrawShieldBar_PipAmount(int iLength) const
 	{
 		return this->IsActive()
 			? std::clamp((int)std::round(this->GetHealthRatio() * iLength), 1, iLength)

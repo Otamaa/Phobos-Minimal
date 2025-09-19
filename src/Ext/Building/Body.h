@@ -56,6 +56,7 @@ public:
 	int PoweredUpToLevel;
 	FactoryClass* FactoryBuildingMe;
 	std::vector<BuildingClass*> airFactoryBuilding;
+	bool FreeUnitDone;
 #pragma endregion
 
 
@@ -96,7 +97,8 @@ public:
 		SpyEffectAnim(nullptr),
 		SpyEffectAnimDuration(0),
 		PoweredUpToLevel(0),
-		FactoryBuildingMe(nullptr)
+		FactoryBuildingMe(nullptr),
+		FreeUnitDone(false)
 	{ }
 
 	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }

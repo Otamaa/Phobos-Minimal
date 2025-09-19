@@ -19,6 +19,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Macro.h>
 #include <Utilities/Cast.h>
+#include <Utilities/Helpers.h>
 
 #include <Helpers/Macro.h>
 
@@ -2011,6 +2012,8 @@ bool TechnoExt_ExtData::canTraverseTo(BuildingClass* currentBuilding, BuildingCl
 	return false;
 }
 
+#include <Ext/Infantry/Body.h>
+
 void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingClass* targetBuilding)
 {
 	BuildingTypeClass* targetBuildingType = targetBuilding->Type;
@@ -2020,7 +2023,7 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 	{
 		auto item = currentBuilding->Occupants.Items[0];
 		targetBuilding->Occupants.AddItem(item);
-		TechnoExtContainer::Instance.Find(item)->GarrisonedIn = targetBuilding;
+		InfantryExtContainer::Instance.Find(item)->GarrisonedIn = targetBuilding;
 		currentBuilding->Occupants.Remove(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
 	}
 

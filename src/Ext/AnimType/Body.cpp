@@ -15,6 +15,8 @@
 #include <Locomotor/Cast.h>
 #include <Locomotor/JumpjetLocomotionClass.h>
 
+#include <AircraftTrackerClass.h>
+
 // AnimType Class is readed before Unit and weapon
 // so it is safe to `allocate` them before
 

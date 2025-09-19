@@ -14,8 +14,16 @@ public:
 	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
+	int Strafe_BombsDroppedThisRound;
+	int CurrentAircraftWeaponIndex;
+	CellClass* Strafe_TargetCell;
 
-	AircraftExtData(AircraftClass* pObj) : FootExtData(pObj) { }
+	AircraftExtData(AircraftClass* pObj) : FootExtData(pObj),
+		Strafe_BombsDroppedThisRound(0),
+		CurrentAircraftWeaponIndex(0),
+		Strafe_TargetCell()
+	{ }
+
 	AircraftExtData(AircraftClass * pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 	virtual ~AircraftExtData() = default;
 
@@ -31,10 +39,16 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) {
 		this->FootExtData::LoadFromStream(Stm);
+		Stm.Process(this->Strafe_BombsDroppedThisRound);
+		Stm.Process(this->CurrentAircraftWeaponIndex);
+		Stm.Process(this->Strafe_TargetCell);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm) {
 		this->FootExtData::SaveToStream(Stm);
+		Stm.Process(this->Strafe_BombsDroppedThisRound);
+		Stm.Process(this->CurrentAircraftWeaponIndex);
+		Stm.Process(this->Strafe_TargetCell);
 	}
 
 	virtual void CalculateCRC(CRCEngine& crc) const {

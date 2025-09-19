@@ -86,7 +86,7 @@ public:
 	VectorSet<TechnoClass*> LimboLaunchers {};
 
 	VectorSet<TechnoClass*> UndergroundTracker {};
-	
+
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
 	void ReadVariables(const bool IsGlobal, CCINIClass* pINI);
@@ -116,12 +116,12 @@ public:
 
 	static void s_LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI);
 
-	static ScenarioExtData* Instance()
+	COMPILETIMEEVAL FORCEDINLINE static ScenarioExtData* Instance()
 	{
 		return Data.get();
 	}
 
-	static void Clear()
+	FORCEDINLINE static void Clear()
 	{
 		Allocate(ScenarioClass::Instance);
 	}

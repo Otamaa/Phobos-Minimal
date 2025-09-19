@@ -695,7 +695,6 @@ public:
 	SpawnSupportFLHData MySpawnSupportFLH;
 	SpawnSupportData MySpawnSupportDatas;
 	TrailsReader Trails;
-	FighterAreaGuardData MyFighterData;
 	DamageSelfType DamageSelfData;
 
 	AresAttachEffectTypeClass AttachedEffect;
@@ -2375,7 +2374,6 @@ private:
 			.Process(this->MySpawnSupportFLH)
 			.Process(this->MySpawnSupportDatas)
 			.Process(this->Trails)
-			.Process(this->MyFighterData)
 			.Process(this->DamageSelfData)
 			;
 

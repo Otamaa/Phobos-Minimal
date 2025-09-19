@@ -11,7 +11,24 @@ public:
 
 public:
 
-	UnitExtData(UnitClass* pObj) : FootExtData(pObj) { }
+	OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
+
+
+	// Replaces use of TechnoClass->Animation StageClass timer for IsSimpleDeployer to simplify
+	// the deploy animation timer calcs and eliminate possibility of outside interference.
+	CDTimerClass SimpleDeployerAnimationTimer;
+	CDTimerClass UnitAutoDeployTimer;
+	CDTimerClass Convert_Deploy_Delay;
+
+
+
+	UnitExtData(UnitClass* pObj) : FootExtData(pObj),
+		AltOccupation(),
+		SimpleDeployerAnimationTimer(),
+		UnitAutoDeployTimer(),
+		Convert_Deploy_Delay()
+	{ }
+
 	UnitExtData(UnitClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 
 	virtual ~UnitExtData() = default;
@@ -24,11 +41,19 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->FootExtData::LoadFromStream(Stm);
+		Stm.Process(this->AltOccupation);
+		Stm.Process(this->SimpleDeployerAnimationTimer);
+		Stm.Process(this->UnitAutoDeployTimer);
+		Stm.Process(this->Convert_Deploy_Delay);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<UnitExtData*>(this)->FootExtData::SaveToStream(Stm);
+		Stm.Process(this->AltOccupation);
+		Stm.Process(this->SimpleDeployerAnimationTimer);
+		Stm.Process(this->UnitAutoDeployTimer);
+		Stm.Process(this->Convert_Deploy_Delay);
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
@@ -40,6 +65,9 @@ public:
 	}
 	virtual UnitClass* This() const override { return reinterpret_cast<UnitClass*>(this->FootExtData::This()); }
 	virtual const UnitClass* This_Const() const override { return reinterpret_cast<const UnitClass*>(this->FootExtData::This_Const()); }
+
+public:
+
 };
 
 class UnitExtContainer final : public Container<UnitExtData>

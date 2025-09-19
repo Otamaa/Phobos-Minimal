@@ -31,6 +31,7 @@
 #include <Point2DByte.h>
 #include <Point3D.h>
 #include <IndexBitfield.h>
+#include <Utilities/VectorHelper.h>
 
 #include "TranslucencyLevel.h"
 #include "Swizzle.h"
@@ -48,24 +49,70 @@ namespace Savegame
 		{
 			{ v.Load(stm, reg) } -> std::same_as<bool>;
 		};
-
 		template <typename T>
 		concept Hasload = requires(T v, PhobosStreamReader & stm, bool reg)
 		{
 			{ v.load(stm, reg) } -> std::same_as<bool>;
 		};
-
 		template <typename T>
 		concept HasSave = requires(const T v, PhobosStreamWriter & stm)
 		{
 			{ v.Save(stm) } -> std::same_as<bool>;
 		};
-
 		template <typename T>
 		concept Hassave = requires(const T v, PhobosStreamWriter & stm)
 		{
 			{ v.save(stm) } -> std::same_as<bool>;
 		};
+
+		// General array type detection
+		template <typename T>
+		concept IsFixedArray = std::is_array_v<T> && std::extent_v<T> > 0;
+
+		// More specific array type concepts (if you need special handling)
+		template <typename T>
+		concept IsCharArray = IsFixedArray<T> && std::is_same_v<std::remove_extent_t<T>, char>;
+
+		template <typename T>
+		concept IsWCharArray = IsFixedArray<T> && std::is_same_v<std::remove_extent_t<T>, wchar_t>;
+
+		// SFINAE helper to detect PhobosStreamObject specializations
+		template<typename T>
+		struct has_phobos_stream_object_specialization
+		{
+		private:
+			// Test if we can instantiate PhobosStreamObject<T> and call its methods
+			template<typename U>
+			static auto test_read(int) -> decltype(
+				std::declval<PhobosStreamObject<U>>().ReadFromStream(
+					std::declval<PhobosStreamReader&>(),
+					std::declval<U&>(),
+					std::declval<bool>()
+				), std::true_type {}
+			);
+
+			template<typename U>
+			static std::false_type test_read(...);
+
+			template<typename U>
+			static auto test_write(int) -> decltype(
+				std::declval<PhobosStreamObject<U>>().WriteToStream(
+					std::declval<PhobosStreamWriter&>(),
+					std::declval<const U&>()
+				), std::true_type {}
+			);
+
+			template<typename U>
+			static std::false_type test_write(...);
+
+		public:
+			static constexpr bool read_value = decltype(test_read<T>(0))::value;
+			static constexpr bool write_value = decltype(test_write<T>(0))::value;
+			static constexpr bool value = read_value && write_value;
+		};
+
+		template<typename T>
+		constexpr bool has_phobos_stream_object_v = has_phobos_stream_object_specialization<T>::value;
 
 		struct Selector
 		{
@@ -74,20 +121,39 @@ namespace Savegame
 			{
 				if constexpr (HasLoad<T>)
 					return Value.Load(Stm, RegisterForChange);
-
 				else if constexpr (Hasload<T>)
 					return Value.load(Stm, RegisterForChange);
-
-				else if constexpr (requires { typename PhobosStreamObject<T>; }) // fallback only if exists
+				else if constexpr (IsFixedArray<T>)
 				{
+					static_assert(std::is_same_v<T, T>, "Detected as fixed array");
+
+					if constexpr (has_phobos_stream_object_v<T>)
+					{
+						static_assert(std::is_same_v<T, T>, "Has PhobosStreamObject specialization - using it");
+						PhobosStreamObject<T> item;
+						return item.ReadFromStream(Stm, Value, RegisterForChange);
+					}
+					else
+					{
+						static_assert(has_phobos_stream_object_v<T>,
+									  "ARRAY TYPE DETECTED but no PhobosStreamObject specialization found. "
+									  "Create PhobosStreamObject<T[N]> specialization for your array type.");
+						return false;
+					}
+				}
+				else if constexpr (has_phobos_stream_object_v<T>)
+				{
+					static_assert(std::is_same_v<T, T>, "Using generic PhobosStreamObject");
+					// Handle other types with PhobosStreamObject specialization
 					PhobosStreamObject<T> item;
 					return item.ReadFromStream(Stm, Value, RegisterForChange);
 				}
 				else
 				{
-					static_assert(HasLoad<T> || Hasload<T>,
+					static_assert(HasLoad<T> || Hasload<T> || has_phobos_stream_object_v<T> || IsFixedArray<T>,
 								  "ReadFromStream: Type must implement Load/load returning bool, "
 								  "or specialize PhobosStreamObject<T>.");
+					return false;
 				}
 			}
 
@@ -96,24 +162,42 @@ namespace Savegame
 			{
 				if constexpr (HasSave<T>)
 					return Value.Save(Stm);
-
 				else if constexpr (Hassave<T>)
 					return Value.save(Stm);
-
-				else if constexpr (requires { typename PhobosStreamObject<T>; }) // fallback only if exists
+				else if constexpr (IsFixedArray<T>)
 				{
+					if constexpr (has_phobos_stream_object_v<T>)
+					{
+						PhobosStreamObject<T> item;
+						return item.WriteToStream(Stm, Value);
+					}
+					else
+					{
+						static_assert(has_phobos_stream_object_v<T>,
+									  "ARRAY TYPE DETECTED but no PhobosStreamObject specialization found. "
+									  "Create PhobosStreamObject<T[N]> specialization for your array type.");
+						return false;
+					}
+				}
+				else if constexpr (has_phobos_stream_object_v<T>)
+				{
+					// Handle other types with PhobosStreamObject specialization
 					PhobosStreamObject<T> item;
 					return item.WriteToStream(Stm, Value);
 				}
 				else
 				{
-					static_assert(HasSave<T> || Hassave<T>,
+					static_assert(HasSave<T> || Hassave<T> || has_phobos_stream_object_v<T> || IsFixedArray<T>,
 								  "WriteToStream: Type must implement Save/save returning bool, "
 								  "or specialize PhobosStreamObject<T>.");
+					return false;
 				}
 			}
 		};
 	}
+
+	template<typename T>
+	concept IsDataTheTypeCorrect = !Savegame::detail::IsFixedArray<T>;
 
 	template <typename T>
 	bool ReadPhobosStream(PhobosStreamReader& Stm, T& Value, bool RegisterForChange)
@@ -130,26 +214,118 @@ namespace Savegame
 	template <typename T>
 	bool PhobosStreamObject<T>::ReadFromStream(PhobosStreamReader& Stm, T& Value, bool RegisterForChange) const
 	{
-		bool ret = Stm.Load(Value);
-
-		if COMPILETIMEEVAL(std::is_pointer<T>::value) {
-			if (RegisterForChange) {
-				PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(Value, PhobosCRT::GetTypeIDName<T>().c_str());
+		if constexpr (IsDataTheTypeCorrect<T>)
+		{
+			bool ret = Stm.Load(Value);
+			if COMPILETIMEEVAL(std::is_pointer<T>::value) {
+				if (RegisterForChange) {
+					PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(Value, PhobosCRT::GetTypeIDName<T>().c_str());
+				}
 			}
-		}
 
-		return ret;
+			return ret;
+		} else {
+			static_assert(IsDataTheTypeCorrect<T>, "Use specialization for this type");
+			return false;
+		}
 	}
 
 	template <typename T>
 	bool PhobosStreamObject<T>::WriteToStream(PhobosStreamWriter& Stm, const T& Value) const
 	{
-		Stm.Save(Value);
-		return true;
+		if constexpr (IsDataTheTypeCorrect<T>)
+		{ 	return Stm.Save(Value); } else {
+			static_assert(IsDataTheTypeCorrect<T>, "Use specialization for this type");
+			return false;
+		}
 	}
 
 
 #pragma region Spe
+
+	template <size_t Size>
+	struct Savegame::PhobosStreamObject<char[Size]>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, char(&Value)[Size], bool RegisterForChange) const
+		{
+			// Use existing std::string template
+			std::string temp;
+			if (!Savegame::ReadPhobosStream(Stm, temp, RegisterForChange))
+				return false;
+
+			// Copy to fixed array with bounds checking
+			size_t copyLen = std::min(temp.length(), Size - 1);
+			std::memcpy(Value, temp.c_str(), copyLen);
+			Value[copyLen] = '\0';  // Ensure null termination
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const char(&Value)[Size]) const
+		{
+			// Convert to std::string and use existing template
+			std::string temp(Value, strnlen(Value, Size));
+			return Savegame::WritePhobosStream(Stm, temp);
+		}
+	};
+
+	template <size_t Size>
+	struct Savegame::PhobosStreamObject<wchar_t[Size]>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, wchar_t(&Value)[Size], bool RegisterForChange) const
+		{
+			// Use existing std::wstring template
+			std::wstring temp;
+			if (!Savegame::ReadPhobosStream(Stm, temp, RegisterForChange))
+				return false;
+
+			// Copy to fixed array with bounds checking
+			size_t copyLen = std::min(temp.length(), Size - 1);
+			std::memcpy(Value, temp.c_str(), copyLen * sizeof(wchar_t));
+			Value[copyLen] = L'\0';  // Ensure null termination
+
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const wchar_t(&Value)[Size]) const
+		{
+			// Convert to std::wstring and use existing template
+			std::wstring temp(Value, wcsnlen(Value, Size));
+			return Savegame::WritePhobosStream(Stm, temp);
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<const char*>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, const char*& Value, bool RegisterForChange) const
+		{
+			static_assert(true, "Not Implemented !");
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const char*& Value) const
+		{
+			static_assert(true, "Not Implemented !");
+			return true;
+		}
+	};
+
+	template <>
+	struct Savegame::PhobosStreamObject<const wchar_t*>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, const wchar_t*& Value, bool RegisterForChange) const
+		{
+			static_assert(true, "Not Implemented !");
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const wchar_t*& Value) const
+		{
+			static_assert(true, "Not Implemented !");
+			return true;
+		}
+	};
 
 	template <typename T, size_t N>
 	struct Savegame::PhobosStreamObject<T[N]>
@@ -377,8 +553,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const Leptons& Value) const
 		{
-			Stm.Save(Value.value);
-			return true;
+			return Stm.Save(Value.value);
 		}
 	};
 
@@ -926,8 +1101,7 @@ namespace Savegame
 			if (!Savegame::WritePhobosStream<VectorClass<int>>(Stm, Value))
 				return false;
 
-			Stm.Save(Value.Total);
-			return true;
+			return Stm.Save(Value.Total);
 		}
 	};
 
@@ -1053,7 +1227,8 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::wstring& Value) const
 		{
-			Stm.Save((int)Value.size());
+			if (!Stm.Save((int)Value.size()))
+				return false;
 
 			if (Value.empty())
 				return true;
@@ -1384,8 +1559,7 @@ namespace Savegame
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const BuildType& Value) const
 		{
-			Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(&Value), sizeof(BuildType));
-			return true;
+			return Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(&Value), sizeof(BuildType));
 		}
 	};
 
@@ -1514,6 +1688,75 @@ namespace Savegame
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::vector<T, Alloc>& Value) const
 		{
 			Stm.Save((int)Value.size());
+
+			for (auto ix = 0u; ix < Value.size(); ++ix) {
+				if (!Savegame::WritePhobosStream(Stm, Value[ix]))
+					return false;
+			}
+
+			return true;
+		}
+	};
+
+	template <typename T, typename Alloc>
+	struct Savegame::PhobosStreamObject<HelperedVector<T, Alloc>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, HelperedVector<T, Alloc>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+
+			int Count = 0;
+			auto name = PhobosCRT::GetTypeIDName<T>();
+
+			if (!Stm.Load(Count))
+			{
+				Debug::Log("Vector %s load failed to read count\n", name.c_str());
+				return false;
+			}
+
+			Debug::Log("Vector %s loading %d elements \n", name.c_str(), Count);
+
+			Value.resize(Count);
+			if ((int)Value.size() != Count)
+			{
+				Debug::Log("Vector %s resize failed! Expected %d, got %zu\n", name.c_str(), Count, Value.size());
+				__debugbreak();
+			}
+
+			for (auto ix = 0; ix < Count; ++ix)
+			{
+				Debug::Log("Loading vector %s element %u/%d\n", name.c_str(), ix, Count);
+
+				if COMPILETIMEEVAL(std::is_same_v<T, bool>)
+				{
+					bool temp {};
+
+					if (!Savegame::ReadPhobosStream(Stm, temp, RegisterForChange))
+					{
+						Debug::Log("Failed to load vector %s element %u\n", name.c_str(), ix);
+						return false;
+					}
+
+					Value[ix] = temp;
+				}
+				else
+				{
+					if (!Savegame::ReadPhobosStream(Stm, Value[ix], RegisterForChange))
+					{
+						Debug::Log("Failed to load vector %s element %u\n", name.c_str(), ix);
+						return false;
+					}
+				}
+			}
+
+			Debug::Log("Successfully loaded vector %s with %d elements\n", name.c_str(), Count);
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const HelperedVector<T, Alloc>& Value) const
+		{
+			if (!Stm.Save((int)Value.size()))
+				return false;
 
 			for (auto ix = 0u; ix < Value.size(); ++ix) {
 				if (!Savegame::WritePhobosStream(Stm, Value[ix]))

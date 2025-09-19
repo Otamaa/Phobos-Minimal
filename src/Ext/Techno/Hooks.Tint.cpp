@@ -3,6 +3,8 @@
 
 #include <Locomotor/Cast.h>
 
+#include <SuperClass.h>
+
 namespace ICTintTemp
 {
 	bool IsForceShield = false;

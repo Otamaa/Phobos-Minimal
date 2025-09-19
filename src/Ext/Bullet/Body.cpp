@@ -16,6 +16,8 @@
 #include "Trajectories/PhobosTrajectory.h"
 
 #include <Utilities/Macro.h>
+#include <Utilities/Helpers.h>
+
 #include <Lib/gcem/gcem.hpp>
 
 #include <New/Entity/FlyingStrings.h>

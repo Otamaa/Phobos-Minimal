@@ -25,6 +25,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/EnumFunctions.h>
+#include <Utilities/Helpers.h>
 
 #include <Locomotor/Cast.h>
 

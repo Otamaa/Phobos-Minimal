@@ -19,13 +19,15 @@ public:
 	bool IsUsingDeathSequence;
 	int CurrentDoType;
 	bool SkipTargetChangeResetSequence;
+	BuildingClass* GarrisonedIn; //C
 #pragma endregion
 
 public:
 	InfantryExtData(InfantryClass* pObj) : FootExtData(pObj),
 		IsUsingDeathSequence(false),
 		CurrentDoType(-1),
-		SkipTargetChangeResetSequence(false)
+		SkipTargetChangeResetSequence(false),
+		GarrisonedIn(nullptr)
 	{ }
 	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 
@@ -34,6 +36,7 @@ public:
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
 		this->FootExtData::InvalidatePointer(ptr, bRemoved);
+		AnnounceInvalidPointer(GarrisonedIn, ptr, bRemoved);
 	}
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override

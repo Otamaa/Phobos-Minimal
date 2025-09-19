@@ -6,11 +6,16 @@
 #include <Objidl.h>
 
 const char* RCFunc = "PhobosStreamReader::RegisterChange()";
+bool PhobosByteStream::integrity_check_enabled = true;
 
+// Simplified Write method with immediate verification
 bool PhobosByteStream::Write(const void* buffer, size_t size)
 {
 	if (!ValidateParameters(buffer, size, "Write")) return false;
 	if (size == 0) return true;
+
+	// Store position before write
+	size_t pos_before_write = position;
 
 	// Check for potential overflow
 	size_t newPosition = position + size;
@@ -30,7 +35,7 @@ bool PhobosByteStream::Write(const void* buffer, size_t size)
 		return false;
 	}
 
-	// Ensure we have enough space - use aggressive growth for performance
+	// Buffer management
 	if (newPosition > data.size())
 	{
 		try
@@ -39,20 +44,16 @@ bool PhobosByteStream::Write(const void* buffer, size_t size)
 			size_t currentCapacity = data.capacity();
 			size_t newCapacity;
 
-			// Aggressive growth strategy for better performance (like std::vector)
 			if (currentCapacity == 0)
 			{
-				// Start with reasonable initial size
 				newCapacity = std::max(minNeeded, INITIAL_BUFFER_SIZE);
 			}
 			else if (minNeeded <= currentCapacity)
 			{
-				// Already have enough capacity
 				newCapacity = currentCapacity;
 			}
 			else
 			{
-				// Double the capacity, but respect min/max growth limits
 				size_t doubledCapacity = currentCapacity * 2;
 				size_t growthAmount = std::max(MIN_BUFFER_GROWTH, minNeeded - currentCapacity);
 				growthAmount = std::min(growthAmount, MAX_BUFFER_GROWTH);
@@ -64,13 +65,11 @@ bool PhobosByteStream::Write(const void* buffer, size_t size)
 				});
 			}
 
-			// Cap the total size
 			if (newCapacity > MAX_STREAM_SIZE)
 			{
 				newCapacity = std::min(MAX_STREAM_SIZE, minNeeded + MIN_BUFFER_GROWTH);
 			}
 
-			// Final check
 			if (minNeeded > newCapacity)
 			{
 				GameDebugLog::Log("[PhobosByteStream::Write] Cannot satisfy allocation: needed=%zu, max_capacity=%zu\n",
@@ -79,14 +78,12 @@ bool PhobosByteStream::Write(const void* buffer, size_t size)
 				return false;
 			}
 
-			// Reserve and resize
 			if (newCapacity > data.capacity())
 			{
 				data.reserve(newCapacity);
 			}
 			data.resize(minNeeded);
 
-			// Verify the resize worked
 			if (data.size() != minNeeded)
 			{
 				GameDebugLog::Log("[PhobosByteStream::Write] CRITICAL ERROR: Resize failed! Expected %zu, got %zu\n",
@@ -124,11 +121,44 @@ bool PhobosByteStream::Write(const void* buffer, size_t size)
 		std::memcpy(data.data() + position, buffer, size);
 		position = newPosition;
 
-		// Fast incremental checksum update (only if checksum is enabled)
-		if (checksum_enabled)
+		// SIMPLE VERIFICATION: Read back what we just wrote
+		if (integrity_check_enabled && size > 0)
 		{
-			UpdateIncrementalChecksum(buffer, size);
-			last_checksum = running_checksum;
+			// Prepare verification buffer
+			if (verify_buffer.size() < size)
+			{
+				verify_buffer.resize(size);
+			}
+
+			// Read back the data we just wrote
+			std::memcpy(verify_buffer.data(), data.data() + pos_before_write, size);
+
+			// Compare with original
+			if (std::memcmp(buffer, verify_buffer.data(), size) != 0)
+			{
+				GameDebugLog::Log("[PhobosByteStream::Write] WRITE VERIFICATION FAILED!\n");
+				GameDebugLog::Log("  Position: %zu, Size: %zu\n", pos_before_write, size);
+
+				// Show first differing bytes
+				const uint8_t* original = reinterpret_cast<const uint8_t*>(buffer);
+				const uint8_t* readback = verify_buffer.data();
+
+				size_t show_bytes = std::min(size, size_t(32));
+				GameDebugLog::Log("  Original: ");
+				for (size_t i = 0; i < show_bytes; ++i)
+				{
+					GameDebugLog::Log("%02X ", original[i]);
+				}
+				GameDebugLog::Log("\n  Read back:");
+				for (size_t i = 0; i < show_bytes; ++i)
+				{
+					GameDebugLog::Log("%02X ", readback[i]);
+				}
+				GameDebugLog::Log("\n");
+
+				DebugBreak();
+				return false;
+			}
 		}
 
 		return true;
@@ -147,7 +177,6 @@ bool PhobosByteStream::Read(void* buffer, size_t size)
 	if (!ValidateParameters(buffer, size, "Read")) return false;
 	if (size == 0) return true;
 
-	// Check if data vector is empty
 	if (data.size() == 0)
 	{
 		GameDebugLog::Log("[PhobosByteStream::Read] CRITICAL ERROR: Data vector is empty! Cannot read anything.\n");
@@ -155,7 +184,6 @@ bool PhobosByteStream::Read(void* buffer, size_t size)
 		return false;
 	}
 
-	// Check bounds
 	if (position > data.size())
 	{
 		GameDebugLog::Log("[PhobosByteStream::Read] Position %zu beyond buffer size %zu\n", position, data.size());
@@ -171,7 +199,6 @@ bool PhobosByteStream::Read(void* buffer, size_t size)
 		return false;
 	}
 
-	// Additional safety check
 	if (data.data() == nullptr)
 	{
 		GameDebugLog::Log("[PhobosByteStream::Read] CRITICAL ERROR: Data pointer is null!\n");
@@ -179,7 +206,6 @@ bool PhobosByteStream::Read(void* buffer, size_t size)
 		return false;
 	}
 
-	// Perform the copy
 	try
 	{
 		std::memcpy(buffer, data.data() + position, size);
@@ -225,16 +251,12 @@ bool PhobosByteStream::WriteToStream(LPSTREAM stream) const
 		return false;
 	}
 
-	// 3. Write checksum for integrity (only if enabled)
-	uint32_t checksum = 0;
-	if (checksum_enabled)
-	{
-		checksum = CalculateChecksum();
-	}
-	hr = stream->Write(&checksum, sizeof(uint32_t), &written);
+	// 3. Write checksum placeholder (zero)
+	uint32_t placeholder_checksum = 0;
+	hr = stream->Write(&placeholder_checksum, sizeof(uint32_t), &written);
 	if (FAILED(hr) || written != sizeof(uint32_t))
 	{
-		GameDebugLog::Log("[PhobosByteStream::WriteToStream] Failed to write checksum\n");
+		GameDebugLog::Log("[PhobosByteStream::WriteToStream] Failed to write checksum placeholder\n");
 		DebugBreak();
 		return false;
 	}
@@ -278,8 +300,8 @@ bool PhobosByteStream::ReadFromStream(LPSTREAM stream)
 	// Clear existing data
 	Reset();
 
-	// 1. Read and validate start marker - using safer std::array with bounds checking
-	std::array<char, START_MARKER_LEN + 1> startBuffer {};  // Zero-initialized, bounds-checked
+	// 1. Read and validate start marker
+	std::array<char, START_MARKER_LEN + 1> startBuffer {};
 	hr = stream->Read(startBuffer.data(), static_cast<ULONG>(START_MARKER_LEN), &read);
 	if (FAILED(hr) || read != START_MARKER_LEN)
 	{
@@ -288,9 +310,7 @@ bool PhobosByteStream::ReadFromStream(LPSTREAM stream)
 		return false;
 	}
 
-	// Additional safety: ensure null termination even if stream is malicious
 	startBuffer[START_MARKER_LEN] = '\0';
-
 	if (strcmp(startBuffer.data(), START_MARKER) != 0)
 	{
 		GameDebugLog::Log("[PhobosByteStream::ReadFromStream] Start marker mismatch\n");
@@ -308,7 +328,6 @@ bool PhobosByteStream::ReadFromStream(LPSTREAM stream)
 		return false;
 	}
 
-	// 3. Validate size is reasonable
 	if (dataSize > MAX_STREAM_SIZE)
 	{
 		GameDebugLog::Log("[PhobosByteStream::ReadFromStream] Data size %lu exceeds limit %zu (%.1fMB)\n",
@@ -317,17 +336,17 @@ bool PhobosByteStream::ReadFromStream(LPSTREAM stream)
 		return false;
 	}
 
-	// 4. Read checksum
-	uint32_t stored_checksum = 0;
-	hr = stream->Read(&stored_checksum, sizeof(uint32_t), &read);
+	// 3. Skip checksum placeholder
+	uint32_t ignored_checksum = 0;
+	hr = stream->Read(&ignored_checksum, sizeof(uint32_t), &read);
 	if (FAILED(hr) || read != sizeof(uint32_t))
 	{
-		GameDebugLog::Log("[PhobosByteStream::ReadFromStream] Failed to read checksum\n");
+		GameDebugLog::Log("[PhobosByteStream::ReadFromStream] Failed to read checksum placeholder\n");
 		DebugBreak();
 		return false;
 	}
 
-	// 5. Read actual data
+	// 4. Read actual data
 	try
 	{
 		data.resize(dataSize);
@@ -353,28 +372,8 @@ bool PhobosByteStream::ReadFromStream(LPSTREAM stream)
 		return false;
 	}
 
-	// 6. Verify checksum (only if checksum is enabled)
-	if (checksum_enabled)
-	{
-		uint32_t calculated_checksum = CalculateChecksum();
-		if (calculated_checksum != stored_checksum)
-		{
-			GameDebugLog::Log("[PhobosByteStream::ReadFromStream] Checksum mismatch: expected 0x%x, got 0x%x\n",
-				stored_checksum, calculated_checksum);
-			DebugBreak();
-			Reset();
-			return false;
-		}
-		last_checksum = calculated_checksum;
-	}
-	else
-	{
-		// Skip checksum verification but still update last_checksum for consistency
-		last_checksum = stored_checksum;
-	}
-
-	// 7. Read and validate end marker - using safer std::array with bounds checking
-	std::array<char, END_MARKER_LEN + 1> endBuffer {};  // Zero-initialized, bounds-checked
+	// 5. Read and validate end marker
+	std::array<char, END_MARKER_LEN + 1> endBuffer {};
 	hr = stream->Read(endBuffer.data(), static_cast<ULONG>(END_MARKER_LEN), &read);
 	if (FAILED(hr) || read != END_MARKER_LEN)
 	{
@@ -384,9 +383,7 @@ bool PhobosByteStream::ReadFromStream(LPSTREAM stream)
 		return false;
 	}
 
-	// Additional safety: ensure null termination even if stream is malicious
 	endBuffer[END_MARKER_LEN] = '\0';
-
 	if (strcmp(endBuffer.data(), END_MARKER) != 0)
 	{
 		GameDebugLog::Log("[PhobosByteStream::ReadFromStream] End marker mismatch\n");
@@ -402,8 +399,8 @@ void PhobosByteStream::LogStreamInfo() const
 {
 	char msg[1024];
 	sprintf_s(msg,
-		"[PhobosByteStream] START:'%s' SIZE:%zu CHECKSUM:0x%x END:'%s' TOTAL:%zu bytes INTEGRITY:%s\n",
-		START_MARKER, data.size(), last_checksum, END_MARKER, GetStreamSize(),
+		"[PhobosByteStream] START:'%s' SIZE:%zu END:'%s' TOTAL:%zu bytes INTEGRITY:%s\n",
+		START_MARKER, data.size(), END_MARKER, GetStreamSize(),
 		integrity_check_enabled ? "ENABLED" : "DISABLED");
 	OutputDebugStringA(msg);
 

@@ -7,6 +7,7 @@
 #include <Ext/Building/Body.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/Helpers.h>
 
 #include "Header.h"
 

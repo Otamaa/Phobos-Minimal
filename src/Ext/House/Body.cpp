@@ -3409,9 +3409,11 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 
 	bool allowed = true;
 	if (pTechno->InLimbo) {
-		if ((pTechno->Transporter && pTechno->Transporter->IsAlive) || (pTechno->BunkerLinkedItem && pTechno->BunkerLinkedItem->IsAlive) || TechnoExtContainer::Instance.Find(pTechno)->GarrisonedIn)
+		if ((pTechno->Transporter && pTechno->Transporter->IsAlive) || (pTechno->BunkerLinkedItem && pTechno->BunkerLinkedItem->IsAlive))
 			allowed = true;
 		else  if (pTechno->WhatAmI() == AbstractType::Aircraft && ((AircraftClass*)(pTechno))->DockedTo )
+			allowed = true;
+		else if (pTechno->WhatAmI() == AbstractType::Infantry && InfantryExtContainer::Instance.Find((InfantryClass*)(pTechno))->GarrisonedIn)
 			allowed = true;
 		else
 			allowed = false;
@@ -3484,7 +3486,11 @@ HRESULT __stdcall FakeHouseClass::_Load(IStream* pStm)
 
 HRESULT __stdcall FakeHouseClass::_Save(IStream* pStm, BOOL clearDirty)
 {
+	//temporarely remove it
+	auto ext = this->_GetExtData();
+	HouseExtContainer::Instance.ClearExtAttribute(this);
 	HRESULT hr = this->HouseClass::Save(pStm, clearDirty);
+	HouseExtContainer::Instance.SetExtAttribute(this, ext);
 	if (SUCCEEDED(hr))
 		hr = HouseExtContainer::Instance.SaveKey(this, pStm);
 

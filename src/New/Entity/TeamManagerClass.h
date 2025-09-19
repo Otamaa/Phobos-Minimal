@@ -23,32 +23,12 @@ public:
 
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{
-		Stm.Process((int)Array.size());
-
-		for (auto& item : Array) {
-			item.Save(Stm);
-		}
-
-		return true;
+		return Stm.Process(Array);
 	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm)
 	{
-		Clear();
-
-		int Count = 0;
-		if (!Stm.Load(Count))
-			return false;
-
-		Array.resize(Count);
-
-		for (size_t i = 0; i < Count; ++i) {
-			if (!Array[i].Load(Stm,true)) {
-				return false;
-			}
-		}
-
-		return true;
+		return Stm.Process(Array);
 	}
 private:
 

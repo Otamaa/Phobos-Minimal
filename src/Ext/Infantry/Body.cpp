@@ -46,6 +46,7 @@ void InfantryExtData::Serialize(T& Stm)
 		.Process(this->IsUsingDeathSequence)
 		.Process(this->CurrentDoType)
 		.Process(this->SkipTargetChangeResetSequence)
+		.Process(this->GarrisonedIn)
 		;
 }
 

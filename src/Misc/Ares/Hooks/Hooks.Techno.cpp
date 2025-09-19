@@ -4,12 +4,14 @@
 #include <UnitClass.h>
 #include <Utilities/Macro.h>
 #include <Helpers/Macro.h>
+
 #include <Base/Always.h>
 
 #include <SlaveManagerClass.h>
 
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
+#include <Utilities/Helpers.h>
 
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
@@ -1096,13 +1098,6 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 
 		if (pHouseExt && pTypeExt->Harvester_Counted)
 			pHouseExt->OwnedCountedHarvesters.emplace(pThis);
-
-		if (pTypeExt->AttachtoType == AircraftTypeClass::AbsID) {
-			if (pTypeExt->MyFighterData.Enable) {
-				pExt->MyFighterData = std::make_unique<FighterAreaGuard>();
-				pExt->MyFighterData->OwnerObject = (AircraftClass*)pThis;
-			}
-		}
 
 		if (pType->Spawns) {
 			pSpawnManager = GameCreate<SpawnManagerClass>(pThis, pType->Spawns, pType->SpawnsNumber, pType->SpawnRegenRate, pType->SpawnReloadRate);

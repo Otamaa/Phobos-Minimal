@@ -18,6 +18,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/UnitType/Body.h>
+#include <Ext/Unit/Body.h>
 
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
@@ -484,20 +486,20 @@ ASMJIT_PATCH(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 	return 0;
 }
 
+
 ASMJIT_PATCH(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pTypeExt = UnitTypeExtContainer::Instance.Find(pThis->Type);
+	auto pExt = UnitExtContainer::Instance.Find(pThis);
 
 	if (pThis->Deployed
 		&& pTypeExt->Convert_Deploy
 		&& TechnoExt_ExtData::ConvertToType(pThis, pTypeExt->Convert_Deploy))
 	{
 		if (pTypeExt->Convert_Deploy_Delay > 0)
-			TechnoExtContainer::Instance.Find(pThis)->Convert_Deploy_Delay
-			//.Start(100);
-			.Start(pTypeExt->Convert_Deploy_Delay);
+			 pExt->Convert_Deploy_Delay.Start(pTypeExt->Convert_Deploy_Delay);
 
 		pThis->Deployed = false;
 	}
@@ -1682,6 +1684,8 @@ ASMJIT_PATCH(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 	return 0x7091C5;
 }
 
+#include <Ext/Unit/Body.h>
+
 // #908369, #1100953: units are still deployable when warping or falling
 ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 {
@@ -1689,6 +1693,7 @@ ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 
 	const CellClass* pCell = pThis->GetCell();
 	const CoordStruct crd = pCell->GetCoordsWithBridge();
+	auto pExt = UnitExtContainer::Instance.Find(pThis);
 
 	if (!pThis->BunkerLinkedItem) {
 
@@ -1700,11 +1705,11 @@ ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 		}
 	}
 		// recreate replaced check, and also disallow if unit is still warping or dropping in.
-	return TechnoExtContainer::Instance.Find(pThis)->Convert_Deploy_Delay.InProgress()
+	return pExt->Convert_Deploy_Delay.InProgress()
 			|| pThis->IsUnderEMP()
 			|| pThis->IsWarpingIn()
 			|| pThis->IsFallingDown
-			|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled
+			|| pExt->Is_DriverKilled
 			? 0x700DCE : 0x700E59;
 }
 

@@ -1873,7 +1873,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 		pThis->NextMission();
 		pThis->KillPassengers(args.Attacker);
 
-		if (!TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn) {
+		if (!pThis->_GetExtData()->GarrisonedIn) {
 
 			bool IsForcedCyborg = false;
 			if (args.IgnoreDefenses) {

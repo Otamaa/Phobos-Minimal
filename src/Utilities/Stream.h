@@ -60,17 +60,12 @@ private:
 		return static_cast<float>(bytes) / BYTES_PER_MB;
 	}
 
-	// Internal corruption detection with performance controls
-	mutable uint32_t last_checksum = 0;
-	bool integrity_check_enabled = false;
-	bool checksum_enabled = false;  // Separate toggle for checksum calculation
+	// Simple integrity checking flag (no complex checksums)
+	static bool integrity_check_enabled;
 
 	// Performance optimization: reusable verification buffer
 	mutable std::vector<data_t> verify_buffer;
 	mutable std::vector<char> verify_buffer_integration;
-
-	// Incremental checksum for better performance
-	mutable uint32_t running_checksum = 0;
 
 public:
 	PhobosByteStream() : data(), position(0) { }
@@ -82,55 +77,6 @@ public:
 	~PhobosByteStream() = default;
 
 private:
-	// Calculate simple checksum for integrity checking (kept for compatibility)
-	uint32_t CalculateChecksum() const
-	{
-		uint32_t checksum = 0;
-		for (size_t i = 0; i < data.size(); i += sizeof(uint32_t))
-		{
-			uint32_t chunk = 0;
-			size_t remaining = MinImpl(sizeof(size_t), data.size() - i);
-			std::memcpy(&chunk, data.data() + i, remaining);
-			checksum ^= chunk;
-		}
-		return checksum;
-	}
-
-	// Fast incremental checksum calculation
-	void UpdateIncrementalChecksum(const void* dataIn, size_t size) const
-	{
-		const uint32_t* words = reinterpret_cast<const uint32_t*>(dataIn);
-		size_t word_count = size / sizeof(size_t);
-		const uint8_t* remaining_bytes = reinterpret_cast<const uint8_t*>(words + word_count);
-
-		// Process 4-byte chunks (much faster than byte-by-byte)
-		for (size_t i = 0; i < word_count; ++i)
-		{
-			running_checksum ^= words[i];
-		}
-
-		// Handle remaining bytes
-		uint32_t remaining = 0;
-		for (size_t i = 0; i < (size % sizeof(size_t)); ++i)
-		{
-			remaining |= (uint32_t(remaining_bytes[i]) << (i * BIG_SIZE));
-		}
-		if (remaining != 0)
-		{
-			running_checksum ^= remaining;
-		}
-	}
-
-	// Determine if data type needs verification (smart verification)
-	template<typename T>
-	COMPILETIMEEVAL bool NeedsVerification() const
-	{
-		// Only verify complex types, skip simple POD types for performance
-		return sizeof(T) > BIG_SIZE ||  // Large objects
-			std::is_pointer_v<T> ||  // Pointers (dangerous)
-			!std::is_trivially_copyable_v<T>;  // Complex types
-	}
-
 	// Validate buffer and size parameters
 	bool ValidateParameters(const void* buffer, size_t size, const char* operation) const
 	{
@@ -176,7 +122,7 @@ public:
 	{
 		return START_MARKER_LEN +     // Start marker
 			sizeof(DWORD) +            // Data size
-			sizeof(uint32_t) +         // Checksum
+			sizeof(uint32_t) +         // Checksum placeholder
 			data.size() +              // Actual data
 			END_MARKER_LEN;            // End marker
 	}
@@ -188,9 +134,7 @@ public:
 	{
 		data.clear();
 		position = 0;
-		last_checksum = 0;
-		running_checksum = 0; // Reset incremental checksum
-		verify_buffer.clear(); // Clear reusable buffer
+		verify_buffer.clear();
 		verify_buffer_integration.clear();
 	}
 
@@ -198,20 +142,15 @@ public:
 	void SetIntegrityCheck(bool enabled) { integrity_check_enabled = enabled; }
 	bool GetIntegrityCheck() const { return integrity_check_enabled; }
 
-	void SetChecksumEnabled(bool enabled) { checksum_enabled = enabled; }
-	bool GetChecksumEnabled() const { return checksum_enabled; }
-
-	// Enable/disable both for convenience
 	void SetPerformanceMode(bool highPerformance)
 	{
 		integrity_check_enabled = !highPerformance;
-		checksum_enabled = !highPerformance;
 	}
 
+	// Simplified integrity verification
 	bool VerifyIntegrity() const
 	{
-		if (!integrity_check_enabled) return true;
-		return last_checksum == running_checksum;
+		return true; // Always pass - real verification happens in Write operations
 	}
 
 	void LogStreamInfo() const;
@@ -249,9 +188,10 @@ public:
 			return false;
 		}
 
-		// Smart verification: only verify types that need it
-		if (integrity_check_enabled && NeedsVerification<T>())
+		// Simple verification: only if integrity check is enabled
+		if (integrity_check_enabled)
 		{
+
 			// Reuse verification buffer for performance
 			if (verify_buffer.size() < size)
 			{
@@ -292,7 +232,8 @@ public:
 		{
 
 			// Reuse verification buffer for performance
-			if (verify_buffer_integration.size() < size) {
+			if (verify_buffer_integration.size() < size)
+			{
 				verify_buffer_integration.resize(size + 1);
 			}
 

@@ -13,7 +13,9 @@
 
 UnitExtContainer UnitExtContainer::Instance;
 std::vector<UnitExtData*> Container<UnitExtData>::Array;
+//
 
+//======================================================================================
 void Container<UnitExtData>::Clear()
 {
 	Array.clear();
@@ -103,7 +105,7 @@ void UnitExtContainer::CreateDeployingAnim(UnitClass* pUnit, bool isDeploying)
 		pUnit->DeployAnim = pAnim;
 		pAnim->SetOwnerObject(pUnit);
 		AnimExtData::SetAnimOwnerHouseKind(pAnim, pUnit->Owner, nullptr, pUnit, false, true);
-		auto const pExt = TechnoExtContainer::Instance.Find(pUnit);
+		auto const pExt = UnitExtContainer::Instance.Find(pUnit);
 
 		if (pTypeExt->DeployingAnim_UseUnitDrawer)
 		{
@@ -142,7 +144,7 @@ void FakeUnitClass::_Deploy()
 
 		if (pThis->Deploying && pThis->DeployAnim)
 		{
-			auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+			auto const pExt = UnitExtContainer::Instance.Find(pThis);
 			auto& timer = pExt->SimpleDeployerAnimationTimer;
 
 			if (timer.Completed())
@@ -199,7 +201,7 @@ void FakeUnitClass::_UnDeploy()
 	{
 		if (pThis->Undeploying && pThis->DeployAnim)
 		{
-			auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+			auto const pExt = UnitExtContainer::Instance.Find(pThis);
 			auto& timer = pExt->SimpleDeployerAnimationTimer;
 
 			if (timer.Completed())

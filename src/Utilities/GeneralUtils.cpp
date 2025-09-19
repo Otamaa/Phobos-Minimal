@@ -16,6 +16,8 @@
 
 #include <Ext/Rules/Body.h>
 
+#include <SuperClass.h>
+
 int GeneralUtils::GetColorFromColorAdd(int colorIndex)
 {
 	auto const& colorAdd = RulesClass::Instance->ColorAdd;

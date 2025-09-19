@@ -584,12 +584,12 @@ public:
 	static void LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI);
 	static void InitializeAfterAllRulesLoaded();
 
-	static RulesExtData* Instance()
+	COMPILETIMEEVAL FORCEDINLINE static RulesExtData* Instance()
 	{
 		return Data.get();
 	}
 
-	static void Clear()
+	FORCEDINLINE static void Clear()
 	{
 		Allocate(RulesClass::Instance);
 	}

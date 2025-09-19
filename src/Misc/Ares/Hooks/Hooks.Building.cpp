@@ -9,6 +9,7 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 #include <Utilities/Cast.h>
+#include <Utilities/Helpers.h>
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -2269,7 +2270,7 @@ ASMJIT_PATCH(0x446AAF, BuildingClass_Place_SkipFreeUnits, 6)
 	// only once.
 	GET(BuildingClass*, pBld, EBP);
 
-	auto pBldExt = TechnoExtContainer::Instance.Find(pBld);
+	auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
 	// skip handling free units
 	if (pBldExt->FreeUnitDone)
@@ -2472,10 +2473,10 @@ ASMJIT_PATCH(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
 
 ASMJIT_PATCH(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5)
 {
-	GET(InfantryClass*, pInf, ESI);
+	GET(FakeInfantryClass*, pInf, ESI);
 	GET(BuildingClass*, pBld, EBP);
 
-	TechnoExtContainer::Instance.Find(pInf)->GarrisonedIn = pBld;
+	pInf->_GetExtData()->GarrisonedIn = pBld;
 	//pInf->Target = nullptr; //reset targeting
 
 	auto buildingExtData = BuildingExtContainer::Instance.Find(pBld);

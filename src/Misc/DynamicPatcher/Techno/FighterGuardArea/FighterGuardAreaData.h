@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef _aaaaaaa 
 #include <Utilities/TemplateDef.h>
 
 struct FighterAreaGuardData
@@ -51,3 +52,4 @@ private:
 
 	}
 };
+#endif

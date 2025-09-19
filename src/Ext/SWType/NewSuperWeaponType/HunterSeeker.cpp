@@ -5,6 +5,8 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/SWType/Body.h>
 
+#include <Utilities/Helpers.h>
+
 std::vector<const char*> SW_HunterSeeker::GetTypeString() const
 {
 	return { "HunterSeeker" };

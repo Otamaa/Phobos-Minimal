@@ -713,7 +713,7 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 
 		if (AircraftCanStrafeWithWeapon(pBullet->WeaponType))
 		{
-			TechnoExtContainer::Instance.Find(this)->ShootCount++;
+			AircraftExtContainer::Instance.Find(this)->Strafe_BombsDroppedThisRound++;
 
 			if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot)
 			{
@@ -772,7 +772,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2670, FakeAircraftClass::_FireAt);
 void FakeAircraftClass::_SetTarget(AbstractClass* pTarget)
 {
 	this->TechnoClass::SetTarget(pTarget);
-	TechnoExtContainer::Instance.Find(this)->CurrentAircraftWeaponIndex = -1;
+	AircraftExtContainer::Instance.Find(this)->CurrentAircraftWeaponIndex = -1;
 }
 
 void FakeAircraftClass::_Destroyed(int mult)
@@ -782,7 +782,7 @@ void FakeAircraftClass::_Destroyed(int mult)
 
 WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 {
-	auto const pExt = TechnoExtContainer::Instance.Find(this);
+	auto const pExt = AircraftExtContainer::Instance.Find(this);
 
 	if (pExt->CurrentAircraftWeaponIndex >= 0)
 		return this->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);

@@ -67,7 +67,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //		return 0x41659E;
 //
 //	if (AircraftCanStrafeWithWeapon(pBullet->WeaponType)) {
-//		TechnoExtContainer::Instance.Find(pThis)->ShootCount++;
+//		TechnoExtContainer::Instance.Find(pThis)->Strafe_BombsDroppedThisRound++;
 //
 //		if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot) {
 //			pThis->loseammo_6c8 = false;

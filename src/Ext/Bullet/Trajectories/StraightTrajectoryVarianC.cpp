@@ -6,6 +6,8 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Techno/Body.h>
 
+#include <AircraftTrackerClass.h>
+
 // https://github.com/Phobos-developers/Phobos/pull/1294
 // TODO : update
 
@@ -546,7 +548,7 @@ bool StraightTrajectoryVarianC::BulletDetonatePreCheck()
 {
 	BulletClass* pBullet = this->AttachedTo;
 	auto pType = this->GetTrajectoryType();
-	
+
 	if (this->ExtraCheck)
 		return true;
 

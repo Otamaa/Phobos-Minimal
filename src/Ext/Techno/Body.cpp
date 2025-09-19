@@ -228,6 +228,8 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6FDB80, FakeTechnoClass::__AdjustDamage);
 DEFINE_FUNCTION_JUMP(CALL, 0x6FE61D, FakeTechnoClass::__AdjustDamage);
 DEFINE_FUNCTION_JUMP(CALL, 0x7099B0, FakeTechnoClass::__AdjustDamage);
 
+#include <Ext/Infantry/Body.h>
+
 bool __fastcall FakeTechnoClass::__TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat)
 {
 	pThis->__creationframe_4FC = Unsorted::CurrentFrame();
@@ -2401,7 +2403,7 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 				{
 					pBld->Occupants.AddItem(pPayload);
 					auto const pCell = pThis->GetCell();
-					TechnoExtContainer::Instance.Find(pPayload)->GarrisonedIn = pBld;
+					InfantryExtContainer::Instance.Find(pPayload)->GarrisonedIn = pBld;
 					pThis->UpdateThreatInCell(pCell);
 				}
 				else
@@ -6917,13 +6919,15 @@ bool TechnoExtData::IsTypeImmune(TechnoClass* pThis, TechnoClass* pSource)
 	return pType == pSource->GetTechnoType() && pThis->Owner == pSource->Owner;
 }
 
+#include <Ext/Unit/Body.h>
+
 void TechnoExtData::InitializeUnitIdleAction(TechnoClass* pThis, TechnoTypeClass* pType)
 {
 	if (pThis->WhatAmI() != AbstractType::Unit || !pThis->HasTurret())
 		return;
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pExt = UnitExtContainer::Instance.Find((UnitClass*)pThis);
 
 	if (pTypeExt->AutoFire || pType->TurretSpins)
 		return;
@@ -7073,7 +7077,6 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 	AnnounceInvalidPointer(LinkedSW, ptr);
 	AnnounceInvalidPointer(OriginalPassengerOwner, ptr);
-	AnnounceInvalidPointer(GarrisonedIn, ptr , bRemoved);
 	AnnounceInvalidPointer(WebbyLastTarget, ptr);
 	AnnounceInvalidPointer(BuildingLight, ptr);
 	AnnounceInvalidPointer(AirstrikeTargetingMe, ptr);

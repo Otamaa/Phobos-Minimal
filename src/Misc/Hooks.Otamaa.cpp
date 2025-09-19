@@ -1153,8 +1153,7 @@ void FakeUnitClass::_SetOccupyBit(CoordStruct* pCrd)
 	//auto pCellExt = CellExtContainer::Instance.TryFind(pCell);
 
 	// remember which occupation bit we set
-	auto pExt = TechnoExtContainer::Instance.Find(this);
-	pExt->AltOccupation = alt;
+	this->_GetExtData()->AltOccupation = alt;
 
 	if (alt)
 	{
@@ -1181,12 +1180,12 @@ void FakeUnitClass::_ClearOccupyBit(CoordStruct* pCrd)
 	int alt = (pCrd->Z >= height) ? obAlt : obNormal;
 
 	// also clear the last occupation bit, if set
-	auto pExt = TechnoExtContainer::Instance.Find(this);
-	if (!pExt->AltOccupation.empty())
+
+	if (!this->_GetExtData()->AltOccupation.empty())
 	{
-		int lastAlt = pExt->AltOccupation ? obAlt : obNormal;
+		int lastAlt = this->_GetExtData()->AltOccupation ? obAlt : obNormal;
 		alt |= lastAlt;
-		pExt->AltOccupation.clear();
+		this->_GetExtData()->AltOccupation.clear();
 	}
 
 	if (alt & obAlt)

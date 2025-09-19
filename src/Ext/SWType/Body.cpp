@@ -34,6 +34,8 @@
 #include <DiscreteDistributionClass.h>
 #include <EventClass.h>
 
+#include <Utilities/Helpers.h>
+
 //TODO re-evaluate these , since the default array seems not contains what the documentation table says,..
 std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> SWTypeExtData::AITargetingModes =
 {

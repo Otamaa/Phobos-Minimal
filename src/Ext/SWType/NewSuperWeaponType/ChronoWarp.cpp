@@ -14,13 +14,15 @@ SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExtData* pData) const
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEvent | SuperWeaponFlags::PostClick;
 }
 
+#include <Ext/Infantry/Body.h>
+
 void KillCargo(TechnoClass* pTech , HouseClass* killer)
 {
 	if(auto pBuilding = cast_to<BuildingClass*, false>(pTech)) {
 		for(auto& pOcc : pBuilding->Occupants) {
 			pOcc->RegisterKill(killer);
 			pOcc->UnInit();
-				TechnoExtContainer::Instance.Find(pOcc)->GarrisonedIn = nullptr;
+				InfantryExtContainer::Instance.Find(pOcc)->GarrisonedIn = nullptr;
 			}
 		pBuilding->Occupants.Count = 0;
 	}

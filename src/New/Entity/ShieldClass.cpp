@@ -85,9 +85,9 @@ bool ShieldClass::Serialize(T& Stm)
 	return Stm
 		.Process(this->Techno, true)
 		.Process(this->CurTechnoType, true)
-		.Process(this->HP)
-		.Process(this->Timers)
+		.Process(this->Type, true)
 		.Process(this->IdleAnim, true)
+		.Process(this->HP)
 		.Process(this->Cloak)
 		.Process(this->Online)
 		.Process(this->Temporal)
@@ -106,8 +106,7 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Respawn_Weapon_Warhead)
 		.Process(this->LastBreakFrame)
 		.Process(this->LastTechnoHealthRatio)
-		.Process(this->Type, true)
-
+		.Process(this->Timers)
 		.Success();
 }
 

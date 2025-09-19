@@ -1700,7 +1700,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			this->Crashable.Read(exINI, pSection, "Crashable");
 			this->MyDiveData.Read(exINI, pSection);
 			this->MyPutData.Read(exINI, pSection);
-			this->MyFighterData.Read(exINI, pSection, pThis);
 		}
 #pragma endregion
 
@@ -2539,7 +2538,6 @@ void TechnoTypeExtData::Serialize(PhobosStreamWriter& Stm)
 	debugProcess(this->MySpawnSupportFLH, "MySpawnSupportFLH");
 	debugProcess(this->MySpawnSupportDatas, "MySpawnSupportDatas");
 	debugProcess(this->Trails, "Trails");
-	debugProcess(this->MyFighterData, "MyFighterData");
 	debugProcess(this->DamageSelfData, "DamageSelfData");
 	debugProcess(this->AttachedEffect, "AttachedEffect");
 	debugProcess(this->NoAmmoEffectAnim, "NoAmmoEffectAnim");
@@ -2798,7 +2796,6 @@ void TechnoTypeExtData::Serialize(PhobosStreamReader& Stm)
 	debugProcess(this->MySpawnSupportFLH, "MySpawnSupportFLH");
 	debugProcess(this->MySpawnSupportDatas, "MySpawnSupportDatas");
 	debugProcess(this->Trails, "Trails");
-	debugProcess(this->MyFighterData, "MyFighterData");
 	debugProcess(this->DamageSelfData, "DamageSelfData");
 	debugProcess(this->AttachedEffect, "AttachedEffect");
 	debugProcess(this->NoAmmoEffectAnim, "NoAmmoEffectAnim");

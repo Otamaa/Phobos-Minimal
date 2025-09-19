@@ -7,6 +7,8 @@
 
 #include <Ext/WarheadType/Body.h>
 
+#include <Utilities/Helpers.h>
+
 void AresAE::applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coords, HouseClass* Source)
 {
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
