@@ -18,6 +18,8 @@ public:
 	Valueable<int> SpawnsTiberium_Range;
 	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage;
 	Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim;
+	Valueable<float> SpawnsTiberium_StageFalloff;
+
 	Valueable<AnimTypeClass*> DestroyAnim;
 	ValueableIdx<VocClass> DestroySound;
 	Nullable<ColorStruct> MinimapColor;
@@ -49,6 +51,7 @@ public:
 		SpawnsTiberium_Range(1),
 		SpawnsTiberium_GrowthStage({ 3, 0 }),
 		SpawnsTiberium_CellsPerAnim({ 1, 0 }),
+		SpawnsTiberium_StageFalloff(),
 		DestroyAnim(nullptr),
 		DestroySound(-1),
 		IsPassable(false),

@@ -85,7 +85,7 @@ ASMJIT_PATCH(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 
 
 		pConvert = pTerrainExt->CustomPalette.ColorschemeDataVector->Items[colorSchemeIndex]->LightConvert;
-		R->EBP(pCell->Intensity_Normal);
+		R->EBP(pCell->Color1.Red);
 	}
 
 	R->EDX(pConvert);

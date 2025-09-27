@@ -417,6 +417,8 @@ public:
 	Valueable<int> UnitIdleActionIntervalMax { 450 };
 
 	Valueable<bool> ExpandAircraftMission {};
+	Valueable<int> ExtendedAircraftMissions_UnlandDamage {};
+
 	Valueable<bool> AssignUnitMissionAfterParadropped { false };
 
 	Valueable<Leptons> VisualScatter_Min { Leptons(8) };

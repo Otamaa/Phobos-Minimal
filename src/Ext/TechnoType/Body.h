@@ -84,10 +84,6 @@ struct ImageStatusses
 	static ImageStatusses ReadVoxel(const char* const nKey, bool a4);
 
 	void swap(VoxelStruct& from) {
-		if(Phobos::Otamaa::DoingLoadGame){
-			from.VXL = nullptr;
-			from.HVA = nullptr;
-		}
 
 		if (from.VXL != this->Images.VXL) {
 			std::swap(from.VXL, this->Images.VXL);
@@ -100,7 +96,10 @@ struct ImageStatusses
 
 	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		if(Phobos::Otamaa::DoingLoadGame){
+		if(Loaded){
+			GameDelete<true, true>(Images.VXL);
+			GameDelete<true, true>(Images.HVA);
+
 			Images.VXL = nullptr;
 			Images.HVA = nullptr;
 			Loaded = false;
@@ -1164,6 +1163,9 @@ public:
 	Nullable<bool> ExtendedAircraftMissions_SmoothMoving;
 	Nullable<bool> ExtendedAircraftMissions_EarlyDescend;
 	Nullable<bool> ExtendedAircraftMissions_RearApproach;
+	Nullable<bool> ExtendedAircraftMissions_FastScramble;
+	Nullable<int> ExtendedAircraftMissions_UnlandDamage;
+
 	Valueable<bool> DigitalDisplay_Health_FakeAtDisguise;
 
 	Valueable<int> EngineerRepairAmount;
@@ -2592,6 +2594,9 @@ private:
 			.Process(this->ExtendedAircraftMissions_SmoothMoving)
 			.Process(this->ExtendedAircraftMissions_EarlyDescend)
 			.Process(this->ExtendedAircraftMissions_RearApproach)
+			.Process(this->ExtendedAircraftMissions_FastScramble)
+			.Process(this->ExtendedAircraftMissions_UnlandDamage)
+
 			.Process(this->DigitalDisplay_Health_FakeAtDisguise)
 			.Process(this->EngineerRepairAmount)
 

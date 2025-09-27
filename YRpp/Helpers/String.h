@@ -143,7 +143,7 @@ int FixedChar<SIZE>::Format(const char* format, ...)
 	va_start(arg_list, format);
 
 	char temp_buffer[2048] = { 0 };
-	int retval = vsnprintf(temp_buffer, sizeof(temp_buffer), format, arg_list);
+	int retval = CRT::vsprintf(temp_buffer,format, arg_list);
 
 	Append(temp_buffer);
 
@@ -159,7 +159,7 @@ void FixedChar<SIZE>::Append(const char* string)
 	if (src_len + Length < SIZE - 1)
 	{
 		Length += src_len;
-		std::strcat(Buffer, string);
+		CRT::strcat(Buffer, string);
 	}
 }
 

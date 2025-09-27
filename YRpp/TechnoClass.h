@@ -798,6 +798,23 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
     void ImbueLocomotor(FootClass* target, CLSID clsid)
 	{ JMP_THIS(0x710000); }
 
+	void Draw_Object(
+		SHPStruct* shapefile,
+		int shapenum,
+		Point2D* xy,
+		RectangleStruct* rect,
+		DirType rotation,  //unused
+		int scale, //unused
+		int height_adjust,
+		ZGradient a8,
+		bool useZBuffer,
+		int lightLevel,
+		int tintLevel,
+		SHPStruct* z_shape,
+		int z_shape_framenum,
+		Point2D z_shape_offs,
+		BlitterFlags flags);
+
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
 		: TechnoClass(noinit_t())

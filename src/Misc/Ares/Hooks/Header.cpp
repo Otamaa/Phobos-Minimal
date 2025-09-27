@@ -79,6 +79,9 @@ UniqueGamePtr<MixFileClass>  StaticVars::aresMIX { };
 std::string  StaticVars::MovieMDINI { "MOVIEMD.INI" };
 WaveColorData  StaticVars::TempColor { };
 
+bool StaticVars::InitEd = false;
+AresPcxBlit<WORD> StaticVars::GlobalPcxBlitter = AresPcxBlit<WORD>(0u, 0, 0, 0);
+
 DWORD AresGlobalData::InternalVersion { 0x1414D121 };
 char AresGlobalData::ModName[0x40] { "Yuri's Revenge" };
 char AresGlobalData::ModVersion[0x40] { "1.001" };
@@ -140,6 +143,8 @@ void StaticVars::Clear()
 	ObjectLinkedAlphas.clear();
 	ShpCompression1Buffer.clear();
 	TriggerCounts.clear();
+	InitEd = false;
+	GlobalPcxBlitter = AresPcxBlit<WORD>(0u, 0, 0, 0);
 }
 
 void StaticVars::LoadGlobalsConfig()
@@ -4235,6 +4240,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		}
 	}
 
+	TechnoExtContainer::Instance.Find(pThis)->Tints.Update();
 	return true;
 }
 

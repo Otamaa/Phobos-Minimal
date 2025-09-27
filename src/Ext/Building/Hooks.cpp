@@ -11,6 +11,38 @@
 
 #include <GameOptionsClass.h>
 
+ASMJIT_PATCH(0x44955D, BuildingClass_WeaponFactoryOutsideBusy_WeaponFactoryCell, 0x6)
+{
+	enum { NotBusy = 0x44969B };
+
+	GET(BuildingClass* const, pThis, ESI);
+
+	const auto pLink = pThis->GetNthLink();
+
+	if (!pLink)
+		return NotBusy;
+
+	const auto pLinkType = pLink->GetTechnoType();
+
+	if (pLinkType->JumpJet && pLinkType->BalloonHover)
+		return NotBusy;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x445B62, BuildingClass_Limbo_WallTower_AdjacentWallDamage, 0x5)
+{
+	enum { SkipGameCode = 0x445B6E };
+
+	GET(CellClass*, pThis, EDI);
+	pThis->ReduceWall(200);
+
+	if (pThis->OverlayTypeIndex == -1)
+		TechnoClass::ClearWhoTargetingThis(pThis);
+
+	return SkipGameCode;
+}
+
 ASMJIT_PATCH(0x4400F9, BuildingClass_AI_UpdateOverpower, 0x6)
 {
 	enum { SkipGameCode = 0x44019D };
@@ -56,6 +88,10 @@ ASMJIT_PATCH(0x4555E4, BuildingClass_IsPowerOnline_Overpower, 0x6)
 	enum { LowPower = 0x4556BE, Continue1 = 0x4555F0, Continue2 = 0x455643 };
 
 	GET(FakeBuildingClass*, pThis, ESI);
+
+	if(pThis->_GetTypeExtData()->Overpower_KeepOnline < 0)
+		return LowPower;
+
 	int overPower = 0;
 
 	for (const auto& pCharger : pThis->Overpowerers) {
@@ -80,22 +116,6 @@ ASMJIT_PATCH(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
 		return IsBlockage;
 
 	return 0;
-}
-
-ASMJIT_PATCH(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
-{
-	enum { Apply = 0x43D6EF, Skip = 0x43D712 };
-
-	GET(FakeBuildingClass*, pThis, ESI);
-	GET(Mission, mission, EAX);
-
-	if (
-		(mission != Mission::Selling && mission != Mission::Construction) ||
-			pThis->_GetTypeExtData()->ZShapePointMove_OnBuildup
-		)
-		return Apply;
-
-	return Skip;
 }
 
 ASMJIT_PATCH(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)

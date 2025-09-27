@@ -117,41 +117,70 @@
 #include <CStreamClass.h>
 #include <LoadOptionsClass.h>
 
-//
-template<typename T>
-FORCEDINLINE bool Process_Global_Save(LPSTREAM pStm)
-{
-	PhobosByteStream stm;
-	PhobosStreamWriter writer(stm);
-
-	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-	return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
-}
 
 template<typename T>
-FORCEDINLINE bool Process_Global_Save_SingleInstanceObject(LPSTREAM pStm)
-{
-	PhobosByteStream stm;
-	PhobosStreamWriter writer(stm);
-
-	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-	T::Instance()->SaveToStream(writer);
-	return stm.WriteBlockToStream(pStm);
-}
-//
-
-template<typename T>
-HRESULT SaveObjectVector(LPSTREAM pStm, DynamicVectorClass<T>& collection)
+HRESULT SaveObjectVector(LPSTREAM pStm, DynamicVectorClass<T>& collection, DWORD arrayPosition = 0)
 {
 	HRESULT hr;
-	// Get type name once
 	std::string typeName = PhobosCRT::GetTypeIDName<T>();
+	ULONG written = 0;
+
+	// Write START marker
+	std::string startMarker = "START_" + typeName;
+	DWORD markerLength = startMarker.length();
+	hr = pStm->Write(&markerLength, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveObjectVector<%s>: FAILED to write start marker length! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	hr = pStm->Write(startMarker.c_str(), markerLength, nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveObjectVector<%s>: FAILED to write start marker! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	Debug::Log("SaveObjectVector<%s>: Successfully wrote start marker: %s\n",
+			   typeName.c_str(), startMarker.c_str());
+
+	// Get current position to calculate size later
+	LARGE_INTEGER zero = { 0 };
+	ULARGE_INTEGER sizeStartPos = { 0 };
+	hr = pStm->Seek(zero, STREAM_SEEK_CUR, &sizeStartPos);
+	if (FAILED(hr)) return hr;
+
+	// Write placeholder for size (will be updated later)
+	DWORD placeholderSize = 0;
+	hr = pStm->Write(&placeholderSize, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveObjectVector<%s>: FAILED to write size placeholder! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	// Write array position
+	hr = pStm->Write(&arrayPosition, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveObjectVector<%s>: FAILED to write array position! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	Debug::Log("SaveObjectVector<%s>: Successfully wrote array position: %d\n",
+			   typeName.c_str(), arrayPosition);
+
+	// Mark where data section starts
+	ULARGE_INTEGER dataStartPos = { 0 };
+	hr = pStm->Seek(zero, STREAM_SEEK_CUR, &dataStartPos);
+	if (FAILED(hr)) return hr;
 
 	// Write the count
 	int count = collection.Count;
 	Debug::Log("SaveObjectVector<%s>: About to write count %d\n",
 			   typeName.c_str(), count);
-
 	hr = pStm->Write(&count, sizeof(int), nullptr);
 	if (FAILED(hr))
 	{
@@ -167,33 +196,174 @@ HRESULT SaveObjectVector(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 	{
 		Debug::Log("SaveObjectVector<%s>: Saving object %d/%d\n",
 				   typeName.c_str(), i + 1, count);
-
 		LPPERSISTSTREAM pUnk = nullptr;
 		hr = collection.Items[i]->QueryInterface(IID_IPersistStream,
 												  reinterpret_cast<void**>(&pUnk));
-		if (FAILED(hr)) return hr;
+		if (FAILED(hr))
+		{
+			Debug::Log("SaveObjectVector<%s>: QueryInterface failed for object %d! HRESULT: 0x%08X\n",
+					   typeName.c_str(), i, hr);
+			return hr;
+		}
 		hr = OleSaveToStream(pUnk, pStm);
 		pUnk->Release();
-		if (FAILED(hr)) return hr;
+		if (FAILED(hr))
+		{
+			Debug::Log("SaveObjectVector<%s>: OleSaveToStream failed for object %d! HRESULT: 0x%08X\n",
+					   typeName.c_str(), i, hr);
+			return hr;
+		}
 	}
+
+	// Calculate actual data size
+	ULARGE_INTEGER dataEndPos = { 0 };
+	hr = pStm->Seek(zero, STREAM_SEEK_CUR, &dataEndPos);
+	if (FAILED(hr)) return hr;
+
+	DWORD actualDataSize = (DWORD)(dataEndPos.QuadPart - dataStartPos.QuadPart);
+
+	// Go back and write the actual size
+	LARGE_INTEGER sizePos;
+	sizePos.QuadPart = sizeStartPos.QuadPart;
+	hr = pStm->Seek(sizePos, STREAM_SEEK_SET, nullptr);
+	if (FAILED(hr)) return hr;
+
+	hr = pStm->Write(&actualDataSize, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveObjectVector<%s>: FAILED to write actual size! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	// Seek back to end for writing end marker
+	LARGE_INTEGER endPos;
+	endPos.QuadPart = dataEndPos.QuadPart;
+	hr = pStm->Seek(endPos, STREAM_SEEK_SET, nullptr);
+	if (FAILED(hr)) return hr;
+
+	Debug::Log("SaveObjectVector<%s>: Data size: %d bytes\n",
+			   typeName.c_str(), actualDataSize);
+
+	// Write END marker
+	std::string endMarker = "END_" + typeName;
+	markerLength = endMarker.length();
+	hr = pStm->Write(&markerLength, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveObjectVector<%s>: FAILED to write end marker length! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	hr = pStm->Write(endMarker.c_str(), markerLength, nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveObjectVector<%s>: FAILED to write end marker! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	Debug::Log("SaveObjectVector<%s>: Successfully wrote end marker: %s\n",
+			   typeName.c_str(), endMarker.c_str());
+
+	Debug::Log("SaveObjectVector<%s>: Successfully saved %d objects at position %d, data size: %d bytes\n",
+			   typeName.c_str(), count, arrayPosition, actualDataSize);
+
 	return S_OK;
 }
 
 template<typename T>
-HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
+HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection, DWORD arrayPosition = 0)
 {
 	HRESULT hr;
+	std::string typeName = PhobosCRT::GetTypeIDName<T>();
+
+	// Write START marker
+	std::string startMarker = "START_" + typeName;
+	DWORD markerLength = startMarker.length();
+	hr = pStm->Write(&markerLength, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveSimpleArray<%s>: FAILED to write start marker length! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	hr = pStm->Write(startMarker.c_str(), markerLength, nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveSimpleArray<%s>: FAILED to write start marker! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	Debug::Log("SaveSimpleArray<%s>: Successfully wrote start marker: %s\n",
+			   typeName.c_str(), startMarker.c_str());
+
+	// Calculate data size
+	int count = collection.Count;
+	DWORD dataSize = sizeof(int) + (count * sizeof(T)); // count + all items
+
+	// Write size
+	hr = pStm->Write(&dataSize, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveSimpleArray<%s>: FAILED to write data size! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	// Write array position
+	hr = pStm->Write(&arrayPosition, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveSimpleArray<%s>: FAILED to write array position! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	Debug::Log("SaveSimpleArray<%s>: Successfully wrote array position: %d, data size: %d\n",
+			   typeName.c_str(), arrayPosition, dataSize);
 
 	// Write count
-	hr = pStm->Write(&collection.Count, sizeof(int), nullptr);
-	if (FAILED(hr)) return hr;
+	hr = pStm->Write(&count, sizeof(int), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveSimpleArray<%s>: FAILED to write count! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
 
 	// Write array data
-	for (int i = 0; i < collection.Count; ++i)
+	for (int i = 0; i < count; ++i)
 	{
 		hr = pStm->Write(&collection.Items[i], sizeof(T), nullptr);
-		if (FAILED(hr)) return hr;
+		if (FAILED(hr))
+		{
+			Debug::Log("SaveSimpleArray<%s>: FAILED to write item %d! HRESULT: 0x%08X\n",
+					   typeName.c_str(), i, hr);
+			return hr;
+		}
 	}
+
+	// Write END marker
+	std::string endMarker = "END_" + typeName;
+	markerLength = endMarker.length();
+	hr = pStm->Write(&markerLength, sizeof(DWORD), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveSimpleArray<%s>: FAILED to write end marker length! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	hr = pStm->Write(endMarker.c_str(), markerLength, nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveSimpleArray<%s>: FAILED to write end marker! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	Debug::Log("SaveSimpleArray<%s>: Successfully wrote end marker: %s\n",
+			   typeName.c_str(), endMarker.c_str());
+
+	Debug::Log("SaveSimpleArray<%s>: Successfully saved %d items at position %d\n",
+			   typeName.c_str(), count, arrayPosition);
 
 	return S_OK;
 }
@@ -201,511 +371,477 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 #include <Utilities/StreamUtils.h>
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
-HRESULT Put_All_Pointers_WithValidation(LPSTREAM pStm, SavePositionTracker& tracker)
+//dummy objects to trigger `CONTENTS` writing
+class DECLSPEC_UUID("EE8D505F-12BB-4313-AEDC-4AEA30A5BA03")
+DummyPersist : public IPersistStream
 {
-	Debug::Log("=== ENHANCED SAVE WITH POSITION VALIDATION ===\n");
+public:
+	STDMETHODIMP QueryInterface(REFIID riid, void** ppv) override
+	{
+		if (ppv == nullptr)
+		{
+			return E_POINTER;
+		}
+		*ppv = nullptr;
+
+		if (riid == __uuidof(IUnknown))
+		{
+			*ppv = reinterpret_cast<IUnknown*>(this);
+		}
+
+		if (riid == __uuidof(IStream))
+		{
+			*ppv = reinterpret_cast<IStream*>(this);
+		}
+
+		if (riid == __uuidof(IPersistStream))
+		{
+			*ppv = static_cast<IPersistStream*>(this);
+		}
+
+		if (*ppv == nullptr)
+		{
+			return E_NOINTERFACE;
+		}
+
+		reinterpret_cast<IUnknown*>(*ppv)->AddRef();
+		return S_OK;
+	}
+
+	STDMETHODIMP_(ULONG) AddRef() override { return 1; }
+	STDMETHODIMP_(ULONG) Release() override { return 1; }
+
+	STDMETHODIMP GetClassID(CLSID* pClassID) override
+	{
+		if (pClassID == nullptr) {
+			return E_POINTER;
+		}
+
+		*pClassID = __uuidof(this);
+
+		return S_OK;
+	}
+
+	STDMETHOD(IsDirty)() override { return S_OK; }
+
+	STDMETHOD(Load)(IStream* pStm) override {
+
+		if (!pStm) {
+			return E_POINTER;
+		}
+
+		HRESULT hr = pStm->Read(this, sizeof(*this), nullptr);
+
+		if (FAILED(hr)) {
+			return hr;
+		}
+
+		return hr;
+	}
+
+	STDMETHOD(Save)(IStream* pStm, BOOL fClearDirty) override {
+
+		if (!pStm) {
+			return E_POINTER;
+		}
+
+		HRESULT hr = pStm->Write(this, sizeof(*this), nullptr);
+
+		if (FAILED(hr)) {
+			return hr;
+		}
+
+		return hr;
+	}
+
+	STDMETHOD(GetSizeMax)(ULARGE_INTEGER* pSize) override {
+	   if (!pSize) {
+		 return E_POINTER;
+	   }
+
+	   pSize->LowPart = sizeof(*this); // Add size of swizzle "id".
+	   pSize->HighPart = 0;
+
+		return S_OK;
+	}
+
+private:
+	int data;
+};
+
+template<typename T>
+bool Process_Global_Save(PhobosStreamWriter& writer) {
+	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
+	return T::SaveGlobals(writer);
+}
+
+HRESULT SavePhobosEarlyObjects(LPSTREAM pStm)
+{
+	PhobosByteStream stm;
+	PhobosStreamWriter writer(stm);
+
 	HRESULT hr = S_OK;
 
-	// Track initial position
-	ULARGE_INTEGER startPos = tracker.GetCurrentPosition();
-	Debug::Log("About to save the game - starting at position: %llu\n", startPos.QuadPart);
+	bool success = Process_Global_Save<Phobos>(writer);
+	if (!success) return E_FAIL;
 
-	// Phobos extension data
-	tracker.StartOperation("Process_Global_Save<Phobos>");
-	bool success = Process_Global_Save<Phobos>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	success = Process_Global_Save<CursorTypeClass>(writer);
+	if (!success) return E_FAIL;
 
-	tracker.StartOperation("Process_Global_Save<CursorTypeClass>");
-	success = Process_Global_Save<CursorTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	success = Process_Global_Save<ColorTypeClass>(writer);
+	if (!success) return E_FAIL;
 
-	tracker.StartOperation("Process_Global_Save<ColorTypeClass>");
-	success = Process_Global_Save<ColorTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	success = Process_Global_Save<SideExtContainer>(writer);
+	if (!success) return E_FAIL;
 
-	tracker.StartOperation("ScenarioClass::Instance->Save");
+	success = Process_Global_Save<TheaterTypeClass>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<MouseClassExt>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<DigitalDisplayTypeClass>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<ArmorTypeClass>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<ImmunityTypeClass>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<LaserTrailTypeClass>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<TunnelTypeClass>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<InsigniaTypeClass>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<SelectBoxTypeClass>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<TiberiumExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<HouseTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<HouseExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<UnitTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<InfantryTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<BuildingTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<AircraftTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<AnimExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<TEventExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<VoxelAnimTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<WarheadTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<WeaponTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<ParticleTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<ParticleSystemTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<BulletTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<TActionExtData>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<SmudgeTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<OverlayTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<SWTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<TerrainTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	if (!stm.WriteToStream(pStm))
+		hr = E_FAIL;
+
+	return hr;
+
+}
+
+HRESULT Put_All_Pointers(LPSTREAM pStm)
+{
+	HRESULT hr = S_OK;
+
 	hr = ScenarioClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save<SideExtContainer>");
-	success = Process_Global_Save<SideExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	hr = SavePhobosEarlyObjects(pStm);
+	if (!SUCCEEDED(hr)) return false;
 
-	tracker.StartOperation("SaveObjectVector(SideClass::Array)");
 	hr = SaveObjectVector(pStm, *SideClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save<TheaterTypeClass>");
-	success = Process_Global_Save<TheaterTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("EvadeClass::Instance->Save");
 	hr = EvadeClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("RulesClass::Instance->Save");
 	hr = RulesClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save<MouseClassExt>");
-	success = Process_Global_Save<MouseClassExt>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("MouseClass::Instance->Save");
 	hr = MouseClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	// Game misc data
-	tracker.StartOperation("Game::Save_Misc_Values");
 	hr = Game::Save_Misc_Values(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	// Logic and tactical systems
-	tracker.StartOperation("LogicClass::Instance->Save");
 	hr = LogicClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("OleSaveToStream(TacticalClass::Instance())");
 	hr = OleSaveToStream(TacticalClass::Instance(), pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save_SingleInstanceObject<TacticalExtData>");
-	success = Process_Global_Save_SingleInstanceObject<TacticalExtData>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<DigitalDisplayTypeClass>");
-	success = Process_Global_Save<DigitalDisplayTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<ArmorTypeClass>");
-	success = Process_Global_Save<ArmorTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<ImmunityTypeClass>");
-	success = Process_Global_Save<ImmunityTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<LaserTrailTypeClass>");
-	success = Process_Global_Save<LaserTrailTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<TunnelTypeClass>");
-	success = Process_Global_Save<TunnelTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<InsigniaTypeClass>");
-	success = Process_Global_Save<InsigniaTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<SelectBoxTypeClass>");
-	success = Process_Global_Save<SelectBoxTypeClass>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(AnimTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *AnimTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TubeClass::Array)");
 	hr = SaveObjectVector(pStm, *TubeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save<TiberiumExtContainer>");
-	success = Process_Global_Save<TiberiumExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(TiberiumClass::Array)");
 	hr = SaveObjectVector(pStm, *TiberiumClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// House system
-	tracker.StartOperation("Process_Global_Save<HouseTypeExtContainer>");
-	success = Process_Global_Save<HouseTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(HouseTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *HouseTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save<HouseExtContainer>");
-	success = Process_Global_Save<HouseExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(HouseClass::Array)");
 	hr = SaveObjectVector(pStm, *HouseClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Unit system
-	tracker.StartOperation("Process_Global_Save<UnitTypeExtContainer>");
-	success = Process_Global_Save<UnitTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(UnitTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *UnitTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(UnitClass::Array)");
 	hr = SaveObjectVector(pStm, *UnitClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Infantry system
-	tracker.StartOperation("Process_Global_Save<InfantryTypeExtContainer>");
-	success = Process_Global_Save<InfantryTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(InfantryTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *InfantryTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(InfantryClass::Array)");
 	hr = SaveObjectVector(pStm, *InfantryClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Building system
-	tracker.StartOperation("Process_Global_Save<BuildingTypeExtContainer>");
-	success = Process_Global_Save<BuildingTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(BuildingTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *BuildingTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(BuildingClass::Array)");
 	hr = SaveObjectVector(pStm, *BuildingClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Aircraft system
-	tracker.StartOperation("Process_Global_Save<AircraftTypeExtContainer>");
-	success = Process_Global_Save<AircraftTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(AircraftTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *AircraftTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(AircraftClass::Array)");
 	hr = SaveObjectVector(pStm, *AircraftClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<AnimExtContainer>");
-	success = Process_Global_Save<AnimExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(AnimClass::Array)");
 	hr = SaveObjectVector(pStm, *AnimClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// AI system
-	tracker.StartOperation("SaveObjectVector(TaskForceClass::Array)");
 	hr = SaveObjectVector(pStm, *TaskForceClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TeamTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *TeamTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TeamClass::Array)");
 	hr = SaveObjectVector(pStm, *TeamClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(ScriptTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *ScriptTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(ScriptClass::Array)");
 	hr = SaveObjectVector(pStm, *ScriptClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TagTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *TagTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TagClass::Array)");
 	hr = SaveObjectVector(pStm, *TagClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TriggerTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *TriggerTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TriggerClass::Array)");
 	hr = SaveObjectVector(pStm, *TriggerClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(AITriggerTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *AITriggerTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Action and event system
-	tracker.StartOperation("SaveObjectVector(TActionClass::Array)");
 	hr = SaveObjectVector(pStm, *TActionClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save<TActionExtData>");
-	success = Process_Global_Save<TActionExtData>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Save<TEventExtContainer>");
-	success = Process_Global_Save<TEventExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(TEventClass::Array)");
 	hr = SaveObjectVector(pStm, *TEventClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Factory system
-	tracker.StartOperation("SaveObjectVector(FactoryClass::Array)");
 	hr = SaveObjectVector(pStm, *FactoryClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Voxel animation system
-	tracker.StartOperation("Process_Global_Save<VoxelAnimTypeExtContainer>");
-	success = Process_Global_Save<VoxelAnimTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(VoxelAnimTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *VoxelAnimTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(VoxelAnimClass::Array)");
 	hr = SaveObjectVector(pStm, *VoxelAnimClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Weapon and combat system
-	tracker.StartOperation("Process_Global_Save<WarheadTypeExtContainer>");
-	success = Process_Global_Save<WarheadTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(WarheadTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *WarheadTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save<WeaponTypeExtContainer>");
-	success = Process_Global_Save<WeaponTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(WeaponTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *WeaponTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Particle system
-	tracker.StartOperation("Process_Global_Save<ParticleTypeExtContainer>");
-	success = Process_Global_Save<ParticleTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(ParticleTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *ParticleTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(ParticleClass::Array)");
 	hr = SaveObjectVector(pStm, *ParticleClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Save<ParticleSystemTypeExtContainer>");
-	success = Process_Global_Save<ParticleSystemTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(ParticleSystemTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *ParticleSystemTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(ParticleSystemClass::Array)");
 	hr = SaveObjectVector(pStm, *ParticleSystemClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Bullet system
-	tracker.StartOperation("Process_Global_Save<BulletTypeExtContainer>");
-	success = Process_Global_Save<BulletTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(BulletTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *BulletTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(BulletClass::Array)");
 	hr = SaveObjectVector(pStm, *BulletClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Waypoint system
-	tracker.StartOperation("SaveObjectVector(WaypointPathClass::Array)");
 	hr = SaveObjectVector(pStm, *WaypointPathClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Smudge system
-	tracker.StartOperation("Process_Global_Save<SmudgeTypeExtContainer>");
-	success = Process_Global_Save<SmudgeTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(SmudgeTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *SmudgeTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Overlay system
-	tracker.StartOperation("Process_Global_Save<OverlayTypeExtContainer>");
-	success = Process_Global_Save<OverlayTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(OverlayTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *OverlayTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Light system
-	tracker.StartOperation("SaveObjectVector(LightSourceClass::Array)");
 	hr = SaveObjectVector(pStm, *LightSourceClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(BuildingLightClass::Array)");
 	hr = SaveObjectVector(pStm, *BuildingLightClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// EMP system
-	tracker.StartOperation("SaveObjectVector(EMPulseClass::Array)");
 	hr = SaveObjectVector(pStm, *EMPulseClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Super weapon system
-	tracker.StartOperation("Process_Global_Save<SWTypeExtContainer>");
-	success = Process_Global_Save<SWTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(SuperWeaponTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *SuperWeaponTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(SuperClass::Array)");
 	hr = SaveObjectVector(pStm, *SuperClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Simple arrays
-	tracker.StartOperation("SaveSimpleArray(*SuperClass::ShowTimers)");
 	hr = SaveSimpleArray(pStm, *SuperClass::ShowTimers);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveSimpleArray(*BuildingClass::Secrets)");
 	hr = SaveSimpleArray(pStm, *BuildingClass::Secrets);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Terrain system
-	tracker.StartOperation("Process_Global_Save<TerrainTypeExtContainer>");
-	success = Process_Global_Save<TerrainTypeExtContainer>(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("SaveObjectVector(TerrainTypeClass::Array)");
 	hr = SaveObjectVector(pStm, *TerrainTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TerrainClass::Array)");
 	hr = SaveObjectVector(pStm, *TerrainClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Visual effects
-	tracker.StartOperation("SaveObjectVector(FoggedObjectClass::Array)");
 	hr = SaveObjectVector(pStm, *FoggedObjectClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(AlphaShapeClass::Array)");
 	hr = SaveObjectVector(pStm, *AlphaShapeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(WaveClass::Array)");
 	hr = SaveObjectVector(pStm, *WaveClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Special save methods
-	tracker.StartOperation("VeinholeMonsterClass::SaveVector");
-	success = VeinholeMonsterClass::SaveVector(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	if (!VeinholeMonsterClass::SaveVector(pStm)) return E_FAIL;
 
-	tracker.StartOperation("RadarEventClass::SaveVector");
-	success = RadarEventClass::SaveVector(pStm);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	if (!RadarEventClass::SaveVector(pStm)) return E_FAIL;
 
-	// Special systems
-	tracker.StartOperation("SaveObjectVector(CaptureManagerClass::Array)");
 	hr = SaveObjectVector(pStm, *CaptureManagerClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(DiskLaserClass::Array)");
 	hr = SaveObjectVector(pStm, *DiskLaserClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(ParasiteClass::Array)");
 	hr = SaveObjectVector(pStm, *ParasiteClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(TemporalClass::Array)");
 	hr = SaveObjectVector(pStm, *TemporalClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Advanced systems
-	tracker.StartOperation("SaveObjectVector(AirstrikeClass::Array)");
 	hr = SaveObjectVector(pStm, *AirstrikeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(SpawnManagerClass::Array)");
 	hr = SaveObjectVector(pStm, *SpawnManagerClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(SlaveManagerClass::Array)");
 	hr = SaveObjectVector(pStm, *SlaveManagerClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Tracker systems
-	tracker.StartOperation("AircraftTrackerClass::Instance->Save");
 	hr = AircraftTrackerClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Kamikaze::Instance->Save");
 	hr = Kamikaze::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("BombListClass::Instance->Save");
 	hr = BombListClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(BombClass::Array)");
 	hr = SaveObjectVector(pStm, *BombClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("SaveObjectVector(RadSiteClass::Array)");
 	hr = SaveObjectVector(pStm, *RadSiteClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	// Game options section (known problematic area)
-	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
-	{
-		tracker.StartOperation("GameOptionsType::Instance->Save");
+	if (SessionClass::Instance->GameMode == GameMode::Skirmish) {
 		Debug::Log("Writing Skirmish Session.Options\n");
-		const bool save_GameOptionsType = GameOptionsType::Instance->Save(pStm);
-		if (!tracker.EndOperation(save_GameOptionsType))
+		if (!GameOptionsType::Instance->Save(pStm))
 		{
 			Debug::Log("\t***** GameOptionsType SAVE FAILED!\n");
 			return E_FAIL;
 		}
 	}
 
-	// Audio/visual systems
-	tracker.StartOperation("VocClass::Save");
 	hr = VocClass::Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("VoxClass::Save");
 	hr = VoxClass::Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("ThemeClass::Instance->Save");
 	hr = ThemeClass::Instance->Save(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	// Final Phobos data
-	tracker.StartOperation("Phobos::SaveGameDataAfter");
+	ULONG out = 0;
+	hr = pStm->Write(&VoxClass::EVAIndex(), sizeof(int), &out);
+	if (!SUCCEEDED(hr)) return hr;
+
 	hr = Phobos::SaveGameDataAfter(pStm);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	// Log final summary
-	ULARGE_INTEGER endPos = tracker.GetCurrentPosition();
-	Debug::Log("=== SAVE COMPLETED SUCCESSFULLY ===\n");
-	Debug::Log("Total bytes written: %llu\n", endPos.QuadPart - startPos.QuadPart);
-	tracker.LogAllOperations();
+	if (!SUCCEEDED(hr)) return hr;
 
 	return hr;
 }
@@ -757,7 +893,16 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	Debug::Log("Saving version information\n");
 	hr = saveversion.Write(storage);
 	if (FAILED(hr)) {
-		Debug::FatalError("Failed to read version information.\n");
+		Debug::FatalError("Failed to write version information.\n");
+		return false;
+	}
+
+	// === ensure the property-set (SavegameInformation) is committed and finalized
+	// so the compound-file allocator won't reuse its space for the CONTENTS stream.
+	Debug::Log("Committing storage after SavegameInformation write to finalize property-set...\n");
+	hr = storage->Commit(STGC_DEFAULT);
+	if (FAILED(hr)) {
+		Debug::FatalError("Failed to commit storage after SavegameInformation write. hr=0x%08X\n", hr);
 		return false;
 	}
 
@@ -769,41 +914,52 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 		return false;
 	}
 
-	Debug::Log("Linking content stream to compressor.\n");
-	IUnknown* pUnknown = nullptr;
-	ATL::CComPtr<ILinkStream> linkstream;
-	hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-	if (SUCCEEDED(hr)) {
-		hr = OleRun(pUnknown);
-		if (SUCCEEDED(hr)) {
-			pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
-		}
-		pUnknown->Release();
-	}
-
-	hr = linkstream->Link_Stream(docfile);
+	hr = docfile->Commit(STGC_OVERWRITE); // flush stream buffers
 	if (FAILED(hr)) {
-		Debug::FatalError("Failed to link stream to compressor.\n");
+		Debug::FatalError("Failed to commit CONTENTS stream.\n");
 		return false;
 	}
 
-	ATL::CComPtr<IStream> stream;
-	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
+	LARGE_INTEGER li = {};
+	hr = docfile->Seek(li, STREAM_SEEK_SET, nullptr);
+	if (FAILED(hr)) {
+		Debug::FatalError("Failed to seek CONTENTS stream to beginning.\n");
+		return false;
+	}
 
-	Debug::Log("Creating stream wrapper for tracking.\n");
-	auto wrappedStream = std::make_unique<StreamWrapperWithTracking>(stream);
-	SavePositionTracker tracker(wrappedStream.get(), "SAVE");
+
+	//disable compression so it can be read on hex editor
+	//Debug::Log("Linking content stream to compressor.\n");
+	//IUnknown* pUnknown = nullptr;
+	//ATL::CComPtr<ILinkStream> linkstream;
+	//hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
+	//if (SUCCEEDED(hr)) {
+	//	hr = OleRun(pUnknown);
+	//	if (SUCCEEDED(hr)) {
+	//		pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
+	//	}
+	//	pUnknown->Release();
+	//}
+
+	//hr = linkstream->Link_Stream(docfile);
+	//if (FAILED(hr)) {
+	//	Debug::FatalError("Failed to link stream to compressor.\n");
+	//	return false;
+	//}
+
+	//ATL::CComPtr<IStream> stream;
+	//linkstream->QueryInterface(__uuidof(IStream), (void**)&stream
 
 	Debug::Log("Calling Put_All_Pointers().\n");
 
-	bool result = SUCCEEDED(Put_All_Pointers_WithValidation(wrappedStream.get(), tracker));
+	bool result = SUCCEEDED(Put_All_Pointers(docfile));
 
-	Debug::Log("Unlinking content stream from compressor.\n");
-	hr = linkstream->Unlink_Stream(nullptr);
-	if (FAILED(hr)) {
-		Debug::FatalError("Failed to link unstream from compressor.\n");
-		return false;
-	}
+	//Debug::Log("Unlinking content stream from compressor.\n");
+	//hr = linkstream->Unlink_Stream(nullptr);
+	//if (FAILED(hr)) {
+	//	Debug::FatalError("Failed to link unstream from compressor.\n");
+	//	return false;
+	//}
 
 	Debug::Log("Releasing content stream.\n");
 	docfile.Release();

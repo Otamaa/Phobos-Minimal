@@ -1164,6 +1164,8 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 		TechnoExtData::InitializeUnitIdleAction(pThis, pType);
 
 		pExt->InitPassiveAcquireMode();
+		if (!pExt->AE.HasTint && pExt->CurrentShieldType == ShieldTypeClass::Array[0].get())
+			pExt->Tints.Update();
 
 		R->EAX(pType);
 		return 0x6F4212;

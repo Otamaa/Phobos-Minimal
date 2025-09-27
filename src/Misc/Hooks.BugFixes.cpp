@@ -459,11 +459,27 @@ ASMJIT_PATCH(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 }
 
 // Bugfix: TAction 7,80,107.
-ASMJIT_PATCH(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
+ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
 {
 	GET(FootClass* const, pPayload, EAX);
 	GET(FootClass* const, pTransport, ESI);
 	GET(TeamClass* const, pTeam, EBP);
+	GET(TeamTypeClass const*, pThis, EBX);
+
+	auto unmarkPayloadCreated = [](FootClass* member){TechnoExtContainer::Instance.Find(member)->PayloadCreated = false;};
+
+	if (!pTransport) {
+		for (auto pNext = pPayload;
+		pNext && pNext != pTransport && pNext->Team == pTeam;
+		pNext = flag_cast_to<FootClass*>(pNext->NextObject))
+			unmarkPayloadCreated(pNext);
+
+		return 0x65DFE8;
+	}
+
+	unmarkPayloadCreated(pTransport);
+	if (!pPayload || !pThis->Full)
+		return 0x65E004;
 
 	const bool isTransportOpenTopped = pTransport->GetTechnoType()->OpenTopped;
 	FootClass* pGunner = nullptr;
@@ -496,13 +512,13 @@ ASMJIT_PATCH(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
 // BibShape checks for BuildingClass::BState which needs to not be 0 (constructing) for bib to draw.
 // It is possible for BState to be 1 early during construction for frame or two which can result in BibShape being drawn during buildup, which somehow depends on length of buildup.
 // Trying to fix this issue at its root is problematic and most of the time causes buildup to play twice, it is simpler to simply fix the BibShape to not draw until the buildup is done - Starkku
-ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
-{
-	enum { DontDrawBib = 0x43D8EE };
+// ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
+// {
+// 	enum { DontDrawBib = 0x43D8EE };
 
-	GET(BuildingClass* const, pThis, ESI);
-	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
-}
+// 	GET(BuildingClass* const, pThis, ESI);
+// 	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
+// }
 
 ASMJIT_PATCH(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 {
@@ -1834,7 +1850,7 @@ ASMJIT_PATCH(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 	GET(AnimClass*, pThis, ESI);
 
 	if (pThis->Type->MakeInfantry != -1) {
-		R->EAX(pThis->GetCell()->Intensity_Normal);
+		R->EAX(pThis->GetCell()->Color1.Red);
 		return 0x4232C5;
 	}
 
@@ -2486,78 +2502,6 @@ ASMJIT_PATCH(0x73F0A7, UnitClass_IsCellOccupied_Start, 0x9)
 
 DEFINE_FUNCTION_JUMP(CALL6 ,0x51A657 , FakeInfantryClass::_DummyScatter);
 
-ASMJIT_PATCH(0x4D92BF, FootClass_Mission_Enter_CheckLink, 0x5)
-{
-	enum { NextAction = 0x4D92ED, NotifyUnlink = 0x4D92CE, DoNothing = 0x4D946C };
-
-	GET(UnitClass* const, pThis, ESI);
-	GET(const RadioCommand, answer, EAX);
-
-	// Restore vanilla check
-	if (pThis->IsTethered)
-		return NextAction;
-
-	if (answer == RadioCommand::AnswerPositive)
-		return NextAction;
-
-	// The link should not be disconnected while the transporter is in motion (passengers waiting to enter),
-	// as this will result in the first passenger not getting on board
-	return answer == RadioCommand::RequestLoading ? DoNothing : NotifyUnlink;
-}
-
-ASMJIT_PATCH(0x4B08EF, DriveLocomotionClass_Process_CheckUnload, 0x5)
-{
-	enum { SkipGameCode = 0x4B078C, ContinueProcess = 0x4B0903 };
-
-	GET(ILocomotion* const, iloco, ESI);
-
-	const auto pFoot = static_cast<LocomotionClass*>(iloco)->LinkedTo;
-
-	if (pFoot->GetCurrentMission() != Mission::Unload)
-		return ContinueProcess;
-
-	return (pFoot->GetTechnoType()->Passengers > 0 && pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
-}
-
-ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
-{
-	enum { SkipGameCode = 0x69FE39, ContinueProcess = 0x69FFCA };
-
-	GET(ILocomotion* const, iloco, ESI);
-
-	const auto pFoot = static_cast<LocomotionClass*>(iloco)->LinkedTo;
-
-	if (pFoot->GetCurrentMission() != Mission::Unload)
-		return ContinueProcess;
-
-	return (pFoot->GetTechnoType()->Passengers > 0 && pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
-}
-
-// Rewrite from 0x718505
-ASMJIT_PATCH(0x718F1E, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
-{
-	GET(TechnoTypeClass* const, pType, EAX);
-
-	auto movementZone = pType->MovementZone;
-
-	if (movementZone == MovementZone::Fly || movementZone == MovementZone::Destroyer)
-		movementZone = MovementZone::Normal;
-	else if (movementZone == MovementZone::AmphibiousDestroyer)
-		movementZone = MovementZone::Amphibious;
-
-	R->EBP(movementZone);
-	return R->Origin() + 0x6;
-}ASMJIT_PATCH_AGAIN(0x7190B0, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
-
-ASMJIT_PATCH(0x73D7B5, UnitClass_Mission_Unload_CheckInvalidCell, 0x8)
-{
-	enum { CannotUnload = 0x73D87F };
-
-	GET(const CellStruct*, pCell, EAX);
-
-	return *pCell != CellStruct::Empty ? 0 : CannotUnload;
-}
-
 ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
 {
 	enum { SkipGameCode = 0x737952 };
@@ -2584,47 +2528,6 @@ ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetStatusses , 0x7)
 	pTarget->Mark(MarkType::Up);
 	pTarget->OnBridge = false;
 	return 0;
-}
-
-ASMJIT_PATCH(0x7196BB, TeleportLocomotionClass_Process_MarkDown, 0xA)
-{
-	GET(FootClass*, pLinkedTo, ECX);
-	// When Teleport units board transport vehicles on the bridge, the lack of this repair can lead to numerous problems
-	// An impassable invisible barrier will be generated on the bridge (the object linked list of the cell will leave it)
-	// And the transport vehicle will board on the vehicle itself (BFRT Passenger:..., BFRT)
-	// If any infantry attempts to pass through this position on the bridge later, it will cause the game to freeze
-	auto shouldMarkDown = [pLinkedTo]()
-	{
-		if (pLinkedTo->GetCurrentMission() != Mission::Enter)
-			return true;
-
-		const auto pEnter = pLinkedTo->GetNthLink();
-
-		return (!pEnter || pEnter->GetTechnoType()->Passengers <= 0);
-	};
-
-	if (shouldMarkDown())
-		pLinkedTo->Mark(MarkType::Put);
-
-	return 0x7196C5;
-}
-
-ASMJIT_PATCH(0x70D842, FootClass_UpdateEnter_NoMoveToBridge, 0x5)
-{
-	enum { NoMove = 0x70D84F };
-
-	GET(TechnoClass* const, pEnter, EDI);
-
-	return pEnter->OnBridge && (pEnter->WhatAmI() == AbstractType::Unit && static_cast<UnitClass*>(pEnter)->Type->Passengers > 0) ? NoMove : 0;
-}
-
-ASMJIT_PATCH(0x70D910, FootClass_QueueEnter_NoMoveToBridge, 0x5)
-{
-	enum { NoMove = 0x70D977 };
-
-	GET(TechnoClass* const, pEnter, EAX);
-
-	return pEnter->OnBridge && (pEnter->WhatAmI() == AbstractType::Unit && static_cast<UnitClass*>(pEnter)->Type->Passengers > 0) ? NoMove : 0;
 }
 
 #endif
@@ -2716,7 +2619,7 @@ ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
 	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
 }
 
-ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_ReturnToSpawnOwner, 0x5)
+ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_PlanningFix, 0x5)
 {
 
 	GET(AircraftClass* const, pThis, ESI);
@@ -2981,3 +2884,10 @@ DEFINE_PATCH(0x42A46A, 0x20);
 // Set new Count offset
 DEFINE_PATCH(0x42A47D, 0x20);
 // mov [eax+100000h], edx -> mov [eax+200000h], edx
+
+// Fix the issue that the jumpjet vehicles cannot stop correctly after going berserk
+ASMJIT_PATCH(0x74431F, UnitClass_ReadyToNextMission_HuntCheck, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	return pThis->GetCurrentMission() != Mission::Hunt ? 0 : 0x744329;
+}

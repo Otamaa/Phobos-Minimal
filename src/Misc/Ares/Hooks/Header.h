@@ -135,22 +135,6 @@ struct AresGlobalData {
 	static void ReadAresRA2MD();
 };
 
-struct StaticVars {
-	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
-	static std::vector<unsigned char> ShpCompression1Buffer;
-	static PhobosMap<const TActionClass*, int> TriggerCounts;
-	static UniqueGamePtr<MixFileClass> aresMIX;
-	static std::string MovieMDINI;
-	static WaveColorData TempColor;
-
-	static bool SaveGlobals(PhobosStreamWriter& stm);
-	static bool LoadGlobals(PhobosStreamReader& stm);
-	static void LoadGlobalsConfig();
-
-	static void Clear();
-
-};
-
 struct TechnoExt_ExtData
 {
 	static void AddPassengers(BuildingClass* const Grinder, FootClass* Vic , bool ParentReversed);
@@ -628,5 +612,24 @@ struct MouseCursorFuncs
 	MouseClassExt::InsertSWMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
 #endif
 	}
+
+};
+
+struct StaticVars
+{
+	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
+	static std::vector<unsigned char> ShpCompression1Buffer;
+	static PhobosMap<const TActionClass*, int> TriggerCounts;
+	static UniqueGamePtr<MixFileClass> aresMIX;
+	static std::string MovieMDINI;
+	static WaveColorData TempColor;
+	static bool InitEd;
+	static AresPcxBlit<WORD> GlobalPcxBlitter;
+
+	static bool SaveGlobals(PhobosStreamWriter& stm);
+	static bool LoadGlobals(PhobosStreamReader& stm);
+	static void LoadGlobalsConfig();
+
+	static void Clear();
 
 };

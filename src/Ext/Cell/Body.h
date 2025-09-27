@@ -121,6 +121,7 @@ public:
 	int _GetTiberiumType();
 	bool _CanTiberiumGerminate(TiberiumClass* tiberium);
 	bool _CanPlaceVeins();
+	int _Reduce_Tiberium(int levels_reducer);
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);

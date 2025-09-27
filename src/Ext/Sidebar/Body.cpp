@@ -122,7 +122,7 @@ ASMJIT_PATCH(0x6AC5DA, SidebarClass_Load_Suffix, 0x6)
 	auto buffer = SidebarExtData::Instance();
 
 	PhobosByteStream Stm(0);
-	if (Stm.ReadBlockFromStream(SidebarExtData::g_pStm))
+	if (Stm.ReadFromStream(SidebarExtData::g_pStm))
 	{
 		PhobosStreamReader Reader(Stm);
 
@@ -144,7 +144,7 @@ ASMJIT_PATCH(0x6AC5EA, SidebarClass_Save_Suffix, 0x6)
 	writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
-	saver.WriteBlockToStream(SidebarExtData::g_pStm);
+	saver.WriteToStream(SidebarExtData::g_pStm);
 
 	return 0;
 }

@@ -12,10 +12,14 @@
 
 #include <Ext/Rules/Body.h>
 
-ASMJIT_PATCH(0x480EA8, CellClass_DamageWall_AdjacentWallDamage, 0x7)
+ASMJIT_PATCH(0x480EA8, CellClass_DamageWall_AdjacentWallDamage, 0x5)
 {
 	GET(CellClass*, pThis, EAX);
 	pThis->ReduceWall(RulesExtData::Instance()->AdjacentWallDamage);
+
+	if (pThis->OverlayTypeIndex == -1)
+		TechnoClass::ClearWhoTargetingThis(pThis);
+
 	return 0x480EB4;
 }
 
@@ -80,7 +84,7 @@ ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 	}
 
 	const auto nZAdjust = -2 - 15 * (pThis->Level + 4 * (((int)pThis->Flags >> 7) & 1));
-	auto nTint = pTibExt->Ore_TintLevel.Get(pTibExt->UseNormalLight.Get() ? 1000 : pThis->Intensity_Terrain);
+	auto nTint = pTibExt->Ore_TintLevel.Get(pTibExt->UseNormalLight.Get() ? 1000 : pThis->Color1.Green);
 	const int nOreTint = std::clamp(nTint, 0, 1000);
 	auto nShadowFrame = (nIndex + pShape->Frames / 2);
 	ConvertClass* pDecided = FileSystem::x_PAL();
@@ -145,7 +149,7 @@ ASMJIT_PATCH(0x47FADB, CellClass_DrawOverlay_Rubble, 0x5)
 			const auto zAdjust = nVal - nOffset - 2;
 
 			DSurface::Temp()->DrawSHP(pDecided, *pImage, *pFrame, pPoint, pRect, BlitterFlags(0x4E00),
-			0, zAdjust, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Intensity_Terrain, 0, nullptr, 0, 0, 0);
+			0, zAdjust, pOvl->DrawFlat != 0 ? ZGradient::Ground : ZGradient::Deg90, pCell->Color1.Green, 0, nullptr, 0, 0, 0);
 
 		}
 	}

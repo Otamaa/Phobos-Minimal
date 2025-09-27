@@ -117,6 +117,8 @@ static void RecalculateCells(BuildingClass* pThis)
 	{
 		if (auto pCell = map->TryGetCellAt(cell))
 		{
+			TechnoClass::ClearWhoTargetingThis(pCell);
+
 			pCell->RecalcAttributes(DWORD(-1));
 
 			if COMPILETIMEEVAL (remove)
@@ -125,7 +127,6 @@ static void RecalculateCells(BuildingClass* pThis)
 				map->RecalculateZones(cell);
 
 			map->RecalculateSubZones(cell);
-
 		}
 	}
 }
@@ -457,7 +458,7 @@ ASMJIT_PATCH(0x4688A9, BulletClass_SetMovement_Obstacle, 6)
 
 	if (pThis->Type->Inviso)
 	{
-		const auto pObstacleCell = 
+		const auto pObstacleCell =
 		PhobosBulletObstacleHelper::FindFirstObstacle(*pLocation, dest, pThis->Owner, pThis->Target, pBulletOwner, pThis->Type, false, false);
 
 		if (pObstacleCell)

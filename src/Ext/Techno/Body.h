@@ -46,6 +46,66 @@ class TechnoTypeClass;
 class REGISTERS;
 struct BurstFLHBundle;
 
+struct TintColors
+{
+private:
+
+	TechnoClass* Owner;
+	int ColorOwner;
+	int ColorAllies;
+	int ColorEnemies;
+	int IntensityOwner;
+	int IntensityAllies;
+	int IntensityEnemies;
+
+
+public:
+
+	void SetOwner(TechnoClass* abs) { this->Owner = abs; };
+
+	bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<TintColors*>(this)->Serialize(Stm);
+	}
+
+	void Reset() {
+		this->ColorOwner = 0;
+		this->ColorAllies = 0;
+		this->ColorEnemies = 0;
+		this->IntensityOwner = 0;
+		this->IntensityAllies = 0;
+		this->IntensityEnemies = 0;
+	}
+
+	void Update();
+
+	void GetTints(int* tintColor, int* intensity);
+
+private:
+
+	void Calculate(const int color, const int intensity, const AffectedHouse affectedHouse);
+
+	template <typename T>
+	bool FORCEDINLINE Serialize(T& Stm)
+	{
+		return Stm
+			.Process(this->Owner)
+			.Process(this->ColorOwner)
+			.Process(this->ColorAllies)
+			.Process(this->ColorEnemies)
+			.Process(this->IntensityOwner)
+			.Process(this->IntensityAllies)
+			.Process(this->IntensityEnemies)
+			.Success()
+			;
+	}
+};
+
 struct AEProperties
 {
 	struct ExtraRange
@@ -750,6 +810,7 @@ private:
 		debugProcess(this->UnitIdleIsSelected, "UnitIdleIsSelected");
 		debugProcess(this->UnitIdleActionTimer, "UnitIdleActionTimer");
 		debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
+		debugProcess(this->Tints, "Tints");
 	}
 
 
@@ -928,7 +989,7 @@ public:
 	bool UnitIdleIsSelected;
 	CDTimerClass UnitIdleActionTimer;
 	CDTimerClass UnitIdleActionGapTimer;
-
+	TintColors Tints;
 #pragma endregion
 
 public:
@@ -1019,10 +1080,12 @@ public:
 		PassiveAquireMode(PassiveAcquireMode::Normal),
 		UnitIdleAction(false),
 		UnitIdleActionSelected(false),
-		UnitIdleIsSelected(false)
+		UnitIdleIsSelected(false),
+		Tints()
 	{
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
+		Tints.SetOwner(abs);
 	}
 
 	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) { };
@@ -1339,6 +1402,12 @@ public:
 	static void HandleOnDeployAmmoChange(TechnoClass* pThis, int maxAmmoOverride = -1);
 
 	static bool SimpleDeployerAllowedToDeploy(UnitClass* pThis, bool defaultValue, bool alwaysCheckLandTypes);
+
+	static int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, bool berserk);
+	static void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity);
+
+	static void Fastenteraction(FootClass* pThis);
+
 public:
 	static UnitClass* Deployer;
 
@@ -1378,5 +1447,5 @@ public:
 	static int __fastcall _EvaluateJustCell(TechnoClass* pThis , discard_t, CellStruct* where);
 	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);
 	static int __fastcall __AdjustDamage(TechnoClass* pThis, discard_t, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
-
+	static void __fastcall __DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord);
 };

@@ -53,8 +53,10 @@ enum class ExceptionHandlerMode {
 
 class PhobosStreamWriter;
 class PhobosStreamReader;
-struct Phobos final
+struct Phobos final : public IPersistStream
 {
+public:
+
 	static unsigned GetVersionNumber();
 
 	class Random

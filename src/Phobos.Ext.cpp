@@ -293,8 +293,11 @@ PhobosTypeRegistry::LoadGlobals(pStm);
 
 HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 {
-	if (!PhobosExt::SaveGlobal(pStm))
+	if (!PhobosExt::SaveGlobal(pStm)) {
+		Debug::LogInfo("[Phobos] Global SaveGame Failed !");
 		return E_FAIL;
+	}
+
 
 	Debug::LogInfo("[Phobos] Finished saving the game");
 	return S_OK;
@@ -302,8 +305,11 @@ HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 
 HRESULT Phobos::LoadGameDataAfter(IStream* pStm)
 {
-	if (!PhobosExt::LoadGlobal(pStm))
+	if (!PhobosExt::LoadGlobal(pStm)) {
+		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
 		return E_FAIL;
+
+	}
 
 	//clear the loadgame flag
 	Phobos::Otamaa::DoingLoadGame = false;
@@ -551,138 +557,193 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	//AttachmentClass::Array.clear();
 	//AttachmentTypeClass::Clear();
 
-
+	PhobosPCXFile::LoadedMap.clear();
 	return 0;
 }
 
 #undef LogPool
 
-// Ares saves its things at the end of the save
-// Phobos will save the things at the beginning of the save
-// Considering how DTA gets the scenario name, I decided to save it after Rules - secsome
-
 template<typename T>
-FORCEDINLINE bool Process_Load(IStream* pStm)
+FORCEDINLINE bool Process_Load(PhobosStreamReader& reader)
 {
-	PhobosByteStream stm(0);
-	stm.ReadBlockFromStream(pStm);
-	PhobosStreamReader reader(stm);
-
 	Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
 
 	if COMPILETIMEEVAL (HasInstance<T>)
-		return T::Instance.LoadGlobals(reader) && reader.ExpectEndOfBlock();
+		return T::Instance.LoadGlobals(reader);
 	else
-		return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
-}
-
-template<typename T>
-FORCEDINLINE bool Process_Save(IStream* pStm)
-{
-	PhobosByteStream stm;
-	PhobosStreamWriter writer(stm);
-
-	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-
-	if COMPILETIMEEVAL (HasInstance<T>)
-		return T::Instance.SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
-	else
-		return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
+		return T::LoadGlobals(reader);
 }
 
 bool PhobosExt::LoadGlobal(LPSTREAM pStm)
 {
-	int value;
-	ULONG out = 0;
+	PhobosByteStream stm(0);
+	stm.ReadFromStream(pStm);
+	PhobosStreamReader reader(stm);
 
-	if (!SUCCEEDED(pStm->Read(&value, sizeof(value), &out)))
-	{
-		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
+	bool succeeded = Process_Load<RadTypeClass>(reader);
+	if (!succeeded)
 		return false;
-	}
 
-	VoxClass::EVAIndex = value;
+	succeeded = Process_Load<ShieldTypeClass>(reader);
+	if (!succeeded)
+		return false;
 
-	bool ret =
-		Process_Load<RadTypeClass>(pStm) &&
-		Process_Load<ShieldTypeClass>(pStm) &&
-		Process_Load<HoverTypeClass>(pStm) &&
-		Process_Load<BannerTypeClass>(pStm) &&
-		Process_Load<TrailType>(pStm) &&
-		Process_Load<SWStateMachine>(pStm) &&
-		Process_Load<PhobosGlobal>(pStm) &&
-		Process_Load<GenericPrerequisite>(pStm) &&
-		Process_Load<CrateTypeClass>(pStm) &&
-		Process_Load<PhobosAttachEffectTypeClass>(pStm) &&
-		Process_Load<TechTreeTypeClass>(pStm) &&
-		Process_Load<StaticVars>(pStm) &&
-		Process_Load<HugeBar>(pStm) &&
-		Process_Load<RocketTypeClass>(pStm) &&
-		Process_Load<BarTypeClass>(pStm) &&
-		Process_Load<SWFirerClass>(pStm) &&
-		Process_Load<ShieldClass>(pStm) &&
-		Process_Load<PrismForwarding>(pStm) &&
-		Process_Load<BannerClass>(pStm)//&&
-		//Process_Load<AttachmentClass> (pStm) &&
-		//Process_Load<AttachmentTypeClass> (pStm)
-		;
+	succeeded = Process_Load<HoverTypeClass>(reader);
+	if (!succeeded)
+		return false;
 
-	if (!ret)
-		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
+	succeeded = Process_Load<BannerTypeClass>(reader);
+	if (!succeeded)
+		return false;
 
-	// add more variable that need to be reset after loading an saved games
-	if (SessionClass::Instance->GameMode == GameMode::Campaign)
-	{
-		if (std::exchange(Unsorted::MuteSWLaunches(), false))
-		{// this will also make radar unusable
-			auto pSide = SideClass::Array->operator[](HouseClass::CurrentPlayer()->Type->SideIndex);
-			VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
-		}
-		// this variable need to be reset , especially after you play as an observer on skirmish
-		// then load an save game of campaign mode , it will shutoff the radar and EVA's
-	}
+	succeeded = Process_Load<TrailType>(reader);
+	if (!succeeded)
+		return false;
 
-	return true;
+	succeeded = Process_Load<SWStateMachine>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<PhobosGlobal>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<GenericPrerequisite>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<CrateTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<PhobosAttachEffectTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<TechTreeTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<StaticVars>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<HugeBar>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<RocketTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<BarTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<SWFirerClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<ShieldClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<BannerClass>(reader);
+	if (!succeeded)
+		return false;
+
+	return reader.ExpectEndOfBlock();
+}
+
+template<typename T>
+FORCEDINLINE bool Process_Save(PhobosStreamWriter& writer)
+{
+	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
+
+	if COMPILETIMEEVAL(HasInstance<T>)
+		return T::Instance.SaveGlobals(writer);
+	else
+		return T::SaveGlobals(writer);
 }
 
 bool PhobosExt::SaveGlobal(LPSTREAM pStm)
 {
-	ULONG out = 0;
-	const int value = VoxClass::EVAIndex();
+	PhobosByteStream stm;
+	PhobosStreamWriter writer(stm);
 
-	if (!SUCCEEDED(pStm->Write(&value, sizeof(value), &out))) {
-		Debug::LogInfo("[Phobos] Global SaveGame Failed !");
+	bool succeeded = Process_Save<RadTypeClass>(writer);
+	if (!succeeded)
 		return false;
-	}
 
-	bool ret =
-		Process_Save<RadTypeClass>(pStm) &&
-		Process_Save<ShieldTypeClass>(pStm) &&
-		Process_Save<HoverTypeClass>(pStm) &&
-		Process_Save<BannerTypeClass>(pStm) &&
-		Process_Save<TrailType>(pStm) &&
-		Process_Save<SWStateMachine>(pStm) &&
-		Process_Save<PhobosGlobal>(pStm) &&
-		Process_Save<GenericPrerequisite>(pStm) &&
-		Process_Save<CrateTypeClass>(pStm) &&
-		Process_Save<PhobosAttachEffectTypeClass>(pStm) &&
-		Process_Save<TechTreeTypeClass>(pStm) &&
-		Process_Save<StaticVars>(pStm) &&
-		Process_Save<HugeBar>(pStm) &&
-		Process_Save<RocketTypeClass>(pStm) &&
-		Process_Save<BarTypeClass>(pStm) &&
-		Process_Save<SWFirerClass>(pStm) &&
-		Process_Save<ShieldClass>(pStm) &&
-		Process_Save<PrismForwarding>(pStm) &&
-		Process_Save<BannerClass>(pStm)
-		//Process_Save<AttachmentClass>(pStm) &&
-		//Process_Save<AttachmentTypeClass>(pStm)
-		;
+	succeeded = Process_Save<ShieldTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-	if (!ret)
-		Debug::LogInfo("[Phobos] Global SaveGame Failed !");
+	succeeded = Process_Save<HoverTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-	return ret;
+	succeeded = Process_Save<BannerTypeClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<TrailType>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<SWStateMachine>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<PhobosGlobal>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<GenericPrerequisite>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<CrateTypeClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<PhobosAttachEffectTypeClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<TechTreeTypeClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<StaticVars>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<HugeBar>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<RocketTypeClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<BarTypeClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<SWFirerClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<ShieldClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<BannerClass>(writer);
+	if (!succeeded)
+		return false;
+
+	return stm.WriteToStream(pStm);
 }
 
 #pragma endregion

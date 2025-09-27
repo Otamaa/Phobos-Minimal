@@ -302,7 +302,7 @@ static bool __fastcall Buffer_To_Surface(Surface& surface, RectangleStruct& rect
 //static bool Copy_To_Surface_RLE(Surface& tosurface, RectangleStruct& toarea, RectangleStruct& torect, Surface& fromsurface, RectangleStruct& fromarea, RectangleStruct& fromrect, RLEBlitterCore& blitter, int z_val = 0, ZGradient z_gradient = ZGradient::Ground, int alpha_level = 1000, int warp_val = 0, Surface* z_shape_surface = nullptr, int z_xoff = 0, int z_yoff = 0);
 
 // Used for linetrail
-static bool __fastcall Surface_4BEAC0_Blit(Surface* Surface, RectangleStruct& nRect, Point2D& nPoint1, Point2D& nPoint2, int& nSomeval, unsigned nSomeval2, int nAdjust_1, int nAdjust2)
+static bool __fastcall Surface_4BEAC0_Blit(Surface* Surface, RectangleStruct& nRect, Point2D& nPoint1, Point2D& nPoint2, ColorStruct& nSomeval, unsigned nSomeval2, int nAdjust_1, int nAdjust2)
 {
 	JMP_FAST(0x4BEAC0);
 }
@@ -420,6 +420,8 @@ public:
 	static COMPILETIMEEVAL reference<bool, 0x8205D4u> const AllowHardwareBlitFills {};
 
 	static COMPILETIMEEVAL reference<bool*, 0x84310C> const PatternData {};
+
+	static int __fastcall ColorMode() { JMP_STD(0x4BBC90); }
 
 	// Comments from thomassneddon
 	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,

@@ -57,6 +57,7 @@ public:
 	FactoryClass* FactoryBuildingMe;
 	std::vector<BuildingClass*> airFactoryBuilding;
 	bool FreeUnitDone;
+	bool SeparateRepair;
 #pragma endregion
 
 
@@ -98,7 +99,8 @@ public:
 		SpyEffectAnimDuration(0),
 		PoweredUpToLevel(0),
 		FactoryBuildingMe(nullptr),
-		FreeUnitDone(false)
+		FreeUnitDone(false),
+		SeparateRepair(false)
 	{ }
 
 	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }
@@ -184,6 +186,22 @@ public:
 	void _OnFinishRepairB(InfantryClass* pEngineer);
 	void _OnFinishRepair();
 	void UnloadOccupants(bool assignMission, bool killIfStuck);
+	void _Draw_It(Point2D* xdrawpoint, RectangleStruct* xcliprect);
+	void _TechnoClass_Draw_Object(SHPStruct* shapefile,
+		int shapenum,
+		Point2D* xy,
+		RectangleStruct* rect,
+		DirType rotation,  //unused
+		int scale, //unused
+		int height_adjust,
+		ZGradient a8,
+		bool useZBuffer,
+		int lightLevel,
+		int tintLevel,
+		SHPStruct* z_shape,
+		int z_shape_framenum,
+		Point2D z_shape_offs,
+		BlitterFlags flags);
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{

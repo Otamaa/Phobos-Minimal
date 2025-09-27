@@ -877,6 +877,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->UnitIdleActionIntervalMax.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionIntervalMax");
 
 	this->ExpandAircraftMission.Read(exINI, GameStrings::General, "ExtendedAircraftMissions");
+	this->ExtendedAircraftMissions_UnlandDamage.Read(exINI, GameStrings::General, "ExtendedAircraftMissions.UnlandDamage");
+
 	this->AssignUnitMissionAfterParadropped.Read(exINI, GameStrings::General, "AssignUnitMissionAfterParadropped");
 	this->NoQueueUpToEnter.Read(exINI, GameStrings::General, "NoQueueUpToEnter");
 	this->NoQueueUpToUnload.Read(exINI, GameStrings::General, "NoQueueUpToUnload");
@@ -1591,6 +1593,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->UnitIdleActionIntervalMin)
 		.Process(this->UnitIdleActionIntervalMax)
 		.Process(this->ExpandAircraftMission)
+		.Process(this->ExtendedAircraftMissions_UnlandDamage)
 		.Process(this->AssignUnitMissionAfterParadropped)
 		.Process(this->LandTypeConfigExts)
 		.Process(this->Secrets)
@@ -1714,7 +1717,7 @@ ASMJIT_PATCH(0x678841, RulesClass_Load_Suffix, 0x7)
 	auto buffer = RulesExtData::Instance();
 
 	PhobosByteStream Stm(0);
-	if (Stm.ReadBlockFromStream(RulesExtData::g_pStm))
+	if (Stm.ReadFromStream(RulesExtData::g_pStm))
 	{
 		PhobosStreamReader Reader(Stm);
 
@@ -1736,7 +1739,7 @@ ASMJIT_PATCH(0x675205, RulesClass_Save_Suffix, 0x8)
 	writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
-	saver.WriteBlockToStream(RulesExtData::g_pStm);
+	saver.WriteToStream(RulesExtData::g_pStm);
 
 	return 0;
 }

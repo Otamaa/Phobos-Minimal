@@ -271,6 +271,7 @@ ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 
 	// Update laser trails after locomotor process, to ensure that the updated position is not the previous frame's position
 	TechnoExtContainer::Instance.Find(pThis)->UpdateLaserTrails();
+	TechnoExtData::Fastenteraction(pThis);
 
 	enum { Undecided = 0u,
 			NoChange = 0x4DAA01u,

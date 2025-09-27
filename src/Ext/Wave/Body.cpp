@@ -52,7 +52,7 @@ void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
 			}
 
 			if(pOverlay->Wall && pWH->Wall) {
-				pCell->ReduceWall();
+				pCell->ReduceWall(pWpn->Damage);
 			}
 		}
 
@@ -60,6 +60,10 @@ void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
 			if(ScenarioClass::Instance->Random.RandomRanged(0,99) < RulesClass::Instance->CollapseChance) {
 				MapClass::Instance->DestroyCliff(pCell);
 			}
+		}
+
+		if(pCell->OverlayTypeIndex == -1) {
+			TechnoClass::ClearWhoTargetingThis(pCell);
 		}
 	}
 }

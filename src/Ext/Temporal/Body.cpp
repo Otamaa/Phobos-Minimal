@@ -3,6 +3,7 @@
 #include <Utilities/Macro.h>
 
 #include <Ext/Anim/Body.h>
+#include <Ext/AircraftType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Building/Body.h>
@@ -58,7 +59,8 @@ void HandleBuildingDestruction(TemporalClass* pTemporal, BuildingClass* building
 				if (pAir->IsAlive && !pAir->InLimbo && !pAir->TemporalTargetingMe) {
 					const auto pExt = TechnoTypeExtContainer::Instance.Find(pAir->Type);
 
-					if (pAir->IsInAir()) {
+					if (pAir->IsInAir() || !AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble
+									.Get(RulesExtData::Instance()->ExpandAircraftMission)) {
 						if ((pExt->Crashable.isset() && !pExt->Crashable) || !pAir->Crash(pTemporal->Owner)) {
 							TechnoExtData::HandleRemove(pAir, pTemporal->Owner, false, false);
 						}

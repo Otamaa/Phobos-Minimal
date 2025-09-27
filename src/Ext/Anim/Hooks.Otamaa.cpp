@@ -136,7 +136,7 @@ void NOINLINE FakeAnimClass::_Start()
 
 						auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
 						pSpawn->LightConvert = ColorScheme::Array->Items[tiberium->Color]->LightConvert;
-						pSpawn->TintColor = cptr->Intensity_Normal;
+						pSpawn->TintColor = cptr->Color1.Red;
 					}
 				}
 

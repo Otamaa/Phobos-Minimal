@@ -49,6 +49,193 @@
 UnitClass* TechnoExtData::Deployer { nullptr };
 #pragma endregion
 
+#include <Misc/PhobosGlobal.h>
+
+void TintColors::Calculate(const int color, const int intensity, const AffectedHouse affectedHouse)
+{
+	if ((affectedHouse & AffectedHouse::Owner) != AffectedHouse::None)
+	{
+		this->ColorOwner |= color;
+		this->IntensityOwner += intensity;
+	}
+
+	if ((affectedHouse & AffectedHouse::Allies) != AffectedHouse::None)
+	{
+		this->ColorAllies |= color;
+		this->IntensityAllies += intensity;
+	}
+
+	if ((affectedHouse & AffectedHouse::Enemies) != AffectedHouse::None)
+	{
+		this->ColorEnemies |= color;
+		this->IntensityEnemies += intensity;
+	}
+}
+
+void TintColors::Update()
+{
+	// reset values
+	this->Reset();
+
+	if (!this->Owner->IsAlive)
+		return;
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Owner->GetTechnoType());
+	auto pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
+	const bool hasTechnoTint = pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity;
+	const bool hasShieldTint = pOwnerExt->Shield && pOwnerExt->Shield->IsActive() && pOwnerExt->Shield->GetType()->HasTint();
+
+	// bail out early if no custom tint is applied.
+	if (!hasTechnoTint && !pOwnerExt->AE.HasTint && !hasShieldTint)
+		return;
+
+	if (hasTechnoTint)
+		this->Calculate(Drawing::RGB_To_Int(pTypeExt->Tint_Color), static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
+
+	if (pOwnerExt->AE.HasTint)
+	{
+		for (auto const& attachEffect : pOwnerExt->PhobosAE)
+		{
+			if (!attachEffect)
+				continue;
+
+			auto const type = attachEffect->GetType();
+
+			if (!attachEffect->IsActive() || !type->HasTint())
+				continue;
+
+			this->Calculate(Drawing::RGB_To_Int(type->Tint_Color), static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+		}
+	}
+
+	if (hasShieldTint)
+	{
+		auto const pShieldType = pOwnerExt->Shield->GetType();
+		this->Calculate(Drawing::RGB_To_Int(pShieldType->Tint_Color), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
+	}
+}
+
+void TintColors::GetTints(int* tintColor, int* intensity)
+{
+	const bool CalculateIntensity = intensity != nullptr;
+	const bool calculateTint = tintColor != nullptr;
+
+	if (!calculateTint && !CalculateIntensity)
+		return;
+
+	auto const pOwner = this->Owner->Owner;
+	auto pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
+
+	for (auto& [wh, paint] : pOwnerExt->PaintBallStates) {
+		if (paint.IsActive() && paint.AllowDraw(this->Owner)) {
+
+			if (calculateTint)
+				*tintColor |= paint.Color;
+
+			if (CalculateIntensity)
+				*intensity += paint.Data->BrightMultiplier * 1000;
+		}
+	}
+
+	if (pOwner == HouseClass::CurrentPlayer)
+	{
+		if(calculateTint)
+			*tintColor |= this->ColorOwner;
+
+		if (CalculateIntensity)
+			*intensity += this->IntensityOwner;
+	}
+	else if (pOwner->IsAlliedWith(HouseClass::CurrentPlayer))
+	{
+		if (calculateTint)
+			*tintColor |= this->ColorAllies;
+
+		if (CalculateIntensity)
+			*intensity += this->IntensityAllies;
+	}
+	else
+	{
+		if (calculateTint)
+			*tintColor |= this->ColorEnemies;
+
+		if (CalculateIntensity)
+			*intensity += this->IntensityEnemies;
+	}
+}
+
+int TechnoExtData::ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, bool berserk)
+{
+	int tintColor = 0;
+	auto g_instance = PhobosGlobal::Instance();
+
+	if (invulnerability && pThis->IsIronCurtained())
+		tintColor |= pThis->ProtectType == ProtectTypes::ForceShield ? g_instance->ColorDatas.Forceshield_Color : g_instance->ColorDatas.IronCurtain_Color;
+	if (airstrike && TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe)
+	{
+		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe->Owner->GetTechnoType());
+		if (pTypeExt->LaserTargetColor.isset())
+			tintColor |= GeneralUtils::GetColorFromColorAdd(pTypeExt->LaserTargetColor);
+		else
+			tintColor |= g_instance->ColorDatas.LaserTarget_Color;
+	}
+
+	if (berserk && pThis->Berzerk)
+		tintColor |= g_instance->ColorDatas.Berserk_Color;
+
+	return tintColor;
+}
+
+void TechnoExtData::ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
+{
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	pExt->Tints.GetTints(tintColor, intensity);
+
+	bool calculateIntensity = intensity != nullptr;
+	const bool calculateTintColor = tintColor != nullptr;
+	BuildingClass* pBld = cast_to<BuildingClass*, false>(pThis);
+	bool needRedraw = false;
+
+	if (calculateIntensity)
+	{
+		if (pBld)
+		{
+			if ((pBld->CurrentMission == Mission::Construction)
+				&& pBld->BState == BStateType::Construction && pBld->Type->Buildup)
+			{
+				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->BuildUp_UseNormalLIght.Get())
+				{
+					*intensity = 1000;
+				}
+			}
+		}
+
+		const bool bInf = pThis->WhatAmI() == InfantryClass::AbsID;
+
+		// EMP
+		if (pThis->IsUnderEMP())
+		{
+			if (!bInf || pTypeExt->Infantry_DimWhenEMPEd.Get(((InfantryTypeClass*)(pTypeExt->This()))->Cyborg))
+			{
+				*intensity /= 2;
+				needRedraw = true;
+			}
+		}
+		else if (pThis->IsDeactivated())
+		{
+			if (!bInf || pTypeExt->Infantry_DimWhenDisabled.Get(((InfantryTypeClass*)(pTypeExt->This()))->Cyborg))
+			{
+				*intensity /= 2;
+				needRedraw = true;
+			}
+		}
+	}
+
+	if (pBld && needRedraw)
+		BuildingExtContainer::Instance.Find(pBld)->LighningNeedUpdate = true;
+}
+
 void TechnoExtData::InitPassiveAcquireMode()
 {
 	auto pType = This()->GetTechnoType();
@@ -179,7 +366,7 @@ void TechnoExtData::GetLevelIntensity(TechnoClass* pThis, int level, int& levelI
 	double currentLevel = pThis->GetHeight() / static_cast<double>(Unsorted::LevelHeight);
 	levelIntensity = static_cast<int>(level * currentLevel * levelMult);
 	int bridgeBonus = applyBridgeBonus ? 4 * level : 0;
-	cellIntensity = MapClass::Instance()->GetCellAt(pThis->GetMapCoords())->Intensity_Normal + bridgeBonus;
+	cellIntensity = MapClass::Instance()->GetCellAt(pThis->GetMapCoords())->Color1.Red + bridgeBonus;
 
 	if (cellMult > 0.0)
 		cellIntensity = std::clamp(cellIntensity + static_cast<int>((1000 - cellIntensity) * currentLevel * cellMult), 0, 1000);
@@ -194,7 +381,7 @@ int TechnoExtData::GetDeployingAnimIntensity(FootClass* pThis)
 	if (locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
 		intensity = GetJumpjetIntensity(pThis);
 	else
-		intensity = pThis->GetCell()->Intensity_Normal;
+		intensity = pThis->GetCell()->Color1.Red;
 
 	intensity = pThis->GetFlashingIntensity(intensity);
 
@@ -224,9 +411,159 @@ int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,Tec
 	return damage;
 }
 
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x6FDB80, FakeTechnoClass::__AdjustDamage);
 DEFINE_FUNCTION_JUMP(CALL, 0x6FE61D, FakeTechnoClass::__AdjustDamage);
 DEFINE_FUNCTION_JUMP(CALL, 0x7099B0, FakeTechnoClass::__AdjustDamage);
+
+void DrawCustomCrosshair(DSurface* surface, const Point2D& center, int color) {
+	// Use custom color instead of hardcoded red from original assembly
+	// Original used: (255 >> RedShiftRight) << RedShiftLeft
+
+	// Draw horizontal line
+	Point2D start = { center.X - 2, center.Y };
+	Point2D end = { center.X + 1, center.Y };
+	surface->Draw_Line(start, end, color);
+
+	// Draw additional horizontal lines for thickness
+	start.Y = center.Y + 1;
+	end.Y = center.Y + 1;
+	surface->Draw_Line(start, end, color);
+
+	start.Y = center.Y - 1;
+	end.Y = center.Y + 2;
+	start.X = center.X - 1;
+	end.X = center.X - 1;
+	surface->Draw_Line(start, end, color);
+
+	// Draw vertical component
+	start = { center.X, center.Y - 1 };
+	end = { center.X, center.Y + 2 };
+	surface->Draw_Line( start, end, color);
+}
+
+void __fastcall FakeTechnoClass::__DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord) {
+	// Convert 3D world coordinates to 2D screen pixels
+	Point2D startPixel = TacticalClass::Instance->CoordsToClient(startCoord);
+	Point2D endPixel = TacticalClass::Instance->CoordsToClient(endCoord);
+
+	// Calculate Z-depth adjustments for height
+	int startZ = -32 - Game::AdjustHeight(endHeight);
+	int endZ = -32 - Game::AdjustHeight(startHeight);
+
+	// Fix depth buffer value using minimum Z + adjustment
+	int fixedStartZ = MinImpl(startZ, endZ) + RulesExtData::Instance()->AirstrikeLineZAdjust;
+	int fixedEndZ = fixedStartZ; // Use same Z value for both to prevent depth issues
+
+	// Calculate distances for beam direction
+	int deltaX = Math::abs(endPixel.X - startPixel.X);
+	int deltaY = Math::abs(endPixel.Y - startPixel.Y);
+
+	if (!DSurface::Temp->IsDSurface())
+	{
+		return; // Surface not available
+	}
+
+	// Get custom color from techno extension or use global default
+	auto const baseColor = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->AirstrikeLineColor.Get(
+		RulesExtData::Instance()->AirstrikeLineColor);
+
+	// Apply random intensity variation (74.5% to 100%) instead of hardcoded range
+	double percentage = Random2Class::Global->RandomRanged(745, 1000) / 1000.0;
+	// Custom color generation instead of hardcoded random (190-270)
+	ColorStruct beamColor = {
+		(BYTE)(baseColor.R * percentage),
+		(BYTE)(baseColor.G * percentage),
+		(BYTE)(baseColor.B * percentage)
+	};
+
+	// Convert to integer format for drawing operations
+	int beamColorInt = Drawing::RGB_To_Int(baseColor);
+
+	// Skip hardcoded crosshair color and use custom colors
+	// Draw crosshair at end point if beam goes upward, using custom color instead of red
+	if (endPixel.Y < startPixel.Y)
+	{
+		DrawCustomCrosshair(DSurface::Temp, endPixel, beamColorInt);
+	}
+
+	// Calculate beam direction vectors
+	int directionX = endPixel.X - startPixel.X;
+	int directionY = endPixel.Y - startPixel.Y;
+	int directionZ = fixedEndZ - fixedStartZ; // Use fixed Z values
+
+	// Main beam drawing loop - matches assembly loop structure
+	Point2D currentPos = startPixel;
+	int currentZ = fixedStartZ;
+	int intensity = 100; // Initial intensity value from assembly
+	int fadeDelta = 25;  // Fade step from assembly
+
+	// Loop through 64 steps (matching assembly pattern)
+	for (int step = 1; step <= 64; ++step)
+	{
+		// Calculate interpolated position (assembly divides by 4 in each step)
+		Point2D nextPos;
+		nextPos.X = startPixel.X + (directionX * step) / 64;
+		nextPos.Y = startPixel.Y + (directionY * step) / 64;
+		int nextZ = fixedStartZ + (directionZ * step) / 64;
+
+		// Draw main beam segment using custom color
+		Surface_4BEAC0_Blit(DSurface::Temp,
+			DSurface::ViewBounds,
+			currentPos,
+			nextPos,
+			beamColor,
+			intensity + 255,
+			currentZ,
+			nextZ);
+
+		// Draw beam thickness by adding adjacent pixels
+		if (deltaX <= deltaY)
+		{
+			// Beam is more vertical, add horizontal thickness
+			Point2D thickPos1 = { currentPos.X + 1, currentPos.Y };
+			Point2D thickPos2 = { nextPos.X + 1, nextPos.Y };
+			Surface_4BEAC0_Blit(DSurface::Temp, DSurface::ViewBounds,
+				thickPos1, thickPos2, beamColor,
+				intensity, currentZ, nextZ);
+
+			thickPos1 = { currentPos.X - 1, currentPos.Y };
+			thickPos2 = { nextPos.X - 1, nextPos.Y };
+			Surface_4BEAC0_Blit(DSurface::Temp, DSurface::ViewBounds,
+				thickPos1, thickPos2, beamColor,
+				intensity, currentZ, nextZ);
+		}
+		else
+		{
+			// Beam is more horizontal, add vertical thickness
+			Point2D thickPos1 = { currentPos.X, currentPos.Y + 1 };
+			Point2D thickPos2 = { nextPos.X, nextPos.Y + 1 };
+			Surface_4BEAC0_Blit(DSurface::Temp, DSurface::ViewBounds,
+				thickPos1, thickPos2, beamColor,
+				intensity, currentZ, nextZ);
+
+			thickPos1 = { currentPos.X, currentPos.Y - 1 };
+			thickPos2 = { nextPos.X, nextPos.Y - 1 };
+			Surface_4BEAC0_Blit(DSurface::Temp, DSurface::ViewBounds,
+				thickPos1, thickPos2, beamColor,
+				intensity, currentZ, nextZ);
+		}
+
+		// Update for next iteration
+		currentPos = nextPos;
+		currentZ = nextZ;
+		intensity -= fadeDelta;
+
+		// Exit condition: intensity reaches minimum threshold (from assembly)
+		if (intensity <= -765)
+		{
+			break;
+		}
+	}
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x705860, FakeTechnoClass::__DrawAirstrikeFlare);
+DEFINE_FUNCTION_JUMP(CALL, 0x6D48F1, FakeTechnoClass::__DrawAirstrikeFlare);
 
 #include <Ext/Infantry/Body.h>
 
@@ -7137,6 +7474,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	extraCritData->Clear();
 	armormultData->Clear();
 
+	bool wasTint = _AEProp->HasTint;
 	bool hasTint = false;
 	bool reflectsDamage = false;
 	bool hasOnFireDiscardables = false;
@@ -7299,6 +7637,9 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	{
 		((FootClass*)pTechno)->SpeedMultiplier = Speed_Mult;
 	}
+
+	if (wasTint || hasTint)
+		pExt->Tints.Update();
 }
 
 void AEProperties::UpdateAEAnimLogic(TechnoClass* pTechno)

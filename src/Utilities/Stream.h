@@ -31,9 +31,6 @@ class PhobosByteStream
 {
 public:
 	using data_t = unsigned char;
-private:
-	std::vector<data_t> data;
-	size_t position;
 
 	// Enhanced markers with versioning and checksums
 	static COMPILETIMEEVAL const char* START_MARKER = "PHOBOS_DATA_START";
@@ -53,6 +50,11 @@ private:
 	static COMPILETIMEEVAL size_t BYTES_PER_MB = 1024 * 1024;
 	static COMPILETIMEEVAL size_t BYTES_PER_GB = 1024 * 1024 * 1024;
 	static COMPILETIMEEVAL size_t BIG_SIZE = 8u;
+
+	std::vector<data_t> data;
+	size_t position;
+
+private:
 
 	// Helper function to convert bytes to megabytes for logging
 	static COMPILETIMEEVAL float BytesToMB(size_t bytes)
@@ -105,18 +107,8 @@ private:
 
 public:
 
-	bool WriteToStream(LPSTREAM stream) const;
-	bool ReadFromStream(LPSTREAM stream);
-
-	FORCEDINLINE bool WriteBlockToStream(LPSTREAM stream) const
-	{
-		return WriteToStream(stream);
-	}
-
-	FORCEDINLINE bool ReadBlockFromStream(LPSTREAM stream)
-	{
-		return ReadFromStream(stream);
-	}
+	virtual bool WriteToStream(LPSTREAM stream) const;
+	virtual bool ReadFromStream(LPSTREAM stream);
 
 	COMPILETIMEEVAL size_t GetStreamSize() const
 	{
@@ -277,6 +269,13 @@ public:
 		static_assert(sizeof(T) > 0, "Cannot serialize empty types");
 		return Save(Value, sizeof(T));
 	}
+};
+
+class PhobosAppendedStream : public PhobosByteStream
+{
+public:
+	virtual bool WriteToStream(LPSTREAM stream) const;
+	virtual bool ReadFromStream(LPSTREAM stream);
 };
 
 template<typename T>

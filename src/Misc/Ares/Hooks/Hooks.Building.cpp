@@ -115,10 +115,6 @@ constexpr WORD BuildPcxMask() {
          | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
 }
 
-static bool InitEd = false;
-// Global static instance:
-static AresPcxBlit<WORD> GlobalPcxBlitter(0u ,0, 0, 0);
-
 ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 {
 	GET(BuildingClass*, pThis, ECX);
@@ -171,12 +167,12 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 					{
 						cameoRect = destRect;
-						if(!InitEd) {
-							GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask() ,60, 48, 2);
-							InitEd = true;
+						if(!StaticVars::InitEd) {
+							StaticVars::GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask() ,60, 48, 2);
+							StaticVars::InitEd = true;
 						}
 
-						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &GlobalPcxBlitter, 0, 3, 1000, 0);
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &StaticVars::GlobalPcxBlitter, 0, 3, 1000, 0);
 
 					}
 				}
@@ -236,12 +232,12 @@ ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
 						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
 						{
 							cameoRect = destRect;
-							if(!InitEd) {
-								GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask() ,60, 48, 2);
-								InitEd = true;
+							if(!StaticVars::InitEd) {
+								StaticVars::GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask() ,60, 48, 2);
+								StaticVars::InitEd = true;
 							}
 
-							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &GlobalPcxBlitter, 0, 3, 1000, 0);
+							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &StaticVars::GlobalPcxBlitter, 0, 3, 1000, 0);
 						}
 
 					}
@@ -1773,9 +1769,9 @@ ASMJIT_PATCH(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
 	enum { Skip = 0x51E668, Continue = 0x51E501 };
 
 	GET(BuildingClass*, pBuilding, ESI);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
-	if(!BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
-			->EngineerRepairable.Get(pBuilding->Type->Repairable))
+	if(!pTypeExt->EngineerRepairable.Get(pBuilding->Type->Repairable))
 		return Skip;
 
 	GET(InfantryClass*, pThis, EDI);
@@ -1790,7 +1786,10 @@ ASMJIT_PATCH(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
 
 	if (!BridgeRepairHut && pThis->Owner->IsAlliedWith(pBuilding->Owner))
 	{
-		if ((!ignoreForce && WhatActionObjectTemp::Move) || pBuilding->Health >= pBuildingType->Strength)
+		if (WhatActionObjectTemp::Move)
+			return Skip;
+		else if (pBuilding->Health >= pBuildingType->Strength
+				&& !pTypeExt->RubbleIntact && !pTypeExt->RubbleIntactRemove)
 		{
 			return Skip;
 		}

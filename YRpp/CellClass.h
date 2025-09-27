@@ -646,6 +646,13 @@ public:
 	static void CreateGap(HouseClass* pHouse, int range, CoordStruct& coords);
 
 	COMPILETIMEEVAL bool Is_Overlay_Bridge() const { return this->OverlayTypeIndex == 24 || this->OverlayTypeIndex == 25; }
+	RectangleStruct Overlay_Render_Rect() {
+		JMP_THIS(0x47FDE0);
+	}
+
+	RectangleStruct Overlay_Shadow_Render_Rect() {
+		JMP_THIS(0x47FB90);
+	}
 
 protected:
 	//Constructor
@@ -706,12 +713,8 @@ public:
 	int                OccupyHeightsCoveringMe;
 	DWORD              Intensity;
 	WORD               Ambient;
-	WORD			   Intensity_Normal;
-	WORD               Intensity_Terrain;
-	WORD               Color1_Blue;
-	WORD               Color2_Red;
-	WORD               Color2_Green;
-	WORD               Color2_Blue;
+	wRGB               Color1;
+	wRGB               Color2;
 	signed short	   TubeIndex; // !@#% Westwood braindamage, can't use > 127! (movsx eax, al)
 
 	char               RedrawCountMAYBE; //unknown_118

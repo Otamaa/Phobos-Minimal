@@ -1646,12 +1646,15 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->BuildingRepairedSound.Read(exINI, pSection, "BuildingRepairedSound");
 		this->AggressiveModeExempt.Read(exINI, pSection, "AggressiveModeExempt");
+		this->IsBarGate.Read(exINI, pSection, "IsBarGate");
+
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtINI);
 
+		this->IsHideDuringSpecialAnim.Read(exArtINI, pArtSection, "HideDuringSpecialAnim");
 		this->Refinery_UseNormalActiveAnim.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
 
 		if (this->IsCustom)
@@ -2098,6 +2101,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 
 		.Process(this->Refinery_UseNormalActiveAnim)
 		.Process(this->AggressiveModeExempt)
+		.Process(this->IsBarGate)
+		.Process(this->IsHideDuringSpecialAnim)
 		.Process(this->HasPowerUpAnim)
 		;
 }

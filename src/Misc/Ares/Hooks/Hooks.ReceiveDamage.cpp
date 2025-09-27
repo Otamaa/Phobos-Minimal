@@ -28,6 +28,7 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/Terrain/Body.h>
 #include <Ext/TerrainType/Body.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
@@ -1562,7 +1563,11 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 
 			for (int i = 0; i < (int)CachedRadio->size(); ++i)
 			{
-				if ((pThis->GetCoords() - CachedRadio[i]->GetCoords()).Length() < 0x100 || pThis->Type->Helipad)
+				auto pAir = cast_to<AircraftClass*>(CachedRadio[i]);
+
+				if ((pThis->GetCoords() - CachedRadio[i]->GetCoords()).Length() < 0x100 ||
+				(pThis->Type->Helipad && pAir &&
+					!AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble.Get(RulesExtData::Instance()->ExpandAircraftMission)))
 				{
 					int _damage = CachedRadio[i]->GetTechnoType()->Strength;
 					CachedRadio[i]->ReceiveDamage(&_damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);

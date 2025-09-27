@@ -3,6 +3,62 @@
 #include <TiberiumClass.h>
 
 #include <Utilities/Macro.h>
+#include <Ext/Tiberium/Body.h>
+#include <TacticalClass.h>
+
+int FakeCellClass::_Reduce_Tiberium(int levels)
+{
+	RectangleStruct dirty = RectangleStruct::Union(this->Overlay_Render_Rect(), this->Overlay_Shadow_Render_Rect());
+	dirty.Y -= DSurface::ViewBounds->Y;
+
+	int tibtype = this->GetContainedTiberiumIndex();
+	int reducer = levels;
+
+	if (levels > 0 && tibtype != -1)
+	{
+		TiberiumClass* tiberium = TiberiumClass::Array->Items[tibtype];
+		if (this->OverlayData == 11)
+		{
+			tiberium->RegisterForGrowth(&this->MapCoords);
+		}
+		if (this->OverlayData + 1 > levels)
+		{
+			OverlayData -= levels;
+			reducer = levels;
+		}
+		else
+		{
+			PassabilityType passability = this->Passability;
+			this->OverlayTypeIndex = -1;
+			reducer = OverlayData;
+			this->OverlayData = 0;
+			this->RecalcAttributes(-1);
+
+			if (passability != this->Passability)
+			{
+				MapClass::Instance->ResetZones(this->MapCoords);
+				MapClass::Instance->RecalculateSubZones(this->MapCoords);
+			}
+
+			RadarClass::Instance->Push_Cell(&this->MapCoords);
+			auto pTibExt = TiberiumExtContainer::Instance.Find(tiberium);
+
+			pTibExt->Clear_Tiberium_Spread_State(this->MapCoords);
+
+			for (int facing = 0; facing < 8; facing++) {
+				auto adjacent = this->GetAdjacentCell((FacingType)facing);
+				if (MapClass::Instance->IsWithinUsableArea(adjacent,false)) {
+					if (!pTibExt->SpreadState[TiberiumExtData::Map_Cell_Index(adjacent->MapCoords)]) {
+						tiberium->Queue_Spread_At_Cell(&adjacent->MapCoords);
+					}
+				}
+			}
+		}
+		TacticalClass::Instance->RegisterDirtyArea(dirty, false);
+		return reducer;
+	}
+	return 0;
+}
 
 TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
@@ -204,12 +260,14 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 	auto pTib = TiberiumClass::Array->Items[tib_];
 	auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
 	size_t size = pTerrainExt->Adjencentcells.size();
-	const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-	const int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
 
 	for (int i = 0; i < (int)size; i++)
 	{
+		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 		CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
+		int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
+		growth -= pTerrainTypeExt->SpawnsTiberium_StageFalloff * i;
+		growth = std::clamp(growth, 0, pTib->NumFrames - 1);
 
 		if (tgtCell->CanTiberiumGerminate(pTib))
 		{

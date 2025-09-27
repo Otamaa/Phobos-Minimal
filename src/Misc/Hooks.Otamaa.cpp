@@ -1646,8 +1646,40 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x722AF0, FakeTiberiumClass::__QueueSpreadAt);
 DEFINE_FUNCTION_JUMP(LJMP, 0x722F00, FakeTiberiumClass::__Growth);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7233A0, FakeTiberiumClass::__RecalcGrowthData);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7235A0, FakeTiberiumClass::__QueueGrowthAt);
-
 DEFINE_FUNCTION_JUMP(LJMP, 0x483780, FakeCellClass::_SpreadTiberium);
+DEFINE_FUNCTION_JUMP(LJMP, 0x480A80, FakeCellClass::_Reduce_Tiberium);
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x722770, FakeTiberiumClass::__Initialize_Spread);
+DEFINE_FUNCTION_JUMP(LJMP, 0x723260, FakeTiberiumClass::__Initialize_Growth);
+DEFINE_FUNCTION_JUMP(LJMP, 0x723510, FakeTiberiumClass::__Clear_Growth);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722A20, FakeTiberiumClass::__Clear_Spread);
+
+static void _Initialize_Tiberium_Spread_System(){
+    for (int i = 0; i < TiberiumClass::Array->Count; i++) {
+        TiberiumClass::Array->Items[i]->Initialize_Spread();
+    }
+}
+
+static void _Deinitialize_Tiberium_Spread_System(){
+	for (int i = 0; i < TiberiumClass::Array->Count; i++)
+		TiberiumClass::Array->Items[i]->Clear_Spread();
+}
+
+static void _Initialize_Tiberium_Growth_System(){
+	for (int i = 0; i < TiberiumClass::Array->Count; i++)
+		TiberiumClass::Array->Items[i]->Initialize_Growth();
+}
+
+static void _Deinitialize_Tiberium_Growth_System(){
+ 	for (int i = 0; i < TiberiumClass::Array->Count ; i++)
+		TiberiumClass::Array->Items[i]->Clear_Growth();
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x722240, _Initialize_Tiberium_Spread_System);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722390, _Deinitialize_Tiberium_Spread_System);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722D00, _Initialize_Tiberium_Growth_System);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722E50, _Deinitialize_Tiberium_Growth_System);
+DEFINE_FUNCTION_JUMP(LJMP, 0x722AB0, TiberiumExtData::Clear_Tiberium_Spread_State);
 
 ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 {
@@ -1662,7 +1694,8 @@ ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 			auto const pTypeExt = TerrainTypeExtContainer::Instance.Find(pThis->Type);
 			if (auto pImage = pThis->Type->GetImage())
 			{
-				if (pThis->Animation.Stage == pTypeExt->AnimationLength.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1))))
+				if (pThis->Animation.Stage == (pTypeExt->AnimationLength
+					.Get(pImage->Frames / (2 * (pTypeExt->HasDamagedFrames + 1)))))
 				{
 					pThis->Animation.Stage = 0;
 					pThis->Animation.Start(0);
@@ -1911,7 +1944,7 @@ ASMJIT_PATCH(0x481180, CellClass_GetInfantrySubPos_InvalidCellPointer, 0x5)
 ASMJIT_PATCH(0x5194EF, InfantryClass_DrawIt_InAir_NoShadow, 5)
 {
 	GET(InfantryClass*, pThis, EBP);
-	return pThis->Type->NoShadow ? 0x51958A : 0x0;
+	return pThis->Type->NoShadow || pThis->CloakState != CloakState::Uncloaked ? 0x51958A : 0x0;
 }
 
 ASMJIT_PATCH(0x746AFF, UnitClass_Disguise_Update_MoveToClear, 0xA)
@@ -4795,12 +4828,6 @@ ASMJIT_PATCH(0x447110, BuildingClass_Sell_Handled, 0x9)
 	return 0x04471C2;
 }
 
-ASMJIT_PATCH(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
-{
-	GET(BuildingClass* const, pBuilding, ECX);
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
-}
-
 ASMJIT_PATCH(0x442CCF, BuildingClass_Init_Sellable, 0x7)
 {
 	GET(BuildingClass*, pThis, ESI);
@@ -5831,7 +5858,7 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 
 		if(AllowRemap && idx >= 0){
 			pParach->LightConvert = ColorScheme::Array->Items[idx]->LightConvert;
-			pParach->TintColor = pThis->GetCell()->Intensity_Normal;
+			pParach->TintColor = pThis->GetCell()->Color1.Red;
 		}
 	}
 

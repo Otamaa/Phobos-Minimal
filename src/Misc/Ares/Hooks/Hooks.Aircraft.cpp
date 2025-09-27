@@ -187,8 +187,8 @@ ASMJIT_PATCH(0x415CA6, AircraftClass_Paradrop_Units, 0x6)
 	{
 		const CoordStruct SrcXYZ = A->GetCoords();
 		LEA_STACK(CoordStruct*, XYZ, 0x20);
-		XYZ->X = (SrcXYZ.X & ~0xFF) + 0x80;
-		XYZ->Y = (SrcXYZ.Y & ~0xFF) + 0x80;
+		*XYZ = SrcXYZ;
+		XYZ->Snap();
 		XYZ->Z = SrcXYZ.Z - 1;
 		R->ECX(XYZ);
 		return 0x415DE3;

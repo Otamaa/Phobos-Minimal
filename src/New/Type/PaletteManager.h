@@ -57,20 +57,24 @@ private:
 class CustomPalette
 {
 public:
+
 	enum class PaletteMode : unsigned int
 	{
 		Default = 0,
 		Temperate = 1
 	};
 
-	PaletteMode Mode { PaletteMode::Default };
-	std::string Name { };
-	UniqueGamePtr<ConvertClass> Convert { nullptr };
-	UniqueGamePtr<BytePalette> Palette { nullptr };
-	DynamicVectorClass<ColorScheme*>* ColorschemeDataVector {};
+	PaletteMode Mode;
+	std::string Name;
+	UniqueGamePtr<ConvertClass> Convert;
+	UniqueGamePtr<BytePalette> Palette;
+	DynamicVectorClass<ColorScheme*>* ColorschemeDataVector;
 
-	CustomPalette() = default;
-	explicit CustomPalette(PaletteMode mode) noexcept : Mode(mode) { };
+	public:
+
+	CustomPalette() : Mode( PaletteMode::Default ) , Name() , Convert() , Palette() , ColorschemeDataVector() {	};
+
+	explicit CustomPalette(PaletteMode mode) noexcept : Mode(mode), Name() , Convert() , Palette() { };
 
 	ConvertClass* GetConvert() const {
 		return this->Convert.get();

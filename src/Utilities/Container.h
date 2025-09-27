@@ -356,7 +356,7 @@ public : //default Save/Load functions
 		buffer->SaveToStream(writer);
 
 		// save the block
-		if (!saver.WriteBlockToStream(pStm))
+		if (!saver.WriteToStream(pStm))
 		{
 			Debug::Log("SaveKey - Failed to save data.\n");
 			return E_FAIL;
@@ -377,7 +377,7 @@ public : //default Save/Load functions
 		}
 
 		PhobosByteStream loader(0);
-		if (!loader.ReadBlockFromStream(pStm))
+		if (!loader.ReadFromStream(pStm))
 		{
 			Debug::Log("LoadKey - Failed to read data from save stream?!\n");
 			return E_FAIL;

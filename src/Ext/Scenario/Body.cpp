@@ -365,7 +365,7 @@ ASMJIT_PATCH(0x689669, ScenarioClass_Load_Suffix, 0x6)
 	auto buffer = ScenarioExtData::Instance();
 
 	PhobosByteStream Stm(0);
-	if (Stm.ReadBlockFromStream(ScenarioExtData::g_pStm))
+	if (Stm.ReadFromStream(ScenarioExtData::g_pStm))
 	{
 		PhobosStreamReader Reader(Stm);
 
@@ -388,7 +388,7 @@ ASMJIT_PATCH(0x68945B, ScenarioClass_Save_Suffix, 0x8)
 
 	buffer->SaveToStream(writer);
 	//if (!
-	saver.WriteBlockToStream(ScenarioExtData::g_pStm)
+	saver.WriteToStream(ScenarioExtData::g_pStm)
 	//) Debug::LogInfo("Faild To Write ScenarioExtData to the Stream ! ")
 		;
 

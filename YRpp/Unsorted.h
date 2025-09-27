@@ -246,6 +246,7 @@ struct Game
 
 #endif // deprecated
 
+	//ZDepth_Adjust_For_Height
 	static COMPILETIMEEVAL int FORCEDINLINE AdjustHeight(int height)  {
 		return int((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
 	}

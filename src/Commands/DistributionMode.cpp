@@ -150,7 +150,7 @@ void DistributionMode::Draw(ObjectClass* const pTarget , const Action mouseActio
 					const auto currentAction = pSelect->MouseOverObject(pTarget);
 
 					if (mode2 && currentAction == Action::NoMove && (pSelect->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
-						static_cast<TechnoClass*>(pSelect)->ClickedMission(Mission::Area_Guard, reinterpret_cast<ObjectClass*>(pSelect->GetCellAgain()), nullptr, nullptr);
+						static_cast<TechnoClass*>(pSelect)->ClickedMission(Mission::Area_Guard, flag_cast_to<ObjectClass*>(pSelect->GetCellAgain()), nullptr, nullptr);
 					else
 						pSelect->ObjectClickedAction(currentAction, pTarget, false);
 				}
@@ -165,7 +165,7 @@ void DistributionMode::Draw(ObjectClass* const pTarget , const Action mouseActio
 				const auto currentAction = pSelect->MouseOverObject(pTarget);
 
 				if (mode2 && mouseAction != Action::NoMove && currentAction == Action::NoMove && (pSelect->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
-					static_cast<TechnoClass*>(pSelect)->ClickedMission(Mission::Area_Guard, reinterpret_cast<ObjectClass*>(pSelect->GetCellAgain()), nullptr, nullptr);
+					static_cast<TechnoClass*>(pSelect)->ClickedMission(Mission::Area_Guard, flag_cast_to<ObjectClass*>(pSelect->GetCellAgain()), nullptr, nullptr);
 				else
 					pSelect->ObjectClickedAction(currentAction, pTarget, false);
 

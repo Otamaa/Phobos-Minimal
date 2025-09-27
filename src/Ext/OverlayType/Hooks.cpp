@@ -40,7 +40,7 @@ ASMJIT_PATCH(0x47F974, CellClass_DrawOverlay_Walls, 0x5)
 		pConvert = ColorScheme::Array->Items[colorSchemeIndex]->LightConvert;
 
 	DSurface::Temp->DrawSHP(pConvert, pShape, pThis->OverlayData, &pLocation, pBounds,
-		BlitterFlags(0x4E00), 0, -2 - zAdjust, ZGradient::Deg90, pThis->Intensity_Normal, 0, 0, 0, 0, 0);
+		BlitterFlags(0x4E00), 0, -2 - zAdjust, ZGradient::Deg90, pThis->Color1.Red, 0, 0, 0, 0, 0);
 
 	return SkipGameCode;
 }

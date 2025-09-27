@@ -12,6 +12,7 @@ ASMJIT_PATCH(0x073B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
 	enum { SkipGameCode = 0x73B074 };
 
 	GET(UnitClass*, pThis, EBP);
+	GET(CellClass*, pCell, EDI);
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
@@ -25,6 +26,9 @@ ASMJIT_PATCH(0x073B05B, UnitClass_PerCellProcess_TiltWhenCrushes, 0x6)
 		pThis->RockingForwardsPerFrame -= static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt.Get(-0.05));
 	else
 		pThis->RockingForwardsPerFrame += static_cast<float>(pTypeExt->CrushOverlayExtraForwardTilt.Get(-0.05));
+
+	if (pCell->OverlayTypeIndex == -1)
+		TechnoClass::ClearWhoTargetingThis(pCell);
 
 	return SkipGameCode;
 }

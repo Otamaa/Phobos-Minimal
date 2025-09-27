@@ -41,7 +41,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:USA";
 		this->StatusText = "STT:PlayerSideAmerica";
 
-		this->FlagFile = "usai.pcx";
+		this->FlagFile.Insert("usai.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("usai.shp");
 		break;
@@ -55,7 +55,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Korea";
 		this->StatusText = "STT:PlayerSideKorea";
 
-		this->FlagFile = "japi.pcx";
+		this->FlagFile.Insert("japi.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("japi.shp");
 		break;
@@ -69,7 +69,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:French";
 		this->StatusText = "STT:PlayerSideFrance";
 
-		this->FlagFile = "frai.pcx";
+		this->FlagFile.Insert("frai.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("frai.shp");
 		break;
@@ -83,7 +83,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Germans";
 		this->StatusText = "STT:PlayerSideGermany";
 
-		this->FlagFile = "geri.pcx";
+		this->FlagFile.Insert("geri.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("geri.shp");
 		break;
@@ -97,7 +97,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:British";
 		this->StatusText = "STT:PlayerSideBritain";
 
-		this->FlagFile = "gbri.pcx";
+		this->FlagFile.Insert("gbri.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("gbri.shp");
 		break;
@@ -111,7 +111,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Lybia";
 		this->StatusText = "STT:PlayerSideLibya";
 
-		this->FlagFile = "djbi.pcx";
+		this->FlagFile.Insert("djbi.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obssovi.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("djbi.shp");
 		break;
@@ -125,7 +125,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Iraq";
 		this->StatusText = "STT:PlayerSideIraq";
 
-		this->FlagFile = "arbi.pcx";
+		this->FlagFile.Insert("arbi.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obssovi.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("arbi.shp");
 		break;
@@ -139,7 +139,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Cuba";
 		this->StatusText = "STT:PlayerSideCuba";
 
-		this->FlagFile = "lati.pcx";
+		this->FlagFile.Insert("lati.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obssovi.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("lati.shp");
 		break;
@@ -153,7 +153,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Russia";
 		this->StatusText = "STT:PlayerSideRussia";
 
-		this->FlagFile = "rusi.pcx";
+		this->FlagFile.Insert("rusi.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obssovi.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("rusi.shp");
 		break;
@@ -167,7 +167,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:YuriCountry";
 		this->StatusText = "STT:PlayerSideYuriCountry";
 
-		this->FlagFile = "yrii.pcx";
+		this->FlagFile.Insert("yrii.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsyuri.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("yrii.shp");
 		this->ObserverFlagYuriPAL = true;
@@ -182,7 +182,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "GUI:Unknown";
 		this->StatusText = "GUI:Unknown";
 
-		this->FlagFile = "rani.pcx";
+		this->FlagFile.Insert("rani.pcx");
 		break;
 	}
 
@@ -330,7 +330,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 				{
 					*ppShp = nullptr;
 				}
-				Pcx = nullptr;
+				Pcx.Erase();
 			}
 			else if (!ppShp || strstr(Phobos::readBuffer, ".pcx"))
 			{
@@ -339,12 +339,12 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 				{
 					*ppShp = nullptr;
 				}
-				Pcx = Phobos::readBuffer;
+				Pcx.Insert(Phobos::readBuffer);
 				if (!Pcx.Exists())
 				{
 					// log error and clear invalid name
 					Debug::INIParseFailed(pSection, key, Phobos::readBuffer);
-					Pcx = nullptr;
+					Pcx.Erase();
 				}
 			}
 			else if (ppShp)
@@ -355,7 +355,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 				{
 					// log error and clear invalid name
 					Debug::INIParseFailed(pSection, key, Phobos::readBuffer);
-					Pcx = nullptr;
+					Pcx.Erase();
 				}
 			}
 			else

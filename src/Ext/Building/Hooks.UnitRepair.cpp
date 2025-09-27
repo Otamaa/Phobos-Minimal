@@ -24,8 +24,6 @@ ASMJIT_PATCH(0x44BD38, BuildingClass_Mission_Repair_UnitRepair, 0x6)
 	return SkipGameCode;
 }
 
-bool SeparateRepair = false;
-
 ASMJIT_PATCH(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 {
 	GET(FakeBuildingClass*, pThis, EBP);
@@ -43,9 +41,11 @@ ASMJIT_PATCH(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 
 			int rate = static_cast<int>(std::max(repairRate * 900, 1.0));
 
+			auto pExt = pThis->_GetExtData();
+
 			if (!(Unsorted::CurrentFrame % rate))
 			{
-				SeparateRepair = true;
+				pExt->SeparateRepair = true;
 
 				for (auto i = 0; i < pThis->RadioLinks.Capacity; ++i)
 				{
@@ -56,7 +56,7 @@ ASMJIT_PATCH(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 					}
 				}
 
-				SeparateRepair = false;
+				pExt->SeparateRepair = false;
 			}
 		}
 	}
@@ -78,8 +78,9 @@ ASMJIT_PATCH(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
 	if (auto const pBuilding = cast_to<BuildingClass* , false>(pFrom))
 	{
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+		auto pbldExt = BuildingExtContainer::Instance.Find(pBuilding);
 
-		if (pBuilding->Type->UnitReload && pTypeExt->Units_RepairRate.isset() && !SeparateRepair)
+		if (pBuilding->Type->UnitReload && pTypeExt->Units_RepairRate.isset() && !pbldExt->SeparateRepair)
 			return AnswerNegative;
 
 		repairStep = pTypeExt->Units_RepairStep.Get(repairStep);

@@ -88,16 +88,16 @@ public:
 
 public:
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	bool LoadFromStream(PhobosStreamReader& Stm) { return this->Serialize(Stm); }
+	bool SaveToStream(PhobosStreamWriter& Stm) { return this->Serialize(Stm); }
 
 	void Screen_Flash_AI();
 
 private:
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(this->Initialized)
 			.Process(this->IsPendingScreenFlash)
 			.Process(this->ScreenFlashColor)

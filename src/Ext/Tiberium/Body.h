@@ -35,7 +35,40 @@ public:
 	Valueable<int> DebrisChance;
 	Valueable<std::string> LinkedOverlayType;
 	Valueable<int> PipIndex;
+
+	using QueueItem = std::pair<float, CellStruct>;
+
+	struct CompareQueueItem
+	{
+		bool operator()(const QueueItem& a, const QueueItem& b) const
+		{
+			return a.first > b.first; // min-heap by float
+		}
+	};
+
+	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue;
+	std::vector<bool> SpreadState;
+	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
+	std::vector<bool> GrowthState;
+
 #pragma endregion
+
+
+	void Spread_AI(void);
+	void Initialize_Spread(void);
+	void Recalc_Spread(void);
+	void Clear_Spread(void);
+	void Queue_Spread(CellStruct const& cell);
+
+	void Growth_AI(void);
+	void Initialize_Growth(void);
+	void Recalc_Growth(void);
+	void Clear_Growth(void);
+	void Queue_Growth(CellStruct const& cell);
+
+	static void Clear_Tiberium_Spread_State(CellStruct const& cell);
+	static int Map_Cell_Index(CellStruct const& cell);
+	static int Map_Cell_Count();
 
 public:
 	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj),
@@ -44,8 +77,13 @@ public:
 		UseNormalLight(true),
 		EnablePixelFXAnim(true),
 		DebrisChance(33),
-		PipIndex(-1)
+		PipIndex(-1),
+		SpreadQueue(),
+		SpreadState(),
+		GrowthQueue(),
+		GrowthState()
 	{ }
+
 	TiberiumExtData(TiberiumClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 
 	virtual ~TiberiumExtData() = default;
@@ -154,6 +192,17 @@ public:
 	void __QueueGrowthAt(CellStruct* pCell);
 	void __Growth();
 #pragma endregion
+
+	void __Initialize_Spread() { TiberiumExtContainer::Instance.Find(this)->Initialize_Spread(); }
+	void __Initialize_Growth() { TiberiumExtContainer::Instance.Find(this)->Initialize_Growth(); }
+	void __Clear_Growth() { TiberiumExtContainer::Instance.Find(this)->Clear_Growth(); }
+	void __Clear_Spread() { TiberiumExtContainer::Instance.Find(this)->Clear_Spread(); }
+
+	void Clear_Tiberium_Spread_State(CellStruct const& cell)
+	{
+		int cellindex = TiberiumExtData::Map_Cell_Index(cell);
+		TiberiumExtContainer::Instance.Find(this)->SpreadState[cellindex] = false;
+	}
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);

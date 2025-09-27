@@ -1758,3 +1758,19 @@ const char* ScriptClass::get_ID() const
 {
 	return Type ? Type->get_ID() : GameStrings::NoneStr;
 }
+
+DEFINE_IMPLEMENTATION(void TechnoClass::Draw_Object(SHPStruct*,
+	int,
+	Point2D*,
+	RectangleStruct*,
+	DirType,  //unused
+	int, //unused
+	int,
+	ZGradient,
+	bool,
+	int,
+	int,
+	SHPStruct*,
+	int,
+	Point2D,
+	BlitterFlags), 0x705E00);

@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/AircraftType/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
@@ -542,6 +543,58 @@ void FakeAircraftClass::_FootClass_Update_Wrapper()
 	//}
 
 	this->FootClass::Update();
+
+	if (this->IsAlive && this->Type->AirportBound && !this->Airstrike && !this->Spawned)
+	{
+		const bool extendedMissions = RulesExtData::Instance()->ExpandAircraftMission;
+
+		if (extendedMissions)
+		{
+			// Check area guard range
+			if (const auto pArchive = this->ArchiveTarget)
+			{
+				if (this->Target && !this->IsFiring && !this->IsLocked
+					&& this->DistanceFromSquared(pArchive) > static_cast<int>(this->GetGuardRange(1) * 1.1))
+				{
+					this->SetTarget(nullptr);
+					this->SetDestination(pArchive, true);
+				}
+			}
+
+			// Check dock building
+			this->FindDockingBayInVector(reinterpret_cast<TypeList<TechnoTypeClass*>*>(&this->Type->Dock), 0, 0);
+		}
+
+		if (this->DockedTo)
+		{
+			// Exit the aimless hovering state and return to the new airport
+			if (this->GetCurrentMission() == Mission::Area_Guard && this->MissionStatus)
+			{
+				this->SetArchiveTarget(nullptr);
+				this->EnterIdleMode(false, true);
+			}
+		}
+		else if (this->IsInAir())
+		{
+			int damage = AircraftTypeExtContainer::Instance.Find(this->Type)->ExtendedAircraftMissions_UnlandDamage.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage);
+
+			if (damage > 0)
+			{
+				if (!extendedMissions && !this->IsCrushingSomething && this->FindDockingBayInVector(reinterpret_cast<TypeList<TechnoTypeClass*>*>(&this->Type->Dock), 0, 0))
+					return;
+
+				// Injury every four frames
+				if (!((Unsorted::CurrentFrame - this->LastFireBulletFrame + this->UniqueID) & 0x3))
+					this->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+			}
+			else if (damage < 0)
+			{
+				// Avoid using circular movement paths to prevent the aircraft from crashing
+				if (extendedMissions)
+					this->Crash(nullptr);
+			}
+		}
+	}
 }
 
 COMPILETIMEEVAL FORCEDINLINE bool IsFlyLoco(const ILocomotion* pLoco) {

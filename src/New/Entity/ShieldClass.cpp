@@ -669,8 +669,10 @@ void ShieldClass::TemporalCheck()
 
 void ShieldClass::UpdateTint(bool forceUpdate)
 {
-	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0 || forceUpdate)
+	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0 || forceUpdate){
+		TechnoExtContainer::Instance.Find(this->Techno)->Tints.Update();
 		this->Techno->MarkForRedraw();
+	}
 }
 
 // Is used for DeploysInto/UndeploysInto and DeploysInto/UndeploysInto

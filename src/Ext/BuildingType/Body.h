@@ -256,6 +256,8 @@ public:
 	Valueable<bool> Refinery_UseNormalActiveAnim;
 	ValueableVector<bool> HasPowerUpAnim;
 	Valueable<bool> AggressiveModeExempt;
+	Valueable<bool> IsBarGate;
+	Valueable<bool> IsHideDuringSpecialAnim;
 #pragma endregion
 
 public:
@@ -390,7 +392,9 @@ public:
 		BattlePointsCollector(false),
 		BattlePointsCollector_RequirePower(false),
 		Refinery_UseNormalActiveAnim(false),
-		AggressiveModeExempt(false)
+		AggressiveModeExempt(false),
+		IsBarGate(false),
+		IsHideDuringSpecialAnim(false)
 	{
 		this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
 		this->PrismForwarding.Initialize(This());

@@ -33,8 +33,8 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 		auto currentExtension = (AbstractExtended*)it->second;
 
 		// Fix bidirectional pointers
-		Debug::Log("ExtensionSwizzleManager::SwizzleExtensionPointer Fixing Up Extension Pointer of %s from %x to %x \n"
-	,	currentExtension->GetAttachedObjectName(), *ptrToFix, currentExtension);
+		//Debug::Log("ExtensionSwizzleManager::SwizzleExtensionPointer Fixing Up Extension Pointer of %s from %x to %x \n"
+		//,	currentExtension->GetAttachedObjectName(), *ptrToFix, currentExtension);
 		currentExtension->SetAttached(OwnerObj);
 		*ptrToFix = currentExtension;
 		it->second = 0u;
@@ -50,8 +50,8 @@ void ExtensionSwizzleManager::CleanupUnmappedExtensions()
 {
 	for (const auto& [savedAddr, extension] : extensionPointerMap) {
 		if(extension > 0) {
-			Debug::Log("[ExtensionSwizzleManager] Cleaning up unmapped extension: %x -> %x\n",
-				savedAddr , extension);
+			//Debug::Log("[ExtensionSwizzleManager] Cleaning up unmapped extension: %x -> %x\n",
+			//	savedAddr , extension);
 
 			delete (AbstractExtended*)extension;
 		}
@@ -579,8 +579,6 @@ PhobosSwizzleManagerClass::~PhobosSwizzleManagerClass()
 	ExtensionSwizzleManager::CleanupUnmappedExtensions();
 }
 
-#define ENABLE_SWIZZLE_DEBUG_PRINTING
-
 /**
  *  Process and remap pointers in the tables.
  *
@@ -591,7 +589,6 @@ void PhobosSwizzleManagerClass::Process_Tables()
 	if (!RequestTable.empty())
 	{
 #ifdef ENABLE_SWIZZLE_DEBUG_PRINTING
-		Debug::Log("SwizzleManager::Process_Tables() - RequestTable.Count %d.\n", RequestTable.size());
 		Debug::Log("SwizzleManager::Process_Tables() - PointerTable.Count %d.\n", PointerTable.size());
 #endif
 

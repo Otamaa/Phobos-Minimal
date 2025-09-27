@@ -447,3 +447,147 @@ bool PhobosStreamReader::RegisterChange(void* newPtr)
 
 	return false;
 }
+
+bool PhobosAppendedStream::WriteToStream(LPSTREAM pStm) const
+{
+	if (!pStm)
+	{
+		return false;
+	}
+
+	ULONG written = 0;
+	HRESULT hr;
+
+	// Write start marker
+	hr = pStm->Write(PhobosByteStream::START_MARKER, PhobosByteStream::START_MARKER_LEN, &written);
+	if (FAILED(hr) || written != PhobosByteStream::START_MARKER_LEN)
+	{
+		GameDebugLog::Log("Failed to write Phobos start marker.\n");
+		return false;
+	}
+
+	// Write size
+	uint32_t size = static_cast<uint32_t>(this->data.size());
+	hr = pStm->Write(&size, sizeof(size), &written);
+	if (FAILED(hr) || written != sizeof(size))
+	{
+		GameDebugLog::Log("Failed to write Phobos data size (%u bytes).\n", size);
+		return false;
+	}
+
+	// Write checksum placeholder (for compatibility)
+	uint32_t checksum = 0;
+	hr = pStm->Write(&checksum, sizeof(checksum), &written);
+	if (FAILED(hr) || written != sizeof(checksum))
+	{
+		GameDebugLog::Log("Failed to write Phobos checksum placeholder.\n");
+		return false;
+	}
+
+	// Write buffer
+	if (!this->data.empty())
+	{
+		hr = pStm->Write(this->data.data(), static_cast<ULONG>(this->data.size()), &written);
+		if (FAILED(hr) || written != this->data.size())
+		{
+			GameDebugLog::Log("Failed to write Phobos data buffer (%zu bytes).\n", this->data.size());
+			return false;
+		}
+	}
+
+	// Write end marker
+	hr = pStm->Write(PhobosByteStream::END_MARKER, PhobosByteStream::END_MARKER_LEN, &written);
+	if (FAILED(hr) || written != PhobosByteStream::END_MARKER_LEN)
+	{
+		GameDebugLog::Log("Failed to write Phobos end marker.\n");
+		return false;
+	}
+
+	GameDebugLog::Log("Phobos data written successfully at current stream position (%zu bytes).\n", this->data.size());
+	return true;
+}
+
+bool PhobosAppendedStream::ReadFromStream(IStream* pStm)
+{
+	if (!pStm) return false;
+
+	this->data.clear();
+	this->position = 0;
+
+	std::array<char, PhobosByteStream::START_MARKER_LEN> buf {};
+	ULONG read = 0;
+
+	while (true)
+	{
+		ULARGE_INTEGER pos {};
+		LARGE_INTEGER cur {};
+		if (FAILED(pStm->Seek(cur, STREAM_SEEK_CUR, &pos))) return false;
+
+		if (FAILED(pStm->Read(buf.data(), PhobosByteStream::START_MARKER_LEN, &read)) || read < PhobosByteStream::START_MARKER_LEN) break;
+
+		if (!memcmp(buf.data(), PhobosByteStream::START_MARKER, PhobosByteStream::START_MARKER_LEN))
+		{
+			// Found start marker, read size
+			uint32_t size = 0;
+			ULONG got = 0;
+			if (FAILED(pStm->Read(&size, sizeof(size), &got)) || got != sizeof(size))
+			{
+				GameDebugLog::Log("Failed to read Phobos data size\n");
+				return false;
+			}
+
+			// Read checksum (but ignore it for now)
+			uint32_t checksum = 0;
+			if (FAILED(pStm->Read(&checksum, sizeof(checksum), &got)) || got != sizeof(checksum))
+			{
+				GameDebugLog::Log("Failed to read Phobos checksum\n");
+				return false;
+			}
+
+			// Validate size
+			if (size > PhobosByteStream::MAX_SINGLE_OPERATION)
+			{
+				GameDebugLog::Log("Phobos data size %u exceeds maximum %zu\n", size, PhobosByteStream::MAX_SINGLE_OPERATION);
+				return false;
+			}
+
+			// Read data
+			this->data.resize(size);
+			if (size > 0)
+			{
+				if (FAILED(pStm->Read(this->data.data(), size, &got)) || got != size)
+				{
+					GameDebugLog::Log("Failed to read Phobos data buffer (%u bytes)\n", size);
+					this->data.clear();
+					return false;
+				}
+			}
+
+			// Verify end marker
+			if (FAILED(pStm->Read(buf.data(), PhobosByteStream::END_MARKER_LEN, &got)) || got != PhobosByteStream::END_MARKER_LEN)
+			{
+				GameDebugLog::Log("Failed to read Phobos end marker\n");
+				this->data.clear();
+				return false;
+			}
+
+			if (memcmp(buf.data(), PhobosByteStream::END_MARKER, PhobosByteStream::END_MARKER_LEN))
+			{
+				GameDebugLog::Log("Invalid Phobos end marker\n");
+				this->data.clear();
+				return false;
+			}
+
+			GameDebugLog::Log("Phobos data read successfully (%zu bytes)\n", this->data.size());
+			return true;
+		}
+
+		// Move back and continue scanning (overlapping search)
+		LARGE_INTEGER back;
+		back.QuadPart = -(LONG)(PhobosByteStream::START_MARKER_LEN - 1);
+		if (FAILED(pStm->Seek(back, STREAM_SEEK_CUR, nullptr))) return false;
+	}
+
+	GameDebugLog::Log("Phobos data not found\n");
+	return false;
+}

@@ -93,18 +93,6 @@ public:
 			.RegisterChange(this)
 			;
 	}
-
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return Stm
-			.Process(Array);
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return Stm
-			.Process(Array);
-	}
 };
 
 template <>

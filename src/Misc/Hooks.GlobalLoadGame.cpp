@@ -117,48 +117,112 @@
 #include <CStreamClass.h>
 #include <LoadOptionsClass.h>
 
-//
-template<typename T>
-FORCEDINLINE bool Process_Global_Load(LPSTREAM stream)
-{
-	PhobosByteStream stm(0);
-	stm.ReadBlockFromStream(stream);
-	PhobosStreamReader reader(stm);
 
+template<typename T>
+bool Process_Global_Load(PhobosStreamReader& reader)
+{
 	Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-	return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
+	return T::LoadGlobals(reader);
 }
 
-template<typename T>
-FORCEDINLINE bool Process_Global_Load_SingleInstanceObject(LPSTREAM pStm)
-{
-	PhobosByteStream stm(0);
-	stm.ReadBlockFromStream(pStm);
-	PhobosStreamReader reader(stm);
-
-	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-	T::Instance()->LoadFromStream(reader);
-	return reader.ExpectEndOfBlock();
-}
-//
 
 template<typename T>
-HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
+HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection, DWORD* pArrayPosition = nullptr)
 {
 	HRESULT hr;
 	std::string typeName = PhobosCRT::GetTypeIDName<T>();
 
-	int count;
-	// Read the count
-	hr = stream->Read(&count, sizeof(int), 0);
+	// Read START marker
+	DWORD markerLength;
+	hr = stream->Read(&markerLength, sizeof(DWORD), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadObjectVector<%s>: FAILED to read start marker length! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	if (markerLength > 256) // Sanity check
+	{
+		Debug::Log("LoadObjectVector<%s>: SUSPICIOUS marker length: %d\n",
+				   typeName.c_str(), markerLength);
+		return E_FAIL;
+	}
+
+	std::vector<char> markerBuffer(markerLength + 1);
+	hr = stream->Read(markerBuffer.data(), markerLength, 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadObjectVector<%s>: FAILED to read start marker! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	markerBuffer[markerLength] = '\0';
+	std::string startMarker(markerBuffer.data());
+
+	std::string expectedStartMarker = "START_" + typeName;
+	if (startMarker != expectedStartMarker)
+	{
+		Debug::Log("LoadObjectVector<%s>: START MARKER MISMATCH! Expected: %s, Got: %s\n",
+				   typeName.c_str(), expectedStartMarker.c_str(), startMarker.c_str());
+		return E_FAIL;
+	}
+	Debug::Log("LoadObjectVector<%s>: Successfully read start marker: %s\n",
+			   typeName.c_str(), startMarker.c_str());
+
+	// Read size
+	DWORD dataSize;
+	hr = stream->Read(&dataSize, sizeof(DWORD), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadObjectVector<%s>: FAILED to read data size! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	// Read array position
+	DWORD arrayPosition;
+	hr = stream->Read(&arrayPosition, sizeof(DWORD), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadObjectVector<%s>: FAILED to read array position! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	if (pArrayPosition)
+		*pArrayPosition = arrayPosition;
+
+	Debug::Log("LoadObjectVector<%s>: Data size: %d, Array position: %d\n",
+			   typeName.c_str(), dataSize, arrayPosition);
+
+	// Mark position before reading data for size validation
+	LARGE_INTEGER zero = { 0 };
+	ULARGE_INTEGER dataStartPos = { 0 };
+	hr = stream->Seek(zero, STREAM_SEEK_CUR, &dataStartPos);
 	if (FAILED(hr)) return hr;
+
+	// Read the count
+	int count;
+	hr = stream->Read(&count, sizeof(int), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadObjectVector<%s>: FAILED to read count! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	if (count < 0 || count > 100000) // Sanity check
+	{
+		Debug::Log("LoadObjectVector<%s>: SUSPICIOUS count: %d\n",
+				   typeName.c_str(), count);
+		return E_FAIL;
+	}
+
 	Debug::Log("LoadObjectVector<%s>: Loaded Count %d\n", typeName.c_str(), count);
 
-	if (count > 0) {
-		//the game memory is quite sensitive at this state
-		//do pre allocation of the vector instead of dynamicly expand
-		//this will relive memory system quite a much
-		//and also avoiding crash
+	if (count > 0)
+	{
 		collection.Reserve(count);
 	}
 
@@ -167,35 +231,182 @@ HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
 	{
 		LPVOID objPtr = nullptr;
 		hr = OleLoadFromStream(stream, IID_IUnknown, &objPtr);
-		if (FAILED(hr)) return hr;
+		if (FAILED(hr))
+		{
+			Debug::Log("LoadObjectVector<%s>: OleLoadFromStream failed for object %d! HRESULT: 0x%08X\n",
+					   typeName.c_str(), i, hr);
+			return hr;
+		}
 	}
+
+	// Validate actual data size read
+	ULARGE_INTEGER dataEndPos = { 0 };
+	hr = stream->Seek(zero, STREAM_SEEK_CUR, &dataEndPos);
+	if (FAILED(hr)) return hr;
+
+	DWORD actualDataSize = (DWORD)(dataEndPos.QuadPart - dataStartPos.QuadPart);
+	if (actualDataSize != dataSize)
+	{
+		Debug::Log("LoadObjectVector<%s>: DATA SIZE MISMATCH! Expected: %d, Actual: %d\n",
+				   typeName.c_str(), dataSize, actualDataSize);
+		return E_FAIL;
+	}
+
+	// Read END marker
+	hr = stream->Read(&markerLength, sizeof(DWORD), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadObjectVector<%s>: FAILED to read end marker length! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	if (markerLength > 256) // Sanity check
+	{
+		Debug::Log("LoadObjectVector<%s>: SUSPICIOUS end marker length: %d\n",
+				   typeName.c_str(), markerLength);
+		return E_FAIL;
+	}
+
+	markerBuffer.resize(markerLength + 1);
+	hr = stream->Read(markerBuffer.data(), markerLength, 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadObjectVector<%s>: FAILED to read end marker! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	markerBuffer[markerLength] = '\0';
+	std::string endMarker(markerBuffer.data());
+
+	std::string expectedEndMarker = "END_" + typeName;
+	if (endMarker != expectedEndMarker)
+	{
+		Debug::Log("LoadObjectVector<%s>: END MARKER MISMATCH! Expected: %s, Got: %s\n",
+				   typeName.c_str(), expectedEndMarker.c_str(), endMarker.c_str());
+		return E_FAIL;
+	}
+	Debug::Log("LoadObjectVector<%s>: Successfully read end marker: %s\n",
+			   typeName.c_str(), endMarker.c_str());
+
+	Debug::Log("LoadObjectVector<%s>: Successfully loaded %d objects from position %d\n",
+			   typeName.c_str(), count, arrayPosition);
+
 	return S_OK;
 }
 
 template<typename T>
-HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
+HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection, DWORD* pArrayPosition = nullptr)
 {
 	HRESULT hr;
-	DWORD count;
+	std::string typeName = PhobosCRT::GetTypeIDName<T>();
+
+	// Read START marker
+	DWORD markerLength;
+	hr = stream->Read(&markerLength, sizeof(DWORD), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadSimpleArray<%s>: FAILED to read start marker length! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	if (markerLength > 256) // Sanity check
+	{
+		Debug::Log("LoadSimpleArray<%s>: SUSPICIOUS marker length: %d\n",
+				   typeName.c_str(), markerLength);
+		return E_FAIL;
+	}
+
+	std::vector<char> markerBuffer(markerLength + 1);
+	hr = stream->Read(markerBuffer.data(), markerLength, 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadSimpleArray<%s>: FAILED to read start marker! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	markerBuffer[markerLength] = '\0';
+	std::string startMarker(markerBuffer.data());
+
+	std::string expectedStartMarker = "START_" + typeName;
+	if (startMarker != expectedStartMarker)
+	{
+		Debug::Log("LoadSimpleArray<%s>: START MARKER MISMATCH! Expected: %s, Got: %s\n",
+				   typeName.c_str(), expectedStartMarker.c_str(), startMarker.c_str());
+		return E_FAIL;
+	}
+	Debug::Log("LoadSimpleArray<%s>: Successfully read start marker: %s\n",
+			   typeName.c_str(), startMarker.c_str());
+
+	// Read size
+	DWORD expectedDataSize;
+	hr = stream->Read(&expectedDataSize, sizeof(DWORD), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadSimpleArray<%s>: FAILED to read data size! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	// Read array position
+	DWORD arrayPosition;
+	hr = stream->Read(&arrayPosition, sizeof(DWORD), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadSimpleArray<%s>: FAILED to read array position! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	if (pArrayPosition)
+		*pArrayPosition = arrayPosition;
+
+	Debug::Log("LoadSimpleArray<%s>: Expected data size: %d, Array position: %d\n",
+			   typeName.c_str(), expectedDataSize, arrayPosition);
 
 	// Read count
+	int count;
 	hr = stream->Read(&count, sizeof(int), 0);
-	if (FAILED(hr)) return hr;
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadSimpleArray<%s>: FAILED to read count! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	if (count < 0 || count > 100000) // Sanity check
+	{
+		Debug::Log("LoadSimpleArray<%s>: SUSPICIOUS count: %d\n",
+				   typeName.c_str(), count);
+		return E_FAIL;
+	}
+
+	// Validate expected size matches count
+	DWORD calculatedDataSize = sizeof(int) + (count * sizeof(T));
+	if (calculatedDataSize != expectedDataSize)
+	{
+		Debug::Log("LoadSimpleArray<%s>: DATA SIZE MISMATCH! Expected: %d, Calculated: %d\n",
+				   typeName.c_str(), expectedDataSize, calculatedDataSize);
+		return E_FAIL;
+	}
 
 	// Clear and prepare collection
 	collection.Clear();
-
 	if (count > 0)
 	{
 		collection.Reserve(count);
-
 		// Load array data
 		for (int i = 0; i < count; ++i)
 		{
 			T itemPtr = nullptr;
 			hr = stream->Read(&itemPtr, sizeof(T), 0);
-			if (FAILED(hr)) return hr;
-
+			if (FAILED(hr))
+			{
+				Debug::Log("LoadSimpleArray<%s>: FAILED to read item %d! HRESULT: 0x%08X\n",
+						   typeName.c_str(), i, hr);
+				return hr;
+			}
 			// Add to collection if space available
 			collection.AddItem(itemPtr);
 		}
@@ -207,6 +418,46 @@ HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
 			PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(collection.Items[i], what.c_str());
 		}
 	}
+
+	// Read END marker
+	hr = stream->Read(&markerLength, sizeof(DWORD), 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadSimpleArray<%s>: FAILED to read end marker length! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+
+	if (markerLength > 256) // Sanity check
+	{
+		Debug::Log("LoadSimpleArray<%s>: SUSPICIOUS end marker length: %d\n",
+				   typeName.c_str(), markerLength);
+		return E_FAIL;
+	}
+
+	markerBuffer.resize(markerLength + 1);
+	hr = stream->Read(markerBuffer.data(), markerLength, 0);
+	if (FAILED(hr))
+	{
+		Debug::Log("LoadSimpleArray<%s>: FAILED to read end marker! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	markerBuffer[markerLength] = '\0';
+	std::string endMarker(markerBuffer.data());
+
+	std::string expectedEndMarker = "END_" + typeName;
+	if (endMarker != expectedEndMarker)
+	{
+		Debug::Log("LoadSimpleArray<%s>: END MARKER MISMATCH! Expected: %s, Got: %s\n",
+				   typeName.c_str(), expectedEndMarker.c_str(), endMarker.c_str());
+		return E_FAIL;
+	}
+	Debug::Log("LoadSimpleArray<%s>: Successfully read end marker: %s\n",
+			   typeName.c_str(), endMarker.c_str());
+
+	Debug::Log("LoadSimpleArray<%s>: Successfully loaded %d items from position %d\n",
+			   typeName.c_str(), count, arrayPosition);
 
 	return S_OK;
 }
@@ -252,477 +503,377 @@ HRESULT PrepareDisplaySurfaces()
 }
 
 #include <Utilities/StreamUtils.h>
-
-HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker& tracker)
+HRESULT LoadPhobosEarlyObjects(LPSTREAM pStm)
 {
-	Debug::Log("=== ENHANCED LOAD WITH POSITION VALIDATION ===\n");
-	HRESULT hr = S_OK;
+	PhobosByteStream stm;
+	PhobosStreamReader reader(stm);
 
-	// Track initial position
-	ULARGE_INTEGER startPos = tracker.GetCurrentPosition();
-	Debug::Log("About to load the game - starting at position: %llu\n", startPos.QuadPart);
+	HRESULT hr = stm.ReadFromStream(pStm) ? S_OK : E_FAIL;
+
+	if (!SUCCEEDED(hr))
+		return hr;
+
+	bool success = Process_Global_Load<Phobos>(reader);
+	if (!success) return E_FAIL;
+	success = Process_Global_Load<CursorTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ColorTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SideExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TheaterTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<MouseClassExt>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<DigitalDisplayTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ArmorTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ImmunityTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<LaserTrailTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TunnelTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<InsigniaTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SelectBoxTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TiberiumExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<HouseTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<HouseExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<UnitTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<InfantryTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BuildingTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<AircraftTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<AnimExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TEventExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<VoxelAnimTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<WarheadTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<WeaponTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ParticleTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ParticleSystemTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BulletTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TActionExtData>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SmudgeTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<OverlayTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SWTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TerrainTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	if (!reader.ExpectEndOfBlock())
+		hr = E_FAIL;
+
+	return hr;
+
+}
+
+HRESULT Decode_All_Pointers(LPSTREAM stream)
+{
+	HRESULT hr = S_OK;
 
 	Phobos::Otamaa::DoingLoadGame = true;
 	ScenarioClass::ClearScenario();
 
-	// Phobos extension data
-	tracker.StartOperation("Process_Global_Load<Phobos>");
-	bool success = Process_Global_Load<Phobos>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<CursorTypeClass>");
-	success = Process_Global_Load<CursorTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<ColorTypeClass>");
-	success = Process_Global_Load<ColorTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("ScenarioClass::Instance->Load");
 	hr = ScenarioClass::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	ScenarioClass::IsUserInputLocked = ScenarioClass::Instance->UserInputLocked;
 
-	tracker.StartOperation("Process_Global_Load<SideExtContainer>");
-	success = Process_Global_Load<SideExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	hr = LoadPhobosEarlyObjects(stream);
+	if(!hr) return E_FAIL;;
 
-	tracker.StartOperation("LoadObjectVector(SideClass::Array)");
 	hr = LoadObjectVector(stream, *SideClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
-
-	tracker.StartOperation("Process_Global_Load<TheaterTypeClass>");
-	success = Process_Global_Load<TheaterTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	if (!SUCCEEDED(hr)) return hr;
 
 	PrepareDisplaySurfaces();
 
-	tracker.StartOperation("EvadeClass::Instance->Load");
 	hr = EvadeClass::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	Theater::Init(ScenarioClass::Instance->Theater);
 
-	tracker.StartOperation("RulesClass::Instance->Load");
 	hr = RulesClass::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<MouseClassExt>");
-	success = Process_Global_Load<MouseClassExt>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("MouseClass::Instance->Load");
 	hr = MouseClass::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Game::Load_Misc_Values");
 	hr = Game::Load_Misc_Values(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	MapClass::Instance->Clear_SubzoneTracking();
 
-	tracker.StartOperation("LogicClass::Instance->Load");
 	hr = LogicClass::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	if (auto pInstance = TacticalClass::Instance()) {
 		pInstance->ClearPtr();
 	}
 
-	tracker.StartOperation("OleLoadFromStream(TacticalClass)");
 	LPVOID tacticalMapObj = nullptr;
 	hr = OleLoadFromStream(stream, IID_IUnknown, &tacticalMapObj);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	TacticalExtData::Allocate(TacticalClass::Instance());
 
-	tracker.StartOperation("Process_Global_Load_SingleInstanceObject<TacticalExtData>");
-	success = Process_Global_Load_SingleInstanceObject<TacticalExtData>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<DigitalDisplayTypeClass>");
-	success = Process_Global_Load<DigitalDisplayTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<ArmorTypeClass>");
-	success = Process_Global_Load<ArmorTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<ImmunityTypeClass>");
-	success = Process_Global_Load<ImmunityTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<LaserTrailTypeClass>");
-	success = Process_Global_Load<LaserTrailTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<TunnelTypeClass>");
-	success = Process_Global_Load<TunnelTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<InsigniaTypeClass>");
-	success = Process_Global_Load<InsigniaTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<SelectBoxTypeClass>");
-	success = Process_Global_Load<SelectBoxTypeClass>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(AnimTypeClass::Array)");
 	hr = LoadObjectVector(stream, *AnimTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TubeClass::Array)");
 	hr = LoadObjectVector(stream, *TubeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<TiberiumExtContainer>");
-	success = Process_Global_Load<TiberiumExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(TiberiumClass::Array)");
 	hr = LoadObjectVector(stream, *TiberiumClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<HouseTypeExtContainer>");
-	success = Process_Global_Load<HouseTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(HouseTypeClass::Array)");
 	hr = LoadObjectVector(stream, *HouseTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<HouseExtContainer>");
-	success = Process_Global_Load<HouseExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(HouseClass::Array)");
 	hr = LoadObjectVector(stream, *HouseClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<UnitTypeExtContainer>");
-	success = Process_Global_Load<UnitTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(UnitTypeClass::Array)");
 	hr = LoadObjectVector(stream, *UnitTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(UnitClass::Array)");
 	hr = LoadObjectVector(stream, *UnitClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<InfantryTypeExtContainer>");
-	success = Process_Global_Load<InfantryTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(InfantryTypeClass::Array)");
 	hr = LoadObjectVector(stream, *InfantryTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(InfantryClass::Array)");
 	hr = LoadObjectVector(stream, *InfantryClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<BuildingTypeExtContainer>");
-	success = Process_Global_Load<BuildingTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(BuildingTypeClass::Array)");
 	hr = LoadObjectVector(stream, *BuildingTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(BuildingClass::Array)");
 	hr = LoadObjectVector(stream, *BuildingClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<AircraftTypeExtContainer>");
-	success = Process_Global_Load<AircraftTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(AircraftTypeClass::Array)");
 	hr = LoadObjectVector(stream, *AircraftTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(AircraftClass::Array)");
 	hr = LoadObjectVector(stream, *AircraftClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<AnimExtContainer>");
-	success = Process_Global_Load<AnimExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(AnimClass::Array)");
 	hr = LoadObjectVector(stream, *AnimClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TaskForceClass::Array)");
 	hr = LoadObjectVector(stream, *TaskForceClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TeamTypeClass::Array)");
 	hr = LoadObjectVector(stream, *TeamTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TeamClass::Array)");
 	hr = LoadObjectVector(stream, *TeamClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(ScriptTypeClass::Array)");
 	hr = LoadObjectVector(stream, *ScriptTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(ScriptClass::Array)");
 	hr = LoadObjectVector(stream, *ScriptClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TagTypeClass::Array)");
 	hr = LoadObjectVector(stream, *TagTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TagClass::Array)");
 	hr = LoadObjectVector(stream, *TagClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TriggerTypeClass::Array)");
 	hr = LoadObjectVector(stream, *TriggerTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TriggerClass::Array)");
 	hr = LoadObjectVector(stream, *TriggerClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(AITriggerTypeClass::Array)");
 	hr = LoadObjectVector(stream, *AITriggerTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TActionClass::Array)");
 	hr = LoadObjectVector(stream, *TActionClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<TActionExtData>");
-	success = Process_Global_Load<TActionExtData>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("Process_Global_Load<TEventExtContainer>");
-	success = Process_Global_Load<TEventExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(TEventClass::Array)");
 	hr = LoadObjectVector(stream, *TEventClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(FactoryClass::Array)");
 	hr = LoadObjectVector(stream, *FactoryClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<VoxelAnimTypeExtContainer>");
-	success = Process_Global_Load<VoxelAnimTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(VoxelAnimTypeClass::Array)");
 	hr = LoadObjectVector(stream, *VoxelAnimTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(VoxelAnimClass::Array)");
 	hr = LoadObjectVector(stream, *VoxelAnimClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<WarheadTypeExtContainer>");
-	success = Process_Global_Load<WarheadTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(WarheadTypeClass::Array)");
 	hr = LoadObjectVector(stream, *WarheadTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<WeaponTypeExtContainer>");
-	success = Process_Global_Load<WeaponTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(WeaponTypeClass::Array)");
 	hr = LoadObjectVector(stream, *WeaponTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<ParticleTypeExtContainer>");
-	success = Process_Global_Load<ParticleTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(ParticleTypeClass::Array)");
 	hr = LoadObjectVector(stream, *ParticleTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(ParticleClass::Array)");
 	hr = LoadObjectVector(stream, *ParticleClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<ParticleSystemTypeExtContainer>");
-	success = Process_Global_Load<ParticleSystemTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(ParticleSystemTypeClass::Array)");
 	hr = LoadObjectVector(stream, *ParticleSystemTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(ParticleSystemClass::Array)");
 	hr = LoadObjectVector(stream, *ParticleSystemClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<BulletTypeExtContainer>");
-	success = Process_Global_Load<BulletTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(BulletTypeClass::Array)");
 	hr = LoadObjectVector(stream, *BulletTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(BulletClass::Array)");
 	hr = LoadObjectVector(stream, *BulletClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(WaypointPathClass::Array)");
 	hr = LoadObjectVector(stream, *WaypointPathClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<SmudgeTypeExtContainer>");
-	success = Process_Global_Load<SmudgeTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(SmudgeTypeClass::Array)");
 	hr = LoadObjectVector(stream, *SmudgeTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<OverlayTypeExtContainer>");
-	success = Process_Global_Load<OverlayTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(OverlayTypeClass::Array)");
 	hr = LoadObjectVector(stream, *OverlayTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(LightSourceClass::Array)");
 	hr = LoadObjectVector(stream, *LightSourceClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(BuildingLightClass::Array)");
 	hr = LoadObjectVector(stream, *BuildingLightClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(EMPulseClass::Array)");
 	hr = LoadObjectVector(stream, *EMPulseClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<SWTypeExtContainer>");
-	success = Process_Global_Load<SWTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(SuperWeaponTypeClass::Array)");
 	hr = LoadObjectVector(stream, *SuperWeaponTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(SuperClass::Array)");
 	hr = LoadObjectVector(stream, *SuperClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadSimpleArray(*SuperClass::ShowTimers)");
 	hr = LoadSimpleArray(stream, *SuperClass::ShowTimers);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadSimpleArray(*BuildingClass::Secrets)");
 	hr = LoadSimpleArray(stream, *BuildingClass::Secrets);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("Process_Global_Load<TerrainTypeExtContainer>");
-	success = Process_Global_Load<TerrainTypeExtContainer>(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
-
-	tracker.StartOperation("LoadObjectVector(TerrainTypeClass::Array)");
 	hr = LoadObjectVector(stream, *TerrainTypeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TerrainClass::Array)");
 	hr = LoadObjectVector(stream, *TerrainClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(FoggedObjectClass::Array)");
 	hr = LoadObjectVector(stream, *FoggedObjectClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(AlphaShapeClass::Array)");
 	hr = LoadObjectVector(stream, *AlphaShapeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(WaveClass::Array)");
 	hr = LoadObjectVector(stream, *WaveClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("VeinholeMonsterClass::LoadVector");
-	success = VeinholeMonsterClass::LoadVector(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	bool success = VeinholeMonsterClass::LoadVector(stream);
+	if(!success) return E_FAIL;;
 
-	tracker.StartOperation("RadarEventClass::LoadVector");
 	success = RadarEventClass::LoadVector(stream);
-	if (!tracker.EndOperation(success)) return E_FAIL;
+	if(!success) return E_FAIL;;
 
-	tracker.StartOperation("LoadObjectVector(CaptureManagerClass::Array)");
 	hr = LoadObjectVector(stream, *CaptureManagerClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(DiskLaserClass::Array)");
 	hr = LoadObjectVector(stream, *DiskLaserClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(ParasiteClass::Array)");
 	hr = LoadObjectVector(stream, *ParasiteClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(TemporalClass::Array)");
 	hr = LoadObjectVector(stream, *TemporalClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(AirstrikeClass::Array)");
 	hr = LoadObjectVector(stream, *AirstrikeClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(SpawnManagerClass::Array)");
 	hr = LoadObjectVector(stream, *SpawnManagerClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(SlaveManagerClass::Array)");
 	hr = LoadObjectVector(stream, *SlaveManagerClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	AircraftTrackerClass::Instance->Clear();
-	tracker.StartOperation("AircraftTrackerClass::Instance->Load");
 	hr = AircraftTrackerClass::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	Kamikaze::Instance->Clear();
-	tracker.StartOperation("Kamikaze::Instance->Load");
 	hr = Kamikaze::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	BombListClass::Instance->Clear();
-	tracker.StartOperation("BombListClass::Instance->Load");
 	hr = BombListClass::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(BombClass::Array)");
 	hr = LoadObjectVector(stream, *BombClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("LoadObjectVector(RadSiteClass::Array)");
 	hr = LoadObjectVector(stream, *RadSiteClass::Array);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
 	// Game options section (known problematic area)
 	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
 	{
-		tracker.StartOperation("GameOptionsType::Instance->Load");
 		Debug::Log("Reading Skirmish Session.Options\n");
 		const bool save_GameOptionsType = GameOptionsType::Instance->Load(stream);
-		if (!tracker.EndOperation(save_GameOptionsType))
+		if (!save_GameOptionsType)
 		{
 			Debug::Log("\t***** GameOptionsType LOAD FAILED!\n");
 			return E_FAIL;
@@ -730,22 +881,37 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	}
 
 	// Audio/visual systems
-	tracker.StartOperation("VocClass::Load");
 	hr = VocClass::Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("VoxClass::Load");
 	hr = VoxClass::Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
 
-	tracker.StartOperation("ThemeClass::Instance->Load");
 	hr = ThemeClass::Instance->Load(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
+
+	int value;
+	ULONG out = 0;
+	hr = stream->Read(&value, sizeof(value), &out);
+	if (!SUCCEEDED(hr)) return hr;
+
+	VoxClass::EVAIndex = value;
 
 	// Final Phobos data
-	tracker.StartOperation("Phobos::LoadGameDataAfter");
 	hr = Phobos::LoadGameDataAfter(stream);
-	if (!tracker.EndOperation(SUCCEEDED(hr))) return hr;
+	if (!SUCCEEDED(hr)) return hr;
+
+	// add more variable that need to be reset after loading an saved games
+	if (SessionClass::Instance->GameMode == GameMode::Campaign)
+	{
+		if (std::exchange(Unsorted::MuteSWLaunches(), false))
+		{// this will also make radar unusable
+			auto pSide = SideClass::Array->operator[](HouseClass::CurrentPlayer()->Type->SideIndex);
+			VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
+		}
+		// this variable need to be reset , especially after you play as an observer on skirmish
+		// then load an save game of campaign mode , it will shutoff the radar and EVA's
+	}
 
 	// Post-load initialization
 	MapClass::Instance->RedrawSidebar(2);
@@ -753,12 +919,6 @@ HRESULT Decode_All_Pointers_WithValidation(LPSTREAM stream, SavePositionTracker&
 	{
 		ScenarioClass::ScenarioSaved = 1;
 	}
-
-	// Log final summary
-	ULARGE_INTEGER endPos = tracker.GetCurrentPosition();
-	Debug::Log("=== LOAD COMPLETED SUCCESSFULLY ===\n");
-	Debug::Log("Total bytes read: %llu\n", endPos.QuadPart - startPos.QuadPart);
-	tracker.LogAllOperations();
 
 	return S_OK;
 }
@@ -816,40 +976,44 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 		return false;
 	}
 
-	Debug::Log("Linking content stream to decompressor.\n");
-	IUnknown* pUnknown = nullptr;
-	ATL::CComPtr<ILinkStream> linkstream;
-	hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-	if (SUCCEEDED(hr)) {
-		hr = OleRun(pUnknown);
-		if (SUCCEEDED(hr)) {
-			pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
-		}
-		pUnknown->Release();
-	}
-
-	hr = linkstream->Link_Stream(docfile);
+	LARGE_INTEGER li = {};
+	hr = docfile->Seek(li, STREAM_SEEK_SET, nullptr);
 	if (FAILED(hr)) {
-		Debug::FatalError("Failed to link stream to decompressor.\n");
+		Debug::FatalError("Failed to seek CONTENTS stream to beginning.\n");
 		return false;
 	}
 
-	ATL::CComPtr<IStream> stream;
-	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
-	Debug::Log("Creating stream wrapper for tracking.\n");
+	//Debug::Log("Linking content stream to decompressor.\n");
+	//IUnknown* pUnknown = nullptr;
+	//ATL::CComPtr<ILinkStream> linkstream;
+	//hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
+	//if (SUCCEEDED(hr)) {
+	//	hr = OleRun(pUnknown);
+	//	if (SUCCEEDED(hr)) {
+	//		pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
+	//	}
+	//	pUnknown->Release();
+	//}
 
-	auto wrappedStream = std::make_unique<StreamWrapperWithTracking>(stream);
-	LoadPositionTracker tracker(wrappedStream.get(), "LOAD");
+	//hr = linkstream->Link_Stream(docfile);
+	//if (FAILED(hr)) {
+	//	Debug::FatalError("Failed to link stream to decompressor.\n");
+	//	return false;
+	//}
+
+	//ATL::CComPtr<IStream> stream;
+	//linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
+	//Debug::Log("Creating stream wrapper for tracking.\n");
 
 	Debug::Log("Calling Decode_All_Pointers().\n");
 
-	if (FAILED(Decode_All_Pointers_WithValidation(wrappedStream.get(), tracker))) {
+	if (FAILED(Decode_All_Pointers(docfile))) {
 		Debug::FatalErrorAndExit("Error loading save game \"%s\"!\n", file_name);
 		return false;
 	}
 
-	Debug::Log("Unlinking content stream from decompressor.\n");
-	linkstream->Unlink_Stream(nullptr);
+	//Debug::Log("Unlinking content stream from decompressor.\n");
+	//linkstream->Unlink_Stream(nullptr);
 
 	SwizzleManagerClass::Instance->Reset();
 	ScenarioClass::InitScenariostuff();
@@ -870,3 +1034,19 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x67E440, Load_Saved_Game)
+
+
+//ASMJIT_PATCH(0x07169D9, BuildingTypeClass_Load_PrereqCrash, 0x6)
+//{
+//	GET(BuildingTypeClass*, pThis, EBP);
+//	GET_STACK(LPSTREAM, pStm, 0x220 - (-0x20C));
+//	GET(int, vecCount, EAX);
+//
+//	for (int i = 0; i < vecCount; ++i) {
+//		int read;
+//		pStm->Read(&read, sizeof(int), nullptr);
+//		pThis->Prerequisites.AddItem(read);
+//	}
+//
+//	return 0x716A05;
+//}

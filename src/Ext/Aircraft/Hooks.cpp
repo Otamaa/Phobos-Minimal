@@ -20,6 +20,102 @@
 
 #include <EventClass.h>
 
+// Idle: should not crash immediately
+
+ASMJIT_PATCH(0x4179F7, AircraftClass_EnterIdleMode_NoCrash, 0x6)
+{
+	enum { SkipGameCode = 0x417B69 };
+
+	GET(AircraftClass* const, pThis, ESI);
+
+	if (pThis->Airstrike || pThis->Spawned)
+		return 0;
+
+	if (AircraftTypeExtContainer::Instance.Find(pThis->Type)->ExtendedAircraftMissions_UnlandDamage
+			.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage) < 0)
+		return 0;
+
+	if (!pThis->Team && (pThis->CurrentMission != Mission::Area_Guard || !pThis->ArchiveTarget))
+	{
+		const auto pCell = pThis->GoodLandingZone_();
+		pThis->SetDestination(pCell, true);
+		pThis->SetArchiveTarget(pCell);
+		pThis->QueueMission(Mission::Area_Guard, true);
+	}
+	else if (!pThis->Destination)
+	{
+		const auto pCell =  pThis->GoodLandingZone_();
+		pThis->SetDestination(pCell, true);
+	}
+
+	return SkipGameCode;
+}ASMJIT_PATCH_AGAIN(0x417B82, AircraftClass_EnterIdleMode_NoCrash, 0x6)
+
+ASMJIT_PATCH(0x4DF42A, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget2, 0x6) // When it have MegaTarget
+{
+	enum { ContinueCheck = 0x4DF462, HoldTarget = 0x4DF4AB };
+
+	GET(FootClass* const, pThis, ESI);
+
+	// Although if the target selected by CS is an object rather than cell.
+	return (RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft) ? HoldTarget : ContinueCheck;
+}
+
+ASMJIT_PATCH(0x6FA68B, TechnoClass_Update_AttackMovePaused, 0xA) // To make aircrafts not search for targets while resting at the airport, this is designed to adapt to loop waypoint
+{
+	enum { SkipGameCode = 0x6FA6F5 };
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	const bool skip = RulesExtData::Instance()->ExpandAircraftMission
+		&& pThis->WhatAmI() == AbstractType::Aircraft
+		&& (!pThis->Ammo || !pThis->IsInAir());
+
+	return skip ? SkipGameCode : 0;
+}
+
+
+ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)
+{
+	enum { SkipGameCode = 0x41A6AC };
+
+	GET(AircraftClass* const, pThis, ESI);
+
+	if (!RulesExtData::Instance()->ExpandAircraftMission || pThis->Team || !pThis->IsArmed() || pThis->Airstrike || pThis->Spawned)
+		return 0;
+
+	const auto pArchive = pThis->ArchiveTarget;
+
+	if (!pArchive || !pThis->Ammo)
+		return 0;
+
+	pThis->SetDestination(pArchive, true);
+	pThis->QueueMission(Mission::Area_Guard, false);
+	return SkipGameCode;
+}
+
+
+ASMJIT_PATCH(0x4CE42A, FlyLocomotionClass_StateUpdate_NoLanding, 0x6) // Prevent aircraft from hovering due to cyclic enter Guard and AreaGuard missions when above buildings
+{
+	enum { SkipGameCode = 0x4CE441 };
+
+	GET(FootClass* const, pLinkTo, EAX);
+
+	if (!RulesExtData::Instance()->ExpandAircraftMission)
+		return 0;
+
+	const auto pAircraft = cast_to<AircraftClass*, true>(pLinkTo);
+
+	if (!pAircraft || pAircraft->Airstrike || pAircraft->Spawned || pAircraft->GetCurrentMission() == Mission::Enter)
+		return 0;
+
+	return SkipGameCode;
+}
+
+// Skip duplicated aircraft check
+DEFINE_PATCH(0x4CF033, 0x8B, 0x06, 0xEB, 0x18); // mov eax, [esi] ; jmp short loc_4CF04F ;
+DEFINE_JUMP(LJMP, 0x4179E2, 0x417B44);
+
 int __fastcall AircraftClass_MI_Attack_SelectWeapon_BeforeFiring(AircraftClass* pThis, discard_t, AbstractClass* pTarget)
 {
 	auto pExt = AircraftExtContainer::Instance.Find(pThis);
@@ -621,13 +717,15 @@ ASMJIT_PATCH(0x4C7403, EventClass_Execute_AircraftAreaGuard, 0x6)
 {
 	enum { SkipGameCode = 0x4C7435 };
 
+	GET(EventClass* const, pThis, ESI);
 	GET(TechnoClass* const, pTechno, EDI);
 
 	if (RulesExtData::Instance()->ExpandAircraftMission
 			&& pTechno->WhatAmI() == AbstractType::Aircraft)
 	{
 		// Skip assigning destination / target here.
-		return SkipGameCode;
+		R->ESI(&pThis->Data.MegaMission.Target);
+		return 0x4C7426 ;
 	}
 
 	return 0;

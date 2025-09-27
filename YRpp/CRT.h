@@ -61,6 +61,8 @@ namespace CRT
 	static COMPILETIMEEVAL reference<LPCRITICAL_SECTION, 0x87C2ACu> const _87C2AC_Critical_Sections {};
 
 	static COMPILETIMEEVAL reference<HANDLE, 0xB78B9Cu> const Heap {};
+	static COMPILETIMEEVAL reference<int, 0x87C584u> const _sbh_threshold {};
+
 	static COMPILETIMEEVAL reference<volatile LONG, 0xB78BA4u> const _unguarded_readlc_active {};
 
 	static COMPILETIMEEVAL reference<int, 0xB782C4u> const AllocatorMode {};
@@ -242,39 +244,48 @@ namespace CRT
 	{ JMP(0x7CC2AC); }
 
 	// files
-	static  OPTIONALINLINE NAKED FILE* __cdecl fopen(const char*, const char*)
+	static OPTIONALINLINE NAKED FILE* __cdecl fopen(const char*, const char*)
 	{ JMP(0x7CA845); }
 
-	static  OPTIONALINLINE NAKED size_t __cdecl fread(void*, size_t, size_t, FILE*)
+	static OPTIONALINLINE NAKED size_t __cdecl fread(void*, size_t, size_t, FILE*)
 	{ JMP(0x7C94EB); }
 
-	static  OPTIONALINLINE NAKED size_t __cdecl fwrite(const void*, size_t, size_t, FILE*)
+	static OPTIONALINLINE NAKED size_t __cdecl fwrite(const void*, size_t, size_t, FILE*)
 	{ JMP(0x7C9602); }
 
-	static  OPTIONALINLINE NAKED int __cdecl fprintf(FILE*, const char*, ...)
+	static OPTIONALINLINE NAKED int __cdecl fprintf(FILE*, const char*, ...)
 	{ JMP(0x7CA7D8); }
 
-	static  OPTIONALINLINE NAKED int __cdecl vfprintf(FILE* File, const char* Format, va_list ArgList)
+	static OPTIONALINLINE NAKED int __cdecl vfprintf(FILE* File, const char* Format, va_list ArgList)
 	{ JMP(0x7CB302); }
 
-	static  OPTIONALINLINE NAKED int __cdecl fflush(FILE*)
+	static OPTIONALINLINE NAKED int __cdecl fflush(FILE*)
 	{ JMP(0x7CB19C); }
 
-	static  OPTIONALINLINE NAKED int __cdecl fclose(FILE*)
+	static OPTIONALINLINE NAKED int __cdecl fclose(FILE*)
 	{ JMP(0x7CA75B); }
 
-	static  OPTIONALINLINE NAKED void __cdecl _makepath(char* path, const char* drive, const char* dir, const char* fname, const char* ext)
+	static OPTIONALINLINE NAKED void __cdecl _makepath(char* path, const char* drive, const char* dir, const char* fname, const char* ext)
 	{ JMP(0x7C9FF0); }
 
 	//Critical sections
-	static  OPTIONALINLINE NAKED void __cdecl _lock(int ntime)
+	static OPTIONALINLINE NAKED void __cdecl _lock(int ntime)
 	{ JMP(0x7CD9F5); }
 
-	static  OPTIONALINLINE NAKED void __cdecl _unlock(int ntime = 0)
+	static OPTIONALINLINE NAKED void __cdecl _unlock(int ntime = 0)
 	{ JMP(0x7CDA56); }
 
-	static  OPTIONALINLINE NAKED PHEADER __cdecl _sbh_find_block(void* ptr)
+	static OPTIONALINLINE NAKED PHEADER __cdecl _sbh_find_block(void* ptr)
 	{ JMP(0x7CF7BD); }
+
+	static OPTIONALINLINE NAKED void __cdecl _sbh_free_block(PHEADER pHeader, void* pvAlloc)
+	{ JMP(0x7CF7E8); }
+
+	static OPTIONALINLINE NAKED void* __cdecl _sbh_alloc_block(int intSize)
+	{ JMP(0x7CFB13); }
+
+	static OPTIONALINLINE NAKED BOOL __cdecl _callnewh(int a1)
+	{ JMP(0x7D06E8); }
 
 	//
 	static  OPTIONALINLINE NAKED int __cdecl isalpha(int c)

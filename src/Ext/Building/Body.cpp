@@ -11,7 +11,8 @@
 #include <New/Entity/FlyingStrings.h>
 
 #include <Misc/Hooks.Otamaa.h>
-BuildingExtData::~BuildingExtData() {
+BuildingExtData::~BuildingExtData()
+{
 
 	auto pThis = This();
 	this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
@@ -60,14 +61,17 @@ void BuildingExtData::UpdateMainEvaVoice()
 		newEvaIndex = pTypeExt->NewEvaVoice_Index;
 	}
 
-	if (newPriority > 0 && VoxClass::EVAIndex != newEvaIndex) {
+	if (newPriority > 0 && VoxClass::EVAIndex != newEvaIndex)
+	{
 		// Note: if the index points to a nonexistant voice index then the player will hear no EVA voices
 		VoxClass::EVAIndex = newEvaIndex;
 
 		// Greeting of the new EVA voice
 		VoxClass::PlayIndex(pTypeExt->NewEvaVoice_InitialMessage);
 
-	} else if (newPriority < 0) {
+	}
+	else if (newPriority < 0)
+	{
 		// Restore the original EVA voice of the owner's side
 		VoxClass::EVAIndex = SideExtContainer::Instance.Find(
 			SideClass::Array->Items[pHouse->SideIndex])->EVAIndex;
@@ -104,8 +108,9 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 		++pCellIterator;
 	}
 
-	foundationCells.remove_all_duplicates([](const CellStruct& lhs, const CellStruct& rhs) -> bool {
-		return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
+	foundationCells.remove_all_duplicates([](const CellStruct& lhs, const CellStruct& rhs) -> bool
+ {
+	 return lhs.X > rhs.X || lhs.X == rhs.X && lhs.Y > rhs.Y;
 	});
 
 	return foundationCells;
@@ -115,11 +120,13 @@ const std::vector<CellStruct> BuildingExtData::GetFoundationCells(BuildingClass*
 
 static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 	StackVector<TechnoTypeClass*, 256>& Options,
-	TechnoTypeClass** Data ,
+	TechnoTypeClass** Data,
 	size_t size
-) {
+)
+{
 
-	for (size_t i = 0; i < size; ++i) {
+	for (size_t i = 0; i < size; ++i)
+	{
 		auto Option = *(Data + i);
 
 		//Debug::LogInfo("Checking [%s - %s] option for [%s] " ,
@@ -129,7 +136,7 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 		//);
 
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(Option);
-		const bool Eligible = (OwnerBits & pExt->Secret_RequiredHouses) != 0 && (OwnerBits & pExt->Secret_ForbiddenHouses) == 0 ;
+		const bool Eligible = (OwnerBits & pExt->Secret_RequiredHouses) != 0 && (OwnerBits & pExt->Secret_ForbiddenHouses) == 0;
 
 		if (Eligible)
 		{
@@ -149,12 +156,12 @@ static auto AddToOptions(DWORD OwnerBits, HouseClass* pOwner,
 				break;
 			default:
 
-			//	Debug::LogInfo("[%s - %s] Is Unavaible[%d] for [%s] ",
-			//		Option->ID,
-			//		Option->GetThisClassName(),
-			//		result,
-			//		pOwner->Type->ID
-			//	);
+				//	Debug::LogInfo("[%s - %s] Is Unavaible[%d] for [%s] ",
+				//		Option->ID,
+				//		Option->GetThisClassName(),
+				//		result,
+				//		pOwner->Type->ID
+				//	);
 				break;
 			}
 		}
@@ -166,7 +173,8 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 {
 	auto pOwner = pThis->Owner;
 
-	if (!pOwner || pOwner->Type->MultiplayPassive) {
+	if (!pOwner || pOwner->Type->MultiplayPassive)
+	{
 		return;
 	}
 
@@ -183,11 +191,12 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 	auto pData = BuildingTypeExtContainer::Instance.Find(pType);
 
 	// go on if not placed or always recalculate on capture
-	if (pExt->SecretLab_Placed && !pData->Secret_RecalcOnCapture) {
+	if (pExt->SecretLab_Placed && !pData->Secret_RecalcOnCapture)
+	{
 		return;
 	}
 
-	StackVector<TechnoTypeClass* , 256> Options {};
+	StackVector<TechnoTypeClass*, 256> Options {};
 	const DWORD OwnerBits = 1u << pOwner->Type->ArrayIndex;
 
 	TechnoTypeClass** vec_data = pData->Secret_Boons.HasValue() ?
@@ -196,7 +205,7 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 		pData->Secret_Boons.size() : RulesExtData::Instance()->Secrets.size();
 
 	// generate a list of items
-	AddToOptions(OwnerBits,pOwner, Options, vec_data, vec_size);
+	AddToOptions(OwnerBits, pOwner, Options, vec_data, vec_size);
 
 	// pick one of all eligible items
 	if (!Options->empty())
@@ -205,7 +214,9 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 		Debug::LogInfo("[Secret Lab] rolled {} for {}", Result->ID, pType->ID);
 		pThis->SecretProduction = Result;
 		pExt->SecretLab_Placed = true;
-	} else {
+	}
+	else
+	{
 		Debug::LogInfo("[Secret Lab] {} has no boons applicable to country [{}]!",
 			pType->ID, pOwner->Type->ID);
 	}
@@ -214,7 +225,8 @@ void BuildingExtData::UpdateSecretLab(BuildingClass* pThis)
 bool BuildingExtData::ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Victim)
 {
 	const auto pReverseData = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
-	if (!pReverseData->ReverseEngineersVictims) {
+	if (!pReverseData->ReverseEngineersVictims)
+	{
 		return false;
 	}
 
@@ -232,8 +244,9 @@ void BuildingExtData::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<A
 	if (!EnumFunctions::CanTargetHouse(Affects.Get(), pAttackerHouse, pTargetHouse))
 		return;
 
-	StackVector<BuildingClass* , 20> LimboedID {};
-	for (const auto& pBuilding : pTargetHouse->Buildings) {
+	StackVector<BuildingClass*, 20> LimboedID {};
+	for (const auto& pBuilding : pTargetHouse->Buildings)
+	{
 		const auto pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
 
 		if (pBuildingExt->LimboID <= -1 || !LimboIDs.Contains(pBuildingExt->LimboID))
@@ -243,7 +256,8 @@ void BuildingExtData::ApplyLimboKill(ValueableVector<int>& LimboIDs, Valueable<A
 		// we need to fetch the eligible building first before really killing it
 	}
 
-	for(auto& pLimboBld : LimboedID.container()){
+	for (auto& pLimboBld : LimboedID.container())
+	{
 		BuildingExtData::LimboKill(pLimboBld);
 	}
 }
@@ -269,7 +283,8 @@ SuperClass* BuildingExtData::GetFirstSuperWeapon(BuildingClass* pThis)
 {
 	const size_t idx = GetFirstSuperWeaponIndex(pThis);
 
-	if (idx < (size_t)pThis->Owner->Supers.Count) {
+	if (idx < (size_t)pThis->Owner->Supers.Count)
+	{
 		return pThis->Owner->Supers[idx];
 	}
 
@@ -281,7 +296,7 @@ void BuildingExtData::DisplayIncomeString()
 	if (this->Type->DisplayIncome.Get(RulesExtData::Instance()->DisplayIncome) &&
 		this->AccumulatedIncome && Unsorted::CurrentFrame % 15 == 0)
 	{
-		if(!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman())
+		if (!RulesExtData::Instance()->DisplayIncome_AllowAI && !This()->Owner->IsControlledByHuman())
 		{
 			this->AccumulatedIncome = 0;
 			return;
@@ -335,12 +350,14 @@ void BuildingExtData::UpdateSpyEffecAnimDisplay()
 
 	if (this->SpyEffectAnim)
 	{
-		if (HouseClass::IsCurrentPlayerObserver() ||  EnumFunctions::CanTargetHouse(
+		if (HouseClass::IsCurrentPlayerObserver() || EnumFunctions::CanTargetHouse(
 			this->Type->SpyEffect_Anim_DisplayHouses,
 			SpyEffectAnim->Owner, HouseClass::CurrentPlayer))
 		{
 			SpyEffectAnim->Invisible = false;
-		} else {
+		}
+		else
+		{
 			SpyEffectAnim->Invisible = true;
 		}
 
@@ -381,13 +398,15 @@ void BuildingExtData::UpdateAutoSellTimer()
 
 			const double nValue = pRulesExt->AI_AutoSellHealthRatio->at(pThis->Owner->GetCorrectAIDifficultyIndex());
 
-			if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue){
+			if (nValue > 0.0 && pThis->GetHealthPercentage() <= nValue)
+			{
 				pThis->Sell(-1);
 				return;
 			}
 		}
 
-		if (AutoSellTimer.Completed()) {
+		if (AutoSellTimer.Completed())
+		{
 			pThis->Sell(-1);
 		}
 	}
@@ -398,54 +417,54 @@ bool BuildingExtData::RubbleYell(bool beingRepaired) const
 	auto CreateBuilding = [](BuildingClass* pBuilding, bool remove,
 		BuildingTypeClass* pNewType, OwnerHouseKind owner, int strength,
 		AnimTypeClass* pAnimType, const char* pTagName) -> bool
-	{
-		if (!pNewType && !remove)
 		{
-			Debug::LogInfo("Warning! Advanced Rubble was supposed to be reconstructed but"
-				" Ares could not obtain its new BuildingType. Check if [{}]Rubble.{} is"
-				" set (correctly).", pBuilding->Type->ID, pTagName);
+			if (!pNewType && !remove)
+			{
+				Debug::LogInfo("Warning! Advanced Rubble was supposed to be reconstructed but"
+					" Ares could not obtain its new BuildingType. Check if [{}]Rubble.{} is"
+					" set (correctly).", pBuilding->Type->ID, pTagName);
+				return true;
+			}
+
+			pBuilding->Limbo(); // only takes it off the map
+			pBuilding->DestroyNthAnim(BuildingAnimSlot::All);
+			auto pOwner = HouseExtData::GetHouseKind(owner, true, pBuilding->Owner);
+
+			if (!remove)
+			{
+				auto pNew = static_cast<BuildingClass*>(pNewType->CreateObject(pOwner));
+
+				if (strength <= -1 && strength >= -100)
+				{
+					// percentage of original health
+					const auto nDecided = ((-strength * pNew->Type->Strength) / 100);
+					pNew->Health = MaxImpl(nDecided, 1);
+				}
+				else if (strength > 0)
+				{
+					pNew->Health = MinImpl(strength, pNew->Type->Strength);
+				} /* else Health = Strength*/
+
+				// The building is created?
+				if (!pNew->Unlimbo(pBuilding->Location, pBuilding->PrimaryFacing.Current().GetDir()))
+				{
+					Debug::LogInfo("Advanced Rubble: Failed to place normal state on map!");
+					GameDelete<true, false>(pNew);
+					return false;
+				}
+			}
+
+			if (pAnimType)
+			{
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pBuilding->GetCoords()),
+					pOwner,
+					nullptr,
+					false
+				);
+			}
+
 			return true;
-		}
-
-		pBuilding->Limbo(); // only takes it off the map
-		pBuilding->DestroyNthAnim(BuildingAnimSlot::All);
-		auto pOwner = HouseExtData::GetHouseKind(owner, true, pBuilding->Owner);
-
-		if (!remove)
-		{
-			auto pNew = static_cast<BuildingClass*>(pNewType->CreateObject(pOwner));
-
-			if (strength <= -1 && strength >= -100)
-			{
-				// percentage of original health
-				const auto nDecided = ((-strength * pNew->Type->Strength) / 100);
-				pNew->Health = MaxImpl(nDecided, 1);
-			}
-			else if (strength > 0)
-			{
-				pNew->Health = MinImpl(strength, pNew->Type->Strength);
-			} /* else Health = Strength*/
-
-			// The building is created?
-			if (!pNew->Unlimbo(pBuilding->Location, pBuilding->PrimaryFacing.Current().GetDir()))
-			{
-				Debug::LogInfo("Advanced Rubble: Failed to place normal state on map!");
-				GameDelete<true, false>(pNew);
-				return false;
-			}
-		}
-
-		if (pAnimType)
-		{
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pBuilding->GetCoords()),
-				pOwner,
-				nullptr,
-				false
-			);
-		}
-
-		return true;
-	};
+		};
 
 	auto currentBuilding = (BuildingClass*)This();
 	auto pTypeData = BuildingTypeExtContainer::Instance.Find(currentBuilding->Type);
@@ -479,17 +498,24 @@ bool BuildingExtData::HasSuperWeapon(const int index, const bool withUpgrades) c
 {
 	const auto pThis = (BuildingClass*)this->This();
 
-	for (auto i = 0; i < this->Type->GetSuperWeaponCount(); ++i) {
-		if (this->Type->GetSuperWeaponIndex(i, pThis->Owner) == index) {
+	for (auto i = 0; i < this->Type->GetSuperWeaponCount(); ++i)
+	{
+		if (this->Type->GetSuperWeaponIndex(i, pThis->Owner) == index)
+		{
 			return true;
 		}
 	}
 
-	if (withUpgrades) {
-		for (auto const& pUpgrade : pThis->Upgrades) {
-			if(const auto pUpgradeExt = BuildingTypeExtContainer::Instance.TryFind(pUpgrade)){
-				for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i) {
-					if (pUpgradeExt->GetSuperWeaponIndex(i, pThis->Owner) == index) {
+	if (withUpgrades)
+	{
+		for (auto const& pUpgrade : pThis->Upgrades)
+		{
+			if (const auto pUpgradeExt = BuildingTypeExtContainer::Instance.TryFind(pUpgrade))
+			{
+				for (auto i = 0; i < pUpgradeExt->GetSuperWeaponCount(); ++i)
+				{
+					if (pUpgradeExt->GetSuperWeaponIndex(i, pThis->Owner) == index)
+					{
 						return true;
 					}
 				}
@@ -512,7 +538,7 @@ void BuildingExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	this->TechnoExtData::InvalidatePointer(ptr, bRemoved);
 
-	AnnounceInvalidPointer(this->CurrentAirFactory, ptr , bRemoved);
+	AnnounceInvalidPointer(this->CurrentAirFactory, ptr, bRemoved);
 	AnnounceInvalidPointer<TechnoClass*>(this->RegisteredJammers, ptr, bRemoved);
 
 	this->MyPrismForwarding->InvalidatePointer(ptr, bRemoved);
@@ -573,16 +599,16 @@ void BuildingExtData::UpdatePrimaryFactoryAI(BuildingClass* pThis)
 	for (auto& pBuilding : pOwner->Buildings)
 	{
 		if
-		(
-			pBuilding->Type->Factory == AbstractType::AircraftType
-			&& pBuilding->IsAlive
-			&& pBuilding->Health > 0
-			&& !pBuilding->InLimbo
-			&& !pBuilding->TemporalTargetingMe
-			&& !BuildingExtContainer::Instance.Find(pBuilding)->AboutToChronoshift
-			&& pBuilding->GetCurrentMission() != Mission::Selling
-			&& pBuilding->QueuedMission != Mission::Selling
-		)
+			(
+				pBuilding->Type->Factory == AbstractType::AircraftType
+				&& pBuilding->IsAlive
+				&& pBuilding->Health > 0
+				&& !pBuilding->InLimbo
+				&& !pBuilding->TemporalTargetingMe
+				&& !BuildingExtContainer::Instance.Find(pBuilding)->AboutToChronoshift
+				&& pBuilding->GetCurrentMission() != Mission::Selling
+				&& pBuilding->QueuedMission != Mission::Selling
+			)
 		{
 			if (!currFactory && pBuilding->Factory)
 				currFactory = pBuilding->Factory;
@@ -685,7 +711,7 @@ bool BuildingExtData::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTec
 		return false;
 	}
 
-	if(pBuilding->Owner->IsAlliedWith(pTechno))
+	if (pBuilding->Owner->IsAlliedWith(pTechno))
 	{
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
@@ -782,7 +808,8 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		//auto const pOwnerExt = HouseExtContainer::Instance.Find(pOwner);
 
 		// BuildLimit check goes before creation
-		if (((BuildLimitStatus)HouseExtData::BuildLimitGroupCheck(pOwner, pType, true , false)) != BuildLimitStatus::NotReached && HouseExtData::CheckBuildLimit(pOwner, pType , true) != BuildLimitStatus::NotReached) {
+		if (((BuildLimitStatus)HouseExtData::BuildLimitGroupCheck(pOwner, pType, true, false)) != BuildLimitStatus::NotReached && HouseExtData::CheckBuildLimit(pOwner, pType, true) != BuildLimitStatus::NotReached)
+		{
 			Debug::LogInfo("Fail to Create Limbo Object[{}] because of BuildLimit ! ", pType->get_ID());
 			return;
 		}
@@ -835,7 +862,8 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		if (BuildingTypeExtContainer::Instance.Find(pType)->Academy)
 			HouseExtContainer::Instance.Find(pOwner)->UpdateAcademy(pBuilding, true);
 
-		if (pType->SecretLab){
+		if (pType->SecretLab)
+		{
 			pOwner->SecretLabs.AddItem(pBuilding);
 			BuildingExtData::UpdateSecretLab(pBuilding);
 		}
@@ -855,9 +883,10 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		{
 			KillMethod nMethod = pBuildingExt->Type->Death_Method.Get();
 
-			if (nMethod != KillMethod::None) {
+			if (nMethod != KillMethod::None)
+			{
 
-				if(pBuildingExt->Type->Death_Countdown > 0)
+				if (pBuildingExt->Type->Death_Countdown > 0)
 					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
 
 				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
@@ -938,9 +967,10 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 	pBuilding->Stun();
 	pBuilding->Limbo();
 
-	for (auto& pBaseNode : pTargetHouse->Base.BaseNodes) {
+	for (auto& pBaseNode : pTargetHouse->Base.BaseNodes)
+	{
 		if (pBaseNode.BuildingTypeIndex == pType->ArrayIndex)
-				pBaseNode.Placed = false;
+			pBaseNode.Placed = false;
 	}
 #endif
 
@@ -1014,7 +1044,8 @@ void FakeBuildingClass::_OnFinishRepair()
 	VocClass::SafeImmedietelyPlayAt(sound, &coord);
 }
 
-void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
+void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck)
+{
 
 	this->FiringOccupantIndex = 0;
 
@@ -1023,8 +1054,8 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
 
 	CoordStruct defaultCoord = CoordStruct::Empty;
 	CellStruct originCell = this->GetMapCoords();
-	CoordStruct scatterCoord{};
-	CellStruct fallbackCell{};
+	CoordStruct scatterCoord {};
+	CellStruct fallbackCell {};
 	bool foundValidCell = false;
 
 	const int width = this->Type->GetFoundationWidth();
@@ -1096,7 +1127,8 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
 
 		if (foot->Unlimbo(scatterCoord, DirType::North))
 		{
-			if (!foot->Owner) {
+			if (!foot->Owner)
+			{
 				Debug::FatalErrorAndExit("BuildingClass::KickAllOccupants for [%x(%s)] Missing Occupier [%x(%s)] House Pointer !",
 					this,
 					this->get_ID(),
@@ -1105,7 +1137,8 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
 				);
 			}
 
-			if (foot->Owner->IsInPlayerControl) {
+			if (foot->Owner->IsInPlayerControl)
+			{
 				foot->ShouldGarrisonStructure = 0;
 				foot->ShouldEnterOccupiable = 0;
 			}
@@ -1141,9 +1174,11 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck) {
 #include <Ext/Bullet/Body.h>
 #include <Ext/WeaponType/Body.h>
 
-int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* pLinkedTypeExt) {
+int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pLinkedTypeExt)
+{
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	enum class NukeFiringState : int {
+	enum class NukeFiringState : int
+	{
 		PsiWarn, Aux1, SentWeaponPayload, Aux2, Idle
 	};
 	switch ((NukeFiringState)pThis->MissionStatus)
@@ -1160,12 +1195,13 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 			? pExt->SuperTarget : pThis->Owner->NukeTarget;
 		CellClass* v3 = MapClass::Instance->GetCellAt(targetCell);
 
-		if(AnimClass* anim =
+		if (AnimClass* anim =
 			BulletClass::CreateDamagingBulletAnim(house,
-			v3,
-			nullptr,
-			SWTypeExtContainer::Instance.Find(pLinked->Type)->Nuke_PsiWarning
-			)){
+				v3,
+				nullptr,
+				SWTypeExtContainer::Instance.Find(pLinked->Type)->Nuke_PsiWarning
+			))
+		{
 
 			anim->SetBullet(nullptr);
 			anim->SetHouse(house);
@@ -1177,7 +1213,8 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 	}
 	case NukeFiringState::Aux1:
 	{
-		if (pThis->IsReadyToCommence) {
+		if (pThis->IsReadyToCommence)
+		{
 			pThis->BeginMode(BStateType::Aux1);
 			pThis->MissionStatus = 2;
 		}
@@ -1222,9 +1259,12 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 				//const auto nY = nCos * nSin * nMult;
 				//const auto nZ = nSin * nMult;
 
-				if (!pCreated->MoveTo(nFLH, { 0.0, 0.0 , nMult })) {
+				if (!pCreated->MoveTo(nFLH, { 0.0, 0.0 , nMult }))
+				{
 					GameDelete<true, false>(pCreated);
-				} else {
+				}
+				else
+				{
 					if (auto const pAnimType = SWTypeExtContainer::Instance.Find(pLinked->Type)->Nuke_TakeOff.Get(RulesClass::Instance->NukeTakeOff))
 					{
 						auto pAnim = GameCreate<AnimClass>(pAnimType, nFLH);
@@ -1244,17 +1284,19 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 		WeaponTypeClass* WeaponType = SuperWeaponTypeClass::Array->Items[pThis->FiringSWType]->WeaponType;
 
 		if (BulletClass* Bullet = WeaponType->Projectile->CreateBullet(v3,
-			pThis ,
-			WeaponType->Damage ,
-			WeaponType->Warhead ,
+			pThis,
+			WeaponType->Damage,
+			WeaponType->Warhead,
 			255,
 			true)
-			) {
+			)
+		{
 			Bullet->SetWeaponType(WeaponType);
 
-			if (auto pPSIWarn = pThis->PsiWarnAnim) {
+			if (auto pPSIWarn = pThis->PsiWarnAnim)
+			{
 				pPSIWarn->SetBullet(Bullet);
-				pThis->PsiWarnAnim=  nullptr;
+				pThis->PsiWarnAnim = nullptr;
 			}
 
 			Bullet->Limbo();
@@ -1262,7 +1304,7 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 			CoordStruct coord {};
 			pThis->GetFLH(&coord, 0, CoordStruct::Empty);
 
-			VelocityClass velocity{};
+			VelocityClass velocity {};
 			double angle = 1.570748388432313; // ~90 degrees
 			double speed = 10.0;
 
@@ -1273,13 +1315,15 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 			velocity.Y = sinA * speed;
 			velocity.Z = cosA * cosA * speed;
 
-			if (Bullet->MoveTo(coord, velocity)) {
+			if (Bullet->MoveTo(coord, velocity))
+			{
 				CoordStruct coord = v3->GetCoords();
 				AnimClass* anim = GameCreate<AnimClass>(RulesClass::Instance->NukeTakeOff, coord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
 				anim->ZAdjust = -100;
 				pThis->MissionStatus = 3;
 			}
-			else {
+			else
+			{
 				GameDelete<true, false>(Bullet);
 				pThis->MissionStatus = 3;
 			}
@@ -1302,11 +1346,13 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked , SWTypeExtData* p
 	}
 }
 
-int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pLinkedTypeExt) 	{
+int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pLinkedTypeExt)
+{
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	enum class EMPulseFiringState : int {
-		Preparing , PlayPulseBall , SentWeaponPayload , RestoreFacing
+	enum class EMPulseFiringState : int
+	{
+		Preparing, PlayPulseBall, SentWeaponPayload, RestoreFacing
 	};
 
 	switch ((EMPulseFiringState)pThis->MissionStatus)
@@ -1323,16 +1369,22 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 
 		auto& prim = pThis->PrimaryFacing;
 
-		if (Math::abs(prim.Current().Raw - dirPrimary.Raw)) {
+		if (Math::abs(prim.Current().Raw - dirPrimary.Raw))
+		{
 			prim.Set_Desired(dirPrimary);
-		} else {
-			DirStruct dirBarrel{};
+		}
+		else
+		{
+			DirStruct dirBarrel {};
 			pThis->GetFacingAgainst(&dirBarrel, v21);
 			auto& barr = pThis->BarrelFacing;
 
-			if (Math::abs(barr.Current().Raw - dirBarrel.Raw)) {
+			if (Math::abs(barr.Current().Raw - dirBarrel.Raw))
+			{
 				barr.Set_Desired(dirBarrel);
-			} else {
+			}
+			else
+			{
 				pThis->MissionStatus = 1;
 			}
 		}
@@ -1352,7 +1404,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 
 		pThis->MissionStatus = 2;
 
-		if(pLinkedTypeExt->EMPulse_PulseDelay >= 0) //if negative value are used , just fallthru the function
+		if (pLinkedTypeExt->EMPulse_PulseDelay >= 0) //if negative value are used , just fallthru the function
 			return pLinkedTypeExt->EMPulse_PulseDelay;
 	}
 	case EMPulseFiringState::SentWeaponPayload:
@@ -1362,7 +1414,8 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 			? pExt->SuperTarget : pThis->Owner->EMPTarget;
 
 		// If no valid target or destination, reset to idle
-		if (Unsorted::ArmageddonMode() || !celltarget.IsValid()) {
+		if (Unsorted::ArmageddonMode() || !celltarget.IsValid())
+		{
 			pThis->BeginMode(BStateType::Idle);
 			pThis->QueueMission(Mission::Guard, false);
 			return 60;
@@ -1371,12 +1424,12 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		AbstractClass* target = MapClass::Instance->GetCellAt(celltarget);
 
 		// Aim the barrel
-		DirStruct dirBarrel{};
+		DirStruct dirBarrel {};
 		pThis->GetFacingAgainst(&dirBarrel, target);
 		pThis->BarrelFacing.Set_Desired(dirBarrel);
 
 		// Prepare bullet trajectory
-		CoordStruct flhCoord{};
+		CoordStruct flhCoord {};
 		pThis->GetFLH(&flhCoord, pExt->idxSlot_EMPulse, CoordStruct::Empty);
 
 		CoordStruct targetCoord = CellClass::Cell2Coord(celltarget);
@@ -1394,7 +1447,8 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 			(3 * speed) / 4,
 			weaponType->Bright);
 
-		if (!bullet) {
+		if (!bullet)
+		{
 			// No bullet created, return to idle
 			pThis->BeginMode(BStateType::Idle);
 			pThis->QueueMission(Mission::Guard, false);
@@ -1422,7 +1476,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		double magnitude = Math::sqrt(10000.0);
 		double radians = (double)(binaryAngle - 16383) * -0.00009587672516830327;
 
-		VelocityClass vel{ Math::cos(radians) * magnitude  , -(Math::sin(radians) * magnitude)  , 0.0 };
+		VelocityClass vel { Math::cos(radians) * magnitude  , -(Math::sin(radians) * magnitude)  , 0.0 };
 		vel.SetIfZeroXYZ();
 
 		// Normalize and scale to projectile speed
@@ -1432,7 +1486,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		vel *= scale;
 
 		// --- Adjust for weapon direction ---
-		CoordStruct barrelDir{};
+		CoordStruct barrelDir {};
 		pThis->vt_entry_300(&barrelDir, pExt->idxSlot_EMPulse);
 		CoordStruct bulletPos = bullet->GetCoords();
 		double dz = bulletPos.Z - barrelDir.Z;
@@ -1444,8 +1498,10 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		// Recalculate direction if needed
 		DirStruct legal;
 		const bool canReach = pThis->CanReachTarget(pExt->idxSlot_EMPulse);
-		if (!Game::func_48A8D0_Legal(canReach, speed, xyDist, dz, gravity, &legal)) {
-			if (!Game::func_48A8D0_Legal(canReach, (10 * speed) / 8, xyDist, dz, gravity, &legal)) {
+		if (!Game::func_48A8D0_Legal(canReach, speed, xyDist, dz, gravity, &legal))
+		{
+			if (!Game::func_48A8D0_Legal(canReach, (10 * speed) / 8, xyDist, dz, gravity, &legal))
+			{
 				legal = DirStruct((unsigned short)-1536);
 			}
 		}
@@ -1471,7 +1527,8 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(bullet->Type);
 		auto pBulletExt = BulletExtContainer::Instance.Find(bullet);
 
-		if (bullet->Type->Arcing && !pBulletTypeExt->Arcing_AllowElevationInaccuracy) {
+		if (bullet->Type->Arcing && !pBulletTypeExt->Arcing_AllowElevationInaccuracy)
+		{
 			pBulletExt->ApplyArcingFix(flhCoord, targetCoord, vel);
 		}
 
@@ -1495,7 +1552,8 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		}
 
 		// Play sound if not gattling , this will played twice
-		if (!pThis->Type->IsGattling && weaponType->Report.Count > 0) {
+		if (!pThis->Type->IsGattling && weaponType->Report.Count > 0)
+		{
 			const int soundIdx = weaponType->Report.Count > 1 ? ScenarioClass::Instance->Random.RandomFromMax(weaponType->Report.Count - 1) : 0;
 			VocClass::SafeImmedietelyPlayAt(soundIdx, flhCoord);
 		}
@@ -1537,26 +1595,32 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 	}
 }
 
-int ProcessMissionMissile(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pLinkedTypeExt) 	{
+int ProcessMissionMissile(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pLinkedTypeExt)
+{
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (!pThis->Type->EMPulseCannon) {
+	if (!pThis->Type->EMPulseCannon)
+	{
 		const auto pTarget = pExt->SuperTarget.IsValid()
-				? pExt->SuperTarget : pThis->Owner->NukeTarget;
+			? pExt->SuperTarget : pThis->Owner->NukeTarget;
 
 		pThis->Fire(MapClass::Instance->GetCellAt(pTarget), 0);
 		pThis->QueueMission(Mission::Guard, false);
 
 		return 1; //ares
-	} else {
+	}
+	else
+	{
 		return ProcessEMPUlseCannon(pThis, pLinked, pLinkedTypeExt);
 	}
 
 }
 
-int FakeBuildingClass::_Mission_Missile() {
+int FakeBuildingClass::_Mission_Missile()
+{
 
-	if (this->FiringSWType < 0) {
+	if (this->FiringSWType < 0)
+	{
 		Debug::LogInfo("Building[{}] with Mission::Missile Missing Important Linked SW data !", this->get_ID());
 		//apply the missioncontrol rate as delay
 		return int(this->GetCurrentMissionControl()->Rate * TICKS_PER_MINUTE);
@@ -1565,8 +1629,9 @@ int FakeBuildingClass::_Mission_Missile() {
 	auto pSW = this->Owner->Supers.Items[this->FiringSWType];
 	auto pSWTypeExt = SWTypeExtContainer::Instance.Find(pSW->Type);
 
-	if (this->Type->NukeSilo) {
-		return ProcessNukeSilo(this,pSW,pSWTypeExt);
+	if (this->Type->NukeSilo)
+	{
+		return ProcessNukeSilo(this, pSW, pSWTypeExt);
 	}
 
 	return ProcessMissionMissile(this, pSW, pSWTypeExt);
@@ -1600,8 +1665,10 @@ void FakeBuildingClass::_OnFireAI()
 	const auto pExt = this->_GetExtData();
 	const auto pTypeext = pExt->Type;
 
-	for (auto& nFires : pExt->DamageFireAnims) {
-		if (nFires && nFires->Type) {
+	for (auto& nFires : pExt->DamageFireAnims)
+	{
+		if (nFires && nFires->Type)
+		{
 			nFires->TimeToDie = true;
 			nFires->UnInit();
 			nFires = nullptr;
@@ -1641,6 +1708,370 @@ void FakeBuildingClass::_OnFireAI()
 		}
 	}
 }
+
+class NOVTABLE FakeTacticalClassB : public TacticalClass {
+public:
+
+	static COMPILETIMEEVAL reference<FakeTacticalClassB*, 0x887324u> const Instance {};
+
+	Point2D* XY_To_Screen_Pixels(Point2D* pBuffer, Point2D* a2)
+	{ JMP_THIS(0x6D1FE0); }
+
+	static int __fastcall ZDepth_Adjust_For_Height(int z) {
+		JMP_FAST(0x6D20E0);
+	}
+};
+
+void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
+{
+	if (SHPStruct* mainShape = this->GetImage()) {
+
+		BuildingTypeClass* buildingType = this->Type;
+
+		if (buildingType->InvisibleInGame) {
+			return;
+		}
+
+		auto curMission = this->GetCurrentMission();
+
+		if (this->BState == BStateType::Construction && curMission == Mission::Selling) {
+			for (auto& anim : this->Anims) {
+				if (anim) {
+					anim->Invisible = true;
+				}
+			}
+		}
+
+		CellStruct cellPos = this->GetMapCoords();
+
+		auto pTypeExt = BuildingTypeExtContainer::Instance.Find(this->Type);
+
+		if (pTypeExt->IsHideDuringSpecialAnim &&
+			(this->Anims[(int)BuildingAnimSlot::Special] ||
+			this->Anims[(int)BuildingAnimSlot::SpecialTwo] ||
+			this->Anims[(int)BuildingAnimSlot::SpecialThree]))
+			return;
+
+		bool isUnloadingAirUnit = false;
+		if (curMission == Mission::Unload) {
+			if (TechnoClass* contactUnit = this->GetRadioContact()) {
+				TechnoTypeClass* unitType = contactUnit->GetTechnoType();
+				if (unitType->JumpJet || unitType->BalloonHover)
+				{
+					isUnloadingAirUnit = true;
+				}
+			}
+		}
+
+		auto pCell = MapClass::Instance->GetCellAt(cellPos);
+		auto pCenterCell = MapClass::Instance->GetCellAt(this->GetCoords());
+
+		int tintLevel = 0;
+		if (pCenterCell->IsShrouded()) {
+			tintLevel = TechnoExtData::ApplyTintColor(this, true, true, false);
+			TechnoExtData::ApplyCustomTint(this, &tintLevel, nullptr);
+		}
+
+		if (auto surface = DSurface::ColorMode()) {
+			if (--surface) {
+
+				int NormalZAdjust = buildingType->NormalZAdjust;
+				auto& door = this->UnloadTimer;
+
+				// Handle gate/door animations
+				if (curMission == Mission::Open && (door.IsOpening() || door.IsClosing() || door.IsOpen()))
+				{
+
+					// Calculate gate frame based on door state
+					int gateFrame = (int)(door.GetCompletePercent()
+								* this->Type->GateStages);
+
+					if (door.IsClosing())
+					{
+						gateFrame = this->Type->GateStages - gateFrame;
+					}
+
+					if (door.IsClosed())
+					{
+						gateFrame = 0;
+					}
+
+					if (door.IsOpen())
+					{
+						gateFrame = this->Type->GateStages - 1;
+					}
+
+					// Clamp frame to valid range
+					gateFrame = MaxImpl(0, MinImpl(gateFrame, this->Type->GateStages - 1));
+
+					// Add damage frame offset if building is damaged
+					if (this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+					{
+						gateFrame += this->Type->GateStages + 1;
+					}
+
+					ZGradient zgrad = ZGradient::Ground;
+
+					if (gateFrame < this->Type->GateStages / 2 || pTypeExt->IsBarGate)
+					{
+						zgrad = ZGradient::Deg90;
+					}
+
+					const int lightLevel = pCell->Color1.Red;
+					const int depthAdjust = FakeTacticalClassB::ZDepth_Adjust_For_Height(this->GetZ());
+
+					this->Draw_Object(mainShape,
+						gateFrame,
+						screenPos,
+						clipRect,
+						DirType::North,  // rotation
+						256,  // scale
+						NormalZAdjust - depthAdjust,  // height adjust
+						zgrad,  // ZGradient
+						1,  // useZBuffer
+						lightLevel,
+						tintLevel,
+						0, 0, Point2D::Empty, BlitterFlags::None  // z-shape params
+					);
+
+					return;
+				}
+
+				// Handle special unload animations
+				if (curMission == Mission::Unload)
+				{
+					if (isUnloadingAirUnit)
+					{
+						if (this->Type->RoofDeployingAnim)
+						{
+							mainShape = this->Type->RoofDeployingAnim;
+							NormalZAdjust = -40;
+						}
+					}
+					else
+					{
+						if (this->Type->DeployingAnim)
+						{
+							mainShape = this->Type->DeployingAnim;
+							NormalZAdjust = -20;
+						}
+					}
+				}
+
+				// Calculate shape positioning
+				// Default shape offset values (198 = 0xC6, 446 = 0x1BE)
+				Point2D shapeOffset = { 198, 446 };
+
+				if ((curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup)
+				{
+					shapeOffset += this->Type->ZShapePointMove;
+				}
+
+				const auto foundationWidth = this->Type->GetFoundationWidth();
+				const auto foundationHeiht = this->Type->GetFoundationHeight(0);
+
+				//Point2D drawpoint = *screenPos;
+				//int height = drawpoint.Y + mainShape->Height / 2;
+
+				//RectangleStruct cliprect = *clipRect;
+				//cliprect.Height = MinImpl(cliprect.Height, height);
+
+				// Calculate screen position adjustment
+				Point2D buildingSize(
+					(foundationWidth * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
+					,
+					(foundationHeiht * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
+				);
+
+				Point2D screenOffset;
+				FakeTacticalClassB::Instance->XY_To_Screen_Pixels(&screenOffset, &buildingSize);
+
+				shapeOffset -= screenOffset;
+
+				// Draw main building if clipping rect has height
+				if (clipRect->Height > 0) {
+					SHPStruct* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
+					const int lightLevel = (int16)this->Type->ExtraLight + pCell->Color1.Red;
+					const int depthAdjust = FakeTacticalClassB::ZDepth_Adjust_For_Height(this->GetZ());
+
+					if (!pTypeExt->Firestorm_Wall) {
+
+						const int frameCount = mainShape->Frames;
+						const auto currentFrame = this->GetShapeNumber();
+						const int shapeFrame = currentFrame < frameCount / 2 ?
+							currentFrame : frameCount / 2;
+
+						this->Draw_Object(mainShape,
+								shapeFrame,
+								screenPos,
+								clipRect,
+								DirType::North,  // rotation
+								256,  // scale
+								NormalZAdjust - depthAdjust,  // height adjust
+								ZGradient::Ground,  // ZGradient
+								1,  // useZBuffer
+								lightLevel,
+								tintLevel,
+								zShape,
+								0,
+								shapeOffset,
+								BlitterFlags::None  // flags
+						);
+					}
+					else
+					{
+						this->Draw_Object(mainShape,
+							this->GetShapeNumber(),
+							screenPos,
+							clipRect,
+							DirType::North,  // rotation
+							256,  // scale
+							-1 - depthAdjust,  // height adjust
+							ZGradient::Deg90,  // ZGradient
+							1,  // useZBuffer
+							lightLevel,
+							tintLevel,
+							zShape,
+							0,
+							shapeOffset,
+							BlitterFlags::None  // flags
+						);
+					}
+				}
+
+				//// Draw bib (foundation) if present
+				if (this->Type->BibShape && this->BState != BStateType::Construction && this->ActuallyPlacedOnMap) {
+					const int lightLevel = (int)(this->Type->ExtraLight + pCell->Color1.Red);
+					const int heightZ = this->GetZ();
+
+					this->Draw_Object(
+						this->Type->BibShape,
+						this->GetShapeNumber(),
+						screenPos,
+						clipRect,
+						DirType::North,  // rotation
+						256,  // scale
+						-1 - FakeTacticalClassB::ZDepth_Adjust_For_Height(heightZ),  // height adjust
+						ZGradient::Ground,  // ZGradient
+						1,  // useZBuffer
+						lightLevel,
+						tintLevel,
+						0, 0, Point2D::Empty, BlitterFlags::None  // z-shape params
+					);
+				}
+
+				// Draw special door animations for unload mission
+				if (curMission == Mission::Unload) {
+					if (const auto RoofAnim = isUnloadingAirUnit ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim) {
+							this->Draw_Object(
+								RoofAnim,
+								this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow,
+								screenPos,
+								clipRect,
+								DirType::North, 256,  // rotation, scale
+								-FakeTacticalClassB::ZDepth_Adjust_For_Height(this->GetZ()),  // height adjust
+								ZGradient::Ground, 1,  // ZGradient, useZBuffer
+								 (int16)this->Type->ExtraLight + pCell->Color1.Red,
+								tintLevel,
+								0, 0, Point2D::Empty, BlitterFlags::None  // z-shape params
+						);
+					}
+				}
+			}
+		}
+	}
+}
+
+//DEFINE_HOOK(0x43D290,BuildingClass_Draw_It, 0x5)
+//{
+//	GET(FakeBuildingClass*, pThis, ECX);
+//	GET_STACK(Point2D*, pPoint, 0x4);
+//	GET_STACK(RectangleStruct*, pRect, 0x8);
+//	DWORD stored = R->EDI();
+//	pThis->_Draw_It(pPoint, pRect);
+//	R->EDI(stored);
+//	return 0x43DA73;
+//}
+//
+//DEFINE_FUNCTION_JUMP(CALL6, 0x43D005 , FakeBuildingClass::_Draw_It)
+
+void FakeBuildingClass::_TechnoClass_Draw_Object(SHPStruct* shapefile,
+	int shapenum,
+	Point2D* xy,
+	RectangleStruct* rect,
+	DirType rotation,  //unused
+	int scale, //unused
+	int height_adjust,
+	ZGradient a8,
+	bool useZBuffer,
+	int lightLevel,
+	int tintLevel,
+	SHPStruct* z_shape,
+	int z_shape_framenum,
+	Point2D z_shape_offs,
+	BlitterFlags flags)
+{
+	ZGradient zgrad = ZGradient::Ground;
+	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(this->Type);
+	if (shapenum < this->Type->GateStages / 2 || pTypeExt->IsBarGate) {
+		zgrad = ZGradient::Deg90;
+	}
+
+	return this->Draw_Object(shapefile, shapenum, xy, rect, rotation, scale, height_adjust, zgrad, useZBuffer, lightLevel, tintLevel, z_shape, z_shape_framenum, z_shape_offs, flags);
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x43D683, FakeBuildingClass::_TechnoClass_Draw_Object)
+
+ASMJIT_PATCH(0x43D386, BuildingClass_Draw_TintColor, 0x6)
+{
+	enum { SkipGameCode = 0x43D4EB };
+
+	GET(BuildingClass*, pThis, ESI);
+
+	int color = TechnoExtData::ApplyTintColor(pThis, true, true, false);
+	TechnoExtData::ApplyCustomTint(pThis, &color, nullptr);
+	R->EDI(color);
+
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
+{
+	enum { DontDrawBib = 0x43D8EE };
+
+	GET(BuildingClass* const, pThis, ESI);
+	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
+}
+
+ ASMJIT_PATCH(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
+ {
+ 	enum { Apply = 0x43D6EF, Skip = 0x43D712 };
+
+ 	GET(FakeBuildingClass*, pThis, ESI);
+ 	GET(Mission, mission, EAX);
+
+ 	if (
+ 		(mission != Mission::Selling && mission != Mission::Construction) ||
+ 			pThis->_GetTypeExtData()->ZShapePointMove_OnBuildup
+ 		)
+ 		return Apply;
+
+ 	return Skip;
+ }
+
+  ASMJIT_PATCH(0x43D290, BuildingClass_Draw_LimboDelivered, 0x5)
+ {
+ 	GET(BuildingClass* const, pBuilding, ECX);
+
+	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+	if (pTypeExt->IsHideDuringSpecialAnim &&
+		(pBuilding->Anims[(int)BuildingAnimSlot::Special] ||
+			pBuilding->Anims[(int)BuildingAnimSlot::SpecialTwo] ||
+			pBuilding->Anims[(int)BuildingAnimSlot::SpecialThree]))
+		return 0x43D9D5;
+
+ 	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
+ }
 
 // =============================
 // load / save
@@ -1683,6 +2114,7 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->FactoryBuildingMe)
 		.Process(this->airFactoryBuilding)
 		.Process(this->FreeUnitDone)
+		.Process(this->SeparateRepair)
 		;
 }
 
@@ -1723,9 +2155,10 @@ ASMJIT_PATCH(0x43C022, BuildingClass_DTOR, 0x6)
 	return 0;
 }
 
-void FakeBuildingClass::_Detach(AbstractClass* target , bool all) {
+void FakeBuildingClass::_Detach(AbstractClass* target, bool all)
+{
 	BuildingExtContainer::Instance.InvalidatePointerFor(this, target, all);
-	this->BuildingClass::PointerExpired(target , all);
+	this->BuildingClass::PointerExpired(target, all);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3EE4, FakeBuildingClass::_Detach)
@@ -1736,7 +2169,8 @@ void FakeBuildingClass::_DetachAnim(AnimClass* pAnim)
 
 	auto pExt = BuildingExtContainer::Instance.Find(this);
 
-	if (pAnim == pExt->SpyEffectAnim.get()) {
+	if (pAnim == pExt->SpyEffectAnim.get())
+	{
 		pExt->SpyEffectAnim.release();
 	}
 }

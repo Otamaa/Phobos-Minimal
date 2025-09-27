@@ -6,6 +6,7 @@
 
 // a poor man's map with contiguous storage
 template <typename TKey, typename TValue, class customMem = std::allocator<std::pair<TKey, TValue>>>
+requires direct_comparable<TKey>
 class PhobosMap
 {
 	using pair_t = std::pair<TKey, TValue>;
@@ -182,33 +183,17 @@ public:
 
 	COMPILETIMEEVAL auto get_key_iterator(const TKey& key)
 	{
-		if COMPILETIMEEVAL (direct_comparable<TKey>)
-		{
-			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item)
- {
-	 return item.first == key;
-			});
-		}
-		else
-		{
-			return std::find(this->values.begin(), this->values.end(), key);
-		}
+		return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item){
+			return item.first == key;
+		});
 	}
 
 	// nonmodifiable
 	COMPILETIMEEVAL auto get_key_iterator(const TKey& key) const
 	{
-		if COMPILETIMEEVAL (direct_comparable<TKey>)
-		{
-			return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item)
- {
-	 return item.first == key;
-			});
-		}
-		else
-		{
-			return std::find(this->values.begin(), this->values.end(), key);
-		}
+		return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
+			return item.first == key;
+		});
 	}
 
 	TValue& insert_unchecked(const TKey& key, TValue value)

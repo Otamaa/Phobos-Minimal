@@ -893,9 +893,9 @@ int GetVoiceAttack(TechnoTypeClass* pType, int WeaponIndex, bool isElite, Weapon
 	if (VoiceAttack < 0)
 	{
 		if (pTypeExt->IsSecondary(WeaponIndex))
-			VoiceAttack = isElite ? pType->VoiceSecondaryEliteWeaponAttack : pType->VoiceSecondaryWeaponAttack;
+			VoiceAttack = isElite && pType->VoiceSecondaryEliteWeaponAttack != -1? pType->VoiceSecondaryEliteWeaponAttack : pType->VoiceSecondaryWeaponAttack;
 		else
-			VoiceAttack = isElite ? pType->VoicePrimaryEliteWeaponAttack : pType->VoicePrimaryWeaponAttack;
+			VoiceAttack = isElite && pType->VoicePrimaryEliteWeaponAttack!= -1 ? pType->VoicePrimaryEliteWeaponAttack : pType->VoicePrimaryWeaponAttack;
 	}
 
 	return VoiceAttack;
