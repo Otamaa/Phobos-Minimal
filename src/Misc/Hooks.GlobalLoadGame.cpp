@@ -117,6 +117,14 @@
 #include <CStreamClass.h>
 #include <LoadOptionsClass.h>
 
+template<typename T>
+bool Process_Global_LoadB(LPSTREAM pStm)
+{
+	PhobosByteStream stm;
+	PhobosStreamReader reader(stm);
+	Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
+	return stm.ReadFromStream(pStm) && T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
+}
 
 template<typename T>
 bool Process_Global_Load(PhobosStreamReader& reader)
@@ -125,7 +133,8 @@ bool Process_Global_Load(PhobosStreamReader& reader)
 	return T::LoadGlobals(reader);
 }
 
-
+//broken , the game seems disturbed with extension below the class
+#ifdef RECORD_
 template<typename T>
 HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection, DWORD* pArrayPosition = nullptr)
 {
@@ -461,6 +470,78 @@ HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection, DWOR
 
 	return S_OK;
 }
+#else
+template<typename T>
+HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
+{
+	HRESULT hr;
+	std::string typeName = PhobosCRT::GetTypeIDName<T>();
+
+	int count;
+	// Read the count
+	hr = stream->Read(&count, sizeof(int), 0);
+	if (FAILED(hr)) return hr;
+	Debug::Log("LoadObjectVector<%s>: Loaded Count %d\n", typeName.c_str(), count);
+
+	if (count > 0)
+	{
+		//the game memory is quite sensitive at this state
+		//do pre allocation of the vector instead of dynamicly expand
+		//this will relive memory system quite a much
+		//and also avoiding crash
+		collection.Reserve(count);
+	}
+
+	// Load each object
+	for (int i = 0; i < count; ++i)
+	{
+		LPVOID objPtr = nullptr;
+		hr = OleLoadFromStream(stream, IID_IUnknown, &objPtr);
+		if (FAILED(hr)) return hr;
+	}
+	return S_OK;
+}
+
+template<typename T>
+HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
+{
+	HRESULT hr;
+	DWORD count;
+
+	// Read count
+	hr = stream->Read(&count, sizeof(int), 0);
+	if (FAILED(hr)) return hr;
+
+	// Clear and prepare collection
+	collection.Clear();
+
+	if (count > 0)
+	{
+		collection.Reserve(count);
+
+		// Load array data
+		for (int i = 0; i < count; ++i)
+		{
+			T itemPtr = nullptr;
+			hr = stream->Read(&itemPtr, sizeof(T), 0);
+			if (FAILED(hr)) return hr;
+
+			// Add to collection if space available
+			collection.AddItem(itemPtr);
+		}
+
+		auto what = PhobosCRT::GetTypeIDName<T>();
+		// Swizzle pointers
+		for (int i = 0; i < count; ++i)
+		{
+			PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(collection.Items[i], what.c_str());
+		}
+	}
+
+	return S_OK;
+}
+
+#endif
 
 HRESULT PrepareDisplaySurfaces()
 {
@@ -503,18 +584,19 @@ HRESULT PrepareDisplaySurfaces()
 }
 
 #include <Utilities/StreamUtils.h>
+#include <Ext/Scenario/Body.h>
+
 HRESULT LoadPhobosEarlyObjects(LPSTREAM pStm)
 {
-	PhobosByteStream stm;
+	PhobosAppendedStream stm;
 	PhobosStreamReader reader(stm);
 
-	HRESULT hr = stm.ReadFromStream(pStm) ? S_OK : E_FAIL;
-
-	if (!SUCCEEDED(hr))
-		return hr;
+	if (!stm.ReadFromStream(pStm))
+		return E_FAIL;
 
 	bool success = Process_Global_Load<Phobos>(reader);
 	if (!success) return E_FAIL;
+
 	success = Process_Global_Load<CursorTypeClass>(reader);
 	if (!success) return E_FAIL;
 
@@ -528,6 +610,9 @@ HRESULT LoadPhobosEarlyObjects(LPSTREAM pStm)
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Load<MouseClassExt>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<CellExtContainer>(reader);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Load<DigitalDisplayTypeClass>(reader);
@@ -563,22 +648,43 @@ HRESULT LoadPhobosEarlyObjects(LPSTREAM pStm)
 	success = Process_Global_Load<UnitTypeExtContainer>(reader);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Load<UnitExtContainer>(reader);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Load<InfantryTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<InfantryExtContainer>(reader);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Load<BuildingTypeExtContainer>(reader);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Load<BuildingExtContainer>(reader);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Load<AircraftTypeExtContainer>(reader);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Load<AircraftExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<AnimTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Load<AnimExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TeamExtContainer>(reader);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Load<TEventExtContainer>(reader);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Load<VoxelAnimTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<VoxelAnimExtContainer>(reader);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Load<WarheadTypeExtContainer>(reader);
@@ -590,10 +696,19 @@ HRESULT LoadPhobosEarlyObjects(LPSTREAM pStm)
 	success = Process_Global_Load<ParticleTypeExtContainer>(reader);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Load<ParticleExtContainer>(reader);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Load<ParticleSystemTypeExtContainer>(reader);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Load<ParticleSystemExtContainer>(reader);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Load<BulletTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BulletExtContainer>(reader);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Load<TActionExtData>(reader);
@@ -608,14 +723,28 @@ HRESULT LoadPhobosEarlyObjects(LPSTREAM pStm)
 	success = Process_Global_Load<SWTypeExtContainer>(reader);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Load<SuperExtContainer>(reader);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Load<TerrainTypeExtContainer>(reader);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Load<TerrainExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<WaveExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BombExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<RadSiteExtContainer>(reader);
+	if (!success) return E_FAIL;
+
 	if (!reader.ExpectEndOfBlock())
-		hr = E_FAIL;
+		return E_FAIL;
 
-	return hr;
-
+	return S_OK;
 }
 
 HRESULT Decode_All_Pointers(LPSTREAM stream)
@@ -631,7 +760,7 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	ScenarioClass::IsUserInputLocked = ScenarioClass::Instance->UserInputLocked;
 
 	hr = LoadPhobosEarlyObjects(stream);
-	if(!hr) return E_FAIL;;
+	if (!SUCCEEDED(hr)) return hr;
 
 	hr = LoadObjectVector(stream, *SideClass::Array);
 	if (!SUCCEEDED(hr)) return hr;

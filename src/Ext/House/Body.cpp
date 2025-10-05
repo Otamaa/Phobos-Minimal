@@ -46,7 +46,9 @@ HouseClass* HouseExtContainer::Neutral = nullptr;
 
 bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	auto ret = Stm
+	auto ret = LoadGlobalArrayData(Stm);
+
+		ret &= Stm
 		.Process(HouseExtData::LimboTechno)
 		.Process(HouseExtData::AutoDeathObjects)
 		.Process(HouseExtData::LastGrindingBlanceUnit)
@@ -70,7 +72,9 @@ bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 
 bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	auto ret = Stm
+	auto ret = SaveGlobalArrayData(Stm);
+
+		ret &= Stm
 		.Process(HouseExtData::LimboTechno)
 		.Process(HouseExtData::AutoDeathObjects)
 		.Process(HouseExtData::LastGrindingBlanceUnit)
@@ -3497,5 +3501,5 @@ HRESULT __stdcall FakeHouseClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B8, FakeHouseClass::_Save)
+ //DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::_Load)
+ //DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B8, FakeHouseClass::_Save)

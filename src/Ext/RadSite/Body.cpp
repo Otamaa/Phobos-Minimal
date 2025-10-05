@@ -299,5 +299,5 @@ HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)

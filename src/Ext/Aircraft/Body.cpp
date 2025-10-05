@@ -990,8 +990,8 @@ HRESULT __stdcall FakeAircraftClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)
 
 void FakeAircraftClass::_Detach(AbstractClass* target, bool all)
 {

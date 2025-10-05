@@ -209,7 +209,7 @@ ASMJIT_PATCH(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 	return 0;
 }
 
-DEFINE_HOOK(0x54D06F, JumpjetLocomotionClass_ProcessCrashing_RemoveSensors, 0x5)
+ASMJIT_PATCH(0x54D06F, JumpjetLocomotionClass_ProcessCrashing_RemoveSensors, 0x5)
 {
 	GET(FootClass*, pLinkedTo, EAX);
 

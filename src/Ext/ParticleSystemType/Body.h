@@ -24,6 +24,7 @@ public:
 public:
 	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj) : ObjectTypeExtData(pObj),
 		ApplyOptimization(true),
+		FacingMult(),
 		AdjustTargetCoordsOnRotation(true)
 	{ }
 	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

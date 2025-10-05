@@ -1236,5 +1236,5 @@ HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)

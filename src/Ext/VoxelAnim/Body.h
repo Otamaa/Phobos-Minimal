@@ -23,13 +23,16 @@ public:
 #pragma region ClassMember
 	TechnoClass* Invoker;
 	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
-	std::vector<UniversalTrail> Trails;
+	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
 	CDTimerClass TrailerSpawnDelayTimer;
 #pragma endregion
 
 public:
-	VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj),
-		Invoker(nullptr)
+	VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj)
+		, Invoker(nullptr)
+		, LaserTrails()
+		, Trails()
+		, TrailerSpawnDelayTimer()
 	{ }
 	VoxelAnimExtData(VoxelAnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

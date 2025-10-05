@@ -35,6 +35,6 @@ public:
 	virtual ObjectTypeClass* This() const override { return reinterpret_cast<ObjectTypeClass*>(this->AbstractTypeExtData::This()); }
 	virtual const ObjectTypeClass* This_Const() const override { return reinterpret_cast<const ObjectTypeClass*>(this->AbstractTypeExtData::This_Const()); }
 
-	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) { return true; }
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) { return parseFailAddr ? false : true; }
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 };

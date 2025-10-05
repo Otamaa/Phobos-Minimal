@@ -52,21 +52,33 @@ public:
 		SpawnsTiberium_GrowthStage({ 3, 0 }),
 		SpawnsTiberium_CellsPerAnim({ 1, 0 }),
 		SpawnsTiberium_StageFalloff(),
-		DestroyAnim(nullptr),
+		DestroyAnim(),
 		DestroySound(-1),
-		IsPassable(false),
-		CanBeBuiltOn(false),
+		MinimapColor(),
+		IsPassable(),
+		CanBeBuiltOn(),
 		CrushableLevel(0),
-		LightEnabled(false),
-		AreaDamage(false),
+		LightEnabled(),
+		LightVisibility(),
+		LightIntensity(),
+		LightRedTint(),
+		LightGreenTint(),
+		LightBlueTint(),
+		AttachedAnim(),
+		Warhead(),
+		Damage(),
+		AreaDamage(),
 		Bounty(0),
-		HasDamagedFrames(false),
-		HasCrumblingFrames(false),
+		HasDamagedFrames(),
+		HasCrumblingFrames(),
 		CrumblingSound(-1),
-		SpawnsTiberium_Particle(-1)
+		AnimationLength(),
+		TreeFires(),
+		SpawnsTiberium_Particle()
 	{
 		this->Initialize();
 	}
+
 	TerrainTypeExtData(TerrainTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~TerrainTypeExtData() = default;

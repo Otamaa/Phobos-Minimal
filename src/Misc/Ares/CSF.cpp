@@ -53,8 +53,8 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 		}
 	}
 
-	if (!_loaded)
-		Debug::LogInfo("Failed to load {} !", pFileName);
+	if (_loaded)
+		Debug::LogInfo("Successfully load {} !", pFileName);
 }
 
 const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t* pPattern, const char* pDefault, bool isNostr)

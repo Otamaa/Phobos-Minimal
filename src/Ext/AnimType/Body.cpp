@@ -668,7 +668,7 @@ bool AnimTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 
 bool AnimTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	return SaveGlobalArrayData(Stm);;
+	return SaveGlobalArrayData(Stm);
 }
 
 ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
@@ -720,5 +720,5 @@ HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)

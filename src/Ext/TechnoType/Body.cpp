@@ -1639,70 +1639,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->IsSimpleDeployer_ConsiderPathfinding.Read(exINI, pSection, "IsSimpleDeployer.ConsiderPathfinding");
 		this->IsSimpleDeployer_DisallowedLandTypes.Read(exINI, pSection, "IsSimpleDeployer.DisallowedLandTypes");
 
-#pragma region AircraftOnly
-		if (this->AttachtoType == AircraftTypeClass::AbsID)
-		{
-			this->SpawnDistanceFromTarget.Read(exINI, pSection, "SpawnDistanceFromTarget");
-			this->SpawnHeight.Read(exINI, pSection, "SpawnHeight");
-
-			this->LandingDir.Read(exINI, pSection, "LandingDir");
-			this->CrashSpinLevelRate.Read(exINI, pSection, "CrashSpin.LevelRate");
-			this->CrashSpinVerticalRate.Read(exINI, pSection, "CrashSpin.VerticalRate");
-
-			this->SpyplaneCameraSound.Read(exINI, pSection, "SpyPlaneCameraSound");
-			this->ParadropRadius.Read(exINI, pSection, "Paradrop.ApproachRadius");
-			this->ParadropOverflRadius.Read(exINI, pSection, "Paradrop.OverflyRadius");
-			this->Paradrop_DropPassangers.Read(exINI, pSection, "Paradrop.DropPassangers");
-
-			// Disabled , rare but can crash after S/L
-			this->Paradrop_MaxAttempt.Read(exINI, pSection, "Paradrop.MaxApproachAttempt");
-			//
-
-			this->IsCustomMissile.Read(exINI, pSection, "Missile.Custom");
-			this->CustomMissileData.Read(exINI, pSection, "Missile");
-			this->CustomMissileData->Type = static_cast<AircraftTypeClass*>(pThis);
-			this->CustomMissileRaise.Read(exINI, pSection, "Missile.%sRaiseBeforeLaunching");
-			this->CustomMissileOffset.Read(exINI, pSection, "Missile.CoordOffset");
-			this->CustomMissileWarhead.Read(exINI, pSection, "Missile.Warhead");
-			this->CustomMissileEliteWarhead.Read(exINI, pSection, "Missile.EliteWarhead");
-			this->CustomMissileTakeoffAnim.Read(exINI, pSection, "Missile.TakeOffAnim");
-			this->CustomMissilePreLauchAnim.Read(exINI, pSection, "Missile.PreLaunchAnim");
-			this->CustomMissileTrailerAnim.Read(exINI, pSection, "Missile.TrailerAnim");
-			this->CustomMissileTrailerSeparation.Read(exINI, pSection, "Missile.TrailerSeparation");
-			this->CustomMissileWeapon.Read(exINI, pSection, "Missile.Weapon");
-			this->CustomMissileEliteWeapon.Read(exINI, pSection, "Missile.EliteWeapon");
-			this->CustomMissileInaccuracy.Read(exINI, pSection, "Missile.Inaccuracy");
-			this->CustomMissileTrailAppearDelay.Read(exINI, pSection, "Missile.TrailerAppearDelay");
-
-			this->AttackingAircraftSightRange.Read(exINI, pSection, "AttackingAircraftSightRange");
-			this->CrashWeapon_s.Read(exINI, pSection, "Crash.Weapon", true);
-			this->CrashWeapon.Read(exINI, pSection, "Crash.%sWeapon",nullptr , true);
-
-			this->NoAirportBound_DisableRadioContact.Read(exINI, pSection, "NoAirportBound.DisableRadioContact");
-
-			this->TakeOff_Anim.Read(exINI, pSection, "TakeOff.Anim");
-			this->PoseDir.Read(exINI, pSection, GameStrings::PoseDir());
-			this->Firing_IgnoreGravity.Read(exINI, pSection, "Firing.IgnoreGravity");
-			this->CurleyShuffle.Read(exINI, pSection, "CurleyShuffle");
-
-			//No code
-			this->Aircraft_DecreaseAmmo.Read(exINI, pSection, "Firing.ReplaceFiringMode");
-
-			// hunter seeker
-			this->HunterSeekerDetonateProximity.Read(exINI, pSection, "HunterSeeker.DetonateProximity");
-			this->HunterSeekerDescendProximity.Read(exINI, pSection, "HunterSeeker.DescendProximity");
-			this->HunterSeekerAscentSpeed.Read(exINI, pSection, "HunterSeeker.AscentSpeed");
-			this->HunterSeekerDescentSpeed.Read(exINI, pSection, "HunterSeeker.DescentSpeed");
-			this->HunterSeekerEmergeSpeed.Read(exINI, pSection, "HunterSeeker.EmergeSpeed");
-			this->HunterSeekerIgnore.Read(exINI, pSection, "HunterSeeker.Ignore");
-
-			this->MissileHoming.Read(exINI, pSection, "Missile.Homing");
-			this->Crashable.Read(exINI, pSection, "Crashable");
-			this->MyDiveData.Read(exINI, pSection);
-			this->MyPutData.Read(exINI, pSection);
-		}
-#pragma endregion
-
 		//this->ShadowIndices.Read(exINI, pSection, "ShadowIndices");
 
 		this->EliteArmor.Read(exINI, pSection, "EliteArmor");
@@ -2015,39 +1951,23 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->TurretShadow.Read(exArtINI, pArtSection, "TurretShadow");
 
-		this->SprayOffsets.resize(8);
-		//
-		this->SprayOffsets[0]->X = 256;
-		this->SprayOffsets[0]->Y = 0;
-		this->SprayOffsets[0]->Z = 0;
-		//
-		this->SprayOffsets[1]->X = 180;
-		this->SprayOffsets[1]->Y = 180;
-		this->SprayOffsets[1]->Z = 0;
-		//
-		this->SprayOffsets[2]->X = 0;
-		this->SprayOffsets[2]->Y = 256;
-		this->SprayOffsets[2]->Z = 0;
-		//
-		this->SprayOffsets[3]->X = -180;
-		this->SprayOffsets[3]->Y = 180;
-		this->SprayOffsets[3]->Z = 0;
-		//
-		this->SprayOffsets[4]->X = -256;
-		this->SprayOffsets[4]->Y = 0;
-		this->SprayOffsets[4]->Z = 0;
-		//
-		this->SprayOffsets[5]->X = -180;
-		this->SprayOffsets[5]->Y = -180;
-		this->SprayOffsets[5]->Z = 0;
-		//
-		this->SprayOffsets[6]->X = 0;
-		this->SprayOffsets[6]->Y = -256;
-		this->SprayOffsets[6]->Z = 0;
-		//
-		this->SprayOffsets[7]->X = 180;
-		this->SprayOffsets[7]->Y = -180;
-		this->SprayOffsets[7]->Z = 0;
+
+		static COMPILETIMEEVAL std::array<CoordStruct, 8> defaultSprayOffsets = { {
+			{  256,   0,   0 },
+			{  180, 180,   0 },
+			{    0, 256,   0 },
+			{ -180, 180,   0 },
+			{ -256,   0,   0 },
+			{ -180,-180,   0 },
+			{    0,-256,   0 },
+			{  180,-180,   0 }
+		} };
+
+		this->SprayOffsets.resize(defaultSprayOffsets.size());
+
+		for (int i = 0; i < defaultSprayOffsets.size(); ++i) {
+			this->SprayOffsets[i] = defaultSprayOffsets[i];
+		}
 
 		for (size_t c = 0; ; ++c) {
 			std::string __base_key = "SprayOffsets";
@@ -2176,13 +2096,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		Debug::Log("[Developer warning] [%s] has Palette=%s set but no palette file was loaded (missing file or wrong filename). Missing palettes cause issues with lighting recalculations.\n", pArtSection, pThis->PaletteFile);
 
 	return true;
-}
-
-void TechnoTypeExtData::LoadFromINIFile_Aircraft(CCINIClass* pINI)
-{
-	//auto pThis = Get();
-	//const char* pSection = pThis->ID;
-	//INI_EX exINI(pINI);
 }
 
 void TechnoTypeExtData::LoadFromINIFile_EvaluateSomeVariables(CCINIClass* pINI)

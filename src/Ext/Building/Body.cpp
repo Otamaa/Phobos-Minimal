@@ -308,8 +308,7 @@ void BuildingExtData::DisplayIncomeString()
 			This(),
 			this->Type->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
 			This()->GetRenderCoords(),
-			this->Type->DisplayIncome_Offset
-		);
+			this->Type->DisplayIncome_Offset, ColorStruct::Empty);
 
 		this->AccumulatedIncome = 0;
 	}
@@ -2194,5 +2193,5 @@ HRESULT __stdcall FakeBuildingClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)

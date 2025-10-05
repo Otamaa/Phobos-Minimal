@@ -2765,7 +2765,7 @@ DEFINE_PATCH(0x42C36B, 0xB7);
 // movsx eax, word ptr [eax+esi*2] -> movzx eax, word ptr [eax+esi*2]
 
 // Fix Jumpjets can not spawn missiles in air.
-DEFINE_HOOK(0x6B72FE, SpawnerManagerClass_AI_MissileCheck, 0x9)
+ASMJIT_PATCH(0x6B72FE, SpawnerManagerClass_AI_MissileCheck, 0x9)
 {
 	enum { SpawnMissile = 0x6B735C, NoSpawn = 0x6B795A };
 

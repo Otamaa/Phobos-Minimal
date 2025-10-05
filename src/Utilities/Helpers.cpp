@@ -51,7 +51,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 				const int oldleft = pSuper->RechargeTimer.TimeLeft;
 				FlyingStrings::AddMoneyString(nData.LaunchSW_DisplayMoney && pSWExt->Money_Amount != 0 ,
 					pSWExt->Money_Amount, HouseOwner,
-					nData.LaunchSW_DisplayMoney_Houses, Where, nData.LaunchSW_DisplayMoney_Offset);
+					nData.LaunchSW_DisplayMoney_Houses, Where, nData.LaunchSW_DisplayMoney_Offset, ColorStruct::Empty);
 
 				pSuper->Launch(nWhere, bIsCurrentPlayer);
 

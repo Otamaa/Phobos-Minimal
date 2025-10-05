@@ -217,5 +217,5 @@ HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)

@@ -959,10 +959,10 @@ ASMJIT_PATCH(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
 			*pDestCrd += TechnoExtData::GetFLHAbsoluteCoords(pCarrier, pCarrierTypeExt->Spawner_RecycleFLH, pCarrierTypeExt->Spawner_RecycleOnTurret) - pCarrier->GetCoords();
 
 	}else if (pThis->Destination && pThis->Destination->WhatAmI() == AbstractType::Building
-	&& !(pThis->GetCurrentMission() == Mission::Enter || pThis->QueuedMission == Mission::Enter))
+	&& pThis->SendCommand(RadioCommand::QueryCanEnter, static_cast<BuildingClass*>(pThis->Destination)) != RadioCommand::AnswerPositive)
 	{
-		GET(CoordStruct*, pDestCrd, EAX);
 		auto crd = pThis->Destination->GetCoords();
+		//crd.Snap();
 		crd.X = ((crd.X >> 8) << 8) + 128;
 		crd.Y = ((crd.Y >> 8) << 8) + 128;
 		*pDestCrd = crd;

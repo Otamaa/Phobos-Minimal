@@ -42,7 +42,7 @@ public:
 	WarheadTypeClass* ReceiveDamageWarhead;
 	std::vector<int> DockReloadTimers;
 	HouseClass* OwnerBeforeRaid;
-	CDTimerClass CashUpgradeTimers[3];
+	std::array<CDTimerClass, 3u> CashUpgradeTimers;
 	int SensorArrayActiveCounter;
 	bool SecretLab_Placed;
 	bool AboutToChronoshift;
@@ -60,7 +60,6 @@ public:
 	bool SeparateRepair;
 #pragma endregion
 
-
 	bool HasSuperWeapon(int index, bool withUpgrades) const;
 	bool RubbleYell(bool beingRepaired) const;
 
@@ -72,7 +71,8 @@ public:
 
 public:
 
-	BuildingExtData(BuildingClass* pObj) : TechnoExtData(pObj),
+	BuildingExtData(BuildingClass* pObj)
+		: TechnoExtData(pObj),
 		Type(nullptr),
 		MyPrismForwarding(nullptr),
 		DeployedTechno(false),
@@ -81,24 +81,31 @@ public:
 		CurrentAirFactory(nullptr),
 		AccumulatedIncome(0),
 		IsCreatedFromMapFile(false),
+		DamageFireAnims(),
+		AutoSellTimer(),
 		LighningNeedUpdate(false),
 		TogglePower_HasPower(true),
 		Silent(false),
+		C4Damage(),
 		C4Owner(nullptr),
 		C4Warhead(nullptr),
 		ReceiveDamageWarhead(nullptr),
+		DockReloadTimers(),
 		OwnerBeforeRaid(nullptr),
+		CashUpgradeTimers(),
 		SensorArrayActiveCounter(0),
 		SecretLab_Placed(false),
 		AboutToChronoshift(false),
 		IsFromSW(false),
 		BeignMCEd(true),
+		RegisteredJammers(),
 		GrindingWeapon_AccumulatedCredits(0),
 		LastFlameSpawnFrame(0),
 		SpyEffectAnim(nullptr),
 		SpyEffectAnimDuration(0),
 		PoweredUpToLevel(0),
 		FactoryBuildingMe(nullptr),
+		airFactoryBuilding(),
 		FreeUnitDone(false),
 		SeparateRepair(false)
 	{ }

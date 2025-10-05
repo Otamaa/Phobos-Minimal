@@ -12,7 +12,7 @@
 
 bool EngraveTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectoryType::Load(Stm, RegisterForChange);
+	return this->PhobosTrajectoryType::Load(Stm, RegisterForChange) &&
 
 	Stm
 		.Process(this->SourceCoord)
@@ -31,12 +31,11 @@ bool EngraveTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange
 		.Process(this->Duration)
 		;
 
-	return true;
 }
 
 bool EngraveTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectoryType::Save(Stm);
+	return this->PhobosTrajectoryType::Save(Stm) &&
 
 	Stm
 		.Process(this->SourceCoord)
@@ -54,8 +53,6 @@ bool EngraveTrajectoryType::Save(PhobosStreamWriter& Stm) const
 		.Process(this->DamageDelay)
 		.Process(this->Duration)
 		;
-
-	return true;
 }
 
 bool EngraveTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
@@ -89,16 +86,15 @@ bool EngraveTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool EngraveTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectory::Load(Stm, false);
+	return this->PhobosTrajectory::Load(Stm, false) &&
 	this->Serialize(Stm);
 	return true;
 }
 
 bool EngraveTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectory::Save(Stm);
+	return this->PhobosTrajectory::Save(Stm) &&
 	const_cast<EngraveTrajectory*>(this)->Serialize(Stm);
-	return true;
 }
 
 void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)

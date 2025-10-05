@@ -38,6 +38,9 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region classMembers;
+
 	Valueable<Point3D> Pips_Shield { { -1, -1, -1 } };
 	Valueable<Point3D> Pips_Shield_Buildings { { -1, -1, -1 } };
 	Valueable<int> RadApplicationDelay_Building { 0 };
@@ -549,6 +552,10 @@ public:
 	Valueable<bool> InfantryAutoDeploy { false };
 
 	Valueable<bool> EnablePassiveAcquireMode { false };
+	Valueable<bool> UseRetintFix { true };
+	Valueable<bool> AISellCapturedBuilding { true };
+
+#pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);

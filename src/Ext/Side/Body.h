@@ -94,12 +94,16 @@ public:
 
 public:
 	SideExtData(SideClass* pObj) : AbstractTypeExtData(pObj),
+
 		ArrayIndex(-1),
+		Sidebar_GDIPositions(),
 		IngameScore_WinTheme(-2),
 		IngameScore_LoseTheme(-2),
+
 		Sidebar_HarvesterCounter_Offset({ 0, 0 }),
 		Sidebar_HarvesterCounter_Yellow(Drawing::DefaultColors[(int)DefaultColorList::Yellow]),
 		Sidebar_HarvesterCounter_Red(Drawing::DefaultColors[(int)DefaultColorList::Red]),
+
 		Sidebar_ProducingProgress_Offset({ 0, 0 }),
 		Sidebar_PowerDelta_Offset({ 0, 0 }),
 		Sidebar_PowerDelta_Green(Drawing::DefaultColors[(int)DefaultColorList::Green]),
@@ -107,22 +111,69 @@ public:
 		Sidebar_PowerDelta_Yellow(Drawing::DefaultColors[(int)DefaultColorList::Yellow]),
 		Sidebar_PowerDelta_Red(Drawing::DefaultColors[(int)DefaultColorList::Red]),
 		Sidebar_PowerDelta_Align(TextAlign::Left),
+
 		Sidebar_WeedsCounter_Offset({ 0, 0 }),
+		Sidebar_WeedsCounter_Color(),
+		ToolTip_Background_Color(),
+		ToolTip_Background_Opacity(),
+		ToolTip_Background_BlurSize(),
+		GClock_Shape(),
+		GClock_Transculency(),
+		SurvivorDivisor(),
+		Crew(),
+		Engineer(),
+		Technician(),
+
 		ParaDropPlane(-1),
 		SpyPlane(nullptr),
 		HunterSeeker(nullptr),
+		ParaDropTypes(),
+		ParaDropNum(),
+
 		MessageTextColorIndex(-1),
+		ParachuteAnim(nullptr),
 		EVAIndex(-1),
 		BriefingTheme(-1),
+
+		BaseDefenses(),
+		BaseDefenseCounts(),
+		Disguise(),
+
 		SidebarYuriFileNames(false),
 		ToolTipTextColor(ColorStruct()),
+
+		ScoreMultiplayBackground(),
+		ScoreMultiplayPalette(),
+		ScoreMultiplayBars(),
+		ScoreCampaignBackground(),
+		ScoreCampaignTransition(),
+		ScoreCampaignAnimation(),
+		ScoreCampaignPalette(),
+		GraphicalTextImage(),
+		GraphicalTextPalette(),
+		DialogBackgroundImage(),
+		DialogBackgroundPalette(),
+		ScoreCampaignThemeUnderPar(),
+		ScoreCampaignThemeOverPar(),
+		ScoreMultiplayThemeWin(),
+		ScoreMultiplayThemeLose(),
+
 		SidebarMixFileIndex(-1),
 		MouseShape(nullptr),
+
+		SuperWeaponSidebar_OnPCX(),
+		SuperWeaponSidebar_OffPCX(),
+		SuperWeaponSidebar_TopPCX(),
+		SuperWeaponSidebar_CenterPCX(),
+		SuperWeaponSidebar_BottomPCX(),
+
 		Sidebar_BattlePoints_Offset(Point2D()),
+		Sidebar_BattlePoints_Color(),
 		Sidebar_BattlePoints_Align(TextAlign::Left)
 	{
 		this->Initialize();
 	}
+
 	SideExtData(SideClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 
 	virtual ~SideExtData() = default;

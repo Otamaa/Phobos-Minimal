@@ -144,7 +144,7 @@ public:
 	BuildingClass* Factory_AircraftType;
 	bool AllRepairEventTriggered;
 	int LastBuildingTypeArrayIdx;
-	Nullable<bool> RepairBaseNodes[3];
+	std::array<Nullable<bool>, 3u> RepairBaseNodes;
 	int LastBuiltNavalVehicleType;
 	int ProducingNavalUnitTypeIndex;
 	std::vector<LauchData> LaunchDatas;
@@ -212,7 +212,13 @@ public:
 #pragma endregion
 
 public:
-	HouseExtData(HouseClass* pObj) : AbstractExtended(pObj),
+	HouseExtData(HouseClass* pObj)
+		: AbstractExtended(pObj),
+		Degrades(),
+		PowerPlantEnhancerBuildings(),
+		Building_BuildSpeedBonusCounter(),
+		Building_OrePurifiersCounter(),
+		BattlePointsCollectors(),
 		m_ForceOnlyTargetHouseEnemy(false),
 		ForceOnlyTargetHouseEnemyMode(-1),
 		Factory_BuildingType(nullptr),
@@ -222,27 +228,53 @@ public:
 		Factory_AircraftType(nullptr),
 		AllRepairEventTriggered(false),
 		LastBuildingTypeArrayIdx(-1),
+		RepairBaseNodes(),
 		LastBuiltNavalVehicleType(-1),
 		ProducingNavalUnitTypeIndex(-1),
+		LaunchDatas(),
 		CaptureObjectExecuted(false),
+		DiscoverEvaDelay(),
+		Tunnels(),
 		SWLastIndex(-1),
+		Batteries(),
 		AvaibleDocks(0),
+		StolenTech(),
+		RadarPersist(),
+		FactoryOwners_GatheredPlansOf(),
+		Academies(),
+		TunnelsBuildings(),
+		Reversed(),
+		OwnedCountedHarvesters(),
 		Is_NavalYardSpied(false),
 		Is_AirfieldSpied(false),
 		Is_ConstructionYardSpied(false),
 		AuxPower(0),
 		KeepAliveCount(0),
 		KeepAliveBuildingCount(0),
+		TiberiumStorage(),
+		SideTechTree(),
+		CombatAlertTimer(),
+		RestrictedFactoryPlants(),
+		AISellAllDelayTimer(),
+		OwnedDeployingUnits(),
+		Common(),
+		Combat(),
+		AISuperWeaponDelayTimer(),
 		NumAirpads_NonMFB(0),
 		NumBarracks_NonMFB(0),
 		NumWarFactories_NonMFB(0),
 		NumConYards_NonMFB(0),
 		NumShipyards_NonMFB(0),
+		SuspendedEMPulseSWs(),
 		ForceEnemyIndex(-1),
-		BattlePoints(0)
+		BattlePoints(0),
+		Productions(),
+		BestChoicesNaval()
 	{
+		// resize after initialization
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 	}
+
 	HouseExtData(HouseClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~HouseExtData() = default;

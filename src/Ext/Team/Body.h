@@ -58,6 +58,8 @@ public:
 		Countdown_RegroupAtLeader(-1),
 		MoveMissionEndMode(0),
 		WaitNoTargetCounter(0),
+		WaitNoTargetTimer(),
+		ForceJump_Countdown(),
 		ForceJump_InitialCountdown(-1),
 		ForceJump_RepeatMode(false),
 		TeamLeader(nullptr),
@@ -75,8 +77,10 @@ public:
 		AngerNodeModifier(5000),
 		OnlyTargetHouseEnemy(false),
 		OnlyTargetHouseEnemyMode(-1),
-		PreviousScript(nullptr)
+		PreviousScript(nullptr),
+		BridgeRepairHuts()
 	{ }
+
 	TeamExtData(TeamClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TeamExtData() = default;

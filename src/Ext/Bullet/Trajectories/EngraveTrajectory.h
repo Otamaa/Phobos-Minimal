@@ -89,9 +89,9 @@ private:
 	int GetFloorCoordHeight(CoordStruct Coord) const;
 
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(this->SourceCoord)
 			.Process(this->TargetCoord)
 			.Process(this->LaserTimer)

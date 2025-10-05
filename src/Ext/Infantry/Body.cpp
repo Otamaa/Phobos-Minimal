@@ -118,5 +118,5 @@ HRESULT __stdcall FakeInfantryClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB06C, FakeInfantryClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB070, FakeInfantryClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB06C, FakeInfantryClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB070, FakeInfantryClass::_Save)

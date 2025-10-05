@@ -278,5 +278,5 @@ HRESULT __stdcall FakeTerrainClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5240, FakeTerrainClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5244, FakeTerrainClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5240, FakeTerrainClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5244, FakeTerrainClass::_Save)

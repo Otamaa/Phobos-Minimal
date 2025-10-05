@@ -14,9 +14,6 @@ bool VoxelAnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	const char* pID = this->This()->ID;
 	INI_EX exINI(pINI);
 
-	if (parseFailAddr)
-		return false;
-
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
 	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
 

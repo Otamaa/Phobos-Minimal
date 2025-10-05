@@ -781,16 +781,17 @@ void Container<AnimExtData>::Clear()
 
 bool AnimExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	return Stm.Process(AnimsWithAttachedParticles);
+	auto ret = LoadGlobalArrayData(Stm);
+		ret &= Stm.Process(AnimsWithAttachedParticles);
+	return ret;
 }
 
 bool AnimExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
+	auto ret = SaveGlobalArrayData(Stm);
 
-	return Stm
-		.Process(AnimsWithAttachedParticles)
-
-		;
+	ret &= Stm.Process(AnimsWithAttachedParticles);
+		return ret;
 }
 
 // =============================
@@ -917,5 +918,5 @@ HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)

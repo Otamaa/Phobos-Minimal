@@ -22,11 +22,12 @@ public:
 #pragma endregion
 
 public:
-	WaveExtData(WaveClass* pObj) : ObjectExtData(pObj),
-		Weapon(nullptr),
-		WeaponIdx(-1),
-		ReverseAgainstTarget(false),
-		CanDoUpdate(false)
+	WaveExtData(WaveClass* pObj) : ObjectExtData(pObj)
+		, Weapon(nullptr)
+		, WeaponIdx(-1)
+		, ReverseAgainstTarget(false)
+		, SourceCoord()
+		, CanDoUpdate(false)
 	{
 		this->AbstractExtended::SetName("WaveClass");
 	}

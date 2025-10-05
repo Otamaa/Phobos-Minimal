@@ -589,3 +589,11 @@ ASMJIT_PATCH(0x44E260, BuildingClass_Mission_Unload_KickOutStuckUnits, 0x7)
 	return 0;
 }
 
+
+ASMJIT_PATCH(0x449306, BuildingClass_SetOwningHouse_Sell, 0x6)
+{
+	enum { NoSell = 0x44936E };
+	GET(FakeBuildingClass*, pThis, ESI);
+	return pThis->_GetTypeExtData()->AISellCapturedBuilding
+			.Get(RulesExtData::Instance()->AISellCapturedBuilding) ? 0 : NoSell;
+}

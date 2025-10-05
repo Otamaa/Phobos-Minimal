@@ -11,240 +11,121 @@
 #include <Unsorted.h>
 #include <Utilities/SavegameDef.h>
 
-COMPILETIMEEVAL auto EBOLT_DEFAULT_DEVIATION  = 1.0f;
-COMPILETIMEEVAL auto  EBOLT_DEFAULT_INTERATIONS = 1;
-COMPILETIMEEVAL auto EBOLT_DEFAULT_LINE_SEGEMENTS = 8;
-COMPILETIMEEVAL auto EBOLT_DEFAULT_SEGMENT_LINES = 3;
-COMPILETIMEEVAL auto EBOLT_DEFAULT_LIFETIME = 17;
-COMPILETIMEEVAL auto EBOLT_MAX_LIFETIME = 60;
+class TechnoClass;
+class WeaponTypeClass;
 
-struct BoltData
-{
-	int count;
-	std::vector<ColorStruct> ColorData;
-	std::vector<bool> Disabled;
+// Constants
+constexpr float EBOLT_DEFAULT_DEVIATION = 1.0f;
+constexpr int EBOLT_DEFAULT_ITERATIONS = 1;
+constexpr int EBOLT_DEFAULT_LINE_SEGMENTS = 8;
+constexpr int EBOLT_DEFAULT_SEGMENT_LINES = 3;
+constexpr int EBOLT_DEFAULT_LIFETIME = 17;
+constexpr int EBOLT_MAX_LIFETIME = 60;
+constexpr ColorStruct EBOLT_DEFAULT_COLOR_1 { 255, 255, 255 }; // White
+constexpr ColorStruct EBOLT_DEFAULT_COLOR_2 { 82, 81, 255 };   // Dark Blue
+constexpr ColorStruct EBOLT_DEFAULT_COLOR_3 { 82, 81, 255 };   // Dark Blue
 
-	BoltData() = default;
-	~BoltData() = default;
-
-	BoltData(int count) : count { count }
-	{
-		ColorData.resize(count);
-		Disabled.resize(count);
-	}
-
-	OPTIONALINLINE bool Load(PhobosStreamReader& stm, bool registerForChange)
-	{
-		return
-			stm
-			.Process(count , registerForChange)
-			.Process(ColorData , registerForChange)
-			.Process(Disabled, registerForChange)
-			.Success()
-			;
-	}
-
-	OPTIONALINLINE bool Save(PhobosStreamWriter& stm) const
-	{
-		return
-			stm
-			.Process(count)
-			.Process(ColorData)
-			.Process(Disabled)
-			.Success()
-			;
-	}
-
-	BoltData(const BoltData&) = default;
-	BoltData(BoltData&&) = default;
-	BoltData& operator=(const BoltData& other) = default;
-};
-
-struct LineDrawDataStruct
-{
-	CoordStruct Start;
-	CoordStruct End;
-	ColorStruct Color;
-	int StartZ;
-	int EndZ;
-
-	bool operator==(const LineDrawDataStruct& that) const { return std::memcmp(this, &that, sizeof(LineDrawDataStruct)) == 0; }
-	bool operator!=(const LineDrawDataStruct& that) const { return std::memcmp(this, &that, sizeof(LineDrawDataStruct)) != 0; }
-};
-
-COMPILETIMEEVAL ColorStruct DefaultColor[EBOLT_DEFAULT_SEGMENT_LINES] {
-	{ 255,255,255 } , { 82,81,255 } , { 82,81,255 }
-
-};
-
-class ParticleSystemTypeClass;
-class ElectricBoltClass
+class EBoltClass
 {
 public:
-	ElectricBoltClass() :
-		StartCoord {},
-		EndCoord {},
-		ZAdjust {0},
-		Deviation { EBOLT_DEFAULT_DEVIATION },
-		Lifetime { EBOLT_DEFAULT_LIFETIME },
-		IterationCount { EBOLT_DEFAULT_INTERATIONS },
-		LineSegmentCount { EBOLT_DEFAULT_LINE_SEGEMENTS },
-		LineDrawList {},
-		DrawFrame {-1},
-		Random { 0 },
-		Data {}
+	// Data structures
+	struct LineDrawData
 	{
-		Data.count = EBOLT_DEFAULT_SEGMENT_LINES;
-		for (int i = 0; i < EBOLT_DEFAULT_SEGMENT_LINES; ++i)
-			Data.ColorData.push_back(DefaultColor[i]);
-	}
+		CoordStruct start {};
+		CoordStruct end {};
+		ColorStruct color {};
+		int start_z { 0 };
+		int end_z { 0 };
 
-	ElectricBoltClass(CoordStruct const& start, CoordStruct const& end, const BoltData& nData , int z_adjust) :
-		StartCoord { start },
-		EndCoord { end },
-		ZAdjust { z_adjust },
-		Deviation { EBOLT_DEFAULT_DEVIATION },
-		Lifetime { EBOLT_DEFAULT_LIFETIME },
-		IterationCount { EBOLT_DEFAULT_INTERATIONS },
-		LineSegmentCount { EBOLT_DEFAULT_LINE_SEGEMENTS },
-		LineDrawList {},
-		DrawFrame { -1 },
-		Random { 0 },
-		Data { nData }
-	{ }
+		auto operator<=>(const LineDrawData&) const = default;
+		bool operator==(const LineDrawData&) const = default;
+	};
 
-	ElectricBoltClass
-		(CoordStruct const& start,
-		 CoordStruct const& end,
-		 ColorStruct const& col1,
-		 ColorStruct const& col2,
-		 ColorStruct const& col3,
-		 bool col1_disable,
-		 bool col2_disable,
-		 bool col3_disable,
-		 int z_adjust
-		) :
-		StartCoord { start },
-		EndCoord { end },
-		ZAdjust { z_adjust },
-		Deviation { EBOLT_DEFAULT_DEVIATION },
-		Lifetime { EBOLT_DEFAULT_LIFETIME },
-		IterationCount { EBOLT_DEFAULT_INTERATIONS },
-		LineSegmentCount { EBOLT_DEFAULT_LINE_SEGEMENTS },
-		LineDrawList {},
-		DrawFrame { -1 },
-		Random { 0 },
-		Data {}
+	struct EBoltPlotData
 	{
-		Data.count = EBOLT_DEFAULT_SEGMENT_LINES;
-		Data.ColorData.resize(EBOLT_DEFAULT_SEGMENT_LINES);
-		Data.Disabled.resize(EBOLT_DEFAULT_SEGMENT_LINES);
-		Data.ColorData[0] = col1;
-		Data.ColorData[1] = col2;
-		Data.ColorData[2] = col3;
-		Data.Disabled[0] = col1_disable;
-		Data.Disabled[1] = col2_disable;
-		Data.Disabled[2] = col3_disable;
-	}
+		std::array<CoordStruct, EBOLT_DEFAULT_SEGMENT_LINES> start_coords {};
+		std::array<CoordStruct, EBOLT_DEFAULT_SEGMENT_LINES> end_coords {};
+		int distance { 0 };
+		int deviation { 0 };
+		int start_z { 0 };
+		int end_z { 0 };
 
-	void Draw_It();
-	static void Create(CoordStruct const& start, CoordStruct const& end,
-		ColorStruct const& col1, ColorStruct const& col2, ColorStruct const& col3,
-		bool col1_disable = false,  bool col2_disable = false, bool col3_disable = false,
-		int z_adjust = 0, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
-	static void Create(CoordStruct const& start, CoordStruct const& end, const BoltData& nData, int z_adjust, ParticleSystemTypeClass* pSys = nullptr, bool particleSysCoordFlip = false);
+		auto operator<=>(const EBoltPlotData&) const = default;
+		bool operator==(const EBoltPlotData&) const = default;
+	};
 
-	void COMPILETIMEEVAL FORCEDINLINE Flag_To_Delete() { Lifetime = 0; }
+public:
+	EBoltClass();
+	~EBoltClass();
 
-	static OPTIONALINLINE auto Distance(const CoordStruct& coord1, const CoordStruct& coord2)
-	{
-		 CoordStruct coord = coord1 - coord2;
-		 return int(Math::sqrt(
-			 static_cast<double>(coord.X) * static_cast<double>(coord.X) +
-			 static_cast<double>(coord.Y) * static_cast<double>(coord.Y) +
-			 static_cast<double>(coord.Z) * static_cast<double>(coord.Z)
-		 ));
-	}
+	// Core functionality
+	void draw();
+	void create(const CoordStruct& start, const CoordStruct& end, int z_adjust);
+	void flag_to_delete() noexcept { lifetime_ = 0; }
 
-	static COMPILETIMEEVAL FORCEDINLINE int Sim_Random_Pick(int a, int b) {
-		return Random2Class::NonCriticalRandomNumber()(a, b);
-	}
+	// Property access
+	[[nodiscard]] CoordStruct source_coord() const;
+	[[nodiscard]] bool is_expired() const noexcept { return lifetime_ <= 0; }
+	[[nodiscard]] bool has_source() const noexcept { return source_ != nullptr; }
 
-	ElectricBoltClass(const ElectricBoltClass& other) = default;
-	ElectricBoltClass& operator=(const ElectricBoltClass& other) = default;
+	// Configuration
+	void set_properties(TechnoClass* techno, const WeaponTypeClass* weapon, WeaponSlotType slot);
+
+	// Simple Save/Load - only 4 functions
+	HRESULT Save(LPSTREAM stream) const;
+	HRESULT Load(LPSTREAM stream);
+	static HRESULT Save_Array(LPSTREAM stream);
+	static HRESULT Load_Array(LPSTREAM stream);
+
+	// Static management functions
+	static void draw_all();
+	static void clear_all();
+	static size_t active_count() noexcept;
 
 private:
-	void COMPILETIMEEVAL FORCEDINLINE Clear() {
-		LineDrawList.clear();
-	}
+	void clear();
+	void add_plot_line(const CoordStruct& start, const CoordStruct& end, const ColorStruct& line_color,
+					  int start_z, int end_z);
+	void plot_bolt(const CoordStruct& start, const CoordStruct& end);
+	void draw_bolts();
+	void update_lifetime() noexcept { --lifetime_; }
+	bool should_draw_this_frame() const noexcept { return draw_frame_ == Unsorted::CurrentFrame; }
+	void update_source_coord();
 
-	void COMPILETIMEEVAL FORCEDINLINE Add_Plot_Line(CoordStruct& start, CoordStruct& end, ColorStruct& line_color, int start_z, int end_z) {
-		LineDrawList.emplace_back(start, end, line_color, start_z, end_z);
-	}
+	// Stream I/O helpers
+	static HRESULT write_to_stream(LPSTREAM stream, const void* data, ULONG size);
+	static HRESULT read_from_stream(LPSTREAM stream, void* data, ULONG size);
 
-	void Plot_Bolt(CoordStruct& start, CoordStruct& end);
-	void Draw_Bolts();
+	// Serialization version for compatibility
+	static constexpr uint32_t SERIALIZATION_VERSION = 1;
 
-public:
+private:
+	// Core state (all directly serializable)
+	CoordStruct start_coord_ {};
+	CoordStruct end_coord_ {};
+	int z_adjust_ { 0 };
+	float deviation_ { EBOLT_DEFAULT_DEVIATION };
+	int lifetime_ { EBOLT_DEFAULT_LIFETIME };
+	int iteration_count_ { EBOLT_DEFAULT_ITERATIONS };
+	ColorStruct line_color1_ { EBOLT_DEFAULT_COLOR_1 };
+	ColorStruct line_color2_ { EBOLT_DEFAULT_COLOR_2 };
+	ColorStruct line_color3_ { EBOLT_DEFAULT_COLOR_3 };
+	int line_segment_count_ { EBOLT_DEFAULT_LINE_SEGMENTS };
+	int draw_frame_ { -1 };
+	int weapon_slot_ { 0 };
 
-	/**
-	 *  The start coordinate for this electric bolt.
-	 */
-	CoordStruct StartCoord;
+	// Runtime state (not serialized)
+	TechnoClass* source_ { nullptr };  // Raw pointer for game engine compatibility
+	const WeaponTypeClass* weapon_ { nullptr };
+	std::vector<LineDrawData> line_draw_list_;
 
-	/**
-	 *  The end coordinate for this electric bolt.
-	 */
-	CoordStruct EndCoord;
-
-	/**
-	 *  The initial z draw adjustment value.
-	 */
-	int ZAdjust;
-
-	/**
-	 *  The deviation distance. The higher this value is, the more "wild"
-	 *  in variation the bolts will appear.
-	 */
-	float Deviation;
-
-	/**
-	 *  The lifetime that this electric bolt should stay around for.
-	 */
-	int Lifetime;
-
-	/**
-	 *  How many plot and draw iterations should we perform?
-	 */
-	int IterationCount;
-
-	/**
-	 *  How many segment blocks this electric bolt is made up from.
-	 */
-	int LineSegmentCount;
-
-	/**
-	 *  The list of pending lines to draw.
-	 */
-
-	std::vector<LineDrawDataStruct> LineDrawList;
-
-	/**
-	 *  The frame in which we should draw on. This helps clamp the drawing
-	 *  to the games internal frame tick.
-	 */
-	int DrawFrame;
-
-	int Random;
-
-	BoltData Data;
+	// Static management
+	static std::vector<std::unique_ptr<EBoltClass>> active_bolts_;
+	static void register_bolt(std::unique_ptr<EBoltClass> bolt);
+	static void cleanup_expired_bolts();
 };
 
-struct ElectricBoltManager
-{
-	static std::vector<ElectricBoltClass> ElectricBoltArray;
-
-	static void Draw_All();
-	static void Clear();
-};
+// Factory functions for better memory management
+[[nodiscard]] std::unique_ptr<EBoltClass> create_ebolt();
+[[nodiscard]] EBoltClass* create_ebolt_raw(); // Returns raw pointer for C-style APIs
 #endif

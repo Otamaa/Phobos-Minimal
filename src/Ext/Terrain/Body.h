@@ -27,10 +27,11 @@ public:
 #pragma endregion
 
 public:
-	TerrainExtData(TerrainClass* pObj) : ObjectExtData(pObj),
-		LighSource(nullptr),
-		AttachedAnim(nullptr),
-		AttachedFireAnim(nullptr)
+	TerrainExtData(TerrainClass* pObj) : ObjectExtData(pObj)
+		, LighSource(nullptr)
+		, AttachedAnim(nullptr)
+		, AttachedFireAnim(nullptr)
+		, Adjencentcells()
 	{ }
 	TerrainExtData(TerrainClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

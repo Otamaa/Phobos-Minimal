@@ -188,6 +188,7 @@ public:
 		static bool DigitalDisplay_Enable;
 		static bool MessageDisplayInCenter;
 		static bool MessageApplyHoverState;
+		static int MessageDisplayInCenter_BoardOpacity;
 		static int MessageDisplayInCenter_LabelsCount;
 		static int MessageDisplayInCenter_RecordsCount;
 

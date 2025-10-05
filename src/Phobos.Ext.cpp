@@ -471,6 +471,8 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(StaticVars);
 
 	version += sizeof(BannerClass);
+	version += sizeof(FlyingStrings);
+	version += sizeof(FlyingStrings::ItemSize);
 	//version += sizeof(AttachmentClass);
 
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
@@ -652,6 +654,10 @@ bool PhobosExt::LoadGlobal(LPSTREAM pStm)
 	if (!succeeded)
 		return false;
 
+	succeeded = Process_Load<FlyingStrings>(reader);
+	if (!succeeded)
+		return false;
+
 	return reader.ExpectEndOfBlock();
 }
 
@@ -740,6 +746,10 @@ bool PhobosExt::SaveGlobal(LPSTREAM pStm)
 		return false;
 
 	succeeded = Process_Save<BannerClass>(writer);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Save<FlyingStrings>(writer);
 	if (!succeeded)
 		return false;
 

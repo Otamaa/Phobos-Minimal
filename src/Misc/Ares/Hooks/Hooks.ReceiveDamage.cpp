@@ -271,7 +271,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 					if (pAttackerHoue && pAttackerHoue->CanTransactMoney(nBounty))
 					{
 						pAttackerHoue->TransactMoney(nBounty);
-						FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords);
+						FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords, Point2D::Empty, ColorStruct::Empty);
 					}
 				}
 
@@ -1394,13 +1394,6 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 	auto pShape = pThis->GetShapeNumber();
 	auto foundation = pThis->GetFoundationData();
 
-	if (pThis->Owner && !pWHExt->Nonprovocative && Attacker && Attacker->IsAlive && !pThis->IsStrange())
-	{
-		pThis->Owner->LAEnemy = Attacker->Owner->ArrayIndex;
-		pThis->Owner->LATime = Unsorted::CurrentFrame;
-		pThis->BaseIsAttacked(Attacker);
-	}
-
 	StackVector<TechnoClass*, 0xAu> CachedRadio { };
 
 	for (auto i = 0; i < pThis->RadioLinks.Capacity; i++)
@@ -1623,6 +1616,13 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 		{
 			if (!pWHExt->Nonprovocative && Attacker)
 			{
+				if (pThis->Owner && Attacker->IsAlive && !pThis->IsStrange())
+				{
+					pThis->Owner->LAEnemy = Attacker->Owner->ArrayIndex;
+					pThis->Owner->LATime = Unsorted::CurrentFrame;
+					pThis->BaseIsAttacked(Attacker);
+				}
+
 				if (!pThis->Type->Insignificant && !pThis->IsStrange())
 				{
 					pBldExt->ReceiveDamageWarhead = WH;

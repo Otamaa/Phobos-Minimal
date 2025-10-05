@@ -62,10 +62,10 @@ namespace detail
 			}
 
 			//PARSE(Attachment)
-			PARSE(Levitate)
+			//PARSE(Levitate)
 			PARSE(AdvancedDrive)
-			PARSE(CustomRocket)
-			PARSE(TSJumpJet)
+			//PARSE(CustomRocket)
+			//PARSE(TSJumpJet)
 
 			//AddMore loco here
 			return false;

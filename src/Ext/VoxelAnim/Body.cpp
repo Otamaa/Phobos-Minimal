@@ -147,5 +147,5 @@ HRESULT __stdcall FakeVoxelAnimClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)

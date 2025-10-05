@@ -17,7 +17,6 @@
   #include <x86intrin.h>
 #endif
 
-
 ASMJIT_BEGIN_NAMESPACE
 
 // Support - Define Core Macros
@@ -35,6 +34,24 @@ ASMJIT_BEGIN_NAMESPACE
 //! here is considered internal and should not be used outside of AsmJit and related projects like AsmTK.
 namespace Support {
 
+// Support - Byte Order
+// ====================
+
+//! Byte order.
+enum class ByteOrder {
+  //! Little endian.
+  kLE = 0,
+  //! Big endian.
+  kBE = 1,
+
+  //! Native byte order of the target architecture.
+#if defined(__ARMEB__) || defined(__MIPSEB__) || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
+  kNative = kBE
+#else
+  kNative = kLE
+#endif
+};
+
 // Support - Standard Types
 // ========================
 
@@ -47,6 +64,7 @@ namespace Support {
 template<size_t Size, bool IsUnsigned>
 struct std_int; // Fail if not specialized.
 
+//! \cond
 template<> struct std_int<1, false> { using type = int8_t;   };
 template<> struct std_int<1, true > { using type = uint8_t;  };
 template<> struct std_int<2, false> { using type = int16_t;  };
@@ -55,6 +73,7 @@ template<> struct std_int<4, false> { using type = int32_t;  };
 template<> struct std_int<4, true > { using type = uint32_t; };
 template<> struct std_int<8, false> { using type = int64_t;  };
 template<> struct std_int<8, true > { using type = uint64_t; };
+//! \endcond
 
 //! std_int_t is a shortcut to `std_int<Size, IsUnsigned>::type`.
 template<size_t Size, bool IsUnsigned>
@@ -71,17 +90,24 @@ using std_uint_t = typename std_int<Size, true>::type;
 //! Storage used to store bits in a single word as a standard type as defined by <stdint.h>.
 using BitWord = std_uint_t<sizeof(uintptr_t)>;
 
-#if ASMJIT_ARCH_X86
+#if defined(__x86_64__) || defined(_M_X64) || defined(_M_IX86) || defined(__X86__) || defined(__i386__)
 using FastUInt8 = uint8_t;
 #else
 using FastUInt8 = uint32_t;
 #endif
 
+// Support - Maybe Unused
+// ======================
+
+//! Silences warnings about unused arguments or variables - more variables can be passed to `maybe_unused()` at once.
+template<typename... Args>
+static SUPPORT_INLINE_NODEBUG void maybe_unused(Args&&...) noexcept {}
+
 // Support - Min & Max
 // ===================
 
 // NOTE: These are constexpr `min()` and `max()` implementations that are not exactly the same as `std::min()`
-// and `std::max()`. The return value is not a reference to `a` or `b` but it's a new value instead.
+// and `std::max()`. The return value is not a reference to `a` or `b` but a new value instead.
 
 template<typename T>
 [[nodiscard]]
@@ -449,7 +475,7 @@ template<>
 [[nodiscard]]
 SUPPORT_INLINE_NODEBUG uint32_t ctz_impl(const uint32_t& x) noexcept { unsigned long i; _BitScanForward(&i, x); return uint32_t(i); }
 
-#if ASMJIT_ARCH_X86 == 64 || ASMJIT_ARCH_ARM == 64
+#if defined(_M_X64) || defined(_M_ARM64)
 template<>
 [[nodiscard]]
 SUPPORT_INLINE_NODEBUG uint32_t clz_impl(const uint64_t& x) noexcept { unsigned long i; _BitScanReverse64(&i, x); return uint32_t(i ^ 63); }
@@ -623,7 +649,7 @@ SUPPORT_INLINE constexpr T msb_mask(const N& n) noexcept {
     return T(bit_ones<uintptr_t> >> (bit_size_of<uintptr_t> - n));
   }
   else {
-    // Prevent undefined behavior by performing `n & (nBits - 1)` so it's always within the range.
+    // Prevent undefined behavior by performing `n & (num_bits - 1)` so it's always within the range.
     return T(sar(U(n != 0) << (bit_size_of<U> - 1), n ? uint32_t(n - 1) : uint32_t(0)));
   }
 }
@@ -631,12 +657,12 @@ SUPPORT_INLINE constexpr T msb_mask(const N& n) noexcept {
 //! Returns a bit-mask that has `x` bit set.
 template<typename T, typename Index>
 [[nodiscard]]
-SUPPORT_INLINE constexpr T bitMask(const Index& idx) noexcept { return (1u << as_basic_uint(idx)); }
+SUPPORT_INLINE constexpr T bit_mask(const Index& idx) noexcept { return (1u << as_basic_uint(idx)); }
 
 //! Returns a bit-mask that has `x` bit set (multiple arguments).
 template<typename T, typename Index, typename... Args>
 [[nodiscard]]
-SUPPORT_INLINE constexpr T bitMask(const Index& idx, Args... args) noexcept { return bitMask<T>(idx) | bitMask<T>(args...); }
+SUPPORT_INLINE constexpr T bit_mask(const Index& idx, Args... args) noexcept { return bit_mask<T>(idx) | bit_mask<T>(args...); }
 
 // Fills all trailing bits right of the given `value` from the first most significant bit set.
 template<typename T>
@@ -1156,15 +1182,15 @@ SUPPORT_INLINE_NODEBUG void storeu_u64_be(void* p, uint64_t x) noexcept { storeu
 // =============================
 
 [[nodiscard]]
-static bool SUPPORT_INLINE_NODEBUG is_encodable_offset_32(int32_t offset, uint32_t nBits) noexcept {
-  uint32_t nRev = 32 - nBits;
-  return sar(shl(offset, nRev), nRev) == offset;
+static bool SUPPORT_INLINE_NODEBUG is_encodable_offset_32(int32_t offset, uint32_t num_bits) noexcept {
+  uint32_t n_rev = 32 - num_bits;
+  return sar(shl(offset, n_rev), n_rev) == offset;
 }
 
 [[nodiscard]]
-static bool SUPPORT_INLINE_NODEBUG is_encodable_offset_64(int64_t offset, uint32_t nBits) noexcept {
-  uint32_t nRev = 64 - nBits;
-  return sar(shl(offset, nRev), nRev) == offset;
+static bool SUPPORT_INLINE_NODEBUG is_encodable_offset_64(int64_t offset, uint32_t num_bits) noexcept {
+  uint32_t n_rev = 64 - num_bits;
+  return sar(shl(offset, n_rev), n_rev) == offset;
 }
 
 // Support - BytePack & Unpack
@@ -1173,21 +1199,22 @@ static bool SUPPORT_INLINE_NODEBUG is_encodable_offset_64(int64_t offset, uint32
 //! Pack four 8-bit integer into a 32-bit integer as it is an array of `{b0,b1,b2,b3}`.
 [[nodiscard]]
 static SUPPORT_INLINE constexpr uint32_t bytepack32_4x8(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept {
-  return ASMJIT_ARCH_LE ? (a | (b << 8) | (c << 16) | (d << 24))
-                        : (d | (c << 8) | (b << 16) | (a << 24));
+  return (ByteOrder::kNative == ByteOrder::kLE)
+    ? (a | (b << 8) | (c << 16) | (d << 24))
+    : (d | (c << 8) | (b << 16) | (a << 24));
 }
 
 template<typename T>
 [[nodiscard]]
-static SUPPORT_INLINE constexpr uint32_t unpack_u32_at_0(T x) noexcept { return ASMJIT_ARCH_LE ? uint32_t(uint64_t(x) & 0xFFFFFFFFu) : uint32_t(uint64_t(x) >> 32); }
+static SUPPORT_INLINE constexpr uint32_t unpack_u32_at_0(T x) noexcept { return (ByteOrder::kNative == ByteOrder::kLE) ? uint32_t(uint64_t(x) & 0xFFFFFFFFu) : uint32_t(uint64_t(x) >> 32); }
 
 template<typename T>
 [[nodiscard]]
-static SUPPORT_INLINE constexpr uint32_t unpack_u32_at_1(T x) noexcept { return ASMJIT_ARCH_BE ? uint32_t(uint64_t(x) & 0xFFFFFFFFu) : uint32_t(uint64_t(x) >> 32); }
+static SUPPORT_INLINE constexpr uint32_t unpack_u32_at_1(T x) noexcept { return (ByteOrder::kNative == ByteOrder::kBE) ? uint32_t(uint64_t(x) & 0xFFFFFFFFu) : uint32_t(uint64_t(x) >> 32); }
 
 [[nodiscard]]
 static SUPPORT_INLINE_NODEBUG uint32_t byte_shift_in_struct(uint32_t index) noexcept {
-  return ASMJIT_ARCH_LE ? index * 8 : (uint32_t(sizeof(uint32_t)) - 1u - index) * 8;
+  return (ByteOrder::kNative == ByteOrder::kLE) ? index * 8 : (uint32_t(sizeof(uint32_t)) - 1u - index) * 8;
 }
 
 // Support - Enumerate
@@ -1206,6 +1233,7 @@ struct Enumerate {
 
     [[nodiscard]]
     SUPPORT_INLINE_NODEBUG T operator*() const { return T(value); }
+
     SUPPORT_INLINE_NODEBUG void operator++() { value = UnderlyingType(value + UnderlyingType(1)); }
 
     [[nodiscard]]
@@ -1254,9 +1282,9 @@ template<typename T>
 static SUPPORT_INLINE constexpr T ascii_to_upper(T c) noexcept { return T(c ^ T(T(c >= T('a') && c <= T('z')) << 5)); }
 
 [[nodiscard]]
-static SUPPORT_INLINE_NODEBUG size_t strLen(const char* s, size_t maxSize) noexcept {
+static SUPPORT_INLINE_NODEBUG size_t str_nlen(const char* s, size_t max_size) noexcept {
   size_t i = 0;
-  while (i < maxSize && s[i] != '\0')
+  while (i < max_size && s[i] != '\0')
     i++;
   return i;
 }
@@ -1292,42 +1320,17 @@ static SUPPORT_INLINE_NODEBUG const char* find_packed_string(const char* p, uint
 
 //! Compares two string views.
 [[nodiscard]]
-static SUPPORT_INLINE int compare_string_views(const char* aData, size_t aSize, const char* bData, size_t bSize) noexcept {
-  size_t size = min(aSize, bSize);
+static SUPPORT_INLINE int compare_string_views(const char* a_data, size_t a_size, const char* b_data, size_t b_size) noexcept {
+  size_t size = min(a_size, b_size);
 
   for (size_t i = 0; i < size; i++) {
-    int c = int(uint8_t(aData[i])) - int(uint8_t(bData[i]));
+    int c = int(uint8_t(a_data[i])) - int(uint8_t(b_data[i]));
     if (c != 0)
       return c;
   }
 
-  return int(aSize) - int(bSize);
+  return int(a_size) - int(b_size);
 }
-
-// Support - Immediate Helpers
-// ===========================
-
-namespace Internal {
-  template<typename T, bool IsFloat>
-  struct ImmConv {
-    static SUPPORT_INLINE_NODEBUG int64_t fromT(const T& x) noexcept { return int64_t(x); }
-    static SUPPORT_INLINE_NODEBUG T toT(int64_t x) noexcept { return T(uint64_t(x) & bit_ones<std::make_unsigned_t<T>>); }
-  };
-
-  template<typename T>
-  struct ImmConv<T, true> {
-    static SUPPORT_INLINE_NODEBUG int64_t fromT(const T& x) noexcept { return int64_t(bit_cast<int64_t>(double(x))); }
-    static SUPPORT_INLINE_NODEBUG T toT(int64_t x) noexcept { return T(bit_cast<double>(x)); }
-  };
-}
-
-template<typename T>
-[[nodiscard]]
-static SUPPORT_INLINE_NODEBUG int64_t immediateFromT(const T& x) noexcept { return Internal::ImmConv<T, std::is_floating_point_v<T>>::fromT(x); }
-
-template<typename T>
-[[nodiscard]]
-static SUPPORT_INLINE_NODEBUG T immediateToT(int64_t x) noexcept { return Internal::ImmConv<T, std::is_floating_point_v<T>>::toT(x); }
 
 // Support - Vector Helpers
 // ========================
@@ -1367,8 +1370,8 @@ static SUPPORT_INLINE_NODEBUG size_t item_count_from_byte_size(size_t byte_size,
 // ===================
 
 //! \cond INTERNAL
-struct Set    { template<typename T> static SUPPORT_INLINE_NODEBUG T op(T x, T y) noexcept { DebugUtils::unused(x); return  y; } };
-struct SetNot { template<typename T> static SUPPORT_INLINE_NODEBUG T op(T x, T y) noexcept { DebugUtils::unused(x); return ~y; } };
+struct Set    { template<typename T> static SUPPORT_INLINE_NODEBUG T op(T x, T y) noexcept { Support::maybe_unused(x); return  y; } };
+struct SetNot { template<typename T> static SUPPORT_INLINE_NODEBUG T op(T x, T y) noexcept { Support::maybe_unused(x); return ~y; } };
 struct And    { template<typename T> static SUPPORT_INLINE_NODEBUG T op(T x, T y) noexcept { return  x &  y; } };
 struct AndNot { template<typename T> static SUPPORT_INLINE_NODEBUG T op(T x, T y) noexcept { return  x & ~y; } };
 struct NotAnd { template<typename T> static SUPPORT_INLINE_NODEBUG T op(T x, T y) noexcept { return ~x &  y; } };
@@ -1393,34 +1396,34 @@ struct Or {
 //! Example of use:
 //!
 //! ```
-//! uint32_t bitsToIterate = 0x110F;
-//! Support::BitWordIterator<uint32_t> it(bitsToIterate);
+//! uint32_t bits_to_iterate = 0x110F;
+//! Support::BitWordIterator<uint32_t> it(bits_to_iterate);
 //!
-//! while (it.hasNext()) {
-//!   uint32_t bitIndex = it.next();
-//!   std::printf("Bit at %u is set\n", unsigned(bitIndex));
+//! while (it.has_next()) {
+//!   uint32_t bit_index = it.next();
+//!   std::printf("Bit at %u is set\n", unsigned(bit_index));
 //! }
 //! ```
 template<typename T>
 class BitWordIterator {
 public:
-  SUPPORT_INLINE_NODEBUG explicit BitWordIterator(T bitWord) noexcept
-    : _bitWord(bitWord) {}
+  SUPPORT_INLINE_NODEBUG explicit BitWordIterator(T bit_word) noexcept
+    : _bit_word(bit_word) {}
 
-  SUPPORT_INLINE_NODEBUG void init(T bitWord) noexcept { _bitWord = bitWord; }
+  SUPPORT_INLINE_NODEBUG void init(T bit_word) noexcept { _bit_word = bit_word; }
 
   [[nodiscard]]
-  SUPPORT_INLINE_NODEBUG bool hasNext() const noexcept { return _bitWord != 0; }
+  SUPPORT_INLINE_NODEBUG bool has_next() const noexcept { return _bit_word != 0; }
 
   [[nodiscard]]
   SUPPORT_INLINE uint32_t next() noexcept {
-    SUPPORT_ASSERT(_bitWord != 0);
-    uint32_t index = ctz(_bitWord);
-    _bitWord &= T(_bitWord - 1);
+    SUPPORT_ASSERT(_bit_word != 0);
+    uint32_t index = ctz(_bit_word);
+    _bit_word &= T(_bit_word - 1);
     return index;
   }
 
-  T _bitWord;
+  T _bit_word;
 };
 
 // Support - BitVectorOps
@@ -1429,35 +1432,34 @@ public:
 //! \cond
 namespace Internal {
   template<typename T, class OperatorT, class FullWordOpT>
-  static SUPPORT_INLINE void bitVectorOp(T* buf, size_t index, size_t count) noexcept {
+  static SUPPORT_INLINE void bit_vector_op(T* buf, size_t index, size_t count) noexcept {
     if (count == 0) {
       return;
     }
 
-    const size_t kTSizeInBits = bit_size_of<T>;
-    size_t vecIndex = index / kTSizeInBits; // T[]
-    size_t bitIndex = index % kTSizeInBits; // T[][]
+    size_t word_index = index / bit_size_of<T>; // T[]
+    size_t bit_index = index % bit_size_of<T>; // T[][]
 
-    buf += vecIndex;
+    buf += word_index;
 
     // The first BitWord requires special handling to preserve bits outside the fill region.
-    const T kFillMask = bit_ones<T>;
-    size_t firstNBits = min<size_t>(kTSizeInBits - bitIndex, count);
+    constexpr T fill_mask = bit_ones<T>;
+    size_t first_n_bits = min<size_t>(bit_size_of<T> - bit_index, count);
 
-    buf[0] = OperatorT::op(buf[0], (kFillMask >> (kTSizeInBits - firstNBits)) << bitIndex);
+    buf[0] = OperatorT::op(buf[0], (fill_mask >> (bit_size_of<T> - first_n_bits)) << bit_index);
     buf++;
-    count -= firstNBits;
+    count -= first_n_bits;
 
     // All bits between the first and last affected BitWords can be just filled.
-    while (count >= kTSizeInBits) {
-      buf[0] = FullWordOpT::op(buf[0], kFillMask);
+    while (count >= bit_size_of<T>) {
+      buf[0] = FullWordOpT::op(buf[0], fill_mask);
       buf++;
-      count -= kTSizeInBits;
+      count -= bit_size_of<T>;
     }
 
     // The last BitWord requires special handling as well
     if (count) {
-      buf[0] = OperatorT::op(buf[0], kFillMask >> (kTSizeInBits - count));
+      buf[0] = OperatorT::op(buf[0], fill_mask >> (bit_size_of<T> - count));
     }
   }
 }
@@ -1465,80 +1467,71 @@ namespace Internal {
 
 //! Sets bit in a bit-vector `buf` at `index`.
 template<typename T>
-static SUPPORT_INLINE_NODEBUG bool bitVectorGetBit(T* buf, size_t index) noexcept {
-  const size_t kTSizeInBits = bit_size_of<T>;
+static SUPPORT_INLINE_NODEBUG bool bit_vector_get_bit(T* buf, size_t index) noexcept {
+  size_t word_index = index / bit_size_of<T>;
+  size_t bit_index = index % bit_size_of<T>;
 
-  size_t vecIndex = index / kTSizeInBits;
-  size_t bitIndex = index % kTSizeInBits;
-
-  return bool((buf[vecIndex] >> bitIndex) & 0x1u);
+  return bool((buf[word_index] >> bit_index) & 0x1u);
 }
 
 //! Sets bit in a bit-vector `buf` at `index` to `value`.
 template<typename T>
-static SUPPORT_INLINE_NODEBUG void bitVectorSetBit(T* buf, size_t index, bool value) noexcept {
-  const size_t kTSizeInBits = bit_size_of<T>;
+static SUPPORT_INLINE_NODEBUG void bit_vector_set_bit(T* buf, size_t index, bool value) noexcept {
+  size_t word_index = index / bit_size_of<T>;
+  size_t bit_index = index % bit_size_of<T>;
 
-  size_t vecIndex = index / kTSizeInBits;
-  size_t bitIndex = index % kTSizeInBits;
+  T clear_mask = T(1u) << bit_index;
+  T set_mask = T(value) << bit_index;
 
-  T clearMask = T(1u) << bitIndex;
-  T setMask = T(value) << bitIndex;
-
-  buf[vecIndex] = T((buf[vecIndex] & ~clearMask) | setMask);
+  buf[word_index] = T((buf[word_index] & ~clear_mask) | set_mask);
 }
 
 //! Sets bit in a bit-vector `buf` at `index` to `value`.
 template<typename T>
-static SUPPORT_INLINE_NODEBUG void bitVectorOrBit(T* buf, size_t index, bool value) noexcept {
-  const size_t kTSizeInBits = bit_size_of<T>;
+static SUPPORT_INLINE_NODEBUG void bit_vector_or_bit(T* buf, size_t index, bool value) noexcept {
+  size_t word_index = index / bit_size_of<T>;
+  size_t bit_index = index % bit_size_of<T>;
 
-  size_t vecIndex = index / kTSizeInBits;
-  size_t bitIndex = index % kTSizeInBits;
-
-  T bitMask = T(value) << bitIndex;
-  buf[vecIndex] |= bitMask;
+  T bit_mask = T(value) << bit_index;
+  buf[word_index] |= bit_mask;
 }
 
 //! Sets bit in a bit-vector `buf` at `index` to `value`.
 template<typename T>
-static SUPPORT_INLINE_NODEBUG void bitVectorXorBit(T* buf, size_t index, bool value) noexcept {
-  const size_t kTSizeInBits = bit_size_of<T>;
+static SUPPORT_INLINE_NODEBUG void bit_vector_xor_bit(T* buf, size_t index, bool value) noexcept {
+  size_t word_index = index / bit_size_of<T>;
+  size_t bit_index = index % bit_size_of<T>;
 
-  size_t vecIndex = index / kTSizeInBits;
-  size_t bitIndex = index % kTSizeInBits;
-
-  T bitMask = T(value) << bitIndex;
-  buf[vecIndex] ^= bitMask;
+  T bit_mask = T(value) << bit_index;
+  buf[word_index] ^= bit_mask;
 }
 
 //! Fills `count` bits in bit-vector `buf` starting at bit-index `index`.
 template<typename T>
-static SUPPORT_INLINE_NODEBUG void bitVectorFill(T* buf, size_t index, size_t count) noexcept { Internal::bitVectorOp<T, Or, Set>(buf, index, count); }
+static SUPPORT_INLINE_NODEBUG void bit_vector_fill(T* buf, size_t index, size_t count) noexcept { Internal::bit_vector_op<T, Or, Set>(buf, index, count); }
 
 //! Clears `count` bits in bit-vector `buf` starting at bit-index `index`.
 template<typename T>
-static SUPPORT_INLINE_NODEBUG void bitVectorClear(T* buf, size_t index, size_t count) noexcept { Internal::bitVectorOp<T, AndNot, SetNot>(buf, index, count); }
+static SUPPORT_INLINE_NODEBUG void bit_vector_clear(T* buf, size_t index, size_t count) noexcept { Internal::bit_vector_op<T, AndNot, SetNot>(buf, index, count); }
 
 template<typename T>
-static SUPPORT_INLINE size_t bitVectorIndexOf(T* buf, size_t start, bool value) noexcept {
-  const size_t kTSizeInBits = bit_size_of<T>;
-  size_t vecIndex = start / kTSizeInBits; // T[]
-  size_t bitIndex = start % kTSizeInBits; // T[][]
+static SUPPORT_INLINE size_t bit_vector_index_of(T* buf, size_t start, bool value) noexcept {
+  size_t word_index = start / bit_size_of<T>; // T[]
+  size_t bit_index = start % bit_size_of<T>; // T[][]
 
-  T* p = buf + vecIndex;
+  T* p = buf + word_index;
 
   // We always look for zeros, if value is `true` we have to flip all bits before the search.
-  const T kFillMask = bit_ones<T>;
-  const T kFlipMask = value ? T(0) : kFillMask;
+  const T fill_mask = bit_ones<T>;
+  const T flip_mask = value ? T(0) : fill_mask;
 
   // The first BitWord requires special handling as there are some bits we want to ignore.
-  T bits = (*p ^ kFlipMask) & (kFillMask << bitIndex);
+  T bits = (*p ^ flip_mask) & (fill_mask << bit_index);
   for (;;) {
     if (bits) {
-      return (size_t)(p - buf) * kTSizeInBits + ctz(bits);
+      return (size_t)(p - buf) * bit_size_of<T> + ctz(bits);
     }
-    bits = *++p ^ kFlipMask;
+    bits = *++p ^ flip_mask;
   }
 }
 
@@ -1555,57 +1548,53 @@ public:
 
   SUPPORT_INLINE_NODEBUG BitVectorIterator(const BitVectorIterator& other) noexcept = default;
 
-  SUPPORT_INLINE_NODEBUG BitVectorIterator(const T* data, size_t numBitWords, size_t start = 0) noexcept {
-    init(data, numBitWords, start);
+  SUPPORT_INLINE_NODEBUG BitVectorIterator(Span<const T> data, size_t start = 0) noexcept {
+    init(data, start);
   }
 
-  SUPPORT_INLINE_NODEBUG explicit BitVectorIterator(Span<const T> span, size_t start = 0) noexcept {
-    init(span.data(), span.size(), start);
-  }
-
-  SUPPORT_INLINE void init(const T* data, size_t numBitWords, size_t start = 0) noexcept {
-    const T* ptr = data + (start / bit_size_of<T>);
+  SUPPORT_INLINE void init(Span<const T> data, size_t start = 0) noexcept {
+    const T* ptr = data.data() + (start / bit_size_of<T>);
     size_t idx = align_down(start, bit_size_of<T>);
-    size_t end = numBitWords * bit_size_of<T>;
+    size_t end = data.size() * bit_size_of<T>;
 
-    T bitWord = T(0);
+    T bit_word = T(0);
     if (idx < end) {
-      bitWord = *ptr++ & (bit_ones<T> << (start % bit_size_of<T>));
-      while (!bitWord && (idx += bit_size_of<T>) < end) {
-        bitWord = *ptr++;
+      bit_word = *ptr++ & (bit_ones<T> << (start % bit_size_of<T>));
+      while (!bit_word && (idx += bit_size_of<T>) < end) {
+        bit_word = *ptr++;
       }
     }
 
     _ptr = ptr;
     _idx = idx;
     _end = end;
-    _current = bitWord;
+    _current = bit_word;
   }
 
   [[nodiscard]]
-  SUPPORT_INLINE_NODEBUG bool hasNext() const noexcept {
+  SUPPORT_INLINE_NODEBUG bool has_next() const noexcept {
     return _current != T(0);
   }
 
   [[nodiscard]]
   SUPPORT_INLINE size_t next() noexcept {
-    T bitWord = _current;
-    SUPPORT_ASSERT(bitWord != T(0));
+    T bit_word = _current;
+    SUPPORT_ASSERT(bit_word != T(0));
 
-    uint32_t bit = ctz(bitWord);
-    bitWord &= T(bitWord - 1u);
+    uint32_t bit = ctz(bit_word);
+    bit_word &= T(bit_word - 1u);
 
     size_t n = _idx + bit;
-    while (!bitWord && (_idx += bit_size_of<T>) < _end) {
-      bitWord = *_ptr++;
+    while (!bit_word && (_idx += bit_size_of<T>) < _end) {
+      bit_word = *_ptr++;
     }
 
-    _current = bitWord;
+    _current = bit_word;
     return n;
   }
 
   [[nodiscard]]
-  SUPPORT_INLINE size_t peekNext() const noexcept {
+  SUPPORT_INLINE size_t peek_next() const noexcept {
     SUPPORT_ASSERT(_current != T(0));
     return _idx + ctz(_current);
   }
@@ -1617,14 +1606,14 @@ public:
 template<typename T, class OperatorT>
 class BitVectorOpIterator {
 public:
-  const T* _aPtr;
-  const T* _bPtr;
+  const T* _a_ptr;
+  const T* _b_ptr;
   size_t _idx;
   size_t _end;
   T _current;
 
-  SUPPORT_INLINE_NODEBUG BitVectorOpIterator(const T* aData, const T* bData, size_t numBitWords, size_t start = 0) noexcept {
-    init(aData, bData, numBitWords, start);
+  SUPPORT_INLINE_NODEBUG BitVectorOpIterator(const T* a_data, const T* b_data, size_t bit_word_count, size_t start = 0) noexcept {
+    init(a_data, b_data, bit_word_count, start);
   }
 
   SUPPORT_INLINE_NODEBUG BitVectorOpIterator(Span<const T> a, Span<const T> b, size_t start = 0) noexcept {
@@ -1632,46 +1621,46 @@ public:
     init(a.data(), b.data(), a.size(), start);
   }
 
-  SUPPORT_INLINE void init(const T* aData, const T* bData, size_t numBitWords, size_t start = 0) noexcept {
-    const T* aPtr = aData + (start / bit_size_of<T>);
-    const T* bPtr = bData + (start / bit_size_of<T>);
+  SUPPORT_INLINE void init(const T* a_data, const T* b_data, size_t bit_word_count, size_t start = 0) noexcept {
+    const T* a_ptr = a_data + (start / bit_size_of<T>);
+    const T* b_ptr = b_data + (start / bit_size_of<T>);
     size_t idx = align_down(start, bit_size_of<T>);
-    size_t end = numBitWords * bit_size_of<T>;
+    size_t end = bit_word_count * bit_size_of<T>;
 
-    T bitWord = T(0);
+    T bit_word = T(0);
     if (idx < end) {
-      bitWord = OperatorT::op(*aPtr++, *bPtr++) & (bit_ones<T> << (start % bit_size_of<T>));
-      while (!bitWord && (idx += bit_size_of<T>) < end) {
-        bitWord = OperatorT::op(*aPtr++, *bPtr++);
+      bit_word = OperatorT::op(*a_ptr++, *b_ptr++) & (bit_ones<T> << (start % bit_size_of<T>));
+      while (!bit_word && (idx += bit_size_of<T>) < end) {
+        bit_word = OperatorT::op(*a_ptr++, *b_ptr++);
       }
     }
 
-    _aPtr = aPtr;
-    _bPtr = bPtr;
+    _a_ptr = a_ptr;
+    _b_ptr = b_ptr;
     _idx = idx;
     _end = end;
-    _current = bitWord;
+    _current = bit_word;
   }
 
   [[nodiscard]]
-  SUPPORT_INLINE_NODEBUG bool hasNext() noexcept {
+  SUPPORT_INLINE_NODEBUG bool has_next() noexcept {
     return _current != T(0);
   }
 
   [[nodiscard]]
   SUPPORT_INLINE size_t next() noexcept {
-    T bitWord = _current;
-    SUPPORT_ASSERT(bitWord != T(0));
+    T bit_word = _current;
+    SUPPORT_ASSERT(bit_word != T(0));
 
-    uint32_t bit = ctz(bitWord);
-    bitWord &= T(bitWord - 1u);
+    uint32_t bit = ctz(bit_word);
+    bit_word &= T(bit_word - 1u);
 
     size_t n = _idx + bit;
-    while (!bitWord && (_idx += bit_size_of<T>) < _end) {
-      bitWord = OperatorT::op(*_aPtr++, *_bPtr++);
+    while (!bit_word && (_idx += bit_size_of<T>) < _end) {
+      bit_word = OperatorT::op(*_a_ptr++, *_b_ptr++);
     }
 
-    _current = bitWord;
+    _current = bit_word;
     return n;
   }
 };
@@ -1699,7 +1688,7 @@ struct Compare {
 
 //! Insertion sort.
 template<typename T, typename CompareT = Compare<SortOrder::kAscending>>
-static inline void iSort(T* base, size_t size, const CompareT& cmp = CompareT()) noexcept {
+static inline void insertion_sort(T* base, size_t size, const CompareT& cmp = CompareT()) noexcept {
   for (T* pm = base + 1; pm < base + size; pm++) {
     for (T* pl = pm; pl > base && cmp(pl[-1], pl[0]) > 0; pl--) {
       std::swap(pl[-1], pl[0]);
@@ -1719,7 +1708,7 @@ namespace Internal {
     static void sort(T* base, size_t size, const CompareT& cmp) noexcept {
       T* end = base + size;
       T* stack[kStackSize];
-      T** stackptr = stack;
+      T** stack_ptr = stack;
 
       for (;;) {
         if ((size_t)(end - base) > kISortThreshold) {
@@ -1749,30 +1738,30 @@ namespace Internal {
           // Larger subfile base / end to stack, sort smaller.
           if (pj - base > end - pi) {
             // Left is larger.
-            *stackptr++ = base;
-            *stackptr++ = pj;
+            *stack_ptr++ = base;
+            *stack_ptr++ = pj;
             base = pi;
           }
           else {
             // Right is larger.
-            *stackptr++ = pi;
-            *stackptr++ = end;
+            *stack_ptr++ = pi;
+            *stack_ptr++ = end;
             end = pj;
           }
-          SUPPORT_ASSERT(stackptr <= stack + kStackSize);
+          SUPPORT_ASSERT(stack_ptr <= stack + kStackSize);
         }
         else {
           // UB sanitizer doesn't like applying offset to a nullptr base.
           if (base != end) {
-            iSort(base, (size_t)(end - base), cmp);
+            insertion_sort(base, (size_t)(end - base), cmp);
           }
 
-          if (stackptr == stack) {
+          if (stack_ptr == stack) {
             break;
           }
 
-          end = *--stackptr;
-          base = *--stackptr;
+          end = *--stack_ptr;
+          base = *--stack_ptr;
         }
       }
     }
@@ -1785,7 +1774,7 @@ namespace Internal {
 //! The main reason to provide a custom qsort implementation is that we needed something that will
 //! never throw `bad_alloc` exception. This implementation doesn't use dynamic memory allocation.
 template<typename T, class CompareT = Compare<SortOrder::kAscending>>
-static SUPPORT_INLINE_NODEBUG void qSort(T* base, size_t size, const CompareT& cmp = CompareT()) noexcept {
+static SUPPORT_INLINE_NODEBUG void sort(T* base, size_t size, const CompareT& cmp = CompareT{}) noexcept {
   Internal::QSortImpl<T, CompareT>::sort(base, size, cmp);
 }
 
@@ -1924,7 +1913,7 @@ struct Array {
   //! \{
 
   [[nodiscard]]
-  SUPPORT_INLINE constexpr bool empty() const noexcept { return false; }
+  SUPPORT_INLINE constexpr bool is_empty() const noexcept { return false; }
 
   [[nodiscard]]
   SUPPORT_INLINE constexpr size_t size() const noexcept { return N; }
@@ -1970,6 +1959,9 @@ struct Array {
   //! \name Utilities
   //! \{
 
+  SUPPORT_INLINE Span<T> as_span() noexcept { return Span<T>(_data, N); }
+  SUPPORT_INLINE Span<const T> as_span() const noexcept { return Span<const T>(_data, N); }
+
   inline void swap(Array& other) noexcept {
     for (size_t i = 0; i < N; i++) {
       std::swap(_data[i], other._data[i]);
@@ -1982,7 +1974,7 @@ struct Array {
     }
   }
 
-  inline void copyFrom(const Array& other) noexcept {
+  inline void copy_from(const Array& other) noexcept {
     for (size_t i = 0; i < N; i++) {
       _data[i] = other._data[i];
     }
@@ -1996,8 +1988,8 @@ struct Array {
   }
 
   template<typename Operator>
-  inline T aggregate(T initialValue = T()) const noexcept {
-    T value = initialValue;
+  inline T aggregate(T initial_value = T()) const noexcept {
+    T value = initial_value;
     for (size_t i = 0; i < N; i++) {
       value = Operator::op(value, _data[i]);
     }
@@ -2005,7 +1997,7 @@ struct Array {
   }
 
   template<typename Fn>
-  inline void forEach(Fn&& fn) noexcept {
+  inline void for_each(Fn&& fn) noexcept {
     for (size_t i = 0; i < N; i++) {
       fn(_data[i]);
     }

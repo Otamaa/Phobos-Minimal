@@ -38,10 +38,13 @@ public:
 #pragma endregion
 
 	ParticleTypeExtData(ParticleTypeClass* pObj) : ObjectTypeExtData(pObj),
+		LaserTrail_Types(),
+		Trails(),
 		ReadjustZ(true),
 		Palette(CustomPalette::PaletteMode::Temperate),
 		DamageRange(0.0),
 		DeleteWhenReachWater(false),
+		WindMult(),
 		Gas_DriftSpeedX({ 2, -2 }),
 		Gas_DriftSpeedY({ 2, -2 }),
 		Transmogrify(false),

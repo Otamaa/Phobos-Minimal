@@ -658,29 +658,29 @@ private:
 		{
 			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
 			{
-				size_t beforeSize = Stm.Getstream()->Size();
+			//	size_t beforeSize = Stm.Getstream()->Size();
 				auto& result = Stm.Process(field);
-				size_t afterSize = Stm.Getstream()->Size();
-				GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
-					fieldName, beforeSize, afterSize, afterSize - beforeSize);
+			//	size_t afterSize = Stm.Getstream()->Size();
+			//	GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+			//		fieldName, beforeSize, afterSize, afterSize - beforeSize);
 				return result;
 			}
 			else
 			{
-				size_t beforeOffset = Stm.Getstream()->Offset();
-				bool beforeSuccess = Stm.Success();
+			//	size_t beforeOffset = Stm.Getstream()->Offset();
+			//	bool beforeSuccess = Stm.Success();
 				auto& result = Stm.Process(field);
-				size_t afterOffset = Stm.Getstream()->Offset();
-				bool afterSuccess = Stm.Success();
+			//	size_t afterOffset = Stm.Getstream()->Offset();
+			//	bool afterSuccess = Stm.Success();
 
-				GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
-					fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
-					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+			//	GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+			//		fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+			//		beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
 
-				if (!afterSuccess && beforeSuccess)
-				{
-					GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
-				}
+			//	if (!afterSuccess && beforeSuccess)
+			//	{
+			//		GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
+				//}
 				return result;
 			}
 		};
@@ -888,7 +888,7 @@ public:
 
 	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
 
-	HelperedVector<UniversalTrail> Trails;
+	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
 	std::unique_ptr<GiftBox> MyGiftBox;
 	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
 	std::unique_ptr<DamageSelfState> DamageSelfState;
@@ -996,17 +996,25 @@ public:
 
 	TechnoExtData(TechnoClass* abs) : RadioExtData(abs),
 		Type(nullptr),
+		AbsType(), // OptionalStruct<AbstractType,true>
+
+		AE(),
 		idxSlot_EMPulse(0),
 		idxSlot_Wave(0),
 		idxSlot_Beam(0),
 		idxSlot_Warp(0),
 		idxSlot_Parasite(0),
+
 		EMPSparkleAnim(nullptr),
-		EMPLastMission(Mission(0)),
+		EMPLastMission(Mission::Sleep),
+
 		PoweredUnit(nullptr),
 		RadarJammer(nullptr),
+
 		BuildingLight(nullptr),
+
 		OriginalHouseType(nullptr),
+		CloakSkipTimer(),
 		HijackerHealth(0),
 		HijackerOwner(nullptr),
 		HijackerVeterancy(0.0f),
@@ -1018,73 +1026,150 @@ public:
 		TechnoValueAmount(0),
 		Pos(0),
 		Shield(nullptr),
+		LaserTrails(),
 		ReceiveDamage(false),
 		LastKillWasTeamTarget(false),
+		PassengerDeletionTimer(),
 		CurrentShieldType(nullptr),
 		LastWarpDistance(0),
+		Death_Countdown(),
 		MindControlRingAnimType(nullptr),
 		DamageNumberOffset(INT32_MIN),
+		CurrentLaserWeaponIndex(),
 		OriginalPassengerOwner(nullptr),
+
 		IsInTunnel(false),
 		IsBurrowed(false),
+		DeployFireTimer(),
+		DisableWeaponTimer(),
+
+		RevengeWeapons(),
+
 		GattlingDmageDelay(-1),
 		GattlingDmageSound(false),
 		AircraftOpentoppedInitEd(false),
+
+		EngineerCaptureDelay(),
+
 		FlhChanged(false),
+		ReceiveDamageMultiplier(),
 		SkipLowDamageCheck(false),
+
 		aircraftPutOffsetFlag(false),
 		aircraftPutOffset(false),
 		SkipVoice(false),
+
+		ExtraWeaponTimers(),
+
+		Trails(),
+		MyGiftBox(nullptr),
+		PaintBallStates(),
+		DamageSelfState(nullptr),
+
 		CurrentWeaponIdx(-1),
+
+		MyWeaponManager(),
+		MyDriveData(),
+		MyDiveData(),
+
+		MySpawnSuport(),
+
+		WarpedOutDelay(),
+
 		MyOriginalTemporal(nullptr),
+
 		SupressEVALost(false),
+		SelfHealing_CombatDelay(),
 		PayloadCreated(false),
 		PayloadTriggered(false),
 		LinkedSW(nullptr),
+		SuperTarget(),
+
 		HijackerLastDisguiseType(nullptr),
 		HijackerLastDisguiseHouse(nullptr),
+
 		WHAnimRemainingCreationInterval(0),
+
 		IsWebbed(false),
 		WebbedAnim(nullptr),
 		WebbyLastTarget(nullptr),
 		WebbyLastMission(Mission::Sleep),
 
+		AeData(),
+
+		MergePreventionTimer(),
+
+		TiberiumStorage(),
+
+		PhobosAE(),
+
 		FiringObstacleCell(nullptr),
+		AdditionalRange(),
 		IsDetachingForCloak(false),
+
 		HasRemainingWarpInDelay(false),
 		LastWarpInDelay(0),
 		IsBeingChronoSphered(false),
+
 		SubterraneanHarvRallyPoint(nullptr),
+
+		TiberiumEaterTimer(),
 		LastDamageWH(nullptr),
+
+		MyTargetingFrame(0),
+
+		ChargeTurretTimer(),
 		LastRearmWasFullDelay(false),
+
 		DropCrate(-1),
 		DropCrateType(PowerupEffects::Money),
+
 		LastBeLockedFrame(0),
 		BeControlledThreatFrame(0),
+
 		LastTargetID(0xFFFFFFFF),
 		AccumulatedGattlingValue(0),
 		ShouldUpdateGattlingValue(false),
+
 		KeepTargetOnMove(false),
 		LastSensorsMapCoords(),
 		DelayedFireSequencePaused(false),
 		DelayedFireWeaponIndex(-1),
+		DelayedFireTimer(),
 		CurrentDelayedFireAnim(nullptr),
+		CustomFiringOffset(),
+
 		LastWeaponType(nullptr),
+		ElectricBolts(),
 		LastHurtFrame(0),
 		AttachedEffectInvokerCount(0),
+
 		AirstrikeTargetingMe(nullptr),
+		RandomEMPTarget(),
+
+		FiringAnimationTimer(),
 		ForceFullRearmDelay(false),
 		AttackMoveFollowerTempCount(0),
+		OnlyAttackData(),
 		IsSelected(false),
+
 		UndergroundTracked(false),
 		PassiveAquireMode(PassiveAcquireMode::Normal),
+
 		UnitIdleAction(false),
 		UnitIdleActionSelected(false),
 		UnitIdleIsSelected(false),
+		UnitIdleActionTimer(),
+		UnitIdleActionGapTimer(),
 		Tints()
 	{
+		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+
+		// randomized initial targeting frame
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
+
+		// set tint owner
 		Tints.SetOwner(abs);
 	}
 

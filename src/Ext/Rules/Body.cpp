@@ -831,8 +831,10 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DamageWallRecursivly.Read(exINI, GameStrings::CombatDamage, "DamageWallRecursivly");
 	this->AirstrikeLineZAdjust.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineZAdjust");
 	this->AdjacentWallDamage.Read(exINI, GameStrings::CombatDamage, "AdjacentWallDamage");
+	this->AISellCapturedBuilding.Read(exINI, GameStrings::General, "AISellCapturedBuilding");
 	this->InfantryAutoDeploy.Read(exINI, GameStrings::General, "InfantryAutoDeploy");
 	this->EnablePassiveAcquireMode.Read(exINI, GameStrings::General, "EnablePassiveAcquireMode");
+	this->UseRetintFix.Read(exINI, GameStrings::AudioVisual, "UseRetintFix");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -1661,8 +1663,10 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DamageWallRecursivly)
 		.Process(this->AirstrikeLineZAdjust)
 		.Process(this->AdjacentWallDamage)
+		.Process(this->AISellCapturedBuilding)
 		.Process(this->InfantryAutoDeploy)
 		.Process(this->EnablePassiveAcquireMode)
+		.Process(this->UseRetintFix)
 		.Process(this->MyPutData)
 		;
 }

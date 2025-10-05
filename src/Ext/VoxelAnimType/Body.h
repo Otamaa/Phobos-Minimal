@@ -28,14 +28,22 @@ public:
 #pragma endregion
 
 public:
-	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj) : ObjectTypeExtData(pObj),
-		Warhead_Detonate(false),
-		SplashList_Pickrandom(true),
-		ExplodeOnWater(false),
-		Damage_DealtByOwner(false),
-		ExpireDamage_ConsiderInvokerVet(false),
-		TrailerAnim_SpawnDelay(2)
-	{ }
+	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj) : ObjectTypeExtData(pObj)
+		, LaserTrail_Types()
+		, Warhead_Detonate(false)
+		, SplashList()
+		, SplashList_Pickrandom(true)
+		, WakeAnim()
+		, ExplodeOnWater(false)
+		, Damage_DealtByOwner(false)
+		, Weapon()
+		, ExpireDamage_ConsiderInvokerVet(false)
+		, Trails()
+		, TrailerAnim_SpawnDelay(2)
+	{
+		this->Initialize();
+	}
+
 	void Initialize();
 
 	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

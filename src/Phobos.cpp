@@ -123,6 +123,7 @@ int Phobos::Config::CampaignDefaultGameSpeed { 2 };
 bool Phobos::Config::DigitalDisplay_Enable { false };
 bool Phobos::Config::MessageDisplayInCenter { false };
 bool Phobos::Config::MessageApplyHoverState { false };
+int Phobos::Config::MessageDisplayInCenter_BoardOpacity { 30 };
 int Phobos::Config::MessageDisplayInCenter_LabelsCount { 4 };
 int Phobos::Config::MessageDisplayInCenter_RecordsCount { 12 };
 bool Phobos::Config::ShowBuildingStatistics { false };
@@ -254,7 +255,7 @@ std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
 class asmjitErrHandler : public asmjit::ErrorHandler
 {
 public:
-	void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override
+	void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override
 	{
 		Debug::LogDeferred("AsmJit ERROR: %s\n", message);
 	}
@@ -682,10 +683,10 @@ void ApplyasmjitPatch()
 
 		size_t hook_size = sm_vec[0].size;
 		asmjit::CodeHolder code;
-		code.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
-		code.setErrorHandler(&gJitErrorHandler);
+		code.init(gJitRuntime->environment(), gJitRuntime->cpu_features());
+		code.set_error_handler(&gJitErrorHandler);
 		asmjit::x86::Assembler assembly(&code);
-		asmjit::Label l_origin = assembly.newLabel();
+		asmjit::Label l_origin = assembly.new_label();
 		DWORD hookSize = MaxImpl(hook_size, 5u);
 
 		if (sm_vec.size() == 1)
@@ -740,18 +741,18 @@ void ApplyasmjitPatch()
 		const void* fn {};
 		gJitRuntime->add(&fn, &code);
 		code.reset();
-		code.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
-		code.setErrorHandler(&gJitErrorHandler);
+		code.init(gJitRuntime->environment(), gJitRuntime->cpu_features());
+		code.set_error_handler(&gJitErrorHandler);
 		code.attach(&assembly);
 		assembly.jmp(fn);
 		code.flatten();
-		code.resolveCrossSectionFixups();
-		code.relocateToBase(addr);
+		code.resolve_cross_section_fixups();
+		code.relocate_to_base(addr);
 
 		DWORD protect_flag {};
 		DWORD protect_flagb {};
 		VirtualProtect(hookAddress, hookSize, PAGE_EXECUTE_READWRITE, &protect_flag);
-		code.copyFlattenedData(hookAddress, hookSize);
+		code.copy_flattened_data(hookAddress, hookSize);
 		VirtualProtect(hookAddress, hookSize, protect_flag, &protect_flagb);
 		FlushInstructionCache(Game::hInstance, hookAddress, hookSize);
 	}
@@ -1645,7 +1646,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		{
 
 			DisableThreadLibraryCalls((HMODULE)hInstance);
-			InitializeCustomMemorySystem();
+			//InitHeapPatches(HeapCreate(0, 1 << 20, 0));
 			Patch::CurrentProcess = GetCurrentProcess();
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;
@@ -1668,7 +1669,7 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Multithreading::ShutdownMultitheadMode();
 			Debug::DeactivateLogger();
 			gJitRuntime.reset();
-			Mem::shutdownMemoryManager();
+			//Mem::shutdownMemoryManager();
 			MH_Uninitialize();
 		}
 	}

@@ -36,7 +36,7 @@ ASMJIT_PATCH(0x727024, TriggerTypeClass_HasGlobalSetOrClearedEvent, 0x5)
 #pragma region PlayerAtX
 
 // Store player slot index for trigger type if such value is used in scenario INI.
-DEFINE_HOOK(0x727292, TriggerTypeClass_ReadINI_PlayerAtX, 0x5)
+ASMJIT_PATCH(0x727292, TriggerTypeClass_ReadINI_PlayerAtX, 0x5)
 {
 	GET(TriggerTypeClass*, pThis, EBP);
 	GET(const char*, pID, ESI);
@@ -60,8 +60,8 @@ DEFINE_HOOK(0x727292, TriggerTypeClass_ReadINI_PlayerAtX, 0x5)
 }
 
 // Handle mapping player slot index for trigger to HouseClass pointer in logic.
-DEFINE_HOOK_AGAIN(0x7265F7, TriggerClass_Logic_PlayerAtX, 0x6)
-DEFINE_HOOK(0x72652D, TriggerClass_Logic_PlayerAtX, 0x6)
+
+ASMJIT_PATCH(0x72652D, TriggerClass_Logic_PlayerAtX, 0x6)
 {
 	enum { SkipGameCode1 = 0x726538, SkipGameCode2 = 0x726602 };
 
@@ -83,10 +83,10 @@ DEFINE_HOOK(0x72652D, TriggerClass_Logic_PlayerAtX, 0x6)
 	}
 
 	return 0;
-}
+}ASMJIT_PATCH_AGAIN(0x7265F7, TriggerClass_Logic_PlayerAtX, 0x6)
 
 // Destroy triggers with Player @ X owners if they are not present in scenario.
-DEFINE_HOOK(0x725FC7, TriggerClass_CTOR_PlayerAtX, 0x7)
+ASMJIT_PATCH(0x725FC7, TriggerClass_CTOR_PlayerAtX, 0x7)
 {
 	GET(TriggerClass*, pThis, ESI);
 
@@ -106,7 +106,7 @@ DEFINE_HOOK(0x725FC7, TriggerClass_CTOR_PlayerAtX, 0x7)
 }
 
 // Remove destroyed triggers from the map.
-DEFINE_HOOK(0x726727, TriggerClass_Destroy_PlayerAtX, 0x5)
+ASMJIT_PATCH(0x726727, TriggerClass_Destroy_PlayerAtX, 0x5)
 {
 	GET(TriggerClass*, pThis, ESI);
 

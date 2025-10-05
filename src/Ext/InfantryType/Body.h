@@ -182,20 +182,42 @@ public:
 #pragma endregion
 
 public:
-	InfantryTypeExtData(InfantryTypeClass* pObj) : TechnoTypeExtData(pObj),
+	InfantryTypeExtData(InfantryTypeClass* pObj) :
+		TechnoTypeExtData(pObj),
+
 		Is_Deso(false),
 		Is_Cow(false),
+
+		C4Delay(),
+		C4ROF(),
+		C4Damage(),
+		C4Warhead(),
+
 		HideWhenDeployAnimPresent(false),
 		DeathBodies_UseDieSequenceAsIndex(false),
+
+		CrawlingWeaponDatas(),
+
+		VoiceGarrison(),
 		OnlyUseLandSequences(false),
+
+		SquenceRates(),
+
+		WhenInfiltrate_Warhead(nullptr),
+		WhenInfiltrate_Weapon(nullptr),
+		WhenInfiltrate_Damage(0),
+
 		WhenInfiltrate_Warhead_Full(true),
 		AllSequnceEqualRates(false),
 		AllowReceiveSpeedBoost(false),
+
+		ProneSpeed(),
 		InfantryAutoDeploy(false)
 	{
 		this->Is_Deso = IS_SAME_STR_(Name(), GameStrings::DESO());
 		this->Is_Cow = IS_SAME_STR_(Name(), GameStrings::COW());
 	}
+
 	InfantryTypeExtData(InfantryTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 
 	virtual ~InfantryTypeExtData() = default;

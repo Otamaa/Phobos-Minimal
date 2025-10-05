@@ -3022,8 +3022,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 				pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses.Get()),
 				coord,
 				pTypeExt->DisplayIncome_Offset,
-				ColorStruct::Empty
-		);
+				ColorStruct::Empty);
 		pBldExt->AccumulatedIncome = 0;
 	}
 }
@@ -4530,8 +4529,7 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 			? Drawing::DefaultColors[(int)DefaultColorList::Green] :
 			Drawing::DefaultColors[(int)DefaultColorList::Red];
 
-		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
-		moneyStr.push_back(L'\0');
+		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}\0", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
 
 		CoordStruct loc = pThis->GetCoords();
 		if (!MapClass::Instance->IsLocationShrouded(loc)
@@ -4546,7 +4544,7 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 				loc.Z += 256;
 			}
 
-			FlyingStrings::Add(moneyStr.data(), loc, color, {});
+			FlyingStrings::Add(moneyStr, loc, color, {});
 		}
 	}
 }

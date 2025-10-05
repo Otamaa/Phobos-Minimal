@@ -15,6 +15,11 @@ struct IStream;
 class PhobosStreamReader;
 class PhobosStreamWriter;
 
+enum class StreamType
+{
+	READER, WRITER
+};
+
 template<typename T>
 concept IsTriviallySerializable = std::is_trivially_copyable_v<T> && std::is_standard_layout_v<T>;
 
@@ -27,16 +32,380 @@ namespace Savegame
 	bool WritePhobosStream(PhobosStreamWriter& Stm, const T& Value);
 }
 
-class PhobosByteStream
+class PhobosByteStreamBase
 {
 public:
-	using data_t = unsigned char;
-
 	// Enhanced markers with versioning and checksums
 	static COMPILETIMEEVAL const char* START_MARKER = "PHOBOS_DATA_START";
 	static COMPILETIMEEVAL const char* END_MARKER = "PHOBOS_DATA_END";
 	static COMPILETIMEEVAL size_t START_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_START");
 	static COMPILETIMEEVAL size_t END_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_END");
+
+	virtual bool WriteToStream(LPSTREAM stream) = 0;
+	virtual bool ReadFromStream(LPSTREAM stream) = 0;
+
+
+	virtual size_t Size() const = 0;
+	virtual size_t Offset() const = 0;
+};
+
+class DECLSPEC_UUID("EE8D505F-12BB-4313-AEDC-4AEA30A5BA03")
+ PhobosPersistStream : public IPersistStream , public PhobosByteStreamBase
+{
+public:
+    using data_t = unsigned char;
+
+protected:
+    std::vector<data_t> Data;
+    size_t CurrentOffset;
+    size_t alignment;
+    std::string bufferName;
+
+    size_t alignPosition(size_t pos) const {
+        if (alignment <= 1) return pos;
+        return (pos + alignment - 1) & ~(alignment - 1);
+    }
+
+    void ensurePadding(size_t targetPos) {
+        while (Data.size() < targetPos) {
+            Data.push_back(0);
+        }
+    }
+
+public:
+
+    /**
+     *  IUnknown
+     */
+    IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppv) {
+
+		/**
+		 *  Always set out parameter to NULL, validating it first.
+		 */
+		if (ppv == nullptr) {
+			return E_POINTER;
+		}
+		*ppv = nullptr;
+
+		if (riid == __uuidof(IUnknown)) {
+			*ppv = reinterpret_cast<IUnknown*>(this);
+		}
+
+		if (riid == __uuidof(IStream)) {
+			*ppv = reinterpret_cast<IStream*>(this);
+		}
+
+		if (riid == __uuidof(IPersistStream)) {
+			*ppv = static_cast<IPersistStream*>(this);
+		}
+
+		if (*ppv == nullptr) {
+			return E_NOINTERFACE;
+		}
+
+		/**
+		 *  Increment the reference count and return the pointer.
+		 */
+		reinterpret_cast<IUnknown*>(*ppv)->AddRef();
+
+		return S_OK;
+	}
+
+    IFACEMETHOD_(ULONG, AddRef)(){
+		//EXT_DEBUG_TRACE("ArmorTypeClass::AddRef - 0x%08X\n", (uintptr_t)(this));
+
+		return 1;
+	}
+
+    IFACEMETHOD_(ULONG, Release)(){
+		//EXT_DEBUG_TRACE("ArmorTypeClass::Release - 0x%08X\n", (uintptr_t)(this));
+
+		return 1;
+	}
+
+    /**
+     *  IPersist
+     */
+    IFACEMETHOD(GetClassID)(CLSID* lpClassID){
+		//EXT_DEBUG_TRACE("ArmorTypeClass::GetClassID - Name: %s (0x%08X)\n", Name(), (uintptr_t)(this));
+
+		if (lpClassID == nullptr) {
+			return E_POINTER;
+		}
+
+		*lpClassID = __uuidof(this);
+
+		return S_OK;
+	}
+
+
+    /**
+     *  IPersistStream
+     */
+    IFACEMETHOD(IsDirty)(){
+		//EXT_DEBUG_TRACE("ArmorTypeClass::IsDirty - 0x%08X\n", (uintptr_t)(this));
+
+		return S_OK;
+	}
+
+	IFACEMETHOD_(LONG, GetSizeMax)(ULARGE_INTEGER* pcbSize){
+		//EXT_DEBUG_TRACE("PhobosByteStream::GetSizeMax - 0x%08X\n", (uintptr_t)(this));
+
+		if (!pcbSize) {
+			return E_POINTER;
+		}
+
+		// Calculate the total size needed for serialization:
+		// START_MARKER + nameLen + name + dataSize + alignment + actual_data + END_MARKER
+		size_t totalSize = START_MARKER_LEN +           // START marker
+						   sizeof(size_t) +              // name length
+						   bufferName.length() +         // name string
+						   sizeof(size_t) +              // data length
+						   sizeof(size_t) +              // alignment
+						   Data.size() +                 // actual data
+						   END_MARKER_LEN;               // END marker
+
+		pcbSize->QuadPart = totalSize;  // Use QuadPart for full 64-bit size
+		// OR if you want to split it:
+		// pcbSize->LowPart = static_cast<DWORD>(totalSize);
+		// pcbSize->HighPart = static_cast<DWORD>(totalSize >> 32);
+
+		return S_OK;
+	}
+
+
+    PhobosPersistStream(const std::string& name = "unnamed", size_t align = 8, size_t Reserve = 0x1000)
+        : Data(), CurrentOffset(0), alignment(align), bufferName(name)
+    {
+        this->Data.reserve(Reserve);
+    }
+
+    ~PhobosPersistStream() = default;
+
+    // === Basic Interface (matching PhobosByteStream) ===
+
+	virtual size_t Size() const {
+        return this->Data.size();
+    }
+
+	virtual size_t Offset() const {
+        return this->CurrentOffset;
+    }
+
+    const std::string& getName() const {
+        return bufferName;
+    }
+
+    void Clear() {
+        Data.clear();
+        CurrentOffset = 0;
+    }
+
+    void ResetRead() {
+        CurrentOffset = 0;
+    }
+
+    // === IStream Operations ===
+
+    /**
+     * reads {Length} bytes from {pStm} into its storage
+     */
+    bool ReadFromStream(IStream* pStm, const size_t Length) {
+        auto size = this->Data.size();
+        this->Data.resize(size + Length);
+        auto pv = reinterpret_cast<void*>(this->Data.data() + size);
+        ULONG out = 0;
+        auto success = pStm->Read(pv, Length, &out);
+        bool result = (SUCCEEDED(success) && out == Length);
+        if (!result)
+            this->Data.resize(size);
+        return result;
+    }
+
+    /**
+     * writes all internal storage to {pStm}
+     */
+    bool WriteToStream(IStream* pStm) const {
+        const size_t Length = this->Data.size();
+        auto pcv = reinterpret_cast<const void*>(this->Data.data());
+        ULONG out = 0;
+        auto success = pStm->Write(pcv, Length, &out);
+        return SUCCEEDED(success) && out == Length;
+    }
+
+    /**
+     * reads the next block of bytes from {pStm} into its storage,
+     * the block size is prepended to the block
+     * THIS NOW HANDLES DESERIALIZATION WITH MARKERS
+     */
+	IFACEMETHOD(Load)(IStream* pStm);
+
+    /**
+     * writes all internal storage to {pStm}, prefixed with its length
+     * THIS NOW HANDLES SERIALIZATION WITH MARKERS
+     */
+	IFACEMETHOD(Save)(IStream* pStm, BOOL fClearDirty);
+
+	virtual bool WriteToStream(LPSTREAM stream) {
+		return SUCCEEDED(this->Save(stream, true));
+	};
+
+	virtual bool ReadFromStream(LPSTREAM stream) {
+		return SUCCEEDED(this->Load(stream));
+	};
+
+    // === Primitive Read/Write (matching PhobosByteStream) ===
+
+    /**
+     * if it has {Size} bytes left, assigns the first {Size} unread bytes to {Value}
+     * moves the internal position forward
+     */
+    bool Read(data_t* Value, size_t Size) {
+        bool ret = false;
+        if (this->Data.size() >= this->CurrentOffset + Size) {
+            auto Position = &this->Data[this->CurrentOffset];
+            std::memcpy(Value, Position, Size);
+            ret = true;
+        }
+        this->CurrentOffset += Size;
+        return ret;
+    }
+
+    /**
+     * ensures there are at least {Size} bytes left in the internal storage,
+     * and assigns {Value} casted to byte to that buffer
+     * moves the internal position forward
+     */
+    void Write(const data_t* Value, size_t Size) {
+        this->Data.insert(this->Data.end(), Value, Value + Size);
+    }
+
+    /**
+     * attempts to read the data from internal storage into {Value}
+     */
+    template<typename T>
+    bool LoadValue(T& Value) {
+        // get address regardless of overloaded & operator
+        auto Bytes = &reinterpret_cast<data_t&>(Value);
+        return this->Read(Bytes, sizeof(T));
+    }
+
+    /**
+     * writes the data from {Value} into internal storage
+     */
+    template<typename T>
+    void SaveValue(const T& Value) {
+        // get address regardless of overloaded & operator
+        auto Bytes = &reinterpret_cast<const data_t&>(Value);
+        this->Write(Bytes, sizeof(T));
+    }
+
+    // === Enhanced Operations with Alignment ===
+
+    /**
+     * Force alignment before next write
+     */
+    void Align() {
+        size_t alignedPos = alignPosition(Data.size());
+        if (alignedPos != Data.size()) {
+            ensurePadding(alignedPos);
+        }
+    }
+
+    /**
+     * Save with automatic alignment
+     */
+    template<typename T>
+    void SaveAligned(const T& Value) {
+        if (sizeof(T) >= alignment) {
+            Align();
+        }
+        Save(Value);
+    }
+
+    /**
+     * Load with automatic alignment
+     */
+    template<typename T>
+    bool LoadAligned(T& Value) {
+        if (sizeof(T) >= alignment) {
+            size_t alignedPos = alignPosition(CurrentOffset);
+            CurrentOffset = alignedPos;
+        }
+        return LoadValue(Value);
+    }
+
+    /**
+     * Save vector with size prefix
+     */
+    template<typename T>
+    void SaveVector(const std::vector<T>& vec) {
+        Save<size_t>(vec.size());
+        Align();
+        Write(reinterpret_cast<const data_t*>(vec.data()), vec.size() * sizeof(T));
+    }
+
+    /**
+     * Load vector with size prefix
+     */
+    template<typename T>
+    bool LoadVector(std::vector<T>& vec) {
+        size_t count;
+        if (!LoadValue(count)) return false;
+
+        size_t alignedPos = alignPosition(CurrentOffset);
+        CurrentOffset = alignedPos;
+
+        vec.resize(count);
+        return Read(reinterpret_cast<data_t*>(vec.data()), count * sizeof(T));
+    }
+
+    /**
+     * Save string with size prefix
+     */
+    void SaveString(const std::string& str) {
+        SaveValue<size_t>(str.length());
+        Write(reinterpret_cast<const data_t*>(str.data()), str.length());
+    }
+
+    /**
+     * Load string with size prefix
+     */
+    bool LoadString(std::string& str) {
+        size_t len;
+        if (!LoadValue(len)) return false;
+
+        str.resize(len);
+        return Read(reinterpret_cast<data_t*>(&str[0]), len);
+    }
+
+    /**
+     * Save another StreamBuffer as nested data
+     */
+    void SaveBuffer(const PhobosPersistStream& otherBuffer) {
+        SaveValue<size_t>(otherBuffer.Size());
+        Write(otherBuffer.Data.data(), otherBuffer.Size());
+    }
+
+    /**
+     * Load nested StreamBuffer
+     */
+    bool LoadBuffer(PhobosPersistStream& outBuffer) {
+        size_t size;
+        if (!LoadValue(size)) return false;
+
+        outBuffer.Data.resize(size);
+        bool result = Read(outBuffer.Data.data(), size);
+        outBuffer.CurrentOffset = 0;
+        return result;
+    }
+};
+
+class PhobosByteStream : public PhobosByteStreamBase
+{
+public:
+	using data_t = unsigned char;
+
 
 	// Performance and safety constants
 	static COMPILETIMEEVAL size_t MAX_STREAM_SIZE = 500 * 1024 * 1024;     // 500MB total limit
@@ -107,8 +476,15 @@ private:
 
 public:
 
-	virtual bool WriteToStream(LPSTREAM stream) const;
+	virtual bool WriteToStream(LPSTREAM stream);
 	virtual bool ReadFromStream(LPSTREAM stream);
+	virtual size_t Size() const {
+		return this->data.size();
+	}
+
+	virtual size_t Offset() const {
+		return this->position;
+	}
 
 	COMPILETIMEEVAL size_t GetStreamSize() const
 	{
@@ -118,9 +494,6 @@ public:
 			data.size() +              // Actual data
 			END_MARKER_LEN;            // End marker
 	}
-
-	COMPILETIMEEVAL size_t Size() const { return data.size(); }
-	COMPILETIMEEVAL size_t Offset() const { return position; }
 
 	void Reset()
 	{
@@ -274,7 +647,7 @@ public:
 class PhobosAppendedStream : public PhobosByteStream
 {
 public:
-	virtual bool WriteToStream(LPSTREAM stream) const;
+	virtual bool WriteToStream(LPSTREAM stream);
 	virtual bool ReadFromStream(LPSTREAM stream);
 };
 
@@ -284,6 +657,7 @@ concept IsDataTypeCorrect = std::is_same_v<T, PhobosByteStream::data_t>;
 class PhobosStreamWorkerBase
 {
 public:
+
 	COMPILETIMEEVAL explicit PhobosStreamWorkerBase(PhobosByteStream& Stream) :
 		stream(&Stream),
 		success(true)
@@ -304,7 +678,7 @@ protected:
 
 	COMPILETIMEEVAL bool IsValid(std::true_type) const
 	{
-		return this->success && stream && stream->VerifyIntegrity();
+		return this->success;
 	}
 
 	COMPILETIMEEVAL bool IsValid(std::false_type) const
@@ -328,6 +702,8 @@ concept SafeForRawSerialization = SafeElementType<T> || IsAnFixedArray<T>;
 class PhobosStreamReader : public PhobosStreamWorkerBase
 {
 public:
+	static COMPILETIMEEVAL StreamType Type = StreamType::READER;
+
 	COMPILETIMEEVAL explicit PhobosStreamReader(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
 	COMPILETIMEEVAL PhobosStreamReader(const PhobosStreamReader&) = delete;
 	COMPILETIMEEVAL PhobosStreamReader& operator = (const PhobosStreamReader&) = delete;
@@ -389,13 +765,6 @@ public:
 					actualOffset - actualSize);
 			}
 
-			DebugBreak();
-			return false;
-		}
-
-		if (!this->stream->VerifyIntegrity())
-		{
-			GameDebugLog::Log("[PhobosStreamReader] Stream integrity check failed at end\n");
 			DebugBreak();
 			return false;
 		}
@@ -490,6 +859,8 @@ public:
 class PhobosStreamWriter : public PhobosStreamWorkerBase
 {
 public:
+	static COMPILETIMEEVAL StreamType Type = StreamType::WRITER;
+
 	COMPILETIMEEVAL explicit PhobosStreamWriter(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
 	COMPILETIMEEVAL PhobosStreamWriter(const PhobosStreamWriter&) = delete;
 	COMPILETIMEEVAL PhobosStreamWriter& operator = (const PhobosStreamWriter&) = delete;

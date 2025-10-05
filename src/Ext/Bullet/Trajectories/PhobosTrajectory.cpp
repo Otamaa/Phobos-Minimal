@@ -203,14 +203,14 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::uniqu
 		Stm.Process(nFlag, false);
 
 		//Read the pointer value again so it can be registered
-		PhobosTrajectoryType* pOld = nullptr;
+		long pOld = 0ul;
 		if (!Stm.Load(pOld) || !pOld)
 			return;
 
 		//create the new type
 		if(PhobosTrajectoryType::UpdateType(pType, nFlag)) {
 			// register the change if succeeded
-			PHOBOS_SWIZZLE_REGISTER_POINTER((long)pOld, pType.get(), pType->Name())
+			PHOBOS_SWIZZLE_REGISTER_POINTER(pOld, pType.get(), pType->Name())
 			pType->Load(Stm, true);
 		}
 	}
@@ -392,8 +392,7 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamWriter& Stm, std::unique_pt
 {
 	const bool Exist = pTraj.get();
 	Stm.Process(Exist);
-	if (Exist)
-	{
+	if (Exist) {
 		Stm.Process(pTraj->Flag);
 		pTraj->Save(Stm);
 	}

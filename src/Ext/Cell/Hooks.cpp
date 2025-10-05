@@ -12,6 +12,281 @@
 
 #include <Ext/Rules/Body.h>
 
+/*
+void CellClass::Draw_Overlay(int xOffset, int yOffset, const Rect& viewport)
+{
+	// Early exit for invalid overlays
+	if (Overlay == OVERLAY_USELESS || Overlay == OVERLAY_VEINHOLEDUMMY)
+		return;
+
+	OverlayTypeClass* overlayType = OverlayTypes[Overlay];
+
+	// Calculate pixel position for overlay
+	Point2D overlayPixelPos = CellClass_overlay_pixelPos_480110(this);
+	Point2D drawPos;
+	drawPos.X = overlayPixelPos.X + xOffset - viewport.X;
+	drawPos.Y = overlayPixelPos.Y + yOffset - viewport.Y;
+
+	// Calculate Z-offset based on level and bridge status
+	int level = Level;
+	int isBridge = (Bitfield2 >> 7) & 1;
+	int zOffset = 15 * (level + 4 * isBridge);
+
+	// Initialize tile drawer if needed
+	if (!TileDrawer)
+	{
+		Init_Drawer(0, 0x10000, 0, 1000, 1000, 1000);
+	}
+
+	int* imageData = overlayType->Get_Image_Data();
+
+	// Handle special veins overlay (Bitfield2[0] < 0 means it's veins)
+	if (Bitfield2[0] < 0)
+	{
+		// Check if redraw is needed (caching mechanism)
+		if (RedrawFrame == Frame &&
+			RedrawCountMAYBE == MapClass_Redraws &&
+			InViewportRect.X == viewport.X &&
+			InViewportRect.Y == viewport.Y &&
+			InViewportRect.Width == viewport.Width &&
+			InViewportRect.Height == viewport.Height)
+		{
+			return; // No redraw needed
+		}
+
+		// Calculate frame index
+		int frame = OverlayData;
+		if (OverlayData == 0 || OverlayData == 9)
+		{
+			int lookupIndex = (Position.X & 3) | ((Position.Y & 3) << 2);
+			frame += OverlayFrameLookup[lookupIndex];
+		}
+
+		CC_Draw_Shape(
+			&TempSurface->xs.s,
+			&TileDrawer->cv,
+			(ShapeCache*)imageData,
+			frame,
+			&drawPos,
+			&viewport,
+			BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+			0,
+			-2 - zOffset,
+			0,
+			Color1.b,
+			0, 0, 0, 0, 0);
+
+		// Update cache state
+		RedrawFrame = Frame;
+		InViewportRect = ViewportBounds_TacPixel;
+		RedrawCountMAYBE = MapClass_Redraws;
+		return;
+	}
+
+	// Handle tiberium overlays
+	if (overlayType->IsTiberium)
+	{
+		int tiberiumType = OverlayClass::get_tiberium_type(Overlay);
+		if (tiberiumType == -1)
+			return;
+
+		TiberiumClass* tiberium = Tiberiums[tiberiumType];
+		int numImages;
+		int frameIndex;
+
+		// Handle ramp tiberium
+		if (Ramp)
+		{
+			numImages = tiberium->__NumImages;
+			// Complex calculation for ramp tiberium frame
+			frameIndex = tiberium->Image->ArrayIndex +
+						tiberium->int_field_EC / 4 * ((unsigned char)Ramp - 1) +
+						Position.X * Position.Y % (tiberium->int_field_EC / 4);
+		}
+		else
+		{
+			// Flat tiberium frame calculation
+			frameIndex = Position.X * Position.Y % tiberium->__NumImages;
+			numImages = tiberium->Image->ArrayIndex;
+		}
+
+		// Get the correct overlay type and image data for this tiberium frame
+		imageData = OverlayTypes[numImages + frameIndex]->Get_Image_Data();
+
+		if (Ramp)
+		{
+			CC_Draw_Shape(
+				&TempSurface->xs.s,
+				VoxelDrawer,
+				(ShapeCache*)imageData,
+				OverlayData,
+				&drawPos,
+				&viewport,
+				BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+				0,
+				-2 - zOffset,
+				0,
+				1000,
+				0,
+				ramvals_AA105C[(unsigned char)Ramp],
+				0, 0, 0);
+			return;
+		}
+
+		// Flat tiberium
+		CC_Draw_Shape(
+			&TempSurface->xs.s,
+			VoxelDrawer,
+			(ShapeCache*)imageData,
+			OverlayData,
+			&drawPos,
+			&viewport,
+			BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+			0,
+			-2 - zOffset,
+			0,
+			1000,
+			0, 0, 0, 0, 0);
+		return;
+	}
+
+	// Handle wall overlays
+	if (overlayType->IsWall)
+	{
+		CC_Draw_Shape(
+			&TempSurface->xs.s,
+			&ColorSchemes.Vector[PlayerPtr->RemapColor]->Drawer->cv,
+			(ShapeCache*)imageData,
+			OverlayData,
+			&drawPos,
+			&viewport,
+			BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+			0,
+			-2 - zOffset,
+			2,
+			Color1.r,
+			0, 0, 0, 0, 0);
+		return;
+	}
+
+	// Handle OVERLAY_DUMMYOLD type
+	if (overlayType->Type == OVERLAY_DUMMYOLD)
+	{
+		if (Ramp)
+		{
+			CC_Draw_Shape(
+				&TempSurface->xs.s,
+				VoxelDrawer,
+				(ShapeCache*)imageData,
+				OverlayData,
+				&drawPos,
+				&viewport,
+				BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+				0,
+				-2 - zOffset,
+				0,
+				Color1.g,
+				0,
+				ramvals_AA105C[(unsigned char)Ramp],
+				0,
+				30,
+				-2);
+			return;
+		}
+
+		// Flat dummy overlay
+		CC_Draw_Shape(
+			&TempSurface->xs.s,
+			VoxelDrawer,
+			(ShapeCache*)imageData,
+			OverlayData,
+			&drawPos,
+			&viewport,
+			BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+			0,
+			-2 - zOffset,
+			0,
+			Color1.g,
+			0, 0, 0, 0, 0);
+		return;
+	}
+
+	// Handle generic overlays (crates, rubble, rocks, etc.)
+	int verticalOffset = overlayType->DrawFlat ? 0 : -15;
+
+	if (overlayType->IsARock)
+	{
+		verticalOffset = 0;
+	}
+
+	int zParameter = overlayType->DrawFlat ? 0 : 2;
+
+	// Handle crates
+	if (overlayType->IsCrate)
+	{
+		CC_Draw_Shape(
+			&TempSurface->xs.s,
+			&TileDrawer->cv,
+			(ShapeCache*)imageData,
+			0,
+			&drawPos,
+			&viewport,
+			BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+			0,
+			verticalOffset - zOffset - 2,
+			zParameter,
+			Color1.g,
+			0, 0, 0, 0, 0);
+		return;
+	}
+
+	// Handle rubble
+	if (overlayType->IsRubble)
+	{
+		BuildingTypeClass* rubbleBuilding = (BuildingTypeClass*)Rubble;
+		if (rubbleBuilding)
+		{
+			// The decompiler shows these are passed as pointers and modified
+			OverlayTypeClass* rubbleOverlayType = overlayType;
+			int rubbleFrame = yOffset; // a6 parameter reused
+
+			if (BuildingTypeClass::Can_Leave_Rubble(rubbleBuilding, (int*)&rubbleOverlayType, &rubbleFrame))
+			{
+				CC_Draw_Shape(
+					&TempSurface->xs.s,
+					&TileDrawer->cv,
+					(ShapeCache*)rubbleOverlayType,
+					rubbleFrame,
+					&drawPos,
+					&viewport,
+					BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+					0,
+					verticalOffset - zOffset - 2,
+					zParameter,
+					Color1.g,
+					0, 0, 0, 0, 0);
+			}
+		}
+		return;
+	}
+
+	// Draw standard overlay
+	CC_Draw_Shape(
+		&TempSurface->xs.s,
+		&TileDrawer->cv,
+		(ShapeCache*)imageData,
+		OverlayData,
+		&drawPos,
+		&viewport,
+		BF_USE_ZBUFFER | BF_ALPHA | BF_400 | BF_CENTER,
+		0,
+		verticalOffset - zOffset - 2,
+		zParameter,
+		Color1.g,
+		0, 0, 0, 0, 0);
+}
+*/
+
 ASMJIT_PATCH(0x480EA8, CellClass_DamageWall_AdjacentWallDamage, 0x5)
 {
 	GET(CellClass*, pThis, EAX);
@@ -55,8 +330,7 @@ ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 	GET(FakeCellClass*, pThis, ESI);
 	GET(OverlayTypeClass*, pOverlay, EBX);
 
-	if (!pOverlay->Tiberium)
-	{
+	if (!pOverlay->Tiberium) {
 		return 0x47F96A;
 	}
 
@@ -66,15 +340,82 @@ ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 		return 0x47FB86;
 	}
 
-	const auto pTibExt = TiberiumExtContainer::Instance.Find(pTiberium);
-
-	if (!pTibExt->EnableLighningFix.Get()) {
-		R->EBX(pTiberium);
-		return 0x47F882;
-	}
-
 	GET_STACK(Point2D, nPos, 0x14);
 	GET(RectangleStruct*, pBound, EBP);
+	//GET(int, zOffs, EDI);
+	GET_STACK(int, zOffs, 0x28);
+
+	const auto pTibExt = TiberiumExtContainer::Instance.Find(pTiberium);
+
+	ConvertClass* pDecided = FileSystem::x_PAL();
+	if (const auto pCustom = pTibExt->Palette.GetConvert()) {
+		pDecided = pCustom;
+	}
+
+	SHPStruct* pZShape = nullptr;
+	if (auto nSlope = (int)pThis->SlopeIndex)
+		pZShape = IsometricTileTypeClass::SlopeZshape[pThis->SlopeIndex];	//this is just pointers to files in ram, no vector #tomsons26
+
+	//if (!pTibExt->EnableLighningFix.Get()) {
+	//	int numImages;
+	//	int frameIndex;
+	//
+	//	// Handle ramp tiberium
+	//	if (pThis->SlopeIndex) {
+	//		numImages = pTiberium->NumImages;
+	//		// Complex calculation for ramp tiberium frame
+	//		frameIndex = pTiberium->Image->ArrayIndex +
+	//			pTiberium->SlopeFrames / 4 * ((unsigned char)pThis->SlopeIndex - 1) +
+	//			nPos.X * nPos.Y % (pTiberium->SlopeFrames / 4);
+	//	} else {
+	//		// Flat tiberium frame calculation
+	//		frameIndex = nPos.X * nPos.Y % pTiberium->NumImages;
+	//		numImages = pTiberium->Image->ArrayIndex;
+	//	}
+	//
+	//	// Get the correct overlay type and image data for this tiberium frame
+	//	SHPStruct* imageData = OverlayTypeClass::Array->Items[numImages + frameIndex]->GetImage();
+	//
+	//	if (!imageData) {
+	//		return 0x47FB86;
+	//	}
+	//
+	//	if (pThis->SlopeIndex)
+	//	{
+	//		DSurface::Temp->DrawSHP(
+	//			pDecided,
+	//			imageData,
+	//			pThis->OverlayData,
+	//			&nPos,
+	//			pBound,
+	//			BlitterFlags(0x4E00),
+	//			0,
+	//			-2 - zOffs,
+	//			ZGradient::Ground,
+	//			1000,
+	//			0,
+	//			pZShape,
+	//			0, 0, 0);
+	//
+	//		return 0x47FB86;
+	//	}
+	//
+	//	// Flat tiberium
+	//	DSurface::Temp->DrawSHP(
+	//		pDecided,
+	//		imageData,
+	//		pThis->OverlayData,
+	//		&nPos,
+	//		pBound,
+	//		BlitterFlags(0x4E00),
+	//		0,
+	//		-2 - zOffs,
+	//		ZGradient::Ground,
+	//		1000,
+	//		0, 0, 0, 0, 0);
+	//
+	//	return 0x47FB86;
+	//}
 
 	auto nIndex = CellExtData::GetOverlayIndex(pThis, pTiberium);
 	const auto pShape = OverlayTypeClass::Array->Items[nIndex]->GetImage();
@@ -83,21 +424,16 @@ ASMJIT_PATCH(0x47F852, CellClass_DrawOverlay_Tiberium_, 0x6) // B
 		return 0x47FB86;
 	}
 
-	const auto nZAdjust = -2 - 15 * (pThis->Level + 4 * (((int)pThis->Flags >> 7) & 1));
+	const auto nZAdjust = -2 - zOffs;
 	auto nTint = pTibExt->Ore_TintLevel.Get(pTibExt->UseNormalLight.Get() ? 1000 : pThis->Color1.Green);
 	const int nOreTint = std::clamp(nTint, 0, 1000);
-	auto nShadowFrame = (nIndex + pShape->Frames / 2);
-	ConvertClass* pDecided = FileSystem::x_PAL();
-	if (const auto pCustom = pTibExt->Palette.GetConvert()) {
-		pDecided = pCustom;
-	}
-
-	SHPStruct* pZShape = nullptr;
-	if (auto nSlope = (int)pThis->SlopeIndex)
-		pZShape = IsometricTileTypeClass::SlopeZshape[nSlope];	//this is just pointers to files in ram, no vector #tomsons26
 
 	DSurface::Temp->DrawSHP(pDecided, pShape, pThis->OverlayData, &nPos, pBound, BlitterFlags(0x4E00), 0, nZAdjust, ZGradient::Ground, nOreTint, 0, pZShape, 0, 0, 0);
-	DSurface::Temp->DrawSHP(pDecided, pShape, nShadowFrame, &nPos, pBound, BlitterFlags(0x4E01), 0, nZAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+
+	if(pTibExt->EnableLighningFix){
+		auto nShadowFrame = (nIndex + pShape->Frames / 2);
+		DSurface::Temp->DrawSHP(pDecided, pShape, nShadowFrame, &nPos, pBound, BlitterFlags(0x4E01), 0, nZAdjust, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+	}
 
 	return 0x47FB86;
 }

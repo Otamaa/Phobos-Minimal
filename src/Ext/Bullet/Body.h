@@ -31,11 +31,7 @@ public:
 	SuperWeaponTypeClass* NukeSW;
 	bool BrightCheckDone;
 	HouseClass* Owner;
-	bool Bouncing;
-	ObjectClass* LastObject;
-	int BounceAmount;
-	OptionalStruct<DirStruct, true> InitialBulletDir;
-	std::vector<UniversalTrail> Trails;
+	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
 	std::unique_ptr<PhobosTrajectory> Trajectory;
 	ParticleSystemClass* AttachedSystem;
 	int DamageNumberOffset;
@@ -49,13 +45,12 @@ public:
 		InterceptorTechnoType(nullptr),
 		InterceptedStatus(InterceptedStatus::None),
 		DetonateOnInterception(true),
+		LaserTrails(),
 		SnappedToTarget(false),
 		NukeSW(nullptr),
 		BrightCheckDone(false),
 		Owner(nullptr),
-		Bouncing(false),
-		LastObject(nullptr),
-		BounceAmount(0),
+		Trails(),
 		AttachedSystem(nullptr),
 		DamageNumberOffset(INT32_MIN),
 		OriginalTarget(nullptr),

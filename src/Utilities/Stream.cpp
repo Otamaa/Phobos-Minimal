@@ -4,6 +4,137 @@
 #include <Utilities/Swizzle.h>
 
 #include <Objidl.h>
+#include <Phobos.Defines.h>
+
+HRESULT PhobosPersistStream::Save(IStream* pStm, BOOL fClearDirty)
+{
+	ULONG out = 0;
+
+	// Write START marker
+	if (FAILED(pStm->Write(START_MARKER, START_MARKER_LEN, &out)) || out != START_MARKER_LEN)
+	{
+		return E_FAIL;
+	}
+
+	// Write buffer name length and name
+	const size_t nameLen = bufferName.length();
+	if (FAILED(pStm->Write(&nameLen, sizeof(nameLen), &out)) || out != sizeof(nameLen))
+	{
+		return E_FAIL;
+	}
+
+	if (nameLen > 0)
+	{
+		if (FAILED(pStm->Write(bufferName.data(), nameLen, &out)) || out != nameLen)
+		{
+			return E_FAIL;
+		}
+	}
+
+	// Write data length
+	const size_t Length = this->Data.size();
+	if (FAILED(pStm->Write(&Length, sizeof(Length), &out)) || out != sizeof(Length))
+	{
+		return E_FAIL;
+	}
+
+	// Write alignment
+	if (FAILED(pStm->Write(&alignment, sizeof(alignment), &out)) || out != sizeof(alignment))
+	{
+		return E_FAIL;
+	}
+
+	// Write actual data
+	if (Length > 0)
+	{
+		if (!this->WriteToStream(pStm))
+		{
+			return E_FAIL;
+		}
+	}
+
+	// Write END marker
+	if (FAILED(pStm->Write(END_MARKER, END_MARKER_LEN, &out)) || out != END_MARKER_LEN)
+	{
+		return E_FAIL;
+	}
+
+	return S_OK;
+}
+
+HRESULT PhobosPersistStream::Load(IStream* pStm)
+{
+	ULONG out = 0;
+
+	// Verify START marker
+	char startMarker[START_MARKER_LEN] = { 0 };
+	if (FAILED(pStm->Read(startMarker, START_MARKER_LEN, &out)) || out != START_MARKER_LEN)
+	{
+		return E_FAIL;
+	}
+	if (!IS_SAME_STR_(startMarker, START_MARKER))
+	{
+		// Invalid marker - not a StreamBuffer block
+		return E_FAIL;
+	}
+
+	// Read buffer name length and name
+	size_t nameLen = 0;
+	if (FAILED(pStm->Read(&nameLen, sizeof(nameLen), &out)) || out != sizeof(nameLen))
+	{
+		return E_FAIL;
+	}
+
+	bufferName.resize(nameLen);
+	if (nameLen > 0)
+	{
+		if (FAILED(pStm->Read(&bufferName[0], nameLen, &out)) || out != nameLen)
+		{
+			return E_FAIL;
+		}
+	}
+
+	// Read data length
+	size_t Length = 0;
+	if (FAILED(pStm->Read(&Length, sizeof(Length), &out)) || out != sizeof(Length))
+	{
+		return E_FAIL;
+	}
+
+	// Read alignment
+	if (FAILED(pStm->Read(&alignment, sizeof(alignment), &out)) || out != sizeof(alignment))
+	{
+		return E_FAIL;
+	}
+
+	// Clear existing data and read new data
+	this->Data.clear();
+	this->CurrentOffset = 0;
+
+	if (Length > 0)
+	{
+		if (!this->ReadFromStream(pStm, Length))
+		{
+			return E_FAIL;
+		}
+	}
+
+	// Verify END marker
+	char endMarker[END_MARKER_LEN] = { 0 };
+	if (FAILED(pStm->Read(endMarker, END_MARKER_LEN, &out)) || out != END_MARKER_LEN)
+	{
+		return E_FAIL;
+	}
+
+	if (!IS_SAME_STR_(endMarker, END_MARKER))
+	{
+		// Invalid end marker - data corrupted
+		this->Data.clear();
+		return E_FAIL;
+	}
+
+	return S_OK;
+}
 
 const char* RCFunc = "PhobosStreamReader::RegisterChange()";
 bool PhobosByteStream::integrity_check_enabled = true;
@@ -220,7 +351,7 @@ bool PhobosByteStream::Read(void* buffer, size_t size)
 	}
 }
 
-bool PhobosByteStream::WriteToStream(LPSTREAM stream) const
+bool PhobosByteStream::WriteToStream(LPSTREAM stream)
 {
 	if (!stream)
 	{
@@ -448,7 +579,7 @@ bool PhobosStreamReader::RegisterChange(void* newPtr)
 	return false;
 }
 
-bool PhobosAppendedStream::WriteToStream(LPSTREAM pStm) const
+bool PhobosAppendedStream::WriteToStream(LPSTREAM pStm)
 {
 	if (!pStm)
 	{

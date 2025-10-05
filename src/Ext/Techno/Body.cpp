@@ -193,7 +193,7 @@ void TechnoExtData::ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* int
 	pExt->Tints.GetTints(tintColor, intensity);
 
 	bool calculateIntensity = intensity != nullptr;
-	const bool calculateTintColor = tintColor != nullptr;
+	//const bool calculateTintColor = tintColor != nullptr;
 	BuildingClass* pBld = cast_to<BuildingClass*, false>(pThis);
 	bool needRedraw = false;
 
@@ -562,8 +562,9 @@ void __fastcall FakeTechnoClass::__DrawAirstrikeFlare(TechnoClass* pThis, discar
 	}
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x705860, FakeTechnoClass::__DrawAirstrikeFlare);
-DEFINE_FUNCTION_JUMP(CALL, 0x6D48F1, FakeTechnoClass::__DrawAirstrikeFlare);
+// TODO : test
+// DEFINE_FUNCTION_JUMP(LJMP, 0x705860, FakeTechnoClass::__DrawAirstrikeFlare);
+// DEFINE_FUNCTION_JUMP(CALL, 0x6D48F1, FakeTechnoClass::__DrawAirstrikeFlare);
 
 #include <Ext/Infantry/Body.h>
 
@@ -4526,11 +4527,10 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 	damageStr.clear();
 
 	if (Phobos::Otamaa::IsAdmin)
-		fmt::format_to(std::back_inserter(damageStr) ,L"[{}] {} ({})", PhobosCRT::StringToWideString(pThis->get_ID()), PhobosCRT::StringToWideString(pWH->ID), damage);
+		fmt::format_to(std::back_inserter(damageStr) ,L"[{}] {} ({})\0", PhobosCRT::StringToWideString(pThis->get_ID()), PhobosCRT::StringToWideString(pWH->ID), damage);
 	else
-		fmt::format_to(std::back_inserter(damageStr) ,L"{}", damage);
+		fmt::format_to(std::back_inserter(damageStr) ,L"{}\0", damage);
 
-	damageStr.push_back(L'\0');
 	auto coords = pThis->GetCenterCoords();
 	int maxOffset = 30;
 	int width = 0, height = 0;
@@ -4550,7 +4550,7 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 		{
 			if (pThis->VisualCharacter(0, HouseClass::CurrentPlayer()) != VisualType::Hidden)
 			{
-				FlyingStrings::Add(damageStr.data(), coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
+				FlyingStrings::Add(damageStr, coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
 			}
 		}
 	}
@@ -4920,7 +4920,7 @@ void TechnoExtData::UpdateTiberiumEater()
 			{
 				auto cellCoords = pCell->GetCoords();
 				cellCoords.Z = std::max(pThis->Location.Z, cellCoords.Z);
-				FlyingStrings::AddMoneyString(true , value, pOwner, pEaterType->DisplayToHouse, cellCoords, pEaterType->DisplayOffset);
+				FlyingStrings::AddMoneyString(true, value, pOwner, pEaterType->DisplayToHouse, cellCoords, pEaterType->DisplayOffset, ColorStruct::Empty);
 			}
 
 			const auto& anims = pEaterType->Anims_Tiberiums[tiberiumIdx].GetElements(pEaterType->Anims);
@@ -5296,7 +5296,7 @@ void TechnoExtData::UpdateEatPassengers()
 							if (pDelType->DisplaySoylent)
 							{
 								FlyingStrings::AddMoneyString(true, nMoneyToGive, pThis,
-									pDelType->DisplaySoylentToHouses, pThis->Location, pDelType->DisplaySoylentOffset);
+									pDelType->DisplaySoylentToHouses, pThis->Location, pDelType->DisplaySoylentOffset, ColorStruct::Empty);
 							}
 						}
 					}

@@ -60,13 +60,17 @@ public:
 #pragma endregion
 
 public:
-	SuperExtData(SuperClass* pObj) : AbstractExtended(pObj),
-		Type(nullptr),
-		Temp_IsPlayer(false),
-		CameoFirstClickDone(false),
-		FirstClickAutoFireDone(false),
-		MusicActive(false)
+	SuperExtData(SuperClass* pObj) : AbstractExtended(pObj)
+		, Type(nullptr)
+		, Temp_IsPlayer(false)
+		, Temp_CellStruct()
+		, CameoFirstClickDone(false)
+		, FirstClickAutoFireDone(false)
+		, Statusses()
+		, MusicTimer()
+		, MusicActive(false)
 	{ }
+
 	SuperExtData(SuperClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~SuperExtData() = default;

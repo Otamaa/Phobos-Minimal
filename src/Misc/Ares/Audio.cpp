@@ -59,12 +59,12 @@ public:
 		}
 
 		if (!pFile->Open(FileAccessMode::Read)) {
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("LooseAudioCache: Failed to open file: %s\n", WavName.c_str());
-
 			GameDelete<true, false>(pFile);
 			pFile = nullptr;
 			return { Data.Size, Data.Offset, pFile, pFile != nullptr };
+		} else{
+			if (Phobos::Otamaa::IsAdmin)
+				Debug::Log("LooseAudioCache: successfully open file: %s\n", WavName.c_str());
 		}
 
 		if (Data.Size < 0 && Audio::ReadWAVFile(pFile, &Data.Data, &Data.Size)) {
@@ -160,8 +160,8 @@ public:
 		COMPILETIMEEVAL ~AudioBag() = default;
 
 		explicit AudioBag(const char* pFilename) : AudioBag() {
-			if(!this->Open(pFilename) && Phobos::Otamaa::IsAdmin)
-				Debug::LogInfo("Failed To open AudioBag {}" , pFilename);
+			if(this->Open(pFilename) && Phobos::Otamaa::IsAdmin)
+				Debug::LogInfo("Opening AudioBag {}" , pFilename);
 		}
 
 		AudioBag(AudioBag&& other) noexcept {

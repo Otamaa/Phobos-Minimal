@@ -21,9 +21,9 @@ ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 //! \{
 
 [[nodiscard]]
-static ASMJIT_INLINE_NODEBUG RegType vecTypeIdToRegType(TypeId typeId) noexcept {
-  return uint32_t(typeId) <= uint32_t(TypeId::_kVec128End) ? RegType::kVec128 :
-         uint32_t(typeId) <= uint32_t(TypeId::_kVec256End) ? RegType::kVec256 : RegType::kVec512;
+static ASMJIT_INLINE_NODEBUG RegType vec_type_id_to_reg_type(TypeId type_id) noexcept {
+  return uint32_t(type_id) <= uint32_t(TypeId::_kVec128End) ? RegType::kVec128 :
+         uint32_t(type_id) <= uint32_t(TypeId::_kVec256End) ? RegType::kVec256 : RegType::kVec512;
 }
 
 //! Instruction identifiers for targeting SSE and AVX backends.
@@ -70,54 +70,46 @@ struct EmitHelperInstructionIds {
 };
 
 //! Emit helper data for SSE at [0] and AVX/AVX-512 at [1].
-extern const EmitHelperInstructionIds _emitHelperInstructionIds[2];
+extern const EmitHelperInstructionIds _emit_helper_instruction_ids[2];
 
 class EmitHelper : public BaseEmitHelper {
 protected:
-  bool _avxEnabled;
-  bool _avx512Enabled;
+  bool _avx_enabled;
+  bool _avx512_enabled;
   const EmitHelperInstructionIds* _ids;
 
 public:
-  ASMJIT_INLINE_NODEBUG explicit EmitHelper(BaseEmitter* emitter = nullptr, bool avxEnabled = false, bool avx512Enabled = false) noexcept
-    : BaseEmitHelper(emitter) { reset(emitter, avxEnabled, avx512Enabled); }
+  ASMJIT_INLINE_NODEBUG explicit EmitHelper(BaseEmitter* emitter = nullptr, bool avx_enabled = false, bool avx512_enabled = false) noexcept
+    : BaseEmitHelper(emitter) { reset(emitter, avx_enabled, avx512_enabled); }
 
-  ASMJIT_INLINE_NODEBUG virtual ~EmitHelper() noexcept = default;
+  ASMJIT_INLINE_NODEBUG ~EmitHelper() noexcept override = default;
 
-  ASMJIT_INLINE_NODEBUG bool isAvxEnabled() const noexcept { return _avxEnabled; }
-  ASMJIT_INLINE_NODEBUG bool isAvx512Enabled() const noexcept { return _avx512Enabled; }
+  ASMJIT_INLINE_NODEBUG bool is_avx_enabled() const noexcept { return _avx_enabled; }
+  ASMJIT_INLINE_NODEBUG bool is_avx512_enabled() const noexcept { return _avx512_enabled; }
   ASMJIT_INLINE_NODEBUG const EmitHelperInstructionIds& ids() const noexcept { return *_ids; }
 
-  ASMJIT_INLINE void reset(BaseEmitter* emitter, bool avxEnabled, bool avx512Enabled) noexcept {
+  ASMJIT_INLINE void reset(BaseEmitter* emitter, bool avx_enabled, bool avx512_enabled) noexcept {
     _emitter = emitter;
-    _avxEnabled = avxEnabled || avx512Enabled;
-    _avx512Enabled = avx512Enabled;
-    _ids = &_emitHelperInstructionIds[size_t(_avxEnabled)];
+    _avx_enabled = avx_enabled || avx512_enabled;
+    _avx512_enabled = avx512_enabled;
+    _ids = &_emit_helper_instruction_ids[size_t(_avx_enabled)];
   }
 
-  Error emitRegMove(
-    const Operand_& dst_,
-    const Operand_& src_, TypeId typeId, const char* comment = nullptr) override;
+  Error emit_reg_move(const Operand_& dst_, const Operand_& src_, TypeId type_id, const char* comment = nullptr) override;
+  Error emit_arg_move(const Reg& dst_, TypeId dst_type_id, const Operand_& src_, TypeId src_type_id, const char* comment = nullptr) override;
+  Error emit_reg_swap(const Reg& a, const Reg& b, const char* comment = nullptr) override;
 
-  Error emitArgMove(
-    const Reg& dst_, TypeId dstTypeId,
-    const Operand_& src_, TypeId srcTypeId, const char* comment = nullptr) override;
-
-  Error emitRegSwap(
-    const Reg& a,
-    const Reg& b, const char* comment = nullptr) override;
-
-  Error emitProlog(const FuncFrame& frame);
-  Error emitEpilog(const FuncFrame& frame);
+  Error emit_prolog(const FuncFrame& frame);
+  Error emit_epilog(const FuncFrame& frame);
 };
 
-void initEmitterFuncs(BaseEmitter* emitter) noexcept;
+void init_emitter_funcs(BaseEmitter* emitter) noexcept;
 
-static ASMJIT_INLINE void updateEmitterFuncs(BaseEmitter* emitter) noexcept {
+static ASMJIT_INLINE void update_emitter_funcs(BaseEmitter* emitter) noexcept {
 #ifndef ASMJIT_NO_VALIDATION
-  emitter->_funcs.validate = emitter->is32Bit() ? InstInternal::validateX86 : InstInternal::validateX64;
+  emitter->_funcs.validate = emitter->is_32bit() ? InstInternal::validate_x86 : InstInternal::validate_x64;
 #else
-  DebugUtils::unused(emitter);
+  Support::maybe_unused(emitter);
 #endif
 }
 

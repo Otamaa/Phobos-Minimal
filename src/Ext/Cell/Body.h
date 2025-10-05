@@ -49,7 +49,10 @@ public:
 	CellExtData(CellClass* pObj) : AbstractExtended(pObj),
 		NewPowerups(-1),
 		IncomingUnit(nullptr),
-		IncomingUnitAlt(nullptr)
+		IncomingUnitAlt(nullptr),
+		RadSites(),
+		RadLevels()
+
 	{
 		this->AbstractExtended::SetName("CellClass");
 	}

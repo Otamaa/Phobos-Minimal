@@ -273,55 +273,6 @@ void ScenarioExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 }
 
 // =============================
-// load / save
-template <typename T>
-void ScenarioExtData::Serialize(T& Stm)
-{
-	//Debug::LogInfo("Processing ScenarioExtData ! ");
-	Stm
-
-		.Process(this->Initialized)
-		.Process(this->OriginalFilename)
-		.Process(this->Waypoints)
-		.Process(this->Local_Variables)
-		.Process(this->Global_Variables)
-		.Process(this->TriggerTypePlayerAtXOwners)
-		.Process(this->DefinedAudioWaypoints)
-		.Process(this->ParTitle)
-		.Process(this->ParMessage)
-		.Process(this->ScoreCampaignTheme)
-		.Process(this->NextMission)
-
-		//.Process(this->DefaultNormalLighting)
-		//.Process(this->DefaultAmbientOriginal)
-		//.Process(this->DefaultAmbientCurrent)
-		//.Process(this->DefaultAmbientTarget)
-		//.Process(this->CurrentTint_Tiles)
-		//.Process(this->CurrentTint_Schemes)
-		//.Process(this->CurrentTint_Hashes)
-		.Process(this->AdjustLightingFix)
-
-		.Process(this->ShowBriefing)
-		.Process(this->BriefingTheme)
-		.Process(this->OwnedExistCameoTechnoTypes)
-		.Process(this->SWSidebar_Enable)
-		.Process(this->SWSidebar_Indices)
-
-		.Process(this->RecordMessages)
-
-		.Process(this->DefaultLS640BkgdName)
-		.Process(this->DefaultLS800BkgdName)
-		.Process(this->DefaultLS800BkgdPal)
-
-		.Process(this->MasterDetonationBullet)
-		.Process(this->LimboLaunchers)
-		.Process(this->UndergroundTracker)
-		;
-
-
-}
-
-// =============================
 // container hooks
 //
 ASMJIT_PATCH(0x683549, ScenarioClass_CTOR, 0x9)

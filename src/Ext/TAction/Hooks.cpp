@@ -137,17 +137,20 @@ ASMJIT_PATCH(0x6DE189, TActionClass_MakeEnemy, 0x6)
 
 	return OK;
 }*/
+
+#include <Ext/Rules/Body.h>
+
 // Bugfix, #issue 429: Retint map script disables RGB settings on light source
-// Author: secsome
-//ASMJIT_PATCH_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
-//ASMJIT_PATCH_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
-//ASMJIT_PATCH(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
-//{
-//	if (ScenarioExtData::Instance()->AdjustLightingFix)
-//		TActionExt::RecreateLightSources();
-//
-//	const TintStruct tint = ScenarioClass::Instance->NormalLighting.Tint;
-//	ScenarioExtData::Instance()->CurrentTint_Tiles = tint;
+// Author: secsome, Starkku
+
+ASMJIT_PATCH(0x6E2EA7, TActionClass_Retint_LightSourceFix, 0x3) // Red
+{
+	// Flag the light sources to update, actually do it later and only once to prevent redundancy.
+	RetintTemp::UpdateLightSources = RulesExtData::Instance()->UseRetintFix;
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x6E2F47, TActionClass_Retint_LightSourceFix, 0x3) // Blue
+ASMJIT_PATCH_AGAIN(0x6E2EF7, TActionClass_Retint_LightSourceFix, 0x3) // Green
 //	ScenarioExtData::Instance()->CurrentTint_Schemes = tint;
 //	ScenarioExtData::Instance()->CurrentTint_Hashes = tint;
 //

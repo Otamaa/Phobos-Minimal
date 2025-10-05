@@ -40,10 +40,10 @@ public:
   ASMJIT_INLINE_NODEBUG SpanForwardIterator operator--(int) noexcept { SpanForwardIterator prev(*this); ptr--; return prev; }
 
   template<typename N>
-  ASMJIT_INLINE_NODEBUG SpanForwardIterator operator+(const N& n) noexcept { return ArrayReverseIterator(ptr += n); }
+  ASMJIT_INLINE_NODEBUG SpanForwardIterator operator+(const N& n) noexcept { return SpanForwardIterator(ptr += n); }
 
   template<typename N>
-  ASMJIT_INLINE_NODEBUG SpanForwardIterator operator-(const N& n) noexcept { return ArrayReverseIterator(ptr -= n); }
+  ASMJIT_INLINE_NODEBUG SpanForwardIterator operator-(const N& n) noexcept { return SpanForwardIterator(ptr -= n); }
 
   template<typename N>
   ASMJIT_INLINE_NODEBUG SpanForwardIterator& operator+=(const N& n) noexcept { ptr += n; return *this; }
@@ -206,6 +206,11 @@ struct Span {
   ASMJIT_INLINE_CONSTEXPR Span(T* data, size_t size) noexcept
     : _data(data),
       _size(size) {}
+
+  template<size_t N>
+  static ASMJIT_INLINE_CONSTEXPR Span<T> from_array(T(&array)[N]) noexcept {
+    return Span<T>(array, N);
+  }
 
   //! \}
 

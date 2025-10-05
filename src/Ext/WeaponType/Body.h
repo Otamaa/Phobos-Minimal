@@ -97,7 +97,7 @@ public:
 	Valueable<bool> Wave_IsBigLaser;
 	Nullable<ColorStruct> Wave_Color;
 	Nullable<Point3D> Wave_Intent;
-	bool Wave_Reverse[5];
+	std::array<bool , 5> Wave_Reverse;
 
 	// custom Ivan Bombs
 	Valueable<bool> Ivan_KillsBridges;
@@ -124,8 +124,8 @@ public:
 
 	//Nullable<BoltData> WeaponBolt_Data;
 
-	Nullable<ColorStruct> Bolt_Colors[3];
-	Valueable<bool> Bolt_Disables[3];
+	std::array<Nullable<ColorStruct>, 3> Bolt_Colors;
+	std::array<Valueable<bool>, 3> Bolt_Disables;
 
 	Valueable<int> Bolt_Arcs;
 
@@ -206,15 +206,21 @@ public:
 	WeaponTypeExtData(WeaponTypeClass* pObj) : AbstractTypeExtData(pObj),
 		DiskLaser_Radius(38.2),
 		DiskLaser_Circumference(240),
+		RadType(),
 		Rad_NoOwner(true),
+		Strafing_Shots(),
 		Strafing_SimulateBurst(false),
+		Strafing(),
 		Strafing_UseAmmoPerShot(false),
-		Strafing_TargetCell(),
+		Strafing_EndDelay(),
+		Strafing_TargetCell(false),
 		CanTarget(AffectedTarget::All),
 		CanTargetHouses(AffectedHouse::All),
+		Burst_Delays(),
 		AreaFire_Target(AreaFireTarget::Base),
 		FeedbackWeapon(nullptr),
 		Laser_IsSingleColor(false),
+		Trajectory_Speed(),
 		Abductor(false),
 		Abductor_AnimType(nullptr),
 		Abductor_ChangeOwner(false),
@@ -224,49 +230,91 @@ public:
 		Abductor_CheckAbductableWhenTargeting(false),
 		Burst_FireWithinSequence(false),
 		Burst_NoDelay(false),
+		ROF_RandomDelay(),
+		ChargeTurret_Delays(),
 		OmniFire_TurnToTarget(false),
 		Xhi(0),
 		Xlo(0),
 		Yhi(0),
 		Ylo(0),
 		ShakeLocal(false),
+		OccupantAnims(),
 		OccupantAnim_UseMultiple(false),
 		Range_IgnoreVertical(false),
 		ProjectileRange(Leptons(100000)),
+		Decloak_InstantFire(),
 		Feedback_Anim(nullptr),
 		Feedback_Anim_Offset({ 0, 0, 0 }),
 		Feedback_Anim_UseFLH(true),
 		DestroyTechnoAfterFiring(false),
 		RemoveTechnoAfterFiring(false),
 		OpentoppedAnim(nullptr),
+		DiskLaser_FiringOffset(),
+		Targeting_Health_Percent(),
 		Targeting_Health_Percent_Below(true),
 		RockerPitch(0.0f),
+		MyAttachFireDatas(),
 		Ammo(1),
 		IsDetachedRailgun(false),
 		Wave_IsHouseColor(false),
 		Wave_IsLaser(false),
 		Wave_IsBigLaser(false),
+		Wave_Color(),
+		Wave_Intent(),
+		Wave_Reverse(),
 		Ivan_KillsBridges(true),
 		Ivan_Detachable(true),
+		Ivan_Damage(),
+		Ivan_Delay(),
+		Ivan_TickingSound(),
+		Ivan_AttachSound(),
+		Ivan_WH(),
+		Ivan_Image(),
+		Ivan_FlickerRate(),
+		Ivan_CanDetonateTimeBomb(),
+		Ivan_CanDetonateDeathBomb(),
 		Ivan_DetonateOnSell(false),
 		Ivan_DeathBombOnAllies(false),
 		Ivan_DeathBomb(false),
+		ApplyDamage(),
 		Cursor_Attack((int)MouseCursorType::Attack),
 		Cursor_AttackOutOfRange((int)MouseCursorType::AttackOutOfRange),
+		Bolt_Colors(),
+		Bolt_Disables(),
 		Bolt_Arcs(8),
 		Bolt_Duration(17),
+		Bolt_ParticleSys(),
+		Bolt_FollowFLH(),
 		Laser_Thickness(-1),
+		ExtraWarheads(),
+		ExtraWarheads_DamageOverrides(),
+		ExtraWarheads_DetonationChances(),
+		ExtraWarheads_FullDetonation(),
 		Burst_Retarget(0.0),
+		KickOutPassenger(),
+		Beam_Color(),
 		Beam_Duration(15),
 		Beam_Amplitude(40.0),
 		Beam_IsHouseColor(false),
+		AmbientDamage_Warhead(),
 		AmbientDamage_IgnoreTarget(false),
+		RecoilForce(),
+		AttachEffect_RequiredTypes(),
+		AttachEffect_DisallowedTypes(),
+		AttachEffect_RequiredGroups(),
+		AttachEffect_DisallowedGroups(),
+		AttachEffect_RequiredMinCounts(),
+		AttachEffect_RequiredMaxCounts(),
+		AttachEffect_DisallowedMinCounts(),
+		AttachEffect_DisallowedMaxCounts(),
 		AttachEffect_CheckOnFirer(false),
 		AttachEffect_IgnoreFromSameSource(false),
 		FireOnce_ResetSequence(true),
+		AttachEffects(),
 		AttachEffect_Enable(false),
 		NoRepeatFire(0),
 		SkipWeaponPicking(true),
+		KeepRange(),
 		KeepRange_AllowAI(false),
 		KeepRange_AllowPlayer(false),
 		KeepRange_EarlyStopFrame(0),
@@ -274,29 +322,20 @@ public:
 		TurretRecoil_Suppress(false),
 		CanTarget_MaxHealth(1.0),
 		CanTarget_MinHealth(0.0),
+		DelayedFire_Duration(),
 		DelayedFire_SkipInTransport(false),
 		DelayedFire_Animation(nullptr),
+		DelayedFire_OpenToppedAnimation(),
 		DelayedFire_AnimIsAttached(true),
 		DelayedFire_CenterAnimOnFirer(false),
 		DelayedFire_RemoveAnimOnNoDelay(false),
 		DelayedFire_PauseFiringSequence(false),
 		DelayedFire_OnlyOnInitialBurst(false),
 		DelayedFire_InitialBurstSymmetrical(false),
+		DelayedFire_AnimOffset(),
 		DelayedFire_AnimOnTurret(true),
 		OnlyAttacker(false)
 	{
-		// Initialize Wave_Reverse array
-		for (int i = 0; i < 5; ++i)
-		{
-			Wave_Reverse[i] = false;
-		}
-
-		// Initialize Bolt_Disables array
-		for (int i = 0; i < 3; ++i)
-		{
-			Bolt_Disables[i] = false;
-		}
-
 		this->Initialize();
 	}
 

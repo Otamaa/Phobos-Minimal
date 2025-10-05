@@ -69,28 +69,69 @@ public:
 #pragma endregion
 
 public:
-	HouseTypeExtData(HouseTypeClass* pObj) : AbstractTypeExtData(pObj),
+	HouseTypeExtData(HouseTypeClass* pObj) :
+		AbstractTypeExtData(pObj),
+
 		SettingsInherited(false),
+
 		SurvivorDivisor(-1),
 		Crew(nullptr),
 		Engineer(nullptr),
 		Technician(nullptr),
+
 		ParaDropPlane(nullptr),
 		SpyPlane(nullptr),
 		HunterSeeker(nullptr),
+
+		ParaDropTypes(),
+		ParaDropNum(),
+
+		NewTeamsSelector_MergeUnclassifiedCategoryWith(),
+		NewTeamsSelector_UnclassifiedCategoryPercentage(),
+		NewTeamsSelector_GroundCategoryPercentage(),
+		NewTeamsSelector_NavalCategoryPercentage(),
+		NewTeamsSelector_AirCategoryPercentage(),
+
 		GivesBounty(true),
+		CanBeDriven(),
 		ParachuteAnim(nullptr),
+
 		StartInMultiplayer_WithConst(false),
+		Powerplants(),
+		VeteranBuildings(),
+
+		TauntFile(),
+		TauntFileName(""),
+
+		Degrades(),
+		Disguise(nullptr),
+		StartInMultiplayer_Types(),
+
+		LoadScreenBackground(""),
+		LoadScreenPalette(""),
+
 		LoadTextColor(-1),
 		RandomSelectionWeight(1),
+
+		LoadScreenName(),
+		LoadScreenSpecialName(),
+		LoadScreenBrief(),
+		StatusText(),
+
+		FlagFile(),
+		ObserverFlag(),
 		ObserverFlagSHP(nullptr),
 		ObserverFlagYuriPAL(false),
+
+		ObserverBackground(),
 		ObserverBackgroundSHP(nullptr),
+
 		BattlePoints(false),
 		BattlePoints_CanUseStandardPoints(false)
 	{
 		this->Initialize();
 	}
+
 	HouseTypeExtData(HouseTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 
 	virtual ~HouseTypeExtData() = default;

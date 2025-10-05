@@ -68,6 +68,7 @@ void Phobos::Config::Read()
 	Phobos::Config::DigitalDisplay_Enable = pRA2MD->ReadBool(PHOBOS_STR, "DigitalDisplay.Enable", Phobos::Config::DigitalDisplay_Enable);
 	Phobos::Config::MessageDisplayInCenter = pRA2MD->ReadBool(PHOBOS_STR, "MessageDisplayInCenter", Phobos::Config::MessageDisplayInCenter);
 	Phobos::Config::MessageApplyHoverState =  pRA2MD->ReadBool(PHOBOS_STR, "MessageApplyHoverState", Phobos::Config::MessageApplyHoverState );
+	Phobos::Config::MessageDisplayInCenter_BoardOpacity =  pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.BoardOpacity", 	Phobos::Config::MessageDisplayInCenter_BoardOpacity );
 	Phobos::Config::MessageDisplayInCenter_LabelsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.LabelsCount", Phobos::Config::MessageDisplayInCenter_LabelsCount);
 	Phobos::Config::MessageDisplayInCenter_RecordsCount = pRA2MD->ReadInteger(PHOBOS_STR, "MessageDisplayInCenter.RecordsCount", Phobos::Config::MessageDisplayInCenter_RecordsCount);
 

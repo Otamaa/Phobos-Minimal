@@ -305,5 +305,5 @@ HRESULT __stdcall FakeWaveClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C08, FakeWaveClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C0C, FakeWaveClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C08, FakeWaveClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C0C, FakeWaveClass::_Save)

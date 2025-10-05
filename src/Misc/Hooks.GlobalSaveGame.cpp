@@ -117,7 +117,7 @@
 #include <CStreamClass.h>
 #include <LoadOptionsClass.h>
 
-
+#ifdef RECORD_
 template<typename T>
 HRESULT SaveObjectVector(LPSTREAM pStm, DynamicVectorClass<T>& collection, DWORD arrayPosition = 0)
 {
@@ -368,6 +368,67 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection, DWORD 
 	return S_OK;
 }
 
+#else
+template<typename T>
+HRESULT SaveObjectVector(LPSTREAM pStm, DynamicVectorClass<T>& collection)
+{
+	HRESULT hr;
+	// Get type name once
+	std::string typeName = PhobosCRT::GetTypeIDName<T>();
+
+	// Write the count
+	int count = collection.Count;
+	Debug::Log("SaveObjectVector<%s>: About to write count %d\n",
+			   typeName.c_str(), count);
+
+	hr = pStm->Write(&count, sizeof(int), nullptr);
+	if (FAILED(hr))
+	{
+		Debug::Log("SaveObjectVector<%s>: FAILED to write count! HRESULT: 0x%08X\n",
+				   typeName.c_str(), hr);
+		return hr;
+	}
+	Debug::Log("SaveObjectVector<%s>: Successfully wrote count\n",
+			   typeName.c_str());
+
+	// Save each object
+	for (int i = 0; i < count; ++i)
+	{
+		Debug::Log("SaveObjectVector<%s>: Saving object %d/%d\n",
+				   typeName.c_str(), i + 1, count);
+
+		LPPERSISTSTREAM pUnk = nullptr;
+		hr = collection.Items[i]->QueryInterface(IID_IPersistStream,
+												  reinterpret_cast<void**>(&pUnk));
+		if (FAILED(hr)) return hr;
+		hr = OleSaveToStream(pUnk, pStm);
+		pUnk->Release();
+		if (FAILED(hr)) return hr;
+	}
+	return S_OK;
+}
+
+template<typename T>
+HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
+{
+	HRESULT hr;
+
+	// Write count
+	hr = pStm->Write(&collection.Count, sizeof(int), nullptr);
+	if (FAILED(hr)) return hr;
+
+	// Write array data
+	for (int i = 0; i < collection.Count; ++i)
+	{
+		hr = pStm->Write(&collection.Items[i], sizeof(T), nullptr);
+		if (FAILED(hr)) return hr;
+	}
+
+	return S_OK;
+}
+
+#endif
+
 #include <Utilities/StreamUtils.h>
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
@@ -470,14 +531,26 @@ private:
 };
 
 template<typename T>
-bool Process_Global_Save(PhobosStreamWriter& writer) {
+bool Process_Global_SaveB(LPSTREAM pStm) {
+	PhobosByteStream stm;
+	PhobosStreamWriter writer(stm);
+
+	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
+	return T::SaveGlobals(writer) && stm.WriteToStream(pStm);
+}
+
+template<typename T>
+bool Process_Global_Save(PhobosStreamWriter& writer)
+{
 	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
 	return T::SaveGlobals(writer);
 }
 
+#include <Ext/Scenario/Body.h>
+
 HRESULT SavePhobosEarlyObjects(LPSTREAM pStm)
 {
-	PhobosByteStream stm;
+	PhobosAppendedStream stm;
 	PhobosStreamWriter writer(stm);
 
 	HRESULT hr = S_OK;
@@ -498,6 +571,9 @@ HRESULT SavePhobosEarlyObjects(LPSTREAM pStm)
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<MouseClassExt>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<CellExtContainer>(writer);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<DigitalDisplayTypeClass>(writer);
@@ -533,22 +609,43 @@ HRESULT SavePhobosEarlyObjects(LPSTREAM pStm)
 	success = Process_Global_Save<UnitTypeExtContainer>(writer);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Save<UnitExtContainer>(writer);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Save<InfantryTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<InfantryExtContainer>(writer);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<BuildingTypeExtContainer>(writer);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Save<BuildingExtContainer>(writer);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Save<AircraftTypeExtContainer>(writer);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Save<AircraftExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<AnimTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Save<AnimExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<TeamExtContainer>(writer);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<TEventExtContainer>(writer);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<VoxelAnimTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<VoxelAnimExtContainer>(writer);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<WarheadTypeExtContainer>(writer);
@@ -560,10 +657,19 @@ HRESULT SavePhobosEarlyObjects(LPSTREAM pStm)
 	success = Process_Global_Save<ParticleTypeExtContainer>(writer);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Save<ParticleExtContainer>(writer);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Save<ParticleSystemTypeExtContainer>(writer);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Save<ParticleSystemExtContainer>(writer);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Save<BulletTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<BulletExtContainer>(writer);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<TActionExtData>(writer);
@@ -578,7 +684,22 @@ HRESULT SavePhobosEarlyObjects(LPSTREAM pStm)
 	success = Process_Global_Save<SWTypeExtContainer>(writer);
 	if (!success) return E_FAIL;
 
+	success = Process_Global_Save<SuperExtContainer>(writer);
+	if (!success) return E_FAIL;
+
 	success = Process_Global_Save<TerrainTypeExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<TerrainExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<WaveExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<BombExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<RadSiteExtContainer>(writer);
 	if (!success) return E_FAIL;
 
 	if (!stm.WriteToStream(pStm))
@@ -596,7 +717,7 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = SavePhobosEarlyObjects(pStm);
-	if (!SUCCEEDED(hr)) return false;
+	if (!SUCCEEDED(hr)) return hr;
 
 	hr = SaveObjectVector(pStm, *SideClass::Array);
 	if (!SUCCEEDED(hr)) return hr;

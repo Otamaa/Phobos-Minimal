@@ -66,7 +66,6 @@ void TiberiumExtData::Spread_AI()
 
 void TiberiumExtData::Initialize_Spread()
 {
-	Clear_Spread();
 	Recalc_Spread();
 }
 
@@ -151,7 +150,6 @@ void TiberiumExtData::Growth_AI()
 
 void TiberiumExtData::Initialize_Growth()
 {
-	Clear_Growth();
 	Recalc_Growth();
 }
 

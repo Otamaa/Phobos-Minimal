@@ -101,7 +101,7 @@ ASMJIT_PATCH(0x623A9F, DSurface_sub_623880_DrawBitFontStrings, 0x5)
 	{
 		auto color = MessageColumnClass::Instance.GetColor();
 		MessageColumnClass::Instance.DecreaseBrightness(color, 3);
-		pSurface->Fill_Rect_Trans(pRect, &color, MessageColumnClass::LowOpacity);
+		pSurface->Fill_Rect_Trans(pRect, &color, Phobos::Config::MessageDisplayInCenter_BoardOpacity);
 	}
 
 	return SkipGameCode;

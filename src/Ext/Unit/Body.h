@@ -10,6 +10,7 @@ public:
 	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
+#pragma region classMembers
 
 	OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
 
@@ -20,7 +21,7 @@ public:
 	CDTimerClass UnitAutoDeployTimer;
 	CDTimerClass Convert_Deploy_Delay;
 
-
+#pragma endregion
 
 	UnitExtData(UnitClass* pObj) : FootExtData(pObj),
 		AltOccupation(),

@@ -58,9 +58,11 @@ ASMJIT_PATCH(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 
 	if (nLimboed)
 	{
-		TerrainExtContainer::Instance.Find(pThis)->LighSource.reset(nullptr);
-		TerrainExtContainer::Instance.Find(pThis)->AttachedAnim.reset(nullptr);
-		TerrainExtContainer::Instance.Find(pThis)->AttachedFireAnim.reset(nullptr);
+		auto pExt = TerrainExtContainer::Instance.Find(pThis);
+
+		pExt->LighSource.reset(nullptr);
+		pExt->AttachedAnim.reset(nullptr);
+		pExt->AttachedFireAnim.reset(nullptr);
 	}
 
 	return 0;

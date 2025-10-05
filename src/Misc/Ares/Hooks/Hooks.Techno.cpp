@@ -990,6 +990,21 @@ ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 	GET(TechnoClass* const, pThis, ESI);
 	//Debug::LogInfo("ChangeOwnershipFor [%s]" , pThis->get_ID());
 
+	//for (auto pTemporal : *TemporalClass::Array) {
+	//	if (pTemporal->Target == pThis)
+	//		pTemporal->LetGo();
+	//}
+
+	//for (auto pAirstrike : *AirstrikeClass::Array) {
+	//	if (pAirstrike->Target == pThis)
+	//		pAirstrike->ResetTarget();
+	//}
+
+	//for (auto pSpawn : *SpawnManagerClass::Array) {
+	//	if (pSpawn->Target == pThis)
+	//		pSpawn->ResetTarget();
+	//}
+
 	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer) {
 		pJammer->UnjamAll();
 	}

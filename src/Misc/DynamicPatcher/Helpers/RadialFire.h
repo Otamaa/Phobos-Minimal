@@ -27,6 +27,7 @@ struct RadialFireHelper
 
 	VelocityClass GetBulletVelocity(int index)
 	{
+		/*
 		int z = 0;
 		float temp = Burst / 2.0f;
 		if (index - temp < 0)
@@ -41,6 +42,24 @@ struct RadialFireHelper
 		Vector3D<float> offset {};
 		Matrix3D::MatrixMultiply(&offset , &matrix3D, &Vector3D<float>::Empty);
 		return { static_cast<double>(offset.X), static_cast<double>(-offset.Y), static_cast<double>(DeltaZ * z) };
+		*/
+
+		// Calculate Z offset
+		int z = 0;
+		float temp = Burst / 2.0f;
+		if (index - temp < 0)
+			z = index;
+		else
+			z = Math::abs(index - Burst + 1);
+
+		// Direct trigonometric calculation - no matrix needed
+		double targetAngle = Degrees + Delta * (index + 1) * (Math::Pi / 180.0);
+
+		// Simple trig is 10x faster than matrix operations
+		double cosAngle = Math::cos(targetAngle);
+		double sinAngle = Math::sin(targetAngle);
+
+		return { cosAngle, -sinAngle, static_cast<double>(DeltaZ * z) };
 	}
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)

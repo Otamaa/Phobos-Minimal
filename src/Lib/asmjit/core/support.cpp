@@ -19,7 +19,7 @@ static void test_arrays(const T* a, const T* b, size_t size) noexcept {
       .message("Mismatch at %u", unsigned(i));
 }
 
-static void testAlignment() noexcept {
+static void test_alignment() noexcept {
   INFO("Support::is_aligned()");
   EXPECT_FALSE(Support::is_aligned<size_t>(0xFFFF, 4u));
   EXPECT_TRUE(Support::is_aligned<size_t>(0xFFF4, 4u));
@@ -93,10 +93,10 @@ static void test_bit_utils() noexcept {
   for (uint32_t i = 0; i < 64; i++) EXPECT_EQ(Support::blsi(uint64_t(1) << i), uint64_t(1) << i);
   for (uint32_t i = 0; i < 63; i++) EXPECT_EQ(Support::blsi(uint64_t(3) << i), uint64_t(1) << i);
 
-  INFO("Support::bitMask()");
-  EXPECT_EQ(Support::bitMask<uint32_t>(0, 1, 7), 0x83u);
+  INFO("Support::bit_mask()");
+  EXPECT_EQ(Support::bit_mask<uint32_t>(0, 1, 7), 0x83u);
   for (uint32_t i = 0; i < 32; i++) {
-    EXPECT_EQ(Support::bitMask<uint32_t>(i), (1u << i));
+    EXPECT_EQ(Support::bit_mask<uint32_t>(i), (1u << i));
   }
 
   INFO("Support::bit_test()");
@@ -107,18 +107,18 @@ static void test_bit_utils() noexcept {
 
   INFO("Support::lsb_mask<uint32_t>()");
   for (uint32_t i = 0; i < 32; i++) {
-    uint32_t expectedBits = 0;
+    uint32_t expected_bits = 0;
     for (uint32_t b = 0; b < i; b++)
-      expectedBits |= uint32_t(1) << b;
-    EXPECT_EQ(Support::lsb_mask<uint32_t>(i), expectedBits);
+      expected_bits |= uint32_t(1) << b;
+    EXPECT_EQ(Support::lsb_mask<uint32_t>(i), expected_bits);
   }
 
   INFO("Support::lsb_mask<uint64_t>()");
   for (uint32_t i = 0; i < 64; i++) {
-    uint64_t expectedBits = 0;
+    uint64_t expected_bits = 0;
     for (uint32_t b = 0; b < i; b++)
-      expectedBits |= uint64_t(1) << b;
-    EXPECT_EQ(Support::lsb_mask<uint64_t>(i), expectedBits);
+      expected_bits |= uint64_t(1) << b;
+    EXPECT_EQ(Support::lsb_mask<uint64_t>(i), expected_bits);
   }
 
   INFO("Support::is_power_of_2()");
@@ -359,227 +359,227 @@ static void test_memory_access() noexcept {
 }
 
 static void test_bit_vector() noexcept {
-  INFO("Support::bitVectorOp");
+  INFO("Support::bit_vector_op");
   {
     uint32_t vec[3] = { 0 };
-    Support::bitVectorFill(vec, 1, 64);
+    Support::bit_vector_fill(vec, 1, 64);
     EXPECT_EQ(vec[0], 0xFFFFFFFEu);
     EXPECT_EQ(vec[1], 0xFFFFFFFFu);
     EXPECT_EQ(vec[2], 0x00000001u);
 
-    Support::bitVectorClear(vec, 1, 1);
+    Support::bit_vector_clear(vec, 1, 1);
     EXPECT_EQ(vec[0], 0xFFFFFFFCu);
     EXPECT_EQ(vec[1], 0xFFFFFFFFu);
     EXPECT_EQ(vec[2], 0x00000001u);
 
-    Support::bitVectorFill(vec, 0, 32);
+    Support::bit_vector_fill(vec, 0, 32);
     EXPECT_EQ(vec[0], 0xFFFFFFFFu);
     EXPECT_EQ(vec[1], 0xFFFFFFFFu);
     EXPECT_EQ(vec[2], 0x00000001u);
 
-    Support::bitVectorClear(vec, 0, 32);
+    Support::bit_vector_clear(vec, 0, 32);
     EXPECT_EQ(vec[0], 0x00000000u);
     EXPECT_EQ(vec[1], 0xFFFFFFFFu);
     EXPECT_EQ(vec[2], 0x00000001u);
 
-    Support::bitVectorFill(vec, 1, 30);
+    Support::bit_vector_fill(vec, 1, 30);
     EXPECT_EQ(vec[0], 0x7FFFFFFEu);
     EXPECT_EQ(vec[1], 0xFFFFFFFFu);
     EXPECT_EQ(vec[2], 0x00000001u);
 
-    Support::bitVectorClear(vec, 1, 95);
+    Support::bit_vector_clear(vec, 1, 95);
     EXPECT_EQ(vec[0], 0x00000000u);
     EXPECT_EQ(vec[1], 0x00000000u);
     EXPECT_EQ(vec[2], 0x00000000u);
 
-    Support::bitVectorFill(vec, 32, 64);
+    Support::bit_vector_fill(vec, 32, 64);
     EXPECT_EQ(vec[0], 0x00000000u);
     EXPECT_EQ(vec[1], 0xFFFFFFFFu);
     EXPECT_EQ(vec[2], 0xFFFFFFFFu);
 
-    Support::bitVectorSetBit(vec, 1, true);
+    Support::bit_vector_set_bit(vec, 1, true);
     EXPECT_EQ(vec[0], 0x00000002u);
     EXPECT_EQ(vec[1], 0xFFFFFFFFu);
     EXPECT_EQ(vec[2], 0xFFFFFFFFu);
 
-    Support::bitVectorSetBit(vec, 95, false);
+    Support::bit_vector_set_bit(vec, 95, false);
     EXPECT_EQ(vec[0], 0x00000002u);
     EXPECT_EQ(vec[1], 0xFFFFFFFFu);
     EXPECT_EQ(vec[2], 0x7FFFFFFFu);
 
-    Support::bitVectorClear(vec, 33, 32);
+    Support::bit_vector_clear(vec, 33, 32);
     EXPECT_EQ(vec[0], 0x00000002u);
     EXPECT_EQ(vec[1], 0x00000001u);
     EXPECT_EQ(vec[2], 0x7FFFFFFEu);
   }
 
-  INFO("Support::bitVectorIndexOf");
+  INFO("Support::bit_vector_index_of");
   {
     uint32_t vec1[1] = { 0x80000000 };
-    EXPECT_EQ(Support::bitVectorIndexOf(vec1, 0, true), 31u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec1, 1, true), 31u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec1, 31, true), 31u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec1, 0, true), 31u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec1, 1, true), 31u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec1, 31, true), 31u);
 
     uint32_t vec2[2] = { 0x00000000, 0x80000000 };
-    EXPECT_EQ(Support::bitVectorIndexOf(vec2, 0, true), 63u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec2, 1, true), 63u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec2, 31, true), 63u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec2, 32, true), 63u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec2, 33, true), 63u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec2, 63, true), 63u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec2, 0, true), 63u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec2, 1, true), 63u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec2, 31, true), 63u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec2, 32, true), 63u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec2, 33, true), 63u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec2, 63, true), 63u);
 
     uint32_t vec3[3] = { 0x00000001, 0x00000000, 0x80000000 };
-    EXPECT_EQ(Support::bitVectorIndexOf(vec3, 0, true), 0u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec3, 1, true), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec3, 2, true), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec3, 31, true), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec3, 32, true), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec3, 63, true), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec3, 64, true), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec3, 95, true), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec3, 0, true), 0u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec3, 1, true), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec3, 2, true), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec3, 31, true), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec3, 32, true), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec3, 63, true), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec3, 64, true), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec3, 95, true), 95u);
 
     uint32_t vec4[3] = { ~vec3[0], ~vec3[1], ~vec3[2] };
-    EXPECT_EQ(Support::bitVectorIndexOf(vec4, 0, false), 0u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec4, 1, false), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec4, 2, false), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec4, 31, false), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec4, 32, false), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec4, 63, false), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec4, 64, false), 95u);
-    EXPECT_EQ(Support::bitVectorIndexOf(vec4, 95, false), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec4, 0, false), 0u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec4, 1, false), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec4, 2, false), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec4, 31, false), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec4, 32, false), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec4, 63, false), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec4, 64, false), 95u);
+    EXPECT_EQ(Support::bit_vector_index_of(vec4, 95, false), 95u);
   }
 
   INFO("Support::BitWordIterator<uint32_t>");
   {
     Support::BitWordIterator<uint32_t> it(0x80000F01u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 0u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 8u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 9u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 10u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 11u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 31u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
 
     // No bits set.
     it.init(0x00000000u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
 
     // Only first bit set.
     it.init(0x00000001u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 0u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
 
     // Only last bit set (special case).
     it.init(0x80000000u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 31u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
   }
 
   INFO("Support::BitWordIterator<uint64_t>");
   {
     Support::BitWordIterator<uint64_t> it(uint64_t(1) << 63);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 63u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
   }
 
   INFO("Support::BitVectorIterator<uint32_t>");
   {
     // Border cases.
-    static const uint32_t bitsNone[] = { 0xFFFFFFFFu };
-    Support::BitVectorIterator<uint32_t> it(bitsNone, 0);
+    static const uint32_t bits_none[] = { 0xFFFFFFFFu };
+    Support::BitVectorIterator<uint32_t> it(Span<const uint32_t>(bits_none, 0));
 
-    EXPECT_FALSE(it.hasNext());
-    it.init(bitsNone, 0, 1);
-    EXPECT_FALSE(it.hasNext());
-    it.init(bitsNone, 0, 128);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
+    it.init(Span<const uint32_t>(bits_none, 0), 1);
+    EXPECT_FALSE(it.has_next());
+    it.init(Span<const uint32_t>(bits_none, 0), 128);
+    EXPECT_FALSE(it.has_next());
 
     static const uint32_t bits1[] = { 0x80000008u, 0x80000001u, 0x00000000u, 0x80000000u, 0x00000000u, 0x00000000u, 0x00003000u };
-    it.init(bits1, ASMJIT_ARRAY_SIZE(bits1));
+    it.init(Span<const uint32_t>::from_array(bits1));
 
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 3u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 31u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 32u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 63u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 127u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 204u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 205u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
 
-    it.init(bits1, ASMJIT_ARRAY_SIZE(bits1), 4);
-    EXPECT_TRUE(it.hasNext());
+    it.init(Span<const uint32_t>::from_array(bits1), 4);
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 31u);
 
-    it.init(bits1, ASMJIT_ARRAY_SIZE(bits1), 64);
-    EXPECT_TRUE(it.hasNext());
+    it.init(Span<const uint32_t>::from_array(bits1), 64);
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 127u);
 
-    it.init(bits1, ASMJIT_ARRAY_SIZE(bits1), 127);
-    EXPECT_TRUE(it.hasNext());
+    it.init(Span<const uint32_t>::from_array(bits1), 127);
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 127u);
 
     static const uint32_t bits2[] = { 0x80000000u, 0x80000000u, 0x00000000u, 0x80000000u };
-    it.init(bits2, ASMJIT_ARRAY_SIZE(bits2));
+    it.init(Span<const uint32_t>::from_array(bits2));
 
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 31u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 63u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 127u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
 
     static const uint32_t bits3[] = { 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u };
-    it.init(bits3, ASMJIT_ARRAY_SIZE(bits3));
-    EXPECT_FALSE(it.hasNext());
+    it.init(Span<const uint32_t>::from_array(bits3));
+    EXPECT_FALSE(it.has_next());
 
     static const uint32_t bits4[] = { 0x00000000u, 0x00000000u, 0x00000000u, 0x80000000u };
-    it.init(bits4, ASMJIT_ARRAY_SIZE(bits4));
-    EXPECT_TRUE(it.hasNext());
+    it.init(Span<const uint32_t>::from_array(bits4));
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 127u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
   }
 
   INFO("Support::BitVectorIterator<uint64_t>");
   {
     static const uint64_t bits1[] = { 0x80000000u, 0x80000000u, 0x00000000u, 0x80000000u };
-    Support::BitVectorIterator<uint64_t> it(bits1, ASMJIT_ARRAY_SIZE(bits1));
+    Support::BitVectorIterator<uint64_t> it(Span<const uint64_t>::from_array(bits1));
 
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 31u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 95u);
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 223u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
 
     static const uint64_t bits2[] = { 0x8000000000000000u, 0, 0, 0 };
-    it.init(bits2, ASMJIT_ARRAY_SIZE(bits2));
+    it.init(Span<const uint64_t>::from_array(bits2));
 
-    EXPECT_TRUE(it.hasNext());
+    EXPECT_TRUE(it.has_next());
     EXPECT_EQ(it.next(), 63u);
-    EXPECT_FALSE(it.hasNext());
+    EXPECT_FALSE(it.has_next());
   }
 }
 
 static void test_sorting() noexcept {
-  INFO("Support::qSort() - Testing qsort and isort of predefined arrays");
+  INFO("Support::sort() - Testing qsort and isort of predefined arrays");
   {
     constexpr size_t kArraySize = 11;
 
@@ -589,13 +589,13 @@ static void test_sorting() noexcept {
 
     memcpy(arr2, arr1, kArraySize * sizeof(int));
 
-    Support::iSort(arr1, kArraySize);
-    Support::qSort(arr2, kArraySize);
+    Support::insertion_sort(arr1, kArraySize);
+    Support::sort(arr2, kArraySize);
     test_arrays(arr1, ref_, kArraySize);
     test_arrays(arr2, ref_, kArraySize);
   }
 
-  INFO("Support::qSort() - Testing qsort and isort of artificial arrays");
+  INFO("Support::sort() - Testing qsort and isort of artificial arrays");
   {
     constexpr size_t kArraySize = 200;
 
@@ -610,14 +610,14 @@ static void test_sorting() noexcept {
         ref_[i] = int(i);
       }
 
-      Support::iSort(arr1, size);
-      Support::qSort(arr2, size);
+      Support::insertion_sort(arr1, size);
+      Support::sort(arr2, size);
       test_arrays(arr1, ref_, size);
       test_arrays(arr2, ref_, size);
     }
   }
 
-  INFO("Support::qSort() - Testing qsort and isort with an unstable compare function");
+  INFO("Support::sort() - Testing qsort and isort with an unstable compare function");
   {
     constexpr size_t kArraySize = 5;
 
@@ -627,13 +627,13 @@ static void test_sorting() noexcept {
     memcpy(arr2, arr1, kArraySize * sizeof(float));
 
     // We don't test as it's undefined where the NaN would be.
-    Support::iSort(arr1, kArraySize);
-    Support::qSort(arr2, kArraySize);
+    Support::insertion_sort(arr1, kArraySize);
+    Support::sort(arr2, kArraySize);
   }
 }
 
 UNIT(support) {
-  testAlignment();
+  test_alignment();
   test_bit_utils();
   test_int_utils();
   test_memory_access();

@@ -3145,7 +3145,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						if (pCollectorOwner->ControlledByCurrentPlayer())
 						{
 							auto loc_fly = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-							FlyingStrings::AddMoneyString(true, soloCrateMoney, pHouseDest, AffectedHouse::Owner, loc_fly);
+							FlyingStrings::AddMoneyString(true, soloCrateMoney, pHouseDest, AffectedHouse::Owner, loc_fly, Point2D::Empty, ColorStruct::Empty);
 						}
 						PlaySoundAffect(Powerup::Money);
 						PlayAnimAffect(Powerup::Money);
@@ -4141,8 +4141,7 @@ ASMJIT_PATCH(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 						pThis,
 						pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses),
 						pThis->GetCoords(),
-						pTypeExt->DisplayIncome_Offset
-						);
+						pTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
 					}
 				}
 			}
@@ -7529,7 +7528,6 @@ public:
 								}
 							}
 						}
-						unit = flag_cast_to<FootClass*>(unit->NextObject);
 					}
 				}
 			}
@@ -7537,6 +7535,11 @@ public:
 
 		++this->Lifetime;
 	}
+
+	// Helper structures
+	struct Vector3D
+	{
+		float X, Y, Z;
 };
 
 //DEFINE_FUNCTION_JUMP(CALL, 0x531758, FakeIonBlastClass::InitOneTime)
@@ -7636,6 +7639,7 @@ ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
 #include <Utilities/Swizzle.h>
 
 DWORD LastKnown;
+AbstractClass* pAbs;
 
  ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
  {
@@ -7645,40 +7649,56 @@ DWORD LastKnown;
 	 //immedietely update the extension pointer value and the extension AttachedToObject itself !
 	 ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
 	 LastKnown = pThis->unknown_18;
+	 pAbs = pThis;
+
 	 return 0x0;
  }
 
  //more specific
- ASMJIT_PATCH(0x41096D, AbstractTypeClass_NoInt_cleaupPtr,0x6)
+ //ASMJIT_PATCH(0x41096D, AbstractTypeClass_NoInt_cleaupPtr,0x6)
+ //{
+	//  GET(AbstractClass*, pThis, EAX);
+
+	//  if (Phobos::Otamaa::DoingLoadGame) {
+	//	  if (pAbs != pThis)  //avoid missmatching
+	//		  LastKnown = 0;
+	//  }
+
+	//  pThis->unknown_18 = std::exchange(LastKnown, 0u);
+	//  return 0x0;
+ //}
+
+ASMJIT_PATCH(0x410182 , AbstractClass_cleaupPtr_B , 0x6){
+	GET(AbstractClass*, pThis, EAX);
+
+	if (Phobos::Otamaa::DoingLoadGame){
+		if (pAbs != pThis) //avoid missmatching
+			LastKnown = 0;
+	}
+
+   pThis->unknown_18 = std::exchange(LastKnown, 0u);
+   pThis->RefCount = 0l;
+  return 0x410188;
+}
+
+ ASMJIT_PATCH(0x4101E4, AbstractClass_cleaupPtr, 0x7)
  {
 	  GET(AbstractClass*, pThis, EAX);
+
+	 if(Phobos::Otamaa::DoingLoadGame) {
+
+		 if (pAbs != pThis) //avoid missmatching
+			 LastKnown = 0;
+	 }
+
 	  pThis->unknown_18 = std::exchange(LastKnown, 0u);
 	  return 0x0;
  }
-
- //this bullshit
- //ASMJIT_PATCH(0x4101E4, AbstractClass_NoInt_cleaupPtr, 0x7)
- //{
-	// GET(AbstractClass*, pThis, EAX);
-	// pThis->unknown_18 = std::exchange(LastKnown, 0u);
-	// return 0x0;
- //}
 
  //ASMJIT_PATCH(0x521960, InfantryClass_Load_test, 0x5)
  // {
 	// GET(InfantryClass*, pThis, ESI);
 	// return 0x0;
- //}
-
- //ASMJIT_PATCH(0x410182 , AbstractClass_NoInt_cleaupPtr_B , 0x6){
-	// GET(AbstractClass*, pThis, EAX);
-
-	// //set the last known value if it on load mode , because some stuffs using different abstract constructor , duh
-	// if(LastKnown && Phobos::Otamaa::DoingLoadGame)
-	//	pThis->unknown_18 = std::exchange(LastKnown, 0u);
-
-	// pThis->RefCount = 0l;
-	// return 0x410188;
  //}
 
  //ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)

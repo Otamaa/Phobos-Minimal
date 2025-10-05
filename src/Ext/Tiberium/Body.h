@@ -71,12 +71,26 @@ public:
 	static int Map_Cell_Count();
 
 public:
+
 	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj),
 		Palette(CustomPalette::PaletteMode::Temperate),
+		OreTwinkle(),
+		OreTwinkleChance(),
+		Ore_TintLevel(),
+		MinimapColor(),
 		EnableLighningFix(true),
 		UseNormalLight(true),
 		EnablePixelFXAnim(true),
+		Damage(),
+		Warhead(),
+		Heal_Step(),
+		Heal_IStep(),
+		Heal_UStep(),
+		Heal_Delay(),
+		ExplosionWarhead(),
+		ExplosionDamage(),
 		DebrisChance(33),
+		LinkedOverlayType(""),
 		PipIndex(-1),
 		SpreadQueue(),
 		SpreadState(),

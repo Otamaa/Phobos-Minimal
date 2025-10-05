@@ -64,7 +64,7 @@ void BulletExtData::ApplyArcingFix(const CoordStruct& sourceCoords, const CoordS
 	// Here, some magic numbers are used to directly simulate its calculation
 	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
 	const double gravity = BulletTypeExtData::GetAdjustedGravity(This()->Type);
-	const double speed = speedMult * sqrt(horizontalDistance * gravity * 1.2); // 0x48AB90
+	const double speed = speedMult * Math::sqrt(horizontalDistance * gravity * 1.2); // 0x48AB90
 
 	if (horizontalDistance < 1e-10 || speed< 1e-10)
 	{
@@ -1106,7 +1106,7 @@ void BulletExtData::SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHo
 	// WW calculates the launch angle (and limits it) before calculating the velocity
 	// Here, some magic numbers are used to directly simulate its calculation
 	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
-	const auto speed = static_cast<int>(speedMult * std::sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
+	const auto speed = static_cast<int>(speedMult * Math::sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
 
 	// Simulate firing Arcing bullet
 	if (horizontalDistance < 1e-10 || speed < 1e-10)
@@ -1152,25 +1152,53 @@ void BulletExtData::SimulatedFiringEffects(BulletClass* pBullet, HouseClass* pHo
 template <typename T>
 void BulletExtData::Serialize(T& Stm)
 {
-	Stm
-		.Process(this->CurrentStrength)
-		.Process(this->InterceptorTechnoType)
-		.Process(this->InterceptedStatus)
-		.Process(this->DetonateOnInterception)
-		.Process(this->LaserTrails)
-		.Process(this->SnappedToTarget)
-		.Process(this->NukeSW)
-		.Process(this->BrightCheckDone)
-		.Process(this->Owner)
-		.Process(this->Bouncing)
-		.Process(this->LastObject)
-		.Process(this->BounceAmount)
-		.Process(this->InitialBulletDir)
-		.Process(this->Trails)
-		.Process(this->AttachedSystem)
-		.Process(this->OriginalTarget)
-		.Process(this->ParabombFallRate)
-		;
+	// Define the debug wrapper
+	auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				size_t afterSize = Stm.Getstream()->Size();
+				GameDebugLog::Log("[BulletExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+					fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				size_t beforeOffset = Stm.Getstream()->Offset();
+				bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				size_t afterOffset = Stm.Getstream()->Offset();
+				bool afterSuccess = Stm.Success();
+
+				GameDebugLog::Log("[BulletExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				if (!afterSuccess && beforeSuccess)
+				{
+					GameDebugLog::Log("[BulletExtData] ERROR: %s caused stream failure!\n", fieldName);
+				}
+				return result;
+			}
+		};
+
+	// Use the debug wrapper for each field
+	debugProcess(this->CurrentStrength, "CurrentStrength");
+	debugProcess(this->InterceptorTechnoType, "InterceptorTechnoType");
+	debugProcess(this->InterceptedStatus, "InterceptedStatus");
+	debugProcess(this->DetonateOnInterception, "DetonateOnInterception");
+	debugProcess(this->LaserTrails, "LaserTrails");
+	debugProcess(this->SnappedToTarget, "SnappedToTarget");
+	debugProcess(this->NukeSW, "NukeSW");
+	debugProcess(this->BrightCheckDone, "BrightCheckDone");
+	debugProcess(this->Owner, "Owner");
+	debugProcess(this->Trails, "Trails");
+	debugProcess(this->AttachedSystem, "AttachedSystem");
+	debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
+	debugProcess(this->OriginalTarget, "OriginalTarget");
+	debugProcess(this->ParabombFallRate, "ParabombFallRate");
 
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);
 }
@@ -1240,5 +1268,5 @@ HRESULT __stdcall FakeBulletClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46F8, FakeBulletClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46FC, FakeBulletClass::_Save)
+ //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46F8, FakeBulletClass::_Load)
+ //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46FC, FakeBulletClass::_Save)

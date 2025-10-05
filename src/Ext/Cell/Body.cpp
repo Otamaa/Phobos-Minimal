@@ -73,21 +73,16 @@ TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 
 int CellExtData::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
 {
-	if (pTiberium) {
 		return (pCell->SlopeIndex > 0) ?
-		(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages)
-		;
-	}
-
-	return 0;
+			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages)
+			;
 }
 
 int CellExtData::GetOverlayIndex(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1) {
 		if (const auto pTiberium = TiberiumClass::Find(pCell->OverlayTypeIndex)) {
-			return (pCell->SlopeIndex > 0) ?
-			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages);
+			return GetOverlayIndex(pCell, pTiberium);
 		}
 	}
 
@@ -266,7 +261,7 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 		CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
 		int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
-		growth -= pTerrainTypeExt->SpawnsTiberium_StageFalloff * i;
+		growth -= int(pTerrainTypeExt->SpawnsTiberium_StageFalloff * i);
 		growth = std::clamp(growth, 0, pTib->NumFrames - 1);
 
 		if (tgtCell->CanTiberiumGerminate(pTib))
@@ -380,5 +375,5 @@ HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)

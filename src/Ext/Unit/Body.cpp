@@ -320,5 +320,5 @@ HRESULT __stdcall FakeUnitClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C84, FakeUnitClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C88, FakeUnitClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C84, FakeUnitClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C88, FakeUnitClass::_Save)

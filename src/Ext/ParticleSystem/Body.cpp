@@ -15,6 +15,8 @@
 ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj),
 What(Behave::None),
 HeldType(nullptr),
+OtherParticleData(),
+SmokeData(),
 AlphaIsLightFlash(true)
 {
 	if (!pObj->Type)
@@ -1349,5 +1351,5 @@ HRESULT __stdcall FakeParticleSystemClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB0, FakeParticleSystemClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB4, FakeParticleSystemClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB0, FakeParticleSystemClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB4, FakeParticleSystemClass::_Save)

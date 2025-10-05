@@ -32,9 +32,15 @@ public :
 #pragma endregion
 
 public:
-	IsometricTileTypeExtData(IsometricTileTypeClass* pObj) : ObjectTypeExtData(pObj),
-		Tileset(-1)
+	IsometricTileTypeExtData(IsometricTileTypeClass* pObj) : ObjectTypeExtData(pObj)
+		, TileSetName("")
+		, Tileset(-1)
+		, Palette()
+		, AllowVeins()
+		, AllowedTiberiums()
+		, AllowedSmudges()
 	{ }
+
 	IsometricTileTypeExtData(IsometricTileTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~IsometricTileTypeExtData() = default;

@@ -106,7 +106,12 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissingNoChecks(const char* key, co
 
 void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range)
 {
-	nCells.reserve((2 * range + 1) * (2 * range + 1));
+	const short value = (2 * range + 1) * (2 * range + 1);
+
+	if (value <= 0)
+		return;
+
+	nCells.reserve(value);
 	for (CellSpreadEnumerator it(range); it; ++it)
 		nCells.emplace_back(*it);
 }
