@@ -66,7 +66,7 @@ public:
 	// check were stripped off , make sure to check both strings for validity !
 	static const wchar_t* LoadStringUnlessMissingNoChecks(const char* key, const wchar_t* defaultValue);
 
-	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range);
+	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range , bool clearFirst = true);
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 	static AnimTypeClass* SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& vec, AnimTypeClass* fallback = nullptr);
 

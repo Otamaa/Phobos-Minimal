@@ -798,7 +798,6 @@ private:
 		debugProcess(this->LastWeaponType, "LastWeaponType");
 		debugProcess(this->AirstrikeTargetingMe, "AirstrikeTargetingMe");
 		debugProcess(this->RandomEMPTarget, "RandomEMPTarget");
-		debugProcess(this->FiringAnimationTimer, "FiringAnimationTimer");
 		debugProcess(this->ForceFullRearmDelay, "ForceFullRearmDelay");
 		debugProcess(this->AttackMoveFollowerTempCount, "AttackMoveFollowerTempCount");
 		debugProcess(this->OnlyAttackData, "OnlyAttackData");
@@ -811,6 +810,7 @@ private:
 		debugProcess(this->UnitIdleActionTimer, "UnitIdleActionTimer");
 		debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
 		debugProcess(this->Tints, "Tints");
+		debugProcess(this->FallingDownTracked, "FallingDownTracked");
 	}
 
 
@@ -975,7 +975,6 @@ public:
 	AirstrikeClass* AirstrikeTargetingMe;
 	CellStruct RandomEMPTarget;
 
-	CDTimerClass FiringAnimationTimer;
 	bool ForceFullRearmDelay;
 	int AttackMoveFollowerTempCount;
 	HelperedVector<OnlyAttackStruct> OnlyAttackData;
@@ -990,6 +989,8 @@ public:
 	CDTimerClass UnitIdleActionTimer;
 	CDTimerClass UnitIdleActionGapTimer;
 	TintColors Tints;
+
+	bool FallingDownTracked;
 #pragma endregion
 
 public:
@@ -1147,7 +1148,6 @@ public:
 		AirstrikeTargetingMe(nullptr),
 		RandomEMPTarget(),
 
-		FiringAnimationTimer(),
 		ForceFullRearmDelay(false),
 		AttackMoveFollowerTempCount(0),
 		OnlyAttackData(),
@@ -1161,7 +1161,8 @@ public:
 		UnitIdleIsSelected(false),
 		UnitIdleActionTimer(),
 		UnitIdleActionGapTimer(),
-		Tints()
+		Tints(),
+		FallingDownTracked { false }
 	{
 		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
@@ -1267,7 +1268,7 @@ public:
 
 	static void InitializeUnitIdleAction(TechnoClass* pThis, TechnoTypeClass* pType);
 
-	static bool HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int weaponIndex, int firingFrame);
+	static bool HandleDelayedFireWithPauseSequence(TechnoClass* pThis, WeaponTypeClass* pWeapon, int weaponIndex, int frame, int firingFrame);
 
 	static bool IsOnBridge(FootClass* pUnit);
 	static int GetJumpjetIntensity(FootClass* pThis);
@@ -1533,4 +1534,6 @@ public:
 	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);
 	static int __fastcall __AdjustDamage(TechnoClass* pThis, discard_t, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static void __fastcall __DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord);
+	static AbstractClass* __fastcall __Greatest_Threat(TechnoClass* techno, discard_t, ThreatType method, CoordStruct* location, bool a4);
+
 };

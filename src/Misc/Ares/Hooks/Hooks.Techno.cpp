@@ -1211,14 +1211,14 @@ DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F7561, 0x2 , 0x2);
 //		0x5F7A57 : 0x5F7941;
 //}
 
-ASMJIT_PATCH(0x6F90F8, TechnoClass_GreatestThreat_Demacroize, 0x6)
-{
-	GET(int, nVal1, EDI);
-	GET(int, nVal2, EAX);
-
-	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
-	return 0x6F9116;
-}
+// ASMJIT_PATCH(0x6F90F8, TechnoClass_GreatestThreat_Demacroize, 0x6)
+// {
+// 	GET(int, nVal1, EDI);
+// 	GET(int, nVal2, EAX);
+//
+// 	R->EAX(nVal2 >= nVal1 ? nVal2 : nVal1);
+// 	return 0x6F9116;
+// }
 
 ASMJIT_PATCH(0x70133E, TechnoClass_GetWeaponRange_Demacroize, 0x5)
 {

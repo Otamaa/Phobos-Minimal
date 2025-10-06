@@ -74,17 +74,6 @@ ASMJIT_PATCH(0x658473, RadarClass_658330_SetObserverFlag, 0x5)
 
 #pragma endregion HouseClass is Observer
 
-// Allow skirmish observer to control gamespeed
-// TODO: Allow control speed in skirmish if all human players is Observer
-ASMJIT_PATCH(0x4E20BA, GameControlsClass_SomeDialog, 0x5)
-{
-	enum { AllowControlSpeed = 0x4E211A, ForbidControlSpeed = 0x4E20C3 };
-
-	return (SessionClass::IsSkirmish() && Game::ObserverMode)
-		? AllowControlSpeed
-		: 0;
-}
-
 #pragma region Curent player is Observer
 
 ASMJIT_PATCH(0x5533E0, LoadProgressMgr_Draw_SetBackground, 0x5)

@@ -13,7 +13,7 @@ SuperWeaponTypeClass* SW_NuclearMissile::CurrentNukeType = nullptr;
 
 std::vector<const char*> SW_NuclearMissile::GetTypeString() const
 {
-	return { "NewNuke" , "ChemLauncher" , "MultiLauncher" };
+	return { "NewNuke" , "ChemLauncher" , "MultiLauncher" , "MultiMissile" };
 }
 
 bool SW_NuclearMissile::HandleThisType(SuperWeaponType type) const

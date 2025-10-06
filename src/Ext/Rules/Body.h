@@ -350,6 +350,7 @@ public:
 	Valueable<double> DamageOwnerMultiplier { 1.0 };
 	Valueable<double> DamageAlliesMultiplier { 1.0 };
 	Valueable<double> DamageEnemiesMultiplier { 1.0 };
+	Valueable<bool> DamageEnemiesMultiplier_UsedForAllTargetInBerzerk { false };
 	Nullable<double> DamageOwnerMultiplier_NotAffectsEnemies {};
 	Nullable<double> DamageAlliesMultiplier_NotAffectsEnemies {};
 
@@ -555,6 +556,19 @@ public:
 	Valueable<bool> UseRetintFix { true };
 	Valueable<bool> AISellCapturedBuilding { true };
 
+	Valueable<int> AIAdjacentMax { -1 };
+	Nullable<int> AIAdjacentMax_Campaign {};
+
+	Valueable<bool> PlayerGuardModePursuit { true };
+	Valueable<double> PlayerGuardModeGuardRangeMultiplier { 2.0 };
+	Valueable<Leptons> PlayerGuardModeGuardRangeAddend { Leptons(0) };
+	Valueable<Leptons> PlayerGuardModeGuardRangeMax { Leptons(4096) };
+	Valueable<Leptons> PlayerGuardStationaryStray { Leptons(-256) };
+    Valueable<bool> AIGuardModePursuit { true };
+	Valueable<double> AIGuardModeGuardRangeMultiplier { 2.0 };
+	Valueable<Leptons> AIGuardModeGuardRangeAddend { Leptons(0) };
+	Valueable<Leptons> AIGuardModeGuardRangeMax { Leptons(4096) };
+	Valueable<Leptons> AIGuardStationaryStray { Leptons(-256) };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

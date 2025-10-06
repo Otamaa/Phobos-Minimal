@@ -34,6 +34,13 @@
 
 #include <GeneralDefinitions.h>
 
+enum class ExtendedThreatType : int
+{
+	none = 0u,
+	Underground = 0x20000u
+};
+MAKE_ENUM_FLAGS(ExtendedThreatType);
+
 enum class PassiveAcquireMode : BYTE
 {
 	Normal = 0,

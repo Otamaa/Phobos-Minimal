@@ -804,11 +804,16 @@ public:
 		BattlePoints_DrainAmount(0),
 		BattlePoints_DrainDelay(0),
 		SuperWeaponSidebar_Significance(0),
-		Music_Theme(0),
+		Music_Theme(-1),
 		Music_Duration(0),
 		Music_AffectedHouses(AffectedHouse::All)
 	{
-		this->Initialize();
+			this->Text_Ready = GameStrings::TXT_READY();
+			this->Text_Hold = GameStrings::TXT_HOLD();
+			this->Text_Charging = GameStrings::TXT_CHARGING();
+			this->Text_Active = GameStrings::TXT_FIRESTORM_ON();
+			this->Message_CannotFire = "MSG:CannotFire";
+
 	}
 
 	SWTypeExtData(SuperWeaponTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }

@@ -216,7 +216,8 @@ public:
 
 	static const auto AbsDerivateID = AbstractFlags::Techno;
 
-	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TechnoClass*>, 0xA8EC78u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TechnoClass*>, 0xA8EC78u> const Array {};
+	static COMPILETIMEEVAL reference<int, 0xA8EC34u> const TargetScanCounter {};
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x70BF50);
@@ -460,27 +461,30 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 // slave of the next one
 	bool CanAutoTargetObject(
 		ThreatType targetFlags,
-		int canTargetWhatAmI,
+		int mask,
 		int wantedDistance,
 		TechnoClass* pTarget,
 		int* pThreatPosed,
-		DWORD dwUnk,
+		ZoneType dwUnk,
 		CoordStruct* pSourceCoords) const
 			{ JMP_THIS(0x6F7CA0); }
 
 // called by AITeam Attack Target Type and autoscan
 	bool TryAutoTargetObject(
 		ThreatType targetFlags,
-		int canTargetWhatAmI,
+		int mask,
 		CellStruct* pCoords,
-		DWORD dwUnk1,
-		DWORD* dwUnk2,
+		int wantedDistance,
+		TechnoClass** dwUnk2,
 		int* pThreatPosed,
-		DWORD dwUnk3)
+		ZoneType dwUnk3)
 			{ JMP_THIS(0x6F8960); }
 
 	int EvaluateJustCell(CellStruct& coords) const
 	{ JMP_THIS(0x6F8C10); }
+
+	int EvaluateJustCell(CellStruct* coords) const
+		{ JMP_THIS(0x6F8C10); }
 
 	void Reactivate()
 		{ JMP_THIS(0x70FBE0); }

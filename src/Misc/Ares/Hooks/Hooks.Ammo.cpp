@@ -58,7 +58,7 @@ ASMJIT_PATCH(0x7413FF, UnitClass_Fire_Ammo, 7)
 	if (pWP->Ammo > 0)
 		pThis->StartReloading();
 
-	return 0x741406;
+	return 0x741427;
 }
 
 ASMJIT_PATCH(0x51DF8C, InfantryClass_Fire_Ammo, 6)

@@ -25,16 +25,6 @@
 #include <MessageBox.h>
 #include <BeaconManagerClass.h>
 
-bool GameSpeedSlider::IsEnabled()
-{
-	auto cfg = &SpawnerMain::GameConfigs::m_Ptr;
-	return SpawnerMain::Configs::Enabled && cfg->DisableGameSpeed;
-}
-
-bool GameSpeedSlider::IsDisabled() {
-	return !IsEnabled();
-}
-
 #pragma region defines
 std::list<MixFileClass*> SpawnerMain::LoadedMixFiles;
 SpawnerMain::GameConfigs SpawnerMain::GameConfigs::m_Ptr {};
@@ -1388,10 +1378,11 @@ ASMJIT_PATCH(0x686A9E, ReadScenario_InitSomeThings_SpecialHouseIsAlly, 0x6)
 // Skirmish observers must always retain the slider regardless of config.
 ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
 {
-	bool const isSkirmishObserver = (SessionClass::IsSkirmish() && HouseClass::CurrentPlayer && HouseClass::CurrentPlayer->IsObserver());
+	if(Game::ObserverMode || (SessionClass::IsSkirmish() && HouseClass::CurrentPlayer && HouseClass::CurrentPlayer->IsObserver())) {
+		return 0x4E211A;
+	}
 
-	if (GameSpeedSlider::IsDisabled() && !isSkirmishObserver)
-	{
+	if (SpawnerMain::GameConfigs::m_Ptr.DisableGameSpeed) {
 		using GetCtrlById_t = void* (__stdcall*)(void* hDlg, int id);
 		using ShowWindow_t = void(__stdcall*)(void* hWnd, int nCmdShow);
 

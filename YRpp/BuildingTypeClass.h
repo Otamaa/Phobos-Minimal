@@ -26,11 +26,7 @@ struct BuildingAnimFrameStruct
 	int FrameDuration;
 };
 
-struct FoundationStruct
-{
-   CellStruct Datas[30u];
-};
-static_assert(sizeof(FoundationStruct) == 0x78);
+#include <FoundationStruct.h>
 
 class DECLSPEC_UUID("AE8B33DB-061C-11D2-ACA4-006008055BB5")
 	NOVTABLE BuildingTypeClass : public TechnoTypeClass

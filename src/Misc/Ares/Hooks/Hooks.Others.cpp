@@ -852,6 +852,8 @@ ASMJIT_PATCH(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 	return 0x4B76A0;
 }
 
+#include <Ext/Scenario/Body.h>
+
 ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
 	GET(ObjectClass*, pThis, ESI);
@@ -946,6 +948,41 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 	}
 
 	return 0x5F413F;
+}
+
+ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
+	}
+	return 0;
+}
+
+ASMJIT_PATCH(0x5F4160, ObjectClass_DropAsBomb_Track, 0x6)
+{
+	GET(ObjectClass*, pThis, ECX);
+
+	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x5F3F86, ObjectClass_Update_Track, 0x7)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = false;
+	}
+
+	return 0;
 }
 
 ASMJIT_PATCH(0x413FD2, AircraftClass_Init_Academy, 6)

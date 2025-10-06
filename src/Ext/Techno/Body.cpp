@@ -1492,11 +1492,10 @@ void TechnoExtData::CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIn
 	}
 }
 
-bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int weaponIndex, int firingFrame)
+bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, WeaponTypeClass* pWeapon, int weaponIndex, int frame, int firingFrame)
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto& timer = pExt->DelayedFireTimer;
-	auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	if (pExt->DelayedFireWeaponIndex >= 0 && pExt->DelayedFireWeaponIndex != weaponIndex)
@@ -1509,7 +1508,7 @@ bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int w
 	{
 		if (pWeapon->Burst <= 1 || !pWeaponExt->DelayedFire_OnlyOnInitialBurst || pThis->CurrentBurstIndex == 0)
 		{
-			if (pThis->Animation.Stage == firingFrame)
+			if (frame == firingFrame)
 				pExt->DelayedFireSequencePaused = true;
 
 			if (!timer.HasStarted())
@@ -3132,7 +3131,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 	{
 	case AreaFireTarget::Random:
 	{
-		std::vector<CellStruct> adjacentCells {};
+		static std::vector<CellStruct> adjacentCells {};
 		GeneralUtils::AdjacentCellsInRange(adjacentCells,
 			 static_cast<short>(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) + 0.99));
 
@@ -7659,6 +7658,9 @@ TechnoExtData::~TechnoExtData()
 
 	if (this->UndergroundTracked)
 		ScenarioExtData::Instance()->UndergroundTracker.erase(pThis);
+
+	if(this->FallingDownTracked)
+		ScenarioExtData::Instance()->FallingDownTracker.erase(pThis);
 
 	if (!Phobos::Otamaa::ExeTerminated)
 	{

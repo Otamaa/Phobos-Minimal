@@ -1654,24 +1654,29 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x723260, FakeTiberiumClass::__Initialize_Growth);
 DEFINE_FUNCTION_JUMP(LJMP, 0x723510, FakeTiberiumClass::__Clear_Growth);
 DEFINE_FUNCTION_JUMP(LJMP, 0x722A20, FakeTiberiumClass::__Clear_Spread);
 
-static void _Initialize_Tiberium_Spread_System(){
-    for (int i = 0; i < TiberiumClass::Array->Count; i++) {
-        TiberiumClass::Array->Items[i]->Initialize_Spread();
-    }
+static void _Initialize_Tiberium_Spread_System()
+{
+	for (int i = 0; i < TiberiumClass::Array->Count; i++)
+	{
+		TiberiumClass::Array->Items[i]->Initialize_Spread();
+	}
 }
 
-static void _Deinitialize_Tiberium_Spread_System(){
+static void _Deinitialize_Tiberium_Spread_System()
+{
 	for (int i = 0; i < TiberiumClass::Array->Count; i++)
 		TiberiumClass::Array->Items[i]->Clear_Spread();
 }
 
-static void _Initialize_Tiberium_Growth_System(){
+static void _Initialize_Tiberium_Growth_System()
+{
 	for (int i = 0; i < TiberiumClass::Array->Count; i++)
 		TiberiumClass::Array->Items[i]->Initialize_Growth();
 }
 
-static void _Deinitialize_Tiberium_Growth_System(){
- 	for (int i = 0; i < TiberiumClass::Array->Count ; i++)
+static void _Deinitialize_Tiberium_Growth_System()
+{
+	for (int i = 0; i < TiberiumClass::Array->Count; i++)
 		TiberiumClass::Array->Items[i]->Clear_Growth();
 }
 
@@ -1707,7 +1712,8 @@ ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 
 						const int particleIdx = pTypeExt->SpawnsTiberium_Particle;
 
-						if (particleIdx >= 0) {
+						if (particleIdx >= 0)
+						{
 							ParticleSystemClass::Instance->SpawnParticle(ParticleTypeClass::Array->Items[particleIdx], &pThis->Location);
 						}
 					}
@@ -2859,7 +2865,7 @@ ASMJIT_PATCH(0x73ED40, UnitClass_Mi_Harvest_PathfindingFix, 0x7)
 	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x64, -0x54));
 	LEA_STACK(CellStruct*, outBuffer, STACK_OFFSET(0x64, -0x3C));
 
-	if(pThis->Type->Teleporter)
+	if (pThis->Type->Teleporter)
 		return 0x0;
 
 	auto zone = MapClass::Instance->GetMovementZoneType(pThis->InlineMapCoords(), pThis->Type->MovementZone, pThis->OnBridge);
@@ -3248,7 +3254,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								}
 							}
 
-							GameDelete<true,false>(pCreatedUnit);
+							GameDelete<true, false>(pCreatedUnit);
 							GeiveMoney();
 							break;
 						}
@@ -4511,7 +4517,7 @@ ASMJIT_PATCH(0x51968E, InfantryClass_UpdatePosition_Assaulter, 0x6)
 
 	GET(InfantryClass*, pThis, ESI);
 
-	return TechnoExtData::IsAssaulter(pThis)? retTrue : retFalse;
+	return TechnoExtData::IsAssaulter(pThis) ? retTrue : retFalse;
 }
 
 //4D4BA0
@@ -4613,6 +4619,32 @@ ASMJIT_PATCH(0x449462, BuildingClass_IsCellOccupied_UndeploysInto, 0x6)
 	return SkipGameCode;
 }
 
+#include <SlaveManagerClass.h>
+
+ASMJIT_PATCH(0x6AF588, SlaveManagerClass_Enslave_MissingOriginalOwner, 0xD)
+{
+	GET(SlaveManagerClass*, pManage, ESI);
+
+	if (pManage->Owner)
+		pManage->Owner->SlaveManager = nullptr;
+
+	return 0x6AF595;
+}
+
+ASMJIT_PATCH(0x474DEE, INIClass_GetFoundation, 7)
+{
+	GET_STACK(const char*, Section, 0x2C);
+	GET_STACK(const char*, Key, 0x30);
+	LEA_STACK(const char*, Value, 0x8);
+
+	if (!IS_SAME_STR_(Value, "Custom") && !FindFoundation(Value))
+	{
+		Debug::INIParseFailed(Section, Key, Value);
+	}
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 {
 	GET(BuildingTypeClass*, pThis, EBP);
@@ -4632,111 +4664,150 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 
 	detail::read(pThis->Foundation, exINi, pSection, GameStrings::Foundation());
 
-	char strbuff[0x80];
-
-	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+	if (auto pAdd = FindFoundation(Phobos::readBuffer))
 	{
-		//Custom Foundation!
+		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
 		pBldext->IsCustom = true;
+		pBldext->CustomWidth = pAdd->Size.X;
+		pBldext->CustomHeight = pAdd->Size.Y;
 
-		//Load Width and Height
-		detail::read(pBldext->CustomWidth, exINi, pSection, "Foundation.X");
-		detail::read(pBldext->CustomHeight, exINi, pSection, "Foundation.Y");
+		pBldext->CustomData.assign(pAdd->CellCount + 1, CellStruct::Empty);
+		pBldext->OutlineData.assign(pAdd->OutlineCount + 1, CellStruct::Empty);
 
-		int outlineLength = exINi->ReadInteger(pSection, "FoundationOutline.Length", 0);
-
-		// at len < 10, things will end very badly for weapons factories
-		if (outlineLength < 10)
+		for (size_t i = 0; i < pAdd->CellCount; ++i)
 		{
-			outlineLength = 10;
+			pBldext->CustomData[i] = pAdd->Cells[i];
 		}
 
-		//Allocate CellStruct array
-		const int dimension = pBldext->CustomWidth * pBldext->CustomHeight;
+		for (size_t i = 0; i < pAdd->OutlineCount; ++i)
+		{
+			pBldext->OutlineData[i] = pAdd->Outline[i];
+		}
 
-		pBldext->CustomData.assign(dimension + 1, CellStruct::Empty);
-		pBldext->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
+		pBldext->CustomData[pAdd->CellCount] = BuildingTypeExtData::FoundationEndMarker;
+		pBldext->OutlineData[pAdd->OutlineCount] = BuildingTypeExtData::FoundationEndMarker;
 
-		using Iter = std::vector<CellStruct>::iterator;
+	}
+	else if (IS_SAME_STR_(Phobos::readBuffer, "Custom"))
+	{
 
-		auto ParsePoint = [](Iter& cell, const char* str) -> void
+		char strbuff[0x80];
+
+		if (pThis->Foundation == BuildingTypeExtData::CustomFoundation)
+		{
+			//Custom Foundation!
+			pBldext->IsCustom = true;
+
+			//Load Width and Height
+			detail::read(pBldext->CustomWidth, exINi, pSection, "Foundation.X");
+			detail::read(pBldext->CustomHeight, exINi, pSection, "Foundation.Y");
+
+			int outlineLength = exINi->ReadInteger(pSection, "FoundationOutline.Length", 0);
+
+			// at len < 10, things will end very badly for weapons factories
+			if (outlineLength < 10)
 			{
-				int x = 0, y = 0;
-				switch (sscanf_s(str, "%d,%d", &x, &y))
+				outlineLength = 10;
+			}
+
+			//Allocate CellStruct array
+			const int dimension = pBldext->CustomWidth * pBldext->CustomHeight;
+
+			pBldext->CustomData.assign(dimension + 1, CellStruct::Empty);
+			pBldext->OutlineData.assign(outlineLength + 1, CellStruct::Empty);
+
+			using Iter = std::vector<CellStruct>::iterator;
+
+			auto ParsePoint = [](Iter& cell, const char* str) -> void
 				{
-				case 0:
-					x = 0;
-					[[fallthrough]];
-				case 1:
-					y = 0;
+					int x = 0, y = 0;
+					switch (sscanf_s(str, "%d,%d", &x, &y))
+					{
+					case 0:
+						x = 0;
+						[[fallthrough]];
+					case 1:
+						y = 0;
+					}
+					*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
+				};
+
+			//Load FoundationData
+			auto itData = pBldext->CustomData.begin();
+			//char key[0x20];
+
+			for (int i = 0; i < dimension; ++i)
+			{
+				if (exINi->ReadString(pSection, (std::string("Foundation.") + std::to_string(i)).c_str(), Phobos::readDefval, strbuff))
+				{
+					ParsePoint(itData, strbuff);
 				}
-				*cell++ = CellStruct { static_cast<short>(x), static_cast<short>(y) };
-			};
+				else
+				{
+					break;
+				}
+			}
 
-		//Load FoundationData
-		auto itData = pBldext->CustomData.begin();
-		//char key[0x20];
-
-		for (int i = 0; i < dimension; ++i)
-		{
-			if (exINi->ReadString(pSection, (std::string("Foundation.") + std::to_string(i)).c_str(), Phobos::readDefval, strbuff))
+			//Sort, remove dupes, add end marker
+			std::sort(pBldext->CustomData.begin(), itData,
+			[](const CellStruct& lhs, const CellStruct& rhs)
 			{
-				ParsePoint(itData, strbuff);
+				if (lhs.Y != rhs.Y)
+				{
+					return lhs.Y < rhs.Y;
+				}
+				return lhs.X < lhs.X;
+			});
+
+			itData = std::unique(pBldext->CustomData.begin(), itData);
+			*itData = BuildingTypeExtData::FoundationEndMarker;
+			pBldext->CustomData.erase(itData + 1, pBldext->CustomData.end());
+
+			auto itOutline = pBldext->OutlineData.begin();
+			for (size_t i = 0; i < (size_t)outlineLength; ++i)
+			{
+				if (exINi->ReadString(pSection, (std::string("FoundationOutline.") + std::to_string(i)).c_str(), "", strbuff))
+				{
+					ParsePoint(itOutline, strbuff);
+				}
+				else
+				{
+					//Set end vector
+					// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
+					*itOutline++ = BuildingTypeExtData::FoundationEndMarker;
+				}
+			}
+
+			//Set end vector
+			*itOutline = BuildingTypeExtData::FoundationEndMarker;
+
+			if (pBldext->CustomData.begin() == pBldext->CustomData.end())
+			{
+				Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
 			}
 			else
 			{
-				break;
-			}
-		}
+				auto iter = pBldext->CustomData.begin();
+				while (iter->X || iter->Y)
+				{
+					if (++iter == pBldext->CustomData.end())
+						Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
 
-		//Sort, remove dupes, add end marker
-		std::sort(pBldext->CustomData.begin(), itData,
-		[](const CellStruct& lhs, const CellStruct& rhs)
-		{
-			if (lhs.Y != rhs.Y)
-			{
-				return lhs.Y < rhs.Y;
-			}
-			return lhs.X < lhs.X;
-		});
-
-		itData = std::unique(pBldext->CustomData.begin(), itData);
-		*itData = BuildingTypeExtData::FoundationEndMarker;
-		pBldext->CustomData.erase(itData + 1, pBldext->CustomData.end());
-
-		auto itOutline = pBldext->OutlineData.begin();
-		for (size_t i = 0; i < (size_t)outlineLength; ++i)
-		{
-			if (exINi->ReadString(pSection, (std::string("FoundationOutline.") + std::to_string(i)).c_str(), "", strbuff))
-			{
-				ParsePoint(itOutline, strbuff);
-			}
-			else
-			{
-				//Set end vector
-				// can't break, some stupid functions access fixed offsets without checking if that offset is within the valid range
-				*itOutline++ = BuildingTypeExtData::FoundationEndMarker;
-			}
-		}
-
-		//Set end vector
-		*itOutline = BuildingTypeExtData::FoundationEndMarker;
-
-		if (pBldext->CustomData.begin() == pBldext->CustomData.end())
-		{
-			Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
-		}
-		else
-		{
-			auto iter = pBldext->CustomData.begin();
-			while (iter->X || iter->Y)
-			{
-				if (++iter == pBldext->CustomData.end())
-					Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
-
+				}
 			}
 		}
 	}
+
+	return 0x46125D;
+}
+
+#include <Misc/BuildingFoundations.h>
+
+ASMJIT_PATCH(0x46152C, BuildingTypeClass_SetOccupy, 0x6)
+{
+	GET(BuildingTypeClass*, pThis, EBP);
+
+	auto pBldext = BuildingTypeExtContainer::Instance.Find(pThis);
 
 	if (pBldext->IsCustom)
 	{
@@ -4744,9 +4815,25 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 		pThis->Foundation = BuildingTypeExtData::CustomFoundation;
 		pThis->FoundationData = pBldext->CustomData.data();
 		pThis->FoundationOutside = pBldext->OutlineData.data();
+
+	}
+	else
+	{
+		pThis->FoundationData = BuildingTypeClass::FoundationlinesData[(int)pThis->Foundation].Datas;
+		pThis->FoundationOutside = BuildingTypeClass::FoundationOutlinesData[(int)pThis->Foundation].Datas;
+
+		//pThis->FoundationData = FoundationDataStruct::Cells[(int)pThis->Foundation].Datas;
+		//pThis->FoundationOutside = FoundationDataStruct::Outlines[(int)pThis->Foundation].Datas;
+
 	}
 
-	return 0x46125D;
+	CCINIClass::INI_Art->ReadString(pThis->ImageFile, "Buildup", "", Phobos::readBuffer);
+	if (strlen(Phobos::readBuffer))
+	{
+		PhobosCRT::strCopy(pThis->BuildupFile, Phobos::readBuffer);
+	}
+
+	return 0x4615B6;
 }
 
 ASMJIT_PATCH(0x447110, BuildingClass_Sell_Handled, 0x9)
@@ -5606,7 +5693,7 @@ ASMJIT_PATCH(0x418072, AircraftClass_Mission_Attack_PickAttackLocation, 0x5)
 			pAir->SetDestination(pCell, true);
 			return 0x418087;
 		}
-		else if(WeaponTypeClass* pWeapon = pAir->GetWeapon(weaponIdx)->WeaponType)
+		else if (WeaponTypeClass* pWeapon = pAir->GetWeapon(weaponIdx)->WeaponType)
 		{
 			int dest = pAir->DistanceFrom(pAir->Target);
 			CoordStruct nextPos = CoordStruct::Empty;
@@ -5837,17 +5924,20 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 
 	pThis->Parachute = pParach;
 
-	if(pParach){
+	if (pParach)
+	{
 		bool AllowRemap = !IsBullet;
 		HouseClass* pOwn = pThis->GetOwningHouse();
 
 		pParach->SetOwnerObject(pThis);
 
-		if(IsBullet){
+		if (IsBullet)
+		{
 			auto pTypeExt = BulletTypeExtContainer::Instance.Find(((BulletClass*)pThis)->Type);
 			AllowRemap = pTypeExt->Parachuted_Remap;
 
-			if(AllowRemap){
+			if (AllowRemap)
+			{
 				auto pExt = BulletExtContainer::Instance.Find((BulletClass*)pThis);
 				pOwn = ((BulletClass*)pThis)->Owner ? ((BulletClass*)pThis)->Owner->Owner : pExt->Owner;
 			}
@@ -5855,7 +5945,8 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 
 		const int idx = pOwn ? pOwn->ColorSchemeIndex : RulesExtData::Instance()->AnimRemapDefaultColorScheme;
 
-		if(AllowRemap && idx >= 0){
+		if (AllowRemap && idx >= 0)
+		{
 			pParach->LightConvert = ColorScheme::Array->Items[idx]->LightConvert;
 			pParach->TintColor = pThis->GetCell()->Color1.Red;
 		}
@@ -5911,23 +6002,24 @@ ASMJIT_PATCH(0x417CC0, AircraftClass_WhatAction_caller, 0x5)
 	return 0x0;
 }
 
- ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4And3_DeadTechno, 0x6)
- {
- 	GET(SpawnManagerClass*, pThis, ESI);
- 	GET(int, idx, EBX);
+ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4And3_DeadTechno, 0x6)
+{
+	GET(SpawnManagerClass*, pThis, ESI);
+	GET(int, idx, EBX);
 
- 	if (!pThis->SpawnedNodes.Items[idx]->Unit || !pThis->SpawnedNodes.Items[idx]->Unit->IsAlive) {
- 		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
- 		pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
+	if (!pThis->SpawnedNodes.Items[idx]->Unit || !pThis->SpawnedNodes.Items[idx]->Unit->IsAlive)
+	{
+		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+		pThis->SpawnedNodes.Items[idx]->Unit = nullptr;
 
-		if(!pThis->SpawnedNodes.Items[idx]->Unit->IsAlive)
+		if (!pThis->SpawnedNodes.Items[idx]->Unit->IsAlive)
 			pThis->SpawnedNodes.Items[idx]->NodeSpawnTimer.Start(pThis->RegenRate);
 
- 		return 0x6B727F;
- 	}
+		return 0x6B727F;
+	}
 
- 	return 0x0;
- }ASMJIT_PATCH_AGAIN(0x6B770D, SpawnManagerClass_AI_State4And3_DeadTechno, 0x7)
+	return 0x0;
+}ASMJIT_PATCH_AGAIN(0x6B770D, SpawnManagerClass_AI_State4And3_DeadTechno, 0x7)
 
 //ASMJIT_PATCH(0x6F7CA0, TechnoClass_EvalObject_EarlyObjectEval, 0x5)
 //{
@@ -6074,7 +6166,8 @@ static NOINLINE BuildingRadiationExposure CalculateBuildingRadiationDamage(
 	const auto baseCell = pRad->BaseCell;
 	const auto nCurCoord = pBld->InlineMapCoords();
 
-	for (auto* pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation) {
+	for (auto* pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation)
+	{
 
 		const auto nLoc = nCurCoord + (*pFoundation);
 		auto pCell = MapClass::Instance->TryGetCellAt(nLoc);
@@ -6083,8 +6176,9 @@ static NOINLINE BuildingRadiationExposure CalculateBuildingRadiationDamage(
 
 		auto* pCellExt = CellExtContainer::Instance.Find(pCell);
 
-		auto it = pCellExt->RadLevels.find_if([pRad](auto& pair) {
-			return pair.Rad == pRad;
+		auto it = pCellExt->RadLevels.find_if([pRad](auto& pair)
+ {
+	 return pair.Rad == pRad;
 		});
 
 		if (it == pCellExt->RadLevels.end() || it->Level <= 0)
@@ -6102,7 +6196,8 @@ static NOINLINE BuildingRadiationExposure CalculateBuildingRadiationDamage(
 		}
 	}
 
-	if (result.BestRadLevel > 0) {
+	if (result.BestRadLevel > 0)
+	{
 		result.Damage = CalculateRadiationDamage(result.BestRadLevel, pRadType->GetLevelFactor(), result.BestDistance, pRad->Spread);
 	}
 
@@ -6131,7 +6226,7 @@ static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, BuildingClass* pObj, Cel
 		if (maxDamageCount > 0 && damageCount >= maxDamageCount)
 			return;
 
-		const auto damage = CalculateBuildingRadiationDamage(pRad,pRadType,pObj);
+		const auto damage = CalculateBuildingRadiationDamage(pRad, pRadType, pObj);
 
 		if (damage.Damage == 0)
 			return;
@@ -6234,26 +6329,27 @@ ASMJIT_PATCH(0x65BE01, RadSiteClass_DecreaseRadiation_Decrease, 0x6)
 	return SkipGameCode;
 }
 
- ASMJIT_PATCH(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
- {
- 	GET(SpawnManagerClass*, pThis, ESI);
- 	GET(TechnoClass*, pSpawnee, EDI);
- 	GET(int, idx, EBX);
+ASMJIT_PATCH(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
+{
+	GET(SpawnManagerClass*, pThis, ESI);
+	GET(TechnoClass*, pSpawnee, EDI);
+	GET(int, idx, EBX);
 
- 	if (!pSpawnee)
- 	{
- 		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
- 		return 0x6B727F;
- 	}
+	if (!pSpawnee)
+	{
+		pThis->SpawnedNodes.Items[idx]->Status = SpawnNodeStatus::Dead;
+		return 0x6B727F;
+	}
 
- 	return 0x0;
- }
+	return 0x0;
+}
 
 ASMJIT_PATCH(0x6B71E7, SpawnManagerClass_Manage_AlreadyNull, 0xA)
 {
 	GET(SpawnNode*, pNode, EDX);
 
-	if (pNode->Unit && pNode->Unit->IsAlive) {
+	if (pNode->Unit && pNode->Unit->IsAlive)
+	{
 		pNode->Unit->UnInit(); // call detach function for everyone
 	}
 
@@ -6740,16 +6836,16 @@ public:
 
 		if (sort)
 		{
-			auto VectorMax = this->Capacity;
-			if (this->Count >= VectorMax)
+			auto Capacity = this->Capacity;
+			if (this->Count >= Capacity)
 			{
-				if (!this->IsAllocated && VectorMax)
+				if (!this->IsAllocated && Capacity)
 				{
 					return 0;
 				}
 
-				auto GrowthStep = this->CapacityIncrement;
-				if (GrowthStep <= 0 || !this->SetCapacity(VectorMax + GrowthStep, 0))
+				auto CapacityIncrement = this->CapacityIncrement;
+				if (CapacityIncrement <= 0 || !this->SetCapacity(Capacity + CapacityIncrement, 0))
 				{
 					return 0;
 				}
@@ -6807,7 +6903,7 @@ public:
 
 #pragma region ElectricAssultStuffs
 
-void ElectrictAssaultCheck(FootClass* pThis , bool updateIdleAction)
+void ElectrictAssaultCheck(FootClass* pThis, bool updateIdleAction)
 {
 	if (pThis->Target)
 		return;
@@ -6839,7 +6935,9 @@ void ElectrictAssaultCheck(FootClass* pThis , bool updateIdleAction)
 			}
 		}
 
-	} else if (updateIdleAction){
+	}
+	else if (updateIdleAction)
+	{
 		pThis->UpdateIdleAction();
 	}
 }
@@ -6847,14 +6945,14 @@ void ElectrictAssaultCheck(FootClass* pThis , bool updateIdleAction)
 ASMJIT_PATCH(0x4D6F38, FootClass_ElectricAssultFix_SetWeaponType, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
-	ElectrictAssaultCheck(pThis , false);
+	ElectrictAssaultCheck(pThis, false);
 	return 0x4D7025;
 }
 
 ASMJIT_PATCH(0x4D50E1, FootClass_MI_Guard_ElectrictAssault, 0xA)
 {
 	GET(FootClass*, pThis, ESI);
-	ElectrictAssaultCheck(pThis , true);
+	ElectrictAssaultCheck(pThis, true);
 	return 0x4D5225;
 }
 
@@ -6908,36 +7006,36 @@ ASMJIT_PATCH(0x691C62, ScriptTypeClass_CreateFromName_RemoveInline, 0x5)
 //#pragma optimize("", on )
 
 #ifndef disabled_
-ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
-{
+// ASMJIT_PATCH(0x6F9C80, TechnoClass_GreatestThread_DeadTechno, 0x9)
+// {
 
-	GET(TechnoClass*, pThis, ESI);
+// 	GET(TechnoClass*, pThis, ESI);
 
-	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
+// 	auto pTechno = TechnoClass::Array->Items[R->EBX<int>()];
 
-	if (!pTechno->IsAlive)
-	{
-		//Debug::LogInfo("TechnoClass::GreatestThread Found DeadTechno[{} - {}] on TechnoArray!", (void*)pTechno, pTechno->get_ID());
-		return  0x6F9D93; // next
-	}
+// 	if (!pTechno->IsAlive)
+// 	{
+// 		//Debug::LogInfo("TechnoClass::GreatestThread Found DeadTechno[{} - {}] on TechnoArray!", (void*)pTechno, pTechno->get_ID());
+// 		return  0x6F9D93; // next
+// 	}
 
-	R->ECX(pThis->Owner);
-	R->EDI(pTechno);
-	return 0x6F9C89;//contunye
-}
+// 	R->ECX(pThis->Owner);
+// 	R->EDI(pTechno);
+// 	return 0x6F9C89;//contunye
+// }
 
-ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
-{
-	GET(TechnoClass*, pTrackerTechno, EBP);
+// ASMJIT_PATCH(0x6F91EC, TechnoClass_GreatestThreat_DeadTechnoInsideTracker, 0x6)
+// {
+// 	GET(TechnoClass*, pTrackerTechno, EBP);
 
-	if (!pTrackerTechno->IsAlive)
-	{
-		//Debug::LogInfo("Found DeadTechno[{} - {}] on AircraftTracker!", (void*)pTrackerTechno, pTrackerTechno->get_ID());
-		return 0x6F9377; // next
-	}
+// 	if (!pTrackerTechno->IsAlive)
+// 	{
+// 		//Debug::LogInfo("Found DeadTechno[{} - {}] on AircraftTracker!", (void*)pTrackerTechno, pTrackerTechno->get_ID());
+// 		return 0x6F9377; // next
+// 	}
 
-	return 0x0;//contunye
-}
+// 	return 0x0;//contunye
+// }
 
 WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 {
@@ -7036,14 +7134,14 @@ ASMJIT_PATCH(0x5F6560, AbstractClass_Distance2DSquared_2, 5)
 
 #else
 DEFINE_FUNCTION_JUMP(LJMP, 0x5F6500, FakeObjectClass::_GetDistanceOfObj);
- DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
- DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EB2DC, FakeObjectClass::_GetDistanceOfObj);
+DEFINE_FUNCTION_JUMP(CALL, 0x4DEFF4, FakeObjectClass::_GetDistanceOfObj);
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x5F6560, FakeObjectClass::_GetDistanceOfCoord);
- DEFINE_FUNCTION_JUMP(CALL, 0x6EABCB, FakeObjectClass::_GetDistanceOfCoord);
- DEFINE_FUNCTION_JUMP(CALL, 0x6EAC96, FakeObjectClass::_GetDistanceOfCoord);
- DEFINE_FUNCTION_JUMP(CALL, 0x6EAD4B, FakeObjectClass::_GetDistanceOfCoord);
- DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EABCB, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EAC96, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x6EAD4B, FakeObjectClass::_GetDistanceOfCoord);
+DEFINE_FUNCTION_JUMP(CALL, 0x741801, FakeObjectClass::_GetDistanceOfCoord);
 
 #endif
 #pragma endregion
@@ -7540,430 +7638,1235 @@ public:
 	struct Vector3D
 	{
 		float X, Y, Z;
-};
+	};
 
-//DEFINE_FUNCTION_JUMP(CALL, 0x531758, FakeIonBlastClass::InitOneTime)
-//DEFINE_FUNCTION_JUMP(CALL, 0x6BE3CE, FakeIonBlastClass::DestroySurfaces)
-DEFINE_FUNCTION_JUMP(CALL, 0x53D326, FakeIonBlastClass::_AI)
+	//DEFINE_FUNCTION_JUMP(CALL, 0x531758, FakeIonBlastClass::InitOneTime)
+	//DEFINE_FUNCTION_JUMP(CALL, 0x6BE3CE, FakeIonBlastClass::DestroySurfaces)
+	DEFINE_FUNCTION_JUMP(CALL, 0x53D326, FakeIonBlastClass::_AI)
 
-//bool FakeIonBlastClass::IonBlastClass_inited {};
-//Surface* FakeIonBlastClass::IonBlastClass_Surfaces[80] {};
-//uint16_t FakeIonBlastClass::ionblast_A9FAE8[289] {};
-//size_t FakeIonBlastClass::LUT_SIZE { std::size(FakeIonBlastClass::ionblast_A9FAE8) };
-//int FakeIonBlastClass::IonBlastPitch {};
+		//bool FakeIonBlastClass::IonBlastClass_inited {};
+		//Surface* FakeIonBlastClass::IonBlastClass_Surfaces[80] {};
+		//uint16_t FakeIonBlastClass::ionblast_A9FAE8[289] {};
+		//size_t FakeIonBlastClass::LUT_SIZE { std::size(FakeIonBlastClass::ionblast_A9FAE8) };
+		//int FakeIonBlastClass::IonBlastPitch {};
 #endif
 
-static void __fastcall IonBlastDrawAll()
-{
-	VeinholeMonsterClass::DrawAll();
-	IonBlastClass::DrawAll();
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, IonBlastDrawAll)
+		static void __fastcall IonBlastDrawAll()
+	{
+		VeinholeMonsterClass::DrawAll();
+		IonBlastClass::DrawAll();
+	}
+	DEFINE_FUNCTION_JUMP(CALL, 0x6D4656, IonBlastDrawAll)
 
-static void __fastcall LaserDrawclassDrawAll()
-{
-	LaserDrawClass::DrawAll();
-	EBolt::DrawAll();
-	TacticalExtData::Instance()->Screen_Flash_AI();
-	//ElectricBoltManager::Draw_All();
-}
-DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll)
+		static void __fastcall LaserDrawclassDrawAll()
+	{
+		LaserDrawClass::DrawAll();
+		EBolt::DrawAll();
+		TacticalExtData::Instance()->Screen_Flash_AI();
+		//ElectricBoltManager::Draw_All();
+	}
+	DEFINE_FUNCTION_JUMP(CALL, 0x6D4669, LaserDrawclassDrawAll)
 
- ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6) {
-    GET(XSurface*, pThis, ECX);
-    GET_STACK(uintptr_t, caller, 0x0);
+		ASMJIT_PATCH(0x7BB350, XSurface_Func_check, 0x6)
+	{
+		GET(XSurface*, pThis, ECX);
+		GET_STACK(uintptr_t, caller, 0x0);
 
-    if (!pThis || VTable::Get(pThis) != XSurface::vtable){
-   	 	Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
-    }
+		if (!pThis || VTable::Get(pThis) != XSurface::vtable)
+		{
+			Debug::LogInfo("XSurface Invalid caller [0x{0:x}]!!", caller);
+		}
 
-    return 0x0;
- } ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
+		return 0x0;
+	} ASMJIT_PATCH_AGAIN(0x7BBAF0, XSurface_Func_check, 0x5)
 
-ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
-{
-	 GET(TechnoClass* , pTech, ESI);
+		ASMJIT_PATCH(0x6D471A, TechnoClass_Render_dead, 0x6)
+	{
+		GET(TechnoClass*, pTech, ESI);
 
-	 if (!pTech->IsAlive)
-		 return 0x6D48FA;
-	 auto vtable = VTable::Get(pTech);
+		if (!pTech->IsAlive)
+			return 0x6D48FA;
+		auto vtable = VTable::Get(pTech);
 
-	 if(vtable != AircraftClass::vtable
-		 && vtable != BuildingClass::vtable
-		 && vtable != InfantryClass::vtable
-		 && vtable != UnitClass::vtable)
-		 return 0x6D48FA;
+		if (vtable != AircraftClass::vtable
+			&& vtable != BuildingClass::vtable
+			&& vtable != InfantryClass::vtable
+			&& vtable != UnitClass::vtable)
+			return 0x6D48FA;
 
-	 return 0x0;
-}
-
- ASMJIT_PATCH(0x438D72, BombListClass_DetectorMissingHouse, 0x7)
- {
-	 GET(HouseClass*, pDetectorOwner, EAX);
-	 GET(TechnoClass*, pDetector, ESI);
-
-	 if (!pDetectorOwner) {
-		 Debug::FatalErrorAndExit("BombListClass Detector[%s - %s] Missing Ownership !\n", pDetector->GetThisClassName(), pDetector->get_ID());
-		 //return 0x438E11;
-	 }
-
-	 R->AL(pDetectorOwner->ControlledByCurrentPlayer());
-	 return 0x438D79;
- }
-
- ASMJIT_PATCH(0x70D0D0, TechnoClass_HasAbility_Check, 0x5)
- {
-	 GET_STACK(AbilityType, abi, 0x4);
-	 GET_STACK(DWORD, caller, 0x0);
-
-	 if (abi >= AbilityType::count)
-		 Debug::FatalError("TechnoClass HasAbility input is too big ! %d [caller %x]\n", abi, caller);
-
-	 return 0x0;
- }
-
-
-
- //ASMJIT_PATCH(0x7399EE, UnitClass_TryToDeploy_BrokenEBP, 0x5)
- //{
-	// GET(UnitClass*, pThis, EBP);
-
-	// if (pThis->AttachedTag)
-	// {
-	//	 R->EAX(pThis->AttachedTag);
-	//	 return 0x7399F5;
-	// }
-
-	// return 0x739A0E;
- //}
-#include <Utilities/Swizzle.h>
-
-DWORD LastKnown;
-AbstractClass* pAbs;
-
- ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
- {
-	 GET(AbstractClass*, pThis, ESI);
-	 //GET_STACK(IStream*, pStream, 0x0);
-
-	 //immedietely update the extension pointer value and the extension AttachedToObject itself !
-	 ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
-	 LastKnown = pThis->unknown_18;
-	 pAbs = pThis;
-
-	 return 0x0;
- }
-
- //more specific
- //ASMJIT_PATCH(0x41096D, AbstractTypeClass_NoInt_cleaupPtr,0x6)
- //{
-	//  GET(AbstractClass*, pThis, EAX);
-
-	//  if (Phobos::Otamaa::DoingLoadGame) {
-	//	  if (pAbs != pThis)  //avoid missmatching
-	//		  LastKnown = 0;
-	//  }
-
-	//  pThis->unknown_18 = std::exchange(LastKnown, 0u);
-	//  return 0x0;
- //}
-
-ASMJIT_PATCH(0x410182 , AbstractClass_cleaupPtr_B , 0x6){
-	GET(AbstractClass*, pThis, EAX);
-
-	if (Phobos::Otamaa::DoingLoadGame){
-		if (pAbs != pThis) //avoid missmatching
-			LastKnown = 0;
+		return 0x0;
 	}
 
-   pThis->unknown_18 = std::exchange(LastKnown, 0u);
-   pThis->RefCount = 0l;
-  return 0x410188;
-}
+	ASMJIT_PATCH(0x438D72, BombListClass_DetectorMissingHouse, 0x7)
+	{
+		GET(HouseClass*, pDetectorOwner, EAX);
+		GET(TechnoClass*, pDetector, ESI);
 
- ASMJIT_PATCH(0x4101E4, AbstractClass_cleaupPtr, 0x7)
- {
-	  GET(AbstractClass*, pThis, EAX);
+		if (!pDetectorOwner)
+		{
+			Debug::FatalErrorAndExit("BombListClass Detector[%s - %s] Missing Ownership !\n", pDetector->GetThisClassName(), pDetector->get_ID());
+			//return 0x438E11;
+		}
 
-	 if(Phobos::Otamaa::DoingLoadGame) {
+		R->AL(pDetectorOwner->ControlledByCurrentPlayer());
+		return 0x438D79;
+	}
 
-		 if (pAbs != pThis) //avoid missmatching
-			 LastKnown = 0;
-	 }
+	ASMJIT_PATCH(0x70D0D0, TechnoClass_HasAbility_Check, 0x5)
+	{
+		GET_STACK(AbilityType, abi, 0x4);
+		GET_STACK(DWORD, caller, 0x0);
 
-	  pThis->unknown_18 = std::exchange(LastKnown, 0u);
-	  return 0x0;
- }
+		if (abi >= AbilityType::count)
+			Debug::FatalError("TechnoClass HasAbility input is too big ! %d [caller %x]\n", abi, caller);
 
- //ASMJIT_PATCH(0x521960, InfantryClass_Load_test, 0x5)
- // {
-	// GET(InfantryClass*, pThis, ESI);
-	// return 0x0;
- //}
+		return 0x0;
+	}
 
- //ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
- //{
-	// GET(AbstractClass*, pThis, EAX);
-	// return 0x0;
- //}
 
- //ASMJIT_PATCH(0x5219E8, InfantryClass_Load_test, 0x5)
- //{
-	// GET(InfantryClass*, pThis, ESI);
-	// return 0x0;
- //}
 
- //ASMJIT_PATCH(0x5F3B5D, ObjectClass_Load_checkExt, 0x5)
- //{
-	// GET(ObjectClass*, pThis, ESI);
-	// return 0x0;
- //}
+	//ASMJIT_PATCH(0x7399EE, UnitClass_TryToDeploy_BrokenEBP, 0x5)
+	//{
+	   // GET(UnitClass*, pThis, EBP);
 
- //ASMJIT_PATCH(0x65A7F7, RadioClass_Load_checkExt, 0x5)
- //{
-	// GET(RadioClass*, pThis, ESI);
-	// return 0x0;
- //}
+	   // if (pThis->AttachedTag)
+	   // {
+	   //	 R->EAX(pThis->AttachedTag);
+	   //	 return 0x7399F5;
+	   // }
 
- //ASMJIT_PATCH(0x6F44E9, TechnoClass_Load_checkExt, 0x5)
- //{
-	// GET(TechnoClass*, pThis, ESI);
-	// return 0x0;
- //}
+	   // return 0x739A0E;
+	//}
+#include <Utilities/Swizzle.h>
 
- //ASMJIT_PATCH(0x4D3568, FootClass_Load_checkExt, 0x6)
- //{
-	// GET(FootClass*, pThis, ESI);
-	// return 0x0;
- //}
+	DWORD LastKnown;
+	AbstractClass* pAbs;
 
- //ASMJIT_PATCH(0x744527, UnitClass_Load_checkExt, 0x6)
- //{
-	// GET(UnitClass*, pThis, ESI);
-	// return 0x0;
- //}
- //ASMJIT_PATCH(0x410361, AbstractClass_Save_LogValue, 0x5)
- //{
-	// GET(AbstractClass*, pThis, ESI);
-	// Debug::Log("Saving Ext of %x", pThis->unknown_18);
-	// return 0x0;
- //}
+	ASMJIT_PATCH(0x4103D0, AbstractClass_Load_LogValue, 0x5)
+	{
+		GET(AbstractClass*, pThis, ESI);
+		//GET_STACK(IStream*, pStream, 0x0);
 
- //ASMJIT_PATCH(0x6D4912, TechnoClass_Render_deadRemoval, 0x6)
- //{
-	// TechnoClass::Array->remove_if([](TechnoClass* ptr) {
-	//	 auto vtable = VTable::Get(ptr);
-	//	 if (vtable != AircraftClass::vtable
-	//		 && vtable != BuildingClass::vtable
-	//		 && vtable != InfantryClass::vtable
-	//		 && vtable != UnitClass::vtable)
-	//		 return true;
+		//immedietely update the extension pointer value and the extension AttachedToObject itself !
+		ExtensionSwizzleManager::SwizzleExtensionPointer(reinterpret_cast<void**>(&pThis->unknown_18), pThis);
+		LastKnown = pThis->unknown_18;
+		pAbs = pThis;
 
-	//	 return false;
-	//});
+		return 0x0;
+	}
 
-	// return 0x0;
- //}
+	//more specific
+	//ASMJIT_PATCH(0x41096D, AbstractTypeClass_NoInt_cleaupPtr,0x6)
+	//{
+	   //  GET(AbstractClass*, pThis, EAX);
 
- //ASMJIT_PATCH(0x5F4870, ObjectClass_func_BrokenObj, 0x5)
- //{
-	// GET(ObjectClass*, pObj, ECX);
-	// GET_STACK(DWORD, caller, 0x0);
+	   //  if (Phobos::Otamaa::DoingLoadGame) {
+	   //	  if (pAbs != pThis)  //avoid missmatching
+	   //		  LastKnown = 0;
+	   //  }
 
-	// if (!pObj->IsAlive)
-	//	 Debug::Log("Dead obj %x caller %x\n", pObj , caller);
-	// //auto vtable = VTable::Get(pObj);
-	// //BulletClass
-	//	// IsometricTileClass
-	//	// OverlayClass
-	//	// ParticleClass
-	//	// ParticleSystemClass
-	//	// SmudgeClass
-	//	// TerrainClass
-	//	// VeinholeMonsterClass
-	//	// VoxelAnimClass
-	//	// WaveClass
-	// //if (&& vtable != BuildingLightClass::vtable  && vtable != AnimClass::vtable
-	//	// && vtable != AircraftClass::vtable
-	//	// && vtable != BuildingClass::vtable
-	//	// && vtable != InfantryClass::vtable
-	//	// && vtable != UnitClass::vtable)
+	   //  pThis->unknown_18 = std::exchange(LastKnown, 0u);
+	   //  return 0x0;
+	//}
 
-	// return 0x0;
- //}
+	ASMJIT_PATCH(0x410182, AbstractClass_cleaupPtr_B, 0x6)
+	{
+		GET(AbstractClass*, pThis, EAX);
 
- /*******************************************************************************
- * Cohen-Sutherland Line Clipping Algorithm
- * Cleaned up version
- ******************************************************************************/
+		if (Phobos::Otamaa::DoingLoadGame)
+		{
+			if (pAbs != pThis) //avoid missmatching
+				LastKnown = 0;
+		}
 
- /*
-  * Build bits that indicate which end points lie outside the clipping rectangle.
-  * Quick checks against these flag bits will speed the clipping process.
-  */
- constexpr inline int CODE_INSIDE = 0;  // 0000
- constexpr inline int CODE_LEFT = 1;    // 0001
- constexpr inline int CODE_RIGHT = 2;   // 0010
- constexpr inline int CODE_BOTTOM = 4;  // 0100
- constexpr inline int CODE_TOP = 8;     // 1000
+		pThis->unknown_18 = std::exchange(LastKnown, 0u);
+		pThis->RefCount = 0l;
+		return 0x410188;
+	}
 
- /***********************************************************************************************
-  * Compute_Out_Code
-  *
-  * Compute the bit code for a point (x, y) using the clip rectangle.
-  * Bounded diagonally by (xmin, ymin), and (xmax, ymax).
-  *
-  * INPUT:   x     -- X coordinate of point
-  *          y     -- Y coordinate of point
-  *          rect  -- Clipping rectangle
-  *
-  * OUTPUT:  OutCode indicating which boundaries the point is outside of
-  ***********************************************************************************************/
- int __forceinline Compute_Out_Code(double x, double y, RectangleStruct const* rect)
- {
-	 int code = CODE_INSIDE;
+	ASMJIT_PATCH(0x4101E4, AbstractClass_cleaupPtr, 0x7)
+	{
+		GET(AbstractClass*, pThis, EAX);
 
-	 int right_edge = rect->X + rect->Width;
-	 if (x >= right_edge)
-	 {
-		 code |= CODE_RIGHT;
-	 }
-	 else if (x < rect->X)
-	 {
-		 code |= CODE_LEFT;
-	 }
+		if (Phobos::Otamaa::DoingLoadGame)
+		{
 
-	 int bottom_edge = rect->Y + rect->Height;
-	 if (y >= bottom_edge)
-	 {
-		 code |= CODE_BOTTOM;
-	 }
-	 else if (y < rect->Y)
-	 {
-		 code |= CODE_TOP;
-	 }
+			if (pAbs != pThis) //avoid missmatching
+				LastKnown = 0;
+		}
 
-	 return code;
- }
+		pThis->unknown_18 = std::exchange(LastKnown, 0u);
+		return 0x0;
+	}
 
- /***********************************************************************************************
-  * Clip_Line
-  *
-  * Cohen-Sutherland line clipping algorithm implementation.
-  * Clips a line segment to fit within the specified rectangle.
-  *
-  * INPUT:   pt1   -- First point of line segment (modified in place)
-  *          pt2   -- Second point of line segment (modified in place)
-  *          rect  -- Clipping rectangle
-  *
-  * OUTPUT:  true if line segment intersects rectangle, false otherwise
-  *
-  * NOTES:   Based on algorithm from "Computer Graphics: Principles and Practice in C"
-  *          Modified version of: https://en.wikipedia.org/wiki/Cohen–Sutherland_algorithm
-  ***********************************************************************************************/
- bool __fastcall Clip_Line(Point2D* pt1, Point2D* pt2, RectangleStruct* rect)
- {
-	 int outcodeOut;
+	//ASMJIT_PATCH(0x521960, InfantryClass_Load_test, 0x5)
+	// {
+	   // GET(InfantryClass*, pThis, ESI);
+	   // return 0x0;
+	//}
 
-	 double x0 = pt1->X;
-	 double y0 = pt1->Y;
-	 double x1 = pt2->X;
-	 double y1 = pt2->Y;
+	//ASMJIT_PATCH(0x521A11, InfantryClass_NoInit_test, 0x6)
+	//{
+	   // GET(AbstractClass*, pThis, EAX);
+	   // return 0x0;
+	//}
 
-	 // Pre-calculate slopes to avoid division in the loop
-	 double slope_y = (x1 - x0) / (y1 - y0); // slope to use for possibly-vertical lines
-	 double slope_x = (y1 - y0) / (x1 - x0); // slope to use for possibly-horizontal lines
+	//ASMJIT_PATCH(0x5219E8, InfantryClass_Load_test, 0x5)
+	//{
+	   // GET(InfantryClass*, pThis, ESI);
+	   // return 0x0;
+	//}
 
-	 /*
-	  * Compute outcodes for both endpoints
-	  */
-	 int outcode0 = Compute_Out_Code(x0, y0, rect);
-	 int outcode1 = Compute_Out_Code(x1, y1, rect);
+	//ASMJIT_PATCH(0x5F3B5D, ObjectClass_Load_checkExt, 0x5)
+	//{
+	   // GET(ObjectClass*, pThis, ESI);
+	   // return 0x0;
+	//}
 
-	 while (true)
-	 {
-		 if (outcode0 == CODE_INSIDE && outcode1 == CODE_INSIDE)
-		 {
+	//ASMJIT_PATCH(0x65A7F7, RadioClass_Load_checkExt, 0x5)
+	//{
+	   // GET(RadioClass*, pThis, ESI);
+	   // return 0x0;
+	//}
+
+	//ASMJIT_PATCH(0x6F44E9, TechnoClass_Load_checkExt, 0x5)
+	//{
+	   // GET(TechnoClass*, pThis, ESI);
+	   // return 0x0;
+	//}
+
+	//ASMJIT_PATCH(0x4D3568, FootClass_Load_checkExt, 0x6)
+	//{
+	   // GET(FootClass*, pThis, ESI);
+	   // return 0x0;
+	//}
+
+	//ASMJIT_PATCH(0x744527, UnitClass_Load_checkExt, 0x6)
+	//{
+	   // GET(UnitClass*, pThis, ESI);
+	   // return 0x0;
+	//}
+	//ASMJIT_PATCH(0x410361, AbstractClass_Save_LogValue, 0x5)
+	//{
+	   // GET(AbstractClass*, pThis, ESI);
+	   // Debug::Log("Saving Ext of %x", pThis->unknown_18);
+	   // return 0x0;
+	//}
+
+	//ASMJIT_PATCH(0x6D4912, TechnoClass_Render_deadRemoval, 0x6)
+	//{
+	   // TechnoClass::Array->remove_if([](TechnoClass* ptr) {
+	   //	 auto vtable = VTable::Get(ptr);
+	   //	 if (vtable != AircraftClass::vtable
+	   //		 && vtable != BuildingClass::vtable
+	   //		 && vtable != InfantryClass::vtable
+	   //		 && vtable != UnitClass::vtable)
+	   //		 return true;
+
+	   //	 return false;
+	   //});
+
+	   // return 0x0;
+	//}
+
+	//ASMJIT_PATCH(0x5F4870, ObjectClass_func_BrokenObj, 0x5)
+	//{
+	   // GET(ObjectClass*, pObj, ECX);
+	   // GET_STACK(DWORD, caller, 0x0);
+
+	   // if (!pObj->IsAlive)
+	   //	 Debug::Log("Dead obj %x caller %x\n", pObj , caller);
+	   // //auto vtable = VTable::Get(pObj);
+	   // //BulletClass
+	   //	// IsometricTileClass
+	   //	// OverlayClass
+	   //	// ParticleClass
+	   //	// ParticleSystemClass
+	   //	// SmudgeClass
+	   //	// TerrainClass
+	   //	// VeinholeMonsterClass
+	   //	// VoxelAnimClass
+	   //	// WaveClass
+	   // //if (&& vtable != BuildingLightClass::vtable  && vtable != AnimClass::vtable
+	   //	// && vtable != AircraftClass::vtable
+	   //	// && vtable != BuildingClass::vtable
+	   //	// && vtable != InfantryClass::vtable
+	   //	// && vtable != UnitClass::vtable)
+
+	   // return 0x0;
+	//}
+
+	/*******************************************************************************
+	* Cohen-Sutherland Line Clipping Algorithm
+	* Cleaned up version
+	******************************************************************************/
+
+	/*
+	 * Build bits that indicate which end points lie outside the clipping rectangle.
+	 * Quick checks against these flag bits will speed the clipping process.
+	 */
+	constexpr inline int CODE_INSIDE = 0;  // 0000
+	constexpr inline int CODE_LEFT = 1;    // 0001
+	constexpr inline int CODE_RIGHT = 2;   // 0010
+	constexpr inline int CODE_BOTTOM = 4;  // 0100
+	constexpr inline int CODE_TOP = 8;     // 1000
+
+	/***********************************************************************************************
+	 * Compute_Out_Code
+	 *
+	 * Compute the bit code for a point (x, y) using the clip rectangle.
+	 * Bounded diagonally by (xmin, ymin), and (xmax, ymax).
+	 *
+	 * INPUT:   x     -- X coordinate of point
+	 *          y     -- Y coordinate of point
+	 *          rect  -- Clipping rectangle
+	 *
+	 * OUTPUT:  OutCode indicating which boundaries the point is outside of
+	 ***********************************************************************************************/
+	int __forceinline Compute_Out_Code(double x, double y, RectangleStruct const* rect)
+	{
+		int code = CODE_INSIDE;
+
+		int right_edge = rect->X + rect->Width;
+		if (x >= right_edge)
+		{
+			code |= CODE_RIGHT;
+		}
+		else if (x < rect->X)
+		{
+			code |= CODE_LEFT;
+		}
+
+		int bottom_edge = rect->Y + rect->Height;
+		if (y >= bottom_edge)
+		{
+			code |= CODE_BOTTOM;
+		}
+		else if (y < rect->Y)
+		{
+			code |= CODE_TOP;
+		}
+
+		return code;
+	}
+
+	/***********************************************************************************************
+	 * Clip_Line
+	 *
+	 * Cohen-Sutherland line clipping algorithm implementation.
+	 * Clips a line segment to fit within the specified rectangle.
+	 *
+	 * INPUT:   pt1   -- First point of line segment (modified in place)
+	 *          pt2   -- Second point of line segment (modified in place)
+	 *          rect  -- Clipping rectangle
+	 *
+	 * OUTPUT:  true if line segment intersects rectangle, false otherwise
+	 *
+	 * NOTES:   Based on algorithm from "Computer Graphics: Principles and Practice in C"
+	 *          Modified version of: https://en.wikipedia.org/wiki/Cohen–Sutherland_algorithm
+	 ***********************************************************************************************/
+	bool __fastcall Clip_Line(Point2D* pt1, Point2D* pt2, RectangleStruct* rect)
+	{
+		int outcodeOut;
+
+		double x0 = pt1->X;
+		double y0 = pt1->Y;
+		double x1 = pt2->X;
+		double y1 = pt2->Y;
+
+		// Pre-calculate slopes to avoid division in the loop
+		double slope_y = (x1 - x0) / (y1 - y0); // slope to use for possibly-vertical lines
+		double slope_x = (y1 - y0) / (x1 - x0); // slope to use for possibly-horizontal lines
+
+		/*
+		 * Compute outcodes for both endpoints
+		 */
+		int outcode0 = Compute_Out_Code(x0, y0, rect);
+		int outcode1 = Compute_Out_Code(x1, y1, rect);
+
+		while (true)
+		{
+			if (outcode0 == CODE_INSIDE && outcode1 == CODE_INSIDE)
+			{
+				/*
+				 * Both points inside window; trivially accept and return true.
+				 */
+				pt1->X = x0;
+				pt1->Y = y0;
+				pt2->X = x1;
+				pt2->Y = y1;
+				return true;
+			}
+
+			/*
+			 * Check to see if the line segment falls outside of the viewing rectangle.
+			 */
+			if (outcode0 & outcode1)
+			{
+				/*
+				 * Bitwise AND is not 0: both points share an outside zone (LEFT, RIGHT, TOP,
+				 * or BOTTOM), so both must be outside window; exit (result is false).
+				 */
+				return false;
+			}
+
+			/*
+			 * Failed both tests, so calculate the line segment to clip
+			 * from an outside point to an intersection with clip edge.
+			 */
+
 			 /*
-			  * Both points inside window; trivially accept and return true.
+			  * At least one endpoint is outside the clip rectangle; pick it.
 			  */
-			 pt1->X = x0;
-			 pt1->Y = y0;
-			 pt2->X = x1;
-			 pt2->Y = y1;
-			 return true;
-		 }
+			outcodeOut = (outcode0 != CODE_INSIDE) ? outcode0 : outcode1;
 
-		 /*
-		  * Check to see if the line segment falls outside of the viewing rectangle.
-		  */
-		 if (outcode0 & outcode1)
-		 {
-			 /*
-			  * Bitwise AND is not 0: both points share an outside zone (LEFT, RIGHT, TOP,
-			  * or BOTTOM), so both must be outside window; exit (result is false).
-			  */
-			 return false;
-		 }
+			/*
+			 * Now find the intersection point using formulas:
+			 * slope = (y1 - y0) / (x1 - x0)
+			 * x = x0 + (1 / slope) * (ym - y0), where ym is ymin or ymax
+			 * y = y0 + slope * (xm - x0), where xm is xmin or xmax
+			 * No need to worry about divide-by-zero because, in each case, the
+			 * outcode bit being tested guarantees the denominator is non-zero
+			 */
+			double x, y;
 
-		 /*
-		  * Failed both tests, so calculate the line segment to clip
-		  * from an outside point to an intersection with clip edge.
-		  */
+			if (outcodeOut & CODE_TOP)
+			{            // point is above the clip window
+				x = (rect->Y - y0) * slope_y + x0;
+				y = rect->Y;
+			}
+			else if (outcodeOut & CODE_BOTTOM)
+			{    // point is below the clip window
+				x = ((rect->Y + rect->Height - 1) - y0) * slope_y + x0;
+				y = (rect->Height + rect->Y - 1);
+			}
+			else if (outcodeOut & CODE_RIGHT)
+			{     // point is to the right of clip window
+				y = ((rect->X + rect->Width - 1) - x0) * slope_x + y0;
+				x = (rect->Width + rect->X - 1);
+			}
+			else if (outcodeOut & CODE_LEFT)
+			{      // point is to the left of clip window
+				y = (rect->X - x0) * slope_x + y0;
+				x = rect->X;
+			}
 
-		  /*
-		   * At least one endpoint is outside the clip rectangle; pick it.
-		   */
-		 outcodeOut = (outcode0 != CODE_INSIDE) ? outcode0 : outcode1;
+			/*
+			 * Now we move outside point to intersection point to clip
+			 * and get ready for next pass.
+			 */
+			if (outcodeOut == outcode0)
+			{
+				x0 = x;
+				y0 = y;
+				outcode0 = Compute_Out_Code(x0, y0, rect);
+			}
+			else
+			{
+				x1 = x;
+				y1 = y;
+				outcode1 = Compute_Out_Code(x1, y1, rect);
+			}
+		}
+	}
 
-		 /*
-		  * Now find the intersection point using formulas:
-		  * slope = (y1 - y0) / (x1 - x0)
-		  * x = x0 + (1 / slope) * (ym - y0), where ym is ymin or ymax
-		  * y = y0 + slope * (xm - x0), where xm is xmin or xmax
-		  * No need to worry about divide-by-zero because, in each case, the
-		  * outcode bit being tested guarantees the denominator is non-zero
-		  */
-		 double x, y;
+	DEFINE_FUNCTION_JUMP(LJMP, 0x7BC2B0, Clip_Line)
 
-		 if (outcodeOut & CODE_TOP)
-		 {            // point is above the clip window
-			 x = (rect->Y - y0) * slope_y + x0;
-			 y = rect->Y;
-		 }
-		 else if (outcodeOut & CODE_BOTTOM)
-		 {    // point is below the clip window
-			 x = ((rect->Y + rect->Height - 1) - y0) * slope_y + x0;
-			 y = (rect->Height + rect->Y - 1);
-		 }
-		 else if (outcodeOut & CODE_RIGHT)
-		 {     // point is to the right of clip window
-			 y = ((rect->X + rect->Width - 1) - x0) * slope_x + y0;
-			 x = (rect->Width + rect->X - 1);
-		 }
-		 else if (outcodeOut & CODE_LEFT)
-		 {      // point is to the left of clip window
-			 y = (rect->X - x0) * slope_x + y0;
-			 x = rect->X;
-		 }
+		// Helper function to initialize threat method based on unit type
+		ThreatType InitializeThreatMethod(TechnoClass* techno, ThreatType method, bool canHealOrRepair)
+	{
+		AbstractType kind = techno->WhatAmI();
 
-		 /*
-		  * Now we move outside point to intersection point to clip
-		  * and get ready for next pass.
-		  */
-		 if (outcodeOut == outcode0)
-		 {
-			 x0 = x;
-			 y0 = y;
-			 outcode0 = Compute_Out_Code(x0, y0, rect);
-		 }
-		 else
-		 {
-			 x1 = x;
-			 y1 = y;
-			 outcode1 = Compute_Out_Code(x1, y1, rect);
-		 }
-	 }
- }
+		if (kind == AbstractType::Infantry)
+		{
+			if (canHealOrRepair)
+			{
+				return (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType(0x3C);
+			}
+			if (((InfantryClass*)techno)->Type->Engineer)
+			{
+				return method & ~(ThreatType::Vehicles | ThreatType::Infantry);
+			}
+		}
+		else if (kind == AbstractType::Unit && canHealOrRepair)
+		{
+			return (method & (ThreatType::Area | ThreatType::Range)) | ThreatType::Threattype_4000 | ThreatType(0x3C);
+		}
 
- DEFINE_FUNCTION_JUMP(LJMP , 0x7BC2B0 , Clip_Line)
+		return method;
+	}
+
+	// Helper function to build bigthreatbitfield from method
+	int BuildThreatBitfield(ThreatType method)
+	{
+		int bitfield = 0;
+
+		if ((method & ThreatType::Infantry) != ThreatType::Normal)
+		{
+			bitfield = 0x8042;
+		}
+
+		if ((method & ThreatType::Air) != ThreatType::Normal)
+		{
+			bitfield |= 4;
+		}
+
+		if ((method & (ThreatType::TechBuildings | ThreatType::OccupiableBuildings | ThreatType::Base_defenses |
+			ThreatType::Factories | ThreatType::PowerFacilties | ThreatType::Capture |
+			ThreatType::Tiberium | ThreatType::Buildings)) != ThreatType::Normal)
+		{
+			bitfield |= 0x40;
+		}
+
+		if ((method & ThreatType::Infantry) != ThreatType::Normal)
+		{
+			bitfield |= 0x8000;
+		}
+
+		if ((method & (ThreatType::Tiberium | ThreatType::Vehicles)) != ThreatType::Normal)
+		{
+			bitfield |= 2;
+		}
+
+		return bitfield;
+	}
+
+	// Helper function to calculate threat range
+	int CalculateThreatRange(TechnoClass* techno, ThreatType method, bool canHealOrRepair)
+	{
+		int range = 0;
+
+		if ((method & ThreatType::Range) != ThreatType::Normal)
+		{
+			range = techno->GetGuardRange(0);
+		}
+		else if ((method & ThreatType::Area) != ThreatType::Normal)
+		{
+			range = techno->GetGuardRange((techno->CurrentMission == Mission::Patrol) ? 2 : 1);
+		}
+
+		// Special case for MISSION_GUARD with negative combat damage
+		if (canHealOrRepair < 0 && techno->CurrentMission == Mission::Guard)
+		{
+			range = 512;
+		}
+
+		return range;
+	}
+
+	// Helper function to calculate default weapon range
+	int CalculateDefaultRange(TechnoClass* techno)
+	{
+		TechnoTypeClass* techType = techno->GetTechnoType();
+		int range;
+
+		if (techType->HasMultipleTurrets() && !techType->IsGattling)
+		{
+			range = techno->GetWeaponRange(techno->CurrentWeaponNumber);
+		}
+		else if (techType->Underwater && techType->Organic && techType->SelfHealing)
+		{
+			range = techType->GuardRange;
+		}
+		else
+		{
+			int rangePrimary = techno->GetWeaponRange(0);
+			int rangeSecondary = techno->GetWeaponRange(1);
+			range = (rangePrimary > rangeSecondary) ? rangePrimary : rangeSecondary;
+		}
+
+		return range / 256 + techType->AirRangeBonus / 256 + 1;
+	}
+
+	// Helper function to check if unit should attack friendlies
+	bool IsAttackingFriendlies(TechnoClass* techno, bool realOwner)
+	{
+		TechnoTypeClass* techType = techno->GetTechnoType();
+		return techType->AttackFriendlies || techno->Berzerk || realOwner;
+	}
+
+	// Helper function to check enemy filter
+	bool PassesEnemyFilter(bool a4, int targetHouseID, int ownEnemyID)
+	{
+		if (!a4)
+		{
+			return true;
+		}
+		return targetHouseID == ownEnemyID;
+	}
+
+	// Helper function to check ally filter (for method bit 0x4000)
+	bool PassesAllyFilter(ThreatType method, HouseClass* ownHouse, HouseClass* targetHouse)
+	{
+		if ((method & ThreatType::Threattype_4000) == ThreatType::Normal)
+		{
+			return true;
+		}
+		return ownHouse->IsAlliedWith(targetHouse);
+	}
+
+	// Helper function to check if target should be attacked
+	bool ShouldAttackTarget(TechnoClass* techno, HouseClass* targetHouse, bool realOwner, bool a4, ThreatType method)
+	{
+		// Check basic enemy/ally relationship
+		bool isEnemy = !techno->Owner->IsAlliedWith(targetHouse);
+		bool attackingFriendlies = IsAttackingFriendlies(techno, realOwner);
+
+		if (!isEnemy && !attackingFriendlies)
+		{
+			return false;
+		}
+
+		// Check enemy filter
+		if (!PassesEnemyFilter(a4, targetHouse->ArrayIndex, techno->Owner->EnemyHouseIndex))
+		{
+			return false;
+		}
+
+		// Check ally filter
+		if (!PassesAllyFilter(method, techno->Owner, targetHouse))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	// Helper function to check special infantry ally attack case
+	bool ShouldInfantryAttackAlly(TechnoClass* techno, bool canHealOrRepair, bool isTechnoPlayerControlled)
+	{
+
+		// Can't heal, is not player controlled, is infantry with special flag
+		if (canHealOrRepair)
+		{
+			return false;
+		}
+
+		if (isTechnoPlayerControlled)
+		{
+			return false;
+		}
+
+		if (auto pInf = cast_to <InfantryClass*, false>(techno))
+		{
+			if (pInf->Type->Engineer)
+				return true;
+		}
+
+		return false;
+	}
+
+	// Helper function to add target to distributed fire lists
+	void AddToDistributedFireLists(TechnoClass* techno, AbstractClass* target, int threatValue)
+	{
+		techno->CurrentTargets.AddItem(target);
+		techno->CurrentTargetThreatValues.AddItem(threatValue);
+	}
+
+	// Helper function to scan aircraft threats (no area search)
+	TechnoClass* ScanAircraftThreats(TechnoClass* techno, ThreatType method, int bigthreatbitfield,
+									  int range, bool realOwner, bool a4, int* maxThreat)
+	{
+		TechnoClass* bestTarget = nullptr;
+
+		for (int i = 0; i < AircraftClass::Array->Count; ++i)
+		{
+			AircraftClass* aircraft = AircraftClass::Array->Items[i];
+			int threat = 0;
+
+			// Check if we should attack this aircraft
+			if (!ShouldAttackTarget(techno, aircraft->Owner, realOwner, a4, method))
+			{
+				continue;
+			}
+
+			auto emptyCoord = CoordStruct::Empty;
+			// Evaluate the aircraft as a threat
+			bool isValidThreat = techno->CanAutoTargetObject(
+				method, bigthreatbitfield, -1,
+				aircraft, &threat, ZoneType::None, &emptyCoord
+			);
+
+			if (!isValidThreat)
+			{
+				continue;
+			}
+
+			// Update best target if this is a bigger threat
+			if (threat > *maxThreat)
+			{
+				bestTarget = aircraft;
+				*maxThreat = threat;
+			}
+		}
+
+		return bestTarget;
+	}
+
+	// Helper function to scan ground unit threats
+	TechnoClass* ScanGroundUnitThreats(TechnoClass* techno, ThreatType method, int bigthreatbitfield,
+									   ZoneType zone, CoordStruct* arg_4, bool realOwner,
+									   bool a4, int* maxThreat, bool canHealOrRepair, bool isTechnoPlayerControlled)
+	{
+		TechnoClass* bestTarget = nullptr;
+
+		for (int i = 0; i < TechnoClass::Array->Count; ++i)
+		{
+			TechnoClass* target = TechnoClass::Array->Items[i];
+			int threat = 0;
+
+			// Check if target is on ground layer
+			// TODO : add range here to fix the targeting bug
+			if (target->LastLayer != Layer::Ground)
+			{
+				continue;
+			}
+
+			// Check basic attack conditions
+			bool isAlly = techno->Owner->IsAlliedWith(target->Owner);
+			bool shouldAttack = false;
+
+			if (!isAlly)
+			{
+				// Enemy target
+				shouldAttack = true;
+			}
+			else
+			{
+				// Allied target - check special conditions
+				if (ShouldInfantryAttackAlly(techno, canHealOrRepair, isTechnoPlayerControlled))
+				{
+					shouldAttack = true;
+				}
+				else if (IsAttackingFriendlies(techno, realOwner))
+				{
+					shouldAttack = true;
+				}
+			}
+
+			if (!shouldAttack)
+			{
+				continue;
+			}
+
+			// Check enemy filter
+			if (!PassesEnemyFilter(a4, target->Owner->ArrayIndex, techno->Owner->EnemyHouseIndex))
+			{
+				continue;
+			}
+
+			// Check ally filter
+			if (!PassesAllyFilter(method, techno->Owner, target->Owner))
+			{
+				continue;
+			}
+
+			// Evaluate the target
+			bool isValidThreat = techno->CanAutoTargetObject(
+				method, bigthreatbitfield, -1,
+			   target, &threat, zone, arg_4
+			);
+
+			if (!isValidThreat)
+			{
+				continue;
+			}
+
+			// Update best target if this is a bigger threat
+			if (threat > *maxThreat)
+			{
+				bestTarget = target;
+				*maxThreat = threat;
+			}
+		}
+
+		return bestTarget;
+	}
+
+#include <AircraftTrackerClass.h>
+
+	// Helper function to process aircraft in area
+	TechnoClass* ProcessAircraftInArea(TechnoClass* techno, ThreatType method, int bigthreatbitfield,
+									   int range, CellStruct* centerCell, bool realOwner, bool a4,
+									   int* maxThreat)
+	{
+		TechnoClass* bestTarget = nullptr;
+		bool hasDistributedFire = techno->GetTechnoType()->DistributedFire;
+
+		// Initialize aircraft tracker
+		CellClass* cell = MapClass::Instance->GetCellAt(centerCell);
+		AircraftTrackerClass::Instance->AircraftTrackerClass_logics_412B40(cell, range / 256);
+
+		// Iterate through tracked aircraft
+		for (FootClass* aircraft = AircraftTrackerClass::Instance->Get();
+			 aircraft != nullptr;
+			 aircraft = AircraftTrackerClass::Instance->Get())
+		{
+
+			// Check if we should attack this aircraft
+			if (!ShouldAttackTarget(techno, aircraft->Owner, realOwner, a4, method))
+			{
+				continue;
+			}
+
+			// Check if aircraft is down and not on ground
+			if (!aircraft->IsOnMap)
+			{
+				continue;
+			}
+
+			Layer aircraftLayer = aircraft->InWhichLayer();
+			if (aircraftLayer == Layer::Ground)
+			{
+				continue;
+			}
+
+			// Evaluate the aircraft
+			int threat = 0;
+			auto emptyCoord = CoordStruct::Empty;
+			int modifiedBitfield = bigthreatbitfield | (int)ThreatType::OccupiableBuildings | (int)ThreatType::Area;
+			bool isValidThreat = techno->CanAutoTargetObject(
+				method, modifiedBitfield, range,
+				aircraft, &threat, ZoneType::None, &emptyCoord
+			);
+
+			if (!isValidThreat)
+			{
+				continue;
+			}
+
+			// Add to distributed fire lists if enabled
+			if (hasDistributedFire)
+			{
+				AddToDistributedFireLists(techno, aircraft, threat);
+			}
+
+			// Update best target if this is a bigger threat
+			if (threat > *maxThreat)
+			{
+				bestTarget = aircraft;
+				*maxThreat = threat;
+			}
+		}
+
+		return bestTarget;
+	}
+
+	// Helper function to evaluate a single cell for threats
+	bool EvaluateCellForThreat(TechnoClass* techno, ThreatType method, int bigthreatbitfield,
+							   CellStruct* cell, int range, ZoneType zone, bool a4,
+							   TechnoClass** outTarget, int* outThreat, TechnoClass** bestTarget,
+							   int* maxThreat, CellStruct* bestCell, int* bestCellValue)
+	{
+		// Check if cell is in map bounds
+		if (!MapClass::Instance->CoordinatesLegal(cell))
+		{
+			return false;
+		}
+
+		// Evaluate cell for threats
+		int threat = 0;
+
+		bool cellHasThreat = techno->TryAutoTargetObject(
+			method, bigthreatbitfield, cell, range,
+			outTarget, &threat, zone
+		);
+
+		if (!cellHasThreat)
+		{
+			// No threat in cell, evaluate cell value as fallback
+			if (*bestTarget == nullptr)
+			{
+				int cellValue = techno->EvaluateJustCell(cell);
+				if (cellValue > *bestCellValue)
+				{
+					*bestCellValue = cellValue;
+					*bestCell = *cell;
+				}
+			}
+			return false;
+		}
+
+		// Check if we got a valid target
+		if (*outTarget == nullptr)
+		{
+			return false;
+		}
+
+		// Check enemy filter
+		if (!PassesEnemyFilter(a4, (*outTarget)->Owner->ArrayIndex, techno->Owner->EnemyHouseIndex))
+		{
+			return false;
+		}
+
+		// Check ally filter
+		if (!PassesAllyFilter(method, techno->Owner, (*outTarget)->Owner))
+		{
+			return false;
+		}
+
+		// Add to distributed fire lists if enabled
+		bool hasDistributedFire = techno->GetTechnoType()->DistributedFire;
+		if (hasDistributedFire)
+		{
+			AddToDistributedFireLists(techno, (*outTarget), threat);
+		}
+
+		// Update best target if this is a bigger threat
+		if (threat > *maxThreat)
+		{
+			*maxThreat = threat;
+			*bestTarget = (*outTarget);
+		}
+
+		*outThreat = threat;
+		return true;
+	}
+
+#include <Ext/Scenario/Body.h>
+
+	// Helper function to scan area in rings
+	AbstractClass* ScanAreaThreats(TechnoClass* techno, ThreatType method, int bigthreatbitfield,
+									 int scanRadius, int range, CellStruct* centerCell,
+									 ZoneType zone, bool a4, int* maxThreat, bool realOwner, bool AU, bool canHealOrRepair)
+	{
+		TechnoClass* bestTarget = nullptr;
+		TechnoTypeClass* technoType = techno->GetTechnoType();
+		const auto pOwner = techno->Owner;
+		CellStruct bestCell = CellStruct::Empty;
+		int bestCellValue = 0;
+
+		if (AU)
+		{
+			const bool targetFriendly = technoType->AttackFriendlies || techno->Berzerk || realOwner || canHealOrRepair;
+			int threatBuffer = 0;
+			auto tempCrd = CoordStruct::Empty;
+
+			for (const auto pCurrent : ScenarioExtData::Instance()->UndergroundTracker)
+			{
+				if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
+					&& (!a4 || pCurrent->Owner->ArrayIndex == pOwner->EnemyHouseIndex)
+					&& techno->CanAutoTargetObject(method, bigthreatbitfield, range, pCurrent, &threatBuffer, ZoneType::None, &tempCrd))
+				{
+					if (technoType->DistributedFire)
+					{
+						techno->CurrentTargets.AddItem(pCurrent);
+						techno->CurrentTargetThreatValues.AddItem(threatBuffer);
+					}
+
+					if (threatBuffer > *maxThreat)
+					{
+						bestTarget = pCurrent;
+						*maxThreat = threatBuffer;
+					}
+				}
+			}
+		}
+
+		for (int radius = 0; radius < scanRadius; ++radius)
+		{
+			// Scan horizontal edges (top and bottom)
+			for (short x = -radius; x <= radius; ++x)
+			{
+				CellStruct topCell = { (short)(centerCell->X + x), (short)(centerCell->Y - radius) };
+				CellStruct bottomCell = { (short)(centerCell->X + x), (short)(centerCell->Y + radius) };
+
+				TechnoClass* cellTarget = nullptr;
+				int cellThreat = 0;
+
+				EvaluateCellForThreat(
+					techno, method, bigthreatbitfield, &topCell, range, zone, a4,
+					&cellTarget, &cellThreat, &bestTarget, maxThreat,
+					&bestCell, &bestCellValue
+				);
+
+				EvaluateCellForThreat(
+					techno, method, bigthreatbitfield, &bottomCell, range, zone, a4,
+					&cellTarget, &cellThreat, &bestTarget, maxThreat,
+					&bestCell, &bestCellValue
+				);
+			}
+
+			// Scan vertical edges (left and right, excluding corners)
+			for (short y = -radius + 1; y < radius; ++y)
+			{
+				CellStruct leftCell = { (short)(centerCell->X - radius), (short)(centerCell->Y + y) };
+				CellStruct rightCell = { (short)(centerCell->X + radius), (short)(centerCell->Y + y) };
+
+				TechnoClass* cellTarget = nullptr;
+				int cellThreat = 0;
+
+				EvaluateCellForThreat(
+					techno, method, bigthreatbitfield, &leftCell, range, zone, a4,
+					&cellTarget, &cellThreat, &bestTarget, maxThreat,
+					&bestCell, &bestCellValue
+				);
+
+				EvaluateCellForThreat(
+					techno, method, bigthreatbitfield, &rightCell, range, zone, a4,
+					&cellTarget, &cellThreat, &bestTarget, maxThreat,
+					&bestCell, &bestCellValue
+				);
+			}
+
+			// Early exit conditions - found target at 1/4 or 1/2 radius
+			if (bestTarget != nullptr)
+			{
+				bool isQuarterRadius = (radius == scanRadius / 4);
+				bool isHalfRadius = (radius == scanRadius / 2);
+
+				if (isQuarterRadius || isHalfRadius)
+				{
+					return bestTarget;
+				}
+			}
+
+			// If we found a good cell location (and no target), return it
+			bool foundGoodCell = (bestCell.X != CellStruct::Empty.X || bestCell.Y != CellStruct::Empty.Y);
+			if (foundGoodCell)
+			{
+				return MapClass::Instance->GetCellAt(bestCell);
+			}
+		}
+
+		return bestTarget;
+	}
+
+	AbstractClass* ScanAreaAirThreats(TechnoClass* techno, ThreatType method, int bigthreatbitfield,
+									 int scanRadius, int range, CellStruct* centerCell,
+									 ZoneType zone, bool a4, int* maxThreat, bool realOwner, bool AU, bool canHealOrRepair)
+	{
+		TechnoClass* bestTarget = nullptr;
+		TechnoTypeClass* technoType = techno->GetTechnoType();
+		const auto pOwner = techno->Owner;
+		CellStruct bestCell = CellStruct::Empty;
+		int bestCellValue = 0;
+
+		if (!AU)
+		{
+			bigthreatbitfield |= 1 << (int)InfantryClass::AbsID;
+			bigthreatbitfield |= 1 << (int)UnitClass::AbsID;
+			bigthreatbitfield |= 1 << (int)AircraftClass::AbsID;
+		}
+
+		const bool targetFriendly = technoType->AttackFriendlies || techno->Berzerk || realOwner || canHealOrRepair;
+		int threatBuffer = 0;
+		auto tempCrd = CoordStruct::Empty;
+
+		for (const auto pCurrent : ScenarioExtData::Instance()->FallingDownTracker)
+		{
+			if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
+				&& (!a4 || pCurrent->Owner->ArrayIndex == techno->Owner->EnemyHouseIndex)
+				&& techno->CanAutoTargetObject(method, bigthreatbitfield, range, pCurrent, &threatBuffer, ZoneType::None, &tempCrd))
+			{
+				if (technoType->DistributedFire)
+				{
+					techno->CurrentTargets.AddItem(pCurrent);
+					techno->CurrentTargetThreatValues.AddItem(threatBuffer);
+				}
+
+				if (threatBuffer > *maxThreat)
+				{
+					bestTarget = pCurrent;
+					*maxThreat = threatBuffer;
+				}
+			}
+		}
+
+		return bestTarget;
+	}
+
+	namespace SelectAutoTarget_Context
+	{
+		bool AU = false;
+	}
+
+	// Main function
+	AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* techno, discard_t, ThreatType method,
+													CoordStruct* location, bool a4)
+	{
+		++TechnoClass::TargetScanCounter();
+
+		// Early exit for player controlled units with NoAutoFire
+		TechnoTypeClass* techType = techno->GetTechnoType();
+		const bool isTechnoPlayerControlled = techno->Owner->IsControlledByHuman();
+		bool AU = SelectAutoTarget_Context::AU = (ExtendedThreatType(method) & ExtendedThreatType::Underground) != ExtendedThreatType::none;
+
+		if (techType->NoAutoFire && isTechnoPlayerControlled)
+		{
+			return nullptr;
+		}
+
+		// Determine zone for ground units
+		ZoneType zone = ZoneType::None;
+		bool needsZoneCalculation = ((method & ThreatType::Range) == ThreatType::Normal);
+		const bool canHealOrRepair = (techno->CombatDamage(-1) < 0);
+
+		if (needsZoneCalculation)
+		{
+			AbstractType kind = techno->WhatAmI();
+
+			bool isGroundUnit = (kind != AbstractType::Building && kind != AbstractType::Aircraft);
+
+			if (isGroundUnit)
+			{
+				CoordStruct* center = techno->GetCoords(location);
+				CellStruct cell = { (short)(center->X / 256), (short)(center->Y / 256) };
+				zone = MapClass::Instance->GetMovementZoneType(cell, techType->MovementZone, true);
+			}
+		}
+
+		// Initialize threat method based on unit type
+		method = InitializeThreatMethod(techno, method, canHealOrRepair);
+
+		// Build threat bitfield
+		int bigthreatbitfield = BuildThreatBitfield(method);
+
+		// Initialize distributed fire lists if needed
+		if (techType->DistributedFire)
+		{
+			techno->CurrentTargets.Reset();
+			techno->CurrentTargetThreatValues.Reset();
+		}
+
+		// Check if in open-topped transport
+		bool realOwner = false;
+		bool hasTransport = (techno->Transporter != nullptr);
+
+		if (AU)
+		{
+			bigthreatbitfield |= 1 << (int)AbstractType::Infantry;
+			bigthreatbitfield |= 1 << (int)AbstractType::Unit;
+			bigthreatbitfield |= 1 << (int)AbstractType::Aircraft;
+		}
+
+		if (hasTransport)
+		{
+			TechnoTypeClass* transportType = techno->Transporter->GetTechnoType();
+			if (transportType->OpenTopped && !TechnoTypeExtContainer::Instance.Find(transportType)->Passengers_SyncOwner)
+			{
+				realOwner = (techno->Transporter->OriginallyOwnedByHouse != nullptr);
+			}
+		}
+
+		int maxThreat = 0;
+		AbstractClass* bestTarget = nullptr;
+
+		// Handle non-range/area based threat search
+		bool isRangeOrAreaSearch = ((method & (ThreatType::Area | ThreatType::Range)) != ThreatType::Normal);
+
+		if (!isRangeOrAreaSearch)
+		{
+			// Scan aircraft if needed
+			bool shouldScanAircraft = ((bigthreatbitfield & 4) != 0);
+			if (shouldScanAircraft)
+			{
+				bestTarget = ScanAircraftThreats(
+					techno, method, bigthreatbitfield, -1,
+					realOwner, a4, &maxThreat
+				);
+			}
+
+			// Include vehicles in bitfield if needed
+			if ((method & ThreatType::Vehicles) != ThreatType::Normal)
+			{
+				bigthreatbitfield |= 4;
+			}
+
+			// Scan ground units
+			TechnoClass* groundTarget = ScanGroundUnitThreats(
+				techno, method, bigthreatbitfield,
+				zone, location, realOwner, a4, &maxThreat
+				, canHealOrRepair, isTechnoPlayerControlled);
+
+			if (groundTarget != nullptr)
+			{
+				bestTarget = groundTarget;
+			}
+
+			return bestTarget;
+		}
+
+		// Handle range/area based threat search
+		int range = CalculateThreatRange(techno, method, canHealOrRepair);
+		int scanRadius = range / 256;
+
+		// Calculate default range if not specified
+		if (range == 0)
+		{
+			scanRadius = CalculateDefaultRange(techno);
+		}
+
+		// Get center cell
+		CellStruct centerCell = { (short)(location->X / 256), (short)(location->Y / 256) };
+
+		// Adjust range for occupied buildings
+		bool isOccupied = techno->CanOccupyFire();
+		if (isOccupied)
+		{
+			int baseRange = techno->GetOccupyRangeBonus();
+			scanRadius = baseRange + RulesClass::Instance->OccupyWeaponRange + 1;
+		}
+
+		// Process aircraft in area
+		bool shouldSearchAir = ((method & ThreatType::Air) != ThreatType::Normal);
+		if (shouldSearchAir)
+		{
+			bestTarget = ProcessAircraftInArea(
+				techno, method, bigthreatbitfield, range,
+				&centerCell, realOwner, a4, &maxThreat
+			);
+		}
+
+		// Include vehicles in bitfield if needed
+		if ((method & ThreatType::Vehicles) != ThreatType::Normal)
+		{
+			bigthreatbitfield |= 4;
+		}
+
+		// Early exit for air-only search
+		bool isAirOnlySearch = (method == (ThreatType::Air | ThreatType::Range));
+		if (isAirOnlySearch)
+		{
+
+			AbstractClass* areaTarget = ScanAreaAirThreats(
+			techno, method, bigthreatbitfield, scanRadius,
+			range, &centerCell, zone, a4, &maxThreat, realOwner, AU, canHealOrRepair);
+
+			if (areaTarget != nullptr)
+			{
+				bestTarget = areaTarget;
+			}
+
+			return bestTarget;
+		}
+
+		// Scan area for ground threats
+		if (scanRadius > 0)
+		{
+			AbstractClass* areaTarget = ScanAreaThreats(
+				techno, method, bigthreatbitfield, scanRadius,
+				range, &centerCell, zone, a4, &maxThreat, realOwner, AU, canHealOrRepair
+			);
+
+			if (areaTarget != nullptr)
+			{
+				bestTarget = areaTarget;
+			}
+		}
+
+		return bestTarget;
+	}
+
+	ASMJIT_PATCH(0x6F7E1E, TechnoClass_CanAutoTargetObject_AU, 0x6)
+	{
+		enum { Continue = 0x6F7E24, ReturnFalse = 0x6F894F };
+
+		//GET(TechnoClass*, pTarget, ESI);
+		GET(int, height, EAX);
+
+		return height >= -20
+			|| SelectAutoTarget_Context::AU ? Continue : ReturnFalse;
+	}
+
+	DEFINE_FUNCTION_JUMP(LJMP, 0x6F8DF0, FakeTechnoClass::__Greatest_Threat);

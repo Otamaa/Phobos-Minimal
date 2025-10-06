@@ -104,8 +104,11 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissingNoChecks(const char* key, co
 	return pCSF->Text;
 }
 
-void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range)
+void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range, bool clearFirst)
 {
+	if(clearFirst)
+		nCells.clear();
+
 	const short value = (2 * range + 1) * (2 * range + 1);
 
 	if (value <= 0)

@@ -87,13 +87,15 @@ int __fastcall FakeWarheadTypeClass::ModifyDamageA(int damage, FakeWarheadTypeCl
 }
 void WarheadTypeExtData::InitializeConstant()
 {
-	this->AttachedEffect.Owner = This();
-	this->EvaluateArmor(This());
+	this->AttachedEffect.Owner = this->This();
+	this->EvaluateArmor(this->This());
 }
 
+//need to be initialize when first ini loading done
+//since the CTOR is only creating the pointer , rules not yet loaded , cant evaluate there
 void WarheadTypeExtData::Initialize()
 {
-	if (IS_SAME_STR_(RulesExtData::Instance()->NukeWarheadName.data(), This()->ID))
+	if (IS_SAME_STR_(RulesExtData::Instance()->NukeWarheadName.data(), this->This()->ID))
 	{
 		IsNukeWarhead = true;
 		PreImpactAnim = AnimTypeClass::Find(GameStrings::NUKEBALL());
@@ -116,6 +118,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 				: Verses[nDefaultIdx]
 		);
 	}
+
+	this->Initialize();
 
 	if (parseFailAddr)
 	{
@@ -381,7 +385,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DamageOwnerMultiplier.Read(exINI, pSection, "DamageOwnerMultiplier");
 	this->DamageAlliesMultiplier.Read(exINI, pSection, "DamageAlliesMultiplier");
 	this->DamageEnemiesMultiplier.Read(exINI, pSection, "DamageEnemiesMultiplier");
-
+	this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk.Read(exINI, pSection, "DamageEnemiesMultiplier.UsedForAllTargetInBerzerk");
 	this->AttachTag.Read(pINI, pSection, "AttachTag");
 	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
 	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
@@ -762,6 +766,13 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 {
 	auto const pExt = TechnoExtContainer::Instance.Find(pVictim);
 
+	// AffectsAbove/BelowPercent & AffectsNeutral can ignore IgnoreDefenses like AffectsAllies/Enmies/Owner
+	// They should be checked here to cover all cases that directly use ReceiveDamage to deal damage
+	if (!this->IsHealthInThreshold(pVictim) || (!this->AffectsNeutral && pVictim->Owner->IsNeutral())) {
+		*pArgs->Damage = 0;
+		return;
+	}
+
 	if (pExt->ReceiveDamageMultiplier.isset())
 	{
 		*pArgs->Damage = static_cast<int>(*pArgs->Damage * pExt->ReceiveDamageMultiplier.get());
@@ -801,39 +812,37 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	}
 
 	//Calculate Damage Multiplier
-	if (pVictimHouse && (this->DamageOwnerMultiplier != 1.0 || this->DamageAlliesMultiplier != 1.0 || this->DamageEnemiesMultiplier != 1.0))
+	//this abomination is always active
+	//if (pVictimHouse && (this->DamageOwnerMultiplier != 1.0 || this->DamageAlliesMultiplier != 1.0 || this->DamageEnemiesMultiplier != 1.0))
 	{
 		const auto pRulesExt = RulesExtData::Instance();
-		const int sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
 
-		if (pVictimHouse == pArgs->SourceHouse) {
-			if (this->DamageOwnerMultiplier != 1.0)
-				*pArgs->Damage = static_cast<int>(*pArgs->Damage * this->DamageOwnerMultiplier.Get(RulesExtData::Instance()->DamageOwnerMultiplier));
-		}
-		else if (pVictimHouse->IsAlliedWith(pArgs->SourceHouse))
-		{
-			const auto allyDamage = this->DamageAlliesMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageAlliesMultiplier_NotAffectsEnemies
-					.Get(pRulesExt->DamageAlliesMultiplier) : pRulesExt->DamageAlliesMultiplier);
+		const bool CountAsnemies = !pArgs->SourceHouse
+						|| !pVictimHouse
+						|| !pArgs->SourceHouse ->IsAlliedWith(pVictimHouse)
+						|| pArgs->Attacker && pArgs->Attacker->Berzerk && this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk.Get(pRulesExt->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk);
 
-			if (allyDamage != 1.0)
-				*pArgs->Damage = static_cast<int>(*pArgs->Damage * allyDamage);
-		}
+		double multiplier = 1.0;
+
+		if (CountAsnemies)
+			multiplier = this->DamageEnemiesMultiplier.Get(pRulesExt->DamageEnemiesMultiplier);
+		else if (pArgs->SourceHouse != pVictimHouse)
+			multiplier = this->DamageAlliesMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageAlliesMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageAlliesMultiplier) : pRulesExt->DamageAlliesMultiplier);
 		else
-		{
-			const auto enemyDamage = this->DamageOwnerMultiplier
-					.Get(!this->AffectsEnemies ? pRulesExt->DamageOwnerMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageOwnerMultiplier) : pRulesExt->DamageOwnerMultiplier);
-
-			if (enemyDamage != 1.0)
-				*pArgs->Damage = static_cast<int>(*pArgs->Damage * enemyDamage);
-		}
+			multiplier = this->DamageOwnerMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageOwnerMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageOwnerMultiplier) : pRulesExt->DamageOwnerMultiplier);
 
 		if (this->DamageSourceHealthMultiplier && pArgs->Attacker)
-			*pArgs->Damage = static_cast<int>(*pArgs->Damage *  pArgs->Attacker->GetHealthPercentage());
+			multiplier += this->DamageSourceHealthMultiplier * pArgs->Attacker->GetHealthPercentage();
 
 		if (this->DamageTargetHealthMultiplier)
-			*pArgs->Damage= static_cast<int>(this->DamageTargetHealthMultiplier * pVictim->GetHealthPercentage());
+			multiplier += this->DamageTargetHealthMultiplier * pVictim->GetHealthPercentage();
 
-		*pArgs->Damage = *pArgs->Damage ? *pArgs->Damage : sgnDamage;
+		if (multiplier != 1.0)
+		{
+			const auto sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
+			const auto calculateDamage = static_cast<int>(*pArgs->Damage * multiplier);
+			*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
+		}
 	}
 }
 
@@ -1745,6 +1754,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->DamageOwnerMultiplier)
 		.Process(this->DamageAlliesMultiplier)
 		.Process(this->DamageEnemiesMultiplier)
+		.Process(this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk)
 
 		.Process(this->AttachTag)
 		.Process(this->AttachTag_Types)

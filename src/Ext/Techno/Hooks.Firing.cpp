@@ -213,6 +213,18 @@ ASMJIT_PATCH(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 	return ContinueCheck;
 }
 
+ASMJIT_PATCH(0x772AA2, WeaponTypeClass_AllowedThreats_AAOnly, 0x5)
+{
+	GET(BulletTypeClass* const, pType, ECX);
+
+	if (BulletTypeExtContainer::Instance.Find(pType)->AAOnly) {
+		R->EAX(4);
+		return 0x772AB3;
+	}
+
+	return 0;
+}
+
 // Pre-Firing Checks
 ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 {

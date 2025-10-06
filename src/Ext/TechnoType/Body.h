@@ -1221,6 +1221,17 @@ public:
 	ValueableIdx<VocClass> VoiceExitAggressiveMode;
 	ValueableIdx<VocClass> VoiceEnterCeasefireMode;
 	ValueableIdx<VocClass> VoiceExitCeasefireMode;
+
+	Nullable<bool> PlayerGuardModePursuit;
+	Nullable<Leptons> PlayerGuardModeStray;
+	Nullable<double> PlayerGuardModeGuardRangeMultiplier;
+	Nullable<Leptons> PlayerGuardModeGuardRangeAddend;
+	Nullable<Leptons> PlayerGuardStationaryStray;
+	Nullable<bool> AIGuardModePursuit;
+	Nullable<Leptons> AIGuardModeStray;
+	Nullable<double> AIGuardModeGuardRangeMultiplier;
+	Nullable<Leptons> AIGuardModeGuardRangeAddend;
+	Nullable<Leptons> AIGuardStationaryStray;
 #pragma endregion
 
 public:
@@ -2036,7 +2047,17 @@ public:
 		VoiceEnterAggressiveMode(-1),
 		VoiceExitAggressiveMode(-1),
 		VoiceEnterCeasefireMode(-1),
-		VoiceExitCeasefireMode(-1)
+		VoiceExitCeasefireMode(-1),
+		PlayerGuardModePursuit()
+		, PlayerGuardModeStray()
+		, PlayerGuardModeGuardRangeMultiplier()
+		, PlayerGuardModeGuardRangeAddend()
+		, PlayerGuardStationaryStray()
+		, AIGuardModePursuit()
+		, AIGuardModeStray()
+		, AIGuardModeGuardRangeMultiplier()
+		, AIGuardModeGuardRangeAddend()
+		, AIGuardStationaryStray()
 		{
 			this->InitializeConstant();
 			this->Initialize();
@@ -3051,6 +3072,17 @@ private:
 			.Process(this->VoiceExitAggressiveMode)
 			.Process(this->VoiceEnterCeasefireMode)
 			.Process(this->VoiceExitCeasefireMode)
+
+			.Process(this->PlayerGuardModePursuit)
+			.Process(this->PlayerGuardModeStray)
+			.Process(this->PlayerGuardModeGuardRangeMultiplier)
+			.Process(this->PlayerGuardModeGuardRangeAddend)
+			.Process(this->PlayerGuardStationaryStray)
+			.Process(this->AIGuardModePursuit)
+			.Process(this->AIGuardModeStray)
+			.Process(this->AIGuardModeGuardRangeMultiplier)
+			.Process(this->AIGuardModeGuardRangeAddend)
+			.Process(this->AIGuardStationaryStray)
 			;
 	}
 

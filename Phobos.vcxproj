@@ -35,6 +35,7 @@
     <ClCompile Include="src\Ext\SWType\Hooks.Lighning.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.LightningStorm.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.Strips.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.AirstrikeFlare.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
+    <ClCompile Include="src\Misc\BuildingFoundations.h.cpp" />
     <ClCompile Include="src\Misc\CustomMemoryManager.cpp" />
     <ClCompile Include="src\Misc\Hook.CommandButtons.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
@@ -778,6 +780,7 @@
     <ClInclude Include="src\Lib\Zydis\Status.h" />
     <ClInclude Include="src\Lib\Zydis\Utils.h" />
     <ClInclude Include="src\Lib\Zydis\Zydis.h" />
+    <ClInclude Include="src\Misc\BuildingFoundations.h" />
     <ClInclude Include="src\Misc\CustomMemoryManager.h" />
     <ClInclude Include="src\Misc\Spawner\SavedGamesInSubdir.h" />
     <ClInclude Include="src\New\AnonymousType\BlockTypeClass.h" />
@@ -1175,6 +1178,7 @@
     <ClInclude Include="src\Utilities\VectorNames.h" />
     <ClInclude Include="src\Utilities\VectorSet.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
+    <ClInclude Include="YRpp\FoundationStruct.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
     <ClInclude Include="YRpp\IndexBitfield.h" />
     <ClInclude Include="YRpp\INIComment.h" />

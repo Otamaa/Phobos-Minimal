@@ -1657,14 +1657,6 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->IsHideDuringSpecialAnim.Read(exArtINI, pArtSection, "HideDuringSpecialAnim");
 		this->Refinery_UseNormalActiveAnim.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
 
-		if (this->IsCustom)
-		{
-			//Reset
-			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
-			pThis->FoundationData = this->CustomData.data();
-			pThis->FoundationOutside = this->OutlineData.data();
-		}
-
 		if (pThis->MaxNumberOccupants > 10)
 		{
 			//char tempMuzzleBuffer[32];

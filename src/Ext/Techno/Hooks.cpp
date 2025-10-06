@@ -54,6 +54,14 @@
 //	return announce ? 0 : 0x44848F; //early bailout
 //}
 
+ASMJIT_PATCH(0x7363C9, UnitClass_AI_AnimationPaused, 0x6)
+{
+	enum { SkipGameCode = 0x7363DE , Continue = 0x0 };
+
+	GET(UnitClass*, pThis, ESI);
+	return TechnoExtContainer::Instance.Find(pThis)->DelayedFireSequencePaused?  SkipGameCode : Continue;
+}
+
 // AFAIK, only used by the teleport of the Chronoshift SW
 ASMJIT_PATCH(0x70337D, HouseClass_RegisterDestruction_SaveKillerInfo, 0x6)
 {
@@ -1428,7 +1436,7 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 
 	const auto pType = pThis->Type;
 
-	if (pType->Turret || pType->Voxel)
+	if (pType->Turret || pType->Voxel || pThis->InLimbo)
 		return 0;
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -1436,30 +1444,28 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 
 	// SHP vehicles have no secondary action frames, so it does not need SecondaryFire.
 	const int fireUp = pTypeExt->FireUp;
-	CDTimerClass& Timer = pExt->FiringAnimationTimer;
 
-	if (fireUp >= 0 && !pType->OpportunityFire &&
-		pThis->Locomotor->Is_Really_Moving_Now())
+	if (fireUp >= 0 && !pType->OpportunityFire && pThis->Locomotor->Is_Really_Moving_Now())
 	{
-		if (Timer.InProgress())
-			Timer.Stop();
+		if (pThis->CurrentFiringFrame != -1)
+			pThis->CurrentFiringFrame = -1;
 
-		return 0x736F73;
+		return 0x737063;
 	}
 
-	const int frames = pType->FiringFrames;
-	if (!Timer.InProgress() && frames >= 1)
-	{
-		pThis->CurrentFiringFrame = 2 * frames - 1;
-		Timer.Start(pThis->CurrentFiringFrame);
-	}
+	const int firingFrames = pType->FiringFrames;
+	const int frames = 2 * firingFrames - 1;
 
-	if (fireUp >= 0 && frames >= 1)
+	if (frames >= 0 && pThis->CurrentFiringFrame == -1)
+		pThis->CurrentFiringFrame = frames;
+
+	auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
+	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+
+	if (fireUp >= 0)
 	{
 		int cumulativeDelay = 0;
 		int projectedDelay = 0;
-		auto const pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType;
-		auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 		const bool allowBurst = pWeaponExt && pWeaponExt->Burst_FireWithinSequence;
 
 		// Calculate cumulative burst delay as well cumulative delay after next shot (projected delay).
@@ -1486,24 +1492,21 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 			}
 		}
 
-		if (TechnoExtData::HandleDelayedFireWithPauseSequence(pThis, weaponIndex, fireUp + cumulativeDelay))
+		const int frame = pThis->Animation.Stage;
+		const int firingFrame = fireUp + cumulativeDelay;
+
+		if (TechnoExtData::HandleDelayedFireWithPauseSequence(pThis, pWeapon, weaponIndex, frame, firingFrame))
 			return 0x736F73;
 
-		const int frame = (Timer.TimeLeft - Timer.GetTimeLeft());
-
-		if (frame % 2 != 0)
+		if (frame != firingFrame) {
 			return 0x736F73;
-
-		if (frame / 2 != fireUp + cumulativeDelay)
-		{
-			return 0x736F73;
-		}
-		else if (allowBurst)
-		{
+		} else if (allowBurst) {
 			// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
 			if (fireUp + projectedDelay > frames)
 				pExt->ForceFullRearmDelay = true;
 		}
+	} else if (TechnoExtData::HandleDelayedFireWithPauseSequence(pThis, pWeapon, weaponIndex, 0, -1)) {
+		return 0x736F73;
 	}
 
 	return 0;
@@ -1656,7 +1659,7 @@ ASMJIT_PATCH(0x6FCF3E, TechnoClass_SetTarget_After, 0x6)
 				|| !pThis->IsCloseEnough(pTarget, pThis->SelectWeapon(pTarget)))
 			{
 				pUnit->CurrentFiringFrame = -1;
-				pExt->FiringAnimationTimer.Stop();
+				pExt->ResetDelayedFireTimer();
 			}
 		}
 	}
@@ -1884,3 +1887,135 @@ ASMJIT_PATCH(0x73D6E6, UnitClass_Unload_Subterranean, 0x6)
 
 	return 0;
 }
+
+ASMJIT_PATCH(0x74312A, UnitClass_SetDestination_ReplaceWithHarvestMission, 0x5)
+{
+	enum { SkipGameCode = 0x742F48 };
+
+	GET(UnitClass*, pThis, EBP);
+
+	// Jumpjet will overlap when entering buildings,
+	// which can cause errors in the connection between jumpjet harvester and refinery building,
+	// leading to game crashes in drawing
+	// Here change the Mission::Enter to Mission::Harvest
+	pThis->QueueMission(Mission::Harvest, false);
+	pThis->NextMission();
+	pThis->MissionStatus = 2; // Status: returning to refinery
+	pThis->IsHarvesting = false;
+	// Note: jumpjet harvester should not be allowed to comply with this behavior alone, otherwise
+	// it may still overlap with other types and crash
+
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x4D6E83, FootClass_MissionAreaGuard_FollowStray, 0x6)
+{
+	enum { SkipGameCode = 0x4D6E8F };
+
+	GET(FootClass* const, pThis, ESI);
+
+	int range = RulesClass::Instance->GuardModeStray;
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	R->EDI(range = pThis->Owner->IsControlledByHuman() ? pTypeExt->PlayerGuardModeStray.Get(Leptons(range)) : pTypeExt->AIGuardModeStray.Get(Leptons(range)));
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x4D6E97, FootClass_MissionAreaGuard_Pursuit, 0x6)
+{
+	enum { KeepTarget = 0x4D6ED1, RemoveTarget = 0x4D6EB3 };
+
+	GET(FootClass* const, pThis, ESI);
+	GET(int, range, EDI);
+	GET(AbstractClass* const, pFocus, EAX);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const bool isPlayer = pThis->Owner->IsControlledByHuman();
+
+	if ((pFocus->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
+	{
+		const Leptons stationaryStray = isPlayer ? pTypeExt->PlayerGuardStationaryStray.Get(RulesExtData::Instance()->PlayerGuardStationaryStray) : pTypeExt->AIGuardStationaryStray.Get(RulesExtData::Instance()->AIGuardStationaryStray);
+
+		if (stationaryStray != Leptons(-256))
+			range = stationaryStray;
+	}
+
+	return ((!(isPlayer ? pTypeExt->PlayerGuardModePursuit.Get(RulesExtData::Instance()->PlayerGuardModePursuit) : pTypeExt->AIGuardModePursuit.Get(RulesExtData::Instance()->AIGuardModePursuit))
+		|| (!pThis->IsFiring && !pThis->Destination))
+		&& pThis->DistanceFrom(pFocus) > range)
+		? RemoveTarget
+		: KeepTarget;
+}
+
+ASMJIT_PATCH(0x707F08, TechnoClass_GetGuardRange_AreaGuardRange, 0x5)
+{
+	enum { SkipGameCode = 0x707E70 };
+
+	GET(Leptons, guardRange, EAX);
+	GET(int, mode, EDI);
+	GET(TechnoClass* const, pThis, ESI);
+
+	const bool isPlayer = pThis->Owner->IsControlledByHuman();
+	const auto pRulesExt =RulesExtData::Instance();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	const auto& [multiplier, addend, max] = isPlayer
+		? std::make_tuple(pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier), pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend), pRulesExt->PlayerGuardModeGuardRangeMax.Get())
+		: std::make_tuple(pTypeExt->AIGuardModeGuardRangeMultiplier.Get(pRulesExt->AIGuardModeGuardRangeMultiplier), pTypeExt->AIGuardModeGuardRangeAddend.Get(pRulesExt->AIGuardModeGuardRangeAddend), pRulesExt->AIGuardModeGuardRangeMax.Get());
+
+	const Leptons min = Leptons((mode == 2) ? (7 / Unsorted::LeptonsPerCell) : 0);
+	const Leptons areaGuardRange = Leptons(static_cast<int>(static_cast<int>(guardRange) * multiplier + static_cast<int>(addend)));
+
+	R->EAX(std::clamp(areaGuardRange, min, max));
+
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
+{
+	GET(BaseClass*, pThis, ESI);
+	GET(const int, nodeIdx, EDI);
+
+	bool isValid = pThis->IsBuilt(nodeIdx);
+	const int rangeLimit = SessionClass::Instance->IsCampaign()
+		? RulesExtData::Instance()->AIAdjacentMax_Campaign.Get(RulesExtData::Instance()->AIAdjacentMax)
+		:RulesExtData::Instance()->AIAdjacentMax;
+
+	if (rangeLimit >= 0 && isValid)
+	{
+		const auto node = pThis->BaseNodes[nodeIdx];
+		const auto pOwner = pThis->Owner;
+		const auto pBuildingType = BuildingTypeClass::Array->Items[node.BuildingTypeIndex];
+		const CellStruct offset
+		{
+			static_cast<short>(pBuildingType->GetFoundationWidth() / 2),
+			static_cast<short>(pBuildingType->GetFoundationHeight(false) / 2)
+		};
+
+		const auto center = node.MapCoords + offset;
+		static std::vector<CellStruct> cellList {};
+		GeneralUtils::AdjacentCellsInRange(cellList, rangeLimit);
+		bool hasAdjacent = false;
+
+		for (const auto& cell : cellList)
+		{
+			const auto pBuilding = MapClass::Instance->GetCellAt(cell + center)->GetBuilding();
+
+			if (!pBuilding || pBuilding->Owner != pOwner)
+				continue;
+
+			const auto pType = pBuilding->Type;
+			const auto baseNormalDefault = (!pType->UndeploysInto || !pType->ResourceGatherer) && !pBuilding->IsStrange();
+
+			if (BuildingTypeExtContainer::Instance.Find(pType)->AIBaseNormal.Get(baseNormalDefault)) {
+				hasAdjacent = true;
+				break;
+			}
+		}
+
+		isValid = hasAdjacent;
+	}
+
+	R->AL(isValid);
+	return R->Origin() + 0x8;
+}ASMJIT_PATCH_AGAIN(0x42EB6A, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8);

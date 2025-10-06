@@ -246,6 +246,7 @@ public:
 	Nullable<double> DamageOwnerMultiplier;
 	Nullable<double> DamageAlliesMultiplier;
 	Nullable<double> DamageEnemiesMultiplier;
+	Nullable<bool> DamageEnemiesMultiplier_UsedForAllTargetInBerzerk;
 
 	PhobosFixedString<32U> AttachTag;
 	Valueable<bool> AttachTag_Imposed;
@@ -651,6 +652,7 @@ public:
 		DamageOwnerMultiplier(),
 		DamageAlliesMultiplier(),
 		DamageEnemiesMultiplier(),
+		DamageEnemiesMultiplier_UsedForAllTargetInBerzerk(),
 		AttachTag(),
 		AttachTag_Imposed(false),
 		AttachTag_Types(),
@@ -830,7 +832,6 @@ public:
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false)
 		{
-			this->Initialize();
 			this->InitializeConstant();
 		}
 

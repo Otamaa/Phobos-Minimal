@@ -89,6 +89,7 @@ public:
 	VectorSet<TechnoClass*> LimboLaunchers {};
 
 	VectorSet<TechnoClass*> UndergroundTracker {};
+	VectorSet<TechnoClass*> FallingDownTracker {};
 
 #pragma endregion
 
@@ -151,6 +152,7 @@ private:
 			.Process(this->MasterDetonationBullet)
 			.Process(this->LimboLaunchers)
 			.Process(this->UndergroundTracker)
+			.Process(this->FallingDownTracker)
 			;
 
 	}

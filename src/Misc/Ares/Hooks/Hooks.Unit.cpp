@@ -33,6 +33,27 @@
 
 #include <InfantryClass.h>
 
+ASMJIT_PATCH(0x74613C, UnitClass_INoticeSink_CheckJumpjetHarvester, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	const auto pType = pThis->Type;
+
+	// Let jumpjet harvesters automatically go mining when leaving the factory
+	if (pType->Harvester || pType->Weeder)
+	{
+		// Have checked pThis->HasAnyLink()
+		if (const auto pBuilding = cast_to<BuildingClass*, true>(pThis->GetNthLink()))
+		{
+			// Only need to check WeaponsFactory
+			if (pBuilding->Type->WeaponsFactory)
+				pThis->QueueMission(Mission::Harvest, true);
+		}
+	}
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
 {
 	GET(TechnoClass*, pTechno, ECX);
@@ -742,9 +763,19 @@ ASMJIT_PATCH(0x4DCEB3, FootClass_TiberiumScanning_AllowPlayertoScanUderShroud, 0
  			if (distFromTiberium > 0 && distFromTiberium < distFromFocus)
  				R->EAX(pCell);
  		}
+
  	}
 
- 	return 0;
+		// Removing unnecessary set destination
+		// This can effectively reduce the ineffective actions when Harvester automatically returning
+		// to work after be manually operated to return to Refinery.
+	if(pFocus && pFocus->WhatAmI() != AbstractType::Building || pThis->GetCell()->GetBuilding() != pFocus){
+		return 0;
+	}
+
+	// Clear ArchiveTarget to avoid checking again next time
+	pThis->ArchiveTarget = nullptr;
+ 	return 0x73E755;
  }
 
 ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
@@ -920,8 +951,8 @@ DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 // 	return 0x6F8F25;
 // }ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_GreatestThereat_Heal, 6)
 
-DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8F1F , 0x2, 0x3C);
-DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8EE3 , 0x2, 0x3C);
+// DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8F1F , 0x2, 0x3C);
+// DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8EE3 , 0x2, 0x3C);
 
 ASMJIT_PATCH(0x51C913, InfantryClass_CanFire_Heal, 7)
 {

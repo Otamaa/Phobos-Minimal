@@ -535,13 +535,6 @@ ASMJIT_PATCH(0x7297F6, TunnelLocomotionClass_ProcessDigging_Track, 0x7)
 	return 0;
 }
 
-enum class ExtendedThreatType  : int
-{
-	none = 0u,
-	Underground = 0x20000u
-};
-MAKE_ENUM_FLAGS(ExtendedThreatType);
-
 ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)
 {
 	GET(BulletTypeClass* const, pType, ECX);
@@ -552,89 +545,4 @@ ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)
 
 	return 0;
 }
-
-namespace SelectAutoTarget_Context
-{
-	bool AU = false;
-}
-
-ASMJIT_PATCH(0x6F8DF0, TechnoClass_SelectAutoTarget_Start_AU, 0x9)
-{
-	GET_STACK(ExtendedThreatType, flags, 0x4);
-	SelectAutoTarget_Context::AU = (flags & ExtendedThreatType::Underground) != ExtendedThreatType::none;
-	return 0;
-}
-
-ASMJIT_PATCH(0x6F8FA8, TechnoClass_SelectAutoTarget_SetCanTargetWhatAmI_AU, 0x6)
-{
-	REF_STACK(int, canTargetWhatAmI, STACK_OFFSET(0x6C, -0x58));
-
-	if (SelectAutoTarget_Context::AU)
-	{
-		canTargetWhatAmI |= 1 << (int)AbstractType::Infantry;
-		canTargetWhatAmI |= 1 << (int)AbstractType::Unit;
-		canTargetWhatAmI |= 1 << (int)AbstractType::Aircraft;
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6F93BB, TechnoClass_SelectAutoTarget_Scan_AU, 0x6)
-{
-	enum { FuncRet = 0x6F9DA1, Continue = 0x6F93C1 };
-
-	REF_STACK(const TechnoClass*, pBestTarget, STACK_OFFSET(0x6C, -0x4C));
-	REF_STACK(int, bestThreat, STACK_OFFSET(0x6C, -0x50));
-	GET_STACK(const bool, transportMCed, STACK_OFFSET(0x6C, -0x59));
-	GET_STACK(const bool, onlyTargetEnemyHouse, STACK_OFFSET(0x6C, 0xC));
-	GET_STACK(const int, canTargetWhatAmI, STACK_OFFSET(0x6C, -0x58));
-	GET_STACK(const int, wantedDist, STACK_OFFSET(0x6C, -0x40));
-	GET_STACK(const ThreatType, flags, STACK_OFFSET(0x6C, 0x4));
-	GET(TechnoClass* const, pThis, ESI);
-
-	const auto pType = pThis->GetTechnoType();
-	const auto pOwner = pThis->Owner;
-	const bool targetFriendly = pType->AttackFriendlies || pThis->Berzerk || transportMCed || pThis->CombatDamage(-1) < 0;
-
-	int threatBuffer = 0;
-	auto tempCrd = CoordStruct::Empty;
-
-	if (SelectAutoTarget_Context::AU)
-	{
-		for (const auto pCurrent : ScenarioExtData::Instance()->UndergroundTracker)
-		{
-			if ((!pOwner->IsAlliedWith(pCurrent) || targetFriendly)
-				&& (!onlyTargetEnemyHouse || pCurrent->Owner->ArrayIndex == pThis->Owner->EnemyHouseIndex)
-				&& pThis->CanAutoTargetObject(flags, canTargetWhatAmI, wantedDist, pCurrent, &threatBuffer, UINT_MAX, &tempCrd))
-			{
-				if (pType->DistributedFire) {
-					pThis->CurrentTargets.AddItem(pCurrent);
-					pThis->CurrentTargetThreatValues.AddItem(threatBuffer);
-				}
-
-				if (threatBuffer > bestThreat)
-				{
-					pBestTarget = pCurrent;
-					bestThreat = threatBuffer;
-				}
-			}
-		}
-	}
-
-	GET(int, rangeFindingCell, ECX);
-
-	return rangeFindingCell <= 0 ? FuncRet : Continue;
-}
-
-ASMJIT_PATCH(0x6F7E1E, TechnoClass_CanAutoTargetObject_AU, 0x6)
-{
-	enum { Continue = 0x6F7E24, ReturnFalse = 0x6F894F };
-
-	//GET(TechnoClass*, pTarget, ESI);
-	GET(int, height, EAX);
-
-	return height >= -20
-	 || SelectAutoTarget_Context::AU ? Continue : ReturnFalse;
-}
-
 #pragma endregion

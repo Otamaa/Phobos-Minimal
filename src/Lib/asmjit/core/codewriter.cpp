@@ -7,6 +7,8 @@
 #include "../core/codeholder.h"
 #include "../core/codewriter_p.h"
 
+//#include "../arm/armutils.h"
+
 ASMJIT_BEGIN_NAMESPACE
 
 bool CodeWriterUtils::encode_offset32(uint32_t* dst, int64_t offset64, const OffsetFormat& format) noexcept {
@@ -131,15 +133,15 @@ bool CodeWriterUtils::encode_offset32(uint32_t* dst, int64_t offset64, const Off
       return true;
     }
 
-    /*case OffsetType::kAArch32_ADR: {
-      uint32_t encoded_imm;
-      if (!arm::Utils::encode_aarch32_imm(value, Out(encoded_imm))) {
-        return false;
-      }
-
-      *dst = (Support::bit_mask<uint32_t>(22) << u) | (encoded_imm << bit_shift);
-      return true;
-    }*/
+    //case OffsetType::kAArch32_ADR: {
+    //  uint32_t encoded_imm;
+    //  if (!arm::Utils::encode_aarch32_imm(value, Out(encoded_imm))) {
+    //    return false;
+    //  }
+	//
+    //  *dst = (Support::bit_mask<uint32_t>(22) << u) | (encoded_imm << bit_shift);
+    //  return true;
+    //}
 
     case OffsetType::kAArch32_U23_SignedOffset: {
       *dst = (value << bit_shift) | (u << 23);

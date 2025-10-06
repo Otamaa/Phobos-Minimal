@@ -1869,6 +1869,17 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->DefaultVehicleDisguise.Read(exINI, pSection, "DefaultVehicleDisguise");
 		this->TurretResponse.Read(exINI, pSection, "TurretResponse");
 
+		this->PlayerGuardModePursuit.Read(exINI, pSection, "PlayerGuardModePursuit");
+		this->PlayerGuardModeStray.Read(exINI, pSection, "PlayerGuardModeStray");
+		this->PlayerGuardModeGuardRangeMultiplier.Read(exINI, pSection, "PlayerGuardModeGuardRangeMultiplier");
+		this->PlayerGuardModeGuardRangeAddend.Read(exINI, pSection, "PlayerGuardModeGuardRangeAddend");
+		this->PlayerGuardStationaryStray.Read(exINI, pSection, "PlayerGuardStationaryStray");
+		this->AIGuardModePursuit.Read(exINI, pSection, "AIGuardModePursuit");
+		this->AIGuardModeStray.Read(exINI, pSection, "AIGuardModeStray");
+		this->AIGuardModeGuardRangeMultiplier.Read(exINI, pSection, "AIGuardModeGuardRangeMultiplier");
+		this->AIGuardModeGuardRangeAddend.Read(exINI, pSection, "AIGuardModeGuardRangeAddend");
+		this->AIGuardStationaryStray.Read(exINI, pSection, "AIGuardStationaryStray");
+
 		this->ForceWeapon_Check = (
 			this->ForceWeapon_Naval_Decloaked >= 0	||
 			this->ForceWeapon_Cloaked >= 0			||

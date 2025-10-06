@@ -93,26 +93,11 @@ NewSWType* SWTypeExtData::GetNewSWType() const
 
 void SWTypeExtData::Initialize()
 {
-	this->Text_Ready = GameStrings::TXT_READY();
-	this->Text_Hold = GameStrings::TXT_HOLD();
-	this->Text_Charging = GameStrings::TXT_CHARGING();
-	this->Text_Active = GameStrings::TXT_FIRESTORM_ON();
-	this->Message_CannotFire = "MSG:CannotFire";
-
 	this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
 	this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
 
-	if (auto pNewSWType = NewSWType::GetNewSWType(this)) {
-		pNewSWType->Initialize(this);
-
-		if(This()->Action != Action::None)
-			This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
-	}
-
 	this->LastAction = This()->Action;
 
-	this->Music_Theme = -1;
-	this->Music_Duration = 0;
 }
 
 Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget)
@@ -1520,8 +1505,18 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = This();
 	const char* pSection = pThis->ID;
 
+	//initialize default properties
+	this->Initialize();
+
 	if (parseFailAddr)
 		return false;
+
+	//Type was already readed , now we handle these
+	auto pNewSWType = NewSWType::GetNewSWType(this);
+
+	//initialize NewSWType properties
+	if(pNewSWType)
+		pNewSWType->Initialize(this);
 
 	INI_EX exINI(pINI);
 
@@ -1781,11 +1776,15 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Music_AffectedHouses.Read(exINI, pSection, "Music.AffectedHouses");
 
 	// initialize the NewSWType that handles this SWType.
-	if (auto pNewSWType = NewSWType::GetNewSWType(this))
+	if (pNewSWType)
 	{
 		pThis->Action = this->LastAction;
+
 		pNewSWType->LoadFromINI(this, pINI);
 		this->LastAction = pThis->Action;
+
+		if (This()->Action != Action::None)
+			This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 
 		// whatever the user does, we take care of the stupid tags.
 		// there is no need to have them not hardcoded.

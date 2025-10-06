@@ -7,6 +7,7 @@
 
 class TechnoClass;
 class CellClass;
+class FootClass;
 // Tracks aerial units via 20x20 vectors spread across the maps for efficient search
 class AircraftTrackerClass
 {

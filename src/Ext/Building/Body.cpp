@@ -1066,12 +1066,12 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck)
 
 	InfantryClass* firstOccupant = this->Occupants.Items[0];
 	// Define directional priority: up, left, right, down
-	static std::array<CellStruct, 4u> directions = {
-		CellStruct{0, -1},  // up
-		CellStruct{-1, 0},  // left
-		CellStruct{1, 0},   // right
-		CellStruct{0, 1}   // down
-	};
+	static COMPILETIMEEVAL std::array<CellStruct, 4u> directions = { {
+		{0, -1},  // up
+		{-1, 0},  // left
+		{1, 0},   // right
+		{0, 1}   // down
+	} };
 
 	// Try to find a valid adjacent cell to unload into
 	for (const auto& [dx, dy] : directions)
