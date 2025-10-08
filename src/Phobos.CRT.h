@@ -2,6 +2,7 @@
 
 #include <CRT.h>
 #include <string>
+#include <algorithm>
 
 class PhobosCRT final
 {

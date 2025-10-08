@@ -377,14 +377,12 @@ public:
 	// Get exception name using binary search on sorted array
 	static std::string_view GetExceptionName(DWORD code)
 	{
-		auto it = std::find_if(ExceptionNames.begin(), ExceptionNames.end(),
-			[code](const ExceptionMapping& mapping)
- {
-	 return mapping.code == code;
+		auto it = std::ranges::find_if(ExceptionNames,
+			[code](const ExceptionMapping& mapping) {
+	 			return mapping.code == code;
 			});
 
-		if (it != ExceptionNames.end())
-		{
+		if (it != ExceptionNames.end()) {
 			return it->name;
 		}
 		return "Unknown Exception";
@@ -459,7 +457,7 @@ private:
 			0xE06D7363 // C++ exception thrown and not caught  // 21
 		} };
 
-		return std::find(fatal_exceptions.begin(), fatal_exceptions.end(), code) != fatal_exceptions.end();
+		return std::ranges::find(fatal_exceptions, code) != fatal_exceptions.end();
 	}
 
 	static void HandleFatalException(PEXCEPTION_POINTERS pExs, const std::wstring& path, HWND hwnd)

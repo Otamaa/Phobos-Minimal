@@ -335,6 +335,20 @@ static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SH
 	JMP_FAST(0x4AED70);
 }
 
+static Point2D *__fastcall Plain_Text_Print_Wide(
+	Point2D* retstr,
+	wchar_t* text,
+	Surface* surface,
+	RectangleStruct* rect,
+	Point2D* xy,
+	int fore,
+	int back,
+	TextPrintType flag,
+	int scheme,
+	int a9){
+		JMP_FAST(0x4A66D0);
+	}
+
 // this text drawing can accept vargs , so just put the thing here , dont need to do it twice
 static Point2D* __cdecl Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
 	Point2D* Location, unsigned int ForeColor, unsigned int BackColor, TextPrintType Flag, ...)

@@ -23,7 +23,7 @@ void HouseTypeExtData::Initialize()
 		"YuriCountry"
 	};
 
-	const auto it = std::find_if(std::begin(countries), std::end(countries),
+	const auto it = std::ranges::find_if(countries,
 		[=](const char* pCountry) { return IS_SAME_STR_(pID, pCountry); });
 
 	const size_t index = it != std::end(countries) ? std::distance(std::begin(countries), it) : -1;

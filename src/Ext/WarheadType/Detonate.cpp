@@ -548,7 +548,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 	{
 		for (auto const& pWeapon : this->DetonatesWeapons)
 		{
-			WeaponTypeExtData::DetonateAt(pWeapon, coords, pOwner, true, pHouse);
+			WeaponTypeExtData::DetonateAt3(pWeapon, coords, pOwner, true, pHouse);
 		}
 	}
 
@@ -649,8 +649,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		{
 			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(coords, cellSpread, true);
 
-			std::for_each(pTargetv.begin(), pTargetv.end(), [&](TechnoClass* pTarget)
- {
+			std::ranges::for_each(pTargetv, [&](TechnoClass* pTarget) {
 				this->DetonateOnOneUnit(pHouse, pTarget, coords , damage, pOwner, pBullet, ThisbulletWasIntercepted);
 			});
 

@@ -51,7 +51,7 @@ bool AITriggerTypeExt::ReadCustomizableAICondition(HouseClass* pHouse, int pickM
 
 	int count = 0;
 
-	std::for_each(TechnoClass::Array->begin(), TechnoClass::Array->end(), [&](const TechnoClass* pTechno) {
+	std::ranges::for_each(*TechnoClass::Array, [&](const TechnoClass* pTechno) {
 		if (pTechno->GetTechnoType() == TechnoType
 			&& pTechno->IsAlive
 			&& !pTechno->InLimbo

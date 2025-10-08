@@ -17,9 +17,9 @@ public:
 	int Duration { 0 };
 	HouseClass* Invoker { nullptr };
 
-	AresAE::AresAE() noexcept = default;
+	AresAE() noexcept = default;
 
-	AresAE::AresAE(const AresAE& that) : Type(that.Type)
+	AresAE(const AresAE& that) : Type(that.Type)
 		, Anim { nullptr }
 		, Duration { that.Duration }
 		, Invoker { that.Invoker } {

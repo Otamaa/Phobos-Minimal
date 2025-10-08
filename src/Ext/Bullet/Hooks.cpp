@@ -198,7 +198,7 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
 			COMPILETIMEEVAL auto copy_dvc = []<typename T>(std::vector<T>&dest, const DynamicVectorClass<T>&dvc)
 			{
 				dest.resize(dvc.Count);
-				std::copy(dvc.begin(), dvc.end(), dest.begin());
+				std::ranges::copy(dvc, dest.begin());
 				return &dest;
 			};
 

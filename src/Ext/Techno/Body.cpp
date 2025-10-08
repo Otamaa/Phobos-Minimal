@@ -133,7 +133,7 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 				*tintColor |= paint.Color;
 
 			if (CalculateIntensity)
-				*intensity += paint.Data->BrightMultiplier * 1000;
+				*intensity += int(paint.Data->BrightMultiplier * 1000);
 		}
 	}
 
@@ -1606,14 +1606,14 @@ void TechnoExtData::ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, Wa
 	// KillWeapon can be triggered without the source
 	if (pWHExt->KillWeapon && (!pSource || EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectsHouses, pSource->Owner, pThis->Owner))) {
 		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)) {
-			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+			WeaponTypeExtData::DetonateAt2(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
 		}
 	}
 
 	// KillWeapon.OnFirer must have a source
 	if (pWHExt->KillWeapon_OnFirer && pSource && EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_OnFirer_AffectsHouses, pSource->Owner, pThis->Owner)) {
 		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon_OnFirer)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)){
-			WeaponTypeExtData::DetonateAt(pWHExt->KillWeapon_OnFirer, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
+			WeaponTypeExtData::DetonateAt2(pWHExt->KillWeapon_OnFirer, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
 		}
 	}
 }
@@ -3131,9 +3131,8 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 	{
 	case AreaFireTarget::Random:
 	{
-		static std::vector<CellStruct> adjacentCells {};
-		GeneralUtils::AdjacentCellsInRange(adjacentCells,
-			 static_cast<short>(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) + 0.99));
+		std::vector<CellStruct> adjacentCells = GeneralUtils::AdjacentCellsInRange(
+			static_cast<short>(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) + 0.99));
 
 		size_t const size = adjacentCells.size();
 
@@ -5071,7 +5070,7 @@ bool TechnoExtData::FireWeaponAtSelf(TechnoClass* pThis, WeaponTypeClass* pWeapo
 	if (!pWeaponType)
 		return false;
 
-	WeaponTypeExtData::DetonateAt(pWeaponType, pThis, pThis, true, nullptr);
+	WeaponTypeExtData::DetonateAt1(pWeaponType, pThis, pThis, true, nullptr);
 	return true;
 }
 

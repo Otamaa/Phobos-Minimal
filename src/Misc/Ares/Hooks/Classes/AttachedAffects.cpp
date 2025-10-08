@@ -190,7 +190,7 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 
 	if (!pType->Cumulative)
 	{
-		auto const it = std::find_if(pData->Data.begin(), pData->Data.end(),
+		auto const it = std::ranges::find_if(pData->Data,
 			[=](auto const& item) { return item.Type == pType; });
 
 		if (it != pData->Data.end())

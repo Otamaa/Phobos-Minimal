@@ -669,7 +669,7 @@ void EBoltClass::clear_all()
 void EBoltClass::cleanup_expired_bolts()
 {
 	active_bolts_.erase(
-		std::remove_if(active_bolts_.begin(), active_bolts_.end(),
+		std::ranges::remove_if(active_bolts_,
 			[](const auto& bolt) { return !bolt || bolt->is_expired(); }),
 		active_bolts_.end()
 	);

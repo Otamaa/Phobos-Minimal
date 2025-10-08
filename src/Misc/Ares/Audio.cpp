@@ -108,7 +108,7 @@ public:
 	{
 		std::lock_guard<std::mutex> lock(arrayMutex);  // Lock here
 
-		const auto it = std::find_if(Array.begin(), Array.end(), [&](const auto& ptr) {
+		const auto it = std::ranges::find_if(Array, [&](const auto& ptr) {
 			return ptr->GetName() == Title;
 		});
 
@@ -127,7 +127,7 @@ public:
 
 		if (idxptr >= 0x10000)
 		{
-			const auto it = std::find_if(Array.begin(), Array.end(), [&](const auto& ptr)	{
+			const auto it = std::ranges::find_if(Array, [&](const auto& ptr)	{
 				return (UINT_PTR)(ptr->GetName().c_str()) == idxptr;
 			});
 
@@ -231,7 +231,8 @@ public:
 								}
 							}
 
-							std::sort(this->Entries.begin(), this->Entries.end());
+							std::ranges::sort(this->Entries, std::less<>());
+							//std::sort(this->Entries.begin(), this->Entries.end());
 						}
 					}
 

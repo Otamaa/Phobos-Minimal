@@ -864,7 +864,7 @@ void PhobosAttachEffectClass::CumulateExpireWeapon(PhobosAttachEffectTypeClass* 
 void PhobosAttachEffectClass::DetonateExpireWeapon(std::vector<std::pair<WeaponTypeClass*, TechnoClass*>>& expireContainer)
 {
 	for (auto const& [pWeapon, pTarget] : expireContainer) {
-		WeaponTypeExtData::DetonateAt(pWeapon, pTarget->GetCoords(), pTarget, pTarget, pWeapon->Damage, false, pTarget->Owner);
+		WeaponTypeExtData::DetonateAt5(pWeapon, pTarget->GetCoords(), pTarget, pTarget, pWeapon->Damage, false, pTarget->Owner);
 	}
 }
 

@@ -45,7 +45,7 @@ public:
 
 	// modifiers
 	std::pair<iterator, bool> insert(const T& value) {
-		auto it = std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		auto it = std::ranges::lower_bound(data_, value, comp_);
 		if (it != data_.end() && !comp_(value, *it))
 			return { it, false }; // already exists
 		it = data_.insert(it, value);
@@ -53,7 +53,7 @@ public:
 	}
 
 	std::pair<iterator, bool> insert(T&& value) {
-		auto it = std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		auto it = std::ranges::lower_bound(data_, value, comp_);
 		if (it != data_.end() && !comp_(value, *it))
 			return { it, false }; // already exists
 		it = data_.insert(it, std::move(value));
@@ -63,7 +63,7 @@ public:
 	std::pair<iterator, bool> insert(iterator hint, const T& value)
 	{
 		// ignore hint for correctness, find proper position
-		auto it = std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		auto it = std::ranges::lower_bound(data_, value, comp_);
 		if (it != data_.end() && !comp_(value, *it))
 			return { it, false }; // already exists
 		it = data_.insert(it, value);
@@ -72,10 +72,10 @@ public:
 
 	std::pair<iterator, bool> insert(iterator hint, T&& value)
 	{
-		auto it = std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		auto it = std::ranges::lower_bound(data_, value, comp_);
 		if (it != data_.end() && !comp_(value, *it))
 			return { it, false };
-		it = data_.insert(it, std::move(value));
+		it = data_.insert(it , std::move(value));
 		return { it, true };
 	}
 
@@ -91,7 +91,7 @@ public:
 	template <typename... Args>
 	std::pair<iterator, bool> emplace_hint(iterator /*hint*/, Args&&... args) {
 		T value(std::forward<Args>(args)...);
-		auto it = std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		auto it = std::ranges::lower_bound(data_, value, comp_);
 		if (it != data_.end() && !comp_(value, *it)) { return { it, false }; }
 		it = data_.insert(it, std::move(value));
 		return { it, true };
@@ -100,7 +100,7 @@ public:
 	template <typename... Args>
 	std::pair<iterator, bool> emplace(Args&&... args) {
 		T value(std::forward<Args>(args)...);
-		auto it = std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		auto it = std::ranges::lower_bound(data_, value, comp_);
 		if (it != data_.end() && !comp_(value, *it)) { return { it, false }; }
 		it = data_.insert(it, std::move(value));
 		return { it, true };
@@ -124,14 +124,14 @@ public:
 	}
 
 	iterator find(const T& value) {
-		auto it = std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		auto it = std::ranges::lower_bound(data_, value, comp_);
 		if (it != data_.end() && !comp_(value, *it))
 			return it;
 		return data_.end();
 	}
 
 	const_iterator find(const T& value) const{
-		auto it = std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		auto it = std::ranges::lower_bound(data_, value, comp_);
 		if (it != data_.end() && !comp_(value, *it))
 			return it;
 		return data_.end();
@@ -139,13 +139,13 @@ public:
 
 	template <typename Func>
 	bool remove_all_if(Func&& act) {
-		auto new_end = std::remove_if(data_.begin(), data_.end(), act);
+		auto new_end = std::ranges::remove_if(data_, act);
 
 		// Count how many items are removed
-		const size_type removed_count = std::distance(new_end, data_.end());
+		const size_type removed_count = std::distance(new_end.begin(), data_.end());
 
 		// Actually erase them from the vector
-		data_.erase(new_end, data_.end());
+		data_.erase(new_end.begin(), data_.end());
 
 		return removed_count;
 	}
@@ -155,27 +155,27 @@ public:
 	}
 
 	iterator lower_bound(const T& value) {
-		return std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		return std::ranges::lower_bound(data_, value, comp_);
 	}
 
 	const_iterator lower_bound(const T& value) const {
-		return std::lower_bound(data_.begin(), data_.end(), value, comp_);
+		return std::ranges::lower_bound(data_, value, comp_);
 	}
 
 	iterator upper_bound(const T& value) {
-		return std::upper_bound(data_.begin(), data_.end(), value, comp_);
+		return std::ranges::upper_bound(data_, value, comp_);
 	}
 
 	const_iterator upper_bound(const T& value) const {
-		return std::upper_bound(data_.begin(), data_.end(), value, comp_);
+		return std::ranges::upper_bound(data_, value, comp_);
 	}
 
 	std::pair<iterator, iterator> equal_range(const T& value) {
-		return std::equal_range(data_.begin(), data_.end(), value, comp_);
+		return std::ranges::equal_range(data_, value, comp_);
 	}
 
 	std::pair<const_iterator, const_iterator> equal_range(const T& value) const {
-		return std::equal_range(data_.begin(), data_.end(), value, comp_);
+		return std::ranges::equal_range(data_, value, comp_);
 	}
 
 	void InvalidatePointer(void* ptr, bool removed) {

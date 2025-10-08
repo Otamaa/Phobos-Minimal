@@ -185,7 +185,7 @@ std::array<std::pair<const char*, const char*>, 11u> EnumFunctions::LocomotorPai
 }
 };
 
-std::array<std::pair<wchar_t*, wchar_t*>, 11u> EnumFunctions::LocomotorPairs_ToWideStrings
+std::array<std::pair<const wchar_t*, const wchar_t*>, 11u> EnumFunctions::LocomotorPairs_ToWideStrings
 {
 {
 	{ L"Drive", L"{4A582741-9839-11d1-B709-00A024DDAFD1}"},

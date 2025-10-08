@@ -11,9 +11,9 @@
 
 struct LocoIdent
 {
-	wchar_t* w_name;
+	const wchar_t* w_name;
 	const char* s_name;
-	wchar_t* w_CLSID;
+	const wchar_t* w_CLSID;
 	const char* s_CLSID;
 };
 

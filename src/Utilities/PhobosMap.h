@@ -183,7 +183,7 @@ public:
 
 	COMPILETIMEEVAL auto get_key_iterator(const TKey& key)
 	{
-		return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item){
+		return std::ranges::find_if(this->values, [&](const container_t::value_type& item){
 			return item.first == key;
 		});
 	}
@@ -191,7 +191,7 @@ public:
 	// nonmodifiable
 	COMPILETIMEEVAL auto get_key_iterator(const TKey& key) const
 	{
-		return std::find_if(this->values.begin(), this->values.end(), [&](const container_t::value_type& item) {
+		return std::ranges::find_if(this->values, [&](const container_t::value_type& item) {
 			return item.first == key;
 		});
 	}

@@ -7,10 +7,10 @@
 template<typename T, typename Tmem, typename Func>
 COMPILETIMEEVAL bool FORCEINLINE fast_remove_if(std::vector<T , Tmem>& v, Func&& act)
 {
-	auto iter = std::remove_if(v.begin(), v.end() , act);
+	auto iter = std::ranges::remove_if(v, act);
 
-	if(iter != v.end()){
-		v.erase(iter, v.end());
+	if(iter.begin() != v.end()){
+		v.erase(iter.begin(), v.end());
 		return true;
 	}
 
@@ -20,10 +20,10 @@ COMPILETIMEEVAL bool FORCEINLINE fast_remove_if(std::vector<T , Tmem>& v, Func&&
 template<typename T, typename Tmem, typename Func>
 COMPILETIMEEVAL bool FORCEINLINE fast_remove_if(std::vector<T, Tmem>* v, Func&& act)
 {
-	auto iter = std::remove_if(v->begin(), v->end() , act);
+	auto iter = std::ranges::remove_if(*v , act);
 
-	if(iter != v->end()){
-		v->erase(iter, v->end());
+	if(iter.begin() != v->end()){
+		v->erase(iter.begin(), v->end());
 		return true;
 	}
 

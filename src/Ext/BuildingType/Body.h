@@ -21,10 +21,10 @@
 
 #include <Misc/Defines.h>
 
-enum class BunkerSoundMode : int
-{
-	Up, Down
-};
+//enum class BunkerSoundMode : int
+//{
+//	Up, Down
+//};
 
 class SuperClass;
 class BuildingTypeExtData final : public TechnoTypeExtData
@@ -568,24 +568,24 @@ public:
 	static bool CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass* pUpgradeType, HouseClass* pUpgradeOwner);
 	static int GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseClass* pHouse);
 
-	template<BunkerSoundMode UpSound>
-	struct BunkerSound
-	{
-		COMPILETIMEEVAL void operator ()(BuildingClass* pThis)
-		{
+	//template<BunkerSoundMode UpSound>
+	//struct BunkerSound
+	//{
+	//	COMPILETIMEEVAL void operator ()(BuildingClass* pThis)
+	//	{
 
-			if COMPILETIMEEVAL (UpSound == BunkerSoundMode::Up)
-			{
-				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
-				VocClass::SafeImmedietelyPlayAt(nSound, pThis->Location);
-			}
-			else
-			{
-				const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
-				VocClass::SafeImmedietelyPlayAt(nSound, pThis->Location);
-			}
-		}
-	};
+	//		if COMPILETIMEEVAL (UpSound == BunkerSoundMode::Up)
+	//		{
+	//			const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsUpSound.Get(RulesClass::Instance->BunkerWallsUpSound);
+	//			VocClass::SafeImmedietelyPlayAt(nSound, pThis->Location);
+	//		}
+	//		else
+	//		{
+	//			const auto nSound = BuildingTypeExtContainer::Instance.Find(pThis->Type)->BunkerWallsDownSound.Get(RulesClass::Instance->BunkerWallsDownSound);
+	//			VocClass::SafeImmedietelyPlayAt(nSound, pThis->Location);
+	//		}
+	//	}
+	//};
 
 	static void DisplayPlacementPreview();
 	static int GetBuildingAnimTypeIndex(BuildingClass* pThis, const BuildingAnimSlot& nSlot, const char* pDefault);

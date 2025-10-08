@@ -203,16 +203,18 @@ void FakeTacticalClass::Tactical_MakeFilteredSelection(callback_type fpCheckCall
 }
 
 template<class T, class U>
-COMPILETIMEEVAL int8 __CFADD__(T x, U y)
+constexpr int8_t __CFADD__(T x, U y)
 {
-	if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 1)
-		return uint8(x) > uint8(x + y);
-	else if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 2)
-		return uint16(x) > uint16(x + y);
-	else if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 4)
-		return uint32(x) > uint32(x + y);
+	using Wider = std::conditional_t<(sizeof(T) > sizeof(U)), T, U>;
+
+	if constexpr (sizeof(Wider) == 1)
+		return static_cast<uint8_t>(x) > static_cast<uint8_t>(x + y);
+	else if constexpr (sizeof(Wider) == 2)
+		return static_cast<uint16_t>(x) > static_cast<uint16_t>(x + y);
+	else if constexpr (sizeof(Wider) == 4)
+		return static_cast<uint32_t>(x) > static_cast<uint32_t>(x + y);
 	else
-		return unsigned __int64(x) > unsigned __int64(x + y);
+		return static_cast<uint64_t>(x) > static_cast<uint64_t>(x + y);
 }
 
 /**
@@ -468,11 +470,9 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 
 	if (!interval && _arg && _arg1)
 	{
-		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(_arg->QuadPart) < static_cast<uint64_t>(now.QuadPart)) {
+			_arg->QuadPart = now.QuadPart + 1000;
 			*_arg1 = !*_arg1;
 		}
 

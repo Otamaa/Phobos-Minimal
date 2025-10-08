@@ -310,6 +310,7 @@ void CellExtData::Serialize(T& Stm) {
 
 	Stm
 		.Process(this->NewPowerups)
+		.Process(this->InfantryCount)
 		.Process(this->IncomingUnit)
 		.Process(this->IncomingUnitAlt)
 		.Process(this->RadSites)

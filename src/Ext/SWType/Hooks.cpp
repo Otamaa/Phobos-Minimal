@@ -983,7 +983,7 @@ ASMJIT_PATCH(0x6CB7B0, SuperClass_Lose, 6)
 
 		if (SuperClass::ShowTimers->Remove(pThis))
 		{
-			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
+			std::ranges::sort(*SuperClass::ShowTimers,
 			[](SuperClass* a, SuperClass* b) {
 				const auto aExt = SWTypeExtContainer::Instance.Find(a->Type);
 				const auto bExt = SWTypeExtContainer::Instance.Find(b->Type);

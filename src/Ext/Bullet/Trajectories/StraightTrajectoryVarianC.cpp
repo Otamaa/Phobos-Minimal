@@ -944,7 +944,7 @@ void StraightTrajectoryVarianC::PrepareForDetonateAt( HouseClass* pOwner)
 
 	if (this->ProximityImpact > 0 && static_cast<int>(targetsSize) > this->ProximityImpact)
 	{
-		std::sort(&validTargets[0], &validTargets[targetsSize], [pBullet](TechnoClass* pTechnoA, TechnoClass* pTechnoB)
+		std::ranges::sort(validTargets, [pBullet](TechnoClass* pTechnoA, TechnoClass* pTechnoB)
 		{
 			const auto distanceA = pTechnoA->GetCoords().DistanceFromSquared(pBullet->SourceCoords);
 			const auto distanceB = pTechnoB->GetCoords().DistanceFromSquared(pBullet->SourceCoords);

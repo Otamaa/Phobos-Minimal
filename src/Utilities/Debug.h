@@ -98,7 +98,7 @@ public:
 		va_end(args);
 	}
 
-	void Debug::LogFlushed(const char* const pFormat, ...)
+	void LogFlushed(const char* const pFormat, ...)
 	{
 		if (Debug::LogFileActive()) {
 			va_list args;

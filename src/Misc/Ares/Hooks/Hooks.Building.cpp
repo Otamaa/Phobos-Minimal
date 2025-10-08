@@ -1952,7 +1952,7 @@ void WhenInfiltratesInto(FakeInfantryClass* pSpy, BuildingClass* pBuilding)
 
 	if (auto pWeapon = pSpy->_GetTypeExtData()->WhenInfiltrate_Weapon.GetFromSpecificRank(rank))
 	{
-		WeaponTypeExtData::DetonateAt(pWeapon, pBuilding->GetCoords(), pSpy, pWeapon->Damage, false, pSpy->Owner);
+		WeaponTypeExtData::DetonateAt4(pWeapon, pBuilding->GetCoords(), pSpy, pWeapon->Damage, false, pSpy->Owner);
 	}
 	else
 	{

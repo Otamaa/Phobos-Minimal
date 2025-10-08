@@ -209,7 +209,7 @@ public:
 				for (int i = 0; i < Count; ++i) {
 					long oldPtr = 0l;
 
-					if (!Stm.Load((long)oldPtr))
+					if (!Stm.Load(oldPtr))
 						return false;
 
 					decltype(Name) name;

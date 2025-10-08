@@ -3312,7 +3312,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					GameCreate<AnimClass>(AnimTypeClass::Array->Items[0], Collector_loc, 0, 1, 0x600, 0, 0);
 					int damage = (int)something;
 					pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->FlameDamage, nullptr, 1, false, 0);
-					DamageArea::Apply(&Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true, false);
+					DamageArea::Apply(&Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true , nullptr);
 
 					PlayAnimAffect(Powerup::Napalm);
 					return MoveResult::can;
@@ -6836,16 +6836,16 @@ public:
 
 		if (sort)
 		{
-			auto Capacity = this->Capacity;
-			if (this->Count >= Capacity)
+			auto cap = this->Capacity;
+			if (this->Count >= cap)
 			{
-				if (!this->IsAllocated && Capacity)
+				if (!this->IsAllocated && cap)
 				{
 					return 0;
 				}
 
-				auto CapacityIncrement = this->CapacityIncrement;
-				if (CapacityIncrement <= 0 || !this->SetCapacity(Capacity + CapacityIncrement, 0))
+				auto cap_i = this->CapacityIncrement;
+				if (cap_i <= 0 || !this->SetCapacity(cap + cap_i, 0))
 				{
 					return 0;
 				}
@@ -7991,10 +7991,10 @@ public:
 				/*
 				 * Both points inside window; trivially accept and return true.
 				 */
-				pt1->X = x0;
-				pt1->Y = y0;
-				pt2->X = x1;
-				pt2->Y = y1;
+				pt1->X = (int)x0;
+				pt1->Y = (int)y0;
+				pt2->X = (int)x1;
+				pt2->Y = (int)y1;
 				return true;
 			}
 
@@ -8146,7 +8146,7 @@ public:
 		}
 
 		// Special case for MISSION_GUARD with negative combat damage
-		if (canHealOrRepair < 0 && techno->CurrentMission == Mission::Guard)
+		if (canHealOrRepair && techno->CurrentMission == Mission::Guard)
 		{
 			range = 512;
 		}
@@ -8566,7 +8566,7 @@ public:
 		for (int radius = 0; radius < scanRadius; ++radius)
 		{
 			// Scan horizontal edges (top and bottom)
-			for (short x = -radius; x <= radius; ++x)
+			for (short x = ((short)-radius); x <= ((short)radius); ++x)
 			{
 				CellStruct topCell = { (short)(centerCell->X + x), (short)(centerCell->Y - radius) };
 				CellStruct bottomCell = { (short)(centerCell->X + x), (short)(centerCell->Y + radius) };
@@ -8588,7 +8588,7 @@ public:
 			}
 
 			// Scan vertical edges (left and right, excluding corners)
-			for (short y = -radius + 1; y < radius; ++y)
+			for (short y = ((short)-radius) + 1; y < ((short)radius); ++y)
 			{
 				CellStruct leftCell = { (short)(centerCell->X - radius), (short)(centerCell->Y + y) };
 				CellStruct rightCell = { (short)(centerCell->X + radius), (short)(centerCell->Y + y) };
@@ -8640,7 +8640,6 @@ public:
 		TechnoTypeClass* technoType = techno->GetTechnoType();
 		const auto pOwner = techno->Owner;
 		CellStruct bestCell = CellStruct::Empty;
-		int bestCellValue = 0;
 
 		if (!AU)
 		{
@@ -8870,3 +8869,1011 @@ public:
 	}
 
 	DEFINE_FUNCTION_JUMP(LJMP, 0x6F8DF0, FakeTechnoClass::__Greatest_Threat);
+
+#ifdef _PIPDrawing
+
+// Helper structure for drawing state
+struct PipDrawState {
+    int posX;
+    int posY;
+    int spacing;
+    int verticalSpacing;
+};
+
+// Helper structure for pip drawing
+struct PipDrawInfo {
+    SHPStruct* shape;
+    int count;
+    int* pipTypes;
+    int maxPips;
+};
+
+// Constants for common blitter flags
+constexpr BlitterFlags PIP_BLITTER_FLAGS = BlitterFlags::bf_400 | BlitterFlags::Centered;
+constexpr BlitterFlags PIP_BLITTER_FLAGS_DARKEN = PIP_BLITTER_FLAGS | BlitterFlags::Darken;
+
+// Forward declarations for helper functions
+static int CalculateAmmoBarFrame(int currentRow, int pipWrap, int rowsNeeded, int currentAmmo);
+static void DrawSinglePip(Point2D* position, SHPStruct* shape, int frameIndex, RectangleStruct* clipRect, BlitterFlags flags = PIP_BLITTER_FLAGS);
+static void FillPassengerPips(TechnoClass* techno, PipIndex* pipArray, int passengerCount, int maxPips);
+
+void __fastcall FakeTechnoClass::__Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect)
+{
+    PipDrawState drawState;
+    PipDrawInfo pipInfo;
+
+    // Cache frequently accessed values
+    const AbstractType technoType = techno->WhatAmI();
+    const bool isBuilding = (technoType == AbstractType::Building);
+    const bool isInfantry = (technoType == AbstractType::Infantry);
+    TechnoTypeClass* technoTypeClass = techno->GetTechnoType();
+
+    // Initialize drawing state
+    if (isBuilding) {
+        drawState.posX = position->X + 6;
+        drawState.posY = position->Y - 1;
+        drawState.spacing = 4;
+        drawState.verticalSpacing = 2;
+        pipInfo.shape = FileSystem::PIPS_SHP();
+    } else {
+        drawState.posX = position->X - 5;
+        drawState.posY = position->Y;
+        drawState.spacing = 4;
+        drawState.verticalSpacing = 0;
+        pipInfo.shape = FileSystem::PIPS2_SHP();
+    }
+
+    // Adjust for infantry
+    if (isInfantry) {
+        drawState.posX += 11;
+    }
+
+    // Draw spawns (drones, etc.)
+    if (!isBuilding || technoTypeClass->PipScale != PipScale::Tiberium) {
+        DrawSpawnPips(techno, technoTypeClass, &drawState, &pipInfo, clipRect);
+
+        // Draw building occupants
+        if (isBuilding) {
+            DrawBuildingOccupants((BuildingClass*)techno, &drawState, &pipInfo, clipRect);
+        }
+
+        // Draw various pip types based on MaxPassengers
+        if (technoTypeClass->Passengers <= 0) {
+            DrawResourcePips(techno, technoTypeClass, &drawState, &pipInfo, clipRect);
+        } else {
+            DrawPassengerPips(techno, technoTypeClass, &drawState, &pipInfo, clipRect);
+        }
+
+        // Draw self-heal indicator
+        DrawSelfHealIndicator(techno, technoType, technoTypeClass, &drawState, position, clipRect);
+
+        // Draw info tip for non-buildings
+        if (!isBuilding) {
+            Point2D infoPos {
+                .X = position->X - 10,
+                .Y = position->Y + 10
+            };
+            techno->DrawExtraInfo(&infoPos, position, clipRect);
+        }
+
+        // Draw group number
+        DrawGroupNumber(techno, technoType, position, clipRect);
+    }
+}
+
+// Draw spawn manager pips (for carriers, etc.)
+static void DrawSpawnPips(TechnoClass* techno, TechnoTypeClass* technoType, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
+{
+    int spawnCount = technoType->SpawnsNumber;
+
+    if (spawnCount <= 0) {
+        return;
+    }
+
+    int activeSpawns = techno->SpawnManager->CountDockedSpawns();
+
+    for (int i = 0; i < spawnCount; i++) {
+        Point2D pipPos {
+            .X = drawState->posX + i * drawState->spacing,
+            .Y = drawState->posY + i * drawState->verticalSpacing
+        };
+
+        int frameIndex = (i < activeSpawns) ? 1 : 0;
+        DrawSinglePip(&pipPos, pipInfo->shape, frameIndex, clipRect);
+    }
+}
+
+// Draw building occupant pips
+static void DrawBuildingOccupants(BuildingClass* building, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
+{
+    int maxOccupants = building->Type->MaxNumberOccupants;
+
+    if (!building->Type->ShowOccupantPips || maxOccupants <= 0) {
+        return;
+    }
+
+    int currentOccupants = building->GetOccupantCount();
+
+    for (int i = 0; i < maxOccupants; i++) {
+        PipIndex frameIndex = (i < currentOccupants && building->Occupants[i])
+            ? building->Occupants[i]->Type->OccupyPip
+            : PipIndex::PersonEmpty;
+
+        Point2D pipPos {
+            .X = drawState->posX + i * drawState->spacing,
+            .Y = drawState->posY + i * drawState->verticalSpacing
+        };
+
+        DrawSinglePip(&pipPos, pipInfo->shape, (int)frameIndex, clipRect);
+    }
+}
+
+// Draw resource/storage pips
+static void DrawResourcePips(TechnoClass* techno, TechnoTypeClass* technoType, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
+{
+    pipInfo->count = techno->GetPipFillLevel();
+    pipInfo->maxPips = technoType->GetPipMax();
+
+    switch (technoType->PipScale) {
+        case PipScale::Ammo:
+            DrawPipScale1(techno, drawState, pipInfo, clipRect);
+            break;
+        case PipScale::Tiberium:
+            DrawPipScale2(techno, technoType, drawState, pipInfo, clipRect);
+            break;
+        case PipScale::MindControl:
+            DrawPipScale5(techno, drawState, pipInfo, clipRect);
+            break;
+        default:
+            break;
+    }
+}
+
+// PipScale 5: Simple filled/empty pips with overload indicator
+static void DrawPipScale5(TechnoClass* techno, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
+{
+    for (int i = 0; i < pipInfo->maxPips; i++) {
+        Point2D pipPos {
+            .X = drawState->posX + i * drawState->spacing,
+            .Y = drawState->posY + i * drawState->verticalSpacing
+        };
+
+        int frameIndex = (i < pipInfo->count) ? 1 : 0;
+        DrawSinglePip(&pipPos, pipInfo->shape, frameIndex, clipRect);
+    }
+
+    // Draw overload indicator if applicable
+    CaptureManagerClass* captureManager = techno->CaptureManager;
+    if (captureManager) {
+        bool overloadState = false;
+        if (captureManager->IsOverloading(&overloadState)) {
+            Point2D overloadPos {
+                .X = drawState->posX + pipInfo->maxPips * drawState->spacing,
+                .Y = drawState->posY + pipInfo->maxPips * drawState->verticalSpacing
+            };
+
+            DrawSinglePip(&overloadPos, pipInfo->shape, 4 - (int)overloadState, clipRect);
+        }
+    }
+}
+
+// PipScale 2: Resource storage (ore/gems)
+static void DrawPipScale2(TechnoClass* techno, TechnoTypeClass* technoType, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
+{
+    // Get storage amounts for different resource types
+    float storage0 = techno->Tiberium.GetAmount(0);
+    float storage1 = techno->Tiberium.GetAmount(1);
+    float storage2 = techno->Tiberium.GetAmount(2);
+    float storage3 = techno->Tiberium.GetAmount(3);
+
+    float totalStorage = storage0 + storage2 + storage3;
+    int maxPips = pipInfo->maxPips;
+    double storageCapacity = (double)technoType->Storage;
+
+    // Calculate filled pips for first resource type (ore)
+    int filledPips1 = (int)((totalStorage / storageCapacity) * maxPips + 0.5);
+
+    // Calculate filled pips for second resource type (gems)
+    int filledPips2 = (int)((storage1 / storageCapacity) * maxPips + 0.5);
+
+    for (int i = 0; i < maxPips; i++) {
+        int frameIndex;
+
+        if (filledPips2 > 0) {
+            frameIndex = 5; // Gems
+            filledPips2--;
+        } else if (filledPips1 > 0) {
+            frameIndex = 2; // Ore
+            filledPips1--;
+        } else {
+            frameIndex = 0; // Empty
+        }
+
+        Point2D pipPos {
+            .X = drawState->posX + i * drawState->spacing,
+            .Y = drawState->posY + i * drawState->verticalSpacing
+        };
+
+        DrawSinglePip(&pipPos, pipInfo->shape, frameIndex, clipRect);
+    }
+}
+
+// PipScale 1: Ammo display
+static void DrawPipScale1(TechnoClass* techno, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
+{
+    TechnoTypeClass* technoType = techno->GetTechnoType();
+    int pipWrap = technoType->PipWrap;
+    SHPStruct* pipShape = FileSystem::PIPS2_SHP();
+
+    if (pipWrap > 0) {
+        // Wrapped ammo display (multi-row)
+        int rowsNeeded = (pipInfo->maxPips / pipWrap) - 1;
+
+        for (int row = 0; row < pipWrap; row++) {
+            int frameIndex = CalculateAmmoBarFrame(row, pipWrap, rowsNeeded, techno->Ammo);
+
+            Point2D pipPos {
+                .X = drawState->posX + row * drawState->spacing,
+                .Y = drawState->posY + row * drawState->verticalSpacing - 3
+            };
+
+            DrawSinglePip(&pipPos, pipShape, frameIndex, clipRect);
+        }
+    } else {
+        // Single row ammo display
+        int remaining = pipInfo->count;
+
+        for (int i = 0; i < pipInfo->maxPips && remaining > 0; i++) {
+            Point2D pipPos {
+                .X = drawState->posX + i * drawState->spacing,
+                .Y = drawState->posY + i * drawState->verticalSpacing - 3
+            };
+
+            DrawSinglePip(&pipPos, pipShape, 13, clipRect);
+            remaining--;
+        }
+    }
+}
+
+// Calculate the ammo bar frame for wrapped display
+static int CalculateAmmoBarFrame(int currentRow, int pipWrap, int rowsNeeded, int currentAmmo)
+{
+    int frameIndex = 14; // Default empty/neutral frame
+
+    for (int row = rowsNeeded; row >= 0; row--) {
+        int ammoAtThisLevel = currentRow + pipWrap * row;
+
+        if (ammoAtThisLevel < currentAmmo) {
+            frameIndex = row + 15;
+            break;
+        }
+    }
+
+    return frameIndex;
+}
+
+// Draw passenger pips (for APCs, etc.)
+static void DrawPassengerPips(TechnoClass* techno, TechnoTypeClass* technoType, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
+{
+    int maxPips = technoType->GetPipMax();
+
+    if (maxPips <= 0) {
+        return;
+    }
+
+    PipIndex* pipArray = GameCreateArray<PipIndex>(maxPips);
+    memset(pipArray, 0, sizeof(PipIndex) * maxPips);
+
+    int passengerCount = techno->Passengers.NumPassengers;
+    FillPassengerPips(techno, pipArray, passengerCount, maxPips);
+
+    // Draw first pip (gunner position) if applicable
+    Point2D offset = {0, 0};
+    int startIndex = 0;
+
+    if (technoType->Gunner) {
+        Point2D gunnerPos {
+            .X = drawState->posX,
+            .Y = drawState->posY
+        };
+        DrawSinglePip(&gunnerPos, pipInfo->shape, (int)pipArray[0], clipRect);
+        startIndex = 1;
+        offset.X = 2 * drawState->spacing;
+        offset.Y = 2 * drawState->verticalSpacing;
+    }
+
+    // Draw remaining pips
+    for (int i = startIndex; i < maxPips; i++) {
+        Point2D pipPos {
+            .X = drawState->posX + offset.X + (i - startIndex) * drawState->spacing,
+            .Y = drawState->posY + offset.Y + (i - startIndex) * drawState->verticalSpacing
+        };
+
+        DrawSinglePip(&pipPos, pipInfo->shape, (int)pipArray[i], clipRect);
+    }
+
+    GameDeleteArray(pipArray, maxPips);
+}
+
+// Fill pip array with passenger types
+static void FillPassengerPips(TechnoClass* techno, PipIndex* pipArray, int passengerCount, int maxPips)
+{
+    AbstractType technoType = techno->WhatAmI();
+    bool canAbsorb = (technoType == AbstractType::Building) && ((BuildingClass*)techno)->Absorber();
+
+    ObjectClass* passenger = techno->Passengers.GetFirstPassenger();
+    int totalSize = techno->Passengers.GetTotalSize() - 1;
+
+    if (canAbsorb) {
+        // Bio-reactor mode: show unit types directly
+        for (int i = 0; i < passengerCount && passenger; i++) {
+            AbstractType passengerType = passenger->WhatAmI();
+
+            if (passengerType == AbstractType::Infantry) {
+                pipArray[i] = ((InfantryClass*)passenger)->Type->Pip;
+            } else {
+                pipArray[i] = (passengerType == AbstractType::Unit) ? PipIndex::Red : PipIndex::Blue;
+            }
+
+            passenger = passenger->NextObject;
+        }
+    } else {
+        // Normal transport mode: show filled pips from right to left
+        if (totalSize >= maxPips) {
+            return; // Overflow, don't draw
+        }
+
+        int currentPipPos = totalSize;
+
+        for (int i = 0; i < passengerCount && passenger; i++) {
+            AbstractType passengerType = passenger->WhatAmI();
+            TechnoTypeClass* passengerTechnoType = passenger->GetTechnoType();
+            int occupiedSlots = (int)(passengerTechnoType->Size - 1.0);
+
+            // Fill continuation pips
+            for (int j = 0; j < occupiedSlots; j++) {
+                pipArray[currentPipPos--] = PipIndex::White;
+            }
+
+            // Fill main pip
+            if (passengerType == AbstractType::Infantry) {
+                pipArray[currentPipPos] = ((InfantryClass*)passenger)->Type->Pip;
+            } else if (passengerType == AbstractType::Unit) {
+                pipArray[currentPipPos] = PipIndex::Blue;
+            } else {
+                pipArray[currentPipPos] = PipIndex::Green;
+            }
+
+            passenger = passenger->NextObject;
+            currentPipPos--;
+        }
+    }
+}
+
+// Draw self-heal indicator
+static void DrawSelfHealIndicator(TechnoClass* techno, AbstractType unitType, TechnoTypeClass* technoType, PipDrawState* drawState, Point2D* position, RectangleStruct* clipRect)
+{
+    bool canSelfHeal = false;
+    bool isHealing = false;
+    int pipType = 13;
+    int offsetX = 0;
+    int offsetY = 0;
+
+    // Check infantry self-heal
+    if ((unitType == AbstractType::Infantry || (unitType == AbstractType::Unit && technoType->Organic))
+        && techno->Owner->InfantrySelfHeal > 0) {
+        canSelfHeal = true;
+        pipType = 13;
+
+        if ((Unsorted::CurrentFrame % RulesClass::Instance->SelfHealInfantryFrames <= 5)
+            && (techno->Health < technoType->Strength)) {
+            isHealing = true;
+        }
+    }
+
+    // Check unit self-heal
+    if (unitType == AbstractType::Unit && !technoType->Organic
+        && techno->Owner->UnitsSelfHeal) {
+        canSelfHeal = true;
+        pipType = 14;
+
+        if ((Unsorted::CurrentFrame % RulesClass::Instance->SelfHealUnitFrames <= 5)
+            && (techno->Health < technoType->Strength)) {
+            isHealing = true;
+        }
+    }
+
+    if (!canSelfHeal) {
+        return;
+    }
+
+    // Set position offsets
+    if (unitType == AbstractType::Unit) {
+        offsetX = 38;
+        offsetY = -32;
+    } else if (unitType == AbstractType::Infantry) {
+        offsetX = 19;
+        offsetY = -35;
+    }
+
+    Point2D healPos {
+        .X = drawState->posX + offsetX,
+        .Y = drawState->posY + offsetY
+    };
+
+    BlitterFlags flags = isHealing ? PIP_BLITTER_FLAGS_DARKEN : PIP_BLITTER_FLAGS;
+    DrawSinglePip(&healPos, FileSystem::PIPS_SHP(), pipType, clipRect, flags);
+}
+
+// Draw group number indicator
+static void DrawGroupNumber(TechnoClass* techno, AbstractType unitType, Point2D* position, RectangleStruct* clipRect)
+{
+    int group = techno->Group;
+
+    if (group > 9) {
+        return;
+    }
+
+    int displayNumber = (group + 1) % 10;
+    int offsetY = (unitType == AbstractType::Infantry) ? -36 : -33;
+
+    wchar_t numberText[16];
+    swprintf(numberText, sizeof(numberText) / sizeof(wchar_t), L"%d", displayNumber);
+
+    Point2D textPos {
+        .X = position->X - 4,
+        .Y = position->Y + offsetY - 3
+    };
+
+    // Get text dimensions
+    RectangleStruct textRect;
+    Drawing::GetTextDimensions(&textRect, numberText, textPos, TextPrintType::FullShadow | TextPrintType::Efnt, 2, -2);
+
+    // Clip to drawing area
+    RectangleStruct clippedRect = *clipRect;
+    if (textRect.Width <= 0 || textRect.Height <= 0 || clipRect->Width <= 0 || clipRect->Height <= 0) {
+        return;
+    }
+
+    if (clippedRect.X < textRect.X) {
+        clippedRect.Width += clippedRect.X - textRect.X;
+        clippedRect.X = textRect.X;
+    }
+    if (clippedRect.Width < 1) return;
+
+    if (clippedRect.Y < textRect.Y) {
+        clippedRect.Height += clippedRect.Y - textRect.Y;
+        clippedRect.Y = textRect.Y;
+    }
+    if (clippedRect.Height < 1) return;
+
+    if (clippedRect.X + clippedRect.Width > textRect.X + textRect.Width) {
+        clippedRect.Width = textRect.X + textRect.Width - clippedRect.X;
+    }
+    if (clippedRect.Width < 1) return;
+
+    if (clippedRect.Y + clippedRect.Height > textRect.Y + textRect.Height) {
+        clippedRect.Height = textRect.Y + textRect.Height - clippedRect.Y;
+    }
+    if (clippedRect.Height < 1) return;
+
+    // Draw background box
+    RectangleStruct boxRect {
+        .X = clippedRect.X - 1,
+        .Y = clippedRect.Y,
+        .Width = clippedRect.Width + 1,
+        .Height = clippedRect.Height
+    };
+
+    // Get house color
+    int color = techno->Owner->Color.ToInit();
+
+    DSurface::Temp->Fill_Rect(boxRect, 0);
+    DSurface::Temp->Draw_Rect(boxRect, color);
+
+    // Draw text
+    Point2D retn;
+    Plain_Text_Print_Wide(&retn, numberText, DSurface::Temp, clipRect, &textPos, color, 0, TextPrintType::FullShadow | TextPrintType::Efnt, -1, 1);
+}
+
+// Helper to draw a single pip
+static void DrawSinglePip(Point2D* position, SHPStruct* shape, int frameIndex, RectangleStruct* clipRect, BlitterFlags flags)
+{
+    DSurface::Temp->DrawSHP(
+        FileSystem::PALETTE_PAL(),
+        shape,
+        frameIndex,
+        position,
+        clipRect,
+        flags,
+        0, 0, 0,
+        1000,
+        0, 0, 0, 0, 0
+    );
+}
+
+// Helper structure for health bar drawing state
+struct HealthBarDrawState
+{
+	int barX;
+	int barY;
+	int barLength;
+	int pipOffsetX;
+	int spacing;
+	int deltaY;
+	bool useCustomLength; // If true, use fixed barLength instead of calculating from dimensions
+};
+
+// Helper structure for health bar rendering assets
+struct HealthBarAssets
+{
+	SHPStruct* pipShape;
+	SHPStruct* bracketShape;
+	ConvertClass* convert;
+};
+
+// Constants
+constexpr BlitterFlags HEALTHBAR_FLAGS = BlitterFlags::bf_400 | BlitterFlags::Centered;
+constexpr BlitterFlags PIPBAR_FLAGS = BlitterFlags::Alpha | BlitterFlags::bf_400 | BlitterFlags::Centered;
+
+// Forward declarations
+static void DrawBuildingHealthBar(TechnoClass* techno, Point2D* position, RectangleStruct* clipRect, const HealthBarAssets* assets);
+static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2D* position, RectangleStruct* clipRect, const HealthBarAssets* assets);
+static void DrawHealthPips(Point2D* startPos, int filledCount, int emptyCount, int colorIndex, int spacing, int verticalOffset, RectangleStruct* clipRect, const HealthBarAssets* assets);
+static bool ShouldDrawPips(TechnoClass* techno);
+
+void __fastcall FakeTechnoClass::DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect, RectangleStruct* unused2)
+{
+	AbstractType technoType = techno->WhatAmI();
+
+	// Setup default assets
+	HealthBarAssets assets {
+		.pipShape = FileSystem::PIPS_SHP(),
+		.bracketShape = FileSystem::PIPBRD_SHP(),
+		.convert = FileSystem::PALETTE_PAL()
+	};
+
+	if (technoType == AbstractType::Building)
+	{
+		DrawBuildingHealthBar(techno, position, clipRect, &assets);
+	}
+	else
+	{
+		DrawUnitHealthBar(techno, technoType, position, clipRect, &assets);
+	}
+}
+
+// Draw health bar for buildings (diagonal bar)
+static void DrawBuildingHealthBar(TechnoClass* techno, Point2D* position, RectangleStruct* clipRect, const HealthBarAssets* assets)
+{
+	BuildingClass* building = (BuildingClass*)techno;
+	TechnoTypeClass* technoType = techno->GetTechnoType();
+
+	// Get building dimensions
+	CoordStruct dimensions = *technoType->GetDimensions();
+
+	// Calculate corner positions
+	CoordStruct topLeft {
+		.X = -(dimensions.X / 2) - dimensions.X,
+		.Y = -(dimensions.Y / 2) + dimensions.Y,
+		.Z = dimensions.Z
+	};
+
+	CoordStruct bottomLeft {
+		.X = topLeft.X,
+		.Y = -topLeft.Y,
+		.Z = dimensions.Z
+	};
+
+	CoordStruct bottomRight {
+		.X = topLeft.X,
+		.Y = -topLeft.Y,
+		.Z = 0
+	};
+
+	// Convert to screen coordinates
+	Point2D screenTopLeft = *MapClass::LeptonsToClient(&topLeft);
+	Point2D screenBottomLeft = *MapClass::LeptonsToClient(&bottomLeft);
+	Point2D screenBottomRight = *MapClass::LeptonsToClient(&bottomRight);
+
+	// Calculate health bar dimensions
+	int verticalHeight = (screenTopLeft.Y - screenBottomLeft.Y) / 2;
+
+	// Allow override of bar length if needed (future extension point)
+	TechnoTypeClass* technoType = techno->GetTechnoType();
+	bool useCustomLength = false; // Could be set from TechnoType in the future
+	int customBarLength = 0; // Could be read from TechnoType->CustomHealthBarLength
+
+	if (useCustomLength && customBarLength > 0)
+	{
+		verticalHeight = customBarLength;
+	}
+
+	double healthRatio = techno->GetHealthPercentage();
+	int filledHeight = (int)(healthRatio * verticalHeight);
+
+	// Clamp health bar height
+	if (filledHeight < 1) filledHeight = 1;
+	if (filledHeight > verticalHeight) filledHeight = verticalHeight;
+
+	// Determine health bar color
+	int colorIndex = 1; // Green
+	if (techno->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+	{
+		colorIndex = 2; // Yellow
+	}
+	if (techno->GetHealthPercentage() <= RulesClass::Instance->ConditionRed)
+	{
+		colorIndex = 4; // Red
+	}
+
+	// Draw filled health pips
+	int baseOffset = 2 - 2 * verticalHeight;
+	for (int i = 0; i < filledHeight; i++)
+	{
+		Point2D pipPos {
+			.X = position->X + screenTopLeft.X + 4 * verticalHeight + 3 - (i * 4),
+			.Y = position->Y + screenTopLeft.Y + baseOffset + 2 - (i * 2)
+		};
+
+		DSurface::Temp->DrawSHP(
+			assets->convert,
+			assets->pipShape,
+			colorIndex,
+			&pipPos,
+			clipRect,
+			HEALTHBAR_FLAGS,
+			0, 0, 0, 1000, 0, 0, 0, 0, 0
+		);
+	}
+
+	// Draw empty health pips
+	if (filledHeight < verticalHeight)
+	{
+		int emptyCount = verticalHeight - filledHeight;
+		int emptyBaseOffset = -2 * filledHeight;
+
+		for (int i = 0; i < emptyCount; i++)
+		{
+			Point2D pipPos {
+				.X = position->X + screenTopLeft.X + 4 * verticalHeight + 3 - (filledHeight * 4 + i * 4),
+				.Y = position->Y + screenTopLeft.Y + baseOffset + 2 - emptyBaseOffset - (i * 2)
+			};
+
+			DSurface::Temp->DrawSHP(
+				assets->convert,
+				assets->pipShape,
+				0, // Empty pip
+				&pipPos,
+				clipRect,
+				HEALTHBAR_FLAGS,
+				0, 0, 0, 1000, 0, 0, 0, 0, 0
+			);
+		}
+	}
+
+	// Draw pips if applicable
+	if (ShouldDrawPips(techno))
+	{
+		Point2D pipPosition {
+			.X = position->X + screenBottomRight.X,
+			.Y = position->Y + screenBottomRight.Y
+		};
+
+		techno->DrawPips(&pipPosition, position, clipRect);
+	}
+}
+
+// Draw health bar for units and infantry (horizontal bar)
+static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2D* position, RectangleStruct* clipRect, const HealthBarAssets* assets)
+{
+	TechnoTypeClass* technoType = techno->GetTechnoType();
+	bool isInfantry = (unitType == AbstractType::Infantry);
+
+	HealthBarDrawState drawState;
+	drawState.useCustomLength = false; // Could be set from TechnoType->UseCustomHealthBarLength
+
+	// Setup drawing parameters based on unit type
+	if (isInfantry)
+	{
+		drawState.barX = 11;
+		drawState.pipOffsetX = -5;
+		drawState.barLength = 8;
+		drawState.deltaY = technoType->PixelSelectionBracketDelta - 24;
+		drawState.spacing = 2;
+
+		// Draw selection bracket if selected
+		if (techno->IsSelected)
+		{
+			Point2D bracketPos {
+				.X = position->X + 11,
+				.Y = position->Y + technoType->PixelSelectionBracketDelta - 25
+			};
+
+			DSurface::Temp->DrawSHP(
+				assets->convert,
+				assets->bracketShape,
+				1, // Infantry frame
+				&bracketPos,
+				clipRect,
+				PIPBAR_FLAGS,
+				0, 0, 0, 1000, 0, 0, 0, 0, 0
+			);
+		}
+	}
+	else
+	{
+		drawState.barX = 1;
+		drawState.pipOffsetX = -15;
+		drawState.barLength = 17;
+		drawState.deltaY = technoType->PixelSelectionBracketDelta - 25;
+		drawState.spacing = 2;
+
+		// Draw selection bracket if selected
+		if (techno->IsSelected)
+		{
+			Point2D bracketPos {
+				.X = position->X + 1,
+				.Y = position->Y + technoType->PixelSelectionBracketDelta - 26
+			};
+
+			DSurface::Temp->DrawSHP(
+				assets->convert,
+				assets->bracketShape,
+				0, // Unit frame
+				&bracketPos,
+				clipRect,
+				PIPBAR_FLAGS,
+				0, 0, 0, 1000, 0, 0, 0, 0, 0
+			);
+		}
+	}
+
+	// Allow override of bar length (future extension point)
+	// Could check: if (technoType->CustomHealthBarLength > 0) { drawState.barLength = technoType->CustomHealthBarLength; drawState.useCustomLength = true; }
+
+	// Calculate filled health bar length
+	double healthRatio = techno->GetHealthPercentage();
+	int filledLength = (int)(healthRatio * drawState.barLength);
+
+	// Clamp health bar length
+	if (filledLength < 1) filledLength = 1;
+	if (filledLength > drawState.barLength) filledLength = drawState.barLength;
+
+	// Determine health bar color frame
+	int healthFrameIndex = 16; // Green
+	if (healthRatio <= RulesClass::Instance->ConditionYellow)
+	{
+		healthFrameIndex = 17; // Yellow
+	}
+	if (healthRatio <= RulesClass::Instance->ConditionRed)
+	{
+		healthFrameIndex = 18; // Red
+	}
+
+	// Draw health bar pips
+	for (int i = 0; i < filledLength; i++)
+	{
+		Point2D pipPos {
+			.X = position->X + drawState.pipOffsetX + (i * drawState.spacing),
+			.Y = position->Y + drawState.deltaY
+		};
+
+		DSurface::Temp->DrawSHP(
+			assets->convert,
+			assets->pipShape,
+			healthFrameIndex,
+			&pipPos,
+			clipRect,
+			HEALTHBAR_FLAGS,
+			0, 0, 0, 1000, 0, 0, 0, 0, 0
+		);
+	}
+
+	// Draw pips if allied or visible
+	if (ShouldDrawPips(techno))
+	{
+		Point2D pipPosition {
+			.X = position->X - 10,
+			.Y = position->Y + 10
+		};
+
+		techno->DrawPips(&pipPosition, position, clipRect);
+	}
+}
+
+// Check if pips should be drawn
+static bool ShouldDrawPips(TechnoClass* techno)
+{
+	TechnoTypeClass* technoType = techno->GetTechnoType();
+
+	// Always draw if PipsDrawForAll is set
+	if (technoType->PipsDrawForAll)
+	{
+		return true;
+	}
+
+	// Draw if allied with player
+	if (techno->Owner->IsAlliedWith(HouseClass::CurrentPlayer))
+	{
+		return true;
+	}
+
+	// Draw if player can see (radar/spy satellite)
+	int playerBit = 1 << HouseClass::CurrentPlayer->ArrayIndex;
+	if (techno->DisplayProductionTo & playerBit)
+	{
+		return true;
+	}
+
+	// Special case for mind-controlled buildings
+	if (techno->WhatAmI() == AbstractType::Building)
+	{
+		BuildingClass* building = (BuildingClass*)techno;
+		if (building->IsMindControlled())
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+// Helper to draw a series of health pips (unused but kept for reference)
+static void DrawHealthPips(Point2D* startPos, int filledCount, int emptyCount, int colorIndex, int spacing, int verticalOffset, RectangleStruct* clipRect, const HealthBarAssets* assets)
+{
+	// Draw filled pips
+	for (int i = 0; i < filledCount; i++)
+	{
+		Point2D pipPos {
+			.X = startPos->X + (i * spacing),
+			.Y = startPos->Y + (i * verticalOffset)
+		};
+
+		DSurface::Temp->DrawSHP(
+			assets->convert,
+			assets->pipShape,
+			colorIndex,
+			&pipPos,
+			clipRect,
+			HEALTHBAR_FLAGS,
+			0, 0, 0, 1000, 0, 0, 0, 0, 0
+		);
+	}
+
+	// Draw empty pips
+	for (int i = 0; i < emptyCount; i++)
+	{
+		Point2D pipPos {
+			.X = startPos->X + ((filledCount + i) * spacing),
+			.Y = startPos->Y + ((filledCount + i) * verticalOffset)
+		};
+
+		DSurface::Temp->DrawSHP(
+			assets->convert,
+			assets->pipShape,
+			0, // Empty pip
+			&pipPos,
+			clipRect,
+			HEALTHBAR_FLAGS,
+			0, 0, 0, 1000, 0, 0, 0, 0, 0
+		);
+	}
+}
+
+// Constants for rank pip drawing
+constexpr BlitterFlags RANK_PIP_FLAGS = BlitterFlags::Alpha | BlitterFlags::bf_400 | BlitterFlags::Centered;
+
+// Rank pip indices
+enum class RankPipIndex : int
+{
+	None = -1,
+	Veteran = 11,    // PipEnum_Veteran
+	Elite = 12,      // PipEnum_Elite
+	Mindless = 10    // PipEnum_BLANK (berserk/confused)
+};
+
+// Helper structure for rank pip assets
+struct RankPipAssets
+{
+	SHPStruct* pipShape;
+	ConvertClass* convert;
+};
+
+void __fastcall FakeTechnoClass::Draw_Rank_Pips(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect)
+{
+	// Setup default assets
+	RankPipAssets assets {
+		.pipShape = FileSystem::PIPS_SHP(),
+		.convert = FileSystem::PALETTE_PAL()
+	};
+
+	DrawRankPip(techno, position, clipRect, &assets);
+}
+
+// Main rank pip drawing function with customizable assets
+static void DrawRankPip(TechnoClass* techno, Point2D* position, RectangleStruct* clipRect, const RankPipAssets* assets)
+{
+	// Determine which rank pip to show
+	RankPipIndex pipIndex = GetRankPipIndex(techno);
+
+	// Early exit if no rank pip needed
+	if (pipIndex == RankPipIndex::None)
+	{
+		return;
+	}
+
+	// Calculate pip position based on unit type
+	Point2D pipPos = CalculateRankPipPosition(techno, position);
+
+	// Draw the rank pip
+	DSurface::Temp->DrawSHP(
+		assets->convert,
+		assets->pipShape,
+		(int)pipIndex,
+		&pipPos,
+		clipRect,
+		RANK_PIP_FLAGS,
+		0,    // remap
+		-2,   // zAdjust
+		0,    // brightR
+		1000, // tintColor
+		0,    // ZGradient
+		0, 0, 0, 0 // unused parameters
+	);
+}
+
+// Determine which rank pip should be displayed
+static RankPipIndex GetRankPipIndex(TechnoClass* techno)
+{
+	// Priority order: Mindless > Elite > Veteran > None
+
+	// Check if unit is mindless (berserk/confused)
+	if (techno->Veterancy.IsVeterancy(VeterancyType::Mindless))
+	{
+		return RankPipIndex::Mindless;
+	}
+
+	// Check if unit is elite
+	if (techno->Veterancy.IsElite())
+	{
+		return RankPipIndex::Elite;
+	}
+
+	// Check if unit is veteran
+	if (techno->Veterancy.IsVeteran())
+	{
+		return RankPipIndex::Veteran;
+	}
+
+	// No rank pip needed
+	return RankPipIndex::None;
+}
+
+// Calculate the screen position for the rank pip
+static Point2D CalculateRankPipPosition(TechnoClass* techno, Point2D* basePosition)
+{
+	Point2D pipPos {
+		.X = basePosition->X + 5,
+		.Y = basePosition->Y + 2
+	};
+
+	// Infantry units need adjusted position
+	if (techno->WhatAmI() != AbstractType::Infantry)
+	{
+		pipPos.X += 5;
+		pipPos.Y += 4;
+	}
+
+	return pipPos;
+}
+
+// Alternative version with more customization options
+struct RankPipConfig
+{
+	Point2D offset;           // Base offset from position
+	Point2D infantryAdjust;   // Additional offset for infantry
+	Point2D unitAdjust;       // Additional offset for units
+	bool enabled;             // Can be toggled off
+};
+#endif

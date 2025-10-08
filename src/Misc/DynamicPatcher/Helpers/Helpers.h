@@ -188,7 +188,7 @@ public:
 		//bool allied = false;
 		//bool enemies = false;
 
-		int count = std::count_if(AircraftClass::Array->begin(), AircraftClass::Array->end() , [pHouse,&padList](AircraftClass* const pAircraft){
+		int count = std::ranges::count_if(*AircraftClass::Array , [pHouse,&padList](AircraftClass* const pAircraft){
 
 			if (!IsDeadOrInvisible(pAircraft) && pAircraft->Owner && pAircraft->Owner == pHouse && pAircraft->Type->AirportBound)
 				return padList.contains(pAircraft->Type);

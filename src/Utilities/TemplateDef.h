@@ -1670,17 +1670,6 @@ namespace detail
 		}
 	}
 
-	template <typename T>
-	OPTIONALINLINE void ReadVectorsAlloc(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
-	{
-		static_assert(std::is_pointer<T>::value, "Pointer Required !");
-
-		if (parser.ReadString(pSection, pKey))
-		{
-			detail::parse_Alloc_values(vector, parser, pSection, pKey, allocate);
-		}
-	}
-
 	//WARNING : this not checking for read first , make sure before using it !
 	template <typename T>
 	OPTIONALINLINE void parse_Alloc_values(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
@@ -1699,8 +1688,19 @@ namespace detail
 
 			if (parseSucceeded)
 				vector.push_back(buffer);
-			else if(!GameStrings::IsBlank(pCur))
+			else if (!GameStrings::IsBlank(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
+		}
+	}
+
+	template <typename T>
+	OPTIONALINLINE void ReadVectorsAlloc(std::vector<T>& vector, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
+	{
+		static_assert(std::is_pointer<T>::value, "Pointer Required !");
+
+		if (parser.ReadString(pSection, pKey))
+		{
+			detail::parse_Alloc_values(vector, parser, pSection, pKey, allocate);
 		}
 	}
 
@@ -1849,33 +1849,33 @@ namespace detail
 
 // Valueable
 template <typename T>
-void NOINLINE Valueable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
+void OPTIONALINLINE Valueable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
 {
 	detail::read(this->Value, parser, pSection, pKey, Allocate);
 }
 
 template <typename T>
-bool Valueable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE Valueable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm.Process(this->Value, RegisterForChange);
 }
 
 template <typename T>
-bool Valueable<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE Valueable<T>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm.Process(this->Value);
 }
 
 // ValueableIdx
 template <typename Lookuper>
-void NOINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void OPTIONALINLINE ValueableIdx<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	detail::getindex<Lookuper>(this->Value, parser, pSection, pKey);
 }
 
 // Nullable
 template <typename T>
-void NOINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
+void OPTIONALINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool Allocate)
 {
 	if (detail::read(this->Value, parser, pSection, pKey, Allocate))
 	{
@@ -1892,7 +1892,7 @@ void NOINLINE Nullable<T>::Read(INI_EX& parser, const char* pSection, const char
 }
 
 template <typename T>
-bool Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->Reset();
 	if (!Stm.Process(this->HasValue))
@@ -1906,7 +1906,7 @@ bool Nullable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 }
 
 template <typename T>
-bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE Nullable<T>::Save(PhobosStreamWriter& Stm) const
 {
 	if (!Stm.Process(this->HasValue))
 		return false;
@@ -1920,9 +1920,9 @@ bool Nullable<T>::Save(PhobosStreamWriter& Stm) const
 
 // NullableIdx
 template <typename Lookuper, EnumCheckMode mode>
-void NOINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void OPTIONALINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
-	if COMPILETIMEEVAL (mode == EnumCheckMode::default) {
+	if COMPILETIMEEVAL (mode == EnumCheckMode::originalbehaviour) {
 		if (detail::getindex<Lookuper>(this->Value, parser, pSection, pKey))
 			this->HasValue = true;
 	}
@@ -1966,7 +1966,7 @@ void NOINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char* pSec
 
 // Promotable
 template <typename T>
-void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag, bool allocate)
+void OPTIONALINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag, bool allocate)
 {
 
 	// read the common flag, with the trailing dot being stripped
@@ -2000,7 +2000,7 @@ void NOINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSection, co
 };
 
 template <typename T>
-bool Promotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE Promotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm
 		.Process(this->Rookie, RegisterForChange)
@@ -2010,7 +2010,7 @@ bool Promotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 }
 
 template <typename T>
-bool Promotable<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE Promotable<T>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm
 		.Process(this->Rookie)
@@ -2021,7 +2021,7 @@ bool Promotable<T>::Save(PhobosStreamWriter& Stm) const
 
 // NullablePromotable
 template <typename T>
-void NOINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void OPTIONALINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
 	char flagbuffer[0x80];
@@ -2056,7 +2056,7 @@ void NOINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* const pSec
 };
 
 template <typename T>
-bool NullablePromotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE NullablePromotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm
 		.Process(this->Rookie, RegisterForChange)
@@ -2065,7 +2065,7 @@ bool NullablePromotable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange
 }
 
 template <typename T>
-bool NullablePromotable<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE NullablePromotable<T>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm
 		.Process(this->Rookie)
@@ -2075,7 +2075,7 @@ bool NullablePromotable<T>::Save(PhobosStreamWriter& Stm) const
 
 // ValueableVector
 template <typename T>
-void NOINLINE ValueableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+void OPTIONALINLINE ValueableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -2084,7 +2084,7 @@ void NOINLINE ValueableVector<T>::Read(INI_EX& parser, const char* pSection, con
 }
 
 template <>
-void NOINLINE ValueableVector<std::string>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
+void OPTIONALINLINE ValueableVector<std::string>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool bAllocate)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -2100,32 +2100,32 @@ void NOINLINE ValueableVector<std::string>::Read(INI_EX& parser, const char* pSe
 }
 
 template <typename T>
-bool ValueableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE ValueableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm.Process(this->AsVector());
 }
 
 template <typename T>
-bool ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE ValueableVector<T>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm.Process(this->AsVector());
 }
 
 template <>
-bool ValueableVector<bool>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE ValueableVector<bool>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm.Process(this->AsVector());
 }
 
 template <>
-bool ValueableVector<bool>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE ValueableVector<bool>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm.Process(this->AsVector());
 }
 
 // NullableVector
 template <typename T>
-void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+void OPTIONALINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -2140,7 +2140,7 @@ void NOINLINE NullableVector<T>::Read(INI_EX& parser, const char* pSection, cons
 }
 
 template <typename T>
-bool NullableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE NullableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	this->clear();
 	if (Stm.Process(this->hasValue, RegisterForChange))
@@ -2151,7 +2151,7 @@ bool NullableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 }
 
 template <typename T>
-bool NullableVector<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE NullableVector<T>::Save(PhobosStreamWriter& Stm) const
 {
 	if (Stm.Process(this->hasValue)) {
 		return !this->hasValue || ValueableVector<T>::Save(Stm);
@@ -2162,7 +2162,7 @@ bool NullableVector<T>::Save(PhobosStreamWriter& Stm) const
 
 // ValueableIdxVector
 template <typename Lookuper>
-void NOINLINE ValueableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void OPTIONALINLINE ValueableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -2173,7 +2173,7 @@ void NOINLINE ValueableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSe
 
 // NullableIdxVector
 template <typename Lookuper>
-void NOINLINE NullableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
+void OPTIONALINLINE NullableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (parser.ReadString(pSection, pKey))
 	{
@@ -2191,7 +2191,7 @@ void NOINLINE NullableIdxVector<Lookuper>::Read(INI_EX& parser, const char* pSec
 
 // Damageable
 template <typename T>
-void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag, bool Alloc)
+void OPTIONALINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag, bool Alloc)
 {
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x80];
@@ -2215,7 +2215,7 @@ void NOINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSection, co
 };
 
 template <typename T>
-bool Damageable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE Damageable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm
 		.Process(this->BaseValue, RegisterForChange)
@@ -2224,7 +2224,7 @@ bool Damageable<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 }
 
 template <typename T>
-bool Damageable<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE Damageable<T>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm
 		.Process(this->BaseValue)
@@ -2232,7 +2232,7 @@ bool Damageable<T>::Save(PhobosStreamWriter& Stm) const
 		.Process(this->ConditionRed);
 }
 
-bool NOINLINE HealthOnFireData::Read(INI_EX& parser, const char* pSection, const char* pKey)
+bool OPTIONALINLINE HealthOnFireData::Read(INI_EX& parser, const char* pSection, const char* pKey)
 {
 	if (pSection)
 	{
@@ -2264,7 +2264,7 @@ bool NOINLINE HealthOnFireData::Read(INI_EX& parser, const char* pSection, const
 	return false;
 };
 
-bool HealthOnFireData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE HealthOnFireData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm
 		.Process(this->RedOnFire, RegisterForChange)
@@ -2272,7 +2272,7 @@ bool HealthOnFireData::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		.Process(this->YellowOnFire, RegisterForChange);
 }
 
-bool HealthOnFireData::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE HealthOnFireData::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm
 		.Process(this->RedOnFire)
@@ -2282,7 +2282,7 @@ bool HealthOnFireData::Save(PhobosStreamWriter& Stm) const
 
 // DamageableVector
 template <typename T>
-void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void OPTIONALINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x80];
@@ -2310,7 +2310,7 @@ void NOINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const pSecti
 };
 
 template <typename T>
-bool DamageableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE DamageableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm
 		.Process(this->BaseValue, RegisterForChange)
@@ -2320,7 +2320,7 @@ bool DamageableVector<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 }
 
 template <typename T>
-bool DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm
 		.Process(this->BaseValue)
@@ -2332,7 +2332,7 @@ bool DamageableVector<T>::Save(PhobosStreamWriter& Stm) const
 /*
 // PromotableVector
 template <typename T>
-void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
+void OPTIONALINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, const char* const pSingleFlag)
 {
 	// read the common flag, with the trailing dot being stripped
 	char flagName[0x80];
@@ -2376,7 +2376,7 @@ void NOINLINE PromotableVector<T>::Read(INI_EX& parser, const char* const pSecti
 }
 
 template <typename T>
-void NOINLINE PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate)
+void OPTIONALINLINE PromotableVector<T>::ReadList(INI_EX& parser, const char* pSection, const char* pFlag, bool allocate)
 {
 	bool numFirst = false;
 	int flagLength = strlen(pFlag);
@@ -2470,7 +2470,7 @@ bool PromotableVector<T>::Save(PhobosStreamWriter& stm) const
 
 // TimedWarheadEffect
 template <typename T>
-bool TimedWarheadValue<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE TimedWarheadValue<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm
 		.Process(this->Value, RegisterForChange)
@@ -2480,7 +2480,7 @@ bool TimedWarheadValue<T>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 }
 
 template <typename T>
-bool TimedWarheadValue<T>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE TimedWarheadValue<T>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm
 		.Process(this->Value)
@@ -2493,7 +2493,7 @@ bool TimedWarheadValue<T>::Save(PhobosStreamWriter& Stm) const
 
 template<typename T, typename... TExtraArgs>
 	requires MultiflagReadable<T, TExtraArgs...>
-void NOINLINE MultiflagValueableVector<T, TExtraArgs...>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs)
+void OPTIONALINLINE MultiflagValueableVector<T, TExtraArgs...>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs)
 {
 	char flagName[0x40];
 	for (size_t i = 0; ; ++i)
@@ -2522,7 +2522,7 @@ void NOINLINE MultiflagValueableVector<T, TExtraArgs...>::Read(INI_EX& parser, c
 
 template<typename T, typename... TExtraArgs>
 	requires MultiflagReadable<T, TExtraArgs...>
-void NOINLINE MultiflagNullableVector<T, TExtraArgs...>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs)
+void OPTIONALINLINE MultiflagNullableVector<T, TExtraArgs...>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, TExtraArgs&... extraArgs)
 {
 	char flagName[0x40];
 	for (size_t i = 0; ; ++i)
@@ -2554,7 +2554,7 @@ void NOINLINE MultiflagNullableVector<T, TExtraArgs...>::Read(INI_EX& parser, co
 // Animatable::KeyframeDataEntry
 
 template <typename TValue>
-bool NOINLINE Animatable<TValue>::KeyframeDataEntry::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength)
+bool OPTIONALINLINE Animatable<TValue>::KeyframeDataEntry::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength)
 {
 	char flagName[0x40];
 
@@ -2582,7 +2582,7 @@ bool NOINLINE Animatable<TValue>::KeyframeDataEntry::Read(INI_EX& parser, const 
 };
 
 template <typename TValue>
-bool Animatable<TValue>::KeyframeDataEntry::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE Animatable<TValue>::KeyframeDataEntry::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm
 		.Process(this->Percentage, RegisterForChange)
@@ -2590,7 +2590,7 @@ bool Animatable<TValue>::KeyframeDataEntry::Load(PhobosStreamReader& Stm, bool R
 }
 
 template <typename TValue>
-bool Animatable<TValue>::KeyframeDataEntry::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE Animatable<TValue>::KeyframeDataEntry::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm
 		.Process(this->Percentage)
@@ -2636,7 +2636,7 @@ COMPILETIMEEVAL TValue Animatable<TValue>::Get(double const percentage) const no
 }
 
 template <typename TValue>
-void NOINLINE Animatable<TValue>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength)
+void OPTIONALINLINE Animatable<TValue>::Read(INI_EX& parser, const char* const pSection, const char* const pBaseFlag, absolute_length_t absoluteLength)
 {
 	char flagName[0x40];
 
@@ -2687,13 +2687,13 @@ void NOINLINE Animatable<TValue>::Read(INI_EX& parser, const char* const pSectio
 };
 
 template <typename TValue>
-bool Animatable<TValue>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
+bool OPTIONALINLINE Animatable<TValue>::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return Stm.Process(this->KeyframeData, RegisterForChange);
 }
 
 template <typename TValue>
-bool Animatable<TValue>::Save(PhobosStreamWriter& Stm) const
+bool OPTIONALINLINE Animatable<TValue>::Save(PhobosStreamWriter& Stm) const
 {
 	return Stm.Process(this->KeyframeData);
 }

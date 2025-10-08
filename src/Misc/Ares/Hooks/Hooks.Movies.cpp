@@ -143,8 +143,7 @@ void MoviesList::AddMovie(HWND const hWnd, MovieUnlockableInfo const& movie) con
 
 MoviesList::Item* MoviesList::FindMovie(const char* const pFilename)
 {
-	auto const it = std::find_if(
-		this->Array.begin(), this->Array.end(),
+	auto const it = std::ranges::find_if(this->Array,
 		[=](Item const& item) { return item.FilenameBuffer == pFilename; });
 
 	return (it == this->Array.end()) ? nullptr : &*it;

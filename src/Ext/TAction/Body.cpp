@@ -152,7 +152,7 @@ bool TActionExtData::CreateBuildingAt(TActionClass* pThis, HouseClass* pHouse, O
 			return false;
 
 		const auto pBld = BuildingTypeClass::Array->Items[v8];
-		const bool playBuildup = pThis->Param3 == 0 && pBld->LoadBuildup();
+		const bool playBuildup = pBld->LoadBuildup();
 		bool created = false;
 
 		if (auto pBuilding = static_cast<BuildingClass*>(pBld->CreateObject(pHouse))) {
@@ -1036,9 +1036,10 @@ bool TActionExtData::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse
 
 	if (!ScenarioExtData::Instance()->DefinedAudioWaypoints.empty())
 	{
-		VocClass::SafeImmedietelyPlayAt(pThis->Value,
-		&CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
-			[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]));
+		auto audcoord = CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
+			[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]);
+		VocClass::SafeImmedietelyPlayAt(pThis->Value , &audcoord);
+
 	}
 	else
 	{
@@ -1479,8 +1480,7 @@ bool TActionExtData::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, O
 
 	if (!nPool.empty())
 	{
-
-		auto const iter = std::find_if(nPool.begin(), nPool.end(),
+		auto const iter = std::ranges::find_if(nPool,
 			[&](auto const pTrigger) { return pTrigger == pTarget; });
 
 		if (iter == nPool.end())
@@ -1644,7 +1644,7 @@ bool TActionExtData::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse
 		return true;
 
 	auto& nPool = nPools[iPoolID];
-	auto const iter = std::find_if(nPool.begin(), nPool.end(),
+	auto const iter = std::ranges::find_if(nPool,
 		[&](auto const pTrigger) { return pTrigger == pTarget; });
 
 	if (iter != nPool.end())
@@ -1833,7 +1833,7 @@ bool TActionExtData::DumpVariables(TActionClass* pThis, HouseClass* pHouse, Obje
 	CCINIClass ini {};
 	ini.ReadCCFile(&file);
 	const auto variables = ScenarioExtData::GetVariables(pThis->Param3 != 0);
-	std::for_each(variables->begin(), variables->end(), [&](const auto& variable) {
+	std::ranges::for_each(*variables, [&](const auto& variable) {
 		ini.WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
 	});
 

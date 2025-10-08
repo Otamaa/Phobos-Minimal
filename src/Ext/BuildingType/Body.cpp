@@ -113,8 +113,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 		return true;
 
 	// Step 3: Sort the technos by the distance out of the foundation.
-	std::sort(&checkedTechnos[0], &checkedTechnos[checkedTechnos->size()],[optionalCells](TechnoClass* pTechnoA, TechnoClass* pTechnoB)
-	{
+	std::ranges::sort(checkedTechnos.container(),[optionalCells](TechnoClass* pTechnoA, TechnoClass* pTechnoB) {
 		int minA = INT_MAX;
 		int minB = INT_MAX;
 
@@ -186,7 +185,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 				{
 					if (!infantryCells->empty() && infantryCount.Y >= (infantryCount.X / 3 + (infantryCount.X % 3 ? 1 : 0)))
 					{
-						std::sort(&infantryCells[0], &infantryCells[infantryCells->size()],[location](InfantryCountInCell cellA, InfantryCountInCell cellB){
+						std::ranges::sort(infantryCells.container(),[location](InfantryCountInCell cellA, InfantryCountInCell cellB){
 							return cellA.position->MapCoords.DistanceFromSquared(location) < cellB.position->MapCoords.DistanceFromSquared(location);
 						});
 
@@ -210,7 +209,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 					}
 				}
 
-				std::sort(&optionalCells[0], &optionalCells[optionalCells->size()],[location](CellClass* pCellA, CellClass* pCellB){
+				std::ranges::sort(optionalCells.container(),[location](CellClass* pCellA, CellClass* pCellB){
 					return pCellA->MapCoords.DistanceFromSquared(location) < pCellB->MapCoords.DistanceFromSquared(location);
 				});
 				const auto minDistanceSquared = optionalCells[0]->MapCoords.DistanceFromSquared(location);
@@ -789,8 +788,7 @@ bool BuildingTypeExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingT
 	// this works for any two foundations. it's linear with sorted ones
 	return pExt1->CustomWidth == pExt2->CustomWidth
 		&& pExt1->CustomHeight == pExt2->CustomHeight
-		&& std::is_permutation(
-			data1.begin(), data1.end(), data2.begin(), data2.end());
+		&& std::ranges::is_permutation(data1, data2);
 }
 
 bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
@@ -1233,7 +1231,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			grows so long that the search through all kinds takes up significant time is very low, and
 			vectors are far simpler to use in this situation.
 		*/
-		const auto it = std::find_if(trenchKinds.begin(), trenchKinds.end(), [](auto const& pItem)
+		const auto it = std::ranges::find_if(trenchKinds, [](auto const& pItem)
 						{ return pItem == Phobos::readBuffer; });
 
 		this->IsTrench = std::distance(trenchKinds.begin(), it);

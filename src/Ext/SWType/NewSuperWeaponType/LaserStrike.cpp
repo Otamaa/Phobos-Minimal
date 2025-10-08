@@ -182,7 +182,7 @@ void LaserStrikeStateMachine::Update()
 					if (this->LaserStrikeROF <= 0)
 					{
 						if (auto pWeapon = pData->This()->WeaponType)
-							WeaponTypeExtData::DetonateAt(pWeapon, pos, Firer, NewSWType::GetNewSWType(pData)->GetDamage(pData), false);
+							WeaponTypeExtData::DetonateAt4(pWeapon, pos, Firer, NewSWType::GetNewSWType(pData)->GetDamage(pData), false, Super->Owner);
 					}
 				}
 
@@ -235,7 +235,7 @@ void LaserStrikeStateMachine::Update()
 				}
 
 				if (pData->LaserStrikeZeroRadius_Weapon)
-					WeaponTypeExtData::DetonateAt(pData->LaserStrikeZeroRadius_Weapon, center, Firer, pData->LaserStrikeZeroRadius_Weapon->Damage, false);
+					WeaponTypeExtData::DetonateAt4(pData->LaserStrikeZeroRadius_Weapon, center, Firer, pData->LaserStrikeZeroRadius_Weapon->Damage, false, Super->Owner);
 
 				if (this->MaxCount > 0){
 					this->MaxCountCounter--;

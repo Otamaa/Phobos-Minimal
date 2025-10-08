@@ -13,61 +13,14 @@
 #include <Ext/WeaponType/Body.h>
 
 #pragma region TemplatedStuffs
-template<typename T, typename Ttype, typename Tbase, typename TbaseType, bool IsTechno = false>
-static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = false)
-{
-	const auto pExt = T.Find(pClass);
-	const auto pTypeExt = Ttype.Find(pClassType);
 
-	if (!pExt->Trails.empty())
-	{
-		if (Clear)
-			pExt->Trails.clear();
-		else
-			return false;
-	}
-
-	if (pTypeExt->Trails.CurrentData.empty())
-		return false;
-
-	for (const auto& pTrails : pTypeExt->Trails.CurrentData)
-	{
-		const auto pType = TrailType::Array[pTrails->CurrentType].get();
-		if (pType->Mode != TrailMode::NONE)
-		{
-			bool OnTurrent = false;
-			if COMPILETIMEEVAL (IsTechno) OnTurrent = pTrails->Onturrents;
-			auto& pBackTrail  = pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, OnTurrent));
-			pBackTrail->OnLandTypes = pTrails->OnLand;
-			pBackTrail->OnTileTypes = pTrails->OnTileTypes;
-		}
-	}
-
-	return true;
-}
-
-template<typename Text, typename Tbase>
-static bool ClearLastLoc(Tbase* pBase)
-{
-	const auto  pExt = Text.Find(pBase);
-
-	if (pExt->Trails.empty())
-		return false;
-
-	for (auto& pTrail : pExt->Trails) {
-		pTrail->ClearLastLocation();
-	}
-
-	return true;
-}
-
-template <typename Text, typename Tbase>
-static bool ClearVector(Tbase* pBase)
-{
-	Text.Find(pBase)->Trails.clear();
-
-	return true;
-}
+//template <typename Text, typename Tbase>
+//static bool ClearVector(Tbase* pBase)
+//{
+//	Text.Find(pBase)->Trails.clear();
+//
+//	return true;
+//}
 #pragma endregion
 
 #pragma region Construct
@@ -107,8 +60,8 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 		{
 			pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
 			auto& pBackTrail = pExt->Trails.back();
-			std::copy(pTrails.OnLand.begin() , pTrails.OnLand.end() ,std::back_inserter(pBackTrail->OnLandTypes));
-			std::copy(pTrails.OnTileTypes.begin(), pTrails.OnTileTypes.end(), std::back_inserter(pBackTrail->OnTileTypes));
+			std::ranges::copy(pTrails.OnLand , std::back_inserter(pBackTrail->OnLandTypes));
+			std::ranges::copy(pTrails.OnTileTypes, std::back_inserter(pBackTrail->OnTileTypes));
 		}
 	}
 }
@@ -138,9 +91,8 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted)
 		{
 			pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
 			auto& pBackTrail = pExt->Trails.back();
-			std::copy(pTrails.OnLand.begin(), pTrails.OnLand.end(), std::back_inserter(pBackTrail->OnLandTypes));
-			std::copy(pTrails.OnTileTypes.begin(), pTrails.OnTileTypes.end(), std::back_inserter(pBackTrail->OnTileTypes));
-
+			std::ranges::copy(pTrails.OnLand , std::back_inserter(pBackTrail->OnLandTypes));
+			std::ranges::copy(pTrails.OnTileTypes, std::back_inserter(pBackTrail->OnTileTypes));
 		}
 	}
 }
@@ -170,9 +122,8 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted)
 		{
 			pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
 			auto& pBackTrail = pExt->Trails.back();
-			std::copy(pTrails.OnLand.begin(), pTrails.OnLand.end(), std::back_inserter(pBackTrail->OnLandTypes));
-			std::copy(pTrails.OnTileTypes.begin(), pTrails.OnTileTypes.end(), std::back_inserter(pBackTrail->OnTileTypes));
-
+			std::ranges::copy(pTrails.OnLand , std::back_inserter(pBackTrail->OnLandTypes));
+			std::ranges::copy(pTrails.OnTileTypes, std::back_inserter(pBackTrail->OnTileTypes));
 		}
 	}
 }
@@ -200,9 +151,8 @@ void TrailsManager::Construct(ParticleClass* pOwner, bool IsConverted)
 		{
 			pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
 			auto& pBackTrail = pExt->Trails.back();
-			std::copy(pTrails.OnLand.begin(), pTrails.OnLand.end(), std::back_inserter(pBackTrail->OnLandTypes));
-			std::copy(pTrails.OnTileTypes.begin(), pTrails.OnTileTypes.end(), std::back_inserter(pBackTrail->OnTileTypes));
-
+			std::ranges::copy(pTrails.OnLand , std::back_inserter(pBackTrail->OnLandTypes));
+			std::ranges::copy(pTrails.OnTileTypes, std::back_inserter(pBackTrail->OnTileTypes));
 		}
 	}
 

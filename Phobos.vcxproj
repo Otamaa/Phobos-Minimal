@@ -1294,7 +1294,7 @@
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>

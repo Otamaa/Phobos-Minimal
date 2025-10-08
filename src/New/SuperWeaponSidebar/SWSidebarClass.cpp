@@ -153,7 +153,7 @@ bool SWSidebarClass::AddButton(int superIdx)
 	auto& columns = this->Columns;
 
 	for (auto& col : columns) {
-		if (std::any_of(col->Buttons.begin() , col->Buttons.end(),
+		if (std::ranges::any_of(col->Buttons,
 			[superIdx](SWButtonClass* const button) { return button->SuperIndex == superIdx; }))
 			return true; //already exist
 	}
@@ -188,7 +188,7 @@ void SWSidebarClass::SortButtons()
 
 	const unsigned int ownerBits = 1u << HouseClass::CurrentPlayer->Type->ArrayIndex;
 
-	std::stable_sort(vec_Buttons.begin(), vec_Buttons.end(), [ownerBits](SWButtonClass* const a, SWButtonClass* const b)
+	std::ranges::stable_sort(vec_Buttons, [ownerBits](SWButtonClass* const a, SWButtonClass* const b)
 	{
 		const auto pExtA = SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(a->SuperIndex));
 		const auto pExtB = SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(b->SuperIndex));

@@ -69,7 +69,7 @@ public:
 		return maxAhead[(int)latencyLevel];
 	}
 
-	static wchar_t* GetLatencyMessage(LatencyLevelEnum latencyLevel);
+	static const wchar_t* GetLatencyMessage(LatencyLevelEnum latencyLevel);
 
 	static COMPILETIMEEVAL LatencyLevelEnum FromResponseTime(uint8_t rspTime)
 	{

@@ -40,18 +40,20 @@ public:
 
 #pragma region ClassMembers
 	int NewPowerups;
+	int InfantryCount;
 	UnitClass* IncomingUnit;
 	UnitClass* IncomingUnitAlt;
 	HelperedVector<RadSiteClass*> RadSites;
 	HelperedVector<RadLevel> RadLevels;
 #pragma endregion
 
-	CellExtData(CellClass* pObj) : AbstractExtended(pObj),
-		NewPowerups(-1),
-		IncomingUnit(nullptr),
-		IncomingUnitAlt(nullptr),
-		RadSites(),
-		RadLevels()
+	CellExtData(CellClass* pObj) : AbstractExtended(pObj)
+		, NewPowerups(-1)
+		, InfantryCount(0)
+		, IncomingUnit(nullptr)
+		, IncomingUnitAlt(nullptr)
+		, RadSites()
+		, RadLevels()
 
 	{
 		this->AbstractExtended::SetName("CellClass");

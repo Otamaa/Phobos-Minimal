@@ -1242,18 +1242,18 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 
 	if (require & SuperWeaponTarget::Building) {
 		if (pTarget) {
-			std::copy(pTarget->Buildings.begin(), pTarget->Buildings.end(), std::back_inserter(outVec));
+			std::ranges::copy(pTarget->Buildings, std::back_inserter(outVec));
 		}else {
-			std::copy(BuildingClass::Array->begin(), BuildingClass::Array->end(), std::back_inserter(outVec));
+			std::ranges::copy(*BuildingClass::Array, std::back_inserter(outVec));
 		}
 	}
 
 	if(require & SuperWeaponTarget::Infantry)
-		std::copy(InfantryClass::Array->begin(), InfantryClass::Array->end(), std::back_inserter(outVec));
+		std::ranges::copy(*InfantryClass::Array, std::back_inserter(outVec));
 
 	if (require & SuperWeaponTarget::Unit){
-		std::copy(UnitClass::Array->begin(), UnitClass::Array->end(), std::back_inserter(outVec));
-		std::copy(AircraftClass::Array->begin(), AircraftClass::Array->end(), std::back_inserter(outVec));
+		std::ranges::copy(*UnitClass::Array, std::back_inserter(outVec));
+		std::ranges::copy(*AircraftClass::Array, std::back_inserter(outVec));
 	}
 
 	return make_iterator(outVec);
@@ -1949,7 +1949,7 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 		Debug::LogInfo("SW[{}] ApplyDetonate without Firer!", This()->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
-		WeaponTypeExtData::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true , pSW->Owner);
+		WeaponTypeExtData::DetonateAt4(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true , pSW->Owner);
 	else
 	{
 		WarheadTypeExtData::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(0), pSW->Owner);

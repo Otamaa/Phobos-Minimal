@@ -315,9 +315,6 @@ private:
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		Stm
-			.Process(this->Initialized)
-			;
 	}
 };
 

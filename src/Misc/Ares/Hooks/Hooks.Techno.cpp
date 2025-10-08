@@ -990,6 +990,8 @@ ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 	GET(TechnoClass* const, pThis, ESI);
 	//Debug::LogInfo("ChangeOwnershipFor [%s]" , pThis->get_ID());
 
+	//TechnoClass::ClearWhoTargetingThis(pThis);
+
 	//for (auto pTemporal : *TemporalClass::Array) {
 	//	if (pTemporal->Target == pThis)
 	//		pTemporal->LetGo();

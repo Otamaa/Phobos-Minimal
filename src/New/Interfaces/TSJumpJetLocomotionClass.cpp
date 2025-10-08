@@ -587,7 +587,8 @@ void TSJumpJetLocomotionClass::Movement_AI()
 	}
 
 	Coordinate new_coord {};
-	Game::Coord_Move(&new_coord  , &LinkedTo->Location, &Facing.Current(), (int)CurrentSpeed);
+	auto cur_facing = Facing.Current();
+	Game::Coord_Move(&new_coord  , &LinkedTo->Location, &cur_facing, (int)CurrentSpeed);
 	LinkedTo->SetLocation(new_coord);
 
 	if (LinkedTo != nullptr)

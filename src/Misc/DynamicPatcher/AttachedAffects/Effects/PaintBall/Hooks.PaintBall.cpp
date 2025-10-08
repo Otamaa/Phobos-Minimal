@@ -34,25 +34,6 @@ ASMJIT_PATCH(0x43FA19, BuildingClass_Mark_TintIntensity, 0x7)
 // 	return SkipGameCode;
 // }
 
-ASMJIT_PATCH(0x70632E, TechnoClass_DrawShape_GetTintIntensity, 0x6)
-{
-	enum { SkipGameCode = 0x706389 };
-
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, intensity, EAX);
-
-	if (pThis->IsIronCurtained())
-		intensity = pThis->GetInvulnerabilityTintIntensity(intensity);
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->AirstrikeTargetingMe)
-		intensity = pThis->GetAirstrikeTintIntensity(intensity);
-
-	R->EBP(intensity);
-	return SkipGameCode;
-}
-
 ASMJIT_PATCH(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
 {
 	enum { SkipTint = 0x7067E4 };
@@ -86,11 +67,48 @@ ASMJIT_PATCH(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
 	return SkipTint;
 }
 
+namespace TechnoClass_DrawShapeTemp
+{
+	bool DisableTint = false;
+}
+
+DEFINE_HOOK(0x7060D6, TechnoClass_DrawShape_DisguiseTint_SetContext, 0x5)
+{
+	TechnoClass_DrawShapeTemp::DisableTint = true;
+	return 0;
+}
+
+DEFINE_HOOK(0x70632E, TechnoClass_DrawShape_GetTintIntensity, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(int, intensity, EAX);
+
+	if (!TechnoClass_DrawShapeTemp::DisableTint)
+	{
+		if (pThis->IsIronCurtained())
+			intensity = pThis->GetInvulnerabilityTintIntensity(intensity);
+
+		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+		if (pExt->AirstrikeTargetingMe)
+			intensity = pThis->GetAirstrikeTintIntensity(intensity);
+	}
+
+	R->EBP(intensity);
+	return 0x706389;
+}
+
 ASMJIT_PATCH(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, intensity, EBP);
 	REF_STACK(int, color, STACK_OFFSET(0x54, 0x2C));
+
+	if (TechnoClass_DrawShapeTemp::DisableTint)
+	{
+		TechnoClass_DrawShapeTemp::DisableTint = false;
+		return 0x7063E0;
+	}
 
 	const auto what = pThis->WhatAmI();
 	const bool isVehicle = what == AbstractType::Unit;

@@ -72,7 +72,7 @@ void HomingMissileTargetTracker::Update_All()
 
 void HomingMissileTargetTracker::Remove(HomingMissileTargetTracker* pWho)
 {
-	auto const Iter = std::find(Array.begin(), Array.end(), pWho);
+	auto const Iter = std::ranges::find(Array, pWho);
 
 	if (Iter != Array.end())
 	{

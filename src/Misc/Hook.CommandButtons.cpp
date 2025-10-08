@@ -99,7 +99,7 @@ public:
 
 	// this thing bit complicated since it linked By gadget IDS
 	// 6AC210
-	wchar_t* _GetToooltipMessage()
+	const wchar_t* _GetToooltipMessage()
 	{
 		//
 		return L"Missing";

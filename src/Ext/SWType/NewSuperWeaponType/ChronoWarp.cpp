@@ -251,7 +251,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		auto const cellUnitTarget = pTechno->GetCell()->MapCoords - pSource->ChronoMapCoords + Coords;
 
 		if(pSourceSWExt->Chronosphere_KillCargo)
-			KillCargo(pTechno , false);
+			KillCargo(pTechno , nullptr);
 
 		if (auto const pFoot = flag_cast_to<FootClass*, false>(pTechno))
 		{

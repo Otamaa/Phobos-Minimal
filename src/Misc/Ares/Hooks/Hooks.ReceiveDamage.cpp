@@ -1170,13 +1170,13 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 						EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, args.Attacker->Owner) &&
 						(pWHExt->SuppressRevengeWeapons_Types.empty() || !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon)))
 					{
-						WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), args.Attacker, pThis, true, nullptr);
+						WeaponTypeExtData::DetonateAt1(pTypeExt->RevengeWeapon.Get(), args.Attacker, pThis, true, nullptr);
 					}
 
 					if (args.Attacker->IsAlive) {
 						for (const auto& weapon : pExt->RevengeWeapons) {
 							if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, args.Attacker->Owner) && (pWHExt->SuppressRevengeWeapons_Types.empty() || !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value)))
-								WeaponTypeExtData::DetonateAt(weapon.Value, args.Attacker, pThis, true, nullptr);
+								WeaponTypeExtData::DetonateAt1(weapon.Value, args.Attacker, pThis, true, nullptr);
 						}
 					}
 				}

@@ -139,6 +139,9 @@ template <typename TAction, typename TProcessed, typename... ArgTypes>
 concept DispatchesAction =
 	requires (ArgTypes... args) { TAction::template Process<TProcessed>(args...); };
 
+	template<typename TExt>
+concept HasExtMap = requires { { TExt::Instance } -> DerivedFromSpecializationOf<Container>; };
+
 #pragma endregion
 
 struct ClearAction
@@ -181,7 +184,7 @@ struct LoadGlobalsAction
 		if COMPILETIMEEVAL (GlobalSaveLoadable<T>)
 		{
 			PhobosByteStream stm(0);
-			stm.ReadBlockFromStream(pStm);
+			stm.ReadFromStream(pStm);
 			PhobosStreamReader reader(stm);
 			Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
 			return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
@@ -205,7 +208,7 @@ struct SaveGlobalsAction
 			PhobosByteStream stm;
 			PhobosStreamWriter writer(stm);
 			Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-			return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
+			return T::SaveGlobals(writer) && stm.WriteToStream(pStm);
 		}
 		else
 		{
@@ -214,6 +217,7 @@ struct SaveGlobalsAction
 	}
 };
 
+#ifdef _fixMe
 // this is a complicated thing that calls methods on classes. add types to the
 // instantiation of this type, and the most appropriate method for each type
 // will be called with no overhead of virtual functions.
@@ -281,7 +285,7 @@ private:
 
 };
 
-#ifdef _fixMe
+
 using PhobosTypeRegistry = TypeRegistry <> ;
 PhobosTypeRegistry::InvalidatePointer(pInvalid, removed);
 PhobosTypeRegistry::Clear();
@@ -333,14 +337,7 @@ FORCEDINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remo
 {
 	if COMPILETIMEEVAL (HasExtMap<T>)
 	{
-		if COMPILETIMEEVAL (PointerInvalidationIgnorAble<decltype(T::ExtMap)> &&
-			PointerInvalidationSubscribable<decltype(T::ExtMap)>) {
-			T::ExtMap.InvalidatePointer(pInvalid, removed);
-		}
-		else if(PointerInvalidationSubscribable<decltype(T::ExtMap)>)
-		{
-			T::ExtMap.InvalidatePointer(pInvalid, removed);
-		}
+		T::ExtMap.InvalidatePointer(pInvalid, removed);
 	}
 	else
 	{

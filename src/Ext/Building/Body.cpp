@@ -1089,7 +1089,7 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck)
 				break;
 
 			CellClass* mapCell = MapClass::Instance->GetCellAt(tryCell);
-			if (firstOccupant->IsCellOccupied(mapCell, FacingType::None, -1, false, true) == Move::OK)
+			if (firstOccupant->IsCellOccupied(mapCell, FacingType::None, -1, nullptr, true) == Move::OK)
 			{
 				fallbackCell = tryCell;
 				foundValidCell = true;

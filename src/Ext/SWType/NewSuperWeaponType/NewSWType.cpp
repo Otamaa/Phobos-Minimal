@@ -686,7 +686,7 @@ NewSWType* NewSWType::GetNthItem(SuperWeaponType i)
 
 SuperWeaponType NewSWType::GetHandledType(SuperWeaponType nType)
 {
-	const auto It = std::find_if(NewSWTypeContainer::Instance.Array.begin(), NewSWTypeContainer::Instance.Array.end(),
+	const auto It = std::ranges::find_if(NewSWTypeContainer::Instance.Array,
 		[&](const auto& Item) {
 			return Item && Item->HandleThisType(nType);
 		}
@@ -716,7 +716,7 @@ SuperWeaponType NewSWType::FindFromTypeID(const char* pType)
 	if(!*pType || !strlen(pType))
 		return SuperWeaponType::Invalid;
 
-	const auto It = std::find_if(NewSWTypeContainer::Instance.Array.begin(), NewSWTypeContainer::Instance.Array.end(),
+	const auto It = std::ranges::find_if(NewSWTypeContainer::Instance.Array,
 		[pType](const std::unique_ptr<NewSWType>& item) {
 
 			if (!item)

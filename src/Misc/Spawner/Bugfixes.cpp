@@ -209,3 +209,38 @@ ASMJIT_PATCH(0x6FC8F5, TechnoClass_CanFire_SkipROF, 0x6)
 }
 
 DEFINE_PATCH_ADDR_OFFSET(DWORD , 0x7B8536, 6, 1);
+
+#pragma region InfBlockTreeFix
+#include <Ext/Cell/Body.h>
+
+ASMJIT_PATCH(0x52182A, InfantryClass_MarkAllOccupationBits_SetOwnerIdx, 0x6)
+{
+	GET(CellClass*, pCell, ESI);
+
+	//avoid invalid cell
+	if(auto pExt = CellExtContainer::Instance.TryFind(pCell))
+		pExt->InfantryCount++;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x5218C2, InfantryClass_UnmarkAllOccupationBits_ResetOwnerIdx, 0x6)
+{
+	enum { Reset = 0x5218CC, NoReset = 0x5218D3 };
+
+	GET(CellClass*, pCell, ESI);
+	GET(DWORD, newFlag, ECX);
+
+	pCell->OccupationFlags = newFlag;
+	bool noInfantry = false;
+
+	if (auto pExt = CellExtContainer::Instance.TryFind(pCell)){
+		noInfantry = pExt->InfantryCount-- == 0;
+	}
+
+	// Vanilla check only the flag to decide if the InfantryOwnerIndex should be reset.
+	// But the tree take one of the flag bit. So if a infantry walk through a cell with a tree, the InfantryOwnerIndex won't be reset.
+	return (newFlag & 0x1C) == 0 || noInfantry ? Reset : NoReset;
+}
+
+#pragma endregion

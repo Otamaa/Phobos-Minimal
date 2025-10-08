@@ -55,22 +55,24 @@ void Patch::Apply()
 	DWORD protect_flagb {};
 	VirtualProtect(pAddress, this->size, PAGE_EXECUTE_READWRITE, &protect_flag);
 	if(this->type == PatchType::VTABLE_) {
-		*reinterpret_cast<LPVOID*>(this->offset) = LPVOID(reinterpret_cast<_VTABLE*>(this->pData)->pointer);
+		*reinterpret_cast<LPVOID*>(this->offset) = LPVOID(reinterpret_cast<const _VTABLE*>(this->pData)->pointer);
 	} else {
 		std::memcpy(pAddress, this->pData, this->size);
 	}
 	VirtualProtect(pAddress, this->size, protect_flag, &protect_flagb);
-	FlushInstructionCache(Game::hInstance, (LPVOID)pAddress, size);
+	FlushInstructionCache(Game_hInstance, (LPVOID)pAddress, size);
 }
 
-void Patch::Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data)
+void Patch::Apply_RAW(uintptr_t offset, size_t sz , PatchType type, const BYTE* data)
 {
-	Patch::Apply_RAW(offset, data.size(), PatchType::PATCH_, const_cast<byte*>(data.begin()));
-}
+	Patch dummy {
+		.type = PatchType::PATCH_,
+		.offset = offset,
+		.size = sz,
+		.pData = data
+	};
 
-void Patch::Apply_RAW(uintptr_t offset, size_t sz , PatchType type, BYTE* data)
-{
-	PatchWrapper dummy { offset, sz, type, data };
+	dummy.Apply();
 }
 
 void Patch::Apply_LJMP(uintptr_t offset, uintptr_t pointer)

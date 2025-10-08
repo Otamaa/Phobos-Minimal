@@ -9,29 +9,40 @@ class FieldClass
 public:
 	FieldClass() = default;
 
-	FieldClass(char* id, CHAR data)
-	{ JMP_THIS(0x4CB580); }
+	template <size_t N>
+	FieldClass(const char(&str)[N], CHAR data)
+	{
+		static_assert(N - 1 <= 4, "String too long! (max 4 chars)");
+		JMP_THIS(0x4CB580);
+	}
 
-	FieldClass(char* id, BYTE data)
-	{ JMP_THIS(0x4CB5E0); }
+	template <size_t N>
+	FieldClass(const char(&str)[N], BYTE data)
+	{ static_assert(N - 1 <= 4, "String too long! (max 4 chars)"); JMP_THIS(0x4CB5E0); }
 
-	FieldClass(char* id, SHORT data)
-	{ JMP_THIS(0x4CB640); }
+	template <size_t N>
+	FieldClass(const char(&str)[N], SHORT data)
+	{ static_assert(N - 1 <= 4, "String too long! (max 4 chars)"); JMP_THIS(0x4CB640); }
 
-	FieldClass(char* id, WORD data)
-	{ JMP_THIS(0x4CB6A0); }
+	template <size_t N>
+	FieldClass(const char(&str)[N], WORD data)
+	{ static_assert(N - 1 <= 4, "String too long! (max 4 chars)"); JMP_THIS(0x4CB6A0); }
 
-	FieldClass(char* id, LONG data)
-	{ JMP_THIS(0x4CB700); }
+	template <size_t N>
+	FieldClass(const char(&str)[N], LONG data)
+	{ static_assert(N - 1 <= 4, "String too long! (max 4 chars)"); JMP_THIS(0x4CB700); }
 
-	FieldClass(char* id, DWORD data)
-	{ JMP_THIS(0x4CB760); }
+	template <size_t N>
+	FieldClass(const char(&str)[N], DWORD data)
+	{ static_assert(N - 1 <= 4, "String too long! (max 4 chars)"); JMP_THIS(0x4CB760); }
 
-	FieldClass(char* id, char* data)
-	{ JMP_THIS(0x4CB7C0); }
+	template <size_t N>
+	FieldClass(const char(&str)[N], char* data)
+	{ static_assert(N - 1 <= 4, "String too long! (max 4 chars)"); JMP_THIS(0x4CB7C0); }
 
-	FieldClass(char* id, void* data, int length)
-	{ JMP_THIS(0x4CB830); }
+	template <size_t N>
+	FieldClass(const char(&str)[N], void* data, int length)
+	{ static_assert(N - 1 <= 4, "String too long! (max 4 chars)"); JMP_THIS(0x4CB830); }
 
 	~FieldClass()
 	{ JMP_THIS(0x4CB890); }
@@ -60,9 +71,11 @@ public:
 		this->Head = pField;
 	}
 
-	template<typename T, typename... Args>
-	void OPTIONALINLINE AddField(char* id, T data, Args... args)
+	template<typename T, size_t N, typename... Args>
+	void OPTIONALINLINE AddField(const char(&id)[N], T data, Args... args)
 	{
+		static_assert(N - 1 <= 4, "String too long! (max 4 chars)");
+
 		auto pField = GameCreate<FieldClass>(id, data, args...);
 		this->AddField(pField);
 	}

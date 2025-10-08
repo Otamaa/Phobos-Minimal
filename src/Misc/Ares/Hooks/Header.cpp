@@ -1382,7 +1382,7 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 	//cant really get right decomp result or maybe just me that not understand ,..
 	//these should work fine for now ,..
 	auto its = Helpers::Alex::getCellSpreadItems<FootClass>(pThis->Location, (double)pInf->Type->Sight, false, false);
-	auto it = std::find_if(its.begin(), its.end(), [&](FootClass* pFoot)
+	auto it = std::ranges::find_if(its, [&](FootClass* pFoot)
 {
 	if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
 		return false;
@@ -7915,7 +7915,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		if (HasLowPower)
 		{
 			// most expendable building first
-			std::sort(Buildings.begin(), Buildings.end(), std::greater<>());
+			std::ranges::sort(Buildings, std::greater<>());
 
 			// turn off the expendable buildings until power is restored
 			for (const auto& item : Buildings)
@@ -7934,7 +7934,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		else
 		{
 			// least expendable building first
-			std::sort(Buildings.begin(), Buildings.end(), std::less<>());
+			std::ranges::sort(Buildings, std::less<>());
 
 			// turn on as many of them as possible
 			for (const auto& item : Buildings)

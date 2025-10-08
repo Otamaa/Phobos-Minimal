@@ -6,6 +6,9 @@
 #include <New/SuperWeaponSidebar/SWColumnClass.h>
 #include <New/SuperWeaponSidebar/SWButtonClass.h>
 
+#include <ScenarioClass.h>
+#include <Utilities/GeneralUtils.h>
+
 template<size_t Index>
 class FireTacticalSWCommandClass : public PhobosCommandClass
 {

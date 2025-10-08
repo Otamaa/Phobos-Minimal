@@ -10,7 +10,8 @@ struct CompileTimeMap
 	[[nodiscard]] 
 	COMPILETIMEEVAL Value at(const Key& key) const
 	{
-		const auto itr = std::find_if(std::begin(data), std::end(data), [&key](const auto& item) { return item.first == key; });
+		const auto itr = std::ranges::find_if(data,
+			[&key](const auto& item) { return item.first == key; });
 
 		if (itr == std::end(data))
 			throw std::range_error("Not Found");
@@ -21,7 +22,7 @@ struct CompileTimeMap
 	[nodiscard]
 	COMPILETIMEEVAL bool contains(const Key& key)
 	{
-		return std::find_if(std::begin(data), std::end(data),
+		return std::ranges::find_if(data,
 			[&key](const auto& item) {
 				return item.first == key;
 			}) != std::end(data);

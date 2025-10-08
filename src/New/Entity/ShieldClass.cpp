@@ -857,7 +857,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon)
 	{
 		AbstractClass* const pTarget = this->Type->BreakWeapon_TargetSelf.Get() ? static_cast<AbstractClass*>(this->Techno) : this->Techno->GetCell();
-		WeaponTypeExtData::DetonateAt(pWeaponType, pTarget, this->Techno, true, nullptr);
+		WeaponTypeExtData::DetonateAt1(pWeaponType, pTarget, this->Techno, true, nullptr);
 	}
 }
 

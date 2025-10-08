@@ -31,7 +31,7 @@ class GeneralUtils final
 	NO_CONSTRUCT_CLASS(GeneralUtils)
 public:
 
-	static COMPILETIMEEVAL int GeneralUtils::SafeMultiply(int value, int mult)
+	static COMPILETIMEEVAL int SafeMultiply(int value, int mult)
 	{
 		long long product = static_cast<long long>(value) * mult;
 
@@ -67,13 +67,19 @@ public:
 	static const wchar_t* LoadStringUnlessMissingNoChecks(const char* key, const wchar_t* defaultValue);
 
 	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range , bool clearFirst = true);
+	static FORCEDINLINE std::vector<CellStruct> AdjacentCellsInRange(short range) {
+		std::vector<CellStruct> dummyvec {};
+		AdjacentCellsInRange(dummyvec,range, true);
+		return dummyvec;
+	}
+
 	static const bool ProduceBuilding(HouseClass* pOwner, int idxBuilding);
 	static AnimTypeClass* SelectRandomAnimFromVector(std::vector<AnimTypeClass*>& vec, AnimTypeClass* fallback = nullptr);
 
 	static COMPILETIMEEVAL bool is_number(const std::string& s)
 	{
-		return !s.empty() && std::find_if(s.begin(),
-			s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+		return !s.empty() && std::ranges::find_if(s,
+			[](unsigned char c) { return !std::isdigit(c); }) == s.end();
 	}
 
 	// Gets integer representation of color from ColorAdd corresponding to given index, or 0 if there's no color found.
@@ -205,7 +211,7 @@ public:
 			num /= 10;
 		}
 
-		std::reverse(sDigits.begin(), sDigits.end());
+		std::ranges::reverse(sDigits);
 		return sDigits;
 	}
 
@@ -275,7 +281,7 @@ public:
 		float sum = 0.0;
 		float sum2 = 0.0;
 
-		std::for_each(weights.begin(), weights.end(), [&sum](auto const weights) { sum += weights; });;
+		std::ranges::for_each(weights, [&sum](auto const weights) { sum += weights; });
 
 		for (size_t i = 0; i < weights.size(); i++)
 		{
@@ -509,7 +515,7 @@ public:
 	template <typename T>
 	static COMPILETIMEEVAL void shuffleVector(std::vector<T>& items)
 	{
-		std::shuffle(items.begin(), items.end(), ScenarioClass::Instance->Random.Random());
+		std::ranges::shuffle(items, ScenarioClass::Instance->Random.Random());
 	}
 
 #pragma region Otamaa

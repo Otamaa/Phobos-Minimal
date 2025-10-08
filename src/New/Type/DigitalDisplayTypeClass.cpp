@@ -232,7 +232,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 	{
 
 #ifdef _old
-		std::reverse(valueString.begin(), valueString.end());
+		std::ranges::reverse(valueString);
 		position.X -= spacing.X;
 		spacing.X = -spacing.X;
 #else

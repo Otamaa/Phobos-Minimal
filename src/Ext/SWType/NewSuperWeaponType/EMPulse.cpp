@@ -47,8 +47,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 			}
 			else {
 				// Suspend if the two cannon lists share common items.
-				suspend = std::find_first_of(pData->EMPulse_Cannons.begin(), pData->EMPulse_Cannons.end(),
-					pSuper_pData->EMPulse_Cannons.begin(), pSuper_pData->EMPulse_Cannons.end()) != pData->EMPulse_Cannons.end();
+				suspend = std::ranges::find_first_of(pData->EMPulse_Cannons, pSuper_pData->EMPulse_Cannons) != pData->EMPulse_Cannons.end();
 			}
 
 			if (suspend)

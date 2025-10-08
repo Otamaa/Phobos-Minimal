@@ -83,7 +83,7 @@ bool SWButtonClass::Draw(bool forced)
 	if (ready && this->ColumnIndex == 0)
 	{
 		auto& buttons = SWSidebarClass::Global()->Columns[this->ColumnIndex]->Buttons;
-		const int buttonId = std::distance(buttons.begin(), std::find(buttons.begin(), buttons.end(), this));
+		const int buttonId = std::distance(buttons.begin(), std::ranges::find(buttons, this));
 
 		if (buttonId < 10)
 		{

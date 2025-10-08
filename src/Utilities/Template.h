@@ -485,7 +485,7 @@ public:
 
 			return i;
 		} else {
-			return std::find(this->begin(), this->end(), other);
+			return std::find(this->begin(), this->end(), item);
 		}
 	}
 

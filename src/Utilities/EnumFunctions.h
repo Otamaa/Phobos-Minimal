@@ -33,7 +33,7 @@ public:
 	static std::array<const char* const, 3u> HealthCondition_ToStrings;
 	static std::array<const char* const, 21u> TileType_ToStrings;
 	static std::array<std::pair<const char*, const char*>, 11u> LocomotorPairs_ToStrings;
-	static std::array<std::pair<wchar_t*, wchar_t*>, 11u> LocomotorPairs_ToWideStrings;
+	static std::array<std::pair<const wchar_t*, const wchar_t*>, 11u> LocomotorPairs_ToWideStrings;
 	static std::array<std::pair<const char* const, HorizontalPosition>, 3u> HorizontalPosition_ToStrings;
 	static std::array<std::pair<const char* const, TextAlign>, 4u> TextAlign_ToStrings;
 

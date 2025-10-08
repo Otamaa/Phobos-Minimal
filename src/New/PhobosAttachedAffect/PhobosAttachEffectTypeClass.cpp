@@ -30,9 +30,8 @@ std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesF
 		}
 	}
 
-  	// Deduplicate
- 	 std::sort(types.begin(), types.end());
-  	 types.erase(std::unique(types.begin(), types.end()), types.end());
+	std::ranges::sort(types, std::less{}), types.erase(std::remove_if(types.begin(), types.end(),
+	   [&](auto x){ return std::ranges::count(types, x) == 1; }), types.end());
 
 	return types;
 }

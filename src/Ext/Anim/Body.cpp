@@ -193,7 +193,7 @@ void ApplyDamage(AnimClass* pThis , AnimExtData* pExt , AnimTypeExtData* pTypeEx
 	if (auto const pWeapon = pTypeExt->Weapon)
 	{
 		AbstractClass* pTarget = AnimExtData::GetTarget(pThis);
-		WeaponTypeExtData::DetonateAt(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
+		WeaponTypeExtData::DetonateAt5(pWeapon, nCoord, pTarget, pInvoker, appliedDamage, pTypeExt->Damage_ConsiderOwnerVeterancy.Get(), pOwner);
 	}
 	else
 	{
@@ -384,7 +384,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 			//const auto nDamageResult = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, pWeapon->Damage , !pTypeExt->Damage_ConsiderOwnerVeterancy.Get()));
 			const auto pOwner = pThis->Owner ? pThis->Owner : pInvoker ? pInvoker->Owner : nullptr;
 
-			WeaponTypeExtData::DetonateAt(pWeapon, pTarget, pInvoker, pTypeExt->Damage_ConsiderOwnerVeterancy, pOwner);
+			WeaponTypeExtData::DetonateAt1(pWeapon, pTarget, pInvoker, pTypeExt->Damage_ConsiderOwnerVeterancy, pOwner);
 		}
 	}
 

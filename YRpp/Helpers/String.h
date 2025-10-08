@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Base/Always.h>
+#include <CRT.h>
 
 // because every project needs an own string implementation...
 

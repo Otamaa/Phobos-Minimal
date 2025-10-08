@@ -140,7 +140,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	if (this->RockerPitch > 0.0f) {
 		COMPILETIMEEVAL auto halfpi = (Math::PI / 2);
-		this->RockerPitch = 1.0f * halfpi;
+		this->RockerPitch = float(1.0f * halfpi);
 	}
 
 	this->MyAttachFireDatas.Read(exINI, pSection);
@@ -840,14 +840,14 @@ int WeaponTypeExtData::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 	return -1;
 }
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt1(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
 {
-	WeaponTypeExtData::DetonateAt(pThis, pTarget, pOwner, pThis->Damage , AddDamage , HouseInveoker);
+	WeaponTypeExtData::DetonateAt2(pThis, pTarget, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
 #include <Ext/Scenario/Body.h>
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt2(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	// if (pThis->Warhead->NukeMaker)
 	// {
@@ -879,12 +879,12 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarge
 	//}
 }
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt3(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
 {
-	WeaponTypeExtData::DetonateAt(pThis, coords, pOwner, pThis->Damage , AddDamage , HouseInveoker);
+	WeaponTypeExtData::DetonateAt4(pThis, coords, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt4(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	if (!coords.IsValid())
 	{
@@ -892,12 +892,13 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 		return;
 	}
 
-	WeaponTypeExtData::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords), pOwner, damage, AddDamage , HouseInveoker);
+	auto cell = MapClass::Instance->GetCellAt(coords);
+	WeaponTypeExtData::DetonateAt2(pThis, cell, pOwner, damage, AddDamage , HouseInveoker);
 }
 
 #include <Ext/Scenario/Body.h>
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt5(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	// if (pThis->Warhead->NukeMaker)
 	// {

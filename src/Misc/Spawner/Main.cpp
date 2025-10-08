@@ -264,7 +264,7 @@ void SpawnerMain::ApplyStaticOptions()
 	}
 }
 
-COMPILETIMEEVAL char* PlayerSectionArray[8] = {
+COMPILETIMEEVAL const char* PlayerSectionArray[8] = {
 	"Settings",
 	"Other1",
 	"Other2",
@@ -275,7 +275,7 @@ COMPILETIMEEVAL char* PlayerSectionArray[8] = {
 	"Other7"
 };
 
-COMPILETIMEEVAL char* MultiTagArray[8] = {
+COMPILETIMEEVAL const char* MultiTagArray[8] = {
 	"Multi1",
 	"Multi2",
 	"Multi3",
@@ -286,7 +286,7 @@ COMPILETIMEEVAL char* MultiTagArray[8] = {
 	"Multi8"
 };
 
-COMPILETIMEEVAL char* AlliancesSectionArray[8] = {
+COMPILETIMEEVAL const char* AlliancesSectionArray[8] = {
 	"Multi1_Alliances",
 	"Multi2_Alliances",
 	"Multi3_Alliances",
@@ -297,7 +297,7 @@ COMPILETIMEEVAL char* AlliancesSectionArray[8] = {
 	"Multi8_Alliances"
 };
 
-COMPILETIMEEVAL char* AlliancesTagArray[8] = {
+COMPILETIMEEVAL const char* AlliancesTagArray[8] = {
 	"HouseAllyOne",
 	"HouseAllyTwo",
 	"HouseAllyThree",

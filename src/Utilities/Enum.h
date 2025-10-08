@@ -104,7 +104,7 @@ enum class InterpolationMode : BYTE
 // TODO : put this on other `Idx` based stuffs ,..
 enum class EnumCheckMode : BYTE
 {
-	default, ignore, disable
+	originalbehaviour, ignore, disable
 };
 
 enum class LandTypeFlags : unsigned short

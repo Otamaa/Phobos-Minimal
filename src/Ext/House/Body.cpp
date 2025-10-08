@@ -1010,9 +1010,8 @@ NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoT
 	//remove first finded similarity
 	for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember)
 	{
-		auto it = std::find_if(missings.begin(), missings.end(), [&](TechnoTypeClass* pMissType)
- {
-	 return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
+		auto it = std::ranges::find_if(missings, [&](TechnoTypeClass* pMissType) {
+	 		return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
 		});
 
 		if (it != missings.end())
@@ -1405,7 +1404,7 @@ int HouseExtData::ActiveHarvesterCount(HouseClass* pThis)
 	auto pOwnerExt = HouseExtContainer::Instance.Find(pThis);
 
 	int result =
-		std::count_if(pOwnerExt->OwnedCountedHarvesters.begin(), pOwnerExt->OwnedCountedHarvesters.end(),
+		std::ranges::count_if(pOwnerExt->OwnedCountedHarvesters,
 		[pThis](TechnoClass* techno)
 		{
 			if (!techno->IsAlive || techno->Health <= 0 || techno->IsCrashing || techno->IsSinking)
@@ -1428,7 +1427,7 @@ int HouseExtData::TotalHarvesterCount(HouseClass* pThis)
 	int result = 0;
 	auto pOwnerExt = HouseExtContainer::Instance.Find(pThis);
 
-	std::for_each(pOwnerExt->OwnedCountedHarvesters.begin(), pOwnerExt->OwnedCountedHarvesters.end(), [&result, pThis](TechnoClass* techno) {
+	std::ranges::for_each(pOwnerExt->OwnedCountedHarvesters, [&result, pThis](TechnoClass* techno) {
 		result += !techno->InLimbo && techno->IsAlive && techno->Health > 0;
 	});
 

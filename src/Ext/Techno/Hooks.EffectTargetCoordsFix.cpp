@@ -468,7 +468,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	if (auto fbWeapon = pWeaponExt->FeedbackWeapon.Get())
 	{
 		if (!pThis->InOpenToppedTransport || fbWeapon->FireInTransport){
-			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis, true, nullptr);
+			WeaponTypeExtData::DetonateAt1(fbWeapon, pThis, pThis, true, nullptr);
 			//pThis techno was die after after getting affect of FeedbackWeapon
 			//if the function not bail out , it will crash the game because the vtable is already invalid
 			if (!pThis->IsAlive) {
@@ -488,7 +488,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 				if (pThis->InOpenToppedTransport && !pWeaponFeedback->FireInTransport)
 					return 0;
 
-				WeaponTypeExtData::DetonateAt(pWeaponFeedback, pThis, pThis, true, nullptr);
+				WeaponTypeExtData::DetonateAt1(pWeaponFeedback, pThis, pThis, true, nullptr);
 			}
 		}
 
@@ -604,7 +604,7 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 				pBulletTargetExt->InterceptedStatus |= InterceptedStatus::Locked;
 
 			const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-			
+
 			pBulletExt->InterceptorTechnoType = pThis->GetTechnoType();
 			pBulletExt->InterceptedStatus |= InterceptedStatus::Targeted;
 

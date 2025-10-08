@@ -2,13 +2,13 @@
 
 #include <Surface.h>
 
-COMPILETIMEEVAL OPTIONALINLINE char* SignSequence { "/%$,.!?|" };
+COMPILETIMEEVAL OPTIONALINLINE char SignSequence[] { "/%$,.!?|" };
 COMPILETIMEEVAL OPTIONALINLINE size_t SignSequenceLength { std::char_traits<char>::length(SignSequence) };
 
 size_t ShapeTextPrinter::GetSignIndex(const char sign)
 {
-	char* end = SignSequence + SignSequenceLength;
-	char* iter = std::find(SignSequence, end , sign);
+	const char* end = SignSequence + SignSequenceLength;
+	const char* iter = std::find(SignSequence, end , sign);
 	return iter != end ? std::distance(SignSequence, iter) : -1;
 }
 

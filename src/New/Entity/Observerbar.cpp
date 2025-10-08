@@ -13,7 +13,7 @@ class ObserverBar
 
 		if (pCurPlayer->IsPlayerObserver())
 		{
-			std::for_each(HouseClass::Array->begin(), HouseClass::Array->end(), [](HouseClass* const pObserve) {
+			std::ranges::for_each(*HouseClass::Array, [](HouseClass* const pObserve) {
 				if (pObserve->Type->MultiplayPassive)
 					return;
 

@@ -63,7 +63,7 @@ void ScenarioExtData::LoadVariablesToFile(bool isGlobal)
 	ini.ReadCCFile(&file);
 
 	const auto variables = ScenarioExtData::GetVariables(isGlobal);
-	std::for_each(variables->begin(), variables->end(), [&](const auto& variable) {
+	std::ranges::for_each(*variables, [&](const auto& variable) {
 		ini.ReadInteger(isGlobal ? "GlobalVariables" : ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value);
 	});
 }

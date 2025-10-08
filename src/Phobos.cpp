@@ -1499,7 +1499,7 @@ NOINLINE bool IsGamemdExe(HMODULE curProc)
 	}
 
 	std::wstring path(filename);
-	std::transform(path.begin(), path.end(), path.begin(), ::towlower);
+	std::ranges::transform(path, path.begin(), ::towlower);
 
 	for (size_t i = 0; i < executableCount; ++i)
 	{

@@ -310,11 +310,11 @@ void PhobosAEFunctions::ApplyRevengeWeapon(TechnoClass* pThis, TechnoClass* pSou
 
 			if (pInvoker && EnumFunctions::CanTargetHouse(pType->RevengeWeapon_AffectsHouses, pInvoker->Owner, pSource->Owner))
 			{
-				WeaponTypeExtData::DetonateAt(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pInvoker, true, nullptr);
+				WeaponTypeExtData::DetonateAt1(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pInvoker, true, nullptr);
 			}
 			else if (EnumFunctions::CanTargetHouse(pType->RevengeWeapon_AffectsHouses, pThis->Owner, pSource->Owner))
 			{
-				WeaponTypeExtData::DetonateAt(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pThis, true, nullptr);
+				WeaponTypeExtData::DetonateAt1(pType->RevengeWeapon, pSource->IsAlive ? pSource : nullptr, pThis, true, nullptr);
 			}
 		}
 	}

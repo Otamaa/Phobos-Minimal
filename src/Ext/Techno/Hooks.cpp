@@ -1993,8 +1993,7 @@ ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
 		};
 
 		const auto center = node.MapCoords + offset;
-		static std::vector<CellStruct> cellList {};
-		GeneralUtils::AdjacentCellsInRange(cellList, rangeLimit);
+		std::vector<CellStruct> cellList = GeneralUtils::AdjacentCellsInRange(rangeLimit);
 		bool hasAdjacent = false;
 
 		for (const auto& cell : cellList)

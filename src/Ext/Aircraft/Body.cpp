@@ -130,7 +130,7 @@ int FakeAircraftClass::_Mission_Attack()
 				auto v19 = Math::DEG90_AS_RAD;
 				auto v20 = v18 - v19;
 				auto v21 = Math::BINARY_ANGLE_MAGIC;
-				fac.Raw = (v20 * v21);
+				fac.Raw = unsigned short(v20 * v21);
 				this->SecondaryFacing.Set_Desired(fac);
 				return 1;
 			}

@@ -191,7 +191,7 @@ public:
 	{
 		if (extension_type_ptr Item = TryFind(key)) {
 
-			auto iter = std::find(Array.begin(), Array.end(), Item);
+			auto iter = std::ranges::find(Array, Item);
 
 			if(iter != Array.end())
 				Array.erase(iter);
