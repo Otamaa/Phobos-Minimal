@@ -780,10 +780,8 @@ void HouseExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
 
 SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 {
-	if (const auto pSW = pHouse->Supers.GetItemOrDefault(nIdx))
-	{
-		if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse))
-		{
+	if (const auto pSW = pHouse->Supers.GetItemOrDefault(nIdx)) {
+		if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse)) {
 			return pSW;
 		}
 	}
@@ -793,9 +791,9 @@ SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 
 int HouseExtData::GetSurvivorDivisor(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && (pTypeExt->SurvivorDivisor.Get() > 0))
+	if (pTypeExt->SurvivorDivisor.Get() > 0)
 		return pTypeExt->SurvivorDivisor;
 
 	if (const auto pSide = HouseExtData::GetSide(pHouse))
@@ -808,13 +806,12 @@ int HouseExtData::GetSurvivorDivisor(HouseClass* pHouse)
 
 InfantryTypeClass* HouseExtData::GetCrew(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Crew)
+	if (pTypeExt->Crew)
 		return pTypeExt->Crew;
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetCrew();
 	}
 
@@ -823,13 +820,12 @@ InfantryTypeClass* HouseExtData::GetCrew(HouseClass* pHouse)
 
 InfantryTypeClass* HouseExtData::GetEngineer(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Engineer)
+	if (pTypeExt->Engineer)
 		return pTypeExt->Engineer;
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetEngineer();
 	}
 
@@ -838,13 +834,12 @@ InfantryTypeClass* HouseExtData::GetEngineer(HouseClass* pHouse)
 
 InfantryTypeClass* HouseExtData::GetTechnician(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Technician)
+	if (pTypeExt->Technician)
 		return pTypeExt->Technician;
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetTechnician();
 	}
 
@@ -853,13 +848,12 @@ InfantryTypeClass* HouseExtData::GetTechnician(HouseClass* pHouse)
 
 InfantryTypeClass* HouseExtData::GetDisguise(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Disguise)
+	if (pTypeExt->Disguise)
 		return pTypeExt->Disguise;
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetDisguise();
 	}
 
@@ -870,11 +864,10 @@ AircraftTypeClass* HouseExtData::GetParadropPlane(HouseClass* pHouse)
 {
 	// tries to get the house's default plane and falls back to
 	// the sides default plane.
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 	AircraftTypeClass* pRest = nullptr;
 
-	if (pTypeExt && pTypeExt->ParaDropPlane)
-	{
+	if (pTypeExt->ParaDropPlane) {
 		pRest = pTypeExt->ParaDropPlane;
 	}
 
@@ -892,7 +885,9 @@ AircraftTypeClass* HouseExtData::GetParadropPlane(HouseClass* pHouse)
 			AircraftTypeClass::Array->GetItemOrDefault(iPlane, RulesExtData::Instance()->DefaultParaPlane);
 	}
 
-	if (!pRest)
+	if (pRest && pRest->Strength == 0)
+		Debug::FatalError("Invalid Paradrop Plane[%s]", pRest->ID);
+	else if (!pRest)
 		Debug::FatalError("Invalid Paradrop Plane");
 
 	return pRest;
@@ -902,9 +897,9 @@ AircraftTypeClass* HouseExtData::GetSpyPlane(HouseClass* pHouse)
 {
 	AircraftTypeClass* pRest = nullptr;
 
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->SpyPlane)
-	{
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
+	if (pTypeExt->SpyPlane) {
 		pRest = pTypeExt->SpyPlane;
 	}
 
@@ -927,14 +922,13 @@ AircraftTypeClass* HouseExtData::GetSpyPlane(HouseClass* pHouse)
 
 UnitTypeClass* HouseExtData::GetHunterSeeker(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->HunterSeeker)
-	{
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
+	if (pTypeExt->HunterSeeker) {
 		return pTypeExt->HunterSeeker;
 	}
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetHunterSeeker();
 	}
 
@@ -943,9 +937,9 @@ UnitTypeClass* HouseExtData::GetHunterSeeker(HouseClass* pHouse)
 
 AnimTypeClass* HouseExtData::GetParachuteAnim(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->ParachuteAnim)
-	{
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
+	if (pTypeExt->ParachuteAnim) {
 		return pTypeExt->ParachuteAnim;
 	}
 
@@ -954,21 +948,27 @@ AnimTypeClass* HouseExtData::GetParachuteAnim(HouseClass* pHouse)
 		if (auto pAnim = SideExtContainer::Instance.Find(pSide)->ParachuteAnim.Get(RulesClass::Instance->Parachute))
 			return pAnim;
 
-		Debug::LogInfo(
-			"[GetParachuteAnim] House {} and its side have no valid parachute defined. Rules fallback failed.",
-			pHouse->get_ID());
+		if(!RulesClass::Instance->Parachute)
+			Debug::LogInfo(
+				"[GetParachuteAnim] House {} and its side have no valid parachute defined. Rules fallback failed.",
+				pHouse->get_ID());
 	}
 
-	return AnimTypeClass::Find("PARACH");
+	auto pParach = AnimTypeClass::Find("PARACH");
+	if(Phobos::Otamaa::IsAdmin && !pParach) {
+		Debug::FatalError("Cannot Find Default Parach !\n");
+	}
+
+	return pParach;
 }
 
 bool HouseExtData::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeClass*>& Types, Iterator<int>& Num)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
 	// tries to get the house's default contents and falls back to
 	// the sides default contents.
-	if (pTypeExt && !pTypeExt->ParaDropTypes.empty())
+	if (!pTypeExt->ParaDropTypes.empty())
 	{
 		Types = pTypeExt->ParaDropTypes;
 		Num = pTypeExt->ParaDropNum;

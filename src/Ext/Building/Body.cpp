@@ -1721,6 +1721,303 @@ public:
 	}
 };
 
+#include <Misc/Ares/Hooks/Header.h>
+
+// Calculate the mask once at initialization (assuming you know ColorStruct at startup)
+COMPILETIMEEVAL WORD BuildPcxMask()
+{
+	return (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
+		| (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
+}
+
+void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBounds)
+{
+	auto pType = this->Type;
+
+	if (!this->IsSelected || !HouseClass::CurrentPlayer)
+		return;
+
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
+
+	//DrawExtraInfo has internal checking to determine what can or cannot be drawn
+	//we follow those check instead of check below
+	Point2D DrawExtraLoc = { pLocation->X , pLocation->Y };
+	this->DrawExtraInfo(&DrawExtraLoc, pLocation, pBounds);
+
+	// helpers (with support for the new spy effect)
+	const bool bAllied = this->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
+	const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
+	const bool bReveal = pTypeExt->SpyEffect_RevealProduction && this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+
+	// show building or house state
+	if (bAllied || IsObserver || bReveal)
+	{
+
+		// display production cameo
+		if (IsObserver || bReveal)
+		{
+			const auto pFactory = this->Owner->IsControlledByHuman() ?
+				this->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare)
+				: this->Factory;
+
+			if (pFactory && pFactory->Object)
+			{
+				auto pProdType = TechnoExtContainer::Instance.Find(pFactory->Object)->Type;
+				//const int nTotal = pFactory->CountTotal(pProdType);
+				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
+				const auto pProdTypeExt = TechnoTypeExtContainer::Instance.Find(pProdType);
+				RectangleStruct cameoRect {};
+
+				// support for pcx cameos
+				if (auto pPCX = TechnoTypeExt_ExtData::GetPCXSurface(pProdType, this->Owner))
+				{
+					const int cameoWidth = 60;
+					const int cameoHeight = 48;
+
+					RectangleStruct cameoBounds = { 0, 0, pPCX->Width, pPCX->Height };
+					RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
+					RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
+
+					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
+					{
+						cameoRect = destRect;
+						if (!StaticVars::InitEd)
+						{
+							StaticVars::GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask(), 60, 48, 2);
+							StaticVars::InitEd = true;
+						}
+
+						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &StaticVars::GlobalPcxBlitter, 0, 3, 1000, 0);
+
+					}
+				}
+				else
+				{
+					// old shp cameos, fixed palette
+					if (auto pCameo = pProdType->GetCameo())
+					{
+						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
+
+						ConvertClass* pPal = FileSystem::CAMEO_PAL();
+						if (auto pManager = pProdTypeExt->CameoPal.GetConvert())
+							pPal = pManager;
+
+						DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+					}
+				}
+
+				int prog = pFactory->GetProgress();
+				{
+					Point2D textLoc = { cameoRect.X + cameoRect.Width / 2, cameoRect.Y };
+					const auto percent = int(((double)prog / 54.0) * 100.0);
+					static fmt::basic_memory_buffer<wchar_t> text_;
+					text_.clear();
+					fmt::format_to(std::back_inserter(text_), L"{}", percent);
+					text_.push_back(L'\0');
+					RectangleStruct nTextDimension {};
+					COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
+					Drawing::GetTextDimensions(&nTextDimension, text_.data(), textLoc, printType, 4, 2);
+					auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
+					const COLORREF foreColor = this->Owner->Color.ToInit();
+					DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+					DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)foreColor);
+					DSurface::Temp->DrawText_Old(text_.data(), pBounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
+				}
+
+			}
+			else if (pType->SuperWeapon != -1)
+			{
+				SuperClass* const pSuper = this->Owner->Supers.Items[pType->SuperWeapon];
+
+				if (pSuper->RechargeTimer.TimeLeft > 0 && SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_ShowCameo)
+				{
+					RectangleStruct cameoRect {};
+					Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
+
+					// support for pcx cameos
+					if (auto pPCX = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPCX.GetSurface())
+					{
+						const int cameoWidth = 60;
+						const int cameoHeight = 48;
+
+						RectangleStruct cameoBounds = { 0, 0, pPCX->Width, pPCX->Height };
+						RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
+						RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
+
+						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
+						{
+							cameoRect = destRect;
+							if (!StaticVars::InitEd)
+							{
+								StaticVars::GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask(), 60, 48, 2);
+								StaticVars::InitEd = true;
+							}
+
+							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &StaticVars::GlobalPcxBlitter, 0, 3, 1000, 0);
+						}
+
+					}
+					else
+					{
+						// old shp cameos, fixed palette
+						if (auto pCameo = pSuper->Type->SidebarImage)
+						{
+							cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
+
+							ConvertClass* pPal = FileSystem::CAMEO_PAL();
+							if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPalette.GetConvert())
+								pPal = pManager;
+
+							DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return;
+}
+
+void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect)
+{
+	if (!HouseClass::CurrentPlayer)
+		return;
+
+	{
+		auto const pType = this->Type;
+		auto const pOwner = this->Owner;
+		const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
+
+		if (!pType || !pOwner)
+			return;
+
+		Point2D DrawLoca = *pPoint;
+		auto DrawTheStuff = [&](const wchar_t* pFormat)
+			{
+				//DrawingPart
+				RectangleStruct nTextDimension;
+				Drawing::GetTextDimensions(&nTextDimension, pFormat, DrawLoca, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
+				auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pRect, nullptr, nullptr);
+				auto nColorInt = pOwner->Color.ToInit();//0x63DAD0
+
+				DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
+				DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
+				Point2D nRet;
+				Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pRect, &DrawLoca, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+				DrawLoca.Y += (nTextDimension.Height) + 2; //extra number for the background
+			};
+
+		//everyone can see this regardless
+		if (pType->TechLevel <= 0 && this->Type->NeedsEngineer && this->Type->Capturable)
+		{
+			DrawTheStuff(Phobos::UI::Tech_Label);
+		}
+
+		// helpers (with support for the new spy effect)
+		const bool bAllied = pOwner->IsAlliedWith(HouseClass::CurrentPlayer);
+		const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
+		const bool bReveal = pTypeExt->SpyEffect_RevealProduction && this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
+
+
+		if (bAllied || IsObserver || bReveal
+			)
+		{
+
+			if (pTypeExt->Fake_Of)
+				DrawTheStuff(Phobos::UI::BuidingFakeLabel);
+
+			if (pType->PowerBonus > 0 && BuildingTypeExtContainer::Instance.Find(pType)->ShowPower)
+			{
+				wchar_t pOutDrainFormat[0x80];
+				auto pDrain = (int)pOwner->Power_Drain();
+				auto pOutput = (int)pOwner->Power_Output();
+				//foundating check ,...
+				//can be optimized using stored bool instead checking them each frames
+				if (pType->GetFoundationWidth() > 2 && pType->GetFoundationHeight(false) > 2)
+				{
+					swprintf_s(pOutDrainFormat, StringTable::FetchString(GameStrings::TXT_POWER_DRAIN2()), pOutput, pDrain);
+				}
+				else
+				{
+					swprintf_s(pOutDrainFormat, Phobos::UI::Power_Label, pOutput);
+					DrawTheStuff(pOutDrainFormat);
+					swprintf_s(pOutDrainFormat, Phobos::UI::Drain_Label, pDrain);
+				}
+
+				DrawTheStuff(pOutDrainFormat);
+			}
+
+			const bool hasStorage = pType->Storage > 0;
+			bool HasSpySat = false;
+			for (auto& _pType : this->GetTypes())
+			{
+				if (_pType && _pType->SpySat)
+				{
+					HasSpySat = true;
+					break;
+				}
+			}
+
+			if (hasStorage)
+			{
+
+				wchar_t pOutMoneyFormat[0x80];
+				auto nMoney = pOwner->Available_Money();
+				swprintf_s(pOutMoneyFormat, StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1()), nMoney);
+				DrawTheStuff(pOutMoneyFormat);
+
+				if (BuildingTypeExtContainer::Instance.Find(pType)->Refinery_UseStorage)
+				{
+					wchar_t pOutStorageFormat[0x80];
+					auto nStorage = this->GetStoragePercentage();
+					swprintf_s(pOutStorageFormat, Phobos::UI::Storage_Label, nStorage);
+					DrawTheStuff(pOutStorageFormat);
+				}
+			}
+
+			if (this->IsPrimaryFactory)
+			{
+				if (SHPStruct* pImage = RulesExtData::Instance()->PrimaryFactoryIndicator)
+				{
+					ConvertClass* pPalette = FileSystem::PALETTE_PAL();
+					if (auto pPall_c = RulesExtData::Instance()->PrimaryFactoryIndicator_Palette.GetConvert())
+						pPalette = pPall_c;
+
+					int const cellsToAdjust = pType->GetFoundationHeight(false) - 1;
+					Point2D pPosition = TacticalClass::Instance->CoordsToClient(this->GetCell()->GetCoords());
+					pPosition.X -= Unsorted::CellWidthInPixels / 2 * cellsToAdjust;
+					pPosition.Y += Unsorted::CellHeightInPixels / 2 * cellsToAdjust - 4;
+					DSurface::Temp->DrawSHP(pPalette, pImage, 0, &pPosition, pRect, BlitterFlags(0x600), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
+				}
+				else
+				{
+					DrawTheStuff(StringTable::FetchString((pType->GetFoundationWidth() != 1) ?
+						GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));
+				}
+			}
+
+			if (pType->Radar || HasSpySat)
+			{
+
+				if (pType->Radar)
+				{
+					DrawTheStuff(Phobos::UI::Radar_Label);
+				}
+
+				if (HasSpySat)
+				{
+					DrawTheStuff(Phobos::UI::Spysat_Label);
+				}
+
+				if (!this->_GetExtData()->RegisteredJammers.empty())
+					DrawTheStuff(Phobos::UI::BuidingRadarJammedLabel);
+
+			}
+		}
+	}
+}
+
 void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 {
 	if (SHPStruct* mainShape = this->GetImage()) {

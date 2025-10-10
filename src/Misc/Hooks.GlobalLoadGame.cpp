@@ -506,7 +506,7 @@ template<typename T>
 HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
 {
 	HRESULT hr;
-	DWORD count;
+	int count;
 
 	// Read count
 	hr = stream->Read(&count, sizeof(int), 0);

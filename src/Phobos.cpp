@@ -98,6 +98,7 @@ const wchar_t* Phobos::UI::Power_Label { L"" };
 const wchar_t* Phobos::UI::Drain_Label { L"" };
 const wchar_t* Phobos::UI::Storage_Label { L"" };
 const wchar_t* Phobos::UI::Radar_Label { L"" };
+const wchar_t* Phobos::UI::Tech_Label { L"" };
 const wchar_t* Phobos::UI::Spysat_Label { L"" };
 
 const wchar_t* Phobos::UI::SWShotsFormat { L"" };

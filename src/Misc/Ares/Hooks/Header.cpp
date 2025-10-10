@@ -1262,6 +1262,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 
 		bool asPassenger = false;
 		const auto pDestTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
+		auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 
 		if (action == AresHijackActionResult::Drive && (!pDestTypeExt->Operators.empty() || pDestTypeExt->Operator_Any))
 		{
@@ -1309,15 +1310,15 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		VocClass::SafeImmedietelyPlayAt(pTypeExt->HijackerEnterSound, &pTarget->Location, nullptr);
 
 		// remove the driverless-marker
-		TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled = 0;
+		pTargetExt->Is_DriverKilled = 0;
 
 		// save the hijacker's properties
 		if (action == AresHijackActionResult::Hijack)
 		{
 			pTarget->HijackerInfantryType = pType->ArrayIndex;
-			TechnoExtContainer::Instance.Find(pTarget)->HijackerOwner = pThis->Owner;
-			TechnoExtContainer::Instance.Find(pTarget)->HijackerHealth = pThis->Health;
-			TechnoExtContainer::Instance.Find(pTarget)->HijackerVeterancy = pThis->Veterancy.Veterancy;
+			pTargetExt->HijackerOwner = pThis->Owner;
+			pTargetExt->HijackerHealth = pThis->Health;
+			pTargetExt->HijackerVeterancy = pThis->Veterancy.Veterancy;
 			TechnoExtData::StoreHijackerLastDisguiseData(pThis, (FootClass*)pTarget);
 		}
 
@@ -4164,6 +4165,8 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (pThis->CurrentTurretNumber >= TurretCount)
 		pThis->CurrentTurretNumber = 0;
 
+	TechnoExtContainer::Instance.Find(pThis)->ResetLocomotor = true;
+
 	UpdateTypeData(pThis, pOldType, pToType);
 
 	// Update movement sound if still moving while type changed.
@@ -4529,8 +4532,9 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 			? Drawing::DefaultColors[(int)DefaultColorList::Green] :
 			Drawing::DefaultColors[(int)DefaultColorList::Red];
 
-		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}\0", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
-
+		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
+		moneyStr.push_back(L'\0');
+	
 		CoordStruct loc = pThis->GetCoords();
 		if (!MapClass::Instance->IsLocationShrouded(loc)
 			&& pThis->VisualCharacter(FALSE, HouseClass::CurrentPlayer()) != VisualType::Hidden)
@@ -6374,15 +6378,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 
 	// because we are throwing away the locomotor in a split second, piggybacking
 	// has to be stopped. otherwise the object might remain in a weird state.
-	while (LocomotionClass::End_Piggyback(Target->Locomotor)) { };
-
-	// throw away the current locomotor and instantiate
-	// a new one of the default type for this unit.
-	if (auto NewLoco = LocomotionClass::CreateInstance(pTargetType->Locomotor))
-	{
-		Target->Locomotor = std::move(NewLoco);
-		Target->Locomotor->Link_To_Object(Target);
-	}
+	TechnoExtContainer::Instance.Find(Target)->ResetLocomotor = true;
 
 	//Target->AnnounceExpiredPointer(false);
 	Target->OnBridge = false; // ????
@@ -7517,17 +7513,13 @@ bool TunnelFuncs::CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingC
 	return true;
 }
 
-std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, bool& Fail)
+std::vector<int> TunnelFuncs::PipDatas;
+
+bool TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, int pipMax)
 {
-	static std::vector<int> PipData;
-
-	int nPassangersTotal = pType->GetPipMax();
-	if (nPassangersTotal < 0)
-		nPassangersTotal = 0;
-
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	PipData.clear();
+	TunnelFuncs::PipDatas.clear();
 
 	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
 	{
@@ -7536,13 +7528,12 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 
 		if (!pTunnelData)
 		{
-			if (pThis->Passengers.NumPassengers > nPassangersTotal)
+			if (pThis->Passengers.NumPassengers > pipMax)
 			{
-				Fail = true;
-				return &PipData;
+				return false;
 			}
 
-			PipData.resize(nPassangersTotal);
+			TunnelFuncs::PipDatas.resize(pipMax);
 
 			int nCargoSize = 0;
 			for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
@@ -7564,27 +7555,23 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 					nPip = 5;
 
 				//fetch first cargo size and change the pip
-				PipData[nCargoSize] = nPip;
+				TunnelFuncs::PipDatas[nCargoSize] = nPip;
 				for (int i = nSize - 1; i > 0; --i)
 				{ //check if the extra size is there and increment it to
 			   // total size
-					PipData[nCargoSize + i] = 3;     //set extra size to pip index 3
+					TunnelFuncs::PipDatas[nCargoSize + i] = 3;     //set extra size to pip index 3
 				}
 
 				nCargoSize += nSize;
 			}
 
-			return &PipData;
-		}
-		else
-		{
-			const int nTotal = pTunnelData->MaxCap > nPassangersTotal ? nPassangersTotal : pTunnelData->MaxCap;
-			PipData.resize(nTotal);
+			return true;
+		} else {
+			const int nTotal = pTunnelData->MaxCap > pipMax ? pipMax : pTunnelData->MaxCap;
+			TunnelFuncs::PipDatas.resize(nTotal);
 
-			if ((int)pTunnelData->Vector.size() > nTotal)
-			{
-				Fail = true;
-				return &PipData;
+			if ((int)pTunnelData->Vector.size() > nTotal) {
+				return false;
 			}
 
 			for (size_t i = 0; i < pTunnelData->Vector.size(); ++i)
@@ -7598,21 +7585,19 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 				else if (what == UnitClass::AbsID)
 					nPip = 4;
 
-				PipData[i] = nPip;
+				TunnelFuncs::PipDatas[i] = nPip;
 			}
 
-			return &PipData;
+			return true;
 		}
 	}
 	else
 	{
-		if (pThis->Passengers.NumPassengers > nPassangersTotal)
-		{
-			Fail = true;
-			return &PipData;
+		if (pThis->Passengers.NumPassengers > pipMax) {
+			return false;
 		}
 
-		PipData.resize(nPassangersTotal);
+		TunnelFuncs::PipDatas.resize(pipMax);
 
 		int nCargoSize = 0;
 		for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
@@ -7634,17 +7619,17 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 				nPip = 5;
 
 			//fetch first cargo size and change the pip
-			PipData[nCargoSize] = nPip;
+			TunnelFuncs::PipDatas[nCargoSize] = nPip;
 			for (int i = nSize - 1; i > 0; --i)
 			{ //check if the extra size is there and increment it to
 		   // total size
-				PipData[nCargoSize + i] = 3;     //set extra size to pip index 3
+				TunnelFuncs::PipDatas[nCargoSize + i] = 3;     //set extra size to pip index 3
 			}
 
 			nCargoSize += nSize;
 		}
 
-		return &PipData;
+		return true;
 	}
 }
 

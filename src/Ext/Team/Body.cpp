@@ -969,6 +969,10 @@ void FakeTeamClass::_AI()
 		this->_TMission_GatherAtBase(&node, arg4);
 		return;
 	}
+	case TeamMissionType::Play_speech:{
+		ScriptExtData::PlaySpeech(this);
+		return;
+	}
 	default:
 
 		if (AresScriptExt::Handle(this, &node, arg4) || ScriptExtData::ProcessScriptActions(this, &node, arg4))

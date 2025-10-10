@@ -10,69 +10,6 @@
 #include <InfantryClass.h>
 #include <TacticalClass.h>
 
-ASMJIT_PATCH(0x6F5E37, TechnoClass_DrawExtras_DrawHealthBar, 0x6)
-{
-	enum { Permanent = 0x6F5E41 , Continue = 0x0 };
-
-	GET(TechnoClass*, pThis, EBP);
-
-	if ((pThis->IsMouseHovering
-			|| TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Permanent)
-		&& !MapClass::Instance->IsLocationShrouded(pThis->GetCoords())) {
-		return Permanent;
-	}
-
-	return Continue;
-}
-
-ASMJIT_PATCH(0x6D9076, TacticalClass_RenderLayers_DrawBefore, 0x5)// FootClass
-{
-	GET(TechnoClass*, pTechno, ESI);
-	GET(Point2D*, pLocation, EAX);
-
-	if (pTechno->IsSelected && Phobos::Config::EnableSelectBox)
-	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
-
-		if (!pTypeExt->HealthBar_Hide && !pTypeExt->HideSelectBox)
-			TechnoExtData::DrawSelectBox(pTechno, pLocation, &DSurface::ViewBounds, true);
-	}
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x6D9134, TacticalClass_RenderLayers_DrawBefore, 0x5)// BuildingClass
-
-ASMJIT_PATCH(0x709ACF, TechnoClass_DrawPip_PipShape1_A, 0x6)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET(SHPStruct*, pPipShape01, ECX);
-
-	R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
-		->PipShapes01.Get(pPipShape01));
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x709AE3, TechnoClass_DrawPip_PipShape1_B, 0x6)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET(SHPStruct*, pPipShape01, EAX);
-
-	R->EAX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
-		->PipShapes01.Get(pPipShape01));
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x709AF8, TechnoClass_DrawPip_PipShape2, 0x6)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET(SHPStruct*, pPipShape02, EBX);
-
-	R->EBX(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
-		->PipShapes02.Get(pPipShape02));
-
-	return 0;
-}
 
 bool HideBar(TechnoClass* pTechno, TechnoTypeClass* pType,  bool isAllied)
 {
@@ -117,29 +54,29 @@ bool HideBar(TechnoClass* pTechno, TechnoTypeClass* pType,  bool isAllied)
 
 #ifndef _OLD
 
-ASMJIT_PATCH(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	GET(SHPReference*, pDefaultPip, EAX);
-
-	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-	ConvertClass* nPal = FileSystem::THEATER_PAL();
-
-	if (pBuildingTypeExt->PipShapes01Remap)
-	{
-		nPal = pThis->GetRemapColour();
-	}
-	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette.GetConvert())
-	{
-		nPal = pConvertData;
-	}
-
-	//PipShapes01Palette
-	R->EDX(nPal);//
-	R->EAX(pBuildingTypeExt->PipShapes01.Get(pDefaultPip));
-
-	return 0x6F66B9;
-}
+//ASMJIT_PATCH(0x6F66B3, TechnoClass_DrawHealth_Building_PipFile_A, 0x6)
+//{
+//	GET(BuildingClass* const, pThis, ESI);
+//	GET(SHPReference*, pDefaultPip, EAX);
+//
+//	const auto pBuildingTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+//	ConvertClass* nPal = FileSystem::THEATER_PAL();
+//
+//	if (pBuildingTypeExt->PipShapes01Remap)
+//	{
+//		nPal = pThis->GetRemapColour();
+//	}
+//	else if (const auto pConvertData = pBuildingTypeExt->PipShapes01Palette.GetConvert())
+//	{
+//		nPal = pConvertData;
+//	}
+//
+//	//PipShapes01Palette
+//	R->EDX(nPal);//
+//	R->EAX(pBuildingTypeExt->PipShapes01.Get(pDefaultPip));
+//
+//	return 0x6F66B9;
+//}
 
 namespace DrawHeathData
 {
@@ -456,80 +393,80 @@ namespace DrawHeathData
 
 }
 
-ASMJIT_PATCH(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(int, iLength, EBX);
-	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
-	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
+//ASMJIT_PATCH(0x6F65D1, TechnoClass_DrawdBar_Building, 0x6)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET(int, iLength, EBX);
+//	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
+//	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
+//
+//	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+//	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//
+//	if (pThis->IsSelected && Phobos::Config::EnableSelectBox && !pTypeExt->HideSelectBox)
+//		TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
+//
+//	if (const auto pShieldData = pExt->Shield.get())
+//	{
+//		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
+//			pShieldData->DrawShieldBar_Building(iLength, pLocation, pBound);
+//	}
+//
+//	//DrawHeathData::DrawNumber(pThis, pLocation, pBound);
+//	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
+//	TechnoExtData::ProcessDigitalDisplays(pThis);
+//	return 0;
+//}
 
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//ASMJIT_PATCH(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
+//{
+//	GET(TechnoClass* const, pThis, ESI);
+//	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
+//	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
+//
+//	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
+//		return 0x6F6AB6u;
+//
+//	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+//
+//	if (pThis->IsSelected && Phobos::Config::EnableSelectBox && !pTypeExt->HideSelectBox)
+//		TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
+//
+//	const int iLength = pThis->WhatAmI() == InfantryClass::AbsID ? 8 : 17;
+//
+//	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+//	if (const auto pShieldData = pExt->Shield.get())
+//	{
+//		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
+//		{
+//			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
+//		}
+//	}
+//
+//	DrawHeathData::DrawBar(pThis, pLocation, pBound);
+//	//DrawHeathData::DrawNumber(pThis, pLocation, pBound);
+//	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
+//	TechnoExtData::ProcessDigitalDisplays(pThis);
+//
+//	if (pTypeExt->HealthBar_HidePips) {
+//		R->EDI(pLocation);
+//		return 0x6F6A58 ;
+//	}
+//
+//	if (HouseClass::IsCurrentPlayerObserver())
+//		return 0x6F6A8E;
+//
+//	return 0x6F6A58u;
+//}
 
-	if (pThis->IsSelected && Phobos::Config::EnableSelectBox && !pTypeExt->HideSelectBox)
-		TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
-
-	if (const auto pShieldData = pExt->Shield.get())
-	{
-		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
-			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
-	}
-
-	//DrawHeathData::DrawNumber(pThis, pLocation, pBound);
-	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
-	TechnoExtData::ProcessDigitalDisplays(pThis);
-	return 0;
-}
-
-ASMJIT_PATCH(0x6F683C, TechnoClass_DrawBar_Foot, 0x7)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
-	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
-
-	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
-		return 0x6F6AB6u;
-
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if (pThis->IsSelected && Phobos::Config::EnableSelectBox && !pTypeExt->HideSelectBox)
-		TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
-
-	const int iLength = pThis->WhatAmI() == InfantryClass::AbsID ? 8 : 17;
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	if (const auto pShieldData = pExt->Shield.get())
-	{
-		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
-		{
-			pShieldData->DrawShieldBar(iLength, pLocation, pBound);
-		}
-	}
-
-	DrawHeathData::DrawBar(pThis, pLocation, pBound);
-	//DrawHeathData::DrawNumber(pThis, pLocation, pBound);
-	//DrawHeathData::DrawIronCurtaindBar(pThis, iLength, pLocation, pBound);
-	TechnoExtData::ProcessDigitalDisplays(pThis);
-
-	if (pTypeExt->HealthBar_HidePips) {
-		R->EDI(pLocation);
-		return 0x6F6A58 ;
-	}
-
-	if (HouseClass::IsCurrentPlayerObserver())
-		return 0x6F6A8E;
-
-	return 0x6F6A58u;
-}
-
-ASMJIT_PATCH(0x6F67E8, TechnoClass_DrawHealthBar_PermanentPipScale, 0xA)			// DrawBuilding
-{
-	enum { Permanent = 0x6F6AB6 };
-
-	GET(TechnoClass*, pThis, ESI);
-	const bool showPipScale = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Permanent_PipScale;
-	return !showPipScale && !pThis->IsMouseHovering && !pThis->IsSelected ? Permanent : 0;
-}ASMJIT_PATCH_AGAIN(0x6F6A58, TechnoClass_DrawHealthBar_PermanentPipScale, 0x6)	// DrawOther
+//ASMJIT_PATCH(0x6F67E8, TechnoClass_DrawHealthBar_PermanentPipScale, 0xA)			// DrawBuilding
+//{
+//	enum { Permanent = 0x6F6AB6 };
+//
+//	GET(TechnoClass*, pThis, ESI);
+//	const bool showPipScale = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Permanent_PipScale;
+//	return !showPipScale && !pThis->IsMouseHovering && !pThis->IsSelected ? Permanent : 0;
+//}ASMJIT_PATCH_AGAIN(0x6F6A58, TechnoClass_DrawHealthBar_PermanentPipScale, 0x6)	// DrawOther
 
 
 //TODO :Draw all the pip
@@ -659,60 +596,7 @@ ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
 }
 #endif
 
-// destroying a building (no health left) resulted in a single green pip shown
-// in the health bar for a split second. this makes the last pip red.
-ASMJIT_PATCH(0x6F661D, TechnoClass_DrawHealthBar_DestroyedBuilding_RedPip, 0x7)
-{
-	GET(BuildingClass*, pBld, ESI);
-	return (pBld->Health <= 0 || pBld->IsRedHP()) ? 0x6F6628 : 0x6F6630;
-}
 
-ASMJIT_PATCH(0x6F6637, TechnoClass_DrawHealthBar_HideBuildingsPips, 0x5)
-{
-	enum { SkipDrawPips = 0x6F677D , Continue = 0x0 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())
-		->HealthBar_HidePips ? SkipDrawPips : Continue;
-}
-
-ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar_Hide, 0x5)
-{
-	enum
-	{
-		Draw = 0x0,
-		DoNotDraw = 0x6F6ABD
-	};
-
-	GET(TechnoClass*, pThis, ECX);
-
-	const auto what = pThis->WhatAmI();
-
-	if (what == UnitClass::AbsID)
-	{
-		const auto pUnit = (UnitClass*)pThis;
-
-		if (pUnit->DeathFrameCounter > 0)
-			return DoNotDraw;
-	}
-
-	if (what == BuildingClass::AbsID)
-	{
-		const auto pBld = (BuildingClass*)pThis;
-
-		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
-			return DoNotDraw;
-	}
-
-	if ((TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->HealthBar_Hide.Get())
-		|| pThis->TemporalTargetingMe
-		|| pThis->IsSinking
-	)
-		return DoNotDraw;
-
-	return Draw;
-}
 #else
 
 ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar, 0x5)

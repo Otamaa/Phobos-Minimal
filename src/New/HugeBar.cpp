@@ -540,7 +540,7 @@ void HugeBar::HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax)
 		} else {
 			fmt::format_to(std::back_inserter(text) ,L"{}/{}" , iCurrent, iMax);
 		}
-	
+
 		text.push_back(L'\0');
 		COLORREF color = Drawing::RGB_To_Int(this->Value_Text_Color.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed));
 		DSurface::Composite->DrawText_Old(text.data(), &rBound, &posDraw, (DWORD)color, COLOR_BLACK, (DWORD)TextPrintType::Center);

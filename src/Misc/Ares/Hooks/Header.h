@@ -484,10 +484,13 @@ struct TunnelFuncs
 	static void DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller);
 	static void EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pFoot);
 	static bool CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pEnterer);
-	static std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, bool& Fail);
+	static bool PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType,int pipMax);
 	static std::pair<bool, FootClass*> UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where);
 	static bool UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent = false);
 	static void HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel);
+
+public:
+	static std::vector<int> PipDatas;
 };
 
 struct AresHouseExt

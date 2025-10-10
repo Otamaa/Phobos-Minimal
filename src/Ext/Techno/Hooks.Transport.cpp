@@ -1,6 +1,9 @@
 #include "Body.h"
 #include <Ext/TechnoType/Body.h>
 
+#include <Misc/Ares/Hooks/Header.h>
+#include <InfantryClass.h>
+
 #ifndef DEBUG_CODE
 
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
@@ -210,15 +213,6 @@ static FORCEDINLINE void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger
 
 	const auto pPassengerType = pPassenger->GetTechnoType();
 
-	// Reinstalling Locomotor can avoid various issues such as teleportation, ignoring commands, and automatic return
-	while (LocomotionClass::End_Piggyback(pPassenger->Locomotor));
-
-	if (const auto pNewLoco = LocomotionClass::CreateInstance(pPassengerType->Locomotor))
-	{
-		pPassenger->Locomotor = std::move(pNewLoco);
-		pPassenger->Locomotor->Link_To_Object(pPassenger);
-	}
-
 	pTransport->AddPassenger(pPassenger); // Don't swap order casually, very very important
 	pPassenger->Transporter = pTransport;
 
@@ -229,6 +223,7 @@ static FORCEDINLINE void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger
 		pPassenger->SetTargetForPassengers(nullptr);
 
 	pPassenger->Undiscover();
+	TechnoExtContainer::Instance.Find(pPassenger)->ResetLocomotor = true;
 }
 
 void TechnoExtData::Fastenteraction(FootClass* pThis) {
@@ -591,6 +586,167 @@ ASMJIT_PATCH(0x73DAD8, UnitClass_Mission_Unload_PassengerLeavePosition, 0x5)
 		GET(FootClass* const, pPassenger, EDI);
 		REF_STACK(MovementZone, movementZone, STACK_OFFSET(0xBC, -0xAC));
 		movementZone = pPassenger->GetTechnoType()->MovementZone; // Replace hard code MovementZone::Normal
+	}
+
+	return 0;
+}
+
+#pragma endregion
+
+
+#pragma region BuildingEnterExtension
+
+ASMJIT_PATCH(0x51EE36, InfantryClass_MouseOvetObject_NoQueueUpToEnter, 0x5)
+{
+	GET(ObjectClass*, pObject, ESI);
+	enum { NewAction = 0x51EE3B };
+
+	if (auto pBuilding = cast_to<BuildingClass*, false>(pObject))
+	{
+		const auto pRulesExt = RulesExtData::Instance();
+		const auto pType = pBuilding->Type;
+
+		if (pType->InfantryAbsorb
+			&& TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
+				pRulesExt->NoQueueUpToEnter_Buildings.Get(pRulesExt->NoQueueUpToEnter)))
+		{
+			R->EBP(Action::Repair);
+			return NewAction;
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x740375, UnitClass_MouseOvetObject_NoQueueUpToEnter, 0x5)
+{
+	GET(ObjectClass*, pObject, EDI);
+	enum { NewAction = 0x74037A };
+
+	if (pObject->WhatAmI() == AbstractType::Building)
+	{
+		const auto pRulesExt = RulesExtData::Instance();
+		const auto pType = static_cast<BuildingClass*>(pObject)->Type;
+
+		if (pType->UnitAbsorb
+			&& TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
+				pRulesExt->NoQueueUpToEnter_Buildings.Get(pRulesExt->NoQueueUpToEnter)))
+		{
+			R->EBX(Action::Repair);
+			return NewAction;
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x73F63F, UnitClass_IsCellOccupied_NoQueueUpToEnter, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	enum { SkipGameCode = 0x73F64F };
+
+	const auto pRulesExt = RulesExtData::Instance();
+	const auto pType = pThis->Type;
+
+	if (pType->UnitAbsorb
+		&& TechnoTypeExtContainer::Instance.Find(pType)->NoQueueUpToEnter.Get(
+			pRulesExt->NoQueueUpToEnter_Buildings.Get(pRulesExt->NoQueueUpToEnter)))
+	{
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4DFC83, FootClass_EnterBioReactor_NoQueueUpToUnload, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	GET(BuildingClass*, pBuilding, EDI);
+	enum { SkipGameCode = 0x4DFC91 };
+
+	const auto RulesExt = RulesExtData::Instance();
+	const Mission mission = TechnoTypeExtContainer::Instance.Find(pBuilding->Type)->NoQueueUpToEnter.Get(
+		RulesExt->NoQueueUpToEnter_Buildings.Get(RulesExt->NoQueueUpToEnter))
+		? Mission::Eaten : Mission::Enter;
+
+	pThis->QueueMission(mission, false);
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x44DCB1, BuildingClass_Mi_Unload_NoQueueUpToUnload, 0x7)
+{
+	GET(BuildingClass*, pThis, EBP);
+
+	const auto pRulesExt = RulesExtData::Instance();
+
+	if (TechnoTypeExtContainer::Instance.Find(pThis->Type)->NoQueueUpToUnload.Get(
+		pRulesExt->NoQueueUpToUnload_Buildings.Get(pRulesExt->NoQueueUpToUnload)))
+	{
+		R->EAX(0);
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x519776, InfantryClass_UpdatePosition_NoQueueUpToEnter, 0x5)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(BuildingClass*, pBuilding, EBX);
+	enum { EnterBuilding = 0x51A2AD, CannotEnter = 0x51A488 };
+
+	const auto pType = pBuilding->Type;
+	if (!pType->InfantryAbsorb)
+		return 0;
+
+	if (pType->Passengers > 0 || HouseExtData::GetTunnelVector(pBuilding->Type, pBuilding->Owner))
+	{
+		if (pThis->SendCommand(RadioCommand::QueryCanEnter, pBuilding) == RadioCommand::AnswerPositive) {
+			if (const auto pTag = pBuilding->AttachedTag)
+				pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty);
+
+			R->EBP(0);
+			R->EDI(pBuilding);
+			return EnterBuilding;
+		}
+
+		R->EBP(0);
+		return CannotEnter;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x739FA2, UnitClassClass_UpdatePosition_NoQueueUpToEnter, 0x5)
+{
+	GET(UnitClass*, pThis, EBP);
+	GET(BuildingClass*, pBuilding, EBX);
+	enum { EnterBuilding = 0x73A28A, CannotEnter = 0x73A796, SkipGameCode = 0x73A315 };
+
+	const auto pType = pBuilding->Type;
+	if (!pType->UnitAbsorb)
+		return 0;
+
+	auto pTunnel = HouseExtData::GetTunnelVector(pBuilding->Type, pBuilding->Owner);
+
+	if (pType->Passengers > 0 || pTunnel) {
+		if (pThis->SendCommand(RadioCommand::QueryCanEnter, pBuilding) == RadioCommand::AnswerPositive) {
+			if (const auto pTag = pBuilding->AttachedTag)
+				pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty);
+
+			// This might fix a bug where hover vehicles enter tunnels.
+			TechnoExtContainer::Instance.Find(pThis)->ResetLocomotor = true;
+
+			if (pTunnel) 	{
+				TunnelFuncs::EnterTunnel(&pTunnel->Vector, pBuilding, pThis);
+				return SkipGameCode;
+			}
+
+			return EnterBuilding;
+		}
+		else
+		{
+			return CannotEnter;
+		}
 	}
 
 	return 0;

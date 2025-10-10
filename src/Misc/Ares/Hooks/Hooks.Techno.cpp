@@ -792,129 +792,18 @@ ASMJIT_PATCH(0x6f526c, TechnoClass_DrawExtras_PowerOff, 5)
 	return 0x6F5347;
 }
 
-ASMJIT_PATCH(0x70AA60, TechnoClass_DrawExtraInfo, 6)
+void __fastcall FakeTechnoClass::__Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect)
 {
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(Point2D*, pPoint, 0x4);
-	//GET_STACK(Point2D*, pOriginalPoint, 0x8);
-	//	GET_STACK(unsigned int , nFrame, 0x4);
-	GET_STACK(RectangleStruct*, pRect, 0xC);
-
-	if (!HouseClass::CurrentPlayer)
-		return 0x70AD4C;
-
-	if (auto pBuilding = cast_to<BuildingClass*, false>(pThis))
-	{
-		auto const pType = pBuilding->Type;
-		auto const pOwner = pBuilding->Owner;
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		if (!pType || !pOwner)
-			return 0x70AD4C;
-
-		Point2D DrawLoca = *pPoint;
-		auto DrawTheStuff = [&](const wchar_t* pFormat)
-			{
-				//DrawingPart
-				RectangleStruct nTextDimension;
-				Drawing::GetTextDimensions(&nTextDimension, pFormat, DrawLoca, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
-				auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pRect, nullptr, nullptr);
-				auto nColorInt = pOwner->Color.ToInit();//0x63DAD0
-
-				DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
-				DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
-				Point2D nRet;
-				Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pRect, &DrawLoca, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
-				DrawLoca.Y += (nTextDimension.Height) + 2; //extra number for the background
-			};
-
-		if (pOwner->IsAlliedWith(HouseClass::CurrentPlayer)
-			|| HouseClass::CurrentPlayer->IsObserver()
-			|| pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer)
-		) {
-
-			if (pTypeExt->Fake_Of)
-				DrawTheStuff(Phobos::UI::BuidingFakeLabel);
-
-			if (pType->PowerBonus > 0 && BuildingTypeExtContainer::Instance.Find(pType)->ShowPower)
-			{
-				wchar_t pOutDrainFormat[0x80];
-				auto pDrain = (int)pOwner->Power_Drain();
-				auto pOutput = (int)pOwner->Power_Output();
-				//foundating check ,...
-				//can be optimized using stored bool instead checking them each frames
-				if(pType->GetFoundationWidth() > 2 && pType->GetFoundationHeight(false) > 2) {
-					swprintf_s(pOutDrainFormat, StringTable::FetchString(GameStrings::TXT_POWER_DRAIN2()), pOutput, pDrain);
-				} else {
-					swprintf_s(pOutDrainFormat, Phobos::UI::Power_Label, pOutput);
-					DrawTheStuff(pOutDrainFormat);
-					swprintf_s(pOutDrainFormat, Phobos::UI::Drain_Label, pDrain);
-				}
-
-				DrawTheStuff(pOutDrainFormat);
-			}
-
-			const bool hasStorage = pType->Storage > 0;
-			bool HasSpySat = false;
-			for(auto& _pType : pBuilding->GetTypes()) {
-				if(_pType && _pType->SpySat) {
-					HasSpySat = true;
-					break;
-				}
-			}
-
-			if (hasStorage) {
-
-				wchar_t pOutMoneyFormat[0x80];
-				auto nMoney = pOwner->Available_Money();
-				swprintf_s(pOutMoneyFormat, StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1()), nMoney);
-				DrawTheStuff(pOutMoneyFormat);
-
-				if (BuildingTypeExtContainer::Instance.Find(pType)->Refinery_UseStorage) {
-					wchar_t pOutStorageFormat[0x80];
-					auto nStorage = pBuilding->GetStoragePercentage();
-					swprintf_s(pOutStorageFormat, Phobos::UI::Storage_Label, nStorage);
-					DrawTheStuff(pOutStorageFormat);
-				}
-			}
-
-			if (pThis->IsPrimaryFactory)
-			{
-				if(SHPStruct* pImage = RulesExtData::Instance()->PrimaryFactoryIndicator) {
-						ConvertClass* pPalette = FileSystem::PALETTE_PAL();
-						if(auto pPall_c = RulesExtData::Instance()->PrimaryFactoryIndicator_Palette.GetConvert())
-							pPalette = pPall_c;
-
-						int const cellsToAdjust = pType->GetFoundationHeight(false) - 1;
-						Point2D pPosition = TacticalClass::Instance->CoordsToClient(pThis->GetCell()->GetCoords());
-						pPosition.X -= Unsorted::CellWidthInPixels / 2 * cellsToAdjust;
-						pPosition.Y += Unsorted::CellHeightInPixels / 2 * cellsToAdjust - 4;
-						DSurface::Temp->DrawSHP(pPalette, pImage, 0, &pPosition, pRect, BlitterFlags(0x600), 0, -2, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
-				} else {
-					DrawTheStuff(StringTable::FetchString((pType->GetFoundationWidth() != 1) ?
-						GameStrings::TXT_PRIMARY() : GameStrings::TXT_PRI()));
-				}
-			}
-
-			if(pType->Radar || HasSpySat) {
-
-				if(pType->Radar) {
-					DrawTheStuff(Phobos::UI::Radar_Label);
-				}
-
-				if(HasSpySat) {
-					DrawTheStuff(Phobos::UI::Spysat_Label);
-				}
-
-				if(!BuildingExtContainer::Instance.Find(pBuilding)->RegisteredJammers.empty())
-					DrawTheStuff(Phobos::UI::BuidingRadarJammedLabel);
-
-			}
-		}
-	}
-
-	return 0x70AD4C;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x70AA60 , FakeTechnoClass::__Draw_Stuff_When_Selected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E26FC, FakeBuildingClass::_DrawStuffsWhenSelected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E90EC, FakeBuildingClass::_DrawStuffsWhenSelected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB4B0, FakeBuildingClass::_DrawStuffsWhenSelected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4DB8, FakeBuildingClass::_DrawStuffsWhenSelected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F60C8, FakeBuildingClass::_DrawStuffsWhenSelected)
+
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7E4314 , FakeBuildingClass::_DrawStuffsWhenSelected)
 
 // complete replacement
 ASMJIT_PATCH(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)

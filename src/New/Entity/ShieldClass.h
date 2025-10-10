@@ -64,7 +64,11 @@ public:
 
 	void KillAnim();
 	void SetRespawnRestartInCombat();
+
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
+	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
+	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);
+	int DrawShieldBar_Pip(const bool isBuilding);
 
 	COMPILETIMEEVAL FORCEDINLINE double GetHealthRatio() const
 	{
@@ -210,10 +214,6 @@ private:
 	void TemporalCheck();
 	bool ConvertCheck();
 	SelfHealingStatus SelfHealEnabledByCheck();
-
-	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
-	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);
-	int DrawShieldBar_Pip(const bool isBuilding);
 
 	COMPILETIMEEVAL FORCEDINLINE int DrawShieldBar_PipAmount(int iLength) const
 	{

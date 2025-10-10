@@ -302,3 +302,251 @@ ASMJIT_PATCH(0x65BB67, RadSite_Deactivate, 0x6)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0858,  FakeRadSiteClass::__GetAltCoords);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0868,  FakeRadSiteClass::__GetAltCoords);
+
+static NOINLINE int CalculateRadiationDamage(
+	int baseLevel,
+	double levelFactor,
+	double distanceInCells,
+	int cellSpreadInCells,
+	double minFalloff = 0.1
+)
+{
+	double maxDistance = std::max(1.0, static_cast<double>(cellSpreadInCells));
+
+	// Linear falloff, clamped between minFalloff and 1.0
+	double falloff = std::clamp(1.0 - (distanceInCells / maxDistance), minFalloff, 1.0);
+
+	// Base damage before falloff
+	double rawDamage = static_cast<double>(baseLevel) * levelFactor;
+
+	// Final damage (may be negative for healing)
+	return static_cast<int>(rawDamage * falloff);
+}
+
+static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, FootClass* pObj, CellClass* pCell)
+{
+	if (pObj->IsAlive && !pObj->InLimbo && pObj->Health > 0 && !pObj->TemporalTargetingMe && !TechnoExtData::IsRadImmune(pObj))
+	{
+		const auto pRadExt = RadSiteExtContainer::Instance.Find(pRad);
+		RadTypeClass* pRadType = pRadExt->Type;
+
+		const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
+		if ((RadApplicationDelay <= 0)
+			|| (Unsorted::CurrentFrame % RadApplicationDelay))
+			return;
+
+		if (pObj->GetTechnoType()->Immune || !pRadType->GetWarhead())
+			return;
+
+		auto it = CellExtContainer::Instance.Find(pCell)->RadLevels.find_if([pRad](auto& pair) { return pair.Rad == pRad; });
+
+		if (it == CellExtContainer::Instance.Find(pCell)->RadLevels.end() || it->Level <= 0)
+			return;
+
+		const double distance = pRad->BaseCell.DistanceFrom(pCell->MapCoords);
+		const auto damage = CalculateRadiationDamage(it->Level, pRadType->GetLevelFactor(), distance, pRad->Spread);
+
+		if (damage == 0)
+			return;
+
+		UnitClass* pUnit = cast_to<UnitClass*, false>(pObj);
+		FootClass* pFoot = pObj;
+
+		if ((pUnit && pUnit->DeathFrameCounter > 0) || !RadSiteClass::Array->Count)
+			return;
+
+		if (pObj->IsSinking || pObj->IsCrashing)
+			return;
+
+		if (pObj->IsInAir())
+			return;
+
+		if (pObj->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(pFoot))
+			return;
+
+		if (pRadExt->ApplyRadiationDamage(pObj, damage, static_cast<int>(distance)) == RadSiteExtData::DamagingState::Dead)
+			return;
+
+	}
+}
+
+struct BuildingRadiationExposure
+{
+	int Damage;
+	int BestRadLevel;
+	double BestDistance;
+	CellStruct SourceCell;
+};
+
+static NOINLINE BuildingRadiationExposure CalculateBuildingRadiationDamage(
+	RadSiteClass* pRad,
+	RadTypeClass* pRadType,
+	BuildingClass* pBld
+)
+{
+	BuildingRadiationExposure result {};
+
+	const auto baseCell = pRad->BaseCell;
+	const auto nCurCoord = pBld->InlineMapCoords();
+
+	for (auto* pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation)
+	{
+
+		const auto nLoc = nCurCoord + (*pFoundation);
+		auto pCell = MapClass::Instance->TryGetCellAt(nLoc);
+
+		if (!pCell) continue;
+
+		auto* pCellExt = CellExtContainer::Instance.Find(pCell);
+
+		auto it = pCellExt->RadLevels.find_if([pRad](auto& pair) {
+			return pair.Rad == pRad;
+		});
+
+		if (it == pCellExt->RadLevels.end() || it->Level <= 0)
+			continue;
+
+		const int radLevel = it->Level;
+		double distance = static_cast<double>(baseCell.DistanceFrom(nLoc));
+
+		// Use best exposed cell logic (max level or min distance)
+		if (radLevel > result.BestRadLevel || result.BestRadLevel == 0)
+		{
+			result.BestRadLevel = radLevel;
+			result.BestDistance = distance;
+			result.SourceCell = nLoc;
+		}
+	}
+
+	if (result.BestRadLevel > 0)
+	{
+		result.Damage = CalculateRadiationDamage(result.BestRadLevel, pRadType->GetLevelFactor(), result.BestDistance, pRad->Spread);
+	}
+
+	return result;
+}
+
+static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, BuildingClass* pObj, CellClass* pCell)
+{
+	if (pObj->IsAlive && !pObj->InLimbo && pObj->Health > 0 && !pObj->TemporalTargetingMe && !TechnoExtData::IsRadImmune(pObj))
+	{
+
+		const auto pRadExt = RadSiteExtContainer::Instance.Find(pRad);
+
+		RadTypeClass* pRadType = pRadExt->Type;
+
+		const int delay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetBuildingApplicationDelay() : RulesExtData::Instance()->RadApplicationDelay_Building;
+
+		if ((delay <= 0) || (Unsorted::CurrentFrame % delay))
+			return;
+
+		if (pObj->GetTechnoType()->Immune || !pRadType->GetWarhead() || pObj->IsBeingWarpedOut())
+			return;
+
+		auto& damageCount = pRadExt->damageCounts[pObj];
+		const int maxDamageCount = pRadType->GetBuildingDamageMaxCount();
+		if (maxDamageCount > 0 && damageCount >= maxDamageCount)
+			return;
+
+		const auto damage = CalculateBuildingRadiationDamage(pRad, pRadType, pObj);
+
+		if (damage.Damage == 0)
+			return;
+
+		if (pRadExt->ApplyRadiationDamage(pObj, damage.Damage, static_cast<int>(damage.BestDistance)) == RadSiteExtData::DamagingState::Dead)
+			return;
+	}
+}
+
+ASMJIT_PATCH(0x65B8C8, RadSiteClass_AI_cond, 0x5)
+{
+	GET(RadSiteClass*, pThis, ESI);
+
+	if (pThis->RadTimeLeft <= 0 || pThis->RadLevel <= 0)
+	{
+		return 0x65B8D3;
+	}
+
+	for (CellRangeEnumerator it(pThis->BaseCell, pThis->Spread + 0.5); it; it++)
+	{
+		if (const auto pCell = MapClass::Instance->TryGetCellAt(*it))
+		{
+			if (auto pObj = pCell->Cell_Occupier())
+			{
+				if (auto pFoot = flag_cast_to<FootClass*, false>(pObj))
+					ApplyRadDamage(pThis, pFoot, pCell);
+				else if (auto pBld = cast_to<BuildingClass*, false>(pObj))
+					ApplyRadDamage(pThis, pBld, pCell);
+			}
+		}
+	}
+
+	return 0x65B8DC;
+}
+
+template<bool reduce = false>
+void PopulateCellRadVector(RadSiteClass* pRad, CellStruct* cell, int distance, int timeParam)
+{
+	const auto max = pRad->SpreadInLeptons;
+
+	if (distance <= max)
+	{
+		if (auto pCell = MapClass::Instance->TryGetCellAt(cell))
+		{
+			const auto pCellExt = CellExtContainer::Instance.Find(pCell);
+			auto it = pCellExt->RadLevels.find_if([pRad](auto& pair) { return pair.Rad == pRad; });
+
+			if constexpr (!reduce)
+			{
+				const int amount = int(static_cast<double>(max - distance) / max * pRad->RadLevel);
+
+
+				if (it != pCellExt->RadLevels.end())
+					it->Level += MinImpl(it->Level + amount, RadSiteExtContainer::Instance.Find(pRad)->Type->GetLevelMax());
+				else
+					pCellExt->RadLevels.emplace_back(pRad, amount);
+			}
+			else
+			{
+				if (it != pCellExt->RadLevels.end())
+				{
+					it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps * timeParam);
+				}
+			}
+		}
+	}
+}
+
+ASMJIT_PATCH(0x65BAC1, RadSiteClass_Radiate_Increase, 0x8)
+{
+	enum { SkipGameCode = 0x65BB11 };
+
+	GET(RadSiteClass*, pThis, EDX);
+	GET(int, distance, EAX);
+	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x60, -0x4C));
+	PopulateCellRadVector<false>(pThis, cell, distance, 0);
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x65BC6E, RadSiteClass_Deactivate_Decrease, 0x6)
+{
+	enum { SkipGameCode = 0x65BCBD };
+
+	GET(RadSiteClass*, pThis, EDX);
+	GET(int, distance, EAX);
+	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x70, -0x5C));
+	GET_STACK(int, timeParam, STACK_OFFSET(0x70, -0x30));
+	PopulateCellRadVector<true>(pThis, cell, distance, timeParam);
+	return SkipGameCode;
+}
+
+ASMJIT_PATCH(0x65BE01, RadSiteClass_DecreaseRadiation_Decrease, 0x6)
+{
+	enum { SkipGameCode = 0x65BE4C };
+
+	GET(RadSiteClass*, pThis, EDX);
+	GET(int, distance, EAX);
+	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x60, -0x50));
+	PopulateCellRadVector<true>(pThis, cell, distance, 0);
+	return SkipGameCode;
+}

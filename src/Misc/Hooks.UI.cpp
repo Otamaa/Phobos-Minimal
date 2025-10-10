@@ -88,6 +88,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pPlayer);
 	static fmt::basic_memory_buffer<wchar_t , 50> counter;
 	static fmt::basic_memory_buffer<wchar_t , 50> ShowPower;
+	static fmt::basic_memory_buffer<wchar_t , 10> Harv;
 
 	if (Phobos::UI::BattlePointsSidebar_AlwaysShow || pHouseExt->AreBattlePointsEnabled())
 	{
@@ -115,6 +116,8 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 	if (Phobos::UI::ShowHarvesterCounter && Phobos::Config::ShowHarvesterCounter)
 	 {
+		Harv.clear();
+
 	 	const auto nActive = HouseExtData::ActiveHarvesterCount(pPlayer);
 	 	const auto nTotal = HouseExtData::TotalHarvesterCount(pPlayer);
 	 	const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
@@ -123,7 +126,8 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 		? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 	 		? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
-		std::wstring Harv = fmt::format(L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);
+		fmt::format_to(std::back_inserter(Harv), L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);
+		Harv.push_back(L'\0');
 
 	 	Point2D vPos {
 	 		DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().X,
@@ -131,7 +135,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 	};
 
 	 	DSurface::Sidebar->DSurfaceDrawText(
-		Harv.c_str()
+		Harv.data()
 			, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0,
 	 		TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	 }

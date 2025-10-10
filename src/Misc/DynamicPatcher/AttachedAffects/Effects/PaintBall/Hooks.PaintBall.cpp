@@ -72,13 +72,13 @@ namespace TechnoClass_DrawShapeTemp
 	bool DisableTint = false;
 }
 
-DEFINE_HOOK(0x7060D6, TechnoClass_DrawShape_DisguiseTint_SetContext, 0x5)
+ASMJIT_PATCH(0x7060D6, TechnoClass_DrawShape_DisguiseTint_SetContext, 0x5)
 {
 	TechnoClass_DrawShapeTemp::DisableTint = true;
 	return 0;
 }
 
-DEFINE_HOOK(0x70632E, TechnoClass_DrawShape_GetTintIntensity, 0x6)
+ASMJIT_PATCH(0x70632E, TechnoClass_DrawShape_GetTintIntensity, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, intensity, EAX);

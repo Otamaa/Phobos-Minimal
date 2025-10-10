@@ -855,7 +855,6 @@ class MovieInfo
 public:
 	// technically, this is a DVC<const char*>
 	// and string management is done manually
-	static COMPILETIMEEVAL reference<DynamicVectorClass<MovieInfo<GameDeleter>>, 0xABF390u> const Array {};
 
 	bool operator== (MovieInfo const& rhs) const
 	{
@@ -879,6 +878,13 @@ public:
 		}
 	}
 
+	bool operator== (const char* pName) const {
+		if COMPILETIMEEVAL (Deleter::DeleterType == DeleterType::GameDeleter || Deleter::DeleterType == DeleterType::GameDTORCaller)
+			return !CRT::strcmpi(this->Name, pName);
+		else
+			return !_strcmpi(this->Name, pName);
+	}
+
 	MovieInfo() : Name(nullptr) { }
 
 	~MovieInfo() {
@@ -889,6 +895,8 @@ public:
 
 	const char* Name; // yes, only that
 };
+
+static COMPILETIMEEVAL reference<DynamicVectorClass<MovieInfo<GameDeleter>>, 0xABF390u> const MovieInfoArray {};
 
 struct MovieUnlockableInfo
 {

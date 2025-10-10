@@ -75,15 +75,73 @@ void TintColors::Calculate(const int color, const int intensity, const AffectedH
 void TintColors::Update()
 {
 	// reset values
-	this->Reset();
+	//this->Reset();
 
-	if (!this->Owner->IsAlive)
+	//if (!this->Owner->IsAlive)
+	//	return;
+
+	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Owner->GetTechnoType());
+	//auto pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
+	//const bool hasTechnoTint = pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity;
+	//const bool hasShieldTint = pOwnerExt->Shield && pOwnerExt->Shield->IsActive() && pOwnerExt->Shield->GetType()->HasTint();
+
+	//// bail out early if no custom tint is applied.
+	//if (!hasTechnoTint && !pOwnerExt->AE.HasTint && !hasShieldTint)
+	//	return;
+
+	//if (hasTechnoTint)
+	//	this->Calculate(Drawing::RGB_To_Int(pTypeExt->Tint_Color), static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
+
+	//if (pOwnerExt->AE.HasTint)
+	//{
+	//	for (auto const& attachEffect : pOwnerExt->PhobosAE)
+	//	{
+	//		if (!attachEffect)
+	//			continue;
+
+	//		auto const type = attachEffect->GetType();
+
+	//		if (!attachEffect->IsActive() || !type->HasTint())
+	//			continue;
+
+	//		this->Calculate(Drawing::RGB_To_Int(type->Tint_Color), static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+	//	}
+	//}
+
+	//if (hasShieldTint)
+	//{
+	//	auto const pShieldType = pOwnerExt->Shield->GetType();
+	//	this->Calculate(Drawing::RGB_To_Int(pShieldType->Tint_Color), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
+	//}
+}
+
+void TintColors::GetTints(int* tintColor, int* intensity)
+{
+	const bool CalculateIntensity = intensity != nullptr;
+	const bool calculateTint = tintColor != nullptr;
+
+	if (!calculateTint && !CalculateIntensity)
 		return;
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Owner->GetTechnoType());
+	auto const pOwner = this->Owner->Owner;
 	auto pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
+
+	for (auto& [wh, paint] : pOwnerExt->PaintBallStates) {
+		if (paint.IsActive() && paint.AllowDraw(this->Owner)) {
+
+			if (calculateTint)
+				*tintColor |= paint.Color;
+
+			if (CalculateIntensity)
+				*intensity += int(paint.Data->BrightMultiplier * 1000);
+		}
+	}
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Owner->GetTechnoType());
 	const bool hasTechnoTint = pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity;
 	const bool hasShieldTint = pOwnerExt->Shield && pOwnerExt->Shield->IsActive() && pOwnerExt->Shield->GetType()->HasTint();
+
+	this->Reset();
 
 	// bail out early if no custom tint is applied.
 	if (!hasTechnoTint && !pOwnerExt->AE.HasTint && !hasShieldTint)
@@ -112,29 +170,6 @@ void TintColors::Update()
 	{
 		auto const pShieldType = pOwnerExt->Shield->GetType();
 		this->Calculate(Drawing::RGB_To_Int(pShieldType->Tint_Color), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
-	}
-}
-
-void TintColors::GetTints(int* tintColor, int* intensity)
-{
-	const bool CalculateIntensity = intensity != nullptr;
-	const bool calculateTint = tintColor != nullptr;
-
-	if (!calculateTint && !CalculateIntensity)
-		return;
-
-	auto const pOwner = this->Owner->Owner;
-	auto pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
-
-	for (auto& [wh, paint] : pOwnerExt->PaintBallStates) {
-		if (paint.IsActive() && paint.AllowDraw(this->Owner)) {
-
-			if (calculateTint)
-				*tintColor |= paint.Color;
-
-			if (CalculateIntensity)
-				*intensity += int(paint.Data->BrightMultiplier * 1000);
-		}
 	}
 
 	if (pOwner == HouseClass::CurrentPlayer)
@@ -4525,10 +4560,11 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 	damageStr.clear();
 
 	if (Phobos::Otamaa::IsAdmin)
-		fmt::format_to(std::back_inserter(damageStr) ,L"[{}] {} ({})\0", PhobosCRT::StringToWideString(pThis->get_ID()), PhobosCRT::StringToWideString(pWH->ID), damage);
+		fmt::format_to(std::back_inserter(damageStr) ,L"[{}] {} ({})", PhobosCRT::StringToWideString(pThis->get_ID()), PhobosCRT::StringToWideString(pWH->ID), damage);
 	else
-		fmt::format_to(std::back_inserter(damageStr) ,L"{}\0", damage);
+		fmt::format_to(std::back_inserter(damageStr) ,L"{}", damage);
 
+	damageStr.push_back(L'\0');
 	auto coords = pThis->GetCenterCoords();
 	int maxOffset = 30;
 	int width = 0, height = 0;
@@ -6189,13 +6225,17 @@ bool hasSelfHeal(TechnoClass* pThis , const bool infantryHeal)
 	return false;
 }
 
-void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
+void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, SHPStruct* shape, ConvertClass* convert)
 {
+	auto const pType = pThis->GetTechnoType();
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pExt->NoExtraSelfHealOrRepair)
+		return;
+
 	if (pThis->Owner->Type->MultiplayPassive && !RulesExtData::Instance()->GainSelfHealAllowMultiplayPassive)
 		return;
 
-	auto const pType = pThis->GetTechnoType();
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const pWhat = pThis->WhatAmI();
 	const bool isOrganic = pWhat == InfantryClass::AbsID
 		|| (pType->Organic && (pWhat == UnitClass::AbsID));
@@ -6268,7 +6308,7 @@ void TechnoExtData::DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, Rec
 		if (isSelfHealFrame)
 			flags = flags | BlitterFlags::Darken;
 
-		DSurface::Temp->DrawSHP(FileSystem::PALETTE_PAL, FileSystem::PIPS_SHP,
+		DSurface::Temp->DrawSHP(convert, shape,
 			pipFrame, &position, pBounds, flags, 0, 0, ZGradient::Ground, 1000, 0, 0, 0, 0, 0);
 	}
 }

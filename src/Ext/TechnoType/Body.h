@@ -1232,6 +1232,9 @@ public:
 	Nullable<double> AIGuardModeGuardRangeMultiplier;
 	Nullable<Leptons> AIGuardModeGuardRangeAddend;
 	Nullable<Leptons> AIGuardStationaryStray;
+
+	Vector2D<ThreatType> ThreatTypes;
+	Vector2D<int> CombatDamages;
 #pragma endregion
 
 public:
@@ -2058,6 +2061,8 @@ public:
 		, AIGuardModeGuardRangeMultiplier()
 		, AIGuardModeGuardRangeAddend()
 		, AIGuardStationaryStray()
+		, ThreatTypes(ThreatType::Normal,ThreatType::Normal )
+		, CombatDamages(0,0)
 		{
 			this->InitializeConstant();
 			this->Initialize();
@@ -3083,6 +3088,8 @@ private:
 			.Process(this->AIGuardModeGuardRangeMultiplier)
 			.Process(this->AIGuardModeGuardRangeAddend)
 			.Process(this->AIGuardStationaryStray)
+			.Process(this->ThreatTypes)
+			.Process(this->CombatDamages)
 			;
 	}
 
@@ -3116,6 +3123,8 @@ public:
 	int SelectMultiWeapon(TechnoClass* const pThis, AbstractClass* const pTarget);
 
 	void ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSection, ValueableVector<int>& n, ValueableVector<int>& nE);
+	void ParseCombatDamageAndThreatType(CCINIClass* const pINI);
+
 };
 
 class NOVTABLE FakeTechnoTypeClass : public TechnoTypeClass

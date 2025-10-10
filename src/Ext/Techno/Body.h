@@ -811,6 +811,7 @@ private:
 		debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
 		debugProcess(this->Tints, "Tints");
 		debugProcess(this->FallingDownTracked, "FallingDownTracked");
+		debugProcess(this->ResetLocomotor, "ResetLocomotor");
 	}
 
 
@@ -991,6 +992,7 @@ public:
 	TintColors Tints;
 
 	bool FallingDownTracked;
+	bool ResetLocomotor;
 #pragma endregion
 
 public:
@@ -1162,7 +1164,8 @@ public:
 		UnitIdleActionTimer(),
 		UnitIdleActionGapTimer(),
 		Tints(),
-		FallingDownTracked { false }
+		FallingDownTracked { false },
+		ResetLocomotor { false}
 	{
 		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
@@ -1335,7 +1338,7 @@ public:
 
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
-	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
+	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds , SHPStruct* shape , ConvertClass* convert);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis, bool wasDamaged);
 	static void ApplyDrainMoney(TechnoClass* pThis);
@@ -1536,4 +1539,9 @@ public:
 	static void __fastcall __DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord);
 	static AbstractClass* __fastcall __Greatest_Threat(TechnoClass* techno, discard_t, ThreatType method, CoordStruct* location, bool a4);
 	static void __fastcall __Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect);
+	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
+	static void __fastcall __Draw_Rank_Pips(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect);
+	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
+
+
 };

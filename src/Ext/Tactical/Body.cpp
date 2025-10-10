@@ -455,7 +455,6 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
-
 	buffer.push_back(L'\0');
 
 	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
@@ -541,7 +540,6 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
-
 	buffer.push_back(L'\0');
 
 	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
@@ -556,11 +554,9 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 
 	if (!interval && _arg && _arg1)
 	{
-		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(_arg->QuadPart) < static_cast<uint64_t>(now.QuadPart)) {
+			_arg->QuadPart = now.QuadPart + 1000;
 			*_arg1 = !*_arg1;
 		}
 
@@ -630,7 +626,6 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
-
 	buffer.push_back(L'\0');
 
 	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
@@ -645,11 +640,9 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 
 	if (!interval && _arg && _arg1)
 	{
-		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(_arg->QuadPart) < static_cast<uint64_t>(now.QuadPart)) {
+			_arg->QuadPart = now.QuadPart + 1000;
 			*_arg1 = !*_arg1;
 		}
 
@@ -821,8 +814,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	} else {
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
-
-	buffer.push_back(L'\0');
+    buffer.push_back(L'\0');
 
 	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
 	labe_buffer.clear();
@@ -836,11 +828,9 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 
 	if (!interval)
 	{
-		if ((unsigned __int64)pSuper->BlinkTimer.QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			pSuper->BlinkTimer.LowPart = large.LowPart + 1000;
-			pSuper->BlinkTimer.HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(pSuper->BlinkTimer.QuadPart) < static_cast<uint64_t>(now.QuadPart)) {
+			pSuper->BlinkTimer.QuadPart = now.QuadPart + 1000;
 			pSuper->BlinkState = !pSuper->BlinkState;
 		}
 

@@ -368,6 +368,30 @@ static NOINLINE const char* ToStrings(PhobosScripts from)
 		return "GlobalVariableAndByGlobal";
 	case PhobosScripts::SimpleDeployerDeploy:
 		return "SimpleDeployerDeploy";
+	case PhobosScripts::ChangeToScriptByID:
+		return "ChangeToScriptByID";
+	case PhobosScripts::ChangeToTeamTypeByID:
+		return "ChangeToTeamTypeByID";
+	case PhobosScripts::ChangeToHouseByID:
+		return "ChangeToHouseByID";
+	case PhobosScripts::PlaySpeechByID:
+		return "PlaySpeechByID";
+	case PhobosScripts::PlaySoundByID:
+		return "PlaySoundByID";
+	case PhobosScripts::PlayMovieByID:
+		return "PlayMovieByID";
+	case PhobosScripts::PlayThemeByID:
+		return "PlayThemeByID";
+	case PhobosScripts::AttackEnemyStructureByID:
+		return "AttackEnemyStructureByID";
+	case PhobosScripts::MoveToEnemyStructureByID:
+		return "MoveToEnemyStructureByID";
+	case PhobosScripts::PlayAnimationByID:
+		return "PlayAnimationByID";
+	case PhobosScripts::ChronoshiftTaskForceToStructureByID:
+		return "ChronoshiftTaskForceToStructureByID";
+	case PhobosScripts::MoveToFriendlyStructureByID:
+		return "MoveToFriendlyStructureByID";
 	default:
 		return GameStrings::NoneStr();
 	}
@@ -2339,6 +2363,13 @@ void ScriptExtData::RepairDestroyedBridge(TeamClass* pTeam, int mode = -1)
 			pFoot->NextMission();
 		}
 	}
+}
+
+// Works like the old Tiberian Sun ScriptType Action "24"
+void ScriptExtData::PlaySpeech(TeamClass* pTeam)
+{
+	VoxClass::PlayIndex(pTeam->CurrentScript->Type->ScriptActions[pTeam->CurrentScript->CurrentMission].Argument);
+	pTeam->StepCompleted = true;
 }
 
 void ScriptExtData::SimpleDeployerDeploy(TeamClass* pTeam, int mode)

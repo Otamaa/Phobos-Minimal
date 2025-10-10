@@ -1450,11 +1450,29 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, std::tuple<Types...>& Value, bool RegisterForChange) const
 		{
+			// Read and validate tuple size
+			size_t storedCount = 0;
+			if (!Savegame::ReadPhobosStream(Stm, storedCount, false))
+				return false;
+
+			constexpr size_t expectedCount = sizeof...(Types);
+			if (storedCount != expectedCount)
+			{
+				// Size mismatch - corrupted data or version incompatibility
+				Debug::Log("Tuple size mismatch: expected %zu, got %zu\n", expectedCount, storedCount);
+				return false;
+			}
+
 			return ReadTupleHelper(Stm, Value, RegisterForChange, std::index_sequence_for<Types...>{});
 		}
 
 		bool WriteToStream(PhobosStreamWriter& Stm, const std::tuple<Types...>& Value) const
 		{
+			// Write tuple size first
+			constexpr size_t tupleCount = sizeof...(Types);
+			if (!Savegame::WritePhobosStream(Stm, tupleCount))
+				return false;
+
 			return WriteTupleHelper(Stm, Value, std::index_sequence_for<Types...>{});
 		}
 

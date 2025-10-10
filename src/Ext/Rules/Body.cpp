@@ -358,6 +358,8 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		const auto myClassName = pItem->GetThisClassName();
 		bool WeederAndHarvesterWarning = false;
 
+		pExt->ParseCombatDamageAndThreatType(pINI);
+
 		if (pExt->Image_Yellow && pExt->Image_Yellow->WhatAmI() != what) {
 			Debug::LogInfo("[{} - {}] has Image.ConditionYellow [{} - {}] but it different ClassType from it!",
 				pItem->ID, myClassName, pExt->Image_Yellow->ID, pExt->Image_Yellow->GetThisClassName());
@@ -899,6 +901,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AssignUnitMissionAfterParadropped.Read(exINI, GameStrings::General, "AssignUnitMissionAfterParadropped");
 	this->NoQueueUpToEnter.Read(exINI, GameStrings::General, "NoQueueUpToEnter");
 	this->NoQueueUpToUnload.Read(exINI, GameStrings::General, "NoQueueUpToUnload");
+	this->NoQueueUpToEnter_Buildings.Read(exINI, GameStrings::General, "NoQueueUpToEnter.Buildings");
+	this->NoQueueUpToUnload_Buildings.Read(exINI, GameStrings::General, "NoQueueUpToUnload.Buildings");
 
 	this->NoRearm_UnderEMP.Read(exINI, GameStrings::General, "NoRearm.UnderEMP");
 	this->NoRearm_Temporal.Read(exINI, GameStrings::General, "NoRearm.Temporal");
@@ -1618,6 +1622,8 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->NoQueueUpToEnter)
 		.Process(this->NoQueueUpToUnload)
+		.Process(this->NoQueueUpToEnter_Buildings)
+		.Process(this->NoQueueUpToUnload_Buildings)
 
 		.Process(this->NoRearm_UnderEMP)
 		.Process(this->NoRearm_Temporal)

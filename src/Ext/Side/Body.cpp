@@ -93,6 +93,7 @@ const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) cons
 		fmt::format_to(std::back_inserter(buffer), "{:02}" ,index + 1);
 		pMarker[0] = buffer[0];
 		pMarker[1] = buffer[1];
+		buffer.push_back('\0');
 	}
 
 	return filename;

@@ -1,4 +1,95 @@
+// Constants for rank pip drawing
+constexpr BlitterFlags RANK_PIP_FLAGS = BlitterFlags::Alpha | BlitterFlags::bf_400 | BlitterFlags::Centered;
 
+// Rank pip indices
+enum class RankPipIndex : int
+{
+	None = -1,
+	Veteran = 11,    // PipEnum_Veteran
+	Elite = 12,      // PipEnum_Elite
+	Mindless = 10    // PipEnum_BLANK (berserk/confused)
+};
+
+// Determine which rank pip should be displayed
+static RankPipIndex GetRankPipIndex(TechnoClass* techno)
+{
+	// Priority order: Mindless > Elite > Veteran > None
+
+	// Check if unit is mindless (berserk/confused)
+	if (techno->Veterancy.IsRookie())
+	{
+		return RankPipIndex::Mindless;
+	}
+
+	// Check if unit is elite
+	if (techno->Veterancy.IsElite())
+	{
+		return RankPipIndex::Elite;
+	}
+
+	// Check if unit is veteran
+	if (techno->Veterancy.IsVeteran())
+	{
+		return RankPipIndex::Veteran;
+	}
+
+	// No rank pip needed
+	return RankPipIndex::None;
+}
+
+// Calculate the screen position for the rank pip
+static Point2D CalculateRankPipPosition(TechnoClass* techno, Point2D* basePosition)
+{
+	Point2D pipPos {
+		.X = basePosition->X + 5,
+		.Y = basePosition->Y + 2
+	};
+
+	// Infantry units need adjusted position
+	if (techno->WhatAmI() != AbstractType::Infantry)
+	{
+		pipPos.X += 5;
+		pipPos.Y += 4;
+	}
+
+	return pipPos;
+}
+
+void __fastcall FakeTechnoClass::__Draw_Rank_Pips(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect)
+{
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType());
+
+	// Determine which rank pip to show
+	RankPipIndex pipIndex = GetRankPipIndex(techno);
+
+	// Early exit if no rank pip needed
+	if (pipIndex == RankPipIndex::None)
+	{
+		return;
+	}
+
+	// Calculate pip position based on unit type
+	Point2D pipPos = CalculateRankPipPosition(techno, position);
+
+	// Draw the rank pip
+	DSurface::Temp->DrawSHP(
+		FileSystem::PALETTE_PAL(),
+		pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP()),
+		(int)pipIndex,
+		&pipPos,
+		clipRect,
+		RANK_PIP_FLAGS,
+		0,    // remap
+		-2,   // zAdjust
+		0,    // brightR
+		1000, // tintColor
+		0,    // ZGradient
+		0, 0, 0, 0 // unused parameters
+	);
+}
+
+//replaced by 0x6F534E hook
+//DEFINE_FUNCTION_JUMP(LJMP,0x70A990, FakeTechnoClass::__Draw_Rank_Pips)
 // ASMJIT_PATCH(0x6FF394, TechnoClass_FireAt_FeedbackAnim, 0x8)
 // {
 // 	enum { CreateMuzzleAnim = 0x6FF39C, SkipCreateMuzzleAnim = 0x6FF43F };

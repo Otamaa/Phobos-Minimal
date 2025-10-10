@@ -128,6 +128,7 @@ void Phobos::Config::Read()
 		 Phobos::UI::Storage_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_STORAGE_FORMAT", L"Storage = %.3lf");
 		 Phobos::UI::BuidingFakeLabel = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_FAKE", L"FAKE");
 		 Phobos::UI::Radar_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_RADAR", L"Radar");
+		 Phobos::UI::Tech_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_TECHBUILDING", L"TechBuilding");
 		 Phobos::UI::Spysat_Label = GeneralUtils::LoadStringUnlessMissingNoChecks("TXT_SPYSAT", L"SpySat");
 	 }
 

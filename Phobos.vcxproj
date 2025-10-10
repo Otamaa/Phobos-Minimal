@@ -26,6 +26,8 @@
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Ext\AircraftType\Body.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hook.Healthbar.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hook.Pip.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Message.cpp" />
@@ -48,6 +50,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.JumpJet.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Gattling.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.GreatestThreat.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
@@ -80,6 +83,8 @@
     <ClCompile Include="src\Lib\asmjit\core\arenalist.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\arenatree.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\arenavector.cpp" />
+    <ClCompile Include="src\Lib\fmt\format.cc" />
+    <ClCompile Include="src\Lib\fmt\os.cc" />
     <ClCompile Include="src\Lib\Lua\lapi.c" />
     <ClCompile Include="src\Lib\Lua\lauxlib.c" />
     <ClCompile Include="src\Lib\Lua\lbaselib.c" />
@@ -686,6 +691,20 @@
     <ClInclude Include="src\Lib\asmjit\core\span.h" />
     <ClInclude Include="src\Lib\asmjit\host.h" />
     <ClInclude Include="src\Lib\base64\base64.h" />
+    <ClInclude Include="src\Lib\fmt\args.h" />
+    <ClInclude Include="src\Lib\fmt\base.h" />
+    <ClInclude Include="src\Lib\fmt\chrono.h" />
+    <ClInclude Include="src\Lib\fmt\color.h" />
+    <ClInclude Include="src\Lib\fmt\compile.h" />
+    <ClInclude Include="src\Lib\fmt\core.h" />
+    <ClInclude Include="src\Lib\fmt\format-inl.h" />
+    <ClInclude Include="src\Lib\fmt\format.h" />
+    <ClInclude Include="src\Lib\fmt\os.h" />
+    <ClInclude Include="src\Lib\fmt\ostream.h" />
+    <ClInclude Include="src\Lib\fmt\printf.h" />
+    <ClInclude Include="src\Lib\fmt\ranges.h" />
+    <ClInclude Include="src\Lib\fmt\std.h" />
+    <ClInclude Include="src\Lib\fmt\xchar.h" />
     <ClInclude Include="src\Lib\Lua\lauxlib.h" />
     <ClInclude Include="src\Lib\Lua\lcode.h" />
     <ClInclude Include="src\Lib\Lua\lctype.h" />

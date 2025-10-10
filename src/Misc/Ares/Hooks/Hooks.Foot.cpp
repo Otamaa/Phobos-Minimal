@@ -261,16 +261,31 @@ ASMJIT_PATCH(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
 	return 0x4D9EC9;
 }
 
+#include <Locomotor/LocomotionClass.h>
+
 // move to the next hva frame, even if this unit isn't moving
 ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 {
 	GET(FootClass*, pThis, ESI);
 	auto pType = pThis->GetTechnoType();
-	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-	//auto pUnit = cast_to<UnitClass* , false>(pThis);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pExt->ResetLocomotor)
+	{
+		// Reinstalling Locomotor can avoid various issues such as teleportation, ignoring commands, and automatic return
+		while (LocomotionClass::End_Piggyback(pThis->Locomotor));
+
+		if (const auto pNewLoco = LocomotionClass::CreateInstance(pType->Locomotor)) {
+			pThis->Locomotor = std::move(pNewLoco);
+			pThis->Locomotor->Link_To_Object(pThis);
+		}
+
+		pExt->ResetLocomotor = false;
+	}
 
 	// Update laser trails after locomotor process, to ensure that the updated position is not the previous frame's position
-	TechnoExtContainer::Instance.Find(pThis)->UpdateLaserTrails();
+	pExt->UpdateLaserTrails();
 	TechnoExtData::Fastenteraction(pThis);
 
 	enum { Undecided = 0u,
@@ -291,9 +306,9 @@ ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 	}
 
 	// animate unit whenever in air
-	if (pExt->AirRate && pThis->GetHeight() > 0)
+	if (pTypeExt->AirRate && pThis->GetHeight() > 0)
 	{
-		return (Unsorted::CurrentFrame % pExt->AirRate) ? NoChange : Advance;
+		return (Unsorted::CurrentFrame % pTypeExt->AirRate) ? NoChange : Advance;
 	}
 
 	return Undecided;

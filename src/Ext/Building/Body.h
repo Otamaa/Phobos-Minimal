@@ -222,6 +222,8 @@ public:
 	}
 
 	void _OnFireAI();
+	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
+	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);

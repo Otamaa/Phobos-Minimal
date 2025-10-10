@@ -155,6 +155,7 @@ public:
 		static const wchar_t* Storage_Label;
 		static const wchar_t* Radar_Label;
 		static const wchar_t* Spysat_Label;
+		static const wchar_t* Tech_Label;
 
 		static const wchar_t* SWShotsFormat;
 

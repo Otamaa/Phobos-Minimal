@@ -21,6 +21,53 @@
 
 bool TechnoTypeExtData::SelectWeaponMutex = false;
 
+void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
+{
+	int Num = 0;
+	int EliteNum = 0;
+
+	this->ThreatTypes = { ThreatType::Normal,ThreatType::Normal };
+	this->CombatDamages = { 0,0 };
+
+	const auto pThis = this->This();
+	int Count = 2;
+
+	if (this->MultiWeapon
+		&& (!pThis->IsGattling && (!pThis->HasMultipleTurrets() || !pThis->Gunner)))
+	{
+		Count = pThis->WeaponCount;
+	}
+
+	for (int index = 0; index < Count; index++)
+	{
+		const auto pWeapon = pThis->GetWeapon(index)->WeaponType;
+		auto pEliteWeapon = pThis->GetEliteWeapon(index)->WeaponType;
+
+		if (!pEliteWeapon)
+			pEliteWeapon = pWeapon;
+
+		if (pWeapon)
+		{
+			this->ThreatTypes.X |= pWeapon->AllowedThreats();
+			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
+			Num++;
+		}
+
+		if (pEliteWeapon)
+		{
+			this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
+			this->CombatDamages.Y += (pEliteWeapon->Damage + pEliteWeapon->AmbientDamage);
+			EliteNum++;
+		}
+	}
+
+	if (Num > 0)
+		this->CombatDamages.X /= Num;
+
+	if (EliteNum > 0)
+		this->CombatDamages.Y /= EliteNum;
+}
+
 bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
 {
 	const auto pThis = This();

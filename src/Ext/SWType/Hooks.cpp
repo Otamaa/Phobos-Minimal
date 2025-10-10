@@ -199,26 +199,23 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 		lastFrameTime = currentFrameTime;
 		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms | Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
-		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	case FPSCounterMode::FPSOnly: {
 		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {}", FPSCounter::CurrentFrameRate());
-		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	case FPSCounterMode::FPSandAVG: {
 		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | Avg: {}", FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
-		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	}
-
+	buffer.push_back(L'\0');
 	this->DrawAllTacticalText(text);
 }
 

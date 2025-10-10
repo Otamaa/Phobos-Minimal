@@ -449,6 +449,8 @@ public:
 
 	Valueable<bool> NoQueueUpToEnter {};
 	Valueable<bool> NoQueueUpToUnload {};
+	Nullable<bool> NoQueueUpToEnter_Buildings {};
+	Nullable<bool> NoQueueUpToUnload_Buildings {};
 
 	Valueable<bool> NoRearm_UnderEMP { false };
 	Valueable<bool> NoRearm_Temporal { false };

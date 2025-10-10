@@ -924,3 +924,69 @@ ASMJIT_PATCH(0x7090A0, TechnoClass_VoiceAttack, 0x7)
 
 	return 0x7091C7;
 }
+
+ThreatType __forceinline GetThreatType(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, ThreatType result)
+{
+	ThreatType flags = pThis->Veterancy.IsElite() ? pTypeExt->ThreatTypes.Y : pTypeExt->ThreatTypes.X;
+	return result | flags;
+}
+
+DEFINE_HOOK_AGAIN(0x51E2CF, InfantryClass_SelectAutoTarget_MultiWeapon, 0x6)	// InfantryClass_SelectAutoTarget
+DEFINE_HOOK(0x743203, UnitClass_SelectAutoTarget_MultiWeapon, 0x6)				// UnitClass_SelectAutoTarget
+{
+	GET(FootClass*, pThis, ESI);
+	GET(ThreatType, result, EDI);
+	enum { InfantryReturn = 0x51E31B, UnitReturn = 0x74324F };
+
+	R->EDI(GetThreatType(pThis, TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), result));
+	return R->Origin() == 0x743203 ? UnitReturn : InfantryReturn;
+}
+
+DEFINE_HOOK(0x445F04, BuildingClass_SelectAutoTarget_MultiWeapon, 0xA)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET_STACK(ThreatType, result, STACK_OFFSET(0x8, 0x4));
+	enum { ReturnThreatType = 0x445F58 };
+
+	R->EDI(GetThreatType(pThis, TechnoTypeExtContainer::Instance.Find(pThis->Type), result));
+	return ReturnThreatType;
+}
+
+DEFINE_HOOK(0x6F39F4, TechnoClass_CombatDamage_MultiWeapon, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	enum { ReturnDamage = 0x6F3ABB };
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	R->EAX(pThis->Veterancy.IsElite() ? pTypeExt->CombatDamages.Y : pTypeExt->CombatDamages.X);
+	return ReturnDamage;
+}
+
+DEFINE_HOOK(0x707ED0, TechnoClass_GetGuardRange_MultiWeapon, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	enum { ReturnRange = 0x707F08 };
+
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pTypeExt->MultiWeapon
+		&& (!pType->IsGattling && (!pType->HasMultipleTurrets() || !pType->Gunner)))
+	{
+		const int selectCount = MinImpl(pType->WeaponCount, pTypeExt->MultiWeapon_SelectCount);
+		int range = 0;
+
+		for (int index = selectCount - 1; index >= 0; --index)
+		{
+			const auto weaponRange = pThis->GetWeaponRange(index);
+
+			if (weaponRange > range)
+				range = weaponRange;
+		}
+
+		R->EAX(range);
+		return ReturnRange;
+	}
+
+	return 0;
+}

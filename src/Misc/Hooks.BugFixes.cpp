@@ -1957,20 +1957,21 @@ NOINLINE LocomotionClass* getILoco(REGISTERS* R) {
 	return static_cast<LocomotionClass*>(pIloco);
 }
 
-//ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
-//{
-//	if(const auto pLoco = getILoco(R)) {
-//		if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
-//			if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
-//				pLoco->Power_On();
-//			else
-//				pLoco->Power_Off();
-//		}
-//	}
-//	return 0;
-//}ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
-//ASMJIT_PATCH_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
-//ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
+//TODO :Evaluate these bullshit
+ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
+{
+	if(const auto pLoco = getILoco(R)) {
+		if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
+			if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
+				pLoco->Power_On();
+			else
+				pLoco->Power_Off();
+		}
+	}
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
+ASMJIT_PATCH_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
+ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
 
 
 #pragma endregion
@@ -2793,13 +2794,14 @@ void NAKED _PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET()
 	POP_REG(EBX);
 	JMP(0x638F2A);
 }
-DEFINE_HOOK(0x638F1E, PlanningNodeClass_UpdateHoverNode_FixCheckValidity, 0x5)
+
+ASMJIT_PATCH(0x638F1E, PlanningNodeClass_UpdateHoverNode_FixCheckValidity, 0x5)
 {
 	// Newly added checks to prevent not in-time updates
 	return PlanningNodeClass::PlanningModeActive ? (int)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET : 0;
 }
 
-DEFINE_HOOK(0x638F70, PlanningNodeClass_UpdateHoverNode_SkipDuplicateLog, 0x8)
+ASMJIT_PATCH(0x638F70, PlanningNodeClass_UpdateHoverNode_SkipDuplicateLog, 0x8)
 {
 	enum { SkipLogString = 0x638F81 };
 

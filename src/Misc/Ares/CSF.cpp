@@ -206,7 +206,6 @@ ASMJIT_PATCH(0x6BD84E, CSF_LoadExtraFiles, 5)
 
 	fmt::format_to(std::back_inserter(buffer), "ares_{}.csf", res);
 	buffer.push_back('\0');
-
 	CSFLoader::LoadAdditionalCSF(buffer.data());
 
 	buffer.clear();

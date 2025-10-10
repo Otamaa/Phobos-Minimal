@@ -111,6 +111,7 @@ void FlyingStrings::AddMoneyString(bool Display, int amount, TechnoClass* owner,
 		} else {
 			fmt::format_to(std::back_inserter(moneyStr), L"+{}{}", Phobos::UI::CostLabel, Math::abs(amount));
 		}
+
 		moneyStr.push_back(L'\0');
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(moneyStr.data(), &nDim.Width, &nDim.Height, 120);
@@ -140,13 +141,14 @@ void FlyingStrings::AddMoneyString(bool Display, int amount, HouseClass* owner, 
 		{
 			bool isPositive = amount > 0;
 			color = isPositive ? Drawing::DefaultColors[(int)DefaultColorList::Green] : Drawing::DefaultColors[(int)DefaultColorList::Red];
-			fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}\0", amount > 0 ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(amount));
+			fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", amount > 0 ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(amount));
 		}
 		else
 		{
-			fmt::format_to(std::back_inserter(moneyStr), L"+{}{}\0", Phobos::UI::CostLabel, Math::abs(amount));
+			fmt::format_to(std::back_inserter(moneyStr), L"+{}{}", Phobos::UI::CostLabel, Math::abs(amount));
 		}
 
+		moneyStr.push_back(L'\0');
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(moneyStr.data(), &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
@@ -196,7 +198,8 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 		const wchar_t* sign_symbol = (sign && amount != 0) ? (isPositive ? L"+" : L"-") : L"";
 		static fmt::basic_memory_buffer<wchar_t> buffer;
 		buffer.clear();
-		fmt::format_to(std::back_inserter(buffer), L"{}{}{}\0", sign_symbol, prefix ? prefix : Phobos::UI::CostLabel, Math::abs(amount));
+		fmt::format_to(std::back_inserter(buffer), L"{}{}{}", sign_symbol, prefix ? prefix : Phobos::UI::CostLabel, Math::abs(amount));
+		buffer.push_back(L'\0');
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(buffer.data(), &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
@@ -236,12 +239,11 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 	damagestr.clear();
 
 	if(!pWH || mode != DrawDamageMode::withWH)
-		fmt::format_to(std::back_inserter(damagestr), L"{}\0" , damage);
+		fmt::format_to(std::back_inserter(damagestr), L"{}" , damage);
 	else
-		fmt::format_to(std::back_inserter(damagestr), L"{} [{}]\0", damage , PhobosCRT::StringToWideString(pWH->ID));
+		fmt::format_to(std::back_inserter(damagestr), L"{} [{}]", damage , PhobosCRT::StringToWideString(pWH->ID));
 
-	//damagestr.push_back(L'\0');
-
+	damagestr.push_back(L'\0');
 	BitFont::Instance->GetTextDimension(damagestr.data(), &width, &height, 120);
 
 	if (offset >= maxOffset || offset == INT32_MIN)
