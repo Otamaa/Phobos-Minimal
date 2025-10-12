@@ -40,7 +40,7 @@ int BuildThreatBitfield(ThreatType method)
 {
 	int bitfield = 0;
 
-	if ((method & ThreatType::Infantry) != ThreatType::Normal)
+	if ((method & ThreatType::Range) != ThreatType::Normal)
 	{
 		bitfield = 0x8042;
 	}
@@ -176,7 +176,7 @@ bool ShouldInfantryAttackAlly(TechnoClass* techno, bool canHealOrRepair, bool is
 {
 
 	// Can't heal, is not player controlled, is infantry with special flag
-	if (canHealOrRepair)
+	if (!canHealOrRepair)
 	{
 		return false;
 	}
