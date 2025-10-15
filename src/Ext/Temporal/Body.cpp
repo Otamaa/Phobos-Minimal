@@ -89,7 +89,7 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 		target->IsMouseHovering = false;
 
 	if (pWarheadExt->Supress_LostEva)
-		pOwnerExt->SupressEVALost = true;
+		pOwnerExt->Get_TechnoStateComponent()->SupressEVALost = true;
 
 	if (target && target->IsSelected)
 		target->Deselect();
@@ -103,11 +103,14 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 		}
 	}
 
-	pTargetExt->RadarJammer.reset();
+	// #617 powered units
+	Phobos::gEntt->remove<PoweredUnitClass>(pOwnerExt->MyEntity);
+	// if the removed object is a radar jammer, unjam all jammed radars
+	Phobos::gEntt->remove<RadarJammerClass>(pOwnerExt->MyEntity);
 
 	if (target && target->IsAlive)
 	{
-		AresAE::UpdateTempoal(&pTargetExt->AeData, target);
+		AresAE::UpdateTempoal(pTargetExt->Get_AresAEData() , target);
 
 		if (target && target->IsAlive)
 		{

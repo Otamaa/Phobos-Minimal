@@ -477,7 +477,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 		}
 	}
 
-	if (pExt->AE.HasFeedbackWeapon) {
+	if (pExt->Get_AEProperties()->HasFeedbackWeapon) {
 		for (auto const& pAE : pExt->PhobosAE) {
 
 			if(!pAE|| !pAE->IsActive())
@@ -587,9 +587,9 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 	++pThis->CurrentBurstIndex;
 	pThis->CurrentBurstIndex %= pWeaponType->Burst;
 
-	if (pExt->ForceFullRearmDelay)
+	if (pExt->Get_TechnoStateComponent()->ForceFullRearmDelay)
 	{
-		pExt->ForceFullRearmDelay = false;
+		pExt->Get_TechnoStateComponent()->ForceFullRearmDelay = false;
 		pThis->CurrentBurstIndex = 0;
 	}
 

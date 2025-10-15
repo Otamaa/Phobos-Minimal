@@ -28,4 +28,5 @@ namespace Savegame {
 			return std::make_unique<T>();
 		}
 	};
+
 }

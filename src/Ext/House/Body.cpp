@@ -3202,7 +3202,7 @@ void FakeHouseClass::_UpdateRadar() {
 				if (!building->IsAlive) continue;
 				if (building->InLimbo) continue;
 				if (!building->IsOnMap) continue;
-				if (TechnoExtContainer::Instance.Find(building)->AE.DisableRadar) continue;
+				if (TechnoExtContainer::Instance.Find(building)->Get_AEProperties()->DisableRadar) continue;
 
 				const auto pExt = building->_GetExtData();
 
@@ -3347,7 +3347,7 @@ void FakeHouseClass::_UpdateSpySat()
 				if (IsSpysatActulallyAllowed && !Spysat)
 				{
 					//only pick avaible spysat
-					if (!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat)
+					if (!TechnoExtContainer::Instance.Find(pBld)->Get_AEProperties()->DisableSpySat)
 					{
 						const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && pBld->HasPower);
 						if ((*begin)->SpySat && !Jammered && IsSpySatPowered)

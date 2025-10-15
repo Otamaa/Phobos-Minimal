@@ -6,6 +6,7 @@
 #include <AnimClass.h>
 #include <Utilities/Handle.h>
 #include <Utilities/VectorHelper.h>
+#include <Utilities/GameObjectWeakPtr.h>
 
 struct AresAEData;
 class WarheadTypeClass;
@@ -13,33 +14,41 @@ struct AresAE
 {
 public:
 	AresAttachEffectTypeClass* Type { nullptr };
-	Handle<AnimClass*, UninitAnim> Anim { nullptr };
+	Handle<AnimClass*, MarkForDeathDeleter<AnimClass>> Anim { nullptr };
 	int Duration { 0 };
 	HouseClass* Invoker { nullptr };
 
-	AresAE() noexcept = default;
+	AresAE(const AresAE&) = delete;
+	AresAE& operator=(const AresAE&) = delete;
+	~AresAE() = default;
+	AresAE() = default;
 
-	AresAE(const AresAE& that) : Type(that.Type)
-		, Anim { nullptr }
-		, Duration { that.Duration }
-		, Invoker { that.Invoker } {
-		//oogly
-		auto c_remove = const_cast<AresAE*>(&that);
-		this->Anim.swap(c_remove->Anim);
+	AresAE(AresAE&& other) noexcept
+		: Type(other.Type),
+		Anim(std::move(other.Anim)),
+		Duration(other.Duration),
+		Invoker(other.Invoker) {
+		other.Type = nullptr;
+		other.Duration = 0;
+		other.Invoker = nullptr;
 	}
 
-	AresAE& operator=(const AresAE& other) {
-		this->Type = other.Type;
-		this->Duration = other.Duration;
-		this->Invoker = other.Invoker;
-		//oogly
-		auto c_remove = const_cast<AresAE*>(&other);
-		this->Anim.swap(c_remove->Anim);
+	AresAE& operator=(AresAE&& other) noexcept {
+		if (this != &other) {
+
+			// release our current anim safely
+			ClearAnim();
+
+			Type = other.Type;
+			Anim = std::move(other.Anim);
+			Duration = other.Duration;
+			Invoker = other.Invoker;
+
+			other.Type = nullptr;
+			other.Duration = 0;
+			other.Invoker = nullptr;
+		}
 		return *this;
-	}
-
-	~AresAE() {
-		Anim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	}
 
 	void OPTIONALINLINE InvalidateAnimPointer(AnimClass* ptr) {
@@ -82,7 +91,6 @@ private:
 			.Process(Duration)
 			.Process(Invoker, true)
 			.Success()
-			&& Stm.RegisterChange(this) // announce this type
 			;
 	}
 
@@ -97,12 +105,17 @@ struct AresAEData
 
 	void OPTIONALINLINE InvalidateAnimPointer(AnimClass* ptr)
 	{
-		for (auto& ae_ : Data)
+		for (auto& ae_ : Data) {
 			ae_.InvalidateAnimPointer(ptr);
+		}
+
 	}
 
-	~AresAEData() = default;
 	AresAEData() = default;
+	AresAEData(AresAEData&&) = delete;
+	AresAEData& operator=(AresAEData&&) = delete;
+	AresAEData(const AresAEData&) = delete;
+	AresAEData& operator=(const AresAEData&) = delete;
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
@@ -115,9 +128,10 @@ struct AresAEData
 	}
 
 private:
-	AresAEData(const AresAEData& other)=delete;
-	AresAEData&operator=(const AresAEData& other)=delete;
-	AresAEData&operator=(AresAEData&&)=delete;
+	//AresAEData(const AresAEData& other)=delete;
+	//AresAEData&operator=(const AresAEData& other)=delete;
+	//AresAEData&operator=(AresAEData&&)=delete;
+
 
 	template <typename T>
 	bool Serialize(T& Stm)

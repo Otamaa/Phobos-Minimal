@@ -890,7 +890,7 @@ ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 
 		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
-		if(pExt && !pExt->IsDetachingForCloak) {
+		if(!pExt->Get_TechnoStateComponent()->IsDetachingForCloak) {
 			return 0x425174;
 		}
 	}

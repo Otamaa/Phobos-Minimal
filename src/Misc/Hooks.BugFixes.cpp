@@ -466,7 +466,7 @@ ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
 	GET(TeamClass* const, pTeam, EBP);
 	GET(TeamTypeClass const*, pThis, EBX);
 
-	auto unmarkPayloadCreated = [](FootClass* member){TechnoExtContainer::Instance.Find(member)->PayloadCreated = false;};
+	auto unmarkPayloadCreated = [](FootClass* member){TechnoExtContainer::Instance.Find(member)->Get_TechnoStateComponent()->PayloadCreated = false;};
 
 	if (!pTransport) {
 		for (auto pNext = pPayload;
@@ -1422,7 +1422,7 @@ ASMJIT_PATCH(0x74691D, UnitClass_UpdateDisguise_EMP, 0x6)
 	// Remove mirage disguise if under emp or being flipped, approximately 15 deg
 	if (pThis->Deactivated
 		|| pThis->IsUnderEMP()
-		|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled
+		|| TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled
 		|| Math::abs(pThis->AngleRotatedForwards) > 0.25
 		|| Math::abs(pThis->AngleRotatedSideways) > 0.25)
 	{

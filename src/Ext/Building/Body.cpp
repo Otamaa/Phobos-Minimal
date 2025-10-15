@@ -868,15 +868,17 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		}
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->Shield.release();
+
+		Phobos::gEntt->remove<ShieldClass>(pBuildingExt->MyEntity);
+		Phobos::gEntt->remove<GiftBox>(pBuildingExt->MyEntity);
+		Phobos::gEntt->remove<DamageSelfState>(pBuildingExt->MyEntity);
+		Phobos::gEntt->remove<WeaponTimers>(pBuildingExt->MyEntity);
+		Phobos::gEntt->remove<SimulateBurstManager>(pBuildingExt->MyEntity);
+		Phobos::gEntt->remove<DelayFireManager>(pBuildingExt->MyEntity);
+
 		pBuildingExt->Trails.clear();
 		pBuildingExt->RevengeWeapons.clear();
-		pBuildingExt->DamageSelfState.release();
-		pBuildingExt->MyGiftBox.release();
 		pBuildingExt->PaintBallStates.clear();
-		pBuildingExt->ExtraWeaponTimers.clear();
-		pBuildingExt->MyWeaponManager.Clear();
-		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
 
 		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
 		{

@@ -246,7 +246,9 @@ public:
 	Nullable<double> DamageOwnerMultiplier;
 	Nullable<double> DamageAlliesMultiplier;
 	Nullable<double> DamageEnemiesMultiplier;
-	Nullable<bool> DamageEnemiesMultiplier_UsedForAllTargetInBerzerk;
+	Nullable<double> DamageOwnerMultiplier_Berzerk;
+	Nullable<double> DamageAlliesMultiplier_Berzerk;
+	Nullable<double> DamageEnemiesMultiplier_Berzerk;
 
 	PhobosFixedString<32U> AttachTag;
 	Valueable<bool> AttachTag_Imposed;
@@ -652,7 +654,9 @@ public:
 		DamageOwnerMultiplier(),
 		DamageAlliesMultiplier(),
 		DamageEnemiesMultiplier(),
-		DamageEnemiesMultiplier_UsedForAllTargetInBerzerk(),
+		DamageOwnerMultiplier_Berzerk(),
+		DamageAlliesMultiplier_Berzerk(),
+		DamageEnemiesMultiplier_Berzerk(),
 		AttachTag(),
 		AttachTag_Imposed(false),
 		AttachTag_Types(),

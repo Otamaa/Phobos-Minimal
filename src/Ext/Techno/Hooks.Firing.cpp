@@ -389,7 +389,7 @@ ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 	if (pTransport->Transporter || (pTransport->Deactivated && !pTypeExt->OpenTopped_AllowFiringIfDeactivated))
 		return Illegal;
 
-	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons && TechnoExtContainer::Instance.Find(pTransport)->AE.DisableWeapons)
+	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons && TechnoExtContainer::Instance.Find(pTransport)->Get_AEProperties()->DisableWeapons)
 		return OutOfRange;
 
 	return Continue;
@@ -581,7 +581,7 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->AE.HasOnFireDiscardables) {
+	if (pExt->Get_AEProperties()->HasOnFireDiscardables) {
 		for (auto& attachEffect : pExt->PhobosAE) {
 				if(!attachEffect || attachEffect->ShouldBeDiscarded)
 					continue;
@@ -685,7 +685,7 @@ ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->DelayedFireSequencePaused)
+	if (pExt->Get_TechnoStateComponent()->DelayedFireSequencePaused)
 		return SkipGameCode;
 
 	return 0;
@@ -731,7 +731,7 @@ ASMJIT_PATCH(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
 			if (pExt->LastWeaponType && pExt->LastWeaponType->Burst) {
 
 				const auto ratio = static_cast<double>(pThis->CurrentBurstIndex) / pExt->LastWeaponType->Burst;
-				const auto rof = static_cast<int>(ratio * pExt->LastWeaponType->ROF * pExt->AE.ROFMultiplier) - (Unsorted::CurrentFrame - pThis->LastFireBulletFrame);
+				const auto rof = static_cast<int>(ratio * pExt->LastWeaponType->ROF * pExt->Get_AEProperties()->ROFMultiplier) - (Unsorted::CurrentFrame - pThis->LastFireBulletFrame);
 
 				if (rof > 0){
 					pThis->ROF = rof;

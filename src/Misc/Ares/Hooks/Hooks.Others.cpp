@@ -771,7 +771,7 @@ ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 // {
 // 	GET(LPSTREAM, pStm, ESI);
 //
-//	
+//
 // 	int length = 0;
 // 	LPVOID out;
 // 	if (pStm->Read(&length, 4, 0) < 0)
@@ -955,7 +955,7 @@ ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)
 
 	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->Get_TechnoStateComponent()->FallingDownTracked = true;
 	}
 	return 0;
 }
@@ -966,7 +966,7 @@ ASMJIT_PATCH(0x5F4160, ObjectClass_DropAsBomb_Track, 0x6)
 
 	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->Get_TechnoStateComponent()->FallingDownTracked = true;
 	}
 
 	return 0;
@@ -978,7 +978,7 @@ ASMJIT_PATCH(0x5F3F86, ObjectClass_Update_Track, 0x7)
 
 	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = false;
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->Get_TechnoStateComponent()->FallingDownTracked = false;
 	}
 
 	return 0;

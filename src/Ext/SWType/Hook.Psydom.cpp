@@ -78,7 +78,7 @@ ASMJIT_PATCH(0x53B080, PsyDom_Fire, 5)
 				}
 
 				// ignore units with no drivers
-				if (TechnoExtContainer::Instance.Find(pTechno)->Is_DriverKilled)
+				if (TechnoExtContainer::Instance.Find(pTechno)->Get_TechnoStateComponent()->IsDriverKilled)
 				{
 					return true;
 				}

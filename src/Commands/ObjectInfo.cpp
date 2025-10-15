@@ -101,7 +101,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 	Append(buffer, "Current Mission = %d (%s)\n", pFoot->CurrentMission, MissionClass::MissionToString(pFoot->CurrentMission));
 	Append(buffer, "sp = %fl, fp = %fl , am = %fl , EMP: %d ", pFoot->SpeedMultiplier, pFoot->FirepowerMultiplier, pFoot->ArmorMultiplier, pFoot->EMPLockRemaining);
 	if (pFoot->WhatAmI() != InfantryClass::AbsID)
-		Append(buffer, ", DKilled= %d , ", TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled);
+		Append(buffer, ", DKilled= %d , ", TechnoExtContainer::Instance.Find(pFoot)->Get_TechnoStateComponent()->IsDriverKilled);
 
 	Append(buffer, "Grp = %d, RectA = %d, RectB = %d\n", pFoot->Group, (int)pFoot->RecruitableA, (int)pFoot->RecruitableB);
 
@@ -223,7 +223,7 @@ void PrintFoots(T& buffer, FootClass* pFoot)
 
 	if (const auto pTechnoExt = TechnoExtContainer::Instance.Find(pFoot))
 	{
-		const auto pShieldData = pTechnoExt->Shield.get();
+		const auto pShieldData = pTechnoExt->GetShield();
 
 		if (pTechnoExt->CurrentShieldType && pShieldData)
 		{
@@ -305,7 +305,7 @@ void PrintBuilding(T& buffer, BuildingClass* pBuilding)
 
 	if (auto pTechnoExt = TechnoExtContainer::Instance.Find(pBuilding))
 	{
-		auto pShieldData = pTechnoExt->Shield.get();
+		auto pShieldData = pTechnoExt->GetShield();
 
 		if (pTechnoExt->CurrentShieldType && pShieldData)
 		{

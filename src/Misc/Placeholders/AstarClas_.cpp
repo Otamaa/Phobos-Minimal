@@ -19,7 +19,7 @@ ASMJIT_PATCH(0x42C4FE, AstarClass_FindPath_nullptr, 0x9)
 		pFrom->X, pFrom->Y,
 		pTo->X, pTo->Y,
 		TechnoTypeClass::MovementZonesToString[int(movementZone)], int(movementZone),
-		TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled ? "Yes" : "No"
+		TechnoExtContainer::Instance.Find(pFoot)->States->IsDriverKilled ? "Yes" : "No"
 	);
 
 	return 0x0;

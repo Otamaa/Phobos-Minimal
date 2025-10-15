@@ -42,7 +42,7 @@ ASMJIT_PATCH(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
 	const auto pExt = TechnoExtContainer::Instance.Find(pLoco->LinkedTo);
 
-	pExt->IsBurrowed = true;
+	pExt->Get_TechnoStateComponent()->IsBurrowed = true;
 
 	if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 	{
@@ -66,7 +66,7 @@ ASMJIT_PATCH(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
 	{
 		const auto pExt = TechnoExtContainer::Instance.Find(pLoco->LinkedTo);
-		pExt->IsBurrowed = false;
+		pExt->Get_TechnoStateComponent()->IsBurrowed = false;
 
 		if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 			pShieldData->SetAnimationVisibility(true);
@@ -84,13 +84,13 @@ void UpdateWebbed(FootClass* pThis)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (!pExt->IsWebbed)
+	if (!pExt->Get_TechnoStateComponent()->IsWebbed)
 		return;
 
 	if (auto pInf = cast_to<InfantryClass*, false>(pThis)){
 		if (pInf->ParalysisTimer.Completed()) {
 
-			pExt->IsWebbed = false;
+			pExt->Get_TechnoStateComponent()->IsWebbed = false;
 
 			if (pExt->WebbedAnim) {
 				pExt->WebbedAnim.clear();
@@ -159,11 +159,13 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 #endif
 
 	// Update tunnel state on exit, TechnoClass::AI is only called when not in tunnel.
-	if (pExt->IsInTunnel)
-	{
-		pExt->IsInTunnel = false;
+	auto pState = pExt->Get_TechnoStateComponent();
 
-		if (const auto pShieldData = pExt->Shield.get())
+	if (pState->IsInTunnel) {
+
+		pState->IsInTunnel = false;
+
+		if (auto pShieldData = pExt->GetShield())
 			pShieldData->SetAnimationVisibility(true);
 	}
 
@@ -233,7 +235,7 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 		return retDead;
 	}
 
-	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
+	DelayFireManager::TechnoClass_Update_CustomWeapon(pThis);
 
 	if (!pThis->IsAlive) {
 		return retDead;
@@ -258,7 +260,7 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 		return true;
 	});
 
-	if (auto& pDSState = pExt->DamageSelfState) {
+	if (auto pDSState = pExt->Get_DamageSelfState()) {
 		pDSState->TechnoClass_Update_DamageSelf(pThis);
 	}
 
@@ -276,7 +278,7 @@ ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClas
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	pExt->UpdateMindControlAnim();
-	pExt->IsDetachingForCloak = true;
+	pExt->Get_TechnoStateComponent()->IsDetachingForCloak = true;
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x6FBBC3, TechnoClass_Cloak_BeforeDetach, 0x5)  // TechnoClass_Cloaking_AI
@@ -285,7 +287,7 @@ ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClas
 ASMJIT_PATCH(0x703799, TechnoClass_Cloak_AfterDetach, 0xA)        // TechnoClass_Do_Cloak
 {
 	GET(TechnoClass*, pThis, ESI);
-	TechnoExtContainer::Instance.Find(pThis)->IsDetachingForCloak = false;
+	TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDetachingForCloak = false;
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x6FBBCE, TechnoClass_Cloak_AfterDetach, 0x7)  // TechnoClass_Cloaking_AI
 
@@ -339,7 +341,7 @@ ASMJIT_PATCH(0x51B389, FootClass_TunnelAI_Enter, 0x6) // Inf
 // 			return true;
 // 		});
 
-// 		if (auto& pDSState = pExt->DamageSelfState) {
+// 		if (auto pDSState = pExt->DamageSelfState) {
 // 			pDSState->TechnoClass_Update_DamageSelf(pThis);
 // 		}
 // 	}

@@ -533,7 +533,7 @@ ASMJIT_PATCH(0x423122, AnimClass_DrawIt_DrawOffset, 0x6)
 		}
 
 		if(pTechno){
-			if (auto const pShield = TechnoExtContainer::Instance.Find(pTechno)->Shield.get()) {
+			if (auto pShield = TechnoExtContainer::Instance.Find(pTechno)->GetShield()) {
 
 				auto const pShieldType = pShield->GetType();
 

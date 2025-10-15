@@ -15,7 +15,6 @@ struct UuidFirstPart {
 	static constexpr unsigned int value = __uuidof(T).Data1;
 };
 
-
 struct AbstractExtended {
 private:
 	AbstractClass* AttachedToObject;

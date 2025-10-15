@@ -8,6 +8,11 @@ void AircraftPutDataFunctional::OnPut(TechnoExtData* pExt, TechnoTypeExtData* pT
 	if (!pExt->This()->Owner || pExt->This()->WhatAmI() != AircraftClass::AbsID)
 		return;
 
+	auto pPutData = pExt->Get_AircraftPutState();
+
+	if(!pPutData)
+		pPutData = &Phobos::gEntt->emplace<AircraftPutState>(pExt->MyEntity);
+
 	auto const pTechno = (AircraftClass*)pExt->This();
 
 	if (!pTechno->Spawned)
@@ -37,10 +42,10 @@ void AircraftPutDataFunctional::OnPut(TechnoExtData* pExt, TechnoTypeExtData* pT
 			auto const nOffset = GetOffset(pTypeExt->MyPutData);
 
 			// move location
-			if (!pExt->aircraftPutOffsetFlag && nOffset.IsValid())
+			if (!pPutData->AircraftPutOffsetFlag && nOffset.IsValid())
 			{
-				pExt->aircraftPutOffsetFlag = true;
-				pExt->aircraftPutOffset = true;
+				pPutData->AircraftPutOffsetFlag = true;
+				pPutData->AircraftPutOffset = true;
 				if (!IsForceOffset(pTypeExt->MyPutData))
 				{
 					// check Building has Helipad
@@ -48,11 +53,11 @@ void AircraftPutDataFunctional::OnPut(TechnoExtData* pExt, TechnoTypeExtData* pT
 					{
 						auto const pBuilding = pCell->GetBuilding();
 						if (pBuilding && pBuilding->Type->Helipad)
-							pExt->aircraftPutOffset = false;
+							pPutData->AircraftPutOffset = false;
 					}
 				}
 
-				if (pExt->aircraftPutOffset)
+				if (pPutData->AircraftPutOffset)
 					*pCoord += nOffset;
 
 			}
@@ -62,14 +67,16 @@ void AircraftPutDataFunctional::OnPut(TechnoExtData* pExt, TechnoTypeExtData* pT
 
 void AircraftPutDataFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->aircraftPutOffset)
+	auto pPutData = pExt->Get_AircraftPutState();
+
+	if (!pPutData || !pPutData->AircraftPutOffset)
 		return;
 
 	auto const nOffset = GetOffset(pTypeExt->MyPutData);
 
 	if (nOffset.IsValid())
 	{
-		pExt->aircraftPutOffset = false;
+		pPutData->AircraftPutOffset = false;
 		auto const pTechno = pExt->This();
 
 		CoordStruct location = pTechno->Location;

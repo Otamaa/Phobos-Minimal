@@ -1,5 +1,6 @@
 #include "ExtraFirefunctional.h"
 #include "ExtraFire.h"
+#include "ExtraFireData.h"
 
 #include <TechnoClass.h>
 #include <Ext/TechnoType/Body.h>
@@ -8,7 +9,7 @@
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
 #include <Misc/DynamicPatcher/CustomWeapon/CustomWeapon.h>
 
-static Iterator<WeaponTypeClass*> GetWeaponAndFLH(TechnoClass* pThis, const ExtraFireData& nExtraFireData, int nWeaponIdx , CoordStruct& selectedFLh)
+Iterator<WeaponTypeClass*> ExtraFirefunctional::HasAnyExtraFireWeapon(TechnoClass* pThis, const ExtraFireData& nExtraFireData, int nWeaponIdx , CoordStruct& selectedFLh)
 {
 	auto const pType = pThis->GetTechnoType();
 
@@ -90,6 +91,17 @@ static Iterator<WeaponTypeClass*> GetWeaponAndFLH(TechnoClass* pThis, const Extr
 	return {};
 }
 
+static SimulateBurstManager* GetOrCreateSimulateBurst(TechnoClass* pTechno)
+{
+	auto pExt = TechnoExtContainer::Instance.Find(pTechno);
+
+	if (auto myComp = Phobos::gEntt->try_get<SimulateBurstManager>(pExt->MyEntity)) {
+		return myComp;
+	}
+
+	return &Phobos::gEntt->emplace<SimulateBurstManager>(pExt->MyEntity);
+}
+
 void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, int nWeaponIdx)
 {
 	if (!pTarget)
@@ -98,13 +110,21 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
+	if(!pExt->Get_TechnoStateComponent()->HasExtraFireWeapon)
+		return;
+
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto& nExtraFireData = pTypeExt->MyExtraFireData;
 	CoordStruct nFLH = CoordStruct::Empty;
-	const auto nSelectedWeapon=  GetWeaponAndFLH(pThis, nExtraFireData, nWeaponIdx , nFLH);
+	const auto nSelectedWeapon =  ExtraFirefunctional::HasAnyExtraFireWeapon(pThis, nExtraFireData, nWeaponIdx , nFLH);
 
 	if (nSelectedWeapon.empty())
 		return;
+
+	auto pTimers = pExt->Get_WeaponTimers();
+
+	if(!pTimers)
+		pTimers = &Phobos::gEntt->emplace<WeaponTimers>(pExt->MyEntity);
 
 	const auto ROF = TechnoExtData::GetROFMult(pThis);
 
@@ -113,6 +133,8 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 			nFLH = pWPStr->FLH;
 		}
 	}
+
+	auto pSimulator = GetOrCreateSimulateBurst(pThis);
 
 	nSelectedWeapon.for_each([&](WeaponTypeClass* pWeapon){
 		bool bFire = true;
@@ -123,19 +145,19 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 
 			if (fireData.UseROF)
 			{
-				auto& nTimer = pExt->ExtraWeaponTimers[pWeapon];
+				auto& nTimer = pTimers->operator[](pWeapon);
 				bFire = false;
 				nRof = (int)(pWeapon->ROF * ROF);
 
 				if (nTimer.Expired())
 				{
 					nTimer.Start(nRof);
-					pExt->MyWeaponManager.FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, nRof);
+					pSimulator->FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, nRof);
 				}
 			}
 		}
 
 		if (bFire)
-			pExt->MyWeaponManager.FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, ROF);
+			pSimulator->FireCustomWeapon(pThis, pThis, pTarget, pWeapon, nFLH, CoordStruct::Empty, ROF);
 	});
 }

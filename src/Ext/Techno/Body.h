@@ -21,6 +21,7 @@
 #include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupport.h>
 #include <Misc/DynamicPatcher/Techno/FighterGuardArea/FighterAreaGuard.h>
 #include <Misc/DynamicPatcher/AttachedAffects/Effects/PaintBall/PaintBall.h>
+#include <Misc/DynamicPatcher/Techno/AircraftPut/AircraftPutState.h>
 
 #include <New/Type/DigitalDisplayTypeClass.h>
 
@@ -33,6 +34,7 @@
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
 
 #include <New/Entity/NewTiberiumStorageClass.h>
+#include <New/Entity/AEProperties.h>
 
 #include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
 
@@ -40,6 +42,7 @@
 #include <EBolt.h>
 
 #include <Ext/Radio/Body.h>
+#include <Utilities/EntityCachePtr.h>
 
 class BulletClass;
 class TechnoTypeClass;
@@ -73,7 +76,8 @@ public:
 		return const_cast<TintColors*>(this)->Serialize(Stm);
 	}
 
-	void Reset() {
+	void Reset()
+	{
 		this->ColorOwner = 0;
 		this->ColorAllies = 0;
 		this->ColorEnemies = 0;
@@ -106,522 +110,6 @@ private:
 	}
 };
 
-struct AEProperties
-{
-	struct ExtraRange
-	{
-		struct RangeData
-		{
-			double rangeMult { 1.0 };
-			double extraRange { 0.0 };
-			VectorSet<WeaponTypeClass*> allow {};
-			VectorSet<WeaponTypeClass*> disallow {};
-
-			bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
-			{
-				return this->Serialize(Stm);
-			}
-
-			bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
-			{
-				return const_cast<RangeData*>(this)->Serialize(Stm);
-			}
-
-			bool Eligible(WeaponTypeClass* who)
-			{
-				bool allowed = false;
-
-				if (allow.begin() != allow.end())
-				{
-					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
-					{
-						if (*iter_allow == who)
-						{
-							allowed = true;
-							break;
-						}
-					}
-				}
-				else
-				{
-					allowed = true;
-				}
-
-				if (allowed && disallow.begin() != disallow.end())
-				{
-					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
-					{
-						if (*iter_disallow == who)
-						{
-							allowed = false;
-							break;
-						}
-					}
-				}
-
-				return allowed;
-			}
-		private:
-
-			template <typename T>
-			bool FORCEDINLINE Serialize(T& Stm)
-			{
-				return Stm
-					.Process(this->rangeMult)
-					.Process(this->extraRange)
-					.Process(this->allow)
-					.Process(this->disallow)
-					.Success()
-					;
-			}
-		};
-
-		struct RangeDataOut
-		{
-			double rangeMult { 1.0 };
-			double extraRange { 0.0 };
-		};
-
-		HelperedVector<RangeData> ranges { };
-
-		bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
-		{
-			return this->Serialize(Stm);
-		}
-
-		bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
-		{
-			return const_cast<ExtraRange*>(this)->Serialize(Stm);
-		}
-
-		COMPILETIMEEVAL void Clear()
-		{
-			ranges.clear();
-		}
-
-		COMPILETIMEEVAL bool Enabled()
-		{
-			return !ranges.empty();
-		}
-
-		COMPILETIMEEVAL int Get(int initial, WeaponTypeClass* who)
-		{
-			int add = 0;
-			for (auto& ex_range : ranges)
-			{
-
-				if (!ex_range.Eligible(who))
-					continue;
-
-				initial = static_cast<int>(initial * MaxImpl(ex_range.rangeMult, 0.0));
-				add += static_cast<int>(ex_range.extraRange);
-			}
-
-			return initial + add;
-		}
-
-		COMPILETIMEEVAL void FillEligible(WeaponTypeClass* who, std::vector<RangeDataOut>& eligible)
-		{
-			for (auto& ex_range : this->ranges)
-			{
-				if (ex_range.Eligible(who))
-				{
-					eligible.emplace_back(ex_range.rangeMult, ex_range.extraRange);
-				}
-			}
-		}
-
-		static COMPILETIMEEVAL int Count(int initial, std::vector<RangeDataOut>& eligible)
-		{
-			int add = 0;
-			for (auto& ex_range : eligible)
-			{
-				initial = static_cast<int>(initial * MaxImpl(ex_range.rangeMult, 0.0));
-				add += static_cast<int>(ex_range.extraRange);
-			}
-
-			return initial + add;
-		}
-
-	private:
-
-		template <typename T>
-		bool FORCEDINLINE Serialize(T& Stm)
-		{
-			return Stm
-				.Process(this->ranges)
-				.Success()
-				;
-		}
-	} ExtraRange {};
-
-	struct ExtraCrit
-	{
-		struct CritData
-		{
-			double Mult { 1.0 };
-			double extra { 0.0 };
-			VectorSet<WarheadTypeClass*> allow {};
-			VectorSet<WarheadTypeClass*> disallow {};
-
-			bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
-			{
-				return this->Serialize(Stm);
-			}
-
-			bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
-			{
-				return const_cast<CritData*>(this)->Serialize(Stm);
-			}
-
-			bool Eligible(WarheadTypeClass* who)
-			{
-
-				bool allowed = false;
-
-				if (allow.begin() != allow.end())
-				{
-					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
-					{
-						if (*iter_allow == who)
-						{
-							allowed = true;
-							break;
-						}
-					}
-				}
-				else
-				{
-					allowed = true;
-				}
-
-				if (allowed && disallow.begin() != disallow.end())
-				{
-					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
-					{
-						if (*iter_disallow == who)
-						{
-							allowed = false;
-							break;
-						}
-					}
-				}
-
-				return allowed;
-			}
-		private:
-
-			template <typename T>
-			bool FORCEDINLINE Serialize(T& Stm)
-			{
-				return Stm
-					.Process(this->Mult)
-					.Process(this->extra)
-					.Process(this->allow)
-					.Process(this->disallow)
-					.Success()
-					;
-			}
-		};
-
-		struct CritDataOut
-		{
-			double Mult { 1.0 };
-			double extra { 0.0 };
-		};
-
-		HelperedVector<CritData> ranges { };
-
-		bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
-		{
-			return this->Serialize(Stm);
-		}
-
-		bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
-		{
-			return const_cast<ExtraCrit*>(this)->Serialize(Stm);
-		}
-
-		COMPILETIMEEVAL void Clear()
-		{
-			ranges.clear();
-		}
-
-		COMPILETIMEEVAL bool Enabled()
-		{
-			return !ranges.empty();
-		}
-
-		COMPILETIMEEVAL double Get(double initial, WarheadTypeClass* who)
-		{
-			double add = 0.0;
-			for (auto& ex_range : ranges)
-			{
-
-				if (!ex_range.Eligible(who))
-					continue;
-
-				initial = initial * ex_range.Mult;
-				add += ex_range.extra;
-			}
-
-			return initial + add;
-		}
-
-		COMPILETIMEEVAL void FillEligible(WarheadTypeClass* who, std::vector<CritDataOut>& eligible)
-		{
-			for (auto& ex_range : this->ranges)
-			{
-				if (ex_range.Eligible(who))
-				{
-					eligible.emplace_back(ex_range.Mult, ex_range.extra);
-				}
-			}
-		}
-
-		static COMPILETIMEEVAL double Count(double initial, std::vector<CritDataOut>& eligible)
-		{
-			double add = 0.0;
-			for (auto& ex_range : eligible)
-			{
-				initial *= MaxImpl(ex_range.Mult, 0.0);
-				add += ex_range.extra;
-			}
-
-			return initial + add;
-		}
-
-	private:
-
-		template <typename T>
-		bool FORCEDINLINE Serialize(T& Stm)
-		{
-			return Stm
-				.Process(this->ranges)
-				.Success()
-				;
-		}
-	} ExtraCrit {};
-
-	struct ArmorMult
-	{
-		struct MultData
-		{
-			double Mult { 1.0 };
-			VectorSet<WarheadTypeClass*> allow {};
-			VectorSet<WarheadTypeClass*> disallow {};
-
-			bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
-			{
-				return this->Serialize(Stm);
-			}
-
-			bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
-			{
-				return const_cast<MultData*>(this)->Serialize(Stm);
-			}
-
-			bool Eligible(WarheadTypeClass* who)
-			{
-				bool allowed = false;
-
-				if (allow.begin() != allow.end())
-				{
-					for (auto iter_allow = allow.begin(); iter_allow != allow.end(); ++iter_allow)
-					{
-						if (*iter_allow == who)
-						{
-							allowed = true;
-							break;
-						}
-					}
-				}
-				else
-				{
-					allowed = true;
-				}
-
-				if (allowed && disallow.begin() != disallow.end())
-				{
-					for (auto iter_disallow = disallow.begin(); iter_disallow != disallow.end(); ++iter_disallow)
-					{
-						if (*iter_disallow == who)
-						{
-							allowed = false;
-							break;
-						}
-					}
-				}
-
-				return allowed;
-			}
-		private:
-
-			template <typename T>
-			bool FORCEDINLINE Serialize(T& Stm)
-			{
-				return Stm
-					.Process(this->Mult)
-					.Process(this->allow)
-					.Process(this->disallow)
-					.Success()
-					;
-			}
-		};
-
-		HelperedVector<MultData> mults { };
-
-		bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
-		{
-			return this->Serialize(Stm);
-		}
-
-		bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
-		{
-			return const_cast<ArmorMult*>(this)->Serialize(Stm);
-		}
-
-		COMPILETIMEEVAL void Clear()
-		{
-			mults.clear();
-		}
-
-		COMPILETIMEEVAL bool Enabled()
-		{
-			return !mults.empty();
-		}
-
-		COMPILETIMEEVAL double Get(double initial, WarheadTypeClass* who)
-		{
-			for (auto& ex_range : mults)
-			{
-
-				if (!ex_range.Eligible(who))
-					continue;
-
-				initial *= ex_range.Mult;
-			}
-
-			return initial;
-		}
-
-		COMPILETIMEEVAL void FillEligible(WarheadTypeClass* who, std::vector<double>& eligible)
-		{
-			for (auto& ex_range : this->mults) {
-				if (ex_range.Eligible(who)) {
-					eligible.emplace_back(ex_range.Mult);
-				}
-			}
-		}
-
-		static COMPILETIMEEVAL double Apply(double initial, std::vector<double>& eligible)
-		{
-			for (auto& ex_range : eligible) {
-				initial *= ex_range;
-			}
-
-			return initial;
-		}
-		private:
-
-		template <typename T>
-		bool FORCEDINLINE Serialize(T& Stm)
-		{
-			return Stm
-				.Process(this->mults)
-				.Success()
-				;
-		}
-	} ArmorMultData {};
-
-	double FirepowerMultiplier { 1.0 };
-	double ArmorMultiplier { 1.0 };
-	double SpeedMultiplier { 1.0 };
-	double ROFMultiplier { 1.0 };
-	double ReceiveRelativeDamageMult { 1.0 };
-
-	//TODO :
-	int FirepowerBonus { 0 };
-	int ArmorBonus { 0 };
-	double SpeedBonus { 0.0 };
-	int ROFBonus { 0 };
-
-	//TODO :
-	MinMaxValue<int> ReceivedDamage { INT32_MIN , INT32_MAX };
-	MinMaxValue<double> Speed { 0.0 ,  INT32_MAX };
-
-	bool Cloakable { false };
-	bool ForceDecloak { false };
-
-	bool DisableWeapons { false };
-	bool DisableSelfHeal { false };
-
-	bool HasRangeModifier { false };
-	bool HasTint { false };
-	bool HasOnFireDiscardables { false };
-	bool HasExtraWarheads { false };
-	bool HasFeedbackWeapon { false };
-
-	bool ReflectDamage { false };
-	bool Untrackable { false };
-
-	bool DisableRadar { false };
-	bool DisableSpySat { false };
-	bool Unkillable { false };
-
-public :
-
-	static void Recalculate(TechnoClass* pTechno);
-	static void UpdateAEAnimLogic(TechnoClass* pTechno);
-public :
-
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return this->Serialize(Stm);
-	}
-
-	bool Save(PhobosStreamWriter& Stm) const
-	{
-		return const_cast<AEProperties*>(this)->Serialize(Stm);
-	}
-
-protected:
-	template <typename T>
-	bool Serialize(T& Stm) {
-		return Stm
-			.Process(this->ExtraRange)
-			.Process(this->ExtraCrit)
-			.Process(this->FirepowerMultiplier)
-			.Process(this->ArmorMultiplier)
-			.Process(this->SpeedMultiplier)
-			.Process(this->ROFMultiplier)
-			.Process(this->ReceiveRelativeDamageMult)
-			.Process(this->FirepowerBonus)
-			.Process(this->ArmorBonus)
-			.Process(this->SpeedBonus)
-			.Process(this->ROFBonus)
-			.Process(this->ReceivedDamage)
-			.Process(this->Speed)
-			.Process(this->Cloakable)
-			.Process(this->ForceDecloak)
-			.Process(this->DisableWeapons)
-			.Process(this->DisableSelfHeal)
-			.Process(this->HasRangeModifier)
-			.Process(this->HasTint)
-			.Process(this->HasOnFireDiscardables)
-			.Process(this->HasExtraWarheads)
-			.Process(this->HasFeedbackWeapon)
-			.Process(this->ReflectDamage)
-			.Process(this->Untrackable)
-			.Process(this->DisableRadar)
-			.Process(this->DisableSpySat)
-			.Process(this->ArmorMultData)
-			.Process(this->Unkillable)
-			.Success() && Stm.RegisterChange(this)
-			;
-	}
-};
-
 struct OnlyAttackStruct
 {
 	WeaponTypeClass* Weapon { nullptr };
@@ -648,182 +136,302 @@ private:
 	}
 };
 
+struct OnlyAttackEntity {
+	HelperedVector<OnlyAttackStruct> Array {};
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Stm.Process(Array);
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return  Stm.Process(Array);
+	}
+};
+
+struct TechnoStateComponent
+{
+	// Bitflags - all states in 1 byte!
+	union
+	{
+		struct
+		{
+			bool AircraftOpentoppedInitEd : 1;
+			bool DelayedFireSequencePaused : 1;
+			bool FallingDownTracked : 1;
+			bool ForceFullRearmDelay : 1;
+			bool GattlingDmageSound : 1;
+			bool HasRemainingWarpInDelay : 1;
+			bool IsBeingChronoSphered : 1;
+			bool IsDetachingForCloak : 1;
+			bool IsDriverKilled : 1;
+			bool IsOperated : 1;
+			bool IsSelected : 1;
+			bool IsSurvivorsDone : 1;
+			bool KeepTargetOnMove : 1;
+			bool LastRearmWasFullDelay : 1;
+			bool ResetLocomotor : 1;
+			bool ShouldUpdateGattlingValue : 1;
+			bool SkipLowDamageCheck : 1;
+			bool SkipVoice : 1;
+			bool TakeVehicleMode : 1;
+			bool UndergroundTracked : 1;
+			bool UnitIdleActionSelected : 1;
+			bool UnitIdleIsSelected : 1;
+
+			// Original flags
+			bool IsWebbed : 1;
+			bool IsBurrowed : 1;
+			bool IsInTunnel : 1;
+			bool ReceiveDamage : 1;
+			bool LastKillWasTeamTarget : 1;
+			bool PayloadCreated : 1;
+			bool PayloadTriggered : 1;
+			bool SupressEVALost : 1;
+			bool HasExtraFireWeapon : 1;
+		};
+		uint64_t AllFlags; // 64-bit container for all flags
+	};
+
+	TechnoStateComponent()
+		: AllFlags(0) // Initialize all flags to false
+	{ }
+
+	// Serialization
+	bool Save(PhobosStreamWriter& writer) const
+	{
+		return writer.Process(AllFlags);
+	}
+
+	bool Load(PhobosStreamReader& reader)
+	{
+		return reader.Process(AllFlags);
+	}
+
+	bool HasAnyState() const { return AllFlags != 0; }
+};
+
+struct IdleActionComponent {
+	CDTimerClass UnitIdleActionTimer;
+	CDTimerClass UnitIdleActionGapTimer;
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
+		return Stm
+			.Process(UnitIdleActionTimer)
+			.Process(UnitIdleActionGapTimer);
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const {
+		return Stm
+			.Process(UnitIdleActionTimer)
+			.Process(UnitIdleActionGapTimer);
+	}
+};
+
+struct HijackerComponent {
+	int Health;
+	HouseClass* Owner;
+	float Veterancy;
+	InfantryTypeClass* LastDisguiseType;
+	HouseClass* LastDisguiseHouse;
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Stm
+				.Process(Health)
+				.Process(Owner)
+				.Process(Veterancy)
+				.Process(LastDisguiseType)
+				.Process(LastDisguiseHouse)
+			;
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return Stm
+			.Process(Health)
+			.Process(Owner)
+			.Process(Veterancy)
+			.Process(LastDisguiseType)
+			.Process(LastDisguiseHouse)
+			;
+	}
+};
+
+
 class TechnoExtData : public RadioExtData
 {
 private:
+
+	template<typename entT>
+	struct EntitySerializer
+	{
+		static void Save(PhobosStreamWriter& stm, entt::entity owner)
+		{
+			auto myComp = Phobos::gEntt->try_get<entT>(owner);
+
+			bool exist = myComp != nullptr;
+			Savegame::WritePhobosStream(stm, exist);
+			if (myComp) {
+				myComp->Save(stm);
+			}
+		}
+
+		static void Load(PhobosStreamReader& stm, entt::entity owner)
+		{
+			bool exist;
+			Savegame::ReadPhobosStream(stm, exist);
+			if (exist) {
+				auto& ent_ = Phobos::gEntt->emplace<entT>(owner);
+				ent_.Load(stm , true);
+			}
+		}
+	};
+
+	template <typename T>
+	void SerializeEntity(T& Stm)
+	{
+		if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+		{
+			EntitySerializer<TechnoStateComponent>::Save(Stm, this->MyEntity);
+			EntitySerializer<PoweredUnitClass>::Save(Stm, this->MyEntity);
+			EntitySerializer<RadarJammerClass>::Save(Stm, this->MyEntity);
+			EntitySerializer<ShieldClass>::Save(Stm, this->MyEntity);
+			EntitySerializer<AEProperties>::Save(Stm, this->MyEntity);
+			EntitySerializer<AEPropertiesExtraRange>::Save(Stm, this->MyEntity);
+			EntitySerializer<AEPropertiesExtraCrit>::Save(Stm, this->MyEntity);
+			EntitySerializer<AEPropertiesArmorMult>::Save(Stm, this->MyEntity);
+			EntitySerializer<GiftBox>::Save(Stm, this->MyEntity);
+			EntitySerializer<DamageSelfState>::Save(Stm, this->MyEntity);
+			EntitySerializer<WeaponTimers>::Save(Stm, this->MyEntity);
+			EntitySerializer<SimulateBurstManager>::Save(Stm, this->MyEntity);
+			EntitySerializer<DelayFireManager>::Save(Stm, this->MyEntity);
+			EntitySerializer<DriveData>::Save(Stm, this->MyEntity);
+			EntitySerializer<AircraftDive>::Save(Stm, this->MyEntity);
+			EntitySerializer<SpawnSupport>::Save(Stm, this->MyEntity);
+			EntitySerializer<AircraftPutState>::Save(Stm, this->MyEntity);
+			EntitySerializer<OnlyAttackEntity>::Save(Stm, this->MyEntity);
+			EntitySerializer<IdleActionComponent>::Save(Stm, this->MyEntity);
+			EntitySerializer<HijackerComponent>::Save(Stm, this->MyEntity);
+			EntitySerializer<AresAEData>::Save(Stm, this->MyEntity);
+		}
+		else
+		{
+			EntitySerializer<TechnoStateComponent>::Load(Stm, this->MyEntity);
+			EntitySerializer<PoweredUnitClass>::Load(Stm, this->MyEntity);
+			EntitySerializer<RadarJammerClass>::Load(Stm, this->MyEntity);
+			EntitySerializer<ShieldClass>::Load(Stm, this->MyEntity);
+			EntitySerializer<AEProperties>::Load(Stm, this->MyEntity);
+			EntitySerializer<AEPropertiesExtraRange>::Load(Stm, this->MyEntity);
+			EntitySerializer<AEPropertiesExtraCrit>::Load(Stm, this->MyEntity);
+			EntitySerializer<AEPropertiesArmorMult>::Load(Stm, this->MyEntity);
+			EntitySerializer<GiftBox>::Load(Stm, this->MyEntity);
+			EntitySerializer<DamageSelfState>::Load(Stm, this->MyEntity);
+			EntitySerializer<WeaponTimers>::Load(Stm, this->MyEntity);
+			EntitySerializer<SimulateBurstManager>::Load(Stm, this->MyEntity);
+			EntitySerializer<DelayFireManager>::Load(Stm, this->MyEntity);
+			EntitySerializer<DriveData>::Load(Stm, this->MyEntity);
+			EntitySerializer<AircraftDive>::Load(Stm, this->MyEntity);
+			EntitySerializer<SpawnSupport>::Load(Stm, this->MyEntity);
+			EntitySerializer<AircraftPutState>::Load(Stm, this->MyEntity);
+			EntitySerializer<OnlyAttackEntity>::Load(Stm, this->MyEntity);
+			EntitySerializer<IdleActionComponent>::Load(Stm, this->MyEntity);
+			EntitySerializer<HijackerComponent>::Load(Stm, this->MyEntity);
+			EntitySerializer<AresAEData>::Load(Stm, this->MyEntity);
+		}
+	}
+
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		auto debugProcess = [&Stm](auto& field, const char* fieldName)-> auto&
-		{
-			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
-			{
-			//	size_t beforeSize = Stm.Getstream()->Size();
-				auto& result = Stm.Process(field);
-			//	size_t afterSize = Stm.Getstream()->Size();
-			//	GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
-			//		fieldName, beforeSize, afterSize, afterSize - beforeSize);
-				return result;
-			}
-			else
-			{
-			//	size_t beforeOffset = Stm.Getstream()->Offset();
-			//	bool beforeSuccess = Stm.Success();
-				auto& result = Stm.Process(field);
-			//	size_t afterOffset = Stm.Getstream()->Offset();
-			//	bool afterSuccess = Stm.Success();
-
-			//	GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
-			//		fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
-			//		beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
-
-			//	if (!afterSuccess && beforeSuccess)
-			//	{
-			//		GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
-				//}
-				return result;
-			}
-		};
-
-		debugProcess(this->Type, "Type");
-		debugProcess(this->AbsType, "AbsType");
-		debugProcess(this->AE, "AE");
-		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
-		debugProcess(this->idxSlot_Wave, "idxSlot_Wave");
-		debugProcess(this->idxSlot_Beam, "idxSlot_Beam");
-		debugProcess(this->idxSlot_Warp, "idxSlot_Warp");
-		debugProcess(this->idxSlot_Parasite, "idxSlot_Parasite");
-		debugProcess(this->EMPSparkleAnim, "EMPSparkleAnim");
-		debugProcess(this->EMPLastMission, "EMPLastMission");
-		debugProcess(this->PoweredUnit, "PoweredUnit");
-		debugProcess(this->RadarJammer, "RadarJammer");
-		debugProcess(this->BuildingLight, "BuildingLight");
-		debugProcess(this->OriginalHouseType, "OriginalHouseType");
-		debugProcess(this->CloakSkipTimer, "CloakSkipTimer");
-		debugProcess(this->HijackerHealth, "HijackerHealth");
-		debugProcess(this->HijackerOwner, "HijackerOwner");
-		debugProcess(this->HijackerVeterancy, "HijackerVeterancy");
-		debugProcess(this->Is_SurvivorsDone, "Is_SurvivorsDone");
-		debugProcess(this->Is_DriverKilled, "Is_DriverKilled");
-		debugProcess(this->Is_Operated, "Is_Operated");
-		debugProcess(this->Is_UnitLostMuted, "Is_UnitLostMuted");
-		debugProcess(this->TakeVehicleMode, "TakeVehicleMode");
-		debugProcess(this->TechnoValueAmount, "TechnoValueAmount");
-		debugProcess(this->Pos, "Pos");
-		debugProcess(this->Shield, "Shield");
-		debugProcess(this->LaserTrails, "LaserTrails");
-		debugProcess(this->ReceiveDamage, "ReceiveDamage");
-		debugProcess(this->LastKillWasTeamTarget, "LastKillWasTeamTarget");
-		debugProcess(this->PassengerDeletionTimer, "PassengerDeletionTimer");
-		debugProcess(this->CurrentShieldType, "CurrentShieldType");
-		debugProcess(this->LastWarpDistance, "LastWarpDistance");
-		debugProcess(this->Death_Countdown, "Death_Countdown");
-		debugProcess(this->MindControlRingAnimType, "MindControlRingAnimType");
-		debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
-		debugProcess(this->CurrentLaserWeaponIndex, "CurrentLaserWeaponIndex");
-		debugProcess(this->OriginalPassengerOwner, "OriginalPassengerOwner");
-		debugProcess(this->IsInTunnel, "IsInTunnel");
-		debugProcess(this->IsBurrowed, "IsBurrowed");
-		debugProcess(this->DeployFireTimer, "DeployFireTimer");
-		debugProcess(this->DisableWeaponTimer, "DisableWeaponTimer");
-		debugProcess(this->RevengeWeapons, "RevengeWeapons");
-		debugProcess(this->GattlingDmageDelay, "GattlingDmageDelay");
-		debugProcess(this->GattlingDmageSound, "GattlingDmageSound");
-		debugProcess(this->AircraftOpentoppedInitEd, "AircraftOpentoppedInitEd");
-		debugProcess(this->EngineerCaptureDelay, "EngineerCaptureDelay");
-		debugProcess(this->FlhChanged, "FlhChanged");
-		debugProcess(this->ReceiveDamageMultiplier, "ReceiveDamageMultiplier");
-		debugProcess(this->SkipLowDamageCheck, "SkipLowDamageCheck");
-		debugProcess(this->aircraftPutOffsetFlag, "aircraftPutOffsetFlag");
-		debugProcess(this->aircraftPutOffset, "aircraftPutOffset");
-		debugProcess(this->SkipVoice, "SkipVoice");
-		debugProcess(this->ExtraWeaponTimers, "ExtraWeaponTimers");
-		debugProcess(this->Trails, "Trails");
-		debugProcess(this->MyGiftBox, "MyGiftBox");
-		debugProcess(this->PaintBallStates, "PaintBallStates");
-		debugProcess(this->DamageSelfState, "DamageSelfState");
-		debugProcess(this->CurrentWeaponIdx, "CurrentWeaponIdx");
-		debugProcess(this->WarpedOutDelay, "WarpedOutDelay");
-
-		debugProcess(this->MyOriginalTemporal, "MyOriginalTemporal");
-		debugProcess(this->SupressEVALost, "SupressEVALost");
-		debugProcess(this->SelfHealing_CombatDelay, "SelfHealing_CombatDelay");
-		debugProcess(this->PayloadCreated, "PayloadCreated");
-		debugProcess(this->PayloadTriggered, "PayloadTriggered");
-		debugProcess(this->LinkedSW, "LinkedSW");
-		debugProcess(this->SuperTarget, "SuperTarget");
-		debugProcess(this->HijackerLastDisguiseType, "HijackerLastDisguiseType");
-		debugProcess(this->HijackerLastDisguiseHouse, "HijackerLastDisguiseHouse");
-		debugProcess(this->WHAnimRemainingCreationInterval, "WHAnimRemainingCreationInterval");
-		debugProcess(this->IsWebbed, "IsWebbed");
-		debugProcess(this->WebbedAnim, "WebbedAnim");
-		debugProcess(this->WebbyLastTarget, "WebbyLastTarget");
-		debugProcess(this->WebbyLastMission, "WebbyLastMission");
-		debugProcess(this->AeData, "AeData");
-		debugProcess(this->MergePreventionTimer, "MergePreventionTimer");
-		debugProcess(this->TiberiumStorage, "TiberiumStorage");
-		debugProcess(this->MyWeaponManager, "MyWeaponManager");
-		debugProcess(this->MyDriveData, "MyDriveData");
-		debugProcess(this->MyDiveData, "MyDiveData");
-		debugProcess(this->MySpawnSuport, "MySpawnSuport");
-		debugProcess(this->PhobosAE, "PhobosAE");
-		debugProcess(this->FiringObstacleCell, "FiringObstacleCell");
-		debugProcess(this->AdditionalRange, "AdditionalRange");
-		debugProcess(this->IsDetachingForCloak, "IsDetachingForCloak");
-		debugProcess(this->HasRemainingWarpInDelay, "HasRemainingWarpInDelay");
-		debugProcess(this->LastWarpInDelay, "LastWarpInDelay");
-		debugProcess(this->SubterraneanHarvRallyPoint, "SubterraneanHarvRallyPoint");
-		debugProcess(this->IsBeingChronoSphered, "IsBeingChronoSphered");
-		debugProcess(this->TiberiumEaterTimer, "TiberiumEaterTimer");
-		debugProcess(this->LastDamageWH, "LastDamageWH");
-		debugProcess(this->MyTargetingFrame, "MyTargetingFrame");
-		debugProcess(this->ChargeTurretTimer, "ChargeTurretTimer");
-		debugProcess(this->LastRearmWasFullDelay, "LastRearmWasFullDelay");
-		debugProcess(this->DropCrate, "DropCrate");
-		debugProcess(this->DropCrateType, "DropCrateType");
-		debugProcess(this->LastBeLockedFrame, "LastBeLockedFrame");
-		debugProcess(this->BeControlledThreatFrame, "BeControlledThreatFrame");
-		debugProcess(this->LastTargetID, "LastTargetID");
-		debugProcess(this->LastHurtFrame, "LastHurtFrame");
-		debugProcess(this->AttachedEffectInvokerCount, "AttachedEffectInvokerCount");
-		debugProcess(this->AccumulatedGattlingValue, "AccumulatedGattlingValue");
-		debugProcess(this->ShouldUpdateGattlingValue, "ShouldUpdateGattlingValue");
-		debugProcess(this->KeepTargetOnMove, "KeepTargetOnMove");
-		debugProcess(this->LastSensorsMapCoords, "LastSensorsMapCoords");
-		debugProcess(this->DelayedFireSequencePaused, "DelayedFireSequencePaused");
-		debugProcess(this->DelayedFireTimer, "DelayedFireTimer");
-		debugProcess(this->DelayedFireWeaponIndex, "DelayedFireWeaponIndex");
-		debugProcess(this->CurrentDelayedFireAnim, "CurrentDelayedFireAnim");
-		debugProcess(this->CustomFiringOffset, "CustomFiringOffset");
-		debugProcess(this->LastWeaponType, "LastWeaponType");
-		debugProcess(this->AirstrikeTargetingMe, "AirstrikeTargetingMe");
-		debugProcess(this->RandomEMPTarget, "RandomEMPTarget");
-		debugProcess(this->ForceFullRearmDelay, "ForceFullRearmDelay");
-		debugProcess(this->AttackMoveFollowerTempCount, "AttackMoveFollowerTempCount");
-		debugProcess(this->OnlyAttackData, "OnlyAttackData");
-		debugProcess(this->IsSelected, "IsSelected");
-		debugProcess(this->UndergroundTracked, "UndergroundTracked");
-		debugProcess(this->PassiveAquireMode, "PassiveAquireMode");
-		debugProcess(this->UnitIdleAction, "UnitIdleAction");
-		debugProcess(this->UnitIdleActionSelected, "UnitIdleActionSelected");
-		debugProcess(this->UnitIdleIsSelected, "UnitIdleIsSelected");
-		debugProcess(this->UnitIdleActionTimer, "UnitIdleActionTimer");
-		debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
-		debugProcess(this->Tints, "Tints");
-		debugProcess(this->FallingDownTracked, "FallingDownTracked");
-		debugProcess(this->ResetLocomotor, "ResetLocomotor");
+		Stm
+			.Process(Type)
+			.Process(AbsType)
+			.Process(Tints)
+			.Process(idxSlot_EMPulse)
+			.Process(idxSlot_Wave)
+			.Process(idxSlot_Beam)
+			.Process(idxSlot_Warp)
+			.Process(idxSlot_Parasite)
+			.Process(EMPSparkleAnim)
+			.Process(EMPLastMission)
+			.Process(BuildingLight)
+			.Process(OriginalHouseType)
+			.Process(CloakSkipTimer)
+			.Process(LastWarpInDelay)
+			.Process(TechnoValueAmount)
+			.Process(Pos)
+			.Process(LaserTrails)
+			.Process(PassengerDeletionTimer)
+			.Process(CurrentShieldType)
+			.Process(LastWarpDistance)
+			.Process(Death_Countdown)
+			.Process(MindControlRingAnimType)
+			.Process(DamageNumberOffset)
+			.Process(CurrentLaserWeaponIndex)
+			.Process(OriginalPassengerOwner)
+			.Process(DeployFireTimer)
+			.Process(DisableWeaponTimer)
+			.Process(RevengeWeapons)
+			.Process(GattlingDmageDelay)
+			.Process(EngineerCaptureDelay)
+			.Process(ReceiveDamageMultiplier)
+			.Process(Trails)
+			.Process(PaintBallStates)
+			.Process(CurrentWeaponIdx)
+			.Process(MyOriginalTemporal)
+			.Process(WarpedOutDelay)
+			.Process(SelfHealing_CombatDelay)
+			.Process(LinkedSW)
+			.Process(SuperTarget)
+			.Process(WHAnimRemainingCreationInterval)
+			.Process(WebbedAnim)
+			.Process(WebbyLastTarget)
+			.Process(WebbyLastMission)
+			.Process(MergePreventionTimer)
+			.Process(TiberiumStorage)
+			.Process(PhobosAE)
+			.Process(FiringObstacleCell)
+			.Process(AdditionalRange)
+			.Process(SubterraneanHarvRallyPoint)
+			.Process(TiberiumEaterTimer)
+			.Process(LastDamageWH)
+			.Process(MyTargetingFrame)
+			.Process(ChargeTurretTimer)
+			.Process(DropCrate)
+			.Process(DropCrateType)
+			.Process(LastBeLockedFrame)
+			.Process(BeControlledThreatFrame)
+			.Process(LastTargetID)
+			.Process(AccumulatedGattlingValue)
+			.Process(LastSensorsMapCoords)
+			.Process(DelayedFireWeaponIndex)
+			.Process(DelayedFireTimer)
+			.Process(CurrentDelayedFireAnim)
+			.Process(CustomFiringOffset)
+			.Process(LastWeaponType)
+			.Process(ElectricBolts)
+			.Process(LastHurtFrame)
+			.Process(AttachedEffectInvokerCount)
+			.Process(AirstrikeTargetingMe)
+			.Process(RandomEMPTarget)
+			.Process(AttackMoveFollowerTempCount)
+			.Process(PassiveAquireMode)
+			; // end
 	}
-
-
 
 public:
 	using base_type = TechnoClass;
 public:
+
 #pragma region ClassMembers
+	entt::entity MyEntity;
+
 	TechnoTypeClass* Type; //original Type pointer
 	OptionalStruct<AbstractType, true> AbsType;
+	TintColors Tints;
 
-	AEProperties AE;
 	BYTE idxSlot_EMPulse;
 	BYTE idxSlot_Wave; //5
 	BYTE idxSlot_Beam; //6
@@ -832,28 +440,13 @@ public:
 
 	Handle<AnimClass*, UninitAnim> EMPSparkleAnim;
 	Mission EMPLastMission; //
-
-	std::unique_ptr<PoweredUnitClass> PoweredUnit;
-	std::unique_ptr<RadarJammerClass> RadarJammer;
-
 	BuildingLightClass* BuildingLight;
-
 	HouseTypeClass* OriginalHouseType;
 	CDTimerClass CloakSkipTimer; //
-	int HijackerHealth;
-	HouseClass* HijackerOwner;
-	float HijackerVeterancy;
-	BYTE Is_SurvivorsDone;
-	BYTE Is_DriverKilled;
-	BYTE Is_Operated;
-	BYTE Is_UnitLostMuted;
-	BYTE TakeVehicleMode;
+	int LastWarpInDelay;
 	int TechnoValueAmount;
 	int Pos;
-	std::unique_ptr<ShieldClass> Shield;
 	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
-	bool ReceiveDamage;
-	bool LastKillWasTeamTarget;
 	CDTimerClass PassengerDeletionTimer;
 	ShieldTypeClass* CurrentShieldType;
 	int LastWarpDistance;
@@ -865,143 +458,66 @@ public:
 	// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
 	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
 	HouseClass* OriginalPassengerOwner;
-
-	bool IsInTunnel;
-	bool IsBurrowed;
 	CDTimerClass DeployFireTimer;
 	CDTimerClass DisableWeaponTimer;
-
 	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
-
 	int GattlingDmageDelay;
-	bool GattlingDmageSound;
-	bool AircraftOpentoppedInitEd;
-
 	CDTimerClass EngineerCaptureDelay;
-
-	bool FlhChanged;
 	OptionalStruct<double, true> ReceiveDamageMultiplier;
-	bool SkipLowDamageCheck;
-
-	bool aircraftPutOffsetFlag;
-	bool aircraftPutOffset;
-	bool SkipVoice;
-
-	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
-
 	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
-	std::unique_ptr<GiftBox> MyGiftBox;
 	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
-	std::unique_ptr<DamageSelfState> DamageSelfState;
-
 	int CurrentWeaponIdx;
-
-	FireWeaponManager MyWeaponManager;
-	DriveData MyDriveData;
-	AircraftDive MyDiveData;
-
-	SpawnSupport MySpawnSuport;
-
-	CDTimerClass WarpedOutDelay;
-
 	TemporalClass* MyOriginalTemporal;
-
-	bool SupressEVALost;
+	CDTimerClass WarpedOutDelay;
 	CDTimerClass SelfHealing_CombatDelay;
-	bool PayloadCreated;
-	bool PayloadTriggered;
 	SuperClass* LinkedSW;
 	CellStruct SuperTarget;
-
-	InfantryTypeClass* HijackerLastDisguiseType;
-	HouseClass* HijackerLastDisguiseHouse;
-
 	int WHAnimRemainingCreationInterval;
-
-	//====
-	bool IsWebbed;
 	Handle<AnimClass*, UninitAnim> WebbedAnim;
 	AbstractClass* WebbyLastTarget;
 	Mission WebbyLastMission;
-
-	AresAEData AeData;
-
 	CDTimerClass MergePreventionTimer;
-
 	NewTiberiumStorageClass TiberiumStorage;
-
 	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
-
 	CellClass* FiringObstacleCell; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
 	OptionalStruct<int, true> AdditionalRange;
-	bool IsDetachingForCloak; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
-
-	bool HasRemainingWarpInDelay; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
-	int LastWarpInDelay;          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay
-	bool IsBeingChronoSphered; // Set to true on units currently being ChronoSphered, does not apply to Ares-ChronoSphere'd buildings or Chrono reinforcements.
-
 	CellClass* SubterraneanHarvRallyPoint;
-
 	CDTimerClass TiberiumEaterTimer;
 	WarheadTypeClass* LastDamageWH;
-
 	int MyTargetingFrame;
-
 	CDTimerClass ChargeTurretTimer;// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
-	bool LastRearmWasFullDelay;
-
 	int DropCrate; // Drop crate on death, modified by map action
 	PowerupEffects DropCrateType;
-
 	int LastBeLockedFrame;
 	int BeControlledThreatFrame;
-
 	DWORD LastTargetID;
 	int AccumulatedGattlingValue;
-	bool ShouldUpdateGattlingValue;
-
-	bool KeepTargetOnMove;
 	CellStruct LastSensorsMapCoords;
-	bool DelayedFireSequencePaused;
 	int DelayedFireWeaponIndex;
 	CDTimerClass DelayedFireTimer;
 	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim;
 	std::optional<CoordStruct> CustomFiringOffset; // If set any calls to GetFLH() will use this coordinate as
-
 	WeaponTypeClass* LastWeaponType;
 	HelperedVector<EBolt*> ElectricBolts;
 	int LastHurtFrame;
 	int AttachedEffectInvokerCount;
-
 	AirstrikeClass* AirstrikeTargetingMe;
 	CellStruct RandomEMPTarget;
-
-	bool ForceFullRearmDelay;
 	int AttackMoveFollowerTempCount;
-	HelperedVector<OnlyAttackStruct> OnlyAttackData;
-	bool IsSelected;
-
-	bool UndergroundTracked;
 	PassiveAcquireMode PassiveAquireMode;
 
-	bool UnitIdleAction;
-	bool UnitIdleActionSelected;
-	bool UnitIdleIsSelected;
-	CDTimerClass UnitIdleActionTimer;
-	CDTimerClass UnitIdleActionGapTimer;
-	TintColors Tints;
-
-	bool FallingDownTracked;
-	bool ResetLocomotor;
 #pragma endregion
 
 public:
 
 	TechnoExtData(TechnoClass* abs) : RadioExtData(abs),
+		MyEntity(),
+
 		Type(nullptr),
 		AbsType(), // OptionalStruct<AbstractType,true>
+		//AeData(),
+		Tints(),
 
-		AE(),
 		idxSlot_EMPulse(0),
 		idxSlot_Wave(0),
 		idxSlot_Beam(0),
@@ -1010,28 +526,12 @@ public:
 
 		EMPSparkleAnim(nullptr),
 		EMPLastMission(Mission::Sleep),
-
-		PoweredUnit(nullptr),
-		RadarJammer(nullptr),
-
 		BuildingLight(nullptr),
-
 		OriginalHouseType(nullptr),
 		CloakSkipTimer(),
-		HijackerHealth(0),
-		HijackerOwner(nullptr),
-		HijackerVeterancy(0.0f),
-		Is_SurvivorsDone(0),
-		Is_DriverKilled(0),
-		Is_Operated(0),
-		Is_UnitLostMuted(0),
-		TakeVehicleMode(0),
 		TechnoValueAmount(0),
 		Pos(0),
-		Shield(nullptr),
 		LaserTrails(),
-		ReceiveDamage(false),
-		LastKillWasTeamTarget(false),
 		PassengerDeletionTimer(),
 		CurrentShieldType(nullptr),
 		LastWarpDistance(0),
@@ -1040,144 +540,70 @@ public:
 		DamageNumberOffset(INT32_MIN),
 		CurrentLaserWeaponIndex(),
 		OriginalPassengerOwner(nullptr),
-
-		IsInTunnel(false),
-		IsBurrowed(false),
 		DeployFireTimer(),
 		DisableWeaponTimer(),
-
 		RevengeWeapons(),
-
 		GattlingDmageDelay(-1),
-		GattlingDmageSound(false),
-		AircraftOpentoppedInitEd(false),
-
 		EngineerCaptureDelay(),
-
-		FlhChanged(false),
 		ReceiveDamageMultiplier(),
-		SkipLowDamageCheck(false),
-
-		aircraftPutOffsetFlag(false),
-		aircraftPutOffset(false),
-		SkipVoice(false),
-
-		ExtraWeaponTimers(),
-
 		Trails(),
-		MyGiftBox(nullptr),
 		PaintBallStates(),
-		DamageSelfState(nullptr),
-
 		CurrentWeaponIdx(-1),
-
-		MyWeaponManager(),
-		MyDriveData(),
-		MyDiveData(),
-
-		MySpawnSuport(),
-
-		WarpedOutDelay(),
-
 		MyOriginalTemporal(nullptr),
-
-		SupressEVALost(false),
+		WarpedOutDelay(),
 		SelfHealing_CombatDelay(),
-		PayloadCreated(false),
-		PayloadTriggered(false),
 		LinkedSW(nullptr),
 		SuperTarget(),
-
-		HijackerLastDisguiseType(nullptr),
-		HijackerLastDisguiseHouse(nullptr),
-
 		WHAnimRemainingCreationInterval(0),
-
-		IsWebbed(false),
 		WebbedAnim(nullptr),
 		WebbyLastTarget(nullptr),
 		WebbyLastMission(Mission::Sleep),
-
-		AeData(),
-
 		MergePreventionTimer(),
-
 		TiberiumStorage(),
-
 		PhobosAE(),
-
 		FiringObstacleCell(nullptr),
 		AdditionalRange(),
-		IsDetachingForCloak(false),
-
-		HasRemainingWarpInDelay(false),
-		LastWarpInDelay(0),
-		IsBeingChronoSphered(false),
-
 		SubterraneanHarvRallyPoint(nullptr),
-
 		TiberiumEaterTimer(),
 		LastDamageWH(nullptr),
-
 		MyTargetingFrame(0),
-
 		ChargeTurretTimer(),
-		LastRearmWasFullDelay(false),
-
 		DropCrate(-1),
 		DropCrateType(PowerupEffects::Money),
-
 		LastBeLockedFrame(0),
 		BeControlledThreatFrame(0),
-
 		LastTargetID(0xFFFFFFFF),
 		AccumulatedGattlingValue(0),
-		ShouldUpdateGattlingValue(false),
-
-		KeepTargetOnMove(false),
 		LastSensorsMapCoords(),
-		DelayedFireSequencePaused(false),
 		DelayedFireWeaponIndex(-1),
 		DelayedFireTimer(),
 		CurrentDelayedFireAnim(nullptr),
 		CustomFiringOffset(),
-
 		LastWeaponType(nullptr),
 		ElectricBolts(),
 		LastHurtFrame(0),
 		AttachedEffectInvokerCount(0),
-
 		AirstrikeTargetingMe(nullptr),
 		RandomEMPTarget(),
-
-		ForceFullRearmDelay(false),
 		AttackMoveFollowerTempCount(0),
-		OnlyAttackData(),
-		IsSelected(false),
-
-		UndergroundTracked(false),
-		PassiveAquireMode(PassiveAcquireMode::Normal),
-
-		UnitIdleAction(false),
-		UnitIdleActionSelected(false),
-		UnitIdleIsSelected(false),
-		UnitIdleActionTimer(),
-		UnitIdleActionGapTimer(),
-		Tints(),
-		FallingDownTracked { false },
-		ResetLocomotor { false}
+		PassiveAquireMode(PassiveAcquireMode::Normal)
 	{
 		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 
 		// randomized initial targeting frame
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
-
-		// set tint owner
-		Tints.SetOwner(abs);
+		this->MyEntity = Phobos::gEntt->create();
+		Phobos::gEntt->emplace<TechnoStateComponent>(this->MyEntity);
+		Phobos::gEntt->emplace<AEProperties>(this->MyEntity);
+		Phobos::gEntt->emplace<AresAEData>(this->MyEntity);
+		this->Tints.SetOwner(abs);
 	}
 
-	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) { };
+	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint)
+	{
+		this->MyEntity = Phobos::gEntt->create();
+	};
 
 	virtual ~TechnoExtData();
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
@@ -1199,20 +625,122 @@ public:
 	virtual TechnoClass* This() const override { return reinterpret_cast<TechnoClass*>(RadioExtData::This()); }
 	virtual const TechnoClass* This_Const() const override { return reinterpret_cast<const TechnoClass*>(RadioExtData::This_Const()); }
 
-	virtual void CalculateCRC(CRCEngine& crc) const override {
+	virtual void CalculateCRC(CRCEngine& crc) const override
+	{
 		this->RadioExtData::CalculateCRC(crc);
 	}
 
 public:
 
-	FORCEDINLINE ShieldClass* GetShield() const {
-		return this->Shield.get();
+	FORCEINLINE AresAEData* Get_AresAEData(){
+		return Phobos::gEntt->try_get<AresAEData>(this->MyEntity);
+	}
+
+	FORCEDINLINE ShieldClass* GetShield()
+	{
+		return Phobos::gEntt->try_get<ShieldClass>(this->MyEntity);
+	}
+
+	FORCEDINLINE TechnoStateComponent* Get_TechnoStateComponent()
+	{
+		return Phobos::gEntt->try_get<TechnoStateComponent>(this->MyEntity);
+	}
+
+	FORCEDINLINE PoweredUnitClass* Get_PoweredUnitClass()
+	{
+		return Phobos::gEntt->try_get<PoweredUnitClass>(this->MyEntity);
+	}
+
+	FORCEDINLINE RadarJammerClass* Get_RadarJammerClass()
+	{
+		return Phobos::gEntt->try_get<RadarJammerClass>(this->MyEntity);
+	}
+
+	FORCEDINLINE AEProperties* Get_AEProperties()
+	{
+		return Phobos::gEntt->try_get<AEProperties>(this->MyEntity);
+	}
+
+	FORCEDINLINE AEPropertiesExtraRange* Get_AEPropertiesExtraRange()
+	{
+		return Phobos::gEntt->try_get<AEPropertiesExtraRange>(this->MyEntity);
+	}
+
+	FORCEDINLINE AEPropertiesExtraCrit* Get_AEPropertiesExtraCrit()
+	{
+		return Phobos::gEntt->try_get<AEPropertiesExtraCrit>(this->MyEntity);
+	}
+
+	FORCEDINLINE AEPropertiesArmorMult* Get_AEPropertiesArmorMult()
+	{
+		return Phobos::gEntt->try_get<AEPropertiesArmorMult>(this->MyEntity);
+	}
+
+	FORCEDINLINE GiftBox* Get_GiftBox()
+	{
+		return Phobos::gEntt->try_get<GiftBox>(this->MyEntity);
+	}
+
+	FORCEDINLINE DamageSelfState* Get_DamageSelfState()
+	{
+		return Phobos::gEntt->try_get<DamageSelfState>(this->MyEntity);
+	}
+
+	FORCEDINLINE WeaponTimers* Get_WeaponTimers()
+	{
+		return Phobos::gEntt->try_get<WeaponTimers>(this->MyEntity);
+	}
+
+	FORCEDINLINE SimulateBurstManager* Get_SimulateBurstManager()
+	{
+		return Phobos::gEntt->try_get<SimulateBurstManager>(this->MyEntity);
+	}
+
+	FORCEDINLINE DelayFireManager* Get_DelayFireManager()
+	{
+		return Phobos::gEntt->try_get<DelayFireManager>(this->MyEntity);
+	}
+
+	FORCEDINLINE DriveData* Get_DriveData()
+	{
+		return Phobos::gEntt->try_get<DriveData>(this->MyEntity);
+	}
+
+	FORCEDINLINE AircraftDive* Get_AircraftDive()
+	{
+		return Phobos::gEntt->try_get<AircraftDive>(this->MyEntity);
+	}
+
+	FORCEDINLINE SpawnSupport* Get_SpawnSupport()
+	{
+		return Phobos::gEntt->try_get<SpawnSupport>(this->MyEntity);
+	}
+
+	FORCEDINLINE AircraftPutState* Get_AircraftPutState()
+	{
+		return Phobos::gEntt->try_get<AircraftPutState>(this->MyEntity);
+	}
+
+	FORCEDINLINE OnlyAttackEntity* Get_OnlyAttackEntity()
+	{
+		return Phobos::gEntt->try_get<OnlyAttackEntity>(this->MyEntity);
+	}
+
+	FORCEDINLINE IdleActionComponent* Get_IdleActionComponent()
+	{
+		return Phobos::gEntt->try_get<IdleActionComponent>(this->MyEntity);
+	}
+
+	FORCEDINLINE HijackerComponent* Get_HijackerComponent()
+	{
+		return Phobos::gEntt->try_get<HijackerComponent>(this->MyEntity);
 	}
 
 	void ClearElectricBolts()
 	{
-		for (auto const pBolt : this->ElectricBolts) {
-			if(pBolt)
+		for (auto const pBolt : this->ElectricBolts)
+		{
+			if (pBolt)
 				pBolt->Owner = nullptr;
 		}
 
@@ -1259,8 +787,8 @@ public:
 	void CreateDelayedFireAnim(AnimTypeClass* pAnimType, int weaponIndex, bool attach, bool center, bool removeOnNoDelay, bool useOffsetOverride, CoordStruct offsetOverride);
 
 	void AddFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker);
-	bool ContainFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker) const;
-	int FindFirer(WeaponTypeClass* const Weapon) const;
+	bool ContainFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker);
+	int FindFirer(WeaponTypeClass* const Weapon);
 
 	void InitPassiveAcquireMode();
 	PassiveAcquireMode GetPassiveAcquireMode() const;
@@ -1338,13 +866,13 @@ public:
 
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
-	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds , SHPStruct* shape , ConvertClass* convert);
+	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, SHPStruct* shape, ConvertClass* convert);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis, bool wasDamaged);
 	static void ApplyDrainMoney(TechnoClass* pThis);
 
 	static void DrawInsignia(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
-	static void DrawSelectBox(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds , bool drawBefore = false);
+	static void DrawSelectBox(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds, bool drawBefore = false);
 	//static void DrawSelectBrd(const TechnoClass* pThis, TechnoTypeClass* pType, int iLength, Point2D* pLocation, RectangleStruct* pBound, bool isInfantry, bool IsDisguised);
 	static void SyncInvulnerability(TechnoClass* pFrom, TechnoClass* pTo);
 	static void PlayAnim(AnimTypeClass* const pAnim, TechnoClass* pInvoker);
@@ -1463,7 +991,7 @@ public:
 
 	static Point2D GetScreenLocation(TechnoClass* pThis);
 	static Point2D GetFootSelectBracketPosition(TechnoClass* pThis, Anchor anchor);
-	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition , Point2D offset = Point2D::Empty);
+	static Point2D GetBuildingSelectBracketPosition(TechnoClass* pThis, BuildingSelectBracketPosition bracketPosition, Point2D offset = Point2D::Empty);
 	static void ProcessDigitalDisplays(TechnoClass* pThis);
 	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex);
 	static std::vector<DigitalDisplayTypeClass*>* GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);
@@ -1483,7 +1011,7 @@ public:
 	static bool MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* const pTarget, WeaponTypeClass* const pWeaponType);
 
 	static bool IsHealthInThreshold(ObjectClass* pObject, double min, double max);
-	static std::tuple<bool, bool , bool> CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge = false, bool checkCapturableBuilding = false, bool checkAttachedBombs = false);
+	static std::tuple<bool, bool, bool> CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge = false, bool checkCapturableBuilding = false, bool checkAttachedBombs = false);
 
 	static bool CannotMove(UnitClass* pThis);
 
@@ -1502,7 +1030,8 @@ public:
 
 };
 
-class TechnoExtContainer {
+class TechnoExtContainer
+{
 public:
 	static TechnoExtContainer Instance;
 
@@ -1533,15 +1062,13 @@ public:
 
 	virtual TechnoTypeClass* GetTechnoType() { JMP_THIS(0x6F3270); }
 
-	static int __fastcall _EvaluateJustCell(TechnoClass* pThis , discard_t, CellStruct* where);
+	static int __fastcall _EvaluateJustCell(TechnoClass* pThis, discard_t, CellStruct* where);
 	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);
 	static int __fastcall __AdjustDamage(TechnoClass* pThis, discard_t, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static void __fastcall __DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord);
 	static AbstractClass* __fastcall __Greatest_Threat(TechnoClass* techno, discard_t, ThreatType method, CoordStruct* location, bool a4);
 	static void __fastcall __Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect);
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
-	static void __fastcall __Draw_Rank_Pips(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
-
 
 };

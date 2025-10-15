@@ -111,7 +111,7 @@ ASMJIT_PATCH(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	}
 
 	// driver killed. has no mind.
-	if (TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled)
+	if (TechnoExtContainer::Instance.Find(pTarget)->Get_TechnoStateComponent()->IsDriverKilled)
 	{
 		return Disallowed;
 	}

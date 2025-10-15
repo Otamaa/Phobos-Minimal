@@ -59,7 +59,7 @@ ASMJIT_PATCH(0x7363C9, UnitClass_AI_AnimationPaused, 0x6)
 	enum { SkipGameCode = 0x7363DE , Continue = 0x0 };
 
 	GET(UnitClass*, pThis, ESI);
-	return TechnoExtContainer::Instance.Find(pThis)->DelayedFireSequencePaused?  SkipGameCode : Continue;
+	return TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->DelayedFireSequencePaused?  SkipGameCode : Continue;
 }
 
 // AFAIK, only used by the teleport of the Chronoshift SW
@@ -274,12 +274,14 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 	GET(int, currentBurstIdx, ECX);
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	pExt->LastRearmWasFullDelay = false;
+	auto pState = pExt->Get_TechnoStateComponent();
+
+	pState->LastRearmWasFullDelay = false;
 
 	bool rearm = currentBurstIdx >= pWeapon->Burst;
 
-	if (pExt->ForceFullRearmDelay) {
-		pExt->ForceFullRearmDelay = false;
+	if (pState->ForceFullRearmDelay) {
+		pState->ForceFullRearmDelay = false;
 		pThis->CurrentBurstIndex = 0;
 		rearm = true;
 	}
@@ -298,7 +300,7 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 		return currentBurstIdx <= 0 || currentBurstIdx > 4 ? 0x6FD084 : 0x6FD067;
 	}
 
-	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = true;
+	pExt->Get_TechnoStateComponent()->LastRearmWasFullDelay = true;
 	int nResult = 0;
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
@@ -317,7 +319,7 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 
 	int _ROF = int(
 		(double)pWeapon->ROF *
-		TechnoExtContainer::Instance.Find(pThis)->AE.ROFMultiplier *
+		TechnoExtContainer::Instance.Find(pThis)->Get_AEProperties()->ROFMultiplier *
 		pThis->Owner->ROFMultiplier + nResult
 	);
 
@@ -491,6 +493,7 @@ ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 	auto const mission = static_cast<Mission>(pThis->Data.MegaMission.Mission);
 	auto const pExt = TechnoExtContainer::Instance.Find(pTechno);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	auto pState = pExt->Get_TechnoStateComponent();
 
 	if ((mission == Mission::Move) && pTypeExt->KeepTargetOnMove && pTechno->Target && !pTarget)
 	{
@@ -498,31 +501,32 @@ ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 		{
 			auto const pDestination = pThis->Data.MegaMission.Destination.As_Abstract();
 			pTechno->SetDestination(pDestination, true);
-			pExt->KeepTargetOnMove = true;
+			pState->KeepTargetOnMove = true;
 			return SkipGameCode;
 		}
 	}
-	pExt->KeepTargetOnMove = false;
+	pState->KeepTargetOnMove = false;
 	return 0;
 }
 
 void UpdateKeepTargetOnMove(TechnoClass* pThis)
 {	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	auto pState = pExt->Get_TechnoStateComponent();
 
-	if (!pExt->KeepTargetOnMove)
+	if (!pState->KeepTargetOnMove)
 		return;
 
 	if (!pThis->Target)
 	{
-		pExt->KeepTargetOnMove = false;
+		pState->KeepTargetOnMove = false;
 		return;
 	}
 
 	if (!pTypeExt->KeepTargetOnMove)
 	{
 		pThis->SetTarget(nullptr);
-		pExt->KeepTargetOnMove = false;
+		pState->KeepTargetOnMove = false;
 		return;
 	}
 
@@ -531,7 +535,7 @@ void UpdateKeepTargetOnMove(TechnoClass* pThis)
 		if (!pTypeExt->KeepTargetOnMove_NoMorePursuit)
 		{
 			pThis->QueueMission(Mission::Attack, false);
-			pExt->KeepTargetOnMove = false;
+			pState->KeepTargetOnMove = false;
 			return;
 		}
 	}
@@ -549,7 +553,7 @@ void UpdateKeepTargetOnMove(TechnoClass* pThis)
 		if (!pThis->IsCloseEnough(pThis->Target, weaponIndex))
 		{
 			pThis->SetTarget(nullptr);
-			pExt->KeepTargetOnMove = false;
+			pState->KeepTargetOnMove = false;
 		}
 	}
 }
@@ -871,7 +875,7 @@ ASMJIT_PATCH(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 		pExt->ChargeTurretTimer.Stop();
 
 	int turretCount = pType->TurretCount;
-	int turretIndex = std::max(0, timeLeft * turretCount / pThis->ROF);
+	int turretIndex = MaxImpl(0, timeLeft * turretCount / pThis->ROF);
 
 	if (turretIndex >= turretCount)
 		turretIndex = turretCount - 1;
@@ -1353,7 +1357,7 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 
 				// Other than initial delay, treat 0 frame delays as 1 frame delay due to per-frame processing.
 				if (i != 0)
-					delay = std::max(delay, 1);
+					delay = MaxImpl(delay, 1);
 
 				cumulativeDelay += delay;
 
@@ -1373,7 +1377,7 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 		} else if (allowBurst) {
 			// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
 			if (fireUp + projectedDelay > frames)
-				pExt->ForceFullRearmDelay = true;
+				pExt->Get_TechnoStateComponent()->ForceFullRearmDelay = true;
 		}
 	} else if (TechnoExtData::HandleDelayedFireWithPauseSequence(pThis, pWeapon, weaponIndex, 0, -1)) {
 		return 0x736F73;
@@ -1397,7 +1401,7 @@ ASMJIT_PATCH(0x70DE40, TechnoClass_GattlingValueRateDown_GattlingRateDownDelay, 
 	++pExt->AccumulatedGattlingValue;
 	auto remain = pExt->AccumulatedGattlingValue;
 
-	if (!pExt->ShouldUpdateGattlingValue)
+	if (!pExt->Get_TechnoStateComponent()->ShouldUpdateGattlingValue)
 		remain -= pTypeExt->RateDown_Delay;
 
 	if (remain <= 0)
@@ -1406,7 +1410,7 @@ ASMJIT_PATCH(0x70DE40, TechnoClass_GattlingValueRateDown_GattlingRateDownDelay, 
 	// Time's up
 	GET_STACK(int, rateDown, STACK_OFFSET(0x0, 0x4));
 	pExt->AccumulatedGattlingValue = 0;
-	pExt->ShouldUpdateGattlingValue = true;
+	pExt->Get_TechnoStateComponent()->ShouldUpdateGattlingValue = true;
 
 	if (pThis->Ammo <= pTypeExt->RateDown_Ammo)
 		rateDown = pTypeExt->RateDown_Cover;
@@ -1428,7 +1432,7 @@ ASMJIT_PATCH(0x70DE70, TechnoClass_GattlingRateUp_GattlingRateDownReset, 0x5)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	pExt->AccumulatedGattlingValue = 0;
-	pExt->ShouldUpdateGattlingValue = false;
+	pExt->Get_TechnoStateComponent()->ShouldUpdateGattlingValue = false;
 
 	return 0;
 }
@@ -1450,7 +1454,7 @@ ASMJIT_PATCH(0x70E01E, TechnoClass_GattlingRateDown_GattlingRateDownDelay, 0x6)
 	pExt->AccumulatedGattlingValue += rateMult;
 	auto remain = pExt->AccumulatedGattlingValue;
 
-	if (!pExt->ShouldUpdateGattlingValue)
+	if (!pExt->Get_TechnoStateComponent()->ShouldUpdateGattlingValue)
 		remain -= pTypeExt->RateDown_Delay;
 
 	if (remain <= 0 && rateMult)
@@ -1458,7 +1462,7 @@ ASMJIT_PATCH(0x70E01E, TechnoClass_GattlingRateDown_GattlingRateDownDelay, 0x6)
 
 	// Time's up
 	pExt->AccumulatedGattlingValue = 0;
-	pExt->ShouldUpdateGattlingValue = true;
+	pExt->Get_TechnoStateComponent()->ShouldUpdateGattlingValue = true;
 
 	if (!rateMult)
 	{
@@ -1888,3 +1892,29 @@ ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
 	R->AL(isValid);
 	return R->Origin() + 0x8;
 }ASMJIT_PATCH_AGAIN(0x42EB6A, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8);
+
+#include <RadarEventClass.h>
+
+ASMJIT_PATCH(0x65FC6E, RadarEventClass_CTOR_SkipSetRadarEventCell, 0x6)
+{
+	if (!RulesExtData::Instance()->IgnoreCenterMinorRadarEvent)
+		return 0;
+
+	GET(RadarEventClass*, pThis, ESI);
+
+	switch (pThis->Type)
+	{
+	case RadarEventType::UnitProduced:
+	case RadarEventType::UnitRepaired:
+	case RadarEventType::BuildingInfiltrated:
+	case RadarEventType::BuildingCaptured:
+	case RadarEventType::BridgeRepaired:
+	case RadarEventType::GarrisonAbandoned:
+		break;
+	default:
+		return 0;
+	}
+
+	R->ECX(RadarEventClass::Array->Count); // RadarEventClass::Array.Count
+	return 0x65FC9E;
+}

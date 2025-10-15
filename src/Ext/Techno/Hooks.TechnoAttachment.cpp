@@ -829,7 +829,7 @@ ASMJIT_PATCH(0x6F3283, TechnoClass_CanScatter_CheckIfAttached, 0x8)
 	GET(TechnoClass*, pThis, ECX);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	return pExt->Is_DriverKilled //|| pExt->ParentAttachment
+	return pExt->Get_TechnoStateComponent()->IsDriverKilled //|| pExt->ParentAttachment
 		? ReturnFalse
 		: ContinueCheck;
 }

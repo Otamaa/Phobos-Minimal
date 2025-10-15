@@ -223,7 +223,7 @@ static FORCEDINLINE void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger
 		pPassenger->SetTargetForPassengers(nullptr);
 
 	pPassenger->Undiscover();
-	TechnoExtContainer::Instance.Find(pPassenger)->ResetLocomotor = true;
+	TechnoExtContainer::Instance.Find(pPassenger)->Get_TechnoStateComponent()->ResetLocomotor = true;
 }
 
 void TechnoExtData::Fastenteraction(FootClass* pThis) {
@@ -734,7 +734,7 @@ ASMJIT_PATCH(0x739FA2, UnitClassClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 				pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty);
 
 			// This might fix a bug where hover vehicles enter tunnels.
-			TechnoExtContainer::Instance.Find(pThis)->ResetLocomotor = true;
+			TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->ResetLocomotor = true;
 
 			if (pTunnel) 	{
 				TunnelFuncs::EnterTunnel(&pTunnel->Vector, pBuilding, pThis);

@@ -1,5 +1,6 @@
 #pragma once
 #include <Utilities/TemplateDef.h>
+#include <Utilities/EntityCachePtr.h>
 
 class WarheadTypeClass;
 class DamageSelfType
@@ -95,7 +96,7 @@ public:
 	void Reset()
 	{
 		Hit = false;
-		delay = Data->ROF;
+		delay = Data.ROF;
 		if (delay > 0)
 		{
 			DelayTimer.Start(delay);
@@ -122,16 +123,14 @@ public:
 
 	DamageSelfState(int Delay , const DamageSelfType& DData) : Hit { false }
 		, delay { Delay }
-		, Data { }
+		, Data { DData }
 		, DelayTimer { }
-	{
-		Data = std::make_unique<DamageSelfType>(DData);
-	}
+	{ }
 
 	DamageSelfState(const DamageSelfState& other) = default;
 	DamageSelfState& operator=(const DamageSelfState& other) = default;
 
-	static void OnPut(std::unique_ptr<DamageSelfState>& pState, const DamageSelfType& DData);
+	static void OnPut(TechnoClass* pTechno, const DamageSelfType& DData);
 
 	int GetRealDamage(ObjectClass* pObj, int damage, bool ignoreArmor, WarheadTypeClass* pWH);
 
@@ -148,7 +147,7 @@ public:
 
 	bool Hit;
 	int delay;
-	std::unique_ptr<DamageSelfType> Data;
+	DamageSelfType Data;
 
 private:
 	CDTimerClass DelayTimer;

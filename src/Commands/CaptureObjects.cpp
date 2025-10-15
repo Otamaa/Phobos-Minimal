@@ -50,8 +50,8 @@ void CaptureObjectsCommandClass::Execute(WWKey eInput) const
 			}
 			else
 			{
-				if (TechnoExtContainer::Instance.Find(techno)->Is_DriverKilled)
-					TechnoExtContainer::Instance.Find(techno)->Is_DriverKilled = false;
+				if (TechnoExtContainer::Instance.Find(techno)->Get_TechnoStateComponent()->IsDriverKilled)
+					TechnoExtContainer::Instance.Find(techno)->Get_TechnoStateComponent()->IsDriverKilled = false;
 
 				techno->SetOwningHouse(pToOwner, false);
 			}

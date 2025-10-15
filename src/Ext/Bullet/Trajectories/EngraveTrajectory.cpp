@@ -88,7 +88,6 @@ bool EngraveTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
 	return this->PhobosTrajectory::Load(Stm, false) &&
 	this->Serialize(Stm);
-	return true;
 }
 
 bool EngraveTrajectory::Save(PhobosStreamWriter& Stm) const

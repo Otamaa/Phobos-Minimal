@@ -95,7 +95,7 @@ ASMJIT_PATCH(0x7365E6, UnitClass_AI_Rotation_AI_Replace, 0x7)
 	const auto TypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	auto const nDisableEmp = pThis->EMPLockRemaining && TypeExt->FacingRotation_DisalbeOnEMP;
 	auto const nDisableDeactivated = pThis->IsDeactivated() && TypeExt->FacingRotation_DisalbeOnDeactivated && !pThis->EMPLockRemaining;
-	auto const nDisableDriverKilled = TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled && TypeExt->FacingRotation_DisableOnDriverKilled;
+	auto const nDisableDriverKilled = TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled && TypeExt->FacingRotation_DisableOnDriverKilled;
 
 	if (TypeExt->FacingRotation_Disable.Get(nDisableEmp || nDisableDeactivated || nDisableDriverKilled))
 		return 0x7365ED;

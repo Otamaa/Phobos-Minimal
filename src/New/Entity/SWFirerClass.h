@@ -32,7 +32,7 @@ public:
 		cell { cell },
 		playerControl { playerControl },
 		oldstart { oldstart },
-		oldleft { std::max(oldleft - deferment, 0) }
+		oldleft { MaxImpl(oldleft - deferment, 0) }
 	{
 		this->SW->Reset();
 		this->deferment.Start(deferment);

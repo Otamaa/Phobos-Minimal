@@ -153,7 +153,7 @@ void TracingTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 		this->TechnoInTransport = static_cast<bool>(pFirer->Transporter);
 		this->FirepowerMult = pFirer->FirepowerMultiplier;
 
-		this->FirepowerMult *= TechnoExtContainer::Instance.Find(pFirer)->AE.FirepowerMultiplier;
+		this->FirepowerMult *= TechnoExtContainer::Instance.Find(pFirer)->Get_AEProperties()->FirepowerMultiplier;
 
 		this->GetTechnoFLHCoord(pFirer);
 	}

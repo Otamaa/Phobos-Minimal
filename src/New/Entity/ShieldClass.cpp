@@ -143,17 +143,17 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 	const auto pToExt = TechnoExtContainer::Instance.Find(pTo);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTo->GetTechnoType());
 
-	if (!pToExt || !pFromExt || !pFromExt->Shield)
+	if (!pToExt || !pFromExt || !pFromExt->GetShield())
 		return;
 
 	if (pTypeExt->ShieldType && pFromExt->CurrentShieldType != pTypeExt->ShieldType)
 	{
-		if(pToExt->Shield) {
-			const auto nFromPrecentage = int(pFromExt->Shield->GetHealthRatio() * pToExt->Shield->Type->Strength);
-			pToExt->Shield->SetHP((int)nFromPrecentage);
+		if(auto pToShield = pToExt->GetShield()) {
+			const auto nFromPrecentage = int(pFromExt->GetShield()->GetHealthRatio() * pToShield->Type->Strength);
+			pToShield->SetHP((int)nFromPrecentage);
 
-			if (pToExt->Shield->GetHP() == 0){
-					pToExt->Shield->SetRespawn(
+			if (pToShield->GetHP() == 0){
+				pToShield->SetRespawn(
 					pTypeExt->ShieldType->Respawn_Rate,
 					pTypeExt->ShieldType->Respawn,
 					pTypeExt->ShieldType->Respawn_Rate,
@@ -166,14 +166,17 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 		}
 	} else {
 		pToExt->CurrentShieldType = pFromExt->CurrentShieldType;
-		pToExt->Shield.reset(pFromExt->Shield.release());
-		pToExt->Shield->KillAnim();
-		pToExt->Shield->Techno = pTo;
-		pToExt->Shield->CreateAnim();
-	}
+		ShieldClass* pShield = pToExt->GetShield();
 
-	if (pFrom->WhatAmI() == AbstractType::Building && pFromExt->Shield)
-		pFromExt->Shield = nullptr;
+		if (!pShield) {
+			pShield = &Phobos::gEntt->emplace<ShieldClass>(pToExt->MyEntity);
+		}
+
+		Phobos::gEntt->remove<ShieldClass>(pFromExt->MyEntity);
+		pShield->KillAnim();
+		pShield->Techno = pTo;
+		pShield->CreateAnim();
+	}
 }
 
 void ShieldClass::OnRemove() { KillAnim(); }
@@ -377,7 +380,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	if (IsShielRequreFeeback)
 	{
 		*args->Damage = nDamageResult;
-		TechnoExtContainer::Instance.Find(this->Techno)->SkipLowDamageCheck = true;
+		TechnoExtContainer::Instance.Find(this->Techno)->Get_TechnoStateComponent()->SkipLowDamageCheck = true;
 	}
 
 	return nDamageResult;
@@ -509,6 +512,8 @@ void ShieldClass::OnUpdate()
 		return;
 	}
 
+	auto pExt = TechnoExtContainer::Instance.Find(this->Techno);
+
 	if (this->Techno->Location == CoordStruct::Empty)
 		return;
 
@@ -524,7 +529,7 @@ void ShieldClass::OnUpdate()
 
 	if (this->Techno->Health <= 0 || !this->Techno->IsAlive || this->Techno->IsSinking)
 	{
-		TechnoExtContainer::Instance.Find(this->Techno)->Shield = nullptr;
+		Phobos::gEntt->remove<ShieldClass>(pExt->MyEntity);
 		return;
 	}
 
@@ -669,8 +674,10 @@ void ShieldClass::TemporalCheck()
 
 void ShieldClass::UpdateTint(bool forceUpdate)
 {
+	auto pExt = TechnoExtContainer::Instance.Find(this->Techno);
+
 	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0 || forceUpdate){
-		TechnoExtContainer::Instance.Find(this->Techno)->Tints.Update();
+		pExt->Tints.Update();
 		this->Techno->MarkForRedraw();
 	}
 }
@@ -692,9 +699,14 @@ bool ShieldClass::ConvertCheck()
 	{
 		// Case 1: Old shield is not allowed to transfer or there's no eligible new shield type -> delete shield.
 		this->KillAnim();
+		auto pOldShieldType = this->Type;
 		pTechnoExt->CurrentShieldType = ShieldTypeClass::FindOrAllocate(DEFAULT_STR2);
-		pTechnoExt->Shield = nullptr;
-		this->UpdateTint();
+		Phobos::gEntt->remove<ShieldClass>(pTechnoExt->MyEntity);
+
+		if (pOldShieldType->Tint_Color.isset() || pOldShieldType->Tint_Intensity != 0.0){
+			pTechnoExt->Tints.Update();
+			pTechnoExt->This()->MarkForRedraw();
+		}
 
 		return true;
 	}

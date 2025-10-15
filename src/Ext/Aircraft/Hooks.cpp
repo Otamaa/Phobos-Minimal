@@ -566,6 +566,14 @@ ASMJIT_PATCH(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
 }
 
 // AreaGuard: return when no ammo or first target died
+static inline int GetTurningRadius(AircraftClass* pThis)
+{
+	constexpr double epsilon = 1e-10;
+	constexpr double raw2Radian = Math::TwoPi / 65536;
+	// GetRadian<65536>() is an incorrect method
+	const double rotRadian = Math::abs(static_cast<double>(pThis->PrimaryFacing.ROT.Raw) * raw2Radian);
+	return rotRadian > epsilon ? static_cast<int>(static_cast<double>(pThis->Type->Speed) / rotRadian) : 0;
+}
 
 ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 {
@@ -577,13 +585,75 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 
 	if (RulesExtData::Instance()->ExpandAircraftMission && !pThis->Team && pThis->Ammo && pThis->IsArmed())
 	{
-		CoordStruct coords = pThis->GetCoords();
+		auto enterIdleMode = [pThis]() -> bool
+			{
+				// Avoid duplicate checks in Update
+				if (pThis->MissionStatus)
+					return false;
 
-		if (pThis->TargetAndEstimateDamage(&coords, ThreatType::Normal))
-			pThis->QueueMission(Mission::Attack, false);
-		else if (pThis->Destination && pThis->Destination != pThis->DockedTo)
-			pThis->EnterIdleMode(false, true);
+				pThis->EnterIdleMode(false, true);
 
+				if (pThis->DockedTo)
+					return true;
+
+				// Hovering state without any airport
+				pThis->MissionStatus = 1;
+				return false;
+			};
+		auto hoverOverArchive = [pThis](const CoordStruct& coords, AbstractClass* pDest)
+			{
+				const auto& location = pThis->Location;
+				const int turningRadius = GetTurningRadius(pThis);
+				auto length_ = Point2D(coords.X, coords.Y).DistanceFrom({ location.X, location.Y });
+				const double distance = MaxImpl(1.0, length_);
+
+				// Random hovering direction
+				const double ratio = (((pThis->LastFireBulletFrame + pThis->UniqueID) & 1) ? turningRadius : -turningRadius) / distance;
+
+				// Fly sideways towards the target, and extend the distance to ensure no deceleration
+				const CoordStruct destination
+				{
+					(static_cast<int>(coords.X - ratio * (location.Y - coords.Y)) - location.X) * 4 + location.X,
+					(static_cast<int>(coords.Y + ratio * (location.X - coords.X)) - location.Y) * 4 + location.Y,
+					coords.Z
+				};
+
+				pThis->Locomotor->Move_To(destination);
+				pThis->IsLocked = distance < turningRadius;
+			};
+
+		if (const auto pArchive = pThis->ArchiveTarget)
+		{
+			if (pThis->Ammo)
+			{
+				auto coords = pArchive->GetCoords();
+
+				if (!pThis->TargetingTimer.HasTimeLeft() && pThis->TargetAndEstimateDamage(&coords, ThreatType::Area)) {
+					// Without an airport, there is no need to record the previous location
+					if (pThis->MissionStatus)
+						pThis->SetArchiveTarget(nullptr);
+
+					pThis->QueueMission(Mission::Attack, false);
+				} else {
+					// Check dock building
+					if (!pThis->MissionStatus && !pThis->FindDockingBayInVector(reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&pThis->Type->Dock), 0, 0))
+						pThis->MissionStatus = 1;
+
+					hoverOverArchive(coords, pArchive);
+				}
+			}
+			else if (!enterIdleMode() && pThis->IsAlive)
+			{
+				// continue circling
+				hoverOverArchive(pArchive->GetCoords(), pArchive);
+			}
+		}
+		else if (!pThis->Destination)
+		{
+			enterIdleMode();
+		}
+
+		R->EAX(1);
 		return SkipGameCode;
 	}
 

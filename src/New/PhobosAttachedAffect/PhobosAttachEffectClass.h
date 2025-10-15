@@ -82,7 +82,7 @@ public:
 	static int Detach(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo);
 	static int DetachByGroups(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo);
 
-	static void TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget);
+	static bool TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget);
 
 	void OnlineCheck();
 	void CloakCheck();

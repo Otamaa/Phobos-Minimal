@@ -385,8 +385,9 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DamageOwnerMultiplier.Read(exINI, pSection, "DamageOwnerMultiplier");
 	this->DamageAlliesMultiplier.Read(exINI, pSection, "DamageAlliesMultiplier");
 	this->DamageEnemiesMultiplier.Read(exINI, pSection, "DamageEnemiesMultiplier");
-	this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk.Read(exINI, pSection, "DamageEnemiesMultiplier.UsedForAllTargetInBerzerk");
-	this->AttachTag.Read(pINI, pSection, "AttachTag");
+	this->DamageOwnerMultiplier_Berzerk.Read(exINI, pSection, "DamageOwnerMultiplier.Berzerk");
+	this->DamageAlliesMultiplier_Berzerk.Read(exINI, pSection, "DamageAlliesMultiplier.Berzerk");
+	this->DamageEnemiesMultiplier_Berzerk.Read(exINI, pSection, "DamageEnemiesMultiplier.Berzerk");	this->AttachTag.Read(pINI, pSection, "AttachTag");
 	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
 	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
 	this->AttachTag_Ignore.Read(exINI, pSection, "AttachTag.Ignore");
@@ -813,37 +814,35 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 
 	//Calculate Damage Multiplier
 	//this abomination is always active
-	//if (pVictimHouse && (this->DamageOwnerMultiplier != 1.0 || this->DamageAlliesMultiplier != 1.0 || this->DamageEnemiesMultiplier != 1.0))
+	const auto pRulesExt = RulesExtData::Instance();
+	double multiplier = 1.0;
+	auto pSourceHouse = pArgs->SourceHouse;
+
+	if (pArgs->Attacker && pArgs->Attacker->Berzerk)
 	{
-		const auto pRulesExt = RulesExtData::Instance();
-
-		const bool CountAsnemies = !pArgs->SourceHouse
-						|| !pVictimHouse
-						|| !pArgs->SourceHouse ->IsAlliedWith(pVictimHouse)
-						|| pArgs->Attacker && pArgs->Attacker->Berzerk && this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk.Get(pRulesExt->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk);
-
-		double multiplier = 1.0;
-
-		if (CountAsnemies)
+		if (!pSourceHouse || !pVictimHouse || !pSourceHouse->IsAlliedWith(pVictimHouse))
+			multiplier = this->DamageEnemiesMultiplier_Berzerk.Get(pRulesExt->DamageEnemiesMultiplier_Berzerk.Get(pRulesExt->DamageEnemiesMultiplier));
+		else if (pSourceHouse != pVictimHouse)
+			multiplier = this->DamageAlliesMultiplier_Berzerk.Get(pRulesExt->DamageAlliesMultiplier_Berzerk.Get(!this->AffectsEnemies ? pRulesExt->DamageAlliesMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageAlliesMultiplier) : pRulesExt->DamageAlliesMultiplier));
+		else
+			multiplier = this->DamageOwnerMultiplier_Berzerk.Get(pRulesExt->DamageOwnerMultiplier_Berzerk.Get(!this->AffectsEnemies ? pRulesExt->DamageOwnerMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageOwnerMultiplier) : pRulesExt->DamageOwnerMultiplier));
+	}
+	else
+	{
+		if (!pSourceHouse || !pVictimHouse || !pSourceHouse->IsAlliedWith(pVictimHouse))
 			multiplier = this->DamageEnemiesMultiplier.Get(pRulesExt->DamageEnemiesMultiplier);
-		else if (pArgs->SourceHouse != pVictimHouse)
+		else if (pSourceHouse != pVictimHouse)
 			multiplier = this->DamageAlliesMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageAlliesMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageAlliesMultiplier) : pRulesExt->DamageAlliesMultiplier);
 		else
 			multiplier = this->DamageOwnerMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageOwnerMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageOwnerMultiplier) : pRulesExt->DamageOwnerMultiplier);
-
-		if (this->DamageSourceHealthMultiplier && pArgs->Attacker)
-			multiplier += this->DamageSourceHealthMultiplier * pArgs->Attacker->GetHealthPercentage();
-
-		if (this->DamageTargetHealthMultiplier)
-			multiplier += this->DamageTargetHealthMultiplier * pVictim->GetHealthPercentage();
-
-		if (multiplier != 1.0)
-		{
-			const auto sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
-			const auto calculateDamage = static_cast<int>(*pArgs->Damage * multiplier);
-			*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
-		}
 	}
+
+	if (multiplier != 1.0) {
+		const auto sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
+		const auto calculateDamage = static_cast<int>(*pArgs->Damage * multiplier);
+		*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
+	}
+
 }
 
 void WarheadTypeExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
@@ -1096,7 +1095,7 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 
 		// get the values
 		auto pExt = TechnoExtContainer::Instance.Find(pInf);
-		int oldValue = (!pExt->IsWebbed || pInf->ParalysisTimer.Expired() ? 0 : pInf->ParalysisTimer.GetTimeLeft());
+		int oldValue = (!pExt->Get_TechnoStateComponent()->IsWebbed || pInf->ParalysisTimer.Expired() ? 0 : pInf->ParalysisTimer.GetTimeLeft());
 		int newValue = Helpers::Alex::getCappedDuration(oldValue, duration, this->Webby_Cap);
 
 		// update according to oldval
@@ -1108,7 +1107,7 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 				if (pInf->Locomotor->Is_Moving())
 					pInf->Locomotor->Stop_Moving();
 
-				pExt->IsWebbed = true;
+				pExt->Get_TechnoStateComponent()->IsWebbed = true;
 				pInf->ParalysisTimer.Start(newValue);
 				AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
 				pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
@@ -1140,9 +1139,9 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 			}
 			else //turn off
 			{
-				if (pExt->IsWebbed)
+				if (pExt->Get_TechnoStateComponent()->IsWebbed)
 				{
-					pExt->IsWebbed = false;
+					pExt->Get_TechnoStateComponent()->IsWebbed = false;
 					pInf->ParalysisTimer.Stop();
 					TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(pInf);
 				}
@@ -1231,7 +1230,7 @@ static COMPILETIMEEVAL int GetRelativeValue(ObjectClass* pTarget, WarheadTypeExt
 
 	if (IsTechno && relative > 0)
 	{
-		return int(relative * TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->AE.ReceiveRelativeDamageMult);
+		return int(relative * TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->Get_AEProperties()->ReceiveRelativeDamageMult);
 	}
 
 	return relative;
@@ -1752,7 +1751,9 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->DamageOwnerMultiplier)
 		.Process(this->DamageAlliesMultiplier)
 		.Process(this->DamageEnemiesMultiplier)
-		.Process(this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk)
+		.Process(this->DamageOwnerMultiplier_Berzerk)
+		.Process(this->DamageAlliesMultiplier_Berzerk)
+		.Process(this->DamageEnemiesMultiplier_Berzerk)
 
 		.Process(this->AttachTag)
 		.Process(this->AttachTag_Types)
@@ -2052,11 +2053,11 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) con
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pFirer);
 
-	if (pExt->AE.ExtraCrit.Enabled())
+	if (pExt->Get_AEPropertiesExtraCrit() && pExt->Get_AEPropertiesExtraCrit()->Enabled())
 	{
-		std::vector<AEProperties::ExtraCrit::CritDataOut> valids;
-		pExt->AE.ExtraCrit.FillEligible(This(), valids);
-		chances = AEProperties::ExtraCrit::Count(chances, valids);
+		std::vector<AEPropertiesExtraCrit::CritDataOut> valids;
+		pExt->Get_AEPropertiesExtraCrit()->FillEligible(This(), valids);
+		chances = AEPropertiesExtraCrit::Count(chances, valids);
 	}
 }
 

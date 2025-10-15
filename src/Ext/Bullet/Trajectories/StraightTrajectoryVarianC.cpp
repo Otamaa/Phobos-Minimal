@@ -222,7 +222,7 @@ void StraightTrajectoryVarianC::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pV
 		this->CurrentBurst = pFirer->CurrentBurstIndex;
 		this->FirepowerMult = pFirer->FirepowerMultiplier;
 
-		this->FirepowerMult *= TechnoExtContainer::Instance.Find(pFirer)->AE.FirepowerMultiplier;
+		this->FirepowerMult *= TechnoExtContainer::Instance.Find(pFirer)->Get_AEProperties()->FirepowerMultiplier;
 
 		if (pType->MirrorCoord && pFirer->CurrentBurstIndex % 2 == 1)
 			this->OffsetCoord.Y = -(this->OffsetCoord.Y);

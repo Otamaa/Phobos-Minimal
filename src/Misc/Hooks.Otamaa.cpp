@@ -676,7 +676,7 @@ ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
 // 		EligibleRadar = 0x508F2A
 // 	};
 //
-// 	if (TechnoExtContainer::Instance.Find(pBld)->AE.DisableRadar)
+// 	if (TechnoExtContainer::Instance.Find(pBld)->Get_AEProperties()->DisableRadar)
 // 		return ContinueLoop;
 //
 // 	if (!pBld->_GetExtData()->RegisteredJammers.empty())
@@ -1580,7 +1580,7 @@ ASMJIT_PATCH(0x71C84D, TerrainClass_AI_Animated, 0x6)
 
 // 				if(IsSpysatActulallyAllowed && !Spysat) {
 // 					//only pick avaible spysat
-// 					if (!TechnoExtContainer::Instance.Find(pBld)->AE.DisableSpySat) {
+// 					if (!TechnoExtContainer::Instance.Find(pBld)->Get_AEProperties()->DisableSpySat) {
 // 						const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && Online);
 // 						if ((*begin)->SpySat && !Jammered && IsSpySatPowered) {
 // 							if (IsLimboDelivered || !IsCampaign || pBld->DiscoveredByCurrentPlayer) {
@@ -2297,7 +2297,7 @@ ASMJIT_PATCH(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->AE.Untrackable || TechnoExtData::IsUntrackable(pThis))
+	if (pExt->Get_AEProperties()->Untrackable || TechnoExtData::IsUntrackable(pThis))
 	{
 		return 0x6D4793;
 	}
@@ -2728,7 +2728,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					case Powerup::Cloak:
 					{
 
-						if (!TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->AE.Cloakable)
+						if (!TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->Cloakable)
 							data = Powerup::Money;
 
 						break;
@@ -2746,7 +2746,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					case Powerup::Armor:
 					{
-						if (TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier != 1.0)
+						if (TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->ArmorMultiplier != 1.0)
 						{
 							data = Powerup::Money;
 						}
@@ -2755,7 +2755,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					case Powerup::Speed:
 					{
-						if (TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier != 1.0 || pCollector->WhatAmI() == AbstractType::Aircraft)
+						if (TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->SpeedMultiplier != 1.0 || pCollector->WhatAmI() == AbstractType::Aircraft)
 						{
 							data = Powerup::Money;
 						}
@@ -2764,7 +2764,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					case Powerup::Firepower:
 					{
-						if (TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier != 1.0 || !pCollector->IsArmed())
+						if (TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->FirepowerMultiplier != 1.0 || !pCollector->IsArmed())
 						{
 							data = Powerup::Money;
 						}
@@ -3069,9 +3069,9 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								auto LayersCoords = pTechno->GetCoords();
 								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
-								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier == 1.0)
+								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->ArmorMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier = something;
+									TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->ArmorMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -3100,9 +3100,9 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								auto LayersCoords = pTechno->GetCoords();
 								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
-								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier == 1.0)
+								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->SpeedMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier = something;
+									TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->SpeedMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -3132,9 +3132,9 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius
-									&& TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier == 1.0)
+									&& TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->FirepowerMultiplier == 1.0)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier = something;
+									TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->FirepowerMultiplier = something;
 									AEProperties::Recalculate(pCollector);
 
 									if (pTechno->Owner->ControlledByCurrentPlayer())
@@ -3166,7 +3166,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.Cloakable = true;
+									TechnoExtContainer::Instance.Find(pCollector)->Get_AEProperties()->Cloakable = true;
 									AEProperties::Recalculate(pCollector);
 								}
 							}
@@ -5314,7 +5314,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	}
 
 	auto pExt = TechnoExtContainer::Instance.Find(this);
-	if (pExt->Is_DriverKilled || !RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
+	if (pExt->Get_TechnoStateComponent()->IsDriverKilled || !RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
 		return true;
 
 	if (this->Type->ResourceGatherer || this->Type->Harvester)
@@ -7549,6 +7549,35 @@ public:
 	}
 
 #ifndef CHECK_PTR_VALID
+
+
+ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
+{
+	GET_STACK(ObjectClass*, pTarget, 0x4);
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+
+	bool result = false;
+
+	if (pTarget) {
+
+		if(flag_cast_to<TechnoClass*>(pTarget)){
+			if ((VTable::Get(pTarget) != AircraftClass::vtable &&
+				VTable::Get(pTarget) != BuildingClass::vtable &&
+				VTable::Get(pTarget) != UnitClass::vtable &&
+				VTable::Get(pTarget) != InfantryClass::vtable))
+			{
+				Debug::FatalError("Missing valid vtable %x , caller %x", pTarget, caller);
+			}
+		}
+
+		result = pThis->IsAlliedWith(pTarget->GetOwningHouse());
+	}
+
+	R->AL(result);
+	return 0x4F9ADE;
+}
+
 
 	//ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 	//{

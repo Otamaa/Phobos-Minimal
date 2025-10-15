@@ -19,7 +19,7 @@
 #include <Misc/Patches.h>
 
 #include <Misc/PhobosGlobal.h>
-
+#include <Misc/Multithread.h>
 #include <Misc/Ares/Hooks/Header.h>
 #include <Misc/Spawner/Main.h>
 
@@ -56,6 +56,8 @@ PVOID Phobos::pExceptionHandler { nullptr };
 ExceptionHandlerMode Phobos::ExceptionMode { ExceptionHandlerMode::Default };
 
 bool Phobos::HasCNCnet { false };
+
+entt::registry* Phobos::gEntt {};
 
 std::mt19937 Phobos::Random::_engine;
 
@@ -418,6 +420,7 @@ static void CheckHookConflict(unsigned int addr, size_t size)
 	}
 
 	std::string disassemblyResult;
+
 	if (maybeConflicted)
 	{
 		// Initialize decoder context
@@ -479,7 +482,6 @@ std::string PrintAssembly(const void* code, size_t codeSize, uintptr_t runtimeAd
 			char buffer[256];
 			ZydisFormatterFormatInstruction(&formatter, &instruction, operands,
 				instruction.operand_count_visible, buffer, sizeof(buffer), runtimeAddress + offset, ZYAN_NULL);
-			disassemblyResult += fmt::format("0x{} : {}\n", unsigned(runtimeAddress + offset), buffer);
 
 			offset += instruction.length;
 		}
@@ -1348,9 +1350,6 @@ DECLARE_PATCH(_set_fp_mode)
 	JMP(0x6BBFCE);
 }
 
-#include <Misc/Multithread.h>
-#include <ExtraHeaders/MemoryPool.h>
-
 static CriticalSection critSec3, critSec4;
 #ifdef _ReplaceAlloc
 struct GameMemoryReplacer
@@ -1608,6 +1607,8 @@ NOINLINE void ApplyEarlyFuncs()
 		{
 			Debug::LogDeferred("Compatibility modes detected : %s .\n", buf);
 		}
+
+		Phobos::gEntt = new entt::registry();
 	}
 }
 
@@ -1624,17 +1625,19 @@ void InitializeCustomMemorySystem()
 	// 	Debug::LogDeferred("Consider using CustomMemoryManager::RegenerateSignatures() if issues occur.\n");
 	// }
 
-	Patch::Apply_CALL(0x7D13A0, &CustomMemoryManager::RecreatedCalloc);
-	Patch::Apply_LJMP(0x7C9442, &CustomMemoryManager::RecreatedNHMalloc);
-	Patch::Apply_LJMP(0x7C93E8, &CustomMemoryManager::RecreatedFree);
-	Patch::Apply_LJMP(0x7D0F45, &CustomMemoryManager::RecreatedRealloc);
-	Patch::Apply_LJMP(0x7D3374, &CustomMemoryManager::RecreatedCalloc);
-	Patch::Apply_LJMP(0x7C9430, &CustomMemoryManager::RecreatedHeapAlloc);
-	Patch::Apply_LJMP(0x7D107D, &CustomMemoryManager::RecreatedMSize);
-	Patch::Apply_LJMP(0x7D5408, &CustomMemoryManager::StrDup);
-	Patch::Apply_LJMP(0x7C9CC2, &CustomMemoryManager::StrTok);
+	/*
+		Patch::Apply_CALL(0x7D13A0, &CustomMemoryManager::RecreatedCalloc);
+		Patch::Apply_LJMP(0x7C9442, &CustomMemoryManager::RecreatedNHMalloc);
+		Patch::Apply_LJMP(0x7C93E8, &CustomMemoryManager::RecreatedFree);
+		Patch::Apply_LJMP(0x7D0F45, &CustomMemoryManager::RecreatedRealloc);
+		Patch::Apply_LJMP(0x7D3374, &CustomMemoryManager::RecreatedCalloc);
+		Patch::Apply_LJMP(0x7C9430, &CustomMemoryManager::RecreatedHeapAlloc);
+		Patch::Apply_LJMP(0x7D107D, &CustomMemoryManager::RecreatedMSize);
+		Patch::Apply_LJMP(0x7D5408, &CustomMemoryManager::StrDup);
+		Patch::Apply_LJMP(0x7C9CC2, &CustomMemoryManager::StrTok);
 
-	Debug::LogDeferred("Custom Memory System initialization complete!\n");
+		Debug::LogDeferred("Custom Memory System initialization complete!\n");
+	*/
 }
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -1667,6 +1670,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 		if (g_isProcessTerminating && IsInitialized)
 		{
+			delete Phobos::gEntt;
+			Phobos::gEntt = nullptr;
+
 			Multithreading::ShutdownMultitheadMode();
 			Debug::DeactivateLogger();
 			gJitRuntime.reset();

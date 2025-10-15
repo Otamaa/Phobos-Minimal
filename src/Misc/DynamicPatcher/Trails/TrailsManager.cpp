@@ -181,16 +181,20 @@ void TrailsManager::AI(FootClass* pOwner)
 			continue;
 		}
 
-		if (!pExt->IsInTunnel)
+		if (!pExt->Get_TechnoStateComponent()->IsInTunnel)
 			pTrails->Visible = true;
 
 		if (pTrails->Type->Mode == TrailMode::ANIM)
 		{
-			switch (pExt->MyDriveData.nState)
+			auto pDrive = pExt->Get_DriveData();
+			if(!pDrive)
+				pDrive = &Phobos::gEntt->emplace<DriveData>(pExt->MyEntity);
+
+			switch (pDrive->nState)
 			{
 			case DrivingState::Start:
 			case DrivingState::Stop:
-				pTrails->SetDrivingState(pExt->MyDriveData.nState);
+				pTrails->SetDrivingState(pDrive->nState);
 				break;
 			}
 		}

@@ -39,43 +39,42 @@ void GiftBoxFunctional::Init(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 			pTypeExt->MyGiftBoxData.DelayMin,
 			pTypeExt->MyGiftBoxData.DelayMax);
 
-	pExt->MyGiftBox = std::make_unique<GiftBox>(nDelay);
-
+	Phobos::gEntt->emplace<GiftBox>(pExt->MyEntity, nDelay);
 }
 
 void GiftBoxFunctional::Destroy(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->MyGiftBox || OpenDisallowed(pExt->This()))
+	if (!pExt->Get_GiftBox() || OpenDisallowed(pExt->This()))
 		return;
 
-	if (pTypeExt->MyGiftBoxData.OpenWhenDestoryed && !pExt->MyGiftBox->IsOpen)
+	if (pTypeExt->MyGiftBoxData.OpenWhenDestoryed && !pExt->Get_GiftBox()->IsOpen)
 	{
-		pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
-		pExt->MyGiftBox->IsOpen = true;
+		pExt->Get_GiftBox()->Release(pExt->This(), pTypeExt->MyGiftBoxData);
+		pExt->Get_GiftBox()->IsOpen = true;
 	}
 
 }
 
 void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->MyGiftBox || OpenDisallowed(pExt->This()))
+	if (!pExt->Get_GiftBox() || OpenDisallowed(pExt->This()))
 		return;
 
-	if (!pTypeExt->MyGiftBoxData.Enable){
-		pExt->MyGiftBox.reset(nullptr);
+	if (!pTypeExt->MyGiftBoxData.Enable) {
+		Phobos::gEntt->remove<GiftBox>(pExt->MyEntity);
 		return;
 	}
 
 	if (!pTypeExt->MyGiftBoxData.OpenWhenDestoryed &&
 		!pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.isset() &&
-		pExt->MyGiftBox->CanOpen())
+		pExt->Get_GiftBox()->CanOpen())
 	{
 
-		pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
-		pExt->MyGiftBox->IsOpen = true;
+		pExt->Get_GiftBox()->Release(pExt->This(), pTypeExt->MyGiftBoxData);
+		pExt->Get_GiftBox()->IsOpen = true;
 	}
 
-	if (pExt->MyGiftBox->IsOpen)
+	if (pExt->Get_GiftBox()->IsOpen)
 	{
 		if (pTypeExt->MyGiftBoxData.Remove)
 		{
@@ -103,7 +102,7 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 					pTypeExt->MyGiftBoxData.DelayMin,
 					pTypeExt->MyGiftBoxData.DelayMax);
 
-			pExt->MyGiftBox->Reset(nDelay);
+			pExt->Get_GiftBox()->Reset(nDelay);
 		}
 	}
 
@@ -112,7 +111,7 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 void GiftBoxFunctional::TakeDamage(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt, WarheadTypeClass* pWH, DamageState nState)
 {
 
-	if (!pExt->MyGiftBox.get())
+	if (!pExt->Get_GiftBox())
 		return;
 
 	if (nState != DamageState::NowDead &&
@@ -122,8 +121,8 @@ void GiftBoxFunctional::TakeDamage(TechnoExtData* pExt, TechnoTypeExtData* pType
 		double healthPercent = pExt->This()->GetHealthPercentage();
 		if (healthPercent <= pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.Get())
 		{
-			pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
-			pExt->MyGiftBox->IsOpen = true;
+			pExt->Get_GiftBox()->Release(pExt->This(), pTypeExt->MyGiftBoxData);
+			pExt->Get_GiftBox()->IsOpen = true;
 		}
 	}
 }

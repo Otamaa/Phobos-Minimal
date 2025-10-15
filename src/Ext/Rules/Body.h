@@ -350,7 +350,9 @@ public:
 	Valueable<double> DamageOwnerMultiplier { 1.0 };
 	Valueable<double> DamageAlliesMultiplier { 1.0 };
 	Valueable<double> DamageEnemiesMultiplier { 1.0 };
-	Valueable<bool> DamageEnemiesMultiplier_UsedForAllTargetInBerzerk { false };
+	Nullable<double> DamageOwnerMultiplier_Berzerk {};
+	Nullable<double> DamageAlliesMultiplier_Berzerk {};
+	Nullable<double> DamageEnemiesMultiplier_Berzerk {};
 	Nullable<double> DamageOwnerMultiplier_NotAffectsEnemies {};
 	Nullable<double> DamageAlliesMultiplier_NotAffectsEnemies {};
 
@@ -571,6 +573,7 @@ public:
 	Valueable<Leptons> AIGuardModeGuardRangeAddend { Leptons(0) };
 	Valueable<Leptons> AIGuardModeGuardRangeMax { Leptons(4096) };
 	Valueable<Leptons> AIGuardStationaryStray { Leptons(-256) };
+	Valueable<bool> IgnoreCenterMinorRadarEvent { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

@@ -863,8 +863,7 @@ ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 
 	auto const Extension = TechnoExtContainer::Instance.Find(pThis);
 
-	if (!Extension->ReceiveDamage)
-	{
+	if (!Extension->Get_TechnoStateComponent()->ReceiveDamage) {
 		AnimTypeExtData::ProcessDestroyAnims(pThis);
 	}
 

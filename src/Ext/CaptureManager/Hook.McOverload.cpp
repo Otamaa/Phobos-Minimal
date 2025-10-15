@@ -24,7 +24,7 @@ ASMJIT_PATCH(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 		// prevent crashing and sinking technos from self-healing
-	if (pType->NoExtraSelfHealOrRepair || pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled) {
+	if (pType->NoExtraSelfHealOrRepair || pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled) {
 		return DoNotSelfHeal;
 	}
 

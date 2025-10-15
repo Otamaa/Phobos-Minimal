@@ -63,12 +63,12 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 		pInvokerExt->AttachedEffectInvokerCount++;
 
 		if(pType->Duration_ApplyFirepowerMult)
-			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
+			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->Get_AEProperties()->FirepowerMultiplier);
 	}
 
 	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
-		const auto _value = this->Duration / pTechno->ArmorMultiplier / pTechnoExt->AE.ArmorMultiplier / this->Type->ArmorMultiplier;
+		const auto _value = this->Duration / pTechno->ArmorMultiplier / pTechnoExt->Get_AEProperties()->ArmorMultiplier / this->Type->ArmorMultiplier;
 		this->Duration = MaxImpl(static_cast<int>(_value), 0);
 	}
 
@@ -142,7 +142,7 @@ void PhobosAttachEffectClass::AI()
 
 			pTechno->RearmTimer.Start(static_cast<int>(pTechno->RearmTimer.GetTimeLeft() * ROFModifier));
 
-			if (!pExt->ChargeTurretTimer.HasStarted() && pExt->LastRearmWasFullDelay)
+			if (!pExt->ChargeTurretTimer.HasStarted() && pExt->Get_TechnoStateComponent()->LastRearmWasFullDelay)
 				pTechno->ROF = static_cast<int>(pTechno->ROF * ROFModifier);
 		}
 
@@ -463,11 +463,11 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 		pInvokerExt->AttachedEffectInvokerCount++;
 
 		if (this->Type->Duration_ApplyFirepowerMult)
-			this->Duration = static_cast<int>(this->Duration * this->Invoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
+			this->Duration = static_cast<int>(this->Duration * this->Invoker->FirepowerMultiplier * pInvokerExt->Get_AEProperties()->FirepowerMultiplier);
 	}
 
 	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
-		this->Duration = MaxImpl(static_cast<int>(this->Duration / this->Techno->ArmorMultiplier / TechnoExtContainer::Instance.Find(this->Techno)->AE.ArmorMultiplier / this->Type->ArmorMultiplier), 0);
+		this->Duration = MaxImpl(static_cast<int>(this->Duration / this->Techno->ArmorMultiplier / TechnoExtContainer::Instance.Find(this->Techno)->Get_AEProperties()->ArmorMultiplier / this->Type->ArmorMultiplier), 0);
 
 	if (this->Type->Animation_ResetOnReapply)
 	{
@@ -603,7 +603,7 @@ int PhobosAttachEffectClass::Attach(TechnoClass* pTarget, HouseClass* pInvokerHo
 
 	if (ROFModifier != 1.0)
 	{
-		if (!pTargetExt->ChargeTurretTimer.HasStarted() && pTargetExt->LastRearmWasFullDelay)
+		if (!pTargetExt->ChargeTurretTimer.HasStarted() && pTargetExt->Get_TechnoStateComponent()->LastRearmWasFullDelay)
 			pTarget->ROF = static_cast<int>(pTarget->ROF * ROFModifier);
 	}
 
@@ -868,7 +868,7 @@ void PhobosAttachEffectClass::DetonateExpireWeapon(std::vector<std::pair<WeaponT
 	}
 }
 
-void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget)
+bool PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget)
 {
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pTarget->GetThisClassName(), pTarget->get_ID());
 	const auto pSourceExt = TechnoExtContainer::Instance.Find(pSource);
@@ -934,7 +934,10 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 	if (transferCount) {
 		AEProperties::UpdateAEAnimLogic(pSource);
 		AEProperties::UpdateAEAnimLogic(pTarget);
+		return true;
 	}
+
+	return false;
 }
 
 #pragma endregion
