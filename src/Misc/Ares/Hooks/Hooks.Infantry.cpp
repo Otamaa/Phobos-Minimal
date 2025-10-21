@@ -551,7 +551,7 @@ ASMJIT_PATCH(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
 ASMJIT_PATCH(0x629804, ParasiteClass_UpdateSquiddy, 9)
 {
 	GET(ParasiteClass*, pThis, ESI);
-	R->EAX(pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Parasite));
+	R->EAX(pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->Get_TechnoStateComponent()->WeaponIndexes.Parasite));
 	return 0x62980D;
 }
 

@@ -19,8 +19,10 @@ OtherParticleData(),
 SmokeData(),
 AlphaIsLightFlash(true)
 {
-	if (!pObj->Type)
-		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !", pObj);
+	auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+	pIdent->Name = pObj->Type->ID;
+	pIdent->AbsType = ParticleSystemClass::AbsID;
+
 	auto pType = pObj->Type;
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())

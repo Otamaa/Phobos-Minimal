@@ -156,7 +156,7 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 			char id[sizeof(AbstractTypeClass::ID)] = { 0 };
 			char bwp[20] = { 0 };
 
-			if (sscanf(buff, "%d,%[^\n]", id, bwp) == 2)
+			if (sscanf(buff, "%s,%[^\n]", id, bwp) == 2)
 			{
 				index = BuildingTypeClass::FindIndexById(id);
 

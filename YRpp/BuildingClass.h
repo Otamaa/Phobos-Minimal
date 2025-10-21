@@ -353,6 +353,9 @@ public:
 	bool CanUpgrade(BuildingTypeClass* pType, HouseClass * pHouse) const
 	{ JMP_THIS(0x452670); }
 
+	bool CanBeOccupyedBy(InfantryClass* inf) const
+	{ JMP_THIS(0x457CE0); }
+
 	//Constructor
 	BuildingClass(BuildingTypeClass* pType, HouseClass* pOwner) noexcept
 		: BuildingClass(noinit_t())

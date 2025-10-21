@@ -11,7 +11,7 @@ ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
 	return TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())->Passengers_SyncOwner.Get() ?  ret : 0; }
 
-SET_THREATEVALS(0x6FA33C, ESI, TechnoClass_AI_ThreatEvals_OpenToppedOwner, 0x6, 0x6FA37A) //
+//SET_THREATEVALS(0x6FA33C, ESI, TechnoClass_AI_ThreatEvals_OpenToppedOwner, 0x6, 0x6FA37A) //
 SET_THREATEVALS(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
 //SET_THREATEVALS(0x6F8FD7, ESI, TechnoClass_GreatestThreat_ThreatEvals_OpenToppedOwner, 0x5, 0x6F8FDC)
 SET_THREATEVALS(0x6F7EC2, EDI, TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOwner, 0x6, 0x6F7EDA)
@@ -77,8 +77,8 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 
 		for (auto& pLaserTrail : pPassExt->LaserTrails)
 		{
-			pLaserTrail->Visible = false;
-			pLaserTrail->LastLocation.clear();
+			pLaserTrail.Visible = false;
+			pLaserTrail.LastLocation.clear();
 		}
 
 		TrailsManager::Hide((TechnoClass*)pPassenger);

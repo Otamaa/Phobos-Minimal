@@ -155,7 +155,13 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 	{
 		// Also check for vftable here to guarantee the TemporalClass not being destoryed already.
 		if (IsTemporalptrValid(pThis->TemporalTargetingMe)) // TemporalClass::`vtable`
+		{
+			if (pThis->TemporalTargetingMe->Owner == pThis->TemporalTargetingMe->Target) {
+				pThis->TemporalTargetingMe->Detach();
+				return;
+			}
 			pThis->TemporalTargetingMe->Update();
+		}
 		else // It should had being warped out, delete this object
 		{
 			pThis->TemporalTargetingMe = nullptr;

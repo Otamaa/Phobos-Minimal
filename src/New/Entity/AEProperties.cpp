@@ -393,9 +393,9 @@ void AEProperties::Recalculate(TechnoClass* pTechno)
 
 void AEProperties::UpdateAEAnimLogic(TechnoClass* pTechno)
 {
-	for (auto const& attachEffect : TechnoExtContainer::Instance.Find(pTechno)->PhobosAE)
-	{
-		attachEffect->UpdateAnimLogic();
+	for (auto const& attachEffect : TechnoExtContainer::Instance.Find(pTechno)->PhobosAE) {
+		if(attachEffect)
+			attachEffect->UpdateAnimLogic();
 	}
 }
 

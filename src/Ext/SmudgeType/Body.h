@@ -13,7 +13,12 @@ public:
 	Valueable<bool> Clearable;
 
 public:
-	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) , Clearable (true) { }
+	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) , Clearable (true)
+	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = SmudgeTypeClass::AbsID;
+	}
+
 	SmudgeTypeExtData(SmudgeTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~SmudgeTypeExtData() = default;

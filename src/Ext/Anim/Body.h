@@ -37,9 +37,6 @@ public:
 	CoordStruct CreateUnitLocation;
 
 	bool DelayedFireRemoveOnNoDelay;
-	bool IsAttachedEffectAnim;
-	bool IsShieldIdleAnim;
-
 	StageClass	DamagingState;
 	Point2D AEDrawOffset;
 #pragma endregion
@@ -58,11 +55,13 @@ public:
 		, AttachedSystem { nullptr }
 		, CreateUnitLocation {}
 		, DelayedFireRemoveOnNoDelay { false }
-		, IsAttachedEffectAnim { false }
-		, IsShieldIdleAnim { false }
 		, DamagingState { }
 		, AEDrawOffset {}
-	{ }
+	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->Name = pObj->Type->ID;
+		pIdent->AbsType = AnimClass::AbsID;
+	}
 
 	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

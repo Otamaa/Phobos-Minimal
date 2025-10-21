@@ -197,12 +197,6 @@ ASMJIT_PATCH(0x6F47A0, TechnoClass_GetBuildTime, 5)
 // 		? 0x6FF274 : 0x0;
 // }
 
-ASMJIT_PATCH(0x6FA4C6, TechnoClass_Update_ZeroOutTarget, 5)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	return (pThis->WhatAmI() == AbstractType::Aircraft) ? 0x6FA4D1 : 0;
-}
-
 ASMJIT_PATCH(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
 {
 	GET(TechnoClass* const, pThis, ECX);
@@ -229,52 +223,6 @@ ASMJIT_PATCH(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 }
 
 #include <ExtraHeaders/StackVector.h>
-
-// make damage sparks customizable, using game setting as default.
-ASMJIT_PATCH(0x6FACD9 , TechnoClass_AI_DamageSparks , 6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-    if (!pThis->SparkParticleSystem) {
-        auto _HPRatio = pThis->GetHealthPercentage();
-
-        if (!(_HPRatio >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10)) {
-
-            auto pType = pThis->GetTechnoType();
-			const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-            if(pExt->DamageSparks.Get(pType->DamageSparks)) {
-
-                StackVector<ParticleSystemTypeClass*, 0x25> Systems {};
-
-                if (auto it = pExt->ParticleSystems_DamageSparks.GetElements(pType->DamageParticleSystems)) {
-                    auto allowAny = pExt->ParticleSystems_DamageSparks.HasValue();
-
-                    for (auto pSystem : it) {
-                        if (allowAny || pSystem->BehavesLike == ParticleSystemTypeBehavesLike::Spark) {
-                            Systems->push_back(pSystem);
-                        }
-                    }
-                }
-
-                if(!Systems->empty()) {
-
-                    const double _probability = _HPRatio >= RulesClass::Instance->ConditionRed ?
-                        RulesClass::Instance->ConditionYellowSparkingProbability : RulesClass::Instance->ConditionRedSparkingProbability;
-                    const auto _rand = ScenarioClass::Instance->Random.RandomDouble();
-
-                    if (_rand < _probability ) {
-                        CoordStruct _offs = pThis->Location + pType->GetParticleSysOffset();
-                        pThis->SparkParticleSystem =
-                        GameCreate<ParticleSystemClass>(Systems[ScenarioClass::Instance->Random.RandomFromMax(Systems->size() - 1)], _offs, nullptr, pThis);
-                    }
-                }
-            }
-        }
-    }
-
-   return 0x6FAF01;
-}
 
 ASMJIT_PATCH(0x70380A, TechnoClass_Cloak_CloakSound, 6)
 {
@@ -931,37 +879,6 @@ ASMJIT_PATCH(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
-{
-	GET(TechnoClass*, pThis, ESI);
-
-	// original code.
-	const auto was = pThis->EMPLockRemaining;
-	if (was > 0)
-	{
-		pThis->EMPLockRemaining = was - 1;
-		if (was == 1)
-		{
-			// the forced vacation just ended. we use our own
-			// function here that is quicker in retrieving the
-			// EMP animation and does more stuff.
-			AresEMPulse::DisableEMPEffect(pThis);
-		}
-		else
-		{
-			// deactivate units that were unloading afterwards
-			if (!pThis->Deactivated && AresEMPulse::IsDeactivationAdvisable(pThis))
-			{
-				// update the current mission
-				TechnoExtContainer::Instance.Find(pThis)->EMPLastMission = pThis->CurrentMission;
-				pThis->Deactivate();
-			}
-		}
-	}
-
-	return 0x6FAFFD;
-}
-
 #include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFirefunctional.h>
 
 ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
@@ -975,12 +892,6 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		pExt->Type = pType;
-
-		//require the VTABLE to be initialized
-		//hence why it is here instead of the CTOR
-		pExt->AbsType = pThis->WhatAmI();
-		if (!pExt->AbsType.has_value())
-			Debug::FatalErrorAndExit("Invalid Techno %x", pThis);
 
 		pExt->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		HouseExtData* pHouseExt = nullptr;
@@ -1035,7 +946,7 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 				TechnoExt_ExtData::InitWeapon(pThis, pType, pWeaponE, i, pCapturer, pParasite, pTemporal, "EliteWeapon", IsFoot);
 			}
 
-			if (!ExtraFirefunctional::HasAnyExtraFireWeapon(pThis, nExtraFireData, i, selected_Flh).empty())
+			if (!HasAnyExtraFireWeapon && !ExtraFirefunctional::HasAnyExtraFireWeapon(pThis, nExtraFireData, i, selected_Flh).empty())
 				HasAnyExtraFireWeapon = true;
 		}
 
@@ -1434,43 +1345,6 @@ ASMJIT_PATCH(0x6F534E, TechnoClass_DrawExtras_Insignia, 0x5)
 //
 // 	return 0x70CBEE;
 // }
-
-// this code somewhat broke targeting
-// it created identically like ares but not working as expected , duh
-ASMJIT_PATCH(0x6FA361, TechnoClass_Update_LoseTarget, 5)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(HouseClass* const, pHouse, EDI);
-
-	enum { ForceAttack = 0x6FA472, ContinueCheck = 0x6FA39D };
-
-	const bool BLRes = R->BL();
-	const HouseClass* pOwner = !BLRes ? pThis->Owner : pHouse;
-
-	bool IsAlly = false;
-
-	if (const auto pTechTarget = flag_cast_to<ObjectClass*>(pThis->Target)) {
-		if (const auto pTargetHouse = pTechTarget->GetOwningHouse()) {
-			if (pOwner->IsAlliedWith(pTargetHouse)) {
-				IsAlly = true;
-			}
-		}
-	}
-
-	auto pType = pThis->GetTechnoType();
-
-	if (!pThis->Berzerk && pType->AttackFriendlies && IsAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack) {
-		return ForceAttack;
-	}
-
-	//if(pThis->Berzerk && IsAlly) {
-	//	return ForceAttack; // dont clear target
-	//}
-
-	const bool IsNegDamage = (pThis->CombatDamage() < 0);
-
-	return IsAlly == IsNegDamage ? ForceAttack : ContinueCheck;
-}
 
 static inline bool CheckAttackMoveCanResetTarget(FootClass* pThis)
 {

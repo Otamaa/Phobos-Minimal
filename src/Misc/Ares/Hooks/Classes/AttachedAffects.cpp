@@ -116,7 +116,10 @@ void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 			ae_.Duration = duration;
 		}
 
-		if (ae->Data.remove_all_if([](const auto& ae_) { return !ae_.Duration; })) {
+		auto it = std::remove_if(ae->Data.begin(), ae->Data.end(), [](const auto& ae_) { return !ae_.Duration; });
+
+		if (it != ae->Data.end()) {
+			ae->Data.erase(it , ae->Data.end());
 			AEProperties::Recalculate(pTechno);
 		}
 	}
@@ -157,10 +160,14 @@ bool AresAE::Remove(AresAEData* ae)
 	if (!ae->Data.empty())
 	{
 		ae->NeedToRecreateAnim = true;
-		if (fast_remove_if(ae->Data,[](auto& Item){
-			Item.ClearAnim();
-			return static_cast<bool>(Item.Type->DiscardOnEntry);
-		})) {
+
+		const auto it = std::remove_if(ae->Data.begin(), ae->Data.end(), [](auto& ae_) {
+			ae_.ClearAnim();
+			return static_cast<bool>(ae_.Type->DiscardOnEntry);
+		 });
+
+		if (it != ae->Data.end()) {
+			ae->Data.erase(it, ae->Data.end());
 			return true;
 		}
 	}
@@ -183,9 +190,12 @@ void AresAE::RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, AbstractTypeCl
 		return;
 
 	ae->Isset = 0;
-	if(ae->Data.remove_all_if([pRemove](const auto& ae_) {
-			return ae_.Type->Owner == pRemove;
-	})) {
+	const auto it = std::remove_if(ae->Data.begin(), ae->Data.end(), [pRemove](auto& ae_) {
+		return  ae_.Type->Owner == pRemove;
+	 });
+
+	if (it != ae->Data.end()) {
+		ae->Data.erase(it, ae->Data.end());
 		AEProperties::Recalculate(pTechno);
 	}
 }
@@ -280,10 +290,8 @@ void NOINLINE AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
 {
 	this->Anim.reset(pNewAnim);
 	pNewAnim->SetOwnerObject(pTechno);
-	pNewAnim->RemainingIterations = 0xffffffff;
-	auto pAnimExt = ((FakeAnimClass*)pNewAnim)->_GetExtData();
-
-	pAnimExt->IsAttachedEffectAnim = true;
+	pNewAnim->RemainingIterations = (BYTE)-1;
+	//auto pAnimExt = ((FakeAnimClass*)pNewAnim)->_GetExtData();
 
 	if (auto pInvoker = this->Invoker) {
 		pNewAnim->Owner = pInvoker;

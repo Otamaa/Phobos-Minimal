@@ -108,7 +108,11 @@ public:
 		airFactoryBuilding(),
 		FreeUnitDone(false),
 		SeparateRepair(false)
-	{ }
+	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->Name = pObj->Type->ID;
+		pIdent->AbsType = BuildingClass::AbsID;
+	}
 
 	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }
 

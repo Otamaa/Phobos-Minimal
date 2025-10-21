@@ -1924,11 +1924,6 @@ void RulesExtData::InitializeAfterAllRulesLoaded()
 		g_instance->ColorDatas.LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
 		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 	}
-
-	auto g_scenario_instance = ScenarioExtData::Instance();
-
-	// Init master bullet
-	g_scenario_instance->MasterDetonationBullet = BulletTypeExtData::GetDefaultBulletType()->CreateBullet(nullptr, nullptr, 0, nullptr, 0, false);
 }
 
 ASMJIT_PATCH(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)

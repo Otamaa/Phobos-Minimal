@@ -61,33 +61,6 @@
 
 #pragma endregion
 
-ASMJIT_PATCH(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(Point2D*, pPoint, ECX);
-	GET(RectangleStruct*, pBound, EAX);
-
-	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
-	{
-		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
-		{
-			return 0x6FA30C;
-		}
-	}
-
-	if (pThis->InOpenToppedTransport)
-		return 0x6FA30C;
-
-	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if (pType->IsDummy)
-		return 0x6FA30C;
-
-	pThis->DrawBehindMark(pPoint, pBound);
-
-	return 0x6FA30C;
-}
-
 ASMJIT_PATCH(0x74C8FB, VeinholeMonsterClass_CTOR_SetArmor, 0x6)
 {
 	GET(VeinholeMonsterClass*, pThis, ESI);
@@ -1010,13 +983,6 @@ ASMJIT_PATCH(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
 	return 0x4725B0;
 }
 
-ASMJIT_PATCH(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	TechnoExtData::ApplyDrainMoney(pThis);
-	return 0x6FA1C5;
-}
-
 ASMJIT_PATCH(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 {
 	GET(ObjectClass* const, pThis, ECX);
@@ -1149,13 +1115,6 @@ ASMJIT_PATCH(0x739450, UnitClass_Deploy_LocationFix, 0x7)
 
 // Skip log spam "Unable to locate scenario %s - No digest info"
 DEFINE_JUMP(LJMP, 0x69A797, 0x69A937);
-
-ASMJIT_PATCH(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	TechnoExtData::SetMissionAfterBerzerk(pThis);
-	return 0x6F9F6E;
-}
 
 ASMJIT_PATCH(0x70FB50, TechnoClass_Bunkerable, 0x5)
 {
@@ -1381,9 +1340,9 @@ ASMJIT_PATCH(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 
 		for (auto& trail : pExt->LaserTrails)
 		{
-			if (trail->Type->IsHouseColor)
+			if (trail.Type->IsHouseColor)
 			{
-				trail->CurrentColor = pThis->Owner->LaserColor;
+				trail.CurrentColor = pThis->Owner->LaserColor;
 			}
 		}
 
@@ -1815,12 +1774,6 @@ ASMJIT_PATCH(0x741C32, UnitClass_AssignDestination_DestroyBuildingProductionAnim
 
 //allow `VeinholeMonster` to be placed anywhere flat
 DEFINE_JUMP(LJMP, 0x74C688, 0x74C697);
-
-ASMJIT_PATCH(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	return !pThis->InLimbo ? 0x0 : 0x6FA4FB;
-}
 
 ASMJIT_PATCH(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 {
@@ -4808,11 +4761,6 @@ DEFINE_JUMP(LJMP, 0x449657, 0x449672);
 // 	return pType->BalloonHover || pType->JumpJet ? 0x4DA655 : 0x4DA677;
 // }
 
-ASMJIT_PATCH(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
-{
-	return !R->ESI<TechnoClass* const>()->InLimbo ? 0x0 : 0x6FA24A;
-}
-
 ASMJIT_PATCH(0x4145B6, AircraftClass_RenderCrash_, 0x6)
 {
 	GET(AircraftTypeClass*, pType, ESI);
@@ -7496,7 +7444,8 @@ public:
 			 * No need to worry about divide-by-zero because, in each case, the
 			 * outcode bit being tested guarantees the denominator is non-zero
 			 */
-			double x, y;
+			double x  = {};
+			double y = {};
 
 			if (outcodeOut & CODE_TOP)
 			{            // point is above the clip window
@@ -7571,14 +7520,19 @@ ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
 			}
 		}
 
-		result = pThis->IsAlliedWith(pTarget->GetOwningHouse());
+		auto pTargetOwner = pTarget->GetOwningHouse();
+		result = pThis->IsAlliedWith(pTargetOwner);
 	}
 
 	R->AL(result);
 	return 0x4F9ADE;
 }
 
-
+ASMJIT_PATCH(0x6F8A0F, TechnoClass_EvalCell_deadTechno, 0x8)
+{
+	GET(ObjectClass*, pCellObj, EDI);
+	return !pCellObj || !pCellObj->IsAlive ? 0x6F8B4D : 0x6F8A17;
+}
 	//ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 	//{
 	//	GET(HouseClass*, pThis, ECX);

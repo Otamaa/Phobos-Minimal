@@ -56,7 +56,9 @@ public:
 		, RadLevels()
 
 	{
-		this->AbstractExtended::SetName("CellClass");
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->Name = "CellClass";
+		pIdent->AbsType = CellClass::AbsID;
 	}
 
 	CellExtData(CellClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

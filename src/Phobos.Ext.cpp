@@ -362,6 +362,8 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 	AnnounceInvalidPointer(SWTypeExtData::LauchData, pInvalid);
 
 	if (removed) {
+		ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);
+		ScenarioExtData::Instance()->FallingDownTracker.erase((TechnoClass*)pInvalid);
 
 		HouseExtContainer::HousesTeams.erase_all_if([pInvalid](std::pair<HouseClass*, VectorSet<TeamClass*>>& item) {
 			if(item.first != pInvalid) {

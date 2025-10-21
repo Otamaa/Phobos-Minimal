@@ -204,7 +204,7 @@ void FakeTemporalClass::_Update()
 			return;
 
 		if(this->WarpRemaining <= 0) {
-			int WeaponIdx = TechnoExtContainer::Instance.Find(this->Owner)->idxSlot_Warp;
+			int WeaponIdx = TechnoExtContainer::Instance.Find(this->Owner)->Get_TechnoStateComponent()->WeaponIndexes.Warp;
 			auto pWpStruct = this->Owner->GetWeapon(WeaponIdx);
 			auto pWeapon = pWpStruct->WeaponType;
 
@@ -230,7 +230,7 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 		this->Owner->TemporalImUsing->LetGo();
 	}
 
-	if (!TechnoExt_ExtData::Warpable(pTarget) || this->Owner->TemporalTargetingMe)
+	if (!TechnoExt_ExtData::Warpable(this, pTarget) || this->Owner->TemporalTargetingMe)
 		return;
 
 	// bugfix #874 B: Temporal warheads affect Warpable=no units
@@ -247,7 +247,7 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 	auto pTargetType = pTarget->GetTechnoType();
 	auto pUnit = cast_to<UnitClass*>(pTarget);
 	auto pBuilding = cast_to<BuildingClass*>(pTarget);
-	int wpIdx = TechnoExtContainer::Instance.Find(this->Owner)->idxSlot_Warp;
+	int wpIdx = TechnoExtContainer::Instance.Find(this->Owner)->Get_TechnoStateComponent()->WeaponIndexes.Warp;
 	auto pWeapon = this->Owner->GetWeapon(wpIdx)->WeaponType;
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 

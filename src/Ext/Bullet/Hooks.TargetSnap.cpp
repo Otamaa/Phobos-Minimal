@@ -35,9 +35,6 @@ ASMJIT_PATCH(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 
 	GET(FakeBulletClass*, pThis, ESI);
 
-	if (pThis == ScenarioExtData::Instance()->MasterDetonationBullet)
-		return SkipChecks;
-
 	retfunc_fixed nRet(R, SkipAirburstChecks, pThis->Type);
 
 	// Do not require Airburst=no to check target snapping for Inviso / Trajectory=Straight projectiles
@@ -73,9 +70,6 @@ ASMJIT_PATCH(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 	};
 
 	GET(FakeBulletClass*, pThis, ESI);
-
-	if (pThis == ScenarioExtData::Instance()->MasterDetonationBullet)
-		return SkipChecks;
 
 	// Do not require EMEffect=no & Airburst=no to check target coordinate snapping for Inviso projectiles.
 	if (pThis->Type->Inviso)

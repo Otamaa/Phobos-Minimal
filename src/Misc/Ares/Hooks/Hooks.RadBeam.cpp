@@ -19,8 +19,7 @@ ASMJIT_PATCH(0x6FD64A, TechnoClass_FireRadBeam1, 6)
 		Rad->Color = RulesClass::Instance->RadColor;
 	}
 
-	TechnoExtContainer::Instance.Find(Techno)->idxSlot_Beam = idxWeapon;
-
+	TechnoExtContainer::Instance.Find(Techno)->Get_TechnoStateComponent()->WeaponIndexes.Beam = idxWeapon;
 	R->Stack<int>(0x0, idxWeapon);
 	return 0;
 }

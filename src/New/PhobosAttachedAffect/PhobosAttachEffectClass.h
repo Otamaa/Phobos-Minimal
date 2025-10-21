@@ -123,7 +123,7 @@ public:
 	bool ShouldBeDiscarded { false };
 	int LastDiscardCheckFrame { -1 };
 	bool LastDiscardCheckValue {};
-	LaserTrailClass* LaserTrail {};
+	bool LaserTrail {};
 };
 
 template <>

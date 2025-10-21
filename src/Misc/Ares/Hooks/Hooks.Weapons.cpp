@@ -53,7 +53,7 @@ ASMJIT_PATCH(0x7128B2, TechnoTypeClass_ReadINI_MultiWeapon, 0x6)
 
 				for (int weaponIndex : isSecondary)
 				{
-					if (weaponIndex >= weaponCount)
+					if (weaponIndex >= weaponCount || weaponIndex < 0)
 						continue;
 
 					SecondaryList[weaponIndex] = true;

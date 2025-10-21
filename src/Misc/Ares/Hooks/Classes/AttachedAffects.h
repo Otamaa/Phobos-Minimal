@@ -20,7 +20,7 @@ public:
 
 	AresAE(const AresAE&) = delete;
 	AresAE& operator=(const AresAE&) = delete;
-	~AresAE() = default;
+	~AresAE() { ClearAnim(); }
 	AresAE() = default;
 
 	AresAE(AresAE&& other) noexcept

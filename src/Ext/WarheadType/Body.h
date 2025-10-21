@@ -836,6 +836,8 @@ public:
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false)
 		{
+			auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+			pIdent->AbsType = WarheadTypeClass::AbsID;
 			this->InitializeConstant();
 		}
 

@@ -180,8 +180,6 @@ struct TechnoStateComponent
 			bool UnitIdleActionSelected : 1;
 			bool UnitIdleIsSelected : 1;
 
-			// Original flags
-			bool IsWebbed : 1;
 			bool IsBurrowed : 1;
 			bool IsInTunnel : 1;
 			bool ReceiveDamage : 1;
@@ -190,42 +188,288 @@ struct TechnoStateComponent
 			bool PayloadTriggered : 1;
 			bool SupressEVALost : 1;
 			bool HasExtraFireWeapon : 1;
+
 		};
 		uint64_t AllFlags; // 64-bit container for all flags
 	};
 
+	struct WeaponIndex
+	{
+		int Current     { 0 };
+		int EMPulse		{ 0 };
+		int Wave		{ 0 };
+		int Beam		{ 0 };
+		int Warp		{ 0 };
+		int Parasite	{ 0 };
+		int Laser		{ -1 };
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return Stm
+				.Process(Current)
+				.Process(EMPulse)
+				.Process(Wave)
+				.Process(Beam)
+				.Process(Warp)
+				.Process(Parasite)
+				.Process(Laser)
+				;
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return Stm
+				.Process(Current)
+				.Process(EMPulse)
+				.Process(Wave)
+				.Process(Beam)
+				.Process(Warp)
+				.Process(Parasite)
+				.Process(Laser)
+				;
+		}
+	} WeaponIndexes;
+
 	TechnoStateComponent()
 		: AllFlags(0) // Initialize all flags to false
+		, WeaponIndexes()
 	{ }
 
 	// Serialization
-	bool Save(PhobosStreamWriter& writer) const
+	bool Save(PhobosStreamWriter& stm) const
 	{
-		return writer.Process(AllFlags);
+		return stm
+			.Process(AllFlags)
+			.Process(WeaponIndexes)
+			;
 	}
 
-	bool Load(PhobosStreamReader& reader)
+	bool Load(PhobosStreamReader& stm, bool RegisterForChange)
 	{
-		return reader.Process(AllFlags);
+		return stm
+			.Process(AllFlags)
+			.Process(WeaponIndexes)
+			;
 	}
-
-	bool HasAnyState() const { return AllFlags != 0; }
 };
 
 struct IdleActionComponent {
-	CDTimerClass UnitIdleActionTimer;
-	CDTimerClass UnitIdleActionGapTimer;
+	CDTimerClass Timer;
+	CDTimerClass GapTimer;
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
 		return Stm
-			.Process(UnitIdleActionTimer)
-			.Process(UnitIdleActionGapTimer);
+			.Process(Timer)
+			.Process(GapTimer);
 	}
 
 	bool Save(PhobosStreamWriter& Stm) const {
 		return Stm
-			.Process(UnitIdleActionTimer)
-			.Process(UnitIdleActionGapTimer);
+			.Process(Timer)
+			.Process(GapTimer);
+	}
+};
+
+struct DelayFireComponent {
+	int WeaponIdx { -1 };
+	CDTimerClass Timer {};
+	Handle<AnimClass*, UninitAnim> CurrentAnim {};
+
+public:
+
+	DelayFireComponent(const DelayFireComponent&) = delete;
+	DelayFireComponent& operator=(const DelayFireComponent&) = delete;
+	~DelayFireComponent() { ClearAnim(); }
+	DelayFireComponent() = default;
+
+	DelayFireComponent(DelayFireComponent&& other) noexcept
+		: WeaponIdx(other.WeaponIdx)
+		, Timer(other.Timer)
+		, CurrentAnim(std::move(other.CurrentAnim))
+	{
+		other.WeaponIdx = -1;
+	}
+
+	DelayFireComponent& operator=(DelayFireComponent&& other) noexcept
+	{
+		if (this != &other) {
+			// release our current anim safely
+			ClearAnim();
+
+			WeaponIdx = other.WeaponIdx;
+			Timer = other.Timer;
+			CurrentAnim = std::move(other.CurrentAnim);
+
+			other.WeaponIdx = -1;
+		}
+		return *this;
+	}
+
+	void ClearAnim()
+	{
+		this->CurrentAnim.reset(nullptr);
+	}
+
+	void InvalidateAnimPointer(AnimClass* ptr)
+	{
+		if (ptr == this->CurrentAnim.get())
+		{
+			this->CurrentAnim.release();
+		}
+	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Stm
+			.Process(WeaponIdx)
+			.Process(Timer)
+			.Process(CurrentAnim)
+			;
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return Stm
+			.Process(WeaponIdx)
+			.Process(Timer)
+			.Process(CurrentAnim)
+			;
+	}
+};
+
+struct EMPStateComponent {
+	Handle<AnimClass*, UninitAnim> SparkleAnim;
+	Mission LastMission;
+
+public:
+
+	EMPStateComponent(const EMPStateComponent&) = delete;
+	EMPStateComponent& operator=(const EMPStateComponent&) = delete;
+	~EMPStateComponent() { ClearAnim(); }
+	EMPStateComponent() = default;
+
+	EMPStateComponent(EMPStateComponent&& other) noexcept
+		: SparkleAnim(std::move(other.SparkleAnim))
+		, LastMission(other.LastMission)
+	{
+		other.LastMission = Mission::None;
+	}
+
+	EMPStateComponent& operator=(EMPStateComponent&& other) noexcept
+	{
+		if (this != &other)
+		{
+			// release our current anim safely
+			ClearAnim();
+
+			SparkleAnim = std::move(other.SparkleAnim);
+			LastMission = other.LastMission;
+
+			other.LastMission = Mission::None;
+		}
+		return *this;
+	}
+
+	void ClearAnim()
+	{
+		this->SparkleAnim.reset(nullptr);
+	}
+
+	void InvalidateAnimPointer(AnimClass* ptr)
+	{
+		if (ptr == this->SparkleAnim.get())
+		{
+			this->SparkleAnim.release();
+		}
+	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Stm
+				.Process(SparkleAnim)
+				.Process(LastMission)
+			;
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return Stm
+				.Process(SparkleAnim)
+				.Process(LastMission)
+			;
+	}
+};
+
+struct WebbedStateComponent {
+	Handle<AnimClass*, UninitAnim> Anim;
+	AbstractClass* LastTarget;
+	Mission LastMission;
+
+public:
+
+	WebbedStateComponent(const WebbedStateComponent&) = delete;
+	WebbedStateComponent& operator=(const WebbedStateComponent&) = delete;
+	~WebbedStateComponent() { ClearAnim(); }
+	WebbedStateComponent() = default;
+
+	WebbedStateComponent(WebbedStateComponent&& other) noexcept
+		: Anim(std::move(other.Anim))
+		, LastTarget(other.LastTarget)
+		, LastMission(other.LastMission)
+	{
+		other.LastTarget = 0;
+		other.LastMission = Mission::None;
+	}
+
+	WebbedStateComponent& operator=(WebbedStateComponent&& other) noexcept
+	{
+		if (this != &other)
+		{
+			// release our current anim safely
+			ClearAnim();
+
+			Anim = std::move(other.Anim);
+			LastTarget = other.LastTarget;
+			LastMission = other.LastMission;
+
+			other.LastTarget = 0;
+			other.LastMission = Mission::None;
+		}
+		return *this;
+	}
+
+	void RestoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
+	void StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
+
+	void ClearAnim()
+	{
+		this->Anim.reset(nullptr);
+	}
+
+	void InvalidateAnimPointer(AnimClass* ptr)
+	{
+		if (ptr == this->Anim.get())
+		{
+			this->Anim.release();
+		}
+	}
+
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return Stm
+			.Process(Anim)
+			.Process(LastTarget)
+			.Process(LastMission)
+			;
+	}
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{
+		return Stm
+			.Process(Anim)
+			.Process(LastTarget)
+			.Process(LastMission)
+			;
 	}
 };
 
@@ -250,44 +494,18 @@ struct HijackerComponent {
 	bool Save(PhobosStreamWriter& Stm) const
 	{
 		return Stm
-			.Process(Health)
-			.Process(Owner)
-			.Process(Veterancy)
-			.Process(LastDisguiseType)
-			.Process(LastDisguiseHouse)
+				.Process(Health)
+				.Process(Owner)
+				.Process(Veterancy)
+				.Process(LastDisguiseType)
+				.Process(LastDisguiseHouse)
 			;
 	}
 };
 
-
 class TechnoExtData : public RadioExtData
 {
 private:
-
-	template<typename entT>
-	struct EntitySerializer
-	{
-		static void Save(PhobosStreamWriter& stm, entt::entity owner)
-		{
-			auto myComp = Phobos::gEntt->try_get<entT>(owner);
-
-			bool exist = myComp != nullptr;
-			Savegame::WritePhobosStream(stm, exist);
-			if (myComp) {
-				myComp->Save(stm);
-			}
-		}
-
-		static void Load(PhobosStreamReader& stm, entt::entity owner)
-		{
-			bool exist;
-			Savegame::ReadPhobosStream(stm, exist);
-			if (exist) {
-				auto& ent_ = Phobos::gEntt->emplace<entT>(owner);
-				ent_.Load(stm , true);
-			}
-		}
-	};
 
 	template <typename T>
 	void SerializeEntity(T& Stm)
@@ -315,6 +533,9 @@ private:
 			EntitySerializer<IdleActionComponent>::Save(Stm, this->MyEntity);
 			EntitySerializer<HijackerComponent>::Save(Stm, this->MyEntity);
 			EntitySerializer<AresAEData>::Save(Stm, this->MyEntity);
+			EntitySerializer<DelayFireComponent>::Save(Stm, this->MyEntity);
+			EntitySerializer<WebbedStateComponent>::Save(Stm, this->MyEntity);
+			EntitySerializer<EMPStateComponent>::Save(Stm, this->MyEntity);
 		}
 		else
 		{
@@ -339,86 +560,84 @@ private:
 			EntitySerializer<IdleActionComponent>::Load(Stm, this->MyEntity);
 			EntitySerializer<HijackerComponent>::Load(Stm, this->MyEntity);
 			EntitySerializer<AresAEData>::Load(Stm, this->MyEntity);
+			EntitySerializer<DelayFireComponent>::Load(Stm, this->MyEntity);
+			EntitySerializer<WebbedStateComponent>::Load(Stm, this->MyEntity);
+			EntitySerializer<EMPStateComponent>::Load(Stm, this->MyEntity);
+
 		}
 	}
 
 	template <typename T>
 	void Serialize(T& Stm)
 	{
+		this->SerializeEntity(Stm);
+
 		Stm
 			.Process(Type)
-			.Process(AbsType)
 			.Process(Tints)
-			.Process(idxSlot_EMPulse)
-			.Process(idxSlot_Wave)
-			.Process(idxSlot_Beam)
-			.Process(idxSlot_Warp)
-			.Process(idxSlot_Parasite)
-			.Process(EMPSparkleAnim)
-			.Process(EMPLastMission)
-			.Process(BuildingLight)
-			.Process(OriginalHouseType)
-			.Process(CloakSkipTimer)
+			.Process(TiberiumStorage)
+
+			.Process(AttackMoveFollowerTempCount)
+			.Process(AccumulatedGattlingValue)
+			.Process(BeControlledThreatFrame)
+			.Process(DamageNumberOffset)
+			.Process(DropCrate) // Drop crate on death, modified by map action
 			.Process(LastWarpInDelay)
+			.Process(LastWarpDistance)
 			.Process(TechnoValueAmount)
 			.Process(Pos)
-			.Process(LaserTrails)
-			.Process(PassengerDeletionTimer)
-			.Process(CurrentShieldType)
-			.Process(LastWarpDistance)
-			.Process(Death_Countdown)
-			.Process(MindControlRingAnimType)
-			.Process(DamageNumberOffset)
-			.Process(CurrentLaserWeaponIndex)
-			.Process(OriginalPassengerOwner)
+			.Process(GattlingDmageDelay)
+			.Process(WHAnimRemainingCreationInterval)
+			.Process(MyTargetingFrame)
+			.Process(LastBeLockedFrame)
+			.Process(LastHurtFrame)
+
+			.Process(DropCrateType)
+			.Process(PassiveAquireMode)
+			.Process(LastTargetID)
+
+			.Process(ReceiveDamageMultiplier)
+			.Process(AdditionalRange)
+			.Process(CustomFiringOffset) // If set any calls to GetFLH() will use this coordinate as
+
+			.Process(SuperTarget)
+			.Process(LastSensorsMapCoords)
+			.Process(RandomEMPTarget)
+
+			.Process(CloakSkipTimer)
+			.Process(DeathCountdown)
 			.Process(DeployFireTimer)
 			.Process(DisableWeaponTimer)
-			.Process(RevengeWeapons)
-			.Process(GattlingDmageDelay)
 			.Process(EngineerCaptureDelay)
-			.Process(ReceiveDamageMultiplier)
-			.Process(Trails)
-			.Process(PaintBallStates)
-			.Process(CurrentWeaponIdx)
-			.Process(MyOriginalTemporal)
+			.Process(PassengerDeletionTimer)
 			.Process(WarpedOutDelay)
 			.Process(SelfHealing_CombatDelay)
-			.Process(LinkedSW)
-			.Process(SuperTarget)
-			.Process(WHAnimRemainingCreationInterval)
-			.Process(WebbedAnim)
-			.Process(WebbyLastTarget)
-			.Process(WebbyLastMission)
 			.Process(MergePreventionTimer)
-			.Process(TiberiumStorage)
-			.Process(PhobosAE)
-			.Process(FiringObstacleCell)
-			.Process(AdditionalRange)
-			.Process(SubterraneanHarvRallyPoint)
 			.Process(TiberiumEaterTimer)
+			.Process(ChargeTurretTimer)// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
+
+			.Process(MindControlRingAnimType)
+			.Process(BuildingLight)
+			.Process(OriginalHouseType)
+			.Process(CurrentShieldType)
+			// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
+			// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
+			.Process(MyOriginalTemporal)
+			.Process(OriginalPassengerOwner)
+			.Process(LinkedSW)
+			.Process(FiringObstacleCell) // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
+			.Process(SubterraneanHarvRallyPoint)
 			.Process(LastDamageWH)
-			.Process(MyTargetingFrame)
-			.Process(ChargeTurretTimer)
-			.Process(DropCrate)
-			.Process(DropCrateType)
-			.Process(LastBeLockedFrame)
-			.Process(BeControlledThreatFrame)
-			.Process(LastTargetID)
-			.Process(AccumulatedGattlingValue)
-			.Process(LastSensorsMapCoords)
-			.Process(DelayedFireWeaponIndex)
-			.Process(DelayedFireTimer)
-			.Process(CurrentDelayedFireAnim)
-			.Process(CustomFiringOffset)
 			.Process(LastWeaponType)
-			.Process(ElectricBolts)
-			.Process(LastHurtFrame)
-			.Process(AttachedEffectInvokerCount)
 			.Process(AirstrikeTargetingMe)
-			.Process(RandomEMPTarget)
-			.Process(AttackMoveFollowerTempCount)
-			.Process(PassiveAquireMode)
-			; // end
+
+			.Process(PaintBallStates)
+			.Process(RevengeWeapons)
+			.Process(Trails)
+			.Process(PhobosAE)
+			.Process(LaserTrails)
+			;
+
 	}
 
 public:
@@ -426,183 +645,156 @@ public:
 public:
 
 #pragma region ClassMembers
-	entt::entity MyEntity;
 
 	TechnoTypeClass* Type; //original Type pointer
-	OptionalStruct<AbstractType, true> AbsType;
 	TintColors Tints;
+	NewTiberiumStorageClass TiberiumStorage;
 
-	BYTE idxSlot_EMPulse;
-	BYTE idxSlot_Wave; //5
-	BYTE idxSlot_Beam; //6
-	BYTE idxSlot_Warp; //7
-	BYTE idxSlot_Parasite; //8
-
-	Handle<AnimClass*, UninitAnim> EMPSparkleAnim;
-	Mission EMPLastMission; //
-	BuildingLightClass* BuildingLight;
-	HouseTypeClass* OriginalHouseType;
-	CDTimerClass CloakSkipTimer; //
+	int AttackMoveFollowerTempCount;
+	int AccumulatedGattlingValue;
+	int BeControlledThreatFrame;
+	int DamageNumberOffset;
+	int DropCrate; // Drop crate on death, modified by map action
 	int LastWarpInDelay;
+	int LastWarpDistance;
 	int TechnoValueAmount;
 	int Pos;
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
-	CDTimerClass PassengerDeletionTimer;
-	ShieldTypeClass* CurrentShieldType;
-	int LastWarpDistance;
-	CDTimerClass Death_Countdown;
-	AnimTypeClass* MindControlRingAnimType;
-	int DamageNumberOffset;
-	OptionalStruct<int, true> CurrentLaserWeaponIndex;
+	int GattlingDmageDelay;
+	int WHAnimRemainingCreationInterval;
+	int MyTargetingFrame;
+	int LastBeLockedFrame;
+	int LastHurtFrame;
 
-	// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
-	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
-	HouseClass* OriginalPassengerOwner;
+	PowerupEffects DropCrateType;
+	PassiveAcquireMode PassiveAquireMode;
+	DWORD LastTargetID;
+
+	OptionalStruct<double, true> ReceiveDamageMultiplier;
+	OptionalStruct<int, true> AdditionalRange;
+	OptionalStruct<CoordStruct, true> CustomFiringOffset; // If set any calls to GetFLH() will use this coordinate as
+
+	CellStruct SuperTarget;
+	CellStruct LastSensorsMapCoords;
+	CellStruct RandomEMPTarget;
+
+	CDTimerClass CloakSkipTimer;
+	CDTimerClass DeathCountdown;
 	CDTimerClass DeployFireTimer;
 	CDTimerClass DisableWeaponTimer;
-	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
-	int GattlingDmageDelay;
 	CDTimerClass EngineerCaptureDelay;
-	OptionalStruct<double, true> ReceiveDamageMultiplier;
-	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
-	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
-	int CurrentWeaponIdx;
-	TemporalClass* MyOriginalTemporal;
+	CDTimerClass PassengerDeletionTimer;
 	CDTimerClass WarpedOutDelay;
 	CDTimerClass SelfHealing_CombatDelay;
-	SuperClass* LinkedSW;
-	CellStruct SuperTarget;
-	int WHAnimRemainingCreationInterval;
-	Handle<AnimClass*, UninitAnim> WebbedAnim;
-	AbstractClass* WebbyLastTarget;
-	Mission WebbyLastMission;
 	CDTimerClass MergePreventionTimer;
-	NewTiberiumStorageClass TiberiumStorage;
-	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
-	CellClass* FiringObstacleCell; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
-	OptionalStruct<int, true> AdditionalRange;
-	CellClass* SubterraneanHarvRallyPoint;
 	CDTimerClass TiberiumEaterTimer;
-	WarheadTypeClass* LastDamageWH;
-	int MyTargetingFrame;
 	CDTimerClass ChargeTurretTimer;// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
-	int DropCrate; // Drop crate on death, modified by map action
-	PowerupEffects DropCrateType;
-	int LastBeLockedFrame;
-	int BeControlledThreatFrame;
-	DWORD LastTargetID;
-	int AccumulatedGattlingValue;
-	CellStruct LastSensorsMapCoords;
-	int DelayedFireWeaponIndex;
-	CDTimerClass DelayedFireTimer;
-	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim;
-	std::optional<CoordStruct> CustomFiringOffset; // If set any calls to GetFLH() will use this coordinate as
-	WeaponTypeClass* LastWeaponType;
-	HelperedVector<EBolt*> ElectricBolts;
-	int LastHurtFrame;
-	int AttachedEffectInvokerCount;
-	AirstrikeClass* AirstrikeTargetingMe;
-	CellStruct RandomEMPTarget;
-	int AttackMoveFollowerTempCount;
-	PassiveAcquireMode PassiveAquireMode;
 
+	AnimTypeClass* MindControlRingAnimType;
+	BuildingLightClass* BuildingLight;
+	HouseTypeClass* OriginalHouseType;
+	ShieldTypeClass* CurrentShieldType;
+	// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
+	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
+	TemporalClass* MyOriginalTemporal;
+	HouseClass* OriginalPassengerOwner;
+	SuperClass* LinkedSW;
+	CellClass* FiringObstacleCell; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
+	CellClass* SubterraneanHarvRallyPoint;
+	WarheadTypeClass* LastDamageWH;
+	WeaponTypeClass* LastWeaponType;
+	AirstrikeClass* AirstrikeTargetingMe;
+
+	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
+	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
+	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
+	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
+	HelperedVector<EBolt*> ElectricBolts;
+	HelperedVector<LaserTrailClass> LaserTrails;
 #pragma endregion
 
 public:
 
-	TechnoExtData(TechnoClass* abs) : RadioExtData(abs),
-		MyEntity(),
+	TechnoExtData(TechnoClass* abs) : RadioExtData(abs)
+	, Type() //original Type pointer
+	, Tints()
+	, TiberiumStorage()
 
-		Type(nullptr),
-		AbsType(), // OptionalStruct<AbstractType,true>
-		//AeData(),
-		Tints(),
+	, AttackMoveFollowerTempCount()
+	, AccumulatedGattlingValue()
+	, BeControlledThreatFrame()
+	, DamageNumberOffset()
+	, DropCrate() // Drop crate on death, modified by map action
+	, LastWarpInDelay()
+	, LastWarpDistance()
+	, TechnoValueAmount()
+	, Pos()
+	, GattlingDmageDelay()
+	, WHAnimRemainingCreationInterval()
+	, MyTargetingFrame()
+	, LastBeLockedFrame()
+	, LastHurtFrame()
 
-		idxSlot_EMPulse(0),
-		idxSlot_Wave(0),
-		idxSlot_Beam(0),
-		idxSlot_Warp(0),
-		idxSlot_Parasite(0),
+	, DropCrateType()
+	, PassiveAquireMode()
+	, LastTargetID()
 
-		EMPSparkleAnim(nullptr),
-		EMPLastMission(Mission::Sleep),
-		BuildingLight(nullptr),
-		OriginalHouseType(nullptr),
-		CloakSkipTimer(),
-		TechnoValueAmount(0),
-		Pos(0),
-		LaserTrails(),
-		PassengerDeletionTimer(),
-		CurrentShieldType(nullptr),
-		LastWarpDistance(0),
-		Death_Countdown(),
-		MindControlRingAnimType(nullptr),
-		DamageNumberOffset(INT32_MIN),
-		CurrentLaserWeaponIndex(),
-		OriginalPassengerOwner(nullptr),
-		DeployFireTimer(),
-		DisableWeaponTimer(),
-		RevengeWeapons(),
-		GattlingDmageDelay(-1),
-		EngineerCaptureDelay(),
-		ReceiveDamageMultiplier(),
-		Trails(),
-		PaintBallStates(),
-		CurrentWeaponIdx(-1),
-		MyOriginalTemporal(nullptr),
-		WarpedOutDelay(),
-		SelfHealing_CombatDelay(),
-		LinkedSW(nullptr),
-		SuperTarget(),
-		WHAnimRemainingCreationInterval(0),
-		WebbedAnim(nullptr),
-		WebbyLastTarget(nullptr),
-		WebbyLastMission(Mission::Sleep),
-		MergePreventionTimer(),
-		TiberiumStorage(),
-		PhobosAE(),
-		FiringObstacleCell(nullptr),
-		AdditionalRange(),
-		SubterraneanHarvRallyPoint(nullptr),
-		TiberiumEaterTimer(),
-		LastDamageWH(nullptr),
-		MyTargetingFrame(0),
-		ChargeTurretTimer(),
-		DropCrate(-1),
-		DropCrateType(PowerupEffects::Money),
-		LastBeLockedFrame(0),
-		BeControlledThreatFrame(0),
-		LastTargetID(0xFFFFFFFF),
-		AccumulatedGattlingValue(0),
-		LastSensorsMapCoords(),
-		DelayedFireWeaponIndex(-1),
-		DelayedFireTimer(),
-		CurrentDelayedFireAnim(nullptr),
-		CustomFiringOffset(),
-		LastWeaponType(nullptr),
-		ElectricBolts(),
-		LastHurtFrame(0),
-		AttachedEffectInvokerCount(0),
-		AirstrikeTargetingMe(nullptr),
-		RandomEMPTarget(),
-		AttackMoveFollowerTempCount(0),
-		PassiveAquireMode(PassiveAcquireMode::Normal)
+	, ReceiveDamageMultiplier()
+	, AdditionalRange()
+	, CustomFiringOffset() // If set any calls to GetFLH() will use this coordinate as
+
+	, SuperTarget()
+	, LastSensorsMapCoords()
+	, RandomEMPTarget()
+
+	, CloakSkipTimer()
+	, DeathCountdown()
+	, DeployFireTimer()
+	, DisableWeaponTimer()
+	, EngineerCaptureDelay()
+	, PassengerDeletionTimer()
+	, WarpedOutDelay()
+	, SelfHealing_CombatDelay()
+	, MergePreventionTimer()
+	, TiberiumEaterTimer()
+	, ChargeTurretTimer()// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
+
+	, MindControlRingAnimType()
+	, BuildingLight()
+	, OriginalHouseType()
+	, CurrentShieldType()
+	// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
+	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
+	, MyOriginalTemporal()
+	, OriginalPassengerOwner()
+	, LinkedSW()
+	, FiringObstacleCell() // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
+	, SubterraneanHarvRallyPoint()
+	, LastDamageWH()
+	, LastWeaponType()
+	, AirstrikeTargetingMe()
+
+	, PaintBallStates()
+	, RevengeWeapons()
+	, Trails()
+	, PhobosAE()
+	, ElectricBolts()
+	, LaserTrails()
 	{
 		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 
 		// randomized initial targeting frame
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
-		this->MyEntity = Phobos::gEntt->create();
 		Phobos::gEntt->emplace<TechnoStateComponent>(this->MyEntity);
 		Phobos::gEntt->emplace<AEProperties>(this->MyEntity);
 		Phobos::gEntt->emplace<AresAEData>(this->MyEntity);
+		Phobos::gEntt->emplace<DelayFireComponent>(this->MyEntity);
+		Phobos::gEntt->emplace<EMPStateComponent>(this->MyEntity);
 		this->Tints.SetOwner(abs);
 	}
 
 	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint)
 	{
-		this->MyEntity = Phobos::gEntt->create();
 	};
 
 	virtual ~TechnoExtData();
@@ -734,6 +926,18 @@ public:
 	FORCEDINLINE HijackerComponent* Get_HijackerComponent()
 	{
 		return Phobos::gEntt->try_get<HijackerComponent>(this->MyEntity);
+	}
+
+	FORCEDINLINE DelayFireComponent* Get_DelayedFireComponent() {
+		return Phobos::gEntt->try_get<DelayFireComponent>(this->MyEntity);
+	}
+
+	FORCEDINLINE WebbedStateComponent* Get_WebbedStateComponent() {
+		return Phobos::gEntt->try_get<WebbedStateComponent>(this->MyEntity);
+	}
+
+	FORCEDINLINE EMPStateComponent* Get_EMPStateComponent() {
+		return Phobos::gEntt->try_get<EMPStateComponent>(this->MyEntity);
 	}
 
 	void ClearElectricBolts()
@@ -996,9 +1200,6 @@ public:
 	static void GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType infoType, int& value, int& maxValue, int infoIndex);
 	static std::vector<DigitalDisplayTypeClass*>* GetDisplayType(TechnoClass* pThis, TechnoTypeClass* pType, int& length);
 
-	static void RestoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
-	static void StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis);
-
 	static NOINLINE Armor GetArmor(ObjectClass* pThis);
 	static bool CanDeployIntoBuilding(UnitClass* pThis, bool noDeploysIntoDefaultValue);
 	static bool CanDeployIntoBuilding(UnitClass* pThis);
@@ -1071,4 +1272,34 @@ public:
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
 
+	//AI
+	static void __HandleGattlingAudio(TechnoClass* pThis);
+	static void __HandleVoicePlayback(TechnoClass* pThis);
+	static void __HandleBerzerkState(TechnoClass* pThis);
+	static void __HandleStrengthSmoothing(TechnoClass* pThis);
+	static void __HandleTurretAudio(TechnoClass* pThis);
+	static void __HandleVeterancyPromotion(TechnoClass* pThis);
+	static void __HandleMoneyDrain(TechnoClass* pThis);
+	static void __HandleDrainTarget(TechnoClass* pThis);
+	static void __HandleHiddenState(TechnoClass* pThis);
+	static void __ClearInvalidAllyTarget(TechnoClass* pThis);
+	static void __CheckTargetInRange(TechnoClass* pThis);
+	static void __HandleTurretRecoil(TechnoClass* pThis);
+	static void __HandleChargeTurret(TechnoClass* pThis);
+	static void __HandleDoorAndTimers(TechnoClass* pThis);
+	static void __ClearTargetForInvalidMissions(TechnoClass* pThis);
+	static void __HandleTargetAcquisition(TechnoClass* pThis);
+	static void __HandleAttachedBomb(TechnoClass* pThis);
+	static void __HandleManagers(TechnoClass* pThis);
+	static void __HandleSelfHealing(TechnoClass* pThis);
+	static void __HandleCloaking(TechnoClass* pThis);
+	static void __ClearTargetIfNoDamage(TechnoClass* pThis);
+	static void __ClearAircraftTarget(TechnoClass* pThis);
+	static void __CheckTargetReachability(TechnoClass* pThis);
+	static void __UpdateAnimationStage(TechnoClass* pThis);
+	static void __HandleFlashing(TechnoClass* pThis);
+	static void __HandleDamageSparks(TechnoClass* pThis);
+	static void __HandleEMPEffect(TechnoClass* pThis);
+	static void __fastcall __AI(TechnoClass* pThis);
+	//
 };

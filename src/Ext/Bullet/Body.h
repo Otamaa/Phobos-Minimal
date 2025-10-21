@@ -55,7 +55,10 @@ public:
 		DamageNumberOffset(INT32_MIN),
 		OriginalTarget(nullptr),
 		ParabombFallRate(0)
-	{ }
+	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = BulletClass::AbsID;
+	}
 
 	BulletExtData(BulletClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

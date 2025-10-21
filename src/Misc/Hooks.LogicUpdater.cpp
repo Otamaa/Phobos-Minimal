@@ -84,20 +84,12 @@ void UpdateWebbed(FootClass* pThis)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (!pExt->Get_TechnoStateComponent()->IsWebbed)
-		return;
-
-	if (auto pInf = cast_to<InfantryClass*, false>(pThis)){
-		if (pInf->ParalysisTimer.Completed()) {
-
-			pExt->Get_TechnoStateComponent()->IsWebbed = false;
-
-			if (pExt->WebbedAnim) {
-				pExt->WebbedAnim.clear();
-			}
-
-			TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(pInf);
-		}
+	//webbed component only avaible for infantry !
+	if(auto pWebbedComp = pExt->Get_WebbedStateComponent()){
+		pThis->ParalysisTimer.Stop();
+		pWebbedComp->RestoreLastTargetAndMissionAfterWebbed(static_cast<InfantryClass*>(pThis));
+		pWebbedComp->ClearAnim();
+		Phobos::gEntt->remove<WebbedStateComponent>(pExt->MyEntity);
 	}
 }
 
@@ -105,171 +97,7 @@ void UpdateWebbed(FootClass* pThis)
 #include <New/PhobosAttachedAffect/Functions.h>
 
 #ifndef _Uhh
-ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
-{
-	enum { retDead = 0x6FAFFD, Continue = 0x6F9EBB };
 
-	GET(TechnoClass*, pThis, ESI);
-
-	if (pThis->IsMouseHovering)
-		pThis->IsMouseHovering = false;
-
-	if (!pThis->IsAlive)
-		return retDead;
-
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto IsBuilding = pThis->WhatAmI() == BuildingClass::AbsID;
-
-	TechnoExt_ExtData::Ares_technoUpdate(pThis);
-
-	if (!pThis->IsAlive)
-		return retDead;
-
-	if(!IsBuilding){
-		pExt->UpdateLaserTrails();
-		TrailsManager::AI((FootClass*)pThis);
-	}
-
-	HugeBar::InitializeHugeBar(pThis);
-
-	PhobosAEFunctions::UpdateAttachEffects(pThis);
-
-	if (!pThis->IsAlive)
-		return retDead;
-
-	//type may already change ,..
-	auto const pType = pThis->GetTechnoType();
-
-	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	bool IsInLimboDelivered = false;
-
-	if(IsBuilding) {
-		IsInLimboDelivered = BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LimboID >= 0;
-	}
-
-#ifdef ENABLE_THESE
-	if (pThis->IsAlive && pThis->Location == CoordStruct::Empty || pThis->InlineMapCoords() == CellStruct::Empty) {
-		if (!pType->Spawned && !IsInLimboDelivered && !pThis->InLimbo) {
-			Debug::LogInfo("Techno[{} : {}] With Invalid Location ! , Removing ! ", (void*)pThis, pThis->get_ID());
-			TechnoExtData::HandleRemove(pThis, nullptr, false, false);
-			return retDead;
-		}
-	}
-#endif
-
-	// Update tunnel state on exit, TechnoClass::AI is only called when not in tunnel.
-	auto pState = pExt->Get_TechnoStateComponent();
-
-	if (pState->IsInTunnel) {
-
-		pState->IsInTunnel = false;
-
-		if (auto pShieldData = pExt->GetShield())
-			pShieldData->SetAnimationVisibility(true);
-	}
-
-#ifdef ENABLE_THESE
-	if (pExt->UpdateKillSelf_Slave()) {
-		return retDead;
-	}
-
-	if (pExt->CheckDeathConditions()) {
-		return retDead;
-	}
-
-	pExt->UpdateBuildingLightning();
-	pExt->UpdateShield();
-	if (!pThis->IsAlive){
-		return retDead;
-	}
-	pExt->UpdateInterceptor();
-
-	//pExt->UpdateFireSelf();
-	pExt->UpdateTiberiumEater();
-	pExt->UpdateMCRangeLimit();
-	pExt->UpdateRecountBurst();
-	pExt->UpdateRearmInEMPState();
-
-	if (pExt->AttackMoveFollowerTempCount) {
-		pExt->AttackMoveFollowerTempCount--;
-	}
-
-	pExt->UpdateSpawnLimitRange();
-	pExt->UpdateEatPassengers();
-	if (!pThis->IsAlive){
-		return retDead;
-	}
-	pExt->UpdateGattlingOverloadDamage();
-	if(!pThis->IsAlive) {
-		return retDead;
-	}
-
-	//TODO : improve this to better handle delay anims !
-	//pExt->UpdateDelayFireAnim();
-
-	pExt->UpdateRevengeWeapons();
-	if (!pThis->IsAlive) {
-		return retDead;
-	}
-
-	pExt->DepletedAmmoActions();
-
-#endif
-
-	if(pType->IsGattling) {
-		VocClass::PlayIfInRange(pThis->Location, &pThis->Audio4);
-	}
-
-	pThis->UpdateIronCurtainTimer();
-	pThis->UpdateAirstrikeTimer();
-
-	PassengersFunctional::AI(pThis);
-	if (!pThis->IsAlive) {
-		return retDead;
-	}
-
-	SpawnSupportFunctional::AI(pThis);
-
-	if (!pThis->IsAlive) {
-		return retDead;
-	}
-
-	DelayFireManager::TechnoClass_Update_CustomWeapon(pThis);
-
-	if (!pThis->IsAlive) {
-		return retDead;
-	}
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	GiftBoxFunctional::AI(pExt, pTypeExt);
-
-	if (!pThis->IsAlive) {
-		return retDead;
-	}
-
-	pExt->PaintBallStates.erase_all_if([pThis , IsBuilding](auto& pb) {
-		if (pb.second.timer.GetTimeLeft()) {
-			if (IsBuilding) {
-				BuildingExtContainer::Instance.Find(static_cast<BuildingClass*>(pThis))->LighningNeedUpdate = true;
-			}
-			return false;
-		}
-
-		return true;
-	});
-
-	if (auto pDSState = pExt->Get_DamageSelfState()) {
-		pDSState->TechnoClass_Update_DamageSelf(pThis);
-	}
-
-	if (!pThis->IsAlive) {
-		return retDead;
-	}
-
-	return Continue;
-}
 #endif
 
 ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClass_Do_Cloak

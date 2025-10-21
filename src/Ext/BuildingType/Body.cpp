@@ -611,8 +611,8 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 
 			if (nMethod != KillMethod::None) {
 
-				if(pBuildingExt->Type->Death_Countdown > 0)
-					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
+				if(pBuildingExt->Type->DeathCountdown > 0)
+					pBuildingExt->DeathCountdown.Start(pBuildingExt->Type->DeathCountdown);
 
 				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}

@@ -4,6 +4,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Misc/Ares/Hooks/Header.h>
 
+/*
 ASMJIT_PATCH(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 {
 	enum {
@@ -47,3 +48,4 @@ ASMJIT_PATCH(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 	//handle everything
 	return !pThis->IsAlive ? ReturnFunc : DoNotSelfHeal;
 }
+*/

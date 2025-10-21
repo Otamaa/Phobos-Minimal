@@ -23,22 +23,22 @@ bool TechnoTypeExtData::SelectWeaponMutex = false;
 
 void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 {
-	int Num = 0;
-	int EliteNum = 0;
+	int num = 0;
+	int eliteNum = 0;
 
 	this->ThreatTypes = { ThreatType::Normal,ThreatType::Normal };
 	this->CombatDamages = { 0,0 };
 
 	const auto pThis = this->This();
-	int Count = 2;
+	int count = 2;
 
 	if (this->MultiWeapon
 		&& (!pThis->IsGattling && (!pThis->HasMultipleTurrets() || !pThis->Gunner)))
 	{
-		Count = pThis->WeaponCount;
+		count = pThis->WeaponCount;
 	}
 
-	for (int index = 0; index < Count; index++)
+	for (int index = 0; index < count; index++)
 	{
 		const auto pWeapon = pThis->GetWeapon(index)->WeaponType;
 		auto pEliteWeapon = pThis->GetEliteWeapon(index)->WeaponType;
@@ -50,22 +50,22 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 		{
 			this->ThreatTypes.X |= pWeapon->AllowedThreats();
 			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
-			Num++;
+			num++;
 		}
 
 		if (pEliteWeapon)
 		{
 			this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
 			this->CombatDamages.Y += (pEliteWeapon->Damage + pEliteWeapon->AmbientDamage);
-			EliteNum++;
+			eliteNum++;
 		}
 	}
 
-	if (Num > 0)
-		this->CombatDamages.X /= Num;
+	if (num > 0)
+		this->CombatDamages.X /= num;
 
-	if (EliteNum > 0)
-		this->CombatDamages.Y /= EliteNum;
+	if (eliteNum > 0)
+		this->CombatDamages.Y /= eliteNum;
 }
 
 bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
@@ -255,17 +255,17 @@ int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* const pThis, AbstractClass
 		return -1;
 
 	const int weaponCount =  MinImpl(pType->WeaponCount, this->MultiWeapon_SelectCount.Get());
+	const bool noSecondary = this->NoSecondaryWeaponFallback;
 
 	if (weaponCount < 2)
 		return 0;
-	else if (weaponCount == 2)
+	else if (weaponCount == 2 && !noSecondary)
 		return -1;
 
 	std::vector<bool> secondaryCanTargets {};
 	secondaryCanTargets.resize(weaponCount, false);
 
 	const bool isElite = pThis->Veterancy.IsElite();
-	const bool noSecondary = this->NoSecondaryWeaponFallback.Get();
 
 	if (const auto pTargetTechno = flag_cast_to<TechnoClass*, true>(pTarget))
 	{
@@ -518,15 +518,9 @@ const char* TechnoTypeExtData::GetSelectionGroupID() const
 bool TechnoTypeExtData::IsGenericPrerequisite() const
 {
 	if(this->GenericPrerequisite.empty()) {
-		auto begin = GenericPrerequisite::Array.begin();
-		auto end  = GenericPrerequisite::Array.end();
+		const auto end  = GenericPrerequisite::Array.end();
 
-		if(begin == end ){
-			this->GenericPrerequisite = false;
-			return false;
-		}
-
-		for(; begin != end; ++begin){
+		for(auto begin = GenericPrerequisite::Array.begin(); begin != end; ++begin){
 			auto alt_begin = begin->get()->Alternates.begin();
 			auto alt_end = begin->get()->Alternates.end();
 
@@ -541,6 +535,9 @@ bool TechnoTypeExtData::IsGenericPrerequisite() const
 				}
 			}
 		}
+
+		this->GenericPrerequisite = false;
+		return false;
 	}
 
 	return this->GenericPrerequisite;
@@ -764,8 +761,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		//TODO : Tag name Change
 		this->Death_NoAmmo.Read(exINI, pSection, "Death.NoAmmo");
 		this->Death_NoAmmo.Read(exINI, pSection, "AutoDeath.OnAmmoDepletion");
-		this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
-		this->Death_Countdown.Read(exINI, pSection, "AutoDeath.AfterDelay");
+		this->DeathCountdown.Read(exINI, pSection, "Death.Countdown");
+		this->DeathCountdown.Read(exINI, pSection, "AutoDeath.AfterDelay");
 
 		this->Death_Method.Read(exINI, pSection, "Death.Method");
 		this->Death_Method.Read(exINI, pSection, "AutoDeath.Behavior");
@@ -2363,7 +2360,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamWriter& Stm)
 	debugProcess(this->NoManualMove, "NoManualMove");
 	debugProcess(this->InitialStrength, "InitialStrength");
 	debugProcess(this->Death_NoAmmo, "Death_NoAmmo");
-	debugProcess(this->Death_Countdown, "Death_Countdown");
+	debugProcess(this->DeathCountdown, "DeathCountdown");
 	debugProcess(this->Death_Method, "Death_Method");
 	debugProcess(this->AutoDeath_Nonexist, "AutoDeath_Nonexist");
 	debugProcess(this->AutoDeath_Nonexist_House, "AutoDeath_Nonexist_House");
@@ -2621,7 +2618,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamReader& Stm)
 	debugProcess(this->NoManualMove, "NoManualMove");
 	debugProcess(this->InitialStrength, "InitialStrength");
 	debugProcess(this->Death_NoAmmo, "Death_NoAmmo");
-	debugProcess(this->Death_Countdown, "Death_Countdown");
+	debugProcess(this->DeathCountdown, "DeathCountdown");
 	debugProcess(this->Death_Method, "Death_Method");
 	debugProcess(this->AutoDeath_Nonexist, "AutoDeath_Nonexist");
 	debugProcess(this->AutoDeath_Nonexist_House, "AutoDeath_Nonexist_House");

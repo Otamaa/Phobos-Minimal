@@ -496,6 +496,8 @@ public:
 		this->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());
 		this->EVA_Offline = VoxClass::FindIndexById(GameStrings::EVA_BuildingOffLine());
 		this->NextBuilding_CurrentHeapId = pObj->ArrayIndex;
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = BuildingTypeClass::AbsID;
 	}
 
 

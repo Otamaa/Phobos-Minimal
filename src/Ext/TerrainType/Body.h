@@ -76,6 +76,8 @@ public:
 		TreeFires(),
 		SpawnsTiberium_Particle()
 	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = TerrainTypeClass::AbsID;
 		this->Initialize();
 	}
 

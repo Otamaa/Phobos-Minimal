@@ -31,6 +31,9 @@ public:
 	//Destructor
 	virtual ~MissionClass() RX;
 
+	//AbstractClass
+	virtual void Update() override { JMP_THIS(0x5B3060); }
+
 	//MissionClass
 	virtual bool QueueMission(Mission mission, bool start_mission) R0; //assign
 	virtual bool NextMission() R0;//commence

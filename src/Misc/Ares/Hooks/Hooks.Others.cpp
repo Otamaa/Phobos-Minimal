@@ -72,14 +72,14 @@ ASMJIT_PATCH(0x52C5E0, Ares_NOLOGO, 0x7)
 ASMJIT_PATCH(0x62A020, ParasiteClass_Update, 0xA)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
+	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->Get_TechnoStateComponent()->WeaponIndexes.Parasite));
 	return 0x62A02A;
 }
 
 ASMJIT_PATCH(0x62A7B1, Parasite_ExitUnit, 9)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
+	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->Get_TechnoStateComponent()->WeaponIndexes.Parasite));
 	return 0x62A7BA;
 }
 
@@ -155,7 +155,7 @@ ASMJIT_PATCH(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 {
 	GET(UnitClass* const, pUnit, ESI); //forEXT
 
-	if (!pUnit || !pUnit->Type || !RulesClass::Instance->ShakeScreen)
+	if (!pUnit || !pUnit->Type || !RulesClass::Instance->ShakeScreen || Phobos::Config::HideShakeEffects)
 		return 0x738801;
 
 	if (!pUnit->Type->Strength)

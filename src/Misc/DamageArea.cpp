@@ -842,13 +842,17 @@ ASMJIT_PATCH(0x489286, DamageAread, 0x6)
 		GET(CoordStruct*, pCoords, ECX);
 		GET_BASE(TechnoClass*, pOwner, 0x08);
 		GET_BASE(HouseClass*, pHouse, 0x14);
-		if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords))
-		{
-			if (pWH->ShakeXhi || pWH->ShakeXlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo), pWHExt->Shake_UseAlternativeCalculation);
-			if (pWH->ShakeYhi || pWH->ShakeYlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo), pWHExt->Shake_UseAlternativeCalculation);
+
+		if(!Phobos::Config::HideShakeEffects){
+			if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords))
+			{
+				if (pWH->ShakeXhi || pWH->ShakeXlo)
+					GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo), pWHExt->Shake_UseAlternativeCalculation);
+				if (pWH->ShakeYhi || pWH->ShakeYlo)
+					GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo), pWHExt->Shake_UseAlternativeCalculation);
+			}
 		}
+
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
 		for (const auto& Lauch : pWHExt->Launchs)
 		{

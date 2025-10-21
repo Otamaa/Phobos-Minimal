@@ -120,3 +120,20 @@ HRESULT __stdcall FakeInfantryClass::_Save(IStream* pStm, BOOL clearDirty)
 
 // DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB06C, FakeInfantryClass::_Load)
 // DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB070, FakeInfantryClass::_Save)
+
+ASMJIT_PATCH(0x51A002, InfantryClass_UpdatePosition_InfiltrateBuilding, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+	GET(BuildingClass*, pBuilding, EDI);
+
+	if (const auto pTag = pBuilding->AttachedTag)
+		pTag->RaiseEvent(TriggerEvent::SpiedBy, pThis, CellStruct::Empty);
+
+	if (const auto pTag = pBuilding->AttachedTag)
+		pTag->RaiseEvent(TriggerEvent::SpyAsHouse, pThis, CellStruct::Empty);
+
+	if (const auto pTag = pBuilding->AttachedTag)
+		pTag->RaiseEvent(TriggerEvent::SpyAsInfantry, pThis, CellStruct::Empty);
+
+	return 0;
+}

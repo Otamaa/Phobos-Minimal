@@ -324,7 +324,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 								&& (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
 								|| pThis->GetHeight() < -10))
 							{
-								if (auto& dmgParticle = pThis->DamageParticleSystem)
+								if (auto& dmgParticle = pThis->Sys.Damage)
 								{
 									dmgParticle->UnInit();
 									dmgParticle = nullptr;

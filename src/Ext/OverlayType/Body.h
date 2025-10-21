@@ -24,7 +24,10 @@ public:
 	OverlayTypeExtData(OverlayTypeClass* pObj) : ObjectTypeExtData(pObj),
 		Palette(CustomPalette::PaletteMode::Temperate),
 		ZAdjust(0)
-	{ }
+	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = OverlayTypeClass::AbsID;
+	}
 	OverlayTypeExtData(OverlayTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~OverlayTypeExtData() = default;

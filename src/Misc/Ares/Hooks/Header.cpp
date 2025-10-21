@@ -1608,13 +1608,13 @@ void TechnoExt_ExtData::InitWeapon(
 	{
 		pTemporal = GameCreate<TemporalClass>(pThis);
 		pTemporal->WarpPerStep = pWeapon->Damage;
-		pExt->idxSlot_Warp = static_cast<BYTE>(idxWeapon);
+		pExt->Get_TechnoStateComponent()->WeaponIndexes.Warp = idxWeapon;
 	}
 
 	if (pWarhead->Parasite && IsFoot && !pParasite)
 	{
 		pParasite = GameCreate<ParasiteClass>((FootClass*)pThis);
-		pExt->idxSlot_Parasite = static_cast<BYTE>(idxWeapon);
+		pExt->Get_TechnoStateComponent()->WeaponIndexes.Parasite = idxWeapon;
 	}
 
 	auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
@@ -1806,7 +1806,7 @@ int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 
 		if(auto pTempOwner = pTemp->Owner){
 
-			auto const pWeapon = pTempOwner->GetWeapon(TechnoExtContainer::Instance.Find(pTempOwner)->idxSlot_Warp)
+			auto const pWeapon = pTempOwner->GetWeapon(TechnoExtContainer::Instance.Find(pTempOwner)->Get_TechnoStateComponent()->WeaponIndexes.Warp)
 					->WeaponType;
 
 			totalStep += pWeapon->Damage;
@@ -1817,9 +1817,13 @@ int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 	return totalStep;
 }
 
-bool TechnoExt_ExtData::Warpable(TechnoClass* pTarget)
+bool TechnoExt_ExtData::Warpable(TemporalClass* pTemp, TechnoClass* pTarget)
 {
 	if (!pTarget || !pTarget->IsAlive || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
+		return false;
+
+	//the fuck
+	if (pTarget == pTemp->Owner)
 		return false;
 
 	if (TechnoExtData::IsUnwarpable(pTarget))
@@ -4113,9 +4117,9 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	TechnoExtData::UpdateLaserTrails(pThis);
 
 	// Reset AutoDeath Timer
-	if (pExt->Death_Countdown.HasStarted())
+	if (pExt->DeathCountdown.HasStarted())
 	{
-		pExt->Death_Countdown.Stop();
+		pExt->DeathCountdown.Stop();
 		HouseExtData::AutoDeathObjects.erase(pThis);
 	}
 
@@ -5567,7 +5571,7 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo)
 {
 	AnimTypeClass* pSparkle = nullptr;
 
-	if (auto& pCurSparkle = TechnoExtContainer::Instance.Find(pFrom)->EMPSparkleAnim)
+	if (auto& pCurSparkle = TechnoExtContainer::Instance.Find(pFrom)->Get_EMPStateComponent()->SparkleAnim)
 	{
 		const auto pSpecific = AresEMPulse::GetSparkleAnimType(pFrom);
 
@@ -5583,7 +5587,7 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
 	if (TechnoTypeExtContainer::Instance.Find(pWho->GetTechnoType())->IsDummy)
 		return;
 
-	auto& Anim = TechnoExtContainer::Instance.Find(pWho)->EMPSparkleAnim;
+	auto& Anim = TechnoExtContainer::Instance.Find(pWho)->Get_EMPStateComponent()->SparkleAnim;
 
 	if (pWho->IsUnderEMP())
 	{
@@ -5778,7 +5782,7 @@ bool AresEMPulse::EnableEMPEffect(TechnoClass* const pVictim, ObjectClass* const
 	}
 
 	// cache the last mission this thing did
-	TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission = pVictim->CurrentMission;
+	TechnoExtContainer::Instance.Find(pVictim)->Get_EMPStateComponent()->LastMission = pVictim->CurrentMission;
 
 	// detach temporal
 	if (pVictim->IsWarpingSomethingOut())
@@ -5893,8 +5897,9 @@ void AresEMPulse::DisableEMPEffect(TechnoClass* const pVictim)
 			if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
 			{
 				// prevent unloading harvesters from being irritated.
-				auto const mission = TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission != Mission::Guard
-					? TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission : Mission::Enter;
+				auto pState = TechnoExtContainer::Instance.Find(pVictim)->Get_EMPStateComponent();
+				auto const mission = pState->LastMission != Mission::Guard
+					? pState->LastMission : Mission::Enter;
 
 				pUnit->QueueMission(mission, true);
 				hasMission = true;
@@ -5938,7 +5943,7 @@ bool AresEMPulse::EnableEMPEffect2(TechnoClass* const pVictim)
 	if (!pVictim->Deactivated && AresEMPulse::IsDeactivationAdvisable(pVictim))
 	{
 		// cache the last mission this thing did
-		TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission = pVictim->CurrentMission;
+		TechnoExtContainer::Instance.Find(pVictim)->Get_EMPStateComponent()->LastMission = pVictim->CurrentMission;
 
 		// detach temporal
 		if (pVictim->IsWarpingSomethingOut())
@@ -6049,8 +6054,10 @@ void AresEMPulse::DisableEMPEffect2(TechnoClass* const pVictim)
 				if (pUnit->Type->Harvester || pUnit->Type->ResourceGatherer)
 				{
 					// prevent unloading harvesters from being irritated.
-					auto const mission = TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission != Mission::Guard
-						? TechnoExtContainer::Instance.Find(pVictim)->EMPLastMission : Mission::Enter;
+					auto pState = TechnoExtContainer::Instance.Find(pVictim)->Get_EMPStateComponent();
+
+					auto const mission = pState->LastMission != Mission::Guard
+						? pState->LastMission : Mission::Enter;
 
 					pUnit->QueueMission(mission, true);
 					hasMission = true;
@@ -6310,7 +6317,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		nTargetCoords = pTarget->GetCoords();
 
 	const auto Attacker = pOwner;
-	const auto pTargetType = Target->GetTechnoType();
+	//const auto pTargetType = Target->GetTechnoType();
 	const auto AttackerType = Attacker->GetTechnoType();
 
 	if (!pWHExt->CanAffectHouse(Attacker->Owner, Target->GetOwningHouse()))

@@ -9,7 +9,10 @@ public:
 
 public:
 
-	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj) { }
+	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj) {
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = UnitTypeClass::AbsID;
+	}
 	UnitTypeExtData(UnitTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 
 	virtual ~UnitTypeExtData() = default;

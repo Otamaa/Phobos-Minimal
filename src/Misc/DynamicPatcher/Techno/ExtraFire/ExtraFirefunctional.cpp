@@ -107,12 +107,12 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 	if (!pTarget)
 		return;
 
-	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if(!pExt->Get_TechnoStateComponent()->HasExtraFireWeapon)
 		return;
 
+	auto const pType = pThis->GetTechnoType();
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto& nExtraFireData = pTypeExt->MyExtraFireData;
 	CoordStruct nFLH = CoordStruct::Empty;

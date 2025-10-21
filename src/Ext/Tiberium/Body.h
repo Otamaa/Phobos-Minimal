@@ -96,7 +96,10 @@ public:
 		SpreadState(),
 		GrowthQueue(),
 		GrowthState()
-	{ }
+	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = TiberiumClass::AbsID;
+	}
 
 	TiberiumExtData(TiberiumClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 

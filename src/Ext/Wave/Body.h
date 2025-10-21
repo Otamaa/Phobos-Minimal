@@ -29,7 +29,9 @@ public:
 		, SourceCoord()
 		, CanDoUpdate(false)
 	{
-		this->AbstractExtended::SetName("WaveClass");
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->Name = "WaveClass";
+		pIdent->AbsType = WaveClass::AbsID;
 	}
 
 	WaveExtData(WaveClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }

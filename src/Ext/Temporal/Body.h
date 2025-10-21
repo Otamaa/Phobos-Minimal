@@ -13,7 +13,11 @@ public:
 	 static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
-	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) { this->AbstractExtended::SetName("TemporalClass"); }
+	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) {
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->Name = "TemporalClass";
+		pIdent->AbsType = TemporalClass::AbsID;
+	}
 	TemporalExtData(TemporalClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TemporalExtData() = default;

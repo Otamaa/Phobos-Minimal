@@ -61,20 +61,6 @@ ASMJIT_PATCH(0x4DF42A, FootClass_UpdateAttackMove_AircraftHoldAttackMoveTarget2,
 	return (RulesExtData::Instance()->ExpandAircraftMission && pThis->WhatAmI() == AbstractType::Aircraft) ? HoldTarget : ContinueCheck;
 }
 
-ASMJIT_PATCH(0x6FA68B, TechnoClass_Update_AttackMovePaused, 0xA) // To make aircrafts not search for targets while resting at the airport, this is designed to adapt to loop waypoint
-{
-	enum { SkipGameCode = 0x6FA6F5 };
-
-	GET(TechnoClass* const, pThis, ESI);
-
-	const bool skip = RulesExtData::Instance()->ExpandAircraftMission
-		&& pThis->WhatAmI() == AbstractType::Aircraft
-		&& (!pThis->Ammo || !pThis->IsInAir());
-
-	return skip ? SkipGameCode : 0;
-}
-
-
 ASMJIT_PATCH(0x41A5C7, AircraftClass_Mission_Guard_StartAreaGuard, 0x6)
 {
 	enum { SkipGameCode = 0x41A6AC };
@@ -580,8 +566,6 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 	enum { SkipGameCode = 0x41A97A };
 
 	GET(AircraftClass*, pThis, ESI);
-
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (RulesExtData::Instance()->ExpandAircraftMission && !pThis->Team && pThis->Ammo && pThis->IsArmed())
 	{

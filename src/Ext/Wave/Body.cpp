@@ -108,7 +108,7 @@ WaveClass* WaveExtData::Create(CoordStruct nFrom, CoordStruct nTo, TechnoClass* 
 {
 	auto const pWave = GameCreate<WaveClass>(nFrom, nTo, pOwner, nType, pTarget);
 	const auto pExt = WaveExtContainer::Instance.Find(pWave);
-	const auto nWeaponIdx = !FromSourceCoord ? TechnoExtContainer::Instance.Find(pOwner)->CurrentWeaponIdx : -1;
+	const auto nWeaponIdx = !FromSourceCoord ? TechnoExtContainer::Instance.Find(pOwner)->Get_TechnoStateComponent()->WeaponIndexes.Current : -1;
 	pExt->SetWeaponType(pWeapon, nWeaponIdx);
 	pExt->InitWeaponData();
 	pExt->SourceCoord = nFrom;

@@ -190,25 +190,20 @@ void ScenarioExtData::FetchVariables(ScenarioClass* pScen)
 
 void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead)
 {
-	auto pBullet = ScenarioExtData::Instance()->MasterDetonationBullet;
+	BulletTypeClass* pType = pWeapon ? pWeapon->Projectile : BulletTypeExtData::GetDefaultBulletType();
+	auto pBullet = GameCreate<BulletClass>();
+
+	pBullet->Construct(pType, pTarget, pOwner, damage, pWarhead, 0, isBright);
 
 	if (pWeapon) {
-		pBullet->Type = pWeapon->Projectile;
 		pBullet->SetWeaponType(pWeapon);
 	} else {
-		pBullet->Type = BulletTypeExtData::GetDefaultBulletType();
 		pBullet->SetWeaponType(nullptr);
 	}
 
 	CoordStruct detonateCoord = coords;
 	if (!coords.IsValid() && pTarget)
 		detonateCoord = pTarget->GetCoords();
-
-	pBullet->Owner = pOwner;
-	pBullet->Health = damage;
-	pBullet->Target = pTarget;
-	pBullet->WH = pWarhead;
-	pBullet->Bright = isBright;
 
 	if (pFiringHouse) {
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pFiringHouse;

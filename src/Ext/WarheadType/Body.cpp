@@ -1095,7 +1095,8 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 
 		// get the values
 		auto pExt = TechnoExtContainer::Instance.Find(pInf);
-		int oldValue = (!pExt->Get_TechnoStateComponent()->IsWebbed || pInf->ParalysisTimer.Expired() ? 0 : pInf->ParalysisTimer.GetTimeLeft());
+		auto pWebbedComponent = pExt->Get_WebbedStateComponent();
+		int oldValue = (!pWebbedComponent || pInf->ParalysisTimer.Expired() ? 0 : pInf->ParalysisTimer.GetTimeLeft());
 		int newValue = Helpers::Alex::getCappedDuration(oldValue, duration, this->Webby_Cap);
 
 		// update according to oldval
@@ -1104,16 +1105,18 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 			// start effect?
 			if (newValue > 0)
 			{
+				if(!pWebbedComponent)
+					pWebbedComponent = &Phobos::gEntt->emplace<WebbedStateComponent>(pExt->MyEntity);
+
 				if (pInf->Locomotor->Is_Moving())
 					pInf->Locomotor->Stop_Moving();
 
-				pExt->Get_TechnoStateComponent()->IsWebbed = true;
 				pInf->ParalysisTimer.Start(newValue);
 				AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
-				pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
-				pExt->WebbedAnim->SetOwnerObject(pInf);
-				AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
-				TechnoExtData::StoreLastTargetAndMissionAfterWebbed(pInf);
+				pWebbedComponent->Anim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
+				pWebbedComponent->Anim->SetOwnerObject(pInf);
+				AnimExtData::SetAnimOwnerHouseKind(pWebbedComponent->Anim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
+				pWebbedComponent->StoreLastTargetAndMissionAfterWebbed(pInf);
 			}
 		}
 		else
@@ -1121,34 +1124,33 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 			// is already on.
 			if (newValue > 0)
 			{
+				if(!pWebbedComponent)
+					pWebbedComponent = &Phobos::gEntt->emplace<WebbedStateComponent>(pExt->MyEntity);
 
 				// set new length and reset the anim ownership
 				pInf->ParalysisTimer.Start(newValue);
 
-				if (!pExt->WebbedAnim)
+				if (!pWebbedComponent->Anim)
 				{
 					AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
-					pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
-					pExt->WebbedAnim->SetOwnerObject(pInf);
-					AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
+					pWebbedComponent->Anim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
+					pWebbedComponent->Anim->SetOwnerObject(pInf);
+					AnimExtData::SetAnimOwnerHouseKind(pWebbedComponent->Anim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
 				}
 				else
 				{
-					AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
+					AnimExtData::SetAnimOwnerHouseKind(pWebbedComponent->Anim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
 				}
 			}
 			else //turn off
 			{
-				if (pExt->Get_TechnoStateComponent()->IsWebbed)
-				{
-					pExt->Get_TechnoStateComponent()->IsWebbed = false;
-					pInf->ParalysisTimer.Stop();
-					TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(pInf);
-				}
+				if(auto pWebbedComp = pExt->Get_WebbedStateComponent()){
 
-				if (pExt->WebbedAnim)
-				{
-					pExt->WebbedAnim.clear();
+					pInf->ParalysisTimer.Stop();
+					pWebbedComp->RestoreLastTargetAndMissionAfterWebbed(pInf);
+
+					pWebbedComp->ClearAnim();
+					Phobos::gEntt->remove<WebbedStateComponent>(pExt->MyEntity);
 				}
 			}
 		}

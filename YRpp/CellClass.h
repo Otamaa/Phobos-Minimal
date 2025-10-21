@@ -634,6 +634,10 @@ public:
 
 	void RevealCellObjects() const { JMP_THIS(0x483480); }
 	void Shimmer() const { JMP_THIS(0x483480); }
+	bool IsCovered() const { JMP_THIS(0x487E00); }
+	bool CellClass_cloak_4870B0(char arrayIdx) {
+		return ((1 << arrayIdx) & this->CloakedByHouses) != 0;
+	}
 
 	COMPILETIMEEVAL CellClass* GetBridgeOwner() const {
 		if (this->ContainsBridge()) {

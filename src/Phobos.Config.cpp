@@ -76,6 +76,8 @@ void Phobos::Config::Read()
 	Phobos::Config::ShowFlashOnSelecting = pRA2MD->ReadBool(PHOBOS_STR, "ShowFlashOnSelecting", Phobos::Config::ShowFlashOnSelecting);
 	Phobos::Config::SuperWeaponSidebar_RequiredSignificance = pRA2MD->ReadInteger(PHOBOS_STR, "SuperWeaponSidebar.RequiredSignificance", Phobos::Config::SuperWeaponSidebar_RequiredSignificance);
 	Phobos::Config::HideLightFlashEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLightFlashEffects", Phobos::Config::HideLightFlashEffects);
+	Phobos::Config::HideLaserTrailEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideLaserTrailEffects", Phobos::Config::HideLaserTrailEffects);
+	Phobos::Config::HideShakeEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideShakeEffects", Phobos::Config::HideShakeEffects);
 	Phobos::Config::SaveGameOnScenarioStart = pRA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", Phobos::Config::SaveGameOnScenarioStart);
 
 	if (!Phobos::Otamaa::IsAdmin)

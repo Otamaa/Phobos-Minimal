@@ -1011,8 +1011,6 @@ void ShieldClass::CreateAnim()
 		pAnim->RemainingIterations = 0xFFu;
 		AnimExtData::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false, false);
 		pAnim->SetOwnerObject(this->Techno);
-		auto pAnimExt = ((FakeAnimClass*)pAnim)->_GetExtData();
-		pAnimExt->IsShieldIdleAnim = true;
 		this->IdleAnim.reset(pAnim);
 	}
 }

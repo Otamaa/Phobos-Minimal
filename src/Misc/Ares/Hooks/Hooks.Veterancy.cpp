@@ -25,13 +25,6 @@
 
 #include "Header.h"
 
-ASMJIT_PATCH(0x6FA054, TechnoClass_Update_Veterancy, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	TechnoExperienceData::PromoteImmedietely(pThis, false, true);
-	return 0x6FA14B;
-}
-
 // #346, #464, #970, #1014
 // handle all veterancy gains ourselves
 ASMJIT_PATCH(0x702E9D, TechnoClass_RegisterDestruction_Veterancy, 0x6)

@@ -39,7 +39,10 @@ public:
 		, AllowVeins()
 		, AllowedTiberiums()
 		, AllowedSmudges()
-	{ }
+	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = IsometricTileTypeClass::AbsID;
+	}
 
 	IsometricTileTypeExtData(IsometricTileTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 

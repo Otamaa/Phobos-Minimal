@@ -13,7 +13,10 @@ public:
 
 public:
 
-	AircraftTypeExtData(AircraftTypeClass* pObj) : TechnoTypeExtData(pObj) { }
+	AircraftTypeExtData(AircraftTypeClass* pObj) : TechnoTypeExtData(pObj) {
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->AbsType = AircraftTypeClass::AbsID;
+	}
 	AircraftTypeExtData(AircraftTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 
 	virtual ~AircraftTypeExtData() = default;

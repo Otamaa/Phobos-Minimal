@@ -16,22 +16,15 @@ PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
 	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 
-	if (const auto& pTrail = this->LaserTrail) {
+	if (this->LaserTrail) {
 
 		const auto pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
-		const auto it = pTechnoExt->LaserTrails.find_if([pTrail](auto const& item) { return item.get() == pTrail; });
+		const auto it = pTechnoExt->LaserTrails.find_if([this](auto const& item) { return item.Linked == this; });
 
 		if (it != pTechnoExt->LaserTrails.cend())
 			pTechnoExt->LaserTrails.erase(it);
 
-		this->LaserTrail = nullptr;
-	}
-
-	if (!Phobos::Otamaa::ExeTerminated)
-	{
-		//there an instance where Ext is nullptr
-		if (auto pExt = TechnoExtContainer::Instance.TryFind(this->Invoker))
-			pExt->AttachedEffectInvokerCount--;
+		this->LaserTrail = false;
 	}
 }
 
@@ -59,8 +52,6 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 
 	if (pInvoker) {
 		auto pInvokerExt = TechnoExtContainer::Instance.Find(pInvoker);
-
-		pInvokerExt->AttachedEffectInvokerCount++;
 
 		if(pType->Duration_ApplyFirepowerMult)
 			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->Get_AEProperties()->FirepowerMultiplier);
@@ -95,9 +86,8 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	const int laserTrailIdx = pType->LaserTrail_Type;
 
 	if (laserTrailIdx != -1) {
-		pTechnoExt->LaserTrails.emplace_back(
-			std::move(std::make_unique<LaserTrailClass>(LaserTrailTypeClass::Array[laserTrailIdx].get(), pTechno->Owner->LaserColor)));
-		this->LaserTrail = pTechnoExt->LaserTrails.back().get();
+		pTechnoExt->LaserTrails.emplace_back(LaserTrailTypeClass::Array[laserTrailIdx].get(), pTechno->Owner->LaserColor);
+		pTechnoExt->LaserTrails.back().Linked = this;
 	}
 
 }
@@ -412,7 +402,6 @@ void PhobosAttachEffectClass::CreateAnim()
 		this->Animation->RemainingIterations = 0xFFu;
 		auto pAnimExt = ((FakeAnimClass*)this->Animation.get())->_GetExtData();
 
-		pAnimExt->IsAttachedEffectAnim = true;
 		if (this->Type->Animation_UseInvokerAsOwner) {
 			pAnimExt->Invoker = Invoker;
 		}
@@ -459,8 +448,6 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 	if (this->Invoker)
 	{
 		auto pInvokerExt = TechnoExtContainer::Instance.Find(this->Invoker);
-
-		pInvokerExt->AttachedEffectInvokerCount++;
 
 		if (this->Type->Duration_ApplyFirepowerMult)
 			this->Duration = static_cast<int>(this->Duration * this->Invoker->FirepowerMultiplier * pInvokerExt->Get_AEProperties()->FirepowerMultiplier);

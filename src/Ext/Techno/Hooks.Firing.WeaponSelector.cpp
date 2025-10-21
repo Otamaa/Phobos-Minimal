@@ -455,17 +455,15 @@ ASMJIT_PATCH(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 ASMJIT_PATCH(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
-	GET_STACK(DWORD , caller , 0x0);
-
-	if(!pThis)
-		Debug::FatalError("Caller %u " , caller);
+	//GET_STACK(DWORD , caller , 0x0);
 
 	if (pThis->WhatAmI() == BuildingClass::AbsID)
 	{
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+		auto pCom = pExt->Get_TechnoStateComponent();
 
-		if (!pExt->CurrentLaserWeaponIndex.empty()) {
-			R->EAX(pThis->GetWeapon(pExt->CurrentLaserWeaponIndex));
+		if (pCom->WeaponIndexes.Laser != -1) {
+			R->EAX(pThis->GetWeapon(pCom->WeaponIndexes.Laser));
 			return 0x70E1C8;
 		}
 	}

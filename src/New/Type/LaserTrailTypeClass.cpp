@@ -48,7 +48,7 @@ void LaserTrailTypeClass::LoadFromINI(CCINIClass* pINI)
 
 	this->Beam_Color.Read(exINI, section, "Beam.Color");
 	this->Beam_Amplitude.Read(exINI, section, "Beam.Amplitude");
-
+	this->CanBeHidden.Read(exINI, section, "CanBeHidden");
 }
 
 #ifdef _Print
@@ -133,6 +133,7 @@ void LaserTrailTypeClass::Serialize(T& Stm)
 		.Process(this->Bolt_Arcs)
 		.Process(this->Beam_Color)
 		.Process(this->Beam_Amplitude)
+		.Process(this->CanBeHidden)
 		;
 }
 

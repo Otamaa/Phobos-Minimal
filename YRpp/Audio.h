@@ -624,7 +624,7 @@ struct AudioController
 	void __fastcall sub_4060F0(int a1, int a2)
 	{ JMP_FAST(0x4060F0); }
 
-	void sub_406130()
+	void* AudioEventHandleGet()
 	{ JMP_THIS(0x406130); }
 
 	void sub_406170()

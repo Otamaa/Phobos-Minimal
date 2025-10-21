@@ -210,7 +210,7 @@ public:
 	PassengerDeletionTypeClass PassengerDeletionType;
 
 	Valueable<bool> Death_NoAmmo;
-	Valueable<int> Death_Countdown;
+	Valueable<int> DeathCountdown;
 	Valueable<KillMethod> Death_Method;
 	Valueable<bool> Death_WithMaster;
 	Valueable<int> AutoDeath_MoneyExceed;
@@ -1286,7 +1286,7 @@ public:
 		InitialStrength(),
 		PassengerDeletionType(),
 		Death_NoAmmo(false),
-		Death_Countdown(0),
+		DeathCountdown(0),
 		Death_Method(KillMethod::None),
 		Death_WithMaster(false),
 		AutoDeath_MoneyExceed(-1),
@@ -2203,7 +2203,7 @@ private:
 			.Process(this->InitialStrength)
 
 			.Process(this->Death_NoAmmo)
-			.Process(this->Death_Countdown)
+			.Process(this->DeathCountdown)
 			.Process(this->Death_Method)
 			.Process(this->AutoDeath_Nonexist)
 			.Process(this->AutoDeath_Nonexist_House)

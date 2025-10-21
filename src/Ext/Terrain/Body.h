@@ -9,6 +9,7 @@
 #include <AnimClass.h>
 
 #include <Ext/Object/Body.h>
+#include <TerrainTypeClass.h>
 
 class TerrainExtData final : public ObjectExtData
 {
@@ -17,7 +18,6 @@ public:
 	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
-
 
 #pragma region ClassMember
 	Handle<LightSourceClass*, UninitLightSource> LighSource;
@@ -32,7 +32,12 @@ public:
 		, AttachedAnim(nullptr)
 		, AttachedFireAnim(nullptr)
 		, Adjencentcells()
-	{ }
+	{
+		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
+		pIdent->Name = pObj->Type->ID;
+		pIdent->AbsType = TerrainClass::AbsID;
+
+	}
 	TerrainExtData(TerrainClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~TerrainExtData();

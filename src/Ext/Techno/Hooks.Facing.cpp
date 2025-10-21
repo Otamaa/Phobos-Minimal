@@ -18,7 +18,7 @@ ASMJIT_PATCH(0x7369A5, UnitClass_UpdateRotation_CheckTurnToTarget, 0x6)
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if(auto idleAc = pExt->Get_IdleActionComponent()) {
-		if (idleAc->UnitIdleActionTimer.IsTicking() || idleAc->UnitIdleActionGapTimer.IsTicking())
+		if (idleAc->Timer.IsTicking() || idleAc->GapTimer.IsTicking())
 			return ContinueGameCode;
 	}
 
@@ -71,7 +71,7 @@ ASMJIT_PATCH(0x736AFB, UnitClass_UpdateRotation_CheckTurnToForward, 0x6)
 
 	if (auto idleAc = pExt->Get_IdleActionComponent())
 	{
-		if (idleAc->UnitIdleActionTimer.IsTicking() || idleAc->UnitIdleActionGapTimer.IsTicking())
+		if (idleAc->Timer.IsTicking() || idleAc->GapTimer.IsTicking())
 			return ContinueGameCode;
 	}
 

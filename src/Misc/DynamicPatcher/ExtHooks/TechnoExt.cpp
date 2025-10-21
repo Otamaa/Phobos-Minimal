@@ -204,7 +204,7 @@ ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	//if ()
 	//{
-		pExt->CurrentWeaponIdx = nWeapon;
+		pExt->Get_TechnoStateComponent()->WeaponIndexes.Current = nWeapon;
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 		{
 			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
@@ -216,7 +216,7 @@ ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 }
 
 static WeaponStruct* __fastcall GetWeapon_(TechnoClass* pTech, void*, int idx) {
-	return pTech->GetWeapon(TechnoExtContainer::Instance.Find(pTech)->CurrentWeaponIdx);
+	return pTech->GetWeapon(TechnoExtContainer::Instance.Find(pTech)->Get_TechnoStateComponent()->WeaponIndexes.Current);
 }
 DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
 

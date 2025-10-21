@@ -599,9 +599,10 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 	if (pWeapon) {
 		auto pWeaponExt = pWeapon->_GetExtData();
+		auto pDelayedComp = pExt->Get_DelayedFireComponent();
 
-		auto& timer = pExt->DelayedFireTimer;
-		if (pExt->DelayedFireWeaponIndex >= 0 && pExt->DelayedFireWeaponIndex != weaponIndex)
+		auto& timer = pDelayedComp->Timer;
+		if (pDelayedComp->WeaponIdx >= 0 && pDelayedComp->WeaponIdx != weaponIndex)
 			pExt->ResetDelayedFireTimer();
 
 		if (pWeaponExt->DelayedFire_Duration.isset() && (!pThis->Transporter || !pWeaponExt->DelayedFire_SkipInTransport))
@@ -621,7 +622,7 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 				if (!timer.HasStarted())
 				{
-					pExt->DelayedFireWeaponIndex = weaponIndex;
+					pDelayedComp->WeaponIdx = weaponIndex;
 					timer.Start(MaxImpl(GeneralUtils::GetRangedRandomOrSingleValue(pWeaponExt->DelayedFire_Duration), 0));
 					auto pAnimType = pWeaponExt->DelayedFire_Animation;
 
@@ -676,20 +677,6 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 //
 // 	return 0;
 // }
-
-ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
-{
-	enum { SkipGameCode = 0x6FAC31 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->Get_TechnoStateComponent()->DelayedFireSequencePaused)
-		return SkipGameCode;
-
-	return 0;
-}
 
 ASMJIT_PATCH(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
 {

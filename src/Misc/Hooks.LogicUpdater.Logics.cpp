@@ -32,7 +32,7 @@ void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
-	if (pExt->AbsType != BuildingClass::AbsID)
+	if (pExt->Get_ExtensionIdentifierComponent()->AbsType != BuildingClass::AbsID)
 	{
 		if (!pTypeExt->LaserTrailData.empty() && !pType->Invisible)
 			pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());

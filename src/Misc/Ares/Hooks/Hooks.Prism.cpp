@@ -383,10 +383,10 @@ ASMJIT_PATCH(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
 		if (auto const pBld = cast_to<BuildingClass*, false>(pThis))
 		{	//ToggleLaserWeaponIndex
 
-			if (pExt->CurrentLaserWeaponIndex.empty())
-				pExt->CurrentLaserWeaponIndex = idxWeapon;
+			if (pExt->Get_TechnoStateComponent()->WeaponIndexes.Laser == -1)
+				pExt->Get_TechnoStateComponent()->WeaponIndexes.Laser = idxWeapon;
 			else
-				pExt->CurrentLaserWeaponIndex.clear();
+				pExt->Get_TechnoStateComponent()->WeaponIndexes.Laser = -1;
 
 			auto const pTWeapon = pBld->GetPrimaryWeapon()->WeaponType;
 
