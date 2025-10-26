@@ -1844,9 +1844,8 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	GET(UnitClass*, pThis, EBP);
 
 	const auto pThisType = pThis->Type;
-	const VoxelStruct barrelVoxel = pThisType->BarrelVoxel;
 
-	if (barrelVoxel.VXL && barrelVoxel.HVA)
+	if (pThisType->BarrelVoxel.VXL && pThisType->BarrelVoxel.HVA)
 		return 0;
 
 	GET(UnitTypeClass*, pType, ECX);
@@ -1857,7 +1856,7 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	GET_STACK(const int, extraLight, STACK_OFFSET(0x128, 0x1C));
 
 	const bool tooBigToFitUnderBridge = pType->TooBigToFitUnderBridge
-		&& reinterpret_cast<bool(__thiscall*)(TechnoClass*)>(0x703B10)(pThis) && !reinterpret_cast<int(__thiscall*)(TechnoClass*)>(0x703E70)(pThis);
+		&& pThis->sub_703B10() && !pThis->sub_703E70();
 	const int zAdjust = tooBigToFitUnderBridge ? -16 : 0;
 	const ZGradient zGradient = tooBigToFitUnderBridge ? ZGradient::Ground : pThis->GetZGradient();
 
