@@ -492,6 +492,11 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 		if (pItem->MainVoxel.VXL)
 		{
+			if (!pItem->MainVoxel.VXL->HeaderData || !pItem->MainVoxel.VXL->TailerData)
+			{
+				Debug::FatalError("Techno[{} - {}] Has VXL but has no HeaderData wtf ?", myClassName, pItem->ID);
+			}
+
 			if (auto pHVA = pItem->MainVoxel.HVA)
 			{
 
@@ -853,6 +858,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIGuardModeGuardRangeMax.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeMax");
 	this->AIGuardStationaryStray.Read(exINI, GameStrings::General, "AIGuardStationaryStray");
 	this->IgnoreCenterMinorRadarEvent.Read(exINI, GameStrings::General, "IgnoreCenterMinorRadarEvent");
+	this->WarheadAnimZAdjust.Read(exINI, GameStrings::AudioVisual, "WarheadAnimZAdjust");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -1708,6 +1714,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AIGuardModeGuardRangeMax)
 		.Process(this->AIGuardStationaryStray)
 		.Process(this->IgnoreCenterMinorRadarEvent)
+		.Process(this->WarheadAnimZAdjust)
 		;
 }
 

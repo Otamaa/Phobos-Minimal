@@ -15,8 +15,7 @@ public:
 public:
 	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) , Clearable (true)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = SmudgeTypeClass::AbsID;
+ 		this->AbsType = SmudgeTypeClass::AbsID;
 	}
 
 	SmudgeTypeExtData(SmudgeTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

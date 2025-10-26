@@ -808,9 +808,7 @@ public:
 		Music_Duration(0),
 		Music_AffectedHouses(AffectedHouse::All)
 	{
-			auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-			pIdent->AbsType = SuperWeaponTypeClass::AbsID;
-
+			this->AbsType = SuperWeaponTypeClass::AbsID;
 			this->Text_Ready = GameStrings::TXT_READY();
 			this->Text_Hold = GameStrings::TXT_HOLD();
 			this->Text_Charging = GameStrings::TXT_CHARGING();

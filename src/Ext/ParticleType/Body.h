@@ -53,8 +53,7 @@ public:
 		TransmogrifyOwner(OwnerHouseKind::Neutral),
 		Fire_DamagingAnim(false)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = ParticleTypeClass::AbsID;
+		this->AbsType = ParticleTypeClass::AbsID;
 		LaserTrail_Types.reserve(2);
 	}
 	ParticleTypeExtData(ParticleTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

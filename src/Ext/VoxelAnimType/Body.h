@@ -41,8 +41,7 @@ public:
 		, Trails()
 		, TrailerAnim_SpawnDelay(2)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = VoxelAnimTypeClass::AbsID;
+		this->AbsType = VoxelAnimTypeClass::AbsID;
 		this->Initialize();
 	}
 

@@ -2,37 +2,46 @@
 
 #include "Savegame.h"
 
+struct Handles {
+	static std::vector<Handles*> Array;
+	virtual void detachptr() = 0;
+};
+
 // owns a resource. not copyable, but movable.
 template <typename T, typename Deleter, T Default = T()>
-struct Handle
+struct Handle : public Handles
 {
-	COMPILETIMEEVAL Handle() noexcept = default;
+	Handle() noexcept : Handles()
+		, Value() {
+		Handles::Array.emplace_back(this);
+	};
 
-	COMPILETIMEEVAL explicit Handle(T value) noexcept
-		: Value(value)
-	{ }
+	explicit Handle(T value) noexcept
+		: Handles()
+		, Value(value) {
+		Handles::Array.emplace_back(this);
+	}
 
 	Handle(const Handle&) = delete;
 
-	COMPILETIMEEVAL Handle(Handle&& other) noexcept
-		: destroy(other.destroy)
+	Handle(Handle&& other) noexcept
+		: Handles()
 		, Value(other.release())
-	{
-		other.destroy = true;  // Reset to default
-	}
+	{ }
 
 	~Handle() noexcept
 	{
-		if (this->destroy && this->Value != Default)
-		{
+		if (this->Value != Default) {
 			Deleter {}(this->Value);
 		}
-		this->Value = Default;
-	}
 
-	COMPILETIMEEVAL void SetDestroyCondition(bool val)
-	{
-		this->destroy = val;
+		this->Value = Default;
+		auto find = std::ranges::find_if(Handles::Array, [this](auto ptr) {
+			return this == ptr;
+		});
+
+		if (find != Handles::Array.end())
+			Handles::Array.erase(find, Handles::Array.end());
 	}
 
 	Handle& operator = (const Handle&) = delete;
@@ -42,8 +51,6 @@ struct Handle
 		if (this != &other)
 		{
 			this->reset(other.release());
-			this->destroy = other.destroy;
-			other.destroy = true;  // Reset to default
 		}
 		return *this;
 	}
@@ -75,22 +82,22 @@ struct Handle
 
 	void reset(T value = Default) noexcept
 	{
-		if (this->destroy && this->Value != Default)
-		{
+		if (this->Value != Default) {
 			Deleter {}(this->Value);
 		}
+
 		this->Value = value;
 	}
 
-	void clear() noexcept
+	//release all references to avoid double delete issues
+	virtual void detachptr() override
 	{
-		reset(Default);
+		this->Value = Default;
 	}
 
 	void swap(Handle& other) noexcept
 	{
 		using std::swap;
-		swap(this->destroy, other.destroy);
 		swap(this->Value, other.Value);
 	}
 
@@ -102,7 +109,6 @@ struct Handle
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		return Stm
-			.Process(this->destroy, false)
 			.Process(this->Value, RegisterForChange)
 			.Success()
 			;
@@ -111,14 +117,12 @@ struct Handle
 	bool save(PhobosStreamWriter& Stm) const
 	{
 		return Stm
-			.Process(this->destroy)
 			.Process(this->Value)
 			.Success()
 			;
 	}
 
 private:
-	bool destroy { true };
 	T Value { Default };
 };
 

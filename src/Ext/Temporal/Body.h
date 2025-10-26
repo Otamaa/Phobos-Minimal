@@ -14,9 +14,8 @@ public:
 
 public:
 	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) {
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = "TemporalClass";
-		pIdent->AbsType = TemporalClass::AbsID;
+		this->AOName = "TemporalClass";
+		this->AbsType = TemporalClass::AbsID;
 	}
 	TemporalExtData(TemporalClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 

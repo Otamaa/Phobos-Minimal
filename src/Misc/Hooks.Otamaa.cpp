@@ -880,18 +880,27 @@ ASMJIT_PATCH(0x518F90, InfantryClass_DrawIt_HideWhenDeployAnimExist, 0x7)
 		&& pThis->DeployAnim ? SkipWholeFunction : Continue;
 }
 
-CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* buffer, int wepon, CoordStruct base)
+CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, CoordStruct base)
 {
-	if (this->InOpenToppedTransport && this->Transporter)
-	{
-		const int idx = this->Transporter->Passengers.IndexOf(this);
-		if (idx != 0)
-		{
-			return this->Transporter->GetFLH(buffer, -idx, base);
-		}
-	}
+	const auto pThis = static_cast<UnitClass*>(this);
 
-	return this->TechnoClass::GetFLH(buffer, wepon, base);
+	do
+	{
+		const auto pTransporter = pThis->Transporter;
+
+		if (pThis->InOpenToppedTransport && pTransporter && TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType())->AlternateFLH_ApplyVehicle)
+		{
+			if (const int idx = pTransporter->Passengers.IndexOf(pThis)) {
+				pTransporter->GetFLH(outBuffer , -idx, CoordStruct::Empty);
+				break;
+			}
+		}
+
+		pThis->TechnoClass::GetFLH(outBuffer, weaponIdx, CoordStruct::Empty);
+	}
+	while (false);
+
+	return outBuffer;
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D20, FakeUnitClass::_GetFLH);
@@ -7559,3 +7568,18 @@ ASMJIT_PATCH(0x6F8A0F, TechnoClass_EvalCell_deadTechno, 0x8)
 	//ASMJIT_PATCH_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
 
 #endif
+
+ASMJIT_PATCH(0x7564B0, VoxClass_GetData, 7) {
+	GET(VoxLib*, pVox, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+	GET_STACK(int, header, 0x4);
+	GET_STACK(int, layer, 0x8);
+
+	if (!pVox->HeaderData || !pVox->TailerData)
+		Debug::FatalError("VoxelLibraryClass::Get_Voxel_Layer_Info input is broken ! caller 0x%x", caller);
+
+	auto pData = &pVox->TailerData[layer + pVox->HeaderData[header].limb_number];
+
+	R->EAX(pData);
+	return 0x7564CF;
+}

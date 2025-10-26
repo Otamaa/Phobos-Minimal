@@ -279,13 +279,15 @@ void FakeCellClass::_Invalidate(AbstractClass* ptr, bool removed)
 
 	if (removed)
 	{
-		//if (ptr == static_cast<void*>(this->AltObject)) {
-		//	Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Alt Obj {}", (void*)this, this->MapCoords.X , this->MapCoords.Y , (void*)this->AltObject);
-		//}
+		if (ptr == static_cast<void*>(this->AltObject)) {
+			//Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Alt Obj {}", (void*)this, this->MapCoords.X , this->MapCoords.Y , (void*)this->AltObject);
+			this->AltObject = nullptr;
+		}
 
-		//if (ptr == static_cast<void*>(this->FirstObject)) {
-		//	Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Obj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
-		//}
+		if (ptr == static_cast<void*>(this->FirstObject)) {
+			//Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Obj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
+			this->FirstObject = nullptr;
+		}
 
 		if(pExt) {
 			if (ptr == static_cast<void*>(pExt->IncomingUnit)) {
@@ -356,7 +358,7 @@ ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6) {
 	return 0;
 }
 
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
 
 HRESULT __stdcall FakeCellClass::_Load(IStream* pStm)
 {

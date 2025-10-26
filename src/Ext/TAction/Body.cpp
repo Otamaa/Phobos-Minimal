@@ -1648,7 +1648,7 @@ bool TActionExtData::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse
 		[&](auto const pTrigger) { return pTrigger == pTarget; });
 
 	if (iter != nPool.end())
-		nPool.erase(iter);
+		nPool.erase(iter, nPool.end());
 
 	return true;
 }

@@ -3460,6 +3460,10 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 	auto& pTemporalImUsing = pThis->TemporalImUsing;
 	auto& pAirstrike = pThis->Airstrike;
 
+	// handle AutoFire
+	if (pOldTypeExt->AutoFire && !pNewTypeExt->AutoFire)
+		pThis->SetTarget(nullptr);
+
 	// Remove from harvesters list if no longer a harvester.
 	if (pOldTypeExt->Harvester_Counted && !pNewTypeExt->Harvester_Counted)
 	{
@@ -3991,11 +3995,11 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 						pJJLoco->IsMoving = true;
 
 						if (!inMove)
-							pJJLoco->HeadToCoord = pThis->Location;
+							pJJLoco->HeadToCoord = pThis->GetCoords();
 					}
 					else if (!inMove)
 					{
-						pJJLoco->Move_To(pThis->Location);
+						pJJLoco->Move_To(pThis->GetCoords());
 					}
 				}
 			}

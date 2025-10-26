@@ -170,8 +170,7 @@ public:
 		Damaging_UseSeparateState(false),
 		Damaging_Rate(-1)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = AnimTypeClass::AbsID;
+		this->AbsType = AnimTypeClass::AbsID;
 	}
 
 	AnimTypeExtData(AnimTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

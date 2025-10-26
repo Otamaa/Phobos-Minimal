@@ -36,9 +36,8 @@ public:
 		NoOwner(true),
 		CreationFrame(0)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = "RadSiteClass";
-		pIdent->AbsType = RadSiteClass::AbsID;
+		this->AOName = "RadSiteClass";
+		this->AbsType = RadSiteClass::AbsID;
 	}
 
 	RadSiteExtData(RadSiteClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

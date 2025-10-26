@@ -28,9 +28,8 @@ public:
 		, LaserTrails()
 		, Trails()
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = pObj->Type->ID;
-		pIdent->AbsType = ParticleClass::AbsID;
+		this->AOName = pObj->Type->ID;
+		this->AbsType = ParticleClass::AbsID;
 	}
 
 	ParticleExtData(ParticleClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }

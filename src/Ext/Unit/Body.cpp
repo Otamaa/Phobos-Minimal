@@ -31,7 +31,7 @@ bool UnitExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 	return SaveGlobalArrayData(Stm);
 }
 
-bool UnitExtContainer::HasDeployingAnim(UnitTypeClass* pUnitType) {
+bool UnitExtContainer::HasDeployingAnim(TechnoTypeClass* pUnitType) {
 	return pUnitType->DeployingAnim || !TechnoTypeExtContainer::Instance.Find(pUnitType)->DeployingAnims.empty();
 }
 
@@ -61,7 +61,7 @@ bool UnitExtContainer::CheckDeployRestrictions(FootClass* pUnit, bool isDeployin
 	auto const defaultFacing = (FacingType)(RulesClass::Instance->DeployDir >> 5);
 	auto const facing = pTypeExt->DeployDir.Get(defaultFacing);
 
-	if (facing == FacingType::None)
+	if (facing == FacingType::None|| (!pTypeExt->DeployDir.isset() && !HasDeployingAnim(pType)))
 		return false;
 
 	if (facing != (FacingType)currentDir->Current().GetFacing<8>())

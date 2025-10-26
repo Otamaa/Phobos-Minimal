@@ -214,8 +214,7 @@ public:
 		ProneSpeed(),
 		InfantryAutoDeploy(false)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = InfantryTypeClass::AbsID;
+		this->AbsType = InfantryTypeClass::AbsID;
 
 		this->Is_Deso = IS_SAME_STR_(pObj->ID, GameStrings::DESO());
 		this->Is_Cow = IS_SAME_STR_(pObj->ID, GameStrings::COW());

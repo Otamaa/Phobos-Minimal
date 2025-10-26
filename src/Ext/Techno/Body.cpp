@@ -212,13 +212,10 @@ int TechnoExtData::ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool
 
 	if (invulnerability && pThis->IsIronCurtained())
 		tintColor |= pThis->ProtectType == ProtectTypes::ForceShield ? g_instance->ColorDatas.Forceshield_Color : g_instance->ColorDatas.IronCurtain_Color;
-	if (airstrike && TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe)
-	{
+
+		if (airstrike && TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe) {
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe->Owner->GetTechnoType());
-		if (pTypeExt->LaserTargetColor.isset())
-			tintColor |= GeneralUtils::GetColorFromColorAdd(pTypeExt->LaserTargetColor);
-		else
-			tintColor |= g_instance->ColorDatas.LaserTarget_Color;
+		tintColor |= pTypeExt->TintColorAirstrike;
 	}
 
 	if (berserk && pThis->Berzerk)
@@ -7471,6 +7468,8 @@ void TechnoExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 	this->RadioExtData::InvalidatePointer(ptr, bRemoved);
 
+	AnnounceInvalidPointer(this->MyOriginalTemporal, ptr);
+
 	if (auto pSpawn = (FakeSpawnManagerClass*)This()->SpawnManager)
 		pSpawn->_DetachB(ptr, bRemoved);
 
@@ -7527,10 +7526,8 @@ TechnoExtData::~TechnoExtData()
 	if(this->Get_TechnoStateComponent()->FallingDownTracked)
 		ScenarioExtData::Instance()->FallingDownTracker.erase(pThis);
 
-	if (!Phobos::Otamaa::ExeTerminated)
-	{
-		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
-		{
+	if (!Phobos::Otamaa::ExeTerminated) {
+		if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr)) {
 			GameDelete<true, false>(pTemp);
 		}
 	}
@@ -7544,17 +7541,19 @@ TechnoExtData::~TechnoExtData()
 	HouseExtData::LimboTechno.remove(pThis);
 
 	pOwnerExt->OwnedCountedHarvesters.erase(pThis);
-	auto pIdent = this->Get_ExtensionIdentifierComponent();
 
-	if (pIdent->AbsType != AbstractType::Building) {
+	if (this->AbsType != AbstractType::Building) {
 		for (auto& tun : pOwnerExt->Tunnels) {
 			tun.Vector.remove((FootClass*)pThis);
 		}
 
-		if (RulesExtData::Instance()->ExtendedBuildingPlacing && pIdent->AbsType == AbstractType::Unit && ((UnitClass*)pThis)->Type->DeploysInto)
-		{
+		if (RulesExtData::Instance()->ExtendedBuildingPlacing && this->AbsType == AbstractType::Unit && ((UnitClass*)pThis)->Type->DeploysInto) {
 			pOwnerExt->OwnedDeployingUnits.remove((UnitClass*)pThis);
 		}
+	}
+
+	if (this->MyEntity != entt::null) {
+		Phobos::gEntt->destroy(this->MyEntity);
 	}
 }
 

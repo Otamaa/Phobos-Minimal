@@ -97,3 +97,5 @@ COMMON PATTERNS:
 #include <utility>
 #include <vector>
 #include <algorithm>
+
+ std::vector<Handles*> Handles::Array;

@@ -480,6 +480,8 @@ public:
 	Valueable<bool> PlayAnimUnderground;
 	Valueable<bool> PlayAnimAboveSurface;
 
+	Nullable<bool> AnimZAdjust;
+
 	bool IsCellSpreadWH;
 	bool IsFakeEngineer;
 #pragma endregion
@@ -833,11 +835,11 @@ public:
 		AffectsUnderground(false),
 		PlayAnimUnderground(true),
 		PlayAnimAboveSurface(false),
+		AnimZAdjust(),
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false)
 		{
-			auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-			pIdent->AbsType = WarheadTypeClass::AbsID;
+			this->AbsType = WarheadTypeClass::AbsID;
 			this->InitializeConstant();
 		}
 

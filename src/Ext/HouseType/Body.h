@@ -129,8 +129,7 @@ public:
 		BattlePoints(false),
 		BattlePoints_CanUseStandardPoints(false)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = HouseTypeClass::AbsID;
+		this->AbsType = HouseTypeClass::AbsID;
 		this->Initialize();
 
 	}

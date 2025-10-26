@@ -70,9 +70,8 @@ public:
 		, MusicTimer()
 		, MusicActive(false)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = pObj->Type->ID;
-		pIdent->AbsType = SuperClass::AbsID;
+		this->AOName = pObj->Type->ID;
+		this->AbsType = SuperClass::AbsID;
 	}
 
 	SuperExtData(SuperClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

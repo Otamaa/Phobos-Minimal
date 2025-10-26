@@ -367,11 +367,11 @@ static TechnoClass* CreateFoot(
 						if(pType->Speed != 0) {
 							if (pType->BalloonHover)
 							{
-								// Makes the jumpjet think it is hovering without actually moving.
+								// Order BalloonHover jumpjets to ascend.
 								pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 								pJJLoco->IsMoving = true;
-								pJJLoco->HeadToCoord = location;
-								pJJLoco->Height = pType->JumpJetData.Height;
+								pJJLoco->HeadToCoord =  pTechno->GetCoords();
+								TechnoExtContainer::Instance.Find(pTechno)->Get_TechnoStateComponent()->JumpjetStraightAscend = true;
 
 								if (!inAir)
 									AircraftTrackerClass::Instance->Add(pTechno);

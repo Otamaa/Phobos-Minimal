@@ -27,8 +27,7 @@ public:
 		FacingMult(),
 		AdjustTargetCoordsOnRotation(true)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = ParticleSystemTypeClass::AbsID;
+		this->AbsType = ParticleSystemTypeClass::AbsID;
 	}
 
 	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

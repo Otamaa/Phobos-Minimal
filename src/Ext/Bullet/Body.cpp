@@ -1199,7 +1199,7 @@ void BulletExtData::Serialize(T& Stm)
 	debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
 	debugProcess(this->OriginalTarget, "OriginalTarget");
 	debugProcess(this->ParabombFallRate, "ParabombFallRate");
-
+	debugProcess(this->IsInstantDetonation, "IsInstantDetonation");
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);
 }
 
@@ -1236,8 +1236,7 @@ ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
 
 ASMJIT_PATCH(0x466501, BulletClass_InitSomeStuffs, 0x6) {
 	GET(FakeBulletClass*, pItem, ECX);
-	auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(pItem->_GetExtData()->MyEntity);
-	pIdent->Name = pItem->Type->ID;
+	pItem->_GetExtData()->AOName = pItem->Type->ID;
 	return 0x0;
 }
 

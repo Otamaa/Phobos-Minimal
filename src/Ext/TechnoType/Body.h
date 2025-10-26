@@ -1130,6 +1130,7 @@ public:
 	Nullable<bool> AmphibiousUnload;
 
 	Valueable<bool> AlternateFLH_OnTurret;
+	Valueable<bool> AlternateFLH_ApplyVehicle;
 	Nullable<double> DamagedSpeed;
 
 	Nullable<AffectedHouse> RadarInvisibleToHouse;
@@ -1235,6 +1236,8 @@ public:
 
 	Vector2D<ThreatType> ThreatTypes;
 	Vector2D<int> CombatDamages;
+
+	int TintColorAirstrike;
 #pragma endregion
 
 public:
@@ -1980,6 +1983,7 @@ public:
 		AmphibiousEnter(),
 		AmphibiousUnload(),
 		AlternateFLH_OnTurret(true),
+		AlternateFLH_ApplyVehicle(false),
 		DamagedSpeed(),
 		RadarInvisibleToHouse(),
 		AdvancedDrive_Reverse(true),
@@ -2063,6 +2067,7 @@ public:
 		, AIGuardStationaryStray()
 		, ThreatTypes(ThreatType::Normal,ThreatType::Normal )
 		, CombatDamages(0,0)
+		, TintColorAirstrike()
 		{
 			this->InitializeConstant();
 			this->Initialize();
@@ -3006,6 +3011,7 @@ private:
 			.Process(this->AmphibiousUnload)
 
 			.Process(this->AlternateFLH_OnTurret)
+			.Process(this->AlternateFLH_ApplyVehicle)
 			.Process(this->DamagedSpeed)
 			.Process(this->RadarInvisibleToHouse)
 
@@ -3090,6 +3096,7 @@ private:
 			.Process(this->AIGuardStationaryStray)
 			.Process(this->ThreatTypes)
 			.Process(this->CombatDamages)
+			.Process(this->TintColorAirstrike)
 			;
 	}
 

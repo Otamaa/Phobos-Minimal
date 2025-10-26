@@ -13,9 +13,7 @@
 #include <Misc/Hooks.Otamaa.h>
 BuildingExtData::~BuildingExtData()
 {
-
 	auto pThis = This();
-	this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 
 	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
 	auto pOwnerExt = pOwner->_GetExtData();

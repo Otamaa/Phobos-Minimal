@@ -19,9 +19,8 @@ OtherParticleData(),
 SmokeData(),
 AlphaIsLightFlash(true)
 {
-	auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-	pIdent->Name = pObj->Type->ID;
-	pIdent->AbsType = ParticleSystemClass::AbsID;
+	this->AOName = pObj->Type->ID;
+	this->AbsType = ParticleSystemClass::AbsID;
 
 	auto pType = pObj->Type;
 	{

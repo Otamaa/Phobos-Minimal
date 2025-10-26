@@ -41,35 +41,15 @@ struct EntitySerializer
 	}
 };
 
-struct ExtensionIdentifierComponent {
-	FixedString<0x24> Name;
-	OptionalStruct<AbstractType, true> AbsType;
-	InitState Initialized;
-
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return Stm
-			.Process(Name)
-			.Process(AbsType)
-			.Process(Initialized)
-			;
-	}
-
-	bool Save(PhobosStreamWriter& Stm) const
-	{
-		return Stm
-			.Process(Name)
-			.Process(AbsType)
-			.Process(Initialized)
-			;
-	}
-};
 
 struct AbstractExtended {
 private:
 	AbstractClass* AttachedToObject;
+
 public:
-	entt::entity MyEntity;
+	FixedString<0x24> AOName;
+	AbstractType AbsType;
+	InitState Initialized;
 
 	//normal assigned AO
 	AbstractExtended(AbstractClass* abs);
@@ -87,10 +67,6 @@ public:
 	FORCEDINLINE void SetAttached(AbstractClass* abs) { AttachedToObject = abs; }
 	//FORCEDINLINE void SetName(const char* name) { Name = name; }
 	//FORCEDINLINE const char* GetAttachedObjectName() const { return Name.data(); }
-
-	FORCEDINLINE ExtensionIdentifierComponent* Get_ExtensionIdentifierComponent() {
-		return Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-	}
 
 public:
 
@@ -268,11 +244,11 @@ public:
 					return;
 				}
 
-				if(auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(ptr->MyEntity)){
-					switch (pIdent->Initialized) {
+				{
+					switch (ptr->Initialized) {
 						case InitState::Blank:
 						{
-							pIdent->Initialized = (InitState::Inited);
+							ptr->Initialized = (InitState::Inited);
 
 							if COMPILETIMEEVAL (CanLoadFromRulesFile<T>) {
 								if (pINI == CCINIClass::INI_Rules) {
@@ -282,7 +258,7 @@ public:
 
 							//Load from rules INI File
 							ptr->LoadFromINI(pINI, parseFailAddr);
-							pIdent->Initialized = (InitState::Ruled);
+							ptr->Initialized = (InitState::Ruled);
 						}
 						break;
 						case InitState::Ruled:
@@ -291,7 +267,7 @@ public:
 							//load anywhere other than rules
 							ptr->LoadFromINI(pINI, parseFailAddr);
 							//this function can be called again multiple time but without need to re-init the data
-							pIdent->Initialized = (InitState::Ruled);
+							ptr->Initialized = (InitState::Ruled);
 						}
 						break;
 						{

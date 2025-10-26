@@ -273,9 +273,8 @@ public:
 	{
 		// resize after initialization
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = pObj->Type->ID;
-		pIdent->AbsType = HouseClass::AbsID;
+		this->AOName = pObj->Type->ID;
+		this->AbsType = HouseClass::AbsID;
 	}
 
 	HouseExtData(HouseClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

@@ -713,6 +713,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AffectsUnderground.Read(exINI, pSection, "AffectsUnderground");
 	this->PlayAnimUnderground.Read(exINI, pSection, "PlayAnimUnderground");
 	this->PlayAnimAboveSurface.Read(exINI, pSection, "PlayAnimAboveSurface");
+	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
 
 	if (!this->BlockType)
 		this->BlockType = std::make_unique<BlockTypeClass>();
@@ -1970,6 +1971,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AffectsUnderground)
 		.Process(this->PlayAnimUnderground)
 		.Process(this->PlayAnimAboveSurface)
+		.Process(this->AnimZAdjust)
 		.Process(this->IsCellSpreadWH)
 		.Process(this->IsFakeEngineer)
 		;

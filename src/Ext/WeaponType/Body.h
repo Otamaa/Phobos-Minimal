@@ -336,8 +336,7 @@ public:
 		DelayedFire_AnimOnTurret(true),
 		OnlyAttacker(false)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = WeaponTypeClass::AbsID;
+		this->AbsType = WeaponTypeClass::AbsID;
 		this->Initialize();
 	}
 

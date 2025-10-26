@@ -574,6 +574,8 @@ public:
 	Valueable<Leptons> AIGuardModeGuardRangeMax { Leptons(4096) };
 	Valueable<Leptons> AIGuardStationaryStray { Leptons(-256) };
 	Valueable<bool> IgnoreCenterMinorRadarEvent { false };
+
+	Valueable<int> WarheadAnimZAdjust { -15 } ;
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

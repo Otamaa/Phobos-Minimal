@@ -17,9 +17,8 @@ public:
 public:
 
 	BombExtData(BombClass* pObj) : AbstractExtended(pObj) , Weapon(nullptr) {
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = "BombClass";
-		pIdent->AbsType = BombClass::AbsID;
+		this->AOName = "BombClass";
+		this->AbsType = BombClass::AbsID;
 	}
 	BombExtData(BombClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 

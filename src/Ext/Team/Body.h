@@ -82,9 +82,8 @@ public:
 		PreviousScript(nullptr),
 		BridgeRepairHuts()
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = pObj->Type->ID;
-		pIdent->AbsType = TeamClass::AbsID;
+		this->AOName = pObj->Type->ID;
+		this->AbsType = TeamClass::AbsID;
 	}
 
 	TeamExtData(TeamClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

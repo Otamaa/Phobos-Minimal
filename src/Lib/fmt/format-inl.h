@@ -47,7 +47,6 @@ using std::locale;
 using std::numpunct;
 using std::use_facet;
 }  // namespace detail
-
 #else
 namespace detail {
 struct locale {};

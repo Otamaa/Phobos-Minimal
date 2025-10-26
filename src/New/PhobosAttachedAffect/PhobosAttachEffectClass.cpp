@@ -14,8 +14,6 @@
 
 PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
-	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-
 	if (this->LaserTrail) {
 
 		const auto pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
@@ -414,7 +412,7 @@ void PhobosAttachEffectClass::KillAnim()
 {
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
 	if (this->Animation) {
-		this->Animation.clear();
+		this->Animation.detachptr();
 		AEProperties::UpdateAEAnimLogic(this->Techno);
 	}
 

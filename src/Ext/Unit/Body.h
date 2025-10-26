@@ -29,9 +29,8 @@ public:
 		UnitAutoDeployTimer(),
 		Convert_Deploy_Delay()
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = pObj->Type->ID;
-		pIdent->AbsType = UnitClass::AbsID;
+		this->AOName = pObj->Type->ID;
+		this->AbsType = UnitClass::AbsID;
 	}
 
 	UnitExtData(UnitClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
@@ -91,7 +90,7 @@ public:
 		}
 	}
 
-	static bool HasDeployingAnim(UnitTypeClass* pUnitType);
+	static bool HasDeployingAnim(TechnoTypeClass* pUnitType);
 	static bool CheckDeployRestrictions(FootClass* pUnit, bool isDeploying);
 	static void CreateDeployingAnim(UnitClass* pUnit, bool isDeploying);
 };

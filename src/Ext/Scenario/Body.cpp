@@ -187,13 +187,14 @@ void ScenarioExtData::FetchVariables(ScenarioClass* pScen)
 
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/WarheadType/Body.h>
 
 void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead)
 {
 	BulletTypeClass* pType = pWeapon ? pWeapon->Projectile : BulletTypeExtData::GetDefaultBulletType();
 	auto pBullet = GameCreate<BulletClass>();
-
-	pBullet->Construct(pType, pTarget, pOwner, damage, pWarhead, 0, isBright);
+	const int speed = WarheadTypeExtContainer::Instance.Find(pWarhead)->DetonateOnAllMapObjects  ? 100 : 0;
+	pBullet->Construct(pType, pTarget, pOwner, damage, pWarhead, speed, isBright);
 
 	if (pWeapon) {
 		pBullet->SetWeaponType(pWeapon);
@@ -205,10 +206,13 @@ void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClas
 	if (!coords.IsValid() && pTarget)
 		detonateCoord = pTarget->GetCoords();
 
+	auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
+
 	if (pFiringHouse) {
-		BulletExtContainer::Instance.Find(pBullet)->Owner = pFiringHouse;
+		pBulletExt->Owner = pFiringHouse;
 	}
 
+	pBulletExt->IsInstantDetonation = true;
 	pBullet->SetLocation(detonateCoord);
 	pBullet->Explode(true);
 }

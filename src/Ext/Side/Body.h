@@ -171,8 +171,7 @@ public:
 		Sidebar_BattlePoints_Color(),
 		Sidebar_BattlePoints_Align(TextAlign::Left)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = SideClass::AbsID;
+		this->AbsType = SideClass::AbsID;
 
 		this->Initialize();
 	}

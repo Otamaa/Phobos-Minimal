@@ -9,8 +9,7 @@ class AbstractTypeExtData : public AbstractExtended
 public:
 
 	AbstractTypeExtData(AbstractTypeClass* pObj) : AbstractExtended(pObj) {
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = pObj->ID;
+		this->AOName = pObj->ID;
 	}
 	AbstractTypeExtData(AbstractTypeClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
@@ -33,8 +32,7 @@ public:
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
 	OPTIONALINLINE const char* Name() const {
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		return pIdent->Name;
+		return this->AOName.data();
 	}
 	OPTIONALINLINE const char* Full_Name() const { return This()->Name; }
 

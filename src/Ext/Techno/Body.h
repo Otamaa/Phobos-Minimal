@@ -189,6 +189,8 @@ struct TechnoStateComponent
 			bool SupressEVALost : 1;
 			bool HasExtraFireWeapon : 1;
 
+			bool JumpjetStraightAscend : 1;
+
 		};
 		uint64_t AllFlags; // 64-bit container for all flags
 	};
@@ -645,7 +647,7 @@ public:
 public:
 
 #pragma region ClassMembers
-
+	entt::entity MyEntity;
 	TechnoTypeClass* Type; //original Type pointer
 	TintColors Tints;
 	NewTiberiumStorageClass TiberiumStorage;
@@ -780,6 +782,8 @@ public:
 	, ElectricBolts()
 	, LaserTrails()
 	{
+		this->MyEntity = Phobos::gEntt->create();
+
 		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 
@@ -795,6 +799,7 @@ public:
 
 	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint)
 	{
+		this->MyEntity = Phobos::gEntt->create();
 	};
 
 	virtual ~TechnoExtData();

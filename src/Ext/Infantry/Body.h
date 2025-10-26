@@ -29,9 +29,8 @@ public:
 		SkipTargetChangeResetSequence(false),
 		GarrisonedIn(nullptr)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->Name = pObj->Type->ID;
-		pIdent->AbsType = InfantryClass::AbsID;
+		this->AOName = pObj->Type->ID;
+		this->AbsType = InfantryClass::AbsID;
 	}
 	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 

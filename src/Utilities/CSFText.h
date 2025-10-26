@@ -67,7 +67,7 @@ public:
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
 		this->Text = nullptr;
-		if (Stm.Process(this->Label.data()))
+		if (Stm.Process(this->Label))
 		{
 			if (this->Label)
 			{
@@ -79,7 +79,7 @@ public:
 	}
 	bool save(PhobosStreamWriter& Stm) const
 	{
-		return Stm.Process(this->Label.data());
+		return Stm.Process(this->Label);
 	}
 
 public:

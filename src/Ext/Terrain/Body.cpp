@@ -6,13 +6,6 @@
 
 #include <Utilities/Macro.h>
 
-TerrainExtData::~TerrainExtData()
-{
-	LighSource.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	AttachedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	AttachedFireAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-}
-
 bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 

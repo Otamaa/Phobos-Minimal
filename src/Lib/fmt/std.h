@@ -111,6 +111,7 @@ void write_escaped_path(basic_memory_buffer<Char>& quoted,
 #endif  // FMT_CPP_LIB_FILESYSTEM
 
 #if defined(__cpp_lib_expected) || FMT_CPP_LIB_VARIANT
+
 template <typename Char, typename OutputIt, typename T, typename FormatContext>
 auto write_escaped_alternative(OutputIt out, const T& v, FormatContext& ctx)
     -> OutputIt {
@@ -143,8 +144,8 @@ template <typename Variant, typename Char> class is_variant_formattable {
 #endif  // FMT_CPP_LIB_VARIANT
 
 #if FMT_USE_RTTI
-inline string_view normalize_libcxx_inline_namespaces(
-    string_view demangled_name_view, char* begin) {
+inline auto normalize_libcxx_inline_namespaces(string_view demangled_name_view,
+                                               char* begin) -> string_view {
   // Normalization of stdlib inline namespace names.
   // libc++ inline namespaces.
   //  std::__1::*       -> std::*
@@ -202,7 +203,7 @@ auto write_demangled_name(OutputIt out, const std::type_info& ti) -> OutputIt {
   int status = 0;
   size_t size = 0;
   std::unique_ptr<char, void (*)(void*)> demangled_name_ptr(
-      abi::__cxa_demangle(ti.name(), nullptr, &size, &status), &std::free);
+      abi::__cxa_demangle(ti.name(), nullptr, &size, &status), &free);
 
   string_view demangled_name_view;
   if (demangled_name_ptr) {
@@ -215,7 +216,7 @@ auto write_demangled_name(OutputIt out, const std::type_info& ti) -> OutputIt {
 #  elif FMT_MSC_VERSION && defined(_MSVC_STL_UPDATE)
   return normalize_msvc_abi_name(ti.name(), out);
 #  elif FMT_MSC_VERSION && defined(_LIBCPP_VERSION)
-  const string_view demangled_name(ti.name());
+  const string_view demangled_name = ti.name();
   std::string name_copy(demangled_name.size(), '\0');
   // normalize_msvc_abi_name removes class, struct, union etc that MSVC has in
   // front of types
@@ -424,10 +425,10 @@ struct formatter<std::expected<T, E>, Char,
     if (value.has_value()) {
       out = detail::write<Char>(out, "expected(");
       if constexpr (!std::is_void<T>::value)
-	  out = detail::write_escaped_alternative<Char>(out, *value, ctx);
+        out = detail::write_escaped_alternative<Char>(out, *value, ctx);
     } else {
       out = detail::write<Char>(out, "unexpected(");
-	  out = detail::write_escaped_alternative<Char>(out, value.error(), ctx);
+      out = detail::write_escaped_alternative<Char>(out, value.error(), ctx);
     }
     *out++ = ')';
     return out;
@@ -491,7 +492,7 @@ struct formatter<Variant, Char,
     FMT_TRY {
       std::visit(
           [&](const auto& v) {
-			out = detail::write_escaped_alternative<Char>(out, v, ctx);
+            out = detail::write_escaped_alternative<Char>(out, v, ctx);
           },
           value);
     }
@@ -512,6 +513,8 @@ template <> struct formatter<std::error_code> {
   bool debug_ = false;
 
  public:
+  FMT_CONSTEXPR void set_debug_format(bool set = true) { debug_ = set; }
+  
   FMT_CONSTEXPR auto parse(parse_context<>& ctx) -> const char* {
     auto it = ctx.begin(), end = ctx.end();
     if (it == end) return it;

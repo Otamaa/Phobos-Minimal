@@ -177,8 +177,7 @@ public:
 		VerticalInitialFacing(),
 		AU(false)
 	{
-		auto pIdent = Phobos::gEntt->try_get<ExtensionIdentifierComponent>(this->MyEntity);
-		pIdent->AbsType = BulletTypeClass::AbsID;
+		this->AbsType = BulletTypeClass::AbsID;
 	}
 
 	BulletTypeExtData(BulletTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

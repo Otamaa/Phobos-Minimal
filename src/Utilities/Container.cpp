@@ -2,32 +2,34 @@
 #include <AbstractClass.h>
 
 AbstractExtended::AbstractExtended(AbstractClass* abs) : AttachedToObject(abs)
-, MyEntity()
-{
-	this->MyEntity = Phobos::gEntt->create();
-	Phobos::gEntt->emplace<ExtensionIdentifierComponent>(this->MyEntity);
-};
+ , AOName()
+ , AbsType()
+ , Initialized()
+{ };
 
-//withnoint_t , with less instasiation
 AbstractExtended::AbstractExtended(AbstractClass* abs, noinit_t) : AttachedToObject(abs)
-, MyEntity()
-{
-	this->MyEntity = Phobos::gEntt->create();
-};
+	, AOName()
+	, AbsType()
+	, Initialized()
+{ };
 
 void AbstractExtended::Internal_LoadFromStream(PhobosStreamReader& Stm)
 {
-	EntitySerializer<ExtensionIdentifierComponent>::Load(Stm, this->MyEntity);
+	Stm
+		.Process(AOName)
+		.Process(AbsType)
+		.Process(Initialized)
+		;
 }
 
 void AbstractExtended::Internal_SaveToStream(PhobosStreamWriter& Stm) const
 {
-	EntitySerializer<ExtensionIdentifierComponent>::Save(Stm, this->MyEntity);
+	Stm
+		.Process(AOName)
+		.Process(AbsType)
+		.Process(Initialized)
+		;
 }
 
 AbstractExtended::~AbstractExtended()
-{
-	if (this->MyEntity != entt::null) {
-		Phobos::gEntt->destroy(this->MyEntity);
-	}
-}
+{ }

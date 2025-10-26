@@ -577,35 +577,45 @@ namespace Savegame
 		}
 	};
 
-	template <size_t Size , typename T>
-	struct Savegame::PhobosStreamObject<FixedString<Size, T>>
+	template <size_t Capacity, typename CharT>
+	struct Savegame::PhobosStreamObject<FixedString<Capacity, CharT>>
 	{
-		bool ReadFromStream(PhobosStreamReader& Stm, FixedString<Size, T>& Value, bool RegisterForChange) const
+		bool ReadFromStream(PhobosStreamReader& Stm, FixedString<Capacity, CharT>& Value, bool RegisterForChange) const
 		{
 			// Read the fixed-size buffer directly
-			T buffer[Size] = {};
-			if (!Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer), Size))
+			CharT buffer[Capacity];
+			if (!Stm.Read(reinterpret_cast<PhobosByteStream::data_t*>(buffer), sizeof(buffer)))
 				return false;
 
-			// Ensure null termination and assign
-			buffer[Size - 1] = '\0';
-			Value.assign(buffer);
+			// Ensure null termination (safety against corrupted saves)
+			buffer[Capacity - 1] = CharT {};
+
+			// Use the fast assign with known max length
+			// This skips strlen since we know the max size
+			Value.assign(buffer, Capacity - 1);
+
 			return true;
 		}
 
-		bool WriteToStream(PhobosStreamWriter& Stm, const FixedString<Size, T>& Value) const
+		bool WriteToStream(PhobosStreamWriter& Stm, const FixedString<Capacity, CharT>& Value) const
 		{
 			// Write the fixed-size buffer directly
-			T buffer[Size] = {};
+			CharT buffer[Capacity] = {};  // Zero-initialize entire buffer
 
-			// Copy string data, ensuring it fits
-			const T* str = Value.operator const T*();
-			size_t len = std::min(strlen(str), Size - 1);
-			std::memcpy(buffer, str, len);
-			// buffer is already zero-initialized, so null termination is guaranteed
+			// Get current string length efficiently
+			const size_t currentLen = Value.size();
 
-			Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(buffer), Size);
-			return true;
+			// Copy only the actual string content (not the whole capacity)
+			// but still write the full Capacity to maintain save file format
+			if (currentLen > 0)
+			{
+				std::char_traits<CharT>::copy(buffer, Value.data(),
+					std::min(currentLen, Capacity - 1));
+			}
+			// buffer[currentLen] is already '\0' from zero-initialization
+
+			// Write the entire fixed buffer to maintain consistent save format
+			return Stm.Write(reinterpret_cast<const PhobosByteStream::data_t*>(buffer), sizeof(buffer));
 		}
 	};
 

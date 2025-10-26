@@ -48,14 +48,18 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 
 		if (pWeapon)
 		{
-			this->ThreatTypes.X |= pWeapon->AllowedThreats();
+			if (pWeapon->Projectile)
+				this->ThreatTypes.X |= pWeapon->AllowedThreats();
+
 			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
 			num++;
 		}
 
 		if (pEliteWeapon)
 		{
-			this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
+			if (pEliteWeapon->Projectile)
+				this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
+
 			this->CombatDamages.Y += (pEliteWeapon->Damage + pEliteWeapon->AmbientDamage);
 			eliteNum++;
 		}
@@ -1986,6 +1990,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BlockType->LoadFromINI(pINI, pSection);
 	}
 
+	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
+
 	// Art tags
 	if (pArtIni && pArtIni->GetSection(pArtSection))
 	{
@@ -1996,6 +2002,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->GreyCameoPCX.Read(&CCINIClass::INI_Art, pArtSection, "GreyCameoPCX");
 		this->AlternateFLH_OnTurret.Read(exArtINI, pArtSection, "AlternateFLH.OnTurret");
+		this->AlternateFLH_ApplyVehicle.Read(exArtINI, pArtSection, "AlternateFLH.ApplyVehicle");
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
 
 		if (!this->TurretOffset.isset())
