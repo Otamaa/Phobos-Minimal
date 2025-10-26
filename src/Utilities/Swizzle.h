@@ -15,10 +15,84 @@
 
 class ExtensionSwizzleManager
 {
-	static std::unordered_map<uintptr_t, uintptr_t> extensionPointerMap;
+	struct ExtensionEntry
+	{
+		uintptr_t ptr;
+		void (*deleter)(uintptr_t); // Type-specific deleter
+		bool released = false;
+
+		ExtensionEntry(uintptr_t p, void (*del)(uintptr_t))
+			: ptr(p), deleter(del), released(false)
+		{ }
+
+		ExtensionEntry()
+			: ptr(0), deleter(nullptr), released(true)
+		{ }
+
+		// Delete copy constructor and copy assignment
+		ExtensionEntry(const ExtensionEntry&) = delete;
+		ExtensionEntry& operator=(const ExtensionEntry&) = delete;
+
+		// Default move constructor
+		ExtensionEntry(ExtensionEntry&& other) noexcept
+			: ptr(other.ptr)
+			, deleter(other.deleter)
+			, released(other.released)
+		{
+			other.released = true; // Prevent double-delete
+		}
+
+		// Move assignment operator
+		ExtensionEntry& operator=(ExtensionEntry&& other) noexcept
+		{
+			if (this != &other)
+			{
+				// Clean up existing resource
+				if (!released && ptr)
+				{
+					deleter(ptr);
+				}
+
+				// Move from other
+				ptr = other.ptr;
+				deleter = other.deleter;
+				released = other.released;
+
+				// Prevent double-delete
+				other.released = true;
+			}
+			return *this;
+		}
+
+		~ExtensionEntry()
+		{
+			if (!released && ptr)
+			{
+				deleter(ptr);
+			}
+		}
+
+		void release() { released = true; }
+	};
+
+	static std::unordered_map<uintptr_t, ExtensionEntry> extensionPointerMap;
 
 public:
-	static void RegisterExtensionPointer(void* savedAddress, void* currentExtension);
+
+	template<typename T>
+	static ExtensionEntry makeEntry(T* extension)
+	{
+		return {
+			reinterpret_cast<uintptr_t>(extension),
+			[](uintptr_t p) { delete reinterpret_cast<T*>(p); }
+		};
+	}
+
+	template <typename T>
+	static void RegisterExtensionPointer(void* savedAddress, T* currentExtension)
+	{
+		extensionPointerMap[(uintptr_t)savedAddress] = makeEntry(currentExtension);
+	}
 
 	static bool SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj);
 

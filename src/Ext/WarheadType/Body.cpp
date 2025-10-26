@@ -385,7 +385,9 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DamageOwnerMultiplier.Read(exINI, pSection, "DamageOwnerMultiplier");
 	this->DamageAlliesMultiplier.Read(exINI, pSection, "DamageAlliesMultiplier");
 	this->DamageEnemiesMultiplier.Read(exINI, pSection, "DamageEnemiesMultiplier");
-	this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk.Read(exINI, pSection, "DamageEnemiesMultiplier.UsedForAllTargetInBerzerk");
+	this->DamageOwnerMultiplier_Berzerk.Read(exINI, pSection, "DamageOwnerMultiplier.Berzerk");
+	this->DamageAlliesMultiplier_Berzerk.Read(exINI, pSection, "DamageAlliesMultiplier.Berzerk");
+	this->DamageEnemiesMultiplier_Berzerk.Read(exINI, pSection, "DamageEnemiesMultiplier.Berzerk");
 	this->AttachTag.Read(pINI, pSection, "AttachTag");
 	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
 	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
@@ -717,6 +719,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BlockType = std::make_unique<BlockTypeClass>();
 
 	this->BlockType->LoadFromINI(pINI, pSection);
+	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
 
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
@@ -813,36 +816,33 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 
 	//Calculate Damage Multiplier
 	//this abomination is always active
-	//if (pVictimHouse && (this->DamageOwnerMultiplier != 1.0 || this->DamageAlliesMultiplier != 1.0 || this->DamageEnemiesMultiplier != 1.0))
+	const auto pRulesExt = RulesExtData::Instance();
+	double multiplier = 1.0;
+	auto pSourceHouse = pArgs->SourceHouse;
+
+	if (pArgs->Attacker && pArgs->Attacker->Berzerk)
 	{
-		const auto pRulesExt = RulesExtData::Instance();
-
-		const bool CountAsnemies = !pArgs->SourceHouse
-						|| !pVictimHouse
-						|| !pArgs->SourceHouse ->IsAlliedWith(pVictimHouse)
-						|| pArgs->Attacker && pArgs->Attacker->Berzerk && this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk.Get(pRulesExt->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk);
-
-		double multiplier = 1.0;
-
-		if (CountAsnemies)
+		if (!pSourceHouse || !pVictimHouse || !pSourceHouse->IsAlliedWith(pVictimHouse))
+			multiplier = this->DamageEnemiesMultiplier_Berzerk.Get(pRulesExt->DamageEnemiesMultiplier_Berzerk.Get(pRulesExt->DamageEnemiesMultiplier));
+		else if (pSourceHouse != pVictimHouse)
+			multiplier = this->DamageAlliesMultiplier_Berzerk.Get(pRulesExt->DamageAlliesMultiplier_Berzerk.Get(!this->AffectsEnemies ? pRulesExt->DamageAlliesMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageAlliesMultiplier) : pRulesExt->DamageAlliesMultiplier));
+		else
+			multiplier = this->DamageOwnerMultiplier_Berzerk.Get(pRulesExt->DamageOwnerMultiplier_Berzerk.Get(!this->AffectsEnemies ? pRulesExt->DamageOwnerMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageOwnerMultiplier) : pRulesExt->DamageOwnerMultiplier));
+	}
+	else
+	{
+		if (!pSourceHouse || !pVictimHouse || !pSourceHouse->IsAlliedWith(pVictimHouse))
 			multiplier = this->DamageEnemiesMultiplier.Get(pRulesExt->DamageEnemiesMultiplier);
-		else if (pArgs->SourceHouse != pVictimHouse)
+		else if (pSourceHouse != pVictimHouse)
 			multiplier = this->DamageAlliesMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageAlliesMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageAlliesMultiplier) : pRulesExt->DamageAlliesMultiplier);
 		else
 			multiplier = this->DamageOwnerMultiplier.Get(!this->AffectsEnemies ? pRulesExt->DamageOwnerMultiplier_NotAffectsEnemies.Get(pRulesExt->DamageOwnerMultiplier) : pRulesExt->DamageOwnerMultiplier);
+	}
 
-		if (this->DamageSourceHealthMultiplier && pArgs->Attacker)
-			multiplier += this->DamageSourceHealthMultiplier * pArgs->Attacker->GetHealthPercentage();
-
-		if (this->DamageTargetHealthMultiplier)
-			multiplier += this->DamageTargetHealthMultiplier * pVictim->GetHealthPercentage();
-
-		if (multiplier != 1.0)
-		{
-			const auto sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
-			const auto calculateDamage = static_cast<int>(*pArgs->Damage * multiplier);
-			*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
-		}
+	if (multiplier != 1.0) {
+		const auto sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
+		const auto calculateDamage = static_cast<int>(*pArgs->Damage * multiplier);
+		*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
 	}
 }
 
@@ -1149,7 +1149,7 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 
 				if (pExt->WebbedAnim)
 				{
-					pExt->WebbedAnim.clear();
+					pExt->WebbedAnim.reset();
 				}
 			}
 		}
@@ -1752,7 +1752,9 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->DamageOwnerMultiplier)
 		.Process(this->DamageAlliesMultiplier)
 		.Process(this->DamageEnemiesMultiplier)
-		.Process(this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk)
+		.Process(this->DamageOwnerMultiplier_Berzerk)
+		.Process(this->DamageAlliesMultiplier_Berzerk)
+		.Process(this->DamageEnemiesMultiplier_Berzerk)
 
 		.Process(this->AttachTag)
 		.Process(this->AttachTag_Types)
@@ -1969,6 +1971,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->PlayAnimAboveSurface)
 		.Process(this->IsCellSpreadWH)
 		.Process(this->IsFakeEngineer)
+		.Process(this->AnimZAdjust)
 		;
 
 	PaintBallData.Serialize(Stm);

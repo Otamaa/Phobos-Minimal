@@ -540,6 +540,12 @@ public:
 		return outBuffer;
 	}
 
+	bool IsCovered() const { JMP_THIS(0x487E00); }
+	bool CellClass_cloak_4870B0(char arrayIdx)
+	{
+		return ((1 << arrayIdx) & this->CloakedByHouses) != 0;
+	}
+
 	bool TryAssignJumpjet(FootClass* pObject) const
 		{ JMP_THIS(0x487D70); }
 

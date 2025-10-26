@@ -37,25 +37,28 @@ public:
 	int DamageNumberOffset;
 	AbstractClass* OriginalTarget;
 	int ParabombFallRate;
+	bool IsInstantDetonation;
 #pragma endregion
 
 public:
-	BulletExtData(BulletClass* pObj) : ObjectExtData(pObj),
-		CurrentStrength(0),
-		InterceptorTechnoType(nullptr),
-		InterceptedStatus(InterceptedStatus::None),
-		DetonateOnInterception(true),
-		LaserTrails(),
-		SnappedToTarget(false),
-		NukeSW(nullptr),
-		BrightCheckDone(false),
-		Owner(nullptr),
-		Trails(),
-		AttachedSystem(nullptr),
-		DamageNumberOffset(INT32_MIN),
-		OriginalTarget(nullptr),
-		ParabombFallRate(0)
-	{ }
+	BulletExtData(BulletClass* pObj) : ObjectExtData(pObj)
+		, CurrentStrength(0)
+		, InterceptorTechnoType(nullptr)
+		, InterceptedStatus(InterceptedStatus::None)
+		, DetonateOnInterception(true)
+		, LaserTrails()
+		, SnappedToTarget(false)
+		, NukeSW(nullptr)
+		, BrightCheckDone(false)
+		, Owner(nullptr)
+		, Trails()
+		, AttachedSystem(nullptr)
+		, DamageNumberOffset(INT32_MIN)
+		, OriginalTarget(nullptr)
+		, ParabombFallRate(0)
+		, IsInstantDetonation(false)
+	{
+	}
 
 	BulletExtData(BulletClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

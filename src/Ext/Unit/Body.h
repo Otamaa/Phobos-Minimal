@@ -87,7 +87,7 @@ public:
 		}
 	}
 
-	static bool HasDeployingAnim(UnitTypeClass* pUnitType);
+	static bool HasDeployingAnim(TechnoTypeClass* pUnitType);
 	static bool CheckDeployRestrictions(FootClass* pUnit, bool isDeploying);
 	static void CreateDeployingAnim(UnitClass* pUnit, bool isDeploying);
 };

@@ -234,7 +234,9 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DamageOwnerMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier");
 	pData->DamageAlliesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier");
 	pData->DamageEnemiesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier");
-	pData->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier.UsedForAllTargetInBerzerk");
+	pData->DamageOwnerMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.Berzerk");
+	pData->DamageAlliesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.Berzerk");
+	pData->DamageEnemiesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier.Berzerk");
 	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.NotAffectsEnemies");
 	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
 
@@ -319,6 +321,35 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 }
 
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
+
+std::unordered_map<VoxelStruct*, std::string > RulesExtData::Owners;
+
+ASMJIT_PATCH(0x7564B0, VoxLib_GetData, 7)
+{
+	GET(VoxLib*, pVox, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+	GET_STACK(int, header, 0x4);
+	GET_STACK(int, layer, 0x8);
+
+	if (!pVox->HeaderData || !pVox->TailerData)
+	{
+		std::string owner = GameStrings::NoneStr();
+		for (auto& ii : RulesExtData::Owners)
+		{
+			if (ii.first->VXL == pVox)
+			{
+				owner = ii.second;
+				break;
+			}
+		}
+		Debug::FatalError("VoxelLibraryClass::Get_Voxel_Layer_Info %s input is broken ! caller 0x%x", owner.c_str(), caller);
+	}
+
+	auto pData = &pVox->TailerData[layer + pVox->HeaderData[header].limb_number];
+
+	R->EAX(pData);
+	return 0x7564CF;
+}
 
 template<typename T>
 static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secrets) {
@@ -489,24 +520,68 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				pItem->ID, myClassName, pItem->Passengers, (int)pItem->SizeLimit);
 			Debug::RegisterParserError();
 		}
-		if (pItem->MainVoxel.VXL)
-		{
-			if (auto pHVA = pItem->MainVoxel.HVA)
-			{
 
+		auto ValidateVoxelStruct = [pItem, pExt, myClassName](VoxelStruct* pVxl , const char* ident) {
+			std::string iident(pItem->ID);
+			iident += " - ";
+			iident += myClassName;
+			iident += " - ";
+			iident += ident;
+
+			RulesExtData::Owners[pVxl] = std::move(iident);
+
+			if (!pVxl->VXL->HeaderData || !pVxl->VXL->TailerData)
+			{
+				Debug::FatalError("Techno[%s - %s] Has %s VXL but has no HeaderData or TailerData wtf ?", myClassName, pItem->ID , ident);
+			}
+
+			if (auto pHVA = pVxl->HVA)
+			{
 				auto shadowIdx = pItem->ShadowIndex;
 				auto layerCount = pHVA->LayerCount;
 
 				if (shadowIdx >= layerCount)
 				{
-					Debug::LogInfo("ShadowIndex on [{}]'s image is {}, but the HVA only has {} sections.",
-						pItem->ID, shadowIdx, layerCount);
+					Debug::LogInfo("ShadowIndex on [{}]'s {} image is {}, but the HVA only has {} sections.",
+						pItem->ID, ident , shadowIdx, layerCount);
 					Debug::RegisterParserError();
 				}
 			}
 			else
 			{
-				Debug::FatalError("Techno[{} - {}] Has VXL but has no HVA wtf ?", myClassName, pItem->ID);
+				Debug::FatalError("Techno[%s - %s] Has %s VXL but has no HVA wtf ?", myClassName, pItem->ID , ident);
+			}
+		};
+
+		if (pItem->MainVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->MainVoxel, "");
+		}
+
+		if (pItem->TurretVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->TurretVoxel, "TurretVoxel");
+		}
+
+		if (pItem->BarrelVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->BarrelVoxel, "BarrelVoxel");
+		}
+
+		if (pExt->SpawnAltData.VXL) {
+			ValidateVoxelStruct(&pExt->SpawnAltData, "SpawnAltData");
+		}
+
+		for (size_t ia = 0; ia < pExt->BarrelImageData.size(); ++ia) {
+			if (pExt->BarrelImageData[ia].VXL) {
+				std::string ident_a("BarrelImageData ");
+				ident_a += std::to_string(ia);
+				ValidateVoxelStruct(&pExt->BarrelImageData[ia], ident_a.c_str());
+			}
+		}
+
+		for (size_t ib = 0; ib < pExt->BarrelImageData.size(); ++ib) {
+			if (pExt->TurretImageData[ib].VXL) {
+				std::string ident_b("TurretImageData ");
+				ident_b += std::to_string(ib);
+				ValidateVoxelStruct(&pExt->TurretImageData[ib], ident_b.c_str());
 			}
 		}
 
@@ -701,21 +776,39 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	 for (auto pBullet : *BulletTypeClass::Array) {
+	for (auto pBullet : *BulletTypeClass::Array) {
 
-		 if(pBullet->Voxel && !pBullet->MainVoxel.VXL) {
-			 Debug::LogInfo("Bullet[{}] has no valid VXL !", pBullet->ID);
-			 pBullet->Voxel = false;//shp bullet has image checking
-			 Debug::RegisterParserError();
-		 }
-		 else if (pBullet->Voxel && pBullet->MainVoxel.VXL && !pBullet->MainVoxel.HVA) {
-			 Debug::LogInfo("Bullet[{}] has no valid HVA !", pBullet->ID);
-			 Debug::RegisterParserError();
-		 }
-		 else if (!pBullet->Voxel && !pBullet->GetImage()) {
-			 Debug::LogInfo("Bullet[{}] has no valid SHP !", pBullet->ID);
-			 Debug::RegisterParserError();
-		 }
+		if (pBullet->Voxel)
+		{
+			if(pBullet->MainVoxel.VXL){
+				std::string iident(pBullet->ID);
+				iident += " - ";
+				iident += "BulletTypeClass";
+
+				RulesExtData::Owners[&pBullet->MainVoxel] = std::move(iident);
+
+				if (!pBullet->MainVoxel.VXL->HeaderData || !pBullet->MainVoxel.VXL->TailerData) {
+					Debug::FatalError("Bullet[%s] Has VXL but has no HeaderData or TailerData wtf ?", pBullet->ID);
+				}
+
+				if (!pBullet->MainVoxel.HVA)
+				{
+					Debug::LogInfo("Bullet[{}] Has VXL but has no HVA wtf ?", pBullet->ID);
+					Debug::RegisterParserError();
+					GameDelete(pBullet->MainVoxel.VXL);
+					pBullet->Voxel = false;
+				}
+			} else{
+				Debug::LogInfo("Bullet[{}] Has no VXL but set as Voxel wtf ?", pBullet->ID);
+				Debug::RegisterParserError();
+				pBullet->Voxel = false;
+			}
+		}
+
+		if (!pBullet->Voxel && !pBullet->GetImage()) {
+			Debug::LogInfo("Bullet[{}] has no valid SHP !", pBullet->ID);
+			Debug::RegisterParserError();
+		}
 
 	 	//auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
 
@@ -723,7 +816,29 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	 	//	Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);
 	 	//	Debug::RegisterParserError();
 	 	//}
-	 }
+	}
+
+	for(auto pVxlAnim : *VoxelAnimTypeClass::Array){
+		if (pVxlAnim->MainVoxel.VXL) {
+			std::string iident(pVxlAnim->ID);
+			iident += " - ";
+			iident += "VoxelAnimTypeClass";
+
+			RulesExtData::Owners[&pVxlAnim->MainVoxel] = std::move(iident);
+
+			if (!pVxlAnim->MainVoxel.VXL->HeaderData || !pVxlAnim->MainVoxel.VXL->TailerData) {
+				Debug::LogInfo("VoxelAnim[{}] Has VXL but has no HeaderData or TailerData wtf ?", pVxlAnim->ID);
+				Debug::RegisterParserError();
+				GameDelete(pVxlAnim->MainVoxel.VXL);
+				continue;
+			}
+
+			if (!pVxlAnim->MainVoxel.HVA) {
+				Debug::LogInfo("VoxelAnim[{}] Has VXL but has no HVA wtf ?", pVxlAnim->ID);
+				Debug::RegisterParserError();
+			}
+		}
+	}
 
 	for (auto pHouse : *HouseTypeClass::Array)
 	{
@@ -851,7 +966,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIGuardModeGuardRangeAddend.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeAddend");
 	this->AIGuardModeGuardRangeMax.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeMax");
 	this->AIGuardStationaryStray.Read(exINI, GameStrings::General, "AIGuardStationaryStray");
-
+	this->IgnoreCenterMinorRadarEvent.Read(exINI, GameStrings::General, "IgnoreCenterMinorRadarEvent");
+	this->WarheadAnimZAdjust.Read(exINI, GameStrings::AudioVisual, "WarheadAnimZAdjust");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -1549,7 +1665,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DamageOwnerMultiplier)
 		.Process(this->DamageAlliesMultiplier)
 		.Process(this->DamageEnemiesMultiplier)
-		.Process(this->DamageEnemiesMultiplier_UsedForAllTargetInBerzerk)
+		.Process(this->DamageOwnerMultiplier_Berzerk)
+		.Process(this->DamageAlliesMultiplier_Berzerk)
+		.Process(this->DamageEnemiesMultiplier_Berzerk)
 		.Process(this->DamageOwnerMultiplier_NotAffectsEnemies)
 		.Process(this->DamageAlliesMultiplier_NotAffectsEnemies)
 		.Process(this->FactoryProgressDisplay)
@@ -1704,6 +1822,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AIGuardModeGuardRangeAddend)
 		.Process(this->AIGuardModeGuardRangeMax)
 		.Process(this->AIGuardStationaryStray)
+		.Process(this->IgnoreCenterMinorRadarEvent)
+		.Process(this->WarheadAnimZAdjust)
 		;
 }
 
@@ -1921,10 +2041,6 @@ void RulesExtData::InitializeAfterAllRulesLoaded()
 		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 	}
 
-	auto g_scenario_instance = ScenarioExtData::Instance();
-
-	// Init master bullet
-	g_scenario_instance->MasterDetonationBullet = BulletTypeExtData::GetDefaultBulletType()->CreateBullet(nullptr, nullptr, 0, nullptr, 0, false);
 }
 
 ASMJIT_PATCH(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)

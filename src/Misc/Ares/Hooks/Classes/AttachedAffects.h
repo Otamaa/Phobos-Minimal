@@ -39,7 +39,6 @@ public:
 	}
 
 	~AresAE() {
-		Anim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	}
 
 	void OPTIONALINLINE InvalidateAnimPointer(AnimClass* ptr) {

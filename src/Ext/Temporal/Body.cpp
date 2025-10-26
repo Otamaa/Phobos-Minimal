@@ -227,7 +227,7 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 		this->Owner->TemporalImUsing->LetGo();
 	}
 
-	if (!TechnoExt_ExtData::Warpable(pTarget) || this->Owner->TemporalTargetingMe)
+	if (!TechnoExt_ExtData::Warpable(this, pTarget) || this->Owner->TemporalTargetingMe)
 		return;
 
 	// bugfix #874 B: Temporal warheads affect Warpable=no units

@@ -1199,7 +1199,7 @@ void BulletExtData::Serialize(T& Stm)
 	debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
 	debugProcess(this->OriginalTarget, "OriginalTarget");
 	debugProcess(this->ParabombFallRate, "ParabombFallRate");
-
+	debugProcess(this->IsInstantDetonation, "IsInstantDetonation");
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);
 }
 

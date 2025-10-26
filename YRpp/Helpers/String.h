@@ -3,103 +3,461 @@
 #include <string>
 #include <Base/Always.h>
 #include <CRT.h>
+#include <stdexcept>
 
 // because every project needs an own string implementation...
 
 namespace detail
 {
-	template <typename T, typename Traits = std::char_traits<T>>
-	OPTIONALINLINE NOINLINE void __fastcall string_copy_n(
-		T* const pDest, T const* const pSrc, size_t const cchMax) noexcept
+	template <typename CharT, typename Traits = std::char_traits<CharT>>
+	OPTIONALINLINE void __fastcall string_copy_n(
+		CharT* const dest, CharT const* const src, size_t const dest_size) noexcept
 	{
-		auto const len = Traits::length(pSrc);
-		auto const count = len < cchMax ? len : cchMax;
-		Traits::copy(pDest, pSrc, count);
-		pDest[count] = T();
+		if (dest && src && dest_size > 0)
+		{
+			size_t len = std::char_traits<CharT>::length(src);
+			size_t copy_len = std::min(len, dest_size);
+			std::copy_n(src, copy_len, dest);
+			dest[copy_len] = CharT {};
+		}
+	}
+
+	template <typename CharT, typename Traits = std::char_traits<CharT>>
+	OPTIONALINLINE void string_copy_n_unsafe(
+		CharT* dest,
+		const CharT* src,
+		size_t src_len,
+		size_t max_size) noexcept
+	{
+		const size_t copy_count = src_len < max_size ? src_len : max_size;
+		Traits::copy(dest, src, copy_count);
+		dest[copy_count] = CharT {};
 	}
 }
 
-template <size_t Capacity, typename T = char>
-struct FixedString {
-	static const size_t Size = Capacity;
+template <size_t Capacity, typename CharT = char>
+class FixedString
+{
+public:
+	using value_type = CharT;
+	using size_type = size_t;
+	using pointer = CharT*;
+	using const_pointer = const CharT*;
+	using reference = CharT&;
+	using const_reference = const CharT&;
+	using iterator = CharT*;
+	using const_iterator = const CharT*;
+	using traits_type = std::char_traits<CharT>;
+	using data_type = CharT[Capacity];
 
-	static_assert(Capacity > 0, "Capacity cannot be 0.");
+	static constexpr size_type capacity() noexcept { return Capacity - 1; }
+	static constexpr size_type max_size() noexcept { return Capacity; }
 
-	using data_type = T[Capacity];
+	static_assert(Capacity > 0, "Capacity must be greater than 0");
 
-	FixedString() noexcept {
-		this->chars[0] = 0;
+	// ========== Constructors ==========
+
+	constexpr FixedString() noexcept : chars_ {} { }
+
+	constexpr FixedString(const_pointer str) noexcept : chars_ {}
+	{
+		if (str)
+		{
+			assign(str);
+		}
 	}
 
-	explicit FixedString(const T* value) noexcept {
-		__assume(value != this->chars);
-		*this = value;
+	constexpr FixedString(std::basic_string_view<CharT> sv) noexcept : chars_ {}
+	{
+		assign(sv.data(), sv.size());
 	}
 
-	/* this is not how the game does it. it most likely has an operator= that
-	*  takes a const FixedString&, then memcpys the entire contents over. this
-	*  implementation does the same, but gets rid of the temporary object in
-	*  case a pointer is passed.
-	*/
-	FixedString& operator= (FixedString const& value) noexcept = default;
-	//{
-	//	std::memcpy(this, &value, sizeof(T) * Size);
-	//	return *this;
-	//}
-
-	// assignt char to designated value without checking !
-	void assign(const T* const value) noexcept {
-		// free function to not templatize on size
-		detail::string_copy_n(this->chars, value, Size - 1);
+	// Constructor from std::string
+	FixedString(const std::basic_string<CharT>& str) noexcept : chars_ {}
+	{
+		assign(str.data(), str.size());
 	}
 
-	FixedString& operator= (const T* const value) noexcept {
-		if(value) {
-			if(value != this->chars) {
-				// free function to not templatize on size
-				detail::string_copy_n(this->chars, value, Size - 1);
-			}
-		} else {
-			this->chars[0] = 0;
+	constexpr FixedString(const FixedString&) noexcept = default;
+
+	// ========== Assignment Operators ==========
+
+	constexpr FixedString& operator=(const FixedString&) noexcept = default;
+
+	constexpr FixedString& operator=(const_pointer str) noexcept
+	{
+		if (str && str != chars_)
+		{
+			assign(str);
+		}
+		else if (!str)
+		{
+			clear();
 		}
 		return *this;
 	}
 
-	COMPILETIMEEVAL explicit operator bool() {
-		return this->chars[0] != 0;
+	constexpr FixedString& operator=(std::basic_string_view<CharT> sv) noexcept
+	{
+		assign(sv.data(), sv.size());
+		return *this;
 	}
 
-	COMPILETIMEEVAL explicit operator bool() const {
-		return this->chars[0] != 0;
+	// Assignment from std::string
+	FixedString& operator=(const std::basic_string<CharT>& str) noexcept
+	{
+		assign(str.data(), str.size());
+		return *this;
 	}
 
-	COMPILETIMEEVAL bool operator !() const {
-		return this->chars[0] == 0;
+	// ========== Assign Methods ==========
+
+	constexpr void assign(const_pointer str) noexcept
+	{
+		if (str)
+		{
+			detail::string_copy_n(chars_, str, capacity());
+		}
+		else
+		{
+			clear();
+		}
 	}
 
-	COMPILETIMEEVAL operator const T* () const {
-		return this->chars;
+	constexpr void assign(const_pointer str, size_type len) noexcept
+	{
+		if (str)
+		{
+			const size_type copy_len = std::min(len, capacity());
+			traits_type::copy(chars_, str, copy_len);
+			chars_[copy_len] = CharT {};
+		}
+		else
+		{
+			clear();
+		}
 	}
 
-	COMPILETIMEEVAL operator T* () {
-		return this->chars;
+	void assign(const std::basic_string<CharT>& str) noexcept
+	{
+		assign(str.data(), str.size());
 	}
 
-	COMPILETIMEEVAL data_type& data() {
-		return this->chars;
+	constexpr void clear() noexcept
+	{
+		chars_[0] = CharT {};
 	}
 
-	COMPILETIMEEVAL const data_type& data() const {
-		return this->chars;
+	// ========== Element Access ==========
+
+	constexpr reference operator[](size_type pos) noexcept
+	{
+		return chars_[pos];
 	}
 
-	COMPILETIMEEVAL const T* c_str() const{
-		return ((*this).data());
+	constexpr const_reference operator[](size_type pos) const noexcept
+	{
+		return chars_[pos];
+	}
+
+	constexpr reference at(size_type pos)
+	{
+		if (pos >= size())
+		{
+			throw std::out_of_range("FixedString::at");
+		}
+		return chars_[pos];
+	}
+
+	constexpr const_reference at(size_type pos) const
+	{
+		if (pos >= size())
+		{
+			throw std::out_of_range("FixedString::at");
+		}
+		return chars_[pos];
+	}
+
+	constexpr reference front() noexcept
+	{
+		return chars_[0];
+	}
+
+	constexpr const_reference front() const noexcept
+	{
+		return chars_[0];
+	}
+
+	constexpr reference back() noexcept
+	{
+		return chars_[size() > 0 ? size() - 1 : 0];
+	}
+
+	constexpr const_reference back() const noexcept
+	{
+		return chars_[size() > 0 ? size() - 1 : 0];
+	}
+
+	// ========== String Operations ==========
+
+	constexpr const_pointer c_str() const noexcept
+	{
+		return chars_;
+	}
+
+	constexpr pointer data() noexcept
+	{
+		return chars_;
+	}
+
+	constexpr const_pointer data() const noexcept
+	{
+		return chars_;
+	}
+
+	constexpr size_type size() const noexcept
+	{
+		return traits_type::length(chars_);
+	}
+
+	constexpr size_type length() const noexcept
+	{
+		return size();
+	}
+
+	constexpr bool empty() const noexcept
+	{
+		return chars_[0] == CharT {};
+	}
+
+	// ========== Conversions ==========
+
+	constexpr explicit operator bool() const noexcept
+	{
+		return !empty();
+	}
+
+	constexpr operator const_pointer() const noexcept
+	{
+		return chars_;
+	}
+
+	constexpr operator std::basic_string_view<CharT>() const noexcept
+	{
+		return std::basic_string_view<CharT>(chars_, size());
+	}
+
+	// Conversion to std::string
+	operator std::basic_string<CharT>() const
+	{
+		return std::basic_string<CharT>(chars_, size());
+	}
+
+	// Explicit conversion method (more efficient, no copy)
+	std::basic_string<CharT> str() const
+	{
+		return std::basic_string<CharT>(chars_, size());
+	}
+
+	constexpr const data_type& raw() const
+	{
+		return this->chars_;
+	}
+
+	constexpr data_type& raw()
+	{
+		return this->chars_;
+	}
+	// ========== Iterators ==========
+
+	constexpr iterator begin() noexcept { return chars_; }
+	constexpr const_iterator begin() const noexcept { return chars_; }
+	constexpr const_iterator cbegin() const noexcept { return chars_; }
+
+	constexpr iterator end() noexcept { return chars_ + size(); }
+	constexpr const_iterator end() const noexcept { return chars_ + size(); }
+	constexpr const_iterator cend() const noexcept { return chars_ + size(); }
+
+	// ========== String Operations (std::string-like) ==========
+
+	// Append operations
+	FixedString& append(const_pointer str)
+	{
+		if (str)
+		{
+			const size_type current = size();
+			const size_type remaining = capacity() - current;
+			if (remaining > 0)
+			{
+				const size_type str_len = traits_type::length(str);
+				const size_type copy_len = std::min(str_len, remaining);
+				traits_type::copy(chars_ + current, str, copy_len);
+				chars_[current + copy_len] = CharT {};
+			}
+		}
+		return *this;
+	}
+
+	FixedString& append(const std::basic_string<CharT>& str)
+	{
+		return append(str.data(), str.size());
+	}
+
+	FixedString& append(const_pointer str, size_type len)
+	{
+		if (str && len > 0)
+		{
+			const size_type current = size();
+			const size_type remaining = capacity() - current;
+			if (remaining > 0)
+			{
+				const size_type copy_len = std::min(len, remaining);
+				traits_type::copy(chars_ + current, str, copy_len);
+				chars_[current + copy_len] = CharT {};
+			}
+		}
+		return *this;
+	}
+
+	// Operator +=
+	FixedString& operator+=(const_pointer str)
+	{
+		return append(str);
+	}
+
+	FixedString& operator+=(const std::basic_string<CharT>& str)
+	{
+		return append(str);
+	}
+
+	FixedString& operator+=(CharT c)
+	{
+		const size_type current = size();
+		if (current < capacity())
+		{
+			chars_[current] = c;
+			chars_[current + 1] = CharT {};
+		}
+		return *this;
+	}
+
+	// Compare
+	int compare(const_pointer str) const noexcept
+	{
+		return traits_type::compare(chars_, str,
+			std::min(size(), traits_type::length(str)) + 1);
+	}
+
+	int compare(const std::basic_string<CharT>& str) const noexcept
+	{
+		return compare(str.c_str());
+	}
+
+	int compare(const FixedString& other) const noexcept
+	{
+		return traits_type::compare(chars_, other.chars_, Capacity);
+	}
+
+	// ========== Comparison Operators ==========
+
+	constexpr bool operator==(const FixedString& other) const noexcept
+	{
+		return traits_type::compare(chars_, other.chars_, Capacity) == 0;
+	}
+
+	constexpr bool operator==(const_pointer str) const noexcept
+	{
+		return str && traits_type::compare(chars_, str,
+			traits_type::length(str) + 1) == 0;
+	}
+
+	bool operator==(const std::basic_string<CharT>& str) const noexcept
+	{
+		return size() == str.size() &&
+			traits_type::compare(chars_, str.data(), size()) == 0;
+	}
+
+	constexpr bool operator!=(const FixedString& other) const noexcept
+	{
+		return !(*this == other);
+	}
+
+	constexpr bool operator!=(const_pointer str) const noexcept
+	{
+		return !(*this == str);
+	}
+
+	bool operator!=(const std::basic_string<CharT>& str) const noexcept
+	{
+		return !(*this == str);
+	}
+
+	constexpr bool operator<(const FixedString& other) const noexcept
+	{
+		return traits_type::compare(chars_, other.chars_,
+			std::min(size(), other.size()) + 1) < 0;
 	}
 
 private:
-	data_type chars;
+	CharT chars_[Capacity];
 };
+
+// ========== Non-member Comparison Operators ==========
+
+template<size_t N, typename CharT>
+bool operator==(const std::basic_string<CharT>& lhs, const FixedString<N, CharT>& rhs) noexcept
+{
+	return rhs == lhs;
+}
+
+template<size_t N, typename CharT>
+bool operator!=(const std::basic_string<CharT>& lhs, const FixedString<N, CharT>& rhs) noexcept
+{
+	return rhs != lhs;
+}
+
+template<size_t N, typename CharT>
+bool operator==(const CharT* lhs, const FixedString<N, CharT>& rhs) noexcept
+{
+	return rhs == lhs;
+}
+
+template<size_t N, typename CharT>
+bool operator!=(const CharT* lhs, const FixedString<N, CharT>& rhs) noexcept
+{
+	return rhs != lhs;
+}
+
+// ========== Stream Operators ==========
+
+template<size_t N, typename CharT>
+std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const FixedString<N, CharT>& str)
+{
+	return os << str.c_str();
+}
+
+template<size_t N, typename CharT>
+std::basic_istream<CharT>& operator>>(std::basic_istream<CharT>& is, FixedString<N, CharT>& str)
+{
+	std::basic_string<CharT> temp;
+	is >> temp;
+	str = temp;
+	return is;
+}
+
+// ========== Deduction Guides ==========
+
+template<size_t N, typename CharT>
+FixedString(const CharT(&)[N]) -> FixedString<N, CharT>;
+
+// ========== Type Aliases ==========
+
+using FixedString8 = FixedString<8>;
+using FixedString16 = FixedString<16>;
+using FixedString32 = FixedString<32>;
+using FixedString64 = FixedString<64>;
+using FixedString128 = FixedString<128>;
+using FixedString256 = FixedString<256>;
 
 template <size_t Capacity>
 using FixedWString = FixedString<Capacity, wchar_t>;
@@ -144,7 +502,7 @@ int FixedChar<SIZE>::Format(const char* format, ...)
 	va_start(arg_list, format);
 
 	char temp_buffer[2048] = { 0 };
-	int retval = CRT::vsprintf(temp_buffer,format, arg_list);
+	int retval = CRT::vsprintf(temp_buffer, format, arg_list);
 
 	Append(temp_buffer);
 

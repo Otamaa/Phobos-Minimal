@@ -48,14 +48,18 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 
 		if (pWeapon)
 		{
-			this->ThreatTypes.X |= pWeapon->AllowedThreats();
+			if (pWeapon->Projectile)
+				this->ThreatTypes.X |= pWeapon->AllowedThreats();
+
 			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
 			Num++;
 		}
 
 		if (pEliteWeapon)
 		{
-			this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
+			if (pEliteWeapon->Projectile)
+				this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
+
 			this->CombatDamages.Y += (pEliteWeapon->Damage + pEliteWeapon->AmbientDamage);
 			EliteNum++;
 		}
@@ -255,17 +259,17 @@ int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* const pThis, AbstractClass
 		return -1;
 
 	const int weaponCount =  MinImpl(pType->WeaponCount, this->MultiWeapon_SelectCount.Get());
+	const bool noSecondary = this->NoSecondaryWeaponFallback;
 
 	if (weaponCount < 2)
 		return 0;
-	else if (weaponCount == 2)
+	else if (weaponCount == 2 && !noSecondary)
 		return -1;
 
 	std::vector<bool> secondaryCanTargets {};
 	secondaryCanTargets.resize(weaponCount, false);
 
 	const bool isElite = pThis->Veterancy.IsElite();
-	const bool noSecondary = this->NoSecondaryWeaponFallback.Get();
 
 	if (const auto pTargetTechno = flag_cast_to<TechnoClass*, true>(pTarget))
 	{
@@ -518,15 +522,9 @@ const char* TechnoTypeExtData::GetSelectionGroupID() const
 bool TechnoTypeExtData::IsGenericPrerequisite() const
 {
 	if(this->GenericPrerequisite.empty()) {
-		auto begin = GenericPrerequisite::Array.begin();
-		auto end  = GenericPrerequisite::Array.end();
+		const auto end  = GenericPrerequisite::Array.end();
 
-		if(begin == end ){
-			this->GenericPrerequisite = false;
-			return false;
-		}
-
-		for(; begin != end; ++begin){
+		for(auto begin = GenericPrerequisite::Array.begin(); begin != end; ++begin){
 			auto alt_begin = begin->get()->Alternates.begin();
 			auto alt_end = begin->get()->Alternates.end();
 
@@ -541,6 +539,9 @@ bool TechnoTypeExtData::IsGenericPrerequisite() const
 				}
 			}
 		}
+
+		this->GenericPrerequisite = false;
+		return false;
 	}
 
 	return this->GenericPrerequisite;
@@ -1989,6 +1990,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BlockType->LoadFromINI(pINI, pSection);
 	}
 
+	this->TintColorAirstrike = GeneralUtils::GetColorFromColorAdd(this->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor));
+
 	// Art tags
 	if (pArtIni && pArtIni->GetSection(pArtSection))
 	{
@@ -2000,6 +2003,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->GreyCameoPCX.Read(&CCINIClass::INI_Art, pArtSection, "GreyCameoPCX");
 		this->AlternateFLH_OnTurret.Read(exArtINI, pArtSection, "AlternateFLH.OnTurret");
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
+		this->AlternateFLH_ApplyVehicle.Read(exArtINI, pArtSection, "AlternateFLH.ApplyVehicle");
 
 		if (!this->TurretOffset.isset())
 		{

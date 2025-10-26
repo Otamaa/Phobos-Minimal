@@ -117,7 +117,8 @@ ASMJIT_PATCH(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 
 ASMJIT_PATCH(0x71AE50, TemporalClass_CanWarpTarget, 8)
 {
+	GET(TemporalClass*, pTemp, ECX);
 	GET_STACK(TechnoClass*, pTarget, 0x4);
-	R->EAX(TechnoExt_ExtData::Warpable(pTarget));
+	R->EAX(TechnoExt_ExtData::Warpable(pTemp , pTarget));
 	return 0x71AF19;
 }

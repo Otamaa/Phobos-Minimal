@@ -34,8 +34,9 @@ ASMJIT_PATCH(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 	enum { SkipAirburstChecks = 0x468E7B, SkipCoordFunc = 0x468E9F, SkipChecks = 0x468FF4 };
 
 	GET(FakeBulletClass*, pThis, ESI);
+	auto const pExt = pThis->_GetExtData();
 
-	if (pThis == ScenarioExtData::Instance()->MasterDetonationBullet)
+	if (pExt->IsInstantDetonation)
 		return SkipChecks;
 
 	retfunc_fixed nRet(R, SkipAirburstChecks, pThis->Type);
@@ -51,8 +52,6 @@ ASMJIT_PATCH(0x468E61, BulletClass_Explode_TargetSnapChecks1, 0x6) //was C
 	}
 	else
 	{
-		auto const pExt = pThis->_GetExtData();
-
 		if (pExt->Trajectory
 			&& PhobosTrajectory::CanSnap(pExt->Trajectory)
 			&& !pExt->SnappedToTarget
@@ -73,8 +72,9 @@ ASMJIT_PATCH(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 	};
 
 	GET(FakeBulletClass*, pThis, ESI);
+	auto const pExt = pThis->_GetExtData();
 
-	if (pThis == ScenarioExtData::Instance()->MasterDetonationBullet)
+	if (pExt->IsInstantDetonation)
 		return SkipChecks;
 
 	// Do not require EMEffect=no & Airburst=no to check target coordinate snapping for Inviso projectiles.
@@ -90,7 +90,7 @@ ASMJIT_PATCH(0x468E9F, BulletClass_Explode_TargetSnapChecks2, 0x6) //was C
 
 	// Do not force Trajectory=Straight projectiles to detonate at target coordinates under certain circumstances.
 	// Fixes issues with walls etc.
-	auto const pExt = pThis->_GetExtData();
+
 	if (pExt->Trajectory
 		&& PhobosTrajectory::CanSnap(pExt->Trajectory)
 		&& !pExt->SnappedToTarget)

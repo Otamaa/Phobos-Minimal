@@ -471,3 +471,110 @@ ASMJIT_PATCH(0x71E856, TEventClass_SDDTOR, 0x6)
 	TEventExtContainer::Instance.Remove(pItem);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
+
+
+ASMJIT_PATCH(0x71F58B, TEventClass_ReadINI_MaskedTEvents, 0x7)
+{
+	REF_STACK(TEventClass*, pThis, 0x4);
+
+	switch (static_cast<PhobosTriggerEvent>(pThis->EventKind))
+	{
+	case PhobosTriggerEvent::EnteredByByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::EnteredBy;
+		break;
+	case PhobosTriggerEvent::SpiedByByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::SpiedBy;
+		break;
+	case PhobosTriggerEvent::HouseDiscoveredByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::HouseDiscovered;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsAllByID:
+		pThis->Value = UnitTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedUnitsAll;
+		break;
+	case PhobosTriggerEvent::DestroyedBuildingsAllByID:
+		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedBuildingsAll;
+		break;
+	case PhobosTriggerEvent::DestroyedAllByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedAll;
+		break;
+	case PhobosTriggerEvent::BuildBuildingTypeByID:
+		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildBuildingType;
+		break;
+	case PhobosTriggerEvent::BuildUnitTypeByID:
+		pThis->Value = UnitTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildUnitType;
+		break;
+	case PhobosTriggerEvent::BuildInfantryTypeByID:
+		pThis->Value = InfantryTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildInfantryType;
+		break;
+	case PhobosTriggerEvent::BuildAircraftTypeByID:
+		pThis->Value = AircraftTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildAircraftType;
+		break;
+	case PhobosTriggerEvent::ZoneEntryByByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::ZoneEntryBy;
+		break;
+	case PhobosTriggerEvent::CrossesHorizontalLineByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::CrossesHorizontalLine;
+		break;
+	case PhobosTriggerEvent::CrossesVerticalLineByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::CrossesVerticalLine;
+		break;
+	case PhobosTriggerEvent::LowPowerByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::LowPower;
+		break;
+	case PhobosTriggerEvent::BuildingExistsByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildingExists;
+		break;
+	case PhobosTriggerEvent::AttackedByHouseByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::AttackedByHouse;
+		break;
+	case PhobosTriggerEvent::SpyAsHouseByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::SpyAsHouse;
+		break;
+	case PhobosTriggerEvent::SpyAsInfantryByID:
+		pThis->Value = InfantryTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::SpyAsInfantry;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsNavalByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedUnitsNaval;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsLandByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedUnitsLand;
+		break;
+	case PhobosTriggerEvent::BuildingDoesNotExistByID:
+		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildingDoesNotExist;
+		break;
+	case PhobosTriggerEvent::PowerFullByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::PowerFull;
+		break;
+	case PhobosTriggerEvent::EnteredOrOverflownByByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::EnteredOrOverflownBy;
+		break;
+
+	default:
+		break;
+	}
+
+	return 0;
+}

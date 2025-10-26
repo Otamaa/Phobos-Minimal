@@ -10,26 +10,24 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-
 ASMJIT_PATCH(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 {
 	GET(int, FileSize, EBX);
 	GET(IsometricTileTypeClass*, pTileType, ESI);
+	LEA_STACK(CCFileClass* , pFile , 0xC);
 
 	if (FileSize == 0)
 	{
-		DWORD _ptr = reinterpret_cast<DWORD>(pTileType);
-		DWORD _result = DWORD(_ptr + strlen(pTileType->ID) + 37 - (_ptr + 37));
+		auto what = (pTileType->ID + strlen(pTileType->ID) + 1 - pTileType->ID);
+		auto pFileName = pFile->FileName;
 
-		if (_result > 9)
-		{
+		if (what > 9) {
 			Debug::FatalErrorAndExit("Maximum allowed length for tile names, excluding the extension, is 9 characters.\n"
-					"The tileset using filename '%s' exceeds this limit - the game cannot proceed.", pTileType->ID);
+					"The tileset using filename '%s - %s' exceeds this limit - the game cannot proceed.", pTileType->ID , pFileName);
 		}
-		else
-		{
-			Debug::FatalErrorAndExit("The tileset '%s' contains a file that could not be loaded for some reason - make sure the file exists.", pTileType->ID);
-		}
+
+		Debug::FatalErrorAndExit("The tileset '%s - %s' contains a file that could not be loaded for some reason - make sure the file exists."
+			, pTileType->ID, pFileName);
 	}
 
 	return 0;

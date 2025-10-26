@@ -743,3 +743,50 @@ ASMJIT_PATCH(0x54DAC4, JumpjetLocomotionClass_EndPiggyback_Blyat, 0x6)
 
 	return 0;
 }
+
+#pragma region JumpjetStraightAscend
+
+// Skip adjusting max speed and rotation while ascending if flag is set.
+ASMJIT_PATCH(0x54BBD0, JumpjetLocomotionClass_Ascending_JumpjetStraightAscend, 0x6)
+{
+	enum { SkipGameCode = 0x54BC59 };
+
+	GET(JumpjetLocomotionClass*, pThis, ESI);
+
+	auto const pTechnoExt = TechnoExtContainer::Instance.Find(pThis->LinkedTo);
+
+	if (pTechnoExt->JumpjetStraightAscend)
+		return SkipGameCode;
+
+	return 0;
+}
+
+// Skip adjusting coords if flag is set, unit is alive, not crashing and is in JJ loco states 0-1.
+// Unset flag in any other state.
+ASMJIT_PATCH(0x54D600, JumpjetLocomotionClass_MovementAI_JumpjetStraightAscend, 0x6)
+{
+	enum { SkipGameCode = 0x54D697 };
+
+	GET(JumpjetLocomotionClass*, pThis, ESI);
+
+	auto const pLinkedTo = pThis->LinkedTo;
+	auto const pTechnoExt = TechnoExtContainer::Instance.Find(pLinkedTo);
+
+	if (pTechnoExt->JumpjetStraightAscend)
+	{
+		if (pLinkedTo->IsCrashing || pLinkedTo->Health < 1)
+		{
+			pTechnoExt->JumpjetStraightAscend = false;
+			return 0;
+		}
+
+		if (pThis->NextState <= JumpjetLocomotionClass::State::Ascending)
+			return SkipGameCode;
+		else
+			pTechnoExt->JumpjetStraightAscend = false;
+	}
+
+	return 0;
+}
+
+#pragma endregion

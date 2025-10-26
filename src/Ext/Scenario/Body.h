@@ -85,7 +85,6 @@ public:
 	PhobosFixedString<64u> DefaultLS800BkgdName {};
 	PhobosFixedString<64u> DefaultLS800BkgdPal {};
 
-	BulletClass* MasterDetonationBullet {}; // Used to do warhead/weapon detonations on spot without having to create new BulletClass instance every time.
 	VectorSet<TechnoClass*> LimboLaunchers {};
 
 	VectorSet<TechnoClass*> UndergroundTracker {};
@@ -149,7 +148,6 @@ private:
 			.Process(this->DefaultLS800BkgdName)
 			.Process(this->DefaultLS800BkgdPal)
 
-			.Process(this->MasterDetonationBullet)
 			.Process(this->LimboLaunchers)
 			.Process(this->UndergroundTracker)
 			.Process(this->FallingDownTracker)

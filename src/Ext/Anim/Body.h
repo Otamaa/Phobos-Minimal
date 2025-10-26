@@ -37,8 +37,6 @@ public:
 	CoordStruct CreateUnitLocation;
 
 	bool DelayedFireRemoveOnNoDelay;
-	bool IsAttachedEffectAnim;
-	bool IsShieldIdleAnim;
 
 	StageClass	DamagingState;
 	Point2D AEDrawOffset;
@@ -58,8 +56,6 @@ public:
 		, AttachedSystem { nullptr }
 		, CreateUnitLocation {}
 		, DelayedFireRemoveOnNoDelay { false }
-		, IsAttachedEffectAnim { false }
-		, IsShieldIdleAnim { false }
 		, DamagingState { }
 		, AEDrawOffset {}
 	{ }

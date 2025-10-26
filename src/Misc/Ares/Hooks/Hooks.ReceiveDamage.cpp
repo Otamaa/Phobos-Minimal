@@ -1114,7 +1114,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			}
 		}
 
-		if (auto& pParticleZero = pThis->FireParticleSystem) {
+		if (auto& pParticleZero = pThis->Sys.Fire) {
 			pParticleZero->UnInit();
 		}
 
@@ -1291,10 +1291,10 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				}
 			}
 
-			if (!pThis->DamageParticleSystem && !_Particles->empty() && pThis->GetHeight() > -10)
+			if (!pThis->Sys.Damage && !_Particles->empty() && pThis->GetHeight() > -10)
 			{
 				CoordStruct _offs = pThis->Location + pType->GetParticleSysOffset();
-				pThis->DamageParticleSystem =
+				pThis->Sys.Damage =
 					GameCreate<ParticleSystemClass>(
 						_Particles[ScenarioClass::Instance->Random.RandomFromMax(_Particles->size() - 1)],
 						_offs,
@@ -1305,7 +1305,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	}
 	else
 	{
-		if (auto& pPart = pThis->DamageParticleSystem)
+		if (auto& pPart = pThis->Sys.Damage)
 		{
 			pPart->UnInit();
 		}
@@ -1454,7 +1454,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 		{
 		case DamageState::NowYellow:
 		{
-			if (auto pParticle = pThis->NaturalParticleSystem)
+			if (auto pParticle = pThis->Sys.Natural)
 			{
 				pParticle->SpawnFrames *= 1.5;
 			}

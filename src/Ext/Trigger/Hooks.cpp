@@ -123,3 +123,14 @@ ASMJIT_PATCH(0x726727, TriggerClass_Destroy_PlayerAtX, 0x5)
 }
 
 #pragma endregion
+
+ASMJIT_PATCH(0x71ECE1, TriggerClass_SpyAsInfantryOrHouse, 0x8)			// SpyAsInfantry
+{
+	GET(const int, iEvent, ESI);
+
+	// This might form a unique condition that specifies the Country and InfantryType.
+	if (iEvent == 53 || iEvent == 54)
+		return R->Origin() + 0x8;
+
+	return 0x71F163;
+}ASMJIT_PATCH_AGAIN(0x71ED5E, TriggerClass_SpyAsInfantryOrHouse, 0x8)		// SpyAsHouse

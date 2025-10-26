@@ -202,6 +202,8 @@ public:
 		static bool MultiThreadSinglePlayer;
 		static bool UseImprovedPathfindingBlockageHandling;
 		static bool HideLightFlashEffects;
+		static bool HideLaserTrailEffects;
+		static bool HideShakeEffects;
 
 		static bool DebugFatalerrorGenerateDump;
 		static bool SaveGameOnScenarioStart;

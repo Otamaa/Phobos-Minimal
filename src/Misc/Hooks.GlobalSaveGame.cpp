@@ -992,14 +992,14 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	 *  Write the save file header.
 	 */
 
-	SavegameInformation saveversion;
+	SavegameInformation saveversion {};
 	saveversion.InternalVersion = Game::Savegame_Magic();
 	saveversion.ScenarioDescription = descr;
 	saveversion.Version = AresGlobalData::version;
 	saveversion.PlayerHouse = HouseClass::CurrentPlayer->Type->UIName;
 	saveversion.Campaign = ScenarioClass::Instance->CampaignIndex;
 	saveversion.ScenarioNumber = ScenarioClass::Instance->TechLevel;
-	sprintf_s(saveversion.ExecutableName.data(), "GAMEMD.EXE + Phobos Minimal + Mod %s ver %s",
+	sprintf_s(saveversion.ExecutableName.raw(), "GAMEMD.EXE + Phobos Minimal + Mod %s ver %s",
 	AresGlobalData::ModName,
 	AresGlobalData::ModVersion);
 

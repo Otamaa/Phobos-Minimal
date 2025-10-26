@@ -185,9 +185,7 @@ struct VoxelSectionFileTailer {
 	Matrix3D TransformationMatrix;
 	Vector3D<float> MinBounds;
 	Vector3D<float> MaxBounds;
-	char size_X;
-	char size_Y;
-	char size_Z;
+	Vector3D<char> size;
 	char NormalsMode;
 };
 
@@ -199,9 +197,7 @@ struct VoxelSectionTailer {
 	float HVAMultiplier;
 	Matrix3D TransformationMatrix;
 	Vector3D<float> Bounds[8];
-	char size_X;
-	char size_Y;
-	char size_Z;
+	Vector3D<char> size;
 	char NormalsMode;
 };
 

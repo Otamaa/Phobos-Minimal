@@ -849,37 +849,6 @@ ASMJIT_PATCH(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
    return 0;
 }
 
-ASMJIT_PATCH(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
-{
-	enum { SkipGameCode = 0x6FA5BE };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	if (pThis->ROF <= 0)
-	{
-		pThis->CurrentTurretNumber = 0;
-		return SkipGameCode;
-	}
-
-	auto const pType = pThis->GetTechnoType();
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	int timeLeft = pThis->RearmTimer.GetTimeLeft();
-
-	if (pExt->ChargeTurretTimer.HasStarted())
-		timeLeft = pExt->ChargeTurretTimer.GetTimeLeft();
-	else if (pExt->ChargeTurretTimer.Expired())
-		pExt->ChargeTurretTimer.Stop();
-
-	int turretCount = pType->TurretCount;
-	int turretIndex = std::max(0, timeLeft * turretCount / pThis->ROF);
-
-	if (turretIndex >= turretCount)
-		turretIndex = turretCount - 1;
-
-	pThis->CurrentTurretNumber = turretIndex;
-	return SkipGameCode;
-}
-
 ASMJIT_PATCH(0x7364DC, UnitClass_Update_SinkSpeed, 0x7)
 {
 	GET(UnitClass* const, pThis, ESI);
@@ -1209,16 +1178,6 @@ ASMJIT_PATCH(0x51EAE0, TechnoClass_WhatAction_AllowAirstrike, 0x7)
 // }
 
 #pragma region GetEffectTintIntensity
-
-ASMJIT_PATCH(0x70E92F, TechnoClass_UpdateAirstrikeTint, 0x5)
-{
-	enum { ContinueIn = 0x70E96E, Skip = 0x70EC9F };
-
-	GET(TechnoClass*, pThis, ESI);
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	return pExt->AirstrikeTargetingMe ? ContinueIn : Skip;
-}
 
 // ASMJIT_PATCH(0x43FDD6, BuildingClass_AI_Airstrike, 0x6)
 // {
@@ -1888,3 +1847,29 @@ ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
 	R->AL(isValid);
 	return R->Origin() + 0x8;
 }ASMJIT_PATCH_AGAIN(0x42EB6A, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8);
+
+#include <RadarEventClass.h>
+
+ASMJIT_PATCH(0x65FC6E, RadarEventClass_CTOR_SkipSetRadarEventCell, 0x6)
+{
+	if (!RulesExtData::Instance()->IgnoreCenterMinorRadarEvent)
+		return 0;
+
+	GET(RadarEventClass*, pThis, ESI);
+
+	switch (pThis->Type)
+	{
+	case RadarEventType::UnitProduced:
+	case RadarEventType::UnitRepaired:
+	case RadarEventType::BuildingInfiltrated:
+	case RadarEventType::BuildingCaptured:
+	case RadarEventType::BridgeRepaired:
+	case RadarEventType::GarrisonAbandoned:
+		break;
+	default:
+		return 0;
+	}
+
+	R->ECX(RadarEventClass::Array->Count); // RadarEventClass::Array.Count
+	return 0x65FC9E;
+}

@@ -703,7 +703,7 @@ struct TargetingFuncs
 				 {
 					 const auto pFoot = static_cast<FootClass*>(*j);
 
-					 if (!pTargeting->Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir())
+					 if (pFoot->IsAlive && !pTargeting->Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir())
 					 {
 						  // original game does not consider cloak
 						 if (pFoot->CanBePermaMindControlled() && (pFoot->CloakState != CloakState::Cloaked))
@@ -785,7 +785,7 @@ struct TargetingFuncs
 				 {
 					const auto pInf = static_cast<InfantryClass*>(*j);
 
-					 if (!pTargeting->Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
+					 if (pInf->IsAlive && !pTargeting->Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
 					 {
 						 // original game does not consider cloak
 						 if (pInf->CloakState != CloakState::Cloaked)

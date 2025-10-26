@@ -677,19 +677,6 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 // 	return 0;
 // }
 
-ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
-{
-	enum { SkipGameCode = 0x6FAC31 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->DelayedFireSequencePaused)
-		return SkipGameCode;
-
-	return 0;
-}
 
 ASMJIT_PATCH(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
 {

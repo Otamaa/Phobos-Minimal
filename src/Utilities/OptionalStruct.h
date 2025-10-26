@@ -4,96 +4,109 @@
 
 // a wrapper for an optional value
 template <typename T, bool Persistable = false>
-struct OptionalStruct
+struct OptionalStruct : public std::optional<T>
 {
-	COMPILETIMEEVAL OptionalStruct() = default;
-	explicit OptionalStruct(T value) noexcept : Value(std::move(value)), HasValue(true) { }
+	using Base = std::optional<T>;
 
-	OptionalStruct& operator= (T value)
+	// Constructors - forward to base class
+	COMPILETIMEEVAL OptionalStruct() = default;
+	COMPILETIMEEVAL OptionalStruct(const OptionalStruct& other) = default;
+	COMPILETIMEEVAL OptionalStruct& operator=(const OptionalStruct& other) = default;
+	COMPILETIMEEVAL OptionalStruct(OptionalStruct&& other) = default;
+	COMPILETIMEEVAL OptionalStruct& operator=(OptionalStruct&& other) = default;
+
+	// Constructor from value
+	explicit COMPILETIMEEVAL OptionalStruct(const T& value) noexcept : Base(value) { }
+	explicit COMPILETIMEEVAL OptionalStruct(T&& value) noexcept : Base(std::move(value)) { }
+
+	// Assignment operator from T - no reinterpret_cast needed!
+	COMPILETIMEEVAL OptionalStruct& operator=(const T& value)
 	{
-		this->Value = std::move(value);
-		this->HasValue = true;
+		Base::operator=(value);
 		return *this;
 	}
 
-	~OptionalStruct() noexcept { this->clear(); }
+	COMPILETIMEEVAL OptionalStruct& operator=(T&& value)
+	{
+		Base::operator=(std::move(value));
+		return *this;
+	}
 
-	COMPILETIMEEVAL OptionalStruct(const OptionalStruct& other) = default;
-	COMPILETIMEEVAL OptionalStruct& operator=(const OptionalStruct& other) = default;
-
+	// Conversion operators for compatibility with original code
 	COMPILETIMEEVAL operator T& () noexcept
 	{
-		return this->Value;
+		return this->value();
 	}
 
 	COMPILETIMEEVAL operator const T& () const noexcept
 	{
-		return this->Value;
+		return this->value();
 	}
 
-	COMPILETIMEEVAL void clear()
+	// Compatibility methods
+	COMPILETIMEEVAL void clear() noexcept
 	{
-		this->Value = T();
-		this->HasValue = false;
+		this->reset();
 	}
 
 	COMPILETIMEEVAL bool empty() const noexcept
 	{
-		return !this->HasValue;
-	}
-
-	COMPILETIMEEVAL explicit operator bool() const noexcept
-	{
-		return this->HasValue;
-	}
-
-	COMPILETIMEEVAL bool has_value() const noexcept
-	{
-		return this->HasValue;
+		return !this->has_value();
 	}
 
 	COMPILETIMEEVAL bool isset() const noexcept
 	{
-		return this->HasValue;
+		return this->has_value();
 	}
 
 	COMPILETIMEEVAL const T& get() const noexcept
 	{
-		return this->Value;
+		return this->value();
 	}
 
 	bool load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{
-		this->clear();
+		this->reset(); // Clear existing value
 
-		if COMPILETIMEEVAL (!Persistable)
-			return true;
-		else {
-			if (Stm.Process(this->HasValue)) {
-				if (!this->HasValue || Stm.Process(this->Value, RegisterForChange)) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-	}
-	bool save(PhobosStreamWriter& Stm) const
-	{
-		if COMPILETIMEEVAL (!Persistable)
+		if COMPILETIMEEVAL(!Persistable)
 			return true;
 		else
 		{
-			Stm.Process(this->HasValue);
-			if (this->HasValue)
+			bool hasval;
+			if (Stm.Process(hasval))
 			{
-				Stm.Process(this->Value);
+				if (!hasval)
+				{
+					return true;
+				}
+				else
+				{
+					T buffer {};
+					if (Stm.Process(buffer, RegisterForChange))
+					{
+						this->emplace(std::move(buffer)); // Use emplace for efficiency
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+	}
+
+	bool save(PhobosStreamWriter& Stm) const
+	{
+		if COMPILETIMEEVAL(!Persistable)
+			return true;
+		else
+		{
+			const bool hasValue = this->has_value();
+			Stm.Process(hasValue);
+			if (hasValue)
+			{
+				Stm.Process(this->value());
 			}
 			return true;
 		}
 	}
 
-private:
-	T Value {};
-	bool HasValue { false };
 };

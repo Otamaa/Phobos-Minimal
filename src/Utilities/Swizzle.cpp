@@ -15,12 +15,7 @@ void Clear_All_Surfaces()
 
 #include <Utilities/Container.h>
 
-std::unordered_map<uintptr_t, uintptr_t>  ExtensionSwizzleManager::extensionPointerMap;
-
-void ExtensionSwizzleManager::RegisterExtensionPointer(void* savedAddress, void* currentExtension)
-{
-	extensionPointerMap[(uintptr_t)savedAddress] = (uintptr_t)currentExtension;
-}
+std::unordered_map<uintptr_t, ExtensionSwizzleManager::ExtensionEntry>  ExtensionSwizzleManager::extensionPointerMap;
 
 bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractClass* OwnerObj)
 {
@@ -28,16 +23,16 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 		return true;
 
 	auto it = extensionPointerMap.find((uintptr_t)*ptrToFix);
-	if (it != extensionPointerMap.end() && it->second)
+	if (it != extensionPointerMap.end() && it->second.ptr)
 	{
-		auto currentExtension = (AbstractExtended*)it->second;
+		auto currentExtension = (AbstractExtended*)it->second.ptr;
 
 		// Fix bidirectional pointers
 		//Debug::Log("ExtensionSwizzleManager::SwizzleExtensionPointer Fixing Up Extension Pointer of %s from %x to %x \n"
 		//,	currentExtension->GetAttachedObjectName(), *ptrToFix, currentExtension);
 		currentExtension->SetAttached(OwnerObj);
 		*ptrToFix = currentExtension;
-		it->second = 0u;
+		it->second.release();
 		return true;
 	}
 
@@ -48,15 +43,6 @@ bool ExtensionSwizzleManager::SwizzleExtensionPointer(void** ptrToFix, AbstractC
 // Clean up orphaned extensions
 void ExtensionSwizzleManager::CleanupUnmappedExtensions()
 {
-	for (const auto& [savedAddr, extension] : extensionPointerMap) {
-		if(extension > 0) {
-			//Debug::Log("[ExtensionSwizzleManager] Cleaning up unmapped extension: %x -> %x\n",
-			//	savedAddr , extension);
-
-			delete (AbstractExtended*)extension;
-		}
-	}
-
 	extensionPointerMap.clear();
 }
 

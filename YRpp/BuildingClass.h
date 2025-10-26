@@ -223,6 +223,9 @@ public:
 
 	KickOutResult* ExitObject__(TechnoClass* pTech) const { JMP_THIS(0x4587D0); }
 
+	bool CanBeOccupyedBy(InfantryClass* inf) const
+	{ JMP_THIS(0x457CE0); }
+
 	// helpers
 	bool HasSuperWeapon(int index) const {
 		if(this->Type->HasSuperWeapon(index)) {

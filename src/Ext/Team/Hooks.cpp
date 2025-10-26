@@ -61,11 +61,9 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 	int argument = 0;
 	char* endptr;
 
-	static fmt::memory_buffer buff;
-	buff.clear();
-	buff.resize(256);
-
-	if (sscanf(scriptActionLine, "%d,%s", &action, buff.data()) != 2) {
+	char buff[256];
+	if (sscanf(scriptActionLine, "%d,%s", &action, buff) != 2)
+	{
 		node->Action = (TeamMissionType)action;
 		node->Argument = argument;
 		R->ECX(node);
@@ -73,14 +71,17 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 		return SkipCode;
 	}
 
-	long val = strtol(buff.data(), &endptr, 10);
+	long val = strtol(buff, &endptr, 10);
 
 	if (*endptr == '\0'
 		&& val >= std::numeric_limits<int>::min()
-		&& val <= std::numeric_limits<int>::max()) {
+		&& val <= std::numeric_limits<int>::max())
+	{
 		// Integer case (the classic).
 		argument = static_cast<int>(val);
-	} else {
+	}
+	else
+	{
 		// New strings case
 		// Action masks: These actions translate IDs into indices while preserving the original action values.
 		// The reason for using these masks is that some ScriptType actions rely on fixed indices rather than ID labels.
@@ -93,46 +94,53 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 		{
 		case PhobosScripts::ChangeToScriptByID:
 			action = 17;
-			index = ScriptTypeClass::FindIndexById(buff.data());
+			index = ScriptTypeClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::ChangeToTeamTypeByID:
 			action = 18;
-			index = TeamTypeClass::FindIndexById(buff.data());
+			index = TeamTypeClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::ChangeToHouseByID:
 			action = 20;
-			index = HouseClass::FindIndexByName(buff.data());
+			index = HouseTypeClass::FindIndexByIdAndName(buff);
+
+			if (index < 0)
+				Debug::Log("AI Scripts - TeamMissionClass_FillIn_StringsSupport: Invalid House [%s]\n", buff);
+
 			break;
 		case PhobosScripts::PlaySpeechByID: // Note: PR 1900 needs to be merged into develop
 			action = static_cast<int>(TeamMissionType::Play_speech);
-			index = VoxClass::FindIndexById(buff.data());
+			index = VoxClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::PlaySoundByID:
 			action = 25;
-			index = VocClass::FindIndexById(buff.data());
+			index = VocClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::PlayMovieByID:
 			// Note: action "26" is currently impossible without an expert Phobos developer declaring the Movies class... in that case I could code the right FindIndex(textArgument) so sadly I'll skip "26" for now :-(
 			action = 26;
-				for(int i = 0; i < MovieInfoArray->Count; ++i){
-					if(MovieInfoArray[i] == buff.data()){
-						index = i;
-						break;
-					}
+			for (int i = 0; i < MovieInfoArray->Count; ++i)
+			{
+				if (MovieInfoArray[i] == buff)
+				{
+					index = i;
+					break;
 				}
+			}
 			break;
 		case PhobosScripts::PlayThemeByID:
 			action = 27;
-			index = ThemeClass::Instance->FindIndex(buff.data());
+			index = ThemeClass::Instance->FindIndex(buff);
 			break;
 		case PhobosScripts::PlayAnimationByID:
 			action = 51;
-			index = AnimTypeClass::FindIndexById(buff.data());
+			index = AnimTypeClass::FindIndexById(buff);
 			break;
 		case PhobosScripts::AttackEnemyStructureByID:
 		case PhobosScripts::MoveToEnemyStructureByID:
 		case PhobosScripts::ChronoshiftTaskForceToStructureByID:
-		case PhobosScripts::MoveToFriendlyStructureByID:{
+		case PhobosScripts::MoveToFriendlyStructureByID:
+		{
 			if (PhobosScripts::AttackEnemyStructureByID == static_cast<PhobosScripts>(action))
 				action = 46;
 			else if (PhobosScripts::MoveToEnemyStructureByID == static_cast<PhobosScripts>(action))
@@ -155,7 +163,7 @@ ASMJIT_PATCH(0x723CA1, TeamMissionClass_FillIn_StringsSupport_and_id_masks, 0xB)
 			char id[sizeof(AbstractTypeClass::ID)] = { 0 };
 			char bwp[20] = { 0 };
 
-			if (sscanf(buff.data(), "%[^,],%s", id, bwp) == 2)
+			if (sscanf(buff, "%s,%[^\n]", id, bwp) == 2)
 			{
 				index = BuildingTypeClass::FindIndexById(id);
 

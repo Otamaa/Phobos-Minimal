@@ -133,6 +133,8 @@ bool Phobos::Config::SaveVariablesOnScenarioEnd { false };
 bool Phobos::Config::MultiThreadSinglePlayer { false };
 bool Phobos::Config::UseImprovedPathfindingBlockageHandling { false };
 bool Phobos::Config::HideLightFlashEffects { false };
+bool Phobos::Config::HideLaserTrailEffects { false };
+bool Phobos::Config::HideShakeEffects { false };
 bool Phobos::Config::DebugFatalerrorGenerateDump { false };
 bool Phobos::Config::SaveGameOnScenarioStart { true };
 bool Phobos::Config::ShowPowerDelta { true };

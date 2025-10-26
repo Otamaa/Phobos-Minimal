@@ -785,7 +785,6 @@ private:
 		debugProcess(this->BeControlledThreatFrame, "BeControlledThreatFrame");
 		debugProcess(this->LastTargetID, "LastTargetID");
 		debugProcess(this->LastHurtFrame, "LastHurtFrame");
-		debugProcess(this->AttachedEffectInvokerCount, "AttachedEffectInvokerCount");
 		debugProcess(this->AccumulatedGattlingValue, "AccumulatedGattlingValue");
 		debugProcess(this->ShouldUpdateGattlingValue, "ShouldUpdateGattlingValue");
 		debugProcess(this->KeepTargetOnMove, "KeepTargetOnMove");
@@ -812,6 +811,7 @@ private:
 		debugProcess(this->Tints, "Tints");
 		debugProcess(this->FallingDownTracked, "FallingDownTracked");
 		debugProcess(this->ResetLocomotor, "ResetLocomotor");
+		debugProcess(this->JumpjetStraightAscend, "JumpjetStraightAscend");
 	}
 
 
@@ -971,7 +971,6 @@ public:
 	WeaponTypeClass* LastWeaponType;
 	HelperedVector<EBolt*> ElectricBolts;
 	int LastHurtFrame;
-	int AttachedEffectInvokerCount;
 
 	AirstrikeClass* AirstrikeTargetingMe;
 	CellStruct RandomEMPTarget;
@@ -993,6 +992,7 @@ public:
 
 	bool FallingDownTracked;
 	bool ResetLocomotor;
+	bool JumpjetStraightAscend;
 #pragma endregion
 
 public:
@@ -1145,7 +1145,6 @@ public:
 		LastWeaponType(nullptr),
 		ElectricBolts(),
 		LastHurtFrame(0),
-		AttachedEffectInvokerCount(0),
 
 		AirstrikeTargetingMe(nullptr),
 		RandomEMPTarget(),
@@ -1165,7 +1164,8 @@ public:
 		UnitIdleActionGapTimer(),
 		Tints(),
 		FallingDownTracked { false },
-		ResetLocomotor { false}
+		ResetLocomotor { false } ,
+		JumpjetStraightAscend { }
 	{
 		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
@@ -1540,8 +1540,35 @@ public:
 	static AbstractClass* __fastcall __Greatest_Threat(TechnoClass* techno, discard_t, ThreatType method, CoordStruct* location, bool a4);
 	static void __fastcall __Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect);
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
-	static void __fastcall __Draw_Rank_Pips(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
 
-
+	//AI
+	static void __HandleGattlingAudio(TechnoClass* pThis);
+	static void __HandleVoicePlayback(TechnoClass* pThis);
+	static void __HandleBerzerkState(TechnoClass* pThis);
+	static void __HandleStrengthSmoothing(TechnoClass* pThis);
+	static void __HandleTurretAudio(TechnoClass* pThis);
+	static void __HandleVeterancyPromotion(TechnoClass* pThis);
+	static void __HandleMoneyDrain(TechnoClass* pThis);
+	static void __HandleDrainTarget(TechnoClass* pThis);
+	static void __HandleHiddenState(TechnoClass* pThis);
+	static void __ClearInvalidAllyTarget(TechnoClass* pThis);
+	static void __CheckTargetInRange(TechnoClass* pThis);
+	static void __HandleTurretRecoil(TechnoClass* pThis);
+	static void __HandleChargeTurret(TechnoClass* pThis);
+	static void __HandleDoorAndTimers(TechnoClass* pThis);
+	static void __ClearTargetForInvalidMissions(TechnoClass* pThis);
+	static void __HandleTargetAcquisition(TechnoClass* pThis);
+	static void __HandleAttachedBomb(TechnoClass* pThis);
+	static void __HandleManagers(TechnoClass* pThis);
+	static void __HandleSelfHealing(TechnoClass* pThis);
+	static void __HandleCloaking(TechnoClass* pThis);
+	static void __ClearTargetIfNoDamage(TechnoClass* pThis);
+	static void __ClearAircraftTarget(TechnoClass* pThis);
+	static void __CheckTargetReachability(TechnoClass* pThis);
+	static void __UpdateAnimationStage(TechnoClass* pThis);
+	static void __HandleFlashing(TechnoClass* pThis);
+	static void __HandleDamageSparks(TechnoClass* pThis);
+	static void __HandleEMPEffect(TechnoClass* pThis);
+	static void __fastcall __AI(TechnoClass* pThis);
 };

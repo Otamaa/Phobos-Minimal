@@ -16,6 +16,19 @@ enum class ProtectTypes : int
 	IronCurtain , ForceShield
 };
 
+class ParticleSystemClass;
+struct ParticleSystems
+{
+	ParticleSystemClass* Fire;
+	ParticleSystemClass* Spark;
+	ParticleSystemClass* Natural;
+	ParticleSystemClass* Damage;
+	ParticleSystemClass* Railgun;
+	ParticleSystemClass* unk1;
+	ParticleSystemClass* unk2;
+	ParticleSystemClass* Firing;
+};
+
 //forward declarations
 class AirstrikeClass;
 class AnimClass;
@@ -356,7 +369,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void UpdateCloak(bool bUnk = 1) RX;
 	virtual void CreateGap() RX;
 	virtual void DestroyGap() RX;
-	virtual void RckingAI() RX;//virtual void vt_entry_41C() RX;
+	virtual void RockingAI() RX;//virtual void vt_entry_41C() RX;
 	virtual void Sensed() RX;
 	virtual void Reload() RX;
 	virtual void vt_entry_428() RX;
@@ -402,10 +415,10 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual CoordStruct* GetAttackMoveCoords(CoordStruct* pBuffer) R0;
 	virtual bool CanUseWaypoint() const R0; // 0x4BC
 	virtual bool CanAttackOnTheMove() const R0; //0x4C0
-	virtual bool MegaMissionIsAttackMove() const R0;
-	virtual bool ContinueMegaMission() R0;
-	virtual void UpdateAttackMove() RX;
-	virtual bool RefreshMegaMission() R0;
+	virtual bool MegaMissionIsAttackMove() const R0; //0x4C4
+	virtual bool ContinueMegaMission() R0; //0x4C8
+	virtual void UpdateAttackMove() RX; //0x4CC
+	virtual bool RefreshMegaMission() R0; //0x4D0
 
 	//non-virtual
 	bool sub_703B10() const JMP_THIS(0x703B10);
@@ -414,6 +427,12 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	int sub_704240() const JMP_THIS(0x704240);
 	bool sub_70D8F0() JMP_THIS(0x70D8F0);
 	bool sub_70DCE0() const { return this->CurrentTurretNumber != -1; }
+
+	bool TechnoClass_709290() const
+	{ JMP_THIS(0x709290) }
+
+	bool Airstrike_0x452000() const
+	{ JMP_THIS(0x452000); }
 
 	bool IsDrainSomething() const
 		{ return this->DrainTarget != nullptr; }
@@ -946,15 +965,10 @@ public:
 	int              Ammo;
 	int              Value; //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C
 
-
-	ParticleSystemClass* FireParticleSystem;
-	ParticleSystemClass* SparkParticleSystem;
-	ParticleSystemClass* NaturalParticleSystem;
-	ParticleSystemClass* DamageParticleSystem;
-	ParticleSystemClass* RailgunParticleSystem;
-	ParticleSystemClass* unk1ParticleSystem;
-	ParticleSystemClass* unk2ParticleSystem;
-	ParticleSystemClass* FiringParticleSystem;
+	union{
+		ParticleSystems Sys;
+		ParticleSystemClass* SysArray[8];
+	};
 
 	WaveClass*       Wave; //Beams
 

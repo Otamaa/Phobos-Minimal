@@ -205,13 +205,10 @@ int TechnoExtData::ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool
 
 	if (invulnerability && pThis->IsIronCurtained())
 		tintColor |= pThis->ProtectType == ProtectTypes::ForceShield ? g_instance->ColorDatas.Forceshield_Color : g_instance->ColorDatas.IronCurtain_Color;
-	if (airstrike && TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe)
-	{
+
+	if (airstrike && TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe) {
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe->Owner->GetTechnoType());
-		if (pTypeExt->LaserTargetColor.isset())
-			tintColor |= GeneralUtils::GetColorFromColorAdd(pTypeExt->LaserTargetColor);
-		else
-			tintColor |= g_instance->ColorDatas.LaserTarget_Color;
+		tintColor |= pTypeExt->TintColorAirstrike;
 	}
 
 	if (berserk && pThis->Berzerk)
@@ -796,7 +793,7 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* 
 	if ((blockChances.size() == 1 && blockChances[0] + pWHExt->Block_ExtraChance > 0.0) || blockChances.size() > 1)
 	{
 		// handle block conditions first
-		auto blockAffectBelowPercents = pBlockType->Block_AffectBelowPercents;
+		Iterator<double> blockAffectBelowPercents = pBlockType->Block_AffectBelowPercents;
 		auto blockAffectsHouses = pBlockType->Block_AffectsHouses.Get(AffectedHouse::All);
 		bool blockCanActiveZeroDamage = pBlockType->Block_CanActive_ZeroDamage.Get(false);
 		bool blockCanActiveNegativeDamage = pBlockType->Block_CanActive_NegativeDamage.Get(false);
@@ -904,7 +901,7 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* 
 		}
 
 		// a block is triggered
-		auto blockAnims = pBlockType->Block_Anims;
+		Iterator <AnimTypeClass*> blockAnims = pBlockType->Block_Anims;
 		auto blockWeapon = pBlockType->Block_Weapon.Get();
 		bool blockFlash = pBlockType->Block_Flash.Get(false);
 		bool blockReflectDamage = pBlockType->Block_ReflectDamage.Get(false);
@@ -912,11 +909,21 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* 
 
 		if (pWHExt->Block_AllowOverride)
 		{
-			blockAnims = !pOtherBlock->Block_Anims.empty() ? pOtherBlock->Block_Anims : blockAnims;
-			blockWeapon = pOtherBlock->Block_Weapon.isset() ? pOtherBlock->Block_Weapon.Get() : blockWeapon;
-			blockFlash = pOtherBlock->Block_Flash.isset() ? pOtherBlock->Block_Flash.Get() : blockFlash;
-			blockReflectDamage = pOtherBlock->Block_ReflectDamage.isset() ? pOtherBlock->Block_ReflectDamage.Get() : blockReflectDamage;
-			blockReflectDamageChance = pOtherBlock->Block_ReflectDamage_Chance.isset() ? pOtherBlock->Block_ReflectDamage_Chance.Get() : blockReflectDamageChance;
+			if (!pOtherBlock->Block_Anims.empty())
+				blockAnims = pOtherBlock->Block_Anims;
+
+			if (pOtherBlock->Block_Weapon.isset())
+				blockWeapon = pOtherBlock->Block_Weapon;
+
+			if (pOtherBlock->Block_Flash.isset())
+				blockFlash = pOtherBlock->Block_Flash;
+
+			if (pOtherBlock->Block_ReflectDamage.isset())
+				blockReflectDamage = pOtherBlock->Block_ReflectDamage;
+
+			if (pOtherBlock->Block_ReflectDamage_Chance)
+				blockReflectDamageChance = pOtherBlock->Block_ReflectDamage_Chance;
+
 		}
 
 		if (blockAnims.size() > 0)
@@ -4224,12 +4231,17 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 	const int zAdjust = drawBefore ? pThis->GetZAdjustment() - 2 : 0;
 	const auto pGroundShape = pSelectBox->GroundShape.Get();
 
-	if ((pGroundShape || pSelectBox->GroundLine) && pSelectBox->Grounded && whatAmI != BuildingClass::AbsID)
+	if ((pGroundShape || pSelectBox->GroundLine)
+	&& pSelectBox->Grounded && whatAmI != BuildingClass::AbsID
+	&& (pSelectBox->Ground_AlwaysDraw || pThis->IsInAir()))
 	{
 		CoordStruct coords = pThis->GetCenterCoords();
 		coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
 
 		auto[outClient, visible] = TacticalClass::Instance->GetCoordsToClientSituation(coords);
+
+		if(whatAmI != BuildingClass::AbsID)
+			outClient += ((FootClass*)pThis)->Locomotor->Shadow_Point();
 
 		if (visible && pGroundShape)
 		{
@@ -6045,7 +6057,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 			}
 		}
 
-		if ((wasDamaged || pThis->DamageParticleSystem) && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
+		if ((wasDamaged || pThis->Sys.Damage) && (pThis->GetHealthPercentage() > RulesClass::Instance->ConditionYellow
 			|| pThis->GetHeight() < -10))
 		{
 			bool Rubbled = false;
@@ -6135,7 +6147,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 			}
 
 			if(!Rubbled) {
-				if (auto& dmgParticle = pThis->DamageParticleSystem) {
+				if (auto& dmgParticle = pThis->Sys.Damage) {
 					dmgParticle->UnInit();
 				}
 			}
@@ -7709,8 +7721,6 @@ TechnoExtData::~TechnoExtData()
 		}
 	}
 
-	this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-	this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 	this->ClearElectricBolts();
 
 	HouseExtData::AutoDeathObjects.erase_all_if([pThis](std::pair<TechnoClass*, KillMethod>& item) {

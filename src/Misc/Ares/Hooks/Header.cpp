@@ -1798,9 +1798,13 @@ int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 	return totalStep;
 }
 
-bool TechnoExt_ExtData::Warpable(TechnoClass* pTarget)
+bool TechnoExt_ExtData::Warpable(TemporalClass* pTemp,TechnoClass* pTarget)
 {
 	if (!pTarget || !pTarget->IsAlive || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
+		return false;
+
+			//the fuck
+	if (pTarget == pTemp->Owner)
 		return false;
 
 	if (TechnoExtData::IsUnwarpable(pTarget))
@@ -3436,6 +3440,10 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 	auto& pCaptureManager = pThis->CaptureManager;
 	auto& pTemporalImUsing = pThis->TemporalImUsing;
 	auto& pAirstrike = pThis->Airstrike;
+
+	// handle AutoFire
+	if (pOldTypeExt->AutoFire && !pNewTypeExt->AutoFire)
+		pThis->SetTarget(nullptr);
 
 	// Remove from harvesters list if no longer a harvester.
 	if (pOldTypeExt->Harvester_Counted && !pNewTypeExt->Harvester_Counted)

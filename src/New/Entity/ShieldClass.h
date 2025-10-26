@@ -34,7 +34,6 @@ public:
 
 	~ShieldClass()
 	{
-		this->IdleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 		Array.remove(this);
 	}
 

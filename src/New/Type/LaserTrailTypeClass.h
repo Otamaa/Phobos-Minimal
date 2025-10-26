@@ -26,6 +26,7 @@ public:
 	Valueable<int> Bolt_Arcs;
 	Nullable<ColorStruct> Beam_Color;
 	Valueable<double> Beam_Amplitude;
+	Valueable<bool> CanBeHidden;
 
 	LaserTrailTypeClass(const char* pTitle) : Enumerable<LaserTrailTypeClass> { pTitle }
 		, IsHouseColor { false }
@@ -48,6 +49,7 @@ public:
 		, Bolt_Arcs { 8 }
 		, Beam_Color {}
 		, Beam_Amplitude { 40.0 }
+		, CanBeHidden { true }
 	{ }
 
 	void LoadFromINI(CCINIClass* pINI);

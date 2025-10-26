@@ -14,8 +14,6 @@
 
 PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
-	Animation.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-
 	if (const auto& pTrail = this->LaserTrail) {
 
 		const auto pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
@@ -27,12 +25,6 @@ PhobosAttachEffectClass::~PhobosAttachEffectClass()
 		this->LaserTrail = nullptr;
 	}
 
-	if (!Phobos::Otamaa::ExeTerminated)
-	{
-		//there an instance where Ext is nullptr
-		if (auto pExt = TechnoExtContainer::Instance.TryFind(this->Invoker))
-			pExt->AttachedEffectInvokerCount--;
-	}
 }
 
 void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
@@ -59,8 +51,6 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 
 	if (pInvoker) {
 		auto pInvokerExt = TechnoExtContainer::Instance.Find(pInvoker);
-
-		pInvokerExt->AttachedEffectInvokerCount++;
 
 		if(pType->Duration_ApplyFirepowerMult)
 			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
@@ -411,8 +401,6 @@ void PhobosAttachEffectClass::CreateAnim()
 		this->Animation->Owner = this->Type->Animation_UseInvokerAsOwner ? InvokerHouse : this->Techno->Owner;
 		this->Animation->RemainingIterations = 0xFFu;
 		auto pAnimExt = ((FakeAnimClass*)this->Animation.get())->_GetExtData();
-
-		pAnimExt->IsAttachedEffectAnim = true;
 		if (this->Type->Animation_UseInvokerAsOwner) {
 			pAnimExt->Invoker = Invoker;
 		}
@@ -425,7 +413,7 @@ void PhobosAttachEffectClass::KillAnim()
 {
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", this->Techno->GetThisClassName(), this->Techno->get_ID());
 	if (this->Animation) {
-		this->Animation.clear();
+		this->Animation.detachptr();
 		AEProperties::UpdateAEAnimLogic(this->Techno);
 	}
 
@@ -459,8 +447,6 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 	if (this->Invoker)
 	{
 		auto pInvokerExt = TechnoExtContainer::Instance.Find(this->Invoker);
-
-		pInvokerExt->AttachedEffectInvokerCount++;
 
 		if (this->Type->Duration_ApplyFirepowerMult)
 			this->Duration = static_cast<int>(this->Duration * this->Invoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);

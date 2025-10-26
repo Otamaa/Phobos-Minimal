@@ -195,7 +195,7 @@ void __fastcall FakeTechnoClass::__DrawHealthBar_Selection(TechnoClass* techno, 
 	TechnoTypeClass* technoTypeClass = techno->GetTechnoType();
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoTypeClass);
 	SHPStruct* pips_SHP = pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP());
-			   pips_SHP = pTypeExt->HealthBarSHP.Get(pips_SHP);
+	pips_SHP = pTypeExt->HealthBarSHP.Get(pips_SHP);
 	SHPStruct* pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
 	ConvertClass* pPalette = FileSystem::PALETTE_PAL();
 
@@ -356,15 +356,17 @@ static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2
 {
 	TechnoTypeClass* technoType = techno->GetTechnoType();
 	bool isInfantry = (unitType == AbstractType::Infantry);
+	const auto pExt = TechnoExtContainer::Instance.Find(techno);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoType);
 
 	Point2D forPipBrd {
 		.X = isInfantry ? 11 : 1,
-		.Y = technoType->PixelSelectionBracketDelta - (isInfantry ? 25 : 26)
+		.Y = technoType->PixelSelectionBracketDelta - (isInfantry ? 25 : 26) + pTypeExt->HealthBarSHPBracketOffset
 	};
 
 	Point2D forPip {
 		.X = isInfantry ? -5 : -15 ,
-		.Y = technoType->PixelSelectionBracketDelta - (isInfantry ? 24 : 25)
+		.Y = technoType->PixelSelectionBracketDelta - (isInfantry ? 24 : 25) + pTypeExt->HealthBarSHPBracketOffset
 	};
 
 	HealthBarDrawState drawState {
@@ -376,7 +378,7 @@ static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2
 	};
 
 	{ // these are draw before HP itself drawn
-		const auto pExt = TechnoExtContainer::Instance.Find(techno);
+
 
 		if (const auto pShieldData = pExt->Shield.get())
 		{
@@ -405,20 +407,21 @@ static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2
 	if (filledLength > drawState.barLength) filledLength = drawState.barLength;
 
 	// Determine health bar color frame
-	int healthFrameIndex = 16; // Green
+	int healthFrameIndex = pTypeExt->HealthBarSHP_HealthFrame->Y; // Green
 
 	if (healthRatio <= RulesClass::Instance->ConditionYellow) {
-		healthFrameIndex = 17; // Yellow
+		healthFrameIndex = pTypeExt->HealthBarSHP_HealthFrame->Z; // Yellow
 	}
 
 	if (techno->Health <= 0 || healthRatio <= RulesClass::Instance->ConditionRed) {
-		healthFrameIndex = 18; // Red
+		healthFrameIndex = pTypeExt->HealthBarSHP_HealthFrame->X; // Red
 	}
 
 	// Draw health bar pips
 	for (int i = 0; i < filledLength; i++)
 	{
 		Point2D pipPos = position->operator+(drawState.pipDelta);
+		pipPos += pTypeExt->HealthBarSHP_PointOffset;
 		pipPos.X += i * drawState.spacing;
 		DrawSingleHPPip(&pipPos, assets->convert, assets->pipShape, healthFrameIndex, clipRect, HEALTHBAR_FLAGS);
 	}

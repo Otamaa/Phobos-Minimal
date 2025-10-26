@@ -155,7 +155,13 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 	{
 		// Also check for vftable here to guarantee the TemporalClass not being destoryed already.
 		if (IsTemporalptrValid(pThis->TemporalTargetingMe)) // TemporalClass::`vtable`
+		{
+			if (pThis->TemporalTargetingMe->Owner == pThis->TemporalTargetingMe->Target) {
+				pThis->TemporalTargetingMe->Detach();
+				return;
+			}
 			pThis->TemporalTargetingMe->Update();
+		}
 		else // It should had being warped out, delete this object
 		{
 			pThis->TemporalTargetingMe = nullptr;
@@ -2892,4 +2898,64 @@ ASMJIT_PATCH(0x74431F, UnitClass_ReadyToNextMission_HuntCheck, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 	return pThis->GetCurrentMission() != Mission::Hunt ? 0 : 0x744329;
+}
+
+ASMJIT_PATCH(0x54CC9C, JumpjetLocomotionClass_ProcessCrashing_DropFix, 0x5)
+{
+	enum { SkipGameCode = 0x54CDC3, SkipGameCode2 = 0x54CFB7 };
+
+	GET(ObjectClass* const, pObject, ESI);
+	GET(JumpjetLocomotionClass*, pLoco, EDI);
+	const auto pLinkedTo = pLoco->LinkedTo;
+	bool fallOnSomething = false;
+
+	for (NextObject object(pObject); object; ++object)
+	{
+		if (*object == pLinkedTo || !(*object)->IsAlive)
+			continue;
+
+		const auto whatAmObject = object->WhatAmI();
+
+		if (whatAmObject == UnitClass::AbsID || whatAmObject == BuildingClass::AbsID || whatAmObject == AircraftClass::AbsID)
+		{
+			fallOnSomething = true;
+			continue;
+		}
+
+		if (whatAmObject == InfantryClass::AbsID)
+		{
+			const auto pInfantry = static_cast<InfantryClass*>(*object);
+
+			VocClass::SafeImmedietelyPlayAt(object->GetType()->CrushSound, object->Location);
+
+			if (const auto pManipulater = pLinkedTo->BeingManipulatedBy)
+				pInfantry->RegisterDestruction(pManipulater);
+			else if (const auto pSourceHouse = pLinkedTo->ChronoWarpedByHouse)
+				pInfantry->RegisterKill(pSourceHouse);
+			else
+				pInfantry->RegisterDestruction(pLinkedTo);
+
+			pInfantry->Mark(MarkType::Up);
+			pInfantry->Limbo();
+			pInfantry->UnInit();
+			continue;
+		}
+
+		if (whatAmObject == TerrainClass::AbsID)
+		{
+			const auto pTerrain = static_cast<TerrainClass*>(*object);
+
+			if (pTerrain->Type->SpawnsTiberium || pTerrain->Type->Immune)
+				continue;
+		}
+
+		if (const auto pManipulater = pLinkedTo->BeingManipulatedBy)
+			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pManipulater, true, false, pManipulater->Owner);
+		else if (const auto pSourceHouse = pLinkedTo->ChronoWarpedByHouse)
+			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pLinkedTo, true, false, pSourceHouse);
+		else
+			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pLinkedTo, true, false, pLinkedTo->Owner);
+	}
+
+	return fallOnSomething ? SkipGameCode2 : SkipGameCode;
 }

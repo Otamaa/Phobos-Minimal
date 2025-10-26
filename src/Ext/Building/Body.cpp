@@ -15,8 +15,6 @@ BuildingExtData::~BuildingExtData()
 {
 
 	auto pThis = This();
-	this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-
 	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
 	auto pOwnerExt = pOwner->_GetExtData();
 
@@ -1012,8 +1010,8 @@ void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
 	{
 		this->ToggleDamagedAnims(!wasDamaged);
 
-		if (wasDamaged && this->DamageParticleSystem)
-			this->DamageParticleSystem->UnInit();
+		if (wasDamaged && this->Sys.Damage)
+			this->Sys.Damage->UnInit();
 	}
 
 	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
@@ -1034,8 +1032,8 @@ void FakeBuildingClass::_OnFinishRepair()
 	{
 		this->ToggleDamagedAnims(!wasDamaged);
 
-		if (wasDamaged && this->DamageParticleSystem)
-			this->DamageParticleSystem->UnInit();
+		if (wasDamaged && this->Sys.Damage)
+			this->Sys.Damage->UnInit();
 	}
 
 	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
@@ -1909,7 +1907,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 			};
 
 		//everyone can see this regardless
-		if (pType->TechLevel <= 0 && this->Type->NeedsEngineer && this->Type->Capturable)
+		if ((pType->TechLevel <= 0 || pType->TechLevel > 10) && this->Type->NeedsEngineer && this->Type->Capturable)
 		{
 			DrawTheStuff(Phobos::UI::Tech_Label);
 		}

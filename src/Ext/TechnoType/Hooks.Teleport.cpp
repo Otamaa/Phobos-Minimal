@@ -17,7 +17,7 @@
 	TechnoTypeClass* pType = pOwner->GetTechnoType(); \
 	TechnoTypeExtData *pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x6)
+ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x5)
 {
 	//GET(TeleportLocomotionClass*, pThis, ESI);
 	GET(FootClass*, pLinked, ECX);
