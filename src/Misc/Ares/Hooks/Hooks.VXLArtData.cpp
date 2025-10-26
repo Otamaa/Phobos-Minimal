@@ -692,11 +692,6 @@ ASMJIT_PATCH(0x73B4A0, UnitClass_DrawVXL_WaterType, 9)
 		Image = U->Type->UnloadingClass;
 	}
 
-	if (!U->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
-	{
-		Image = U->GetDisguise(true);
-	}
-
 	R->EBX<ObjectTypeClass*>(Image);
 	return 0x73B4DA;
 }

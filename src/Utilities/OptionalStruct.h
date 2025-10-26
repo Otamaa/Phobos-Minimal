@@ -20,13 +20,13 @@ struct OptionalStruct : public std::optional<T>
 	explicit COMPILETIMEEVAL OptionalStruct(T&& value) noexcept : Base(std::move(value)) { }
 
 	// Assignment operator from T - no reinterpret_cast needed!
-	OptionalStruct& operator=(const T& value)
+	COMPILETIMEEVAL OptionalStruct& operator=(const T& value)
 	{
 		Base::operator=(value);
 		return *this;
 	}
 
-	OptionalStruct& operator=(T&& value)
+	COMPILETIMEEVAL OptionalStruct& operator=(T&& value)
 	{
 		Base::operator=(std::move(value));
 		return *this;

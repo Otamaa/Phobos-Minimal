@@ -490,29 +490,61 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				pItem->ID, myClassName, pItem->Passengers, (int)pItem->SizeLimit);
 			Debug::RegisterParserError();
 		}
-		if (pItem->MainVoxel.VXL)
-		{
-			if (!pItem->MainVoxel.VXL->HeaderData || !pItem->MainVoxel.VXL->TailerData)
+
+		auto ValidateVoxelStruct = [pItem, pExt, myClassName](VoxelStruct* pVxl , const char* ident) {
+
+			if (!pVxl->VXL->HeaderData || !pVxl->VXL->TailerData)
 			{
-				Debug::FatalError("Techno[{} - {}] Has VXL but has no HeaderData wtf ?", myClassName, pItem->ID);
+				Debug::FatalError("Techno[%s - %s] Has %s VXL but has no HeaderData or TailerData wtf ?", myClassName, pItem->ID , ident);
 			}
 
-			if (auto pHVA = pItem->MainVoxel.HVA)
+			if (auto pHVA = pVxl->HVA)
 			{
-
 				auto shadowIdx = pItem->ShadowIndex;
 				auto layerCount = pHVA->LayerCount;
 
 				if (shadowIdx >= layerCount)
 				{
-					Debug::LogInfo("ShadowIndex on [{}]'s image is {}, but the HVA only has {} sections.",
-						pItem->ID, shadowIdx, layerCount);
+					Debug::LogInfo("ShadowIndex on [{}]'s {} image is {}, but the HVA only has {} sections.",
+						pItem->ID, ident , shadowIdx, layerCount);
 					Debug::RegisterParserError();
 				}
 			}
 			else
 			{
-				Debug::FatalError("Techno[{} - {}] Has VXL but has no HVA wtf ?", myClassName, pItem->ID);
+				Debug::FatalError("Techno[%s - %s] Has %s VXL but has no HVA wtf ?", myClassName, pItem->ID , ident);
+			}
+		};
+
+		if (pItem->MainVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->MainVoxel, "");
+		}
+
+		if (pItem->TurretVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->TurretVoxel, "TurretVoxel");
+		}
+
+		if (pItem->BarrelVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->BarrelVoxel, "BarrelVoxel");
+		}
+
+		if (pExt->SpawnAltData.VXL) {
+			ValidateVoxelStruct(&pExt->SpawnAltData, "SpawnAltData");
+		}
+
+		for (size_t ia = 0; ia < pExt->BarrelImageData.size(); ++ia) {
+			if (pExt->BarrelImageData[ia].VXL) {
+				std::string ident_a("BarrelImageData ");
+				ident_a += std::to_string(ia);
+				ValidateVoxelStruct(&pExt->BarrelImageData[ia], ident_a.c_str());
+			}
+		}
+
+		for (size_t ib = 0; ib < pExt->BarrelImageData.size(); ++ib) {
+			if (pExt->TurretImageData[ib].VXL) {
+				std::string ident_b("TurretImageData ");
+				ident_b += std::to_string(ib);
+				ValidateVoxelStruct(&pExt->TurretImageData[ib], ident_b.c_str());
 			}
 		}
 
@@ -707,21 +739,34 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	 for (auto pBullet : *BulletTypeClass::Array) {
+	for (auto pBullet : *BulletTypeClass::Array) {
 
-		 if(pBullet->Voxel && !pBullet->MainVoxel.VXL) {
-			 Debug::LogInfo("Bullet[{}] has no valid VXL !", pBullet->ID);
-			 pBullet->Voxel = false;//shp bullet has image checking
-			 Debug::RegisterParserError();
-		 }
-		 else if (pBullet->Voxel && pBullet->MainVoxel.VXL && !pBullet->MainVoxel.HVA) {
-			 Debug::LogInfo("Bullet[{}] has no valid HVA !", pBullet->ID);
-			 Debug::RegisterParserError();
-		 }
-		 else if (!pBullet->Voxel && !pBullet->GetImage()) {
-			 Debug::LogInfo("Bullet[{}] has no valid SHP !", pBullet->ID);
-			 Debug::RegisterParserError();
-		 }
+		if (pBullet->Voxel)
+		{
+			if(pBullet->MainVoxel.VXL){
+
+				if (!pBullet->MainVoxel.VXL->HeaderData || !pBullet->MainVoxel.VXL->TailerData) {
+					Debug::FatalError("Bullet[%s] Has VXL but has no HeaderData or TailerData wtf ?", pBullet->ID);
+				}
+
+				if (!pBullet->MainVoxel.HVA)
+				{
+					Debug::LogInfo("Bullet[{}] Has VXL but has no HVA wtf ?", pBullet->ID);
+					Debug::RegisterParserError();
+					GameDelete(pBullet->MainVoxel.VXL);
+					pBullet->Voxel = false;
+				}
+			} else{
+				Debug::LogInfo("Bullet[{}] Has no VXL but set as Voxel wtf ?", pBullet->ID);
+				Debug::RegisterParserError();
+				pBullet->Voxel = false;
+			}
+		}
+
+		if (!pBullet->Voxel && !pBullet->GetImage()) {
+			Debug::LogInfo("Bullet[{}] has no valid SHP !", pBullet->ID);
+			Debug::RegisterParserError();
+		}
 
 	 	//auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
 
@@ -729,7 +774,24 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	 	//	Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);
 	 	//	Debug::RegisterParserError();
 	 	//}
-	 }
+	}
+
+	for(auto pVxlAnim : *VoxelAnimTypeClass::Array){
+		if (pVxlAnim->MainVoxel.VXL) {
+
+			if (!pVxlAnim->MainVoxel.VXL->HeaderData || !pVxlAnim->MainVoxel.VXL->TailerData) {
+				Debug::LogInfo("VoxelAnim[{}] Has VXL but has no HeaderData or TailerData wtf ?", pVxlAnim->ID);
+				Debug::RegisterParserError();
+				GameDelete(pVxlAnim->MainVoxel.VXL);
+				continue;
+			}
+
+			if (!pVxlAnim->MainVoxel.HVA) {
+				Debug::LogInfo("VoxelAnim[{}] Has VXL but has no HVA wtf ?", pVxlAnim->ID);
+				Debug::RegisterParserError();
+			}
+		}
+	}
 
 	for (auto pHouse : *HouseTypeClass::Array)
 	{

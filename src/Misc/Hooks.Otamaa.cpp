@@ -7453,8 +7453,8 @@ public:
 			 * No need to worry about divide-by-zero because, in each case, the
 			 * outcode bit being tested guarantees the denominator is non-zero
 			 */
-			double x  = {};
-			double y = {};
+			double x {};
+			double y {};
 
 			if (outcodeOut & CODE_TOP)
 			{            // point is above the clip window
@@ -7568,18 +7568,3 @@ ASMJIT_PATCH(0x6F8A0F, TechnoClass_EvalCell_deadTechno, 0x8)
 	//ASMJIT_PATCH_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
 
 #endif
-
-ASMJIT_PATCH(0x7564B0, VoxClass_GetData, 7) {
-	GET(VoxLib*, pVox, ECX);
-	GET_STACK(DWORD, caller, 0x0);
-	GET_STACK(int, header, 0x4);
-	GET_STACK(int, layer, 0x8);
-
-	if (!pVox->HeaderData || !pVox->TailerData)
-		Debug::FatalError("VoxelLibraryClass::Get_Voxel_Layer_Info input is broken ! caller 0x%x", caller);
-
-	auto pData = &pVox->TailerData[layer + pVox->HeaderData[header].limb_number];
-
-	R->EAX(pData);
-	return 0x7564CF;
-}
