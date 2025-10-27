@@ -380,7 +380,7 @@ static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2
 	{ // these are draw before HP itself drawn
 
 
-		if (const auto pShieldData = pExt->Shield.get())
+		if (const auto pShieldData = pExt->GetShield())
 		{
 			if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
 				pShieldData->DrawShieldBar_Other(drawState.barLength, position, clipRect);
