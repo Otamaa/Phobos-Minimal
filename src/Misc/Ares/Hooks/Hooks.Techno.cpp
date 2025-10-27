@@ -820,6 +820,17 @@ ASMJIT_PATCH(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 	return R->Origin() + 0xD;
 }ASMJIT_PATCH_AGAIN(0x6FB4A3, TechnoClass_CreateGap_LargeGap, 7)
 
+//ASMJIT_PATCH(0x70D4FD, ObjectClass_ClearTargetToMe_ClearLastTarget, 0x6) {
+//	GET(TechnoClass*, pTechno, ESI);
+//	GET(bool, shouldClear, ECX);
+//	GET(ObjectClass*, pThis, EBP);
+//
+//	if (pTechno->LastTarget == pThis && shouldClear) {
+//		pTechno->LastTarget = nullptr;
+//	}
+//
+//	return 0x0;
+//}
 
 // Radar Jammers (#305) unjam all on owner change
 ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
@@ -843,6 +854,10 @@ ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 	//	if (pSpawn->Target == pThis)
 	//		pSpawn->ResetTarget();
 	//}
+
+	//pThis->LastTarget = nullptr;
+	//if (auto pFoot = flag_cast_to<FootClass*>(pThis))
+	//	pFoot->LastDestination = nullptr;
 
 	if (auto pJammer = TechnoExtContainer::Instance.Find(pThis)->Get_RadarJammerClass()) {
 		pJammer->UnjamAll();

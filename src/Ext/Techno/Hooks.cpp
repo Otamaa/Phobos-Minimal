@@ -832,6 +832,7 @@ ASMJIT_PATCH(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
 	GET(CoordStruct*, pDestCrd, EAX);
 
 	auto pCarrier = pThis->SpawnOwner;
+	auto pType = pThis->GetTechnoType();
 
 	if (pCarrier && pCarrier == pThis->Destination) // This is a spawner returning to its carrier.
 	{
@@ -840,7 +841,7 @@ ASMJIT_PATCH(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
 		if (pCarrierTypeExt->Spawner_RecycleFLH->IsValid())
 			*pDestCrd += TechnoExtData::GetFLHAbsoluteCoords(pCarrier, pCarrierTypeExt->Spawner_RecycleFLH, pCarrierTypeExt->Spawner_RecycleOnTurret) - pCarrier->GetCoords();
 
-	}else if (pThis->Destination && pThis->Destination->WhatAmI() == AbstractType::Building
+	}else if (!pType->MissileSpawn && pThis->Destination && pThis->Destination->WhatAmI() == AbstractType::Building
 	&& pThis->SendCommand(RadioCommand::QueryCanEnter, static_cast<BuildingClass*>(pThis->Destination)) != RadioCommand::AnswerPositive)
 	{
 		auto crd = pThis->Destination->GetCoords();
