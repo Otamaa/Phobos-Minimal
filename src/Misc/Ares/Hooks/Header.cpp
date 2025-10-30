@@ -19,6 +19,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/Macro.h>
 #include <Utilities/Cast.h>
+#include <Utilities/Helpers.h>
 
 #include <Helpers/Macro.h>
 
@@ -73,10 +74,13 @@
 #pragma region defines
 PhobosMap<ObjectClass*, AlphaShapeClass*> StaticVars::ObjectLinkedAlphas { };
 std::vector<unsigned char>  StaticVars::ShpCompression1Buffer { };
-std::map<const TActionClass*, int>  StaticVars::TriggerCounts { };
+PhobosMap<const TActionClass*, int>  StaticVars::TriggerCounts { };
 UniqueGamePtr<MixFileClass>  StaticVars::aresMIX { };
 std::string  StaticVars::MovieMDINI { "MOVIEMD.INI" };
 WaveColorData  StaticVars::TempColor { };
+
+bool StaticVars::InitEd = false;
+AresPcxBlit<WORD> StaticVars::GlobalPcxBlitter = AresPcxBlit<WORD>(0u, 0, 0, 0);
 
 DWORD AresGlobalData::InternalVersion { 0x1414D121 };
 char AresGlobalData::ModName[0x40] { "Yuri's Revenge" };
@@ -139,6 +143,8 @@ void StaticVars::Clear()
 	ObjectLinkedAlphas.clear();
 	ShpCompression1Buffer.clear();
 	TriggerCounts.clear();
+	InitEd = false;
+	GlobalPcxBlitter = AresPcxBlit<WORD>(0u, 0, 0, 0);
 }
 
 void StaticVars::LoadGlobalsConfig()
@@ -187,9 +193,9 @@ static COMPILETIMEEVAL std::array<std::pair<const char*, const char*>, 17u> cons
  } };
 
 
-HashData HashData::GetINIChecksums()
+ConfigurationHashData::Result ConfigurationHashData::GetINIChecksums()
 {
-	HashData nBuffer;
+	Result nBuffer;
 	if (SessionClass::Instance->GameMode != GameMode::LAN)
 	{
 		nBuffer = { CCINIClass::RulesHash() , CCINIClass::ArtHash() ,  CCINIClass::AIHash() };
@@ -1022,13 +1028,13 @@ int TechnoExt_ExtData::GetVictimBountyValue(TechnoClass* pVictim, TechnoClass* p
 	switch (pKillerTypeExt->Bounty_Value_Option.Get(RulesExtData::Instance()->Bounty_Value_Option))
 	{
 	case BountyValueOption::Cost:
-		Value = pVictimTypeExt->AttachedToObject->GetCost();
+		Value = pVictimTypeExt->This()->GetCost();
 		break;
 	case BountyValueOption::Soylent:
 		Value = pVictim->GetRefund();
 		break;
 	case BountyValueOption::ValuePercentOfConst:
-		Value = int(pVictimTypeExt->AttachedToObject->GetCost() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim));
+		Value = int(pVictimTypeExt->This()->GetCost() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim));
 		break;
 	case BountyValueOption::ValuePercentOfSoylent:
 		Value = int(pVictim->GetRefund() * pVictimTypeExt->Bounty_Value_PercentOf.Get(pVictim));
@@ -1093,7 +1099,7 @@ void TechnoExt_ExtData::GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 	{
 		if (pKillerTypeExt->Bounty_Display.Get(RulesExtData::Instance()->Bounty_Display))
 		{
-			if (pKillerTypeExt->AttachedToObject->MissileSpawn && pKiller->SpawnOwner)
+			if (pKillerTypeExt->This()->MissileSpawn && pKiller->SpawnOwner)
 				pKiller = pKiller->SpawnOwner;
 
 			VocClass::SafeImmedietelyPlayAt(pKillerTypeExt->Bounty_ReceiveSound, &pKiller->Location);
@@ -1256,6 +1262,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 
 		bool asPassenger = false;
 		const auto pDestTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
+		auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 
 		if (action == AresHijackActionResult::Drive && (!pDestTypeExt->Operators.empty() || pDestTypeExt->Operator_Any))
 		{
@@ -1294,7 +1301,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		const auto controller = pThis->MindControlledBy;
 		if (controller)
 		{
-			CaptureExt::FreeUnit(controller->CaptureManager, pThis, true);
+			CaptureExtData::FreeUnit(controller->CaptureManager, pThis, true);
 		}
 
 		// let's make a steal
@@ -1303,22 +1310,22 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		VocClass::SafeImmedietelyPlayAt(pTypeExt->HijackerEnterSound, &pTarget->Location, nullptr);
 
 		// remove the driverless-marker
-		TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled = 0;
+		pTargetExt->Is_DriverKilled = 0;
 
 		// save the hijacker's properties
 		if (action == AresHijackActionResult::Hijack)
 		{
 			pTarget->HijackerInfantryType = pType->ArrayIndex;
-			TechnoExtContainer::Instance.Find(pTarget)->HijackerOwner = pThis->Owner;
-			TechnoExtContainer::Instance.Find(pTarget)->HijackerHealth = pThis->Health;
-			TechnoExtContainer::Instance.Find(pTarget)->HijackerVeterancy = pThis->Veterancy.Veterancy;
+			pTargetExt->HijackerOwner = pThis->Owner;
+			pTargetExt->HijackerHealth = pThis->Health;
+			pTargetExt->HijackerVeterancy = pThis->Veterancy.Veterancy;
 			TechnoExtData::StoreHijackerLastDisguiseData(pThis, (FootClass*)pTarget);
 		}
 
 		// hook up the original mind-controller with the target #762
 		if (controller)
 		{
-			CaptureExt::CaptureUnit(controller->CaptureManager, pThis, true, 0);
+			CaptureExtData::CaptureUnit(controller->CaptureManager, pThis, true, 0);
 		}
 
 		// reboot the slave manager
@@ -1376,7 +1383,7 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 	//cant really get right decomp result or maybe just me that not understand ,..
 	//these should work fine for now ,..
 	auto its = Helpers::Alex::getCellSpreadItems<FootClass>(pThis->Location, (double)pInf->Type->Sight, false, false);
-	auto it = std::find_if(its.begin(), its.end(), [&](FootClass* pFoot)
+	auto it = std::ranges::find_if(its, [&](FootClass* pFoot)
 {
 	if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
 		return false;
@@ -1669,8 +1676,8 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 				// the hijacker will now be controlled instead of the unit
 				if (auto const pController = pThis->MindControlledBy)
 				{
-					CaptureExt::FreeUnit(pController->CaptureManager, pThis, true);
-					CaptureExt::CaptureUnit(pController->CaptureManager, pHijacker, true, 0);
+					CaptureExtData::FreeUnit(pController->CaptureManager, pThis, true);
+					CaptureExtData::CaptureUnit(pController->CaptureManager, pHijacker, true, 0);
 					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
 				}
 
@@ -1766,8 +1773,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 
 int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 {
-	int nAddStep = 0;
-	int nStepR = 0;
+	int totalStep = 0;
 
 	if (!pThis)
 		return 0;
@@ -1778,23 +1784,27 @@ int TechnoExt_ExtData::GetWarpPerStep(TemporalClass* pThis, int nStep)
 			break;
 
 		++nStep;
-		auto const pWeapon = pTemp->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pTemp->Owner)->idxSlot_Warp)->WeaponType;
 
-		//if (auto const pTarget = pTemp->Target)
-		//	nStepR = FakeWarheadTypeClass::ModifyDamage(pWeapon->Damage, pWeapon->Warhead, pTarget->GetTechnoType()->Armor, 0);
-		//else
-		nStepR = pWeapon->Damage;
+		if(auto pTempOwner = pTemp->Owner){
 
-		nAddStep += nStepR;
-		pTemp->WarpPerStep = nStepR;
+			auto const pWeapon = pTempOwner->GetWeapon(TechnoExtContainer::Instance.Find(pTempOwner)->idxSlot_Warp)
+					->WeaponType;
+
+			totalStep += pWeapon->Damage;
+			pTemp->WarpPerStep = pWeapon->Damage;
+		}
 	}
 
-	return nAddStep;
+	return totalStep;
 }
 
-bool TechnoExt_ExtData::Warpable(TechnoClass* pTarget)
+bool TechnoExt_ExtData::Warpable(TemporalClass* pTemp,TechnoClass* pTarget)
 {
-	if (!pTarget || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
+	if (!pTarget || !pTarget->IsAlive || pTarget->IsSinking || pTarget->IsCrashing || pTarget->IsIronCurtained())
+		return false;
+
+			//the fuck
+	if (pTarget == pTemp->Owner)
 		return false;
 
 	if (TechnoExtData::IsUnwarpable(pTarget))
@@ -2012,6 +2022,8 @@ bool TechnoExt_ExtData::canTraverseTo(BuildingClass* currentBuilding, BuildingCl
 	return false;
 }
 
+#include <Ext/Infantry/Body.h>
+
 void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingClass* targetBuilding)
 {
 	BuildingTypeClass* targetBuildingType = targetBuilding->Type;
@@ -2021,7 +2033,7 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 	{
 		auto item = currentBuilding->Occupants.Items[0];
 		targetBuilding->Occupants.AddItem(item);
-		TechnoExtContainer::Instance.Find(item)->GarrisonedIn = targetBuilding;
+		InfantryExtContainer::Instance.Find(item)->GarrisonedIn = targetBuilding;
 		currentBuilding->Occupants.Remove(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
 	}
 
@@ -3015,8 +3027,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 				pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses.Get()),
 				coord,
 				pTypeExt->DisplayIncome_Offset,
-				ColorStruct::Empty
-		);
+				ColorStruct::Empty);
 		pBldExt->AccumulatedIncome = 0;
 	}
 }
@@ -3430,6 +3441,10 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 	auto& pTemporalImUsing = pThis->TemporalImUsing;
 	auto& pAirstrike = pThis->Airstrike;
 
+	// handle AutoFire
+	if (pOldTypeExt->AutoFire && !pNewTypeExt->AutoFire)
+		pThis->SetTarget(nullptr);
+
 	// Remove from harvesters list if no longer a harvester.
 	if (pOldTypeExt->Harvester_Counted && !pNewTypeExt->Harvester_Counted)
 	{
@@ -3773,6 +3788,25 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 		pThis->LocomotorTarget = nullptr;
 	}
 
+	// FireAngle
+	pThis->BarrelFacing.Set_Current(DirStruct(0x4000 - (pCurrentType->FireAngle << 8)));
+
+	// Reset recoil data
+	{
+		auto& turretRecoil = pThis->TurretRecoil.Turret;
+		const auto& turretAnimData = pCurrentType->TurretAnimData;
+		turretRecoil.Travel = turretAnimData.Travel;
+		turretRecoil.CompressFrames = turretAnimData.CompressFrames;
+		turretRecoil.RecoverFrames = turretAnimData.RecoverFrames;
+		turretRecoil.HoldFrames = turretAnimData.HoldFrames;
+		auto& barrelRecoil = pThis->BarrelRecoil.Turret;
+		const auto& barrelAnimData = pCurrentType->BarrelAnimData;
+		barrelRecoil.Travel = barrelAnimData.Travel;
+		barrelRecoil.CompressFrames = barrelAnimData.CompressFrames;
+		barrelRecoil.RecoverFrames = barrelAnimData.RecoverFrames;
+		barrelRecoil.HoldFrames = barrelAnimData.HoldFrames;
+	}
+
 	// Only FootClass* can use this.
 	if (const auto pFoot = flag_cast_to<FootClass*>(pThis))
 	{
@@ -3808,7 +3842,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 	//auto const pOldTypeExt = TechnoTypeExt::ExtMap.Find(pOldType);
 
 	// Update movement sound if still moving while type changed.
-	if (pThis->Locomotor->Is_Moving_Now() && pThis->IsMoveSoundPlaying)
+	if (pThis->IsMoveSoundPlaying && pThis->Locomotor->Is_Moving_Now())
 	{
 		if (pCurrentType->MoveSound != pOldType->MoveSound)
 		{
@@ -4066,8 +4100,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	TechnoExtData::UpdateLaserTrails(pThis);
 
 	// Reset AutoDeath Timer
-	if (pExt->Death_Countdown.HasStarted())
-	{
+	if (pExt->Death_Countdown.HasStarted()) {
 		pExt->Death_Countdown.Stop();
 		HouseExtData::AutoDeathObjects.erase(pThis);
 	}
@@ -4139,6 +4172,8 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	const int TurretCount = (pToType->TurretCount > 0 ? pToType->TurretCount : 2);
 	if (pThis->CurrentTurretNumber >= TurretCount)
 		pThis->CurrentTurretNumber = 0;
+
+	TechnoExtContainer::Instance.Find(pThis)->ResetLocomotor = true;
 
 	UpdateTypeData(pThis, pOldType, pToType);
 
@@ -4215,6 +4250,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 		}
 	}
 
+	TechnoExtContainer::Instance.Find(pThis)->Tints.Update();
 	return true;
 }
 
@@ -4313,14 +4349,14 @@ void NOINLINE UpdateType(TechnoClass* pThis, TechnoTypeExtData* pOldTypeExt)
 				Convert = pOldTypeExt->Convert_Water;
 		}
 
-		if (Convert && pOldTypeExt->AttachedToObject != Convert)
+		if (Convert && pOldTypeExt->This() != Convert)
 			TechnoExt_ExtData::ConvertToType(pThis, Convert);
 	}
 }
 
 void NOINLINE UpdatePassengerTurrent(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 {
-	const auto pType = pTypeData->AttachedToObject;
+	const auto pType = pTypeData->This();
 	if (pTypeData->PassengerTurret)
 	{
 		// 18 = 1 8 = A H = Adolf Hitler. Clearly we can't allow it to come to that.
@@ -4358,7 +4394,7 @@ void NOINLINE UpdatePoweredBy(TechnoClass* pThis, TechnoTypeExtData* pTypeData)
 
 void NOINLINE UpdateBuildingOperation(TechnoExtData* pData, TechnoTypeExtData* pTypeData)
 {
-	auto const pThis = pData->AttachedToObject;
+	auto const pThis = pData->This();
 
 	if (TechnoExtContainer::Instance.Find(pThis)->Is_Operated && pThis->WhatAmI() == BuildingClass::AbsID)
 	{
@@ -4418,7 +4454,7 @@ void NOINLINE UpdateBuildingOperation(TechnoExtData* pData, TechnoTypeExtData* p
 
 void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeData)
 {
-	auto const pThis = pData->AttachedToObject;
+	auto const pThis = pData->This();
 
 	// prevent disabled units from driving around.
 	if (pThis->Deactivated)
@@ -4491,20 +4527,22 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto value = pExt->TechnoValueAmount;
+	static fmt::basic_memory_buffer<wchar_t> moneyStr;
+
 	if (value && (forcedraw || Unsorted::CurrentFrame >= pExt->Pos))
 	{
 		pExt->Pos = Unsorted::CurrentFrame - int32_t(RulesExtData::Instance()->DisplayCreditsDelay * -900.0);
 		pExt->TechnoValueAmount = 0;
 		bool isPositive = value > 0;
-		fmt::basic_memory_buffer<wchar_t> moneyStr;
 
+		moneyStr.clear();
 		const ColorStruct& color = isPositive
 			? Drawing::DefaultColors[(int)DefaultColorList::Green] :
 			Drawing::DefaultColors[(int)DefaultColorList::Red];
 
 		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
 		moneyStr.push_back(L'\0');
-
+	
 		CoordStruct loc = pThis->GetCoords();
 		if (!MapClass::Instance->IsLocationShrouded(loc)
 			&& pThis->VisualCharacter(FALSE, HouseClass::CurrentPlayer()) != VisualType::Hidden)
@@ -4518,7 +4556,7 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 				loc.Z += 256;
 			}
 
-			FlyingStrings::Add(moneyStr.data(), loc, color, {});
+			FlyingStrings::Add(moneyStr, loc, color, {});
 		}
 	}
 }
@@ -6226,7 +6264,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		return false;
 	}
 
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pData->AttachedToObject->Warhead);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pData->This()->Warhead);
 	const auto Target = flag_cast_to<FootClass*, false>(pTarget);
 
 	if (!Target)
@@ -6247,7 +6285,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		return false;
 	}
 
-	if (!TechnoExtData::IsAbductable(Attacker, pData->AttachedToObject, Target))
+	if (!TechnoExtData::IsAbductable(Attacker, pData->This(), Target))
 	{
 		return false;
 	}
@@ -6348,15 +6386,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 
 	// because we are throwing away the locomotor in a split second, piggybacking
 	// has to be stopped. otherwise the object might remain in a weird state.
-	while (LocomotionClass::End_Piggyback(Target->Locomotor)) { };
-
-	// throw away the current locomotor and instantiate
-	// a new one of the default type for this unit.
-	if (auto NewLoco = LocomotionClass::CreateInstance(pTargetType->Locomotor))
-	{
-		Target->Locomotor = std::move(NewLoco);
-		Target->Locomotor->Link_To_Object(Target);
-	}
+	TechnoExtContainer::Instance.Find(Target)->ResetLocomotor = true;
 
 	//Target->AnnounceExpiredPointer(false);
 	Target->OnBridge = false; // ????
@@ -6495,7 +6525,7 @@ void AresWPWHExt::applyKillDriver(WarheadTypeClass* pWH, TechnoClass* pKiller, T
 
 #pragma region AresTActionExt
 
-std::pair<TriggerAttachType, bool> AresTActionExt::GetFlag(AresNewTriggerAction nAction)
+std::pair<TriggerAttachType, bool> AresTActionExt::GetTriggetAttach(AresNewTriggerAction nAction)
 {
 	switch (nAction)
 	{
@@ -6510,7 +6540,7 @@ std::pair<TriggerAttachType, bool> AresTActionExt::GetFlag(AresNewTriggerAction 
 	}
 }
 
-std::pair<LogicNeedType, bool> AresTActionExt::GetMode(AresNewTriggerAction nAction)
+std::pair<LogicNeedType, bool> AresTActionExt::GetLogicNeed(AresNewTriggerAction nAction)
 {
 	switch (nAction)
 	{
@@ -6927,7 +6957,7 @@ NOINLINE HouseClass* AresTEventExt::ResolveHouseParam(int const param, HouseClas
 	return HouseClass::FindByCountryIndex(param);
 }
 
-std::pair<Persistable, bool> AresTEventExt::GetPersistableFlag(AresTriggerEvents nAction)
+std::pair<bool, bool> AresTEventExt::GetPersistableFlag(AresTriggerEvents nAction)
 {
 	switch (nAction)
 	{
@@ -6942,7 +6972,7 @@ std::pair<Persistable, bool> AresTEventExt::GetPersistableFlag(AresTriggerEvents
 	case AresTriggerEvents::AttackedOrDestroyedByAnybody:
 	case AresTriggerEvents::AttackedOrDestroyedByHouse:
 	case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
-		return { Persistable::unk_0x100  , true };
+		return { false , true };
 	case AresTriggerEvents::DriverKiller:
 	case AresTriggerEvents::DriverKilled_ByHouse:
 	case AresTriggerEvents::VehicleTaken:
@@ -6959,9 +6989,9 @@ std::pair<Persistable, bool> AresTEventExt::GetPersistableFlag(AresTriggerEvents
 	case AresTriggerEvents::DestroyedByHouse:
 	case AresTriggerEvents::AllKeepAlivesDestroyed:
 	case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
-		return { Persistable::unk_0x101  , true };
+		return { true  , true };
 	default:
-		return { Persistable::None  , false };
+		return { false  , false };
 	}
 }
 
@@ -7004,7 +7034,7 @@ std::pair<LogicNeedType, bool > AresTEventExt::GetLogicNeed(AresTriggerEvents nA
 	}
 }
 
-std::pair<bool, TriggerAttachType> AresTEventExt::GetAttachFlags(AresTriggerEvents nEvent)
+std::pair<TriggerAttachType , bool> AresTEventExt::GetAttachFlags(AresTriggerEvents nEvent)
 {
 	switch (nEvent)
 	{
@@ -7026,7 +7056,7 @@ std::pair<bool, TriggerAttachType> AresTEventExt::GetAttachFlags(AresTriggerEven
 	case AresTriggerEvents::AttackedOrDestroyedByAnybody:
 	case AresTriggerEvents::AttackedOrDestroyedByHouse:
 	{
-		return { true , TriggerAttachType::Object };
+		return { TriggerAttachType::Object , true  };
 	}
 	case AresTriggerEvents::SuperActivated:
 	case AresTriggerEvents::SuperDeactivated:
@@ -7038,15 +7068,15 @@ std::pair<bool, TriggerAttachType> AresTEventExt::GetAttachFlags(AresTriggerEven
 	case AresTriggerEvents::AllKeepAlivesDestroyed:
 	case AresTriggerEvents::AllKeppAlivesBuildingDestroyed:
 	{
-		return { true ,TriggerAttachType::House };
+		return { TriggerAttachType::House , true };
 	}
 	case AresTriggerEvents::TechnoTypeDoesntExistMoreThan:
 	{
-		return { true ,TriggerAttachType::Logic };
+		return { TriggerAttachType::Logic , true };
 	}
 	}
 
-	return { false ,TriggerAttachType::None };
+	return { TriggerAttachType::None , false};
 }
 
 bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWho)
@@ -7491,17 +7521,13 @@ bool TunnelFuncs::CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingC
 	return true;
 }
 
-std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, bool& Fail)
+std::vector<int> TunnelFuncs::PipDatas;
+
+bool TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, int pipMax)
 {
-	static std::vector<int> PipData;
-
-	int nPassangersTotal = pType->GetPipMax();
-	if (nPassangersTotal < 0)
-		nPassangersTotal = 0;
-
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	PipData.clear();
+	TunnelFuncs::PipDatas.clear();
 
 	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
 	{
@@ -7510,13 +7536,12 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 
 		if (!pTunnelData)
 		{
-			if (pThis->Passengers.NumPassengers > nPassangersTotal)
+			if (pThis->Passengers.NumPassengers > pipMax)
 			{
-				Fail = true;
-				return &PipData;
+				return false;
 			}
 
-			PipData.resize(nPassangersTotal);
+			TunnelFuncs::PipDatas.resize(pipMax);
 
 			int nCargoSize = 0;
 			for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
@@ -7538,27 +7563,23 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 					nPip = 5;
 
 				//fetch first cargo size and change the pip
-				PipData[nCargoSize] = nPip;
+				TunnelFuncs::PipDatas[nCargoSize] = nPip;
 				for (int i = nSize - 1; i > 0; --i)
 				{ //check if the extra size is there and increment it to
 			   // total size
-					PipData[nCargoSize + i] = 3;     //set extra size to pip index 3
+					TunnelFuncs::PipDatas[nCargoSize + i] = 3;     //set extra size to pip index 3
 				}
 
 				nCargoSize += nSize;
 			}
 
-			return &PipData;
-		}
-		else
-		{
-			const int nTotal = pTunnelData->MaxCap > nPassangersTotal ? nPassangersTotal : pTunnelData->MaxCap;
-			PipData.resize(nTotal);
+			return true;
+		} else {
+			const int nTotal = pTunnelData->MaxCap > pipMax ? pipMax : pTunnelData->MaxCap;
+			TunnelFuncs::PipDatas.resize(nTotal);
 
-			if ((int)pTunnelData->Vector.size() > nTotal)
-			{
-				Fail = true;
-				return &PipData;
+			if ((int)pTunnelData->Vector.size() > nTotal) {
+				return false;
 			}
 
 			for (size_t i = 0; i < pTunnelData->Vector.size(); ++i)
@@ -7572,21 +7593,19 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 				else if (what == UnitClass::AbsID)
 					nPip = 4;
 
-				PipData[i] = nPip;
+				TunnelFuncs::PipDatas[i] = nPip;
 			}
 
-			return &PipData;
+			return true;
 		}
 	}
 	else
 	{
-		if (pThis->Passengers.NumPassengers > nPassangersTotal)
-		{
-			Fail = true;
-			return &PipData;
+		if (pThis->Passengers.NumPassengers > pipMax) {
+			return false;
 		}
 
-		PipData.resize(nPassangersTotal);
+		TunnelFuncs::PipDatas.resize(pipMax);
 
 		int nCargoSize = 0;
 		for (auto pPassenger = pThis->Passengers.GetFirstPassenger();
@@ -7608,17 +7627,17 @@ std::vector<int>* TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, Tech
 				nPip = 5;
 
 			//fetch first cargo size and change the pip
-			PipData[nCargoSize] = nPip;
+			TunnelFuncs::PipDatas[nCargoSize] = nPip;
 			for (int i = nSize - 1; i > 0; --i)
 			{ //check if the extra size is there and increment it to
 		   // total size
-				PipData[nCargoSize + i] = 3;     //set extra size to pip index 3
+				TunnelFuncs::PipDatas[nCargoSize + i] = 3;     //set extra size to pip index 3
 			}
 
 			nCargoSize += nSize;
 		}
 
-		return &PipData;
+		return true;
 	}
 }
 
@@ -7889,7 +7908,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		if (HasLowPower)
 		{
 			// most expendable building first
-			std::sort(Buildings.begin(), Buildings.end(), std::greater<>());
+			std::ranges::sort(Buildings, std::greater<>());
 
 			// turn off the expendable buildings until power is restored
 			for (const auto& item : Buildings)
@@ -7908,7 +7927,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 		else
 		{
 			// least expendable building first
-			std::sort(Buildings.begin(), Buildings.end(), std::less<>());
+			std::ranges::sort(Buildings, std::less<>());
 
 			// turn on as many of them as possible
 			for (const auto& item : Buildings)

@@ -1,17 +1,18 @@
 #include "Body.h"
+#include <Utilities/Macro.h>
 
 void VoxelAnimTypeExtData::Initialize(){
 	LaserTrail_Types.reserve(1);
 	SplashList.reserve(RulesClass::Instance->SplashList.Count);
 }
 
-void VoxelAnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool VoxelAnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pID = this->AttachedToObject->ID;
-	INI_EX exINI(pINI);
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
 
-	if (parseFailAddr)
-		return;
+	const char* pID = this->This()->ID;
+	INI_EX exINI(pINI);
 
 	this->LaserTrail_Types.Read(exINI, pID, "LaserTrail.Types");
 	this->Warhead_Detonate.Read(exINI, pID, "Warhead.Detonate");
@@ -27,6 +28,8 @@ void VoxelAnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->TrailerAnim_SpawnDelay.Read(exINI, pID, "Trailer.SpawnDelay");
 	this->Trails.Read(exINI, pID, false);
 #pragma endregion
+
+	return true;
 }
 
 // =============================
@@ -35,7 +38,6 @@ template <typename T>
 void VoxelAnimTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(Initialized)
 		.Process(LaserTrail_Types)
 		.Process(SplashList)
 		.Process(SplashList_Pickrandom)
@@ -46,13 +48,28 @@ void VoxelAnimTypeExtData::Serialize(T& Stm)
 		.Process(Weapon)
 		.Process(ExpireDamage_ConsiderInvokerVet)
 		.Process(TrailerAnim_SpawnDelay)
-		;
-		this->Trails.Serialize(Stm);
+		.Process(this->Trails) ;
 }
 
 // =============================
 // container
 VoxelAnimTypeExtContainer VoxelAnimTypeExtContainer::Instance;
+std::vector<VoxelAnimTypeExtData*> Container<VoxelAnimTypeExtData>::Array;
+
+void Container<VoxelAnimTypeExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool VoxelAnimTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool VoxelAnimTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 ASMJIT_PATCH(0x74AF5C, VoxelAnimTypeClass_CTOR, 0x7)
 {
@@ -69,45 +86,12 @@ ASMJIT_PATCH(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
 
 	return 0;
 }
-#include <Misc/Hooks.Otamaa.h>
 
-HRESULT __stdcall FakeVoxelAnimTypeClass::_Load(IStream* pStm)
+bool FakeVoxelAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-
-	VoxelAnimTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->VoxelAnimTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		VoxelAnimTypeExtContainer::Instance.LoadStatic();
-
-	return res;
+	bool status = this->VoxelAnimTypeClass::LoadFromINI(pINI);
+	VoxelAnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-HRESULT __stdcall FakeVoxelAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	VoxelAnimTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->VoxelAnimTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		VoxelAnimTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F655C, FakeVoxelAnimTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6560, FakeVoxelAnimTypeClass::_Save)
-
-ASMJIT_PATCH(0x74B4F0, VoxelAnimTypeClass_LoadFromINI, 0x5)
-{
-	GET(VoxelAnimTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0x4);
-
-	VoxelAnimTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x74B612);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x74B612, VoxelAnimTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x74B607, VoxelAnimTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x74B561, VoxelAnimTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x74B54A, VoxelAnimTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x74B51B, VoxelAnimTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F65AC, FakeVoxelAnimTypeClass::_ReadFromINI)

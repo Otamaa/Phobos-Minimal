@@ -4,8 +4,10 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/EnumFunctions.h>
+#include <Locomotor/Cast.h>
 
 // Weapon Selection
 // TODO : check
@@ -30,8 +32,8 @@ ASMJIT_PATCH(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 		}
 	}
 
-	if(pTypeExt->AttachedToObject->TurretCount > 0 && !pTypeExt->AttachedToObject->IsGattling) {
-		if (pTypeExt->MultiWeapon && (pThis->WhatAmI() != AbstractType::Unit || !pTypeExt->AttachedToObject->Gunner)) {
+	if(pTypeExt->This()->TurretCount > 0 && !pTypeExt->This()->IsGattling) {
+		if (pTypeExt->MultiWeapon && (pThis->WhatAmI() != AbstractType::Unit || !pTypeExt->This()->Gunner)) {
 			return CheckOccupy;
 		}
 
@@ -227,6 +229,7 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 //	return 0x0;
 //}
 //#pragma optimize("", on )
+#include <Ext/BulletType/Body.h>
 
 ASMJIT_PATCH(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 {
@@ -272,7 +275,10 @@ ASMJIT_PATCH(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 		{
 			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pSecondary && pSecondary->Projectile->AA;
 
-			if (pSecondary && (allowFallback || (allowAAFallback && secondaryIsAA) || TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)))
+			if (pSecondary && (allowFallback || ((allowAAFallback && secondaryIsAA)
+											|| (pTargetTechno->InWhichLayer() == Layer::Underground && BulletTypeExtContainer::Instance.Find(pSecondary->Projectile)->AU))
+
+											|| TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)))
 			{
 				if (!pShield->CanBeTargeted(pPrimary))
 					return Secondary;
@@ -326,8 +332,21 @@ ASMJIT_PATCH(0x6F37EB, TechnoClass_WhatWeaponShouldIUse_AntiAir, 0x6)
 	GET_STACK(WeaponTypeClass*, pWeapon, STACK_OFFS(0x18, 0x4));
 	GET(WeaponTypeClass*, pSecWeapon, EAX);
 
-	if (!pWeapon->Projectile->AA && pSecWeapon->Projectile->AA && pTargetTechno && pTargetTechno->IsInAir())
-		return Secondary;
+	if(pTargetTechno){
+
+		const auto pPrimaryProj = pWeapon->Projectile;
+		const auto pSecondaryProj = pSecWeapon->Projectile;
+
+		if (!pPrimaryProj->AA && pSecondaryProj->AA) {
+			if (pTargetTechno->IsInAir())
+				return Secondary;
+		}
+
+		if (BulletTypeExtContainer::Instance.Find(pSecondaryProj)->AU && !BulletTypeExtContainer::Instance.Find(pPrimaryProj)->AU) {
+			if (pTargetTechno->InWhichLayer() == Layer::Underground)
+				return Secondary;
+		}
+	}
 
 	return Primary;
 }
@@ -374,6 +393,10 @@ ASMJIT_PATCH(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 			) == 0.0)
 			{
 				chosenWeaponIndex = evenWeaponIndex;
+			}else if (pTargetTechno->InWhichLayer() == Layer::Underground)
+			{
+				if (BulletTypeExtContainer::Instance.Find(pWeaponEven->Projectile)->AU && !BulletTypeExtContainer::Instance.Find(pWeaponOdd->Projectile)->AU)
+					chosenWeaponIndex = evenWeaponIndex;
 			}
 			else
 			{
@@ -449,3 +472,77 @@ ASMJIT_PATCH(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 
 	return 0;
 }
+
+ASMJIT_PATCH(0x6FC749, TechnoClass_GetFireError_AntiUnderground, 0x5)
+{
+	enum { Illegal = 0x6FC86A, GoOtherChecks = 0x6FC762 };
+
+	GET(Layer, layer, EAX);
+	//GET(TechnoClass*, pThis, EBX);
+	GET(WeaponTypeClass*, pWeapon, EDI);
+
+	auto const pProj = pWeapon->Projectile;
+	auto const pProjExt = BulletTypeExtContainer::Instance.Find(pProj);
+
+	if (layer == Layer::Underground && !pProjExt->AU)
+		return Illegal;
+
+	if ((layer == Layer::Air || layer == Layer::Top) && !pProj->AA)
+		return Illegal;
+
+	return GoOtherChecks;
+}
+
+
+#pragma region AttackUnderGround
+
+ASMJIT_PATCH(0x70023B, TechnoClass_MouseOverObject_AttackUnderGround, 0x5)
+{
+	enum { FireIsOK = 0x700246, FireIsNotOK = 0x70056C };
+
+	GET(ObjectClass*, pObject, EDI);
+	GET(TechnoClass*, pThis, ESI);
+	GET(int, wpIdx, EAX);
+
+	if (pObject->IsSurfaced())
+		return FireIsOK;
+
+	auto const pWeapon = pThis->GetWeapon(wpIdx)->WeaponType;
+
+	return (!pWeapon || !BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AU) ? FireIsNotOK : FireIsOK;
+}
+
+ASMJIT_PATCH(0x728F9A, TunnelLocomotionClass_Process_Track, 0x7)
+{
+	// GET(FootClass*, pTechno, ECX);
+	GET(ILocomotion*, pThis, ESI);
+
+	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
+	auto pTechno = pLoco->LinkedTo;
+	ScenarioExtData::Instance()->UndergroundTracker.emplace(pTechno);
+	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = true;
+
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x729029, TunnelLocomotionClass_Process_Track, 0x7);
+
+ASMJIT_PATCH(0x7297F6, TunnelLocomotionClass_ProcessDigging_Track, 0x7)
+{
+	GET(FootClass*, pTechno, ECX);
+
+	ScenarioExtData::Instance()->UndergroundTracker.erase(pTechno);
+	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = false;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x772AB3, WeaponTypeClass_AllowedThreats_AU, 0x5)
+{
+	GET(BulletTypeClass* const, pType, ECX);
+	GET(ExtendedThreatType, flags, EAX);
+
+	if (BulletTypeExtContainer::Instance.Find(pType)->AU)
+		R->EAX<ExtendedThreatType>(flags | ExtendedThreatType::Underground);
+
+	return 0;
+}
+#pragma endregion

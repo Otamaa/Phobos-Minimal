@@ -302,7 +302,7 @@ static bool __fastcall Buffer_To_Surface(Surface& surface, RectangleStruct& rect
 //static bool Copy_To_Surface_RLE(Surface& tosurface, RectangleStruct& toarea, RectangleStruct& torect, Surface& fromsurface, RectangleStruct& fromarea, RectangleStruct& fromrect, RLEBlitterCore& blitter, int z_val = 0, ZGradient z_gradient = ZGradient::Ground, int alpha_level = 1000, int warp_val = 0, Surface* z_shape_surface = nullptr, int z_xoff = 0, int z_yoff = 0);
 
 // Used for linetrail
-static bool __fastcall Surface_4BEAC0_Blit(Surface* Surface, RectangleStruct& nRect, Point2D& nPoint1, Point2D& nPoint2, int& nSomeval, unsigned nSomeval2, int nAdjust_1, int nAdjust2)
+static bool __fastcall Surface_4BEAC0_Blit(Surface* Surface, RectangleStruct& nRect, Point2D& nPoint1, Point2D& nPoint2, ColorStruct& nSomeval, unsigned nSomeval2, int nAdjust_1, int nAdjust2)
 {
 	JMP_FAST(0x4BEAC0);
 }
@@ -334,6 +334,20 @@ static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SH
 {
 	JMP_FAST(0x4AED70);
 }
+
+static Point2D *__fastcall Plain_Text_Print_Wide(
+	Point2D* retstr,
+	wchar_t* text,
+	Surface* surface,
+	RectangleStruct* rect,
+	Point2D* xy,
+	int fore,
+	int back,
+	TextPrintType flag,
+	int scheme,
+	int a9){
+		JMP_FAST(0x4A66D0);
+	}
 
 // this text drawing can accept vargs , so just put the thing here , dont need to do it twice
 static Point2D* __cdecl Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
@@ -383,7 +397,10 @@ static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleSt
 }
 
 static bool __fastcall Blit_helper_lockregion(Surface* dst_surf, RectangleStruct* rect1, RectangleStruct* rect2, Surface* src_surf, RectangleStruct* rect3, RectangleStruct* rect4, bool* checkme, __int16* dst_buffer, __int16* src_buffer)
-{ JMP_FAST(0x7BC040) }
+{ JMP_FAST(0x7BC040); }
+
+static bool __fastcall Allocate_Surfaces(RectangleStruct *common_rect, RectangleStruct *composite_rect, RectangleStruct *tile_rect, RectangleStruct *sidebar_rect, char alloc_hidden_surf)
+{ JMP_FAST(0x533FD0); }
 
 #pragma warning(pop)
 #pragma endregion CommonFunction
@@ -417,6 +434,8 @@ public:
 	static COMPILETIMEEVAL reference<bool, 0x8205D4u> const AllowHardwareBlitFills {};
 
 	static COMPILETIMEEVAL reference<bool*, 0x84310C> const PatternData {};
+
+	static int __fastcall ColorMode() { JMP_STD(0x4BBC90); }
 
 	// Comments from thomassneddon
 	void DrawSHP(ConvertClass* Palette, SHPStruct* SHP, int FrameIndex,

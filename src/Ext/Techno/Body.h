@@ -39,10 +39,72 @@
 #include <TemporalClass.h>
 #include <EBolt.h>
 
+#include <Ext/Radio/Body.h>
+
 class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
 struct BurstFLHBundle;
+
+struct TintColors
+{
+private:
+
+	TechnoClass* Owner;
+	int ColorOwner;
+	int ColorAllies;
+	int ColorEnemies;
+	int IntensityOwner;
+	int IntensityAllies;
+	int IntensityEnemies;
+
+
+public:
+
+	void SetOwner(TechnoClass* abs) { this->Owner = abs; };
+
+	bool FORCEDINLINE Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{
+		return this->Serialize(Stm);
+	}
+
+	bool FORCEDINLINE Save(PhobosStreamWriter& Stm) const
+	{
+		return const_cast<TintColors*>(this)->Serialize(Stm);
+	}
+
+	void Reset() {
+		this->ColorOwner = 0;
+		this->ColorAllies = 0;
+		this->ColorEnemies = 0;
+		this->IntensityOwner = 0;
+		this->IntensityAllies = 0;
+		this->IntensityEnemies = 0;
+	}
+
+	void Update();
+
+	void GetTints(int* tintColor, int* intensity);
+
+private:
+
+	void Calculate(const int color, const int intensity, const AffectedHouse affectedHouse);
+
+	template <typename T>
+	bool FORCEDINLINE Serialize(T& Stm)
+	{
+		return Stm
+			.Process(this->Owner)
+			.Process(this->ColorOwner)
+			.Process(this->ColorAllies)
+			.Process(this->ColorEnemies)
+			.Process(this->IntensityOwner)
+			.Process(this->IntensityAllies)
+			.Process(this->IntensityEnemies)
+			.Success()
+			;
+	}
+};
 
 struct AEProperties
 {
@@ -510,7 +572,7 @@ struct AEProperties
 public :
 
 	static void Recalculate(TechnoClass* pTechno);
-
+	static void UpdateAEAnimLogic(TechnoClass* pTechno);
 public :
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -586,215 +648,562 @@ private:
 	}
 };
 
-class TechnoExtData
+class TechnoExtData : public RadioExtData
 {
+private:
+	template <typename T>
+	void Serialize(T& Stm)
+	{
+		auto debugProcess = [&Stm](auto& field, const char* fieldName)-> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+			//	size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+			//	size_t afterSize = Stm.Getstream()->Size();
+			//	GameDebugLog::Log("[TechnoExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+			//		fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+			//	size_t beforeOffset = Stm.Getstream()->Offset();
+			//	bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+			//	size_t afterOffset = Stm.Getstream()->Offset();
+			//	bool afterSuccess = Stm.Success();
+
+			//	GameDebugLog::Log("[TechnoExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+			//		fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+			//		beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+			//	if (!afterSuccess && beforeSuccess)
+			//	{
+			//		GameDebugLog::Log("[TechnoExtData] ERROR: %s caused stream failure!\n", fieldName);
+				//}
+				return result;
+			}
+		};
+
+		debugProcess(this->Type, "Type");
+		debugProcess(this->AbsType, "AbsType");
+		debugProcess(this->AE, "AE");
+		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
+		debugProcess(this->idxSlot_Wave, "idxSlot_Wave");
+		debugProcess(this->idxSlot_Beam, "idxSlot_Beam");
+		debugProcess(this->idxSlot_Warp, "idxSlot_Warp");
+		debugProcess(this->idxSlot_Parasite, "idxSlot_Parasite");
+		debugProcess(this->EMPSparkleAnim, "EMPSparkleAnim");
+		debugProcess(this->EMPLastMission, "EMPLastMission");
+		debugProcess(this->PoweredUnit, "PoweredUnit");
+		debugProcess(this->RadarJammer, "RadarJammer");
+		debugProcess(this->BuildingLight, "BuildingLight");
+		debugProcess(this->OriginalHouseType, "OriginalHouseType");
+		debugProcess(this->CloakSkipTimer, "CloakSkipTimer");
+		debugProcess(this->HijackerHealth, "HijackerHealth");
+		debugProcess(this->HijackerOwner, "HijackerOwner");
+		debugProcess(this->HijackerVeterancy, "HijackerVeterancy");
+		debugProcess(this->Is_SurvivorsDone, "Is_SurvivorsDone");
+		debugProcess(this->Is_DriverKilled, "Is_DriverKilled");
+		debugProcess(this->Is_Operated, "Is_Operated");
+		debugProcess(this->Is_UnitLostMuted, "Is_UnitLostMuted");
+		debugProcess(this->TakeVehicleMode, "TakeVehicleMode");
+		debugProcess(this->TechnoValueAmount, "TechnoValueAmount");
+		debugProcess(this->Pos, "Pos");
+		debugProcess(this->Shield, "Shield");
+		debugProcess(this->LaserTrails, "LaserTrails");
+		debugProcess(this->ReceiveDamage, "ReceiveDamage");
+		debugProcess(this->LastKillWasTeamTarget, "LastKillWasTeamTarget");
+		debugProcess(this->PassengerDeletionTimer, "PassengerDeletionTimer");
+		debugProcess(this->CurrentShieldType, "CurrentShieldType");
+		debugProcess(this->LastWarpDistance, "LastWarpDistance");
+		debugProcess(this->Death_Countdown, "Death_Countdown");
+		debugProcess(this->MindControlRingAnimType, "MindControlRingAnimType");
+		debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
+		debugProcess(this->CurrentLaserWeaponIndex, "CurrentLaserWeaponIndex");
+		debugProcess(this->OriginalPassengerOwner, "OriginalPassengerOwner");
+		debugProcess(this->IsInTunnel, "IsInTunnel");
+		debugProcess(this->IsBurrowed, "IsBurrowed");
+		debugProcess(this->DeployFireTimer, "DeployFireTimer");
+		debugProcess(this->DisableWeaponTimer, "DisableWeaponTimer");
+		debugProcess(this->RevengeWeapons, "RevengeWeapons");
+		debugProcess(this->GattlingDmageDelay, "GattlingDmageDelay");
+		debugProcess(this->GattlingDmageSound, "GattlingDmageSound");
+		debugProcess(this->AircraftOpentoppedInitEd, "AircraftOpentoppedInitEd");
+		debugProcess(this->EngineerCaptureDelay, "EngineerCaptureDelay");
+		debugProcess(this->FlhChanged, "FlhChanged");
+		debugProcess(this->ReceiveDamageMultiplier, "ReceiveDamageMultiplier");
+		debugProcess(this->SkipLowDamageCheck, "SkipLowDamageCheck");
+		debugProcess(this->aircraftPutOffsetFlag, "aircraftPutOffsetFlag");
+		debugProcess(this->aircraftPutOffset, "aircraftPutOffset");
+		debugProcess(this->SkipVoice, "SkipVoice");
+		debugProcess(this->ExtraWeaponTimers, "ExtraWeaponTimers");
+		debugProcess(this->Trails, "Trails");
+		debugProcess(this->MyGiftBox, "MyGiftBox");
+		debugProcess(this->PaintBallStates, "PaintBallStates");
+		debugProcess(this->DamageSelfState, "DamageSelfState");
+		debugProcess(this->CurrentWeaponIdx, "CurrentWeaponIdx");
+		debugProcess(this->WarpedOutDelay, "WarpedOutDelay");
+
+		debugProcess(this->MyOriginalTemporal, "MyOriginalTemporal");
+		debugProcess(this->SupressEVALost, "SupressEVALost");
+		debugProcess(this->SelfHealing_CombatDelay, "SelfHealing_CombatDelay");
+		debugProcess(this->PayloadCreated, "PayloadCreated");
+		debugProcess(this->PayloadTriggered, "PayloadTriggered");
+		debugProcess(this->LinkedSW, "LinkedSW");
+		debugProcess(this->SuperTarget, "SuperTarget");
+		debugProcess(this->HijackerLastDisguiseType, "HijackerLastDisguiseType");
+		debugProcess(this->HijackerLastDisguiseHouse, "HijackerLastDisguiseHouse");
+		debugProcess(this->WHAnimRemainingCreationInterval, "WHAnimRemainingCreationInterval");
+		debugProcess(this->IsWebbed, "IsWebbed");
+		debugProcess(this->WebbedAnim, "WebbedAnim");
+		debugProcess(this->WebbyLastTarget, "WebbyLastTarget");
+		debugProcess(this->WebbyLastMission, "WebbyLastMission");
+		debugProcess(this->AeData, "AeData");
+		debugProcess(this->MergePreventionTimer, "MergePreventionTimer");
+		debugProcess(this->TiberiumStorage, "TiberiumStorage");
+		debugProcess(this->MyWeaponManager, "MyWeaponManager");
+		debugProcess(this->MyDriveData, "MyDriveData");
+		debugProcess(this->MyDiveData, "MyDiveData");
+		debugProcess(this->MySpawnSuport, "MySpawnSuport");
+		debugProcess(this->PhobosAE, "PhobosAE");
+		debugProcess(this->FiringObstacleCell, "FiringObstacleCell");
+		debugProcess(this->AdditionalRange, "AdditionalRange");
+		debugProcess(this->IsDetachingForCloak, "IsDetachingForCloak");
+		debugProcess(this->HasRemainingWarpInDelay, "HasRemainingWarpInDelay");
+		debugProcess(this->LastWarpInDelay, "LastWarpInDelay");
+		debugProcess(this->SubterraneanHarvRallyPoint, "SubterraneanHarvRallyPoint");
+		debugProcess(this->IsBeingChronoSphered, "IsBeingChronoSphered");
+		debugProcess(this->TiberiumEaterTimer, "TiberiumEaterTimer");
+		debugProcess(this->LastDamageWH, "LastDamageWH");
+		debugProcess(this->MyTargetingFrame, "MyTargetingFrame");
+		debugProcess(this->ChargeTurretTimer, "ChargeTurretTimer");
+		debugProcess(this->LastRearmWasFullDelay, "LastRearmWasFullDelay");
+		debugProcess(this->DropCrate, "DropCrate");
+		debugProcess(this->DropCrateType, "DropCrateType");
+		debugProcess(this->LastBeLockedFrame, "LastBeLockedFrame");
+		debugProcess(this->BeControlledThreatFrame, "BeControlledThreatFrame");
+		debugProcess(this->LastTargetID, "LastTargetID");
+		debugProcess(this->LastHurtFrame, "LastHurtFrame");
+		debugProcess(this->AccumulatedGattlingValue, "AccumulatedGattlingValue");
+		debugProcess(this->ShouldUpdateGattlingValue, "ShouldUpdateGattlingValue");
+		debugProcess(this->KeepTargetOnMove, "KeepTargetOnMove");
+		debugProcess(this->LastSensorsMapCoords, "LastSensorsMapCoords");
+		debugProcess(this->DelayedFireSequencePaused, "DelayedFireSequencePaused");
+		debugProcess(this->DelayedFireTimer, "DelayedFireTimer");
+		debugProcess(this->DelayedFireWeaponIndex, "DelayedFireWeaponIndex");
+		debugProcess(this->CurrentDelayedFireAnim, "CurrentDelayedFireAnim");
+		debugProcess(this->CustomFiringOffset, "CustomFiringOffset");
+		debugProcess(this->LastWeaponType, "LastWeaponType");
+		debugProcess(this->AirstrikeTargetingMe, "AirstrikeTargetingMe");
+		debugProcess(this->RandomEMPTarget, "RandomEMPTarget");
+		debugProcess(this->ForceFullRearmDelay, "ForceFullRearmDelay");
+		debugProcess(this->AttackMoveFollowerTempCount, "AttackMoveFollowerTempCount");
+		debugProcess(this->OnlyAttackData, "OnlyAttackData");
+		debugProcess(this->IsSelected, "IsSelected");
+		debugProcess(this->UndergroundTracked, "UndergroundTracked");
+		debugProcess(this->PassiveAquireMode, "PassiveAquireMode");
+		debugProcess(this->UnitIdleAction, "UnitIdleAction");
+		debugProcess(this->UnitIdleActionSelected, "UnitIdleActionSelected");
+		debugProcess(this->UnitIdleIsSelected, "UnitIdleIsSelected");
+		debugProcess(this->UnitIdleActionTimer, "UnitIdleActionTimer");
+		debugProcess(this->UnitIdleActionGapTimer, "UnitIdleActionGapTimer");
+		debugProcess(this->Tints, "Tints");
+		debugProcess(this->FallingDownTracked, "FallingDownTracked");
+		debugProcess(this->ResetLocomotor, "ResetLocomotor");
+		debugProcess(this->JumpjetStraightAscend, "JumpjetStraightAscend");
+	}
+
+
+
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x22365555;
 	using base_type = TechnoClass;
-
-	//static COMPILETIMEEVAL size_t ExtOffset = 0x4FC;
-	static COMPILETIMEEVAL size_t ExtOffset = 0x154; //ares
-	//static COMPILETIMEEVAL size_t ExtOffset = 0x34C;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-	TechnoTypeClass* Type { nullptr }; //original Type pointer
-	OptionalStruct<AbstractType, true> AbsType {};
+#pragma region ClassMembers
+	TechnoTypeClass* Type; //original Type pointer
+	OptionalStruct<AbstractType, true> AbsType;
 
-	AEProperties AE {};
-	BYTE idxSlot_EMPulse { 0 };
-	BYTE idxSlot_Wave { 0 }; //5
-	BYTE idxSlot_Beam { 0 }; //6
-	BYTE idxSlot_Warp { 0 }; //7
-	BYTE idxSlot_Parasite { 0 }; //8
-	BuildingClass* GarrisonedIn { 0 }; //C
-	Handle<AnimClass*, UninitAnim> EMPSparkleAnim { nullptr };
-	Mission EMPLastMission { 0 }; //
+	AEProperties AE;
+	BYTE idxSlot_EMPulse;
+	BYTE idxSlot_Wave; //5
+	BYTE idxSlot_Beam; //6
+	BYTE idxSlot_Warp; //7
+	BYTE idxSlot_Parasite; //8
 
-	std::unique_ptr<PoweredUnitClass> PoweredUnit { nullptr };
-	std::unique_ptr<RadarJammerClass> RadarJammer { nullptr };
+	Handle<AnimClass*, UninitAnim> EMPSparkleAnim;
+	Mission EMPLastMission; //
 
-	BuildingLightClass* BuildingLight { 0 };
+	std::unique_ptr<PoweredUnitClass> PoweredUnit;
+	std::unique_ptr<RadarJammerClass> RadarJammer;
 
-	HouseTypeClass* OriginalHouseType { 0 };
-	CDTimerClass CloakSkipTimer {}; //
-	int HijackerHealth { 0 };
-	HouseClass* HijackerOwner { 0 };
-	float HijackerVeterancy { 0.0f };
-	BYTE Is_SurvivorsDone { 0 };
-	BYTE Is_DriverKilled { 0 };
-	BYTE Is_Operated { 0 };
-	BYTE Is_UnitLostMuted { 0 };
-	BYTE TakeVehicleMode { 0 };
-	int TechnoValueAmount { 0 };
-	int Pos { };
-	std::unique_ptr<ShieldClass> Shield { nullptr };
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails {};
-	bool ReceiveDamage { false };
-	bool LastKillWasTeamTarget { false };
-	CDTimerClass PassengerDeletionTimer {};
-	ShieldTypeClass* CurrentShieldType { nullptr };
-	int LastWarpDistance {};
-	CDTimerClass Death_Countdown {};
-	AnimTypeClass* MindControlRingAnimType { nullptr };
-	int DamageNumberOffset { INT32_MIN };
-	OptionalStruct<int, true> CurrentLaserWeaponIndex {};
+	BuildingLightClass* BuildingLight;
+
+	HouseTypeClass* OriginalHouseType;
+	CDTimerClass CloakSkipTimer; //
+	int HijackerHealth;
+	HouseClass* HijackerOwner;
+	float HijackerVeterancy;
+	BYTE Is_SurvivorsDone;
+	BYTE Is_DriverKilled;
+	BYTE Is_Operated;
+	BYTE Is_UnitLostMuted;
+	BYTE TakeVehicleMode;
+	int TechnoValueAmount;
+	int Pos;
+	std::unique_ptr<ShieldClass> Shield;
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	bool ReceiveDamage;
+	bool LastKillWasTeamTarget;
+	CDTimerClass PassengerDeletionTimer;
+	ShieldTypeClass* CurrentShieldType;
+	int LastWarpDistance;
+	CDTimerClass Death_Countdown;
+	AnimTypeClass* MindControlRingAnimType;
+	int DamageNumberOffset;
+	OptionalStruct<int, true> CurrentLaserWeaponIndex;
 
 	// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
 	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
-	HouseClass* OriginalPassengerOwner { nullptr };
+	HouseClass* OriginalPassengerOwner;
 
-	bool IsInTunnel { false };
-	bool IsBurrowed { false } ;
-	CDTimerClass DeployFireTimer {};
-	CDTimerClass DisableWeaponTimer {};
+	bool IsInTunnel;
+	bool IsBurrowed;
+	CDTimerClass DeployFireTimer;
+	CDTimerClass DisableWeaponTimer;
 
-	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons {};
+	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
 
-	int GattlingDmageDelay { -1 };
-	bool GattlingDmageSound { false };
-	bool AircraftOpentoppedInitEd { false };
+	int GattlingDmageDelay;
+	bool GattlingDmageSound;
+	bool AircraftOpentoppedInitEd;
 
-	CDTimerClass EngineerCaptureDelay {};
+	CDTimerClass EngineerCaptureDelay;
 
-	bool FlhChanged { false };
-	OptionalStruct<double, true> ReceiveDamageMultiplier {};
-	bool SkipLowDamageCheck { false };
+	bool FlhChanged;
+	OptionalStruct<double, true> ReceiveDamageMultiplier;
+	bool SkipLowDamageCheck;
 
-	bool aircraftPutOffsetFlag { false };
-	bool aircraftPutOffset { false };
-	bool SkipVoice { false };
+	bool aircraftPutOffsetFlag;
+	bool aircraftPutOffset;
+	bool SkipVoice;
 
-	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers {};
+	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
 
-	HelperedVector<UniversalTrail> Trails {};
-	std::unique_ptr<GiftBox> MyGiftBox {};
-	PhobosMap<WarheadTypeClass* , PaintBall> PaintBallStates {};
-	std::unique_ptr<DamageSelfState> DamageSelfState {};
+	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
+	std::unique_ptr<GiftBox> MyGiftBox;
+	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
+	std::unique_ptr<DamageSelfState> DamageSelfState;
 
-	int CurrentWeaponIdx { -1 };
+	int CurrentWeaponIdx;
 
-	FireWeaponManager MyWeaponManager { };
-	DriveData MyDriveData { };
-	AircraftDive MyDiveData { };
+	FireWeaponManager MyWeaponManager;
+	DriveData MyDriveData;
+	AircraftDive MyDiveData;
 
-	SpawnSupport MySpawnSuport { };
+	SpawnSupport MySpawnSuport;
 
-	std::unique_ptr<FighterAreaGuard> MyFighterData { };
+	CDTimerClass WarpedOutDelay;
 
-	CDTimerClass WarpedOutDelay { };
+	TemporalClass* MyOriginalTemporal;
 
-	OptionalStruct<bool, true> AltOccupation { }; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
-	TemporalClass* MyOriginalTemporal { nullptr };
+	bool SupressEVALost;
+	CDTimerClass SelfHealing_CombatDelay;
+	bool PayloadCreated;
+	bool PayloadTriggered;
+	SuperClass* LinkedSW;
+	CellStruct SuperTarget;
 
-	bool SupressEVALost { false };
-	CDTimerClass SelfHealing_CombatDelay { };
-	bool PayloadCreated { false };
-	bool PayloadTriggered { false };
-	SuperClass* LinkedSW { nullptr };
-	CellStruct SuperTarget { };
+	InfantryTypeClass* HijackerLastDisguiseType;
+	HouseClass* HijackerLastDisguiseHouse;
 
-	InfantryTypeClass* HijackerLastDisguiseType { nullptr };
-	HouseClass* HijackerLastDisguiseHouse { nullptr };
-
-	CDTimerClass Convert_Deploy_Delay { };
-
-	int WHAnimRemainingCreationInterval { 0 };
+	int WHAnimRemainingCreationInterval;
 
 	//====
-	bool IsWebbed { false };
-	Handle<AnimClass*, UninitAnim> WebbedAnim { nullptr };
-	AbstractClass* WebbyLastTarget { nullptr };
-	Mission WebbyLastMission { Mission::Sleep };
+	bool IsWebbed;
+	Handle<AnimClass*, UninitAnim> WebbedAnim;
+	AbstractClass* WebbyLastTarget;
+	Mission WebbyLastMission;
 
-	bool FreeUnitDone { false };
-	AresAEData AeData {};
+	AresAEData AeData;
 
-	int Strafe_BombsDroppedThisRound { 0 };
-	CDTimerClass MergePreventionTimer {};
+	CDTimerClass MergePreventionTimer;
 
-	NewTiberiumStorageClass TiberiumStorage {};
+	NewTiberiumStorageClass TiberiumStorage;
 
-	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE {};
+	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
 
-	int ShootCount { 0 };
-	int CurrentAircraftWeaponIndex { 0 };
+	CellClass* FiringObstacleCell; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
+	OptionalStruct<int, true> AdditionalRange;
+	bool IsDetachingForCloak; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
 
-	CellClass* FiringObstacleCell { nullptr }; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
-	OptionalStruct<int, true> AdditionalRange {};
-	bool IsDetachingForCloak { false }; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
+	bool HasRemainingWarpInDelay; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
+	int LastWarpInDelay;          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay
+	bool IsBeingChronoSphered; // Set to true on units currently being ChronoSphered, does not apply to Ares-ChronoSphere'd buildings or Chrono reinforcements.
 
-	bool HasRemainingWarpInDelay { false }; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
-	int LastWarpInDelay { 0 };          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay
-	bool IsBeingChronoSphered { false }; // Set to true on units currently being ChronoSphered, does not apply to Ares-ChronoSphere'd buildings or Chrono reinforcements.
+	CellClass* SubterraneanHarvRallyPoint;
 
-	CDTimerClass UnitAutoDeployTimer {};
-	CellClass* SubterraneanHarvRallyPoint { nullptr };
+	CDTimerClass TiberiumEaterTimer;
+	WarheadTypeClass* LastDamageWH;
 
-	CDTimerClass TiberiumEaterTimer {};
-	WarheadTypeClass* LastDamageWH {};
+	int MyTargetingFrame;
 
-	bool UnitIdleAction {};
-	bool UnitIdleActionSelected {};
-	bool UnitIdleIsSelected {};
-	CDTimerClass UnitIdleActionTimer {};
-	CDTimerClass UnitIdleActionGapTimer {};
+	CDTimerClass ChargeTurretTimer;// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
+	bool LastRearmWasFullDelay;
 
-	int MyTargetingFrame { ScenarioClass::Instance->Random.RandomRanged(0,15) };
+	int DropCrate; // Drop crate on death, modified by map action
+	PowerupEffects DropCrateType;
 
-	CDTimerClass ChargeTurretTimer {};// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
-	bool LastRearmWasFullDelay { false };
+	int LastBeLockedFrame;
+	int BeControlledThreatFrame;
 
-	int DropCrate { -1 }; // Drop crate on death, modified by map action
-	PowerupEffects DropCrateType { PowerupEffects::Money };
+	DWORD LastTargetID;
+	int AccumulatedGattlingValue;
+	bool ShouldUpdateGattlingValue;
 
-	int LastBeLockedFrame {};
-	int BeControlledThreatFrame {};
+	bool KeepTargetOnMove;
+	CellStruct LastSensorsMapCoords;
+	bool DelayedFireSequencePaused;
+	int DelayedFireWeaponIndex;
+	CDTimerClass DelayedFireTimer;
+	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim;
+	std::optional<CoordStruct> CustomFiringOffset; // If set any calls to GetFLH() will use this coordinate as
 
-	DWORD LastTargetID { 0xFFFFFFFF };
-	int AccumulatedGattlingValue {};
-	bool ShouldUpdateGattlingValue {};
+	WeaponTypeClass* LastWeaponType;
+	HelperedVector<EBolt*> ElectricBolts;
+	int LastHurtFrame;
 
-	bool KeepTargetOnMove { false };
+	AirstrikeClass* AirstrikeTargetingMe;
+	CellStruct RandomEMPTarget;
 
-	bool DelayedFireSequencePaused { false };
-	int DelayedFireWeaponIndex { -1 };
-	CDTimerClass DelayedFireTimer {};
-	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim { nullptr };
-	std::optional<CoordStruct> CustomFiringOffset  {}; // If set any calls to GetFLH() will use this coordinate as
+	bool ForceFullRearmDelay;
+	int AttackMoveFollowerTempCount;
+	HelperedVector<OnlyAttackStruct> OnlyAttackData;
+	bool IsSelected;
 
-	WeaponTypeClass* LastWeaponType { nullptr };
-	HelperedVector<EBolt*> ElectricBolts {};
-	int LastHurtFrame {};
-	int AttachedEffectInvokerCount {};
+	bool UndergroundTracked;
+	PassiveAcquireMode PassiveAquireMode;
 
-	AirstrikeClass* AirstrikeTargetingMe {};
-	CellStruct RandomEMPTarget {};
+	bool UnitIdleAction;
+	bool UnitIdleActionSelected;
+	bool UnitIdleIsSelected;
+	CDTimerClass UnitIdleActionTimer;
+	CDTimerClass UnitIdleActionGapTimer;
+	TintColors Tints;
 
-	CDTimerClass FiringAnimationTimer {};
-	bool ForceFullRearmDelay { false };
-	int AttackMoveFollowerTempCount {};
-	HelperedVector<OnlyAttackStruct> OnlyAttackData {};
+	bool FallingDownTracked;
+	bool ResetLocomotor;
+	bool JumpjetStraightAscend;
+#pragma endregion
 
-	bool IsSelected {};
+public:
 
-	~TechnoExtData()
+	TechnoExtData(TechnoClass* abs) : RadioExtData(abs),
+		Type(nullptr),
+		AbsType(), // OptionalStruct<AbstractType,true>
+
+		AE(),
+		idxSlot_EMPulse(0),
+		idxSlot_Wave(0),
+		idxSlot_Beam(0),
+		idxSlot_Warp(0),
+		idxSlot_Parasite(0),
+
+		EMPSparkleAnim(nullptr),
+		EMPLastMission(Mission::Sleep),
+
+		PoweredUnit(nullptr),
+		RadarJammer(nullptr),
+
+		BuildingLight(nullptr),
+
+		OriginalHouseType(nullptr),
+		CloakSkipTimer(),
+		HijackerHealth(0),
+		HijackerOwner(nullptr),
+		HijackerVeterancy(0.0f),
+		Is_SurvivorsDone(0),
+		Is_DriverKilled(0),
+		Is_Operated(0),
+		Is_UnitLostMuted(0),
+		TakeVehicleMode(0),
+		TechnoValueAmount(0),
+		Pos(0),
+		Shield(nullptr),
+		LaserTrails(),
+		ReceiveDamage(false),
+		LastKillWasTeamTarget(false),
+		PassengerDeletionTimer(),
+		CurrentShieldType(nullptr),
+		LastWarpDistance(0),
+		Death_Countdown(),
+		MindControlRingAnimType(nullptr),
+		DamageNumberOffset(INT32_MIN),
+		CurrentLaserWeaponIndex(),
+		OriginalPassengerOwner(nullptr),
+
+		IsInTunnel(false),
+		IsBurrowed(false),
+		DeployFireTimer(),
+		DisableWeaponTimer(),
+
+		RevengeWeapons(),
+
+		GattlingDmageDelay(-1),
+		GattlingDmageSound(false),
+		AircraftOpentoppedInitEd(false),
+
+		EngineerCaptureDelay(),
+
+		FlhChanged(false),
+		ReceiveDamageMultiplier(),
+		SkipLowDamageCheck(false),
+
+		aircraftPutOffsetFlag(false),
+		aircraftPutOffset(false),
+		SkipVoice(false),
+
+		ExtraWeaponTimers(),
+
+		Trails(),
+		MyGiftBox(nullptr),
+		PaintBallStates(),
+		DamageSelfState(nullptr),
+
+		CurrentWeaponIdx(-1),
+
+		MyWeaponManager(),
+		MyDriveData(),
+		MyDiveData(),
+
+		MySpawnSuport(),
+
+		WarpedOutDelay(),
+
+		MyOriginalTemporal(nullptr),
+
+		SupressEVALost(false),
+		SelfHealing_CombatDelay(),
+		PayloadCreated(false),
+		PayloadTriggered(false),
+		LinkedSW(nullptr),
+		SuperTarget(),
+
+		HijackerLastDisguiseType(nullptr),
+		HijackerLastDisguiseHouse(nullptr),
+
+		WHAnimRemainingCreationInterval(0),
+
+		IsWebbed(false),
+		WebbedAnim(nullptr),
+		WebbyLastTarget(nullptr),
+		WebbyLastMission(Mission::Sleep),
+
+		AeData(),
+
+		MergePreventionTimer(),
+
+		TiberiumStorage(),
+
+		PhobosAE(),
+
+		FiringObstacleCell(nullptr),
+		AdditionalRange(),
+		IsDetachingForCloak(false),
+
+		HasRemainingWarpInDelay(false),
+		LastWarpInDelay(0),
+		IsBeingChronoSphered(false),
+
+		SubterraneanHarvRallyPoint(nullptr),
+
+		TiberiumEaterTimer(),
+		LastDamageWH(nullptr),
+
+		MyTargetingFrame(0),
+
+		ChargeTurretTimer(),
+		LastRearmWasFullDelay(false),
+
+		DropCrate(-1),
+		DropCrateType(PowerupEffects::Money),
+
+		LastBeLockedFrame(0),
+		BeControlledThreatFrame(0),
+
+		LastTargetID(0xFFFFFFFF),
+		AccumulatedGattlingValue(0),
+		ShouldUpdateGattlingValue(false),
+
+		KeepTargetOnMove(false),
+		LastSensorsMapCoords(),
+		DelayedFireSequencePaused(false),
+		DelayedFireWeaponIndex(-1),
+		DelayedFireTimer(),
+		CurrentDelayedFireAnim(nullptr),
+		CustomFiringOffset(),
+
+		LastWeaponType(nullptr),
+		ElectricBolts(),
+		LastHurtFrame(0),
+
+		AirstrikeTargetingMe(nullptr),
+		RandomEMPTarget(),
+
+		ForceFullRearmDelay(false),
+		AttackMoveFollowerTempCount(0),
+		OnlyAttackData(),
+		IsSelected(false),
+
+		UndergroundTracked(false),
+		PassiveAquireMode(PassiveAcquireMode::Normal),
+
+		UnitIdleAction(false),
+		UnitIdleActionSelected(false),
+		UnitIdleIsSelected(false),
+		UnitIdleActionTimer(),
+		UnitIdleActionGapTimer(),
+		Tints(),
+		FallingDownTracked { false },
+		ResetLocomotor { false } ,
+		JumpjetStraightAscend { }
 	{
-		if (!Phobos::Otamaa::ExeTerminated)
-		{
-			if (auto pTemp = std::exchange(this->MyOriginalTemporal, nullptr))
-			{
-				GameDelete<true, false>(pTemp);
-			}
-		}
+		// ensure tib storage sized properly
+		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 
-		this->WebbedAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		this->EMPSparkleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
-		this->ClearElectricBolts();
- 	}
+		// randomized initial targeting frame
+		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
+		// set tint owner
+		Tints.SetOwner(abs);
+	}
+
+	TechnoExtData(TechnoClass* abs, noinit_t& noint) : RadioExtData(abs, noint) { };
+
+	virtual ~TechnoExtData();
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->RadioExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		this->RadioExtData::SaveToStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual TechnoClass* This() const override { return reinterpret_cast<TechnoClass*>(RadioExtData::This()); }
+	virtual const TechnoClass* This_Const() const override { return reinterpret_cast<const TechnoClass*>(RadioExtData::This_Const()); }
+
+	virtual void CalculateCRC(CRCEngine& crc) const override {
+		this->RadioExtData::CalculateCRC(crc);
+	}
+
+public:
 
 	FORCEDINLINE ShieldClass* GetShield() const {
 		return this->Shield.get();
@@ -810,12 +1219,9 @@ public:
 		this->ElectricBolts.clear();
 	}
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) {
-		this->Serialize(Stm);
-	}
-
-	void InitializeConstant();
+	void StopIdleAction();
+	void ApplyIdleAction();
+	void ManualIdleAction();
 
 	bool CheckDeathConditions();
 	bool UpdateKillSelf_Slave();
@@ -825,7 +1231,6 @@ public:
 
 	void UpdateGattlingOverloadDamage();
 	void UpdateOnTunnelEnter();
-	void InitFunctionEvents();
 
 	void UpdateShield();
 	void UpdateType(TechnoTypeClass* currentType);
@@ -847,10 +1252,6 @@ public:
 	bool IsInterceptor();
 	void CreateInitialPayload(bool forced = false);
 
-	static void InitializeUnitIdleAction(TechnoClass* pThis , TechnoTypeClass* pType);
-	void StopIdleAction();
-	void ApplyIdleAction();
-	void ManualIdleAction();
 	void StopRotateWithNewROT(int ROT = -1);
 
 	void ResetDelayedFireTimer();
@@ -861,48 +1262,24 @@ public:
 	bool ContainFirer(WeaponTypeClass* const Weapon, TechnoClass* const Attacker) const;
 	int FindFirer(WeaponTypeClass* const Weapon) const;
 
-	static bool HandleDelayedFireWithPauseSequence(TechnoClass* pThis, int weaponIndex, int firingFrame);
+	void InitPassiveAcquireMode();
+	PassiveAcquireMode GetPassiveAcquireMode() const;
+	void TogglePassiveAcquireMode(PassiveAcquireMode mode);
+	bool CanTogglePassiveAcquireMode();
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TechnoExtData) -
-			(4u //AttachedToObject
-			+ 4u //DamageNumberOffset
-			 );
-	}
+public:
 
-	static bool FORCEDINLINE IsOnBridge(FootClass* pUnit)
-	{
-		auto const pCell = MapClass::Instance->GetCellAt(pUnit->GetCoords());
-		auto const pCellAjd = pCell->GetNeighbourCell(FacingType::North);
-		bool containsBridge = pCell->ContainsBridge();
-		bool containsBridgeDir = static_cast<bool>(pCell->Flags & CellFlags::BridgeDir);
+	static void InitializeUnitIdleAction(TechnoClass* pThis, TechnoTypeClass* pType);
 
-		if ((containsBridge || containsBridgeDir || pCellAjd->ContainsBridge()) && (!containsBridge || pCell->GetNeighbourCell(FacingType::West)->ContainsBridge()))
-			return true;
+	static bool HandleDelayedFireWithPauseSequence(TechnoClass* pThis, WeaponTypeClass* pWeapon, int weaponIndex, int frame, int firingFrame);
 
-		return false;
-	}
-
-	static FORCEDINLINE void GetLevelIntensity(TechnoClass* pThis, int level, int& levelIntensity, int& cellIntensity, double levelMult, double cellMult, bool applyBridgeBonus = false)
-	{
-		double currentLevel = pThis->GetHeight() / static_cast<double>(Unsorted::LevelHeight);
-		levelIntensity = static_cast<int>(level * currentLevel * levelMult);
-		int bridgeBonus = applyBridgeBonus ? 4 * level : 0;
-		cellIntensity = MapClass::Instance()->GetCellAt(pThis->GetMapCoords())->Intensity_Normal + bridgeBonus;
-
-		if (cellMult > 0.0)
-			cellIntensity = std::clamp(cellIntensity + static_cast<int>((1000 - cellIntensity) * currentLevel * cellMult), 0, 1000);
-		else if (cellMult < 0.0)
-			cellIntensity = 1000;
-	}
+	static bool IsOnBridge(FootClass* pUnit);
+	static int GetJumpjetIntensity(FootClass* pThis);
+	static void GetLevelIntensity(TechnoClass* pThis, int level, int& levelIntensity, int& cellIntensity, double levelMult, double cellMult, bool applyBridgeBonus = false);
+	static int GetDeployingAnimIntensity(FootClass* pThis);
 
 	static int CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* args);
 	static std::vector<double> GetBlockChance(TechnoClass* pThis, std::vector<double>& blockChance);
-
-private:
-	template <typename T>
-	void Serialize(T& Stm);
 
 protected:
 	std::pair<const std::vector<WeaponTypeClass*>*, const std::vector<int>*> GetFireSelfData();
@@ -961,7 +1338,7 @@ public:
 
 	static void UpdateSharedAmmo(TechnoClass* pThis);
 
-	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
+	static void DrawSelfHealPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds , SHPStruct* shape , ConvertClass* convert);
 	static void DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds);
 	static void ApplyGainedSelfHeal(TechnoClass* pThis, bool wasDamaged);
 	static void ApplyDrainMoney(TechnoClass* pThis);
@@ -1109,44 +1486,44 @@ public:
 	static std::tuple<bool, bool , bool> CanBeAffectedByFakeEngineer(TechnoClass* pThis, TechnoClass* pTarget, bool checkBridge = false, bool checkCapturableBuilding = false, bool checkAttachedBombs = false);
 
 	static bool CannotMove(UnitClass* pThis);
+
+	static bool HasAmmoToDeploy(TechnoClass* pThis);
+	static void HandleOnDeployAmmoChange(TechnoClass* pThis, int maxAmmoOverride = -1);
+
+	static bool SimpleDeployerAllowedToDeploy(UnitClass* pThis, bool defaultValue, bool alwaysCheckLandTypes);
+
+	static int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, bool berserk);
+	static void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity);
+
+	static void Fastenteraction(FootClass* pThis);
+
 public:
 	static UnitClass* Deployer;
 
 };
 
-class TechnoExtContainer final : public Container<TechnoExtData>
-{
+class TechnoExtContainer {
 public:
 	static TechnoExtContainer Instance;
-	static StaticObjectPool<TechnoExtData, 10000> pools;
 
-	TechnoExtData* AllocateUnchecked(TechnoClass* key)
+	COMPILETIMEEVAL FORCEDINLINE  TechnoExtData* GetExtAttribute(TechnoClass* key)
 	{
-		TechnoExtData* val = pools.allocate();
-
-		if (val) {
-			val->AttachedToObject = key;
-			if (!Phobos::Otamaa::DoingLoadGame)
-				val->InitializeConstant();
-		} else {
-			Debug::FatalErrorAndExit("The amount of [TecnoExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		}
-
-		return val;
+		return (TechnoExtData*)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
-	void Remove(TechnoClass* key)
+	COMPILETIMEEVAL FORCEDINLINE TechnoExtData* Find(TechnoClass* key)
 	{
-		if (TechnoExtData* Item = TryFind(key)) {
-			RemoveExtOf(key, Item);
-		}
+		return this->GetExtAttribute(key);
 	}
 
-	void RemoveExtOf(TechnoClass* key, TechnoExtData* Item)
+	COMPILETIMEEVAL FORCEDINLINE TechnoExtData* TryFind(TechnoClass* key)
 	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
+		if (!key)
+			return nullptr;
+
+		return this->GetExtAttribute(key);
 	}
+
 };
 
 //we cannot inherit this
@@ -1159,5 +1536,39 @@ public:
 	static int __fastcall _EvaluateJustCell(TechnoClass* pThis , discard_t, CellStruct* where);
 	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);
 	static int __fastcall __AdjustDamage(TechnoClass* pThis, discard_t, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
+	static void __fastcall __DrawAirstrikeFlare(TechnoClass* pThis, discard_t, const CoordStruct& startCoord, int startHeight, int endHeight, const CoordStruct& endCoord);
+	static AbstractClass* __fastcall __Greatest_Threat(TechnoClass* techno, discard_t, ThreatType method, CoordStruct* location, bool a4);
+	static void __fastcall __Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect);
+	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
+	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
 
+	//AI
+	static void __HandleGattlingAudio(TechnoClass* pThis);
+	static void __HandleVoicePlayback(TechnoClass* pThis);
+	static void __HandleBerzerkState(TechnoClass* pThis);
+	static void __HandleStrengthSmoothing(TechnoClass* pThis);
+	static void __HandleTurretAudio(TechnoClass* pThis);
+	static void __HandleVeterancyPromotion(TechnoClass* pThis);
+	static void __HandleMoneyDrain(TechnoClass* pThis);
+	static void __HandleDrainTarget(TechnoClass* pThis);
+	static void __HandleHiddenState(TechnoClass* pThis);
+	static void __ClearInvalidAllyTarget(TechnoClass* pThis);
+	static void __CheckTargetInRange(TechnoClass* pThis);
+	static void __HandleTurretRecoil(TechnoClass* pThis);
+	static void __HandleChargeTurret(TechnoClass* pThis);
+	static void __HandleDoorAndTimers(TechnoClass* pThis);
+	static void __ClearTargetForInvalidMissions(TechnoClass* pThis);
+	static void __HandleTargetAcquisition(TechnoClass* pThis);
+	static void __HandleAttachedBomb(TechnoClass* pThis);
+	static void __HandleManagers(TechnoClass* pThis);
+	static void __HandleSelfHealing(TechnoClass* pThis);
+	static void __HandleCloaking(TechnoClass* pThis);
+	static void __ClearTargetIfNoDamage(TechnoClass* pThis);
+	static void __ClearAircraftTarget(TechnoClass* pThis);
+	static void __CheckTargetReachability(TechnoClass* pThis);
+	static void __UpdateAnimationStage(TechnoClass* pThis);
+	static void __HandleFlashing(TechnoClass* pThis);
+	static void __HandleDamageSparks(TechnoClass* pThis);
+	static void __HandleEMPEffect(TechnoClass* pThis);
+	static void __fastcall __AI(TechnoClass* pThis);
 };

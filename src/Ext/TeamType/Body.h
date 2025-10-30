@@ -6,7 +6,7 @@
 //#include <Utilities/TemplateDef.h>
 //#include <Utilities/Macro.h>
 
-class TeamTypeExt
+class TeamTypeExtData
 {
 public:
 	/*

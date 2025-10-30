@@ -30,34 +30,60 @@ private:
 	}
 };
 
-class CellExtData final
+class CellExtData final : public AbstractExtended
 {
 public:
-
-	static COMPILETIMEEVAL size_t Canary = 0x87688621;
 	using base_type = CellClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	static COMPILETIMEEVAL size_t ExtOffset = 0x144;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
-	int NewPowerups { -1 };
-	UnitClass* IncomingUnit { nullptr };
-	UnitClass* IncomingUnitAlt { nullptr };
-	HelperedVector<RadSiteClass*> RadSites {};
-	HelperedVector<RadLevel> RadLevels {};
+#pragma region ClassMembers
+	int NewPowerups;
+	int InfantryCount;
+	UnitClass* IncomingUnit;
+	UnitClass* IncomingUnitAlt;
+	HelperedVector<RadSiteClass*> RadSites;
+	HelperedVector<RadLevel> RadLevels;
+#pragma endregion
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	CellExtData(CellClass* pObj) : AbstractExtended(pObj)
+		, NewPowerups(-1)
+		, InfantryCount(0)
+		, IncomingUnit(nullptr)
+		, IncomingUnitAlt(nullptr)
+		, RadSites()
+		, RadLevels()
+
 	{
-		return sizeof(CellExtData) -
-			(4u //AttachedToObject
-			 );
+		this->AbstractExtended::SetName("CellClass");
 	}
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	CellExtData(CellClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+
+	virtual ~CellExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override {
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) {
+		const_cast<CellExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
+		const_cast<CellExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { }
+
+	virtual CellClass* This() const override { return reinterpret_cast<CellClass*>(this->AbstractExtended::This()); }
+	virtual const CellClass* This_Const() const override { return reinterpret_cast<const CellClass*>(this->AbstractExtended::This_Const()); }
+
+public:
 
 	static int __fastcall GetTiberiumType(int Overlay);
 
@@ -78,47 +104,16 @@ class CellExtContainer final : public Container<CellExtData>
 {
 public:
 	static CellExtContainer Instance;
-	static HelperedVector<CellExtData*> Array;
 
-	CellExtData* AllocateUnchecked(CellClass* key)
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
-		auto val = Array.emplace_back(new CellExtData());
-		val->AttachedToObject = key;
-		return val;
-
-	}
-
-	CellExtData* Allocate(CellClass* key)
-	{
-		if (!key || Phobos::Otamaa::DoingLoadGame || key == CellClass::Instance())
-			return nullptr;
-
-		this->ClearExtAttribute(key);
-		CellExtData* val = AllocateUnchecked(key);
-		this->SetExtAttribute(key, val);
-		return val;
-	}
-
-	void Remove(CellClass* key)
-	{
-		if (Phobos::Otamaa::DoingLoadGame || key == CellClass::Instance())
-			return;
-
-		if (CellExtData* Item = TryFind(key)) {
-			Array.remove(Item);
-			this->ClearExtAttribute(key);
-			delete Item;
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
-	}
-
-	void Clear()
-	{
-		for (auto& item : Array) {
-			if (item)
-				delete item;
-		}
-
-		Array.clear();
 	}
 };
 
@@ -131,9 +126,10 @@ public:
 	int _GetTiberiumType();
 	bool _CanTiberiumGerminate(TiberiumClass* tiberium);
 	bool _CanPlaceVeins();
+	int _Reduce_Tiberium(int levels_reducer);
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE CellClass* _AsCell() const
 	{
@@ -142,7 +138,7 @@ public:
 
 	FORCEDINLINE CellExtData* _GetExtData()
 	{
-		return *reinterpret_cast<CellExtData**>(((DWORD)this) + CellExtData::ExtOffset);
+		return *reinterpret_cast<CellExtData**>(((DWORD)this) + 0x18);
 	}
 
 };

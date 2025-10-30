@@ -130,7 +130,6 @@ ASMJIT_PATCH(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
 	if (vec.empty() || !vec[0])
 		return 0;
 
-
 	R->EAX(vec[0]->CreateObject(pThis->Owner->GetOwningHouse()));
 	return 0x6B78EA;
 }

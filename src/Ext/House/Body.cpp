@@ -7,17 +7,20 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Super/Body.h>
+#include <Misc/Spawner/Main.h>
+#include <Ext/Infantry/Body.h>
 
-#include <ScenarioClass.h>
+#include <Misc/Hooks.Otamaa.h>
 
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/CrateTypeClass.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/Cast.h>
 
 #include <ExtraHeaders/StackVector.h>
 
-#include <Utilities/Cast.h>
+#include <ScenarioClass.h>
 
 #pragma region defines
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
@@ -41,21 +44,56 @@ HouseClass* HouseExtContainer::Neutral = nullptr;
 
 #pragma endregion
 
-void HouseExtData::InitializeConstant()
+bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	//BuiltAircraftTypes.PopulateCounts(10000);
-	//BuiltInfantryTypes.PopulateCounts(10000);
-	//BuiltUnitTypes.PopulateCounts(10000);
-	//BuiltBuildingTypes.PopulateCounts(10000);
-	//KilledAircraftTypes.PopulateCounts(10000);
-	//KilledInfantryTypes.PopulateCounts(10000);
-	//KilledUnitTypes.PopulateCounts(10000);
-	//KilledBuildingTypes.PopulateCounts(10000);
-	//CapturedBuildings.PopulateCounts(10000);
-	//CollectedCrates.PopulateCounts(10000);
+	auto ret = LoadGlobalArrayData(Stm);
 
-	//Debug::LogInfo("Initilizing Tiberium storage for [%s] with [%d] count !", this->AttachedToObject->Type->ID, TiberiumClass::Array->Count);
-	TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+		ret &= Stm
+		.Process(HouseExtData::LimboTechno)
+		.Process(HouseExtData::AutoDeathObjects)
+		.Process(HouseExtData::LastGrindingBlanceUnit)
+		.Process(HouseExtData::LastGrindingBlanceInf)
+		.Process(HouseExtData::LastHarvesterBalance)
+		.Process(HouseExtData::LastSlaveBalance)
+		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::CloakEVASpeak)
+		.Process(HouseExtData::SubTerraneanEVASpeak)
+
+		.Process(HouseExtContainer::HousesTeams)
+		.Process(HouseExtContainer::Civilian)
+		.Process(HouseExtContainer::Special)
+		.Process(HouseExtContainer::Neutral)
+		.Process(HouseExtContainer::CivilianSide)
+
+		.Success();
+
+	return ret;
+}
+
+bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	auto ret = SaveGlobalArrayData(Stm);
+
+		ret &= Stm
+		.Process(HouseExtData::LimboTechno)
+		.Process(HouseExtData::AutoDeathObjects)
+		.Process(HouseExtData::LastGrindingBlanceUnit)
+		.Process(HouseExtData::LastGrindingBlanceInf)
+		.Process(HouseExtData::LastHarvesterBalance)
+		.Process(HouseExtData::LastSlaveBalance)
+		.Process(HouseExtData::IsAnyFirestormActive)
+		.Process(HouseExtData::CloakEVASpeak)
+		.Process(HouseExtData::SubTerraneanEVASpeak)
+
+		.Process(HouseExtContainer::HousesTeams)
+		.Process(HouseExtContainer::Civilian)
+		.Process(HouseExtContainer::Special)
+		.Process(HouseExtContainer::Neutral)
+		.Process(HouseExtContainer::CivilianSide)
+
+		.Success();
+
+	return ret;
 }
 
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
@@ -489,7 +527,7 @@ bool HouseExtData::CheckFactoryOwners(HouseClass* pHouse, TechnoTypeClass* pItem
 
 
 				//found one factory that avaible for the item , or the building type HasAllPlans
-				if (pBld->Type->Factory == whatItem || BuildingTypeExtContainer::Instance.Find(pBld->Type)->Type->FactoryOwners_HasAllPlans) {
+				if (pBld->Type->Factory == whatItem || BuildingTypeExtContainer::Instance.Find(pBld->Type)->FactoryOwners_HasAllPlans) {
 					return true;
 				}
 			}
@@ -684,12 +722,12 @@ bool HouseExtData::PrerequisitesMet(HouseClass* pThis, int* items, int size)
 	return Prereqs::HouseOwnsAll(pThis, items, size);
 }
 
-void HouseExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool HouseExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pSection = this->AttachedToObject->PlainName;
+	const char* pSection = This()->PlainName;
 
 	if (!pINI->GetSection(pSection))
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 	bool readBaseNodeRepairInfo[3];
@@ -701,6 +739,7 @@ void HouseExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->Degrades.Read(exINI, pSection, "Degrades");
+	return true;
 }
 
 TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
@@ -741,10 +780,8 @@ void HouseExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
 
 SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 {
-	if (const auto pSW = pHouse->Supers.GetItemOrDefault(nIdx))
-	{
-		if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse))
-		{
+	if (const auto pSW = pHouse->Supers.GetItemOrDefault(nIdx)) {
+		if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse)) {
 			return pSW;
 		}
 	}
@@ -754,9 +791,9 @@ SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 
 int HouseExtData::GetSurvivorDivisor(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && (pTypeExt->SurvivorDivisor.Get() > 0))
+	if (pTypeExt->SurvivorDivisor.Get() > 0)
 		return pTypeExt->SurvivorDivisor;
 
 	if (const auto pSide = HouseExtData::GetSide(pHouse))
@@ -769,13 +806,12 @@ int HouseExtData::GetSurvivorDivisor(HouseClass* pHouse)
 
 InfantryTypeClass* HouseExtData::GetCrew(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Crew)
+	if (pTypeExt->Crew)
 		return pTypeExt->Crew;
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetCrew();
 	}
 
@@ -784,13 +820,12 @@ InfantryTypeClass* HouseExtData::GetCrew(HouseClass* pHouse)
 
 InfantryTypeClass* HouseExtData::GetEngineer(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Engineer)
+	if (pTypeExt->Engineer)
 		return pTypeExt->Engineer;
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetEngineer();
 	}
 
@@ -799,13 +834,12 @@ InfantryTypeClass* HouseExtData::GetEngineer(HouseClass* pHouse)
 
 InfantryTypeClass* HouseExtData::GetTechnician(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Technician)
+	if (pTypeExt->Technician)
 		return pTypeExt->Technician;
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetTechnician();
 	}
 
@@ -814,13 +848,12 @@ InfantryTypeClass* HouseExtData::GetTechnician(HouseClass* pHouse)
 
 InfantryTypeClass* HouseExtData::GetDisguise(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
-	if (pTypeExt && pTypeExt->Disguise)
+	if (pTypeExt->Disguise)
 		return pTypeExt->Disguise;
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetDisguise();
 	}
 
@@ -831,11 +864,10 @@ AircraftTypeClass* HouseExtData::GetParadropPlane(HouseClass* pHouse)
 {
 	// tries to get the house's default plane and falls back to
 	// the sides default plane.
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 	AircraftTypeClass* pRest = nullptr;
 
-	if (pTypeExt && pTypeExt->ParaDropPlane)
-	{
+	if (pTypeExt->ParaDropPlane) {
 		pRest = pTypeExt->ParaDropPlane;
 	}
 
@@ -853,7 +885,9 @@ AircraftTypeClass* HouseExtData::GetParadropPlane(HouseClass* pHouse)
 			AircraftTypeClass::Array->GetItemOrDefault(iPlane, RulesExtData::Instance()->DefaultParaPlane);
 	}
 
-	if (!pRest)
+	if (pRest && pRest->Strength == 0)
+		Debug::FatalError("Invalid Paradrop Plane[%s]", pRest->ID);
+	else if (!pRest)
 		Debug::FatalError("Invalid Paradrop Plane");
 
 	return pRest;
@@ -863,9 +897,9 @@ AircraftTypeClass* HouseExtData::GetSpyPlane(HouseClass* pHouse)
 {
 	AircraftTypeClass* pRest = nullptr;
 
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->SpyPlane)
-	{
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
+	if (pTypeExt->SpyPlane) {
 		pRest = pTypeExt->SpyPlane;
 	}
 
@@ -888,14 +922,13 @@ AircraftTypeClass* HouseExtData::GetSpyPlane(HouseClass* pHouse)
 
 UnitTypeClass* HouseExtData::GetHunterSeeker(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->HunterSeeker)
-	{
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
+	if (pTypeExt->HunterSeeker) {
 		return pTypeExt->HunterSeeker;
 	}
 
-	if (const auto pSide = HouseExtData::GetSide(pHouse))
-	{
+	if (const auto pSide = HouseExtData::GetSide(pHouse)) {
 		return SideExtContainer::Instance.Find(pSide)->GetHunterSeeker();
 	}
 
@@ -904,9 +937,9 @@ UnitTypeClass* HouseExtData::GetHunterSeeker(HouseClass* pHouse)
 
 AnimTypeClass* HouseExtData::GetParachuteAnim(HouseClass* pHouse)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
-	if (pTypeExt && pTypeExt->ParachuteAnim)
-	{
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
+	if (pTypeExt->ParachuteAnim) {
 		return pTypeExt->ParachuteAnim;
 	}
 
@@ -915,21 +948,27 @@ AnimTypeClass* HouseExtData::GetParachuteAnim(HouseClass* pHouse)
 		if (auto pAnim = SideExtContainer::Instance.Find(pSide)->ParachuteAnim.Get(RulesClass::Instance->Parachute))
 			return pAnim;
 
-		Debug::LogInfo(
-			"[GetParachuteAnim] House {} and its side have no valid parachute defined. Rules fallback failed.",
-			pHouse->get_ID());
+		if(!RulesClass::Instance->Parachute)
+			Debug::LogInfo(
+				"[GetParachuteAnim] House {} and its side have no valid parachute defined. Rules fallback failed.",
+				pHouse->get_ID());
 	}
 
-	return AnimTypeClass::Find("PARACH");
+	auto pParach = AnimTypeClass::Find("PARACH");
+	if(Phobos::Otamaa::IsAdmin && !pParach) {
+		Debug::FatalError("Cannot Find Default Parach !\n");
+	}
+
+	return pParach;
 }
 
 bool HouseExtData::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeClass*>& Types, Iterator<int>& Num)
 {
-	const auto pTypeExt = HouseTypeExtContainer::Instance.TryFind(pHouse->Type);
+	const auto pTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
 	// tries to get the house's default contents and falls back to
 	// the sides default contents.
-	if (pTypeExt && !pTypeExt->ParaDropTypes.empty())
+	if (!pTypeExt->ParaDropTypes.empty())
 	{
 		Types = pTypeExt->ParaDropTypes;
 		Num = pTypeExt->ParaDropNum;
@@ -971,9 +1010,8 @@ NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoT
 	//remove first finded similarity
 	for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember)
 	{
-		auto it = std::find_if(missings.begin(), missings.end(), [&](TechnoTypeClass* pMissType)
- {
-	 return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
+		auto it = std::ranges::find_if(missings, [&](TechnoTypeClass* pMissType) {
+	 		return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
 		});
 
 		if (it != missings.end())
@@ -983,7 +1021,7 @@ NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoT
 
 void HouseExtData::GetUnitTypeToProduce()
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
 	bool skipGround = pThis->ProducingUnitTypeIndex != -1;
 	bool skipNaval = this->ProducingNavalUnitTypeIndex != -1;
@@ -1131,7 +1169,7 @@ int HouseExtData::GetAircraftTypeToProduce()
 	taskForceMembers.reserve(AircraftTypeClass::Array->Count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
-	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[this->AttachedToObject])
+	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[This()])
 	{
 		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
@@ -1161,7 +1199,7 @@ int HouseExtData::GetAircraftTypeToProduce()
 	for (auto classPos = AircraftClass::Array->begin(); classPos != AircraftClass::Array->end(); ++classPos)
 	{
 		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(this->AttachedToObject))
+		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(This()))
 		{
 			--Values[Idx];
 		}
@@ -1180,14 +1218,14 @@ int HouseExtData::GetAircraftTypeToProduce()
 		if (CurrentValue <= 0)
 			continue;
 
-		const auto buildableResult = this->AttachedToObject->CanBuild(TT, false, false);
+		const auto buildableResult = This()->CanBuild(TT, false, false);
 
-		if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(this->AttachedToObject) > this->AttachedToObject->Available_Money()) {
+		if (buildableResult != CanBuildResult::Buildable || TT->GetActualCost(This()) > This()->Available_Money()) {
 			continue;
 		}
 
 		//yes , we checked this fucking twice just to make sure
-		const auto factoryresult = HouseExtData::HasFactory(this->AttachedToObject, TT, false, true, false, true).first;
+		const auto factoryresult = HouseExtData::HasFactory(This(), TT, false, true, false, true).first;
 
 		if (factoryresult == NewFactoryState::NotFound || factoryresult == NewFactoryState::NoFactory) {
 			continue;
@@ -1206,7 +1244,7 @@ int HouseExtData::GetAircraftTypeToProduce()
 		}
 	}
 
-	const auto AIDiff = static_cast<int>(this->AttachedToObject->GetAIDifficultyIndex());
+	const auto AIDiff = static_cast<int>(This()->GetAIDifficultyIndex());
 
 	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
 		return EarliestTypenameIndex;
@@ -1231,7 +1269,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 	taskForceMembers.reserve(InfantryTypeClass::Array->Count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
-	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[this->AttachedToObject])
+	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[This()])
 	{
 		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
@@ -1261,7 +1299,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 	for (auto classPos = InfantryClass::Array->begin(); classPos != InfantryClass::Array->end(); ++classPos)
 	{
 		auto const Idx = static_cast<unsigned int>((*classPos)->Type->ArrayIndex);
-		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(this->AttachedToObject))
+		if (Values[Idx] > 0 && (*classPos)->CanBeRecruited(This()))
 		{
 			--Values[Idx];
 		}
@@ -1280,10 +1318,10 @@ int HouseExtData::GetInfantryTypeToProduce()
 		if (CurrentValue <= 0)
 			continue;
 
-		const auto buildableResult = this->AttachedToObject->CanBuild(TT, false, false);
+		const auto buildableResult = This()->CanBuild(TT, false, false);
 
 		if (buildableResult == CanBuildResult::Unbuildable
-			|| TT->GetActualCost(this->AttachedToObject) > this->AttachedToObject->Available_Money())
+			|| TT->GetActualCost(This()) > This()->Available_Money())
 		{
 			continue;
 		}
@@ -1301,7 +1339,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 		}
 	}
 
-	const auto AIDiff = static_cast<int>(this->AttachedToObject->GetAIDifficultyIndex());
+	const auto AIDiff = static_cast<int>(This()->GetAIDifficultyIndex());
 
 	if (ScenarioClass::Instance->Random.RandomFromMax(99) < RulesClass::Instance->FillEarliestTeamProbability[AIDiff])
 		return EarliestTypenameIndex;
@@ -1318,14 +1356,14 @@ TechTreeTypeClass* HouseExtData::GetTechTreeType() {
 		TechTreeTypeClass* ret = nullptr;
 
 		for (auto& pType : TechTreeTypeClass::Array) {
-			if (pType->SideIndex == this->AttachedToObject->SideIndex) {
+			if (pType->SideIndex == This()->SideIndex) {
 				ret = pType.get();
 			}
 		}
 
 		if(!ret){
 			Debug::LogInfo("TechTreeTypeClass::GetForSide: Could not find tech tree for side {}, returning tech tree 0: {}",
-				this->AttachedToObject->SideIndex, TechTreeTypeClass::Array.begin()->get()->Name.data());
+				This()->SideIndex, TechTreeTypeClass::Array.begin()->get()->Name.data());
 			ret = TechTreeTypeClass::Array.begin()->get();
 		}
 
@@ -1366,7 +1404,7 @@ int HouseExtData::ActiveHarvesterCount(HouseClass* pThis)
 	auto pOwnerExt = HouseExtContainer::Instance.Find(pThis);
 
 	int result =
-		std::count_if(pOwnerExt->OwnedCountedHarvesters.begin(), pOwnerExt->OwnedCountedHarvesters.end(),
+		std::ranges::count_if(pOwnerExt->OwnedCountedHarvesters,
 		[pThis](TechnoClass* techno)
 		{
 			if (!techno->IsAlive || techno->Health <= 0 || techno->IsCrashing || techno->IsSinking)
@@ -1389,7 +1427,7 @@ int HouseExtData::TotalHarvesterCount(HouseClass* pThis)
 	int result = 0;
 	auto pOwnerExt = HouseExtContainer::Instance.Find(pThis);
 
-	std::for_each(pOwnerExt->OwnedCountedHarvesters.begin(), pOwnerExt->OwnedCountedHarvesters.end(), [&result, pThis](TechnoClass* techno) {
+	std::ranges::for_each(pOwnerExt->OwnedCountedHarvesters, [&result, pThis](TechnoClass* techno) {
 		result += !techno->InLimbo && techno->IsAlive && techno->Health > 0;
 	});
 
@@ -1722,7 +1760,7 @@ int HouseExtData::GetHouseIndex(int param, TeamClass* pTeam = nullptr, TActionCl
 
 bool HouseExtData::UpdateHarvesterProduction()
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const auto AIDifficulty = static_cast<int>(pThis->GetAIDifficultyIndex());
 	const auto idxParentCountry = pThis->Type->FindParentCountryIndex();
 	const auto pHarvesterUnit = HouseExtData::FindOwned(pThis, idxParentCountry, make_iterator(RulesClass::Instance->HarvesterUnit));
@@ -2374,27 +2412,28 @@ void HouseExtData::UpdateNonMFBFactoryCounts(AbstractType rtti, bool remove, boo
 int HouseExtData::GetFactoryCountWithoutNonMFB(AbstractType rtti, bool isNaval)
 {
 	int count = 0;
+	auto pThis = This();
 
 	switch (rtti)
 	{
 	case AbstractType::Aircraft:
 	case AbstractType::AircraftType:
-		count = this->AttachedToObject->NumAirpads - this->NumAirpads_NonMFB;
+		count = pThis->NumAirpads - this->NumAirpads_NonMFB;
 		break;
 	case AbstractType::Building:
 	case AbstractType::BuildingType:
-		count = this->AttachedToObject->NumConYards - this->NumConYards_NonMFB;
+		count = pThis->NumConYards - this->NumConYards_NonMFB;
 		break;
 	case AbstractType::Infantry:
 	case AbstractType::InfantryType:
-		count = this->AttachedToObject->NumBarracks - this->NumBarracks_NonMFB;
+		count = pThis->NumBarracks - this->NumBarracks_NonMFB;
 		break;
 	case AbstractType::Unit:
 	case AbstractType::UnitType:
 		if (isNaval)
-			count = this->AttachedToObject->NumShipyards - this->NumShipyards_NonMFB;
+			count = pThis->NumShipyards - this->NumShipyards_NonMFB;
 		else
-			count = this->AttachedToObject->NumWarFactories - this->NumWarFactories_NonMFB;
+			count = pThis->NumWarFactories - this->NumWarFactories_NonMFB;
 		break;
 	default:
 		break;
@@ -2424,7 +2463,7 @@ void HouseExtData::UpdateBattlePoints(int modifier)
 
 bool HouseExtData::AreBattlePointsEnabled()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto pOwnerTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
 
 		// Structures can enable this logic overwriting the house's setting
@@ -2456,7 +2495,7 @@ int HouseExtData::CalculateBattlePoints(TechnoClass* pTechno)
 
 int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pOwner)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto pThisTypeExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno);
 
@@ -2486,10 +2525,10 @@ bool HouseExtData::ReverseEngineer(TechnoClass* Victim) {
 	if (!VictimAs)
 		return false;
 
-	if (HouseExtData::PrereqValidate(this->AttachedToObject, VictimType, false, true) != CanBuildResult::Buildable) {
+	if (HouseExtData::PrereqValidate(This(), VictimType, false, true) != CanBuildResult::Buildable) {
 		this->Reversed.emplace(VictimAs);
-		if (HouseExtData::RequirementsMet(this->AttachedToObject, VictimType) != RequirementStatus::Forbidden) {
-			this->AttachedToObject->RecheckTechTree = true;
+		if (HouseExtData::RequirementsMet(This(), VictimType) != RequirementStatus::Forbidden) {
+			This()->RecheckTechTree = true;
 			return true;
 		}
 	}
@@ -2497,93 +2536,107 @@ bool HouseExtData::ReverseEngineer(TechnoClass* Victim) {
 	return false;
 }
 
-//void HouseExtData::AddToLimboTracking(TechnoTypeClass* pTechnoType)
-//{
-//	if (pTechnoType)
-//	{
-//		int arrayIndex = pTechnoType->GetArrayIndex();
-//
-//		switch (pTechnoType->WhatAmI())
-//			// I doubt those in LimboDelete being really necessary, they're gonna be updated either next frame or after uninit anyway
-//		{
-//		case AbstractType::AircraftType:
-//			this->LimboAircraft.Increment(arrayIndex);
-//			break;
-//		case AbstractType::BuildingType:
-//			this->LimboBuildings.Increment(arrayIndex);
-//			break;
-//		case AbstractType::InfantryType:
-//			this->LimboInfantry.Increment(arrayIndex);
-//			break;
-//		case AbstractType::UnitType:
-//			this->LimboVehicles.Increment(arrayIndex);
-//			break;
-//		default:
-//			break;
-//		}
-//	}
-//}
-//
-//void HouseExtData::RemoveFromLimboTracking(TechnoTypeClass* pTechnoType)
-//{
-//	if (pTechnoType)
-//	{
-//		int arrayIndex = pTechnoType->GetArrayIndex();
-//
-//		switch (pTechnoType->WhatAmI())
-//		{
-//		case AbstractType::AircraftType:
-//			this->LimboAircraft.Decrement(arrayIndex);
-//			break;
-//		case AbstractType::BuildingType:
-//			this->LimboBuildings.Decrement(arrayIndex);
-//			break;
-//		case AbstractType::InfantryType:
-//			this->LimboInfantry.Decrement(arrayIndex);
-//			break;
-//		case AbstractType::UnitType:
-//			this->LimboVehicles.Decrement(arrayIndex);
-//			break;
-//		default:
-//			break;
-//		}
-//	}
-//}
-//
-//int HouseExtData::CountOwnedPresentAndLimboed(TechnoTypeClass* pTechnoType)
-//{
-//	int count = this->OwnerObject()->CountOwnedAndPresent(pTechnoType);
-//	int arrayIndex = pTechnoType->GetArrayIndex();
-//
-//	switch (pTechnoType->WhatAmI())
-//	{
-//	case AbstractType::AircraftType:
-//		count += this->LimboAircraft.GetItemCount(arrayIndex);
-//		break;
-//	case AbstractType::BuildingType:
-//		count += this->LimboBuildings.GetItemCount(arrayIndex);
-//		break;
-//	case AbstractType::InfantryType:
-//		count += this->LimboInfantry.GetItemCount(arrayIndex);
-//		break;
-//	case AbstractType::UnitType:
-//		count += this->LimboVehicles.GetItemCount(arrayIndex);
-//		break;
-//	default:
-//		break;
-//	}
-//
-//	return count;
-//}
-
 // =============================
 // load / save
 
+#ifdef _Log
+template <typename T>
+void HouseExtData::Serialize(T& Stm)
+{
+	auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				size_t afterSize = Stm.Getstream()->Size();
+				GameDebugLog::Log("[HouseExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+					fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				size_t beforeOffset = Stm.Getstream()->Offset();
+				bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				size_t afterOffset = Stm.Getstream()->Offset();
+				bool afterSuccess = Stm.Success();
+
+				GameDebugLog::Log("[HouseExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				if (!afterSuccess && beforeSuccess)
+				{
+					GameDebugLog::Log("[HouseExtData] ERROR: %s caused stream failure!\n", fieldName);
+				}
+				return result;
+			}
+		};
+
+	debugProcess(this->Degrades, "Degrades");
+	debugProcess(this->PowerPlantEnhancerBuildings, "PowerPlantEnhancerBuildings");
+	debugProcess(this->Building_BuildSpeedBonusCounter, "Building_BuildSpeedBonusCounter");
+	debugProcess(this->Building_OrePurifiersCounter, "Building_OrePurifiersCounter");
+	debugProcess(this->BattlePointsCollectors, "BattlePointsCollectors");
+	debugProcess(this->m_ForceOnlyTargetHouseEnemy, "m_ForceOnlyTargetHouseEnemy");
+	debugProcess(this->ForceOnlyTargetHouseEnemyMode, "ForceOnlyTargetHouseEnemyMode");
+	debugProcess(this->Factory_BuildingType, "Factory_BuildingType");
+	debugProcess(this->Factory_InfantryType, "Factory_InfantryType");
+	debugProcess(this->Factory_VehicleType, "Factory_VehicleType");
+	debugProcess(this->Factory_NavyType, "Factory_NavyType");
+	debugProcess(this->Factory_AircraftType, "Factory_AircraftType");
+	debugProcess(this->AllRepairEventTriggered, "AllRepairEventTriggered");
+	debugProcess(this->LastBuildingTypeArrayIdx, "LastBuildingTypeArrayIdx");
+	debugProcess(this->RepairBaseNodes, "RepairBaseNode");
+	debugProcess(this->LastBuiltNavalVehicleType, "LastBuiltNavalVehicleType");
+	debugProcess(this->ProducingNavalUnitTypeIndex, "ProducingNavalUnitTypeIndex");
+	debugProcess(this->LaunchDatas, "LaunchDatas");
+	debugProcess(this->CaptureObjectExecuted, "CaptureObjectExecuted");
+	debugProcess(this->DiscoverEvaDelay, "DiscoverEvaDelay");
+	debugProcess(this->Tunnels, "Tunnels");
+	debugProcess(this->SWLastIndex, "SWLastIndex");
+	debugProcess(this->Batteries, "Batteries");
+	debugProcess(this->AvaibleDocks, "AvaibleDocks");
+	debugProcess(this->StolenTech, "StolenTech");
+	debugProcess(this->RadarPersist, "RadarPersist");
+	debugProcess(this->FactoryOwners_GatheredPlansOf, "FactoryOwners_GatheredPlansOf");
+	debugProcess(this->Academies, "Academies");
+	debugProcess(this->TunnelsBuildings, "TunnelsBuildings");
+	debugProcess(this->Reversed, "Reversed");
+	debugProcess(this->OwnedCountedHarvesters, "OwnedCountedHarvesters");
+	debugProcess(this->Is_NavalYardSpied, "Is_NavalYardSpied");
+	debugProcess(this->Is_AirfieldSpied, "Is_AirfieldSpied");
+	debugProcess(this->Is_ConstructionYardSpied, "Is_ConstructionYardSpied");
+	debugProcess(this->AuxPower, "AuxPower");
+	debugProcess(this->KeepAliveCount, "KeepAliveCount");
+	debugProcess(this->KeepAliveBuildingCount, "KeepAliveBuildingCount");
+	debugProcess(this->TiberiumStorage, "TiberiumStorage");
+	debugProcess(this->SideTechTree, "SideTechTree");
+	debugProcess(this->CombatAlertTimer, "CombatAlertTimer");
+	debugProcess(this->RestrictedFactoryPlants, "RestrictedFactoryPlants");
+	debugProcess(this->AISellAllDelayTimer, "AISellAllDelayTimer");
+	debugProcess(this->OwnedDeployingUnits, "OwnedDeployingUnits");
+	debugProcess(this->Common, "Common");
+	debugProcess(this->Combat, "Combat");
+	debugProcess(this->AISuperWeaponDelayTimer, "AISuperWeaponDelayTimer");
+	debugProcess(this->NumAirpads_NonMFB, "NumAirpads_NonMFB");
+	debugProcess(this->NumBarracks_NonMFB, "NumBarracks_NonMFB");
+	debugProcess(this->NumWarFactories_NonMFB, "NumWarFactories_NonMFB");
+	debugProcess(this->NumConYards_NonMFB, "NumConYards_NonMFB");
+	debugProcess(this->NumShipyards_NonMFB, "NumShipyards_NonMFB");
+	debugProcess(this->SuspendedEMPulseSWs, "SuspendedEMPulseSWs");
+	debugProcess(this->ForceEnemyIndex, "ForceEnemyIndex");
+	debugProcess(this->BattlePoints, "BattlePoints");
+	debugProcess(this->Productions, "Productions");
+	debugProcess(this->BestChoicesNaval, "BestChoicesNaval");
+}
+
+#else
 template <typename T>
 void HouseExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Degrades)
 		.Process(this->PowerPlantEnhancerBuildings)
 		.Process(this->Building_BuildSpeedBonusCounter)
@@ -2597,34 +2650,24 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->Factory_NavyType)
 		.Process(this->Factory_AircraftType)
 		.Process(this->AllRepairEventTriggered)
-		.Process(this->LastBuildingTypeArrayIdx);
-
-		for (auto& node : this->RepairBaseNodes)
-			Stm.Process(node);
-		Stm
-			.Process(this->LastBuiltNavalVehicleType)
-			.Process(this->ProducingNavalUnitTypeIndex)
-			.Process(this->LaunchDatas)
-			.Process(this->CaptureObjectExecuted)
-			.Process(this->DiscoverEvaDelay)
-			.Process(this->Tunnels)
-			.Process(this->Seed)
-			.Process(this->SWLastIndex)
-			.Process(this->Batteries)
-			.Process(this->AvaibleDocks)
-			.Process(this->StolenTech)
-			.Process(this->RadarPersist)
-			.Process(this->FactoryOwners_GatheredPlansOf)
-			.Process(this->Academies)
-			.Process(this->TunnelsBuildings)
-			.Process(this->Reversed);
-
-		//Debug::LogInfo("Before doing OwnedCountedHarvesters");
-   Stm
-			.Process(this->OwnedCountedHarvesters);
-
-		//Debug::LogInfo("After doing OwnedCountedHarvesters for");
-	Stm
+		.Process(this->LastBuildingTypeArrayIdx)
+		.Process(this->RepairBaseNodes)
+		.Process(this->LastBuiltNavalVehicleType)
+		.Process(this->ProducingNavalUnitTypeIndex)
+		.Process(this->LaunchDatas)
+		.Process(this->CaptureObjectExecuted)
+		.Process(this->DiscoverEvaDelay)
+		.Process(this->Tunnels)
+		.Process(this->SWLastIndex)
+		.Process(this->Batteries)
+		.Process(this->AvaibleDocks)
+		.Process(this->StolenTech)
+		.Process(this->RadarPersist)
+		.Process(this->FactoryOwners_GatheredPlansOf)
+		.Process(this->Academies)
+		.Process(this->TunnelsBuildings)
+		.Process(this->Reversed)
+   		.Process(this->OwnedCountedHarvesters)
 		.Process(this->Is_NavalYardSpied)
 		.Process(this->Is_AirfieldSpied)
 		.Process(this->Is_ConstructionYardSpied)
@@ -2652,58 +2695,18 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->BestChoicesNaval)
 		;
 }
-
-bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return Stm
-		.Process(HouseExtData::LimboTechno)
-		.Process(HouseExtData::AutoDeathObjects)
-		.Process(HouseExtData::LastGrindingBlanceUnit)
-		.Process(HouseExtData::LastGrindingBlanceInf)
-		.Process(HouseExtData::LastHarvesterBalance)
-		.Process(HouseExtData::LastSlaveBalance)
-		.Process(HouseExtData::IsAnyFirestormActive)
-		.Process(HouseExtData::CloakEVASpeak)
-		.Process(HouseExtData::SubTerraneanEVASpeak)
-
-		.Process(HouseExtContainer::HousesTeams)
-		.Process(HouseExtContainer::Civilian)
-		.Process(HouseExtContainer::Special)
-		.Process(HouseExtContainer::Neutral)
-		.Process(HouseExtContainer::CivilianSide)
-
-		.Success();
-}
-
-bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Process(HouseExtData::LimboTechno)
-		.Process(HouseExtData::AutoDeathObjects)
-		.Process(HouseExtData::LastGrindingBlanceUnit)
-		.Process(HouseExtData::LastGrindingBlanceInf)
-		.Process(HouseExtData::LastHarvesterBalance)
-		.Process(HouseExtData::LastSlaveBalance)
-		.Process(HouseExtData::IsAnyFirestormActive)
-		.Process(HouseExtData::CloakEVASpeak)
-		.Process(HouseExtData::SubTerraneanEVASpeak)
-
-		.Process(HouseExtContainer::HousesTeams)
-		.Process(HouseExtContainer::Civilian)
-		.Process(HouseExtContainer::Special)
-		.Process(HouseExtContainer::Neutral)
-		.Process(HouseExtContainer::CivilianSide)
-
-		.Success();
-}
+#endif
 
 // =============================
 // container
 
 HouseExtContainer HouseExtContainer::Instance;
+std::vector<HouseExtData*> Container<HouseExtData>::Array;
 
-void HouseExtContainer::Clear()
+void Container<HouseExtData>::Clear()
 {
+	Array.clear();
+
 	HouseExtData::LastGrindingBlanceUnit = 0;
 	HouseExtData::LastGrindingBlanceInf = 0;
 	HouseExtData::LastHarvesterBalance = 0;
@@ -2712,17 +2715,15 @@ void HouseExtContainer::Clear()
 	HouseExtData::CloakEVASpeak.Stop();
 	HouseExtData::SubTerraneanEVASpeak.Stop();
 
-	Civilian = 0;
-	Special = 0;
-	Neutral = 0;
-	CivilianSide = 0;
+	HouseExtContainer::Civilian = 0;
+	HouseExtContainer::Special = 0;
+	HouseExtContainer::Neutral = 0;
+	HouseExtContainer::CivilianSide = 0;
 
 	HouseExtData::LimboTechno.clear();
 	HouseExtData::AutoDeathObjects.clear();
 	HouseExtContainer::HousesTeams.clear();
 }
-
-#include <Misc/Spawner/Main.h>
 
 /**
  *  Handles expert AI processing.
@@ -3404,8 +3405,6 @@ void FakeHouseClass::_UpdateSpySat()
 DEFINE_FUNCTION_JUMP(CALL, 0x4F850C, FakeHouseClass::_UpdateSpySat)
 DEFINE_FUNCTION_JUMP(LJMP, 0x508F60, FakeHouseClass::_UpdateSpySat)
 
-#include <Ext/Infantry/Body.h>
-
 bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 {
 	if (!pTechno->IsAlive)
@@ -3413,9 +3412,11 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 
 	bool allowed = true;
 	if (pTechno->InLimbo) {
-		if ((pTechno->Transporter && pTechno->Transporter->IsAlive) || (pTechno->BunkerLinkedItem && pTechno->BunkerLinkedItem->IsAlive) || TechnoExtContainer::Instance.Find(pTechno)->GarrisonedIn)
+		if ((pTechno->Transporter && pTechno->Transporter->IsAlive) || (pTechno->BunkerLinkedItem && pTechno->BunkerLinkedItem->IsAlive))
 			allowed = true;
 		else  if (pTechno->WhatAmI() == AbstractType::Aircraft && ((AircraftClass*)(pTechno))->DockedTo )
+			allowed = true;
+		else if (pTechno->WhatAmI() == AbstractType::Infantry && InfantryExtContainer::Instance.Find((InfantryClass*)(pTechno))->GarrisonedIn)
 			allowed = true;
 		else
 			allowed = false;
@@ -3447,6 +3448,7 @@ bool FakeHouseClass::_IsIonCannonEligibleTarget(TechnoClass* pTechno) const
 
 	return false;
 }
+
 // =============================
 // container hooks
 
@@ -3468,56 +3470,35 @@ ASMJIT_PATCH(0x4F7186, HouseClass_DTOR, 0x8)
 	return 0;
 }
 
-ASMJIT_PATCH(0x503040, HouseClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(HouseClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	HouseExtContainer::Instance.PrepareStream(pItem, pStm);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x504080, HouseClass_SaveLoad_Prefix, 0x5)
-
-ASMJIT_PATCH(0x5031E6, HouseClass_Load_Suffix, 0x6)
-{
-	HouseExtContainer::Instance.LoadStatic();
-	return 0;
-}
-
-ASMJIT_PATCH(0x5040A2, HouseClass_Save_Suffix, 0x6)
-{
-	HouseExtContainer::Instance.SaveStatic();
-	return 0;
-}
-
-ASMJIT_PATCH(0x50114D, HouseClass_InitFromINI, 0x5)
-{
-	GET(HouseClass* const, pThis, EBX);
-	GET(CCINIClass* const, pINI, ESI);
-
-	HouseExtContainer::Instance.LoadFromINI(pThis, pINI, false);
-
-	return 0;
-}
-
-//ASMJIT_PATCH(0x4FB9B7, HouseClass_Detach, 0xA)
-//{
-//	GET(HouseClass*, pThis, ECX);
-//	GET_STACK(void*, target, STACK_OFFSET(0xC, 0x4));
-//	GET_STACK(bool, all, STACK_OFFSET(0xC, 0x8));
-//
-//	HouseExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-//
-//	R->ESI(pThis);
-//	R->EBX(0);
-//	return pThis->ToCapture == target ?
-//		0x4FB9C3 : 0x4FB9C9;
-//}
-
-#include <Misc/Hooks.Otamaa.h>
-
 void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
 	HouseExtContainer::Instance.InvalidatePointerFor(this, target, all);
 	this->HouseClass::PointerExpired(target, all);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8C8,  FakeHouseClass::_Detach)
+
+
+HRESULT __stdcall FakeHouseClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->HouseClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = HouseExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeHouseClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	//temporarely remove it
+	auto ext = this->_GetExtData();
+	HouseExtContainer::Instance.ClearExtAttribute(this);
+	HRESULT hr = this->HouseClass::Save(pStm, clearDirty);
+	HouseExtContainer::Instance.SetExtAttribute(this, ext);
+	if (SUCCEEDED(hr))
+		hr = HouseExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+ //DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::_Load)
+ //DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B8, FakeHouseClass::_Save)

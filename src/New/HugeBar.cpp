@@ -75,7 +75,8 @@ void HugeBar::LoadFromINI(CCINIClass* pINI)
 	}
 
 
-	fmt::memory_buffer buffer;
+	static fmt::basic_memory_buffer<char> buffer;
+	buffer.clear();
 	fmt::format_to(std::back_inserter(buffer), "HugeBar_{}", typeName);
 	buffer.push_back('\0');
 	INI_EX exINI(pINI);
@@ -531,16 +532,15 @@ void HugeBar::HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax)
 		else
 			posDraw.Y += iTextHeight * static_cast<int>(this->InfoType);
 
-		fmt::basic_memory_buffer<wchar_t> text;
+		static fmt::basic_memory_buffer<wchar_t> text;
+		text.clear();
 
-		if (this->Value_Percentage)
-		{
+		if (this->Value_Percentage) {
 			fmt::format_to(std::back_inserter(text) ,L"{}%" ,static_cast<int>(ratio * 100));
-		}
-		else
-		{
+		} else {
 			fmt::format_to(std::back_inserter(text) ,L"{}/{}" , iCurrent, iMax);
 		}
+
 		text.push_back(L'\0');
 		COLORREF color = Drawing::RGB_To_Int(this->Value_Text_Color.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed));
 		DSurface::Composite->DrawText_Old(text.data(), &rBound, &posDraw, (DWORD)color, COLOR_BLACK, (DWORD)TextPrintType::Center);

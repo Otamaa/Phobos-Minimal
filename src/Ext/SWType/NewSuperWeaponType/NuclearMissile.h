@@ -2,6 +2,14 @@
 
 #include "NewSWType.h"
 
+class SuperWeaponTypeClass;
+class SWTypeExtData;
+class WarheadTypeClass;
+class WeaponTypeClass;
+class CCINIClass;
+class TechnoClass;
+class BuildingClass;
+class BuildingClass;
 class SW_NuclearMissile : public NewSWType
 {
 public:

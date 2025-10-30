@@ -10,185 +10,29 @@
 #include <AirstrikeClass.h>
 #include <InfantryClass.h>
 
-int ApplyTintColor(TechnoClass* pThis, bool invulnerability, bool airstrike, bool berserk)
-{
-	int tintColor = 0;
-	auto g_instance = PhobosGlobal::Instance();
-
-	if (invulnerability && pThis->IsIronCurtained())
-		tintColor |= pThis->ProtectType == ProtectTypes::ForceShield ?  g_instance->ColorDatas.Forceshield_Color : g_instance->ColorDatas.IronCurtain_Color;
-	if (airstrike && TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe){
-			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe->Owner->GetTechnoType());
-			if(pTypeExt->LaserTargetColor.isset())
-				tintColor |= GeneralUtils::GetColorFromColorAdd(pTypeExt->LaserTargetColor);
-			else
-				tintColor |= g_instance->ColorDatas.LaserTarget_Color;
-	}
-
-	if (berserk && pThis->Berzerk)
-		tintColor |=  g_instance->ColorDatas.Berserk_Color;
-
-	return tintColor;
-}
-
-void ApplyCustomTint(TechnoClass* pThis, int* tintColor, int* intensity)
-{
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	bool calculateIntensity = intensity != nullptr;
-	const bool calculateTintColor = tintColor != nullptr;
-	const bool curretlyObserve = HouseClass::IsCurrentPlayerObserver();
-
-	for (auto& paint : TechnoExtContainer::Instance.Find(pThis)->PaintBallStates) {
-		if (paint.second.timer.GetTimeLeft() && paint.second.AllowDraw(pThis)) {
-			if(calculateTintColor)
-				*tintColor |= paint.second.Color;
-
-			if(calculateIntensity && paint.second.Data->BrightMultiplier != 0.0)
-				*intensity = (int)(*intensity * paint.second.Data->BrightMultiplier);
-		}
-	}
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	if (calculateIntensity)
-	{
-		BuildingClass* pBld = cast_to<BuildingClass* , false>(pThis);
-
-		if (pBld) {
-			if ((pBld->CurrentMission == Mission::Construction)
-				&& pBld->BState == BStateType::Construction && pBld->Type->Buildup) {
-				if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->BuildUp_UseNormalLIght.Get())
-				{
-					*intensity = 1000;
-				}
-			}
-		}
-
-		const bool bInf = pThis->WhatAmI() == InfantryClass::AbsID;
-		bool needRedraw = false;
-
-		// EMP
-		if (pThis->IsUnderEMP())
-		{
-			if (!bInf || pTypeExt->Infantry_DimWhenEMPEd.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
-			{
-				*intensity /= 2;
-				needRedraw = true;
-			}
-		}
-		else if (pThis->IsDeactivated())
-		{
-			if (!bInf || pTypeExt->Infantry_DimWhenDisabled.Get(((InfantryTypeClass*)(pTypeExt->AttachedToObject))->Cyborg))
-			{
-				*intensity /= 2;
-				needRedraw = true;
-			}
-		}
-
-		if (pBld && needRedraw)
-			BuildingExtContainer::Instance.Find(pBld)->LighningNeedUpdate = true;
-	}
-
-	if ((pTypeExt->Tint_Color.isset() || pTypeExt->Tint_Intensity != 0.0) && EnumFunctions::CanTargetHouse(pTypeExt->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
-	{
-		if (calculateTintColor)
-			*tintColor |= Drawing::RGB_To_Int(pTypeExt->Tint_Color);
-
-		if (calculateIntensity)
-			*intensity += static_cast<int>(pTypeExt->Tint_Intensity * 1000);
-	}
-
-	if(pExt->AE.HasTint) {
-		for (auto const& attachEffect : pExt->PhobosAE) {
-			if(!attachEffect)
-				continue;
-
-			auto const type = attachEffect->GetType();
-
-			if (!attachEffect->IsActive() || !type->HasTint())
-				continue;
-
-			if (!curretlyObserve && !EnumFunctions::CanTargetHouse(type->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
-				continue;
-
-			if (calculateTintColor && type->Tint_Color.isset())
-				*tintColor |= Drawing::RGB_To_Int(type->Tint_Color);
-
-			if (calculateIntensity)
-				*intensity += static_cast<int>(type->Tint_Intensity * 1000);
-		}
-	}
-
-	if (pExt->Shield && pExt->Shield->IsActive() && pExt->Shield->HasTint())
-	{
-		auto const pShieldType = pExt->Shield->GetType();
-
-		if (!curretlyObserve && !EnumFunctions::CanTargetHouse(pShieldType->Tint_VisibleToHouses, pThis->Owner, HouseClass::CurrentPlayer))
-			return;
-
-		if (calculateTintColor && pShieldType->Tint_Color.isset())
-			*tintColor |= Drawing::RGB_To_Int(pShieldType->Tint_Color);
-
-		if (calculateIntensity && pShieldType->Tint_Intensity != 0.0)
-			*intensity += static_cast<int>(pShieldType->Tint_Intensity * 1000);
-	}
-}
-
 ASMJIT_PATCH(0x43FA19, BuildingClass_Mark_TintIntensity, 0x7)
 {
 	GET(BuildingClass*, pThis, EDI);
 	GET(int, intensity, ESI);
 
-	ApplyCustomTint(pThis , nullptr , &intensity);
+	TechnoExtData::ApplyCustomTint(pThis , nullptr , &intensity);
 	R->ESI(intensity);
 
 	return 0;
 }
 
-ASMJIT_PATCH(0x43D386, BuildingClass_Draw_TintColor, 0x6)
-{
-	enum { SkipGameCode = 0x43D4EB };
-
-	GET(BuildingClass*, pThis, ESI);
-
-	int color = ApplyTintColor(pThis, true, true, false);
-	ApplyCustomTint(pThis , &color , nullptr);
-	R->EDI(color);
-
-	return SkipGameCode;
-}
-
-ASMJIT_PATCH(0x43DC1C, BuildingClass_Draw2_TintColor, 0x6)
-{
-	enum { SkipGameCode = 0x43DD8E };
-
-	GET(BuildingClass*, pThis, EBP);
-	REF_STACK(int, color, STACK_OFFSET(0x12C, -0x110));
-
-	color = ApplyTintColor(pThis, true, true, false);
-	ApplyCustomTint(pThis , &color , nullptr);
-
-	return SkipGameCode;
-}
-
-ASMJIT_PATCH(0x70632E, TechnoClass_DrawShape_GetTintIntensity, 0x6)
-{
-	enum { SkipGameCode = 0x706389 };
-
-	GET(TechnoClass*, pThis, ESI);
-	GET(int, intensity, EAX);
-
-	if (pThis->IsIronCurtained())
-		intensity = pThis->GetInvulnerabilityTintIntensity(intensity);
-
-	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->AirstrikeTargetingMe)
-		intensity = pThis->GetAirstrikeTintIntensity(intensity);
-
-	R->EBP(intensity);
-	return SkipGameCode;
-}
+// ASMJIT_PATCH(0x43DC1C, BuildingClass_Draw2_TintColor, 0x6)
+// {
+// 	enum { SkipGameCode = 0x43DD8E };
+//
+// 	GET(BuildingClass*, pThis, EBP);
+// 	REF_STACK(int, color, STACK_OFFSET(0x12C, -0x110));
+//
+// 	color = TechnoExtData::ApplyTintColor(pThis, true, true, false);
+// 	TechnoExtData::ApplyCustomTint(pThis , &color , nullptr);
+//
+// 	return SkipGameCode;
+// }
 
 ASMJIT_PATCH(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
 {
@@ -206,10 +50,10 @@ ASMJIT_PATCH(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
 	REF_STACK(int, color, STACK_OFFSET(0x50, 0x24));
 
 	if (rtti == AbstractType::Aircraft)
-		color = ApplyTintColor(pThis, true, false, false);
+		color = TechnoExtData::ApplyTintColor(pThis, true, false, false);
 
 	// Non-aircraft voxels do not need custom tint color applied again, discard that component for them.
-	ApplyCustomTint(pThis, rtti == AbstractType::Aircraft ? &color : nullptr, &intensity);
+	TechnoExtData::ApplyCustomTint(pThis, rtti == AbstractType::Aircraft ? &color : nullptr, &intensity);
 
 	if (pThis->IsIronCurtained())
 		intensity = pThis->GetInvulnerabilityTintIntensity(intensity);
@@ -223,11 +67,48 @@ ASMJIT_PATCH(0x706786, TechnoClass_DrawVoxel_TintColor, 0x5)
 	return SkipTint;
 }
 
+namespace TechnoClass_DrawShapeTemp
+{
+	bool DisableTint = false;
+}
+
+ASMJIT_PATCH(0x7060D6, TechnoClass_DrawShape_DisguiseTint_SetContext, 0x5)
+{
+	TechnoClass_DrawShapeTemp::DisableTint = true;
+	return 0;
+}
+
+ASMJIT_PATCH(0x70632E, TechnoClass_DrawShape_GetTintIntensity, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(int, intensity, EAX);
+
+	if (!TechnoClass_DrawShapeTemp::DisableTint)
+	{
+		if (pThis->IsIronCurtained())
+			intensity = pThis->GetInvulnerabilityTintIntensity(intensity);
+
+		const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
+		if (pExt->AirstrikeTargetingMe)
+			intensity = pThis->GetAirstrikeTintIntensity(intensity);
+	}
+
+	R->EBP(intensity);
+	return 0x706389;
+}
+
 ASMJIT_PATCH(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 	GET(int, intensity, EBP);
 	REF_STACK(int, color, STACK_OFFSET(0x54, 0x2C));
+
+	if (TechnoClass_DrawShapeTemp::DisableTint)
+	{
+		TechnoClass_DrawShapeTemp::DisableTint = false;
+		return 0x7063E0;
+	}
 
 	const auto what = pThis->WhatAmI();
 	const bool isVehicle = what == AbstractType::Unit;
@@ -235,10 +116,10 @@ ASMJIT_PATCH(0x706389, TechnoClass_DrawObject_TintColor, 0x6)
 
 	if (isVehicle || isAircraft)
 	{
-		color |= ApplyTintColor(pThis, true, true, !isAircraft);
+		color |= TechnoExtData::ApplyTintColor(pThis, true, true, !isAircraft);
 	}
 
-	ApplyCustomTint(pThis, &color, &intensity);
+	TechnoExtData::ApplyCustomTint(pThis, &color, &intensity);
 
 	R->EBP(intensity);
 
@@ -254,20 +135,36 @@ ASMJIT_PATCH(0x423420, AnimClass_Draw_ParentBuildingCheck, 0x6)
 
 	enum { SkipGameCode = 0x4235D3 };
 
-	if (!pBuilding)
-		pBuilding = (pThis->_GetExtData()->ParentBuilding);
+	TechnoClass* pTechno = pBuilding;
+	auto const pUnit = cast_to<UnitClass*>(pThis->OwnerObject);
+	bool allowBerserkTint = false;
 
-	if (pBuilding)
+	if (pUnit && pUnit->DeployAnim == pThis)
+	{
+		pTechno = pUnit;
+		allowBerserkTint = true;
+
+		if (!pThis->Type->UseNormalLight)
+			intensity = TechnoExtData::GetDeployingAnimIntensity(pUnit);
+	}
+	else if (!pTechno)
+	{
+		pTechno = pThis->_GetExtData()->ParentBuilding;
+	}
+
+	if (pTechno)
 	{
 		bool UseNormalLight = pThis->Type->UseNormalLight;
 
-		if ((pBuilding->CurrentMission == Mission::Construction)
-				&& pBuilding->BState == BStateType::Construction && pBuilding->Type->Buildup)
-			if (BuildingTypeExtContainer::Instance.Find(pBuilding->Type)->BuildUp_UseNormalLIght.Get())
+		if(auto pBld = cast_to<BuildingClass*>(pTechno)) {
+			if ((pBld->CurrentMission == Mission::Construction)
+				&& pBld->BState == BStateType::Construction && pBld->Type->Buildup)
+			if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->BuildUp_UseNormalLIght.Get())
 				UseNormalLight = true;
+		}
 
-		ApplyTintColor(pBuilding,true , true , false);
-		ApplyCustomTint(pBuilding, &color, !UseNormalLight ? &intensity : nullptr);
+		TechnoExtData::ApplyTintColor(pTechno,true , true , allowBerserkTint);
+		TechnoExtData::ApplyCustomTint(pTechno, &color, !UseNormalLight ? &intensity : nullptr);
 	}
 
 	R->EBP(color);
@@ -285,7 +182,7 @@ ASMJIT_PATCH(0x51946D, InfantryClass_Draw_TintIntensity, 0x6)
 	if (TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe)
 		intensity = pThis->GetAirstrikeTintIntensity(intensity);
 
-	ApplyCustomTint(pThis, nullptr, &intensity);
+		TechnoExtData::ApplyCustomTint(pThis, nullptr, &intensity);
 	R->ESI(intensity);
 
 	return 0;
@@ -298,8 +195,8 @@ ASMJIT_PATCH(0x518FC8, InfantryClass_Draw_TintColor, 0x6)
 	GET(InfantryClass*, pThis, EBP);
 	REF_STACK(int, color, STACK_OFFSET(0x54, -0x40));
 
-	color = ApplyTintColor(pThis, true, true, true);
-	ApplyCustomTint(pThis, &color, nullptr);
+	color = TechnoExtData::ApplyTintColor(pThis, true, true, true);
+	TechnoExtData::ApplyCustomTint(pThis, &color, nullptr);
 
 	return SkipGameCode;
 }
@@ -320,8 +217,8 @@ ASMJIT_PATCH(0x73BF95, UnitClass_DrawAsVoxel_Tint, 0x7)
 	if (TechnoExtContainer::Instance.Find(pThis)->AirstrikeTargetingMe)
 		intensity = pThis->GetAirstrikeTintIntensity(intensity);
 
-	int color = ApplyTintColor(pThis, true, true, true);
-	 ApplyCustomTint(pThis, &color, &intensity);
+	int color = TechnoExtData::ApplyTintColor(pThis, true, true, true);
+	TechnoExtData::ApplyCustomTint(pThis, &color, &intensity);
 
 	R->ESI(color);
 	return SkipGameCode;

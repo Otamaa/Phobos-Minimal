@@ -8,6 +8,8 @@ static COMPILETIMEEVAL constant_ptr<const char,addr> const name {}
 
 struct GameStrings
 {
+	GAMEMD_STR(SUN_EXE, 0x83D5BC);
+
 	GAMEMD_STR(Allied, 0x846788);
 	GAMEMD_STR(Russian, 0x846790);
 	GAMEMD_STR(Yuri, 0x846798);

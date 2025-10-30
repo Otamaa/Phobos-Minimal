@@ -59,6 +59,8 @@ public:
 	virtual void vt_entry_D0(DWORD dwUnk) JMP_THIS(0x653F70);
 	virtual void Init_For_House() JMP_THIS(0x652E90);
 
+	void Push_Cell(CellStruct* a2)JMP_THIS(0x6551C0);
+
 	void UpdateRadarStatus(bool status) { JMP_THIS(0x656DF0); }
 	//Non-virtual
 protected:

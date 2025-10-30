@@ -15,6 +15,7 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
+	virtual const char* Name() { return "ArcingTrajectoryType"; };
 };
 
 class ArcingTrajectory final : public PhobosTrajectory
@@ -44,6 +45,8 @@ public:
 
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+
+	virtual const char* Name() { return "ArcingTrajectory"; };
 
 	static void CalculateVelocity(BulletClass* pBullet, double elevation, bool lobber, ArcingTrajectory* pTraj);
 

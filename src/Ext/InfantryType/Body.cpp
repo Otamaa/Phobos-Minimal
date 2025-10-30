@@ -2,6 +2,7 @@
 
 #include <Ext/Infantry/Body.h>
 
+#include <Utilities/Macro.h>
 void Phobos_DoControls::ReadSequence(DoInfoStruct* pDoInfo, InfantryTypeClass* pInf, CCINIClass* pINI)
 {
 	/*
@@ -64,20 +65,16 @@ void Phobos_DoControls::ReadSequence(DoInfoStruct* pDoInfo, InfantryTypeClass* p
 	}*/
 }
 
-void InfantryTypeExtData::Initialize()
+bool InfantryTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	const auto pID = this->AttachedToObject->ID;
-	this->Is_Deso = IS_SAME_STR_(pID, GameStrings::DESO());
-	this->Is_Cow = IS_SAME_STR_(pID, GameStrings::COW());
-}
+	if (!this->TechnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
 
-void InfantryTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
-{
-	const char* pID = this->AttachedToObject->ID;
+	const char* pID = this->This()->ID;
 
 	INI_EX exINI(pINI);
 	INI_EX iniEX_art(CCINIClass::INI_Art());
-	const auto pSection_art = this->AttachedToObject->ImageFile;
+	const auto pSection_art = this->This()->ImageFile;
 
 	this->Is_Deso.Read(exINI, pID,  "IsDesolator");
 	this->Is_Cow.Read(exINI, pID, "IsCow");
@@ -147,6 +144,8 @@ void InfantryTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	//std::memcpy(this->CrawlingWeaponDatas + 3, &temp, sizeof(WeaponStruct));
 
 	//Phobos_DoControls::ReadSequence(this->Sequences, this->Get(), iniEX_art.GetINI());
+
+	return true;
 }
 
 // =============================
@@ -156,8 +155,6 @@ template <typename T>
 void InfantryTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-		.Process(this->Type)
 		.Process(this->Is_Deso)
 		.Process(this->Is_Cow)
 		.Process(this->C4Delay)
@@ -186,19 +183,65 @@ void InfantryTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 InfantryTypeExtContainer InfantryTypeExtContainer::Instance;
+std::vector<InfantryTypeExtData*> Container<InfantryTypeExtData>::Array;
+
+void Container<InfantryTypeExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool InfantryTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool InfantryTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
 
+ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR, 6)
+{
+	GET(InfantryTypeClass*, pItem, ESI);
 
-//merged with the new sequence hooks
-//ASMJIT_PATCH(0x523876, InfantryTypeClass_CTOR, 0x6)
-//{
-//	GET(InfantryTypeClass*, pItem, ESI);
-//	if(auto pExt = InfantryTypeExtContainer::Instance.Allocate(pItem))
-//		pExt->Type = TechnoTypeExtContainer::Instance.Find(pItem);
-//	return 0;
-//}
+	pItem->ArrayIndex = R->ECX<int>();
+	pItem->OccupyWeapon.FLH.X = 0;
+	pItem->OccupyWeapon.FLH.Y = 0;
+	pItem->OccupyWeapon.FLH.Z = 0;
+	pItem->OccupyWeapon.WeaponType = 0;
+	pItem->OccupyWeapon.BarrelLength = 0;
+	pItem->OccupyWeapon.BarrelThickness = 0;
+	pItem->OccupyWeapon.TurretLocked = 0;
+	pItem->EliteOccupyWeapon.WeaponType = 0;
+	pItem->EliteOccupyWeapon.BarrelLength = 0;
+	pItem->EliteOccupyWeapon.FLH.X = 0;
+	pItem->EliteOccupyWeapon.FLH.Y = 0;
+	pItem->EliteOccupyWeapon.FLH.Z = 0;
+	pItem->EliteOccupyWeapon.BarrelThickness = 0;
+	pItem->EliteOccupyWeapon.TurretLocked = 0;
+	pItem->RotCount = 8;
+	pItem->RadarVisible = 0;
+	pItem->Crushable = 1;
+	pItem->Repairable = 0;
+	pItem->Crewed = 0;
+	pItem->ImmuneToPsionics = 0;
+	pItem->ImmuneToPsionicWeapons = 0;
+	pItem->ImmuneToPoison = 0;
+	pItem->Parasiteable = 1;
+	pItem->Organic = 1;
+	pItem->ConsideredAircraft = 0;
+	pItem->Bunkerable = 0;
+
+	pItem->Sequence = (DoControls*)GameCreate<NewDoType>();
+	((NewDoType*)(pItem->Sequence))->Initialize();
+
+	InfantryTypeExtContainer::Instance.Allocate(pItem);
+
+	return 0x523970;
+}
 
 ASMJIT_PATCH(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 {
@@ -206,15 +249,6 @@ ASMJIT_PATCH(0x5239D0, InfantryTypeClass_DTOR, 0x5)
 	InfantryTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-ASMJIT_PATCH(0x524B60, InfantryTypeClass_SaveLoad_Prefix, 0x5)
-{
-	GET_STACK(InfantryTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	InfantryTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x524960, InfantryTypeClass_SaveLoad_Prefix, 0x8)
 
 #include <Misc/ImageSwapModules.h>
 
@@ -226,20 +260,17 @@ ASMJIT_PATCH(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 		TechnoImageReplacer::Replace(reinterpret_cast<InfantryTypeClass*>(poisonedVal));
 	}
 
-	InfantryTypeExtContainer::Instance.LoadStatic();
 	return 0;
 }
 
-ASMJIT_PATCH(0x524C52, InfantryTypeClass_Save_Suffix, 0x7)
+bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	InfantryTypeExtContainer::Instance.SaveStatic();
-	return 0;
+	bool status = this->InfantryTypeClass::LoadFromINI(pINI);
+	InfantryTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-ASMJIT_PATCH(0x52473F, InfantryTypeClass_LoadFromINI, 0x5)
-{
-	GET(InfantryTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0xD0);
-	InfantryTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x52474E);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x52474E, InfantryTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB674, FakeInfantryTypeClass::_ReadFromINI)
+
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::_Load)
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB628, FakeInfantryTypeClass::_Save)

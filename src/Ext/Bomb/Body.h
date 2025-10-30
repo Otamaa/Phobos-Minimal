@@ -2,30 +2,48 @@
 #include <BombClass.h>
 
 #include <Utilities/Container.h>
-#include <Ext/WeaponType/Body.h>
 
-class WeaponTypeClass;
-class BombExtData final
+class WeaponTypeExtData;
+class BombExtData final : public AbstractExtended
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x87659781;
 	using base_type = BombClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
-	WeaponTypeExtData* Weapon { nullptr };
+	WeaponTypeExtData* Weapon;
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(BombExtData) -
-			(4u //AttachedToObject
-			 );
+	BombExtData(BombClass* pObj) : AbstractExtended(pObj) , Weapon(nullptr) {
+		this->AbstractExtended::SetName("BombClass");
 	}
+	BombExtData(BombClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+
+	virtual ~BombExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override {
+
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override {
+		this->Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) {
+		this->Internal_SaveToStream(Stm);
+		const_cast<BombExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return AbstractType::Bomb; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { }
+
+	virtual BombClass* This() const override { return reinterpret_cast<BombClass*>(this->AbstractExtended::This()); }
+	virtual const BombClass* This_Const() const override { return reinterpret_cast<const BombClass*>(this->AbstractExtended::This_Const()); }
 
 private:
 	template <typename T>
@@ -37,7 +55,16 @@ class BombExtContainer final : public Container<BombExtData>
 public:
 	static BombExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(BombExtContainer, BombExtData, "BombClass");
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
 };
 
 class NOVTABLE FakeBombClass : public BombClass
@@ -51,7 +78,7 @@ public:
 	void _Detach(AbstractClass* target, bool all) { };
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	BombExtData* _GetExtData() {
 		return *reinterpret_cast<BombExtData**>(((DWORD)this) + AbstractExtOffset);

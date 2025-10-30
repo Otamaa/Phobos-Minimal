@@ -106,7 +106,7 @@ void MessageScrollClass::DrawShape() const
 			auto color = MessageColumnClass::Instance.GetColor();
 			MessageColumnClass::Instance.DecreaseBrightness(color, 3);
 
-			DSurface::Composite->Fill_Rect_Trans(&drawRect, &color, MessageColumnClass::LowOpacity);
+			DSurface::Composite->Fill_Rect_Trans(&drawRect, &color, Phobos::Config::MessageDisplayInCenter_BoardOpacity);
 		}
 	}
 	else // Scroll_Bar

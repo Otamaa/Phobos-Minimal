@@ -12,16 +12,22 @@ public:
 
 	void Read(INI_EX& parser, const char* pSection, bool Allocate = false);
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<PassengersData*>(this)->Serialize(Stm); }
+
+private:
+
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(PassiveAcquire)
 			.Process(ForceFire)
 			.Process(MobileFire)
 			.Process(SameFire)
 			;
-
-		//Stm.RegisterChange(this);
 	}
 };

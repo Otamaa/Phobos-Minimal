@@ -37,7 +37,7 @@ bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bo
 
 void SW_ParaDrop::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = pData->AttachedToObject->Type == SuperWeaponType::AmerParaDrop ?
+	pData->This()->Action = pData->This()->Type == SuperWeaponType::AmerParaDrop ?
 		Action::AmerParaDrop : Action::ParaDrop;
 
 	pData->SW_RadarEvent = false;
@@ -119,13 +119,13 @@ void SW_ParaDrop::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 
 	// default
 	CreateParaDropBase(nullptr, _base);
-	GetParadropPlane(_base.c_str(), 1, pData->AttachedToObject);
+	GetParadropPlane(_base.c_str(), 1, pData->This());
 
 	// put all sides into the hash table
 	for (auto const pSide : *SideClass::Array)
 	{
 		CreateParaDropBase(pSide->ID, _base);
-		GetParadropPlane(_base.c_str(), pData->ParaDropDatas[pData->AttachedToObject].size(), pSide);
+		GetParadropPlane(_base.c_str(), pData->ParaDropDatas[pData->This()].size(), pSide);
 	}
 
 	// put all countries into the hash table
@@ -270,8 +270,11 @@ bool SW_ParaDrop::SendParadrop(SuperClass* pThis, CellClass* pCell)
 
 //A new SendPDPlane function
 //Allows vehicles, sends one single plane for all types
-void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTypeClass* pPlaneType,
-	Iterator<TechnoTypeClass*> const Types, Iterator<int> const Nums)
+void SW_ParaDrop::SendPDPlane(HouseClass* pOwner
+	, CellClass* pTarget
+	, AircraftTypeClass* pPlaneType
+	, Iterator<TechnoTypeClass*> Types
+	, Iterator<int> Nums)
 {
 	if (Nums.size() != Types.size() || !Nums.size()
 		|| !pOwner || !pPlaneType)
@@ -347,7 +350,7 @@ void SW_ParaDrop::SendPDPlane(HouseClass* pOwner, CellClass* pTarget, AircraftTy
 
 	pPlane->HasPassengers = true;
 
-	auto const bSpawned = AircraftExt::PlaceReinforcementAircraft(pPlane, spawn_cell);
+	auto const bSpawned = AircraftExtData::PlaceReinforcementAircraft(pPlane, spawn_cell);
 
 	if (!bSpawned)
 	{
@@ -367,6 +370,18 @@ bool SW_ParaDrop::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuild
 		return true;
 
 	return this->IsSWTypeAttachedToThis(pData, pBuilding);
+}
+
+template<typename T>
+COMPILETIMEEVAL void insertFromIterator(std::vector<std::vector<T>>& vec2d, const Iterator<T>& iter) {
+	std::vector<T> newRow;
+    newRow.reserve(iter.size());
+
+	for (size_t i = 0; i < iter.size(); ++i) {
+        newRow.push_back(iter[i]);
+    }
+
+    vec2d.push_back(std::move(newRow));
 }
 
 void ParaDropStateMachine::UpdateProperties()
@@ -482,8 +497,8 @@ void ParaDropStateMachine::UpdateProperties()
 		// finally, send the plane
 		if (ParaDropTypes && ParaDropNum && pParaDropPlane) {
 			this->PlaneType.push_back(pParaDropPlane);
-			this->Types.push_back(ParaDropTypes);
-			this->Nums.push_back(ParaDropNum);
+			insertFromIterator(this->Types, ParaDropTypes);
+			insertFromIterator(this->Nums, ParaDropNum);
 		}
 	}
 }

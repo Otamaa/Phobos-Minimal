@@ -62,6 +62,8 @@ public:
 	virtual int	Size() const override { return 0x1C8; }
 
 	//ObjectClass
+	virtual void UnInit() JMP_THIS(0x4255B0);  // RemoveThis_DeleteThis 0xF8
+
 	//AnimClass
 	virtual BounceClass::Status AnimExtras() RT(BounceClass::Status); // tumbling for IsMeteor and Bouncer anims
 	virtual int GetEnd() const R0; //End tag from the AnimType

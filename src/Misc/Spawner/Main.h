@@ -176,6 +176,7 @@ struct SpawnerMain
 
 		// Extended Options
 		bool QuickMatch;
+		bool DisableGameSpeed;
 		bool SpawnerHackMPNodes;
 		bool SkipScoreScreen;
 		bool WriteStatistics;

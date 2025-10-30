@@ -58,6 +58,8 @@ public:
 	virtual int Size() const override { return 0x2F8; }
 
 	//AbstractTypeClass
+	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x46BEE0);
+
 	//ObjectTypeClass
 	virtual bool SpawnAtMapCoords(CellStruct* pMapCoords,HouseClass* pOwner) override R0;
 	virtual ObjectClass* CreateObject(HouseClass* owner) override R0;

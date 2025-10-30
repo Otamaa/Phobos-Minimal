@@ -7,7 +7,6 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
 
-
 #include <EBolt.h>
 
 #pragma region defines
@@ -17,19 +16,19 @@ int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
 void WeaponTypeExtData::Initialize()
 {
 	Burst_Delays.reserve(10);
-	this->RadType = RadTypeClass::Array.begin()->get();
+	this->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 }
 
 // =============================
 // load / save
 
-void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 
@@ -85,6 +84,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Strafing_SimulateBurst.Read(exINI, pSection, "Strafing.SimulateBurst");
 	this->Strafing_UseAmmoPerShot.Read(exINI, pSection, "Strafing.UseAmmoPerShot");
 	this->Strafing_EndDelay.Read(exINI, pSection, "Strafing.EndDelay");
+	this->Strafing_TargetCell.Read(exINI, pSection, "Strafing.TargetCell");
 
 	this->CanTarget.Read(exINI, pSection, "CanTarget");
 	this->CanTargetHouses.Read(exINI, pSection, "CanTargetHouses");
@@ -140,7 +140,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	if (this->RockerPitch > 0.0f) {
 		COMPILETIMEEVAL auto halfpi = (Math::PI / 2);
-		this->RockerPitch = 1.0f * halfpi;
+		this->RockerPitch = float(1.0f * halfpi);
 	}
 
 	this->MyAttachFireDatas.Read(exINI, pSection);
@@ -249,6 +249,7 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DelayedFire_RemoveAnimOnNoDelay.Read(exINI, pSection, "DelayedFire.RemoveAnimOnNoDelay");
 	this->DelayedFire_PauseFiringSequence.Read(exINI, pSection, "DelayedFire.PauseFiringSequence");
 	this->DelayedFire_OnlyOnInitialBurst.Read(exINI, pSection, "DelayedFire.OnlyOnInitialBurst");
+	this->DelayedFire_InitialBurstSymmetrical.Read(exINI, pSection, "DelayedFire.InitialBurstSymmetrical");
 	this->DelayedFire_AnimOffset.Read(exINI, pSection, "DelayedFire.AnimOffset");
 
 	this->OnlyAttacker.Read(exINI, pSection, "OnlyAttacker");
@@ -266,6 +267,8 @@ void WeaponTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	{
 		this->SkipWeaponPicking = false;
 	}
+
+	return true;
 }
 
 int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
@@ -390,21 +393,21 @@ bool WeaponTypeExtData::HasRequiredAttachedEffects(TechnoClass* pTarget, TechnoC
 
 		//auto const pTechnoExt = TechnoExtContainer::Instance.Find(pTechno);
 
-		if (hasDisallowedTypes && PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_DisallowedTypes, false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
+		if (hasDisallowedTypes && PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_DisallowedTypes, false, this->AttachEffect_IgnoreFromSameSource, pFirer, This()->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
 			return false;
 
 		if (hasDisallowedGroups) {
 			auto group = PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_DisallowedGroups);
-			if(PhobosAEFunctions::HasAttachedEffects(pTechno, group, false, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
+			if(PhobosAEFunctions::HasAttachedEffects(pTechno, group, false, this->AttachEffect_IgnoreFromSameSource, pFirer, This()->Warhead, &this->AttachEffect_DisallowedMinCounts, &this->AttachEffect_DisallowedMaxCounts))
 				return false;
 		}
 
-		if (hasRequiredTypes && !PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_RequiredTypes, true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
+		if (hasRequiredTypes && !PhobosAEFunctions::HasAttachedEffects(pTechno, this->AttachEffect_RequiredTypes, true, this->AttachEffect_IgnoreFromSameSource, pFirer, This()->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
 			return false;
 
 		if (hasRequiredGroups){
 			auto req_group = PhobosAttachEffectTypeClass::GetTypesFromGroups(this->AttachEffect_RequiredGroups);
-			if (!PhobosAEFunctions::HasAttachedEffects(pTechno, req_group, true, this->AttachEffect_IgnoreFromSameSource, pFirer, this->AttachedToObject->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
+			if (!PhobosAEFunctions::HasAttachedEffects(pTechno, req_group, true, this->AttachEffect_IgnoreFromSameSource, pFirer, This()->Warhead, &this->AttachEffect_RequiredMinCounts, &this->AttachEffect_RequiredMaxCounts))
 				return false;
 		}
 	}
@@ -421,7 +424,7 @@ bool WeaponTypeExtData::IsHealthInThreshold(ObjectClass* pTarget) const {
 
 ColorStruct WeaponTypeExtData::GetBeamColor() const
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto& result = this->Beam_Color;
 
 	if (pThis->IsRadBeam || pThis->IsRadEruption) {
@@ -433,11 +436,11 @@ ColorStruct WeaponTypeExtData::GetBeamColor() const
 	return result.Get(RulesClass::Instance->RadColor);
 }
 
+#ifndef _Track
 template <typename T>
 void WeaponTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->DiskLaser_Radius)
 		.Process(this->DiskLaser_Circumference)
 		.Process(this->Rad_NoOwner)
@@ -451,6 +454,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Strafing_SimulateBurst)
 		.Process(this->Strafing_UseAmmoPerShot)
 		.Process(this->Strafing_EndDelay)
+		.Process(this->Strafing_TargetCell)
 		.Process(this->CanTarget)
 		.Process(this->CanTargetHouses)
 		.Process(this->RadType)
@@ -521,9 +525,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 #ifdef _Enable
 		.Process(this->WeaponBolt_Data)
 #endif
-		.Process(this->Bolt_Colors[0])
-		.Process(this->Bolt_Colors[1])
-		.Process(this->Bolt_Colors[2])
+		.Process(this->Bolt_Colors)
 		.Process(this->Bolt_ParticleSys)
 		.Process(this->Bolt_FollowFLH)
 		.Process(this->Laser_Thickness)
@@ -583,13 +585,240 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_RemoveAnimOnNoDelay)
 		.Process(this->DelayedFire_PauseFiringSequence)
 		.Process(this->DelayedFire_OnlyOnInitialBurst)
+		.Process(this->DelayedFire_InitialBurstSymmetrical)
 		.Process(this->DelayedFire_AnimOffset)
 		.Process(this->DelayedFire_AnimOnTurret)
 		.Process(this->OnlyAttacker)
+		.Process(this->MyAttachFireDatas)
 		;
-
-	MyAttachFireDatas.Serialize(Stm);
 };
+#else
+template <typename T>
+void WeaponTypeExtData::Serialize(T& Stm)
+{
+	auto debugProcess = [this ,&Stm](auto& field, const char* fieldName) -> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				size_t afterSize = Stm.Getstream()->Size();
+				GameDebugLog::Log("[WeaponTypeExtData] %s SAVE %s: size %zu -> %zu (+%zu)\n",
+					this->Name(), fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				size_t beforeOffset = Stm.Getstream()->Offset();
+				bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				size_t afterOffset = Stm.Getstream()->Offset();
+				bool afterSuccess = Stm.Success();
+
+				GameDebugLog::Log("[WeaponTypeExtData] %s LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					this->Name(), fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				if (!afterSuccess && beforeSuccess)
+				{
+					GameDebugLog::Log("[WeaponTypeExtData] %s ERROR: %s caused stream failure!\n", this->Name(), fieldName);
+				}
+				return result;
+			}
+		};
+
+	// DiskLaser fields
+	debugProcess(this->DiskLaser_Radius, "DiskLaser_Radius");
+	debugProcess(this->DiskLaser_Circumference, "DiskLaser_Circumference");
+	debugProcess(this->Rad_NoOwner, "Rad_NoOwner");
+
+	// Bolt fields
+	debugProcess(this->Bolt_Disables[0], "Bolt_Disables[0]");
+	debugProcess(this->Bolt_Disables[1], "Bolt_Disables[1]");
+	debugProcess(this->Bolt_Disables[2], "Bolt_Disables[2]");
+	debugProcess(this->Bolt_Arcs, "Bolt_Arcs");
+	debugProcess(this->Bolt_Duration, "Bolt_Duration");
+
+	// Strafing fields
+	debugProcess(this->Strafing, "Strafing");
+	debugProcess(this->Strafing_Shots, "Strafing_Shots");
+	debugProcess(this->Strafing_SimulateBurst, "Strafing_SimulateBurst");
+	debugProcess(this->Strafing_UseAmmoPerShot, "Strafing_UseAmmoPerShot");
+	debugProcess(this->Strafing_EndDelay, "Strafing_EndDelay");
+	debugProcess(this->Strafing_TargetCell, "Strafing_TargetCell");
+
+	// Targeting fields
+	debugProcess(this->CanTarget, "CanTarget");
+	debugProcess(this->CanTargetHouses, "CanTargetHouses");
+	debugProcess(this->RadType, "RadType");
+	debugProcess(this->Burst_Delays, "Burst_Delays");
+	debugProcess(this->AreaFire_Target, "AreaFire_Target");
+
+	// Feedback and laser fields
+	debugProcess(this->FeedbackWeapon, "FeedbackWeapon");
+	debugProcess(this->Laser_IsSingleColor, "Laser_IsSingleColor");
+	debugProcess(this->Trajectory_Speed, "Trajectory_Speed");
+
+	// Abductor fields
+	debugProcess(this->Abductor, "Abductor");
+	debugProcess(this->Abductor_AnimType, "Abductor_AnimType");
+	debugProcess(this->Abductor_ChangeOwner, "Abductor_ChangeOwner");
+	debugProcess(this->Abductor_AbductBelowPercent, "Abductor_AbductBelowPercent");
+	debugProcess(this->Abductor_Temporal, "Abductor_Temporal");
+	debugProcess(this->Abductor_MaxHealth, "Abductor_MaxHealth");
+	debugProcess(this->Abductor_CheckAbductableWhenTargeting, "Abductor_CheckAbductableWhenTargeting");
+
+	// Burst and ROF fields
+	debugProcess(this->Burst_FireWithinSequence, "Burst_FireWithinSequence");
+	debugProcess(this->Burst_NoDelay, "Burst_NoDelay");
+	debugProcess(this->ROF_RandomDelay, "ROF_RandomDelay");
+	debugProcess(this->ChargeTurret_Delays, "ChargeTurret_Delays");
+
+	// Omni fire and coordinate fields
+	debugProcess(this->OmniFire_TurnToTarget, "OmniFire_TurnToTarget");
+	debugProcess(this->Ylo, "Ylo");
+	debugProcess(this->Xlo, "Xlo");
+	debugProcess(this->Xhi, "Xhi");
+	debugProcess(this->Yhi, "Yhi");
+	debugProcess(this->ShakeLocal, "ShakeLocal");
+
+	// Occupant animation fields
+	debugProcess(this->OccupantAnims, "OccupantAnims");
+	debugProcess(this->OccupantAnim_UseMultiple, "OccupantAnim_UseMultiple");
+
+	// Range and projectile fields
+	debugProcess(this->Range_IgnoreVertical, "Range_IgnoreVertical");
+	debugProcess(this->ProjectileRange, "ProjectileRange");
+	debugProcess(this->Decloak_InstantFire, "Decloak_InstantFire");
+
+	// Feedback animation fields
+	debugProcess(this->Feedback_Anim, "Feedback_Anim");
+	debugProcess(this->Feedback_Anim_Offset, "Feedback_Anim_Offset");
+	debugProcess(this->Feedback_Anim_UseFLH, "Feedback_Anim_UseFLH");
+
+	// Techno destruction fields
+	debugProcess(this->DestroyTechnoAfterFiring, "DestroyTechnoAfterFiring");
+	debugProcess(this->RemoveTechnoAfterFiring, "RemoveTechnoAfterFiring");
+	debugProcess(this->OpentoppedAnim, "OpentoppedAnim");
+	debugProcess(this->DiskLaser_FiringOffset, "DiskLaser_FiringOffset");
+
+	// Health targeting fields
+	debugProcess(this->Targeting_Health_Percent, "Targeting_Health_Percent");
+	debugProcess(this->Targeting_Health_Percent_Below, "Targeting_Health_Percent_Below");
+	debugProcess(this->RockerPitch, "RockerPitch");
+	debugProcess(this->Ammo, "Ammo");
+	debugProcess(this->IsDetachedRailgun, "IsDetachedRailgun");
+
+	// Wave fields
+	debugProcess(this->Wave_IsHouseColor, "Wave_IsHouseColor");
+	debugProcess(this->Wave_IsLaser, "Wave_IsLaser");
+	debugProcess(this->Wave_IsBigLaser, "Wave_IsBigLaser");
+	debugProcess(this->Wave_Color, "Wave_Color");
+	debugProcess(this->Wave_Intent, "Wave_Intent");
+	debugProcess(this->Wave_Reverse, "Wave_Reverse");
+
+	// Ivan bomb fields
+	debugProcess(this->Ivan_KillsBridges, "Ivan_KillsBridges");
+	debugProcess(this->Ivan_Detachable, "Ivan_Detachable");
+	debugProcess(this->Ivan_Damage, "Ivan_Damage");
+	debugProcess(this->Ivan_Delay, "Ivan_Delay");
+	debugProcess(this->Ivan_TickingSound, "Ivan_TickingSound");
+	debugProcess(this->Ivan_AttachSound, "Ivan_AttachSound");
+	debugProcess(this->Ivan_WH, "Ivan_WH");
+	debugProcess(this->Ivan_Image, "Ivan_Image");
+	debugProcess(this->Ivan_FlickerRate, "Ivan_FlickerRate");
+	debugProcess(this->Ivan_CanDetonateTimeBomb, "Ivan_CanDetonateTimeBomb");
+	debugProcess(this->Ivan_CanDetonateDeathBomb, "Ivan_CanDetonateDeathBomb");
+	debugProcess(this->Ivan_DetonateOnSell, "Ivan_DetonateOnSell");
+	debugProcess(this->Ivan_DeathBombOnAllies, "Ivan_DeathBombOnAllies");
+	debugProcess(this->Ivan_DeathBomb, "Ivan_DeathBomb");
+
+	// Damage and cursor fields
+	debugProcess(this->ApplyDamage, "ApplyDamage");
+	debugProcess(this->Cursor_Attack, "Cursor_Attack");
+	debugProcess(this->Cursor_AttackOutOfRange, "Cursor_AttackOutOfRange");
+
+#ifdef _Enable
+	debugProcess(this->WeaponBolt_Data, "WeaponBolt_Data");
+#endif
+
+	// Bolt color and particle fields
+	debugProcess(this->Bolt_Colors[0], "Bolt_Colors[0]");
+	debugProcess(this->Bolt_Colors[1], "Bolt_Colors[1]");
+	debugProcess(this->Bolt_Colors[2], "Bolt_Colors[2]");
+	debugProcess(this->Bolt_ParticleSys, "Bolt_ParticleSys");
+	debugProcess(this->Bolt_FollowFLH, "Bolt_FollowFLH");
+	debugProcess(this->Laser_Thickness, "Laser_Thickness");
+
+	// Extra warheads fields
+	debugProcess(this->ExtraWarheads, "ExtraWarheads");
+	debugProcess(this->ExtraWarheads_DamageOverrides, "ExtraWarheads_DamageOverrides");
+	debugProcess(this->ExtraWarheads_DetonationChances, "ExtraWarheads_DetonationChances");
+	debugProcess(this->ExtraWarheads_FullDetonation, "ExtraWarheads_FullDetonation");
+	debugProcess(this->Burst_Retarget, "Burst_Retarget");
+	debugProcess(this->KickOutPassenger, "KickOutPassenger");
+
+	// Beam fields
+	debugProcess(this->Beam_Color, "Beam_Color");
+	debugProcess(this->Beam_Duration, "Beam_Duration");
+	debugProcess(this->Beam_Amplitude, "Beam_Amplitude");
+	debugProcess(this->Beam_IsHouseColor, "Beam_IsHouseColor");
+
+	// Ambient damage fields
+	debugProcess(this->AmbientDamage_Warhead, "AmbientDamage_Warhead");
+	debugProcess(this->AmbientDamage_IgnoreTarget, "AmbientDamage_IgnoreTarget");
+	debugProcess(this->RecoilForce, "RecoilForce");
+
+	// Attach effect fields
+	debugProcess(this->AttachEffect_RequiredTypes, "AttachEffect_RequiredTypes");
+	debugProcess(this->AttachEffect_DisallowedTypes, "AttachEffect_DisallowedTypes");
+	debugProcess(this->AttachEffect_RequiredGroups, "AttachEffect_RequiredGroups");
+	debugProcess(this->AttachEffect_DisallowedGroups, "AttachEffect_DisallowedGroups");
+	debugProcess(this->AttachEffect_RequiredMinCounts, "AttachEffect_RequiredMinCounts");
+	debugProcess(this->AttachEffect_RequiredMaxCounts, "AttachEffect_RequiredMaxCounts");
+	debugProcess(this->AttachEffect_DisallowedMinCounts, "AttachEffect_DisallowedMinCounts");
+	debugProcess(this->AttachEffect_DisallowedMaxCounts, "AttachEffect_DisallowedMaxCounts");
+	debugProcess(this->AttachEffect_CheckOnFirer, "AttachEffect_CheckOnFirer");
+	debugProcess(this->AttachEffect_IgnoreFromSameSource, "AttachEffect_IgnoreFromSameSource");
+
+	// Fire control fields
+	debugProcess(this->FireOnce_ResetSequence, "FireOnce_ResetSequence");
+	debugProcess(this->AttachEffects, "AttachEffects");
+	debugProcess(this->AttachEffect_Enable, "AttachEffect_Enable");
+	debugProcess(this->NoRepeatFire, "NoRepeatFire");
+	debugProcess(this->SkipWeaponPicking, "SkipWeaponPicking");
+
+	// Range keeping fields
+	debugProcess(this->KeepRange, "KeepRange");
+	debugProcess(this->KeepRange_AllowAI, "KeepRange_AllowAI");
+	debugProcess(this->KeepRange_AllowPlayer, "KeepRange_AllowPlayer");
+	debugProcess(this->KeepRange_EarlyStopFrame, "KeepRange_EarlyStopFrame");
+	debugProcess(this->VisualScatter, "VisualScatter");
+	debugProcess(this->TurretRecoil_Suppress, "TurretRecoil_Suppress");
+
+	// Health targeting constraints
+	debugProcess(this->CanTarget_MaxHealth, "CanTarget_MaxHealth");
+	debugProcess(this->CanTarget_MinHealth, "CanTarget_MinHealth");
+
+	// Delayed fire fields
+	debugProcess(this->DelayedFire_Duration, "DelayedFire_Duration");
+	debugProcess(this->DelayedFire_SkipInTransport, "DelayedFire_SkipInTransport");
+	debugProcess(this->DelayedFire_Animation, "DelayedFire_Animation");
+	debugProcess(this->DelayedFire_OpenToppedAnimation, "DelayedFire_OpenToppedAnimation");
+	debugProcess(this->DelayedFire_AnimIsAttached, "DelayedFire_AnimIsAttached");
+	debugProcess(this->DelayedFire_CenterAnimOnFirer, "DelayedFire_CenterAnimOnFirer");
+	debugProcess(this->DelayedFire_RemoveAnimOnNoDelay, "DelayedFire_RemoveAnimOnNoDelay");
+	debugProcess(this->DelayedFire_PauseFiringSequence, "DelayedFire_PauseFiringSequence");
+	debugProcess(this->DelayedFire_OnlyOnInitialBurst, "DelayedFire_OnlyOnInitialBurst");
+	debugProcess(this->DelayedFire_InitialBurstSymmetrical, "DelayedFire_InitialBurstSymmetrical");
+	debugProcess(this->DelayedFire_AnimOffset, "DelayedFire_AnimOffset");
+	debugProcess(this->DelayedFire_AnimOnTurret, "DelayedFire_AnimOnTurret");
+
+	// Final fields
+	debugProcess(this->OnlyAttacker, "OnlyAttacker");
+	debugProcess(this->MyAttachFireDatas, "MyAttachFireDatas");
+}
+#endif
 
 int WeaponTypeExtData::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 {
@@ -611,12 +840,14 @@ int WeaponTypeExtData::GetBurstDelay(WeaponTypeClass* pThis, int burstIndex)
 	return -1;
 }
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt1(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
 {
-	WeaponTypeExtData::DetonateAt(pThis, pTarget, pOwner, pThis->Damage , AddDamage , HouseInveoker);
+	WeaponTypeExtData::DetonateAt2(pThis, pTarget, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+#include <Ext/Scenario/Body.h>
+
+void WeaponTypeExtData::DetonateAt2(WeaponTypeClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	// if (pThis->Warhead->NukeMaker)
 	// {
@@ -627,23 +858,33 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, AbstractClass* pTarge
 	// 	}
 	// }
 
-	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
-	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
+	//auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
+	//auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
-	{
-		pBullet->SetWeaponType(pThis);
-		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, CoordStruct::Empty , HouseInveoker);
-	}
+	ScenarioExtData::DetonateMasterBullet(CoordStruct::Empty,
+		pOwner,
+		damage,
+		HouseInveoker,
+		pTarget,
+		 pThis->Bright || pThis->Warhead->Bright,
+		pThis,
+		pThis->Warhead
+	);
+
+	//if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
+	//	damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
+	//{
+	//	pBullet->SetWeaponType(pThis);
+	//	BulletExtData::DetonateAt(pBullet, pTarget, pOwner, CoordStruct::Empty , HouseInveoker);
+	//}
 }
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt3(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, bool AddDamage, HouseClass* HouseInveoker)
 {
-	WeaponTypeExtData::DetonateAt(pThis, coords, pOwner, pThis->Damage , AddDamage , HouseInveoker);
+	WeaponTypeExtData::DetonateAt4(pThis, coords, pOwner, pThis->Damage , AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+void WeaponTypeExtData::DetonateAt4(WeaponTypeClass* pThis, const CoordStruct& coords, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	if (!coords.IsValid())
 	{
@@ -651,10 +892,13 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 		return;
 	}
 
-	WeaponTypeExtData::DetonateAt(pThis, MapClass::Instance->GetCellAt(coords), pOwner, damage, AddDamage , HouseInveoker);
+	auto cell = MapClass::Instance->GetCellAt(coords);
+	WeaponTypeExtData::DetonateAt2(pThis, cell, pOwner, damage, AddDamage , HouseInveoker);
 }
 
-void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
+#include <Ext/Scenario/Body.h>
+
+void WeaponTypeExtData::DetonateAt5(WeaponTypeClass* pThis, const CoordStruct& coords, AbstractClass* pTarget, TechnoClass* pOwner, int damage, bool AddDamage, HouseClass* HouseInveoker)
 {
 	// if (pThis->Warhead->NukeMaker)
 	// {
@@ -665,37 +909,57 @@ void WeaponTypeExtData::DetonateAt(WeaponTypeClass* pThis, const CoordStruct& co
 	// 	}
 	// }
 
-	auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
-	auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
+	ScenarioExtData::DetonateMasterBullet(coords,
+		pOwner,
+		damage,
+		HouseInveoker,
+		pTarget,
+		pThis->Bright || pThis->Warhead->Bright,
+		pThis,
+		pThis->Warhead
+	);
 
-	if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
-		damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
-	{
-		pBullet->SetWeaponType(pThis);
-		BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords , HouseInveoker);
-	}
+	//auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pThis->Projectile);
+	//auto pExt = WeaponTypeExtContainer::Instance.Find(pThis);
+
+	//if (BulletClass* pBullet = pBulletTypeExt->CreateBullet(pTarget, pOwner,
+	//	damage, pThis->Warhead, pThis->Speed, pExt->GetProjectileRange(), pThis->Bright || pThis->Warhead->Bright, AddDamage))
+	//{
+	//	pBullet->SetWeaponType(pThis);
+	//	BulletExtData::DetonateAt(pBullet, pTarget, pOwner, coords , HouseInveoker);
+	//}
 }
 
 // =============================
 // container
 WeaponTypeExtContainer WeaponTypeExtContainer::Instance;
+std::vector<WeaponTypeExtData*> Container<WeaponTypeExtData>::Array;
 
 bool WeaponTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	return Stm
-		.Process(WeaponTypeExtData::nOldCircumference)
-		.Success();
+	auto ret = LoadGlobalArrayData(Stm);
+
+	ret &=  Stm
+			.Process(WeaponTypeExtData::nOldCircumference)
+			.Success();
+
+	return ret;
 }
 
 bool WeaponTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	return Stm
+	auto ret = SaveGlobalArrayData(Stm);
+
+	ret &= Stm
 		.Process(WeaponTypeExtData::nOldCircumference)
 		.Success();
+
+	return ret;
 }
 
-void WeaponTypeExtContainer::Clear()
+void Container<WeaponTypeExtData>::Clear()
 {
+	Array.clear();
 }
 
 // =============================
@@ -716,43 +980,11 @@ ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeWeaponTypeClass::_Load(IStream* pStm)
+bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-
-	WeaponTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->WeaponTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		WeaponTypeExtContainer::Instance.LoadStatic();
-
-	return res;
+	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
+	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-HRESULT __stdcall FakeWeaponTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	WeaponTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->WeaponTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		WeaponTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73CC, FakeWeaponTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F73D0, FakeWeaponTypeClass::_Save)
-
-
-ASMJIT_PATCH(0x7729B0, WeaponTypeClass_LoadFromINI, 0x5)
-{
-	GET(WeaponTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0xE4);
-
-	WeaponTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x7729D6);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x7729C7, WeaponTypeClass_LoadFromINI, 0x5)
-ASMJIT_PATCH_AGAIN(0x7729D6, WeaponTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F741C, FakeWeaponTypeClass::_ReadFromINI)

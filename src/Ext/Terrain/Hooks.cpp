@@ -58,9 +58,11 @@ ASMJIT_PATCH(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 
 	if (nLimboed)
 	{
-		TerrainExtContainer::Instance.Find(pThis)->LighSource.reset(nullptr);
-		TerrainExtContainer::Instance.Find(pThis)->AttachedAnim.reset(nullptr);
-		TerrainExtContainer::Instance.Find(pThis)->AttachedFireAnim.reset(nullptr);
+		auto pExt = TerrainExtContainer::Instance.Find(pThis);
+
+		pExt->LighSource.reset(nullptr);
+		pExt->AttachedAnim.reset(nullptr);
+		pExt->AttachedFireAnim.reset(nullptr);
 	}
 
 	return 0;
@@ -85,7 +87,7 @@ ASMJIT_PATCH(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 
 
 		pConvert = pTerrainExt->CustomPalette.ColorschemeDataVector->Items[colorSchemeIndex]->LightConvert;
-		R->EBP(pCell->Intensity_Normal);
+		R->EBP(pCell->Color1.Red);
 	}
 
 	R->EDX(pConvert);

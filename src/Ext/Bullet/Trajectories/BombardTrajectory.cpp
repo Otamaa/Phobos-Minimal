@@ -79,7 +79,7 @@ void BombardTrajectory::CreateRandomAnim(CoordStruct coords, TechnoClass* pTechn
 		pAnim->SetOwnerObject(pTechno);
 
 	if (invoker)
-		FakeAnimClass::GetExtAttribute(pAnim)->Invoker = pTechno;
+		AnimExtContainer::Instance.Find(pAnim)->Invoker = pTechno;
 
 }
 

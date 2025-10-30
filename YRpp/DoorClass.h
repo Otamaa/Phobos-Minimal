@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Timers.h>
+#include <ASMMacros.h>
 
 enum class DoorState : char
 {

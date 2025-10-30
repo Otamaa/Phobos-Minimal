@@ -3,6 +3,62 @@
 #include <TiberiumClass.h>
 
 #include <Utilities/Macro.h>
+#include <Ext/Tiberium/Body.h>
+#include <TacticalClass.h>
+
+int FakeCellClass::_Reduce_Tiberium(int levels)
+{
+	RectangleStruct dirty = RectangleStruct::Union(this->Overlay_Render_Rect(), this->Overlay_Shadow_Render_Rect());
+	dirty.Y -= DSurface::ViewBounds->Y;
+
+	int tibtype = this->GetContainedTiberiumIndex();
+	int reducer = levels;
+
+	if (levels > 0 && tibtype != -1)
+	{
+		TiberiumClass* tiberium = TiberiumClass::Array->Items[tibtype];
+		if (this->OverlayData == 11)
+		{
+			tiberium->RegisterForGrowth(&this->MapCoords);
+		}
+		if (this->OverlayData + 1 > levels)
+		{
+			OverlayData -= levels;
+			reducer = levels;
+		}
+		else
+		{
+			PassabilityType passability = this->Passability;
+			this->OverlayTypeIndex = -1;
+			reducer = OverlayData;
+			this->OverlayData = 0;
+			this->RecalcAttributes(-1);
+
+			if (passability != this->Passability)
+			{
+				MapClass::Instance->ResetZones(this->MapCoords);
+				MapClass::Instance->RecalculateSubZones(this->MapCoords);
+			}
+
+			RadarClass::Instance->Push_Cell(&this->MapCoords);
+			auto pTibExt = TiberiumExtContainer::Instance.Find(tiberium);
+
+			pTibExt->Clear_Tiberium_Spread_State(this->MapCoords);
+
+			for (int facing = 0; facing < 8; facing++) {
+				auto adjacent = this->GetAdjacentCell((FacingType)facing);
+				if (MapClass::Instance->IsWithinUsableArea(adjacent,false)) {
+					if (!pTibExt->SpreadState[TiberiumExtData::Map_Cell_Index(adjacent->MapCoords)]) {
+						tiberium->Queue_Spread_At_Cell(&adjacent->MapCoords);
+					}
+				}
+			}
+		}
+		TacticalClass::Instance->RegisterDirtyArea(dirty, false);
+		return reducer;
+	}
+	return 0;
+}
 
 TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 {
@@ -17,21 +73,16 @@ TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 
 int CellExtData::GetOverlayIndex(CellClass* pCell, TiberiumClass* pTiberium)
 {
-	if (pTiberium) {
 		return (pCell->SlopeIndex > 0) ?
-		(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages)
-		;
-	}
-
-	return 0;
+			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages)
+			;
 }
 
 int CellExtData::GetOverlayIndex(CellClass* pCell)
 {
 	if (pCell->OverlayTypeIndex != -1) {
 		if (const auto pTiberium = TiberiumClass::Find(pCell->OverlayTypeIndex)) {
-			return (pCell->SlopeIndex > 0) ?
-			(pCell->SlopeIndex + pTiberium->Image->ArrayIndex + pTiberium->NumImages - 1) : (pTiberium->Image->ArrayIndex + pCell->MapCoords.X * pCell->MapCoords.Y % pTiberium->NumImages);
+			return GetOverlayIndex(pCell, pTiberium);
 		}
 	}
 
@@ -204,12 +255,14 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 	auto pTib = TiberiumClass::Array->Items[tib_];
 	auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
 	size_t size = pTerrainExt->Adjencentcells.size();
-	const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-	const int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
 
 	for (int i = 0; i < (int)size; i++)
 	{
+		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
 		CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
+		int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
+		growth -= int(pTerrainTypeExt->SpawnsTiberium_StageFalloff * i);
+		growth = std::clamp(growth, 0, pTib->NumFrames - 1);
 
 		if (tgtCell->CanTiberiumGerminate(pTib))
 		{
@@ -226,13 +279,15 @@ void FakeCellClass::_Invalidate(AbstractClass* ptr, bool removed)
 
 	if (removed)
 	{
-		//if (ptr == static_cast<void*>(this->AltObject)) {
-		//	Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Alt Obj {}", (void*)this, this->MapCoords.X , this->MapCoords.Y , (void*)this->AltObject);
-		//}
+		if (ptr == static_cast<void*>(this->AltObject)) {
+			//Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Alt Obj {}", (void*)this, this->MapCoords.X , this->MapCoords.Y , (void*)this->AltObject);
+			this->AltObject = nullptr;
+		}
 
-		//if (ptr == static_cast<void*>(this->FirstObject)) {
-		//	Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Obj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
-		//}
+		if (ptr == static_cast<void*>(this->FirstObject)) {
+			//Debug::LogInfo("Cell {} - at ( {} . {} ) with Invalid Obj {}", (void*)this, this->MapCoords.X, this->MapCoords.Y, (void*)this->FirstObject);
+			this->FirstObject = nullptr;
+		}
 
 		if(pExt) {
 			if (ptr == static_cast<void*>(pExt->IncomingUnit)) {
@@ -256,8 +311,8 @@ template <typename T>
 void CellExtData::Serialize(T& Stm) {
 
 	Stm
-		.Process(this->Initialized)
 		.Process(this->NewPowerups)
+		.Process(this->InfantryCount)
 		.Process(this->IncomingUnit)
 		.Process(this->IncomingUnitAlt)
 		.Process(this->RadSites)
@@ -267,8 +322,23 @@ void CellExtData::Serialize(T& Stm) {
 
 // =============================
 // container
+
 CellExtContainer CellExtContainer::Instance;
-HelperedVector<CellExtData*> CellExtContainer::Array;
+std::vector<CellExtData*> Container<CellExtData>::Array;
+void Container<CellExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool CellExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool CellExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
@@ -276,14 +346,11 @@ HelperedVector<CellExtData*> CellExtContainer::Array;
 ASMJIT_PATCH(0x47BDA1, CellClass_CTOR, 0x5)
 {
 	GET(CellClass*, pItem, ESI);
-
 	CellExtContainer::Instance.Allocate(pItem);
-
 	return 0;
 }
 
-ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6)
-{
+ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6) {
 	GET(CellClass*, pItem, ECX);
 
 	CellExtContainer::Instance.Remove(pItem);
@@ -291,30 +358,25 @@ ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6)
 	return 0;
 }
 
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
 
 HRESULT __stdcall FakeCellClass::_Load(IStream* pStm)
 {
-	CellExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->CellClass::Load(pStm);
+	HRESULT hr = this->CellClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = CellExtContainer::Instance.LoadKey(this, pStm);
 
-	if (SUCCEEDED(res) && this != CellClass::Instance())
-		CellExtContainer::Instance.LoadStatic();
-
-	return res;
+	return hr;
 }
 
-HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, bool clearDirty)
+HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, BOOL clearDirty)
 {
-	CellExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->CellClass::Save(pStm, clearDirty);
+	HRESULT hr = this->CellClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = CellExtContainer::Instance.SaveKey(this, pStm);
 
-	if (SUCCEEDED(res) && this != CellClass::Instance())
-		CellExtContainer::Instance.SaveStatic();
-
-	return res;
+	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)

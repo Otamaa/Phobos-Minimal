@@ -205,7 +205,7 @@ ASMJIT_PATCH(0x62A16A, ParasiteClass_AI_DisableRocking, 0x5)
  	}
 
  	if (auto const pInvestationWP = pWarheadTypeExt->Parasite_InvestationWP.Get(nullptr)) {
- 		WeaponTypeExtData::DetonateAt(pInvestationWP,pThis->Victim, pThis->Owner , true , nullptr);
+ 		WeaponTypeExtData::DetonateAt1(pInvestationWP,pThis->Victim, pThis->Owner , true , nullptr);
  		return SkipDamaging;
  	}
 

@@ -1,21 +1,70 @@
 #pragma once
 
 #include <CCINIClass.h>
-#include <SwizzleManagerClass.h>
 #include <Memory.h>
 
 #include "Debug.h"
-#include "Stream.h"
+#include "SavegameDef.h"
 #include "Swizzle.h"
-
-#include <string>
-#include <ExtraHeaders/MemoryPool.h>
 
 class AbstractClass;
 static COMPILETIMEEVAL size_t AbstractExtOffset = 0x18;
 
+template<typename T>
+struct UuidFirstPart {
+	static constexpr unsigned int value = __uuidof(T).Data1;
+};
+
+
+struct AbstractExtended {
+private:
+	AbstractClass* AttachedToObject;
+	InitState Initialized;
+	FixedString<0x24> Name;
+
+public:
+
+	//normal assigned AO
+	AbstractExtended(AbstractClass* abs);
+
+	//with noint_t less instasiation
+	AbstractExtended(AbstractClass* abs, noinit_t);
+
+	~AbstractExtended() = default;
+
+	void Internal_LoadFromStream(PhobosStreamReader& Stm);
+	void Internal_SaveToStream(PhobosStreamWriter& Stm) const;
+
+	FORCEDINLINE InitState GetInitState() const { return Initialized; }
+	FORCEDINLINE void SetInitState(InitState state) { Initialized = state; }
+	FORCEDINLINE void SetAttached(AbstractClass* abs) { AttachedToObject = abs; }
+	FORCEDINLINE void SetName(const char* name) { Name = name; }
+	FORCEDINLINE const char* GetAttachedObjectName() const { return Name.data(); }
+
+public:
+
+	virtual AbstractType WhatIam() const { return AbstractType::Abstract; }
+	virtual int GetSize() const { return sizeof(AbstractExtended); };
+
+	virtual AbstractClass* This() const { return const_cast<AbstractClass*>(AttachedToObject); }
+	virtual const AbstractClass* This_Const() const { return AttachedToObject; }
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) = 0;
+	virtual void LoadFromStream(PhobosStreamReader& Stm) = 0;
+	virtual void SaveToStream(PhobosStreamWriter& Stm) = 0;
+
+	virtual void CalculateCRC(CRCEngine& crc) const = 0;
+
+private:
+	AbstractExtended(const AbstractExtended&) = delete;
+	void operator = (const AbstractExtended&) = delete;
+};
+
 template <class T>
 concept HasAbsID = requires(T) { T::AbsID; };
+
+template <class T>
+concept HasMarker = requires(T) { T::Marker; };
 
 template <class T>
 concept HasTypeBase = requires(T) { T::AbsTypeBase; };
@@ -25,7 +74,12 @@ concept Initable = requires(T t) { t.Initialize(); };
 
 template <typename T>
 concept CanLoadFromINIFile =
-	requires (T t , CCINIClass* pINI, bool parseFailAddr) { t.LoadFromINIFile(pINI, parseFailAddr); };
+	requires (T t , CCINIClass* pINI, bool parseFailAddr) { t.LoadFromINI(pINI, parseFailAddr); };
+
+template <typename T>
+concept CanWriteToINIFile =
+	requires (T t, CCINIClass * pINI) { t.WriteToINI(pINI); };
+
 
 template <typename T>
 concept CanLoadFromRulesFile =
@@ -68,13 +122,12 @@ template <typename T>
 concept CanThisPtrSaveToStream =
 	requires (T t, PhobosStreamWriter & stm) { t->SaveToStream(stm); };
 
-template <class T>
-concept HasOffset = requires(T) { T::ExtOffset; };
 
 template <typename T>
 class Container
 {
-private:
+public:
+
 	using base_type = typename T::base_type;
 	using extension_type = typename T;
 	using base_type_ptr = base_type*;
@@ -83,107 +136,25 @@ private:
 	using extension_type_ref_ptr = extension_type**;
 	using const_extension_type_ptr = const extension_type*;
 
-	base_type_ptr SavingObject { nullptr };
-	IStream* SavingStream { nullptr };
-	//std::string Name;
+	static std::vector<extension_type_ptr> Array;
 
-public:
-
-	//COMPILETIMEEVAL explicit Container(const char* pName) : SavingObject { nullptr }
-	//	, SavingStream { nullptr }
-	//	, Name { pName }
-	//{
-	//}
-
-	/*virtual ~Container() = default;*/
-
-	//COMPILETIMEEVAL OPTIONALINLINE auto GetName() const
-	//{
-	//	return this->Name.data();
-	//}
-
-	COMPILETIMEEVAL OPTIONALINLINE base_type_ptr GetSavingObject() const
-	{
-		return SavingObject;
+	COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(base_type_ptr key) {
+		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
 	}
 
-	COMPILETIMEEVAL OPTIONALINLINE IStream* GetStream() const
-	{
-		return this->SavingStream;
+	COMPILETIMEEVAL FORCEDINLINE void SetExtAttribute(base_type_ptr key, extension_type_ptr val) {
+		(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void ClearExtAttribute(base_type_ptr key)
-	{
-		if COMPILETIMEEVAL (HasOffset<T>)
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = 0;
-		else
-			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = 0;
+	COMPILETIMEEVAL FORCEDINLINE extension_type_ptr GetExtAttribute(base_type_ptr key) {
+		return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE void SetExtAttribute(base_type_ptr key, extension_type_ptr val)
-	{
-		if COMPILETIMEEVAL (HasOffset<T>)
-			(*(uintptr_t*)((char*)key + T::ExtOffset)) = (uintptr_t)val;
-		else
-			(*(uintptr_t*)((char*)key + AbstractExtOffset)) = (uintptr_t)val;
-	}
-
-	COMPILETIMEEVAL FORCEDINLINE extension_type_ptr GetExtAttribute(base_type_ptr key)
-	{
-		if COMPILETIMEEVAL (HasOffset<T>)
-			return (extension_type_ptr)(*(uintptr_t*)((char*)key + T::ExtOffset));
-		else
-			return (extension_type_ptr)(*(uintptr_t*)((char*)key + AbstractExtOffset));
-	}
-
-	//// Allocate extensionptr without any checking
-	extension_type_ptr AllocateUnchecked(base_type_ptr key)
-	{
-		extension_type_ptr val = nullptr;
-
-		if constexpr (!IsMemoryPoolObject<T>) {
-			val = DLLCreate<extension_type>();
-		} else {
-			val = T::createInstance();
-		}
-
-		if(val) {
-			val->AttachedToObject = key;
-			if COMPILETIMEEVAL(CTORInitable<T>) {
-				if (!Phobos::Otamaa::DoingLoadGame)
-					val->InitializeConstant();
-			}
-		}
-
-		return val;
-	}
-
-	extension_type_ptr Allocate(base_type_ptr key)
-	{
-		if (!key || Phobos::Otamaa::DoingLoadGame)
-			return nullptr;
-
-		this->ClearExtAttribute(key);
-		extension_type_ptr val = AllocateUnchecked(key);
-		this->SetExtAttribute(key, val);
-		return val;
-	}
-
-	extension_type_ptr FindOrAllocate(base_type_ptr key)
-	{
-		// Find Always check for nullptr here
-		if (extension_type_ptr const ptr = TryFind(key))
-			return ptr;
-
-		return this->Allocate(key);
-	}
-
-	COMPILETIMEEVAL extension_type_ptr Find(base_type_ptr key)
-	{
+	COMPILETIMEEVAL FORCEDINLINE extension_type_ptr Find(base_type_ptr key) {
 		return this->GetExtAttribute(key);
 	}
 
-	COMPILETIMEEVAL extension_type_ptr TryFind(base_type_ptr key)
+	COMPILETIMEEVAL FORCEDINLINE extension_type_ptr TryFind(base_type_ptr key)
 	{
 		if (!key)
 			return nullptr;
@@ -191,33 +162,47 @@ public:
 		return this->GetExtAttribute(key);
 	}
 
+public:
+
+	extension_type_ptr Allocate(base_type_ptr key) {
+		auto pExt = new extension_type(key);
+		this->SetExtAttribute(key ,pExt);
+		Array.emplace_back(pExt);
+		return pExt;
+	}
+
+	extension_type_ptr AllocateNoInit(base_type_ptr key) {
+		this->ClearExtAttribute(key);
+		auto pExt = new extension_type(key, noinit_t());
+		this->SetExtAttribute(key, pExt);
+		Array.emplace_back(pExt);
+		return pExt;
+	}
+
+	extension_type_ptr FindOrAllocate(base_type_ptr key)
+	{
+		if (extension_type_ptr const ptr = TryFind(key))
+			return ptr;
+
+		return this->Allocate(key);
+	}
+
 	void Remove(base_type_ptr key)
 	{
-		if (extension_type_ptr Item = TryFind(key))
-		{
-			if constexpr (!IsMemoryPoolObject<T>)
-			{
-				DLLCallDTOR<false>(Item);
-			}
-			else
-			{
-				Item->deleteInstance();
-			}
+		if (extension_type_ptr Item = TryFind(key)) {
 
+			auto iter = std::ranges::find(Array, Item);
+
+			if(iter != Array.end())
+				Array.erase(iter);
+
+			delete Item;
 			this->ClearExtAttribute(key);
 		}
 	}
 
 	void RemoveExtOf(base_type_ptr key , extension_type_ptr Item) {
-
-		if constexpr (!IsMemoryPoolObject<T>) {
-			DLLCallDTOR<false>(Item);
-		}
-		else
-		{
-			Item->deleteInstance();
-		}
-
+		delete Item;
 		this->ClearExtAttribute(key);
 	}
 
@@ -225,20 +210,17 @@ public:
 	{
 		if COMPILETIMEEVAL (CanLoadFromINIFile<T>)
 		{
-			if (extension_type_ptr ptr = this->TryFind(key))
+			if (extension_type_ptr ptr = this->Find(key))
 			{
 				if (!pINI) {
 					//Debug::LogInfo("[%s] LoadFrom INI Called WithInvalid CCINIClass ptr ! ", typeid(T).name());
 					return;
 				}
 
-				switch (ptr->Initialized) {
+				switch (ptr->GetInitState()) {
 					case InitState::Blank:
 					{
-						if COMPILETIMEEVAL (Initable<T>)
-							ptr->Initialize();
-
-						ptr->Initialized = InitState::Inited;
+						ptr->SetInitState(InitState::Inited);
 
 						if COMPILETIMEEVAL (CanLoadFromRulesFile<T>) {
 							if (pINI == CCINIClass::INI_Rules) {
@@ -247,17 +229,17 @@ public:
 						}
 
 						//Load from rules INI File
-						ptr->LoadFromINIFile(pINI, parseFailAddr);
-						ptr->Initialized = InitState::Ruled;
+						ptr->LoadFromINI(pINI, parseFailAddr);
+						ptr->SetInitState(InitState::Ruled);
 					}
 					break;
 					case InitState::Ruled:
 					case InitState::Constanted:
 					{
 						//load anywhere other than rules
-						ptr->LoadFromINIFile(pINI, parseFailAddr);
+						ptr->LoadFromINI(pINI, parseFailAddr);
 						//this function can be called again multiple time but without need to re-init the data
-						ptr->Initialized = InitState::Ruled;
+						ptr->SetInitState(InitState::Ruled);
 					}
 					break;
 					{
@@ -269,155 +251,155 @@ public:
 		}
 	}
 
+	void WriteToINI(base_type_ptr key, CCINIClass* pINI)
+	{
+		if COMPILETIMEEVAL(CanWriteToINIFile<T>)
+		{
+			if (extension_type_ptr ptr = this->TryFind(key))
+			{
+				if (!pINI)
+				{
+					//Debug::LogInfo("[%s] LoadFrom INI Called WithInvalid CCINIClass ptr ! ", typeid(T).name());
+					return;
+				}
+
+				ptr->WriteToINI(pINI);
+			}
+		}
+	}
+
 	void InvalidatePointerFor(base_type_ptr key, AbstractClass* const ptr, bool bRemoved)
 	{
-		if COMPILETIMEEVAL (ThisPointerInvalidationSubscribable<T>){
-			if (Phobos::Otamaa::ExeTerminated)
-				return;
-
-			if (extension_type_ptr Extptr = this->TryFind(key))
+		if (extension_type_ptr Extptr = this->TryFind(key))
 				Extptr->InvalidatePointer(ptr, bRemoved);
-
-		}
 	}
 
-	void PrepareStream(base_type_ptr key, IStream* pStm)
-	{
-		static_assert(T::Canary < std::numeric_limits<size_t>::max(), "Canary Too Big !");
-		//Debug::LogInfo("[PrepareStream] Next is %p of type '%s'", key, this->Name.data());
-		this->SavingObject = key;
-		this->SavingStream = pStm;
-	}
+public : //default Save/Load functions
+		//define your own with same name to override these
 
-	void SaveStatic()
-	{
-		auto obj = this->SavingObject;
-		Debug::LogInfo("[SaveStatic] For object {} as '{} Start", (void*)obj, PhobosCRT::GetTypeIDName<T>());
-		if (obj && this->SavingStream) {
-			if (!this->Save(obj, this->SavingStream))
-				Debug::FatalErrorAndExit("[SaveStatic] Saving failed!");
-		}
+	static void Clear();
 
-		this->SavingObject = nullptr;
-		this->SavingStream = nullptr;
-		//Debug::LogInfo("[SaveStatic] For object %p as '%s Done", obj, this->Name.data());
-	}
-
-	bool LoadStatic()
+	static bool SaveGlobalArrayData(PhobosStreamWriter& Stm)
 	{
-		auto obj = this->SavingObject;
-		Debug::LogInfo("[LoadStatic] For object {} as '{} Start", (void*)obj, PhobosCRT::GetTypeIDName<T>());
-		if (this->SavingObject && this->SavingStream)
-		{
-			if (!this->Load(obj, this->SavingStream)){
-				//Debug::FatalErrorAndExit("[LoadStatic] Loading object %p as '%s failed!", obj, this->Name.data());
-				return false;
+		//save it as int instead of size_t
+		const int Count = (int)Array.size();
+		if(Stm.Save(Count)){
+			Debug::Log("Saving %s count %d \n", PhobosCRT::GetTypeIDName<extension_type>().c_str(), Count);
+
+			for (int i = 0; i < Count; ++i) {
+				if (!Stm.Save((long)Array[i]))
+					return false; // important !
+
+				//Debug::Log("Saving[%d] of %d \n",i , Count);
+
+				Array[i]->SaveToStream(Stm); // call the internal Ext save load function
 			}
 		}
 
-		this->SavingObject = nullptr;
-		this->SavingStream = nullptr;
-		//Debug::LogInfo("[LoadStatic] For object %p as '%s Done", obj, this->Name.data());
 		return true;
 	}
 
-protected:
-
-	// override this method to do type-specific stuff
-	virtual bool Save(base_type_ptr key, IStream* pStm)
+	static bool LoadGlobalArrayData(PhobosStreamReader& Stm)
 	{
-		if COMPILETIMEEVAL (CanThisSaveToStream<T>)
-		{
-			// this really shouldn't happen
-			if (!key)
-			{
-				//Debug::LogInfo("[SaveKey] Attempted for a null pointer! WTF!");
-				return false;
+		Clear(); //clear the global data
+
+		int Count = 0;
+
+		if (Stm.Load(Count)) {
+			if (Count > 0) {
+
+				//reserve !
+				Array.reserve(Count);
+
+				const auto name = PhobosCRT::GetTypeIDName<T>();
+
+				for (int i = 0; i < Count; ++i) {
+
+					long oldPtr = 0l;
+
+					if (!Stm.Load(oldPtr))
+						return false;
+
+					auto newPtr = new T(nullptr, noinit_t());
+
+					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, name.c_str())
+					ExtensionSwizzleManager::RegisterExtensionPointer((void*)oldPtr, newPtr);
+					newPtr->LoadFromStream(Stm);
+					Array.push_back(newPtr);
+				}
 			}
 
-			// get the value data
-			extension_type_ptr const buffer = this->Find(key);
-
-			if (!buffer)
-			{
-				//Debug::LogInfo("[SaveKey] Could not find value.");
-				return false;
-			}
-
-			// write the current pointer, the size of the block, and the canary
-			PhobosByteStream saver { extension_type::size_Of() };
-			PhobosStreamWriter writer { saver };
-
-			writer.Save(T::Canary);
-			writer.Save(buffer);
-
-			// save the data
-			buffer->SaveToStream(writer);
-
-			// save the block
-			if (saver.WriteBlockToStream(pStm))
-			{
-				//Debug::LogInfo("[SaveKey] Save used up 0x%X bytes", saver.Size());
-				return true;
-			}
-		}
-
-		//Debug::LogInfo("[SaveKey] Failed to save data.");
-		return false;
-	}
-
-	// override this method to do type-specific stuff
-	virtual bool Load(base_type_ptr key, IStream* pStm)
-	{
-		if COMPILETIMEEVAL (CanThisLoadFromStream<T>)
-		{
-			// this really shouldn't happen
-			if (!key)
-			{
-				//Debug::LogInfo("[LoadKey] Attempted for a null pointer! WTF!");
-				return false;
-			}
-
-			this->ClearExtAttribute(key);
-			auto buffer = AllocateUnchecked(key);
-			this->SetExtAttribute(key, buffer);
-
-			PhobosByteStream loader { 0 };
-			if (!loader.ReadBlockFromStream(pStm)) {
-				return false;
-			}
-
-			PhobosStreamReader reader { loader };
-			if (reader.Expect(T::Canary) && reader.RegisterChange(buffer))
-			{
-				buffer->LoadFromStream(reader);
-				if (reader.ExpectEndOfBlock())
-					return true;
-			}
+			return true;
 		}
 
 		return false;
 	}
 
+	HRESULT SaveKey(base_type_ptr key, IStream* pStm)
+	{
+		// get the value data
+		auto buffer = this->Find(key);
 
-//private:
-//	Container<T>(const Container<T>&) = delete;
-//	Container<T>& operator = (const Container<T>&) = delete;
-//	Container<T>& operator = (Container<T>&&) = delete;
+		if (!buffer) {
+			Debug::Log("SaveKey - Could not find value.\n");
+			return E_POINTER;
+		}
+
+		// write the current pointer, the size of the block, and the canary
+		PhobosByteStream saver(sizeof(*buffer));
+		PhobosStreamWriter writer(saver);
+
+		writer.Process(T::Marker);
+		writer.Save((long)buffer);
+
+		// save the data
+		buffer->SaveToStream(writer);
+
+		// save the block
+		if (!saver.WriteToStream(pStm))
+		{
+			Debug::Log("SaveKey - Failed to save data.\n");
+			return E_FAIL;
+		}
+
+		//Debug::Log("[SaveKey] Save used up 0x%X bytes\n", saver.Size());
+		return NO_ERROR;
+	}
+
+	HRESULT LoadKey(base_type_ptr key, IStream* pStm)
+	{
+		// get or allocate the value data
+		extension_type_ptr buffer = this->AllocateNoInit(key);
+		if (!buffer)
+		{
+			Debug::Log("LoadKey - Could not find or allocate value.\n");
+			return E_POINTER;
+		}
+
+		PhobosByteStream loader(0);
+		if (!loader.ReadFromStream(pStm))
+		{
+			Debug::Log("LoadKey - Failed to read data from save stream?!\n");
+			return E_FAIL;
+		}
+
+		PhobosStreamReader reader(loader);
+
+		if (reader.Expect(T::Marker))
+		{
+			long oldPtr = 0l;
+
+			if (!reader.Load(oldPtr))
+				return E_FAIL;
+
+			const auto name = PhobosCRT::GetTypeIDName<T>();
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, name.c_str())
+			buffer->LoadFromStream(reader);
+			if (reader.ExpectEndOfBlock())
+				return NO_ERROR;
+		}
+
+		return E_FAIL;
+	}
 };
 
-//#define CONSTEXPR_NOCOPY_CLASS(containerT , name)\
-//COMPILETIMEEVAL ExtContainer() : Container<containerT> { ##name## } {}\
-//virtual ~ExtContainer() override = default;\
-//private:\
-//ExtContainer(const ExtContainer&) = delete;\
-//ExtContainer(ExtContainer&&) = delete; \
-//ExtContainer& operator=(const ExtContainer& other) = delete;
-//
-//#define CONSTEXPR_NOCOPY_CLASSB(containerName , containerT , name)\
-//COMPILETIMEEVAL containerName() : Container<containerT> { ##name## } {}\
-//virtual ~containerName() override = default;\
-//private:\
-//containerName(const containerName&) = delete;\
-//containerName(containerName&&) = delete; \
-//containerName& operator=(const containerName& other) = delete;

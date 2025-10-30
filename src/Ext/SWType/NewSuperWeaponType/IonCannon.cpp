@@ -22,7 +22,7 @@ bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool Is
 
 void SW_IonCannon::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IonCannon;
 	pData->IonCannon_BeamHeight = 750;
 	pData->IonCannon_BlastHeight = 0;
@@ -38,7 +38,7 @@ void SW_IonCannon::Initialize(SWTypeExtData* pData)
 
 void SW_IonCannon::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->AttachedToObject->ID;
+	const char* section = pData->This()->ID;
 
 	INI_EX exINI(pINI);
 	pData->IonCannon_BeamHeight.Read(exINI, section, "IonCannon.BeamAnimHeight");
@@ -230,8 +230,9 @@ void IonCannonStateMachine::Fire()
 	}
 
 	// kill
-	auto damage = this->Type->GetDamage(pData);
-	auto pWarhead = this->Type->GetWarhead(pData);
+	auto pNewType = NewSWType::GetNewSWType(pData);
+	auto damage = pNewType->GetDamage(pData);
+	auto pWarhead = pNewType->GetWarhead(pData);
 
 	if (pWarhead && damage != 0) {
 		WarheadTypeExtData::DetonateAt(pWarhead, pTarget, coords, this->Firer, damage, this->Owner);

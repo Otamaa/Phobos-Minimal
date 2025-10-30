@@ -240,6 +240,8 @@ public:
 	int GetTurretWeapon(int const nIndex) const
 	{ JMP_THIS(0x7178B0); }
 
+	bool HasTurret() const { return this->TurretCount > 0; }
+
 	//Constructor
 	TechnoTypeClass(const char* id, SpeedType speedtype) noexcept
 		: TechnoTypeClass(noinit_t())

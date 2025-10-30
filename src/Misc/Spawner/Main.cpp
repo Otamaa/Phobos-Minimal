@@ -121,6 +121,7 @@ SpawnerMain::GameConfigs::GameConfigs()
 
 	// Extended Options
 	, QuickMatch { false }
+	, DisableGameSpeed { false }
 	, SpawnerHackMPNodes { false }
 	, SkipScoreScreen { Configs::m_Ptr.SkipScoreScreen }
 	, WriteStatistics { false }
@@ -152,40 +153,7 @@ FORCEDINLINE void ReadListFromSection(CCINIClass* pINI, const char* pSection, st
 	}
 }
 
-
-class NOVTABLE StaticLoadOptionsClass {
-public:
-	// constructor
-	StaticLoadOptionsClass() {
-		JMP_THIS(0x558740);
-	}
-
-	// virtuals
-	virtual ~StaticLoadOptionsClass() {
-		JMP_THIS(0x55A0D0);
-	}
-
-	static bool LoadMission(const char* pFilename) {
-		JMP_THIS(0x559D60);
-	}
-
-	//Properties
-	LoadOptionsMode Mode;
-	const char* Extension; //"SAV", "SED" for MapSeedClass
-	const wchar_t* Description;
-	unsigned int SpaceRequirement; //default is 0x800 = 2048
-	DWORD unknown_14;
-	DWORD unknown_18;
-	DWORD unknown_1C;
-	DECLARE_PROPERTY(DynamicVectorClass<FileEntryClass*>, FileEntries);
-};
-
-#ifdef IS_ANTICHEAT_VER
-#define SPAWNER_PRODUCT_NAME "YR-Spawner (AntiCheat)"
-#else
 #define SPAWNER_PRODUCT_NAME "YR-Spawner"
-#endif
-
 #define SPAWNER_FILE_DESCRIPTION "CnCNet5: Spawner"
 
 void SpawnerMain::CmdLineParse(char* pArg)
@@ -296,7 +264,7 @@ void SpawnerMain::ApplyStaticOptions()
 	}
 }
 
-COMPILETIMEEVAL char* PlayerSectionArray[8] = {
+COMPILETIMEEVAL const char* PlayerSectionArray[8] = {
 	"Settings",
 	"Other1",
 	"Other2",
@@ -307,7 +275,7 @@ COMPILETIMEEVAL char* PlayerSectionArray[8] = {
 	"Other7"
 };
 
-COMPILETIMEEVAL char* MultiTagArray[8] = {
+COMPILETIMEEVAL const char* MultiTagArray[8] = {
 	"Multi1",
 	"Multi2",
 	"Multi3",
@@ -318,7 +286,7 @@ COMPILETIMEEVAL char* MultiTagArray[8] = {
 	"Multi8"
 };
 
-COMPILETIMEEVAL char* AlliancesSectionArray[8] = {
+COMPILETIMEEVAL const char* AlliancesSectionArray[8] = {
 	"Multi1_Alliances",
 	"Multi2_Alliances",
 	"Multi3_Alliances",
@@ -329,7 +297,7 @@ COMPILETIMEEVAL char* AlliancesSectionArray[8] = {
 	"Multi8_Alliances"
 };
 
-COMPILETIMEEVAL char* AlliancesTagArray[8] = {
+COMPILETIMEEVAL const char* AlliancesTagArray[8] = {
 	"HouseAllyOne",
 	"HouseAllyTwo",
 	"HouseAllyThree",
@@ -449,6 +417,7 @@ void SpawnerMain::GameConfigs::LoadFromINIFile(CCINIClass* pINI)
 
 	// Extended Options
 	SpawnerHackMPNodes = pINI->ReadBool(GameStrings::Settings(), "UseMPAIBaseNodes", SpawnerHackMPNodes);
+	DisableGameSpeed = pINI->ReadBool(GameStrings::Settings(), "DisableGameSpeed", DisableGameSpeed);
 	QuickMatch = pINI->ReadBool(GameStrings::Settings(), "QuickMatch", QuickMatch);
 	SkipScoreScreen = pINI->ReadBool(GameStrings::Settings(), "SkipScoreScreen", SkipScoreScreen);
 	WriteStatistics = pINI->ReadBool(GameStrings::Settings(), "WriteStatistics", WriteStatistics);
@@ -592,7 +561,6 @@ bool SpawnerMain::GameConfigs::StartGame() {
 
 		return false;
 	}
-
 
 	SpawnerMain::GameConfigs::LoadSidesStuff();
 
@@ -758,7 +726,8 @@ bool SpawnerMain::GameConfigs::Reconcile_Players() {
 			pHouse->Production = true;
 			pHouse->StaticData.IQLevel = RulesClass::Instance->MaxIQLevels;
 
-			fmt::basic_memory_buffer<wchar_t> buffer;
+			static fmt::basic_memory_buffer<wchar_t> buffer;
+			buffer.clear();
 			fmt::format_to(std::back_inserter(buffer), L"{} (AI)", pHouse->UIName);
 			buffer.push_back(L'\0');
 			std::wcscpy(pHouse->UIName, buffer.data());
@@ -1091,7 +1060,7 @@ bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
 	// for some reason beacons are only inited on scenario init, which doesn't happen on load
 	//BeaconManagerClass::Instance->LoadArt();
 
-	if (!saveGameName[0] || !StaticLoadOptionsClass::LoadMission(saveGameName))
+	if (!saveGameName[0] || !LoadOptionsClass::DoLoadMission(saveGameName))
 	{
 		Debug::LogInfo("[Spawner] Failed Load Game [{}]", saveGameName);
 
@@ -1403,4 +1372,32 @@ ASMJIT_PATCH(0x686A9E, ReadScenario_InitSomeThings_SpecialHouseIsAlly, 0x6)
 {
 	return !SpawnerMain::GetGameConfigs()->SpecialHouseIsAlly ?
 		0x686AC6 : 0u;
+}
+
+// Hide the GameSpeed (FPS) slider group only when feature disabled.
+// Skirmish observers must always retain the slider regardless of config.
+ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
+{
+	if(Game::ObserverMode || (SessionClass::IsSkirmish() && HouseClass::CurrentPlayer && HouseClass::CurrentPlayer->IsObserver())) {
+		return 0x4E211A;
+	}
+
+	if (SpawnerMain::GameConfigs::m_Ptr.DisableGameSpeed) {
+		using GetCtrlById_t = void* (__stdcall*)(void* hDlg, int id);
+		using ShowWindow_t = void(__stdcall*)(void* hWnd, int nCmdShow);
+
+		GET(GetCtrlById_t, getCtrl, EDI);
+		GET(ShowWindow_t, showWnd, EBP);
+		GET(void*, hDlg, ESI);
+
+		if (getCtrl && showWnd) {
+			if (auto ctrl = getCtrl(hDlg, 0x529)) { showWnd(ctrl, 0); }
+			if (auto ctrl = getCtrl(hDlg, 0x714)) { showWnd(ctrl, 0); }
+			if (auto ctrl = getCtrl(hDlg, 0x671)) { showWnd(ctrl, 0); }
+		}
+
+		return 0x4E211A;
+	}
+
+	return 0;
 }

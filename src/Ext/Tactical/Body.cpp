@@ -203,16 +203,18 @@ void FakeTacticalClass::Tactical_MakeFilteredSelection(callback_type fpCheckCall
 }
 
 template<class T, class U>
-COMPILETIMEEVAL int8 __CFADD__(T x, U y)
+constexpr int8_t __CFADD__(T x, U y)
 {
-	if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 1)
-		return uint8(x) > uint8(x + y);
-	else if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 2)
-		return uint16(x) > uint16(x + y);
-	else if COMPILETIMEEVAL((sizeof(T) > sizeof(U) ? sizeof(T) : sizeof(U)) == 4)
-		return uint32(x) > uint32(x + y);
+	using Wider = std::conditional_t<(sizeof(T) > sizeof(U)), T, U>;
+
+	if constexpr (sizeof(Wider) == 1)
+		return static_cast<uint8_t>(x) > static_cast<uint8_t>(x + y);
+	else if constexpr (sizeof(Wider) == 2)
+		return static_cast<uint16_t>(x) > static_cast<uint16_t>(x + y);
+	else if constexpr (sizeof(Wider) == 4)
+		return static_cast<uint32_t>(x) > static_cast<uint32_t>(x + y);
 	else
-		return unsigned __int64(x) > unsigned __int64(x + y);
+		return static_cast<uint64_t>(x) > static_cast<uint64_t>(x + y);
 }
 
 /**
@@ -418,6 +420,22 @@ void FakeTacticalClass::__RenderOverlapForeignMap()
 	}
 }
 
+#include <WWKeyboardClass.h>
+
+void DrawTransRect(BitFont* pBitInst, int* width , int index ) {
+
+	width += 6;
+	const int lineSpace = pBitInst->field_1C + 2;
+	Point2D location { DSurface::ViewBounds->Width, (DSurface::ViewBounds->Height - ((index + 1) * lineSpace)) };
+	RectangleStruct rect { (location.X - *width), location.Y, *width, lineSpace };
+
+	ColorStruct fillColor { 0, 0, 0 };
+	DSurface::Composite->Fill_Rect_Trans(&rect, &fillColor, (InputManagerClass::Instance->IsForceMoveKeyPressed() ? 80 : 40));
+	Point2D top { rect.X - 1, rect.Y };
+	Point2D bot { top.X, top.Y + lineSpace - 1 };
+	DSurface::Composite->Draw_Line(top, bot, COLOR_BLACK);
+}
+
 #ifndef ___test
 
 void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1)
@@ -427,8 +445,8 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
-
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
 	if (hour)
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
@@ -437,10 +455,10 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
-
 	buffer.push_back(L'\0');
 
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !label ? L"" : label);
 	labe_buffer.push_back(L'\0');
 
@@ -451,11 +469,9 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 
 	if (!interval && _arg && _arg1)
 	{
-		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(_arg->QuadPart) < static_cast<uint64_t>(now.QuadPart)) {
+			_arg->QuadPart = now.QuadPart + 1000;
 			*_arg1 = !*_arg1;
 		}
 
@@ -514,8 +530,8 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
-
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
 	if (hour)
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
@@ -524,10 +540,10 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
-
 	buffer.push_back(L'\0');
 
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !label ? L"" : label);
 	labe_buffer.push_back(L'\0');
 
@@ -538,11 +554,9 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 
 	if (!interval && _arg && _arg1)
 	{
-		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(_arg->QuadPart) < static_cast<uint64_t>(now.QuadPart)) {
+			_arg->QuadPart = now.QuadPart + 1000;
 			*_arg1 = !*_arg1;
 		}
 
@@ -601,7 +615,8 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
 
 	if (hour)
 	{
@@ -611,10 +626,10 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 	{
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
-
 	buffer.push_back(L'\0');
 
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", label);
 	labe_buffer.push_back(L'\0');
 
@@ -625,11 +640,9 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 
 	if (!interval && _arg && _arg1)
 	{
-		if ((unsigned __int64)_arg->QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			_arg->LowPart = large.LowPart + 1000;
-			_arg->HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(_arg->QuadPart) < static_cast<uint64_t>(now.QuadPart)) {
+			_arg->QuadPart = now.QuadPart + 1000;
 			*_arg1 = !*_arg1;
 		}
 
@@ -793,20 +806,18 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	const int hour = interval / 60 / 60;
 	const int minute = interval / 60 % 60;
 	const int second = interval % 60;
-	fmt::basic_memory_buffer<wchar_t> buffer;
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+	buffer.clear();
 
-	if (hour)
-	{
+	if (hour) {
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}:{:02}", hour, minute, second);
-	}
-	else
-	{
+	} else {
 		fmt::format_to(std::back_inserter(buffer), L"{:02}:{:02}", minute, second);
 	}
+    buffer.push_back(L'\0');
 
-	buffer.push_back(L'\0');
-
-	fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	static fmt::basic_memory_buffer<wchar_t> labe_buffer;
+	labe_buffer.clear();
 	fmt::format_to(std::back_inserter(labe_buffer), L"{}  ", !pSuper->Type->UIName ? L"" : pSuper->Type->UIName);
 	labe_buffer.push_back(L'\0');
 
@@ -817,11 +828,9 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 
 	if (!interval)
 	{
-		if ((unsigned __int64)pSuper->BlinkTimer.QuadPart < (unsigned __int64)Game::AudioGetTime().QuadPart)
-		{
-			auto large = Game::AudioGetTime();
-			pSuper->BlinkTimer.LowPart = large.LowPart + 1000;
-			pSuper->BlinkTimer.HighPart = __CFADD__(large.LowPart, 1000) + large.HighPart;
+		const auto now = Game::AudioGetTime();
+		if (static_cast<uint64_t>(pSuper->BlinkTimer.QuadPart) < static_cast<uint64_t>(now.QuadPart)) {
+			pSuper->BlinkTimer.QuadPart = now.QuadPart + 1000;
 			pSuper->BlinkState = !pSuper->BlinkState;
 		}
 
@@ -953,17 +962,6 @@ void TacticalExtData::Screen_Flash_AI()
 }
 
 // =============================
-// load / save
-
-template <typename T>
-void TacticalExtData::Serialize(T& Stm)
-{
-	Stm
-		.Process(this->Initialized)
-		;
-}
-
-// =============================
 // container hooks
 
 ASMJIT_PATCH(0x6D1E24, TacticalClass_CTOR, 0x5)
@@ -1005,7 +1003,7 @@ ASMJIT_PATCH(0x6DBDED, TacticalClass_Load_Suffix, 0x6)
 		Debug::FatalErrorAndExit("TacticalClassExt_Load Apparently TacticalExtData Global Pointer is missing !/n ");
 
 	PhobosByteStream Stm(0);
-	if (Stm.ReadBlockFromStream(TacticalExtData::g_pStm))
+	if (Stm.ReadFromStream(TacticalExtData::g_pStm))
 	{
 		PhobosStreamReader Reader(Stm);
 
@@ -1030,7 +1028,7 @@ ASMJIT_PATCH(0x6DBE18, TacticalClass_Save_Suffix, 0x5)
  writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
-	saver.WriteBlockToStream(TacticalExtData::g_pStm);
+	saver.WriteToStream(TacticalExtData::g_pStm);
 
 	return 0;
 }

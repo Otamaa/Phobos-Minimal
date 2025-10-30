@@ -3,6 +3,7 @@
 #include <Base/Always.h>
 #include <vector>
 #include <string>
+#include <Helpers/CompileTime.h>
 
 struct module_export
 {
@@ -56,23 +57,12 @@ struct NOVTABLE
 	PatchType type;
 	uintptr_t offset;
 	size_t size;
-	BYTE* pData;
+	const BYTE* pData;
 
 	static void ApplyStatic();
 	void Apply();
 
 	static std::vector<dllData> ModuleDatas;
-
-	//template<typename TFrom, typename To>
-	//static OPTIONALINLINE void Apply(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
-	//{
-	//	DWORD protect_flagb {};
-	//	if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
-	//		*reinterpret_cast<TFrom*>(addrFrom) = toImpl;
-	//		VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
-	//		FlushInstructionCache(Game::hInstance, (LPVOID)addrFrom, size);
-	//	}
-	//}
 
 	template<typename To>
 	static OPTIONALINLINE void Apply_withmemcpy(uintptr_t addrFrom, To toImpl, DWORD& protect_flag, DWORD ReadFlag = PAGE_READWRITE, size_t size = 4u)
@@ -81,7 +71,7 @@ struct NOVTABLE
 		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
 			std::memcpy((void*)addrFrom, toImpl, size);
 			VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
-			FlushInstructionCache(Game::hInstance, (LPVOID)addrFrom, size);
+			FlushInstructionCache(Game_hInstance, (LPVOID)addrFrom, size);
 		}
 	}
 
@@ -110,21 +100,22 @@ struct NOVTABLE
 		return reinterpret_cast<T>(rawptr + amount);
 	}
 
-	static void Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data);
-	static void Apply_RAW(uintptr_t offset, size_t sz, PatchType type, BYTE* data);
+	static void Apply_RAW(uintptr_t offset, size_t sz, PatchType type, const BYTE* data);
+
+	static FORCEDINLINE void Apply_RAW(uintptr_t offset, std::initializer_list<BYTE> data) {
+		Patch::Apply_RAW(offset, data.size(), PatchType::PATCH_, const_cast<byte*>(data.begin()));
+	}
 
 	template <size_t Size>
-	static FORCEDINLINE void Apply_RAW(uintptr_t offset, const char(&str)[Size])
-	{
-		PatchWrapper dummy { PatchType::PATCH_ , offset, Size, reinterpret_cast<BYTE*>(const_cast<char*>(str)) };
+	static FORCEDINLINE void Apply_RAW(uintptr_t offset, const char(&str)[Size]) {
+		Apply_RAW(offset, Size, PatchType::PATCH_, reinterpret_cast<const BYTE*>(str));
 	};
 
 	template <typename T>
 	static FORCEDINLINE void Apply_TYPED(uintptr_t offset, std::initializer_list<T> data)
 	{
-		Patch::Apply_RAW(offset, data.size() * sizeof(T), PatchType::PATCH_, const_cast<byte*>(reinterpret_cast<const byte*>(data.begin())));
+		Patch::Apply_RAW(offset, data.size() * sizeof(T), PatchType::PATCH_, reinterpret_cast<const BYTE*>(data.begin()));
 	};
-
 
 	static void Apply_LJMP(uintptr_t offset, uintptr_t pointer);
 	static FORCEDINLINE void Apply_LJMP(uintptr_t offset, void* pointer)
@@ -150,13 +141,10 @@ struct NOVTABLE
 		Patch::Apply_VTABLE(offset, reinterpret_cast<uintptr_t>(pointer));
 	};
 
-
 	static void Apply_OFFSET(uintptr_t offset, uintptr_t pointer)
 	{
 		Patch::Apply_TYPED<uintptr_t>(offset, { pointer });
 	};
-
-
 	static FORCEDINLINE void Apply_OFFSET(uintptr_t offset, uintptr_t* pointer)
 	{
 		Patch::Apply_OFFSET(offset, reinterpret_cast<DWORD>(pointer));
@@ -169,18 +157,10 @@ struct NOVTABLE
 	static int GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress);
 	static uintptr_t GetEATAddress(const char* moduleName, const char* funcName);
 	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
+	static COMPILETIMEEVAL reference<HINSTANCE, 0xB732F0u> const Game_hInstance {};
 public :
 	static HANDLE CurrentProcess;
 	static std::string WindowsVersion;
-};
-
-struct NOVTABLE
-	PatchWrapper
-{
-	Patch Data;
-
-	PatchWrapper(size_t offs, size_t size, PatchType type, BYTE* pData) : Data { type , offs , size , pData }
-	{ Data.Apply(); }
 };
 
 #pragma warning(pop)

@@ -16,6 +16,8 @@
 
 #include <Ext/Rules/Body.h>
 
+#include <SuperClass.h>
+
 int GeneralUtils::GetColorFromColorAdd(int colorIndex)
 {
 	auto const& colorAdd = RulesClass::Instance->ColorAdd;
@@ -102,9 +104,17 @@ const wchar_t* GeneralUtils::LoadStringUnlessMissingNoChecks(const char* key, co
 	return pCSF->Text;
 }
 
-void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range)
+void GeneralUtils::AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range, bool clearFirst)
 {
-	nCells.reserve((2 * range + 1) * (2 * range + 1));
+	if(clearFirst)
+		nCells.clear();
+
+	const short value = (2 * range + 1) * (2 * range + 1);
+
+	if (value <= 0)
+		return;
+
+	nCells.reserve(value);
 	for (CellSpreadEnumerator it(range); it; ++it)
 		nCells.emplace_back(*it);
 }

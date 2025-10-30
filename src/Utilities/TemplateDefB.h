@@ -9,6 +9,111 @@
 
 #include <New/Type/PaletteManager.h>
 
+struct FoundationDef
+{
+	std::string_view Name;
+	CellStruct Size; // { X, Y }
+	uint8_t CellCount;
+	std::array<CellStruct, 30> Cells;
+	uint8_t OutlineCount;
+	std::array<CellStruct, 30> Outline;
+};
+
+OPTIONALINLINE COMPILETIMEEVAL std::array<FoundationDef, 3> CustomFoundations = { {
+		// ====================================================
+		// Foundation = 5x2
+		//
+		// Visual layout:
+		//   · · · · · · ·
+		//   · # # # # # ·
+		//   · # # # # # ·
+		//   · · · · · · ·
+		// ====================================================
+		{
+			"5x2",
+			{5, 2},
+			10,
+			{{
+				{0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0},
+				{0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}
+			}},
+			18,
+			{{
+				{-1, -1}, {0, -1}, {1, -1}, {2, -1}, {3, -1}, {4, -1}, {5, -1},
+				{-1, 0},  {5, 0},
+				{-1, 1},  {5, 1},
+				{-1, 2},  {0, 2}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}
+			}}
+		},
+
+	// ====================================================
+	// Foundation = 4x1
+	//
+	// Visual layout:
+	//   · · · · · ·
+	//   · # # # # ·
+	//   · · · · · ·
+	// ====================================================
+	{
+		"4x1",
+		{4, 1},
+		4,
+		{{
+			{0, 0}, {1, 0}, {2, 0}, {3, 0}
+		}},
+		14,
+		{{
+			{-1, -1}, {0, -1}, {1, -1}, {2, -1}, {3, -1}, {4, -1},
+			{-1, 0},  {4, 0},
+			{-1, 1},  {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}
+		}}
+	},
+
+	// ====================================================
+	// Foundation = 2x4
+	//
+	// Visual layout:
+	//   · · · ·
+	//   · # # ·
+	//   · # # ·
+	//   · # # ·
+	//   · # # ·
+	//   · · · ·
+	// ====================================================
+	{
+		"2x4",
+		{2, 4},
+		8,
+		{{
+			{0, 0}, {1, 0},
+			{0, 1}, {1, 1},
+			{0, 2}, {1, 2},
+			{0, 3}, {1, 3}
+		}},
+		16,
+		{{
+			{-1, -1}, {0, -1}, {1, -1}, {2, -1},
+			{-1, 0},  {2, 0},
+			{-1, 1},  {2, 1},
+			{-1, 2},  {2, 2},
+			{-1, 3},  {2, 3},
+			{-1, 4},  {0, 4}, {1, 4}, {2, 4}
+		}}
+	}
+} };
+
+OPTIONALINLINE const FoundationDef* FindFoundation(std::string_view name) noexcept
+{
+	for (const auto& def : CustomFoundations)
+	{
+		if (def.Name == name)
+			return &def;
+	}
+
+	return nullptr;
+}
+
+
 namespace detail
 {
 	template <>
@@ -40,6 +145,10 @@ namespace detail
 
 			if (IS_SAME_STR_(parser.c_str(), "Custom")) {
 				value = (Foundation)127;
+				return true;
+			}
+
+			if (FindFoundation(parser.c_str())) {
 				return true;
 			}
 

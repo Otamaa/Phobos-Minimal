@@ -79,10 +79,6 @@ struct SHPStruct //header
 	short	Frames;
 };
 
-struct NOVTABLE Theater_SHPStruct : public SHPStruct {
-	SHPStruct* GetBase() { return (SHPStruct*)this; }
-};
-
 struct SHPReference : public SHPStruct
 {
 	//=== GLOBAL LINKED LIST OF ALL LOADED SHP FILES

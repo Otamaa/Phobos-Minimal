@@ -127,7 +127,7 @@ ASMJIT_PATCH(0x469276, BulletClass_Logics_ApplyMindControl , 0xA)
 	const auto pTechno = flag_cast_to<TechnoClass*>(pThis->Target);
 	auto const threatDelay = pThis->_GetWarheadTypeExtData()->MindControl_ThreatDelay.Get(RulesExtData::Instance()->AttackMindControlledDelay);
 
-	R->AL(CaptureExt::CaptureUnit(payback->CaptureManager,
+	R->AL(CaptureExtData::CaptureUnit(payback->CaptureManager,
 		pTechno,
 		TechnoTypeExtContainer::Instance.Find(payback->GetTechnoType())->MultiMindControl_ReleaseVictim,
 		false,
@@ -198,7 +198,7 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
 			COMPILETIMEEVAL auto copy_dvc = []<typename T>(std::vector<T>&dest, const DynamicVectorClass<T>&dvc)
 			{
 				dest.resize(dvc.Count);
-				std::copy(dvc.begin(), dvc.end(), dest.begin());
+				std::ranges::copy(dvc, dest.begin());
 				return &dest;
 			};
 
@@ -294,104 +294,4 @@ ASMJIT_PATCH(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
 	GET(FakeBulletClass*, pThis, ESI);
 
 	return pThis->_GetWarheadTypeExtData()->Conventional_IgnoreUnits ? SkipChecks : 0;
-}
-
-
-ASMJIT_PATCH(0x469211, BulletClass_Detonate_UnlimboDetonate, 0x6)
-{
-	GET(BulletClass* const, pThis, ESI);
-	GET(FakeWarheadTypeClass* const, pWH, EAX);
-	GET_BASE(CoordStruct* const, coord, 0x8);
-
-	const auto pOwner = pThis->Owner;
-	const auto pWHExt = pWH->_GetExtData();
-
-	if (pOwner && !pWH->Parasite && pWHExt->UnlimboDetonate)
-	{
-		CoordStruct location = *coord;
-		const auto pTarget = pThis->Target;
-		bool isInAir = pTarget ? pTarget->IsInAir() : false;
-
-		if (!pWHExt->UnlimboDetonate_Force)
-		{
-			const auto pType = pOwner->GetTechnoType();
-			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(location),
-									pType->SpeedType, ZoneType::None, pType->MovementZone, false, 1, 1, true,
-									false, false, true, CellStruct::Empty, false, false);
-
-			const auto pCell = MapClass::Instance->TryGetCellAt(nCell);
-
-			if (pCell)
-				location = pCell->GetCoordsWithBridge();
-
-			if (isInAir)
-				location.Z = coord->Z;
-		}
-
-		++Unsorted::ScenarioInit;
-		pOwner->Unlimbo(location, pOwner->PrimaryFacing.Current().GetDir());
-		--Unsorted::ScenarioInit;
-
-		if (isInAir)
-		{
-			pOwner->IsFallingDown = true;
-			pOwner->FallRate = 0;
-		}
-
-		if (pWHExt->UnlimboDetonate_KeepTarget
-			&& pTarget && pTarget->AbstractFlags & AbstractFlags::Object)
-		{
-			pOwner->SetTarget(pThis->Target);
-		}
-		else
-		{
-			pOwner->SetTarget(nullptr);
-		}
-
-		const auto pOwnerExt = TechnoExtContainer::Instance.Find(pOwner);
-
-		if (pOwnerExt->IsSelected)
-		{
-			pOwner->Select();
-			pOwnerExt->IsSelected = false;
-		}
-	}
-
-	return 0;
-}
-
-namespace UnlimboDetonateFireTemp
-{
-	BulletClass* Bullet;
-	bool InSelected;
-}
-
-ASMJIT_PATCH(0x6FE562, TechnoClass_Fire_SetContext, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(BulletClass* const, pBullet, EAX);
-
-	UnlimboDetonateFireTemp::Bullet = pBullet;
-	UnlimboDetonateFireTemp::InSelected = pThis->IsSelected;
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6FF7FF, TechnoClass_Fire_UnlimboDetonate, 0x6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(FakeWarheadTypeClass* const, pWH, EAX);
-
-	const auto pBullet = UnlimboDetonateFireTemp::Bullet;
-	const auto pWHExt = pWH->_GetExtData();
-
-	if (pBullet && !pWH->Parasite && pWHExt->UnlimboDetonate)
-	{
-		if (pWHExt->UnlimboDetonate_KeepSelected)
-			TechnoExtContainer::Instance.Find(pThis)->IsSelected = UnlimboDetonateFireTemp::InSelected;
-
-		pBullet->Owner = pThis;
-	}
-
-	return 0;
 }

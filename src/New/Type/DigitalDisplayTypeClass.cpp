@@ -112,7 +112,8 @@ void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int 
 
 void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
-	fmt::basic_memory_buffer<wchar_t> wbuf;
+	static fmt::basic_memory_buffer<wchar_t> wbuf;
+	wbuf.clear();
 
 	if (!ValueAsTimer) {
 		const int minute = value / 60;
@@ -231,7 +232,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 	{
 
 #ifdef _old
-		std::reverse(valueString.begin(), valueString.end());
+		std::ranges::reverse(valueString);
 		position.X -= spacing.X;
 		spacing.X = -spacing.X;
 #else

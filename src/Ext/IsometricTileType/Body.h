@@ -11,35 +11,73 @@
 #include <ScenarioClass.h>
 #include <set>
 
-class IsometricTileTypeExtData final
+#include <Ext/ObjectType/Body.h>
+
+class IsometricTileTypeExtData final : public ObjectTypeExtData
 {
 public:
 
-	static COMPILETIMEEVAL size_t Canary = 0x91577125;
 	using base_type = IsometricTileTypeClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public :
 
-	std::string TileSetName {};
-	Valueable<int> Tileset { -1 };
-	CustomPalette Palette {};
-	Valueable<bool> AllowVeins {};
-	ValueableVector<TiberiumClass*> AllowedTiberiums {};
-	ValueableVector<SmudgeTypeClass*> AllowedSmudges{};
+#pragma region ClassMembers
+	std::string TileSetName;
+	Valueable<int> Tileset;
+	CustomPalette Palette;
+	Valueable<bool> AllowVeins;
+	ValueableVector<TiberiumClass*> AllowedTiberiums;
+	ValueableVector<SmudgeTypeClass*> AllowedSmudges;
+#pragma endregion
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
+	IsometricTileTypeExtData(IsometricTileTypeClass* pObj) : ObjectTypeExtData(pObj)
+		, TileSetName("")
+		, Tileset(-1)
+		, Palette()
+		, AllowVeins()
+		, AllowedTiberiums()
+		, AllowedSmudges()
+	{ }
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	IsometricTileTypeExtData(IsometricTileTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+
+	virtual ~IsometricTileTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		return sizeof(IsometricTileTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
 	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<IsometricTileTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<IsometricTileTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual IsometricTileTypeClass* This() const override { return reinterpret_cast<IsometricTileTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const IsometricTileTypeClass* This_Const() const override { return reinterpret_cast<const IsometricTileTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
+
+public:
+
 	static LightConvertClass* GetLightConvert(IsometricTileTypeClass* pOvrl , int r, int g, int b);
 
 private:
@@ -55,6 +93,7 @@ public:
 	static int CurrentTileset;
 
 	void Clear() {
+		Array.clear();
 		LightConvertEntities.clear();
 	}
 
@@ -74,13 +113,19 @@ public:
 			;
 	}
 
-//	IsometricTileTypeExtContainer() : Container<IsometricTileTypeExtData> { "IsometricTileTypeClass" }
-//	{ }
-//
-//	virtual ~IsometricTileTypeExtContainer() override = default;
-//
-//private:
-//	IsometricTileTypeExtContainer(const IsometricTileTypeExtContainer&) = delete;
-//	IsometricTileTypeExtContainer(IsometricTileTypeExtContainer&&) = delete;
-//	IsometricTileTypeExtContainer& operator=(const IsometricTileTypeExtContainer& other) = delete;
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+};
+
+class FakeIsometricTileTypeClass : public IsometricTileTypeClass
+{
+public:
+
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 };

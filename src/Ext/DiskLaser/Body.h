@@ -3,7 +3,7 @@
 
 #include <Utilities/Container.h>
 
-class DiskLaserExt
+class DiskLaserExtData
 {
 public:
 	/*

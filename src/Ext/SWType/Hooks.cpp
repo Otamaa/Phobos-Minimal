@@ -7,6 +7,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Sidebar/Body.h>
+#include <Ext/Super/Body.h>
 
 #include "Body.h"
 
@@ -33,6 +34,7 @@
 
 //ASMJIT_PATCH_AGAIN(0x55B6F8, LogicClass_Update, 0xC) //_End
 std::chrono::high_resolution_clock::time_point lastFrameTime;
+#include <ThemeClass.h>
 
 //separate the function
 ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
@@ -45,6 +47,27 @@ ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
 
 	for (auto pHouse : *HouseClass::Array) {
 		AresHouseExt::UpdateTogglePower(pHouse);
+	}
+
+	for(auto pSuper : *SuperClass::Array){
+		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+
+		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
+
+			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
+
+			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
+				// stop only if same theme and local house is affected
+				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
+
+				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
+					ThemeClass::Instance->Stop();
+				}
+			}
+
+			pSuperExt->MusicTimer.Stop();
+			pSuperExt->MusicActive = false;
+		}
 	}
 
 	//remove all invalid teams
@@ -69,6 +92,27 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 
 	for (auto pHouse : *HouseClass::Array) {
 		AresHouseExt::UpdateTogglePower(pHouse);
+	}
+
+	for(auto pSuper : *SuperClass::Array){
+		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+
+		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
+
+			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
+
+			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
+				// stop only if same theme and local house is affected
+				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
+
+				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
+					ThemeClass::Instance->Stop();
+				}
+			}
+
+			pSuperExt->MusicTimer.Stop();
+			pSuperExt->MusicActive = false;
+		}
 	}
 
 	//auto pCellbegin = MapClass::Instance->Cells.Items;
@@ -142,6 +186,8 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 		DrawText_Helper(AresGlobalData::ModNote, offset, COLOR_RED);
 	}
 
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+
 	switch (RulesExtData::Instance()->FPSCounter)
 	{
 	case FPSCounterMode::disabled: {
@@ -151,28 +197,25 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 		auto currentFrameTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float, std::milli> frameDuration = currentFrameTime - lastFrameTime;
 		lastFrameTime = currentFrameTime;
-		fmt::basic_memory_buffer<wchar_t> buffer;
+		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms | Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
-		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	case FPSCounterMode::FPSOnly: {
-		fmt::basic_memory_buffer<wchar_t> buffer;
+		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {}", FPSCounter::CurrentFrameRate());
-		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	case FPSCounterMode::FPSandAVG: {
-		fmt::basic_memory_buffer<wchar_t> buffer;
+		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | Avg: {}", FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
-		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	}
-
+	buffer.push_back(L'\0');
 	this->DrawAllTacticalText(text);
 }
 
@@ -386,7 +429,8 @@ ASMJIT_PATCH(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 
 ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 {
-	DistributionMode::DrawRadialIndicator();
+
+	DistributionModeHoldDownCommandClass::DrawRadialIndicator();
 
 	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange || Unsorted::CurrentSWType < 0)
 		return 0;
@@ -937,7 +981,7 @@ ASMJIT_PATCH(0x6CB7B0, SuperClass_Lose, 6)
 
 		if (SuperClass::ShowTimers->Remove(pThis))
 		{
-			std::sort(SuperClass::ShowTimers->begin(), SuperClass::ShowTimers->end(),
+			std::ranges::sort(*SuperClass::ShowTimers,
 			[](SuperClass* a, SuperClass* b) {
 				const auto aExt = SWTypeExtContainer::Instance.Find(a->Type);
 				const auto bExt = SWTypeExtContainer::Instance.Find(b->Type);

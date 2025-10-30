@@ -40,12 +40,6 @@ ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 		}
 	}
 
-	//if(pThis->WhatAmI() == InfantryClass::AbsID) {
-		//if (auto const Building = TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn) {
-			//nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingBunkerDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
-		//}
-	//}
-
 	if (pThis->InOpenToppedTransport) {
 		if (auto const  pTransport = pThis->Transporter) {
 			float nDamageMult = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier

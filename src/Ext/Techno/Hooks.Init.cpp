@@ -8,19 +8,6 @@
 
 #include <InfantryClass.h>
 
-ASMJIT_PATCH(0x517A7F, Techno_CTOR_SetOriginalType, 0x6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(TechnoTypeClass*, pType, ECX);
-
-	if(!Phobos::Otamaa::DoingLoadGame)
-		TechnoExtContainer::Instance.Find(pThis)->Type = (pType);
-
-	return 0x0;
-}ASMJIT_PATCH_AGAIN(0x43B75C, Techno_CTOR_SetOriginalType, 0x6)
-ASMJIT_PATCH_AGAIN(0x7353EC, Techno_CTOR_SetOriginalType, 0x6)
-ASMJIT_PATCH_AGAIN(0x413D3A, Techno_CTOR_SetOriginalType, 0x6)
-
 ASMJIT_PATCH(0x517D69, InfantryClass_Init_InitialStrength, 0x6)
 {
 	GET(InfantryClass*, pThis, ESI);
@@ -56,9 +43,35 @@ ASMJIT_PATCH(0x414051, AircraftClass_Init_InitialStrength, 0x6)
 	return 0x414057;
 }
 
-ASMJIT_PATCH(0x442C75, BuildingClass_Init_InitialStrength, 0x6)
+#include <Ext/Building/Body.h>
+
+ASMJIT_PATCH(0x442C43, BuildingClass_Init, 0x5)
 {
-	GET(BuildingTypeClass*, pType, EAX);
-	R->ECX(TechnoTypeExtContainer::Instance.Find(pType)->InitialStrength.Get(pType->Strength));
+	GET(BuildingClass*, pThis, ESI);
+
+	pThis->TechnoClass::Init();
+
+	auto pBldExt = BuildingExtContainer::Instance.Find(pThis);
+
+	pBldExt->MyPrismForwarding = std::make_unique<PrismForwarding>();
+	pBldExt->MyPrismForwarding->Owner = pThis;
+
+	HouseExtData* pHouseExt = nullptr;
+
+	if (pThis->Owner) {
+		pThis->OwnerCountryIndex = pThis->Owner->Type->ParentIdx;
+		pThis->Owner->AddTracking(pThis);
+		pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+	}
+
+	if (!pThis->Type)
+		return 0x442D1Bl;
+
+	auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+
+	pBldExt->Type = pBldTypeExt;
+
+	R->EAX(pThis->Type);
+	R->ECX(pBldTypeExt->InitialStrength.Get(pThis->Type->Strength));
 	return 0x442C7B;
 }

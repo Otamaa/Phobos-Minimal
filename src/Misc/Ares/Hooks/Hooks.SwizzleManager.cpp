@@ -1,4 +1,6 @@
 #include <Utilities/Swizzle.h>
+#include <Utilities/Macro.h>
+
 #include <Phobos.h>
 
 #include <Helpers/Macro.h>
@@ -15,8 +17,8 @@ ASMJIT_PATCH(0x6CF2C0, SwizzleManagerClass_Here_I_Am, 5)
 	GET_STACK(LONG, oldP, 0x8);
 	GET_STACK(void*, newP, 0xC);
 
-	if(Phobos::Otamaa::IsAdmin)
-		Debug::Log("Caller %x\n", caller);
+	//if(Phobos::Otamaa::IsAdmin)
+	//	Debug::Log("SwizzleManagerClass_Here_I_Am Caller %x\n", caller);
 
 	R->EAX(PhobosSwizzleManager.Here_I_Am(oldP, newP));
 	return 0x6CF316;

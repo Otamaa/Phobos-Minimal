@@ -46,7 +46,7 @@ ASMJIT_PATCH(0x54547F, IsometricTileTypeClass_ReadINI_SetPaletteISO, 0x6)
 	{
 		if (file_c->Read(FileSystem::ISOx_PAL(), sizeof(BytePalette)))
 		{
-			Debug::Log("Loaded IsometricTileTypeClass Palette %s For [%s]", outBuffs, pTheater->Name.data());
+			Debug::Log("Loaded IsometricTileTypeClass Palette %s For [%s]\n", outBuffs, pTheater->Name.data());
 
 			for (size_t i = 0; i < BytePalette::EntriesCount; ++i)
 			{
@@ -592,10 +592,17 @@ ASMJIT_PATCH(0x627699, TheaterTypeClass_ProcessOtherPalettes_Process, 0x6)
 	CRT::strupr(pNameProcessed);
 
 	const auto pFile = FakeFileLoader::_Retrieve(pNameProcessed, false);
-	//const auto nRest = !pFile ? "Failed to" : "Successfully";
 
-	if (!pFile && Phobos::Otamaa::IsAdmin)
+	static std::map<std::string, bool> AlreadLogged {};
+
+	if(Phobos::Otamaa::IsAdmin){
+		auto& logged = AlreadLogged[pOriginalName];
+
+		if (!pFile && !logged) {
 		Debug::LogInfo("Failed to load [{}] as [{}] !", pOriginalName, pNameProcessed);
+			logged = true;
+		}
+	}
 
 	// cant use PaletteManager atm , because this will be modified after load done
 	// so if PaletteManager used , that mean the color entries will get modified

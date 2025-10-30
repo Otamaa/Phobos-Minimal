@@ -5,14 +5,6 @@
 
 struct NewTiberiumStorageClass
 {
-	NewTiberiumStorageClass::NewTiberiumStorageClass() :
-		m_values {}
-	{
-		m_values.resize(TiberiumClass::Array->Count);
-	}
-
-	~NewTiberiumStorageClass() = default;
-
 	std::vector<float> m_values;
 
 	double GetStoragePercentage(int total) const

@@ -35,7 +35,7 @@ bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_SpyPlane::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::SpyPlane;
+	pData->This()->Action = Action::SpyPlane;
 	// Defaults to Spy Plane values
 	pData->SW_RadarEvent = false;
 
@@ -47,7 +47,7 @@ void SW_SpyPlane::Initialize(SWTypeExtData* pData)
 
 void SW_SpyPlane::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->AttachedToObject->ID;
+	const char* section = pData->This()->ID;
 
 	INI_EX exINI(pINI);
 
@@ -80,7 +80,7 @@ void SpyPlaneStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		this->SendSpyPlane(this->Super, pData, this->Type, this->target);
+		this->SendSpyPlane(this->Super, pData, NewSWType::GetNewSWType(pData), this->target);
 	}
 }
 

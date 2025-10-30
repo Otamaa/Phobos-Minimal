@@ -18,11 +18,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Commands\AggressiveModeClass.cpp" />
+    <ClCompile Include="src\Commands\CeasefireModeClass.cpp" />
     <ClCompile Include="src\Commands\ForceWin.cpp" />
     <ClCompile Include="src\Commands\Harmless.cpp" />
     <ClCompile Include="src\Commands\ToggleMessageList.cpp" />
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
+    <ClCompile Include="src\Ext\AircraftType\Body.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hook.Healthbar.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hook.Pip.cpp" />
+    <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Ebolt\Body.cpp" />
     <ClCompile Include="src\Ext\Scenario\Hooks.Message.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.TacticalButton.cpp" />
@@ -44,6 +50,7 @@
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.JumpJet.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Firing.WeaponSelector.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Gattling.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.GreatestThreat.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Grinding.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.IC.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Init.cpp" />
@@ -56,14 +63,29 @@
     <ClCompile Include="src\Ext\Techno\Hooks.TechnoAttachment.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Tint.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Transport.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hooks.UpdateFunction.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.VehicleToBuildingMCFix.cpp" />
+    <ClCompile Include="src\Ext\Temporal\Body.cpp" />
+    <ClCompile Include="src\Ext\Temporal\Hooks.cpp" />
+    <ClCompile Include="src\Ext\TerrainType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
+    <ClCompile Include="src\Ext\Terrain\Hooks.cpp" />
+    <ClCompile Include="src\Ext\UnitType\Body.cpp" />
+    <ClCompile Include="src\Ext\Unit\Body.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Crushing.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.DisallowMoving.cpp" />
+    <ClCompile Include="src\Ext\Unit\Hooks.SimpleDeployer.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\zonebitset.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\arena.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\arenabitset.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\arenahash.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\arenalist.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\arenatree.cpp" />
+    <ClCompile Include="src\Lib\asmjit\core\arenavector.cpp" />
+    <ClCompile Include="src\Lib\fmt\format.cc" />
+    <ClCompile Include="src\Lib\fmt\os.cc" />
     <ClCompile Include="src\Lib\Lua\lapi.c" />
     <ClCompile Include="src\Lib\Lua\lauxlib.c" />
     <ClCompile Include="src\Lib\Lua\lbaselib.c" />
@@ -146,6 +168,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfix.Buffer.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Bugfixes.Safeguard.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CopyProtection.cpp" />
+    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Foot.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Infantry.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.IonBlast.cpp" />
@@ -153,13 +176,20 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Others.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.ReceiveDamage.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
+    <ClCompile Include="src\Misc\BuildingFoundations.h.cpp" />
+    <ClCompile Include="src\Misc\CustomMemoryManager.cpp" />
+    <ClCompile Include="src\Misc\Hook.CommandButtons.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
+    <ClCompile Include="src\Misc\Hooks.GlobalLoadGame.cpp" />
+    <ClCompile Include="src\Misc\Hooks.GlobalSaveGame.cpp" />
+    <ClCompile Include="src\Misc\Hooks.LoadOptionClass.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.AIRelated.cpp" />
     <ClCompile Include="src\Misc\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Misc\YRPatches\Main.cpp" />
     <ClCompile Include="src\New\AnonymousType\BlockTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\CreateUnitTypeClass.cpp" />
     <ClCompile Include="src\New\AnonymousType\TiberiumEaterTypeClass.cpp" />
+    <ClCompile Include="src\New\Entity\AnimationDrawOffsetClass.cpp" />
     <ClCompile Include="src\New\Entity\BannerClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageButtonClass.cpp" />
     <ClCompile Include="src\New\MessageHandler\MessageColumnClass.cpp" />
@@ -242,7 +272,6 @@
     <ClCompile Include="src\Ext\CaptureManager\Body.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hook.McOverload.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
-    <ClCompile Include="src\Ext\Cell\Body.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.GetTiberiumType.cpp" />
     <ClCompile Include="src\Ext\DiskLaser\Body.cpp" />
@@ -329,11 +358,7 @@
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
-    <ClCompile Include="src\Ext\Temporal\Body.cpp" />
-    <ClCompile Include="src\Ext\Temporal\Hooks.BuildingTarget.cpp" />
-    <ClCompile Include="src\Ext\TerrainType\Hooks.cpp" />
     <ClCompile Include="src\Ext\Terrain\Body.cpp" />
-    <ClCompile Include="src\Ext\Terrain\Hooks.cpp" />
     <ClCompile Include="src\Ext\TEvent\Body.cpp" />
     <ClCompile Include="src\Ext\TEvent\Hooks.cpp" />
     <ClCompile Include="src\Ext\Tiberium\Hook.RadarColor.cpp" />
@@ -380,11 +405,6 @@
     <ClCompile Include="src\Lib\asmjit\core\target.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\type.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\virtmem.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\zone.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\zonehash.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\zonelist.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\zonetree.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\zonevector.cpp" />
     <ClCompile Include="src\Lib\asmjit\x86\x86assembler.cpp" />
     <ClCompile Include="src\Lib\asmjit\x86\x86builder.cpp" />
     <ClCompile Include="src\Lib\asmjit\x86\x86compiler.cpp" />
@@ -424,7 +444,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Colors.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.CustomMissile.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Deactivated.cpp" />
-    <ClCompile Include="src\Misc\Ares\Hooks\Hooks.DebugLog.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.EBolt.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Exception.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Firewall.cpp" />
@@ -597,8 +616,10 @@
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
+    <ClCompile Include="src\PhobosSaveVersionInfo.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
     <ClCompile Include="src\Utilities\Cast.cpp" />
+    <ClCompile Include="src\Utilities\Container.cpp" />
     <ClCompile Include="src\Utilities\CSFText.cpp" />
     <ClCompile Include="src\Utilities\DebrisSpawners.cpp" />
     <ClCompile Include="src\Utilities\Debug.cpp" />
@@ -618,6 +639,7 @@
     <ClCompile Include="src\Utilities\Constructs.cpp" />
     <ClCompile Include="src\Utilities\EnumFunctions.cpp" />
     <ClCompile Include="src\Utilities\GeneralUtils.cpp" />
+    <ClCompile Include="src\Utilities\TargetingDatacpp.cpp" />
     <ClCompile Include="src\Utilities\TechnoTypeConvertData.cpp" />
     <ClCompile Include="src\Utilities\TheaterSpecificSHP.cpp" />
     <ClCompile Include="src\Utilities\VersesData.cpp" />
@@ -630,6 +652,8 @@
     <ClCompile Include="YRpp\Syringe.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Commands\AggressiveModeClass.h" />
+    <ClInclude Include="src\Commands\CeasefireModeClass.h" />
     <ClInclude Include="src\Commands\ForceWin.h" />
     <ClInclude Include="src\Commands\Harmless.h" />
     <ClInclude Include="src\Commands\ToggleMessageList.h" />
@@ -638,11 +662,27 @@
     <ClInclude Include="src\ExtraHeaders\StackAllocator.h" />
     <ClInclude Include="src\ExtraHeaders\StackContainer.h" />
     <ClInclude Include="src\ExtraHeaders\StackVector.h" />
+    <ClInclude Include="src\Ext\AbstractType\Body.h" />
     <ClInclude Include="src\Ext\Ebolt\Body.h" />
+    <ClInclude Include="src\Ext\Foot\Body.h" />
+    <ClInclude Include="src\Ext\Mission\Body.h" />
+    <ClInclude Include="src\Ext\ObjectType\Body.h" />
+    <ClInclude Include="src\Ext\Object\Body.h" />
+    <ClInclude Include="src\Ext\Radio\Body.h" />
+    <ClInclude Include="src\Ext\UnitType\Body.h" />
+    <ClInclude Include="src\Ext\Unit\Body.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-begin.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
+    <ClInclude Include="src\Lib\asmjit\core\arena.h" />
+    <ClInclude Include="src\Lib\asmjit\core\arenabitset_p.h" />
+    <ClInclude Include="src\Lib\asmjit\core\arenahash.h" />
+    <ClInclude Include="src\Lib\asmjit\core\arenalist.h" />
+    <ClInclude Include="src\Lib\asmjit\core\arenapool.h" />
+    <ClInclude Include="src\Lib\asmjit\core\arenastring.h" />
+    <ClInclude Include="src\Lib\asmjit\core\arenatree.h" />
+    <ClInclude Include="src\Lib\asmjit\core\arenavector.h" />
     <ClInclude Include="src\Lib\asmjit\core\fixup.h" />
     <ClInclude Include="src\Lib\asmjit\core\racfgblock_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\racfgbuilder_p.h" />
@@ -650,9 +690,22 @@
     <ClInclude Include="src\Lib\asmjit\core\rainst_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\rareg_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\span.h" />
-    <ClInclude Include="src\Lib\asmjit\core\zonebitset_p.h" />
     <ClInclude Include="src\Lib\asmjit\host.h" />
-    <ClInclude Include="src\Lib\Lua\lapi.h" />
+    <ClInclude Include="src\Lib\base64\base64.h" />
+    <ClInclude Include="src\Lib\fmt\args.h" />
+    <ClInclude Include="src\Lib\fmt\base.h" />
+    <ClInclude Include="src\Lib\fmt\chrono.h" />
+    <ClInclude Include="src\Lib\fmt\color.h" />
+    <ClInclude Include="src\Lib\fmt\compile.h" />
+    <ClInclude Include="src\Lib\fmt\core.h" />
+    <ClInclude Include="src\Lib\fmt\format-inl.h" />
+    <ClInclude Include="src\Lib\fmt\format.h" />
+    <ClInclude Include="src\Lib\fmt\os.h" />
+    <ClInclude Include="src\Lib\fmt\ostream.h" />
+    <ClInclude Include="src\Lib\fmt\printf.h" />
+    <ClInclude Include="src\Lib\fmt\ranges.h" />
+    <ClInclude Include="src\Lib\fmt\std.h" />
+    <ClInclude Include="src\Lib\fmt\xchar.h" />
     <ClInclude Include="src\Lib\Lua\lauxlib.h" />
     <ClInclude Include="src\Lib\Lua\lcode.h" />
     <ClInclude Include="src\Lib\Lua\lctype.h" />
@@ -747,9 +800,13 @@
     <ClInclude Include="src\Lib\Zydis\Status.h" />
     <ClInclude Include="src\Lib\Zydis\Utils.h" />
     <ClInclude Include="src\Lib\Zydis\Zydis.h" />
+    <ClInclude Include="src\Misc\BuildingFoundations.h" />
+    <ClInclude Include="src\Misc\CustomMemoryManager.h" />
+    <ClInclude Include="src\Misc\Spawner\SavedGamesInSubdir.h" />
     <ClInclude Include="src\New\AnonymousType\BlockTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\CreateUnitTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\TiberiumEaterTypeClass.h" />
+    <ClInclude Include="src\New\Entity\AnimationDrawOffsetClass.h" />
     <ClInclude Include="src\New\Entity\BannerClass.h" />
     <ClInclude Include="src\New\MessageHandler\MessageButtonClass.h" />
     <ClInclude Include="src\New\MessageHandler\MessageColumnClass.h" />
@@ -769,7 +826,7 @@
     <ClInclude Include="src\Commands\ManualReloadAmmo.h" />
     <ClInclude Include="src\Commands\SelectCaptured.h" />
     <ClInclude Include="src\Commands\ToggleSWSidebar.h" />
-    <ClInclude Include="src\Ext\AircraftTypeClass\Body.h" />
+    <ClInclude Include="src\Ext\AircraftType\Body.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\DisperseTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\EngraveTrajectory.h" />
     <ClInclude Include="src\Ext\Bullet\Trajectories\ParabolaTrajectory.h" />
@@ -823,13 +880,7 @@
     <ClInclude Include="src\Lib\asmjit\core\target.h" />
     <ClInclude Include="src\Lib\asmjit\core\type.h" />
     <ClInclude Include="src\Lib\asmjit\core\virtmem.h" />
-    <ClInclude Include="src\Lib\asmjit\core\zone.h" />
-    <ClInclude Include="src\Lib\asmjit\core\zonehash.h" />
-    <ClInclude Include="src\Lib\asmjit\core\zonelist.h" />
     <ClInclude Include="src\Lib\asmjit\core\zonestack.h" />
-    <ClInclude Include="src\Lib\asmjit\core\zonestring.h" />
-    <ClInclude Include="src\Lib\asmjit\core\zonetree.h" />
-    <ClInclude Include="src\Lib\asmjit\core\zonevector.h" />
     <ClInclude Include="src\Lib\asmjit\x86.h" />
     <ClInclude Include="src\Lib\asmjit\x86\x86archtraits_p.h" />
     <ClInclude Include="src\Lib\asmjit\x86\x86assembler.h" />
@@ -1070,6 +1121,7 @@
     <ClInclude Include="src\New\Type\TheaterTypeClass.h" />
     <ClInclude Include="src\Phobos.Ext.h" />
     <ClInclude Include="src\Phobos.UI.h" />
+    <ClInclude Include="src\PhobosSaveVersionInfo.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />
     <ClInclude Include="src\Utilities\AnimHelpers.h" />
     <ClInclude Include="src\Utilities\BuildingBrackedPositionData.h" />
@@ -1115,6 +1167,7 @@
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
     <ClInclude Include="src\Utilities\Stream.h" />
+    <ClInclude Include="src\Utilities\StreamUtils.h" />
     <ClInclude Include="src\Utilities\Swizzle.h" />
     <ClInclude Include="src\Phobos.CRT.h" />
     <ClInclude Include="src\Phobos.version.h" />
@@ -1134,6 +1187,7 @@
     <ClInclude Include="src\Utilities\Macro.h" />
     <ClInclude Include="src\Utilities\Parser.h" />
     <ClInclude Include="src\Utilities\Patch.h" />
+    <ClInclude Include="src\Utilities\TargetingData.h" />
     <ClInclude Include="src\Utilities\TechnoTypeConvertData.h" />
     <ClInclude Include="src\Utilities\Template.h" />
     <ClInclude Include="src\Utilities\TemplateDef.h" />
@@ -1142,8 +1196,11 @@
     <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
     <ClInclude Include="src\Utilities\VectorHelper.h" />
     <ClInclude Include="src\Utilities\VectorNames.h" />
+    <ClInclude Include="src\Utilities\VectorSet.h" />
     <ClInclude Include="src\Utilities\VersesData.h" />
+    <ClInclude Include="YRpp\FoundationStruct.h" />
     <ClInclude Include="YRpp\GameTextManager.h" />
+    <ClInclude Include="YRpp\IndexBitfield.h" />
     <ClInclude Include="YRpp\INIComment.h" />
     <ClInclude Include="YRpp\INIEntry.h" />
     <ClInclude Include="YRpp\INISection.h" />
@@ -1187,6 +1244,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <WholeProgramOptimization>false</WholeProgramOptimization>
+    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugBuild|Win32'" Label="Configuration">
     <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -1252,23 +1310,23 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <SDLCheck>
       </SDLCheck>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
@@ -1276,17 +1334,17 @@
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <TreatWarningAsError>false</TreatWarningAsError>
       <BuildStlModules>false</BuildStlModules>
       <MinimalRebuild>false</MinimalRebuild>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableVectorLength>NotSet</EnableVectorLength>

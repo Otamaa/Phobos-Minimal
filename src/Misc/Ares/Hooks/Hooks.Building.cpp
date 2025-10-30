@@ -9,6 +9,7 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 #include <Utilities/Cast.h>
+#include <Utilities/Helpers.h>
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -108,161 +109,7 @@ ASMJIT_PATCH(0x44EB10, BuildingClass_GetCrew, 9)
 
 #include <Ext/SWType/Body.h>
 
-// Calculate the mask once at initialization (assuming you know ColorStruct at startup)
-constexpr WORD BuildPcxMask() {
-    return (0xFFu >> ColorStruct::BlueShiftRight << ColorStruct::BlueShiftLeft)
-         | (0xFFu >> ColorStruct::RedShiftRight << ColorStruct::RedShiftLeft);
-}
-
-static bool InitEd = false;
-// Global static instance:
-static AresPcxBlit<WORD> GlobalPcxBlitter(0u ,0, 0, 0);
-
-ASMJIT_PATCH(0x43E7B0, BuildingClass_DrawVisible, 5)
-{
-	GET(BuildingClass*, pThis, ECX);
-	GET_STACK(Point2D*, pLocation, 0x4);
-	GET_STACK(RectangleStruct*, pBounds, 0x8);
-
-	auto pType = pThis->Type;
-
-	if (!pThis->IsSelected || !HouseClass::CurrentPlayer)
-		return 0x43E8F2;
-
-	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
-
-	// helpers (with support for the new spy effect)
-	const bool bAllied = pThis->Owner->IsAlliedWith(HouseClass::CurrentPlayer);
-	const bool IsObserver = HouseClass::CurrentPlayer->IsObserver();
-	const bool bReveal = pTypeExt->SpyEffect_RevealProduction && pThis->DisplayProductionTo.Contains(HouseClass::CurrentPlayer);
-
-	// show building or house state
-	if (bAllied || IsObserver || bReveal)
-	{
-		Point2D DrawExtraLoc = { pLocation->X , pLocation->Y };
-		pThis->DrawExtraInfo(&DrawExtraLoc, pLocation, pBounds);
-
-		// display production cameo
-		if (IsObserver || bReveal)
-		{
-			const auto pFactory = pThis->Owner->IsControlledByHuman() ?
-				pThis->Owner->GetPrimaryFactory(pType->Factory, pType->Naval, BuildCat::DontCare)
-				: pThis->Factory;
-
-			if (pFactory && pFactory->Object)
-			{
-				auto pProdType = TechnoExtContainer::Instance.Find(pFactory->Object)->Type;
-				//const int nTotal = pFactory->CountTotal(pProdType);
-				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
-				const auto pProdTypeExt = TechnoTypeExtContainer::Instance.Find(pProdType);
-				RectangleStruct cameoRect {};
-
-				// support for pcx cameos
-				if (auto pPCX = TechnoTypeExt_ExtData::GetPCXSurface(pProdType, pThis->Owner))
-				{
-					const int cameoWidth = 60;
-					const int cameoHeight = 48;
-
-					RectangleStruct cameoBounds = { 0, 0, pPCX->Width, pPCX->Height };
-					RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
-					RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
-
-					if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
-					{
-						cameoRect = destRect;
-						if(!InitEd) {
-							GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask() ,60, 48, 2);
-							InitEd = true;
-						}
-
-						Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &GlobalPcxBlitter, 0, 3, 1000, 0);
-
-					}
-				}
-				else
-				{
-					// old shp cameos, fixed palette
-					if (auto pCameo = pProdType->GetCameo())
-					{
-						cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
-
-						ConvertClass* pPal = FileSystem::CAMEO_PAL();
-						if (auto pManager = pProdTypeExt->CameoPal.GetConvert())
-							pPal = pManager;
-
-						DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
-					}
-				}
-
-				int prog = pFactory->GetProgress();
-				{
-					Point2D textLoc = { cameoRect.X + cameoRect.Width / 2, cameoRect.Y };
-					const auto percent = int(((double)prog / 54.0) * 100.0);
-					std::wstring text_;
-					fmt::format_to(std::back_inserter(text_), L"{}" , percent);
-					RectangleStruct nTextDimension {};
-					COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
-					Drawing::GetTextDimensions(&nTextDimension, text_.c_str(), textLoc, printType, 4, 2);
-					auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
-					const COLORREF foreColor = pThis->Owner->Color.ToInit();
-					DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
-					DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)foreColor);
-					DSurface::Temp->DrawText_Old(text_.c_str(), pBounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
-				}
-
-			}
-			else if (pType->SuperWeapon != -1)
-			{
-				SuperClass* const pSuper = pThis->Owner->Supers.Items[pType->SuperWeapon];
-
-				if (pSuper->RechargeTimer.TimeLeft > 0 && SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_ShowCameo)
-				{
-					RectangleStruct cameoRect {};
-					Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
-
-					// support for pcx cameos
-					if (auto pPCX = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPCX.GetSurface())
-					{
-						const int cameoWidth = 60;
-						const int cameoHeight = 48;
-
-						RectangleStruct cameoBounds = { 0, 0, pPCX->Width, pPCX->Height };
-						RectangleStruct DefcameoBounds = { 0, 0, cameoWidth, cameoHeight };
-						RectangleStruct destRect = { DrawCameoLoc.X - cameoWidth / 2, DrawCameoLoc.Y - cameoHeight / 2, cameoWidth , cameoHeight };
-
-						if (Game::func_007BBE20(&destRect, pBounds, &DefcameoBounds, &cameoBounds))
-						{
-							cameoRect = destRect;
-							if(!InitEd) {
-								GlobalPcxBlitter = AresPcxBlit<WORD>(BuildPcxMask() ,60, 48, 2);
-								InitEd = true;
-							}
-
-							Buffer_To_Surface_wrapper(DSurface::Temp, &destRect, pPCX, &DefcameoBounds, &GlobalPcxBlitter, 0, 3, 1000, 0);
-						}
-
-					}
-					else
-					{
-						// old shp cameos, fixed palette
-						if (auto pCameo = pSuper->Type->SidebarImage)
-						{
-							cameoRect = { DrawCameoLoc.X, DrawCameoLoc.Y, pCameo->Width, pCameo->Height };
-
-							ConvertClass* pPal = FileSystem::CAMEO_PAL();
-							if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper->Type)->SidebarPalette.GetConvert())
-								pPal = pManager;
-
-							DSurface::Temp->DrawSHP(pPal, pCameo, 0, &DrawCameoLoc, pBounds, BlitterFlags(0xE00), 0, 0, 0, 1000, 0, nullptr, 0, 0, 0);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return 0x43E8F2;
-}
+DEFINE_FUNCTION_JUMP(LJMP, 0x43E7B0, FakeBuildingClass::_DrawVisible)
 
 ASMJIT_PATCH(0x452218, BuildingClass_Enable_Temporal_Factories, 6)
 {
@@ -1089,21 +936,10 @@ ASMJIT_PATCH(0x43FD2C, BuildingClass_Update_ProduceCash, 6)
 	 { pThis->Upgrades[2] ,&pExt->CashUpgradeTimers[2] },
 	} };
 
-	for (auto& [pbld, timer] : Timers)
-	{
-		if (pbld)
-		{
-			if (pbld->ProduceCashDelay > 0)
-			{
-				if (timer->HasTimeLeft())
-					timer->Resume();
-
-				if (timer->GetTimeLeft() == 1)
-				{
-					timer->Start(pbld->ProduceCashDelay + 1);
-					produceAmount += pbld->ProduceCashAmount;
-				}
-			}
+	for (auto& [pbld, timer] : Timers) {
+		if (pbld && pbld->ProduceCashDelay > 0 && timer->GetTimeLeft() == 1) {
+			timer->Start(pbld->ProduceCashDelay + 1);
+			produceAmount += pbld->ProduceCashAmount;
 		}
 	}
 
@@ -1781,9 +1617,9 @@ ASMJIT_PATCH(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
 	enum { Skip = 0x51E668, Continue = 0x51E501 };
 
 	GET(BuildingClass*, pBuilding, ESI);
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
 
-	if(!BuildingTypeExtContainer::Instance.Find(pBuilding->Type)
-			->EngineerRepairable.Get(pBuilding->Type->Repairable))
+	if(!pTypeExt->EngineerRepairable.Get(pBuilding->Type->Repairable))
 		return Skip;
 
 	GET(InfantryClass*, pThis, EDI);
@@ -1798,7 +1634,10 @@ ASMJIT_PATCH(0x51E4ED, InfantryClass_GetActionOnObject_EngineerRepairable, 6)
 
 	if (!BridgeRepairHut && pThis->Owner->IsAlliedWith(pBuilding->Owner))
 	{
-		if ((!ignoreForce && WhatActionObjectTemp::Move) || pBuilding->Health >= pBuildingType->Strength)
+		if (WhatActionObjectTemp::Move)
+			return Skip;
+		else if (pBuilding->Health >= pBuildingType->Strength
+				&& !pTypeExt->RubbleIntact && !pTypeExt->RubbleIntactRemove)
 		{
 			return Skip;
 		}
@@ -1961,7 +1800,7 @@ void WhenInfiltratesInto(FakeInfantryClass* pSpy, BuildingClass* pBuilding)
 
 	if (auto pWeapon = pSpy->_GetTypeExtData()->WhenInfiltrate_Weapon.GetFromSpecificRank(rank))
 	{
-		WeaponTypeExtData::DetonateAt(pWeapon, pBuilding->GetCoords(), pSpy, pWeapon->Damage, false, pSpy->Owner);
+		WeaponTypeExtData::DetonateAt4(pWeapon, pBuilding->GetCoords(), pSpy, pWeapon->Damage, false, pSpy->Owner);
 	}
 	else
 	{
@@ -2126,26 +1965,6 @@ ASMJIT_PATCH(0x741BDB, UnitClass_SetDestination_DockUnloadCell, 7)
 //DEFINE_JUMP(CALL , 0x6AA781 , GET_OFFSET(StripClass_DrawIt_HouseClass_CanBuild))
 //DEFINE_JUMP(CALL , 0x6A97D2, GET_OFFSET(StripClass_DrawIt_HouseClass_CanBuild))
 
-// the game specifically hides tiberium building pips. allow them, but
-// take care they don't show up for the original game
-ASMJIT_PATCH(0x709B4E, TechnoClass_DrawPipscale_SkipSkipTiberium, 6)
-{
-	GET(TechnoClass* const, pThis, EBP);
-
-	bool showTiberium = true;
-	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
-	{
-		if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
-		{
-			// show only if this refinery uses storage. otherwise, the original
-			// refineries would show an unused tiberium pip scale
-			showTiberium = TechnoTypeExtContainer::Instance.Find(pBld->Type)->Refinery_UseStorage;
-		}
-	}
-
-	return showTiberium ? 0x709B6E : 0x70A980;
-}
-
 ASMJIT_PATCH(0x44F7A0, BuildingClass_UpdateDisplayTo, 6)
 {
 	GET(BuildingClass*, B, ECX);
@@ -2179,12 +1998,12 @@ ASMJIT_PATCH(0x448312, BuildingClass_ChangeOwnership_OldSpy1, 0xA)
 
 ASMJIT_PATCH(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 {
-	GET(BuildingClass*, pThis, ECX);
+	GET(FakeBuildingClass*, pThis, ECX);
 
 	const auto what = pThis->Type->Factory;
 
 	if (what == AircraftTypeClass::AbsID
-		|| BuildingTypeExtContainer::Instance.Find(pThis->Type)->CloningFacility)
+		|| pThis->_GetTypeExtData()->CloningFacility)
 		return 0x455DCD;
 
 	return 0x0;
@@ -2192,19 +2011,29 @@ ASMJIT_PATCH(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 
 ASMJIT_PATCH(0x4444B3, BuildingClass_KickOutUnit_NoAlternateKickout, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 	return pThis->Type->Factory == AbstractType::None
-		|| BuildingTypeExtContainer::Instance.Find(pThis->Type)->CloningFacility.Get()
+		||pThis->_GetTypeExtData()->CloningFacility.Get()
 		? 0x4452C5 : 0x0;
 }
 
 ASMJIT_PATCH(0x446366, BuildingClass_Place_Academy, 6)
 {
-	GET(BuildingClass*, pThis, EBP);
+	GET(FakeBuildingClass*, pThis, EBP);
 
-	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
-	{
+	auto pTypeExt= pThis->_GetTypeExtData();
+	auto pExt = pThis->_GetExtData();
+	HouseExtData* pHouseExt = HouseExtContainer::Instance.Find(pThis->Owner);
+
+	if (pTypeExt->IsAcademy()) {
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, true);
+	}
+
+	if (!pTypeExt->DamageFire_Offs.empty())
+		pExt->DamageFireAnims.resize(pTypeExt->DamageFire_Offs.size());
+
+	if (pTypeExt->TunnelType >= 0) {
+		pHouseExt->TunnelsBuildings.emplace(pThis);
 	}
 
 	return 0x446382;
@@ -2212,10 +2041,10 @@ ASMJIT_PATCH(0x446366, BuildingClass_Place_Academy, 6)
 
 ASMJIT_PATCH(0x445905, BuildingClass_Remove_Academy, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
 	if (pThis->IsOnMap &&
-		BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
+		pThis->_GetTypeExtData()->IsAcademy())
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
@@ -2226,9 +2055,9 @@ ASMJIT_PATCH(0x445905, BuildingClass_Remove_Academy, 6)
 
 ASMJIT_PATCH(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
-	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->Academy)
+	if (pThis->_GetTypeExtData()->IsAcademy())
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, false);
 	}
@@ -2241,9 +2070,9 @@ ASMJIT_PATCH(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 6)
 
 ASMJIT_PATCH(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 6)
 {
-	GET(BuildingClass*, pThis, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
-	if (BuildingTypeExtContainer::Instance.Find(pThis->Type)->IsAcademy()
+	if (pThis->_GetTypeExtData()->IsAcademy()
 		 && pThis->Owner)
 	{
 		HouseExtData::UpdateAcademy(pThis->Owner, pThis, true);
@@ -2268,7 +2097,7 @@ ASMJIT_PATCH(0x446AAF, BuildingClass_Place_SkipFreeUnits, 6)
 	// only once.
 	GET(BuildingClass*, pBld, EBP);
 
-	auto pBldExt = TechnoExtContainer::Instance.Find(pBld);
+	auto pBldExt = BuildingExtContainer::Instance.Find(pBld);
 
 	// skip handling free units
 	if (pBldExt->FreeUnitDone)
@@ -2471,10 +2300,10 @@ ASMJIT_PATCH(0x457D58, BuildingClass_CanBeOccupied_SpecificOccupiers, 6)
 
 ASMJIT_PATCH(0x52297F, InfantryClass_GarrisonBuilding_OccupierEntered, 5)
 {
-	GET(InfantryClass*, pInf, ESI);
+	GET(FakeInfantryClass*, pInf, ESI);
 	GET(BuildingClass*, pBld, EBP);
 
-	TechnoExtContainer::Instance.Find(pInf)->GarrisonedIn = pBld;
+	pInf->_GetExtData()->GarrisonedIn = pBld;
 	//pInf->Target = nullptr; //reset targeting
 
 	auto buildingExtData = BuildingExtContainer::Instance.Find(pBld);
@@ -2553,8 +2382,9 @@ ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	GET(FakeBuildingClass*, pThis, ESI);
 	TechnoExt_ExtData::UpdateSensorArray(pThis);
 
-	//const auto pTechnoExt = pThis->_GetTechnoExtData();
 	const auto pExt = pThis->_GetExtData();
+
+	pExt->UpdateLaserTrails(); // Mainly for on turret trails
 	pExt->DisplayIncomeString();
 	pExt->UpdatePoweredKillSpawns();
 	pExt->UpdateAutoSellTimer();
@@ -2572,6 +2402,10 @@ ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 	//			(!pThis->IsPowerOnline() && pThis->GetPowerDrain() == 0 && pThis->GetPowerOutput() == 0)))
 	//		pTimer->TimeLeft++;
 	//}
+
+	// Force airstrike targets to redraw every frame to account for tint intensity fluctuations.
+	if (pExt->AirstrikeTargetingMe)
+		pThis->Mark(MarkType::Change);
 
 	return 0;
 }

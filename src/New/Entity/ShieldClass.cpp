@@ -85,9 +85,9 @@ bool ShieldClass::Serialize(T& Stm)
 	return Stm
 		.Process(this->Techno, true)
 		.Process(this->CurTechnoType, true)
-		.Process(this->HP)
-		.Process(this->Timers)
+		.Process(this->Type, true)
 		.Process(this->IdleAnim, true)
+		.Process(this->HP)
 		.Process(this->Cloak)
 		.Process(this->Online)
 		.Process(this->Temporal)
@@ -106,8 +106,7 @@ bool ShieldClass::Serialize(T& Stm)
 		.Process(this->Respawn_Weapon_Warhead)
 		.Process(this->LastBreakFrame)
 		.Process(this->LastTechnoHealthRatio)
-		.Process(this->Type, true)
-
+		.Process(this->Timers)
 		.Success();
 }
 
@@ -247,8 +246,8 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	int nDamageResult = 0;
 	bool IsShielRequreFeeback = true;
 	DamageToShieldAfterMinMax = std::clamp(DamageToShield,
-		int(pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum) * pWHExt->Shield_ReceivedDamage_MinMultiplier),
-		int(pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum) * pWHExt->Shield_ReceivedDamage_MaxMultiplier));
+		GeneralUtils::SafeMultiply(pWHExt->Shield_ReceivedDamage_Minimum.Get(this->Type->ReceivedDamage_Minimum) , pWHExt->Shield_ReceivedDamage_MinMultiplier),
+			GeneralUtils::SafeMultiply(pWHExt->Shield_ReceivedDamage_Maximum.Get(this->Type->ReceivedDamage_Maximum) , pWHExt->Shield_ReceivedDamage_MaxMultiplier));
 
 	if (DamageToShieldAfterMinMax == 0)
 	{
@@ -670,8 +669,10 @@ void ShieldClass::TemporalCheck()
 
 void ShieldClass::UpdateTint(bool forceUpdate)
 {
-	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0 || forceUpdate)
+	if (this->Type->Tint_Color.isset() || this->Type->Tint_Intensity != 0.0 || forceUpdate){
+		TechnoExtContainer::Instance.Find(this->Techno)->Tints.Update();
 		this->Techno->MarkForRedraw();
+	}
 }
 
 // Is used for DeploysInto/UndeploysInto and DeploysInto/UndeploysInto
@@ -686,7 +687,7 @@ bool ShieldClass::ConvertCheck()
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(this->Techno->GetTechnoType());
 	const auto pOldType = this->Type;
 	bool allowTransfer = this->Type->AllowTransfer.Get(Attached);
-	
+
 	if (!allowTransfer && !pTechnoTypeExt->ShieldType->Strength)
 	{
 		// Case 1: Old shield is not allowed to transfer or there's no eligible new shield type -> delete shield.
@@ -856,7 +857,7 @@ void ShieldClass::BreakShield(AnimTypeClass* pBreakAnim, WeaponTypeClass* pBreak
 	if (const auto pWeaponType = pBreakWeapon ? pBreakWeapon : this->Type->BreakWeapon)
 	{
 		AbstractClass* const pTarget = this->Type->BreakWeapon_TargetSelf.Get() ? static_cast<AbstractClass*>(this->Techno) : this->Techno->GetCell();
-		WeaponTypeExtData::DetonateAt(pWeaponType, pTarget, this->Techno, true, nullptr);
+		WeaponTypeExtData::DetonateAt1(pWeaponType, pTarget, this->Techno, true, nullptr);
 	}
 }
 
@@ -915,7 +916,7 @@ void ShieldClass::SetRespawn(int duration, double amount, int rate, bool restart
 	this->Respawn_RestartInCombatDelay_Warhead = restartInCombatDelay >= 0 ? restartInCombatDelay : pType->Respawn_RestartInCombatDelay;
 
 	if(anim)
-		this->Respawn_Anim_Warhead = Iterator(*anim);
+		std::copy(anim->begin(),anim->end(), std::back_inserter(this->Respawn_Anim_Warhead));
 
 	this->Respawn_Weapon_Warhead = weapon ? weapon : pType->Respawn_Weapon;
 	this->Respawn_Rate_Warhead = rate >= 0 ? rate : Type->Respawn_Rate;
@@ -998,8 +999,6 @@ void ShieldClass::CreateAnim()
 		pAnim->RemainingIterations = 0xFFu;
 		AnimExtData::SetAnimOwnerHouseKind(pAnim, this->Techno->Owner, nullptr, this->Techno, false, false);
 		pAnim->SetOwnerObject(this->Techno);
-		auto pAnimExt = ((FakeAnimClass*)pAnim)->_GetExtData();
-		pAnimExt->IsShieldIdleAnim = true;
 		this->IdleAnim.reset(pAnim);
 	}
 }

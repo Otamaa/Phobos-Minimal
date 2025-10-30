@@ -14,67 +14,51 @@
 #include <New/Entity/PrismForwarding.h>
 
 class InfantryClass;
-class BuildingExtData
+class BuildingExtData : public TechnoExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x87654321;
 	using base_type = BuildingClass;
-
-	static COMPILETIMEEVAL size_t ExtOffset = 0x71C; //ares
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
-	BuildingTypeExtData* Type { nullptr };
-	TechnoExtData* TechnoExt { nullptr };
 
-	std::unique_ptr<PrismForwarding> MyPrismForwarding { nullptr };
-
-	bool DeployedTechno { false };
-	int LimboID { -1 };
-	int GrindingWeapon_LastFiredFrame { 0 };
-	BuildingClass* CurrentAirFactory { nullptr };
-	int AccumulatedIncome { 0 };
-	bool IsCreatedFromMapFile { false };
-
-	std::vector<AnimClass*> DamageFireAnims { };
-	CDTimerClass AutoSellTimer { };
-	bool LighningNeedUpdate { false };
-	bool TogglePower_HasPower { true };
-	bool Silent { false };
-
-	OptionalStruct<int, true> C4Damage { };
-	HouseClass* C4Owner { nullptr };
-	WarheadTypeClass* C4Warhead { nullptr };
-	WarheadTypeClass* ReceiveDamageWarhead { nullptr };
-	std::vector<int> DockReloadTimers {};
-	HouseClass* OwnerBeforeRaid { nullptr };
-
-	CDTimerClass CashUpgradeTimers[3] {};
-	int SensorArrayActiveCounter { 0 };
-	bool SecretLab_Placed { false };
-	bool AboutToChronoshift { false };
-	bool IsFromSW { false };
-	bool BeignMCEd { true }; //this tag only use to fix
-	//https://github.com/Phobos-developers/Phobos/issues/1146
-
-	HelperedVector<TechnoClass*> RegisteredJammers { };
-	int GrindingWeapon_AccumulatedCredits { 0 };
-	int LastFlameSpawnFrame { 0 };
-
-	Handle<AnimClass*, UninitAnim> SpyEffectAnim { nullptr };
-	int SpyEffectAnimDuration {};
-	int PoweredUpToLevel { 0 }; // Distinct from UpgradeLevel,
-	//and set to highest PowersUpToLevel out of
-	//applied upgrades regardless of how many are currently applied to this building.
-
-	FactoryClass* FactoryBuildingMe {};
-
-	void InitializeConstant();
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+#pragma region ClassMember
+	BuildingTypeExtData* Type;
+	std::unique_ptr<PrismForwarding> MyPrismForwarding;
+	bool DeployedTechno;
+	int LimboID;
+	int GrindingWeapon_LastFiredFrame;
+	BuildingClass* CurrentAirFactory;
+	int AccumulatedIncome;
+	bool IsCreatedFromMapFile;
+	std::vector<AnimClass*> DamageFireAnims;
+	CDTimerClass AutoSellTimer;
+	bool LighningNeedUpdate;
+	bool TogglePower_HasPower;
+	bool Silent;
+	OptionalStruct<int, true> C4Damage;
+	HouseClass* C4Owner;
+	WarheadTypeClass* C4Warhead;
+	WarheadTypeClass* ReceiveDamageWarhead;
+	std::vector<int> DockReloadTimers;
+	HouseClass* OwnerBeforeRaid;
+	std::array<CDTimerClass, 3u> CashUpgradeTimers;
+	int SensorArrayActiveCounter;
+	bool SecretLab_Placed;
+	bool AboutToChronoshift;
+	bool IsFromSW;
+	bool BeignMCEd; //this tag only use to fix
+	HelperedVector<TechnoClass*> RegisteredJammers;
+	int GrindingWeapon_AccumulatedCredits;
+	int LastFlameSpawnFrame;
+	Handle<AnimClass*, UninitAnim> SpyEffectAnim;
+	int SpyEffectAnimDuration;
+	int PoweredUpToLevel;
+	FactoryClass* FactoryBuildingMe;
+	std::vector<BuildingClass*> airFactoryBuilding;
+	bool FreeUnitDone;
+	bool SeparateRepair;
+#pragma endregion
 
 	bool HasSuperWeapon(int index, bool withUpgrades) const;
 	bool RubbleYell(bool beingRepaired) const;
@@ -85,19 +69,76 @@ public:
 	void UpdateSpyEffecAnimDisplay();
 	void UpdateMainEvaVoice();
 
-	~BuildingExtData()
+public:
+
+	BuildingExtData(BuildingClass* pObj)
+		: TechnoExtData(pObj),
+		Type(nullptr),
+		MyPrismForwarding(nullptr),
+		DeployedTechno(false),
+		LimboID(-1),
+		GrindingWeapon_LastFiredFrame(0),
+		CurrentAirFactory(nullptr),
+		AccumulatedIncome(0),
+		IsCreatedFromMapFile(false),
+		DamageFireAnims(),
+		AutoSellTimer(),
+		LighningNeedUpdate(false),
+		TogglePower_HasPower(true),
+		Silent(false),
+		C4Damage(),
+		C4Owner(nullptr),
+		C4Warhead(nullptr),
+		ReceiveDamageWarhead(nullptr),
+		DockReloadTimers(),
+		OwnerBeforeRaid(nullptr),
+		CashUpgradeTimers(),
+		SensorArrayActiveCounter(0),
+		SecretLab_Placed(false),
+		AboutToChronoshift(false),
+		IsFromSW(false),
+		BeignMCEd(true),
+		RegisteredJammers(),
+		GrindingWeapon_AccumulatedCredits(0),
+		LastFlameSpawnFrame(0),
+		SpyEffectAnim(nullptr),
+		SpyEffectAnimDuration(0),
+		PoweredUpToLevel(0),
+		FactoryBuildingMe(nullptr),
+		airFactoryBuilding(),
+		FreeUnitDone(false),
+		SeparateRepair(false)
+	{ }
+
+	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }
+
+	virtual ~BuildingExtData();
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		this->SpyEffectAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
+		this->TechnoExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
-		return sizeof(BuildingExtData) -
-			(4u //AttachedToObject
-					- 4u //inheritance
-			 );
+		this->TechnoExtData::SaveToStream(Stm);
+		const_cast<BuildingExtData*>(this)->Serialize(Stm);
 	}
 
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const {
+		this->TechnoExtData::CalculateCRC(crc);
+	}
+
+	virtual BuildingClass* This() const override { return reinterpret_cast<BuildingClass*>(this->TechnoExtData::This()); }
+	virtual const BuildingClass* This_Const() const override { return reinterpret_cast<const BuildingClass*>(this->TechnoExtData::This_Const()); }
+
+public:
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);
 	static void UpdatePrimaryFactoryAI(BuildingClass* pThis);
 	static int CountOccupiedDocks(BuildingClass* pBuilding);
@@ -128,7 +169,15 @@ class BuildingExtContainer final : public Container<BuildingExtData>
 public:
 	static BuildingExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(BuildingExtContainer , BuildingExtData, "BuildingClass");
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array) {
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
 };
 
 class NOVTABLE FakeBuildingClass : public BuildingClass
@@ -144,6 +193,22 @@ public:
 	void _OnFinishRepairB(InfantryClass* pEngineer);
 	void _OnFinishRepair();
 	void UnloadOccupants(bool assignMission, bool killIfStuck);
+	void _Draw_It(Point2D* xdrawpoint, RectangleStruct* xcliprect);
+	void _TechnoClass_Draw_Object(SHPStruct* shapefile,
+		int shapenum,
+		Point2D* xy,
+		RectangleStruct* rect,
+		DirType rotation,  //unused
+		int scale, //unused
+		int height_adjust,
+		ZGradient a8,
+		bool useZBuffer,
+		int lightLevel,
+		int tintLevel,
+		SHPStruct* z_shape,
+		int z_shape_framenum,
+		Point2D z_shape_offs,
+		BlitterFlags flags);
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{
@@ -157,28 +222,30 @@ public:
 	}
 
 	void _OnFireAI();
+	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
+	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE BuildingClass* _AsBuilding() const {
 		return (BuildingClass*)this;
 	}
 
 	FORCEDINLINE BuildingExtData* _GetExtData() {
-		return *reinterpret_cast<BuildingExtData**>(((DWORD)this) + BuildingExtData::ExtOffset);
+		return *reinterpret_cast<BuildingExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 	FORCEDINLINE const BuildingExtData* _GetExtData() const{
-		return *reinterpret_cast<const BuildingExtData**>(((DWORD)this) + BuildingExtData::ExtOffset);
+		return *reinterpret_cast<const BuildingExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 	FORCEDINLINE TechnoExtData* _GetTechnoExtData() {
-		return *reinterpret_cast<TechnoExtData**>(((DWORD)this) + TechnoExtData::ExtOffset);
+		return *reinterpret_cast<TechnoExtData**>(((TechnoExtData*)this));
 	}
 
 	FORCEDINLINE const TechnoExtData* _GetTechnoExtData() const {
-		return *reinterpret_cast<const TechnoExtData**>(((DWORD)this) + TechnoExtData::ExtOffset);
+		return *reinterpret_cast<const TechnoExtData**>(((TechnoExtData*)this));
 	}
 
 	FORCEDINLINE BuildingTypeExtData* _GetTypeExtData() {

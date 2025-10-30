@@ -5,7 +5,7 @@
 
 class TriggerClass;
 class HouseClass;
-class TriggerTypeExt
+class TriggerTypeExtData
 {
 public:
 /*

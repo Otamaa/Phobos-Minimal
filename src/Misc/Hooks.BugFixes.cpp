@@ -25,6 +25,7 @@
 #include <Utilities/Debug.h>
 #include <Utilities/TemplateDef.h>
 #include <Utilities/EnumFunctions.h>
+#include <Utilities/Helpers.h>
 
 #include <Locomotor/Cast.h>
 
@@ -154,7 +155,13 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 	{
 		// Also check for vftable here to guarantee the TemporalClass not being destoryed already.
 		if (IsTemporalptrValid(pThis->TemporalTargetingMe)) // TemporalClass::`vtable`
+		{
+			if (pThis->TemporalTargetingMe->Owner == pThis->TemporalTargetingMe->Target) {
+				pThis->TemporalTargetingMe->Detach();
+				return;
+			}
 			pThis->TemporalTargetingMe->Update();
+		}
 		else // It should had being warped out, delete this object
 		{
 			pThis->TemporalTargetingMe = nullptr;
@@ -458,11 +465,27 @@ ASMJIT_PATCH(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
 }
 
 // Bugfix: TAction 7,80,107.
-ASMJIT_PATCH(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
+ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
 {
 	GET(FootClass* const, pPayload, EAX);
 	GET(FootClass* const, pTransport, ESI);
 	GET(TeamClass* const, pTeam, EBP);
+	GET(TeamTypeClass const*, pThis, EBX);
+
+	auto unmarkPayloadCreated = [](FootClass* member){TechnoExtContainer::Instance.Find(member)->PayloadCreated = false;};
+
+	if (!pTransport) {
+		for (auto pNext = pPayload;
+		pNext && pNext != pTransport && pNext->Team == pTeam;
+		pNext = flag_cast_to<FootClass*>(pNext->NextObject))
+			unmarkPayloadCreated(pNext);
+
+		return 0x65DFE8;
+	}
+
+	unmarkPayloadCreated(pTransport);
+	if (!pPayload || !pThis->Full)
+		return 0x65E004;
 
 	const bool isTransportOpenTopped = pTransport->GetTechnoType()->OpenTopped;
 	FootClass* pGunner = nullptr;
@@ -495,13 +518,13 @@ ASMJIT_PATCH(0x65DF81, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x7)
 // BibShape checks for BuildingClass::BState which needs to not be 0 (constructing) for bib to draw.
 // It is possible for BState to be 1 early during construction for frame or two which can result in BibShape being drawn during buildup, which somehow depends on length of buildup.
 // Trying to fix this issue at its root is problematic and most of the time causes buildup to play twice, it is simpler to simply fix the BibShape to not draw until the buildup is done - Starkku
-ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
-{
-	enum { DontDrawBib = 0x43D8EE };
+// ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
+// {
+// 	enum { DontDrawBib = 0x43D8EE };
 
-	GET(BuildingClass* const, pThis, ESI);
-	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
-}
+// 	GET(BuildingClass* const, pThis, ESI);
+// 	return !pThis->ActuallyPlacedOnMap ? DontDrawBib : 0x0;
+// }
 
 ASMJIT_PATCH(0x4DE652, FootClass_AddPassenger_NumPassengerGeq0, 0x7)
 {
@@ -709,17 +732,6 @@ ASMJIT_PATCH(0x6DAAB2, TacticalClass_DrawRallyPointLines_NoUndeployBlyat, 0x6)
 	return 0x6DAD45;
 }
 
-static FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
-{
-	// do not use explicit toggle for this
-	if (static_cast<JumpjetLocomotionClass*>(pThis)->NextState == JumpjetLocomotionClass::State::Crashing)
-		return FireError::CANT;
-
-	return FireError::OK;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDF4, JumpjetLocomotionClass_Can_Fire)
-
 // BuildingClass_What_Action() - Fix no attack cursor if AG=no projectile on primary
 //DEFINE_SKIP_HOOK(0x447380, BuildingClass_What_Action_RemoveAGCheckA, 0x6, 44739E);
 //DEFINE_SKIP_HOOK(0x447709, BuildingClass_What_Action_RemoveAGCheckB, 0x6, 447727);
@@ -848,45 +860,6 @@ ASMJIT_PATCH(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 //}ASMJIT_PATCH_AGAIN(0x44E997, BuildingClass_Detach_RestoreAnims, 0x6)
 
 
-// Fix initial facing when jumpjet locomotor is being attached
-// there is bug with preplaced units , wait for fix
-//ASMJIT_PATCH(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
-//{
-//	GET(ILocomotion*, iLoco, EBP);
-//	auto const pThis = static_cast<JumpjetLocomotionClass*>(iLoco);
-//
-//	pThis->Facing.Set_Current(pThis->LinkedTo->PrimaryFacing.Current());
-//	pThis->Facing.Set_Desired(pThis->LinkedTo->PrimaryFacing.Desired());
-//
-//	return 0;
-//}
-
-// Fix initial facing when jumpjet locomotor is being attached
-static void __stdcall JumpjetLocomotionClass_Unlimbo(ILocomotion* pThis)
-{
-	auto const pThisLoco = static_cast<JumpjetLocomotionClass*>(pThis);
-	pThisLoco->Facing.Set_Current(pThisLoco->LinkedTo->PrimaryFacing.Current());
-	pThisLoco->Facing.Set_Desired(pThisLoco->LinkedTo->PrimaryFacing.Desired());
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDB8, JumpjetLocomotionClass_Unlimbo)
-
-// This fixes the issue when locomotor is crashing in grounded or
-// hovering state and the crash processing code won't be reached.
-// Can be observed easily when Crashable=yes jumpjet is attached to
-// a unit and then destroyed.
-ASMJIT_PATCH(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x9)
-{
-	enum { ProcessMovement = 0x54AEED, Skip = 0x54B16C };
-
-	GET(ILocomotion*, iLoco, ESI);
-	auto const pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
-
-	return pLoco->Is_Moving_Now()  // stolen code
-		|| pLoco->LinkedTo->IsCrashing
-		? ProcessMovement
-		: Skip;
-}
 
 // WWP for some reason passed nullptr as source to On_Destroyed even though the real source existed
 ASMJIT_PATCH(0x738467, UnitClass_TakeDamage_FixOnDestroyedSource, 0x6)
@@ -1017,8 +990,16 @@ ASMJIT_PATCH(0x6B75AC, SpawnManagerClass_AI_SetDestinationForMissiles, 0x5)
 	GET(SpawnManagerClass*, pSpawnManager, ESI);
 	GET(TechnoClass*, pSpawnTechno, EDI);
 
-	CoordStruct coord = pSpawnManager->Target->GetCenterCoords();
-	pSpawnTechno->SetDestination(MapClass::Instance->TryGetCellAt(coord), true);
+	auto const pTarget = pSpawnManager->Target;
+
+	// Oct 27, 2025 - Starkku: Restore old behaviour for building destinations to eliminate inaccuracy issues.
+	if (pTarget->WhatAmI() == AbstractType::Building) {
+		pSpawnTechno->SetDestination(pTarget, true);
+	} else {
+		const CoordStruct coord = pSpawnManager->Target->GetCenterCoords();
+		CellClass* pCellDestination = MapClass::Instance->TryGetCellAt(coord);
+		pSpawnTechno->SetDestination(pCellDestination, true);
+	}
 
 	return 0x6B75BC;
 }
@@ -1843,11 +1824,11 @@ ASMJIT_PATCH(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x
 			pTypeExt->SubterraneanSpeed : RulesExtData::Instance()->SubterraneanSpeed;
 
 	// Calculate speed multipliers.
-	pLoco->LinkedTo->SpeedPercentage = 1.0; // Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.		int maxSpeed = pTypeExt->AttachedToObject->Speed;
-	int maxSpeed = pTypeExt->AttachedToObject->Speed;
-	pTypeExt->AttachedToObject->Speed = currentSpeed;
+	pLoco->LinkedTo->SpeedPercentage = 1.0; // Subterranean locomotor doesn't normally use this so it would be 0.0 here and cause issues.		int maxSpeed = pTypeExt->This()->Speed;
+	int maxSpeed = pTypeExt->This()->Speed;
+	pTypeExt->This()->Speed = currentSpeed;
 	currentSpeed = pLoco->LinkedTo->GetCurrentSpeed();
-	pTypeExt->AttachedToObject->Speed = maxSpeed;
+	pTypeExt->This()->Speed = maxSpeed;
 
 	if (distance > currentSpeed)
 	{
@@ -1883,7 +1864,7 @@ ASMJIT_PATCH(0x4232BF, AnimClass_DrawIt_MakeInfantry, 0x6)
 	GET(AnimClass*, pThis, ESI);
 
 	if (pThis->Type->MakeInfantry != -1) {
-		R->EAX(pThis->GetCell()->Intensity_Normal);
+		R->EAX(pThis->GetCell()->Color1.Red);
 		return 0x4232C5;
 	}
 
@@ -1990,20 +1971,21 @@ NOINLINE LocomotionClass* getILoco(REGISTERS* R) {
 	return static_cast<LocomotionClass*>(pIloco);
 }
 
-//ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
-//{
-//	if(const auto pLoco = getILoco(R)) {
-//		if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
-//			if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
-//				pLoco->Power_On();
-//			else
-//				pLoco->Power_Off();
-//		}
-//	}
-//	return 0;
-//}ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
-//ASMJIT_PATCH_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
-//ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
+//TODO :Evaluate these bullshit
+ASMJIT_PATCH(0x4AF94D, LocomotionClass_End_Piggyback_PowerOn, 0x7)//Drive
+{
+	if(const auto pLoco = getILoco(R)) {
+		if(auto pLinkedTo = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner){
+			if (!pLinkedTo->Deactivated && !pLinkedTo->IsUnderEMP())
+				pLoco->Power_On();
+			else
+				pLoco->Power_Off();
+		}
+	}
+	return 0;
+}ASMJIT_PATCH_AGAIN(0x719F17, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Teleport
+ASMJIT_PATCH_AGAIN(0x69F05D, LocomotionClass_End_Piggyback_PowerOn, 0x7) //Ship
+ASMJIT_PATCH_AGAIN(0x54DADC, LocomotionClass_End_Piggyback_PowerOn, 0x5)//Jumpjet
 
 
 #pragma endregion
@@ -2181,26 +2163,6 @@ ASMJIT_PATCH(0x71872C, TeleportLocomotionClass_MakeRoom_OccupationFix, 0x9)
 	const auto pFoot = pLoco->LinkedTo;
 
 	return (pFoot && !pFoot->InLimbo && pFoot->IsAlive && pFoot->Health > 0 && !pFoot->IsSinking) ? 0 : SkipMarkOccupation;
-}
-
-ASMJIT_PATCH(0x54BC99, JumpjetLocomotionClass_Ascending_BarracksExitCell, 0x6)
-{
-	GET(BuildingTypeClass*, pType, EAX);
-	return BuildingTypeExtContainer::Instance.Find(pType)->BarracksExitCell.isset() ? 0x54BCA3 : 0;
-}
-
-ASMJIT_PATCH(0x4DB36C, FootClass_Limbo_RemoveSensorsAt, 0x5)
-{
-	GET(FootClass*, pThis, EDI);
-	pThis->RemoveSensorsAt(pThis->LastMapCoords);
-	return 0x4DB37C;
-}
-
-ASMJIT_PATCH(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
-{
-	GET(FootClass*, pThis, ESI);
-	pThis->RemoveSensorsAt(pThis->LastMapCoords);
-	return 0x4DBF01;
 }
 
 // Fix a crash at 0x7BAEA1 when trying to access a point outside of surface bounds.
@@ -2406,12 +2368,10 @@ DEFINE_PATCH(0x755698, 0x55) // push ebp
 DEFINE_PATCH(0x7556B9, 0x55) // push ebp
 // Although it is not the perfectest
 // It can still solve the most common situations on slopes - CrimRecya
-ASMJIT_PATCH(0x73C41B, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
+ASMJIT_PATCH(0x73C43F, UnitClass_DrawAsVXL_Shadow_IsLocomotorFix, 0x6)
 {
 	GET(UnitClass*, pThis, EBP);
-	GET_STACK(DWORD, surface, 0x18);
-	UnitTypeClass* pType = pThis->Type;
-	R->Stack(0x1C, surface);
+	GET(UnitTypeClass*, pType, EAX);
 	R->AL(pType->BalloonHover || pThis->IsAttackedByLocomotor);
 	return 0x73C445;
 }
@@ -2557,78 +2517,6 @@ ASMJIT_PATCH(0x73F0A7, UnitClass_IsCellOccupied_Start, 0x9)
 
 DEFINE_FUNCTION_JUMP(CALL6 ,0x51A657 , FakeInfantryClass::_DummyScatter);
 
-ASMJIT_PATCH(0x4D92BF, FootClass_Mission_Enter_CheckLink, 0x5)
-{
-	enum { NextAction = 0x4D92ED, NotifyUnlink = 0x4D92CE, DoNothing = 0x4D946C };
-
-	GET(UnitClass* const, pThis, ESI);
-	GET(const RadioCommand, answer, EAX);
-
-	// Restore vanilla check
-	if (pThis->IsTethered)
-		return NextAction;
-
-	if (answer == RadioCommand::AnswerPositive)
-		return NextAction;
-
-	// The link should not be disconnected while the transporter is in motion (passengers waiting to enter),
-	// as this will result in the first passenger not getting on board
-	return answer == RadioCommand::RequestLoading ? DoNothing : NotifyUnlink;
-}
-
-ASMJIT_PATCH(0x4B08EF, DriveLocomotionClass_Process_CheckUnload, 0x5)
-{
-	enum { SkipGameCode = 0x4B078C, ContinueProcess = 0x4B0903 };
-
-	GET(ILocomotion* const, iloco, ESI);
-
-	const auto pFoot = static_cast<LocomotionClass*>(iloco)->LinkedTo;
-
-	if (pFoot->GetCurrentMission() != Mission::Unload)
-		return ContinueProcess;
-
-	return (pFoot->GetTechnoType()->Passengers > 0 && pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
-}
-
-ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
-{
-	enum { SkipGameCode = 0x69FE39, ContinueProcess = 0x69FFCA };
-
-	GET(ILocomotion* const, iloco, ESI);
-
-	const auto pFoot = static_cast<LocomotionClass*>(iloco)->LinkedTo;
-
-	if (pFoot->GetCurrentMission() != Mission::Unload)
-		return ContinueProcess;
-
-	return (pFoot->GetTechnoType()->Passengers > 0 && pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
-}
-
-// Rewrite from 0x718505
-ASMJIT_PATCH(0x718F1E, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
-{
-	GET(TechnoTypeClass* const, pType, EAX);
-
-	auto movementZone = pType->MovementZone;
-
-	if (movementZone == MovementZone::Fly || movementZone == MovementZone::Destroyer)
-		movementZone = MovementZone::Normal;
-	else if (movementZone == MovementZone::AmphibiousDestroyer)
-		movementZone = MovementZone::Amphibious;
-
-	R->EBP(movementZone);
-	return R->Origin() + 0x6;
-}ASMJIT_PATCH_AGAIN(0x7190B0, TeleportLocomotionClass_MovingTo_ReplaceMovementZone, 0x6)
-
-ASMJIT_PATCH(0x73D7B5, UnitClass_Mission_Unload_CheckInvalidCell, 0x8)
-{
-	enum { CannotUnload = 0x73D87F };
-
-	GET(const CellStruct*, pCell, EAX);
-
-	return *pCell != CellStruct::Empty ? 0 : CannotUnload;
-}
-
 ASMJIT_PATCH(0x737945, UnitClass_ReceiveCommand_MoveTransporter, 0x7)
 {
 	enum { SkipGameCode = 0x737952 };
@@ -2655,47 +2543,6 @@ ASMJIT_PATCH(0x710352, FootClass_ImbueLocomotor_ResetStatusses , 0x7)
 	pTarget->Mark(MarkType::Up);
 	pTarget->OnBridge = false;
 	return 0;
-}
-
-ASMJIT_PATCH(0x7196BB, TeleportLocomotionClass_Process_MarkDown, 0xA)
-{
-	GET(FootClass*, pLinkedTo, ECX);
-	// When Teleport units board transport vehicles on the bridge, the lack of this repair can lead to numerous problems
-	// An impassable invisible barrier will be generated on the bridge (the object linked list of the cell will leave it)
-	// And the transport vehicle will board on the vehicle itself (BFRT Passenger:..., BFRT)
-	// If any infantry attempts to pass through this position on the bridge later, it will cause the game to freeze
-	auto shouldMarkDown = [pLinkedTo]()
-	{
-		if (pLinkedTo->GetCurrentMission() != Mission::Enter)
-			return true;
-
-		const auto pEnter = pLinkedTo->GetNthLink();
-
-		return (!pEnter || pEnter->GetTechnoType()->Passengers <= 0);
-	};
-
-	if (shouldMarkDown())
-		pLinkedTo->Mark(MarkType::Put);
-
-	return 0x7196C5;
-}
-
-ASMJIT_PATCH(0x70D842, FootClass_UpdateEnter_NoMoveToBridge, 0x5)
-{
-	enum { NoMove = 0x70D84F };
-
-	GET(TechnoClass* const, pEnter, EDI);
-
-	return pEnter->OnBridge && (pEnter->WhatAmI() == AbstractType::Unit && static_cast<UnitClass*>(pEnter)->Type->Passengers > 0) ? NoMove : 0;
-}
-
-ASMJIT_PATCH(0x70D910, FootClass_QueueEnter_NoMoveToBridge, 0x5)
-{
-	enum { NoMove = 0x70D977 };
-
-	GET(TechnoClass* const, pEnter, EAX);
-
-	return pEnter->OnBridge && (pEnter->WhatAmI() == AbstractType::Unit && static_cast<UnitClass*>(pEnter)->Type->Passengers > 0) ? NoMove : 0;
 }
 
 #endif
@@ -2787,28 +2634,7 @@ ASMJIT_PATCH(0x6F9222, TechnoClass_SelectAutoTarget_HealingTargetAir, 0x6)
 	return pThis->CombatDamage(-1) < 0 ? 0x6F922E : 0;
 }
 
-ASMJIT_PATCH(0x71A7BC, TemporalClass_Update_DistCheck, 0x6)
-{
-	GET(TemporalClass*, pThis, ESI);
-	GET(TechnoClass*, pTarget, ECX);
-
-	// Vanilla check is incorrect for buildingtargets
-	const auto distance = pThis->Owner->DistanceFrom(pTarget);
-	int disatanceMax = RulesClass::Instance->OpenToppedWarpDistance;
-
-	if (auto const pTransport = pThis->Owner->Transporter) {
-		if(pTransport->IsAlive) {
-			auto& _cDiscance = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())
-			->OpenTopped_WarpDistance;
-			if(_cDiscance.isset())
-				disatanceMax = _cDiscance.Get();
-		}
-	}
-
-	return distance > (disatanceMax * 256) ? 0x71A83F : 0x71A84E;
-}
-
-ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_ReturnToSpawnOwner, 0x5)
+ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_PlanningFix, 0x5)
 {
 
 	GET(AircraftClass* const, pThis, ESI);
@@ -2848,7 +2674,7 @@ DWORD WINAPI Mouse_Thread(MouseThreadParameter* lpThreadParameter)
 			}
 
 			Imports::ReleaseMutex.invoke()(MouseThreadParameter::Mutex());
-			Imports::Sleep.invoke()(lpThreadParameter->SleepTime);
+			Imports::Sleep.invoke()((long long)lpThreadParameter->SleepTime);
 			++lpThreadParameter->RefCount;
 		}
 		while (!lpThreadParameter->SkipProcessing);
@@ -2935,5 +2761,209 @@ DEFINE_JUMP(LJMP, 0x6FBC0B, 0x6FBC38) // TechnoClass::UpdateCloak
 DEFINE_PATCH(0x42A752, 0x08);
 DEFINE_PATCH(0x42A765, 0x02);
 DEFINE_PATCH(0x42A7E3, 0x20);
+DEFINE_PATCH(0x42A7FA, 0x02);
 
 #pragma endregion
+
+
+// AStarClass::FindHierarchicalPath
+// Replace sign-extend to zero-extend
+
+// 42C34A: 0F BF 1C 70
+// To avoid incorrect negative int index
+DEFINE_PATCH(0x42C34B, 0xB7);
+// movsx ebx, word ptr [eax+esi*2] -> movzx ebx, word ptr [eax+esi*2]
+
+// 42C36A: 0F BF 04 70
+// To avoid incorrect negative int index
+DEFINE_PATCH(0x42C36B, 0xB7);
+// movsx eax, word ptr [eax+esi*2] -> movzx eax, word ptr [eax+esi*2]
+
+// Fix Jumpjets can not spawn missiles in air.
+ASMJIT_PATCH(0x6B72FE, SpawnerManagerClass_AI_MissileCheck, 0x9)
+{
+	enum { SpawnMissile = 0x6B735C, NoSpawn = 0x6B795A };
+
+	GET(SpawnManagerClass*, pThis, ESI);
+
+	auto pLoco = ((FootClass*)pThis->Owner)->Locomotor; // Ares has already handled the building case.
+	auto pLocoInterface = pLoco.GetInterfacePtr();
+
+	return (pLocoInterface->Is_Moving_Now()
+		|| (!locomotion_cast<JumpjetLocomotionClass*>(pLoco) && pLocoInterface->Is_Moving())) // Jumpjet should only check Is_Moving_Now.
+		? NoSpawn : SpawnMissile;
+}
+
+DEFINE_PATCH(0x6656B3, 0x89, 0x4E);
+
+#pragma region FixPlanningNodeConnect
+
+#include <PlanningTokenClass.h>
+
+// Restore the original three pop to prevent stack imbalance
+void NAKED _PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET()
+{
+	POP_REG(EDI);
+	POP_REG(EBP);
+	POP_REG(EBX);
+	JMP(0x638F2A);
+}
+
+ASMJIT_PATCH(0x638F1E, PlanningNodeClass_UpdateHoverNode_FixCheckValidity, 0x5)
+{
+	// Newly added checks to prevent not in-time updates
+	return PlanningNodeClass::PlanningModeActive ? (int)_PlanningNodeClass_UpdateHoverNode_FixCheckValidity_RET : 0;
+}
+
+ASMJIT_PATCH(0x638F70, PlanningNodeClass_UpdateHoverNode_SkipDuplicateLog, 0x8)
+{
+	enum { SkipLogString = 0x638F81 };
+
+	GET(const PlanningNodeClass* const, pCurrentNode, ESI);
+
+	const auto& pHoveringNode = Make_Global<const PlanningNodeClass* const>(0xAC4CCC);
+
+	// Only output logs when they are not the same, to avoid outputting every frame
+	return (pCurrentNode != pHoveringNode) ? 0 : SkipLogString;
+}
+
+#pragma endregion
+
+#pragma region JumpjetSetDestFix
+
+// Fix JJ infantries stop incorrectly when assigned a target out of range.
+ASMJIT_PATCH(0x51AB5C, InfantryClass_SetDestination_JJInfFix, 0x6)
+{
+	enum { FuncRet = 0x51B1D7 };
+
+	GET(InfantryClass* const, pThis, EBP);
+	GET(AbstractClass* const, pDest, EBX);
+
+	auto pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor);
+
+	if (pThis->Type->BalloonHover && !pDest && pThis->Destination && pJumpjetLoco && pThis->Target)
+	{
+		if (pThis->IsCloseEnoughToAttack(pThis->Target))
+		{
+			pThis->StopMoving();
+		}
+
+		pThis->ForceMission(Mission::Attack);
+		return FuncRet;
+	}
+
+	return 0;
+}
+
+// Fix JJ vehicles can not stop correctly when assigned a target in range.
+ASMJIT_PATCH(0x741A66, UnitClass_SetDestination_JJVehFix, 0x5)
+{
+	GET(UnitClass* const, pThis, EBP);
+
+	auto pJumpjetLoco = locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor);
+
+	if (pJumpjetLoco && pThis->IsCloseEnoughToAttack(pThis->Target))
+	{
+		pThis->StopMoving();
+	}
+
+	return 0;
+}
+
+#pragma endregion
+
+// 42A80A: 89 98 00 00 10 00
+// Set new Count offset
+DEFINE_PATCH(0x42A80E, 0x20);
+// mov [eax+100000h], ebx -> mov [eax+200000h], ebx
+// 42A840: 89 98 00 00 10 00
+
+// Set new Count offset
+DEFINE_PATCH(0x42A844, 0x20);
+// mov [eax+100000h], ebx -> mov [eax+200000h], ebx
+
+// AStarClass::CleanUp
+
+// 42A5C3: 89 B2 00 00 10 00
+// Set new Count offset
+DEFINE_PATCH(0x42A5C7, 0x20);
+// mov [edx+100000h], esi -> mov [edx+200000h], esi
+
+// AStarClass::CreatePathNode
+
+// 42A466: 8B 90 00 00 10 00
+// Set new Count offset
+DEFINE_PATCH(0x42A46A, 0x20);
+// mov edx, [eax+100000h] -> mov edx, [eax+200000h]
+
+// 42A479: 89 90 00 00 10 00
+// Set new Count offset
+DEFINE_PATCH(0x42A47D, 0x20);
+// mov [eax+100000h], edx -> mov [eax+200000h], edx
+
+// Fix the issue that the jumpjet vehicles cannot stop correctly after going berserk
+ASMJIT_PATCH(0x74431F, UnitClass_ReadyToNextMission_HuntCheck, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+	return pThis->GetCurrentMission() != Mission::Hunt ? 0 : 0x744329;
+}
+
+ASMJIT_PATCH(0x54CC9C, JumpjetLocomotionClass_ProcessCrashing_DropFix, 0x5)
+{
+	enum { SkipGameCode = 0x54CDC3, SkipGameCode2 = 0x54CFB7 };
+
+	GET(ObjectClass* const, pObject, ESI);
+	GET(JumpjetLocomotionClass*, pLoco, EDI);
+	const auto pLinkedTo = pLoco->LinkedTo;
+	bool fallOnSomething = false;
+
+	for (NextObject object(pObject); object; ++object)
+	{
+		if (*object == pLinkedTo || !(*object)->IsAlive)
+			continue;
+
+		const auto whatAmObject = object->WhatAmI();
+
+		if (whatAmObject == UnitClass::AbsID || whatAmObject == BuildingClass::AbsID || whatAmObject == AircraftClass::AbsID)
+		{
+			fallOnSomething = true;
+			continue;
+		}
+
+		if (whatAmObject == InfantryClass::AbsID)
+		{
+			const auto pInfantry = static_cast<InfantryClass*>(*object);
+
+			VocClass::SafeImmedietelyPlayAt(object->GetType()->CrushSound, object->Location);
+
+			if (const auto pManipulater = pLinkedTo->BeingManipulatedBy)
+				pInfantry->RegisterDestruction(pManipulater);
+			else if (const auto pSourceHouse = pLinkedTo->ChronoWarpedByHouse)
+				pInfantry->RegisterKill(pSourceHouse);
+			else
+				pInfantry->RegisterDestruction(pLinkedTo);
+
+			pInfantry->Mark(MarkType::Up);
+			pInfantry->Limbo();
+			pInfantry->UnInit();
+			continue;
+		}
+
+		if (whatAmObject == TerrainClass::AbsID)
+		{
+			const auto pTerrain = static_cast<TerrainClass*>(*object);
+
+			if (pTerrain->Type->SpawnsTiberium || pTerrain->Type->Immune)
+				continue;
+		}
+
+		if (const auto pManipulater = pLinkedTo->BeingManipulatedBy)
+			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pManipulater, true, false, pManipulater->Owner);
+		else if (const auto pSourceHouse = pLinkedTo->ChronoWarpedByHouse)
+			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pLinkedTo, true, false, pSourceHouse);
+		else
+			object->ReceiveDamage(&object->Health, 0, RulesClass::Instance->CrushWarhead, pLinkedTo, true, false, pLinkedTo->Owner);
+	}
+
+	return fallOnSomething ? SkipGameCode2 : SkipGameCode;
+}

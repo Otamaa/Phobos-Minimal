@@ -27,8 +27,36 @@ private:
 		Point2D PixelOffset;
 		int CreationFrame;
 		COLORREF Color;
+		COLORREF Back_Color;
 		TextPrintType TextPrintType;
-		wchar_t Text[0x20];
+		std::wstring Text;
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{
+			return
+				Stm
+				.Process(this->Location, RegisterForChange)
+				.Process(this->PixelOffset, RegisterForChange)
+				.Process(this->CreationFrame, RegisterForChange)
+				.Process(this->Color, RegisterForChange)
+				.Process(this->Back_Color, RegisterForChange)
+				.Process(this->TextPrintType, RegisterForChange)
+				.Process(this->Text, RegisterForChange)
+				;
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{
+			return Stm
+				.Process(this->Location)
+				.Process(this->PixelOffset)
+				.Process(this->CreationFrame)
+				.Process(this->Color)
+				.Process(this->Back_Color)
+				.Process(this->TextPrintType)
+				.Process(this->Text)
+				;
+		}
 	};
 
 	static COMPILETIMEEVAL int Duration = 75;
@@ -37,13 +65,39 @@ private:
 	static bool DrawAllowed(CoordStruct const& nCoords , Point2D& outPoint);
 
 public:
+
+	static COMPILETIMEEVAL size_t ItemSize = sizeof(Item);
 	static OPTIONALINLINE COMPILETIMEEVAL void Clear() { Data.clear(); };
-	static void Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset);
-	static void AddMoneyString(bool Display, int const amount, TechnoClass * owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , const ColorStruct& nOverrideColor = ColorStruct::Empty);
-	static void AddMoneyString(bool Display, int const amount, HouseClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty, const ColorStruct& nOverrideColor = ColorStruct::Empty);
+
+	static void Add(std::wstring text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
+	static void Add(const wchar_t* text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
+	static void Add(std::wstring_view text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
+	static void Add(const fmt::basic_memory_buffer<wchar_t>& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
+	static void Add(fmt::basic_memory_buffer<wchar_t>&& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
+
+	static void AddMoneyString(bool Display, int amount, TechnoClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , ColorStruct nOverrideColor = ColorStruct::Empty);
+	static void AddMoneyString(bool Display, int amount, HouseClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty, ColorStruct nOverrideColor = ColorStruct::Empty);
 	static void AddString(const std::wstring& text, bool Display, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor);
 	static void AddNumberString(int amount, HouseClass* owner, AffectedHouse const&  displayToHouses, ColorStruct const& color, CoordStruct const& coords, Point2D pixelOffset, bool sign, const wchar_t* prefix);
 	static void UpdateAll();
 
 	static void DisplayDamageNumberString(int damage, DamageDisplayType type, const CoordStruct coords, int& offset, DrawDamageMode mode, WarheadTypeClass* pWH = nullptr);
+
+public:
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return Stm
+			.Process(Data)
+			.Success()
+			;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return Stm
+			.Process(Data)
+			.Success()
+			;
+	}
 };

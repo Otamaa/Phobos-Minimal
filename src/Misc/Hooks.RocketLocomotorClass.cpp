@@ -811,7 +811,7 @@ ASMJIT_PATCH(0x663218, RocketLocomotionClass_Explode_CustomMissile2, 5)
 		if (auto const& pWeapon = pThis->SpawnerIsElite
 			? pExt->CustomMissileEliteWeapon : pExt->CustomMissileWeapon)
 		{
-			WeaponTypeExtData::DetonateAt(pWeapon, coords, pOwner, true, pOwner ? pOwner->Owner : nullptr);
+			WeaponTypeExtData::DetonateAt3(pWeapon, coords, pOwner, true, pOwner ? pOwner->Owner : nullptr);
 			return 0x6632CC;
 		}
 	}

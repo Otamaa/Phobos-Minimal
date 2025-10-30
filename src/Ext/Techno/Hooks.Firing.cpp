@@ -213,6 +213,18 @@ ASMJIT_PATCH(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 	return ContinueCheck;
 }
 
+ASMJIT_PATCH(0x772AA2, WeaponTypeClass_AllowedThreats_AAOnly, 0x5)
+{
+	GET(BulletTypeClass* const, pType, ECX);
+
+	if (BulletTypeExtContainer::Instance.Find(pType)->AAOnly) {
+		R->EAX(4);
+		return 0x772AB3;
+	}
+
+	return 0;
+}
+
 // Pre-Firing Checks
 ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 {
@@ -624,6 +636,10 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 					pExt->CreateDelayedFireAnim( pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
 					pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, firingCoords);
 
+					if (pWeaponExt->DelayedFire_InitialBurstSymmetrical)
+						pExt->CreateDelayedFireAnim(pAnimType, weaponIndex, pWeaponExt->DelayedFire_AnimIsAttached, pWeaponExt->DelayedFire_CenterAnimOnFirer,
+							pWeaponExt->DelayedFire_RemoveAnimOnNoDelay, pWeaponExt->DelayedFire_AnimOnTurret, {firingCoords.X, -firingCoords.Y, firingCoords.Z});
+
 					return 0x6FDE03;
 				}
 				else
@@ -661,19 +677,6 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 // 	return 0;
 // }
 
-ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
-{
-	enum { SkipGameCode = 0x6FAC31 };
-
-	GET(TechnoClass*, pThis, ESI);
-
-	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	if (pExt->DelayedFireSequencePaused)
-		return SkipGameCode;
-
-	return 0;
-}
 
 ASMJIT_PATCH(0x6FCDD2, TechnoClass_AssignTarget_Changed, 0x6)
 {
@@ -696,8 +699,19 @@ ASMJIT_PATCH(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	GET(TechnoClass*, pThis, ESI);
 
+	const auto pWH = pWeapon->Warhead;
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto pWHExt =  WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (pWeapon->LimboLaunch) {
+		if (!pWH->Parasite && pWHExt->UnlimboDetonate) {
+			if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis)) {
+				if (pFoot->Locomotor->Is_Really_Moving_Now())
+					return CanNotFire;
+			}
+		}
+	}
 
 	{
 		if (pThis->CurrentBurstIndex && pWeapon != pExt->LastWeaponType && pTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst)) {

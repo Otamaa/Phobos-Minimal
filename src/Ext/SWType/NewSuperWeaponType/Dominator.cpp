@@ -47,7 +47,7 @@ bool SW_PsychicDominator::AbortFire(SuperClass* pSW, bool IsPlayer)
 
 void SW_PsychicDominator::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::PsychicDominator;
+	pData->This()->Action = Action::PsychicDominator;
 	// Defaults to PsychicDominator values
 	pData->Dominator_FirstAnimHeight = 750;
 	pData->Dominator_SecondAnimHeight = 0;
@@ -72,7 +72,7 @@ void SW_PsychicDominator::Initialize(SWTypeExtData* pData)
 
 void SW_PsychicDominator::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->AttachedToObject->ID;
+	const char* section = pData->This()->ID;
 
 	INI_EX exINI(pINI);
 	pData->Dominator_FirstAnimHeight.Read(exINI, section, "Dominator.FirstAnimHeight");

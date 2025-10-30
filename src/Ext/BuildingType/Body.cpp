@@ -4,6 +4,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/SWType/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/EnumFunctions.h>
@@ -15,9 +16,7 @@ const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
 #include <Locomotor/Cast.h>
 #include <ExtraHeaders/StackVector.h>
-
 #include <EventClass.h>
-
 
 bool FakeBuildingTypeClass::_CanUseWaypoint() {
 	return RulesExtData::Instance()->BuildingWaypoint;
@@ -114,8 +113,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 		return true;
 
 	// Step 3: Sort the technos by the distance out of the foundation.
-	std::sort(&checkedTechnos[0], &checkedTechnos[checkedTechnos->size()],[optionalCells](TechnoClass* pTechnoA, TechnoClass* pTechnoB)
-	{
+	std::ranges::sort(checkedTechnos.container(),[optionalCells](TechnoClass* pTechnoA, TechnoClass* pTechnoB) {
 		int minA = INT_MAX;
 		int minB = INT_MAX;
 
@@ -187,7 +185,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 				{
 					if (!infantryCells->empty() && infantryCount.Y >= (infantryCount.X / 3 + (infantryCount.X % 3 ? 1 : 0)))
 					{
-						std::sort(&infantryCells[0], &infantryCells[infantryCells->size()],[location](InfantryCountInCell cellA, InfantryCountInCell cellB){
+						std::ranges::sort(infantryCells.container(),[location](InfantryCountInCell cellA, InfantryCountInCell cellB){
 							return cellA.position->MapCoords.DistanceFromSquared(location) < cellB.position->MapCoords.DistanceFromSquared(location);
 						});
 
@@ -211,7 +209,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 					}
 				}
 
-				std::sort(&optionalCells[0], &optionalCells[optionalCells->size()],[location](CellClass* pCellA, CellClass* pCellB){
+				std::ranges::sort(optionalCells.container(),[location](CellClass* pCellA, CellClass* pCellB){
 					return pCellA->MapCoords.DistanceFromSquared(location) < pCellB->MapCoords.DistanceFromSquared(location);
 				});
 				const auto minDistanceSquared = optionalCells[0]->MapCoords.DistanceFromSquared(location);
@@ -595,24 +593,24 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		}
 
 		pBuildingExt->LimboID = ID;
-		pBuildingExt->TechnoExt->Shield.release();
-		pBuildingExt->TechnoExt->Trails.clear();
-		pBuildingExt->TechnoExt->RevengeWeapons.clear();
-		pBuildingExt->TechnoExt->DamageSelfState.release();
-		pBuildingExt->TechnoExt->MyGiftBox.release();
-		pBuildingExt->TechnoExt->PaintBallStates.clear();
-		pBuildingExt->TechnoExt->ExtraWeaponTimers.clear();
-		pBuildingExt->TechnoExt->MyWeaponManager.Clear();
-		pBuildingExt->TechnoExt->MyWeaponManager.CWeaponManager.Clear();
+		pBuildingExt->Shield.release();
+		pBuildingExt->Trails.clear();
+		pBuildingExt->RevengeWeapons.clear();
+		pBuildingExt->DamageSelfState.release();
+		pBuildingExt->MyGiftBox.release();
+		pBuildingExt->PaintBallStates.clear();
+		pBuildingExt->ExtraWeaponTimers.clear();
+		pBuildingExt->MyWeaponManager.Clear();
+		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
 
 		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
 		{
-			KillMethod nMethod = pBuildingExt->Type->Type->Death_Method.Get();
+			KillMethod nMethod = pBuildingExt->Type->Death_Method.Get();
 
 			if (nMethod != KillMethod::None) {
 
-				if(pBuildingExt->Type->Type->Death_Countdown > 0)
-					pBuildingExt->TechnoExt->Death_Countdown.Start(pBuildingExt->Type->Type->Death_Countdown);
+				if(pBuildingExt->Type->Death_Countdown > 0)
+					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
 
 				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
@@ -648,7 +646,7 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 
 	if (this->IsCustom)
 	{
-		auto pType = this->AttachedToObject;
+		auto pType = This();
 		auto pRadar = RadarClass::Global();
 
 		int width = pType->GetFoundationWidth();
@@ -745,7 +743,7 @@ void BuildingTypeExtData::UpdateBuildupFrames(BuildingTypeClass* pThis)
 
 void BuildingTypeExtData::CompleteInitialization()
 {
-	auto const pThis = this->AttachedToObject;
+	auto const pThis = This();
 
 	// enforce same foundations for rubble/intact building pairs
 	if (this->RubbleDestroyed &&
@@ -790,18 +788,7 @@ bool BuildingTypeExtData::IsFoundationEqual(BuildingTypeClass* pType1, BuildingT
 	// this works for any two foundations. it's linear with sorted ones
 	return pExt1->CustomWidth == pExt2->CustomWidth
 		&& pExt1->CustomHeight == pExt2->CustomHeight
-		&& std::is_permutation(
-			data1.begin(), data1.end(), data2.begin(), data2.end());
-}
-
-void BuildingTypeExtData::Initialize()
-{
-	this->Type = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject);
-	this->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
-	this->PrismForwarding.Initialize(this->AttachedToObject);
-	this->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());
-	this->EVA_Offline = VoxClass::FindIndexById(GameStrings::EVA_BuildingOffLine());
-	this->NextBuilding_CurrentHeapId = this->AttachedToObject->ArrayIndex;
+		&& std::ranges::is_permutation(data1, data2);
 }
 
 bool BuildingTypeExtData::CanBeOccupiedBy(InfantryClass* whom) const
@@ -837,24 +824,15 @@ void BuildingTypeExtData::DisplayPlacementPreview()
 	if (!MapClass::Instance->IsWithinUsableArea(pCell->GetCoords()))
 		return;
 
-	SHPStruct* Selected = nullptr;
+	SHPStruct* Selected = pTypeExt->PlacementPreview_Shape.GetSHP();
 	int nDecidedFrame = 0;
 
-	if (!pTypeExt->PlacementPreview_Shape.isset())
-	{
-		if (const auto pBuildup = pType->LoadBuildup())
-		{
+	if (!Selected) {
+		if (const auto pBuildup = pType->LoadBuildup()) {
 			nDecidedFrame = ((pBuildup->Frames / 2) - 1);
-			Selected = pBuildup;
-		}
-		else
-		{
+			Selected = pBuildup; } else {
 			Selected = pType->GetImage();
 		}
-	}
-	else
-	{
-		Selected = pTypeExt->PlacementPreview_Shape.Get(nullptr);
 	}
 
 	if (!Selected)
@@ -947,7 +925,7 @@ int BuildingTypeExtData::GetSuperWeaponIndex(const int index, HouseClass* pHouse
 
 int BuildingTypeExtData::GetSuperWeaponIndex(const int index) const
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 
 	if (index < 2)
 	{
@@ -1232,9 +1210,12 @@ int BuildingTypeExtData::GetUpgradesAmount(BuildingTypeClass* pBuilding, HouseCl
 	return isUpgrade ? result : -1;
 }
 
-void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	if (!this->TechnoTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 	const char* pArtSection = (!pThis->ImageFile || !pThis->ImageFile[0]) ? pSection : pThis->ImageFile;
 	auto pArtINI = &CCINIClass::INI_Art();
@@ -1250,7 +1231,7 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			grows so long that the search through all kinds takes up significant time is very low, and
 			vectors are far simpler to use in this situation.
 		*/
-		const auto it = std::find_if(trenchKinds.begin(), trenchKinds.end(), [](auto const& pItem)
+		const auto it = std::ranges::find_if(trenchKinds, [](auto const& pItem)
 						{ return pItem == Phobos::readBuffer; });
 
 		this->IsTrench = std::distance(trenchKinds.begin(), it);
@@ -1662,21 +1643,17 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->BattlePointsCollector_RequirePower.Read(exINI, pSection, "BattlePointsCollector.RequirePower");
 
 		this->BuildingRepairedSound.Read(exINI, pSection, "BuildingRepairedSound");
+		this->AggressiveModeExempt.Read(exINI, pSection, "AggressiveModeExempt");
+		this->IsBarGate.Read(exINI, pSection, "IsBarGate");
+		this->AISellCapturedBuilding.Read(exINI, pSection, "AISellCapturedBuilding");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
 	{
 		INI_EX exArtINI(pArtINI);
 
+		this->IsHideDuringSpecialAnim.Read(exArtINI, pArtSection, "HideDuringSpecialAnim");
 		this->Refinery_UseNormalActiveAnim.Read(exArtINI, pArtSection, "Refinery.UseNormalActiveAnim");
-
-		if (this->IsCustom)
-		{
-			//Reset
-			pThis->Foundation = BuildingTypeExtData::CustomFoundation;
-			pThis->FoundationData = this->CustomData.data();
-			pThis->FoundationOutside = this->OutlineData.data();
-		}
 
 		if (pThis->MaxNumberOccupants > 10)
 		{
@@ -1742,6 +1719,8 @@ void BuildingTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			"BuildingType [%s] has both UnitRepair=yes and Factory=AircraftType."
 			"This combination causes Internal Errors and other unwanted behaviour.", pSection);
 	}
+
+	return true;
 }
 
 bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
@@ -1806,8 +1785,6 @@ bool BuildingTypeExtData::ShouldExistGreyCameo(TechnoTypeClass* pType)
 	return false;
 }
 
-#include <Ext/Scenario/Body.h>
-
 // Check the cameo change
 CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(TechnoTypeClass* pType, CanBuildResult canBuild)
 {
@@ -1855,12 +1832,12 @@ CanBuildResult BuildingTypeExtData::CheckAlwaysExistCameo(TechnoTypeClass* pType
 	return canBuild;
 }
 
+#ifndef debug
 template <typename T>
 void BuildingTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-		.Process(this->Type)
+
 		.Process(this->PrismForwarding)
 		.Process(this->PowersUp_Owner)
 		.Process(this->PowersUp_Buildings)
@@ -1870,7 +1847,6 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->SuperWeapons)
 		.Process(this->OccupierMuzzleFlashes)
 		.Process(this->Refinery_UseStorage)
-		//.Process(this->AllowAirstrike)
 
 		.Process(this->Grinding_AllowAllies)
 		.Process(this->Grinding_AllowOwner)
@@ -2002,10 +1978,6 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->SlamSound)
 		.Process(this->Destroyed_CreateSmudge)
 
-		//.Process(this->LaserFenceType)
-		//.Process(this->LaserFenceWEType)
-		//.Process(this->LaserFencePostLinks)
-		//.Process(this->LaserFenceDirection)
 		.Process(this->AllowedOccupiers)
 		.Process(this->DisallowedOccupiers)
 		.Process(this->BunkerRaidable)
@@ -2118,46 +2090,318 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->BuildingRepairedSound)
 
 		.Process(this->Refinery_UseNormalActiveAnim)
+		.Process(this->AggressiveModeExempt)
+		.Process(this->IsBarGate)
+		.Process(this->IsHideDuringSpecialAnim)
 		.Process(this->HasPowerUpAnim)
+		.Process(this->AISellCapturedBuilding)
 		;
 }
+#else
+template <typename T>
+void BuildingTypeExtData::Serialize(T& Stm)
+{
+	auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				size_t afterSize = Stm.Getstream()->Size();
+				GameDebugLog::Log("[BuildingTypeExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+					fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				size_t beforeOffset = Stm.Getstream()->Offset();
+				bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				size_t afterOffset = Stm.Getstream()->Offset();
+				bool afterSuccess = Stm.Success();
 
+				GameDebugLog::Log("[BuildingTypeExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				if (!afterSuccess && beforeSuccess)
+				{
+					GameDebugLog::Log("[BuildingTypeExtData] ERROR: %s caused stream failure!\n", fieldName);
+				}
+				return result;
+			}
+		};
+
+	GameDebugLog::Log("[BuildingTypeExtData] === %s START ===\n",
+		std::is_same_v<T, PhobosStreamWriter> ? "SAVING" : "LOADING");
+
+	debugProcess(this->PrismForwarding, "PrismForwarding");
+	debugProcess(this->PowersUp_Owner, "PowersUp_Owner");
+	debugProcess(this->PowersUp_Buildings, "PowersUp_Buildings");
+	debugProcess(this->PowerPlantEnhancer_Buildings, "PowerPlantEnhancer_Buildings");
+	debugProcess(this->PowerPlantEnhancer_Amount, "PowerPlantEnhancer_Amount");
+	debugProcess(this->PowerPlantEnhancer_Factor, "PowerPlantEnhancer_Factor");
+	debugProcess(this->SuperWeapons, "SuperWeapons");
+	debugProcess(this->OccupierMuzzleFlashes, "OccupierMuzzleFlashes");
+	debugProcess(this->Refinery_UseStorage, "Refinery_UseStorage");
+
+	debugProcess(this->Grinding_AllowAllies, "Grinding_AllowAllies");
+	debugProcess(this->Grinding_AllowOwner, "Grinding_AllowOwner");
+	debugProcess(this->Grinding_AllowTypes, "Grinding_AllowTypes");
+	debugProcess(this->Grinding_DisallowTypes, "Grinding_DisallowTypes");
+	debugProcess(this->Grinding_Sound, "Grinding_Sound");
+	debugProcess(this->Grinding_Weapon, "Grinding_Weapon");
+	debugProcess(this->Grinding_PlayDieSound, "Grinding_PlayDieSound");
+	debugProcess(this->Grinding_Weapon_RequiredCredits, "Grinding_Weapon_RequiredCredits");
+
+	debugProcess(this->PlacementPreview_Remap, "PlacementPreview_Remap");
+	debugProcess(this->PlacementPreview_Palette, "PlacementPreview_Palette");
+	debugProcess(this->PlacementPreview_Offset, "PlacementPreview_Offset");
+	debugProcess(this->PlacementPreview_Show, "PlacementPreview_Show");
+	debugProcess(this->PlacementPreview_Shape, "PlacementPreview_Shape");
+	debugProcess(this->PlacementPreview_ShapeFrame, "PlacementPreview_ShapeFrame");
+	debugProcess(this->PlacementPreview_TranslucentLevel, "PlacementPreview_TranslucentLevel");
+
+	debugProcess(this->DamageFireTypes, "DamageFireTypes");
+	debugProcess(this->OnFireTypes, "OnFireTypes");
+	debugProcess(this->OnFireIndex, "OnFireIndex");
+	debugProcess(this->HealthOnfire, "HealthOnfire");
+
+	debugProcess(this->RubbleIntact, "RubbleIntact");
+	debugProcess(this->RubbleDestroyed, "RubbleDestroyed");
+	debugProcess(this->RubbleDestroyedAnim, "RubbleDestroyedAnim");
+	debugProcess(this->RubbleIntactAnim, "RubbleIntactAnim");
+	debugProcess(this->RubbleDestroyedOwner, "RubbleDestroyedOwner");
+	debugProcess(this->RubbleIntactOwner, "RubbleIntactOwner");
+	debugProcess(this->RubbleDestroyedStrength, "RubbleDestroyedStrength");
+	debugProcess(this->RubbleIntactStrength, "RubbleIntactStrength");
+	debugProcess(this->RubbleDestroyedRemove, "RubbleDestroyedRemove");
+	debugProcess(this->RubbleIntactRemove, "RubbleIntactRemove");
+	debugProcess(this->RubbleIntactConsumeEngineer, "RubbleIntactConsumeEngineer");
+	debugProcess(this->DamageFire_Offs, "DamageFire_Offs");
+
+	debugProcess(this->RepairRate, "RepairRate");
+	debugProcess(this->RepairStep, "RepairStep");
+
+	debugProcess(this->PlayerReturnFire, "PlayerReturnFire");
+
+	debugProcess(this->PackupSound_PlayGlobal, "PackupSound_PlayGlobal");
+	debugProcess(this->DisableDamageSound, "DisableDamageSound");
+
+	debugProcess(this->BuildingOccupyDamageMult, "BuildingOccupyDamageMult");
+	debugProcess(this->BuildingOccupyROFMult, "BuildingOccupyROFMult");
+
+	debugProcess(this->BuildingBunkerDamageMult, "BuildingBunkerDamageMult");
+	debugProcess(this->BuildingBunkerROFMult, "BuildingBunkerROFMult");
+
+	debugProcess(this->BunkerWallsUpSound, "BunkerWallsUpSound");
+	debugProcess(this->BunkerWallsDownSound, "BunkerWallsDownSound");
+
+	debugProcess(this->AIBuildInsteadPerDiff, "AIBuildInsteadPerDiff");
+
+	debugProcess(this->GarrisonAnim_idle, "GarrisonAnim_idle");
+	debugProcess(this->GarrisonAnim_ActiveOne, "GarrisonAnim_ActiveOne");
+	debugProcess(this->GarrisonAnim_ActiveTwo, "GarrisonAnim_ActiveTwo");
+	debugProcess(this->GarrisonAnim_ActiveThree, "GarrisonAnim_ActiveThree");
+	debugProcess(this->GarrisonAnim_ActiveFour, "GarrisonAnim_ActiveFour");
+
+	debugProcess(this->PipShapes01Remap, "PipShapes01Remap");
+	debugProcess(this->PipShapes01Palette, "PipShapes01Palette");
+
+	debugProcess(this->TurretAnim_LowPower, "TurretAnim_LowPower");
+	debugProcess(this->TurretAnim_DamagedLowPower, "TurretAnim_DamagedLowPower");
+	debugProcess(this->BuildUp_UseNormalLIght, "BuildUp_UseNormalLIght");
+	debugProcess(this->Power_DegradeWithHealth, "Power_DegradeWithHealth");
+	debugProcess(this->AutoSellTime, "AutoSellTime");
+	debugProcess(this->IsJuggernaut, "IsJuggernaut");
+	debugProcess(this->BuildingPlacementGrid_Shape, "BuildingPlacementGrid_Shape");
+	debugProcess(this->SpeedBonus, "SpeedBonus");
+	debugProcess(this->RadialIndicator_Visibility, "RadialIndicator_Visibility");
+	debugProcess(this->SpyEffect_Custom, "SpyEffect_Custom");
+	debugProcess(this->SpyEffect_VictimSuperWeapon, "SpyEffect_VictimSuperWeapon");
+	debugProcess(this->SpyEffect_InfiltratorSuperWeapon, "SpyEffect_InfiltratorSuperWeapon");
+	debugProcess(this->SpyEffect_InfiltratorSW_JustGrant, "SpyEffect_InfiltratorSW_JustGrant");
+	debugProcess(this->SpyEffect_VictimSW_RealLaunch, "SpyEffect_VictimSW_RealLaunch");
+	debugProcess(this->SpyEffect_RevealProduction, "SpyEffect_RevealProduction");
+	debugProcess(this->SpyEffect_ResetSW, "SpyEffect_ResetSW");
+	debugProcess(this->SpyEffect_ResetRadar, "SpyEffect_ResetRadar");
+	debugProcess(this->SpyEffect_RevealRadar, "SpyEffect_RevealRadar");
+	debugProcess(this->SpyEffect_RevealRadarPersist, "SpyEffect_RevealRadarPersist");
+	debugProcess(this->SpyEffect_GainVeterancy, "SpyEffect_GainVeterancy");
+	debugProcess(this->SpyEffect_UnReverseEngineer, "SpyEffect_UnReverseEngineer");
+	debugProcess(this->SpyEffect_StolenTechIndex_result, "SpyEffect_StolenTechIndex_result");
+	debugProcess(this->SpyEffect_StolenMoneyAmount, "SpyEffect_StolenMoneyAmount");
+	debugProcess(this->SpyEffect_StolenMoneyPercentage, "SpyEffect_StolenMoneyPercentage");
+	debugProcess(this->SpyEffect_PowerOutageDuration, "SpyEffect_PowerOutageDuration");
+	debugProcess(this->SpyEffect_SabotageDelay, "SpyEffect_SabotageDelay");
+	debugProcess(this->SpyEffect_SuperWeapon, "SpyEffect_SuperWeapon");
+	debugProcess(this->SpyEffect_SuperWeaponPermanent, "SpyEffect_SuperWeaponPermanent");
+	debugProcess(this->SpyEffect_InfantryVeterancy, "SpyEffect_InfantryVeterancy");
+	debugProcess(this->SpyEffect_VehicleVeterancy, "SpyEffect_VehicleVeterancy");
+	debugProcess(this->SpyEffect_NavalVeterancy, "SpyEffect_NavalVeterancy");
+	debugProcess(this->SpyEffect_AircraftVeterancy, "SpyEffect_AircraftVeterancy");
+	debugProcess(this->SpyEffect_BuildingVeterancy, "SpyEffect_BuildingVeterancy");
+	debugProcess(this->ZShapePointMove_OnBuildup, "ZShapePointMove_OnBuildup");
+	debugProcess(this->SellBuildupLength, "SellBuildupLength");
+	debugProcess(this->CanC4_AllowZeroDamage, "CanC4_AllowZeroDamage");
+	debugProcess(this->C4_Modifier, "C4_Modifier");
+	debugProcess(this->DockUnload_Cell, "DockUnload_Cell");
+	debugProcess(this->DockUnload_Facing, "DockUnload_Facing");
+	debugProcess(this->Solid_Height, "Solid_Height");
+	debugProcess(this->Solid_Level, "Solid_Level");
+	debugProcess(this->AIBaseNormal, "AIBaseNormal");
+	debugProcess(this->AIInnerBase, "AIInnerBase");
+	debugProcess(this->RubblePalette, "RubblePalette");
+	debugProcess(this->DockPoseDir, "DockPoseDir");
+	debugProcess(this->EngineerRepairable, "EngineerRepairable");
+	debugProcess(this->IsTrench, "IsTrench");
+	debugProcess(this->TunnelType, "TunnelType");
+	debugProcess(this->UCPassThrough, "UCPassThrough");
+	debugProcess(this->UCFatalRate, "UCFatalRate");
+	debugProcess(this->UCDamageMultiplier, "UCDamageMultiplier");
+	debugProcess(this->Cursor_Spy, "Cursor_Spy");
+	debugProcess(this->Cursor_Sabotage, "Cursor_Sabotage");
+	debugProcess(this->ImmuneToSaboteurs, "ImmuneToSaboteurs");
+	debugProcess(this->ReverseEngineersVictims, "ReverseEngineersVictims");
+	debugProcess(this->ReverseEngineersVictims_Passengers, "ReverseEngineersVictims_Passengers");
+
+	debugProcess(this->GateDownSound, "GateDownSound");
+	debugProcess(this->GateUpSound, "GateUpSound");
+	debugProcess(this->UnitSell, "UnitSell");
+	debugProcess(this->LightningRod_Modifier, "LightningRod_Modifier");
+	debugProcess(this->Returnable, "Returnable");
+	debugProcess(this->BuildupTime, "BuildupTime");
+	debugProcess(this->SellTime, "SellTime");
+	debugProcess(this->SlamSound, "SlamSound");
+	debugProcess(this->Destroyed_CreateSmudge, "Destroyed_CreateSmudge");
+
+	debugProcess(this->AllowedOccupiers, "AllowedOccupiers");
+	debugProcess(this->DisallowedOccupiers, "DisallowedOccupiers");
+	debugProcess(this->BunkerRaidable, "BunkerRaidable");
+	debugProcess(this->Firestorm_Wall, "Firestorm_Wall");
+
+	debugProcess(this->AbandonedSound, "AbandonedSound");
+	debugProcess(this->CloningFacility, "CloningFacility");
+	debugProcess(this->Factory_ExplicitOnly, "Factory_ExplicitOnly");
+
+	debugProcess(this->LostEvaEvent, "LostEvaEvent");
+	debugProcess(this->MessageCapture, "MessageCapture");
+	debugProcess(this->MessageLost, "MessageLost");
+	debugProcess(this->AIBuildCounts, "AIBuildCounts");
+	debugProcess(this->AIExtraCounts, "AIExtraCounts");
+	debugProcess(this->LandingDir, "LandingDir");
+	debugProcess(this->SellFrames, "SellFrames");
+
+	debugProcess(this->IsCustom, "IsCustom");
+	debugProcess(this->CustomWidth, "CustomWidth");
+	debugProcess(this->CustomHeight, "CustomHeight");
+	debugProcess(this->OutlineLength, "OutlineLength");
+	debugProcess(this->CustomData, "CustomData");
+	debugProcess(this->OutlineData, "OutlineData");
+	debugProcess(this->FoundationRadarShape, "FoundationRadarShape");
+	debugProcess(this->Secret_Boons, "Secret_Boons");
+	debugProcess(this->Academy, "Academy");
+	debugProcess(this->Secret_RecalcOnCapture, "Secret_RecalcOnCapture");
+	debugProcess(this->AcademyWhitelist, "AcademyWhitelist");
+	debugProcess(this->AcademyBlacklist, "AcademyBlacklist");
+	debugProcess(this->AcademyInfantry, "AcademyInfantry");
+	debugProcess(this->AcademyAircraft, "AcademyAircraft");
+	debugProcess(this->AcademyVehicle, "AcademyVehicle");
+	debugProcess(this->AcademyBuilding, "AcademyBuilding");
+	debugProcess(this->DegradeAmount, "DegradeAmount");
+	debugProcess(this->DegradePercentage, "DegradePercentage");
+	debugProcess(this->IsPassable, "IsPassable");
+	debugProcess(this->ProduceCashDisplay, "ProduceCashDisplay");
+	debugProcess(this->Storage_ActiveAnimations, "Storage_ActiveAnimations");
+	debugProcess(this->PurifierBonus, "PurifierBonus");
+	debugProcess(this->PurifierBonus_RequirePower, "PurifierBonus_RequirePower");
+	debugProcess(this->FactoryPlant_RequirePower, "FactoryPlant_RequirePower");
+	debugProcess(this->SpySat_RequirePower, "SpySat_RequirePower");
+	debugProcess(this->Cloning_RequirePower, "Cloning_RequirePower");
+	debugProcess(this->Radar_RequirePower, "Radar_RequirePower");
+	debugProcess(this->DisplayIncome, "DisplayIncome");
+	debugProcess(this->DisplayIncome_Houses, "DisplayIncome_Houses");
+	debugProcess(this->DisplayIncome_Offset, "DisplayIncome_Offset");
+	debugProcess(this->FreeUnit_Count, "FreeUnit_Count");
+	debugProcess(this->SpawnCrewOnlyOnce, "SpawnCrewOnlyOnce");
+	debugProcess(this->IsDestroyableObstacle, "IsDestroyableObstacle");
+	debugProcess(this->EVA_Online, "EVA_Online");
+	debugProcess(this->EVA_Offline, "EVA_Offline");
+	debugProcess(this->Explodes_DuringBuildup, "Explodes_DuringBuildup");
+
+	debugProcess(this->SpyEffect_SellDelay, "SpyEffect_SellDelay");
+	debugProcess(this->SpyEffect_Anim, "SpyEffect_Anim");
+	debugProcess(this->SpyEffect_Anim_Duration, "SpyEffect_Anim_Duration");
+	debugProcess(this->SpyEffect_Anim_DisplayHouses, "SpyEffect_Anim_DisplayHouses");
+
+	debugProcess(this->SpyEffect_SWTargetCenter, "SpyEffect_SWTargetCenter");
+	debugProcess(this->ShowPower, "ShowPower");
+	debugProcess(this->EMPulseCannon_UseWeaponSelection, "EMPulseCannon_UseWeaponSelection");
+
+	debugProcess(this->FactoryPlant_AllowTypes, "FactoryPlant_AllowTypes");
+	debugProcess(this->FactoryPlant_DisallowTypes, "FactoryPlant_DisallowTypes");
+
+	debugProcess(this->ExcludeFromMultipleFactoryBonus, "ExcludeFromMultipleFactoryBonus");
+
+	debugProcess(this->NoBuildAreaOnBuildup, "NoBuildAreaOnBuildup");
+	debugProcess(this->Adjacent_Allowed, "Adjacent_Allowed");
+	debugProcess(this->Adjacent_Disallowed, "Adjacent_Disallowed");
+
+	debugProcess(this->BarracksExitCell, "BarracksExitCell");
+
+	debugProcess(this->Units_RepairRate, "Units_RepairRate");
+	debugProcess(this->Units_RepairStep, "Units_RepairStep");
+	debugProcess(this->Units_RepairPercent, "Units_RepairPercent");
+	debugProcess(this->Units_UseRepairCost, "Units_UseRepairCost");
+	debugProcess(this->PowerPlant_DamageFactor, "PowerPlant_DamageFactor");
+
+	debugProcess(this->NextBuilding_Prev, "NextBuilding_Prev");
+	debugProcess(this->NextBuilding_Next, "NextBuilding_Next");
+	debugProcess(this->NextBuilding_CurrentHeapId, "NextBuilding_CurrentHeapId");
+
+	debugProcess(this->AutoBuilding, "AutoBuilding");
+	debugProcess(this->AutoBuilding_Gap, "AutoBuilding_Gap");
+	debugProcess(this->LimboBuild, "LimboBuild");
+	debugProcess(this->LimboBuildID, "LimboBuildID");
+	debugProcess(this->LaserFencePost_Fence, "LaserFencePost_Fence");
+	debugProcess(this->PlaceBuilding_OnLand, "PlaceBuilding_OnLand");
+	debugProcess(this->PlaceBuilding_OnWater, "PlaceBuilding_OnWater");
+	debugProcess(this->Cameo_ShouldCount, "Cameo_ShouldCount");
+
+	debugProcess(this->IsAnimDelayedBurst, "IsAnimDelayedBurst");
+
+	debugProcess(this->AllowAlliesRepair, "AllowAlliesRepair");
+	debugProcess(this->AllowRepairFlyMZone, "AllowRepairFlyMZone");
+
+	debugProcess(this->Overpower_KeepOnline, "Overpower_KeepOnline");
+	debugProcess(this->Overpower_ChargeWeapon, "Overpower_ChargeWeapon");
+
+	debugProcess(this->NewEvaVoice, "NewEvaVoice");
+	debugProcess(this->NewEvaVoice_Index, "NewEvaVoice_Index");
+	debugProcess(this->NewEvaVoice_Priority, "NewEvaVoice_Priority");
+	debugProcess(this->NewEvaVoice_RecheckOnDeath, "NewEvaVoice_RecheckOnDeath");
+	debugProcess(this->NewEvaVoice_InitialMessage, "NewEvaVoice_InitialMessage");
+
+	debugProcess(this->BattlePointsCollector, "BattlePointsCollector");
+	debugProcess(this->BattlePointsCollector_RequirePower, "BattlePointsCollector_RequirePower");
+	debugProcess(this->BuildingRepairedSound, "BuildingRepairedSound");
+
+	debugProcess(this->Refinery_UseNormalActiveAnim, "Refinery_UseNormalActiveAnim");
+	debugProcess(this->HasPowerUpAnim, "HasPowerUpAnim");
+
+	GameDebugLog::Log("[BuildingTypeExtData] === %s END ===\n",
+		std::is_same_v<T, PhobosStreamWriter> ? "SAVING" : "LOADING");
+}
+#endif
 // =============================
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
+std::vector<BuildingTypeExtData*> Container<BuildingTypeExtData>::Array;
 
-bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
+void Container<BuildingTypeExtData>::Clear()
 {
-	if (!key)
-		return false;
-
-	BuildingTypeExtData* pExt = BuildingTypeExtContainer::Instance.Map.get_or_default(key);
-
-	if (!pExt) {
-		pExt = BuildingTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
-	}
-
-	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, pExt);
-
-	PhobosByteStream loader { 0 };
-	if (loader.ReadBlockFromStream(pStm))
-	{
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(BuildingTypeExtData::Canary)
-			&& reader.RegisterChange(pExt))
-		{
-			pExt->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-			{
-				// reset the buildup time
-				BuildingTypeExtData::UpdateBuildupFrames(key);
-				return true;
-			}
-		}
-	}
-
-	return false;
+	Array.clear();
+	BuildingTypeExtData::trenchKinds.clear();
 }
 
 // =============================
@@ -2166,71 +2410,46 @@ bool BuildingTypeExtContainer::Load(BuildingTypeClass* key, IStream* pStm)
 ASMJIT_PATCH(0x45E50C, BuildingTypeClass_CTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, EAX);
-
-	BuildingTypeExtData* pExt = BuildingTypeExtContainer::Instance.Map.get_or_default(pItem);
-
-	if (!pExt) {
-		pExt = BuildingTypeExtContainer::Instance.Map.insert_unchecked(pItem,
-			   BuildingTypeExtContainer::Instance.AllocateUnchecked(pItem));
-	}
-
-	BuildingTypeExtContainer::Instance.SetExtAttribute(pItem, pExt);
-
+	BuildingTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 ASMJIT_PATCH(0x45E707, BuildingTypeClass_DTOR, 0x6)
 {
 	GET(BuildingTypeClass*, pItem, ESI);
-
-	auto extData = BuildingTypeExtContainer::Instance.GetExtAttribute(pItem);
-	BuildingTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	BuildingTypeExtContainer::Instance.Map.erase(pItem);
-	if(extData)
-		DLLCallDTOR(extData);
-
+	BuildingTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-ASMJIT_PATCH(0x465300, BuildingTypeClass_Save, 0x5)
-{
-	GET_STACK(BuildingTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	BuildingTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x465010, BuildingTypeClass_Load, 0x5)
-{
-	GET_STACK(BuildingTypeClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	BuildingTypeExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x465151, BuildingTypeClass_Load_Suffix, 0x7)
-{
-	BuildingTypeExtContainer::Instance.LoadStatic();
-	return 0;
-}
-
-ASMJIT_PATCH(0x46531C, BuildingTypeClass_Save_Suffix, 0x6)
-{
-	BuildingTypeExtContainer::Instance.SaveStatic();
-	return 0;
-}
-
-ASMJIT_PATCH(0x464A49, BuildingTypeClass_LoadFromINI, 0xA)
-{
-	GET(BuildingTypeClass*, pItem, EBP);
-	GET_STACK(CCINIClass*, pINI, 0x364);
-
-	BuildingTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x464A56);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x464A56, BuildingTypeClass_LoadFromINI, 0xA)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4610, FakeBuildingTypeClass::_CanUseWaypoint)
+
+bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	bool status = this->BuildingTypeClass::LoadFromINI(pINI);
+	BuildingTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E45D4, FakeBuildingTypeClass::_ReadFromINI)
+
+bool BuildingTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	auto ret = LoadGlobalArrayData(Stm);
+	ret &= Stm
+		.Process(BuildingTypeExtData::trenchKinds)
+		.Success()
+		;
+
+	return ret;
+}
+
+bool BuildingTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	auto ret =  SaveGlobalArrayData(Stm);
+	ret &= Stm
+		.Process(BuildingTypeExtData::trenchKinds)
+		.Success()
+		;
+
+	return ret;
+}

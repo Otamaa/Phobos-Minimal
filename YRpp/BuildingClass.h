@@ -36,6 +36,7 @@ public:
 
 	//Static
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<BuildingClass*>, 0xA8EB40u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<BuildingClass*>, 0x8B41E0u> const Secrets{};
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E3EBC;
 
 	//IPersist
@@ -222,6 +223,9 @@ public:
 
 	KickOutResult* ExitObject__(TechnoClass* pTech) const { JMP_THIS(0x4587D0); }
 
+	bool CanBeOccupyedBy(InfantryClass* inf) const
+	{ JMP_THIS(0x457CE0); }
+
 	// helpers
 	bool HasSuperWeapon(int index) const {
 		if(this->Type->HasSuperWeapon(index)) {
@@ -373,7 +377,7 @@ public:
 	CDTimerClass GoingToBlowTimer;  // used for warhead DelayKill and also C4
 	BStateType BState;
 	BStateType QueueBState;
-	DWORD OwnerCountryIndex;
+	int OwnerCountryIndex;
 	InfantryClass* C4AppliedBy;
 	DWORD LastStrength; //544
 	AnimClass* FirestormAnim; //pointer

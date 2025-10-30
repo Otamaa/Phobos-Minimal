@@ -5,7 +5,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
 
-AnimTypeClass* CaptureExt::GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback)
+AnimTypeClass* CaptureExtData::GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback)
 {
 	if (!pFallback)
 		pFallback = RulesClass::Instance->ControlledAnimationType;
@@ -20,13 +20,13 @@ AnimTypeClass* CaptureExt::GetMindcontrollAnimType(TechnoClass* pController, Tec
 	return pFallback;
 }
 
-bool CaptureExt::AllowDrawLink(TechnoClass* pTechno , TechnoTypeClass* pType)
+bool CaptureExtData::AllowDrawLink(TechnoClass* pTechno , TechnoTypeClass* pType)
 {
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 	return EnumFunctions::CanTargetHouse(pExt->Draw_MindControlLink, pTechno->Owner, HouseClass::CurrentPlayer);
 }
 
-bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent)
+bool CaptureExtData::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent)
 {
 	if (pTarget)
 	{
@@ -82,7 +82,7 @@ bool CaptureExt::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, b
 #include <Ext/Building/Body.h>
 
 // new CaptureUnit function that inclued new features
-bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget,
+bool CaptureExtData::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget,
 	bool bRemoveFirst, bool bSilent, AnimTypeClass* pControlledAnimType, int threatDelay)
 {
 	if (pManager->CanCapture(pTarget))
@@ -93,9 +93,9 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 		if (!pManager->InfiniteMindControl)
 		{
 			if (pManager->MaxControlNodes == 1 && pManager->ControlNodes.Count == 1)
-				CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
+				CaptureExtData::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
 			else if (pManager->ControlNodes.Count == pManager->MaxControlNodes && bRemoveFirst)
-				CaptureExt::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
+				CaptureExtData::FreeUnit(pManager, pManager->ControlNodes[0]->Unit , bSilent);
 		}
 
 		{
@@ -153,12 +153,12 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget
 }
 
 // Used For Replacing Vanilla Call function !
-bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, bool bSilent, int threatDelay)
+bool CaptureExtData::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, bool bSilent, int threatDelay)
 {
 	if (pTechno)
 	{
 		const auto Controller = pManager->Owner;
-		return CaptureExt::CaptureUnit(pManager, pTechno,
+		return CaptureExtData::CaptureUnit(pManager, pTechno,
 		TechnoTypeExtContainer::Instance.Find(Controller->GetTechnoType())->MultiMindControl_ReleaseVictim,
 		bSilent, RulesClass::Instance->ControlledAnimationType , threatDelay);
 	}
@@ -166,7 +166,7 @@ bool CaptureExt::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno
 	return false;
 }
 
-void CaptureExt::DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot , bool Captured)
+void CaptureExtData::DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot , bool Captured)
 {
 	// to be implemented (if needed). - secsome
 }

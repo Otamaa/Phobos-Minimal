@@ -67,7 +67,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //		return 0x41659E;
 //
 //	if (AircraftCanStrafeWithWeapon(pBullet->WeaponType)) {
-//		TechnoExtContainer::Instance.Find(pThis)->ShootCount++;
+//		TechnoExtContainer::Instance.Find(pThis)->Strafe_BombsDroppedThisRound++;
 //
 //		if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot) {
 //			pThis->loseammo_6c8 = false;
@@ -245,7 +245,7 @@ ASMJIT_PATCH(0x416EC9, AircraftClass_MI_Move_Carryall_AllowWater, 0x6) //was 8
 {
 	GET(AircraftClass*, pCarryall, ESI);
 
-	AbstractClass* const pDest = AircraftExt::IsValidLandingZone(pCarryall) ?
+	AbstractClass* const pDest = AircraftExtData::IsValidLandingZone(pCarryall) ?
 		pCarryall->Destination : pCarryall->NewLandingZone_(pCarryall->Destination);
 
 	pCarryall->SetDestination(pDest, true);
@@ -256,7 +256,7 @@ ASMJIT_PATCH(0x416FFD, AircraftClass_MI_Move_Carryall_AllowWater_LZClear, 0x6) /
 {
 	GET(AircraftClass*, pThis, ESI);
 
-	if (AircraftExt::IsValidLandingZone(pThis)) {
+	if (AircraftExtData::IsValidLandingZone(pThis)) {
 		R->AL(true);
 	} else {
 		R->AL(pThis->IsLandingZoneClear(pThis->Destination));

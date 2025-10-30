@@ -50,7 +50,7 @@ void ProtectStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		SW_Protect::ApplyProtect(this->Super, this->Coords , this->Type->GetRange(pData));
+		SW_Protect::ApplyProtect(this->Super, this->Coords , NewSWType::GetNewSWType(pData)->GetRange(pData));
 	}
 }
 
@@ -131,14 +131,14 @@ bool SW_Protect::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_Protect::Initialize(SWTypeExtData* pData)
 {
-	auto type = pData->AttachedToObject->Type;
+	auto type = pData->This()->Type;
 
 	// iron curtain and force shield, as well as protect
 	pData->SW_AnimHeight = 5;
 
 	if (type == SuperWeaponType::ForceShield)
 	{
-		pData->AttachedToObject->Action = Action::ForceShield;
+		pData->This()->Action = Action::ForceShield;
 		// force shield
 		pData->Protect_IsForceShield = true;
 		pData->SW_RadarEvent = false;
@@ -157,7 +157,7 @@ void SW_Protect::Initialize(SWTypeExtData* pData)
 	}
 	else
 	{
-		pData->AttachedToObject->Action = Action::IronCurtain;
+		pData->This()->Action = Action::IronCurtain;
 		// iron curtain and protect
 		pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainReady);
 		pData->EVA_Detected = VoxClass::FindIndexById(GameStrings::EVA_IronCurtainDetected);
@@ -190,7 +190,7 @@ bool SW_Protect::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuildi
 
 AnimTypeClass* SW_Protect::GetAnim(const SWTypeExtData* pData) const
 {
-	return pData->SW_Anim.Get(pData->AttachedToObject->Type == SuperWeaponType::ForceShield ?
+	return pData->SW_Anim.Get(pData->This()->Type == SuperWeaponType::ForceShield ?
 		RulesClass::Instance->ForceShieldInvokeAnim : RulesClass::Instance->IronCurtainInvokeAnim);
 }
 
@@ -199,7 +199,7 @@ SWRange SW_Protect::GetRange(const SWTypeExtData* pData) const
 	if (!pData->SW_Range->empty()) {
 		return pData->SW_Range;
 	}
-	else if (pData->AttachedToObject->Type == SuperWeaponType::ForceShield) {
+	else if (pData->This()->Type == SuperWeaponType::ForceShield) {
 		return { RulesClass::Instance->ForceShieldRadius };
 	}
 

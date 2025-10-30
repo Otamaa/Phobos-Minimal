@@ -29,65 +29,6 @@
 #include <InfantryClass.h>
 #include <CaptureManagerClass.h>
 
-ASMJIT_PATCH(0x709D38, TechnoClass_DrawPipscale_Passengers, 7)
-{
-	GET(TechnoClass* const, pThis, EBP);
-	GET(TechnoTypeClass*, pType, EAX);
-
-	if (pType->PipScale != PipScale::Passengers)
-		return 0x70A083;
-
-	GET(int, nBracketPosDeltaY, ESI);
-	GET_STACK(SHPStruct*, pShp, 0x1C);
-	GET_STACK(RectangleStruct*, pRect, 0x80);
-	GET_STACK(int, nPosX, 0x50);
-	GET_STACK(int, nPosY, 0x54);
-	GET_STACK(int, nBracketPosDeltaX, 0x58);
-
-	Point2D nPos = { nPosX ,nPosY };
-	int nForGunner = 0;
-	bool fail = false;
-	const auto pData = TunnelFuncs::PopulatePassangerPIPData(pThis, pType, fail);
-
-	if (fail)
-		return 0x70A083;
-
-	for (auto nDPos = pData->begin(); nDPos != pData->end(); ++nDPos)
-	{
-		DSurface::Temp->DrawSHP
-		(FileSystem::PALETTE_PAL,
-			pShp,
-			*nDPos,
-			&nPos,
-			pRect,
-			BlitterFlags(0x600),
-			0,
-			0,
-			ZGradient::Ground,
-			1000,
-			0,
-			0,
-			0,
-			0,
-			0
-		);
-
-		++nForGunner;
-		const auto nXHere = nBracketPosDeltaX + nPos.X;
-		const auto nYHere = nBracketPosDeltaY + nPos.Y;
-		nPos.X += nBracketPosDeltaX;
-		nPos.Y += nBracketPosDeltaY;
-
-		if ((bool)nForGunner == pType->Gunner)
-		{
-			nPos.X += nXHere + nBracketPosDeltaX;
-			nPos.Y += nYHere + nBracketPosDeltaY;
-		}
-	}
-
-	return 0x70A4EC;
-}
-
 ASMJIT_PATCH(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 {
 	GET_STACK(AbstractClass*, pKiller, 0x90);
@@ -95,17 +36,6 @@ ASMJIT_PATCH(0x442DF2, BuildingClass_Demolish_Tunnel, 6)
 
 	if (auto pTunnelData = HouseExtData::GetTunnelVector(pTarget->Type, pTarget->Owner))
 		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, flag_cast_to<TechnoClass*>(pKiller));
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x71A995, TemporalClass_Update_Tunnel, 5)
-{
-	GET(TemporalClass*, pThis, ESI);
-	GET(BuildingClass*, pTarget, EBP);
-
-	if (const auto pTunnelData = HouseExtData::GetTunnelVector(pTarget->Type, pTarget->Owner))
-		TunnelFuncs::DestroyTunnel(&pTunnelData->Vector, pTarget, pThis->Owner);
 
 	return 0;
 }
@@ -348,8 +278,7 @@ ASMJIT_PATCH(0x51ED8E, InfantryClass_GetActionOnObject_Tunnel, 6)
 		return CanEnter;
 
 	bool Enterable = false;
-	if (const auto pBuildingTarget = cast_to<BuildingClass*>(pTarget))
-	{
+	if (const auto pBuildingTarget = cast_to<BuildingClass*>(pTarget)) {
 		Enterable = BuildingTypeExtContainer::Instance.Find(pBuildingTarget->Type)->TunnelType >= 0;
 	}
 

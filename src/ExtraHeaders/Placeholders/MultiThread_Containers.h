@@ -47,7 +47,9 @@ namespace CryMT
 		void   free_memory() { AutoLock lock(m_cs); stl::free_container(v); }
 
 		template <class Func>
-		void   sort(const Func& compare_less) { AutoLock lock(m_cs); std::sort(v.begin(), v.end(), compare_less); }
+		void   sort(const Func& compare_less) { AutoLock lock(m_cs);
+			std::ranges::sort(v, compare_less);
+		}
 
 		//////////////////////////////////////////////////////////////////////////
 		bool try_pop(T& returnValue)

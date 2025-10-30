@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <Utilities/SavegameDef.h>
+#include <Utilities/Macro.h>
 
 #include <Ext/Rules/Body.h>
 #include <Ext/Scenario/Body.h>
@@ -25,9 +26,8 @@ template <typename T>
 void TEventExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
+		.Process(this->TechnoType)
 		;
-	//Stm;
 }
 
 // helper struct
@@ -61,15 +61,15 @@ TechnoTypeClass* TEventExtData::GetTechnoType()
 {
 	if (this->TechnoType.empty())
 	{
-		const char* eventTechno = this->AttachedToObject->String;
+		const char* eventTechno = This()->String;
 		TechnoTypeClass* pType = TechnoTypeClass::Find(eventTechno);
 
 		if (!pType)
 		{
 			Debug::LogInfo("Event{}] with Team[{} - {}] references non-existing techno type \"%s\".",
-				(void*)this->AttachedToObject,
-				this->AttachedToObject->TeamType ? this->AttachedToObject->TeamType->ID : GameStrings::NoneStr(),
-				(void*)this->AttachedToObject->TeamType,
+				(void*)This(),
+				This()->TeamType ? This()->TeamType->ID : GameStrings::NoneStr(),
+				(void*)This()->TeamType,
 				eventTechno
 			);
 		}
@@ -98,7 +98,9 @@ bool TEventExtData::AttachedIsUnderAttachedEffectTEvent(TEventClass* pThis, Obje
 	if (!pTechno)
 		return false;
 
-	if (PhobosAEFunctions::HasAttachedEffects(pTechno, pTypeAttached, false, false, nullptr, nullptr, nullptr, nullptr))
+	std::vector<PhobosAttachEffectTypeClass*> attach { pTypeAttached };
+
+	if (PhobosAEFunctions::HasAttachedEffects(pTechno, attach, false, false, nullptr, nullptr, nullptr, nullptr))
 		return true;
 
 	return false;
@@ -435,6 +437,21 @@ bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 // =============================
 // container
 TEventExtContainer TEventExtContainer::Instance;
+std::vector<TEventExtData*> Container<TEventExtData>::Array;
+void Container<TEventExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool TEventExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool TEventExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
@@ -455,31 +472,109 @@ ASMJIT_PATCH(0x71E856, TEventClass_SDDTOR, 0x6)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x71FAA6, TEventClass_SDDTOR, 0x6) // Factory
 
-#include <Misc/Hooks.Otamaa.h>
 
-HRESULT __stdcall FakeTEventClass::_Load(IStream* pStm)
+ASMJIT_PATCH(0x71F58B, TEventClass_ReadINI_MaskedTEvents, 0x7)
 {
+	REF_STACK(TEventClass*, pThis, 0x4);
 
-	TEventExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TEventClass::Load(pStm);
+	switch (static_cast<PhobosTriggerEvent>(pThis->EventKind))
+	{
+	case PhobosTriggerEvent::EnteredByByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::EnteredBy;
+		break;
+	case PhobosTriggerEvent::SpiedByByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::SpiedBy;
+		break;
+	case PhobosTriggerEvent::HouseDiscoveredByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::HouseDiscovered;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsAllByID:
+		pThis->Value = UnitTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedUnitsAll;
+		break;
+	case PhobosTriggerEvent::DestroyedBuildingsAllByID:
+		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedBuildingsAll;
+		break;
+	case PhobosTriggerEvent::DestroyedAllByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedAll;
+		break;
+	case PhobosTriggerEvent::BuildBuildingTypeByID:
+		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildBuildingType;
+		break;
+	case PhobosTriggerEvent::BuildUnitTypeByID:
+		pThis->Value = UnitTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildUnitType;
+		break;
+	case PhobosTriggerEvent::BuildInfantryTypeByID:
+		pThis->Value = InfantryTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildInfantryType;
+		break;
+	case PhobosTriggerEvent::BuildAircraftTypeByID:
+		pThis->Value = AircraftTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildAircraftType;
+		break;
+	case PhobosTriggerEvent::ZoneEntryByByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::ZoneEntryBy;
+		break;
+	case PhobosTriggerEvent::CrossesHorizontalLineByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::CrossesHorizontalLine;
+		break;
+	case PhobosTriggerEvent::CrossesVerticalLineByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::CrossesVerticalLine;
+		break;
+	case PhobosTriggerEvent::LowPowerByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::LowPower;
+		break;
+	case PhobosTriggerEvent::BuildingExistsByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildingExists;
+		break;
+	case PhobosTriggerEvent::AttackedByHouseByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::AttackedByHouse;
+		break;
+	case PhobosTriggerEvent::SpyAsHouseByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::SpyAsHouse;
+		break;
+	case PhobosTriggerEvent::SpyAsInfantryByID:
+		pThis->Value = InfantryTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::SpyAsInfantry;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsNavalByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedUnitsNaval;
+		break;
+	case PhobosTriggerEvent::DestroyedUnitsLandByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::DestroyedUnitsLand;
+		break;
+	case PhobosTriggerEvent::BuildingDoesNotExistByID:
+		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
+		pThis->EventKind = TriggerEvent::BuildingDoesNotExist;
+		break;
+	case PhobosTriggerEvent::PowerFullByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::PowerFull;
+		break;
+	case PhobosTriggerEvent::EnteredOrOverflownByByID:
+		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->EventKind = TriggerEvent::EnteredOrOverflownBy;
+		break;
 
-	if (SUCCEEDED(res))
-		TEventExtContainer::Instance.LoadStatic();
+	default:
+		break;
+	}
 
-	return res;
+	return 0;
 }
-
-HRESULT __stdcall FakeTEventClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	TEventExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TEventClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		TEventExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F558C, FakeTEventClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5590, FakeTEventClass::_Save)

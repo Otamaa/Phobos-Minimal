@@ -2,6 +2,7 @@
 
 #include <ThemeClass.h>
 #include <Utilities/Helpers.h>
+#include <Utilities/Macro.h>
 
 SHPStruct* SideExtData::s_GraphicalTextImage = nullptr;
 CustomPalette SideExtData::s_GraphicalTextConvert;
@@ -9,11 +10,10 @@ CustomPalette SideExtData::s_GraphicalTextConvert;
 SHPStruct* SideExtData::s_DialogBackgroundImage = nullptr;
 CustomPalette SideExtData::s_DialogBackgroundConvert;
 
-
 int SideExtData::CurrentLoadTextColor = -1;
 
 void SideExtData::Initialize() {
-	const char* pID = this->AttachedToObject->ID;
+	const char* pID = This()->ID;
 
 	if (IS_SAME_STR_(pID, "Nod"))
 	{ //Soviets
@@ -81,17 +81,18 @@ void SideExtData::Initialize() {
 
 const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) const
 {
-	static char filename[decltype(this->ScoreMultiplayBars)::Size];
-	auto const& data = this->ScoreMultiplayBars.data();
+	char filename[decltype(this->ScoreMultiplayBars)::max_size()];
 
-	PhobosCRT::lowercase(filename, data);
+	PhobosCRT::lowercase(filename, this->ScoreMultiplayBars.raw());
 
 	if (auto const pMarker = strstr(filename, "~~"))
 	{
-		fmt::memory_buffer buffer {};
+		static fmt::basic_memory_buffer<char, 3> buffer {};
+		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), "{:02}" ,index + 1);
 		pMarker[0] = buffer[0];
 		pMarker[1] = buffer[1];
+		buffer.push_back('\0');
 	}
 
 	return filename;
@@ -283,13 +284,13 @@ InfantryTypeClass* SideExtData::GetDefaultDisguise() const
 	}
 }
 
-void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
-	const char* pSection = pThis->ID;
-
 	if (parseFailAddr)
-		return;
+		return false;
+
+	auto pThis = This();
+	const char* pSection = pThis->ID;
 
 	INI_EX exINI(pINI);
 	this->Sidebar_GDIPositions.Read(exINI, pSection, "Sidebar.GDIPositions");
@@ -382,6 +383,8 @@ void SideExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->Sidebar_BattlePoints_Offset.Read(exINI, pSection, "Sidebar.BattlePoints.Offset");
 	this->Sidebar_BattlePoints_Color.Read(exINI, pSection, "Sidebar.BattlePoints.Color");
 	this->Sidebar_BattlePoints_Align.Read(exINI, pSection, "Sidebar.BattlePoints.Align");
+
+	return true;
 }
 
 void SideExtData::UpdateGlobalFiles()
@@ -429,7 +432,6 @@ template <typename T>
 void SideExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->ArrayIndex)
 		.Process(this->Sidebar_GDIPositions)
 
@@ -516,27 +518,40 @@ void SideExtData::Serialize(T& Stm)
 		;
 }
 
-bool SideExtData::LoadGlobals(PhobosStreamReader& Stm)
-{
-	auto ret = Stm
-		.Process(SideExtData::CurrentLoadTextColor)
-		.Success();
-
-	SideExtData::UpdateGlobalFiles();
-
-	return ret;
-}
-
-bool SideExtData::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return Stm
-		.Process(SideExtData::CurrentLoadTextColor)
-		.Success();
-}
 
 // =============================
 // container
 SideExtContainer SideExtContainer::Instance;
+std::vector<SideExtData*> Container<SideExtData>::Array;
+
+void Container<SideExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool SideExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	auto ret = LoadGlobalArrayData(Stm);
+
+	ret &= Stm
+		.Process(SideExtData::CurrentLoadTextColor)
+		.Success();
+
+	return ret;
+}
+
+bool SideExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	auto ret = SaveGlobalArrayData(Stm);
+
+		ret &=  Stm
+		.Process(SideExtData::CurrentLoadTextColor)
+		.Success();
+
+	return ret;
+
+}
+
 // =============================
 // container hooks
 
@@ -558,49 +573,3 @@ ASMJIT_PATCH(0x6A499F, SideClass_SDDTOR, 0x6)
 	SideExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-
-ASMJIT_PATCH(0x6A4780, SideClass_SaveLoad_Prefix, 0x6)
-{
-	GET_STACK(SideClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-
-	SideExtContainer::Instance.PrepareStream(pItem, pStm);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x6A48A0, SideClass_SaveLoad_Prefix, 0x5)
-
-ASMJIT_PATCH(0x6A488B, SideClass_Load_Suffix, 0x6)
-{
-   	SideExtContainer::Instance.LoadStatic();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A48FC, SideClass_Save_Suffix, 0x5)
-{
-	SideExtContainer::Instance.SaveStatic();
-	return 0;
-}
-
- //ASMJIT_PATCH(0x679A10, SideClass_LoadAllFromINI, 0x5)
- //{
- //	GET_STACK(CCINIClass*, pINI, 0x4);
-
- //	for (auto pSide : *SideClass::Array) {
- //		SideExtContainer::Instance.LoadFromINI(pSide, pINI, !pINI->GetSection(pSide->ID));
- //	}
-
- //	return 0;
- //}
-
-/*
-FINE_HOOK(6725C4, RulesClass_Addition_Sides, 8)
-{
-	GET(SideClass *, pItem, EBP);
-	GET_STACK(CCINIClass*, pINI, 0x38);
-
-	SideExtContainer::Instance.LoadFromINI(pItem, pINI);
-	return 0;
-}
-*/

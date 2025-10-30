@@ -41,95 +41,30 @@
 // }
 
 // this hook already inside loop function !
-ASMJIT_PATCH(0x709C84, TechnoClass_DrawPip_Occupants, 0x6)
-{
-	struct DrawPipDataStruct
-	{
-		int nOccupantsCount; int Y; SHPStruct* pShape; int nMaxOccupants;
-	};
-
-	GET(BuildingClass*, pThis, EBP);
-	GET(int, nOccupantIdx, EDI);
-	GET(int, nOffset_X, EBX);
-	GET_STACK(int, nOffset_Y, STACK_OFFS(0x74, 0x50));
-	GET_STACK(DrawPipDataStruct, nPipDataStruct, STACK_OFFS(0x74, 0x60));
-	GET_STACK(Point2D, nDrawOffset, STACK_OFFS(0x74, 0x24));
-	GET_STACK(Point2D, nOffsetadd, STACK_OFFS(0x74, 0x1C));
-	GET_STACK(RectangleStruct*, pRect, STACK_OFFS(0x74, -0xC));
-	GET(int, nOffsetY_Increment, ESI);
-
-	int nPipFrameIndex = 6;
-	SHPStruct* pPipFile = nPipDataStruct.pShape;
-	ConvertClass* pPalette = FileSystem::THEATER_PAL;
-
-	if (nOccupantIdx < nPipDataStruct.nMaxOccupants)
-	{
-		if (auto const pInfantry = pThis->Occupants.Items[nOccupantIdx])
-		{
-			const auto pExt = TechnoTypeExtContainer::Instance.Find(pInfantry->Type);
-
-			if (const auto pGarrisonPip = pExt->PipGarrison.Get(nullptr))
-			{
-				pPipFile = pGarrisonPip;
-				nPipFrameIndex = std::clamp((int)pExt->PipGarrison_FrameIndex, 0, (int)pGarrisonPip->Frames);
-				if(auto pConvert_c = pExt->PipGarrison_Palette.GetConvert())
-					pPalette = pConvert_c;
-			}
-			else
-			{
-				nPipFrameIndex = (int)pInfantry->Type->OccupyPip;
-			}
-		}
-	}
-
-	Point2D nOffset { nOffset_X + nDrawOffset.X ,nDrawOffset.Y + nOffset_Y };
-	if (pPipFile)
-	{
-		DSurface::Temp->DrawSHP(
-			pPalette,
-			pPipFile,
-			nPipFrameIndex,
-			&nOffset,
-			pRect,
-			BlitterFlags(0x600),
-			0,
-			0,
-			ZGradient::None,
-			1000,
-			0,
-			0,
-			0,
-			0,
-			0);
-	}
-
-	++nOccupantIdx;
-	nOffset_X += nOffsetadd.X;
-	nOffset_Y += nOffsetY_Increment;
-
-	// need to forward the value bacause it is needed for next loop
-	R->EBX(nOffset_X);
-	R->ECX(nOffset_Y);
-	R->EDI(nOccupantIdx);
-	R->EAX(nPipDataStruct.nOccupantsCount);
-
-	return 0x709D11;
-}
+#include <Ext/Scenario/Body.h>
 
 void DetonateDeathWeapon(TechnoClass* pThis, TechnoTypeClass* pType, WeaponTypeClass* pDecided, int nMult, bool RulesDeath)
 {
 	if (pDecided)
 	{
 		auto const pBonus = RulesDeath ? (int)(pType->Strength * 0.5) : (int)(pDecided->Damage * pType->DeathWeaponDamageModifier);
-		auto const pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pDecided->Projectile);
 
-		if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed,
-			WeaponTypeExtContainer::Instance.Find(pDecided)->GetProjectileRange(),
-			pDecided->Bright || pDecided->Warhead->Bright, true))
-		{
-			pBullet->SetWeaponType(pDecided);
-			BulletExtData::DetonateAt(pBullet, pThis, pThis, pThis->Location);
-		}
+		ScenarioExtData::DetonateMasterBullet(pThis->Location,
+			pThis,
+			pBonus + nMult,
+			pThis->Owner,
+			pThis,
+			pDecided->Bright || pDecided->Warhead->Bright,
+			pDecided,
+			pDecided->Warhead
+		);
+		//if (const auto pBullet = pBulletTypeExt->CreateBullet(pThis, pThis, pBonus + nMult, pDecided->Warhead, pDecided->Speed,
+		//	WeaponTypeExtContainer::Instance.Find(pDecided)->GetProjectileRange(),
+		//	pDecided->Bright || pDecided->Warhead->Bright, true))
+		//{
+		//	pBullet->SetWeaponType(pDecided);
+		//	BulletExtData::DetonateAt(pBullet, pThis, pThis, pThis->Location);
+		//}
 	}
 }
 

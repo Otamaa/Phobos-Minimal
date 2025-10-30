@@ -2,6 +2,7 @@
 
 #include <YRPPCore.h>
 #include <GenericList.h>
+#include <algorithm>
 
 /*
 * IndexClass, most impl from CCR
@@ -184,7 +185,7 @@ auto IndexClass<TKey, TValue>::FetchItem(TKey id, bool Lowerbound) const
 		if (NodeType const* nodeptr = const_cast<IndexClass<TKey, TValue>*>(this)->SearchForNode(id , Lowerbound)) {
 			const_cast<IndexClass<TKey, TValue>*>(this)->SetArchive(nodeptr);
 			return this->Archive;
-		} 
+		}
 
 		return (NodeType*)nullptr;
 	}

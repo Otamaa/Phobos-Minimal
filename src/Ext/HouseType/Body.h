@@ -3,100 +3,183 @@
 
 #include <Helpers/Macro.h>
 
-#include <Utilities/Container.h>
+#include <Ext/AbstractType/Body.h>
+
 #include <Utilities/PhobosFixedString.h>
 #include <Utilities/PhobosPCXFile.h>
-#include <Utilities/TemplateDef.h>
 
-class HouseTypeExtData final
+class TechnoTypeClass;
+class InfantryTypeClass;
+class AircraftTypeClass;
+class UnitTypeClass;
+class AnimTypeClass;
+class BuildingTypeClass;
+struct SHPStruct;
+class HouseTypeExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = HouseTypeClass;
-	static COMPILETIMEEVAL size_t Canary = 0x1111111A;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	static COMPILETIMEEVAL size_t ExtOffset = 0xC4;//ARES
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-	bool SettingsInherited { false };
 
-	Valueable<int> SurvivorDivisor { -1 };
-	Valueable<InfantryTypeClass*> Crew { nullptr };
-	Valueable<InfantryTypeClass*> Engineer { nullptr };
-	Valueable<InfantryTypeClass*> Technician { nullptr };
-	Valueable<AircraftTypeClass*> ParaDropPlane { nullptr };
-	Valueable<AircraftTypeClass*> SpyPlane { nullptr };
-	Valueable<UnitTypeClass*> HunterSeeker { nullptr };
+#pragma region ClassMembers
+	bool SettingsInherited;
+	Valueable<int> SurvivorDivisor;
+	Valueable<InfantryTypeClass*> Crew;
+	Valueable<InfantryTypeClass*> Engineer;
+	Valueable<InfantryTypeClass*> Technician;
+	Valueable<AircraftTypeClass*> ParaDropPlane;
+	Valueable<AircraftTypeClass*> SpyPlane;
+	Valueable<UnitTypeClass*> HunterSeeker;
+	ValueableVector<TechnoTypeClass*> ParaDropTypes;
+	ValueableVector<int> ParaDropNum;
+	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
+	Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
+	Nullable<double> NewTeamsSelector_GroundCategoryPercentage;
+	Nullable<double> NewTeamsSelector_NavalCategoryPercentage;
+	Nullable<double> NewTeamsSelector_AirCategoryPercentage;
+	Valueable<bool> GivesBounty;
+	Nullable<bool> CanBeDriven;
+	Valueable<AnimTypeClass*> ParachuteAnim;
+	Valueable<bool> StartInMultiplayer_WithConst;
+	ValueableVector<BuildingTypeClass*> Powerplants;
+	ValueableVector<BuildingTypeClass*> VeteranBuildings;
+	ValueableVector<std::string> TauntFile; //Taunt filename format (should contain %d !!!)
+	Valueable<std::string> TauntFileName;
+	Nullable<bool> Degrades;
+	Valueable<InfantryTypeClass*> Disguise;
+	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types;
+	PhobosFixedString<0x20> LoadScreenBackground;
+	PhobosFixedString<0x20> LoadScreenPalette;
+	ValueableIdx<ColorScheme> LoadTextColor; //The text color used for non-Campaign modes
+	Valueable<unsigned int> RandomSelectionWeight;
+	Valueable<CSFText> LoadScreenName;
+	Valueable<CSFText> LoadScreenSpecialName;
+	Valueable<CSFText> LoadScreenBrief;
+	Valueable<CSFText> StatusText;
+	PhobosPCXFile FlagFile; //Flag
+	PhobosPCXFile ObserverFlag;
+	SHPStruct* ObserverFlagSHP;
+	Valueable<bool> ObserverFlagYuriPAL;
+	PhobosPCXFile ObserverBackground;
+	SHPStruct* ObserverBackgroundSHP;
+	Valueable<bool> BattlePoints;
+	Valueable<bool> BattlePoints_CanUseStandardPoints;
+#pragma endregion
 
-	ValueableVector<TechnoTypeClass*> ParaDropTypes { };
-	ValueableVector<int> ParaDropNum { };
+public:
+	HouseTypeExtData(HouseTypeClass* pObj) :
+		AbstractTypeExtData(pObj),
 
-	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith { };
-	Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage { };
-	Nullable<double> NewTeamsSelector_GroundCategoryPercentage { };
-	Nullable<double> NewTeamsSelector_NavalCategoryPercentage { };
-	Nullable<double> NewTeamsSelector_AirCategoryPercentage { };
+		SettingsInherited(false),
 
-	Valueable<bool> GivesBounty { true };
-	Nullable<bool> CanBeDriven {};
+		SurvivorDivisor(-1),
+		Crew(nullptr),
+		Engineer(nullptr),
+		Technician(nullptr),
 
-	Valueable<AnimTypeClass*> ParachuteAnim { nullptr };
-	Valueable<bool> StartInMultiplayer_WithConst { false };
-	ValueableVector<BuildingTypeClass*> Powerplants {};
+		ParaDropPlane(nullptr),
+		SpyPlane(nullptr),
+		HunterSeeker(nullptr),
 
-	ValueableVector<BuildingTypeClass*> VeteranBuildings {};
-	ValueableVector<std::string> TauntFile {}; //Taunt filename format (should contain %d !!!)
-	Valueable<std::string> TauntFileName {};
+		ParaDropTypes(),
+		ParaDropNum(),
 
-	Nullable<bool> Degrades {};
-	Valueable<InfantryTypeClass*> Disguise {};
+		NewTeamsSelector_MergeUnclassifiedCategoryWith(),
+		NewTeamsSelector_UnclassifiedCategoryPercentage(),
+		NewTeamsSelector_GroundCategoryPercentage(),
+		NewTeamsSelector_NavalCategoryPercentage(),
+		NewTeamsSelector_AirCategoryPercentage(),
 
-	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types {};
+		GivesBounty(true),
+		CanBeDriven(),
+		ParachuteAnim(nullptr),
 
-	PhobosFixedString<0x20> LoadScreenBackground {};
-	PhobosFixedString<0x20> LoadScreenPalette {};
+		StartInMultiplayer_WithConst(false),
+		Powerplants(),
+		VeteranBuildings(),
 
-	ValueableIdx<ColorScheme> LoadTextColor { -1 }; //The text color used for non-Campaign modes
-	Valueable<unsigned int> RandomSelectionWeight { 1 };
+		TauntFile(),
+		TauntFileName(""),
 
-	Valueable<CSFText> LoadScreenName {};
-	Valueable<CSFText> LoadScreenSpecialName {};
-	Valueable<CSFText> LoadScreenBrief {};
+		Degrades(),
+		Disguise(nullptr),
+		StartInMultiplayer_Types(),
 
-	Valueable<CSFText> StatusText {};
+		LoadScreenBackground(""),
+		LoadScreenPalette(""),
 
-	PhobosPCXFile FlagFile {}; //Flag
-	PhobosPCXFile ObserverFlag {};
-	SHPStruct* ObserverFlagSHP {};
-	Valueable<bool> ObserverFlagYuriPAL { false };
+		LoadTextColor(-1),
+		RandomSelectionWeight(1),
 
-	PhobosPCXFile ObserverBackground {};
-	SHPStruct* ObserverBackgroundSHP {};
+		LoadScreenName(),
+		LoadScreenSpecialName(),
+		LoadScreenBrief(),
+		StatusText(),
 
-	Valueable<bool> BattlePoints {};
-	Valueable<bool> BattlePoints_CanUseStandardPoints {};
+		FlagFile(),
+		ObserverFlag(),
+		ObserverFlagSHP(nullptr),
+		ObserverFlagYuriPAL(false),
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+		ObserverBackground(),
+		ObserverBackgroundSHP(nullptr),
+
+		BattlePoints(false),
+		BattlePoints_CanUseStandardPoints(false)
+	{
+		this->Initialize();
+	}
+
+	HouseTypeExtData(HouseTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+
+	virtual ~HouseTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<HouseTypeExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
+		const_cast<HouseTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->AbstractTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual HouseTypeClass* This() const override { return reinterpret_cast<HouseTypeClass*>(this->AbstractTypeExtData::This()); }
+	virtual const HouseTypeClass* This_Const() const override { return reinterpret_cast<const HouseTypeClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
+
+public:
+
 	void LoadFromRulesFile(CCINIClass* pINI);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-
 	void InheritSettings(HouseTypeClass* pThis);
-
 	void Initialize();
 
 	Iterator<BuildingTypeClass*> GetPowerplants() const;
 	Iterator<BuildingTypeClass*> GetDefaultPowerplants() const;
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(HouseTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
+public:
 
 	static int PickRandomCountry();
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -106,25 +189,17 @@ class HouseTypeExtContainer final : public Container<HouseTypeExtData>
 {
 public:
 	static HouseTypeExtContainer Instance;
-	PhobosMap<HouseTypeClass*, HouseTypeExtData*> Map {};
 
-	virtual bool Load(HouseTypeClass* key, IStream* pStm);
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	void Clear()
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
-		this->Map.clear();
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
 	}
-
-//	HouseTypeExtContainer() : Container<HouseTypeExtData> { "HouseTypeClass" }
-//		, Map {}
-//	{ }
-//
-//	virtual ~HouseTypeExtContainer() override = default;
-//
-//private:
-//	HouseTypeExtContainer(const HouseTypeExtContainer&) = delete;
-//	HouseTypeExtContainer(HouseTypeExtContainer&&) = delete;
-//	HouseTypeExtContainer& operator=(const HouseTypeExtContainer& other) = delete;
 
 };
 
@@ -132,10 +207,11 @@ class NOVTABLE FakeHouseTypeClass : public HouseTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	HouseTypeExtData* _GetExtData() {
-		return *reinterpret_cast<HouseTypeExtData**>(((DWORD)this) + HouseTypeExtData::ExtOffset);
+		return *reinterpret_cast<HouseTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 };
 static_assert(sizeof(FakeHouseTypeClass) == sizeof(HouseTypeClass), "Invalid Size !");

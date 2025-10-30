@@ -52,7 +52,7 @@ void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
 			}
 
 			if(pOverlay->Wall && pWH->Wall) {
-				pCell->ReduceWall();
+				pCell->ReduceWall(pWpn->Damage);
 			}
 		}
 
@@ -60,6 +60,10 @@ void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
 			if(ScenarioClass::Instance->Random.RandomRanged(0,99) < RulesClass::Instance->CollapseChance) {
 				MapClass::Instance->DestroyCliff(pCell);
 			}
+		}
+
+		if(pCell->OverlayTypeIndex == -1) {
+			TechnoClass::ClearWhoTargetingThis(pCell);
 		}
 	}
 }
@@ -73,7 +77,7 @@ void WaveExtData::InitWeaponData()
 
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(this->Weapon);
 
-	switch (this->AttachedToObject->Target->WhatAmI())
+	switch (this->This()->Target->WhatAmI())
 	{
 	case UnitClass::AbsID:
 		this->ReverseAgainstTarget = pWeaponExt->Wave_Reverse[0];
@@ -206,8 +210,7 @@ template <typename T>
 void WaveExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-		.Process(this->Weapon, true)
+		.Process(this->Weapon)
 		.Process(this->WeaponIdx)
 		.Process(this->ReverseAgainstTarget)
 		.Process(this->SourceCoord)
@@ -218,6 +221,22 @@ void WaveExtData::Serialize(T& Stm)
 // =============================
 // container
 WaveExtContainer WaveExtContainer::Instance;
+std::vector<WaveExtData*> Container<WaveExtData>::Array;
+
+ void Container<WaveExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool WaveExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool WaveExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
@@ -229,33 +248,6 @@ ASMJIT_PATCH(0x75EA66, WaveClass_CTOR, 0x5)
 	WaveExtContainer::Instance.FindOrAllocate(pItem);
 	return 0;
 }
-
-
-ASMJIT_PATCH(0x75F650, WaveClass_SaveLoad_Prefix, 0x6)
-{
-	GET_STACK(WaveClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
-	WaveExtContainer::Instance.PrepareStream(pItem, pStm);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x75F7D0, WaveClass_SaveLoad_Prefix, 0x5)
-
-//we load it before DVC<CellStruct> get loaded
-ASMJIT_PATCH(0x75F704, WaveClass_Load_Suffix, 0x7)
-{
-	WaveExtContainer::Instance.LoadStatic();
-	return 0;
-}
-
-//write it before DVC<CellStruct>
-ASMJIT_PATCH(0x75F7E7, WaveClass_Save_Suffix, 0x6)
-{
-	//GET(HRESULT, nRes, EAX);
-
-	WaveExtContainer::Instance.SaveStatic();
-
-	return 0;
-}
-
 
 ASMJIT_PATCH(0x763226, WaveClass_DTOR, 0x6)
 {
@@ -294,3 +286,24 @@ void FakeWaveClass::_Detach(AbstractClass* target , bool all)\
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C1C, FakeWaveClass::_Detach)
+
+HRESULT __stdcall FakeWaveClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->WaveClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = WaveExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeWaveClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->WaveClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = WaveExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C08, FakeWaveClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C0C, FakeWaveClass::_Save)

@@ -303,26 +303,26 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 
 	R->Stack(0x10, &crdSrc);
 
-	if (pWeapon->UseFireParticles && !pThis->FireParticleSystem && pWeapon->AttachedParticleSystem) {
-		pThis->FireParticleSystem = GameCreate<ParticleSystemClass>(
+	if (pWeapon->UseFireParticles && !pThis->Sys.Fire && pWeapon->AttachedParticleSystem) {
+		pThis->Sys.Fire = GameCreate<ParticleSystemClass>(
 			pWeapon->AttachedParticleSystem, crdSrc,
 			FireAtTemp::pObstacleCell  ? FireAtTemp::pObstacleCell : pOriginalTarget, pThis);
 	}
 
-	if (pWeapon->UseSparkParticles && !pThis->SparkParticleSystem && pWeapon->AttachedParticleSystem) {
-		pThis->SparkParticleSystem = GameCreate<ParticleSystemClass>(
+	if (pWeapon->UseSparkParticles && !pThis->Sys.Spark && pWeapon->AttachedParticleSystem) {
+		pThis->Sys.Spark = GameCreate<ParticleSystemClass>(
 			pWeapon->AttachedParticleSystem, crdSrc,
 			FireAtTemp::pObstacleCell ? FireAtTemp::pObstacleCell : pOriginalTarget, pThis);
 	}
 
-	if (pWeapon->AttachedParticleSystem && (pWeapon->_GetExtData()->IsDetachedRailgun || (pWeapon->IsRailgun &&  !pThis->RailgunParticleSystem))) {
+	if (pWeapon->AttachedParticleSystem && (pWeapon->_GetExtData()->IsDetachedRailgun || (pWeapon->IsRailgun &&  !pThis->Sys.Railgun))) {
 		auto coord = pThis->DealthParticleDamage(&railgunCrrd_1, &crdSrc, pOriginalTarget, pWeapon);
 		auto pRailgun = GameCreate<ParticleSystemClass>(
 			pWeapon->AttachedParticleSystem, &crdSrc,
 			nullptr, pThis , coord , nullptr);
 
 		if (!pWeapon->_GetExtData()->IsDetachedRailgun)
-			pThis->RailgunParticleSystem = pRailgun;
+			pThis->Sys.Railgun = pRailgun;
 	}
 
 	++pThis->CurrentBurstIndex;
@@ -468,7 +468,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	if (auto fbWeapon = pWeaponExt->FeedbackWeapon.Get())
 	{
 		if (!pThis->InOpenToppedTransport || fbWeapon->FireInTransport){
-			WeaponTypeExtData::DetonateAt(fbWeapon, pThis, pThis, true, nullptr);
+			WeaponTypeExtData::DetonateAt1(fbWeapon, pThis, pThis, true, nullptr);
 			//pThis techno was die after after getting affect of FeedbackWeapon
 			//if the function not bail out , it will crash the game because the vtable is already invalid
 			if (!pThis->IsAlive) {
@@ -488,7 +488,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 				if (pThis->InOpenToppedTransport && !pWeaponFeedback->FireInTransport)
 					return 0;
 
-				WeaponTypeExtData::DetonateAt(pWeaponFeedback, pThis, pThis, true, nullptr);
+				WeaponTypeExtData::DetonateAt1(pWeaponFeedback, pThis, pThis, true, nullptr);
 			}
 		}
 
@@ -604,7 +604,7 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 				pBulletTargetExt->InterceptedStatus |= InterceptedStatus::Locked;
 
 			const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-			
+
 			pBulletExt->InterceptorTechnoType = pThis->GetTechnoType();
 			pBulletExt->InterceptedStatus |= InterceptedStatus::Targeted;
 
@@ -615,14 +615,15 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 
 	auto const pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeaponType);
 
-	if (!pWeaponExt->ShakeLocal.Get() || pThis->IsOnMyView())
-	{
-		if (pWeaponExt->Xhi || pWeaponExt->Xlo)
-			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
+	if(!Phobos::Config::HideShakeEffects) {
+		if (!pWeaponExt->ShakeLocal.Get() || pThis->IsOnMyView())
+		{
+			if (pWeaponExt->Xhi || pWeaponExt->Xlo)
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, ScenarioClass::Instance->Random(pWeaponExt->Xlo, pWeaponExt->Xhi));
 
-		if (pWeaponExt->Yhi || pWeaponExt->Ylo)
-			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+			if (pWeaponExt->Yhi || pWeaponExt->Ylo)
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
+		}
 	}
-
 	return 0x6FF660;
 }

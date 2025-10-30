@@ -59,12 +59,12 @@ public:
 		}
 
 		if (!pFile->Open(FileAccessMode::Read)) {
-			if (Phobos::Otamaa::IsAdmin)
-				Debug::Log("LooseAudioCache: Failed to open file: %s\n", WavName.c_str());
-
 			GameDelete<true, false>(pFile);
 			pFile = nullptr;
 			return { Data.Size, Data.Offset, pFile, pFile != nullptr };
+		} else{
+			if (Phobos::Otamaa::IsAdmin)
+				Debug::Log("LooseAudioCache: successfully open file: %s\n", WavName.c_str());
 		}
 
 		if (Data.Size < 0 && Audio::ReadWAVFile(pFile, &Data.Data, &Data.Size)) {
@@ -108,7 +108,7 @@ public:
 	{
 		std::lock_guard<std::mutex> lock(arrayMutex);  // Lock here
 
-		const auto it = std::find_if(Array.begin(), Array.end(), [&](const auto& ptr) {
+		const auto it = std::ranges::find_if(Array, [&](const auto& ptr) {
 			return ptr->GetName() == Title;
 		});
 
@@ -127,7 +127,7 @@ public:
 
 		if (idxptr >= 0x10000)
 		{
-			const auto it = std::find_if(Array.begin(), Array.end(), [&](const auto& ptr)	{
+			const auto it = std::ranges::find_if(Array, [&](const auto& ptr)	{
 				return (UINT_PTR)(ptr->GetName().c_str()) == idxptr;
 			});
 
@@ -160,8 +160,8 @@ public:
 		COMPILETIMEEVAL ~AudioBag() = default;
 
 		explicit AudioBag(const char* pFilename) : AudioBag() {
-			if(!this->Open(pFilename) && Phobos::Otamaa::IsAdmin)
-				Debug::LogInfo("Failed To open AudioBag {}" , pFilename);
+			if(this->Open(pFilename) && Phobos::Otamaa::IsAdmin)
+				Debug::LogInfo("Opening AudioBag {}" , pFilename);
 		}
 
 		AudioBag(AudioBag&& other) noexcept {
@@ -231,7 +231,8 @@ public:
 								}
 							}
 
-							std::sort(this->Entries.begin(), this->Entries.end());
+							std::ranges::sort(this->Entries, std::less<>());
+							//std::sort(this->Entries.begin(), this->Entries.end());
 						}
 					}
 
@@ -370,7 +371,7 @@ bool PlayWavWrapper(int HouseTypeIdx , size_t SampleIdx)
 
 	if (vec.empty() || vec[SampleIdx - 1].empty()) {
 		Debug::FatalErrorAndExit("Country [%s] Have Invalid Taunt Name Format [%s]",
-		pExt->AttachedToObject->ID, vec[SampleIdx - 1].c_str());
+		pExt->Name(), vec[SampleIdx - 1].c_str());
 	}
 
 	return AudioStreamerTag::PlayWAV(AudioStreamerTag::Instance() ,vec[SampleIdx - 1].c_str(), false);
@@ -439,8 +440,9 @@ ASMJIT_PATCH(0x4011C0, Audio_Load, 6)
 	instance.Append("ares");
 
 	// audio01.bag to audio99.bag
-	fmt::memory_buffer buffer {};
+	static fmt::basic_memory_buffer<char, 20> buffer {};
 	for(auto i = 1; i < 100; ++i) {
+		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), "audio{:02}", i);
 		buffer.push_back('\0');
 		instance.Append(buffer.data());

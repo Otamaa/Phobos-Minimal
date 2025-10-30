@@ -47,8 +47,10 @@ static void applyRemoveParasite(TechnoClass* pThis, args_ReceiveDamage* args)
 
 				if (pWHExt->CanRemoveParasytes.Get())
 				{
-					if (pWHExt->CanRemoveParasytes_ReportSound.isset())
-						VocClass::SafeImmedietelyPlayAt(pWHExt->CanRemoveParasytes_ReportSound.Get(), &parasyte->GetCoords() , nullptr);
+					if (pWHExt->CanRemoveParasytes_ReportSound.isset()) {
+						auto _sound_coord = parasyte->GetCoords();
+						VocClass::SafeImmedietelyPlayAt(pWHExt->CanRemoveParasytes_ReportSound.Get(), &_sound_coord, nullptr);
+					}
 
 					// Kill the parasyte
 					CoordStruct coord = TechnoExtData::PassengerKickOutLocation(pThis, parasyte, 10);
@@ -103,7 +105,7 @@ ASMJIT_PATCH(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if (pThis->Owner && pThis->Owner->CountOwnedAndPresent(pTypeExt->AttachedToObject) <= 0 && !pTypeExt->Linked_SW.empty())
+	if (pThis->Owner && pThis->Owner->CountOwnedAndPresent(pTypeExt->This()) <= 0 && !pTypeExt->Linked_SW.empty())
 		pThis->Owner->UpdateSuperWeaponsOwned();
 
 	if (const auto pShieldData = pExt->GetShield())

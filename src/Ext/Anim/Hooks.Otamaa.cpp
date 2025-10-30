@@ -136,7 +136,7 @@ void NOINLINE FakeAnimClass::_Start()
 
 						auto pSpawn = GameCreate<AnimClass>(tiberium->Debris[ScenarioClass::Instance->Random.RandomFromMax(tiberium->Debris.size() - 1)], SpawnLoc);
 						pSpawn->LightConvert = ColorScheme::Array->Items[tiberium->Color]->LightConvert;
-						pSpawn->TintColor = cptr->Intensity_Normal;
+						pSpawn->TintColor = cptr->Color1.Red;
 					}
 				}
 
@@ -162,7 +162,7 @@ bool __fastcall Is_Visible_To_Psychic(HouseClass* house, CellClass* cell)
 
 void NOINLINE AnimExtData::OnTypeChange()
 {
-	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(this->AttachedToObject->Type);
+	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(this->This()->Type);
 
 	if (this->AttachedSystem && this->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
 		this->AttachedSystem = nullptr;
@@ -556,7 +556,8 @@ void FakeAnimClass::_AI()
 		}
 
 		if (!this->IsPlaying) {
-			VocClass::SafeImmedietelyPlayAt(this->Type->Report, &this->GetCoords(), &this->Audio3);
+			auto coord = this->GetCoords();
+			VocClass::SafeImmedietelyPlayAt(this->Type->Report, &coord, &this->Audio3);
 		}
 
 		if (this->Type->IsFlamingGuy) {

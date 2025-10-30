@@ -1,70 +1,31 @@
 #pragma once
 
 #include <vector>
-#include  <utility>
+#include <utility>
+#include <Base/Always.h>
 
 template<typename T, typename Tmem, typename Func>
 COMPILETIMEEVAL bool FORCEINLINE fast_remove_if(std::vector<T , Tmem>& v, Func&& act)
 {
+	auto iter = std::ranges::remove_if(v, act);
 
-	if (!v.size()) return false;
-
-	typedef typename std::vector<T , Tmem>::value_type* ValuePtr;
-
-	ValuePtr i = &v.front();
-	ValuePtr last = &v.back();
-
-	while (i <= last)
-	{
-		if (act(*i))
-		{
-
-			while (last != i && act(*last))
-			{
-				--last;
-			}
-
-			if (last != i) //do not move self into self, crash
-				*i = std::move(*last);
-
-			--last;
-		}
-		++i;
+	if(iter.begin() != v.end()){
+		v.erase(iter.begin(), v.end());
+		return true;
 	}
 
-	v.resize(last + 1 - &v[0]);
-	return true;
+	return false;
 }
 
 template<typename T, typename Tmem, typename Func>
 COMPILETIMEEVAL bool FORCEINLINE fast_remove_if(std::vector<T, Tmem>* v, Func&& act)
 {
+	auto iter = std::ranges::remove_if(*v , act);
 
-	if (!v->size()) return false;
-
-	typedef typename std::vector<T>::value_type* ValuePtr;
-
-	ValuePtr i = &v->front();
-	ValuePtr last = &v->back();
-
-	while (i <= last)
-	{
-		if (act(*i))
-		{
-
-			while (last != i && act(*last))
-			{
-				--last;
-			}
-
-			if (last != i) //do not move self into self, crash
-				*i = std::move(*last);
-
-			--last;
-		}
-		++i;
+	if(iter.begin() != v->end()){
+		v->erase(iter.begin(), v->end());
+		return true;
 	}
 
-	v->resize(last + 1 - &((*v)[0]));
-	return true;
+	return false;
 }

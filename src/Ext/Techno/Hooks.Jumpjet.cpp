@@ -2,10 +2,139 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/BuildingType/Body.h>
 
 #include <Utilities/Macro.h>
 
 #include <Locomotor/Cast.h>
+
+
+ASMJIT_PATCH(0x4DE839, FootClass_AddSensorsAt_Record, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	LEA_STACK(CellStruct*, cell, STACK_OFFSET(0x34, 0x4));
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	pExt->LastSensorsMapCoords = *cell;
+
+	return 0;
+}
+
+
+ASMJIT_PATCH(0x4DB36C, FootClass_Limbo_RemoveSensorsAt, 0x5)
+{
+	GET(FootClass*, pThis, EDI);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	pThis->RemoveSensorsAt(pExt->LastSensorsMapCoords);
+	return 0x4DB37C;
+}
+
+ASMJIT_PATCH(0x4DBEE7, FootClass_SetOwningHouse_RemoveSensorsAt, 0x6)
+{
+	GET(FootClass*, pThis, ESI);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	pThis->RemoveSensorsAt(pExt->LastSensorsMapCoords);
+	return 0x4DBF01;
+}
+
+ASMJIT_PATCH(0x4D8606, FootClass_UpdatePosition_Sensors, 0x6)
+{
+	enum { SkipGameCode = 0x4D8627 };
+
+	GET(FootClass*, pThis, ESI);
+	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto currentCell = pThis->GetMapCoords();
+
+	if (pExt->LastSensorsMapCoords != currentCell)
+	{
+		pThis->RemoveSensorsAt(pExt->LastSensorsMapCoords);
+		pThis->AddSensorsAt(currentCell);
+	}
+
+	return SkipGameCode;
+}
+
+// Fix initial facing when jumpjet locomotor is being attached
+// there is bug with preplaced units , wait for fix
+//ASMJIT_PATCH(0x54AE44, JumpjetLocomotionClass_LinkToObject_FixFacing, 0x7)
+//{
+//	GET(ILocomotion*, iLoco, EBP);
+//	auto const pThis = static_cast<JumpjetLocomotionClass*>(iLoco);
+//
+//	pThis->Facing.Set_Current(pThis->LinkedTo->PrimaryFacing.Current());
+//	pThis->Facing.Set_Desired(pThis->LinkedTo->PrimaryFacing.Desired());
+//	pThis->LinkedTo->PrimaryFacing.SetROT(pThis->TurnRate);
+//	return 0;
+//}
+
+static FireError __stdcall JumpjetLocomotionClass_Can_Fire(ILocomotion* pThis)
+{
+	// do not use explicit toggle for this
+	if (static_cast<JumpjetLocomotionClass*>(pThis)->NextState == JumpjetLocomotionClass::State::Crashing)
+		return FireError::CANT;
+
+	return FireError::OK;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDF4, JumpjetLocomotionClass_Can_Fire)
+
+// Fix initial facing when jumpjet locomotor is being attached
+static void __stdcall JumpjetLocomotionClass_DoTurn(ILocomotion* iloco, DirStruct dir)
+{
+	auto const pThisLoco = static_cast<JumpjetLocomotionClass*>(iloco);
+	pThisLoco->Facing.Set_Current(dir);
+	pThisLoco->Facing.Set_Desired(dir);
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDB4 , JumpjetLocomotionClass_DoTurn)
+
+// Bugfix: Align jumpjet turret's facing with body's
+ASMJIT_PATCH(0x736BA3, UnitClass_UpdateRotation_TurretFacing_Jumpjet, 0x6)
+{
+	GET(UnitClass* const, pThis, ESI);
+	enum { SkipCheckDestination = 0x736BCA, GetDirectionTowardsDestination = 0x736BBB };
+	// When jumpjets arrived at their FootClass::Destination, they seems stuck at the Move mission
+	// and therefore the turret facing was set to DirStruct{atan2(0,0)}==DirType::East at 0x736BBB
+	// that's why they will come back to normal when giving stop command explicitly
+	// so the best way is to fix the Mission if necessary, but I don't know how to do it
+	// so I skipped jumpjets check temporarily
+	if (!pThis->Type->TurretSpins && locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
+		return SkipCheckDestination;
+
+	return 0;
+}
+
+// Fix initial facing when jumpjet locomotor on unlimbo
+void __stdcall JumpjetLocomotionClass_Unlimbo(ILocomotion* pThis)
+{
+	auto const pThisLoco = static_cast<JumpjetLocomotionClass*>(pThis);
+	pThisLoco->Facing.Set_Current(pThisLoco->LinkedTo->PrimaryFacing.Current());
+	pThisLoco->Facing.Set_Desired(pThisLoco->LinkedTo->PrimaryFacing.Desired());
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7ECDB8, JumpjetLocomotionClass_Unlimbo)
+
+ASMJIT_PATCH(0x54BC99, JumpjetLocomotionClass_Ascending_BarracksExitCell, 0x6)
+{
+	GET(BuildingTypeClass*, pType, EAX);
+	return BuildingTypeExtContainer::Instance.Find(pType)->BarracksExitCell.isset() ? 0x54BCA3 : 0;
+}
+
+// This fixes the issue when locomotor is crashing in grounded or
+// hovering state and the crash processing code won't be reached.
+// Can be observed easily when Crashable=yes jumpjet is attached to
+// a unit and then destroyed.
+ASMJIT_PATCH(0x54AEDC, JumpjetLocomotionClass_Process_CheckCrashing, 0x9)
+{
+	enum { ProcessMovement = 0x54AEED, Skip = 0x54B16C };
+
+	GET(ILocomotion*, iLoco, ESI);
+	auto const pLoco = static_cast<JumpjetLocomotionClass*>(iLoco);
+
+	return pLoco->Is_Moving_Now()  // stolen code
+		|| pLoco->LinkedTo->IsCrashing
+		? ProcessMovement
+		: Skip;
+}
 
 // Fix [JumpjetControls] obsolete in RA2/YR
 // Author: Uranusian
@@ -64,12 +193,32 @@ ASMJIT_PATCH(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 
 	const auto pType = pLinkedTo->GetTechnoType();
 
-	if (pType->Sensors && pType->SensorsSight > 0
-		&& pLinkedTo->LastFlightMapCoords != currentCell) {
-		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastFlightMapCoords);
+	if (pType->Sensors && pType->SensorsSight > 0){
+		const auto pExt = TechnoExtContainer::Instance.Find(pLinkedTo);
+		CellStruct const lastCell = pExt->LastSensorsMapCoords;
+		if(lastCell != currentCell) {
+			pLinkedTo->RemoveSensorsAt(lastCell);
 
-		if(pLinkedTo->IsAlive)
-			pLinkedTo->AddSensorsAt(currentCell);
+			if(pLinkedTo->IsAlive) {
+				pLinkedTo->RemoveSensorsAt(lastCell);
+				pLinkedTo->AddSensorsAt(currentCell);
+			}
+		}
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x54D06F, JumpjetLocomotionClass_ProcessCrashing_RemoveSensors, 0x5)
+{
+	GET(FootClass*, pLinkedTo, EAX);
+
+	const auto pType = pLinkedTo->GetTechnoType();
+
+	if (pType->Sensors && pType->SensorsSight > 0)
+	{
+		const auto pExt = TechnoExtContainer::Instance.Find(pLinkedTo);
+		pLinkedTo->RemoveSensorsAt(pExt->LastSensorsMapCoords);
 	}
 
 	return 0;
@@ -343,7 +492,7 @@ ASMJIT_PATCH(0x54D208, JumpjetLocomotionClass_MovementAI_Wobbles, 0x5)
 		return NoWobble;
 
 	if (const auto pUnit = cast_to<UnitClass*, false>(pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner)){
-		if(TechnoExtData::IsReallyTechno(pUnit) && pUnit->IsAlive) {
+		if(pUnit->IsAlive) {
 			return pUnit->IsDeactivated() ? NoWobble : SetWobble;
 		}
 	}
@@ -357,17 +506,17 @@ ASMJIT_PATCH(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
 	return pThis->LinkedTo->IsCrashing ? 0x54D350 : 0;
 }
 
-ASMJIT_PATCH(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
-{
-	GET_STACK(ILocomotion*, iloco, 0x4);
-	GET_STACK(DirStruct, dir, 0x8);
-	// This seems to be used only when unloading shit on the ground
-	// Rewrite just in case
-	auto pThis = static_cast<JumpjetLocomotionClass*>(iloco);
-	pThis->Facing.Set_Desired(dir);
-	pThis->LinkedTo->PrimaryFacing.Set_Desired(dir);
-	return 0x54B6FF;
-}
+//ASMJIT_PATCH(0x54B6E0, JumpjetLocomotionClass_DoTurn, 0x8)
+//{
+//	GET_STACK(ILocomotion*, iloco, 0x4);
+//	GET_STACK(DirStruct, dir, 0x8);
+//	// This seems to be used only when unloading shit on the ground
+//	// Rewrite just in case
+//	auto pThis = static_cast<JumpjetLocomotionClass*>(iloco);
+//	pThis->Facing.Set_Desired(dir);
+//	pThis->LinkedTo->PrimaryFacing.Set_Desired(dir);
+//	return 0x54B6FF;
+//}
 
 // Bugfix: Jumpjet turn to target when attacking
 // Even though it's still not the best place to do this, given that 0x54BF5B has done the similar action, I'll do it here too
@@ -587,10 +736,57 @@ ASMJIT_PATCH(0x54DAC4, JumpjetLocomotionClass_EndPiggyback_Blyat, 0x6)
 
 	if (pType->Sensors && pType->SensorsSight > 0)
 	{
-		pLinked->RemoveSensorsAt(pLinked->LastFlightMapCoords);
-		pLinked->RemoveSensorsAt(pLinked->GetMapCoords());
-		pLinked->AddSensorsAt(pLinked->GetMapCoords());
+		const auto pExt = TechnoExtContainer::Instance.Find(pLinked);
+		pLinked->RemoveSensorsAt(pExt->LastSensorsMapCoords);
+		pLinked->AddSensorsAt(CellStruct::Empty);
 	}
 
 	return 0;
 }
+
+#pragma region JumpjetStraightAscend
+
+// Skip adjusting max speed and rotation while ascending if flag is set.
+ASMJIT_PATCH(0x54BBD0, JumpjetLocomotionClass_Ascending_JumpjetStraightAscend, 0x6)
+{
+	enum { SkipGameCode = 0x54BC59 };
+
+	GET(JumpjetLocomotionClass*, pThis, ESI);
+
+	auto const pTechnoExt = TechnoExtContainer::Instance.Find(pThis->LinkedTo);
+
+	if (pTechnoExt->JumpjetStraightAscend)
+		return SkipGameCode;
+
+	return 0;
+}
+
+// Skip adjusting coords if flag is set, unit is alive, not crashing and is in JJ loco states 0-1.
+// Unset flag in any other state.
+ASMJIT_PATCH(0x54D600, JumpjetLocomotionClass_MovementAI_JumpjetStraightAscend, 0x6)
+{
+	enum { SkipGameCode = 0x54D697 };
+
+	GET(JumpjetLocomotionClass*, pThis, ESI);
+
+	auto const pLinkedTo = pThis->LinkedTo;
+	auto const pTechnoExt = TechnoExtContainer::Instance.Find(pLinkedTo);
+
+	if (pTechnoExt->JumpjetStraightAscend)
+	{
+		if (pLinkedTo->IsCrashing || pLinkedTo->Health < 1)
+		{
+			pTechnoExt->JumpjetStraightAscend = false;
+			return 0;
+		}
+
+		if (pThis->NextState <= JumpjetLocomotionClass::State::Ascending)
+			return SkipGameCode;
+		else
+			pTechnoExt->JumpjetStraightAscend = false;
+	}
+
+	return 0;
+}
+
+#pragma endregion

@@ -34,7 +34,6 @@ public:
 
 	~ShieldClass()
 	{
-		this->IdleAnim.SetDestroyCondition(!Phobos::Otamaa::ExeTerminated);
 		Array.remove(this);
 	}
 
@@ -64,7 +63,11 @@ public:
 
 	void KillAnim();
 	void SetRespawnRestartInCombat();
+
 	void DrawShieldBar(int iLength, Point2D* pLocation, RectangleStruct* pBound);
+	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
+	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);
+	int DrawShieldBar_Pip(const bool isBuilding);
 
 	COMPILETIMEEVAL FORCEDINLINE double GetHealthRatio() const
 	{
@@ -142,17 +145,17 @@ public:
 	static void SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo);
 	static bool TEventIsShieldBroken(ObjectClass* pThis);
 
-	FORCEDINLINE bool IsGreenSP()
+	COMPILETIMEEVAL FORCEDINLINE bool IsGreenSP()
 	{
 		return (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get()) < HP;
 	}
 
-	FORCEDINLINE bool IsYellowSP()
+	COMPILETIMEEVAL FORCEDINLINE bool IsYellowSP()
 	{
 		return (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get()) < HP && HP <= (RulesExtData::Instance()->Shield_ConditionYellow * Type->Strength.Get());
 	}
 
-	FORCEDINLINE bool IsRedSP()
+	COMPILETIMEEVAL FORCEDINLINE bool IsRedSP()
 	{
 		return HP <= (RulesExtData::Instance()->Shield_ConditionRed * Type->Strength.Get());
 	}
@@ -185,7 +188,7 @@ private:
 
 	void SelfHealing();
 
-	int GetPercentageAmount(double iStatus) const
+	COMPILETIMEEVAL FORCEDINLINE int GetPercentageAmount(double iStatus) const
 	{
 		if (iStatus == 0)
 			return 0;
@@ -211,11 +214,7 @@ private:
 	bool ConvertCheck();
 	SelfHealingStatus SelfHealEnabledByCheck();
 
-	void DrawShieldBar_Building(int iLength, Point2D* pLocation, RectangleStruct* pBound);
-	void DrawShieldBar_Other(int iLength, Point2D* pLocation, RectangleStruct* pBound);
-	int DrawShieldBar_Pip(const bool isBuilding);
-
-	int DrawShieldBar_PipAmount(int iLength) const
+	COMPILETIMEEVAL FORCEDINLINE int DrawShieldBar_PipAmount(int iLength) const
 	{
 		return this->IsActive()
 			? std::clamp((int)std::round(this->GetHealthRatio() * iLength), 1, iLength)
@@ -280,7 +279,7 @@ public:
 
 	bool Respawn_RestartInCombat_Warhead;
 	int Respawn_RestartInCombatDelay_Warhead;
-	Iterator<AnimTypeClass*> Respawn_Anim_Warhead;
+	HelperedVector<AnimTypeClass*> Respawn_Anim_Warhead;
 	WeaponTypeClass* Respawn_Weapon_Warhead;
 
 	int LastBreakFrame;

@@ -31,24 +31,77 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 	return false;
 }
 
-void FlyingStrings::Add(const wchar_t* text, CoordStruct const& coords, ColorStruct const& color, Point2D const& pixelOffset)
-{
-	Item item { coords, pixelOffset, Unsorted::CurrentFrame, Drawing::ColorStructToWordRGB(color), TextPrintType::Center | TextPrintType::NoShadow, L""};
-	PhobosCRT::wstrCopy(item.Text, text, 0x20);
-	Data.push_back(std::move(item));
+void FlyingStrings::Add(std::wstring text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset) {
+	Data.emplace_back(Item {
+		.Location = coords,
+		.PixelOffset = pixelOffset,
+		.CreationFrame = Unsorted::CurrentFrame,
+		.Color = Drawing::ColorStructToWordRGB(color),
+		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
+		.Text = std::move(text),
+	});
 }
 
-void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
+void FlyingStrings::Add(const wchar_t* text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset)
+{
+	Data.emplace_back(Item {
+		.Location = coords,
+		.PixelOffset = pixelOffset,
+		.CreationFrame = Unsorted::CurrentFrame,
+		.Color = Drawing::ColorStructToWordRGB(color),
+		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
+		.Text = text,
+	});
+}
+
+void FlyingStrings::Add(std::wstring_view text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset)
+{
+	Data.emplace_back(Item {
+		.Location = coords,
+		.PixelOffset = pixelOffset,
+		.CreationFrame = Unsorted::CurrentFrame,
+		.Color = Drawing::ColorStructToWordRGB(color),
+		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
+		.Text = std::wstring(text),
+	});
+}
+
+void FlyingStrings::Add(const fmt::basic_memory_buffer<wchar_t>& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset)
+{
+	Data.emplace_back(Item {
+		.Location = coords,
+		.PixelOffset = pixelOffset,
+		.CreationFrame = Unsorted::CurrentFrame,
+		.Color = Drawing::ColorStructToWordRGB(color),
+		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
+		.Text = std::wstring(buffer.data(), buffer.size()),
+	});
+}
+
+void FlyingStrings::Add(fmt::basic_memory_buffer<wchar_t>&& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset)
+{
+	Data.emplace_back(Item {
+		.Location = coords,
+		.PixelOffset = pixelOffset,
+		.CreationFrame = Unsorted::CurrentFrame,
+		.Color = Drawing::ColorStructToWordRGB(color),
+		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
+		.Text = std::wstring(buffer.data(), buffer.size()),
+	});
+}
+
+void FlyingStrings::AddMoneyString(bool Display, int amount, TechnoClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset, ColorStruct nOverrideColor)
 {
 	if (!coords.IsValid() || !Display || !owner)
 		return;
 
+	static fmt::basic_memory_buffer<wchar_t> moneyStr;
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::CurrentPlayer()))
 	{
 		if (owner->VisualCharacter(0, HouseClass::CurrentPlayer()) == VisualType::Hidden)
 			return;
 
-		fmt::basic_memory_buffer<wchar_t> moneyStr;
+		moneyStr.clear();
 		ColorStruct color = nOverrideColor;
 
 		if (color == ColorStruct::Empty) {
@@ -58,6 +111,7 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* 
 		} else {
 			fmt::format_to(std::back_inserter(moneyStr), L"+{}{}", Phobos::UI::CostLabel, Math::abs(amount));
 		}
+
 		moneyStr.push_back(L'\0');
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(moneyStr.data(), &nDim.Width, &nDim.Height, 120);
@@ -68,18 +122,19 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, TechnoClass* 
 		else
 			coords.Z += 256;
 
-		FlyingStrings::Add(moneyStr.data(), coords, color, pixelOffset);
+		FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
 	}
 }
 
-void FlyingStrings::AddMoneyString(bool Display, int const amount, HouseClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor)
+void FlyingStrings::AddMoneyString(bool Display, int amount, HouseClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset, ColorStruct nOverrideColor)
 {
 	if (!coords.IsValid() || !Display || !owner)
 		return;
 
+	static fmt::basic_memory_buffer<wchar_t> moneyStr;
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner, HouseClass::CurrentPlayer()))
 	{
-		fmt::basic_memory_buffer<wchar_t> moneyStr;
+		moneyStr.clear();
 		ColorStruct color = nOverrideColor;
 
 		if (color == ColorStruct::Empty)
@@ -94,13 +149,12 @@ void FlyingStrings::AddMoneyString(bool Display, int const amount, HouseClass* o
 		}
 
 		moneyStr.push_back(L'\0');
-
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(moneyStr.data(), &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
 		coords.Z += 256;
 
-		FlyingStrings::Add(moneyStr.data(), coords, color, pixelOffset);
+		FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
 	}
 }
 
@@ -129,7 +183,7 @@ void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClas
 		else
 			coords.Z += 256;
 
-		FlyingStrings::Add(text.c_str(), coords, color, pixelOffset);
+		FlyingStrings::Add(text, coords, color, pixelOffset);
 	}
 }
 
@@ -142,14 +196,16 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 	{
 		const bool isPositive = amount > 0;
 		const wchar_t* sign_symbol = (sign && amount != 0) ? (isPositive ? L"+" : L"-") : L"";
-		std::wstring displayStr = fmt::format(L"{}{}{}", sign_symbol, prefix ? prefix : Phobos::UI::CostLabel, Math::abs(amount));
+		static fmt::basic_memory_buffer<wchar_t> buffer;
+		buffer.clear();
+		fmt::format_to(std::back_inserter(buffer), L"{}{}{}", sign_symbol, prefix ? prefix : Phobos::UI::CostLabel, Math::abs(amount));
+		buffer.push_back(L'\0');
 		Dimensions nDim {};
-		BitFont::Instance->GetTextDimension(displayStr.data(), &nDim.Width, &nDim.Height, 120);
+		BitFont::Instance->GetTextDimension(buffer.data(), &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
-		FlyingStrings::Add(displayStr.data(), coords, color, pixelOffset);
+		FlyingStrings::Add(buffer, coords, color, pixelOffset);
 	}
 }
-
 
 void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type, CoordStruct coords, int& offset, DrawDamageMode mode , WarheadTypeClass* pWH)
 {
@@ -179,19 +235,21 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 	int maxOffset = Unsorted::CellWidthInPixels / 2;
 	int width = 0, height = 0;
 
-	std::wstring damagestr;
+	static fmt::basic_memory_buffer<wchar_t> damagestr;
+	damagestr.clear();
 
 	if(!pWH || mode != DrawDamageMode::withWH)
 		fmt::format_to(std::back_inserter(damagestr), L"{}" , damage);
 	else
 		fmt::format_to(std::back_inserter(damagestr), L"{} [{}]", damage , PhobosCRT::StringToWideString(pWH->ID));
 
-	BitFont::Instance->GetTextDimension(damagestr.c_str(), &width, &height, 120);
+	damagestr.push_back(L'\0');
+	BitFont::Instance->GetTextDimension(damagestr.data(), &width, &height, 120);
 
 	if (offset >= maxOffset || offset == INT32_MIN)
 		offset = -maxOffset;
 
-	FlyingStrings::Add(damagestr.c_str(), coords, color, Point2D { offset - (width / 2), 0 });
+	FlyingStrings::Add(damagestr, coords, color, Point2D { offset - (width / 2), 0 });
 
 	offset = offset + width;
 }
@@ -199,7 +257,7 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 void FlyingStrings::UpdateAll()
 {
 	Data.remove_all_if([](FlyingStrings::Item& item) {
-		if (item.Text[0]) {
+		if (!item.Text.empty()) {
 			Point2D pos {};
 			Point2D tmp {};
 
@@ -212,16 +270,17 @@ void FlyingStrings::UpdateAll()
 						pos.Y -= (Unsorted::CurrentFrame - item.CreationFrame);
 					}
 
-					Simple_Text_Print_Wide(&tmp, item.Text, DSurface::Temp(), &bound, &pos, item.Color, 0, item.TextPrintType, 1);
+					Simple_Text_Print_Wide(&tmp, item.Text.c_str(), DSurface::Temp(), &bound, &pos, item.Color, item.Back_Color, item.TextPrintType, 1);
 				}
+			}
+
+			if (!(Unsorted::CurrentFrame > item.CreationFrame + Duration || Unsorted::CurrentFrame < item.CreationFrame)) {
+				return false;
 			}
 		}
 
-		if (Unsorted::CurrentFrame > item.CreationFrame + Duration || Unsorted::CurrentFrame < item.CreationFrame) {
-			return true;
-		}
-
-		return false;
+		//always will be removed regardless
+		return true;
 	});
 
 }

@@ -16,6 +16,8 @@ public:
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override;
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
+
+	virtual const char* Name() { return "ArtilleryTrajectoryType"; };
 };
 
 class ArtilleryTrajectory final : public PhobosTrajectory
@@ -29,8 +31,8 @@ public:
 	bool Init { false };
 
 	ArtilleryTrajectory() : PhobosTrajectory { TrajectoryFlag::Artillery } {}
-	ArtilleryTrajectory(BulletClass* pBullet , PhobosTrajectoryType* pType) : 
-		PhobosTrajectory { TrajectoryFlag::Artillery, pBullet ,pType } 
+	ArtilleryTrajectory(BulletClass* pBullet , PhobosTrajectoryType* pType) :
+		PhobosTrajectory { TrajectoryFlag::Artillery, pBullet ,pType }
 	{}
 	virtual ~ArtilleryTrajectory() = default;
 
@@ -47,4 +49,5 @@ public:
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
+	virtual const char* Name() { return "ArtilleryTrajectory"; };
 };

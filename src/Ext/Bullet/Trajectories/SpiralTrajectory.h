@@ -19,7 +19,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
-
+	virtual const char* Name() { return "SpiralTrajectoryType"; }
 };
 
 class SpiralTrajectory final : public PhobosTrajectory
@@ -35,7 +35,7 @@ public:
 	SpiralTrajectory() : PhobosTrajectory { TrajectoryFlag::Spiral }
 	{}
 
-	SpiralTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : 
+	SpiralTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) :
 		PhobosTrajectory { TrajectoryFlag::Spiral , pBullet , pType }
 	{}
 
@@ -52,4 +52,6 @@ public:
 	virtual void OnAIVelocity(VelocityClass* pSpeed, VelocityClass* pPosition) override;
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
+
+	virtual const char* Name() { return "SpiralTrajectory"; }
 };

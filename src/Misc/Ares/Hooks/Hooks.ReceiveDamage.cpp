@@ -28,6 +28,7 @@
 #include <Ext/Infantry/Body.h>
 #include <Ext/Terrain/Body.h>
 #include <Ext/TerrainType/Body.h>
+#include <Ext/AircraftType/Body.h>
 
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
@@ -244,7 +245,8 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 				{
 					// Needs to be added to the logic layer for the anim to work.
 					LogicClass::Instance->AddObject(pThis, false);
-					VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &pThis->GetCoords());
+					auto coordsound_ = pThis->GetCoords();
+					VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &coordsound_);
 					pThis->Mark(MarkType::Redraw);
 					pThis->Disappear(true);
 					return _res;
@@ -269,7 +271,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 					if (pAttackerHoue && pAttackerHoue->CanTransactMoney(nBounty))
 					{
 						pAttackerHoue->TransactMoney(nBounty);
-						FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords);
+						FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords, Point2D::Empty, ColorStruct::Empty);
 					}
 				}
 
@@ -1112,7 +1114,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 			}
 		}
 
-		if (auto& pParticleZero = pThis->FireParticleSystem) {
+		if (auto& pParticleZero = pThis->Sys.Fire) {
 			pParticleZero->UnInit();
 		}
 
@@ -1123,8 +1125,9 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				limited = pTypeExt->DebrisTypes_Limit.Get();
 			}
 
+			auto spawn_coords = pThis->GetCoords();
 			DebrisSpawners::Spawn(pType->MinDebris,pType->MaxDebris,
-			pThis->GetCoords() , pType->DebrisTypes,
+			spawn_coords, pType->DebrisTypes,
 			pType->DebrisAnims ,pType->DebrisMaximums, pTypeExt->DebrisMinimums, limited, args.Attacker , args.Attacker ? args.Attacker->GetOwningHouse() : args.SourceHouse, pThis->Owner);
 
 			auto pWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType;
@@ -1167,13 +1170,13 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 						EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, args.Attacker->Owner) &&
 						(pWHExt->SuppressRevengeWeapons_Types.empty() || !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon)))
 					{
-						WeaponTypeExtData::DetonateAt(pTypeExt->RevengeWeapon.Get(), args.Attacker, pThis, true, nullptr);
+						WeaponTypeExtData::DetonateAt1(pTypeExt->RevengeWeapon.Get(), args.Attacker, pThis, true, nullptr);
 					}
 
 					if (args.Attacker->IsAlive) {
 						for (const auto& weapon : pExt->RevengeWeapons) {
 							if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, args.Attacker->Owner) && (pWHExt->SuppressRevengeWeapons_Types.empty() || !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value)))
-								WeaponTypeExtData::DetonateAt(weapon.Value, args.Attacker, pThis, true, nullptr);
+								WeaponTypeExtData::DetonateAt1(weapon.Value, args.Attacker, pThis, true, nullptr);
 						}
 					}
 				}
@@ -1236,7 +1239,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	}
 	else { bAffected = true; }
 
-	const auto pHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
+	//const auto pHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
 
 	if (IsAffected && pWHExt->DecloakDamagedTargets.Get())
 		pThis->Reveal();
@@ -1288,10 +1291,10 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 				}
 			}
 
-			if (!pThis->DamageParticleSystem && !_Particles->empty() && pThis->GetHeight() > -10)
+			if (!pThis->Sys.Damage && !_Particles->empty() && pThis->GetHeight() > -10)
 			{
 				CoordStruct _offs = pThis->Location + pType->GetParticleSysOffset();
-				pThis->DamageParticleSystem =
+				pThis->Sys.Damage =
 					GameCreate<ParticleSystemClass>(
 						_Particles[ScenarioClass::Instance->Random.RandomFromMax(_Particles->size() - 1)],
 						_offs,
@@ -1302,7 +1305,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	}
 	else
 	{
-		if (auto& pPart = pThis->DamageParticleSystem)
+		if (auto& pPart = pThis->Sys.Damage)
 		{
 			pPart->UnInit();
 		}
@@ -1391,13 +1394,6 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 	auto pShape = pThis->GetShapeNumber();
 	auto foundation = pThis->GetFoundationData();
 
-	if (pThis->Owner && !pWHExt->Nonprovocative && Attacker && Attacker->IsAlive && !pThis->IsStrange())
-	{
-		pThis->Owner->LAEnemy = Attacker->Owner->ArrayIndex;
-		pThis->Owner->LATime = Unsorted::CurrentFrame;
-		pThis->BaseIsAttacked(Attacker);
-	}
-
 	StackVector<TechnoClass*, 0xAu> CachedRadio { };
 
 	for (auto i = 0; i < pThis->RadioLinks.Capacity; i++)
@@ -1458,7 +1454,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 		{
 		case DamageState::NowYellow:
 		{
-			if (auto pParticle = pThis->NaturalParticleSystem)
+			if (auto pParticle = pThis->Sys.Natural)
 			{
 				pParticle->SpawnFrames *= 1.5;
 			}
@@ -1560,7 +1556,11 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 
 			for (int i = 0; i < (int)CachedRadio->size(); ++i)
 			{
-				if ((pThis->GetCoords() - CachedRadio[i]->GetCoords()).Length() < 0x100 || pThis->Type->Helipad)
+				auto pAir = cast_to<AircraftClass*>(CachedRadio[i]);
+
+				if ((pThis->GetCoords() - CachedRadio[i]->GetCoords()).Length() < 0x100 ||
+				(pThis->Type->Helipad && pAir &&
+					!AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble.Get(RulesExtData::Instance()->ExpandAircraftMission)))
 				{
 					int _damage = CachedRadio[i]->GetTechnoType()->Strength;
 					CachedRadio[i]->ReceiveDamage(&_damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
@@ -1616,6 +1616,13 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 		{
 			if (!pWHExt->Nonprovocative && Attacker)
 			{
+				if (pThis->Owner && Attacker->IsAlive && !pThis->IsStrange())
+				{
+					pThis->Owner->LAEnemy = Attacker->Owner->ArrayIndex;
+					pThis->Owner->LATime = Unsorted::CurrentFrame;
+					pThis->BaseIsAttacked(Attacker);
+				}
+
 				if (!pThis->Type->Insignificant && !pThis->IsStrange())
 				{
 					pBldExt->ReceiveDamageWarhead = WH;
@@ -1871,7 +1878,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 		pThis->NextMission();
 		pThis->KillPassengers(args.Attacker);
 
-		if (!TechnoExtContainer::Instance.Find(pThis)->GarrisonedIn) {
+		if (!pThis->_GetExtData()->GarrisonedIn) {
 
 			bool IsForcedCyborg = false;
 			if (args.IgnoreDefenses) {

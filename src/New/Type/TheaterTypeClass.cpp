@@ -116,14 +116,3 @@ void TheaterTypeClass::AddDefaults()
 		}
 	}
 }
-
-void TheaterTypeClass::LoadFromStream(PhobosStreamReader& Stm)
-{
-	//Debug::LogInfo("Loading TheaterTypeClass ! ");
-	//this->Swizzle(Stm);
-}
-
-void TheaterTypeClass::SaveToStream(PhobosStreamWriter& Stm)
-{
-	//this->Swizzle(Stm);
-}

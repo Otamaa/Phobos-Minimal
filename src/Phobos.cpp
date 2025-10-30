@@ -48,7 +48,7 @@ wchar_t Phobos::wideBuffer[readLength] {};
 const char Phobos::readDelims[4] { "," };
 const char Phobos::readDefval[4] { "" };
 std::string Phobos::AppIconPath {};
-DrawDamageMode Phobos::Debug_DisplayDamageNumbers { DrawDamageMode::disabled  };
+DrawDamageMode Phobos::Debug_DisplayDamageNumbers { DrawDamageMode::disabled };
 const wchar_t* Phobos::VersionDescription { L"Phobos Otamaa Unofficial development build #" _STR(BUILD_NUMBER) L". Please test before shipping." };
 bool Phobos::ShouldQuickSave { false };
 std::wstring Phobos::CustomGameSaveDescription {};
@@ -98,6 +98,7 @@ const wchar_t* Phobos::UI::Power_Label { L"" };
 const wchar_t* Phobos::UI::Drain_Label { L"" };
 const wchar_t* Phobos::UI::Storage_Label { L"" };
 const wchar_t* Phobos::UI::Radar_Label { L"" };
+const wchar_t* Phobos::UI::Tech_Label { L"" };
 const wchar_t* Phobos::UI::Spysat_Label { L"" };
 
 const wchar_t* Phobos::UI::SWShotsFormat { L"" };
@@ -123,6 +124,7 @@ int Phobos::Config::CampaignDefaultGameSpeed { 2 };
 bool Phobos::Config::DigitalDisplay_Enable { false };
 bool Phobos::Config::MessageDisplayInCenter { false };
 bool Phobos::Config::MessageApplyHoverState { false };
+int Phobos::Config::MessageDisplayInCenter_BoardOpacity { 30 };
 int Phobos::Config::MessageDisplayInCenter_LabelsCount { 4 };
 int Phobos::Config::MessageDisplayInCenter_RecordsCount { 12 };
 bool Phobos::Config::ShowBuildingStatistics { false };
@@ -131,6 +133,8 @@ bool Phobos::Config::SaveVariablesOnScenarioEnd { false };
 bool Phobos::Config::MultiThreadSinglePlayer { false };
 bool Phobos::Config::UseImprovedPathfindingBlockageHandling { false };
 bool Phobos::Config::HideLightFlashEffects { false };
+bool Phobos::Config::HideLaserTrailEffects { false };
+bool Phobos::Config::HideShakeEffects { false };
 bool Phobos::Config::DebugFatalerrorGenerateDump { false };
 bool Phobos::Config::SaveGameOnScenarioStart { true };
 bool Phobos::Config::ShowPowerDelta { true };
@@ -145,6 +149,17 @@ bool Phobos::Config::ScrollSidebarStripInTactical { true };
 bool Phobos::Config::ScrollSidebarStripWhenHoldKey { true };
 
 bool Phobos::Config::UnitPowerDrain { false };
+bool Phobos::Config::AllowSwitchNoMoveCommand = false;
+bool Phobos::Config::AllowDistributionCommand = false;
+bool Phobos::Config::AllowDistributionCommand_SpreadMode = true;
+bool Phobos::Config::AllowDistributionCommand_SpreadModeScroll = true;
+bool Phobos::Config::AllowDistributionCommand_FilterMode = true;
+bool Phobos::Config::AllowDistributionCommand_AffectsAllies = true;
+bool Phobos::Config::AllowDistributionCommand_AffectsEnemies = true;
+bool Phobos::Config::ApplyNoMoveCommand = true;
+int Phobos::Config::DistributionSpreadMode = 2;
+int Phobos::Config::DistributionFilterMode = 2;
+
 int Phobos::Config::SuperWeaponSidebar_RequiredSignificance { 0 };
 bool Phobos::Config::SuperWeaponSidebarCommands { false };
 bool Phobos::Misc::CustomGS { false };
@@ -198,14 +213,16 @@ bool Phobos::LoadGlobals(PhobosStreamReader& stm)
 
 struct GraphicsRuntimeAPI
 {
-	enum class Type {
-		UNK , DX , DXGI, OGL , VK
+	enum class Type
+	{
+		UNK, DX, DXGI, OGL, VK
 	};
 
 	GraphicsRuntimeAPI(const std::vector<dllData>& dlls)
 		: name { "Unknown" }, type { Type::UNK }
 	{
-		for (auto& dll : dlls) {
+		for (auto& dll : dlls)
+		{
 			if (_strnicmp(dll.ModuleName.c_str(), "d3d", 3) == 0
 				|| IS_SAME_STR_(dll.ModuleName.c_str(), "dxgi.dll")
 				|| IS_SAME_STR_(dll.ModuleName.c_str(), "ddraw.dll")
@@ -221,7 +238,8 @@ struct GraphicsRuntimeAPI
 				type = Type::OGL;
 				break;
 			}
-			else if (IS_SAME_STR_("vulkan-1.dll", dll.ModuleName.c_str())){
+			else if (IS_SAME_STR_("vulkan-1.dll", dll.ModuleName.c_str()))
+			{
 				name = "Vulkan";
 				type = Type::VK;
 				break;
@@ -231,11 +249,13 @@ struct GraphicsRuntimeAPI
 
 	~GraphicsRuntimeAPI() = default;
 
-	FORCEDINLINE COMPILETIMEEVAL const char* GetName() const {
+	FORCEDINLINE COMPILETIMEEVAL const char* GetName() const
+	{
 		return name.c_str();
 	}
 
-	FORCEDINLINE COMPILETIMEEVAL Type GetType() {
+	FORCEDINLINE COMPILETIMEEVAL Type GetType()
+	{
 		return type;
 	}
 
@@ -249,7 +269,8 @@ std::unique_ptr<asmjit::JitRuntime> gJitRuntime;
 class asmjitErrHandler : public asmjit::ErrorHandler
 {
 public:
-	void handleError(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override {
+	void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override
+	{
 		Debug::LogDeferred("AsmJit ERROR: %s\n", message);
 	}
 };
@@ -265,12 +286,14 @@ namespace Assembly
 		JMP = 0xE9,
 		JLE = 0x7E;
 };
-struct HookSummary {
+struct HookSummary
+{
 	const void* func;
 	size_t size;
 };
 
-struct HooksData {
+struct HooksData
+{
 	std::vector<HookSummary> summary {};
 	std::vector<uint8_t> originalOpcode {};
 };
@@ -278,13 +301,16 @@ struct HooksData {
 // remove the comment if you want to run the dll with patched gamemd
 //#define NO_SYRINGE
 
-bool IsRunningInAppContainer() {
+bool IsRunningInAppContainer()
+{
 	static bool s_checked = false;
 	static bool s_isAppContainer = false;
 
-	if (!s_checked) {
+	if (!s_checked)
+	{
 		HANDLE hToken;
-		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+		if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken))
+		{
 			DWORD dwLength = 0;
 			GetTokenInformation(hToken, TokenAppContainerSid, nullptr, 0, &dwLength);
 			s_isAppContainer = (GetLastError() != ERROR_NOT_FOUND);
@@ -345,12 +371,15 @@ void OptimizeProcessForSecurity()
 		}
 #endif
 
-		for (auto& module : Patch::ModuleDatas) {
-			if (IS_SAME_STR_(module.ModuleName.c_str(), "kernel32.dll")) {
+		for (auto& module : Patch::ModuleDatas)
+		{
+			if (IS_SAME_STR_(module.ModuleName.c_str(), "kernel32.dll"))
+			{
 				SetProcessMitigationPolicyFunc pSetProcessMitigationPolicy =
 					(SetProcessMitigationPolicyFunc)GetProcAddress(module.Handle, "SetProcessMitigationPolicy");
 
-				if (pSetProcessMitigationPolicy) {
+				if (pSetProcessMitigationPolicy)
+				{
 					// Use simplified mitigation
 					pSetProcessMitigationPolicy((PROCESS_MITIGATION_POLICY)1, nullptr, 0);
 				}
@@ -472,29 +501,206 @@ std::string PrintAssembly(const void* code, size_t codeSize, uintptr_t runtimeAd
 	return disassemblyResult;
 }
 
-void ApplyasmjitPatch() {
+#ifdef _New
 
-	for (auto&[addr , data] : Hooks)
+void ApplyasmjitPatch()
+{
+	for (auto& [addr, data] : Hooks)
 	{
 		auto& [sm_vec, org_vec] = data;
-
-		if (sm_vec.empty()) {
+		if (sm_vec.empty())
+		{
 			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
 			continue;
 		}
 
 		CheckHookConflict(addr, sm_vec[0].size);
 
-		if (sm_vec.size() > 1) {
+		// Log if multiple hooks are registered at the same address
+		if (sm_vec.size() > 1)
+		{
+			Debug::LogDeferred("hook at 0x%x has %d functions registered!\n", addr, sm_vec.size());
+		}
+
+		// Calculate maximum overridden bytes needed
+		DWORD maxOverridden = 0;
+		for (const auto& hook : sm_vec)
+		{
+			maxOverridden = MaxImpl(maxOverridden, hook.size);
+		}
+		DWORD hookSize = MaxImpl(maxOverridden, 5u);
+
+		// Create trampoline code
+		asmjit::CodeHolder trampolineCode;
+		trampolineCode.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
+		trampolineCode.setErrorHandler(&gJitErrorHandler);
+		asmjit::x86::Assembler trampolineAsm(&trampolineCode);
+
+		asmjit::Label proceedLabel = trampolineAsm.newLabel();
+
+		// Generate hook chain
+		for (const auto& hook : sm_vec)
+		{
+			if (!hook.func) continue;
+
+			// Save all registers and flags
+			trampolineAsm.pushad();
+			trampolineAsm.pushfd();
+
+			// Push hook address (the original address being hooked)
+			trampolineAsm.push(asmjit::imm(addr));
+
+			// Push ESP (current stack pointer)
+			trampolineAsm.push(asmjit::x86::esp);
+
+			// Call the hook function
+			trampolineAsm.call(asmjit::imm(reinterpret_cast<uintptr_t>(hook.func)));
+
+			// Clean up stack (remove the two pushes)
+			trampolineAsm.add(asmjit::x86::esp, 8);
+
+			// Store return value in FS:[0x14] using inline bytes
+			// MOV fs:0x14, EAX -> 64 A3 14 00 00 00
+			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\xA3\x14\x00\x00\x00"), 6);
+
+			// Restore registers and flags
+			trampolineAsm.popfd();
+			trampolineAsm.popad();
+
+			// Check if hook wants to override using inline bytes
+			// CMP DWORD PTR fs:0x14, 0 -> 64 83 3D 14 00 00 00 00
+			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\x83\x3D\x14\x00\x00\x00\x00"), 8);
+			trampolineAsm.je(proceedLabel); // If 0, continue to next hook or original code
+
+			// Jump to the override address using inline bytes
+			// JMP DWORD PTR fs:0x14 -> 64 FF 25 14 00 00 00
+			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\xFF\x25\x14\x00\x00\x00"), 7);
+		}
+
+		// Bind the proceed label - execute original code
+		trampolineAsm.bind(proceedLabel);
+
+		// Save original bytes
+		void* hookAddress = reinterpret_cast<void*>(addr);
+		org_vec.resize(hookSize);
+		memcpy(org_vec.data(), hookAddress, hookSize);
+
+		// Handle relative instructions in original code
+		std::vector<BYTE> fixedOriginal = org_vec;
+		bool hasRelativeInstr = false;
+
+		if (org_vec.size() >= 5 && (org_vec[0] == 0xE8 || org_vec[0] == 0xE9))
+		{ // CALL or JMP
+			DWORD originalDest = addr + 5 + *reinterpret_cast<DWORD*>(org_vec.data() + 1);
+
+			if (org_vec[0] == 0xE8)
+			{ // CALL
+				trampolineAsm.call(asmjit::imm(originalDest));
+				Debug::LogDeferred("hook at 0x%x: Fixed relative CALL to 0x%x\n", addr, originalDest);
+			}
+			else
+			{ // JMP
+				trampolineAsm.jmp(asmjit::imm(originalDest));
+				Debug::LogDeferred("hook at 0x%x: Fixed relative JMP to 0x%x\n", addr, originalDest);
+			}
+
+			// Remove the original 5-byte instruction since we've handled it
+			fixedOriginal.erase(fixedOriginal.begin(), fixedOriginal.begin() + 5);
+			hasRelativeInstr = true;
+		}
+
+		// Embed remaining original code
+		if (!fixedOriginal.empty())
+		{
+			trampolineAsm.embed(fixedOriginal.data(), fixedOriginal.size());
+		}
+
+		// Jump back to continuation point
+		trampolineAsm.jmp(asmjit::imm(addr + hookSize));
+
+		// Generate the trampoline
+		const void* trampolineFunc = nullptr;
+		auto result = gJitRuntime->add(&trampolineFunc, &trampolineCode);
+		if (result != asmjit::kErrorOk)
+		{
+			Debug::LogDeferred("Failed to generate trampoline for hook at 0x%x\n", addr);
+			continue;
+		}
+
+		// Create the hook patch (jump to trampoline)
+		asmjit::CodeHolder patchCode;
+		patchCode.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
+		patchCode.setErrorHandler(&gJitErrorHandler);
+		asmjit::x86::Assembler patchAsm(&patchCode);
+
+		// Generate jump to trampoline
+		patchAsm.jmp(asmjit::imm(reinterpret_cast<uintptr_t>(trampolineFunc)));
+
+		// Pad with NOPs if needed
+		size_t jumpSize = 5; // JMP instruction is 5 bytes
+		for (size_t i = jumpSize; i < hookSize; ++i)
+		{
+			patchAsm.nop();
+		}
+
+		// Apply the patch
+		patchCode.flatten();
+		patchCode.resolveCrossSectionFixups();
+		patchCode.relocateToBase(addr);
+
+		DWORD oldProtect, dummy;
+		VirtualProtect(hookAddress, hookSize, PAGE_EXECUTE_READWRITE, &oldProtect);
+
+		size_t codeSize = patchCode.codeSize();
+		if (codeSize <= hookSize)
+		{
+			patchCode.copyFlattenedData(hookAddress, codeSize);
+
+			// Fill remaining bytes with NOPs if needed
+			if (codeSize < hookSize)
+			{
+				memset(static_cast<BYTE*>(hookAddress) + codeSize, 0x90, hookSize - codeSize);
+			}
+		}
+		else
+		{
+			Debug::LogDeferred("Generated patch code too large for hook at 0x%x\n", addr);
+		}
+
+		VirtualProtect(hookAddress, hookSize, oldProtect, &dummy);
+		FlushInstructionCache(GetCurrentProcess(), hookAddress, hookSize);
+
+
+		//Debug::LogDeferred("Successfully applied hook at 0x%x with %d functions\n", addr, sm_vec.size());
+	}
+}
+#else
+void ApplyasmjitPatch()
+{
+
+	for (auto& [addr, data] : Hooks)
+	{
+		auto& [sm_vec, org_vec] = data;
+
+		if (sm_vec.empty())
+		{
+			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
+			continue;
+		}
+
+		CheckHookConflict(addr, sm_vec[0].size);
+
+		if (sm_vec.size() > 1)
+		{
 			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", addr, sm_vec.size());
 		}
 
 		size_t hook_size = sm_vec[0].size;
 		asmjit::CodeHolder code;
-		code.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
-		code.setErrorHandler(&gJitErrorHandler);
+		code.init(gJitRuntime->environment(), gJitRuntime->cpu_features());
+		code.set_error_handler(&gJitErrorHandler);
 		asmjit::x86::Assembler assembly(&code);
-		asmjit::Label l_origin = assembly.newLabel();
+		asmjit::Label l_origin = assembly.new_label();
 		DWORD hookSize = MaxImpl(hook_size, 5u);
 
 		if (sm_vec.size() == 1)
@@ -513,7 +719,9 @@ void ApplyasmjitPatch() {
 			assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
 			assembly.jz(l_origin);
 			assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
-		} else {
+		}
+		else
+		{
 			Debug::LogDeferred("remaining hook at 0x%x is ignored !\n", addr);
 		}
 
@@ -547,22 +755,23 @@ void ApplyasmjitPatch() {
 		const void* fn {};
 		gJitRuntime->add(&fn, &code);
 		code.reset();
-		code.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
-		code.setErrorHandler(&gJitErrorHandler);
+		code.init(gJitRuntime->environment(), gJitRuntime->cpu_features());
+		code.set_error_handler(&gJitErrorHandler);
 		code.attach(&assembly);
 		assembly.jmp(fn);
 		code.flatten();
-		code.resolveCrossSectionFixups();
-		code.relocateToBase(addr);
+		code.resolve_cross_section_fixups();
+		code.relocate_to_base(addr);
 
 		DWORD protect_flag {};
 		DWORD protect_flagb {};
 		VirtualProtect(hookAddress, hookSize, PAGE_EXECUTE_READWRITE, &protect_flag);
-		code.copyFlattenedData(hookAddress, hookSize);
+		code.copy_flattened_data(hookAddress, hookSize);
 		VirtualProtect(hookAddress, hookSize, protect_flag, &protect_flagb);
 		FlushInstructionCache(Game::hInstance, hookAddress, hookSize);
 	}
 }
+#endif
 
 void Initasmjit()
 {
@@ -574,7 +783,8 @@ void Initasmjit()
 	hookdeclfunc* end = (hookdeclfunc*)((DWORD)buffer + len);
 	Debug::LogDeferred("Applying %d asmjit hooks.\n", std::distance((hookdeclfunc*)buffer, end));
 
-	for (hookdeclfunc* begin = (hookdeclfunc*)buffer; begin < end; begin++) {
+	for (hookdeclfunc* begin = (hookdeclfunc*)buffer; begin < end; begin++)
+	{
 		Hooks[begin->hookAddr].summary.emplace_back(begin->hookFunc, begin->hookSize);
 	}
 
@@ -698,19 +908,24 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		else if (!strncasecmp(pArg, "-AFFINITY:", 0xAu))
 		{
 			int result = 1;
-			if (Parser<int>::Parse(pArg + 0xAu, &result) && result < 0) {
+			if (Parser<int>::Parse(pArg + 0xAu, &result) && result < 0)
+			{
 				result = 0;
 			}
 
 			processAffinityMask = result;
-		} else {
+		}
+		else
+		{
 			const std::string cur = pArg;
-			if (cur.starts_with("-ExceptionHandler=")) {
+			if (cur.starts_with("-ExceptionHandler="))
+			{
 
 				const size_t delim = cur.find("=");
 				const std::string value = cur.substr(delim + 1, cur.size() - delim - 1);
 
-				if (!value.empty()) {
+				if (!value.empty())
+				{
 					Parser<bool>::Parse(value.data(), &dontSetExceptionHandler);
 				}
 			}
@@ -719,7 +934,8 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		SpawnerMain::CmdLineParse(pArg);
 	}
 
-	if (Debug::LogEnabled) {
+	if (Debug::LogEnabled)
+	{
 		Debug::InitLogger(); //init the real logger
 		//auto& logger = SafeLogger::GetInstance();
 		//LogConfig config;
@@ -738,7 +954,9 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		Debug::Log("args %s\n", args.c_str());
 
 		SpawnerMain::PrintInitializeLog();
-	} else {
+	}
+	else
+	{
 		Debug::DeactivateLogger();
 		Debug::LogFileRemove();
 		Debug::made = false;// reset
@@ -788,7 +1006,7 @@ void Phobos::ThrowUsageWarning(CCINIClass* pINI)
 	//just add your mod name or remove these code if you dont like it
 	if (!Phobos::Otamaa::IsAdmin)
 	{
-		if(pINI->ReadString(GameStrings::General(), GameStrings::Name, "", Phobos::readBuffer) <= 0)
+		if (pINI->ReadString(GameStrings::General(), GameStrings::Name, "", Phobos::readBuffer) <= 0)
 			return;
 
 		const std::string ModNameTemp = Phobos::readBuffer;
@@ -881,7 +1099,8 @@ static std::string GetOsVersionQuick()
 	HMODULE kernel = NULL;
 	HMODULE ntdll = NULL;
 
-	for (auto& module : Patch::ModuleDatas) {
+	for (auto& module : Patch::ModuleDatas)
+	{
 		if (IS_SAME_STR_(module.ModuleName.c_str(), "kernel32.dll"))
 			kernel = module.Handle;
 		else if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll"))
@@ -934,7 +1153,8 @@ static std::string GetOsVersionQuick()
 
 			if (NULL == RtlGetVersion_t(&vi2))
 			{
-				if(vi2.dwBuildNumber < 21996) {
+				if (vi2.dwBuildNumber < 21996)
+				{
 
 					if (!bHaveVerFromKernel32) // we failed above; let's hope this would be useful
 						aVer += std::to_string(vi2.dwMajorVersion) + "." + std::to_string(vi2.dwMinorVersion);
@@ -944,7 +1164,9 @@ static std::string GetOsVersionQuick()
 					if (vi2.szCSDVersion[0])
 						aVer += (PhobosCRT::WideStringToString(vi2.szCSDVersion) + " ");
 
-				} else {
+				}
+				else
+				{
 					aVer = "Windows 11 ";
 				}
 
@@ -983,16 +1205,20 @@ void Phobos::ExeRun()
 
 	int i = 0;
 
-	for (auto&dlls : Patch::ModuleDatas) {
+	for (auto& dlls : Patch::ModuleDatas)
+	{
 		Debug::LogDeferred("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
 
-		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll")) {
+		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll"))
+		{
 			Debug::FatalErrorAndExit("This dll dont need cncnet5.dll to run!, please remove first");
 		}
-		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S)) {
+		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), ARES_DLL_S))
+		{
 			Debug::FatalErrorAndExit("This dll dont need Ares.dll to run!, please remove first");
 		}
-		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), PHOBOS_DLL_S)) {
+		else if (IS_SAME_STR_(dlls.ModuleName.c_str(), PHOBOS_DLL_S))
+		{
 			Phobos::Otamaa::PhobosBaseAddress = dlls.BaseAddr;
 		}
 		//else if (ExceptionMode != ExceptionHandlerMode::Default
@@ -1016,7 +1242,8 @@ void Phobos::ExeTerminate()
 {
 	Debug::DeactivateLogger();
 
-	if(!Phobos::Otamaa::ExeTerminated){
+	if (!Phobos::Otamaa::ExeTerminated)
+	{
 		Phobos::Otamaa::ExeTerminated = true;
 
 		//for (auto& datas : Patch::ModuleDatas) {
@@ -1039,14 +1266,17 @@ bool Phobos::DetachFromDebugger()
 	DWORD ret = false;
 	HMODULE ntdll = NULL;
 
-	for (auto& module : Patch::ModuleDatas) {
-		if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll")){
+	for (auto& module : Patch::ModuleDatas)
+	{
+		if (IS_SAME_STR_(module.ModuleName.c_str(), "ntdll.dll"))
+		{
 			ntdll = module.Handle;
 			break;
 		}
 	}
 
-	if (ntdll != NULL) {
+	if (ntdll != NULL)
+	{
 
 		auto const NtRemoveProcessDebug =
 			(NTSTATUS(WINAPI*)(HANDLE, HANDLE))GetProcAddress(ntdll, "NtRemoveProcessDebug");
@@ -1061,9 +1291,9 @@ bool Phobos::DetachFromDebugger()
 		NTSTATUS status = NtQueryInformationProcess(Patch::CurrentProcess, 30, &hDebug, sizeof(HANDLE), 0);
 		if (0 <= status)
 		{
-				ULONG killProcessOnExit = FALSE;
-				status = NtSetInformationDebugObject(
-					hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
+			ULONG killProcessOnExit = FALSE;
+			status = NtSetInformationDebugObject(
+				hDebug, 1, &killProcessOnExit, sizeof(ULONG), NULL);
 
 			if (0 <= status)
 			{
@@ -1073,7 +1303,7 @@ bool Phobos::DetachFromDebugger()
 				{
 					HANDLE hDbgProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 					if (hDbgProcess != NULL)
-						{
+					{
 						ret = TerminateProcess(hDbgProcess, EXIT_SUCCESS);
 						CloseHandle(hDbgProcess);
 					}
@@ -1092,7 +1322,8 @@ bool Phobos::DetachFromDebugger()
 #pragma endregion
 #include <Misc/Ares/Hooks/Hooks.MouseCursors.h>
 
-static void __cdecl PatchExit(int uExitCode) {
+static void __cdecl PatchExit(int uExitCode)
+{
 	Phobos::ExeTerminate();
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Destroy();
@@ -1133,7 +1364,7 @@ DECLARE_PATCH(_set_fp_mode)
 #include <Misc/Multithread.h>
 #include <ExtraHeaders/MemoryPool.h>
 
-static CriticalSection critSec3 , critSec4;
+static CriticalSection critSec3, critSec4;
 #ifdef _ReplaceAlloc
 struct GameMemoryReplacer
 {
@@ -1170,7 +1401,8 @@ struct GameMemoryReplacer
 		return token;
 	}
 
-	static char* _strtok(char* str, const char* delim) {
+	static char* _strtok(char* str, const char* delim)
+	{
 		static char* saveptr = nullptr;
 		return _strtok_r(str, delim, &saveptr);
 	}
@@ -1248,48 +1480,79 @@ NOINLINE void EnableLargeAddressAwareFlag(HANDLE curProc)
 		*characteristics |= 0x20; // IMAGE_FILE_LARGE_ADDRESS_AWARE
 		VirtualProtect(characteristics, sizeof(WORD), oldProtect, &oldProtect);
 		Debug::LogDeferred("LARGEADDRESSAWARE flag set via injector.\n");
-	} else {
+	}
+	else
+	{
 		Debug::LogDeferred("Failed to change protection for Characteristics.\n");
 	}
 }
 
-NOINLINE bool IsGamemdExe(HMODULE curProc) {
+NOINLINE bool IsGamemdExe(HMODULE curProc)
+{
+
+	constexpr static const wchar_t* gameExecutables[] = {
+		L"gamemd.exe",      // Yuri's Revenge
+		L"gamepp.exe",      // Possible variant
+	};
+
+	constexpr static size_t executableCount = sizeof(gameExecutables) / sizeof(gameExecutables[0]);
+
+
 	wchar_t filename[MAX_PATH];
 	GetModuleFileNameW(curProc, filename, MAX_PATH);
-	const std::wstring path(filename);
 
-	//add more variants;
+	// Get just the filename without path
+	const wchar_t* execName = wcsrchr(filename, L'\\');
+	if (execName)
+	{
+		execName++; // Skip the backslash
+	}
+	else
+	{
+		execName = filename; // No path separator found
+	}
 
-	if (path.find(L"gamemd.exe") != std::wstring::npos)
-		return true;
+	std::wstring path(filename);
+	std::ranges::transform(path, path.begin(), ::towlower);
 
-	if (path.find(L"gamepp") != std::wstring::npos)
-		return true;
-
+	for (size_t i = 0; i < executableCount; ++i)
+	{
+		if (path.find(gameExecutables[i]) != std::wstring::npos)
+		{
+			return true;
+		}
+	}
 
 	return false;
 }
 
 LPVOID saved_lpReserved;
+bool IsInitialized = false;
 
-NOINLINE void ApplyEarlyFuncs() {
+NOINLINE void ApplyEarlyFuncs()
+{
 
 	//make sure is correct executable loading the dll
 	//if(IsGamemdExe((HMODULE)Patch::CurrentProcess))
 	{
 
+
 		//std::thread([]() {
 		//	EnableLargeAddressAwareFlag(Patch::CurrentProcess);
 		//}).detach();
+		if (!IsInitialized)
+			exit(ERROR);
 
 		MH_Initialize();
+		//Imports::SetCapture = SetCapture_Hook;
+		//Imports::SetCursorPos = SetCursorPos_Hook;
 
-		auto mod = GetModuleHandleW(L"ntdll.dll");
+		//auto mod = GetModuleHandleW(L"ntdll.dll");
 
-		if (auto target = (FnRtl)GetProcAddress(mod, "RtlGetAppContainerNamedObjectPath")) {
-			MH_CreateHook(target, &HookedRtlGetAppContainerNamedObjectPath, (void**)&RealFn);
-			MH_EnableHook(target);
-		};
+		//if (auto target = (FnRtl)GetProcAddress(mod, "RtlGetAppContainerNamedObjectPath")) {
+		//	MH_CreateHook(target, &HookedRtlGetAppContainerNamedObjectPath, (void**)&RealFn);
+		//	MH_EnableHook(target);
+		//};
 
 		TheMemoryPoolCriticalSection = &critSec4;
 		TheDmaCriticalSection = &critSec3;
@@ -1299,7 +1562,7 @@ NOINLINE void ApplyEarlyFuncs() {
 		//Patch::Apply_CALL(0x6BBFC9, &_set_fp_mode);
 
 		const auto time = Debug::GetCurTimeA();
-		Patch::Apply_TYPED<DWORD>(0x7B853C, {1});
+		Patch::Apply_TYPED<DWORD>(0x7B853C, { 1 });
 		Patch::Apply_CALL(0x6BD718, &PatchExit);
 		Patch::Apply_CALL(0x6BD92F, &PatchExit);
 		Patch::Apply_CALL(0x6BDAF4, &PatchExit);
@@ -1361,32 +1624,70 @@ NOINLINE void ApplyEarlyFuncs() {
 	}
 }
 
+#include <Misc/CustomMemoryManager.h>
+
+void InitializeCustomMemorySystem()
+{
+	Debug::LogDeferred("Initializing Custom Memory System...\n");
+
+	// Run signature safety check
+	// if (!CustomMemoryManager::RunSignatureSafetyCheck())
+	// {
+	// 	Debug::LogDeferred("WARNING: Potential signature conflicts detected!\n");
+	// 	Debug::LogDeferred("Consider using CustomMemoryManager::RegenerateSignatures() if issues occur.\n");
+	// }
+
+	Patch::Apply_CALL(0x7D13A0, &CustomMemoryManager::RecreatedCalloc);
+	Patch::Apply_LJMP(0x7C9442, &CustomMemoryManager::RecreatedNHMalloc);
+	Patch::Apply_LJMP(0x7C93E8, &CustomMemoryManager::RecreatedFree);
+	Patch::Apply_LJMP(0x7D0F45, &CustomMemoryManager::RecreatedRealloc);
+	Patch::Apply_LJMP(0x7D3374, &CustomMemoryManager::RecreatedCalloc);
+	Patch::Apply_LJMP(0x7C9430, &CustomMemoryManager::RecreatedHeapAlloc);
+	Patch::Apply_LJMP(0x7D107D, &CustomMemoryManager::RecreatedMSize);
+	Patch::Apply_LJMP(0x7D5408, &CustomMemoryManager::StrDup);
+	Patch::Apply_LJMP(0x7C9CC2, &CustomMemoryManager::StrTok);
+
+	Debug::LogDeferred("Custom Memory System initialization complete!\n");
+}
+
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
 	{
-		DisableThreadLibraryCalls((HMODULE)hInstance);
-		Patch::CurrentProcess = GetCurrentProcess();
-		Phobos::hInstance = hInstance;
-		saved_lpReserved = lpReserved;
+		if (IsGamemdExe(nullptr))
+		{
 
+			DisableThreadLibraryCalls((HMODULE)hInstance);
+			//InitHeapPatches(HeapCreate(0, 1 << 20, 0));
+			Patch::CurrentProcess = GetCurrentProcess();
+			Phobos::hInstance = hInstance;
+			saved_lpReserved = lpReserved;
+			IsInitialized = true;
 #if defined(NO_SYRINGE)
-		ApplyEarlyFuncs();
-		//LuaData::ApplyCoreHooks();
-		Phobos::ExeRun();
+			ApplyEarlyFuncs();
+			//LuaData::ApplyCoreHooks();
+			Phobos::ExeRun();
 #endif
+		}
 
 	}
 	break;
-	case DLL_PROCESS_DETACH :
-		Multithreading::ShutdownMultitheadMode();
-		Debug::DeactivateLogger();
-		gJitRuntime.reset();
-		Mem::shutdownMemoryManager();
-		MH_Uninitialize();
-		break;
+	case DLL_PROCESS_DETACH:
+	{
+		bool g_isProcessTerminating = (lpReserved != nullptr);
+
+		if (g_isProcessTerminating && IsInitialized)
+		{
+			Multithreading::ShutdownMultitheadMode();
+			Debug::DeactivateLogger();
+			gJitRuntime.reset();
+			//Mem::shutdownMemoryManager();
+			MH_Uninitialize();
+		}
+	}
+	break;
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
 		return FALSE;
@@ -1401,10 +1702,9 @@ ASMJIT_PATCH(0x55DBCD, MainLoop_SaveGame, 0x6)
 	// This happens right before LogicClass::Update()
 	enum { SkipSave = 0x55DC99, InitialSave = 0x55DBE6 };
 
-	bool& scenario_saved = *reinterpret_cast<bool*>(0xABCE08);
-	if (SessionClass::IsSingleplayer() && !scenario_saved)
+	if (SessionClass::IsSingleplayer() && !ScenarioClass::ScenarioSaved())
 	{
-		scenario_saved = true;
+		ScenarioClass::ScenarioSaved = true;
 		if (Phobos::ShouldQuickSave)
 		{
 			Phobos::PassiveSaveGame();
@@ -1425,7 +1725,8 @@ ASMJIT_PATCH(0x55DBCD, MainLoop_SaveGame, 0x6)
 	return SkipSave;
 }
 
-ASMJIT_PATCH(0x6BBE6A, WinMain_AllowMultipleInstances , 0x6) {
+ASMJIT_PATCH(0x6BBE6A, WinMain_AllowMultipleInstances, 0x6)
+{
 	return Phobos::Otamaa::AllowMultipleInstance ? 0x6BBED6 : 0x0;
 }
 
@@ -1457,6 +1758,7 @@ ASMJIT_PATCH(0x52F639, _YR_CmdLineParse, 0x5)
 	GET(int, nNumArgs, EDI);
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
+	Debug::LogDeferredFinalize();
 
 #ifdef EXPERIMENTAL_IMGUI
 	PhobosWindowClass::Create();

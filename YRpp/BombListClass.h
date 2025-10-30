@@ -12,10 +12,10 @@ class CStreamClass;
 //this class contains a vector of BombClass, a vector of bomb-revealing TechnoClass, and some other properties
 class BombListClass
 {
-	BombListClass() noexcept 
+	BombListClass() noexcept
 	{ JMP_THIS(0x40B540); }
 
-	~BombListClass() noexcept 
+	~BombListClass() noexcept
 	{ JMP_THIS(0x40B5C0); }
 
 public:
@@ -50,10 +50,10 @@ public:
 		{ JMP_THIS(0x439150); }
 
 	//CStreamClass *stream
-	HRESULT Save(CStreamClass* stream)
+	HRESULT Save(LPSTREAM stream)
 		{ JMP_THIS(0x4391C0); }
 
-	HRESULT Load(CStreamClass* stream)
+	HRESULT Load(LPSTREAM stream)
 		{ JMP_THIS(0x439260); }
 
 protected:

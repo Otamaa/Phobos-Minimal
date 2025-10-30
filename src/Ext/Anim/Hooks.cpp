@@ -36,19 +36,6 @@ ASMJIT_PATCH(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x422CAB, AnimClass_DrawIt_XDrawOffset, 0x5)
-{
-	GET(FakeAnimClass* const, pThis, ECX);
-	GET_STACK(Point2D*, pCoord, STACK_OFFS(0x100, -0x4));
-
-	if (pThis->Type)
-	{
-		pCoord->X += pThis->_GetTypeExtData()->XDrawOffset;
-	}
-
-	return 0;
-}
-
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E33CC, GET_OFFSET(AnimExtData::GetLayer_patch));
 
 //ASMJIT_PATCH(0x424CB0, AnimClass_InWhichLayer_Override, 0x6) //was 5

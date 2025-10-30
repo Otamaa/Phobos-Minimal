@@ -497,17 +497,17 @@ ASMJIT_PATCH(0x44F62B, BuildingClass_CanPlayerMove_NoManualMove, 0x6)
 	return 0x44F631;
 }
 
-ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
+// ASMJIT_PATCH(0x73CF46, UnitClass_Draw_It_KeepUnitVisible, 0x6)
+// {
+// 	GET(UnitClass*, pThis, ESI);
 
-	if((pThis->Deploying || pThis->Undeploying) &&
-		TechnoTypeExtContainer::Instance.Find(pThis->Type)->DeployingAnim_KeepUnitVisible){
-			return 0x73CF62;
-		}
+// 	if((pThis->Deploying || pThis->Undeploying) &&
+// 		TechnoTypeExtContainer::Instance.Find(pThis->Type)->DeployingAnim_KeepUnitVisible){
+// 			return 0x73CF62;
+// 		}
 
-	return 0;
-}
+// 	return 0;
+// }
 
 // Ares hooks in at 739B8A, this goes before it and skips it if needed.
 // ASMJIT_PATCH(0x739B7C, UnitClass_Deploy_DeployDir, 0x6)
@@ -570,90 +570,90 @@ AnimTypeClass* GetDeployAnim(UnitClass* pThis)
 // 	return false;
 // }
 
-ASMJIT_PATCH(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-	auto const pType = pThis->Type;
-	enum { PlayDeploySound = 0x739C70  , SetAnimTimer = 0x739C20 , SetDeployingState = 0x739C62 };
-	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+//ASMJIT_PATCH(0x739B7C, UnitClass_SimpleDeploy_Facing, 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//	auto const pType = pThis->Type;
+//	enum { PlayDeploySound = 0x739C70  , SetAnimTimer = 0x739C20 , SetDeployingState = 0x739C62 };
+//	//auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+//
+//	if (!pThis->InAir)
+//	{
+//		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+//
+//		if (!pTypeExt->DeployingAnim_AllowAnyDirection)
+//		{
+//			// not sure what is the bitfrom or bitto so it generate this result
+//			// yes iam dum , iam sorry - otamaa
+//			const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
+//			const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
+//			const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
+//
+//			if (nCurrent != (int)nRaw)
+//			{
+//				if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
+//				{
+//					if (!pLoco->Is_Moving_Now())
+//					{
+//						pLoco->Do_Turn(DirStruct { nRaw });
+//					}
+//
+//					return PlayDeploySound; //adjust the facing first
+//				}
+//			}
+//		}
+//
+//		if (const auto pAnimType = GetDeployAnim(pThis))
+//		{
+//			if(!pThis->DeployAnim) {
+//				auto const pAnim = GameCreate<AnimClass>(pAnimType,
+//				pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+//
+//				pThis->DeployAnim = pAnim;
+//				pAnim->SetOwnerObject(pThis);
+//
+//				if (pTypeExt->DeployingAnim_UseUnitDrawer) {
+//					pAnim->LightConvert = pThis->GetRemapColour();
+//				}
+//			}
+//
+//			pThis->Animation.Stage = pAnimType->Start;
+//			pThis->Animation.Timer.Start(pAnimType->Rate);
+//		}
+//
+//		pThis->Deployed = true;
+//	}
+//
+//	return PlayDeploySound;
+//}
 
-	if (!pThis->InAir)
-	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-		if (!pTypeExt->DeployingAnim_AllowAnyDirection)
-		{
-			// not sure what is the bitfrom or bitto so it generate this result
-			// yes iam dum , iam sorry - otamaa
-			const auto nRulesDeployDir = ((((RulesClass::Instance->DeployDir) >> 4) + 1) >> 1) & 7;
-			const FacingType nRaw = pTypeExt->DeployDir.isset() ? pTypeExt->DeployDir.Get() : (FacingType)nRulesDeployDir;
-			const auto nCurrent = (((((pThis->PrimaryFacing.Current().Raw) >> 12) + 1) >> 1) & 7);
-
-			if (nCurrent != (int)nRaw)
-			{
-				if (const auto pLoco = pThis->Locomotor.GetInterfacePtr())
-				{
-					if (!pLoco->Is_Moving_Now())
-					{
-						pLoco->Do_Turn(DirStruct { nRaw });
-					}
-
-					return PlayDeploySound; //adjust the facing first
-				}
-			}
-		}
-
-		if (const auto pAnimType = GetDeployAnim(pThis))
-		{
-			if(!pThis->DeployAnim) {
-				auto const pAnim = GameCreate<AnimClass>(pAnimType,
-				pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
-
-				pThis->DeployAnim = pAnim;
-				pAnim->SetOwnerObject(pThis);
-
-				if (pTypeExt->DeployingAnim_UseUnitDrawer) {
-					pAnim->LightConvert = pThis->GetRemapColour();
-				}
-			}
-
-			pThis->Animation.Stage = pAnimType->Start;
-			pThis->Animation.Timer.Start(pAnimType->Rate);
-		}
-
-		pThis->Deployed = true;
-	}
-
-	return PlayDeploySound;
-}
-
-ASMJIT_PATCH(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
-{
-	GET(UnitClass*, pThis, ESI);
-
-	const auto pAnimType = GetDeployAnim(pThis);
-
-	if(!pAnimType)
-		return 0x739E4F;
-
-	if(pThis->DeployAnim)
-		return 0x739E04;
-
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	auto const pAnim = GameCreate<AnimClass>(pAnimType,
-	pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
-	pExt->DeployingAnim_ReverseForUndeploy);
-
-	pThis->DeployAnim = pAnim;
-	pAnim->SetOwnerObject(pThis);
-
-	if (pExt->DeployingAnim_UseUnitDrawer) {
-		pAnim->LightConvert = pThis->GetRemapColour();
-	}
-
-	return 0x739E04;
-}
+//ASMJIT_PATCH(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
+//{
+//	GET(UnitClass*, pThis, ESI);
+//
+//	const auto pAnimType = GetDeployAnim(pThis);
+//
+//	if(!pAnimType)
+//		return 0x739E4F;
+//
+//	if(pThis->DeployAnim)
+//		return 0x739E04;
+//
+//	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+//
+//	auto const pAnim = GameCreate<AnimClass>(pAnimType,
+//	pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0,
+//	pExt->DeployingAnim_ReverseForUndeploy);
+//
+//	pThis->DeployAnim = pAnim;
+//	pAnim->SetOwnerObject(pThis);
+//
+//	if (pExt->DeployingAnim_UseUnitDrawer) {
+//		pAnim->LightConvert = pThis->GetRemapColour();
+//	}
+//
+//	return 0x739E04;
+//}
 
 //ASMJIT_PATCH(0x714706, TechnoTypeClass_read_DeployAnim, 0x9)
 //{
@@ -689,55 +689,55 @@ ASMJIT_PATCH(0x739D73 , UnitClass_UnDeploy_DeployAnim , 0x6)
 //
 // 	return isDeploying ? Deploy : Undeploy;
 // }
-
-ASMJIT_PATCH(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
-{
-	enum { DeployReturn = 0x739CBF, UndeployReturn = 0x739EB8 };
-
-	GET(UnitClass*, pThis, ESI);
-
-	const bool isDeploying = R->Origin() == 0x739C86;
-	const bool isDoneWithDeployUndeploy = isDeploying ? pThis->Deployed : !pThis->Deployed;
-
-	if (isDoneWithDeployUndeploy)
-		return 0; // Only play sound when done with deploying or undeploying.
-
-	return isDeploying ? DeployReturn : UndeployReturn;
-}ASMJIT_PATCH_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
+//
+//ASMJIT_PATCH(0x739C86, UnitClass_DeployUndeploy_DeploySound, 0x6)
+//{
+//	enum { DeployReturn = 0x739CBF, UndeployReturn = 0x739EB8 };
+//
+//	GET(UnitClass*, pThis, ESI);
+//
+//	const bool isDeploying = R->Origin() == 0x739C86;
+//	const bool isDoneWithDeployUndeploy = isDeploying ? pThis->Deployed : !pThis->Deployed;
+//
+//	if (isDoneWithDeployUndeploy)
+//		return 0; // Only play sound when done with deploying or undeploying.
+//
+//	return isDeploying ? DeployReturn : UndeployReturn;
+//}ASMJIT_PATCH_AGAIN(0x739E81, UnitClass_DeployUndeploy_DeploySound, 0x6)
 
 #include <Locomotor/HoverLocomotionClass.h>
 
-namespace SimpleDeployerTemp {
-	bool HoverDeployedToLand = false;
-	AnimTypeClass* DeployingAnim = nullptr;
-}
+// namespace SimpleDeployerTemp {
+// 	bool HoverDeployedToLand = false;
+// 	AnimTypeClass* DeployingAnim = nullptr;
+// }
 
-ASMJIT_PATCH(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
-{
-	GET(UnitClass*, pThis, ESI);
+// ASMJIT_PATCH(0x739CBF, UnitClass_Deploy_DeployToLandHover, 0x5)
+// {
+// 	GET(UnitClass*, pThis, ESI);
 
-	if (pThis->Deployed && pThis->Type->DeployToLand && pThis->Type->Locomotor == HoverLocomotionClass::ClassGUID())
-		SimpleDeployerTemp::HoverDeployedToLand = true;
+// 	if (pThis->Deployed && pThis->Type->DeployToLand && pThis->Type->Locomotor == HoverLocomotionClass::ClassGUID())
+// 		SimpleDeployerTemp::HoverDeployedToLand = true;
 
-	return 0;
-}
+// 	return 0;
+// }
 
-ASMJIT_PATCH(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
-{
-	if (SimpleDeployerTemp::HoverDeployedToLand)
-	{
-		GET(UnitClass*, pThis, ESI);
+// ASMJIT_PATCH(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
+// {
+// 	if (SimpleDeployerTemp::HoverDeployedToLand)
+// 	{
+// 		GET(UnitClass*, pThis, ESI);
 
-		// Ares' DeployToLand 'fix' for Hover IsSimpleDeployer vehicles does not set/reset certain values
-		// and has a chance to get stuck in Unload mission as a result, following should remedy that.
-		pThis->SetHeight(0);
-		pThis->InAir = false;
-		pThis->ForceMission(Mission::Guard);
-	}
+// 		// Ares' DeployToLand 'fix' for Hover IsSimpleDeployer vehicles does not set/reset certain values
+// 		// and has a chance to get stuck in Unload mission as a result, following should remedy that.
+// 		pThis->SetHeight(0);
+// 		pThis->InAir = false;
+// 		pThis->ForceMission(Mission::Guard);
+// 	}
 
-	SimpleDeployerTemp::HoverDeployedToLand = false;
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x73DED8, UnitClass_Unload_DeployToLandHover, 0x7)
+// 	SimpleDeployerTemp::HoverDeployedToLand = false;
+// 	return 0;
+// }ASMJIT_PATCH_AGAIN(0x73DED8, UnitClass_Unload_DeployToLandHover, 0x7)
 
 // // Trick Ares into thinking it can deploy in any direction if anim does not constrain it by temporarily removing the anim.
 // ASMJIT_PATCH(0x514325, HoverLocomotionClass_Process_DeployingAnim1, 0x8)
@@ -777,21 +777,6 @@ ASMJIT_PATCH(0x73E5B1, UnitClass_Unload_DeployToLandHover, 0x8)
 //
 // 	return 0;
 // }
-
-// Do not display hover bobbing when landed during deploying.
-ASMJIT_PATCH(0x513D2C, HoverLocomotionClass_ProcessBobbing_DeployToLand, 0x6)
-{
-	enum { SkipBobbing = 0x513F2A };
-
-	GET(LocomotionClass*, pThis, ECX);
-
-	if (auto const pUnit = cast_to<UnitClass*, false>(pThis->Owner)) {
-		if (pUnit->Deploying && pUnit->Type->DeployToLand)
-			return SkipBobbing;
-	}
-
-	return 0;
-}
 
 // Issue #503
 // Author : Otamaa
@@ -908,9 +893,9 @@ int GetVoiceAttack(TechnoTypeClass* pType, int WeaponIndex, bool isElite, Weapon
 	if (VoiceAttack < 0)
 	{
 		if (pTypeExt->IsSecondary(WeaponIndex))
-			VoiceAttack = isElite ? pType->VoiceSecondaryEliteWeaponAttack : pType->VoiceSecondaryWeaponAttack;
+			VoiceAttack = isElite && pType->VoiceSecondaryEliteWeaponAttack != -1? pType->VoiceSecondaryEliteWeaponAttack : pType->VoiceSecondaryWeaponAttack;
 		else
-			VoiceAttack = isElite ? pType->VoicePrimaryEliteWeaponAttack : pType->VoicePrimaryWeaponAttack;
+			VoiceAttack = isElite && pType->VoicePrimaryEliteWeaponAttack!= -1 ? pType->VoicePrimaryEliteWeaponAttack : pType->VoicePrimaryWeaponAttack;
 	}
 
 	return VoiceAttack;
@@ -938,4 +923,114 @@ ASMJIT_PATCH(0x7090A0, TechnoClass_VoiceAttack, 0x7)
 	}
 
 	return 0x7091C7;
+}
+
+ThreatType __forceinline GetThreatType(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, ThreatType result)
+{
+	ThreatType flags = pThis->Veterancy.IsElite() ? pTypeExt->ThreatTypes.Y : pTypeExt->ThreatTypes.X;
+	return result | flags;
+}
+
+ASMJIT_PATCH(0x7431C9, FootClass_SelectAutoTarget_MultiWeapon, 0x7)				// UnitClass_SelectAutoTarget
+{
+	GET(FootClass*, pThis, ESI);
+	GET(ThreatType, result, EDI);
+	enum { InfantryReturn = 0x51E31B, UnitReturn = 0x74324F, UnitGunner = 0x7431E4 };
+
+	const bool isUnit = R->Origin() == 0x7431C9;
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (isUnit
+		&& !pType->IsGattling && pType->TurretCount > 0
+		&& (pType->Gunner || !pTypeExt->MultiWeapon)) {
+		return UnitGunner;
+	}
+
+	R->EDI(GetThreatType(pThis, pTypeExt, result));
+	return isUnit ? UnitReturn : InfantryReturn;
+}ASMJIT_PATCH_AGAIN(0x51E2CF, FootClass_SelectAutoTarget_MultiWeapon, 0x6)	// InfantryClass_SelectAutoTarget
+
+ASMJIT_PATCH(0x445F04, BuildingClass_SelectAutoTarget_MultiWeapon, 0xA)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET_STACK(ThreatType, result, STACK_OFFSET(0x8, 0x4));
+	enum { ReturnThreatType = 0x445F58, Continue = 0x445F0E };
+
+	if (pThis->UpgradeLevel > 0 || pThis->CanOccupyFire()) {
+		R->EAX(pThis->GetWeapon(0));
+		return Continue;
+	}
+
+	R->EDI(GetThreatType(pThis, TechnoTypeExtContainer::Instance.Find(pThis->Type), result));
+	return ReturnThreatType;
+}
+
+ASMJIT_PATCH(0x6F398E, TechnoClass_CombatDamage_MultiWeapon, 0x7)
+{
+	enum { ReturnDamage = 0x6F3ABB, GunnerDamage = 0x6F39AD, Continue = 0x6F39F4 };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	const AbstractType rtti = pThis->WhatAmI();
+
+	if (rtti == AbstractType::Building)
+	{
+		const auto pBuilding = static_cast<BuildingClass*>(pThis);
+
+		if (pBuilding->UpgradeLevel > 0 || pBuilding->CanOccupyFire())
+			return Continue;
+	}
+
+	const auto pType = pThis->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (rtti == AbstractType::Unit
+		&& !pType->IsGattling && pType->TurretCount > 0
+		&& (pType->Gunner || !pTypeExt->MultiWeapon))
+	{
+		return GunnerDamage;
+	}
+
+	R->EAX(pThis->Veterancy.IsElite() ? pTypeExt->CombatDamages.Y : pTypeExt->CombatDamages.X);
+	return ReturnDamage;
+}
+
+ASMJIT_PATCH(0x707ED0, TechnoClass_GetGuardRange_MultiWeapon, 0x6)
+{
+	enum { ReturnRange = 0x707F08 };
+
+	GET(TechnoClass*, pThis, ESI);
+
+	const auto pType = pThis->GetTechnoType();
+	const bool specialWeapon = !pType->IsGattling && (!pType->HasMultipleTurrets() || !pType->Gunner);
+
+	if (!pType->IsGattling && pType->TurretCount > 0
+		&& (pType->Gunner || !specialWeapon)
+		&& pThis->WhatAmI() == AbstractType::Unit)
+	{
+		R->EAX(pThis->GetWeaponRange(pThis->CurrentWeaponNumber));
+		return ReturnRange;
+	}
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pTypeExt->MultiWeapon && specialWeapon)
+	{
+		const int selectCount = MinImpl(pType->WeaponCount, pTypeExt->MultiWeapon_SelectCount);
+		int range = 0;
+
+		for (int index = selectCount - 1; index >= 0; --index)
+		{
+			const auto weaponRange = pThis->GetWeaponRange(index);
+
+			if (weaponRange > range)
+				range = weaponRange;
+		}
+
+		R->EAX(range);
+		return ReturnRange;
+	}
+
+	return 0;
 }

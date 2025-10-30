@@ -14,6 +14,14 @@ enum class MoveMissionEndModes : int
 	count
 };
 
+enum class BuildingWithProperty : unsigned int
+{
+	LeastThreat = 0,
+		HighestThreat = 65536,
+		Nearest = 131072,
+		Farthest = 196608
+};
+
 class HouseClass;
 class TeamClass;
 enum class PhobosScripts : int
@@ -189,6 +197,20 @@ enum class PhobosScripts : int
 	ConditionalJumpCheckHumanIsMostHated = 16026,
 
 	SimpleDeployerDeploy = 19000,
+
+	ChangeToScriptByID = 19017,
+	ChangeToTeamTypeByID = 19018,
+	ChangeToHouseByID = 19020,
+	PlaySpeechByID = 19024,
+	PlaySoundByID = 19025,
+	PlayMovieByID = 19026, // Reserved! Now does nothing
+	PlayThemeByID = 19027,
+	AttackEnemyStructureByID = 19046,
+	MoveToEnemyStructureByID = 19047,
+	PlayAnimationByID = 19051,
+	ChronoshiftTaskForceToStructureByID = 19056,
+	MoveToFriendlyStructureByID = 19058,
+
 	count
 };
 
@@ -203,11 +225,8 @@ enum class DistanceMode : int
 class ScriptExtData final
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x3B3B3B3B;
 	using base_type = ScriptClass;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 	// Nothing yet
 
@@ -302,6 +321,9 @@ public:
 
 	// SimpleDeployer deploy action
 	static void SimpleDeployerDeploy(TeamClass* pTeam, int mode = -1);
+
+	static void PlaySpeech(TeamClass* pTeam);
+
 	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
 	{
 		return sizeof(ScriptExtData) -
@@ -318,9 +340,6 @@ private:
 	template <typename T>
 	void Serialize(T& Stm)
 	{
-		Stm
-			.Process(this->Initialized)
-			;
 	}
 };
 
@@ -329,5 +348,23 @@ class ScriptExtContainer final : public Container<ScriptExtData>
 public:
 	static ScriptExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(ScriptExtContainer, ScriptExtData, "ScriptClass");
+	static void Clear()
+	{
+		Array.clear();
+	}
+
+	static bool LoadGlobals(PhobosStreamReader& Stm)
+	{
+		return true;
+	}
+
+	static bool SaveGlobals(PhobosStreamWriter& Stm)
+	{
+		return true;
+	}
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+	}
+
 };

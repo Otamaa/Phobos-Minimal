@@ -9,32 +9,62 @@
 
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
-class ParticleExtData
+#include <Ext/Object/Body.h>
+
+class ParticleExtData : public ObjectExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xAAAABBBB;
 	using base_type = ParticleClass;
-	//static COMPILETIMEEVAL size_t ExtOffset = 0x134;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
+#pragma region ClassMembers
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
+#pragma endregion
 
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails { };
-	std::vector<UniversalTrail> Trails { };
+public:
+	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
+		, LaserTrails()
+		, Trails()
+	{ }
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	ParticleExtData(ParticleClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	virtual ~ParticleExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		return sizeof(ParticleExtData) -
-			(4u //AttachedToObject
-				- 4u //inheritance
-			 );
+		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
 	}
 
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		const_cast<ParticleExtData*>(this)->ObjectExtData::SaveToStream(Stm);
+		const_cast<ParticleExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectExtData::CalculateCRC(crc);
+	}
+
+	virtual ParticleClass* This() const override { return reinterpret_cast<ParticleClass*>(this->ObjectExtData::This()); }
+	virtual const ParticleClass* This_Const() const override { return reinterpret_cast<const ParticleClass*>(this->ObjectExtData::This_Const()); }
+
+public:
+
 	static std::pair<TechnoClass*, HouseClass*> GetOwnership(ParticleClass* pThis);
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -44,36 +74,16 @@ class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
 	static ParticleExtContainer Instance;
-	static StaticObjectPool<ParticleExtData , 10000> pools;
 
-	ParticleExtData* AllocateUnchecked(ParticleClass* key)
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
-		ParticleExtData* val = pools.allocate();
-
-		if (val)
+		for (auto& ext : Array)
 		{
-			val->AttachedToObject = key;
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
-		else
-		{
-			Debug::FatalErrorAndExit("The amount of [ParticleExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		}
-
-		return val;
-	}
-
-	void Remove(ParticleClass* key)
-	{
-		if (ParticleExtData* Item = TryFind(key))
-		{
-			RemoveExtOf(key, Item);
-		}
-	}
-
-	void RemoveExtOf(ParticleClass* key, ParticleExtData* Item)
-	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
 	}
 };
 
@@ -84,7 +94,7 @@ public:
 	void _Detach(AbstractClass* target, bool all);
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE ParticleClass* _AsParticle() const {
 		return (ParticleClass*)this;

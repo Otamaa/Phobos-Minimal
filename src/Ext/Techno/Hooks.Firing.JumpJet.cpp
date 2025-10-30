@@ -85,22 +85,6 @@ ASMJIT_PATCH(0x736E6E, UnitClass_UpdateFiring_OmniFireTurnToTarget, 0x9) {
 }
 
 // Bugfix: Align jumpjet turret's facing with body's
-// ASMJIT_PATCH(0x736BA3, UnitClass_UpdateRotation_TurretFacing_Jumpjet, 0x6)
-// {
-// 	GET(UnitClass* const, pThis, ESI);
-// 	enum { SkipCheckDestination = 0x736BCA, GetDirectionTowardsDestination = 0x736BBB };
-// 	// When jumpjets arrived at their FootClass::Destination, they seems stuck at the Move mission
-// 	// and therefore the turret facing was set to DirStruct{atan2(0,0)}==DirType::East at 0x736BBB
-// 	// that's why they will come back to normal when giving stop command explicitly
-// 	// so the best way is to fix the Mission if necessary, but I don't know how to do it
-// 	// so I skipped jumpjets check temporarily
-// 	if (!pThis->Type->TurretSpins && locomotion_cast<JumpjetLocomotionClass*>(pThis->Locomotor))
-// 		return SkipCheckDestination;
-//
-// 	return 0;
-// }
-
-// Bugfix: Align jumpjet turret's facing with body's
 // ASMJIT_PATCH_AGAIN(0x54BB80, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Ascending
 // ASMJIT_PATCH_AGAIN(0x54C2CB, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising
 // ASMJIT_PATCH_AGAIN(0x54C376, JumpjetLocomotionClass_ProcessState_ClearDestination, 0x7) // Process_Cruising

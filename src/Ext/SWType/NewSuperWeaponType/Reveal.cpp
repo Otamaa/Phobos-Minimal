@@ -39,7 +39,7 @@ void SW_Reveal::Deactivate(SuperClass* pThis, CellStruct cell, bool isPlayer)
 
 void SW_Reveal::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::PsychicReveal;
+	pData->This()->Action = Action::PsychicReveal;
 	pData->SW_RadarEvent = false;
 
 	pData->EVA_Ready = VoxClass::FindIndexById(GameStrings::EVA_PsychicRevealReady);
@@ -50,7 +50,7 @@ void SW_Reveal::Initialize(SWTypeExtData* pData)
 
 void SW_Reveal::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	pData->AttachedToObject->Action = (this->GetRange(pData).WidthOrRange < 0.0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->This()->Action = (this->GetRange(pData).WidthOrRange < 0.0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 }
 
 int SW_Reveal::GetSound(const SWTypeExtData* pData) const
@@ -143,7 +143,7 @@ void RevealStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		auto const range = this->Type->GetRange(pData);
+		auto const range = NewSWType::GetNewSWType(pData)->GetRange(pData);
 
 		SW_Reveal::RevealMap(this->Coords, range.WidthOrRange, range.Height, this->Super->Owner);
 	}

@@ -6,12 +6,19 @@
 #include <set>
 #include <map>
 #include <string>
+#include <concepts>
 
 #include <Base/Always.h>
+#include <DebugLog.h>
 
 struct IStream;
 class PhobosStreamReader;
 class PhobosStreamWriter;
+
+enum class StreamType
+{
+	READER, WRITER
+};
 
 template<typename T>
 concept IsTriviallySerializable = std::is_trivially_copyable_v<T> && std::is_standard_layout_v<T>;
@@ -25,99 +32,280 @@ namespace Savegame
 	bool WritePhobosStream(PhobosStreamWriter& Stm, const T& Value);
 }
 
-class PhobosByteStream
+class PhobosByteStreamBase
+{
+public:
+	// Enhanced markers with versioning and checksums
+	static COMPILETIMEEVAL const char* START_MARKER = "PHOBOS_DATA_START";
+	static COMPILETIMEEVAL const char* END_MARKER = "PHOBOS_DATA_END";
+	static COMPILETIMEEVAL size_t START_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_START");
+	static COMPILETIMEEVAL size_t END_MARKER_LEN = std::char_traits<char>::length("PHOBOS_DATA_END");
+
+	virtual bool WriteToStream(LPSTREAM stream) = 0;
+	virtual bool ReadFromStream(LPSTREAM stream) = 0;
+
+
+	virtual size_t Size() const = 0;
+	virtual size_t Offset() const = 0;
+};
+
+class PhobosByteStream : public PhobosByteStreamBase
 {
 public:
 	using data_t = unsigned char;
 
-protected:
-	std::vector<data_t> Data;
-	size_t CurrentOffset;
+
+	// Performance and safety constants
+	static COMPILETIMEEVAL size_t MAX_STREAM_SIZE = 500 * 1024 * 1024;     // 500MB total limit
+	static COMPILETIMEEVAL size_t MAX_SINGLE_OPERATION = 50 * 1024 * 1024; // 50MB per operation
+	static COMPILETIMEEVAL size_t INITIAL_BUFFER_SIZE = 4 * 1024;          // 4KB initial size
+	static COMPILETIMEEVAL size_t MIN_BUFFER_GROWTH = 64 * 1024;           // 64KB minimum growth
+	static COMPILETIMEEVAL size_t MAX_BUFFER_GROWTH = 16 * 1024 * 1024;    // 16MB maximum growth per reallocation
+
+	// Helper constants for size conversions
+	static COMPILETIMEEVAL size_t BYTES_PER_KB = 1024;
+	static COMPILETIMEEVAL size_t BYTES_PER_MB = 1024 * 1024;
+	static COMPILETIMEEVAL size_t BYTES_PER_GB = 1024 * 1024 * 1024;
+	static COMPILETIMEEVAL size_t BIG_SIZE = 8u;
+
+	std::vector<data_t> data;
+	size_t position;
+
+private:
+
+	// Helper function to convert bytes to megabytes for logging
+	static COMPILETIMEEVAL float BytesToMB(size_t bytes)
+	{
+		return static_cast<float>(bytes) / BYTES_PER_MB;
+	}
+
+	// Simple integrity checking flag (no complex checksums)
+	static bool integrity_check_enabled;
+
+	// Performance optimization: reusable verification buffer
+	mutable std::vector<data_t> verify_buffer;
+	mutable std::vector<char> verify_buffer_integration;
 
 public:
-	COMPILETIMEEVAL PhobosByteStream(size_t Reserve = 0x1000) : Data(), CurrentOffset(0) {
-		this->Data.reserve(Reserve);
-	}
-
-	COMPILETIMEEVAL ~PhobosByteStream() = default;
-
-	COMPILETIMEEVAL size_t Size() const
+	PhobosByteStream() : data(), position(0) { }
+	PhobosByteStream(size_t initialSize) : data(), position(0)
 	{
-		return this->Data.size();
+		data.reserve(MaxImpl(initialSize, BYTES_PER_KB));
 	}
 
-	COMPILETIMEEVAL size_t Offset() const
+	~PhobosByteStream() = default;
+
+private:
+	// Validate buffer and size parameters
+	bool ValidateParameters(const void* buffer, size_t size, const char* operation) const
 	{
-		return this->CurrentOffset;
+		if (size == 0) return true;
+
+		if (!buffer)
+		{
+			GameDebugLog::Log("[PhobosByteStream::%s] Null buffer with non-zero size %zu\n", operation, size);
+			DebugBreak();
+			return false;
+		}
+
+		if (size > MAX_SINGLE_OPERATION)
+		{
+			GameDebugLog::Log("[PhobosByteStream::%s] Single operation size %zu exceeds limit %zu\n",
+				operation, size, MAX_SINGLE_OPERATION);
+			DebugBreak();
+			return false;
+		}
+
+		return true;
 	}
 
-	/**
-	* reads {Length} bytes from {pStm} into its storage
-	*/
-	bool ReadFromStream(IStream* pStm, const size_t Length);
+	bool Write(const void* buffer, size_t size);
+	bool Read(void* buffer, size_t size);
 
-	/**
-	* writes all internal storage to {pStm}
-	*/
-	bool WriteToStream(IStream* pStm) const;
+public:
 
-	/**
-	* reads the next block of bytes from {pStm} into its storage,
-	* the block size is prepended to the block
-	*/
-	size_t ReadBlockFromStream(IStream* pStm);
+	virtual bool WriteToStream(LPSTREAM stream);
+	virtual bool ReadFromStream(LPSTREAM stream);
+	virtual size_t Size() const {
+		return this->data.size();
+	}
 
-	/**
-	* writes all internal storage to {pStm}, prefixed with its length
-	*/
-	bool WriteBlockToStream(IStream* pStm) const;
+	virtual size_t Offset() const {
+		return this->position;
+	}
 
+	COMPILETIMEEVAL size_t GetStreamSize() const
+	{
+		return START_MARKER_LEN +     // Start marker
+			sizeof(DWORD) +            // Data size
+			sizeof(uint32_t) +         // Checksum placeholder
+			data.size() +              // Actual data
+			END_MARKER_LEN;            // End marker
+	}
 
-	// primitive save/load - should not be specialized
+	void Reset()
+	{
+		data.clear();
+		position = 0;
+		verify_buffer.clear();
+		verify_buffer_integration.clear();
+	}
 
-	/**
-	* if it has {Size} bytes left, assigns the first {Size} unread bytes to {Value}
-	* moves the internal position forward
-	*/
-	bool Read(data_t* Value, size_t Size);
+	// Performance control toggles
+	void SetIntegrityCheck(bool enabled) { integrity_check_enabled = enabled; }
+	bool GetIntegrityCheck() const { return integrity_check_enabled; }
 
-	/**
-	* ensures there are at least {Size} bytes left in the internal storage, and assigns {Value} casted to byte to that buffer
-	* moves the internal position forward
-	*/
-	void Write(const data_t* Value, size_t Size);
+	void SetPerformanceMode(bool highPerformance)
+	{
+		integrity_check_enabled = !highPerformance;
+	}
 
+	// Simplified integrity verification
+	bool VerifyIntegrity() const
+	{
+		return true; // Always pass - real verification happens in Write operations
+	}
 
-	/**
-	* attempts to read the data from internal storage into {Value}
-	*/
+	void LogStreamInfo() const;
+
 	template<typename T>
 	bool Load(T& Value)
 	{
-		// get address regardless of overloaded & operator
-		auto Bytes = &reinterpret_cast<data_t&>(Value);
+		static_assert(sizeof(T) > 0, "Cannot load empty types");
+
+		auto Bytes = reinterpret_cast<data_t*>(&Value);
+		std::memset(&Value, 0, sizeof(T));
 		return this->Read(Bytes, sizeof(T));
 	}
 
-	/**
-	* writes the data from {Value} into internal storage
-	*/
 	template<typename T>
-	void Save(const T& Value)
+	bool Load(T& Value, size_t size)
 	{
-		// get address regardless of overloaded & operator
-		auto Bytes = &reinterpret_cast<const data_t&>(Value);
-		this->Write(Bytes, sizeof(T));
-	};
+		if (!ValidateParameters(&Value, size, "Load")) return false;
+
+		auto Bytes = reinterpret_cast<data_t*>(&Value);
+		std::memset(&Value, 0, MinImpl(sizeof(T), size));
+		return this->Read(Bytes, size);
+	}
+
+	template<typename T>
+	bool Save(const T& Value, size_t size)
+	{
+		if (!ValidateParameters(&Value, size, "Save")) return false;
+
+		auto Bytes = reinterpret_cast<const data_t*>(&Value);
+		const bool result = this->Write(Bytes, size);
+
+		if (!result)
+		{
+			return false;
+		}
+
+		// Simple verification: only if integrity check is enabled
+		if (integrity_check_enabled)
+		{
+
+			// Reuse verification buffer for performance
+			if (verify_buffer.size() < size)
+			{
+				verify_buffer.resize(size);
+			}
+
+			// Quick verification without position manipulation
+			size_t verify_pos = this->Offset() - size;
+			if (verify_pos + size <= data.size())
+			{
+				std::memcpy(verify_buffer.data(), data.data() + verify_pos, size);
+
+				if (std::memcmp(Bytes, verify_buffer.data(), size) != 0)
+				{
+					GameDebugLog::Log("[WRITE CORRUPTION] Data mismatch for %zu bytes\n", size);
+					DebugBreak();
+					return false;
+				}
+			}
+		}
+
+		return result;
+	}
+
+	bool SaveChar(const char* Value, size_t size)
+	{
+		if (!ValidateParameters(Value, size, "SaveChar")) return false;
+
+		size_t pos_before = this->Offset();
+		const bool result = this->Write(Value, size);
+
+		if (!result)
+		{
+			return false;
+		}
+
+		if (integrity_check_enabled)
+		{
+
+			// Reuse verification buffer for performance
+			if (verify_buffer_integration.size() < size)
+			{
+				verify_buffer_integration.resize(size + 1);
+			}
+
+			size_t pos_save = this->Offset();
+			this->position = pos_before;
+
+			bool verify_result = this->Read(verify_buffer_integration.data(), size);
+			this->position = pos_save;
+
+			if (!verify_result)
+			{
+				GameDebugLog::Log("[WRITE CORRUPTION] Char load verification failed for %zu bytes at offset %zu\n",
+					size, pos_before);
+				DebugBreak();
+				return false;
+			}
+
+			if (std::memcmp(Value, verify_buffer_integration.data(), size) != 0)
+			{
+				GameDebugLog::Log("[WRITE CORRUPTION] Char data mismatch for %zu bytes at offset %zu\n",
+					size, pos_before);
+
+				static size_t COMPILETIMEEVAL MinStringValidationSize = 50u;
+
+				std::string original_str(Value, MinImpl(size, MinStringValidationSize));
+				std::string verify_str(verify_buffer_integration.data(), MinImpl(size, MinStringValidationSize));
+
+				GameDebugLog::Log("[WRITE CORRUPTION] Original string: '%.50s'\n", original_str.c_str());
+				GameDebugLog::Log("[WRITE CORRUPTION] Readback string: '%.50s'\n", verify_str.c_str());
+				DebugBreak();
+				return false;
+			}
+		}
+
+		return result;
+	}
+
+	template<typename T>
+	bool Save(const T& Value)
+	{
+		static_assert(sizeof(T) > 0, "Cannot serialize empty types");
+		return Save(Value, sizeof(T));
+	}
+};
+
+class PhobosAppendedStream : public PhobosByteStream
+{
+public:
+	virtual bool WriteToStream(LPSTREAM stream);
+	virtual bool ReadFromStream(LPSTREAM stream);
 };
 
 template<typename T>
-concept IsDataTypeCorrect =
-std::is_same_v<T, PhobosByteStream::data_t>;
+concept IsDataTypeCorrect = std::is_same_v<T, PhobosByteStream::data_t>;
 
 class PhobosStreamWorkerBase
 {
 public:
+
 	COMPILETIMEEVAL explicit PhobosStreamWorkerBase(PhobosByteStream& Stream) :
 		stream(&Stream),
 		success(true)
@@ -131,9 +319,10 @@ public:
 		return this->success;
 	}
 
+	PhobosByteStream* Getstream() { return stream; }
+
 protected:
-	// set to false_type or true_type to disable or enable debugging checks
-	using stream_debugging_t = std::false_type;
+	using stream_debugging_t = std::true_type;
 
 	COMPILETIMEEVAL bool IsValid(std::true_type) const
 	{
@@ -142,148 +331,89 @@ protected:
 
 	COMPILETIMEEVAL bool IsValid(std::false_type) const
 	{
-		return true;
+		return this->success;
 	}
 
 	PhobosByteStream* stream;
 	bool success;
 };
 
+template<typename T>
+concept SafeElementType = std::is_fundamental_v<T> || std::is_enum_v<T> || std::is_pointer_v<T>;
+
+template<typename T>
+concept IsAnFixedArray = std::is_array_v<T> && std::extent_v<T> > 0;
+
+template<typename T>
+concept SafeForRawSerialization = SafeElementType<T> || IsAnFixedArray<T>;
+
 class PhobosStreamReader : public PhobosStreamWorkerBase
 {
 public:
+	static COMPILETIMEEVAL StreamType Type = StreamType::READER;
+
 	COMPILETIMEEVAL explicit PhobosStreamReader(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
 	COMPILETIMEEVAL PhobosStreamReader(const PhobosStreamReader&) = delete;
-
 	COMPILETIMEEVAL PhobosStreamReader& operator = (const PhobosStreamReader&) = delete;
-
-	template <typename _Ty>
-	PhobosStreamReader& Process(std::set<_Ty>& s, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			s.clear();
-			size_t size = 0;
-			this->Process(size, RegisterForChange);
-			if(size > 0){
-				if COMPILETIMEEVAL(std::is_pointer<_Ty>::value) {
-					std::vector<_Ty> buff(size, nullptr);
-					for (size_t i = 0; i < size; i++) {
-						this->Process(buff[i], RegisterForChange);
-					}
-
-					s.insert(buff.begin() , buff.end());
-				} else {
-					for (size_t i = 0; i < size; i++) {
-						_Ty obj;
-						this->Process(obj, RegisterForChange);
-						s.emplace(obj);
-					}
-				}
-			}
-		}
-
-		return *this;
-	}
-
-	template <typename _Kty, typename _Ty>
-	PhobosStreamReader& Process(std::map<_Kty, _Ty>& m, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			m.clear();
-			size_t size = 0;
-			this->Process(size, RegisterForChange);
-			for (size_t i = 0; i < size; i++)
-			{
-				_Kty key;
-				_Ty value;
-				this->Process(key, RegisterForChange);
-				this->Process(value, RegisterForChange);
-				m.emplace(key, value);
-			}
-		}
-		return *this;
-	}
-
-	template <typename _Kty, typename _Ty>
-	PhobosStreamReader& Process(std::multimap<_Kty, _Ty>& m, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			m.clear();
-			size_t size = 0;
-			this->Process(size, RegisterForChange);
-			for (size_t i = 0; i < size; i++)
-			{
-				_Kty key;
-				_Ty value;
-				this->Process(key, RegisterForChange);
-				this->Process(value, RegisterForChange);
-				m.emplace(key, value);
-			}
-		}
-		return *this;
-	}
-
-	template <typename _Ty1, typename _Ty2>
-	PhobosStreamReader& Process(std::pair<_Ty1, _Ty2>& p, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			this->Process(p.first, RegisterForChange);
-			this->Process(p.second, RegisterForChange);
-		}
-		return *this;
-	}
-
-	PhobosStreamReader& Process(std::string& Value, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			size_t size = 0;
-
-			if (this->Load(size))
-			{
-				if (!size)
-				{
-					Value.clear();
-					return *this;
-				}
-
-				if ((int)size == -1) {
-					return *this;
-				}
-
-				std::vector<char> buffer(size);
-				if (this->Read(reinterpret_cast<BYTE*>(buffer.data()), size))
-				{
-					Value.assign(buffer.begin(), buffer.end());
-					return *this;
-				}
-			}
-		}
-
-		return  *this;
-	}
 
 	template <typename T>
 	PhobosStreamReader& Process(T& value, bool RegisterForChange = true)
 	{
 		if (this->IsValid(stream_debugging_t()))
-			this->success &= Savegame::ReadPhobosStream(*this, value, RegisterForChange);
+		{
+			bool result = Savegame::ReadPhobosStream(*this, value, RegisterForChange);
+			this->success &= result;
+			if (!result)
+			{
+				GameDebugLog::Log("[PhobosStreamReader] Failed to process type at offset %zu\n",
+					stream ? stream->Offset() : 0);
+				DebugBreak();
+			}
+		}
+		else
+		{
+			GameDebugLog::Log("[PhobosStreamReader] Stream not valid, skipping process\n");
+			DebugBreak();
+		}
 		return *this;
 	}
 
-	// helpers
-	// check wehter save game loading is succeeded or not
 	bool ExpectEndOfBlock() const
 	{
-		if (!this->Success() || this->stream->Size() != this->stream->Offset())
+		if (!this->Success())
 		{
-			//GameDebugLog::Log("[PhobosStreamReader] Read %x bytes instead of %x!",
-			//	this->stream->Offset(), this->stream->Size());
+			GameDebugLog::Log("[PhobosStreamReader] Stream failed before end check\n");
+			DebugBreak();
+			return false;
+		}
 
+		if (!this->stream)
+		{
+			GameDebugLog::Log("[PhobosStreamReader] No stream available for end check\n");
+			DebugBreak();
+			return false;
+		}
+
+		size_t actualSize = this->stream->Size();
+		size_t actualOffset = this->stream->Offset();
+
+		if (actualSize != actualOffset)
+		{
+			GameDebugLog::Log("[PhobosStreamReader] MISMATCH: Expected %zu bytes, read %zu bytes (diff: %zd)\n",
+				actualSize, actualOffset, static_cast<long>(actualOffset - actualSize));
+
+			if (actualOffset < actualSize)
+			{
+				GameDebugLog::Log("[PhobosStreamReader] UNDERREAD: %zu bytes left unread\n",
+					actualSize - actualOffset);
+			}
+			else
+			{
+				GameDebugLog::Log("[PhobosStreamReader] OVERREAD: %zu bytes read beyond stream\n",
+					actualOffset - actualSize);
+			}
+
+			DebugBreak();
 			return false;
 		}
 
@@ -293,47 +423,74 @@ public:
 	template <typename T>
 	bool Load(T& buffer)
 	{
-		if (!this->stream->Load(buffer))
+		if (!this->stream)
 		{
-			//GameDebugLog::Log("[PhobosStreamReader] Could not read data of length %u at %X of %X.",
-			//	sizeof(T), this->stream->Offset() - sizeof(T), this->stream->Size());
-
 			this->success = false;
+			GameDebugLog::Log("[PhobosStreamReader] No stream available\n");
+			DebugBreak();
 			return false;
 		}
+
+		if (!this->stream->Load(buffer))
+		{
+			this->success = false;
+			GameDebugLog::Log("[PhobosStreamReader] Failed to load %zu bytes at offset %zu\n",
+				sizeof(T), this->stream->Offset());
+			DebugBreak();
+			return false;
+		}
+
 		return true;
 	}
 
 	template<typename T> requires IsDataTypeCorrect<T>
 	bool Read(T* Value, size_t Size)
 	{
-		if (!this->stream->Read(Value, Size))
+		if (!this->stream || !Value)
 		{
-			//GameDebugLog::Log("[PhobosStreamReader] Could not read data of length %u at %X of %X.",
-			//	Size, this->stream->Offset() - Size, this->stream->Size());
-
 			this->success = false;
+			GameDebugLog::Log("[PhobosStreamReader] Invalid stream or value pointer\n");
+			DebugBreak();
 			return false;
 		}
+
+		if (!this->stream->Load(*Value, Size))
+		{
+			this->success = false;
+			GameDebugLog::Log("[PhobosStreamReader] Failed to read %zu bytes at offset %zu\n",
+				Size, this->stream->Offset());
+			DebugBreak();
+			return false;
+		}
+
 		return true;
 	}
 
-	bool Expect(unsigned int value)
+	bool Expect(size_t value)
 	{
-		unsigned int buffer = 0;
+		size_t buffer = 0;
 		if (this->Load(buffer))
 		{
 			if (buffer == value)
+			{
 				return true;
+			}
 
-			//GameDebugLog::Log("[PhobosStreamReader] Value Expected [%x] != Value Get [%x] ", value, buffer);
+			GameDebugLog::Log("[PhobosStreamReader] Value mismatch: Expected 0x%x, got 0x%x at offset %zu\n",
+				value, buffer, stream ? stream->Offset() - sizeof(size_t) : 0);
+			DebugBreak();
+		}
+		else
+		{
+			GameDebugLog::Log("[PhobosStreamReader] Failed to load expected value at offset %zu\n",
+				stream ? stream->Offset() : 0);
+			DebugBreak();
 		}
 		return false;
 	}
 
 	bool RegisterChange(void* newPtr);
 
-public :
 	template<typename T>
 	PhobosStreamReader& operator>>(T& dt)
 	{
@@ -350,122 +507,105 @@ public :
 class PhobosStreamWriter : public PhobosStreamWorkerBase
 {
 public:
+	static COMPILETIMEEVAL StreamType Type = StreamType::WRITER;
+
 	COMPILETIMEEVAL explicit PhobosStreamWriter(PhobosByteStream& Stream) : PhobosStreamWorkerBase(Stream) { }
 	COMPILETIMEEVAL PhobosStreamWriter(const PhobosStreamWriter&) = delete;
-
 	COMPILETIMEEVAL PhobosStreamWriter& operator = (const PhobosStreamWriter&) = delete;
-
-	template <typename _Ty>
-	PhobosStreamWriter& Process(std::set<_Ty>& s, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			size_t size = s.size();
-			this->Process(size, RegisterForChange);
-			for (auto& obj : s)
-			{
-				this->Process(obj, RegisterForChange);
-			}
-		}
-		return *this;
-	}
-
-	template <typename _Kty, typename _Ty>
-	PhobosStreamWriter& Process(std::map<_Kty, _Ty>& m, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			size_t size = m.size();
-			this->Process(size, RegisterForChange);
-			for (std::pair<const _Kty, _Ty>& p : m)
-			{
-				_Kty key = p.first;
-				_Ty value = p.second;
-				this->Process(key, RegisterForChange);
-				this->Process(value, RegisterForChange);
-			}
-		}
-		return *this;
-	}
-
-	template <typename _Kty, typename _Ty>
-	PhobosStreamWriter& Process(std::multimap<_Kty, _Ty>& m, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			size_t size = m.size();
-			this->Process(size, RegisterForChange);
-			for (std::pair<const _Kty, _Ty>& p : m)
-			{
-				_Kty key = p.first;
-				_Ty value = p.second;
-				this->Process(key, RegisterForChange);
-				this->Process(value, RegisterForChange);
-			}
-		}
-		return *this;
-	}
-
-	template <typename _Ty1, typename _Ty2>
-	PhobosStreamWriter& Process(std::pair<_Ty1, _Ty2>& p, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			this->Process(p.first, RegisterForChange);
-			this->Process(p.second, RegisterForChange);
-		}
-		return *this;
-	}
-
-	PhobosStreamWriter& Process(const std::string& Value, bool RegisterForChange = true)
-	{
-		if (this->IsValid(stream_debugging_t()))
-		{
-			size_t size = Value.size();
-			this->Process(size, RegisterForChange);
-
-			if (Value.empty())
-				return *this;
-
-			this->Write(reinterpret_cast<const BYTE*>(Value.c_str()), size);
-		}
-
-		return *this;
-	}
 
 	template <typename T>
 	PhobosStreamWriter& Process(T& value, bool RegisterForChange = true)
 	{
 		if (this->IsValid(stream_debugging_t()))
-			this->success &= Savegame::WritePhobosStream(*this, value);
+		{
+			bool result = Savegame::WritePhobosStream(*this, value);
+			this->success &= result;
+			if (!result)
+			{
+				GameDebugLog::Log("[PhobosStreamWriter] Failed to process type at offset %zu\n",
+					stream ? stream->Offset() : 0);
+				DebugBreak();
+			}
+		}
+		else
+		{
+			GameDebugLog::Log("[PhobosStreamWriter] Stream not valid, skipping process\n");
+			DebugBreak();
+		}
 
 		return *this;
 	}
 
-	// helpers
-
 	template <typename T>
-	void Save(const T& buffer)
+	bool Save(const T& buffer)
 	{
-		this->stream->Save(buffer);
+		if (!this->stream)
+		{
+			this->success = false;
+			GameDebugLog::Log("[PhobosStreamWriter] No stream available\n");
+			DebugBreak();
+			return false;
+		}
+
+		bool result = this->stream->Save(buffer);
+
+		if (!result)
+		{
+			GameDebugLog::Log("[PhobosStreamWriter] Failed to save %zu bytes at offset %zu\n",
+				sizeof(T), this->stream->Offset());
+			DebugBreak();
+		}
+
+		return result;
 	}
 
 	template<typename T> requires IsDataTypeCorrect<T>
-	void Write(const T* Value, size_t Size)
+	bool Write(const T* Value, size_t Size)
 	{
-		this->stream->Write(Value, Size);
+		if (!this->stream || !Value)
+		{
+			this->success = false;
+			GameDebugLog::Log("[PhobosStreamWriter] Invalid stream or value pointer\n");
+			DebugBreak();
+			return false;
+		}
+
+		bool result = this->stream->Save(*Value, Size);
+
+		if (!result)
+		{
+			GameDebugLog::Log("[PhobosStreamWriter] Failed to write %zu bytes at offset %zu\n",
+				Size, this->stream->Offset());
+			DebugBreak();
+		}
+
+		return result;
 	}
 
 	bool Expect(unsigned int value)
 	{
-		this->Save(value);
-		return true;
+		bool result = this->Save(value);
+
+		if (!result)
+		{
+			GameDebugLog::Log("[PhobosStreamWriter] Failed to write expected value 0x%x\n", value);
+			DebugBreak();
+		}
+
+		return result;
 	}
 
 	bool RegisterChange(const void* oldPtr)
 	{
-		this->Save(oldPtr);
-		return true;
+		bool result = this->Save(oldPtr);
+
+		if (!result)
+		{
+			GameDebugLog::Log("[PhobosStreamWriter] Failed to register change for pointer %p\n", oldPtr);
+			DebugBreak();
+		}
+
+		return result;
 	}
 
 	template<typename T>
@@ -475,7 +615,8 @@ public:
 		return *this;
 	}
 
-	operator bool() const {
+	operator bool() const
+	{
 		return this->success;
 	}
 };

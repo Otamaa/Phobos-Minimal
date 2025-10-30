@@ -23,7 +23,7 @@ public:
   //! \name Members
   //! \{
 
-  Support::Array<RegMask, Globals::kNumVirtGroups> _availableRegs {};
+  Support::Array<RegMask, Globals::kNumVirtGroups> _available_regs {};
 
   //! \}
 
@@ -32,29 +32,29 @@ public:
     switch (arch) {
       case Arch::kX86:
       case Arch::kX64: {
-        uint32_t registerCount = arch == Arch::kX86 ? 8 : 16;
-        _availableRegs[RegGroup::kGp] = Support::lsb_mask<RegMask>(registerCount) & ~Support::bitMask<RegMask>(4u);
-        _availableRegs[RegGroup::kVec] = Support::lsb_mask<RegMask>(registerCount);
-        _availableRegs[RegGroup::kMask] = Support::lsb_mask<RegMask>(8);
-        _availableRegs[RegGroup::kX86_MM] = Support::lsb_mask<RegMask>(8);
-        return kErrorOk;
+        uint32_t register_count = arch == Arch::kX86 ? 8 : 16;
+        _available_regs[RegGroup::kGp] = Support::lsb_mask<RegMask>(register_count) & ~Support::bit_mask<RegMask>(4u);
+        _available_regs[RegGroup::kVec] = Support::lsb_mask<RegMask>(register_count);
+        _available_regs[RegGroup::kMask] = Support::lsb_mask<RegMask>(8);
+        _available_regs[RegGroup::kX86_MM] = Support::lsb_mask<RegMask>(8);
+        return Error::kOk;
       }
 
       case Arch::kAArch64: {
-        _availableRegs[RegGroup::kGp] = 0xFFFFFFFFu & ~Support::bitMask<RegMask>(18, 31u);
-        _availableRegs[RegGroup::kVec] = 0xFFFFFFFFu;
-        _availableRegs[RegGroup::kMask] = 0;
-        _availableRegs[RegGroup::kExtra] = 0;
-        return kErrorOk;
+        _available_regs[RegGroup::kGp] = 0xFFFFFFFFu & ~Support::bit_mask<RegMask>(18, 31u);
+        _available_regs[RegGroup::kVec] = 0xFFFFFFFFu;
+        _available_regs[RegGroup::kMask] = 0;
+        _available_regs[RegGroup::kExtra] = 0;
+        return Error::kOk;
       }
 
       default:
-        return DebugUtils::errored(kErrorInvalidArch);
+        return make_error(Error::kInvalidArch);
     }
   }
 
   [[nodiscard]]
-  inline RegMask availableRegs(RegGroup group) const noexcept { return _availableRegs[group]; }
+  inline RegMask available_regs(RegGroup group) const noexcept { return _available_regs[group]; }
 };
 
 //! \}

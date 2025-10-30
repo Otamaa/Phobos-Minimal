@@ -15,9 +15,9 @@
 LatencyLevelEnum LatencyLevel::CurentLatencyLevel { LatencyLevelEnum::LATENCY_LEVEL_INITIAL };
 uint8_t LatencyLevel::NewFrameSendRate { 3 };
 
-wchar_t* LatencyLevel::GetLatencyMessage(LatencyLevelEnum latencyLevel)
+const wchar_t* LatencyLevel::GetLatencyMessage(LatencyLevelEnum latencyLevel)
 {
-	static COMPILETIMEEVAL wchar_t* msg[] = {
+	static COMPILETIMEEVAL const wchar_t* msg[] = {
 		/* 0 */ L"CnCNet: Latency mode set to: 0 - Initial" // Players should never see this, if it doesn't then it's a bug
 
 		/* 1 */ ,L"CnCNet: Latency mode set to: 1 - Best"

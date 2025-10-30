@@ -8,6 +8,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/House/Body.h>
 #include <Ext/WarheadType/Body.h>
+#include <Ext/Cell/Body.h>
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 #include <Misc/DynamicPatcher/Helpers/Helpers.h>
@@ -15,6 +16,8 @@
 #include "Trajectories/PhobosTrajectory.h"
 
 #include <Utilities/Macro.h>
+#include <Utilities/Helpers.h>
+
 #include <Lib/gcem/gcem.hpp>
 
 #include <New/Entity/FlyingStrings.h>
@@ -55,13 +58,13 @@ void BulletExtData::ApplyArcingFix(const CoordStruct& sourceCoords, const CoordS
 {
 	const auto distanceCoords = targetCoords - sourceCoords;
 	const auto horizontalDistance = Point2D { distanceCoords.X, distanceCoords.Y }.Length();
-	const bool lobber = (this->AttachedToObject->WeaponType && this->AttachedToObject->WeaponType->Lobber) || static_cast<int>(horizontalDistance) < distanceCoords.Z; // 0x70D590
+	const bool lobber = (This()->WeaponType && This()->WeaponType->Lobber) || static_cast<int>(horizontalDistance) < distanceCoords.Z; // 0x70D590
 	// The lower the horizontal velocity, the higher the trajectory
 	// WW calculates the launch angle (and limits it) before calculating the velocity
 	// Here, some magic numbers are used to directly simulate its calculation
 	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
-	const double gravity = BulletTypeExtData::GetAdjustedGravity(this->AttachedToObject->Type);
-	const double speed = speedMult * sqrt(horizontalDistance * gravity * 1.2); // 0x48AB90
+	const double gravity = BulletTypeExtData::GetAdjustedGravity(This()->Type);
+	const double speed = speedMult * Math::sqrt(horizontalDistance * gravity * 1.2); // 0x48AB90
 
 	if (horizontalDistance < 1e-10 || speed< 1e-10)
 	{
@@ -325,7 +328,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 void BulletExtData::CreateAttachedSystem()
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 
 	if (!this->AttachedSystem)
 	{
@@ -714,6 +717,8 @@ HouseClass* BulletExtData::GetHouse(BulletClass* const pThis)
 
 void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 
+	this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
+
 	AnnounceInvalidPointer(OriginalTarget, ptr, bRemoved);
 	AnnounceInvalidPointer(Owner , ptr);
 	AnnounceInvalidPointer(NukeSW, ptr);
@@ -725,14 +730,12 @@ void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 		this->AttachedSystem= nullptr;
  }
 
-#include <Ext/Cell/Body.h>
-
 void BulletExtData::ApplyRadiationToCell(CellClass* pCell, int Spread, int RadLevel)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 	const auto pWeapon = pThis->GetWeaponType();
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::Array.begin()->get());
+	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::FindOrAllocate(GameStrings::Radiation()));
 	auto const pCellExt = CellExtContainer::Instance.Find(pCell);
 
 	auto const it = pCellExt->RadSites.find_if([=](RadSiteClass* const pSite) {
@@ -774,7 +777,7 @@ void BulletExtData::ApplyRadiationToCell(CellClass* pCell, int Spread, int RadLe
 
 void BulletExtData::InitializeLaserTrails()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 
 	if (!LaserTrails.empty())
 		return;
@@ -853,8 +856,8 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Bu
 				pExt->LaserTrails.clear();
 				pExt->InitializeLaserTrails();
 
-				TrailsManager::CleanUp(pExt->AttachedToObject);
-				TrailsManager::Construct(pExt->AttachedToObject);
+				TrailsManager::CleanUp(pExt->This());
+				TrailsManager::Construct(pExt->This());
 
 				// Lose target if the current bullet is no longer interceptable.
 
@@ -916,21 +919,22 @@ Fuse BulletExtData::FuseCheckup(BulletClass* pBullet, CoordStruct* newlocation)
 	return Fuse::DontIgnite;
 }
 
-void BulletExtData::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord , HouseClass* pBulletOwner)
-{
-
-	if (!nCoord.IsValid() && pTarget)
-		nCoord = pTarget->GetCoords();
-
-	if(pBulletOwner && !pOwner) {
-		BulletExtContainer::Instance.Find(pThis)->Owner = pBulletOwner;
-	}
-
-	pThis->Limbo();
-	pThis->SetLocation(nCoord);
-	pThis->Explode(true);
-	pThis->UnInit();
-}
+// void BulletExtData::DetonateAt(BulletClass* pThis, AbstractClass* pTarget, TechnoClass* pOwner, CoordStruct nCoord , HouseClass* pBulletOwner)
+// {
+//
+// 	if (!nCoord.IsValid() && pTarget)
+// 		nCoord = pTarget->GetCoords();
+//
+// 	if(pBulletOwner && !pOwner) {
+// 		BulletExtContainer::Instance.Find(pThis)->Owner = pBulletOwner;
+// 	}
+//
+// 	pThis->Limbo();
+// 	pThis->SetLocation(nCoord);
+// 	pThis->Explode(true);
+// 	pThis->UnInit();
+//
+// }
 
 
 #pragma region BulletAffects
@@ -1102,7 +1106,7 @@ void BulletExtData::SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHo
 	// WW calculates the launch angle (and limits it) before calculating the velocity
 	// Here, some magic numbers are used to directly simulate its calculation
 	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
-	const auto speed = static_cast<int>(speedMult * std::sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
+	const auto speed = static_cast<int>(speedMult * Math::sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
 
 	// Simulate firing Arcing bullet
 	if (horizontalDistance < 1e-10 || speed < 1e-10)
@@ -1148,38 +1152,81 @@ void BulletExtData::SimulatedFiringEffects(BulletClass* pBullet, HouseClass* pHo
 template <typename T>
 void BulletExtData::Serialize(T& Stm)
 {
-	Stm
-		.Process(this->Initialized)
-		.Process(this->CurrentStrength)
-		.Process(this->InterceptorTechnoType)
-		.Process(this->InterceptedStatus)
-		.Process(this->DetonateOnInterception)
-		.Process(this->LaserTrails)
-		.Process(this->SnappedToTarget)
-		.Process(this->NukeSW)
-		.Process(this->BrightCheckDone)
-		.Process(this->Owner)
-		.Process(this->Bouncing)
-		.Process(this->LastObject)
-		.Process(this->BounceAmount)
-		.Process(this->InitialBulletDir)
-		.Process(this->Trails)
-		.Process(this->AttachedSystem)
-		.Process(this->OriginalTarget)
-		.Process(this->ParabombFallRate)
-		;
+	// Define the debug wrapper
+	auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto&
+		{
+			if constexpr (std::is_same_v<T, PhobosStreamWriter>)
+			{
+				size_t beforeSize = Stm.Getstream()->Size();
+				auto& result = Stm.Process(field);
+				size_t afterSize = Stm.Getstream()->Size();
+				GameDebugLog::Log("[BulletExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
+					fieldName, beforeSize, afterSize, afterSize - beforeSize);
+				return result;
+			}
+			else
+			{
+				size_t beforeOffset = Stm.Getstream()->Offset();
+				bool beforeSuccess = Stm.Success();
+				auto& result = Stm.Process(field);
+				size_t afterOffset = Stm.Getstream()->Offset();
+				bool afterSuccess = Stm.Success();
 
+				GameDebugLog::Log("[BulletExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
+					fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
+					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
+
+				if (!afterSuccess && beforeSuccess)
+				{
+					GameDebugLog::Log("[BulletExtData] ERROR: %s caused stream failure!\n", fieldName);
+				}
+				return result;
+			}
+		};
+
+	// Use the debug wrapper for each field
+	debugProcess(this->CurrentStrength, "CurrentStrength");
+	debugProcess(this->InterceptorTechnoType, "InterceptorTechnoType");
+	debugProcess(this->InterceptedStatus, "InterceptedStatus");
+	debugProcess(this->DetonateOnInterception, "DetonateOnInterception");
+	debugProcess(this->LaserTrails, "LaserTrails");
+	debugProcess(this->SnappedToTarget, "SnappedToTarget");
+	debugProcess(this->NukeSW, "NukeSW");
+	debugProcess(this->BrightCheckDone, "BrightCheckDone");
+	debugProcess(this->Owner, "Owner");
+	debugProcess(this->Trails, "Trails");
+	debugProcess(this->AttachedSystem, "AttachedSystem");
+	debugProcess(this->DamageNumberOffset, "DamageNumberOffset");
+	debugProcess(this->OriginalTarget, "OriginalTarget");
+	debugProcess(this->ParabombFallRate, "ParabombFallRate");
+	debugProcess(this->IsInstantDetonation, "IsInstantDetonation");
 	PhobosTrajectory::ProcessFromStream(Stm, this->Trajectory);
 }
 
 // =============================
 // container
 BulletExtContainer BulletExtContainer::Instance;
-StaticObjectPool<BulletExtData , 10000> BulletExtContainer::pools;
+std::vector<BulletExtData*> Container<BulletExtData>::Array;
+
+void Container<BulletExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool BulletExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool BulletExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
 
+//dont have noint
 ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
 {
 	GET(BulletClass*, pItem, ESI);
@@ -1194,35 +1241,6 @@ ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeBulletClass::_Load(IStream* pStm)
-{
-
-	BulletExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BulletClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		BulletExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeBulletClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	BulletExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BulletClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		BulletExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46F8, FakeBulletClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46FC, FakeBulletClass::_Save)
-
 void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 {
 	BulletExtContainer::Instance.InvalidatePointerFor(this, target, all);
@@ -1231,3 +1249,24 @@ void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E470C, FakeBulletClass::_Detach)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4744, FakeBulletClass::_AnimPointerExpired)
+
+HRESULT __stdcall FakeBulletClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->BulletClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = BulletExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeBulletClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->BulletClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = BulletExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+ //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46F8, FakeBulletClass::_Load)
+ //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46FC, FakeBulletClass::_Save)

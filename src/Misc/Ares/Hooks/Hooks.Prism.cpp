@@ -509,30 +509,6 @@ ASMJIT_PATCH(0x448277, BuildingClass_ChangeOwner_PrismForwardAndLeaveBomb, 5)
 	return LeaveBomb;
 }
 
-ASMJIT_PATCH(0x71AF76, TemporalClass_Fire_PrismForwardAndWarpable, 9)
-{
-	GET(TechnoClass* const, pThis, EDI);
-
-	// bugfix #874 B: Temporal warheads affect Warpable=no units
-	// it has been checked: this is warpable. free captured and destroy spawned units.
-	if (pThis->SpawnManager)
-	{
-		pThis->SpawnManager->KillNodes();
-	}
-
-	if (pThis->CaptureManager)
-	{
-		pThis->CaptureManager->FreeAll();
-	}
-
-	// prism forward
-	if (auto const pBld = cast_to<BuildingClass*, false>(pThis)) {
-		BuildingExtContainer::Instance.Find(pBld)->MyPrismForwarding->RemoveFromNetwork(true);
-	}
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x70FD9A, TechnoClass_Drain_PrismForward, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);

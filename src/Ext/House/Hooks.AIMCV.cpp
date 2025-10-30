@@ -21,14 +21,14 @@ ASMJIT_PATCH(0x739889, UnitClass_TryToDeploy_AISetBaseCenter, 0x6)
 }
 
 // AIConstructionYard Hook #4-4 -> sub_440580 - Prohibit AI from building construction yard.
-ASMJIT_PATCH(0x440B7A, BuildingClass_Unlimbo_SkipSetShouldRebuild, 0x7)
-{
-	enum { SkipRebuildFlag = 0x440B81 };
+// ASMJIT_PATCH(0x440B7A, BuildingClass_Unlimbo_SkipSetShouldRebuild, 0x7)
+// {
+// 	enum { SkipRebuildFlag = 0x440B81 };
 
-	GET(BuildingClass* const, pBuilding, ESI);
+// 	GET(BuildingClass* const, pBuilding, ESI);
 
-	return (pBuilding->Type->ConstructionYard && RulesExtData::Instance()->AIForbidConYard) ? SkipRebuildFlag : 0;
-}
+// 	return (pBuilding->Type->ConstructionYard && RulesExtData::Instance()->AIForbidConYard) ? SkipRebuildFlag : 0;
+// }
 
 // AIConstructionYard Hook #5-1 -> sub_588570 - Only expand walls on nodes.
 ASMJIT_PATCH(0x5885D1, MapClass_BuildingToFirestormWall_SkipExtraWalls, 0x6)

@@ -34,7 +34,7 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 void SW_SonarPulse::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	// some defaults
 	pData->SW_RadarEvent = false;
 
@@ -54,7 +54,7 @@ void SW_SonarPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->Sonar_Delay = pINI->ReadInteger(section, "SonarPulse.Delay", pData->Sonar_Delay);
 
 	// full map detection?
-	pData->AttachedToObject->Action = (GetRange(pData).WidthOrRange < 0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->This()->Action = (GetRange(pData).WidthOrRange < 0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
 }
 
 bool SW_SonarPulse::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
@@ -77,7 +77,7 @@ void SonarPulseStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		SendSonarPulse(this->Super, this->GetTypeExtData(), this->Type, this->Coords);
+		SendSonarPulse(this->Super, this->GetTypeExtData(), NewSWType::GetNewSWType(this->GetTypeExtData()), this->Coords);
 	}
 }
 

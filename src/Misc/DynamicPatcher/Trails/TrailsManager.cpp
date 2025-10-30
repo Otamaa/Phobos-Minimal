@@ -13,62 +13,14 @@
 #include <Ext/WeaponType/Body.h>
 
 #pragma region TemplatedStuffs
-template<typename T, typename Ttype, typename Tbase, typename TbaseType, bool IsTechno = false>
-static bool CheckAndContruct(Tbase* pClass, TbaseType* pClassType, bool Clear = false)
-{
-	const auto pExt = T.Find(pClass);
-	const auto pTypeExt = Ttype.Find(pClassType);
 
-	if (!pExt->Trails.empty())
-	{
-		if (Clear)
-			pExt->Trails.clear();
-		else
-			return false;
-	}
-
-	if (pTypeExt->Trails.CurrentData.empty())
-		return false;
-
-	for (const auto& pTrails : pTypeExt->Trails.CurrentData)
-	{
-		const auto pType = TrailType::Array[pTrails.CurrentType].get();
-		if (pType->Mode != TrailMode::NONE)
-		{
-			bool OnTurrent = false;
-			if COMPILETIMEEVAL (IsTechno) OnTurrent = pTrails.Onturrents;
-
-			auto& pBackTrail = pExt->Trails.emplace_back(pType, pTrails.FLHs, OnTurrent);
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
-		}
-	}
-
-	return true;
-}
-
-template<typename Text, typename Tbase>
-static bool ClearLastLoc(Tbase* pBase)
-{
-	const auto  pExt = Text.Find(pBase);
-
-	if (pExt->Trails.empty())
-		return false;
-
-	for (auto& pTrail : pExt->Trails) {
-		pTrail.ClearLastLocation();
-	}
-
-	return true;
-}
-
-template <typename Text, typename Tbase>
-static bool ClearVector(Tbase* pBase)
-{
-	Text.Find(pBase)->Trails.clear();
-
-	return true;
-}
+//template <typename Text, typename Tbase>
+//static bool ClearVector(Tbase* pBase)
+//{
+//	Text.Find(pBase)->Trails.clear();
+//
+//	return true;
+//}
 #pragma endregion
 
 #pragma region Construct
@@ -106,10 +58,10 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 
 		if (pType->Mode != TrailMode::NONE)
 		{
-			pExt->Trails.emplace_back(pType, pTrails.FLHs, pTrails.Onturrents);
+			pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
 			auto& pBackTrail = pExt->Trails.back();
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
+			std::ranges::copy(pTrails.OnLand , std::back_inserter(pBackTrail->OnLandTypes));
+			std::ranges::copy(pTrails.OnTileTypes, std::back_inserter(pBackTrail->OnTileTypes));
 		}
 	}
 }
@@ -137,10 +89,10 @@ void TrailsManager::Construct(BulletClass* pOwner, bool IsConverted)
 
 		if (pType->Mode != TrailMode::NONE)
 		{
-			pExt->Trails.emplace_back(pType, pTrails.FLHs, false);
+			pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
 			auto& pBackTrail = pExt->Trails.back();
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
+			std::ranges::copy(pTrails.OnLand , std::back_inserter(pBackTrail->OnLandTypes));
+			std::ranges::copy(pTrails.OnTileTypes, std::back_inserter(pBackTrail->OnTileTypes));
 		}
 	}
 }
@@ -168,10 +120,10 @@ void TrailsManager::Construct(VoxelAnimClass* pOwner, bool IsConverted)
 
 		if (pType->Mode != TrailMode::NONE)
 		{
-			pExt->Trails.emplace_back(pType, pTrails.FLHs, false);
+			pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
 			auto& pBackTrail = pExt->Trails.back();
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
+			std::ranges::copy(pTrails.OnLand , std::back_inserter(pBackTrail->OnLandTypes));
+			std::ranges::copy(pTrails.OnTileTypes, std::back_inserter(pBackTrail->OnTileTypes));
 		}
 	}
 }
@@ -192,15 +144,15 @@ void TrailsManager::Construct(ParticleClass* pOwner, bool IsConverted)
 	if (pTypeExt->Trails.CurrentData.empty())
 		return ;
 
-	for (const auto& pTrails : pTypeExt->Trails.CurrentData)
+	for (auto& pTrails : pTypeExt->Trails.CurrentData)
 	{
 		const auto pType = TrailType::Array[pTrails.CurrentType].get();
 		if (pType->Mode != TrailMode::NONE)
 		{
-			pExt->Trails.emplace_back(pType, pTrails.FLHs, false);
+			pExt->Trails.push_back(std::make_unique<UniversalTrail>(pType, pTrails.FLHs, false));
 			auto& pBackTrail = pExt->Trails.back();
-			pBackTrail.OnLandTypes = pTrails.OnLand;
-			pBackTrail.OnTileTypes = pTrails.OnTileTypes;
+			std::ranges::copy(pTrails.OnLand , std::back_inserter(pBackTrail->OnLandTypes));
+			std::ranges::copy(pTrails.OnTileTypes, std::back_inserter(pBackTrail->OnTileTypes));
 		}
 	}
 
@@ -222,26 +174,29 @@ void TrailsManager::AI(FootClass* pOwner)
 
 	for (auto& pTrails : pExt->Trails)
 	{
-		if (((TechnoClass*)pOwner)->IsInCloakState() && pTrails.Type->HideWhenCloak.Get()) {
+		if (!pTrails)
+			continue;
+
+		if (((TechnoClass*)pOwner)->IsInCloakState() && pTrails->Type->HideWhenCloak.Get()) {
 			continue;
 		}
 
 		if (!pExt->IsInTunnel)
-			pTrails.Visible = true;
+			pTrails->Visible = true;
 
-		if (pTrails.Type->Mode == TrailMode::ANIM)
+		if (pTrails->Type->Mode == TrailMode::ANIM)
 		{
 			switch (pExt->MyDriveData.nState)
 			{
 			case DrivingState::Start:
 			case DrivingState::Stop:
-				pTrails.SetDrivingState(pExt->MyDriveData.nState);
+				pTrails->SetDrivingState(pExt->MyDriveData.nState);
 				break;
 			}
 		}
 
-		auto nSource = TechnoExtData::GetFLHAbsoluteCoords((TechnoClass*)pOwner, pTrails.FLH, pTrails.IsOnTurret);
-		pTrails.DrawTrail(pOwner->GetOwningHouse(), nSource, CoordStruct::Empty);
+		auto nSource = TechnoExtData::GetFLHAbsoluteCoords((TechnoClass*)pOwner, pTrails->FLH, pTrails->IsOnTurret);
+		pTrails->DrawTrail(pOwner->GetOwningHouse(), nSource, CoordStruct::Empty);
 	}
 }
 
@@ -255,6 +210,9 @@ void TrailsManager::AI(BulletClass* pOwner)
 
 	for (auto& pTrails : pExt->Trails)
 	{
+		if (!pTrails)
+			continue;
+
 		CoordStruct location = (pOwner)->Location;
 		VelocityClass& velocity = (pOwner)->Velocity;
 
@@ -267,8 +225,8 @@ void TrailsManager::AI(BulletClass* pOwner)
 			(int)(location.Z + velocity.Z)
 		};
 
-		auto nSource = TechnoExtData::GetFLHAbsoluteCoords((TechnoClass*)pOwner, pTrails.FLH, pTrails.IsOnTurret);
-		pTrails.DrawTrail(Invoker, location, pTrails.FLH ,pTechnoInvoker,victim);
+		auto nSource = TechnoExtData::GetFLHAbsoluteCoords((TechnoClass*)pOwner, pTrails->FLH, pTrails->IsOnTurret);
+		pTrails->DrawTrail(Invoker, location, pTrails->FLH ,pTechnoInvoker,victim);
 	}
 }
 
@@ -281,8 +239,11 @@ void TrailsManager::AI(VoxelAnimClass* pOwner)
 	auto bounceCoords = (pOwner)->Bounce.GetCoords();
 
 	for (auto& pTrails : pExt->Trails) {
+		if (!pTrails)
+			continue;
+
 		auto const pHouseOwner = pTechnoOwner ? pTechnoOwner->GetOwningHouse() : pOwner->GetOwningHouse();
-		pTrails.DrawTrail(pHouseOwner, bounceCoords, pTrails.FLH);
+		pTrails->DrawTrail(pHouseOwner, bounceCoords, pTrails->FLH);
 	}
 }
 
@@ -292,7 +253,10 @@ void TrailsManager::AI(ParticleClass* pOwner)
 	const auto pExt = ParticleExtContainer::Instance.Find(pOwner);
 
 	for (auto& pTrails : pExt->Trails) {
-		pTrails.DrawTrail((pOwner)->GetOwningHouse(), pOwner->Location, pTrails.FLH);
+		if (!pTrails)
+			continue;
+
+		pTrails->DrawTrail((pOwner)->GetOwningHouse(), pOwner->Location, pTrails->FLH);
 	}
 }
 
@@ -318,8 +282,11 @@ void TrailsManager::Hide(TechnoClass* pOwner)
 
 	for (auto& pTrail : pExt->Trails)
 	{
-		pTrail.Visible = !(((TechnoClass*)pOwner)->InLimbo);
-		pTrail.ClearLastLocation();
+		if (!pTrail)
+			continue;
+
+		pTrail->Visible = !(((TechnoClass*)pOwner)->InLimbo);
+		pTrail->ClearLastLocation();
 	}
 }
 
@@ -333,7 +300,7 @@ void TrailsManager::Hide(BulletClass* pOwner)
 
 	for (auto& pTrail : pExt->Trails)
 	{
-		pTrail.ClearLastLocation();
+		pTrail->ClearLastLocation();
 	}
 }
 
@@ -346,7 +313,7 @@ void TrailsManager::Hide(VoxelAnimClass* pOwner)
 		return;
 
 	for (auto& pTrail : pExt->Trails) {
-		pTrail.ClearLastLocation();
+		pTrail->ClearLastLocation();
 	}
 }
 
@@ -358,7 +325,7 @@ void TrailsManager::Hide(ParticleClass* pOwner)
 	if (pExt->Trails.empty())
 
 	for (auto& pTrail : pExt->Trails) {
-		pTrail.ClearLastLocation();
+		pTrail->ClearLastLocation();
 	}
 }
 
@@ -384,7 +351,7 @@ void TrailsManager::CleanUp(TechnoClass* pOwner)
 
 	for (auto& pTrail : pExt->Trails)
 	{
-		pTrail.ClearLastLocation();
+		pTrail->ClearLastLocation();
 	}
 
 }
@@ -399,7 +366,7 @@ void TrailsManager::CleanUp(BulletClass* pOwner)
 
 	for (auto& pTrail : pExt->Trails)
 	{
-		pTrail.ClearLastLocation();
+		pTrail->ClearLastLocation();
 	}
 
 }
@@ -414,7 +381,7 @@ void TrailsManager::CleanUp(VoxelAnimClass* pOwner)
 
 	for (auto& pTrail : pExt->Trails)
 	{
-		pTrail.ClearLastLocation();
+		pTrail->ClearLastLocation();
 	}
 }
 
@@ -428,7 +395,7 @@ void TrailsManager::CleanUp(ParticleClass* pOwner)
 
 	for (auto& pTrail : pExt->Trails)
 	{
-		pTrail.ClearLastLocation();
+		pTrail->ClearLastLocation();
 	}
 }
 #pragma endregion

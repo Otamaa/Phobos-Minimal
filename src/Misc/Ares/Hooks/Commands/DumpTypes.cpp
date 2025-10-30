@@ -73,8 +73,8 @@ void DumperTypesCommandClass::Execute(WWKey dwUnk) const
 	Debug::LogInfo("Dumping Art Types");
 	Debug::LogInfo("[Movies]");
 
-	for (int i = 0; i < MovieInfo<GameDeleter>::Array->Count; ++i) {
-		Debug::LogInfo("{} = {}", i, MovieInfo<GameDeleter>::Array->Items[i].Name);
+	for (int i = 0; i < MovieInfoArray->Count; ++i) {
+		Debug::LogInfo("{} = {}", i, MovieInfoArray->Items[i].Name);
 	}
 
 	Debug::LogInfo("Dumping AI Types");

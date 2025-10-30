@@ -15,23 +15,17 @@
 #include <Locomotor/Cast.h>
 #include <Locomotor/JumpjetLocomotionClass.h>
 
-void AnimTypeExtData::Initialize()
-{
-	const char* pID = this->AttachedToObject->ID;
-
-	SpecialDraw = IS_SAME_STR_(pID, GameStrings::Anim_RING1());
-	IsInviso = IS_SAME_STR_(pID, GameStrings::Anim_INVISO());
-}
+#include <AircraftTrackerClass.h>
 
 // AnimType Class is readed before Unit and weapon
 // so it is safe to `allocate` them before
 
-void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pID = this->AttachedToObject->ID;
+	const char* pID = this->Name();
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 	this->Palette.Read(exINI, pID, "CustomPalette");
@@ -51,6 +45,10 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->XDrawOffset.Read(exINI, pID, "XDrawOffset");
+	this->YDrawOffset_ApplyBracketHeight.Read(exINI, pID, "YDrawOffset.ApplyBracketHeight");
+	this->YDrawOffset_InvertBracketShift.Read(exINI, pID, "YDrawOffset.InvertBracketShift");
+	this->YDrawOffset_BracketAdjust.Read(exINI, pID, "YDrawOffset.BracketAdjust");
+	this->YDrawOffset_BracketAdjust_Buildings.Read(exINI, pID, "YDrawOffset.BracketAdjust.Buildings");
 	this->HideIfNoOre_Threshold.Read(exINI, pID, "HideIfNoOre.Threshold");
 	this->Layer_UseObjectLayer.Read(exINI, pID, "Layer.UseObjectLayer");
 
@@ -196,8 +194,8 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DetachOnCloak.Read(exINI, pID, "DetachOnCloak");
 	this->Translucency_Cloaked.Read(exINI, pID, "Translucency.Cloaked");
 
-	if (this->AttachedToObject->Translucent) {
-		this->Translucent_Keyframes.Read(exINI, pID, "Translucent.%s", this->AttachedToObject->End);
+	if (This()->Translucent) {
+		this->Translucent_Keyframes.Read(exINI, pID, "Translucent.%s", This()->End);
 	}
 
 #pragma endregion
@@ -216,6 +214,8 @@ void AnimTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->Damaging_UseSeparateState.Read(exINI, pID, "Damaging.UseSeparateState");
 	this->Damaging_Rate.Read(exINI, pID, "Damaging.Rate");
+
+	return true;
 }
 
 void AnimTypeExtData::CreateUnit_MarkCell(AnimClass* pThis)
@@ -367,11 +367,11 @@ static TechnoClass* CreateFoot(
 						if(pType->Speed != 0) {
 							if (pType->BalloonHover)
 							{
-								// Makes the jumpjet think it is hovering without actually moving.
+								// Order BalloonHover jumpjets to ascend.
 								pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 								pJJLoco->IsMoving = true;
-								pJJLoco->HeadToCoord = location;
-								pJJLoco->Height = pType->JumpJetData.Height;
+								pJJLoco->HeadToCoord =  pTechno->GetCoords();
+								TechnoExtContainer::Instance.Find(pTechno)->JumpjetStraightAscend = true;
 
 								if (!inAir)
 									AircraftTrackerClass::Instance->Add(pTechno);
@@ -477,7 +477,7 @@ void AnimTypeExtData::ValidateData()
 
 	if (this->CreateUnitType && this->CreateUnitType->Type->Strength == 0)
 	{
-		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", this->AttachedToObject->ID, this->CreateUnitType->Type->ID);
+		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", Name(), this->CreateUnitType->Type->ID);
 		this->CreateUnitType.reset();
 		Debug::RegisterParserError();
 	}
@@ -551,7 +551,7 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 void AnimTypeExtData::ValidateSpalshAnims()
 {
 	AnimTypeClass* pWake = nullptr;
-	if (this->AttachedToObject->IsMeteor)
+	if (This()->IsMeteor)
 		pWake = WakeAnim.Get(RulesClass::Instance->Wake);
 
 	//what if the anim type loaded twice ?
@@ -565,11 +565,13 @@ template <typename T>
 void AnimTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-
 		.Process(this->Palette)
 		.Process(this->CreateUnitType)
 		.Process(this->XDrawOffset)
+		.Process(this->YDrawOffset_ApplyBracketHeight)
+		.Process(this->YDrawOffset_InvertBracketShift)
+		.Process(this->YDrawOffset_BracketAdjust)
+		.Process(this->YDrawOffset_BracketAdjust_Buildings)
 		.Process(this->HideIfNoOre_Threshold)
 		.Process(this->Layer_UseObjectLayer)
 		.Process(this->AttachedAnimPosition)
@@ -652,12 +654,29 @@ void AnimTypeExtData::Serialize(T& Stm)
 }
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
+std::vector<AnimTypeExtData*> Container<AnimTypeExtData>::Array;
+
+void Container<AnimTypeExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool AnimTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool AnimTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
 {
 	GET(AnimTypeClass*, pItem, EAX);
 	AnimTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
+
 }
 
 ASMJIT_PATCH(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
@@ -669,40 +688,37 @@ ASMJIT_PATCH(0x428EA8, AnimTypeClass_SDDTOR, 0x5)
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
+bool FakeAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
+{
+	bool status = this->AnimTypeClass::LoadFromINI(pINI);
+	AnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E366C, FakeAnimTypeClass::_ReadFromINI)
+
 
 HRESULT __stdcall FakeAnimTypeClass::_Load(IStream* pStm)
 {
+	HRESULT hr = this->AnimTypeClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = AnimTypeExtContainer::Instance.LoadKey(this, pStm);
 
-	AnimTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->AnimTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		AnimTypeExtContainer::Instance.LoadStatic();
-
-	return res;
+	return hr;
 }
 
-HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, bool clearDirty)
+HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, BOOL clearDirty)
 {
+	//temporarely remove it
+	auto ext = this->_GetExtData();
+	AnimTypeExtContainer::Instance.ClearExtAttribute(this);
+	HRESULT hr = this->AnimTypeClass::Save(pStm, clearDirty);
+	AnimTypeExtContainer::Instance.SetExtAttribute(this, ext);
+	if (SUCCEEDED(hr))
+		hr = AnimTypeExtContainer::Instance.SaveKey(this, pStm);
 
-	AnimTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->AnimTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		AnimTypeExtContainer::Instance.SaveStatic();
-
-	return res;
+	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)
-
-ASMJIT_PATCH(0x4287DC, AnimTypeClass_LoadFromINI, 0xA)
-{
-	GET(AnimTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0xBC);
-
-	AnimTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x4287E9);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x4287E9, AnimTypeClass_LoadFromINI, 0xA)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)

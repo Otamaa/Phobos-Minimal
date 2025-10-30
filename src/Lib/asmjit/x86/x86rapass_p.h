@@ -34,7 +34,7 @@ public:
   //! \name Members
   //! \{
 
-  EmitHelper _emitHelper;
+  EmitHelper _emit_helper;
 
   //! \}
 
@@ -55,34 +55,34 @@ public:
 
   //! Returns emit helper.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG EmitHelper* emitHelper() noexcept { return &_emitHelper; }
+  ASMJIT_INLINE_NODEBUG EmitHelper* emit_helper() noexcept { return &_emit_helper; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isAvxEnabled() const noexcept { return _emitHelper.isAvxEnabled(); }
+  ASMJIT_INLINE_NODEBUG bool is_avx_enabled() const noexcept { return _emit_helper.is_avx_enabled(); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isAvx512Enabled() const noexcept { return _emitHelper.isAvx512Enabled(); }
+  ASMJIT_INLINE_NODEBUG bool is_avx512_enabled() const noexcept { return _emit_helper.is_avx512_enabled(); }
 
   //! \}
 
   //! \name Interface
   //! \{
 
-  void onInit() noexcept override;
-  void onDone() noexcept override;
+  void on_init() noexcept override;
+  void on_done() noexcept override;
 
-  Error buildCFG() noexcept override;
+  Error build_cfg_nodes() noexcept override;
 
   Error rewrite() noexcept override;
 
-  Error emitMove(RAWorkReg* wReg, uint32_t dstPhysId, uint32_t srcPhysId) noexcept override;
-  Error emitSwap(RAWorkReg* aReg, uint32_t aPhysId, RAWorkReg* bReg, uint32_t bPhysId) noexcept override;
+  Error emit_move(RAWorkReg* work_reg, uint32_t dst_phys_id, uint32_t src_phys_id) noexcept override;
+  Error emit_swap(RAWorkReg* a_reg, uint32_t a_phys_id, RAWorkReg* b_reg, uint32_t b_phys_id) noexcept override;
 
-  Error emitLoad(RAWorkReg* wReg, uint32_t dstPhysId) noexcept override;
-  Error emitSave(RAWorkReg* wReg, uint32_t srcPhysId) noexcept override;
+  Error emit_load(RAWorkReg* work_reg, uint32_t dst_phys_id) noexcept override;
+  Error emit_save(RAWorkReg* work_reg, uint32_t src_phys_id) noexcept override;
 
-  Error emitJump(const Label& label) noexcept override;
-  Error emitPreCall(InvokeNode* invokeNode) noexcept override;
+  Error emit_jump(const Label& label) noexcept override;
+  Error emit_pre_call(InvokeNode* invoke_node) noexcept override;
 
   //! \}
 };

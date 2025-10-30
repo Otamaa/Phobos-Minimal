@@ -57,34 +57,82 @@ enum class PhobosTriggerEvent : int
 
 	AttachedIsUnderAttachedEffect = 606,
 
+	EnteredByByID = 19001,
+	SpiedByByID = 19002,
+	HouseDiscoveredByID = 19005,
+	DestroyedUnitsAllByID = 19009,
+	DestroyedBuildingsAllByID = 19010,
+	DestroyedAllByID = 19011,
+	BuildBuildingTypeByID = 19019,
+	BuildUnitTypeByID = 19020,
+	BuildInfantryTypeByID = 19021,
+	BuildAircraftTypeByID = 19022,
+	ZoneEntryByByID = 19024,
+	CrossesHorizontalLineByID = 19025,
+	CrossesVerticalLineByID = 19026,
+	LowPowerByID = 19030,
+	BuildingExistsByID = 19032,
+	AttackedByHouseByID = 19044,
+	SpyAsHouseByID = 19053,
+	SpyAsInfantryByID = 19054,
+	DestroyedUnitsNavalByID = 19055,
+	DestroyedUnitsLandByID = 19056,
+	BuildingDoesNotExistByID = 19057,
+	PowerFullByID = 19058,
+	EnteredOrOverflownByByID = 19059,
+
 	count
 };
 
 class TechnoTypeClass;
-class TEventExtData final
+class TEventExtData final : public AbstractExtended
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x91919191;
 	using base_type = TEventClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
-	OptionalStruct<TechnoTypeClass*, false> TechnoType {};
+	OptionalStruct<TechnoTypeClass*, false> TechnoType;
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
+
+	TEventExtData(TEventClass* pObj) : AbstractExtended(pObj) , TechnoType() { }
+	TEventExtData(TEventClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+
+	virtual ~TEventExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<TEventExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
+		const_cast<TEventExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+	}
+
+	virtual TEventClass* This() const override { return reinterpret_cast<TEventClass*>(this->AbstractExtended::This()); }
+	virtual const TEventClass* This_Const() const override { return reinterpret_cast<const TEventClass*>(this->AbstractExtended::This_Const()); }
+
+public:
 
 	// support
 	TechnoTypeClass* GetTechnoType();
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TEventExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 
 	template <typename T>
@@ -92,7 +140,7 @@ private:
 
 public:
 
-	static std::pair<TriggerAttachType, bool> GetFlag(PhobosTriggerEvent nAction)
+	static std::pair<TriggerAttachType, bool> GetTriggetAttach(PhobosTriggerEvent nAction)
 	{
 		switch (nAction)
 		{
@@ -149,7 +197,7 @@ public:
 		}
 	}
 
-	static std::pair<LogicNeedType, bool> GetMode(PhobosTriggerEvent nAction)
+	static std::pair<LogicNeedType, bool> GetLogicNeed(PhobosTriggerEvent nAction)
 	{
 		switch (nAction)
 		{
@@ -159,7 +207,7 @@ public:
 		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsTo:
 		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsTo:
 		case PhobosTriggerEvent::LocalVariableAndIsTrue:
-			return { LogicNeedType::Local , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::GlobalVariableGreaterThan:
 		case PhobosTriggerEvent::GlobalVariableLessThan:
@@ -167,7 +215,7 @@ public:
 		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsTo:
 		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsTo:
 		case PhobosTriggerEvent::GlobalVariableAndIsTrue:
-			return { LogicNeedType::Global , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::LocalVariableGreaterThanLocalVariable:
 		case PhobosTriggerEvent::LocalVariableLessThanLocalVariable:
@@ -175,7 +223,7 @@ public:
 		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToLocalVariable:
 		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToLocalVariable:
 		case PhobosTriggerEvent::LocalVariableAndIsTrueLocalVariable:
-			return { LogicNeedType::Local , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::GlobalVariableGreaterThanLocalVariable:
 		case PhobosTriggerEvent::GlobalVariableLessThanLocalVariable:
@@ -183,7 +231,7 @@ public:
 		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToLocalVariable:
 		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToLocalVariable:
 		case PhobosTriggerEvent::GlobalVariableAndIsTrueLocalVariable:
-			return { LogicNeedType::Global , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::LocalVariableGreaterThanGlobalVariable:
 		case PhobosTriggerEvent::LocalVariableLessThanGlobalVariable:
@@ -191,7 +239,7 @@ public:
 		case PhobosTriggerEvent::LocalVariableGreaterThanOrEqualsToGlobalVariable:
 		case PhobosTriggerEvent::LocalVariableLessThanOrEqualsToGlobalVariable:
 		case PhobosTriggerEvent::LocalVariableAndIsTrueGlobalVariable:
-			return { LogicNeedType::Local , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::GlobalVariableGreaterThanGlobalVariable:
 		case PhobosTriggerEvent::GlobalVariableLessThanGlobalVariable:
@@ -199,7 +247,7 @@ public:
 		case PhobosTriggerEvent::GlobalVariableGreaterThanOrEqualsToGlobalVariable:
 		case PhobosTriggerEvent::GlobalVariableLessThanOrEqualsToGlobalVariable:
 		case PhobosTriggerEvent::GlobalVariableAndIsTrueGlobalVariable:
-			return { LogicNeedType::Global , true };
+			return { LogicNeedType::NumberNTech , true };
 
 		case PhobosTriggerEvent::HouseOwnsTechnoType:
 		case PhobosTriggerEvent::HouseDoesntOwnTechnoType:
@@ -221,6 +269,10 @@ public:
 		}
 	}
 
+	static std::pair<bool, bool> GetPersistableFlag(PhobosTriggerEvent nAction)
+	{
+		return { true , true };
+	}
 
 	static bool HousesAreDestroyedTEvent(TEventClass* pThis);
 	static bool HouseOwnsTechnoTypeTEvent(TEventClass* pThis);
@@ -246,7 +298,16 @@ class TEventExtContainer final : public Container<TEventExtData>
 public:
 	static TEventExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(TEventExtContainer, TEventExtData, "TEventClass");
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass
@@ -254,7 +315,7 @@ class NOVTABLE FakeTEventClass : public TEventClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	TEventExtData* _GetExtData() {
 		return *reinterpret_cast<TEventExtData**>(((DWORD)this) + AbstractExtOffset);

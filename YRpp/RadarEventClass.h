@@ -32,6 +32,12 @@ public:
 	static void __fastcall Create(CellStruct* pMapCoords)
 		{ JMP_FAST(0x660B80); }
 
+	static bool __fastcall SaveVector(LPSTREAM a1)
+	{ JMP_FAST(0x6607D0); }
+
+	static bool __fastcall LoadVector(LPSTREAM a1)
+	{ JMP_FAST(0x660840); }
+
 private:
 	//Constructor, Destructor
 	RadarEventClass(int nType, CellStruct nMapCoords)

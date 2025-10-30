@@ -18,6 +18,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/UnitType/Body.h>
+#include <Ext/Unit/Body.h>
 
 #include <WWKeyboardClass.h>
 #include <Conversions.h>
@@ -30,6 +32,27 @@
 #include "Header.h"
 
 #include <InfantryClass.h>
+
+ASMJIT_PATCH(0x74613C, UnitClass_INoticeSink_CheckJumpjetHarvester, 0x6)
+{
+	GET(UnitClass*, pThis, ESI);
+
+	const auto pType = pThis->Type;
+
+	// Let jumpjet harvesters automatically go mining when leaving the factory
+	if (pType->Harvester || pType->Weeder)
+	{
+		// Have checked pThis->HasAnyLink()
+		if (const auto pBuilding = cast_to<BuildingClass*, true>(pThis->GetNthLink()))
+		{
+			// Only need to check WeaponsFactory
+			if (pBuilding->Type->WeaponsFactory)
+				pThis->QueueMission(Mission::Harvest, true);
+		}
+	}
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x73D219, UnitClass_Draw_OreGatherAnim, 0x6)
 {
@@ -365,12 +388,6 @@ ASMJIT_PATCH(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
 	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
 }
 
-ASMJIT_PATCH(0x7087EB, TechnoClass_ShouldRetaliate_KillDriver, 6)
-{
-	// prevent units with killed drivers from retaliating.
-	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x708B17u : 0u);
-}
 
 ASMJIT_PATCH(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_KillDriver, 6)
 {
@@ -490,20 +507,20 @@ ASMJIT_PATCH(0x508D4A, HouseClass_UpdatePower_LocalDrain2, 6)
 	return 0;
 }
 
+
 ASMJIT_PATCH(0x73DE90, UnitClass_Mi_Unload_SimpleDeployer, 0x6)
 {
 	GET(UnitClass*, pThis, ESI);
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+	auto const pTypeExt = UnitTypeExtContainer::Instance.Find(pThis->Type);
+	auto pExt = UnitExtContainer::Instance.Find(pThis);
 
 	if (pThis->Deployed
 		&& pTypeExt->Convert_Deploy
 		&& TechnoExt_ExtData::ConvertToType(pThis, pTypeExt->Convert_Deploy))
 	{
 		if (pTypeExt->Convert_Deploy_Delay > 0)
-			TechnoExtContainer::Instance.Find(pThis)->Convert_Deploy_Delay
-			//.Start(100);
-			.Start(pTypeExt->Convert_Deploy_Delay);
+			 pExt->Convert_Deploy_Delay.Start(pTypeExt->Convert_Deploy_Delay);
 
 		pThis->Deployed = false;
 	}
@@ -746,9 +763,19 @@ ASMJIT_PATCH(0x4DCEB3, FootClass_TiberiumScanning_AllowPlayertoScanUderShroud, 0
  			if (distFromTiberium > 0 && distFromTiberium < distFromFocus)
  				R->EAX(pCell);
  		}
+
  	}
 
- 	return 0;
+		// Removing unnecessary set destination
+		// This can effectively reduce the ineffective actions when Harvester automatically returning
+		// to work after be manually operated to return to Refinery.
+	if(pFocus && pFocus->WhatAmI() != AbstractType::Building || pThis->GetCell()->GetBuilding() != pFocus){
+		return 0;
+	}
+
+	// Clear ArchiveTarget to avoid checking again next time
+	pThis->ArchiveTarget = nullptr;
+ 	return 0x73E755;
  }
 
 ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
@@ -761,15 +788,15 @@ ASMJIT_PATCH(0x74081F, UnitClass_Mi_Guard_KickFrameDelay, 5)
 		0x740854 : 0x74083B;
 }
 
-ASMJIT_PATCH(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
-{
-	GET(UnitClass*, pThis, ESI);
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
+// ASMJIT_PATCH(0x74410D, UnitClass_Mi_AreaGuard_KickFrameDelay, 5)
+// {
+// 	GET(UnitClass*, pThis, ESI);
+// 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+// 	auto nFrame = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
-	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
-		0x74416C : 0x744129;
-}
+// 	return(nFrame < 0 || nFrame + pThis->CurrentMissionStartTime >= Unsorted::CurrentFrame) ?
+// 		0x74416C : 0x744129;
+// }
 
 ASMJIT_PATCH(0x74689B, UnitClass_Init_Academy, 6)
 {
@@ -924,8 +951,8 @@ DEFINE_JUMP(LJMP, 0x6F7FC5, 0x6F7FDF);
 // 	return 0x6F8F25;
 // }ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_GreatestThereat_Heal, 6)
 
-DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8F1F , 0x2, 0x3C);
-DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8EE3 , 0x2, 0x3C);
+// DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8F1F , 0x2, 0x3C);
+// DEFINE_PATCH_ADDR_OFFSET(byte, 0x6F8EE3 , 0x2, 0x3C);
 
 ASMJIT_PATCH(0x51C913, InfantryClass_CanFire_Heal, 7)
 {
@@ -1444,7 +1471,7 @@ static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
 	if (auto pWeapon = pExt->WhenCrushed_Weapon.Get(pVictim))
 	{
 		int damage = pExt->WhenCrushed_Damage.GetOrDefault(pVictim, pWeapon->Damage);
-		WeaponTypeExtData::DetonateAt(pWeapon, pVictim->GetCoords(), pVictim, damage, false, pVictim->GetOwningHouse());
+		WeaponTypeExtData::DetonateAt4(pWeapon, pVictim->GetCoords(), pVictim, damage, false, pVictim->GetOwningHouse());
 	}
 	else if (auto pWarhead = pExt->WhenCrushed_Warhead.Get(pVictim))
 	{
@@ -1688,6 +1715,8 @@ ASMJIT_PATCH(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 	return 0x7091C5;
 }
 
+#include <Ext/Unit/Body.h>
+
 // #908369, #1100953: units are still deployable when warping or falling
 ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 {
@@ -1695,14 +1724,24 @@ ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 
 	const CellClass* pCell = pThis->GetCell();
 	const CoordStruct crd = pCell->GetCoordsWithBridge();
+	auto pExt = UnitExtContainer::Instance.Find(pThis);
 
-	// recreate replaced check, and also disallow if unit is still warping or dropping in.
-	return TechnoExtContainer::Instance.Find(pThis)->Convert_Deploy_Delay.InProgress()
-		|| pThis->IsUnderEMP()
-		|| pThis->IsWarpingIn()
-		|| pThis->IsFallingDown
-		|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled
-		? 0x700DCE : 0x700E59;
+	if (!pThis->BunkerLinkedItem) {
+
+		if (!TechnoExtData::HasAmmoToDeploy(pThis))
+			return 0x700DCE;
+
+		if (pThis->Type->IsSimpleDeployer && !TechnoExtData::SimpleDeployerAllowedToDeploy(pThis, true, false)) {
+			return 0x700DCE;
+		}
+	}
+		// recreate replaced check, and also disallow if unit is still warping or dropping in.
+	return pExt->Convert_Deploy_Delay.InProgress()
+			|| pThis->IsUnderEMP()
+			|| pThis->IsWarpingIn()
+			|| pThis->IsFallingDown
+			|| pExt->Is_DriverKilled
+			? 0x700DCE : 0x700E59;
 }
 
 ASMJIT_PATCH(0x736135, UnitClass_Update_Deactivated, 6)
@@ -1794,4 +1833,55 @@ ASMJIT_PATCH(0x73C141, UnitClass_DrawVXL_Deactivated, 7)
 	Value = int(Value * factor);
 
 	return 0x73C15F;
+}
+
+#include <TacticalClass.h>
+
+ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
+{
+	enum { SkipDrawCode = 0x73CE00 };
+
+	GET(UnitClass*, pThis, EBP);
+
+	const auto pThisType = pThis->Type;
+
+	if (pThisType->BarrelVoxel.VXL && pThisType->BarrelVoxel.HVA)
+		return 0;
+
+	GET(UnitTypeClass*, pType, ECX);
+	GET(SHPStruct*, pShape, EDI);
+	GET(const int, bodyFrameIdx, EBX);
+	REF_STACK(Point2D, location, STACK_OFFSET(0x128, 0x4));
+	REF_STACK(RectangleStruct, bounds, STACK_OFFSET(0x128, 0xC));
+	GET_STACK(const int, extraLight, STACK_OFFSET(0x128, 0x1C));
+
+	const bool tooBigToFitUnderBridge = pType->TooBigToFitUnderBridge
+		&& pThis->sub_703B10() && !pThis->sub_703E70();
+	const int zAdjust = tooBigToFitUnderBridge ? -16 : 0;
+	const ZGradient zGradient = tooBigToFitUnderBridge ? ZGradient::Ground : pThis->GetZGradient();
+
+	pThis->Draw_A_SHP(pShape, bodyFrameIdx, &location, &bounds, 0, 256, zAdjust, zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
+
+	const auto secondaryDir = pThis->SecondaryFacing.Current();
+	const int frameIdx = secondaryDir.GetFacing<32>(4) + pType->WalkFrames * pType->Facings;
+
+	const auto primaryDir = pThis->PrimaryFacing.Current();
+	const double bodyRad = primaryDir.GetRadian<32>();
+	Matrix3D mtx = Matrix3D::GetIdentity();
+	mtx.RotateZ(static_cast<float>(bodyRad));
+
+
+	TechnoTypeExtContainer::Instance.Find(pThisType)->ApplyTurretOffset(&mtx, 1.0);
+
+	const double turretRad = pType->Turret ? secondaryDir.GetRadian<32>() : bodyRad;
+	mtx.RotateZ(static_cast<float>(turretRad - bodyRad));
+
+	const auto res = mtx.GetTranslation();
+	const auto offset = CoordStruct { static_cast<int>(res.X), static_cast<int>(-res.Y), static_cast<int>(res.Z) };
+	Point2D drawPoint = location + TacticalClass::Instance->CoordsToScreen(offset);
+
+	const bool originalDrawShadow = std::exchange(Game::bDrawShadow(), false);
+	pThis->Draw_A_SHP(pShape, frameIdx, &drawPoint, &bounds, 0, 256, static_cast<DWORD>(-32), zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
+	Game::bDrawShadow = originalDrawShadow;
+	return SkipDrawCode;
 }

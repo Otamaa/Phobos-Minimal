@@ -20,18 +20,26 @@ struct ExtraFireData
 			return const_cast<FLHData*>(this);
 		}
 
-		template <typename T>
-		void Serialize(T& Stm)
+		OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
-			Stm
+			return Stm
 				.Process(PrimaryWeaponFLH)
 				.Process(ElitePrimaryWeaponFLH)
 				.Process(SecondaryWeaponFLH)
 				.Process(EliteSecondaryWeaponFLH)
 				.Process(WeaponXFLH)
 				.Process(EliteWeaponXFLH);
+		}
 
-			//Stm.RegisterChange(this);
+		OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
+		{
+			return Stm
+				.Process(PrimaryWeaponFLH)
+				.Process(ElitePrimaryWeaponFLH)
+				.Process(SecondaryWeaponFLH)
+				.Process(EliteSecondaryWeaponFLH)
+				.Process(WeaponXFLH)
+				.Process(EliteWeaponXFLH);
 		}
 	};
 
@@ -45,10 +53,9 @@ struct ExtraFireData
 		ValueableVector<std::vector<WeaponTypeClass*>> WeaponX { };
 		ValueableVector<std::vector<WeaponTypeClass*>> EliteWeaponX { };
 
-		template <typename T>
-		void Serialize(T& Stm)
+		OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
-			Stm
+			return Stm
 				.Process(PrimaryWeapons)
 				.Process(SecondaryWeapons)
 				.Process(ElitePrimaryWeapons)
@@ -56,9 +63,20 @@ struct ExtraFireData
 				.Process(WeaponX)
 				.Process(EliteWeaponX)
 				;
-
-			//Stm.RegisterChange(this);
 		}
+
+		OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const
+		{
+			return Stm
+				.Process(PrimaryWeapons)
+				.Process(SecondaryWeapons)
+				.Process(ElitePrimaryWeapons)
+				.Process(EliteSecondaryWeapons)
+				.Process(WeaponX)
+				.Process(EliteWeaponX)
+				;
+		}
+
 	};
 
 	FLHData AttachedFLH { };
@@ -68,14 +86,18 @@ struct ExtraFireData
 	void ReadArt(INI_EX& parserArt, const char* pSection_Art);
 	void ReadRules(INI_EX& parserRules,const char* pSection_rules);
 
-	template <typename T>
-	void Serialize(T& Stm)
-	{
-		//Debug::LogInfo("Loading Element From ExtraFireData ! ");
-		AttachedFLH.Serialize(Stm);
-		AttachedWeapon.Serialize(Stm);
+	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
+		return Stm
+			.Process(AttachedFLH)
+			.Process(AttachedWeapon)
+			;
+	}
 
-		//Stm.RegisterChange(this);
+	OPTIONALINLINE bool Save(PhobosStreamWriter& Stm) const {
+		return Stm
+			.Process(AttachedFLH)
+			.Process(AttachedWeapon)
+			;
 	}
 
 };

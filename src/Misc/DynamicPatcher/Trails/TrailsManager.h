@@ -115,14 +115,21 @@ struct TrailsReader
 		}
 	}
 
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<TrailsReader*>(this)->Serialize(Stm); }
+
+private:
+
 	template <typename T>
-	void Serialize(T& Stm)
+	bool Serialize(T& Stm)
 	{
-		Stm
+		return Stm
 			.Process(CurrentData)
 			;
 
-		//Stm.RegisterChange(this);
 	}
 
 };

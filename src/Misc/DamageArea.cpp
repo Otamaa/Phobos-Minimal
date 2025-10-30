@@ -832,7 +832,7 @@ ASMJIT_PATCH(0x4899B3, DamageArea_DamageItemsFix2, 0x5)
 	return CheckThisObject;
 }
 
-ASMJIT_PATCH(0x489286, DamageAread, 0x6)
+ASMJIT_PATCH(0x489286, DamageArea, 0x6)
 {
 	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
 	if (auto const pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWH))
@@ -842,13 +842,17 @@ ASMJIT_PATCH(0x489286, DamageAread, 0x6)
 		GET(CoordStruct*, pCoords, ECX);
 		GET_BASE(TechnoClass*, pOwner, 0x08);
 		GET_BASE(HouseClass*, pHouse, 0x14);
-		if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords))
-		{
-			if (pWH->ShakeXhi || pWH->ShakeXlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo), pWHExt->Shake_UseAlternativeCalculation);
-			if (pWH->ShakeYhi || pWH->ShakeYlo)
-				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo), pWHExt->Shake_UseAlternativeCalculation);
+
+		if(!Phobos::Config::HideShakeEffects){
+			if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords))
+			{
+				if (pWH->ShakeXhi || pWH->ShakeXlo)
+					GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeXhi, pWH->ShakeXlo), pWHExt->Shake_UseAlternativeCalculation);
+				if (pWH->ShakeYhi || pWH->ShakeYlo)
+					GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(pWH->ShakeYhi, pWH->ShakeYlo), pWHExt->Shake_UseAlternativeCalculation);
+			}
 		}
+
 		auto const pDecidedOwner = !pHouse && pOwner ? pOwner->Owner : pHouse;
 		for (const auto& Lauch : pWHExt->Launchs)
 		{
@@ -1049,7 +1053,8 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
 								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
 								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
-								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
+								auto _result_rock = pCoord->operator+(rock_);
+								techno->RockByValue(&_result_rock, (float)rockerSpread);
 							}
 							else if (pWarhead->CellSpread > 0.0f)
 							{
@@ -1067,7 +1072,8 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 								Coordinate rockercoord = (pSource->GetCoords() - techno->GetCoords());
 								Vector3D<double> rockervec = Vector3D<double>((double)rockercoord.X, (double)rockercoord.Y, (double)rockercoord.Z).Normalized() * 10.0f;
 								CoordStruct rock_((int)rockervec.X, (int)rockervec.Y, (int)rockervec.Z);
-								techno->RockByValue(&pCoord->operator+(rock_), (float)rockerSpread);
+								auto _result_rock = pCoord->operator+(rock_);
+								techno->RockByValue(&_result_rock, (float)rockerSpread);
 							}
 							else if (pWarhead->CellSpread > 0.0f)
 							{

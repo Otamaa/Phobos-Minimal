@@ -1,5 +1,6 @@
 #pragma once
 #include <Utilities/TemplateDef.h>
+#include <Utilities/Savegame.h>
 
 struct AttachFireData
 {
@@ -16,9 +17,7 @@ struct AttachFireData
 
 	void Read(INI_EX& parser, const char* pSection);
 
-	template <typename T>
-	bool Serialize(T& Stm)
-	{
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
 		return Stm
 			.Process(UseROF)
 			.Process(CheckRange)
@@ -32,4 +31,20 @@ struct AttachFireData
 			.Success()
 			;
 	}
+
+	bool Save(PhobosStreamWriter& Stm) const {
+		return Stm
+			.Process(UseROF)
+			.Process(CheckRange)
+			.Process(RadialFire)
+			.Process(RadialAngle)
+			.Process(SimulateBurst)
+			.Process(SimulateBurstDelay)
+			.Process(SimulateBurstMode)
+			.Process(OnlyFireInTransport)
+			.Process(UseAlternateFLH)
+			.Success()
+			;
+	}
+
 };

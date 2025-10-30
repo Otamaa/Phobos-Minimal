@@ -23,7 +23,7 @@ public:
 	unique_array(unique_array<T>&& r) : base(move(r)), Size(r.Size) { r.Size = 0; }
 	void reset(size_t size = 0) { base::reset(size ? new T[size] : nullptr); Size = size; }
 	void swap(unique_array<T>&& other) noexcept { base::swap(other); std::swap(Size, other.Size); }
-	void assign(const unique_array<T>& r) const { assert(Size == r.Size); std::copy(r.begin(), r.end(), begin()); }
+	void assign(const unique_array<T>& r) const { assert(Size == r.Size); std::ranges::copy(r, begin()); }
 	const unique_array<T>& operator =(const unique_array<T>& r) const { assign(r); return *this; }
 	size_t size() const noexcept { return Size; }
 	T* begin() const noexcept { return base::get(); }

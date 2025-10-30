@@ -1,5 +1,7 @@
 #include "FighterAreaGuard.h"
 
+#ifdef _aaaaaaa 
+
 #include <Ext/Building/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/TechnoType/Body.h>
@@ -683,3 +685,4 @@ bool FighterAreaGuard::CheckTarget(TechnoClass* pTarget)
 
 	return CanAttack(pTarget, true);
 }
+#endif

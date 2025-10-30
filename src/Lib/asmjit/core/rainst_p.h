@@ -9,11 +9,11 @@
 #include "../core/api-config.h"
 #ifndef ASMJIT_NO_COMPILER
 
+#include "../core/arena.h"
 #include "../core/compilerdefs.h"
 #include "../core/radefs_p.h"
 #include "../core/rareg_p.h"
 #include "../core/support_p.h"
-#include "../core/zone.h"
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -30,38 +30,38 @@ public:
   //! \{
 
   //! Instruction RW flags.
-  InstRWFlags _instRWFlags;
+  InstRWFlags _inst_rw_flags;
   //! Aggregated RATiedFlags from all operands & instruction specific flags.
   RATiedFlags _flags;
   //! Total count of RATiedReg's.
-  uint32_t _tiedTotal;
+  uint32_t _tied_total;
   //! Index of RATiedReg's per register group.
-  RARegIndex _tiedIndex;
+  RARegIndex _tied_index;
   //! Count of RATiedReg's per register group.
-  RARegCount _tiedCount;
+  RARegCount _tied_count;
   //! Number of live, and thus interfering VirtReg's at this point.
-  RALiveCount _liveCount;
+  RALiveCount _live_count;
   //! Fixed physical registers used.
-  RARegMask _usedRegs;
+  RARegMask _used_regs;
   //! Clobbered registers (by a function call).
-  RARegMask _clobberedRegs;
+  RARegMask _clobbered_regs;
   //! Tied registers.
-  RATiedReg _tiedRegs[1];
+  RATiedReg _tied_regs[1];
 
   //! \}
 
   //! \name Construction & Destruction
   //! \{
 
-  inline RAInst(InstRWFlags instRWFlags, RATiedFlags tiedFlags, uint32_t tiedTotal, const RARegMask& clobberedRegs) noexcept {
-    _instRWFlags = instRWFlags;
-    _flags = tiedFlags;
-    _tiedTotal = tiedTotal;
-    _tiedIndex.reset();
-    _tiedCount.reset();
-    _liveCount.reset();
-    _usedRegs.reset();
-    _clobberedRegs = clobberedRegs;
+  inline RAInst(InstRWFlags inst_rw_flags, RATiedFlags tied_flags, uint32_t tied_total, const RARegMask& clobbered_regs) noexcept {
+    _inst_rw_flags = inst_rw_flags;
+    _flags = tied_flags;
+    _tied_total = tied_total;
+    _tied_index.reset();
+    _tied_count.reset();
+    _live_count.reset();
+    _used_regs.reset();
+    _clobbered_regs = clobbered_regs;
   }
 
   //! \}
@@ -71,14 +71,14 @@ public:
 
   //! Returns instruction RW flags.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG InstRWFlags instRWFlags() const noexcept { return _instRWFlags; };
+  ASMJIT_INLINE_NODEBUG InstRWFlags inst_rw_flags() const noexcept { return _inst_rw_flags; };
 
   //! Tests whether the given `flag` is present in instruction RW flags.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasInstRWFlag(InstRWFlags flag) const noexcept { return Support::test(_instRWFlags, flag); }
+  ASMJIT_INLINE_NODEBUG bool has_inst_rw_flag(InstRWFlags flag) const noexcept { return Support::test(_inst_rw_flags, flag); }
 
   //! Adds `flags` to instruction RW flags.
-  ASMJIT_INLINE_NODEBUG void addInstRWFlags(InstRWFlags flags) noexcept { _instRWFlags |= flags; }
+  ASMJIT_INLINE_NODEBUG void add_inst_rw_flags(InstRWFlags flags) noexcept { _inst_rw_flags |= flags; }
 
   //! Returns the instruction flags.
   [[nodiscard]]
@@ -86,24 +86,24 @@ public:
 
   //! Tests whether the instruction has flag `flag`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasFlag(RATiedFlags flag) const noexcept { return Support::test(_flags, flag); }
+  ASMJIT_INLINE_NODEBUG bool has_flag(RATiedFlags flag) const noexcept { return Support::test(_flags, flag); }
 
   //! Replaces the existing instruction flags with `flags`.
-  ASMJIT_INLINE_NODEBUG void setFlags(RATiedFlags flags) noexcept { _flags = flags; }
+  ASMJIT_INLINE_NODEBUG void set_flags(RATiedFlags flags) noexcept { _flags = flags; }
 
   //! Adds instruction `flags` to this RAInst.
-  ASMJIT_INLINE_NODEBUG void addFlags(RATiedFlags flags) noexcept { _flags |= flags; }
+  ASMJIT_INLINE_NODEBUG void add_flags(RATiedFlags flags) noexcept { _flags |= flags; }
 
   //! Clears instruction `flags` from  this RAInst.
-  ASMJIT_INLINE_NODEBUG void clearFlags(RATiedFlags flags) noexcept { _flags &= ~flags; }
+  ASMJIT_INLINE_NODEBUG void clear_flags(RATiedFlags flags) noexcept { _flags &= ~flags; }
 
   //! Tests whether one operand of this instruction has been patched from Reg to Mem.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isRegToMemPatched() const noexcept { return hasFlag(RATiedFlags::kInst_RegToMemPatched); }
+  ASMJIT_INLINE_NODEBUG bool is_reg_to_mem_patched() const noexcept { return has_flag(RATiedFlags::kInst_RegToMemPatched); }
 
   //! Tests whether this instruction can be transformed to another instruction if necessary.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool isTransformable() const noexcept { return hasFlag(RATiedFlags::kInst_IsTransformable); }
+  ASMJIT_INLINE_NODEBUG bool is_transformable() const noexcept { return has_flag(RATiedFlags::kInst_IsTransformable); }
 
   //! Returns the associated block with this RAInst.
   // [[nodiscard]]
@@ -111,60 +111,60 @@ public:
 
   //! Returns tied registers (all).
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RATiedReg* tiedRegs() const noexcept { return const_cast<RATiedReg*>(_tiedRegs); }
+  ASMJIT_INLINE_NODEBUG RATiedReg* tied_regs() const noexcept { return const_cast<RATiedReg*>(_tied_regs); }
 
   //! Returns tied registers for a given `group`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RATiedReg* tiedRegs(RegGroup group) const noexcept { return const_cast<RATiedReg*>(_tiedRegs) + _tiedIndex.get(group); }
+  ASMJIT_INLINE_NODEBUG RATiedReg* tied_regs(RegGroup group) const noexcept { return const_cast<RATiedReg*>(_tied_regs) + _tied_index.get(group); }
 
   //! Returns count of all tied registers.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t tiedCount() const noexcept { return _tiedTotal; }
+  ASMJIT_INLINE_NODEBUG uint32_t tied_count() const noexcept { return _tied_total; }
 
   //! Returns count of tied registers of a given `group`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t tiedCount(RegGroup group) const noexcept { return _tiedCount[group]; }
+  ASMJIT_INLINE_NODEBUG uint32_t tied_count(RegGroup group) const noexcept { return _tied_count[group]; }
 
   //! Returns `RATiedReg` at the given `index`.
   [[nodiscard]]
-  inline RATiedReg* tiedAt(size_t index) const noexcept {
-    ASMJIT_ASSERT(index < _tiedTotal);
-    return tiedRegs() + index;
+  inline RATiedReg* tied_at(size_t index) const noexcept {
+    ASMJIT_ASSERT(index < _tied_total);
+    return tied_regs() + index;
   }
 
   //! Returns `RATiedReg` at the given `index` of the given register `group`.
   [[nodiscard]]
-  inline RATiedReg* tiedOf(RegGroup group, size_t index) const noexcept {
-    ASMJIT_ASSERT(index < _tiedCount.get(group));
-    return tiedRegs(group) + index;
+  inline RATiedReg* tied_of(RegGroup group, size_t index) const noexcept {
+    ASMJIT_ASSERT(index < _tied_count.get(group));
+    return tied_regs(group) + index;
   }
 
   [[nodiscard]]
-  inline const RATiedReg* tiedRegForWorkReg(RegGroup group, RAWorkReg* wReg) const noexcept {
-    const RATiedReg* array = tiedRegs(group);
-    size_t count = tiedCount(group);
+  inline const RATiedReg* tied_reg_for_work_reg(RegGroup group, RAWorkReg* work_reg) const noexcept {
+    const RATiedReg* array = tied_regs(group);
+    size_t count = tied_count(group);
 
     for (size_t i = 0; i < count; i++) {
-      const RATiedReg* tiedReg = &array[i];
-      if (tiedReg->workReg() == wReg) {
-        return tiedReg;
+      const RATiedReg* tied_reg = &array[i];
+      if (tied_reg->work_reg() == work_reg) {
+        return tied_reg;
       }
     }
 
     return nullptr;
   }
 
-  inline void setTiedAt(size_t index, RATiedReg& tied) noexcept {
-    ASMJIT_ASSERT(index < _tiedTotal);
-    _tiedRegs[index] = tied;
+  inline void set_tied_at(size_t index, RATiedReg& tied) noexcept {
+    ASMJIT_ASSERT(index < _tied_total);
+    _tied_regs[index] = tied;
   }
 
   //! \name Static Functions
   //! \{
 
   [[nodiscard]]
-  static ASMJIT_INLINE_NODEBUG size_t sizeOf(uint32_t tiedRegCount) noexcept {
-    return Zone::alignedSizeOf<RAInst>() - sizeof(RATiedReg) + tiedRegCount * sizeof(RATiedReg);
+  static ASMJIT_INLINE_NODEBUG size_t size_of(uint32_t tied_reg_count) noexcept {
+    return Arena::aligned_size_of<RAInst>() - sizeof(RATiedReg) + tied_reg_count * sizeof(RATiedReg);
   }
 
   //! \}
@@ -179,43 +179,43 @@ public:
   //! \{
 
   //! Basic block id.
-  RABlockId _basicBlockId;
+  RABlockId _basic_block_id;
   //! Instruction RW flags.
-  InstRWFlags _instRWFlags;
+  InstRWFlags _inst_rw_flags;
 
   //! Flags combined from all RATiedReg's.
-  RATiedFlags _aggregatedFlags;
+  RATiedFlags _aggregated_flags;
   //! Flags that will be cleared before storing the aggregated flags to `RAInst`.
-  RATiedFlags _forbiddenFlags;
+  RATiedFlags _forbidden_flags;
   RARegCount _count;
   RARegsStats _stats;
 
   RARegMask _used;
   RARegMask _clobbered;
 
-  //! Current tied register in `_tiedRegs`.
+  //! Current tied register in `_tied_regs`.
   RATiedReg* _cur;
   //! Array of temporary tied registers.
-  RATiedReg _tiedRegs[128];
+  RATiedReg _tied_regs[128];
 
   //! \}
 
   //! \name Construction & Destruction
   //! \{
 
-  ASMJIT_INLINE_NODEBUG explicit RAInstBuilder(RABlockId blockId = kBadBlockId) noexcept { reset(blockId); }
+  ASMJIT_INLINE_NODEBUG explicit RAInstBuilder(RABlockId block_id = kBadBlockId) noexcept { reset(block_id); }
 
-  ASMJIT_INLINE_NODEBUG void init(RABlockId blockId) noexcept { reset(blockId); }
-  ASMJIT_INLINE_NODEBUG void reset(RABlockId blockId) noexcept {
-    _basicBlockId = blockId;
-    _instRWFlags = InstRWFlags::kNone;
-    _aggregatedFlags = RATiedFlags::kNone;
-    _forbiddenFlags = RATiedFlags::kNone;
+  ASMJIT_INLINE_NODEBUG void init(RABlockId block_id) noexcept { reset(block_id); }
+  ASMJIT_INLINE_NODEBUG void reset(RABlockId block_id) noexcept {
+    _basic_block_id = block_id;
+    _inst_rw_flags = InstRWFlags::kNone;
+    _aggregated_flags = RATiedFlags::kNone;
+    _forbidden_flags = RATiedFlags::kNone;
     _count.reset();
     _stats.reset();
     _used.reset();
     _clobbered.reset();
-    _cur = _tiedRegs;
+    _cur = _tied_regs;
   }
 
   //! \}
@@ -224,37 +224,37 @@ public:
   //! \{
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG InstRWFlags instRWFlags() const noexcept { return _instRWFlags; }
+  ASMJIT_INLINE_NODEBUG InstRWFlags inst_rw_flags() const noexcept { return _inst_rw_flags; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool hasInstRWFlag(InstRWFlags flag) const noexcept { return Support::test(_instRWFlags, flag); }
+  ASMJIT_INLINE_NODEBUG bool has_inst_rw_flag(InstRWFlags flag) const noexcept { return Support::test(_inst_rw_flags, flag); }
 
-  ASMJIT_INLINE_NODEBUG void addInstRWFlags(InstRWFlags flags) noexcept { _instRWFlags |= flags; }
+  ASMJIT_INLINE_NODEBUG void add_inst_rw_flags(InstRWFlags flags) noexcept { _inst_rw_flags |= flags; }
 
-  ASMJIT_INLINE_NODEBUG void clearInstRWFlags(InstRWFlags flags) noexcept { _instRWFlags &= ~flags; }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RATiedFlags aggregatedFlags() const noexcept { return _aggregatedFlags; }
-
-  ASMJIT_INLINE_NODEBUG void addAggregatedFlags(RATiedFlags flags) noexcept { _aggregatedFlags |= flags; }
+  ASMJIT_INLINE_NODEBUG void clear_inst_rw_flags(InstRWFlags flags) noexcept { _inst_rw_flags &= ~flags; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RATiedFlags forbiddenFlags() const noexcept { return _forbiddenFlags; }
+  ASMJIT_INLINE_NODEBUG RATiedFlags aggregated_flags() const noexcept { return _aggregated_flags; }
 
-  ASMJIT_INLINE_NODEBUG void addForbiddenFlags(RATiedFlags flags) noexcept { _forbiddenFlags |= flags; }
+  ASMJIT_INLINE_NODEBUG void add_aggregated_flags(RATiedFlags flags) noexcept { _aggregated_flags |= flags; }
+
+  [[nodiscard]]
+  ASMJIT_INLINE_NODEBUG RATiedFlags forbidden_flags() const noexcept { return _forbidden_flags; }
+
+  ASMJIT_INLINE_NODEBUG void add_forbidden_flags(RATiedFlags flags) noexcept { _forbidden_flags |= flags; }
 
   //! Returns the number of tied registers added to the builder.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t tiedRegCount() const noexcept { return uint32_t((size_t)(_cur - _tiedRegs)); }
+  ASMJIT_INLINE_NODEBUG uint32_t tied_reg_count() const noexcept { return uint32_t((size_t)(_cur - _tied_regs)); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG RATiedReg* begin() noexcept { return _tiedRegs; }
+  ASMJIT_INLINE_NODEBUG RATiedReg* begin() noexcept { return _tied_regs; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG RATiedReg* end() noexcept { return _cur; }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG const RATiedReg* begin() const noexcept { return _tiedRegs; }
+  ASMJIT_INLINE_NODEBUG const RATiedReg* begin() const noexcept { return _tied_regs; }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG const RATiedReg* end() const noexcept { return _cur; }
@@ -262,15 +262,15 @@ public:
   //! Returns `RATiedReg` at the given `index`.
   [[nodiscard]]
   inline RATiedReg* operator[](size_t index) noexcept {
-    ASMJIT_ASSERT(index < tiedRegCount());
-    return &_tiedRegs[index];
+    ASMJIT_ASSERT(index < tied_reg_count());
+    return &_tied_regs[index];
   }
 
   //! Returns `RATiedReg` at the given `index`. (const).
   [[nodiscard]]
   inline const RATiedReg* operator[](size_t index) const noexcept {
-    ASMJIT_ASSERT(index < tiedRegCount());
-    return &_tiedRegs[index];
+    ASMJIT_ASSERT(index < tied_reg_count());
+    return &_tied_regs[index];
   }
 
   //! \}
@@ -280,149 +280,149 @@ public:
 
   [[nodiscard]]
   Error add(
-    RAWorkReg* workReg,
+    RAWorkReg* work_reg,
     RATiedFlags flags,
-    RegMask useRegMask, uint32_t useId, uint32_t useRewriteMask,
-    RegMask outRegMask, uint32_t outId, uint32_t outRewriteMask,
-    uint32_t rmSize = 0,
-    RAWorkReg* consecutiveParent = nullptr
+    RegMask use_reg_mask, uint32_t use_id, uint32_t use_rewrite_mask,
+    RegMask out_reg_mask, uint32_t out_id, uint32_t out_rewrite_mask,
+    uint32_t rm_size = 0,
+    RAWorkReg* consecutive_parent = nullptr
   ) noexcept {
-    RegGroup group = workReg->group();
-    RATiedReg* tiedReg = workReg->tiedReg();
+    RegGroup group = work_reg->group();
+    RATiedReg* tied_reg = work_reg->tied_reg();
 
-    if (useId != Reg::kIdBad) {
-      _stats.makeFixed(group);
-      _used[group] |= Support::bitMask<RegMask>(useId);
+    if (use_id != Reg::kIdBad) {
+      _stats.make_fixed(group);
+      _used[group] |= Support::bit_mask<RegMask>(use_id);
       flags |= RATiedFlags::kUseFixed;
     }
 
-    if (outId != Reg::kIdBad) {
-      _clobbered[group] |= Support::bitMask<RegMask>(outId);
+    if (out_id != Reg::kIdBad) {
+      _clobbered[group] |= Support::bit_mask<RegMask>(out_id);
       flags |= RATiedFlags::kOutFixed;
     }
 
-    _aggregatedFlags |= flags;
-    _stats.makeUsed(group);
+    _aggregated_flags |= flags;
+    _stats.make_used(group);
 
-    if (!tiedReg) {
+    if (!tied_reg) {
       // Would happen when the builder is not reset properly after each instruction - so catch that!
-      ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
+      ASMJIT_ASSERT(tied_reg_count() < ASMJIT_ARRAY_SIZE(_tied_regs));
 
-      tiedReg = _cur++;
-      tiedReg->init(workReg, flags, useRegMask, useId, useRewriteMask, outRegMask, outId, outRewriteMask, rmSize, consecutiveParent);
-      workReg->setTiedReg(tiedReg);
+      tied_reg = _cur++;
+      tied_reg->init(work_reg, flags, use_reg_mask, use_id, use_rewrite_mask, out_reg_mask, out_id, out_rewrite_mask, rm_size, consecutive_parent);
+      work_reg->set_tied_reg(tied_reg);
 
       _count.add(group);
-      return kErrorOk;
+      return Error::kOk;
     }
     else {
-      if (consecutiveParent != tiedReg->consecutiveParent()) {
-        if (tiedReg->hasConsecutiveParent()) {
-          return DebugUtils::errored(kErrorInvalidState);
+      if (consecutive_parent != tied_reg->consecutive_parent()) {
+        if (tied_reg->has_consecutive_parent()) {
+          return make_error(Error::kInvalidState);
         }
-        tiedReg->_consecutiveParent = consecutiveParent;
+        tied_reg->_consecutive_parent = consecutive_parent;
       }
 
-      if (useId != Reg::kIdBad) {
-        if (ASMJIT_UNLIKELY(tiedReg->hasUseId())) {
-          return DebugUtils::errored(kErrorOverlappedRegs);
+      if (use_id != Reg::kIdBad) {
+        if (ASMJIT_UNLIKELY(tied_reg->has_use_id())) {
+          return make_error(Error::kOverlappedRegs);
         }
-        tiedReg->setUseId(useId);
+        tied_reg->set_use_id(use_id);
       }
 
-      if (outId != Reg::kIdBad) {
-        if (ASMJIT_UNLIKELY(tiedReg->hasOutId())) {
-          return DebugUtils::errored(kErrorOverlappedRegs);
+      if (out_id != Reg::kIdBad) {
+        if (ASMJIT_UNLIKELY(tied_reg->has_out_id())) {
+          return make_error(Error::kOverlappedRegs);
         }
-        tiedReg->setOutId(outId);
+        tied_reg->set_out_id(out_id);
       }
 
-      tiedReg->addRefCount();
-      tiedReg->addFlags(flags);
-      tiedReg->_useRegMask &= useRegMask;
-      tiedReg->_useRewriteMask |= useRewriteMask;
-      tiedReg->_outRegMask &= outRegMask;
-      tiedReg->_outRewriteMask |= outRewriteMask;
-      tiedReg->_rmSize = uint8_t(Support::max<uint32_t>(tiedReg->rmSize(), rmSize));
-      return kErrorOk;
+      tied_reg->add_ref_count();
+      tied_reg->add_flags(flags);
+      tied_reg->_use_reg_mask &= use_reg_mask;
+      tied_reg->_use_rewrite_mask |= use_rewrite_mask;
+      tied_reg->_out_reg_mask &= out_reg_mask;
+      tied_reg->_out_rewrite_mask |= out_rewrite_mask;
+      tied_reg->_rm_size = uint8_t(Support::max<uint32_t>(tied_reg->rm_size(), rm_size));
+      return Error::kOk;
     }
   }
 
   [[nodiscard]]
-  Error addCallArg(RAWorkReg* workReg, uint32_t useId) noexcept {
-    ASMJIT_ASSERT(useId != Reg::kIdBad);
+  Error add_call_arg(RAWorkReg* work_reg, uint32_t use_id) noexcept {
+    ASMJIT_ASSERT(use_id != Reg::kIdBad);
 
     RATiedFlags flags = RATiedFlags::kUse | RATiedFlags::kRead | RATiedFlags::kUseFixed;
-    RegGroup group = workReg->group();
-    RegMask allocable = Support::bitMask<RegMask>(useId);
+    RegGroup group = work_reg->group();
+    RegMask allocable = Support::bit_mask<RegMask>(use_id);
 
-    _aggregatedFlags |= flags;
+    _aggregated_flags |= flags;
     _used[group] |= allocable;
-    _stats.makeFixed(group);
-    _stats.makeUsed(group);
+    _stats.make_fixed(group);
+    _stats.make_used(group);
 
-    RATiedReg* tiedReg = workReg->tiedReg();
-    if (!tiedReg) {
+    RATiedReg* tied_reg = work_reg->tied_reg();
+    if (!tied_reg) {
       // Could happen when the builder is not reset properly after each instruction.
-      ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
+      ASMJIT_ASSERT(tied_reg_count() < ASMJIT_ARRAY_SIZE(_tied_regs));
 
-      tiedReg = _cur++;
-      tiedReg->init(workReg, flags, allocable, useId, 0, allocable, Reg::kIdBad, 0);
-      workReg->setTiedReg(tiedReg);
+      tied_reg = _cur++;
+      tied_reg->init(work_reg, flags, allocable, use_id, 0, allocable, Reg::kIdBad, 0);
+      work_reg->set_tied_reg(tied_reg);
 
       _count.add(group);
-      return kErrorOk;
+      return Error::kOk;
     }
     else {
-      if (tiedReg->hasUseId()) {
+      if (tied_reg->has_use_id()) {
         flags |= RATiedFlags::kDuplicate;
-        tiedReg->_useRegMask |= allocable;
+        tied_reg->_use_reg_mask |= allocable;
       }
       else {
-        tiedReg->setUseId(useId);
-        tiedReg->_useRegMask &= allocable;
+        tied_reg->set_use_id(use_id);
+        tied_reg->_use_reg_mask &= allocable;
       }
 
-      tiedReg->addRefCount();
-      tiedReg->addFlags(flags);
-      return kErrorOk;
+      tied_reg->add_ref_count();
+      tied_reg->add_flags(flags);
+      return Error::kOk;
     }
   }
 
   [[nodiscard]]
-  Error addCallRet(RAWorkReg* workReg, uint32_t outId) noexcept {
-    ASMJIT_ASSERT(outId != Reg::kIdBad);
+  Error add_call_ret(RAWorkReg* work_reg, uint32_t out_id) noexcept {
+    ASMJIT_ASSERT(out_id != Reg::kIdBad);
 
     RATiedFlags flags = RATiedFlags::kOut | RATiedFlags::kWrite | RATiedFlags::kOutFixed;
-    RegGroup group = workReg->group();
-    RegMask outRegs = Support::bitMask<RegMask>(outId);
+    RegGroup group = work_reg->group();
+    RegMask out_regs = Support::bit_mask<RegMask>(out_id);
 
-    _aggregatedFlags |= flags;
-    _used[group] |= outRegs;
-    _stats.makeFixed(group);
-    _stats.makeUsed(group);
+    _aggregated_flags |= flags;
+    _used[group] |= out_regs;
+    _stats.make_fixed(group);
+    _stats.make_used(group);
 
-    RATiedReg* tiedReg = workReg->tiedReg();
-    if (!tiedReg) {
+    RATiedReg* tied_reg = work_reg->tied_reg();
+    if (!tied_reg) {
       // Could happen when the builder is not reset properly after each instruction.
-      ASMJIT_ASSERT(tiedRegCount() < ASMJIT_ARRAY_SIZE(_tiedRegs));
+      ASMJIT_ASSERT(tied_reg_count() < ASMJIT_ARRAY_SIZE(_tied_regs));
 
-      tiedReg = _cur++;
-      tiedReg->init(workReg, flags, Support::bit_ones<RegMask>, Reg::kIdBad, 0, outRegs, outId, 0);
-      workReg->setTiedReg(tiedReg);
+      tied_reg = _cur++;
+      tied_reg->init(work_reg, flags, Support::bit_ones<RegMask>, Reg::kIdBad, 0, out_regs, out_id, 0);
+      work_reg->set_tied_reg(tied_reg);
 
       _count.add(group);
-      return kErrorOk;
+      return Error::kOk;
     }
     else {
-      if (tiedReg->hasOutId()) {
-        return DebugUtils::errored(kErrorOverlappedRegs);
+      if (tied_reg->has_out_id()) {
+        return make_error(Error::kOverlappedRegs);
       }
 
-      tiedReg->addRefCount();
-      tiedReg->addFlags(flags);
-      tiedReg->setOutId(outId);
-      return kErrorOk;
+      tied_reg->add_ref_count();
+      tied_reg->add_flags(flags);
+      tied_reg->set_out_id(out_id);
+      return Error::kOk;
     }
   }
 

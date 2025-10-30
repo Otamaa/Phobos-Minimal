@@ -17,10 +17,10 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	{
 		currFactory = &pData->Factory_BuildingType;
 		block = pRules->ForbidParallelAIQueues_Building.Get(!pRules->AllowParallelAIQueues);
-		if (pData->AttachedToObject->ProducingBuildingTypeIndex >= 0)
+		if (pData->This()->ProducingBuildingTypeIndex >= 0)
 		{
 			block = TechnoTypeExtContainer::Instance.Find(BuildingTypeClass::Array->Items
-				[pData->AttachedToObject->ProducingBuildingTypeIndex])->ForbidParallelAIQueues.Get(block);
+				[pData->This()->ProducingBuildingTypeIndex])->ForbidParallelAIQueues.Get(block);
 		}
 		break;
 	}
@@ -29,10 +29,10 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 		if (!naval)
 		{
 			block = pRules->ForbidParallelAIQueues_Vehicle.Get(!pRules->AllowParallelAIQueues);
-			if (pData->AttachedToObject->ProducingUnitTypeIndex >= 0)
+			if (pData->This()->ProducingUnitTypeIndex >= 0)
 			{
 				block = TechnoTypeExtContainer::Instance.Find(UnitTypeClass::Array->Items
-				[pData->AttachedToObject->ProducingUnitTypeIndex])->ForbidParallelAIQueues.Get(block);
+				[pData->This()->ProducingUnitTypeIndex])->ForbidParallelAIQueues.Get(block);
 			}
 			currFactory = &pData->Factory_VehicleType;
 		}
@@ -52,10 +52,10 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	case AbstractType::InfantryType:
 	{
 		block = pRules->ForbidParallelAIQueues_Infantry.Get(!pRules->AllowParallelAIQueues);
-		if (pData->AttachedToObject->ProducingInfantryTypeIndex >= 0)
+		if (pData->This()->ProducingInfantryTypeIndex >= 0)
 		{
 			block = TechnoTypeExtContainer::Instance.Find(InfantryTypeClass::Array->Items
-			[pData->AttachedToObject->ProducingInfantryTypeIndex])->ForbidParallelAIQueues.Get(block);
+			[pData->This()->ProducingInfantryTypeIndex])->ForbidParallelAIQueues.Get(block);
 		}
 		currFactory = &pData->Factory_InfantryType;
 		break;
@@ -64,10 +64,10 @@ std::tuple<BuildingClass**, bool, AbstractType> GetFactory(AbstractType AbsType,
 	{
 		currFactory = &pData->Factory_AircraftType;
 		block = pRules->ForbidParallelAIQueues_Aircraft.Get(!pRules->AllowParallelAIQueues);
-		if (pData->AttachedToObject->ProducingAircraftTypeIndex >= 0)
+		if (pData->This()->ProducingAircraftTypeIndex >= 0)
 		{
 			block = TechnoTypeExtContainer::Instance.Find(AircraftTypeClass::Array->Items
-				[pData->AttachedToObject->ProducingAircraftTypeIndex])->ForbidParallelAIQueues.Get(block);
+				[pData->This()->ProducingAircraftTypeIndex])->ForbidParallelAIQueues.Get(block);
 		}
 
 		break;

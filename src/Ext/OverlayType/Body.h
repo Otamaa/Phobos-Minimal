@@ -2,33 +2,64 @@
 
 #include <OverlayTypeClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
 #include <Utilities/PhobosMap.h>
 #include <New/Type/PaletteManager.h>
 
-class OverlayTypeExtData final
+#include <Ext/ObjectType/Body.h>
+
+class OverlayTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = OverlayTypeClass;
-	static COMPILETIMEEVAL size_t Canary = 0x414B4B4A;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
-	CustomPalette Palette { CustomPalette::PaletteMode::Temperate };
-	Valueable<int> ZAdjust { 0 };
+#pragma region ClassMembeers
+	CustomPalette Palette;
+	Valueable<int> ZAdjust;
+#pragma endregion
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+public:
+	OverlayTypeExtData(OverlayTypeClass* pObj) : ObjectTypeExtData(pObj),
+		Palette(CustomPalette::PaletteMode::Temperate),
+		ZAdjust(0)
+	{ }
+	OverlayTypeExtData(OverlayTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+
+	virtual ~OverlayTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		return sizeof(OverlayTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
 	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<OverlayTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<OverlayTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual OverlayTypeClass* This() const override { return reinterpret_cast<OverlayTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const OverlayTypeClass* This_Const() const override { return reinterpret_cast<const OverlayTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -38,24 +69,24 @@ class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
 {
 public:
 	static OverlayTypeExtContainer Instance;
-	PhobosMap<OverlayTypeClass*, OverlayTypeExtData*> Map {};
 
-	virtual bool Load(OverlayTypeClass* key, IStream* pStm);
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	void Clear()
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
-		this->Map.clear();
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
 	}
-
-//	OverlayTypeExtContainer() : Container<OverlayTypeExtData> { "OverlayTypeClass" }
-//		, Map {}
-//	{ }
-//
-//	virtual ~OverlayTypeExtContainer() override = default;
-//
-//private:
-//	OverlayTypeExtContainer(const OverlayTypeExtContainer&) = delete;
-//	OverlayTypeExtContainer(OverlayTypeExtContainer&&) = delete;
-//	OverlayTypeExtContainer& operator=(const OverlayTypeExtContainer& other) = delete;
 };
 
+class NOVTABLE FakeOverlayTypeClass : public OverlayTypeClass
+{
+public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+	bool _ReadFromINI(CCINIClass* pINI);
+};

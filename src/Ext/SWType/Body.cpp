@@ -8,6 +8,7 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Side/Body.h>
+#include <Ext/Super/Body.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
@@ -32,6 +33,8 @@
 #include <DiscreteSelectionClass.h>
 #include <DiscreteDistributionClass.h>
 #include <EventClass.h>
+
+#include <Utilities/Helpers.h>
 
 //TODO re-evaluate these , since the default array seems not contains what the documentation table says,..
 std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> SWTypeExtData::AITargetingModes =
@@ -67,7 +70,7 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 SWTypeExtData::~SWTypeExtData() noexcept
 {
 	SuperWeaponTypeClass* pCopy = SWTypeExtData::CurrentSWType;
-	if (this->AttachedToObject == SWTypeExtData::CurrentSWType)
+	if (This() == SWTypeExtData::CurrentSWType)
 		pCopy = nullptr;
 
 	SWTypeExtData::CurrentSWType = pCopy;
@@ -80,7 +83,7 @@ bool SWTypeExtData::IsTypeRedirected() const
 
 bool SWTypeExtData::IsOriginalType() const
 {
-	return NewSWType::IsOriginalType(this->AttachedToObject->Type);
+	return NewSWType::IsOriginalType(This()->Type);
 }
 
 NewSWType* SWTypeExtData::GetNewSWType() const
@@ -90,23 +93,11 @@ NewSWType* SWTypeExtData::GetNewSWType() const
 
 void SWTypeExtData::Initialize()
 {
-	this->Text_Ready = GameStrings::TXT_READY();
-	this->Text_Hold = GameStrings::TXT_HOLD();
-	this->Text_Charging = GameStrings::TXT_CHARGING();
-	this->Text_Active = GameStrings::TXT_FIRESTORM_ON();
-	this->Message_CannotFire = "MSG:CannotFire";
-
 	this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
 	this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
 
-	if (auto pNewSWType = NewSWType::GetNewSWType(this)) {
-		pNewSWType->Initialize(this);
+	this->LastAction = This()->Action;
 
-		if(this->AttachedToObject->Action != Action::None)
-			this->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
-	}
-
-	this->LastAction = this->AttachedToObject->Action;
 }
 
 Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget)
@@ -712,7 +703,7 @@ struct TargetingFuncs
 				 {
 					 const auto pFoot = static_cast<FootClass*>(*j);
 
-					 if (!pTargeting->Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir())
+					 if (pFoot->IsAlive && !pTargeting->Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir())
 					 {
 						  // original game does not consider cloak
 						 if (pFoot->CanBePermaMindControlled() && (pFoot->CloakState != CloakState::Cloaked))
@@ -772,7 +763,7 @@ struct TargetingFuncs
 			  return -1;
 			}
 
-			if(pTargeting->TypeExt->AttachedToObject->Type == SuperWeaponType::GeneticMutator && pTechno->WhatAmI() == InfantryClass::AbsID) {
+			if(pTargeting->TypeExt->This()->Type == SuperWeaponType::GeneticMutator && pTechno->WhatAmI() == InfantryClass::AbsID) {
 				const auto pInfantryType = ((InfantryClass*)pTechno)->Type;
 
 				if (pInfantryType->Cyborg && pTargeting->TypeExt->Mutate_IgnoreCyborg) {
@@ -794,7 +785,7 @@ struct TargetingFuncs
 				 {
 					const auto pInf = static_cast<InfantryClass*>(*j);
 
-					 if (!pTargeting->Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
+					 if (pInf->IsAlive && !pTargeting->Owner->IsAlliedWith(pInf) && !pInf->IsInAir())
 					 {
 						 // original game does not consider cloak
 						 if (pInf->CloakState != CloakState::Cloaked)
@@ -894,7 +885,7 @@ struct TargetingFuncs
 	static TargetResult GetOwnerBuildingAsTarget(NewSWType* pNewType, const TargetingData* pTargeting, bool checkLauchsite = false)
 	{
 		// find the first building providing super
-		auto index = pTargeting->TypeExt->AttachedToObject->ArrayIndex;
+		auto index = pTargeting->TypeExt->This()->ArrayIndex;
 		const auto& buildings = pTargeting->Owner->Buildings;
 		// Ares < 0.9 didn't check power
 		const auto it = buildings.find_if([index, pTargeting, checkLauchsite , pNewType](BuildingClass* pBld)
@@ -1017,7 +1008,7 @@ struct TargetingFuncs
 				}
 			}
 		} else {
-			Debug::LogInfo("Uneable to fire SW [{} - {}] , AuxTechno is empty!", pTargeting->TypeExt->AttachedToObject->ID, pTargeting->Owner->Type->ID);
+			Debug::LogInfo("Uneable to fire SW [{} - {}] , AuxTechno is empty!", pTargeting->TypeExt->Name(), pTargeting->Owner->Type->ID);
 		}
 
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
@@ -1133,7 +1124,7 @@ TargetResult SWTypeExtData::PickSuperWeaponTarget(NewSWType* pNewType , const Ta
  		return true;
 
  	return
-		HouseExtContainer::Instance.Find(pOwner)->GetShotCount(this->AttachedToObject).Count <
+		HouseExtContainer::Instance.Find(pOwner)->GetShotCount(This()).Count <
 		nAmount;
  }
 
@@ -1251,18 +1242,18 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 
 	if (require & SuperWeaponTarget::Building) {
 		if (pTarget) {
-			std::copy(pTarget->Buildings.begin(), pTarget->Buildings.end(), std::back_inserter(outVec));
+			std::ranges::copy(pTarget->Buildings, std::back_inserter(outVec));
 		}else {
-			std::copy(BuildingClass::Array->begin(), BuildingClass::Array->end(), std::back_inserter(outVec));
+			std::ranges::copy(*BuildingClass::Array, std::back_inserter(outVec));
 		}
 	}
 
 	if(require & SuperWeaponTarget::Infantry)
-		std::copy(InfantryClass::Array->begin(), InfantryClass::Array->end(), std::back_inserter(outVec));
+		std::ranges::copy(*InfantryClass::Array, std::back_inserter(outVec));
 
 	if (require & SuperWeaponTarget::Unit){
-		std::copy(UnitClass::Array->begin(), UnitClass::Array->end(), std::back_inserter(outVec));
-		std::copy(AircraftClass::Array->begin(), AircraftClass::Array->end(), std::back_inserter(outVec));
+		std::ranges::copy(*UnitClass::Array, std::back_inserter(outVec));
+		std::ranges::copy(*AircraftClass::Array, std::back_inserter(outVec));
 	}
 
 	return make_iterator(outVec);
@@ -1398,7 +1389,7 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 	//	}
 	//}
 
-	if ((AresNewSuperType)this->AttachedToObject->Type == AresNewSuperType::EMPulse)
+	if ((AresNewSuperType)This()->Type == AresNewSuperType::EMPulse)
 	{
 		//why this fuckery even exist ,..
 		//the SW can be state can be exploited at some point , smh
@@ -1509,13 +1500,23 @@ void SWTypeExtData::LoadFromRulesFile(CCINIClass* pINI)
 	//INI_EX exINI(pINI);
 }
 
-void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
+	//initialize default properties
+	this->Initialize();
+
 	if (parseFailAddr)
-		return;
+		return false;
+
+	//Type was already readed , now we handle these
+	auto pNewSWType = NewSWType::GetNewSWType(this);
+
+	//initialize NewSWType properties
+	if(pNewSWType)
+		pNewSWType->Initialize(this);
 
 	INI_EX exINI(pINI);
 
@@ -1723,7 +1724,7 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->UseWeeds.Read(exINI, pSection, "UseWeeds");
 
 	if (this->UseWeeds)
-		this->AttachedToObject->ShowTimer = false;
+		This()->ShowTimer = false;
 
 	this->UseWeeds_Amount.Read(exINI, pSection, "UseWeeds.Amount");
 	this->UseWeeds_StorageTimer.Read(exINI, pSection, "UseWeeds.StorageTimer");
@@ -1770,12 +1771,20 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->SW_Link_RandomWeightsData.push_back(std::move(weights3));
 	}
 
+	this->Music_Theme = pINI->ReadTheme(pSection, "Music.Theme", this->Music_Theme);
+	this->Music_Duration.Read(exINI, pSection, "Music.Duration");
+	this->Music_AffectedHouses.Read(exINI, pSection, "Music.AffectedHouses");
+
 	// initialize the NewSWType that handles this SWType.
-	if (auto pNewSWType = NewSWType::GetNewSWType(this))
+	if (pNewSWType)
 	{
 		pThis->Action = this->LastAction;
+
 		pNewSWType->LoadFromINI(this, pINI);
 		this->LastAction = pThis->Action;
+
+		if (This()->Action != Action::None)
+			This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 
 		// whatever the user does, we take care of the stupid tags.
 		// there is no need to have them not hardcoded.
@@ -1784,6 +1793,8 @@ void SWTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		pThis->PostClick = static_cast<bool>(flags & SuperWeaponFlags::PostClick);
 		pThis->PreDependent = SuperWeaponType::Invalid;
 	}
+
+	return true;
 }
 
 // Universal handler of the rolls-weights system
@@ -1932,13 +1943,13 @@ void SWTypeExtData::ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const C
 	}
 
 	if (!MapClass::Instance->IsWithinUsableArea(nDest))
-		Debug::LogInfo("SW[{}] Lauch Outside Usable Map Area [{} . {}]! ", this->AttachedToObject->ID , nDest.X , nDest.Y);
+		Debug::LogInfo("SW[{}] Lauch Outside Usable Map Area [{} . {}]! ", This()->ID , nDest.X , nDest.Y);
 
 	if (!pFirer)
-		Debug::LogInfo("SW[{}] ApplyDetonate without Firer!", this->AttachedToObject->ID);
+		Debug::LogInfo("SW[{}] ApplyDetonate without Firer!", This()->ID);
 
 	if (const auto pWeapon = this->Detonate_Weapon.Get())
-		WeaponTypeExtData::DetonateAt(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true , pSW->Owner);
+		WeaponTypeExtData::DetonateAt4(pWeapon, nDest, pFirer, this->Detonate_Damage.Get(pWeapon->Damage), true , pSW->Owner);
 	else
 	{
 		WarheadTypeExtData::DetonateAt(this->Detonate_Warhead.Get(), pTarget, nDest, pFirer, this->Detonate_Damage.Get(0), pSW->Owner);
@@ -1967,9 +1978,30 @@ void SWTypeExtData::ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool Is
 	}
 }
 
+#include <ThemeClass.h>
+
 void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const CellStruct* const pCell, bool IsCurrentPlayer)
 {
 	//Debug::LogInfo("Applying additional functionalities for sw[%s]", pSW->get_ID());
+
+	// Music: play theme and start timer if configured
+	auto pSWExt = SuperExtContainer::Instance.Find(pSW);
+
+	if (this->Music_Theme.Get() >= 0)
+	{
+		const auto affected = this->Music_AffectedHouses.Get();
+		if (EnumFunctions::CanTargetHouse(affected, pHouse, HouseClass::CurrentPlayer))
+		{
+			ThemeClass::Instance->Play(this->Music_Theme);
+		}
+
+		const int duration = this->Music_Duration.Get();
+		if (duration > 0)
+		{
+			pSWExt->MusicTimer.Start(duration);
+			pSWExt->MusicActive = true;
+		}
+	}
 
 	if (!this->LimboDelivery_Types.empty())
 		ApplyLimboDelivery(pHouse);
@@ -2064,7 +2096,7 @@ std::pair<double, double> SWTypeExtData::GetLaunchSiteRange(BuildingClass* pBuil
 
 bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = This();
 
 	if (this->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pHouse)->GetShotCount(pThis).Count >= this->SW_Shots)
 		return false;
@@ -2145,7 +2177,7 @@ void SWTypeExtData::UneableToTransactBattlePoints(HouseClass* pHouse)
 }
 
 void SWTypeExtData::UneableToFireAtTheMoment(HouseClass* pHouse) {
-	VoxClass::PlayIndex(this->AttachedToObject->ImpatientVoice);
+	VoxClass::PlayIndex(This()->ImpatientVoice);
 	this->PrintMessage(this->Message_Impatient, pHouse);
 }
 
@@ -2377,7 +2409,6 @@ template <typename T>
 void SWTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->EVA_Activated)
 		.Process(this->EVA_Ready)
 		.Process(this->EVA_Detected)
@@ -2541,7 +2572,6 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->Text_Active)
 #pragma endregion
 
-		.Process(this->AttachedToObject->ImpatientVoice)
 		.Process(this->EVA_InsufficientFunds)
 		.Process(this->EVA_InsufficientBattlePoints)
 		.Process(this->EVA_SelectTarget)
@@ -2707,6 +2737,10 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_Link_RollChances)
 		.Process(this->Message_LinkedSWAcquired)
 		.Process(this->EVA_LinkedSWAcquired)
+
+		.Process(this->Music_Theme)
+		.Process(this->Music_Duration)
+		.Process(this->Music_AffectedHouses)
 		;
 
 }
@@ -2817,6 +2851,7 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 // container
 
 SWTypeExtContainer SWTypeExtContainer::Instance;
+std::vector<SWTypeExtData*> Container<SWTypeExtData>::Array;
 SuperWeaponTypeClass* SWTypeExtData::CurrentSWType;
 SuperClass* SWTypeExtData::TempSuper;
 bool SWTypeExtData::Handled;
@@ -2830,30 +2865,35 @@ void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 bool SWTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 {
-	const bool First = Stm
+	auto result = LoadGlobalArrayData(Stm);;
+
+	result &= Stm
 		.Process(SWTypeExtData::CurrentSWType)
 		.Process(SWTypeExtData::TempSuper)
 		.Process(SWTypeExtData::Handled)
 		.Process(SWTypeExtData::LauchData)
 		.Success();
 
-	return First && NewSWType::LoadGlobals(Stm);
+	return result;
 }
 
 bool SWTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 {
-	const bool First = Stm
+	auto result = SaveGlobalArrayData(Stm);;
+
+		result &= Stm
 		.Process(SWTypeExtData::CurrentSWType)
 		.Process(SWTypeExtData::TempSuper)
 		.Process(SWTypeExtData::Handled)
 		.Process(SWTypeExtData::LauchData)
 		.Success();
 
-	return First && NewSWType::SaveGlobals(Stm);
+	return result;
 }
 
-void SWTypeExtContainer::Clear()
+void Container<SWTypeExtData>::Clear()
 {
+	Array.clear();
 	SWTypeExtData::LauchData = nullptr;
 	SWTypeExtData::TempSuper = nullptr;
 }
@@ -2865,7 +2905,6 @@ ASMJIT_PATCH(0x6CE6F2, SuperWeaponTypeClass_CTOR, 0x5)
 {
 	GET(SuperWeaponTypeClass*, pItem, EBP);
 
-	NewSWType::Init();
 	SWTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0;
@@ -2878,38 +2917,11 @@ ASMJIT_PATCH(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
 	return 0;
 }
 
-HRESULT __stdcall FakeSuperWeaponTypeClass::_Load(IStream* pStm)
+bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-
-	SWTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->SuperWeaponTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		SWTypeExtContainer::Instance.LoadStatic();
-
-	return res;
+	bool status = this->SuperWeaponTypeClass::LoadFromINI(pINI);
+	SWTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-HRESULT __stdcall FakeSuperWeaponTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	SWTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->SuperWeaponTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		SWTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A4, FakeSuperWeaponTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40A8, FakeSuperWeaponTypeClass::_Save)
-
-ASMJIT_PATCH(0x6CEE43, SuperWeaponTypeClass_LoadFromINI, 0xA)
-{
-	GET(SuperWeaponTypeClass*, pItem, EBP);
-	GET_STACK(CCINIClass*, pINI, 0x3FC);
-
-	SWTypeExtContainer::Instance.LoadFromINI(pItem, pINI, R->Origin() == 0x6CEE50);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x6CEE50, SuperWeaponTypeClass_LoadFromINI, 0xA)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F40F4, FakeSuperWeaponTypeClass::_ReadFromINI)

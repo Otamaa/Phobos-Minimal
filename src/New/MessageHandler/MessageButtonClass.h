@@ -18,6 +18,5 @@ public:
 	void DrawShape() const;
 public:
 
-	int ID { 0 };
 	int CheckTime { 0 };
 };

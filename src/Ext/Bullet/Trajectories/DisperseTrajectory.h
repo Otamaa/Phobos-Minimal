@@ -56,6 +56,8 @@ public:
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
 
+	virtual const char* Name() { return "DisperseTrajectoryType"; }
+
 private:
 	template <typename T>
 	bool Serialize(T& Stm)
@@ -156,6 +158,8 @@ public:
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
+	virtual const char* Name() { return "DisperseTrajectory"; }
+
 private:
 	void InitializeBulletNotCurve(bool facing);
 	inline VelocityClass RotateAboutTheAxis(VelocityClass theSpeed, VelocityClass theAxis, double theRadian);
@@ -170,7 +174,7 @@ private:
 	bool PrepareDisperseWeapon();
 	void CreateDisperseBullets(WeaponTypeClass* pWeapon, AbstractClass* pTarget, HouseClass* pOwner, int curBurst, int maxBurst);
 	void DisperseBurstSubstitution(CoordStruct axis, double rotateCoord, int curBurst, int maxBurst, bool mirror);
-	
+
 	template <typename T>
 	bool Serialize(T& Stm)
 	{

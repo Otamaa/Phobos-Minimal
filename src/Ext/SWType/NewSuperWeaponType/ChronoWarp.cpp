@@ -14,13 +14,15 @@ SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExtData* pData) const
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEvent | SuperWeaponFlags::PostClick;
 }
 
+#include <Ext/Infantry/Body.h>
+
 void KillCargo(TechnoClass* pTech , HouseClass* killer)
 {
 	if(auto pBuilding = cast_to<BuildingClass*, false>(pTech)) {
 		for(auto& pOcc : pBuilding->Occupants) {
 			pOcc->RegisterKill(killer);
 			pOcc->UnInit();
-				TechnoExtContainer::Instance.Find(pOcc)->GarrisonedIn = nullptr;
+				InfantryExtContainer::Instance.Find(pOcc)->GarrisonedIn = nullptr;
 			}
 		pBuilding->Occupants.Count = 0;
 	}
@@ -249,7 +251,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 		auto const cellUnitTarget = pTechno->GetCell()->MapCoords - pSource->ChronoMapCoords + Coords;
 
 		if(pSourceSWExt->Chronosphere_KillCargo)
-			KillCargo(pTechno , false);
+			KillCargo(pTechno , nullptr);
 
 		if (auto const pFoot = flag_cast_to<FootClass*, false>(pTechno))
 		{
@@ -317,7 +319,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 void SW_ChronoWarp::Initialize(SWTypeExtData* pData)
 { 	// Every other thing will be read in the ChronoSphere.
-	pData->AttachedToObject->Action = Action::ChronoWarp;
+	pData->This()->Action = Action::ChronoWarp;
 	pData->CursorType = (int)MouseCursorType::Chronosphere;
 }
 

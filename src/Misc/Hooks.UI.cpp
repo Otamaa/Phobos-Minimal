@@ -86,11 +86,13 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	const auto pSideExt = SideExtContainer::Instance.Find(pSide);
 	RectangleStruct vRect = DSurface::Sidebar->Get_Rect();
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pPlayer);
+	static fmt::basic_memory_buffer<wchar_t , 50> counter;
+	static fmt::basic_memory_buffer<wchar_t , 50> ShowPower;
+	static fmt::basic_memory_buffer<wchar_t , 10> Harv;
 
 	if (Phobos::UI::BattlePointsSidebar_AlwaysShow || pHouseExt->AreBattlePointsEnabled())
 	{
-		fmt::basic_memory_buffer<wchar_t> counter;
-
+		counter.clear();
 		ColorStruct clrToolTip = pSideExt->Sidebar_BattlePoints_Color.Get(Drawing::TooltipColor);
 
 		int points = pHouseExt->BattlePoints;
@@ -114,6 +116,8 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 	if (Phobos::UI::ShowHarvesterCounter && Phobos::Config::ShowHarvesterCounter)
 	 {
+		Harv.clear();
+
 	 	const auto nActive = HouseExtData::ActiveHarvesterCount(pPlayer);
 	 	const auto nTotal = HouseExtData::TotalHarvesterCount(pPlayer);
 	 	const auto nPercentage = nTotal == 0 ? 1.0 : (double)nActive / (double)nTotal;
@@ -122,7 +126,8 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 		? Drawing::TooltipColor() : nPercentage > Phobos::UI::HarvesterCounter_ConditionRed
 	 		? pSideExt->Sidebar_HarvesterCounter_Yellow : pSideExt->Sidebar_HarvesterCounter_Red;
 
-		std::wstring Harv = fmt::format(L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);
+		fmt::format_to(std::back_inserter(Harv), L"{}{}/{}", Phobos::UI::HarvesterLabel, nActive, nTotal);
+		Harv.push_back(L'\0');
 
 	 	Point2D vPos {
 	 		DSurface::Sidebar->Get_Width() / 2 + 50 + pSideExt->Sidebar_HarvesterCounter_Offset.Get().X,
@@ -130,7 +135,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	 	};
 
 	 	DSurface::Sidebar->DSurfaceDrawText(
-		Harv.c_str()
+		Harv.data()
 			, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0,
 	 		TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	 }
@@ -138,8 +143,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	if (Phobos::UI::ShowPowerDelta && Phobos::Config::ShowPowerDelta && pPlayer->Buildings.Count)
 	{
 		ColorStruct clrToolTip { };
-
-		fmt::basic_memory_buffer<wchar_t> ShowPower;
+		ShowPower.clear();
 
 		if (pPlayer->PowerBlackoutTimer.InProgress())
 		{
@@ -177,7 +181,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 	if (Phobos::UI::WeedsCounter_Show && Phobos::Config::ShowWeedsCounter)
 	{
-		fmt::basic_memory_buffer<wchar_t> counter;
+		counter.clear();
 		ColorStruct clrToolTip = pSideExt->Sidebar_WeedsCounter_Color.Get(Drawing::TooltipColor());
 
 		fmt::format_to(std::back_inserter(counter), L"{}", static_cast<int>(pPlayer->OwnedWeed.GetTotalAmount()));

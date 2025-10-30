@@ -1,21 +1,4 @@
 
-#ifdef CHECK_PTR_VALID
-ASMJIT_PATCH_AGAIN(0x4F9A10, HouseClass_IsAlliedWith, 0x6)
-ASMJIT_PATCH_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
-ASMJIT_PATCH_AGAIN(0x4F9AF0, HouseClass_IsAlliedWith, 0x7)
-ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
-{
-	GET(HouseClass*, pThis, ECX);
-	GET_STACK(DWORD, called, 0x0);
-
-	if (!pThis || VTable::Get(pThis) != HouseClass::vtable)
-	{
-		Debug::FatalError("HouseClass - IsAlliedWith[%x] , Called from[%x] with `nullptr` pointer !", R->Origin(), called);
-	}
-
-	return 0;
-}
-#endif
 
 #ifdef CheckForMapSaveCrash
 ASMJIT_PATCH(0x50126A, HouseClass_WritetoIni0, 0x6)

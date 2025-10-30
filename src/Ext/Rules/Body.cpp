@@ -144,6 +144,12 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pThis->Read_AudioVisual(pINI);
 	pThis->Read_SpecialWeapons(pINI);
 
+	CrateTypeClass::AddDefaults();
+	RadTypeClass::AddDefaults();
+	GenericPrerequisite::AddDefaults();
+	HoverTypeClass::AddDefaults();
+	ShieldTypeClass::AddDefaults();
+
 	ImmunityTypeClass::LoadFromINIList(pINI);
 	ArmorTypeClass::EvaluateDefault();
 
@@ -228,6 +234,9 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DamageOwnerMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier");
 	pData->DamageAlliesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier");
 	pData->DamageEnemiesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier");
+	pData->DamageOwnerMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.Berzerk");
+	pData->DamageAlliesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.Berzerk");
+	pData->DamageEnemiesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier.Berzerk");
 	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.NotAffectsEnemies");
 	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
 
@@ -243,6 +252,10 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->CombatAlert_Interval.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.Interval");
 	pData->CombatAlert_SuppressIfAllyDamage.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfAllyDamage");
 	pData->SubterraneanHeight.Read(iniEX, GameStrings::General, "SubterraneanHeight");
+
+	pData->StartDistributionModeSound.Read(iniEX, GameStrings::AudioVisual, "StartDistributionModeSound");
+	pData->EndDistributionModeSound.Read(iniEX, GameStrings::AudioVisual, "EndDistributionModeSound");
+	pData->AddDistributionModeCommandSound.Read(iniEX, GameStrings::AudioVisual, "AddDistributionModeCommandSound");
 
 	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "ForceShield.KillOrganicsWarhead");
 
@@ -313,6 +326,35 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
 
+std::unordered_map<VoxelStruct*, std::string > RulesExtData::Owners;
+
+ASMJIT_PATCH(0x7564B0, VoxLib_GetData, 7)
+{
+	GET(VoxLib*, pVox, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+	GET_STACK(int, header, 0x4);
+	GET_STACK(int, layer, 0x8);
+
+	if (!pVox->HeaderData || !pVox->TailerData)
+	{
+		std::string owner = GameStrings::NoneStr();
+		for (auto& ii : RulesExtData::Owners)
+		{
+			if (ii.first->VXL == pVox)
+			{
+				owner = ii.second;
+				break;
+			}
+		}
+		Debug::FatalError("VoxelLibraryClass::Get_Voxel_Layer_Info %s input is broken ! caller 0x%x", owner.c_str(), caller);
+	}
+
+	auto pData = &pVox->TailerData[layer + pVox->HeaderData[header].limb_number];
+
+	R->EAX(pData);
+	return 0x7564CF;
+}
+
 template<typename T>
 static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secrets) {
 
@@ -350,6 +392,8 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		auto pExt = TechnoTypeExtContainer::Instance.Find(pItem);
 		const auto myClassName = pItem->GetThisClassName();
 		bool WeederAndHarvesterWarning = false;
+
+		pExt->ParseCombatDamageAndThreatType(pINI);
 
 		if (pExt->Image_Yellow && pExt->Image_Yellow->WhatAmI() != what) {
 			Debug::LogInfo("[{} - {}] has Image.ConditionYellow [{} - {}] but it different ClassType from it!",
@@ -480,24 +524,68 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 				pItem->ID, myClassName, pItem->Passengers, (int)pItem->SizeLimit);
 			Debug::RegisterParserError();
 		}
-		if (pItem->MainVoxel.VXL)
-		{
-			if (auto pHVA = pItem->MainVoxel.HVA)
-			{
 
+		auto ValidateVoxelStruct = [pItem, pExt, myClassName](VoxelStruct* pVxl , const char* ident) {
+			std::string iident(pItem->ID);
+			iident += " - ";
+			iident += myClassName;
+			iident += " - ";
+			iident += ident;
+
+			RulesExtData::Owners[pVxl] = std::move(iident);
+
+			if (!pVxl->VXL->HeaderData || !pVxl->VXL->TailerData)
+			{
+				Debug::FatalError("Techno[%s - %s] Has %s VXL but has no HeaderData or TailerData wtf ?", myClassName, pItem->ID , ident);
+			}
+
+			if (auto pHVA = pVxl->HVA)
+			{
 				auto shadowIdx = pItem->ShadowIndex;
 				auto layerCount = pHVA->LayerCount;
 
 				if (shadowIdx >= layerCount)
 				{
-					Debug::LogInfo("ShadowIndex on [{}]'s image is {}, but the HVA only has {} sections.",
-						pItem->ID, shadowIdx, layerCount);
+					Debug::LogInfo("ShadowIndex on [{}]'s {} image is {}, but the HVA only has {} sections.",
+						pItem->ID, ident , shadowIdx, layerCount);
 					Debug::RegisterParserError();
 				}
 			}
 			else
 			{
-				Debug::FatalError("Techno[{} - {}] Has VXL but has no HVA wtf ?", myClassName, pItem->ID);
+				Debug::FatalError("Techno[%s - %s] Has %s VXL but has no HVA wtf ?", myClassName, pItem->ID , ident);
+			}
+		};
+
+		if (pItem->MainVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->MainVoxel, "");
+		}
+
+		if (pItem->TurretVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->TurretVoxel, "TurretVoxel");
+		}
+
+		if (pItem->BarrelVoxel.VXL) {
+			ValidateVoxelStruct(&pItem->BarrelVoxel, "BarrelVoxel");
+		}
+
+		if (pExt->SpawnAltData.VXL) {
+			ValidateVoxelStruct(&pExt->SpawnAltData, "SpawnAltData");
+		}
+
+		for (size_t ia = 0; ia < pExt->BarrelImageData.size(); ++ia) {
+			if (pExt->BarrelImageData[ia].VXL) {
+				std::string ident_a("BarrelImageData ");
+				ident_a += std::to_string(ia);
+				ValidateVoxelStruct(&pExt->BarrelImageData[ia], ident_a.c_str());
+			}
+		}
+
+		for (size_t ib = 0; ib < pExt->BarrelImageData.size(); ++ib) {
+			if (pExt->TurretImageData[ib].VXL) {
+				std::string ident_b("TurretImageData ");
+				ident_b += std::to_string(ib);
+				ValidateVoxelStruct(&pExt->TurretImageData[ib], ident_b.c_str());
 			}
 		}
 
@@ -692,21 +780,39 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 	}
 
-	 for (auto pBullet : *BulletTypeClass::Array) {
+	for (auto pBullet : *BulletTypeClass::Array) {
 
-		 if(pBullet->Voxel && !pBullet->MainVoxel.VXL) {
-			 Debug::LogInfo("Bullet[{}] has no valid VXL !", pBullet->ID);
-			 pBullet->Voxel = false;//shp bullet has image checking
-			 Debug::RegisterParserError();
-		 }
-		 else if (pBullet->Voxel && pBullet->MainVoxel.VXL && !pBullet->MainVoxel.HVA) {
-			 Debug::LogInfo("Bullet[{}] has no valid HVA !", pBullet->ID);
-			 Debug::RegisterParserError();
-		 }
-		 else if (!pBullet->Voxel && !pBullet->GetImage()) {
-			 Debug::LogInfo("Bullet[{}] has no valid SHP !", pBullet->ID);
-			 Debug::RegisterParserError();
-		 }
+		if (pBullet->Voxel)
+		{
+			if(pBullet->MainVoxel.VXL){
+				std::string iident(pBullet->ID);
+				iident += " - ";
+				iident += "BulletTypeClass";
+
+				RulesExtData::Owners[&pBullet->MainVoxel] = std::move(iident);
+
+				if (!pBullet->MainVoxel.VXL->HeaderData || !pBullet->MainVoxel.VXL->TailerData) {
+					Debug::FatalError("Bullet[%s] Has VXL but has no HeaderData or TailerData wtf ?", pBullet->ID);
+				}
+
+				if (!pBullet->MainVoxel.HVA)
+				{
+					Debug::LogInfo("Bullet[{}] Has VXL but has no HVA wtf ?", pBullet->ID);
+					Debug::RegisterParserError();
+					GameDelete(pBullet->MainVoxel.VXL);
+					pBullet->Voxel = false;
+				}
+			} else{
+				Debug::LogInfo("Bullet[{}] Has no VXL but set as Voxel wtf ?", pBullet->ID);
+				Debug::RegisterParserError();
+				pBullet->Voxel = false;
+			}
+		}
+
+		if (!pBullet->Voxel && !pBullet->GetImage()) {
+			Debug::LogInfo("Bullet[{}] has no valid SHP !", pBullet->ID);
+			Debug::RegisterParserError();
+		}
 
 	 	//auto pExt = BulletTypeExtContainer::Instance.Find(pBullet);
 
@@ -714,7 +820,29 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 	 	//	Debug::LogInfo("Bullet[{}] With AttachedSystem[{}] is not BehavesLike=Smoke!", pBullet->ID, pExt->AttachedSystem->ID);
 	 	//	Debug::RegisterParserError();
 	 	//}
-	 }
+	}
+
+	for(auto pVxlAnim : *VoxelAnimTypeClass::Array){
+		if (pVxlAnim->MainVoxel.VXL) {
+			std::string iident(pVxlAnim->ID);
+			iident += " - ";
+			iident += "VoxelAnimTypeClass";
+
+			RulesExtData::Owners[&pVxlAnim->MainVoxel] = std::move(iident);
+
+			if (!pVxlAnim->MainVoxel.VXL->HeaderData || !pVxlAnim->MainVoxel.VXL->TailerData) {
+				Debug::LogInfo("VoxelAnim[{}] Has VXL but has no HeaderData or TailerData wtf ?", pVxlAnim->ID);
+				Debug::RegisterParserError();
+				GameDelete(pVxlAnim->MainVoxel.VXL);
+				continue;
+			}
+
+			if (!pVxlAnim->MainVoxel.HVA) {
+				Debug::LogInfo("VoxelAnim[{}] Has VXL but has no HVA wtf ?", pVxlAnim->ID);
+				Debug::RegisterParserError();
+			}
+		}
+	}
 
 	for (auto pHouse : *HouseTypeClass::Array)
 	{
@@ -787,14 +915,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 // earliest loader - can't really do much because nothing else is initialized yet, so lookups won't work
 void RulesExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 {
-	CursorTypeClass::AddDefaults();
-	CrateTypeClass::AddDefaults();
-	ArmorTypeClass::AddDefaults();
-	RadTypeClass::AddDefaults();
-	GenericPrerequisite::AddDefaults();
-	HoverTypeClass::AddDefaults();
-	ShieldTypeClass::AddDefaults();
-	SelectBoxTypeClass::AddDefaults();
+
 }
 
 void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
@@ -832,7 +953,25 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->DamageWallRecursivly.Read(exINI, GameStrings::CombatDamage, "DamageWallRecursivly");
 	this->AirstrikeLineZAdjust.Read(exINI, GameStrings::AudioVisual, "AirstrikeLineZAdjust");
 	this->AdjacentWallDamage.Read(exINI, GameStrings::CombatDamage, "AdjacentWallDamage");
+	this->AISellCapturedBuilding.Read(exINI, GameStrings::General, "AISellCapturedBuilding");
 	this->InfantryAutoDeploy.Read(exINI, GameStrings::General, "InfantryAutoDeploy");
+	this->EnablePassiveAcquireMode.Read(exINI, GameStrings::General, "EnablePassiveAcquireMode");
+	this->UseRetintFix.Read(exINI, GameStrings::AudioVisual, "UseRetintFix");
+	this->AIAdjacentMax.Read(exINI, GameStrings::AI, "AIAdjacentMax");
+	this->AIAdjacentMax_Campaign.Read(exINI, GameStrings::AI, "AIAdjacentMax.Campaign");
+
+	this->PlayerGuardModePursuit.Read(exINI, GameStrings::General, "PlayerGuardModePursuit");
+	this->PlayerGuardModeGuardRangeMultiplier.Read(exINI, GameStrings::General, "PlayerGuardModeGuardRangeMultiplier");
+	this->PlayerGuardModeGuardRangeAddend.Read(exINI, GameStrings::General, "PlayerGuardModeGuardRangeAddend");
+	this->PlayerGuardModeGuardRangeMax.Read(exINI, GameStrings::General, "PlayerGuardModeGuardRangeMax");
+	this->PlayerGuardStationaryStray.Read(exINI, GameStrings::General, "PlayerGuardStationaryStray");
+	this->AIGuardModePursuit.Read(exINI, GameStrings::General, "AIGuardModePursuit");
+	this->AIGuardModeGuardRangeMultiplier.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeMultiplier");
+	this->AIGuardModeGuardRangeAddend.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeAddend");
+	this->AIGuardModeGuardRangeMax.Read(exINI, GameStrings::General, "AIGuardModeGuardRangeMax");
+	this->AIGuardStationaryStray.Read(exINI, GameStrings::General, "AIGuardStationaryStray");
+	this->IgnoreCenterMinorRadarEvent.Read(exINI, GameStrings::General, "IgnoreCenterMinorRadarEvent");
+	this->WarheadAnimZAdjust.Read(exINI, GameStrings::AudioVisual, "WarheadAnimZAdjust");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -877,9 +1016,13 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->UnitIdleActionIntervalMax.Read(exINI, GameStrings::AudioVisual, "UnitIdleActionIntervalMax");
 
 	this->ExpandAircraftMission.Read(exINI, GameStrings::General, "ExtendedAircraftMissions");
+	this->ExtendedAircraftMissions_UnlandDamage.Read(exINI, GameStrings::General, "ExtendedAircraftMissions.UnlandDamage");
+
 	this->AssignUnitMissionAfterParadropped.Read(exINI, GameStrings::General, "AssignUnitMissionAfterParadropped");
 	this->NoQueueUpToEnter.Read(exINI, GameStrings::General, "NoQueueUpToEnter");
 	this->NoQueueUpToUnload.Read(exINI, GameStrings::General, "NoQueueUpToUnload");
+	this->NoQueueUpToEnter_Buildings.Read(exINI, GameStrings::General, "NoQueueUpToEnter.Buildings");
+	this->NoQueueUpToUnload_Buildings.Read(exINI, GameStrings::General, "NoQueueUpToUnload.Buildings");
 
 	this->NoRearm_UnderEMP.Read(exINI, GameStrings::General, "NoRearm.UnderEMP");
 	this->NoRearm_Temporal.Read(exINI, GameStrings::General, "NoRearm.Temporal");
@@ -1200,6 +1343,9 @@ void RulesExtData::LoadEarlyOptios(RulesClass* pThis, CCINIClass* pINI)
 
 void RulesExtData::LoadEarlyBeforeColor(RulesClass* pThis, CCINIClass* pINI)
 {
+	ArmorTypeClass::AddDefaults();
+	CursorTypeClass::AddDefaults();
+	SelectBoxTypeClass::AddDefaults();
 }
 
 bool RulesExtData::DetailsCurrentlyEnabled()
@@ -1221,7 +1367,6 @@ bool RulesExtData::DetailsCurrentlyEnabled(int const minDetailLevel)
 
 void RulesExtData::LoadBeforeGeneralData(RulesClass* pThis, CCINIClass* pINI)
 {
-	//Debug::LogInfo(__FUNCTION__" Called ! ");
 }
 
 void RulesExtData::LoadAfterAllLogicData(RulesClass* pThis, CCINIClass* pINI)
@@ -1524,6 +1669,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DamageOwnerMultiplier)
 		.Process(this->DamageAlliesMultiplier)
 		.Process(this->DamageEnemiesMultiplier)
+		.Process(this->DamageOwnerMultiplier_Berzerk)
+		.Process(this->DamageAlliesMultiplier_Berzerk)
+		.Process(this->DamageEnemiesMultiplier_Berzerk)
 		.Process(this->DamageOwnerMultiplier_NotAffectsEnemies)
 		.Process(this->DamageAlliesMultiplier_NotAffectsEnemies)
 		.Process(this->FactoryProgressDisplay)
@@ -1545,6 +1693,10 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ColorAddUse8BitRGB)
 		.Process(this->IronCurtain_ExtraTintIntensity)
 		.Process(this->ForceShield_ExtraTintIntensity)
+		.Process(this->SubterraneanHeight)
+		.Process(this->StartDistributionModeSound)
+		.Process(this->EndDistributionModeSound)
+		.Process(this->AddDistributionModeCommandSound)
 		.Process(this->VoxelLightSource)
 		.Process(this->VoxelShadowLightSource)
 		.Process(this->UseFixedVoxelLighting)
@@ -1589,12 +1741,15 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->UnitIdleActionIntervalMin)
 		.Process(this->UnitIdleActionIntervalMax)
 		.Process(this->ExpandAircraftMission)
+		.Process(this->ExtendedAircraftMissions_UnlandDamage)
 		.Process(this->AssignUnitMissionAfterParadropped)
 		.Process(this->LandTypeConfigExts)
 		.Process(this->Secrets)
 
 		.Process(this->NoQueueUpToEnter)
 		.Process(this->NoQueueUpToUnload)
+		.Process(this->NoQueueUpToEnter_Buildings)
+		.Process(this->NoQueueUpToUnload_Buildings)
 
 		.Process(this->NoRearm_UnderEMP)
 		.Process(this->NoRearm_Temporal)
@@ -1656,11 +1811,28 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->DamageWallRecursivly)
 		.Process(this->AirstrikeLineZAdjust)
 		.Process(this->AdjacentWallDamage)
+		.Process(this->AISellCapturedBuilding)
 		.Process(this->InfantryAutoDeploy)
+		.Process(this->EnablePassiveAcquireMode)
+		.Process(this->UseRetintFix)
+		.Process(this->MyPutData)
+
+		.Process(this->AIAdjacentMax)
+		.Process(this->AIAdjacentMax_Campaign)
+
+		.Process(this->PlayerGuardModePursuit)
+		.Process(this->PlayerGuardModeGuardRangeMultiplier)
+		.Process(this->PlayerGuardModeGuardRangeAddend)
+		.Process(this->PlayerGuardModeGuardRangeMax)
+		.Process(this->PlayerGuardStationaryStray)
+		.Process(this->AIGuardModePursuit)
+		.Process(this->AIGuardModeGuardRangeMultiplier)
+		.Process(this->AIGuardModeGuardRangeAddend)
+		.Process(this->AIGuardModeGuardRangeMax)
+		.Process(this->AIGuardStationaryStray)
+		.Process(this->IgnoreCenterMinorRadarEvent)
+		.Process(this->WarheadAnimZAdjust)
 		;
-
-	MyPutData.Serialize(Stm);
-
 }
 
 // =============================
@@ -1713,7 +1885,7 @@ ASMJIT_PATCH(0x678841, RulesClass_Load_Suffix, 0x7)
 	auto buffer = RulesExtData::Instance();
 
 	PhobosByteStream Stm(0);
-	if (Stm.ReadBlockFromStream(RulesExtData::g_pStm))
+	if (Stm.ReadFromStream(RulesExtData::g_pStm))
 	{
 		PhobosStreamReader Reader(Stm);
 
@@ -1735,7 +1907,7 @@ ASMJIT_PATCH(0x675205, RulesClass_Save_Suffix, 0x8)
 	writer.Save(buffer);
 
 	buffer->SaveToStream(writer);
-	saver.WriteBlockToStream(RulesExtData::g_pStm);
+	saver.WriteToStream(RulesExtData::g_pStm);
 
 	return 0;
 }
@@ -1803,15 +1975,16 @@ void FakeRulesClass::_ReadColors(CCINIClass* pINI)
 	this->Read_JumpjetControls(pINI);
 	this->Read_Colors(pINI);
 
-	RocketTypeClass::AddDefaults();
 	RocketTypeClass::LoadFromINIList(pINI);
 }
 
 void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 {
-
 	RulesExtData::LoadBeforeGeneralData(this, pINI);
 	this->Read_General(pINI);
+
+
+	RocketTypeClass::AddDefaults();
 	RocketTypeClass::ReadListFromINI(pINI);
 
 	SideClass::Array->for_each([pINI](SideClass* pSide) {
@@ -1876,13 +2049,9 @@ void RulesExtData::InitializeAfterAllRulesLoaded()
 		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 	}
 
-	auto g_scenario_instance = ScenarioExtData::Instance();
-
-	// Init master bullet
-	g_scenario_instance->MasterDetonationBullet = BulletTypeExtData::GetDefaultBulletType()->CreateBullet(nullptr, nullptr, 0, nullptr, 0, false);
 }
 
-DEFINE_HOOK(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)
+ASMJIT_PATCH(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)
 {
 	RulesExtData::InitializeAfterAllRulesLoaded();
 	return 0x668F6A;

@@ -12,8 +12,6 @@
 #include <UnitClass.h>
 #include <InfantryClass.h>
 
-VoxelAnimExtData::~VoxelAnimExtData() { };
-
 TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 {
 	auto const pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pThis->Type);
@@ -38,14 +36,9 @@ TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 	return pExt->Invoker;
 }
 
-void VoxelAnimExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
-{
-	AnnounceInvalidPointer(Invoker, ptr , bRemoved);
-}
-
 void VoxelAnimExtData::InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = this->This();
 
 	if (!LaserTrails.empty())
 		return;
@@ -72,7 +65,6 @@ void VoxelAnimExtData::Serialize(T& Stm)
 	//Debug::LogInfo("Processing Element From VoxelAnimExt ! ");
 
 	 Stm
-		.Process(this->Initialized)
 		.Process(this->Invoker, true)
 		.Process(this->LaserTrails)
 		.Process(this->Trails)
@@ -83,24 +75,38 @@ void VoxelAnimExtData::Serialize(T& Stm)
 // =============================
 // container
 VoxelAnimExtContainer VoxelAnimExtContainer::Instance;
-ObjectPool<VoxelAnimExtData> VoxelAnimExtContainer::pools;
+std::vector<VoxelAnimExtData*> Container<VoxelAnimExtData>::Array;
+
+void Container<VoxelAnimExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool VoxelAnimExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool VoxelAnimExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =================================
 ASMJIT_PATCH(0x7494CE , VoxelAnimClass_CTOR, 0x6)
 {
 	GET(VoxelAnimClass*, pItem, ESI);
 
-	if (auto pExt = VoxelAnimExtContainer::Instance.Allocate(pItem))
-	{
-		if (const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pItem->Type))
-		{
-			//ID = Get()->Type->ID;
-			if (!pTypeExt->LaserTrail_Types.empty())
+	if(pItem->Type){
+
+		auto pExt = VoxelAnimExtContainer::Instance.Allocate(pItem);
+		const auto pTypeExt = VoxelAnimTypeExtContainer::Instance.Find(pItem->Type);
+
+		if (!pTypeExt->LaserTrail_Types.empty())
 				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
-			pExt->InitializeLaserTrails(pTypeExt);
-			TrailsManager::Construct(pItem);
-		}
+		pExt->InitializeLaserTrails(pTypeExt);
+		TrailsManager::Construct(pItem);
 	}
 
 	return 0;
@@ -114,34 +120,6 @@ ASMJIT_PATCH(0x749B02, VoxelAnimClass_DTOR, 0xA)
 
 	return 0;
 }
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeVoxelAnimClass::_Load(IStream* pStm)
-{
-
-	VoxelAnimExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->VoxelAnimClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		VoxelAnimExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeVoxelAnimClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	VoxelAnimExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->VoxelAnimClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		VoxelAnimExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)
 
 void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 {
@@ -150,3 +128,24 @@ void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7F6340 , FakeVoxelAnimClass::_Detach)
+
+HRESULT __stdcall FakeVoxelAnimClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->VoxelAnimClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = VoxelAnimExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeVoxelAnimClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->VoxelAnimClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = VoxelAnimExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)

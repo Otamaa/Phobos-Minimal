@@ -12,15 +12,29 @@ template <typename T>
 void BombExtData::Serialize(T& Stm) {
 
 	Stm
-		.Process(this->Initialized)
-		.Process(this->Weapon, true)
+		.Process(this->Weapon)
 		;
 }
 
 // =============================
 // container
 BombExtContainer BombExtContainer::Instance;
+std::vector<BombExtData*>  Container<BombExtData>::Array;
 
+void Container<BombExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool BombExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool BombExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
@@ -34,9 +48,7 @@ BombExtContainer BombExtContainer::Instance;
 ASMJIT_PATCH(0x4385FC, BombClass_CTOR, 0x6)
 {
 	GET(BombClass*, pItem, ESI);
-
 	BombExtContainer::Instance.Allocate(pItem);
-
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x438EE9, BombClass_CTOR, 0x6)
 
@@ -49,27 +61,21 @@ ASMJIT_PATCH(0x4393F2, BombClass_SDDTOR, 0x5)
 
 HRESULT __stdcall FakeBombClass::_Load(IStream* pStm)
 {
+	HRESULT hr = this->BombClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = BombExtContainer::Instance.LoadKey(this, pStm);
 
-	BombExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BombClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		BombExtContainer::Instance.LoadStatic();
-
-	return res;
+	return hr;
 }
 
-HRESULT __stdcall FakeBombClass::_Save(IStream* pStm, bool clearDirty)
+HRESULT __stdcall FakeBombClass::_Save(IStream* pStm, BOOL clearDirty)
 {
+	HRESULT hr = this->BombClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = BombExtContainer::Instance.SaveKey(this, pStm);
 
-	BombExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BombClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		BombExtContainer::Instance.SaveStatic();
-
-	return res;
+	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D24, FakeBombClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D28, FakeBombClass::_Save)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D24, FakeBombClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D28, FakeBombClass::_Save)

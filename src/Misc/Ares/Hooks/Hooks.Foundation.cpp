@@ -4,6 +4,7 @@
 #include <Misc/PhobosGlobal.h>
 
 #include "Header.h"
+#include <Misc/BuildingFoundations.h>
 
 //since we loading game reaally early , fixup some of the stuffs
 ASMJIT_PATCH(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
@@ -21,8 +22,11 @@ ASMJIT_PATCH(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 	}
 	else
 	{
+		//pThis->FoundationData = FoundationDataStruct::Cells[(int)pThis->Foundation].Datas;
+		//pThis->FoundationOutside = FoundationDataStruct::Outlines[(int)pThis->Foundation].Datas;
 		pThis->FoundationData = BuildingTypeClass::FoundationlinesData[(int)pThis->Foundation].Datas;
 		pThis->FoundationOutside = BuildingTypeClass::FoundationOutlinesData[(int)pThis->Foundation].Datas;
+
 	}
 
 	SwizzleManagerClass::Instance->Swizzle((void**)&pThis->ToOverlay);
@@ -241,7 +245,14 @@ ASMJIT_PATCH(0x465550, BuildingTypeClass_GetFoundationOutline, 6)
 		return 0x46556D;
 	}
 
-	return 0;
+	auto sz = (int)pThis->Foundation;
+	if ( sz == 9 ) {
+        sz = 6;
+    }
+
+	R->EAX(BuildingTypeClass::FoundationOutlinesData[sz].Datas);
+	//R->EAX(FoundationDataStruct::Outlines[sz].Datas);
+	return 0x46556D;
 }
 
 ASMJIT_PATCH(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
@@ -260,17 +271,4 @@ ASMJIT_PATCH(0x464AF0, BuildingTypeClass_GetSizeInLeptons, 6)
 	}
 	return 0;
 
-}
-
-ASMJIT_PATCH(0x474DEE, INIClass_GetFoundation, 7)
-{
-	GET_STACK(const char*, Section, 0x2C);
-	GET_STACK(const char*, Key, 0x30);
-	LEA_STACK(const char*, Value, 0x8);
-
-	if (!IS_SAME_STR_(Value, "Custom")) {
-		Debug::INIParseFailed(Section, Key, Value);
-	}
-
-	return 0;
 }

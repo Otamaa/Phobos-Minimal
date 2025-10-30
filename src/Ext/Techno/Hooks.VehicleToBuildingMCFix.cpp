@@ -27,7 +27,18 @@ ASMJIT_PATCH(0x449E2E, BuildingClass_Mi_Selling_CreateUnit, 0x6)
 ASMJIT_PATCH(0x7396AD, UnitClass_Deploy_CreateBuilding, 0x6)
 {
 	GET(UnitClass*, pThis, EBP);
-	R->EDX<HouseClass*>(pThis->GetOriginalOwner());
+	GET(BuildingClass*, pBld , EDI);
+
+	const auto pOwner = pThis->GetOriginalOwner();
+
+	if(!pOwner) {
+
+		GameDelete(pBld);
+		Debug::LogInfo("Unit[%s] Trying to undeploy but missing Ownership!", pThis->Type->ID);
+		return 0x739A77;
+	}
+
+	R->EDX<HouseClass*>(pOwner);
 
 	return 0x7396B3;
 }

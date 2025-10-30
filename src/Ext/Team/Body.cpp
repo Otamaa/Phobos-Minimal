@@ -969,6 +969,10 @@ void FakeTeamClass::_AI()
 		this->_TMission_GatherAtBase(&node, arg4);
 		return;
 	}
+	case TeamMissionType::Play_speech:{
+		ScriptExtData::PlaySpeech(this);
+		return;
+	}
 	default:
 
 		if (AresScriptExt::Handle(this, &node, arg4) || ScriptExtData::ProcessScriptActions(this, &node, arg4))
@@ -1136,8 +1140,6 @@ template <typename T>
 void TeamExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
-
 		.Process(this->WaitNoTargetAttempts)
 		.Process(this->NextSuccessWeightAward)
 		.Process(this->IdxSelectedObjectFromAIList)
@@ -1176,7 +1178,23 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
-StaticObjectPool<TeamExtData, 10000> TeamExtContainer::pools;
+std::vector<TeamExtData*> Container<TeamExtData>::Array;
+
+void Container<TeamExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool TeamExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool TeamExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
+
 // =============================
 // container hooks
 
@@ -1196,48 +1214,31 @@ ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 	return 0;
 }
 
+void FakeTeamClass::_Detach(AbstractClass* target, bool all)
+{
+	TeamExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	this->TeamClass::PointerExpired(target, all);
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, FakeTeamClass::_Detach)
+
 HRESULT __stdcall FakeTeamClass::_Load(IStream* pStm)
 {
+	HRESULT hr = this->TeamClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = TeamExtContainer::Instance.LoadKey(this, pStm);
 
-	TeamExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TeamClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		TeamExtContainer::Instance.LoadStatic();
-
-	return res;
+	return hr;
 }
 
-HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, bool clearDirty)
+HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, BOOL clearDirty)
 {
+	HRESULT hr = this->TeamClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = TeamExtContainer::Instance.SaveKey(this, pStm);
 
-	TeamExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->TeamClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		TeamExtContainer::Instance.SaveStatic();
-
-	return res;
+	return hr;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)
-
-ASMJIT_PATCH(0x6EAE60, TeamClass_Detach, 0x7)
-{
-	GET(TeamClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, target, 0x4);
-	GET_STACK(bool, all, 0x8);
-
-	TeamExtContainer::Instance.InvalidatePointerFor(pThis, target, all);
-
-	//return pThis->Target == target ? 0x6EAECC : 0x6EAECF;
-	return 0x0;
-}
-
-//void __fastcall TeamClass_Detach_Wrapper(TeamClass* pThis ,DWORD , AbstractClass* target , bool all)\
-//{
-//	TeamExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
-//	pThis->TeamClass::PointerExpired(target , all);
-//}
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, GET_OFFSET(TeamClass_Detach_Wrapper))
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)

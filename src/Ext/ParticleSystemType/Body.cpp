@@ -1,25 +1,32 @@
 #include "Body.h"
 #include <Ext/Rules/Body.h>
 
+#include <Utilities/Macro.h>
+
 #include <ParticleSystemClass.h>
 
 static void ReadFacingDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX, const int* beginY)
 {
-	for (size_t i = 0; i < arr.size(); ++i) {
-		if(!detail::read(arr[i], exINI, pID, (std::string("FacingDirectionMult") + std::to_string(i)).c_str())) {
+	for (size_t i = 0; i < arr.size(); ++i)
+	{
+		if (!detail::read(arr[i], exINI, pID, (std::string("FacingDirectionMult") + std::to_string(i)).c_str()))
+		{
 			arr[i].X = *(beginX + i);
 			arr[i].Y = *(beginY + i);
 		}
 	}
 }
 
-void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool ParticleSystemTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
-	const char* pID = pThis->ID;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = This();
+	const char* pID = Name();
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 	this->ApplyOptimization.Read(exINI, pID, "ApplyOptimization");
@@ -33,7 +40,8 @@ void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 	break;
 	case ParticleSystemTypeBehavesLike::Spark:
 		//these bug only happen on vanilla particle drawings
-		if (pThis->ParticleCap < 2 && !this->ApplyOptimization){
+		if (pThis->ParticleCap < 2 && !this->ApplyOptimization)
+		{
 			Debug::LogInfo("ParticleSystem[{}] BehavesLike=Spark ParticleCap need to be more than 1 , fixing", pID);
 			pThis->ParticleCap = 2;
 		}
@@ -45,8 +53,9 @@ void ParticleSystemTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFail
 	this->AdjustTargetCoordsOnRotation.Read(exINI, pID, "AdjustTargetCoordsOnRotation");
 
 	if (pThis->LightSize > 94)
-		Debug::LogInfo("ParticleSystem[{}] with LightSize > 94 value [{}]", pID , pThis->LightSize);
+		Debug::LogInfo("ParticleSystem[{}] with LightSize > 94 value [{}]", pID, pThis->LightSize);
 
+	return true;
 }
 
 // =============================
@@ -55,7 +64,6 @@ template <typename T>
 void ParticleSystemTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->ApplyOptimization)
 		.Process(this->FacingMult)
 		.Process(this->AdjustTargetCoordsOnRotation)
@@ -65,6 +73,22 @@ void ParticleSystemTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleSystemTypeExtContainer ParticleSystemTypeExtContainer::Instance;
+std::vector<ParticleSystemTypeExtData*> Container<ParticleSystemTypeExtData>::Array;
+
+void Container<ParticleSystemTypeExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool ParticleSystemTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool ParticleSystemTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
@@ -83,40 +107,12 @@ ASMJIT_PATCH(0x644276, ParticleSystemTypeClass_SDDTOR, 0x6)
 
 	return 0;
 }
-#include <Misc/Hooks.Otamaa.h>
 
-HRESULT __stdcall FakeParticleSystemTypeClass::_Load(IStream* pStm)
+bool FakeParticleSystemTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-
-	ParticleSystemTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleSystemTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		ParticleSystemTypeExtContainer::Instance.LoadStatic();
-
-	return res;
+	bool status = this->ParticleSystemTypeClass::LoadFromINI(pINI);
+	ParticleSystemTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-HRESULT __stdcall FakeParticleSystemTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	ParticleSystemTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleSystemTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		ParticleSystemTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F00BC, FakeParticleSystemTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F00C0, FakeParticleSystemTypeClass::_Save)
-
-ASMJIT_PATCH(0x644617, ParticleSystemTypeClass_LoadFromINI, 0x5)
-{
-	GET(ParticleSystemTypeClass*, pItem, ESI);
-	GET(CCINIClass*, pINI, EBX);
-
-	ParticleSystemTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x644620);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x644620, ParticleSystemTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F010C, FakeParticleSystemTypeClass::_ReadFromINI)

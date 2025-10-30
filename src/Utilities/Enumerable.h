@@ -9,6 +9,7 @@
 #include <CCINIClass.h>
 
 #include <Utilities/PhobosFixedString.h>
+#include <Utilities/Debug.h>
 
 // an wrapper class to make `Type` like in the game
 // remember to not modify the array ouside allocation new item(s) from the back
@@ -38,7 +39,7 @@ public:
 		for (auto pos = Array.begin();
 			pos != Array.end();
 			++pos) {
-			if (IS_SAME_STR_(pos->get()->Name.data(), Title)) {
+			if (IS_SAME_STR_(pos->get()->Name.c_str(), Title)) {
 				return std::distance(Array.begin(), pos);
 			}
 		}
@@ -200,40 +201,45 @@ public:
 	{
 		Clear();
 
-		size_t Count = 0;
-		if (!Stm.Load(Count))
-			return false;
+		int Count = 0;
+		if (Stm.Load(Count)) {
+			if (Count > 0) {
+				Array.reserve(Count);
+				const auto className = PhobosCRT::GetTypeIDName<T>();
+				for (int i = 0; i < Count; ++i) {
+					long oldPtr = 0l;
 
-		Array.reserve(Count);
+					if (!Stm.Load(oldPtr))
+						return false;
 
-		for (size_t i = 0; i < Count; ++i)
-		{
-			void* oldPtr = nullptr;
+					decltype(Name) name;
+					if (!Stm.Load(name))
+						return false;
 
-			if (!Stm.Load(oldPtr))
-				return false;
+					auto newPtr = FindOrAllocate(name.data());
+					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, className.data())
+					newPtr->LoadFromStream(Stm);
+				}
+			}
 
-			decltype(Name) name;
-			if (!Stm.Load(name))
-				return false;
-
-			auto newPtr = FindOrAllocate(name);
-			SwizzleManagerClass::Instance->Here_I_Am((long)oldPtr, newPtr);
-			newPtr->LoadFromStream(Stm);
+			return true;
 		}
 
-		return true;
+		return false;
 	}
 
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		Stm.Save(Array.size());
+	static bool SaveGlobals(PhobosStreamWriter& Stm) {
 
-		for (auto& item : Array) {
-			// write old pointer and name, then delegate
-			Stm.Save(item.get());
-			Stm.Save(item->Name);
-			item->SaveToStream(Stm);
+		//save it as int instead of size_t
+		const int Count = (int)Array.size();
+		Stm.Save(Count);
+		const auto name = PhobosCRT::GetTypeIDName<T>();
+
+		for (int i = 0; i < Count; ++i) {
+			Debug::Log("Saving %s [%s - %x] to stream\n", name.c_str(), Array[i]->Name.data(), (long)Array[i].get());
+			Stm.Save((long)Array[i].get());
+			Stm.Process(Array[i]->Name);
+			Array[i]->SaveToStream(Stm);
 		}
 
 		return true;
@@ -247,5 +253,3 @@ public:
 
 	virtual ~Enumerable() = default;
 };
-
-#define CREATEENUMTYPECLASS(x) class x##TypeClass final : public Enumerable<x##TypeClass>

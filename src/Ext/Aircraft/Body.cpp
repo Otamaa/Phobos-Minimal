@@ -1,6 +1,6 @@
 #include "Body.h"
-#include <Ext/WeaponType/Body.h>
 
+#include <Ext/AircraftType/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
@@ -8,6 +8,7 @@
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
+#include <Ext/TerrainType/Body.h>
 
 #include <AircraftClass.h>
 #include <Misc/DynamicPatcher/Techno/AircraftDive/AircraftDiveFunctional.h>
@@ -51,9 +52,9 @@ int FakeAircraftClass::_Mission_Attack()
 		this->IsLocked = 0;
 
 		if (lose_ammo) {
-			auto Ammo = this->Ammo;
+			auto ammo = this->Ammo;
 			this->loseammo_6c8 = 0;
-			this->Ammo = Ammo - 1;
+			this->Ammo = ammo - 1;
 		}
 
 		auto v7 = this->Target;
@@ -129,7 +130,7 @@ int FakeAircraftClass::_Mission_Attack()
 				auto v19 = Math::DEG90_AS_RAD;
 				auto v20 = v18 - v19;
 				auto v21 = Math::BINARY_ANGLE_MAGIC;
-				fac.Raw = (v20 * v21);
+				fac.Raw = unsigned short(v20 * v21);
 				this->SecondaryFacing.Set_Desired(fac);
 				return 1;
 			}
@@ -542,6 +543,58 @@ void FakeAircraftClass::_FootClass_Update_Wrapper()
 	//}
 
 	this->FootClass::Update();
+
+	if (this->IsAlive && this->Type->AirportBound && !this->Airstrike && !this->Spawned)
+	{
+		const bool extendedMissions = RulesExtData::Instance()->ExpandAircraftMission;
+
+		if (extendedMissions)
+		{
+			// Check area guard range
+			if (const auto pArchive = this->ArchiveTarget)
+			{
+				if (this->Target && !this->IsFiring && !this->IsLocked
+					&& this->DistanceFromSquared(pArchive) > static_cast<int>(this->GetGuardRange(1) * 1.1))
+				{
+					this->SetTarget(nullptr);
+					this->SetDestination(pArchive, true);
+				}
+			}
+
+			// Check dock building
+			this->FindDockingBayInVector(reinterpret_cast<TypeList<TechnoTypeClass*>*>(&this->Type->Dock), 0, 0);
+		}
+
+		if (this->DockedTo)
+		{
+			// Exit the aimless hovering state and return to the new airport
+			if (this->GetCurrentMission() == Mission::Area_Guard && this->MissionStatus)
+			{
+				this->SetArchiveTarget(nullptr);
+				this->EnterIdleMode(false, true);
+			}
+		}
+		else if (this->IsInAir())
+		{
+			int damage = AircraftTypeExtContainer::Instance.Find(this->Type)->ExtendedAircraftMissions_UnlandDamage.Get(RulesExtData::Instance()->ExtendedAircraftMissions_UnlandDamage);
+
+			if (damage > 0)
+			{
+				if (!extendedMissions && !this->IsCrushingSomething && this->FindDockingBayInVector(reinterpret_cast<TypeList<TechnoTypeClass*>*>(&this->Type->Dock), 0, 0))
+					return;
+
+				// Injury every four frames
+				if (!((Unsorted::CurrentFrame - this->LastFireBulletFrame + this->UniqueID) & 0x3))
+					this->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+			}
+			else if (damage < 0)
+			{
+				// Avoid using circular movement paths to prevent the aircraft from crashing
+				if (extendedMissions)
+					this->Crash(nullptr);
+			}
+		}
+	}
 }
 
 COMPILETIMEEVAL FORCEDINLINE bool IsFlyLoco(const ILocomotion* pLoco) {
@@ -713,7 +766,7 @@ BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) 
 
 		if (AircraftCanStrafeWithWeapon(pBullet->WeaponType))
 		{
-			TechnoExtContainer::Instance.Find(this)->ShootCount++;
+			AircraftExtContainer::Instance.Find(this)->Strafe_BombsDroppedThisRound++;
 
 			if (WeaponTypeExtContainer::Instance.Find(pBullet->WeaponType)->Strafing_UseAmmoPerShot)
 			{
@@ -772,17 +825,17 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2670, FakeAircraftClass::_FireAt);
 void FakeAircraftClass::_SetTarget(AbstractClass* pTarget)
 {
 	this->TechnoClass::SetTarget(pTarget);
-	TechnoExtContainer::Instance.Find(this)->CurrentAircraftWeaponIndex = -1;
+	AircraftExtContainer::Instance.Find(this)->CurrentAircraftWeaponIndex = -1;
 }
 
 void FakeAircraftClass::_Destroyed(int mult)
 {
-	AircraftExt::TriggerCrashWeapon(this, mult);
+	AircraftExtData::TriggerCrashWeapon(this, mult);
 }
 
 WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 {
-	auto const pExt = TechnoExtContainer::Instance.Find(this);
+	auto const pExt = AircraftExtContainer::Instance.Find(this);
 
 	if (pExt->CurrentAircraftWeaponIndex >= 0)
 		return this->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);
@@ -791,7 +844,7 @@ WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 }
 
 // Spy plane, airstrike etc.
-bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
+bool AircraftExtData::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct edgeCell)
 {
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 
@@ -818,7 +871,7 @@ bool AircraftExt::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruct ed
 	return result;
 }
 
-void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
+void AircraftExtData::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 {
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -832,15 +885,15 @@ void AircraftExt::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 	AnimTypeExtData::ProcessDestroyAnims(pThis, nullptr);
 }
 
-void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
+void AircraftExtData::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber)
 {
 	if (!pTarget)
 		return;
 
-	AircraftExt::FireBurst(pThis, pTarget, shotNumber, pThis->SelectWeapon(pTarget));
+	AircraftExtData::FireBurst(pThis, pTarget, shotNumber, pThis->SelectWeapon(pTarget));
 }
 
-void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx)
+void AircraftExtData::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx)
 {
 	const auto pWeaponStruct = pThis->GetWeapon(WeaponIdx);
 
@@ -852,10 +905,10 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 	if (!weaponType)
 		return;
 
-	AircraftExt::FireBurst(pThis , pTarget, shotNumber, WeaponIdx, weaponType);
+	AircraftExtData::FireBurst(pThis , pTarget, shotNumber, WeaponIdx, weaponType);
 }
 
-void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon)
+void AircraftExtData::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, AircraftFireMode shotNumber, int WeaponIdx, WeaponTypeClass* pWeapon)
 {
 	if (!pWeapon->Burst)
 		return;
@@ -869,9 +922,8 @@ void AircraftExt::FireBurst(AircraftClass* pThis, AbstractClass* pTarget, Aircra
 	}
 }
 
-#include <Ext/TerrainType/Body.h>
 
-bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
+bool AircraftExtData::IsValidLandingZone(AircraftClass* pThis)
 {
 	if (const auto pPassanger = pThis->Passengers.GetFirstPassenger())
 	{
@@ -888,113 +940,63 @@ bool AircraftExt::IsValidLandingZone(AircraftClass* pThis)
 
 }
 
-#ifdef ENABLE_NEWHOOKS
-ASMJIT_PATCH(0x413F6A, AircraftClass_CTOR, 0x7)
+std::vector<AircraftExtData*> Container<AircraftExtData>::Array;
+AircraftExtContainer AircraftExtContainer::Instance;
+
+void Container<AircraftExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool AircraftExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool AircraftExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
+
+ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
 {
 	GET(AircraftClass*, pItem, ESI);
-
-	AircraftExt::ExtMap.JustAllocate(pItem, !pItem, "Invalid !");
-
+	AircraftExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 ASMJIT_PATCH(0x41426F, AircraftClass_DTOR, 0x7)
 {
 	GET(AircraftClass*, pItem, EDI);
-
-	AircraftExt::ExtMap.Remove(pItem);
-
+	AircraftExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
-ASMJIT_PATCH_AGAIN(0x41B430, AircraftClass_SaveLoad_Prefix, 0x6)
-ASMJIT_PATCH(0x41B5C0, AircraftClass_SaveLoad_Prefix, 0x8)
+HRESULT __stdcall FakeAircraftClass::_Load(IStream* pStm)
 {
-	GET_STACK(AircraftClass*, pItem, 0x4);
-	GET_STACK(IStream*, pStm, 0x8);
+	HRESULT hr = this->AircraftClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = AircraftExtContainer::Instance.LoadKey(this, pStm);
 
-	AircraftExt::ExtMap.PrepareStream(pItem, pStm);
-
-	return 0;
+	return hr;
 }
 
-ASMJIT_PATCH(0x41B5B5, AircraftClass_Load_Suffix, 0x6)
+HRESULT __stdcall FakeAircraftClass::_Save(IStream* pStm, BOOL clearDirty)
 {
-	AircraftExt::ExtMap.LoadStatic();
+	HRESULT hr = this->AircraftClass::Save(pStm,clearDirty);
+	if (SUCCEEDED(hr))
+		hr = AircraftExtContainer::Instance.SaveKey(this, pStm);
 
-	return 0;
+	return hr;
 }
 
-ASMJIT_PATCH(0x41B5D4, AircraftClass_Save_Suffix, 0x5)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)
+
+void FakeAircraftClass::_Detach(AbstractClass* target, bool all)
 {
-	AircraftExt::ExtMap.SaveStatic();
-
-	return 0;
+	AircraftExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	//will detach type pointer
+	this->AircraftClass::PointerExpired(target, all);
 }
-
-ASMJIT_PATCH(0x41B685, AircraftClass_Detach, 0x6)
-{
-	GET(AircraftClass*, pThis, ESI);
-	GET(void*, target, EDI);
-	GET_STACK(bool, all, STACK_OFFSET(0x8, 0x8));
-
-	if (const auto pExt = AircraftExt::ExtMap.Find(pThis))
-		pExt->InvalidatePointer(target, all);
-
-	return 0x0;
-}
-#endif
-
-//ASMJIT_PATCH(0x418478, AircraftClass_Mi_Attack_Untarget1, 6)
-//{
-//	GET(AircraftClass*, A, ESI);
-//	return A->Target
-//		? 0
-//		: 0x4184C2
-//		;
-//}
-//
-//ASMJIT_PATCH(0x4186D7, AircraftClass_Mi_Attack_Untarget2, 6)
-//{
-//	GET(AircraftClass*, A, ESI);
-//	return A->Target
-//		? 0
-//		: 0x418720
-//		;
-//}
-//
-//ASMJIT_PATCH(0x418826, AircraftClass_Mi_Attack_Untarget3, 6)
-//{
-//	GET(AircraftClass*, A, ESI);
-//	return A->Target
-//		? 0
-//		: 0x418883
-//		;
-//}
-//
-//ASMJIT_PATCH(0x418935, AircraftClass_Mi_Attack_Untarget4, 6)
-//{
-//	GET(AircraftClass*, A, ESI);
-//	return A->Target
-//		? 0
-//		: 0x418992
-//		;
-//}
-//
-//ASMJIT_PATCH(0x418A44, AircraftClass_Mi_Attack_Untarget5, 6)
-//{
-//	GET(AircraftClass*, A, ESI);
-//	return A->Target
-//		? 0
-//		: 0x418AA1
-//		;
-//}
-//
-//ASMJIT_PATCH(0x418B40, AircraftClass_Mi_Attack_Untarget6, 6)
-//{
-//	GET(AircraftClass*, A, ESI);
-//	return A->Target
-//		? 0
-//		: 0x418B8A
-//		;
-//}
+DEFINE_FUNCTION_JUMP(VTABLE , 0x7E22CC , FakeAircraftClass::_Detach)

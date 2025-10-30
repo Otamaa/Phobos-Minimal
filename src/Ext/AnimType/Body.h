@@ -10,122 +10,202 @@
 
 #include <New/AnonymousType/CreateUnitTypeClass.h>
 
-//#include <New/AnonymousType/Spawns.h>
-//#include "AnimSpawnerDatas.h"
+#include <ext/ObjectType/Body.h>
 
-class AnimTypeExtData final
+class AnimTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = AnimTypeClass;
-	static COMPILETIMEEVAL size_t Canary = 0xEEECEEEE;
-	//static COMPILETIMEEVAL size_t ExtOffset = 0x374;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-	CustomPalette Palette { CustomPalette::PaletteMode::Temperate }; //CustomPalette::PaletteMode::Temperate
-
-	bool MakeInfantry_Scatter { false };
-	bool MakeInfantry_AI_Scatter { false };
-
-#pragma region CreateUnit
-    std::unique_ptr<CreateUnitTypeClass> CreateUnitType{};
+#pragma region ClassMembers
+	CustomPalette Palette;
+	bool MakeInfantry_Scatter;
+	bool MakeInfantry_AI_Scatter;
+	std::unique_ptr<CreateUnitTypeClass> CreateUnitType;
+	Valueable<int> XDrawOffset;
+	Valueable<bool> YDrawOffset_ApplyBracketHeight;
+	Valueable<bool> YDrawOffset_InvertBracketShift;
+	Valueable<int> YDrawOffset_BracketAdjust;
+	Nullable<int> YDrawOffset_BracketAdjust_Buildings;
+	Valueable<int> HideIfNoOre_Threshold;
+	Nullable<bool> Layer_UseObjectLayer;
+	Valueable<AttachedAnimPosition> AttachedAnimPosition;
+	Valueable<WeaponTypeClass*> Weapon;
+	Valueable<WeaponTypeClass*> WeaponToCarry;
+	Valueable<bool> Warhead_Detonate;
+	Valueable<int> Damage_Delay;
+	Valueable<bool> Damage_DealtByInvoker;
+	Valueable<bool> Damage_ApplyOnce;
+	Valueable<bool> Damage_ConsiderOwnerVeterancy;
+	Nullable<DamageDelayTargetFlag> Damage_TargetFlag;
+	Nullable<Mission> MakeInfantry_Mission;
+	Nullable<Mission> MakeInfantry_AI_Mission;
+	NullableVector <AnimTypeClass*> SplashList;
+	Valueable<bool> SplashIndexRandom;
+	Nullable<AnimTypeClass*> WakeAnim;
+	Valueable<bool> ExplodeOnWater;
+	ValueableVector<AnimTypeClass*> SpawnsMultiple;
+	Valueable<bool> SpawnsMultiple_Random;
+	std::vector<int> SpawnsMultiple_amouts;
+	Valueable<double> ParticleRangeMin;
+	Valueable<double> ParticleRangeMax;
+	Nullable<int> ParticleChance;
+	Valueable<bool> SpawnParticleModeUseAresCode;
+	std::vector<LauchSWData> Launchs;
+	Valueable<int> CraterDecreaseTiberiumAmount;
+	Valueable<double> CraterChance;
+	Nullable<bool> SpawnCrater;
+	Nullable<double> ScorchChance;
+	Valueable<bool> SpecialDraw;
+	Valueable<bool> NoOwner;
+	Valueable<int> Spawns_Delay;
+	Valueable<double> ConcurrentChance;
+	ValueableVector<AnimTypeClass*> ConcurrentAnim;
+	Nullable<OwnerHouseKind> MakeInfantryOwner;
+	Valueable<ParticleSystemTypeClass*> AttachedSystem;
+	bool IsInviso;
+	Valueable<bool> RemapAnim;
+	Valueable<bool> AltPalette_ApplyLighting;
+	Valueable<bool> ExtraShadow;
+	NullableIdx<VocClass> DetachedReport;
+	Valueable<int> AdditionalHeight;
+	NullableIdx<VocClass> AltReport;
+	Valueable<AffectedHouse> VisibleTo;
+	Valueable<bool> VisibleTo_ConsiderInvokerAsOwner;
+	Valueable<bool> RestrictVisibilityIfCloaked;
+	Valueable<bool> DetachOnCloak;
+	Nullable<int> Translucency_Cloaked;
+	Animatable<TranslucencyLevel> Translucent_Keyframes;
+	Valueable<int> CreateUnit_SpawnHeight;
+	Valueable<bool> ConstrainFireAnimsToCellSpots;
+	Nullable<LandTypeFlags> FireAnimDisallowedLandTypes;
+	Nullable<bool> AttachFireAnimsToParent;
+	Nullable<int> SmallFireCount;
+	ValueableVector<AnimTypeClass*> SmallFireAnims;
+	ValueableVector<double> SmallFireChances;
+	ValueableVector<double> SmallFireDistances;
+	Valueable<int> LargeFireCount;
+	ValueableVector<AnimTypeClass*> LargeFireAnims;
+	ValueableVector<double> LargeFireChances;
+	ValueableVector<double> LargeFireDistances;
+	Valueable<bool> Damaging_UseSeparateState;
+	Valueable<int> Damaging_Rate;
 #pragma endregion
 
-	Valueable<int> XDrawOffset { 0 };
-	Valueable<int> HideIfNoOre_Threshold { 0 };
-	Nullable<bool> Layer_UseObjectLayer {};
-	Valueable<AttachedAnimPosition> AttachedAnimPosition { AttachedAnimPosition::Default };
+public:
+	AnimTypeExtData(AnimTypeClass* pObj)
+		: ObjectTypeExtData(pObj),
+		Palette(CustomPalette::PaletteMode::Temperate),
+		MakeInfantry_Scatter(false),
+		MakeInfantry_AI_Scatter(false),
+		CreateUnitType(nullptr),
+		XDrawOffset(0),
+		YDrawOffset_ApplyBracketHeight(false),
+		YDrawOffset_InvertBracketShift(false),
+		YDrawOffset_BracketAdjust(0),
+		YDrawOffset_BracketAdjust_Buildings(),
+		HideIfNoOre_Threshold(0),
+		Layer_UseObjectLayer(),
+		AttachedAnimPosition(AttachedAnimPosition::Default),
+		Weapon(nullptr),
+		WeaponToCarry(nullptr),
+		Warhead_Detonate(false),
+		Damage_Delay(0),
+		Damage_DealtByInvoker(false),
+		Damage_ApplyOnce(false),
+		Damage_ConsiderOwnerVeterancy(true),
+		Damage_TargetFlag(),
+		MakeInfantry_Mission(),
+		MakeInfantry_AI_Mission(),
+		SplashList(),
+		SplashIndexRandom(false),
+		WakeAnim(),
+		ExplodeOnWater(false),
+		SpawnsMultiple(),
+		SpawnsMultiple_Random(false),
+		SpawnsMultiple_amouts(),
+		ParticleRangeMin(0.0),
+		ParticleRangeMax(0.0),
+		ParticleChance(),
+		SpawnParticleModeUseAresCode(true),
+		Launchs(),
+		CraterDecreaseTiberiumAmount(6),
+		CraterChance(0.5),
+		SpawnCrater(),
+		ScorchChance(),
+		SpecialDraw(IS_SAME_STR_(this->Name(), GameStrings::Anim_RING1())),
+		NoOwner(false),
+		Spawns_Delay(0),
+		ConcurrentChance(0.0),
+		ConcurrentAnim(),
+		MakeInfantryOwner(),
+		AttachedSystem(nullptr),
+		IsInviso(IS_SAME_STR_(this->Name(), GameStrings::Anim_INVISO())),
+		RemapAnim(false),
+		AltPalette_ApplyLighting(false),
+		ExtraShadow(true),
+		DetachedReport(),
+		AdditionalHeight(0),
+		AltReport(),
+		VisibleTo(AffectedHouse::All),
+		VisibleTo_ConsiderInvokerAsOwner(false),
+		RestrictVisibilityIfCloaked(false),
+		DetachOnCloak(true),
+		Translucency_Cloaked(),
+		Translucent_Keyframes(),
+		CreateUnit_SpawnHeight(-1),
+		ConstrainFireAnimsToCellSpots(true),
+		FireAnimDisallowedLandTypes(),
+		AttachFireAnimsToParent(false),
+		SmallFireCount(),
+		SmallFireAnims(),
+		SmallFireChances(),
+		SmallFireDistances(),
+		LargeFireCount(1),
+		LargeFireAnims(),
+		LargeFireChances(),
+		LargeFireDistances(),
+		Damaging_UseSeparateState(false),
+		Damaging_Rate(-1)
+	{ }
 
-	Valueable<WeaponTypeClass*> Weapon { nullptr };
-	Valueable<WeaponTypeClass*> WeaponToCarry {};
-	Valueable<bool> Warhead_Detonate { false };
+	AnimTypeExtData(AnimTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
-	Valueable<int> Damage_Delay { 0 };
-	Valueable<bool> Damage_DealtByInvoker { false };
-	Valueable<bool> Damage_ApplyOnce { false };
-	Valueable<bool> Damage_ConsiderOwnerVeterancy { true };
-	Nullable<DamageDelayTargetFlag> Damage_TargetFlag {};
+	virtual ~AnimTypeExtData() = default;
 
-	Nullable<Mission> MakeInfantry_Mission {};
-	Nullable<Mission> MakeInfantry_AI_Mission {};
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
 
-	NullableVector <AnimTypeClass*> SplashList {};
-	Valueable<bool> SplashIndexRandom { false };
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
 
-	Nullable<AnimTypeClass*> WakeAnim {};
-	Valueable<bool> ExplodeOnWater { false };
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		this->ObjectTypeExtData::Internal_SaveToStream(Stm);
+		const_cast<AnimTypeExtData*>(this)->Serialize(Stm);
+	}
 
-	ValueableVector<AnimTypeClass*> SpawnsMultiple {};
-	Valueable<bool> SpawnsMultiple_Random { false };
-	std::vector<int> SpawnsMultiple_amouts {};
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
 
-	Valueable<double> ParticleRangeMin { 0.0 };
-	Valueable<double> ParticleRangeMax { 0.0 };
-	Nullable<int> ParticleChance {};
-	Valueable<bool> SpawnParticleModeUseAresCode { true };
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
 
-	std::vector<LauchSWData> Launchs {};
+	virtual AnimTypeClass* This() const override { return reinterpret_cast<AnimTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const AnimTypeClass* This_Const() const override { return reinterpret_cast<const AnimTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
-	Valueable<int> CraterDecreaseTiberiumAmount { 6 };
-	Valueable<double> CraterChance { 0.5 };
-	Nullable<bool> SpawnCrater { };
-	Nullable<double> ScorchChance { };
-
-	Valueable<bool> SpecialDraw { false };
-	Valueable<bool> NoOwner { false };
-
-	Valueable<int> Spawns_Delay { 0 };
-
-	Valueable<double> ConcurrentChance { 0.0 };
-	ValueableVector<AnimTypeClass*> ConcurrentAnim { };
-	Nullable<OwnerHouseKind> MakeInfantryOwner {};
-	Valueable<ParticleSystemTypeClass*> AttachedSystem {};
-
-	bool IsInviso { false };
-
-	Valueable<bool> RemapAnim { false };
-	//AnimSpawnerDatas SpawnerDatas;
-
-	Valueable<bool> AltPalette_ApplyLighting { false };
-	Valueable<bool> ExtraShadow { true };
-	NullableIdx<VocClass> DetachedReport {};
-
-	Valueable<int> AdditionalHeight {};
-	NullableIdx<VocClass> AltReport {};
-
-	//Spawns SpawnsData {};
-
-	Valueable<AffectedHouse> VisibleTo { AffectedHouse::All };
-	Valueable<bool> VisibleTo_ConsiderInvokerAsOwner { false };
-	Valueable<bool> RestrictVisibilityIfCloaked { false };
-	Valueable<bool> DetachOnCloak { true };
-	Nullable<int> Translucency_Cloaked {};
-
-	Animatable<TranslucencyLevel> Translucent_Keyframes {};
-
-	Valueable<int> CreateUnit_SpawnHeight { -1 };
-
-	Valueable<bool> ConstrainFireAnimsToCellSpots { true };
-	Nullable<LandTypeFlags> FireAnimDisallowedLandTypes {};
-	Nullable<bool> AttachFireAnimsToParent { false };
-	Nullable<int> SmallFireCount {};
-	ValueableVector<AnimTypeClass*> SmallFireAnims {};
-	ValueableVector<double> SmallFireChances {};
-	ValueableVector<double> SmallFireDistances {};
-	Valueable<int> LargeFireCount { 1 };
-	ValueableVector<AnimTypeClass*> LargeFireAnims {};
-	ValueableVector<double> LargeFireChances {};
-	ValueableVector<double> LargeFireDistances {};
-
-	Valueable<bool> Damaging_UseSeparateState {};
-	Valueable<int> Damaging_Rate { -1 };
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void Initialize();
-
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const {  return true; }
+public:
 
 	void ValidateSpalshAnims();
 
@@ -135,23 +215,12 @@ public:
 			return this->CreateUnitType->Owner.Get(OwnerHouseKind::Victim);
 		}
 
-		if (this->AttachedToObject->MakeInfantry > -1) {
+		if (This()->MakeInfantry > -1) {
 			return this->MakeInfantryOwner.Get(OwnerHouseKind::Invoker);
 		}
 
 		return OwnerHouseKind::Invoker;
 	}
-
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(AnimTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
-
-	static void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr , WarheadTypeClass* pWH = nullptr);
-	static void CreateUnit_MarkCell(AnimClass* pThis);
-	static void CreateUnit_Spawn(AnimClass* pThis);
 
 	bool ScatterCreateUnit(bool IsAi) {
 		return IsAi ? this->CreateUnitType->AI_Scatter : this->CreateUnitType->Scatter;
@@ -179,6 +248,12 @@ public:
 	}
 
 	void ValidateData();
+
+public:
+	static void ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller = nullptr, WarheadTypeClass* pWH = nullptr);
+	static void CreateUnit_MarkCell(AnimClass* pThis);
+	static void CreateUnit_Spawn(AnimClass* pThis);
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -191,14 +266,26 @@ class AnimTypeExtContainer final : public Container<AnimTypeExtData>
 public:
 	static AnimTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(AnimTypeExtContainer, AnimTypeExtData, "AnimTypeClass");
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
 };
 
 class NOVTABLE FakeAnimTypeClass : public AnimTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	AnimTypeExtData* _GetExtData() {
 		return *reinterpret_cast<AnimTypeExtData**>(((DWORD)this) + AbstractExtOffset);

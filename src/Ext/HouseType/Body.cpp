@@ -2,11 +2,13 @@
 
 #include <Utilities/GeneralUtils.h>
 #include <Utilities/Helpers.h>
+#include <Utilities/Macro.h>
+
 #include <DiscreteDistributionClass.h>
 
 void HouseTypeExtData::Initialize()
 {
-	const char* pID = this->AttachedToObject->ID;
+	const char* pID = This()->ID;
 
 	COMPILETIMEEVAL static char const* const countries[] = {
 		"Americans",
@@ -21,7 +23,7 @@ void HouseTypeExtData::Initialize()
 		"YuriCountry"
 	};
 
-	const auto it = std::find_if(std::begin(countries), std::end(countries),
+	const auto it = std::ranges::find_if(countries,
 		[=](const char* pCountry) { return IS_SAME_STR_(pID, pCountry); });
 
 	const size_t index = it != std::end(countries) ? std::distance(std::begin(countries), it) : -1;
@@ -39,7 +41,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:USA";
 		this->StatusText = "STT:PlayerSideAmerica";
 
-		this->FlagFile = "usai.pcx";
+		this->FlagFile.Insert("usai.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("usai.shp");
 		break;
@@ -53,7 +55,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Korea";
 		this->StatusText = "STT:PlayerSideKorea";
 
-		this->FlagFile = "japi.pcx";
+		this->FlagFile.Insert("japi.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("japi.shp");
 		break;
@@ -67,7 +69,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:French";
 		this->StatusText = "STT:PlayerSideFrance";
 
-		this->FlagFile = "frai.pcx";
+		this->FlagFile.Insert("frai.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("frai.shp");
 		break;
@@ -81,7 +83,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Germans";
 		this->StatusText = "STT:PlayerSideGermany";
 
-		this->FlagFile = "geri.pcx";
+		this->FlagFile.Insert("geri.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("geri.shp");
 		break;
@@ -95,7 +97,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:British";
 		this->StatusText = "STT:PlayerSideBritain";
 
-		this->FlagFile = "gbri.pcx";
+		this->FlagFile.Insert("gbri.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsalli.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("gbri.shp");
 		break;
@@ -109,7 +111,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Lybia";
 		this->StatusText = "STT:PlayerSideLibya";
 
-		this->FlagFile = "djbi.pcx";
+		this->FlagFile.Insert("djbi.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obssovi.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("djbi.shp");
 		break;
@@ -123,7 +125,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Iraq";
 		this->StatusText = "STT:PlayerSideIraq";
 
-		this->FlagFile = "arbi.pcx";
+		this->FlagFile.Insert("arbi.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obssovi.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("arbi.shp");
 		break;
@@ -137,7 +139,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Cuba";
 		this->StatusText = "STT:PlayerSideCuba";
 
-		this->FlagFile = "lati.pcx";
+		this->FlagFile.Insert("lati.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obssovi.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("lati.shp");
 		break;
@@ -151,7 +153,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:Russia";
 		this->StatusText = "STT:PlayerSideRussia";
 
-		this->FlagFile = "rusi.pcx";
+		this->FlagFile.Insert("rusi.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obssovi.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("rusi.shp");
 		break;
@@ -165,7 +167,7 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "LoadBrief:YuriCountry";
 		this->StatusText = "STT:PlayerSideYuriCountry";
 
-		this->FlagFile = "yrii.pcx";
+		this->FlagFile.Insert("yrii.pcx");
 		this->ObserverBackgroundSHP = FileSystem::LoadSHPFile("obsyuri.shp");
 		this->ObserverFlagSHP = FileSystem::LoadSHPFile("yrii.shp");
 		this->ObserverFlagYuriPAL = true;
@@ -180,11 +182,11 @@ void HouseTypeExtData::Initialize()
 		this->LoadScreenBrief = "GUI:Unknown";
 		this->StatusText = "GUI:Unknown";
 
-		this->FlagFile = "rani.pcx";
+		this->FlagFile.Insert("rani.pcx");
 		break;
 	}
 
-	switch (this->AttachedToObject->SideIndex)
+	switch (This()->SideIndex)
 	{
 	case 0:
 		this->LoadTextColor = ColorScheme::FindIndex("AlliedLoad");
@@ -253,9 +255,9 @@ void HouseTypeExtData::InheritSettings(HouseTypeClass* pThis)
 	this->SettingsInherited = true;
 }
 
-void HouseTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool HouseTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
 	if (!this->SettingsInherited
@@ -266,7 +268,7 @@ void HouseTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	if (parseFailAddr)
-		return;
+		return false;
 
 	INI_EX exINI(pINI);
 
@@ -305,10 +307,12 @@ void HouseTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 
 	this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 	this->BattlePoints_CanUseStandardPoints.Read(exINI, pSection, "BattlePoints.CanUseStandardPoints");
+
+	return true;
 }
 
 void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
-	auto pThis = this->AttachedToObject;
+	auto pThis = This();
 	const char* pSection = pThis->ID;
 
 	INI_EX exINI(pINI);
@@ -326,7 +330,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 				{
 					*ppShp = nullptr;
 				}
-				Pcx = nullptr;
+				Pcx.Erase();
 			}
 			else if (!ppShp || strstr(Phobos::readBuffer, ".pcx"))
 			{
@@ -335,12 +339,12 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 				{
 					*ppShp = nullptr;
 				}
-				Pcx = Phobos::readBuffer;
+				Pcx.Insert(Phobos::readBuffer);
 				if (!Pcx.Exists())
 				{
 					// log error and clear invalid name
 					Debug::INIParseFailed(pSection, key, Phobos::readBuffer);
-					Pcx = nullptr;
+					Pcx.Erase();
 				}
 			}
 			else if (ppShp)
@@ -351,7 +355,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 				{
 					// log error and clear invalid name
 					Debug::INIParseFailed(pSection, key, Phobos::readBuffer);
-					Pcx = nullptr;
+					Pcx.Erase();
 				}
 			}
 			else
@@ -410,7 +414,7 @@ Iterator<BuildingTypeClass*> HouseTypeExtData::GetPowerplants() const
 Iterator<BuildingTypeClass*> HouseTypeExtData::GetDefaultPowerplants() const
 {
 	BuildingTypeClass** ppPower = nullptr;
-	switch (this->AttachedToObject->SideIndex)
+	switch (This()->SideIndex)
 	{
 	case 0:
 		ppPower = &RulesClass::Instance->GDIPowerPlant;
@@ -451,7 +455,6 @@ template <typename T>
 void  HouseTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->SettingsInherited)
 
 		.Process(this->SurvivorDivisor)
@@ -506,56 +509,30 @@ void  HouseTypeExtData::Serialize(T& Stm)
 // container
 
 HouseTypeExtContainer HouseTypeExtContainer::Instance;
+std::vector<HouseTypeExtData*> Container<HouseTypeExtData>::Array;
 
-bool HouseTypeExtContainer::Load(HouseTypeClass* key, IStream* pStm)
+void Container<HouseTypeExtData>::Clear()
 {
-	if (!key)
-		return false;
+	Array.clear();
+}
 
-	auto ptr = HouseTypeExtContainer::Instance.Map.get_or_default(key);
+bool HouseTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
 
-	if (!ptr) {
-		ptr = HouseTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
-	}
-
-	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, ptr);
-
-	PhobosByteStream loader { 0 };
-	if (loader.ReadBlockFromStream(pStm))
-	{
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(HouseTypeExtData::Canary)
-			&& reader.RegisterChange(ptr))
-		{
-			ptr->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-			{
-				return true;
-			}
-		}
-	}
-
-
-	return false;
+bool HouseTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
 }
 // =============================
 // container hooks
-
 
 ASMJIT_PATCH(0x511643, HouseTypeClass_CTOR, 0x5)
 {
 	GET(HouseTypeClass*, pItem, EAX);
 
-	auto ptr = HouseTypeExtContainer::Instance.Map.get_or_default(pItem);
-
-	if (!ptr) {
-		ptr = HouseTypeExtContainer::Instance.Map.insert_unchecked(pItem,
-			  HouseTypeExtContainer::Instance.AllocateUnchecked(pItem));
-	}
-
-	HouseTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	HouseTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
+	HouseTypeExtContainer::Instance.Allocate(pItem);
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x511635, HouseTypeClass_CTOR, 0x5)
@@ -564,50 +541,15 @@ ASMJIT_PATCH(0x5127CF, HouseTypeClass_DTOR, 0x6)
 {
 	GET(HouseTypeClass*, pItem, ESI);
 
-	auto extData = HouseTypeExtContainer::Instance.GetExtAttribute(pItem);
-	HouseTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	HouseTypeExtContainer::Instance.Map.erase(pItem);
-	if(extData)
-		DLLCallDTOR(extData);
-
+	HouseTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeHouseTypeClass::_Load(IStream* pStm)
+bool FakeHouseTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-
-	HouseTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->HouseTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		HouseTypeExtContainer::Instance.LoadStatic();
-
-	return res;
+	bool status = this->HouseTypeClass::LoadFromINI(pINI);
+	HouseTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-HRESULT __stdcall FakeHouseTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	HouseTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->HouseTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		HouseTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB6C, FakeHouseTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EAB70, FakeHouseTypeClass::_Save)
-
-ASMJIT_PATCH(0x51214F, HouseTypeClass_LoadFromINI, 0x5)
-{
-	GET(HouseTypeClass*, pItem, EBX);
-	GET_BASE(CCINIClass*, pINI, 0x8);
-
-	HouseTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x51215A);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x51215A, HouseTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EABBC, FakeHouseTypeClass::_ReadFromINI)

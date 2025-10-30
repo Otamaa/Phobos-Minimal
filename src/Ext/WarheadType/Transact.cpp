@@ -182,7 +182,7 @@ void WarheadTypeExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec, Hou
 
 		const int count = !this->Transact_SpreadAmongTargets ? 1: nVec.size();
 
-		std::for_each(nVec.begin(), nVec.end(), [this, pOwner, pHouse ,&count](TechnoClass* const pTech) {
+		std::ranges::for_each(nVec, [this, pOwner, pHouse ,&count](TechnoClass* const pTech) {
 			TransactOnOneUnit(pTech, pOwner, count);
 		});
 

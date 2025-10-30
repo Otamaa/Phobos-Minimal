@@ -246,7 +246,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 				destination.Y += cellOffset.Y;
 			}
 
-			if (footCoords.Y != destination.Y && footCoords.X != destination.X)
+			if (footCoords.Y != destination.Y || footCoords.X != destination.X)
 				pAircraft->PrimaryFacing.Set_Desired(DirStruct(Math::atan2(double(footCoords.Y - destination.Y), double(destination.X - footCoords.X))));
 			else
 				pAircraft->PrimaryFacing.Set_Desired(landingDir);

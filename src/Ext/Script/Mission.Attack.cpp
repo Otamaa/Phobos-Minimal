@@ -831,10 +831,9 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			auto const curtargetiter = make_iterator(pTechno->CurrentTargets);
 			if (!curtargetiter.empty())
 			{
-				return std::any_of(curtargetiter.begin(), curtargetiter.end(),
-				[pTeamLeader](AbstractClass* pTarget) {
-				const auto pTech = flag_cast_to<TechnoClass*>(pTarget);
-				 return ScriptExtData::IsUnitAvailable(pTech , true) && pTech->GetOwningHouse() == pTeamLeader->Owner;
+				return std::ranges::any_of(curtargetiter, [pTeamLeader](AbstractClass* pTarget) {
+					const auto pTech = flag_cast_to<TechnoClass*>(pTarget);
+				    return ScriptExtData::IsUnitAvailable(pTech , true) && pTech->GetOwningHouse() == pTeamLeader->Owner;
 				});
 			}
 

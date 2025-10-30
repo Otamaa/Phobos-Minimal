@@ -262,8 +262,7 @@ ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 	auto const nCount = pThis->Count;
 	auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
 	auto nEnd = (Unsorted::CurrentFrame % 15 >= 14) ? (&pThis->Items[nCount]) : (&nBegin[nCount / 15 + nCount / 15 / 4]);
-	std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B)
-	{
+	std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B) {
 		return A->GetYSort() < B->GetYSort();
 	});
 
@@ -556,7 +555,7 @@ ASMJIT_PATCH(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 		{
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
-			TechnoTypeClass* pType = pTypeExt->AttachedToObject;
+			TechnoTypeClass* pType = pTypeExt->This();
 			if (pTypeExt->Fake_Of)
 				pType = pTypeExt->Fake_Of;
 
@@ -768,26 +767,27 @@ ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 	return 0x4B9445;
 }
 
-ASMJIT_PATCH(0x67E74A, LoadGame_EarlyLoadSides, 5)
-{
-	GET(LPSTREAM, pStm, ESI);
-
-	int length = 0;
-	LPVOID out;
-	if (pStm->Read(&length, 4, 0) < 0)
-	{
-		return 0x67F7A3;
-	}
-	for (int i = 0; i < length; ++i)
-	{
-		if ((Imports::OleLoadFromStream.invoke()(pStm, &IIDs::IUnknown, &out)) < 0)
-		{
-			return 0x67F7A3;
-		}
-	}
-
-	return 0;
-}
+// ASMJIT_PATCH(0x67E74A, LoadGame_EarlyLoadSides, 5)
+// {
+// 	GET(LPSTREAM, pStm, ESI);
+//
+//	
+// 	int length = 0;
+// 	LPVOID out;
+// 	if (pStm->Read(&length, 4, 0) < 0)
+// 	{
+// 		return 0x67F7A3;
+// 	}
+// 	for (int i = 0; i < length; ++i)
+// 	{
+// 		if ((Imports::OleLoadFromStream.invoke()(pStm, &IIDs::IUnknown, &out)) < 0)
+// 		{
+// 			return 0x67F7A3;
+// 		}
+// 	}
+//
+// 	return 0;
+// }
 
 //LoadGame_LateSkipSides
 DEFINE_JUMP(LJMP, 0x67F281, 0x67F2BF);
@@ -850,6 +850,8 @@ ASMJIT_PATCH(0x4B769B, ScenarioClass_GenerateDropshipLoadout, 5)
 	WWMouseClass::Instance->ShowCursor();
 	return 0x4B76A0;
 }
+
+#include <Ext/Scenario/Body.h>
 
 ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 {
@@ -947,22 +949,39 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 	return 0x5F413F;
 }
 
-// temporal per-slot
-ASMJIT_PATCH(0x71A84E, TemporalClass_UpdateA, 5)
+ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)
 {
-	GET(TemporalClass* const, pThis, ESI);
+	GET(ObjectClass*, pThis, ESI);
 
-	// it's not guaranteed that there is a target
-	if (auto const pTarget = pThis->Target)
-	{
-		TechnoExtContainer::Instance.Find(pTarget)->RadarJammer.reset();
-		AresAE::UpdateTempoal(&TechnoExtContainer::Instance.Find(pTarget)->AeData, pTarget);
+	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
+	}
+	return 0;
+}
+
+ASMJIT_PATCH(0x5F4160, ObjectClass_DropAsBomb_Track, 0x6)
+{
+	GET(ObjectClass*, pThis, ECX);
+
+	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
 	}
 
-	pThis->WarpRemaining -= pThis->GetWarpPerStep(0);
+	return 0;
+}
 
-	R->EAX(pThis->WarpRemaining);
-	return 0x71A88D;
+ASMJIT_PATCH(0x5F3F86, ObjectClass_Update_Track, 0x7)
+{
+	GET(ObjectClass*, pThis, ESI);
+
+	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = false;
+	}
+
+	return 0;
 }
 
 ASMJIT_PATCH(0x413FD2, AircraftClass_Init_Academy, 6)
@@ -1044,9 +1063,6 @@ ASMJIT_PATCH(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 	VocClass::SafeImmedietelyPlayAt(index, &pAirstrike->FirstObject->Location, nullptr);
 	return 0x41D5E0;
 }
-
-//DEFINE_SKIP_HOOK(0x71B09C, TemporalClass_Logic_BuildingUnderAttack_NullptrShit, 0x5, 71B0E7);
-DEFINE_JUMP(LJMP, 0x71B09C, 0x71B0E7);
 
 ASMJIT_PATCH(0x6BED08, Game_Terminate_Mouse, 7)
 {
@@ -1368,11 +1384,19 @@ ASMJIT_PATCH(0x532017, DlgProc_MainMenu_Version, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x5facdf, Options_LoadFromINI, 5)
+ASMJIT_PATCH(0x5FACDF, Options_LoadFromINI, 5)
 {
-	Phobos::Config::Read();
+	Phobos::Config::Read_RA2MD();
+	Phobos::Config::Read_UIMD();
 	return 0x0;
 }
+
+ASMJIT_PATCH(0x52D21F, Game_InitRules, 0x6)
+{
+	Phobos::Config::Read_RULESMD();
+	return 0x0;
+}
+
 ASMJIT_PATCH(0x6BC0CD, _LoadRA2MD, 5)
 {
 	StaticVars::LoadGlobalsConfig();

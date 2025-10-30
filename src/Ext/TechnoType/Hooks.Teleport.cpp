@@ -17,7 +17,7 @@
 	TechnoTypeClass* pType = pOwner->GetTechnoType(); \
 	TechnoTypeExtData *pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x6)
+ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x5)
 {
 	//GET(TeleportLocomotionClass*, pThis, ESI);
 	GET(FootClass*, pLinked, ECX);
@@ -60,7 +60,7 @@ ASMJIT_PATCH(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 
 	TechnoExtData::PlayAnim(pExt->WarpOut.GetOrDefault(pOwner , RulesClass::Instance->WarpOut), pOwner);
 
 	if (const auto pWeapon = pExt->WarpOutWeapon.Get(pOwner))
-		WeaponTypeExtData::DetonateAt(pWeapon, pOwner, pOwner , true , nullptr);
+		WeaponTypeExtData::DetonateAt1(pWeapon, pOwner, pOwner , true , nullptr);
 
 	const int distance = (int)Math::sqrt(pOwner->Location.DistanceFromSquared(pLocomotor->LastCoords));
 	TechnoExtContainer::Instance.Find(pOwner)->LastWarpDistance = distance;
@@ -117,7 +117,7 @@ ASMJIT_PATCH(0x719742, TeleportLocomotionClass_ILocomotion_Process_WarpInAnim, 0
 		const int damage = pExt->WarpInWeapon_UseDistanceAsDamage.Get(pOwner) ?
 			(pTechnoExt->LastWarpDistance / Unsorted::LeptonsPerCell) : pWeapon->Damage;
 
-		WeaponTypeExtData::DetonateAt(pWeapon, pOwner, pOwner, damage, true, nullptr);
+		WeaponTypeExtData::DetonateAt2(pWeapon, pOwner, pOwner, damage, true, nullptr);
 	}
 
 	return 0x719796;

@@ -1,8 +1,6 @@
 #include "Body.h"
 
-void ParticleTypeExtData::Initialize() {
-	LaserTrail_Types.reserve(2);
-}
+#include <Utilities/Macro.h>
 
 void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX& exINI, const char* pID, const int* beginX , const int* beginY) {
 	for (size_t i = 0; i < arr.size(); ++i) {
@@ -13,13 +11,13 @@ void ReadWinDirMult(std::array<Point2D, (size_t)FacingType::Count>& arr, INI_EX&
 	}
 }
 
-void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool ParticleTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
-	const char* pID = pThis->ID;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr) || parseFailAddr)
+		return false;
 
-	if (parseFailAddr)
-		return;
+	auto pThis = this->This();
+	const char* pID = pThis->ID;
 
 	INI_EX exINI(pINI);
 
@@ -91,7 +89,7 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 	this->DamageRange.Read(exINI, pID, "DamageRange");
 
 	///if (IS_SAME_STR_(pID, "SuperNapalmCloudPart"))
-	//	Debug::LogInfo("AlphaImageNAme [%s] ", this->AttachedToObject->AlphaImageFile);
+	//	Debug::LogInfo("AlphaImageNAme [%s] ", this->This()->AlphaImageFile);
 
 	if (pThis->StateAIAdvance == 0 && pThis->StartStateAI < pThis->EndStateAI) {
 		Debug::RegisterParserError();
@@ -99,6 +97,8 @@ void ParticleTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			pID);
 		pThis->StateAIAdvance = 1;
 	}
+
+	return true;
 }
 
 // =============================
@@ -107,7 +107,6 @@ template <typename T>
 void ParticleTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->LaserTrail_Types)
 		.Process(this->ReadjustZ)
 		.Process(this->Palette)
@@ -121,14 +120,31 @@ void ParticleTypeExtData::Serialize(T& Stm)
 		.Process(this->TransmogrifyType)
 		.Process(this->TransmogrifyOwner)
 		.Process(this->Fire_DamagingAnim)
+		.Process(this->Trails)
 		;
 
-	this->Trails.Serialize(Stm);
+
 }
 
 // =============================
 // container
 ParticleTypeExtContainer ParticleTypeExtContainer::Instance;
+std::vector<ParticleTypeExtData*> Container<ParticleTypeExtData>::Array;
+
+void Container<ParticleTypeExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool ParticleTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool ParticleTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
@@ -148,41 +164,11 @@ ASMJIT_PATCH(0x645A42, ParticleTypeClass_SDDTOR, 0xA)
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeParticleTypeClass::_Load(IStream* pStm)
+bool FakeParticleTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-
-	ParticleTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		ParticleTypeExtContainer::Instance.LoadStatic();
-
-	return res;
+	bool status = this->ParticleTypeClass::LoadFromINI(pINI);
+	ParticleTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-HRESULT __stdcall FakeParticleTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	ParticleTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		ParticleTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F019C, FakeParticleTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F01A0, FakeParticleTypeClass::_Save)
-
-
-ASMJIT_PATCH(0x645405, ParticleTypeClass_LoadFromINI, 0x5)
-{
-	GET(ParticleTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, STACK_OFFS(0xDC , -0x4));
-
-	ParticleTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x645414);
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x645414, ParticleTypeClass_LoadFromINI, 0x5)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F01EC, FakeParticleTypeClass::_ReadFromINI)

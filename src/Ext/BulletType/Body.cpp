@@ -43,7 +43,7 @@ const ConvertClass* BulletTypeExtData::GetBulletConvert()
 	else
 	{
 		ConvertClass* pConvert = nullptr;
-		if (const auto pAnimType = AnimTypeClass::Find(this->AttachedToObject->ImageFile)) {
+		if (const auto pAnimType = AnimTypeClass::Find(This()->ImageFile)) {
 			if(const auto pConvertData = AnimTypeExtContainer::Instance.Find(pAnimType)->Palette.GetConvert()){
 				pConvert = pConvertData;
 			}
@@ -93,7 +93,7 @@ BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass
 {
 	damage = (int)(TechnoExtData::GetDamageMult(pOwner , damage , !addDamage));
 
-	auto pBullet = this->AttachedToObject->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
+	auto pBullet = This()->CreateBullet(pTarget, pOwner, damage, pWarhead, speed, bright);
 
 	if (pBullet)
 	{
@@ -107,9 +107,12 @@ BulletClass* BulletTypeExtData::CreateBullet(AbstractClass* pTarget, TechnoClass
 // =============================
 // load / save
 
-void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
+bool BulletTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	auto pThis = this->AttachedToObject;
+	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
+		return false;
+
+	auto pThis = This();
 	auto pArtInI = &CCINIClass::INI_Art;
 
 	const char* pSection = pThis->ID;
@@ -134,6 +137,7 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 		this->Shrapnel_UseWeaponTargeting.Read(exINI, pSection, "Shrapnel.UseWeaponTargeting");
 		this->Vertical_AircraftFix.Read(exINI, pSection, "Vertical.AircraftFix");
 		this->VerticalInitialFacing.Read(exINI, pSection, "VerticalInitialFacing");
+		this->AU.Read(exINI, pSection, "AU");
 
 		// Code Disabled , #816 , Bullet/Hooks.obstacles.cpp
 		this->SubjectToLand.Read(exINI, pSection, "SubjectToLand");
@@ -230,13 +234,14 @@ void BulletTypeExtData::LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr)
 			this->Trails.Read(exArtINI, pArtSection, false);
 		}
 	}
+
+	return true;
 }
 
 template <typename T>
 void BulletTypeExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Health)
 		.Process(this->Armor)
 		.Process(this->Interceptable)
@@ -313,9 +318,12 @@ void BulletTypeExtData::Serialize(T& Stm)
 		.Process(this->EMPulseCannon_InaccurateRadius)
 		.Process(this->Vertical_AircraftFix)
 		.Process(this->VerticalInitialFacing)
-		;
 
-	this->Trails.Serialize(Stm);
+		.Process(this->AU)
+
+		.Process(this->Trails)
+
+		;
 
 	PhobosTrajectoryType::ProcessFromStream(Stm, this->TrajectoryType);
 }
@@ -324,105 +332,45 @@ void BulletTypeExtData::Serialize(T& Stm)
 // container
 
 BulletTypeExtContainer BulletTypeExtContainer::Instance;
+std::vector<BulletTypeExtData*> Container<BulletTypeExtData>::Array;
 
-bool BulletTypeExtContainer::Load(BulletTypeClass* key, IStream* pStm)
+void Container<BulletTypeExtData>::Clear()
 {
-	// this really shouldn't happen
-	if (!key)
-	{
-		//Debug::LogInfo("[LoadKey] Attempted for a null pointer! WTF!");
-		return false;
-	}
-
-	auto ptr = BulletTypeExtContainer::Instance.Map.get_or_default(key);
-
-	if (!ptr) {
-		ptr = BulletTypeExtContainer::Instance.Map.insert_unchecked(key, this->AllocateUnchecked(key));
-	}
-
-	this->ClearExtAttribute(key);
-	this->SetExtAttribute(key, ptr);
-
-	PhobosByteStream loader { 0 };
-	if (loader.ReadBlockFromStream(pStm))
-	{
-		PhobosStreamReader reader { loader };
-		if (reader.Expect(BulletTypeExtData::Canary)
-			&& reader.RegisterChange(ptr))
-		{
-			ptr->LoadFromStream(reader);
-			if (reader.ExpectEndOfBlock())
-				return true;
-		}
-	}
-
-	return false;
+	Array.clear();
 }
+
+bool BulletTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool BulletTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
+
 // =============================
 // container hooks
 
 ASMJIT_PATCH(0x46BDD9, BulletTypeClass_CTOR, 0x5)
 {
 	GET(BulletTypeClass*, pItem, EAX);
-	//BulletTypeExtContainer::Instance.Allocate(pItem);
-
-	auto ptr = BulletTypeExtContainer::Instance.Map.get_or_default(pItem);
-
-	if (!ptr) {
-		ptr = BulletTypeExtContainer::Instance.Map.insert_unchecked(pItem,
-			  BulletTypeExtContainer::Instance.AllocateUnchecked(pItem));
-	}
-
-	BulletTypeExtContainer::Instance.SetExtAttribute(pItem, ptr);
+	BulletTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
 ASMJIT_PATCH(0x46C8B6, BulletTypeClass_SDDTOR, 0x6)
 {
 	GET(BulletTypeClass*, pItem, ESI);
-	auto extData = BulletTypeExtContainer::Instance.GetExtAttribute(pItem);
-	BulletTypeExtContainer::Instance.ClearExtAttribute(pItem);
-	BulletTypeExtContainer::Instance.Map.erase(pItem);
-	if(extData)
-		DLLCallDTOR(extData);
+	BulletTypeExtContainer::Instance.Remove(pItem);
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeBulletTypeClass::_Load(IStream* pStm)
+bool FakeBulletTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-
-	BulletTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BulletTypeClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		BulletTypeExtContainer::Instance.LoadStatic();
-
-	return res;
+	bool status = this->BulletTypeClass::LoadFromINI(pINI);
+	BulletTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
+	return status;
 }
 
-HRESULT __stdcall FakeBulletTypeClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	BulletTypeExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->BulletTypeClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		BulletTypeExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E495C, FakeBulletTypeClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4960, FakeBulletTypeClass::_Save)
-
-ASMJIT_PATCH(0x46C41C, BulletTypeClass_LoadFromINI, 0xA)
-{
-	GET(BulletTypeClass*, pItem, ESI);
-	GET_STACK(CCINIClass*, pINI, 0x90);
-	BulletTypeExtContainer::Instance.LoadFromINI(pItem, pINI , R->Origin() == 0x46C429);
-
-	return 0;
-}ASMJIT_PATCH_AGAIN(0x46C429, BulletTypeClass_LoadFromINI, 0xA)
-
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E49AC, FakeBulletTypeClass::_ReadFromINI)

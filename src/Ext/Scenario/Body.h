@@ -47,10 +47,14 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region
+
 	Valueable<std::string> OriginalFilename {};
 	PhobosMap<int, CellStruct> Waypoints { };
 	PhobosMap<int, ExtendedVariable> Local_Variables { }; // 0 for local, 1 for global
 	PhobosMap<int, ExtendedVariable> Global_Variables { };
+	PhobosMap<int, int> TriggerTypePlayerAtXOwners {}; // TriggerTypeClass ArrayIndex -> Player slot index
 	std::vector<CellStruct> DefinedAudioWaypoints {};
 
 	Nullable<FixedString<0x1F>> ParTitle { };
@@ -81,7 +85,12 @@ public:
 	PhobosFixedString<64u> DefaultLS800BkgdName {};
 	PhobosFixedString<64u> DefaultLS800BkgdPal {};
 
-	BulletClass* MasterDetonationBullet {}; // Used to do warhead/weapon detonations on spot without having to create new BulletClass instance every time.
+	VectorSet<TechnoClass*> LimboLaunchers {};
+
+	VectorSet<TechnoClass*> UndergroundTracker {};
+	VectorSet<TechnoClass*> FallingDownTracker {};
+
+#pragma endregion
 
 	void SetVariableToByID(const bool IsGlobal, int nIndex, char bState);
 	void GetVariableStateByID(const bool IsGlobal, int nIndex, char* pOut);
@@ -97,11 +106,55 @@ public:
 	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
 	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
 
-	static void DetonateMasterBuller(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead);
+	static void DetonateMasterBullet(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead);
 
 private:
 	template <typename T>
-	void Serialize(T& Stm);
+	void Serialize(T& Stm)
+	{
+		//Debug::LogInfo("Processing ScenarioExtData ! ");
+		Stm
+
+			.Process(this->Initialized)
+			.Process(this->OriginalFilename)
+			.Process(this->Waypoints)
+			.Process(this->Local_Variables)
+			.Process(this->Global_Variables)
+			.Process(this->TriggerTypePlayerAtXOwners)
+			.Process(this->DefinedAudioWaypoints)
+			.Process(this->ParTitle)
+			.Process(this->ParMessage)
+			.Process(this->ScoreCampaignTheme)
+			.Process(this->NextMission)
+
+			//.Process(this->DefaultNormalLighting)
+			//.Process(this->DefaultAmbientOriginal)
+			//.Process(this->DefaultAmbientCurrent)
+			//.Process(this->DefaultAmbientTarget)
+			//.Process(this->CurrentTint_Tiles)
+			//.Process(this->CurrentTint_Schemes)
+			//.Process(this->CurrentTint_Hashes)
+			.Process(this->AdjustLightingFix)
+
+			.Process(this->ShowBriefing)
+			.Process(this->BriefingTheme)
+			.Process(this->OwnedExistCameoTechnoTypes)
+			.Process(this->SWSidebar_Enable)
+			.Process(this->SWSidebar_Indices)
+
+			.Process(this->RecordMessages)
+
+			.Process(this->DefaultLS640BkgdName)
+			.Process(this->DefaultLS800BkgdName)
+			.Process(this->DefaultLS800BkgdPal)
+
+			.Process(this->LimboLaunchers)
+			.Process(this->UndergroundTracker)
+			.Process(this->FallingDownTracker)
+			;
+
+	}
+
 public:
 	static IStream* g_pStm;
 	static bool CellParsed;
@@ -112,12 +165,12 @@ public:
 
 	static void s_LoadFromINIFile(ScenarioClass* pThis, CCINIClass* pINI);
 
-	static ScenarioExtData* Instance()
+	COMPILETIMEEVAL FORCEDINLINE static ScenarioExtData* Instance()
 	{
 		return Data.get();
 	}
 
-	static void Clear()
+	FORCEDINLINE static void Clear()
 	{
 		Allocate(ScenarioClass::Instance);
 	}

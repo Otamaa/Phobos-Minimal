@@ -1080,6 +1080,8 @@ ASMJIT_PATCH(0x588664, MapClass_BuildingToFirestormWall_DisableWhenHaveTechnos, 
 	return CanDrawGrid(valid) ? Valid : Invalid;
 }
 
+#include <Ext/Unit/Body.h>
+
 // Buildable-upon TechnoTypes Hook #9-1 -> sub_7393C0 - Try to clean up the building space when is deploying
 ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 {
@@ -1091,7 +1093,7 @@ ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
 		return 0;
 
-	const auto pTechnoExt = TechnoExtContainer::Instance.Find(pUnit);
+	const auto pTechnoExt = UnitExtContainer::Instance.Find(pUnit);
 	const auto pBuildingType = pUnit->Type->DeploysInto;
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pUnit->Owner);
 	auto& vec = pHouseExt->OwnedDeployingUnits;
@@ -1278,7 +1280,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 		if (!pUnit->InLimbo && pUnit->IsOnMap && !pUnit->IsSinking && pUnit->Owner == pHouse && !pUnit->Destination && pUnit->CurrentMission == Mission::Guard && !pUnit->ParasiteEatingMe && !pUnit->TemporalTargetingMe) {
 			if (const auto pType = pUnit->Type) {
 				if (pType->DeploysInto) {
-					if (const auto pExt = TechnoExtContainer::Instance.Find(pUnit)) {
+					if (const auto pExt = UnitExtContainer::Instance.Find(pUnit)) {
 						if (!(pExt->UnitAutoDeployTimer.GetTimeLeft() % 8))
 							pUnit->QueueMission(Mission::Unload, true);
 

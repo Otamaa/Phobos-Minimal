@@ -25,7 +25,7 @@ bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_DropPod::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 
 	pData->EVA_Detected = VoxClass::FindIndexById("EVA_DropPodDetected");
 	pData->EVA_Ready = VoxClass::FindIndexById("EVA_DropPodReady");
@@ -39,7 +39,7 @@ void SW_DropPod::Initialize(SWTypeExtData* pData)
 
 void SW_DropPod::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->AttachedToObject->ID;
+	const char* section = pData->This()->ID;
 
 	INI_EX exINI(pINI);
 	pData->DropPod_Minimum.Read(exINI, section, "DropPod.Minimum");
@@ -67,7 +67,7 @@ void DroppodStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		SendDroppods(this->Super , this->GetTypeExtData() , this->Type , this->Coords);
+		SendDroppods(this->Super , this->GetTypeExtData() , NewSWType::GetNewSWType(this->GetTypeExtData()), this->Coords);
 	}
 }
 

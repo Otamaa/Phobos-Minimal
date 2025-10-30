@@ -1,54 +1,139 @@
 #pragma once
 #include <TiberiumClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDefB.h>
+#include <Ext/AbstractType/Body.h>
+
 #include <Utilities/Macro.h>
 #include <Utilities/GeneralUtils.h>
 
 class AnimTypeClass;
 
-class TiberiumExtData final
+class TiberiumExtData final : public AbstractTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xB16B00B5;
 	using base_type = TiberiumClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	//Dont forget to remove this if ares one re-enabled
-	static COMPILETIMEEVAL size_t ExtOffset = 0xAC;
+public:
+#pragma region ClassMember
+	CustomPalette Palette; //
+	Nullable<AnimTypeClass*> OreTwinkle;
+	Nullable<int> OreTwinkleChance;
+	Nullable<int> Ore_TintLevel;
+	Nullable<ColorStruct> MinimapColor;
+	Valueable<bool> EnableLighningFix;
+	Valueable<bool> UseNormalLight;
+	Valueable<bool> EnablePixelFXAnim;
+	Nullable<int> Damage;
+	Nullable<WarheadTypeClass*> Warhead;
+	Nullable<int> Heal_Step;
+	Nullable<int> Heal_IStep;
+	Nullable<int> Heal_UStep;
+	Nullable<double> Heal_Delay;
+	Nullable<WarheadTypeClass*> ExplosionWarhead;
+	Nullable<int> ExplosionDamage;
+	Valueable<int> DebrisChance;
+	Valueable<std::string> LinkedOverlayType;
+	Valueable<int> PipIndex;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
+	using QueueItem = std::pair<float, CellStruct>;
+
+	struct CompareQueueItem
+	{
+		bool operator()(const QueueItem& a, const QueueItem& b) const
+		{
+			return a.first > b.first; // min-heap by float
+		}
+	};
+
+	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue;
+	std::vector<bool> SpreadState;
+	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
+	std::vector<bool> GrowthState;
+
+#pragma endregion
+
+
+	void Spread_AI(void);
+	void Initialize_Spread(void);
+	void Recalc_Spread(void);
+	void Clear_Spread(void);
+	void Queue_Spread(CellStruct const& cell);
+
+	void Growth_AI(void);
+	void Initialize_Growth(void);
+	void Recalc_Growth(void);
+	void Clear_Growth(void);
+	void Queue_Growth(CellStruct const& cell);
+
+	static void Clear_Tiberium_Spread_State(CellStruct const& cell);
+	static int Map_Cell_Index(CellStruct const& cell);
+	static int Map_Cell_Count();
+
 public:
 
-	CustomPalette Palette { CustomPalette::PaletteMode::Temperate }; //
-	Nullable<AnimTypeClass*> OreTwinkle {};
-	Nullable<int> OreTwinkleChance {};
-	Nullable<int> Ore_TintLevel {};
-	Nullable<ColorStruct> MinimapColor {};
-	Valueable<bool> EnableLighningFix { true };
-	Valueable<bool> UseNormalLight { true };
-	Valueable<bool> EnablePixelFXAnim { true };
+	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj),
+		Palette(CustomPalette::PaletteMode::Temperate),
+		OreTwinkle(),
+		OreTwinkleChance(),
+		Ore_TintLevel(),
+		MinimapColor(),
+		EnableLighningFix(true),
+		UseNormalLight(true),
+		EnablePixelFXAnim(true),
+		Damage(),
+		Warhead(),
+		Heal_Step(),
+		Heal_IStep(),
+		Heal_UStep(),
+		Heal_Delay(),
+		ExplosionWarhead(),
+		ExplosionDamage(),
+		DebrisChance(33),
+		LinkedOverlayType(""),
+		PipIndex(-1),
+		SpreadQueue(),
+		SpreadState(),
+		GrowthQueue(),
+		GrowthState()
+	{ }
 
-	Nullable<int> Damage {};
-	Nullable<WarheadTypeClass*> Warhead {};
+	TiberiumExtData(TiberiumClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 
-	Nullable<int> Heal_Step {};
-	Nullable<int> Heal_IStep {};
-	Nullable<int> Heal_UStep {};
-	Nullable<double> Heal_Delay {};
+	virtual ~TiberiumExtData() = default;
 
-	Nullable<WarheadTypeClass*> ExplosionWarhead {};
-	Nullable<int> ExplosionDamage {};
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->AbstractTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
 
-	Valueable<int> DebrisChance { 33 };
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
 
-	Valueable<std::string> LinkedOverlayType {};
-	Valueable<int> PipIndex { -1 };
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<TiberiumExtData*>(this)->AbstractTypeExtData::SaveToStream(Stm);
+		const_cast<TiberiumExtData*>(this)->Serialize(Stm);
+	}
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->AbstractTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual TiberiumClass* This() const override { return reinterpret_cast<TiberiumClass*>(this->AbstractTypeExtData::This()); }
+	virtual const TiberiumClass* This_Const() const override { return reinterpret_cast<const TiberiumClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+
+public:
 
 	COMPILETIMEEVAL FORCEDINLINE AnimTypeClass* GetTwinkleAnim() const
 	{
@@ -69,7 +154,7 @@ public:
 
 	COMPILETIMEEVAL FORCEDINLINE int GetDamage() const
 	{
-		return this->Damage.Get(MinImpl((this->AttachedToObject->Power / 10), 1));
+		return this->Damage.Get(MinImpl((this->This()->Power / 10), 1));
 	}
 
 	COMPILETIMEEVAL FORCEDINLINE WarheadTypeClass* GetWarhead() const
@@ -92,12 +177,6 @@ public:
 		return this->DebrisChance;
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TiberiumExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -111,10 +190,6 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	void Clear();
-
-	//CONSTEXPR_NOCOPY_CLASSB(TiberiumExtContainer, TiberiumExtData, "TiberiumClass");
 };
 
 class NOVTABLE FakeTiberiumClass : public TiberiumClass
@@ -132,11 +207,22 @@ public:
 	void __Growth();
 #pragma endregion
 
+	void __Initialize_Spread() { TiberiumExtContainer::Instance.Find(this)->Initialize_Spread(); }
+	void __Initialize_Growth() { TiberiumExtContainer::Instance.Find(this)->Initialize_Growth(); }
+	void __Clear_Growth() { TiberiumExtContainer::Instance.Find(this)->Clear_Growth(); }
+	void __Clear_Spread() { TiberiumExtContainer::Instance.Find(this)->Clear_Spread(); }
+
+	void Clear_Tiberium_Spread_State(CellStruct const& cell)
+	{
+		int cellindex = TiberiumExtData::Map_Cell_Index(cell);
+		TiberiumExtContainer::Instance.Find(this)->SpreadState[cellindex] = false;
+	}
+
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	TiberiumExtData* _GetExtData() {
-		return *reinterpret_cast<TiberiumExtData**>(((DWORD)this) + TiberiumExtData::ExtOffset);
+		return *reinterpret_cast<TiberiumExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 };
 static_assert(sizeof(FakeTiberiumClass) == sizeof(TiberiumClass), "Invalid Size !");

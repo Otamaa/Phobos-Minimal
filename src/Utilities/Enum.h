@@ -34,6 +34,40 @@
 
 #include <GeneralDefinitions.h>
 
+enum class CommandBarTypes
+{
+	none = -1,
+	Team01,
+	Team02,
+	Team03,
+	TypeSelect,
+	Deploy,
+	AttackMove,
+	Guard,
+	Beacon,
+	Stop,
+	PlanningMode,
+	Cheer,
+	DistributionMode,
+
+	end = DistributionMode,
+	begin = Team01
+};
+
+enum class ExtendedThreatType : int
+{
+	none = 0u,
+	Underground = 0x20000u
+};
+MAKE_ENUM_FLAGS(ExtendedThreatType);
+
+enum class PassiveAcquireMode : BYTE
+{
+	Normal = 0,
+	Aggressive = 1,
+	Ceasefire = 2,
+};
+
 enum class DisplayShowType : unsigned char
 {
 	None = 0x0,
@@ -90,7 +124,7 @@ enum class InterpolationMode : BYTE
 // TODO : put this on other `Idx` based stuffs ,..
 enum class EnumCheckMode : BYTE
 {
-	default, ignore, disable
+	originalbehaviour, ignore, disable
 };
 
 enum class LandTypeFlags : unsigned short

@@ -109,9 +109,9 @@ public:
 		return nDefault;
 	}
 
-	T SelectOrDefault(T default = T()) const {
-		this->Select(ScenarioClass::Instance->Random, &default);
-		return default;
+	T SelectOrDefault(T defaultval = T()) const {
+		this->Select(ScenarioClass::Instance->Random, &defaultval);
+		return defaultval;
 	}
 
 private:

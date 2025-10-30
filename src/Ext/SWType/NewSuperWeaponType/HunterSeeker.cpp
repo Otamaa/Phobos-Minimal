@@ -5,6 +5,8 @@
 #include <Ext/Rules/Body.h>
 #include <Ext/SWType/Body.h>
 
+#include <Utilities/Helpers.h>
+
 std::vector<const char*> SW_HunterSeeker::GetTypeString() const
 {
 	return { "HunterSeeker" };
@@ -88,7 +90,7 @@ void SW_HunterSeeker::Initialize(SWTypeExtData* pData)
 	pData->Text_Ready = CSFText("TXT_RELEASE");
 
 	// hardcoded
-	pData->AttachedToObject->Action = Action::None;
+	pData->This()->Action = Action::None;
 	pData->SW_RadarEvent = false;
 }
 
@@ -104,7 +106,7 @@ void SW_HunterSeeker::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->HunterSeeker_AllowAttachedBuildingAsFallback.Read(exINI, section, "HunterSeeker.AllowAttachedBuildingAsFallback");
 
 	// hardcoded
-	pData->AttachedToObject->Action = Action::None;
+	pData->This()->Action = Action::None;
 	pData->SW_RadarEvent = false;
 }
 

@@ -158,10 +158,10 @@ public:
 	virtual void vt_entry_24()
 		{ }
 
-	void Load(IStream* pStm)
+	HRESULT Load(IStream* pStm)
 		{ JMP_THIS(0x551B90); }
 
-	void Save(IStream* pStm)
+	HRESULT Save(IStream* pStm)
 		{ JMP_THIS(0x551B20); }
 
 	void Sort()
@@ -795,6 +795,9 @@ public:
 
 	void DestroyConcreteBridgeAt(CellStruct const& cell)
 	{ JMP_THIS(0x574000); }
+
+	DWORD*  Clear_SubzoneTracking()
+	{ JMP_THIS(0x581F50); }
 
 	//find_type 0 - 3 ,range and threadposed related
 	static BuildingClass* __fastcall FindEnemyBuilding(BuildingTypeClass* type, HouseClass* house, TechnoClass* attacker, int find_type, bool OnlyTargetHouseEnemy)

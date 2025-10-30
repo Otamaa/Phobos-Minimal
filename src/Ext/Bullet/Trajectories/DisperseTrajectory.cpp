@@ -930,7 +930,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 								if (static_cast<BuildingClass*>(pTechno)->Type->InvisibleInGame)
 									continue;
 
-								if (std::find(validTechnos.begin(), validTechnos.end(), pTechno) != validTechnos.end())
+								if (std::ranges::find(validTechnos, pTechno) != validTechnos.end())
 									continue;
 							}
 

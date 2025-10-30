@@ -21,6 +21,7 @@
 #include <Lib/fmt/printf.h>
 #include <Lib/magic_enum/magic_enum_all.hpp>
 
+
 enum class DrawDamageMode : BYTE
 {
 	disabled, damageOnly, withWH, count
@@ -52,8 +53,10 @@ enum class ExceptionHandlerMode {
 
 class PhobosStreamWriter;
 class PhobosStreamReader;
-struct Phobos final
+struct Phobos final : public IPersistStream
 {
+public:
+
 	static unsigned GetVersionNumber();
 
 	class Random
@@ -90,7 +93,7 @@ struct Phobos final
 
 	static bool DetachFromDebugger();
 	static HRESULT SaveGameDataAfter(IStream* pStm);
-	static void LoadGameDataAfter(IStream* pStm);
+	static HRESULT LoadGameDataAfter(IStream* pStm);
 	static void PassiveSaveGame();
 
 	//variables
@@ -152,6 +155,7 @@ struct Phobos final
 		static const wchar_t* Storage_Label;
 		static const wchar_t* Radar_Label;
 		static const wchar_t* Spysat_Label;
+		static const wchar_t* Tech_Label;
 
 		static const wchar_t* SWShotsFormat;
 
@@ -163,8 +167,10 @@ struct Phobos final
 
 	struct Config
 	{
-		static void Read();
-
+		static void Read_RA2MD();
+		static void Read_UIMD();
+		static void Read_RULESMD();
+		
 		static bool HideWarning;
 		static bool ToolTipDescriptions;
 		static bool ToolTipBlur;
@@ -185,6 +191,7 @@ struct Phobos final
 		static bool DigitalDisplay_Enable;
 		static bool MessageDisplayInCenter;
 		static bool MessageApplyHoverState;
+		static int MessageDisplayInCenter_BoardOpacity;
 		static int MessageDisplayInCenter_LabelsCount;
 		static int MessageDisplayInCenter_RecordsCount;
 
@@ -197,6 +204,8 @@ struct Phobos final
 		static bool MultiThreadSinglePlayer;
 		static bool UseImprovedPathfindingBlockageHandling;
 		static bool HideLightFlashEffects;
+		static bool HideLaserTrailEffects;
+		static bool HideShakeEffects;
 
 		static bool DebugFatalerrorGenerateDump;
 		static bool SaveGameOnScenarioStart;
@@ -216,6 +225,17 @@ struct Phobos final
 		static bool ScrollSidebarStripWhenHoldKey;
 
 		static bool UnitPowerDrain;
+
+		static bool AllowSwitchNoMoveCommand;
+		static bool AllowDistributionCommand;
+		static bool AllowDistributionCommand_SpreadMode;
+		static bool AllowDistributionCommand_SpreadModeScroll;
+		static bool AllowDistributionCommand_FilterMode;
+		static bool AllowDistributionCommand_AffectsAllies;
+		static bool AllowDistributionCommand_AffectsEnemies;
+		static bool ApplyNoMoveCommand;
+		static int DistributionSpreadMode;
+		static int DistributionFilterMode;
 		static int SuperWeaponSidebar_RequiredSignificance;
 
 		static bool SuperWeaponSidebarCommands;

@@ -9,38 +9,69 @@
 
 #include <Misc/DynamicPatcher/Trails/Trails.h>
 
+#include <Ext/Object/Body.h>
+
 class VoxelAnimTypeExtData;
-class VoxelAnimExtData
+class VoxelAnimExtData final : public ObjectExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xAAACAACC;
 	using base_type = VoxelAnimClass;
-	static COMPILETIMEEVAL size_t ExtOffset = 0x144;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
-	TechnoClass* Invoker { nullptr };
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails { };
-	std::vector<UniversalTrail> Trails { };
-	CDTimerClass TrailerSpawnDelayTimer {};
+#pragma region ClassMember
+	TechnoClass* Invoker;
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
+	CDTimerClass TrailerSpawnDelayTimer;
+#pragma endregion
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
+	VoxelAnimExtData(VoxelAnimClass* pObj) : ObjectExtData(pObj)
+		, Invoker(nullptr)
+		, LaserTrails()
+		, Trails()
+		, TrailerSpawnDelayTimer()
+	{ }
+	VoxelAnimExtData(VoxelAnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
+
+	virtual ~VoxelAnimExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
+		AnnounceInvalidPointer(Invoker, ptr, bRemoved);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm) override
+	{
+		const_cast<VoxelAnimExtData*>(this)->ObjectExtData::SaveToStream(Stm);
+		const_cast<VoxelAnimExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectExtData::CalculateCRC(crc);
+	}
+
+	virtual VoxelAnimClass* This() const override { return reinterpret_cast<VoxelAnimClass*>(this->ObjectExtData::This()); }
+	virtual const VoxelAnimClass* This_Const() const override { return reinterpret_cast<const VoxelAnimClass*>(this->ObjectExtData::This_Const()); }
+
+
+public:
 
 	void InitializeLaserTrails(VoxelAnimTypeExtData* pTypeExt);
 
-	~VoxelAnimExtData();
-
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(VoxelAnimExtData) -
-			(4u //AttachedToObject
-				- 4u //inheritance
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -54,36 +85,16 @@ class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
 {
 public:
 	static VoxelAnimExtContainer Instance;
-	static ObjectPool<VoxelAnimExtData> pools;
 
-	VoxelAnimExtData* AllocateUnchecked(VoxelAnimClass* key)
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
-		VoxelAnimExtData* val = pools.allocate();
-
-		if (val)
+		for (auto& ext : Array)
 		{
-			val->AttachedToObject = key;
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
-		else
-		{
-			Debug::FatalErrorAndExit("The amount of [VoxelAnimExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		}
-
-		return val;
-	}
-
-	void Remove(VoxelAnimClass* key)
-	{
-		if (VoxelAnimExtData* Item = TryFind(key))
-		{
-			RemoveExtOf(key, Item);
-		}
-	}
-
-	void RemoveExtOf(VoxelAnimClass* key, VoxelAnimExtData* Item)
-	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
 	}
 };
 
@@ -93,7 +104,7 @@ class NOVTABLE FakeVoxelAnimClass : public VoxelAnimClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 	void _RemoveThis()
@@ -105,7 +116,7 @@ public:
 	}
 
 	VoxelAnimExtData* _GetExtData() {
-		return *reinterpret_cast<VoxelAnimExtData**>(((DWORD)this) + VoxelAnimExtData::ExtOffset);
+		return *reinterpret_cast<VoxelAnimExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 	VoxelAnimTypeExtData* _GetTypeExtData() {

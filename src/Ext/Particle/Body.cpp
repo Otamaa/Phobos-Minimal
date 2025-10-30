@@ -41,10 +41,7 @@ std::pair<TechnoClass*, HouseClass*> ParticleExtData::GetOwnership(ParticleClass
 template <typename T>
 void ParticleExtData::Serialize(T& Stm)
 {
-	//Debug::LogInfo("Processing Element From ParticleExt ! ");
-
 	Stm
-		.Process(this->Initialized)
 		.Process(this->LaserTrails)
 		.Process(this->Trails)
 
@@ -54,7 +51,23 @@ void ParticleExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleExtContainer ParticleExtContainer::Instance;
-StaticObjectPool<ParticleExtData , 10000> ParticleExtContainer::pools;
+std::vector<ParticleExtData*> Container<ParticleExtData>::Array;
+
+void Container<ParticleExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool ParticleExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool ParticleExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
+
 // =============================
 // container hooks
 
@@ -62,23 +75,21 @@ ASMJIT_PATCH(0x62BB13, ParticleClass_CTOR, 0x5)
 {
 	GET(ParticleClass*, pItem, ESI);
 
-	if (auto pExt = ParticleExtContainer::Instance.Allocate(pItem))
-	{
-		if (const auto pTypeExt = ParticleTypeExtContainer::Instance.TryFind(pItem->Type))
+	if (pItem->Type) {
+		auto pExt = ParticleExtContainer::Instance.Allocate(pItem);
+		const auto pTypeExt = ParticleTypeExtContainer::Instance.Find(pItem->Type);
+		CoordStruct nFLH = CoordStruct::Empty;
+		const ColorStruct nColor = pItem->GetOwningHouse() ? pItem->GetOwningHouse()->LaserColor : ColorStruct::Empty;
+
+		if (pExt->LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
 		{
-			CoordStruct nFLH = CoordStruct::Empty;
-			const ColorStruct nColor = pItem->GetOwningHouse() ? pItem->GetOwningHouse()->LaserColor : ColorStruct::Empty;
+			pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
 
-			if (pExt->LaserTrails.empty() && !LaserTrailTypeClass::Array.empty())
+			for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
 			{
-				pExt->LaserTrails.reserve(pTypeExt->LaserTrail_Types.size());
-
-				for (auto const& idxTrail : pTypeExt->LaserTrail_Types)
-				{
-					pExt->LaserTrails.emplace_back(
-						std::move(std::make_unique<LaserTrailClass>(
+				pExt->LaserTrails.emplace_back(
+					std::move(std::make_unique<LaserTrailClass>(
 						LaserTrailTypeClass::Array[idxTrail].get(), nColor, nFLH)));
-				}
 			}
 		}
 
@@ -88,42 +99,12 @@ ASMJIT_PATCH(0x62BB13, ParticleClass_CTOR, 0x5)
 	return 0;
 }
 
-
 ASMJIT_PATCH(0x62D9CD, ParticleClass_DTOR, 0xA)
 {
 	GET(ParticleClass* const, pItem, ESI);
 	ParticleExtContainer::Instance.Remove(pItem);
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x62BCED, ParticleClass_DTOR, 0xA)
-
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeParticleClass::_Load(IStream* pStm)
-{
-
-	ParticleExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		ParticleExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeParticleClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	ParticleExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->ParticleClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		ParticleExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF968, FakeParticleClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF96C, FakeParticleClass::_Save)
 
 void FakeParticleClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
@@ -133,3 +114,24 @@ void FakeParticleClass::_Detach(AbstractClass* pTarget, bool bRemove)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF97C, FakeParticleClass::_Detach)
+
+HRESULT __stdcall FakeParticleClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->ParticleClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = ParticleExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeParticleClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->ParticleClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = ParticleExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF968, FakeParticleClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF96C, FakeParticleClass::_Save)

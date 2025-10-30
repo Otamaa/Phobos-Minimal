@@ -33,6 +33,14 @@ public:
 		Valueable<AnimTypeClass*> WhileDrivingAnim;
 		Valueable<AnimTypeClass*> StopDrivingAnim;
 
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+		{ return Serialize(Stm); }
+
+		bool Save(PhobosStreamWriter& Stm) const
+		{ return const_cast<AnimTrailType*>(this)->Serialize(Stm); }
+
+	private:
+
 		template <typename T>
 		bool Serialize(T& Stm)
 		{
@@ -106,6 +114,7 @@ public:
 	void SaveToStream(PhobosStreamWriter& Stm);
 
 private:
+
 	template <typename T>
 	void Serialize(T& Stm)
 	{
@@ -116,10 +125,11 @@ private:
 			.Process(InitialDelay)
 			;
 
-		AnimTrailType.Serialize(Stm);
-		BeamTrailType.Serialize(Stm);
-		BoltTrailType.Serialize(Stm);
-		LaserTrailType.Serialize(Stm);
+		Stm
+			.Process(AnimTrailType)
+			.Process(BeamTrailType)
+			.Process(BoltTrailType)
+			.Process(LaserTrailType);
 
 		Stm
 			.Process(ParticleTrailType)

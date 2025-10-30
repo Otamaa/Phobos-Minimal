@@ -35,7 +35,7 @@ bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bo
 
 void SW_GeneticMutator::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::GeneticConverter;
+	pData->This()->Action = Action::GeneticConverter;
 	// Defaults to Genetic Mutator values
 	pData->SW_AnimHeight = 5;
 
@@ -123,8 +123,10 @@ void GeneticMutatorStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		auto range = this->Type->GetRange(pData);
-		ApplyGeneticMutator(this->Firer, this->Super, pData, this->Type, this->CoordsWithBridge, this->Coords, this->Type->GetWarhead(pData), range, this->Type->GetDamage(pData));
+		auto pNewType = NewSWType::GetNewSWType(pData);
+		auto range = pNewType->GetRange(pData);
+		ApplyGeneticMutator(this->Firer, this->Super, pData, pNewType, this->CoordsWithBridge, this->Coords,
+			pNewType->GetWarhead(pData), range, pNewType->GetDamage(pData));
 	}
 }
 

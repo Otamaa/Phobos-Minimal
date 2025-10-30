@@ -19,7 +19,7 @@ public:
 
 public:
 	MessageColumnClass() = default;
-	~MessageColumnClass() { this->Initialize(); }
+	~MessageColumnClass();
 
 	void InitClear();
 	void InitIO();
@@ -89,20 +89,23 @@ private:
 	void RemoveTextLabel(MessageLabelClass* pLabel);
 	int GetLabelCount() const;
 	MessageLabelClass* GetLastLabel() const;
+	template <bool check = false>
 	int GetMaxScroll() const;
 
 private:
 
 	MessageLabelClass* LabelList { nullptr };
-	Point2D LabelsPos { Point2D::Empty };
+	Point2D LabelsPos { };
 
 	int MaxCount { 0 };
 	int MaxRecord { 0 };
 	int MaxChars { 0 };
 	int Height { 0 };
 	int Width { 0 };
-	ColorStruct Color { ColorStruct { 0, 0, 0 } };
+	ColorStruct Color { };
 
+
+	MessageToggleClass* Button_Main { nullptr };
 	MessageToggleClass* Button_Toggle { nullptr };
 	MessageButtonClass* Button_Up { nullptr };
 	MessageButtonClass* Button_Down { nullptr };

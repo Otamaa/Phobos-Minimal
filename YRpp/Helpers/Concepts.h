@@ -4,4 +4,4 @@
 #include <concepts>
 
 template<typename T>
-concept direct_comparable = std::is_pointer<T>::value || std::is_integral<T>::value || std::equality_comparable<T>;
+concept direct_comparable = std::is_pointer_v<T> || std::is_integral_v<T> || std::equality_comparable<T>;

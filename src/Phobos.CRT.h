@@ -2,6 +2,7 @@
 
 #include <CRT.h>
 #include <string>
+#include <algorithm>
 
 class PhobosCRT final
 {
@@ -43,6 +44,15 @@ public:
 	static COMPILETIMEEVAL OPTIONALINLINE std::string GetTypeIDName()
 	{
 		std::string str = typeid(T).name();
+		EraseSubString(str, "class ");
+		EraseSubString(str, "struct ");
+		return str;
+	}
+
+	template <typename T>
+	static std::string OPTIONALINLINE GetTypeIDNameOf(const T abstract_ext)
+	{
+		std::string str = typeid(abstract_ext).name();
 		EraseSubString(str, "class ");
 		EraseSubString(str, "struct ");
 		return str;

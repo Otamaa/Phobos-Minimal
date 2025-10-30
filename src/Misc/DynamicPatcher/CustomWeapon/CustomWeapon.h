@@ -10,7 +10,7 @@ class WeaponTypeClass;
 class TechnoClass;
 struct CustomWeaponManager
 {
-	HelperedVector<std::unique_ptr<SimulateBurst>> simulateBurstQueue {};
+	std::deque<std::unique_ptr<SimulateBurst>> simulateBurstQueue {};
 
 	void Clear()
 	{
@@ -18,7 +18,7 @@ struct CustomWeaponManager
 	}
 
 	void reserve(size_t newsize) {
-		simulateBurstQueue.reserve(newsize);
+
 	}
 
 	void Update(TechnoClass* pAttacker);
@@ -50,7 +50,7 @@ private:
 
 struct FireWeaponManager
 {
-	HelperedVector<std::unique_ptr<DelayFireWeapon>> DelayFires {};
+	std::deque<std::unique_ptr<DelayFireWeapon>> DelayFires {};
 	CustomWeaponManager CWeaponManager {};
 
 public:

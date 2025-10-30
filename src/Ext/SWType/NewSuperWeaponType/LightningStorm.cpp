@@ -9,7 +9,7 @@ SuperClass* SW_LightningStorm::CurrentLightningStorm = nullptr;
 
 std::vector<const char*> SW_LightningStorm::GetTypeString() const
 {
-	return { "NewLS" };
+	return { "NewLS" , "LightningStorm" };
 }
 
 bool SW_LightningStorm::HandleThisType(SuperWeaponType type) const
@@ -68,7 +68,7 @@ bool SW_LightningStorm::AbortFire(SuperClass* pSW, bool IsPlayer)
 
 void SW_LightningStorm::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::LightningStorm;
+	pData->This()->Action = Action::LightningStorm;
 	// Defaults to Lightning Storm values
 	pData->Weather_DebrisMin = 2;
 	pData->Weather_DebrisMax = 4;
@@ -147,7 +147,7 @@ SWRange SW_LightningStorm::GetRange(const SWTypeExtData* pData) const
 
 void SW_LightningStorm::ValidateData(SWTypeExtData* pData) const
 {
-	Debug::LogInfo("{} - {} SW Validating Data ---------------------------:", pData->AttachedToObject->ID, this->GetTypeString()[0]);
+	Debug::LogInfo("{} - {} SW Validating Data ---------------------------:", pData->This()->ID, this->GetTypeString()[0]);
 
 	if (pData->Weather_BoltExplosion.isset()) {
 		if (pData->Weather_BoltExplosion) {
@@ -321,7 +321,7 @@ void CloneableLighningStormStateMachine::Update()
 
 	if (scatterDelay > 0 && (Unsorted::CurrentFrame % scatterDelay == 0))
 	{
-		auto const range = Type->GetRange(pExt);
+		auto const range = NewSWType::GetNewSWType(pExt)->GetRange(pExt);
 		auto const isRectangle = (range.height() <= 0);
 		auto const width = range.width();
 		auto const height = isRectangle ? width : range.height();
@@ -459,7 +459,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		}
 
 		// account for lightning rods
-		auto damage = Type->GetDamage(pData);
+		auto damage = NewSWType::GetNewSWType(pData)->GetDamage(pData);
 		if (!pData->Weather_IgnoreLightningRod) {
 			if(pObj->IsAlive) {
 				if (auto const pBldObj = cast_to<BuildingClass*>(pObj))
@@ -480,7 +480,7 @@ void CloneableLighningStormStateMachine::Strike2(CoordStruct const& nCoord)
 		// cause mayhem
 		if (damage)
 		{
-			auto pWarhead = Type->GetWarhead(pData);
+			auto pWarhead = NewSWType::GetNewSWType(pData)->GetWarhead(pData);
 
 			if (!Invoker)
 				Debug::LogInfo("LS[{} - {}] Invoked is nullptr, dealing damage without ownership !! ", (void*)Super, Super->Type->ID);

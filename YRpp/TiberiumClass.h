@@ -123,9 +123,28 @@ public:
 
 	//TiberiumClass
 
+	void Initialize_Spread()
+		{ JMP_THIS(0x722770); }
+
+	void Clear_Spread()
+	{ JMP_THIS(0x722A20); }
+
+	void Initialize_Growth()
+	{ JMP_THIS(0x723260); }
+
+	void Clear_Growth()
+	{ JMP_THIS(0x723510); }
+
 	void GrowthTiberium() JMP_THIS(0x722440);
+
 	void RegisterForGrowth(CellStruct* cell)
 		{ JMP_THIS(0x7235A0); }
+
+	void Queue_Spread_At_Cell(CellStruct* a2) {
+		JMP_THIS(0x722AF0);
+	}
+
+	void Queue_Growth_At_Cell(CellStruct* a2) JMP_THIS(0x7235A0);
 
 	int sub_722AF0(CellStruct& mapcoords) JMP_THIS(0x722AF0);
 	void sub_722F00() JMP_THIS(0x722F00);

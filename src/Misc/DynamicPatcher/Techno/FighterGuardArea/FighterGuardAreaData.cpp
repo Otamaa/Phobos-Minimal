@@ -1,4 +1,7 @@
 #include "FighterGuardAreaData.h"
+
+
+#ifdef _aaaaaaa 
 void FighterAreaGuardData::Read(INI_EX& parser, const char* pSection, TechnoTypeClass* pType)
 {
 	this->AreaGuard.Read(parser, pSection ,"Fighter.AreaGuard");
@@ -17,3 +20,5 @@ void FighterAreaGuardData::Read(INI_EX& parser, const char* pSection, TechnoType
 	this->Clockwise.Read(parser, pSection ,"Fighter.Clockwise");
 	this->Randomwise.Read(parser, pSection ,"Fighter.Randomwise");
 }
+
+#endif

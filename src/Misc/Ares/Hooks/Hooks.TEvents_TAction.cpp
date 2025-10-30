@@ -61,14 +61,7 @@ ASMJIT_PATCH(0x6E3EE0, TActionClass_GetFlags, 5)
 {
 	GET(AresNewTriggerAction, nAction, ECX);
 
-	std::pair<TriggerAttachType, bool> _result = AresTActionExt::GetFlag(nAction);
-
-	if (_result.second) {
-		R->EAX(_result.first);
-		return 0x6E3EFE;
-	}
-
-	_result = TEventExtData::GetFlag((PhobosTriggerEvent)nAction);
+	std::pair<TriggerAttachType, bool> _result = AresTActionExt::GetTriggetAttach(nAction);
 
 	if (_result.second) {
 		R->EAX(_result.first);
@@ -82,7 +75,7 @@ ASMJIT_PATCH(0x6E3B60, TActionClass_GetMode, 8)
 {
 	GET(AresNewTriggerAction, nAction, ECX);
 
-	std::pair<LogicNeedType, bool> _result = AresTActionExt::GetMode(nAction);
+	std::pair<LogicNeedType, bool> _result = AresTActionExt::GetLogicNeed(nAction);
 
 	if (_result.second)
 	{
@@ -90,7 +83,7 @@ ASMJIT_PATCH(0x6E3B60, TActionClass_GetMode, 8)
 		return 0x6E3C4B;
 	}
 
-	_result = TEventExtData::GetMode((PhobosTriggerEvent)nAction);
+	_result = TEventExtData::GetLogicNeed((PhobosTriggerEvent)nAction);
 
 	if(_result.second) {
 		R->EAX(_result.first);
@@ -105,24 +98,33 @@ ASMJIT_PATCH(0x6E3B60, TActionClass_GetMode, 8)
 ASMJIT_PATCH(0x71F9C0, TEventClass_Persistable_AresNewTriggerEvents, 6)
 {
 	GET(TEventClass*, pThis, ECX);
-	auto const& [Flag, Handled] =
+
+	std::pair<bool,bool> result =
 		AresTEventExt::GetPersistableFlag((AresTriggerEvents)pThis->EventKind);
-	if (!Handled)
+
+	if(!result.second)
+		result = TEventExtData::GetPersistableFlag((PhobosTriggerEvent)pThis->EventKind);
+
+	if (!result.second)
 		return 0x0;
 
-	R->EAX(Flag);
+	R->EAX(result.first);
 	return 0x71F9DF;
 }
 
 ASMJIT_PATCH(0x71F39B, TEventClass_SaveToINI, 5)
 {
 	GET(AresTriggerEvents, nAction, EDX);
-	const auto& [Logic, handled] = AresTEventExt::GetLogicNeed(nAction);
 
-	if (!handled)
+	std::pair<LogicNeedType, bool > result = AresTEventExt::GetLogicNeed(nAction);
+
+	if (!result.second)
+	result = TEventExtData::GetLogicNeed((PhobosTriggerEvent)nAction);
+
+	if(!result.second)
 		return (int)nAction > 61 ? 0x71F3FC : 0x71F3A0;
 
-	R->EAX(Logic);
+	R->EAX(result.first);
 	return 0x71F3FE;
 }
 
@@ -130,10 +132,13 @@ ASMJIT_PATCH(0x71f683, TEventClass_GetFlags_Ares, 5)
 {
 	GET(AresTriggerEvents, nAction, ECX);
 
-	const auto& [handled, result] = AresTEventExt::GetAttachFlags(nAction);
-	if (handled)
-	{
-		R->EAX(result);
+	std::pair<TriggerAttachType , bool> result = AresTEventExt::GetAttachFlags(nAction);
+
+	if(!result.second)
+		result = TEventExtData::GetTriggetAttach((PhobosTriggerEvent)nAction);
+
+	if (result.second) {
+		R->EAX(result.first);
 		return 0x71F6F6;
 	}
 

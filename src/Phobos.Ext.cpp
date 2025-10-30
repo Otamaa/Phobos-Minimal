@@ -108,6 +108,7 @@
 
 #include <utility>
 #include <LoadOptionsClass.h>
+#include <BeaconManagerClass.h>
 
 #pragma region Implementation details
 
@@ -122,7 +123,7 @@ concept DerivedFromSpecializationOf =
 	requires(const T & t) { DerivedFromSpecialization<Template>(t); };
 
 template<typename TExt>
-concept HasExtMap = requires { { TExt::ExtMap } -> DerivedFromSpecializationOf<Container>; };
+concept HasInstance = requires { { TExt::Instance } -> DerivedFromSpecializationOf<Container>; };
 
 template <typename T>
 concept Clearable = requires { T::Clear(); };
@@ -137,6 +138,9 @@ concept GlobalSaveLoadable = requires
 template <typename TAction, typename TProcessed, typename... ArgTypes>
 concept DispatchesAction =
 	requires (ArgTypes... args) { TAction::template Process<TProcessed>(args...); };
+
+	template<typename TExt>
+concept HasExtMap = requires { { TExt::Instance } -> DerivedFromSpecializationOf<Container>; };
 
 #pragma endregion
 
@@ -180,9 +184,9 @@ struct LoadGlobalsAction
 		if COMPILETIMEEVAL (GlobalSaveLoadable<T>)
 		{
 			PhobosByteStream stm(0);
-			stm.ReadBlockFromStream(pStm);
+			stm.ReadFromStream(pStm);
 			PhobosStreamReader reader(stm);
-
+			Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
 			return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
 		}
 		else
@@ -203,8 +207,8 @@ struct SaveGlobalsAction
 		{
 			PhobosByteStream stm;
 			PhobosStreamWriter writer(stm);
-
-			return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
+			Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
+			return T::SaveGlobals(writer) && stm.WriteToStream(pStm);
 		}
 		else
 		{
@@ -213,33 +217,49 @@ struct SaveGlobalsAction
 	}
 };
 
+#ifdef _fixMe
 // this is a complicated thing that calls methods on classes. add types to the
 // instantiation of this type, and the most appropriate method for each type
 // will be called with no overhead of virtual functions.
 template <typename... RegisteredTypes>
 struct TypeRegistry
 {
-	COMPILETIMEEVAL __forceinline static void Clear()
+	COMPILETIMEEVAL FORCEDINLINE static void Clear()
 	{
-		va_list args;
-		va_start(args, count);
-
 		dispatch_void_mass_action<ClearAction>();
 	}
 
-	__forceinline static void InvalidatePointer(AbstractClass* ptr, bool removed)
+	FORCEDINLINE static void InvalidatePointer(AbstractClass* ptr, bool removed)
 	{
 		dispatch_void_mass_action<InvalidatePointerAction>(ptr, removed);
 	}
 
-	__forceinline static bool LoadGlobals(IStream* pStm)
+	FORCEDINLINE static bool LoadGlobals(IStream* pStm)
 	{
 		return dispatch_bool_mass_action<LoadGlobalsAction>(pStm);
 	}
 
-	__forceinline static bool SaveGlobals(IStream* pStm)
+	FORCEDINLINE static bool SaveGlobals(IStream* pStm)
 	{
 		return dispatch_bool_mass_action<SaveGlobalsAction>(pStm);
+	}
+
+	// return array of sizeof(T) for each RegisteredType
+	COMPILETIMEEVAL FORCEDINLINE static auto Sizes()
+	{
+		return std::array { sizeof(RegisteredTypes)... };
+	}
+
+	// return sum of sizeof(T) for all RegisteredTypes
+	COMPILETIMEEVAL FORCEDINLINE static std::size_t TotalSize()
+	{
+		return (sizeof(RegisteredTypes) + ...);
+	}
+
+	// return the largest sizeof(T) among RegisteredTypes
+	COMPILETIMEEVAL FORCEDINLINE static std::size_t MaxSize()
+	{
+		return std::max({ sizeof(RegisteredTypes)... });
 	}
 
 private:
@@ -247,7 +267,7 @@ private:
 	// ArgTypes: the argument types to call the method dispatcher's Process() method
 	template <typename TAction, typename... ArgTypes>
 		requires (DispatchesAction<TAction, RegisteredTypes, ArgTypes...> && ...)
-	__forceinline static void dispatch_void_mass_action(ArgTypes... args)
+	FORCEDINLINE static void dispatch_void_mass_action(ArgTypes... args)
 	{
 		// (pack expression op ...) is a fold expression which
 		// unfolds the parameter pack into a full expression
@@ -256,26 +276,45 @@ private:
 
 	template <typename TAction, typename... ArgTypes>
 		requires (DispatchesAction<TAction, RegisteredTypes, ArgTypes...> && ...)
-	__forceinline static bool dispatch_bool_mass_action(ArgTypes... args)
+	FORCEDINLINE static bool dispatch_bool_mass_action(ArgTypes... args)
 	{
 		// (pack expression op ...) is a fold expression which
 		// unfolds the parameter pack into a full expression
 		return (TAction::template Process<RegisteredTypes>(args...) && ...);
 	}
+
 };
+
+
+using PhobosTypeRegistry = TypeRegistry <> ;
+PhobosTypeRegistry::InvalidatePointer(pInvalid, removed);
+PhobosTypeRegistry::Clear();
+PhobosTypeRegistry::SaveGlobals(pStm);
+PhobosTypeRegistry::LoadGlobals(pStm);
+#endif
 
 #pragma endregion
 
 HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 {
+	if (!PhobosExt::SaveGlobal(pStm)) {
+		Debug::LogInfo("[Phobos] Global SaveGame Failed !");
+		return E_FAIL;
+	}
+
+
 	Debug::LogInfo("[Phobos] Finished saving the game");
 	return S_OK;
 }
 
-#include <BeaconManagerClass.h>
-
-void Phobos::LoadGameDataAfter(IStream* pStm)
+HRESULT Phobos::LoadGameDataAfter(IStream* pStm)
 {
+	if (!PhobosExt::LoadGlobal(pStm)) {
+		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
+		return E_FAIL;
+
+	}
+
 	//clear the loadgame flag
 	Phobos::Otamaa::DoingLoadGame = false;
 
@@ -287,6 +326,7 @@ void Phobos::LoadGameDataAfter(IStream* pStm)
 
 	BeaconManagerClass::Instance->LoadArt();
 	Debug::LogInfo("[Phobos] Finished loading the game");
+	return S_OK;
 }
 
 #pragma region Hooks
@@ -297,14 +337,7 @@ FORCEDINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const remo
 {
 	if COMPILETIMEEVAL (HasExtMap<T>)
 	{
-		if COMPILETIMEEVAL (PointerInvalidationIgnorAble<decltype(T::ExtMap)> &&
-			PointerInvalidationSubscribable<decltype(T::ExtMap)>) {
-			T::ExtMap.InvalidatePointer(pInvalid, removed);
-		}
-		else if(PointerInvalidationSubscribable<decltype(T::ExtMap)>)
-		{
-			T::ExtMap.InvalidatePointer(pInvalid, removed);
-		}
+		T::ExtMap.InvalidatePointer(pInvalid, removed);
 	}
 	else
 	{
@@ -321,6 +354,14 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 	if (Phobos::Otamaa::ExeTerminated)
 		return 0;
 
+	//if (MapClass::Instance->Cells.IsInitialized) {
+	//	std::for_each(MapClass::Instance->Cells.Items, MapClass::Instance->Cells.Items + MapClass::Instance->Cells.Capacity, [removed, pInvalid](CellClass* pCell) {
+	//		 if (pCell){
+	//			 pCell->PointerExpired(pInvalid, removed);
+	//		 }
+	//	});
+	//}
+
 	TActionExtData::InvalidatePointer(pInvalid, removed);
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);
@@ -329,6 +370,8 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 	AnnounceInvalidPointer(SWTypeExtData::LauchData, pInvalid);
 
 	if (removed) {
+		ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);
+		ScenarioExtData::Instance()->FallingDownTracker.erase((TechnoClass*)pInvalid);
 
 		HouseExtContainer::HousesTeams.erase_all_if([pInvalid](std::pair<HouseClass*, VectorSet<TeamClass*>>& item) {
 			if(item.first != pInvalid) {
@@ -369,7 +412,7 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 #include <New/Interfaces/CustomRocketLocomotionClass.h>
 
 unsigned Phobos::GetVersionNumber() {
-	unsigned version = AresGlobalData::InternalVersion;
+	unsigned version = AresGlobalData::InternalVersion + PHOBOSSAVEGAME_ID;
 
 	version += sizeof(AnimExtData);
 	version += sizeof(AnimTypeExtData);
@@ -435,6 +478,8 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(StaticVars);
 
 	version += sizeof(BannerClass);
+	version += sizeof(FlyingStrings);
+	version += sizeof(FlyingStrings::ItemSize);
 	//version += sizeof(AttachmentClass);
 
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
@@ -467,18 +512,20 @@ unsigned Phobos::GetVersionNumber() {
 // this function is executed after all game classes already cleared
 ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 {
+	for (auto& hand : Handles::Array) {
+		hand->detachptr();
+	}
+
 	TActionExtData::Clear();
-	CellExtContainer::Instance.Clear();
+	CellExtContainer::Clear();
 	PrismForwarding::Array.clear();
 	MouseClassExt::ClearCameos();
-	FakeAnimClass::Clear();
-	TechnoTypeExtContainer::Instance.Clear();
-	BulletTypeExtContainer::Instance.Clear();
-	BuildingTypeExtContainer::Instance.Clear();
-	HouseTypeExtContainer::Instance.Clear();
-	IsometricTileTypeExtContainer::Instance.Clear();
-	OverlayTypeExtContainer::Instance.Clear();
-	TiberiumExtContainer::Instance.Clear();
+	AnimExtContainer::Clear();
+	BulletTypeExtContainer::Clear();
+	BuildingTypeExtContainer::Clear();
+	HouseTypeExtContainer::Clear();
+	OverlayTypeExtContainer::Clear();
+	TiberiumExtContainer::Clear();
 	PhobosGlobal::Clear();
 	SWStateMachine::Clear();
 	ArmorTypeClass::Clear();
@@ -493,19 +540,19 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	RadTypeClass::Clear();
 	RulesExtData::Clear();
 	ScenarioExtData::Clear();
-	SWTypeExtContainer::Instance.Clear();
+	SWTypeExtContainer::Clear();
 	SidebarExtData::Clear();
 	ShieldTypeClass::Clear();
-	//TacticalExt::Clear();
+	TacticalExtData::Clear();
 	TrailType::Clear();
 	HoverTypeClass::Clear();
 	LaserTrailTypeClass::Clear();
 	//TActionExt::ExtMap.Clear();
-	HouseExtContainer::Instance.Clear();
+	HouseExtContainer::Clear();
 	TunnelTypeClass::Clear();
-	WeaponTypeExtContainer::Instance.Clear();
+	WeaponTypeExtContainer::Clear();
 	EboltExtData::Clear();
-	WarheadTypeExtContainer::Instance.Clear();
+	WarheadTypeExtContainer::Clear();
 	GenericPrerequisite::Clear();
 	CrateTypeClass::Clear();
 	StaticVars::Clear();
@@ -523,304 +570,201 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	//AttachmentClass::Array.clear();
 	//AttachmentTypeClass::Clear();
 
-	if (!Phobos::Otamaa::ExeTerminated)
-	{
-		if (TheMemoryPoolFactory)
-			TheMemoryPoolFactory->reset();
-
-		VoxelAnimExtContainer::pools.init(4026);
-		TeamExtContainer::pools.reInit();
-		RadSiteExtContainer::pools.reInit();
-		ParticleSystemExtContainer::pools.reInit();
-		ParticleExtContainer::pools.reInit();
-		BulletExtContainer::pools.reInit();
-		FakeAnimClass::pools.reInit();
-		TechnoExtContainer::pools.reInit();
-		SWFirerClass::Array.reserve(1000);
-		CellExtContainer::Array.reserve(2000);
-	}
-
+	PhobosPCXFile::LoadedMap.clear();
 	return 0;
 }
 
 #undef LogPool
 
-// Ares saves its things at the end of the save
-// Phobos will save the things at the beginning of the save
-// Considering how DTA gets the scenario name, I decided to save it after Rules - secsome
-
 template<typename T>
-FORCEDINLINE bool Process_Load(IStream* pStm)
+FORCEDINLINE bool Process_Load(PhobosStreamReader& reader)
+{
+	Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
+
+	if COMPILETIMEEVAL (HasInstance<T>)
+		return T::Instance.LoadGlobals(reader);
+	else
+		return T::LoadGlobals(reader);
+}
+
+bool PhobosExt::LoadGlobal(LPSTREAM pStm)
 {
 	PhobosByteStream stm(0);
-	stm.ReadBlockFromStream(pStm);
+	stm.ReadFromStream(pStm);
 	PhobosStreamReader reader(stm);
 
-	if COMPILETIMEEVAL (HasExtMap<T>)
-		return T::ExtMap.LoadGlobals(reader) && reader.ExpectEndOfBlock();
-	else
-		return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
+	bool succeeded = Process_Load<RadTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<ShieldTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<HoverTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<BannerTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<TrailType>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<SWStateMachine>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<PhobosGlobal>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<GenericPrerequisite>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<CrateTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<PhobosAttachEffectTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<TechTreeTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<StaticVars>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<HugeBar>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<RocketTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<BarTypeClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<SWFirerClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<ShieldClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<BannerClass>(reader);
+	if (!succeeded)
+		return false;
+
+	succeeded = Process_Load<FlyingStrings>(reader);
+	if (!succeeded)
+		return false;
+
+	return reader.ExpectEndOfBlock();
 }
 
 template<typename T>
-FORCEDINLINE bool Process_Save(IStream* pStm)
+FORCEDINLINE bool Process_Save(PhobosStreamWriter& writer)
+{
+	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
+
+	if COMPILETIMEEVAL(HasInstance<T>)
+		return T::Instance.SaveGlobals(writer);
+	else
+		return T::SaveGlobals(writer);
+}
+
+bool PhobosExt::SaveGlobal(LPSTREAM pStm)
 {
 	PhobosByteStream stm;
 	PhobosStreamWriter writer(stm);
 
-	if COMPILETIMEEVAL (HasExtMap<T>)
-		return T::ExtMap.SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
-	else
-		return T::SaveGlobals(writer) && stm.WriteBlockToStream(pStm);
-}
+	bool succeeded = Process_Save<RadTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-//ASMJIT_PATCH(0x67D32C, SaveGame_Phobos_Global, 0x5)
-//{
-//	Debug::LogInfo("Saving global Phobos data");
-//	GET(IStream*, pStm, ESI);
-//
-//	bool ret =
-//		Process_Save<PaletteManager>(pStm) &&
-//		Process_Save<CursorTypeClass>(pStm) &&
-//		Process_Save<MouseClassExt>(pStm) &&
-//		Process_Save<DigitalDisplayTypeClass>(pStm) &&
-//		Process_Save<ArmorTypeClass>(pStm) &&
-//		Process_Save<ImmunityTypeClass>(pStm) &&
-//		Process_Save<ColorTypeClass>(pStm) &&
-//		Process_Save<HouseExtContainer>(pStm) &&
-//		Process_Save<WeaponTypeExtContainer>(pStm) &&
-//		Process_Save<SWTypeExtContainer>(pStm) &&
-//		Process_Save<BuildingTypeExtContainer>(pStm) &&
-//		Process_Save<RadTypeClass>(pStm) &&
-//		Process_Save<ShieldTypeClass>(pStm) &&
-//		Process_Save<HoverTypeClass>(pStm) &&
-//		Process_Save<BannerTypeClass>(pStm) &&
-//		Process_Save<TrailType>(pStm) &&
-//		Process_Save<LaserTrailTypeClass>(pStm) &&
-//		Process_Save<TunnelTypeClass>(pStm) &&
-//		Process_Save<SWStateMachine>(pStm) &&
-//		Process_Save<PhobosGlobal>(pStm) &&
-//		Process_Save<GenericPrerequisite>(pStm) &&
-//		Process_Save<CrateTypeClass>(pStm)
-//		;
-//
-//	if (!ret)
-//		Debug::LogInfo("[Phobos] Global SaveGame Failed !");
-//
-//	return 0;
-//}
-//
-ASMJIT_PATCH(0x67E826, LoadGame_Phobos_Global_Early, 0x6)
-{
-//	Debug::LogInfo("Loading global Phobos data");
-//	GET(IStream*, pStm, ESI);
-	Phobos::Otamaa::DoingLoadGame = true;
-//
-//	bool ret =
-//		Process_Load<PaletteManager>(pStm) &&
-//		Process_Load<CursorTypeClass>(pStm) &&
-//		Process_Load<MouseClassExt>(pStm) &&
-//		Process_Load<DigitalDisplayTypeClass>(pStm) &&
-//		Process_Load<ArmorTypeClass>(pStm) &&
-//		Process_Load<ImmunityTypeClass>(pStm) &&
-//		Process_Load<ColorTypeClass>(pStm) &&
-//		Process_Load<HouseExtContainer>(pStm) &&
-//		Process_Load<WeaponTypeExtContainer>(pStm) &&
-//		Process_Load<SWTypeExtContainer>(pStm) &&
-//		Process_Load<BuildingTypeExtContainer>(pStm) &&
-//		Process_Load<RadTypeClass>(pStm) &&
-//		Process_Load<ShieldTypeClass>(pStm) &&
-//		Process_Load<HoverTypeClass>(pStm) &&
-//		Process_Load<BannerTypeClass>(pStm) &&
-//		Process_Load<TrailType>(pStm) &&
-//		Process_Load<LaserTrailTypeClass>(pStm) &&
-//		Process_Load<TunnelTypeClass>(pStm) &&
-//		Process_Load<SWStateMachine>(pStm) &&
-//		Process_Load<PhobosGlobal>(pStm) &&
-//		Process_Load<GenericPrerequisite>(pStm) &&
-//		Process_Load<CrateTypeClass>(pStm)
-//		;
-//
-//	if (!ret)
-//		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
-//
-	return 0;
-}
+	succeeded = Process_Save<ShieldTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-//there some classes that need to be re-init after load game done
-//maybe worth taking a look at it at some point -Otamaa
-ASMJIT_PATCH(0x67E65E, LoadGame_Phobos_AfterEverything, 0x6)
-{
-	GET_STACK(IStream*, pStm, 0x10);
-	Phobos::LoadGameDataAfter(pStm);
-	return 0;
-}
+	succeeded = Process_Save<HoverTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-ASMJIT_PATCH(0x67D1B4, SaveGame_Phobos_AfterEverything, 0x6)
-{
-	GET_STACK(IStream*, pStm, 0x1C);
-	Phobos::SaveGameDataAfter(pStm);
-	return 0;
-}
+	succeeded = Process_Save<BannerTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-ASMJIT_PATCH(0x67D300, SaveGame_Start, 5)
-{
-	Debug::LogInfo("About to save the game");
-	return 0;
-}
+	succeeded = Process_Save<TrailType>(writer);
+	if (!succeeded)
+		return false;
 
-ASMJIT_PATCH(0x67E730, LoadGame_Start, 5)
-{
-	Debug::LogInfo("About to load the game");
-	return 0;
-}
+	succeeded = Process_Save<SWStateMachine>(writer);
+	if (!succeeded)
+		return false;
 
-ASMJIT_PATCH(0x67F7C8, LoadGame_Phobos_Global_EndPart, 5)
-{
-	GET(IStream*, pStm, ESI);
+	succeeded = Process_Save<PhobosGlobal>(writer);
+	if (!succeeded)
+		return false;
 
-	int value;
-	ULONG out = 0;
+	succeeded = Process_Save<GenericPrerequisite>(writer);
+	if (!succeeded)
+		return false;
 
-	if (!SUCCEEDED(pStm->Read(&value, sizeof(value), &out))) {
-		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
-		return 0x0;
-	}
+	succeeded = Process_Save<CrateTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-	VoxClass::EVAIndex = value;
+	succeeded = Process_Save<PhobosAttachEffectTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-	bool ret =
-		Process_Load<Phobos>(pStm) &&
-		Process_Load<FakeAnimClass>(pStm) &&
-		Process_Load<CursorTypeClass>(pStm) &&
-		Process_Load<MouseClassExt>(pStm) &&
-		Process_Load<DigitalDisplayTypeClass>(pStm) &&
-		Process_Load<ArmorTypeClass>(pStm) &&
-		Process_Load<ImmunityTypeClass>(pStm) &&
-		Process_Load<ColorTypeClass>(pStm) &&
-		Process_Load<HouseExtContainer>(pStm) &&
-		Process_Load<IsometricTileTypeExtContainer>(pStm) &&
-		Process_Load<WeaponTypeExtContainer>(pStm) &&
-		Process_Load<EboltExtData>(pStm) &&
-		Process_Load<SWTypeExtContainer>(pStm) &&
-		Process_Load<BuildingTypeExtContainer>(pStm) &&
-		Process_Load<RadTypeClass>(pStm) &&
-		Process_Load<ShieldTypeClass>(pStm) &&
-		Process_Load<HoverTypeClass>(pStm) &&
-		Process_Load<BannerTypeClass>(pStm) &&
-		Process_Load<TrailType>(pStm) &&
-		Process_Load<LaserTrailTypeClass>(pStm) &&
-		Process_Load<TunnelTypeClass>(pStm) &&
-		Process_Load<SWStateMachine>(pStm) &&
-		Process_Load<PhobosGlobal>(pStm) &&
-		Process_Load<GenericPrerequisite>(pStm) &&
-		Process_Load<CrateTypeClass>(pStm) &&
-		Process_Load<NewSWType>(pStm) &&
-		Process_Load<TiberiumExtContainer>(pStm) &&
-		Process_Load<PhobosAttachEffectTypeClass>(pStm) &&
-		Process_Load<TechTreeTypeClass>(pStm) &&
-		Process_Load<StaticVars>(pStm) &&
-		Process_Load<HugeBar>(pStm) &&
-		Process_Load<RocketTypeClass>(pStm) &&
-		Process_Load<BarTypeClass>(pStm) &&
-		Process_Load<SWFirerClass>(pStm) &&
-		Process_Load<InsigniaTypeClass>(pStm) &&
-		Process_Load<SelectBoxTypeClass>(pStm) &&
-		Process_Load<ShieldClass>(pStm) &&
-		Process_Load<PrismForwarding>(pStm) &&
-		Process_Load<BannerClass>(pStm) &&
-		Process_Load<TActionExtData>(pStm) //&&
-		//Process_Load<AttachmentClass> (pStm) &&
-		//Process_Load<AttachmentTypeClass> (pStm)
-		;
+	succeeded = Process_Save<TechTreeTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-	if (!ret)
-		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
+	succeeded = Process_Save<StaticVars>(writer);
+	if (!succeeded)
+		return false;
 
-	// add more variable that need to be reset after loading an saved games
-	if(SessionClass::Instance->GameMode == GameMode::Campaign)
-	{
-		if(std::exchange(Unsorted::MuteSWLaunches(), false)) {// this will also make radar unusable
-			auto pSide = SideClass::Array->operator[](HouseClass::CurrentPlayer()->Type->SideIndex);
-			VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
-		}
-		// this variable need to be reset , especially after you play as an observer on skirmish
-		// then load an save game of campaign mode , it will shutoff the radar and EVA's
-	}
+	succeeded = Process_Save<HugeBar>(writer);
+	if (!succeeded)
+		return false;
 
-	return 0;
-}
+	succeeded = Process_Save<RocketTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-ASMJIT_PATCH(0x67E42E, SaveGame_Phobos_Global_EndPart, 5)
-{
-	GET(HRESULT, Status, EAX);
+	succeeded = Process_Save<BarTypeClass>(writer);
+	if (!succeeded)
+		return false;
 
-	if (SUCCEEDED(Status))
-	{
-		GET(IStream*, pStm, ESI);
+	succeeded = Process_Save<SWFirerClass>(writer);
+	if (!succeeded)
+		return false;
 
-		ULONG out = 0;
-		const int value = VoxClass::EVAIndex();
+	succeeded = Process_Save<ShieldClass>(writer);
+	if (!succeeded)
+		return false;
 
-		if (!SUCCEEDED(pStm->Write(&value, sizeof(value), &out)))
-		{
-			Debug::LogInfo("[Phobos] Global SaveGame Failed !");
-			R->EAX<HRESULT>(E_FAIL);
-			return 0x0;
-		}
+	succeeded = Process_Save<BannerClass>(writer);
+	if (!succeeded)
+		return false;
 
-		bool ret =
-			Process_Save<Phobos>(pStm) &&
-			Process_Save<FakeAnimClass>(pStm) &&
-			Process_Save<CursorTypeClass>(pStm) &&
-			Process_Save<MouseClassExt>(pStm) &&
-			Process_Save<DigitalDisplayTypeClass>(pStm) &&
-			Process_Save<ArmorTypeClass>(pStm) &&
-			Process_Save<ImmunityTypeClass>(pStm) &&
-			Process_Save<ColorTypeClass>(pStm) &&
-			Process_Save<HouseExtContainer>(pStm) &&
-			Process_Save<IsometricTileTypeExtContainer>(pStm) &&
-			Process_Save<WeaponTypeExtContainer>(pStm) &&
-			Process_Save<EboltExtData>(pStm) &&
-			Process_Save<SWTypeExtContainer>(pStm) &&
-			Process_Save<BuildingTypeExtContainer>(pStm) &&
-			Process_Save<RadTypeClass>(pStm) &&
-			Process_Save<ShieldTypeClass>(pStm) &&
-			Process_Save<HoverTypeClass>(pStm) &&
-			Process_Save<BannerTypeClass>(pStm) &&
-			Process_Save<TrailType>(pStm) &&
-			Process_Save<LaserTrailTypeClass>(pStm) &&
-			Process_Save<TunnelTypeClass>(pStm) &&
-			Process_Save<SWStateMachine>(pStm) &&
-			Process_Save<PhobosGlobal>(pStm) &&
-			Process_Save<GenericPrerequisite>(pStm) &&
-			Process_Save<CrateTypeClass>(pStm) &&
-			Process_Save<NewSWType>(pStm) &&
-			Process_Save<TiberiumExtContainer>(pStm) &&
-			Process_Save<PhobosAttachEffectTypeClass>(pStm) &&
-			Process_Save<TechTreeTypeClass>(pStm) &&
-			Process_Save<StaticVars>(pStm) &&
-			Process_Save<HugeBar>(pStm) &&
-			Process_Save<RocketTypeClass>(pStm) &&
-			Process_Save<BarTypeClass>(pStm) &&
-			Process_Save<SWFirerClass>(pStm) &&
-			Process_Save<InsigniaTypeClass>(pStm) &&
-			Process_Save<SelectBoxTypeClass>(pStm) &&
-			Process_Save<ShieldClass>(pStm) &&
-			Process_Save<PrismForwarding>(pStm) &&
-			Process_Save<BannerClass>(pStm) &&
-			Process_Save<TActionExtData>(pStm) //&&
-			//Process_Save<AttachmentClass>(pStm) &&
-			//Process_Save<AttachmentTypeClass>(pStm)
-			;
+	succeeded = Process_Save<FlyingStrings>(writer);
+	if (!succeeded)
+		return false;
 
-		if (!ret)
-			Debug::LogInfo("[Phobos] Global SaveGame Failed !");
-
-		R->EAX<HRESULT>(ret ? S_OK : E_FAIL);
-	}
-
-	return 0x0;
+	return stm.WriteToStream(pStm);
 }
 
 #pragma endregion

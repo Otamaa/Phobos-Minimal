@@ -35,17 +35,17 @@ ASMJIT_PATCH(0x705986, Sub_705860_AitrstrikeTargetPoint, 0x6)
 	return SkipGameCode;
 }
 
-ASMJIT_PATCH(0x43D39C, BuildingClass_Draw_LaserTargetColor, 0x6)
-{
-	enum { SkipGameCode = 0x43D3A2 };
+// ASMJIT_PATCH(0x43D39C, BuildingClass_Draw_LaserTargetColor, 0x6)
+// {
+// 	enum { SkipGameCode = 0x43D3A2 };
 
-	GET(BuildingClass*, pThis, ESI);
-	GET(RulesClass*, pRules, ECX);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
-	R->EAX(pTypeExt->LaserTargetColor.Get(pRules->LaserTargetColor));
+// 	GET(BuildingClass*, pThis, ESI);
+// 	GET(RulesClass*, pRules, ECX);
+// 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
+// 	R->EAX(pTypeExt->LaserTargetColor.Get(pRules->LaserTargetColor));
 
-	return SkipGameCode;
-}
+// 	return SkipGameCode;
+// }
 
 ASMJIT_PATCH(0x43DC36, BuildingClass_DrawFogged_LaserTargetColor, 0x6)
 {

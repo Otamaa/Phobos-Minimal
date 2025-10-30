@@ -4,84 +4,7 @@
 #include <YRPPCore.h>
 #include "Patch.h"
 
-template<class T, size_t offs>
-struct PointerOffset
-{
-	OPTIONALINLINE COMPILETIMEEVAL auto Get()
-	{
-		return reinterpret_cast<T>(((DWORD)this) - offs);
-	}
-};
-
-struct MiscTools
-{
-	static DWORD __fastcall RelativeOffset(void const* pFrom, void const* pTo)
-	{
-		auto const from = reinterpret_cast<DWORD>(pFrom);
-		auto const to = reinterpret_cast<DWORD>(pTo);
-
-		return to - from;
-	}
-
-	template<typename T>
-	static volatile T& Memory(const uintptr_t ptr) {
-		return *reinterpret_cast<T*>(ptr);
-	}
-
-	static volatile uint8_t& Memory(const uint16_t ptr) {
-		return *reinterpret_cast<uint8_t*>(ptr);
-	}
-
-	template<typename T>
-	static COMPILETIMEEVAL FORCEDINLINE DWORD to_DWORD(T new_address) {
-		return reinterpret_cast<DWORD>(((void*&)new_address));
-	}
-};
-
 #define NAKED __declspec(naked)
-
-template<typename T>
-void FORCEDINLINE Patch_Jump(uintptr_t address, T new_address)
-{
-	static_assert(sizeof(_LJMP) == 5, "Jump struct not expected size!");
-
-	SIZE_T bytes_written { 0u };
-	_LJMP cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
-	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
-}
-
-template<typename T>
-void FORCEDINLINE Patch_Call(uintptr_t address, T new_address)
-{
-	static_assert(sizeof(_CALL) == 5, "Call struct not expected size!");
-
-	SIZE_T bytes_written { 0u };
-	_CALL cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
-	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_CALL), &bytes_written);
-}
-
-template<typename T>
-void FORCEDINLINE Patch_Call6(uintptr_t address, T new_address)
-{
-	static_assert(sizeof(_CALL6) == 6, "Call6 struct not expected size!");
-
-	SIZE_T bytes_written { 0u };
-	_CALL6 cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
-	cmd.command = LJMP_LETTER;
-
-	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
-}
-
-template<typename T>
-void FORCEDINLINE Patch_Vtable(uintptr_t address, T new_address)
-{
-	static_assert(sizeof(_VTABLE) == 4, "Vtable struct not expected size!");
-
-	SIZE_T bytes_written { 0u };
-
-	_VTABLE cmd { address  , reinterpret_cast<uintptr_t>((void*&)new_address) };
-	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_VTABLE), &bytes_written);
-}
 
 #define DECLARE_PATCH(name) \
     [[ noreturn ]] static NOINLINE NAKED void name() noexcept
@@ -240,7 +163,7 @@ struct _VTABLE
 
 //this doesnt work with CTOR and DTOR
 #define DEFINE_FUNCTION_JUMP(jumpType, offset, function)		  \
-	DEFINE_JUMP(jumpType, offset, MiscTools::to_DWORD(&function)) 
+	DEFINE_JUMP(jumpType, offset, MiscTools::to_DWORD(&function))
 #pragma endregion
 
 #define DEFINE_FUNCTION_JUMPB(jumpType, offset, function)		  \
@@ -297,6 +220,86 @@ namespace VARIABLE_PATCH##from  {									\
 namespace VARIABLE_PATCH {											\
 	const Patch* name = &VARIABLE_PATCH##from::patch;			\
 };
+
+template<class T, size_t offs>
+struct PointerOffset
+{
+	OPTIONALINLINE COMPILETIMEEVAL auto Get()
+	{
+		return reinterpret_cast<T>(((DWORD)this) - offs);
+	}
+};
+
+struct MiscTools
+{
+	static DWORD __fastcall RelativeOffset(void const* pFrom, void const* pTo)
+	{
+		auto const from = reinterpret_cast<DWORD>(pFrom);
+		auto const to = reinterpret_cast<DWORD>(pTo);
+
+		return to - from;
+	}
+
+	template<typename T>
+	static volatile T& Memory(const uintptr_t ptr)
+	{
+		return *reinterpret_cast<T*>(ptr);
+	}
+
+	static volatile uint8_t& Memory(const uint16_t ptr)
+	{
+		return *reinterpret_cast<uint8_t*>(ptr);
+	}
+
+	template<typename T>
+	static COMPILETIMEEVAL FORCEDINLINE DWORD to_DWORD(T new_address)
+	{
+		return reinterpret_cast<DWORD>(((void*&)new_address));
+	}
+};
+
+template<typename T>
+void FORCEDINLINE Patch_Jump(uintptr_t address, T new_address)
+{
+	static_assert(sizeof(_LJMP) == 5, "Jump struct not expected size!");
+
+	SIZE_T bytes_written { 0u };
+	_LJMP cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
+	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
+}
+
+template<typename T>
+void FORCEDINLINE Patch_Call(uintptr_t address, T new_address)
+{
+	static_assert(sizeof(_CALL) == 5, "Call struct not expected size!");
+
+	SIZE_T bytes_written { 0u };
+	_CALL cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
+	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_CALL), &bytes_written);
+}
+
+template<typename T>
+void FORCEDINLINE Patch_Call6(uintptr_t address, T new_address)
+{
+	static_assert(sizeof(_CALL6) == 6, "Call6 struct not expected size!");
+
+	SIZE_T bytes_written { 0u };
+	_CALL6 cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
+	cmd.command = LJMP_LETTER;
+
+	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
+}
+
+template<typename T>
+void FORCEDINLINE Patch_Vtable(uintptr_t address, T new_address)
+{
+	static_assert(sizeof(_VTABLE) == 4, "Vtable struct not expected size!");
+
+	SIZE_T bytes_written { 0u };
+
+	_VTABLE cmd { address  , reinterpret_cast<uintptr_t>((void*&)new_address) };
+	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_VTABLE), &bytes_written);
+}
 
 #pragma endregion Macros
 #pragma endregion Patch Macros

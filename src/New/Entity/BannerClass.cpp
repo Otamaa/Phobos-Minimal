@@ -105,7 +105,9 @@ void BannerClass::RenderSHP(Point2D position)
 
 void BannerClass::RenderCSF(Point2D position)
 {
-	fmt::basic_memory_buffer<wchar_t> buffer;
+	static fmt::basic_memory_buffer<wchar_t> buffer;
+
+	buffer.clear();
 
 	if (this->Type->CSF_VariableFormat != BannerNumberType::None) {
 

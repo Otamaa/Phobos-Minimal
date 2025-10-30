@@ -10,60 +10,104 @@ class HouseClass;
 class FootClass;
 class SuperClass;
 class AITriggerTypeClass;
-class TeamExtData
+class TeamExtData final : public AbstractExtended
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x414B4B41;
 	using base_type = TeamClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-	int WaitNoTargetAttempts { 0 };
-	double NextSuccessWeightAward { 0 };
-	int IdxSelectedObjectFromAIList { -1 };
-	double CloseEnough { -1 };
-	int Countdown_RegroupAtLeader { -1 };
-	int MoveMissionEndMode { 0 };
-	int WaitNoTargetCounter { 0 };
-	CDTimerClass WaitNoTargetTimer { };
-	CDTimerClass ForceJump_Countdown { };
-	int ForceJump_InitialCountdown { -1 };
-	bool ForceJump_RepeatMode { false };
-	FootClass* TeamLeader { nullptr };
 
-	SuperClass* LastFoundSW { nullptr };
+#pragma region ClassMembers
+	int WaitNoTargetAttempts;
+	double NextSuccessWeightAward;
+	int IdxSelectedObjectFromAIList;
+	double CloseEnough;
+	int Countdown_RegroupAtLeader;
+	int MoveMissionEndMode;
+	int WaitNoTargetCounter;
+	CDTimerClass WaitNoTargetTimer;
+	CDTimerClass ForceJump_Countdown;
+	int ForceJump_InitialCountdown;
+	bool ForceJump_RepeatMode;
+	FootClass* TeamLeader;
+	SuperClass* LastFoundSW;
+	bool ConditionalJump_Evaluation;
+	int ConditionalJump_ComparatorMode;
+	int ConditionalJump_ComparatorValue;
+	int ConditionalJump_Counter;
+	int ConditionalJump_Index;
+	bool AbortActionAfterKilling;
+	bool ConditionalJump_EnabledKillsCount;
+	bool ConditionalJump_ResetVariablesIfJump;
+	int TriggersSideIdx;
+	int TriggersHouseIdx;
+	int AngerNodeModifier;
+	bool OnlyTargetHouseEnemy;
+	int OnlyTargetHouseEnemyMode;
+	ScriptTypeClass* PreviousScript;
+	std::vector<BuildingClass*> BridgeRepairHuts;
+#pragma endregion
 
-	bool ConditionalJump_Evaluation { false };
-	int ConditionalJump_ComparatorMode { 3 };
-	int ConditionalJump_ComparatorValue { 1 };
-	int ConditionalJump_Counter { 0 };
-	int ConditionalJump_Index { -1000000 };
-	bool AbortActionAfterKilling { false };
-	bool ConditionalJump_EnabledKillsCount { false };
-	bool ConditionalJump_ResetVariablesIfJump { false };
+public:
+	TeamExtData(TeamClass* pObj) : AbstractExtended(pObj),
+		WaitNoTargetAttempts(0),
+		NextSuccessWeightAward(0.0),
+		IdxSelectedObjectFromAIList(-1),
+		CloseEnough(-1.0),
+		Countdown_RegroupAtLeader(-1),
+		MoveMissionEndMode(0),
+		WaitNoTargetCounter(0),
+		WaitNoTargetTimer(),
+		ForceJump_Countdown(),
+		ForceJump_InitialCountdown(-1),
+		ForceJump_RepeatMode(false),
+		TeamLeader(nullptr),
+		LastFoundSW(nullptr),
+		ConditionalJump_Evaluation(false),
+		ConditionalJump_ComparatorMode(3),
+		ConditionalJump_ComparatorValue(1),
+		ConditionalJump_Counter(0),
+		ConditionalJump_Index(-1000000),
+		AbortActionAfterKilling(false),
+		ConditionalJump_EnabledKillsCount(false),
+		ConditionalJump_ResetVariablesIfJump(false),
+		TriggersSideIdx(-1),
+		TriggersHouseIdx(-1),
+		AngerNodeModifier(5000),
+		OnlyTargetHouseEnemy(false),
+		OnlyTargetHouseEnemyMode(-1),
+		PreviousScript(nullptr),
+		BridgeRepairHuts()
+	{ }
 
-	int TriggersSideIdx { -1 };
-	int TriggersHouseIdx { -1 };
+	TeamExtData(TeamClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
-	int AngerNodeModifier { 5000 };
-	bool OnlyTargetHouseEnemy { false };
-	int OnlyTargetHouseEnemyMode { -1 };
+	virtual ~TeamExtData() = default;
 
-	ScriptTypeClass* PreviousScript { nullptr };
-	std::vector<BuildingClass*> BridgeRepairHuts {};
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
 
-	//{
-	//	//if(!Phobos::Otamaa::ExeTerminated) {
-	//	//	GameDelete<true, true>(PreviousScript);
-	//	//}
-	//
-	//	PreviousScript = nullptr;
-	//}
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<TeamExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
+		const_cast<TeamExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { }
+
+	virtual TeamClass* This() const override { return reinterpret_cast<TeamClass*>(this->AbstractExtended::This()); }
+	virtual const TeamClass* This_Const() const override { return reinterpret_cast<const TeamClass*>(this->AbstractExtended::This_Const()); }
+
+public:
 
 	static bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list);
 	static bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list);
@@ -75,13 +119,6 @@ public:
 
 	static bool IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement);
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TeamExtData) -
-			(4u //AttachedToObject
-				- 4u //inheritance
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -91,36 +128,16 @@ class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
 	static TeamExtContainer Instance;
-	static StaticObjectPool<TeamExtData, 10000> pools;
 
-	TeamExtData* AllocateUnchecked(TeamClass* key)
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
-		TeamExtData* val = pools.allocate();
-
-		if (val)
+		for (auto& ext : Array)
 		{
-			val->AttachedToObject = key;
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
-		else
-		{
-			Debug::FatalErrorAndExit("The amount of [TeamExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		}
-
-		return val;
-	}
-
-	void Remove(TeamClass* key)
-	{
-		if (TeamExtData* Item = TryFind(key))
-		{
-			RemoveExtOf(key, Item);
-		}
-	}
-
-	void RemoveExtOf(TeamClass* key, TeamExtData* Item)
-	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
 	}
 
 };
@@ -129,7 +146,9 @@ class NOVTABLE FakeTeamClass : public TeamClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+	void _Detach(AbstractClass* target, bool all);
 
 	void _AI();
 	bool _CoordinateRegroup();

@@ -10,46 +10,86 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
-class ParticleTypeExtData final
+#include <Ext/ObjectType/Body.h>
+
+class ParticleTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xEAEEEEEE;
 	using base_type = ParticleTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
-	TrailsReader Trails { };
-	Valueable<bool> ReadjustZ { true };
-	CustomPalette Palette { CustomPalette::PaletteMode::Temperate }; //
-	Valueable<double> DamageRange { 0.0 };
-	Valueable<bool> DeleteWhenReachWater { false };
+#pragma region ClassMembers
+	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
+	TrailsReader Trails;
+	Valueable<bool> ReadjustZ;
+	CustomPalette Palette; //
+	Valueable<double> DamageRange;
+	Valueable<bool> DeleteWhenReachWater;
+	std::array<Point2D, (size_t)FacingType::Count> WindMult;
+	Valueable<Point2D> Gas_DriftSpeedX;
+	Valueable<Point2D> Gas_DriftSpeedY;
+	Valueable<bool> Transmogrify;
+	Valueable<int> TransmogrifyChance;
+	Valueable<UnitTypeClass*> TransmogrifyType;
+	Valueable<OwnerHouseKind> TransmogrifyOwner;
+	Valueable<bool> Fire_DamagingAnim;
+#pragma endregion
 
-	std::array<Point2D, (size_t)FacingType::Count> WindMult {};
-
-	Valueable<Point2D> Gas_DriftSpeedX { {2, -2} };
-	Valueable<Point2D> Gas_DriftSpeedY { {2, -2} };
-
-	Valueable<bool> Transmogrify { false };
-	Valueable<int> TransmogrifyChance { -1 };
-	Valueable<UnitTypeClass*> TransmogrifyType { nullptr };
-	Valueable<OwnerHouseKind> TransmogrifyOwner { OwnerHouseKind::Neutral };
-
-	Valueable<bool> Fire_DamagingAnim { false };
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
-	void Initialize();
-
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	ParticleTypeExtData(ParticleTypeClass* pObj) : ObjectTypeExtData(pObj),
+		LaserTrail_Types(),
+		Trails(),
+		ReadjustZ(true),
+		Palette(CustomPalette::PaletteMode::Temperate),
+		DamageRange(0.0),
+		DeleteWhenReachWater(false),
+		WindMult(),
+		Gas_DriftSpeedX({ 2, -2 }),
+		Gas_DriftSpeedY({ 2, -2 }),
+		Transmogrify(false),
+		TransmogrifyChance(-1),
+		TransmogrifyType(nullptr),
+		TransmogrifyOwner(OwnerHouseKind::Neutral),
+		Fire_DamagingAnim(false)
 	{
-		return sizeof(ParticleTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		LaserTrail_Types.reserve(2);
 	}
+	ParticleTypeExtData(ParticleTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
+
+	virtual ~ParticleTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<ParticleTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<ParticleTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual ParticleTypeClass* This() const override { return reinterpret_cast<ParticleTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const ParticleTypeClass* This_Const() const override { return reinterpret_cast<const ParticleTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -60,16 +100,26 @@ class ParticleTypeExtContainer final : public Container<ParticleTypeExtData>
 public:
 	static ParticleTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(ParticleTypeExtContainer, ParticleTypeExtData, "ParticleTypeClass");
-};
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+};
 
 class NOVTABLE FakeParticleTypeClass : public ParticleTypeClass
 {
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	ParticleTypeExtData* _GetExtData() {
 		return *reinterpret_cast<ParticleTypeExtData**>(((DWORD)this) + AbstractExtOffset);

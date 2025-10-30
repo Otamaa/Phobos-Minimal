@@ -5,10 +5,10 @@
 
 void AircraftPutDataFunctional::OnPut(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt, CoordStruct* pCoord)
 {
-	if (!pExt->AttachedToObject->Owner || pExt->AttachedToObject->WhatAmI() != AircraftClass::AbsID)
+	if (!pExt->This()->Owner || pExt->This()->WhatAmI() != AircraftClass::AbsID)
 		return;
 
-	auto const pTechno = (AircraftClass*)pExt->AttachedToObject;
+	auto const pTechno = (AircraftClass*)pExt->This();
 
 	if (!pTechno->Spawned)
 	{
@@ -70,7 +70,7 @@ void AircraftPutDataFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pType
 	if (nOffset.IsValid())
 	{
 		pExt->aircraftPutOffset = false;
-		auto const pTechno = pExt->AttachedToObject;
+		auto const pTechno = pExt->This();
 
 		CoordStruct location = pTechno->Location;
 		CoordStruct pos = location + nOffset;

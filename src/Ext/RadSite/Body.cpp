@@ -24,13 +24,13 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	//Adding Owner to RadSite, from bullet
 	if (pWeaponExt)
 	{
-		pRadExt->Weapon = pWeaponExt->AttachedToObject;
+		pRadExt->Weapon = pWeaponExt->This();
 		pRadExt->Type = pWeaponExt->RadType.Get(0);
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
 	else
 	{
-		pRadExt->Type = RadTypeClass::Array.begin()->get();
+		pRadExt->Type = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 	}
 
 	if (pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner())
@@ -40,9 +40,9 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	}
 
 	pRadExt->CreationFrame = Unsorted::CurrentFrame;
-	CellExtContainer::Instance.Find(pCell)->RadSites.push_back(pRadExt->AttachedToObject);
-	pRadExt->AttachedToObject->BaseCell = pCell->MapCoords;
-	pRadExt->AttachedToObject->SetSpread(spread);
+	CellExtContainer::Instance.Find(pCell)->RadSites.push_back(pRadExt->This());
+	pRadExt->This()->BaseCell = pCell->MapCoords;
+	pRadExt->This()->SetSpread(spread);
 	pRadExt->SetRadLevel(amount);
 	pRadExt->CreateLight();
 }
@@ -50,7 +50,7 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 //RadSiteClass Activate , Rewritten
 void RadSiteExtData::CreateLight()
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	const auto nLevelDelay = this->Type->GetLevelDelay();
 	const auto nLightDelay = this->Type->GetLightDelay();
 	const auto nRadcolor = this->Type->GetColor();
@@ -94,7 +94,7 @@ void RadSiteExtData::CreateLight()
 // Rewrite because of crashing craziness
 void RadSiteExtData::Add(int amount)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	pThis->Deactivate();
 	const auto nInput = int(double(pThis->RadLevel * pThis->RadTimeLeft) / (double)pThis->RadDuration) + amount;
 	pThis->RadLevel = nInput;
@@ -107,7 +107,7 @@ void RadSiteExtData::Add(int amount)
 
 void RadSiteExtData::SetRadLevel(int amount)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	const auto nMax = this->Type->GetLevelMax();
 	const auto nDecidedamount = MinImpl(amount,  nMax);
 	const int mult = this->Type->GetDurationMultiple();
@@ -119,7 +119,7 @@ void RadSiteExtData::SetRadLevel(int amount)
 // helper function provided by AlexB
 const double RadSiteExtData::GetRadLevelAt(CellStruct const& cell)
 {
-	return this->GetRadLevelAt(this->AttachedToObject->BaseCell.DistanceFrom(cell));
+	return this->GetRadLevelAt(this->This()->BaseCell.DistanceFrom(cell));
 }
 
 bool NOINLINE IsFiniteNumber(double x) {
@@ -128,7 +128,7 @@ bool NOINLINE IsFiniteNumber(double x) {
 
 const double RadSiteExtData::GetRadLevelAt(double distance)
 {
-	const auto pThis = this->AttachedToObject;
+	const auto pThis = this->This();
 	const auto nMax = static_cast<double>(pThis->Spread);
 	double radLevel = pThis->RadLevel;
 
@@ -204,7 +204,6 @@ template <typename T>
 void RadSiteExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Weapon, true)
 		.Process(this->Type, true)
 		.Process(this->TechOwner, true)
@@ -218,7 +217,23 @@ void RadSiteExtData::Serialize(T& Stm)
 // =============================
 // container
 RadSiteExtContainer RadSiteExtContainer::Instance;
-StaticObjectPool<RadSiteExtData, 1000> RadSiteExtContainer::pools;
+std::vector<RadSiteExtData*> Container<RadSiteExtData>::Array;
+
+void Container<RadSiteExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool RadSiteExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool RadSiteExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
+
 // =============================
 // container hooks
 
@@ -251,79 +266,10 @@ ASMJIT_PATCH(0x65B344, RadSiteClass_DTOR, 0x6)
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
-{
-
-	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->RadSiteClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		RadSiteExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	RadSiteExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->RadSiteClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		RadSiteExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
-
-//#ifdef AAENABLE_NEWHOOKS
-//ASMJIT_PATCH(0x65B4B0, RadSiteClass_GetSpread_Replace, 0x4)
-//{
-//	GET(RadSiteClass*, pThis, ECX);
-//	if (!Phobos::Otamaa::DisableCustomRadSite)
-//	{
-//		R->EAX(RadSiteExtContainer::Instance.Find(pThis)->Spread);
-//		return 0x65B4B3;
-//	}
-//	return 0x0;
-//}
-//
-//ASMJIT_PATCH_AGAIN(0x65BD14, RadSiteClass_Spread_Replace, 0x5)
-//ASMJIT_PATCH(0x65B9D4, RadSiteClass_Spread_Replace, 0x5)
-//{
-//	GET(RadSiteClass*, pThis, ECX);
-//	if (!Phobos::Otamaa::DisableCustomRadSite)
-//	{
-//		auto nSpread = RadSiteExtContainer::Instance.Find(pThis)->Spread;
-//		R->ESI(nSpread);
-//		R->EDX(R->EDX<int>() - nSpread);
-//		return R->Origin() == 0x65B9D4 ? 0x65B9D9 : 0x65BD19;
-//	}
-//	return 0x0;
-//}
-//
-//ASMJIT_PATCH(0x65B4D4, RadSiteClass_SetSpread, 0x7)
-//{
-//	GET(RadSiteClass*, pThis, ECX);
-//	GET_STACK(int, spread, 0x4);
-//	if (!Phobos::Otamaa::DisableCustomRadSite)
-//	{
-//		RadSiteExtContainer::Instance.Find(pThis)->Spread = spread;
-//		pThis->SpreadInLeptons = (spread << 8) + 128;
-//		return 0x65B4E2;
-//	}
-//
-//	return 0x0;
-//}
-//#endif
-
 void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
 	RadSiteExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemove);
+	//this->RadSiteClass::PointerExpired(pTarget, bRemove);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0838, FakeRadSiteClass::_Detach);
@@ -334,3 +280,24 @@ HouseClass* FakeRadSiteClass::_GetOwningHouse()
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F084C, FakeRadSiteClass::_GetOwningHouse);
+
+HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->RadSiteClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = RadSiteExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->RadSiteClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = RadSiteExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)

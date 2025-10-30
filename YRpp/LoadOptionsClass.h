@@ -87,6 +87,13 @@ public:
 	bool LoadDialog()
 		{ JMP_THIS(0x5587F0); }
 
+	//static version
+	static bool DoLoadMission(const char* pFilename) {
+		EPILOG_THISCALL
+		SET_REG32(ecx, 0u);//jump without this ptr
+		JMP(0x559D60);
+	}
+
 	//Properties
 	LoadOptionsMode Mode;
 	const char* Extension; //"SAV", "SED" for MapSeedClass

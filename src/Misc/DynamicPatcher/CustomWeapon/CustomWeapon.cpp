@@ -17,44 +17,45 @@ void CustomWeaponManager::Update(TechnoClass* pAttacker)
 	if (!pAttacker)
 		return;
 
-	if (!pAttacker->Target
-		|| !TechnoExtData::IsActive(pAttacker))
+	if (!pAttacker->Target || !TechnoExtData::IsActive(pAttacker))
 	{
 		Clear();
+		return;
 	}
-	else
+
+	// Process exactly the current queue size to avoid infinite loops
+	size_t queueSize = simulateBurstQueue.size();
+
+	for (size_t i = 0; i < queueSize; ++i)
 	{
+		// O(1) removal from front
+		auto burst = std::move(simulateBurstQueue.front());
+		simulateBurstQueue.pop_front();
 
-		for (; !simulateBurstQueue.empty();)
+		// Check if burst is complete - don't reinsert if done
+		if (burst->Index >= burst->Burst)
+			continue;
+
+		if (burst->CanFire())
 		{
+			TechnoClass* pShooter = burst->Shooter;
+			AbstractClass* pTarget = burst->Target;
+			WeaponTypeClass* pWeaponType = burst->WeaponType;
 
-			std::unique_ptr<SimulateBurst> burst = std::move(*simulateBurstQueue.begin());
-			simulateBurstQueue.erase(simulateBurstQueue.begin());
+			auto const pTargetTech = flag_cast_to<TechnoClass*>(pTarget);
 
-			if (burst->Index < burst->Burst)
+			if (pWeaponType
+				&& pShooter && pShooter->IsAlive
+				&& pTargetTech && !Helpers_DP::IsDeadOrInvisible(pTargetTech)
+				&& (!burst->FireData.CheckRange || InRange(pShooter, pTarget, burst->WeaponType))
+				&& (!pAttacker->Transporter || (pWeaponType->FireInTransport || burst->FireData.OnlyFireInTransport)))
 			{
-				if (burst->CanFire())
-				{
-					TechnoClass* pShooter = burst->Shooter;
-					AbstractClass* pTarget = burst->Target;
-					WeaponTypeClass* pWeaponType = burst->WeaponType;
-
-					auto const pTargetTech = flag_cast_to<TechnoClass*>(pTarget);
-
-					if (pWeaponType
-						&& pShooter && pShooter->IsAlive
-						&& pTargetTech && !Helpers_DP::IsDeadOrInvisible(pTargetTech)
-						&& (!burst->FireData.CheckRange || InRange(pShooter, pTarget, burst->WeaponType)) &&
-						(!pAttacker->Transporter || (pWeaponType->FireInTransport || burst->FireData.OnlyFireInTransport))
-					)
-					{
-						SimulateBurstFire(pShooter, pAttacker, pTarget, pWeaponType, burst.get());
-					}
-				}
-
-				simulateBurstQueue.push_back(std::move(burst));
+				SimulateBurstFire(pShooter, pAttacker, pTarget, pWeaponType, burst.get());
 			}
 		}
+
+		// O(1) insertion at back - only if not complete
+		simulateBurstQueue.push_back(std::move(burst));
 	}
 }
 
@@ -172,9 +173,17 @@ TechnoClass* CustomWeaponManager::WhoIsShooter(TechnoClass* pAttacker) const
 
 void  CustomWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	this->simulateBurstQueue.remove_all_if([ptr, bRemoved](const auto& queue) {
-		return bRemoved && (queue->Target == ptr || queue->Shooter == ptr) ;
-	});
+	if(bRemoved) {
+
+		auto it = simulateBurstQueue.begin();
+		while (it != simulateBurstQueue.end())
+		{
+			if ( ((*it)->Target == ptr || (*it)->Shooter == ptr))
+				it = simulateBurstQueue.erase(it);
+			else
+				++it;
+		}
+	}
 }
 
 void FireWeaponManager::Clear()
@@ -206,35 +215,45 @@ bool FireWeaponManager::FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAt
 
 void FireWeaponManager::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
-	this->DelayFires.remove_all_if([ptr, bRemoved](const auto& queue) {
-		return bRemoved && queue->Target == ptr ;
-	});
+	if(bRemoved){
+		auto it = DelayFires.begin();
+		while (it != DelayFires.end())
+		{
+			if ((*it)->Target == ptr)
+				it = DelayFires.erase(it);
+			else
+				++it;
+		}
+	}
 
- 	CWeaponManager.InvalidatePointer(ptr, bRemoved);
+	CWeaponManager.InvalidatePointer(ptr, bRemoved);
 }
 
 void FireWeaponManager::TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker)
 {
-	for (; !DelayFires.empty();)
+	size_t queueSize = DelayFires.size();
+
+	for (size_t i = 0; i < queueSize; ++i)
 	{
-		std::unique_ptr<DelayFireWeapon> delayFire = std::move(*DelayFires.begin());
-		DelayFires.erase(DelayFires.begin());
+		// O(1) removal from front
+		auto delayFire = std::move(DelayFires.front());
+		DelayFires.pop_front();
 
 		if (delayFire->TimesUp())
 		{
 			if (delayFire->FireOwnWeapon)
-			{
 				pAttacker->Fire(delayFire->Target, delayFire->WeaponIndex);
-			}
 			else
-			{
-				Helpers_DP::FireWeaponTo(pAttacker, pAttacker, delayFire->Target, delayFire->Weapon, CoordStruct::Empty);
-			}
+				Helpers_DP::FireWeaponTo(pAttacker, pAttacker, delayFire->Target,
+					delayFire->Weapon, CoordStruct::Empty);
+
 			delayFire->ReduceOnce();
 		}
 
+		// Only reinsert if not complete
 		if (delayFire->NotDone())
 		{
+			// O(1) insertion at back
 			DelayFires.push_back(std::move(delayFire));
 		}
 	}

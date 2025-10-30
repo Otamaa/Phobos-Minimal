@@ -194,6 +194,38 @@ struct Game
 		JMP_FAST(0x755C50);
 	}
 
+	static bool __fastcall Prep_For_Side(int house) {
+		JMP_FAST(0x534FA0);
+	}
+
+	static RectangleStruct* __fastcall Get_Sidebar_Clip_Bounds(RectangleStruct* ree) {
+		JMP_FAST(0x72AD20);
+	}
+
+	static HRESULT __fastcall Save_Misc_Values(LPSTREAM a1) {
+		JMP_FAST(0x67F7E0);
+	}
+
+	static HRESULT __fastcall Load_Misc_Values(LPSTREAM a1) {
+		JMP_FAST(0x67F9C0);
+	}
+
+	static void __fastcall UnlockImput() {
+		JMP_FAST(0x684290);
+	}
+
+	static void __fastcall UIStuffs_MenuStuffs() {
+		JMP_FAST(0x72DDB0);
+	}
+
+	static void __fastcall PlayMovie(int id, int theme, bool clrscreen_aft, bool stretch, bool clrscreen_before) {
+		JMP_FAST(0x5BF260);
+	}
+
+	static void __fastcall Reset_SomeShapes_Post_Movie() {
+		JMP_FAST(0x72DEF0);
+	}
+
 #ifdef deprecated
 
 	// the game's own rounding function
@@ -214,6 +246,7 @@ struct Game
 
 #endif // deprecated
 
+	//ZDepth_Adjust_For_Height
 	static COMPILETIMEEVAL int FORCEDINLINE AdjustHeight(int height)  {
 		return int((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
 	}
@@ -822,7 +855,6 @@ class MovieInfo
 public:
 	// technically, this is a DVC<const char*>
 	// and string management is done manually
-	static COMPILETIMEEVAL reference<DynamicVectorClass<MovieInfo<GameDeleter>>, 0xABF390u> const Array {};
 
 	bool operator== (MovieInfo const& rhs) const
 	{
@@ -846,6 +878,13 @@ public:
 		}
 	}
 
+	bool operator== (const char* pName) const {
+		if COMPILETIMEEVAL (Deleter::DeleterType == DeleterType::GameDeleter || Deleter::DeleterType == DeleterType::GameDTORCaller)
+			return !CRT::strcmpi(this->Name, pName);
+		else
+			return !_strcmpi(this->Name, pName);
+	}
+
 	MovieInfo() : Name(nullptr) { }
 
 	~MovieInfo() {
@@ -856,6 +895,8 @@ public:
 
 	const char* Name; // yes, only that
 };
+
+static COMPILETIMEEVAL reference<DynamicVectorClass<MovieInfo<GameDeleter>>, 0xABF390u> const MovieInfoArray {};
 
 struct MovieUnlockableInfo
 {

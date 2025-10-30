@@ -31,7 +31,7 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
-std::map<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;
+PhobosMap<int, std::vector<TriggerClass*>> TActionExtData::RandomTriggerPool;
 
 /*
 template <typename T>
@@ -54,44 +54,200 @@ TActionExtData::ExtContainer TActionExtData::ExtMap;
 */
 
 //==============================
-static void CreateOrReplaceBanner(TActionClass* pTAction, bool isGlobal)
+bool TActionExtData::AllChangeHouse(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	const auto pBannerType = BannerTypeClass::Find(pTAction->Text);
+	bool changed = false;
+	if (pTrigger) {
+		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
+			for (int i = 0; i < TechnoClass::Array->Count; ++i) {
+				const auto pItem = TechnoClass::Array->Items[i];
+
+				if (!pItem)
+					continue;
+
+				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->Owner != pHouse)
+					continue;
+
+				Debug::Log("SwitchAllObjectsToHouse for [%s] from [%x] with param3 [%d] [ %s -> %s ]", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), NewOwnerPtr->get_ID());
+
+				if (pThis->Param3 && pItem->Passengers.FirstPassenger != nullptr) {
+					FootClass* pPassenger = pItem->Passengers.FirstPassenger;
+
+					do {
+						pPassenger->SetOwningHouse(NewOwnerPtr, false);
+						pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
+					}
+					while (pPassenger != nullptr && pPassenger->Transporter == pItem);
+				}
+
+				pItem->SetOwningHouse(NewOwnerPtr, false);
+
+				if (BuildingClass* pBuilding = cast_to<BuildingClass*, false>(pItem)) {
+					if (pBuilding->Type->Powered || pBuilding->Type->PoweredSpecial) {
+						pBuilding->UpdatePowerDown();
+					}
+				}
+
+				changed = true;
+			}
+		}
+	}
+
+	return changed;
+}
+
+bool TActionExtData::ChangeHouse(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	bool changed = false;
+	if (pTrigger) {
+		if (HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Value, pTrigger->GetHouse())) {
+
+			for (int i = 0; i < TechnoClass::Array->Count; ++i) {
+				const auto pItem = TechnoClass::Array->Items[i];
+
+				if (!pItem)
+					continue;
+
+				Debug::Log("ChangeOwner for [%s] from [%x] with param3 [%d] [ %s(%x) -> %s(%x) ]", pItem->get_ID(), pThis, pThis->Param3, pItem->Owner->get_ID(), pItem->Owner, NewOwnerPtr->get_ID(), NewOwnerPtr);
+
+				if (!pItem->IsAlive || pItem->Health <= 0 || pItem->InLimbo || !pItem->IsOnMap)
+					continue;
+
+				if (pItem->AttachedTag && pItem->AttachedTag->ContainsTrigger(pTrigger)) {
+					pItem->SetOwningHouse(NewOwnerPtr, false);
+
+					if (pThis->Param3 != 0 && pItem->Passengers.FirstPassenger) {
+						FootClass* pPassenger = pItem->Passengers.FirstPassenger;
+
+						do {
+							pPassenger->SetOwningHouse(NewOwnerPtr, false);
+							pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
+						}
+						while (pPassenger != nullptr && pPassenger->Transporter == pItem);
+					}
+
+					changed = true;
+				}
+			}
+		}
+	}
+
+	return changed;
+}
+
+bool TActionExtData::CreateBuildingAt(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	// Bugfix: TAction 125 Build At could neither display the buildups nor be AI-repairable in singleplayer mode
+	// Sep 9, 2025 - Starkku: Fixed issues with buildups potentially ending up in infinite loops etc.
+	// A separate issue remains where buildup sequence will interrupt if building's house changes mid-buildup,
+	// but this applies to all buildings and not just ones created through the trigger.
+	// Also restored Param3 to control the buildup display, only this time it is inverted (set to >0 to disable buildups).
+
+	if(HouseClass* NewOwnerPtr = AresTEventExt::ResolveHouseParam(pThis->Param5, pHouse)){
+		auto coord = CellClass::Cell2Coord(ScenarioClass::Instance->GetWaypointCoords(pThis->Waypoint));
+		//const auto pCell = MapClass::Instance->GetCellAt(coord);
+		const auto v8 = BuildingTypeClass::FindIndexById(pThis->Text);
+
+		if (v8 < 0)
+			return false;
+
+		const auto pBld = BuildingTypeClass::Array->Items[v8];
+		const bool playBuildup = pBld->LoadBuildup();
+		bool created = false;
+
+		if (auto pBuilding = static_cast<BuildingClass*>(pBld->CreateObject(pHouse))) {
+
+			// Set before unlimbo cause otherwise it will call BuildingClass::Place.
+			pBuilding->QueueMission(Mission::Construction, false);
+			pBuilding->NextMission();
+
+			if (!pBuilding->ForceCreate(coord)) {
+				GameDelete<true, false>(pBld);
+			} else {
+
+				// Reset mission and build state if we're not going to play buildup afterwards.
+				if (!playBuildup) {
+					pBuilding->BeginMode(BStateType::Idle);
+					pBuilding->QueueMission(Mission::Guard, false);
+					pBuilding->NextMission();
+					pBuilding->Place(false); // Manually call this now.
+				}
+
+				if (SessionClass::IsCampaign() && !pHouse->IsControlledByHuman())
+					pBuilding->ShouldRebuild = pThis->Param4 > 0;
+
+				created = true;
+			}
+		}
+
+		return created;
+	}
+
+	return false;
+}
+
+bool TActionExtData::CreateBannerGlobal(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const auto pBannerType = BannerTypeClass::Find(pThis->Text);
 
 	if (!pBannerType)
-		return;
+		return true;
 
 	auto& banners = BannerClass::Array;
 
 	bool foundAny = false;
 
-	banners.for_each([&](BannerClass& pBanner) {
-		if (pBanner.ID == pTAction->Param3) {
-			foundAny = true;
-			pBanner.Type = pBannerType;
-			pBanner.Position = { static_cast<int>(pTAction->Param4 / 100.0 * DSurface::ViewBounds->Width), static_cast<int>(pTAction->Param5 / 100.0 * DSurface::ViewBounds->Height) };
-			pBanner.Variable = pTAction->Param6;
-			pBanner.IsGlobalVariable = isGlobal;
-			return true;
-		}
+	banners.for_each([&](BannerClass& pBanner)
+ {
+	 if (pBanner.ID == pThis->Param3)
+	 {
+		 foundAny = true;
+		 pBanner.Type = pBannerType;
+		 pBanner.Position = { static_cast<int>(pThis->Param4 / 100.0 * DSurface::ViewBounds->Width), static_cast<int>(pThis->Param5 / 100.0 * DSurface::ViewBounds->Height) };
+		 pBanner.Variable = pThis->Param6;
+		 pBanner.IsGlobalVariable = true;
+		 return true;
+	 }
 
-		return false;
+	 return false;
 	});
 
-	if(!foundAny) {
-		banners.emplace_back(pBannerType, pTAction->Param3, Point2D { pTAction->Param4, pTAction->Param5 }, pTAction->Param6, isGlobal);
+	if (!foundAny)
+	{
+		banners.emplace_back(pBannerType, pThis->Param3, Point2D { pThis->Param4, pThis->Param5 }, pThis->Param6, true);
 	}
-}
-
-bool TActionExtData::CreateBannerGlobal(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
-{
-	CreateOrReplaceBanner(pThis, true);
 	return true;
 }
 
 bool TActionExtData::CreateBannerLocal(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	CreateOrReplaceBanner(pThis, false);
+	const auto pBannerType = BannerTypeClass::Find(pThis->Text);
+
+	if (!pBannerType)
+		return true;
+
+	auto& banners = BannerClass::Array;
+
+	bool foundAny = false;
+
+	banners.for_each([&](BannerClass& pBanner)
+ {
+	 if (pBanner.ID == pThis->Param3)
+	 {
+		 foundAny = true;
+		 pBanner.Type = pBannerType;
+		 pBanner.Position = { static_cast<int>(pThis->Param4 / 100.0 * DSurface::ViewBounds->Width), static_cast<int>(pThis->Param5 / 100.0 * DSurface::ViewBounds->Height) };
+		 pBanner.Variable = pThis->Param6;
+		 pBanner.IsGlobalVariable = false;
+		 return true;
+	 }
+
+	 return false;
+	});
+
+	if (!foundAny) {
+		banners.emplace_back(pBannerType, pThis->Param3, Point2D { pThis->Param4, pThis->Param5 }, pThis->Param6, false);
+	}
 	return true;
 }
 
@@ -106,17 +262,16 @@ bool TActionExtData::DeleteBanner(TActionClass* pThis, HouseClass* pHouse, Objec
 
 bool TActionExtData::ResetHateValue(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	if (pThis->Value >= 0) {
-		HouseClass* pTargetHouse = HouseClass::Index_IsMP(pThis->Value) ?
-			HouseClass::FindByIndex(pThis->Value) :
-			HouseClass::FindByCountryIndex(pThis->Value);
-
-		if (pTargetHouse && pTargetHouse->AngerNodes.Count > 0) {
+	if (pThis->Value < 0) {
+		for (auto pTargetHouse : *HouseClass::Array()) {
 			for (auto& pAngerNode : pTargetHouse->AngerNodes)
 				pAngerNode.AngerLevel = 0;
 		}
+
 	} else {
-		for (auto pTargetHouse : *HouseClass::Array()) {
+		HouseClass* pTargetHouse = AresTEventExt::ResolveHouseParam(pThis->Value, nullptr);
+
+		if (pTargetHouse && pTargetHouse->AngerNodes.Count > 0) {
 			for (auto& pAngerNode : pTargetHouse->AngerNodes)
 				pAngerNode.AngerLevel = 0;
 		}
@@ -137,24 +292,17 @@ bool TActionExtData::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse,
 	bool allHouse = false;
 	HouseClass* vHouse = nullptr;
 
-	if (pThis->Param4 >= 0)
-	{
-		if (HouseClass::Index_IsMP(pThis->Param4))
-			vHouse = HouseClass::FindByIndex(pThis->Param4);
-		else
-			vHouse = HouseClass::FindByCountryIndex(pThis->Param4);
-	}
-	else if (pThis->Param4 == -1)
-	{
-		vHouse = pHouse;
-	}
-	else if (pThis->Param4 == -2)
-	{
-		allHouse = true;
+	if (pThis->Param4 < 0) {
+		if (pThis->Param4 == -1) {
+			vHouse = pHouse;
+		} else if (pThis->Param4 == -2) {
+			allHouse = true;
+		}
+	} else {
+		vHouse = AresTEventExt::ResolveHouseParam(pThis->Value, nullptr);
 	}
 
-	if (!allHouse && !vHouse)
-	{
+	if (!allHouse && !vHouse) {
 		return true;
 	}
 
@@ -888,9 +1036,10 @@ bool TActionExtData::PlayAudioAtRandomWP(TActionClass* pThis, HouseClass* pHouse
 
 	if (!ScenarioExtData::Instance()->DefinedAudioWaypoints.empty())
 	{
-		VocClass::SafeImmedietelyPlayAt(pThis->Value,
-		&CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
-			[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]));
+		auto audcoord = CellClass::Cell2Coord(ScenarioExtData::Instance()->DefinedAudioWaypoints
+			[pScen->Random.RandomFromMax(ScenarioExtData::Instance()->DefinedAudioWaypoints.size() - 1)]);
+		VocClass::SafeImmedietelyPlayAt(pThis->Value , &audcoord);
+
 	}
 	else
 	{
@@ -1331,8 +1480,7 @@ bool TActionExtData::RandomTriggerPut(TActionClass* pThis, HouseClass* pHouse, O
 
 	if (!nPool.empty())
 	{
-
-		auto const iter = std::find_if(nPool.begin(), nPool.end(),
+		auto const iter = std::ranges::find_if(nPool,
 			[&](auto const pTrigger) { return pTrigger == pTarget; });
 
 		if (iter == nPool.end())
@@ -1460,7 +1608,7 @@ bool TActionExtData::RandomTriggerEnable(TActionClass* pThis, HouseClass* pHouse
 
 	auto& nPools = TActionExtData::RandomTriggerPool;
 
-	if (!nPools.contains(iPoolID) || !nPools.count(iPoolID))
+	if (!nPools.contains(iPoolID))
 		return true;
 
 	auto& nPool = nPools[iPoolID];
@@ -1492,15 +1640,15 @@ bool TActionExtData::RandomTriggerRemove(TActionClass* pThis, HouseClass* pHouse
 
 	auto& nPools = TActionExtData::RandomTriggerPool;
 
-	if (!nPools.contains(iPoolID) || !nPools.count(iPoolID))
+	if (!nPools.contains(iPoolID))
 		return true;
 
 	auto& nPool = nPools[iPoolID];
-	auto const iter = std::find_if(nPool.begin(), nPool.end(),
+	auto const iter = std::ranges::find_if(nPool,
 		[&](auto const pTrigger) { return pTrigger == pTarget; });
 
 	if (iter != nPool.end())
-		nPool.erase(iter);
+		nPool.erase(iter, nPool.end());
 
 	return true;
 }
@@ -1685,7 +1833,7 @@ bool TActionExtData::DumpVariables(TActionClass* pThis, HouseClass* pHouse, Obje
 	CCINIClass ini {};
 	ini.ReadCCFile(&file);
 	const auto variables = ScenarioExtData::GetVariables(pThis->Param3 != 0);
-	std::for_each(variables->begin(), variables->end(), [&](const auto& variable) {
+	std::ranges::for_each(*variables, [&](const auto& variable) {
 		ini.WriteInteger(ScenarioClass::Instance()->FileName, variable.second.Name, variable.second.Value, false);
 	});
 
@@ -1779,21 +1927,6 @@ bool TActionExtData::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, 
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/Side/Body.h>
 
-static void __fastcall UnlockImput() {
-	JMP_FAST(0x684290);
-}
-
-static void __fastcall UIStuffs_MenuStuffs(){
-	JMP_FAST(0x72DDB0);
-}
-
-static void __fastcall PlayMovie(int id, int theme, bool clrscreen_aft, bool stretch, bool clrscreen_before) {
-	JMP_FAST(0x5BF260);
-}
-
-static void __fastcall Reset_SomeShapes_Post_Movie() {
-	JMP_FAST(0x72DEF0);
-}
 
 static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* pTargetHouse, ObjectClass* pSourceObject, TriggerClass* pTrigger, CellStruct* plocation, bool& ret)
 {
@@ -1907,13 +2040,13 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 	case TriggerAction::PlayMovie:
 	{
-		UIStuffs_MenuStuffs();
+		Game::UIStuffs_MenuStuffs();
 		WWMouseClass::Instance->ReleaseMouse();
 		ScenarioClass::ToggleDisplayMode(0);
-		PlayMovie(pThis->Value, -1, 1, 1, 1);
+		Game::PlayMovie(pThis->Value, -1, 1, 1, 1);
 		ScenarioClass::ToggleDisplayMode(1);
 		WWMouseClass::Instance->CaptureMouse();
-		Reset_SomeShapes_Post_Movie();
+		Game::Reset_SomeShapes_Post_Movie();
 		return true;
 	}
 	case TriggerAction::Lose:
@@ -1932,7 +2065,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 	}
 	case TriggerAction::UnlockInput:
 	{
-		UnlockImput();
+		Game::UnlockImput();
 		return true;
 	}
 	case TriggerAction::PlaySpeech:
@@ -2087,6 +2220,19 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 				ret = 1;
 			}
 		}
+		return true;
+	}
+	case TriggerAction::CreateBuilding:
+	{
+		ret = TActionExtData::CreateBuildingAt(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::ChangeHouse: {
+		ret = TActionExtData::ChangeHouse(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
+		return true;
+	}
+	case TriggerAction::AllChangeHouse: {
+		ret = TActionExtData::AllChangeHouse(pThis, pTargetHouse, pSourceObject, pTrigger, plocation);
 		return true;
 	}
 	default:

@@ -34,15 +34,15 @@ void SW_Battery::Deactivate(SuperClass* pSW, CellStruct cell, bool isPlayer)
 
 void SW_Battery::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action::None;
-	pData->AttachedToObject->UseChargeDrain = true;
+	pData->This()->Action = Action::None;
+	pData->This()->UseChargeDrain = true;
 	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LowPower;
 }
 
 void SW_Battery::LoadFromINI(SWTypeExtData * pData,CCINIClass * pINI)
 {
-	const auto pSection = pData->AttachedToObject->ID;
+	const auto pSection = pData->This()->ID;
 	INI_EX exINI(pINI);
 
 	pData->Battery_Overpower.Read(exINI, pSection, "Battery.Overpower");
@@ -51,8 +51,8 @@ void SW_Battery::LoadFromINI(SWTypeExtData * pData,CCINIClass * pINI)
 	if(!pData->SW_Power.isset())
 		pData->SW_Power.Read(exINI, pSection, "Battery.Power");
 
-	pData->AttachedToObject->Action = Action::None;
-	pData->AttachedToObject->UseChargeDrain = true;
+	pData->This()->Action = Action::None;
+	pData->This()->UseChargeDrain = true;
 	pData->SW_RadarEvent = false;
 }
 

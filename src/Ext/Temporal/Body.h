@@ -6,29 +6,40 @@
 #include <Utilities/Container.h>
 
 class WeaponTypeClass;
-class TemporalExtData
+class TemporalExtData final : public AbstractExtended
 {
-public:	
-	static COMPILETIMEEVAL size_t Canary = 0x82229781;
+public:
 	 using base_type = TemporalClass;
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
+	 static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
+	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) { this->AbstractExtended::SetName("TemporalClass"); }
+	TemporalExtData(TemporalClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved) { };
+	virtual ~TemporalExtData() = default;
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override { }
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
-		return sizeof(TemporalExtData) -
-			(4u //AttachedToObject
-				- 4u //inheritance
-			 );
+		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
 	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<TemporalExtData*>(this)->AbstractExtended::Internal_SaveToStream(Stm);
+		const_cast<TemporalExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { }
+
+	virtual TemporalClass* This() const override { return reinterpret_cast<TemporalClass*>(this->AbstractExtended::This()); }
+	virtual const TemporalClass* This_Const() const override { return reinterpret_cast<const TemporalClass*>(this->AbstractExtended::This_Const()); }
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -38,6 +49,17 @@ class TemporalExtContainer final : public Container<TemporalExtData>
 {
 public:
 	static TemporalExtContainer Instance;
+
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
 };
 
 class NOVTABLE FakeTemporalClass : public TemporalClass
@@ -45,7 +67,20 @@ class NOVTABLE FakeTemporalClass : public TemporalClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+	void CreateWarpAwayAnimation(WeaponTypeClass* pWeapon);
+
+	void ResetTemporalState() {
+		this->Target = 0;
+		this->PrevTemporal = 0;
+		this->NextTemporal = 0;
+		this->SourceSW = 0;
+		this->unknown_pointer_38 = 0;
+	}
+
+	void _Update();
+	void _Detonate(TechnoClass* pTarget);
 
 	FORCEDINLINE TemporalClass* _AsTemporal() const {
 		return (TemporalClass*)this;
@@ -54,5 +89,5 @@ public:
 	FORCEDINLINE TemporalExtData* _GetExtData() {
 		return *reinterpret_cast<TemporalExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
-}; 
+};
 static_assert(sizeof(FakeTemporalClass) == sizeof(TemporalClass), "Invalid Size !");

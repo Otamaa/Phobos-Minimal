@@ -5,32 +5,62 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 #include <ExtraHeaders/CompileTimeDirStruct.h>
+#include <Ext/Foot/Body.h>
 
-class InfantryExtData
+class InfantryExtData : public FootExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xACCAAAAA;
 	using base_type = InfantryClass;
-	static COMPILETIMEEVAL size_t ExtOffset = 0x6EC;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
-	bool IsUsingDeathSequence { false };
-	int CurrentDoType { -1 };
-	bool SkipTargetChangeResetSequence { false };
+#pragma region ClassMembers
+	bool IsUsingDeathSequence;
+	int CurrentDoType;
+	bool SkipTargetChangeResetSequence;
+	BuildingClass* GarrisonedIn; //C
+#pragma endregion
 
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
+	InfantryExtData(InfantryClass* pObj) : FootExtData(pObj),
+		IsUsingDeathSequence(false),
+		CurrentDoType(-1),
+		SkipTargetChangeResetSequence(false),
+		GarrisonedIn(nullptr)
+	{ }
+	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	virtual ~InfantryExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		return sizeof(InfantryExtData) -
-			(4u //AttachedToObject
-						- 4u //inheritance
-			 );
+		this->FootExtData::InvalidatePointer(ptr, bRemoved);
+		AnnounceInvalidPointer(GarrisonedIn, ptr, bRemoved);
 	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->FootExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<InfantryExtData*>(this)->FootExtData::SaveToStream(Stm);
+		const_cast<InfantryExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->FootExtData::CalculateCRC(crc);
+	}
+
+	virtual InfantryClass* This() const override { return reinterpret_cast<InfantryClass*>(this->FootExtData::This()); }
+	virtual const InfantryClass* This_Const() const override { return reinterpret_cast<const InfantryClass*>(this->FootExtData::This_Const()); }
 
 private:
 	template <typename T>
@@ -41,6 +71,17 @@ class InfantryExtContainer final : public Container<InfantryExtData>
 {
 public:
 	static InfantryExtContainer Instance;
+
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
 };
 
 class InfantryTypeExtData;
@@ -48,7 +89,7 @@ class NOVTABLE FakeInfantryClass : public InfantryClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Dummy(Mission, bool) RX;
 	void _DummyScatter(const CoordStruct& crd, bool ignoreMission, bool ignoreDestination) RX;
@@ -76,14 +117,15 @@ public:
 	}
 
 	void _DestroyThis(char flag) JMP_THIS(0x523350);
+	void _Detach(AbstractClass* target, bool all);
 
 	InfantryExtData* _GetExtData()
 	{
-		return *reinterpret_cast<InfantryExtData**>(((DWORD)this) + InfantryExtData::ExtOffset);
+		return *reinterpret_cast<InfantryExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 
 	InfantryTypeExtData* _GetTypeExtData() {
-		return *reinterpret_cast<InfantryTypeExtData**>(((DWORD)this->Type) + 0xECC);
+		return *reinterpret_cast<InfantryTypeExtData**>(((DWORD)this->Type) + AbstractExtOffset);
 	}
 };
 static_assert(sizeof(FakeInfantryClass) == sizeof(InfantryClass), "Invalid Size !");

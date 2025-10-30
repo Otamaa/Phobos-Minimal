@@ -53,8 +53,8 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 		}
 	}
 
-	if (!_loaded)
-		Debug::LogInfo("Failed to load {} !", pFileName);
+	if (_loaded)
+		Debug::LogInfo("Successfully load {} !", pFileName);
 }
 
 const wchar_t* CSFLoader::GetDynamicString(const char* pLabelName, const wchar_t* pPattern, const char* pDefault, bool isNostr)
@@ -197,16 +197,15 @@ ASMJIT_PATCH(0x6BD84E, CSF_LoadExtraFiles, 5)
 		return 0x6BD86F;
 	}
 
-	fmt::memory_buffer buffer {};
+	static fmt::basic_memory_buffer<char , 60> buffer {};
 	CSFLoader::LoadAdditionalCSF("ares.csf", true);
-
+	buffer.clear();
 	std::string res = "us";
 	if (const auto language = StringTable::GetLanguage(StringTable::Language()))
 		res = language->Letter;
 
 	fmt::format_to(std::back_inserter(buffer), "ares_{}.csf", res);
 	buffer.push_back('\0');
-
 	CSFLoader::LoadAdditionalCSF(buffer.data());
 
 	buffer.clear();

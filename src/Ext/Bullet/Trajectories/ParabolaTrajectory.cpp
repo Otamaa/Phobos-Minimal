@@ -43,8 +43,8 @@ namespace detail
 
 bool ParabolaTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectoryType::Load(Stm, false);
-
+	return this->PhobosTrajectoryType::Load(Stm, false)
+		&&
 	Stm
 		.Process(this->TargetSnapDistance, false)
 		.Process(this->OpenFireMode, false)
@@ -67,13 +67,12 @@ bool ParabolaTrajectoryType::Load(PhobosStreamReader& Stm, bool RegisterForChang
 		.Process(this->AxisOfRotation, false)
 		;
 
-	return true;
 }
 
 bool ParabolaTrajectoryType::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectoryType::Save(Stm);
-
+	return this->PhobosTrajectoryType::Save(Stm)
+	&&
 	Stm
 		.Process(this->TargetSnapDistance)
 		.Process(this->OpenFireMode)
@@ -96,7 +95,6 @@ bool ParabolaTrajectoryType::Save(PhobosStreamWriter& Stm) const
 		.Process(this->AxisOfRotation)
 		;
 
-	return true;
 }
 
 bool ParabolaTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
@@ -139,8 +137,8 @@ bool ParabolaTrajectoryType::Read(CCINIClass* const pINI, const char* pSection)
 
 bool ParabolaTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 {
-	this->PhobosTrajectory::Load(Stm, false);
-
+	return this->PhobosTrajectory::Load(Stm, false)
+	&&
 	Stm
 		.Process(this->BounceTimes)
 		.Process(this->OffsetCoord)
@@ -153,14 +151,12 @@ bool ParabolaTrajectory::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		.Process(this->WaitOneFrame)
 		.Process(this->LastVelocity)
 		;
-
-	return true;
 }
 
 bool ParabolaTrajectory::Save(PhobosStreamWriter& Stm) const
 {
-	this->PhobosTrajectory::Save(Stm);
-
+	return this->PhobosTrajectory::Save(Stm)
+	&&
 	Stm
 		.Process(this->BounceTimes)
 		.Process(this->OffsetCoord)
@@ -173,8 +169,6 @@ bool ParabolaTrajectory::Save(PhobosStreamWriter& Stm) const
 		.Process(this->WaitOneFrame)
 		.Process(this->LastVelocity)
 		;
-
-	return true;
 }
 
 void ParabolaTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)

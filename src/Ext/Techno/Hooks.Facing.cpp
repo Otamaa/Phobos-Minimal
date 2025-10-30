@@ -51,6 +51,8 @@ ASMJIT_PATCH(0x7369D6, UnitClass_UpdateRotation_StopUnitIdleAction, 0xA)
 	return SkipGameCode;
 }
 
+#include <Ext/Unit/Body.h>
+
 ASMJIT_PATCH(0x736AFB, UnitClass_UpdateRotation_CheckTurnToForward, 0x6)
 {
 	enum { SkipGameCode = 0x736BE2, ContinueGameCode = 0x736B21 };
@@ -75,7 +77,7 @@ ASMJIT_PATCH(0x736B7E, UnitClass_UpdateRotation_ApplyUnitIdleAction, 0xA)
 	GET(UnitClass* const, pThis, ESI);
 
 	WeaponStruct* const pWeaponStruct = pThis->GetTurrentWeapon();
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pExt = UnitExtContainer::Instance.Find(pThis);
 	const Mission currentMission = pThis->CurrentMission;
 
 	if ((pWeaponStruct && pWeaponStruct->WeaponType && pWeaponStruct->TurretLocked) || (pExt->Is_DriverKilled))

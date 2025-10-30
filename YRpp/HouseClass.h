@@ -334,7 +334,7 @@ public:
 	bool IsAlliedWith(HouseClass const* pHouse) const
 		{ JMP_THIS(0x4F9A50); }
 
-	bool IsAlliedWith(ObjectClass const* pObject) const
+	bool IsAlliedWith(TechnoClass const* pObject) const
 		{ JMP_THIS(0x4F9A90); }
 
 	bool IsAlliedWith(AbstractClass const* pAbstract) const

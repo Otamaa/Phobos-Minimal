@@ -26,13 +26,13 @@ bool SW_LaserStrike::Activate(SuperClass* pThis, const CellStruct& Coords, bool 
 
 void SW_LaserStrike::Initialize(SWTypeExtData* pData)
 {
-	pData->AttachedToObject->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Nuke;
 }
 
 void SW_LaserStrike::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	const char* section = pData->AttachedToObject->ID;
+	const char* section = pData->This()->ID;
 
 	INI_EX exINI(pINI);
 	pData->LaserStrikeDuration.Read(exINI, section, "LaserStrike.Duration");
@@ -71,7 +71,7 @@ void SW_LaserStrike::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 
 int SW_LaserStrike::GetDamage(const SWTypeExtData* pData) const
 {
-	return pData->SW_Damage.Get(pData->AttachedToObject->WeaponType->Damage);
+	return pData->SW_Damage.Get(pData->This()->WeaponType->Damage);
 }
 
 bool SW_LaserStrike::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
@@ -181,8 +181,8 @@ void LaserStrikeStateMachine::Update()
 
 					if (this->LaserStrikeROF <= 0)
 					{
-						if (auto pWeapon = pData->AttachedToObject->WeaponType)
-							WeaponTypeExtData::DetonateAt(pWeapon, pos, Firer, this->Type->GetDamage(pData), false);
+						if (auto pWeapon = pData->This()->WeaponType)
+							WeaponTypeExtData::DetonateAt4(pWeapon, pos, Firer, NewSWType::GetNewSWType(pData)->GetDamage(pData), false, Super->Owner);
 					}
 				}
 
@@ -235,7 +235,7 @@ void LaserStrikeStateMachine::Update()
 				}
 
 				if (pData->LaserStrikeZeroRadius_Weapon)
-					WeaponTypeExtData::DetonateAt(pData->LaserStrikeZeroRadius_Weapon, center, Firer, pData->LaserStrikeZeroRadius_Weapon->Damage, false);
+					WeaponTypeExtData::DetonateAt4(pData->LaserStrikeZeroRadius_Weapon, center, Firer, pData->LaserStrikeZeroRadius_Weapon->Damage, false, Super->Owner);
 
 				if (this->MaxCount > 0){
 					this->MaxCountCounter--;

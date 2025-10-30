@@ -26,30 +26,10 @@
 #include <New/Entity/VerticalLaserClass.h>
 #include <New/Entity/HomingMissileTargetTracker.h>
 
-void TechnoExtData::InitFunctionEvents()
-{
-	/*
-	GenericFuctions.clear();
-
-	//register desired functions !
-	GenericFuctions += TechnoExtData::UpdateMindControlAnim;
-	GenericFuctions += TechnoExtData::ApplyMindControlRangeLimit;
-	GenericFuctions += TechnoExtData::ApplyInterceptor;
-	GenericFuctions += TechnoExtData::ApplySpawn_LimitRange;
-	GenericFuctions += TechnoExtData::CheckDeathConditions;
-	GenericFuctions += TechnoExtData::EatPassengers;
-	GenericFuctions += PassengersFunctional::AI;
-	GenericFuctions += SpawnSupportFunctional::AI;
-	GenericFuctions += TechnoClass_AI_GattlingDamage;
-	*/
-}
-
 void TechnoExtData::InitializeItems(TechnoClass* pThis, TechnoTypeClass* pType)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	pExt->AbsType = pThis->WhatAmI();
 	pExt->CurrentShieldType = pTypeExt->ShieldType;
 
 	if (pExt->AbsType != BuildingClass::AbsID)

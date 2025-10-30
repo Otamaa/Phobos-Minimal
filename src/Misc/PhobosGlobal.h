@@ -81,18 +81,6 @@ public:
 			return const_cast<CopyArray*>(this)->Serialize(Stm);
 		}
 
-		template <typename T>
-		bool Serialize(T& Stm)
-		{
-			return Stm
-				.Process(Aircraft)
-				.Process(Building)
-				.Process(Infantry)
-				.Process(Unit)
-				.Success()
-				;
-		}
-
 		COMPILETIMEEVAL void clear() {
 			Aircraft.clear();
 			Building.clear();
@@ -108,29 +96,36 @@ public:
 				}
 			}
 
-			for (auto& item : Building)
-			{
-				if (removed && (AbstractClass*)item == ptr)
-				{
+			for (auto& item : Building) {
+				if (removed && (AbstractClass*)item == ptr) {
 					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
 				}
 			}
 
-			for (auto& item : Infantry)
-			{
-				if (removed && (AbstractClass*)item == ptr)
-				{
+			for (auto& item : Infantry) {
+				if (removed && (AbstractClass*)item == ptr) {
 					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
 				}
 			}
 
-			for (auto& item : Unit)
-			{
-				if (removed && (AbstractClass*)item == ptr)
-				{
+			for (auto& item : Unit) {
+				if (removed && (AbstractClass*)item == ptr) {
 					item = nullptr; //we null it since we dont want to change the iterator when the detonation in process
 				}
 			}
+		}
+
+	private :
+		template <typename T>
+		bool Serialize(T& Stm)
+		{
+			return Stm
+				.Process(Aircraft)
+				.Process(Building)
+				.Process(Infantry)
+				.Process(Unit)
+				.Success()
+				;
 		}
 	};
 
@@ -190,6 +185,8 @@ public:
 
 	static void Clear();
 	static void PointerGotInvalid(AbstractClass* ptr, bool removed);
+
+private:
 
 	template <typename T>
 	bool Serialize(T& stm)

@@ -5,6 +5,8 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
+#include <Utilities/Macro.h>
+
 // This function controls the availability of super weapons. If a you want to
 // add to or change the way the game thinks a building provides a super weapon,
 // change the lambda UpdateStatus. Available means this super weapon exists at
@@ -125,7 +127,6 @@ template <typename T>
 void SuperExtData::Serialize(T& Stm) {
 
 	Stm
-		.Process(this->Initialized)
 		.Process(this->Type, true)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
@@ -133,12 +134,31 @@ void SuperExtData::Serialize(T& Stm) {
 		.Process(this->FirstClickAutoFireDone)
 		//.Process(this->Firer)
 		.Process(this->Statusses)
+
+		.Process(this->MusicTimer)
+		.Process(this->MusicActive)
 		;
 }
 
 // =============================
 // container
 SuperExtContainer SuperExtContainer::Instance;
+std::vector<SuperExtData*> Container<SuperExtData>::Array;
+
+void Container<SuperExtData>::Clear()
+{
+	Array.clear();
+}
+
+bool SuperExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+{
+	return LoadGlobalArrayData(Stm);
+}
+
+bool SuperExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+{
+	return SaveGlobalArrayData(Stm);
+}
 
 // =============================
 // container hooks
@@ -161,35 +181,6 @@ ASMJIT_PATCH(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 	return 0;
 }
 
-#include <Misc/Hooks.Otamaa.h>
-
-HRESULT __stdcall FakeSuperClass::_Load(IStream* pStm)
-{
-
-	SuperExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->SuperClass::Load(pStm);
-
-	if (SUCCEEDED(res))
-		SuperExtContainer::Instance.LoadStatic();
-
-	return res;
-}
-
-HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, bool clearDirty)
-{
-
-	SuperExtContainer::Instance.PrepareStream(this, pStm);
-	HRESULT res = this->SuperClass::Save(pStm, clearDirty);
-
-	if (SUCCEEDED(res))
-		SuperExtContainer::Instance.SaveStatic();
-
-	return res;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)
-
 // ASMJIT_PATCH(0x6CE001 , SuperClass_Detach , 0x5)
 // {
 // 	GET(SuperClass*, pThis, ESI);
@@ -207,3 +198,24 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)
 //	pThis->SuperClass::PointerExpired(target , all);
 //}
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))
+
+HRESULT __stdcall FakeSuperClass::_Load(IStream* pStm)
+{
+	HRESULT hr = this->SuperClass::Load(pStm);
+	if (SUCCEEDED(hr))
+		hr = SuperExtContainer::Instance.LoadKey(this, pStm);
+
+	return hr;
+}
+
+HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, BOOL clearDirty)
+{
+	HRESULT hr = this->SuperClass::Save(pStm, clearDirty);
+	if (SUCCEEDED(hr))
+		hr = SuperExtContainer::Instance.SaveKey(this, pStm);
+
+	return hr;
+}
+
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
+// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)

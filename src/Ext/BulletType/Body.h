@@ -12,132 +12,213 @@
 
 #include <Ext/Bullet/Trajectories/PhobosTrajectory.h>
 
-class BulletTypeExtData final
+#include <Ext/ObjectType/Body.h>
+
+class BulletTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xF00DF00D;
 	using base_type = BulletTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	static COMPILETIMEEVAL size_t ExtOffset = 0x2C4; //ares
-
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-	Valueable<int> Health { 0 };
-	Nullable<Armor> Armor { };
-	Valueable<bool> Interceptable { false };
-	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types { };
-	Nullable<double> Gravity { };
-	Valueable<bool> Gravity_HeightFix { false };
-	Valueable<bool> Shrapnel_AffectsGround { false };
-	Valueable<bool> Shrapnel_AffectsBuildings { false };
-	Nullable<double> Shrapnel_Chance { };
-	Valueable<bool> Shrapnel_UseWeaponTargeting { false };
 
-	Valueable<Leptons> Cluster_Scatter_Min { BulletTypeExtData::DefaultBulletScatterMin };
-	Valueable<Leptons> Cluster_Scatter_Max { BulletTypeExtData::DefaultBulletScatterMax };
+#pragma region ClassMembers
+	Valueable<int> Health;
+	Nullable<Armor> Armor;
+	Valueable<bool> Interceptable;
+	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
+	Nullable<double> Gravity;
+	Valueable<bool> Gravity_HeightFix;
+	Valueable<bool> Shrapnel_AffectsGround;
+	Valueable<bool> Shrapnel_AffectsBuildings;
+	Nullable<double> Shrapnel_Chance;
+	Valueable<bool> Shrapnel_UseWeaponTargeting;
+	Valueable<Leptons> Cluster_Scatter_Min;
+	Valueable<Leptons> Cluster_Scatter_Max;
+	Valueable<bool> Interceptable_DeleteOnIntercept;
+	Valueable<WeaponTypeClass*> Interceptable_WeaponOverride;
+	Nullable<bool> SubjectToLand;
+	Valueable<bool> SubjectToLand_Detonate;
+	Nullable<bool> SubjectToWater;
+	Valueable<bool> SubjectToWater_Detonate;
+	Valueable<bool> AAOnly;
+	Valueable<bool> SubjectToSolid;
+	Valueable<int> Solid_Level;
+	Nullable<AnimTypeClass*> Parachute;
+	Nullable<double> MissileROTVar;
+	Nullable<int> MissileSafetyAltitude;
+	Valueable<bool> Splits;
+	Valueable<double> RetargetAccuracy;
+	Valueable<bool> RetargetOwner;
+	Valueable<double> RetargetSelf_Probability;
+	Valueable<double> AirburstSpread;
+	Nullable<bool> AroundTarget;
+	ValueableVector<WeaponTypeClass*> AirburstWeapons;
+	Valueable<bool> Airburst_UseCluster;
+	Valueable<bool> Airburst_RandomClusters;
+	Valueable<int> Splits_TargetCellRange;
+	Valueable<bool> Splits_UseWeaponTargeting;
+	Valueable<bool> AirburstWeapon_ApplyFirepowerMult;
+	Valueable<double> Splits_Range;
+	Valueable<bool> Splits_RandomCellUseHarcodedRange;
+	Valueable<bool> Splits_TargetingUseVerses;
+	Valueable<bool> Splits_FillRemainingClusterWithRandomcells;
+	Valueable<int> BounceAmount;
+	Valueable<WeaponTypeClass*> BounceHitWeapon;
+	Valueable<bool> BounceOnTerrain;
+	Valueable<bool> BounceOnBuilding;
+	Valueable<bool> BounceOnInfantry;
+	Valueable<bool> BounceOnVehicle;
+	Valueable<bool> SubjectToTrenches;
+	Nullable<double> PreExplodeRange;
+	Nullable <double> Trajectory_Speed;
+	Nullable<int> Proximity_Range;
+	Valueable<bool> IsScalable;
+	Nullable<Leptons> BallisticScatterMin;
+	Nullable<Leptons> BallisticScatterMax;
+	OptionalStruct<const ConvertClass*> ImageConvert;
+	Valueable<bool> Parachuted;
+	Valueable<int> AnimLength;
+	Valueable<bool> Arcing_AllowElevationInaccuracy;
+	Valueable<ParticleSystemTypeClass*> AttachedSystem;
+	Valueable<WeaponTypeClass*> ReturnWeapon;
+	Valueable<bool> ReturnWeapon_ApplyFirepowerMult;
+	TrailsReader Trails;
+	std::unique_ptr<PhobosTrajectoryType> TrajectoryType;
+	Valueable<bool> SubjectToGround;
+	Valueable<bool> Airburst_TargetAsSource;
+	Valueable<bool> Airburst_TargetAsSource_SkipHeight;
+	Valueable<Leptons> AirburstWeapon_SourceScatterMin;
+	Valueable<Leptons> AirburstWeapon_SourceScatterMax;
+	Valueable<int> EMPulseCannon_InaccurateRadius;
+	Valueable<int> Parachuted_FallRate;
+	Nullable<int> Parachuted_MaxFallRate;
+	Valueable<bool> Parachuted_Remap;
+	Valueable<bool> Vertical_AircraftFix;
+	Nullable<bool> VerticalInitialFacing;
+	Valueable<bool> AU;
+#pragma endregion
 
-	// Ares 0.7
-	Valueable<bool> Interceptable_DeleteOnIntercept { false };
-	Valueable<WeaponTypeClass*> Interceptable_WeaponOverride { nullptr };
+public:
+	BulletTypeExtData(BulletTypeClass* pObj)
+		: ObjectTypeExtData(pObj),
+		Health(0),
+		Armor(),
+		Interceptable(false),
+		LaserTrail_Types(),
+		Gravity(),
+		Gravity_HeightFix(false),
+		Shrapnel_AffectsGround(false),
+		Shrapnel_AffectsBuildings(false),
+		Shrapnel_Chance(),
+		Shrapnel_UseWeaponTargeting(false),
+		Cluster_Scatter_Min(BulletTypeExtData::DefaultBulletScatterMin),
+		Cluster_Scatter_Max(BulletTypeExtData::DefaultBulletScatterMax),
+		Interceptable_DeleteOnIntercept(false),
+		Interceptable_WeaponOverride(nullptr),
+		SubjectToLand(),
+		SubjectToLand_Detonate(true),
+		SubjectToWater(),
+		SubjectToWater_Detonate(true),
+		AAOnly(false),
+		SubjectToSolid(false),
+		Solid_Level(0),
+		Parachute(),
+		MissileROTVar(),
+		MissileSafetyAltitude(),
+		Splits(false),
+		RetargetAccuracy(0.0),
+		RetargetOwner(true),
+		RetargetSelf_Probability(0.5),
+		AirburstSpread(1.5),
+		AroundTarget(),
+		AirburstWeapons(),
+		Airburst_UseCluster(false),
+		Airburst_RandomClusters(false),
+		Splits_TargetCellRange(3),
+		Splits_UseWeaponTargeting(false),
+		AirburstWeapon_ApplyFirepowerMult(false),
+		Splits_Range(1280.0),
+		Splits_RandomCellUseHarcodedRange(true),
+		Splits_TargetingUseVerses(true),
+		Splits_FillRemainingClusterWithRandomcells(true),
+		BounceAmount(0),
+		BounceHitWeapon(nullptr),
+		BounceOnTerrain(true),
+		BounceOnBuilding(false),
+		BounceOnInfantry(false),
+		BounceOnVehicle(false),
+		SubjectToTrenches(true),
+		PreExplodeRange(),
+		Trajectory_Speed(),
+		Proximity_Range(),
+		IsScalable(false),
+		BallisticScatterMin(),
+		BallisticScatterMax(),
+		ImageConvert(),
+		Parachuted(false),
+		AnimLength(0),
+		Arcing_AllowElevationInaccuracy(true),
+		AttachedSystem(nullptr),
+		ReturnWeapon(nullptr),
+		ReturnWeapon_ApplyFirepowerMult(false),
+		Trails(),
+		TrajectoryType(nullptr),
+		SubjectToGround(false),
+		Airburst_TargetAsSource(false),
+		Airburst_TargetAsSource_SkipHeight(false),
+		AirburstWeapon_SourceScatterMin(Leptons(0)),
+		AirburstWeapon_SourceScatterMax(Leptons(0)),
+		EMPulseCannon_InaccurateRadius(0),
+		Parachuted_FallRate(1),
+		Parachuted_MaxFallRate(),
+		Parachuted_Remap(true),
+		Vertical_AircraftFix(true),
+		VerticalInitialFacing(),
+		AU(false)
+	{ }
 
-	Nullable<bool> SubjectToLand { };
-	Valueable<bool> SubjectToLand_Detonate { true };
-	Nullable<bool> SubjectToWater { };
-	Valueable<bool> SubjectToWater_Detonate { true };
+	BulletTypeExtData(BulletTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
-	Valueable<bool> AAOnly { false };
+	virtual ~BulletTypeExtData() = default;
 
-	// solid
-	Valueable<bool> SubjectToSolid { false };
-	Valueable<int> Solid_Level { 0 };
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
 
-	Nullable<AnimTypeClass*> Parachute { };
-	Nullable<double> MissileROTVar { };
-	Nullable<int> MissileSafetyAltitude { };
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
 
-	Valueable<bool> Splits { false };
-	Valueable<double> RetargetAccuracy { 0.0 };
-	Valueable<bool> RetargetOwner { true };
-	Valueable<double> RetargetSelf_Probability { 0.5 };
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<BulletTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<BulletTypeExtData*>(this)->Serialize(Stm);
+	}
 
-	Valueable<double> AirburstSpread { 1.5 };
-	Nullable<bool> AroundTarget { }; // aptly named, for both Splits and Airburst, defaulting to Splits
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
 
-	ValueableVector<WeaponTypeClass*> AirburstWeapons { };
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
 
-	Valueable<bool> Airburst_UseCluster { false };
-	Valueable<bool> Airburst_RandomClusters { false };
+	virtual BulletTypeClass* This() const override { return reinterpret_cast<BulletTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const BulletTypeClass* This_Const() const override { return reinterpret_cast<const BulletTypeClass*>(this->ObjectTypeExtData::This_Const()); }
 
-	Valueable<int> Splits_TargetCellRange { 3 };
-	Valueable<bool> Splits_UseWeaponTargeting { false };
-	Valueable<bool> AirburstWeapon_ApplyFirepowerMult { false };
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
 
-	Valueable<double> Splits_Range { 1280.0 };
-	Valueable<bool> Splits_RandomCellUseHarcodedRange { true };
-	Valueable<bool> Splits_TargetingUseVerses { true };
-	Valueable<bool> Splits_FillRemainingClusterWithRandomcells { true };
-
-	//
-	Valueable<int> BounceAmount { 0 };
-	Valueable<WeaponTypeClass*> BounceHitWeapon { nullptr };
-	Valueable<bool> BounceOnTerrain { true };
-	Valueable<bool> BounceOnBuilding { false };
-	Valueable<bool> BounceOnInfantry { false };
-	Valueable<bool> BounceOnVehicle { false };
-	//
-
-	Valueable<bool> SubjectToTrenches { true }; //! if false, this projectile/weapon *always* passes through to the occupants, regardless of UC.PassThrough
-
-	Nullable<double> PreExplodeRange { };
-	Nullable <double> Trajectory_Speed { };
-	Nullable<int> Proximity_Range { };
-	Valueable<bool> IsScalable { false };
-	//std::vector<LineTrailData> LineTrailData { };
-
-	Nullable<Leptons> BallisticScatterMin { };
-	Nullable<Leptons> BallisticScatterMax { };
-
-	// cache for the image animation's palette convert
-	OptionalStruct<const ConvertClass*> ImageConvert { };
-
-	Valueable<bool> Parachuted { false };
-	Valueable<int> AnimLength { 0 };
-
-	Valueable<bool> Arcing_AllowElevationInaccuracy { true };
-
-	Valueable<ParticleSystemTypeClass*> AttachedSystem { nullptr };
-	Valueable<WeaponTypeClass*> ReturnWeapon { nullptr };
-	Valueable<bool> ReturnWeapon_ApplyFirepowerMult {};
-	TrailsReader Trails { };
-
-	std::unique_ptr<PhobosTrajectoryType> TrajectoryType { };
-	Valueable<bool> SubjectToGround { };
-
-	Valueable<bool> Airburst_TargetAsSource {};
-	Valueable<bool> Airburst_TargetAsSource_SkipHeight {};
-	Valueable<Leptons> AirburstWeapon_SourceScatterMin {};
-	Valueable<Leptons> AirburstWeapon_SourceScatterMax {};
-
-	Valueable<int> EMPulseCannon_InaccurateRadius {};
-
-	Valueable<int> Parachuted_FallRate { 1 };
-	Nullable<int> Parachuted_MaxFallRate {};
-	Valueable<bool> Parachuted_Remap { true };
-
-	Valueable<bool> Vertical_AircraftFix { true };
-	Nullable<bool> VerticalInitialFacing {};
-
-
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
 
 	COMPILETIMEEVAL bool FORCEDINLINE HasSplitBehavior() const
 	{
 		// behavior in FS: Splits defaults to Airburst.
-		return this->AttachedToObject->Airburst || this->Splits;
+		return This()->Airburst || this->Splits;
 	}
 
 	COMPILETIMEEVAL double FORCEDINLINE GetMissileROTVar(const RulesClass* const pRules) const
@@ -156,25 +237,21 @@ public:
 		return pRules->MissileSafetyAltitude;
 	}
 
+	COMPILETIMEEVAL double FORCEDINLINE GetAdjustedGravity() const
+	{
+		const auto nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
+		return This()->Floater ? nGravity * 0.5 : nGravity;
+	}
+
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, HouseClass* pHouse , WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon, bool addDamage, bool SetWeaponType) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, WeaponTypeClass* pWeapon) const;
 	BulletClass* CreateBullet(AbstractClass* pTarget, TechnoClass* pOwner, int damage, WarheadTypeClass* pWarhead, int speed, int range, bool bright, bool addDamage) const;
 
-	COMPILETIMEEVAL double FORCEDINLINE GetAdjustedGravity() const
-	{
-		const auto nGravity = this->Gravity.Get(RulesClass::Instance->Gravity);
-		return this->AttachedToObject->Floater ? nGravity * 0.5 : nGravity;
-	}
 
 	const ConvertClass* GetBulletConvert();
+public:
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(BulletTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 
 	static FORCEDINLINE double GetAdjustedGravity(BulletTypeClass* pType);
 
@@ -182,8 +259,10 @@ public:
 	static CoordStruct CalculateInaccurate(BulletTypeClass* pBulletType);
 
 private:
+
 	template <typename T>
 	void Serialize(T& Stm);
+
 public:
 	static COMPILETIMEEVAL Leptons DefaultBulletScatterMin { 256 };
 	static COMPILETIMEEVAL Leptons DefaultBulletScatterMax { 512 };
@@ -194,25 +273,17 @@ class BulletTypeExtContainer final : public Container<BulletTypeExtData>
 {
 public:
 	static BulletTypeExtContainer Instance;
-	PhobosMap<BulletTypeClass*, BulletTypeExtData*> Map {};
 
-	virtual bool Load(BulletTypeClass* key, IStream* pStm);
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
-	void Clear() {
-		this->Map.clear();
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
 	}
-
-	//BulletTypeExtContainer() : Container<BulletTypeExtData> { "BulletTypeClass" }
-	//	, Map {}
-	//{ }
-
-	//virtual ~BulletTypeExtContainer() override = default;
-	//CONSTEXPR_NOCOPY_CLASSB(BulletTypeExtContainer, BulletTypeExtData, "BulletTypeClass");
-
-//private:
-//	BulletTypeExtContainer(const BulletTypeExtContainer&) = delete;
-//	BulletTypeExtContainer(BulletTypeExtContainer&&) = delete;
-//	BulletTypeExtContainer& operator=(const BulletTypeExtContainer& other) = delete;
 };
 
 double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
@@ -225,10 +296,11 @@ class NOVTABLE FakeBulletTypeClass : public BulletTypeClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	BulletTypeExtData* _GetExtData() {
-		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this) + BulletTypeExtData::ExtOffset);
+		return *reinterpret_cast<BulletTypeExtData**>(((DWORD)this) + AbstractExtOffset);
 	}
 };
 static_assert(sizeof(FakeBulletTypeClass) == sizeof(BulletTypeClass), "Invalid Size !");

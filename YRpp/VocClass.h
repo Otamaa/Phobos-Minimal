@@ -63,6 +63,13 @@ class AudioEventTag;
 class VocClass
 {
 public:
+
+	static HRESULT __fastcall Load(IStream* pStm)
+	{ JMP_THIS(0x751710); }
+
+	static HRESULT __fastcall Save(IStream* pStm)
+	{ JMP_THIS(0x751620); }
+
 	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<VocClass*>, 0xB1D378u> const Array{};
 
 	static COMPILETIMEEVAL reference<bool, 0x8464ACu> const VoicesEnabled{};

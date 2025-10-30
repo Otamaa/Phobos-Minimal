@@ -2,11 +2,11 @@
 
 #include <TActionClass.h>
 #include <TriggerClass.h>
-#include <map>
-#include <vector>
 
 #include <Utilities/Savegame.h>
 #include <Helpers/Template.h>
+#include <Utilities/VectorHelper.h>
+#include <Utilities/PhobosMap.h>
 
 class HouseClass;
 class ObjectClass;
@@ -162,9 +162,13 @@ public:
 	ACTION_FUNC(AllAssignMission);
 	ACTION_FUNC(MakeAllyOneWay);
 	ACTION_FUNC(MakeEnemyOneWay);
+
+	ACTION_FUNC(CreateBuildingAt);
+	ACTION_FUNC(ChangeHouse);
+	ACTION_FUNC(AllChangeHouse);
 #undef ACTION_FUNC
 
-	static std::map<int, std::vector<TriggerClass*>> RandomTriggerPool;
+	static PhobosMap<int, std::vector<TriggerClass*>> RandomTriggerPool;
 
 	static void Clear() {
 		RandomTriggerPool.clear();

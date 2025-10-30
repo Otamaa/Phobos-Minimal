@@ -195,23 +195,23 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectoryType>& pType)
 {
 	bool bExist = false;
-	Stm.Load(bExist);
+	Stm.Process(bExist);
 
-	if (bExist)
-	{
+	if (bExist) {
+
 		TrajectoryFlag nFlag = TrajectoryFlag::Invalid;
 		Stm.Process(nFlag, false);
 
 		//Read the pointer value again so it can be registered
-		PhobosTrajectoryType* pOld = nullptr;
+		long pOld = 0ul;
 		if (!Stm.Load(pOld) || !pOld)
 			return;
 
 		//create the new type
 		if(PhobosTrajectoryType::UpdateType(pType, nFlag)) {
 			// register the change if succeeded
-			SwizzleManagerClass::Instance->Here_I_Am((long)pOld ,pType.get());
-			pType->Load(Stm, false);
+			PHOBOS_SWIZZLE_REGISTER_POINTER(pOld, pType.get(), pType->Name())
+			pType->Load(Stm, true);
 		}
 	}
 }
@@ -219,13 +219,13 @@ void PhobosTrajectoryType::ProcessFromStream(PhobosStreamReader& Stm, std::uniqu
 void PhobosTrajectoryType::ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectoryType>& pType)
 {
 	const bool Exist = pType.get();
-	Stm.Save(Exist);
-	if (Exist)
-	{
+	Stm.Process(Exist);
+
+	if (Exist) {
 		Stm.Process(pType->Flag, false);
 		//write the pointer value
-		if(Savegame::WritePhobosStream(Stm, pType.get()))
-			pType->Save(Stm);
+		Stm.Save(pType.get());
+		pType->Save(Stm);
 	}
 }
 
@@ -357,7 +357,7 @@ bool PhobosTrajectory::CreateInstance(BulletClass* pBullet, CoordStruct* pCoord,
 void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_ptr<PhobosTrajectory>& pTraj)
 {
 	bool bExist = false;
-	Stm.Load(bExist);
+	Stm.Process(bExist);
 
 	if (bExist)
 	{
@@ -391,9 +391,8 @@ void PhobosTrajectory::ProcessFromStream(PhobosStreamReader& Stm, std::unique_pt
 void PhobosTrajectory::ProcessFromStream(PhobosStreamWriter& Stm, std::unique_ptr<PhobosTrajectory>& pTraj)
 {
 	const bool Exist = pTraj.get();
-	Stm.Save(Exist);
-	if (Exist)
-	{
+	Stm.Process(Exist);
+	if (Exist) {
 		Stm.Process(pTraj->Flag);
 		pTraj->Save(Stm);
 	}

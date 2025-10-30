@@ -189,7 +189,7 @@ VectorMap<K, V, T, A>::VectorMap(InputIterator first, InputIterator last)
 	{
 		m_entries.push_back(*first);
 	}
-	std::sort(m_entries.begin(), m_entries.end(), FirstLess(static_cast<key_compare>(*this)));
+	std::ranges::sort(m_entries, FirstLess(static_cast<key_compare>(*this)));
 }
 
 template <typename K, typename V, typename T, typename A>
@@ -201,7 +201,7 @@ VectorMap<K, V, T, A>::VectorMap(InputIterator first, InputIterator last, const 
 	{
 		m_entries.push_back(*first);
 	}
-	std::sort(m_entries.begin(), m_entries.end(), FirstLess(static_cast<key_compare>(*this)));
+	std::ranges::sort(m_entries, FirstLess(static_cast<key_compare>(*this)));
 }
 
 template <typename K, typename V, typename T, typename A>
@@ -214,14 +214,14 @@ VectorMap<K, V, T, A>::VectorMap(InputIterator first, InputIterator last, const 
 	{
 		m_entries.push_back(*first);
 	}
-	std::sort(m_entries.begin(), m_entries.end(), FirstLess(static_cast<key_compare>(*this)));
+	std::ranges::sort(m_entries, FirstLess(static_cast<key_compare>(*this)));
 }
 
 template <typename K, typename V, typename T, typename A>
 void VectorMap<K, V, T, A>::SwapElementsWithVector(typename VectorMap<K, V, T, A>::container_type& elementVector)
 {
 	m_entries.swap(elementVector);
-	std::sort(m_entries.begin(), m_entries.end(), FirstLess(static_cast<key_compare>(*this)));
+	std::ranges::sort(m_entries, FirstLess(static_cast<key_compare>(*this)));
 }
 
 template <typename K, typename V, typename T, typename A>
@@ -321,7 +321,7 @@ template <typename Predicate>
 void VectorMap<K, V, T, A>::erase_if(const Predicate& predicate)
 {
 	m_entries.erase(std::remove_if(m_entries.begin(), m_entries.end(), predicate), m_entries.end());
-	std::sort(m_entries.begin(), m_entries.end(), FirstLess(static_cast<key_compare>(*this)));
+	std::ranges::sort(m_entries, FirstLess(static_cast<key_compare>(*this)));
 }
 
 template <typename K, typename V, typename T, typename A>

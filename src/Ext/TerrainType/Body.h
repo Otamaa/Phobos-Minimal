@@ -1,59 +1,122 @@
 #pragma once
 #include <TerrainTypeClass.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDefB.h>
+#include <Ext/ObjectType/Body.h>
 #include <New/Type/PaletteManager.h>
 
-class TerrainTypeExtData final
+class TerrainTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xBEE78007;
+
 	using base_type = TerrainTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-	CustomPalette CustomPalette { CustomPalette::PaletteMode::Temperate }; //
-	Valueable<int> SpawnsTiberium_Type { -1 };
-	Valueable<int> SpawnsTiberium_Range { 1 };
-	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage { { 3, 0 } };
-	Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim { { 1, 0 } };
-	Valueable<AnimTypeClass*> DestroyAnim { nullptr };
-	ValueableIdx<VocClass> DestroySound { -1 };
-	Nullable<ColorStruct> MinimapColor { };
+#pragma region ClassMember
+	CustomPalette CustomPalette; //
+	Valueable<int> SpawnsTiberium_Type;
+	Valueable<int> SpawnsTiberium_Range;
+	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage;
+	Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim;
+	Valueable<float> SpawnsTiberium_StageFalloff;
 
-	Valueable<bool> IsPassable { false };
-	Valueable<bool> CanBeBuiltOn { false };
+	Valueable<AnimTypeClass*> DestroyAnim;
+	ValueableIdx<VocClass> DestroySound;
+	Nullable<ColorStruct> MinimapColor;
+	Valueable<bool> IsPassable;
+	Valueable<bool> CanBeBuiltOn;
+	Valueable<int> CrushableLevel;
+	Valueable<bool> LightEnabled;
+	Nullable<int> LightVisibility;
+	Nullable<double> LightIntensity;
+	Nullable<double> LightRedTint;
+	Nullable<double> LightGreenTint;
+	Nullable<double> LightBlueTint;
+	ValueableVector<AnimTypeClass*> AttachedAnim;
+	Nullable<WarheadTypeClass*> Warhead;
+	Nullable<int> Damage;
+	Valueable<bool> AreaDamage;
+	Valueable<int> Bounty;
+	Valueable<bool> HasDamagedFrames;
+	Valueable<bool> HasCrumblingFrames;
+	ValueableIdx<VocClass> CrumblingSound;
+	Nullable<int> AnimationLength;
+	NullableVector<AnimTypeClass*> TreeFires;
+	ValueableIdx<ParticleTypeClass*> SpawnsTiberium_Particle;
+#pragma endregion
 
-	Valueable<int> CrushableLevel {};
+	TerrainTypeExtData(TerrainTypeClass* pObj) : ObjectTypeExtData(pObj),
+		CustomPalette(CustomPalette::PaletteMode::Temperate),
+		SpawnsTiberium_Type(-1),
+		SpawnsTiberium_Range(1),
+		SpawnsTiberium_GrowthStage({ 3, 0 }),
+		SpawnsTiberium_CellsPerAnim({ 1, 0 }),
+		SpawnsTiberium_StageFalloff(),
+		DestroyAnim(),
+		DestroySound(-1),
+		MinimapColor(),
+		IsPassable(),
+		CanBeBuiltOn(),
+		CrushableLevel(0),
+		LightEnabled(),
+		LightVisibility(),
+		LightIntensity(),
+		LightRedTint(),
+		LightGreenTint(),
+		LightBlueTint(),
+		AttachedAnim(),
+		Warhead(),
+		Damage(),
+		AreaDamage(),
+		Bounty(0),
+		HasDamagedFrames(),
+		HasCrumblingFrames(),
+		CrumblingSound(-1),
+		AnimationLength(),
+		TreeFires(),
+		SpawnsTiberium_Particle()
+	{
+		this->Initialize();
+	}
 
-	Valueable<bool> LightEnabled { false };
-	Nullable<int> LightVisibility { };
-	Nullable<double> LightIntensity { };
-	Nullable<double> LightRedTint { };
-	Nullable<double> LightGreenTint { };
-	Nullable<double> LightBlueTint { };
+	TerrainTypeExtData(TerrainTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
-	ValueableVector<AnimTypeClass*> AttachedAnim { };
-	Nullable<WarheadTypeClass*> Warhead { };
-	Nullable<int> Damage { };
-	Valueable<bool> AreaDamage { false };
+	virtual ~TerrainTypeExtData() = default;
 
-	Valueable<int> Bounty { 0 };
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
+	}
 
-	Valueable<bool> HasDamagedFrames { false };
-	Valueable<bool> HasCrumblingFrames { false };
-	ValueableIdx<VocClass> CrumblingSound { -1 };
-	Nullable<int> AnimationLength {};
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
 
-	NullableVector<AnimTypeClass*> TreeFires {};
-	ValueableIdx<ParticleTypeClass> SpawnsTiberium_Particle { -1 };
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<TerrainTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<TerrainTypeExtData*>(this)->Serialize(Stm);
+	}
 
- 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual TerrainTypeClass* This() const override { return reinterpret_cast<TerrainTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const TerrainTypeClass* This_Const() const override { return reinterpret_cast<const TerrainTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+
 	void Initialize();
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+
+public:
 
 	int GetTiberiumGrowthStage();
 	int GetCellsPerAnim();
@@ -78,12 +141,6 @@ public:
 		};
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(TerrainTypeExtData) -
-			(4u //AttachedToObject
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -97,7 +154,16 @@ class TerrainTypeExtContainer final : public Container<TerrainTypeExtData>
 public:
 	static TerrainTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(TerrainTypeExtContainer, TerrainTypeExtData, "TerrainTypeClass");
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
 };
 
 class NOVTABLE FakeTerrainTypeClass : public TerrainTypeClass
@@ -105,7 +171,10 @@ class NOVTABLE FakeTerrainTypeClass : public TerrainTypeClass
 public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+	bool _ReadFromINI(CCINIClass* pINI);
+
 
 	TerrainTypeExtData* _GetExtData() {
 		return *reinterpret_cast<TerrainTypeExtData**>(((DWORD)this) + AbstractExtOffset);

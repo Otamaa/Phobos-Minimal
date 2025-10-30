@@ -5,7 +5,7 @@
 #include <Utilities/Macro.h>
 
 // Rewrite 0x449BC0
-bool BuildingCanUnload(BuildingClass* pThis)
+bool CanUndeployOnSell(BuildingClass* pThis)
 {
 	auto pType = pThis->Type;
 
@@ -23,7 +23,7 @@ bool BuildingCanUnload(BuildingClass* pThis)
 			return false;
 	}
 
-	return pThis->ArchiveTarget;
+	return pThis->ArchiveTarget|| pThis->Type->Unsellable;
 }
 
 // Skip SessionClass::IsCampaign() checks
@@ -41,7 +41,7 @@ ASMJIT_PATCH(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto
 		VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pThis->Type)->EVA_Sold.Get());
 	}
 
-	return BuildingCanUnload(pThis) ? CreateUnit : SkipTheEntireShit;
+	return CanUndeployOnSell(pThis) ? CreateUnit : SkipTheEntireShit;
 	//return 0x449CEA;
 }
 
@@ -49,7 +49,7 @@ ASMJIT_PATCH(0x44A827, BuildingClass_Mi_Selling_PlaySellSound, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
-	if (!BuildingCanUnload(pThis)) {
+	if (!CanUndeployOnSell(pThis)) {
 		VocClass::SafeImmedietelyPlayAt(TechnoTypeExtContainer::Instance.Find(pThis->Type)->SellSound.Get(), &pThis->Location);
 	}
 
@@ -60,14 +60,14 @@ ASMJIT_PATCH(0x44A8E5, BuildingClass_Mi_Selling_SetTarget, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	enum { ResetTarget = 0x44A937, SkipShit = 0x44A95E };
-	return BuildingCanUnload(pThis) ? ResetTarget : SkipShit;
+	return CanUndeployOnSell(pThis) ? ResetTarget : SkipShit;
 }
 
 ASMJIT_PATCH(0x44A964, BuildingClass_Mi_Selling_VoiceDeploy, 0x6)
 {
 	GET(BuildingClass*, pThis, EBP);
 	enum { CanDeploySound = 0x44A9CA, SkipShit = 0x44AA3D };
-	return BuildingCanUnload(pThis) ? CanDeploySound : SkipShit;
+	return CanUndeployOnSell(pThis) ? CanDeploySound : SkipShit;
 }
 
 DEFINE_JUMP(LJMP, 0x44AB22 ,0x44AB3B) // Structure Sold EVA played twice

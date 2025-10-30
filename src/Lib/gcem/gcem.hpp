@@ -1,6 +1,6 @@
 /*################################################################################
   ##
-  ##   Copyright (C) 2016-2023 Keith O'Hara
+  ##   Copyright (C) 2016-2024 Keith O'Hara
   ##
   ##   This file is part of the GCE-Math C++ library.
   ##
@@ -37,6 +37,9 @@ namespace gcem
     #include "gcem_incl/sgn.hpp"
 
     #include "gcem_incl/abs.hpp"
+    #include "gcem_incl/fabs.hpp"
+    #include "gcem_incl/fabsf.hpp"
+    #include "gcem_incl/fabsl.hpp"
     #include "gcem_incl/ceil.hpp"
     #include "gcem_incl/floor.hpp"
     #include "gcem_incl/trunc.hpp"

@@ -43,6 +43,8 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
+
+	virtual const char* Name() { return "StraightVariantCTrajectoryType"; }
 };
 
 
@@ -95,6 +97,8 @@ public:
 	{
 		AnnounceInvalidPointer(ExtraCheck, ptr, bRemoved);
 	}
+
+	virtual const char* Name() { return "StraightTrajectoryVarianC"; }
 
 private:
 	void PrepareForOpenFire();

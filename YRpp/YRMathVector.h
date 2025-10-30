@@ -23,6 +23,9 @@ public:
 	//	return *this;
 	//}
 
+	COMPILETIMEEVAL T& operator[](int i) { return (&X)[i]; }
+	COMPILETIMEEVAL const T& operator[](int i) const { return (&X)[i]; }
+
 	//operator overloads
 	//addition
 	COMPILETIMEEVAL Vector2D operator+(const Vector2D& a) const
@@ -258,7 +261,7 @@ public:
 
 
 //=============================Special cases=========================================
-	
+
 	COMPILETIMEEVAL   double powXY() const {
 		return double(X * X) + double(Y * Y);
 	}
@@ -314,13 +317,13 @@ public:
 	//no constructor, so this class stays aggregate and can be initialized using the curly braces {}
 	T X, Y, Z, W;
 
-	COMPILETIMEEVAL bool operator==(const Vector4D &b)
+	COMPILETIMEEVAL bool operator==(const Vector4D &b) const
 	{
 		Vector4D a = *this;
 		return ((a[0] == b.at(0)) && (a[1] == b.at(1)) && (a[2] == b.at(2)) && (a[3] == b.at(3)));
 	}
 
-	COMPILETIMEEVAL bool operator!=(const Vector4D &b)
+	COMPILETIMEEVAL bool operator!=(const Vector4D &b) const
 	{
 		Vector4D a = *this;
 		return ((a[0] != b.at(0)) || (a[1] != b.at(1)) || (a[2] != b.at(2)) || (a[3] != b.at(3)));
@@ -353,6 +356,7 @@ public:
 		W += v.W;
 		return *this;
 	}
+
 	COMPILETIMEEVAL Vector4D &operator*=(float k)
 	{
 		X = X * k;
@@ -373,28 +377,34 @@ public:
 
 	COMPILETIMEEVAL Vector4D operator*(float k)
 	{
-		return Vector4D{ (X * k), (Y * k), (Z * k), (W * k) };
+		return Vector4D{ T(X * k), T(Y * k), T(Z * k), T(W * k) };
 	}
 
 	COMPILETIMEEVAL Vector4D operator/(float k)
 	{
 		float ook = 1.0f / k;
 		Vector4D nThis = *this;
-		return Vector4D{ (nThis.at(0) * ook), (nThis.at(1) * ook), (nThis.at(2) * ook), (nThis.at(3) * ook) };
+		return Vector4D{ T(nThis.at(0) * ook), T(nThis.at(1) * ook), T(nThis.at(2) * ook), T(nThis.at(3) * ook) };
 	}
 
-
-	COMPILETIMEEVAL Vector4D operator+(const Vector4D &b)
+	COMPILETIMEEVAL Vector4D operator+(const Vector4D& v) const
 	{
-		Vector4D nThis = *this;
-		return Vector4D{ nThis.at(0) + b.at(0),nThis.at(1) + b.at(1),nThis.at(2) + b.at(2),nThis.at(3) + b.at(3) };
+		return Vector4D {
+			X + v.X,
+			Y + v.Y,
+			Z + v.Z,
+			W + v.W,
+		};
 	}
 
-
-	COMPILETIMEEVAL Vector4D operator-(const Vector4D &b)
+	COMPILETIMEEVAL Vector4D& operator-(const Vector4D& v) const
 	{
-		Vector4D nThis = *this;
-		return Vector4D{ nThis.at(0) - b.at(0), nThis.at(1) - b.at(1), nThis.at(2) - b.at(2), nThis.at(3) - b.at(3) };
+		return Vector4D {
+			X - v.X,
+			Y - v.Y,
+			Z - v.Z,
+			W - v.W,
+		};
 	}
 
 	COMPILETIMEEVAL double operator*(const Vector4D &b)
@@ -421,11 +431,11 @@ public:
 		return std::sqrt(this->pow());
 	}
 
-	OPTIONALINLINE double DistanceFrom(const Vector4D<T>& that) const{
+	OPTIONALINLINE double DistanceFrom(const Vector4D<T>& that) const {
 		return (that - *this).Length();
 	}
 
-	COMPILETIMEEVAL   double DistanceFromSquared(const Vector4D<T>& that) const {
+	COMPILETIMEEVAL  double DistanceFromSquared(const Vector4D<T>& that) const {
 		return (that - *this).pow();
 	}
 

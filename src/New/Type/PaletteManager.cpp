@@ -1,6 +1,7 @@
 #include "PaletteManager.h"
 
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/SavegameDef.h>
 
 #include <MixFileClass.h>
 
@@ -175,33 +176,12 @@ bool PaletteManager::LoadFromCachedName()
 
 void PaletteManager::LoadFromStream(PhobosStreamReader& Stm)
 {
-	this->Clear_Internal();
-	this->CachedName =
-		GeneralUtils::ApplyTheaterSuffixToString((const char*)this->Name.data()).c_str();
-
-	bool hasPalette = false;
-	uintptr_t was = 0u;
-
-	if (!Stm.Load(hasPalette) || !Stm.Load(was))
-		return;
-
-	if (hasPalette) {
-		this->Palette = GameCreate<BytePalette>();
-		SwizzleManagerClass::Instance->Here_I_Am((long)was, this->Palette);
-		if (!Stm.Load(*this->Palette))
-			return;
-
-		this->CreateConvert();
-	}
+	static_assert("Not implemented!");
 }
 
 void PaletteManager::SaveToStream(PhobosStreamWriter& Stm)
 {
-	Stm.Save(this->Palette != nullptr);
-	Stm.Save((uintptr_t)this->Palette);
-	if (this->Palette) {
-		Stm.Save(*this->Palette);
-	}
+	static_assert("Not implemented!");
 }
 
 bool CustomPalette::Allocate(std::string name)
@@ -269,31 +249,40 @@ bool CustomPalette::Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	this->Clear();
 
 	bool hasPalette = false;
-	auto ret = Stm.Load(this->Mode) && Stm.Process(this->Name) && Stm.Load(hasPalette);
+	if (!Stm.Process(hasPalette))
+		return false;
 
-	if (ret && hasPalette)
-	{
+	if (!Stm.Process(this->Mode))
+		return false;
+
+	if (hasPalette) {
+		if (!Stm.Process(this->Name, RegisterForChange))
+			return false;
+
 		this->Palette.reset(GameCreate<BytePalette>());
-		ret = Stm.Load(*this->Palette);
 
-		if (ret)
-		{
-			this->CreateConvert();
+		if (!Stm.Process(*this->Palette)) {
+			return false;
 		}
+
+		this->CreateConvert();
 	}
 
-	return ret;
+	return true;
 }
 
 bool CustomPalette::Save(PhobosStreamWriter& Stm) const
 {
-	Stm.Save(this->Mode);
-	Stm.Process(this->Name);
-	Stm.Save(this->Palette != nullptr);
-	if (this->Palette)
-	{
-		Stm.Save(*this->Palette);
+	const bool hasPalette = this->Palette != nullptr;
+
+	Stm.Process(hasPalette);
+	Stm.Process(this->Mode);
+
+	if(hasPalette){
+		Stm.Process(this->Name);
+		Stm.Process(*this->Palette);
 	}
+
 	return true;
 }
 

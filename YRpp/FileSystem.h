@@ -30,6 +30,9 @@ struct VoxelStruct
 	~VoxelStruct() noexcept {
 		GameDelete<true,true>(VXL);
 		GameDelete<true,true>(HVA);
+
+		VXL = nullptr;
+		HVA = nullptr;
 	}
 
 	bool operator == (const VoxelStruct& nWeap) const {
@@ -131,7 +134,7 @@ public:
 
 		T* buffer = static_cast<T*>(file.ReadWholeFile());
 		if (!buffer)
-			GameDebugLog::Log("File[%s] Doesnt Exist ! ", file.FileName);
+			GameDebugLog::Log("File[%s] Doesnt Exist ! \n ", file.FileName);
 
 		file.Close();
 

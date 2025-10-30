@@ -16,6 +16,19 @@ enum class ProtectTypes : int
 	IronCurtain , ForceShield
 };
 
+class ParticleSystemClass;
+struct ParticleSystems
+{
+	ParticleSystemClass* Fire;
+	ParticleSystemClass* Spark;
+	ParticleSystemClass* Natural;
+	ParticleSystemClass* Damage;
+	ParticleSystemClass* Railgun;
+	ParticleSystemClass* unk1;
+	ParticleSystemClass* unk2;
+	ParticleSystemClass* Firing;
+};
+
 //forward declarations
 class AirstrikeClass;
 class AnimClass;
@@ -216,7 +229,8 @@ public:
 
 	static const auto AbsDerivateID = AbstractFlags::Techno;
 
-	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TechnoClass*>, 0xA8EC78u> const Array{};
+	static COMPILETIMEEVAL constant_ptr<DynamicVectorClass<TechnoClass*>, 0xA8EC78u> const Array {};
+	static COMPILETIMEEVAL reference<int, 0xA8EC34u> const TargetScanCounter {};
 
 	//IPersistStream
 	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x70BF50);
@@ -237,7 +251,7 @@ public:
 	virtual DamageState IronCurtain(int nDuration, HouseClass* pSource, bool ForceShield) override JMP_THIS(0x4DEAE0);
 	virtual DamageState ReceiveDamage(int* pDamage, int DistanceFromEpicenter, WarheadTypeClass* pWH,
 ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseClass* pAttackingHouse) override JMP_THIS(0x701900);
-	virtual LightConvertClass* GetRemapColour() const override JMP_THIS(0x705D70);;
+	virtual LightConvertClass* GetRemapColour() const override JMP_THIS(0x705D70);
 
 	// remove object from the map
 	virtual bool Limbo() override JMP_THIS(0x6F6AC0);
@@ -355,7 +369,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void UpdateCloak(bool bUnk = 1) RX;
 	virtual void CreateGap() RX;
 	virtual void DestroyGap() RX;
-	virtual void RckingAI() RX;//virtual void vt_entry_41C() RX;
+	virtual void RockingAI() RX;//virtual void vt_entry_41C() RX;
 	virtual void Sensed() RX;
 	virtual void Reload() RX;
 	virtual void vt_entry_428() RX;
@@ -401,10 +415,10 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual CoordStruct* GetAttackMoveCoords(CoordStruct* pBuffer) R0;
 	virtual bool CanUseWaypoint() const R0; // 0x4BC
 	virtual bool CanAttackOnTheMove() const R0; //0x4C0
-	virtual bool MegaMissionIsAttackMove() const R0;
-	virtual bool ContinueMegaMission() R0;
-	virtual void UpdateAttackMove() RX;
-	virtual bool RefreshMegaMission() R0;
+	virtual bool MegaMissionIsAttackMove() const R0; //0x4C4
+	virtual bool ContinueMegaMission() R0; //0x4C8
+	virtual void UpdateAttackMove() RX; //0x4CC
+	virtual bool RefreshMegaMission() R0; //0x4D0
 
 	//non-virtual
 	bool sub_703B10() const JMP_THIS(0x703B10);
@@ -413,6 +427,12 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	int sub_704240() const JMP_THIS(0x704240);
 	bool sub_70D8F0() JMP_THIS(0x70D8F0);
 	bool sub_70DCE0() const { return this->CurrentTurretNumber != -1; }
+
+	bool TechnoClass_709290() const
+	{ JMP_THIS(0x709290) }
+
+	bool Airstrike_0x452000() const
+	{ JMP_THIS(0x452000); }
 
 	bool IsDrainSomething() const
 		{ return this->DrainTarget != nullptr; }
@@ -460,27 +480,30 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 // slave of the next one
 	bool CanAutoTargetObject(
 		ThreatType targetFlags,
-		int canTargetWhatAmI,
+		int mask,
 		int wantedDistance,
 		TechnoClass* pTarget,
 		int* pThreatPosed,
-		DWORD dwUnk,
+		ZoneType dwUnk,
 		CoordStruct* pSourceCoords) const
 			{ JMP_THIS(0x6F7CA0); }
 
 // called by AITeam Attack Target Type and autoscan
 	bool TryAutoTargetObject(
 		ThreatType targetFlags,
-		int canTargetWhatAmI,
+		int mask,
 		CellStruct* pCoords,
-		DWORD dwUnk1,
-		DWORD* dwUnk2,
+		int wantedDistance,
+		TechnoClass** dwUnk2,
 		int* pThreatPosed,
-		DWORD dwUnk3)
+		ZoneType dwUnk3)
 			{ JMP_THIS(0x6F8960); }
 
 	int EvaluateJustCell(CellStruct& coords) const
 	{ JMP_THIS(0x6F8C10); }
+
+	int EvaluateJustCell(CellStruct* coords) const
+		{ JMP_THIS(0x6F8C10); }
 
 	void Reactivate()
 		{ JMP_THIS(0x70FBE0); }
@@ -778,22 +801,42 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x6339B0);
 	}
 
-	void GattlingRateUp(int value)
+	void GattlingRateUp(int value) const
 	{ JMP_THIS(0x70DE70); }
 
-	void GattlingRateDown(int value)
+	void GattlingRateDown(int value) const
 	{ JMP_THIS(0x70E000); }
 
-	void ReleaseLocomotor(bool setTarget)
+	void ReleaseLocomotor(bool setTarget) const
 	{ JMP_THIS(0x70FEE0); }
 
-	void DistributedFire()
+	void DistributedFire() const
 	{ JMP_THIS(0x709550); }
 
-		// changes locomotor to the given one, Magnetron style
-		//	// mind that this locks up the source too, Magnetron style
+	bool CanPassiveAcquireTargets() const
+	{ JMP_THIS(0x7091D0); }
+
+	// changes locomotor to the given one, Magnetron style
+	//	// mind that this locks up the source too, Magnetron style
     void ImbueLocomotor(FootClass* target, CLSID clsid)
 	{ JMP_THIS(0x710000); }
+
+	void Draw_Object(
+		SHPStruct* shapefile,
+		int shapenum,
+		Point2D* xy,
+		RectangleStruct* rect,
+		DirType rotation,  //unused
+		int scale, //unused
+		int height_adjust,
+		ZGradient a8,
+		bool useZBuffer,
+		int lightLevel,
+		int tintLevel,
+		SHPStruct* z_shape,
+		int z_shape_framenum,
+		Point2D z_shape_offs,
+		BlitterFlags flags);
 
 	//Constructor
 	TechnoClass(HouseClass* pOwner) noexcept
@@ -922,15 +965,10 @@ public:
 	int              Ammo;
 	int              Value; //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C
 
-
-	ParticleSystemClass* FireParticleSystem;
-	ParticleSystemClass* SparkParticleSystem;
-	ParticleSystemClass* NaturalParticleSystem;
-	ParticleSystemClass* DamageParticleSystem;
-	ParticleSystemClass* RailgunParticleSystem;
-	ParticleSystemClass* unk1ParticleSystem;
-	ParticleSystemClass* unk2ParticleSystem;
-	ParticleSystemClass* FiringParticleSystem;
+	union{
+		ParticleSystems Sys;
+		ParticleSystemClass* SysArray[8];
+	};
 
 	WaveClass*       Wave; //Beams
 
@@ -946,8 +984,8 @@ public:
 
 	int              HijackerInfantryType; // mutant hijacker
 
-	//DECLARE_PROPERTY(StorageClass, Tiberium);
-	BYTE			 Tiberium[sizeof(StorageClass)];
+	DECLARE_PROPERTY(StorageClass, Tiberium);
+
 	DWORD            unknown_34C;
 
 	DECLARE_PROPERTY(DoorClass, UnloadTimer); // times the deploy, unload, etc. cycles ,DoorClass

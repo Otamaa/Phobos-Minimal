@@ -38,6 +38,9 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 public:
+
+#pragma region classMembers;
+
 	Valueable<Point3D> Pips_Shield { { -1, -1, -1 } };
 	Valueable<Point3D> Pips_Shield_Buildings { { -1, -1, -1 } };
 	Valueable<int> RadApplicationDelay_Building { 0 };
@@ -347,6 +350,9 @@ public:
 	Valueable<double> DamageOwnerMultiplier { 1.0 };
 	Valueable<double> DamageAlliesMultiplier { 1.0 };
 	Valueable<double> DamageEnemiesMultiplier { 1.0 };
+	Nullable<double> DamageOwnerMultiplier_Berzerk {};
+	Nullable<double> DamageAlliesMultiplier_Berzerk {};
+	Nullable<double> DamageEnemiesMultiplier_Berzerk {};
 	Nullable<double> DamageOwnerMultiplier_NotAffectsEnemies {};
 	Nullable<double> DamageAlliesMultiplier_NotAffectsEnemies {};
 
@@ -362,6 +368,10 @@ public:
 	Valueable<bool> CombatAlert_SuppressIfInScreen { true };
 	Valueable<int> CombatAlert_Interval { 150 };
 	Valueable<bool> CombatAlert_SuppressIfAllyDamage { true };
+
+	ValueableIdx<VocClass> StartDistributionModeSound { -1 };
+	ValueableIdx<VocClass> EndDistributionModeSound { -1 };
+	ValueableIdx<VocClass> AddDistributionModeCommandSound { -1 };
 
 	Valueable<int> SubterraneanHeight { -256 };
 
@@ -417,6 +427,8 @@ public:
 	Valueable<int> UnitIdleActionIntervalMax { 450 };
 
 	Valueable<bool> ExpandAircraftMission {};
+	Valueable<int> ExtendedAircraftMissions_UnlandDamage {};
+
 	Valueable<bool> AssignUnitMissionAfterParadropped { false };
 
 	Valueable<Leptons> VisualScatter_Min { Leptons(8) };
@@ -443,6 +455,8 @@ public:
 
 	Valueable<bool> NoQueueUpToEnter {};
 	Valueable<bool> NoQueueUpToUnload {};
+	Nullable<bool> NoQueueUpToEnter_Buildings {};
+	Nullable<bool> NoQueueUpToUnload_Buildings {};
 
 	Valueable<bool> NoRearm_UnderEMP { false };
 	Valueable<bool> NoRearm_Temporal { false };
@@ -546,6 +560,27 @@ public:
 	Valueable<int> AdjacentWallDamage { 200 };
 	Valueable<bool> InfantryAutoDeploy { false };
 
+	Valueable<bool> EnablePassiveAcquireMode { false };
+	Valueable<bool> UseRetintFix { true };
+	Valueable<bool> AISellCapturedBuilding { true };
+
+	Valueable<int> AIAdjacentMax { -1 };
+	Nullable<int> AIAdjacentMax_Campaign {};
+
+	Valueable<bool> PlayerGuardModePursuit { true };
+	Valueable<double> PlayerGuardModeGuardRangeMultiplier { 2.0 };
+	Valueable<Leptons> PlayerGuardModeGuardRangeAddend { Leptons(0) };
+	Valueable<Leptons> PlayerGuardModeGuardRangeMax { Leptons(4096) };
+	Valueable<Leptons> PlayerGuardStationaryStray { Leptons(-256) };
+    Valueable<bool> AIGuardModePursuit { true };
+	Valueable<double> AIGuardModeGuardRangeMultiplier { 2.0 };
+	Valueable<Leptons> AIGuardModeGuardRangeAddend { Leptons(0) };
+	Valueable<Leptons> AIGuardModeGuardRangeMax { Leptons(4096) };
+	Valueable<Leptons> AIGuardStationaryStray { Leptons(-256) };
+	Valueable<bool> IgnoreCenterMinorRadarEvent { false };
+	Valueable<int> WarheadAnimZAdjust { -15 } ;
+#pragma endregion
+
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
 	void LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI);
 	void ReplaceVoxelLightSources();
@@ -582,12 +617,12 @@ public:
 	static void LoadEndOfAudioVisual(RulesClass* pRules, CCINIClass* pINI);
 	static void InitializeAfterAllRulesLoaded();
 
-	static RulesExtData* Instance()
+	COMPILETIMEEVAL FORCEDINLINE static RulesExtData* Instance()
 	{
 		return Data.get();
 	}
 
-	static void Clear()
+	FORCEDINLINE static void Clear()
 	{
 		Allocate(RulesClass::Instance);
 	}
@@ -595,6 +630,7 @@ public:
 	static bool DetailsCurrentlyEnabled();
 	static bool DetailsCurrentlyEnabled(int minDetailLevel);
 
+	static std::unordered_map<VoxelStruct*, std::string > Owners;
 };
 
 class NOVTABLE FakeRulesClass : public RulesClass

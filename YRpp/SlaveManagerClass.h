@@ -85,6 +85,9 @@ public:
 	// the slaves will become free citizens without any announcements or cheers, if you don't call Killed() beforehand
 	void ZeroOutSlaves();
 
+	void Guard()
+		{ JMP_THIS(0x6B0CC0); }
+
 	// stops scanning, spawning slaves and driving around.
 	void SuspendWork() {
 		this->RespawnTimer.StartTime = -1;

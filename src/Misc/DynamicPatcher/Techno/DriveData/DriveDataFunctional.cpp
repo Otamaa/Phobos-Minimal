@@ -3,7 +3,7 @@
 
 void DriveDataFunctional::AI(TechnoExtData* pThis)
 {
-	auto pTechno = pThis->AttachedToObject;
+	auto pTechno = pThis->This();
 
 	if (!TechnoExtData::IsActive(pTechno))
 		return;

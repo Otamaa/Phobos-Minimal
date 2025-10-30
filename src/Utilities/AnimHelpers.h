@@ -49,7 +49,7 @@ namespace Helper
 			}
 
 			auto nResultDamage = static_cast<int>(TechnoExtData::GetDamageMult(pInvoker, nDamage , !DamageConsiderVet));
-			WeaponTypeExtData::DetonateAt(pWeapon, Where, pInvoker, nResultDamage, false);
+			WeaponTypeExtData::DetonateAt4(pWeapon, Where, pInvoker, nResultDamage, false, pInvoker ? pInvoker->Owner : nullptr);
 			return { false , 0 };
 		}
 

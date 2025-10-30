@@ -123,16 +123,16 @@ ASMJIT_PATCH(0x516305, HoverLocomotionClass_sub_515ED0, 0x9)
 	return 0x51630E;
 }
 
-ASMJIT_PATCH(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToLand, 0x7)
-{
-	GET(HoverLocomotionClass const* const, pLoco, ESI);
-	const auto pFoot = !pLoco->Owner ? pLoco->LinkedTo : pLoco->Owner;
+// ASMJIT_PATCH(0x514DFE, HoverLocomotionClass_ILocomotion_MoveTo_DeployToLand, 0x7)
+// {
+// 	GET(HoverLocomotionClass const* const, pLoco, ESI);
+// 	const auto pFoot = !pLoco->Owner ? pLoco->LinkedTo : pLoco->Owner;
 
-	if (pFoot->GetTechnoType()->DeployToLand)
-		pFoot->NeedsRedraw = true;
+// 	if (pFoot->GetTechnoType()->DeployToLand)
+// 		pFoot->NeedsRedraw = true;
 
-	return 0;
-}
+// 	return 0;
+// }
 
 ASMJIT_PATCH(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 0x6)
 {
@@ -384,69 +384,69 @@ ASMJIT_PATCH(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployToLand, 9)
-{
-	GET(ILocomotion*, ILoco, ESI);
+// ASMJIT_PATCH(0x514A21, HoverLocomotionClass_ILocomotion_Process_DeployToLand, 9)
+// {
+// 	GET(ILocomotion*, ILoco, ESI);
 
-	auto const bIsMovingNow = ILoco->Is_Moving_Now();
-	R->AL(bIsMovingNow);
-	auto const pOwner = static_cast<HoverLocomotionClass*>(ILoco)->Owner;
+// 	auto const bIsMovingNow = ILoco->Is_Moving_Now();
+// 	R->AL(bIsMovingNow);
+// 	auto const pOwner = static_cast<HoverLocomotionClass*>(ILoco)->Owner;
 
-	if (pOwner->InAir)
-	{
-		auto const pType = pOwner->GetTechnoType();
-		if (pType->DeployToLand)
-		{
-			auto pCell = pOwner->GetCell();
-			auto nLand = pCell->LandType;
-			if ((nLand == LandType::Beach || nLand == LandType::Water) && !pCell->ContainsBridge())
-			{
-				pOwner->InAir = false;
-				pOwner->QueueMission(Mission::Guard, true);
-			}
+// 	if (pOwner->InAir)
+// 	{
+// 		auto const pType = pOwner->GetTechnoType();
+// 		if (pType->DeployToLand)
+// 		{
+// 			auto pCell = pOwner->GetCell();
+// 			auto nLand = pCell->LandType;
+// 			if ((nLand == LandType::Beach || nLand == LandType::Water) && !pCell->ContainsBridge())
+// 			{
+// 				pOwner->InAir = false;
+// 				pOwner->QueueMission(Mission::Guard, true);
+// 			}
 
-			if (bIsMovingNow)
-			{
-				ILoco->Stop_Moving();
-				pOwner->SetDestination(nullptr, true);
-			}
+// 			if (bIsMovingNow)
+// 			{
+// 				ILoco->Stop_Moving();
+// 				pOwner->SetDestination(nullptr, true);
+// 			}
 
-			if (pType->DeployingAnim)
-			{
-				auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-				const int nDeployDirVal = pTypeExt->DeployDir.isset() ? (int)pTypeExt->DeployDir.Get() << 13 : RulesClass::Instance->DeployDir << 8;
-				DirStruct nDeployDir(nDeployDirVal);
+// 			if (pType->DeployingAnim)
+// 			{
+// 				auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+// 				const int nDeployDirVal = pTypeExt->DeployDir.isset() ? (int)pTypeExt->DeployDir.Get() << 13 : RulesClass::Instance->DeployDir << 8;
+// 				DirStruct nDeployDir(nDeployDirVal);
 
-				if (pOwner->PrimaryFacing.Current() != nDeployDir) {
-					pOwner->PrimaryFacing.Set_Desired(nDeployDir);
-				}
-			}
+// 				if (pOwner->PrimaryFacing.Current() != nDeployDir) {
+// 					pOwner->PrimaryFacing.Set_Desired(nDeployDir);
+// 				}
+// 			}
 
-			if (pOwner->GetHeight() <= 0)
-			{
-				pOwner->InAir = false;
-				ILoco->Mark_All_Occupation_Bits(0);
-			}
-		}
-	}
+// 			if (pOwner->GetHeight() <= 0)
+// 			{
+// 				pOwner->InAir = false;
+// 				ILoco->Mark_All_Occupation_Bits(0);
+// 			}
+// 		}
+// 	}
 
-	return 0x514A2A;
-}
+// 	return 0x514A2A;
+// }
 
-ASMJIT_PATCH(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6)
-{
-	GET(JumpjetLocomotionClass*, pLoco, ESI);
-	auto const pOwner = pLoco->LinkedTo;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
-	const int nDeployDirVal = pTypeExt->DeployDir.isset() ? (int)pTypeExt->DeployDir.Get() << 13 : RulesClass::Instance->DeployDir << 8;
-
-	DirStruct nDeployDir(nDeployDirVal);
-
-	if (pLoco->Facing.Current() != nDeployDir)
-		pLoco->Facing.Set_Desired(nDeployDir);
-
-	return 0x54C7A3;
-}
+// ASMJIT_PATCH(0x54C767, JumpjetLocomotionClass_State4_54C550_DeployDir, 6)
+// {
+// 	GET(JumpjetLocomotionClass*, pLoco, ESI);
+// 	auto const pOwner = pLoco->LinkedTo;
+// 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
+// 	const int nDeployDirVal = pTypeExt->DeployDir.isset() ? (int)pTypeExt->DeployDir.Get() << 13 : RulesClass::Instance->DeployDir << 8;
+//
+// 	DirStruct nDeployDir(nDeployDirVal);
+//
+// 	if (pLoco->Facing.Current() != nDeployDir)
+// 		pLoco->Facing.Set_Desired(nDeployDir);
+//
+// 	return 0x54C7A3;
+// }
 
 Point2D *__stdcall JumpjetLoco_ILoco_Shadow_Point(ILocomotion * iloco, Point2D *pPoint)
 {

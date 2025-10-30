@@ -7,6 +7,8 @@
 
 #include <Ext/WarheadType/Body.h>
 
+#include <Utilities/Helpers.h>
+
 void AresAE::applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coords, HouseClass* Source)
 {
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
@@ -188,7 +190,7 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 
 	if (!pType->Cumulative)
 	{
-		auto const it = std::find_if(pData->Data.begin(), pData->Data.end(),
+		auto const it = std::ranges::find_if(pData->Data,
 			[=](auto const& item) { return item.Type == pType; });
 
 		if (it != pData->Data.end())
@@ -254,7 +256,7 @@ void AresAE::TransferAttachedEffects(TechnoClass* From, TechnoClass* To)
 
 void AresAE::ClearAnim()
 {
-	this->Anim.clear();
+	this->Anim.reset();
 }
 #include <Ext/Anim/Body.h>
 
@@ -265,8 +267,6 @@ void AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
 	pNewAnim->SetOwnerObject(pTechno);
 	pNewAnim->RemainingIterations = 0xffffffff;
 	auto pAnimExt = ((FakeAnimClass*)pNewAnim)->_GetExtData();
-
-	pAnimExt->IsAttachedEffectAnim = true;
 
 	if (auto pInvoker = this->Invoker) {
 		pNewAnim->Owner = pInvoker;

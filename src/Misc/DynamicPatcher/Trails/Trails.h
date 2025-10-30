@@ -25,8 +25,8 @@ public:
 	bool IsOnTurret;
 	bool Visible;
 	DrivingState drivingState;
-	Iterator<LandType> OnLandTypes;
-	Iterator<TileType> OnTileTypes;
+	HelperedVector<LandType> OnLandTypes;
+	HelperedVector<TileType> OnTileTypes;
 
 	UniversalTrail(TrailType* type ,CoordStruct flh, bool onturret) :
 		Type { type }
@@ -163,7 +163,7 @@ private:
 
 	bool IsOnTile(CellClass* pCell)
 	{
-		auto const pCount = std::count_if(OnTileTypes.begin(), OnTileTypes.end(), [pCell](TileType const& nTile) {
+		auto const pCount = std::ranges::count_if(OnTileTypes, [pCell](TileType const& nTile) {
 			if (nTile == TileType::Unk || ((int)nTile >= 21))
 				return false;
 
@@ -213,13 +213,14 @@ private:
 		return Stm
 		.Process(Type)
 		.Process(LastLocation)
-		.Process(canDraw)
-		.Process(initialDelay)
 		.Process(DelayTimer)
-		.Process(forceDraw)
-		.Process(drivingState)
 		.Process(FLH)
+		.Process(initialDelay)
+		.Process(canDraw)
+		.Process(forceDraw)
 		.Process(IsOnTurret)
+		.Process(Visible)
+		.Process(drivingState)
 		.Process(OnLandTypes)
 		.Process(OnTileTypes)
 		.Success()

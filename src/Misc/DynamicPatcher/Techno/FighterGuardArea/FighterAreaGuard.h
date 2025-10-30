@@ -1,4 +1,6 @@
 #pragma once
+
+#ifdef _aaaaaaa 
 #include <GeneralStructures.h>
 #include <CoordStruct.h>
 #include <Utilities/Helpers.h>
@@ -76,3 +78,4 @@ struct Savegame::ObjectFactory<FighterAreaGuard>
 		return std::make_unique<FighterAreaGuard>();
 	}
 };
+#endif

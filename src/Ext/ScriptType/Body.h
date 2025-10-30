@@ -9,7 +9,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/TemplateDef.h>
 
-class ScriptTypeExt
+class ScriptTypeExtData
 {
 public:
 	/*

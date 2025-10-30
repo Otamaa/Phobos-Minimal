@@ -59,6 +59,20 @@ public:
 	//	return std::make_tuple(X, Y, Z);
 	//}
 
+	COMPILETIMEEVAL FORCEDINLINE void Snap()
+	{
+		// Convert coord to cell, and back again to get the absolute position.
+		const CellStruct cell = this->TocellStruct();
+		CoordStruct tmp {cell.X * 256 , cell.Y * 256};
+
+		// Snap coord to cell center.
+		tmp.X += 256 / 2;
+		tmp.Y += 256 / 2;
+		// Restore input coord Z value.
+		tmp.Z = this->Z;
+		*this = tmp;
+	}
+
 	COMPILETIMEEVAL FORCEDINLINE CellStruct TocellStruct()
 	{
 		return { static_cast<short>(X / 256) ,static_cast<short>(Y / 256) };

@@ -27,6 +27,8 @@
 #include "Harmless.h"
 #include "ForceWin.h"
 #include "ToggleMessageList.h"
+#include "CeasefireModeClass.h"
+#include "AggressiveModeClass.h"
 
 #include <Misc/Ares/Hooks/Commands/AIBasePlan.h>
 #include <Misc/Ares/Hooks/Commands/AIControl.h>
@@ -105,17 +107,32 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	}
 #pragma endregion Adminexclusive
 
-	Make<NextIdleHarvesterCommandClass>();
+	Make<AggressiveModeClass>();
+	Make<AutoBuildingCommandClass>();
+	Make<CeasefireModeClass>();
+
 	Make<QuickSaveCommandClass>();
 	Make<SaveVariablesToFileCommandClass>();
-	Make<AutoBuildingCommandClass>();
+	Make<TogglePowerCommandClass>();
 	Make<ToggleRadialIndicatorDrawModeClass>();
 	Make<ToggleDigitalDisplayCommandClass>();
 	Make<ToggleDesignatorRangeCommandClass>();
-	Make<DistributionMode1CommandClass>();
-	Make<DistributionMode2CommandClass>();
-	Make<TogglePowerCommandClass>();
 	Make<ToggleMessageListCommandClass>();
+	Make<NextIdleHarvesterCommandClass>();
+
+	if (Phobos::Config::AllowSwitchNoMoveCommand)
+		Make<SwitchNoMoveCommandClass>();
+
+	if (Phobos::Config::AllowDistributionCommand)
+	{
+		if (Phobos::Config::AllowDistributionCommand_SpreadMode)
+			Make<DistributionModeSpreadCommandClass>();
+
+		if (Phobos::Config::AllowDistributionCommand_FilterMode)
+			Make<DistributionModeFilterCommandClass>();
+
+		Make<DistributionModeHoldDownCommandClass>();
+	}
 
 #pragma region SWSidebar
 	Make<ToggleSWSidebar>();
@@ -133,6 +150,7 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	}
 #pragma endregion SWSidebar
 
+
 	return 0x0;
 }
 
@@ -140,10 +158,14 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 
 #include <Helpers/Macro.h>
 #include <WWKeyboardClass.h>
+#include <New/MessageHandler/MessageColumnClass.h>
 
 ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 {
 	enum { SkipScrollSidebar = 0x533FC3 };
+
+	if (DistributionModeHoldDownCommandClass::Enabled)
+		return SkipScrollSidebar;
 
 	if (!Phobos::Config::ScrollSidebarStripWhenHoldKey)
 	{
@@ -153,12 +175,38 @@ ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 			return SkipScrollSidebar;
 	}
 
-	if (!Phobos::Config::ScrollSidebarStripInTactical)
-	{
+	if (!Phobos::Config::ScrollSidebarStripInTactical) {
 		const auto pMouse = WWMouseClass::Instance();
 
 		if (pMouse->XY1.X < Make_Global<int>(0xB0CE30)) // TacticalClass::view_bound.Width
 			return SkipScrollSidebar;
+	}
+
+	if(MessageColumnClass::Instance.IsHovering())
+		return SkipScrollSidebar ;
+
+	return 0;
+}
+
+
+ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
+{
+	GET(const WPARAM, WParam, ECX);
+
+	if (WParam & 0x80000000u) {
+
+		if (DistributionModeHoldDownCommandClass::Enabled && Phobos::Config::AllowDistributionCommand_SpreadModeScroll)
+			DistributionModeHoldDownCommandClass::DistributionSpreadModeReduce();
+
+		 if(MessageColumnClass::Instance.IsHovering())
+			 MessageColumnClass::Instance.ScrollDown();
+	} else {
+
+		if (DistributionModeHoldDownCommandClass::Enabled && Phobos::Config::AllowDistributionCommand_SpreadModeScroll)
+			DistributionModeHoldDownCommandClass::DistributionSpreadModeExpand();
+
+		if (MessageColumnClass::Instance.IsHovering())
+			MessageColumnClass::Instance.ScrollUp();
 	}
 
 	return 0;

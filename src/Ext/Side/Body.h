@@ -11,111 +11,202 @@
 
 #include <FileFormats/SHP.h>
 
-class SideExtData final
+#include <Ext/AbstractType/Body.h>
+
+class SideExtData final : public AbstractTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x05B10501;
 	using base_type = SideClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-
-	Valueable<int> ArrayIndex { -1 };
-	Nullable<bool> Sidebar_GDIPositions { };
-	Valueable<int> IngameScore_WinTheme { -2 };
-	Valueable<int> IngameScore_LoseTheme { -2 };
-	Valueable<Point2D> Sidebar_HarvesterCounter_Offset { { 0, 0 } };
-	Valueable<ColorStruct> Sidebar_HarvesterCounter_Yellow { Drawing::DefaultColors[(int)DefaultColorList::Yellow] };
-	Valueable<ColorStruct> Sidebar_HarvesterCounter_Red { Drawing::DefaultColors[(int)DefaultColorList::Red] };
-	Valueable<Point2D> Sidebar_ProducingProgress_Offset { { 0, 0 } };
-	Valueable<Point2D> Sidebar_PowerDelta_Offset { { 0, 0 } };
-	Valueable<ColorStruct> Sidebar_PowerDelta_Green { Drawing::DefaultColors[(int)DefaultColorList::Green] };
-	Valueable<ColorStruct> Sidebar_PowerDelta_Grey { Drawing::DefaultColors[(int)DefaultColorList::Grey] };
-	Valueable<ColorStruct> Sidebar_PowerDelta_Yellow { Drawing::DefaultColors[(int)DefaultColorList::Yellow] };
-	Valueable<ColorStruct> Sidebar_PowerDelta_Red { Drawing::DefaultColors[(int)DefaultColorList::Red] };
-	Valueable<TextAlign> Sidebar_PowerDelta_Align { TextAlign::Left };
-
-	Valueable<Point2D> Sidebar_WeedsCounter_Offset { { 0, 0 } };
-	Nullable<ColorStruct> Sidebar_WeedsCounter_Color {};
-
-	Nullable<ColorStruct> ToolTip_Background_Color { };
-	Nullable<int> ToolTip_Background_Opacity { };
-	Nullable<float> ToolTip_Background_BlurSize { };
-
-	Nullable<SHPStruct*> GClock_Shape { };
-	Nullable<int> GClock_Transculency { };
-	//CustomPalette GClock_Palette {};
-
-	Nullable<int> SurvivorDivisor { };
-	Nullable<InfantryTypeClass*> Crew { };
-	Nullable<InfantryTypeClass*> Engineer { };
-	Nullable<InfantryTypeClass*> Technician { };
-	ValueableIdx<AircraftTypeClass> ParaDropPlane { -1 };
-	Valueable<AircraftTypeClass*> SpyPlane { };
+#pragma region ClassMembers
+	Valueable<int> ArrayIndex;
+	Nullable<bool> Sidebar_GDIPositions;
+	Valueable<int> IngameScore_WinTheme;
+	Valueable<int> IngameScore_LoseTheme;
+	Valueable<Point2D> Sidebar_HarvesterCounter_Offset;
+	Valueable<ColorStruct> Sidebar_HarvesterCounter_Yellow;
+	Valueable<ColorStruct> Sidebar_HarvesterCounter_Red;
+	Valueable<Point2D> Sidebar_ProducingProgress_Offset;
+	Valueable<Point2D> Sidebar_PowerDelta_Offset;
+	Valueable<ColorStruct> Sidebar_PowerDelta_Green;
+	Valueable<ColorStruct> Sidebar_PowerDelta_Grey;
+	Valueable<ColorStruct> Sidebar_PowerDelta_Yellow;
+	Valueable<ColorStruct> Sidebar_PowerDelta_Red;
+	Valueable<TextAlign> Sidebar_PowerDelta_Align;
+	Valueable<Point2D> Sidebar_WeedsCounter_Offset;
+	Nullable<ColorStruct> Sidebar_WeedsCounter_Color;
+	Nullable<ColorStruct> ToolTip_Background_Color;
+	Nullable<int> ToolTip_Background_Opacity;
+	Nullable<float> ToolTip_Background_BlurSize;
+	Nullable<SHPStruct*> GClock_Shape;
+	Nullable<int> GClock_Transculency;
+	//CustomPalette GClock_Palette;
+	Nullable<int> SurvivorDivisor;
+	Nullable<InfantryTypeClass*> Crew;
+	Nullable<InfantryTypeClass*> Engineer;
+	Nullable<InfantryTypeClass*> Technician;
+	ValueableIdx<AircraftTypeClass> ParaDropPlane;
+	Valueable<AircraftTypeClass*> SpyPlane;
 	Valueable<UnitTypeClass*> HunterSeeker;
-
-	NullableVector<TechnoTypeClass*> ParaDropTypes { };
-	NullableVector<int> ParaDropNum { };
-
-	ValueableIdx<ColorScheme> MessageTextColorIndex { -1 };
-
-	Nullable<AnimTypeClass*> ParachuteAnim {};
-
+	NullableVector<TechnoTypeClass*> ParaDropTypes;
+	NullableVector<int> ParaDropNum;
+	ValueableIdx<ColorScheme> MessageTextColorIndex;
+	Nullable<AnimTypeClass*> ParachuteAnim;
 #ifndef disable_aresOverride
-	ValueableIdx<EVAVoices> EVAIndex { -1 };
+	ValueableIdx<EVAVoices> EVAIndex;
 #else
-	ValueableIdx<int> EVAIndex { -1 };
+	ValueableIdx<int> EVAIndex;
 #endif
-	Valueable<int> BriefingTheme { -1 };
+	Valueable<int> BriefingTheme;
+	NullableVector<BuildingTypeClass*> BaseDefenses;
+	NullableVector<int> BaseDefenseCounts;
+	Nullable<InfantryTypeClass*> Disguise;
+	Valueable<bool> SidebarYuriFileNames;
+	Valueable<ColorStruct> ToolTipTextColor;
+	PhobosFixedString<0x20> ScoreMultiplayBackground;
+	PhobosFixedString<0x20> ScoreMultiplayPalette;
+	PhobosFixedString<0x20> ScoreMultiplayBars;
+	PhobosFixedString<0x20> ScoreCampaignBackground;
+	PhobosFixedString<0x20> ScoreCampaignTransition;
+	PhobosFixedString<0x20> ScoreCampaignAnimation;
+	PhobosFixedString<0x20> ScoreCampaignPalette;
+	PhobosFixedString<0x20> GraphicalTextImage;
+	PhobosFixedString<0x20> GraphicalTextPalette;
+	PhobosFixedString<0x20> DialogBackgroundImage;
+	PhobosFixedString<0x20> DialogBackgroundPalette;
+	PhobosFixedString<0x20> ScoreCampaignThemeUnderPar;
+	PhobosFixedString<0x20> ScoreCampaignThemeOverPar;
+	PhobosFixedString<0x20> ScoreMultiplayThemeWin;
+	PhobosFixedString<0x20> ScoreMultiplayThemeLose;
+	Valueable<int> SidebarMixFileIndex;
+	Valueable<SHPStruct*> MouseShape;
+	PhobosPCXFile SuperWeaponSidebar_OnPCX;
+	PhobosPCXFile SuperWeaponSidebar_OffPCX;
+	PhobosPCXFile SuperWeaponSidebar_TopPCX;
+	PhobosPCXFile SuperWeaponSidebar_CenterPCX;
+	PhobosPCXFile SuperWeaponSidebar_BottomPCX;
+	Valueable<Point2D> Sidebar_BattlePoints_Offset;
+	Nullable<ColorStruct> Sidebar_BattlePoints_Color;
+	Valueable<TextAlign> Sidebar_BattlePoints_Align;
+#pragma endregion
 
-	NullableVector<BuildingTypeClass*> BaseDefenses {};
-	NullableVector<int> BaseDefenseCounts {};
+public:
+	SideExtData(SideClass* pObj) : AbstractTypeExtData(pObj),
 
-	Nullable<InfantryTypeClass*> Disguise {};
+		ArrayIndex(-1),
+		Sidebar_GDIPositions(),
+		IngameScore_WinTheme(-2),
+		IngameScore_LoseTheme(-2),
 
-	Valueable<bool> SidebarYuriFileNames { false };
-	Valueable<ColorStruct> ToolTipTextColor {};
+		Sidebar_HarvesterCounter_Offset({ 0, 0 }),
+		Sidebar_HarvesterCounter_Yellow(Drawing::DefaultColors[(int)DefaultColorList::Yellow]),
+		Sidebar_HarvesterCounter_Red(Drawing::DefaultColors[(int)DefaultColorList::Red]),
 
-	PhobosFixedString<0x20> ScoreMultiplayBackground {};
-	PhobosFixedString<0x20> ScoreMultiplayPalette {};
-	PhobosFixedString<0x20> ScoreMultiplayBars {};
+		Sidebar_ProducingProgress_Offset({ 0, 0 }),
+		Sidebar_PowerDelta_Offset({ 0, 0 }),
+		Sidebar_PowerDelta_Green(Drawing::DefaultColors[(int)DefaultColorList::Green]),
+		Sidebar_PowerDelta_Grey(Drawing::DefaultColors[(int)DefaultColorList::Grey]),
+		Sidebar_PowerDelta_Yellow(Drawing::DefaultColors[(int)DefaultColorList::Yellow]),
+		Sidebar_PowerDelta_Red(Drawing::DefaultColors[(int)DefaultColorList::Red]),
+		Sidebar_PowerDelta_Align(TextAlign::Left),
 
-	PhobosFixedString<0x20> ScoreCampaignBackground {};
-	PhobosFixedString<0x20> ScoreCampaignTransition {};
-	PhobosFixedString<0x20> ScoreCampaignAnimation {};
-	PhobosFixedString<0x20> ScoreCampaignPalette {};
+		Sidebar_WeedsCounter_Offset({ 0, 0 }),
+		Sidebar_WeedsCounter_Color(),
+		ToolTip_Background_Color(),
+		ToolTip_Background_Opacity(),
+		ToolTip_Background_BlurSize(),
+		GClock_Shape(),
+		GClock_Transculency(),
+		SurvivorDivisor(),
+		Crew(),
+		Engineer(),
+		Technician(),
 
-	PhobosFixedString<0x20> GraphicalTextImage {};
-	PhobosFixedString<0x20> GraphicalTextPalette {};
+		ParaDropPlane(-1),
+		SpyPlane(nullptr),
+		HunterSeeker(nullptr),
+		ParaDropTypes(),
+		ParaDropNum(),
 
-	PhobosFixedString<0x20> DialogBackgroundImage {};
-	PhobosFixedString<0x20> DialogBackgroundPalette {};
+		MessageTextColorIndex(-1),
+		ParachuteAnim(nullptr),
+		EVAIndex(-1),
+		BriefingTheme(-1),
 
-	PhobosFixedString<0x20> ScoreCampaignThemeUnderPar {};
-	PhobosFixedString<0x20> ScoreCampaignThemeOverPar {};
+		BaseDefenses(),
+		BaseDefenseCounts(),
+		Disguise(),
 
-	PhobosFixedString<0x20> ScoreMultiplayThemeWin {};
-	PhobosFixedString<0x20> ScoreMultiplayThemeLose {};
+		SidebarYuriFileNames(false),
+		ToolTipTextColor(ColorStruct()),
 
-	Valueable<int> SidebarMixFileIndex { -1 };
+		ScoreMultiplayBackground(),
+		ScoreMultiplayPalette(),
+		ScoreMultiplayBars(),
+		ScoreCampaignBackground(),
+		ScoreCampaignTransition(),
+		ScoreCampaignAnimation(),
+		ScoreCampaignPalette(),
+		GraphicalTextImage(),
+		GraphicalTextPalette(),
+		DialogBackgroundImage(),
+		DialogBackgroundPalette(),
+		ScoreCampaignThemeUnderPar(),
+		ScoreCampaignThemeOverPar(),
+		ScoreMultiplayThemeWin(),
+		ScoreMultiplayThemeLose(),
 
-	Valueable<SHPStruct*> MouseShape { nullptr };
+		SidebarMixFileIndex(-1),
+		MouseShape(nullptr),
 
-	PhobosPCXFile SuperWeaponSidebar_OnPCX {};
-	PhobosPCXFile SuperWeaponSidebar_OffPCX {};
-	PhobosPCXFile SuperWeaponSidebar_TopPCX {};
-	PhobosPCXFile SuperWeaponSidebar_CenterPCX {};
-	PhobosPCXFile SuperWeaponSidebar_BottomPCX {};
+		SuperWeaponSidebar_OnPCX(),
+		SuperWeaponSidebar_OffPCX(),
+		SuperWeaponSidebar_TopPCX(),
+		SuperWeaponSidebar_CenterPCX(),
+		SuperWeaponSidebar_BottomPCX(),
 
-	Valueable<Point2D> Sidebar_BattlePoints_Offset {};
-	Nullable<ColorStruct> Sidebar_BattlePoints_Color {};
-	Valueable<TextAlign> Sidebar_BattlePoints_Align { TextAlign::Left };
+		Sidebar_BattlePoints_Offset(Point2D()),
+		Sidebar_BattlePoints_Color(),
+		Sidebar_BattlePoints_Align(TextAlign::Left)
+	{
+		this->Initialize();
+	}
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+	SideExtData(SideClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
+
+	virtual ~SideExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
+	{
+	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->AbstractTypeExtData::Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<SideExtData*>(this)->AbstractTypeExtData::Internal_SaveToStream(Stm);
+		const_cast<SideExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { };
+	virtual SideClass* This() const override { return reinterpret_cast<SideClass*>(this->AbstractTypeExtData::This()); }
+	virtual const SideClass* This_Const() const override { return reinterpret_cast<const SideClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+
 	void Initialize();
+
+public:
 
 	int GetSurvivorDivisor() const;
 	int GetDefaultSurvivorDivisor() const;
@@ -142,6 +233,9 @@ public:
 	InfantryTypeClass* GetDisguise() const;
 	InfantryTypeClass* GetDefaultDisguise() const;
 
+	const char* GetMultiplayerScoreBarFilename(unsigned int index) const;
+public:
+
 	static bool isNODSidebar();
 	static void UpdateGlobalFiles();
 
@@ -166,14 +260,6 @@ public:
 		 SideExtData::s_GraphicalTextConvert.GetConvert() : FileSystem::GRFXTXT_Convert();
 	}
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(SideExtData) -
-			(4u //AttachedToObject
-			 );
-	}
-
-	const char* GetMultiplayerScoreBarFilename(unsigned int index) const;
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -183,5 +269,26 @@ class SideExtContainer final : public Container<SideExtData>
 {
 public:
 	static SideExtContainer Instance;
-	//CONSTEXPR_NOCOPY_CLASSB(SideExtContainer, SideExtData, "SideClass");
+
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
 };
+
+class FakeSideClass final : public SideClass
+{
+public:
+	HRESULT __stdcall _Load(IStream* pStm);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+};
+
+static_assert(sizeof(FakeSideClass) == sizeof(SideClass), "Invalid Size !");

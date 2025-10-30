@@ -11,6 +11,38 @@
 
 #include <GameOptionsClass.h>
 
+ASMJIT_PATCH(0x44955D, BuildingClass_WeaponFactoryOutsideBusy_WeaponFactoryCell, 0x6)
+{
+	enum { NotBusy = 0x44969B };
+
+	GET(BuildingClass* const, pThis, ESI);
+
+	const auto pLink = pThis->GetNthLink();
+
+	if (!pLink)
+		return NotBusy;
+
+	const auto pLinkType = pLink->GetTechnoType();
+
+	if (pLinkType->JumpJet && pLinkType->BalloonHover)
+		return NotBusy;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x445B62, BuildingClass_Limbo_WallTower_AdjacentWallDamage, 0x5)
+{
+	enum { SkipGameCode = 0x445B6E };
+
+	GET(CellClass*, pThis, EDI);
+	pThis->ReduceWall(200);
+
+	if (pThis->OverlayTypeIndex == -1)
+		TechnoClass::ClearWhoTargetingThis(pThis);
+
+	return SkipGameCode;
+}
+
 ASMJIT_PATCH(0x4400F9, BuildingClass_AI_UpdateOverpower, 0x6)
 {
 	enum { SkipGameCode = 0x44019D };
@@ -56,6 +88,10 @@ ASMJIT_PATCH(0x4555E4, BuildingClass_IsPowerOnline_Overpower, 0x6)
 	enum { LowPower = 0x4556BE, Continue1 = 0x4555F0, Continue2 = 0x455643 };
 
 	GET(FakeBuildingClass*, pThis, ESI);
+
+	if(pThis->_GetTypeExtData()->Overpower_KeepOnline < 0)
+		return LowPower;
+
 	int overPower = 0;
 
 	for (const auto& pCharger : pThis->Overpowerers) {
@@ -82,22 +118,6 @@ ASMJIT_PATCH(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x43D6E5, BuildingClass_Draw_ZShapePointMove, 0x5)
-{
-	enum { Apply = 0x43D6EF, Skip = 0x43D712 };
-
-	GET(FakeBuildingClass*, pThis, ESI);
-	GET(Mission, mission, EAX);
-
-	if (
-		(mission != Mission::Selling && mission != Mission::Construction) ||
-			pThis->_GetTypeExtData()->ZShapePointMove_OnBuildup
-		)
-		return Apply;
-
-	return Skip;
-}
-
 ASMJIT_PATCH(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 {
 	enum { Skip = 0x4511E6, Continue = 0x4511DF };
@@ -108,36 +128,36 @@ ASMJIT_PATCH(0x4511D6, BuildingClass_AnimationAI_SellBuildup, 0x7)
 		? Continue : Skip;
 }
 
-ASMJIT_PATCH(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
+// ASMJIT_PATCH(0x739717, UnitClass_TryToDeploy_Transfer, 0x8)
+// {
+// 	GET(UnitClass*, pUnit, EBP);
+// 	GET(FakeBuildingClass*, pStructure, EBX);
+
+// 	if (R->AL())
+// 	{
+// 		if (pUnit->Type->DeployToFire && pUnit->Target)
+// 			pStructure->LastTarget = pUnit->Target;
+
+// 		pStructure->_GetExtData()->DeployedTechno = true;
+
+// 		return 0x73971F;
+// 	}
+
+// 	return 0x739A6E;
+// }
+
+ASMJIT_PATCH(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
 {
 	GET(UnitClass*, pUnit, EBP);
-	GET(FakeBuildingClass*, pStructure, EBX);
+	GET(BuildingClass*, pStructure, EBX);
 
-	if (R->AL())
-	{
-		if (pUnit->Type->DeployToFire && pUnit->Target)
-			pStructure->LastTarget = pUnit->Target;
+	if (pUnit->Type->DeployToFire && pUnit->Target)
+		pStructure->LastTarget = pUnit->Target;
 
-		pStructure->_GetExtData()->DeployedTechno = true;
+	BuildingExtContainer::Instance.Find(pStructure)->DeployedTechno = true;
 
-		return 0x73971F;
-	}
-
-	return 0x739A6E;
+	return 0;
 }
-
-//ASMJIT_PATCH(0x7396D2, UnitClass_TryToDeploy_Transfer, 0x5)
-//{
-//	GET(UnitClass*, pUnit, EBP);
-//	GET(BuildingClass*, pStructure, EBX);
-//
-//	if (pUnit->Type->DeployToFire && pUnit->Target)
-//		pStructure->LastTarget = pUnit->Target;
-//
-//	BuildingExtContainer::Instance.Find(pStructure)->DeployedTechno = true;
-//
-//	return 0;
-//}
 
 ASMJIT_PATCH(0x449ADA, BuildingClass_MissionConstruction_DeployToFireFix, 0x6) //was 0
 {
@@ -218,7 +238,7 @@ ASMJIT_PATCH(0x465D40, BuildingTypeClass_IsUndeployable_ConsideredVehicle, 0x6)
 
 	const bool FoundationEligible = IsCustomEligible || pThis->Foundation == Foundation::_1x1;
 
-	R->EAX(pBldExt->Type->ConsideredVehicle.Get(pThis->UndeploysInto && FoundationEligible));
+	R->EAX(pBldExt->ConsideredVehicle.Get(pThis->UndeploysInto && FoundationEligible));
 	return ReturnFromFunction;
 }
 
@@ -344,6 +364,7 @@ ASMJIT_PATCH(0x4C9C7B, FactoryClass_QueueProduction_ForceCheckBuilding, 0x7)
 	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
 }
 
+#ifdef OLD
 ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 {
 	enum { CheckSame = 0x4FAB3D, SkipCheck = 0x4FAB64, Return = 0x4FAC9B };
@@ -383,7 +404,40 @@ ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 	SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(absType, index, 0));
 	return Return;
 }
+#else 
+DEFINE_JUMP(LJMP, 0x4FABEE, 0x4FAB3D)
 
+DEFINE_HOOK(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
+{
+	enum { CheckSame = 0x4FAB3D, SkipCheck = 0x4FAB64, Return = 0x4FAC9B };
+
+	GET_STACK(const bool, all, STACK_OFFSET(0x18, 0x10));
+	GET(const int, index, EBX);
+	GET(const BuildCat, buildCat, ECX);
+	GET(const AbstractType, absType, EBP);
+	GET(FactoryClass* const, pFactory, ESI);
+
+	// After placing the building, the factory will be in this state
+	if (buildCat != BuildCat::DontCare && !all && !pFactory->Object)
+		return SkipCheck;
+
+	const auto pType = TechnoTypeClass::GetByTypeAndIndex(absType, index);
+	const auto firstRemoved = pFactory->RemoveOneFromQueue(pType);
+
+	if (firstRemoved)
+	{
+		SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true; // Added, force redraw strip
+		SidebarClass::Instance->RepaintSidebar(SidebarClass::GetObjectTabIdx(absType, index, 0));
+
+		if (all)
+			while (pFactory->RemoveOneFromQueue(pType));
+		else
+			return Return;
+	}
+
+	return CheckSame;
+}
+#endif
 ASMJIT_PATCH(0x6A9C54, StripClass_DrawStrip_FindFactoryDehardCode, 0x6)
 {
 	GET(TechnoTypeClass* const, pType, ECX);
@@ -569,3 +623,11 @@ ASMJIT_PATCH(0x44E260, BuildingClass_Mission_Unload_KickOutStuckUnits, 0x7)
 	return 0;
 }
 
+
+ASMJIT_PATCH(0x449306, BuildingClass_SetOwningHouse_Sell, 0x6)
+{
+	enum { NoSell = 0x44936E };
+	GET(FakeBuildingClass*, pThis, ESI);
+	return pThis->_GetTypeExtData()->AISellCapturedBuilding
+			.Get(RulesExtData::Instance()->AISellCapturedBuilding) ? 0 : NoSell;
+}

@@ -1062,7 +1062,7 @@ ASMJIT_PATCH(0x4FAF2A, HouseClass_SWDefendAgainst_Aborted, 0x8)
 	return (pSW && !pSW->IsCharged) ? 0x4FAF32 : 0x4FB0CF;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP ,0x4F9610,  FakeHouseClass::_GiveTiberium);
+DEFINE_FUNCTION_JUMP(LJMP ,0x4F9610, FakeHouseClass::_GiveTiberium);
 DEFINE_FUNCTION_JUMP(CALL ,0x44A272, FakeHouseClass::_GiveTiberium)
 DEFINE_FUNCTION_JUMP(CALL ,0x522E11, FakeHouseClass::_GiveTiberium)
 DEFINE_FUNCTION_JUMP(CALL ,0x522E31, FakeHouseClass::_GiveTiberium)

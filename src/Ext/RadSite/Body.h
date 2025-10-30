@@ -9,26 +9,63 @@
 #include <Ext/WeaponType/Body.h>
 
 class RadTypeClass;
-class RadSiteExtData
+class RadSiteExtData final : public AbstractExtended
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0x87654321;
 	using base_type = RadSiteClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
-	RadTypeClass* Type { nullptr };
-	WeaponTypeClass* Weapon { nullptr };
-	TechnoClass* TechOwner { nullptr };
-	HouseClass* HouseOwner { nullptr };
-	bool NoOwner { true };
-	int CreationFrame { 0 };
-	PhobosMap<BuildingClass*, int> damageCounts {};
 
-	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+#pragma region ClassMembers
+	RadTypeClass* Type;
+	WeaponTypeClass* Weapon;
+	TechnoClass* TechOwner;
+	HouseClass* HouseOwner;
+	bool NoOwner;
+	int CreationFrame;
+	PhobosMap<BuildingClass*, int> damageCounts;
+#pragma endregion
+
+public:
+	RadSiteExtData(RadSiteClass* pObj) : AbstractExtended(pObj),
+		Type(nullptr),
+		Weapon(nullptr),
+		TechOwner(nullptr),
+		HouseOwner(nullptr),
+		NoOwner(true),
+		CreationFrame(0)
+	{
+		this->AbstractExtended::SetName("RadSiteClass");
+	}
+
+	RadSiteExtData(RadSiteClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
+
+	virtual ~RadSiteExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->Internal_LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<RadSiteExtData*>(this)->Internal_SaveToStream(Stm);
+		const_cast<RadSiteExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const { }
+
+	virtual RadSiteClass* This() const override { return reinterpret_cast<RadSiteClass*>(this->AbstractExtended::This()); }
+	virtual const RadSiteClass* This_Const() const override { return reinterpret_cast<const RadSiteClass*>(this->AbstractExtended::This_Const()); }
+
+public:
 
 	void CreateLight();
 	void Add(int amount);
@@ -43,15 +80,10 @@ public:
 
 	const DamagingState ApplyRadiationDamage(TechnoClass* pTarget, int damage, int distance);
 
+public:
+
 	static void CreateInstance(CellClass* pCell, int spread, int amount, WeaponTypeExtData* pWeaponExt, TechnoClass* const pTech);
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
-	{
-		return sizeof(RadSiteExtData) -
-			(4u //AttachedToObject
-				- 4u //inheritance
-			 );
-	}
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -61,37 +93,18 @@ class RadSiteExtContainer final : public Container<RadSiteExtData>
 {
 public:
 	static RadSiteExtContainer Instance;
-	static StaticObjectPool<RadSiteExtData, 1000> pools;
 
-	RadSiteExtData* AllocateUnchecked(RadSiteClass* key)
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	{
-		RadSiteExtData* val = pools.allocate();
-
-		if (val)
+		for (auto& ext : Array)
 		{
-			val->AttachedToObject = key;
-		}
-		else
-		{
-			Debug::FatalErrorAndExit("The amount of [RadSiteExtData] is exceeded the ObjectPool size %d !", pools.getPoolSize());
-		}
-
-		return val;
-	}
-
-	void Remove(RadSiteClass* key)
-	{
-		if (RadSiteExtData* Item = TryFind(key))
-		{
-			RemoveExtOf(key, Item);
+			ext->InvalidatePointer(ptr, bRemoved);
 		}
 	}
 
-	void RemoveExtOf(RadSiteClass* key, RadSiteExtData* Item)
-	{
-		pools.deallocate(Item);
-		this->ClearExtAttribute(key);
-	}
 };
 
 class NOVTABLE FakeRadSiteClass : public RadSiteClass
@@ -106,7 +119,7 @@ public:
 	}
 
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	RadSiteExtData* _GetExtData() {
 		return *reinterpret_cast<RadSiteExtData**>(((DWORD)this) + AbstractExtOffset);

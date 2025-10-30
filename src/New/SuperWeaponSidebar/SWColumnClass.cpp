@@ -134,7 +134,7 @@ bool SWColumnClass::RemoveButton(int superIdx)
 	auto& buttons = this->Buttons;
 	auto sidebar = SWSidebarClass::Global();
 
-	const auto it = std::find_if(buttons.begin(), buttons.end(),
+	const auto it = std::ranges::find_if(buttons,
 		[superIdx](SWButtonClass* const button)
 		{ return button->SuperIndex == superIdx; });
 

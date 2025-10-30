@@ -135,22 +135,6 @@ struct AresGlobalData {
 	static void ReadAresRA2MD();
 };
 
-struct StaticVars {
-	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
-	static std::vector<unsigned char> ShpCompression1Buffer;
-	static std::map<const TActionClass*, int> TriggerCounts;
-	static UniqueGamePtr<MixFileClass> aresMIX;
-	static std::string MovieMDINI;
-	static WaveColorData TempColor;
-
-	static bool SaveGlobals(PhobosStreamWriter& stm);
-	static bool LoadGlobals(PhobosStreamReader& stm);
-	static void LoadGlobalsConfig();
-
-	static void Clear();
-
-};
-
 struct TechnoExt_ExtData
 {
 	static void AddPassengers(BuildingClass* const Grinder, FootClass* Vic , bool ParentReversed);
@@ -211,7 +195,7 @@ struct TechnoExt_ExtData
 	);
 
 	static int GetWarpPerStep(TemporalClass* pThis, int nStep);
-	static bool Warpable(TechnoClass* pTarget);
+	static bool Warpable(TemporalClass* pTemp , TechnoClass* pTarget);
 
 	static void DepositTiberium(TechnoClass* pThis , HouseClass* pHouse, float const amount, float const bonus, int const idxType);
 	static void RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, int const idxType);
@@ -408,13 +392,16 @@ private:
 	int CornerSize;
 };
 
-struct HashData
+struct ConfigurationHashData
 {
-	DWORD Rules { 0 };
-	DWORD Art { 0 };
-	DWORD AI { 0 };
+	struct Result
+	{
+		DWORD Rules { 0 };
+		DWORD Art { 0 };
+		DWORD AI { 0 };
+	};
 
-	static HashData GetINIChecksums();
+	static Result GetINIChecksums();
 };
 
 struct OwnFunc
@@ -443,8 +430,8 @@ struct AresWPWHExt
 
 struct AresTActionExt
 {
-	static std::pair<TriggerAttachType, bool> GetFlag(AresNewTriggerAction nAction);
-	static std::pair<LogicNeedType, bool> GetMode(AresNewTriggerAction nAction);
+	static std::pair<TriggerAttachType, bool> GetTriggetAttach(AresNewTriggerAction nAction);
+	static std::pair<LogicNeedType, bool> GetLogicNeed(AresNewTriggerAction nAction);
 
 #define DEFINE_ACTION(f)\
 	static bool f##(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
@@ -479,9 +466,9 @@ struct AresTEventExt
 
 	// original game using between 0 - 2 ?
 	// why these were 256 257 ? , something not right ,..
-	static std::pair<Persistable, bool> GetPersistableFlag(AresTriggerEvents nAction);
+	static std::pair<bool, bool> GetPersistableFlag(AresTriggerEvents nAction);
 	static std::pair<LogicNeedType, bool >  GetLogicNeed(AresTriggerEvents nAction);
-	static std::pair<bool, TriggerAttachType> GetAttachFlags(AresTriggerEvents nEvent);
+	static std::pair<TriggerAttachType , bool> GetAttachFlags(AresTriggerEvents nEvent);
 
 	static bool FindTechnoType(TEventClass* pThis, int args, HouseClass* pWho);
 
@@ -497,10 +484,13 @@ struct TunnelFuncs
 	static void DestroyTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, TechnoClass* pKiller);
 	static void EnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pFoot);
 	static bool CanEnterTunnel(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel, FootClass* pEnterer);
-	static std::vector<int>* PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType, bool& Fail);
+	static bool PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* pType,int pipMax);
 	static std::pair<bool, FootClass*> UnlimboOne(std::vector<FootClass*>* pVector, BuildingClass* pTunnel, DWORD Where);
 	static bool UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool silent = false);
 	static void HandleUnload(std::vector<FootClass*>* pTunnelData, BuildingClass* pTunnel);
+
+public:
+	static std::vector<int> PipDatas;
 };
 
 struct AresHouseExt
@@ -625,5 +615,24 @@ struct MouseCursorFuncs
 	MouseClassExt::InsertSWMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
 #endif
 	}
+
+};
+
+struct StaticVars
+{
+	static PhobosMap<ObjectClass*, AlphaShapeClass*> ObjectLinkedAlphas;
+	static std::vector<unsigned char> ShpCompression1Buffer;
+	static PhobosMap<const TActionClass*, int> TriggerCounts;
+	static UniqueGamePtr<MixFileClass> aresMIX;
+	static std::string MovieMDINI;
+	static WaveColorData TempColor;
+	static bool InitEd;
+	static AresPcxBlit<WORD> GlobalPcxBlitter;
+
+	static bool SaveGlobals(PhobosStreamWriter& stm);
+	static bool LoadGlobals(PhobosStreamReader& stm);
+	static void LoadGlobalsConfig();
+
+	static void Clear();
 
 };

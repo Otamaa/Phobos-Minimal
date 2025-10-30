@@ -17,7 +17,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 
 	virtual bool Read(CCINIClass* const pINI, const char* pSection) override;
-
+	virtual const char* Name() { return "MeteorTrajectoryType"; }
 
 };
 
@@ -27,7 +27,7 @@ public:
 
 	MeteorTrajectory() : PhobosTrajectory { TrajectoryFlag::Meteor } { }
 
-	MeteorTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) : 
+	MeteorTrajectory(BulletClass* pBullet, PhobosTrajectoryType* pType) :
 		PhobosTrajectory { TrajectoryFlag::Meteor , pBullet , pType }
 	{ }
 
@@ -46,5 +46,6 @@ public:
 	virtual TrajectoryCheckReturnType OnAITargetCoordCheck(CoordStruct& coords) override;
 	virtual TrajectoryCheckReturnType OnAITechnoCheck(TechnoClass* pTechno) override;
 
+	virtual const char* Name() { return "MeteorTrajectory"; }
 };
 #pragma once

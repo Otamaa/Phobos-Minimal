@@ -1,31 +1,54 @@
 #pragma once
 #include <SmudgeTypeClass.h>
+#include <Ext/ObjectType/Body.h>
 
-#include <Utilities/Container.h>
-#include <Utilities/TemplateDef.h>
-
-class SmudgeTypeExtData final
+class SmudgeTypeExtData final : public ObjectTypeExtData
 {
 public:
-	static COMPILETIMEEVAL size_t Canary = 0xBEE75008;
 	using base_type = SmudgeTypeClass;
+	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
-	base_type* AttachedToObject {};
-	InitState Initialized { InitState::Blank };
 public:
 
-	Valueable<bool> Clearable { true };
+	Valueable<bool> Clearable;
 
-	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
-	void LoadFromStream(PhobosStreamReader& Stm) { this->Serialize(Stm); }
-	void SaveToStream(PhobosStreamWriter& Stm) { this->Serialize(Stm); }
+public:
+	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) , Clearable (true) { }
+	SmudgeTypeExtData(SmudgeTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
-	COMPILETIMEEVAL FORCEDINLINE static size_t size_Of()
+	virtual ~SmudgeTypeExtData() = default;
+
+	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
-		return sizeof(SmudgeTypeExtData) -
-			(4u //AttachedToObject
-			 );
+		this->ObjectTypeExtData::InvalidatePointer(ptr, bRemoved);
 	}
+
+	virtual void LoadFromStream(PhobosStreamReader& Stm) override
+	{
+		this->ObjectTypeExtData::LoadFromStream(Stm);
+		this->Serialize(Stm);
+	}
+
+	virtual void SaveToStream(PhobosStreamWriter& Stm)
+	{
+		const_cast<SmudgeTypeExtData*>(this)->ObjectTypeExtData::SaveToStream(Stm);
+		const_cast<SmudgeTypeExtData*>(this)->Serialize(Stm);
+	}
+
+	virtual AbstractType WhatIam() const { return base_type::AbsID; }
+	virtual int GetSize() const { return sizeof(*this); };
+
+	virtual void CalculateCRC(CRCEngine& crc) const
+	{
+		this->ObjectTypeExtData::CalculateCRC(crc);
+	}
+
+	virtual SmudgeTypeClass* This() const override { return reinterpret_cast<SmudgeTypeClass*>(this->ObjectTypeExtData::This()); }
+	virtual const SmudgeTypeClass* This_Const() const override { return reinterpret_cast<const SmudgeTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+
+	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
+	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -36,16 +59,28 @@ class SmudgeTypeExtContainer final : public Container<SmudgeTypeExtData>
 public:
 	static SmudgeTypeExtContainer Instance;
 
-	//CONSTEXPR_NOCOPY_CLASSB(SmudgeTypeExtContainer, SmudgeTypeExtData, "SmudgeTypeClass");
+	static bool LoadGlobals(PhobosStreamReader& Stm);
+	static bool SaveGlobals(PhobosStreamWriter & Stm);
+
+	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
+	{
+		for (auto& ext : Array)
+		{
+			ext->InvalidatePointer(ptr, bRemoved);
+		}
+	}
+
 };
 
 class NOVTABLE FakeSmudgeTypeClass : public SmudgeTypeClass
 {
 public:
 	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, bool clearDirty);
+	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _CanPlaceHere(CellStruct*origin, bool underbuildings);
+
+	bool _ReadFromINI(CCINIClass* pINI);
 
 	SmudgeTypeExtData* _GetExtData() {
 		return *reinterpret_cast<SmudgeTypeExtData**>(((DWORD)this) + AbstractExtOffset);
