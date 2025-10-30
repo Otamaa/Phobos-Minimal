@@ -20,7 +20,7 @@ bool HideBar(TechnoClass* pTechno, TechnoTypeClass* pType,  bool isAllied)
 	{
 		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
-		if (pExt->Get_TechnoStateComponent()->IsDriverKilled)
+		if (pExt->Is_DriverKilled)
 			return true;
 	}
 
@@ -406,7 +406,7 @@ namespace DrawHeathData
 //	if (pThis->IsSelected && Phobos::Config::EnableSelectBox && !pTypeExt->HideSelectBox)
 //		TechnoExtData::DrawSelectBox(pThis, pLocation, pBound);
 //
-//	if (const auto pShieldData = pExt->Shield)
+//	if (const auto pShieldData = pExt->Shield.get())
 //	{
 //		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
 //			pShieldData->DrawShieldBar_Building(iLength, pLocation, pBound);
@@ -424,7 +424,7 @@ namespace DrawHeathData
 //	GET_STACK(Point2D*, pLocation, STACK_OFFS(0x4C, -0x4));
 //	GET_STACK(RectangleStruct*, pBound, STACK_OFFS(0x4C, -0x8));
 //
-//	if (TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled)
+//	if (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 //		return 0x6F6AB6u;
 //
 //	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
@@ -435,7 +435,7 @@ namespace DrawHeathData
 //	const int iLength = pThis->WhatAmI() == InfantryClass::AbsID ? 8 : 17;
 //
 //	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-//	if (const auto pShieldData = pExt->Shield)
+//	if (const auto pShieldData = pExt->Shield.get())
 //	{
 //		if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
 //		{
@@ -657,7 +657,7 @@ ASMJIT_PATCH(0x6F64A0, TechnoClass_DrawHealthBar, 0x5)
 		pipsLength = pHealthBar->PipsLength.Get(whatAmI == InfantryClass::AbsID ? defaultInfantryPipsLength : defaultUnitPipsLength);
 	}
 
-	const auto pShield = pExt->Shield;
+	const auto pShield = pExt->Shield.get();
 
 	if (pShield && pShield->IsAvailable() && !pShield->IsBrokenAndNonRespawning())
 	{

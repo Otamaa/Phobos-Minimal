@@ -808,7 +808,6 @@ public:
 		Music_Duration(0),
 		Music_AffectedHouses(AffectedHouse::All)
 	{
-			this->AbsType = SuperWeaponTypeClass::AbsID;
 			this->Text_Ready = GameStrings::TXT_READY();
 			this->Text_Hold = GameStrings::TXT_HOLD();
 			this->Text_Charging = GameStrings::TXT_CHARGING();

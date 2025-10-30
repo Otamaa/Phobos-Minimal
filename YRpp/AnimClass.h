@@ -185,9 +185,11 @@ struct UninitAnim
 {
 	void operator() (AnimClass* pAnim) const
 	{
-		if (pAnim && pAnim->Type) {
+		if (pAnim && pAnim->Type)
+		{
 			pAnim->TimeToDie = true;
 			pAnim->UnInit();
 		}
+		pAnim = nullptr;
 	}
 };

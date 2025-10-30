@@ -6,7 +6,6 @@
 #include "Debug.h"
 #include "SavegameDef.h"
 #include "Swizzle.h"
-#include "OptionalStruct.h"
 
 class AbstractClass;
 static COMPILETIMEEVAL size_t AbstractExtOffset = 0x18;
@@ -16,40 +15,14 @@ struct UuidFirstPart {
 	static constexpr unsigned int value = __uuidof(T).Data1;
 };
 
-template<typename entT>
-struct EntitySerializer
-{
-	static void Save(PhobosStreamWriter& stm, entt::entity owner)
-	{
-		auto myComp = Phobos::gEntt->try_get<entT>(owner);
-
-		bool exist = myComp != nullptr;
-		Savegame::WritePhobosStream(stm, exist);
-		if (myComp) {
-			myComp->Save(stm);
-		}
-	}
-
-	static void Load(PhobosStreamReader& stm, entt::entity owner)
-	{
-		bool exist;
-		Savegame::ReadPhobosStream(stm, exist);
-		if (exist){
-			auto& ent_ = Phobos::gEntt->emplace<entT>(owner);
-			ent_.Load(stm, true);
-		}
-	}
-};
-
 
 struct AbstractExtended {
 private:
 	AbstractClass* AttachedToObject;
+	InitState Initialized;
+	FixedString<0x24> Name;
 
 public:
-	FixedString<0x24> AOName;
-	AbstractType AbsType;
-	InitState Initialized;
 
 	//normal assigned AO
 	AbstractExtended(AbstractClass* abs);
@@ -57,16 +30,16 @@ public:
 	//with noint_t less instasiation
 	AbstractExtended(AbstractClass* abs, noinit_t);
 
-	~AbstractExtended();
+	~AbstractExtended() = default;
 
 	void Internal_LoadFromStream(PhobosStreamReader& Stm);
 	void Internal_SaveToStream(PhobosStreamWriter& Stm) const;
 
-	//FORCEDINLINE InitState GetInitState() const { return Initialized; }
-	//FORCEDINLINE void SetInitState(InitState state) { Initialized = state; }
+	FORCEDINLINE InitState GetInitState() const { return Initialized; }
+	FORCEDINLINE void SetInitState(InitState state) { Initialized = state; }
 	FORCEDINLINE void SetAttached(AbstractClass* abs) { AttachedToObject = abs; }
-	//FORCEDINLINE void SetName(const char* name) { Name = name; }
-	//FORCEDINLINE const char* GetAttachedObjectName() const { return Name.data(); }
+	FORCEDINLINE void SetName(const char* name) { Name = name; }
+	FORCEDINLINE const char* GetAttachedObjectName() const { return Name.data(); }
 
 public:
 
@@ -244,36 +217,34 @@ public:
 					return;
 				}
 
-				{
-					switch (ptr->Initialized) {
-						case InitState::Blank:
-						{
-							ptr->Initialized = (InitState::Inited);
+				switch (ptr->GetInitState()) {
+					case InitState::Blank:
+					{
+						ptr->SetInitState(InitState::Inited);
 
-							if COMPILETIMEEVAL (CanLoadFromRulesFile<T>) {
-								if (pINI == CCINIClass::INI_Rules) {
-									ptr->LoadFromRulesFile(pINI);
-								}
+						if COMPILETIMEEVAL (CanLoadFromRulesFile<T>) {
+							if (pINI == CCINIClass::INI_Rules) {
+								ptr->LoadFromRulesFile(pINI);
 							}
+						}
 
-							//Load from rules INI File
-							ptr->LoadFromINI(pINI, parseFailAddr);
-							ptr->Initialized = (InitState::Ruled);
-						}
+						//Load from rules INI File
+						ptr->LoadFromINI(pINI, parseFailAddr);
+						ptr->SetInitState(InitState::Ruled);
+					}
+					break;
+					case InitState::Ruled:
+					case InitState::Constanted:
+					{
+						//load anywhere other than rules
+						ptr->LoadFromINI(pINI, parseFailAddr);
+						//this function can be called again multiple time but without need to re-init the data
+						ptr->SetInitState(InitState::Ruled);
+					}
+					break;
+					{
+					default:
 						break;
-						case InitState::Ruled:
-						case InitState::Constanted:
-						{
-							//load anywhere other than rules
-							ptr->LoadFromINI(pINI, parseFailAddr);
-							//this function can be called again multiple time but without need to re-init the data
-							ptr->Initialized = (InitState::Ruled);
-						}
-						break;
-						{
-						default:
-							break;
-						}
 					}
 				}
 			}
@@ -352,7 +323,7 @@ public : //default Save/Load functions
 					auto newPtr = new T(nullptr, noinit_t());
 
 					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, name.c_str())
-					ExtensionSwizzleManager::RegisterExtensionPointer<T>((void*)oldPtr, newPtr);
+					ExtensionSwizzleManager::RegisterExtensionPointer((void*)oldPtr, newPtr);
 					newPtr->LoadFromStream(Stm);
 					Array.push_back(newPtr);
 				}

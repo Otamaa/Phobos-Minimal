@@ -161,7 +161,7 @@ ASMJIT_PATCH(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //	if (result >= 1.0)
 //	{
 //		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-//		if (const auto pShieldData = pExt->Shield)
+//		if (const auto pShieldData = pExt->Shield.get())
 //		{
 //			if (pShieldData->IsActive())
 //			{
@@ -195,7 +195,7 @@ ASMJIT_PATCH(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //		{
 //			const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 //
-//			if (const auto pShieldData = pExt->Shield)
+//			if (const auto pShieldData = pExt->Shield.get())
 //			{
 //				if (pShieldData->IsActive())
 //				{
@@ -226,7 +226,7 @@ ASMJIT_PATCH(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 //		{
 //			const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 //
-//			if (const auto pShieldData = pExt->Shield)
+//			if (const auto pShieldData = pExt->Shield.get())
 //			{
 //				if (pShieldData->IsActive())
 //				{

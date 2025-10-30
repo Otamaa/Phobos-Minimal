@@ -429,7 +429,8 @@ ASMJIT_PATCH(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 
 ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 {
-	DistributionMode::DrawRadialIndicator();
+
+	DistributionModeHoldDownCommandClass::DrawRadialIndicator();
 
 	if (!ToggleDesignatorRangeCommandClass::ShowDesignatorRange || Unsorted::CurrentSWType < 0)
 		return 0;

@@ -479,7 +479,6 @@ public:
 	Valueable<bool> AffectsUnderground;
 	Valueable<bool> PlayAnimUnderground;
 	Valueable<bool> PlayAnimAboveSurface;
-
 	Nullable<bool> AnimZAdjust;
 
 	bool IsCellSpreadWH;
@@ -839,7 +838,6 @@ public:
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false)
 		{
-			this->AbsType = WarheadTypeClass::AbsID;
 			this->InitializeConstant();
 		}
 

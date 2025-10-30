@@ -39,9 +39,7 @@ public:
 		, AllowVeins()
 		, AllowedTiberiums()
 		, AllowedSmudges()
-	{
-		this->AbsType = IsometricTileTypeClass::AbsID;
-	}
+	{ }
 
 	IsometricTileTypeExtData(IsometricTileTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 

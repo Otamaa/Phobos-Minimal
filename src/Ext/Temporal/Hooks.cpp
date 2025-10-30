@@ -85,7 +85,7 @@ ASMJIT_PATCH(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 
 		if (auto nTotal = TechnoExt_ExtData::GetWarpPerStep(pThis, 0))
 		{
-			auto const pWeapon = pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->Get_TechnoStateComponent()->WeaponIndexes.Warp)->WeaponType;
+			auto const pWeapon = pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Warp)->WeaponType;
 
 			if (auto const Warhead = pWeapon->Warhead)
 			{
@@ -119,6 +119,6 @@ ASMJIT_PATCH(0x71AE50, TemporalClass_CanWarpTarget, 8)
 {
 	GET(TemporalClass*, pTemp, ECX);
 	GET_STACK(TechnoClass*, pTarget, 0x4);
-	R->EAX(TechnoExt_ExtData::Warpable(pTemp ,pTarget));
+	R->EAX(TechnoExt_ExtData::Warpable(pTemp , pTarget));
 	return 0x71AF19;
 }

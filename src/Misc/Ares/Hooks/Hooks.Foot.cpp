@@ -28,7 +28,7 @@ ASMJIT_PATCH(0x4DFE00, FootClass_GarrisonStructure_TakeVehicle, 6)
 {
 	GET(FootClass*, pThis, ECX);
 
-	if (!TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->TakeVehicleMode)
+	if (!TechnoExtContainer::Instance.Find(pThis)->TakeVehicleMode)
 		return 0x0;
 
 	R->EAX(TechnoExt_ExtData::FindAndTakeVehicle(pThis));
@@ -56,7 +56,7 @@ ASMJIT_PATCH(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 	const auto pType = pThis->GetTechnoType();
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->Get_TechnoStateComponent()->SupressEVALost
+	if (pExt->SupressEVALost
 		|| pType->DontScore
 		|| pType->Insignificant
 		|| pType->Spawned
@@ -271,7 +271,7 @@ ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->Get_TechnoStateComponent()->ResetLocomotor)
+	if (pExt->ResetLocomotor)
 	{
 		// Reinstalling Locomotor can avoid various issues such as teleportation, ignoring commands, and automatic return
 		while (LocomotionClass::End_Piggyback(pThis->Locomotor));
@@ -281,7 +281,7 @@ ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 			pThis->Locomotor->Link_To_Object(pThis);
 		}
 
-		pExt->Get_TechnoStateComponent()->ResetLocomotor = false;
+		pExt->ResetLocomotor = false;
 	}
 
 	// Update laser trails after locomotor process, to ensure that the updated position is not the previous frame's position

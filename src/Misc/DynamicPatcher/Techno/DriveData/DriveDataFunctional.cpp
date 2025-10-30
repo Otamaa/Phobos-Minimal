@@ -9,36 +9,32 @@ void DriveDataFunctional::AI(TechnoExtData* pThis)
 		return;
 
 	Mission const mission = pTechno->CurrentMission;
-
-	auto pDrive = pThis->Get_DriveData();
-
-	if (!pDrive)
-		pDrive = &Phobos::gEntt->emplace<DriveData>(pThis->MyEntity);
+	auto& nDriveData = pThis->MyDriveData;
 
 	switch (mission)
 	{
 	case Mission::Move:
 	case Mission::AttackMove:
-		if (Mission::Move != pDrive->LastMission && Mission::AttackMove != pDrive->LastMission)
+		if (Mission::Move != nDriveData.LastMission && Mission::AttackMove != nDriveData.LastMission)
 		{
-			pDrive->nState = DrivingState::Start;
+			nDriveData.nState = DrivingState::Start;
 		}
 		else
 		{
-			pDrive->nState = DrivingState::Moving;
+			nDriveData.nState = DrivingState::Moving;
 		}
 		break;
 	default:
-		if (Mission::Move == pDrive->LastMission || Mission::AttackMove == pDrive->LastMission)
+		if (Mission::Move == nDriveData.LastMission || Mission::AttackMove == nDriveData.LastMission)
 		{
-			pDrive->nState = DrivingState::Stop;
+			nDriveData.nState = DrivingState::Stop;
 		}
 		else
 		{
-			pDrive->nState = DrivingState::StandStill;
+			nDriveData.nState = DrivingState::StandStill;
 		}
 		break;
 	}
 
-	pDrive->LastMission = mission;
+	nDriveData.LastMission = mission;
 }

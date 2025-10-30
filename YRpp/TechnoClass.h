@@ -428,9 +428,11 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	bool sub_70D8F0() JMP_THIS(0x70D8F0);
 	bool sub_70DCE0() const { return this->CurrentTurretNumber != -1; }
 
-	bool TechnoClass_709290() const {
-		JMP_THIS(0x709290)
-	}
+	bool TechnoClass_709290() const
+	{ JMP_THIS(0x709290) }
+
+	bool Airstrike_0x452000() const
+	{ JMP_THIS(0x452000); }
 
 	bool IsDrainSomething() const
 		{ return this->DrainTarget != nullptr; }
@@ -814,9 +816,6 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	bool CanPassiveAcquireTargets() const
 	{ JMP_THIS(0x7091D0); }
 
-	bool Airstrike_0x452000() const
-	{ JMP_THIS(0x452000); }
-
 	// changes locomotor to the given one, Magnetron style
 	//	// mind that this locks up the source too, Magnetron style
     void ImbueLocomotor(FootClass* target, CLSID clsid)
@@ -965,7 +964,6 @@ public:
 	int           	 ROF;
 	int              Ammo;
 	int              Value; //,PurchasePrice set to actual cost when this gets queued in factory, updated only in building's 42C
-
 
 	union{
 		ParticleSystems Sys;

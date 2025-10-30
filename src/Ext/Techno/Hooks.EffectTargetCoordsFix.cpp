@@ -477,7 +477,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 		}
 	}
 
-	if (pExt->Get_AEProperties()->HasFeedbackWeapon) {
+	if (pExt->AE.HasFeedbackWeapon) {
 		for (auto const& pAE : pExt->PhobosAE) {
 
 			if(!pAE|| !pAE->IsActive())
@@ -577,19 +577,19 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 
 	//TechnoClass_FireAt_ToggleLaserWeaponIndex
 	if (pThis->WhatAmI() == BuildingClass::AbsID && pWeaponType->IsLaser) {
-		if (pExt->Get_TechnoStateComponent()->WeaponIndexes.Laser == -1)
-			pExt->Get_TechnoStateComponent()->WeaponIndexes.Laser = weaponIndex;
+		if (pExt->CurrentLaserWeaponIndex.empty())
+			pExt->CurrentLaserWeaponIndex = weaponIndex;
 		else
-			pExt->Get_TechnoStateComponent()->WeaponIndexes.Laser = -1;
+			pExt->CurrentLaserWeaponIndex.clear();
 	}
 
 	//TechnoClass_FireAt_BurstOffsetFix_2
 	++pThis->CurrentBurstIndex;
 	pThis->CurrentBurstIndex %= pWeaponType->Burst;
 
-	if (pExt->Get_TechnoStateComponent()->ForceFullRearmDelay)
+	if (pExt->ForceFullRearmDelay)
 	{
-		pExt->Get_TechnoStateComponent()->ForceFullRearmDelay = false;
+		pExt->ForceFullRearmDelay = false;
 		pThis->CurrentBurstIndex = 0;
 	}
 
@@ -625,6 +625,5 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, ScenarioClass::Instance->Random(pWeaponExt->Ylo, pWeaponExt->Yhi));
 		}
 	}
-
 	return 0x6FF660;
 }

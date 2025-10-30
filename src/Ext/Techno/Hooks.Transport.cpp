@@ -11,7 +11,6 @@ ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
 	return TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())->Passengers_SyncOwner.Get() ?  ret : 0; }
 
-//SET_THREATEVALS(0x6FA33C, ESI, TechnoClass_AI_ThreatEvals_OpenToppedOwner, 0x6, 0x6FA37A) //
 SET_THREATEVALS(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
 //SET_THREATEVALS(0x6F8FD7, ESI, TechnoClass_GreatestThreat_ThreatEvals_OpenToppedOwner, 0x5, 0x6F8FDC)
 SET_THREATEVALS(0x6F7EC2, EDI, TechnoClass_EvaluateObject_ThreatEvals_OpenToppedOwner, 0x6, 0x6F7EDA)
@@ -19,7 +18,6 @@ SET_THREATEVALS(0x6F7EC2, EDI, TechnoClass_EvaluateObject_ThreatEvals_OpenTopped
 #undef SET_THREATEVALS
 #undef SET_THREATEVALSB
 #else
-ASMJIT_PATCH_AGAIN(0x6FA33C, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::AI
 ASMJIT_PATCH_AGAIN(0x6F89F4, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateCell
 ASMJIT_PATCH_AGAIN(0x6F7EC2, TechnoClass_ThreatEvals_OpenToppedOwner, 0x6) // TechnoClass::EvaluateObject
 ASMJIT_PATCH(0x6F8FD7, TechnoClass_ThreatEvals_OpenToppedOwner, 0x5)       // TechnoClass::Greatest_Threat
@@ -77,8 +75,8 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 
 		for (auto& pLaserTrail : pPassExt->LaserTrails)
 		{
-			pLaserTrail.Visible = false;
-			pLaserTrail.LastLocation.clear();
+			pLaserTrail->Visible = false;
+			pLaserTrail->LastLocation.clear();
 		}
 
 		TrailsManager::Hide((TechnoClass*)pPassenger);
@@ -223,7 +221,7 @@ static FORCEDINLINE void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger
 		pPassenger->SetTargetForPassengers(nullptr);
 
 	pPassenger->Undiscover();
-	TechnoExtContainer::Instance.Find(pPassenger)->Get_TechnoStateComponent()->ResetLocomotor = true;
+	TechnoExtContainer::Instance.Find(pPassenger)->ResetLocomotor = true;
 }
 
 void TechnoExtData::Fastenteraction(FootClass* pThis) {
@@ -734,7 +732,7 @@ ASMJIT_PATCH(0x739FA2, UnitClassClass_UpdatePosition_NoQueueUpToEnter, 0x5)
 				pTag->RaiseEvent(TriggerEvent::EnteredBy, pThis, CellStruct::Empty);
 
 			// This might fix a bug where hover vehicles enter tunnels.
-			TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->ResetLocomotor = true;
+			TechnoExtContainer::Instance.Find(pThis)->ResetLocomotor = true;
 
 			if (pTunnel) 	{
 				TunnelFuncs::EnterTunnel(&pTunnel->Vector, pBuilding, pThis);

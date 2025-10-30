@@ -33,7 +33,7 @@ ASMJIT_PATCH(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
 
-	if (!pExt->Get_TechnoStateComponent()->IsBeingChronoSphered)
+	if (!pExt->IsBeingChronoSphered)
 		return 0;
 
 	auto pTypeExtData = TechnoTypeExtContainer::Instance.Find(pExt->Type);
@@ -42,12 +42,12 @@ ASMJIT_PATCH(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
 	if (delay > 0)
 	{
 		pThis->Owner->WarpingOut = true;
-		pExt->Get_TechnoStateComponent()->HasRemainingWarpInDelay = true;
+		pExt->HasRemainingWarpInDelay = true;
 		pExt->LastWarpInDelay = std::max(delay, pExt->LastWarpInDelay);
 	}
 	else
 	{
-		pExt->Get_TechnoStateComponent()->IsBeingChronoSphered = false;
+		pExt->IsBeingChronoSphered = false;
 	}
 
 	return 0;

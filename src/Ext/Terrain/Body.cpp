@@ -6,6 +6,10 @@
 
 #include <Utilities/Macro.h>
 
+TerrainExtData::~TerrainExtData()
+{
+}
+
 bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 

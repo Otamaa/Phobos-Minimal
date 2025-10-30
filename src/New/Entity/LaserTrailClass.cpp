@@ -98,7 +98,6 @@ bool LaserTrailClass::Serialize(T& stm)
 		.Process(this->Cloaked)
 		.Process(this->InitialDelay)
 		.Process(this->Permanent)
-		.Process(this->Linked)
 		.Success();
 };
 

@@ -28,7 +28,7 @@ void TiberiumExtData::Spread_AI()
 			SpreadQueue.pop();
 
 			CellStruct cell = node.second;
-			FakeCellClass* cellptr = (FakeCellClass*)MapClass::Instance->GetCellAt(cell);
+			CellClass* cellptr = MapClass::Instance->GetCellAt(cell);
 
 			if (!cellptr->CanTiberiumSpread())
 			{
@@ -47,7 +47,7 @@ void TiberiumExtData::Spread_AI()
 
 			if (numallowed != 0)
 			{
-				cellptr->_SpreadTiberium(false);
+				cellptr->SpreadTiberium(false);
 				index++;
 
 				if (numallowed > 1)

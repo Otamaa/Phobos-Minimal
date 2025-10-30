@@ -214,10 +214,8 @@ public:
 		ProneSpeed(),
 		InfantryAutoDeploy(false)
 	{
-		this->AbsType = InfantryTypeClass::AbsID;
-
-		this->Is_Deso = IS_SAME_STR_(pObj->ID, GameStrings::DESO());
-		this->Is_Cow = IS_SAME_STR_(pObj->ID, GameStrings::COW());
+		this->Is_Deso = IS_SAME_STR_(Name(), GameStrings::DESO());
+		this->Is_Cow = IS_SAME_STR_(Name(), GameStrings::COW());
 	}
 
 	InfantryTypeExtData(InfantryTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }

@@ -336,7 +336,6 @@ public:
 		DelayedFire_AnimOnTurret(true),
 		OnlyAttacker(false)
 	{
-		this->AbsType = WeaponTypeClass::AbsID;
 		this->Initialize();
 	}
 

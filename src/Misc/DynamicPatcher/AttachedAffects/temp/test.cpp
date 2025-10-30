@@ -183,7 +183,7 @@ void Execute()
 	ApplesCollector applesCollector;
 	AttachEffect AE;
 
-	AE->EnableActionEvent +=
+	AE.EnableActionEvent +=
 	applesTree.AppleFallEvent += [&](auto& args) { applesCollector.HandleAppleFallEvent(args); };
 
 	applesTree.triggerAppleFall(1, 2);

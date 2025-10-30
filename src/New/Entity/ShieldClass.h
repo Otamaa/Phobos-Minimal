@@ -38,41 +38,6 @@ public:
 	}
 
 
-	void CopyDataTo(ShieldClass& other) const
-	{
-		// Copy plain data fields
-		other.HP = this->HP;
-		other.Cloak = this->Cloak;
-		other.Online = this->Online;
-		other.Temporal = this->Temporal;
-		other.Available = this->Available;
-		other.Attached = this->Attached;
-		other.AreAnimsHidden = this->AreAnimsHidden;
-		other.SelfHealing_Warhead = this->SelfHealing_Warhead;
-		other.SelfHealing_Rate_Warhead = this->SelfHealing_Rate_Warhead;
-		other.SelfHealing_RestartInCombat_Warhead = this->SelfHealing_RestartInCombat_Warhead;
-		other.SelfHealing_RestartInCombatDelay_Warhead = this->SelfHealing_RestartInCombatDelay_Warhead;
-		other.Respawn_Warhead = this->Respawn_Warhead;
-		other.Respawn_Rate_Warhead = this->Respawn_Rate_Warhead;
-		other.Respawn_RestartInCombat_Warhead = this->Respawn_RestartInCombat_Warhead;
-		other.Respawn_RestartInCombatDelay_Warhead = this->Respawn_RestartInCombatDelay_Warhead;
-		other.LastBreakFrame = this->LastBreakFrame;
-		other.LastTechnoHealthRatio = this->LastTechnoHealthRatio;
-
-		// Copy timers
-		other.Timers = this->Timers;
-
-		// Copy Type pointer (shared, not owned)
-		other.Type = this->Type;
-		other.CurTechnoType = this->CurTechnoType;
-
-		// Copy vector
-		other.Respawn_Anim_Warhead = this->Respawn_Anim_Warhead;
-
-		// Copy weapon pointer
-		other.Respawn_Weapon_Warhead = this->Respawn_Weapon_Warhead;
-	}
-
 	//void OnInit() { }
 	//void OnUnInit() { }
 	//void OnDetonate(CoordStruct* location) { }
@@ -297,7 +262,7 @@ public:
 
 	} Timers;
 
-	MarkPtr<AnimClass> IdleAnim;
+	Handle<AnimClass* , UninitAnim> IdleAnim;
 	bool Cloak;
 	bool Online;
 	bool Temporal;
@@ -322,6 +287,9 @@ public:
 
 	ShieldTypeClass* Type;
 
+private:
+	ShieldClass(const ShieldClass& other) = delete;
+	ShieldClass& operator=(const ShieldClass& other) = delete;
 };
 
 template <>

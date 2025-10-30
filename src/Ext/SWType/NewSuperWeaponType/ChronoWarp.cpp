@@ -268,7 +268,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			pFoot->MarkAllOccupationBits(coordsUnitSource);
 			pFoot->FrozenStill = true;
 			auto const pTExt = TechnoExtContainer::Instance.Find(pFoot);
-			pTExt->Get_TechnoStateComponent()->IsBeingChronoSphered = true;
+			pTExt->IsBeingChronoSphered = true;
 
 			// piggyback the original locomotor onto a new teleport locomotor and
 			// use that for the next move order.

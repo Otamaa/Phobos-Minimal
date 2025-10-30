@@ -28,10 +28,7 @@ public:
 		SimpleDeployerAnimationTimer(),
 		UnitAutoDeployTimer(),
 		Convert_Deploy_Delay()
-	{
-		this->AOName = pObj->Type->ID;
-		this->AbsType = UnitClass::AbsID;
-	}
+	{ }
 
 	UnitExtData(UnitClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 

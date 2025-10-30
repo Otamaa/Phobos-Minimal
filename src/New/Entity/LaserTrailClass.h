@@ -11,7 +11,6 @@
 
 #include <vector>
 
-class PhobosAttachEffectClass;
 class LaserTrailClass final
 {
 public:
@@ -26,7 +25,6 @@ public:
 	int InitialDelay;
 	CDTimerClass InitialDelayTimer;
 	bool Permanent { false };
-	PhobosAttachEffectClass* Linked { };
 
 	COMPILETIMEEVAL LaserTrailClass(LaserTrailTypeClass* pTrailType, ColorStruct nHouseColor,
 		CoordStruct flh = { 0, 0, 0 }, bool isOnTurret = false) :
@@ -41,7 +39,6 @@ public:
 		, InitialDelay { pTrailType->InitialDelay.Get() }
 		, InitialDelayTimer { }
 		, Permanent { pTrailType->Permanent }
-		, Linked { }
 	{ }
 
 	COMPILETIMEEVAL LaserTrailClass() :
@@ -56,8 +53,6 @@ public:
 		, InitialDelay {0}
 		, InitialDelayTimer { }
 		, Permanent {}
-		, Linked { }
-
 	{ }
 
 	virtual ~LaserTrailClass() = default;

@@ -19,9 +19,8 @@ OtherParticleData(),
 SmokeData(),
 AlphaIsLightFlash(true)
 {
-	this->AOName = pObj->Type->ID;
-	this->AbsType = ParticleSystemClass::AbsID;
-
+	if (!pObj->Type)
+		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !", pObj);
 	auto pType = pObj->Type;
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())

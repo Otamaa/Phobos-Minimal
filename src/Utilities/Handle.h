@@ -2,7 +2,13 @@
 
 #include "Savegame.h"
 
-struct Handles {
+#include <type_traits>
+#include <utility>
+#include <vector>
+#include <algorithm>
+
+struct Handles
+{
 	static std::vector<Handles*> Array;
 	virtual void detachptr() = 0;
 };
@@ -12,13 +18,15 @@ template <typename T, typename Deleter, T Default = T()>
 struct Handle : public Handles
 {
 	Handle() noexcept : Handles()
-		, Value() {
+		, Value()
+	{
 		Handles::Array.emplace_back(this);
 	};
 
 	explicit Handle(T value) noexcept
 		: Handles()
-		, Value(value) {
+		, Value(value)
+	{
 		Handles::Array.emplace_back(this);
 	}
 
@@ -33,13 +41,15 @@ struct Handle : public Handles
 
 	~Handle() noexcept
 	{
-		if (this->Value != Default) {
+		if (this->Value != Default)
+		{
 			Deleter {}(this->Value);
 		}
 
 		this->Value = Default;
-		auto find = std::ranges::find_if(Handles::Array, [this](auto ptr) {
-			return this == ptr;
+		auto find = std::ranges::find_if(Handles::Array, [this](auto ptr)
+ {
+	 return this == ptr;
 		});
 
 		if (find != Handles::Array.end())
@@ -84,7 +94,8 @@ struct Handle : public Handles
 
 	void reset(T value = Default) noexcept
 	{
-		if (this->Value != Default) {
+		if (this->Value != Default)
+		{
 			Deleter {}(this->Value);
 		}
 
@@ -128,14 +139,7 @@ private:
 	T Value { Default };
 };
 
-#include <type_traits>
-#include <utility>
-#include <vector>
-#include <algorithm>
-
 template<typename T> class GameObjectLifetime;
-class PhobosStreamWriter;
-class PhobosStreamReader;
 class AbstractClass;
 
 template<typename T>
@@ -185,7 +189,8 @@ struct MarkForDeathDeleter
 {
 	void operator()(T* ptr) const noexcept
 	{
-		if (ptr && ptr->Type && !ptr->TimeToDie) {
+		if (ptr && ptr->Type && !ptr->TimeToDie)
+		{
 			ptr->TimeToDie = true;
 			ptr->UnInit();
 		}

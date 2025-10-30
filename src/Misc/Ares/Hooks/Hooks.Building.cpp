@@ -45,7 +45,7 @@ ASMJIT_PATCH(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 	const auto pType = pThis->Type;
 	auto pTechnoExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pTechnoExt->Get_TechnoStateComponent()->SupressEVALost
+	if (pTechnoExt->SupressEVALost
 		|| pType->DontScore
 		|| pType->Insignificant
 		|| !pThis->Owner
@@ -1308,7 +1308,7 @@ void SetFreeUnitMission(UnitClass* pUnit)
 	Mission nMissions;
 
 	//Initial DriverKilled
-	if (TechnoExtContainer::Instance.Find(pUnit)->Get_TechnoStateComponent()->IsDriverKilled)
+	if (TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled)
 	{
 		nMissions = Mission::Sleep;
 	}

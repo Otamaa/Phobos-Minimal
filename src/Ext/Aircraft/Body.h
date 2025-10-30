@@ -22,10 +22,7 @@ public:
 		Strafe_BombsDroppedThisRound(0),
 		CurrentAircraftWeaponIndex(0),
 		Strafe_TargetCell()
-	{
-		this->AOName = pObj->Type->ID;
-		this->AbsType = AircraftClass::AbsID;
-	}
+	{ }
 
 	AircraftExtData(AircraftClass * pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 	virtual ~AircraftExtData() = default;

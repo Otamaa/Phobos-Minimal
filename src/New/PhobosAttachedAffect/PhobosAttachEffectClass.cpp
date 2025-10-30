@@ -14,16 +14,17 @@
 
 PhobosAttachEffectClass::~PhobosAttachEffectClass()
 {
-	if (this->LaserTrail) {
+	if (const auto& pTrail = this->LaserTrail) {
 
 		const auto pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
-		const auto it = pTechnoExt->LaserTrails.find_if([this](auto const& item) { return item.Linked == this; });
+		const auto it = pTechnoExt->LaserTrails.find_if([pTrail](auto const& item) { return item.get() == pTrail; });
 
 		if (it != pTechnoExt->LaserTrails.cend())
 			pTechnoExt->LaserTrails.erase(it);
 
-		this->LaserTrail = false;
+		this->LaserTrail = nullptr;
 	}
+
 }
 
 void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, TechnoClass* pTechno, HouseClass* pInvokerHouse,
@@ -52,12 +53,12 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 		auto pInvokerExt = TechnoExtContainer::Instance.Find(pInvoker);
 
 		if(pType->Duration_ApplyFirepowerMult)
-			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->Get_AEProperties()->FirepowerMultiplier);
+			this->Duration = static_cast<int>(this->Duration * pInvoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
 	}
 
 	if (pType->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
 	{
-		const auto _value = this->Duration / pTechno->ArmorMultiplier / pTechnoExt->Get_AEProperties()->ArmorMultiplier / this->Type->ArmorMultiplier;
+		const auto _value = this->Duration / pTechno->ArmorMultiplier / pTechnoExt->AE.ArmorMultiplier / this->Type->ArmorMultiplier;
 		this->Duration = MaxImpl(static_cast<int>(_value), 0);
 	}
 
@@ -84,8 +85,9 @@ void PhobosAttachEffectClass::Initialize(PhobosAttachEffectTypeClass* pType, Tec
 	const int laserTrailIdx = pType->LaserTrail_Type;
 
 	if (laserTrailIdx != -1) {
-		pTechnoExt->LaserTrails.emplace_back(LaserTrailTypeClass::Array[laserTrailIdx].get(), pTechno->Owner->LaserColor);
-		pTechnoExt->LaserTrails.back().Linked = this;
+		pTechnoExt->LaserTrails.emplace_back(
+			std::move(std::make_unique<LaserTrailClass>(LaserTrailTypeClass::Array[laserTrailIdx].get(), pTechno->Owner->LaserColor)));
+		this->LaserTrail = pTechnoExt->LaserTrails.back().get();
 	}
 
 }
@@ -130,7 +132,7 @@ void PhobosAttachEffectClass::AI()
 
 			pTechno->RearmTimer.Start(static_cast<int>(pTechno->RearmTimer.GetTimeLeft() * ROFModifier));
 
-			if (!pExt->ChargeTurretTimer.HasStarted() && pExt->Get_TechnoStateComponent()->LastRearmWasFullDelay)
+			if (!pExt->ChargeTurretTimer.HasStarted() && pExt->LastRearmWasFullDelay)
 				pTechno->ROF = static_cast<int>(pTechno->ROF * ROFModifier);
 		}
 
@@ -399,7 +401,6 @@ void PhobosAttachEffectClass::CreateAnim()
 		this->Animation->Owner = this->Type->Animation_UseInvokerAsOwner ? InvokerHouse : this->Techno->Owner;
 		this->Animation->RemainingIterations = 0xFFu;
 		auto pAnimExt = ((FakeAnimClass*)this->Animation.get())->_GetExtData();
-
 		if (this->Type->Animation_UseInvokerAsOwner) {
 			pAnimExt->Invoker = Invoker;
 		}
@@ -448,11 +449,11 @@ void PhobosAttachEffectClass::RefreshDuration(int durationOverride)
 		auto pInvokerExt = TechnoExtContainer::Instance.Find(this->Invoker);
 
 		if (this->Type->Duration_ApplyFirepowerMult)
-			this->Duration = static_cast<int>(this->Duration * this->Invoker->FirepowerMultiplier * pInvokerExt->Get_AEProperties()->FirepowerMultiplier);
+			this->Duration = static_cast<int>(this->Duration * this->Invoker->FirepowerMultiplier * pInvokerExt->AE.FirepowerMultiplier);
 	}
 
 	if (this->Type->Duration_ApplyArmorMultOnTarget && this->Duration > 0) // count its own ArmorMultiplier as well
-		this->Duration = MaxImpl(static_cast<int>(this->Duration / this->Techno->ArmorMultiplier / TechnoExtContainer::Instance.Find(this->Techno)->Get_AEProperties()->ArmorMultiplier / this->Type->ArmorMultiplier), 0);
+		this->Duration = MaxImpl(static_cast<int>(this->Duration / this->Techno->ArmorMultiplier / TechnoExtContainer::Instance.Find(this->Techno)->AE.ArmorMultiplier / this->Type->ArmorMultiplier), 0);
 
 	if (this->Type->Animation_ResetOnReapply)
 	{
@@ -588,7 +589,7 @@ int PhobosAttachEffectClass::Attach(TechnoClass* pTarget, HouseClass* pInvokerHo
 
 	if (ROFModifier != 1.0)
 	{
-		if (!pTargetExt->ChargeTurretTimer.HasStarted() && pTargetExt->Get_TechnoStateComponent()->LastRearmWasFullDelay)
+		if (!pTargetExt->ChargeTurretTimer.HasStarted() && pTargetExt->LastRearmWasFullDelay)
 			pTarget->ROF = static_cast<int>(pTarget->ROF * ROFModifier);
 	}
 
@@ -853,7 +854,7 @@ void PhobosAttachEffectClass::DetonateExpireWeapon(std::vector<std::pair<WeaponT
 	}
 }
 
-bool PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget)
+void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget)
 {
 	//Debug::LogInfo(__FUNCTION__" Executed [%s - %s]", pTarget->GetThisClassName(), pTarget->get_ID());
 	const auto pSourceExt = TechnoExtContainer::Instance.Find(pSource);
@@ -919,10 +920,7 @@ bool PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 	if (transferCount) {
 		AEProperties::UpdateAEAnimLogic(pSource);
 		AEProperties::UpdateAEAnimLogic(pTarget);
-		return true;
 	}
-
-	return false;
 }
 
 #pragma endregion

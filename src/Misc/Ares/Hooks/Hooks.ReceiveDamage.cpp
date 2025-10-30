@@ -662,7 +662,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	}
 
 	const bool unkillable =
-		!pWHExt->CanKill || pExt->Get_AEProperties()->Unkillable;
+		!pWHExt->CanKill || pExt->AE.Unkillable;
 
 	if (!args.IgnoreDefenses) {
 		*args.Damage = TechnoExtData::CalculateBlockDamage(pThis, &args);
@@ -676,9 +676,9 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	{
 		*args.Damage = (int)TechnoExtData::GetArmorMult(pThis, (double)(*args.Damage), args.WH);
 
-		if (pExt->Get_TechnoStateComponent()->SkipLowDamageCheck)
+		if (pExt->SkipLowDamageCheck)
 		{
-			pExt->Get_TechnoStateComponent()->SkipLowDamageCheck = false;
+			pExt->SkipLowDamageCheck = false;
 		}
 		else
 		{
@@ -947,7 +947,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	case DamageState::NowDead:
 	{
 		if (pWHExt->Supress_LostEva.Get())
-			pExt->Get_TechnoStateComponent()->SupressEVALost = true;
+			pExt->SupressEVALost = true;
 
 		GiftBoxFunctional::Destroy(pExt, pTypeExt);
 
@@ -1116,7 +1116,6 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 		if (auto& pParticleZero = pThis->Sys.Fire) {
 			pParticleZero->UnInit();
-			pParticleZero = nullptr;
 		}
 
 		if (pThis->GetHeight() > 0 || !pThis->IsABomb || pThis->GetCell()->LandType != LandType::Water)
@@ -2451,7 +2450,7 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 				else
 				{
 
-					pExt->Get_TechnoStateComponent()->ReceiveDamage = true;
+					pExt->ReceiveDamage = true;
 					AnimTypeExtData::ProcessDestroyAnims(pThis, args.Attacker, args.WH);
 					pThis->Explode();
 				}

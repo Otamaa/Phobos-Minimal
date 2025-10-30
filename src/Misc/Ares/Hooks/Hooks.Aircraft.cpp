@@ -97,7 +97,7 @@ ASMJIT_PATCH(0x41946B, AircraftClass_ReceivedRadioCommand_QueryEnterAsPassenger_
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
 	GET(AircraftClass*, pThis, ESI);
-	return (TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled ? 0x4190DDu : 0u);
+	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x4190DDu : 0u);
 }
 
 ASMJIT_PATCH(0x416CF4, AircraftClass_Carryall_Unload_Guard, 0x5)

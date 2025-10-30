@@ -97,9 +97,7 @@ public:
 
 public:
 
-	TEventExtData(TEventClass* pObj) : AbstractExtended(pObj) , TechnoType() {
-		this->AbsType = TEventClass::AbsID;
-	}
+	TEventExtData(TEventClass* pObj) : AbstractExtended(pObj) , TechnoType() { }
 	TEventExtData(TEventClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TEventExtData() = default;

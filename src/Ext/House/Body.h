@@ -273,8 +273,6 @@ public:
 	{
 		// resize after initialization
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-		this->AOName = pObj->Type->ID;
-		this->AbsType = HouseClass::AbsID;
 	}
 
 	HouseExtData(HouseClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

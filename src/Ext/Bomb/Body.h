@@ -17,8 +17,7 @@ public:
 public:
 
 	BombExtData(BombClass* pObj) : AbstractExtended(pObj) , Weapon(nullptr) {
-		this->AOName = "BombClass";
-		this->AbsType = BombClass::AbsID;
+		this->AbstractExtended::SetName("BombClass");
 	}
 	BombExtData(BombClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 

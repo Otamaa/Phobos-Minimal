@@ -13,10 +13,7 @@ public:
 	 static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
-	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) {
-		this->AOName = "TemporalClass";
-		this->AbsType = TemporalClass::AbsID;
-	}
+	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) { this->AbstractExtended::SetName("TemporalClass"); }
 	TemporalExtData(TemporalClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TemporalExtData() = default;

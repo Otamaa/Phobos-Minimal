@@ -265,13 +265,13 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->Get_TechnoStateComponent()->HasRemainingWarpInDelay) {
+	if (pExt->HasRemainingWarpInDelay) {
 		if (pExt->LastWarpInDelay) {
 			pExt->LastWarpInDelay--;
 		}
 		else {
-			pExt->Get_TechnoStateComponent()->HasRemainingWarpInDelay = false;
-			pExt->Get_TechnoStateComponent()->IsBeingChronoSphered = false;
+			pExt->HasRemainingWarpInDelay = false;
+			pExt->IsBeingChronoSphered = false;
 			pThis->WarpingOut = false;
 		}
 	}

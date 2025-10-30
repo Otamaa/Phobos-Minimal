@@ -387,7 +387,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DamageEnemiesMultiplier.Read(exINI, pSection, "DamageEnemiesMultiplier");
 	this->DamageOwnerMultiplier_Berzerk.Read(exINI, pSection, "DamageOwnerMultiplier.Berzerk");
 	this->DamageAlliesMultiplier_Berzerk.Read(exINI, pSection, "DamageAlliesMultiplier.Berzerk");
-	this->DamageEnemiesMultiplier_Berzerk.Read(exINI, pSection, "DamageEnemiesMultiplier.Berzerk");	this->AttachTag.Read(pINI, pSection, "AttachTag");
+	this->DamageEnemiesMultiplier_Berzerk.Read(exINI, pSection, "DamageEnemiesMultiplier.Berzerk");
+	this->AttachTag.Read(pINI, pSection, "AttachTag");
 	this->AttachTag_Imposed.Read(exINI, pSection, "AttachTag.Imposed");
 	this->AttachTag_Types.Read(exINI, pSection, "AttachTag.Types");
 	this->AttachTag_Ignore.Read(exINI, pSection, "AttachTag.Ignore");
@@ -713,12 +714,12 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AffectsUnderground.Read(exINI, pSection, "AffectsUnderground");
 	this->PlayAnimUnderground.Read(exINI, pSection, "PlayAnimUnderground");
 	this->PlayAnimAboveSurface.Read(exINI, pSection, "PlayAnimAboveSurface");
-	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
 
 	if (!this->BlockType)
 		this->BlockType = std::make_unique<BlockTypeClass>();
 
 	this->BlockType->LoadFromINI(pINI, pSection);
+	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
 
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
@@ -843,7 +844,6 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 		const auto calculateDamage = static_cast<int>(*pArgs->Damage * multiplier);
 		*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
 	}
-
 }
 
 void WarheadTypeExtData::EvaluateArmor(WarheadTypeClass* OwnerObject)
@@ -1096,8 +1096,7 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 
 		// get the values
 		auto pExt = TechnoExtContainer::Instance.Find(pInf);
-		auto pWebbedComponent = pExt->Get_WebbedStateComponent();
-		int oldValue = (!pWebbedComponent || pInf->ParalysisTimer.Expired() ? 0 : pInf->ParalysisTimer.GetTimeLeft());
+		int oldValue = (!pExt->IsWebbed || pInf->ParalysisTimer.Expired() ? 0 : pInf->ParalysisTimer.GetTimeLeft());
 		int newValue = Helpers::Alex::getCappedDuration(oldValue, duration, this->Webby_Cap);
 
 		// update according to oldval
@@ -1106,18 +1105,16 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 			// start effect?
 			if (newValue > 0)
 			{
-				if(!pWebbedComponent)
-					pWebbedComponent = &Phobos::gEntt->emplace<WebbedStateComponent>(pExt->MyEntity);
-
 				if (pInf->Locomotor->Is_Moving())
 					pInf->Locomotor->Stop_Moving();
 
+				pExt->IsWebbed = true;
 				pInf->ParalysisTimer.Start(newValue);
 				AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
-				pWebbedComponent->Anim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
-				pWebbedComponent->Anim->SetOwnerObject(pInf);
-				AnimExtData::SetAnimOwnerHouseKind(pWebbedComponent->Anim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
-				pWebbedComponent->StoreLastTargetAndMissionAfterWebbed(pInf);
+				pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
+				pExt->WebbedAnim->SetOwnerObject(pInf);
+				AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
+				TechnoExtData::StoreLastTargetAndMissionAfterWebbed(pInf);
 			}
 		}
 		else
@@ -1125,33 +1122,34 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 			// is already on.
 			if (newValue > 0)
 			{
-				if(!pWebbedComponent)
-					pWebbedComponent = &Phobos::gEntt->emplace<WebbedStateComponent>(pExt->MyEntity);
 
 				// set new length and reset the anim ownership
 				pInf->ParalysisTimer.Start(newValue);
 
-				if (!pWebbedComponent->Anim)
+				if (!pExt->WebbedAnim)
 				{
 					AnimTypeClass* pAnimType = pAnim[ScenarioClass::Instance->Random.RandomFromMax(pAnim.size() - 1)];
-					pWebbedComponent->Anim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
-					pWebbedComponent->Anim->SetOwnerObject(pInf);
-					AnimExtData::SetAnimOwnerHouseKind(pWebbedComponent->Anim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
+					pExt->WebbedAnim.reset(GameCreate<AnimClass>(pAnimType, pInf->Location, 0, 1, 0x600, 0, false));
+					pExt->WebbedAnim->SetOwnerObject(pInf);
+					AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
 				}
 				else
 				{
-					AnimExtData::SetAnimOwnerHouseKind(pWebbedComponent->Anim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
+					AnimExtData::SetAnimOwnerHouseKind(pExt->WebbedAnim, pKillerHouse, pInf->Owner, pKillerTech, false, false);
 				}
 			}
 			else //turn off
 			{
-				if(auto pWebbedComp = pExt->Get_WebbedStateComponent()){
-
+				if (pExt->IsWebbed)
+				{
+					pExt->IsWebbed = false;
 					pInf->ParalysisTimer.Stop();
-					pWebbedComp->RestoreLastTargetAndMissionAfterWebbed(pInf);
+					TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(pInf);
+				}
 
-					pWebbedComp->ClearAnim();
-					Phobos::gEntt->remove<WebbedStateComponent>(pExt->MyEntity);
+				if (pExt->WebbedAnim)
+				{
+					pExt->WebbedAnim.reset();
 				}
 			}
 		}
@@ -1233,7 +1231,7 @@ static COMPILETIMEEVAL int GetRelativeValue(ObjectClass* pTarget, WarheadTypeExt
 
 	if (IsTechno && relative > 0)
 	{
-		return int(relative * TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->Get_AEProperties()->ReceiveRelativeDamageMult);
+		return int(relative * TechnoExtContainer::Instance.Find((TechnoClass*)pTarget)->AE.ReceiveRelativeDamageMult);
 	}
 
 	return relative;
@@ -1971,9 +1969,9 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AffectsUnderground)
 		.Process(this->PlayAnimUnderground)
 		.Process(this->PlayAnimAboveSurface)
-		.Process(this->AnimZAdjust)
 		.Process(this->IsCellSpreadWH)
 		.Process(this->IsFakeEngineer)
+		.Process(this->AnimZAdjust)
 		;
 
 	PaintBallData.Serialize(Stm);
@@ -2057,11 +2055,11 @@ void WarheadTypeExtData::GetCritChance(TechnoClass* pFirer, double& chances) con
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pFirer);
 
-	if (pExt->Get_AEPropertiesExtraCrit() && pExt->Get_AEPropertiesExtraCrit()->Enabled())
+	if (pExt->AE.ExtraCrit.Enabled())
 	{
-		std::vector<AEPropertiesExtraCrit::CritDataOut> valids;
-		pExt->Get_AEPropertiesExtraCrit()->FillEligible(This(), valids);
-		chances = AEPropertiesExtraCrit::Count(chances, valids);
+		std::vector<AEProperties::ExtraCrit::CritDataOut> valids;
+		pExt->AE.ExtraCrit.FillEligible(This(), valids);
+		chances = AEProperties::ExtraCrit::Count(chances, valids);
 	}
 }
 

@@ -371,7 +371,7 @@ static TechnoClass* CreateFoot(
 								pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 								pJJLoco->IsMoving = true;
 								pJJLoco->HeadToCoord =  pTechno->GetCoords();
-								TechnoExtContainer::Instance.Find(pTechno)->Get_TechnoStateComponent()->JumpjetStraightAscend = true;
+								TechnoExtContainer::Instance.Find(pTechno)->JumpjetStraightAscend = true;
 
 								if (!inAir)
 									AircraftTrackerClass::Instance->Add(pTechno);

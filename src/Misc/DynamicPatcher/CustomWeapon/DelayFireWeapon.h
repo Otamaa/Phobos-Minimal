@@ -58,12 +58,3 @@ private:
 	bool Serialize(T& Stm);
 
 };
-
-template <>
-struct Savegame::ObjectFactory<DelayFireWeapon>
-{
-	std::unique_ptr<DelayFireWeapon> operator() (PhobosStreamReader& Stm) const
-	{
-		return std::make_unique<DelayFireWeapon>();
-	}
-};

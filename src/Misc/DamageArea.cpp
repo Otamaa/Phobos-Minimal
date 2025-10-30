@@ -832,7 +832,7 @@ ASMJIT_PATCH(0x4899B3, DamageArea_DamageItemsFix2, 0x5)
 	return CheckThisObject;
 }
 
-ASMJIT_PATCH(0x489286, DamageAread, 0x6)
+ASMJIT_PATCH(0x489286, DamageArea, 0x6)
 {
 	GET_BASE(WarheadTypeClass*, pWH, 0x0C);
 	if (auto const pWHExt = WarheadTypeExtContainer::Instance.TryFind(pWH))

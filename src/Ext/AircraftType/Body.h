@@ -13,9 +13,7 @@ public:
 
 public:
 
-	AircraftTypeExtData(AircraftTypeClass* pObj) : TechnoTypeExtData(pObj) {
-		this->AbsType = AircraftTypeClass::AbsID;
-	}
+	AircraftTypeExtData(AircraftTypeClass* pObj) : TechnoTypeExtData(pObj) { }
 	AircraftTypeExtData(AircraftTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 
 	virtual ~AircraftTypeExtData() = default;

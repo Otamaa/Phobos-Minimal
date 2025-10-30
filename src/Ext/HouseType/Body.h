@@ -129,9 +129,7 @@ public:
 		BattlePoints(false),
 		BattlePoints_CanUseStandardPoints(false)
 	{
-		this->AbsType = HouseTypeClass::AbsID;
 		this->Initialize();
-
 	}
 
 	HouseTypeExtData(HouseTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }

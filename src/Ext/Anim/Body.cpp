@@ -759,6 +759,7 @@ void AnimExtData::Serialize(T& Stm)
 		.Process(this->AttachedSystem, true)
 		.Process(this->ParentBuilding, true)
 		.Process(this->CreateUnitLocation)
+		//.Process(this->SpawnsStatusData)
 		.Process(this->DelayedFireRemoveOnNoDelay)
 		.Process(this->DamagingState)
 		.Process(this->AEDrawOffset)
@@ -887,7 +888,7 @@ ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 
 		const auto pExt = TechnoExtContainer::Instance.Find(pTechno);
 
-		if(!pExt->Get_TechnoStateComponent()->IsDetachingForCloak) {
+		if(pExt && !pExt->IsDetachingForCloak) {
 			return 0x425174;
 		}
 	}

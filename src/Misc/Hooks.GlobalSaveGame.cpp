@@ -1002,6 +1002,7 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	sprintf_s(saveversion.ExecutableName.raw(), "GAMEMD.EXE + Phobos Minimal + Mod %s ver %s",
 	AresGlobalData::ModName,
 	AresGlobalData::ModVersion);
+
 	saveversion.GameType = SessionClass::Instance->GameMode;
 
 	FILETIME filetime;

@@ -40,5 +40,6 @@ bool TheaterSpecificSHP::Save(PhobosStreamWriter& Stm) const
 
 TheaterSpecificSHP::~TheaterSpecificSHP()
 {
-	GameDelete<true, true>(std::exchange(value, nullptr));
+	//GameDelete<true, true>(std::exchange(value, nullptr));
+	this->value = nullptr; // idk, just clear the reference
 }

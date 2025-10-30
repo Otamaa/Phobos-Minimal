@@ -215,7 +215,7 @@ ASMJIT_PATCH(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 				if (!PowerChecked)
 				{
 					HasPower = pBld->HasPower && !pBld->IsUnderEMP()
-						&& (TechnoExtContainer::Instance.Find(pBld)->Get_TechnoStateComponent()->IsOperated || TechnoExt_ExtData::IsOperated(pBld))
+						&& (TechnoExtContainer::Instance.Find(pBld)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld))
 						;
 
 					PowerChecked = true;

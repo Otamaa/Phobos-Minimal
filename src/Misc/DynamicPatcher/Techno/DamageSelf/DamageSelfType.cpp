@@ -26,11 +26,10 @@ void DamageSelfType::Read(INI_EX& parser, const char* pSection)
 }
 
 
-void DamageSelfState::OnPut(TechnoClass* pTechno , const DamageSelfType& DData)
+void DamageSelfState::OnPut(std::unique_ptr<DamageSelfState>& pState, const DamageSelfType& DData)
 {
 	if (DData.Enable) {
-		auto pExt = TechnoExtContainer::Instance.Find(pTechno);
-		Phobos::gEntt->emplace<DamageSelfState>(pExt->MyEntity, DData.ROF, DData);
+		pState = std::make_unique<DamageSelfState>(DData.ROF,DData);
 	}
 }
 
@@ -73,21 +72,21 @@ void DamageSelfState::PlayWHAnim(ObjectClass* pObj, int realDamage, WarheadTypeC
 
 void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 {
-	if (CanHitSelf())
+	if (CanHitSelf() && Data)
 	{
 		auto pHouse = pTechno->GetOwningHouse();
 
 		// 检查平民
-		if (!Data.DeactiveWhenCivilian || (pHouse && !pHouse->Type->MultiplayPassive))
+		if (!Data->DeactiveWhenCivilian || (pHouse && !pHouse->Type->MultiplayPassive))
 		{
-			int realDamage = Data.Damage;
+			int realDamage = Data->Damage;
 
-			if (Data.Type == KillMethod::Vanish)
+			if (Data->Type == KillMethod::Vanish)
 			{
 				// 静默击杀，需要计算实际伤害
 
 				// 计算实际伤害
-				realDamage = GetRealDamage(pTechno, realDamage, Data.IgnoreArmor, Data.Warhead);
+				realDamage = GetRealDamage(pTechno, realDamage, Data->IgnoreArmor, Data->Warhead);
 
 				if (realDamage >= pTechno->Health)
 				{
@@ -99,20 +98,20 @@ void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 				}
 			}
 
-			if (realDamage < 0 || pTechno->CloakState == CloakState::Uncloaked || Data.Decloak)
+			if (realDamage < 0 || pTechno->CloakState == CloakState::Uncloaked || Data->Decloak)
 			{
 				// 维修或者显形直接炸
-				int nDamage = Data.Damage;
+				int nDamage = Data->Damage;
 				if(pTechno->Health > 0 && pTechno->IsAlive && !pTechno->IsSinking && !pTechno->IsCrashing)
-					pTechno->ReceiveDamage(&nDamage, 0, Data.Warhead, nullptr, Data.IgnoreArmor, pTechno->GetTechnoType()->Crewed, pHouse);
+					pTechno->ReceiveDamage(&nDamage, 0, Data->Warhead, nullptr, Data->IgnoreArmor, pTechno->GetTechnoType()->Crewed, pHouse);
 			}
 			else
 			{
 				// 不显形不能使用ReceiveDamage，改成直接扣血
-				if (Data.Type != KillMethod::Vanish)
+				if (Data->Type != KillMethod::Vanish)
 				{
 					// 非静默击杀，实际伤害未计算过
-					realDamage = GetRealDamage(pTechno, realDamage, Data.IgnoreArmor, Data.Warhead);
+					realDamage = GetRealDamage(pTechno, realDamage, Data->IgnoreArmor, Data->Warhead);
 				}
 
 				// 扣血
@@ -120,7 +119,7 @@ void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 				{
 					// 本次伤害足够打死目标
 					if(pTechno->Health > 0 &&pTechno->IsAlive && !pTechno->IsSinking && !pTechno->IsCrashing)
-						pTechno->ReceiveDamage(&realDamage, 0, Data.Warhead, nullptr, true, pTechno->GetTechnoType()->Crewed, pHouse);
+						pTechno->ReceiveDamage(&realDamage, 0, Data->Warhead, nullptr, true, pTechno->GetTechnoType()->Crewed, pHouse);
 				}
 				else
 				{
@@ -130,9 +129,9 @@ void DamageSelfState::TechnoClass_Update_DamageSelf(TechnoClass* pTechno)
 			}
 
 			// 播放弹头动画
-			if (Data.PlayWarheadAnim)
+			if (Data->PlayWarheadAnim)
 			{
-				PlayWHAnim(pTechno, realDamage, Data.Warhead);
+				PlayWHAnim(pTechno, realDamage, Data->Warhead);
 			}
 
 			Reset();

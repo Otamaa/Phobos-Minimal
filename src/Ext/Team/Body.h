@@ -5,8 +5,6 @@
 #include <Utilities/Iterator.h>
 #include <Utilities/MapPathCellElement.h>
 
-#include <TeamTypeClass.h>
-
 class TechnoTypeClass;
 class HouseClass;
 class FootClass;
@@ -81,10 +79,7 @@ public:
 		OnlyTargetHouseEnemyMode(-1),
 		PreviousScript(nullptr),
 		BridgeRepairHuts()
-	{
-		this->AOName = pObj->Type->ID;
-		this->AbsType = TeamClass::AbsID;
-	}
+	{ }
 
 	TeamExtData(TeamClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 

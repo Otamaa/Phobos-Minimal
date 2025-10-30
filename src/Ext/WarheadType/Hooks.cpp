@@ -105,18 +105,10 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 		if (pThis->Owner) {
 			auto const pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
 
-			if (pExt->Get_AEProperties()->HasExtraWarheads) {
-				if(auto pAE = pExt->Get_AresAEData()){
-					for (auto const& aE :pAE->Data) {
-						if (aE.Type->ExtraWarheads.size() > 0)
-							ApplyExtraWarheads(pThis ,
-								aE.Type->ExtraWarheads,
-								aE.Type->ExtraWarheads_DamageOverrides,
-								aE.Type->ExtraWarheads_DetonationChances,
-								aE.Type->ExtraWarheads_FullDetonation,
-								coords, pOwner
-							);
-					}
+			if (pExt->AE.HasExtraWarheads) {
+				for (auto const& aE : pExt->AeData.Data) {
+					if (aE.Type->ExtraWarheads.size() > 0)
+						ApplyExtraWarheads(pThis , aE.Type->ExtraWarheads, aE.Type->ExtraWarheads_DamageOverrides, aE.Type->ExtraWarheads_DetonationChances, aE.Type->ExtraWarheads_FullDetonation, coords, pOwner);
 				}
 
 				for (auto const& pAE : pExt->PhobosAE) {
@@ -138,7 +130,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 			int damage = RpWeapon->Damage;
 
 			if (pTypeExt->ReturnWeapon_ApplyFirepowerMult)
-			 	damage = static_cast<int>(damage * pThis->Owner->FirepowerMultiplier * TechnoExtContainer::Instance.Find(pThis->Owner)->Get_AEProperties()->FirepowerMultiplier);
+			 	damage = static_cast<int>(damage * pThis->Owner->FirepowerMultiplier * TechnoExtContainer::Instance.Find(pThis->Owner)->AE.FirepowerMultiplier);
 
 			if (BulletClass* pBullet = RpWeapon->Projectile->CreateBullet(pThis->Owner, pThis->Owner,
 				damage, RpWeapon->Warhead, RpWeapon->Speed, RpWeapon->Bright))
@@ -216,19 +208,19 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 				pThis->Owner->SetTarget(nullptr);
 			}
 
-			if (pTechnoExt->Get_TechnoStateComponent()->IsSelected)
+			if (pTechnoExt->IsSelected)
 			{
 				ScenarioExtData::Instance()->LimboLaunchers.erase(pThis->Owner);
 				pThis->Owner->Select();
-				pTechnoExt->Get_TechnoStateComponent()->IsSelected = false;
+				pTechnoExt->IsSelected = false;
 			}
 		}
 		else
 		{
-			if (pTechnoExt->Get_TechnoStateComponent()->IsSelected)
+			if (pTechnoExt->IsSelected)
 			{
 				ScenarioExtData::Instance()->LimboLaunchers.erase(pThis->Owner);
-				pTechnoExt->Get_TechnoStateComponent()->IsSelected = false;
+				pTechnoExt->IsSelected = false;
 			}
 
 			pThis->Owner->SetLocation(location);

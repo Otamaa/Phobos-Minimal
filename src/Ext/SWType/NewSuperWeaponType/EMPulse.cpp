@@ -75,7 +75,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 			// need to validate this before set
 			if (auto pWNStruct = pBld->GetWeapon(pData->EMPulse_WeaponIndex)) {
 				if (auto pWeapon = pWNStruct->WeaponType) {
-					TechnoExtContainer::Instance.Find(pBld)->Get_TechnoStateComponent()->WeaponIndexes.EMPulse = pData->EMPulse_WeaponIndex;
+					TechnoExtContainer::Instance.Find(pBld)->idxSlot_EMPulse = pData->EMPulse_WeaponIndex;
 				}
 			}
 

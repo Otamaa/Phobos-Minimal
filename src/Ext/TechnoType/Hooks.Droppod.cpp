@@ -208,7 +208,7 @@ struct DroppodProperties_
 					);
 				}
 
-				pLinkedExt->LaserTrails.remove_all_if([](auto const& pTrail) { return pTrail.Type->DroppodOnly; });
+				pLinkedExt->LaserTrails.remove_all_if([](auto const& pTrail) { return pTrail->Type->DroppodOnly; });
 
 				pLinked->Mark(MarkType::Put);
 				pLinked->SetHeight(0);

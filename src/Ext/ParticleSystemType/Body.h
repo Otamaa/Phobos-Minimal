@@ -26,10 +26,7 @@ public:
 		ApplyOptimization(true),
 		FacingMult(),
 		AdjustTargetCoordsOnRotation(true)
-	{
-		this->AbsType = ParticleSystemTypeClass::AbsID;
-	}
-
+	{ }
 	ParticleSystemTypeExtData(ParticleSystemTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~ParticleSystemTypeExtData() = default;

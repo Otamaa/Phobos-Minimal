@@ -37,6 +37,7 @@ public:
 	CoordStruct CreateUnitLocation;
 
 	bool DelayedFireRemoveOnNoDelay;
+
 	StageClass	DamagingState;
 	Point2D AEDrawOffset;
 #pragma endregion
@@ -57,10 +58,7 @@ public:
 		, DelayedFireRemoveOnNoDelay { false }
 		, DamagingState { }
 		, AEDrawOffset {}
-	{
-		this->AOName = pObj->Type->ID;
-		this->AbsType = AnimClass::AbsID;
-	}
+	{ }
 
 	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

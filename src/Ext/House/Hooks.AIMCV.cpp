@@ -20,23 +20,13 @@ ASMJIT_PATCH(0x739889, UnitClass_TryToDeploy_AISetBaseCenter, 0x6)
 	return (!RulesExtData::Instance()->AISetBaseCenter && pMCV->Owner->NumConYards > 1) ? SkipGameCode : 0;
 }
 
-// AIConstructionYard Hook #4-3 -> sub_7393C0 - Prohibit AI from building construction yard.
-// ASMJIT_PATCH(0x7397F4, UnitClass_TryToDeploy_SkipSetShouldRebuild, 0x7)
-// {
-// 	enum { SkipRebuildFlag = 0x7397FB };
-//
-// 	GET(BuildingClass* const, pBuilding, EBX);
-//
-// 	return (pBuilding->Type->ConstructionYard && RulesExt::Global()->AIForbidConYard) ? SkipRebuildFlag : 0;
-// }
-
 // AIConstructionYard Hook #4-4 -> sub_440580 - Prohibit AI from building construction yard.
 // ASMJIT_PATCH(0x440B7A, BuildingClass_Unlimbo_SkipSetShouldRebuild, 0x7)
 // {
 // 	enum { SkipRebuildFlag = 0x440B81 };
-//
+
 // 	GET(BuildingClass* const, pBuilding, ESI);
-//
+
 // 	return (pBuilding->Type->ConstructionYard && RulesExtData::Instance()->AIForbidConYard) ? SkipRebuildFlag : 0;
 // }
 

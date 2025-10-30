@@ -195,7 +195,7 @@ struct TechnoExt_ExtData
 	);
 
 	static int GetWarpPerStep(TemporalClass* pThis, int nStep);
-	static bool Warpable(TemporalClass*  , TechnoClass* pTarget);
+	static bool Warpable(TemporalClass* pTemp , TechnoClass* pTarget);
 
 	static void DepositTiberium(TechnoClass* pThis , HouseClass* pHouse, float const amount, float const bonus, int const idxType);
 	static void RefineTiberium(TechnoClass* pThis, HouseClass* pHouse, float const amount, int const idxType);

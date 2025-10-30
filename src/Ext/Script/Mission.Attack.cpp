@@ -76,7 +76,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		{
 			auto pKillerTechnoData = TechnoExtContainer::Instance.Find(pFirst);
 
-			if (pKillerTechnoData->Get_TechnoStateComponent()->LastKillWasTeamTarget)
+			if (pKillerTechnoData->LastKillWasTeamTarget)
 			{
 				// Time for Team award check! (if set any)
 				if (pTeamData->NextSuccessWeightAward > 0)
@@ -86,7 +86,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 				}
 
 				// Let's clean the Killer mess
-				pKillerTechnoData->Get_TechnoStateComponent()->LastKillWasTeamTarget = false;
+				pKillerTechnoData->LastKillWasTeamTarget = false;
 				pTeam->ArchiveTarget = nullptr;
 				pFocus = nullptr;
 				LastKillTechnoWasTeamtarget = true;
@@ -98,7 +98,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 					{
 						// Let's reset all Team Members objective
 						auto pKillerTeamUnitData = TechnoExtContainer::Instance.Find(pFootTeam);
-						pKillerTeamUnitData->Get_TechnoStateComponent()->LastKillWasTeamTarget = false;
+						pKillerTeamUnitData->LastKillWasTeamTarget = false;
 
 						if (pFootTeam->WhatAmI() == AbstractType::Aircraft)
 						{

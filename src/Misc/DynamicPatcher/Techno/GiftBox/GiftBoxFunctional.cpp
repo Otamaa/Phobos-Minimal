@@ -39,42 +39,43 @@ void GiftBoxFunctional::Init(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 			pTypeExt->MyGiftBoxData.DelayMin,
 			pTypeExt->MyGiftBoxData.DelayMax);
 
-	Phobos::gEntt->emplace<GiftBox>(pExt->MyEntity, nDelay);
+	pExt->MyGiftBox = std::make_unique<GiftBox>(nDelay);
+
 }
 
 void GiftBoxFunctional::Destroy(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->Get_GiftBox() || OpenDisallowed(pExt->This()))
+	if (!pExt->MyGiftBox || OpenDisallowed(pExt->This()))
 		return;
 
-	if (pTypeExt->MyGiftBoxData.OpenWhenDestoryed && !pExt->Get_GiftBox()->IsOpen)
+	if (pTypeExt->MyGiftBoxData.OpenWhenDestoryed && !pExt->MyGiftBox->IsOpen)
 	{
-		pExt->Get_GiftBox()->Release(pExt->This(), pTypeExt->MyGiftBoxData);
-		pExt->Get_GiftBox()->IsOpen = true;
+		pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
+		pExt->MyGiftBox->IsOpen = true;
 	}
 
 }
 
 void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 {
-	if (!pExt->Get_GiftBox() || OpenDisallowed(pExt->This()))
+	if (!pExt->MyGiftBox || OpenDisallowed(pExt->This()))
 		return;
 
-	if (!pTypeExt->MyGiftBoxData.Enable) {
-		Phobos::gEntt->remove<GiftBox>(pExt->MyEntity);
+	if (!pTypeExt->MyGiftBoxData.Enable){
+		pExt->MyGiftBox.reset(nullptr);
 		return;
 	}
 
 	if (!pTypeExt->MyGiftBoxData.OpenWhenDestoryed &&
 		!pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.isset() &&
-		pExt->Get_GiftBox()->CanOpen())
+		pExt->MyGiftBox->CanOpen())
 	{
 
-		pExt->Get_GiftBox()->Release(pExt->This(), pTypeExt->MyGiftBoxData);
-		pExt->Get_GiftBox()->IsOpen = true;
+		pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
+		pExt->MyGiftBox->IsOpen = true;
 	}
 
-	if (pExt->Get_GiftBox()->IsOpen)
+	if (pExt->MyGiftBox->IsOpen)
 	{
 		if (pTypeExt->MyGiftBoxData.Remove)
 		{
@@ -102,7 +103,7 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 					pTypeExt->MyGiftBoxData.DelayMin,
 					pTypeExt->MyGiftBoxData.DelayMax);
 
-			pExt->Get_GiftBox()->Reset(nDelay);
+			pExt->MyGiftBox->Reset(nDelay);
 		}
 	}
 
@@ -111,7 +112,7 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 void GiftBoxFunctional::TakeDamage(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt, WarheadTypeClass* pWH, DamageState nState)
 {
 
-	if (!pExt->Get_GiftBox())
+	if (!pExt->MyGiftBox.get())
 		return;
 
 	if (nState != DamageState::NowDead &&
@@ -121,8 +122,8 @@ void GiftBoxFunctional::TakeDamage(TechnoExtData* pExt, TechnoTypeExtData* pType
 		double healthPercent = pExt->This()->GetHealthPercentage();
 		if (healthPercent <= pTypeExt->MyGiftBoxData.OpenWhenHealthPercent.Get())
 		{
-			pExt->Get_GiftBox()->Release(pExt->This(), pTypeExt->MyGiftBoxData);
-			pExt->Get_GiftBox()->IsOpen = true;
+			pExt->MyGiftBox->Release(pExt->This(), pTypeExt->MyGiftBoxData);
+			pExt->MyGiftBox->IsOpen = true;
 		}
 	}
 }
@@ -300,8 +301,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 									pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 									pJJLoco->IsMoving = true;
 									pJJLoco->HeadToCoord = pGift->GetCoords();
-									TechnoExtContainer::Instance.Find(pGift)->Get_TechnoStateComponent()->JumpjetStraightAscend = true;
-
+									TechnoExtContainer::Instance.Find(pGift)->JumpjetStraightAscend = true;
 
 									if (!inAir)
 										AircraftTrackerClass::Instance->Add(pFoot);

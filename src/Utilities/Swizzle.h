@@ -15,7 +15,8 @@
 
 class ExtensionSwizzleManager
 {
-	struct ExtensionEntry {
+	struct ExtensionEntry
+	{
 		uintptr_t ptr;
 		void (*deleter)(uintptr_t); // Type-specific deleter
 		bool released = false;
@@ -79,7 +80,8 @@ class ExtensionSwizzleManager
 public:
 
 	template<typename T>
-	static ExtensionEntry makeEntry(T* extension) {
+	static ExtensionEntry makeEntry(T* extension)
+	{
 		return {
 			reinterpret_cast<uintptr_t>(extension),
 			[](uintptr_t p) { delete reinterpret_cast<T*>(p); }

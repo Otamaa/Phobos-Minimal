@@ -236,7 +236,8 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->DamageEnemiesMultiplier.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier");
 	pData->DamageOwnerMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.Berzerk");
 	pData->DamageAlliesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.Berzerk");
-	pData->DamageEnemiesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier.Berzerk");	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.NotAffectsEnemies");
+	pData->DamageEnemiesMultiplier_Berzerk.Read(iniEX, GameStrings::CombatDamage, "DamageEnemiesMultiplier.Berzerk");
+	pData->DamageOwnerMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageOwnerMultiplier.NotAffectsEnemies");
 	pData->DamageAlliesMultiplier_NotAffectsEnemies.Read(iniEX, GameStrings::CombatDamage, "DamageAlliesMultiplier.NotAffectsEnemies");
 
 	pData->FactoryProgressDisplay.Read(iniEX, GameStrings::AudioVisual, "FactoryProgressDisplay");
@@ -251,6 +252,10 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	pData->CombatAlert_Interval.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.Interval");
 	pData->CombatAlert_SuppressIfAllyDamage.Read(iniEX, GameStrings::AudioVisual, "CombatAlert.SuppressIfAllyDamage");
 	pData->SubterraneanHeight.Read(iniEX, GameStrings::General, "SubterraneanHeight");
+
+	pData->StartDistributionModeSound.Read(iniEX, GameStrings::AudioVisual, "StartDistributionModeSound");
+	pData->EndDistributionModeSound.Read(iniEX, GameStrings::AudioVisual, "EndDistributionModeSound");
+	pData->AddDistributionModeCommandSound.Read(iniEX, GameStrings::AudioVisual, "AddDistributionModeCommandSound");
 
 	pData->ForceShield_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "ForceShield.KillOrganicsWarhead");
 
@@ -320,6 +325,35 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 }
 
 #include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
+
+std::unordered_map<VoxelStruct*, std::string > RulesExtData::Owners;
+
+ASMJIT_PATCH(0x7564B0, VoxLib_GetData, 7)
+{
+	GET(VoxLib*, pVox, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+	GET_STACK(int, header, 0x4);
+	GET_STACK(int, layer, 0x8);
+
+	if (!pVox->HeaderData || !pVox->TailerData)
+	{
+		std::string owner = GameStrings::NoneStr();
+		for (auto& ii : RulesExtData::Owners)
+		{
+			if (ii.first->VXL == pVox)
+			{
+				owner = ii.second;
+				break;
+			}
+		}
+		Debug::FatalError("VoxelLibraryClass::Get_Voxel_Layer_Info %s input is broken ! caller 0x%x", owner.c_str(), caller);
+	}
+
+	auto pData = &pVox->TailerData[layer + pVox->HeaderData[header].limb_number];
+
+	R->EAX(pData);
+	return 0x7564CF;
+}
 
 template<typename T>
 static COMPILETIMEEVAL FORCEDINLINE void FillSecrets(DynamicVectorClass<T>& secrets) {
@@ -492,6 +526,13 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		}
 
 		auto ValidateVoxelStruct = [pItem, pExt, myClassName](VoxelStruct* pVxl , const char* ident) {
+			std::string iident(pItem->ID);
+			iident += " - ";
+			iident += myClassName;
+			iident += " - ";
+			iident += ident;
+
+			RulesExtData::Owners[pVxl] = std::move(iident);
 
 			if (!pVxl->VXL->HeaderData || !pVxl->VXL->TailerData)
 			{
@@ -744,6 +785,11 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 		if (pBullet->Voxel)
 		{
 			if(pBullet->MainVoxel.VXL){
+				std::string iident(pBullet->ID);
+				iident += " - ";
+				iident += "BulletTypeClass";
+
+				RulesExtData::Owners[&pBullet->MainVoxel] = std::move(iident);
 
 				if (!pBullet->MainVoxel.VXL->HeaderData || !pBullet->MainVoxel.VXL->TailerData) {
 					Debug::FatalError("Bullet[%s] Has VXL but has no HeaderData or TailerData wtf ?", pBullet->ID);
@@ -778,6 +824,11 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 	for(auto pVxlAnim : *VoxelAnimTypeClass::Array){
 		if (pVxlAnim->MainVoxel.VXL) {
+			std::string iident(pVxlAnim->ID);
+			iident += " - ";
+			iident += "VoxelAnimTypeClass";
+
+			RulesExtData::Owners[&pVxlAnim->MainVoxel] = std::move(iident);
 
 			if (!pVxlAnim->MainVoxel.VXL->HeaderData || !pVxlAnim->MainVoxel.VXL->TailerData) {
 				Debug::LogInfo("VoxelAnim[{}] Has VXL but has no HeaderData or TailerData wtf ?", pVxlAnim->ID);
@@ -1642,6 +1693,10 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ColorAddUse8BitRGB)
 		.Process(this->IronCurtain_ExtraTintIntensity)
 		.Process(this->ForceShield_ExtraTintIntensity)
+		.Process(this->SubterraneanHeight)
+		.Process(this->StartDistributionModeSound)
+		.Process(this->EndDistributionModeSound)
+		.Process(this->AddDistributionModeCommandSound)
 		.Process(this->VoxelLightSource)
 		.Process(this->VoxelShadowLightSource)
 		.Process(this->UseFixedVoxelLighting)
@@ -1993,6 +2048,7 @@ void RulesExtData::InitializeAfterAllRulesLoaded()
 		g_instance->ColorDatas.LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
 		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 	}
+
 }
 
 ASMJIT_PATCH(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)

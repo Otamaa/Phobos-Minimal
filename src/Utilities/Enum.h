@@ -34,6 +34,26 @@
 
 #include <GeneralDefinitions.h>
 
+enum class CommandBarTypes
+{
+	none = -1,
+	Team01,
+	Team02,
+	Team03,
+	TypeSelect,
+	Deploy,
+	AttackMove,
+	Guard,
+	Beacon,
+	Stop,
+	PlanningMode,
+	Cheer,
+	DistributionMode,
+
+	end = DistributionMode,
+	begin = Team01
+};
+
 enum class ExtendedThreatType : int
 {
 	none = 0u,

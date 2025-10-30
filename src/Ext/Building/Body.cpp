@@ -13,8 +13,8 @@
 #include <Misc/Hooks.Otamaa.h>
 BuildingExtData::~BuildingExtData()
 {
-	auto pThis = This();
 
+	auto pThis = This();
 	FakeHouseClass* pOwner = (FakeHouseClass*)pThis->Owner;
 	auto pOwnerExt = pOwner->_GetExtData();
 
@@ -866,17 +866,15 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		}
 
 		pBuildingExt->LimboID = ID;
-
-		Phobos::gEntt->remove<ShieldClass>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<GiftBox>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<DamageSelfState>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<WeaponTimers>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<SimulateBurstManager>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<DelayFireManager>(pBuildingExt->MyEntity);
-
+		pBuildingExt->Shield.release();
 		pBuildingExt->Trails.clear();
 		pBuildingExt->RevengeWeapons.clear();
+		pBuildingExt->DamageSelfState.release();
+		pBuildingExt->MyGiftBox.release();
 		pBuildingExt->PaintBallStates.clear();
+		pBuildingExt->ExtraWeaponTimers.clear();
+		pBuildingExt->MyWeaponManager.Clear();
+		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
 
 		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
 		{
@@ -885,8 +883,8 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 			if (nMethod != KillMethod::None)
 			{
 
-				if (pBuildingExt->Type->DeathCountdown > 0)
-					pBuildingExt->DeathCountdown.Start(pBuildingExt->Type->DeathCountdown);
+				if (pBuildingExt->Type->Death_Countdown > 0)
+					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
 
 				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
@@ -1012,8 +1010,8 @@ void FakeBuildingClass::_OnFinishRepairB(InfantryClass* pEngineer)
 	{
 		this->ToggleDamagedAnims(!wasDamaged);
 
-		if (wasDamaged && Sys.Damage)
-			Sys.Damage->UnInit();
+		if (wasDamaged && this->Sys.Damage)
+			this->Sys.Damage->UnInit();
 	}
 
 	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
@@ -1035,7 +1033,7 @@ void FakeBuildingClass::_OnFinishRepair()
 		this->ToggleDamagedAnims(!wasDamaged);
 
 		if (wasDamaged && this->Sys.Damage)
-			Sys.Damage->UnInit();
+			this->Sys.Damage->UnInit();
 	}
 
 	const auto sound = this->_GetTypeExtData()->BuildingRepairedSound.Get(RulesClass::Instance->BuildingRepairedSound);
@@ -1395,7 +1393,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		if (auto pPulseBall = pLinkedTypeExt->EMPulse_PulseBall)
 		{
 			CoordStruct flh {};
-			pThis->GetFLH(&flh, pExt->Get_TechnoStateComponent()->WeaponIndexes.EMPulse, CoordStruct::Empty);
+			pThis->GetFLH(&flh, pExt->idxSlot_EMPulse, CoordStruct::Empty);
 			auto pAnim = GameCreate<AnimClass>(pPulseBall, flh);
 			pAnim->Owner = pThis->GetOwningHouse();
 			((FakeAnimClass*)pAnim)->_GetExtData()->Invoker = pThis;
@@ -1419,7 +1417,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 			pThis->QueueMission(Mission::Guard, false);
 			return 60;
 		}
-		WeaponTypeClass* weaponType = pThis->GetWeapon(pExt->Get_TechnoStateComponent()->WeaponIndexes.EMPulse)->WeaponType;
+		WeaponTypeClass* weaponType = pThis->GetWeapon(pExt->idxSlot_EMPulse)->WeaponType;
 		AbstractClass* target = MapClass::Instance->GetCellAt(celltarget);
 
 		// Aim the barrel
@@ -1429,7 +1427,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 
 		// Prepare bullet trajectory
 		CoordStruct flhCoord {};
-		pThis->GetFLH(&flhCoord, pExt->Get_TechnoStateComponent()->WeaponIndexes.EMPulse, CoordStruct::Empty);
+		pThis->GetFLH(&flhCoord, pExt->idxSlot_EMPulse, CoordStruct::Empty);
 
 		CoordStruct targetCoord = CellClass::Cell2Coord(celltarget);
 		targetCoord.Z = MapClass::Instance->GetZPos(&targetCoord);
@@ -1486,7 +1484,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 
 		// --- Adjust for weapon direction ---
 		CoordStruct barrelDir {};
-		pThis->vt_entry_300(&barrelDir, pExt->Get_TechnoStateComponent()->WeaponIndexes.EMPulse);
+		pThis->vt_entry_300(&barrelDir, pExt->idxSlot_EMPulse);
 		CoordStruct bulletPos = bullet->GetCoords();
 		double dz = bulletPos.Z - barrelDir.Z;
 		double xyDistSq = (bulletPos.X - barrelDir.X) * (bulletPos.X - barrelDir.X) +
@@ -1496,7 +1494,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 
 		// Recalculate direction if needed
 		DirStruct legal;
-		const bool canReach = pThis->CanReachTarget(pExt->Get_TechnoStateComponent()->WeaponIndexes.EMPulse);
+		const bool canReach = pThis->CanReachTarget(pExt->idxSlot_EMPulse);
 		if (!Game::func_48A8D0_Legal(canReach, speed, xyDist, dz, gravity, &legal))
 		{
 			if (!Game::func_48A8D0_Legal(canReach, (10 * speed) / 8, xyDist, dz, gravity, &legal))

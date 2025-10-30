@@ -114,7 +114,7 @@ static bool DrawHPBar(TechnoClass* pThis)
 	const auto what = pThis->WhatAmI();
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->Get_TechnoStateComponent()->IsDriverKilled)
+	if (pExt->Is_DriverKilled)
 		return false;
 
 
@@ -195,7 +195,7 @@ void __fastcall FakeTechnoClass::__DrawHealthBar_Selection(TechnoClass* techno, 
 	TechnoTypeClass* technoTypeClass = techno->GetTechnoType();
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoTypeClass);
 	SHPStruct* pips_SHP = pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP());
-			   pips_SHP = pTypeExt->HealthBarSHP.Get(pips_SHP);
+	pips_SHP = pTypeExt->HealthBarSHP.Get(pips_SHP);
 	SHPStruct* pPipsShapeSelected = pTypeExt->HealthBarSHP_Selected.Get(FileSystem::PIPBRD_SHP());
 	ConvertClass* pPalette = FileSystem::PALETTE_PAL();
 
@@ -264,7 +264,7 @@ static void DrawBuildingHealthBar(TechnoClass* techno, Point2D* position, Rectan
 	{ // these are draw before HP itself drawn
 		const auto pExt = TechnoExtContainer::Instance.Find(techno);
 
-		if (auto pShieldData = pExt->GetShield())
+		if (const auto pShieldData = pExt->Shield.get())
 		{
 			if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
 				pShieldData->DrawShieldBar_Building(barHeight, position, clipRect);
@@ -380,7 +380,7 @@ static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2
 	{ // these are draw before HP itself drawn
 
 
-		if (const auto pShieldData = pExt->GetShield())
+		if (const auto pShieldData = pExt->Shield.get())
 		{
 			if (pShieldData->IsAvailable() && !pShieldData->IsBrokenAndNonRespawning())
 				pShieldData->DrawShieldBar_Other(drawState.barLength, position, clipRect);

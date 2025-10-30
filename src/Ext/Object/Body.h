@@ -8,7 +8,9 @@ class ObjectExtData : public AbstractExtended
 {
 public:
 
-	ObjectExtData(ObjectClass* abs) : AbstractExtended(abs) {};
+	ObjectExtData(ObjectClass* abs) : AbstractExtended(abs) {
+		this->AbstractExtended::SetName(abs->get_ID());
+	};
 
 	ObjectExtData(ObjectClass* abs, noinit_t& noint) : AbstractExtended(abs, noint) { };
 

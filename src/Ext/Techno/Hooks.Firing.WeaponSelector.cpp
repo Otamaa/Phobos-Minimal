@@ -455,15 +455,17 @@ ASMJIT_PATCH(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 ASMJIT_PATCH(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 {
 	GET(TechnoClass* const, pThis, ECX);
-	//GET_STACK(DWORD , caller , 0x0);
+	GET_STACK(DWORD , caller , 0x0);
+
+	if(!pThis)
+		Debug::FatalError("Caller %u " , caller);
 
 	if (pThis->WhatAmI() == BuildingClass::AbsID)
 	{
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-		auto pCom = pExt->Get_TechnoStateComponent();
 
-		if (pCom->WeaponIndexes.Laser != -1) {
-			R->EAX(pThis->GetWeapon(pCom->WeaponIndexes.Laser));
+		if (!pExt->CurrentLaserWeaponIndex.empty()) {
+			R->EAX(pThis->GetWeapon(pExt->CurrentLaserWeaponIndex));
 			return 0x70E1C8;
 		}
 	}
@@ -518,7 +520,7 @@ ASMJIT_PATCH(0x728F9A, TunnelLocomotionClass_Process_Track, 0x7)
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
 	auto pTechno = pLoco->LinkedTo;
 	ScenarioExtData::Instance()->UndergroundTracker.emplace(pTechno);
-	TechnoExtContainer::Instance.Find(pTechno)->Get_TechnoStateComponent()->UndergroundTracked = true;
+	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = true;
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x729029, TunnelLocomotionClass_Process_Track, 0x7);
@@ -528,7 +530,7 @@ ASMJIT_PATCH(0x7297F6, TunnelLocomotionClass_ProcessDigging_Track, 0x7)
 	GET(FootClass*, pTechno, ECX);
 
 	ScenarioExtData::Instance()->UndergroundTracker.erase(pTechno);
-	TechnoExtContainer::Instance.Find(pTechno)->Get_TechnoStateComponent()->UndergroundTracked = false;
+	TechnoExtContainer::Instance.Find(pTechno)->UndergroundTracked = false;
 
 	return 0;
 }

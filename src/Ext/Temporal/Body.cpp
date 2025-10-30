@@ -89,7 +89,7 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 		target->IsMouseHovering = false;
 
 	if (pWarheadExt->Supress_LostEva)
-		pOwnerExt->Get_TechnoStateComponent()->SupressEVALost = true;
+		pOwnerExt->SupressEVALost = true;
 
 	if (target && target->IsSelected)
 		target->Deselect();
@@ -103,14 +103,11 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 		}
 	}
 
-	// #617 powered units
-	Phobos::gEntt->remove<PoweredUnitClass>(pOwnerExt->MyEntity);
-	// if the removed object is a radar jammer, unjam all jammed radars
-	Phobos::gEntt->remove<RadarJammerClass>(pOwnerExt->MyEntity);
+	pTargetExt->RadarJammer.reset();
 
 	if (target && target->IsAlive)
 	{
-		AresAE::UpdateTempoal(pTargetExt->Get_AresAEData() , target);
+		AresAE::UpdateTempoal(&pTargetExt->AeData, target);
 
 		if (target && target->IsAlive)
 		{
@@ -204,7 +201,7 @@ void FakeTemporalClass::_Update()
 			return;
 
 		if(this->WarpRemaining <= 0) {
-			int WeaponIdx = TechnoExtContainer::Instance.Find(this->Owner)->Get_TechnoStateComponent()->WeaponIndexes.Warp;
+			int WeaponIdx = TechnoExtContainer::Instance.Find(this->Owner)->idxSlot_Warp;
 			auto pWpStruct = this->Owner->GetWeapon(WeaponIdx);
 			auto pWeapon = pWpStruct->WeaponType;
 
@@ -247,7 +244,7 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 	auto pTargetType = pTarget->GetTechnoType();
 	auto pUnit = cast_to<UnitClass*>(pTarget);
 	auto pBuilding = cast_to<BuildingClass*>(pTarget);
-	int wpIdx = TechnoExtContainer::Instance.Find(this->Owner)->Get_TechnoStateComponent()->WeaponIndexes.Warp;
+	int wpIdx = TechnoExtContainer::Instance.Find(this->Owner)->idxSlot_Warp;
 	auto pWeapon = this->Owner->GetWeapon(wpIdx)->WeaponType;
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
 

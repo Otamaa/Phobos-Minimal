@@ -144,6 +144,31 @@ ASMJIT_PATCH(0x5003BA, HouseClass_FindJuicyTarget, 0x6)
 	return R->EDI<HouseClass*>()->IsAlliedWith(R->EAX<HouseClass*>()) ? 0x5003F7 : 0x5004B1;
 }
 
+ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
+{
+	GET_STACK(ObjectClass*, pTarget, 0x4);
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(DWORD , caller , 0x0);
+
+	bool result = false;
+	if (pTarget) {
+
+		bool eligible = true;
+		if(auto pTech = flag_cast_to<TechnoClass*, false>(pTarget)){
+			if(!pTarget->IsAlive){
+				Debug::LogInfo(__FUNCTION__" DeadTechno[{}] is used , called from [{}]", (void*)pTarget, (unsigned)caller);
+				eligible = false;
+			}
+		}
+
+		if(eligible)
+			result = pThis->IsAlliedWith(pTarget->GetOwningHouse());
+	}
+
+	R->AL(result);
+	return 0x4F9ADE;
+}
+
 //breaking stack ??
 // ASMJIT_PATCH(0x4F9A50, HouseClass_IsAlly_HouseClass, 0x6)
 // {

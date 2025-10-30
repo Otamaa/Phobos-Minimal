@@ -368,7 +368,7 @@ ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 	if (pExt->DisableWeaponTimer.InProgress())
 		return FireRange;
 
-	if (pExt->Get_AEProperties()->DisableWeapons)
+	if (pExt->AE.DisableWeapons)
 		return FireRange;
 
 	return ContinueCheck;
@@ -378,14 +378,14 @@ ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 ASMJIT_PATCH(0x730EE5, StopCommandClass_Execute_Berzerk, 6)
 {
 	GET(TechnoClass*, pTechno, ESI);
-	return pTechno->Berzerk || TechnoExtContainer::Instance.Find(pTechno)->Get_TechnoStateComponent()->IsDriverKilled ? 0x730EF7 : 0;
+	return pTechno->Berzerk || TechnoExtContainer::Instance.Find(pTechno)->Is_DriverKilled ? 0x730EF7 : 0;
 }
 
 ASMJIT_PATCH(0x7091D6, TechnoClass_CanPassiveAquire_KillDriver, 6)
 {
 	// prevent units with killed drivers from looking for victims.
 	GET(TechnoClass*, pThis, ESI);
-	return (TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled ? 0x70927Du : 0u);
+	return (TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x70927Du : 0u);
 }
 
 
@@ -394,7 +394,7 @@ ASMJIT_PATCH(0x73758A, UnitClass_ReceivedRadioCommand_QueryEnterAsPassenger_Kill
 	// prevent units from getting the enter cursor on transports
 	// with killed drivers.
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled ? 0x73761Fu : 0u;
+	return TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled ? 0x73761Fu : 0u;
 }
 
 ASMJIT_PATCH(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
@@ -433,7 +433,7 @@ ASMJIT_PATCH(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 ASMJIT_PATCH(0x71810D, TeleportLocomotionClass_ILocomotion_MoveTo_Deactivated, 6)
 {
 	GET(FootClass*, pFoot, ECX);
-	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !TechnoExtContainer::Instance.Find(pFoot)->Get_TechnoStateComponent()->IsDriverKilled)
+	return (!pFoot->Deactivated && pFoot->Locomotor.GetInterfacePtr()->Is_Powered() && !TechnoExtContainer::Instance.Find(pFoot)->Is_DriverKilled)
 		? 0 : 0x71820F;
 }
 
@@ -447,7 +447,7 @@ ASMJIT_PATCH(0x7188F2, TeleportLocomotionClass_Unwarp_SinkJumpJets, 7)
 	{
 		if (UnitClass* pUnit = cast_to<UnitClass*>(pTechno[3]))
 		{
-			if (pUnit->Deactivated || TechnoExtContainer::Instance.Find(pUnit)->Get_TechnoStateComponent()->IsDriverKilled)
+			if (pUnit->Deactivated || TechnoExtContainer::Instance.Find(pUnit)->Is_DriverKilled)
 			{
 				// this thing does not float
 				R->BL(0);
@@ -911,7 +911,7 @@ ASMJIT_PATCH(0x53C450, TechnoClass_CanBePermaMC, 5)
 		if (!TechnoExtData::IsPsionicsImmune(pThis) && !pThis->GetTechnoType()->BalloonHover)
 		{
 			// KillDriver check
-			if (!TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled)
+			if (!TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 			{
 				bDisaalow = 1;
 			}
@@ -1496,7 +1496,7 @@ static void CrushAffect(UnitClass* pThis, ObjectClass* pVictim, bool victimIsTec
 		auto damage = pVictimTypeExt->CrushDamage.Get(pVictimTechno);
 
 		if (pThisTypeExt->Crusher_SupressLostEva)
-			pExt->Get_TechnoStateComponent()->SupressEVALost = true;
+			pExt->SupressEVALost = true;
 
 		if (damage != 0)
 		{
@@ -1740,7 +1740,7 @@ ASMJIT_PATCH(0x700E47, TechnoClass_CanDeploySlashUnload_Immobile, 0xA)
 			|| pThis->IsUnderEMP()
 			|| pThis->IsWarpingIn()
 			|| pThis->IsFallingDown
-			|| pExt->Get_TechnoStateComponent()->IsDriverKilled
+			|| pExt->Is_DriverKilled
 			? 0x700DCE : 0x700E59;
 }
 

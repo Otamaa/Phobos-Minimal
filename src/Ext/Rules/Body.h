@@ -369,6 +369,10 @@ public:
 	Valueable<int> CombatAlert_Interval { 150 };
 	Valueable<bool> CombatAlert_SuppressIfAllyDamage { true };
 
+	ValueableIdx<VocClass> StartDistributionModeSound { -1 };
+	ValueableIdx<VocClass> EndDistributionModeSound { -1 };
+	ValueableIdx<VocClass> AddDistributionModeCommandSound { -1 };
+
 	Valueable<int> SubterraneanHeight { -256 };
 
 	Nullable<Vector3D<float>> VoxelLightSource {};
@@ -574,7 +578,6 @@ public:
 	Valueable<Leptons> AIGuardModeGuardRangeMax { Leptons(4096) };
 	Valueable<Leptons> AIGuardStationaryStray { Leptons(-256) };
 	Valueable<bool> IgnoreCenterMinorRadarEvent { false };
-
 	Valueable<int> WarheadAnimZAdjust { -15 } ;
 #pragma endregion
 
@@ -627,6 +630,7 @@ public:
 	static bool DetailsCurrentlyEnabled();
 	static bool DetailsCurrentlyEnabled(int minDetailLevel);
 
+	static std::unordered_map<VoxelStruct*, std::string > Owners;
 };
 
 class NOVTABLE FakeRulesClass : public RulesClass

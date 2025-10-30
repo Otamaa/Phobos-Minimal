@@ -115,7 +115,7 @@ void DisperseTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity
 		this->CurrentBurst = pFirer->CurrentBurstIndex;
 		this->FirepowerMult = pFirer->FirepowerMultiplier;
 
-		this->FirepowerMult *= TechnoExtContainer::Instance.Find(pFirer)->Get_AEProperties()->FirepowerMultiplier;
+		this->FirepowerMult *= TechnoExtContainer::Instance.Find(pFirer)->AE.FirepowerMultiplier;
 
 		if (pType->MirrorCoord && pFirer->CurrentBurstIndex % 2 == 1)
 			this->PreAimCoord.Y = -(this->PreAimCoord.Y);

@@ -9,7 +9,6 @@
 #include <AnimClass.h>
 
 #include <Ext/Object/Body.h>
-#include <TerrainTypeClass.h>
 
 class TerrainExtData final : public ObjectExtData
 {
@@ -18,6 +17,7 @@ public:
 	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
 
 public:
+
 
 #pragma region ClassMember
 	Handle<LightSourceClass*, UninitLightSource> LighSource;
@@ -32,14 +32,10 @@ public:
 		, AttachedAnim(nullptr)
 		, AttachedFireAnim(nullptr)
 		, Adjencentcells()
-	{
-		this->AOName = pObj->Type->ID;
-		this->AbsType = TerrainClass::AbsID;
-
-	}
+	{ }
 	TerrainExtData(TerrainClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
-	virtual ~TerrainExtData() = default;
+	virtual ~TerrainExtData();
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{

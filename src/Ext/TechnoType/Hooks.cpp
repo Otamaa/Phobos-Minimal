@@ -863,7 +863,8 @@ ASMJIT_PATCH(0x738801, UnitClass_Destroy_DestroyAnim, 0x6) //was C
 
 	auto const Extension = TechnoExtContainer::Instance.Find(pThis);
 
-	if (!Extension->Get_TechnoStateComponent()->ReceiveDamage) {
+	if (!Extension->ReceiveDamage)
+	{
 		AnimTypeExtData::ProcessDestroyAnims(pThis);
 	}
 
@@ -924,7 +925,7 @@ ASMJIT_PATCH(0x7090A0, TechnoClass_VoiceAttack, 0x7)
 	return 0x7091C7;
 }
 
-ThreatType GetThreatType(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, ThreatType result)
+ThreatType __forceinline GetThreatType(TechnoClass* pThis, TechnoTypeExtData* pTypeExt, ThreatType result)
 {
 	ThreatType flags = pThis->Veterancy.IsElite() ? pTypeExt->ThreatTypes.Y : pTypeExt->ThreatTypes.X;
 	return result | flags;

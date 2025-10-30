@@ -593,17 +593,15 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		}
 
 		pBuildingExt->LimboID = ID;
-
-		Phobos::gEntt->remove<ShieldClass>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<GiftBox>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<DamageSelfState>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<WeaponTimers>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<SimulateBurstManager>(pBuildingExt->MyEntity);
-		Phobos::gEntt->remove<DelayFireManager>(pBuildingExt->MyEntity);
-
+		pBuildingExt->Shield.release();
 		pBuildingExt->Trails.clear();
 		pBuildingExt->RevengeWeapons.clear();
+		pBuildingExt->DamageSelfState.release();
+		pBuildingExt->MyGiftBox.release();
 		pBuildingExt->PaintBallStates.clear();
+		pBuildingExt->ExtraWeaponTimers.clear();
+		pBuildingExt->MyWeaponManager.Clear();
+		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
 
 		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
 		{
@@ -611,8 +609,8 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 
 			if (nMethod != KillMethod::None) {
 
-				if(pBuildingExt->Type->DeathCountdown > 0)
-					pBuildingExt->DeathCountdown.Start(pBuildingExt->Type->DeathCountdown);
+				if(pBuildingExt->Type->Death_Countdown > 0)
+					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
 
 				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}

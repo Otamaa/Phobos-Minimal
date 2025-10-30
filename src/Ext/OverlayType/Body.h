@@ -24,9 +24,7 @@ public:
 	OverlayTypeExtData(OverlayTypeClass* pObj) : ObjectTypeExtData(pObj),
 		Palette(CustomPalette::PaletteMode::Temperate),
 		ZAdjust(0)
-	{
-		this->AbsType = OverlayTypeClass::AbsID;
-	}
+	{ }
 	OverlayTypeExtData(OverlayTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~OverlayTypeExtData() = default;

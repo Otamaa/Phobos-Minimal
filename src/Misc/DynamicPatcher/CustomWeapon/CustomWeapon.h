@@ -8,13 +8,17 @@
 
 class WeaponTypeClass;
 class TechnoClass;
-struct SimulateBurstManager
+struct CustomWeaponManager
 {
-	std::deque<SimulateBurst> simulateBurstQueue {};
+	std::deque<std::unique_ptr<SimulateBurst>> simulateBurstQueue {};
 
 	void Clear()
 	{
 		simulateBurstQueue.clear();
+	}
+
+	void reserve(size_t newsize) {
+
 	}
 
 	void Update(TechnoClass* pAttacker);
@@ -25,62 +29,57 @@ struct SimulateBurstManager
 
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	bool Save(PhobosStreamWriter& Stm) const;
+	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
+	{ return Serialize(Stm); }
+
+	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<CustomWeaponManager*>(this)->Serialize(Stm); }
+
+private:
+
+	template <typename T>
+	bool Serialize(T& Stm)
+	{
+		return Stm
+			.Process(simulateBurstQueue)
+			.Success()
+			&& Stm.RegisterChange(this)
+			;
+	}
 };
 
-struct DelayFireManager
+struct FireWeaponManager
 {
-	std::deque<DelayFireWeapon> DelayFires {};
+	std::deque<std::unique_ptr<DelayFireWeapon>> DelayFires {};
+	CustomWeaponManager CWeaponManager {};
 
 public:
 
 	void Clear();
 	void Insert(int weaponIndex, AbstractClass* pTarget, int delay = 0, int count = 1);
 	void Insert(WeaponTypeClass* pWeapon, AbstractClass* pTarget, int delay = 0, int count = 1);
-	void Update(TechnoClass* pAttacker);
-
+	bool FireCustomWeapon(TechnoClass* pShooter, TechnoClass* pAttacker, AbstractClass* pTarget, WeaponTypeClass* pWeapon, const CoordStruct& flh, const CoordStruct& bulletSourcePos, double rofMult = 1);
+	void TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker);
+	void FireWeaponManager_Clear();
 	void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
 
-	static void TechnoClass_Update_CustomWeapon(TechnoClass* pAttacker);
-
-	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
-	bool Save(PhobosStreamWriter& Stm) const;
-
-};
-
-struct WeaponTimers
-{
-	std::vector<std::pair<WeaponTypeClass*, CDTimerClass>> Timers;
-
-	CDTimerClass& operator[](WeaponTypeClass* pWeapon)
-	{
-		// Find existing timer
-		for (auto& pair : Timers)
-		{
-			if (pair.first == pWeapon)
-			{
-				return pair.second;
-			}
-		}
-
-		// Not found, add new
-		Timers.emplace_back(pWeapon, CDTimerClass {});
-		return Timers.back().second;
-	}
-
-	void Clear()
-	{
-		Timers.clear();
-	}
-
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
-	{
-		return Stm.Process(Timers).Success() && Stm.RegisterChange(this);
-	}
+	{ return Serialize(Stm); }
 
 	bool Save(PhobosStreamWriter& Stm) const
+	{ return const_cast<FireWeaponManager*>(this)->Serialize(Stm); }
+
+private:
+
+	template <typename T>
+	bool Serialize(T& Stm)
 	{
-		return Stm.Process(Timers).Success();
+		return Stm
+			.Process(DelayFires)
+			.Process(CWeaponManager)
+			.Success()
+			&& Stm.RegisterChange(this)
+			;
+		;
 	}
 };

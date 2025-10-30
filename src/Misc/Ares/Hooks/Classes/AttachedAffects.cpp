@@ -43,15 +43,11 @@ AresAttachEffectTypeClass* GetAETypeFromTechnoType(TechnoTypeClass* pType)
 
 AresAEData* GetAEDAtaFromTechno(TechnoClass* pThis)
 {
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	return pExt->Get_AresAEData();
+	return std::addressof(TechnoExtContainer::Instance.Find(pThis)->AeData); //dummy
 }
 
 void AresAE::UpdateTempoal(AresAEData* ae, TechnoClass* pTechno)
 {
-	if(!ae)
-		return;
-
 	if (!ae->NeedToRecreateAnim)
 	{
 		ae->NeedToRecreateAnim = true;
@@ -65,7 +61,7 @@ void AresAE::UpdateTempoal(AresAEData* ae, TechnoClass* pTechno)
 
 void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 {
-	if (!ae || pTechno->InLimbo || pTechno->IsImmobilized || pTechno->Transporter)
+	if (pTechno->InLimbo || pTechno->IsImmobilized || pTechno->Transporter)
 		return;
 
 	const auto pType = pTechno->GetTechnoType();
@@ -85,7 +81,8 @@ void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 		}
 		else if (ae->NeedToRecreateAnim)
 		{
-			for (auto& ae_ : ae->Data) {
+			for (auto& ae_ : ae->Data)
+			{
 				ae_.CreateAnim(pTechno);
 			}
 
@@ -116,10 +113,7 @@ void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 			ae_.Duration = duration;
 		}
 
-		auto it = std::remove_if(ae->Data.begin(), ae->Data.end(), [](const auto& ae_) { return !ae_.Duration; });
-
-		if (it != ae->Data.end()) {
-			ae->Data.erase(it , ae->Data.end());
+		if (ae->Data.remove_all_if([](const auto& ae_) { return !ae_.Duration; })) {
 			AEProperties::Recalculate(pTechno);
 		}
 	}
@@ -160,14 +154,10 @@ bool AresAE::Remove(AresAEData* ae)
 	if (!ae->Data.empty())
 	{
 		ae->NeedToRecreateAnim = true;
-
-		const auto it = std::remove_if(ae->Data.begin(), ae->Data.end(), [](auto& ae_) {
-			ae_.ClearAnim();
-			return static_cast<bool>(ae_.Type->DiscardOnEntry);
-		 });
-
-		if (it != ae->Data.end()) {
-			ae->Data.erase(it, ae->Data.end());
+		if (fast_remove_if(ae->Data,[](auto& Item){
+			Item.ClearAnim();
+			return static_cast<bool>(Item.Type->DiscardOnEntry);
+		})) {
 			return true;
 		}
 	}
@@ -177,25 +167,16 @@ bool AresAE::Remove(AresAEData* ae)
 
 void AresAE::Remove(AresAEData* ae, TechnoClass* pTechno)
 {
-	if(!ae)
-		return;
-
 	if (AresAE::Remove(ae))
 		AEProperties::Recalculate(pTechno);
 }
 
 void AresAE::RemoveSpecific(AresAEData* ae, TechnoClass* pTechno, AbstractTypeClass* pRemove)
 {
-	if(!ae)
-		return;
-
 	ae->Isset = 0;
-	const auto it = std::remove_if(ae->Data.begin(), ae->Data.end(), [pRemove](auto& ae_) {
-		return  ae_.Type->Owner == pRemove;
-	 });
-
-	if (it != ae->Data.end()) {
-		ae->Data.erase(it, ae->Data.end());
+	if(ae->Data.remove_all_if([pRemove](const auto& ae_) {
+			return ae_.Type->Owner == pRemove;
+	})) {
 		AEProperties::Recalculate(pTechno);
 	}
 }
@@ -214,12 +195,11 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 
 		if (it != pData->Data.end())
 		{
-			auto& ItAE = it;
 
-			ItAE->Duration = ItAE->Type->Duration;
+			it->Duration =it->Type->Duration;
 
 			if (pType->AnimType && pType->AnimResetOnReapply) {
-				ItAE->CreateAnim(pTargetTechno);
+				it->CreateAnim(pTargetTechno);
 			}
 
 			if (pType->ForceDecloak)
@@ -236,12 +216,11 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 		}
 	}
 
-	AresAE* created = &pData->Data.emplace_back();
-		created->Type = pType;
-		created->Duration = duration;
-		created->Invoker = pInvokerOwner;
-		created->CreateAnim(pTargetTechno);
-	;
+	auto& crated = pData->Data.emplace_back();
+	crated.Type = pType;
+	crated.Duration = duration;
+	crated.Invoker = pInvokerOwner;
+	crated.CreateAnim(pTargetTechno);
 	AEProperties::Recalculate(pTargetTechno);
 
 	if (pType->ForceDecloak)
@@ -257,48 +236,43 @@ bool AresAE::Attach(AresAttachEffectTypeClass* pType, TechnoClass* pTargetTechno
 
 void AresAE::TransferAttachedEffects(TechnoClass* From, TechnoClass* To)
 {
-	auto FromData = TechnoExtContainer::Instance.Find(From)->Get_AresAEData();
+	auto FromData = GetAEDAtaFromTechno(From);
 	auto ToData = GetAEDAtaFromTechno(To);
 
 	ToData->Data.clear();
 
-	if(FromData){
-		// while recreation itself isn't the best idea, less hassle and more reliable
-		// list gets intact in the end
-
-		for (const auto& Item : FromData->Data) {
-			//here we do already recalculate
-			AresAE::Attach(Item.Type, To, Item.Duration, Item.Invoker);
-		}
-
-		FromData->Data.clear();
-		FromData->Isset = false;
+	// while recreation itself isn't the best idea, less hassle and more reliable
+	// list gets intact in the end
+	for (const auto& Item : FromData->Data)
+	{
+		AresAE::Attach(Item.Type, To, Item.Duration, Item.Invoker);
 	}
 
-	//recalculate again if phobos AE do really do anything , since AresAE already recalculate above
-	if(PhobosAttachEffectClass::TransferAttachedEffects(From, To))
-		AEProperties::Recalculate(To);
+	FromData->Data.clear();
+	FromData->Isset = false;
+	PhobosAttachEffectClass::TransferAttachedEffects(From, To);
+	AEProperties::Recalculate(To);
 }
 
 void AresAE::ClearAnim()
 {
-	this->Anim.reset(nullptr);
+	this->Anim.reset();
 }
 #include <Ext/Anim/Body.h>
 
-void NOINLINE AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
+void AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
 {
-	this->Anim.reset(pNewAnim);
+	this->ClearAnim();
+
 	pNewAnim->SetOwnerObject(pTechno);
-	pNewAnim->RemainingIterations = (BYTE)-1;
-	//auto pAnimExt = ((FakeAnimClass*)pNewAnim)->_GetExtData();
+	pNewAnim->RemainingIterations = 0xffffffff;
+	auto pAnimExt = ((FakeAnimClass*)pNewAnim)->_GetExtData();
 
 	if (auto pInvoker = this->Invoker) {
 		pNewAnim->Owner = pInvoker;
 	}
 
-	//GameObjectSharedPtr<AnimClass>(pNewAnim, MarkForDeathDeleter<AnimClass>{})
-	//this->Anim.reset(pNewAnim);
+	this->Anim.reset(pNewAnim);
 }
 
 void AresAE::CreateAnim(TechnoClass* pTechno)

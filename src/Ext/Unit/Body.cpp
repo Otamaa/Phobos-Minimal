@@ -61,7 +61,7 @@ bool UnitExtContainer::CheckDeployRestrictions(FootClass* pUnit, bool isDeployin
 	auto const defaultFacing = (FacingType)(RulesClass::Instance->DeployDir >> 5);
 	auto const facing = pTypeExt->DeployDir.Get(defaultFacing);
 
-	if (facing == FacingType::None|| (!pTypeExt->DeployDir.isset() && !HasDeployingAnim(pType)))
+	if (facing == FacingType::None || (!pTypeExt->DeployDir.isset() && !HasDeployingAnim(pType)))
 		return false;
 
 	if (facing != (FacingType)currentDir->Current().GetFacing<8>())

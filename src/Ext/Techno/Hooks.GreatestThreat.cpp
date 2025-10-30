@@ -59,7 +59,7 @@ int BuildThreatBitfield(ThreatType method)
 
 	if ((method & ThreatType::Infantry) != ThreatType::Normal)
 	{
-		bitfield |= 0x80;
+		bitfield |= 0x8000;
 	}
 
 	if ((method & (ThreatType::Tiberium | ThreatType::Vehicles)) != ThreatType::Normal)

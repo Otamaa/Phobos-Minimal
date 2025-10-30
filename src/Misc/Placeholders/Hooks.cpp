@@ -690,14 +690,14 @@ ASMJIT_PATCH(0x481CE1, CellClass_CrateBeingCollected_Speed1, 6)
 ASMJIT_PATCH(0x481D0E, CellClass_CrateBeingCollected_Firepower1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
-	return (TechnoExtContainer::Instance.Find(Unit)->AECore->FirepowerMultiplier52 : 0x481C86;
+	return (TechnoExtContainer::Instance.Find(Unit)->AE.FirepowerMultiplier52 : 0x481C86;
 }
 
 ASMJIT_PATCH(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 {
 	GET(TechnoClass*, Unit, EDI);
 
-	if (Unit->CanICloakByDefault() || TechnoExtContainer::Instance.Find(Unit)->AECore->Cloakable)
+	if (Unit->CanICloakByDefault() || TechnoExtContainer::Instance.Find(Unit)->AE.Cloakable)
 	{
 		return 0x481C86;
 	}
@@ -711,7 +711,7 @@ ASMJIT_PATCH(0x481D3D, CellClass_CrateBeingCollected_Cloak1, 6)
 ASMJIT_PATCH(0x48294F, CellClass_CrateBeingCollected_Cloak2, 7)
 {
 	GET(TechnoClass*, Unit, EDX);
-	TechnoExtContainer::Instance.Find(Unit)->AECore->Cloakable = true;
+	TechnoExtContainer::Instance.Find(Unit)->AE.Cloakable = true;
 	AEProperties::Recalculate(Unit);
 	return 0x482956;
 }
@@ -721,9 +721,9 @@ ASMJIT_PATCH(0x482E57, CellClass_CrateBeingCollected_Armor2, 6)
 	GET(TechnoClass*, Unit, ECX);
 	GET_STACK(double, Pow_ArmorMultiplier, 0x20);
 
-	if (TechnoExtContainer::Instance.Find(Unit)->AECore->ArmorMultiplier == 1.0)
+	if (TechnoExtContainer::Instance.Find(Unit)->AE.ArmorMultiplier == 1.0)
 	{
-		TechnoExtContainer::Instance.Find(Unit)->AECore->ArmorMultiplier = Pow_ArmorMultiplier;
+		TechnoExtContainer::Instance.Find(Unit)->AE.ArmorMultiplier = Pow_ArmorMultiplier;
 		AEProperties::Recalculate(Unit);
 		R->AL(Unit->GetOwningHouse()->IsInPlayerControl);
 		return 0x482E89;

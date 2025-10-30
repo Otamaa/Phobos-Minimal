@@ -23,22 +23,22 @@ bool TechnoTypeExtData::SelectWeaponMutex = false;
 
 void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 {
-	int num = 0;
-	int eliteNum = 0;
+	int Num = 0;
+	int EliteNum = 0;
 
 	this->ThreatTypes = { ThreatType::Normal,ThreatType::Normal };
 	this->CombatDamages = { 0,0 };
 
 	const auto pThis = this->This();
-	int count = 2;
+	int Count = 2;
 
 	if (this->MultiWeapon
 		&& (!pThis->IsGattling && (!pThis->HasMultipleTurrets() || !pThis->Gunner)))
 	{
-		count = pThis->WeaponCount;
+		Count = pThis->WeaponCount;
 	}
 
-	for (int index = 0; index < count; index++)
+	for (int index = 0; index < Count; index++)
 	{
 		const auto pWeapon = pThis->GetWeapon(index)->WeaponType;
 		auto pEliteWeapon = pThis->GetEliteWeapon(index)->WeaponType;
@@ -52,7 +52,7 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 				this->ThreatTypes.X |= pWeapon->AllowedThreats();
 
 			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
-			num++;
+			Num++;
 		}
 
 		if (pEliteWeapon)
@@ -61,15 +61,15 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 				this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
 
 			this->CombatDamages.Y += (pEliteWeapon->Damage + pEliteWeapon->AmbientDamage);
-			eliteNum++;
+			EliteNum++;
 		}
 	}
 
-	if (num > 0)
-		this->CombatDamages.X /= num;
+	if (Num > 0)
+		this->CombatDamages.X /= Num;
 
-	if (eliteNum > 0)
-		this->CombatDamages.Y /= eliteNum;
+	if (EliteNum > 0)
+		this->CombatDamages.Y /= EliteNum;
 }
 
 bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
@@ -765,8 +765,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		//TODO : Tag name Change
 		this->Death_NoAmmo.Read(exINI, pSection, "Death.NoAmmo");
 		this->Death_NoAmmo.Read(exINI, pSection, "AutoDeath.OnAmmoDepletion");
-		this->DeathCountdown.Read(exINI, pSection, "Death.Countdown");
-		this->DeathCountdown.Read(exINI, pSection, "AutoDeath.AfterDelay");
+		this->Death_Countdown.Read(exINI, pSection, "Death.Countdown");
+		this->Death_Countdown.Read(exINI, pSection, "AutoDeath.AfterDelay");
 
 		this->Death_Method.Read(exINI, pSection, "Death.Method");
 		this->Death_Method.Read(exINI, pSection, "AutoDeath.Behavior");
@@ -2002,8 +2002,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->GreyCameoPCX.Read(&CCINIClass::INI_Art, pArtSection, "GreyCameoPCX");
 		this->AlternateFLH_OnTurret.Read(exArtINI, pArtSection, "AlternateFLH.OnTurret");
-		this->AlternateFLH_ApplyVehicle.Read(exArtINI, pArtSection, "AlternateFLH.ApplyVehicle");
 		this->TurretOffset.Read(exArtINI, pArtSection, GameStrings::TurretOffset());
+		this->AlternateFLH_ApplyVehicle.Read(exArtINI, pArtSection, "AlternateFLH.ApplyVehicle");
 
 		if (!this->TurretOffset.isset())
 		{
@@ -2367,7 +2367,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamWriter& Stm)
 	debugProcess(this->NoManualMove, "NoManualMove");
 	debugProcess(this->InitialStrength, "InitialStrength");
 	debugProcess(this->Death_NoAmmo, "Death_NoAmmo");
-	debugProcess(this->DeathCountdown, "DeathCountdown");
+	debugProcess(this->Death_Countdown, "Death_Countdown");
 	debugProcess(this->Death_Method, "Death_Method");
 	debugProcess(this->AutoDeath_Nonexist, "AutoDeath_Nonexist");
 	debugProcess(this->AutoDeath_Nonexist_House, "AutoDeath_Nonexist_House");
@@ -2625,7 +2625,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamReader& Stm)
 	debugProcess(this->NoManualMove, "NoManualMove");
 	debugProcess(this->InitialStrength, "InitialStrength");
 	debugProcess(this->Death_NoAmmo, "Death_NoAmmo");
-	debugProcess(this->DeathCountdown, "DeathCountdown");
+	debugProcess(this->Death_Countdown, "Death_Countdown");
 	debugProcess(this->Death_Method, "Death_Method");
 	debugProcess(this->AutoDeath_Nonexist, "AutoDeath_Nonexist");
 	debugProcess(this->AutoDeath_Nonexist_House, "AutoDeath_Nonexist_House");

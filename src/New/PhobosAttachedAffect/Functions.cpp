@@ -91,7 +91,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 		return;
 
 	auto const pThis = pTechno;
-	bool inTunnel = pExt->Get_TechnoStateComponent()->IsInTunnel || pExt->Get_TechnoStateComponent()->IsBurrowed;
+	bool inTunnel = pExt->IsInTunnel || pExt->IsBurrowed;
 	bool markForRedraw = false;
 	std::vector<std::pair<WeaponTypeClass*, TechnoClass*>> expireWeapons {};
     bool altered = false;
@@ -326,7 +326,7 @@ void PhobosAEFunctions::ApplyReflectDamage(TechnoClass* pThis , int* pDamage , T
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if (pExt->Get_AEProperties()->ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive) {
+	if (pExt->AE.ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive) {
 		for (auto& attachEffect : pExt->PhobosAE) {
 
 			if (!attachEffect || !attachEffect->IsActive())

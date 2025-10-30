@@ -111,7 +111,7 @@ ASMJIT_PATCH(0x471C96, CaptureManagerClass_CanCapture, 0xA)
 	}
 
 	// driver killed. has no mind.
-	if (TechnoExtContainer::Instance.Find(pTarget)->Get_TechnoStateComponent()->IsDriverKilled)
+	if (TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled)
 	{
 		return Disallowed;
 	}
@@ -551,7 +551,7 @@ ASMJIT_PATCH(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
 ASMJIT_PATCH(0x629804, ParasiteClass_UpdateSquiddy, 9)
 {
 	GET(ParasiteClass*, pThis, ESI);
-	R->EAX(pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->Get_TechnoStateComponent()->WeaponIndexes.Parasite));
+	R->EAX(pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Parasite));
 	return 0x62980D;
 }
 

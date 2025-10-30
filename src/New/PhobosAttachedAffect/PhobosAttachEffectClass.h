@@ -82,7 +82,7 @@ public:
 	static int Detach(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo);
 	static int DetachByGroups(TechnoClass* pTarget, AEAttachInfoTypeClass* attachEffectInfo);
 
-	static bool TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget);
+	static void TransferAttachedEffects(TechnoClass* pSource, TechnoClass* pTarget);
 
 	void OnlineCheck();
 	void CloakCheck();
@@ -123,7 +123,7 @@ public:
 	bool ShouldBeDiscarded { false };
 	int LastDiscardCheckFrame { -1 };
 	bool LastDiscardCheckValue {};
-	bool LaserTrail {};
+	LaserTrailClass* LaserTrail {};
 };
 
 template <>

@@ -69,10 +69,7 @@ public:
 		, Statusses()
 		, MusicTimer()
 		, MusicActive(false)
-	{
-		this->AOName = pObj->Type->ID;
-		this->AbsType = SuperClass::AbsID;
-	}
+	{ }
 
 	SuperExtData(SuperClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 

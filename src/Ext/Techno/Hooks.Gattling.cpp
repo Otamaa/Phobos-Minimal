@@ -226,7 +226,7 @@ ASMJIT_PATCH(0x5209A7, InfantryClass_FiringAI_BurstDelays, 0x8)
 				// If projected frame for firing next shot goes beyond the sequence frame count, cease firing after this shot and start rearm timer.
 				if (fireUp + projectedDelay > frameCount)
 				{
-					pExt->Get_TechnoStateComponent()->ForceFullRearmDelay = true;
+					pExt->ForceFullRearmDelay = true;
 				}
 			}
 

@@ -10,7 +10,6 @@
 #include <HouseClass.h>
 #include <Utilities/Debug.h>
 
-
 ASMJIT_PATCH(0x547043, IsometricTileTypeClass_ReadFromFile, 0x6)
 {
 	GET(int, FileSize, EBX);

@@ -103,6 +103,7 @@ private:
 			.Process(Index)
 			.Process(Timer)
 			.Success()
+			&& Stm.RegisterChange(this)
 		;
 	}
 };

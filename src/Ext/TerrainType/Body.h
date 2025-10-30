@@ -76,7 +76,6 @@ public:
 		TreeFires(),
 		SpawnsTiberium_Particle()
 	{
-		this->AbsType = TerrainTypeClass::AbsID;
 		this->Initialize();
 	}
 

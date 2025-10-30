@@ -53,8 +53,7 @@
 //#pragma optimize("", on )
 //};
 
-void Phobos::Config::Read()
-{
+void Phobos::Config::Read_RA2MD(){
 	auto const& pRA2MD = CCINIClass::INI_RA2MD;
 
 	Phobos::Config::ToolTipDescriptions = pRA2MD->ReadBool(PHOBOS_STR, "ToolTipDescriptions", Phobos::Config::ToolTipDescriptions);
@@ -80,9 +79,14 @@ void Phobos::Config::Read()
 	Phobos::Config::HideShakeEffects = pRA2MD->ReadBool(PHOBOS_STR, "HideShakeEffects", Phobos::Config::HideShakeEffects);
 	Phobos::Config::SaveGameOnScenarioStart = pRA2MD->ReadBool(PHOBOS_STR, "SaveGameOnScenarioStart", Phobos::Config::SaveGameOnScenarioStart);
 
+	Phobos::Config::ApplyNoMoveCommand =  pRA2MD->ReadBool(PHOBOS_STR, "DefaultApplyNoMoveCommand", true);
+	Phobos::Config::DistributionSpreadMode =  pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionSpreadMode", 2);
+	Phobos::Config::DistributionSpreadMode = std::clamp(Phobos::Config::DistributionSpreadMode, 0, 3);
+	Phobos::Config::DistributionFilterMode = pRA2MD->ReadInteger(PHOBOS_STR, "DefaultDistributionFilterMode", 2);
+	Phobos::Config::DistributionFilterMode = std::clamp(Phobos::Config::DistributionFilterMode, 0, 3);
+
 	if (!Phobos::Otamaa::IsAdmin)
 	{
-
 		// Custom game speeds, 6 - i so that GS6 is index 0, just like in the engine
 		Phobos::Config::CampaignDefaultGameSpeed = 6 - pRA2MD->ReadInteger(PHOBOS_STR, "CampaignDefaultGameSpeed", 4);
 
@@ -99,6 +103,9 @@ void Phobos::Config::Read()
 		}
 	}
 
+}
+
+void Phobos::Config::Read_UIMD(){
 	GameConfig UIMD { GameStrings::UIMD_INI() };
 
 	UIMD.OpenINIAction([](CCINIClass* pINI)
@@ -268,12 +275,13 @@ void Phobos::Config::Read()
 		}
 
 	});
+}
 
-	GameConfig RULESMD { GameStrings::RULESMD_INI() };
+void Phobos::Config::Read_RULESMD()
+{
+	CCINIClass* const pINI = CCINIClass::INI_Rules();
 
-	RULESMD.OpenINIAction([](CCINIClass* pINI)
- {
-	 Debug::Log("Loading early %s file.\n", GameStrings::RULESMD_INI());
+	//Debug::Log("Loading early %s file.\n", GameStrings::RULESMD_INI());
 
 	 // uncomment this to enable dll usage warning
 	 //Phobos::ThrowUsageWarning(&INI_RulesMD);
@@ -318,6 +326,11 @@ void Phobos::Config::Read()
 	 Phobos::Config::SaveVariablesOnScenarioEnd = pINI->ReadBool(GameStrings::General(), "SaveVariablesOnScenarioEnd", Phobos::Config::SaveVariablesOnScenarioEnd);
 	 Phobos::Config::ApplyShadeCountFix = pINI->ReadBool(GameStrings::AudioVisual(), "ApplyShadeCountFix", Phobos::Config::ApplyShadeCountFix);
 	 Phobos::Config::SuperWeaponSidebarCommands = pINI->ReadBool("GlobalControls", "SuperWeaponSidebarKeysEnabled", Phobos::Config::SuperWeaponSidebarCommands);
-
-	});
+	 Phobos::Config::AllowSwitchNoMoveCommand = pINI->ReadBool("GlobalControls", "AllowSwitchNoMoveCommand", Phobos::Config::AllowDistributionCommand);
+	 Phobos::Config::AllowDistributionCommand = pINI->ReadBool("GlobalControls", "AllowDistributionCommand", Phobos::Config::AllowDistributionCommand);
+	 Phobos::Config::AllowDistributionCommand_SpreadMode = pINI->ReadBool("GlobalControls", "AllowDistributionCommand.SpreadMode", Phobos::Config::AllowDistributionCommand_SpreadMode);
+	 Phobos::Config::AllowDistributionCommand_SpreadModeScroll = pINI->ReadBool("GlobalControls", "AllowDistributionCommand.SpreadModeScroll", Phobos::Config::AllowDistributionCommand_SpreadModeScroll);
+	 Phobos::Config::AllowDistributionCommand_FilterMode = pINI->ReadBool("GlobalControls", "AllowDistributionCommand.FilterMode", Phobos::Config::AllowDistributionCommand_FilterMode);
+	 Phobos::Config::AllowDistributionCommand_AffectsAllies = pINI->ReadBool("GlobalControls", "AllowDistributionCommand.AffectsAllies", Phobos::Config::AllowDistributionCommand_AffectsAllies);
+	 Phobos::Config::AllowDistributionCommand_AffectsEnemies = pINI->ReadBool("GlobalControls", "AllowDistributionCommand.AffectsEnemies", Phobos::Config::AllowDistributionCommand_AffectsEnemies);
 }

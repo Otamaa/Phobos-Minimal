@@ -176,9 +176,7 @@ public:
 		Vertical_AircraftFix(true),
 		VerticalInitialFacing(),
 		AU(false)
-	{
-		this->AbsType = BulletTypeClass::AbsID;
-	}
+	{ }
 
 	BulletTypeExtData(BulletTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 

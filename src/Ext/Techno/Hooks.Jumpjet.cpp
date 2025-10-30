@@ -755,7 +755,7 @@ ASMJIT_PATCH(0x54BBD0, JumpjetLocomotionClass_Ascending_JumpjetStraightAscend, 0
 
 	auto const pTechnoExt = TechnoExtContainer::Instance.Find(pThis->LinkedTo);
 
-	if (pTechnoExt->Get_TechnoStateComponent()->JumpjetStraightAscend)
+	if (pTechnoExt->JumpjetStraightAscend)
 		return SkipGameCode;
 
 	return 0;
@@ -772,18 +772,18 @@ ASMJIT_PATCH(0x54D600, JumpjetLocomotionClass_MovementAI_JumpjetStraightAscend, 
 	auto const pLinkedTo = pThis->LinkedTo;
 	auto const pTechnoExt = TechnoExtContainer::Instance.Find(pLinkedTo);
 
-	if (pTechnoExt->Get_TechnoStateComponent()->JumpjetStraightAscend)
+	if (pTechnoExt->JumpjetStraightAscend)
 	{
 		if (pLinkedTo->IsCrashing || pLinkedTo->Health < 1)
 		{
-			pTechnoExt->Get_TechnoStateComponent()->JumpjetStraightAscend = false;
+			pTechnoExt->JumpjetStraightAscend = false;
 			return 0;
 		}
 
 		if (pThis->NextState <= JumpjetLocomotionClass::State::Ascending)
 			return SkipGameCode;
 		else
-			pTechnoExt->Get_TechnoStateComponent()->JumpjetStraightAscend = false;
+			pTechnoExt->JumpjetStraightAscend = false;
 	}
 
 	return 0;

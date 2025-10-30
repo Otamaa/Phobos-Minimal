@@ -15,55 +15,37 @@
 #include <MessageListClass.h>
 #include <Phobos.Defines.h>
 
-enum class CommandBarTypes
-{
-	none = -1,
-	Team01,
-	Team02,
-	Team03,
-	TypeSelect,
-	Deploy,
-	AttackMove,
-	Guard,
-	Beacon,
-	Stop,
-	PlanningMode,
-	Cheer,
-	Test,
+#include <Commands/DistributionMode.h>
 
-	last = Test,
-	first = Team01
-};
+#include <Utilities/Enum.h>
+
+#define AS_STRING(name) #name,
+#define AS_TIP(name) "Tip:" #name,
+
+#define COMMAND_BAR_TYPES(X) \
+    X(Team01) \
+    X(Team02) \
+    X(Team03) \
+    X(TypeSelect) \
+    X(Deploy) \
+    X(AttackMove) \
+    X(Guard) \
+    X(Beacon) \
+    X(Stop) \
+    X(PlanningMode) \
+    X(Cheer) \
+    X(DistributionMode)
 
 static COMPILETIMEEVAL const char* CommandBarTypes_ident[] = {
-		"Team01",
-		"Team02",
-		"Team03",
-		"TypeSelect",
-		"Deploy",
-		"AttackMove",
-		"Guard",
-		"Beacon",
-		"Stop",
-		"PlanningMode",
-		"Cheer",
-		"Test",
+	COMMAND_BAR_TYPES(AS_STRING)
 };
 
 static COMPILETIMEEVAL const char* CommandBarTypes_Tip[] = {
-		"Tip:Team01",
-		"Tip:Team02",
-		"Tip:Team03",
-		"Tip:TypeSelect",
-		"Tip:Deploy",
-		"Tip:AttackMove",
-		"Tip:Guard",
-		"Tip:Beacon",
-		"Tip:Stop",
-		"Tip:PlanningMode",
-		"Tip:Cheer",
-		"Tip:Test",
+	COMMAND_BAR_TYPES(AS_TIP)
 };
+
+#undef AS_STRING
+#undef AS_TIP
 
 static COMPILETIMEEVAL reference<ShapeButtonClass, 0xB0C1C0, 25u> CommandBarButtons {};
 
@@ -97,14 +79,6 @@ class NOVTABLE FakeTabClass final : TabClass
 {
 public:
 
-	// this thing bit complicated since it linked By gadget IDS
-	// 6AC210
-	const wchar_t* _GetToooltipMessage()
-	{
-		//
-		return L"Missing";
-	}
-
 	static void _InitCommandBarShapes()
 	{
 		char filename[256] {};
@@ -120,22 +94,18 @@ public:
 	{
 		for (size_t i = 0; i < CommandBarButtonShapes.size(); ++i)
 		{
-			if (CommandBarButtonShapesLoaded[i])
-			{
+			if (CommandBarButtonShapesLoaded[i]) {
 				GameDelete<false,false>(CommandBarButtonShapes[i]);
-				CommandBarButtonShapesLoaded[i] = false;
-				CommandBarButtonShapes[i] = nullptr;
 			}
-			else
-			{
-				CommandBarButtonShapes[i] = nullptr;
-			}
+
+			CommandBarButtonShapesLoaded[i] = false;
+			CommandBarButtonShapes[i] = nullptr;
 		}
 	}
 
 	static void _InitDefaultIdx()
 	{
-		for (int i = 0; i < (int)CommandBarTypes::last; ++i)
+		for (int i = 0; i < (int)CommandBarTypes::end; ++i)
 			CommandBarLinks[i] = (int)_GetCommandBarIndexByName(CommandBarTypes_ident[i]);
 
 	}
@@ -218,7 +188,7 @@ public:
 		this->_AddButtons();
 		this->AddButton(TabThumbButtonActivated.operator->());
 
-		for (int i = 0; i < (int)CommandBarLinks.size(); ++i) {
+		for (int i = 0; i < CommandBarLinks.size(); ++i) {
 			int linked = CommandBarLinks[i];
 
 			if (linked == -1 ||  !TabClass::GetCommandbarShape(linked) )
@@ -358,7 +328,14 @@ public:
 			}
 		}break;
 		case CommandBarTypes::Cheer: { CheerCommand();  }break;
-		case CommandBarTypes::Test: { TestCommand();  }break;
+		case CommandBarTypes::DistributionMode: {
+			if (auto pButton = GetCommandbarShape(key)) {
+				if (pButton->IsOn)
+					DistributionModeHoldDownCommandClass::DistributionModeOff(key);
+				else
+					DistributionModeHoldDownCommandClass::DistributionModeOn(key);
+			}
+		}break;
 		default:break;
 		}
 	}
@@ -382,7 +359,7 @@ ASMJIT_PATCH(0x6D02C0, InitForHouse_RemoveInline, 0x5)
 ASMJIT_PATCH(0x6D1770, TabClass_noticeSink_Planning_ChangeState, 0x7)
 {
 	GET_STACK(int, someID , 0x4);
-	//GET_STACK(int, something, 0x8);
+	GET_STACK(int, something, 0x8);
 
 	bool result = false;
 	switch (someID)

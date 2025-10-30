@@ -567,6 +567,8 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 
 	GET(AircraftClass*, pThis, ESI);
 
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+
 	if (RulesExtData::Instance()->ExpandAircraftMission && !pThis->Team && pThis->Ammo && pThis->IsArmed())
 	{
 		auto enterIdleMode = [pThis]() -> bool
@@ -612,13 +614,16 @@ ASMJIT_PATCH(0x41A96C, AircraftClass_Mission_AreaGuard, 0x6)
 			{
 				auto coords = pArchive->GetCoords();
 
-				if (!pThis->TargetingTimer.HasTimeLeft() && pThis->TargetAndEstimateDamage(&coords, ThreatType::Area)) {
+				if (!pThis->TargetingTimer.HasTimeLeft() && pThis->TargetAndEstimateDamage(&coords, ThreatType::Area))
+				{
 					// Without an airport, there is no need to record the previous location
 					if (pThis->MissionStatus)
 						pThis->SetArchiveTarget(nullptr);
 
 					pThis->QueueMission(Mission::Attack, false);
-				} else {
+				}
+				else
+				{
 					// Check dock building
 					if (!pThis->MissionStatus && !pThis->FindDockingBayInVector(reinterpret_cast<DynamicVectorClass<TechnoTypeClass*>*>(&pThis->Type->Dock), 0, 0))
 						pThis->MissionStatus = 1;

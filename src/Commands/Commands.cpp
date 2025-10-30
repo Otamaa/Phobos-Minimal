@@ -110,8 +110,7 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	Make<AggressiveModeClass>();
 	Make<AutoBuildingCommandClass>();
 	Make<CeasefireModeClass>();
-	Make<DistributionMode1CommandClass>();
-	Make<DistributionMode2CommandClass>();
+
 	Make<QuickSaveCommandClass>();
 	Make<SaveVariablesToFileCommandClass>();
 	Make<TogglePowerCommandClass>();
@@ -120,6 +119,20 @@ ASMJIT_PATCH(0x532150, CommandClassCallback_Register, 5)
 	Make<ToggleDesignatorRangeCommandClass>();
 	Make<ToggleMessageListCommandClass>();
 	Make<NextIdleHarvesterCommandClass>();
+
+	if (Phobos::Config::AllowSwitchNoMoveCommand)
+		Make<SwitchNoMoveCommandClass>();
+
+	if (Phobos::Config::AllowDistributionCommand)
+	{
+		if (Phobos::Config::AllowDistributionCommand_SpreadMode)
+			Make<DistributionModeSpreadCommandClass>();
+
+		if (Phobos::Config::AllowDistributionCommand_FilterMode)
+			Make<DistributionModeFilterCommandClass>();
+
+		Make<DistributionModeHoldDownCommandClass>();
+	}
 
 #pragma region SWSidebar
 	Make<ToggleSWSidebar>();
@@ -151,6 +164,9 @@ ASMJIT_PATCH(0x533F50, Game_ScrollSidebar_Skip, 0x5)
 {
 	enum { SkipScrollSidebar = 0x533FC3 };
 
+	if (DistributionModeHoldDownCommandClass::Enabled)
+		return SkipScrollSidebar;
+
 	if (!Phobos::Config::ScrollSidebarStripWhenHoldKey)
 	{
 		const auto pInput = InputManagerClass::Instance();
@@ -178,9 +194,17 @@ ASMJIT_PATCH(0x777998, Game_WndProc_ScrollMouseWheel, 0x6)
 	GET(const WPARAM, WParam, ECX);
 
 	if (WParam & 0x80000000u) {
+
+		if (DistributionModeHoldDownCommandClass::Enabled && Phobos::Config::AllowDistributionCommand_SpreadModeScroll)
+			DistributionModeHoldDownCommandClass::DistributionSpreadModeReduce();
+
 		 if(MessageColumnClass::Instance.IsHovering())
 			 MessageColumnClass::Instance.ScrollDown();
 	} else {
+
+		if (DistributionModeHoldDownCommandClass::Enabled && Phobos::Config::AllowDistributionCommand_SpreadModeScroll)
+			DistributionModeHoldDownCommandClass::DistributionSpreadModeExpand();
+
 		if (MessageColumnClass::Instance.IsHovering())
 			MessageColumnClass::Instance.ScrollUp();
 	}

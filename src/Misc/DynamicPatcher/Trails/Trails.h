@@ -64,7 +64,7 @@ public:
 	UniversalTrail& operator=(const UniversalTrail& other) = default;
 
 	void ClearLastLocation() {
-		LastLocation.reset();
+		LastLocation.clear();
 	}
 
 	void SetDrivingState(DrivingState& state)
@@ -112,9 +112,9 @@ public:
 
 		if (sourcePos.IsValid())
 		{
-			if (LastLocation.has_value() && LastLocation->IsValid())
+			if (LastLocation.has_value() && LastLocation.get().IsValid())
 			{
-				CoordStruct targetPos = LastLocation.value();
+				CoordStruct targetPos = LastLocation.get();
 				int distance = Type->Distance;
 
 				if ((int)sourcePos.DistanceFrom(targetPos) > distance || forceDraw)

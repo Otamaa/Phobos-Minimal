@@ -354,15 +354,14 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 	if (Phobos::Otamaa::ExeTerminated)
 		return 0;
 
-	if (MapClass::Instance->Cells.IsInitialized)
-	{
-		std::for_each(MapClass::Instance->Cells.Items, MapClass::Instance->Cells.Items +MapClass::Instance->Cells.Capacity, [removed, pInvalid](CellClass* pCell)
-	 {
-			 if (pCell)
-				 pCell->PointerExpired(pInvalid, removed);
+	//if (MapClass::Instance->Cells.IsInitialized) {
+	//	std::for_each(MapClass::Instance->Cells.Items, MapClass::Instance->Cells.Items + MapClass::Instance->Cells.Capacity, [removed, pInvalid](CellClass* pCell) {
+	//		 if (pCell){
+	//			 pCell->PointerExpired(pInvalid, removed);
+	//		 }
+	//	});
+	//}
 
-			});
-	}
 	TActionExtData::InvalidatePointer(pInvalid, removed);
 	PhobosGlobal::PointerGotInvalid(pInvalid, removed);
 	SWStateMachine::PointerGotInvalid(pInvalid, removed);

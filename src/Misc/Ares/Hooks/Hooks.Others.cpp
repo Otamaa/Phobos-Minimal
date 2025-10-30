@@ -72,14 +72,14 @@ ASMJIT_PATCH(0x52C5E0, Ares_NOLOGO, 0x7)
 ASMJIT_PATCH(0x62A020, ParasiteClass_Update, 0xA)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->Get_TechnoStateComponent()->WeaponIndexes.Parasite));
+	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A02A;
 }
 
 ASMJIT_PATCH(0x62A7B1, Parasite_ExitUnit, 9)
 {
 	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->Get_TechnoStateComponent()->WeaponIndexes.Parasite));
+	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
 	return 0x62A7BA;
 }
 
@@ -155,7 +155,7 @@ ASMJIT_PATCH(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 {
 	GET(UnitClass* const, pUnit, ESI); //forEXT
 
-	if (!pUnit || !pUnit->Type || !RulesClass::Instance->ShakeScreen || Phobos::Config::HideShakeEffects)
+	if (!pUnit || !pUnit->Type || !RulesClass::Instance->ShakeScreen)
 		return 0x738801;
 
 	if (!pUnit->Type->Strength)
@@ -771,7 +771,7 @@ ASMJIT_PATCH(0x4B93BD, ScenarioClass_GenerateDropshipLoadout_FreeAnims, 7)
 // {
 // 	GET(LPSTREAM, pStm, ESI);
 //
-//
+//	
 // 	int length = 0;
 // 	LPVOID out;
 // 	if (pStm->Read(&length, 4, 0) < 0)
@@ -955,7 +955,7 @@ ASMJIT_PATCH(0x5F5965, ObjectClass_SpawnParachuted_Track, 0x7)
 
 	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->Get_TechnoStateComponent()->FallingDownTracked = true;
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
 	}
 	return 0;
 }
@@ -966,7 +966,7 @@ ASMJIT_PATCH(0x5F4160, ObjectClass_DropAsBomb_Track, 0x6)
 
 	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->Get_TechnoStateComponent()->FallingDownTracked = true;
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = true;
 	}
 
 	return 0;
@@ -978,7 +978,7 @@ ASMJIT_PATCH(0x5F3F86, ObjectClass_Update_Track, 0x7)
 
 	if ((pThis->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
 		ScenarioExtData::Instance()->FallingDownTracker.emplace((TechnoClass*)pThis);
-		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->Get_TechnoStateComponent()->FallingDownTracked = false;
+		TechnoExtContainer::Instance.Find((TechnoClass*)pThis)->FallingDownTracked = false;
 	}
 
 	return 0;
@@ -1384,11 +1384,19 @@ ASMJIT_PATCH(0x532017, DlgProc_MainMenu_Version, 5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x5facdf, Options_LoadFromINI, 5)
+ASMJIT_PATCH(0x5FACDF, Options_LoadFromINI, 5)
 {
-	Phobos::Config::Read();
+	Phobos::Config::Read_RA2MD();
+	Phobos::Config::Read_UIMD();
 	return 0x0;
 }
+
+ASMJIT_PATCH(0x52D21F, Game_InitRules, 0x6)
+{
+	Phobos::Config::Read_RULESMD();
+	return 0x0;
+}
+
 ASMJIT_PATCH(0x6BC0CD, _LoadRA2MD, 5)
 {
 	StaticVars::LoadGlobalsConfig();

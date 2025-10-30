@@ -478,17 +478,16 @@ ASMJIT_PATCH(0x6F6AC9, TechnoClass_Remove_Early, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-
-	// #617 powered units
-	Phobos::gEntt->remove<PoweredUnitClass>(pExt->MyEntity);
 	// if the removed object is a radar jammer, unjam all jammed radars
-	Phobos::gEntt->remove<RadarJammerClass>(pExt->MyEntity);
+	TechnoExtContainer::Instance.Find(pThis)->RadarJammer.reset();
+	// #617 powered units
+	TechnoExtContainer::Instance.Find(pThis)->PoweredUnit.reset();
+
 
 	//#1573, #1623, #255 attached effects
-	AresAE::Remove(pExt->Get_AresAEData() , pThis);
+	AresAE::Remove(&TechnoExtContainer::Instance.Find(pThis)->AeData , pThis);
 
-	if (pExt->TechnoValueAmount != 0) {
+	if (TechnoExtContainer::Instance.Find(pThis)->TechnoValueAmount != 0) {
 		TechnoExt_ExtData::Ares_AddMoneyStrings(pThis, true);
 	}
 
@@ -636,6 +635,7 @@ ASMJIT_PATCH(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 
 	return 0x70FC85;
 }
+
 
 ASMJIT_PATCH(0x6FD438, TechnoClass_FireLaser, 6)
 {
@@ -820,17 +820,6 @@ ASMJIT_PATCH(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 	return R->Origin() + 0xD;
 }ASMJIT_PATCH_AGAIN(0x6FB4A3, TechnoClass_CreateGap_LargeGap, 7)
 
-//ASMJIT_PATCH(0x70D4FD, ObjectClass_ClearTargetToMe_ClearLastTarget, 0x6) {
-//	GET(TechnoClass*, pTechno, ESI);
-//	GET(bool, shouldClear, ECX);
-//	GET(ObjectClass*, pThis, EBP);
-//
-//	if (pTechno->LastTarget == pThis && shouldClear) {
-//		pTechno->LastTarget = nullptr;
-//	}
-//
-//	return 0x0;
-//}
 
 // Radar Jammers (#305) unjam all on owner change
 ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
@@ -855,11 +844,7 @@ ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
 	//		pSpawn->ResetTarget();
 	//}
 
-	//pThis->LastTarget = nullptr;
-	//if (auto pFoot = flag_cast_to<FootClass*>(pThis))
-	//	pFoot->LastDestination = nullptr;
-
-	if (auto pJammer = TechnoExtContainer::Instance.Find(pThis)->Get_RadarJammerClass()) {
+	if (auto& pJammer = TechnoExtContainer::Instance.Find(pThis)->RadarJammer) {
 		pJammer->UnjamAll();
 	}
 
@@ -894,8 +879,6 @@ ASMJIT_PATCH(0x702E64, TechnoClass_RegisterDestruction_Bounty, 6)
 	return 0x0;
 }
 
-#include <Misc/DynamicPatcher/Techno/ExtraFire/ExtraFirefunctional.h>
-
 ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 {
 	GET(TechnoClass* , pThis, ESI);
@@ -907,6 +890,12 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		pExt->Type = pType;
+
+		//require the VTABLE to be initialized
+		//hence why it is here instead of the CTOR
+		pExt->AbsType = pThis->WhatAmI();
+		if (!pExt->AbsType.has_value())
+			Debug::FatalErrorAndExit("Invalid Techno %x", pThis);
 
 		pExt->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		HouseExtData* pHouseExt = nullptr;
@@ -947,9 +936,6 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 
 		const bool IsFoot = pThis->WhatAmI() != BuildingClass::AbsID;
 		const int WeaponCount = pType->TurretCount <= 0 ? 2 : pType->WeaponCount;
-		bool HasAnyExtraFireWeapon = false;
-		const auto& nExtraFireData = pTypeExt->MyExtraFireData;
-		CoordStruct selected_Flh {};
 
 		for (auto i = 0; i < WeaponCount; ++i) {
 
@@ -960,12 +946,8 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 			if (auto const pWeaponE = pType->GetEliteWeapon(i)->WeaponType) {
 				TechnoExt_ExtData::InitWeapon(pThis, pType, pWeaponE, i, pCapturer, pParasite, pTemporal, "EliteWeapon", IsFoot);
 			}
-
-			if (!HasAnyExtraFireWeapon && !ExtraFirefunctional::HasAnyExtraFireWeapon(pThis, nExtraFireData, i, selected_Flh).empty())
-				HasAnyExtraFireWeapon = true;
 		}
 
-		pExt->Get_TechnoStateComponent()->HasExtraFireWeapon = HasAnyExtraFireWeapon;
 		pThis->CaptureManager = pCapturer;
 		pThis->TemporalImUsing = pTemporal;
 		if (IsFoot) {
@@ -987,7 +969,7 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 		// if override is in effect, do not create initial payload.
 		// this object might have been deployed, undeployed, ...
 		if (Unsorted::ScenarioInit && Unsorted::CurrentFrame) {
-			TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->PayloadCreated = true;
+			TechnoExtContainer::Instance.Find(pThis)->PayloadCreated = true;
 		}
 
 		TechnoExtData::InitializeItems(pThis, pType);
@@ -1005,7 +987,7 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 		TechnoExtData::InitializeUnitIdleAction(pThis, pType);
 
 		pExt->InitPassiveAcquireMode();
-		if (!pExt->Get_AEProperties()->HasTint && pExt->CurrentShieldType == ShieldTypeClass::Array[0].get())
+		if (!pExt->AE.HasTint && pExt->CurrentShieldType == ShieldTypeClass::Array[0].get())
 			pExt->Tints.Update();
 
 		R->EAX(pType);
@@ -1229,7 +1211,7 @@ ASMJIT_PATCH(0x6FF7FF, TechnoClass_Fire_UnlimboDetonate, 0x6)
 	if (pThis->IsAlive && pThis->Health > 0 && pBullet
 		&& !UnlimboDetonateFireTemp::InLimbo && !pWH->Parasite && pWHExt->UnlimboDetonate) {
 		if (pWHExt->UnlimboDetonate_KeepSelected) {
-			TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsSelected = UnlimboDetonateFireTemp::InSelected;
+			TechnoExtContainer::Instance.Find(pThis)->IsSelected = UnlimboDetonateFireTemp::InSelected;
 			ScenarioExtData::Instance()->LimboLaunchers.emplace(pThis);
 		}
 
@@ -1242,7 +1224,7 @@ ASMJIT_PATCH(0x6FF7FF, TechnoClass_Fire_UnlimboDetonate, 0x6)
 ASMJIT_PATCH(0x48DC90, MapClass_UnselectAll_ClearLimboLaunchers, 0x5)
 {
 	for (const auto pExt : ScenarioExtData::Instance()->LimboLaunchers) {
-		TechnoExtContainer::Instance.Find(pExt)->Get_TechnoStateComponent()->IsSelected = false;
+		TechnoExtContainer::Instance.Find(pExt)->IsSelected = false;
 	}
 
 	ScenarioExtData::Instance()->LimboLaunchers.clear();

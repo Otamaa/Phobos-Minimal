@@ -42,7 +42,7 @@ ASMJIT_PATCH(0x728F74, TunnelLocomotionClass_Process_KillAnims, 0x5)
 	const auto pLoco = static_cast<TunnelLocomotionClass*>(pThis);
 	const auto pExt = TechnoExtContainer::Instance.Find(pLoco->LinkedTo);
 
-	pExt->Get_TechnoStateComponent()->IsBurrowed = true;
+	pExt->IsBurrowed = true;
 
 	if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 	{
@@ -66,7 +66,7 @@ ASMJIT_PATCH(0x728E5F, TunnelLocomotionClass_Process_RestoreAnims, 0x7)
 	if (pLoco->State == TunnelLocomotionClass::State::PRE_DIG_OUT)
 	{
 		const auto pExt = TechnoExtContainer::Instance.Find(pLoco->LinkedTo);
-		pExt->Get_TechnoStateComponent()->IsBurrowed = false;
+		pExt->IsBurrowed = false;
 
 		if (const auto pShieldData = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->GetShield())
 			pShieldData->SetAnimationVisibility(true);
@@ -84,21 +84,25 @@ void UpdateWebbed(FootClass* pThis)
 {
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	//webbed component only avaible for infantry !
-	if(auto pWebbedComp = pExt->Get_WebbedStateComponent()){
-		pThis->ParalysisTimer.Stop();
-		pWebbedComp->RestoreLastTargetAndMissionAfterWebbed(static_cast<InfantryClass*>(pThis));
-		pWebbedComp->ClearAnim();
-		Phobos::gEntt->remove<WebbedStateComponent>(pExt->MyEntity);
+	if (!pExt->IsWebbed)
+		return;
+
+	if (auto pInf = cast_to<InfantryClass*, false>(pThis)){
+		if (pInf->ParalysisTimer.Completed()) {
+
+			pExt->IsWebbed = false;
+
+			if (pExt->WebbedAnim) {
+				pExt->WebbedAnim.reset();
+			}
+
+			TechnoExtData::RestoreLastTargetAndMissionAfterWebbed(pInf);
+		}
 	}
 }
 
 #include <Misc/Ares/Hooks/Header.h>
 #include <New/PhobosAttachedAffect/Functions.h>
-
-#ifndef _Uhh
-
-#endif
 
 ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClass_Do_Cloak
 {
@@ -106,7 +110,7 @@ ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClas
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	pExt->UpdateMindControlAnim();
-	pExt->Get_TechnoStateComponent()->IsDetachingForCloak = true;
+	pExt->IsDetachingForCloak = true;
 
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x6FBBC3, TechnoClass_Cloak_BeforeDetach, 0x5)  // TechnoClass_Cloaking_AI
@@ -115,7 +119,7 @@ ASMJIT_PATCH(0x703789, TechnoClass_Cloak_BeforeDetach, 0x6)        // TechnoClas
 ASMJIT_PATCH(0x703799, TechnoClass_Cloak_AfterDetach, 0xA)        // TechnoClass_Do_Cloak
 {
 	GET(TechnoClass*, pThis, ESI);
-	TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDetachingForCloak = false;
+	TechnoExtContainer::Instance.Find(pThis)->IsDetachingForCloak = false;
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x6FBBCE, TechnoClass_Cloak_AfterDetach, 0x7)  // TechnoClass_Cloaking_AI
 
@@ -169,7 +173,7 @@ ASMJIT_PATCH(0x51B389, FootClass_TunnelAI_Enter, 0x6) // Inf
 // 			return true;
 // 		});
 
-// 		if (auto pDSState = pExt->DamageSelfState) {
+// 		if (auto& pDSState = pExt->DamageSelfState) {
 // 			pDSState->TechnoClass_Update_DamageSelf(pThis);
 // 		}
 // 	}

@@ -15,18 +15,11 @@
 #include <mutex>
 #include <unordered_map>
 
-#pragma warning( push )
-#pragma warning (disable : 4244)
-
 #include <Lib/asmjit/x86.h>
 #include <Lib/fmt/core.h>
 #include <Lib/fmt/xchar.h>
 #include <Lib/fmt/printf.h>
 #include <Lib/magic_enum/magic_enum_all.hpp>
-
-#include <Lib/entt/entt.hpp>
-
-#pragma warning( pop )
 
 
 enum class DrawDamageMode : BYTE
@@ -120,8 +113,6 @@ public:
 
 	static bool HasCNCnet;
 
-	static entt::registry* gEntt;
-
 	struct UI
 	{
 		static bool DisableEmptySpawnPositions;
@@ -176,8 +167,10 @@ public:
 
 	struct Config
 	{
-		static void Read();
-
+		static void Read_RA2MD();
+		static void Read_UIMD();
+		static void Read_RULESMD();
+		
 		static bool HideWarning;
 		static bool ToolTipDescriptions;
 		static bool ToolTipBlur;
@@ -213,6 +206,7 @@ public:
 		static bool HideLightFlashEffects;
 		static bool HideLaserTrailEffects;
 		static bool HideShakeEffects;
+
 		static bool DebugFatalerrorGenerateDump;
 		static bool SaveGameOnScenarioStart;
 
@@ -231,6 +225,17 @@ public:
 		static bool ScrollSidebarStripWhenHoldKey;
 
 		static bool UnitPowerDrain;
+
+		static bool AllowSwitchNoMoveCommand;
+		static bool AllowDistributionCommand;
+		static bool AllowDistributionCommand_SpreadMode;
+		static bool AllowDistributionCommand_SpreadModeScroll;
+		static bool AllowDistributionCommand_FilterMode;
+		static bool AllowDistributionCommand_AffectsAllies;
+		static bool AllowDistributionCommand_AffectsEnemies;
+		static bool ApplyNoMoveCommand;
+		static int DistributionSpreadMode;
+		static int DistributionFilterMode;
 		static int SuperWeaponSidebar_RequiredSignificance;
 
 		static bool SuperWeaponSidebarCommands;

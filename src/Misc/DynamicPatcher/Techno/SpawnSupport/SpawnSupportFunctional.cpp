@@ -35,10 +35,6 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 	if (pTypeExt->MySpawnSupportDatas.Enable)
 	{
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-		auto pSpawn = pExt->Get_SpawnSupport();
-		if(!pSpawn)
-			pSpawn = &Phobos::gEntt->emplace<SpawnSupport>(pExt->MyEntity);
-
 		//if (pTypeExt->MySpawnSupportDatas.Always.Get())
 		//	return;
 
@@ -57,7 +53,7 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 		auto const& pSupportWeapon = pThis->Veterancy.IsElite() ?
 			pTypeExt->MySpawnSupportDatas.EliteSupportWeapon : pTypeExt->MySpawnSupportDatas.SupportWeapon;
 
-		if ((useROF && pSpawn->supportFireROF.InProgress()) || !pSupportWeapon.Get())
+		if ((useROF && pExt->MySpawnSuport.supportFireROF.InProgress()) || !pSupportWeapon.Get())
 			return;
 
 		//nFLH = pThis->Veterancy.IsElite() ? nFLHData.EliteSpawnSupportFLH : nFLHData.SpawnSupportFLH;
@@ -79,7 +75,7 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 		pThis->SpawnManager->SetTarget(pTarget);
 
 		if (useROF)
-			pSpawn->supportFireROF.Start(pSupportWeapon->ROF);
+			pExt->MySpawnSuport.supportFireROF.Start(pSupportWeapon->ROF);
 
 	}
 }
