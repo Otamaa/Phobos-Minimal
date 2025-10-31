@@ -123,7 +123,7 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 			{
 				pTargetExt->UpdateRearmInTemporal();
 
-				auto pBuilding = flag_cast_to<BuildingClass*>(target);
+				auto pBuilding = cast_to<BuildingClass*>(target);
 				bool continue_func = true;
 
 				if (pBuilding)
