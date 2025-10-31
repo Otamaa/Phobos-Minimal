@@ -249,7 +249,7 @@ ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 	if (WWKeyboardClass::Instance->IsForceFireKeyPressed() && pThis->IsArmed())
 		return Continue;
 
-	if (auto pBuilding = cast_to<FakeBuildingClass*>(pTarget))
+	if (auto pBuilding = (FakeBuildingClass*)cast_to<BuildingClass*>(pTarget))
 	{
 		if (action == Action::Select
 			&& pThis->Owner->IsControlledByHuman()
