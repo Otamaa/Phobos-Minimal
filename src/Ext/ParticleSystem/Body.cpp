@@ -1324,7 +1324,7 @@ ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 			auto pAnimExt = AnimExtContainer::Instance.Find(anim);
 
 			if (pAnimExt->AttachedSystem == pItem) {
-				pAnimExt->AttachedSystem = nullptr;
+				pAnimExt->AttachedSystem.detachptr();
 			}
 		}
 	}

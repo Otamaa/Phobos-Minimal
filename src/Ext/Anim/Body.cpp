@@ -448,7 +448,7 @@ void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 	if (this->AttachedSystem == ptr)
 	{
 		AnimExtContainer::AnimsWithAttachedParticles.remove((FakeAnimClass*)this->This());
-		this->AttachedSystem = nullptr;
+		this->AttachedSystem.detachptr();
 	}
 }
 
@@ -465,7 +465,7 @@ void AnimExtData::CreateAttachedSystem()
 	if (pData->AttachedSystem->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 		nLoc.Z += 100;
 
-	this->AttachedSystem = (GameCreate<ParticleSystemClass>(
+	this->AttachedSystem.reset(GameCreate<ParticleSystemClass>(
 		pData->AttachedSystem.Get(),
 		nLoc,
 		MapClass::Instance->GetCellAt(nLoc),
@@ -736,7 +736,7 @@ void AnimExtData::ChangeAnimType(AnimClass* pAnim, AnimTypeClass* pNewType, bool
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(pNewType);
 
 	if (pExt->AttachedSystem && pExt->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
-		pExt->AttachedSystem = nullptr;
+		pExt->AttachedSystem.detachptr();
 
 	if (!pExt->AttachedSystem && pTypeExt->AttachedSystem)
 		pExt->CreateAttachedSystem();

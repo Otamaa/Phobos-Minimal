@@ -165,7 +165,7 @@ void NOINLINE AnimExtData::OnTypeChange()
 	const auto pTypeExt = AnimTypeExtContainer::Instance.Find(this->This()->Type);
 
 	if (this->AttachedSystem && this->AttachedSystem->Type != pTypeExt->AttachedSystem.Get())
-		this->AttachedSystem = nullptr;
+		this->AttachedSystem.detachptr();
 
 	if (!this->AttachedSystem && pTypeExt->AttachedSystem)
 		this->CreateAttachedSystem();

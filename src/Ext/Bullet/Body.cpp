@@ -336,7 +336,7 @@ void BulletExtData::CreateAttachedSystem()
 		{
 			const auto pOwner = pThis->Owner ? pThis->Owner->GetOwningHouse() : this->Owner;
 
-			this->AttachedSystem = (GameCreate<ParticleSystemClass>(
+			this->AttachedSystem.reset(GameCreate<ParticleSystemClass>(
 				pAttach,
 				pThis->Location,
 				pThis->Owner,
@@ -727,7 +727,7 @@ void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 		pTraj->InvalidatePointer(ptr, bRemoved);
 
 	if (this->AttachedSystem == ptr)
-		this->AttachedSystem= nullptr;
+		this->AttachedSystem.detachptr();
  }
 
 void BulletExtData::ApplyRadiationToCell(CellClass* pCell, int Spread, int RadLevel)

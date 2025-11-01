@@ -1516,3 +1516,45 @@ ASMJIT_PATCH(0x6FACD9, TechnoClass_AI_DamageSparks, 6)
 
 	return 0x6FAF01;
 }
+
+DEFINE_HOOK(0x6FA47C, TechnoClass_Update_Cleartarget, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if ((Unsorted::CurrentFrame() % 16) != 0)
+	{
+		return 0x6FA4D1;
+	}
+
+	if (pThis->WhatAmI() == AbstractType::Aircraft)
+		return 0x6FA4D1;
+
+	RadioClass* radio = pThis->GetRadioContact();
+	const Mission mission = pThis->CurrentMission;
+
+	if (!radio || radio->WhatAmI() != BuildingClass::AbsID || radio->CurrentMission != Mission::Unload)
+	{
+		if (mission != Mission::Capture && mission != Mission::Sabotage)
+		{
+			const int weaponIndex = pThis->SelectWeapon(pThis->Target);
+			const FireError threatResult = pThis->GetFireError(pThis->Target, weaponIndex, false);
+
+			if (threatResult == FireError::ILLEGAL || threatResult == FireError::CANT)
+			{
+				WeaponTypeClass* weapon = pThis->GetWeapon(weaponIndex)->WeaponType;
+				const bool is_firing_particles = weapon && (
+						(weapon->UseFireParticles && pThis->Sys.Fire)
+					|| (weapon->IsRailgun && pThis->Sys.Railgun)
+					|| (weapon->UseSparkParticles && pThis->Sys.Spark)
+					|| (weapon->IsSonic && pThis->Wave));
+
+				if (!is_firing_particles || threatResult == FireError::ILLEGAL || threatResult == FireError::CANT)
+				{
+					pThis->SetTarget(nullptr);
+				}
+			}
+		}
+	}
+
+	return 0x6FA4D1;
+}

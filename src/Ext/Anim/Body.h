@@ -4,6 +4,7 @@
 #include <Utilities/PooledContainer.h>
 #include <Utilities/OptionalStruct.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/Handle.h>
 //#include <New/AnonymousType/SpawnsStatus.h>
 
 #include <ParticleSystemClass.h>
@@ -33,7 +34,7 @@ public:
 	// and the building is not on same cell as the animation.
 	BuildingClass* ParentBuilding;
 
-	ParticleSystemClass* AttachedSystem;
+	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem;
 	CoordStruct CreateUnitLocation;
 
 	bool DelayedFireRemoveOnNoDelay;
@@ -62,16 +63,16 @@ public:
 
 	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
-	virtual ~AnimExtData()
-	{
-		// mimicking how this thing does , since the detach seems not properly handle these
-		if (auto pAttach = AttachedSystem)
-		{
-			pAttach->Owner = nullptr;
-			pAttach->UnInit();
-			pAttach->TimeToDie = true;
-		}
-	}
+	virtual ~AnimExtData() = default;
+	//{
+	//	// mimicking how this thing does , since the detach seems not properly handle these
+	//	if (auto pAttach = AttachedSystem)
+	//	{
+	//		pAttach->Owner = nullptr;
+	//		pAttach->UnInit();
+	//		pAttach->TimeToDie = true;
+	//	}
+	//}
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
 

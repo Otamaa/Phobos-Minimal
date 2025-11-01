@@ -192,7 +192,7 @@ void ScenarioExtData::FetchVariables(ScenarioClass* pScen)
 void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClass* pOwner, int damage, HouseClass* pFiringHouse, AbstractClass* pTarget, bool isBright, WeaponTypeClass* pWeapon, WarheadTypeClass* pWarhead)
 {
 	BulletTypeClass* pType = pWeapon ? pWeapon->Projectile : BulletTypeExtData::GetDefaultBulletType();
-	auto pBullet = GameCreate<BulletClass>();
+	auto pBullet = pType->CreateBullet(nullptr, nullptr, 0 , nullptr, 0, false);
 	const int speed = WarheadTypeExtContainer::Instance.Find(pWarhead)->DetonateOnAllMapObjects  ? 100 : 0;
 
 	pBullet->Construct(pType, pTarget, pOwner, damage, pWarhead, speed, isBright);

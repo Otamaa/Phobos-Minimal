@@ -198,6 +198,21 @@ struct MarkForDeathDeleter
 };
 
 template<typename T>
+struct MarkForDeathDeleterB
+{
+	void operator()(T* ptr) const noexcept
+	{
+		if (ptr && ptr->Type && !ptr->TimeToDie)
+		{
+			ptr->Owner = nullptr;
+			ptr->UnInit();
+			ptr->TimeToDie = true;
+		}
+	}
+};
+
+
+template<typename T>
 struct DetachDeleter
 {
 	void operator()(T* ptr) const noexcept

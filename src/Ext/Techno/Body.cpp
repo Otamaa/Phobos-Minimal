@@ -3637,7 +3637,7 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 {
 	auto pThis = pOwner->CaptureManager;
 
-	if (!pThis || !pThis->InfiniteMindControl || pOwner->InLimbo)
+	if (!pThis || !pThis->InfiniteMindControl || pOwner->InLimbo || !pOwner->IsAlive)
 		return;
 
 	const auto pOwnerTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());

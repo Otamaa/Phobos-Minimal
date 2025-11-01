@@ -33,7 +33,7 @@ public:
 	HouseClass* Owner;
 	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
 	std::unique_ptr<PhobosTrajectory> Trajectory;
-	ParticleSystemClass* AttachedSystem;
+	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem;
 	int DamageNumberOffset;
 	AbstractClass* OriginalTarget;
 	int ParabombFallRate;
@@ -62,20 +62,20 @@ public:
 
 	BulletExtData(BulletClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
-	virtual ~BulletExtData()
-	{
-		// mimicking how this thing does , since the detach seems not properly handle these
-
-		if (!Phobos::Otamaa::DoingLoadGame)
-		{
-			if (auto pAttach = AttachedSystem)
-			{
-				pAttach->Owner = nullptr;
-				pAttach->UnInit();
-				pAttach->TimeToDie = true;
-			}
-		}
-	}
+	virtual ~BulletExtData() = default;
+	// {
+	// 	// mimicking how this thing does , since the detach seems not properly handle these
+	//
+	// 	if (!Phobos::Otamaa::DoingLoadGame)
+	// 	{
+	// 		if (auto pAttach = AttachedSystem)
+	// 		{
+	// 			pAttach->Owner = nullptr;
+	// 			pAttach->UnInit();
+	// 			pAttach->TimeToDie = true;
+	// 		}
+	// 	}
+	// }
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override;
 

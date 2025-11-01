@@ -106,7 +106,7 @@ void PhobosAEFunctions::UpdateAttachEffects(TechnoClass* pTechno)
 			attachEffect->SetAnimationTunnelState(true);
 
 		attachEffect->AI();
-		bool hasExpired = attachEffect->HasExpired();
+ 		bool hasExpired = attachEffect->HasExpired();
 		bool shouldDiscard = attachEffect->IsActive() && attachEffect->ShouldBeDiscardedNow();
 
 		if (hasExpired || shouldDiscard) {
