@@ -181,7 +181,7 @@ void __fastcall VoxClass_SetEvaIndex(int house) {
 	if (Phobos::Otamaa::DoingLoadGame) {
 		VoxClass::EVAIndex = 0;
 	}
-	else if (auto pSide = SideClass::Array->GetItemOrDefault(house)) {
+	else if (auto pSide = SideClass::Array->get_or_default(house)) {
 		VoxClass::EVAIndex = SideExtContainer::Instance.Find(pSide)->EVAIndex;
 	} else if (house < 0) {
 		VoxClass::EVAIndex = 0;

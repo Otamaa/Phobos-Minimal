@@ -847,9 +847,9 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pOwner->RegisterGain(pBuilding, false);
 		pOwner->RecheckTechTree = true;
 		pOwner->RecheckPower = true;
-		pOwner->Buildings.AddItem(pBuilding);
+		pOwner->Buildings.push_back(pBuilding);
 
-		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
+		pOwner->ActiveBuildingTypes.increment(pBuilding->Type->ArrayIndex);
 		pOwner->UpdateSuperWeaponsUnavailable();
 
 		auto const pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
@@ -861,7 +861,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 
 		if (pType->SecretLab)
 		{
-			pOwner->SecretLabs.AddItem(pBuilding);
+			pOwner->SecretLabs.push_back(pBuilding);
 			BuildingExtData::UpdateSecretLab(pBuilding);
 		}
 
@@ -923,18 +923,18 @@ void BuildingExtData::LimboKill(BuildingClass* pBuilding)
 
 	pTargetHouse->RecheckPower = true;
 	pTargetHouse->RecheckRadar = true;
-	pTargetHouse->Buildings.Remove(pBuilding);
+	pTargetHouse->Buildings.erase(pBuilding);
 	pTargetHouse->RegisterLoss(pBuilding, false);
 	//pTargetHouse->RemoveTracking(pBuilding);
 
-	pTargetHouse->ActiveBuildingTypes.Decrement(pBuilding->Type->ArrayIndex);
+	pTargetHouse->ActiveBuildingTypes.decrement(pBuilding->Type->ArrayIndex);
 
 	// Building logics
 	if (pType->ConstructionYard)
-		pTargetHouse->ConYards.Remove(pBuilding);
+		pTargetHouse->ConYards.erase(pBuilding);
 
 	if (pType->SecretLab)
-		pTargetHouse->SecretLabs.Remove(pBuilding);
+		pTargetHouse->SecretLabs.erase(pBuilding);
 
 	//if (pType->FactoryPlant)
 	//{
@@ -1161,7 +1161,7 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck)
 	--Unsorted::ScenarioInit;
 
 	// Reset Occupants vector while keeping capacity
-	this->Occupants.Reset();
+	this->Occupants.reset();
 	this->Mark(MarkType::Change);
 	// Update threat map
 	this->UpdateThreatInCell(this->GetCell());

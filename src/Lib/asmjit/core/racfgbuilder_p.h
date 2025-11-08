@@ -6,13 +6,13 @@
 #ifndef ASMJIT_CORE_RACFGBUILDER_P_H_INCLUDED
 #define ASMJIT_CORE_RACFGBUILDER_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/formatter.h"
-#include "../core/racfgblock_p.h"
-#include "../core/rainst_p.h"
-#include "../core/rapass_p.h"
+#include <asmjit/core/formatter.h>
+#include <asmjit/core/racfgblock_p.h>
+#include <asmjit/core/rainst_p.h>
+#include <asmjit/core/rapass_p.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

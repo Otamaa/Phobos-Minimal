@@ -28,7 +28,10 @@ public:
 		CurrentDoType(-1),
 		SkipTargetChangeResetSequence(false),
 		GarrisonedIn(nullptr)
-	{ }
+	{
+		this->Name = pObj->Type->ID;
+		this->AbsType = InfantryClass::AbsID;
+	}
 	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 
 	virtual ~InfantryExtData() = default;

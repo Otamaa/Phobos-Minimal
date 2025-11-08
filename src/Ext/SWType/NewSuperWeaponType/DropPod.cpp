@@ -3,11 +3,6 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Rules/Body.h>
 
-std::vector<const char*> SW_DropPod::GetTypeString() const
-{
-	return { "DropPod" };
-}
-
 bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
@@ -25,7 +20,7 @@ bool SW_DropPod::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_DropPod::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 
 	pData->EVA_Detected = VoxClass::FindIndexById("EVA_DropPodDetected");
 	pData->EVA_Ready = VoxClass::FindIndexById("EVA_DropPodReady");
@@ -67,11 +62,11 @@ void DroppodStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		SendDroppods(this->Super , this->GetTypeExtData() , NewSWType::GetNewSWType(this->GetTypeExtData()), this->Coords);
+		SendDroppods(this->Super , this->GetTypeExtData() , this->GetTypeExtData()->GetNewSWType(), this->Coords);
 	}
 }
 
-void DroppodStateMachine::SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc)
+void DroppodStateMachine::SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc)
 {
 	pData->PrintMessage(pData->Message_Activate, pSuper->Owner);
 

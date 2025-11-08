@@ -276,7 +276,7 @@ namespace detail
 			}
 
 			bool found = false;
-			for (size_t a = 0; a < TechnoTypeClass::AbilityTypeToStrings.c_size(); ++a) {
+			for (size_t a = 0; a < TechnoTypeClass::AbilityTypeToStrings.size(); ++a) {
 				if (IS_SAME_STR_(TechnoTypeClass::AbilityTypeToStrings[a], parser.c_str())) {
 					found = true;
 				}
@@ -1617,7 +1617,8 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			value.Clear();
+			value.reset();
+
 			char* context = nullptr;
 			for (auto pCur = strtok_s(parser.value(), Phobos::readDelims, &context);
 				pCur;
@@ -1626,7 +1627,7 @@ namespace detail
 				int buffer = 0;
 				if (Parser<int>::Parse(pCur, &buffer))
 				{
-					value.AddItem(buffer);
+					value.push_back(buffer);
 					return true;
 				}
 				else

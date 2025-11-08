@@ -125,7 +125,7 @@ ASMJIT_PATCH(0x51DF38, InfantryClass_Remove, 0xA)
 	GET(FakeInfantryClass*, pThis, ESI);
 
 	if (auto pGarrison = std::exchange(pThis->_GetExtData()->GarrisonedIn , nullptr)) {
-		if (!pGarrison->Occupants.Remove(pThis)) {
+		if (!pGarrison->Occupants.erase(pThis)) {
 			Debug::LogInfo("Infantry {} was garrisoned in building {}, but building didn't find it. WTF?",
 				pThis->Type->ID, pGarrison->Type->ID);
 		}

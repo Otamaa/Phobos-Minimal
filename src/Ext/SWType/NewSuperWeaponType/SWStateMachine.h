@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NewSWType.h"
+#include "SWTypeHandler.h"
 
 #include <Ext/WeaponType/Body.h>
 #include <Ext/SWType/Body.h>
@@ -35,7 +35,7 @@ enum class SWStateMachineIdentifier : int
 virtual SWStateMachineIdentifier GetIdentifier() const override { return SWStateMachineIdentifier::##n##; }\
 virtual const char* GetIdentifierStrings() const override { return "SWStateMachine::"#n; }
 
-// state machines - create one to use delayed effects [create a child class per NewSWType, obviously]
+// state machines - create one to use delayed effects [create a child class per SWTypeHandler, obviously]
 // i.e. start anim/sound 1 frame after clicking, fire a damage wave 25 frames later, and play second sound 50 frames after that...
 class SWStateMachine
 {
@@ -43,7 +43,7 @@ public:
 	static HelperedVector<std::unique_ptr<SWStateMachine>> Array;
 
 	SWStateMachine() = default;
-	SWStateMachine(int Duration, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+	SWStateMachine(int Duration, CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType)
 		: Super(pSuper), Coords(XY)
 	{
 		Clock.Start(Duration);
@@ -95,7 +95,7 @@ public:
 	{
 	}
 
-	UnitDeliveryStateMachine(int Duration, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+	UnitDeliveryStateMachine(int Duration, CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType)
 		: SWStateMachine(Duration, XY, pSuper, pSWType)
 	{
 	}
@@ -116,7 +116,7 @@ public:
 	{
 	}
 
-	DroppodStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+	DroppodStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType)
 	{
 	}
@@ -126,7 +126,7 @@ public:
 
 	DEFINE_SWSTATEMACHINE_IDENT(Droppod)
 
-	static void SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc);
+	static void SendDroppods(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc);
 	static void PlaceUnits(SuperClass* pSuper, double veterancy, Iterator<TechnoTypeClass*> const Types, int cMin, int cMax, const CellStruct& Coords ,bool retries);
 
 };
@@ -139,7 +139,7 @@ public:
 	{
 	}
 
-	SonarPulseStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+	SonarPulseStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType)
 	{
 	}
@@ -149,7 +149,7 @@ public:
 
 	DEFINE_SWSTATEMACHINE_IDENT(SonarPulse)
 
-	static void SendSonarPulse(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc);
+	static void SendSonarPulse(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc);
 	static void ApplySonarPulse(SuperClass* pSuper, const CellStruct& Coords , const SWRange& range);
 
 };
@@ -162,7 +162,7 @@ public:
 	{
 	}
 
-	SpyPlaneStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType , CellClass* pTarget)
+	SpyPlaneStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType , CellClass* pTarget)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType) , target { pTarget }
 	{
 	}
@@ -172,7 +172,7 @@ public:
 
 	DEFINE_SWSTATEMACHINE_IDENT(SpyPlane)
 
-	static void SendSpyPlane(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, CellClass* target);
+	static void SendSpyPlane(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, CellClass* target);
 
 	virtual bool Load(PhobosStreamReader& Stm, bool RegisterForChange) override
 	{
@@ -243,7 +243,7 @@ public:
 	{
 	}
 
-	ChronoWarpStateMachine(int Duration, const CellStruct& XY, SuperClass* pSuper, NewSWType* pSWType, HelperedVector<ChronoWarpContainer> Buildings)
+	ChronoWarpStateMachine(int Duration, const CellStruct& XY, SuperClass* pSuper, SWTypeHandler* pSWType, HelperedVector<ChronoWarpContainer> Buildings)
 		: SWStateMachine(Duration, XY, pSuper, pSWType), Buildings(std::move(Buildings)), Duration(Duration)
 	{
 	}
@@ -270,7 +270,7 @@ public:
 	{
 	}
 
-	PsychicDominatorStateMachine(CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+	PsychicDominatorStateMachine(CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType)
 		: SWStateMachine(MAXINT32, XY, pSuper, pSWType), Deferment(0)
 	{
 		PsyDom::Status = PsychicDominatorStatus::FirstAnim;
@@ -329,7 +329,7 @@ public:
 	{
 	}
 
-	IonCannonStateMachine(CellStruct XY, SuperClass* pSuper,TechnoClass* pFirer , NewSWType* pSWType)
+	IonCannonStateMachine(CellStruct XY, SuperClass* pSuper,TechnoClass* pFirer , SWTypeHandler* pSWType)
 		: SWStateMachine(MAXINT32, XY, pSuper, pSWType),
 		Deferment(0) ,
 		Status(IonCannonStatus::FirstAnim) ,
@@ -380,7 +380,7 @@ public:
 	{
 	}
 
-	CloneableLighningStormStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, NewSWType* pSWType)
+	CloneableLighningStormStateMachine(int Duration, int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, SWTypeHandler* pSWType)
 		: SWStateMachine(Duration, XY, pSuper, pSWType), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false) , Invoker(pFirer)
 	{
 		Start(XY, Duration, Deferment);
@@ -476,7 +476,7 @@ public:
 		, MaxCountCounter { 1 }
 	{ }
 
-	LaserStrikeStateMachine(CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, int maxcount , int deferment , NewSWType* pSWType, int duration)
+	LaserStrikeStateMachine(CellStruct XY, SuperClass* pSuper, TechnoClass* pFirer, int maxcount , int deferment , SWTypeHandler* pSWType, int duration)
 		: SWStateMachine(duration, XY, pSuper, pSWType)
 		, Firer { pFirer }
 		, LaserStrikesetRadius { true }
@@ -532,7 +532,7 @@ public:
 	{
 	}
 
-	explicit GenericWarheadStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer ,  NewSWType* pSWType)
+	explicit GenericWarheadStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer ,  SWTypeHandler* pSWType)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType), Firer { pfirer }
 	{
 	}
@@ -545,7 +545,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
-	static void SentPayload(TechnoClass* pFirer ,SuperClass* pSuper , SWTypeExtData* pData , NewSWType* pNewType, const CellStruct& loc);
+	static void SentPayload(TechnoClass* pFirer ,SuperClass* pSuper , SWTypeExtData* pData , SWTypeHandler* pNewType, const CellStruct& loc);
 
 protected:
 	TechnoClass* Firer;
@@ -559,7 +559,7 @@ public:
 	{
 	}
 
-	explicit GeneticMutatorStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer, NewSWType* pSWType)
+	explicit GeneticMutatorStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer, SWTypeHandler* pSWType)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType), Firer { pfirer }, CoordsWithBridge {}
 	{
 		this->CoordsWithBridge = MapClass::Instance->GetCellAt(XY)->GetCoordsWithBridge();
@@ -592,7 +592,7 @@ public:
 		AnnounceInvalidPointer(Firer, ptr, remove);
 	}
 
-	static void ApplyGeneticMutator(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, CoordStruct& coord, const CellStruct& loc, WarheadTypeClass* pWarhead, SWRange& range , int damage);
+	static void ApplyGeneticMutator(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, CoordStruct& coord, const CellStruct& loc, WarheadTypeClass* pWarhead, SWRange& range , int damage);
 
 protected:
 	TechnoClass* Firer;
@@ -607,7 +607,7 @@ public:
 	{
 	}
 
-	RevealStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+	RevealStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType)
 	{
 	}
@@ -626,7 +626,7 @@ public:
 	{
 	}
 
-	ParaDropStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType ,CellClass* pTarget)
+	ParaDropStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType ,CellClass* pTarget)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType), Target { pTarget }, PlaneType { }, Types {}, Nums {}
 	{
 		this->UpdateProperties();
@@ -675,7 +675,7 @@ public:
 		: SWStateMachine()
 	{ }
 
-	ProtectStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, NewSWType* pSWType)
+	ProtectStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, SWTypeHandler* pSWType)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType)
 	{ }
 
@@ -693,7 +693,7 @@ public:
 		: SWStateMachine(), Firer { nullptr }
 	{ }
 
-	explicit MeteorShowerStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer, NewSWType* pSWType)
+	explicit MeteorShowerStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, TechnoClass* pfirer, SWTypeHandler* pSWType)
 		: SWStateMachine(Deferment, XY, pSuper, pSWType), Firer { pfirer }
 	{ }
 
@@ -705,7 +705,7 @@ public:
 	virtual bool Save(PhobosStreamWriter& Stm) const override;
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;
 
-	static void SentMeteorShower(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc);
+	static void SentMeteorShower(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc);
 
 protected:
 	TechnoClass* Firer;

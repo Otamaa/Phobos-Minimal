@@ -4,16 +4,6 @@
 #include <Utilities/Helpers.h>
 #include <Ext/Event/Body.h>
 
-std::vector<const char*> SW_Reveal::GetTypeString() const
-{
-	return { "Reveal" };
-}
-
-bool SW_Reveal::HandleThisType(SuperWeaponType type) const
-{
-	return (type == SuperWeaponType::PsychicReveal);
-}
-
 bool SW_Reveal::Activate(SuperClass* const pThis, const CellStruct& Coords, bool const IsPlayer)
 {
 	auto const pSW = pThis->Type;
@@ -50,7 +40,7 @@ void SW_Reveal::Initialize(SWTypeExtData* pData)
 
 void SW_Reveal::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 {
-	pData->This()->Action = (this->GetRange(pData).WidthOrRange < 0.0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->This()->Action = (this->GetRange(pData).WidthOrRange < 0.0) ? Action::None : (Action)PhobosNewActionType::SuperWeaponAllowed;
 }
 
 int SW_Reveal::GetSound(const SWTypeExtData* pData) const
@@ -143,7 +133,7 @@ void RevealStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		auto const range = NewSWType::GetNewSWType(pData)->GetRange(pData);
+		auto const range = pData->GetNewSWType()->GetRange(pData);
 
 		SW_Reveal::RevealMap(this->Coords, range.WidthOrRange, range.Height, this->Super->Owner);
 	}

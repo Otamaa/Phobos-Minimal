@@ -61,6 +61,8 @@ public:
 	virtual AbstractType WhatAmI() const RT(AbstractType);
 	virtual int Size() const R0;
 
+	int Required() const { JMP_THIS(0x6E8160); }
+
 	//Constructor
 	TaskForceClass(const char* pID) noexcept
 		: TaskForceClass(noinit_t())

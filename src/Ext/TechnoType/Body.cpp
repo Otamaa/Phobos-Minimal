@@ -2027,7 +2027,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->SprayOffsets.resize(defaultSprayOffsets.size());
 
-		for (int i = 0; i < defaultSprayOffsets.size(); ++i) {
+		for (size_t i = 0; i < defaultSprayOffsets.size(); ++i) {
 			this->SprayOffsets[i] = defaultSprayOffsets[i];
 		}
 

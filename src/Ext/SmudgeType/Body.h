@@ -13,7 +13,11 @@ public:
 	Valueable<bool> Clearable;
 
 public:
-	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) , Clearable (true) { }
+	SmudgeTypeExtData(SmudgeTypeClass* pObj) : ObjectTypeExtData(pObj) , Clearable (true)
+	{
+ 		this->AbsType = SmudgeTypeClass::AbsID;
+	}
+
 	SmudgeTypeExtData(SmudgeTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 
 	virtual ~SmudgeTypeExtData() = default;

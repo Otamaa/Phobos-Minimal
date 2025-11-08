@@ -6,14 +6,9 @@
 #include <Misc/Ares/Hooks/Classes/AttachedAffects.h>
 #include <Misc/DamageArea.h>
 
-std::vector<const char*> SW_GenericWarhead::GetTypeString() const
-{
-	return { "GenericWarhead" };
-}
-
 void SW_GenericWarhead::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Offensive;
 }
@@ -94,11 +89,11 @@ void GenericWarheadStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		SentPayload(this->Firer , this->Super , pData, NewSWType::GetNewSWType(pData), this->Coords);
+		SentPayload(this->Firer , this->Super , pData, pData->GetNewSWType(), this->Coords);
 	}
 }
 
-void GenericWarheadStateMachine::SentPayload(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType , const CellStruct& loc)
+void GenericWarheadStateMachine::SentPayload(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType , const CellStruct& loc)
 {
 	const auto pWarhead = pNewType->GetWarhead(pData);
 	auto const pCell = MapClass::Instance->GetCellAt(loc);

@@ -64,7 +64,7 @@ public:
 	UniversalTrail& operator=(const UniversalTrail& other) = default;
 
 	void ClearLastLocation() {
-		LastLocation.clear();
+		LastLocation.reset();
 	}
 
 	void SetDrivingState(DrivingState& state)

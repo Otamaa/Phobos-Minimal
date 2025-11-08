@@ -6,8 +6,8 @@
 #ifndef ASMJIT_CORE_CODEBUFFER_H_INCLUDED
 #define ASMJIT_CORE_CODEBUFFER_H_INCLUDED
 
-#include "../core/globals.h"
-#include "../core/support.h"
+#include <asmjit/core/globals.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

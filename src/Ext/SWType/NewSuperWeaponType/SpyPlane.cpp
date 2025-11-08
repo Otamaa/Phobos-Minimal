@@ -2,16 +2,6 @@
 
 #include <Ext/Techno/Body.h>
 
-std::vector<const char*> SW_SpyPlane::GetTypeString() const
-{
-	return { "Airstrike" };
-}
-
-bool SW_SpyPlane::HandleThisType(SuperWeaponType type) const
-{
-	return (type == SuperWeaponType::SpyPlane);
-}
-
 bool SW_SpyPlane::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
@@ -80,11 +70,11 @@ void SpyPlaneStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		this->SendSpyPlane(this->Super, pData, NewSWType::GetNewSWType(pData), this->target);
+		this->SendSpyPlane(this->Super, pData, pData->GetNewSWType(), this->target);
 	}
 }
 
-void SpyPlaneStateMachine::SendSpyPlane(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, CellClass* target)
+void SpyPlaneStateMachine::SendSpyPlane(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, CellClass* target)
 {
 
 	const auto Default = HouseExtData::GetSpyPlane(pSuper->Owner);

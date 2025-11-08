@@ -96,7 +96,9 @@ public:
 		SpreadState(),
 		GrowthQueue(),
 		GrowthState()
-	{ }
+	{
+		this->AbsType = TiberiumClass::AbsID;
+	}
 
 	TiberiumExtData(TiberiumClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 

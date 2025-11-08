@@ -6,17 +6,17 @@
 #ifndef ASMJIT_CORE_RAPASS_P_H_INCLUDED
 #define ASMJIT_CORE_RAPASS_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/compiler.h"
-#include "../core/emithelper_p.h"
-#include "../core/raassignment_p.h"
-#include "../core/racfgblock_p.h"
-#include "../core/radefs_p.h"
-#include "../core/rainst_p.h"
-#include "../core/rastack_p.h"
-#include "../core/support_p.h"
+#include <asmjit/core/compiler.h>
+#include <asmjit/core/emithelper_p.h>
+#include <asmjit/core/raassignment_p.h>
+#include <asmjit/core/racfgblock_p.h>
+#include <asmjit/core/radefs_p.h>
+#include <asmjit/core/rainst_p.h>
+#include <asmjit/core/rastack_p.h>
+#include <asmjit/support/support_p.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -350,13 +350,16 @@ public:
         block->add_flags(RABlockFlags::kHasFixedRegs);
       }
 
-      RATiedReg& dst = ra_inst->_tied_regs[index[group]++];
+      RATiedReg& dst = ra_inst->_tied_regs[index.get(group)];
+      index.add(group);
+
       dst = *tied_reg;
       dst._flags &= flags_filter;
 
       if (!tied_reg->is_duplicate()) {
         dst._use_reg_mask &= ~ib._used[group];
       }
+
     }
 
     node->set_pass_data<RAInst>(ra_inst);
@@ -486,12 +489,11 @@ public:
 
   inline void _build_phys_index() noexcept {
     _phys_reg_index.build_indexes(_phys_reg_count);
-    _phys_reg_total = uint32_t(_phys_reg_index[RegGroup::kMaxVirt]) +
-                    uint32_t(_phys_reg_count[RegGroup::kMaxVirt]) ;
+    _phys_reg_total = _phys_reg_index.get(RegGroup::kMaxVirt) + _phys_reg_count.get(RegGroup::kMaxVirt);
   }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t phys_reg_index(RegGroup group) const noexcept { return _phys_reg_index[group]; }
+  ASMJIT_INLINE_NODEBUG uint32_t phys_reg_index(RegGroup group) const noexcept { return _phys_reg_index.get(group); }
 
   [[nodiscard]]
   ASMJIT_INLINE_NODEBUG uint32_t phys_reg_total() const noexcept { return _phys_reg_total; }

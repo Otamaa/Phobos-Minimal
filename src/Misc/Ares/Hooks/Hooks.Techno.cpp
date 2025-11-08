@@ -636,7 +636,6 @@ ASMJIT_PATCH(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
 	return 0x70FC85;
 }
 
-
 ASMJIT_PATCH(0x6FD438, TechnoClass_FireLaser, 6)
 {
 	GET(WeaponTypeClass*, pWeapon, ECX);
@@ -890,12 +889,6 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 		pExt->Type = pType;
-
-		//require the VTABLE to be initialized
-		//hence why it is here instead of the CTOR
-		pExt->AbsType = pThis->WhatAmI();
-		if (!pExt->AbsType.has_value())
-			Debug::FatalErrorAndExit("Invalid Techno %x", pThis);
 
 		pExt->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		HouseExtData* pHouseExt = nullptr;

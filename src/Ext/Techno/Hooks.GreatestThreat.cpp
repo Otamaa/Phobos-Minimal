@@ -198,8 +198,8 @@ bool ShouldInfantryAttackAlly(TechnoClass* techno, bool canHealOrRepair, bool is
 // Helper function to add target to distributed fire lists
 void AddToDistributedFireLists(TechnoClass* techno, AbstractClass* target, int threatValue)
 {
-	techno->CurrentTargets.AddItem(target);
-	techno->CurrentTargetThreatValues.AddItem(threatValue);
+	techno->CurrentTargets.push_back(target);
+	techno->CurrentTargetThreatValues.push_back(threatValue);
 }
 
 // Helper function to scan aircraft threats (no area search)
@@ -488,8 +488,8 @@ AbstractClass* ScanAreaThreats(TechnoClass* techno, ThreatType method, int bigth
 			{
 				if (technoType->DistributedFire)
 				{
-					techno->CurrentTargets.AddItem(pCurrent);
-					techno->CurrentTargetThreatValues.AddItem(threatBuffer);
+					techno->CurrentTargets.push_back(pCurrent);
+					techno->CurrentTargetThreatValues.push_back(threatBuffer);
 				}
 
 				if (threatBuffer > *maxThreat)
@@ -601,8 +601,8 @@ AbstractClass* ScanAreaAirThreats(TechnoClass* techno, ThreatType method, int bi
 		{
 			if (technoType->DistributedFire)
 			{
-				techno->CurrentTargets.AddItem(pCurrent);
-				techno->CurrentTargetThreatValues.AddItem(threatBuffer);
+				techno->CurrentTargets.push_back(pCurrent);
+				techno->CurrentTargetThreatValues.push_back(threatBuffer);
 			}
 
 			if (threatBuffer > *maxThreat)
@@ -665,8 +665,8 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* techno
 	// Initialize distributed fire lists if needed
 	if (techType->DistributedFire)
 	{
-		techno->CurrentTargets.Reset();
-		techno->CurrentTargetThreatValues.Reset();
+		techno->CurrentTargets.reset();
+		techno->CurrentTargetThreatValues.reset();
 	}
 
 	// Check if in open-topped transport

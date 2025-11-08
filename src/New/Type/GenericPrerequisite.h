@@ -40,17 +40,15 @@ public:
 	static bool HouseOwnsSpecific(HouseClass const* pHouse, int Index);
 	static bool HouseOwnsPrereq(HouseClass const* pHouse, int Index);
 
-	static bool HouseOwnsAll(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
-	static bool HouseOwnsAll(HouseClass const* pHouse, int* intitems, int intsize);
-	static bool HouseOwnsAny(HouseClass const* pHouse, const DynamicVectorClass<int>& list);
-	static bool HouseOwnsAny(HouseClass const* pHouse, int* intitems, int intsize);
+	static bool HouseOwnsAll(HouseClass const* pHouse, const Iterator<int> list);
+	static bool HouseOwnsAny(HouseClass const* pHouse, const Iterator<int> list);
 
-	static bool ListContainsGeneric(BuildingTypeClass** items, int size, int Index);
-	static bool ListContainsSpecific(BuildingTypeClass** items, int size, int Index);
-	static bool ListContainsPrereq(BuildingTypeClass** items, int size, int Index);
+	static bool ListContainsGeneric(Iterator<BuildingTypeClass*> items, int Index);
+	static bool ListContainsSpecific(Iterator<BuildingTypeClass*> items, int Index);
+	static bool ListContainsPrereq(Iterator<BuildingTypeClass*> items, int Index);
 
-	static bool ListContainsAll(BuildingTypeClass** items, int size, int* intitems, int intsize);
-	static bool ListContainsAny(BuildingTypeClass** items, int size, const DynamicVectorClass<int>& Requirements);
+	static bool ListContainsAll(Iterator<BuildingTypeClass*> items, const Iterator<int> intit);
+	static bool ListContainsAny(Iterator<BuildingTypeClass*> items, const Iterator<int> Requirements);
 
-	static bool PrerequisitesListed(BuildingTypeClass** items , int size , TechnoTypeClass* pItem);
+	static bool PrerequisitesListed(Iterator<BuildingTypeClass*> items, TechnoTypeClass* pItem);
 };

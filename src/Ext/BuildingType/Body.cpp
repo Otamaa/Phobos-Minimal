@@ -574,9 +574,9 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		pOwner->RecheckTechTree = true;
 		pOwner->RecheckPower = true;
 		pOwner->RecheckRadar = true;
-		pOwner->Buildings.AddItem(pBuilding);
+		pOwner->Buildings.push_back(pBuilding);
 
-		pOwner->ActiveBuildingTypes.Increment(pBuilding->Type->ArrayIndex);
+		pOwner->ActiveBuildingTypes.increment(pBuilding->Type->ArrayIndex);
 		pOwner->UpdateSuperWeaponsUnavailable();
 
 		auto const pBuildingExt = BuildingExtContainer::Instance.Find(pBuilding);
@@ -588,7 +588,7 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 
 		if (pType->SecretLab)
 		{
-			pOwner->SecretLabs.AddItem(pBuilding);
+			pOwner->SecretLabs.push_back(pBuilding);
 			BuildingExtData::UpdateSecretLab(pBuilding);
 		}
 
@@ -642,7 +642,7 @@ bool BuildingTypeExtData::IsAcademy() const
 
 void BuildingTypeExtData::UpdateFoundationRadarShape()
 {
-	this->FoundationRadarShape.Clear();
+	this->FoundationRadarShape.clear();
 
 	if (this->IsCustom)
 	{
@@ -709,7 +709,7 @@ void BuildingTypeExtData::UpdateFoundationRadarShape()
 				{
 					do
 					{
-						this->FoundationRadarShape.AddItem(Point2D(start, increment));
+						this->FoundationRadarShape.push_back(Point2D(start, increment));
 						++start;
 					}
 					while (start <= end);
@@ -899,7 +899,7 @@ bool BuildingTypeExtData::CanUpgrade(BuildingClass* pBuilding, BuildingTypeClass
 
 SuperClass* BuildingTypeExtData::GetSuperWeaponByIndex(int index, HouseClass* pHouse) const
 {
-	if (auto pSuper = pHouse->Supers.GetItemOrDefault(this->GetSuperWeaponIndex(index)))
+	if (auto pSuper = pHouse->Supers.get_or_default(this->GetSuperWeaponIndex(index)))
 	{
 		if (SWTypeExtContainer::Instance.Find(pSuper->Type)->IsAvailable(pHouse))
 		{
@@ -1235,7 +1235,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 						{ return pItem == Phobos::readBuffer; });
 
 		this->IsTrench = std::distance(trenchKinds.begin(), it);
-		if (it == trenchKinds.end())
+		if (it == std::ranges::end(trenchKinds))
 		{
 			trenchKinds.emplace_back(Phobos::readBuffer);
 		}

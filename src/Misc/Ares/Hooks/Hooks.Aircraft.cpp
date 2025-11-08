@@ -138,7 +138,7 @@ ASMJIT_PATCH(0x417E16, AircraftClass_GetActionOnObject_Dock, 0x6)
 
 	// enter and no-enter cursors only if aircraft can dock
 	// or show select cursor
-	return pThis->Type->Dock.Contains(pBuilding->Type) ? 0x417E4B : 0x417E7D;
+	return pThis->Type->Dock.contains(pBuilding->Type) ? 0x417E4B : 0x417E7D;
 }
 
 ASMJIT_PATCH(0x413FA3, AircraftClass_Init_Cloakable, 0x5)

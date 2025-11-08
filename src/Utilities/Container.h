@@ -19,10 +19,10 @@ struct UuidFirstPart {
 struct AbstractExtended {
 private:
 	AbstractClass* AttachedToObject;
-	InitState Initialized;
-	FixedString<0x24> Name;
-
 public:
+	FixedString<0x24> Name;
+	AbstractType AbsType;
+	InitState Initialized;
 
 	//normal assigned AO
 	AbstractExtended(AbstractClass* abs);
@@ -217,19 +217,19 @@ public:
 					return;
 				}
 
-				switch (ptr->GetInitState()) {
+				if COMPILETIMEEVAL(CanLoadFromRulesFile<T>)
+				{
+					switch (ptr->GetInitState()) {
+
 					case InitState::Blank:
 					{
 						ptr->SetInitState(InitState::Inited);
 
-						if COMPILETIMEEVAL (CanLoadFromRulesFile<T>) {
-							if (pINI == CCINIClass::INI_Rules) {
-								ptr->LoadFromRulesFile(pINI);
-							}
+						//Load from rules INI File
+						if (pINI == CCINIClass::INI_Rules) {
+							ptr->LoadFromRulesFile(pINI);
 						}
 
-						//Load from rules INI File
-						ptr->LoadFromINI(pINI, parseFailAddr);
 						ptr->SetInitState(InitState::Ruled);
 					}
 					break;
@@ -246,6 +246,12 @@ public:
 					default:
 						break;
 					}
+					}
+				}else {
+					//load anywhere other than rules
+					ptr->LoadFromINI(pINI, parseFailAddr);
+					//this function can be called again multiple time but without need to re-init the data
+					ptr->SetInitState(InitState::Ruled);
 				}
 			}
 		}
@@ -323,7 +329,7 @@ public : //default Save/Load functions
 					auto newPtr = new T(nullptr, noinit_t());
 
 					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, name.c_str())
-					ExtensionSwizzleManager::RegisterExtensionPointer((void*)oldPtr, newPtr);
+					ExtensionSwizzleManager::RegisterExtensionPointer<T>((void*)oldPtr, newPtr);
 					newPtr->LoadFromStream(Stm);
 					Array.push_back(newPtr);
 				}

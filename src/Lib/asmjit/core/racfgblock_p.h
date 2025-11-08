@@ -6,14 +6,14 @@
 #ifndef ASMJIT_CORE_RACFGBLOCK_P_H_INCLUDED
 #define ASMJIT_CORE_RACFGBLOCK_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/arenabitset_p.h"
-#include "../core/arenavector.h"
-#include "../core/compilerdefs.h"
-#include "../core/raassignment_p.h"
-#include "../core/support_p.h"
+#include <asmjit/core/compilerdefs.h>
+#include <asmjit/core/raassignment_p.h>
+#include <asmjit/support/arenabitset_p.h>
+#include <asmjit/support/arenavector.h>
+#include <asmjit/support/support_p.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

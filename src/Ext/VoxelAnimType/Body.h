@@ -41,6 +41,7 @@ public:
 		, Trails()
 		, TrailerAnim_SpawnDelay(2)
 	{
+		this->AbsType = VoxelAnimTypeClass::AbsID;
 		this->Initialize();
 	}
 

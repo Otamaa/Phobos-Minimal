@@ -1234,6 +1234,12 @@ ASMJIT_PATCH(0x4664BA, BulletClass_CTOR, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x466501, BulletClass_InitSomeStuffs, 0x6) {
+	GET(FakeBulletClass*, pItem, ECX);
+	pItem->_GetExtData()->Name = pItem->Type->ID;
+	return 0x0;
+}
+
 ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 {
 	GET(BulletClass*, pItem, ESI);

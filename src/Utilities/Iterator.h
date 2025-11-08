@@ -33,181 +33,404 @@
 #pragma once
 
 /*
-	Iterator is used for bridging implementation between different kind of array classes
+	Iterator is used for bridging implementation between different kinds of array classes.
+	Provides a unified read-only view over various container types.
 */
 
 #include <ArrayClasses.h>
 #include <vector>
+#include <array>
+#include <span>
+#include <algorithm>
+#include <optional>
+#include <type_traits>
 #include <Helpers/Concepts.h>
 
 template<typename T>
-class Iterator {
-private:
-	const T* items{ nullptr };
-	size_t count{ 0 };
+class Iterator
+{
 public:
-	COMPILETIMEEVAL Iterator() = default;
-	COMPILETIMEEVAL Iterator(const T* first, size_t count) : items(first), count(count) {}
-	COMPILETIMEEVAL Iterator(const std::vector<T>& vec) : items(vec.data()), count(vec.size()) {}
-	COMPILETIMEEVAL Iterator(const VectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Capacity)) {}
-	COMPILETIMEEVAL Iterator(const DynamicVectorClass<T>& vec) : items(vec.Items), count(static_cast<size_t>(vec.Count)) {}
-	COMPILETIMEEVAL Iterator(const TypeList<T>& vec) : items(vec.Items) , count(static_cast<size_t>(vec.Count)) {}
+	// Type aliases for STL compatibility
+	using value_type = T;
+	using size_type = std::size_t;
+	using difference_type = std::ptrdiff_t;
+	using const_reference = const T&;
+	using const_pointer = const T*;
+	using const_iterator = const T*;
 
-	COMPILETIMEEVAL T at(size_t index) const {
-		return this->items[index] ;
-	}
+	// Default constructor
+	constexpr Iterator() noexcept = default;
 
-	COMPILETIMEEVAL size_t end_idx() const {
-		return this->count - 1;
-	}
+	// Raw pointer + size constructor
+	constexpr Iterator(const T* first, size_type count) noexcept
+		: items(first), count(count) { }
 
-	COMPILETIMEEVAL size_t size() const {
-		return this->count;
-	}
+	// std::vector constructor
+	constexpr Iterator(const std::vector<T>& vec) noexcept
+		: items(vec.data()), count(vec.size()) { }
 
-	COMPILETIMEEVAL const T* begin() const {
-		return this->items;
-	}
+	// std::array constructor
+	template<size_type N>
+	constexpr Iterator(const std::array<T, N>& arr) noexcept
+		: items(arr.data()), count(N) { }
 
-	COMPILETIMEEVAL const T* end() const {
-		if (!this->valid()) {
-			return nullptr;
+	// std::span constructor
+	constexpr Iterator(std::span<const T> sp) noexcept
+		: items(sp.data()), count(sp.size()) { }
+
+	// VectorClass constructor
+	constexpr Iterator(const VectorClass<T>& vec) noexcept
+		: items(vec.Items), count(static_cast<size_type>(vec.Capacity)) { }
+
+	// DynamicVectorClass constructor
+	constexpr Iterator(const DynamicVectorClass<T>& vec) noexcept
+		: items(vec.Items), count(static_cast<size_type>(vec.Count)) { }
+
+	// TypeList constructor
+	constexpr Iterator(const TypeList<T>& vec) noexcept
+		: items(vec.Items), count(static_cast<size_type>(vec.Count)) { }
+
+	// Element access with bounds checking
+	[[nodiscard]] constexpr const_reference at(size_type index) const
+	{
+		if (index >= count)
+		{
+			throw std::out_of_range("Iterator::at: index out of range");
 		}
-
-		return &this->items[count];
+		return items[index];
 	}
 
-	COMPILETIMEEVAL bool ValidIndex(int index) const {
-		return static_cast<size_t>(index) < this->size();
-	}
-
-	COMPILETIMEEVAL T GetItemAt(int nIdx) const
+	// Unchecked element access (for performance)
+	[[nodiscard]] constexpr const_reference operator[](size_type index) const noexcept
 	{
-		if(!this->valid() || !this->ValidIndex(nIdx))
+		return items[index];
+	}
+
+	// Get element with optional
+	[[nodiscard]] constexpr std::optional<T> get(size_type index) const noexcept
+	{
+		if (valid_index(index))
+		{
+			return items[index];
+		}
+		return std::nullopt;
+	}
+
+	// Get element or default value
+	[[nodiscard]] constexpr T get_or(size_type index, T default_value) const noexcept
+	{
+		if (valid_index(index))
+		{
+			return items[index];
+		}
+		return default_value;
+	}
+
+	// Get element or last valid element
+	[[nodiscard]] constexpr T get_or_last(size_type index) const noexcept
+	{
+		if (!valid())
+		{
 			return T();
-
-		return *(this->begin() + nIdx);
+		}
+		if (!valid_index(index))
+		{
+			index = count - 1;
+		}
+		return items[index];
 	}
 
-	COMPILETIMEEVAL T GetItemAtOrMax(int nIdx) const
+	// Size queries
+	[[nodiscard]] constexpr size_type size() const noexcept
 	{
-		if (!this->valid())
-			return T();
-
-		if (!this->ValidIndex(nIdx))
-			nIdx = this->end_idx();
-
-		return *(this->begin() + nIdx);
+		return count;
 	}
 
-	COMPILETIMEEVAL T GetItemAtOrDefault(int nIdx, const T& other) const
+	[[nodiscard]] constexpr bool empty() const noexcept
 	{
-		if (!this->valid() || !this->ValidIndex(nIdx))
-			return other;
-
-		return *(this->begin() + nIdx);
+		return count == 0 || items == nullptr;
 	}
 
-	COMPILETIMEEVAL bool valid() const {
+	[[nodiscard]] constexpr bool valid() const noexcept
+	{
 		return items != nullptr;
 	}
 
-	COMPILETIMEEVAL bool empty() const {
-		return !this->valid() || !this->count;
+	[[nodiscard]] constexpr bool valid_index(size_type index) const noexcept
+	{
+		return index < count;
 	}
 
-	COMPILETIMEEVAL bool FORCEDINLINE contains(const T& other) const {
-		if COMPILETIMEEVAL (direct_comparable<T>) {
-			for (auto i = this->begin(); i != this->end(); ++i) {
-				if (*i == other) {
+	// Iterator interface
+	[[nodiscard]] constexpr const_iterator begin() const noexcept
+	{
+		return items;
+	}
+
+	[[nodiscard]] constexpr const_iterator end() const noexcept
+	{
+		return items ? items + count : nullptr;
+	}
+
+	[[nodiscard]] constexpr const_iterator cbegin() const noexcept
+	{
+		return begin();
+	}
+
+	[[nodiscard]] constexpr const_iterator cend() const noexcept
+	{
+		return end();
+	}
+
+	// Front and back access
+	[[nodiscard]] constexpr const_reference front() const
+	{
+		if (empty())
+		{
+			throw std::out_of_range("Iterator::front: empty iterator");
+		}
+		return items[0];
+	}
+
+	[[nodiscard]] constexpr const_reference back() const
+	{
+		if (empty())
+		{
+			throw std::out_of_range("Iterator::back: empty iterator");
+		}
+		return items[count - 1];
+	}
+
+	// Data pointer access
+	[[nodiscard]] constexpr const_pointer data() const noexcept
+	{
+		return items;
+	}
+
+	// Search operations
+	[[nodiscard]] constexpr bool contains(const T& value) const noexcept
+	{
+		if constexpr (direct_comparable<T>)
+		{
+			// Optimized path for directly comparable types
+			for (size_type i = 0; i < count; ++i)
+			{
+				if (items[i] == value)
+				{
 					return true;
 				}
 			}
-
 			return false;
 		}
-		else { return std::find(this->begin(), this->end(), other) != this->end(); }
+		else
+		{
+			return std::find(begin(), end(), value) != end();
+		}
 	}
 
-	template <typename Func>
-	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act) const {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-        	act(*i);
-    	}
+	// Find index of element
+	[[nodiscard]] constexpr std::optional<size_type> find_index(const T& value) const noexcept
+	{
+		for (size_type i = 0; i < count; ++i)
+		{
+			if (items[i] == value)
+			{
+				return i;
+			}
+		}
+		return std::nullopt;
 	}
 
-	template <typename Func>
-	COMPILETIMEEVAL void FORCEDINLINE for_each(Func&& act) {
-		for (auto i = this->begin(); i != this->end(); ++i) {
-        	act(*i);
-    	}
+	// Find with predicate
+	template<typename Pred>
+	[[nodiscard]] constexpr const_iterator find_if(Pred&& pred) const noexcept
+	{
+		return std::find_if(begin(), end(), std::forward<Pred>(pred));
 	}
 
-	COMPILETIMEEVAL operator bool() const {
-		return !this->empty();
+	// Count occurrences
+	[[nodiscard]] constexpr size_type count_if(auto&& pred) const noexcept
+	{
+		return std::count_if(begin(), end(), std::forward<decltype(pred)>(pred));
 	}
 
-	COMPILETIMEEVAL bool operator !() const {
-		return this->empty();
+	// Algorithm wrappers
+	template<typename Func>
+	constexpr void for_each(Func&& func) const
+	{
+		std::for_each(begin(), end(), std::forward<Func>(func));
 	}
 
-	COMPILETIMEEVAL const T& operator [](size_t index) const {
-		return this->items[index];
+	template<typename Pred>
+	[[nodiscard]] constexpr bool any_of(Pred&& pred) const noexcept
+	{
+		return std::any_of(begin(), end(), std::forward<Pred>(pred));
 	}
 
-	template<typename Out, typename = std::enable_if_t<std::is_assignable<Out&, T>::value>>
-	COMPILETIMEEVAL operator Iterator<Out>() const {
-		// note: this does only work if pointer-to-derived equals pointer-to-base.
-		// if derived has virtual methods and base hasn't, this will just break.
-		return Iterator<Out>(reinterpret_cast<const Out*>(this->items), this->count);
+	template<typename Pred>
+	[[nodiscard]] constexpr bool all_of(Pred&& pred) const noexcept
+	{
+		return std::all_of(begin(), end(), std::forward<Pred>(pred));
 	}
+
+	template<typename Pred>
+	[[nodiscard]] constexpr bool none_of(Pred&& pred) const noexcept
+	{
+		return std::none_of(begin(), end(), std::forward<Pred>(pred));
+	}
+
+	// Conversion to std::span
+	[[nodiscard]] constexpr operator std::span<const T>() const noexcept
+	{
+		return std::span<const T>(items, count);
+	}
+
+	// Boolean conversion
+	[[nodiscard]] constexpr explicit operator bool() const noexcept
+	{
+		return !empty();
+	}
+
+	[[nodiscard]] constexpr bool operator!() const noexcept
+	{
+		return empty();
+	}
+
+	// Type conversion for derived types
+	template<typename Out>
+	[[nodiscard]] constexpr operator Iterator<Out>() const noexcept
+	{
+		if constexpr(std::is_pointer<Out>::value && std::is_pointer<T>::value) {
+			using typeOut = std::remove_pointer_t<Out>;
+			using typeT = std::remove_pointer_t<T>;
+
+			static_assert(sizeof(T) == sizeof(Out),
+					"Pointer sizes must match for safe conversion");
+
+			static_assert(std::is_base_of_v<typeOut, typeT> || std::is_base_of_v<typeT, typeOut>,
+			"Types must be related by inheritance");
+
+			return Iterator<Out>(reinterpret_cast<const Out*>(items), count);
+		} else {
+			// Note: this only works if pointer-to-derived equals pointer-to-base.
+			// Safe for simple inheritance, unsafe with multiple/virtual inheritance.
+			static_assert(sizeof(T*) == sizeof(Out*),
+				"Pointer sizes must match for safe conversion");
+
+			static_assert(std::is_base_of_v<Out, T> || std::is_base_of_v<T, Out>,
+				"Types must be related by inheritance");
+
+			return Iterator<Out>(reinterpret_cast<const Out*>(items), count);
+		}
+	}
+
+	// Legacy interface (commented for migration)
+	/*
+	T GetItemAt(int nIdx) const { return get(nIdx).value_or(T()); }
+	T GetItemAtOrMax(int nIdx) const { return get_or_last(nIdx); }
+	T GetItemAtOrDefault(int nIdx, const T& other) const { return get_or(nIdx, other); }
+	bool ValidIndex(int index) const { return valid_index(static_cast<size_type>(index)); }
+	size_t end_idx() const { return count > 0 ? count - 1 : 0; }
+	*/
+
+private:
+	const T* items { nullptr };
+	size_type count { 0 };
 };
 
-template <typename T>
-COMPILETIMEEVAL Iterator<T> make_iterator_single(const T& value) {
+// Deduction guides (C++17)
+template<typename T>
+Iterator(const T*, std::size_t) -> Iterator<T>;
+
+template<typename T>
+Iterator(const std::vector<T>&) -> Iterator<T>;
+
+template<typename T, std::size_t N>
+Iterator(const std::array<T, N>&) -> Iterator<T>;
+
+template<typename T>
+Iterator(const VectorClass<T>&) -> Iterator<T>;
+
+template<typename T>
+Iterator(const DynamicVectorClass<T>&) -> Iterator<T>;
+
+template<typename T>
+Iterator(const TypeList<T>&) -> Iterator<T>;
+
+// Factory functions with better names
+template<typename T>
+[[nodiscard]] constexpr Iterator<T> make_iterator_single(const T& value) noexcept
+{
 	return Iterator<T>(&value, 1);
 }
 
-template <typename T, size_t Size>
-COMPILETIMEEVAL Iterator<T> make_iterator(const T(&arr)[Size]) {
+template<typename T, std::size_t Size>
+[[nodiscard]] constexpr Iterator<T> make_iterator(const T(&arr)[Size]) noexcept
+{
 	return Iterator<T>(arr, Size);
 }
 
-template <typename T>
-COMPILETIMEEVAL Iterator<T> make_iterator(const T* ptr, size_t size) {
+template<typename T>
+[[nodiscard]] constexpr Iterator<T> make_iterator(const T* ptr, std::size_t size) noexcept
+{
 	return Iterator<T>(ptr, size);
 }
 
-// vector classes
-template <typename T>
-COMPILETIMEEVAL Iterator<T> make_iterator(const VectorClass<T>& value) {
+// Container overloads
+template<typename T>
+[[nodiscard]] constexpr Iterator<T> make_iterator(const std::vector<T>& value) noexcept
+{
 	return Iterator<T>(value);
 }
 
-template <typename T>
-COMPILETIMEEVAL Iterator<T> make_iterator(const DynamicVectorClass<T>& value) {
+template<typename T, std::size_t N>
+[[nodiscard]] constexpr Iterator<T> make_iterator(const std::array<T, N>& value) noexcept
+{
 	return Iterator<T>(value);
 }
 
-template <typename T>
-COMPILETIMEEVAL Iterator<T> make_iterator(const TypeList<T>& value){
+template<typename T>
+[[nodiscard]] constexpr Iterator<T> make_iterator(const VectorClass<T>& value) noexcept
+{
 	return Iterator<T>(value);
 }
 
-template <typename T>
-COMPILETIMEEVAL Iterator<T> make_iterator(const std::vector<T>& value) {
+template<typename T>
+[[nodiscard]] constexpr Iterator<T> make_iterator(const DynamicVectorClass<T>& value) noexcept
+{
 	return Iterator<T>(value);
 }
 
-template <typename T ,size_t count>
-COMPILETIMEEVAL Iterator<T> make_iterator(const std::array<T , count>& value){
-	return Iterator<T>(value.begin() , count);
+template<typename T>
+[[nodiscard]] constexpr Iterator<T> make_iterator(const TypeList<T>& value) noexcept
+{
+	return Iterator<T>(value);
 }
 
-// iterator does not keep temporary alive, thus rvalues are forbidden.
-// use the otherwise wierd const&& to not catch any lvalues
-template <typename T>
-COMPILETIMEEVAL void make_iterator_single(const T&&) = delete;
+template<typename T>
+[[nodiscard]] constexpr Iterator<T> make_iterator(std::span<const T> value) noexcept
+{
+	return Iterator<T>(value);
+}
 
-template <typename T>
-COMPILETIMEEVAL void make_iterator(const T&&) = delete;
+// Delete rvalue overloads to prevent dangling references
+template<typename T>
+void make_iterator_single(const T&&) = delete;
+
+template<typename T>
+void make_iterator(const std::vector<T>&&) = delete;
+
+template<typename T, std::size_t N>
+void make_iterator(const std::array<T, N>&&) = delete;
+
+template<typename T>
+void make_iterator(const VectorClass<T>&&) = delete;
+
+template<typename T>
+void make_iterator(const DynamicVectorClass<T>&&) = delete;
+
+template<typename T>
+void make_iterator(const TypeList<T>&&) = delete;
+
+template<typename T>
+void make_iterator(std::span<const T>&&) = delete;

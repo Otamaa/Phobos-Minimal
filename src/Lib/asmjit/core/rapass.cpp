@@ -3,15 +3,15 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
+#include <asmjit/core/api-build_p.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/arenavector.h"
-#include "../core/formatter_p.h"
-#include "../core/ralocal_p.h"
-#include "../core/rapass_p.h"
-#include "../core/support_p.h"
-#include "../core/type.h"
+#include <asmjit/core/formatter_p.h>
+#include <asmjit/core/ralocal_p.h>
+#include <asmjit/core/rapass_p.h>
+#include <asmjit/core/type.h>
+#include <asmjit/support/arenavector.h>
+#include <asmjit/support/support_p.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -1408,7 +1408,7 @@ Error BaseRAPass::run_global_allocator() noexcept {
 
 ASMJIT_FAVOR_SPEED Error BaseRAPass::init_global_live_spans() noexcept {
   for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
-    size_t phys_count = _phys_reg_count[group];
+    size_t phys_count = _phys_reg_count.get(group);
     RALiveSpans* live_spans = nullptr;
 
     if (phys_count) {
@@ -1448,7 +1448,7 @@ ASMJIT_FAVOR_SPEED Error BaseRAPass::bin_pack(RegGroup group) noexcept {
     uint32_t(group));
 #endif
 
-  uint32_t phys_count = _phys_reg_count[group];
+  uint32_t phys_count = _phys_reg_count.get(group);
 
   ArenaVector<RAWorkReg*> work_regs;
   ArenaVector<RAConsecutiveReg> consecutive_regs;
@@ -1957,7 +1957,7 @@ Error BaseRAPass::block_entry_assigned(const PhysToWorkMap* phys_to_work_map) no
       continue;
     }
 
-    uint32_t phys_base_index = _phys_reg_index[group];
+    uint32_t phys_base_index = _phys_reg_index.get(group);
     Support::BitWordIterator<RegMask> it(phys_to_work_map->assigned[group]);
 
     while (it.has_next()) {

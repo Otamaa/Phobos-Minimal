@@ -93,7 +93,7 @@ public:
 		SmudgeIndex = foggedObject.SmudgeIndex;
 		SmudgeFrameIndex = foggedObject.SmudgeFrameIndex;
 		Translucent = foggedObject.Translucent;
-		DrawRecords.Swap(foggedObject.DrawRecords);
+		DrawRecords.swap(foggedObject.DrawRecords);
 
 		return *this;
 	}

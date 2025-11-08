@@ -198,10 +198,8 @@ void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClas
 	pBullet->Construct(pType, pTarget, pOwner, damage, pWarhead, speed, isBright);
 
 	if (pWeapon) {
-		pBullet->Type = pWeapon->Projectile;
 		pBullet->SetWeaponType(pWeapon);
 	} else {
-		pBullet->Type = BulletTypeExtData::GetDefaultBulletType();
 		pBullet->SetWeaponType(nullptr);
 	}
 

@@ -579,6 +579,8 @@ public:
 	Valueable<Leptons> AIGuardStationaryStray { Leptons(-256) };
 	Valueable<bool> IgnoreCenterMinorRadarEvent { false };
 	Valueable<int> WarheadAnimZAdjust { -15 } ;
+	Valueable<bool> IvanBombAttachToCenter { false };
+
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

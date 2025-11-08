@@ -169,5 +169,6 @@ ASMJIT_PATCH(0x53B080, PsyDom_Fire, 5)
 		// skip everything
 		return 0x53B3EC;
 	}
+
 	return 0;
 }

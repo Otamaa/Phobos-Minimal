@@ -87,7 +87,7 @@ public:
 		size_t count = 0;
 		if (auto pBuild = this->GetBuildList(buildType)) {
 			for (const auto pBuilding : *pBuild) {
-				count += pHouse->ActiveBuildingTypes.GetItemCount(pBuilding->ArrayIndex);
+				count += pHouse->ActiveBuildingTypes.get_count(pBuilding->ArrayIndex);
 			}
 		}
 

@@ -736,7 +736,7 @@ ASMJIT_PATCH(0x478FDC, CCToolTip_Draw2_FillRect, 0x5)
 	// Should we make some SideExt items as static to improve the effeciency?
 	// Though it might not be a big improvement... - secsome
 	const int nPlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
-	if (const auto pSide = SideClass::Array->GetItemOrDefault(nPlayerSideIndex))
+	if (const auto pSide = SideClass::Array->get_or_default(nPlayerSideIndex))
 	{
 		if (const auto pData = SideExtContainer::Instance.Find(pSide))
 		{

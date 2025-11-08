@@ -6,8 +6,8 @@
 #ifndef ASMJIT_CORE_INSTDB_P_H_INCLUDED
 #define ASMJIT_CORE_INSTDB_P_H_INCLUDED
 
-#include "../core/inst.h"
-#include "../core/string.h"
+#include <asmjit/core/inst.h>
+#include <asmjit/core/string.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

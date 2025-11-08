@@ -21,7 +21,7 @@ public:
 	static RadBeam* ManualAllocate(RadBeamType mode)
 	{
 		auto pBeam = GameCreate<RadBeam>(mode);
-		RadBeam::Array()->AddItem(pBeam);
+		RadBeam::Array()->push_back(pBeam);
 		pBeam->unknown_18 = (mode != RadBeamType::RadBeam) ? 20.0 : 10.0;
 		return pBeam;
 	}

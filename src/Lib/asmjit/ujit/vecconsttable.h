@@ -6,7 +6,7 @@
 #ifndef ASMJIT_UJIT_VECCONSTTABLE_H_INCLUDED
 #define ASMJIT_UJIT_VECCONSTTABLE_H_INCLUDED
 
-#include "../core/globals.h"
+#include <asmjit/core/globals.h>
 
 #if !defined(ASMJIT_NO_UJIT)
 

@@ -6,7 +6,7 @@
 #ifndef ASMJIT_UJIT_UNIOP_H_INCLUDED
 #define ASMJIT_UJIT_UNIOP_H_INCLUDED
 
-#include "ujitbase.h"
+#include <asmjit/ujit/ujitbase.h>
 
 #if !defined(ASMJIT_NO_UJIT)
 
@@ -32,6 +32,7 @@ enum class UniOpCond : uint32_t {
 
 //! Instruction with a single memory operand.
 enum class UniOpM : uint32_t {
+  kPrefetch,                  //!< Explicitly prefetch memory for reading (can be implemented as NOP).
   kStoreZeroReg,              //!< Store zero (data-width depends on register size).
   kStoreZeroU8,               //!< Store zero (8-bit).
   kStoreZeroU16,              //!< Store zero (16-bit).

@@ -884,17 +884,19 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		// Civilian Tech
 		if (auto pBld = cast_to<BuildingClass*, false>(pTechno))
 		{
-			if (RulesClass::Instance->NeutralTechBuildings.Count > 0)
-				return RulesClass::Instance->NeutralTechBuildings.Contains(pBld->Type);
+			if (!RulesClass::Instance->NeutralTechBuildings.contains(pBld->Type)){
 
-			// Other cases of civilian Tech Structures
-			return !pBld->Type->InvisibleInGame
-				&& !pBld->Type->Immune
-				&& pBld->Type->Unsellable
-				&& pBld->Type->Capturable
-				&& pBld->Type->TechLevel < 0
-				&& pBld->Type->NeedsEngineer
-				&& !pBld->Type->BridgeRepairHut;
+				// Other cases of civilian Tech Structures
+				return !pBld->Type->InvisibleInGame
+					&& !pBld->Type->Immune
+					&& pBld->Type->Unsellable
+					&& pBld->Type->Capturable
+					&& pBld->Type->TechLevel < 0
+					&& pBld->Type->NeedsEngineer
+					&& !pBld->Type->BridgeRepairHut;
+			}
+
+			return true;
 		}
 		return false;
 	}
@@ -1063,7 +1065,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		if (!pTechno->Owner->IsNeutral()
 			&& IsBuilding)
 		{
-			return (RulesClass::Instance->BuildTech.Count > 0 && RulesClass::Instance->BuildTech.Contains(static_cast<BuildingTypeClass*>(pTechnoType)));
+			return (RulesClass::Instance->BuildTech.contains(static_cast<BuildingTypeClass*>(pTechnoType)));
 		}
 
 		return false;
@@ -1126,7 +1128,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 
 		if (whatTech == UnitClass::AbsID)
 		{
-			return (RulesClass::Instance->BaseUnit.Count > 0 && RulesClass::Instance->BaseUnit.Contains(static_cast<UnitTypeClass*>(pTechnoType)));
+			return RulesClass::Instance->BaseUnit.contains(static_cast<UnitTypeClass*>(pTechnoType));
 		}
 
 		return false;

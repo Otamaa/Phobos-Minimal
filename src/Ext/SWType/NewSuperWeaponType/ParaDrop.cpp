@@ -4,16 +4,6 @@
 #include <Ext/House/Body.h>
 #include <Ext/Aircraft/Body.h>
 
-std::vector<const char*> SW_ParaDrop::GetTypeString() const
-{
-	return { "NewParaDrop" };
-}
-
-bool SW_ParaDrop::HandleThisType(SuperWeaponType type) const
-{
-	return (type == SuperWeaponType::ParaDrop) || (type == SuperWeaponType::AmerParaDrop);
-}
-
 bool SW_ParaDrop::Activate(SuperClass* const pThis, const CellStruct& Coords, bool const IsPlayer)
 {
 	if (pThis->IsCharged) {

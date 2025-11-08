@@ -1,11 +1,6 @@
 #include "IonCannon.h"
 #include <Ext/WarheadType/Body.h>
 
-std::vector<const char*> SW_IonCannon::GetTypeString() const
-{
-	return { "IonCannon" };
-}
-
 SuperWeaponFlags SW_IonCannon::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent;
@@ -22,7 +17,7 @@ bool SW_IonCannon::Activate(SuperClass* pThis, const CellStruct& Coords, bool Is
 
 void SW_IonCannon::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IonCannon;
 	pData->IonCannon_BeamHeight = 750;
 	pData->IonCannon_BlastHeight = 0;
@@ -230,7 +225,7 @@ void IonCannonStateMachine::Fire()
 	}
 
 	// kill
-	auto pNewType = NewSWType::GetNewSWType(pData);
+	auto pNewType = pData->GetNewSWType();
 	auto damage = pNewType->GetDamage(pData);
 	auto pWarhead = pNewType->GetWarhead(pData);
 

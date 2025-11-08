@@ -25,7 +25,6 @@
 #pragma region defines
 PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
 HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
-PhobosMap<HouseClass*, VectorSet<TeamClass*>> HouseExtContainer::HousesTeams;
 
 int HouseExtData::LastGrindingBlanceUnit;
 int HouseExtData::LastGrindingBlanceInf;
@@ -59,7 +58,6 @@ bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
 		.Process(HouseExtData::CloakEVASpeak)
 		.Process(HouseExtData::SubTerraneanEVASpeak)
 
-		.Process(HouseExtContainer::HousesTeams)
 		.Process(HouseExtContainer::Civilian)
 		.Process(HouseExtContainer::Special)
 		.Process(HouseExtContainer::Neutral)
@@ -85,7 +83,6 @@ bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
 		.Process(HouseExtData::CloakEVASpeak)
 		.Process(HouseExtData::SubTerraneanEVASpeak)
 
-		.Process(HouseExtContainer::HousesTeams)
 		.Process(HouseExtContainer::Civilian)
 		.Process(HouseExtContainer::Special)
 		.Process(HouseExtContainer::Neutral)
@@ -247,7 +244,7 @@ RequirementStatus HouseExtData::RequirementsMet(
 	if(!(pData->Prerequisite_RequiredTheaters & (1 << static_cast<int>(ScenarioClass::Instance->Theater))))
 		return RequirementStatus::Forbidden;
 
-	if(Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative.data(), pData->Prerequisite_Negative.size()))
+	if(Prereqs::HouseOwnsAny(pHouse, pData->Prerequisite_Negative))
 		return RequirementStatus::Forbidden;
 
 	for(auto pRever : pHouseExt->Reversed){
@@ -708,7 +705,7 @@ bool HouseExtData::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* co
 {
 	for (auto& prereq : TechnoTypeExtContainer::Instance.Find(pItem)->Prerequisites)
 	{
-		if (Prereqs::HouseOwnsAll(pThis, prereq.data(), prereq.size()))
+		if (Prereqs::HouseOwnsAll(pThis, prereq))
 		{
 			return true;
 		}
@@ -717,9 +714,9 @@ bool HouseExtData::PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* co
 	return false;
 }
 
-bool HouseExtData::PrerequisitesMet(HouseClass* pThis, int* items, int size)
+bool HouseExtData::PrerequisitesMet(HouseClass* pThis, const Iterator<int> items)
 {
-	return Prereqs::HouseOwnsAll(pThis, items, size);
+	return Prereqs::HouseOwnsAll(pThis, items);
 }
 
 bool HouseExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
@@ -780,7 +777,7 @@ void HouseExtData::UpdateShotCountB(SuperWeaponTypeClass* pFor)
 
 SuperClass* HouseExtData::IsSuperAvail(int nIdx, HouseClass* pHouse)
 {
-	if (const auto pSW = pHouse->Supers.GetItemOrDefault(nIdx)) {
+	if (const auto pSW = pHouse->Supers.get_or_default(nIdx)) {
 		if (SWTypeExtContainer::Instance.Find(pSW->Type)->IsAvailable(pHouse)) {
 			return pSW;
 		}
@@ -882,7 +879,7 @@ AircraftTypeClass* HouseExtData::GetParadropPlane(HouseClass* pHouse)
 		// didn't help. default to the PDPlane like the game does.
 
 		pRest =
-			AircraftTypeClass::Array->GetItemOrDefault(iPlane, RulesExtData::Instance()->DefaultParaPlane);
+			AircraftTypeClass::Array->get_or_default(iPlane, RulesExtData::Instance()->DefaultParaPlane);
 	}
 
 	if (pRest && pRest->Strength == 0)
@@ -1014,7 +1011,7 @@ NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoT
 	 		return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
 		});
 
-		if (it != missings.end())
+		if (it != std::ranges::end(missings))
 			missings.erase(it);
 	}
 }
@@ -1040,8 +1037,11 @@ void HouseExtData::GetUnitTypeToProduce()
 	std::vector<TechnoTypeClass*> taskForceMembers;
 	taskForceMembers.reserve(UnitTypeClass::Array->Count);
 
-	for (auto& currentTeam : HouseExtContainer::HousesTeams[pThis])
+	for (auto& currentTeam : *TeamClass::Array)
 	{
+		if(currentTeam->OwnerHouse != pThis)
+			continue;
+
 		taskForceMembers.clear();
 		int teamCreationFrame = currentTeam->CreationFrame;
 
@@ -1169,8 +1169,11 @@ int HouseExtData::GetAircraftTypeToProduce()
 	taskForceMembers.reserve(AircraftTypeClass::Array->Count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
-	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[This()])
+	for (auto& CurrentTeam : *TeamClass::Array)
 	{
+		if(CurrentTeam->OwnerHouse != this->This())
+			continue;
+
 		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
 
@@ -1269,8 +1272,11 @@ int HouseExtData::GetInfantryTypeToProduce()
 	taskForceMembers.reserve(InfantryTypeClass::Array->Count);
 
 	//Debug::LogInfo(__FUNCTION__" Executing with Current TeamArrayCount[%d] for[%s][House %s - %x] ", TeamClass::Array->Count, AbstractClass::GetAbstractClassName(Ttype::AbsID), pHouse->get_ID() , pHouse);
-	for (auto& CurrentTeam : HouseExtContainer::HousesTeams[This()])
+	for (auto& CurrentTeam : *TeamClass::Array)
 	{
+		if(CurrentTeam->OwnerHouse != this->This())
+			continue;
+
 		taskForceMembers.clear();
 		int TeamCreationFrame = CurrentTeam->CreationFrame;
 
@@ -1833,7 +1839,7 @@ bool HouseExtData::IsDisabledFromShell(
 	if (pItem->SuperWeapon != -1)
 	{
 		// allow SWs only if not disableable from shell
-		if (!RulesClass::Instance->BuildTech.Contains(const_cast<BuildingTypeClass*>(pItem)))
+		if (!RulesClass::Instance->BuildTech.contains(const_cast<BuildingTypeClass*>(pItem)))
 		{
 			if (pHouse->Supers[pItem->SuperWeapon]->Type->DisableableFromShell)
 			{
@@ -2722,7 +2728,6 @@ void Container<HouseExtData>::Clear()
 
 	HouseExtData::LimboTechno.clear();
 	HouseExtData::AutoDeathObjects.clear();
-	HouseExtContainer::HousesTeams.clear();
 }
 
 /**
@@ -2751,7 +2756,7 @@ int FakeHouseClass::_Expert_AI()
 					double distanceSquared = 131072.0;
 
 					for (int i = 0; i < count; ++i) {
-						if (const auto pBuilding = this->ConYards.GetItem(i)) {
+						if (const auto pBuilding = this->ConYards.operator[](i)) {
 							if (pBuilding->IsAlive && pBuilding->Health && !pBuilding->InLimbo) {
 								if(BuildingExtContainer::Instance.Find(pBuilding)->LimboID < 0){
 									const auto newDistanceSquared = pBuilding->GetMapCoords().DistanceFromSquared(center);

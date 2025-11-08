@@ -115,7 +115,7 @@ ASMJIT_PATCH(0x5d7163, MPGameMode_SpawnStartingUnits_Types, 8)
 
 	for (auto& start : pTypeExt->StartInMultiplayer_Types) {
 		(start->WhatAmI() == UnitTypeClass::AbsID
-			? pUnitVec : pInfVec)->AddItem(start);
+			? pUnitVec : pInfVec)->push_back(start);
 	}
 
 	return 0x5D72AB;

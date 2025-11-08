@@ -278,7 +278,7 @@ std::string GeneralUtils::ApplyTheaterSuffixToString(const std::string& str)
 
 AnimTypeClass* GeneralUtils::GetAnimFacingFromVector(TechnoClass* pFirer, const Iterator<AnimTypeClass*> iter)
 {
-	return iter.GetItemAtOrDefault(GeneralUtils::GetAnimIndexFromFacing(pFirer, iter.size()),nullptr);
+	return iter.get_or(GeneralUtils::GetAnimIndexFromFacing(pFirer, iter.size()),nullptr);
 }
 
 const int GeneralUtils::GetAnimIndexFromFacing(TechnoClass* pFirer, int nVectorSize)

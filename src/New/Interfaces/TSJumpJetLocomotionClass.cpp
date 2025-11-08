@@ -135,7 +135,7 @@ IFACEMETHODIMP_(bool) TSJumpJetLocomotionClass::Process()
 
 	if (In_Which_Layer() != layer)
 	{
-		LogicClass::Instance->AddObject(LinkedTo , false);
+		MapClass::Logics->AddObject(LinkedTo , false);
 	}
 
 	return false;

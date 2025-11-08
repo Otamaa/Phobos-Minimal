@@ -5,20 +5,9 @@
 
 #include <Utilities/Helpers.h>
 
-std::vector<const char*> SW_Protect::GetTypeString() const
-{
-	return { "Protect" };
-}
-
-bool SW_Protect::HandleThisType(SuperWeaponType type) const
-{
-	return (type == SuperWeaponType::IronCurtain) ||
-			(type == SuperWeaponType::ForceShield);
-}
-
 bool SW_Protect::CanTargetingFireAt(const TargetingData* pTargeting, const CellStruct& cell, bool manual) const
 {
-	auto ret = NewSWType::CanTargetingFireAt(pTargeting, cell, manual);
+	auto ret = SWTypeHandler::CanTargetingFireAt(pTargeting, cell, manual);
 
 	// if this is a force shield requiring buildings and a building is selected, check the modifier
 	if (ret && manual && pTargeting->TypeExt->Protect_IsForceShield && pTargeting->TypeExt->SW_RequiresTarget & SuperWeaponTarget::Building)
@@ -50,7 +39,7 @@ void ProtectStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		SW_Protect::ApplyProtect(this->Super, this->Coords , NewSWType::GetNewSWType(pData)->GetRange(pData));
+		SW_Protect::ApplyProtect(this->Super, this->Coords , pData->GetNewSWType()->GetRange(pData));
 	}
 }
 

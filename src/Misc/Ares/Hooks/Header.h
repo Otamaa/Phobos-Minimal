@@ -531,21 +531,14 @@ public:
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{
 		Stm.Process(CursorIdx);
-		for (const auto& tab : TabCameos) {
-			Savegame::WritePhobosStream(Stm, tab);
-		}
-
+		Stm.Process(TabCameos);
 		return Stm.Success();
 	}
 
 	static bool LoadGlobals(PhobosStreamReader& Stm)
 	{
-		Stm.Process(CursorIdx) ;
-
-		for (auto& tab : TabCameos) {
-			Savegame::ReadPhobosStream(Stm, tab);
-		}
-
+		Stm.Process(CursorIdx);
+		Stm.Process(TabCameos);
 		return Stm.Success();
 	}
 
@@ -553,9 +546,9 @@ public:
 	{
 		for (auto& cameos : TabCameos)
 		{
-			cameos.Clear();
+			cameos.clear();
 			cameos.CapacityIncrement = 100;
-			cameos.Reserve(100);
+			cameos.reserve(100);
 		}
 	}
 
@@ -599,21 +592,13 @@ static_assert(sizeof(MouseClassExt) == sizeof(MouseClass), "Invalid Size !");
 
 struct MouseCursorFuncs
 {
-	static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
+	FORCEDINLINE static void SetMouseCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
 	{
-#ifdef Dum
-	AresData::SetMouseCursorAction(CursorIdx, nAction, bShrouded);
-#else
-	MouseClassExt::InsertMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
-#endif
+		MouseClassExt::InsertMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
 	}
-	static void SetSuperWeaponCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
+	FORCEDINLINE static void SetSuperWeaponCursorAction(size_t CursorIdx, Action nAction, bool bShrouded)
 	{
-#ifdef Dum
-	AresData::SetSWMouseCursorAction(CursorIdx, bShrouded , -1);
-#else
-	MouseClassExt::InsertSWMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
-#endif
+		MouseClassExt::InsertSWMappedAction((MouseCursorType)CursorIdx, nAction, bShrouded);
 	}
 
 };

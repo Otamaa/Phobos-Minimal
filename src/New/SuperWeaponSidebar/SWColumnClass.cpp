@@ -89,8 +89,8 @@ bool SWColumnClass::AddButton(int superIdx)
 
 		auto Compare = [ownerBits](const int left, const int right)
 		{
-			const auto pExtA = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->GetItemOrDefault(left));
-			const auto pExtB = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->GetItemOrDefault(right));
+			const auto pExtA = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->get_or_default(left));
+			const auto pExtB = SWTypeExtContainer::Instance.Find(SuperWeaponTypeClass::Array->get_or_default(right));
 
 			if (pExtB && (pExtB->SuperWeaponSidebar_PriorityHouses & ownerBits) && (!pExtA || !(pExtA->SuperWeaponSidebar_PriorityHouses & ownerBits)))
 				return false;

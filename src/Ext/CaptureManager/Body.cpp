@@ -67,7 +67,7 @@ bool CaptureExtData::FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarge
 				pManager->DecideUnitFate(pTarget);
 				pTarget->MindControlledBy = nullptr;
 
-				if (pManager->ControlNodes.RemoveAt(i))
+				if (pManager->ControlNodes.erase_at(i))
 				{
 					GameDelete<false, false>(pNode);
 				}
@@ -100,7 +100,7 @@ bool CaptureExtData::CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTa
 
 		{
 			auto pControlNode = GameCreate<ControlNode>(pTarget, pTarget->Owner, RulesClass::Instance->MindControlAttackLineFrames);
-			pManager->ControlNodes.AddItem(pControlNode);
+			pManager->ControlNodes.push_back(pControlNode);
 
 			if (threatDelay > 0) {
 				TechnoExtContainer::Instance.Find(pTarget)->BeControlledThreatFrame = Unsorted::CurrentFrame() + threatDelay;

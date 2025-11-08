@@ -15,7 +15,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 
 	if (HouseOwner)
 	{
-		if (auto pSelected = HouseOwner->Supers.GetItemOrDefault(nData.LaunchWhat))
+		if (auto pSelected = HouseOwner->Supers.get_or_default(nData.LaunchWhat))
 		{
 			auto const pSuper = pSelected;
 			const auto pSWExt = SWTypeExtContainer::Instance.Find(pSelected->Type);

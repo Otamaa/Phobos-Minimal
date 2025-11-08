@@ -6,21 +6,21 @@
 #ifndef ASMJIT_CORE_CODEHOLDER_H_INCLUDED
 #define ASMJIT_CORE_CODEHOLDER_H_INCLUDED
 
-#include "../core/archtraits.h"
-#include "../core/arena.h"
-#include "../core/arenahash.h"
-#include "../core/arenapool.h"
-#include "../core/arenastring.h"
-#include "../core/arenatree.h"
-#include "../core/arenavector.h"
-#include "../core/codebuffer.h"
-#include "../core/errorhandler.h"
-#include "../core/fixup.h"
-#include "../core/operand.h"
-#include "../core/span.h"
-#include "../core/string.h"
-#include "../core/support.h"
-#include "../core/target.h"
+#include <asmjit/core/archtraits.h>
+#include <asmjit/core/codebuffer.h>
+#include <asmjit/core/errorhandler.h>
+#include <asmjit/core/fixup.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/core/string.h>
+#include <asmjit/core/target.h>
+#include <asmjit/support/arena.h>
+#include <asmjit/support/arenahash.h>
+#include <asmjit/support/arenapool.h>
+#include <asmjit/support/arenastring.h>
+#include <asmjit/support/arenatree.h>
+#include <asmjit/support/arenavector.h>
+#include <asmjit/support/span.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

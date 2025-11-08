@@ -536,10 +536,12 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 		// Check if the running teams by the house already reached all the limits
 		HelperedVector<TeamClass*> activeTeamsList;
-		auto& vec = HouseExtContainer::HousesTeams[HouseClass::Array->Items[houseIdx]];
-		activeTeamsList.reserve(vec.size());
+		activeTeamsList.reserve(TeamClass::Array->size());
 
-		for (auto const pRunningTeam : vec) {
+		for (auto const pRunningTeam : *TeamClass::Array) {
+
+			if(HouseClass::Array->Items[houseIdx] != pRunningTeam->OwnerHouse)
+				continue;
 
 			activeTeamsList.push_back(pRunningTeam);
 
@@ -648,7 +650,7 @@ NOINLINE bool UpdateTeam(HouseClass* pHouse)
 
 		HouseClass* targetHouse = nullptr;
 		if (pHouse->EnemyHouseIndex >= 0)
-			targetHouse = HouseClass::Array->GetItem(pHouse->EnemyHouseIndex);
+			targetHouse = HouseClass::Array->operator[](pHouse->EnemyHouseIndex);
 
 		bool onlyCheckImportantTriggers = false;
 

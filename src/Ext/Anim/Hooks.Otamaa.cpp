@@ -272,7 +272,7 @@ void NOINLINE FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridg
 					CellClass* cellptr = MapClass::Instance->GetCellAt(CellClass::Coord2Cell(coords) + CellSpread::AdjacentCell[(int)x & 7]);
 
 					if (cellptr->CanTiberiumGerminate(nullptr)) {
-						if (auto pType = OverlayTypeClass::Array->GetItemOrDefault(this->Type->TiberiumSpawnType->ArrayIndex + ScenarioClass::Instance->Random.RandomFromMax(3))) {
+						if (auto pType = OverlayTypeClass::Array->get_or_default(this->Type->TiberiumSpawnType->ArrayIndex + ScenarioClass::Instance->Random.RandomFromMax(3))) {
 
 							if (!pType->Tiberium)
 								return; // not valid

@@ -2,11 +2,6 @@
 
 #include <Ext/SWType/Body.h>
 
-bool SW_ChronoSphere::HandleThisType(SuperWeaponType type) const
-{
-	return (type == SuperWeaponType::ChronoSphere);
-}
-
 SuperWeaponFlags SW_ChronoSphere::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEVA | SuperWeaponFlags::NoMoney
@@ -45,13 +40,10 @@ bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords
 			// fallback to use the first warp if there is no specific one
 			auto const& Types = *SuperWeaponTypeClass::Array;
 
-			if (!Types.ValidIndex(idxWarp) || Types[idxWarp]->Type != SuperWeaponType::ChronoWarp)
-			{
-				for (auto const& pWarp : Types)
-				{
-					if (pWarp->Type == SuperWeaponType::ChronoWarp)
-					{
-						idxWarp = Types.GetItemIndex(&pWarp);
+			if (!Types.valid_index(idxWarp) || Types[idxWarp]->Type != SuperWeaponType::ChronoWarp) {
+				for (int aI = 0; aI < Types.Count; ++aI) {
+					if (Types[aI]->Type == SuperWeaponType::ChronoWarp) {
+						idxWarp = aI;
 						break;
 					}
 				}

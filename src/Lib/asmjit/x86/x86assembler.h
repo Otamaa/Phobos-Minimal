@@ -6,9 +6,9 @@
 #ifndef ASMJIT_X86_X86ASSEMBLER_H_INCLUDED
 #define ASMJIT_X86_X86ASSEMBLER_H_INCLUDED
 
-#include "../core/assembler.h"
-#include "../x86/x86emitter.h"
-#include "../x86/x86operand.h"
+#include <asmjit/core/assembler.h>
+#include <asmjit/x86/x86emitter.h>
+#include <asmjit/x86/x86operand.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 

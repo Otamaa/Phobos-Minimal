@@ -347,7 +347,7 @@ ASMJIT_PATCH(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 			if (pThis->Health > 0)
 			{
 				auto pCell = (FakeCellClass*)pThis->GetCell();
-				if (auto pTiberium = TiberiumClass::Array->GetItemOrDefault(pCell->_GetTiberiumType()))
+				if (auto pTiberium = TiberiumClass::Array->get_or_default(pCell->_GetTiberiumType()))
 				{
 					auto pTibExt = TiberiumExtContainer::Instance.Find(pTiberium);
 

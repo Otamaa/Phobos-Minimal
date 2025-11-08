@@ -6,9 +6,9 @@
 #ifndef ASMJIT_CORE_FORMATTER_P_H_INCLUDED
 #define ASMJIT_CORE_FORMATTER_P_H_INCLUDED
 
-#include "../core/compilerdefs.h"
-#include "../core/formatter.h"
-#include "../core/operand.h"
+#include <asmjit/core/compilerdefs.h>
+#include <asmjit/core/formatter.h>
+#include <asmjit/core/operand.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

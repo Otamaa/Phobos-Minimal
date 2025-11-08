@@ -9,7 +9,9 @@ public:
 
 public:
 
-	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj) { }
+	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj) {
+		this->AbsType = UnitTypeClass::AbsID;
+	}
 	UnitTypeExtData(UnitTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 
 	virtual ~UnitTypeExtData() = default;

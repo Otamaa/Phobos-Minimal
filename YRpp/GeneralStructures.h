@@ -65,22 +65,3 @@ struct NamedValue {
 		return !(*this == other);
 	}
 };
-
-// latest c++ langue already provide this
-// this one is just a wrapper that i purposfully made so i can add more functionality later if needed
-template<typename T , size_t count>
-class ArrayWrapper
-{
-	T Data[count];
-public:
-	COMPILETIMEEVAL auto begin() const { return  std::begin(Data); }
-	COMPILETIMEEVAL auto end() const { return  std::end(Data); }
-	COMPILETIMEEVAL auto begin() { return std::begin(Data); }
-	COMPILETIMEEVAL auto end() { return std::end(Data); }
-
-	COMPILETIMEEVAL size_t size() const { return count; }
-
-	COMPILETIMEEVAL const T& at(int Index) const { return Data[Index]; }
-	COMPILETIMEEVAL T& operator[](int nIdx) { return Data[nIdx]; }
-	COMPILETIMEEVAL const T& operator[](int nIdx) const { return Data[nIdx]; }
-};

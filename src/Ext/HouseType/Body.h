@@ -129,6 +129,7 @@ public:
 		BattlePoints(false),
 		BattlePoints_CanUseStandardPoints(false)
 	{
+		this->AbsType = HouseTypeClass::AbsID;
 		this->Initialize();
 	}
 

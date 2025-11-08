@@ -3,11 +3,6 @@
 #include <Ext/House/Body.h>
 #include <Ext/SWType/Body.h>
 
-std::vector<const char*> SW_Battery::GetTypeString() const
-{
-	return { "Battery" , "Generator" };
-}
-
 bool SW_Battery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	if (!pThis->Granted)

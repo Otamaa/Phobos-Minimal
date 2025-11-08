@@ -49,7 +49,7 @@ ASMJIT_PATCH(0x48D92B, NetworkCallBack_NetMessage_Print, 0x5)
 	const int houseIndex = GlobalPacket_NetMessage::Instance->HouseIndex;
 
 	if (houseIndex < 8 && Game::ChatMask[houseIndex]) {
-		if (HouseClass* pHouse = HouseClass::Array->GetItemOrDefault(houseIndex)) {
+		if (HouseClass* pHouse = HouseClass::Array->get_or_default(houseIndex)) {
 			GlobalPacket_NetMessage::Instance->Color = (BYTE)pHouse->ColorSchemeIndex;
 			R->ESI(pHouse->UIName);
 			return PrintMessage;

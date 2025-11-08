@@ -209,7 +209,7 @@ ASMJIT_PATCH(0x41EB43, AITriggerTypeClass_Condition_SupportPowersup, 0x7)		//AIT
 	int count = BuildingTypeExtData::GetUpgradesAmount(pType, pHouse);
 
 	if (count == -1)
-		count = pHouse->ActiveBuildingTypes.GetItemCount(idxBld);
+		count = pHouse->ActiveBuildingTypes.get_count(idxBld);
 
 	R->EAX(count);
 
@@ -223,14 +223,14 @@ ASMJIT_PATCH(0x441053, BuildingClass_Unlimbo_EWGate, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, ECX);
 
-	return !RulesClass::Instance->EWGates.Contains(pThis) ? 0 : 0x441065;
+	return !RulesClass::Instance->EWGates.contains(pThis) ? 0 : 0x441065;
 }
 
 ASMJIT_PATCH(0x4410E1, BuildingClass_Unlimbo_NSGate, 0x6)
 {
 	GET(BuildingTypeClass* const, pThis, ECX);
 
-	return !RulesClass::Instance->NSGates.Contains(pThis) ? 0 : 0x4410F3;
+	return !RulesClass::Instance->NSGates.contains(pThis) ? 0 : 0x4410F3;
 }
 
 ASMJIT_PATCH(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
@@ -249,9 +249,9 @@ ASMJIT_PATCH(0x480534, CellClass_AttachesToNeighbourOverlay, 5)
 		if (pBuilding->Health > 0) {
 			const auto pBType = pBuilding->Type;
 
-			if ((RulesClass::Instance->EWGates.Contains(pBType)) && (state == 2 || state == 6))
+			if ((RulesClass::Instance->EWGates.contains(pBType)) && (state == 2 || state == 6))
 				return 0x480549;
-			else if ((RulesClass::Instance->NSGates.Contains(pBType)) && (state == 0 || state == 4))
+			else if ((RulesClass::Instance->NSGates.contains(pBType)) && (state == 0 || state == 4))
 				return 0x480549;
 			else if (RulesExtData::Instance()->WallTowers.Contains(pBType))
 				return 0x480549;
@@ -1277,7 +1277,8 @@ ASMJIT_PATCH(0x5FD2E0, OverlayClass_ReadINI, 0x7)
 
 				if (nOvl != 0xFFFFFFFF)
 				{
-					auto const pType = OverlayTypeClass::Array->GetItem(nOvl);
+					auto const pType = OverlayTypeClass::Array->operator[](nOvl);
+
 					if (pType->GetImage() || pType->CellAnim)
 					{
 						if (SessionClass::Instance->GameMode != GameMode::Campaign && pType->Crate)
@@ -1474,7 +1475,7 @@ ASMJIT_PATCH(0x412B40, AircraftTrackerClass_FillCurrentVector, 0x5)
 	GET_STACK(CellClass*, pCell, 0x4);
 	GET_STACK(int, range, 0x8);
 
-	pThis->CurrentVector.Clear();
+	pThis->CurrentVector.clear();
 
 	if (range < 1)
 		range = 1;
@@ -1489,8 +1490,9 @@ ASMJIT_PATCH(0x412B40, AircraftTrackerClass_FillCurrentVector, 0x5)
 
 	for (int y = sectorIndexYStart; y <= sectorIndexYEnd; y++) {
 		for (int x = sectorIndexXStart; x <= sectorIndexXEnd; x++) {
-			for (auto const pTechno : pThis->TrackerVectors[y][x])
-				pThis->CurrentVector.AddItem(pTechno);
+			for (auto const pTechno : pThis->TrackerVectors[y][x]) {
+				pThis->CurrentVector.push_back(pTechno);
+			}
 		}
 	}
 
@@ -1723,25 +1725,25 @@ static void __fastcall ComputeGameCRC()
 	for (auto const pInf : *InfantryClass::Array)
 	{
 		int primaryFacing = pInf->PrimaryFacing.Current().GetValue<8>();
-		AddCRC(&EventClass::CurrentFrameCRC, GetCoordHash(pInf->Location) + primaryFacing);
+		AddCRC(EventClass::CurrentFrameCRC.operator->(), GetCoordHash(pInf->Location) + primaryFacing);
 	}
 
 	for (auto const pUnit : *UnitClass::Array)
 	{
 		int primaryFacing = pUnit->PrimaryFacing.Current().GetValue<8>();
 		int secondaryFacing = pUnit->SecondaryFacing.Current().GetValue<8>();
-		AddCRC(&EventClass::CurrentFrameCRC, GetCoordHash(pUnit->Location) + primaryFacing + secondaryFacing);
+		AddCRC(EventClass::CurrentFrameCRC.operator->(), GetCoordHash(pUnit->Location) + primaryFacing + secondaryFacing);
 	}
 
 	for (auto const pBuilding : *BuildingClass::Array)
 	{
 		int primaryFacing = pBuilding->PrimaryFacing.Current().GetValue<8>();
-		AddCRC(&EventClass::CurrentFrameCRC, GetCoordHash(pBuilding->Location) + primaryFacing);
+		AddCRC(EventClass::CurrentFrameCRC.operator->(), GetCoordHash(pBuilding->Location) + primaryFacing);
 	}
 
 	for (auto const pHouse : *HouseClass::Array)
 	{
-		AddCRC(&EventClass::CurrentFrameCRC, pHouse->MapIsClear);
+		AddCRC(EventClass::CurrentFrameCRC.operator->(), pHouse->MapIsClear);
 	}
 
 	for (int i = 0; i < 5; i++)
@@ -1751,19 +1753,17 @@ static void __fastcall ComputeGameCRC()
 		for (auto const pObj : *layer)
 		{
 			if (IsHashable(pObj))
-				AddCRC(&EventClass::CurrentFrameCRC, GetCoordHash(pObj->Location) + (int)pObj->WhatAmI());
+				AddCRC(EventClass::CurrentFrameCRC.operator->(), GetCoordHash(pObj->Location) + (int)pObj->WhatAmI());
 		}
 	}
 
-	LogicClass const& logic = LogicClass::Instance;
-
-	for (auto const pObj : logic)
+	for (auto const pObj : MapClass::Logics.get())
 	{
 		if (IsHashable(pObj))
-			AddCRC(&EventClass::CurrentFrameCRC, GetCoordHash(pObj->Location) + (int)pObj->WhatAmI());
+			AddCRC(EventClass::CurrentFrameCRC.operator->(), GetCoordHash(pObj->Location) + (int)pObj->WhatAmI());
 	}
 
-	AddCRC(&EventClass::CurrentFrameCRC, ScenarioClass::Instance->Random.Random());
+	AddCRC(EventClass::CurrentFrameCRC.operator->(), ScenarioClass::Instance->Random.Random());
 	Game::LogFrameCRC(Unsorted::CurrentFrame % 256);
 }
 
@@ -1921,7 +1921,7 @@ ASMJIT_PATCH(0x74364C, UnitClass_ReadFromINI_Follower2, 0x8)
 	REF_STACK(TypeList<int>, followers, STACK_OFFSET(0xD0, -0xC0));
 	if (!UnitParseTemp::WasCreated)
 	{
-		followers.AddItem(-1);
+		followers.push_back(-1);
 		UnitParseTemp::ParsedUnits.push_back(nullptr);
 	}
 	UnitParseTemp::WasCreated = false;
@@ -2967,3 +2967,80 @@ ASMJIT_PATCH(0x54CC9C, JumpjetLocomotionClass_ProcessCrashing_DropFix, 0x5)
 
 	return fallOnSomething ? SkipGameCode2 : SkipGameCode;
 }
+
+#pragma region OwnerChangeBuildupFix
+
+void __fastcall BuildingClass_Place_Wrapper(BuildingClass* pThis, void*, bool captured)
+{
+	// Skip calling Place() here if we're in middle of buildup.
+	if (pThis->CurrentMission != Mission::Construction || pThis->BState != BStateType::Construction)
+		pThis->Place(captured);
+}
+
+DEFINE_FUNCTION_JUMP(CALL6, 0x448CEF, BuildingClass_Place_Wrapper);
+
+ASMJIT_PATCH(0x44939F, BuildingClass_Captured_BuildupFix, 0x7)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	// If we're supposed to be playing buildup during/after owner change reset any changes to mission or BState made during owner change.
+	if (pThis->CurrentMission == Mission::Construction && pThis->BState == BStateType::Construction)
+	{
+		pThis->IsReadyToCommence = false;
+		pThis->QueueBState = BStateType::None;
+		pThis->QueuedMission = Mission::None;
+	}
+
+	return 0;
+}
+
+#pragma endregion
+
+#pragma region ClearTargetOnOwnerChanged
+
+ASMJIT_PATCH(0x70D4A0, AbstractClass_ClearTargetToMe_ClearManagerTarget, 0x5)
+{
+	GET(AbstractClass*, pThis, ECX);
+
+	for (const auto pTemporal : *TemporalClass::Array)
+	{
+		if (pTemporal->Target == pThis)
+			pTemporal->LetGo();
+	}
+
+	// WW don't clear target if the techno has airstrike manager.
+	// No idea why, but for now we respect it and don't handle the airstrike target.
+	//for (const auto pAirstrike : AirstrikeClass::Array)
+	//{
+	//	if (pAirstrike->Target == pThis)
+	//		pAirstrike->ClearTarget();
+	//}
+
+	for (const auto pSpawn : *SpawnManagerClass::Array)
+	{
+		if (pSpawn->Target == pThis)
+			pSpawn->ResetTarget();
+	}
+
+	if (const auto pTechno = flag_cast_to<TechnoClass*, false>(pThis))
+		pTechno->LastTarget = nullptr;
+
+	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis))
+		pFoot->LastDestination = nullptr;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x70D4FD, AbstractClass_ClearTargetToMe_ClearLastTarget, 0x6)
+{
+	GET(TechnoClass*, pTechno, ESI);
+	GET(const bool, shouldClear, ECX);
+	GET(AbstractClass*, pThis, EBP);
+
+	if (pTechno->LastTarget == pThis && shouldClear)
+		pTechno->LastTarget = nullptr;
+
+	return 0;
+}
+
+#pragma endregion

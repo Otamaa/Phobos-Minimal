@@ -7,11 +7,6 @@
 
 #include <Utilities/Helpers.h>
 
-std::vector<const char*> SW_HunterSeeker::GetTypeString() const
-{
-	return { "HunterSeeker" };
-}
-
 bool SW_HunterSeeker::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	HouseClass* pOwner = pThis->Owner;

@@ -6,20 +6,20 @@
 #ifndef ASMJIT_CORE_BUILDER_H_INCLUDED
 #define ASMJIT_CORE_BUILDER_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_BUILDER
 
-#include "../core/arena.h"
-#include "../core/arenavector.h"
-#include "../core/assembler.h"
-#include "../core/codeholder.h"
-#include "../core/constpool.h"
-#include "../core/formatter.h"
-#include "../core/inst.h"
-#include "../core/operand.h"
-#include "../core/string.h"
-#include "../core/support.h"
-#include "../core/type.h"
+#include <asmjit/core/assembler.h>
+#include <asmjit/core/codeholder.h>
+#include <asmjit/core/constpool.h>
+#include <asmjit/core/formatter.h>
+#include <asmjit/core/inst.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/core/string.h>
+#include <asmjit/core/type.h>
+#include <asmjit/support/arena.h>
+#include <asmjit/support/arenavector.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -403,6 +403,11 @@ public:
   [[nodiscard]]
   ASMJIT_API Label new_named_label(const char* name, size_t name_size = SIZE_MAX, LabelType type = LabelType::kGlobal, uint32_t parent_id = Globals::kInvalidId) override;
 
+  [[nodiscard]]
+  ASMJIT_INLINE Label new_named_label(Span<const char> name, LabelType type = LabelType::kGlobal, uint32_t parent_id = Globals::kInvalidId) {
+    return new_named_label(name.data(), name.size(), type, parent_id);
+  }
+
   ASMJIT_API Error bind(const Label& label) override;
 
   //! \}
@@ -472,6 +477,8 @@ public:
   //! \{
 
   ASMJIT_API Error comment(const char* data, size_t size = SIZE_MAX) override;
+
+  ASMJIT_INLINE Error comment(Span<const char> data) { return comment(data.data(), data.size()); }
 
   //! \}
 
@@ -1081,7 +1088,7 @@ public:
   //! Returns the index of the given operand type `op_type`.
   //!
   //! \note If the operand type wa found, the value returned represents its index in \ref operands()
-  //! array, otherwise \ref Globals::kNPos is returned to signalize that the operand was not found.
+  //! array, otherwise `SIZE_MAX` is returned to signalize that the operand was not found.
   [[nodiscard]]
   inline size_t index_of_op_type(OperandType op_type) const noexcept {
     Span<const Operand> ops = operands();
@@ -1090,7 +1097,7 @@ public:
         return i;
     }
 
-    return Globals::kNPos;
+    return SIZE_MAX;
   }
 
   //! A shortcut that calls `index_of_op_type(OperandType::kMem)`.

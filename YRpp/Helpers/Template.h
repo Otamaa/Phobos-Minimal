@@ -81,14 +81,14 @@ void FORCEINLINE AnnounceInvalidPointer(T& elem, void* ptr , bool removed) {
 template<typename T>
 void FORCEINLINE AnnounceInvalidPointer(DynamicVectorClass<T> &elem, void *ptr) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
-	elem.Remove((T)ptr);
+	elem.erase((T)ptr);
 }
 
 template<typename T>
 void FORCEINLINE AnnounceInvalidPointer(DynamicVectorClass<T>& elem, void* ptr, bool removed) {
 	static_assert(std::is_pointer<T>::value, "Pointer Required !");
 	if(removed){
-		elem.Remove((T)ptr);
+		elem.erase((T)ptr);
 	}
 }
 

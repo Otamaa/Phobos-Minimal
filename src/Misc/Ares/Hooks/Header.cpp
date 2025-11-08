@@ -332,7 +332,7 @@ bool TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType, HouseClass* pHo
 			return true;
 		}
 
-		return pCountry->VeteranInfantry.Contains(static_cast<InfantryTypeClass*>(pType));
+		return pCountry->VeteranInfantry.contains(static_cast<InfantryTypeClass*>(pType));
 
 	}
 	case AbstractType::UnitType:
@@ -346,7 +346,7 @@ bool TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType, HouseClass* pHo
 			return true;
 		}
 
-		return pCountry->VeteranUnits.Contains((UnitTypeClass*)pType);
+		return pCountry->VeteranUnits.contains((UnitTypeClass*)pType);
 	}
 	case AbstractType::AircraftType:
 	{
@@ -355,13 +355,13 @@ bool TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType, HouseClass* pHo
 			return true;
 		}
 
-		return pCountry->VeteranAircraft.Contains((AircraftTypeClass*)(pType));
+		return pCountry->VeteranAircraft.contains((AircraftTypeClass*)(pType));
 	}
 	case AbstractType::BuildingType:
 	{
 		if (auto const pItem = pType->UndeploysInto)
 		{
-			return pCountry->VeteranUnits.Contains((UnitTypeClass*)(pItem));
+			return pCountry->VeteranUnits.contains((UnitTypeClass*)(pItem));
 		}
 		else if (pHouseExt->Is_ConstructionYardSpied && pType->Trainable)
 		{
@@ -1080,7 +1080,7 @@ bool TechnoExt_ExtData::KillerAllowedToEarnBounty(TechnoClass* pKiller, TechnoCl
 
 	for (auto const& pEnablers : RulesExtData::Instance()->Bounty_Enablers)
 	{
-		if (pKiller->Owner->ActiveBuildingTypes.GetItemCount(pEnablers->ArrayIndex) > 0)
+		if (pKiller->Owner->ActiveBuildingTypes.get_count(pEnablers->ArrayIndex) > 0)
 			return true;
 	}
 
@@ -1180,7 +1180,7 @@ AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, 
 
 	if (pTargetUnit
 		&& ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune
-		&& RulesClass::Instance->HarvesterUnit.Contains(pTargetUnit->Type))
+		&& RulesClass::Instance->HarvesterUnit.contains(pTargetUnit->Type))
 	{
 		return AresHijackActionResult::None;
 	}
@@ -1614,7 +1614,7 @@ void TechnoExt_ExtData::InitWeapon(
 
 InfantryClass* TechnoExt_ExtData::RecoverHijacker(FootClass* const pThis)
 {
-	if (auto const pType = InfantryTypeClass::Array->GetItemOrDefault(
+	if (auto const pType = InfantryTypeClass::Array->get_or_default(
 		pThis->HijackerInfantryType))
 	{
 		const auto pOwner = TechnoExtContainer::Instance.Find(pThis)->HijackerOwner ?
@@ -2032,9 +2032,9 @@ void TechnoExt_ExtData::doTraverseTo(BuildingClass* currentBuilding, BuildingCla
 	while (currentBuilding->Occupants.Count && (targetBuilding->Occupants.Count < targetBuildingType->MaxNumberOccupants))
 	{
 		auto item = currentBuilding->Occupants.Items[0];
-		targetBuilding->Occupants.AddItem(item);
+		targetBuilding->Occupants.push_back(item);
 		InfantryExtContainer::Instance.Find(item)->GarrisonedIn = targetBuilding;
-		currentBuilding->Occupants.Remove(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
+		currentBuilding->Occupants.erase(item); // maybe switch Add/Remove if the game gets pissy about multiple of them walking around
 	}
 
 	// fix up firing index, as decrementing the source occupants can invalidate it
@@ -2078,7 +2078,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 		auto const mode = SessionClass::Instance->GameMode;
 
 		// the AI in multiplayer games only attacks its favourite enemy
-		auto const pFavouriteEnemy = HouseClass::Array->GetItemOrDefault(pOwner->EnemyHouseIndex);
+		auto const pFavouriteEnemy = HouseClass::Array->get_or_default(pOwner->EnemyHouseIndex);
 		auto const favouriteEnemyOnly = (mode != GameMode::Campaign
 			&& pFavouriteEnemy && !isHumanControlled);
 
@@ -2152,7 +2152,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			if (ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune
 				&& what == UnitClass::AbsID)
 			{
-				if (RulesClass::Instance->HarvesterUnit.Contains(((UnitTypeClass*)pType)))
+				if (RulesClass::Instance->HarvesterUnit.contains(((UnitTypeClass*)pType)))
 				{
 					continue;
 				}
@@ -2531,7 +2531,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 			}
 			effectApplied = true;
 		}
-		else if (!RulesClass::Instance->BuildTech.Count || !RulesClass::Instance->BuildTech.Contains(EnteredType))
+		else if (!RulesClass::Instance->BuildTech.contains(EnteredType))
 		{
 			if (EnteredType->SuperWeapon != -1)
 			{
@@ -2709,7 +2709,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 		// Did you mean for not launching for real or not, Morton?
 		auto launchTheSWHere = [EnteredBuilding, pTypeExt](int const idx, HouseClass* const pHouse, bool realLaunch = false)
 			{
-				if (const auto pSuper = pHouse->Supers.GetItemOrDefault(idx))
+				if (const auto pSuper = pHouse->Supers.get_or_default(idx))
 				{
 					if (!realLaunch || (pSuper->Granted && pSuper->IsCharged && !pSuper->IsOnHold))
 					{
@@ -2730,7 +2730,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 
 		auto justGrantTheSW = [](int const idx, HouseClass* const pHouse)
 			{
-				if (const auto pSuper = pHouse->Supers.GetItemOrDefault(idx))
+				if (const auto pSuper = pHouse->Supers.get_or_default(idx))
 				{
 					if (pSuper->Granted)
 						pSuper->SetCharge(100);
@@ -3482,7 +3482,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 						pSlaveNode->Slave = nullptr;
 						pSlaveNode->State = SlaveControlStatus::Dead;
 						pSlaveNode->RespawnTimer.Start(pCurrentType->SlaveRegenRate);
-						pSlaveManager->SlaveNodes.AddItem(pSlaveNode);
+						pSlaveManager->SlaveNodes.push_back(pSlaveNode);
 					}
 				}
 			}
@@ -3491,7 +3491,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 				// Remove excess slaves
 				for (int i = pSlaveManager->SlaveCount - 1; i >= pCurrentType->SlavesNumber; --i)
 				{
-					if (auto pSlaveNode = pSlaveManager->SlaveNodes.GetItem(i))
+					if (auto pSlaveNode = pSlaveManager->SlaveNodes.operator[](i))
 					{
 						if (const auto pSlave = pSlaveNode->Slave)
 						{
@@ -3513,10 +3513,9 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 						pSlaveNode->State = SlaveControlStatus::Dead;
 						GameDelete<false,false>(pSlaveNode);
 					}
-
-					// Remove it
-					pSlaveManager->SlaveNodes.RemoveAt(i);
 				}
+
+				pSlaveManager->SlaveNodes.clear();
 			}
 
 			pSlaveManager->SlaveCount = pCurrentType->SlavesNumber;
@@ -3571,7 +3570,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 				// Add the missing Spawns, but don't intend for them to be born right away.
 				for (int index = 0; index < count; index++)
 				{
-					pSpawnManager->SpawnedNodes.AddItem((SpawnNode*)GameCreate<SpawnNode_2>(nullptr, SpawnNodeStatus::Dead, pCurrentType->SpawnRegenRate, false));
+					pSpawnManager->SpawnedNodes.push_back((SpawnNode*)GameCreate<SpawnNode_2>(nullptr, SpawnNodeStatus::Dead, pCurrentType->SpawnRegenRate, false));
 				}
 			}
 			else
@@ -3579,7 +3578,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 				// Remove excess spawns
 				for (int i = pSpawnManager->SpawnCount - 1; i >= pCurrentType->SpawnsNumber; --i)
 				{
-					if (auto pSpawnNode = pSpawnManager->SpawnedNodes.GetItem(i))
+					if (auto pSpawnNode = pSpawnManager->SpawnedNodes.operator[](i))
 					{
 						auto& pStatus = pSpawnNode->Status;
 
@@ -3611,10 +3610,9 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 						pStatus = SpawnNodeStatus::Dead;
 						GameDelete<false,false>(pSpawnNode);
 					}
-
-					// Remove it
-					pSpawnManager->SpawnedNodes.RemoveAt(i);
 				}
+
+				pSpawnManager->SpawnedNodes.clear();
 			}
 
 			pSpawnManager->SpawnCount = pCurrentType->SpawnsNumber;
@@ -3718,8 +3716,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 				// Remove excess nodes.
 				for (int index = pCaptureManager->ControlNodes.Count - 1; index >= maxCapture; --index)
 				{
-					auto const pControlNode = pCaptureManager->ControlNodes.GetItem(index);
-					pCaptureManager->FreeUnit(pControlNode->Unit);
+					pCaptureManager->FreeUnit(pCaptureManager->ControlNodes.operator[](index)->Unit);
 				}
 			}
 
@@ -3917,7 +3914,7 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 
 				// OpenTopped adds passengers to logic layer when enabled. Under normal conditions this does not need to be removed since
 				// OpenTopped state does not change while passengers are still in transport but in case of type conversion that can happen.
-				LogicClass::Instance->RemoveObject(pFirstPassenger);
+				MapClass::Logics->RemoveObject(pFirstPassenger);
 			}
 
 			pFirstPassenger->Transporter = pThis;
@@ -3976,11 +3973,11 @@ void UpdateTypeData_Foot(FootClass* pThis, TechnoTypeClass* pOldType, TechnoType
 						pJJLoco->IsMoving = true;
 
 						if (!inMove)
-							pJJLoco->HeadToCoord = pThis->Location;
+							pJJLoco->HeadToCoord = pThis->GetCoords();
 					}
 					else if (!inMove)
 					{
-						pJJLoco->Move_To(pThis->Location);
+						pJJLoco->Move_To(pThis->GetCoords());
 					}
 				}
 			}
@@ -4542,7 +4539,7 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 
 		fmt::format_to(std::back_inserter(moneyStr), L"{}{}{}", isPositive ? L"+" : L"-", Phobos::UI::CostLabel, Math::abs(value));
 		moneyStr.push_back(L'\0');
-	
+
 		CoordStruct loc = pThis->GetCoords();
 		if (!MapClass::Instance->IsLocationShrouded(loc)
 			&& pThis->VisualCharacter(FALSE, HouseClass::CurrentPlayer()) != VisualType::Hidden)
@@ -6181,7 +6178,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 				if (pTypeExt->Convert_Script)
 				{
 					const auto& pConvertReq = pTypeExt->Convert_Scipt_Prereq;
-					if (pConvertReq.empty() || Prereqs::HouseOwnsAll(pTeam->OwnerHouse, (int*)pConvertReq.data(), (int)pConvertReq.size()))
+					if (pConvertReq.empty() || Prereqs::HouseOwnsAll(pTeam->OwnerHouse, pConvertReq))
 					{
 						TechnoExt_ExtData::ConvertToType(pFirst, pTypeExt->Convert_Script);
 					}
@@ -6277,7 +6274,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 		nTargetCoords = pTarget->GetCoords();
 
 	const auto Attacker = pOwner;
-	const auto pTargetType = Target->GetTechnoType();
+	//const auto pTargetType = Target->GetTechnoType();
 	const auto AttackerType = Attacker->GetTechnoType();
 
 	if (!pWHExt->CanAffectHouse(Attacker->Owner, Target->GetOwningHouse()))
@@ -6303,7 +6300,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 	Target->StopMoving();
 	Target->SetDestination(nullptr, true); // Target->UpdatePosition(int) ?
 	Target->SetTarget(nullptr);
-	Target->CurrentTargets.Clear(); // Target->ShouldLoseTargetNow ?
+	Target->CurrentTargets.clear(); // Target->ShouldLoseTargetNow ?
 	Target->SetArchiveTarget(nullptr);
 	Target->QueueMission(Mission::Sleep, true);
 	Target->MissionAccumulateTime = 0; // don't ask
@@ -6469,7 +6466,7 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 
 	if (fatalRate > 0.0 && Random.RandomDouble() < fatalRate)
 	{
-		pBuilding->Occupants.RemoveAt(idxPoorBastard);
+		pBuilding->Occupants.erase_at(idxPoorBastard);
 		pPoorBastard->Destroyed(pThis->Owner);
 		pPoorBastard->UnInit();
 		pBuilding->UpdateThreatInCell(pBuilding->GetCell());
@@ -6723,8 +6720,8 @@ bool AresTActionExt::LightstormStrike(TActionClass* pAction, HouseClass* pHouse,
 				// create the cloud and do some book keeping.auto const
 				auto pAnim = GameCreate<AnimClass>(pAnimType, coords);
 				pAnim->SetHouse(pHouse);
-				LightningStorm::CloudsManifesting->AddItem(pAnim);
-				LightningStorm::CloudsPresent->AddItem(pAnim);
+				LightningStorm::CloudsManifesting->push_back(pAnim);
+				LightningStorm::CloudsPresent->push_back(pAnim);
 			}
 		}
 	}
@@ -6786,7 +6783,7 @@ bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, Obj
 
 bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
-	if (const auto pAnimType = AnimTypeClass::Array->GetItemOrDefault(pAction->Value))
+	if (const auto pAnimType = AnimTypeClass::Array->get_or_default(pAction->Value))
 	{
 		auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
 		CoordStruct nCoord = CellClass::Cell2Coord(nLoc);
@@ -6812,7 +6809,7 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 
 bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
-	if (const auto pWeaponType = WeaponTypeClass::Array->GetItemOrDefault(pAction->Value))
+	if (const auto pWeaponType = WeaponTypeClass::Array->get_or_default(pAction->Value))
 	{
 		auto nLoc = ScenarioClass::Instance->GetWaypointCoords(pAction->Waypoint);
 		CoordStruct nCoord = CellClass::Cell2Coord(nLoc);
@@ -7804,7 +7801,7 @@ bool AresHouseExt::CheckBasePlanSanity(HouseClass* const pThis)
 
 	CheckList(HouseTypeExtContainer::Instance.Find(pType)->GetPowerplants(), "Powerplants");
 
-	//auto const pSide = SideClass::Array->GetItemOrDefault(pType->SideIndex);
+	//auto const pSide = SideClass::Array->get_or_default(pType->SideIndex);
 	//if(auto const pSideExt = SideExtContainer::Instance.Find(pSide)) {
 	//	CheckList(make_iterator(pSideExt->BaseDefenses), "Base Defenses");
 	//}
@@ -7974,14 +7971,14 @@ void AresHouseExt::SetFirestormState(HouseClass* pHouse, bool const active)
 	UpdateAnyFirestormActive(active);
 
 	DynamicVectorClass<CellStruct> AffectedCoords {};
-	AffectedCoords.SetCapacity(pHouse->Buildings.Count);
+	AffectedCoords.reserve(pHouse->Buildings.Count);
 
 	for (auto const& pBld : pHouse->Buildings)
 	{
 		if (BuildingTypeExtContainer::Instance.Find(pBld->Type)->Firestorm_Wall)
 		{
 			FirewallFunctions::UpdateFirewall(pBld, true);
-			AffectedCoords.AddItem(pBld->GetMapCoords());
+			AffectedCoords.push_back(pBld->GetMapCoords());
 		}
 	}
 
@@ -8224,15 +8221,15 @@ void MouseClassExt::InsertMappedAction(MouseCursorType nCursorIdx, Action nActio
 
 void MouseClassExt::InsertSWMappedAction(MouseCursorType nCursorIdx, Action nAction, bool Shrouded)
 {
-	switch ((AresNewActionType)nAction)
+	switch ((PhobosNewActionType)nAction)
 	{
-	case AresNewActionType::SuperWeaponAllowed:
+	case PhobosNewActionType::SuperWeaponAllowed:
 	{
 		CursorIdx[(size_t)Action::count].Idx = (size_t)nCursorIdx;
 		CursorIdx[(size_t)Action::count].AllowShourd = Shrouded;
 	}
 	break;
-	case AresNewActionType::SuperWeaponDisallowed:
+	case PhobosNewActionType::SuperWeaponDisallowed:
 	{
 		CursorIdx[(size_t)Action::count + 1].Idx = (size_t)nCursorIdx;
 		CursorIdx[(size_t)Action::count + 1].AllowShourd = Shrouded;
@@ -8358,13 +8355,13 @@ int MouseClassExt::_Get_Mouse_Frame_Count(MouseCursorType mouse) const
 
 size_t MouseClassExt::GetActionIndex(Action nAction)
 {
-	switch ((AresNewActionType)nAction)
+	switch ((PhobosNewActionType)nAction)
 	{
-	case AresNewActionType::SuperWeaponAllowed:
+	case PhobosNewActionType::SuperWeaponAllowed:
 	{
 		return (size_t)Action::count;
 	}
-	case AresNewActionType::SuperWeaponDisallowed:
+	case PhobosNewActionType::SuperWeaponDisallowed:
 	{
 		return (size_t)Action::count + 1;
 	}

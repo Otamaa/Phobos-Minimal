@@ -176,6 +176,10 @@ public:
 	double GetThreatAvoidance() const {
 		JMP_THIS(0x4DC760);
 	}
+
+	bool To_Try_Something() {
+		JMP_THIS(0x4E0080);
+	}
 	//Constructor
 	FootClass(HouseClass* pOwner) noexcept : FootClass(noinit_t())
 		{ JMP_THIS(0x4D31E0); }

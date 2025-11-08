@@ -349,7 +349,7 @@ namespace boolinq {
         Linq<std::tuple<std::vector<T>, _TIter, bool>, T> orderBy(F transform) const
         {
             std::vector<T> items = toStdVector();
-			std::ranges::sort(items, [transform](const T &a, const T &b) {
+            std::sort(items.begin(), items.end(), [transform](const T &a, const T &b) {
                 return transform(a) < transform(b);
             });
 

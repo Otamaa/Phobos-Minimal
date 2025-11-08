@@ -360,7 +360,7 @@ int HouseClass::FindSuperWeaponIndex(SuperWeaponType const type) const {
 
 SuperClass* HouseClass::FindSuperWeapon(SuperWeaponType const type) const {
 	auto index = this->FindSuperWeaponIndex(type);
-	return this->Supers.GetItemOrDefault(index);
+	return this->Supers.get_or_default(index);
 }
 
 SuperClass* HouseClass::FindSuperWeapon(SuperWeaponTypeClass* pType) const {
@@ -422,7 +422,7 @@ int TechnoClass::GetIonCannonValue(AIDifficulty const difficulty) const {
 		{
 			pValues = &rules.AIIonCannonHarvesterValue;
 		}
-		else if (rules.BuildConst.FindItemIndex(pType->DeploysInto) != -1)
+		else if (rules.BuildConst.contains(pType->DeploysInto))
 		{
 			pValues = &rules.AIIonCannonMCVValue;
 		}
@@ -469,7 +469,7 @@ int TechnoClass::GetIonCannonValue(AIDifficulty const difficulty) const {
 		{
 			pValues = &rules.AIIonCannonHelipadValue;
 		}
-		else if (rules.BuildConst.FindItemIndex(pType) != -1)
+		else if (rules.BuildConst.contains(pType))
 		{
 			pValues = &rules.AIIonCannonTechCenterValue;
 		}
@@ -502,7 +502,7 @@ int TechnoClass::GetIonCannonValue(AIDifficulty const difficulty) const {
 		break;
 	}
 
-	return pValues ? pValues->GetItemOrDefault(static_cast<int>(difficulty), value) : value;
+	return pValues ? pValues->get_or_default(static_cast<int>(difficulty), value) : value;
 }
 
 void InfantryClass::RemoveMe_FromGunnerTransport()
@@ -835,7 +835,7 @@ TypeList<T*> CCINIClass::Get_TypeList(const char* section, const char* entry, co
 				T* ptr = const_cast<T*>(T::FindOrAllocate(name));
 				if (ptr)
 				{
-					list.AddItem(ptr);
+					list.push_back(ptr);
 				}
 			}
 
@@ -1223,7 +1223,7 @@ void Game::Unselect_All_Except(AbstractType rtti)
 
 		if (count_before <= ObjectClass::CurrentObjects->Count)
 		{
-			ObjectClass::CurrentObjects->Remove(ObjectClass::CurrentObjects->Items[index]);
+			ObjectClass::CurrentObjects->erase(ObjectClass::CurrentObjects->Items[index]);
 		}
 	}
 }
@@ -1245,7 +1245,7 @@ void Game::Unselect_All_Except(ObjectTypeClass* objecttype)
 
 		if (count_before <= ObjectClass::CurrentObjects->Count)
 		{
-			ObjectClass::CurrentObjects->Remove(ObjectClass::CurrentObjects->Items[index]);
+			ObjectClass::CurrentObjects->erase(ObjectClass::CurrentObjects->Items[index]);
 		}
 	}
 }
@@ -1267,7 +1267,7 @@ void Game::Unselect_All_Except(ObjectClass* object)
 
 		if (count_before <= ObjectClass::CurrentObjects->Count)
 		{
-			ObjectClass::CurrentObjects->Remove(ObjectClass::CurrentObjects->Items[index]);
+			ObjectClass::CurrentObjects->erase(ObjectClass::CurrentObjects->Items[index]);
 		}
 	}
 }

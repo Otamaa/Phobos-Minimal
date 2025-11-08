@@ -83,7 +83,7 @@ ASMJIT_PATCH(0x71C2BC, TerrainClass_Draw_CustomPal, 0x6)
 		int colorSchemeIndex = HouseClass::CurrentPlayer->ColorSchemeIndex;
 
 		if (wallOwnerIndex >= 0)
-			colorSchemeIndex = HouseClass::Array->GetItem(wallOwnerIndex)->ColorSchemeIndex;
+			colorSchemeIndex = HouseClass::Array->operator[](wallOwnerIndex)->ColorSchemeIndex;
 
 
 		pConvert = pTerrainExt->CustomPalette.ColorschemeDataVector->Items[colorSchemeIndex]->LightConvert;
@@ -136,7 +136,7 @@ ASMJIT_PATCH(0x71C6EE, TerrainClass_FireOut_Crumbling, 0x6)
 	if (!pThis->TimeToDie && pTypeExt->HasCrumblingFrames)
 	{
 		// Needs to be added to the logic layer for the anim to work.
-		LogicClass::Instance->AddObject(pThis, false);
+		MapClass::Logics->AddObject(pThis, false);
 		VocClass::SafeImmedietelyPlayAt(pTypeExt->CrumblingSound, pThis->GetCoords());
 
 		return StartCrumbling;

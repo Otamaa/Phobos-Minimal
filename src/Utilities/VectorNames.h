@@ -25,7 +25,7 @@ public:
 
 	const char* operator[] (int index) const
 	{
-		return this->Strings.GetItemOrDefault(index);
+		return this->Strings.get_or_default(index);
 	}
 
 	COMPILETIMEEVAL const DynamicVectorClass<const char*>* Entries() const
@@ -62,7 +62,7 @@ public:
 			char* context = nullptr;
 			for (auto cur = CRT::strtok(this->Buffer, ",", &context); cur && *cur; cur = CRT::strtok(nullptr, ",", &context))
 			{
-				this->Strings.AddItem(cur);
+				this->Strings.push_back(cur);
 			}
 		}
 	}

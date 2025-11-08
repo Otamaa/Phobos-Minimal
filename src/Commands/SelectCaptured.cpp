@@ -41,7 +41,7 @@ void SelectCapturedCommandClass::Execute(WWKey eInput) const
 	MapClass::Instance->SetSellMode(0);
 
 	auto pFirstObject = MapClass::Instance->NextObject(
-		ObjectClass::CurrentObjects->Count ? ObjectClass::CurrentObjects->GetItem(0) : nullptr);
+		ObjectClass::CurrentObjects->Count ? ObjectClass::CurrentObjects->operator[](0) : nullptr);
 
 	bool capturedPresent = false;
 	auto pCurrentObject = pFirstObject;

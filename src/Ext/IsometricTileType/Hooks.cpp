@@ -21,7 +21,7 @@ ASMJIT_PATCH(0x483F5B, CellClass_InitDrawer_custom_1,0x8)
 	GET_STACK(int, g, 0x18 - 0x14);
 	GET_STACK(int, r, 0x18 + 0x4);
 
-	R->EAX(IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass::Array->GetItemOrDefault(pCell->IsoTileTypeIndex),
+	R->EAX(IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass::Array->get_or_default(pCell->IsoTileTypeIndex),
 		r,
 		g,
 		b
@@ -32,7 +32,7 @@ ASMJIT_PATCH(0x483F5B, CellClass_InitDrawer_custom_1,0x8)
 ASMJIT_PATCH(0x483FE5, CellClass_InitDrawer_custom_2, 0x5)
 {
 	GET(CellClass*, pCell, ESI);
-	R->EAX(IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass::Array->GetItemOrDefault(pCell->IsoTileTypeIndex),
+	R->EAX(IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass::Array->get_or_default(pCell->IsoTileTypeIndex),
 		1000,
 		1000,
 		1000
@@ -47,7 +47,7 @@ ASMJIT_PATCH(0x484135, CellClass_UpdateCellLightning_custom_1, 0x8)
 	GET_STACK(int, g, 0x14 + 0x14);
 	GET_STACK(int, r, 0x14 - 0x4);
 
-	R->EAX(IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass::Array->GetItemOrDefault(pCell->IsoTileTypeIndex),
+	R->EAX(IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass::Array->get_or_default(pCell->IsoTileTypeIndex),
 		r,
 		g,
 		b
@@ -58,7 +58,7 @@ ASMJIT_PATCH(0x484135, CellClass_UpdateCellLightning_custom_1, 0x8)
 ASMJIT_PATCH(0x484155, CellClass_UpdateCellLightning_custom_2, 0x5)
 {
 	GET(CellClass*, pCell, ESI);
-	R->EAX(IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass::Array->GetItemOrDefault(pCell->IsoTileTypeIndex),
+	R->EAX(IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass::Array->get_or_default(pCell->IsoTileTypeIndex),
 		1000,
 		1000,
 		1000

@@ -48,7 +48,7 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 					(r + g + b < 2000 ? 27 : 53)
 				);
 
-			LightConvertClass::Array->AddItem(pLightConvert);
+			LightConvertClass::Array->push_back(pLightConvert);
 			Iter->second = pLightConvert;
 		}
 
@@ -69,7 +69,7 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 				(r + g + b < 2000 ? 27 : 53)
 			);
 
-		LightConvertClass::Array->AddItem(pLightConvert);
+		LightConvertClass::Array->push_back(pLightConvert);
 		entities[tint] = pLightConvert;
 		return pLightConvert;
 	}

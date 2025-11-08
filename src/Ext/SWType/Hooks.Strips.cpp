@@ -1,6 +1,6 @@
 #include "Body.h"
 
-#include "NewSuperWeaponType/NewSWType.h"
+#include "NewSuperWeaponType/SWTypeHandler.h"
 
 #include <Utilities/Enum.h>
 
@@ -23,7 +23,7 @@ ASMJIT_PATCH(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 {
 	GET_STACK(Action, nAction, 0x9C);
 
-	if (nAction < (Action)AresNewActionType::SuperWeaponDisallowed)
+	if (nAction < (Action)PhobosNewActionType::SuperWeaponDisallowed)
 	{
 		// get the actual firing SW type instead of just the first type of the
 		// requested action. this allows clones to work for legacy SWs (the new
@@ -31,7 +31,7 @@ ASMJIT_PATCH(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 		// action of the found type as the no-cursor represents a different
 		// action and we don't want to start a force shield even tough the UI
 		// says no.
-		auto pSW = SuperWeaponTypeClass::Array->GetItemOrDefault(Unsorted::CurrentSWType());
+		auto pSW = SuperWeaponTypeClass::Array->get_or_default(Unsorted::CurrentSWType());
 		if (pSW && (pSW->Action != nAction))
 		{
 			pSW = nullptr;
@@ -40,7 +40,7 @@ ASMJIT_PATCH(0x4AC20C, DisplayClass_LeftMouseButtonUp, 7)
 		R->EAX(pSW);
 		return pSW ? 0x4AC21C : 0x4AC294;
 	}
-	else if (nAction == (Action)AresNewActionType::SuperWeaponDisallowed)
+	else if (nAction == (Action)PhobosNewActionType::SuperWeaponDisallowed)
 	{
 		R->EAX(0);
 		return 0x4AC294;

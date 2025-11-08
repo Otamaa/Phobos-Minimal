@@ -171,6 +171,8 @@ public:
 		Sidebar_BattlePoints_Color(),
 		Sidebar_BattlePoints_Align(TextAlign::Left)
 	{
+		this->AbsType = SideClass::AbsID;
+
 		this->Initialize();
 	}
 

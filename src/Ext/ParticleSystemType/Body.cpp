@@ -23,7 +23,7 @@ bool ParticleSystemTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr
 		return false;
 
 	auto pThis = This();
-	const char* pID = Name();
+	const char* pID = Name.data();
 
 	if (parseFailAddr)
 		return false;

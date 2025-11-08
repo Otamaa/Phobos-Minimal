@@ -26,7 +26,7 @@ void HouseTypeExtData::Initialize()
 	const auto it = std::ranges::find_if(countries,
 		[=](const char* pCountry) { return IS_SAME_STR_(pID, pCountry); });
 
-	const size_t index = it != std::end(countries) ? std::distance(std::begin(countries), it) : -1;
+	const size_t index = it != std::ranges::end(countries) ? std::distance(std::ranges::begin(countries), it) : -1;
 	this->TauntFileName->resize(19);
 
 	switch ((Countries)index)
@@ -433,18 +433,18 @@ Iterator<BuildingTypeClass*> HouseTypeExtData::GetDefaultPowerplants() const
 
 int HouseTypeExtData::PickRandomCountry()
 {
-	DiscreteDistributionClass<int> items;
+	DiscreteDistribution<int> items {};
 
 	for (int i = 0; i < HouseTypeClass::Array->Count; i++) {
 		HouseTypeClass* pCountry = HouseTypeClass::Array->Items[i];
 		if (pCountry->Multiplay) {
-				items.Add(i,
+				items.add(i,
 				HouseTypeExtContainer::Instance.Find(pCountry)->RandomSelectionWeight);
 		}
 	}
 
 	int ret = 0;
-	if (!items.Select(ScenarioClass::Instance->Random, &ret)) {
+	if (!items.select(ScenarioClass::Instance->Random, &ret)) {
 		Debug::FatalErrorAndExit("No countries eligible for random selection!");
 	}
 
@@ -547,6 +547,7 @@ ASMJIT_PATCH(0x5127CF, HouseTypeClass_DTOR, 0x6)
 
 bool FakeHouseTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
+	HouseTypeExtContainer::Instance.LoadFromINI(this, pINI, false);
 	bool status = this->HouseTypeClass::LoadFromINI(pINI);
 	HouseTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

@@ -37,48 +37,48 @@ std::chrono::high_resolution_clock::time_point lastFrameTime;
 #include <ThemeClass.h>
 
 //separate the function
-ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
-{
-	HarmlessCommandClass::AI();
-	SWFirerClass::Update();
-	SWStateMachine::UpdateAll();
-	HouseExtData::UpdateAutoDeathObjects();
-	HouseExtData::UpdateTransportReloaders();
-
-	for (auto pHouse : *HouseClass::Array) {
-		AresHouseExt::UpdateTogglePower(pHouse);
-	}
-
-	for(auto pSuper : *SuperClass::Array){
-		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
-
-		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
-
-			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
-
-			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
-				// stop only if same theme and local house is affected
-				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
-
-				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
-					ThemeClass::Instance->Stop();
-				}
-			}
-
-			pSuperExt->MusicTimer.Stop();
-			pSuperExt->MusicActive = false;
-		}
-	}
-
-	//remove all invalid teams
-	for (auto& [h, teams] : HouseExtContainer::HousesTeams) {
-		teams.remove_all_if([](TeamClass* pTeam) {
-			return !pTeam->Type;
-		});
-	}
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x55B719, LogicClass_Update_late, 0x5)
+//{
+//	HarmlessCommandClass::AI();
+//	SWFirerClass::Update();
+//	SWStateMachine::UpdateAll();
+//	HouseExtData::UpdateAutoDeathObjects();
+//	HouseExtData::UpdateTransportReloaders();
+//
+//	for (auto pHouse : *HouseClass::Array) {
+//		AresHouseExt::UpdateTogglePower(pHouse);
+//	}
+//
+//	for(auto pSuper : *SuperClass::Array){
+//		auto pSuperExt = SuperExtContainer::Instance.Find(pSuper);
+//
+//		if (pSuperExt->MusicActive && pSuperExt->MusicTimer.Completed()) {
+//
+//			int configuredTheme = pSuperExt->Type->Music_Theme.Get();
+//
+//			if (configuredTheme >= 0 && ThemeClass::Instance->CurrentTheme == configuredTheme) {
+//				// stop only if same theme and local house is affected
+//				AffectedHouse affected = pSuperExt->Type->Music_AffectedHouses;
+//
+//				if (EnumFunctions::CanTargetHouse(affected, pSuper->Owner, HouseClass::CurrentPlayer)) {
+//					ThemeClass::Instance->Stop();
+//				}
+//			}
+//
+//			pSuperExt->MusicTimer.Stop();
+//			pSuperExt->MusicActive = false;
+//		}
+//	}
+//
+//	//remove all invalid teams
+//	for (auto& [h, teams] : HouseExtContainer::HousesTeams) {
+//		teams.remove_all_if([](TeamClass* pTeam) {
+//			return !pTeam->Type;
+//		});
+//	}
+//
+//	return 0x0;
+//}
 
 ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 {
@@ -146,11 +146,13 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	//}
 
 	//remove all invalid teams
-	for (auto&[h, teams] : HouseExtContainer::HousesTeams) {
-		teams.remove_all_if([](TeamClass* pTeam) {
-			return !pTeam->Type;
-		});
-	}
+	// for (auto&[h, teams] : HouseExtContainer::HousesTeams) {
+	// 	teams.remove_all_if([](TeamClass* pTeam) {
+	// 		return !pTeam->Type ||
+	// 		// team changing owner
+	// 		 (pTeam->FirstUnit && pTeam->OwnerHouse != pTeam->FirstUnit->Owner);
+	// 	});
+	// }
 
 	return 0x0;
 }//
@@ -241,12 +243,8 @@ ASMJIT_PATCH(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 	GET(Action, result, ECX);
 
 	INI_EX exINI(pINI);
-	const auto pSection = pThis->ID;
-	//Nullable<CursorTypeClass*> Cursor {};
-	//Nullable<CursorTypeClass*> NoCursor {};
 
-	//Cursor.Read(exINI, pSection, "Cursor");
-	//NoCursor.Read(exINI, pSection, "NoCursor");
+	const auto pSection = pThis->ID;
 
 	if (exINI.ReadString(pSection, GameStrings::Action) > 0)
 	{
@@ -261,20 +259,11 @@ ASMJIT_PATCH(0x6CEA92, SuperWeaponType_LoadFromINI_ParseAction, 0x6)
 			}
 		}
 
-		if (!found && IS_SAME_STR_("Custom", exINI.value()))
-		{
-			result = Action(AresNewActionType::SuperWeaponAllowed);
+		if (!found && IS_SAME_STR_("Custom", exINI.value())) {
+			result = Action(PhobosNewActionType::SuperWeaponAllowed);
 			found = true;
 		}
-
-		if (!found && NewSWType::FindFromTypeID(exINI.value()) != SuperWeaponType::Invalid) {
-			result = Action(AresNewActionType::SuperWeaponAllowed);
-			found = true;
-		}
-
-		pThis->_GetExtData()->LastAction = result;
 	}
-
 
 	R->EAX(result);
 	return 0x6CEAA0;
@@ -381,44 +370,35 @@ ASMJIT_PATCH(0x6CEC19, SuperWeaponType_LoadFromINI_ParseType, 0x6)
 	INI_EX exINI(pINI);
 	const auto pSection = pThis->ID;
 
-	if (exINI.ReadString(pSection, GameStrings::Type()) > 0)
-	{
-		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i)
-		{
-			if (IS_SAME_STR_(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value()))
-			{
+	bool found_type = false;
+	if (exINI.ReadString(pSection, GameStrings::Type()) > 0) {
+		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i) {
+			if (IS_SAME_STR_(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value())) {
 				pThis->Type = (SuperWeaponType)(i);
-				pThis->_GetExtData()->HandledType = NewSWType::GetHandledType((SuperWeaponType)(i));
+				found_type = true;
+				break;
 			}
 		}
 
-		if (pThis->Type == SuperWeaponType::Invalid)
-		{
-			const auto customType = NewSWType::FindFromTypeID(exINI.value());
-			if (customType > SuperWeaponType::Invalid)
-			{
-				pThis->Type = customType;
-			}
+		if (!found_type) {
+			auto res = SWTypeHandler::FindFromTypeID(exINI.value());
+			pThis->Type = res.first;
 		}
 	}
 
-	if (exINI.ReadString(pSection, GameStrings::PreDependent()) > 0)
-	{
-		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i)
-		{
-			if (IS_SAME_STR_(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value()))
-			{
+
+	if (exINI.ReadString(pSection, GameStrings::PreDependent()) > 0) {
+		for (int i = 0; i < (int)SuperWeaponTypeClass::SuperweaponTypeName.c_size(); ++i) {
+			if (IS_SAME_STR_(SuperWeaponTypeClass::SuperweaponTypeName[i], exINI.value())) {
 				pThis->PreDependent = (SuperWeaponType)(i);
+				found_type = true;
+				break;
 			}
 		}
 
-		if (pThis->PreDependent == SuperWeaponType::Invalid)
-		{
-			const auto customType = NewSWType::FindFromTypeID(exINI.value());
-			if (customType > SuperWeaponType::Invalid)
-			{
-				pThis->PreDependent = customType;
-			}
+		if (!found_type) {
+			auto res = SWTypeHandler::FindFromTypeID(exINI.value());
+			pThis->Type = res.first;
 		}
 	}
 
@@ -645,17 +625,17 @@ ASMJIT_PATCH(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 }
 
 // 6CEE96, 5
-ASMJIT_PATCH(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
-{
-	GET(const char*, TypeStr, EDI);
-	auto customType = NewSWType::FindFromTypeID(TypeStr);
-	if (customType > SuperWeaponType::Invalid)
-	{
-		R->ESI(customType);
-		return 0x6CEE9C;
-	}
-	return 0;
-}
+//ASMJIT_PATCH(0x6CEE96, SuperWeaponTypeClass_GetTypeIndex, 5)
+//{
+//	GET(const char*, TypeStr, EDI);
+//	auto customType = SWTypeHandler::FindFromTypeID(TypeStr);
+//	if (customType > SuperWeaponType::Invalid)
+//	{
+//		R->ESI(customType);
+//		return 0x6CEE9C;
+//	}
+//	return 0;
+//}
 
 // decoupling sw anims from types
 ASMJIT_PATCH(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
@@ -712,8 +692,7 @@ ASMJIT_PATCH(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
 	return 0x451030;
 }
 
-// EVA_Detected
-ASMJIT_PATCH(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
+ASMJIT_PATCH(0x4468F4, BuildingClass_Place_AnnounceDetected, 6)
 {
 	GET(BuildingClass*, pThis, EBP);
 
@@ -724,22 +703,19 @@ ASMJIT_PATCH(0x4468F4, BuildingClass_Place_AnnounceSW, 6)
 
 		const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
-		pData->PrintMessage(pData->Message_Detected, pThis->Owner);
+		if(pData->EVA_Detected > -1) {
 
-		if (pData->EVA_Detected == -1 && pData->IsOriginalType() && !pData->IsTypeRedirected())
-		{
-			R->EAX(pSuper->Type->Type);
-			return 0x446943;
+			if(!pData->EVA_Detected_Simple && !pData->IsAvailable(pThis->Owner))
+				return 0x44699A;
+
+			pData->PrintMessage(pData->Message_Detected, pThis->Owner);
+			VoxClass::PlayIndex(pData->EVA_Detected);
 		}
-
-		VoxClass::PlayIndex(pData->EVA_Detected);
 	}
 
 	return 0x44699A;
 }
 
-// EVA_Ready
-// 6CBDD7, 6
 ASMJIT_PATCH(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 {
 	GET(FakeSuperWeaponTypeClass*, pThis, EAX);
@@ -747,30 +723,25 @@ ASMJIT_PATCH(0x6CBDD7, SuperClass_AI_AnnounceReady, 6)
 
 	pData->PrintMessage(pData->Message_Ready, HouseClass::CurrentPlayer);
 
-	if (pData->EVA_Ready != -1 || !pData->IsOriginalType() || pData->IsTypeRedirected())
-	{
+	if (pData->EVA_Ready != -1) {
 		VoxClass::PlayIndex(pData->EVA_Ready);
-		return 0x6CBE68;
 	}
 
-	return 0;
+	return 0x6CBE68;
 }
 
-// 6CC0EA, 9
-ASMJIT_PATCH(0x6CC0EA, SuperClass_ForceCharged_AnnounceQuantity, 9)
+ASMJIT_PATCH(0x6CC0EA, SuperClass_ForceCharged_AnnounceReady, 9)
 {
 	GET(FakeSuperClass*, pThis, ESI);
 	const auto pData = pThis->_GetTypeExtData();
 
 	pData->PrintMessage(pData->Message_Ready, HouseClass::CurrentPlayer);
 
-	if (pData->EVA_Ready != -1 || !pData->IsOriginalType() || pData->IsTypeRedirected())
-	{
+	if (pData->EVA_Ready != -1) {
 		VoxClass::PlayIndex(pData->EVA_Ready);
-		return 0x6CC17E;
 	}
 
-	return 0;
+	return 0x6CC17E;
 }
 
 //ASMJIT_PATCH(0x6CBDB7  , SuperClass_Upadate_ChargeDrainSWReady , 0x6)
@@ -843,7 +814,7 @@ ASMJIT_PATCH(0x4FAE72, HouseClass_SWFire_PreDependent, 6)
 
 	// find the predependent SW. decouple this from the chronosphere.
 	// don't use a fixed SW type but the very one acutually fired last.
-	R->ESI(pThis->Supers.GetItemOrDefault(HouseExtContainer::Instance.Find(pThis)->SWLastIndex));
+	R->ESI(pThis->Supers.get_or_default(HouseExtContainer::Instance.Find(pThis)->SWLastIndex));
 
 	return 0x4FAE7B;
 }
@@ -979,7 +950,7 @@ ASMJIT_PATCH(0x6CB7B0, SuperClass_Lose, 6)
 		pThis->IsCharged = false;
 		pThis->Granted = false;
 
-		if (SuperClass::ShowTimers->Remove(pThis))
+		if (SuperClass::ShowTimers->erase(pThis))
 		{
 			std::ranges::sort(*SuperClass::ShowTimers,
 			[](SuperClass* a, SuperClass* b) {
@@ -1046,13 +1017,11 @@ ASMJIT_PATCH(0x6CB920, SuperClass_ClickFire, 5)
 			return ret(false);
 		}
 
+		auto pNewType = SWTypeHandler::get_Handler(pExt->HandledType);
+
 		// can this super weapon fire now?
-		if (auto const pNewType = pExt->GetNewSWType())
-		{
-			if (pNewType->AbortFire(pThis, isPlayer))
-			{
-				return ret(false);
-			}
+		if (pNewType->AbortFire(pThis, isPlayer)) {
+			return ret(false);
 		}
 
 		pThis->Launch(*pCell, isPlayer);
@@ -1214,7 +1183,6 @@ ASMJIT_PATCH(0x6CBCDE, SuperClass_Update_Animation, 5)
 	Continue : HideAnim;
 }
 
-// used only to find the nuke for ICBM crates. only supports nukes fully.
 ASMJIT_PATCH(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 {
 	GET(Action, action, ECX);
@@ -1225,29 +1193,15 @@ ASMJIT_PATCH(0x6CEEB0, SuperWeaponTypeClass_FindFirstOfAction, 8)
 	// for the moment. as there are no actions any more, this has to be
 	// reworked if powerups are expanded. for now, it only has to find a nuke.
 	// Otama : can be use for `TeamClass_IronCurtain` stuffs
-	for (auto pType : *SuperWeaponTypeClass::Array)
-	{
-		if (pType->Action == action)
-		{
+	for (auto pType : *SuperWeaponTypeClass::Array) {
+		if (pType->Action == action) {
 			pFound = pType;
 			break;
-		}
-		else
-		{
-			if (auto pNewSWType = SWTypeExtContainer::Instance.Find(pType)->GetNewSWType())
-			{
-				if (pNewSWType->HandleThisType(SuperWeaponType::Nuke))
-				{
-					pFound = pType;
-					break;
-				}
-			}
 		}
 	}
 
 	// put a hint into the debug log to explain why we will crash now.
-	if (!pFound)
-	{
+	if (!pFound) {
 		Debug::FatalErrorAndExit("Failed finding an Action=Nuke or Type=MultiMissile super weapon to be granted by ICBM crate.");
 	}
 

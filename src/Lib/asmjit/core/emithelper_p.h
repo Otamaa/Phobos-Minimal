@@ -6,9 +6,9 @@
 #ifndef ASMJIT_CORE_EMITHELPER_P_H_INCLUDED
 #define ASMJIT_CORE_EMITHELPER_P_H_INCLUDED
 
-#include "../core/emitter.h"
-#include "../core/operand.h"
-#include "../core/type.h"
+#include <asmjit/core/emitter.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/core/type.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

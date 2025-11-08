@@ -14,12 +14,9 @@ bool PhobosFixedString<Capacity>::Read(INIClass* pINI, const char* pSection, con
 {
 	if (pINI->ReadString(pSection, pKey, pDefault, Phobos::readBuffer, FixedString<Capacity>::max_size()) > 0)
 	{
-		if (!GameStrings::IsBlank(Phobos::readBuffer))
-		{
+		if (!GameStrings::IsBlank(Phobos::readBuffer)) {
 			*this = Phobos::readBuffer;
-		}
-		else
-		{
+		} else 	{
 			*this = nullptr;
 		}
 	}

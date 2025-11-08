@@ -6,10 +6,10 @@
 #ifndef ASMJIT_CORE_RACONSTRAINTS_P_H_INCLUDED
 #define ASMJIT_CORE_RACONSTRAINTS_P_H_INCLUDED
 
-#include "../core/api-config.h"
-#include "../core/archtraits.h"
-#include "../core/operand.h"
-#include "../core/support.h"
+#include <asmjit/core/api-config.h>
+#include <asmjit/core/archtraits.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

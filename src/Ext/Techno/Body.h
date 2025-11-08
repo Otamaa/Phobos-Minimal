@@ -686,7 +686,6 @@ private:
 		};
 
 		debugProcess(this->Type, "Type");
-		debugProcess(this->AbsType, "AbsType");
 		debugProcess(this->AE, "AE");
 		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
 		debugProcess(this->idxSlot_Wave, "idxSlot_Wave");
@@ -821,7 +820,6 @@ public:
 public:
 #pragma region ClassMembers
 	TechnoTypeClass* Type; //original Type pointer
-	OptionalStruct<AbstractType, true> AbsType;
 
 	AEProperties AE;
 	BYTE idxSlot_EMPulse;
@@ -999,7 +997,6 @@ public:
 
 	TechnoExtData(TechnoClass* abs) : RadioExtData(abs),
 		Type(nullptr),
-		AbsType(), // OptionalStruct<AbstractType,true>
 
 		AE(),
 		idxSlot_EMPulse(0),

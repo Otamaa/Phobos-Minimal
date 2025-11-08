@@ -108,7 +108,10 @@ public:
 		airFactoryBuilding(),
 		FreeUnitDone(false),
 		SeparateRepair(false)
-	{ }
+	{
+		this->Name = pObj->Type->ID;
+		this->AbsType = BuildingClass::AbsID;
+	}
 
 	BuildingExtData(BuildingClass* pObj, noinit_t nn) : TechnoExtData(pObj, nn) { }
 

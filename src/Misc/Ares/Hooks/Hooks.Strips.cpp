@@ -546,20 +546,8 @@ ASMJIT_PATCH(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, ItemIndex);
 	}
 
-	auto& cameo = MouseClassExt::TabCameos[pTab->TabIndex];
-
-	if (cameo.IsValidArray()) {
-		auto lower = lower_bound(cameo.begin(), cameo.Count, newCameo);
-		int idx = cameo.IsInitialized ? std::distance(cameo.begin(), lower) : 0;
-
-		BuildType* added = cameo.Items + idx;
-		BuildType* added_plusOne = std::next(added);
-		std::memcpy(added_plusOne, added, (char*)(cameo.end()) - ((char*)added));
-		cameo.Items[idx] = std::move_if_noexcept(newCameo);
-		++cameo.Count;
-	}
-
-	++pTab->BuildableCount;
+	if(MouseClassExt::TabCameos[pTab->TabIndex].insert_sorted_unique(newCameo))
+		++pTab->BuildableCount;
 
 	return 0x6A87E7;
 }
@@ -1001,7 +989,7 @@ bool NOINLINE RemoveCameo(BuildType* item)
 	{
 		const auto& supers = HouseClass::CurrentPlayer->Supers;
 
-		if (supers.ValidIndex(item->ItemIndex)) {
+		if (supers.valid_index(item->ItemIndex)) {
 			if(!SWSidebarClass::IsEnabled()){
 				if (supers[item->ItemIndex]->Granted)
 					return false;
@@ -1083,8 +1071,8 @@ ASMJIT_PATCH(0x6aa600, StripClass_RecheckCameos, 5)
 	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
 	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
-	tabs.remove_if([=](BuildType& item) {
-	 return RemoveCameo(&item);
+	tabs.erase_if([=](BuildType& item) {
+		return RemoveCameo(&item);
 	});
 
 	if (tabs.Count >= pThis->BuildableCount)
@@ -1124,8 +1112,8 @@ ASMJIT_PATCH(0x6aa600, StripClass_RecheckCameos, 5)
 		SidebarClass::Instance->ToggleStuffs();
 	}
 
-	auto iter = lower_bound(tabs.begin(), tabs.Count, { idx , rtt });
-	auto idxLower = std::distance(tabs.begin(), iter);
+	auto iter_lower = std::lower_bound(tabs.begin(), tabs.end(), BuildType(idx, rtt));
+	auto idxLower = std::distance(tabs.begin(), iter_lower);
 	auto buildCount = pThis->BuildableCount - SidebarClass::Instance->Func_6AC430();
 	int value = (buildCount >= 0 ? buildCount : 0) / 2;
 

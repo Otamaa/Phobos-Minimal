@@ -36,7 +36,8 @@ public:
 		NoOwner(true),
 		CreationFrame(0)
 	{
-		this->AbstractExtended::SetName("RadSiteClass");
+		this->Name = "RadSiteClass";
+		this->AbsType = RadSiteClass::AbsID;
 	}
 
 	RadSiteExtData(RadSiteClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

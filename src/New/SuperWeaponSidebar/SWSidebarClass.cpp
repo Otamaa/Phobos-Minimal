@@ -85,7 +85,7 @@ void SWSidebarClass::InitIO()
 	if (!Phobos::UI::SuperWeaponSidebar || Unsorted::ArmageddonMode)
 		return;
 
-	const auto pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex);
+	const auto pSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex);
 
 	if (pSide) {
 		const auto pSideExt = SideExtContainer::Instance.Find(pSide);
@@ -133,7 +133,7 @@ bool SWSidebarClass::AddButton(int superIdx)
 	if (!Phobos::UI::SuperWeaponSidebar || this->DisableEntry)
 		return false;
 
-	const auto pSWType = SuperWeaponTypeClass::Array->GetItemOrDefault(superIdx);
+	const auto pSWType = SuperWeaponTypeClass::Array->get_or_default(superIdx);
 	if (!pSWType)
 		return false;
 
@@ -190,8 +190,8 @@ void SWSidebarClass::SortButtons()
 
 	std::ranges::stable_sort(vec_Buttons, [ownerBits](SWButtonClass* const a, SWButtonClass* const b)
 	{
-		const auto pExtA = SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(a->SuperIndex));
-		const auto pExtB = SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(b->SuperIndex));
+		const auto pExtA = SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(a->SuperIndex));
+		const auto pExtB = SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(b->SuperIndex));
 
 		if (pExtB && (pExtB->SuperWeaponSidebar_PriorityHouses & ownerBits) && (!pExtA || !(pExtA->SuperWeaponSidebar_PriorityHouses & ownerBits)))
 			return false;
@@ -359,7 +359,7 @@ ASMJIT_PATCH(0x6AA790, StripClass_RecheckCameo_RemoveCameo, 0x6)
 	const auto pCurrent = HouseClass::CurrentPlayer();
 	const auto& supers = pCurrent->Supers;
 
-	if (supers.ValidIndex(pItem->ItemIndex) && supers[pItem->ItemIndex]->Granted)
+	if (supers.valid_index(pItem->ItemIndex) && supers[pItem->ItemIndex]->Granted)
 	{
 		if (SWSidebarClass::Global()->AddButton(pItem->ItemIndex))
 			ScenarioExtData::Instance()->SWSidebar_Indices.emplace(pItem->ItemIndex);

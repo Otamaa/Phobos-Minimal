@@ -69,16 +69,16 @@
 //!   - \ref x86::VReduceImm - `REDUCE[PD|PS|SD|SS]` predicate (AVX512+).
 //!   - \ref x86::TLogImm - `VPTERNLOG[D|Q]` predicate and operations (AVX512+).
 
-#include "core.h"
+#include <asmjit/core.h>
 
-#include "asmjit-scope-begin.h"
-#include "x86/x86assembler.h"
-#include "x86/x86builder.h"
-#include "x86/x86compiler.h"
-#include "x86/x86emitter.h"
-#include "x86/x86globals.h"
-#include "x86/x86instdb.h"
-#include "x86/x86operand.h"
-#include "asmjit-scope-end.h"
+#include <asmjit/asmjit-scope-begin.h>
+#include <asmjit/x86/x86assembler.h>
+#include <asmjit/x86/x86builder.h>
+#include <asmjit/x86/x86compiler.h>
+#include <asmjit/x86/x86emitter.h>
+#include <asmjit/x86/x86globals.h>
+#include <asmjit/x86/x86instdb.h>
+#include <asmjit/x86/x86operand.h>
+#include <asmjit/asmjit-scope-end.h>
 
 #endif // ASMJIT_X86_H_INCLUDED

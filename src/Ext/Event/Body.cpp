@@ -222,7 +222,7 @@ void EventExt::FirewallToggle::Raise(HouseClass* Source)
 
 void EventExt::FirewallToggle::Respond(EventClass* Event)
 {
-	if (HouseClass* pSourceHouse = HouseClass::Array->GetItemOrDefault(Event->HouseIndex))
+	if (HouseClass* pSourceHouse = HouseClass::Array->get_or_default(Event->HouseIndex))
 	{
 		AresHouseExt::SetFirestormState(pSourceHouse, !pSourceHouse->FirestormActive);
 	}

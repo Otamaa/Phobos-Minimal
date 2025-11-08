@@ -372,13 +372,13 @@ void ObjectInfoCommandClass::Execute(WWKey eInput) const
 				Append(buffer, "Cell At [%d - %d - %d]/[%d - %d] OverlayData [%d]\n", nCoord.Y, nCoord.Y, nCoord.Z, pCell->MapCoords.X, pCell->MapCoords.Y, pCell->OverlayData);
 
 				const auto nTile = pCell->IsoTileTypeIndex;
-				if (const auto pTile = IsometricTileTypeClass::Array->GetItemOrDefault(nTile))
+				if (const auto pTile = IsometricTileTypeClass::Array->get_or_default(nTile))
 				{
 					Append(buffer, "[%d]TileType is %s\n", nTile, pTile->ID);
 				}
 
 				const auto nOverlay = pCell->OverlayTypeIndex;
-				if (const auto pOverlay = OverlayTypeClass::Array->GetItemOrDefault(nOverlay))
+				if (const auto pOverlay = OverlayTypeClass::Array->get_or_default(nOverlay))
 				{
 					Append(buffer, "[%d]OverlayType is %s\n", nOverlay, pOverlay->ID);
 

@@ -628,7 +628,7 @@ void StraightTrajectoryVarianC::BulletDetonateVelocityCheck(HouseClass* pOwner)
 				break;
 			}
 
-			if (pBullet->Type->SubjectToWalls && pCurCell->OverlayTypeIndex != -1 && OverlayTypeClass::Array->GetItem(pCurCell->OverlayTypeIndex)->Wall)
+			if (pBullet->Type->SubjectToWalls && pCurCell->OverlayTypeIndex != -1 && OverlayTypeClass::Array->operator[](pCurCell->OverlayTypeIndex)->Wall)
 			{
 				velocityCheck = true;
 				cellDistance = curCoord.DistanceFrom(theSourceCoords);

@@ -6,19 +6,19 @@
 #ifndef ASMJIT_CORE_RADEFS_P_H_INCLUDED
 #define ASMJIT_CORE_RADEFS_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/archtraits.h"
-#include "../core/arena.h"
-#include "../core/arenabitset_p.h"
-#include "../core/arenavector.h"
-#include "../core/builder.h"
-#include "../core/compilerdefs.h"
-#include "../core/logger.h"
-#include "../core/operand.h"
-#include "../core/support.h"
-#include "../core/type.h"
+#include <asmjit/core/archtraits.h>
+#include <asmjit/core/builder.h>
+#include <asmjit/core/compilerdefs.h>
+#include <asmjit/core/logger.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/core/type.h>
+#include <asmjit/support/arena.h>
+#include <asmjit/support/arenabitset_p.h>
+#include <asmjit/support/arenavector.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -133,10 +133,7 @@ struct RARegCount {
   //! \name Members
   //! \{
 
-  union {
-    uint8_t _regs[4];
-    uint32_t _packed;
-  };
+  uint32_t _counters;
 
   //! \}
 
@@ -144,7 +141,7 @@ struct RARegCount {
   //! \{
 
   //! Resets all counters to zero.
-  ASMJIT_INLINE_NODEBUG void reset() noexcept { _packed = 0; }
+  ASMJIT_INLINE_NODEBUG void reset() noexcept { _counters = 0; }
 
   //! \}
 
@@ -152,22 +149,10 @@ struct RARegCount {
   //! \{
 
   [[nodiscard]]
-  inline uint8_t& operator[](RegGroup group) noexcept {
-    ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
-    return _regs[size_t(group)];
-  }
+  ASMJIT_INLINE_NODEBUG bool operator==(const RARegCount& other) const noexcept { return _counters == other._counters; }
 
   [[nodiscard]]
-  inline const uint8_t& operator[](RegGroup group) const noexcept {
-    ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
-    return _regs[size_t(group)];
-  }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool operator==(const RARegCount& other) const noexcept { return _packed == other._packed; }
-
-  [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool operator!=(const RARegCount& other) const noexcept { return _packed != other._packed; }
+  ASMJIT_INLINE_NODEBUG bool operator!=(const RARegCount& other) const noexcept { return _counters != other._counters; }
 
   //! \}
 
@@ -176,29 +161,29 @@ struct RARegCount {
 
   //! Returns the count of registers by the given register `group`.
   [[nodiscard]]
-  inline uint32_t get(RegGroup group) const noexcept {
+  ASMJIT_INLINE uint32_t get(RegGroup group) const noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
 
-    uint32_t shift = Support::byte_shift_in_struct(uint32_t(group));
-    return (_packed >> shift) & uint32_t(0xFF);
+    uint32_t shift = uint32_t(group) * 8u;
+    return (_counters >> shift) & 0xFFu;
   }
 
   //! Sets the register count by a register `group`.
-  inline void set(RegGroup group, uint32_t n) noexcept {
+  ASMJIT_INLINE void set(RegGroup group, uint32_t n) noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
-    ASMJIT_ASSERT(n <= 0xFF);
+    ASMJIT_ASSERT(n <= 0xFFu);
 
-    uint32_t shift = Support::byte_shift_in_struct(uint32_t(group));
-    _packed = (_packed & ~uint32_t(0xFF << shift)) + (n << shift);
+    uint32_t shift = uint32_t(group) * 8u;
+    _counters = (_counters & ~uint32_t(0xFFu << shift)) + (n << shift);
   }
 
   //! Adds the register count by a register `group`.
-  inline void add(RegGroup group, uint32_t n = 1) noexcept {
+  ASMJIT_INLINE void add(RegGroup group, uint32_t n = 1) noexcept {
     ASMJIT_ASSERT(group <= RegGroup::kMaxVirt);
-    ASMJIT_ASSERT(0xFF - uint32_t(_regs[size_t(group)]) >= n);
+    ASMJIT_ASSERT(get(group) + n <= 0xFFu);
 
-    uint32_t shift = Support::byte_shift_in_struct(uint32_t(group));
-    _packed += n << shift;
+    uint32_t shift = uint32_t(group) * 8u;
+    _counters += n << shift;
   }
 
   //! \}
@@ -208,13 +193,11 @@ struct RARegCount {
 struct RARegIndex : public RARegCount {
   //! Build register indexes based on the given `count` of registers.
   ASMJIT_INLINE void build_indexes(const RARegCount& count) noexcept {
-    uint32_t x = uint32_t(count._regs[0]);
-    uint32_t y = uint32_t(count._regs[1]) + x;
-    uint32_t z = uint32_t(count._regs[2]) + y;
+    ASMJIT_ASSERT(count.get(RegGroup(0)) + count.get(RegGroup(1)) <= 0xFFu);
+    ASMJIT_ASSERT(count.get(RegGroup(0)) + count.get(RegGroup(1)) + count.get(RegGroup(2)) <= 0xFFu);
 
-    ASMJIT_ASSERT(y <= 0xFF);
-    ASMJIT_ASSERT(z <= 0xFF);
-    _packed = Support::bytepack32_4x8(0, x, y, z);
+    uint32_t i = count._counters;
+    _counters = (i + (i << 8u) + (i << 16)) << 8u;
   }
 };
 

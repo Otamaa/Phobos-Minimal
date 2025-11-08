@@ -22,7 +22,7 @@
 #include <SuperWeaponTypeClass.h>
 #include <StringTable.h>
 
-#include "NewSuperWeaponType/NewSWType.h"
+#include "NewSuperWeaponType/SWTypeHandler.h"
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
@@ -67,47 +67,18 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 }
 };
 
-SWTypeExtData::~SWTypeExtData() noexcept
-{
-	SuperWeaponTypeClass* pCopy = SWTypeExtData::CurrentSWType;
-	if (This() == SWTypeExtData::CurrentSWType)
-		pCopy = nullptr;
-
-	SWTypeExtData::CurrentSWType = pCopy;
-};
-
-bool SWTypeExtData::IsTypeRedirected() const
-{
-	return this->HandledType > SuperWeaponType::Invalid;
-}
-
-bool SWTypeExtData::IsOriginalType() const
-{
-	return NewSWType::IsOriginalType(This()->Type);
-}
-
-NewSWType* SWTypeExtData::GetNewSWType() const
-{
-	return NewSWType::GetNewSWType(this);
-}
-
 void SWTypeExtData::Initialize()
 {
-	this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
-	this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
-
-	this->LastAction = This()->Action;
-
 }
 
 Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget)
 {
-	if ((AresNewActionType)pSuper->Action != AresNewActionType::SuperWeaponAllowed)
+	if ((PhobosNewActionType)pSuper->Action != PhobosNewActionType::SuperWeaponAllowed)
 		return Action::None;
 
 	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper);
 
-	auto result = AresNewActionType::SuperWeaponAllowed;
+	auto result = PhobosNewActionType::SuperWeaponAllowed;
 
 	// prevent firing into shroud
 	if (!pExt->SW_FireToShroud)
@@ -117,23 +88,20 @@ Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarge
 
 		if (MapClass::Instance->IsLocationShrouded(Crd))
 		{
-			result = AresNewActionType::SuperWeaponDisallowed;
+			result = PhobosNewActionType::SuperWeaponDisallowed;
 		}
 	}
 
-	if (result == AresNewActionType::SuperWeaponAllowed)
+	if (result == PhobosNewActionType::SuperWeaponAllowed)
 	{
-		if (auto pNewType = NewSWType::GetNewSWType(pExt))
-		{
-			// new SW types have to check whether the coordinates are valid.
-			if (!pNewType->CanFireAt(pExt, HouseClass::CurrentPlayer, *pTarget, true))
-			{
-				result = AresNewActionType::SuperWeaponDisallowed;
-			}
+		auto pNewType = SWTypeHandler::get_Handler(pExt->HandledType);
+
+		if (!pNewType->CanFireAt(pExt, HouseClass::CurrentPlayer, *pTarget, true)) {
+			result = PhobosNewActionType::SuperWeaponDisallowed;
 		}
 	}
 
-	const bool bCanFire = result == AresNewActionType::SuperWeaponAllowed;
+	const bool bCanFire = result == PhobosNewActionType::SuperWeaponAllowed;
 	int Cursor = -1;
 
 	if (!bCanFire)
@@ -318,12 +286,12 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 	// if this SW is only auto-firable, discard any clicks.
 	// if AutoFire is off, the sw would not be firable at all,
 	// thus we ignore the setting in that case.
-	const bool manual = !pSWExt->SW_ManualFire && pSWExt->SW_AutoFire;
+	const bool autofire = !pSWExt->SW_ManualFire && pSWExt->SW_AutoFire;
 	const bool unstoppable = pSuper->Type->UseChargeDrain && pSuper->ChargeDrainState == ChargeDrainState::Draining
 		&& pSWExt->SW_Unstoppable;
 
 	// play impatient voice, if this isn't charged yet
-	if (!manual && !pSuper->CanFire())
+	if (!autofire && !pSuper->CanFire())
 	{
 		pSWExt->UneableToFireAtTheMoment(pCurrent);
 		return false;
@@ -343,7 +311,7 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 
 	if (!pSWExt->SW_UseAITargeting || SWTypeExtData::IsTargetConstraintsEligible(pSuper, true))
 	{
-		if (!manual && !unstoppable)
+		if (!autofire && !unstoppable)
 		{
 			const auto swIndex = pSuper->Type->ArrayIndex;
 
@@ -496,7 +464,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 //		NewType(nullptr)
 //	{
 //		this->TypeExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-//		this->NewType = NewSWType::GetNewSWType(this->TypeExt);
+//		this->NewType = SWTypeHandler::GetNewSWType(this->TypeExt);
 //		this->Data = this->NewType->GetTargetingData(this->TypeExt, pSuper->Owner);
 //	}
 //
@@ -516,7 +484,7 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 //	SuperClass* Super;
 //	HouseClass* Owner;
 //	SWTypeExtData* TypeExt;
-//	NewSWType* NewType;
+//	SWTypeHandler* NewType;
 //	std::unique_ptr<const TargetingData> mutable Data;
 //
 //private:
@@ -528,52 +496,51 @@ bool SWTypeExtData::TryFire(SuperClass* pThis, bool IsPlayer)
 struct TargetingFuncs
 {
 #pragma region Helpers
-	template<typename It, typename Valuator>
-	static COMPILETIMEEVAL ObjectClass* GetTargetFirstMax(It first, It last, Valuator value)
+	template<typename Valuator>
+	static COMPILETIMEEVAL TechnoClass* GetTargetFirstMax(Iterator<TechnoClass*> iter, Valuator value)
 	{
-		ObjectClass* pTarget = nullptr;
+		TechnoClass* pTarget = nullptr;
 		int maxValue = 0;
 
-		for (auto it = first; it < last; ++it) {
-			auto curValue = value(*it, maxValue);
-
-			if (curValue > maxValue) {
-				pTarget = *it;
-				maxValue = curValue;
+		for (auto item : iter) {
+			auto curVal = value(item, maxValue);
+			if (curVal > maxValue) {
+				pTarget = item;
+				maxValue = curVal;
 			}
 		}
 
 		return pTarget;
 	}
 
-	template<typename It, typename Valuator>
-	static ObjectClass* GetTargetAnyMax(It first, It last, Valuator value)
+	template<typename Valuator>
+	static TechnoClass* GetTargetAnyMax(Iterator<TechnoClass*> iter, Valuator value)
 	{
-		if (first == last) { return nullptr; }
+		if (!iter) { return nullptr; }
 
-		DiscreteSelectionClass<ObjectClass*> targets {};
+		DiscreteSelectionClass<TechnoClass*> targets {};
 
-		for (auto it = first; it < last; ++it) {
-			int val = value(*it, targets.GetRating());
-			targets.Add(*it, val);
+		for (auto item : iter) {
+			int val = value(item, targets.rating());
+			targets.add(item, val);
 		}
 
-		return targets.Select(ScenarioClass::Instance->Random);
+		return targets.select_or(ScenarioClass::Instance->Random, nullptr);
 	}
 
-	template<typename It, typename Valuator>
-	static ObjectClass* GetTargetShareAny(It first, It last, Valuator value)
+	template<typename Valuator>
+	static TechnoClass* GetTargetShareAny(Iterator<TechnoClass*> iter, Valuator value)
 	{
-		if (first == last) { return nullptr; }
+		if (!iter) { return nullptr; }
 
-		DiscreteDistributionClass<ObjectClass*> targets {};
+		DiscreteDistribution<TechnoClass*> targets {};
 
-		for (auto it = first; it < last; ++it) {
-			int val = value(*it);
-			targets.Add(*it, val);
+		for (auto item : iter) {
+			int val = value(item);
+			targets.add(item, val);
 		}
 
-		return targets.Select(ScenarioClass::Instance->Random);
+		return targets.select_or(ScenarioClass::Instance->Random, nullptr);
 	}
 
 	static COMPILETIMEEVAL bool IsTargetAllowed(TechnoClass* pTechno)
@@ -598,11 +565,11 @@ struct TargetingFuncs
 #pragma endregion
 
 #pragma region MainTargeting
-	static TargetResult GetIonCannonTarget(NewSWType* pNewType, const TargetingData* pTargeting, HouseClass* pEnemy, CloakHandling cloak)
+	static TargetResult GetIonCannonTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting, HouseClass* pEnemy, CloakHandling cloak)
 	{
 		std::vector<TechnoClass*> targets {};
 		const auto it = pTargeting->TypeExt->GetPotentialAITargets(pEnemy , targets);
-		const auto pResult = GetTargetAnyMax(it.begin(), it.end(),
+		const auto pResult = GetTargetAnyMax(it ,
 			[=](TechnoClass* pTechno, int curMax) {
 
 				// original game code only compares owner and doesn't support nullptr
@@ -683,11 +650,11 @@ struct TargetingFuncs
 		return { nTarget , flag };
 	}
 
-	static TargetResult GetDominatorTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetDominatorTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		std::vector<TechnoClass*> targets {};
 		const auto it = pTargeting->TypeExt->GetPotentialAITargets(nullptr, targets);
-		const auto pTarget = GetTargetFirstMax(it.begin(), it.end(), [pTargeting, pNewType](TechnoClass* pTechno, int curMax) {
+		const auto pTarget = GetTargetFirstMax(it , [pTargeting, pNewType](TechnoClass* pTechno, int curMax) {
 
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno)) {
 				return -1;
@@ -723,7 +690,7 @@ struct TargetingFuncs
 		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetParadropTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetParadropTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		static const int SpaceSize = 5;
 		auto target = CellStruct::Empty;
@@ -731,7 +698,7 @@ struct TargetingFuncs
 		if (pTargeting->Owner->PreferredTargetType == QuarryType::Anything)
 		{
 			// if no enemy yet, reinforce own base
-			const auto pTargetPlayer = HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex, pTargeting->Owner);
+			const auto pTargetPlayer = HouseClass::Array->get_or_default(pTargeting->Owner->EnemyHouseIndex, pTargeting->Owner);
 
 			target = MapClass::Instance->NearByLocation(
 				pTargetPlayer->GetBaseCenter(), SpeedType::Foot, ZoneType::None,
@@ -752,12 +719,12 @@ struct TargetingFuncs
 		TargetResult{ target , SWTargetFlags::AllowEmpty };
 	}
 
-	static TargetResult GetMutatorTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetMutatorTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		//specific implementation for GeneticMutatorTargetSelector for
 		std::vector<TechnoClass*> targets {};
 		const auto it = pTargeting->TypeExt->GetPotentialAITargets(nullptr, targets);
-		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [pTargeting , pNewType](TechnoClass* pTechno, int curMax) {
+		const auto pResult = GetTargetFirstMax(it , [pTargeting , pNewType](TechnoClass* pTechno, int curMax) {
 
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno)) {
 			  return -1;
@@ -808,7 +775,7 @@ struct TargetingFuncs
 		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetForceShieldTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetForceShieldTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		if (pTargeting->Owner->PreferredDefensiveCell.IsValid()
 			&& (RulesClass::Instance->AISuperDefenseFrames + pTargeting->Owner->PreferredDefensiveCellStartTime) > Unsorted::CurrentFrame
@@ -820,31 +787,31 @@ struct TargetingFuncs
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetOffensiveTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetOffensiveTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		return GetIonCannonTarget(pNewType ,
 			pTargeting,
-			HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex),
+			HouseClass::Array->get_or_default(pTargeting->Owner->EnemyHouseIndex),
 			CloakHandling::IgnoreCloaked);
 	}
 
-	static TargetResult GetNukeAndLighningTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetNukeAndLighningTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		if (pTargeting->Owner->PreferredTargetType == QuarryType::Anything) {
 			return TargetingFuncs::GetIonCannonTarget(pNewType ,pTargeting,
-				HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex),
+				HouseClass::Array->get_or_default(pTargeting->Owner->EnemyHouseIndex),
 				CloakHandling::IgnoreCloaked);
 		}
 
 		return TargetingFuncs::PickByHouseType(pTargeting->Owner, pTargeting->Owner->PreferredTargetType);
 	}
 
-	static TargetResult GetStealthTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetStealthTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		return TargetingFuncs::GetIonCannonTarget(pNewType, pTargeting, nullptr, CloakHandling::RequireCloaked);
 	}
 
-	static TargetResult GetDroppodTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetDroppodTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		const auto nRandom = ScenarioClass::Instance->Random.RandomRangedSpecific(ZoneType::North, ZoneType::West);
 		const auto nCell = pTargeting->Owner->RandomCellInZone(nRandom);
@@ -857,7 +824,7 @@ struct TargetingFuncs
 		TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetLighningRandomTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetLighningRandomTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		CellStruct nBuffer {};
 		for (int i = 0; i < 5; ++i)
@@ -882,7 +849,7 @@ struct TargetingFuncs
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetOwnerBuildingAsTarget(NewSWType* pNewType, const TargetingData* pTargeting, bool checkLauchsite = false)
+	static TargetResult GetOwnerBuildingAsTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting, bool checkLauchsite = false)
 	{
 		// find the first building providing super
 		auto index = pTargeting->TypeExt->This()->ArrayIndex;
@@ -913,7 +880,7 @@ struct TargetingFuncs
 			TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetBaseTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetBaseTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		// fire at the SW's owner's base cell
 		CellStruct cell = pTargeting->Owner->GetBaseCenter();
@@ -923,11 +890,11 @@ struct TargetingFuncs
 			TargetResult{ CellStruct::Empty, SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetMultiMissileTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetMultiMissileTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		std::vector<TechnoClass*> targets {};
-		const auto it = pTargeting->TypeExt->GetPotentialAITargets(HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex), targets);
-		const auto pResult = GetTargetFirstMax(it.begin(), it.end(), [pTargeting, pNewType](TechnoClass* pTechno, int curMax)
+		const auto it = pTargeting->TypeExt->GetPotentialAITargets(HouseClass::Array->get_or_default(pTargeting->Owner->EnemyHouseIndex), targets);
+		const auto pResult = GetTargetFirstMax(it, [pTargeting, pNewType](TechnoClass* pTechno, int curMax)
 		{
 			if (!TargetingFuncs::IsTargetAllowed(pTechno) || TargetingFuncs::IgnoreThis(pTechno))
 			{
@@ -950,9 +917,9 @@ struct TargetingFuncs
 			TargetResult{ CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetEnemyBaseTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetEnemyBaseTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
-		if (auto pEnemy = HouseClass::Array->GetItemOrDefault(pTargeting->Owner->EnemyHouseIndex))
+		if (auto pEnemy = HouseClass::Array->get_or_default(pTargeting->Owner->EnemyHouseIndex))
 		{
 			CellStruct cell = pEnemy->GetBaseCenter();
 
@@ -965,7 +932,7 @@ struct TargetingFuncs
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
 	}
 
-	static TargetResult GetAuxTechnoTarget(NewSWType* pNewType, const TargetingData* pTargeting)
+	static TargetResult GetAuxTechnoTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		if (!pTargeting->TypeExt->Aux_Techno.empty())
 		{
@@ -974,7 +941,7 @@ struct TargetingFuncs
 			//if ((TargetOwner & AffectedHouse::Owner) != AffectedHouse::None)
 			//	TargetHouse = info.Owner;
 			//else if ((TargetOwner & AffectedHouse::Enemies) != AffectedHouse::None)
-			//	TargetHouse = HouseClass::Array->GetItemOrDefault(info.Owner->EnemyHouseIndex);
+			//	TargetHouse = HouseClass::Array->get_or_default(info.Owner->EnemyHouseIndex);
 			//else if ((TargetOwner & AffectedHouse::Allies) != AffectedHouse::None){
 			//	const auto It = std::find_if(HouseClass::Array->begin(), HouseClass::Array->end(),
 			//		[&](HouseClass* pHouse) {
@@ -1008,7 +975,7 @@ struct TargetingFuncs
 				}
 			}
 		} else {
-			Debug::LogInfo("Uneable to fire SW [{} - {}] , AuxTechno is empty!", pTargeting->TypeExt->Name(), pTargeting->Owner->Type->ID);
+			Debug::LogInfo("Uneable to fire SW [{} - {}] , AuxTechno is empty!", pTargeting->TypeExt->Name.data(), pTargeting->Owner->Type->ID);
 		}
 
 		return { CellStruct::Empty , SWTargetFlags::DisallowEmpty };
@@ -1017,7 +984,7 @@ struct TargetingFuncs
 
 };
 
-TargetResult SWTypeExtData::PickSuperWeaponTarget(NewSWType* pNewType , const TargetingData* pTargeting, const SuperClass* pSuper)
+TargetResult SWTypeExtData::PickSuperWeaponTarget(SWTypeHandler* pNewType , const TargetingData* pTargeting, const SuperClass* pSuper)
 {
 	switch (pTargeting->TypeExt->GetAITargetingPreference())
 	{
@@ -1209,11 +1176,12 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 	if (require == SuperWeaponTarget::None
 		|| require == SuperWeaponTarget::AllTechnos
 		|| require == SuperWeaponTarget::All
-		|| require == SuperWeaponTarget::AllContents
-		|| (require & SuperWeaponTarget::Building && require & SuperWeaponTarget::Infantry && require & SuperWeaponTarget::Unit)) {
-
+		|| require == SuperWeaponTarget::AllContents ) {
 		return make_iterator(*TechnoClass::Array);
 	}
+
+	if((require == (SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit)))
+		return make_iterator(*FootClass::Array);
 
 	if (require == SuperWeaponTarget::Building) {
 		if (pTarget) {
@@ -1223,11 +1191,13 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 			return make_iterator(*BuildingClass::Array);
 		}
 	}
-	else if (require == SuperWeaponTarget::Infantry) {
-		return make_iterator(*InfantryClass::Array);
 
-		//default behaviours
-	} else if (require == SuperWeaponTarget::Unit
+	if (require == SuperWeaponTarget::Infantry) {
+		return make_iterator(*InfantryClass::Array);
+	}
+
+	//default behaviours
+	if (require == SuperWeaponTarget::Unit
 		|| require == SuperWeaponTarget::Land
 		|| require == SuperWeaponTarget::Water
 		|| require == SuperWeaponTarget::Empty
@@ -1236,6 +1206,7 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 		return make_iterator(*FootClass::Array);
 	}
 
+	// we do as much possible test to avoid using function below
 	// part below is more expensive targeting
 	outVec.clear();
 	outVec.reserve(TechnoClass::Array->Count);
@@ -1259,7 +1230,7 @@ Iterator<TechnoClass*> SWTypeExtData::GetPotentialAITargets(HouseClass* pTarget,
 	return make_iterator(outVec);
 }
 
-bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer)
+bool SWTypeExtData::Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer)
 {
 	const auto nResult = pNewType->Activate(pSuper, cell, isPlayer);
 
@@ -1287,7 +1258,7 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 	if (pSuper->OneTime || (pCurrentSWTypeData->SW_Shots >= 0 && HouseExtContainer::Instance.Find(pOwner)->GetShotCount(pSuper->Type).Count >= pCurrentSWTypeData->SW_Shots))
 		pOwner->RecheckTechTree = true;
 
-	const auto curSuperIdx = pOwner->Supers.FindItemIndex(pSuper);
+	const auto curSuperIdx = pOwner->Supers.find(pSuper);
 	if (!(flags & SuperWeaponFlags::PostClick) && !pData->SW_AutoFire) {
 		pHouseExt->SWLastIndex = curSuperIdx;
 	}
@@ -1389,7 +1360,7 @@ bool SWTypeExtData::Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct c
 	//	}
 	//}
 
-	if ((AresNewSuperType)This()->Type == AresNewSuperType::EMPulse)
+	if ((NewSuperType)This()->Type == NewSuperType::EMPulse)
 	{
 		//why this fuckery even exist ,..
 		//the SW can be state can be exploited at some point , smh
@@ -1433,27 +1404,25 @@ bool SWTypeExtData::Activate(SuperClass* pSuper, CellStruct const cell, bool con
 	}
 
 	const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-	const auto pNewType = NewSWType::GetNewSWType(pExt);
+	const auto pNewType = SWTypeHandler::get_Handler(pExt->HandledType);
 
-	if (!pNewType || !pExt->Launch(pNewType, pSuper, cell, isPlayer))
+	if (!pExt->Launch(pNewType, pSuper, cell, isPlayer))
 		return false;
 
 	//Debug::LogInfo(__FUNCTION__" for [%s] - Owner[%s] AfterSWLauch ", pExt->get_ID(), pOwner->get_ID());
 	std::pair<SuperClass*, CellStruct> nPass { pSuper, cell };
 
-	for (int i = 0; i < pOwner->RelatedTags.Count; ++i)
-	{
-		if (auto pTag = pOwner->RelatedTags.Items[i])
-		{
+	for (int i = 0; i < pOwner->RelatedTags.Count; ++i) {
+		if (auto pTag = pOwner->RelatedTags.Items[i]) {
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperNearWaypoint), nullptr, CellStruct::Empty, false, &nPass);
 		}
 	}
 
 	//Debug::LogInfo(__FUNCTION__" for [%s] - Owner[%s] After SuperNearWaypoint  ", pExt->get_ID(), pOwner->get_ID());
-	for (int a = 0; a < pOwner->RelatedTags.Count; ++a)
-	{
-		if (auto pTag = pOwner->RelatedTags.Items[a])
+	for (int a = 0; a < pOwner->RelatedTags.Count; ++a) {
+		if (auto pTag = pOwner->RelatedTags.Items[a]) {
 			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperActivated), nullptr, CellStruct::Empty, false, pSuper);
+		}
 	}
 
 	//Debug::LogInfo(__FUNCTION__" for [%s] - Owner[%s] After SuperActivated  ", pExt->get_ID(), pOwner->get_ID());
@@ -1461,43 +1430,64 @@ bool SWTypeExtData::Activate(SuperClass* pSuper, CellStruct const cell, bool con
 	return true;
 }
 
-bool SWTypeExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer)
+void SWTypeExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer)
 {
 	const auto pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
-	if (auto pNewSWType = NewSWType::GetNewSWType(pData))
-	{
-		pNewSWType->Deactivate(pSuper, cell, isPlayer);
+	auto pNewSWType = SWTypeHandler::get_Handler(pData->HandledType);
 
-		const auto flags = pNewSWType->Flags(pData);
 
-		if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None)
-		{
-			if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0)
-			{
+	pNewSWType->Deactivate(pSuper, cell, isPlayer);
+
+	const auto flags = pNewSWType->Flags(pData);
+
+	if ((flags & SuperWeaponFlags::NoPower) == SuperWeaponFlags::None) {
+		if (pData->SW_Power.isset() && pData->SW_Power.Get() != 0) {
 				HouseExtContainer::Instance.Find(pSuper->Owner)->AuxPower -= pData->SW_Power.Get();
 				pSuper->Owner->RecheckPower = true;
-			}
 		}
-
-		for (auto pTag : pSuper->Owner->RelatedTags)
-		{
-			if (pTag)
-				pTag->SpringEvent(TriggerEvent(AresTriggerEvents::SuperDeactivated), nullptr, CellStruct::Empty, false, pSuper);
-		}
-
-		return true;
 	}
 
-	return false;
+	for (int a = 0; a < pSuper->Owner->RelatedTags.Count; ++a) {
+		if (auto pTag = pSuper->Owner->RelatedTags.Items[a]) {
+			pTag->RaiseEvent(TriggerEvent(AresTriggerEvents::SuperDeactivated), nullptr, CellStruct::Empty, false, pSuper);
+		}
+	}
 }
 
-void SWTypeExtData::LoadFromRulesFile(CCINIClass* pINI)
+void NOINLINE SWTypeExtData::PreParse(CCINIClass* pINI)
 {
-	//auto pThis = this->Get();
-	//const char* pSection = pThis->ID;
+	auto pThis = this->This();
+	const char* pSection = pThis->ID;
 
-	//INI_EX exINI(pINI);
+	INI_EX exINI(pINI);
+
+	//this part is needed because this configuration is readed before the SW configuration
+	//itself is readed
+	if (exINI.ReadString(pSection, "Action") && IS_SAME_STR_(exINI.value(), "Custom")) {
+		pThis->Action = (Action)PhobosNewActionType::SuperWeaponAllowed;
+	}
+
+	//we dont care if the thing handled or not
+	//just get the index and the thing
+	if (exINI.ReadString(pSection, "Type")) {
+		const auto&[swTypeDecided , SWTypeHandler] = SWTypeHandler::FindFromTypeID(exINI.value());
+		pThis->Type = swTypeDecided;
+		this->HandledType = SWTypeHandler;
+	}
+
+	if(pThis->Type != SuperWeaponType::Invalid){
+
+		if (this->HandledType == NewSuperType::Invalid)
+			Debug::FatalError("Invalid SWTypeHandler Handler detected [%s] !", pSection);
+
+		auto pNewSWType = SWTypeHandler::get_Handler(this->HandledType);
+
+		pThis->Action = (Action)PhobosNewActionType::SuperWeaponAllowed;
+		pNewSWType->Initialize(this); // initialize only when readed from rules
+	}
+
+	this->LastAction = pThis->Action;
 }
 
 bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
@@ -1505,24 +1495,15 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	auto pThis = This();
 	const char* pSection = pThis->ID;
 
-	//initialize default properties
-	this->Initialize();
-
 	if (parseFailAddr)
 		return false;
-
-	//Type was already readed , now we handle these
-	auto pNewSWType = NewSWType::GetNewSWType(this);
-
-	//initialize NewSWType properties
-	if(pNewSWType)
-		pNewSWType->Initialize(this);
 
 	INI_EX exINI(pINI);
 
 	this->EVA_Activated.Read(exINI, pSection, "EVA.Activated");
 	this->EVA_Ready.Read(exINI, pSection, "EVA.Ready");
 	this->EVA_Detected.Read(exINI, pSection, "EVA.Detected");
+	this->EVA_Detected_Simple.Read(exINI, pSection, "EVA.Detected.Simple");
 
 	this->Message_Launch.Read(exINI, pSection, "Message.Launch");
 	this->Message_FirerColor.Read(exINI, pSection, "Message.FirerColor");
@@ -1775,22 +1756,26 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Music_Duration.Read(exINI, pSection, "Music.Duration");
 	this->Music_AffectedHouses.Read(exINI, pSection, "Music.AffectedHouses");
 
-	// initialize the NewSWType that handles this SWType.
-	if (pNewSWType)
+	if(pThis->Type != SuperWeaponType::Invalid)
 	{
-		pThis->Action = this->LastAction;
+		auto pNewSWType = SWTypeHandler::get_Handler(this->HandledType);
 
-		pNewSWType->LoadFromINI(this, pINI);
-		this->LastAction = pThis->Action;
+		if(pNewSWType){
+			// restore the original type
+			pThis->Action = this->LastAction;
+			pNewSWType->LoadFromINI(this, pINI);
+			this->LastAction = pThis->Action;
 
-		if (This()->Action != Action::None)
-			This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
 
-		// whatever the user does, we take care of the stupid tags.
-		// there is no need to have them not hardcoded.
-		auto const flags = pNewSWType->Flags(this);
-		pThis->PreClick = static_cast<bool>(flags & SuperWeaponFlags::PreClick);
-		pThis->PostClick = static_cast<bool>(flags & SuperWeaponFlags::PostClick);
+			if(pThis->Action != Action::None)
+				pThis->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
+
+			// whatever the user does, we take care of the stupid tags.
+			// there is no need to have them not hardcoded.
+			auto const flags = pNewSWType->Flags(this);
+			pThis->PreClick = static_cast<bool>(flags & SuperWeaponFlags::PreClick);
+			pThis->PostClick = static_cast<bool>(flags & SuperWeaponFlags::PostClick);
+		}
 		pThis->PreDependent = SuperWeaponType::Invalid;
 	}
 
@@ -2105,7 +2090,7 @@ bool SWTypeExtData::IsAvailable(HouseClass* pHouse)
 		return false;
 
 	if (!this->SW_Require.empty()) {
-		if (!Prereqs::HouseOwnsAll(pHouse, this->SW_Require.data(), (int)this->SW_Require.size()))
+		if (!Prereqs::HouseOwnsAll(pHouse, this->SW_Require))
 			return false;
 	}
 	// check that any aux building exist and no neg building
@@ -2349,6 +2334,11 @@ bool SWTypeExtData::UpdateLightingColor(LightingColor& Lighting) const
 	return true;
 }
 
+SWTypeHandler* SWTypeExtData::GetNewSWType() const
+{
+	return SWTypeHandler::get_Handler(this->HandledType);
+}
+
 bool SWTypeExtData::ChangeLighting(SuperWeaponTypeClass* pCustom)
 {
 	auto lighting = SWTypeExtData::GetLightingColor(pCustom);
@@ -2372,7 +2362,7 @@ void SWTypeExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner, i
 // SW.Next proper launching mechanic
 void SWTypeExtData::Launch(SuperClass* pFired, HouseClass* pHouse, SWTypeExtData* pLauncherTypeExt, int pLaunchedType, const CellStruct& cell, bool IsPlayer)
 {
-	const auto pSuper = pHouse->Supers.GetItemOrDefault(pLaunchedType);
+	const auto pSuper = pHouse->Supers.get_or_default(pLaunchedType);
 
 	if (!pSuper || !pSuper->Type)
 		return;
@@ -2412,6 +2402,7 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->EVA_Activated)
 		.Process(this->EVA_Ready)
 		.Process(this->EVA_Detected)
+		.Process(this->EVA_Detected_Simple)
 		.Process(this->Message_Launch)
 		.Process(this->Message_FirerColor)
 		.Process(this->SW_RadarEvent)
@@ -2776,7 +2767,7 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 
 	auto linkedSW = [=](const int swIdxToAdd)
 		{
-			if (const auto pSuper = pHouse->Supers.GetItem(swIdxToAdd))
+			if (const auto pSuper = pHouse->Supers.get_or_default(swIdxToAdd))
 			{
 				const bool granted = this->SW_Link_Grant && !pSuper->Granted && pSuper->Grant(true, false, false);
 				bool isActive = granted;
@@ -2919,6 +2910,8 @@ ASMJIT_PATCH(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
 
 bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
+	//read some properties early before
+	SWTypeExtContainer::Instance.Find(this)->PreParse(pINI);
 	bool status = this->SuperWeaponTypeClass::LoadFromINI(pINI);
 	SWTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

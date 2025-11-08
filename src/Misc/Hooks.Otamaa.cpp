@@ -183,7 +183,7 @@ ASMJIT_PATCH(0x47C89C, CellClass_CanThisExistHere_SomethingOnWall, 0x6)
 
 	enum { Adequate = 0x47CA70, Inadequate = 0x47C94F } Status = Inadequate;
 
-	HouseClass* OverlayOwner = HouseClass::Array->GetItemOrDefault(nHouseIDx);
+	HouseClass* OverlayOwner = HouseClass::Array->get_or_default(nHouseIDx);
 	const auto& Nvec = RulesExtData::Instance()->WallTowers;
 
 	if (PlacingObject)
@@ -1365,7 +1365,7 @@ ASMJIT_PATCH(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 			pThis->ShouldEnterOccupiable = false;
 			pThis->ShouldLoseTargetNow = false;
 			pThis->ShouldGarrisonStructure = false;
-			pThis->CurrentTargets.Clear();
+			pThis->CurrentTargets.clear();
 
 			if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
 				return 0x4DBF13;
@@ -1655,7 +1655,7 @@ ASMJIT_PATCH(0x4249EC, AnimClass_CreateMakeInf_WeirdAssCode, 0x6)
 {
 	GET(AnimClass*, pThis, ESI);
 
-	if (auto const pInf = RulesClass::Instance->AnimToInfantry.GetItemOrDefault(pThis->Type->MakeInfantry))
+	if (auto const pInf = RulesClass::Instance->AnimToInfantry.get_or_default(pThis->Type->MakeInfantry))
 	{
 		if (auto const pCreatedInf = pInf->CreateObject(pThis->Owner))
 		{
@@ -2172,7 +2172,7 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 
 	if (SessionClass::IsCampaign())
 	{
-		if (pHouse->ActiveInfantryTypes.GetTotal() <= 0)
+		if (pHouse->ActiveInfantryTypes.total() <= 0)
 		{
 			for (auto& bld : pHouse->Buildings)
 			{
@@ -2181,10 +2181,10 @@ ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
 			}
 		}
 
-		if (pHouse->ActiveAircraftTypes.GetTotal() > 0)
+		if (pHouse->ActiveAircraftTypes.total() > 0)
 			return HasAlive;
 
-		if (pHouse->ActiveInfantryTypes.GetTotal() > 0)
+		if (pHouse->ActiveInfantryTypes.total() > 0)
 			return HasAlive;
 
 		for (auto pItem : *InfantryClass::Array)
@@ -2662,7 +2662,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					if (GameModeOptionsClass::Instance->Bases
 						&& !pCollectorOwner->OwnedBuildings
 						&& pCollectorOwner->Available_Money() > RulesExtData::Instance()->FreeMCV_CreditsThreshold
-						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(pBase->ArrayIndex)
+						&& !pCollectorOwner->OwnedUnitTypes.get_count(pBase->ArrayIndex)
 						)
 					{
 						data = Powerup::Unit;
@@ -2863,10 +2863,10 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 					if (!Given)
 					{
-						if ((pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[0]->ArrayIndex) > 0
-							|| pCollectorOwner->OwnedBuildingTypes.GetItemCount(RulesClass::Instance->BuildRefinery[1]->ArrayIndex) > 0)
-						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(RulesClass::Instance->HarvesterUnit[0]->ArrayIndex)
-						&& !pCollectorOwner->OwnedUnitTypes.GetItemCount(RulesClass::Instance->HarvesterUnit[1]->ArrayIndex)
+						if ((pCollectorOwner->OwnedBuildingTypes.get_count(RulesClass::Instance->BuildRefinery[0]->ArrayIndex) > 0
+							|| pCollectorOwner->OwnedBuildingTypes.get_count(RulesClass::Instance->BuildRefinery[1]->ArrayIndex) > 0)
+						&& !pCollectorOwner->OwnedUnitTypes.get_count(RulesClass::Instance->HarvesterUnit[0]->ArrayIndex)
+						&& !pCollectorOwner->OwnedUnitTypes.get_count(RulesClass::Instance->HarvesterUnit[1]->ArrayIndex)
 						)
 						{
 							Given = pCollectorOwner->PickUnitFromTypeList(RulesClass::Instance->HarvesterUnit);
@@ -2955,9 +2955,9 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				{
 					Debug::LogInfo("Crate at {},{} contains base healing", pCell->MapCoords.X, pCell->MapCoords.Y);
 					PlaySoundAffect(Powerup::HealBase);
-					for (int i = 0; i < LogicClass::Instance->Count; ++i)
+					for (int i = 0; i < MapClass::Logics->Count; ++i)
 					{
-						if (auto pTechno = flag_cast_to<TechnoClass*>(LogicClass::Instance->Items[i]))
+						if (auto pTechno = flag_cast_to<TechnoClass*>(MapClass::Logics->Items[i]))
 						{
 							if (pTechno->IsAlive && pTechno->GetOwningHouse() == pCollectorOwner)
 							{
@@ -3209,7 +3209,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				{
 					Debug::LogInfo("Crate at {},{} contains poison gas", pCell->MapCoords.X, pCell->MapCoords.Y);
 
-					if (auto WH = WarheadTypeClass::Array->GetItemOrDefault(WarheadTypeClass::FindIndexById("GAS")))
+					if (auto WH = WarheadTypeClass::Array->get_or_default(WarheadTypeClass::FindIndexById("GAS")))
 					{
 
 						bool randomizeCoord = true;
@@ -3325,7 +3325,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					Debug::LogInfo("Crate at {},{} contains Pod", pCell->MapCoords.X, pCell->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
  {
-	 return (AresNewSuperType)pSuper->Type->Type == AresNewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
+	 return (NewSuperType)pSuper->Type->Type == NewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
 					});
 
 					if (iter != pCollectorOwner->Supers.end())
@@ -5695,64 +5695,64 @@ ASMJIT_PATCH(0x6B7759, SpawnManagerClass_AI_State4And3_DeadTechno, 0x6)
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x6B770D, SpawnManagerClass_AI_State4And3_DeadTechno, 0x7)
 
-ASMJIT_PATCH(0x6F7CA0, TechnoClass_EvalObject_EarlyObjectEval, 0x5)
-{
-	GET_STACK(AbstractClass*, pTarget, 0x10);
-	retfunc_fixed<bool> _return (R, 0x6F8958, false);
-
-	if(!pTarget) {
-		return _return();
-	}
-
-	if (auto pObj = flag_cast_to<ObjectClass* , false>(pTarget)) {
-		if (!pObj->IsAlive) {
-			return _return();
-		}
-	}
-
-	if (const auto pTechno = flag_cast_to<TechnoClass*, false>(pTarget))
-	{
-		if (pTechno->IsCrashing || pTechno->IsSinking) {
-			return _return();
-		}
-
-
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
-
-		if (pTypeExt->IsDummy) {
-			return _return();
-		}
-
-		switch (pTechno->WhatAmI())
-		{
-		case AbstractType::Building:
-		{
-			const auto pBld = (BuildingClass*)pTarget;
-
-			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) {
-				return _return();
-			}
-
-			break;
-		}
-		case AbstractType::Unit:
-		{
-
-			const auto pUnit = (UnitClass*)pTarget;
-
-			if (pUnit->DeathFrameCounter > 0) {
-				return _return();
-			}
-
-			break;
-		}
-		default:
-			break;
-		}
-	}
-
-	return 0x0;
-}
+//ASMJIT_PATCH(0x6F7CA0, TechnoClass_EvalObject_EarlyObjectEval, 0x5)
+//{
+//	GET_STACK(AbstractClass*, pTarget, 0x10);
+//	retfunc_fixed<bool> _return (R, 0x6F8958, false);
+//
+//	if(!pTarget) {
+//		return _return();
+//	}
+//
+//	if (auto pObj = flag_cast_to<ObjectClass* , false>(pTarget)) {
+//		if (!pObj->IsAlive) {
+//			return _return();
+//		}
+//	}
+//
+//	if (const auto pTechno = flag_cast_to<TechnoClass*, false>(pTarget))
+//	{
+//		if (pTechno->IsCrashing || pTechno->IsSinking) {
+//			return _return();
+//		}
+//
+//
+//		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+//
+//		if (pTypeExt->IsDummy) {
+//			return _return();
+//		}
+//
+//		switch (pTechno->WhatAmI())
+//		{
+//		case AbstractType::Building:
+//		{
+//			const auto pBld = (BuildingClass*)pTarget;
+//
+//			if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1) {
+//				return _return();
+//			}
+//
+//			break;
+//		}
+//		case AbstractType::Unit:
+//		{
+//
+//			const auto pUnit = (UnitClass*)pTarget;
+//
+//			if (pUnit->DeathFrameCounter > 0) {
+//				return _return();
+//			}
+//
+//			break;
+//		}
+//		default:
+//			break;
+//		}
+//	}
+//
+//	return 0x0;
+//}
 
 ASMJIT_PATCH(0x6B7867, SpawnManagerClass_AI_MoveTo7ifDies, 0x6)
 {
@@ -6270,7 +6270,7 @@ public:
 				}
 
 				auto cap_i = this->CapacityIncrement;
-				if (cap_i <= 0 || !this->SetCapacity(cap + cap_i, 0))
+				if (cap_i <= 0 || !this->reserve(cap + cap_i))
 				{
 					return 0;
 				}
@@ -6296,7 +6296,7 @@ public:
 			return 1;
 		}
 
-		return this->AddItem(object);
+		return this->push_back(object);
 	}
 };
 static_assert(sizeof(FakeLayerClass) == sizeof(LayerClass), "Invalid Size !");
@@ -7508,6 +7508,40 @@ public:
 
 #ifndef CHECK_PTR_VALID
 
+
+ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
+{
+	GET_STACK(ObjectClass*, pTarget, 0x4);
+	GET(HouseClass*, pThis, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+
+	bool result = false;
+
+	if (pTarget) {
+
+		if(flag_cast_to<TechnoClass*>(pTarget)){
+			if ((VTable::Get(pTarget) != AircraftClass::vtable &&
+				VTable::Get(pTarget) != BuildingClass::vtable &&
+				VTable::Get(pTarget) != UnitClass::vtable &&
+				VTable::Get(pTarget) != InfantryClass::vtable))
+			{
+				Debug::FatalError("Missing valid vtable %x , caller %x", pTarget, caller);
+			}
+		}
+
+		auto pTargetOwner = pTarget->GetOwningHouse();
+		result = pThis->IsAlliedWith(pTargetOwner);
+	}
+
+	R->AL(result);
+	return 0x4F9ADE;
+}
+
+ASMJIT_PATCH(0x6F8A0F, TechnoClass_EvalCell_deadTechno, 0x8)
+{
+	GET(ObjectClass*, pCellObj, EDI);
+	return !pCellObj || !pCellObj->IsAlive ? 0x6F8B4D : 0x6F8A17;
+}
 	//ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlliedWith, 0x7)
 	//{
 	//	GET(HouseClass*, pThis, ECX);
@@ -7534,3 +7568,18 @@ public:
 	//ASMJIT_PATCH_AGAIN(0x4F9A50, HouseClass_IsAlliedWith, 0x6)
 
 #endif
+
+//ASMJIT_PATCH(0x7564B0, VoxClass_GetData, 7) {
+//	GET(VoxLib*, pVox, ECX);
+//	GET_STACK(DWORD, caller, 0x0);
+//	GET_STACK(int, header, 0x4);
+//	GET_STACK(int, layer, 0x8);
+//
+//	if (!pVox->HeaderData || !pVox->TailerData)
+//		Debug::FatalError("VoxelLibraryClass::Get_Voxel_Layer_Info input is broken ! caller 0x%x", caller);
+//
+//	auto pData = &pVox->TailerData[layer + pVox->HeaderData[header].limb_number];
+//
+//	R->EAX(pData);
+//	return 0x7564CF;
+//}

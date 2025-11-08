@@ -60,7 +60,7 @@ ASMJIT_PATCH(0x4400F9, BuildingClass_AI_UpdateOverpower, 0x6)
 
 		if (pCharger->Target != pThis)
 		{
-			pThis->Overpowerers.RemoveAt(idx);
+			pThis->Overpowerers.erase_at(idx);
 			continue;
 		}
 
@@ -68,7 +68,7 @@ ASMJIT_PATCH(0x4400F9, BuildingClass_AI_UpdateOverpower, 0x6)
 
 		if (!pWeapon || !pWeapon->Warhead || !pWeapon->Warhead->ElectricAssault)
 		{
-			pThis->Overpowerers.RemoveAt(idx);
+			pThis->Overpowerers.erase_at(idx);
 			continue;
 		}
 
@@ -405,9 +405,9 @@ ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 	return Return;
 }
 #else 
-DEFINE_JUMP(LJMP, 0x4FABEE, 0x4FAB3D)
+//DEFINE_JUMP(LJMP, 0x4FABEE, 0x4FAB3D)
 
-DEFINE_HOOK(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
+ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 {
 	enum { CheckSame = 0x4FAB3D, SkipCheck = 0x4FAB64, Return = 0x4FAC9B };
 

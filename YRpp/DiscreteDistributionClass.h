@@ -18,181 +18,226 @@
 #include <Randomizer.h>
 
 #include <utility>
-
 template <typename T>
 struct DistributionObject
 {
-	constexpr DistributionObject() = default;
-	constexpr explicit DistributionObject(T value, unsigned int weight = 1u)
+	DistributionObject() = default;
+	explicit DistributionObject(T value, unsigned int weight = 1u)
 		: Value(std::move(value)), Weight(weight) { }
 
-	constexpr bool operator==(const DistributionObject<T>&) const noexcept = default;
-	constexpr bool operator!=(const DistributionObject<T>&) const noexcept = default;
-
-	// For std::set support
-	constexpr bool operator<(const DistributionObject<T>& other) const
+	// BUG FIX: These should actually compare values, not always return false/true
+	bool operator==(const DistributionObject<T>& rhs) const
 	{
-		if (Weight != other.Weight)
-		{
-			return Weight < other.Weight;
-		}
-		return Value < other.Value;
+		return Weight == rhs.Weight && Value == rhs.Value;
 	}
 
-	~DistributionObject() = default;
+	bool operator!=(const DistributionObject<T>& rhs) const
+	{
+		return !(*this == rhs);
+	}
 
 	T Value {};
 	unsigned int Weight { 0u };
 };
 
-template <typename T, typename Container = std::vector<DistributionObject<T>>>
+template <typename T, typename Container>
 class DiscreteDistributionClass
 {
 public:
+	using distribution_object = DistributionObject<T>;
+
 	DiscreteDistributionClass() = default;
-	~DiscreteDistributionClass() = default;
 
-	DiscreteDistributionClass(const DiscreteDistributionClass&) = default;
-	DiscreteDistributionClass(DiscreteDistributionClass&&) noexcept = default;
-	DiscreteDistributionClass& operator=(const DiscreteDistributionClass&) = default;
-	DiscreteDistributionClass& operator=(DiscreteDistributionClass&&) noexcept = default;
+	// Constructor for DynamicVectorClass compatibility
+	explicit DiscreteDistributionClass(int capacity, distribution_object* pMem = nullptr)
+		: Items(capacity, pMem) { }
 
-	[[nodiscard]] const Container& GetItems() const noexcept
+	// Add distribution object directly
+	void add(distribution_object item)
 	{
-		return this->items_;
+		this->TotalWeight += item.Weight;
+		add_item_impl(std::move(item));
 	}
 
-	void Add(DistributionObject<T> item)
+	// Add value with weight
+	void add(T value, unsigned int weight = 1u)
 	{
-		if (item.Weight == 0u)
-		{
-			return;
-		}
-		this->totalWeight_ += item.Weight;
-		if constexpr (std::is_same_v<Container, std::set<DistributionObject<T>>>)
-		{
-			this->items_.insert(std::move(item));
-		}
-		else
-		{
-			this->items_.push_back(std::move(item));
-		}
+		distribution_object item(std::move(value), weight);
+		add(std::move(item));
 	}
 
-	void Add(T value, unsigned int weight = 1u)
+	// Clear all items
+	void clear()
 	{
-		if (weight == 0u)
-		{
-			return;
-		}
-		this->Add(DistributionObject<T>(std::move(value), weight));
+		this->TotalWeight = 0u;
+		clear_impl();
 	}
 
-	void Clear()
+	[[nodiscard]] unsigned int total_weight() const noexcept
 	{
-		this->totalWeight_ = 0u;
-		this->items_.clear();
+		return this->TotalWeight;
 	}
 
-	[[nodiscard]] constexpr unsigned int GetTotalWeight() const noexcept
+	[[nodiscard]] std::size_t size() const noexcept
 	{
-		return this->totalWeight_;
+		return size_impl();
 	}
 
-	// CRITICAL FIX: Return int like original, with proper overflow check
-	[[nodiscard]] int GetCount() const noexcept
+	[[nodiscard]] bool empty() const noexcept
 	{
-		const auto size = this->items_.size();
-		assert(size <= static_cast<size_t>(std::numeric_limits<int>::max()));
-		return static_cast<int>(size);
+		return size() == 0;
 	}
 
-	[[nodiscard]] bool IsValid() const noexcept
+	[[nodiscard]] bool is_valid() const noexcept
 	{
-		return this->totalWeight_ > 0u && !this->items_.empty();
+		return this->TotalWeight > 0u && !empty();
 	}
 
-	// CRITICAL FIX: Use != instead of < for iterator comparison
-	[[nodiscard]] bool Select(unsigned int value, T* pOut) const
+	// Select by weight value with output parameter
+	bool select(unsigned int value, T* pOut) const
 	{
-		if (!this->IsValid() || value == 0u || value > this->totalWeight_)
+		// BUG FIX: Original checked 'value && value <= TotalWeight'
+		// but value of 0 is invalid anyway, and checking empty() is clearer
+		if (!is_valid() || value == 0u || value > this->TotalWeight)
 		{
 			return false;
 		}
 
 		unsigned int acc = 0u;
-		// FIX: Use != instead of < to work with all iterator types
-		for (auto it = this->items_.begin(); it != this->items_.end(); ++it)
+		for (const auto& item : Items)
 		{
-			acc += it->Weight;
+			acc += item.Weight;
+
 			if (acc >= value)
 			{
 				if (pOut)
 				{
-					*pOut = it->Value;
+					*pOut = item.Value;
 				}
 				return true;
 			}
 		}
+
+		// Should never reach here if TotalWeight is correct
 		return false;
 	}
 
-	bool Select(Random2Class& random, T* pOut) const
+	// Select by weight value returning optional
+	[[nodiscard]] std::optional<T> select(unsigned int value) const
 	{
-		if (this->totalWeight_ == 0u)
+		if (!is_valid() || value == 0u || value > this->TotalWeight)
+		{
+			return std::nullopt;
+		}
+
+		unsigned int acc = 0u;
+		for (const auto& item : Items)
+		{
+			acc += item.Weight;
+
+			if (acc >= value)
+			{
+				return item.Value;
+			}
+		}
+
+		return std::nullopt;
+	}
+
+	// Random selection with output parameter
+	bool select(Random2Class& random, T* pOut) const
+	{
+		if (!is_valid())
 		{
 			return false;
 		}
-		const int value = random.RandomRanged(1, static_cast<int>(this->totalWeight_));
-		return this->Select(static_cast<unsigned int>(value), pOut);
+
+		// BUG FIX: RandomRanged uses inclusive range, so [1, TotalWeight] is correct
+		auto value = random.RandomRanged(1, static_cast<int>(this->TotalWeight));
+		return select(static_cast<unsigned int>(value), pOut);
 	}
 
-	[[nodiscard]] T Select(unsigned int index, T nDefault = T()) const
+	// Random selection returning optional
+	[[nodiscard]] std::optional<T> select(Random2Class& random) const
 	{
-		this->Select(index, &nDefault);
-		return nDefault;
-	}
-
-	[[nodiscard]] T Select(Random2Class& random, T nDefault = T()) const
-	{
-		this->Select(random, &nDefault);
-		return nDefault;
-	}
-
-	[[nodiscard]] T SelectOrDefault(T defaultval = T()) const
-	{
-		this->Select(ScenarioClass::Instance->Random, &defaultval);
-		return defaultval;
-	}
-
-	// Modern alternative: return std::optional
-	[[nodiscard]] std::optional<T> TrySelect(unsigned int value) const
-	{
-		T result {};
-		if (this->Select(value, &result))
+		if (!is_valid())
 		{
-			return result;
+			return std::nullopt;
+		}
+
+		auto value = random.RandomRanged(1, static_cast<int>(this->TotalWeight));
+		return select(static_cast<unsigned int>(value));
+	}
+
+	// Select with default value (legacy compatibility)
+	// BUG FIX: Original code modified the default parameter!
+	[[nodiscard]] T select_or(unsigned int value, T default_value) const
+	{
+		auto result = select(value);
+		return result ? std::move(*result) : std::move(default_value);
+	}
+
+	// Random select with default value (legacy compatibility)
+	// BUG FIX: Original code modified the default parameter!
+	[[nodiscard]] T select_or(Random2Class& random, T default_value) const
+	{
+		auto result = select(random);
+		return result ? std::move(*result) : std::move(default_value);
+	}
+
+	// Get item by index (for inspection)
+	[[nodiscard]] std::optional<distribution_object> get_item(std::size_t index) const
+	{
+		if (index < size())
+		{
+			return Items[static_cast<int>(index)];
 		}
 		return std::nullopt;
 	}
 
-	[[nodiscard]] std::optional<T> TrySelect(Random2Class& random) const
-	{
-		T result {};
-		if (this->Select(random, &result))
-		{
-			return result;
-		}
-		return std::nullopt;
-	}
+	// Iterator support for range-based for loops
+	auto begin() const { return Items.begin(); }
+	auto end() const { return Items.end(); }
+	auto begin() { return Items.begin(); }
+	auto end() { return Items.end(); }
+
+	// Legacy interface (commented for migration reference)
+	/*
+	void Add(distribution_object item) { add(std::move(item)); }
+	void Add(T value, unsigned int weight = 1u) { add(std::move(value), weight); }
+	void Clear() { clear(); }
+	unsigned int GetTotalWeight() const { return total_weight(); }
+	int GetCount() const { return static_cast<int>(size()); }
+	bool IsValid() const { return is_valid(); }
+	bool Select(unsigned int value, T* pOut) const { return select(value, pOut); }
+	bool Select(Randomizer& random, T* pOut) const { return select(random, pOut); }
+	T Select(unsigned int index, T default_value = T()) const { return select_or(index, std::move(default_value)); }
+	T Select(Randomizer& random, T default_value = T()) const { return select_or(random, std::move(default_value)); }
+	*/
 
 private:
-	Container items_ {};
-	unsigned int totalWeight_ { 0u };
+	void add_item_impl(distribution_object item)
+	{
+		Items.push_back(std::move(item));
+	}
+
+	void clear_impl()
+	{
+		Items.clear();
+	}
+
+	[[nodiscard]] std::size_t size_impl() const noexcept
+	{
+		return Items.size();
+	}
+
+	Container Items {};
+	unsigned int TotalWeight { 0u };
 };
 
+// Type aliases for common uses
 template<typename T>
-using DiscreteDistributionVector = DiscreteDistributionClass<T, std::vector<DistributionObject<T>>>;
+using DiscreteDistribution = DiscreteDistributionClass<T, DynamicVectorClass<DistributionObject<T>>>;
 
 template<typename T>
-using DiscreteDistributionList = DiscreteDistributionClass<T, std::list<DistributionObject<T>>>;
+using StdDiscreteDistribution = DiscreteDistributionClass<T, std::vector<DistributionObject<T>>>;

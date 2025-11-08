@@ -1333,7 +1333,7 @@ public:
 
 			write_to_file(LogFile, "\n");
 			VectorLogger(&ObjectClass::CurrentObjects(), LogFile, "Current Objects");
-			VectorLogger(&LogicClass::Instance(), LogFile, "Logics");
+			VectorLogger(&MapClass::Logics(), LogFile, "Logics");
 
 			write_to_file(LogFile, "\n**Checksums for Map Layers**\n");
 			for (size_t ixL = 0; ixL < MapClass::ObjectsInLayers.c_size(); ++ixL) {
@@ -1342,7 +1342,7 @@ public:
 			}
 
 			write_to_file(LogFile, "\n**Checksums for Logics**\n");
-			VectorLogger(&LogicClass::Instance(), LogFile);
+			VectorLogger(&MapClass::Logics(), LogFile);
 
 			write_to_file(LogFile, "\n**Checksums for Abstracts**\n");
 			VectorLogger(AbstractClass::Array(), LogFile, "Abstracts");

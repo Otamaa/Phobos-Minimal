@@ -6,7 +6,7 @@
 #ifndef ASMJIT_X86_X86OPCODE_P_H_INCLUDED
 #define ASMJIT_X86_X86OPCODE_P_H_INCLUDED
 
-#include "../x86/x86globals.h"
+#include <asmjit/x86/x86globals.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 

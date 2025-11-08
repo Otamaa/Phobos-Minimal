@@ -135,14 +135,14 @@ public:
 		CraterChance(0.5),
 		SpawnCrater(),
 		ScorchChance(),
-		SpecialDraw(IS_SAME_STR_(this->Name(), GameStrings::Anim_RING1())),
+		SpecialDraw(IS_SAME_STR_(pObj->ID, GameStrings::Anim_RING1())),
 		NoOwner(false),
 		Spawns_Delay(0),
 		ConcurrentChance(0.0),
 		ConcurrentAnim(),
 		MakeInfantryOwner(),
 		AttachedSystem(nullptr),
-		IsInviso(IS_SAME_STR_(this->Name(), GameStrings::Anim_INVISO())),
+		IsInviso(IS_SAME_STR_(pObj->ID, GameStrings::Anim_INVISO())),
 		RemapAnim(false),
 		AltPalette_ApplyLighting(false),
 		ExtraShadow(true),
@@ -169,7 +169,9 @@ public:
 		LargeFireDistances(),
 		Damaging_UseSeparateState(false),
 		Damaging_Rate(-1)
-	{ }
+	{
+		this->AbsType = AnimTypeClass::AbsID;
+	}
 
 	AnimTypeExtData(AnimTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }
 

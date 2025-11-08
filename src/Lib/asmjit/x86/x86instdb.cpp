@@ -3,15 +3,15 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
+#include <asmjit/core/api-build_p.h>
 #if !defined(ASMJIT_NO_X86)
 
-#include "../core/cpuinfo.h"
-#include "../core/misc_p.h"
-#include "../core/support.h"
-#include "../x86/x86instdb_p.h"
-#include "../x86/x86opcode_p.h"
-#include "../x86/x86operand.h"
+#include <asmjit/core/cpuinfo.h>
+#include <asmjit/core/misc_p.h>
+#include <asmjit/support/support.h>
+#include <asmjit/x86/x86instdb_p.h>
+#include <asmjit/x86/x86opcode_p.h>
+#include <asmjit/x86/x86operand.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
@@ -4696,7 +4696,7 @@ const uint32_t InstDB::alias_index_to_inst_id_table[] = {
 // x86::InstDB - InstSignature & OpSignature
 // =========================================
 
-#ifndef ASMJIT_NO_VALIDATION
+#ifndef ASMJIT_NO_INTROSPECTION
 // ${InstSignatureTable:Begin}
 // ------------------- Automatically generated, do not edit -------------------
 #define ROW(count, x86, x64, implicit, o0, o1, o2, o3, o4, o5)       \
@@ -5496,7 +5496,7 @@ const InstDB::OpSignature InstDB::_op_signature_table[] = {
 #undef ROW
 // ----------------------------------------------------------------------------
 // ${InstSignatureTable:End}
-#endif // !ASMJIT_NO_VALIDATION
+#endif // !ASMJIT_NO_INTROSPECTION
 
 // x86::InstInternal - QueryRWInfo
 // ===============================

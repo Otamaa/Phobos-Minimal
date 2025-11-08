@@ -1,6 +1,6 @@
 #include "Body.h"
 
-#include "NewSuperWeaponType/NewSWType.h"
+#include "NewSuperWeaponType/SWTypeHandler.h"
 #include "NewSuperWeaponType/NuclearMissile.h"
 
 #include <Ext/BulletType/Body.h>
@@ -20,7 +20,7 @@ ASMJIT_PATCH(0x46B371, BulletClass_NukeMaker, 5)
 		pNukeSW = pNuke;
 	}
 	else if (auto pLinkedNuke = SuperWeaponTypeClass::Array->
-		GetItemOrDefault(WarheadTypeExtContainer::Instance.Find(pThis->WH)->NukePayload_LinkedSW))
+		get_or_default(WarheadTypeExtContainer::Instance.Find(pThis->WH)->NukePayload_LinkedSW))
 	{
 		pNukeSW = pLinkedNuke;
 	}
@@ -35,8 +35,8 @@ ASMJIT_PATCH(0x46B371, BulletClass_NukeMaker, 5)
 
 			// these are not available during initialisation, so we gotta
 			// fall back now if they are invalid.
-			auto const damage = NewSWType::GetNewSWType(pSWExt)->GetDamage(pSWExt);
-			auto const pWarhead = NewSWType::GetNewSWType(pSWExt)->GetWarhead(pSWExt);
+			auto const damage = pSWExt->GetNewSWType()->GetDamage(pSWExt);
+			auto const pWarhead = pSWExt->GetNewSWType()->GetWarhead(pSWExt);
 
 			// put the new values into the registers
 			R->Stack(0x30, R->EAX());

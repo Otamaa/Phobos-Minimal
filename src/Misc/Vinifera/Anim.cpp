@@ -164,14 +164,15 @@ void Vinivera::ApplyAreaDamage(AnimClass* pThis)
 		}
 	}
 	auto const pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
+	if(!Phobos::Config::HideShakeEffects) {
+		if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(object_ptr->GetCoords()))
+		{
 
-	if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(object_ptr->GetCoords()))
-	{
+			if (warhead->ShakeXhi || warhead->ShakeXlo)
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(warhead->ShakeXhi, warhead->ShakeXlo), pWHExt->Shake_UseAlternativeCalculation);
 
-		if (warhead->ShakeXhi || warhead->ShakeXlo)
-			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeX, Random2Class::NonCriticalRandomNumber->RandomRanged(warhead->ShakeXhi, warhead->ShakeXlo), pWHExt->Shake_UseAlternativeCalculation);
-
-		if (warhead->ShakeYhi || warhead->ShakeYlo)
-			GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(warhead->ShakeYhi, warhead->ShakeYlo), pWHExt->Shake_UseAlternativeCalculation);
+			if (warhead->ShakeYhi || warhead->ShakeYlo)
+				GeneralUtils::CalculateShakeVal(GScreenClass::Instance->ScreenShakeY, Random2Class::NonCriticalRandomNumber->RandomRanged(warhead->ShakeYhi, warhead->ShakeYlo), pWHExt->Shake_UseAlternativeCalculation);
+		}
 	}
 }

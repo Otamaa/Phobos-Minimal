@@ -6,9 +6,9 @@
 #ifndef ASMJIT_CORE_ASSEMBLER_H_INCLUDED
 #define ASMJIT_CORE_ASSEMBLER_H_INCLUDED
 
-#include "../core/codeholder.h"
-#include "../core/emitter.h"
-#include "../core/operand.h"
+#include <asmjit/core/codeholder.h>
+#include <asmjit/core/emitter.h>
+#include <asmjit/core/operand.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -125,6 +125,8 @@ public:
   //! \{
 
   ASMJIT_API Error comment(const char* data, size_t size = SIZE_MAX) override;
+
+  ASMJIT_INLINE Error comment(Span<const char> data) { return comment(data.data(), data.size()); }
 
   //! \}
 

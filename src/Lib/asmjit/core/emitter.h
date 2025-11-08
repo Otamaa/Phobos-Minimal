@@ -6,12 +6,12 @@
 #ifndef ASMJIT_CORE_EMITTER_H_INCLUDED
 #define ASMJIT_CORE_EMITTER_H_INCLUDED
 
-#include "../core/archtraits.h"
-#include "../core/codeholder.h"
-#include "../core/formatter.h"
-#include "../core/inst.h"
-#include "../core/operand.h"
-#include "../core/type.h"
+#include <asmjit/core/archtraits.h>
+#include <asmjit/core/codeholder.h>
+#include <asmjit/core/formatter.h>
+#include <asmjit/core/inst.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/core/type.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -678,7 +678,7 @@ public:
   //! \name Labels
   //! \{
 
-  //! Creates a new label.
+  //! Creates a new anonymous label.
   [[nodiscard]]
   ASMJIT_API virtual Label new_label();
 
@@ -890,6 +890,11 @@ public:
 
   //! Emits a comment stored in `data` with an optional `size` parameter.
   ASMJIT_API virtual Error comment(const char* data, size_t size = SIZE_MAX);
+
+  //! Emits a comment passed via a `data` span.
+  ASMJIT_INLINE Error comment(Span<const char> data) {
+    return comment(data.data(), data.size());
+  }
 
   //! Emits a formatted comment specified by `fmt` and variable number of arguments.
   ASMJIT_API Error commentf(const char* fmt, ...);

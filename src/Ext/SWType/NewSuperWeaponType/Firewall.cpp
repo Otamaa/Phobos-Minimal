@@ -9,11 +9,6 @@ SW_Firewall::~SW_Firewall() {
 	SW_Firewall::FirewallType = SuperWeaponType::Invalid;
 }
 
-std::vector<const char*> SW_Firewall::GetTypeString() const
-{
-	return { "Firestorm" };
-}
-
 void SW_Firewall::Initialize(SWTypeExtData* pData)
 {
 	pData->This()->Action = Action::None;

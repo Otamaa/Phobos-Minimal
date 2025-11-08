@@ -216,3 +216,48 @@ public:
 };
 
 static_assert(sizeof(TeamClass) == 0xA0 , "Invalid Size !");
+
+/*
+00000000 struct TeamClass // sizeof=0xA0
+00000000 {
+00000000     AbstractClass a;
+00000024     TeamTypeClass *Class;          // official
+00000028     ScriptClass *Script;           // confirmed
+0000002C     HouseClass *House;             // official
+00000030     HouseClass *__ScoutHouse;
+00000034     CellClass *Zone;               // ...
+00000034                                    // official
+00000038     FootClass *ClosestMember;      // official
+0000003C     _DWORD MissionTarget;          // official
+00000040     ObjectClass *Target;           // official
+00000044     _DWORD __INVESTIGATE44;
+00000048     _DWORD Total;                  // official
+0000004C     _DWORD Risk;                   // official
+00000050     _DWORD __CreationFrame;        // Frame when CTOR was executed
+00000054     FootClass *Member;             // official
+00000058     CDTimerClass TimeOut;          // official
+00000064     CDTimerClass SuspendTimer;     // official
+00000070     _DWORD Tag;                    // confirmed, Trigger in RA
+00000074     _BYTE __DestroyTeamType74__IsTransient; // destroys this teams TeamType in DTOR
+00000075     _BYTE __needs_regrouping;      // Coordinate_Regroup was true or Took Damage
+00000076     _BYTE __GuardSlowerIsNotUnderStrength;
+00000077     _BYTE IsForcedActive;          // official
+00000078     _BYTE IsHasBeen;               // official
+00000079     _BYTE IsFullStrength;          // official
+0000007A     _BYTE IsUnderStrength;         // official
+0000007B     _BYTE IsReforming;             // official
+0000007C     bool IsLagging;                // official
+0000007D     _BYTE IsAltered;               // official
+0000007E     _BYTE JustAltered;             // official
+0000007F     _BYTE IsMoving;                // official
+00000080     _BYTE IsNextMission;           // official
+00000081     _BYTE __target_not_assigned;   // set after Assign Target is called
+00000082     _BYTE IsLeaveMap;              // official
+00000083     _BYTE Suspended;               // official
+00000084     _BYTE __was_a_success;         // calls AITriggerTypeClass register functions, based on state
+00000085     // padding byte
+00000086     // padding byte
+00000087     // padding byte
+00000088     int Quantity[6] __tabform(,,0); // official
+000000A0 };
+*/

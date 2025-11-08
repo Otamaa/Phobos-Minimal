@@ -16,7 +16,7 @@ ASMJIT_PATCH(0x732d47, TacticalClass_CollectSelectedIDs, 5)
 					return !CRT::strcmpi(pID, id);
 				}))
 			{
-				pNames->AddItem(id);
+				pNames->push_back(id);
 			}
 		};
 

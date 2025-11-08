@@ -53,6 +53,7 @@ public:
 		TransmogrifyOwner(OwnerHouseKind::Neutral),
 		Fire_DamagingAnim(false)
 	{
+		this->AbsType = ParticleTypeClass::AbsID;
 		LaserTrail_Types.reserve(2);
 	}
 	ParticleTypeExtData(ParticleTypeClass* pObj, noinit_t nn) : ObjectTypeExtData(pObj, nn) { }

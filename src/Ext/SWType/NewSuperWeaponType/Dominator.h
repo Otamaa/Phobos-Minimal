@@ -1,16 +1,14 @@
 #pragma once
 
-#include "NewSWType.h"
+#include "SWTypeHandler.h"
 #include "SWStateMachine.h"
 
-class SW_PsychicDominator : public NewSWType
+class SW_PsychicDominator : public SWTypeHandler
 {
 public:
-	virtual std::vector<const char*> GetTypeString() const override;
-	virtual bool HandleThisType(SuperWeaponType type) const override;
-	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const override;
+	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const;
 
-	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer) override;
+	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer);
 	virtual bool AbortFire(SuperClass* pSW, bool IsPlayer) override;
 
 	virtual void Initialize(SWTypeExtData* pData) override;

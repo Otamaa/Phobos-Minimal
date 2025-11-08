@@ -172,7 +172,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 		{
 			if (pAnim->Animation.Stage >= pAnim->Type->GetImage()->Frames / 2)
 			{
-				LightningStorm::BoltsPresent->RemoveAt(i);
+				LightningStorm::BoltsPresent->erase_at(i);
 			}
 		}
 	}
@@ -188,7 +188,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 			{
 				auto const crdStrike = pAnim->GetCoords();
 				LightningStorm::Strike2(crdStrike);
-				LightningStorm::CloudsManifesting->RemoveAt(i);
+				LightningStorm::CloudsManifesting->erase_at(i);
 			}
 		}
 	}
@@ -220,7 +220,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 				auto pAnimImage = pAnim->Type->GetImage();
 				if (pAnim->Animation.Stage >= pAnimImage->Frames - 1)
 				{
-					LightningStorm::CloudsPresent->RemoveAt(i);
+					LightningStorm::CloudsPresent->erase_at(i);
 				}
 			}
 		}
@@ -299,7 +299,7 @@ ASMJIT_PATCH(0x53A6CF, LightningStorm_Update, 7)
 
 	if (scatterDelay > 0 && (Unsorted::CurrentFrame % scatterDelay == 0))
 	{
-		auto const range = pExt->GetNewSWType()->GetRange(pExt);
+		auto const range = SWTypeHandler::get_Handler(pExt->HandledType)->GetRange(pExt);
 		auto const isRectangle = (range.height() <= 0);
 		auto const width = range.width();
 		auto const height = isRectangle ? width : range.height();
@@ -434,8 +434,8 @@ ASMJIT_PATCH(0x53A140, LightningStorm_Strike, 7)
 					// create the cloud and do some book keeping.
 					auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 					pAnim->SetHouse(pSuper->Owner);
-					LightningStorm::CloudsManifesting->AddItem(pAnim);
-					LightningStorm::CloudsPresent->AddItem(pAnim);
+					LightningStorm::CloudsManifesting->push_back(pAnim);
+					LightningStorm::CloudsPresent->push_back(pAnim);
 				}
 			}
 		}
@@ -481,7 +481,7 @@ ASMJIT_PATCH(0x53A300, LightningStorm_Strike2, 5)
 				{
 					auto const pAnim = GameCreate<AnimClass>(pAnimType, coords);
 					pAnim->SetHouse(pSuper->Owner);
-					LightningStorm::BoltsPresent->AddItem(pAnim);
+					LightningStorm::BoltsPresent->push_back(pAnim);
 				}
 			}
 		}

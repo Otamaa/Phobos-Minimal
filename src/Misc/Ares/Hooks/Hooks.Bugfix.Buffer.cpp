@@ -244,7 +244,7 @@ OPTIONALINLINE void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, 
 			{
 				if COMPILETIMEEVAL (!Unique)
 				{
-					List.AddItem(buffer);
+					List.push_back(buffer);
 				}
 				else
 				{

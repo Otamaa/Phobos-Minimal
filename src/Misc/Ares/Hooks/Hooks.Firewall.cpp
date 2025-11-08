@@ -303,7 +303,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 					auto health = pType->GetRepairStep();
 
 					int idxTib = pCell->_GetTiberiumType();
-					if (auto const pTib = TiberiumClass::Array->GetItemOrDefault(idxTib))
+					if (auto const pTib = TiberiumClass::Array->get_or_default(idxTib))
 					{
 						auto pTibExt = TiberiumExtContainer::Instance.Find(pTib);
 						delay = pTibExt->GetHealDelay();

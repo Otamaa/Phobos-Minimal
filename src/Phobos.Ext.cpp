@@ -318,7 +318,7 @@ HRESULT Phobos::LoadGameDataAfter(IStream* pStm)
 	//clear the loadgame flag
 	Phobos::Otamaa::DoingLoadGame = false;
 
-	if (auto pPlayerSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
+	if (auto pPlayerSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex)) {
 		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape) {
 			GameDelete<true, true>(std::exchange(MouseClass::ShapeData(), pSideMouse));
 		}
@@ -373,15 +373,6 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 		ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);
 		ScenarioExtData::Instance()->FallingDownTracker.erase((TechnoClass*)pInvalid);
 
-		HouseExtContainer::HousesTeams.erase_all_if([pInvalid](std::pair<HouseClass*, VectorSet<TeamClass*>>& item) {
-			if(item.first != pInvalid) {
-				item.second.erase((TeamClass*)pInvalid);
-				return false;
-			}
-
-			return true;
-		});
-
 		HouseExtData::AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
 			return item.first == pInvalid;
 		});
@@ -396,9 +387,9 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 				}
 			});
 
-			LightningStorm::CloudsPresent->Remove((AnimClass*)pInvalid);
-			LightningStorm::CloudsManifesting->Remove((AnimClass*)pInvalid);;
-			LightningStorm::BoltsPresent->Remove((AnimClass*)pInvalid);
+			LightningStorm::CloudsPresent->erase((AnimClass*)pInvalid);
+			LightningStorm::CloudsManifesting->erase((AnimClass*)pInvalid);;
+			LightningStorm::BoltsPresent->erase((AnimClass*)pInvalid);
 		}
 	}
 
@@ -571,6 +562,8 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	//AttachmentTypeClass::Clear();
 
 	PhobosPCXFile::LoadedMap.clear();
+	Handles::Array.clear();
+
 	return 0;
 }
 

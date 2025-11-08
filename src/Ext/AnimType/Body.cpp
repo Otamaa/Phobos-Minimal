@@ -22,7 +22,7 @@
 
 bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
-	const char* pID = this->Name();
+	const char* pID = this->Name.data();
 
 	if (parseFailAddr)
 		return false;
@@ -477,7 +477,7 @@ void AnimTypeExtData::ValidateData()
 
 	if (this->CreateUnitType && this->CreateUnitType->Type->Strength == 0)
 	{
-		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", Name(), this->CreateUnitType->Type->ID);
+		Debug::LogInfo("AnimType[{}] With[{}] CreateUnit strength 0 !", Name.data(), this->CreateUnitType->Type->ID);
 		this->CreateUnitType.reset();
 		Debug::RegisterParserError();
 	}
@@ -494,34 +494,29 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 
 	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	AnimTypeClass** begin = pType->DestroyAnim.begin();
-	int count = pType->DestroyAnim.Count;
+	Iterator pDestroyAnim = make_iterator(pType->DestroyAnim);
 
-	if (pWH)
-	{
+	if (pWH) {
 		for (auto walk = pTypeExt->DestroyAnimSpecific.begin();
 			 walk != pTypeExt->DestroyAnimSpecific.end();
 			 ++walk
-		)
-		{
-			if (walk->first == pWH)
-			{
-				begin = walk->second.data();
-				count = (int)walk->second.size();
+		) {
+			if (walk->first == pWH) {
+				pDestroyAnim = make_iterator(walk->second);
 				break;
 			}
 		}
 
 	}
 
-	if (!count)
+	if (!pDestroyAnim)
 		return;
 
 	const DirType facing = (DirType)pThis->PrimaryFacing.Current().GetFacing<256>();
 
 	int idxAnim = 0;
-	GeneralUtils::GetRandomAnimVal(idxAnim, count, (short)facing, pTypeExt->DestroyAnim_Random.Get());
-	AnimTypeClass* pAnimType = begin[idxAnim];
+	GeneralUtils::GetRandomAnimVal(idxAnim, pDestroyAnim.size(), (short)facing, pTypeExt->DestroyAnim_Random.Get());
+	AnimTypeClass* pAnimType = pDestroyAnim[idxAnim];
 
 	if (!pAnimType)
 		return;

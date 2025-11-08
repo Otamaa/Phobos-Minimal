@@ -117,258 +117,6 @@
 #include <CStreamClass.h>
 #include <LoadOptionsClass.h>
 
-#ifdef RECORD_
-template<typename T>
-HRESULT SaveObjectVector(LPSTREAM pStm, DynamicVectorClass<T>& collection, DWORD arrayPosition = 0)
-{
-	HRESULT hr;
-	std::string typeName = PhobosCRT::GetTypeIDName<T>();
-	ULONG written = 0;
-
-	// Write START marker
-	std::string startMarker = "START_" + typeName;
-	DWORD markerLength = startMarker.length();
-	hr = pStm->Write(&markerLength, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveObjectVector<%s>: FAILED to write start marker length! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	hr = pStm->Write(startMarker.c_str(), markerLength, nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveObjectVector<%s>: FAILED to write start marker! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	Debug::Log("SaveObjectVector<%s>: Successfully wrote start marker: %s\n",
-			   typeName.c_str(), startMarker.c_str());
-
-	// Get current position to calculate size later
-	LARGE_INTEGER zero = { 0 };
-	ULARGE_INTEGER sizeStartPos = { 0 };
-	hr = pStm->Seek(zero, STREAM_SEEK_CUR, &sizeStartPos);
-	if (FAILED(hr)) return hr;
-
-	// Write placeholder for size (will be updated later)
-	DWORD placeholderSize = 0;
-	hr = pStm->Write(&placeholderSize, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveObjectVector<%s>: FAILED to write size placeholder! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	// Write array position
-	hr = pStm->Write(&arrayPosition, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveObjectVector<%s>: FAILED to write array position! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	Debug::Log("SaveObjectVector<%s>: Successfully wrote array position: %d\n",
-			   typeName.c_str(), arrayPosition);
-
-	// Mark where data section starts
-	ULARGE_INTEGER dataStartPos = { 0 };
-	hr = pStm->Seek(zero, STREAM_SEEK_CUR, &dataStartPos);
-	if (FAILED(hr)) return hr;
-
-	// Write the count
-	int count = collection.Count;
-	Debug::Log("SaveObjectVector<%s>: About to write count %d\n",
-			   typeName.c_str(), count);
-	hr = pStm->Write(&count, sizeof(int), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveObjectVector<%s>: FAILED to write count! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	Debug::Log("SaveObjectVector<%s>: Successfully wrote count\n",
-			   typeName.c_str());
-
-	// Save each object
-	for (int i = 0; i < count; ++i)
-	{
-		Debug::Log("SaveObjectVector<%s>: Saving object %d/%d\n",
-				   typeName.c_str(), i + 1, count);
-		LPPERSISTSTREAM pUnk = nullptr;
-		hr = collection.Items[i]->QueryInterface(IID_IPersistStream,
-												  reinterpret_cast<void**>(&pUnk));
-		if (FAILED(hr))
-		{
-			Debug::Log("SaveObjectVector<%s>: QueryInterface failed for object %d! HRESULT: 0x%08X\n",
-					   typeName.c_str(), i, hr);
-			return hr;
-		}
-		hr = OleSaveToStream(pUnk, pStm);
-		pUnk->Release();
-		if (FAILED(hr))
-		{
-			Debug::Log("SaveObjectVector<%s>: OleSaveToStream failed for object %d! HRESULT: 0x%08X\n",
-					   typeName.c_str(), i, hr);
-			return hr;
-		}
-	}
-
-	// Calculate actual data size
-	ULARGE_INTEGER dataEndPos = { 0 };
-	hr = pStm->Seek(zero, STREAM_SEEK_CUR, &dataEndPos);
-	if (FAILED(hr)) return hr;
-
-	DWORD actualDataSize = (DWORD)(dataEndPos.QuadPart - dataStartPos.QuadPart);
-
-	// Go back and write the actual size
-	LARGE_INTEGER sizePos;
-	sizePos.QuadPart = sizeStartPos.QuadPart;
-	hr = pStm->Seek(sizePos, STREAM_SEEK_SET, nullptr);
-	if (FAILED(hr)) return hr;
-
-	hr = pStm->Write(&actualDataSize, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveObjectVector<%s>: FAILED to write actual size! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	// Seek back to end for writing end marker
-	LARGE_INTEGER endPos;
-	endPos.QuadPart = dataEndPos.QuadPart;
-	hr = pStm->Seek(endPos, STREAM_SEEK_SET, nullptr);
-	if (FAILED(hr)) return hr;
-
-	Debug::Log("SaveObjectVector<%s>: Data size: %d bytes\n",
-			   typeName.c_str(), actualDataSize);
-
-	// Write END marker
-	std::string endMarker = "END_" + typeName;
-	markerLength = endMarker.length();
-	hr = pStm->Write(&markerLength, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveObjectVector<%s>: FAILED to write end marker length! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	hr = pStm->Write(endMarker.c_str(), markerLength, nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveObjectVector<%s>: FAILED to write end marker! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	Debug::Log("SaveObjectVector<%s>: Successfully wrote end marker: %s\n",
-			   typeName.c_str(), endMarker.c_str());
-
-	Debug::Log("SaveObjectVector<%s>: Successfully saved %d objects at position %d, data size: %d bytes\n",
-			   typeName.c_str(), count, arrayPosition, actualDataSize);
-
-	return S_OK;
-}
-
-template<typename T>
-HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection, DWORD arrayPosition = 0)
-{
-	HRESULT hr;
-	std::string typeName = PhobosCRT::GetTypeIDName<T>();
-
-	// Write START marker
-	std::string startMarker = "START_" + typeName;
-	DWORD markerLength = startMarker.length();
-	hr = pStm->Write(&markerLength, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveSimpleArray<%s>: FAILED to write start marker length! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	hr = pStm->Write(startMarker.c_str(), markerLength, nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveSimpleArray<%s>: FAILED to write start marker! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	Debug::Log("SaveSimpleArray<%s>: Successfully wrote start marker: %s\n",
-			   typeName.c_str(), startMarker.c_str());
-
-	// Calculate data size
-	int count = collection.Count;
-	DWORD dataSize = sizeof(int) + (count * sizeof(T)); // count + all items
-
-	// Write size
-	hr = pStm->Write(&dataSize, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveSimpleArray<%s>: FAILED to write data size! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	// Write array position
-	hr = pStm->Write(&arrayPosition, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveSimpleArray<%s>: FAILED to write array position! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	Debug::Log("SaveSimpleArray<%s>: Successfully wrote array position: %d, data size: %d\n",
-			   typeName.c_str(), arrayPosition, dataSize);
-
-	// Write count
-	hr = pStm->Write(&count, sizeof(int), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveSimpleArray<%s>: FAILED to write count! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	// Write array data
-	for (int i = 0; i < count; ++i)
-	{
-		hr = pStm->Write(&collection.Items[i], sizeof(T), nullptr);
-		if (FAILED(hr))
-		{
-			Debug::Log("SaveSimpleArray<%s>: FAILED to write item %d! HRESULT: 0x%08X\n",
-					   typeName.c_str(), i, hr);
-			return hr;
-		}
-	}
-
-	// Write END marker
-	std::string endMarker = "END_" + typeName;
-	markerLength = endMarker.length();
-	hr = pStm->Write(&markerLength, sizeof(DWORD), nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveSimpleArray<%s>: FAILED to write end marker length! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	hr = pStm->Write(endMarker.c_str(), markerLength, nullptr);
-	if (FAILED(hr))
-	{
-		Debug::Log("SaveSimpleArray<%s>: FAILED to write end marker! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	Debug::Log("SaveSimpleArray<%s>: Successfully wrote end marker: %s\n",
-			   typeName.c_str(), endMarker.c_str());
-
-	Debug::Log("SaveSimpleArray<%s>: Successfully saved %d items at position %d\n",
-			   typeName.c_str(), count, arrayPosition);
-
-	return S_OK;
-}
-
-#else
 template<typename T>
 HRESULT SaveObjectVector(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 {
@@ -427,10 +175,8 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 	return S_OK;
 }
 
-#endif
-
 #include <Utilities/StreamUtils.h>
-#include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
+#include <Ext/SWType/NewSuperWeaponType/SWTypeHandler.h>
 
 //dummy objects to trigger `CONTENTS` writing
 class DECLSPEC_UUID("EE8D505F-12BB-4313-AEDC-4AEA30A5BA03")
@@ -736,7 +482,7 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	if (!SUCCEEDED(hr)) return hr;
 
 	// Logic and tactical systems
-	hr = LogicClass::Instance->Save(pStm);
+	hr = MapClass::Logics->Save(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = OleSaveToStream(TacticalClass::Instance(), pStm);
@@ -1002,7 +748,6 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	sprintf_s(saveversion.ExecutableName.raw(), "GAMEMD.EXE + Phobos Minimal + Mod %s ver %s",
 	AresGlobalData::ModName,
 	AresGlobalData::ModVersion);
-
 	saveversion.GameType = SessionClass::Instance->GameMode;
 
 	FILETIME filetime;

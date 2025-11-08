@@ -42,7 +42,7 @@ public:
 	virtual void Override_Mission(Mission mission, AbstractClass* tarcom = nullptr, AbstractClass* navcom = nullptr) RX; //Vt_1F4
 	virtual bool Mission_Revert() R0; //Restore_Mission
 	virtual bool MissionIsOverriden() const R0;//vt_1FC
-	virtual bool ReadyToNextMission() const R0; //200
+	virtual bool ReadyToNextMission() const R0; //200 , Ready_To_Commence
 
 	virtual int Mission_Sleep() R0;
 	virtual int Mission_Harmless() R0;

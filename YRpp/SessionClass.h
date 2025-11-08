@@ -681,7 +681,7 @@ public:
 	int MaxMaxAhead;
 	int PrecalcMaxAhead;
 	int PrecalcDesiredFrameRate;
-	ArrayWrapper<MPStatsStruct , 8u> MPStats;
+	std::array<MPStatsStruct , 8u> MPStats;
 	bool EnableMultiplayerDebug;
 	bool DrawMPDebugStats;
 	char field_67E;

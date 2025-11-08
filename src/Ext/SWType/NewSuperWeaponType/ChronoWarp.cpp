@@ -4,11 +4,6 @@
 
 #include <Utilities/Helpers.h>
 
-bool SW_ChronoWarp::HandleThisType(SuperWeaponType type) const
-{
-	return (type == SuperWeaponType::ChronoWarp);
-}
-
 SuperWeaponFlags SW_ChronoWarp::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoAnim | SuperWeaponFlags::NoEvent | SuperWeaponFlags::PostClick;
@@ -45,7 +40,7 @@ void KillCargo(TechnoClass* pTech , HouseClass* killer)
 bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	// get the previous super weapon
-	SuperClass* pSource = pThis->Owner->Supers.GetItemOrDefault(HouseExtContainer::Instance.Find(pThis->Owner)->SWLastIndex);
+	SuperClass* pSource = pThis->Owner->Supers.get_or_default(HouseExtContainer::Instance.Find(pThis->Owner)->SWLastIndex);
 
 	// use source super weapon properties
 	if (!pSource || pSource->Type->Type != SuperWeaponType::ChronoSphere)
@@ -89,7 +84,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 	HelperedVector<ChronoWarpStateMachine::ChronoWarpContainer> RegisteredBuildings;
 	// collect every techno in this range only once. apply the Chronosphere.
 
-	auto range = NewSWType::GetNewSWType(pSourceSWExt)->GetRange(pSourceSWExt);
+	auto range = pSourceSWExt->GetNewSWType()->GetRange(pSourceSWExt);
 	Helpers::Alex::DistinctCollector<TechnoClass*> items;
 	Helpers::Alex::for_each_in_rect_or_range<TechnoClass>(pSource->ChronoMapCoords, range.WidthOrRange, range.Height, items);
 	items.apply_function_for_each( [pThis, pSourceSWExt, pSource, Coords, &RegisteredBuildings](TechnoClass* const pTechno) -> bool
@@ -326,7 +321,7 @@ void SW_ChronoWarp::Initialize(SWTypeExtData* pData)
 bool SW_ChronoWarp::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
 {
 	// get the previous super weapon
-	SuperClass* pSource = pBuilding->Owner->Supers.GetItemOrDefault(HouseExtContainer::Instance.Find(pBuilding->Owner)->SWLastIndex);
+	SuperClass* pSource = pBuilding->Owner->Supers.get_or_default(HouseExtContainer::Instance.Find(pBuilding->Owner)->SWLastIndex);
 
 	if(!pSource) {
 		if (!this->IsLaunchsiteAlive(pBuilding))

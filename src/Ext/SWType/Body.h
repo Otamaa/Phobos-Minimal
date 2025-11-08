@@ -113,7 +113,7 @@ struct TargetResult
 
 struct TargetingData;
 class SuperClass;
-class NewSWType;
+class SWTypeHandler;
 class ColorScheme;
 class SWTypeExtData final :public AbstractTypeExtData
 {
@@ -129,6 +129,7 @@ public:
 	ValueableIdx<VoxClass> EVA_Activated;
 	ValueableIdx<VoxClass> EVA_Ready;
 	ValueableIdx<VoxClass> EVA_Detected;
+	Valueable<bool> EVA_Detected_Simple;
 	ValueableIdx<VoxClass> EVA_InsufficientFunds;
 	ValueableIdx<VoxClass> EVA_InsufficientBattlePoints;
 	ValueableIdx<VoxClass> EVA_SelectTarget;
@@ -240,7 +241,7 @@ public:
 	Valueable<AffectedHouse> SW_AffectsHouse;
 	Valueable<AffectedHouse> SW_AnimVisibility;
 	Valueable<int> SW_AnimHeight;
-	SuperWeaponType HandledType;
+	NewSuperType HandledType;
 	Action LastAction;
 	Nullable<TargetingConstraints> SW_AITargetingConstrain;
 	Nullable<SuperWeaponTarget> SW_AIRequiresTarget;
@@ -529,6 +530,7 @@ public:
 		EVA_Activated(-1),
 		EVA_Ready(-1),
 		EVA_Detected(-1),
+		EVA_Detected_Simple(false),
 		EVA_InsufficientFunds(-1),
 		EVA_InsufficientBattlePoints(-1),
 		EVA_SelectTarget(-1),
@@ -607,7 +609,7 @@ public:
 		SW_AffectsHouse(AffectedHouse::All),
 		SW_AnimVisibility(AffectedHouse::All),
 		SW_AnimHeight(0),
-		HandledType(SuperWeaponType::Invalid),
+		HandledType(NewSuperType::Invalid),
 		LastAction(Action::None),
 		SW_AITargetingConstrain(),
 		SW_AIRequiresTarget(),
@@ -808,6 +810,10 @@ public:
 		Music_Duration(0),
 		Music_AffectedHouses(AffectedHouse::All)
 	{
+			this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
+			this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
+
+			this->AbsType = SuperWeaponTypeClass::AbsID;
 			this->Text_Ready = GameStrings::TXT_READY();
 			this->Text_Hold = GameStrings::TXT_HOLD();
 			this->Text_Charging = GameStrings::TXT_CHARGING();
@@ -818,7 +824,14 @@ public:
 
 	SWTypeExtData(SuperWeaponTypeClass* pObj, noinit_t nn) : AbstractTypeExtData(pObj, nn) { }
 
-	virtual ~SWTypeExtData();
+	virtual ~SWTypeExtData()
+	{
+		SuperWeaponTypeClass* pCopy = SWTypeExtData::CurrentSWType;
+		if (This() == SWTypeExtData::CurrentSWType)
+			pCopy = nullptr;
+
+		SWTypeExtData::CurrentSWType = pCopy;
+	};
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
@@ -870,10 +883,10 @@ public:
 	void ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const CellStruct& cell);
 	void ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer);
 
-	void LoadFromRulesFile(CCINIClass* pINI);
+	void PreParse(CCINIClass* pINI);
 
 	OPTIONALINLINE const char* get_ID(){
-		return this->Name();
+		return this->Name.data();
 	}
 
 	//with arg(s)
@@ -885,7 +898,7 @@ public:
 	bool IsAnimVisible(HouseClass* pFirer) const;
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse);
 	bool IsHouseAffected(HouseClass* pFirer, HouseClass* pHouse, AffectedHouse value);
-	bool Launch(NewSWType* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
+	bool Launch(SWTypeHandler* pNewType, SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	void PrintMessage(const CSFText& message, HouseClass* pFirer);
 	Iterator<TechnoClass*> GetPotentialAITargets(HouseClass* pTarget , std::vector<TechnoClass*>& outVec) const;
 	bool IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed);
@@ -910,23 +923,20 @@ public:
 	std::pair<TargetingConstraints, bool> GetAITargetingConstraints() const;
 	TargetingPreference GetAITargetingPreference() const;
 	bool UpdateLightingColor(LightingColor& Lighting) const;
-	// is this an original type handled by a NewSWType?
 
-	bool IsTypeRedirected() const;
-	bool IsOriginalType() const;
-	NewSWType* GetNewSWType() const;
+	SWTypeHandler* GetNewSWType() const;
 
 	void ApplyLinkedSW(SuperClass* pSW);
 public:
 
 	//statics
-	static bool Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
+	static void Deactivate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	static bool Activate(SuperClass* pSuper, CellStruct const cell, bool const isPlayer);
 	static AffectedHouse GetRelation(HouseClass* pFirer, HouseClass* pHouse);
 	static Action GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarget);
 	static bool TryFire(SuperClass* pThis, bool IsPlayer);
 	static bool IsTargetConstraintsEligible(SuperClass* pThis, bool IsPlayer);
-	static TargetResult PickSuperWeaponTarget(NewSWType* pNewType, const TargetingData* pTargeting, const SuperClass* pSuper);
+	static TargetResult PickSuperWeaponTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting, const SuperClass* pSuper);
 	static void ApplyBattlePoints(SuperClass* pSW);
 	static bool IsResourceAvailable(SuperClass* pSuper);
 	static bool LauchSuper(SuperClass* pSuper);
@@ -958,6 +968,7 @@ public:
 	static void CreateChronoAnim(SuperClass* pThis, const CoordStruct& Coords, AnimTypeClass* pAnimType);
 	static bool ChangeLighting(SuperWeaponTypeClass* pCustom = nullptr);
 	static LightingColor GetLightingColor(SuperWeaponTypeClass* pCustom = nullptr);
+
 };
 
 class SWTypeExtContainer final : public Container<SWTypeExtData>

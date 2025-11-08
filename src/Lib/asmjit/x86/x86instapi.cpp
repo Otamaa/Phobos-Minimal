@@ -3,16 +3,16 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
+#include <asmjit/core/api-build_p.h>
 #if !defined(ASMJIT_NO_X86)
 
-#include "../core/cpuinfo.h"
-#include "../core/instdb_p.h"
-#include "../core/misc_p.h"
-#include "../x86/x86instapi_p.h"
-#include "../x86/x86instdb_p.h"
-#include "../x86/x86opcode_p.h"
-#include "../x86/x86operand.h"
+#include <asmjit/core/cpuinfo.h>
+#include <asmjit/core/instdb_p.h>
+#include <asmjit/core/misc_p.h>
+#include <asmjit/x86/x86instapi_p.h>
+#include <asmjit/x86/x86instdb_p.h>
+#include <asmjit/x86/x86opcode_p.h>
+#include <asmjit/x86/x86operand.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
@@ -59,7 +59,7 @@ InstId ASMJIT_CDECL string_to_inst_id(const char* s, size_t len) noexcept {
 // x86::InstInternal - Validate
 // ============================
 
-#ifndef ASMJIT_NO_VALIDATION
+#ifndef ASMJIT_NO_INTROSPECTION
 struct X86ValidationData {
   //! Allowed registers by \ref RegType.
   RegMask allowed_reg_mask[uint32_t(RegType::kMaxValue) + 1];
@@ -738,7 +738,7 @@ Error ASMJIT_CDECL validate_x64(const BaseInst& inst, const Operand_* operands, 
   return validate(InstDB::Mode::kX64, inst, operands, op_count, validation_flags);
 }
 
-#endif // !ASMJIT_NO_VALIDATION
+#endif // !ASMJIT_NO_INTROSPECTION
 
 // x86::InstInternal - QueryRWInfo
 // ===============================

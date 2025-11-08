@@ -155,7 +155,7 @@ ASMJIT_PATCH(0x7387D1, UnitClass_Destroyed_Shake, 0x6)
 {
 	GET(UnitClass* const, pUnit, ESI); //forEXT
 
-	if (!pUnit || !pUnit->Type || !RulesClass::Instance->ShakeScreen)
+	if (!pUnit || !pUnit->Type || !RulesClass::Instance->ShakeScreen || Phobos::Config::HideShakeEffects)
 		return 0x738801;
 
 	if (!pUnit->Type->Strength)
@@ -596,12 +596,12 @@ ASMJIT_PATCH(0x489270, CellChainReact, 5)
 	GET(CellStruct*, cell, ECX);
 
 	const auto pCell = (FakeCellClass*)MapClass::Instance->GetCellAt(cell);
-	TiberiumClass* pTib = TiberiumClass::Array->GetItemOrDefault(pCell->_GetTiberiumType());
+	TiberiumClass* pTib = TiberiumClass::Array->get_or_default(pCell->_GetTiberiumType());
 
 	if (!pTib)
 		return 0x0;
 
-	OverlayTypeClass* pOverlay = OverlayTypeClass::Array->GetItemOrDefault(pCell->OverlayTypeIndex);
+	OverlayTypeClass* pOverlay = OverlayTypeClass::Array->get_or_default(pCell->OverlayTypeIndex);
 
 	if (!pOverlay || !pOverlay->ChainReaction || pCell->OverlayData <= 1u)
 		return 0x0;
@@ -1185,7 +1185,7 @@ bool NOINLINE  __fastcall MixFilesBoostrap() {
 		if (_raw.Exists())
 		{
 			Debug::LogInfo("Loading {}", buffer);
-			MixFileClass::Array->AddItem(GameCreate<MixFileClass>(buffer, pKey));
+			MixFileClass::Array->push_back(GameCreate<MixFileClass>(buffer, pKey));
 		}
 	}
 

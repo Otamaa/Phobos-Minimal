@@ -6,7 +6,7 @@
 #ifndef ASMJIT_CORE_GLOBALS_H_INCLUDED
 #define ASMJIT_CORE_GLOBALS_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -121,9 +121,6 @@ struct NoInit_ {};
 static const constexpr Init_ Init {};
 //! A decorator used to not initialize.
 static const constexpr NoInit_ NoInit {};
-
-//! Invalid index, which means not in a string. Used by API that can match items in spans, vectors, etc...
-static constexpr size_t kNPos = ~size_t(0);
 
 template<typename T>
 static ASMJIT_INLINE_NODEBUG bool is_npos(const T& index) noexcept { return index == T(~T(0)); }

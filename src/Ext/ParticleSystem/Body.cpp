@@ -19,8 +19,9 @@ OtherParticleData(),
 SmokeData(),
 AlphaIsLightFlash(true)
 {
-	if (!pObj->Type)
-		Debug::FatalErrorAndExit("ParticleSystem [%x] doesnot have any Type !", pObj);
+	this->Name = pObj->Type->ID;
+	this->AbsType = ParticleSystemClass::AbsID;
+
 	auto pType = pObj->Type;
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
@@ -743,7 +744,7 @@ void ParticleSystemExtData::UpdateSmoke()
 			continue;
 
 		//reuse the data for the next particle ?
-		if (auto pNext = ParticleTypeClass::Array->GetItemOrDefault(curData->LinkedParticleType->NextParticle))
+		if (auto pNext = ParticleTypeClass::Array->get_or_default(curData->LinkedParticleType->NextParticle))
 		{
 			auto range = pNext->Radius << 8;
 			auto movement = &this->SmokeData.emplace_back();
@@ -886,7 +887,7 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 			CoordStruct lerp = CoordSturct_Lerp(&pThis->Location, &pThis->TargetCoords, curVal);
 			lerp += CoordStruct { (int)PositionPerturbation_.X , (int)PositionPerturbation_.Y , (int)PositionPerturbation_.Z };
 
-			pThis->Particles.AddItem(GameCreate<ParticleClass>(ParticleTypeClass::Array->Items[pThis->Type->HoldsWhat], &lerp, &lerp, pThis));
+			pThis->Particles.push_back(GameCreate<ParticleClass>(ParticleTypeClass::Array->Items[pThis->Type->HoldsWhat], &lerp, &lerp, pThis));
 			auto partilce = *pThis->Particles.back();
 			Vector3D<float>* vel = &partilce->Spark10C;
 			partilce->Spark10C = mtx_mult;
@@ -1131,7 +1132,7 @@ bool ParticleSystemExtData::UpdateHandled()
 	{
 		pOwner->Limbo();
 		pOwner->IsAlive = false;
-		AbstractClass::Array2->AddItem(pOwner);
+		AbstractClass::Array2->push_back(pOwner);
 	}
 
 	return true;

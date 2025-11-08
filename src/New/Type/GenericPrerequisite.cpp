@@ -48,7 +48,7 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 {
 	if (pINI->ReadString(section, key, Phobos::readDefval, Phobos::readBuffer) > 0)
 	{
-		Vec.Reset();
+		Vec.reset();
 
 		char* context = nullptr;
 		for (char* cur = strtok_s(Phobos::readBuffer, Phobos::readDelims, &context);
@@ -58,14 +58,14 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 			int idx = BuildingTypeClass::FindIndexById(cur);
 			if (idx > -1)
 			{
-				Vec.AddItem(idx);
+				Vec.push_back(idx);
 			}
 			else
 			{
 				idx = GenericPrerequisite::FindIndexById(cur);
 				if (idx > -1)
 				{
-					Vec.AddItem(-1 - idx);
+					Vec.push_back(-1 - idx);
 				}
 				else
 				{
@@ -171,7 +171,7 @@ bool Prereqs::HouseOwnsSpecific(HouseClass const* const pHouse, int const Index)
 	{
 		auto const pCore = BuildingTypeClass::Find(pPowerup);
 
-		if (!pCore || pHouse->ActiveBuildingTypes.GetItemCount(pCore->ArrayIndex) < 1) {
+		if (!pCore || pHouse->ActiveBuildingTypes.get_count(pCore->ArrayIndex) < 1) {
 			return false;
 		}
 
@@ -192,7 +192,7 @@ bool Prereqs::HouseOwnsSpecific(HouseClass const* const pHouse, int const Index)
 	}
 	else
 	{
-		const int count = pHouse->ActiveBuildingTypes.GetItemCount(Index);
+		const int count = pHouse->ActiveBuildingTypes.get_count(Index);
 		//Debug::LogInfo(__FUNCTION__" [0x%x - %s]Trying to find [(%d)%s] count %d" , pHouse , pHouse->get_ID(), Index , pType->ID , count);
 		return  count > 0;
 	}
@@ -206,7 +206,7 @@ bool Prereqs::HouseOwnsPrereq(HouseClass const* const pHouse, int const Index)
 		;
 }
 
-bool Prereqs::HouseOwnsAll(HouseClass const* const pHouse, const DynamicVectorClass<int>& list)
+bool Prereqs::HouseOwnsAll(HouseClass const* const pHouse, const Iterator<int> list)
 {
 	for (const auto index : list) {
 		if (!Prereqs::HouseOwnsPrereq(pHouse, index)) {
@@ -217,20 +217,7 @@ bool Prereqs::HouseOwnsAll(HouseClass const* const pHouse, const DynamicVectorCl
 	return true;
 }
 
-bool Prereqs::HouseOwnsAll(HouseClass const* const pHouse, int* intitems, int intsize)
-{
-	const auto end = intitems + intsize;
-
-	for (auto find = intitems; find != end; ++find) {
-		if (!Prereqs::HouseOwnsPrereq(pHouse, *find)) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, const DynamicVectorClass<int>& list)
+bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, const Iterator<int> list)
 {
 	for (const auto index : list) {
 		if (Prereqs::HouseOwnsPrereq(pHouse, index)) {
@@ -241,34 +228,21 @@ bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, const DynamicVectorCl
 	return false;
 }
 
-bool Prereqs::HouseOwnsAny(HouseClass const* const pHouse, int* intitems, int intsize)
-{
-	const auto end = intitems + intsize;
-
-	for (auto find = intitems; find != end; ++find) {
-		if (Prereqs::HouseOwnsPrereq(pHouse, *find)) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool Prereqs::ListContainsSpecific(BuildingTypeClass** items, int size, int const Index) {
+bool Prereqs::ListContainsSpecific(Iterator<BuildingTypeClass*> items, int const Index) {
 	const auto lookingfor = BuildingTypeClass::Array->Items[Index];
 
-	return std::any_of(items, items + size, [&](BuildingTypeClass* item) {
+	return std::ranges::any_of(items, [&](BuildingTypeClass* item) {
 		return item == lookingfor;
 	});
 }
 
-bool Prereqs::ListContainsGeneric(BuildingTypeClass** items, int size, int const Index)
+bool Prereqs::ListContainsGeneric(Iterator<BuildingTypeClass*> items, int const Index)
 {
 	// hack - POWER is -1 , this way converts to 0, and onwards
 	const auto idxPrereq = static_cast<size_t>(-1 - Index);
 	if (idxPrereq < GenericPrerequisite::Array.size()) {
 		for (const auto& index : GenericPrerequisite::Array[idxPrereq]->Prereqs) {
-			if (Prereqs::ListContainsSpecific(items, size, index)) {
+			if (Prereqs::ListContainsSpecific(items, index)) {
 				return true;
 			}
 		}
@@ -276,20 +250,18 @@ bool Prereqs::ListContainsGeneric(BuildingTypeClass** items, int size, int const
 	return false;
 }
 
-bool Prereqs::ListContainsPrereq(BuildingTypeClass** items, int size, int Index)
+bool Prereqs::ListContainsPrereq(Iterator<BuildingTypeClass*> items, int Index)
 {
 	return Index < 0
-		? Prereqs::ListContainsGeneric(items, size, Index)
-		: Prereqs::ListContainsSpecific(items, size, Index)
+		? Prereqs::ListContainsGeneric(items, Index)
+		: Prereqs::ListContainsSpecific(items, Index)
 		;
 }
 
-bool Prereqs::ListContainsAll(BuildingTypeClass** items, int size, int* intitems, int intsize)
+bool Prereqs::ListContainsAll(Iterator<BuildingTypeClass*> items, const Iterator<int> intit)
 {
-	const auto end = intitems + intsize;
-
-	for (auto begin = intitems; begin != end; ++begin) {
-		if (!Prereqs::ListContainsPrereq(items, size, *begin)) {
+	for (auto init : intit) {
+		if (!Prereqs::ListContainsPrereq(items, init)) {
 			return false;
 		}
 	}
@@ -297,10 +269,10 @@ bool Prereqs::ListContainsAll(BuildingTypeClass** items, int size, int* intitems
 	return true;
 }
 
-bool Prereqs::ListContainsAny(BuildingTypeClass** items, int size, const DynamicVectorClass<int>& Requirements)
+bool Prereqs::ListContainsAny(Iterator<BuildingTypeClass*> items, const Iterator<int> Requirements)
 {
 	for (const auto index : Requirements) {
-		if (Prereqs::ListContainsPrereq(items, size, index)) {
+		if (Prereqs::ListContainsPrereq(items, index)) {
 			return true;
 		}
 	}
@@ -308,10 +280,10 @@ bool Prereqs::ListContainsAny(BuildingTypeClass** items, int size, const Dynamic
 	return false;
 }
 
-bool Prereqs::PrerequisitesListed(BuildingTypeClass** items, int size, TechnoTypeClass* pItem)
+bool Prereqs::PrerequisitesListed(Iterator<BuildingTypeClass*> items, TechnoTypeClass* pItem)
 {
 	for(auto& prereq : TechnoTypeExtContainer::Instance.Find(pItem)->Prerequisites) {
-		if (Prereqs::ListContainsAll(items , size,  prereq.data() , prereq.size() )) {
+		if (Prereqs::ListContainsAll(items , prereq)) {
 			return true;
 		}
 	}

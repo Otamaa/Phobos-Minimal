@@ -11,16 +11,6 @@
 
 SuperWeaponTypeClass* SW_NuclearMissile::CurrentNukeType = nullptr;
 
-std::vector<const char*> SW_NuclearMissile::GetTypeString() const
-{
-	return { "NewNuke" , "ChemLauncher" , "MultiLauncher" , "MultiMissile" };
-}
-
-bool SW_NuclearMissile::HandleThisType(SuperWeaponType type) const
-{
-	return (type == SuperWeaponType::Nuke);
-}
-
 SuperWeaponFlags SW_NuclearMissile::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent;
@@ -90,6 +80,7 @@ bool SW_NuclearMissile::Activate(SuperClass* const pThis, const CellStruct& Coor
 void SW_NuclearMissile::Initialize(SWTypeExtData* pData)
 {
 	pData->This()->Action = Action::Nuke;
+
 	// default values for the original Nuke
 	pData->Nuke_Payload = WeaponTypeClass::FindOrAllocate(GameStrings::NukePayload); //use for nuke pointing down
 	//SW->WeaponType = used for nuke pointing up !
@@ -170,8 +161,7 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 		return false;
 
 	const auto pCell = MapClass::Instance->GetCellAt(to);
-	auto const pBullet = GameCreate<BulletClass>();
-
+	auto const pBullet = pPayload->Projectile->CreateBullet(nullptr,nullptr , 0 , nullptr , 0 , false);
 	pBullet->Construct(pPayload->Projectile, pCell, Owner, 0, nullptr, pPayload->Speed, false);
 	pBullet->SetWeaponType(pPayload);
 	int Damage = pPayload->Damage;
@@ -185,7 +175,7 @@ bool SW_NuclearMissile::DropNukeAt(SuperWeaponTypeClass* pSuper, CoordStruct con
 			pData->Nuke_PsiWarning
 		);
 
-		auto pNewType = NewSWType::GetNewSWType(pData);
+		auto pNewType = pData->GetNewSWType();
 		Damage = pNewType->GetDamage(pData);
 		pWarhead = pNewType->GetWarhead(pData);
 

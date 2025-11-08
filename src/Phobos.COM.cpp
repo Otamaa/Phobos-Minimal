@@ -98,7 +98,7 @@ void RegisterFactoryForClass()
 	else
 		Debug::Log("Class factory for %s registered.\n", name.c_str());
 
-	Game::ClassFactories->AddItem((ULONG)dwRegister);
+	Game::ClassFactories->push_back((ULONG)dwRegister);
 
 
 	//LPOLESTR str = nullptr;
@@ -122,7 +122,7 @@ void RegisterForClass()
 	else
 		Debug::Log("Class factory for %s registered.\n", name.c_str());
 
-	Game::ClassFactories->AddItem((ULONG)dwRegister);
+	Game::ClassFactories->push_back((ULONG)dwRegister);
 }
 
 ASMJIT_PATCH(0x6BD68D, WinMain_PhobosRegistrations, 0x6)

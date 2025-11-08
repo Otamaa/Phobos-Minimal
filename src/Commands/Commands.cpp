@@ -59,7 +59,7 @@ template <typename T>
 FORCEDINLINE T* Make()
 {
 	T* command = GameCreate<T>();
-	CommandClass::Array->AddItem(command);
+	CommandClass::Array->push_back(command);
 	return command;
 };
 

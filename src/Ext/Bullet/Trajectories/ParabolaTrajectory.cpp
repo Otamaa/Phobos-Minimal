@@ -1233,7 +1233,7 @@ bool ParabolaTrajectory::BulletDetonateLastCheck(double gravity)
 				break;
 			}
 
-			if (pBullet->Type->SubjectToWalls && pCurCell->OverlayTypeIndex != -1 && OverlayTypeClass::Array->GetItem(pCurCell->OverlayTypeIndex)->Wall)
+			if (pBullet->Type->SubjectToWalls && pCurCell->OverlayTypeIndex != -1 && OverlayTypeClass::Array->operator[](pCurCell->OverlayTypeIndex)->Wall)
 			{
 				pBullet->Velocity *= static_cast<double>(i) / largePace;
 				this->ShouldDetonate = true;

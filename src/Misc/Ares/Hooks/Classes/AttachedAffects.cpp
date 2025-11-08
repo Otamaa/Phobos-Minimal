@@ -266,7 +266,7 @@ void AresAE::ReplaceAnim(TechnoClass* pTechno, AnimClass* pNewAnim)
 
 	pNewAnim->SetOwnerObject(pTechno);
 	pNewAnim->RemainingIterations = 0xffffffff;
-	auto pAnimExt = ((FakeAnimClass*)pNewAnim)->_GetExtData();
+	//auto pAnimExt = ((FakeAnimClass*)pNewAnim)->_GetExtData();
 
 	if (auto pInvoker = this->Invoker) {
 		pNewAnim->Owner = pInvoker;

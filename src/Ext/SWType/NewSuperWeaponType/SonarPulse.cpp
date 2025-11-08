@@ -4,11 +4,6 @@
 
 #include <Ext/Techno/Body.h>
 
-std::vector<const char*> SW_SonarPulse::GetTypeString() const
-{
-	return { "SonarPulse" };
-}
-
 SuperWeaponFlags SW_SonarPulse::Flags(const SWTypeExtData* pData) const
 {
 	if (this->GetRange(pData).WidthOrRange > 0)
@@ -34,7 +29,7 @@ bool SW_SonarPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 
 void SW_SonarPulse::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	// some defaults
 	pData->SW_RadarEvent = false;
 
@@ -54,7 +49,7 @@ void SW_SonarPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->Sonar_Delay = pINI->ReadInteger(section, "SonarPulse.Delay", pData->Sonar_Delay);
 
 	// full map detection?
-	pData->This()->Action = (GetRange(pData).WidthOrRange < 0) ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->This()->Action = (GetRange(pData).WidthOrRange < 0) ? Action::None : (Action)PhobosNewActionType::SuperWeaponAllowed;
 }
 
 bool SW_SonarPulse::IsLaunchSite(const SWTypeExtData* pData, BuildingClass* pBuilding) const
@@ -77,11 +72,11 @@ void SonarPulseStateMachine::Update()
 {
 	if (this->Finished())
 	{
-		SendSonarPulse(this->Super, this->GetTypeExtData(), NewSWType::GetNewSWType(this->GetTypeExtData()), this->Coords);
+		SendSonarPulse(this->Super, this->GetTypeExtData(), this->GetTypeExtData()->GetNewSWType(), this->Coords);
 	}
 }
 
-void SonarPulseStateMachine::SendSonarPulse(SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc)
+void SonarPulseStateMachine::SendSonarPulse(SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc)
 {
 	pData->PrintMessage(pData->Message_Activate, pSuper->Owner);
 

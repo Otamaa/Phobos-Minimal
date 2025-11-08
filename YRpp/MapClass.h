@@ -17,7 +17,7 @@ class WeaponTypeClass;
 // Terrain ground type
 struct GroundType
 {
-	ArrayWrapper<float, 8u> Cost; // Terrain speed multipliers.
+	std::array<float, 8u> Cost; // Terrain speed multipliers.
 	char Build; // Can build on this terrain?
 public:
 
@@ -153,7 +153,7 @@ public:
 		{ JMP_THIS(0x5519B0); }
 
 	virtual void RemoveAll()
-		{ this->Clear(); }
+		{ this->clear(); }
 
 	virtual void vt_entry_24()
 		{ }
@@ -172,7 +172,6 @@ static_assert(sizeof(LayerClass) == 0x18, "Invalid Size !");
 class LogicClass : public LayerClass
 {
 public:
-	static COMPILETIMEEVAL reference<LogicClass, 0x87F778u> const Instance {};
 
 	virtual bool AddObject(ObjectClass* pObject, bool sorted) override
 		{ JMP_THIS(0x55BAA0); }
@@ -185,6 +184,9 @@ public:
 
 	void Update()
 		{ JMP_THIS(0x55AFB0); }
+
+//	static COMPILETIMEEVAL reference<LogicClass, 0x87F778u> const Instance {};
+
 };
 static_assert(sizeof(LogicClass) == 0x18, "Invalid Size !");
 
@@ -725,8 +727,8 @@ public:
 	CellStruct SubZone_5835D0(CellStruct* a1, CellStruct* a2, int a4) const
 	{ JMP_THIS(0x5835D0); }
 
-	int Index(CellClass* ptr) const { return Cells.FindItemIndex(ptr); }
-	int Index(CellClass& ptr) const { return Cells.FindItemIndex(&ptr); }
+	int Index(CellClass* ptr) const { return Cells.find(ptr); }
+	int Index(CellClass& ptr) const { return Cells.find(&ptr); }
 
 	bool IsValidCell(CellStruct* cell) { JMP_THIS(0x5657E0); }
 	bool IsValidCell(CellStruct const& nCoord) { JMP_THIS(0x5657E0); }

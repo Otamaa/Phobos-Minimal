@@ -307,7 +307,7 @@ void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireMode newMode)
 				const auto& voiceList = pTechnoType->VoiceAttack.Count ? pTechnoType->VoiceAttack : pTechnoType->VoiceMove;
 
 				if (const auto count = voiceList.Count)
-					voiceIndex = voiceList.GetItem(Random2Class::Global->Random() % count);
+					voiceIndex = voiceList.operator[](Random2Class::Global->Random() % count);
 			}
 		}
 		else
@@ -320,7 +320,7 @@ void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireMode newMode)
 				const auto& voiceList = pTechnoType->VoiceMove.Count ? pTechnoType->VoiceMove : pTechnoType->VoiceSelect;
 
 				if (const auto count = voiceList.Count)
-					voiceIndex = voiceList.GetItem(Random2Class::Global->Random() % count);
+					voiceIndex = voiceList.operator[](Random2Class::Global->Random() % count);
 			}
 		}
 	}
@@ -334,7 +334,7 @@ void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireMode newMode)
 			const auto& voiceList = pTechnoType->VoiceSelect.Count ? pTechnoType->VoiceSelect : pTechnoType->VoiceMove;
 
 			if (const auto count = voiceList.Count)
-				voiceIndex = voiceList.GetItem(Random2Class::Global->Random() % count);
+				voiceIndex = voiceList.operator[](Random2Class::Global->Random() % count);
 		}
 	}
 	else
@@ -346,7 +346,7 @@ void TechnoExtData::TogglePassiveAcquireMode(PassiveAcquireMode newMode)
 			const auto& voiceList = pTechnoType->VoiceAttack.Count ? pTechnoType->VoiceAttack : pTechnoType->VoiceMove;
 
 			if (const auto count = voiceList.Count)
-				voiceIndex = voiceList.GetItem(Random2Class::Global().Random() % count);
+				voiceIndex = voiceList.operator[](Random2Class::Global().Random() % count);
 		}
 	}
 
@@ -1435,7 +1435,7 @@ void TechnoExtData::UpdateRecountBurst() {
 
 	if (pThis->CurrentBurstIndex && !pThis->Target && pTypeExt->RecountBurst.Get(RulesExtData::Instance()->RecountBurst)) {
 		const auto pWeapon = this->LastWeaponType;
-		if (pWeapon && pWeapon->Burst && pThis->LastFireBulletFrame + std::max(pWeapon->ROF, 30) <= Unsorted::CurrentFrame) {
+		if (pWeapon && pWeapon->Burst && pThis->LastFireBulletFrame + MaxImpl(pWeapon->ROF, 30) <= Unsorted::CurrentFrame) {
 
 
 			const auto ratio = static_cast<double>(pThis->CurrentBurstIndex) / pWeapon->Burst;
@@ -2353,29 +2353,29 @@ void TechnoExtData::GetValuesForDisplay(TechnoClass* pThis, DisplayInfoType info
 					if (infoIndex == 1)
 					{
 						if (pBuildingType->SuperWeapon != -1)
-							return &pHouse->Supers.GetItem(pBuildingType->SuperWeapon)->RechargeTimer;
+							return &pHouse->Supers.operator[](pBuildingType->SuperWeapon)->RechargeTimer;
 					}
 					else if (infoIndex == 2)
 					{
 						if (pBuildingType->SuperWeapon2 != -1)
-							return &pHouse->Supers.GetItem(pBuildingType->SuperWeapon2)->RechargeTimer;
+							return &pHouse->Supers.operator[](pBuildingType->SuperWeapon2)->RechargeTimer;
 					}
 					else
 					{
 						const auto& superWeapons = pBuildingTypeExt->SuperWeapons;
-						return &pHouse->Supers.GetItem(superWeapons[infoIndex - 3])->RechargeTimer;
+						return &pHouse->Supers.operator[](superWeapons[infoIndex - 3])->RechargeTimer;
 					}
 
 					return nullptr;
 				}
 
 				if (pBuildingType->SuperWeapon != -1)
-					return &pHouse->Supers.GetItem(pBuildingType->SuperWeapon)->RechargeTimer;
+					return &pHouse->Supers.operator[](pBuildingType->SuperWeapon)->RechargeTimer;
 				else if (pBuildingType->SuperWeapon2 != -1)
-					return &pHouse->Supers.GetItem(pBuildingType->SuperWeapon2)->RechargeTimer;
+					return &pHouse->Supers.operator[](pBuildingType->SuperWeapon2)->RechargeTimer;
 
 				const auto& superWeapons = pBuildingTypeExt->SuperWeapons;
-				return superWeapons.size() > 0 ? &pHouse->Supers.GetItem(superWeapons[0])->RechargeTimer : nullptr;
+				return superWeapons.size() > 0 ? &pHouse->Supers.operator[](superWeapons[0])->RechargeTimer : nullptr;
 			};
 
 			if (const auto pTimer = getSuperTimer())
@@ -2780,7 +2780,7 @@ void TechnoExtData::CreateInitialPayload(bool forced)
 
 				if (pBld->Type->CanBeOccupied)
 				{
-					pBld->Occupants.AddItem(pPayload);
+					pBld->Occupants.push_back(pPayload);
 					auto const pCell = pThis->GetCell();
 					InfantryExtContainer::Instance.Find(pPayload)->GarrisonedIn = pBld;
 					pThis->UpdateThreatInCell(pCell);
@@ -3665,10 +3665,10 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 		}
 
 		const auto nOverloadfr = pOwnerTypeExt->Overload_Frames.GetElements(RulesClass::Instance->OverloadFrames);
-		pThis->OverloadDamageDelay = nOverloadfr.GetItemAtOrMax(nCurIdx);
+		pThis->OverloadDamageDelay = nOverloadfr.get_or_last(nCurIdx);
 
 		const auto nOverloadDmg = pOwnerTypeExt->Overload_Damage.GetElements(RulesClass::Instance->OverloadDamage);
-		auto nDamage = nOverloadDmg.GetItemAtOrMax(nCurIdx);
+		auto nDamage = nOverloadDmg.get_or_last(nCurIdx);
 
 		if (nDamage <= 0)
 		{
@@ -3825,7 +3825,7 @@ void TechnoExtData::PutPassengersInCoords(TechnoClass* pTransporter, const Coord
 		pPassenger->StopMoving();
 		pPassenger->SetDestination(nullptr, true);
 		pPassenger->SetTarget(nullptr);
-		pPassenger->CurrentTargets.Clear();
+		pPassenger->CurrentTargets.clear();
 		pPassenger->SetArchiveTarget(nullptr);
 		pPassenger->MissionAccumulateTime = 0; // don't ask
 		pPassenger->unknown_5A0 = 0;
@@ -4607,7 +4607,7 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 void TechnoExtData::Stop(TechnoClass* pThis, Mission const& eMission)
 {
 	pThis->ForceMission(eMission);
-	pThis->CurrentTargets.Clear();
+	pThis->CurrentTargets.clear();
 	pThis->SetArchiveTarget(nullptr);
 	pThis->Stun();
 }

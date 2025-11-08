@@ -580,7 +580,7 @@ void SpawnerMain::GameConfigs::AssignHouses() {
 	const int count = MinImpl(HouseClass::Array->Count, (int)std::size(SpawnerMain::GameConfigs::m_Ptr.Houses));
 	for (int indexOfHouseArray = 0; indexOfHouseArray < count; indexOfHouseArray++)
 	{
-		const auto pHouse = HouseClass::Array->GetItem(indexOfHouseArray);
+		const auto pHouse = HouseClass::Array->operator[](indexOfHouseArray);
 
 		if (pHouse->Type->MultiplayPassive)
 			continue;
@@ -833,8 +833,8 @@ void SpawnerMain::GameConfigs::After_Main_Loop() {
 			static wchar_t saveDescription[128];
 
 			saveGameDescription += StringTable::TryFetchStringOrReturnDefaultIfMissing("TXT_AUTOSAVE_SUFFIX", L"Autosave (slot %d)");
-			std::sprintf(saveFileName, "AUTOSAVE%d.SAV", SpawnerMain::Configs::NextAutoSaveNumber + 1);
-			std::swprintf(saveDescription, saveGameDescription.c_str(), SpawnerMain::Configs::NextAutoSaveNumber + 1);
+			sprintf_s(saveFileName, "AUTOSAVE%d.SAV", SpawnerMain::Configs::NextAutoSaveNumber + 1);
+			swprintf_s(saveDescription, saveGameDescription.c_str(), SpawnerMain::Configs::NextAutoSaveNumber + 1);
 
 			SaveGame(saveFileName, saveDescription);
 
@@ -937,7 +937,7 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 				continue;
 
 			const auto pNode = GameCreate<NodeNameType>();
-			NodeNameType::Array->AddItem(pNode);
+			NodeNameType::Array->push_back(pNode);
 
 			wcscpy_s(pNode->Name, pPlayer->Name);
 			pNode->Country = pPlayer->Country;

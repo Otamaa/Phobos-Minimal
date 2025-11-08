@@ -190,7 +190,7 @@ ASMJIT_PATCH(0x72590E, AnnounceInvalidPointer_Particle, 0x9)
 		GET(ParticleClass*, pThis, ESI);
 
 		if (auto pSys = pThis->ParticleSystem) {
-			pSys->Particles.Remove(pThis);
+			pSys->Particles.erase(pThis);
 		}
 
 		return 0x725C08;

@@ -3,19 +3,19 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
+#include <asmjit/core/api-build_p.h>
 #if !defined(ASMJIT_NO_X86) && !defined(ASMJIT_NO_COMPILER)
 
-#include "../core/cpuinfo.h"
-#include "../core/formatter_p.h"
-#include "../core/support.h"
-#include "../core/type.h"
-#include "../x86/x86assembler.h"
-#include "../x86/x86compiler.h"
-#include "../x86/x86instapi_p.h"
-#include "../x86/x86instdb_p.h"
-#include "../x86/x86emithelper_p.h"
-#include "../x86/x86rapass_p.h"
+#include <asmjit/core/cpuinfo.h>
+#include <asmjit/core/formatter_p.h>
+#include <asmjit/core/type.h>
+#include <asmjit/support/support.h>
+#include <asmjit/x86/x86assembler.h>
+#include <asmjit/x86/x86compiler.h>
+#include <asmjit/x86/x86instapi_p.h>
+#include <asmjit/x86/x86instdb_p.h>
+#include <asmjit/x86/x86emithelper_p.h>
+#include <asmjit/x86/x86rapass_p.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
@@ -785,7 +785,7 @@ Error RACFGBuilder::on_invoke(InvokeNode* invoke_node, RAInstBuilder& ib) noexce
 
   // Setup clobbered registers.
   for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
-    ib._clobbered[group] = Support::lsb_mask<RegMask>(_pass._phys_reg_count[group]) & ~fd.preserved_regs(group);
+    ib._clobbered[group] = Support::lsb_mask<RegMask>(_pass._phys_reg_count.get(group)) & ~fd.preserved_regs(group);
   }
 
   return Error::kOk;

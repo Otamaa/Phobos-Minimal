@@ -6,14 +6,14 @@
 #ifndef ASMJIT_CORE_RALOCAL_P_H_INCLUDED
 #define ASMJIT_CORE_RALOCAL_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/raassignment_p.h"
-#include "../core/radefs_p.h"
-#include "../core/rainst_p.h"
-#include "../core/rapass_p.h"
-#include "../core/support.h"
+#include <asmjit/core/raassignment_p.h>
+#include <asmjit/core/radefs_p.h>
+#include <asmjit/core/rainst_p.h>
+#include <asmjit/core/rapass_p.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -122,7 +122,7 @@ public:
   ASMJIT_INLINE_NODEBUG uint32_t tied_count(RegGroup group) const noexcept { return _tied_count.get(group); }
 
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG bool is_group_used(RegGroup group) const noexcept { return _tied_count[group] != 0; }
+  ASMJIT_INLINE_NODEBUG bool is_group_used(RegGroup group) const noexcept { return _tied_count.get(group) != 0; }
 
   //! \}
 

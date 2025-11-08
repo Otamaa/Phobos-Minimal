@@ -6,11 +6,11 @@
 #ifndef ASMJIT_CORE_RAASSIGNMENT_P_H_INCLUDED
 #define ASMJIT_CORE_RAASSIGNMENT_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/radefs_p.h"
-#include "../core/rareg_p.h"
+#include <asmjit/core/radefs_p.h>
+#include <asmjit/core/rareg_p.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -142,8 +142,7 @@ public:
 
     _layout.phys_index.build_indexes(phys_count);
     _layout.phys_count = phys_count;
-    _layout.phys_total = uint32_t(_layout.phys_index[RegGroup::kMaxVirt]) +
-                         uint32_t(_layout.phys_count[RegGroup::kMaxVirt]) ;
+    _layout.phys_total = _layout.phys_index.get(RegGroup::kMaxVirt) + _layout.phys_count.get(RegGroup::kMaxVirt);
     _layout.work_count = uint32_t(work_regs.size());
     _layout.work_regs = &work_regs;
   }
@@ -337,7 +336,7 @@ public:
     memset(_work_to_phys_map, uint8_t(Reg::kIdBad), WorkToPhysMap::size_of(_layout.work_count));
 
     for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
-      uint32_t phys_base_index = _layout.phys_index[group];
+      uint32_t phys_base_index = _layout.phys_index.get(group);
       Support::BitWordIterator<RegMask> it(_phys_to_work_map->assigned[group]);
 
       while (it.has_next()) {
@@ -421,7 +420,7 @@ public:
     // Verify PhysToWorkMap.
     {
       for (RegGroup group : Support::enumerate(RegGroup::kMaxVirt)) {
-        uint32_t phys_count = _layout.phys_count[group];
+        uint32_t phys_count = _layout.phys_count.get(group);
         for (uint32_t phys_id = 0; phys_id < phys_count; phys_id++) {
           RAWorkId work_id = _phys_to_work_ids[group][phys_id];
           if (work_id != kBadWorkId) {

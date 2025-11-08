@@ -3,18 +3,18 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
+#include <asmjit/core/api-build_p.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/assembler.h"
-#include "../core/builder_p.h"
-#include "../core/compiler.h"
-#include "../core/cpuinfo.h"
-#include "../core/logger.h"
-#include "../core/rapass_p.h"
-#include "../core/rastack_p.h"
-#include "../core/support.h"
-#include "../core/type.h"
+#include <asmjit/core/assembler.h>
+#include <asmjit/core/builder_p.h>
+#include <asmjit/core/compiler.h>
+#include <asmjit/core/cpuinfo.h>
+#include <asmjit/core/logger.h>
+#include <asmjit/core/rapass_p.h>
+#include <asmjit/core/rastack_p.h>
+#include <asmjit/core/type.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

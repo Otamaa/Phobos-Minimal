@@ -6,8 +6,8 @@
 #ifndef ASMJIT_X86_X86INSTDB_P_H_INCLUDED
 #define ASMJIT_X86_X86INSTDB_P_H_INCLUDED
 
-#include "../core/instdb_p.h"
-#include "../x86/x86instdb.h"
+#include <asmjit/core/instdb_p.h>
+#include <asmjit/x86/x86instdb.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 

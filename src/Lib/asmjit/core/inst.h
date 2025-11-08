@@ -6,10 +6,10 @@
 #ifndef ASMJIT_CORE_INST_H_INCLUDED
 #define ASMJIT_CORE_INST_H_INCLUDED
 
-#include "../core/cpuinfo.h"
-#include "../core/operand.h"
-#include "../core/string.h"
-#include "../core/support.h"
+#include <asmjit/core/cpuinfo.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/core/string.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -903,13 +903,11 @@ ASMJIT_API Error inst_id_to_string(Arch arch, InstId inst_id, InstStringifyOptio
 ASMJIT_API InstId string_to_inst_id(Arch arch, const char* s, size_t len) noexcept;
 #endif // !ASMJIT_NO_TEXT
 
-#ifndef ASMJIT_NO_VALIDATION
+#ifndef ASMJIT_NO_INTROSPECTION
 //! Validates the given instruction considering the given `validation_flags`.
 [[nodiscard]]
 ASMJIT_API Error validate(Arch arch, const BaseInst& inst, const Operand_* operands, size_t op_count, ValidationFlags validation_flags = ValidationFlags::kNone) noexcept;
-#endif // !ASMJIT_NO_VALIDATION
 
-#ifndef ASMJIT_NO_INTROSPECTION
 //! Gets Read/Write information of the given instruction.
 ASMJIT_API Error query_rw_info(Arch arch, const BaseInst& inst, const Operand_* operands, size_t op_count, InstRWInfo* out) noexcept;
 

@@ -58,6 +58,7 @@ public:
 		, ParabombFallRate(0)
 		, IsInstantDetonation(false)
 	{
+		this->AbsType = BulletClass::AbsID;
 	}
 
 	BulletExtData(BulletClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }

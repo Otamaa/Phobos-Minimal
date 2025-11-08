@@ -27,7 +27,10 @@ public:
 	ParticleExtData(ParticleClass* pObj) : ObjectExtData(pObj)
 		, LaserTrails()
 		, Trails()
-	{ }
+	{
+		this->Name = pObj->Type->ID;
+		this->AbsType = ParticleClass::AbsID;
+	}
 
 	ParticleExtData(ParticleClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

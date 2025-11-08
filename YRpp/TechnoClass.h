@@ -1005,8 +1005,8 @@ public:
 	BYTE			 IsTickedOff; //HasBeenAttacked //3D1
 	BYTE			 Cloakable; //3D2
 	BYTE			 IsPrimaryFactory; //3D3
-//	BYTE			 IsALoaner; // 3D4
-//	BYTE			 IsLocked; // 3D5
+	//BYTE			 IsALoaner; // 3D4
+	//BYTE			 IsLocked; // 3D5
 	BYTE			 Spawned; // 3D6 //IsALoaner
 	BYTE             IsInPlayfield; // 3D7 // Is_Locked
 	DECLARE_PROPERTY(RecoilData, TurretRecoil);
@@ -1020,8 +1020,8 @@ public:
 	BYTE             unknown_bool_41E;
 	BYTE             unknown_bool_41F;
 	BYTE             SightIncrease; // used for LeptonsPerSightIncrease
-	BYTE             RecruitableA; // these two are like Lenny and Carl, weird purpose and never seen separate
-	BYTE             RecruitableB; // they're usually set on preplaced objects in maps
+	BYTE             RecruitableA; //__Recruitable, these two are like Lenny and Carl, weird purpose and never seen separate
+	BYTE             RecruitableB; //__AIRecruitable, they're usually set on preplaced objects in maps
 	BYTE             IsRadarTracked;
 	BYTE             IsOnCarryall;
 	BYTE             IsCrashing;

@@ -185,7 +185,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 			if (!pThis->Type->IsAnimated && pTypeExt->HasDamagedFrames && PriorHealthRatio > condYellow && pThis->GetHealthPercentage() <= condYellow)
 			{
 				pThis->TimeToDie = true; // Dirty hack to get game to redraw the art reliably.
-				LogicClass::Instance->AddObject(pThis, false);
+				MapClass::Logics->AddObject(pThis, false);
 			}
 
 			if (_res == DamageState::PostMortem)
@@ -244,7 +244,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 				if (pThis->TimeToDie && pTerrainExt->HasCrumblingFrames)
 				{
 					// Needs to be added to the logic layer for the anim to work.
-					LogicClass::Instance->AddObject(pThis, false);
+					MapClass::Logics->AddObject(pThis, false);
 					auto coordsound_ = pThis->GetCoords();
 					VocClass::SafeImmedietelyPlayAt(pTerrainExt->CrumblingSound, &coordsound_);
 					pThis->Mark(MarkType::Redraw);
@@ -1926,7 +1926,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 
 							AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, args.Attacker, true, false);
 
-							if (ParticleSystemClass::Array->ValidIndex(RulesClass::Instance->InfantryVirus->SpawnsParticle))
+							if (ParticleSystemClass::Array->valid_index(RulesClass::Instance->InfantryVirus->SpawnsParticle))
 							{
 								auto pParticleType = ParticleTypeClass::Array->Items[RulesClass::Instance->InfantryVirus->SpawnsParticle];
 								ParticleSystemClass::Instance->SpawnParticle(pParticleType, &pThis->Location);
@@ -1993,7 +1993,7 @@ ASMJIT_PATCH(0x517FA0, InfantryClass_ReceiveDamage_Handled, 6)
 
 									AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, args.Attacker, true, false);
 
-									if (ParticleSystemClass::Array->ValidIndex(RulesClass::Instance->InfantryVirus->SpawnsParticle))
+									if (ParticleSystemClass::Array->valid_index(RulesClass::Instance->InfantryVirus->SpawnsParticle))
 									{
 										auto pParticleType = ParticleTypeClass::Array->Items[RulesClass::Instance->InfantryVirus->SpawnsParticle];
 										ParticleSystemClass::Instance->SpawnParticle(pParticleType, &pThis->Location);

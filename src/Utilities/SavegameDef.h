@@ -862,13 +862,13 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, VectorClass<T>& Value, bool RegisterForChange) const
 		{
-			Value.Clear();
+			Value.clear();
 			int Capacity = 0;
 
 			if (!Savegame::ReadPhobosStream(Stm, Capacity))
 				return false;
 
-			Value.Reserve(Capacity);
+			Value.reserve(Capacity);
 
 			for (auto ix = 0; ix < Capacity; ++ix)
 			{
@@ -898,13 +898,13 @@ namespace Savegame
 	{
 		bool ReadFromStream(PhobosStreamReader& Stm, DynamicVectorClass<T>& Value, bool RegisterForChange) const
 		{
-			Value.Reset();
+			Value.reset();
 			int Capacity = 0;
 
 			if (!Stm.Load(Capacity))
 				return false;
 
-			Value.Reserve(Capacity);
+			Value.reserve(Capacity);
 
 			if (!Stm.Load(Value.Count) || !Stm.Load(Value.CapacityIncrement))
 				return false;

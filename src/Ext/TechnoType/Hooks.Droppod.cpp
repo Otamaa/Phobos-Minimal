@@ -5,7 +5,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/SWType/Body.h>
-#include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
+#include <Ext/SWType/NewSuperWeaponType/SWTypeHandler.h>
 
 #include <Misc/DamageArea.h>
 
@@ -122,7 +122,7 @@ struct DroppodProperties_
 		CoordStruct oldLoc = pLinked->Location;
 		auto pLinkedExt = TechnoExtContainer::Instance.Find(pLinked);
 		const auto pLinkedSW = pLinkedExt->LinkedSW;
-		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)AresNewSuperType::DropPod;
+		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)NewSuperType::DropPod;
 		const double angle = DroppodProperties_::GetAngle(tType, pLinked, condition);
 		const auto maxspeed = DroppodProperties_::GetSpeed(tType, pLinked, condition);
 		const int speed = std::max(maxspeed, pLinked->GetHeight() / 10 + 2);
@@ -246,7 +246,7 @@ struct DroppodProperties_
 		pLoco->CoordDest.Z = MapClass::Instance->GetCellFloorHeight(pCoord);
 		auto tType = pLoco->LinkedTo->GetTechnoType();
 		const auto pLinkedSW = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->LinkedSW;
-		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)AresNewSuperType::DropPod;
+		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)NewSuperType::DropPod;
 		const int height = DroppodProperties_::GetHeight(tType, pLoco->LinkedTo, condition);
 		const double angle = DroppodProperties_::GetAngle(tType, pLoco->LinkedTo, condition);
 
@@ -392,7 +392,7 @@ ASMJIT_PATCH(0x4B5CF1, DropPodLocomotionClass_Process_DroppodPuff, 0x5)
 		return 0x4B5D0A;
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
-	const auto IsLinkedSWEligible = pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod;
+	const auto IsLinkedSWEligible = pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)NewSuperType::DropPod;
 
 	if (auto pAnimType = DroppodProperties::GetPuff(pFoot, RulesClass::Instance->DropPodPuff))
 	{
@@ -459,7 +459,7 @@ ASMJIT_PATCH(0x4B641D, DroppodLocomotionClass_IPiggy_EndPiggyback, 7)
 
 	if (pLoco->Owner) {
 		const auto pExt = TechnoExtContainer::Instance.Find(pLoco->Owner);
-		if (pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)AresNewSuperType::DropPod)
+		if (pExt->LinkedSW && (int)pExt->LinkedSW->Type->Type == (int)NewSuperType::DropPod)
 			pExt->LinkedSW = nullptr;
 	}
 

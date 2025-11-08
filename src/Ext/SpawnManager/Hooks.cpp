@@ -99,7 +99,7 @@ ASMJIT_PATCH(0x6B6D44, SpawnManagerClass_Init_Spawns, 0x5)
 		pControl->Unit = nullptr;
 		pControl->NodeSpawnTimer.Start(pThis->RegenRate);
 		pControl->Status = SpawnNodeStatus::Dead;
-		pThis->SpawnedNodes.AddItem(pControl);
+		pThis->SpawnedNodes.push_back(pControl);
 		return Jump;
 	}
 

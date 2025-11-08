@@ -56,7 +56,8 @@ public:
 		, RadLevels()
 
 	{
-		this->AbstractExtended::SetName("CellClass");
+		this->Name = "CellClass";
+		this->AbsType = CellClass::AbsID;
 	}
 
 	CellExtData(CellClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }

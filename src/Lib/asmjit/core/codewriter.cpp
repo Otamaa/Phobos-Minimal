@@ -3,11 +3,12 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
-#include "../core/codeholder.h"
-#include "../core/codewriter_p.h"
+#include <asmjit/core/api-build_p.h>
+#include <asmjit/core/codeholder.h>
+#include <asmjit/core/codewriter_p.h>
+#include <asmjit/core/emitterutils_p.h>
 
-//#include "../arm/armutils.h"
+//#include <asmjit/arm/armutils.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -65,7 +66,7 @@ bool CodeWriterUtils::encode_offset32(uint32_t* dst, int64_t offset64, const Off
     }
 
     value = uint32_t(int32_t(offset64));
-    if (!Support::is_encodable_offset_32(int32_t(value), bit_count)) {
+    if (!EmitterUtils::is_encodable_offset_32(int32_t(value), bit_count)) {
       return false;
     }
   }
@@ -138,7 +139,7 @@ bool CodeWriterUtils::encode_offset32(uint32_t* dst, int64_t offset64, const Off
     //  if (!arm::Utils::encode_aarch32_imm(value, Out(encoded_imm))) {
     //    return false;
     //  }
-	//
+    //
     //  *dst = (Support::bit_mask<uint32_t>(22) << u) | (encoded_imm << bit_shift);
     //  return true;
     //}
@@ -228,7 +229,7 @@ bool CodeWriterUtils::encode_offset64(uint64_t* dst, int64_t offset64, const Off
       offset64 >>= discard_lsb;
     }
 
-    if (!Support::is_encodable_offset_64(offset64, bit_count)) {
+    if (!EmitterUtils::is_encodable_offset_64(offset64, bit_count)) {
       return false;
     }
 

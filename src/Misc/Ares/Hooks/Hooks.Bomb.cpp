@@ -147,8 +147,11 @@ ASMJIT_PATCH(0x438761, BombClass_Detonate_Handle, 0x7)
 	pTarget->BombVisible = false;
 	pThis->State = BombState::Removed;
 	// Also adjust detonation coordinate.
-	CoordStruct coords = pTarget->GetCenterCoords();
 	const auto pExt = BombExtContainer::Instance.Find(pThis);
+
+	CoordStruct coords = pExt->Weapon->Ivan_AttachToCenter.Get(RulesExtData::Instance()->IvanBombAttachToCenter) ?
+		pTarget->GetCenterCoords() : pTarget->Location;
+
 	const auto pBombWH = pExt->Weapon->Ivan_WH.Get(RulesClass::Instance->IvanWarhead);
 	const auto nDamage = pExt->Weapon->Ivan_Damage.Get(RulesClass::Instance->IvanDamage);
 	const auto OwningHouse = pThis->GetOwningHouse();

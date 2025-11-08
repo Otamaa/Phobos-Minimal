@@ -3,12 +3,12 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
-#include "../core/assembler.h"
-#include "../core/emitterutils_p.h"
-#include "../core/formatter_p.h"
-#include "../core/logger.h"
-#include "../core/support.h"
+#include <asmjit/core/api-build_p.h>
+#include <asmjit/core/assembler.h>
+#include <asmjit/core/emitterutils_p.h>
+#include <asmjit/core/formatter_p.h>
+#include <asmjit/core/logger.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

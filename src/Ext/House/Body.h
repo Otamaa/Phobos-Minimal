@@ -273,6 +273,8 @@ public:
 	{
 		// resize after initialization
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
+		this->Name = pObj->Type->ID;
+		this->AbsType = HouseClass::AbsID;
 	}
 
 	HouseExtData(HouseClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
@@ -351,10 +353,8 @@ public:
 	// Some non playable countries will set SideIndex to -1
 	static SideClass* GetSide(HouseClass* pHouse)
 	{
-		if (!pHouse)
-			return nullptr;
-
-		return SideClass::Array->GetItemOrDefault(pHouse->SideIndex);
+		const int idx = pHouse->SideIndex == -1 ? pHouse->Type->SideIndex : pHouse->SideIndex;
+		return SideClass::Array->operator[](idx);
 	}
 
 	static HouseClass* FindFirstCivilianHouse();
@@ -381,7 +381,7 @@ public:
 	static bool IsObserverPlayer(HouseClass* pCur);
 
 	static bool PrerequisitesMet(HouseClass* const pThis, TechnoTypeClass* const pItem);
-	static bool PrerequisitesMet(HouseClass* pThis, int* items , int size);
+	static bool PrerequisitesMet(HouseClass* pThis, const Iterator<int> items);
 
 	static void UpdateAutoDeathObjects();
 	static void UpdateTransportReloaders();
@@ -498,8 +498,6 @@ public:
 	static HouseClass* Special;
 	static HouseClass* Neutral;
 	static SideClass* CivilianSide;
-
-	static PhobosMap<HouseClass*, VectorSet<TeamClass*>> HousesTeams;
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);

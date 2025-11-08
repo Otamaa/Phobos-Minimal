@@ -33,7 +33,7 @@ public:
 		if (Array.empty()){
 			Array.reserve(Powerups::Effects.size());
 
-			for (auto crate : Powerups::Effects){
+			for (auto crate : Powerups::Effects.data()){
 				Debug::LogInfo("Creating default Crate of [{}]" , crate);
 				Allocate(crate);
 			}

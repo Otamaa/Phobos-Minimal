@@ -189,4 +189,14 @@ public:
 		return s;
 	}
 
+	static COMPILETIMEEVAL std::string_view FORCEDINLINE trim(std::string_view sv) {
+			auto is_space = [](unsigned char c) { return std::isspace(c); };
+
+			while (!sv.empty() && is_space(sv.front()))
+				sv.remove_prefix(1);
+			while (!sv.empty() && is_space(sv.back()))
+				sv.remove_suffix(1);
+
+			return sv;
+	};
 };

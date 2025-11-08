@@ -6,11 +6,6 @@
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 
-std::vector<const char*> SW_EMPulse::GetTypeString() const
-{
-	return { "EMPulse" , "FireAt" };
-}
-
 bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	auto pData = SWTypeExtContainer::Instance.Find(pThis->Type);
@@ -36,7 +31,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 		for (auto const& pSuper : pThis->Owner->Supers)
 		{
-			if (static_cast<AresNewSuperType>(pSuper->Type->Type) != AresNewSuperType::EMPulse || pSuper == pThis || pSuper->IsOnHold)
+			if (static_cast<NewSuperType>(pSuper->Type->Type) != NewSuperType::EMPulse || pSuper == pThis || pSuper->IsOnHold)
 				continue;
 
 			bool suspend = false;
@@ -106,7 +101,7 @@ bool SW_EMPulse::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPl
 
 void SW_EMPulse::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	pData->SW_RangeMaximum = -1.0;
 	pData->SW_RangeMinimum = 0.0;
 	pData->SW_MaxCount = 1;
@@ -133,7 +128,7 @@ void SW_EMPulse::LoadFromINI(SWTypeExtData* pData, CCINIClass* pINI)
 	pData->EMPulse_WeaponIndex.Read(exINI, section, "EMPulse.WeaponIndex");
 	pData->EMPulse_SuspendOthers.Read(exINI, section, "EMPulse.SuspendOthers");
 
-	pData->This()->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)AresNewActionType::SuperWeaponAllowed;
+	pData->This()->Action = pData->EMPulse_TargetSelf ? Action::None : (Action)PhobosNewActionType::SuperWeaponAllowed;
 
 	if(!pData->EMPulse_PulseBall.isset())
 		pData->EMPulse_PulseBall = AnimTypeClass::Find(GameStrings::PULSBALL);
@@ -190,5 +185,5 @@ std::pair<double, double> SW_EMPulse::GetLaunchSiteRange(const SWTypeExtData* pD
 		return { minRange, maxRange };
 	}
 
-	return NewSWType::GetLaunchSiteRange(pData, pBuilding);
+	return SWTypeHandler::GetLaunchSiteRange(pData, pBuilding);
 }

@@ -914,17 +914,17 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			DamageGroup* group = *g_begin;
 			// group could have been cleared by previous iteration.
 			// only handle if has not been handled already.
-			if (group && Targets.AddUnique(group->Target))
+			if (group && Targets.insert_unique(group->Target))
 			{
 
-				Handled.Reset();
+				Handled.reset();
 
 				// collect all slots containing damage groups for this target
 				std::for_each(g_begin, g_end, [group](DamageGroup* item)
  {
 	 if (item && item->Target == group->Target)
 	 {
-		 Handled.AddItem(item);
+		 Handled.push_back(item);
 	 }
 				});
 
@@ -947,7 +947,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		}
 
 		// move all the empty ones to the back, then remove them
-		groupvec.remove_if([](DamageGroup* pGroup)
+		groupvec.erase_if([](DamageGroup* pGroup)
  {
 	 if (!pGroup->Target)
 	 {

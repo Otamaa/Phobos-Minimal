@@ -6,11 +6,11 @@
 #ifndef ASMJIT_CORE_RAREG_P_H_INCLUDED
 #define ASMJIT_CORE_RAREG_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/arenavector.h"
-#include "../core/radefs_p.h"
+#include <asmjit/core/radefs_p.h>
+#include <asmjit/support/arenavector.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

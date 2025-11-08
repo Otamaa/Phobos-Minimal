@@ -40,6 +40,9 @@ enum class PhobosTriggerAction : unsigned int
 	//#1266 , modified number
 	PrintMessageRemainingTechnos = 508,
 
+	//
+	AdjustHouseModifier = 509,
+
 	//#844
 	ToggleMCVRedeploy = 510,
 
@@ -47,6 +50,14 @@ enum class PhobosTriggerAction : unsigned int
 	UndeployToWaypoint = 511,
 
 	SetDropCrate = 600, // Only change this number if the PR is merged into develop!
+
+	//#1549
+	ResetHateValue = 606,
+
+	//
+	EditAngerNode = 607,
+	ClearAngerNode = 608,
+	SetForceEnemy = 609,
 
 	//ES
 	SetTriggerTechnoVeterancy = 700,
@@ -58,14 +69,6 @@ enum class PhobosTriggerAction : unsigned int
 	UnInitTechno = 716,
 	GameDeleteTechno = 717,
 	LightningStormStrikeAtObject = 720,
-
-	//#1549
-	ResetHateValue = 606,
-
-	//
-	EditAngerNode = 607,
-	ClearAngerNode = 608,
-	SetForceEnemy = 609,
 
 	CreateBannerLocal = 800, // any banner w/ local variable
 	CreateBannerGlobal = 801, // any banner w/ global variable
@@ -166,6 +169,9 @@ public:
 	ACTION_FUNC(CreateBuildingAt);
 	ACTION_FUNC(ChangeHouse);
 	ACTION_FUNC(AllChangeHouse);
+
+	ACTION_FUNC(AdjustHouseModifier);
+
 #undef ACTION_FUNC
 
 	static PhobosMap<int, std::vector<TriggerClass*>> RandomTriggerPool;

@@ -58,10 +58,7 @@ public:
 
 		for(int i = 0; i < Array->Count; ++i) {
 
-			if((&Array->Items[i]) == Array->end())
-				return -1;
-
-			const ColorScheme* pItem = Array->GetItem(i);
+			const ColorScheme* pItem = Array->operator[](i);
 
 			if(!CRT::strcmpi(pItem->ID, pID)) {
 				if(pItem->ShadeCount == ShadeCount) {
@@ -76,7 +73,7 @@ public:
 	// this does not check the `ShadeCount`
 	static NOINLINE int __fastcall FindIndexById(const char* pID) {
 		for (int i = 0; i < Array->Count; ++i) {
-			if (!CRT::strcmpi(Array->Items[i]->ID, pID)) {
+			if (!CRT::strcmpi(Array->operator[](i)->ID, pID)) {
 				return i;
 			}
 		}

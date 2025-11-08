@@ -188,7 +188,7 @@ public:
 		this->_AddButtons();
 		this->AddButton(TabThumbButtonActivated.operator->());
 
-		for (int i = 0; i < CommandBarLinks.size(); ++i) {
+		for (int i = 0; i < (int)CommandBarLinks.size(); ++i) {
 			int linked = CommandBarLinks[i];
 
 			if (linked == -1 ||  !TabClass::GetCommandbarShape(linked) )
@@ -359,7 +359,7 @@ ASMJIT_PATCH(0x6D02C0, InitForHouse_RemoveInline, 0x5)
 ASMJIT_PATCH(0x6D1770, TabClass_noticeSink_Planning_ChangeState, 0x7)
 {
 	GET_STACK(int, someID , 0x4);
-	GET_STACK(int, something, 0x8);
+	//GET_STACK(int, something, 0x8);
 
 	bool result = false;
 	switch (someID)

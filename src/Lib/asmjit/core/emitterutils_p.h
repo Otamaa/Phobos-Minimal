@@ -6,8 +6,9 @@
 #ifndef ASMJIT_CORE_EMITTERUTILS_P_H_INCLUDED
 #define ASMJIT_CORE_EMITTERUTILS_P_H_INCLUDED
 
-#include "../core/emitter.h"
-#include "../core/operand.h"
+#include <asmjit/core/emitter.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -57,6 +58,18 @@ static ASMJIT_INLINE void op_array_from_emit_args(Operand_ dst[Globals::kMaxOpCo
   dst[3].copy_from(op_ext[kOp3]);
   dst[4].copy_from(op_ext[kOp4]);
   dst[5].copy_from(op_ext[kOp5]);
+}
+
+[[nodiscard]]
+static bool ASMJIT_INLINE_NODEBUG is_encodable_offset_32(int32_t offset, uint32_t num_bits) noexcept {
+  uint32_t n_rev = 32 - num_bits;
+  return Support::sar(Support::shl(offset, n_rev), n_rev) == offset;
+}
+
+[[nodiscard]]
+static bool ASMJIT_INLINE_NODEBUG is_encodable_offset_64(int64_t offset, uint32_t num_bits) noexcept {
+  uint32_t n_rev = 64 - num_bits;
+  return Support::sar(Support::shl(offset, n_rev), n_rev) == offset;
 }
 
 #ifndef ASMJIT_NO_LOGGING

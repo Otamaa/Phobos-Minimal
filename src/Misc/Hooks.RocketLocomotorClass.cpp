@@ -35,7 +35,7 @@ struct _KamikazetrackerClass
 
 		pAir->IsKamikaze = true;
 		pAir->Ammo = 1;
-		pThis->Nodes.AddItem(control);
+		pThis->Nodes.push_back(control);
 	}
 
 	static void __fastcall AI(Kamikaze* pThis, DWORD)

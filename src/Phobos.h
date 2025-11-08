@@ -15,11 +15,15 @@
 #include <mutex>
 #include <unordered_map>
 
+#pragma warning( push )
+#pragma warning (disable : 4244)
+
 #include <Lib/asmjit/x86.h>
 #include <Lib/fmt/core.h>
 #include <Lib/fmt/xchar.h>
 #include <Lib/fmt/printf.h>
 #include <Lib/magic_enum/magic_enum_all.hpp>
+#pragma warning( pop )
 
 
 enum class DrawDamageMode : BYTE

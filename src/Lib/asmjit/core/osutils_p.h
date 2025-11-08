@@ -6,8 +6,8 @@
 #ifndef ASMJIT_CORE_OSUTILS_P_H_INCLUDED
 #define ASMJIT_CORE_OSUTILS_P_H_INCLUDED
 
-#include "../core/osutils.h"
-#include "../core/string.h"
+#include <asmjit/core/osutils.h>
+#include <asmjit/core/string.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

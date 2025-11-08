@@ -181,6 +181,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Ivan_TickingSound.Read(exINI, pSection, "IvanBomb.TickingSound");
 	this->Ivan_AttachSound.Read(exINI, pSection, "IvanBomb.AttachSound");
 	this->Ivan_WH.Read(exINI, pSection, "IvanBomb.Warhead");
+	this->Ivan_AttachToCenter.Read(exINI, pSection, "IvanBomb.AttachToCenter");
 	this->Ivan_Image.Read(exINI, pSection, "IvanBomb.Image");
 	this->Ivan_CanDetonateTimeBomb.Read(exINI, pSection, "IvanBomb.CanDetonateTimeBomb");
 	this->Ivan_CanDetonateDeathBomb.Read(exINI, pSection, "IvanBomb.CanDetonateDeathBomb");
@@ -512,6 +513,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->Ivan_TickingSound)
 		.Process(this->Ivan_AttachSound)
 		.Process(this->Ivan_WH)
+		.Process(this->Ivan_AttachToCenter)
 		.Process(this->Ivan_Image)
 		.Process(this->Ivan_FlickerRate)
 		.Process(this->Ivan_CanDetonateTimeBomb)
@@ -725,6 +727,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 	debugProcess(this->Ivan_TickingSound, "Ivan_TickingSound");
 	debugProcess(this->Ivan_AttachSound, "Ivan_AttachSound");
 	debugProcess(this->Ivan_WH, "Ivan_WH");
+	debugProcess(this->Ivan_AttachToCenter, "Ivan_AttachToCenter");
 	debugProcess(this->Ivan_Image, "Ivan_Image");
 	debugProcess(this->Ivan_FlickerRate, "Ivan_FlickerRate");
 	debugProcess(this->Ivan_CanDetonateTimeBomb, "Ivan_CanDetonateTimeBomb");

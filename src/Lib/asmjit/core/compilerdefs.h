@@ -6,11 +6,11 @@
 #ifndef ASMJIT_CORE_COMPILERDEFS_H_INCLUDED
 #define ASMJIT_CORE_COMPILERDEFS_H_INCLUDED
 
-#include "../core/api-config.h"
-#include "../core/arenastring.h"
-#include "../core/operand.h"
-#include "../core/support.h"
-#include "../core/type.h"
+#include <asmjit/core/api-config.h>
+#include <asmjit/core/operand.h>
+#include <asmjit/core/type.h>
+#include <asmjit/support/arenastring.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

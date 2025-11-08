@@ -9,7 +9,7 @@ class AbstractTypeExtData : public AbstractExtended
 public:
 
 	AbstractTypeExtData(AbstractTypeClass* pObj) : AbstractExtended(pObj) {
-		this->AbstractExtended::SetName(pObj->ID);
+		this->Name = pObj->ID;
 	}
 	AbstractTypeExtData(AbstractTypeClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
@@ -31,7 +31,6 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	OPTIONALINLINE const char* Name() const { return this->GetAttachedObjectName(); }
 	OPTIONALINLINE const char* Full_Name() const { return This()->Name; }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) = 0;

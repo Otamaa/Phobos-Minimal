@@ -6,11 +6,11 @@
 #ifndef ASMJIT_UJIT_UNICOMPILER_UTILS_P_H_INCLUDED
 #define ASMJIT_UJIT_UNICOMPILER_UTILS_P_H_INCLUDED
 
-#include "ujitbase.h"
+#include <asmjit/ujit/ujitbase.h>
 
 #if !defined(ASMJIT_NO_UJIT)
 
-#include "uniop.h"
+#include <asmjit/ujit/uniop.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(ujit)
 

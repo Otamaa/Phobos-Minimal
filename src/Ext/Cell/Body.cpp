@@ -65,7 +65,7 @@ TiberiumClass* CellExtData::GetTiberium(CellClass* pCell)
 	int overlay_ = CellExtData::GetTiberiumType(pCell->OverlayTypeIndex);
 
 	if (overlay_ != -1)
-		if (const auto pTiberium = TiberiumClass::Array->GetItemOrDefault(overlay_))
+		if (const auto pTiberium = TiberiumClass::Array->get_or_default(overlay_))
 			return pTiberium;
 
 	return nullptr;

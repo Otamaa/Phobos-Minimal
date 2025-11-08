@@ -6,9 +6,9 @@
 #ifndef ASMJIT_CORE_CONSTPOOL_H_INCLUDED
 #define ASMJIT_CORE_CONSTPOOL_H_INCLUDED
 
-#include "../core/arena.h"
-#include "../core/arenatree.h"
-#include "../core/support.h"
+#include <asmjit/support/arena.h>
+#include <asmjit/support/arenatree.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

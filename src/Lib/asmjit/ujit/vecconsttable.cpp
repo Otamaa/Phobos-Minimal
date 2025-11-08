@@ -3,8 +3,8 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
-#include "vecconsttable.h"
+#include <asmjit/core/api-build_p.h>
+#include <asmjit/ujit/vecconsttable.h>
 
 #if !defined(ASMJIT_NO_UJIT)
 

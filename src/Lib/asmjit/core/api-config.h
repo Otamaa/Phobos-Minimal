@@ -16,7 +16,7 @@
 #define ASMJIT_LIBRARY_MAKE_VERSION(major, minor, patch) ((major << 16) | (minor << 8) | (patch))
 
 //! AsmJit library version, see \ref ASMJIT_LIBRARY_MAKE_VERSION for a version format reference.
-#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 19, 0)
+#define ASMJIT_LIBRARY_VERSION ASMJIT_LIBRARY_MAKE_VERSION(1, 21, 0)
 
 //! \def ASMJIT_ABI_NAMESPACE
 //!
@@ -27,7 +27,7 @@
 //! AsmJit default, which makes it possible to use multiple AsmJit libraries within a single project, totally
 //! controlled by users. This is useful especially in cases in which some of such library comes from third party.
 #if !defined(ASMJIT_ABI_NAMESPACE)
-  #define ASMJIT_ABI_NAMESPACE v1_19
+  #define ASMJIT_ABI_NAMESPACE v1_21
 #endif // !ASMJIT_ABI_NAMESPACE
 
 //! \}
@@ -90,12 +90,6 @@
 #define ASMJIT_BUILD_RELEASE
 #undef ASMJIT_BUILD_RELEASE
 
-//! \def ASMJIT_NO_DEPRECATED
-//!
-//! Disables deprecated API at compile time (deprecated API won't be available).
-#define ASMJIT_NO_DEPRECATED
-#undef ASMJIT_NO_DEPRECATED
-
 //! \def ASMJIT_NO_ABI_NAMESPACE
 //!
 //! Disables the use of an inline ABI namespace within asmjit namespace (the inline namespace is used as an ABI tag).
@@ -137,12 +131,6 @@
 //! Disables everything that contains text.
 #define ASMJIT_NO_TEXT
 #undef ASMJIT_NO_TEXT
-
-//! \def ASMJIT_NO_VALIDATION
-//!
-//! Disables instruction validation API.
-#define ASMJIT_NO_VALIDATION
-#undef ASMJIT_NO_VALIDATION
 
 //! \def ASMJIT_NO_INTROSPECTION
 //!

@@ -3,11 +3,6 @@
 #include <Misc/Ares/Hooks/Header.h>
 #include <Ext/SWType/Body.h>
 
-std::vector<const char*> SW_EMPField::GetTypeString() const
-{
-	return { "EMPField" };
-}
-
 bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	auto pType = pThis->Type;
@@ -27,7 +22,7 @@ bool SW_EMPField::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsP
 
 void SW_EMPField::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	pData->SW_RadarEvent = false;
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::IronCurtain;
 	pData->CursorType = int(MouseCursorType::Attack);

@@ -6,7 +6,7 @@
 #ifndef ASMJIT_UJIT_JITBASE_P_H_INCLUDED
 #define ASMJIT_UJIT_JITBASE_P_H_INCLUDED
 
-#include "../host.h"
+#include <asmjit/host.h>
 
 #if !defined(ASMJIT_NO_UJIT) && !defined(ASMJIT_HAS_HOST_BACKEND)
   #pragma message("ASMJIT_NO_UJIT wasn't defined, however, no backends were found! (ASMJIT_HAS_HOST_BACKEND not defined)")

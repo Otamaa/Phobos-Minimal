@@ -3,8 +3,8 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
-#include "../core/instdb_p.h"
+#include <asmjit/core/api-build_p.h>
+#include <asmjit/core/instdb_p.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

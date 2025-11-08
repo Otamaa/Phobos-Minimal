@@ -3,25 +3,25 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
+#include <asmjit/core/api-build_p.h>
 #ifndef ASMJIT_NO_LOGGING
 
-#include "../core/archtraits.h"
-#include "../core/builder.h"
-#include "../core/codeholder.h"
-#include "../core/compiler.h"
-#include "../core/emitter.h"
-#include "../core/formatter_p.h"
-#include "../core/string.h"
-#include "../core/support.h"
-#include "../core/type.h"
+#include <asmjit/core/archtraits.h>
+#include <asmjit/core/builder.h>
+#include <asmjit/core/codeholder.h>
+#include <asmjit/core/compiler.h>
+#include <asmjit/core/emitter.h>
+#include <asmjit/core/formatter_p.h>
+#include <asmjit/core/string.h>
+#include <asmjit/core/type.h>
+#include <asmjit/support/support.h>
 
 #if !defined(ASMJIT_NO_X86)
-  #include "../x86/x86formatter_p.h"
+  #include <asmjit/x86/x86formatter_p.h>
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  #include "../arm/a64formatter_p.h"
+  #include <asmjit/arm/a64formatter_p.h>
 #endif
 
 ASMJIT_BEGIN_NAMESPACE

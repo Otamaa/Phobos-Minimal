@@ -5,11 +5,6 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/Building/Body.h>
 
-std::vector<const char*> SW_UnitDelivery::GetTypeString() const
-{
-	return { "UnitDelivery" };
-}
-
 bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	SuperWeaponTypeClass* pSW = pThis->Type;
@@ -23,7 +18,7 @@ bool SW_UnitDelivery::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 void SW_UnitDelivery::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::ParaDrop;
 }
 

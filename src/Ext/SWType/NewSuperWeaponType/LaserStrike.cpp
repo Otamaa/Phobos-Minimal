@@ -1,10 +1,5 @@
 #include "LaserStrike.h"
 
-std::vector<const char*> SW_LaserStrike::GetTypeString() const
-{
-	return { "LaserStrike" };
-}
-
 SuperWeaponFlags SW_LaserStrike::Flags(const SWTypeExtData* pData) const
 {
 	return SuperWeaponFlags::NoEvent | SuperWeaponFlags::NoMessage;
@@ -26,7 +21,7 @@ bool SW_LaserStrike::Activate(SuperClass* pThis, const CellStruct& Coords, bool 
 
 void SW_LaserStrike::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::Nuke;
 }
 
@@ -182,7 +177,7 @@ void LaserStrikeStateMachine::Update()
 					if (this->LaserStrikeROF <= 0)
 					{
 						if (auto pWeapon = pData->This()->WeaponType)
-							WeaponTypeExtData::DetonateAt4(pWeapon, pos, Firer, NewSWType::GetNewSWType(pData)->GetDamage(pData), false, Super->Owner);
+							WeaponTypeExtData::DetonateAt4(pWeapon, pos, Firer, pData->GetNewSWType()->GetDamage(pData), false, Super->Owner);
 					}
 				}
 

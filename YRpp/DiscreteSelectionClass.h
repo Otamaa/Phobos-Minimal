@@ -21,191 +21,175 @@
 
 #include <utility>
 
-namespace detail
-{
-	template<typename C>
-	using has_random_access = std::is_same<
-		typename std::iterator_traits<typename C::iterator>::iterator_category,
-		std::random_access_iterator_tag
-	>;
-
-	template<typename C>
-	constexpr bool is_random_access_v = has_random_access<C>::value;
-}
-
-template <typename T, typename Container = std::vector<T>>
+template <typename T, typename Container = DynamicVectorClass<T>>
 class DiscreteSelectionClass
 {
 public:
 	DiscreteSelectionClass() = default;
-	explicit DiscreteSelectionClass(int initial) : rating_(initial) { }
-	~DiscreteSelectionClass() = default;
+	explicit DiscreteSelectionClass(int initial) : Rating(initial) { }
 
-	DiscreteSelectionClass(const DiscreteSelectionClass&) = default;
-	DiscreteSelectionClass(DiscreteSelectionClass&&) noexcept = default;
-	DiscreteSelectionClass& operator=(const DiscreteSelectionClass&) = default;
-	DiscreteSelectionClass& operator=(DiscreteSelectionClass&&) noexcept = default;
-
-	void Add(T value, int rating)
+	// Add item with rating
+	void add(T value, int rating)
 	{
-		if (rating < this->rating_)
+		if (this->Rating > rating)
 		{
 			return;
 		}
-		if (rating > this->rating_)
+
+		if (rating > this->Rating)
 		{
-			this->Clear();
-			this->rating_ = rating;
-		}
-		if constexpr (std::is_same_v<Container, std::set<T>>)
-		{
-			this->items_.insert(std::move(value));
-		}
-		else
-		{
-			this->items_.push_back(std::move(value));
-		}
-	}
-
-	void Clear()
-	{
-		this->items_.clear();
-	}
-
-	[[nodiscard]] constexpr int GetRating() const noexcept
-	{
-		return this->rating_;
-	}
-
-	// CRITICAL FIX: Return int like original, with proper overflow check
-	[[nodiscard]] int GetCount() const noexcept
-	{
-		const auto size = this->items_.size();
-		// Ensure we don't overflow int (though unlikely in practice)
-		assert(size <= static_cast<size_t>(std::numeric_limits<int>::max()));
-		return static_cast<int>(size);
-	}
-
-	[[nodiscard]] bool IsValid() const noexcept
-	{
-		return !this->items_.empty();
-	}
-
-	// CRITICAL FIX: Proper signed comparison to match DynamicVectorClass behavior
-	bool Select(int index, T* pOut) const
-	{
-		// Check bounds properly: index must be non-negative AND less than count
-		// This matches DynamicVectorClass::ValidIndex() behavior
-		const int count = this->GetCount();
-		if (index < 0 || index >= count)
-		{
-			return false;
+			this->clear();
+			this->Rating = rating;
 		}
 
-		// Now safe to cast to size_t for indexing
-		const auto idx = static_cast<size_t>(index);
+		add_item_impl(std::move(value));
+	}
 
-		// Random access (vector, deque)
-		if constexpr (detail::is_random_access_v<Container>)
+	// Clear all items
+	void clear()
+	{
+		clear_impl();
+		// Don't reset Rating - it represents the best rating seen
+	}
+
+	// Reset both items and rating
+	void reset(int initial_rating = 0)
+	{
+		clear_impl();
+		this->Rating = initial_rating;
+	}
+
+	[[nodiscard]] int rating() const noexcept
+	{
+		return this->Rating;
+	}
+
+	[[nodiscard]] std::size_t size() const noexcept
+	{
+		return size_impl();
+	}
+
+	[[nodiscard]] bool empty() const noexcept
+	{
+		return size() == 0;
+	}
+
+	[[nodiscard]] bool is_valid() const noexcept
+	{
+		return !empty();
+	}
+
+	// Select by index with output parameter
+	bool select(std::size_t index, T* pOut) const
+	{
+		if (index < size())
 		{
 			if (pOut)
 			{
-				*pOut = this->items_[idx];
+				*pOut = get_item_impl(index);
 			}
 			return true;
 		}
-		// Sequential access (list, set)
-		else
-		{
-			auto it = this->items_.begin();
-			std::advance(it, index);
-			if (it != this->items_.end())
-			{
-				if (pOut)
-				{
-					*pOut = *it;
-				}
-				return true;
-			}
-			return false;
-		}
+		return false;
 	}
 
-	bool Select(Random2Class& random, T* pOut) const
+	// Select by index returning optional
+	[[nodiscard]] std::optional<T> select(std::size_t index) const
 	{
-		if (!this->IsValid())
+		if (index < size())
+		{
+			return get_item_impl(index);
+		}
+		return std::nullopt;
+	}
+
+	// Random selection with output parameter
+	bool select(Random2Class& random, T* pOut) const
+	{
+		if (!is_valid())
 		{
 			return false;
 		}
-		const int value = random.RandomRanged(0, this->GetCount() - 1);
-		return this->Select(value, pOut);
+
+		auto value = random.RandomRanged(0, static_cast<int>(size()) - 1);
+		return select(static_cast<std::size_t>(value), pOut);
 	}
 
-	[[nodiscard]] T Select(int index, T nDefault = T()) const
+	// Random selection returning optional
+	[[nodiscard]] std::optional<T> select(Random2Class& random) const
 	{
-		this->Select(index, &nDefault);
-		return nDefault;
-	}
-
-	[[nodiscard]] T Select(Random2Class& random, T nDefault = T()) const
-	{
-		this->Select(random, &nDefault);
-		return nDefault;
-	}
-
-	// Modern alternative: return std::optional instead of pointer out-param
-	[[nodiscard]] std::optional<T> TrySelect(int index) const
-	{
-		const int count = this->GetCount();
-		if (index < 0 || index >= count)
+		if (!is_valid())
 		{
 			return std::nullopt;
 		}
 
-		const auto idx = static_cast<size_t>(index);
-
-		if constexpr (detail::is_random_access_v<Container>)
-		{
-			return this->items_[idx];
-		}
-		else
-		{
-			auto it = this->items_.begin();
-			std::advance(it, index);
-			if (it != this->items_.end())
-			{
-				return *it;
-			}
-			return std::nullopt;
-		}
+		auto value = random.RandomRanged(0, static_cast<int>(size()) - 1);
+		return select(static_cast<std::size_t>(value));
 	}
 
-	[[nodiscard]] std::optional<T> TrySelect(Random2Class& random) const
+	// Select with default value (legacy compatibility)
+	// BUG FIX: Original code modified the default parameter!
+	[[nodiscard]] T select_or(std::size_t index, T default_value) const
 	{
-		if (!this->IsValid())
-		{
-			return std::nullopt;
-		}
-		const int value = random.RandomRanged(0, this->GetCount() - 1);
-		return this->TrySelect(value);
+		auto result = select(index);
+		return result ? std::move(*result) : std::move(default_value);
 	}
 
-	// Access to underlying container
-	[[nodiscard]] const Container& GetItems() const noexcept
+	// Random select with default value (legacy compatibility)
+	// BUG FIX: Original code modified the default parameter!
+	[[nodiscard]] T select_or(Random2Class& random, T default_value) const
 	{
-		return this->items_;
+		auto result = select(random);
+		return result ? std::move(*result) : std::move(default_value);
 	}
+
+	// Iterator support for range-based for loops
+	auto begin() const { return Items.begin(); }
+	auto end() const { return Items.end(); }
+	auto begin() { return Items.begin(); }
+	auto end() { return Items.end(); }
+
+	// Legacy interface (commented for migration reference)
+	/*
+	void Add(T value, int rating) { add(std::move(value), rating); }
+	void Clear() { clear(); }
+	int GetRating() const { return rating(); }
+	int GetCount() const { return static_cast<int>(size()); }
+	bool IsValid() const { return is_valid(); }
+	bool Select(int index, T* pOut) const { return select(static_cast<std::size_t>(index), pOut); }
+	bool Select(Randomizer& random, T* pOut) const { return select(random, pOut); }
+	T Select(int index, T default_value = T()) const { return select_or(static_cast<std::size_t>(index), std::move(default_value)); }
+	T Select(Randomizer& random, T default_value = T()) const { return select_or(random, std::move(default_value)); }
+	*/
 
 private:
-	Container items_ {};
-	int rating_ { 0 };
+	void add_item_impl(T value)
+	{
+		Items.push_back(std::move(value));
+	}
+
+	void clear_impl()
+	{
+		Items.clear();
+	}
+
+	[[nodiscard]] std::size_t size_impl() const noexcept
+	{
+		return Items.size();
+	}
+
+	[[nodiscard]] const T& get_item_impl(std::size_t index) const
+	{
+		return Items[static_cast<int>(index)];
+	}
+
+	Container Items {};
+	int Rating { 0 };
 };
 
+// Type aliases for common uses
 template<typename T>
-using DiscreteSelectionVector = DiscreteSelectionClass<T, std::vector<T>>;
+using DiscreteSelection = DiscreteSelectionClass<T, DynamicVectorClass<T>>;
 
 template<typename T>
-using DiscreteSelectionList = DiscreteSelectionClass<T, std::list<T>>;
-
-template<typename T>
-using DiscreteSelectionSet = DiscreteSelectionClass<T, std::set<T>>;
+using StdDiscreteSelection = DiscreteSelectionClass<T, std::vector<T>>;

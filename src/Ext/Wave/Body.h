@@ -29,7 +29,8 @@ public:
 		, SourceCoord()
 		, CanDoUpdate(false)
 	{
-		this->AbstractExtended::SetName("WaveClass");
+		this->Name = "WaveClass";
+		this->AbsType = WaveClass::AbsID;
 	}
 
 	WaveExtData(WaveClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }

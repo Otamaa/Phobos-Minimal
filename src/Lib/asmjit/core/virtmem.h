@@ -6,11 +6,11 @@
 #ifndef ASMJIT_CORE_VIRTMEM_H_INCLUDED
 #define ASMJIT_CORE_VIRTMEM_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_JIT
 
-#include "../core/globals.h"
-#include "../core/support.h"
+#include <asmjit/core/globals.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

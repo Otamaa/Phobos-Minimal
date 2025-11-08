@@ -67,7 +67,7 @@ public:
 	static const wchar_t* LoadStringUnlessMissingNoChecks(const char* key, const wchar_t* defaultValue);
 
 	static void AdjacentCellsInRange(std::vector<CellStruct>& nCells, short range , bool clearFirst = true);
-	static FORCEDINLINE std::vector<CellStruct> AdjacentCellsInRange(short range) {
+	static std::vector<CellStruct> AdjacentCellsInRange(short range) {
 		std::vector<CellStruct> dummyvec {};
 		AdjacentCellsInRange(dummyvec,range, true);
 		return dummyvec;

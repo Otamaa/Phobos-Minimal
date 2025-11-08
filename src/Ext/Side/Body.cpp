@@ -81,7 +81,7 @@ void SideExtData::Initialize() {
 
 const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) const
 {
-	char filename[decltype(this->ScoreMultiplayBars)::max_size()];
+	static char filename[decltype(this->ScoreMultiplayBars)::max_size()];
 
 	PhobosCRT::lowercase(filename, this->ScoreMultiplayBars.raw());
 
@@ -101,7 +101,7 @@ const char* SideExtData::GetMultiplayerScoreBarFilename(unsigned int index) cons
 bool SideExtData::isNODSidebar()
 {
 	auto const PlayerSideIndex = ScenarioClass::Instance->PlayerSideIndex;
-	if (const auto pSide = SideClass::Array->GetItemOrDefault(PlayerSideIndex)) {
+	if (const auto pSide = SideClass::Array->get_or_default(PlayerSideIndex)) {
 		return !SideExtContainer::Instance.Find(pSide)->Sidebar_GDIPositions.Get(PlayerSideIndex == 0);
 	}
 
@@ -397,7 +397,7 @@ void SideExtData::UpdateGlobalFiles()
 	SideExtData::s_DialogBackgroundConvert.Clear();
 
 	int idxSide = ScenarioClass::Instance->PlayerSideIndex;
-	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
+	auto pSide = SideClass::Array->get_or_default(idxSide);
 	if (!pSide) {
 		return;
 	}

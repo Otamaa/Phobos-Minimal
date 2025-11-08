@@ -36,9 +36,6 @@
 #include <Phobos.UI.h>
 #include <Phobos.Defines.h>
 
-
-#include <Utilities/SafeLogger.h>
-
 #include <MessageBoxLogging.h>
 
 #pragma region defines
@@ -124,7 +121,7 @@ int Phobos::Config::CampaignDefaultGameSpeed { 2 };
 bool Phobos::Config::DigitalDisplay_Enable { false };
 bool Phobos::Config::MessageDisplayInCenter { false };
 bool Phobos::Config::MessageApplyHoverState { false };
-int Phobos::Config::MessageDisplayInCenter_BoardOpacity { 30 };
+int Phobos::Config::MessageDisplayInCenter_BoardOpacity { 40 };
 int Phobos::Config::MessageDisplayInCenter_LabelsCount { 4 };
 int Phobos::Config::MessageDisplayInCenter_RecordsCount { 12 };
 bool Phobos::Config::ShowBuildingStatistics { false };
@@ -501,183 +498,79 @@ std::string PrintAssembly(const void* code, size_t codeSize, uintptr_t runtimeAd
 	return disassemblyResult;
 }
 
-#ifdef _New
-
-void ApplyasmjitPatch()
+struct FunctionTrampoline
 {
-	for (auto& [addr, data] : Hooks)
+	void* original_address;
+	void* trampoline_address;
+	std::vector<uint8_t> original_bytes;
+	size_t hook_size;
+};
+
+// Global trampoline storage (maps hook address -> trampoline)
+std::unordered_map<unsigned int, FunctionTrampoline> g_trampolines;
+
+// Setup trampoline - call this BEFORE writing hook
+bool SetupTrampoline(unsigned int target_address, size_t hook_size)
+{
+	FunctionTrampoline& trampoline = g_trampolines[target_address];
+
+	trampoline.original_address = reinterpret_cast<void*>(target_address);
+	trampoline.hook_size = hook_size;
+
+	// Read original bytes from target
+	trampoline.original_bytes.resize(hook_size);
+	memcpy(trampoline.original_bytes.data(), trampoline.original_address, hook_size);
+
+	// Allocate executable memory for trampoline
+	trampoline.trampoline_address = VirtualAlloc(
+		nullptr,
+		hook_size + 5, // original bytes + jmp instruction
+		MEM_COMMIT | MEM_RESERVE,
+		PAGE_EXECUTE_READWRITE
+	);
+
+	if (!trampoline.trampoline_address)
 	{
-		auto& [sm_vec, org_vec] = data;
-		if (sm_vec.empty())
-		{
-			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
-			continue;
-		}
-
-		CheckHookConflict(addr, sm_vec[0].size);
-
-		// Log if multiple hooks are registered at the same address
-		if (sm_vec.size() > 1)
-		{
-			Debug::LogDeferred("hook at 0x%x has %d functions registered!\n", addr, sm_vec.size());
-		}
-
-		// Calculate maximum overridden bytes needed
-		DWORD maxOverridden = 0;
-		for (const auto& hook : sm_vec)
-		{
-			maxOverridden = MaxImpl(maxOverridden, hook.size);
-		}
-		DWORD hookSize = MaxImpl(maxOverridden, 5u);
-
-		// Create trampoline code
-		asmjit::CodeHolder trampolineCode;
-		trampolineCode.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
-		trampolineCode.setErrorHandler(&gJitErrorHandler);
-		asmjit::x86::Assembler trampolineAsm(&trampolineCode);
-
-		asmjit::Label proceedLabel = trampolineAsm.newLabel();
-
-		// Generate hook chain
-		for (const auto& hook : sm_vec)
-		{
-			if (!hook.func) continue;
-
-			// Save all registers and flags
-			trampolineAsm.pushad();
-			trampolineAsm.pushfd();
-
-			// Push hook address (the original address being hooked)
-			trampolineAsm.push(asmjit::imm(addr));
-
-			// Push ESP (current stack pointer)
-			trampolineAsm.push(asmjit::x86::esp);
-
-			// Call the hook function
-			trampolineAsm.call(asmjit::imm(reinterpret_cast<uintptr_t>(hook.func)));
-
-			// Clean up stack (remove the two pushes)
-			trampolineAsm.add(asmjit::x86::esp, 8);
-
-			// Store return value in FS:[0x14] using inline bytes
-			// MOV fs:0x14, EAX -> 64 A3 14 00 00 00
-			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\xA3\x14\x00\x00\x00"), 6);
-
-			// Restore registers and flags
-			trampolineAsm.popfd();
-			trampolineAsm.popad();
-
-			// Check if hook wants to override using inline bytes
-			// CMP DWORD PTR fs:0x14, 0 -> 64 83 3D 14 00 00 00 00
-			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\x83\x3D\x14\x00\x00\x00\x00"), 8);
-			trampolineAsm.je(proceedLabel); // If 0, continue to next hook or original code
-
-			// Jump to the override address using inline bytes
-			// JMP DWORD PTR fs:0x14 -> 64 FF 25 14 00 00 00
-			trampolineAsm.embed(reinterpret_cast<const char*>("\x64\xFF\x25\x14\x00\x00\x00"), 7);
-		}
-
-		// Bind the proceed label - execute original code
-		trampolineAsm.bind(proceedLabel);
-
-		// Save original bytes
-		void* hookAddress = reinterpret_cast<void*>(addr);
-		org_vec.resize(hookSize);
-		memcpy(org_vec.data(), hookAddress, hookSize);
-
-		// Handle relative instructions in original code
-		std::vector<BYTE> fixedOriginal = org_vec;
-		bool hasRelativeInstr = false;
-
-		if (org_vec.size() >= 5 && (org_vec[0] == 0xE8 || org_vec[0] == 0xE9))
-		{ // CALL or JMP
-			DWORD originalDest = addr + 5 + *reinterpret_cast<DWORD*>(org_vec.data() + 1);
-
-			if (org_vec[0] == 0xE8)
-			{ // CALL
-				trampolineAsm.call(asmjit::imm(originalDest));
-				Debug::LogDeferred("hook at 0x%x: Fixed relative CALL to 0x%x\n", addr, originalDest);
-			}
-			else
-			{ // JMP
-				trampolineAsm.jmp(asmjit::imm(originalDest));
-				Debug::LogDeferred("hook at 0x%x: Fixed relative JMP to 0x%x\n", addr, originalDest);
-			}
-
-			// Remove the original 5-byte instruction since we've handled it
-			fixedOriginal.erase(fixedOriginal.begin(), fixedOriginal.begin() + 5);
-			hasRelativeInstr = true;
-		}
-
-		// Embed remaining original code
-		if (!fixedOriginal.empty())
-		{
-			trampolineAsm.embed(fixedOriginal.data(), fixedOriginal.size());
-		}
-
-		// Jump back to continuation point
-		trampolineAsm.jmp(asmjit::imm(addr + hookSize));
-
-		// Generate the trampoline
-		const void* trampolineFunc = nullptr;
-		auto result = gJitRuntime->add(&trampolineFunc, &trampolineCode);
-		if (result != asmjit::kErrorOk)
-		{
-			Debug::LogDeferred("Failed to generate trampoline for hook at 0x%x\n", addr);
-			continue;
-		}
-
-		// Create the hook patch (jump to trampoline)
-		asmjit::CodeHolder patchCode;
-		patchCode.init(gJitRuntime->environment(), gJitRuntime->cpuFeatures());
-		patchCode.setErrorHandler(&gJitErrorHandler);
-		asmjit::x86::Assembler patchAsm(&patchCode);
-
-		// Generate jump to trampoline
-		patchAsm.jmp(asmjit::imm(reinterpret_cast<uintptr_t>(trampolineFunc)));
-
-		// Pad with NOPs if needed
-		size_t jumpSize = 5; // JMP instruction is 5 bytes
-		for (size_t i = jumpSize; i < hookSize; ++i)
-		{
-			patchAsm.nop();
-		}
-
-		// Apply the patch
-		patchCode.flatten();
-		patchCode.resolveCrossSectionFixups();
-		patchCode.relocateToBase(addr);
-
-		DWORD oldProtect, dummy;
-		VirtualProtect(hookAddress, hookSize, PAGE_EXECUTE_READWRITE, &oldProtect);
-
-		size_t codeSize = patchCode.codeSize();
-		if (codeSize <= hookSize)
-		{
-			patchCode.copyFlattenedData(hookAddress, codeSize);
-
-			// Fill remaining bytes with NOPs if needed
-			if (codeSize < hookSize)
-			{
-				memset(static_cast<BYTE*>(hookAddress) + codeSize, 0x90, hookSize - codeSize);
-			}
-		}
-		else
-		{
-			Debug::LogDeferred("Generated patch code too large for hook at 0x%x\n", addr);
-		}
-
-		VirtualProtect(hookAddress, hookSize, oldProtect, &dummy);
-		FlushInstructionCache(GetCurrentProcess(), hookAddress, hookSize);
-
-
-		//Debug::LogDeferred("Successfully applied hook at 0x%x with %d functions\n", addr, sm_vec.size());
+		Debug::LogDeferred("Failed to allocate trampoline for hook at 0x%x\n", target_address);
+		g_trampolines.erase(target_address);
+		return false;
 	}
+
+	// Write original bytes to trampoline
+	memcpy(trampoline.trampoline_address,
+		   trampoline.original_bytes.data(),
+		   hook_size);
+
+	// Add jump back to original function (after hooked bytes)
+	uint8_t* trampoline_end = reinterpret_cast<uint8_t*>(trampoline.trampoline_address) + hook_size;
+	uintptr_t return_address = target_address + hook_size;
+	uintptr_t jump_offset = return_address - (reinterpret_cast<uintptr_t>(trampoline_end) + 5);
+
+	trampoline_end[0] = 0xE9; // JMP opcode
+	memcpy(trampoline_end + 1, &jump_offset, 4);
+
+	Debug::LogDeferred("Trampoline created for hook at 0x%x -> 0x%p\n",
+					  target_address, trampoline.trampoline_address);
+
+	return true;
 }
-#else
+
+// Cleanup function - call when shutting down
+void CleanupTrampolines()
+{
+	for (auto& pair : g_trampolines) {
+		if (pair.second.trampoline_address) {
+			VirtualFree(pair.second.trampoline_address, 0, MEM_RELEASE);
+		}
+	}
+
+	g_trampolines.clear();
+	Debug::LogDeferred("All trampolines cleaned up\n");
+}
+
+// Modified patch function with trampoline support
 void ApplyasmjitPatch()
 {
-
 	for (auto& [addr, data] : Hooks)
 	{
 		auto& [sm_vec, org_vec] = data;
@@ -696,15 +589,29 @@ void ApplyasmjitPatch()
 		}
 
 		size_t hook_size = sm_vec[0].size;
+		DWORD hookSize = MaxImpl(hook_size, 5u);
+
+#ifndef allowrecursive
+		// Setup trampoline BEFORE creating hook code
+		if (!SetupTrampoline(addr, hookSize))
+		{
+			Debug::LogDeferred("Failed to setup trampoline for hook at 0x%x, skipping!\n", addr);
+			continue;
+		}
+
+		FunctionTrampoline& trampoline = g_trampolines[addr];
+#endif
+
 		asmjit::CodeHolder code;
 		code.init(gJitRuntime->environment(), gJitRuntime->cpu_features());
 		code.set_error_handler(&gJitErrorHandler);
 		asmjit::x86::Assembler assembly(&code);
 		asmjit::Label l_origin = assembly.new_label();
-		DWORD hookSize = MaxImpl(hook_size, 5u);
 
 		if (sm_vec.size() == 1)
 		{
+#ifndef allowrecursive
+			// Original non-recursive version
 			assembly.pushad();
 			assembly.pushfd();
 			assembly.push(addr);
@@ -715,10 +622,55 @@ void ApplyasmjitPatch()
 			assembly.add(asmjit::x86::esp, 0xC);
 			assembly.mov(asmjit::x86::ptr(asmjit::x86::esp, -8), asmjit::x86::eax);
 			assembly.popfd();
+
+			// POPAD replica
 			assembly.popad();
+
 			assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
 			assembly.jz(l_origin);
 			assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
+#else
+			// Recursive-safe version with trampoline
+			assembly.pushad();
+			assembly.pushfd();
+
+			// Push hook address
+			assembly.push(asmjit::imm(static_cast<uint32_t>(addr)));
+
+			// Push stack pointer (pointer to parameters)
+			assembly.push(asmjit::x86::esp);
+
+			// Call handler function
+			assembly.call(asmjit::imm(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(sm_vec[0].func))));
+
+			// Clean up stack (2 pushes = 8 bytes)
+			assembly.add(asmjit::x86::esp, 8);
+
+			// Store return value in TLS (temporary storage through register restoration)
+			assembly.mov(asmjit::x86::Mem(asmjit::x86::fs, 0x14, 4), asmjit::x86::eax);
+
+			// Restore flags
+			assembly.popfd();
+
+			// POPAD replica
+			assembly.pop(asmjit::x86::edi);
+			assembly.pop(asmjit::x86::esi);
+			assembly.pop(asmjit::x86::ebp);
+			assembly.pop(asmjit::x86::ebx);
+			assembly.mov(asmjit::x86::eax, asmjit::x86::ptr(asmjit::x86::esp, 0x0C));
+			assembly.mov(asmjit::x86::ptr(asmjit::x86::esp, 0x0C), asmjit::x86::ebx);
+			assembly.pop(asmjit::x86::ebx);
+			assembly.pop(asmjit::x86::edx);
+			assembly.pop(asmjit::x86::ecx);
+			assembly.pop(asmjit::x86::esp);
+
+			// Check if handler returned a redirect address
+			assembly.cmp(asmjit::x86::Mem(asmjit::x86::fs, 0x14, 4), asmjit::imm(0));
+			assembly.je(l_origin);
+
+			// If non-zero, jump to returned address
+			assembly.jmp(asmjit::x86::Mem(asmjit::x86::fs, 0x14, sizeof(void*)));
+#endif
 		}
 		else
 		{
@@ -726,15 +678,22 @@ void ApplyasmjitPatch()
 		}
 
 		assembly.bind(l_origin);
-		void* hookAddress = (void*)addr;
+		void* hookAddress = reinterpret_cast<void*>(addr);
 
+#ifdef allowrecursive
+		// Original version: copy bytes from original address
 		org_vec.resize(hookSize);
 		memcpy(org_vec.data(), hookAddress, hookSize);
+#else
+		// Recursive version: use bytes from trampoline backup
+		org_vec.resize(hookSize);
+		memcpy(org_vec.data(), trampoline.original_bytes.data(), hookSize);
+#endif
 
-		// fix relative jump or call
+		// Fix relative jump or call
 		if (org_vec[0] == Assembly::CALL || org_vec[0] == Assembly::JMP)
 		{
-			DWORD dest = addr + 5 + *(DWORD*)(org_vec.data() + 1);
+			DWORD dest = addr + 5 + *reinterpret_cast<DWORD*>(org_vec.data() + 1);
 			switch (org_vec[0])
 			{
 			case Assembly::JMP: // jmp
@@ -746,12 +705,13 @@ void ApplyasmjitPatch()
 				assembly.call(dest);
 				org_vec.erase(org_vec.begin(), org_vec.begin() + 5);
 				Debug::LogDeferred("hook at 0x%x is placed at CALL fixing the relative addr !\n", addr);
-
 				break;
 			}
 		}
+
 		assembly.embed(org_vec.data(), org_vec.size());
 		assembly.jmp(addr + hookSize);
+
 		const void* fn {};
 		gJitRuntime->add(&fn, &code);
 		code.reset();
@@ -769,9 +729,10 @@ void ApplyasmjitPatch()
 		code.copy_flattened_data(hookAddress, hookSize);
 		VirtualProtect(hookAddress, hookSize, protect_flag, &protect_flagb);
 		FlushInstructionCache(Game::hInstance, hookAddress, hookSize);
+
+		Debug::LogDeferred("Hook installed at 0x%x (size: %d bytes)\n", addr, hookSize);
 	}
 }
-#endif
 
 void Initasmjit()
 {
@@ -791,6 +752,11 @@ void Initasmjit()
 	ApplyasmjitPatch();
 }
 
+void ShutdownAsmjit()
+{
+	CleanupTrampolines();
+	gJitRuntime.reset();
+}
 #ifdef EXPERIMENTAL_IMGUI
 ASMJIT_PATCH(0x5D4E66, Windows_Message_Handler_Add, 0x7)
 {
@@ -1254,6 +1220,10 @@ void Phobos::ExeTerminate()
 		//	}
 		//}
 
+		for (auto& handle : Handles::Array) {
+			handle->detachptr();
+		}
+		Handles::Array.clear();
 		Patch::ModuleDatas.clear();
 	}
 }
@@ -1637,17 +1607,11 @@ void InitializeCustomMemorySystem()
 	// 	Debug::LogDeferred("Consider using CustomMemoryManager::RegenerateSignatures() if issues occur.\n");
 	// }
 
-	Patch::Apply_CALL(0x7D13A0, &CustomMemoryManager::RecreatedCalloc);
-	Patch::Apply_LJMP(0x7C9442, &CustomMemoryManager::RecreatedNHMalloc);
-	Patch::Apply_LJMP(0x7C93E8, &CustomMemoryManager::RecreatedFree);
-	Patch::Apply_LJMP(0x7D0F45, &CustomMemoryManager::RecreatedRealloc);
-	Patch::Apply_LJMP(0x7D3374, &CustomMemoryManager::RecreatedCalloc);
-	Patch::Apply_LJMP(0x7C9430, &CustomMemoryManager::RecreatedHeapAlloc);
-	Patch::Apply_LJMP(0x7D107D, &CustomMemoryManager::RecreatedMSize);
-	Patch::Apply_LJMP(0x7D5408, &CustomMemoryManager::StrDup);
-	Patch::Apply_LJMP(0x7C9CC2, &CustomMemoryManager::StrTok);
+	/*
+		Debug::LogDeferred("Custom Memory System initialization complete!\n");
+	*/
 
-	Debug::LogDeferred("Custom Memory System initialization complete!\n");
+
 }
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -1665,6 +1629,28 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;
 			IsInitialized = true;
+
+		   ///**
+		   //*  C memory functions.
+		   //*/
+			//Patch::Apply_LJMP(0x7C93E8, &std::free);
+			//Patch::Apply_LJMP(0x7D0F45, &std::realloc);
+			//Patch::Apply_LJMP(0x7D3374, &std::calloc);
+			//Patch::Apply_LJMP(0x7C9430, &std::malloc);
+			//Patch::Apply_LJMP(0x7D107D, &_msize);
+
+			///**
+			// *  C++ new and delete.
+			// */
+			//Patch::Apply_LJMP(0x7C8E17, &std::malloc);
+			//Patch::Apply_LJMP(0x7C8B3D, &std::free);
+
+			///**
+			// *  Standard functions.
+			// */
+			//Patch::Apply_LJMP(0x7D5408, &strdup);
+			//Patch::Apply_LJMP(0x7C9CC2, &std::strtok);
+
 #if defined(NO_SYRINGE)
 			ApplyEarlyFuncs();
 			//LuaData::ApplyCoreHooks();

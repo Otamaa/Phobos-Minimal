@@ -855,7 +855,7 @@ namespace detail
 	{
 		if (IniEx.ReadString(section,key))
 		{
-			List.Reset();
+			List.reset();
 			char* context = nullptr;
 
 			if COMPILETIMEEVAL (std::is_pointer<T>())
@@ -878,9 +878,9 @@ namespace detail
 					if (buffer)
 					{
 						if COMPILETIMEEVAL (!Unique) {
-							List.AddItem(buffer);
+							List.push_back(buffer);
 						} else {
-							List.AddUnique(buffer);
+							List.insert_unique(buffer);
 						}
 					}
 					else if(!GameStrings::IsBlank(cur))
@@ -899,11 +899,11 @@ namespace detail
 					{
 						if COMPILETIMEEVAL (!Unique)
 						{
-							List.AddItem(buffer);
+							List.push_back(buffer);
 						}
 						else
 						{
-							List.AddUnique(buffer);
+							List.insert_unique(buffer);
 						}
 					}
 					else if (!GameStrings::IsBlank(cur))

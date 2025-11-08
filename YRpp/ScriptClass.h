@@ -50,9 +50,17 @@ public:
 		return buffer;
 	}
 
-	bool HasMissionsRemaining() const { JMP_THIS(0x6915D0); }
-	bool ClearMission() const { JMP_THIS(0x691590); }
-	bool SetMission(int nLine) const { JMP_THIS(0x6915A0); }
+	bool HasMissionsRemaining() const {
+		return this->CurrentMission < this->Type->ActionsCount;
+	}
+	bool ClearMission() {
+		this->CurrentMission = -1;
+		return 1;
+	}
+	bool SetMission(int nLine) {
+		this->CurrentMission = nLine;
+		return 1;
+	}
 	bool NextMission() { ++this->CurrentMission; return this->HasNextMission(); }
 	bool HasNextMission() const { return this->CurrentMission < this->Type->ActionsCount; }
 

@@ -3,11 +3,11 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
-#include "../core/assembler.h"
-#include "../core/codewriter_p.h"
-#include "../core/logger.h"
-#include "../core/support.h"
+#include <asmjit/core/api-build_p.h>
+#include <asmjit/core/assembler.h>
+#include <asmjit/core/codewriter_p.h>
+#include <asmjit/core/logger.h>
+#include <asmjit/support/support.h>
 
 #include <algorithm>
 #include <tuple>
@@ -32,7 +32,7 @@ static constexpr LabelEntry::ExtraData CodeHolder_make_shared_label_extra_data()
   return extra_data;
 }
 
-static constexpr LabelEntry::ExtraData CodeHolder_sharedLabelExtraData = CodeHolder_make_shared_label_extra_data();
+static constexpr LabelEntry::ExtraData CodeHolder_shared_label_extra_data = CodeHolder_make_shared_label_extra_data();
 
 class ResolveFixupIterator {
 public:
@@ -692,7 +692,7 @@ Error CodeHolder::new_label_id(Out<uint32_t> label_id_out) noexcept {
   }
   else {
     label_id_out = label_id;
-    _label_entries.append_unchecked(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_sharedLabelExtraData), uint64_t(0)});
+    _label_entries.append_unchecked(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_shared_label_extra_data), uint64_t(0)});
     return Error::kOk;
   }
 }
@@ -710,7 +710,7 @@ Error CodeHolder::new_named_label_id(Out<uint32_t> label_id_out, const char* nam
     }
 
     label_id_out = label_id;
-    _label_entries.append_unchecked(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_sharedLabelExtraData), uint64_t(0)});
+    _label_entries.append_unchecked(LabelEntry{const_cast<LabelEntry::ExtraData*>(&CodeHolder_shared_label_extra_data), uint64_t(0)});
     return Error::kOk;
   }
 

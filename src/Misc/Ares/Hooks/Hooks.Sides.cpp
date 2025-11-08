@@ -19,7 +19,7 @@ DWORD MixFileYuriFiles(REGISTERS* R, DWORD dwReturnAddress1, DWORD dwReturnAddre
 {
 	GET(ScenarioClass*, pScen, EAX);
 
-	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(pScen->PlayerSideIndex)) {
+	if (SideClass* pSide = SideClass::Array->get_or_default(pScen->PlayerSideIndex)) {
 		return SideExtContainer::Instance.Find(pSide)->SidebarYuriFileNames
 			? dwReturnAddress1
 			: dwReturnAddress2
@@ -44,7 +44,7 @@ ASMJIT_PATCH(0x72F440, Game_InitializeToolTipColor, 0xA)
 {
 	GET(int, idxSide, ECX);
 
-	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(idxSide)) {
+	if (SideClass* pSide = SideClass::Array->get_or_default(idxSide)) {
 		CCToolTip::ToolTipTextColor = SideExtContainer::Instance.Find(pSide)->ToolTipTextColor;
 		return 0x72F495;
 	}
@@ -55,7 +55,7 @@ ASMJIT_PATCH(0x72F440, Game_InitializeToolTipColor, 0xA)
 ASMJIT_PATCH(0x72D730, Game_LoadMultiplayerScoreAssets, 5)
 {
 	GET(const int, idxSide, ECX);
-	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
+	auto pSide = SideClass::Array->get_or_default(idxSide);
 	auto pExt = SideExtContainer::Instance.Find(pSide);
 
 	static COMPILETIMEEVAL reference<bool , 0xB0FBB8u> const MultiplayerScoreAssetsAlreadyLoaded{};
@@ -82,7 +82,7 @@ ASMJIT_PATCH(0x72D730, Game_LoadMultiplayerScoreAssets, 5)
 ASMJIT_PATCH(0x72D300, Game_LoadCampaignScoreAssets, 5)
 {
 	GET(const int, idxSide, ECX);
-	auto pSide = SideClass::Array->GetItemOrDefault(idxSide);
+	auto pSide = SideClass::Array->get_or_default(idxSide);
 	auto pExt = SideExtContainer::Instance.Find(pSide);
 
 	static COMPILETIMEEVAL reference<bool , 0xB0FBACu> const CampaignScoreAssetsAlreadyLoaded {};
@@ -118,7 +118,7 @@ ASMJIT_PATCH(0x72B690, LoadScreenPal_Load, 0xA)
 	GET(int, n, EDI);
 
 	HouseTypeExtData* pData = nullptr;
-	if (auto pThis = HouseTypeClass::Array->GetItemOrDefault(n))
+	if (auto pThis = HouseTypeClass::Array->get_or_default(n))
 	{
 		pData = HouseTypeExtContainer::Instance.Find(pThis);
 	}
@@ -272,7 +272,7 @@ ASMJIT_PATCH(0x5C9B75, Global_DrawScoreScreen_ScoreTheme, 5)
 
 	if (!HouseClass::IsCurrentPlayerObserver())
 	{
-		if(auto pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)){
+		if(auto pSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex)){
 			pTheme = HouseClass::CurrentPlayer->Defeated
 				? SideExtContainer::Instance.Find(pSide)->ScoreMultiplayThemeLose
 				: SideExtContainer::Instance.Find(pSide)->ScoreMultiplayThemeWin;
@@ -285,7 +285,7 @@ ASMJIT_PATCH(0x5C9B75, Global_DrawScoreScreen_ScoreTheme, 5)
 DWORD FORCEDINLINE LoadTextColor(REGISTERS* R, DWORD dwReturnAddress)
 {
 	// if there is a cached LoadTextColor, use that.
-	if (auto pCS = ColorScheme::Array->GetItemOrDefault(SideExtData::CurrentLoadTextColor)) {
+	if (auto pCS = ColorScheme::Array->get_or_default(SideExtData::CurrentLoadTextColor)) {
 		R->EAX(pCS);
 		return dwReturnAddress;
 	}
@@ -309,7 +309,7 @@ ASMJIT_PATCH(0x5CA110, Game_GetMultiplayerScoreScreenBar, 5)
 	GET(unsigned int, idxBar, ECX);
 
 	BSurface* ret = nullptr;
-	if (auto pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)){
+	if (auto pSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex)){
 		ret = PCX::Instance->GetSurface(SideExtContainer::Instance.Find(pSide)->GetMultiplayerScoreBarFilename(idxBar));
 	}
 
@@ -368,7 +368,7 @@ ASMJIT_PATCH(0x6C922C, ScoreDialog_Handle_ScoreThemeFirst, 5)
 	auto pScen = ScenarioClass::Instance();
 	const char* pTitle = nullptr;
 	const char* pMessage = nullptr;
-	auto pSide = SideClass::Array->GetItemOrDefault(pScen->PlayerSideIndex);
+	auto pSide = SideClass::Array->get_or_default(pScen->PlayerSideIndex);
 
 	// replicate skipped instructions, and also update the score id
 

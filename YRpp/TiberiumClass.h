@@ -165,7 +165,7 @@ public:
 
 	static TiberiumClass* Find(int idxOverlayType) {
 		int idx = FindIndex(idxOverlayType);
-		return Array->GetItemOrDefault(idx);
+		return Array->get_or_default(idx);
 	}
 
 	//Constructor

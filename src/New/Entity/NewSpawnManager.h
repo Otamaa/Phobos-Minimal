@@ -55,7 +55,7 @@ public:
 		Target(nullptr),
 		Status(SpawnManagerStatus::Idle)
 	{
-		Array.AddItem(this);
+		Array.push_back(this);
 	}
 
 	NewSpawnManagerClass(TechnoClass* owner, AircraftTypeClass* spawns, int spawn_count, int regen_rate, int reload_rate)

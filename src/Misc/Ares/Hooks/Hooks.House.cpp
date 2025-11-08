@@ -123,7 +123,7 @@ ASMJIT_PATCH(0x4E3560, Game_GetFlagSurface, 5)
 		return 0x4E3686;
 	}
 
-	if (auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+	if (auto pHouse = HouseTypeClass::Array->get_or_default(n)) {
 		if (auto pSurface = HouseTypeExtContainer::Instance.Find(pHouse)->FlagFile.GetSurface()) {
 			R->EAX(pSurface);
 			return 0x4E3686; //override result
@@ -139,7 +139,7 @@ ASMJIT_PATCH(0x4E38A0, LoadPlayerCountryString, 5)
 
 	enum { NextCompare = 0x4E38BC, Neg2Result = 0x4E38A5 , RetResult = 0x4E39F1 };
 
-	if(auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+	if(auto pHouse = HouseTypeClass::Array->get_or_default(n)) {
 		R->EAX(HouseTypeExtContainer::Instance.Find(pHouse)->StatusText->Text);
 		return RetResult; //replaced
 	}
@@ -152,7 +152,7 @@ ASMJIT_PATCH(0x553412, LoadProgressMgr_Draw_LSFile, 9)
 	GET(int, n, EBX);
 	enum { SwitchStatement = 0x553421, DefaultResult = 0x553416, RetResult = 0x55342C };
 
-	if(auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+	if(auto pHouse = HouseTypeClass::Array->get_or_default(n)) {
 		R->EDX(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenBackground.data());
 		return RetResult;//replaced
 	}
@@ -169,7 +169,7 @@ ASMJIT_PATCH(0x5536da, LoadProgressMgr_Draw_LSName, 9)
 	GET(int, n, EBX);
 	enum { SwitchStatement = 0x5536FB, DefaultResult = 0x5536DE, RetResult = 0x553820 };
 
-	if(auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)){
+	if(auto pHouse = HouseTypeClass::Array->get_or_default(n)){
 		R->EDI(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenName->Text);
 		return RetResult;//replaced
 	}
@@ -187,7 +187,7 @@ ASMJIT_PATCH(0x553a05, LoadProgressMgr_Draw_LSSpecialName, 6)
 	enum { SwitchStatement = 0x553A28, DefaultResult = 0x553A0D, RetResult = 0x553B3B };
 
 	// any valid index will be override
-	if (auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+	if (auto pHouse = HouseTypeClass::Array->get_or_default(n)) {
 		R->EAX(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenSpecialName->Text);
 		return RetResult;
 	}
@@ -205,7 +205,7 @@ ASMJIT_PATCH(0x553d06, LoadProgressMgr_Draw_LSBrief, 6)
 	enum { SwitchStatement = 0x553D2B, DefaultResult = 0x553D0E, RetResult = 0x553E54 };
 
 	// any valid index will be override
-	if (auto pHouse = HouseTypeClass::Array->GetItemOrDefault(n)) {
+	if (auto pHouse = HouseTypeClass::Array->get_or_default(n)) {
 		R->ESI(HouseTypeExtContainer::Instance.Find(pHouse)->LoadScreenBrief->Text);
 		return RetResult;
 	}
@@ -654,7 +654,7 @@ ASMJIT_PATCH(0x507BCA, HouseClass_BaseDefenses, 6) // HouseClass_PickAntiAirDefe
 	GET(HouseTypeClass*, pCountry, EAX);
 	static DynamicVectorClass<BuildingTypeClass*> dummy;
 
-	if (SideClass* pSide = SideClass::Array->GetItemOrDefault(pCountry->SideIndex))
+	if (SideClass* pSide = SideClass::Array->get_or_default(pCountry->SideIndex))
 	{
 		auto it = SideExtContainer::Instance.Find(pSide)->GetBaseDefenses();
 		dummy.Items = const_cast<BuildingTypeClass**>(it.begin());
@@ -685,7 +685,7 @@ ASMJIT_PATCH(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 
 		// only handle if occurs for the first time, otherwise we have an
 		// escalating probability of desaster.
-		auto const handled = make_iterator(BuildList.begin(), i);
+		auto const handled = make_iterator(BuildList.begin().operator->(), i);
 
 		if (!handled.contains(pItem))
 		{
@@ -706,7 +706,7 @@ ASMJIT_PATCH(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 				{
 					auto const idx = Random.RandomRanged(
 						i + 1, BuildList.Count);
-					BuildList.AddItem(pItem);
+					BuildList.push_back(pItem);
 					std::rotate(BuildList.begin() + idx, BuildList.end() - 1,
 						BuildList.end());
 				}
@@ -714,7 +714,7 @@ ASMJIT_PATCH(0x505C95, HouseClass_GenerateAIBuildList_CountExtra, 7)
 		}
 	}
 
-	if (auto const pSide = SideClass::Array->GetItemOrDefault(idxSide))
+	if (auto const pSide = SideClass::Array->get_or_default(idxSide))
 	{
 		auto const it = SideExtContainer::Instance.Find(pSide)->GetBaseDefenseCounts();
 
@@ -750,7 +750,7 @@ ASMJIT_PATCH(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5)
 	GET_STACK(DynamicVectorClass<BuildingTypeClass*> *, pBuildingsToCheck, 0x8);
 	GET_STACK(int, pListCount, 0xC);
 
-	R->EAX(Prereqs::PrerequisitesListed(pBuildingsToCheck->Items, pListCount , pItem));
+	R->EAX(Prereqs::PrerequisitesListed(*pBuildingsToCheck, pItem));
 
 	return 0x505486;
 }
@@ -1029,7 +1029,7 @@ ASMJIT_PATCH(0x505B58, HouseClass_GenerateAIBuildList_SkipManualCopy, 0x6)
 {
 	REF_STACK(DynamicVectorClass<BuildingTypeClass*>, PlannedBase1, STACK_OFFS(0xA4, 0x90));
 	REF_STACK(DynamicVectorClass<BuildingTypeClass*>, PlannedBase2, STACK_OFFS(0xA4, 0x78));
-	PlannedBase2.SetCapacity(PlannedBase1.Capacity, nullptr);
+	PlannedBase2.reserve(PlannedBase1.Capacity);
 	return 0x505C2C;
 }
 
@@ -1046,7 +1046,7 @@ ASMJIT_PATCH(0x505CF1, HouseClass_GenerateAIBuildList_PadWithN1, 0x5)
 	GET(int, DefenseCount, EAX);
 	while (PlannedBase2.Count <= 3)
 	{
-		PlannedBase2.AddItem(reinterpret_cast<BuildingTypeClass*>(-1));
+		PlannedBase2.push_back(reinterpret_cast<BuildingTypeClass*>(-1));
 		--DefenseCount;
 	}
 	R->EDI(DefenseCount);
@@ -1272,7 +1272,7 @@ ASMJIT_PATCH(0x4F8F54, HouseClass_Update_SlaveMinerCheck, 6)
 	for (auto const& ref : RulesClass::Instance->BuildRefinery) {
 		//new sane way to find a slave miner
 		if (ref && ref->SlavesNumber > 0)
-			n += pThis->ActiveBuildingTypes.GetItemCount(ref->ArrayIndex);
+			n += pThis->ActiveBuildingTypes.get_count(ref->ArrayIndex);
 	}
 
 	R->EDI(n);
@@ -1291,7 +1291,7 @@ ASMJIT_PATCH(0x4F8C97, HouseClass_Update_BuildConst, 6)
 
 	// should play low power EVA for more than three BuildConst items
 	for (auto const& pItem : RulesClass::Instance->BuildConst) {
-		if (pItem && pThis->ActiveBuildingTypes.GetItemCount(pItem->ArrayIndex) > 0) {
+		if (pItem && pThis->ActiveBuildingTypes.get_count(pItem->ArrayIndex) > 0) {
 			return NotifyLowPower;
 		}
 	}

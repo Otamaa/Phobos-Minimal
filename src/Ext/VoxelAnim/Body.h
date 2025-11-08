@@ -33,7 +33,10 @@ public:
 		, LaserTrails()
 		, Trails()
 		, TrailerSpawnDelayTimer()
-	{ }
+	{
+		this->Name = pObj->Type->ID;
+		this->AbsType = VoxelAnimClass::AbsID;
+	}
 	VoxelAnimExtData(VoxelAnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~VoxelAnimExtData() = default;

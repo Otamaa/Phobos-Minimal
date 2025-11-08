@@ -324,7 +324,7 @@ static bool NOINLINE IsVanillaDummy(const char* ID)
 	return false;
 }
 
-#include <Ext/SWType/NewSuperWeaponType/NewSWType.h>
+#include <Ext/SWType/NewSuperWeaponType/SWTypeHandler.h>
 
 std::unordered_map<VoxelStruct*, std::string > RulesExtData::Owners;
 
@@ -972,6 +972,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIGuardStationaryStray.Read(exINI, GameStrings::General, "AIGuardStationaryStray");
 	this->IgnoreCenterMinorRadarEvent.Read(exINI, GameStrings::General, "IgnoreCenterMinorRadarEvent");
 	this->WarheadAnimZAdjust.Read(exINI, GameStrings::AudioVisual, "WarheadAnimZAdjust");
+	this->IvanBombAttachToCenter.Read(exINI, GameStrings::CombatDamage, "IvanBombAttachToCenter");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -1832,6 +1833,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AIGuardStationaryStray)
 		.Process(this->IgnoreCenterMinorRadarEvent)
 		.Process(this->WarheadAnimZAdjust)
+		.Process(this->IvanBombAttachToCenter)
 		;
 }
 
@@ -1864,14 +1866,14 @@ ASMJIT_PATCH(0x675210, RulesClass_SaveLoad_Prefix, 0x5)
 
 	if (R->Origin() == 0x675210)
 	{
-		pItem->BarrelDebris.Clear();
-		pItem->DeadBodies.Clear();
-		pItem->DropPod.Clear();
-		pItem->MetallicDebris.Clear();
-		pItem->BridgeExplosions.Clear();
-		pItem->DamageFireTypes.Clear();
-		pItem->WeatherConClouds.Clear();
-		pItem->WeatherConBolts.Clear();
+		pItem->BarrelDebris.clear();
+		pItem->DeadBodies.clear();
+		pItem->DropPod.clear();
+		pItem->MetallicDebris.clear();
+		pItem->BridgeExplosions.clear();
+		pItem->DamageFireTypes.clear();
+		pItem->WeatherConClouds.clear();
+		pItem->WeatherConBolts.clear();
 	}
 
 	RulesExtData::g_pStm = pStm;
@@ -2048,7 +2050,6 @@ void RulesExtData::InitializeAfterAllRulesLoaded()
 		g_instance->ColorDatas.LaserTarget_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->LaserTargetColor);
 		g_instance->ColorDatas.Berserk_Color = GeneralUtils::GetColorFromColorAdd(RulesClass::Instance->BerserkColor);
 	}
-
 }
 
 ASMJIT_PATCH(0x668EED, RulesData_InitializeAfterAllLoaded, 0x8)
@@ -2093,7 +2094,7 @@ ASMJIT_PATCH(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 {
 	Debug::LogInfo("Scenario Map Name [{}] ", SessionClass::IsCampaign() || ScenarioExtData::Instance()->OriginalFilename->empty() ? SessionClass::Instance->ScenarioFilename : ScenarioExtData::Instance()->OriginalFilename->c_str());
 
-	if (auto pPlayerSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex)) {
+	if (auto pPlayerSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex)) {
 		if (auto pSideMouse = SideExtContainer::Instance.Find(pPlayerSide)->MouseShape) {
 			GameDelete<true, true>(std::exchange(MouseClass::ShapeData(), pSideMouse));
 		}
@@ -2101,7 +2102,7 @@ ASMJIT_PATCH(0x683E21, ScenarioClass_StartScenario_LogHouses, 0x5)
 
 	HouseClass::Array->for_each([](HouseClass* it)
  {
-	 const auto pType = HouseTypeClass::Array->GetItemOrDefault(it->Type->ArrayIndex);
+	 const auto pType = HouseTypeClass::Array->get_or_default(it->Type->ArrayIndex);
 	 Debug::LogInfo("Player Name: {} IsCurrentPlayer: {}; ColorScheme: {}({}); ID: {}; HouseType: {}; Edge: {}; StartingAllies: {}; Startspot: {},{}; Visionary: {}; MapIsClear: {}; Money: {}",
 	 it->PlainName ? it->PlainName : GameStrings::NoneStr(),
 	 it->IsHumanPlayer,

@@ -3,15 +3,15 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
+#include <asmjit/core/api-build_p.h>
 #ifndef ASMJIT_NO_BUILDER
 
-#include "../core/builder.h"
-#include "../core/emitterutils_p.h"
-#include "../core/errorhandler.h"
-#include "../core/formatter.h"
-#include "../core/logger.h"
-#include "../core/support.h"
+#include <asmjit/core/builder.h>
+#include <asmjit/core/emitterutils_p.h>
+#include <asmjit/core/errorhandler.h>
+#include <asmjit/core/formatter.h>
+#include <asmjit/core/logger.h>
+#include <asmjit/support/support.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -34,7 +34,7 @@ public:
 // BaseBuilder - Utilities
 // =======================
 
-static void BaseBuilder_deletePasses(BaseBuilder* self) noexcept {
+static void BaseBuilder_delete_passes(BaseBuilder* self) noexcept {
   for (Pass* pass : self->_passes) {
     pass->~Pass();
   }
@@ -50,7 +50,7 @@ BaseBuilder::BaseBuilder() noexcept
     _pass_arena(64u * 1024u) {}
 
 BaseBuilder::~BaseBuilder() noexcept {
-  BaseBuilder_deletePasses(this);
+  BaseBuilder_delete_passes(this);
 }
 
 // BaseBuilder - Node Management
@@ -612,7 +612,7 @@ Error BaseBuilder::_emit(InstId inst_id, const Operand_& o0, const Operand_& o1,
       return make_error(Error::kNotInitialized);
     }
 
-#ifndef ASMJIT_NO_VALIDATION
+#ifndef ASMJIT_NO_INTROSPECTION
     // Strict validation.
     if (has_diagnostic_option(DiagnosticOptions::kValidateIntermediate)) {
       Operand_ op_array[Globals::kMaxOpCount];
@@ -865,7 +865,7 @@ Error BaseBuilder::serialize_to(BaseEmitter* dst) {
 // BaseBuilder - Events
 // ====================
 
-static ASMJIT_INLINE void BaseBuilder_clearAll(BaseBuilder* self) noexcept {
+static ASMJIT_INLINE void BaseBuilder_clear_all(BaseBuilder* self) noexcept {
   self->_section_nodes.reset();
   self->_label_nodes.reset();
 
@@ -876,7 +876,7 @@ static ASMJIT_INLINE void BaseBuilder_clearAll(BaseBuilder* self) noexcept {
   self->_node_list.reset();
 }
 
-static ASMJIT_INLINE Error BaseBuilder_initSection(BaseBuilder* self) noexcept {
+static ASMJIT_INLINE Error BaseBuilder_init_section(BaseBuilder* self) noexcept {
   SectionNode* initial_section;
 
   ASMJIT_PROPAGATE(self->section_node_of(Out(initial_section), 0));
@@ -893,7 +893,7 @@ static ASMJIT_INLINE Error BaseBuilder_initSection(BaseBuilder* self) noexcept {
 Error BaseBuilder::on_attach(CodeHolder& code) noexcept {
   ASMJIT_PROPAGATE(Base::on_attach(code));
 
-  Error err = BaseBuilder_initSection(this);
+  Error err = BaseBuilder_init_section(this);
   if (ASMJIT_UNLIKELY(err != Error::kOk)) {
     on_detach(code);
   }
@@ -901,8 +901,8 @@ Error BaseBuilder::on_attach(CodeHolder& code) noexcept {
 }
 
 Error BaseBuilder::on_detach(CodeHolder& code) noexcept {
-  BaseBuilder_deletePasses(this);
-  BaseBuilder_clearAll(this);
+  BaseBuilder_delete_passes(this);
+  BaseBuilder_clear_all(this);
 
   return Base::on_detach(code);
 }
@@ -911,9 +911,9 @@ Error BaseBuilder::on_reinit(CodeHolder& code) noexcept {
   // BaseEmitter::on_reinit() never fails.
   (void)Base::on_reinit(code);
 
-  BaseBuilder_deletePasses(this);
-  BaseBuilder_clearAll(this);
-  return BaseBuilder_initSection(this);
+  BaseBuilder_delete_passes(this);
+  BaseBuilder_clear_all(this);
+  return BaseBuilder_init_section(this);
 }
 
 // Pass - Construction & Destruction

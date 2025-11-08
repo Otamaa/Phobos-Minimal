@@ -133,344 +133,6 @@ bool Process_Global_Load(PhobosStreamReader& reader)
 	return T::LoadGlobals(reader);
 }
 
-//broken , the game seems disturbed with extension below the class
-#ifdef RECORD_
-template<typename T>
-HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection, DWORD* pArrayPosition = nullptr)
-{
-	HRESULT hr;
-	std::string typeName = PhobosCRT::GetTypeIDName<T>();
-
-	// Read START marker
-	DWORD markerLength;
-	hr = stream->Read(&markerLength, sizeof(DWORD), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadObjectVector<%s>: FAILED to read start marker length! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	if (markerLength > 256) // Sanity check
-	{
-		Debug::Log("LoadObjectVector<%s>: SUSPICIOUS marker length: %d\n",
-				   typeName.c_str(), markerLength);
-		return E_FAIL;
-	}
-
-	std::vector<char> markerBuffer(markerLength + 1);
-	hr = stream->Read(markerBuffer.data(), markerLength, 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadObjectVector<%s>: FAILED to read start marker! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	markerBuffer[markerLength] = '\0';
-	std::string startMarker(markerBuffer.data());
-
-	std::string expectedStartMarker = "START_" + typeName;
-	if (startMarker != expectedStartMarker)
-	{
-		Debug::Log("LoadObjectVector<%s>: START MARKER MISMATCH! Expected: %s, Got: %s\n",
-				   typeName.c_str(), expectedStartMarker.c_str(), startMarker.c_str());
-		return E_FAIL;
-	}
-	Debug::Log("LoadObjectVector<%s>: Successfully read start marker: %s\n",
-			   typeName.c_str(), startMarker.c_str());
-
-	// Read size
-	DWORD dataSize;
-	hr = stream->Read(&dataSize, sizeof(DWORD), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadObjectVector<%s>: FAILED to read data size! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	// Read array position
-	DWORD arrayPosition;
-	hr = stream->Read(&arrayPosition, sizeof(DWORD), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadObjectVector<%s>: FAILED to read array position! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	if (pArrayPosition)
-		*pArrayPosition = arrayPosition;
-
-	Debug::Log("LoadObjectVector<%s>: Data size: %d, Array position: %d\n",
-			   typeName.c_str(), dataSize, arrayPosition);
-
-	// Mark position before reading data for size validation
-	LARGE_INTEGER zero = { 0 };
-	ULARGE_INTEGER dataStartPos = { 0 };
-	hr = stream->Seek(zero, STREAM_SEEK_CUR, &dataStartPos);
-	if (FAILED(hr)) return hr;
-
-	// Read the count
-	int count;
-	hr = stream->Read(&count, sizeof(int), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadObjectVector<%s>: FAILED to read count! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	if (count < 0 || count > 100000) // Sanity check
-	{
-		Debug::Log("LoadObjectVector<%s>: SUSPICIOUS count: %d\n",
-				   typeName.c_str(), count);
-		return E_FAIL;
-	}
-
-	Debug::Log("LoadObjectVector<%s>: Loaded Count %d\n", typeName.c_str(), count);
-
-	if (count > 0)
-	{
-		collection.Reserve(count);
-	}
-
-	// Load each object
-	for (int i = 0; i < count; ++i)
-	{
-		LPVOID objPtr = nullptr;
-		hr = OleLoadFromStream(stream, IID_IUnknown, &objPtr);
-		if (FAILED(hr))
-		{
-			Debug::Log("LoadObjectVector<%s>: OleLoadFromStream failed for object %d! HRESULT: 0x%08X\n",
-					   typeName.c_str(), i, hr);
-			return hr;
-		}
-	}
-
-	// Validate actual data size read
-	ULARGE_INTEGER dataEndPos = { 0 };
-	hr = stream->Seek(zero, STREAM_SEEK_CUR, &dataEndPos);
-	if (FAILED(hr)) return hr;
-
-	DWORD actualDataSize = (DWORD)(dataEndPos.QuadPart - dataStartPos.QuadPart);
-	if (actualDataSize != dataSize)
-	{
-		Debug::Log("LoadObjectVector<%s>: DATA SIZE MISMATCH! Expected: %d, Actual: %d\n",
-				   typeName.c_str(), dataSize, actualDataSize);
-		return E_FAIL;
-	}
-
-	// Read END marker
-	hr = stream->Read(&markerLength, sizeof(DWORD), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadObjectVector<%s>: FAILED to read end marker length! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	if (markerLength > 256) // Sanity check
-	{
-		Debug::Log("LoadObjectVector<%s>: SUSPICIOUS end marker length: %d\n",
-				   typeName.c_str(), markerLength);
-		return E_FAIL;
-	}
-
-	markerBuffer.resize(markerLength + 1);
-	hr = stream->Read(markerBuffer.data(), markerLength, 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadObjectVector<%s>: FAILED to read end marker! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	markerBuffer[markerLength] = '\0';
-	std::string endMarker(markerBuffer.data());
-
-	std::string expectedEndMarker = "END_" + typeName;
-	if (endMarker != expectedEndMarker)
-	{
-		Debug::Log("LoadObjectVector<%s>: END MARKER MISMATCH! Expected: %s, Got: %s\n",
-				   typeName.c_str(), expectedEndMarker.c_str(), endMarker.c_str());
-		return E_FAIL;
-	}
-	Debug::Log("LoadObjectVector<%s>: Successfully read end marker: %s\n",
-			   typeName.c_str(), endMarker.c_str());
-
-	Debug::Log("LoadObjectVector<%s>: Successfully loaded %d objects from position %d\n",
-			   typeName.c_str(), count, arrayPosition);
-
-	return S_OK;
-}
-
-template<typename T>
-HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection, DWORD* pArrayPosition = nullptr)
-{
-	HRESULT hr;
-	std::string typeName = PhobosCRT::GetTypeIDName<T>();
-
-	// Read START marker
-	DWORD markerLength;
-	hr = stream->Read(&markerLength, sizeof(DWORD), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadSimpleArray<%s>: FAILED to read start marker length! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	if (markerLength > 256) // Sanity check
-	{
-		Debug::Log("LoadSimpleArray<%s>: SUSPICIOUS marker length: %d\n",
-				   typeName.c_str(), markerLength);
-		return E_FAIL;
-	}
-
-	std::vector<char> markerBuffer(markerLength + 1);
-	hr = stream->Read(markerBuffer.data(), markerLength, 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadSimpleArray<%s>: FAILED to read start marker! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	markerBuffer[markerLength] = '\0';
-	std::string startMarker(markerBuffer.data());
-
-	std::string expectedStartMarker = "START_" + typeName;
-	if (startMarker != expectedStartMarker)
-	{
-		Debug::Log("LoadSimpleArray<%s>: START MARKER MISMATCH! Expected: %s, Got: %s\n",
-				   typeName.c_str(), expectedStartMarker.c_str(), startMarker.c_str());
-		return E_FAIL;
-	}
-	Debug::Log("LoadSimpleArray<%s>: Successfully read start marker: %s\n",
-			   typeName.c_str(), startMarker.c_str());
-
-	// Read size
-	DWORD expectedDataSize;
-	hr = stream->Read(&expectedDataSize, sizeof(DWORD), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadSimpleArray<%s>: FAILED to read data size! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	// Read array position
-	DWORD arrayPosition;
-	hr = stream->Read(&arrayPosition, sizeof(DWORD), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadSimpleArray<%s>: FAILED to read array position! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	if (pArrayPosition)
-		*pArrayPosition = arrayPosition;
-
-	Debug::Log("LoadSimpleArray<%s>: Expected data size: %d, Array position: %d\n",
-			   typeName.c_str(), expectedDataSize, arrayPosition);
-
-	// Read count
-	int count;
-	hr = stream->Read(&count, sizeof(int), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadSimpleArray<%s>: FAILED to read count! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	if (count < 0 || count > 100000) // Sanity check
-	{
-		Debug::Log("LoadSimpleArray<%s>: SUSPICIOUS count: %d\n",
-				   typeName.c_str(), count);
-		return E_FAIL;
-	}
-
-	// Validate expected size matches count
-	DWORD calculatedDataSize = sizeof(int) + (count * sizeof(T));
-	if (calculatedDataSize != expectedDataSize)
-	{
-		Debug::Log("LoadSimpleArray<%s>: DATA SIZE MISMATCH! Expected: %d, Calculated: %d\n",
-				   typeName.c_str(), expectedDataSize, calculatedDataSize);
-		return E_FAIL;
-	}
-
-	// Clear and prepare collection
-	collection.Clear();
-	if (count > 0)
-	{
-		collection.Reserve(count);
-		// Load array data
-		for (int i = 0; i < count; ++i)
-		{
-			T itemPtr = nullptr;
-			hr = stream->Read(&itemPtr, sizeof(T), 0);
-			if (FAILED(hr))
-			{
-				Debug::Log("LoadSimpleArray<%s>: FAILED to read item %d! HRESULT: 0x%08X\n",
-						   typeName.c_str(), i, hr);
-				return hr;
-			}
-			// Add to collection if space available
-			collection.AddItem(itemPtr);
-		}
-
-		auto what = PhobosCRT::GetTypeIDName<T>();
-		// Swizzle pointers
-		for (int i = 0; i < count; ++i)
-		{
-			PHOBOS_SWIZZLE_REQUEST_POINTER_REMAP(collection.Items[i], what.c_str());
-		}
-	}
-
-	// Read END marker
-	hr = stream->Read(&markerLength, sizeof(DWORD), 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadSimpleArray<%s>: FAILED to read end marker length! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-
-	if (markerLength > 256) // Sanity check
-	{
-		Debug::Log("LoadSimpleArray<%s>: SUSPICIOUS end marker length: %d\n",
-				   typeName.c_str(), markerLength);
-		return E_FAIL;
-	}
-
-	markerBuffer.resize(markerLength + 1);
-	hr = stream->Read(markerBuffer.data(), markerLength, 0);
-	if (FAILED(hr))
-	{
-		Debug::Log("LoadSimpleArray<%s>: FAILED to read end marker! HRESULT: 0x%08X\n",
-				   typeName.c_str(), hr);
-		return hr;
-	}
-	markerBuffer[markerLength] = '\0';
-	std::string endMarker(markerBuffer.data());
-
-	std::string expectedEndMarker = "END_" + typeName;
-	if (endMarker != expectedEndMarker)
-	{
-		Debug::Log("LoadSimpleArray<%s>: END MARKER MISMATCH! Expected: %s, Got: %s\n",
-				   typeName.c_str(), expectedEndMarker.c_str(), endMarker.c_str());
-		return E_FAIL;
-	}
-	Debug::Log("LoadSimpleArray<%s>: Successfully read end marker: %s\n",
-			   typeName.c_str(), endMarker.c_str());
-
-	Debug::Log("LoadSimpleArray<%s>: Successfully loaded %d items from position %d\n",
-			   typeName.c_str(), count, arrayPosition);
-
-	return S_OK;
-}
-#else
 template<typename T>
 HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
 {
@@ -489,7 +151,7 @@ HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
 		//do pre allocation of the vector instead of dynamicly expand
 		//this will relive memory system quite a much
 		//and also avoiding crash
-		collection.Reserve(count);
+		collection.reserve(count);
 	}
 
 	// Load each object
@@ -513,11 +175,11 @@ HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
 	if (FAILED(hr)) return hr;
 
 	// Clear and prepare collection
-	collection.Clear();
+	collection.clear();
 
 	if (count > 0)
 	{
-		collection.Reserve(count);
+		collection.reserve(count);
 
 		// Load array data
 		for (int i = 0; i < count; ++i)
@@ -527,7 +189,7 @@ HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
 			if (FAILED(hr)) return hr;
 
 			// Add to collection if space available
-			collection.AddItem(itemPtr);
+			collection.push_back(itemPtr);
 		}
 
 		auto what = PhobosCRT::GetTypeIDName<T>();
@@ -540,8 +202,6 @@ HRESULT LoadSimpleArray(LPSTREAM stream, DynamicVectorClass<T>& collection)
 
 	return S_OK;
 }
-
-#endif
 
 HRESULT PrepareDisplaySurfaces()
 {
@@ -783,7 +443,7 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 
 	MapClass::Instance->Clear_SubzoneTracking();
 
-	hr = LogicClass::Instance->Load(stream);
+	hr = MapClass::Logics->Load(stream);
 	if (!SUCCEEDED(hr)) return hr;
 
 	if (auto pInstance = TacticalClass::Instance()) {

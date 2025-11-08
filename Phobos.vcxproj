@@ -78,12 +78,16 @@
     <ClCompile Include="src\Ext\Unit\Hooks.SimpleDeployer.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.SubterraneanHarvester.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.Unload.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\arena.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\arenabitset.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\arenahash.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\arenalist.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\arenatree.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\arenavector.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arena.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenabitset.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenahash.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenalist.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenatree.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\arenavector.cpp" />
+    <ClCompile Include="src\Lib\asmjit\support\support.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\unicompiler_a64.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\unicompiler_x86.cpp" />
+    <ClCompile Include="src\Lib\asmjit\ujit\vecconsttable.cpp" />
     <ClCompile Include="src\Lib\fmt\format.cc" />
     <ClCompile Include="src\Lib\fmt\os.cc" />
     <ClCompile Include="src\Lib\Lua\lapi.c" />
@@ -124,13 +128,6 @@
     <ClCompile Include="src\Lib\minhook\hde\hde64.c" />
     <ClCompile Include="src\Lib\minhook\hook.c" />
     <ClCompile Include="src\Lib\minhook\trampoline.c" />
-    <ClCompile Include="src\Lib\spdlog\async.cpp" />
-    <ClCompile Include="src\Lib\spdlog\bundled_fmtlib_format.cpp" />
-    <ClCompile Include="src\Lib\spdlog\cfg.cpp" />
-    <ClCompile Include="src\Lib\spdlog\color_sinks.cpp" />
-    <ClCompile Include="src\Lib\spdlog\file_sinks.cpp" />
-    <ClCompile Include="src\Lib\spdlog\spdlog.cpp" />
-    <ClCompile Include="src\Lib\spdlog\stdout_sinks.cpp" />
     <ClCompile Include="src\Lib\Zycore\Allocator.c" />
     <ClCompile Include="src\Lib\Zycore\API\Memory.c" />
     <ClCompile Include="src\Lib\Zycore\API\Process.c" />
@@ -335,7 +332,7 @@
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\LaserStrike.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\LightningStorm.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\MeteorShower.cpp" />
-    <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\NewSWType.cpp" />
+    <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\SWTypeHandler.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\NuclearMissile.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\ParaDrop.cpp" />
     <ClCompile Include="src\Ext\SWType\NewSuperWeaponType\Protect.cpp" />
@@ -401,7 +398,6 @@
     <ClCompile Include="src\Lib\asmjit\core\rapass.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\rastack.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\string.cpp" />
-    <ClCompile Include="src\Lib\asmjit\core\support.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\target.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\type.cpp" />
     <ClCompile Include="src\Lib\asmjit\core\virtmem.cpp" />
@@ -415,8 +411,6 @@
     <ClCompile Include="src\Lib\asmjit\x86\x86instdb.cpp" />
     <ClCompile Include="src\Lib\asmjit\x86\x86operand.cpp" />
     <ClCompile Include="src\Lib\asmjit\x86\x86rapass.cpp" />
-    <ClCompile Include="src\Lib\lodepng\lodepng.cpp" />
-    <ClCompile Include="src\Lib\lodepng\lodepng_util.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\AresTrajectoryHelper.cpp" />
     <ClCompile Include="src\Misc\Ares\Hooks\Classes\AttachedAffects.cpp" />
     <ClCompile Include="src\New\Entity\PrismForwarding.cpp" />
@@ -498,7 +492,6 @@
     <ClCompile Include="src\Misc\Multithread.cpp" />
     <ClCompile Include="src\Misc\PhobosGlobal.cpp" />
     <ClCompile Include="src\Misc\PhobosToolTip.cpp" />
-    <ClCompile Include="src\Misc\PNGFile.cpp" />
     <ClCompile Include="src\Misc\RetryDialog.cpp" />
     <ClCompile Include="src\Misc\Selection.cpp" />
     <ClCompile Include="src\Misc\Spawner\Bugfixes.cpp" />
@@ -675,22 +668,31 @@
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-end.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit.h" />
     <ClInclude Include="src\Lib\asmjit\core.h" />
-    <ClInclude Include="src\Lib\asmjit\core\arena.h" />
-    <ClInclude Include="src\Lib\asmjit\core\arenabitset_p.h" />
-    <ClInclude Include="src\Lib\asmjit\core\arenahash.h" />
-    <ClInclude Include="src\Lib\asmjit\core\arenalist.h" />
-    <ClInclude Include="src\Lib\asmjit\core\arenapool.h" />
-    <ClInclude Include="src\Lib\asmjit\core\arenastring.h" />
-    <ClInclude Include="src\Lib\asmjit\core\arenatree.h" />
-    <ClInclude Include="src\Lib\asmjit\core\arenavector.h" />
     <ClInclude Include="src\Lib\asmjit\core\fixup.h" />
     <ClInclude Include="src\Lib\asmjit\core\racfgblock_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\racfgbuilder_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\raconstraints_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\rainst_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\rareg_p.h" />
-    <ClInclude Include="src\Lib\asmjit\core\span.h" />
     <ClInclude Include="src\Lib\asmjit\host.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arena.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenabitset_p.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenahash.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenalist.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenapool.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenastring.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenatree.h" />
+    <ClInclude Include="src\Lib\asmjit\support\arenavector.h" />
+    <ClInclude Include="src\Lib\asmjit\support\span.h" />
+    <ClInclude Include="src\Lib\asmjit\support\support.h" />
+    <ClInclude Include="src\Lib\asmjit\support\support_p.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\ujitbase.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicompiler.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicompiler_utils_p.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\unicondition.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\uniop.h" />
+    <ClInclude Include="src\Lib\asmjit\ujit\vecconsttable.h" />
     <ClInclude Include="src\Lib\base64\base64.h" />
     <ClInclude Include="src\Lib\fmt\args.h" />
     <ClInclude Include="src\Lib\fmt\base.h" />
@@ -875,8 +877,6 @@
     <ClInclude Include="src\Lib\asmjit\core\rapass_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\rastack_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\string.h" />
-    <ClInclude Include="src\Lib\asmjit\core\support.h" />
-    <ClInclude Include="src\Lib\asmjit\core\support_p.h" />
     <ClInclude Include="src\Lib\asmjit\core\target.h" />
     <ClInclude Include="src\Lib\asmjit\core\type.h" />
     <ClInclude Include="src\Lib\asmjit\core\virtmem.h" />
@@ -898,15 +898,12 @@
     <ClInclude Include="src\Lib\asmjit\x86\x86operand.h" />
     <ClInclude Include="src\Lib\asmjit\x86\x86rapass_p.h" />
     <ClInclude Include="src\Lib\fast_remove_if.h" />
-    <ClInclude Include="src\Lib\lodepng\lodepng.h" />
-    <ClInclude Include="src\Lib\lodepng\lodepng_util.h" />
     <ClInclude Include="src\Misc\Ares\Hooks\Hooks.MouseCursors.h" />
     <ClInclude Include="src\Misc\DamageArea.h" />
     <ClInclude Include="src\Misc\Defines.h" />
     <ClInclude Include="src\Misc\ImageSwapModules.h" />
     <ClInclude Include="src\Misc\Multithread.h" />
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
-    <ClInclude Include="src\Misc\PNGFile.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\Misc\Vinifera\BlowfishEngine.h" />
     <ClInclude Include="src\New\Entity\MissingCameoData.h" />
@@ -1000,7 +997,7 @@
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\LaserStrike.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\LightningStorm.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\MeteorShower.h" />
-    <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\NewSWType.h" />
+    <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\SWTypeHandler.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\NuclearMissile.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\ParaDrop.h" />
     <ClInclude Include="src\Ext\SWType\NewSuperWeaponType\Protect.h" />
@@ -1162,7 +1159,6 @@
     <ClInclude Include="src\Utilities\PhobosMap.h" />
     <ClInclude Include="src\Utilities\PhobosPCXFile.h" />
     <ClInclude Include="src\Utilities\PooledContainer.h" />
-    <ClInclude Include="src\Utilities\SafeLogger.h" />
     <ClInclude Include="src\Utilities\Savegame.h" />
     <ClInclude Include="src\Utilities\SavegameDef.h" />
     <ClInclude Include="src\Utilities\ShapeTextPrinter.h" />
@@ -1212,21 +1208,22 @@
   <ItemGroup>
     <None Include="cpp.hint" />
     <None Include="Debug DPFeatures\phobos.dll" />
-    <None Include="src\Lib\Zydis\Generated\AccessedFlags.inc" />
-    <None Include="src\Lib\Zydis\Generated\DecoderTables.inc" />
-    <None Include="src\Lib\Zydis\Generated\EncoderTables.inc" />
-    <None Include="src\Lib\Zydis\Generated\EnumInstructionCategory.inc" />
-    <None Include="src\Lib\Zydis\Generated\EnumISAExt.inc" />
-    <None Include="src\Lib\Zydis\Generated\EnumISASet.inc" />
-    <None Include="src\Lib\Zydis\Generated\EnumMnemonic.inc" />
-    <None Include="src\Lib\Zydis\Generated\EnumRegister.inc" />
-    <None Include="src\Lib\Zydis\Generated\FormatterStrings.inc" />
-    <None Include="src\Lib\Zydis\Generated\GetRelInfo.inc" />
-    <None Include="src\Lib\Zydis\Generated\InstructionDefinitions.inc" />
-    <None Include="src\Lib\Zydis\Generated\InstructionEncodings.inc" />
-    <None Include="src\Lib\Zydis\Generated\OperandDefinitions.inc" />
-    <None Include="src\Lib\Zydis\Generated\RegisterClassLookup.inc" />
-    <None Include="src\Lib\Zydis\Generated\RegisterLookup.inc" />
+    <None Include="src\Lib\Generated\AccessedFlags.inc" />
+    <None Include="src\Lib\Generated\DecoderTables.inc" />
+    <None Include="src\Lib\Generated\EncoderTables.inc" />
+    <None Include="src\Lib\Generated\EnumInstructionCategory.inc" />
+    <None Include="src\Lib\Generated\EnumISAExt.inc" />
+    <None Include="src\Lib\Generated\EnumISASet.inc" />
+    <None Include="src\Lib\Generated\EnumMnemonic.inc" />
+    <None Include="src\Lib\Generated\EnumRegister.inc" />
+    <None Include="src\Lib\Generated\FormatterStrings.inc" />
+    <None Include="src\Lib\Generated\GetCcInfo.inc" />
+    <None Include="src\Lib\Generated\GetRelInfo.inc" />
+    <None Include="src\Lib\Generated\InstructionDefinitions.inc" />
+    <None Include="src\Lib\Generated\InstructionEncodings.inc" />
+    <None Include="src\Lib\Generated\OperandDefinitions.inc" />
+    <None Include="src\Lib\Generated\RegisterClassLookup.inc" />
+    <None Include="src\Lib\Generated\RegisterLookup.inc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="sampleconfig\README_WHERETOPUTLUA.txt" />
@@ -1317,7 +1314,7 @@
       <ConformanceMode>true</ConformanceMode>
       <DiagnosticsFormat>Column</DiagnosticsFormat>
       <OmitFramePointers>false</OmitFramePointers>
-      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SYR_VER=2;HAS_EXCEPTIONS=0;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_WINDLL;_WIN32_WINNT=0x0601;NTDDI_VERSION=0x06010000;ASMJIT_NO_AARCH64;ASMJIT_STATIC;ASMJIT_BUILD_RELEASE;ASMJIT_NO_FOREIGN;ASMJIT_NO_LOGGING;ASMJIT_NO_TEXT;FMT_HEADER_ONLY;FMT_USE_EXCEPTIONS=0;ZYCORE_STATIC_BUILD;ZYDIS_STATIC_BUILD;MAKE_LIB;SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;_ATL_NO_SECURITY;_ATL_NO_AUTOMATIC_NAMESPACE;_ATL_NO_MODULE;_ATL_NO_COM_MODULE;_ATL_NO_WIN_SUPPORT;%(PreprocessorDefinitions);%(AdditionalDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling>SyncCThrow</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

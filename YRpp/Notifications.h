@@ -24,11 +24,11 @@ public:
 
 	OPTIONALINLINE bool Add(AbstractClass* object) {
 		// add only if doesn't exist
-		return this->Array.AddUnique(object);
+		return this->Array.insert_unique(object);
 	}
 
 	OPTIONALINLINE bool Remove(AbstractClass* object) {
-		return this->Array.Remove(object);
+		return this->Array.erase(object);
 	}
 
 	DynamicVectorClass<AbstractClass*> Array;

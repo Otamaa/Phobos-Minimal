@@ -3,21 +3,21 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
+#include <asmjit/core/api-build_p.h>
 #ifndef ASMJIT_NO_JIT
 
-#include "../core/archtraits.h"
-#include "../core/arena.h"
-#include "../core/arenalist.h"
-#include "../core/arenapool.h"
-#include "../core/arenatree.h"
-#include "../core/jitallocator.h"
-#include "../core/osutils_p.h"
-#include "../core/support.h"
-#include "../core/virtmem.h"
+#include <asmjit/core/archtraits.h>
+#include <asmjit/core/jitallocator.h>
+#include <asmjit/core/osutils_p.h>
+#include <asmjit/core/virtmem.h>
+#include <asmjit/support/arena.h>
+#include <asmjit/support/arenalist.h>
+#include <asmjit/support/arenapool.h>
+#include <asmjit/support/arenatree.h>
+#include <asmjit/support/support.h>
 
 //#if defined(ASMJIT_TEST)
-//#include "../../../testing/commons/random.h"
+//#include <asmjit-testing/commons/random.h>
 //#endif // ASMJIT_TEST
 
 ASMJIT_BEGIN_NAMESPACE

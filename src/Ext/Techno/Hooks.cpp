@@ -1313,7 +1313,7 @@ ASMJIT_PATCH(0x736F61, UnitClass_UpdateFiring_FireUp, 0x6)
 
 				// Other than initial delay, treat 0 frame delays as 1 frame delay due to per-frame processing.
 				if (i != 0)
-					delay = std::max(delay, 1);
+					delay = MaxImpl(delay, 1);
 
 				cumulativeDelay += delay;
 

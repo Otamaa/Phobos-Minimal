@@ -59,7 +59,10 @@ public:
 		, DelayedFireRemoveOnNoDelay { false }
 		, DamagingState { }
 		, AEDrawOffset {}
-	{ }
+	{
+		this->Name = pObj->Type->ID;
+		this->AbsType = AnimClass::AbsID;
+	}
 
 	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

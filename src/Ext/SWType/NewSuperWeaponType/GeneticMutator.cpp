@@ -4,11 +4,6 @@
 
 #include <Misc/DamageArea.h>
 
-bool SW_GeneticMutator::HandleThisType(SuperWeaponType type) const
-{
-	return (type == SuperWeaponType::GeneticMutator);
-}
-
 bool SW_GeneticMutator::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	if (pThis->IsCharged)
@@ -123,14 +118,14 @@ void GeneticMutatorStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		auto pNewType = NewSWType::GetNewSWType(pData);
+		auto pNewType = pData->GetNewSWType();
 		auto range = pNewType->GetRange(pData);
 		ApplyGeneticMutator(this->Firer, this->Super, pData, pNewType, this->CoordsWithBridge, this->Coords,
 			pNewType->GetWarhead(pData), range, pNewType->GetDamage(pData));
 	}
 }
 
-void GeneticMutatorStateMachine::ApplyGeneticMutator(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, CoordStruct& coord, const CellStruct& loc, WarheadTypeClass* pWarhead, SWRange& range, int damage)
+void GeneticMutatorStateMachine::ApplyGeneticMutator(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, CoordStruct& coord, const CellStruct& loc, WarheadTypeClass* pWarhead, SWRange& range, int damage)
 {
 	if (pData->Mutate_Explosion.Get(RulesClass::Instance->MutateExplosion))
 	{

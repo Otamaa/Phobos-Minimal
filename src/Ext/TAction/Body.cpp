@@ -54,6 +54,39 @@ TActionExtData::ExtContainer TActionExtData::ExtMap;
 */
 
 //==============================
+bool TActionExtData::AdjustHouseModifier(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const int amount = pThis->Param3;
+
+	switch (pThis->Value)
+	{
+	case 0:
+		pHouse->FirepowerMultiplier += (double)amount / 100.0;
+		break;
+	case 1:
+		pHouse->ArmorMultiplier += (double)amount / 100.0;
+		break;
+	case 2:
+		pHouse->GroundspeedMultiplier += (double)amount / 100.0;
+		break;
+	case 3:
+		pHouse->AirspeedMultiplier += (double)amount / 100.0;
+		break;
+	case 4:
+		pHouse->ROFMultiplier += (double)amount / 100.0;
+		break;
+	case 5:
+		pHouse->CostMultiplier += (double)amount / 100.0;
+		break;
+	case 6:
+		pHouse->BuildTimeMultiplier += (double)amount / 100.0;
+		break;
+	}
+
+
+	return true;
+}
+
 bool TActionExtData::AllChangeHouse(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
 	bool changed = false;
@@ -784,15 +817,15 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 	case PhobosTriggerAction::LightningStormStrikeAtObject:
 		ret = LightningStormStrikeAtObject(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
-		//case PhobosTriggerAction::RandomTriggerPut:
-		//	ret = TActionExtData::RandomTriggerPut(pThis, pHouse, pObject, pTrigger, args.plocation);
-		//	break;
-		//case PhobosTriggerAction::RandomTriggerEnable:
-		//	ret = TActionExtData::RandomTriggerEnable(pThis, pHouse, pObject, pTrigger, args.plocation);
-		//	break;
-		//case PhobosTriggerAction::RandomTriggerRemove:
-		//	ret = TActionExtData::RandomTriggerRemove(pThis, pHouse, pObject, pTrigger, args.plocation);
-		//	break;
+	case PhobosTriggerAction::RandomTriggerPut:
+		ret = TActionExtData::RandomTriggerPut(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RandomTriggerEnable:
+		ret = TActionExtData::RandomTriggerEnable(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::RandomTriggerRemove:
+		ret = TActionExtData::RandomTriggerRemove(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::ScoreCampaignText:
 		ret = TActionExtData::ScoreCampaignText(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -838,7 +871,9 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 	case PhobosTriggerAction::DeleteBanner:
 		ret = TActionExtData::DeleteBanner(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
-
+	case PhobosTriggerAction::AdjustHouseModifier:
+		ret = TActionExtData::AdjustHouseModifier(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	default:
 	{
 		return false;
@@ -1342,7 +1377,7 @@ bool TActionExtData::RunSuperWeaponAt(TActionClass* pThis, int X, int Y)
 		}
 		while (!MapClass::Instance->IsWithinUsableArea(targetLocation, false));
 
-		if (SuperClass* pSuper = House->Supers.GetItemOrDefault(swIdx))
+		if (SuperClass* pSuper = House->Supers.get_or_default(swIdx))
 		{
 			if (auto const pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type))
 			{
@@ -1720,7 +1755,7 @@ bool TActionExtData::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClas
 
 	if (param3 >= 0)
 	{
-		pHousesList->push_back(HouseClass::Array->GetItem(param3));
+		pHousesList->push_back(HouseClass::Array->get_or_default(param3));
 	}
 	else
 	{
@@ -2107,7 +2142,7 @@ static NOINLINE bool _OverrideOriginalActions(TActionClass* pThis, HouseClass* p
 		if (!text.empty())
 		{
 			int idx = ScenarioClass::Instance->PlayerSideIndex ? (ScenarioClass::Instance->PlayerSideIndex != 1 ? 5 : 1) : 2;
-			if (SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex))
+			if (SideClass* pSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex))
 			{
 				if (SideExtData* pExt = SideExtContainer::Instance.Find(pSide))
 				{

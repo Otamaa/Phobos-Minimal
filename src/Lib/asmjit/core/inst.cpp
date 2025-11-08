@@ -3,16 +3,16 @@
 // See <asmjit/core.h> or LICENSE.md for license and copyright information
 // SPDX-License-Identifier: Zlib
 
-#include "../core/api-build_p.h"
-#include "../core/archtraits.h"
-#include "../core/inst.h"
+#include <asmjit/core/api-build_p.h>
+#include <asmjit/core/archtraits.h>
+#include <asmjit/core/inst.h>
 
 #if !defined(ASMJIT_NO_X86)
-  #include "../x86/x86instapi_p.h"
+  #include <asmjit/x86/x86instapi_p.h>
 #endif
 
 #if !defined(ASMJIT_NO_AARCH64)
-  #include "../arm/a64instapi_p.h"
+  #include <asmjit/arm/a64instapi_p.h>
 #endif
 
 ASMJIT_BEGIN_NAMESPACE
@@ -57,7 +57,7 @@ InstId InstAPI::string_to_inst_id(Arch arch, const char* s, size_t len) noexcept
 // InstAPI - Validate
 // ==================
 
-#ifndef ASMJIT_NO_VALIDATION
+#ifndef ASMJIT_NO_INTROSPECTION
 Error InstAPI::validate(Arch arch, const BaseInst& inst, const Operand_* operands, size_t op_count, ValidationFlags validation_flags) noexcept {
 #if !defined(ASMJIT_NO_X86)
   if (Environment::is_family_x86(arch)) {
@@ -78,7 +78,7 @@ Error InstAPI::validate(Arch arch, const BaseInst& inst, const Operand_* operand
 
   return make_error(Error::kInvalidArch);
 }
-#endif // !ASMJIT_NO_VALIDATION
+#endif // !ASMJIT_NO_INTROSPECTION
 
 // InstAPI - QueryRWInfo
 // =====================

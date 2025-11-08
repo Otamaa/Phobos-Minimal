@@ -6,13 +6,13 @@
 #ifndef ASMJIT_X86_X86EMITHELPER_P_H_INCLUDED
 #define ASMJIT_X86_X86EMITHELPER_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 
-#include "../core/emithelper_p.h"
-#include "../core/func.h"
-#include "../x86/x86emitter.h"
-#include "../x86/x86instapi_p.h"
-#include "../x86/x86operand.h"
+#include <asmjit/core/emithelper_p.h>
+#include <asmjit/core/func.h>
+#include <asmjit/x86/x86emitter.h>
+#include <asmjit/x86/x86instapi_p.h>
+#include <asmjit/x86/x86operand.h>
 
 ASMJIT_BEGIN_SUB_NAMESPACE(x86)
 
@@ -106,7 +106,7 @@ public:
 void init_emitter_funcs(BaseEmitter* emitter) noexcept;
 
 static ASMJIT_INLINE void update_emitter_funcs(BaseEmitter* emitter) noexcept {
-#ifndef ASMJIT_NO_VALIDATION
+#ifndef ASMJIT_NO_INTROSPECTION
   emitter->_funcs.validate = emitter->is_32bit() ? InstInternal::validate_x86 : InstInternal::validate_x64;
 #else
   Support::maybe_unused(emitter);

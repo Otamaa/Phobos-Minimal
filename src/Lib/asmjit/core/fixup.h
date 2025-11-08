@@ -6,7 +6,7 @@
 #ifndef ASMJIT_CORE_FIXUP_H_INCLUDED
 #define ASMJIT_CORE_FIXUP_H_INCLUDED
 
-#include "../core/globals.h"
+#include <asmjit/core/globals.h>
 
 ASMJIT_BEGIN_NAMESPACE
 

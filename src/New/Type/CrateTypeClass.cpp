@@ -13,7 +13,7 @@ void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 				pAlloc->Weight = Powerups::Weights[i];
 				pAlloc->Argument = Powerups::Arguments[i];
 				pAlloc->Naval = Powerups::Naval[i];
-				pAlloc->Anim = AnimTypeClass::Array->GetItemOrDefault(Powerups::Anims[i]);
+				pAlloc->Anim = AnimTypeClass::Array->get_or_default(Powerups::Anims[i]);
 
 				switch (Powerup(i))
 				{

@@ -6,14 +6,14 @@
 #ifndef ASMJIT_CORE_RAINST_P_H_INCLUDED
 #define ASMJIT_CORE_RAINST_P_H_INCLUDED
 
-#include "../core/api-config.h"
+#include <asmjit/core/api-config.h>
 #ifndef ASMJIT_NO_COMPILER
 
-#include "../core/arena.h"
-#include "../core/compilerdefs.h"
-#include "../core/radefs_p.h"
-#include "../core/rareg_p.h"
-#include "../core/support_p.h"
+#include <asmjit/core/compilerdefs.h>
+#include <asmjit/core/radefs_p.h>
+#include <asmjit/core/rareg_p.h>
+#include <asmjit/support/arena.h>
+#include <asmjit/support/support_p.h>
 
 ASMJIT_BEGIN_NAMESPACE
 
@@ -123,7 +123,7 @@ public:
 
   //! Returns count of tied registers of a given `group`.
   [[nodiscard]]
-  ASMJIT_INLINE_NODEBUG uint32_t tied_count(RegGroup group) const noexcept { return _tied_count[group]; }
+  ASMJIT_INLINE_NODEBUG uint32_t tied_count(RegGroup group) const noexcept { return _tied_count.get(group); }
 
   //! Returns `RATiedReg` at the given `index`.
   [[nodiscard]]

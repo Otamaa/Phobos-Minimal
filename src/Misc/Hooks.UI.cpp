@@ -76,7 +76,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 	if (HouseExtData::IsObserverPlayer(pPlayer) || pPlayer->Defeated)
 		return 0x0;
 
-	const auto pSide = SideClass::Array->GetItemOrDefault(pPlayer->SideIndex);
+	const auto pSide = SideClass::Array->get_or_default(pPlayer->SideIndex);
 
 	if (!pSide)
 		return 0x0;
@@ -240,9 +240,9 @@ ASMJIT_PATCH(0x6A8463, StripClass_OperatorLessThan_CameoPriority, 5)
 	const auto pRightTechnoExt = TechnoTypeExtContainer::Instance.TryFind(pRight);
 
 	const auto pLeftSWExt = (rttiLeft == AbstractType::Special || rttiLeft == AbstractType::Super || rttiLeft == AbstractType::SuperWeaponType)
-		? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(idxLeft)) : nullptr;
+		? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(idxLeft)) : nullptr;
 	const auto pRightSWExt = (rttiRight == AbstractType::Special || rttiRight == AbstractType::Super || rttiRight == AbstractType::SuperWeaponType)
-		? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->GetItemOrDefault(idxRight)) : nullptr;
+		? SWTypeExtContainer::Instance.TryFind(SuperWeaponTypeClass::Array->get_or_default(idxRight)) : nullptr;
 
 	if ((pLeftTechnoExt || pLeftSWExt) && (pRightTechnoExt || pRightSWExt))
 	{
@@ -298,7 +298,7 @@ ASMJIT_PATCH(0x683E41, ScenarioClass_Start_ShowBriefing, 0x6)
 
 	if (theme == -1)
 	{
-		SideClass* pSide = SideClass::Array->GetItemOrDefault(ScenarioClass::Instance->PlayerSideIndex);
+		SideClass* pSide = SideClass::Array->get_or_default(ScenarioClass::Instance->PlayerSideIndex);
 
 		if (const auto pSideExt = SideExtContainer::Instance.Find(pSide))
 			theme = pSideExt->BriefingTheme;

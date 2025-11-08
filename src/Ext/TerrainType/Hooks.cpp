@@ -68,7 +68,7 @@ ASMJIT_PATCH(0x71C812, TerrainClass_AI_Crumbling, 0x6)
 	if (pTypeExt->HasDamagedFrames && pThis->Health > 0)
 	{
 		if (!pThis->Type->IsAnimated && !pThis->Type->IsFlammable)
-			MapClass::Instance->Logics->Remove(pThis);
+			MapClass::Logics->erase(pThis);
 
 		pThis->TimeToDie = false;
 

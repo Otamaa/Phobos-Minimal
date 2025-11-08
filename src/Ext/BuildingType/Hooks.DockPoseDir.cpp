@@ -134,7 +134,7 @@ ASMJIT_PATCH(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 		if (pThis && pThis->Type->AirportBound) {
 			if (auto pCell = pThis->GetCell()) {
 				if (auto pBuilding = pCell->GetBuilding()) {
-					if (pBuilding->Type->Helipad && pThis->Type->Dock.Contains(pBuilding->Type)) {
+					if (pBuilding->Type->Helipad && pThis->Type->Dock.contains(pBuilding->Type)) {
 						pBuilding->SendCommand(RadioCommand::RequestLink, pThis);
 						pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
 						pThis->SetLocation(pBuilding->GetDockCoords(pThis));

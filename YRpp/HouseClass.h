@@ -553,7 +553,7 @@ public:
 
 	COMPILETIMEEVAL int GetSpawnPosition() const {
 		for (int i = 0; i < HouseClass::MaxPlayers; i++) {
-			if (HouseClass::Array->GetItemOrDefault(ScenarioClass::Instance->HouseIndices[i], nullptr) == this)
+			if (HouseClass::Array->get_or_default(ScenarioClass::Instance->HouseIndices[i], nullptr) == this)
 				return i;
 		}
 
@@ -709,19 +709,19 @@ public:
 	}
 
 	int CountOwnedNow(BuildingTypeClass const* const pItem) const {
-		return this->OwnedBuildingTypes.GetItemCount(pItem->ArrayIndex);
+		return this->OwnedBuildingTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedNow(AircraftTypeClass const* const pItem) const {
-		return this->OwnedAircraftTypes.GetItemCount(pItem->ArrayIndex);
+		return this->OwnedAircraftTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedNow(InfantryTypeClass const* const pItem) const {
-		return this->OwnedInfantryTypes.GetItemCount(pItem->ArrayIndex);
+		return this->OwnedInfantryTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedNow(UnitTypeClass const* const pItem) const {
-		return this->OwnedUnitTypes.GetItemCount(pItem->ArrayIndex);
+		return this->OwnedUnitTypes.get_count(pItem->ArrayIndex);
 	}
 
 	// RegisterGain
@@ -751,19 +751,19 @@ public:
 	}
 
 	int CountOwnedAndPresent(BuildingTypeClass* pItem) const {
-		return this->ActiveBuildingTypes.GetItemCount(pItem->ArrayIndex);
+		return this->ActiveBuildingTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedAndPresent(AircraftTypeClass* pItem) const {
-		return this->ActiveAircraftTypes.GetItemCount(pItem->ArrayIndex);
+		return this->ActiveAircraftTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedAndPresent(InfantryTypeClass* pItem) const {
-		return this->ActiveInfantryTypes.GetItemCount(pItem->ArrayIndex);
+		return this->ActiveInfantryTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedAndPresent(UnitTypeClass* pItem) const {
-		return this->ActiveUnitTypes.GetItemCount(pItem->ArrayIndex);
+		return this->ActiveUnitTypes.get_count(pItem->ArrayIndex);
 	}
 
 	void AddCounters_OwnedEver(TechnoClass const* const pItem)
@@ -788,19 +788,19 @@ public:
 	}
 
 	int CountOwnedEver(BuildingTypeClass* pItem) const {
-		return this->FactoryProducedBuildingTypes.GetItemCount(pItem->ArrayIndex);
+		return this->FactoryProducedBuildingTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedEver(AircraftTypeClass* pItem) const {
-		return this->FactoryProducedAircraftTypes.GetItemCount(pItem->ArrayIndex);
+		return this->FactoryProducedAircraftTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedEver(InfantryTypeClass* pItem) const {
-		return this->FactoryProducedInfantryTypes.GetItemCount(pItem->ArrayIndex);
+		return this->FactoryProducedInfantryTypes.get_count(pItem->ArrayIndex);
 	}
 
 	int CountOwnedEver(UnitTypeClass* pItem) const {
-		return this->FactoryProducedUnitTypes.GetItemCount(pItem->ArrayIndex);
+		return this->FactoryProducedUnitTypes.get_count(pItem->ArrayIndex);
 	}
 
 	bool HasFromSecretLab(TechnoTypeClass* pItem) const {
@@ -1182,7 +1182,7 @@ public:
 	int					  TournamentTeamID;
 	bool				  LostConnection;
 	int                   SelectedPathIndex;
-	WaypointPathClass*    PlanningPaths [12];    // 12 paths for "planning mode"
+	std::array<WaypointPathClass*, 12>    PlanningPaths;    // 12 paths for "planning mode"
 	char                  Visionary;             //??? exe says so
 	bool                  MapIsClear;
 	bool                  IsTiberiumShort;
@@ -1292,9 +1292,9 @@ public:
 	UnitClass*			  OurFlagCarrier;
 	CellStruct			  OurFlagCoords;
 	//for endgame score screen
-	int                   KilledUnitsOfHouses [20];     // 20 Houses only!
+	std::array<int, 20>   KilledUnitsOfHouses;     // 20 Houses only!
 	int                   TotalKilledUnits;
-	int                   KilledBuildingsOfHouses [20]; // 20 Houses only!
+	std::array<int, 20>   KilledBuildingsOfHouses; // 20 Houses only!
 	int                   TotalKilledBuildings;
 	int                   WhoLastHurtMe;
 	CellStruct            BaseSpawnCell;

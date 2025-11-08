@@ -5,11 +5,6 @@
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/SWType/Body.h>
 
-std::vector<const char*> SW_MeteorShower::GetTypeString() const
-{
-	return { "MeteorShower" };
-}
-
 bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer)
 {
 	if (pThis->IsCharged)
@@ -30,7 +25,7 @@ bool SW_MeteorShower::Activate(SuperClass* pThis, const CellStruct& Coords, bool
 
 void SW_MeteorShower::Initialize(SWTypeExtData* pData)
 {
-	pData->This()->Action = Action(AresNewActionType::SuperWeaponAllowed);
+	pData->This()->Action = Action(PhobosNewActionType::SuperWeaponAllowed);
 	pData->SW_AITargetingMode = SuperWeaponAITargetingMode::LightningStorm;
 	pData->SW_RadarEvent = false;
 	pData->MeteorSmall = AnimTypeClass::Find(GameStrings::METSMALL);
@@ -83,11 +78,11 @@ void MeteorShowerStateMachine::Update()
 			VocClass::PlayGlobal(sound, Panning::Center, 1.0);
 		}
 
-		SentMeteorShower(this->Firer, this->Super, pData, NewSWType::GetNewSWType(pData), this->Coords);
+		SentMeteorShower(this->Firer, this->Super, pData, pData->GetNewSWType(), this->Coords);
 	}
 }
 
-void MeteorShowerStateMachine::SentMeteorShower(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, NewSWType* pNewType, const CellStruct& loc)
+void MeteorShowerStateMachine::SentMeteorShower(TechnoClass* pFirer, SuperClass* pSuper, SWTypeExtData* pData, SWTypeHandler* pNewType, const CellStruct& loc)
 {
 	if (const auto pCell = MapClass::Instance->TryGetCellAt(loc))
 	{

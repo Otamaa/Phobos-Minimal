@@ -298,6 +298,6 @@ DEFINE_JUMP(LJMP, 0x760286, 0x7602D3);
 ASMJIT_PATCH(0x76110B, WaveClass_RecalculateAffectedCells_Clear, 0x5)
 {
 	GET(DynamicVectorClass<CellClass*>*, pVec, EBP);
-	pVec->Reset();
+	pVec->reset();
 	return 0x761110;
 }

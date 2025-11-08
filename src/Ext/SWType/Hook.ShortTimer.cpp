@@ -6,7 +6,7 @@ ASMJIT_PATCH(0x6CB5EB, SuperClass_Grant_ShowTimer, 0x5)
 {
 	GET(SuperClass*, pThis, ESI);
 
-	if (SuperClass::ShowTimers->AddItem(pThis)) {
+	if (SuperClass::ShowTimers->push_back(pThis)) {
 		std::ranges::sort(*SuperClass::ShowTimers,
 			[](SuperClass* a, SuperClass* b) {
 			const auto aExt = SWTypeExtContainer::Instance.Find(a->Type);
