@@ -738,12 +738,12 @@ ASMJIT_PATCH(0x6F09C0, TeamTypeClass_CreateOneOf_Handled, 0x9)
 
 DEFINE_JUMP(LJMP, 0x44DE2F, 0x44DE3C);
 
-ASMJIT_PATCH(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
-{
-	GET(FootClass* const, pThis, EDI);
-	Debug::LogInfo("[{}][{}] Transport just recieved orders to go home after unloading ", (void*)pThis, pThis->get_ID());
-	return 0x6E93D6;
-}
+// ASMJIT_PATCH(0x6E93BE, TeamClass_AI_TransportTargetLog, 0x5)
+// {
+// 	GET(FootClass* const, pThis, EDI);
+// 	Debug::LogInfo("[{}][{}] Transport just recieved orders to go home after unloading ", (void*)pThis, pThis->get_ID());
+// 	return 0x6E93D6;
+// }
 
 // ASMJIT_PATCH(0x6EF9B0, TeamMissionClass_GatherAtEnemyCell_Log, 0x5)
 // {
@@ -1827,7 +1827,7 @@ ASMJIT_PATCH(0x6E08DE, TActionClass_SellBack_LimboDelivered, 0x6)
 // 	return 0x6E96A8;
 // }
 
-ASMJIT_PATCH(0x65DD4E, TeamClass_CreateGroub_MissingOwner, 0x7)
+ASMJIT_PATCH(0x65DD4E, TeamTypeClass_CreateGroub_MissingOwner, 0x7)
 {
 	//GET(TeamClass*, pCreated, ESI);
 	GET(TeamTypeClass*, pType, EBX);

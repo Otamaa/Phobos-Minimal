@@ -996,12 +996,109 @@ void FakeTeamClass::_Took_Damage(FootClass* attacker, DamageState result, Object
 	}
 
 	// Consider changing target to the attacker
-	if (ShouldRetaliateAgainstAttacker(this, attacker))
+	//if (ShouldRetaliateAgainstAttacker(this, attacker))
+	//{
+	//	// Potentially change target (implementation seems incomplete in original)
+	//	//attacker->a.vftable->t.r.m.o.a.Kind_Of(&attacker->a);
+	//	Debug::FatalError("TamClass::Took_Damage function is seems incomplete calling this may result in wasted calculation !");
+	//}
+
+	if (RulesExtData::Instance()->TeamRetaliate)
 	{
-		// Potentially change target (implementation seems incomplete in original)
-		//attacker->a.vftable->t.r.m.o.a.Kind_Of(&attacker->a);
-		Debug::FatalError("TamClass::Took_Damage function is seems incomplete calling this may result in wasted calculation !");
+		auto pFocus = flag_cast_to<TechnoClass*>(this->ArchiveTarget);
+		auto SpawnCell = this->Zone;
+
+		if (!pFocus
+		  || !pFocus->IsArmed()
+		  || !SpawnCell
+		  || pFocus->IsCloseEnoughToAttackCoords(SpawnCell->GetCoords()))
+		{
+			if (attacker->WhatAmI() != AircraftClass::AbsID)
+			{
+				auto pAttackerTechno = flag_cast_to<TechnoClass*, false>(attacker);
+
+				auto Owner = this->OwnerHouse;
+				if (pAttackerTechno && Owner->IsAlliedWith(pAttackerTechno->GetOwningHouse()))
+				{
+					return;
+				}
+
+				if (auto pAttackerFoot = flag_cast_to<FootClass*, false>(attacker))
+				{
+					if (pAttackerFoot->InLimbo
+					|| pAttackerFoot->GetTechnoType()->ConsideredAircraft)
+					{
+						return;
+					}
+				}
+
+				this->ArchiveTarget = attacker;
+			}
+		}
 	}
+
+#ifdef CUSTOM
+	// get ot if global option is off
+	if (!RulesExtData::Instance()->TeamRetaliate)
+	{
+		return 0x6EB47A;
+	}
+
+	auto pFocus = abstract_cast<TechnoClass*>(pThis->ArchiveTarget);
+	auto pSpawn = pThis->SpawnCell;
+
+	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords()))
+	{
+		// disallow aircraft, or units considered as aircraft, or stuff not on map like parasites
+		if (pAttacker->WhatAmI() != AircraftClass::AbsID)
+		{
+			if (pFocus)
+			{
+				if (auto pFocusOwner = pFocus->GetOwningHouse())
+				{
+					if (pFocusOwner->IsAlliedWith(pAttacker))
+						return 0x6EB47A;
+				}
+			}
+
+			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker))
+			{
+				auto IsInTransporter = pAttackerFoot->Transporter && pAttackerFoot->Transporter->GetTechnoType()->OpenTopped;
+
+				if (pAttackerFoot->InLimbo && !IsInTransporter)
+				{
+					return 0x6EB47A;
+				}
+
+				if (IsInTransporter)
+					pAttacker = pAttackerFoot->Transporter;
+
+				if (((TechnoClass*)pAttacker)->GetTechnoType()->ConsideredAircraft || pAttacker->WhatAmI() == AircraftClass::AbsID)
+					return 0x6EB47A;
+
+				auto first = pThis->FirstUnit;
+				if (first)
+				{
+					auto next = first->NextTeamMember;
+					while (!first->IsAlive
+						|| !first->Health
+						|| !first->IsArmed()
+						|| !first->IsTeamLeader && first->WhatAmI() != AircraftClass::AbsID
+					)
+					{
+						first = next;
+						if (!next)
+							return 0x6EB47A;
+
+						next = next->NextTeamMember;
+					}
+
+					pThis->AssignMissionTarget(pAttacker);
+				}
+			}
+		}
+	}
+#endif
 }
 
 // If target is a cell and leader is not aircraft, find an object in the cell
@@ -1602,7 +1699,7 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 			FootClass* cargo = recruitedUnit->Passengers.GetFirstPassenger();
 			while (cargo)
 			{
-				this->_Add2(recruitedUnit, false);
+				this->_Add2(cargo, false);
 
 				// Check if next cargo item is still attached (bit 2 of TargetBitfield)
 				if ((cargo->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
@@ -2841,11 +2938,9 @@ void FakeTeamClass::_AI()
 
 		for (FootClass* j = this->FirstUnit; j; j = j->NextTeamMember)
 		{
-			if (this->Type->TransportsReturnOnUnload && j->GetTechnoType()->Passengers > 0)
-			{
-				if (j->ArchiveTarget)
-				{
-					Debug::Log("A Transport just received orders to go home after unloading\n");
+			if (this->Type->TransportsReturnOnUnload && j->GetTechnoType()->Passengers > 0) {
+				if (j->ArchiveTarget) {
+					Debug::LogInfo("[{}][{}] Transport just recieved orders to go home after unloading ", (void*)this, this->get_ID());
 				}
 			}
 			else
@@ -3037,7 +3132,7 @@ void FakeTeamClass::_AI()
 		bool hasAircraftTransport = false;
 		TaskForceClass* taskForce = this->Type->TaskForce;
 
-		for (int i = 0; i < taskForce->TypeCount; i++)
+		for (int i = 0; i < taskForce->CountEntries; i++)
 		{
 			TechnoTypeClass* technoType = taskForce->Entries[i].Type;
 
@@ -3213,6 +3308,7 @@ void FakeTeamClass::_AI()
 						if (member->GetCurrentMission() != Mission::Unload)
 						{
 							// Check if placement is legal
+							member->Mark(MarkType::Up);
 							CellStruct unitCell = member->GetMapCoords();
 
 							if (!unit->Type->DeploysInto->CanCreateHere(unitCell , member->Owner))
@@ -3220,9 +3316,15 @@ void FakeTeamClass::_AI()
 								// Not legal placement, try to flush area
 								CellStruct currentCell = member->GetMapCoords();
 								unit->Type->DeploysInto->FlushPlacement(&currentCell, member->Owner);
+								member->Mark(MarkType::Down);
+								// Handle searching for free space in Hunt mission handler
+								member->ForceMission(Mission::Hunt);
+								member->MissionStatus = 2; // Tells UnitClass::Mission_Hunt to omit certain checks.
+
 							}
 							else
 							{
+								member->Mark(MarkType::Down);
 								// Legal placement, start deployment
 								member->SetDestination(nullptr, 1);
 								member->SetTarget(nullptr);

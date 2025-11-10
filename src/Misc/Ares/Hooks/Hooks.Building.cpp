@@ -555,7 +555,7 @@ ASMJIT_PATCH(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 	return 0x0;
 }
 
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4290, FakeBuildingClass::_SetOwningHouse);
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4290, FakeBuildingClass::_SetOwningHouse);
 
 ASMJIT_PATCH(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 {

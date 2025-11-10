@@ -378,31 +378,6 @@ ASMJIT_PATCH(0x6EEEF2, FindOwnBuilding_LimboDelivered, 0xA)
 
 #endif
 
-ASMJIT_PATCH(0x6EA184, TeamClass_Regroup_LimboDelivered, 0x6)
-{
-	enum { advance = 0x6EA38C, ret = 0x6EA192 };
-	GET(BuildingClass*, pBuilding, ESI);
-
-	if(!pBuilding->IsAlive || pBuilding->InLimbo)
-		return advance;
-
-	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ?
-		advance : ret;
-}
-
-
-ASMJIT_PATCH(0x6EE8D9, TeamClass_Scout_LimboDelivered, 0x9)
-{
-	enum { advance = 0x6EE928, ret = 0x0 };
-	GET(BuildingClass**, pBuilding, ESI);
-
-	if ((*pBuilding)->InLimbo || !(*pBuilding)->IsAlive)
-		return advance;
-
-	return BuildingExtContainer::Instance.Find(*pBuilding)->LimboID != -1 ?
-		advance : ret;
-}
-
 //ASMJIT_PATCH(0x6F7D90, TechnoClass_EvalueateObject_Forbidden, 0x6)
 //{
 //	GET(ObjectClass*, pTarget, ESI);

@@ -182,99 +182,99 @@ ASMJIT_PATCH(0x6EFB69, TeamClass_TMission_GatherAtFriendlyBase_Distance, 0x6)
 
 // #895225: make the AI smarter. this code was missing from YR.
 // it clears the targets and assigns the attacker the team's current focus.
-ASMJIT_PATCH(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
-{
-	GET(TeamClass*, pThis, ESI);
-	GET(AbstractClass*, pAttacker, EBP);
+// ASMJIT_PATCH(0x6EB432, TeamClass_AttackedBy_Retaliate, 9)
+// {
+// 	GET(TeamClass*, pThis, ESI);
+// 	GET(AbstractClass*, pAttacker, EBP);
 
-	if (RulesExtData::Instance()->TeamRetaliate)
-	{
-		auto pFocus = flag_cast_to<TechnoClass*>(pThis->ArchiveTarget);
-		auto SpawnCell = pThis->Zone;
+// 	if (RulesExtData::Instance()->TeamRetaliate)
+// 	{
+// 		auto pFocus = flag_cast_to<TechnoClass*>(pThis->ArchiveTarget);
+// 		auto SpawnCell = pThis->Zone;
 
-		if (!pFocus
-		  || !pFocus->IsArmed()
-		  || !SpawnCell
-		  || pFocus->IsCloseEnoughToAttackCoords(SpawnCell->GetCoords()))
-		{
-			if (pAttacker->WhatAmI() != AircraftClass::AbsID)
-			{
-				auto pAttackerTechno = flag_cast_to<TechnoClass*, false>(pAttacker);
+// 		if (!pFocus
+// 		  || !pFocus->IsArmed()
+// 		  || !SpawnCell
+// 		  || pFocus->IsCloseEnoughToAttackCoords(SpawnCell->GetCoords()))
+// 		{
+// 			if (pAttacker->WhatAmI() != AircraftClass::AbsID)
+// 			{
+// 				auto pAttackerTechno = flag_cast_to<TechnoClass*, false>(pAttacker);
 
-				auto Owner = pThis->OwnerHouse;
-				if (pAttackerTechno && Owner->IsAlliedWith(pAttackerTechno->GetOwningHouse())) {
-					return 0x6EB47A;
-				}
+// 				auto Owner = pThis->OwnerHouse;
+// 				if (pAttackerTechno && Owner->IsAlliedWith(pAttackerTechno->GetOwningHouse())) {
+// 					return 0x6EB47A;
+// 				}
 
-				if (auto pAttackerFoot = flag_cast_to<FootClass*, false>(pAttacker)) {
-					if(pAttackerFoot->InLimbo
-					|| pAttackerFoot->GetTechnoType()->ConsideredAircraft) {
-						return 0x6EB47A;
-					}
-				}
+// 				if (auto pAttackerFoot = flag_cast_to<FootClass*, false>(pAttacker)) {
+// 					if(pAttackerFoot->InLimbo
+// 					|| pAttackerFoot->GetTechnoType()->ConsideredAircraft) {
+// 						return 0x6EB47A;
+// 					}
+// 				}
 
-				pThis->ArchiveTarget = pAttacker;
-			}
-		}
-	}
+// 				pThis->ArchiveTarget = pAttacker;
+// 			}
+// 		}
+// 	}
 
-#ifdef CUSTOM
-	// get ot if global option is off
-	if (!RulesExtData::Instance()->TeamRetaliate)
-	{
-		return 0x6EB47A;
-	}
+// #ifdef CUSTOM
+// 	// get ot if global option is off
+// 	if (!RulesExtData::Instance()->TeamRetaliate)
+// 	{
+// 		return 0x6EB47A;
+// 	}
 
-	auto pFocus = abstract_cast<TechnoClass*>(pThis->ArchiveTarget);
-	auto pSpawn = pThis->SpawnCell;
+// 	auto pFocus = abstract_cast<TechnoClass*>(pThis->ArchiveTarget);
+// 	auto pSpawn = pThis->SpawnCell;
 
-	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords())) {
-		// disallow aircraft, or units considered as aircraft, or stuff not on map like parasites
-		if (pAttacker->WhatAmI() != AircraftClass::AbsID) {
-			if (pFocus) {
-				if (auto pFocusOwner = pFocus->GetOwningHouse()) {
-					if (pFocusOwner->IsAlliedWith(pAttacker))
-						return 0x6EB47A;
-				}
-			}
+// 	if (!pFocus || !pFocus->IsArmed() || !pSpawn || pFocus->IsCloseEnoughToAttackCoords(pSpawn->GetCoords())) {
+// 		// disallow aircraft, or units considered as aircraft, or stuff not on map like parasites
+// 		if (pAttacker->WhatAmI() != AircraftClass::AbsID) {
+// 			if (pFocus) {
+// 				if (auto pFocusOwner = pFocus->GetOwningHouse()) {
+// 					if (pFocusOwner->IsAlliedWith(pAttacker))
+// 						return 0x6EB47A;
+// 				}
+// 			}
 
-			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker)) {
-				auto IsInTransporter = pAttackerFoot->Transporter && pAttackerFoot->Transporter->GetTechnoType()->OpenTopped;
+// 			if (auto pAttackerFoot = abstract_cast<FootClass*>(pAttacker)) {
+// 				auto IsInTransporter = pAttackerFoot->Transporter && pAttackerFoot->Transporter->GetTechnoType()->OpenTopped;
 
-				if (pAttackerFoot->InLimbo && !IsInTransporter) {
-					return 0x6EB47A;
-				}
+// 				if (pAttackerFoot->InLimbo && !IsInTransporter) {
+// 					return 0x6EB47A;
+// 				}
 
-                if(IsInTransporter)
-				   pAttacker = pAttackerFoot->Transporter;
+//                 if(IsInTransporter)
+// 				   pAttacker = pAttackerFoot->Transporter;
 
-				if (((TechnoClass*)pAttacker)->GetTechnoType()->ConsideredAircraft || pAttacker->WhatAmI() == AircraftClass::AbsID)
-					return 0x6EB47A;
+// 				if (((TechnoClass*)pAttacker)->GetTechnoType()->ConsideredAircraft || pAttacker->WhatAmI() == AircraftClass::AbsID)
+// 					return 0x6EB47A;
 
-				auto first = pThis->FirstUnit;
-				if (first) {
-					auto next = first->NextTeamMember;
-					while (!first->IsAlive
-						|| !first->Health
-						|| !first->IsArmed()
-						|| !first->IsTeamLeader && first->WhatAmI() != AircraftClass::AbsID
-					) {
-						first = next;
-						if (!next)
-							return 0x6EB47A;
+// 				auto first = pThis->FirstUnit;
+// 				if (first) {
+// 					auto next = first->NextTeamMember;
+// 					while (!first->IsAlive
+// 						|| !first->Health
+// 						|| !first->IsArmed()
+// 						|| !first->IsTeamLeader && first->WhatAmI() != AircraftClass::AbsID
+// 					) {
+// 						first = next;
+// 						if (!next)
+// 							return 0x6EB47A;
 
-						next = next->NextTeamMember;
-					}
+// 						next = next->NextTeamMember;
+// 					}
 
-					pThis->AssignMissionTarget(pAttacker);
-				}
-			}
-		}
-	}
-#endif
+// 					pThis->AssignMissionTarget(pAttacker);
+// 				}
+// 			}
+// 		}
+// 	}
+// #endif
 
-	return 0x6EB47A;
-}
+// 	return 0x6EB47A;
+// }
 
 // #1260: reinforcements via actions 7 and 80, and chrono reinforcements
 // via action 107 cause crash if house doesn't exist
