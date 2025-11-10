@@ -2725,9 +2725,12 @@ void CheckSuperweaponReady(TeamClass* team, SuperClass* super)
 	}
 }
 
+#include <Ext/SWType/Body.h>
+
 void FakeTeamClass::_AI()
 {
 	//HouseExtContainer::HousesTeams[this->OwnerHouse].emplace(this);
+#pragma region UpdateFuncs
 
 	if (this->IsSuspended) {
 		const int suspend_timeleft = this->SuspendTimer.GetTimeLeft();
@@ -2929,6 +2932,7 @@ void FakeTeamClass::_AI()
 		this->StepCompleted = true;
 		return;
 	}
+#pragma endregion
 
 	ScriptActionNode node = this->CurrentScript->GetCurrentAction();
 
@@ -3581,6 +3585,10 @@ void FakeTeamClass::_AI()
 		{
 			SuperClass* super = house->Supers.Items[i];
 			int type = super->Type->ArrayIndex;
+			SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
+
+			if (!pExt->IsAvailable(house))
+				continue;
 
 			if (type == 3) // Chronosphere
 				chronosphere = super;
@@ -3703,63 +3711,65 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Iron_curtain_me:
 	{
-		FootClass* leader = this->_Fetch_A_Leader();
+		const auto pLeader = this->_Fetch_A_Leader();
 
-		if (!leader)
+		if (!pLeader)
+		{
+			this->StepCompleted = true;
+			return;
+		}
+		const auto pOwner = this->OwnerHouse;
+
+		if (pOwner->Supers.Count <= 0)
 		{
 			this->StepCompleted = true;
 			return;
 		}
 
-		// Find Iron Curtain superweapon
-		HouseClass* house = leader->Owner;
-		SuperClass* ironCurtain = nullptr;
+		const bool havePower = pOwner->HasFullPower();
+		SuperClass* obtain = nullptr;
+		bool found = false;
 
-		for (int i = 0; i < house->Supers.Count; i++)
+		for (const auto& pSuper : pOwner->Supers)
 		{
-			SuperClass* super = house->Supers.Items[i];
-			if (super->Type->Type == SuperWeaponType::IronCurtain) // Iron Curtain type
+			const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+
+			if (!found && pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == node.Argument)
 			{
-				ironCurtain = super;
-				break;
-			}
-		}
+				if (!pExt->IsAvailable(pOwner))
+					continue;
 
-		if (!ironCurtain)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		// Check if ready to use
-		if (ironCurtain->IsCharged && house->GetPowerPercentage() >= 1.0)
-		{
-			// Fire Iron Curtain at team's zone
-			CoordStruct zoneCoord = this->Zone->GetCoords();
-			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-			house->Fire_SW(ironCurtain->Type->ArrayIndex, zoneCell);
-			this->StepCompleted = true;
-		}
-		else
-		{
-			// Check if close to ready
-			int timeLeft = ironCurtain->RechargeTimer.GetTimeLeft();
-			int rechargeTime = ironCurtain->GetRechargeTime();
-
-			if (ironCurtain->Granted)
-			{
-				double percentReady = 1.0 - ((double)timeLeft / (double)rechargeTime);
-				if (percentReady >= (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent))
+				// found SW that already charged , just use it and return
+				if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
 				{
-					// Close enough, complete mission
-					this->StepCompleted = true;
+					obtain = pSuper;
+					found = true;
+
+					continue;
+				}
+
+				if (!obtain && pSuper->Granted)
+				{
+					double rechargeTime = (double)pSuper->GetRechargeTime();
+					double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
+
+					if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
+					{
+						obtain = pSuper;
+						found = false;
+						continue;
+					}
 				}
 			}
-			else
-			{
-				this->StepCompleted = true;
-			}
 		}
+
+		if (found)
+		{
+			auto nCoord = this->Zone->GetCoords();
+			pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
+		}
+
+		this->StepCompleted = true;
 		return;
 	}
 	case TeamMissionType::Chrono_prep_for_aq:
@@ -3781,6 +3791,10 @@ void FakeTeamClass::_AI()
 		{
 			SuperClass* super = (SuperClass*)house->Supers.Items[i];
 			int type = super->Type->ArrayIndex;
+			SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
+
+			if (!pExt->IsAvailable(house))
+				continue;
 
 			if (type == 3) chronosphere = super;
 			if (type == 4) chronoshift = super;
@@ -4478,7 +4492,7 @@ void FakeTeamClass::_AI()
 		break;
 	}
 
-	this->ExecuteTMission(node.Action, &node, arg4);
+	//this->ExecuteTMission(node.Action, &node, arg4);
 }
 
 bool FakeTeamClass::_CoordinateRegroup()

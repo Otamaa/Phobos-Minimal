@@ -466,28 +466,6 @@ ASMJIT_PATCH(0x41F0F1, AITriggerClass_IC_Ready, 0xA)
 		? breakloop : advance;
 }
 
-// these thing picking first SW type with Chronosphere breaking the AI , bruh
-// should check if the SW itself avaible before deciding it!
-ASMJIT_PATCH(0x6EFF05, TeamClass_ChronosphereTeam_PickSuper_IsAvail_A, 0x9)
-{
-	GET(FakeSuperClass*, pSuper, EAX);
-	GET(HouseClass*, pOwner, EBP);
-
-	return pSuper->_GetTypeExtData()->IsAvailable(pOwner) ?
-		0x0//allow
-		: 0x6EFF1C;//advance
-}
-
-ASMJIT_PATCH(0x6F01BA, TeamClass_ChronosphereTeam_PickSuper_IsAvail_B, 0x9)
-{
-	GET(FakeSuperClass*, pSuper, EAX);
-	GET(HouseClass*, pOwner, EDI);
-
-	return pSuper->_GetTypeExtData()->IsAvailable(pOwner) ?
-		0x0//allow
-		: 0x6F01D3;//advance
-}
-
 ASMJIT_PATCH(0x41F180, AITriggerTypeClass_Chrono, 0x5)
 {
 	//GET(AITriggerTypeClass*, pThis, ECX);
@@ -534,78 +512,6 @@ ASMJIT_PATCH(0x41F180, AITriggerTypeClass_Chrono, 0x5)
 }
 
 #include <Ext/Team/Body.h>
-
-ASMJIT_PATCH(0x6EFC70, TeamClass_IronCurtain, 5)
-{
-	GET(TeamClass*, pThis, ECX);
-	GET_STACK(ScriptActionNode*, pTeamMission, 0x4);
-	//GET_STACK(bool, barg3, 0x8);
-
-	//auto pTeamExt = TeamExtContainer::Instance.Find(pThis);
-	const auto pLeader = pThis->FetchLeader();
-
-	if (!pLeader)
-	{
-		pThis->StepCompleted = true;
-		return 0x6EFE4F;
-	}
-	const auto pOwner = pThis->OwnerHouse;
-
-	if (pOwner->Supers.Count <= 0)
-	{
-		pThis->StepCompleted = true;
-		return 0x6EFE4F;
-	}
-
-	const bool havePower = pOwner->HasFullPower();
-	SuperClass* obtain = nullptr;
-	bool found = false;
-
-	for (const auto& pSuper : pOwner->Supers)
-	{
-		const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-
-		if (!found && pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == pTeamMission->Argument)
-		{
-			if (!pExt->IsAvailable(pOwner))
-				continue;
-
-			// found SW that already charged , just use it and return
-			if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
-			{
-				obtain = pSuper;
-				found = true;
-
-				continue;
-			}
-
-			if(!obtain && pSuper->Granted)
-			{
-				double rechargeTime = (double)pSuper->GetRechargeTime();
-				double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
-
-				if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
-				{
-					obtain = pSuper;
-					found = false;
-					continue;
-				}
-			}
-		}
-	}
-
-	if (found) {
-		auto nCoord = pThis->Zone->GetCoords();
-		pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
-		pThis->StepCompleted = true;
-		return 0x6EFE4F;
-	}
-
-	if(!found) {
-		pThis->StepCompleted = true;
-	}
-	return 0x6EFE4F;
-}
 
 ASMJIT_PATCH(0x6CEF84, SuperWeaponTypeClass_GetAction, 7)
 {
