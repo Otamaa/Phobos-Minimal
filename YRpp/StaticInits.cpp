@@ -1297,6 +1297,28 @@ void Game::Unselect_All_Except(ObjectClass* object)
 		{0x486900},
 	}};
 
+	void CellClass::ReduceTiberiumWithinCircularArea(int radius, int reduceAmount)
+	{
+		// Iterate through a square area from -radius to +radius in both directions
+		for (short offsetY = -radius; offsetY <= radius; offsetY++) {
+			for (short offsetX = -radius; offsetX <= radius; offsetX++) {
+				// Calculate distance from center using Pythagorean theorem
+				// Only process cells within circular radius
+				if ((int)Math::sqrt((double)(offsetX * offsetX) + (double)(offsetY * offsetY)) <= radius) {
+					// Calculate target cell position
+					const CellStruct targetCell {
+						this->MapCoords.X + offsetX , this->MapCoords.Y + offsetY
+					};
+
+					// Get the cell at this position
+					if (CellClass* cell = MapClass::Instance->GetCellAt(targetCell)) {
+						cell->ReduceTiberium(reduceAmount);
+					}
+				}
+			}
+		}
+	}
+
 	std::array<TActionClass::ActionFuncEntry, (size_t)TriggerAction::count> TActionClass::ActionFuncTable =
 	{ {
 		{ "Win", 0x6E0440 },

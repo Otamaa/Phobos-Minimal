@@ -536,7 +536,7 @@ ASMJIT_PATCH(0x71F58B, TEventClass_ReadINI_MaskedTEvents, 0x7)
 		pThis->EventKind = TriggerEvent::LowPower;
 		break;
 	case PhobosTriggerEvent::BuildingExistsByID:
-		pThis->Value = HouseTypeClass::FindIndexByIdAndName(pThis->String);
+		pThis->Value = BuildingTypeClass::FindIndexById(pThis->String);
 		pThis->EventKind = TriggerEvent::BuildingExists;
 		break;
 	case PhobosTriggerEvent::AttackedByHouseByID:

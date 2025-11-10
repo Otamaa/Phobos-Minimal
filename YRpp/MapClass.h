@@ -541,7 +541,7 @@ public:
 	bool CoordinatesLegal(CellStruct* pCell) const
 	{ JMP_THIS(0x568300); }
 
-	CellClass* MapClass_findnearbyshroud_580BC0(int arg0) const
+	CellClass* MapClass_findnearbyshroud_580BC0(AbstractClass* arg0) const
 	{ JMP_THIS(0x580BC0); }
 
 	// Called on wall state updates etc. when the wall hasn't been removed.

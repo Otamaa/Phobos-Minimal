@@ -157,7 +157,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	// Find the Leader
 	if (!ScriptExtData::IsUnitAvailable(pTeamData->TeamLeader, true))
 	{
-		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
+		pTeamData->TeamLeader = pTeam->FetchLeader();
 
 		if(pTeamData->TeamLeader)
 			pTeamData->TeamLeader->IsTeamLeader = true;

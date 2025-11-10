@@ -1057,7 +1057,7 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 
 	auto const pExt = TeamExtContainer::Instance.Find(pTeam);
 
-	FootClass* pLeaderUnit = FindTheTeamLeader(pTeam);
+	FootClass* pLeaderUnit = pTeam->FetchLeader();
 	pLeaderUnit->IsTeamLeader = 1;
 	pExt->TeamLeader = pLeaderUnit;
 
@@ -1163,7 +1163,7 @@ void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown
 			if(pLeaderUnit)
 				pLeaderUnit->IsTeamLeader = false;
 
-			pLeaderUnit = ScriptExtData::FindTheTeamLeader(pTeam);
+			pLeaderUnit = pTeam->FetchLeader();
 			pLeaderUnit->IsTeamLeader= true;
 			pExt->TeamLeader = pLeaderUnit;
 		}
@@ -1825,33 +1825,6 @@ void ScriptExtData::VariableBinaryOperationHandler(TeamClass* pTeam, int nVariab
 	pTeam->StepCompleted = true;
 }
 
-FootClass* ScriptExtData::FindTheTeamLeader(TeamClass* pTeam)
-{
-	FootClass* pLeaderUnit = nullptr;
-	int bestUnitLeadershipValue = -1;
-
-	if (!pTeam)
-		return pLeaderUnit;
-
-	// Find the Leader or promote a new one
-	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
-	{
-		if (!IsUnitAvailable(pUnit, true) || !(pUnit->IsTeamLeader || pUnit->WhatAmI() == AbstractType::Aircraft))
-			continue;
-
-		// The team Leader will be used for selecting targets, if there are living Team Members then always exists 1 Leader.
-		int unitLeadershipRating = pUnit->GetTechnoType()->LeadershipRating;
-
-		if (unitLeadershipRating > bestUnitLeadershipValue)
-		{
-			pLeaderUnit = pUnit;
-			bestUnitLeadershipValue = unitLeadershipRating;
-		}
-	}
-
-	return pLeaderUnit;
-}
-
 bool ScriptExtData::IsExtVariableAction(int action)
 {
 	auto eAction = static_cast<PhobosScripts>(action);
@@ -1919,7 +1892,7 @@ void ScriptExtData::Stop_ForceJump_Countdown(TeamClass* pTeam)
 void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 {
 	//auto pScript = pTeam->CurrentScript;
-	auto const pLeader = ScriptExtData::FindTheTeamLeader(pTeam);
+	auto const pLeader = pTeam->FetchLeader();
 	//const auto& [curAct, curArgs] = pTeam->CurrentScript->GetCurrentAction();
 	//const auto& [nextAct, nextArgs] = pTeam->CurrentScript->GetNextAction();
 	pLeader->IsTeamLeader = true;

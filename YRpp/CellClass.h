@@ -453,6 +453,8 @@ public:
 	void RadLevel_Decrease(double amount) const
 		{ JMP_THIS(0x487D00); }
 
+	void ReduceTiberiumWithinCircularArea(int radius = 5, int reduceAmount = 1);
+
 	// helper
 	COMPILETIMEEVAL FORCEDINLINE bool ContainsBridge() const
 		{ return (this->Flags & CellFlags::Bridge) != CellFlags::Empty; }

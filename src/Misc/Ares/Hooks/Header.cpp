@@ -6081,18 +6081,18 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 		return true;
 	}
 
-	case TeamMissionType::Move_to_own_building:
-	case TeamMissionType::Attack_enemy_building:
-	case TeamMissionType::Chrono_prep_for_abwp:
-	{
-		const uint16 lo = pTeamMission->Argument & 0xFFFF;
+	//case TeamMissionType::Move_to_own_building:
+	//case TeamMissionType::Attack_enemy_building:
+	//case TeamMissionType::Chrono_prep_for_abwp:
+	//{
+	//	const uint16 lo = pTeamMission->Argument & 0xFFFF;
 
-		if (lo >= BuildingTypeClass::Array->Count)
-		{
-			Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
-				pTeam, pTeam->get_ID(), pTeamMission->Action, lo, BuildingTypeClass::Array->Count);
-		}
-	}break;
+	//	if (lo >= BuildingTypeClass::Array->Count)
+	//	{
+	//		Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
+	//			pTeam, pTeam->get_ID(), pTeamMission->Action, lo, BuildingTypeClass::Array->Count);
+	//	}
+	//}break;
 	default:
 		break;
 	}

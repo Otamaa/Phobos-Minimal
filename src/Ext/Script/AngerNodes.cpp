@@ -276,7 +276,7 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 
 	if (!pLeaderUnit)
 	{
-		pTeamData->TeamLeader = ScriptExtData::FindTheTeamLeader(pTeam);
+		pTeamData->TeamLeader = pTeam->FetchLeader();
 		pTeamData->TeamLeader->IsTeamLeader= true;
 	}
 
