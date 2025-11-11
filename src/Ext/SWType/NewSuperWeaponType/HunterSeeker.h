@@ -6,6 +6,8 @@ class UnitTypeClass;
 class SW_HunterSeeker : public SWTypeHandler
 {
 public:
+
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType(NewSuperType::HunterSeeker); };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const
 	{
 		return SuperWeaponFlags::None;

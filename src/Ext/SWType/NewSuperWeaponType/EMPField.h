@@ -5,6 +5,8 @@
 class SW_EMPField : public SWTypeHandler
 {
 public:
+
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType(NewSuperType::EMPField); };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const
 	{
 		return SuperWeaponFlags::None;

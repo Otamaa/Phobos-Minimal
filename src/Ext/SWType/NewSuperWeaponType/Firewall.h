@@ -7,6 +7,7 @@ class SW_Firewall : public SWTypeHandler
 public:
 	virtual ~SW_Firewall();
 
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType(NewSuperType::Firestorm); };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const
 	{
 		return SuperWeaponFlags::None;

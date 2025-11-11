@@ -6,6 +6,9 @@
 class SW_Reveal : public SWTypeHandler
 {
 public:
+
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType::PsychicReveal; };
+
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const
 	{
 		return SuperWeaponFlags::None;

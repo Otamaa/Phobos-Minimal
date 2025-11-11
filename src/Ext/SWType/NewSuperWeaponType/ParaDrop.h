@@ -6,6 +6,9 @@
 class SW_ParaDrop : public SWTypeHandler
 {
 public:
+
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType::ParaDrop; };
+
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const
 	{
 		return SuperWeaponFlags::None;
@@ -28,4 +31,11 @@ protected:
 	void newStateMachine(int Deferment, CellStruct XY, SuperClass* pSuper, CellClass* pTarget) {
 		SWStateMachine::Array.push_back(std::move(std::make_unique<ParaDropStateMachine>(Deferment, XY, pSuper, this, pTarget)));
 	}
+};
+
+
+class SW_AmericanParaDrop : public SW_ParaDrop
+{
+public:
+	virtual SuperWeaponType GetSWType() override { return SuperWeaponType::AmerParaDrop; };
 };

@@ -14,6 +14,7 @@ class SW_NuclearMissile : public SWTypeHandler
 {
 public:
 
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType::Nuke;  };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const override;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer);

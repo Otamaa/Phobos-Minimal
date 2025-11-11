@@ -6,6 +6,8 @@
 class SW_SpyPlane : public SWTypeHandler
 {
 public:
+
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType::SpyPlane; };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const
 	{
 		return SuperWeaponFlags::None;

@@ -694,8 +694,7 @@ std::pair<SuperWeaponType, NewSuperType> SWTypeHandler::FindFromTypeID(const cha
 					return false;
 
 				for (const auto& Id : item->TypeStrings) {
-					//ares usin strcmp , so i just follow it here
-					if (Id == pType) {
+					if (IS_SAME_STR_(Id.c_str() ,pType)) {
 						return true;
 					}
 				}
@@ -705,11 +704,7 @@ std::pair<SuperWeaponType, NewSuperType> SWTypeHandler::FindFromTypeID(const cha
 		);
 
 		if (It != std::ranges::end(TypeContainer::Instance.Array)) {
-			return  { static_cast<SuperWeaponType>(
-				 std::to_underlying(SuperWeaponType::count)
-				 + std::to_underlying((*It)->TypeIndex))
-				, (*It)->TypeIndex
-			};
+			return  { (*It)->GetSWType() , (*It)->TypeIndex };
 		}
 	}
 
@@ -762,16 +757,18 @@ TypeContainer::TypeContainer()
 	NewSWTypeInited = true;
 #define RegSW(name ,type , str) Register(std::make_unique<name>(), type , str);
 
-		RegSW(SW_NuclearMissile, NewSuperType::NuclearMissile , "NewNuke , ChemLauncher , MultiLauncher, MultiMissile")
-		RegSW(SW_Protect, NewSuperType::Protect , "Protect , IronCurtain, ForceShield")
+		RegSW(SW_NuclearMissile, NewSuperType::Nuke , "NewNuke , ChemLauncher , MultiLauncher, MultiMissile")
+		RegSW(SW_IronCurtain, NewSuperType::IronCurtain, "Protect , IronCurtain")
 		RegSW(SW_LightningStorm, NewSuperType::LightningStorm , "NewLS, LightningStorm")
 		RegSW(SW_ChronoSphere, NewSuperType::ChronoSphere , "ChronoSphere")
 		RegSW(SW_ChronoWarp, NewSuperType::ChronoWarp, "ChronoWarp")
 		RegSW(SW_ParaDrop, NewSuperType::ParaDrop , "NewParaDrop, ParaDrop , AmerParaDrop")
+		RegSW(SW_AmericanParaDrop, NewSuperType::AmerParaDrop, "AmerParaDrop , AmericanParaDrop")
 		RegSW(SW_PsychicDominator, NewSuperType::PsychicDominator , "NewDominator , PsychicDominator , PsyDom")
 		RegSW(SW_SpyPlane, NewSuperType::SpyPlane , "Airstrike , SpyPlane")
 		RegSW(SW_GeneticMutator, NewSuperType::GeneticMutator, "GeneticMutator , GeneticConverter")
-		RegSW(SW_Reveal, NewSuperType::Reveal, "Reveal , PsychicReveal")
+		RegSW(SW_ForceShield, NewSuperType::ForceShield, "ForceShield")
+		RegSW(SW_Reveal, NewSuperType::PsychicReveal, "Reveal , PsychicReveal")
 
 		RegSW(SW_SonarPulse, NewSuperType::SonarPulse, "SonarPulse")
 		RegSW(SW_UnitDelivery, NewSuperType::UnitDelivery, "UnitDelivery")

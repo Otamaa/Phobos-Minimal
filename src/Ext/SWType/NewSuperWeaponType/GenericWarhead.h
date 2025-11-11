@@ -6,6 +6,8 @@
 class SW_GenericWarhead : public SWTypeHandler
 {
 public:
+
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType(NewSuperType::GenericWarhead); };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const
 	{
 		return SuperWeaponFlags::None;

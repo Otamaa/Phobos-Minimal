@@ -6,6 +6,7 @@ class SW_Battery : public SWTypeHandler
 {
 public:
 
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType(NewSuperType::Battery); };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const { return SuperWeaponFlags::None; }
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer);

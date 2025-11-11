@@ -32,6 +32,9 @@ public:
 
 	virtual ~SWTypeHandler() = default;
 
+	//i hate this
+	virtual SuperWeaponType GetSWType() = 0;
+
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const = 0;
 
 	virtual bool CanTargetingFireAt(const TargetingData* pTargeting, CellStruct const& cell, bool manual) const;

@@ -6,6 +6,8 @@
 class SW_IonCannon : public SWTypeHandler
 {
 public:
+
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType(NewSuperType::IonCannon); };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const override;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer);

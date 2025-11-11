@@ -7,6 +7,7 @@ class SW_LightningStorm : public SWTypeHandler
 {
 public:
 
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType::LightningStorm; };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const override;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer);

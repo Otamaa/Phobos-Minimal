@@ -27,3 +27,14 @@ protected:
 		SWStateMachine::Array.push_back(std::move(std::make_unique<ProtectStateMachine>(Deferment, XY, pSuper, this)));
 	}
 };
+
+
+class SW_IronCurtain : public SW_Protect
+{
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType::IronCurtain; };
+};
+
+class SW_ForceShield : public SW_Protect
+{
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType::ForceShield; };
+};

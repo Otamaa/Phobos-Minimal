@@ -6,6 +6,8 @@
 class SW_ChronoWarp : public SWTypeHandler
 {
 public:
+
+	virtual SuperWeaponType GetSWType() { return SuperWeaponType::ChronoWarp; };
 	virtual SuperWeaponFlags Flags(const SWTypeExtData* pData) const;
 
 	virtual bool Activate(SuperClass* pThis, const CellStruct& Coords, bool IsPlayer);
