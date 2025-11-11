@@ -591,7 +591,7 @@ void ApplyasmjitPatch()
 		size_t hook_size = sm_vec[0].size;
 		DWORD hookSize = MaxImpl(hook_size, 5u);
 
-#ifndef allowrecursive
+#ifdef allowrecursive
 		// Setup trampoline BEFORE creating hook code
 		if (!SetupTrampoline(addr, hookSize))
 		{
@@ -622,10 +622,7 @@ void ApplyasmjitPatch()
 			assembly.add(asmjit::x86::esp, 0xC);
 			assembly.mov(asmjit::x86::ptr(asmjit::x86::esp, -8), asmjit::x86::eax);
 			assembly.popfd();
-
-			// POPAD replica
 			assembly.popad();
-
 			assembly.cmp(asmjit::x86::dword_ptr(asmjit::x86::esp, -0x2C), 0);
 			assembly.jz(l_origin);
 			assembly.jmp(asmjit::x86::ptr(asmjit::x86::esp, -0x2C));
@@ -680,7 +677,7 @@ void ApplyasmjitPatch()
 		assembly.bind(l_origin);
 		void* hookAddress = reinterpret_cast<void*>(addr);
 
-#ifdef allowrecursive
+#ifndef allowrecursive
 		// Original version: copy bytes from original address
 		org_vec.resize(hookSize);
 		memcpy(org_vec.data(), hookAddress, hookSize);
