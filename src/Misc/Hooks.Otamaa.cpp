@@ -7583,3 +7583,12 @@ ASMJIT_PATCH(0x6F8A0F, TechnoClass_EvalCell_deadTechno, 0x8)
 //	R->EAX(pData);
 //	return 0x7564CF;
 //}
+
+//loading save game will crash after this function
+//not sure atm, weird shit
+ASMJIT_PATCH(0x5F7577, ObjectTypeClass_DTOR_Voxel, 0x6) {
+	GET(AbstractTypeClass*, pThis, ESI);
+
+	Debug::Log("Destroying Voxel for %s ! \n", pThis->ID);
+	return 0x0;
+}

@@ -417,12 +417,6 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 {
 	if (arg3)
 	{
-		FootClass* member = this->FirstUnit;
-		if (!member) {
-			this->StepCompleted = true;
-			return;
-		}
-
 		TechnoClass* bestLeader = this->_Fetch_A_Leader();
 
 		if (!bestLeader) {
@@ -481,13 +475,6 @@ void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
 {
 	if (arg3)
 	{
-		FootClass* member = this->FirstUnit;
-
-		if (!member) {
-			this->StepCompleted = true;
-			return;
-		}
-
 		TechnoClass* bestLeader = this->_Fetch_A_Leader();
 
 		if (!bestLeader) {
@@ -2491,28 +2478,7 @@ void FakeTeamClass::_Regroup()
 		if (weightedDistance < minWeightedDistance)
 		{
 			// Find team leader (member with highest leadership rating)
-			FootClass* leader = this->FirstUnit;
-			int maxLeadership = -1;
-
-			for (FootClass* member = this->FirstUnit; member; member = member->NextTeamMember)
-			{
-				if (!member->IsAlive || !member->Health)
-					continue;
-
-				if (!Unsorted::ScenarioInit && member->InLimbo)
-					continue;
-
-				bool isAircraft = (member->WhatAmI() == AircraftClass::AbsID);
-				if (!member->IsTeamLeader && !isAircraft)
-					continue;
-
-				int leadershipRating = member->GetTechnoType()->LeadershipRating;
-				if (leadershipRating > maxLeadership)
-				{
-					leader = member;
-					maxLeadership = leadershipRating;
-				}
-			}
+			FootClass* leader = this->_Fetch_A_Leader();
 
 			// Find a safe point near the building for the leader
 			CellStruct zoneCell = CellClass::Coord2Cell(
@@ -2824,6 +2790,35 @@ void CheckSuperweaponReady(TeamClass* team, SuperClass* super)
 
 #include <Ext/SWType/Body.h>
 
+bool NOINLINE ShouldFindNearbyLocation(TeamClass* team)
+{
+	// Don't search for nearby if any of these conditions are true:
+
+	// 1. Team is not moving yet
+	if (!team->IsMoving)
+		return true;
+
+	// 2. Script has no more missions
+	if (!team->CurrentScript->HasMissionsRemaining())
+		return true;
+
+	// 3. Current mission is not MOVE
+	const auto& [mission, val] = team->CurrentScript->GetCurrentAction();
+
+	if (mission != TeamMissionType::Move)
+		return true;
+
+	// 4. Next waypoint in script is visible on radar
+	CellStruct nextWaypoint = ScenarioClass::Instance->GetWaypointCoords(val);
+
+	if (MapClass::Instance->IsWithinUsableArea(nextWaypoint, true)) {
+		return true;
+	}
+
+	// None of the conditions met, don't search for nearby
+	return false;
+}
+
 void FakeTeamClass::_AI()
 {
 	//HouseExtContainer::HousesTeams[this->OwnerHouse].emplace(this);
@@ -3056,6 +3051,12 @@ void FakeTeamClass::_AI()
 		((TeamClass*)this)->~TeamClass();
 		return;
 	}
+
+	std::string first = GameStrings::NoneStr();
+	if (this->FirstUnit)
+		first = this->FirstUnit->get_ID();
+
+	Debug::Log("Team [%x - %s] with FirstUnit [%x - %s] , executing [%d arg %d] \n", this, this->Type->ID, this->FirstUnit, first.c_str(), (int)node.Action ,node.Argument);
 
 	switch (node.Action)
 	{
@@ -3950,10 +3951,8 @@ void FakeTeamClass::_AI()
 		{
 			do
 			{
-				bool bunkerRes = Member->EnterGrinder();
-				FootClass* NextMember = Member->NextTeamMember;
-				if (bunkerRes)
-				{
+				NextMember = Member->NextTeamMember;
+				if (Member->EnterGrinder()) {
 					this->_Remove(Member, -1, true);
 				}
 				Member = NextMember;
@@ -3972,10 +3971,8 @@ void FakeTeamClass::_AI()
 		{
 			do
 			{
-				bool bunkerRes = Member->EnterBioReactor();
-				FootClass* NextMember = Member->NextTeamMember;
-				if (bunkerRes)
-				{
+				NextMember = Member->NextTeamMember;
+				if (Member->EnterBioReactor()) {
 					this->_Remove(Member, -1, true);
 				}
 				Member = NextMember;
@@ -3994,10 +3991,8 @@ void FakeTeamClass::_AI()
 		{
 			do
 			{
-				bool bunkerRes = Member->EnterBattleBunker();
-				FootClass* NextMember = Member->NextTeamMember;
-				if (bunkerRes)
-				{
+				NextMember = Member->NextTeamMember;
+				if (Member->EnterBattleBunker()) {
 					this->_Remove(Member, -1, true);
 				}
 				Member = NextMember;
@@ -4016,10 +4011,8 @@ void FakeTeamClass::_AI()
 		{
 			do
 			{
-				bool bunkerRes = Member->EnterTankBunker();
-				FootClass* NextMember = Member->NextTeamMember;
-				if (bunkerRes)
-				{
+				NextMember = Member->NextTeamMember;
+				if (Member->EnterTankBunker()) {
 					this->_Remove(Member, -1, true);
 				}
 				Member = NextMember;
@@ -4034,12 +4027,6 @@ void FakeTeamClass::_AI()
 	{
 		if (!this->QueuedFocus)
 		{
-			if (!this->FirstUnit)
-			{
-				this->StepCompleted = true;
-				return;
-			}
-
 			FootClass* pLeader = this->_Fetch_A_Leader();
 			if (!pLeader)
 			{
@@ -4098,62 +4085,6 @@ void FakeTeamClass::_AI()
 			this->StepCompleted = true;
 		}
 
-		return;
-	}
-	case TeamMissionType::Move:
-	{
-		if (arg4) // first time
-		{
-			FootClass* Member = this->FirstUnit;
-			if (!Member)
-			{
-				this->StepCompleted = true;
-				return;
-			}
-			FootClass* pLeader = this->_Fetch_A_Leader();
-			if (!pLeader)
-			{
-				this->StepCompleted = true;
-				return;
-			}
-
-			CellStruct wp = ScenarioClass::Instance->GetWaypointCoords(node.Argument);
-			CellClass* pCell = MapClass::Instance->GetCellAt(wp);
-			this->_AssignMissionTarget(pCell);
-
-			//first assigment is failed , lets try to check nearby location
-			if (!this->IsMoving
-				|| !this->CurrentScript->HasMissionsRemaining()
-				|| this->CurrentScript->GetCurrentAction().Action != TeamMissionType::Move
-				|| MapClass::Instance->IsWithinUsableArea(wp, true)
-				)
-			{
-
-				//can the leader move here ?
-				if (pLeader->IsCellOccupied(pCell, FacingType::None, -1, nullptr, false) > Move::OK)
-				{
-					TechnoTypeClass* pLeaderType = pLeader->GetTechnoType();
-					wp = MapClass::Instance->NearByLocation(CellStruct::Empty,
-						pLeaderType->SpeedType,
-						ZoneType::None,
-						MovementZone::Normal,
-						false,
-						1,
-						1,
-						false,
-						false,
-						false,
-						true,
-						CellStruct::Empty,
-						false,
-						false);
-				}
-			}
-
-			this->_AssignMissionTarget(wp.IsValid() ? MapClass::Instance->GetCellAt(wp) : nullptr);
-		}
-
-		this->_CoordinateMove();
 		return;
 	}
 	case TeamMissionType::Movecell:
@@ -4337,11 +4268,31 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Delete_team_members:
 	{
-		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember) {
-			if (f->Health > 0 && f->IsAlive && !f->IsCrashing && !f->IsSinking && !f->InLimbo) {
-				f->Limbo();
-				f->UnInit();
+		FootClass* pCur = nullptr;
+		if (auto pFirst = this->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+
+				if (pFirst->Health > 0
+					&& pFirst->IsAlive
+					&& !pFirst->IsCrashing
+					&& !pFirst->IsSinking
+					&& !pFirst->InLimbo) {
+					pFirst->Limbo();
+					pFirst->UnInit();
+				}
+
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
 			}
+			while (pCur);
 		}
 
 		this->StepCompleted = true;
@@ -4373,8 +4324,7 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Ion_storn_end:
 	{
-		if (LightningStorm::IsActive())
-		{
+		if (LightningStorm::IsActive()) {
 			LightningStorm::RequestStop();
 		}
 		this->StepCompleted = true;
@@ -4395,11 +4345,32 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Self_destruct:
 	{
-		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember) {
-			if (f->Health > 0 && f->IsAlive && !f->IsCrashing && !f->IsSinking && !f->InLimbo) {
-				int damage = f->Health;
-				f->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+		FootClass* pCur = nullptr;
+		if (auto pFirst = this->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+				if (pFirst->Health > 0
+					&& pFirst->IsAlive
+					&& !pFirst->IsCrashing
+					&& !pFirst->IsSinking
+					&& !pFirst->InLimbo
+					)
+				{
+					int damage = pFirst->Health;
+					pFirst->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, false, nullptr);
+				}
+
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
 			}
+			while (pCur);
 		}
 		this->StepCompleted = true;
 		return;
@@ -4439,9 +4410,24 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Scatter:
 	{
-		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember) {
-			f->Scatter(CoordStruct::Empty,true , false);
+		FootClass* pCur = nullptr;
+		if (auto pFirst = this->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+				pFirst->Scatter(CoordStruct::Empty, true, false);
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
+			}
+			while (pCur);
 		}
+
 		this->StepCompleted = true;
 		return;
 	}
@@ -4584,6 +4570,114 @@ void FakeTeamClass::_AI()
 	case TeamMissionType::Do:
 	{
 		this->_Coordinate_Do(&node,CellStruct::Empty);
+		return;
+	}
+	case TeamMissionType::Patrol:
+	{
+		// Get patrol waypoint
+		const int waypointIndex = node.Argument;
+		CellClass* waypointCell = ScenarioClass::Instance->GetWaypointCell(waypointIndex);
+
+		// On first call, set waypoint as initial target
+		if (arg4) {
+			this->_AssignMissionTarget(waypointCell);
+		}
+
+		// If no target, check mission data and assign waypoint
+		if (!this->ArchiveTarget)
+		{
+			auto const& [miss, value] = this->CurrentScript->GetCurrentAction();
+
+			// Mission data < 702 is some threshold check (possibly frame-based)
+			if (value < 702) {
+				this->_AssignMissionTarget(waypointCell);
+			}
+		}
+
+		// Periodically scan for threats (every PatrolTime minutes)
+		int patrolInterval = (int)(RulesClass::Instance->PatrolScan * TICKS_PER_MINUTE);
+		if ((Unsorted::CurrentFrame % patrolInterval) == 0)
+		{
+			// Find team leader
+			FootClass* leader = this->_Fetch_A_Leader();
+
+			if (leader)
+			{
+				// Search for threats near leader
+				CoordStruct leaderCoord = leader->Location;
+
+				AbstractClass* threat = leader->GreatestThreat(
+					ThreatType::Range,
+					&leaderCoord,
+					false  // Don't filter by house enemy
+				);
+
+				if (threat)
+				{
+					// Found a threat, attack it
+					this->_AssignMissionTarget(threat);
+
+				}
+				else if (this->ArchiveTarget != waypointCell)
+				{
+					// No threat and not at waypoint, clear target to return to patrol
+					this->_AssignMissionTarget(nullptr);
+				}
+			}
+		}
+
+		// Coordinate action based on target type
+		if (flag_cast_to<TechnoClass*>(this->ArchiveTarget))
+		{
+			// Target is a techno (unit/building/aircraft), attack it
+			this->_Coordinate_Attack();
+		}
+		else
+		{
+			// Target is a cell/location, move to it
+			this->_CoordinateMove();
+		}
+
+		return;
+	}
+	case TeamMissionType::Move:
+	{
+		if (arg4) {
+			if (FootClass* pLeader = this->_Fetch_A_Leader()) {
+
+				CellStruct wp = ScenarioClass::Instance->GetWaypointCoords(node.Argument);
+				CellClass* pCell = MapClass::Instance->GetCellAt(wp);
+				this->_AssignMissionTarget(pCell);
+
+				//first assigment is failed , lets try to check nearby location
+				if (ShouldFindNearbyLocation(this))
+				{
+					//can the leader move here ?
+					if (pLeader->IsCellOccupied(pCell, FacingType::None, -1, nullptr, false) > Move::OK)
+					{
+						TechnoTypeClass* pLeaderType = pLeader->GetTechnoType();
+						wp = MapClass::Instance->NearByLocation(wp,
+							pLeaderType->SpeedType,
+							ZoneType::None,
+							MovementZone::Normal,
+							false,
+							1,
+							1,
+							false,
+							false,
+							false,
+							true,
+							CellStruct::Empty,
+							false,
+							false);
+					}
+				}
+
+				this->_AssignMissionTarget(wp.IsValid() ? MapClass::Instance->TryGetCellAt(wp) : nullptr);
+			}
+		}
+
+		this->_CoordinateMove();
 		return;
 	}
 	default:

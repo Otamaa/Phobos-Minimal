@@ -22,8 +22,14 @@ bool CanUndeployOnSell(BuildingClass* pThis)
 		if (pThis->MindControlledBy)
 			return false;
 	}
+	//else
+	// {
+	// 	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
+	// 	if (!pTypeExt->UndeploysInto_Sellable)
+	// 		return true;
+	// }
 
-	return pThis->ArchiveTarget|| pThis->Type->Unsellable;
+	return pThis->ArchiveTarget || pThis->Type->Unsellable;
 }
 
 // Skip SessionClass::IsCampaign() checks
