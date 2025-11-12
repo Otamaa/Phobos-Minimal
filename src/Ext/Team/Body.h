@@ -179,6 +179,7 @@ public:
 	void _Scan_Limit();
 	FootClass* _Fetch_A_Leader();
 	void _GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*>& missings);
+	void _Flash_For(int a2);
 	int _Get_Stray();
 	bool _Does_Any_Member_Have_Ammo();
 
