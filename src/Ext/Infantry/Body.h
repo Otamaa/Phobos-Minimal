@@ -99,6 +99,7 @@ public:
 	bool _Unlimbo(const CoordStruct& Crd, DirType dFaceDir);
 	int _SelectWeaponAgainst(AbstractClass* pTarget);
 	WeaponStruct* _GetDeployWeapon();
+	DamageState _Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 
 	DamageState _IronCurtain(int nDur, HouseClass* pSource, bool bIsFC)
 	{

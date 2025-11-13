@@ -2786,7 +2786,7 @@ ASMJIT_PATCH(0x6B72FE, SpawnerManagerClass_AI_MissileCheck, 0x9)
 
 	GET(SpawnManagerClass*, pThis, ESI);
 
-	auto pLoco = ((FootClass*)pThis->Owner)->Locomotor; // Ares has already handled the building case.
+	auto& pLoco = ((FootClass*)pThis->Owner)->Locomotor; // Ares has already handled the building case.
 	auto pLocoInterface = pLoco.GetInterfacePtr();
 
 	return (pLocoInterface->Is_Moving_Now()

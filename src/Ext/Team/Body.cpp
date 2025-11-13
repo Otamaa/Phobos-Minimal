@@ -13,6 +13,33 @@
 #include <TaskForceClass.h>
 #include <TubeClass.h>
 
+template<typename Func, typename... Args>
+concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
+
+template<typename Func>
+void LoopThruMembers(TeamClass* pTeam, Func&& act)
+{
+	FootClass* pCur = nullptr;
+	if (auto pFirst = pTeam->FirstUnit)
+	{
+		do
+		{
+			//we fetch next team member early for these specific usage
+			auto pNext = pFirst->NextTeamMember;
+
+			if constexpr (ReturnsBool<Func, FootClass*>) {
+				if (act(pFirst))
+					return;// break from function with return true
+			} else {
+				act(pFirst);
+			}
+
+			pFirst = pNext;
+		}
+		while (pFirst);
+	}
+}
+
 #pragma region ExtFuncs
 
 bool TeamExtData::IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement)
@@ -1088,178 +1115,345 @@ void FakeTeamClass::_Took_Damage(FootClass* attacker, DamageState result, Object
 #endif
 }
 
-// If target is a cell and leader is not aircraft, find an object in the cell
-void NOINLINE RefineTargetIfCell(TeamClass* team, AbstractClass* leader)
-{
-	if (auto pTargetcell = cast_to<CellClass*>(team->ArchiveTarget)) {
-		// Only refine for non-aircraft
-		if (leader && leader->WhatAmI() == AircraftClass::AbsID)
-			return;
-
-		// Try to find an object in the cell
-		if (ObjectClass* cellObject = pTargetcell->GetSomeObject(Point2D::Empty, 0)) {
-			team->ArchiveTarget = cellObject;
-		}
-	}
-}
-
-// Check if leader can fire at target
-void NOINLINE CheckLeaderCanFire(TeamClass* team, FootClass* leader)
-{
-	if (!leader)
-		return;
-
-	int weaponIndex = leader->SelectWeapon(team->ArchiveTarget);
-	FireError fireError = leader->GetFireError(team->ArchiveTarget, weaponIndex , true);
-
-	// FIRE_CANT (5) means unit cannot fire at target
-	if (fireError == FireError::CANT)
-	{
-		team->TargetNotAssigned = true;
-	}
-}
-
-// Initialize uninitiated member (get them to the zone)
-void NOINLINE ProcessMemberInitiation(TeamClass* team, FootClass* member)
-{
-	if (!member->IsAlive || !member->Health)
-		return;
-	if (!Unsorted::ScenarioInit && member->InLimbo)
-		return;
-	if (member->IsTeamLeader)
-		return;
-
-	// Get stray distance based on mission type
-	int strayDistance = ((FakeTeamClass*)team)->_Get_Stray();
-
-	// Check if close enough to zone to be initiated
-	if (member->DistanceFrom(team->Zone) <= strayDistance) {
-		member->IsTeamLeader = true;
-	}
-	else if (!member->Destination) {
-		// Send member to zone
-		member->QueueMission(Mission::Move, 0);
-		member->SetTarget(nullptr);
-		member->SetDestination(team->Zone, 1);
-	}
-}
-
-// Process member attack - returns true if member is active
-bool NOINLINE ProcessMemberAttack(TeamClass* team, FootClass* member, ScriptActionNode* currentMission)
-{
-	// Check if member is valid
-	if (!member->IsAlive)
-	{
-		// Special case: droppod teams count limbo units as active
-		if (team->Type->DropPod && member->InLimbo)
-			return true;
-
-		return false;
-	}
-
-	if (!member->Health)
-		return false;
-	if (!Unsorted::ScenarioInit && member->InLimbo)
-		return false;
-
-	bool isAircraft = (member->WhatAmI() == AircraftClass::AbsID);
-	if (!member->IsTeamLeader && !isAircraft)
-		return false;
-
-	// Check if this is an engineer capture mission
-	bool isInfiltrate = (currentMission->Action == TeamMissionType::Spy) &&
-		(member->WhatAmI() == InfantryClass::AbsID) &&
-		((InfantryClass*)member)->Type->Infiltrate;
-
-	if (isInfiltrate)
-	{
-		// Assign capture mission to engineer
-		member->QueueMission(Mission::Capture, 0);
-		member->SetTarget(team->ArchiveTarget);
-	}
-	else
-	{
-		// Check if member needs attack mission assigned
-		Mission currentMissionType = member->GetCurrentMission();
-
-		bool shouldAssignAttack = (currentMissionType != Mission::Attack &&
-								   currentMissionType != Mission::Enter &&
-								   currentMissionType != Mission::Capture &&
-								   currentMissionType != Mission::Sabotage);
-
-		// Exception: if unloading and has passengers, don't interrupt
-		if (currentMissionType == Mission::Unload)
-		{
-			if (member->CanDeployNow())
-				shouldAssignAttack = false;
-		}
-
-		if (shouldAssignAttack)
-		{
-			member->SendToEachLink(RadioCommand::NotifyUnlink);
-			member->QueueMission(Mission::Attack, 0);
-			member->SetTarget(nullptr);
-			member->SetDestination(nullptr, 1);
-		}
-
-		// Assign target if member doesn't have one
-		if (member->Target != team->ArchiveTarget && !member->Target){
-			member->SetTarget(team->ArchiveTarget);
-		}
-	}
-
-	// Check if member is active and combat-ready
-	if (isAircraft)
-	{
-		// Aircraft must have weapon and ammo to be considered active
-		if (!member->IsArmed())
-			return false;
-		if (member->Ammo <= 0)
-			return false;
-	}
-
-	return true;
-}
-
 void FakeTeamClass::_Coordinate_Attack() {
-	// Ensure target is set
+
 	if (!this->ArchiveTarget) {
 		this->ArchiveTarget = this->QueuedFocus;
 	}
 
-	// Find team leader (member with highest leadership rating)
-	FootClass* leader = this->_Fetch_A_Leader();
+	FootClass* teamLeader = this->_Fetch_A_Leader();;
 
-	// If targeting a cell and leader is not aircraft, try to find object in cell
-	RefineTargetIfCell(this, leader);
+	// If target is a cell and team has non-aircraft members, try to find actual object in cell
+	CellClass* targetCell = cast_to<CellClass*>(this->ArchiveTarget);
 
-	// Periodically check if leader can fire at target
-	if (Unsorted::CurrentFrame % 8 == 4) {
-		CheckLeaderCanFire(this, leader);
-	}
-
-	// Process all team members
-	if (!this->ArchiveTarget || !this->FirstUnit) {
-		this->StepCompleted = true;
-		return;
-	}
-
-	auto mission = this->CurrentScript->GetCurrentAction();
-	bool hasActiveMembers = false;
-	for (FootClass* member = this->FirstUnit; member; member = member->NextTeamMember)
+	if (targetCell
+		&& this->FirstUnit
+		&& teamLeader->WhatAmI() != AircraftClass::AbsID)
 	{
-		// Initialize uninitiated members
-		ProcessMemberInitiation(this, member);
 
-		// Assign attack missions to initiated members
-		if (ProcessMemberAttack(this, member, &mission))
-		{
-			hasActiveMembers = true;
+		if (auto cellObject = targetCell->GetSomeObject(Point2D::Empty, false)) {
+			this->ArchiveTarget = cellObject;
 		}
 	}
 
-	// If no active members remain, advance to next mission
-	if (!hasActiveMembers)
+	// Check if team leader can fire at target (every 8 frames, on frame 4)
+	if (Unsorted::CurrentFrame % 8 == 4) {
+		const int weaponIndex = teamLeader->SelectWeapon(this->ArchiveTarget);
+
+		if (teamLeader->GetFireError(this->ArchiveTarget, weaponIndex, true) == FireError::ILLEGAL) {
+			this->TargetNotAssigned = 1;
+		}
+	}
+
+	// Early exit if no target
+	if (!this->ArchiveTarget)
+	{
+		this->StepCompleted = 1;
+		return;
+	}
+
+	// Get current mission and prepare for team coordination
+	const auto& [curMission, value] = this->CurrentScript->GetCurrentAction();
+	FootClass* unitToProcess = this->FirstUnit;
+	bool hasValidUnits = false;
+
+	if (!unitToProcess)
+	{
+		this->StepCompleted = 1;
+		return;
+	}
+
+	// Process each team member
+	do
+	{
+		// Skip inactive units
+		if (!unitToProcess->IsAlive)
+		{
+			// Special case: droppod units in limbo are still considered valid
+			if (this->Type->DropPod && unitToProcess->InLimbo)
+			{
+				hasValidUnits = true;
+			}
+			unitToProcess = unitToProcess->NextTeamMember;
+			continue;
+		}
+
+		// Handle unit initialization (bringing units to formation zone)
+		if (unitToProcess->Health
+			&& (Unsorted::ScenarioInit || !unitToProcess->InLimbo)
+			&& !unitToProcess->IsTeamLeader)
+		{
+			int allowedStrayDistance = this->_Get_Stray();
+
+			// Check if unit is within allowed distance of formation zone
+			if (unitToProcess->DistanceFrom(this->Zone) <= allowedStrayDistance)
+			{
+				unitToProcess->IsTeamLeader = 1;
+			}
+			else if (!unitToProcess->Destination)
+			{
+				// Move unit to formation zone
+				unitToProcess->QueueMission(Mission::Move, 0);
+				unitToProcess->SetTarget(0);
+				unitToProcess->SetDestination(this->Zone, 1);
+			}
+		}
+
+		// Process active and initiated units for attack coordination
+		if (unitToProcess->IsAlive
+			&& unitToProcess->Health
+			&& (Unsorted::ScenarioInit || !unitToProcess->InLimbo)
+			&& (unitToProcess->IsTeamLeader || unitToProcess->WhatAmI() == AircraftClass::AbsID))
+		{
+			const auto currentMission = unitToProcess->GetCurrentMission();
+
+			// Special handling for infantry capture missions
+			if (curMission ==TeamMissionType::Spy
+				&& unitToProcess->WhatAmI() == InfantryClass::AbsID
+				&& ((InfantryClass*)unitToProcess)->Type->Infiltrate)
+			{
+				unitToProcess->QueueMission(Mission::Capture, 0);
+				unitToProcess->SetTarget(this->ArchiveTarget);
+			}
+			// Assign attack mission if unit is not already on a critical mission
+			else if (currentMission != Mission::Attack
+					&& currentMission != Mission::Enter
+					&& currentMission != Mission::Capture
+					&& currentMission != Mission::Sabotage
+					&& (currentMission != Mission::Unload
+						|| !unitToProcess->CanDeployNow()))
+			{
+				unitToProcess->SendToEachLink(RadioCommand::NotifyUnlink);
+				unitToProcess->QueueMission(Mission::Attack, 0);
+				unitToProcess->SetTarget(0);
+				unitToProcess->SetDestination(0, 1);
+			}
+
+			// Update unit's target if it doesn't have one or has wrong target
+
+			if (unitToProcess->Target != this->ArchiveTarget && !unitToProcess->Target)
+			{
+				unitToProcess->SetTarget(this->ArchiveTarget);
+			}
+
+			// Check if unit is ready to attack (not aircraft, or has weapon and ammo)
+			if (unitToProcess->WhatAmI() != AircraftClass::AbsID
+				|| !unitToProcess->IsArmed()
+				|| unitToProcess->Ammo > 0)
+			{
+				hasValidUnits = true;
+			}
+		}
+		else
+		{
+			// Handle droppod special case for units in limbo
+			if (this->Type->DropPod && unitToProcess->InLimbo)
+			{
+				hasValidUnits = true;
+			}
+		}
+
+		unitToProcess = unitToProcess->NextTeamMember;
+	}
+	while (unitToProcess);
+
+	// If no valid units remain, move to next mission
+	if (!hasValidUnits)
+	{
+		this->StepCompleted = 1;
+	}
+}
+
+void FakeTeamClass::_CoordinateMove() {
+	bool finished = true;
+	FootClass* unit = this->FirstUnit;
+	bool found = false;
+
+	if (!unit)
+		return;
+
+	// Ensure target is set
+	if (!this->ArchiveTarget)
+	{
+		this->ArchiveTarget = this->QueuedFocus;
+		if (!this->ArchiveTarget)
+			return;
+	}
+
+	// Check if team has lagging units that need to catch up
+	if (this->_Lagging_Units())
+		return;
+
+	// Process each unit in the team
+	while (unit)
+	{
+		// Process uninitiated units
+		if (unit->IsAlive &&
+			unit->Health &&
+			(Unsorted::ScenarioInit || !unit->InLimbo) &&
+			!unit->IsTeamLeader)
+		{
+			const int strayDistance = this->_Get_Stray();
+
+			if (unit->DistanceFrom(this->Zone) <= strayDistance)
+			{
+				unit->IsTeamLeader = true;
+			} else {
+				if (!unit->Destination) {
+					unit->QueueMission(Mission::Move, 0);
+					unit->SetTarget(nullptr);
+					unit->SetDestination(this->Zone, 1);
+				}
+
+				finished = false;
+			}
+		}
+
+		// Check if unloading
+		if (unit->GetCurrentMission() == Mission::Unload ||
+			unit->QueuedMission == Mission::Unload)
+		{
+			finished = false;
+		}
+
+		// Check if unit should be processed for movement
+		const bool shouldProcessMovement =
+			unit->IsAlive &&
+			unit->Health &&
+			(Unsorted::ScenarioInit || !unit->InLimbo) &&
+			(unit->IsTeamLeader || unit->WhatAmI() == AircraftClass::AbsID) &&
+			unit->GetCurrentMission() != Mission::Unload &&
+			unit->QueuedMission != Mission::Unload;
+
+		if (shouldProcessMovement)
+		{
+			int strayDistance = this->_Get_Stray();
+
+			// Double for airborne units
+			if (unit->IsInAir()){
+				strayDistance *= 2;
+			}
+
+			found = true;
+			int distanceToTarget = unit->DistanceFrom(this->ArchiveTarget);
+
+			// Check if unit has arrived at target
+			bool hasArrived = false;
+			if (distanceToTarget <= strayDistance)
+			{
+				int height = unit->GetHeight();
+				const auto& [nextMissionType, value] = this->CurrentScript->GetNextAction();
+
+				if (height >= 0 || nextMissionType == TeamMissionType::Move)
+				{
+					bool isAircraft = (unit->WhatAmI() == AircraftClass::AbsID);
+
+					if (!isAircraft) {
+						hasArrived = true;
+					}
+					else
+					{
+						// Aircraft - check if landed
+						if (unit->GetZ() <= 0) {
+							hasArrived = true;
+						}
+						else
+						{
+							// Check if at target cell or next mission is MOVE
+							CoordStruct unitCoord = unit->GetCoords();
+							CellClass* unitCell = MapClass::Instance->GetCellAt(unitCoord);
+
+							if (unitCell == this->ArchiveTarget || nextMissionType == TeamMissionType::Move){
+								hasArrived = true;
+							}
+						}
+					}
+				}
+			}
+
+			if (hasArrived)
+			{
+				// Unit has arrived, handle arrival
+				if (unit->GetMission() == Mission::Move)
+				{
+					if (!unit->Destination) {
+						// No destination, idle if not engaged
+						if (!unit->Target) {
+							unit->SetDestination(nullptr, 1);
+							unit->EnterIdleMode(0, 1);
+						}
+					}
+					else if (unit->DistanceFrom(unit->Destination) <= RulesClass::Instance->CloseEnough)
+					{
+						if (!unit->Locomotor->Is_Moving()) {
+							if (!unit->Target) {
+								unit->SetDestination(nullptr, 1);
+								unit->EnterIdleMode(0, 1);
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				// Unit hasn't arrived, continue moving
+
+				// Handle aggressive teams engaging threats
+				if (this->Type->Aggressive && unit->Target) {
+					if (unit->__AssignNewThreat) {
+						unit->SetTarget(nullptr);
+					}
+				}
+
+				// Ensure MOVE mission
+				if (unit->GetCurrentMission() != Mission::Move) {
+					unit->QueueMission(Mission::Move, 0);
+					if (unit->ReadyToNextMission()) {
+						unit->NextMission();
+					}
+				}
+
+				// Set destination if needed
+				if (!unit->Destination) {
+					unit->SetDestination(this->ArchiveTarget, 1);
+				}
+
+				// Update destination for special cases
+				AbstractClass* navCom = unit->Destination;
+
+				if (navCom != this->ArchiveTarget) {
+					TechnoTypeClass* technoType = unit->GetTechnoType();
+					const bool isAircraft = (unit->WhatAmI() == AircraftClass::AbsID);
+
+					if (technoType->BalloonHover ||
+						(isAircraft && navCom == unit->GetCell()))
+					{
+						unit->SetDestination(this->ArchiveTarget, 1);
+					}
+				}
+
+				finished = false;
+			}
+
+			// Common check for both arrived and not-arrived units
+			const bool isAircraftAtCell = (unit->WhatAmI() == AircraftClass::AbsID) &&
+				(unit->Destination == unit->GetCell());
+
+			const bool isBalloonSettled = (unit->AbstractFlags & AbstractFlags::Techno) &&
+				unit->GetTechnoType()->BalloonHover &&
+				(distanceToTarget < strayDistance);
+
+			if (unit->Destination && !isAircraftAtCell && !isBalloonSettled)
+			{
+				finished = false;
+			}
+		}
+
+		unit = unit->NextTeamMember;
+	}
+
+	// All units processed, check if mission complete
+	if (found && finished && this->IsMoving)
 	{
 		this->StepCompleted = true;
 	}
@@ -1470,6 +1664,7 @@ FootClass* FakeTeamClass::_Fetch_A_Leader() {
 	return last_leader;
 }
 
+#ifdef _old
 void FakeTeamClass::_GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*>& missings) {
 	const auto pType = this->Type;
 	const auto pTaskForce = pType->TaskForce;
@@ -1499,6 +1694,46 @@ void FakeTeamClass::_GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*
 			missings.erase(it);
 	}
 }
+#else
+void FakeTeamClass::_GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*>& missings)
+{
+	const auto pTaskForce = this->Type->TaskForce;
+
+	// Build a map of required units: Type -> Count
+	std::unordered_map<TechnoTypeClass*, int> required;
+
+	for (int i = 0; i < pTaskForce->CountEntries; ++i) {
+		TechnoTypeClass* technoType = pTaskForce->Entries[i].Type;
+		if (technoType) {
+			required[technoType] = pTaskForce->Entries[i].Amount;
+		}
+	}
+
+	// Subtract existing team members
+	for (auto pMember = this->FirstUnit; pMember; pMember = pMember->NextTeamMember) {
+		TechnoTypeClass* memberType = pMember->GetTechnoType();
+
+		// Try exact match first
+		if (required.count(memberType) && required[memberType] > 0) {
+			required[memberType]--;
+		} else {
+			// Check if eligible for any required type
+			for (auto& [reqType, count] : required) {
+				if (count > 0 && TeamExtData::IsEligible(pMember, reqType)) {
+					required[reqType]--;
+					break;
+				}
+			}
+		}
+	}
+
+	// Build final missing list
+	missings.clear();
+	for (const auto& [technoType, count] : required) {
+		missings.insert(missings.end(), count, technoType);
+	}
+}
+#endif
 
 void FakeTeamClass::_Flash_For(int a2) {
 	for (auto i = this->FirstUnit; i; i = i->NextTeamMember) {
@@ -1848,276 +2083,6 @@ bool FakeTeamClass::_Lagging_Units()
 	return result;
 }
 
-// Check if unit should continue moving
-bool NOINLINE ShouldUnitKeepMoving(FootClass* unit, int distanceToTarget, int strayDistance)
-{
-	bool isAircraft = unit->WhatAmI() == AircraftClass::AbsID;
-	CellClass* unitCell = unit->GetCell();
-
-	// Check if aircraft is hovering at its current cell
-	bool isAircraftAtCell = isAircraft && unit->Destination == unitCell;
-
-	// Check if balloon hover unit is close enough and grounded
-	bool isBalloonSettled = false;
-	if ((unit->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None)
-	{
-		TechnoTypeClass* technoType = unit->GetTechnoType();
-		if (technoType->BalloonHover && distanceToTarget < strayDistance)
-		{
-			isBalloonSettled = true;
-		}
-	}
-
-	// Unit should keep moving if it has a destination and isn't at a stopping condition
-	if (unit->Destination && !isAircraftAtCell && !isBalloonSettled)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-// Move unit toward target
-void NOINLINE MoveUnitToTarget(TeamClass* team, FootClass* unit, int distanceToTarget, int strayDistance, bool* allFinished)
-{
-	// Handle aggressive teams that may engage threats
-	if (team->Type->Aggressive && unit->Target)
-	{
-		if (unit->__AssignNewThreat)
-		{
-			unit->SetTarget(nullptr);
-		}
-		// If engaged with target, don't force movement
-		// Fall through to movement code
-	}
-
-	// Ensure unit has MOVE mission
-	if (unit->GetCurrentMission() != Mission::Move)
-	{
-		unit->QueueMission(Mission::Move, 0);
-
-		if (unit->ReadyToNextMission())
-		{
-			unit->NextMission();
-		}
-	}
-
-	// Set destination if not already set
-	if (!unit->Destination)
-	{
-		unit->SetDestination(team->ArchiveTarget, 1);
-	}
-
-	// Check if destination needs updating
-	AbstractClass* navCom = unit->Destination;
-
-	if (navCom != team->ArchiveTarget)
-	{
-		TechnoTypeClass* technoType = unit->GetTechnoType();
-		bool isAircraft = unit->WhatAmI() == AircraftClass::AbsID;
-
-		// Update destination for balloon hover units or aircraft at wrong cell
-		if (technoType->BalloonHover ||
-			(isAircraft && navCom == unit->GetCell()))
-		{
-			unit->SetDestination(team->ArchiveTarget, 1);
-		}
-	}
-
-	// Check if unit is still moving
-	if (ShouldUnitKeepMoving(unit, distanceToTarget, strayDistance))
-	{
-		*allFinished = false;
-	}
-}
-
-// Stop unit and enter idle mode if not engaged
-void NOINLINE StopUnitAndIdle(FootClass* unit)
-{
-	if (!unit->Target) // Not engaged with a target
-	{
-		unit->SetDestination(nullptr, 1);
-		unit->EnterIdleMode(0, 1);
-	}
-}
-
-// Handle unit arrival at target
-void NOINLINE HandleUnitArrival(TeamClass* team, FootClass* unit)
-{
-	// Check if unit has reached its navigation destination
-	if (unit->GetCurrentMission() == Mission::Move)
-	{
-		if (!unit->Destination)
-		{
-			// No destination, enter idle if not engaged
-			StopUnitAndIdle(unit);
-		}
-		else
-		{
-			// Check if close enough to destination
-			int distToNav = unit->DistanceFrom(unit->Destination);
-			if (distToNav <= RulesClass::Instance->CloseEnough) {
-				// Check if actually stopped moving
-				if (!unit->Locomotor->Is_Moving()) {
-					StopUnitAndIdle(unit);
-				}
-			}
-		}
-	}
-}
-
-// Process unit movement toward target - returns true if unit has arrived
-bool NOINLINE ProcessUnitMovement(TeamClass * team, FootClass * unit, bool* anyFound, bool* allFinished)
-{
-	// Check if unit is valid for movement
-	if (!unit->IsAlive || !unit->Health)
-		return false;
-	if (!Unsorted::ScenarioInit && unit->InLimbo)
-		return false;
-
-	bool isAircraft = (unit->WhatAmI() == AircraftClass::AbsID);
-	if (!unit->IsTeamLeader && !isAircraft)
-		return false;
-
-	// Skip if unloading
-	if (unit->GetCurrentMission() == Mission::Unload ||
-		unit->QueuedMission == Mission::Unload)
-	{
-		*allFinished = false;
-		return false;
-	}
-
-	// Get stray distance
-	int strayDistance = ((FakeTeamClass*)team)->_Get_Stray();
-
-	// Double stray distance for airborne units
-	if (unit->IsInAir())
-	{
-		strayDistance *= 2;
-	}
-
-	*anyFound = true;
-	int distanceToTarget = unit->DistanceFrom(team->ArchiveTarget);
-
-	// Check if unit has arrived at target
-	if (distanceToTarget <= strayDistance)
-	{
-		int height = unit->GetHeight();
-
-		auto const& [nextMissionType, value] = team->CurrentScript->GetNextAction();
-
-		if (height >= 0 || nextMissionType == TeamMissionType::Move)
-		{
-			// For aircraft, check if landed or next mission is MOVE
-			if (isAircraft)
-			{
-				int zCoord = unit->GetZ();
-				if (zCoord > 0) // Still flying
-				{
-					CoordStruct unitCoord;
-					unit->GetCoords(&unitCoord);
-					CellClass* unitCell = MapClass::Instance->GetCellAt(unitCoord);
-
-					// Not arrived unless at target cell or next mission is MOVE
-					if (unitCell != team->ArchiveTarget && nextMissionType != TeamMissionType::Move)
-					{
-						MoveUnitToTarget(team, unit, distanceToTarget, strayDistance, allFinished);
-						return false;
-					}
-				}
-			}
-
-			// Unit has arrived
-			return true;
-		}
-	}
-
-	// Unit hasn't arrived yet, continue moving
-	MoveUnitToTarget(team, unit, distanceToTarget, strayDistance, allFinished);
-	return false;
-}
-
-// Check if unit should be initiated (start moving toward zone)
-void NOINLINE ProcessUnitInitiation(TeamClass* team, FootClass* unit, bool* allFinished)
-{
-	// Only process uninitiated, active units
-	if (!unit->IsAlive|| !unit->Health)
-		return;
-	if (!Unsorted::ScenarioInit && unit->InLimbo)
-		return;
-	if (unit->IsTeamLeader)
-		return;
-
-	// Get stray distance based on mission type
-	int strayDistance = ((FakeTeamClass*)team)->_Get_Stray();
-
-	// Check if unit is close enough to zone to be considered initiated
-	if (unit->DistanceFrom(team->Zone) <= strayDistance)
-	{
-		unit->IsTeamLeader = true;
-	}
-	else
-	{
-		// Send unit to zone if not already moving there
-		if (!unit->Destination)
-		{
-			unit->QueueMission(Mission::Move, 0);
-			unit->SetTarget(nullptr);
-			unit->SetDestination(team->Zone, 1);
-		}
-		*allFinished = false;
-	}
-
-	// Check if unit is unloading
-	if (unit->GetCurrentMission() == Mission::Unload ||
-		unit->QueuedMission == Mission::Unload)
-	{
-		*allFinished = false;
-	}
-}
-
-void FakeTeamClass::_CoordinateMove()
-{
-	FootClass* unit = this->FirstUnit;
-	if (!unit)
-		return;
-
-	// Ensure target is set
-	if (!this->ArchiveTarget)
-	{
-		this->ArchiveTarget = this->QueuedFocus;
-		if (!this->ArchiveTarget)
-			return;
-	}
-
-	// Check if team has lagging units that need to catch up
-	if (this->_Lagging_Units())
-		return;
-
-	bool anyUnitFound = false;
-	bool allUnitsFinished = true;
-
-	// Process each unit in the team
-	while (unit)
-	{
-		ProcessUnitInitiation(this, unit, &allUnitsFinished);
-
-		if (ProcessUnitMovement(this, unit, &anyUnitFound, &allUnitsFinished))
-		{
-			// Unit has reached target and is ready
-			HandleUnitArrival(this, unit);
-		}
-
-		unit = unit->NextTeamMember;
-	}
-
-	// If all units have arrived and are ready, advance to next mission
-	if (anyUnitFound && allUnitsFinished && this->IsMoving)
-	{
-		this->StepCompleted = true;
-	}
-}
-
 bool FakeTeamClass::_Recalculate() {
     bool IsUnderStrength = this->IsUnderStrength;
 	TeamTypeClass* pType = this->Type;
@@ -2204,19 +2169,9 @@ bool FakeTeamClass::_Recalculate() {
     return 0;
 }
 
-void NOINLINE StopScript(TeamClass* pTeam) {
+void StopScript(FakeTeamClass* pTeam) {
 	if (pTeam->IsFullStrength || pTeam->IsForcedActive) {
-		pTeam->IsMoving = 1;
-		pTeam->IsHasBeen = 1;
-		pTeam->IsUnderStrength = 0;
-		for (FootClass* Member = pTeam->FirstUnit; Member; Member = Member->NextTeamMember){
-			if (pTeam->IsReforming || pTeam->IsForcedActive) {
-				Member->IsTeamLeader = 1;
-			}
-		}
-
-		pTeam->CurrentScript->ClearMission();
-		pTeam->StepCompleted = 1;
+		pTeam->_TeamClass_6EA080();
 	}
 }
 
@@ -2235,6 +2190,27 @@ bool NOINLINE IsTechnoMemberEligible(FootClass* pTech, TeamClass* pTeam)
 		return false;
 
 	return true;
+}
+
+template<typename T>
+void NOINLINE SearchThruArray(DynamicVectorClass<T>* arr, TeamClass* pTeam, int& minDistance , FootClass*& closestAlly) {
+	for (int i = 0; i < arr->Count; i++) {
+		T unit = arr->operator[](i);
+
+		if (!IsTechnoMemberEligible(unit, pTeam))
+			continue;
+
+		// Calculate distance between unit and first member
+		const CoordStruct unitCoord = unit->GetCoords();
+		const CoordStruct memberCoord = pTeam->FirstUnit->GetCoords();
+		const CoordStruct diff = memberCoord - unitCoord;
+		const int distance = diff.Length();
+
+		if (minDistance == -1 || distance < minDistance) {
+			minDistance = distance;
+			closestAlly = unit;
+		}
+	}
 }
 
 void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosestMember)
@@ -2256,46 +2232,10 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 		int minDistance = -1;
 
 		// Search through all units
-		for (int i = 0; i < UnitClass::Array->Count; i++)
-		{
-			UnitClass* unit = UnitClass::Array->operator[](i);
-
-			if (!IsTechnoMemberEligible(unit, this))
-				continue;
-
-			// Calculate distance between unit and first member
-			CoordStruct unitCoord = unit->GetCoords();
-			CoordStruct memberCoord = member->GetCoords();
-			CoordStruct diff = memberCoord - unitCoord;
-
-			int distance = diff.Length();
-
-			if (minDistance == -1 || distance < minDistance)
-			{
-				minDistance = distance;
-				closestAlly = unit;
-			}
-		}
+		SearchThruArray(UnitClass::Array(), this, minDistance, closestAlly);
 
 		// Search through all infantry
-		for (int i = 0; i < InfantryClass::Array->Count; i++)
-		{
-			InfantryClass* infantry = InfantryClass::Array->operator[](i);
-			if (!IsTechnoMemberEligible(infantry, this))
-				continue;
-
-			// Calculate distance between infantry and first member
-			CoordStruct infantryCoord = infantry->GetCoords();
-			CoordStruct memberCoord = member->GetCoords();
-			CoordStruct diff = memberCoord - infantryCoord;
-
-			int distance = diff.Length();
-			if (minDistance == -1 || distance < minDistance)
-			{
-				minDistance = distance;
-				closestAlly = infantry;
-			}
-		}
+		SearchThruArray(InfantryClass::Array(), this, minDistance, closestAlly);
 
 		// If found closest ally, set output parameters
 		if (closestAlly)
@@ -2688,16 +2628,16 @@ BuildingClass* Find_Own_Building(
 }
 
 // Helper function (reused from previous artifacts)
-void ProcessMemberInitiation(FakeTeamClass* team, FootClass* member)
+bool ProcessMemberInitiation(FakeTeamClass* team, FootClass* member)
 {
 	if (!member->IsAlive || !member->Health)
-		return;
+		return false;
 
 	if (!Unsorted::ScenarioInit && member->InLimbo)
-		return;
+		return false;
 
 	if (member->IsTeamLeader)
-		return;
+		return false;
 
 	int strayDistance = team->_Get_Stray();
 
@@ -2711,6 +2651,8 @@ void ProcessMemberInitiation(FakeTeamClass* team, FootClass* member)
 		member->SetTarget(nullptr);
 		member->SetDestination(team->Zone, 1);
 	}
+
+	return true;
 }
 
 // Process transport units after unloading

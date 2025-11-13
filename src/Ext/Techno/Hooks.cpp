@@ -1813,7 +1813,7 @@ ASMJIT_PATCH(0x42EBA2, BaseClass_GetBaseNodeIndex_AIAdjacentMax, 0x8)
 
 	if (rangeLimit >= 0 && isValid)
 	{
-		const auto node = pThis->BaseNodes[nodeIdx];
+		const auto& node = pThis->BaseNodes[nodeIdx];
 		const auto pOwner = pThis->Owner;
 		const auto pBuildingType = BuildingTypeClass::Array->Items[node.BuildingTypeIndex];
 		const CellStruct offset

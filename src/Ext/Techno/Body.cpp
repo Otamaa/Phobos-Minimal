@@ -534,9 +534,7 @@ void __fastcall FakeTechnoClass::__DrawAirstrikeFlare(TechnoClass* pThis, discar
 	for (int step = 1; step <= 64; ++step)
 	{
 		// Calculate interpolated position (assembly divides by 4 in each step)
-		Point2D nextPos;
-		nextPos.X = startPixel.X + (directionX * step) / 64;
-		nextPos.Y = startPixel.Y + (directionY * step) / 64;
+		Point2D nextPos(startPixel.X + (directionX * step) / 64 , startPixel.Y + (directionY * step) / 64);
 		int nextZ = fixedStartZ + (directionZ * step) / 64;
 
 		// Draw main beam segment using custom color
@@ -4350,7 +4348,7 @@ static FORCEDINLINE std::pair<SHPStruct*, int> GetInsigniaDatas(TechnoClass* pTh
 		isCustomInsignia = true;
 	}
 
-	auto insigniaFrames = pTypeExt->InsigniaFrames.Get();
+	Vector3D<int> insigniaFrames = pTypeExt->InsigniaFrames.Get();
 	int insigniaFrame = insigniaFrames.X;
 	int frameIndex = pTypeExt->InsigniaFrame.GetFromSpecificRank(nCurRank);
 
