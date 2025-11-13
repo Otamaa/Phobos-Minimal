@@ -256,7 +256,24 @@ TechnoClass* ScanGroundUnitThreats(TechnoClass* techno, ThreatType method, int b
 
 		// Check if target is on ground layer
 		// TODO : add range here to fix the targeting bug
-		if (!target->IsAlive || target->LastLayer != Layer::Ground)
+
+		if (!RulesExtData::Instance()->AIAirTargetingFix)
+		{
+			if (target->LastLayer != Layer::Ground)
+			{
+				continue;
+			}
+		}
+		else
+		{
+			const bool canTarget = ((method & ThreatType::Air) != ThreatType::Normal) ?
+				target->LastLayer != Layer::Underground : target->LastLayer == Layer::Ground;
+
+			if (!canTarget)
+				continue;
+		}
+
+		if (!target->IsAlive)
 		{
 			continue;
 		}
@@ -748,14 +765,16 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* techno
 		scanRadius = baseRange + RulesClass::Instance->OccupyWeaponRange + 1;
 	}
 
-	// Process aircraft in area
-	bool shouldSearchAir = ((method & ThreatType::Air) != ThreatType::Normal);
-	if (shouldSearchAir)
-	{
-		bestTarget = ProcessAircraftInArea(
-			techno, method, bigthreatbitfield, range,
-			&centerCell, realOwner, a4, &maxThreat
-		);
+	if(!RulesExtData::Instance()->AIAirTargetingFix){
+		// Process aircraft in area
+		const bool shouldSearchAir = ((method & ThreatType::Air) != ThreatType::Normal);
+		if (shouldSearchAir)
+		{
+			bestTarget = ProcessAircraftInArea(
+				techno, method, bigthreatbitfield, range,
+				&centerCell, realOwner, a4, &maxThreat
+			);
+		}
 	}
 
 	// Include vehicles in bitfield if needed

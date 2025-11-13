@@ -809,7 +809,7 @@ ASMJIT_PATCH(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 
 	const auto pCell = MapClass::Instance->GetCellAt(*pHomeCoords);
 	const auto pTechnoType = pTechno->GetTechnoType();
-	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, ZoneType::None, pTechnoType->MovementZone, -1, 1))
+	if (!pCell->IsClearToMove(pTechnoType->SpeedType, pTechno->WhatAmI() == InfantryClass::AbsID, 0, ZoneType::None, pTechnoType->MovementZone, -1, 1))
 	{
 		if (Phobos::Otamaa::IsAdmin)
 			Debug::LogInfo("Techno[{} - {}] Not Allowed to exist at cell [{} . {}] !", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);
@@ -830,7 +830,7 @@ ASMJIT_PATCH(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 
 	const auto pCell = MapClass::Instance->GetCellAt(*pCellCoords);
 	const auto pTechnoType = pTechno->GetTechnoType();
-	if (!pCell->IsClearToMove(pTechnoType->SpeedType, 0, 0, ZoneType::None, pTechnoType->MovementZone, -1, 1))
+	if (!pCell->IsClearToMove(pTechnoType->SpeedType, pTechno->WhatAmI() == InfantryClass::AbsID, 0, ZoneType::None, pTechnoType->MovementZone, -1, 1))
 	{
 		if (Phobos::Otamaa::IsAdmin)
 			Debug::LogInfo("Techno[{} - {}] Not Allowed to exist at cell [{} . {}] !", pTechnoType->ID, pTechno->GetThisClassName(), pCell->MapCoords.X, pCell->MapCoords.Y);

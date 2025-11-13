@@ -580,7 +580,7 @@ public:
 	Valueable<bool> IgnoreCenterMinorRadarEvent { false };
 	Valueable<int> WarheadAnimZAdjust { -15 } ;
 	Valueable<bool> IvanBombAttachToCenter { false };
-
+	Valueable<bool> AIAirTargetingFix { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
