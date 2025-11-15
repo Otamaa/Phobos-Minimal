@@ -105,7 +105,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 		if (pThis->Owner) {
 			auto const pExt = TechnoExtContainer::Instance.Find(pThis->Owner);
 
-			if (pExt->AE.HasExtraWarheads) {
+			if (pExt->AE.flags.HasExtraWarheads) {
 				for (auto const& aE : pExt->AeData.Data) {
 					if (aE.Type->ExtraWarheads.size() > 0)
 						ApplyExtraWarheads(pThis , aE.Type->ExtraWarheads, aE.Type->ExtraWarheads_DamageOverrides, aE.Type->ExtraWarheads_DetonationChances, aE.Type->ExtraWarheads_FullDetonation, coords, pOwner);

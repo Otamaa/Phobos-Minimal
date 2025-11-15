@@ -2998,7 +2998,7 @@ void FakeTeamClass::_AI()
 	if (this->FirstUnit)
 		first = this->FirstUnit->get_ID();
 
-	Debug::Log("Team [%x - %s] with FirstUnit [%x - %s] , executing [%d arg %d] \n", this, this->Type->ID, this->FirstUnit, first.c_str(), (int)node.Action ,node.Argument);
+	//Debug::Log("Team [%x - %s] with FirstUnit [%x - %s] , executing [%d arg %d] \n", this, this->Type->ID, this->FirstUnit, first.c_str(), (int)node.Action ,node.Argument);
 
 	switch (node.Action)
 	{

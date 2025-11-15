@@ -875,7 +875,7 @@ bool NOINLINE TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassi
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	// object disallowed from cloaking
-	if (!pTypeExt->CloakAllowed || pExt->AE.ForceDecloak)
+	if (!pTypeExt->CloakAllowed || pExt->AE.flags.ForceDecloak)
 	{
 		return false;
 	}

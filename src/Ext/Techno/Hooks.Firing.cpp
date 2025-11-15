@@ -381,9 +381,9 @@ ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 {
 	enum { Illegal = 0x6FC86A, OutOfRange = 0x6FC0DF, Continue = 0x6FC5D5 };
 
-	GET(TechnoClass*, pThis, ESI);
+	//GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTransport, EAX);
-	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
+	//GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType());
 
@@ -391,9 +391,10 @@ ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 		return Illegal;
 
 	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons
-		&& TechnoExtContainer::Instance.Find(pTransport)->AE.DisableWeapons
-		&& pThis->GetWeapon(weaponIndex)->WeaponType)
-		return OutOfRange;
+		&& TechnoExtContainer::Instance.Find(pTransport)->AE.flags.DisableWeapons
+		//&& pThis->GetWeapon(weaponIndex)->WeaponType
+		) return Illegal;
+		//return OutOfRange;
 
 	return Continue;
 }
@@ -584,7 +585,7 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->AE.HasOnFireDiscardables) {
+	if (pExt->AE.flags.HasOnFireDiscardables) {
 		for (auto& attachEffect : pExt->PhobosAE) {
 				if(!attachEffect || attachEffect->ShouldBeDiscarded)
 					continue;

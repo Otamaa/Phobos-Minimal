@@ -2259,7 +2259,7 @@ ASMJIT_PATCH(0x6D4764, TechnoClass_PsyhicSensor_DisableWhenTechnoDies, 0x7)
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->AE.Untrackable || TechnoExtData::IsUntrackable(pThis))
+	if (pExt->AE.flags.Untrackable || TechnoExtData::IsUntrackable(pThis))
 	{
 		return 0x6D4793;
 	}
@@ -2690,7 +2690,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					case Powerup::Cloak:
 					{
 
-						if (!TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->AE.Cloakable)
+						if (!TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->AE.flags.Cloakable)
 							data = Powerup::Money;
 
 						break;
@@ -3128,7 +3128,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius)
 								{
-									TechnoExtContainer::Instance.Find(pCollector)->AE.Cloakable = true;
+									TechnoExtContainer::Instance.Find(pCollector)->AE.flags.Cloakable = true;
 									AEProperties::Recalculate(pCollector);
 								}
 							}

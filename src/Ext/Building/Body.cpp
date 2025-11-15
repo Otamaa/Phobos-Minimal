@@ -1174,10 +1174,10 @@ void FakeBuildingClass::UnloadOccupants(bool assignMission, bool killIfStuck)
 int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pLinkedTypeExt)
 {
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	enum class NukeFiringState : int
-	{
+	enum class NukeFiringState : int {
 		PsiWarn, Aux1, SentWeaponPayload, Aux2, Idle
 	};
+
 	switch ((NukeFiringState)pThis->MissionStatus)
 	{
 	case NukeFiringState::PsiWarn:
@@ -1330,13 +1330,17 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 		return 1;
 	}
 	case  NukeFiringState::Aux2:
+	{
 		pThis->BeginMode(BStateType::Aux2);
 		pThis->MissionStatus = 4;
 		return TIMER_SECOND / 10;
+	}
 	case  NukeFiringState::Idle:
+	{
 		pThis->BeginMode(BStateType::Idle);
 		pThis->QueueMission(Mission::Guard, false);
 		return TIMER_SECOND;
+	}
 	default:
 		//apply the missioncontrol rate as delay
 		return int(pThis->GetCurrentMissionControl()->Rate * TICKS_PER_MINUTE);
@@ -1347,8 +1351,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 {
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	enum class EMPulseFiringState : int
-	{
+	enum class EMPulseFiringState : int {
 		Preparing, PlayPulseBall, SentWeaponPayload, RestoreFacing
 	};
 

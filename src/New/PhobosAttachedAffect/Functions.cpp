@@ -326,7 +326,7 @@ void PhobosAEFunctions::ApplyReflectDamage(TechnoClass* pThis , int* pDamage , T
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if (pExt->AE.ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive) {
+	if (pExt->AE.flags.ReflectDamage && *pDamage > 0 && pAttacker && pAttacker->IsAlive) {
 		for (auto& attachEffect : pExt->PhobosAE) {
 
 			if (!attachEffect || !attachEffect->IsActive())

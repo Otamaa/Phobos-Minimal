@@ -360,19 +360,20 @@ ASMJIT_PATCH(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 
 ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
-	enum { FireRange = 0x6FC0DF, ContinueCheck = 0x0 };
+	enum { FireRange = 0x6FC0DF, FireIllegal = 0x6FCCDF , ContinueCheck = 0x0 };
 
 	GET(TechnoClass*, pThis, ESI);
-	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
+	//GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if(pThis->GetWeapon(weaponIndex)->WeaponType){
+	//if(pThis->GetWeapon(weaponIndex)->WeaponType)
+	{
 		if (pExt->DisableWeaponTimer.InProgress())
-			return FireRange;
+			return FireIllegal;
 
-		if (pExt->AE.DisableWeapons)
-			return FireRange;
+		if (pExt->AE.flags.DisableWeapons)
+			return FireIllegal;
 	}
 
 	return ContinueCheck;

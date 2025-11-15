@@ -144,13 +144,13 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 	this->Reset();
 
 	// bail out early if no custom tint is applied.
-	if (!hasTechnoTint && !pOwnerExt->AE.HasTint && !hasShieldTint)
+	if (!hasTechnoTint && !pOwnerExt->AE.flags.HasTint && !hasShieldTint)
 		return;
 
 	if (hasTechnoTint)
 		this->Calculate(Drawing::RGB_To_Int(pTypeExt->Tint_Color), static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
 
-	if (pOwnerExt->AE.HasTint)
+	if (pOwnerExt->AE.flags.HasTint)
 	{
 		for (auto const& attachEffect : pOwnerExt->PhobosAE)
 		{
@@ -7487,7 +7487,7 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	extraCritData->Clear();
 	armormultData->Clear();
 
-	bool wasTint = _AEProp->HasTint;
+	bool wasTint = _AEProp->flags.HasTint;
 	bool hasTint = false;
 	bool reflectsDamage = false;
 	bool hasOnFireDiscardables = false;
@@ -7629,22 +7629,22 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	_AEProp->ROFMultiplier = ROF_Mult;
 	_AEProp->ReceiveRelativeDamageMult = ReceiveRelativeDamageMult;
 	pTechno->Cloakable = Cloak;
-	_AEProp->ForceDecloak = forceDecloak;
-	_AEProp->DisableWeapons = disableWeapons;
-	_AEProp->DisableSelfHeal = disableSelfHeal;
-	_AEProp->Untrackable = untrackable;
-	_AEProp->HasTint = hasTint;
-	_AEProp->ReflectDamage = reflectsDamage;
-	_AEProp->HasOnFireDiscardables = hasOnFireDiscardables;
-	_AEProp->Unkillable = unkillable;
-	_AEProp->HasExtraWarheads = hasExtraWH;
-	_AEProp->HasFeedbackWeapon = hasFeedbackWeapon;
+	_AEProp->flags.ForceDecloak = forceDecloak;
+	_AEProp->flags.DisableWeapons = disableWeapons;
+	_AEProp->flags.DisableSelfHeal = disableSelfHeal;
+	_AEProp->flags.Untrackable = untrackable;
+	_AEProp->flags.HasTint = hasTint;
+	_AEProp->flags.ReflectDamage = reflectsDamage;
+	_AEProp->flags.HasOnFireDiscardables = hasOnFireDiscardables;
+	_AEProp->flags.Unkillable = unkillable;
+	_AEProp->flags.HasExtraWarheads = hasExtraWH;
+	_AEProp->flags.HasFeedbackWeapon = hasFeedbackWeapon;
 
-	if ((_AEProp->DisableRadar != disableRadar) || (_AEProp->DisableSpySat != disableSpySat))
+	if (((bool)_AEProp->flags.DisableRadar != disableRadar) || ((bool)_AEProp->flags.DisableSpySat != disableSpySat))
 		pTechno->Owner->RecheckRadar = true;
 
-	_AEProp->DisableRadar = disableRadar;
-	_AEProp->DisableSpySat = disableSpySat;
+	_AEProp->flags.DisableRadar = disableRadar;
+	_AEProp->flags.DisableSpySat = disableSpySat;
 
 	if (pTechno->AbstractFlags & AbstractFlags::Foot)
 	{

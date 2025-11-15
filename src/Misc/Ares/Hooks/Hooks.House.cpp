@@ -748,7 +748,7 @@ ASMJIT_PATCH(0x505360, HouseClass_PrerequisitesForTechnoTypeAreListed, 5)
 
 	GET_STACK(TechnoTypeClass*, pItem, 0x4);
 	GET_STACK(DynamicVectorClass<BuildingTypeClass*> *, pBuildingsToCheck, 0x8);
-	GET_STACK(int, pListCount, 0xC);
+	//GET_STACK(int, pListCount, 0xC);
 
 	R->EAX(Prereqs::PrerequisitesListed(*pBuildingsToCheck, pItem));
 

@@ -550,29 +550,61 @@ struct AEProperties
 	MinMaxValue<int> ReceivedDamage { INT32_MIN , INT32_MAX };
 	MinMaxValue<double> Speed { 0.0 ,  INT32_MAX };
 
-	bool Cloakable { false };
-	bool ForceDecloak { false };
+	struct AEFlags {
+		union {
+			struct {
+				unsigned Cloakable : 1;
+				unsigned ForceDecloak : 1;
 
-	bool DisableWeapons { false };
-	bool DisableSelfHeal { false };
+				unsigned DisableWeapons : 1;
+				unsigned DisableSelfHeal : 1;
 
-	bool HasRangeModifier { false };
-	bool HasTint { false };
-	bool HasOnFireDiscardables { false };
-	bool HasExtraWarheads { false };
-	bool HasFeedbackWeapon { false };
+				unsigned HasRangeModifier : 1;
+				unsigned HasTint : 1;
+				unsigned HasOnFireDiscardables : 1;
+				unsigned HasExtraWarheads : 1;
+				unsigned HasFeedbackWeapon : 1;
 
-	bool ReflectDamage { false };
-	bool Untrackable { false };
+				unsigned ReflectDamage : 1;
+				unsigned Untrackable : 1;
 
-	bool DisableRadar { false };
-	bool DisableSpySat { false };
-	bool Unkillable { false };
+				unsigned DisableRadar : 1;
+				unsigned DisableSpySat : 1;
+				unsigned Unkillable : 1;
+
+				unsigned _reserved : 18;  // leave unused room for future flags
+			};
+
+			uint32_t bits; // raw access
+		};
+
+	public:
+
+		bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
+			return Serialize(Stm);
+		}
+
+		bool Save(PhobosStreamWriter& Stm) const {
+			return const_cast<AEFlags*>(this)->Serialize(Stm);
+		}
+
+	private:
+
+		template <typename T>
+		bool Serialize(T& Stm) {
+			return Stm
+				.Process(this->bits)
+				.Success()
+				;
+		}
+
+	} flags;
 
 public :
 
 	static void Recalculate(TechnoClass* pTechno);
 	static void UpdateAEAnimLogic(TechnoClass* pTechno);
+
 public :
 
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -602,21 +634,9 @@ protected:
 			.Process(this->ROFBonus)
 			.Process(this->ReceivedDamage)
 			.Process(this->Speed)
-			.Process(this->Cloakable)
-			.Process(this->ForceDecloak)
-			.Process(this->DisableWeapons)
-			.Process(this->DisableSelfHeal)
-			.Process(this->HasRangeModifier)
-			.Process(this->HasTint)
-			.Process(this->HasOnFireDiscardables)
-			.Process(this->HasExtraWarheads)
-			.Process(this->HasFeedbackWeapon)
-			.Process(this->ReflectDamage)
-			.Process(this->Untrackable)
-			.Process(this->DisableRadar)
-			.Process(this->DisableSpySat)
 			.Process(this->ArmorMultData)
-			.Process(this->Unkillable)
+			.Process(this->flags)
+
 			.Success() && Stm.RegisterChange(this)
 			;
 	}
