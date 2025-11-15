@@ -71,14 +71,14 @@ struct IndexFinder<CursorTypeClass*>{
 					secondaryname += pKey;
 
 					CursorTypeClass* pCursor = nullptr;
-					size_t outIndex = -1;
+					int outIndex = -1;
 
 					//already registered by the secondary name
 					if (int idxb = CursorTypeClass::FindIndexById(secondaryname.c_str());  idxb != -1) {
 						pCursor = CursorTypeClass::Array[idxb].get();
 						outIndex = idxb;
 					} else {
-						outIndex = CursorTypeClass::Array.size();
+						outIndex = (int)CursorTypeClass::Array.size();
 						pCursor = CursorTypeClass::Array.emplace_back((std::make_unique<CursorTypeClass>(secondaryname.data()))).get();
 					}
 

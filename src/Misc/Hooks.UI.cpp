@@ -351,6 +351,46 @@ ASMJIT_PATCH(0x604985, GetDialogUIStatusLabels_ShowBriefing, 0x5)
 	return 0;
 }
 
+DEFINE_HOOK(0x6A84DB, StripClass_OperatorLessThan_SortCameoByNameSW, 0x5)
+{
+	enum { rTrue = 0x6A8692, rFalse = 0x6A86A0 };
+
+	GET(SuperWeaponTypeClass*, pLeftSW, EAX);
+	GET(SuperWeaponTypeClass*, pRightSW, ECX);
+
+	if (RulesExtData::Instance()->SortCameoByName)
+	{
+		const int result = strcmp(pLeftSW->Name, pRightSW->Name);
+
+		if (result < 0)
+			return rTrue;
+		else if (result > 0)
+			return rFalse;
+	}
+
+	return wcscmp(pLeftSW->UIName, pRightSW->UIName) <= 0 ? rTrue : rFalse;
+}
+
+DEFINE_HOOK(0x6A86ED, StripClass_OperatorLessThan_SortCameoByNameTechno, 0x5)
+{
+	enum { rTrue = 0x6A8692, rFalse = 0x6A86A0 };
+
+	GET(TechnoTypeClass*, pLeft, EDI);
+	GET(TechnoTypeClass*, pRight, EBP);
+
+	if (RulesExtData::Instance()->SortCameoByName)
+	{
+		const int result = strcmp(pLeft->Name, pRight->Name);
+
+		if (result < 0)
+			return rTrue;
+		else if (result > 0)
+			return rFalse;
+	}
+
+	return wcscmp(pLeft->UIName, pRight->UIName) <= 0 ? rTrue : rFalse;
+}
+
 #pragma region Otamaa
 /*
 namespace GClockTemp

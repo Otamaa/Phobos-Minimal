@@ -581,6 +581,7 @@ public:
 	Valueable<int> WarheadAnimZAdjust { -15 } ;
 	Valueable<bool> IvanBombAttachToCenter { false };
 	Valueable<bool> AIAirTargetingFix { false };
+	Valueable<bool> SortCameoByName { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

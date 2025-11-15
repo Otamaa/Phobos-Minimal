@@ -738,6 +738,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Interceptor_CanTargetHouses.Read(exINI, pSection, "Interceptor.CanTargetHouses");
 		this->Interceptor_GuardRange.Read(exINI, pSection, "Interceptor.%sGuardRange");
 		this->Interceptor_MinimumGuardRange.Read(exINI, pSection, "Interceptor.%sMinimumGuardRange");
+		this->Interceptor_TargetingDelay.Read(exINI, pSection, "Interceptor.%sTargetingDelay");
 		this->Interceptor_Weapon.Read(exINI, pSection, "Interceptor.Weapon");
 		this->Interceptor_DeleteOnIntercept.Read(exINI, pSection, "Interceptor.DeleteOnIntercept");
 		this->Interceptor_WeaponOverride.Read(exINI, pSection, "Interceptor.WeaponOverride");

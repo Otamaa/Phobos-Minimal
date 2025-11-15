@@ -184,6 +184,8 @@ public:
 	Valueable<AffectedHouse> Interceptor_CanTargetHouses;
 	Promotable<Leptons> Interceptor_GuardRange;
 	Promotable<Leptons> Interceptor_MinimumGuardRange;
+	Promotable<int> Interceptor_TargetingDelay;
+
 	Valueable<int> Interceptor_Weapon;
 	Nullable<bool> Interceptor_DeleteOnIntercept;
 	Nullable<WeaponTypeClass*> Interceptor_WeaponOverride;
@@ -1266,6 +1268,7 @@ public:
 		Interceptor_CanTargetHouses(AffectedHouse::Enemies),
 		Interceptor_GuardRange(),
 		Interceptor_MinimumGuardRange(),
+		Interceptor_TargetingDelay(1),
 		Interceptor_Weapon(0),
 		Interceptor_DeleteOnIntercept(),
 		Interceptor_WeaponOverride(),
@@ -2160,6 +2163,7 @@ private:
 			.Process(this->Interceptor_CanTargetHouses)
 			.Process(this->Interceptor_GuardRange)
 			.Process(this->Interceptor_MinimumGuardRange)
+			.Process(this->Interceptor_TargetingDelay)
 			.Process(this->Interceptor_Weapon)
 			.Process(this->Interceptor_DeleteOnIntercept)
 			.Process(this->Interceptor_WeaponOverride)

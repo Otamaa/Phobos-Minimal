@@ -4761,6 +4761,12 @@ void TechnoExtData::UpdateInterceptor()
 	if (!this->IsInterceptor())
 		return;
 
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const int delay = Math::abs(pTypeExt->Interceptor_TargetingDelay.Get(pThis));
+
+	if (Unsorted::CurrentFrame % delay != 0)
+		return;
+
 	if (auto pTarget = pThis->Target) {
 		if (pTarget->WhatAmI() != AbstractType::Bullet)
 			return;
@@ -4778,8 +4784,6 @@ void TechnoExtData::UpdateInterceptor()
 
 	if (TechnoExtData::IsInWarfactory(pThis))
 		return;
-
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	if (pThis->WhatAmI() == AircraftClass::AbsID && !pThis->IsInAir())
 		return;
@@ -4828,6 +4832,13 @@ void TechnoExtData::UpdateInterceptor()
 		if (!pBulletTypeExt->Interceptable || pBullet->SpawnNextAnim)
 			continue;
 
+		const bool isTargetedOrLocked = bool(pBulletExt->InterceptedStatus &
+			(InterceptedStatus::Targeted | InterceptedStatus::Locked));
+
+		// If we already have an optional target skip ones that are already being targeted etc.
+		if (pTargetBullet && isTargetedOrLocked)
+			continue;
+
 		const auto distanceSq = pBullet->Location.DistanceFromSquared(pThis->Location);
 
 		if (pTypeExt->Interceptor_ConsiderWeaponRange.Get() &&
@@ -4851,7 +4862,7 @@ void TechnoExtData::UpdateInterceptor()
 		if (!EnumFunctions::CanTargetHouse(pTypeExt->Interceptor_CanTargetHouses, pThis->Owner, bulletOwner))
 			continue;
 
-		if (pBulletExt->InterceptedStatus & (InterceptedStatus::Targeted | InterceptedStatus::Locked))
+		if (!pTargetBullet && isTargetedOrLocked)
 		{
 			// Set as optional target
 			pTargetBullet = pBullet;
@@ -4863,54 +4874,8 @@ void TechnoExtData::UpdateInterceptor()
 		return;
 	}
 
-	// Loop ends and there is no target
-	if (!pTargetBullet)
-		return;
-
-	// There is an optional target, but it is still possible to continue checking for more suitable target
-	for (; i < count; ++i)
-	{
-		const auto& pBullet = BulletClass::Array->Items[i];
-		const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
-		const auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(pBullet->Type);
-
-		if (pBulletExt->InterceptedStatus & (InterceptedStatus::Targeted | InterceptedStatus::Locked))
-			continue;
-
-		if (!pBulletTypeExt->Interceptable || pBullet->SpawnNextAnim)
-			continue;
-
-		const auto distanceSq = pBullet->Location.DistanceFromSquared(pThis->Location);
-
-		if (pTypeExt->Interceptor_ConsiderWeaponRange.Get() &&
-				(distanceSq > wpnRangeS1q || distanceSq < wpnminRangeS1q))
-			continue;
-
-		if (distanceSq > guardRangeSq || distanceSq < minguardRangeSq)
-			continue;
-
-		if (pBulletTypeExt->Armor.isset())
-		{
-			auto const pWhExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-			if (Math::abs(pWhExt->GetVerses(pBulletTypeExt->Armor).Verses)
-				//GeneralUtils::GetWarheadVersusArmor(pWeapon->Warhead , pBulletTypeExt->Armor))
-				< 0.001)
-				continue;
-		}
-
-		const auto bulletOwner = pBullet->Owner ? pBullet->Owner->Owner : pBulletExt->Owner;
-
-		if (!EnumFunctions::CanTargetHouse(pTypeExt->Interceptor_CanTargetHouses, pThis->Owner, bulletOwner))
-			continue;
-
-		// Establish target
-		pThis->SetTarget(pBullet);
-		return;
-	}
-
-	// There is no more suitable target, establish optional target
 	if (pTargetBullet)
-		pThis->SetTarget(pTargetBullet);
+		pThis->SetTarget(pTargetBullet);  // There is no more suitable target, establish optional target
 }
 
 void TechnoExtData::UpdateTiberiumEater()

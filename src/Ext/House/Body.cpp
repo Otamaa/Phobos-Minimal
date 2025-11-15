@@ -988,34 +988,6 @@ bool HouseExtData::GetParadropContent(HouseClass* pHouse, Iterator<TechnoTypeCla
 
 #include <Ext/Team/Body.h>
 
-NOINLINE void GetRemainingTaskForceMembers(TeamClass* pTeam, std::vector<TechnoTypeClass*>& missings)
-{
-	const auto pType = pTeam->Type;
-	const auto pTaskForce = pType->TaskForce;
-
-	for (int a = 0; a < pTaskForce->CountEntries; ++a)
-	{
-		for (int i = 0; i < pTaskForce->Entries[a].Amount; ++i)
-		{
-			if (auto pTaskType = pTaskForce->Entries[a].Type)
-			{
-				missings.emplace_back(pTaskType);
-			}
-		}
-	}
-
-	//remove first finded similarity
-	for (auto pMember = pTeam->FirstUnit; pMember; pMember = pMember->NextTeamMember)
-	{
-		auto it = std::ranges::find_if(missings, [&](TechnoTypeClass* pMissType) {
-	 		return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
-		});
-
-		if (it != std::ranges::end(missings))
-			missings.erase(it);
-	}
-}
-
 void HouseExtData::GetUnitTypeToProduce()
 {
 	auto pThis = This();
@@ -1051,7 +1023,7 @@ void HouseExtData::GetUnitTypeToProduce()
 			continue;
 		}
 
-		GetRemainingTaskForceMembers(currentTeam, taskForceMembers);
+		((FakeTeamClass*)currentTeam)->_GetTaskForceMissingMemberTypes(taskForceMembers);
 
 		for (auto& currentMember : taskForceMembers)
 		{
@@ -1179,7 +1151,7 @@ int HouseExtData::GetAircraftTypeToProduce()
 
 		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
 		{
-			GetRemainingTaskForceMembers(CurrentTeam, taskForceMembers);
+			((FakeTeamClass*)CurrentTeam)->_GetTaskForceMissingMemberTypes(taskForceMembers);
 
 			for (auto& pMember : taskForceMembers)
 			{
@@ -1282,7 +1254,7 @@ int HouseExtData::GetInfantryTypeToProduce()
 
 		if (CurrentTeam->Type->Reinforce && !CurrentTeam->IsFullStrength || !CurrentTeam->IsForcedActive && !CurrentTeam->IsHasBeen)
 		{
-			GetRemainingTaskForceMembers(CurrentTeam, taskForceMembers);
+			((FakeTeamClass*)CurrentTeam)->_GetTaskForceMissingMemberTypes(taskForceMembers);
 
 			for (auto& pMember : taskForceMembers)
 			{
