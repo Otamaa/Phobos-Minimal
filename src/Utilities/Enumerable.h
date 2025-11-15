@@ -99,7 +99,7 @@ public:
 	}
 
 	static OPTIONALINLINE COMPILETIMEEVAL void AllocateNoCheck(const char* Title) {
-		Array.emplace_back(std::move(std::make_unique<T>(Title)));
+		Array.emplace_back((std::make_unique<T>(Title)));
 	}
 
 	static OPTIONALINLINE COMPILETIMEEVAL T* FindOrAllocate(const char* Title)

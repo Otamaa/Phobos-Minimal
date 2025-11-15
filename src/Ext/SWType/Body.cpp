@@ -19,7 +19,6 @@
 
 #include <Notifications.h>
 
-#include <SuperWeaponTypeClass.h>
 #include <StringTable.h>
 
 #include "NewSuperWeaponType/SWTypeHandler.h"

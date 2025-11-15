@@ -5068,7 +5068,7 @@ void TechnoExtData::InitializeLaserTrail(TechnoClass* pThis, bool bIsconverted)
 	{
 		pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size());
 		for (auto const& entry : pTypeExt->LaserTrailData) {
-			pExt->LaserTrails.emplace_back(std::move(std::make_unique<LaserTrailClass>(
+			pExt->LaserTrails.emplace_back((std::make_unique<LaserTrailClass>(
 					LaserTrailTypeClass::Array[entry.idxType].get(), pOwner->LaserColor, entry.FLH, entry.IsOnTurret)));
 		}
 	}
@@ -5092,7 +5092,7 @@ void TechnoExtData::UpdateLaserTrails(TechnoClass* pThis) {
 	pExt->LaserTrails.reserve(pTypeExt->LaserTrailData.size() + dummy.size());
 
 	for (auto const& entry : pTypeExt->LaserTrailData) {
-		pExt->LaserTrails.emplace_back(std::move(std::make_unique<LaserTrailClass>(
+		pExt->LaserTrails.emplace_back((std::make_unique<LaserTrailClass>(
 			LaserTrailTypeClass::Array[entry.idxType].get(), pThis->Owner->LaserColor, entry.FLH, entry.IsOnTurret)));
 	}
 

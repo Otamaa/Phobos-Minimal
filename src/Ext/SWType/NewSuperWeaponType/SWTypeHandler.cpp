@@ -790,11 +790,7 @@ TypeContainer::TypeContainer()
 void TypeContainer::Register(std::unique_ptr<SWTypeHandler> pType, NewSuperType nType, std::string_view typeStrings)
 {
 	pType->TypeIndex = nType;
-	pType->TypeStrings = typeStrings | std::views::split(',') | std::views::transform([](auto&& rng) {
-			std::string_view sv(&*rng.begin(), std::ranges::distance(rng));
-			return std::string(PhobosCRT::trim(sv));
-		})
-	| std::ranges::to<std::vector>();
-
+	auto [arr, count] = PhobosCRT::splits<8>(typeStrings);
+	pType->TypeStrings.assign(arr.begin(), arr.begin() + count);
 	Array[size_t(nType)] = (std::move(pType));
 }

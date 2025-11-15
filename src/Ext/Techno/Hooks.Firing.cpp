@@ -381,15 +381,18 @@ ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 {
 	enum { Illegal = 0x6FC86A, OutOfRange = 0x6FC0DF, Continue = 0x6FC5D5 };
 
-	//GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTransport, EAX);
+	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType());
 
 	if (pTransport->Transporter || (pTransport->Deactivated && !pTypeExt->OpenTopped_AllowFiringIfDeactivated))
 		return Illegal;
 
-	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons && TechnoExtContainer::Instance.Find(pTransport)->AE.DisableWeapons)
+	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons
+		&& TechnoExtContainer::Instance.Find(pTransport)->AE.DisableWeapons
+		&& pThis->GetWeapon(weaponIndex)->WeaponType)
 		return OutOfRange;
 
 	return Continue;

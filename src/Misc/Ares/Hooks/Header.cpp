@@ -1413,14 +1413,8 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 
 Action TechnoExt_ExtData::GetEngineerEnterEnemyBuildingAction(BuildingClass* const pBld)
 {
-	// only skirmish allows to disable it, so we only check there. for all other
-	// modes, it's always on. single player campaigns also use special multi
-	// engineer behavior.
-	auto const gameMode = SessionClass::Instance->GameMode;
-
-	if (gameMode == GameMode::Skirmish && !GameModeOptionsClass::Instance->MultiEngineer
-		|| gameMode == GameMode::Campaign)
-	{
+	//Spawner now the one control this
+	if (!GameModeOptionsClass::Instance->MultiEngineer) {
 		// single player missions are currently hardcoded to "don't do damage".
 		return Action::Capture; // TODO: replace this by a new rules tag.
 	}
@@ -1430,14 +1424,11 @@ Action TechnoExt_ExtData::GetEngineerEnterEnemyBuildingAction(BuildingClass* con
 	// as tech if its initial owner is a multiplayer-passive country.
 	auto const pRulesExt = RulesExtData::Instance();
 
-	if (auto pOwner = pBld->InitialOwner)
-	{
-		if (pOwner->Type->MultiplayPassive && pRulesExt->EngineerAlwaysCaptureTech)
-			return Action::Capture;
+	if (pBld->InitialOwner && pBld->InitialOwner->Type->MultiplayPassive && pRulesExt->EngineerAlwaysCaptureTech) {
+		return Action::Capture;
 	}
 
-	if (pBld->GetHealthPercentage() > pRulesExt->AttachedToObject->EngineerCaptureLevel)
-	{
+	if (pBld->GetHealthPercentage() > pRulesExt->AttachedToObject->EngineerCaptureLevel) {
 		return (pRulesExt->EngineerDamage > 0.0)
 			? Action::Damage : Action::NoEnter;
 	}

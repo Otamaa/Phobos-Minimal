@@ -724,7 +724,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	}
 	else
 	{
-		targetAEs.emplace_back(std::move(std::make_unique<PhobosAttachEffectClass>()));
+		targetAEs.emplace_back((std::make_unique<PhobosAttachEffectClass>()));
 		auto const pAE = targetAEs.back().get();
 		pAE->Initialize(pType, pTarget, pInvokerHouse, pInvoker, pSource, attachParams.DurationOverride, attachParams.Delay, attachParams.InitialDelay, attachParams.RecreationDelay);
 		if (!currentTypeCount && pType->Cumulative && pType->CumulativeAnimations.size() > 0)

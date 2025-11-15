@@ -31,9 +31,10 @@
 // Wrapper for DamageArea::Apply() that sets a pointer in WarheadTypeExt::ExtData that is used to figure 'intended' target of the Warhead detonation, if set and there's no CellSpread.
 DamageAreaResult WarheadTypeExtData::DamageAreaWithTarget(CoordStruct coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget)
 {
-	this->IntendedTarget = pTarget;
+	auto const pWarheadTypeExt = WarheadTypeExtContainer::Instance.Find(pWH);
+	pWarheadTypeExt->IntendedTarget = pTarget;
 	auto result = DamageArea::Apply(&coords, damage, pSource, pWH, true, pSourceHouse);
-	this->IntendedTarget = nullptr;
+	pWarheadTypeExt->IntendedTarget = nullptr;
 	return result;
 }
 

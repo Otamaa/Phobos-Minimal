@@ -114,7 +114,7 @@ public:
 
 		if (it == Array.end())
 		{
-			Array.emplace_back(std::move(std::make_unique<LooseAudioCache>(Title)));
+			Array.emplace_back((std::make_unique<LooseAudioCache>(Title)));
 			return (int)Array.back()->GetName().c_str(); // fuckers
 		}
 

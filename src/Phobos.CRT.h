@@ -8,6 +8,9 @@ class PhobosCRT final
 {
 	NO_CONSTRUCT_CLASS(PhobosCRT)
 public:
+	static COMPILETIMEEVAL bool is_space(char c) {
+		return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v';
+	}
 
 	// these two are saner mechanisms for string copying
 
@@ -190,13 +193,63 @@ public:
 	}
 
 	static COMPILETIMEEVAL std::string_view FORCEDINLINE trim(std::string_view sv) {
-			auto is_space = [](unsigned char c) { return std::isspace(c); };
+		size_t begin = 0;
+		size_t end = sv.size();
 
-			while (!sv.empty() && is_space(sv.front()))
-				sv.remove_prefix(1);
-			while (!sv.empty() && is_space(sv.back()))
-				sv.remove_suffix(1);
+		while (begin < end && is_space(sv[begin]))
+			++begin;
 
-			return sv;
+		while (end > begin && is_space(sv[end - 1]))
+			--end;
+
+		return sv.substr(begin, end - begin);
 	};
+
+	template<size_t max>
+	static COMPILETIMEEVAL std::array<std::string_view, max> OPTIONALINLINE split(std::string_view s)
+	{
+		std::array<std::string_view, max> out {};
+		size_t count = 0;
+		size_t pos = 0;
+
+		while (pos < s.size() && count < out.size())
+		{
+			size_t next = s.find(',', pos);
+
+			if (next == std::string_view::npos)
+			{
+				out[count++] = trim(s.substr(pos));
+				break;
+			}
+
+			out[count++] = trim(s.substr(pos, next - pos));
+			pos = next + 1;
+		}
+
+		return out;
+	}
+
+	template<size_t max>
+	static COMPILETIMEEVAL auto OPTIONALINLINE splits(std::string_view s)
+	{
+		std::array<std::string_view, max> out {};
+		size_t count = 0;
+		size_t pos = 0;
+
+		while (pos < s.size() && count < out.size())
+		{
+			size_t next = s.find(',', pos);
+
+			if (next == std::string_view::npos)
+			{
+				out[count++] = trim(s.substr(pos));
+				break;
+			}
+
+			out[count++] = trim(s.substr(pos, next - pos));
+			pos = next + 1;
+		}
+
+		return std::pair<std::array<std::string_view, max>, size_t>{ out, count };
+	}
 };

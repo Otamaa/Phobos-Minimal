@@ -98,7 +98,7 @@ public:
 	}
 
 	static OPTIONALINLINE void AllocateWithDefault(const char* Title, const Theater& theater, bool IsArtic, bool AllowMapGen, bool islunar) {
-		Array.emplace_back(std::move(std::make_unique<TheaterTypeClass>(Title, &theater , IsArtic , AllowMapGen , islunar)));
+		Array.emplace_back((std::make_unique<TheaterTypeClass>(Title, &theater , IsArtic , AllowMapGen , islunar)));
 	}
 
 	void LoadFromStream(PhobosStreamReader& Stm) {

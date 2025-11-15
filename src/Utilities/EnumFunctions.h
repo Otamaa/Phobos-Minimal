@@ -95,7 +95,7 @@ public:
 class MouseCursorHotSpotX
 {
 public:
-	static OPTIONALINLINE bool Parse(char* key, MouseHotSpotX* value)
+	static OPTIONALINLINE bool Parse(const char* key, MouseHotSpotX* value)
 	{
 		if (key && value)
 		{
@@ -120,7 +120,7 @@ public:
 class MouseCursorHotSpotY
 {
 public:
-	static OPTIONALINLINE bool Parse(char* key, MouseHotSpotY* value)
+	static OPTIONALINLINE bool Parse(const char* key, MouseHotSpotY* value)
 	{
 		if (key && value)
 		{

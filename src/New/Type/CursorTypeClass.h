@@ -7,6 +7,9 @@
 #include <WWMouseClass.h>
 #include <GeneralDefinitions.h>
 
+#include <ranges>
+#include <string_view>
+
 class CursorTypeClass final : public Enumerable<CursorTypeClass>
 {
 public:
@@ -25,9 +28,11 @@ public:
 
 	static void LoadFromINIList_New(CCINIClass* pINI, bool bDebug = false);
 
-	static OPTIONALINLINE COMPILETIMEEVAL void AllocateWithDefault(const char* Title , const MouseCursor& cursor) {
-		Array.emplace_back(std::move(std::make_unique<CursorTypeClass>(Title)));
-		Array.back()->CursorData = cursor;
+	static OPTIONALINLINE COMPILETIMEEVAL size_t AllocateWithDefault(const char* Title , const MouseCursor& cursor) {
+		size_t sz = Array.size();
+			Array.emplace_back((std::make_unique<CursorTypeClass>(Title)));
+			Array.back()->CursorData = cursor;
+		return sz;
 	}
 
 private:
@@ -36,72 +41,65 @@ private:
 
 };
 
-//template <>
-//void NOINLINE ValueableIdx<CursorTypeClass*>::Read(INI_EX& parser, const char* pSection, const char* pKey)
-//{
-//	if (parser.ReadString(pSection, pKey))
-//	{
-//		const char* val = parser.value();
-//		const bool IsBlank = GameStrings::IsBlank(val);
-//		const int idx = CursorTypeClass::FindIndexById(val);
-//
-//		//invalid idx , is not blank , and the first value is number
-//		if (idx == -1 && !IsBlank && std::isdigit(val[0]))
-//		{
-//			const auto nEwIdx = CursorTypeClass::FindIndexById(pSection);
-//
-//			if(nEwIdx == -1)
-//			{
-//				std::string copyed = parser.value();
-//				MouseCursor value {};
-//
-//				char* context = nullptr;
-//				if (char* const pFrame = strtok_s(parser.value(), Phobos::readDelims, &context))
-//				{
-//					Parser<int>::Parse(pFrame, &value.StartFrame);
-//				}
-//				if (char* const pCount = strtok_s(nullptr, Phobos::readDelims, &context))
-//				{
-//					Parser<int>::Parse(pCount, &value.FrameCount);
-//				}
-//				if (char* const pInterval = strtok_s(nullptr, Phobos::readDelims, &context))
-//				{
-//					Parser<int>::Parse(pInterval, &value.FrameRate);
-//				}
-//				if (char* const pFrame = strtok_s(nullptr, Phobos::readDelims, &context))
-//				{
-//					Parser<int>::Parse(pFrame, &value.SmallFrame);
-//				}
-//				if (char* const pCount = strtok_s(nullptr, Phobos::readDelims, &context))
-//				{
-//					Parser<int>::Parse(pCount, &value.SmallFrameCount);
-//				}
-//				if (char* const pHotX = strtok_s(nullptr, Phobos::readDelims, &context))
-//				{
-//					MouseCursorHotSpotX::Parse(pHotX, &value.X);
-//				}
-//				if (char* const pHotY = strtok_s(nullptr, Phobos::readDelims, &context))
-//				{
-//					MouseCursorHotSpotY::Parse(pHotY, &value.Y);
-//				}
-//
-//				CursorTypeClass::AllocateWithDefault(pSection , value);
-//				this->Value = CursorTypeClass::Array.size() - 1;
-//				Debug::LogInfo("[Phobos]Parsing CusorTypeClass from raw Cursor value of [%s]%s=%s", pSection, pKey, copyed.c_str());
-//				return;
-//			}
-//			else
-//			{
-//				this->Value = nEwIdx;
-//				return;
-//			}
-//		}
-//		else if (idx != -1)
-//		{
-//			this->Value = idx;
-//			return;
-//		}
-//
-//		Debug::INIParseFailed(pSection, pKey, val ,"Expect Valid CursorType");
-//	}
-//}
+template<>
+struct IndexFinder<CursorTypeClass*>{
+
+	static OPTIONALINLINE bool getindex(int& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate = false)
+	{
+		if (parser.ReadString(pSection, pKey))
+		{
+			std::string_view val_(parser.value());
+
+			if (GameStrings::IsBlank(val_.data())) {
+				value = -1;
+				return true;
+			}
+
+			if (int idx = CursorTypeClass::FindIndexById(val_.data());  idx != -1) {
+				value = idx;
+				return true;
+			}
+
+			if (!val_.empty()) {
+
+				const size_t commaCount = std::ranges::count(val_, ',');
+
+				if(commaCount == 6){
+
+					std::string secondaryname = pSection;
+					secondaryname += "_";
+					secondaryname += pKey;
+
+					CursorTypeClass* pCursor = nullptr;
+					size_t outIndex = -1;
+
+					//already registered by the secondary name
+					if (int idxb = CursorTypeClass::FindIndexById(secondaryname.c_str());  idxb != -1) {
+						pCursor = CursorTypeClass::Array[idxb].get();
+						outIndex = idxb;
+					} else {
+						outIndex = CursorTypeClass::Array.size();
+						pCursor = CursorTypeClass::Array.emplace_back((std::make_unique<CursorTypeClass>(secondaryname.data()))).get();
+					}
+
+					auto contexes = PhobosCRT::split<7>(val_);
+					auto cursor = pCursor->CursorData.operator->();
+					Parser<int>::Parse(contexes[0].data(), &cursor->StartFrame);
+					Parser<int>::Parse(contexes[1].data(), &cursor->FrameCount);
+					Parser<int>::Parse(contexes[2].data(), &cursor->FrameRate);
+					Parser<int>::Parse(contexes[3].data(), &cursor->SmallFrame);
+					Parser<int>::Parse(contexes[4].data(), &cursor->SmallFrameCount);
+					MouseCursorHotSpotX::Parse(contexes[5].data(), &cursor->X);
+					MouseCursorHotSpotY::Parse(contexes[6].data(), &cursor->Y);
+
+					value = outIndex;
+					return true;
+				}
+			}
+
+			Debug::INIParseFailed(pSection, pKey, parser.value());
+		}
+
+		return false;
+	}
+};

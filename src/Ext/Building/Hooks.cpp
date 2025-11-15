@@ -88,6 +88,11 @@ ASMJIT_PATCH(0x4555E4, BuildingClass_IsPowerOnline_Overpower, 0x6)
 	enum { LowPower = 0x4556BE, Continue1 = 0x4555F0, Continue2 = 0x455643 };
 
 	GET(FakeBuildingClass*, pThis, ESI);
+	GET(const int, threshold, EDI);
+
+		// Battery.KeepOnline activated
+	if (!threshold)
+		return R->Origin() == 0x4555E4 ? Continue1 : Continue2;
 
 	if(pThis->_GetTypeExtData()->Overpower_KeepOnline < 0)
 		return LowPower;
