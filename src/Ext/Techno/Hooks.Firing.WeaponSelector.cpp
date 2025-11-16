@@ -56,9 +56,11 @@ ASMJIT_PATCH(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 		auto const pWeaponSecondary = pThis->GetWeapon(1)->WeaponType;
 		const auto pPrimaryExt = WeaponTypeExtContainer::Instance.Find(pWeaponPrimary);
 
-		if (pWeaponSecondary && !pPrimaryExt->SkipWeaponPicking && (!EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true)
-			|| (pPrimaryExt->AttachEffect_CheckOnFirer && !pPrimaryExt->HasRequiredAttachedEffects(pThis, pThis))
-		))
+		if (pWeaponSecondary && !pPrimaryExt->SkipWeaponPicking 
+			&& (!EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true)
+			|| (pPrimaryExt->AttachEffect_CheckOnFirer && !pPrimaryExt->HasRequiredAttachedEffects(pThis, pThis)))
+			&& (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback
+			|| TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)))
 		{
 			R->EAX(1);
 			return UseWeaponIndex;

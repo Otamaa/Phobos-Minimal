@@ -582,6 +582,7 @@ public:
 	Valueable<bool> IvanBombAttachToCenter { false };
 	Valueable<bool> AIAirTargetingFix { false };
 	Valueable<bool> SortCameoByName { false };
+	Valueable<bool> AllowDeployControlledMCV { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

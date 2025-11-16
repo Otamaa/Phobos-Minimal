@@ -296,7 +296,7 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 			return FireIllegal;
 	}
 
-	if (!TechnoExtData::CheckCellAllowFiring(targetCell, pWeapon))
+	if (!TechnoExtData::CheckCellAllowFiring(pThis, targetCell, pWeapon))
 		return FireIllegal;
 
 	if (pTargetTechno)

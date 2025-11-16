@@ -19,7 +19,7 @@ bool CanUndeployOnSell(BuildingClass* pThis)
 			return false;
 
 		// or MindControlledBy YURIX (why? for balance?)
-		if (pThis->MindControlledBy)
+		if (!RulesExtData::Instance()->AllowDeployControlledMCV && pThis->MindControlledBy)
 			return false;
 	}
 	//else
@@ -36,6 +36,12 @@ bool CanUndeployOnSell(BuildingClass* pThis)
 DEFINE_JUMP(LJMP, 0x443A9A, 0x443AA3) //BuildingClass_SetRallyPoint
 DEFINE_JUMP(LJMP, 0x44375E, 0x443767) //BuildingClass_CellClickedAction
 DEFINE_JUMP(LJMP, 0x44F602, 0x44F60B) //BuildingClass_IsControllable
+ASMJIT_PATCH(0x700ED0, TechnoClass_AllowDeployControlledMCV, 0x6)// UnitClass::CanDeploySlashUnload
+{
+	return RulesExtData::Instance()->AllowDeployControlledMCV ? R->Origin() + 0xE : 0;
+}ASMJIT_PATCH_AGAIN(0x443770, TechnoClass_AllowDeployControlledMCV, 0x6)// BuildingClass::CellClickedAction
+ASMJIT_PATCH_AGAIN(0x443AB0, TechnoClass_AllowDeployControlledMCV, 0x6)// BuildingClass::SetRallyPoint
+ASMJIT_PATCH_AGAIN(0x44F614, TechnoClass_AllowDeployControlledMCV, 0x6)// BuildingClass::IsControllable
 
 ASMJIT_PATCH(0x449CC1, BuildingClass_Mission_Destruction_EVASoldAndUndeploysInto, 0x6)
 {

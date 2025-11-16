@@ -43,14 +43,15 @@ ASMJIT_PATCH(0x5F8277, ObjectTypeClass_Load3DArt_NoSpawnAlt1, 7)
 
 		std::string _buffer = pThis->ImageFile;
 		_buffer += "WO";
-		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str(), 1);
-		nPairStatus.swap(pTypeExt->SpawnAltData);
-
-		if (!nPairStatus.Loaded)
-		{
+		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str());
+	
+		if (!nPairStatus.Loaded) {
 			Debug::LogInfo("{} Techno NoSpawnAlt Image[{}] cannot be loaded ,returning load failed ! ", pThis->ID, _buffer.c_str());
 			bLoadFailed = true;
+			return 0x5F8287;
 		}
+
+		nPairStatus.swap(pTypeExt->SpawnAltData);
 	}
 
 	return 0x5F8287;
@@ -90,14 +91,14 @@ ASMJIT_PATCH(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 			pThis->ChargerBarrels[i] :
 			pTypeExt->BarrelImageData[i - TechnoTypeClass::MaxWeapons];
 
-		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str(), 1);
-		nPairStatus.swap(nArr);
+		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str());
 
-		if (!nPairStatus.Loaded)
-		{
+		if (!nPairStatus.Loaded) {
 			Debug::LogInfo("{} Techno Barrel [{}] at[{}] cannot be loaded , breaking the loop ! ", pThis->ID, _buffer.c_str(), i);
 			break;
 		}
+
+		nPairStatus.swap(nArr);
 	}
 
 	return 0x5F8A6A;
@@ -135,15 +136,14 @@ ASMJIT_PATCH(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 			pTypeExt->TurretImageData[i - TechnoTypeClass::MaxWeapons];
 			;
 
-		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str(), 1);
-		nPairStatus.swap(nArr);
+		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str());
 
-		if (!nPairStatus.Loaded)
-		{
+		if (!nPairStatus.Loaded) {
 			Debug::LogInfo("{} Techno Turret [{}] at[{}] cannot be loaded , breaking the loop ! ", pThis->ID, _buffer.c_str(), i);
 			break;
 		}
 
+		nPairStatus.swap(nArr);
 	}
 
 	return 0x5F868C;
@@ -199,8 +199,13 @@ ASMJIT_PATCH(0x5F8084, ObjectTypeClass_UnloadTurretArt, 6)
 
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pThis);
 
+	for(auto& bar : pThis->ChargerBarrels){
+		bar.~VoxelStruct();
+	}
+
 	pTypeExt->BarrelImageData.clear();
 	pTypeExt->TurretImageData.clear();
+	pTypeExt->SpawnAltData.~VoxelStruct();
 
 	return 0;
 }

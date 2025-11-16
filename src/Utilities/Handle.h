@@ -35,9 +35,7 @@ struct Handle : public Handles
 	Handle(Handle&& other) noexcept
 		: Handles()
 		, Value(other.release())
-	{
-		Handles::Array.emplace_back(this);
-	}
+	{ }
 
 	~Handle() noexcept
 	{

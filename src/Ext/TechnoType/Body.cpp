@@ -2175,7 +2175,7 @@ void TechnoTypeExtData::InitializeConstant()
 	this->PassengerDeletionType.OwnerType = This();
 }
 
-ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
+ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey)
 {
 	std::string _buffer = nKey;
 	const size_t key_len = _buffer.size();
@@ -2209,7 +2209,7 @@ ImageStatusses ImageStatusses::ReadVoxel(const char* const nKey, bool a4)
 		}
 	}
 
-	return { {nullptr , nullptr} , a4 };
+	return { {nullptr , nullptr} , false };
 }
 
 void TechnoTypeExtData::AdjustCrushProperties()

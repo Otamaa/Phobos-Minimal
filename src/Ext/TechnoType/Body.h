@@ -81,7 +81,19 @@ struct ImageStatusses
 	VoxelStruct Images;
 	bool Loaded;
 
-	static ImageStatusses ReadVoxel(const char* const nKey, bool a4);
+	~ImageStatusses()
+	{
+		if (Loaded) {
+			GameDelete<true, true>(Images.VXL);
+			GameDelete<true, true>(Images.HVA);
+
+			Images.VXL = nullptr;
+			Images.HVA = nullptr;
+			Loaded = false;
+		}
+	}
+
+	static ImageStatusses ReadVoxel(const char* const nKey);
 
 	void swap(VoxelStruct& from) {
 
@@ -92,6 +104,8 @@ struct ImageStatusses
 		if (from.HVA != this->Images.HVA) {
 			std::swap(from.HVA, this->Images.HVA);
 		}
+
+		this->Loaded = this->Images.VXL || this->Images.HVA;
 	}
 
 	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
@@ -146,7 +160,7 @@ class SelectBoxTypeClass;
 class TechnoTypeExtData : public ObjectTypeExtData
 {
 public:
-	using ImageVector = std::vector<VoxelStruct>;
+	//using ImageVector = std::vector<VoxelStruct>;
 	using ColletiveCoordStructVectorData = std::array<std::vector<std::vector<CoordStruct>>*, 3u>;
 	using base_type = TechnoTypeClass;
 
@@ -599,8 +613,8 @@ public:
 	Nullable<int>  FallRate_ParachuteMax;
 	Nullable<int> FallRate_NoParachuteMax;
 
-	ImageVector BarrelImageData;
-	ImageVector TurretImageData;
+	std::vector<VoxelStruct> BarrelImageData;
+	std::vector<VoxelStruct> TurretImageData;
 	VoxelStruct SpawnAltData;
 
 	ValueableVector<CSFText> WeaponUINameX;

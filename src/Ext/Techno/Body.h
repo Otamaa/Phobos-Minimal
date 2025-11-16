@@ -1447,7 +1447,7 @@ public:
 	static bool AllowFiring(AbstractClass* pTargetObj, WeaponTypeClass* pWeapon);
 
 	static bool ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeClass* pWeapon);
-	static bool CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon);
+	static bool CheckCellAllowFiring(TechnoClass* pThis, CellClass* pCell, WeaponTypeClass* pWeapon);
 	static bool TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTarget, WeaponTypeClass* pWeapon);
 	static bool FireOnceAllowFiring(TechnoClass* pThis, WeaponTypeClass* pWeapon, AbstractClass* pTarget);
 	static bool CheckFundsAllowFiring(TechnoClass* pThis, WarheadTypeClass* pWH);

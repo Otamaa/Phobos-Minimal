@@ -105,7 +105,6 @@ ASMJIT_PATCH(0x6FC3A1, TechnoClass_CanFire_InBunkerRangeCheck, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	GET(WeaponTypeClass*, pWeapon, EDI);
 
-
 	if (pTarget->WhatAmI() == AbstractType::Unit && WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis) < 384.0)
 		return CannotFire;
 

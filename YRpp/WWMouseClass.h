@@ -17,19 +17,16 @@ struct MouseThreadParameter
 	static COMPILETIMEEVAL reference<DWORD, 0xB78158u> const StaticThreadID {};
 
 public:
-
-	bool SkipProcessing { 0 };
-	int RefCount { 0 };
-	bool SkipSleep { 0 };
-	int field_C { 0 };
-	unsigned long long SleepTime { 16 };
-	bool dword14 { 0 };
-	HANDLE SomeState18 { 0 };
-	DWORD ThreadID { 0 };
+	DWORD SkipProcessing { 0 };      // 0x00
+	DWORD RefCount { 0 };            // 0x04
+	DWORD SkipSleep { 0 };           // 0x08
+	DWORD field_C { 0 };             // 0x0C
+	DWORD SleepTime { 16 };          // 0x10
+	DWORD dword14 { 0 };             // 0x14
+	DWORD SomeState18 { 0 };         // 0x18
 };
 #pragma pack(pop)
-static_assert(sizeof(MouseThreadParameter) == 0x24);
-
+static_assert(sizeof(MouseThreadParameter) == 0x1C);
 typedef MouseThreadParameter MouseThreadClass;
 
 struct SHPStruct;

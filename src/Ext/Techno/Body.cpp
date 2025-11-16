@@ -3355,11 +3355,12 @@ bool TechnoExtData::ObjectHealthAllowFiring(ObjectClass* pTargetObj, WeaponTypeC
 	return true;
 }
 
-bool TechnoExtData::CheckCellAllowFiring(CellClass* pCell, WeaponTypeClass* pWeapon)
+bool TechnoExtData::CheckCellAllowFiring(TechnoClass* pThis, CellClass* pCell, WeaponTypeClass* pWeapon)
 {	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	if(!pWeaponExt->SkipWeaponPicking) {
-		if (pCell && !EnumFunctions::IsCellEligible(pCell, pWeaponExt->CanTarget, true , true)) {
+	if(!pWeaponExt->SkipWeaponPicking && pCell) {
+		if (!EnumFunctions::IsCellEligible(pCell, pWeaponExt->CanTarget, true , true)
+		|| (pWeaponExt->AttachEffect_CheckOnFirer && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis)) ) {
 			return false;
 		}
 	}
