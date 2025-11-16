@@ -581,7 +581,7 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 			}
 		}
 
-		for (size_t ib = 0; ib < pExt->BarrelImageData.size(); ++ib) {
+		for (size_t ib = 0; ib < pExt->TurretImageData.size(); ++ib) {
 			if (pExt->TurretImageData[ib].VXL) {
 				std::string ident_b("TurretImageData ");
 				ident_b += std::to_string(ib);
