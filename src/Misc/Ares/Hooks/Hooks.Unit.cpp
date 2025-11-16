@@ -360,23 +360,31 @@ ASMJIT_PATCH(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 
 ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
-	enum { FireRange = 0x6FC0DF, FireIllegal = 0x6FCCDF , ContinueCheck = 0x0 };
+	enum {
+		FireRange = 0x6FC0DF,  //keep targeting ?
+		FireIllegal = 0x6FCCDF , //cannot fire at all , ignore target
+		ContinueCheck = 0x0  //weeee
+	};
 
 	GET(TechnoClass*, pThis, ESI);
-	//GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
+	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	//if(pThis->GetWeapon(weaponIndex)->WeaponType)
-	{
+	pExt->CanFireWeaponType = pThis->GetWeapon(weaponIndex)->WeaponType;
+
+	if(pExt->CanFireWeaponType) {
 		if (pExt->DisableWeaponTimer.InProgress())
-			return FireIllegal;
+			return FireRange;
 
 		if (pExt->AE.flags.DisableWeapons)
-			return FireIllegal;
+			return FireRange;
+
+		return ContinueCheck;
 	}
 
-	return ContinueCheck;
+	//early bail
+	return FireIllegal;
 }
 
 // stop command would still affect units going berzerk

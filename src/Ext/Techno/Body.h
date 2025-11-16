@@ -831,6 +831,7 @@ private:
 		debugProcess(this->FallingDownTracked, "FallingDownTracked");
 		debugProcess(this->ResetLocomotor, "ResetLocomotor");
 		debugProcess(this->JumpjetStraightAscend, "JumpjetStraightAscend");
+		debugProcess(this->CanFireWeaponType, "CanFireWeaponType");
 	}
 
 
@@ -1011,6 +1012,9 @@ public:
 	bool FallingDownTracked;
 	bool ResetLocomotor;
 	bool JumpjetStraightAscend;
+
+	WeaponTypeClass* CanFireWeaponType;
+
 #pragma endregion
 
 public:
@@ -1182,7 +1186,8 @@ public:
 		Tints(),
 		FallingDownTracked { false },
 		ResetLocomotor { false } ,
-		JumpjetStraightAscend { }
+		JumpjetStraightAscend { },
+		CanFireWeaponType {}
 	{
 		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);

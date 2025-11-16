@@ -90,6 +90,7 @@ public:
 	std::unique_ptr<TargetingData> GetTargetingData(SWTypeExtData* pData, HouseClass* pOwner) const;
 	bool CanFireAt(SWTypeExtData* pData, HouseClass* pOwner, const CellStruct& cell, bool manual) const;
 
+	//Get first avaible building that able to fire the SW
 	TechnoClass* GetFirer(SuperClass* pSW, const CellStruct& Coords, bool ignoreRange) const;
 	bool CanHaveLauchSite(SWTypeExtData* pData, BuildingClass* pBuilding) const;
 

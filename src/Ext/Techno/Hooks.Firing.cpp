@@ -226,17 +226,22 @@ ASMJIT_PATCH(0x772AA2, WeaponTypeClass_AllowedThreats_AAOnly, 0x5)
 }
 
 // Pre-Firing Checks
-ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
+ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 {
 	GET(TechnoClass*, pThis, ESI);
-	GET(FakeWeaponTypeClass*, pWeapon, EDI);
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFS(0x20, -0x4));
 
 	enum { FireIllegal = 0x6FCB7E, Continue = 0x0 , FireCant = 0x6FCD29 };
 
+	const auto pThisExt = TechnoExtContainer::Instance.Find(pThis);
+
+	FakeWeaponTypeClass* pWeapon = (FakeWeaponTypeClass*)pThisExt->CanFireWeaponType;
+
 	auto const pObjectT = flag_cast_to<ObjectClass*, false>(pTarget);
 	auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget);
 	auto const pWeaponExt = pWeapon->_GetExtData();
+
+	R->EDI(pThisExt->CanFireWeaponType);
 
 	if (pWeaponExt->NoRepeatFire > 0) {
 		if (pTechnoT) {
@@ -381,7 +386,7 @@ ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 {
 	enum { Illegal = 0x6FC86A, OutOfRange = 0x6FC0DF, Continue = 0x6FC5D5 };
 
-	//GET(TechnoClass*, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTransport, EAX);
 	//GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
 
@@ -390,11 +395,12 @@ ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 	if (pTransport->Transporter || (pTransport->Deactivated && !pTypeExt->OpenTopped_AllowFiringIfDeactivated))
 		return Illegal;
 
+	TechnoExtData* pThisExt = TechnoExtContainer::Instance.Find(pThis);
+
 	if (pTypeExt->OpenTopped_CheckTransportDisableWeapons
 		&& TechnoExtContainer::Instance.Find(pTransport)->AE.flags.DisableWeapons
-		//&& pThis->GetWeapon(weaponIndex)->WeaponType
-		) return Illegal;
-		//return OutOfRange;
+		&& pThisExt->CanFireWeaponType
+		) return OutOfRange;
 
 	return Continue;
 }
