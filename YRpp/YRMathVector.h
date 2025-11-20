@@ -259,7 +259,9 @@ public:
 		return CrossProduct(a).pow() == 0;
 	}
 
-
+	COMPILETIMEEVAL Vector3D<T> Lerp(const Vector3D<T>& pt2, float t) {
+		return (pt2 * t) + (this->operator*(double(1.0 - t)));
+	}
 //=============================Special cases=========================================
 
 	COMPILETIMEEVAL   double powXY() const {
@@ -300,10 +302,10 @@ public:
 
 
 	//normalize
-	Vector3D Normalized() const
+	Vector3D<T> Normalized() const
 	{
 		double magnitude = this->Length();
-		return magnitude > 0.0 ? *this / magnitude : Vector3D::Empty;
+		return magnitude > 0.0 ? *this / magnitude : Vector3D<T>::Empty;
 	}
 };
 

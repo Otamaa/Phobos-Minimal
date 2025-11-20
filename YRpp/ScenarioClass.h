@@ -162,14 +162,16 @@ public:
 	bool GlobalVarChange(int index, bool value) JMP_THIS(0x689670);
 	//return value is index valid or not
 	bool GetGlobalVarValue(int index, bool& res) JMP_THIS(0x689760);
+	bool GetGlobalVarValue_ptr(int index, bool* res) JMP_THIS(0x689760);
 	bool ReadGlobalVar(CCINIClass* pINI) JMP_THIS(0x689880);
 	bool LocalVarChange(int index, bool value) JMP_THIS(0x689910);
 	//return value is index valid or not
 	bool GetLocalVarValue(int index, bool& res) JMP_THIS(0x689A00);
+	bool GetLocalVarValue_ptr(int index, bool* res) JMP_THIS(0x689A00);
 	bool ReadLocalVar(CCINIClass* pINI) JMP_THIS(0x689B20);
 	bool ReadMap(CCINIClass* pINI) JMP_THIS(0x689E90);
 	bool WriteMap(CCINIClass* pINI, bool writeInfo) JMP_THIS(0x68AD70);
-	DWORD sub_68BD00(DWORD dwUnk1, DWORD dwUnk2) JMP_THIS(0x68BD00);
+	CoordStruct* GetWaypointCoordinate(CoordStruct* out ,int idx) JMP_THIS(0x68BD00);
 	CellStruct* sub_68BD60() JMP_THIS(0x68BD60);
 	void ReadWaypoints(CCINIClass* pINI) JMP_THIS(0x68BDC0);
 	void WriteWaypoints(CCINIClass* pINI) JMP_THIS(0x68BE90);

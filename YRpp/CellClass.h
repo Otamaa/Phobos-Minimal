@@ -459,6 +459,9 @@ public:
 	COMPILETIMEEVAL FORCEDINLINE bool ContainsBridge() const
 		{ return (this->Flags & CellFlags::Bridge) != CellFlags::Empty; }
 
+	COMPILETIMEEVAL FORCEDINLINE bool ContainsBridgeHeaad() const
+		{ return (this->Flags & CellFlags::BridgeHead) != CellFlags::Empty; }
+
 	COMPILETIMEEVAL FORCEDINLINE bool ContainsBridgeEx() const
 		{ return (this->Flags & CellFlags::BridgeWithBody) != CellFlags::Empty; }
 
