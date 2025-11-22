@@ -163,7 +163,7 @@ ASMJIT_PATCH(0x438761, BombClass_Detonate_Handle, 0x7)
 
 	if (auto pAnimType = MapClass::Instance->SelectDamageAnimation(nDamage, pBombWH, pCell->LandType, coords))
 	{
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag::AnimFlag_2600, -15, false),
 			OwningHouse,
 			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
 			pThis->Owner,

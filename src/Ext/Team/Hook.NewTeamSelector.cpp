@@ -1311,6 +1311,8 @@ ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
 ASMJIT_PATCH(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 {
 	// For each house save a list with only AI Triggers that can be used
+	bool ignoreGlobalAITriggers = ScenarioClass::Instance->IgnoreGlobalAITriggers;
+
 	for (HouseClass* pHouse : *HouseClass::Array)
 	{
 		StackVector<int , 256> list {};
@@ -1321,7 +1323,7 @@ ASMJIT_PATCH(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
 		{
 			if (auto pTrigger = AITriggerTypeClass::Array->Items[i])
 			{
-				if(ScenarioClass::Instance->IgnoreGlobalAITriggers == (bool)pTrigger->IsGlobal || !pTrigger->Team1)
+				if (!pTrigger || (ignoreGlobalAITriggers && pTrigger->IsGlobal) || !pTrigger->Team1)
 					continue;
 
 				const int triggerHouse = pTrigger->HouseIndex;

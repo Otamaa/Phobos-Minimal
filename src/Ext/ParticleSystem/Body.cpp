@@ -2,6 +2,7 @@
 
 #include <Ext/ParticleSystemType/Body.h>
 #include <Ext/ParticleType/Body.h>
+#include <Ext/Particle/Body.h>
 
 #include <Ext/Rules/Body.h>
 #include <Utilities/Macro.h>
@@ -162,30 +163,26 @@ void ParticleSystemExtData::UpdateState()
 
 void ParticleSystemExtData::UpdateColor()
 {
-	const auto pHeldType = this->HeldType;
-	const auto colorCounts = pHeldType->ColorList.Count - 2;
+	if (!this->HeldType || this->HeldType->ColorList.Count < 2) {
+		return;  // Safety: Need valid particle type with at least 2 colors
+	}
+	const int maxColorIndex = this->HeldType->ColorList.Count - 2;
 
-	for (auto& Data : this->OtherParticleData)
+	for (auto& particle : this->OtherParticleData)
 	{
-		const double v6 = ScenarioClass::Instance->Random.RandomDouble() * 0.05 +
-			pHeldType->ColorSpeed + Data.ColorFactor;
+		const double newFactor =
+			ScenarioClass::Instance->Random.RandomDouble() * 0.05 +
+			this->HeldType->ColorSpeed +
+			particle.ColorFactor;
 
-		double v7 = 1.0;
-
-		if (v6 <= 1.0)
-		{
-			v7 = v6;
+		if (newFactor <= 1.0) {
+			particle.ColorFactor = static_cast<float>(newFactor);
+		} else if (particle.C < maxColorIndex) {
+			particle.ColorFactor = 0.0f;
+			particle.C++;
+		} else {
+			particle.ColorFactor = 1.0f;  // Clamp at final color
 		}
-		else
-		{
-			if (Data.C < colorCounts)
-			{
-				v7 = 0.0;
-				Data.C++;
-			}
-		}
-
-		Data.ColorFactor = (float)v7;
 	}
 }
 
@@ -295,162 +292,6 @@ void ParticleSystemExtData::UpdateSpark()
 	this->UpdateColor();
 }
 
-#ifdef azadasd
-void ParticleSystemExtData::UpdateRailgun()
-{
-	auto pOwnerObj = this->This();
-	auto pOwnerObjType = pOwnerObj->Type;
-
-	if (!pOwnerObj->TimeToDie && this->OtherParticleData.empty())
-	{
-		const auto nParticleLoc = pOwnerObj->Location;
-		const auto nTargetLoc = pOwnerObj->TargetCoords;
-		const auto nDifferenct = (nParticleLoc - nTargetLoc);
-
-		pOwnerObj->TimeToDie = true;
-		auto nDifferenceLength = (int)nDifferenct.Length();
-		auto nMaxXY = (int)(Point2D { nDifferenct.X , nDifferenct.Y }.Length());
-		auto nMagNeg = -nDifferenceLength;
-		auto nMagCopy = nDifferenceLength >= nDifferenct.Z ?
-			nDifferenct.Z : nDifferenceLength;
-
-		if (nMagCopy < nMagNeg)
-			nMagCopy = nMagNeg;
-
-		auto const nMaxXYNeg = -(double)nMaxXY;
-
-		auto nMaxXYCopy = (double)nMaxXY >= ((double)nDifferenct.X) ?
-			((double)nDifferenct.X) : (double)nDifferenceLength;
-
-		if (nMaxXYCopy < nMaxXYNeg)
-			nMaxXYCopy = nMaxXYNeg;
-
-		auto nASin = Math::asin(double(nMagCopy / nDifferenceLength));
-		auto nACos = Math::acos(nMaxXYCopy / nMaxXY);
-		Matrix3D mtx {};
-		mtx.MakeIdentity();
-		mtx.RotateZ(nDifferenct.Y > 0 ? nACos : -nACos);
-		mtx.RotateX(nASin);
-
-		auto pHeldType = this->HeldType;
-		auto nSpinDelta = pOwnerObjType->SpiralDeltaPerCoord;
-		auto nVel = pHeldType->Velocity;
-		auto nSpiralRadius = pOwnerObjType->SpiralRadius;
-		auto nPositionPerturbationCoefficient = pOwnerObjType->PositionPerturbationCoefficient;
-		auto nMovementPerturbationCoefficient = pOwnerObjType->MovementPerturbationCoefficient;
-		auto nVelocityPerturbationCoefficient = pOwnerObjType->VelocityPerturbationCoefficient;
-		int nDecidedsize = (int)(pOwnerObjType->ParticlesPerCoord * nDifferenceLength);
-		this->OtherParticleData.resize(nDecidedsize);
-
-		auto nMovementPerturbationCoefficientneg = -nMovementPerturbationCoefficient;
-		double nVal = 0.0;
-
-		for (int i = 0; i < nDecidedsize; ++i)
-		{
-			const double v91 = double((float)i / (double)nDecidedsize);
-			const auto radians = v91 * nDifferenceLength * nSpinDelta;
-
-			Vector3D<float> nDummy {
-				0.0f,
-				Math::cos(radians) ,
-				Math::sin(radians)
-			};
-
-			Vector3D<float> nResult = Matrix3D::MatrixMultiply(mtx, nDummy);
-
-			//============== LerpCoords
-			const auto  val__ = 1.0 - v91;
-
-			CoordStruct nDummy_d {
-			int((nTargetLoc.X * val__)
-				+ (nParticleLoc.X * v91)
-				+ (ScenarioClass::Instance->Random.RandomDouble_Closest() * nPositionPerturbationCoefficient + nResult.X * nSpiralRadius))
-			,
-			int((val__ * nTargetLoc.Y)
-				+ (v91 * nParticleLoc.Y)
-				+ (nSpiralRadius * nResult.Y + nPositionPerturbationCoefficient * ScenarioClass::Instance->Random.RandomDouble_Closest()))
-			,
-			int((nParticleLoc.Z * v91)
-				+ (nTargetLoc.Z * val__)
-				+ (ScenarioClass::Instance->Random.RandomDouble_Closest() * nPositionPerturbationCoefficient + nResult.Z * nSpiralRadius))
-			};
-			//=====================
-
-			//============= MovementPerturbationCoeff
-			Vector3D<float> nMovementDummy {
-				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.X),
-				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.Y),
-				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.Z)
-			};
-			//=============
-
-			const auto nMag = nMovementDummy.Length();
-
-			if (nMag != 0.0)
-			{
-				const auto idkHere = (float)(1.0 / nMag);
-				nMovementDummy.X = nMovementDummy.X * idkHere;
-				nMovementDummy.Y = nMovementDummy.Y * idkHere;
-				nMovementDummy.Z = idkHere * nMovementDummy.Z;
-			}
-
-			const auto nRand_Double7 = ScenarioClass::Instance->Random.RandomDouble_Closest() + nVal;
-
-			auto nVelocityPerturbationCoefficient_copy = nVelocityPerturbationCoefficient;
-
-			nVal = 0.5 * (nRand_Double7 * nVelocityPerturbationCoefficient);
-
-			if (nVal <= nVelocityPerturbationCoefficient)
-				nVelocityPerturbationCoefficient_copy = 0.5 * nRand_Double7;
-			else
-				nVal = nVelocityPerturbationCoefficient_copy;
-
-			if (nMovementPerturbationCoefficientneg > nVelocityPerturbationCoefficient_copy)
-				nVal = nMovementPerturbationCoefficientneg;
-
-			auto Data = &this->OtherParticleData[i]; // .emplace_back();
-
-			Data->velB = nMovementDummy; // storing MovementPerturbationCoeff vector
-
-			// this one use for coordinate storage that already lerp with the cur pos and target pos
-			Data->vel.X = nDummy_d.X;
-			Data->vel.Y = nDummy_d.Y;
-			Data->vel.Z = nDummy_d.Z;
-			//
-
-			Data->A = float(nVel + nVal); // velocity multiplier
-			// particle life times
-			Data->RemainingEC = LOWORD(pHeldType->MaxEC) + ScenarioClass::Instance->Random.RandomFromMax(9);
-
-			if (pHeldType->ColorList.Count)
-			{
-				if (pHeldType->StartColor1 && pHeldType->StartColor2)
-				{
-					Data->Colors.Interpolate(pHeldType->StartColor1, pHeldType->StartColor2, ScenarioClass::Instance->Random.RandomDouble());
-				}
-				else
-				{
-					Data->Colors = *pHeldType->ColorList.Items;
-				}
-			}
-		}
-
-		if (pOwnerObjType->Laser)
-		{
-			GameCreate<LaserDrawClass>(
-				pOwnerObj->Location,
-				pOwnerObj->TargetCoords,
-				0, 1u,
-				pOwnerObjType->LaserColor,
-				ColorStruct::Empty,
-				ColorStruct::Empty,
-				10, false, true, 0.5f, 0.1f);
-		}
-	}
-
-}
-#endif
-
 void  ParticleSystemExtData::UpdateRailgun()
 {
 	auto pThis = this->This();
@@ -461,8 +302,8 @@ void  ParticleSystemExtData::UpdateRailgun()
 		CoordStruct currentCoords = pThis->Location;
 
 		CoordStruct DifferenceCoords = targetCoords - currentCoords;
-		int differeceCoordsLXYZLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
-		int differeceCoordsLXYLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int differeceCoordsLXYZLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
+		int differeceCoordsLXYLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
 		int Difference_Z = DifferenceCoords.Z;
 		int Difference_X = DifferenceCoords.X;
 
@@ -545,7 +386,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 
 			mtx_mult += MovementPerturbation;
 
-			const auto sparkVelLength = std::sqrt(double((mtx_mult.X * mtx_mult.X) + (mtx_mult.Y * mtx_mult.Y) + (mtx_mult.Z * mtx_mult.Z)));
+			const auto sparkVelLength = Math::sqrt(double((mtx_mult.X * mtx_mult.X) + (mtx_mult.Y * mtx_mult.Y) + (mtx_mult.Z * mtx_mult.Z)));
 
 			if (sparkVelLength != 0.0)
 			{
@@ -808,7 +649,339 @@ void ParticleSystemExtData::UpdateSmoke()
 		pOwnerObj->TimeToDie = true;
 }
 
-#ifdef zaawdawd
+void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
+{
+	const auto pHeldType = this->HeldType;
+	if (!pHeldType) {
+		return;
+	}
+
+	ColorStruct* color = pHeldType ? pHeldType->ColorList.Items : nullptr;
+	const int colorCount = pHeldType->ColorList.Count;
+
+	if (!color || colorCount < 2) {
+		return;
+	}
+	auto& rect = DSurface::ViewBounds;
+
+	for (auto& movement : this->OtherParticleData)
+	{
+		CoordStruct Coord {
+			static_cast<int>(movement.vel.X),
+			static_cast<int>(movement.vel.Y),
+			static_cast<int>(movement.vel.Z)
+		};
+
+		if (allowDraw || !MapClass::Instance->IsLocationShrouded(Coord))
+		{
+			Point2D outClient = TacticalClass::Instance->CoordsToClient(Coord);
+
+			const auto y_copy = rect->Y + outClient.Y;
+			outClient.Y += rect->Y;
+
+			// Viewport culling - check if particle is on screen
+			if (outClient.X < rect->X || outClient.X >= rect->X + rect->Width ||
+				y_copy < rect->Y || y_copy >= rect->Y + rect->Height)  // FIXED: rect->Y
+			{
+				continue;  // Off-screen, skip rendering
+			}
+
+			/* Original
+			if (outClient.X >= rect->X
+				&& outClient.X < rect->X + rect->Width
+				&& y_copy >= rect->Y
+				&& y_copy < rect->X + rect->Height
+				)
+				*/
+			{
+				uintptr_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
+
+				if (buff == 0) {
+					continue;
+				}
+
+
+				{
+					int ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
+					int Zadjust = Game::AdjustHeight(Coord.Z);
+
+					uint16_t zTest = static_cast<uint16_t>(
+						LOWORD(ZBuffer::Instance->Area.Y) +
+						LOWORD(ZBuffer::Instance->MaxValue) -
+						LOWORD(outClient.Y)
+					) - Zadjust - 50;
+
+					if (zTest < ZBuff) {
+						int idx = 0;
+						ColorStruct* selected = &movement.Colors;
+
+						// SAFETY: Bounds check before array access
+						if (movement.C > 0 && movement.C < colorCount) {
+							idx = movement.C;
+							selected = &color[movement.C];
+						}
+
+						// SAFETY: Ensure idx+1 is in bounds
+						if (idx + 1 >= colorCount) {
+							idx = colorCount - 2;  // Clamp to last valid pair
+						}
+
+						// Interpolate between two colors based on ColorFactor
+						ColorStruct finalColor = ColorStruct::Interpolate(
+							&color[idx + 1],      // Target color
+							selected,             // Current color
+							static_cast<double>(movement.ColorFactor)  // Blend factor (0.0 to 1.0)
+						);
+
+						uint32_t pixelColor;
+
+						if (buff >= 127u) {
+							// Full brightness - use color directly
+							pixelColor = DSurface::RGBA_To_Pixel(finalColor.R, finalColor.G, finalColor.B);
+						} else {
+							// Dim the color based on alpha buffer value
+							// buff is 0-127, so this darkens the color proportionally
+							uint32_t data_r = (buff * finalColor.R) >> 7;  // Divide by 128
+							uint32_t data_g = (buff * finalColor.G) >> 7;
+							uint32_t data_b = (buff * finalColor.B) >> 7;
+							pixelColor = DSurface::RGBA_To_Pixel(data_r, data_g, data_b);
+						}
+
+						DSurface::Temp->Put_Pixel(outClient, pixelColor);
+					}
+				}
+			}
+
+		}
+	}
+
+	for (auto& draw : this->SmokeData)
+	{
+		if (const auto image = draw.LinkedParticleType->GetImage())
+		{
+			const auto offs = -15 - Game::AdjustHeight(draw.vel.Z);
+			Point2D outClient = TacticalClass::Instance->CoordsToClient(draw.vel);
+			DWORD drawingFlag = 0x2E00;
+			outClient.Y += rect->Y;
+			if (GameOptionsClass::Instance->DetailLevel == 2)
+			{
+				int trans = draw.Translucency;
+				if (trans == 25u)
+				{
+					drawingFlag = 0x2E02;
+				}
+				else if (trans == 50u)
+				{
+					drawingFlag = 0x2E04;
+				}
+				else if (trans >= 75u)
+				{
+					drawingFlag = 0x2E06;
+				}
+			}
+
+			ConvertClass* pal = FileSystem::ANIM_PAL();
+			if (auto pManager = ParticleTypeExtContainer::Instance.Find(draw.LinkedParticleType)->Palette.GetConvert())
+				pal = pManager;
+
+			DSurface::Temp->DrawSHP(
+				pal,
+				image,
+				draw.ImageFrame,
+				&outClient,
+				&rect,
+				(BlitterFlags)drawingFlag,
+				0,
+				offs,
+				2,
+				1000,
+				0,
+				0,
+				0,
+				0,
+				0
+			);
+		}
+	}
+}
+
+void ParticleSystemExtData::UpdateInAir()
+{
+	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && RulesExtData::DetailsCurrentlyEnabled())
+	{
+		bool StopDrawing = false;
+		if (Unsorted::ArmageddonMode() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
+			StopDrawing = true;
+
+		for (auto pSys : *ParticleSystemClass::Array)
+		{
+			auto pExt = ParticleSystemExtContainer::Instance.Find(pSys);
+
+			if (!pExt)
+				Debug::FatalError("ParticleSystem without Ext[%x]", pSys);
+
+			pExt->UpdateInAir_Main(StopDrawing);
+		}
+	}
+}
+
+//DEFINE_JUMP(LJMP, 0x62ED53, 0x62ED61);
+
+#ifdef azadasd
+void ParticleSystemExtData::UpdateRailgun()
+{
+	auto pOwnerObj = this->This();
+	auto pOwnerObjType = pOwnerObj->Type;
+
+	if (!pOwnerObj->TimeToDie && this->OtherParticleData.empty())
+	{
+		const auto nParticleLoc = pOwnerObj->Location;
+		const auto nTargetLoc = pOwnerObj->TargetCoords;
+		const auto nDifferenct = (nParticleLoc - nTargetLoc);
+
+		pOwnerObj->TimeToDie = true;
+		auto nDifferenceLength = (int)nDifferenct.Length();
+		auto nMaxXY = (int)(Point2D { nDifferenct.X , nDifferenct.Y }.Length());
+		auto nMagNeg = -nDifferenceLength;
+		auto nMagCopy = nDifferenceLength >= nDifferenct.Z ?
+			nDifferenct.Z : nDifferenceLength;
+
+		if (nMagCopy < nMagNeg)
+			nMagCopy = nMagNeg;
+
+		auto const nMaxXYNeg = -(double)nMaxXY;
+
+		auto nMaxXYCopy = (double)nMaxXY >= ((double)nDifferenct.X) ?
+			((double)nDifferenct.X) : (double)nDifferenceLength;
+
+		if (nMaxXYCopy < nMaxXYNeg)
+			nMaxXYCopy = nMaxXYNeg;
+
+		auto nASin = Math::asin(double(nMagCopy / nDifferenceLength));
+		auto nACos = Math::acos(nMaxXYCopy / nMaxXY);
+		Matrix3D mtx {};
+		mtx.MakeIdentity();
+		mtx.RotateZ(nDifferenct.Y > 0 ? nACos : -nACos);
+		mtx.RotateX(nASin);
+
+		auto pHeldType = this->HeldType;
+		auto nSpinDelta = pOwnerObjType->SpiralDeltaPerCoord;
+		auto nVel = pHeldType->Velocity;
+		auto nSpiralRadius = pOwnerObjType->SpiralRadius;
+		auto nPositionPerturbationCoefficient = pOwnerObjType->PositionPerturbationCoefficient;
+		auto nMovementPerturbationCoefficient = pOwnerObjType->MovementPerturbationCoefficient;
+		auto nVelocityPerturbationCoefficient = pOwnerObjType->VelocityPerturbationCoefficient;
+		int nDecidedsize = (int)(pOwnerObjType->ParticlesPerCoord * nDifferenceLength);
+		this->OtherParticleData.resize(nDecidedsize);
+
+		auto nMovementPerturbationCoefficientneg = -nMovementPerturbationCoefficient;
+		double nVal = 0.0;
+
+		for (int i = 0; i < nDecidedsize; ++i)
+		{
+			const double v91 = double((float)i / (double)nDecidedsize);
+			const auto radians = v91 * nDifferenceLength * nSpinDelta;
+
+			Vector3D<float> nDummy {
+				0.0f,
+				Math::cos(radians) ,
+				Math::sin(radians)
+			};
+
+			Vector3D<float> nResult = Matrix3D::MatrixMultiply(mtx, nDummy);
+
+			//============== LerpCoords
+			const auto  val__ = 1.0 - v91;
+
+			CoordStruct nDummy_d {
+			int((nTargetLoc.X * val__)
+				+ (nParticleLoc.X * v91)
+				+ (ScenarioClass::Instance->Random.RandomDouble_Closest() * nPositionPerturbationCoefficient + nResult.X * nSpiralRadius))
+			,
+			int((val__ * nTargetLoc.Y)
+				+ (v91 * nParticleLoc.Y)
+				+ (nSpiralRadius * nResult.Y + nPositionPerturbationCoefficient * ScenarioClass::Instance->Random.RandomDouble_Closest()))
+			,
+			int((nParticleLoc.Z * v91)
+				+ (nTargetLoc.Z * val__)
+				+ (ScenarioClass::Instance->Random.RandomDouble_Closest() * nPositionPerturbationCoefficient + nResult.Z * nSpiralRadius))
+			};
+			//=====================
+
+			//============= MovementPerturbationCoeff
+			Vector3D<float> nMovementDummy {
+				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.X),
+				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.Y),
+				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.Z)
+			};
+			//=============
+
+			const auto nMag = nMovementDummy.Length();
+
+			if (nMag != 0.0)
+			{
+				const auto idkHere = (float)(1.0 / nMag);
+				nMovementDummy.X = nMovementDummy.X * idkHere;
+				nMovementDummy.Y = nMovementDummy.Y * idkHere;
+				nMovementDummy.Z = idkHere * nMovementDummy.Z;
+			}
+
+			const auto nRand_Double7 = ScenarioClass::Instance->Random.RandomDouble_Closest() + nVal;
+
+			auto nVelocityPerturbationCoefficient_copy = nVelocityPerturbationCoefficient;
+
+			nVal = 0.5 * (nRand_Double7 * nVelocityPerturbationCoefficient);
+
+			if (nVal <= nVelocityPerturbationCoefficient)
+				nVelocityPerturbationCoefficient_copy = 0.5 * nRand_Double7;
+			else
+				nVal = nVelocityPerturbationCoefficient_copy;
+
+			if (nMovementPerturbationCoefficientneg > nVelocityPerturbationCoefficient_copy)
+				nVal = nMovementPerturbationCoefficientneg;
+
+			auto Data = &this->OtherParticleData[i]; // .emplace_back();
+
+			Data->velB = nMovementDummy; // storing MovementPerturbationCoeff vector
+
+			// this one use for coordinate storage that already lerp with the cur pos and target pos
+			Data->vel.X = nDummy_d.X;
+			Data->vel.Y = nDummy_d.Y;
+			Data->vel.Z = nDummy_d.Z;
+			//
+
+			Data->A = float(nVel + nVal); // velocity multiplier
+			// particle life times
+			Data->RemainingEC = LOWORD(pHeldType->MaxEC) + ScenarioClass::Instance->Random.RandomFromMax(9);
+
+			if (pHeldType->ColorList.Count)
+			{
+				if (pHeldType->StartColor1 && pHeldType->StartColor2)
+				{
+					Data->Colors.Interpolate(pHeldType->StartColor1, pHeldType->StartColor2, ScenarioClass::Instance->Random.RandomDouble());
+				}
+				else
+				{
+					Data->Colors = *pHeldType->ColorList.Items;
+				}
+			}
+		}
+
+		if (pOwnerObjType->Laser)
+		{
+			GameCreate<LaserDrawClass>(
+				pOwnerObj->Location,
+				pOwnerObj->TargetCoords,
+				0, 1u,
+				pOwnerObjType->LaserColor,
+				ColorStruct::Empty,
+				ColorStruct::Empty,
+				10, false, true, 0.5f, 0.1f);
+		}
+	}
+
+}
+
 void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 {
 
@@ -818,8 +991,8 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 		CoordStruct currentCoords = pThis->Location;
 
 		CoordStruct DifferenceCoords = targetCoords - currentCoords;
-		int differeceCoordsLXYZLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
-		int differeceCoordsLXYLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int differeceCoordsLXYZLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
+		int differeceCoordsLXYLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
 		int Difference_Z = DifferenceCoords.Z;
 		int Difference_X = DifferenceCoords.X;
 
@@ -898,7 +1071,7 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 			};
 			partilce->Spark10C += MovementPerturbation;
 
-			const auto sparkVelLength = std::sqrt(double((partilce->Spark10C.X * partilce->Spark10C.X) + (partilce->Spark10C.Y * partilce->Spark10C.Y) + (partilce->Spark10C.Z * partilce->Spark10C.Z)));
+			const auto sparkVelLength = Math::sqrt(double((partilce->Spark10C.X * partilce->Spark10C.X) + (partilce->Spark10C.Y * partilce->Spark10C.Y) + (partilce->Spark10C.Z * partilce->Spark10C.Z)));
 
 			Vector3D<float> last = partilce->Spark10C;
 			if (sparkVelLength != 0.0)
@@ -952,325 +1125,6 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 	}
 }
 #endif
-
-//DEFINE_JUMP(LJMP, 0x62ED53, 0x62ED61);
-
-bool ParticleSystemExtData::UpdateHandled()
-{
-	switch (this->What)
-	{
-	case Behave::Spark:
-		this->UpdateSpark();
-		break;
-	case Behave::Railgun:
-		this->UpdateRailgun();
-		break;
-	case Behave::Smoke:
-		this->UpdateSmoke();
-		break;
-	default:
-
-
-	//	switch (this->This()->Type->BehavesLike)
-	//	{
-	//	case ParticleSystemTypeBehavesLike::Smoke:
-	//	{
-	//		const auto pOwner = this->This();
-
-	//		pOwner->Smoke_AI();
-	//		/*
-	//		if (auto pAttachedOwner = generic_cast<FootClass*>(pOwner->Owner))
-	//		{
-	//			auto pAttachedOwner_loc = pAttachedOwner->GetCoords();
-	//			pAttachedOwner_loc += pOwner->SpawnDistanceToOwner;
-	//			pOwner->SetLocation(pAttachedOwner_loc);
-	//		}
-
-	//		pOwner->Particles.for_each([](ParticleClass* pPart) {
-	//			pPart->BehaviourUpdate();
-	//		});
-
-	//		pOwner->Particles.for_each([pOwner](ParticleClass* pPart) {
-
-	//			if(pPart->hasremaining && pPart->Type->NextParticle == -1){
-	//				pPart->UnInit();
-	//				return;
-	//			} else if (!pPart->hasremaining){
-	//				pPart->BehaviourUpdate();
-	//				return;
-	//			}
-
-	//			if ( pPart->Type->NextParticle != -1) {
-	//				auto pPartLoc = pPart->Location;
-	//				auto rad = pPart->Type->Radius >> 3;
-	//				auto _xAdd = ScenarioClass::Instance->Random.Random() % rad;
-	//				rad = _xAdd > 0 ? rad + _xAdd : _xAdd - rad;
-	//				pPartLoc.X += rad;
-	//				rad = pPart->Type->Radius >> 3;
-	//				auto _yAdd = ScenarioClass::Instance->Random.Random() % rad;
-	//				rad = _yAdd > 0 ? rad + _yAdd : _yAdd - rad;
-	//				pPartLoc.Y += rad;
-	//				auto pNext = ParticleTypeClass::Array->Items[pPart->Type->NextParticle];
-	//				auto pPart_nn = GameCreate<ParticleClass>(pNext, pPartLoc, CoordStruct::Empty, pOwner);
-	//				pOwner->Particles.AddItem(pPart_nn);
-	//				pPart_nn->Velocity = pPart->Velocity;
-	//				auto v22 = ScenarioClass::Instance->Random.Random() % 6;
-	//				pPart_nn->Translucency = pPart->Translucency + (v22 != 0 ? 0x19 : 0);
-
-	//			} else {
-
-	//				auto pPart_nn = GameCreate<ParticleClass>(pPart->Type, pPart->Location, CoordStruct::Empty, pOwner);
-	//				pOwner->Particles.AddItem(pPart_nn);
-	//				pPart_nn->Velocity = pPart->Velocity;
-	//				auto v22 = ScenarioClass::Instance->Random.Random() % 6;
-	//				pPart_nn->Translucency = pPart->Translucency + (v22 != 0 ? 0x19 : 0);
-	//				pPart->UnInit();
-	//			}
-	//		});
-
-	//		if (!pOwner->TimeToDie && pOwner->IsAlive && !(Unsorted::CurrentFrame() % (int)pOwner->SpawnFrames))
-	//		{
-
-	//		}
-	//		*/
-	//		pOwner->Lifetime--;
-	//		if (pOwner->Lifetime == 0)
-	//			pOwner->UnInit();
-
-	//		if (pOwner->IsAlive
-	//			&& pOwner->TimeToDie
-	//			&& !pOwner->Particles.Count)
-	//		{
-	//			pOwner->Limbo();
-	//			pOwner->IsAlive = false;
-	//			AbstractClass::Array2->AddItem(pOwner);
-	//		}
-
-	//		return false;
-	//	}
-
-	//	case ParticleSystemTypeBehavesLike::Fire:
-	//	{
-	//		this->This()->Fire_AI();
-
-	//		const auto pOwner = this->This();
-
-	//		pOwner->Lifetime--;
-	//		if (pOwner->Lifetime == 0)
-	//			pOwner->UnInit();
-
-	//		if (pOwner->IsAlive
-	//			&& pOwner->TimeToDie
-	//			&& !pOwner->Particles.Count)
-	//		{
-	//			pOwner->Limbo();
-	//			pOwner->IsAlive = false;
-	//			AbstractClass::Array2->AddItem(pOwner);
-	//		}
-
-	//		return false;
-	//	}
-
-	//	case ParticleSystemTypeBehavesLike::Gas:
-	//	{
-	//		this->This()->Gas_AI();
-
-	//		const auto pOwner = this->This();
-
-	//		pOwner->Lifetime--;
-	//		if (pOwner->Lifetime == 0)
-	//			pOwner->UnInit();
-
-	//		if (pOwner->IsAlive
-	//			&& pOwner->TimeToDie
-	//			&& !pOwner->Particles.Count)
-	//		{
-	//			pOwner->Limbo();
-	//			pOwner->IsAlive = false;
-	//			AbstractClass::Array2->AddItem(pOwner);
-	//		}
-
-	//		return false;
-	//	}
-
-	//	case ParticleSystemTypeBehavesLike::Railgun:
-	//	{
-	//		this->This()->Railgun_AI();
-
-	//		const auto pOwner = this->This();
-
-	//		pOwner->Lifetime--;
-	//		if (pOwner->Lifetime == 0)
-	//			pOwner->UnInit();
-
-	//		if (pOwner->IsAlive
-	//			&& pOwner->TimeToDie
-	//			&& !pOwner->Particles.Count)
-	//		{
-	//			pOwner->Limbo();
-	//			pOwner->IsAlive = false;
-	//			AbstractClass::Array2->AddItem(pOwner);
-	//		}
-
-	//		return false;
-	//	}
-	//	default:
-			return false;
-	//	}
-	}
-
-	const auto pOwner = this->This();
-
-	if (pOwner->Lifetime-- == 1)
-		pOwner->TimeToDie = true;
-
-	if (pOwner->IsAlive
-		&& pOwner->TimeToDie
-		&& !pOwner->Particles.Count
-		&& this->OtherParticleData.empty()
-		&& this->SmokeData.empty())
-	{
-		pOwner->Limbo();
-		pOwner->IsAlive = false;
-		AbstractClass::Array2->push_back(pOwner);
-	}
-
-	return true;
-}
-
-void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
-{
-	const auto pHeldType = this->HeldType;
-	ColorStruct* color = pHeldType ? pHeldType->ColorList.Items : nullptr;
-	auto& rect = DSurface::ViewBounds;
-
-	for (auto& movement : this->OtherParticleData)
-	{
-		CoordStruct Coord = { (int)movement.vel.X ,(int)movement.vel.Y ,(int)movement.vel.Z };
-
-		if (allowDraw || !MapClass::Instance->IsLocationShrouded(Coord))
-		{
-			Point2D outClient = TacticalClass::Instance->CoordsToClient(Coord);
-
-			const auto y_copy = rect->Y + outClient.Y;
-			outClient.Y += rect->Y;
-			if (outClient.X >= rect->X
-				&& outClient.X < rect->X + rect->Width
-				&& y_copy >= rect->Y
-				&& y_copy < rect->X + rect->Height
-				)
-			{
-				uintptr_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
-
-				if ((uint16_t)buff)
-				{
-					int ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
-					int Zadjust = Game::AdjustHeight(Coord.Z);
-
-					if ((uint16_t)(LOWORD(ZBuffer::Instance->Area.Y) + LOWORD(ZBuffer::Instance->MaxValue) - LOWORD(outClient.Y)) - Zadjust - 50 < ZBuff)
-					{
-
-						int idx = 0;
-						ColorStruct* selected = &movement.Colors;
-
-						if (movement.C)
-						{
-							idx = movement.C;
-							selected = &color[movement.C];
-						}
-
-						ColorStruct emp = ColorStruct::Interpolate(&(color[idx + 1]), selected, (double)movement.ColorFactor);
-						//ColorStruct emp { 255 , 0 , 0 };
-
-						if ((uint16_t)buff >= 127u)
-						{
-							const auto put_Color = DSurface::RGBA_To_Pixel(emp.R, emp.G, emp.B);
-							DSurface::Temp->Put_Pixel(outClient, put_Color);
-						}
-						else
-						{
-							uintptr_t data_r = (buff * emp.R) >> 7;
-							uintptr_t data_g = (buff * emp.G) >> 7;
-							uintptr_t data_b = (buff * emp.B) >> 7;
-							const auto put_Color = DSurface::RGBA_To_Pixel(data_r, data_g, data_b);
-							DSurface::Temp->Put_Pixel(outClient, put_Color);
-						}
-					}
-				}
-			}
-
-		}
-	}
-
-	for (auto& draw : this->SmokeData)
-	{
-		if (const auto image = draw.LinkedParticleType->GetImage())
-		{
-			const auto offs = -15 - Game::AdjustHeight(draw.vel.Z);
-			Point2D outClient = TacticalClass::Instance->CoordsToClient(draw.vel);
-			DWORD drawingFlag = 0x2E00;
-			outClient.Y += rect->X;
-			if (GameOptionsClass::Instance->DetailLevel == 2)
-			{
-				int trans = draw.Translucency;
-				if (trans == 25u)
-				{
-					drawingFlag = 0x2E02;
-				}
-				else if (trans == 50u)
-				{
-					drawingFlag = 0x2E04;
-				}
-				else if (trans >= 75u)
-				{
-					drawingFlag = 0x2E06;
-				}
-			}
-
-			ConvertClass* pal = FileSystem::ANIM_PAL();
-			if (auto pManager = ParticleTypeExtContainer::Instance.Find(draw.LinkedParticleType)->Palette.GetConvert())
-				pal = pManager;
-
-			DSurface::Temp->DrawSHP(
-				pal,
-				image,
-				draw.ImageFrame,
-				&outClient,
-				&rect,
-				(BlitterFlags)drawingFlag,
-				0,
-				offs,
-				2,
-				1000,
-				0,
-				0,
-				0,
-				0,
-				0
-			);
-		}
-	}
-}
-
-void ParticleSystemExtData::UpdateInAir()
-{
-	if (ParticleSystemClass::Array->Count && GameOptionsClass::Instance->DetailLevel && RulesExtData::DetailsCurrentlyEnabled())
-	{
-		bool StopDrawing = false;
-		if (Unsorted::ArmageddonMode() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
-			StopDrawing = true;
-
-		for (auto pSys : *ParticleSystemClass::Array)
-		{
-			auto pExt = ParticleSystemExtContainer::Instance.Find(pSys);
-
-			if (!pExt)
-				Debug::FatalError("ParticleSystem without Ext[%x]", pSys);
-
-			pExt->UpdateInAir_Main(StopDrawing);
-		}
-	}
-}
 
 template <typename T>
 void ParticleSystemExtData::Serialize(T& Stm)
@@ -1368,3 +1222,818 @@ ASMJIT_PATCH(0x62FFBB, ParticleSystemClass_Load_OwnerHouse, 0x8)
 
 	return 0;
 }
+
+Vector3D<float> GetRandomPerturbation(float coefficient)
+{
+	const float rand1 = (float)ScenarioClass::Instance->Random.RandomDouble_Closest();
+	const float rand2 = (float)ScenarioClass::Instance->Random.RandomDouble_Closest();
+	const float rand3 = (float)ScenarioClass::Instance->Random.RandomDouble_Closest();
+
+	return {
+		rand1 * coefficient,
+		rand2 * coefficient,
+		rand3 * coefficient
+	};
+}
+
+Matrix3D CreateRotationMatrix(const Vector3D<float>& trajectory, float distance)
+{
+	// Calculate angles for rotation
+	const float horizontalDist = Math::sqrt(trajectory.X * trajectory.X +
+												 trajectory.Y * trajectory.Y);
+
+	// Clamp values for arc functions
+	float clampedZ = std::clamp(trajectory.Z, -distance, distance);
+	float clampedX = std::clamp(trajectory.X, -horizontalDist, horizontalDist);
+
+	const float pitchAngle = (float)Math::asin(clampedZ / distance);
+	float yawAngle = (float)Math::acos(clampedX / horizontalDist);
+
+	// Adjust yaw based on Y direction
+	if (trajectory.Y < 0.0f) {
+		yawAngle = -yawAngle;
+	}
+
+	// Build rotation matrix
+	Matrix3D matrix {};
+	matrix.MakeIdentity();
+	matrix.PreRotateZ(yawAngle);
+	matrix.PreRotateX(pitchAngle);
+	return matrix;
+}
+
+void FakeParticleSystemClass::__AI()
+{
+	auto pTypeExt = this->_GetTypeExtData();
+	auto pExt = this->_GetExtData();
+	bool wasHandled = false;
+
+	if (pTypeExt->ApplyOptimization) {
+		switch (pExt->What)
+		{
+		case ParticleSystemExtData::Behave::Spark:
+			wasHandled = this->Type->BehavesLike == ParticleSystemTypeBehavesLike::Spark;
+			pExt->UpdateSpark();
+			break;
+		case ParticleSystemExtData::Behave::Railgun:
+			wasHandled = this->Type->BehavesLike == ParticleSystemTypeBehavesLike::Railgun;
+			pExt->UpdateRailgun();
+			break;
+		case ParticleSystemExtData::Behave::Smoke:
+			wasHandled = this->Type->BehavesLike == ParticleSystemTypeBehavesLike::Smoke;
+			pExt->UpdateSmoke();
+			break;
+		default :
+			break;
+		}
+	}
+
+	if (!wasHandled) {
+		switch (this->Type->BehavesLike)
+		{
+		case ParticleSystemTypeBehavesLike::Smoke:
+			this->__Smoke_AI();
+			break;
+		case ParticleSystemTypeBehavesLike::Fire:
+			this->__Fire_AI();
+			break;
+		case ParticleSystemTypeBehavesLike::Railgun:
+			this->__Railgun_AI();
+			break;
+		case ParticleSystemTypeBehavesLike::Gas:
+			this->__Gas_AI();
+			break;
+		case ParticleSystemTypeBehavesLike::Spark:
+			this->__Spark_AI();
+			break;
+		case ParticleSystemTypeBehavesLike(5):
+			this->__Web_AI();
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (this->Lifetime-- == 1)
+		this->TimeToDie = true;
+
+	if (this->IsAlive
+		&& this->TimeToDie
+		&& !this->Particles.Count
+		&& pExt->OtherParticleData.empty()
+		&& pExt->SmokeData.empty())
+	{
+		this->Limbo();
+		this->IsAlive = false;
+		AbstractClass::Array2->push_back(this);
+	}
+}
+
+ParticleClass* FakeParticleSystemClass::CreateHoldsWhatParticle(const CoordStruct& position, const CoordStruct& target)
+{
+	if (this->Type->HoldsWhat > -1) {
+		auto pParticle = GameCreate<ParticleClass>(ParticleTypeClass::Array->Items[Type->HoldsWhat], position, target, this);
+		this->Particles.push_back(pParticle);
+		return pParticle;
+	}
+
+	return nullptr;
+}
+
+template<auto Func>
+void FakeParticleSystemClass::ProcessParticleLifecycle()
+{
+	for (int i = this->Particles.Count - 1; i >= 0; --i)
+	{
+		ParticleClass* particle = this->Particles[i];
+
+		if (!particle->hasremaining)
+		{
+			// Particle still alive - update coordinates
+			((FakeParticleClass*)this->Particles[i])->__Coord_AI();
+			continue;
+		}
+
+		// Particle is dead - spawn children if configured
+		if (particle->Type->NextParticle != -1)
+		{
+			(this->*Func)(particle);
+		}
+
+		// Remove dead particle
+		particle->UnInit();
+	}
+}
+
+void FakeParticleSystemClass::__Web_AI()
+{
+	this->UpdateAllParticles();
+	this->ProcessParticleLifecycle<&FakeParticleSystemClass::TransitionToNextParticle>();
+}
+
+#include <Ext/Particle/Body.h>
+
+int GetRandomOffset(int range)
+{
+	const int random = (ScenarioClass::Instance->Random.Random()) % range;
+	return (random > 0) ? (range + random) : (random - range);
+}
+
+void FakeParticleSystemClass::UpdateAllParticles()
+{
+	for (int i = 0; i < this->Particles.Count; ++i) {
+		((FakeParticleClass*)this->Particles[i])->__AI();
+	}
+}
+
+void FakeParticleSystemClass::UpdateAndCoordAllParticles()
+{
+	for (int i = 0; i < this->Particles.Count; ++i) {
+		((FakeParticleClass*)this->Particles[i])->__AI();
+		((FakeParticleClass*)this->Particles[i])->__Coord_AI();
+	}
+}
+
+void FakeParticleSystemClass::RemoveDeadParticles()
+{
+	for (int i = this->Particles.Count - 1; i >= 0; --i) {
+
+		ParticleClass* particle = this->Particles[i];
+
+		if (particle->hasremaining) {
+			particle->UnInit();
+		}
+	}
+}
+
+void FakeParticleSystemClass::SpawnChildParticles(ParticleClass* parent)
+{
+	const ParticleTypeClass* parentType = parent->Type;
+	ParticleTypeClass* childType = ParticleTypeClass::Array->Items[parentType->NextParticle];
+
+	// Calculate random offset based on parent particle radius
+	const int radiusDiv8 = parentType->Radius >> 3;
+	const int offsetX = GetRandomOffset(radiusDiv8);
+	const int offsetY = GetRandomOffset(radiusDiv8);
+
+	// Spawn two child particles on either side
+	this->SpawnChildParticle(parent, childType, offsetX, offsetY);
+	this->SpawnChildParticle(parent, childType, -offsetX, -offsetY);
+}
+
+Vector3D<float> FakeParticleSystemClass::CalculateTrajectory() const
+{
+	return {
+		static_cast<float>(this->TargetCoords.X - this->Location.X),
+		static_cast<float>(this->TargetCoords.Y - this->Location.Y),
+		static_cast<float>(this->TargetCoords.Z - this->Location.Z)
+	};
+}
+
+#pragma region Spark
+
+void FakeParticleSystemClass::ProcessSparkSpawning()
+{
+	// Check if we should spawn this frame
+	if (!this->ShouldSpawnThisFrame()) {
+		return;
+	}
+
+	// Calculate particle count
+	const int particleCount = this->CalculateParticleCount();
+
+	// Spawn burst of sparks
+	for (int i = 0; i < particleCount; ++i) {
+		this->SpawnSparkParticle();
+	}
+
+	// Create spotlight if conditions met
+	this->CreateSpotlightIfNeeded();
+}
+
+void FakeParticleSystemClass::SpawnSparkParticle() {
+	const CoordStruct position = this->Location;
+
+	if (auto particle = this->CreateHoldsWhatParticle(position, position)) {
+		this->SetupRandomVelocity(particle);
+	}
+}
+
+int FakeParticleSystemClass::CalculateParticleCount() const
+{
+	const int halfCap = this->Type->ParticleCap / 2;
+	return halfCap + (Math::abs(ScenarioClass::Instance->Random.Random()) % halfCap);
+}
+
+bool FakeParticleSystemClass::ShouldSpawnThisFrame() const
+{
+	// Always spawn on first frame
+	if (this->SparkSpawnFrames == 1) {
+		return true;
+	}
+
+	// Random chance based on percentage
+	const float random = (float)ScenarioClass::Instance->Random.RandomDouble();
+	return random <= this->Type->SpawnSparkPercentage;
+}
+
+void FakeParticleSystemClass::UpdateSpotlight()
+{
+	// Random spotlight radius variation
+	const float random = (float)ScenarioClass::Instance->Random.RandomDouble();
+
+	if (random < 0.3f) {
+		// Shrink
+		this->SpotlightRadius = std::max(17, this->SpotlightRadius - 3);
+	}
+	else if (random < 0.6f) {
+		// Grow
+		this->SpotlightRadius = std::min(41, this->SpotlightRadius + 3);
+	}
+}
+
+void FakeParticleSystemClass::CreateSpotlightIfNeeded()
+{
+	// Only create on high detail
+	if (GameOptionsClass::Instance->DetailLevel != 2) {
+		return;
+	}
+
+	// Only on first frame with valid light size
+	if (this->SparkSpawnFrames != this->Type->SparkSpawnFrames) {
+		return;
+	}
+
+	if (this->Type->LightSize <= 0) {
+		return;
+	}
+
+	if (this->Type->OneFrameLight) {
+		return;
+	}
+
+	GameCreate<SpotlightClass>(this->Location, this->Type->LightSize);
+}
+
+void FakeParticleSystemClass::SetupRandomVelocity(ParticleClass* particle)
+{
+	const ParticleTypeClass* type = particle->Type;
+
+	// Generate random velocity components
+	Vector3D<float> velocity {
+		static_cast<float>(ScenarioClass::Instance->Random.Random() % type->XVelocity),
+		static_cast<float>(ScenarioClass::Instance->Random.Random() % type->YVelocity),
+		static_cast<float>(type->MinZVelocity +
+						  Math::abs(ScenarioClass::Instance->Random.Random()) % type->ZVelocityRange)
+	};
+
+	// Get magnitude before direction modification
+	const float oldmagnitude = (float)velocity.Length();
+
+	// Add directional bias
+	if (this->unknown_bool_F9) {
+		// Generate fresh random direction per particle
+		velocity.X += static_cast<float>(ScenarioClass::Instance->Random.Random() % type->XVelocity);
+		velocity.Y += static_cast<float>(ScenarioClass::Instance->Random.Random() % type->YVelocity);
+		velocity.Z += static_cast<float>(type->MinZVelocity +
+											  Math::abs(ScenarioClass::Instance->Random.Random()) % type->ZVelocityRange);
+	} else {
+		// Use spawn direction from class
+		velocity += this->Type->SpawnDirection;
+	}
+
+	// Normalize and apply magnitude
+	const float newmagnitude = (float)velocity.Length();
+
+	if (newmagnitude > 0.0f) {
+		velocity /= newmagnitude;
+		velocity *= oldmagnitude;
+	}
+
+	particle->Spark10C = velocity;
+}
+
+void FakeParticleSystemClass::__Spark_AI()
+{
+	// Spawn spark burst if still active
+	if (this->SparkSpawnFrames > 0) {
+		this->ProcessSparkSpawning();
+		this->UpdateSpotlight();
+		--this->SparkSpawnFrames;
+
+		if (this->SparkSpawnFrames <= 0) {
+			this->TimeToDie = 1;
+		}
+	}
+
+	// Update all particles
+	this->UpdateAllParticles();
+
+	// Remove dead particles
+	this->RemoveDeadParticles();
+}
+
+#pragma endregion
+
+#pragma region Gas
+
+void  FakeParticleSystemClass::TransitionToNextParticle(ParticleClass* oldParticle)
+{
+	const ParticleTypeClass* parentType = oldParticle->Type;
+	ParticleTypeClass* childType = ParticleTypeClass::Array->Items[parentType->NextParticle];
+
+	// Calculate spawn position with offset
+	CoordStruct spawnPos = oldParticle->Location + parentType->NextParticleOffset;
+
+	// Create new particle
+	auto newParticle = GameCreate<ParticleClass>(childType, spawnPos, CoordStruct::Empty, this);
+
+	// Add to vector
+	this->Particles.push_back(newParticle);
+
+	// Inherit properties from old particle
+	newParticle->Velocity = oldParticle->Velocity;
+	newParticle->GasVelocity = oldParticle->GasVelocity;
+
+	// Inherit properties from old particle
+}
+
+void FakeParticleSystemClass::__Gas_AI() {
+	// Update all particles
+	this->UpdateAllParticles();
+
+	// Handle particle lifecycle with transitions
+	this->ProcessParticleLifecycle<&FakeParticleSystemClass::TransitionToNextParticle>();
+}
+
+#pragma endregion
+
+#pragma region Smoke
+
+void FakeParticleSystemClass::SpawnChildParticle(ParticleClass* parent, ParticleTypeClass* childType,
+						int offsetX, int offsetY)
+{
+	const CoordStruct spawnPos {
+		parent->Location.X + offsetX,
+		parent->Location.Y + offsetY,
+		parent->Location.Z
+	};
+
+	auto child = GameCreate<ParticleClass>(childType, spawnPos, CoordStruct::Empty, this);
+
+	// Add to vector
+	this->Particles.push_back(child);
+
+	// Inherit properties from parent
+	child->Velocity = parent->Velocity;
+
+	// Add random translucency variation
+	const int translucencyBonus = ((ScenarioClass::Instance->Random.Random()) % 6 != 0) ? 25 : 0;
+	child->Translucency = parent->Translucency + translucencyBonus;
+}
+
+void FakeParticleSystemClass::SpawnSmokeParticles()
+{
+	// Check spawn timing
+	if ((Unsorted::CurrentFrame % (int)this->SpawnFrames) != 0) {
+		return;
+	}
+
+	// Check if owner prevents spawning
+	if (auto pFoot = flag_cast_to<FootClass*>(this->Owner)) {
+		if (pFoot->TubeIndex != 0)
+		{
+			return; // Special condition prevents smoke
+		}
+	}
+
+	// Calculate random spawn position
+	const int spawnRadius = this->Type->SpawnRadius + 1;
+	const int randomX = ScenarioClass::Instance->Random.Random() % spawnRadius;
+	const int randomY = ScenarioClass::Instance->Random.Random() % spawnRadius;
+
+	const CoordStruct spawnPos {
+		this->Location.X + randomX,
+		this->Location.Y + randomY,
+		this->Location.Z + 10
+	};
+
+	// Create particle
+
+	if (ParticleClass* particle = this->CreateHoldsWhatParticle(spawnPos, this->TargetCoords)) {
+
+		// Adjust properties based on spawn rate
+		if (this->SpawnFrames > this->Type->SpawnTranslucencyCutoff) {
+			particle->Translucency += 25;
+		}
+
+		// Adjust velocity based on spawn delay
+		const float velocityReduction = (this->SpawnFrames - this->Type->SpawnFrames) * 0.35f;
+		particle->Velocity = std::max(2.0f, particle->Velocity - velocityReduction);
+	}
+}
+
+void FakeParticleSystemClass::UpdateSmokeAttachedPosition()
+{
+	AbstractClass* owner = this->Owner;
+	if (!owner) {
+		return;
+	}
+
+	// Only update for active non-building owners
+	if (!flag_cast_to<TechnoClass*,false>(owner)) {
+		return;
+	}
+
+	if (owner->WhatAmI() == BuildingClass::AbsID)
+	{
+		return;
+	}
+
+	// Get owner's center position
+	CoordStruct ownerCenter = owner->GetCoords();
+
+	// Apply spawn offset
+	const CoordStruct newPos {
+		ownerCenter.X + this->SpawnDistanceToOwner.X,
+		ownerCenter.Y + this->SpawnDistanceToOwner.Y,
+		ownerCenter.Z + this->SpawnDistanceToOwner.Z
+	};
+
+	this->SetLocation(newPos);
+}
+
+void FakeParticleSystemClass::UpdateSpawnTiming()
+{
+	// Gradually slow down spawn rate
+	this->SpawnFrames += this->Type->Slowdown;
+
+	// Mark for death when spawn rate exceeds cutoff
+	if (this->SpawnFrames > this->Type->SpawnCutoff) {
+		this->TimeToDie = 1;
+	}
+}
+
+void FakeParticleSystemClass::__Smoke_AI()
+{
+	// Update position if attached to owner
+	this->UpdateSmokeAttachedPosition();
+
+	// Update all particles
+	this->UpdateAllParticles();
+
+	// Handle particle transitions and removal
+	this->ProcessParticleLifecycle<&FakeParticleSystemClass::SpawnChildParticles>();
+
+	// Spawn new smoke particles if active
+	if (!this->TimeToDie && this->IsAlive)
+	{
+		this->SpawnSmokeParticles();
+	}
+
+	// Update spawn timing
+	this->UpdateSpawnTiming();
+}
+#pragma endregion
+
+#pragma region Fire
+
+void FakeParticleSystemClass::__Fire_AI()
+{
+	// Update existing particles
+	this->UpdateAndCoordAllParticles();
+
+	// Remove dead particles
+	this->RemoveDeadParticles();
+
+	// Update system position if attached to unit
+	const bool positionUpdated = this->UpdateAttachedPosition();
+
+	// Spawn new particles if system is active
+	if (!this->TimeToDie) {
+		this->SpawnFireParticles(positionUpdated);
+	}
+}
+
+bool FakeParticleSystemClass::UpdateAttachedPosition()
+{
+	TechnoClass* owner = flag_cast_to<TechnoClass*>(this->Owner);
+
+	// Remove system if owner is gone
+	if (!owner || !owner->IsAlive) {
+		this->UnInit();
+		return false;
+	}
+
+	// Update position if owner is rotating and has target
+	if (owner->Target && owner->PrimaryFacing.Is_Rotating()) {
+		this->UpdatePositionFromOwner(owner);
+		return true;
+	}
+
+	return false;
+}
+
+void FakeParticleSystemClass::UpdatePositionFromOwner(TechnoClass* owner)
+{
+	// Get target position
+	CoordStruct targetPos = owner->Target->GetCoords();
+
+	// Calculate direction vector
+	const CoordStruct ownerPos = owner->Location;
+	const Vector3D<float>  direction {
+		static_cast<float>(targetPos.X - ownerPos.X),
+		static_cast<float>(targetPos.Y - ownerPos.Y),
+		static_cast<float>(targetPos.Z - ownerPos.Z)
+	};
+
+	const float distance = (float)direction.Length();
+
+	// Get current facing
+	DirStruct facing = owner->PrimaryFacing.Current();
+
+	// Calculate offset based on facing
+	const float facingAngle = (facing.Raw - 0x3FFF) * -0.00009587672516830327f;
+	const float offsetX = (float)Math::cos(facingAngle) * distance + ownerPos.X;
+	const float offsetY = (float)ownerPos.Y - (float)Math::sin(facingAngle) * distance;
+
+	// Update target and system position
+	CoordStruct newPos { (int)offsetX, (int)offsetY, ownerPos.Z } ;
+	this->TargetCoords = newPos;
+	CoordStruct flh;
+	owner->GetFLH(&flh, 0, CoordStruct::Empty);
+	this->SetLocation(flh);
+}
+
+#include <WaveClass.h>
+
+void FakeParticleSystemClass::SpawnFireParticles(bool forceSpawn)
+{
+	if (!this->IsAlive) {
+		return;
+	}
+
+	// Check spawn timing
+	const bool shouldSpawn = (Unsorted::CurrentFrame % this->Type->SpawnFrames) == 0 ||
+		((Unsorted::CurrentFrame % 3) == 0 && forceSpawn);
+
+	if (!shouldSpawn)
+	{
+		return;
+	}
+
+	// Calculate spawn parameters
+	const float distanceToTarget = float((this->Location - this->TargetCoords).Length());
+	const int waveIntensity = (distanceToTarget >= 200.0f) ? 1 : 3;
+
+	// Calculate wave offset
+	const int wavePhase = Unsorted::CurrentFrame % 500;
+	const int waveOffset = int(int(12 * WaveClass::SonicBeamSineTable[wavePhase]) / (waveIntensity * 3.0f));
+
+	// Get direction to target
+	Point2D sourcePos { this->Location.X, this->Location.Y };
+	Point2D targetPos { this->TargetCoords.X, this->TargetCoords.Y };
+	const int direction = Game::Point2DToDir8(&sourcePos, &targetPos);
+
+	//static constexpr Point2D Directions8[8] = {
+	//	{  1,  0 }, // East
+	//	{  1,  1 }, // South-East
+	//	{  0,  1 }, // South
+	//	{ -1,  1 }, // South-West
+	//	{ -1,  0 }, // West
+	//	{ -1, -1 }, // North-West
+	//	{  0, -1 }, // North
+	//	{  1, -1 }  // North-East
+	//	};
+
+	auto& dir = this->_GetTypeExtData()->FacingMult[direction];
+
+	// Calculate spawn position with wave
+	CoordStruct spawnPos {
+		this->TargetCoords.X + waveOffset * dir.X,
+		this->TargetCoords.Y + waveOffset * dir.Y,
+		this->TargetCoords.Z
+	};
+
+	// Spawn particle
+	CoordStruct sourceCoord {
+		this->Location.X,
+		this->Location.Y,
+		this->Location.Z + 1
+	};
+
+	this->SpawnHeldParticleRandom(&sourceCoord, &spawnPos, 4);
+}
+
+#pragma endregion
+
+#pragma region Railgun
+
+void FakeParticleSystemClass::__Railgun_AI()
+{
+	// Initialize spiral on first frame
+	if (!this->TimeToDie && !this->Particles.Count) {
+		this->CreateSpiralTrail();
+		this->CreateLaserBeam();
+		this->TimeToDie = 1;
+	}
+
+	// Update all particles
+	this->UpdateAllParticles();
+
+	// Remove dead particles
+	this->RemoveDeadParticles();
+}
+
+void FakeParticleSystemClass::SpawnSpiralParticle(int index, int totalCount, float distance, const Matrix3D& rotationMatrix)
+{
+	const float progress = static_cast<float>(index) / static_cast<float>(totalCount);
+
+	// Calculate spiral position
+	const Vector3D<float> spiralOffset = this->CalculateSpiralOffset(progress, distance, rotationMatrix);
+
+	// Calculate spawn position along path
+	const CoordStruct spawnPos = this->CalculateSpawnPosition(progress, spiralOffset);
+
+	// Create particle
+	if (ParticleClass* particle = this->CreateHoldsWhatParticle(spawnPos , spawnPos)) {
+		// Setup particle direction and velocity
+		this->SetupParticleVelocity(particle, spiralOffset, progress);
+	}
+}
+
+Vector3D<float> FakeParticleSystemClass::CalculateSpiralOffset(float progress, float distance, const Matrix3D& rotationMatrix)
+{
+	// Calculate spiral angle
+	const float spiralAngle = float(distance * progress * this->Type->SpiralDeltaPerCoord);
+
+	// Create spiral circle point
+	const Vector3D<float> circlePoint {
+		0.0f,
+		(float)Math::cos(spiralAngle),
+		(float)Math::sin(spiralAngle)
+	};
+
+	// Rotate to align with trajectory and Scale by spiral radius
+	return  rotationMatrix.RotateVector(circlePoint) * this->Type->SpiralRadius;
+}
+
+CoordStruct FakeParticleSystemClass::CalculateSpawnPosition(float progress, const Vector3D<float>& spiralOffset)
+{
+	// Add random position perturbation
+	const Vector3D<float>  perturbation = GetRandomPerturbation(
+		(float)this->Type->PositionPerturbationCoefficient
+	);
+
+	// Interpolate along path
+	Vector3D<float> startPt {
+		(float)this->Location.X,
+		(float)this->Location.Y,
+		(float)this->Location.Z
+	};
+
+	Vector3D<float> targetPt {
+		(float)this->TargetCoords.X,
+		(float)this->TargetCoords.Y,
+		(float)this->TargetCoords.Z
+	};
+
+	const Vector3D<float> result = startPt.Lerp(targetPt, progress) + spiralOffset + perturbation;
+	// Add spiral offset and perturbation
+	return {
+		static_cast<int>(result.X),
+		static_cast<int>(result.Y),
+		static_cast<int>(result.Z)
+	};
+}
+
+void FakeParticleSystemClass::SetupParticleVelocity(ParticleClass* particle, const Vector3D<float>& direction,
+							   float progress)
+{
+	// Copy direction and add movement perturbation
+	Vector3D<float> velocity = direction;
+	const Vector3D<float> movementPert = GetRandomPerturbation(
+		(float)this->Type->MovementPerturbationCoefficient
+	);
+
+	velocity.X += movementPert.X;
+	velocity.Y += movementPert.Y;
+	velocity.Z += movementPert.Z;
+
+	// Normalize direction
+	const float length = Math::sqrt(velocity.X * velocity.X +
+									   velocity.Y * velocity.Y +
+									   velocity.Z * velocity.Z);
+
+	if (length > 0.0f)
+	{
+		velocity.X /= length;
+		velocity.Y /= length;
+		velocity.Z /= length;
+	}
+
+	particle->Spark10C = velocity;
+
+	// Calculate velocity magnitude with perturbation
+	const float baseVelocity = particle->Type->Velocity;
+	const float velocityPert = this->CalculateVelocityPerturbation(progress);
+	particle->Velocity = baseVelocity + velocityPert;
+}
+
+float FakeParticleSystemClass::CalculateVelocityPerturbation(float progress) const
+{
+	const float random = (float)ScenarioClass::Instance->Random.RandomDouble_Closest();
+	const float perturbation = (float)((random + progress) * (this->Type->VelocityPerturbationCoefficient * 0.5f));
+
+	// Clamp to coefficient range
+	const float minPert = (float)-this->Type->MovementPerturbationCoefficient;
+	const float maxPert = (float)this->Type->VelocityPerturbationCoefficient;
+
+	return std::clamp(perturbation, minPert, maxPert);
+}
+
+void FakeParticleSystemClass::CreateSpiralTrail()
+{
+	// Calculate trajectory vector
+	const Vector3D<float> trajectory = this->CalculateTrajectory();
+	const float distance = (float)trajectory.Length();
+	const int particleCount = static_cast<int>(distance * this->Type->ParticlesPerCoord);
+
+	// Create rotation matrix for spiral
+	Matrix3D rotationMatrix = CreateRotationMatrix(trajectory, distance);
+
+	// Spawn particles along spiral path
+	for (int i = 0; i < particleCount; ++i) {
+		this->SpawnSpiralParticle(i, particleCount, distance, rotationMatrix);
+	}
+}
+
+void FakeParticleSystemClass::CreateLaserBeam()
+{
+	if (!this->Type->Laser) {
+		return;
+	}
+
+	ColorStruct outerColor { 0, 0, 0 };
+	ColorStruct blankColor { 0, 0, 0 };
+
+	GameCreate<LaserDrawClass>(
+		this->Location,
+		this->TargetCoords,
+		0,
+		1,
+		this->Type->LaserColor,
+		outerColor,
+		blankColor,
+		10,
+		0,
+		1,
+		0.0f,
+		0.5f
+	);
+}
+
+#pragma endregion
+
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBF8, FakeParticleSystemClass::__AI)

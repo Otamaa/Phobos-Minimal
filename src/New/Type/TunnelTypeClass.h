@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Utilities/Enumerable.h>
-#include <Utilities/Template.h>
+#include <Utilities/TemplateDefB.h>
 
 class TunnelTypeClass final : public Enumerable<TunnelTypeClass>
 {

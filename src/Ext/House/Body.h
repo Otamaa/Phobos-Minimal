@@ -524,6 +524,7 @@ public:
 	void _BlowUpAllBuildings();
 	void _UpdateRadar();
 	void _UpdateSpySat();
+	void _Attacked(BuildingClass* source, WarheadTypeClass* warhead);
 
 	HouseExtData* _GetExtData() {
 		return *reinterpret_cast<HouseExtData**>(((DWORD)this) + AbstractExtOffset);

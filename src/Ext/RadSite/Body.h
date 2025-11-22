@@ -119,6 +119,15 @@ public:
 		return pCell->GetCoordsWithBridge();
 	}
 
+	template<typename Func>
+	void ForEachCellInRadiationArea(Func&& callback);
+
+	void __AI();
+	void __Reduce_In_Area();
+	void __Increase_In_Area();
+	void __Reduce_Radiation();
+	double __Radiation_At(CellStruct* cell) const;
+
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 

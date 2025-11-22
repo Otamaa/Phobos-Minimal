@@ -115,7 +115,7 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 		{
 			if (infDeath == InfDeath::Virus)
 			{
-				auto pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryVirus, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				auto pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryVirus, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 				auto pInvoker = source
 					? source->Owner
 					: sourceHouse;
@@ -183,10 +183,10 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 
 				break;
 			case InfDeath::Explode:
-				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 				break;
 			case InfDeath::Flames:
-				pAnim = GameCreate<AnimClass>(RulesClass::Instance->FlamingInfantry, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				pAnim = GameCreate<AnimClass>(RulesClass::Instance->FlamingInfantry, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 				break;
 			case InfDeath::Electro:
 			{
@@ -197,19 +197,19 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 					El = AnimTypeClass::Array->Items[0];
 				}
 
-				pAnim = GameCreate<AnimClass>(El, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				pAnim = GameCreate<AnimClass>(El, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 
 			}
 			break;
 			case InfDeath::HeadPop:
-				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryHeadPop, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryHeadPop, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 				break;
 			case InfDeath::Nuked:
-				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryNuked, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryNuked, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 				break;
 			case InfDeath::Virus:
 			{
-				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryVirus, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryVirus, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 			}
 			break;
 			case InfDeath::Mutate:
@@ -267,7 +267,7 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 				}
 
 				pThis->MarkAllOccupationBits(curLoc);
-				auto pAnim_Mutate = GameCreate<AnimClass>(RulesClass::Instance->InfantryMutate, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				auto pAnim_Mutate = GameCreate<AnimClass>(RulesClass::Instance->InfantryMutate, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 
 				auto pInvoker = source
 					? source->Owner
@@ -279,7 +279,7 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 			}
 			break;
 			case InfDeath::Brute:
-				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryBrute, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryBrute, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 				break;
 			default:
 				break;
@@ -321,10 +321,10 @@ void ProcessInfantryDeathAnimation(FakeInfantryClass* pThis, WarheadTypeClass* w
 			if (pThis->IsABomb)
 			{
 				// Water splash effects
-				GameCreate<AnimClass>(RulesClass::Instance->Wake, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				GameCreate<AnimClass>(RulesClass::Instance->Wake, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 
 				auto splash_loc = pThis->Location + CoordStruct{ 0, 0, 3 };
-				GameCreate<AnimClass>(RulesClass::Instance->SplashList[0], splash_loc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				GameCreate<AnimClass>(RulesClass::Instance->SplashList[0], splash_loc, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 
 
 				FinalizeInfantryDeath(pThis , source);
@@ -336,7 +336,7 @@ void ProcessInfantryDeathAnimation(FakeInfantryClass* pThis, WarheadTypeClass* w
 	// Cyborg prone death
 	if (pThis->Type->Cyborg && pThis->Crawling)
 	{
-		GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+		GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 		FinalizeInfantryDeath(pThis, source);
 		return;
 	}
@@ -344,7 +344,7 @@ void ProcessInfantryDeathAnimation(FakeInfantryClass* pThis, WarheadTypeClass* w
 	// Jump jet units explode
 	if (pThis->Type->JumpJet)
 	{
-		GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+		GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 		FinalizeInfantryDeath(pThis, source);
 		return;
 	}
@@ -355,7 +355,7 @@ void ProcessInfantryDeathAnimation(FakeInfantryClass* pThis, WarheadTypeClass* w
 	{
 		if (infDeath == InfDeath::Virus)
 		{
-			auto pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryVirus, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+			auto pAnim = GameCreate<AnimClass>(RulesClass::Instance->InfantryVirus, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 			auto pInvoker = source
 				? source->Owner
 				: sourceHouse;
@@ -394,7 +394,7 @@ void ProcessInfantryDeathAnimation(FakeInfantryClass* pThis, WarheadTypeClass* w
 
 		if (auto pDeathAnim = pThis->Type->DeathAnims[infDeathInt])
 		{
-			auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+			auto pAnim = GameCreate<AnimClass>(pDeathAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 
 			HouseClass* Invoker = (source)
 				? source->Owner
@@ -456,7 +456,7 @@ void HandleInfantryDeath(FakeInfantryClass* pThis, WarheadTypeClass* warhead,
 
 			// Cyborg bomb explosion
 			if (pThis->IsABomb) {
-				GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				GameCreate<AnimClass>(RulesClass::Instance->InfantryExplode, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 			}
 		}
 

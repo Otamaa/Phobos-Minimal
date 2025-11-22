@@ -21,9 +21,15 @@ enum class AnimFlag : unsigned int
 	AnimFlag_100 = 0x100,
 	AnimFlag_200 = 0x200, // always ?
 	AnimFlag_400 = 0x400, // always ?
+
+	AnimFlag_600 = AnimFlag_400 | AnimFlag_200, // always ?
+
 	AnimFlag_800 = 0x800,
 	AnimFlag_1000 = 0x1000, // building anim
 	AnimFlag_2000 = 0x2000, // IvanDamage nuke
+
+	AnimFlag_2600 = AnimFlag_600 | AnimFlag_2000,
+
 	AnimFlag_4000 = 0x4000,
 	AnimFlag_8000 = 0x8000,
 };
@@ -54,7 +60,7 @@ public:
 	virtual HRESULT __stdcall Save(IStream* pStm, BOOL fClearDirty) override JMP_STD(0x4253B0);
 
 	//Destructor
-	virtual ~AnimClass();
+	virtual ~AnimClass() RX;
 
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x425150);

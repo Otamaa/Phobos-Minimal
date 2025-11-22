@@ -1315,7 +1315,7 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 			if (Bullet->MoveTo(coord, velocity))
 			{
 				CoordStruct coord = v3->GetCoords();
-				AnimClass* anim = GameCreate<AnimClass>(RulesClass::Instance->NukeTakeOff, coord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+				AnimClass* anim = GameCreate<AnimClass>(RulesClass::Instance->NukeTakeOff, coord, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 				anim->ZAdjust = -100;
 				pThis->MissionStatus = 3;
 			}
@@ -1717,9 +1717,9 @@ public:
 	Point2D* XY_To_Screen_Pixels(Point2D* pBuffer, Point2D* a2)
 	{ JMP_THIS(0x6D1FE0); }
 
-	static int __fastcall ZDepth_Adjust_For_Height(int z) {
-		JMP_FAST(0x6D20E0);
-	}
+	//static int __fastcall ZDepth_Adjust_For_Height(int z) {
+	//	JMP_FAST(0x6D20E0);
+	//}
 };
 
 #include <Misc/Ares/Hooks/Header.h>
@@ -2115,7 +2115,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 					}
 
 					const int lightLevel = pCell->Color1.Red;
-					const int depthAdjust = FakeTacticalClassB::ZDepth_Adjust_For_Height(this->GetZ());
+					const int depthAdjust = Game::AdjustHeight(this->GetZ());
 
 					this->Draw_Object(mainShape,
 						gateFrame,
@@ -2189,7 +2189,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 				if (clipRect->Height > 0) {
 					SHPStruct* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
 					const int lightLevel = (int16)this->Type->ExtraLight + pCell->Color1.Red;
-					const int depthAdjust = FakeTacticalClassB::ZDepth_Adjust_For_Height(this->GetZ());
+					const int depthAdjust = Game::AdjustHeight(this->GetZ());
 
 					if (!pTypeExt->Firestorm_Wall) {
 
@@ -2248,7 +2248,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 						clipRect,
 						DirType::North,  // rotation
 						256,  // scale
-						-1 - FakeTacticalClassB::ZDepth_Adjust_For_Height(heightZ),  // height adjust
+						-1 - Game::AdjustHeight(heightZ),  // height adjust
 						ZGradient::Ground,  // ZGradient
 						1,  // useZBuffer
 						lightLevel,
@@ -2266,7 +2266,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 								screenPos,
 								clipRect,
 								DirType::North, 256,  // rotation, scale
-								-FakeTacticalClassB::ZDepth_Adjust_For_Height(this->GetZ()),  // height adjust
+								-Game::AdjustHeight(this->GetZ()),  // height adjust
 								ZGradient::Ground, 1,  // ZGradient, useZBuffer
 								 (int16)this->Type->ExtraLight + pCell->Color1.Red,
 								tintLevel,
@@ -2389,11 +2389,9 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->AutoSellTimer)
 		.Process(this->LighningNeedUpdate)
 		.Process(this->TogglePower_HasPower)
-		.Process(this->C4Damage)
 		.Process(this->C4Owner)
 		.Process(this->C4Warhead)
 		.Process(this->Silent)
-		.Process(this->ReceiveDamageWarhead)
 		.Process(this->DockReloadTimers)
 		.Process(this->OwnerBeforeRaid)
 		.Process(this->CashUpgradeTimers)
@@ -2403,7 +2401,6 @@ void BuildingExtData::Serialize(T& Stm)
 		.Process(this->IsFromSW)
 		.Process(this->RegisteredJammers)
 		.Process(this->GrindingWeapon_AccumulatedCredits)
-		.Process(this->BeignMCEd)
 		.Process(this->LastFlameSpawnFrame)
 		.Process(this->SpyEffectAnim)
 		.Process(this->SpyEffectAnimDuration)

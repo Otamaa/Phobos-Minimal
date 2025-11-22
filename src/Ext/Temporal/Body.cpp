@@ -24,7 +24,7 @@
 void FakeTemporalClass::CreateWarpAwayAnimation(WeaponTypeClass* pWeapon)
 {
 	if (auto pAnimType = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Instance()->WarpAway)) {
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, this->Target->Location, 0, 1, AnimFlag(0x600), 0, 0),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, this->Target->Location, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 			this->Owner ? this->Owner->Owner : nullptr,
 			this->Target->Owner,
 			this->Owner,
@@ -281,8 +281,7 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 
 				} else if (pBuilding) {
 					if (!pBuilding->Type->Insignificant && !pBuilding->IsStrange()) {
-						BuildingExtContainer::Instance.Find(pBuilding)->ReceiveDamageWarhead = pWeapon->Warhead;
-						pTargetOwner->BuildingUnderAttack(pBuilding);
+						((FakeHouseClass*)pTargetOwner)->_Attacked(pBuilding, pWeapon->Warhead);
 					}
 
 				}

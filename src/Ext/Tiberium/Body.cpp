@@ -98,7 +98,7 @@ void TiberiumExtData::Queue_Spread(CellStruct const& cell)
 {
 	if (MapClass::Instance->GetCellAt(cell)->CanTiberiumSpread() && !SpreadState[Map_Cell_Index(cell)])
 	{
-		if (SpreadQueue.size() >= Map_Cell_Count() - 20)
+		if ((int)SpreadQueue.size() >= Map_Cell_Count() - 20)
 		{
 			Recalc_Spread();
 		}
@@ -184,7 +184,7 @@ void TiberiumExtData::Queue_Growth(CellStruct const& cell)
 {
 	if (MapClass::Instance->GetCellAt(cell)->OverlayData < This()->NumFrames - 1)
 	{
-		if (GrowthQueue.size() > Map_Cell_Count() - 10)
+		if ((int)GrowthQueue.size() > Map_Cell_Count() - 10)
 		{
 			Recalc_Growth();
 		}

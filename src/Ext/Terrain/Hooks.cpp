@@ -30,7 +30,7 @@ ASMJIT_PATCH(0x71C5D2, TerrainClass_CatchFire_AttachFireAnim, 0x6)
 		}
 
 		if (pAnimType) {
-			auto pAnim = GameCreate<AnimClass>(pAnimType, Loc, 0, 255, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+			auto pAnim = GameCreate<AnimClass>(pAnimType, Loc, 0, 255, AnimFlag::AnimFlag_600, 0, 0);
 			pAnim->SetOwnerObject(pThis);
 			pThis->_GetExtData()->AttachedFireAnim.reset(pAnim);
 			pAnim->ZAdjust -= 20;

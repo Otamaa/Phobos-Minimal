@@ -206,7 +206,7 @@ private:
 	AnimTypeClass* GetIdleAnimType() const;
 
 	void WeaponNullifyAnim(AnimTypeClass* pHitAnim = nullptr);
-	void ResponseAttack() const;
+	void ResponseAttack(WarheadTypeClass* pWarhead) const;
 
 	void CloakCheck();
 	void OnlineCheck();

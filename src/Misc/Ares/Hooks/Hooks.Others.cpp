@@ -69,20 +69,6 @@ ASMJIT_PATCH(0x52C5E0, Ares_NOLOGO, 0x7)
 	return Phobos::Otamaa::NoLogo ? 0x52C5F3 : 0x0;
 }
 
-ASMJIT_PATCH(0x62A020, ParasiteClass_Update, 0xA)
-{
-	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
-	return 0x62A02A;
-}
-
-ASMJIT_PATCH(0x62A7B1, Parasite_ExitUnit, 9)
-{
-	GET(TechnoClass*, pOwner, ECX);
-	R->EAX(pOwner->GetWeapon(TechnoExtContainer::Instance.Find(pOwner)->idxSlot_Parasite));
-	return 0x62A7BA;
-}
-
 ASMJIT_PATCH(0x4CA0E3, FactoryClass_AbandonProduction_Invalidate, 0x6)
 {
 	GET(FactoryClass*, pThis, ESI);
@@ -304,61 +290,6 @@ ASMJIT_PATCH(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 	*color = ovType->RadarColor;
 	R->EAX<ColorStruct*>(color);
 	return 0x5FEDDA;
-}
-
-// only eject the parasite if the unit leaves the battlefield,
-// not just when it goes out of sight.
-ASMJIT_PATCH(0x62A283, ParasiteClass_PointerGotInvalid_Cloak, 0x9)
-{
-	GET(ParasiteClass*, pThis, ESI);
-	GET(void*, ptr, EAX);
-	GET_STACK(bool, remove, 0x2C);
-
-	// remove only if pointer really got removed
-	return (remove && pThis->Victim == ptr) ? 0x62A28C : 0x62A484;
-}
-
-/* #746 - don't set parasite eject point to cell center, but set it to fall and explode like a bomb */
-ASMJIT_PATCH(0x62A2F8, ParasiteClass_PointerGotInvalid, 0x6)
-{
-	GET(ParasiteClass*, Parasite, ESI);
-	GET(CoordStruct*, XYZ, EAX);
-
-	auto Owner = Parasite->Owner;
-	auto const pWhat = Owner->WhatAmI();
-
-	bool allowed = false;
-	if (pWhat == UnitClass::AbsID)
-	{
-		allowed = !Owner->GetTechnoType()->Naval;
-	}
-	else if (pWhat == InfantryClass::AbsID)
-	{
-		allowed = true;
-	}
-
-	if (allowed)
-	{
-		if (Owner->GetHeight() > 200)
-		{
-			*XYZ = Owner->Location;
-			Owner->IsFallingDown = Owner->IsABomb = true;
-		}
-		else if (Owner->GetHeight() < 0) //inside ground
-			*XYZ = CoordStruct::Empty;
-	}
-
-	CoordStruct result = *XYZ;
-
-	if (result == CoordStruct::Empty || CellClass::Coord2Cell(result) == CellStruct::Empty)
-	{
-		Debug::LogInfo("Parasite[{} : {}] With Invalid Location ! , Removing ! ", (void*)Parasite, Parasite->Owner->get_ID());
-		TechnoExtData::HandleRemove(Parasite->Owner, nullptr, false, false);
-		Parasite->Victim = nullptr;
-		return 0x62A47B; //pop the registers
-	}
-
-	return 0;
 }
 
 struct FakeObjectClass : public ObjectClass

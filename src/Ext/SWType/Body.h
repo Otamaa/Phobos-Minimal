@@ -184,9 +184,11 @@ public:
 	std::vector<std::vector<int>> SW_Link_RandomWeightsData;
 #pragma endregion
 
+	Valueable<AffectedHouse> SW_Inhibitors_Houses;
 	ValueableVector<TechnoTypeClass*> SW_Inhibitors;
 	Valueable<bool> SW_AnyInhibitor;
 
+	Valueable<AffectedHouse> SW_Designators_Houses;
 	ValueableVector<TechnoTypeClass*> SW_Designators;
 	Valueable<bool> SW_AnyDesignator;
 	Valueable<bool> ShowDesignatorRange;
@@ -567,8 +569,10 @@ public:
 		SW_Next_RollChances(),
 		SW_Next_RandomWeightsData(),
 		SW_Link_RandomWeightsData(),
+		SW_Inhibitors_Houses(AffectedHouse::Enemies),
 		SW_Inhibitors(),
 		SW_AnyInhibitor(false),
+		SW_Designators_Houses(AffectedHouse::Owner),
 		SW_Designators(),
 		SW_AnyDesignator(false),
 		ShowDesignatorRange(true),

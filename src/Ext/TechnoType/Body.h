@@ -175,7 +175,13 @@ public:
 	Valueable<CSFText> UIDescription;
 	Valueable<bool> LowSelectionPriority;
 	PhobosFixedString<0x20> GroupAs;
+
 	Valueable<int> RadarJamRadius;
+	Valueable<AffectedHouse> RadarJamHouses;
+	Valueable<int> RadarJamDelay;
+	ValueableVector<BuildingTypeClass*> RadarJamAffect;
+	ValueableVector<BuildingTypeClass*> RadarJamIgnore;
+
 	Nullable<int> InhibitorRange;
 	Nullable<int> DesignatorRange;
 
@@ -1268,6 +1274,10 @@ public:
 		LowSelectionPriority(false),
 		GroupAs(),
 		RadarJamRadius(0),
+		RadarJamHouses(AffectedHouse::Enemies),
+		RadarJamDelay(30),
+		RadarJamAffect(),
+		RadarJamIgnore(),
 		InhibitorRange(),
 		DesignatorRange(),
 		SuppressorRange(),
@@ -2189,6 +2199,10 @@ private:
 			.Process(this->Interceptor_ApplyFirepowerMult)
 			.Process(this->GroupAs)
 			.Process(this->RadarJamRadius)
+			.Process(this->RadarJamHouses)
+			.Process(this->RadarJamDelay)
+			.Process(this->RadarJamAffect)
+			.Process(this->RadarJamIgnore)
 			.Process(this->InhibitorRange)
 			.Process(this->DesignatorRange)
 			.Process(this->TurretOffset)

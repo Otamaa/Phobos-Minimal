@@ -194,7 +194,7 @@ int __cdecl HouseClass_PlayerDefeat_ChangeOwner(REGISTERS* a1)
 		  || *(v4 + 501)
 		  || v4 == MEMORY[0xAC1198]
 		  || !strcmpi((*(v4 + 52) + 36), "Observer")
-		  || !HouseClass::Is_Player_Control(v4)
+		  || !HouseClass::IsControlledByHuman(v4)
 		  || !HouseClass::Is_Ally_WithHouse(data, v4))
 		{
 			goto LABEL_11;

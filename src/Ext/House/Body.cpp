@@ -1339,7 +1339,7 @@ TechTreeTypeClass* HouseExtData::GetTechTreeType() {
 			}
 		}
 
-		if(!ret){
+		if(!ret && !TechTreeTypeClass::Array.empty()){
 			Debug::LogInfo("TechTreeTypeClass::GetForSide: Could not find tech tree for side {}, returning tech tree 0: {}",
 				This()->SideIndex, TechTreeTypeClass::Array.begin()->get()->Name.data());
 			ret = TechTreeTypeClass::Array.begin()->get();
@@ -3375,6 +3375,65 @@ void FakeHouseClass::_UpdateSpySat()
 
 		if (ItIsCurrentPlayer) {
 			VocClass::PlayGlobal(RulesClass::Instance->SpySatActivationSound, Panning::Center, 1.0, 0);
+		}
+	}
+}
+
+#include <Ext/WarheadType/Body.h>
+
+void FakeHouseClass::_Attacked(BuildingClass* source, WarheadTypeClass* warhead) {
+
+	//Early exit for undeployable vehicles
+	if (source && source->IsStrange()) {
+		return;
+	}
+
+	if (!warhead || (warhead && WarheadTypeExtContainer::Instance.Find(warhead)->Malicious)) {
+
+		// Determine if this is the player's house
+		const bool isPlayerHouse = this->ControlledByCurrentPlayer();
+
+		// Determine if this is an allied house under attack
+		const bool isAllyHouse = this->IsAlliedWith(source);
+
+		CellStruct cell = CellClass::Coord2Cell(source->GetCoords());
+
+		// Handle player's house under attack
+		if (isPlayerHouse) {
+			bool isHarvesterAttack = false;
+
+			// Check if this is a harvester/resource gatherer attack
+			if (source) {
+				if (source->Type->UndeploysInto && source->Type->ResourceGatherer) {
+					isHarvesterAttack = true;
+
+					if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, cell)) {
+						VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack());
+					}
+				}
+			}
+
+			// Handle regular base attack
+			if (!isHarvesterAttack) {
+				if (RadarEventClass::Create(RadarEventType::BaseAttacked, cell)) {
+					VoxClass::Play(GameStrings::EVA_OurBaseIsUnderAttack());
+					VocClass::PlayGlobal(RulesClass::Instance->BaseUnderAttackSound, Panning::Center, 1.0, 0);
+				}
+			}
+		}
+		// Handle allied house under attack
+		else if (isAllyHouse) {
+			if (RadarEventClass::Create(RadarEventType::AllyBaseAttacked, cell)) {
+				VoxClass::Play(GameStrings::EVA_OurAllyIsUnderAttack());
+				VocClass::PlayGlobal(RulesClass::Instance->BaseUnderAttackSound, Panning::Center, 1.0, 0);
+			}
+		}
+	}
+
+	// Process trigger events for being attacked
+	for (int i = 0; i < this->RelatedTags.Count; ++i) {
+		if(this->RelatedTags[i]) {
+			this->RelatedTags[i]->SpringEvent(TriggerEvent::AttackedByAnybody, nullptr, CellStruct::Empty);
 		}
 	}
 }

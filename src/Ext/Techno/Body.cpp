@@ -129,7 +129,7 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 	for (auto& [wh, paint] : pOwnerExt->PaintBallStates) {
 		if (paint.IsActive() && paint.AllowDraw(this->Owner)) {
 
-			if (calculateTint)
+			if (calculateTint && paint.Color)
 				*tintColor |= paint.Color;
 
 			if (CalculateIntensity)

@@ -1517,7 +1517,7 @@ ASMJIT_PATCH(0x6FACD9, TechnoClass_AI_DamageSparks, 6)
 	return 0x6FAF01;
 }
 
-DEFINE_HOOK(0x6FA47C, TechnoClass_Update_Cleartarget, 0x6)
+ASMJIT_PATCH(0x6FA47C, TechnoClass_Update_Cleartarget, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 

@@ -161,7 +161,6 @@ public:
 	Valueable<bool> Is_Cow;
 	Nullable<double> C4Delay;
 	Nullable<int> C4ROF;
-	Nullable<int> C4Damage;
 	Nullable<WarheadTypeClass*> C4Warhead;
 	Valueable<bool> HideWhenDeployAnimPresent;
 	Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
@@ -190,7 +189,6 @@ public:
 
 		C4Delay(),
 		C4ROF(),
-		C4Damage(),
 		C4Warhead(),
 
 		HideWhenDeployAnimPresent(false),

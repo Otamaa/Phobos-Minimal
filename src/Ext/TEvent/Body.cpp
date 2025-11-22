@@ -17,6 +17,8 @@
 #include <New/PhobosAttachedAffect/PhobosAttachEffectClass.h>
 #include <New/PhobosAttachedAffect/Functions.h>
 
+#include <Misc/Ares/Hooks/Header.h>
+
 #include <TeamTypeClass.h>
 
 // =============================
@@ -434,6 +436,521 @@ bool TEventExtData::HousesAreDestroyedTEvent(TEventClass* pThis)
 	return true;
 }
 
+int FindTechnoTypeByName(const char* name)
+{
+	for (int i = TechnoTypeClass::Array->Count - 1; i >= 0; --i) {
+		if (strcmp(TechnoTypeClass::Array->Items[i]->Name, name) == 0) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+bool CheckTechTypeExists(TEventClass* evt, bool shouldExist)
+{
+	int typeIndex = FindTechnoTypeByName(evt->String);
+	int typeCount = TechnoTypeClass::Array->Count;
+
+	if (typeIndex < 0 || typeIndex >= typeCount) {
+		return false;
+	}
+
+	TechnoTypeClass* targetType = TechnoTypeClass::Array->Items[typeIndex];
+	int foundCount = 0;
+	int technoCount = TechnoClass::Array->Count;
+
+	for (int i = technoCount - 1; i >= 0; --i) {
+		TechnoClass* techno = TechnoClass::Array->Items[i];
+		if (techno->GetTechnoType() == targetType) {
+			foundCount++;
+			if (shouldExist && foundCount >= evt->Value) {
+				return true;
+			}
+		}
+	}
+
+	return shouldExist ? false : (foundCount == 0);
+}
+
+bool HandleEntryEvents(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bool* bool1)
+{
+	if (event != evt->EventKind) {
+		return false;
+	}
+
+	auto country = AresTEventExt::ResolveHouseParam(evt->Value);
+
+	if (!country) {
+		return false;
+	}
+
+	if (!obj) {
+		return false;
+	}
+
+	if (evt->Value != -1) {
+		if (obj->GetOwningHouseIndex() != country->ArrayIndex) {
+			return false;
+		}
+	}
+
+	*bool1 = 1;
+	evt->House = obj->GetOwningHouse();
+	return true;
+}
+
+bool HandleSpyAsHouse(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bool* bool1)
+{
+	if (event != TriggerEvent::SpyAsHouse || !obj) {
+		return false;
+	}
+
+	auto country = AresTEventExt::ResolveHouseParam(evt->Value);
+
+	if (!country) {
+		return false;
+	}
+
+	HouseClass* showAsHouse = obj->GetDisguiseHouse(true);
+	if (!showAsHouse) {
+		return false;
+	}
+
+	if (showAsHouse->ArrayIndex == country->ArrayIndex) {
+		*bool1 = 1;
+		return true;
+	}
+
+	return false;
+}
+
+bool HandleSpyAsInfantry(TEventClass* evt, TriggerEvent event, ObjectClass* obj, bool* bool1)
+{
+	if (event != TriggerEvent::SpyAsInfantry || !obj) {
+		return false;
+	}
+
+	AbstractClass* showAsType = obj->GetDisguise(true);
+	if (showAsType->WhatAmI() != InfantryTypeClass::AbsID) {
+		return false;
+	}
+
+	if (evt->Value != -1 && showAsType->GetArrayIndex() == evt->Value) {
+		*bool1 = 1;
+		return true;
+	}
+
+	return false;
+}
+
+bool HandleNearWaypoint(TEventClass* evt, TriggerEvent event, ObjectClass* obj)
+{
+	if (event != TriggerEvent::ComesNearWaypoint) {
+		return false;
+	}
+
+	CoordStruct waypointCoord;
+	ScenarioClass::Instance->GetWaypointCoordinate(&waypointCoord, evt->Value);
+	CoordStruct objCoord = obj->GetCoords();
+
+	return (objCoord - waypointCoord).Length() <= 1280;
+}
+
+bool CheckNoFactories(HouseClass* house)
+{
+	if (house->OwnedBuildings <= 0)
+	{
+		return true;
+	}
+
+	for (int i = 0; i < house->Buildings.Count; ++i)
+	{
+		BuildingClass* building = house->Buildings.Items[i];
+		if (building && !building->InLimbo && building->Type->Factory != AbstractType::None)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool CheckLeavesMap(TEventClass* evt, bool* bool1)
+{
+	for (int i = 0; i < TeamClass::Array->Count; ++i)
+	{
+		TeamClass* team = TeamClass::Array->Items[i];
+		if (team->Type == evt->TeamType && !team->FirstUnit && team->IsLeavingMap)
+		{
+			*bool1 = 1;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool HandleHouseEvents(TEventClass* evt, HouseClass* house, bool* bool1)
+{
+	switch (evt->EventKind)
+	{
+	case TriggerEvent::CreditsExceed:
+		return house->Available_Money() >= evt->Value;
+
+	case TriggerEvent::DestroyedBuildingsNum:
+		return house->TotalKilledBuildings >= evt->Value;
+
+	case TriggerEvent::DestroyedUnitsNum:
+		return house->TotalKilledUnits >= evt->Value;
+
+	case TriggerEvent::NoFactoriesLeft:
+		return CheckNoFactories(house);
+
+	case TriggerEvent::CiviliansEvacuated:
+		return house->CiviliansEvacuated;
+
+	case TriggerEvent::BuildBuildingType:
+		if (house->LastBuiltBuildingType == evt->Value)
+		{
+			*bool1 = 1;
+			return true;
+		}
+		break;
+
+	case TriggerEvent::BuildUnitType:
+		if (house->LastBuiltVehicleType == evt->Value)
+		{
+			*bool1 = 1;
+			return true;
+		}
+		break;
+
+	case TriggerEvent::BuildInfantryType:
+		if (house->LastBuiltInfantryType == evt->Value)
+		{
+			*bool1 = 1;
+			return true;
+		}
+		break;
+
+	case TriggerEvent::BuildAircraftType:
+		if (house->LastBuiltAircraftType == evt->Value)
+		{
+			*bool1 = 1;
+			return true;
+		}
+		break;
+
+	case TriggerEvent::TeamLeavesMap:
+		return CheckLeavesMap(evt, bool1);
+
+	case TriggerEvent::BuildingExists:
+		if (house->ActiveBuildingTypes.get_count(evt->Value))
+		{
+			*bool1 = 1;
+			return true;
+		}
+		break;
+
+	case TriggerEvent::CreditsBelow:
+		return house->Available_Money() <= evt->Value;
+
+	case TriggerEvent::BuildingDoesNotExist:
+		if (!house->ActiveBuildingTypes.get_count(evt->Value)) {
+			*bool1 = 1;
+			return true;
+		}
+		break;
+	default:
+		return true;
+	}
+
+	return false;
+}
+
+bool HandleValue2HouseEvents(TEventClass* evt)
+{
+	HouseClass* targetHouse = AresTEventExt::ResolveHouseParam(evt->Value);
+
+	// continue normally if a house was found or this isn't Player@X logic,
+	// otherwise return false directly so events don't fire for non-existing
+	// players.
+	if(targetHouse || !HouseClass::Index_IsMP(evt->Value)){
+		switch (evt->EventKind)
+		{
+		case TriggerEvent::ThievedBy:
+			return targetHouse->HasBeenThieved;
+
+		case TriggerEvent::HouseDiscovered:
+			return targetHouse->DiscoveredByPlayer;
+
+		case TriggerEvent::DestroyedUnitsAll:
+			return targetHouse->ActiveUnitTypes.total() <= 0 &&
+				targetHouse->ActiveInfantryTypes.total() <= 0;
+
+		case TriggerEvent::DestroyedBuildingsAll:
+			return targetHouse->OwnedBuildings <= 0;
+
+		case TriggerEvent::DestroyedAll:
+		{
+			if (SessionClass::IsCampaign()) {
+				if (targetHouse->ActiveInfantryTypes.total() <= 0) {
+					for (auto& bld : targetHouse->Buildings) {
+						if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
+							return false;
+					}
+				}
+
+				if (targetHouse->ActiveAircraftTypes.total() > 0)
+					return false;
+
+				if (targetHouse->ActiveInfantryTypes.total() > 0)
+					return false;
+
+				for (auto pItem : *InfantryClass::Array) {
+					if (pItem->InLimbo && targetHouse == pItem->GetOwningHouse() && targetHouse->IsAlliedWith(pItem->Transporter))
+						return false;
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+		case TriggerEvent::LowPower:
+			return targetHouse->GetPowerPercentage() < 1.0;
+
+		case TriggerEvent::DestroyedUnitsNaval:
+			return targetHouse->OwnedNavy <= 0;
+
+		case TriggerEvent::DestroyedUnitsLand:
+			return (targetHouse->OwnedUnits - targetHouse->OwnedNavy) <= 0 &&
+				targetHouse->OwnedInfantry <= 0;
+
+		case TriggerEvent::PowerFull:
+			return targetHouse->GetPowerPercentage() >= 1.0;
+
+		default:
+			break;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool HandleDefaultEvents(
+		TEventClass* evt,
+		TriggerEvent event,
+		HouseClass* house,
+		ObjectClass* obj,
+		bool* bool1,
+		AbstractClass* source)
+{
+
+	// Constexpr lookup table for events that require exact event matching
+	static constexpr bool RequiresEventMatch[static_cast<int>(TriggerEvent::count)] = {
+		false, true,  true,  true,  true,  false, true,  true,  false, false, // 0-9
+		false, false, false, false, false, false, false, false, true,  true,  // 10-19
+		true,  true,  true,  true,  true,  true,  true,  false, false, true,  // 20-29
+		false, true,  false, true,  true,  true,  false, false, true,  true,  // 30-39
+		true,  true,  true,  true,  true,  false, false, false, true,  true,  // 40-49
+		true,  false, false, true,  true,  false, false, false, false, true,  // 50-59
+		false, false                                                           // 60-61
+	};
+
+	const int typeIndex = static_cast<int>(evt->EventKind);
+	if (typeIndex >= 0 && typeIndex < static_cast<int>(TriggerEvent::count)) {
+		if (RequiresEventMatch[typeIndex] && event != evt->EventKind && !Unsorted::ArmageddonMode()) {
+			return false;
+		}
+	}
+
+	// Handle specific event types
+	switch (evt->EventKind)
+	{
+	case TriggerEvent::EnteredBy:
+	case TriggerEvent::CrossesHorizontalLine:
+	case TriggerEvent::CrossesVerticalLine:
+	case TriggerEvent::ZoneEntryBy:
+	case TriggerEvent::EnteredOrOverflownBy:
+		return HandleEntryEvents(evt, event, obj, bool1);
+
+	case TriggerEvent::SpyAsHouse:
+		return HandleSpyAsHouse(evt, event, obj, bool1);
+
+	case TriggerEvent::SpyAsInfantry:
+		return HandleSpyAsInfantry(evt, event, obj, bool1);
+
+	case TriggerEvent::ComesNearWaypoint:
+		return HandleNearWaypoint(evt, event, obj);
+
+	case TriggerEvent::AttackedByHouse:{
+		if (event != TriggerEvent::AttackedByHouse || !source) {
+			return false;
+		}
+
+		int param = evt->Value;
+		// convert Player @ X to real index
+		if (HouseClass::Index_IsMP( evt->Value)) {
+			auto const pPlayer = AresTEventExt::ResolveHouseParam( evt->Value);
+			param = pPlayer ? pPlayer->ArrayIndex : -1;
+		}
+
+		if (param != source->GetOwningHouse()->ArrayIndex){
+			return false;
+		}
+
+		return true;
+	}
+	default:
+		break;
+	}
+
+	// Handle house-specific events
+	if (house)
+	{
+		if (HandleHouseEvents(evt, house, bool1))
+		{
+			return true;
+		}
+	}
+
+	// Handle Value2 house events
+	return HandleValue2HouseEvents(evt);
+}
+
+bool FakeTEventClass::_Occured(TriggerEvent event, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool* bool1, AbstractClass* source)
+{
+	if(this->EventKind == TriggerEvent::None)
+		return false;
+
+	bool result = false;
+
+	EventArgs args {
+		event, house, obj, td, bool1, source
+	};
+
+	if (TEventExtData::Occured(this, args, result)) {
+		return result;
+	}
+
+	if (AresTEventExt::HasOccured(this, args, result)) {
+		return result;
+	}
+
+	switch (this->EventKind)
+	{
+	case TriggerEvent::ElapsedTime:
+	case TriggerEvent::RandomDelay:
+		return td->Expired();
+
+	case TriggerEvent::MissionTimerExpired:
+		return ScenarioClass::Instance->MissionTimer.Expired();
+
+	case TriggerEvent::GlobalSet:
+		ScenarioClass::Instance->GetGlobalVarValue_ptr(this->Value, bool1);
+		return bool1 != 0;
+
+	case TriggerEvent::GlobalCleared:
+		ScenarioClass::Instance->GetGlobalVarValue_ptr(this->Value, bool1);
+		return bool1 == 0;
+
+	case TriggerEvent::LocalSet:
+		ScenarioClass::Instance->GetLocalVarValue_ptr(this->Value, bool1);
+		return bool1 != 0;
+
+	case TriggerEvent::LocalCleared:
+		ScenarioClass::Instance->GetLocalVarValue_ptr(this->Value, bool1);
+		return bool1 == 0;
+
+	case TriggerEvent::AmbientLightBelow:
+		return ScenarioClass::Instance->AmbientCurrent <= this->Value;
+
+	case TriggerEvent::AmbientLightAbove:
+		return ScenarioClass::Instance->AmbientCurrent >= this->Value;
+
+	case TriggerEvent::ElapsedScenarioTime:
+		return this->Value <= Unsorted::CurrentFrame() / 15;
+
+	case TriggerEvent::TechTypeExists:
+	{
+		return AresTEventExt::FindTechnoType(this, this->Value, nullptr);
+	}
+	case TriggerEvent::TechTypeDoesntExist:
+	{
+		return !AresTEventExt::FindTechnoType(this, 1, nullptr);
+	}
+	default:
+		return HandleDefaultEvents(this, event, house, obj, bool1, source);
+	}
+
+}
+
+ASMJIT_PATCH(0x71F9C0, TEventClass_Persistable, 6)
+{
+	GET(TEventClass*, pThis, ECX);
+
+	switch (pThis->EventKind) {
+		case TriggerEvent::SpiedBy:
+		case TriggerEvent::SpyAsHouse:
+		case TriggerEvent::SpyAsInfantry:
+		{
+			R->EAX(false);
+			return 0x71F9DF;
+		};
+	}
+
+	std::pair<bool, bool> result =
+		AresTEventExt::GetPersistableFlag((AresTriggerEvents)pThis->EventKind);
+
+	if (!result.second)
+		result = TEventExtData::GetPersistableFlag((PhobosTriggerEvent)pThis->EventKind);
+
+	if (!result.second)
+		return 0x0;
+
+	R->EAX(result.first);
+	return 0x71F9DF;
+}
+
+ASMJIT_PATCH(0x71F39B, TEventClass_SaveToINI, 5)
+{
+	GET(AresTriggerEvents, nAction, EDX);
+
+	std::pair<LogicNeedType, bool > result = AresTEventExt::GetLogicNeed(nAction);
+
+	if (!result.second)
+		result = TEventExtData::GetLogicNeed((PhobosTriggerEvent)nAction);
+
+	if (!result.second)
+		return (int)nAction > 61 ? 0x71F3FC : 0x71F3A0;
+
+	R->EAX(result.first);
+	return 0x71F3FE;
+}
+
+ASMJIT_PATCH(0x71f683, TEventClass_GetFlags, 5)
+{
+	GET(AresTriggerEvents, nAction, ECX);
+
+	std::pair<TriggerAttachType, bool> result = AresTEventExt::GetAttachFlags(nAction);
+
+	if (!result.second)
+		result = TEventExtData::GetTriggetAttach((PhobosTriggerEvent)nAction);
+
+	if (result.second)
+	{
+		R->EAX(result.first);
+		return 0x71F6F6;
+	}
+
+	return (int)nAction > 59 ? 0x71F69C : 0x71F688;
+}
+
+DEFINE_FUNCTION_JUMP(CALL , 0x72654, FakeTEventClass::_Occured)
 // =============================
 // container
 TEventExtContainer TEventExtContainer::Instance;

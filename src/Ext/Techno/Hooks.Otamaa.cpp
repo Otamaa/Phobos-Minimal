@@ -141,7 +141,7 @@ ASMJIT_PATCH(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 			if (auto pDecidedAnim = GetLandingAnim())
 			{
 				auto const nCoord = pTechno->GetCoords();
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 1, 1, AnimFlag::AnimFlag_600, 0, 0),
 					pTechno->GetOwningHouse(),
 					nullptr,
 					pTechno,
@@ -170,7 +170,7 @@ ASMJIT_PATCH(0x4CE689, FlyLocomotionClass_TakeOffAnim, 0x5)
 		if (auto pDecidedAnim = TechnoTypeExtContainer::Instance.Find(pAir->Type)->TakeOff_Anim.Get(RulesExtData::Instance()->Aircraft_TakeOffAnim.Get()))
 		{
 			auto const nCoord = pAir->GetCoords();
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedAnim, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 				pAir->GetOwningHouse(),
 				nullptr,
 				pAir,
@@ -207,7 +207,7 @@ ASMJIT_PATCH(0x4CEB51, FlyLocomotionClass_LandingAnim, 0x8)
 
 		if (AnimTypeClass* pDecidedType = pFirst ? pFirst : GetDefaultType())
 		{
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pDecidedType, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 				pLinked->GetOwningHouse(),
 				nullptr,
 				pLinked,
@@ -286,7 +286,7 @@ ASMJIT_PATCH(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 		if (auto const pAnimType = TechnoTypeExtContainer::Instance.Find(Drainer->GetTechnoType())->DrainAnimationType.Get(RulesClass::Instance->DrainAnimationType))
 		{
 			auto const nCoord = Drainer->GetCoords();
-			auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+			auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, false);
 			AnimExtData::SetAnimOwnerHouseKind(pDrainAnimCreated, Drainer->Owner, pVictim->Owner, Drainer, false, false);
 			R->EAX(pDrainAnimCreated);
 			return 0x70FE07;

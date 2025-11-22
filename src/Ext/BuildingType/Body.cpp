@@ -1568,6 +1568,14 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->FactoryPlant_RequirePower.Read(exINI, pSection, "FactoryPlant.RequirePower");
 		this->SpySat_RequirePower.Read(exINI, pSection, "SpySat.RequirePower");
 		this->Cloning_RequirePower.Read(exINI, pSection, "Cloning.RequirePower");
+
+		Valueable<bool> Cloning_Powered;
+
+		Cloning_Powered.Read(exINI, pSection, "Cloning.Powered");
+
+		if(Cloning_Powered)
+			this->Cloning_RequirePower = true;
+
 		this->Radar_RequirePower.Read(exINI, pSection, "Radar.RequirePower");
 		this->SpawnCrewOnlyOnce.Read(exINI, pSection, "SpawnCrewOnlyOnce");
 		this->IsDestroyableObstacle.Read(exINI, pSection, "IsDestroyableObstacle");

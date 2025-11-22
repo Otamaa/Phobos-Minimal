@@ -38,6 +38,17 @@ public:
 	virtual int Size() const override JMP_THIS(0x6F0440);
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x6EAE60);
 
+	void DTOR_IMPL() {
+		JMP_THIS(0x6E8DE0);
+	}
+
+	void _scalar_dtor(char flags) {
+		this->DTOR_IMPL();
+
+		if ((flags & 1) != 0)
+			GameDelete<false,false>(this);
+	}
+
 	// fills dest with all types needed to complete this team. each type is
 	// included as often as it is needed.
 	void GetTaskForceMissingMemberTypes(DynamicVectorClass<TechnoTypeClass *>* dest) const { JMP_THIS(0x6EF4D0); }

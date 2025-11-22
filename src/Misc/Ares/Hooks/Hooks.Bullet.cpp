@@ -169,7 +169,7 @@ ASMJIT_PATCH(0x469C46, BulletClass_Logics_ApplyMoreLogics, 0x8)
 							}
 
 							{
-								auto const pAnim = GameCreate<AnimClass>(pType, animCoords, 0, 1, (AnimFlag)0x2600,
+								auto const pAnim = GameCreate<AnimClass>(pType, animCoords, 0, 1, AnimFlag::AnimFlag_600,
 									pWarheadExt->AnimZAdjust.Get(RulesExtData::Instance()->WarheadAnimZAdjust), false);
 
 								createdAnim = true;

@@ -36,10 +36,8 @@ public:
 	bool LighningNeedUpdate;
 	bool TogglePower_HasPower;
 	bool Silent;
-	OptionalStruct<int, true> C4Damage;
 	HouseClass* C4Owner;
 	WarheadTypeClass* C4Warhead;
-	WarheadTypeClass* ReceiveDamageWarhead;
 	std::vector<int> DockReloadTimers;
 	HouseClass* OwnerBeforeRaid;
 	std::array<CDTimerClass, 3u> CashUpgradeTimers;
@@ -47,7 +45,6 @@ public:
 	bool SecretLab_Placed;
 	bool AboutToChronoshift;
 	bool IsFromSW;
-	bool BeignMCEd; //this tag only use to fix
 	HelperedVector<TechnoClass*> RegisteredJammers;
 	int GrindingWeapon_AccumulatedCredits;
 	int LastFlameSpawnFrame;
@@ -86,10 +83,8 @@ public:
 		LighningNeedUpdate(false),
 		TogglePower_HasPower(true),
 		Silent(false),
-		C4Damage(),
 		C4Owner(nullptr),
 		C4Warhead(nullptr),
-		ReceiveDamageWarhead(nullptr),
 		DockReloadTimers(),
 		OwnerBeforeRaid(nullptr),
 		CashUpgradeTimers(),
@@ -97,7 +92,6 @@ public:
 		SecretLab_Placed(false),
 		AboutToChronoshift(false),
 		IsFromSW(false),
-		BeignMCEd(true),
 		RegisteredJammers(),
 		GrindingWeapon_AccumulatedCredits(0),
 		LastFlameSpawnFrame(0),
@@ -227,6 +221,7 @@ public:
 	void _OnFireAI();
 	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
 	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
+	int __ExitObject(TechnoClass* object, int exitFlags);
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);

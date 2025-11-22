@@ -2084,7 +2084,7 @@ bool FakeTeamClass::_Lagging_Units()
 }
 
 bool FakeTeamClass::_Recalculate() {
-    bool IsUnderStrength = this->IsUnderStrength;
+    bool was_IsUnderStrength = this->IsUnderStrength;
 	TeamTypeClass* pType = this->Type;
     int desired = pType->TaskForce->Required();
     int total = this->TotalObjects;
@@ -2120,14 +2120,13 @@ bool FakeTeamClass::_Recalculate() {
         this->JustDisappeared = 0;
         this->NeedsToDisappear = 0;
 
-		if (IsUnderStrength != this->IsUnderStrength) {
+		if (was_IsUnderStrength != this->IsUnderStrength) {
             this->IsReforming = 1;
         }
 
         return 1;
     }
 
-    IsHasBeen = this->IsHasBeen;
     this->GuardSlowerIsNotUnderStrength = 0;
     this->IsUnderStrength = 1;
     this->IsFullStrength = 0;
@@ -2139,8 +2138,8 @@ bool FakeTeamClass::_Recalculate() {
     // **   result of reinforcement logic and no longer needs to exist when there
     // **   are no more team members.
     // */
-    if (!IsHasBeen) {
-        if (IsUnderStrength != this->IsUnderStrength){
+    if (!this->IsHasBeen) {
+        if (was_IsUnderStrength != this->IsUnderStrength){
             this->IsReforming = 1;
         }
 
@@ -2163,7 +2162,7 @@ bool FakeTeamClass::_Recalculate() {
     }
 
 	if (this) {
-		((TeamClass*)this)->~TeamClass();
+		((TeamClass*)this)->_scalar_dtor(1);
 	}
 
     return 0;
@@ -2204,7 +2203,7 @@ void NOINLINE SearchThruArray(DynamicVectorClass<T>* arr, TeamClass* pTeam, int&
 		const CoordStruct unitCoord = unit->GetCoords();
 		const CoordStruct memberCoord = pTeam->FirstUnit->GetCoords();
 		const CoordStruct diff = memberCoord - unitCoord;
-		const int distance = diff.Length();
+		const int distance = (int)diff.Length();
 
 		if (minDistance == -1 || distance < minDistance) {
 			minDistance = distance;
@@ -2403,7 +2402,7 @@ void FakeTeamClass::_Regroup()
 		// Calculate distance from zone to building
 		CoordStruct diff = buildingCoord - zoneCoord;
 
-		int distance = diff.Length();
+		int distance = (int)diff.Length();
 
 		// Weight distance by cell threat (avoid dangerous areas)
 		int cellThreat = MapClass::Instance->GetThreatPosed(buildingCell, this->OwnerHouse);
@@ -2485,7 +2484,7 @@ int CalculateBuildingScore(BuildingClass* building, TechnoClass* searcher, Build
 		CoordStruct buildingPos = building->Location;
 		CoordStruct diff = buildingPos - searcherPos;
 
-		int distance = diff.Length();
+		int distance = (int)diff.Length();
 		return 0x7FFFFFFF - distance;
 	}
 
@@ -2496,7 +2495,7 @@ int CalculateBuildingScore(BuildingClass* building, TechnoClass* searcher, Build
 		CoordStruct buildingPos = building->Location;
 		CoordStruct diff = buildingPos - searcherPos;;
 
-		int distance = diff.Length();
+		int distance = (int)diff.Length();
 		return distance;
 	}
 
@@ -2845,7 +2844,7 @@ void FakeTeamClass::_AI()
 				}
 			}
 
-			((TeamClass*)this)->~TeamClass();
+			((TeamClass*)this)->_scalar_dtor(1);
 			return;
 		}
 	}
@@ -2888,10 +2887,7 @@ void FakeTeamClass::_AI()
 
 		if (!this->CurrentScript->HasMissionsRemaining())
 		{
-			if (this)
-			{
-				((TeamClass*)this)->~TeamClass();
-			}
+			((TeamClass*)this)->_scalar_dtor(1);
 			return;
 		}
 
@@ -2990,7 +2986,7 @@ void FakeTeamClass::_AI()
 
 			(int)pAction.Action, (int)node.Action, node.Argument);
 
-		((TeamClass*)this)->~TeamClass();
+		((TeamClass*)this)->_scalar_dtor(1);
 		return;
 	}
 
@@ -3738,7 +3734,7 @@ void FakeTeamClass::_AI()
 					memberCoord,
 					0,
 					loopCount,
-					AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_400,
+					AnimFlag::AnimFlag_600,
 					0,
 					0
 				))
@@ -4032,7 +4028,7 @@ void FakeTeamClass::_AI()
 	case TeamMissionType::Movecell:
 	{
 		const int nDivisor = ScenarioClass::NewINIFormat() < 4 ? 128 : 1000;
-		CellStruct toCell { node.Argument % nDivisor,node.Argument / nDivisor };
+		CellStruct toCell { short(node.Argument % nDivisor), short(node.Argument / nDivisor) };
 		this->_AssignMissionTarget(MapClass::Instance->GetCellAt(toCell));
 		this->_CoordinateMove();
 		return;
@@ -4474,7 +4470,7 @@ void FakeTeamClass::_AI()
 			pNewTeam->AddMember(f);
 		}
 
-		((TeamClass*)this)->~TeamClass();
+		((TeamClass*)this)->_scalar_dtor(1);
 		return;
 	}
 	case TeamMissionType::Gather_at_enemy:

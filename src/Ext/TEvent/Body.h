@@ -319,6 +319,8 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
+	bool _Occured(TriggerEvent event, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool* bool1, AbstractClass* source);
+
 	TEventExtData* _GetExtData() {
 		return *reinterpret_cast<TEventExtData**>(((DWORD)this) + AbstractExtOffset);
 	}

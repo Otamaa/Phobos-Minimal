@@ -58,7 +58,7 @@ ASMJIT_PATCH(0x74A70E, VoxelAnimClass_AI_Additional, 0x6) // C
 			TechnoClass* const pInvoker = VoxelAnimExtData::GetTechnoOwner(pThis);
 			auto const pOwner = pThis->OwnerHouse ? pThis->OwnerHouse : pInvoker ? pInvoker->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
 
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pInvoker, false, false);
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_600, 0, 0), pOwner, nullptr, pInvoker, false, false);
 		}
 	}
 
@@ -91,7 +91,7 @@ ASMJIT_PATCH(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 		Helper::Otamaa::Detonate(pTypeExt->Weapon, pThis->Type->Damage, pThis->Type->Warhead, pTypeExt->Warhead_Detonate, nLocation, pInvoker, pOwner, pTypeExt->ExpireDamage_ConsiderInvokerVet);
 
 		if (auto const pExpireAnim = pThis->Type->ExpireAnim) {
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30, 0),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExpireAnim, nLocation, 0, 1, AnimFlag::AnimFlag_2600, -30, 0),
 				pOwner,
 				nullptr,
 				pInvoker,
@@ -103,7 +103,7 @@ ASMJIT_PATCH(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 		if (!pTypeExt->ExplodeOnWater.Get())
 		{
 			if (auto pSplashAnim = Helper::Otamaa::PickSplashAnim(pTypeExt->SplashList, pTypeExt->WakeAnim, pTypeExt->SplashList_Pickrandom.Get(), pThis->Type->IsMeteor)) {
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, false),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, AnimFlag::AnimFlag_600, false),
 					pOwner,
 					nullptr,
 					pInvoker,
@@ -116,7 +116,7 @@ ASMJIT_PATCH(0x74A021, VoxelAnimClass_AI_Expired, 0x6)
 
 			if (bPlayWHAnim) {
 				if(auto pSplashAnim = MapClass::SelectDamageAnimation(nDamage,pThis->Type->Warhead, pThis->GetCell()->LandType , pThis->GetCoords())) {
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -30),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplashAnim, nLocation, 0, 1, AnimFlag::AnimFlag_2600, -30),
 						pOwner,
 						nullptr,
 						pInvoker,
@@ -138,7 +138,7 @@ ASMJIT_PATCH(0x74A83C, VoxelAnimClass_BounceAnim, 0x5) // A
 	auto nCoords = pThis->GetCoords();
 	auto const pOwner = pInvoker ? pInvoker->GetOwningHouse() : pThis->OwnerHouse;
 
-	AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->BounceAnim, nCoords, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+	AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->BounceAnim, nCoords, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 		pOwner,
 		nullptr,
 		pInvoker,

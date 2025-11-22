@@ -681,7 +681,7 @@ void ScenarioClassExtension::Create_Units(bool official)
 						if (Session.Type != GAME_NORMAL)
 						{
 
-							if (!building->House->Is_Player_Control())
+							if (!building->House->IsControlledByHuman())
 							{
 
 								building->IsToRebuild = true;

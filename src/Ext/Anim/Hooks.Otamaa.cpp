@@ -194,7 +194,7 @@ void NOINLINE FakeAnimClass::_ApplySpawns(CoordStruct& nCoord)
 
 	for (int i = nMax; i > 0; --i)
 	{
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->Spawns, nCoord, nDelay, 1, AnimFlag(0x600), 0, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->Spawns, nCoord, nDelay, 1, AnimFlag::AnimFlag_600, 0, false),
 		pOwner,
 		nullptr,
 		pTech,
@@ -311,7 +311,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 				coords,
 				0,
 				1,
-				AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000,
+				AnimFlag::AnimFlag_2600,
 				-30
 			);
 		}
@@ -326,7 +326,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 			coords,
 			0,
 			1,
-			AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200,
+			AnimFlag::AnimFlag_600,
 			0
 		);
 	}
@@ -336,7 +336,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 			coords,
 			0,
 			1,
-			AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200,
+			AnimFlag::AnimFlag_600,
 			0
 		);
 
@@ -346,7 +346,7 @@ void NOINLINE FakeAnimClass::_PlayExtraAnims(bool onWater, bool onBridge)
 			_splashCoord,
 			0,
 			1,
-			AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200,
+			AnimFlag::AnimFlag_600,
 			0
 		);
 	}
@@ -364,7 +364,7 @@ void NOINLINE FakeAnimClass::_DrawTrailerAnim() {
 
 		if(this->Type->TrailerSeperation == 1 || !(Unsorted::CurrentFrame() % this->Type->TrailerSeperation)) {
 
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0), pOwner, nullptr, pTech, false, false);
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(this->Type->TrailerAnim, _coord, 1, 1, AnimFlag::AnimFlag_600, 0, 0), pOwner, nullptr, pTech, false, false);
 		}
 	}
 }
@@ -784,7 +784,7 @@ int FakeAnimClass::_BounceAI()
 		if (auto pBounceAnim = this->Type->BounceAnim)
 		{
 			HouseClass* pHouse = this->Owner ? this->Owner : (pTechnoInvoker ? pTechnoInvoker->GetOwningHouse() : nullptr);
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pBounceAnim, _coord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0),
+			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pBounceAnim, _coord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 				pHouse,
 				nullptr,
 				pTechnoInvoker,

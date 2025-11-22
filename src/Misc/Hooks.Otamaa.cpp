@@ -335,7 +335,7 @@ ASMJIT_PATCH(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 	GET(AircraftClass* const, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x40, 0x24));
 
-	pAnim->AnimClass::AnimClass(TechnoTypeExtData::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	pAnim->AnimClass::AnimClass(TechnoTypeExtData::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, false);
 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 
 	return 0x414ED0;
@@ -347,7 +347,7 @@ ASMJIT_PATCH(0x736595, TechnoClass_IsSinking_SinkAnim, 0x6)
 	GET(UnitClass* const, pThis, ESI);
 	GET_STACK(CoordStruct, nCoord, STACK_OFFS(0x30, 0x18));
 
-	pAnim->AnimClass::AnimClass(TechnoTypeExtData::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+	pAnim->AnimClass::AnimClass(TechnoTypeExtData::GetSinkAnim(pThis), nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, false);
 	AnimExtData::SetAnimOwnerHouseKind(pAnim, pThis->GetOwningHouse(), nullptr, false);
 
 	return 0x7365BB;
@@ -361,7 +361,7 @@ ASMJIT_PATCH(0x738703, UnitClass_Explode_ExplodeAnim, 0x5)
 	if (pExplType)
 	{
 
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExplType, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExplType, pThis->Location, 0, 1, AnimFlag::AnimFlag_600, 0, false),
 			pThis->GetOwningHouse(),
 			nullptr,
 			false
@@ -386,7 +386,7 @@ ASMJIT_PATCH(0x4419A9, BuildingClass_Destroy_ExplodeAnim, 0x5)
 	if (auto const pType = pThis->Type->Explosion.Items[idx])
 	{
 		const auto nDelay = ScenarioClass::Instance->Random.RandomFromMax(3);
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, nLoc, nDelay, 1, AnimFlag::AnimFlag_600, 0, false),
 			pThis->GetOwningHouse(),
 			nullptr,
 			false
@@ -407,7 +407,7 @@ ASMJIT_PATCH(0x441AC4, BuildingClass_Destroy_Fire3Anim, 0x5)
 	if (auto pType = RulesExtData::Instance()->DefaultExplodeFireAnim)
 	{
 		const auto nDelay = ScenarioClass::Instance->Random.RandomRanged(1, 3);
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pCoord, nDelay + 3, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, pCoord, nDelay + 3, 1, AnimFlag::AnimFlag_600, 0, false),
 			pThis->GetOwningHouse(),
 			nullptr,
 			false
@@ -581,30 +581,6 @@ ASMJIT_PATCH(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 		R->EAX(14);
 
 	return 0x0;
-}
-
-ASMJIT_PATCH(0x62A915, ParasiteClass_CanInfect_Parasiteable, 0xA)
-{
-	enum { continuecheck = 0x62A929, returnfalse = 0x62A976, continuecheckB = 0x62A933 };
-	GET(ParasiteClass*, pThis, EDI);
-	GET(FootClass* const, pVictim, ESI);
-
-	if (pThis->Owner->Transporter)
-		return returnfalse;
-
-	if (TechnoExtData::IsParasiteImmune(pVictim))
-		return returnfalse;
-
-	if (pVictim->IsIronCurtained())
-		return returnfalse;
-
-	if (pVictim->IsBeingWarpedOut())
-		return returnfalse;
-
-	if (TechnoExtData::IsChronoDelayDamageImmune(pVictim))
-		return returnfalse;
-
-	return !pVictim->BunkerLinkedItem ? continuecheckB : returnfalse;
 }
 
 // replace the repair button fucntion to toggle power
@@ -1000,20 +976,6 @@ ASMJIT_PATCH(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 	return 0x5F6D90;
 }
 
-ASMJIT_PATCH(0x629BB2, ParasiteClass_UpdateSquiddy_Culling, 0x8)
-{
-	GET(ParasiteClass* const, pThis, ESI);
-	GET(WarheadTypeClass* const, pWH, EDI);
-
-	enum { ApplyDamage = 0x629D19, GainExperience = 0x629BF3, SkipGainExperience = 0x629C5D };
-
-	if (!WarheadTypeExtContainer::Instance.Find(pWH)->applyCulling(pThis->Owner, pThis->Victim))
-		return ApplyDamage;
-
-	return pThis->Owner && pThis->Owner->Owner && pThis->Owner->Owner->IsAlliedWith(pThis->Victim)
-		? SkipGainExperience : GainExperience;
-}
-
 ASMJIT_PATCH(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
 	GET(TechnoClass* const, pProduct, ESI);
@@ -1076,7 +1038,7 @@ ASMJIT_PATCH(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionCompl
 // 	GET(AnimClass*, pThis, ESI);
 //
 // 	auto nCoord = pThis->GetCoords();
-// 	pAnim->AnimClass::AnimClass(pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+// 	pAnim->AnimClass::AnimClass(pThis->Type->TrailerAnim, nCoord, 1, 1, AnimFlag::AnimFlag_600, 0, false);
 // 	//const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pThis->Type);
 // 	TechnoClass* const pTech = AnimExtData::GetTechnoInvoker(pThis);
 // 	HouseClass* const pOwner = !pThis->Owner && pTech ? pTech->Owner : pThis->Owner;
@@ -2164,41 +2126,6 @@ ASMJIT_PATCH(0x4DB1A0, FootClass_GetMovementSpeed_SpeedMult, 0x6)
 	R->EAX((int)speedResult);
 	return 0x4DB245;
 }
-
-ASMJIT_PATCH(0x71F1A2, TEventClass_HasOccured_DestroyedAll, 6)
-{
-	GET(HouseClass*, pHouse, ESI);
-	enum { AllDestroyed = 0x71F1B1, HasAlive = 0x71F163 };
-
-	if (SessionClass::IsCampaign())
-	{
-		if (pHouse->ActiveInfantryTypes.total() <= 0)
-		{
-			for (auto& bld : pHouse->Buildings)
-			{
-				if (bld->Type->CanBeOccupied && bld->Occupants.Count > 0)
-					return HasAlive;
-			}
-		}
-
-		if (pHouse->ActiveAircraftTypes.total() > 0)
-			return HasAlive;
-
-		if (pHouse->ActiveInfantryTypes.total() > 0)
-			return HasAlive;
-
-		for (auto pItem : *InfantryClass::Array)
-		{
-			if (pItem->InLimbo && pHouse == pItem->GetOwningHouse() && pHouse->IsAlliedWith(pItem->Transporter))
-				return HasAlive;
-		}
-
-		return AllDestroyed;
-	}
-
-	return 0;
-}
-
 
 ASMJIT_PATCH(0x73730E, UnitClass_Visceroid_HealthCheckRestore, 0x6)
 {
@@ -5572,7 +5499,7 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 		IsBullet = true;
 		auto pParach_type = ((FakeBulletClass*)pBullet)->_GetTypeExtData()->Parachute.Get(RulesClass::Instance->BombParachute);
 
-		pParach = GameCreate<AnimClass>(pParach_type, pCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false);
+		pParach = GameCreate<AnimClass>(pParach_type, pCoord, 0, 1, AnimFlag::AnimFlag_600, 0, false);
 
 	}
 	else
@@ -5817,7 +5744,7 @@ ASMJIT_PATCH(0x466834, BulletClass_AI_TrailerAnim, 0x6)
 	{
 
 		auto const pExt = BulletExtContainer::Instance.Find(pThis);
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, false),
+		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pThis->Type->Trailer, pThis->Location, 1, 1, AnimFlag::AnimFlag_600, 0, false),
 			pThis->Owner ? pThis->Owner->GetOwningHouse() : (pExt->Owner) ? pExt->Owner : nullptr,
 			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis->Owner,
 			false,

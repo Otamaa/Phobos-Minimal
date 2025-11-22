@@ -548,13 +548,6 @@ ASMJIT_PATCH(0x5215f9, InfantryClass_UpdateDeployment_Deso1, 6)
 	return InfantryTypeExtContainer::Instance.Find(I->Type)->Is_Deso ? 0x5216B6 : 0x52160D;
 }
 
-ASMJIT_PATCH(0x629804, ParasiteClass_UpdateSquiddy, 9)
-{
-	GET(ParasiteClass*, pThis, ESI);
-	R->EAX(pThis->Owner->GetWeapon(TechnoExtContainer::Instance.Find(pThis->Owner)->idxSlot_Parasite));
-	return 0x62980D;
-}
-
 // #1283638: ivans cannot enter grinders; they get an attack cursor. if the
 // grinder is rigged with a bomb, ivans can enter. this fix lets ivans enter
 // allied grinders. pressing the force fire key brings back the old behavior.

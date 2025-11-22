@@ -400,7 +400,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void vt_entry_47C(DWORD dwUnk) RX;
 	virtual void SetDestination(AbstractClass* pDest, bool bUnk) RX;
 	virtual bool EnterIdleMode(bool Initial, int nUnknown) R0;//virtual bool vt_entry_484(DWORD dwUnk, DWORD dwUnk2) R0;
-	virtual void UpdateSight(bool Incremental, int unusedarg3, bool UseThisHouseInstead, HouseClass* dwUnk4, int OverrideSight) RX; //70AF50 , 0x48C
+	virtual void UpdateSight(bool Incremental, int unusedarg3, bool UseThisHouseInstead, HouseClass* dwUnk4, int OverrideSight) RX; //70AF50 , 0x48C , Reveal_Limbo
 	virtual void vt_entry_48C(HouseClass* pHouse, DWORD dwUnk2, bool dwUnk3, HouseClass* pHouseb) RX; //70B1D0
 	virtual bool ForceCreate(CoordStruct& coord, DWORD dwUnk = 0) R0; //490
 	virtual void RadarTrackingStart() RX; //494
@@ -409,7 +409,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	virtual void RadarTrackingUpdate(bool bUnk) RX; //4A0
 	virtual Mission RespondMegaEventMission(EventClass* pRespondTo) RT(Mission);
 	virtual void ClearMegaMissionData() RX;
-	virtual bool HaveMegaMission() const R0;
+	virtual bool HaveMegaMission() const R0; //0x70F020
 	virtual bool HaveAttackMoveTarget() const R0;
 	virtual Mission GetMegaMission() const RT(Mission);
 	virtual CoordStruct* GetAttackMoveCoords(CoordStruct* pBuffer) R0;

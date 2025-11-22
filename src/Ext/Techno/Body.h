@@ -751,7 +751,7 @@ private:
 		debugProcess(this->AircraftOpentoppedInitEd, "AircraftOpentoppedInitEd");
 		debugProcess(this->EngineerCaptureDelay, "EngineerCaptureDelay");
 		debugProcess(this->FlhChanged, "FlhChanged");
-		debugProcess(this->ReceiveDamageMultiplier, "ReceiveDamageMultiplier");
+		//debugProcess(this->ReceiveDamageMultiplier, "ReceiveDamageMultiplier");
 		debugProcess(this->SkipLowDamageCheck, "SkipLowDamageCheck");
 		debugProcess(this->aircraftPutOffsetFlag, "aircraftPutOffsetFlag");
 		debugProcess(this->aircraftPutOffset, "aircraftPutOffset");
@@ -899,7 +899,7 @@ public:
 	CDTimerClass EngineerCaptureDelay;
 
 	bool FlhChanged;
-	OptionalStruct<double, true> ReceiveDamageMultiplier;
+	//OptionalStruct<double, true> ReceiveDamageMultiplier;
 	bool SkipLowDamageCheck;
 
 	bool aircraftPutOffsetFlag;
@@ -1076,7 +1076,7 @@ public:
 		EngineerCaptureDelay(),
 
 		FlhChanged(false),
-		ReceiveDamageMultiplier(),
+		//ReceiveDamageMultiplier(),
 		SkipLowDamageCheck(false),
 
 		aircraftPutOffsetFlag(false),

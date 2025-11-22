@@ -608,6 +608,17 @@ public:
 	// using it on wrong function can cause desyncs !
 	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
 
+    //ControlledByCurrentPlayer , IsControlledByHuman
+	//bool IsControlledByCurrentPlayer() const { JMP_THIS(0x50B730); }
+	//{
+	//	bool result = CurrentPlayer;
+	//	if (SessionClass::Instance->GameMode == GameMode::Campaign) {
+	//		result = result || IsInPlayerControl;
+	//	}
+	//
+	//	return result;
+	//}
+
 	// whether any human player controls this house
 	// this check if this house IsHumanPlayer or IsInPlayerControl
 	// using it on wrong function can cause desyncs !
@@ -947,17 +958,6 @@ public:
 	COMPILETIMEEVAL bool IsCurrentPlayer() const {
 		return this == CurrentPlayer;
 	}
-
-	//ControlledByCurrentPlayer
-	//bool IsControlledByCurrentPlayer() const { JMP_THIS(0x50B730); }
-	//{
-	//	bool result = CurrentPlayer;
-	//	if (SessionClass::Instance->GameMode == GameMode::Campaign) {
-	//		result = result || IsInPlayerControl;
-	//	}
-	//
-	//	return result;
-	//}
 
 	// whether this house is equal to Observer
 	COMPILETIMEEVAL bool IsObserver() const {

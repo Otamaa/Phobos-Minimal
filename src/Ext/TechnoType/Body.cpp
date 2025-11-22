@@ -522,21 +522,18 @@ const char* TechnoTypeExtData::GetSelectionGroupID() const
 bool TechnoTypeExtData::IsGenericPrerequisite() const
 {
 	if(this->GenericPrerequisite.empty()) {
-		const auto end  = GenericPrerequisite::Array.end();
+		auto pThis = This();
 
-		for(auto begin = GenericPrerequisite::Array.begin(); begin != end; ++begin){
-			auto alt_begin = begin->get()->Alternates.begin();
-			auto alt_end = begin->get()->Alternates.end();
+		for(const auto& prerequisite : GenericPrerequisite::Array){
+			const auto& alternates = prerequisite->Alternates;
 
-			if(alt_begin == alt_end) {
+			if (alternates.empty()) {
 				continue;
 			}
 
-			for(; alt_begin != alt_end; ++alt_begin){
-				if((*alt_begin) == This()){
-					this->GenericPrerequisite = true;
-					return true;
-				}
+			if (std::ranges::find(alternates, pThis) != alternates.end()) {
+				this->GenericPrerequisite = true;
+				return true;
 			}
 		}
 
@@ -890,6 +887,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		// Ares 0.2
 		this->RadarJamRadius.Read(exINI, pSection, "RadarJamRadius");
+		this->RadarJamHouses.Read(exINI, pSection, "RadarJamHouses");
+		this->RadarJamDelay.Read(exINI, pSection, "RadarJamDelay");
+		this->RadarJamAffect.Read(exINI, pSection, "RadarJamAffect");
+		this->RadarJamIgnore.Read(exINI, pSection, "RadarJamIgnore");
 
 		// Ares 0.9
 		this->InhibitorRange.Read(exINI, pSection, "InhibitorRange");

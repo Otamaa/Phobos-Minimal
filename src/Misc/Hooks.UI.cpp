@@ -351,7 +351,7 @@ ASMJIT_PATCH(0x604985, GetDialogUIStatusLabels_ShowBriefing, 0x5)
 	return 0;
 }
 
-DEFINE_HOOK(0x6A84DB, StripClass_OperatorLessThan_SortCameoByNameSW, 0x5)
+ASMJIT_PATCH(0x6A84DB, StripClass_OperatorLessThan_SortCameoByNameSW, 0x5)
 {
 	enum { rTrue = 0x6A8692, rFalse = 0x6A86A0 };
 
@@ -371,7 +371,7 @@ DEFINE_HOOK(0x6A84DB, StripClass_OperatorLessThan_SortCameoByNameSW, 0x5)
 	return wcscmp(pLeftSW->UIName, pRightSW->UIName) <= 0 ? rTrue : rFalse;
 }
 
-DEFINE_HOOK(0x6A86ED, StripClass_OperatorLessThan_SortCameoByNameTechno, 0x5)
+ASMJIT_PATCH(0x6A86ED, StripClass_OperatorLessThan_SortCameoByNameTechno, 0x5)
 {
 	enum { rTrue = 0x6A8692, rFalse = 0x6A86A0 };
 

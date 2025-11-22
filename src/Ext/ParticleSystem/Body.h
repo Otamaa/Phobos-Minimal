@@ -157,7 +157,6 @@ public:
 	void UpdateRailgun();
 	void UpdateWindDirection();
 	void UpdateSmoke();
-	bool UpdateHandled();
 	void UpdateInAir_Main(bool allowDraw);
 
 public:
@@ -193,6 +192,59 @@ public:
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
+	void __AI();
+	void __Smoke_AI();
+	void __Gas_AI();
+	void __Fire_AI();
+	void __Spark_AI();
+	void __Railgun_AI();
+	void __Web_AI();
+
+	void UpdateAllParticles();
+	void UpdateAndCoordAllParticles();
+	void RemoveDeadParticles();
+
+	template<auto Func>
+	void ProcessParticleLifecycle();
+
+	ParticleClass* CreateHoldsWhatParticle(const CoordStruct& position, const CoordStruct& target);
+
+	// Spark
+	bool ShouldSpawnThisFrame() const;
+	int CalculateParticleCount() const;
+	void ProcessSparkSpawning();
+	void SpawnSparkParticle();
+	void SetupRandomVelocity(ParticleClass* particle);
+	void CreateSpotlightIfNeeded();
+	void UpdateSpotlight();
+
+	// Gas
+	void TransitionToNextParticle(ParticleClass* oldParticle);
+
+	// Smoke
+	void UpdateSmokeAttachedPosition();
+	void SpawnChildParticles(ParticleClass* parent);
+	void SpawnChildParticle(ParticleClass* parent, ParticleTypeClass* childType,
+					   int offsetX, int offsetY);
+	void SpawnSmokeParticles();
+	void UpdateSpawnTiming();
+
+	// Fire
+	bool UpdateAttachedPosition();
+	void UpdatePositionFromOwner(TechnoClass* owner);
+	void SpawnFireParticles(bool forceSpawn);
+
+	// Railgun
+	void CreateLaserBeam();
+	float CalculateVelocityPerturbation(float progress) const;
+	void SetupParticleVelocity(ParticleClass* particle, const Vector3D<float>& direction, float progress);
+	CoordStruct CalculateSpawnPosition(float progress, const Vector3D<float>& spiralOffset);
+
+	Vector3D<float> CalculateSpiralOffset(float progress, float distance, const Matrix3D& rotationMatrix);
+	void SpawnSpiralParticle(int index, int totalCount, float distance, const Matrix3D& rotationMatrix);
+	Vector3D<float> CalculateTrajectory() const;
+	void CreateSpiralTrail();
 
 	ParticleSystemExtData* _GetExtData() {
 		return *reinterpret_cast<ParticleSystemExtData**>(((DWORD)this) + AbstractExtOffset);

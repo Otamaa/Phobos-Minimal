@@ -1604,29 +1604,6 @@ ASMJIT_PATCH(492776, BlitTransLucent75_Fix, 0)
 //	}
 //}
 
-//Fix the bug that parasite will vanish if it missed its target when its previous cell is occupied.
-ASMJIT_PATCH(0x62AA32, ParasiteClass_TryInfect_MissBehaviorFix, 0x5)
-{
-	GET(DWORD, dwdIsReturnSuccess, EAX);
-	bool bIsReturnSuccess = (BYTE)((WORD)(dwdIsReturnSuccess));
-	GET(ParasiteClass*, pParasite, ESI);
-
-	auto pParasiteTechno = pParasite->Owner;
-	if (bIsReturnSuccess || !pParasiteTechno)
-	{
-		return 0;
-	}
-	auto pType = pParasiteTechno->GetTechnoType();
-	auto cell = MapClass::Instance->NearByLocation(pParasiteTechno->LastMapCoords,
-				pType->SpeedType, ZoneType::None, pType->MovementZone, false, 1, 1, false,
-				false, false, true, CellStruct::Empty, false, false);
-	auto crd = MapClass::Instance->GetCellAt(cell)->GetCoords();
-	bIsReturnSuccess = pParasiteTechno->Unlimbo(crd, DirType::North);
-	R->AL(bIsReturnSuccess);
-
-	return 0;
-}
-
 // this fella was { 0, 0, 1 } before and somehow it also breaks both the light position a bit and how the lighting is applied when voxels rotate - Kerbiter
 ASMJIT_PATCH(0x753D86, VoxelCalcNormals_NullAdditionalVector, 0x8)
 {
@@ -2656,73 +2633,81 @@ ASMJIT_PATCH(0x418CF3, AircraftClass_Mission_Attack_PlanningFix, 0x5)
 
 DWORD WINAPI Mouse_Thread(MouseThreadParameter* lpThreadParameter)
 {
-	lpThreadParameter->dword14 = 1;
-	lpThreadParameter->SkipSleep = 0;
+    lpThreadParameter->SomeState18 = 1;  // ← Fixed: was dword14
+    lpThreadParameter->SkipSleep = 0;
 
-	if (lpThreadParameter->SkipProcessing) {
-		lpThreadParameter->SkipSleep = 1;
-
-	} else {
-		do
-		{
-			if (Imports::WaitForSingleObject.invoke()(MouseThreadParameter::Mutex(), 10000u) == 258) {
-				Debug::LogInfo("Warning: Probable deadlock occurred on MouseMutex.");
-			}
-
-			if (WWMouseClass::Thread_Instance()) {
-				WWMouseClass::Thread_Instance->Process();
-			}
-
-			Imports::ReleaseMutex.invoke()(MouseThreadParameter::Mutex());
-			Imports::Sleep.invoke()((long long)lpThreadParameter->SleepTime);
-			++lpThreadParameter->RefCount;
-		}
-		while (!lpThreadParameter->SkipProcessing);
-		lpThreadParameter->SkipSleep = 1;
-	}
-
-	return 0;
+    if (lpThreadParameter->SkipProcessing) {
+        lpThreadParameter->SkipSleep = 1;
+    } else {
+        do
+        {
+            if (Imports::WaitForSingleObject.invoke()(MouseThreadParameter::Mutex(), 10000u) == 258) {
+                Debug::Log("Warning: Probable deadlock occurred on MouseMutex.");
+            }
+            if (WWMouseClass::Thread_Instance()) {
+                WWMouseClass::Thread_Instance->Process();
+            }
+            Imports::ReleaseMutex.invoke()(MouseThreadParameter::Mutex());
+            Imports::Sleep.invoke()((long long)lpThreadParameter->SleepTime);
+            ++lpThreadParameter->RefCount;
+        }
+        while (!lpThreadParameter->SkipProcessing);
+        lpThreadParameter->SkipSleep = 1;
+    }
+    return 0;
 }
 
 void __fastcall StartMouseThread() {
+    HANDLE MutexA = MouseThreadParameter::Mutex();
+    char Buffer[1024];
 
-	HANDLE MutexA = MouseThreadParameter::Mutex();
-	char Buffer[1024];
+    if (!MouseThreadParameter::Mutex()) {
+        MutexA = Imports::CreateMutexA.invoke()(0, 0, 0);
+        MouseThreadParameter::Mutex = MutexA;
+    }
 
-	if (!MouseThreadParameter::Mutex()) {
-		MutexA = Imports::CreateMutexA.invoke()(0, 0, 0);
-		MouseThreadParameter::Mutex = MutexA;
-	}
+    if (!MouseThreadParameter::ThreadNotActive())
+    {
+        if (MutexA)
+        {
 
-	if (!MouseThreadParameter::ThreadNotActive())
-	{
-		if (MutexA)
-		{
-			MouseThreadParameter::Thread = MouseThreadParameter {
-				.SleepTime = 1
-			};
+            MouseThreadParameter::Thread().SkipProcessing = 0;
+            MouseThreadParameter::Thread().SkipSleep = 0;
+            MouseThreadParameter::Thread().SomeState18 = 0;
+            MouseThreadParameter::Thread().SleepTime = 16;
+            MouseThreadParameter::Thread().dword14 = 0;
+            MouseThreadParameter::Thread().RefCount = 0;
 
-			HANDLE Thread = Imports::CreateThread.invoke()(0, 0x1000u, (LPTHREAD_START_ROUTINE)Mouse_Thread, &MouseThreadParameter::Thread, 0, &MouseThreadParameter::Thread->ThreadID);
-			MouseThreadParameter::Thread->SomeState18 = Thread;
-			if (Thread)
-			{
-				MouseThreadParameter::ThreadNotActive = 1;
-				if (!Imports::SetThreadPriority.invoke()(Thread, 15))
-				{
-					DWORD LastError = GetLastError();
-					Imports::FormatMessageA.invoke()(0x1000u, 0, LastError, 0, Buffer, 0x400u, 0);
-					Debug::LogInfo("Unable to change the priority of the mouse thread - %s\n", Buffer);
-					while (!MouseThreadParameter::Thread->SkipSleep)
-					{
-						Imports::Sleep.invoke()(0);
-					}
-					Imports::WaitForSingleObject.invoke()(MouseThreadParameter::Thread->SomeState18, 5000u);
-					Imports::CloseHandle.invoke()(MouseThreadParameter::Thread->SomeState18);
-					MouseThreadParameter::ThreadNotActive = 0;
-				}
-			}
-		}
-	}
+            HANDLE Thread = Imports::CreateThread.invoke()(
+                0, 0x1000u,
+                (LPTHREAD_START_ROUTINE)Mouse_Thread,
+                &MouseThreadParameter::Thread(),  // Pass address of struct
+                0,
+                &MouseThreadParameter::StaticThreadID()  // ← Use separate variable!
+            );
+
+            MouseThreadParameter::Thread_Handle() = Thread;  // ← Store in separate variable!
+
+            if (Thread)
+            {
+                MouseThreadParameter::ThreadNotActive() = 1;
+                if (!Imports::SetThreadPriority.invoke()(Thread, 15))
+                {
+                    DWORD LastError = GetLastError();
+                    Imports::FormatMessageA.invoke()(0x1000u, 0, LastError, 0, Buffer, 0x400u, 0);
+                    Debug::Log("Unable to change the priority of the mouse thread - %s\n", Buffer);
+
+                    while (!MouseThreadParameter::Thread().SkipSleep)
+                    {
+                        Imports::Sleep.invoke()(0);
+                    }
+                    Imports::WaitForSingleObject.invoke()(MouseThreadParameter::Thread_Handle(), 5000u);
+                    Imports::CloseHandle.invoke()(MouseThreadParameter::Thread_Handle());
+                    MouseThreadParameter::ThreadNotActive() = 0;
+                }
+            }
+        }
+    }
 }
 
 //massive FPS losses
@@ -3044,3 +3029,16 @@ ASMJIT_PATCH(0x70D4FD, AbstractClass_ClearTargetToMe_ClearLastTarget, 0x6)
 }
 
 #pragma endregion
+
+ASMJIT_PATCH(0x4440B0, BuildingClass_KickOutUnit_CloningFacility, 0x6)
+{
+	enum { CheckFreeLinks = 0x4440BA, ContinueIn = 0x4440D7 };
+
+	GET(BuildingTypeClass*, pFactoryType, EAX);
+
+	if (!pFactoryType->WeaponsFactory
+		|| BuildingTypeExtContainer::Instance.Find(pFactoryType)->CloningFacility)
+		return CheckFreeLinks;
+
+	return ContinueIn;
+}

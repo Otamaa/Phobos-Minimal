@@ -2,6 +2,7 @@
 
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Cell/Body.h>
+#include <Ext/Techno/Body.h>
 
 #include <New/Type/RadTypeClass.h>
 #include <LightSourceClass.h>
@@ -301,3 +302,353 @@ HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, BOOL clearDirty)
 
 // DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
 // DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
+template<bool reduce = false>
+void PopulateCellRadVector(FakeRadSiteClass* pRad, CellStruct* cell, int distance, int timeParam)
+{
+	const auto max = pRad->SpreadInLeptons;
+
+	if (distance <= max)
+	{
+		if (auto pCell = MapClass::Instance->TryGetCellAt(cell))
+		{
+			const auto pCellExt = CellExtContainer::Instance.Find(pCell);
+			auto it = pCellExt->RadLevels.find_if([pRad](auto& pair) { return pair.Rad == pRad; });
+
+			if constexpr (!reduce)
+			{
+				const int amount = int(static_cast<double>(max - distance) / max * pRad->RadLevel);
+
+
+				if (it != pCellExt->RadLevels.end())
+					it->Level += MinImpl(it->Level + amount, RadSiteExtContainer::Instance.Find(pRad)->Type->GetLevelMax());
+				else
+					pCellExt->RadLevels.emplace_back(pRad, amount);
+			}
+			else
+			{
+				if (it != pCellExt->RadLevels.end())
+				{
+					it->Level -= int(static_cast<double>(max - distance) / max * pRad->RadLevel / pRad->LevelSteps * timeParam);
+				}
+			}
+		}
+	}
+}
+
+static NOINLINE int CalculateRadiationDamage(
+	int baseLevel,
+	double levelFactor,
+	double distanceInCells,
+	int cellSpreadInCells,
+	double minFalloff = 0.1
+)
+{
+	double maxDistance = std::max(1.0, static_cast<double>(cellSpreadInCells));
+
+	// Linear falloff, clamped between minFalloff and 1.0
+	double falloff = std::clamp(1.0 - (distanceInCells / maxDistance), minFalloff, 1.0);
+
+	// Base damage before falloff
+	double rawDamage = static_cast<double>(baseLevel) * levelFactor;
+
+	// Final damage (may be negative for healing)
+	return static_cast<int>(rawDamage * falloff);
+}
+
+static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, FootClass* pObj, CellClass* pCell, int distance)
+{
+	if (pObj->IsAlive && !pObj->InLimbo && pObj->Health > 0 && !pObj->TemporalTargetingMe && !TechnoExtData::IsRadImmune(pObj))
+	{
+		const auto pRadExt = RadSiteExtContainer::Instance.Find(pRad);
+		RadTypeClass* pRadType = pRadExt->Type;
+
+		const int RadApplicationDelay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetApplicationDelay() : RulesClass::Instance->RadApplicationDelay;
+		if ((RadApplicationDelay <= 0)
+			|| (Unsorted::CurrentFrame % RadApplicationDelay))
+			return;
+
+		if (pObj->GetTechnoType()->Immune || !pRadType->GetWarhead())
+			return;
+
+		auto it = CellExtContainer::Instance.Find(pCell)->RadLevels.find_if([pRad](auto& pair) { return pair.Rad == pRad; });
+
+		if (it == CellExtContainer::Instance.Find(pCell)->RadLevels.end() || it->Level <= 0)
+			return;
+
+		const auto damage = CalculateRadiationDamage(it->Level, pRadType->GetLevelFactor(), distance, pRad->Spread);
+
+		if (damage == 0)
+			return;
+
+		UnitClass* pUnit = cast_to<UnitClass*, false>(pObj);
+		FootClass* pFoot = pObj;
+
+		if ((pUnit && pUnit->DeathFrameCounter > 0) || !RadSiteClass::Array->Count)
+			return;
+
+		if (pObj->IsSinking || pObj->IsCrashing)
+			return;
+
+		if (pObj->IsInAir())
+			return;
+
+		if (pObj->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(pFoot))
+			return;
+
+		if (pRadExt->ApplyRadiationDamage(pObj, damage, static_cast<int>(distance)) == RadSiteExtData::DamagingState::Dead)
+			return;
+
+	}
+}
+
+struct BuildingRadiationExposure
+{
+	int Damage;
+	int BestRadLevel;
+	double BestDistance;
+	CellStruct SourceCell;
+};
+
+static NOINLINE BuildingRadiationExposure CalculateBuildingRadiationDamage(
+	RadSiteClass* pRad,
+	RadTypeClass* pRadType,
+	BuildingClass* pBld
+)
+{
+	BuildingRadiationExposure result {};
+
+	const auto baseCell = pRad->BaseCell;
+	const auto nCurCoord = pBld->InlineMapCoords();
+
+	for (auto* pFoundation = pBld->GetFoundationData(false); *pFoundation != CellStruct::EOL; ++pFoundation)
+	{
+
+		const auto nLoc = nCurCoord + (*pFoundation);
+		auto pCell = MapClass::Instance->TryGetCellAt(nLoc);
+
+		if (!pCell) continue;
+
+		auto* pCellExt = CellExtContainer::Instance.Find(pCell);
+
+		auto it = pCellExt->RadLevels.find_if([pRad](auto& pair)
+ {
+	 return pair.Rad == pRad;
+		});
+
+		if (it == pCellExt->RadLevels.end() || it->Level <= 0)
+			continue;
+
+		const int radLevel = it->Level;
+		double distance = static_cast<double>(baseCell.DistanceFrom(nLoc));
+
+		// Use best exposed cell logic (max level or min distance)
+		if (radLevel > result.BestRadLevel || result.BestRadLevel == 0)
+		{
+			result.BestRadLevel = radLevel;
+			result.BestDistance = distance;
+			result.SourceCell = nLoc;
+		}
+	}
+
+	if (result.BestRadLevel > 0)
+	{
+		result.Damage = CalculateRadiationDamage(result.BestRadLevel, pRadType->GetLevelFactor(), result.BestDistance, pRad->Spread);
+	}
+
+	return result;
+}
+
+static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, BuildingClass* pObj, CellClass* pCell, int distance)
+{
+	if (pObj->IsAlive && !pObj->InLimbo && pObj->Health > 0 && !pObj->TemporalTargetingMe && !TechnoExtData::IsRadImmune(pObj))
+	{
+
+		const auto pRadExt = RadSiteExtContainer::Instance.Find(pRad);
+
+		RadTypeClass* pRadType = pRadExt->Type;
+
+		const int delay = RulesExtData::Instance()->UseGlobalRadApplicationDelay ? pRadType->GetBuildingApplicationDelay() : RulesExtData::Instance()->RadApplicationDelay_Building;
+
+		if ((delay <= 0) || (Unsorted::CurrentFrame % delay))
+			return;
+
+		if (pObj->GetTechnoType()->Immune || !pRadType->GetWarhead() || pObj->IsBeingWarpedOut())
+			return;
+
+		auto& damageCount = pRadExt->damageCounts[pObj];
+		const int maxDamageCount = pRadType->GetBuildingDamageMaxCount();
+		if (maxDamageCount > 0 && damageCount >= maxDamageCount)
+			return;
+
+		const auto damage = CalculateBuildingRadiationDamage(pRad, pRadType, pObj);
+
+		if (damage.Damage == 0)
+			return;
+
+		if (pRadExt->ApplyRadiationDamage(pObj, damage.Damage, static_cast<int>(damage.BestDistance)) == RadSiteExtData::DamagingState::Dead)
+			return;
+	}
+}
+
+template<typename Func>
+void FakeRadSiteClass::ForEachCellInRadiationArea(Func&& callback)
+{
+	// Calculate the bounding box for the radiation area
+	short spread = this->Spread;
+	short minX = this->BaseCell.X - spread;
+	short maxX = minX + (2 * spread) + 1;
+	short minY = this->BaseCell.Y - spread;
+	short maxY = minY + (2 * spread) + 1;
+
+	// Get the center cell for distance calculations
+	CellClass* centerCell = MapClass::Instance->GetCellAt(this->BaseCell);
+	CoordStruct centerCoord = centerCell->GetCoords();
+
+	// Iterate through all cells in the radiation area
+	for (short y = minY; y < maxY; ++y) {
+		for (short x = minX; x < maxX; ++x) {
+			CellStruct currentCell(x,y);
+
+			// Get the current cell
+			CellClass* cell = MapClass::Instance->GetCellAt(currentCell);
+
+			// Get cell center coordinate
+			CoordStruct cellCoord = cell->GetCoords();
+
+			// Calculate 3D distance between radiation center and current cell
+			int distance = int((centerCoord - cellCoord).Length());
+
+			// Calculate base radiation strength at this distance
+			double radiationAmount = 0.0;
+
+			if (distance <= this->SpreadInLeptons)
+			{
+				// Radiation decreases linearly with distance from center
+				int distanceFromEdge = this->SpreadInLeptons - distance;
+				double normalizedDistance = static_cast<double>(distanceFromEdge) / this->SpreadInLeptons;
+				radiationAmount = normalizedDistance * this->RadLevel;
+			}
+
+			// Call the callback with the cell and calculated radiation amount
+			callback(cell, radiationAmount, distance);
+		}
+	}
+}
+
+void FakeRadSiteClass::__Reduce_In_Area()
+{
+	// Calculate reduction multiplier based on frames elapsed
+	auto pExt = this->_GetExtData();
+	int reductionMultiplier = (this->RadTimeLeft / pExt->Type->GetLevelDelay()) + 1;
+
+	ForEachCellInRadiationArea([this, reductionMultiplier](CellClass* cell, double radiationAmount, int distance) {
+		// Apply reduction multiplier and current level decrement
+
+		if (radiationAmount <= 0)
+			radiationAmount = 1;
+
+		double reductionAmount = (radiationAmount / this->LevelSteps) * reductionMultiplier;
+		PopulateCellRadVector<true>(this, &cell->MapCoords, distance, reductionMultiplier);
+		cell->RadLevel_Decrease(reductionAmount);
+	});
+}
+
+void FakeRadSiteClass::__Increase_In_Area()
+{
+	ForEachCellInRadiationArea([this](CellClass* cell, double radiationAmount, int distance) {
+		// Simply increase radiation by the calculated amount
+		PopulateCellRadVector<false>(this, &cell->MapCoords, distance, 0);
+		cell->RadLevel_Increase(radiationAmount);
+	});
+}
+
+void FakeRadSiteClass::__Reduce_Radiation() {
+	ForEachCellInRadiationArea([this](CellClass* cell, double radiationAmount, int distance) {
+		// Apply current level decrement to calculate reduction amount
+		// This makes radiation fade faster as time goes on
+		PopulateCellRadVector<true>(this, &cell->MapCoords, distance, 0);
+		double reductionAmount = radiationAmount / this->LevelSteps;
+		cell->RadLevel_Decrease(reductionAmount);
+	});
+}
+
+// Radiation_At remains unchanged as it has different logic
+double FakeRadSiteClass::__Radiation_At(CellStruct* cell) const
+{
+	// Get the radiation center cell
+	CellClass* centerCell = MapClass::Instance->GetCellAt(this->BaseCell);
+	CoordStruct centerCoord = centerCell->GetCoords();
+
+	// Get the query cell
+	CellClass* queryCell = MapClass::Instance->GetCellAt(cell);
+	CoordStruct queryCoord = queryCell->GetCoords();
+
+	// Calculate 3D distance between radiation center and query cell
+	const int distance = (centerCoord - queryCoord).Length();
+
+	// Check if cell is within radiation range
+	if (distance > this->SpreadInLeptons)
+	{
+		return 0.0; // No radiation outside the spread radius
+	}
+
+	// Calculate radiation strength at this distance
+	// Radiation decreases linearly with distance from center
+	int distanceFromEdge = this->SpreadInLeptons - distance;
+	double normalizedDistance = static_cast<double>(distanceFromEdge) / this->SpreadInLeptons;
+
+	return normalizedDistance * this->RadLevel;
+}
+
+void FakeRadSiteClass::__AI()
+{
+	--this->RadTimeLeft;
+	auto pExt = RadSiteExtContainer::Instance.Find(this);
+
+	// Check radiation level reduction timer
+	// Time to reduce radiation
+	if (this->RadLevelTimer.GetTimeLeft() == 0)
+	{
+		this->DecreaseRadiation();
+
+		// Reset radiation level timer
+		this->RadLevelTimer.Start(pExt->Type->GetLevelDelay());
+	}
+
+	// Check radiation light update timer
+	// Time to update radiation light
+	if (this->RadLightTimer.GetTimeLeft() == 0)
+	{
+		// Calculate current light intensity based on remaining radiation
+		// Light fades proportionally as radiation decays
+		TintStruct tintIntensity(
+			this->RadTimeLeft * this->Tint.Red / this->RadDuration,
+			this->RadTimeLeft * this->Tint.Green / this->RadDuration,
+			this->RadTimeLeft * this->Tint.Blue / this->RadDuration
+		);
+
+		// Update light source with new color values
+		// CurrentLightStage is subtracted from the base color
+		this->LightSource->ChangeLevels(
+			this->LightSource->LightIntensity - this->IntensityDecrement,
+			tintIntensity, 0);
+
+		// Reset radiation light timer
+		this->RadLightTimer.Start(pExt->Type->GetLightDelay());
+	}
+
+	// Self-destruct when radiation is fully depleted
+	if (this->RadTimeLeft <= 0 || this->RadLevel <= 0) {
+		// Call destructor and deallocate (the 1 parameter means delete memory)
+		this->_scalar_dtor(1);
+	}
+
+	ForEachCellInRadiationArea([this](CellClass* pCell, double radiationAmount, int distance) {
+		if (auto pObj = pCell->Cell_Occupier()) {
+			if (auto pFoot = flag_cast_to<FootClass*, false>(pObj))
+				ApplyRadDamage(this, pFoot, pCell, distance);
+			else if (auto pBld = cast_to<BuildingClass*, false>(pObj))
+				ApplyRadDamage(this, pBld, pCell, distance);
+		}
+	});
+}

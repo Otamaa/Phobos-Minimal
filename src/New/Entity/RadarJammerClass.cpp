@@ -14,16 +14,22 @@ bool RadarJammerClass::IsEligible(BuildingClass* TargetBuilding)
 		- not an ally (includes ourselves)
 		- either a radar or a spysat
 	*/
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject->GetTechnoType());
+	if (EnumFunctions::CanTargetHouse(pExt->RadarJamHouses, this->AttachedToObject->Owner, TargetBuilding->Owner)) {
+		if(pExt->RadarJamIgnore.Contains(TargetBuilding->Type)
+				|| (!pExt->RadarJamAffect.empty() && !pExt->RadarJamAffect.Contains(TargetBuilding->Type)))
+				return false;
 
-	if (!this->AttachedToObject->Owner->IsAlliedWith(TargetBuilding->Owner))
-	{
-		if (TargetBuilding->Type->Radar)
+		if (TargetBuilding->Type->Radar || TargetBuilding->Type->SpySat)
 			return true;
 
-		for (auto pType : TargetBuilding->GetTypes())
-		{
-			if (pType && pType->SpySat)
-			{
+		for (auto pType : TargetBuilding->GetTypes()) {
+			if (pType && pType->SpySat) {
+
+				if(pExt->RadarJamIgnore.Contains(pType)
+					|| (!pExt->RadarJamAffect.empty() && !pExt->RadarJamAffect.Contains(pType)))
+					return false;
+
 				return true;
 			}
 		}
@@ -33,10 +39,11 @@ bool RadarJammerClass::IsEligible(BuildingClass* TargetBuilding)
 }
 
 void RadarJammerClass::Update()
-{
+{	
+	auto const pExt = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject->GetTechnoType());
+
 	// we don't want to scan & crunch numbers every frame - this limits it to ScanInterval frames
-	if ((Unsorted::CurrentFrame - this->LastScan) < this->ScanInterval)
-	{
+	if ((Unsorted::CurrentFrame - this->LastScan) < pExt->RadarJamDelay) {
 		return;
 	}
 

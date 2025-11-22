@@ -1541,8 +1541,11 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
 
 	// inhibitor related
+	this->SW_Inhibitors_Houses.Read(exINI, pSection, "SW.Inhibitors.Houses");
 	this->SW_Inhibitors.Read(exINI, pSection, "SW.Inhibitors");
 	this->SW_AnyInhibitor.Read(exINI, pSection, "SW.AnyInhibitor");
+
+	this->SW_Designators_Houses.Read(exINI, pSection, "SW.Designators.Houses");
 	this->SW_Designators.Read(exINI, pSection, "SW.Designators");
 	this->SW_AnyDesignator.Read(exINI, pSection, "SW.AnyDesignator");
 	this->ShowDesignatorRange.Read(exINI, pSection, "ShowDesignatorRange");
@@ -2423,8 +2426,10 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_Next_RollChances)
 		.Process(this->SW_Next_RandomWeightsData)
 
+		.Process(this->SW_Inhibitors_Houses)
 		.Process(this->SW_Inhibitors)
 		.Process(this->SW_AnyInhibitor)
+		.Process(this->SW_Designators_Houses)
 		.Process(this->SW_Designators)
 		.Process(this->SW_AnyDesignator)
 		.Process(this->ShowDesignatorRange)

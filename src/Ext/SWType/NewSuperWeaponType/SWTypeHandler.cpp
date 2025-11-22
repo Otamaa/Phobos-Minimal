@@ -92,9 +92,11 @@ bool SWTypeHandler::IsDesignator(const SWTypeExtData* pData, HouseClass* pOwner,
 		&& pTechno->Health
 		&& !pTechno->InLimbo
 		&& !pTechno->Deactivated
-		&& pTechno->GetOwningHouse() == pOwner
 		)
 	{
+		if(!EnumFunctions::CanTargetHouse(pData->SW_Designators_Houses, pOwner, pTechno->Owner))
+			return false;
+
 		return pData->SW_AnyDesignator
 			|| pData->SW_Designators.Contains(pTechno->GetTechnoType());
 	}
@@ -141,7 +143,7 @@ bool SWTypeHandler::IsInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, 
 {
 	if (pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo && !pTechno->Deactivated)
 	{
-		if (pOwner && pOwner->IsAlliedWith(pTechno)) {
+		if (!EnumFunctions::CanTargetHouse(pData->SW_Inhibitors_Houses, pOwner, pTechno->Owner)) {
 			return false;
 		}
 
@@ -262,7 +264,7 @@ bool SWTypeHandler::IsSuppressor(const SWTypeExtData* pData, HouseClass* pOwner,
 
 bool SWTypeHandler::IsDesignatorSimple(const SWTypeExtData* pData, HouseClass* pSWOwner, HouseClass* pTechnoOwner, TechnoTypeClass* pTechnoType) const
 {
-	if (pTechnoOwner == pSWOwner) {
+	if (EnumFunctions::CanTargetHouse(pData->SW_Designators_Houses, pSWOwner, pTechnoOwner)) {
 		return pData->SW_AnyDesignator
 			|| pData->SW_Designators.Contains(pTechnoType);
 	}
@@ -272,12 +274,14 @@ bool SWTypeHandler::IsDesignatorSimple(const SWTypeExtData* pData, HouseClass* p
 
 bool SWTypeHandler::IsInhibitorSimple(const SWTypeExtData* pData, HouseClass* pSWOwner, HouseClass* pTechnoOwner, TechnoTypeClass* pTechnoType, bool bIsPoweredOffline) const
 {
-	if (!pSWOwner->IsAlliedWith(pTechnoOwner) && !bIsPoweredOffline) {
+	if(!bIsPoweredOffline) {
+		if (!EnumFunctions::CanTargetHouse(pData->SW_Inhibitors_Houses, pSWOwner, pTechnoOwner)) {
+			return false;
+		}
+
 		return pData->SW_AnyInhibitor
 			|| pData->SW_Inhibitors.Contains(pTechnoType);
-
 	}
-
 
 	return false;
 }

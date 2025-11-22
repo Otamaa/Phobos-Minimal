@@ -400,6 +400,7 @@ void FakeTechnoClass::__HandleChargeTurret(TechnoClass* pThis)
 
 	auto const pType = pThis->GetTechnoType();
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
+
 	int timeLeft = pThis->RearmTimer.GetTimeLeft();
 
 	if (pExt->ChargeTurretTimer.HasStarted())
@@ -975,7 +976,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	// Mission and target management
 	__ClearTargetForInvalidMissions(pThis);
 
-	++pThis->MissionAccumulateTime;
+	pThis->MissionAccumulateTime++;
 	pThis->MissionClass::Update();
 
 	__HandleTargetAcquisition(pThis);

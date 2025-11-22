@@ -137,7 +137,7 @@ struct DroppodProperties_
 
 			if (AnimTypeClass* pType = DroppodProperties_::GetTrailer(tType, pLinked, condition)) {
 				if (Unsorted::CurrentFrame % DroppodProperties_::GetTrailerDelay(tType, pLinked, condition) == 1) {
-					auto pTrail = GameCreate<AnimClass>(pType, coords, 0, 1, (AnimFlag)0x600, 0, false);
+					auto pTrail = GameCreate<AnimClass>(pType, coords, 0, 1, AnimFlag::AnimFlag_600, 0, false);
 					AnimExtData::SetAnimOwnerHouseKind(pTrail,
 						pLinked->Owner,
 						nullptr,
@@ -165,7 +165,7 @@ struct DroppodProperties_
 						DamageArea::Apply(&locnear, 2 * dWpn->Damage, pLinked, dWpn->Warhead, true, pLinked->Owner);
 						if (auto dmgAnim = MapClass::SelectDamageAnimation(2 * dWpn->Damage, dWpn->Warhead, LandType::Clear, locnear))
 						{
-							AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(dmgAnim, locnear, 0, 1, (AnimFlag)0x2600, -15, false),
+							AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(dmgAnim, locnear, 0, 1, AnimFlag::AnimFlag_2600, -15, false),
 								pLinked->Owner,
 								nullptr,
 								pLinked,
@@ -191,7 +191,7 @@ struct DroppodProperties_
 			if (pLinked->Unlimbo(coord_place, DirType::North))
 			{
 				if (pAnimType) {
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coord_place, 0, 1, AnimFlag(0x600), 0, 0),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coord_place, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 						pLinked->Owner,
 						nullptr,
 						pLinked,
@@ -200,7 +200,7 @@ struct DroppodProperties_
 				}
 
 				if (nDroppod) {
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(nDroppod, coord_place, 0, 1, AnimFlag(0x600), 0, 0),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(nDroppod, coord_place, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 						pLinked->Owner,
 						nullptr,
 						pLinked,
@@ -221,7 +221,7 @@ struct DroppodProperties_
 				DamageArea::Apply(&coord_place, 100, pLinked, RulesClass::Instance->C4Warhead, true, pLinked->Owner);
 				if (auto dmgAnim = MapClass::SelectDamageAnimation(100, RulesClass::Instance->C4Warhead, LandType::Clear, coord_place))
 				{
-					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(dmgAnim, coord_place, 0, 1, (AnimFlag)0x2600, -15, false),
+					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(dmgAnim, coord_place, 0, 1, AnimFlag::AnimFlag_2600, -15, false),
 						pLinked->Owner,
 						nullptr,
 						pLinked,
@@ -268,7 +268,7 @@ struct DroppodProperties_
 
 			if (auto pAnimType = DroppodProperties_::GetAtmosphereEntry(tType, pLoco->LinkedTo, condition))
 			{
-				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coord, 0, 1, AnimFlag(0x600), 0, 0),
+				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 					pLoco->Owner->Owner,
 					nullptr,
 					pLoco->Owner,

@@ -99,6 +99,17 @@ public:
 			static_cast<double>(this->RadTimeLeft) / static_cast<double>(this->RadDuration);
 	}
 
+	void DTOR_IMPL() {
+		JMP_THIS(0x65B2F0);
+	}
+
+	void _scalar_dtor(char flags) {
+		this->DTOR_IMPL();
+
+		if ((flags & 1) != 0)
+			GameDelete<false,false>(this);
+	}
+
 	//Constructor
 	RadSiteClass()
 		: RadSiteClass(noinit_t())
@@ -139,4 +150,26 @@ public:
 	int               RadTimeLeft; // the remaining frames. divided by RadDuration gives the factor
 };
 
+/*
+struct ___RadSiteClass
+{
+	AbstractClass a;
+	LightSourceClass* LightSource;
+	FrameTimerClass RadLevelTimer;
+	FrameTimerClass RadLightTimer;
+	CellStruct Position;
+	_DWORD Spread;
+	_DWORD SpreadInLeptons;
+	_DWORD RadLevel;
+	_DWORD CurrentLevelDecrement;
+	_DWORD CurrentIntensity;
+	int RadLevel1;
+	int RadLevel2;
+	int RadLevel3;
+	_DWORD CurrentLightDecrement;
+	_DWORD CurrentLightStage;
+	_DWORD StartRadLevel;
+	_DWORD CurrentRadLevel;
+};
+*/
 static_assert(sizeof(RadSiteClass) == 0x74, "Invalid Size !");

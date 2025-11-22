@@ -767,7 +767,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 //https://github.com/Phobos-developers/Phobos/issues/629
 void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const
 {
-	auto const pExt = TechnoExtContainer::Instance.Find(pVictim);
+	//auto const pExt = TechnoExtContainer::Instance.Find(pVictim);
 
 	// AffectsAbove/BelowPercent & AffectsNeutral can ignore IgnoreDefenses like AffectsAllies/Enmies/Owner
 	// They should be checked here to cover all cases that directly use ReceiveDamage to deal damage
@@ -776,11 +776,11 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 		return;
 	}
 
-	if (pExt->ReceiveDamageMultiplier.isset())
-	{
-		*pArgs->Damage = static_cast<int>(*pArgs->Damage * pExt->ReceiveDamageMultiplier.get());
-		pExt->ReceiveDamageMultiplier.clear();
-	}
+	// if (pExt->ReceiveDamageMultiplier.isset())
+	// {
+	// 	*pArgs->Damage = static_cast<int>(*pArgs->Damage * pExt->ReceiveDamageMultiplier.get());
+	// 	pExt->ReceiveDamageMultiplier.clear();
+	// }
 
 	auto const& nAllyMod = AffectAlly_Damage_Mod;
 	auto const& nOwnerMod = AffectOwner_Damage_Mod;

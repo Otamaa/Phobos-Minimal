@@ -5289,7 +5289,7 @@ void AresEMPulse::announceAttack(TechnoClass* Techno)
 			VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack);
 		break;
 	case AttackEvents::Base:
-		HouseClass::CurrentPlayer->BuildingUnderAttack(cast_to<BuildingClass*, false>(Techno));
+		((FakeHouseClass*)HouseClass::CurrentPlayer())->_Attacked(cast_to<BuildingClass*, false>(Techno), nullptr);
 		break;
 	case AttackEvents::None:
 	default:
@@ -6764,7 +6764,7 @@ bool AresTActionExt::MeteorStrike(TActionClass* pAction, HouseClass* pHouse, Obj
 
 		if (pSelected)
 		{
-			auto pAnim = GameCreate<AnimClass>(pSelected, nAnimLoc, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+			auto pAnim = GameCreate<AnimClass>(pSelected, nAnimLoc, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 			pAnim->Owner = pHouse;
 		}
 	}
@@ -6790,7 +6790,7 @@ bool AresTActionExt::PlayAnimAt(TActionClass* pAction, HouseClass* pHouse, Objec
 		//	pAction->Value
 		//);
 
-		auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, 0, 0);
+		auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 		pAnim->IsPlaying = !pAction->Param3;
 		pAnim->Owner = pHouse;
 	}
@@ -6820,7 +6820,7 @@ bool AresTActionExt::DoExplosionAt(TActionClass* pAction, HouseClass* pHouse, Ob
 
 		if (auto pAnimType = MapClass::SelectDamageAnimation(pWeaponType->Damage, pWeaponType->Warhead, pCell->LandType, nCoord))
 		{
-			auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_2000 | AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200, -15, 0);
+			auto pAnim = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_2600, -15, 0);
 			pAnim->IsPlaying = true;
 			pAnim->Owner = pHouse;
 		}
@@ -7383,25 +7383,6 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 			return true;
 		}
 		default:
-
-			switch (pThis->EventKind)
-			{
-			case TriggerEvent::TechTypeExists:
-			{
-				//TechnoTypeExist
-				result = FindTechnoType(pThis, pThis->Value, nullptr);
-				return true;
-			}
-			case TriggerEvent::TechTypeDoesntExist:
-			{
-				//TechnoTypeDoesntExist
-				result = !FindTechnoType(pThis, 1, nullptr);
-				return true;
-			}
-			default:
-				break;
-			}
-
 			break;
 		}
 	}

@@ -139,7 +139,7 @@ bool CodeWriterUtils::encode_offset32(uint32_t* dst, int64_t offset64, const Off
     //  if (!arm::Utils::encode_aarch32_imm(value, Out(encoded_imm))) {
     //    return false;
     //  }
-    //
+
     //  *dst = (Support::bit_mask<uint32_t>(22) << u) | (encoded_imm << bit_shift);
     //  return true;
     //}

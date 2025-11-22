@@ -284,21 +284,6 @@ ASMJIT_PATCH(0x506306, HouseClass_FindPlaceToBuild_Evaluate, 6)
 	return 0x50630C;
 }
 
-ASMJIT_PATCH(0x4F94A5, HouseClass_BuildingUnderAttack, 6)
-{
-	GET(BuildingClass*, pSource, ESI);
-
-	if (auto pWh = std::exchange(BuildingExtContainer::Instance.Find(pSource)->ReceiveDamageWarhead, nullptr))
-	{
-		if (!WarheadTypeExtContainer::Instance.Find(pWh)->Malicious)
-		{
-			return 0x4F95D4;
-		}
-	}
-
-	return 0;
-}
-
 // drain affecting only the drained power plant
 ASMJIT_PATCH(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 {

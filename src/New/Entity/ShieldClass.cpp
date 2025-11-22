@@ -279,7 +279,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 		}
 
 		if(pWHExt->Malicious && !pWHExt->Nonprovocative)
-			this->ResponseAttack();
+			this->ResponseAttack(args->WH);
 
 		if (pWHExt->DecloakDamagedTargets)
 			this->Techno->Uncloak(false);
@@ -383,7 +383,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	return nDamageResult;
 }
 
-void ShieldClass::ResponseAttack() const
+void ShieldClass::ResponseAttack(WarheadTypeClass* pWarhead) const
 {
 	if (this->Techno->Owner != HouseClass::CurrentPlayer || this->Techno->GetTechnoType()->Insignificant)
 		return;
@@ -391,7 +391,7 @@ void ShieldClass::ResponseAttack() const
 	const auto pWhat = Techno->WhatAmI();
 	if (pWhat == BuildingClass::AbsID)
 	{
-		this->Techno->Owner->BuildingUnderAttack(static_cast<BuildingClass*>(this->Techno));
+		((FakeHouseClass*)this->Techno->Owner)->_Attacked(static_cast<BuildingClass*>(this->Techno), pWarhead);
 	}
 	else if (pWhat == UnitClass::AbsID)
 	{

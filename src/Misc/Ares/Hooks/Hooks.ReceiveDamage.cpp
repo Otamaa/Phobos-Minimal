@@ -209,7 +209,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 
 					if (auto const pAnim = MapClass::SelectDamageAnimation(_damagingDamage, _adamagingWarhead, _thisCell->LandType, pThis->Location))
 					{
-						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_400 | AnimFlag::AnimFlag_200 | AnimFlag::AnimFlag_2000, -15, 0),
+						AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnim, pThis->Location, 0, 1, AnimFlag::AnimFlag_2600, -15, 0),
 							nullptr,
 							nullptr,
 							false
@@ -1623,10 +1623,8 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 					pThis->BaseIsAttacked(Attacker);
 				}
 
-				if (!pThis->Type->Insignificant && !pThis->IsStrange())
-				{
-					pBldExt->ReceiveDamageWarhead = WH;
-					pThis->BuildingUnderAttack();
+				if (!pThis->Type->Insignificant && !pThis->IsStrange()) {
+				  ((FakeHouseClass*)pThis->Owner )->_Attacked(pThis, WH);
 				}
 
 				pThis->OwnerCountryIndex = Attacker->Owner->ArrayIndex;
@@ -2000,7 +1998,8 @@ ASMJIT_PATCH(0x737C90, UnitClass_ReceiveDamage_Handled, 5)
 			if (!pTypeExt->Sinkable.Get(ShouldSink)
 			   || pThis->GetCell()->LandType != LandType::Water
 			   || pThis->WarpingOut
-			   || pThis->OnBridge)
+			   || pThis->OnBridge
+			   || pThis->GetHeight() > 0)
 			{
 				pThis->Destroyed(args.Attacker);
 
