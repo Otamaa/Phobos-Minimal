@@ -1024,6 +1024,7 @@ CoordStruct FakeParasiteClass::__Detach_From_Victim()
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7EF8EC, FakeParasiteClass::__AI)
+DEFINE_FUNCTION_JUMP(LJMP, 0x629FD0 , FakeParasiteClass::__AI)
 DEFINE_FUNCTION_JUMP(LJMP, 0x62A260, FakeParasiteClass::__Detach)
 DEFINE_FUNCTION_JUMP(LJMP, 0x62AC30, FakeParasiteClass::__Detach_From_Victim)
 DEFINE_FUNCTION_JUMP(LJMP, 0x6297F0, FakeParasiteClass::__Grapple_AI)

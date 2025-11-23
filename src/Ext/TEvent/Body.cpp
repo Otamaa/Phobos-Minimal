@@ -950,7 +950,7 @@ ASMJIT_PATCH(0x71f683, TEventClass_GetFlags, 5)
 	return (int)nAction > 59 ? 0x71F69C : 0x71F688;
 }
 
-DEFINE_FUNCTION_JUMP(CALL , 0x72654, FakeTEventClass::_Occured)
+DEFINE_FUNCTION_JUMP(CALL , 0x726540, FakeTEventClass::_Occured)
 // =============================
 // container
 TEventExtContainer TEventExtContainer::Instance;

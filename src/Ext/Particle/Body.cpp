@@ -1018,6 +1018,7 @@ void FakeParticleClass::__Spark_AI() {
 
 #pragma endregion
 
+DEFINE_FUNCTION_JUMP(LJMP, 0x62CE40, FakeParticleClass::__AI)
 DEFINE_FUNCTION_JUMP(CALL, 0x62E6ED, FakeParticleClass::__AI)
 DEFINE_FUNCTION_JUMP(CALL, 0x62ECFE, FakeParticleClass::__AI)
 DEFINE_FUNCTION_JUMP(CALL, 0x62EDD0, FakeParticleClass::__AI)
