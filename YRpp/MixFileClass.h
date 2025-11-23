@@ -136,7 +136,8 @@ public:
 	//}
 
 	MixFileClass(const char* pFileName , void* pKey)
-		: Node<MixFileClass>(){
+		//: Node<MixFileClass>()
+	{
 		JMP_THIS(0x5B3C20);
 	}
 

@@ -3394,7 +3394,7 @@ void FakeHouseClass::_Attacked(BuildingClass* source, WarheadTypeClass* warhead)
 		const bool isPlayerHouse = this->ControlledByCurrentPlayer();
 
 		// Determine if this is an allied house under attack
-		const bool isAllyHouse = this->IsAlliedWith(source);
+		const bool isAllyHouse = this->IsAlliedWith(HouseClass::CurrentPlayer());
 
 		CellStruct cell = CellClass::Coord2Cell(source->GetCoords());
 

@@ -355,11 +355,11 @@ hookdeclfunc _hk__ ## hook ## funcname { hook, size, &funcname }; \
 #ifndef DEBUG_HOOK
 
 #define ASMJIT_PATCH_AGAIN(hook, funcname, size) \
-decl_asmjit_patch_data(hook, funcname, size)
+declhook(hook, funcname, size)
 
 #define ASMJIT_PATCH(hook, funcname, size) \
 EXPORT_FUNC(funcname); \
-decl_asmjit_patch_data(hook, funcname, size) \
+declhook(hook, funcname, size) \
 EXPORT_FUNC(funcname)
 
 #define DEFINE_HOOK(hook,funcname,size) \

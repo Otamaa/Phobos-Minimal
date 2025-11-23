@@ -30,10 +30,30 @@ ASMJIT_PATCH(0x6ABC9D, SidebarClass_GetObjectTabIndex_Super, 0x5)
 ASMJIT_PATCH(0x6CE1A0, SuperClass_AI_FlashingBar, 0x5) {
 	GET(SuperClass*, pThis, ECX);
 
-	enum { Continue = 0x0 , RetFalse = 0x6CE1E7 };
+	enum { Continue = 0x0 , RetFalse = 0x6CE1E7 , RetTrue = 0x6CE1E4 };
 
-	return SWTypeExtContainer::Instance.Find(pThis->Type)->SuperWeaponSidebar_Allow ?
-		RetFalse : Continue;
+	if(!SWTypeExtContainer::Instance.Find(pThis->Type)->SuperWeaponSidebar_Allow)
+		return RetFalse;
+
+	if (pThis->IsOnHold) {
+		return RetFalse;
+	}
+
+	if (pThis->Type->UseChargeDrain) {
+		if (pThis->ChargeDrainState == ChargeDrainState::Charging) {
+			return RetFalse;
+		}
+	} else if (!pThis->IsCharged ) {
+		return RetFalse;
+	}
+
+	int FlashSidebarTabFrames = pThis->Type->FlashSidebarTabFrames;
+	if ( FlashSidebarTabFrames == -1 ) {
+		return RetTrue;
+	}
+
+	R->AL(FlashSidebarTabFrames && FlashSidebarTabFrames + pThis->ReadinessFrame > Unsorted::CurrentFrame);
+	return 0x6CE1E9;
 }
 
  // Skip tabIndex check
