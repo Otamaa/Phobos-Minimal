@@ -733,14 +733,14 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	if (!this->CanDealDamage(pTarget) || !this->CanTargetHouse(pHouse, pTarget))
 		return;
 
-	HouseClass* pNewHouse = nullptr;
+	if (this->RemoveMindControl) {
+		const HouseClass* pOldHouse = pTarget->Owner;
+		const HouseClass* pNewHouse = this->ApplyRemoveMindControl(pHouse, pTarget);
 
-	if (this->RemoveMindControl)
-		pNewHouse = this->ApplyRemoveMindControl(pHouse, pTarget);
-
-	//recheck the targeting
-	if(pNewHouse && pNewHouse != pHouse && !this->CanTargetHouse(pHouse, pTarget))
-		return;
+		//recheck the targeting
+		if(pNewHouse != pOldHouse && !this->CanTargetHouse(pHouse, pTarget))
+			return;
+	}
 
 	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
 
@@ -978,10 +978,12 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 
 HouseClass*  WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const
 {
-	if (const auto pController = pTarget->MindControlledBy)
+	if (const auto pController = pTarget->MindControlledBy) {
 		pController->CaptureManager->FreeUnit(pTarget);
+		return pTarget->Owner;
+	}
 
-	return pTarget->GetOwningHouse();
+	return nullptr;
 }
 
 void WarheadTypeExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const
