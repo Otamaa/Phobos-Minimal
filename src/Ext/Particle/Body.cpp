@@ -508,8 +508,8 @@ CollisionState  FakeParticleClass::CheckCollision(
 	CollisionState state;
 
 	// Check for water collision
-	const bool hasBridgeHead = (cell->Flags & CellFlags::BridgeHead) != CellFlags::Empty;
-	const bool nextCellhasBridgeHead = (MapClass::Instance->GetCellAt(currentPos)->Flags & CellFlags::BridgeHead) != CellFlags::Empty;
+	const bool hasBridgeHead = cell->ContainsBridgeHead();
+	const bool nextCellhasBridgeHead = MapClass::Instance->GetCellAt(currentPos)->ContainsBridgeHead();
 
 	if (hasBridgeHead || nextCellhasBridgeHead)
 	{
@@ -555,15 +555,15 @@ void FakeParticleClass::UpdateGasMovement()
 	const auto minDriftSpeedY = &pExt->Gas_DriftSpeedY.Get();
 
 	// Update and clamp gas movement vector
-	this->GasVelocity.X = std::clamp(this->GasVelocity.X + deltaX, maxDriftSpeedX->Y, maxDriftSpeedX->X);
-	this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + deltaY, minDriftSpeedY->Y, minDriftSpeedY->X);
+	this->GasVelocity.X = std::clamp(this->GasVelocity.X + deltaX, maxDriftSpeedX->Min, maxDriftSpeedX->Max);
+	this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + deltaY, minDriftSpeedY->Min, minDriftSpeedY->Max);
 }
 
 void FakeParticleClass::UpdateGasHeight()
 {
 	const int height = this->GetHeight();
 
-	if (height <= 5 || (Unsorted::CurrentFrame % 2) == 0) {
+	if (height <= 5 || (Unsorted::CurrentFrame % 2) != 0) {
 		this->GasVelocity.Z = std::max(0, this->GasVelocity.Z);
 	} else {
 		this->GasVelocity.Z = std::max(-5, this->GasVelocity.Z - 1);
@@ -731,34 +731,7 @@ void FakeParticleClass::__Smoke_AI() {
 
 void FakeParticleClass::__Web_AI()
 {
-	auto pCell = MapClass::Instance->GetCellAt(this->Location);
-
-	if (auto pWarhead = this->Type->Warhead)
-	{
-		for (auto pCur = pCell->FirstObject; pCur; pCur = pCur->NextObject)
-		{
-			if (pCur && pCur->IsAlive && pCur->Health > 0)
-			{
-				int damage = this->Type->Damage;
-				pCur->ReceiveDamage(&damage, 0, pWarhead, nullptr, false, false, nullptr);
-			}
-		}
-	}
-
-	const int Id = this->Fetch_ID();
-	const int Ecs = LOWORD(this->Type->MaxEC) - this->RemainingEC + Id;
-	const int Ecs_ = LOBYTE(this->Type->StateAIAdvance) + (this->Fetch_ID() & 1);
-
-	if (!(Ecs % Ecs_))
-		++this->StartStateAI;
-
-	if (this->StartStateAI == this->Type->EndStateAI)
-	{
-		if (this->Type->DeleteOnStateLimit)
-			this->hasremaining = false;
-		else
-			this->StartStateAI = 0;
-	}
+	this->ProcessEndState();
 }
 
 #pragma region Railgun
@@ -768,12 +741,10 @@ void FakeParticleClass::__Railgun_AI() {
 	this->ApplyVelocityWithJitter();
 
 	// Update color animation
-	this->AdvanceColorCycle();
+	this->AdvanceColorAnimation();
 }
 
 void  FakeParticleClass::ApplyVelocityWithJitter() {
-	// Add small random perturbation to velocity (-0.05 to +0.05)
-	this->Velocity += GetRandomFloat(-0.05f, 0.05f);
 
 	// Calculate and apply velocity delta
 	const Vector3D<float> delta {
@@ -781,6 +752,9 @@ void  FakeParticleClass::ApplyVelocityWithJitter() {
 		this->Spark10C.Y * this->Velocity,
 		this->Spark10C.Z * this->Velocity
 	};
+
+	// Add small random perturbation to velocity (-0.05 to +0.05)
+	this->Velocity += GetRandomFloat(-0.05f, 0.05f);
 
 	// Update accumulated position
 	this->vector3_118 += delta;
@@ -793,28 +767,6 @@ void  FakeParticleClass::ApplyVelocityWithJitter() {
 	};
 
 	this->SetLocation(newCoord);
-}
-
-void FakeParticleClass::AdvanceColorCycle()
-{
-	// Progress color animation with random variation
-
-	this->ColorSpeedResult += this->Type->ColorSpeed + GetRandomFloat(0.0f, 0.05f);
-
-	// Wrap color index when cycle completes
-	if (this->ColorSpeedResult > 1.0) {
-		const bool isLastColor = this->RefCount >= this->Type->ColorList.Count - 2;
-
-		if (isLastColor) {
-			// Loop back to start
-			this->RefCount = 0;
-			this->ColorSpeedResult = 1.0;
-		} else {
-			// Move to next color
-			++this->RefCount;
-			this->ColorSpeedResult = 0.0;
-		}
-	}
 }
 
 #pragma endregion

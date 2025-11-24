@@ -162,7 +162,6 @@ public:
 							   const Vector3D<float>& velocity);
 
 	// Railgun
-	void AdvanceColorCycle();
 	void ApplyVelocityWithJitter();
 
 	// Spark

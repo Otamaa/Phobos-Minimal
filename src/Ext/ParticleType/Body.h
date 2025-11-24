@@ -28,8 +28,8 @@ public:
 	Valueable<double> DamageRange;
 	Valueable<bool> DeleteWhenReachWater;
 	std::array<Point2D, (size_t)FacingType::Count> WindMult;
-	Valueable<Point2D> Gas_DriftSpeedX;
-	Valueable<Point2D> Gas_DriftSpeedY;
+	Valueable<MinMaxValue<int>> Gas_DriftSpeedX;
+	Valueable<MinMaxValue<int>> Gas_DriftSpeedY;
 	Valueable<bool> Transmogrify;
 	Valueable<int> TransmogrifyChance;
 	Valueable<UnitTypeClass*> TransmogrifyType;
@@ -45,8 +45,8 @@ public:
 		DamageRange(0.0),
 		DeleteWhenReachWater(false),
 		WindMult(),
-		Gas_DriftSpeedX({ 2, -2 }),
-		Gas_DriftSpeedY({ 2, -2 }),
+		Gas_DriftSpeedX({ -2 , 2 }),
+		Gas_DriftSpeedY({ -2 , 2}),
 		Transmogrify(false),
 		TransmogrifyChance(-1),
 		TransmogrifyType(nullptr),

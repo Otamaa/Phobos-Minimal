@@ -1681,7 +1681,7 @@ void FakeParticleSystemClass::UpdateSmokeAttachedPosition()
 	}
 
 	// Only update for active non-building owners
-	if (!flag_cast_to<TechnoClass*,false>(owner)) {
+	if (!flag_cast_to<ObjectClass*,false>(owner)) {
 		return;
 	}
 

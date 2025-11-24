@@ -122,6 +122,9 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 		// affect each object
 		for (auto curTechno : Helpers::Alex::getCellSpreadItems(coords, this->This()->CellSpread, true))
 		{
+			if(!curTechno->IsAlive || curTechno->IsCrashing || curTechno->IsSinking)
+				continue;
+
 			// affects enemies or allies respectively?
 			if (!this->CanAffectHouse(curTechno->Owner, Owner))
 			{
@@ -727,37 +730,34 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTarget, const CoordStruct& coords, int damage, TechnoClass* pOwner, BulletClass* pBullet, bool bulletWasIntercepted)
 {
-	if (!this->CanDealDamage(pTarget))
+	if (!this->CanDealDamage(pTarget) || !this->CanTargetHouse(pHouse, pTarget))
 		return;
 
-	if (!this->CanTargetHouse(pHouse, pTarget))
-		return;
-
-	this->applyWebby(pTarget, pHouse, pOwner);
-
-	if (!this->LimboKill_IDs.empty())
-	{
-		BuildingExtData::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);
-	}
-
-	this->ApplyShieldModifiers(pTarget);
-
-	if (this->RemoveDisguise)
-		this->ApplyRemoveDisguise(pHouse, pTarget);
+	HouseClass* pNewHouse = nullptr;
 
 	if (this->RemoveMindControl)
-		this->ApplyRemoveMindControl(pHouse, pTarget);
+		pNewHouse = this->ApplyRemoveMindControl(pHouse, pTarget);
 
-	if (this->PermaMC)
-		this->applyPermaMC(pHouse, pTarget);
+	//recheck the targeting
+	if(pNewHouse && pNewHouse != pHouse && !this->CanTargetHouse(pHouse, pTarget))
+		return;
 
-	if (this->CritCurrentChance > 0.0 && (!this->Crit_SuppressWhenIntercepted || !bulletWasIntercepted))
-	{
-		this->ApplyCrit(pHouse, pTarget, pOwner);
+	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
+
+	if (this->BuildingSell || this->BuildingUndeploy) {
+		this->ApplyBuildingUndeploy(pTarget);
 
 		if (!pTarget->IsAlive)
 			return;
 	}
+
+	if (this->RemoveDisguise)
+		this->ApplyRemoveDisguise(pHouse, pTarget);
+
+	this->applyWebby(pTarget, pHouse, pOwner);
+
+	if (!pTarget->IsAlive)
+		return;
 
 	auto pExt = TechnoExtContainer::Instance.Find(pTarget);
 
@@ -785,34 +785,65 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 		}
 	}
 
-	if (this->GattlingStage > 0)
-	{
+	if (this->GattlingStage > 0) {
 		this->ApplyGattlingStage(pTarget, this->GattlingStage);
 	}
 
-	if (this->GattlingRateUp != 0)
-	{
+	if (this->GattlingRateUp != 0) {
 		this->ApplyGattlingRateUp(pTarget, this->GattlingRateUp);
 	}
 
-	if (this->ReloadAmmo != 0)
-	{
+	if (this->ReloadAmmo != 0) {
 		this->ApplyReloadAmmo(pTarget, this->ReloadAmmo);
 	}
-
-	TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
 
 	if (this->AttachTag)
 		this->ApplyAttachTag(pTarget);
 
-	//if (this->DirectionalArmor.Get())
-	//	this->ApplyDirectional(pBullet, pTarget);
+	if (this->ReverseEngineer) {
+		HouseExtContainer::Instance.Find(pHouse)->ReverseEngineer(pTarget);
+	}
 
-	if (this->RevengeWeapon && this->RevengeWeapon_GrantDuration > 0)
+	this->ApplyShieldModifiers(pTarget);
+
+	if (!this->PhobosAttachEffects.AttachTypes.empty()
+	|| !this->PhobosAttachEffects.RemoveTypes.empty()
+	|| !this->PhobosAttachEffects.RemoveGroups.empty()
+	) {
+		this->ApplyAttachEffects(pTarget, pHouse, pOwner);
+	}
+
+	if (this->RevengeWeapon && this->RevengeWeapon_GrantDuration > 0) {
 		this->ApplyRevengeWeapon(pTarget);
 
-	if (this->PenetratesTransport_Level > 0 && damage)
+		if (!pTarget->IsAlive)
+			return;
+	}
+
+	if (this->CritCurrentChance > 0.0 && (!this->Crit_SuppressWhenIntercepted || !bulletWasIntercepted)) {
+		this->ApplyCrit(pHouse, pTarget, pOwner);
+
+		if (!pTarget->IsAlive)
+			return;
+	}
+
+	if (this->PenetratesTransport_Level > 0 && damage) {
 		this->ApplyPenetratesTransport(pTarget, pOwner, pHouse, coords, damage);
+
+		if (!pTarget->IsAlive)
+			return;
+	}
+
+	if (!this->LimboKill_IDs.empty()) {
+		BuildingExtData::ApplyLimboKill(this->LimboKill_IDs, this->LimboKill_Affected, pTarget->Owner, pHouse);
+
+		if (!pTarget->IsAlive)
+			return;
+	}
+
+
+	//if (this->DirectionalArmor.Get())
+	//	this->ApplyDirectional(pBullet, pTarget);
 
 	//if (this->InflictLocomotor)
 	//	this->ApplyLocomotorInfliction(pTarget);
@@ -820,18 +851,8 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 	//if (this->RemoveInflictedLocomotor)
 	//	this->ApplyLocomotorInflictionReset(pTarget);
 
-	if (!this->PhobosAttachEffects.AttachTypes.empty()
-		|| !this->PhobosAttachEffects.RemoveTypes.empty()
-		|| !this->PhobosAttachEffects.RemoveGroups.empty()
-	)
-		this->ApplyAttachEffects(pTarget, pHouse, pOwner);
-
-	if (this->BuildingSell || this->BuildingUndeploy)
-		this->ApplyBuildingUndeploy(pTarget);
-
-	if (this->ReverseEngineer) {
-		HouseExtContainer::Instance.Find(pHouse)->ReverseEngineer(pTarget);
-	}
+	if (this->PermaMC)
+		this->applyPermaMC(pHouse, pTarget);
 }
 
 //void WarheadTypeExtData::DetonateOnAllUnits(HouseClass* pHouse, const CoordStruct coords, const float cellSpread, TechnoClass* pOwner)
@@ -955,10 +976,12 @@ void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 	}
 }
 
-void WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const
+HouseClass*  WarheadTypeExtData::ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const
 {
 	if (const auto pController = pTarget->MindControlledBy)
 		pController->CaptureManager->FreeUnit(pTarget);
+
+	return pTarget->GetOwningHouse();
 }
 
 void WarheadTypeExtData::ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const

@@ -641,6 +641,7 @@ void FakeRadSiteClass::__AI()
 	if (this->RadTimeLeft <= 0 || this->RadLevel <= 0) {
 		// Call destructor and deallocate (the 1 parameter means delete memory)
 		this->_scalar_dtor(1);
+		return;
 	}
 
 	ForEachCellInRadiationArea([this](CellClass* pCell, double radiationAmount, int distance) {

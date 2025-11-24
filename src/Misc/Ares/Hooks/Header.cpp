@@ -5596,6 +5596,9 @@ bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 
 bool AresEMPulse::isEligibleEMPTarget(TechnoClass* const pTarget, HouseClass* const pSourceHouse, WarheadTypeClass* pWarhead)
 {
+	if(!pTarget->IsAlive || pTarget->IsCrashing || pTarget->IsSinking)
+		return false;
+
 	if (!WarheadTypeExtContainer::Instance.Find(pWarhead)->CanTargetHouse(pSourceHouse, pTarget))
 		return false;
 

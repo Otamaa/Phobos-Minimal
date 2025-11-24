@@ -878,7 +878,7 @@ public:
 
 	void InitializeConstant();
 	void ApplyRemoveDisguise(HouseClass* pHouse, TechnoClass* pTarget) const;
-	void ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const;
+	HouseClass*  ApplyRemoveMindControl(HouseClass* pHouse, TechnoClass* pTarget) const;
 
 	bool applyPermaMC(HouseClass* const Owner, AbstractClass* const Target) const;
 

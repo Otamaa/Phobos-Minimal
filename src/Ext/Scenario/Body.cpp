@@ -216,6 +216,7 @@ void ScenarioExtData::DetonateMasterBullet(const CoordStruct& coords, TechnoClas
 	pBulletExt->IsInstantDetonation = true;
 	pBullet->SetLocation(detonateCoord);
 	pBullet->Explode(true);
+	pBullet->UnInit();
 }
 
 void ScenarioExtData::ReadMissionMDINI()

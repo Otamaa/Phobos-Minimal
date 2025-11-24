@@ -650,6 +650,48 @@ namespace detail
 	}
 
 	template <>
+	OPTIONALINLINE bool read<MinMaxValue<int>>(MinMaxValue<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read2Integers(pSection, pKey, (int*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid MinMaxValue<int>");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	OPTIONALINLINE bool read<MinMaxValue<float>>(MinMaxValue<float>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read2Float(pSection, pKey, (float*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid MinMaxValue<float>");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
+	OPTIONALINLINE bool read<MinMaxValue<double>>(MinMaxValue<double>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
+	{
+		if (!parser.Read2Double(pSection, pKey, (double*)&value))
+		{
+			if (!parser.empty())
+				Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid MinMaxValue<double>");
+
+			return false;
+		}
+
+		return true;
+	}
+
+	template <>
 	OPTIONALINLINE bool read<Vector2D<int>>(Vector2D<int>& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (!parser.Read2Integers(pSection, pKey, (int*)&value))
