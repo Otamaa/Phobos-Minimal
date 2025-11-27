@@ -540,14 +540,14 @@ bool insert_sorted_unique(std::vector<T>& vec, T item, Compare comp)
     auto pos = std::lower_bound(vec.begin(), vec.end(), item);
 
         // Check if item already exists
-    if (pos != vec.end() && !comp(item, *pos) && !comp(*pos, item)) {
+    if (pos != vec.end() && comp(item, *pos) && comp(*pos, item)) {
     	return false; // Item already exists
     }
-        
+
     vec.insert(pos, std::move(item));
     return true;
 }
-    
+
 ASMJIT_PATCH(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 {
 	GET(StripClass*, pTab, ECX);
