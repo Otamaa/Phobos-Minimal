@@ -129,7 +129,14 @@ void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Re
 #include <ParticleSystemClass.h>
 #include <ParticleSystemTypeClass.h>
 
-bool FakeParasiteClass::__Update_GrappleAnim_Frame() {
+// Bug Fix 1: Missing null check in __Update_GrappleAnim_Frame
+bool FakeParasiteClass::__Update_GrappleAnim_Frame()
+{
+
+	if (!this->Victim)
+	{
+		return true; // Treat as complete if victim is gone
+	}
 
 	DirStruct victimFacing = this->Victim->PrimaryFacing.Current();
 
@@ -169,12 +176,14 @@ bool FakeParasiteClass::__Update_GrappleAnim_Frame() {
 		++this->GrappleAnimFrame;
 
 		// Check if animation sequence is complete (10 frames)
-		if (this->GrappleAnimFrame >= 10) {
+		if (this->GrappleAnimFrame >= 10)
+		{
 			return true; // Animation phase complete
 		}
 
 		// Update the actual animation object if it exists
-		if (AnimClass* anim = this->GrappleAnim) {
+		if (AnimClass* anim = this->GrappleAnim)
+		{
 
 			anim->Animation.Start(128, 128);
 			// Calculate animation stage based on facing direction
@@ -207,11 +216,24 @@ void FakeParasiteClass::__ClearAnim()
 	}
 }
 
+// Bug Fix 3: Null check in __Grapple_AI
 void FakeParasiteClass::__Grapple_AI()
 {
+	if (!this->Owner || !this->Victim)
+	{
+		return;
+	}
+
 	// Get weapon information
 	TechnoExtData* pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
 	WeaponStruct* weapon = this->Owner->GetWeapon(pOwnerExt->idxSlot_Parasite);
+
+	if (!weapon || !weapon->WeaponType)
+	{
+		this->__Uninfect();
+		return;
+	}
+
 	WeaponTypeClass* weaponType = weapon->WeaponType;
 
 	FootClass* victim = this->Victim;
@@ -222,7 +244,8 @@ void FakeParasiteClass::__Grapple_AI()
 		// Not in water - uninfect and paralyze owner
 		this->__Uninfect();
 
-		if (auto pOwner = this->Owner) {
+		if (auto pOwner = this->Owner)
+		{
 			pOwner->ParalysisTimer.Start(0);
 		}
 
@@ -242,11 +265,13 @@ void FakeParasiteClass::__Grapple_AI()
 		auto const pWeaponExt = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead);
 		auto const pAnimType = pWeaponExt->Parasite_GrappleAnim.Get(RulesExtData::Instance()->DefaultSquidAnim.Get());
 
-		if (pAnimType) {
-			if (AnimClass* newAnim = GameCreate<AnimClass>(pAnimType, victimCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0)) {
-					this->GrappleAnim = newAnim;
-					auto const Invoker = (this->Owner) ? this->Owner->GetOwningHouse() : nullptr;
-					AnimExtData::SetAnimOwnerHouseKind(newAnim, Invoker, (this->Victim) ? this->Victim->GetOwningHouse() : nullptr, this->Owner, false, false);
+		if (pAnimType)
+		{
+			if (AnimClass* newAnim = GameCreate<AnimClass>(pAnimType, victimCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0))
+			{
+				this->GrappleAnim = newAnim;
+				auto const Invoker = (this->Owner) ? this->Owner->GetOwningHouse() : nullptr;
+				AnimExtData::SetAnimOwnerHouseKind(newAnim, Invoker, (this->Victim) ? this->Victim->GetOwningHouse() : nullptr, this->Owner, false, false);
 
 				// Add to invalid animation array if space available
 				PointerExpiredNotification::NotifyInvalidAnim->Add(this);
@@ -285,7 +310,7 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Calculate sideways angle (negative direction)
-		float angleRadians = this->GrappleAnimFrame * -1.0f * 3.141592653589793f;
+		float angleRadians = this->GrappleAnimFrame * -1.0f * 3.141592653589793f / 10.0f; // BUG FIX: divide by 10 frames
 		this->Victim->AngleRotatedSideways = Math::sin(angleRadians) * 0.78539819f;
 		break;
 	}
@@ -301,7 +326,7 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Calculate sideways angle (positive direction)
-		float angleRadians = this->GrappleAnimFrame * 1.0f * 3.141592653589793f;
+		float angleRadians = this->GrappleAnimFrame * 1.0f * 3.141592653589793f / 10.0f; // BUG FIX: divide by 10 frames
 		this->Victim->AngleRotatedSideways = Math::sin(angleRadians) * 0.78539819f;
 		break;
 	}
@@ -314,10 +339,11 @@ void FakeParasiteClass::__Grapple_AI()
 
 		auto const AnimType = WarheadTypeExtContainer::Instance.Find(weapon->WeaponType->Warhead)->SquidSplash.GetElements(RulesClass::Instance->SplashList);
 
-		if(AnimType) {
+		if (AnimType)
+		{
 
 			DirStruct facingDir = this->Victim->PrimaryFacing.Current();
-			float facingAngle = -((facingDir.Raw - 0x3FFF) * -0.00009587672516830327);
+			float facingAngle = -((facingDir.Raw - 0x3FFF) * -0.00009587672516830327f);
 			float cosAngle = Math::cos(facingAngle);
 			float sinAngle = Math::sin(facingAngle);
 
@@ -327,7 +353,8 @@ void FakeParasiteClass::__Grapple_AI()
 				float offsetX = i * 128.0f - 128.0f;
 
 				// Randomize Y offset
-				if (ScenarioClass::Instance->Random.RandomBool()) {
+				if (ScenarioClass::Instance->Random.RandomBool())
+				{
 					offsetY = -64.0f;
 				}
 
@@ -335,14 +362,15 @@ void FakeParasiteClass::__Grapple_AI()
 				CoordStruct splashCoord {
 					.X = int((offsetX * cosAngle - offsetY * sinAngle) + victimCoord.X),
 					.Y = int(victimCoord.Y + (offsetX * sinAngle + offsetY * cosAngle)),
-					.Z = victimCoord.Z 
+					.Z = victimCoord.Z
 				};
 
 				if (!MapClass::Instance->GetCellAt(splashCoord)->Tile_Is_Water())
 					continue;
 
 				// Create splash animation
-				if (auto pSplash = AnimType[ScenarioClass::Instance->Random.RandomRanged(0 , AnimType.size() - 1)]) {
+				if (auto pSplash = AnimType[ScenarioClass::Instance->Random.RandomRanged(0, AnimType.size() - 1)])
+				{
 					auto const Invoker = (this->Owner) ? this->Owner->GetOwningHouse() : nullptr;
 					AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pSplash, splashCoord, 2, 1, AnimFlag::AnimFlag_600, -10, 0), Invoker,
 						(this->Victim) ? this->Victim->GetOwningHouse() : nullptr, this->Owner, false, false);
@@ -354,9 +382,11 @@ void FakeParasiteClass::__Grapple_AI()
 		const bool culling = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)
 			->applyCulling(this->Owner, this->Victim);
 
-		if (culling) {
+		if (culling)
+		{
 			// Award experience if trainable
-			if (this->Owner->GetTechnoType()->Trainable && !this->Owner->Owner->IsAlliedWith(this->Victim)) {
+			if (this->Owner->GetTechnoType()->Trainable && !this->Owner->Owner->IsAlliedWith(this->Victim))
+			{
 				TechnoTypeClass* victimType = this->Victim->GetTechnoType();
 				TechnoTypeClass* ownerType = this->Owner->GetTechnoType();
 				this->Owner->Veterancy.Add(ownerType->GetActualCost(this->Owner->Owner), victimType->GetCost());
@@ -368,22 +398,26 @@ void FakeParasiteClass::__Grapple_AI()
 			FootClass* victimToSink = this->Victim;
 			this->__Uninfect();
 
-			if (pVictimTypeExt->Sinkable_SquidGrab){
+			if (pVictimTypeExt->Sinkable_SquidGrab)
+			{
 				victimToSink->IsSinking = true;
 				victimToSink->Destroyed(this->Owner);
 				victimToSink->Stun();
 			}
-			else {
+			else
+			{
 				auto damage = this->Victim->GetTechnoType()->Strength;
 				this->Victim->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, this->Owner, true, false, this->Owner->Owner);
 			}
 
 			// Clean up grapple animation
-			this->__ClearAnim(); // Potentially inlined version of ClearAnim()
+			this->__ClearAnim();
 
 			// Paralyze owner briefly
 			this->Owner->ParalysisTimer.Start(0);
-		} else {
+		}
+		else
+		{
 			// Damage victim instead of submerging
 			int damage = weaponType->Damage; // Weapon damage
 			this->Victim->ReceiveDamage(&damage, 0, weaponType->Warhead, this->Owner, 0, 1, 0);
@@ -401,7 +435,7 @@ void FakeParasiteClass::__Grapple_AI()
 			else
 			{
 				// Victim died - clean up
-				this->__ClearAnim(); // Potentially inlined version of ClearAnim()
+				this->__ClearAnim();
 			}
 		}
 		break;
@@ -414,8 +448,10 @@ void FakeParasiteClass::__Grapple_AI()
 
 	// Update grapple animation attachment
 	AnimClass* grappleAnim = this->GrappleAnim;
-	if (grappleAnim && this->Owner && this->Victim) {
-		if (this->Victim != grappleAnim->OwnerObject) {
+	if (grappleAnim && this->Owner && this->Victim)
+	{
+		if (this->Victim != grappleAnim->OwnerObject)
+		{
 			grappleAnim->SetOwnerObject(this->Victim);
 			grappleAnim->LightConvert = this->Owner->GetRemapColour();
 			grappleAnim->TintColor = this->Victim->GetCell()->Color1.Red;
@@ -444,9 +480,11 @@ void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeCla
 	pVictiom->ReceiveDamage(&weaponDamage, 0, pWeapon->Warhead, pOwner, 1, 1, pOwner->Owner);
 }
 
+// Bug Fix 2: Proper weapon ROF usage in __AI
 void FakeParasiteClass::__AI()
 {
-	if (!this->Victim) {
+	if (!this->Victim || !this->Owner)
+	{
 		return;
 	}
 
@@ -454,7 +492,8 @@ void FakeParasiteClass::__AI()
 	TechnoTypeClass* ownerType = this->Owner->GetTechnoType();
 	auto const pOwnerTypeExt = TechnoTypeExtContainer::Instance.Find(ownerType);
 
-	if (pOwnerTypeExt->GrapplingAttack.Get(ownerType->Naval && ownerType->Organic)) {
+	if (pOwnerTypeExt->GrapplingAttack.Get(ownerType->Naval && ownerType->Organic))
+	{
 		this->__Grapple_AI();
 		return;
 	}
@@ -462,20 +501,27 @@ void FakeParasiteClass::__AI()
 	TechnoExtData* pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
 	// Get weapon and victim information
 	WeaponStruct* weapon = this->Owner->GetWeapon(pOwnerExt->idxSlot_Parasite);
+
+	if (!weapon || !weapon->WeaponType)
+	{
+		return;
+	}
+
 	WeaponTypeClass* weaponType = weapon->WeaponType;
 
 	FootClass* victim = this->Victim;
 	CoordStruct victimCoord = victim->Location;
 
 	// Check damage delivery timer
-	if (this->DamageDeliveryTimer.GetTimeLeft() > 0) {
+	if (this->DamageDeliveryTimer.GetTimeLeft() > 0)
+	{
 		return; // Not time to deliver damage yet
 	}
 
 	const bool isInfantry = this->Victim->WhatAmI() == AbstractType::Infantry;
 
-	// Reset timer with weapon ROF
-	this->DamageDeliveryTimer.Start(0);
+	// Reset timer with weapon ROF (BUG FIX: was Start(0))
+	this->DamageDeliveryTimer.Start(weaponType->ROF);
 
 	// Update victim's paralysis timer
 	victim->ParalysisTimer.Start(weaponType->Warhead->Paralyzes);
@@ -483,7 +529,8 @@ void FakeParasiteClass::__AI()
 		.Get(static_cast<InfantryClass*>(this->Victim)->Type->Cyborg);
 
 	// Handle infantry differently (direct damage to health)
-	if (WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_DisableRocking.Get() || InfantryInstantKill) {
+	if (WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_DisableRocking.Get() || InfantryInstantKill)
+	{
 		TakeDamage(this->Victim, this->Owner, weaponType);
 		return;
 	}
@@ -491,7 +538,8 @@ void FakeParasiteClass::__AI()
 	// Non-infantry: create spark effects and apply damage
 
 	// Create particle system
-	if (auto pParticle = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem)) {
+	if (auto pParticle = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem))
+	{
 		CoordStruct nLocHere = victimCoord;
 		if (pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
 			nLocHere.Z += 100;
@@ -503,9 +551,11 @@ void FakeParasiteClass::__AI()
 	DirStruct facingDir = this->Victim->PrimaryFacing.Current();
 
 	// Create weapon animation if available
-	if (weaponType->Anim.Count > 0) {
+	if (weaponType->Anim.Count > 0)
+	{
 		int animIndex = (((facingDir.Raw >> 12) + 1) >> 1) & 7;
-		if (AnimTypeClass* animType = weaponType->Anim.Items[animIndex]) {
+		if (AnimTypeClass* animType = weaponType->Anim.Items[animIndex])
+		{
 			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(animType, victimCoord, 0, 1, AnimFlag::AnimFlag_600, 0, 0),
 					this->Owner ? this->Owner->GetOwningHouse() : nullptr,
 					this->Victim ? this->Victim->GetOwningHouse() : nullptr,
@@ -519,7 +569,7 @@ void FakeParasiteClass::__AI()
 	int randomOffset = ScenarioClass::Instance->Random.RandomBool() ? -4 : 2;
 	randomOffset = (randomOffset & 0xFC) + 2;
 
-	float facingRadians = (facingDir.Raw - 0x3FFF) * -0.00009587672516830327;
+	float facingRadians = (facingDir.Raw - 0x3FFF) * -0.00009587672516830327f;
 	float cosAngle = Math::cos(facingRadians);
 	float sinAngle = Math::sin(facingRadians);
 
@@ -790,16 +840,29 @@ void FakeParasiteClass::__Uninfect()
 	this->Victim = nullptr;
 }
 
+// Bug Fix 4: Proper initialization in __Infect
 void FakeParasiteClass::__Infect(FootClass* target)
 {
 	// Clean up any existing grapple animation
-	this->__ClearAnim(); // Potentially inlined version of ClearAnim()
+	this->__ClearAnim();
 
-	// Initialize damage delivery timer
-	this->DamageDeliveryTimer.Start(0);
+	// Initialize damage delivery timer with weapon ROF (BUG FIX: was Start(0))
+	if (this->Owner)
+	{
+		TechnoExtData* pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
+		WeaponStruct* weapon = this->Owner->GetWeapon(pOwnerExt->idxSlot_Parasite);
+		if (weapon && weapon->WeaponType)
+		{
+			this->DamageDeliveryTimer.Start(weapon->WeaponType->ROF);
+		}
+		else
+		{
+			this->DamageDeliveryTimer.Start(0);
+		}
+	}
 
 	// Check if target can be infected
-	if (this->CanInfect(target)) //TODO 
+	if (this->CanInfect(target))
 	{
 		// Force locomotion to target coordinates
 		this->Owner->Locomotor->Force_Track(-1, target->Location);
@@ -807,13 +870,16 @@ void FakeParasiteClass::__Infect(FootClass* target)
 		// Mark target as being parasited
 		target->ParasiteEatingMe = this->Owner;
 		this->Victim = target;
-	} else {
+	}
+	else
+	{
 		// Cannot infect - place owner back on map
 		CellClass* ownerLastCell = MapClass::Instance->GetCellAt(this->Owner->LastMapCoords);
 		CoordStruct placementCoord = ownerLastCell->GetCoords();
 		bool attempt = this->Owner->Unlimbo(placementCoord, DirType::North);
 
-		if (!attempt) {
+		if (!attempt)
+		{
 
 			if (!this->Owner)
 				return;
@@ -828,28 +894,32 @@ void FakeParasiteClass::__Infect(FootClass* target)
 			attempt = this->Owner->Unlimbo(placementCoord, DirType::North);
 		}
 
-		if (attempt) {
+		if (attempt)
+		{
 			// Successfully placed back on map
 			FootClass* owner = this->Owner;
 
 			// Reveal from limbo
-			owner->UpdateSight(false, 0 ,false, nullptr, false);
+			owner->UpdateSight(false, 0, false, nullptr, false);
 
 			// Update map visibility
 			CoordStruct ownerCoord = owner->Location;
 			MapClass::Instance->RevealArea3(&owner->Location, owner->LastSightRange - 3, owner->LastSightRange + 2, 0);
 
 			// Reset mission if not busy
-			if (!owner->HaveMegaMission()) {
+			if (!owner->HaveMegaMission())
+			{
 				owner->SetTarget(nullptr);
 				owner->SetDestination(nullptr, true);
 			}
 
 			// Enter idle mode
 			owner->EnterIdleMode(false, true);
-		} else {
+		}
+		else
+		{
 			// Failed to place - destroy owner
-			if(this->Owner)
+			if (this->Owner)
 				this->Owner->UnInit();
 		}
 	}

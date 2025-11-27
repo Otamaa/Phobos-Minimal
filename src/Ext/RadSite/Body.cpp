@@ -496,21 +496,39 @@ void FakeRadSiteClass::ForEachCellInRadiationArea(Func&& callback)
 	// Calculate the bounding box for the radiation area
 	short spread = this->Spread;
 	short minX = this->BaseCell.X - spread;
-	short maxX = minX + (2 * spread) + 1;
+	short maxX = this->BaseCell.X + spread + 1;
 	short minY = this->BaseCell.Y - spread;
-	short maxY = minY + (2 * spread) + 1;
+	short maxY = this->BaseCell.Y + spread + 1;
+
+	// Clamp to valid map bounds
+	const auto& mapDimensions = MapClass::MapCellDimension();
+	minX = std::max<short>(minX, 0);
+	maxX = std::min<short>(maxX, mapDimensions.Width);
+	minY = std::max<short>(minY, 0);
+	maxY = std::min<short>(maxY, mapDimensions.Height);
+
+	// Early exit if completely out of bounds
+	if (minX >= maxX || minY >= maxY)
+		return;
 
 	// Get the center cell for distance calculations
-	CellClass* centerCell = MapClass::Instance->GetCellAt(this->BaseCell);
+	CellClass* centerCell = MapClass::Instance->TryGetCellAt(this->BaseCell);
+	if (!centerCell)
+		return;
+
 	CoordStruct centerCoord = centerCell->GetCoords();
 
 	// Iterate through all cells in the radiation area
-	for (short y = minY; y < maxY; ++y) {
-		for (short x = minX; x < maxX; ++x) {
-			CellStruct currentCell(x,y);
+	for (short y = minY; y < maxY; ++y)
+	{
+		for (short x = minX; x < maxX; ++x)
+		{
+			CellStruct currentCell(x, y);
 
-			// Get the current cell
-			CellClass* cell = MapClass::Instance->GetCellAt(currentCell);
+			// Get the current cell safely
+			CellClass* cell = MapClass::Instance->TryGetCellAt(currentCell);
+			if (!cell)
+				continue;
 
 			// Get cell center coordinate
 			CoordStruct cellCoord = cell->GetCoords();
@@ -518,16 +536,14 @@ void FakeRadSiteClass::ForEachCellInRadiationArea(Func&& callback)
 			// Calculate 3D distance between radiation center and current cell
 			int distance = int((centerCoord - cellCoord).Length());
 
-			// Calculate base radiation strength at this distance
-			double radiationAmount = 0.0;
+			// Skip cells outside radiation spread (early exit optimization)
+			if (distance > this->SpreadInLeptons)
+				continue;
 
-			if (distance <= this->SpreadInLeptons)
-			{
-				// Radiation decreases linearly with distance from center
-				int distanceFromEdge = this->SpreadInLeptons - distance;
-				double normalizedDistance = static_cast<double>(distanceFromEdge) / this->SpreadInLeptons;
-				radiationAmount = normalizedDistance * this->RadLevel;
-			}
+			// Calculate base radiation strength at this distance
+			int distanceFromEdge = this->SpreadInLeptons - distance;
+			double normalizedDistance = static_cast<double>(distanceFromEdge) / this->SpreadInLeptons;
+			double radiationAmount = normalizedDistance * this->RadLevel;
 
 			// Call the callback with the cell and calculated radiation amount
 			callback(cell, radiationAmount, distance);

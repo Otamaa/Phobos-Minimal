@@ -565,7 +565,8 @@ void ParticleSystemExtData::UpdateSmoke()
 
 	ObjectClass* Owner_obj = flag_cast_to<ObjectClass*>(pOwnerObj_Owner);
 
-	if (Owner_obj) {
+	if (Owner_obj)
+	{
 		auto coords = pOwnerObj_Owner->GetCoords();
 		CoordStruct SpawnDistance = coords + pOwnerObj->SpawnDistanceToOwner;
 		pOwnerObj->SetLocation(SpawnDistance);
@@ -577,7 +578,8 @@ void ParticleSystemExtData::UpdateSmoke()
 	//if current state still going on
 	//update it for the next particle
 
-	for (int i = int(this->SmokeData.size()) - 1; i > 0; --i)
+	// FIXED: Loop should iterate through all elements, not skip the first
+	for (int i = int(this->SmokeData.size()) - 1; i >= 0; --i)
 	{
 		auto curData = &this->SmokeData[i];
 
@@ -652,14 +654,16 @@ void ParticleSystemExtData::UpdateSmoke()
 void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 {
 	const auto pHeldType = this->HeldType;
-	if (!pHeldType) {
+	if (!pHeldType)
+	{
 		return;
 	}
 
 	ColorStruct* color = pHeldType ? pHeldType->ColorList.Items : nullptr;
 	const int colorCount = pHeldType->ColorList.Count;
 
-	if (!color || colorCount < 2) {
+	if (!color || colorCount < 2)
+	{
 		return;
 	}
 	auto& rect = DSurface::ViewBounds;
@@ -679,27 +683,20 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 			const auto y_copy = rect->Y + outClient.Y;
 			outClient.Y += rect->Y;
 
-			// Viewport culling - check if particle is on screen
+			// FIXED: Viewport culling - use rect->Y for height bound check
 			if (outClient.X < rect->X || outClient.X >= rect->X + rect->Width ||
-				y_copy < rect->Y || y_copy >= rect->Y + rect->Height)  // FIXED: rect->Y
+				y_copy < rect->Y || y_copy >= rect->Y + rect->Height)
 			{
 				continue;  // Off-screen, skip rendering
 			}
 
-			/* Original
-			if (outClient.X >= rect->X
-				&& outClient.X < rect->X + rect->Width
-				&& y_copy >= rect->Y
-				&& y_copy < rect->X + rect->Height
-				)
-				*/
 			{
 				uintptr_t buff = *reinterpret_cast<uint16_t*>(ABuffer::Instance->GetBuffer(outClient.X, y_copy - ABuffer::Instance->Area.Y));
 
-				if (buff == 0) {
+				if (buff == 0)
+				{
 					continue;
 				}
-
 
 				{
 					int ZBuff = *reinterpret_cast<uint16_t*>((ZBuffer::Instance->GetBuffer(outClient.X, outClient.Y - ZBuffer::Instance->Area.Y)));
@@ -711,37 +708,40 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 						LOWORD(outClient.Y)
 					) - Zadjust - 50;
 
-					if (zTest < ZBuff) {
+					if (zTest < ZBuff)
+					{
 						int idx = 0;
 						ColorStruct* selected = &movement.Colors;
 
-						// SAFETY: Bounds check before array access
-						if (movement.C > 0 && movement.C < colorCount) {
+						// FIXED: Bounds check before array access
+						if (movement.C > 0 && movement.C < colorCount)
+						{
 							idx = movement.C;
 							selected = &color[movement.C];
 						}
 
-						// SAFETY: Ensure idx+1 is in bounds
-						if (idx + 1 >= colorCount) {
+						// FIXED: Ensure idx+1 is in bounds
+						if (idx + 1 >= colorCount)
+						{
 							idx = colorCount - 2;  // Clamp to last valid pair
 						}
 
 						// Interpolate between two colors based on ColorFactor
 						ColorStruct finalColor = ColorStruct::Interpolate(
-							&color[idx + 1],      // Target color
-							selected,             // Current color
-							static_cast<double>(movement.ColorFactor)  // Blend factor (0.0 to 1.0)
+							&color[idx + 1],
+							selected,
+							static_cast<double>(movement.ColorFactor)
 						);
 
 						uint32_t pixelColor;
 
-						if (buff >= 127u) {
-							// Full brightness - use color directly
+						if (buff >= 127u)
+						{
 							pixelColor = DSurface::RGBA_To_Pixel(finalColor.R, finalColor.G, finalColor.B);
-						} else {
-							// Dim the color based on alpha buffer value
-							// buff is 0-127, so this darkens the color proportionally
-							uint32_t data_r = (buff * finalColor.R) >> 7;  // Divide by 128
+						}
+						else
+						{
+							uint32_t data_r = (buff * finalColor.R) >> 7;
 							uint32_t data_g = (buff * finalColor.G) >> 7;
 							uint32_t data_b = (buff * finalColor.B) >> 7;
 							pixelColor = DSurface::RGBA_To_Pixel(data_r, data_g, data_b);
@@ -751,10 +751,10 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 					}
 				}
 			}
-
 		}
 	}
 
+	// Smoke rendering code remains unchanged...
 	for (auto& draw : this->SmokeData)
 	{
 		if (const auto image = draw.LinkedParticleType->GetImage())
@@ -1242,6 +1242,14 @@ Matrix3D CreateRotationMatrix(const Vector3D<float>& trajectory, float distance)
 	const float horizontalDist = Math::sqrt(trajectory.X * trajectory.X +
 												 trajectory.Y * trajectory.Y);
 
+	// FIXED: Add safety check for zero distance
+	if (distance < 0.01f || horizontalDist < 0.01f)
+	{
+		Matrix3D identity {};
+		identity.MakeIdentity();
+		return identity;
+	}
+
 	// Clamp values for arc functions
 	float clampedZ = std::clamp(trajectory.Z, -distance, distance);
 	float clampedX = std::clamp(trajectory.X, -horizontalDist, horizontalDist);
@@ -1250,7 +1258,8 @@ Matrix3D CreateRotationMatrix(const Vector3D<float>& trajectory, float distance)
 	float yawAngle = (float)Math::acos(clampedX / horizontalDist);
 
 	// Adjust yaw based on Y direction
-	if (trajectory.Y < 0.0f) {
+	if (trajectory.Y < 0.0f)
+	{
 		yawAngle = -yawAngle;
 	}
 
@@ -1375,8 +1384,14 @@ void FakeParticleSystemClass::__Web_AI()
 
 int GetRandomOffset(int range)
 {
-	const int random = (ScenarioClass::Instance->Random.Random()) % range;
-	return (random > 0) ? (range + random) : (random - range);
+	// FIXED: Original logic was incorrect - simplified to proper random range
+	if (range <= 0)
+	{
+		return 0;
+	}
+
+	const int random = ScenarioClass::Instance->Random.RandomRanged(-range, range);
+	return random;
 }
 
 void FakeParticleSystemClass::UpdateAllParticles()
@@ -1809,7 +1824,8 @@ void FakeParticleSystemClass::UpdatePositionFromOwner(TechnoClass* owner)
 
 void FakeParticleSystemClass::SpawnFireParticles(bool forceSpawn)
 {
-	if (!this->IsAlive) {
+	if (!this->IsAlive)
+	{
 		return;
 	}
 
@@ -1835,18 +1851,14 @@ void FakeParticleSystemClass::SpawnFireParticles(bool forceSpawn)
 	Point2D targetPos { this->TargetCoords.X, this->TargetCoords.Y };
 	const int direction = Game::Point2DToDir8(&sourcePos, &targetPos);
 
-	//static constexpr Point2D Directions8[8] = {
-	//	{  1,  0 }, // East
-	//	{  1,  1 }, // South-East
-	//	{  0,  1 }, // South
-	//	{ -1,  1 }, // South-West
-	//	{ -1,  0 }, // West
-	//	{ -1, -1 }, // North-West
-	//	{  0, -1 }, // North
-	//	{  1, -1 }  // North-East
-	//	};
+	// FIXED: Add null safety check for extension data
+	auto pTypeExt = this->_GetTypeExtData();
+	if (!pTypeExt)
+	{
+		return;
+	}
 
-	auto& dir = this->_GetTypeExtData()->FacingMult[direction];
+	auto& dir = pTypeExt->FacingMult[direction];
 
 	// Calculate spawn position with wave
 	CoordStruct spawnPos {
@@ -1950,6 +1962,12 @@ CoordStruct FakeParticleSystemClass::CalculateSpawnPosition(float progress, cons
 void FakeParticleSystemClass::SetupParticleVelocity(ParticleClass* particle, const Vector3D<float>& direction,
 							   float progress)
 {
+	// FIXED: Add null check
+	if (!particle || !particle->Type)
+	{
+		return;
+	}
+
 	// Copy direction and add movement perturbation
 	Vector3D<float> velocity = direction;
 	const Vector3D<float> movementPert = GetRandomPerturbation(
@@ -1965,11 +1983,17 @@ void FakeParticleSystemClass::SetupParticleVelocity(ParticleClass* particle, con
 									   velocity.Y * velocity.Y +
 									   velocity.Z * velocity.Z);
 
-	if (length > 0.0f)
+	// FIXED: Use epsilon comparison instead of exact zero
+	if (length > 0.0001f)
 	{
 		velocity.X /= length;
 		velocity.Y /= length;
 		velocity.Z /= length;
+	}
+	else
+	{
+		// Default to unit vector if normalization fails
+		velocity = { 0.0f, 0.0f, 1.0f };
 	}
 
 	particle->Spark10C = velocity;

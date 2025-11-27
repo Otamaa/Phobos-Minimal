@@ -497,7 +497,7 @@ void FakeParticleClass::__Fire_AI() {
 
 #pragma region Smoke
 
-CollisionState  FakeParticleClass::CheckCollision(
+CollisionState FakeParticleClass::CheckCollision(
 	CellClass* cell,
 	const CoordStruct& currentPos,
 	const CoordStruct& nextPos,
@@ -509,24 +509,26 @@ CollisionState  FakeParticleClass::CheckCollision(
 
 	// Check for water collision
 	const bool hasBridgeHead = cell->ContainsBridgeHead();
-	const bool nextCellhasBridgeHead = MapClass::Instance->GetCellAt(currentPos)->ContainsBridgeHead();
+	const bool nextCellhasBridgeHead = MapClass::Instance->GetCellAt(nextPos)->ContainsBridgeHead();
 
 	if (hasBridgeHead || nextCellhasBridgeHead)
 	{
 		const int waterHeight = (Unsorted::CellHeight * 2) + terrainHeight;
 
-		if (currentPos.X < waterHeight)
+		// FIXED: Check Z coordinate, not X
+		if (currentPos.Z < waterHeight)
 		{
 			state.hitbridge = true;
 		}
-		else if (nextPos.X >= waterHeight)
+		else if (nextPos.Z >= waterHeight)
 		{
 			state.hitbridgeTop = true;
 		}
 	}
 
 	// Check for building collision
-	if (!state.hitbridge && !state.hitbridgeTop) {
+	if (!state.hitbridge && !state.hitbridgeTop)
+	{
 		state.hitBuilding = CheckCellBuildingCollision(cell, velocity.Z, terrainHeight);
 	}
 
@@ -946,14 +948,33 @@ void FakeParticleClass::HandleCollisions(PhysicsState& physics)
 
 void FakeParticleClass::AdvanceColorAnimation()
 {
+	// FIXED: Add bounds checking
+	const int colorCount = this->Type->ColorList.Count;
+
+	if (colorCount < 2)
+	{
+		return; // Need at least 2 colors for interpolation
+	}
+
 	const float random = (float)ScenarioClass::Instance->Random.RandomDouble();
 	this->ColorSpeedResult += this->Type->ColorSpeed + (random * 0.05f);
 
 	if (this->ColorSpeedResult > 1.0)
 	{
-		const bool isLastColor = this->RefCount >= this->Type->ColorList.Count - 2;
-		this->RefCount = isLastColor ? 0 : this->RefCount + 1;
-		this->ColorSpeedResult = isLastColor ? 1.0 : 0.0;
+		// FIXED: Bounds check before comparison
+		const int maxColorIndex = colorCount - 2;
+		const bool isLastColor = this->RefCount >= maxColorIndex;
+
+		if (isLastColor)
+		{
+			this->RefCount = 0;
+			this->ColorSpeedResult = 1.0;
+		}
+		else
+		{
+			this->RefCount = std::min(this->RefCount + 1, maxColorIndex);
+			this->ColorSpeedResult = 0.0;
+		}
 	}
 }
 

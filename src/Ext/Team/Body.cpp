@@ -1121,7 +1121,15 @@ void FakeTeamClass::_Coordinate_Attack() {
 		this->ArchiveTarget = this->QueuedFocus;
 	}
 
-	FootClass* teamLeader = this->_Fetch_A_Leader();;
+	// **FIX: Add null check for team leader before using it**
+	FootClass* teamLeader = this->_Fetch_A_Leader();
+
+	if (!teamLeader)
+	{
+		// No valid leader found, complete this step
+		this->StepCompleted = true;
+		return;
+	}
 
 	// If target is a cell and team has non-aircraft members, try to find actual object in cell
 	CellClass* targetCell = cast_to<CellClass*>(this->ArchiveTarget);
@@ -1353,19 +1361,23 @@ void FakeTeamClass::_CoordinateMove() {
 					}
 					else
 					{
-						// Aircraft - check if landed
-						if (unit->GetZ() <= 0) {
-							hasArrived = true;
-						}
-						else
-						{
-							// Check if at target cell or next mission is MOVE
-							CoordStruct unitCoord = unit->GetCoords();
-							CellClass* unitCell = MapClass::Instance->GetCellAt(unitCoord);
+						// **FIX: Aircraft arrival logic - check XY position first, then Z**
+						CoordStruct unitCoord = unit->GetCoords();
+						CellClass* unitCell = MapClass::Instance->GetCellAt(unitCoord);
 
-							if (unitCell == this->ArchiveTarget || nextMissionType == TeamMissionType::Move){
+						// Check if at target cell OR next mission is MOVE
+						if (unitCell == this->ArchiveTarget || nextMissionType == TeamMissionType::Move)
+						{
+							// Now check if landed (Z <= 0)
+							if (unit->GetZ() <= 0)
+							{
 								hasArrived = true;
 							}
+						}
+						else if (unit->GetZ() <= 0)
+						{
+							// Aircraft is landed but not at target XY position yet
+							hasArrived = false;
 						}
 					}
 				}
@@ -2240,7 +2252,8 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 		if (closestAlly)
 		{
 			// Check if ally is in tunnel
-			if (closestAlly->TubeIndex >= 0)
+			// **FIX: Add bounds check for TubeIndex**
+			if (closestAlly->TubeIndex >= 0 && closestAlly->TubeIndex < TubeClass::Array->Count)
 			{
 				// Get tunnel exit cell
 				CellStruct exitCell = TubeClass::Array->operator[](closestAlly->TubeIndex)->ExitCell;
@@ -2418,6 +2431,15 @@ void FakeTeamClass::_Regroup()
 		{
 			// Find team leader (member with highest leadership rating)
 			FootClass* leader = this->_Fetch_A_Leader();
+			
+			// **FIX: Add null check for leader**
+			if (!leader)
+			{
+				// No valid leader, just use the building cell as destination
+				minWeightedDistance = weightedDistance;
+				destCell = buildingCell;
+				continue;
+			}
 
 			// Find a safe point near the building for the leader
 			CellStruct zoneCell = CellClass::Coord2Cell(

@@ -248,6 +248,7 @@ TechnoClass* ScanGroundUnitThreats(TechnoClass* techno, ThreatType method, int b
 								   bool a4, int* maxThreat, bool canHealOrRepair, bool isTechnoPlayerControlled)
 {
 	TechnoClass* bestTarget = nullptr;
+	bool hasDistributedFire = techno->GetTechnoType()->DistributedFire;
 
 	for (int i = 0; i < TechnoClass::Array->Count; ++i)
 	{
@@ -328,6 +329,12 @@ TechnoClass* ScanGroundUnitThreats(TechnoClass* techno, ThreatType method, int b
 			continue;
 		}
 
+		// Add to distributed fire lists if enabled
+		if (hasDistributedFire)
+		{
+			AddToDistributedFireLists(techno, target, threat);
+		}
+
 		// Update best target if this is a bigger threat
 		if (threat > *maxThreat)
 		{
@@ -351,37 +358,37 @@ TechnoClass* ProcessAircraftInArea(TechnoClass* techno, ThreatType method, int b
 	CellClass* cell = MapClass::Instance->GetCellAt(centerCell);
 	AircraftTrackerClass::Instance->AircraftTrackerClass_logics_412B40(cell, range / 256);
 
-	// Iterate through tracked aircraft
-	for (FootClass* aircraft = AircraftTrackerClass::Instance->Get();
-		 aircraft != nullptr;
-		 aircraft = AircraftTrackerClass::Instance->Get())
+	// Iterate through tracked foot units (aircraft and potentially other flying units)
+	for (FootClass* footUnit = AircraftTrackerClass::Instance->Get();
+		 footUnit != nullptr;
+		 footUnit = AircraftTrackerClass::Instance->Get())
 	{
 
-		// Check if we should attack this aircraft
-		if (!aircraft->IsAlive || !ShouldAttackTarget(techno, aircraft->Owner, realOwner, a4, method))
+		// Check if we should attack this unit
+		if (!footUnit->IsAlive || !ShouldAttackTarget(techno, footUnit->Owner, realOwner, a4, method))
 		{
 			continue;
 		}
 
-		// Check if aircraft is down and not on ground
-		if (!aircraft->IsOnMap)
+		// Check if unit is down and not on ground
+		if (!footUnit->IsOnMap)
 		{
 			continue;
 		}
 
-		Layer aircraftLayer = aircraft->InWhichLayer();
-		if (aircraftLayer == Layer::Ground)
+		Layer unitLayer = footUnit->InWhichLayer();
+		if (unitLayer == Layer::Ground)
 		{
 			continue;
 		}
 
-		// Evaluate the aircraft
+		// Evaluate the unit
 		int threat = 0;
 		auto emptyCoord = CoordStruct::Empty;
 		int modifiedBitfield = bigthreatbitfield | (int)ThreatType::OccupiableBuildings | (int)ThreatType::Area;
 		bool isValidThreat = techno->CanAutoTargetObject(
 			method, modifiedBitfield, range,
-			aircraft, &threat, ZoneType::None, &emptyCoord
+			footUnit, &threat, ZoneType::None, &emptyCoord
 		);
 
 		if (!isValidThreat)
@@ -392,13 +399,13 @@ TechnoClass* ProcessAircraftInArea(TechnoClass* techno, ThreatType method, int b
 		// Add to distributed fire lists if enabled
 		if (hasDistributedFire)
 		{
-			AddToDistributedFireLists(techno, aircraft, threat);
+			AddToDistributedFireLists(techno, footUnit, threat);
 		}
 
 		// Update best target if this is a bigger threat
 		if (threat > *maxThreat)
 		{
-			bestTarget = aircraft;
+			bestTarget = footUnit;
 			*maxThreat = threat;
 		}
 	}
@@ -466,7 +473,7 @@ bool EvaluateCellForThreat(TechnoClass* techno, ThreatType method, int bigthreat
 		AddToDistributedFireLists(techno, (*outTarget), threat);
 	}
 
-	// Update best target if this is a bigger threat
+	// Update best target if threat is higher
 	if (threat > *maxThreat)
 	{
 		*maxThreat = threat;
@@ -575,13 +582,13 @@ AbstractClass* ScanAreaThreats(TechnoClass* techno, ThreatType method, int bigth
 				return bestTarget;
 			}
 		}
+	}
 
-		// If we found a good cell location (and no target), return it
-		bool foundGoodCell = (bestCell.X != CellStruct::Empty.X || bestCell.Y != CellStruct::Empty.Y);
-		if (foundGoodCell)
-		{
-			return MapClass::Instance->GetCellAt(bestCell);
-		}
+	// If we found a good cell location (and no target), return it after completing full scan
+	bool foundGoodCell = (bestCell.X != CellStruct::Empty.X || bestCell.Y != CellStruct::Empty.Y);
+	if (foundGoodCell && bestTarget == nullptr)
+	{
+		return MapClass::Instance->GetCellAt(&bestCell);
 	}
 
 	return bestTarget;
@@ -598,9 +605,9 @@ AbstractClass* ScanAreaAirThreats(TechnoClass* techno, ThreatType method, int bi
 
 	if (!AU)
 	{
-		bigthreatbitfield |= 1 << (int)InfantryClass::AbsID;
-		bigthreatbitfield |= 1 << (int)UnitClass::AbsID;
-		bigthreatbitfield |= 1 << (int)AircraftClass::AbsID;
+		bigthreatbitfield |= 1 << (int)AbstractType::Infantry;
+		bigthreatbitfield |= 1 << (int)AbstractType::Unit;
+		bigthreatbitfield |= 1 << (int)AbstractType::Aircraft;
 	}
 
 	const bool targetFriendly = technoType->AttackFriendlies || techno->Berzerk || realOwner || canHealOrRepair;
