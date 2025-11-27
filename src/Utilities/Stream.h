@@ -93,7 +93,7 @@ public:
 		data.reserve(MaxImpl(initialSize, BYTES_PER_KB));
 	}
 
-	~PhobosByteStream() = default;
+	virtual ~PhobosByteStream() = default;
 
 private:
 	// Validate buffer and size parameters

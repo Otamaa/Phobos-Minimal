@@ -68,9 +68,9 @@ void HandleInfantryDamaged(FakeInfantryClass* pThis, TechnoClass* source, HouseC
 
 void FinalizeInfantryDeath(FakeInfantryClass* pThis, TechnoClass* pKiller) {
 	if (pThis->Type->Crashable && pThis->Crash(pKiller))
-		return
+		return;
 
-		pThis->UnInit();
+	pThis->UnInit();
 }
 
 void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhead,

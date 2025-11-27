@@ -177,7 +177,7 @@ public:
 
 public:
 	PhobosSwizzleManagerClass();
-	~PhobosSwizzleManagerClass();
+	virtual ~PhobosSwizzleManagerClass();
 
 private:
 	void Process_Tables();

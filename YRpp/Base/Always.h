@@ -214,3 +214,7 @@ SIZEOF_ ## t ## _IS<sizeof(t)> SIZEOF_ ## t ## _IS;
 * for rest, so second arg in fastcall-faked function would need to be discarded).
 */
 typedef size_t discard_t;
+
+#define SET_TO_ALL_BITS_ONE(x) (x = static_cast<std::make_unsigned_t<decltype(x)>>(-1))
+#define SET_MINUS_ONE(x) (x = ~decltype(x)(0))
+#define SET_UNSIGNED_MINUS_ONE(x) (x = (unsigned)-1)

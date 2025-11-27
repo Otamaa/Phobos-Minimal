@@ -132,7 +132,7 @@ public:
 	BaseClass(noinit_t)
 		{ JMP_THIS(0x42F1E0); }
 
-	~BaseClass()
+	virtual ~BaseClass()
 	{
 		BaseNodes.~DynamicVectorClass();
 		Cells_24.~DynamicVectorClass();

@@ -37,7 +37,7 @@ struct Handle : public Handles
 		, Value(other.release())
 	{ }
 
-	~Handle() noexcept
+	virtual ~Handle() noexcept
 	{
 		if (this->Value != Default)
 		{

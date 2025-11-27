@@ -508,7 +508,7 @@ bool PhobosAppendedStream::WriteToStream(LPSTREAM pStm)
 	return true;
 }
 
-bool PhobosAppendedStream::ReadFromStream(IStream* pStm)
+bool PhobosAppendedStream::ReadFromStream(LPSTREAM pStm)
 {
 	if (!pStm) return false;
 
