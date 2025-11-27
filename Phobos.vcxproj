@@ -167,6 +167,7 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\BuildingFoundations.h.cpp" />
     <ClCompile Include="src\Misc\CustomMemoryManager.cpp" />
+    <ClCompile Include="src\Misc\Hook.CommandButtons.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.GlobalLoadGame.cpp" />
     <ClCompile Include="src\Misc\Hooks.GlobalSaveGame.cpp" />

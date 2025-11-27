@@ -265,7 +265,10 @@ void FORCEDINLINE Patch_Jump(uintptr_t address, T new_address)
 
 	SIZE_T bytes_written { 0u };
 	_LJMP cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
+	DWORD oldprotect;
+	VirtualProtect((LPVOID)address, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
 	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
+	VirtualProtect((LPVOID)address, sizeof(uint32_t), oldprotect, &oldprotect);
 }
 
 template<typename T>
@@ -275,7 +278,10 @@ void FORCEDINLINE Patch_Call(uintptr_t address, T new_address)
 
 	SIZE_T bytes_written { 0u };
 	_CALL cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
+	DWORD oldprotect;
+	VirtualProtect((LPVOID)address, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
 	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_CALL), &bytes_written);
+	VirtualProtect((LPVOID)address, sizeof(uint32_t), oldprotect, &oldprotect);
 }
 
 template<typename T>
@@ -291,8 +297,10 @@ void FORCEDINLINE Patch_Call6(uintptr_t address, T new_address)
 	SIZE_T bytes_written { 0u };
 	_CALL6 cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
 	cmd.command = LJMP_LETTER;
-
+	DWORD oldprotect;
+	VirtualProtect((LPVOID)address, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
 	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
+	VirtualProtect((LPVOID)address, sizeof(uint32_t), oldprotect, &oldprotect);
 }
 
 template<typename T>
@@ -303,7 +311,10 @@ void FORCEDINLINE Patch_Vtable(uintptr_t address, T new_address)
 	SIZE_T bytes_written { 0u };
 
 	_VTABLE cmd { address  , reinterpret_cast<uintptr_t>((void*&)new_address) };
+	DWORD oldprotect;
+	VirtualProtect((LPVOID)address, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
 	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_VTABLE), &bytes_written);
+	VirtualProtect((LPVOID)address, sizeof(uint32_t), oldprotect, &oldprotect);
 }
 
 #pragma endregion Macros
