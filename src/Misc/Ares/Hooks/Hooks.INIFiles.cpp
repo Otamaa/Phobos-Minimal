@@ -163,7 +163,7 @@ ASMJIT_PATCH(0x5260A2, INIClass_Parse_IteratorChar1, 6)
 		sprintf_s(buffer, AresINIData::iteratorReplacementFormat, AresINIData::iteratorValue++);
 
 		if (auto data = std::exchange(entry->Key, CRT::strdup(buffer)))
-			CRT::free(data);
+			YRMemory::free(data);
 	}
 
 	return 0;

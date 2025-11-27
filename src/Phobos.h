@@ -36,16 +36,6 @@ enum class FPSCounterMode
 	disabled, Full, FPSOnly, FPSandAVG, count
 };
 
-template <typename E>
-struct fmt::formatter<E, std::enable_if_t<std::is_enum_v<std::decay_t<E>>, char>> : fmt::formatter<std::string_view, char>
-{
-	template <class FormatContext>
-	auto format(E e, FormatContext& ctx) const
-	{
-		return fmt::formatter<std::string_view, char>::format(magic_enum::detail::format_as<E>(e), ctx);
-	}
-};
-
 class CCINIClass;
 class AbstractClass;
 

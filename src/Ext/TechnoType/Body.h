@@ -1020,6 +1020,7 @@ public:
 	AEAttachInfoTypeClass PhobosAttachEffects;
 
 	Valueable<bool> KeepTargetOnMove;
+	Valueable<int> KeepTargetOnMove_Weapon;
 	Nullable<Leptons> KeepTargetOnMove_ExtraDistance;
 	Valueable<bool> KeepTargetOnMove_NoMorePursuit;
 
@@ -1824,7 +1825,7 @@ public:
 		FactoryOwners_HasAllPlans(false),
 		Drain_Local(false),
 		Drain_Amount(0),
-		HealthBar_Sections(0),
+		HealthBar_Sections(),
 		HealthBar_Border(),
 		HealthBar_BorderFrame(),
 		HealthBar_BorderAdjust(),
@@ -1843,7 +1844,7 @@ public:
 		ImmuneToWeb(false),
 		Webby_Anims(),
 		Webby_Modifier(1.0),
-		Webby_Duration_Variation(0),
+		Webby_Duration_Variation(),
 		CameoPCX(),
 		AltCameoPCX(),
 		CameoPal(CustomPalette::PaletteMode::Default),
@@ -1912,6 +1913,7 @@ public:
 		Tint_VisibleToHouses(AffectedHouse::All),
 		PhobosAttachEffects(),
 		KeepTargetOnMove(false),
+		KeepTargetOnMove_Weapon(-1),
 		KeepTargetOnMove_ExtraDistance(),
 		KeepTargetOnMove_NoMorePursuit(true),
 		AllowAirstrike(),
@@ -2922,6 +2924,7 @@ private:
 			.Process(this->PhobosAttachEffects)
 
 			.Process(this->KeepTargetOnMove)
+			.Process(this->KeepTargetOnMove_Weapon)
 			.Process(this->KeepTargetOnMove_ExtraDistance)
 			.Process(this->KeepTargetOnMove_NoMorePursuit)
 			.Process(this->AllowAirstrike)

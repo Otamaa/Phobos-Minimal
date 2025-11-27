@@ -636,7 +636,7 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 					auto pAnimType = pWeaponExt->DelayedFire_Animation;
 
 					if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
-						pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation;
+						pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation.Get();
 
 					auto firingCoords = pThis->GetWeapon(weaponIndex)->FLH;
 

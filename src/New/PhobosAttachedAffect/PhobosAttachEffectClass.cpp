@@ -642,6 +642,17 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(PhobosAttachEf
 	if (!pType || !pTarget)
 		return nullptr;
 
+	const auto pTargetTechnoType = pTarget->GetTechnoType();
+
+	if (!pType->AffectTypes.empty() && !pType->AffectTypes.Contains(pTargetTechnoType))
+		return nullptr;
+
+	if (pType->IgnoreTypes.Contains(pTargetTechnoType))
+		return nullptr;
+
+	if (!EnumFunctions::IsTechnoEligible(pTarget, pType->AffectTargets, true))
+		return nullptr;
+
 	if (pType->AffectAbovePercent.isset() && pTarget->GetHealthPercentage() < pType->AffectAbovePercent)
 		return nullptr;
 

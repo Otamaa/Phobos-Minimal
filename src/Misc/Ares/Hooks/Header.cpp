@@ -120,7 +120,7 @@ int AresGlobalData::uiColorDisabledObserver;
 AresGlobalData::ColorData AresGlobalData::Colors[16 + 1];
 
 std::array<MouseClassExt::MappedActions, (size_t)Action::count + 2> MouseClassExt::CursorIdx;
-DynamicVectorClass<BuildType> MouseClassExt::TabCameos[4u];
+std::vector<BuildType> MouseClassExt::TabCameos[4u];
 
 #pragma endregion
 
@@ -4088,13 +4088,14 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	TechnoExtData::UpdateLaserTrails(pThis);
 
 	// Reset AutoDeath Timer
-	if (pExt->Death_Countdown.HasStarted()) {
+	if (pExt->Death_Countdown.HasStarted() && pToTypeExt->Death_Countdown <= 0) {
 		pExt->Death_Countdown.Stop();
+
 		HouseExtData::AutoDeathObjects.erase(pThis);
 	}
 
-	if (pExt->PassengerDeletionTimer.IsTicking()
-	&& !pToTypeExt->PassengerDeletionType.Enabled)
+	if (pExt->PassengerDeletionTimer.HasStarted()
+	&& !pToTypeExt->PassengerDeletionType.Enabled && pToTypeExt->PassengerDeletionType.Rate <= 0)
 		pExt->PassengerDeletionTimer.Stop();
 
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);

@@ -43,17 +43,32 @@
 // provides access to the game's operator new and operator delete.
 namespace YRMemory {
 
-	OPTIONALINLINE NAKED void* __cdecl Allocate(size_t sz , int flag= 1) {
+	//internal game malloc
+	OPTIONALINLINE NAKED void* __cdecl nh_malloc(size_t sz , int flag= 1) {
 		JMP(0x7C9442);
     }
 
-	OPTIONALINLINE void* __cdecl MAllocate(size_t sz) {
-		return Allocate(sz , *reinterpret_cast<int*>(0xB782C4));
+	// C
+	OPTIONALINLINE NAKED void* __cdecl malloc(size_t sz) {
+		JMP(0x7C9430);
 	}
 
-    OPTIONALINLINE NAKED void __cdecl Deallocate( void* mem) {
+	// C
+    OPTIONALINLINE NAKED void __cdecl free(void* mem) {
 		JMP(0x7C93E8);
     }
+
+	// C++ operator new
+	OPTIONALINLINE NAKED void* __cdecl Allocate(size_t sz)
+	{
+		JMP(0x7C8E17);
+	}
+
+	// c++ operator delete
+	OPTIONALINLINE NAKED void __cdecl Deallocate(void* mem)
+	{
+		JMP(0x7C8B3D);
+	}
 
 //annoying
 #pragma warning(push)

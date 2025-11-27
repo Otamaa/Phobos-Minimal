@@ -534,6 +534,20 @@ static COMPILETIMEEVAL NOINLINE BuildType* lower_bound(BuildType* first, int siz
 	return first;
 }
 
+template<typename T, typename Compare>
+bool insert_sorted_unique(std::vector<T>& vec, T item, Compare comp)
+{
+    auto pos = std::lower_bound(vec.begin(), vec.end(), item);
+
+        // Check if item already exists
+    if (pos != vec.end() && !comp(item, *pos) && !comp(*pos, item)) {
+    	return false; // Item already exists
+    }
+        
+    vec.insert(pos, std::move(item));
+    return true;
+}
+    
 ASMJIT_PATCH(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 {
 	GET(StripClass*, pTab, ECX);
@@ -546,7 +560,8 @@ ASMJIT_PATCH(0x6A8710, StripClass_AddCameo_ReplaceItAll, 6)
 		newCameo.Cat = ObjectTypeClass::IsBuildCat5(BuildingTypeClass::AbsID, ItemIndex);
 	}
 
-	if(MouseClassExt::TabCameos[pTab->TabIndex].insert_sorted_unique(newCameo))
+	if(insert_sorted_unique(MouseClassExt::TabCameos[pTab->TabIndex],
+		 newCameo , std::equal_to<BuildType>()))
 		++pTab->BuildableCount;
 
 	return 0x6A87E7;
@@ -564,7 +579,7 @@ ASMJIT_PATCH(0x6A8D1C, StripClass_MouseMove_GetCameos1, 7)
 		return 0x6A8D8B;
 	}
 
-	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
+	R->EDI<BuildType*>(MouseClassExt::TabCameos[pTab->TabIndex].data());
 	return 0x6A8D23;
 }
 
@@ -579,7 +594,7 @@ ASMJIT_PATCH(0x6A8DB5, StripClass_MouseMove_GetCameos2, 8)
 		return 0x6A8F64;
 	}
 
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].data());
 	ptr += 0x10;
 	R->EBP<byte*>(ptr);
 
@@ -596,7 +611,7 @@ ASMJIT_PATCH(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
 		return 0x6A902D;
 	}
 
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].data());
 	ptr += 0x1C;
 	R->ESI<byte*>(ptr);
 	R->EBP<int>(R->Stack<int>(0x20));
@@ -815,7 +830,7 @@ ASMJIT_PATCH(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 
 	auto& cameos = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex];
 
-	if (CameoIndex >= cameos.Count)
+	if (CameoIndex >= cameos.size())
 	{
 		return 0x6AB94F;
 	}
@@ -944,7 +959,7 @@ ASMJIT_PATCH(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 7)
 		return 0x6ABC2F;
 	}
 
-	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].Items);
+	auto ptr = reinterpret_cast<byte*>(MouseClassExt::TabCameos[pTab->TabIndex].data());
 	ptr += 0xC;
 	R->ESI<byte*>(ptr);
 
@@ -1071,18 +1086,20 @@ ASMJIT_PATCH(0x6aa600, StripClass_RecheckCameos, 5)
 	const auto rtt = tabs[pThis->TopRowIndex].ItemType;
 	const auto idx = tabs[pThis->TopRowIndex].ItemIndex;
 
-	tabs.erase_if([=](BuildType& item) {
+	auto iter = std::remove_if(tabs.begin(), tabs.end(),[=](BuildType& item) {
 		return RemoveCameo(&item);
 	});
 
-	if (tabs.Count >= pThis->BuildableCount)
+	tabs.erase(iter, tabs.end());
+
+	if (tabs.size() >= pThis->BuildableCount)
 	{
 		R->EAX(0);
 		return 0x6AACAE;
 	}
 
-	pThis->BuildableCount = tabs.Count;
-	if (tabs.Count <= 0)
+	pThis->BuildableCount = tabs.size();
+	if (tabs.size() <= 0)
 	{
 		SidebarClass::ShapeButtons[pThis->TabIndex].Disable();
 

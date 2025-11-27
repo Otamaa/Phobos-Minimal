@@ -972,20 +972,23 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* 
 		{
 			auto pWHRef = pBlockType->Block_ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
 			auto blockReflectDamageAffectsHouses = pBlockType->Block_ReflectDamage_AffectsHouses.Get(blockAffectsHouses);
-			Nullable<int> blockReflectDamageOverride = pBlockType->Block_ReflectDamage_Override;
 			double blockReflectDamageMultiplier = pBlockType->Block_ReflectDamage_Multiplier.Get(1.0);
 			bool blockReflectDamageWHDetonate = pBlockType->Block_ReflectDamage_Warhead_Detonate.Get(false);
+			Nullable<int>* overrider_2 = nullptr;
 
 			if (pWHExt->Block_AllowOverride)
 			{
 				pWHRef = pOtherBlock->Block_ReflectDamage_Warhead.isset() ? pOtherBlock->Block_ReflectDamage_Warhead.Get() : pWHRef;
-				blockReflectDamageOverride = pOtherBlock->Block_ReflectDamage_Override.isset() ? pOtherBlock->Block_ReflectDamage_Override : blockReflectDamageOverride;
+				overrider_2  = &pOtherBlock->Block_ReflectDamage_Override;
 				blockReflectDamageAffectsHouses = pOtherBlock->Block_ReflectDamage_AffectsHouses.isset() ? pOtherBlock->Block_ReflectDamage_AffectsHouses.Get() : blockReflectDamageAffectsHouses;
 				blockReflectDamageMultiplier = pOtherBlock->Block_ReflectDamage_Multiplier.isset() ? pOtherBlock->Block_ReflectDamage_Multiplier.Get() : blockReflectDamageMultiplier;
 				blockReflectDamageWHDetonate = pOtherBlock->Block_ReflectDamage_Warhead_Detonate.isset() ? pOtherBlock->Block_ReflectDamage_Warhead_Detonate.Get() : blockReflectDamageWHDetonate;
 			}
 
-			int damageRef = blockReflectDamageOverride.Get(static_cast<int>(damage * blockReflectDamageMultiplier));
+			int damageRef = pBlockType->Block_ReflectDamage_Override.Get(static_cast<int>(damage * blockReflectDamageMultiplier));
+
+			if(overrider_2 && overrider_2->isset())
+				damageRef = overrider_2->Get();
 
 			if (EnumFunctions::CanTargetHouse(blockReflectDamageAffectsHouses, pThis->Owner, pFirer->Owner))
 			{
@@ -1558,7 +1561,7 @@ bool TechnoExtData::HandleDelayedFireWithPauseSequence(TechnoClass* pThis, Weapo
 				auto pAnimType = pWeaponExt->DelayedFire_Animation;
 
 				if (pThis->Transporter && pWeaponExt->DelayedFire_OpenToppedAnimation.isset())
-					pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation;
+					pAnimType = pWeaponExt->DelayedFire_OpenToppedAnimation.Get();
 
 				auto firingCoords = pThis->GetWeapon(weaponIndex)->FLH;
 
@@ -5217,8 +5220,12 @@ void TechnoExtData::UpdateEatPassengers()
 	if (!pDelType->Enabled || !TechnoExtData::IsActive(pThis, false))
 		return;
 
-	if (!pDelType->UnderEMP && (pThis->Deactivated || pThis->IsUnderEMP()))
+	if (!pDelType->UnderEMP && (pThis->Deactivated || pThis->IsUnderEMP())) {
+		if (this->PassengerDeletionTimer.InProgress())
+			this->PassengerDeletionTimer.StartTime++;
+
 		return;
+	}
 
 		if (pThis->Passengers.NumPassengers > 0)
 		{

@@ -257,8 +257,8 @@ static void NOINLINE Damage_Overlay(CellClass* pCurCell,
 }
 
 static PhobosMap<BuildingClass*, double> MergedDamage {};
-static DynamicVectorClass<ObjectClass*> Targets;
-static DynamicVectorClass<DamageGroup*> Handled;
+static HelperedVector<ObjectClass*> Targets;
+static HelperedVector<DamageGroup*> Handled;
 
 // inline int Distance_Level_Snap(const Coordinate& coord1, const Coordinate& coord2)
 // {
@@ -914,10 +914,10 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			DamageGroup* group = *g_begin;
 			// group could have been cleared by previous iteration.
 			// only handle if has not been handled already.
-			if (group && Targets.insert_unique(group->Target))
+			if (group && Targets.push_back_unique(group->Target))
 			{
 
-				Handled.reset();
+				Handled.clear();
 
 				// collect all slots containing damage groups for this target
 				std::for_each(g_begin, g_end, [group](DamageGroup* item)
@@ -929,7 +929,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				});
 
 				// if more than allowed, sort them and remove the ones further away
-				if (Handled.Count > MaxAffect)
+				if (Handled.size() > MaxAffect)
 				{
 					Helpers::Alex::selectionsort(
 						Handled.begin(), Handled.begin() + MaxAffect, Handled.end(),
@@ -958,8 +958,8 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 	 return false;
 		});
 
-		Targets.Count = 0;
-		Handled.Count = 0;
+		Targets.clear();
+		Handled.clear();
 	}
 
 	return 0;

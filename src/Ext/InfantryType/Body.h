@@ -210,7 +210,7 @@ public:
 		AllowReceiveSpeedBoost(false),
 
 		ProneSpeed(),
-		InfantryAutoDeploy(false)
+		InfantryAutoDeploy()
 	{
 		this->AbsType = InfantryTypeClass::AbsID;
 

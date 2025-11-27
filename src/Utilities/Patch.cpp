@@ -60,7 +60,7 @@ void Patch::Apply()
 		std::memcpy(pAddress, this->pData, this->size);
 	}
 	VirtualProtect(pAddress, this->size, protect_flag, &protect_flagb);
-	FlushInstructionCache(Game_hInstance, (LPVOID)pAddress, size);
+	FlushInstructionCache(CurrentProcess, (LPVOID)pAddress, size);
 }
 
 void Patch::Apply_RAW(uintptr_t offset, size_t sz , PatchType type, const BYTE* data)

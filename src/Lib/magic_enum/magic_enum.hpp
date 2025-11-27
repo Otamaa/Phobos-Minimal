@@ -172,54 +172,50 @@ static_assert([] {
 } (), "magic_enum::customize wchar_t is not compatible with ASCII.");
 
 namespace customize {
-    template <typename E, typename = void>
-    struct enum_range;
+  template <typename E, typename = void>
+  struct enum_range;
 }
 
 namespace detail {
-    template<typename E,typename = void>
-    constexpr inline std::size_t prefix_length_or_zero = 0;
+  template<typename E,typename = void>
+  constexpr inline std::size_t prefix_length_or_zero = 0;
 
-    template<typename E>
-    constexpr inline auto prefix_length_or_zero<E, std::void_t<decltype(customize::enum_range<E>::prefix_length)>> = std::size_t{ customize::enum_range<E>::prefix_length };
+  template<typename E>
+  constexpr inline auto prefix_length_or_zero<E, std::void_t<decltype(customize::enum_range<E>::prefix_length)>> = std::size_t{customize::enum_range<E>::prefix_length};
 }
-
-
 
 namespace customize {
 
-template<bool IsFlags = false,int Min = MAGIC_ENUM_RANGE_MIN,int Max = MAGIC_ENUM_RANGE_MAX,std::size_t PrefixLength = 0>
+template <bool IsFlags = false, int Min = MAGIC_ENUM_RANGE_MIN, int Max = MAGIC_ENUM_RANGE_MAX, std::size_t PrefixLength = 0>
 struct adl_info_holder {
-    constexpr static int max = Max;
-    constexpr static int min = Min;
-    constexpr static bool is_flags =IsFlags;
-    constexpr static std::size_t prefix_length = PrefixLength;
-  
-    template<int min,int max>
-    constexpr static adl_info_holder<IsFlags,min,max,PrefixLength> minmax() { return {};}
-    template<bool is_flag>
-    constexpr static adl_info_holder<is_flag,Min,Max,PrefixLength> flag() { return {};}
-    template<std::size_t prefix_len>
-    constexpr static adl_info_holder<IsFlags,Min,Max,prefix_len> prefix() { return {};}
+  constexpr static int max = Max;
+  constexpr static int min = Min;
+  constexpr static bool is_flags =IsFlags;
+  constexpr static std::size_t prefix_length = PrefixLength;
+
+  template<int min,int max>
+  constexpr static adl_info_holder<IsFlags,min,max,PrefixLength> minmax() { return {}; }
+
+  template<bool is_flag>
+  constexpr static adl_info_holder<is_flag,Min,Max,PrefixLength> flag() { return {}; }
+
+  template<std::size_t prefix_len>
+  constexpr static adl_info_holder<IsFlags,Min,Max,prefix_len> prefix() { return {}; }
 };
 
-constexpr adl_info_holder<> adl_info()
-{
-     return {};
-}
+constexpr adl_info_holder<> adl_info() { return {}; }
 
 // Enum value must be in range [MAGIC_ENUM_RANGE_MIN, MAGIC_ENUM_RANGE_MAX]. By default MAGIC_ENUM_RANGE_MIN = -128, MAGIC_ENUM_RANGE_MAX = 127.
 // If need another range for all enum types by default, redefine the macro MAGIC_ENUM_RANGE_MIN and MAGIC_ENUM_RANGE_MAX.
 // If need another range for specific enum type, add specialization enum_range for necessary enum type.
 template <typename E,typename /*= void*/>
 struct enum_range {
-    static constexpr int min = MAGIC_ENUM_RANGE_MIN;
-    static constexpr int max = MAGIC_ENUM_RANGE_MAX;
+  static constexpr int min = MAGIC_ENUM_RANGE_MIN;
+  static constexpr int max = MAGIC_ENUM_RANGE_MAX;
 };
 
 template <typename E>
-struct enum_range<E, decltype(void(magic_enum_define_range_adl(E{}))) >
-: decltype(magic_enum_define_range_adl(E{})) {};
+struct enum_range<E, decltype(void(magic_enum_define_range_adl(E{})))> : decltype(magic_enum_define_range_adl(E{})) {};
 
 static_assert(MAGIC_ENUM_RANGE_MAX > MAGIC_ENUM_RANGE_MIN, "MAGIC_ENUM_RANGE_MAX must be greater than MAGIC_ENUM_RANGE_MIN.");
 
@@ -318,7 +314,7 @@ class static_str {
 
   constexpr std::uint16_t size() const noexcept { return N; }
 
-  constexpr operator string_view() const noexcept { return {data(), size()}; }
+  constexpr string_view str() const noexcept { return string_view(data(), size()); }
 
  private:
   template <std::uint16_t... I>
@@ -333,17 +329,20 @@ class static_str {
 template <>
 class static_str<0> {
  public:
-  constexpr explicit static_str() = default;
+  constexpr static_str() noexcept = default;
 
-  constexpr explicit static_str(str_view) noexcept {}
+  constexpr static_str(str_view) noexcept {}
 
-  constexpr explicit static_str(string_view) noexcept {}
+  constexpr static_str(string_view) noexcept {}
 
-  constexpr const char_type* data() const noexcept { return nullptr; }
+  constexpr const char_type* data() const noexcept { return chars_; }
 
   constexpr std::uint16_t size() const noexcept { return 0; }
 
-  constexpr operator string_view() const noexcept { return {}; }
+  constexpr string_view str() const noexcept { return string_view(data(), size()); }
+
+private:
+  static constexpr char_type chars_[1] = {};
 };
 
 template <typename Op = std::equal_to<>>
@@ -886,7 +885,7 @@ inline constexpr auto max_v = (count_v<E, S> > 0) ? static_cast<U>(values_v<E, S
 
 template <typename E, enum_subtype S, std::size_t... I>
 constexpr auto names(std::index_sequence<I...>) noexcept {
-  constexpr auto names = std::array<string_view, sizeof...(I)>{{enum_name_v<E, values_v<E, S>[I]>...}};
+  constexpr auto names = std::array<string_view, sizeof...(I)>{{enum_name_v<E, values_v<E, S>[I]>.str()...}};
   return names;
 }
 
@@ -898,7 +897,7 @@ using names_t = decltype((names_v<D, S>));
 
 template <typename E, enum_subtype S, std::size_t... I>
 constexpr auto entries(std::index_sequence<I...>) noexcept {
-  constexpr auto entries = std::array<std::pair<E, string_view>, sizeof...(I)>{{{values_v<E, S>[I], enum_name_v<E, values_v<E, S>[I]>}...}};
+  constexpr auto entries = std::array<std::pair<E, string_view>, sizeof...(I)>{{{values_v<E, S>[I], enum_name_v<E, values_v<E, S>[I]>.str()}...}};
   return entries;
 }
 
@@ -1219,7 +1218,7 @@ using enum_constant = detail::enum_constant<V>;
 // Returns type name of enum.
 template <typename E>
 [[nodiscard]] constexpr auto enum_type_name() noexcept -> detail::enable_if_t<E, string_view> {
-  constexpr string_view name = detail::type_name_v<std::decay_t<E>>;
+  constexpr string_view name = detail::type_name_v<std::decay_t<E>>.str();
   static_assert(!name.empty(), "magic_enum::enum_type_name enum type does not have a name.");
 
   return name;
@@ -1334,7 +1333,7 @@ template <auto V, detail::enum_subtype S = detail::subtype_v<std::decay_t<declty
 // This version is much lighter on the compile times and is not restricted to the enum_range limitation.
 template <auto V>
 [[nodiscard]] constexpr auto enum_name() noexcept -> detail::enable_if_t<decltype(V), string_view> {
-  constexpr string_view name = detail::enum_name_v<std::decay_t<decltype(V)>, V>;
+  constexpr string_view name = detail::enum_name_v<std::decay_t<decltype(V)>, V>.str();
   static_assert(!name.empty(), "magic_enum::enum_name enum value does not have a name.");
 
   return name;
@@ -1350,7 +1349,7 @@ template <typename E, detail::enum_subtype S = detail::subtype_v<E>>
   if (const auto i = enum_index<D, S>(value)) {
     return detail::names_v<D, S>[*i];
   }
-  return {};
+  return detail::static_str<0>{}.str();
 }
 
 // Returns name from enum value.

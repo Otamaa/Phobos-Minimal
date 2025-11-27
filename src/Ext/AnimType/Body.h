@@ -158,7 +158,7 @@ public:
 		CreateUnit_SpawnHeight(-1),
 		ConstrainFireAnimsToCellSpots(true),
 		FireAnimDisallowedLandTypes(),
-		AttachFireAnimsToParent(false),
+		AttachFireAnimsToParent(),
 		SmallFireCount(),
 		SmallFireAnims(),
 		SmallFireChances(),
@@ -235,7 +235,7 @@ public:
 	Mission GetCreateUnitMission(bool IsAi) {
 		auto result = this->CreateUnitType->UnitMission;
 		if (IsAi && this->CreateUnitType->AIUnitMission.isset())
-			result = this->CreateUnitType->AIUnitMission;
+			result = this->CreateUnitType->AIUnitMission.Get();
 
 		return result;
 	}

@@ -118,14 +118,14 @@ namespace CRT
 	{ JMP(0x7CBE1C); }
 
 	// memory management
-	static  OPTIONALINLINE NAKED void* __cdecl malloc(size_t sz)
+	/*static  OPTIONALINLINE NAKED void* __cdecl malloc(size_t sz)
 	{ JMP(0x7C9430); }
 
 	static  OPTIONALINLINE NAKED void* __cdecl malloc(size_t sz, int mode)
 	{ JMP(0x7C9442); }
 
 	static  OPTIONALINLINE NAKED void __cdecl free(const void* p)
-	{ JMP(0x7C93E8); }
+	{ JMP(0x7C93E8); }*/
 
 	static  OPTIONALINLINE NAKED void* __cdecl realloc(void* pBlock, size_t sz)
 	{ JMP(0x7D0F45); }
@@ -133,11 +133,11 @@ namespace CRT
 	static  OPTIONALINLINE NAKED void* __cdecl _calloc(size_t Count, size_t Size)
 	{ JMP(0x7D3374); }
 
-	static  OPTIONALINLINE NAKED void* __cdecl _new(size_t sz)
+	/*static  OPTIONALINLINE NAKED void* __cdecl _new(size_t sz)
 	{ JMP(0x7C8E17); }
 
 	static  OPTIONALINLINE NAKED void __cdecl _delete(void* p)
-	{ JMP(0x7C8B3D); }
+	{ JMP(0x7C8B3D); }*/
 
 	static  OPTIONALINLINE NAKED void* __cdecl _memset(void* p, int nInt, size_t sz)
 	{ JMP(0x7D75E0); }

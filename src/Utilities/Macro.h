@@ -265,7 +265,7 @@ void FORCEDINLINE Patch_Jump(uintptr_t address, T new_address)
 
 	SIZE_T bytes_written { 0u };
 	_LJMP cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
-	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
+	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
 }
 
 template<typename T>
@@ -275,7 +275,12 @@ void FORCEDINLINE Patch_Call(uintptr_t address, T new_address)
 
 	SIZE_T bytes_written { 0u };
 	_CALL cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
-	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_CALL), &bytes_written);
+	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_CALL), &bytes_written);
+}
+
+template<typename T>
+void FORCEDINLINE Hook_Function(uintptr_t address, T new_address) {
+    Patch_Jump(address, reinterpret_cast<uintptr_t>((void *&)new_address));
 }
 
 template<typename T>
@@ -287,7 +292,7 @@ void FORCEDINLINE Patch_Call6(uintptr_t address, T new_address)
 	_CALL6 cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
 	cmd.command = LJMP_LETTER;
 
-	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
+	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
 }
 
 template<typename T>
@@ -298,7 +303,7 @@ void FORCEDINLINE Patch_Vtable(uintptr_t address, T new_address)
 	SIZE_T bytes_written { 0u };
 
 	_VTABLE cmd { address  , reinterpret_cast<uintptr_t>((void*&)new_address) };
-	WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &cmd, sizeof(_VTABLE), &bytes_written);
+	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_VTABLE), &bytes_written);
 }
 
 #pragma endregion Macros

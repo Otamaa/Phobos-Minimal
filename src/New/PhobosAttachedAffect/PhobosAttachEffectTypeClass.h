@@ -128,6 +128,10 @@ public:
 	Valueable<double> Block_ChanceMultiplier;
 	Valueable<double> Block_ExtraChance;
 
+	ValueableVector<TechnoTypeClass*> AffectTypes;
+	ValueableVector<TechnoTypeClass*> IgnoreTypes;
+	Valueable<AffectedTarget> AffectTargets;
+
 	std::vector<AnimationDrawOffsetClass> Animation_DrawOffsets;
 
 	PhobosAttachEffectTypeClass(const char* pTitle) : Enumerable<PhobosAttachEffectTypeClass>(pTitle)
@@ -214,6 +218,10 @@ public:
 		, LaserTrail_Type { -1 }
 		, Block_ChanceMultiplier { 1.0 }
 		, Block_ExtraChance { 0.0 }
+
+		, AffectTypes {}
+		, IgnoreTypes {}
+		, AffectTargets { AffectedTarget::All }
 
 		, Animation_DrawOffsets {}
 	{};

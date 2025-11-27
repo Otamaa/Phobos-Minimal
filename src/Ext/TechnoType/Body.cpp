@@ -1652,6 +1652,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->PhobosAttachEffects.LoadFromINI(pINI, pSection);
 
 		this->KeepTargetOnMove.Read(exINI, pSection, "KeepTargetOnMove");
+		this->KeepTargetOnMove_Weapon.Read(exINI, pSection, "KeepTargetOnMove.Weapon");
 		this->KeepTargetOnMove_ExtraDistance.Read(exINI, pSection, "KeepTargetOnMove.ExtraDistance");
 		this->KeepTargetOnMove_NoMorePursuit.Read(exINI, pSection, "KeepTargetOnMove.NoMorePursuit");
 		this->AllowAirstrike.Read(exINI, pSection, "AllowAirstrike");

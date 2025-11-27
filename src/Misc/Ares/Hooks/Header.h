@@ -526,7 +526,7 @@ public:
 	};
 
 	static std::array<MappedActions, (size_t)Action::count + 2> CursorIdx;
-	static DynamicVectorClass<BuildType> TabCameos[4u];
+	static std::vector<BuildType> TabCameos[4u];
 
 	static bool SaveGlobals(PhobosStreamWriter& Stm)
 	{
@@ -547,7 +547,6 @@ public:
 		for (auto& cameos : TabCameos)
 		{
 			cameos.clear();
-			cameos.CapacityIncrement = 100;
 			cameos.reserve(100);
 		}
 	}

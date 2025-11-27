@@ -131,7 +131,7 @@ public:
 		ParaDropNum(),
 
 		MessageTextColorIndex(-1),
-		ParachuteAnim(nullptr),
+		ParachuteAnim(),
 		EVAIndex(-1),
 		BriefingTheme(-1),
 

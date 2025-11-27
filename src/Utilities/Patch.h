@@ -71,7 +71,7 @@ struct NOVTABLE
 		if (VirtualProtect((LPVOID)addrFrom, size, ReadFlag, &protect_flag) == TRUE) {
 			std::memcpy((void*)addrFrom, toImpl, size);
 			VirtualProtect((LPVOID)addrFrom, size, protect_flag, &protect_flagb);
-			FlushInstructionCache(Game_hInstance, (LPVOID)addrFrom, size);
+			FlushInstructionCache(CurrentProcess, (LPVOID)addrFrom, size);
 		}
 	}
 
@@ -157,7 +157,6 @@ struct NOVTABLE
 	static int GetSection(HANDLE hInstance, const char* sectionName, void** pVirtualAddress);
 	static uintptr_t GetEATAddress(const char* moduleName, const char* funcName);
 	static uintptr_t GetIATAddress(const char* moduleName, const char* funcName);
-	static COMPILETIMEEVAL reference<HINSTANCE, 0xB732F0u> const Game_hInstance {};
 public :
 	static HANDLE CurrentProcess;
 	static std::string WindowsVersion;

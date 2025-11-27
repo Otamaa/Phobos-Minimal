@@ -141,6 +141,10 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->Block_ChanceMultiplier.Read(exINI, pSection, "Block.ChanceMultiplier");
 	this->Block_ExtraChance.Read(exINI, pSection, "Block.ExtraChance");
 
+	this->AffectTypes.Read(exINI, pSection, "AffectTypes");
+	this->IgnoreTypes.Read(exINI, pSection, "IgnoreTypes");
+	this->AffectTargets.Read(exINI, pSection, "AffectTargets");
+
 	// Animation draw offsets.
 	for (int i = 0; i < INT32_MAX; i++) {
 		AnimationDrawOffsetClass offset;
@@ -236,6 +240,11 @@ void PhobosAttachEffectTypeClass::Serialize(T& Stm)
 		.Process(this->LaserTrail_Type)
 		.Process(this->Block_ChanceMultiplier)
 		.Process(this->Block_ExtraChance)
+
+		.Process(this->AffectTypes)
+		.Process(this->IgnoreTypes)
+		.Process(this->AffectTargets)
+
 		.Process(this->Animation_DrawOffsets)
 		;
 }
