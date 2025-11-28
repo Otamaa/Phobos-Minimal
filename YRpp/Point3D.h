@@ -1,5 +1,6 @@
 #pragma once
 
+#include <YRMath.h>
 #include <tuple>
 #include <span>
 

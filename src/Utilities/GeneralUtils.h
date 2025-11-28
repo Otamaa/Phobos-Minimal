@@ -245,7 +245,7 @@ public:
 		if (r > 0)
 		{
 			double theta = ScenarioClass::Instance->Random.RandomDouble() * Math::TwoPi;
-			CoordStruct offset { static_cast<int>(r * Math::cos(theta)), static_cast<int>(r * Math::sin(theta)), 0 };
+			CoordStruct offset { static_cast<int>(r * std::cos(theta)), static_cast<int>(r * std::sin(theta)), 0 };
 			return offset;
 		}
 		return CoordStruct::Empty;
@@ -504,10 +504,10 @@ public:
 		int deltaX = currentCoords.X - targetCoords.X;
 		int deltaY = targetCoords.Y - currentCoords.Y;
 
-		double atan = Math::atan2((double)deltaY, (double)deltaX);
+		double atan = std::atan2((double)deltaY, (double)deltaX);
 		double radians = (((atan - Math::HalfPi) * (1.0 / Math::BINARY_ANGLE_MAGIC)) - Math::GameDegrees90) * Math::BINARY_ANGLE_MAGIC;
-		int x = static_cast<int>(targetCoords.X + Math::cos(radians) * distance);
-		int y = static_cast<int>(targetCoords.Y - Math::sin(radians) * distance);
+		int x = static_cast<int>(targetCoords.X + std::cos(radians) * distance);
+		int y = static_cast<int>(targetCoords.Y - std::sin(radians) * distance);
 
 		return { x, y, targetCoords.Z };
 	}
@@ -534,7 +534,7 @@ public:
 	static const DirStruct Desired_Facing(int x1, int y1, int x2, int y2)
 	{
 		DirStruct dir {};
-		unsigned short value = static_cast<short>(int((Math::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
+		unsigned short value = static_cast<short>(int((std::atan2(static_cast<double>(y2 - y1), static_cast<double>(x2 - x1)) - Math::deg2rad(-(360.0 / (USHRT_MAX - 1))))));
 		dir.SetValue<16>(value);
 		return dir;
 	}
@@ -546,7 +546,7 @@ public:
 
 	static const DirStruct Coord2DirSTruct(CoordStruct Loc1, CoordStruct Loc2)
 	{
-		auto angle = Math::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
+		auto angle = std::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
 		auto theta = angle * (180 / Math::Pi);
 		return DirStruct(theta);
 	}

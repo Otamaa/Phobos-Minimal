@@ -470,7 +470,7 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 			int dx = enemyBase.X - baseX;
 			int dy = enemyBase.Y - baseY;
 
-			angleRad = Math::atan2((double)-dy, (double)dx) - Math::DEG90_AS_RAD;
+			angleRad = std::atan2((double)-dy, (double)dx) - Math::DEG90_AS_RAD;
 		}
 		else
 		{
@@ -480,8 +480,8 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 
 		int safeDistance = (RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + nNode->Argument) << 8;
 		double distance = static_cast<double>(safeDistance);
-		double targetX = baseX + Math::cos(angleRad) * distance;
-		double targetY = baseY - Math::sin(angleRad) * distance;
+		double targetX = baseX + std::cos(angleRad) * distance;
+		double targetY = baseY - std::sin(angleRad) * distance;
 
 		CellStruct targetCell { (short)(static_cast<int>(targetX) / 256), (short)(static_cast<int>(targetY) / 256) };
 
@@ -537,13 +537,13 @@ void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
 		int dx = ownBase.X - enemyBase.X;
 		int dy = ownBase.Y - enemyBase.Y;
 
-		double angleRad = Math::atan2((double)dy, (double)dx) - Math::DEG90_AS_RAD;
+		double angleRad = std::atan2((double)dy, (double)dx) - Math::DEG90_AS_RAD;
 
 		int safeDistance = (RulesClass::Instance->AISafeDistance + nNode->Argument) << 8;
 		double distance = static_cast<double>(safeDistance);
 
-		double targetX = enemyBase.X + Math::cos(angleRad) * distance;
-		double targetY = enemyBase.Y - Math::sin(angleRad) * distance;
+		double targetX = enemyBase.X + std::cos(angleRad) * distance;
+		double targetY = enemyBase.Y - std::sin(angleRad) * distance;
 
 		CellStruct targetCell { (short)(static_cast<int>(targetX) / 256) ,  (short)(static_cast<int>(targetY) / 256) };
 
@@ -662,6 +662,19 @@ bool FakeTeamClass::_Add2(FootClass* member, bool ignoreQuantity) {
 	return true;
 }
 
+bool NOINLINE EligibleToRecruit(TechnoTypeClass* unit, TechnoTypeClass* toRecruit) {
+	if (unit == toRecruit)
+		return true;
+
+	if (TechnoTypeExtContainer::Instance.Find(toRecruit)->TeamMember_ConsideredAs.Contains(unit))
+		return true;
+
+	if (TechnoTypeExtContainer::Instance.Find(unit)->TeamMember_ConsideredAs.Contains(toRecruit))
+		return true;
+
+	return false;
+}
+
 // Find the index of unit's type in the task force
 int NOINLINE FindUnitTypeInTaskForce(TeamClass* team, FootClass* unit)
 {
@@ -670,7 +683,7 @@ int NOINLINE FindUnitTypeInTaskForce(TeamClass* team, FootClass* unit)
 
 	for (int i = 0; i < taskForce->CountEntries; i++)
 	{
-		if (taskForce->Entries[i].Type == unitType)
+		if (EligibleToRecruit(taskForce->Entries[i].Type,unitType))
 			return i;
 	}
 
@@ -1687,7 +1700,7 @@ void FakeTeamClass::_GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*
 	for (auto pMember = this->FirstUnit; pMember; pMember = pMember->NextTeamMember)
 	{
 		auto it = std::ranges::find_if(missings, [&](TechnoTypeClass* pMissType) {
-			return pMember->GetTechnoType() == pMissType || TeamExtData::IsEligible(pMember, pMissType);
+			return EligibleToRecruit(pMissType , pMember->GetTechnoType())pMember->GetTechnoType();
 		});
 
 		if (it != std::ranges::end(missings))
@@ -1719,7 +1732,7 @@ void FakeTeamClass::_GetTaskForceMissingMemberTypes(std::vector<TechnoTypeClass*
 		} else {
 			// Check if eligible for any required type
 			for (auto& [reqType, count] : required) {
-				if (count > 0 && TeamExtData::IsEligible(pMember, reqType)) {
+				if (count > 0 && EligibleToRecruit(reqType, memberType)) {
 					required[reqType]--;
 					break;
 				}
@@ -1852,8 +1865,7 @@ FootClass* FindClosestUnit(TeamClass* team, int memberIndex, const CoordStruct& 
 			distance += 12800; // Penalty for wrong group
 
 		// Check if this unit matches requirements
-		if (unit->Owner == team->OwnerHouse &&
-			unit->Type == (UnitTypeClass*)team->Type->TaskForce->Entries[memberIndex].Type &&
+		if (unit->Owner == team->OwnerHouse && EligibleToRecruit(team->Type->TaskForce->Entries[memberIndex].Type , unit->Type) &&
 			(minDistance == -1 || distance < minDistance) &&
 			((FakeTeamClass*)team)->_Can_Add(unit, &memberIndex, 0))
 		{

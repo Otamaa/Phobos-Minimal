@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cmath>
-#include <Base/Always.h>
+#include <YRMath.h>
 
 class Point2D
 {

@@ -6654,12 +6654,12 @@ public:
 				{
 					int dx = x;
 					int dy = y;
-					double dist = Math::sqrt(dx * dx + 4 * dy * dy);
+					double dist = std::sqrt(dx * dx + 4 * dy * dy);
 
 					if (dist >= currentMinRadius && dist <= currentMaxRadius)
 					{
 						double wave = (dist - step * RadiusStep + 38.0) * 0.11;
-						double val = (Math::sin(wave) * 3.5 + 3.0) / (dist / 51.0 + 1.0) + 0.5;
+						double val = (std::sin(wave) * 3.5 + 3.0) / (dist / 51.0 + 1.0) + 0.5;
 
 						// originally IonBlastData_53D960 was used, but this call would always return 0
 						// since a1 == 0 && a2 == 0 → adjust if you have coordinates instead
@@ -6919,7 +6919,7 @@ public:
 
 							int dxPix = unitScreen.X - screenPos.X;
 							int dyPix = unitScreen.Y - screenPos.Y;
-							int dist = static_cast<int>(Math::sqrt(dxPix * dxPix + dyPix * dyPix)) + 8;
+							int dist = static_cast<int>(std::sqrt(dxPix * dxPix + dyPix * dyPix)) + 8;
 
 							if (dist < 256)
 							{
@@ -6940,7 +6940,7 @@ public:
 									float deltax = static_cast<float>(this->Location.X - unit->Location.X);
 									float deltay = static_cast<float>(this->Location.Y - unit->Location.Y);
 									float deltaz = static_cast<float>(this->Location.Z - unit->Location.Z);
-									const float len = Math::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+									const float len = std::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
 
 									if (Math::abs(len) > 0.00002f)
 									{
@@ -6952,14 +6952,14 @@ public:
 										const auto facing_Current = facing_.Current();
 
 										const float facingAngle = (facing_Current.Raw - 0x3FFF) * -0.0000958767f;
-										const float sinA = Math::sin((double)facingAngle);
-										const float cosA = Math::cos((double)facingAngle);
+										const float sinA = std::sin((double)facingAngle);
+										const float cosA = std::cos((double)facingAngle);
 
 										const float ux = deltax * cosA + deltay * sinA;
 										const float uz = deltax * sinA - deltay * cosA;
 										const float uy = deltaz;
 
-										float proj = Math::sqrt(ux * ux + uz * uz + uy * uy);
+										float proj = std::sqrt(ux * ux + uz * uz + uy * uy);
 										const float align = cosA * ux - sinA * proj;
 
 										if (Math::abs(align - deltax) > 0.0002f || Math::abs(cosA * proj + sinA * ux - deltay) > 0.0002f)
@@ -6968,8 +6968,8 @@ public:
 										}
 
 										const float blastDist = len + 51.0f;
-										const float blastOffset = (Math::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
-										const float blastFactor = Math::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
+										const float blastOffset = (std::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
+										const float blastFactor = std::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
 										const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
 
 										unit->AngleRotatedSideways = proj * curve * 6.2831853f;

@@ -455,9 +455,9 @@ ASMJIT_PATCH(0x4CF68D, FlyLocomotionClass_DrawMatrix_OnAirport, 0x5)
 
 		if (Math::abs(ars) > 0.005 || Math::abs(arf) > 0.005)
 		{
-			mat.TranslateZ(float(Math::abs(Math::sin(ars))
+			mat.TranslateZ(float(Math::abs(std::sin(ars))
 				* pAir->Type->VoxelScaleX
-				+ Math::abs(Math::sin(arf)) * pAir->Type->VoxelScaleY));
+				+ Math::abs(std::sin(arf)) * pAir->Type->VoxelScaleY));
 
 			R->ECX(pAir);
 			return 0x4CF6AD;

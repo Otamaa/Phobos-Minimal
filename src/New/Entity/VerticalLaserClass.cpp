@@ -43,7 +43,7 @@ void DrawSecond(const CoordStruct& from, const  CoordStruct& to, const ColorStru
 
 	for (int angle = -180 - 45; angle < 180 - 45; angle += 90)
 	{
-		CoordStruct pos = CoordStruct { center.X + (int)(radius * roundoff(Math::cos(angle * Math::PI / 180), 5)), center.Y + (int)(radius * roundoff(Math::sin(angle * Math::PI / 180), 5)), center.Z };
+		CoordStruct pos = CoordStruct { center.X + (int)(radius * roundoff(std::cos(angle * Math::PI / 180), 5)), center.Y + (int)(radius * roundoff(std::sin(angle * Math::PI / 180), 5)), center.Z };
 		GameCreate<LaserDrawClass>(pos, focus, innerColor, outerColor, outerSpread, 15);
 	}
 
@@ -55,20 +55,20 @@ void DrawSecond(const CoordStruct& from, const  CoordStruct& to, const ColorStru
 void DrawCircleLaser(const CoordStruct& center , const ColorStruct& color, int startAngle ,int delay, int radius = 512 )
 {
 
-	CoordStruct lastpos = CoordStruct(center.X + (int)(radius * roundoff(Math::cos(startAngle * Math::PI / 180), 5)), center.Y + (int)(radius * roundoff(Math::sin(startAngle * Math::PI / 180), 5)), center.Z);
+	CoordStruct lastpos = CoordStruct(center.X + (int)(radius * roundoff(std::cos(startAngle * Math::PI / 180), 5)), center.Y + (int)(radius * roundoff(std::sin(startAngle * Math::PI / 180), 5)), center.Z);
 
 	int lastAngle = startAngle + (360 / 80) * (80 - delay);
 
 	for (int angle = startAngle + 5; angle < lastAngle; angle += 5)
 	{
-		auto currentPos = CoordStruct(center.X + (int)(radius * roundoff(Math::cos(angle * Math::PI / 180), 5)), center.Y + (int)(radius * roundoff(Math::sin(angle * Math::PI / 180), 5)), center.Z);
+		auto currentPos = CoordStruct(center.X + (int)(radius * roundoff(std::cos(angle * Math::PI / 180), 5)), center.Y + (int)(radius * roundoff(std::sin(angle * Math::PI / 180), 5)), center.Z);
 		auto pLaser = GameCreate<LaserDrawClass>(lastpos, currentPos, color, color, color, 5);
 		pLaser->Thickness = 10;
 		pLaser->IsHouseColor = true;
 		lastpos = currentPos;
 	}
 
-	auto line = CoordStruct(center.X + (int)(radius * roundoff(Math::cos(lastAngle * Math::PI / 180), 5)), center.Y + (int)(radius * roundoff(Math::sin(lastAngle * Math::PI / 180), 5)), center.Z);
+	auto line = CoordStruct(center.X + (int)(radius * roundoff(std::cos(lastAngle * Math::PI / 180), 5)), center.Y + (int)(radius * roundoff(std::sin(lastAngle * Math::PI / 180), 5)), center.Z);
 	auto pLine = GameCreate<LaserDrawClass>(lastpos, center, color, color, color, 5);
 	pLine->Thickness = 10;
 	pLine->IsHouseColor = true;
@@ -78,11 +78,11 @@ void DrawCircleLaser(const CoordStruct& center , const ColorStruct& color, int s
 
 void DrawCircleLaserB(const CoordStruct& center, const ColorStruct& trailOuterColor, int trailStartAngle, int trailRadius , int zAdjust)
 {
-	CoordStruct lastpos = CoordStruct(center.X + (int)(trailRadius * roundoff(Math::cos(trailStartAngle * Math::PI / 180), 5)), center.Y + (int)(trailRadius * roundoff(Math::sin(trailStartAngle * Math::PI / 180), 5)), center.Z + zAdjust);
+	CoordStruct lastpos = CoordStruct(center.X + (int)(trailRadius * roundoff(std::cos(trailStartAngle * Math::PI / 180), 5)), center.Y + (int)(trailRadius * roundoff(std::sin(trailStartAngle * Math::PI / 180), 5)), center.Z + zAdjust);
 
 	for (int angle = trailStartAngle + 5; angle < trailStartAngle + 360; angle += 5)
 	{
-		auto currentPos = CoordStruct(center.X + (int)(trailRadius * roundoff(Math::cos(angle * Math::PI / 180), 5)), center.Y + (int)(trailRadius * roundoff(Math::sin(angle * Math::PI / 180), 5)), center.Z + zAdjust);
+		auto currentPos = CoordStruct(center.X + (int)(trailRadius * roundoff(std::cos(angle * Math::PI / 180), 5)), center.Y + (int)(trailRadius * roundoff(std::sin(angle * Math::PI / 180), 5)), center.Z + zAdjust);
 		auto pLaser = GameCreate<LaserDrawClass>(lastpos, currentPos, trailOuterColor, trailOuterColor, trailOuterColor, 5);
 		pLaser->Thickness = 10;
 		pLaser->IsHouseColor = true;
@@ -165,8 +165,8 @@ void VerticalLaserClass::AI(int start, int count)
 
 CoordStruct VerticalLaserClass::GetCoords(int start, int i, int increase)
 {
-	const double x = radius * Math::cos((double)((start + i * increase) * Math::C_Sharp_Pi / 180));
-	const double y = radius * Math::sin((double)((start + i * increase) * Math::C_Sharp_Pi / 180));
+	const double x = radius * std::cos((double)((start + i * increase) * Math::C_Sharp_Pi / 180));
+	const double y = radius * std::sin((double)((start + i * increase) * Math::C_Sharp_Pi / 180));
 	return  { static_cast<int>(x), static_cast<int>(y), -Height };
 }
 
@@ -218,8 +218,8 @@ void KillUpdate(VerticalLaserClass* pLaser , TechnoClass* Owner)
 
 			for (int i = 0; i < count; i++)
 			{
-				double x = pLaser->radius * Math::cos((start + i * increasement) * Math::C_Sharp_Pi / 180);
-				double y = pLaser->radius * Math::sin((start + i * increasement) * Math::C_Sharp_Pi / 180);
+				double x = pLaser->radius * std::cos((start + i * increasement) * Math::C_Sharp_Pi / 180);
+				double y = pLaser->radius * std::sin((start + i * increasement) * Math::C_Sharp_Pi / 180);
 				CoordStruct to = groundLocation + CoordStruct((int)x, (int)y, -height);
 
 				pLaser->Draw(from,to);

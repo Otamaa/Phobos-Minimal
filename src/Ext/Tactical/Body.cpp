@@ -245,7 +245,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 	}
 	else
 	{
-		size = (int)((radius + 0.5) / Math::sqrt(2.0) * double(Unsorted::CellWidthInPixels)); // should be cell size global?
+		size = (int)((radius + 0.5) / std::sqrt(2.0) * double(Unsorted::CellWidthInPixels)); // should be cell size global?
 	}
 
 	Point2D center_pixel = TacticalClass::Instance->CoordsToClient(center_coord);
@@ -338,9 +338,9 @@ void FakeTacticalClass::__DrawRadialIndicator(
 		else
 		{
 
-			double angle_tan = Math::tan(angle);
-			double xdist = Math::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
-			double ydist = Math::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
+			double angle_tan = std::tan(angle);
+			double xdist = std::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
+			double ydist = std::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
 
 			if (angle > Math::DEG_TO_RADF(90) && angle < Math::DEG_TO_RADF(270))
 			{
@@ -884,8 +884,37 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 
 DEFINE_FUNCTION_JUMP(CALL, 0x6D4B2B, FakeTacticalClass::__DrawAllTacticalText)
 
+bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, DynamicVectorClass<const char*>& names)
+{
+	const auto pTechnoType = pTechno->GetTechnoType();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
+	const char* id = pTypeExt->GetSelectionGroupID(pTechnoType);
+
+	if (std::ranges::none_of(names, [id](const char* pID) { return IS_SAME_STR_(pID, id); }))
+		return false;
+
+	if (pTechnoType->Gunner && !TacticalExtData::IFVGroups.empty() && (size_t)pTechno->CurrentWeaponNumber >= pTypeExt->WeaponGroupAs.size()) {
+		auto gunnerID = &pTypeExt->WeaponGroupAs[pTechno->CurrentWeaponNumber];
+
+		if (gunnerID->empty() || !GeneralUtils::IsValidString(gunnerID->c_str())) {
+			sprintf_s(gunnerID->data(), 0x20, "%d", pTechno->CurrentWeaponNumber + 1);
+		}
+
+		if (std::ranges::none_of(TacticalExtData::IFVGroups, [gunnerID](const char* pID) {
+			return IS_SAME_STR_(pID, gunnerID->c_str());
+		}))
+			return false;
+	}
+
+	if (pTechno->CanBeSelectedNow() || ((pTechno->WhatAmI() == BuildingClass::AbsID && (pTechnoType->UndeploysInto || RulesExtData::Instance()->BuildingTypeSelectable))))
+		return true;
+
+	return false;
+}
+
 IStream* TacticalExtData::g_pStm = nullptr;
 std::unique_ptr<TacticalExtData> TacticalExtData::Data = nullptr;
+std::vector<const char*> TacticalExtData::IFVGroups;
 
 void TacticalExtData::Allocate(TacticalClass* pThis)
 {

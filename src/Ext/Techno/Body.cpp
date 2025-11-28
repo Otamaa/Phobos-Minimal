@@ -7394,7 +7394,7 @@ void TechnoExtData::ManualIdleAction()
 		{
 			CoordStruct technoCoords = This()->GetCoords();
 			const int offset = -static_cast<int>(technoCoords.Z * ((Unsorted::LeptonsPerCell / 2.0) / Unsorted::LevelHeight));
-			const double nowRadian = Math::atan2(double(technoCoords.Y + offset - mouseCoords.Y), double(mouseCoords.X - technoCoords.X - offset)) - 0.125;
+			const double nowRadian = std::atan2(double(technoCoords.Y + offset - mouseCoords.Y), double(mouseCoords.X - technoCoords.X - offset)) - 0.125;
 			DirStruct unitIdleFacingDirection;
 			unitIdleFacingDirection.SetRadian<32>(nowRadian);
 			turret->Set_Desired(unitIdleFacingDirection);

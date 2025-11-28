@@ -44,38 +44,58 @@
 namespace YRMemory {
 
 	//internal game malloc
-	OPTIONALINLINE NAKED void* __cdecl nh_malloc(size_t sz , int flag= 1) {
-		JMP(0x7C9442);
-    }
+	//OPTIONALINLINE NAKED void* __cdecl nh_malloc(size_t sz , int flag= 1) {
+	//	JMP(0x7C9442);
+    //}
 
 	// C
-	OPTIONALINLINE NAKED void* __cdecl malloc(size_t sz) {
-		JMP(0x7C9430);
+	FORCEDINLINE
+		//NAKED
+		void* 
+		__cdecl
+		malloc(size_t sz) {
+		return std::malloc(sz);
+		//JMP(0x7C9430);
 	}
 
 	// C
-    OPTIONALINLINE NAKED void __cdecl free(void* mem) {
-		JMP(0x7C93E8);
+	FORCEDINLINE
+		//NAKED 
+		void 
+		__cdecl 
+		free(void* mem) {
+		std::free(mem);
+		//JMP(0x7C93E8);
     }
 
 	// C++ operator new
-	OPTIONALINLINE NAKED void* __cdecl Allocate(size_t sz)
-	{
-		JMP(0x7C8E17);
+	FORCEDINLINE
+		//NAKED 
+		void* 
+		__cdecl 
+		Allocate(size_t sz) {
+		return std::malloc(sz);
+		//JMP(0x7C8E17);
 	}
 
 	// c++ operator delete
-	OPTIONALINLINE NAKED void __cdecl Deallocate(void* mem)
-	{
-		JMP(0x7C8B3D);
+	FORCEDINLINE 
+		//NAKED 
+		void 
+		__cdecl 
+		Deallocate(void* mem) {
+		std::free(mem);
+		//JMP(0x7C8B3D);
 	}
 
 //annoying
 #pragma warning(push)
 #pragma warning(disable : 4702)
 
-    OPTIONALINLINE void* AllocateChecked(size_t sz) {
-        if (auto const ptr = YRMemory::Allocate(sz)) {
+	FORCEDINLINE 
+		void* 
+		AllocateChecked(size_t sz) {
+        if (auto const ptr = std::malloc(sz)) {
             return ptr;
         }
 

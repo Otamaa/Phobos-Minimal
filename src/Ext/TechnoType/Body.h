@@ -1259,6 +1259,8 @@ public:
 
 	Vector2D<ThreatType> ThreatTypes;
 	Vector2D<int> CombatDamages;
+	ValueableVector<TechnoTypeClass*> TeamMember_ConsideredAs;
+	std::vector<PhobosFixedString<0x20>> WeaponGroupAs;
 
 	int TintColorAirstrike;
 #pragma endregion
@@ -2096,6 +2098,8 @@ public:
 		, AIGuardStationaryStray()
 		, ThreatTypes(ThreatType::Normal,ThreatType::Normal )
 		, CombatDamages(0,0)
+		, TeamMember_ConsideredAs()
+		, WeaponGroupAs {}
 		, TintColorAirstrike()
 		{
 			this->InitializeConstant();

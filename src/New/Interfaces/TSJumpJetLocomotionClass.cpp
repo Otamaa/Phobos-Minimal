@@ -517,7 +517,7 @@ void TSJumpJetLocomotionClass::Movement_AI()
 		CurrentWobble = 0;
 	}
 
-	int desired_height = (int)Math::sin(CurrentWobble) * JumpjetWobbleDeviation + FlightLevel;
+	int desired_height = (int)std::sin(CurrentWobble) * JumpjetWobbleDeviation + FlightLevel;
 	int height = LinkedTo->Height;
 	int ground_height = MapClass::Instance->GetCellFloorHeight(LinkedTo->Location);
 

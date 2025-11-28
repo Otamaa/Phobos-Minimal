@@ -286,7 +286,7 @@ void FakeParasiteClass::__Grapple_AI()
 
 		// Calculate sideways angle (negative direction)
 		float angleRadians = this->GrappleAnimFrame * -1.0f * 3.141592653589793f;
-		this->Victim->AngleRotatedSideways = Math::sin(angleRadians) * 0.78539819f;
+		this->Victim->AngleRotatedSideways = std::sin(angleRadians) * 0.78539819f;
 		break;
 	}
 
@@ -302,7 +302,7 @@ void FakeParasiteClass::__Grapple_AI()
 
 		// Calculate sideways angle (positive direction)
 		float angleRadians = this->GrappleAnimFrame * 1.0f * 3.141592653589793f;
-		this->Victim->AngleRotatedSideways = Math::sin(angleRadians) * 0.78539819f;
+		this->Victim->AngleRotatedSideways = std::sin(angleRadians) * 0.78539819f;
 		break;
 	}
 
@@ -318,8 +318,8 @@ void FakeParasiteClass::__Grapple_AI()
 
 			DirStruct facingDir = this->Victim->PrimaryFacing.Current();
 			float facingAngle = -((facingDir.Raw - 0x3FFF) * -0.00009587672516830327);
-			float cosAngle = Math::cos(facingAngle);
-			float sinAngle = Math::sin(facingAngle);
+			float cosAngle = std::cos(facingAngle);
+			float sinAngle = std::sin(facingAngle);
 
 			for (int i = 0; i < 3; ++i)
 			{
@@ -520,8 +520,8 @@ void FakeParasiteClass::__AI()
 	randomOffset = (randomOffset & 0xFC) + 2;
 
 	float facingRadians = (facingDir.Raw - 0x3FFF) * -0.00009587672516830327;
-	float cosAngle = Math::cos(facingRadians);
-	float sinAngle = Math::sin(facingRadians);
+	float cosAngle = std::cos(facingRadians);
+	float sinAngle = std::sin(facingRadians);
 
 	CoordStruct spreadCoord {
 		.X = int(cosAngle * randomOffset + victimCoord.X),

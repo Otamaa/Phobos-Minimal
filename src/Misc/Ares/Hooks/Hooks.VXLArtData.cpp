@@ -375,7 +375,7 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 
 	} else if (height > 0) {
 		if(const auto rocketloco = locomotion_cast<RocketLocomotionClass*>(pThis->Locomotor)){
-			shadow_mtx.RotateY((float)Math::cos(rocketloco->CurrentPitch));
+			shadow_mtx.RotateY((float)std::cos(rocketloco->CurrentPitch));
 			key.Invalidate();
 		}
 	}
@@ -440,8 +440,8 @@ static void TranslateAngleRotated(Matrix3D* mtx , FootClass* pThis  , TechnoType
 	{
 		// index key is already invalid
 		key.Invalidate();
-		const auto c_arf = Math::cos(arf);
-		const auto c_ars = Math::cos(ars);
+		const auto c_arf = std::cos(arf);
+		const auto c_ars = std::cos(ars);
 		mtx->TranslateX(float(Math::signum(arf) * pType->VoxelScaleX * (1 - c_arf)));
 		mtx->TranslateY(float(Math::signum(-ars) * pType->VoxelScaleY * (1 - c_ars)));
 		mtx->RotateY(arf);
@@ -660,7 +660,7 @@ ASMJIT_PATCH(0x73C47A, UnitClass_DrawAsVXL_Shadow, 0x5)
 			if (pType->TurretRecoil && pThis->BarrelRecoil.State != RecoilData::RecoilState::Inactive)
 				mtx.TranslateX(-pThis->BarrelRecoil.TravelSoFar);
 
-			mtx.ScaleX(static_cast<float>(Math::cos(-pThis->BarrelFacing.Current().GetRadian<32>())));
+			mtx.ScaleX(static_cast<float>(std::cos(-pThis->BarrelFacing.Current().GetRadian<32>())));
 
 			pThis->DrawVoxelShadow(
 				bar,

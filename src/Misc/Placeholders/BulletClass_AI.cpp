@@ -47,15 +47,15 @@ class BulletClass_patch : public BulletClass
 
 			if (angle != 0.0)
 			{
-				InitialVelocity.X /= Math::cos(angle);
-				InitialVelocity.Y /= Math::sin(angle);
+				InitialVelocity.X /= std::cos(angle);
+				InitialVelocity.Y /= std::sin(angle);
 			}
 
 			double angle_XY = double(((int16_t)XY.Raw - 0x3FFF) * -0.00009587672516830327);
 
-			InitialVelocity.X *= Math::cos(angle_XY);
-			InitialVelocity.Y *= Math::cos(angle_XY);
-			InitialVelocity.Z *= Math::sin(angle_XY);
+			InitialVelocity.X *= std::cos(angle_XY);
+			InitialVelocity.Y *= std::cos(angle_XY);
+			InitialVelocity.Z *= std::sin(angle_XY);
 
 			const CoordStruct Vel {
 				(int)InitialVelocity.X , (int)InitialVelocity.Y , (int)InitialVelocity.Z
@@ -79,7 +79,7 @@ class BulletClass_patch : public BulletClass
 		//double length_Xt = distance_XY.Length();
 		VelocityClass distance_vel { double(distance_.X), double(distance_.Y), double(distance_.Z) };
 		// the variable around here is messed up , idk
-		double angle = Math::atan2((double)-inital.Raw, (double)inital.Raw);
+		double angle = std::atan2((double)-inital.Raw, (double)inital.Raw);
 		double rad = angle - Math::DEG90_AS_RAD;
 		DirStruct distance_Dir { (int)rad * Math::BINARY_ANGLE_MAGIC };
 		DirStruct distance_Dir_ { -distance_vel.Y , distance_vel.Y };

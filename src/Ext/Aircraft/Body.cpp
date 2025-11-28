@@ -126,7 +126,7 @@ int FakeAircraftClass::_Mission_Attack()
 					fac.Raw = 0;
 				}
 
-				auto v18 = Math::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X));
+				auto v18 = std::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X));
 				auto v19 = Math::DEG90_AS_RAD;
 				auto v20 = v18 - v19;
 				auto v21 = Math::BINARY_ANGLE_MAGIC;
@@ -641,14 +641,14 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 
 		if (yawRad != 0.0)
 		{
-			velocity->X /= Math::cos(yawRad);
-			velocity->Y /= Math::cos(yawRad);
+			velocity->X /= std::cos(yawRad);
+			velocity->Y /= std::cos(yawRad);
 		}
 
 		const double pitchRad = -0.00009587672516830327;
-		velocity->X *= Math::cos(pitchRad);
-		velocity->Y *= Math::cos(pitchRad);
-		velocity->Z = Math::sin(pitchRad) * mag;
+		velocity->X *= std::cos(pitchRad);
+		velocity->Y *= std::cos(pitchRad);
+		velocity->Z = std::sin(pitchRad) * mag;
 
 		const DirStruct newFacingDir = pThis->SecondaryFacing.Current();
 
@@ -658,8 +658,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 		const int newFacing = newFacingDir.Raw - 0x3FFF;
 		const double newRad = newFacing * -0.00009587672516830327;
 
-		velocity->X = Math::cos(newRad) * dist2D;
-		velocity->Y = -Math::sin(newRad) * dist2D;
+		velocity->X = std::cos(newRad) * dist2D;
+		velocity->Y = -std::sin(newRad) * dist2D;
 
 	} else if (pBullet->Type->ROT == 1)
 		{
@@ -678,7 +678,7 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			};
 
 			// Calculate yaw angle to face the target in XY plane
-			double yawRadians = Math::atan2(-aimVector.Y, aimVector.X) - Math::DEG90_AS_RAD;
+			double yawRadians = std::atan2(-aimVector.Y, aimVector.X) - Math::DEG90_AS_RAD;
 			int yawBinaryAngle = static_cast<int>(yawRadians * Math::BINARY_ANGLE_MAGIC);
 			int adjustedYaw = yawBinaryAngle - 0x3FFF;
 			double adjustedYawRad = adjustedYaw * -0.00009587672516830327;
@@ -691,12 +691,12 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			double originalSpeed2D = velocity->LengthXY();
 
 			// Set initial XY velocity facing target yaw
-			velocity->X = Math::cos(adjustedYawRad) * originalSpeed2D;
-			velocity->Y = -Math::sin(adjustedYawRad) * originalSpeed2D;
+			velocity->X = std::cos(adjustedYawRad) * originalSpeed2D;
+			velocity->Y = -std::sin(adjustedYawRad) * originalSpeed2D;
 
 			// Calculate pitch angle from aim vector
 			double horizontalDistance = aimVector.LengthXY();
-			double pitchRadians = Math::atan2(aimVector.Z, horizontalDistance) - Math::DEG90_AS_RAD;
+			double pitchRadians = std::atan2(aimVector.Z, horizontalDistance) - Math::DEG90_AS_RAD;
 			int pitchBinaryAngle = static_cast<int>(pitchRadians * Math::BINARY_ANGLE_MAGIC);
 			int adjustedPitch = pitchBinaryAngle - 0x3FFF;
 			double adjustedPitchRad = adjustedPitch * -0.00009587672516830327;
@@ -711,15 +711,15 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			// If yaw was altered, rescale velocity
 			if (currentYawRad != 0.0)
 			{
-				double cosYaw = Math::cos(currentYawRad);
+				double cosYaw = std::cos(currentYawRad);
 				velocity->X /= cosYaw;
-				velocity->Y /= Math::cos(currentYawRad); // redundant, matches original logic
+				velocity->Y /= std::cos(currentYawRad); // redundant, matches original logic
 			}
 
 			// Apply pitch to Z velocity
-			velocity->X *= Math::cos(adjustedPitchRad);
-			velocity->Y *= Math::cos(adjustedPitchRad);
-			velocity->Z = Math::sin(adjustedPitchRad) * currentSpeed3D;
+			velocity->X *= std::cos(adjustedPitchRad);
+			velocity->Y *= std::cos(adjustedPitchRad);
+			velocity->Z = std::sin(adjustedPitchRad) * currentSpeed3D;
 
 			// Normalize speed to weapon's max speed
 			WeaponTypeClass* weapon = pThis->GetPrimaryWeapon()->WeaponType;

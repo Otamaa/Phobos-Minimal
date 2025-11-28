@@ -250,8 +250,8 @@ CoordStruct BombardTrajectory::CalculateMiddleCoords()
 	if (!pType->FallScatter_Linear)
 	{
 		const double angel = ScenarioClass::Instance->Random.RandomDouble() * Math::TwoPi;
-		scatterX = length * Math::cos(angel);
-		scatterY = length * Math::sin(angel);
+		scatterX = length * std::cos(angel);
+		scatterY = length * std::sin(angel);
 	}
 	else
 	{
@@ -290,17 +290,17 @@ void BombardTrajectory::CalculateTargetCoords()
 	if (!pType->LeadTimeCalculate && theTargetCoords == theSourceCoords && pBullet->Owner) //For disperse.
 	{
 		const CoordStruct theOwnerCoords = pBullet->Owner->GetCoords();
-		this->RotateAngle = Math::atan2(double(theTargetCoords.Y - theOwnerCoords.Y), double(theTargetCoords.X - theOwnerCoords.X));
+		this->RotateAngle = std::atan2(double(theTargetCoords.Y - theOwnerCoords.Y), double(theTargetCoords.X - theOwnerCoords.X));
 	}
 	else
 	{
-		this->RotateAngle = Math::atan2(double(theTargetCoords.Y - theSourceCoords.Y), double(theTargetCoords.X - theSourceCoords.X));
+		this->RotateAngle = std::atan2(double(theTargetCoords.Y - theSourceCoords.Y), double(theTargetCoords.X - theSourceCoords.X));
 	}
 
 	if (this->OffsetCoord != CoordStruct::Empty)
 	{
-		pBullet->TargetCoords.X += static_cast<int>(this->OffsetCoord.X * Math::cos(this->RotateAngle) + this->OffsetCoord.Y * Math::sin(this->RotateAngle));
-		pBullet->TargetCoords.Y += static_cast<int>(this->OffsetCoord.X * Math::sin(this->RotateAngle) - this->OffsetCoord.Y * Math::cos(this->RotateAngle));
+		pBullet->TargetCoords.X += static_cast<int>(this->OffsetCoord.X * std::cos(this->RotateAngle) + this->OffsetCoord.Y * std::sin(this->RotateAngle));
+		pBullet->TargetCoords.Y += static_cast<int>(this->OffsetCoord.X * std::sin(this->RotateAngle) - this->OffsetCoord.Y * std::cos(this->RotateAngle));
 		pBullet->TargetCoords.Z += this->OffsetCoord.Z;
 	}
 
@@ -405,8 +405,8 @@ void BombardTrajectory::CalculateDisperseBurst()
 
 		VelocityClass rotationAxis
 		{
-			axis.X * Math::cos(this->RotateAngle) + axis.Y * Math::sin(this->RotateAngle),
-			axis.X * Math::sin(this->RotateAngle) - axis.Y * Math::cos(this->RotateAngle),
+			axis.X * std::cos(this->RotateAngle) + axis.Y * std::sin(this->RotateAngle),
+			axis.X * std::sin(this->RotateAngle) - axis.Y * std::cos(this->RotateAngle),
 			static_cast<double>(axis.Z)
 		};
 
@@ -429,8 +429,8 @@ void BombardTrajectory::CalculateDisperseBurst()
 				extraRotate = Math::Pi * (pType->RotateCoord * (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / (this->IsFalling ? 90 : 180);
 			}
 
-			const double cosRotate = Math::cos(extraRotate);
-			pBullet->Velocity = (pBullet->Velocity * cosRotate) + (rotationAxis * ((1 - cosRotate) * (pBullet->Velocity * rotationAxis))) + (rotationAxis.CrossProduct(pBullet->Velocity) * Math::sin(extraRotate));
+			const double cosRotate = std::cos(extraRotate);
+			pBullet->Velocity = (pBullet->Velocity * cosRotate) + (rotationAxis * ((1 - cosRotate) * (pBullet->Velocity * rotationAxis))) + (rotationAxis.CrossProduct(pBullet->Velocity) * std::sin(extraRotate));
 		}
 	}
 }

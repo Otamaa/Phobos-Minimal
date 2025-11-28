@@ -1,8 +1,6 @@
 #pragma once
 
 #include <Locomotor/LocomotionClass.h>
-#include <Phobos.version.h>
-#include <vector>
 
 #define DEFINE_PIGGYLOCO(name , clsid) \
 	static COMPILETIMEEVAL LocoIdent name##_data = { L#name, #name, L#clsid, #clsid }; \

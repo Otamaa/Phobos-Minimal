@@ -160,8 +160,8 @@ namespace CalculatePinch
 				const double theta = pFirer->GetRealFacing().GetRadian<32>() -
 					pFirer->PrimaryFacing.Current().GetRadian<32>();
 
-				pFirer->AngleRotatedForwards = (float)(-ext->RockerPitch.Get() * Math::cos(theta));
-				pFirer->AngleRotatedSideways = (float)(ext->RockerPitch.Get() * Math::sin(theta));
+				pFirer->AngleRotatedForwards = (float)(-ext->RockerPitch.Get() * std::cos(theta));
+				pFirer->AngleRotatedSideways = (float)(ext->RockerPitch.Get() * std::sin(theta));
 
 			}
 		}

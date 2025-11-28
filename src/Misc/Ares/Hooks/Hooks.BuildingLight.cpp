@@ -19,8 +19,8 @@ ASMJIT_PATCH(0x436459, BuildingLightClass_Update, 6)
 
 		const double angle = double((int16_t)Facing->Current().Raw - 0x3FFF) * -0.00009587526218325454;
 		const double distance = pTypeData->Spot_Distance;
-		Loc.Y = Loc.Y - (static_cast<int>(Math::sin(angle) * distance));
-		Loc.X = static_cast<int>(Math::cos(angle) * distance) + Loc.X;
+		Loc.Y = Loc.Y - (static_cast<int>(std::sin(angle) * distance));
+		Loc.X = static_cast<int>(std::cos(angle) * distance) + Loc.X;
 
 		pThis->field_B8 = Loc;
 		pThis->field_C4 = Loc;
@@ -103,7 +103,7 @@ public:
 					int radius_2 = RulesClass::Instance->SpotlightRadius + (int)(this->GetMovementRadius() * 5.973333333333333);
 					if (difference_sqrt >= radius_2)
 					{
-						auto asin = Math::asin((double)radius_2 / (double)difference_sqrt);
+						auto asin = std::asin((double)radius_2 / (double)difference_sqrt);
 						Matrix3D mtx {};
 						mtx.MakeIdentity();
 						mtx.RotateZ(asin);

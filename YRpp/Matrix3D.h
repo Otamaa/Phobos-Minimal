@@ -122,8 +122,8 @@ public:
 	Matrix3D(const Vector3D<float>* axis, float angle) noexcept
 	{
 		//JMP_THIS(0x5AE750);
-		float c = Math::cos((double)angle);
-		double s = Math::sin((double)angle);
+		float c = std::cos((double)angle);
+		double s = std::sin((double)angle);
 		double v7 = axis->X * axis->X;
 		this->Row[0][0] = static_cast<float>((1.0 - v7) * c + v7);
 		double v8 = 1.0 - c;
@@ -431,7 +431,7 @@ public:
 		Vector3D<float> rot_ { 0.0f , 1.0f , 0.0f };
 		Vector3D<float> ret_ {};
 		MatrixMultiply(&ret_, this, &rot_);
-		return (float)Math::atan2((double)ret_.Z , (double)ret_.Y);
+		return (float)std::atan2((double)ret_.Z , (double)ret_.Y);
 	}
 
 	//float GetYRotation() const  { JMP_THIS(0x5AF410); }
@@ -439,7 +439,7 @@ public:
 		Vector3D<float> rot_ { 0.0f , 0.0f , 1.0f };
 		Vector3D<float> ret_ {};
 		MatrixMultiply(&ret_, this, &rot_);
-		return (float)Math::atan2((double)ret_.X, (double)ret_.Z);
+		return (float)std::atan2((double)ret_.X, (double)ret_.Z);
 	}
 
 	//float GetZRotation() const { JMP_THIS(0x5AF470); }
@@ -448,7 +448,7 @@ public:
 		Vector3D<float> rot_ { 1.0f , 0.0f , 0.0f };
 		Vector3D<float> ret_ {};
 		MatrixMultiply(&ret_, this, &rot_);
-		return (float)Math::atan2((double)ret_.Y, (double)ret_.X);
+		return (float)std::atan2((double)ret_.Y, (double)ret_.X);
 	}
 
 	Vector3D<float>* __RotateVector(Vector3D<float>* ret, Vector3D<float>* rotate) const { JMP_THIS(0x5AF4D0); }

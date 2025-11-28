@@ -29,7 +29,7 @@ void RemoveNodeFromList(DynamicVectorClass<BaseNodeClass>* nodeList, int index) 
 DirType Calculate_Exit_Direction(BuildingClass* pBuilding, const CoordStruct& targetCoord)
 {
 	CoordStruct buildingCenter = pBuilding->GetCoords();
-	float angle = Math::atan2(double(targetCoord.Y - buildingCenter.Y), double(targetCoord.X - buildingCenter.X));
+	float angle = std::atan2(double(targetCoord.Y - buildingCenter.Y), double(targetCoord.X - buildingCenter.X));
 		  angle = (angle - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC;
 
 	return static_cast<DirType>((((static_cast<int>(angle) >> 7) + 1) >> 1));

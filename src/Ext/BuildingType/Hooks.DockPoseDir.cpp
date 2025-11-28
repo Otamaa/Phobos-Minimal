@@ -203,7 +203,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 		if (!RulesExtData::Instance()->ExpandAircraftMission || !pAircraft)
 		{
 			const auto footCoords = pFoot->GetCoords();
-			const auto desired = DirStruct(Math::atan2((double)(footCoords.Y - destination.Y), (double)(destination.X - footCoords.X)));
+			const auto desired = DirStruct(std::atan2((double)(footCoords.Y - destination.Y), (double)(destination.X - footCoords.X)));
 
 			if (!iFly || !iFly->Is_Strafe() || horizontalDistance(footCoords) > 768 // I don't know why it's 3 cells' length, but its vanilla, keep it
 				|| Math::abs(static_cast<short>(static_cast<short>(desired.Raw) - static_cast<short>(pFoot->PrimaryFacing.Current().Raw))) >= 8192)
@@ -226,7 +226,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 				const auto turningRadius = MaxImpl((pType->SlowdownDistance / 512), (8 / pType->ROT));
 
 				// The direction of the airport
-				const auto currentDir = DirStruct(Math::atan2((double)footCoords.Y - destination.Y, double(destination.X - footCoords.X)));
+				const auto currentDir = DirStruct(std::atan2((double)footCoords.Y - destination.Y, double(destination.X - footCoords.X)));
 
 				// Included angle's raw
 				const auto difference = static_cast<short>(static_cast<short>(currentDir.Raw) - static_cast<short>(landingDir.Raw));
@@ -247,7 +247,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 			}
 
 			if (footCoords.Y != destination.Y || footCoords.X != destination.X)
-				pAircraft->PrimaryFacing.Set_Desired(DirStruct(Math::atan2(double(footCoords.Y - destination.Y), double(destination.X - footCoords.X))));
+				pAircraft->PrimaryFacing.Set_Desired(DirStruct(std::atan2(double(footCoords.Y - destination.Y), double(destination.X - footCoords.X))));
 			else
 				pAircraft->PrimaryFacing.Set_Desired(landingDir);
 		}
@@ -323,8 +323,8 @@ ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_FlightUpdate_SetFlightLevel, 0x7) // M
 					if (speed > 0)
 					{
 						double const value = pFootPtr->PrimaryFacing.Current().GetRadian();
-						double const cos = Math::cos(value);
-						double const sin = Math::sin(value);
+						double const cos = std::cos(value);
+						double const sin = std::sin(value);
 
 						int maxHeight = 0;
 						int currentHeight = 0;

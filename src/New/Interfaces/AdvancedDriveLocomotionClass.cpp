@@ -84,11 +84,11 @@ Matrix3D* AdvancedDriveLocomotionClass::Draw_Matrix(Matrix3D*  buff, VoxelIndexK
 	const auto scaleY = pType->VoxelScaleY;
 
 	auto baseMtx = Matrix3D::GetIdentity();
-	baseMtx.TranslateZ(static_cast<float>(Math::abs(Math::sin(ars)) * scaleX + Math::abs(Math::sin(arf)) * scaleY));
+	baseMtx.TranslateZ(static_cast<float>(Math::abs(std::sin(ars)) * scaleX + Math::abs(std::sin(arf)) * scaleY));
 
 	auto extraMtx = Matrix3D::GetIdentity();
-	extraMtx.TranslateX(static_cast<float>(Math::signum(arf) * ((1 - Math::cos(arf)) * scaleY)));
-	extraMtx.TranslateY(static_cast<float>(Math::signum(-ars) * ((1 - Math::cos(ars)) * scaleX)));
+	extraMtx.TranslateX(static_cast<float>(Math::signum(arf) * ((1 - std::cos(arf)) * scaleY)));
+	extraMtx.TranslateY(static_cast<float>(Math::signum(-ars) * ((1 - std::cos(ars)) * scaleX)));
 	extraMtx.RotateX(ars);
 	extraMtx.RotateY(arf);
 
@@ -1392,7 +1392,7 @@ void AdvancedDriveLocomotionClass::UpdateHoverState()
 			const int id = static_cast<int>(pLinked->UniqueID);
 			const double hoverBob = pTypeExt->AdvancedDrive_Hover_Bob.Get(RulesClass::Instance->HoverBob);
 			const double bobDelay = ((id & 1) ? 1.0 : 1.1) * hoverBob * 900.0;
-			const double bobHeight = Math::sin(((Unsorted::CurrentFrame + 2 * id) % static_cast<int>(bobDelay)) / bobDelay * Math::TwoPi);
+			const double bobHeight = std::sin(((Unsorted::CurrentFrame + 2 * id) % static_cast<int>(bobDelay)) / bobDelay * Math::TwoPi);
 			newHeight = static_cast<int>(2 * bobHeight) + static_cast<int>(oldHeight + this->Wobbles);
 
 			if (newHeight >= 0)
@@ -1561,7 +1561,7 @@ inline void AdvancedDriveLocomotionClass::UpdateForwardState(int desiredRaw)
 	// Check if we have a target to face
 	if (this->ForwardTo != CoordStruct::Empty) {
 		// Calculate angle to target
-		const DirStruct targetDir = DirStruct(Math::atan2(
+		const DirStruct targetDir = DirStruct(std::atan2(
 			double(pLinked->Location.Y - this->ForwardTo.Y),
 			double(this->ForwardTo.X - pLinked->Location.X)));
 

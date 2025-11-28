@@ -16,7 +16,7 @@ namespace Helpers_DP_Vec
 	static Vector3D<float> Normalize(const Vector3D<float>& value)
 	{
 		float num = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
-		float num2 = Math::sqrt(num);
+		float num2 = std::sqrt(num);
 		return {value.X / num2, value.Y / num2, value.Z / num2};
 	}
 

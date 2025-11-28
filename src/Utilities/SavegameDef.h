@@ -1838,6 +1838,57 @@ namespace Savegame
 		}
 	};
 
+	template <typename T, typename Hash, typename KeyEqual, typename Alloc>
+	struct Savegame::PhobosStreamObject<std::unordered_set<T, Hash, KeyEqual, Alloc>>
+	{
+		bool ReadFromStream(PhobosStreamReader& Stm, std::unordered_set<T, Hash, KeyEqual, Alloc>& Value, bool RegisterForChange) const
+		{
+			Value.clear();
+			int Count = 0;
+			if (!Savegame::ReadPhobosStream(Stm, Count)) {
+				return false;
+			}
+
+			if (Count > 0) {
+				if COMPILETIMEEVAL(std::is_pointer<T>::value) {
+					std::vector<T> buffer(Count, nullptr);
+					for (auto ix = 0; ix < Count; ++ix) {
+						if (!Savegame::ReadPhobosStream(Stm, buffer[ix], RegisterForChange)) {
+							return false;
+						}
+					}
+					Value.insert(buffer.begin(), buffer.end());
+				}
+				else {
+					for (auto ix = 0; ix < Count; ++ix) {
+						T buffer = T {};
+						if (!Savegame::ReadPhobosStream(Stm, buffer, RegisterForChange)) {
+							return false;
+						}
+						Value.insert(buffer);
+					}
+				}
+			}
+			return true;
+		}
+
+		bool WriteToStream(PhobosStreamWriter& Stm, const std::unordered_set<T, Hash, KeyEqual, Alloc>& Value) const
+		{
+			if (!Savegame::WritePhobosStream(Stm, Value.size()))
+				return false;
+
+			if (Value.size() > 0) {
+				for (const auto& item : Value) {
+					if (!Savegame::WritePhobosStream(Stm, item))
+					{
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+	};
+
 	template <typename T, typename cmp , typename Alloc>
 	struct Savegame::PhobosStreamObject<std::set<T, cmp , Alloc>>
 	{

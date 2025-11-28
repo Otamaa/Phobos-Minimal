@@ -62,7 +62,7 @@ ASMJIT_PATCH(0x7193F6, TeleportLocomotionClass_ILocomotion_Process_WarpoutAnim, 
 	if (const auto pWeapon = pExt->WarpOutWeapon.Get(pOwner))
 		WeaponTypeExtData::DetonateAt1(pWeapon, pOwner, pOwner , true , nullptr);
 
-	const int distance = (int)Math::sqrt(pOwner->Location.DistanceFromSquared(pLocomotor->LastCoords));
+	const int distance = (int)std::sqrt(pOwner->Location.DistanceFromSquared(pLocomotor->LastCoords));
 	TechnoExtContainer::Instance.Find(pOwner)->LastWarpDistance = distance;
 
 	if (auto pImage = pType->AlphaImage) {
@@ -147,11 +147,11 @@ ASMJIT_PATCH(0x71997B, TeleportLocomotionClass_ILocomotion_Process_ChronoDelay, 
 //	double scaley = linkedType->VoxelScaleY;
 //
 //	Matrix3D pre = Matrix3D::GetIdentity();
-//	pre.TranslateZ(float(Math::abs(Math::sin(ars)) * scalex + Math::abs(Math::sin(arf)) * scaley));
+//	pre.TranslateZ(float(Math::abs(std::sin(ars)) * scalex + Math::abs(std::sin(arf)) * scaley));
 //
 //	Matrix3D post = Matrix3D::GetIdentity();
-//	post.TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
-//	post.TranslateY(float(Math::signum(-ars) * (scalex * (1 - Math::cos(ars)))));
+//	post.TranslateX(float(Math::signum(arf) * (scaley * (1 - std::cos(arf)))));
+//	post.TranslateY(float(Math::signum(-ars) * (scalex * (1 - std::cos(ars)))));
 //	post.RotateX(ars);
 //	post.RotateY(arf);
 //
@@ -186,9 +186,9 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 		double scaley = loco->Owner->GetTechnoType()->VoxelScaleY;
 
 		Matrix3D pre = Matrix3D::GetIdentity();
-		pre.TranslateZ(float(Math::abs(Math::sin(ars)) * scalex + Math::abs(Math::sin(arf)) * scaley));
-		ret->TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
-		ret->TranslateY(float(Math::signum(-ars) * (scalex * (1 - Math::cos(ars)))));
+		pre.TranslateZ(float(Math::abs(std::sin(ars)) * scalex + Math::abs(std::sin(arf)) * scaley));
+		ret->TranslateX(float(Math::signum(arf) * (scaley * (1 - std::cos(arf)))));
+		ret->TranslateY(float(Math::signum(-ars) * (scalex * (1 - std::cos(ars)))));
 		ret->RotateX(ars);
 		ret->RotateY(arf);
 

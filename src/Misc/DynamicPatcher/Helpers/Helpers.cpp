@@ -259,7 +259,7 @@ VelocityClass Helpers_DP::RecalculateVelocityClass(BulletClass* pBullet, CoordSt
 DirStruct Helpers_DP::Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos)
 {
 	// get angle
-	double radians = Math::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+	double radians = std::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
 	// Magic form tomsons26
 	radians -= Math::deg2rad_Alternate(90);
 	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC));
@@ -348,7 +348,7 @@ int Helpers_DP::ColorAdd2RGB565(ColorStruct colorAdd)
 
 int Helpers_DP::Dir2FacingIndex(DirStruct& dir, int facing)
 {
-	size_t bits = static_cast<size_t>(std::round(Math::sqrt(facing)));
+	size_t bits = static_cast<size_t>(std::round(std::sqrt(facing)));
 	double face = static_cast<double>(dir.GetValue(bits));
 	auto nDivider = static_cast<int>(bits);
 	auto nDivider_shrOne = (1 << nDivider);
@@ -389,9 +389,9 @@ DirStruct Helpers_DP::DirNormalized(int index, int facing)
 
 CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruct& targetPos)
 {
-	const double angle = Math::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
-	int y = static_cast<int>(256.0 * Math::tan(angle));
-	int x = static_cast<int>(256.0 / Math::tan(angle));
+	const double angle = std::atan2(static_cast<double>(targetPos.Y - sourcePos.Y), static_cast<double>(targetPos.X - sourcePos.X));
+	int y = static_cast<int>(256.0 * std::tan(angle));
+	int x = static_cast<int>(256.0 / std::tan(angle));
 
 	CoordStruct offset = CoordStruct::Empty;
 
@@ -586,7 +586,7 @@ Matrix3D Helpers_DP::GetMatrix3D(TechnoClass* pTechno)
 Vector3D<float> Helpers_DP::ToVector3D(DirStruct& dir)
 {
 	double rad = -dir.GetRadian();
-	return { static_cast<float>(Math::cos(rad)), static_cast<float>(Math::sin(rad)), 0.0f };
+	return { static_cast<float>(std::cos(rad)), static_cast<float>(std::sin(rad)), 0.0f };
 }
 
 Vector3D<float> Helpers_DP::GetForwardVector(TechnoClass* pTechno, bool getTurret)
@@ -602,12 +602,12 @@ CoordStruct Helpers_DP::GetFLH(CoordStruct& source, CoordStruct& flh, DirStruct&
 	{
 		double radians = dir.GetRadian();
 
-		double xF = flh.X * Math::cos(-radians);
-		double yF = flh.X * Math::sin(-radians);
+		double xF = flh.X * std::cos(-radians);
+		double yF = flh.X * std::sin(-radians);
 
 
-		double xL = flip ? flh.Y : -flh.Y * Math::sin(radians);
-		double yL = flip ? flh.Y : -flh.Y * Math::cos(radians);
+		double xL = flip ? flh.Y : -flh.Y * std::sin(radians);
+		double yL = flip ? flh.Y : -flh.Y * std::cos(radians);
 
 		CoordStruct nZFLHBuff {
 			static_cast<int>(xF) + static_cast<int>(xL) ,
@@ -847,7 +847,7 @@ CoordStruct Helpers_DP::RandomOffset(int min, int max)
 
 	if (r > 0) {
 		const double theta = ScenarioClass::Instance->Random.RandomDouble() * 2 * Math::PI;
-		return { (int)(r * Math::cos(theta)) ,(int)(r * Math::sin(theta)) , 0 };
+		return { (int)(r * std::cos(theta)) ,(int)(r * std::sin(theta)) , 0 };
 	}
 
 	return CoordStruct::Empty;
@@ -910,7 +910,7 @@ VelocityClass Helpers_DP::GetBulletArcingVelocity(const CoordStruct& sourcePos, 
 	}
 
 	if (outData.m_RealSpeed == 0.0) {
-		outData.m_RealSpeed = Math::sqrt(outData.m_StraightDistance * gravity * 1.2);
+		outData.m_RealSpeed = std::sqrt(outData.m_StraightDistance * gravity * 1.2);
 	}
 
 	// 高抛弹道

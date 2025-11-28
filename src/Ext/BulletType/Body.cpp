@@ -26,8 +26,8 @@ CoordStruct BulletTypeExtData::CalculateInaccurate(BulletTypeClass* pBulletType)
 
 		CoordStruct offset
 		{
-			static_cast<int>(random * Math::cos(theta)),
-			static_cast<int>(random * Math::sin(theta)),
+			static_cast<int>(random * std::cos(theta)),
+			static_cast<int>(random * std::sin(theta)),
 			0
 		};
 		return offset;

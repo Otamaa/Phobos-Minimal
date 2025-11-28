@@ -260,42 +260,6 @@ ASMJIT_PATCH(0x70375B, TechnoClass_Uncloak_DecloakSound, 6)
 	return 0x703761;
 }
 
-// linking units for type selection
-ASMJIT_PATCH(0x732C30, TechnoClass_IDMatches, 5)
-{
-	GET(TechnoClass*, pThis, ECX);
-	GET(DynamicVectorClass<const char*>*, pNames, EDX);
-
-	TechnoTypeClass* pType = pThis->GetTechnoType();
-	const char* id = TechnoTypeExtContainer::Instance.Find(pType)
-		->GetSelectionGroupID();
-	bool match = false;
-	const auto what = pThis->WhatAmI();
-
-	// find any match
-	for (auto i = pNames->begin(); i < pNames->end(); ++i)
-	{
-		if (IS_SAME_STR_(*i, id))
-		{
-			if (pThis->CanBeSelectedNow())
-			{
-				match = true;
-				break;
-			}
-
-			// buildings are exempt if they can't undeploy
-			if (what == BuildingClass::AbsID && (pType->UndeploysInto || RulesExtData::Instance()->BuildingTypeSelectable))
-			{
-				match = true;
-				break;
-			}
-		}
-	}
-
-	R->EAX(match);
-	return 0x732C97;
-}
-
 ASMJIT_PATCH(0x6F3950, TechnoClass_GetCrewCount, 8)
 {
 	GET(TechnoClass*, pThis, ECX);

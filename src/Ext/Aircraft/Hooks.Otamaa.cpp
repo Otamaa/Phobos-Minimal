@@ -124,14 +124,14 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //
 //			if (yawRad != 0.0)
 //			{
-//				velocity->X /= Math::cos(yawRad);
-//				velocity->Y /= Math::cos(yawRad);
+//				velocity->X /= std::cos(yawRad);
+//				velocity->Y /= std::cos(yawRad);
 //			}
 //
 //			double pitchRad = -0.00009587672516830327;
-//			velocity->X *= Math::cos(pitchRad);
-//			velocity->Y *= Math::cos(pitchRad);
-//			velocity->Z = Math::sin(pitchRad) * mag;
+//			velocity->X *= std::cos(pitchRad);
+//			velocity->Y *= std::cos(pitchRad);
+//			velocity->Z = std::sin(pitchRad) * mag;
 //
 //			DirStruct newFacingDir = pThis->SecondaryFacing.Current();
 //
@@ -141,8 +141,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //			int newFacing = newFacingDir.Raw- 0x3FFF;
 //			double newRad = newFacing * -0.00009587672516830327;
 //
-//			velocity->X = Math::cos(newRad) * dist2D;
-//			velocity->Y = -Math::sin(newRad) * dist2D;
+//			velocity->X = std::cos(newRad) * dist2D;
+//			velocity->Y = -std::sin(newRad) * dist2D;
 //
 //
 //		}else
@@ -633,7 +633,7 @@ int Mission_Attack(AircraftClass* pThis)
 				DirStruct nDir {};
 
 				if (v17.X != v16.X || v17.Y != v16.Y) {
-					nDir.SetRadian<65536>(Math::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X))); ;
+					nDir.SetRadian<65536>(std::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X))); ;
 				}
 
 				pThis->SecondaryFacing.Set_Desired(nDir);

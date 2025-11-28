@@ -583,6 +583,7 @@ public:
 	Valueable<bool> AIAirTargetingFix { false };
 	Valueable<bool> SortCameoByName { false };
 	Valueable<bool> AllowDeployControlledMCV { false };
+	Valueable<bool> TypeSelectUseIFVMode { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

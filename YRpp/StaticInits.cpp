@@ -1304,7 +1304,7 @@ void Game::Unselect_All_Except(ObjectClass* object)
 			for (short offsetX = -radius; offsetX <= radius; offsetX++) {
 				// Calculate distance from center using Pythagorean theorem
 				// Only process cells within circular radius
-				if ((int)Math::sqrt((double)(offsetX * offsetX) + (double)(offsetY * offsetY)) <= radius) {
+				if ((int)std::sqrt((double)(offsetX * offsetX) + (double)(offsetY * offsetY)) <= radius) {
 					// Calculate target cell position
 					const CellStruct targetCell {
 						this->MapCoords.X + offsetX , this->MapCoords.Y + offsetY

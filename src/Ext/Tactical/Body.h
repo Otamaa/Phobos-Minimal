@@ -4,6 +4,8 @@
 #include <CoordStruct.h>
 #include <ColorStruct.h>
 
+#include <unordered_set>
+
 #include <Utilities/SavegameDef.h>
 
 class SuperClass;
@@ -42,6 +44,8 @@ public:
 #else
 	static void __fastcall __DrawTimers(int value, ColorScheme* color, int interval, const wchar_t* label, LARGE_INTEGER* _arg, bool* _arg1);
 #endif
+
+	static bool __fastcall TypeSelectFilter(TechnoClass* pTechno, DynamicVectorClass<const char*>& names);
 
 	static void __DrawTimersSW(SuperClass* pSuper , int value, int interval);
 	static void __DrawRadialIndicator(bool draw_indicator, bool animate, Coordinate center_coord, ColorStruct color, float radius, bool concentric, bool round);
@@ -120,6 +124,6 @@ public:
 		Allocate(TacticalClass::Instance());
 	}
 
-	static void DrawProducingProgress();
+	static std::vector<const char*> IFVGroups;
 };
 

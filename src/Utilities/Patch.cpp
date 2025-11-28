@@ -66,7 +66,7 @@ void Patch::Apply()
 void Patch::Apply_RAW(uintptr_t offset, size_t sz , PatchType type, const BYTE* data)
 {
 	Patch dummy {
-		.type = PatchType::PATCH_,
+		.type = type,
 		.offset = offset,
 		.size = sz,
 		.pData = data

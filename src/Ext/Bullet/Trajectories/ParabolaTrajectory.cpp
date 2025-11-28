@@ -284,21 +284,21 @@ void ParabolaTrajectory::PrepareForOpenFire()
 	if (!pType->LeadTimeCalculate && theTargetCoords == theSourceCoords && pBullet->Owner) //For disperse.
 	{
 		const CoordStruct theOwnerCoords = pBullet->Owner->GetCoords();
-		rotateAngle = Math::atan2(double(theTargetCoords.Y - theOwnerCoords.Y),
+		rotateAngle = std::atan2(double(theTargetCoords.Y - theOwnerCoords.Y),
 								double(theTargetCoords.X - theOwnerCoords.X));
 	}
 	else
 	{
-		rotateAngle = Math::atan2(double(theTargetCoords.Y - theSourceCoords.Y),
+		rotateAngle = std::atan2(double(theTargetCoords.Y - theSourceCoords.Y),
 								  double(theTargetCoords.X - theSourceCoords.X));
 	}
 
 	if (this->OffsetCoord != CoordStruct::Empty)
 	{
-		theTargetCoords.X += static_cast<int>(this->OffsetCoord.X * Math::cos(rotateAngle)
-						  + this->OffsetCoord.Y * Math::sin(rotateAngle));
-		theTargetCoords.Y += static_cast<int>(this->OffsetCoord.X * Math::sin(rotateAngle)
-						  - this->OffsetCoord.Y * Math::cos(rotateAngle));
+		theTargetCoords.X += static_cast<int>(this->OffsetCoord.X * std::cos(rotateAngle)
+						  + this->OffsetCoord.Y * std::sin(rotateAngle));
+		theTargetCoords.Y += static_cast<int>(this->OffsetCoord.X * std::sin(rotateAngle)
+						  - this->OffsetCoord.Y * std::cos(rotateAngle));
 		theTargetCoords.Z += this->OffsetCoord.Z;
 	}
 
@@ -331,8 +331,8 @@ void ParabolaTrajectory::PrepareForOpenFire()
 	{
 		VelocityClass rotationAxis
 		{
-			pType->AxisOfRotation->X * Math::cos(rotateAngle) + pType->AxisOfRotation->Y * Math::sin(rotateAngle),
-			pType->AxisOfRotation->X * Math::sin(rotateAngle) - pType->AxisOfRotation->Y * Math::cos(rotateAngle),
+			pType->AxisOfRotation->X * std::cos(rotateAngle) + pType->AxisOfRotation->Y * std::sin(rotateAngle),
+			pType->AxisOfRotation->X * std::sin(rotateAngle) - pType->AxisOfRotation->Y * std::cos(rotateAngle),
 			static_cast<double>(pType->AxisOfRotation->Z)
 		};
 
@@ -358,11 +358,11 @@ void ParabolaTrajectory::PrepareForOpenFire()
 							* (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / 180;
 			}
 
-			const double cosRotate = Math::cos(extraRotate);
+			const double cosRotate = std::cos(extraRotate);
 			pBullet->Velocity =
 				(pBullet->Velocity * cosRotate) + (rotationAxis *
 				((1 - cosRotate) * (pBullet->Velocity * rotationAxis))) +
-				(rotationAxis.CrossProduct(pBullet->Velocity) * Math::sin(extraRotate));
+				(rotationAxis.CrossProduct(pBullet->Velocity) * std::sin(extraRotate));
 		}
 	}
 }
@@ -403,13 +403,13 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		{
 			double radian = pType->LaunchAngle * Math::Pi / 180.0;
 			radian = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? (Math::HalfPi / 3) : radian;
-			const double factor = Math::cos(radian);
+			const double factor = std::cos(radian);
 
 			// Check if the angle is appropriate
 			if (Math::abs(factor) < 1e-10)
 				break;
 
-			const double mult = Math::sin(2 * radian);
+			const double mult = std::sin(2 * radian);
 
 			// Check if the angle is appropriate again
 			if (Math::abs(mult) < 1e-10)
@@ -499,7 +499,7 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		const double horizontalVelocity = horizontalDistance / meetTime;
 
 		// Step 7: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = horizontalVelocity * Math::tan(radian) + gravity / 2;
+		pBullet->Velocity.Z = horizontalVelocity * std::tan(radian) + gravity / 2;
 
 		// Step 8: Record whether it requires additional checks during the flight
 		this->CheckIfNeedExtraCheck();
@@ -566,7 +566,7 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 
 		// Step 7: Calculate the ratio of horizontal velocity to horizontal distance
 		const double horizontalDistance = Point2D { destinationCoords.X, destinationCoords.Y }.Length();
-		const double mult = (pBullet->Velocity.Z / Math::tan(radian)) / horizontalDistance;
+		const double mult = (pBullet->Velocity.Z / std::tan(radian)) / horizontalDistance;
 
 		// Step 8: Calculate the horizontal component of the projectile velocity
 		pBullet->Velocity.X = destinationCoords.X * mult;
@@ -608,7 +608,7 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		radian = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? (Math::HalfPi / 3) : radian;
 
 		// Step 9: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = horizontalVelocity * Math::tan(radian) + gravity / 2;
+		pBullet->Velocity.Z = horizontalVelocity * std::tan(radian) + gravity / 2;
 
 		// Step 10: Record whether it requires additional checks during the flight
 		this->CheckIfNeedExtraCheck();
@@ -699,10 +699,10 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 		double velocity = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? 100.0 : this->SearchVelocity(horizontalDistance, distanceCoords.Z, radian, gravity);
 
 		// Step 3: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = velocity * Math::sin(radian);
+		pBullet->Velocity.Z = velocity * std::sin(radian);
 
 		// Step 4: Calculate the ratio of horizontal velocity to horizontal distance
-		const double mult = velocity * Math::cos(radian) / horizontalDistance;
+		const double mult = velocity * std::cos(radian) / horizontalDistance;
 
 		// Step 5: Calculate the horizontal component of the projectile velocity
 		pBullet->Velocity.X = distanceCoords.X * mult;
@@ -744,7 +744,7 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 		radian = (radian >= Math::HalfPi || radian <= 1e-10) ? (Math::HalfPi / 3) : radian;
 
 		// Step 4: Calculate the ratio of horizontal velocity to horizontal distance
-		const double mult = (pBullet->Velocity.Z / Math::tan(radian)) / horizontalDistance;
+		const double mult = (pBullet->Velocity.Z / std::tan(radian)) / horizontalDistance;
 
 		// Step 5: Calculate the horizontal component of the projectile velocity
 		pBullet->Velocity.X = distanceCoords.X * mult;
@@ -768,7 +768,7 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 		radian = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? (Math::HalfPi / 3) : radian;
 
 		// Step 5: Calculate the vertical component of the projectile velocity
-		pBullet->Velocity.Z = horizontalSpeed * Math::tan(radian);
+		pBullet->Velocity.Z = horizontalSpeed * std::tan(radian);
 		break;
 	}
 	default: // Fixed horizontal speed and aim at the target
@@ -819,7 +819,7 @@ void ParabolaTrajectory::CheckIfNeedExtraCheck()
 double ParabolaTrajectory::SearchVelocity(double horizontalDistance, int distanceCoordsZ, double radian, double gravity)
 {
 	// Estimate initial velocity
-	const double mult = Math::sin(2 * radian);
+	const double mult = std::sin(2 * radian);
 	double velocity = Math::abs(mult) > 1e-10 ? std::sqrt(horizontalDistance * gravity / mult) : 0.0;
 	velocity += distanceCoordsZ / gravity;
 	velocity = velocity > 10.0 ? velocity : 10.0;
@@ -857,8 +857,8 @@ double ParabolaTrajectory::SearchVelocity(double horizontalDistance, int distanc
 double ParabolaTrajectory::CheckVelocityEquation(double horizontalDistance, int distanceCoordsZ, double velocity, double radian, double gravity)
 {
 	// Calculate each component of the projectile velocity
-	const double horizontalVelocity = velocity * Math::cos(radian);
-	const double verticalVelocity = velocity * Math::sin(radian);
+	const double horizontalVelocity = velocity * std::cos(radian);
+	const double verticalVelocity = velocity * std::sin(radian);
 
 	// Calculate the time of the rising phase
 	const double upTime = verticalVelocity / gravity;
@@ -949,7 +949,7 @@ double ParabolaTrajectory::SearchFixedAngleMeetTime(CoordStruct* pSourceCrd, Coo
 {
 	// Similar to method SearchVelocity, no further elaboration will be provided
 	const double delta = 1e-5;
-	double meetTime = 512 * Math::sin(radian) / gravity;
+	double meetTime = 512 * std::sin(radian) / gravity;
 
 	for (int i = 0; i < 10; ++i)
 	{
@@ -983,7 +983,7 @@ double ParabolaTrajectory::CheckFixedAngleEquation(CoordStruct* pSourceCrd, Coor
 	const double horizontalVelocity = horizontalDistance / meetTime;
 
 	// Calculate the vertical velocity
-	const double verticalVelocity = horizontalVelocity * Math::tan(radian);
+	const double verticalVelocity = horizontalVelocity * std::tan(radian);
 
 	// Calculate the time of the rising phase
 	const double upTime = verticalVelocity / gravity;
@@ -1036,19 +1036,21 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 	if (const unsigned char index = pCell->SlopeIndex)
 	{
 		Vector2D<double> factor { 0.0, 0.0 };
+		COMPILETIMEEVAL auto _base_1 = float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _base_2 = float(Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 
-		 //0.3763770469559380854890894443664 ->
-		COMPILETIMEEVAL auto _1_val = Unsorted::LevelHeight / gcem::sqrt(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		//0.3763770469559380854890894443664 ->
+		COMPILETIMEEVAL auto _1_val = Unsorted::LevelHeight / (double)gcem::sqrt(_base_1);
 		// 0.9264665771223091335116047861327 ->
-		COMPILETIMEEVAL auto _2_val = Unsorted::LeptonsPerCell / gcem::sqrt(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _2_val = Unsorted::LeptonsPerCell / (double)gcem::sqrt(_base_1);
 		// 0.3522530794922131411764879370407 ->
-		COMPILETIMEEVAL auto _3_val = Unsorted::LevelHeight / gcem::sqrt(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _3_val = Unsorted::LevelHeight / (double)gcem::sqrt(2 * _base_1);
 		// 0.8670845033654477321267395373309 ->
-		COMPILETIMEEVAL auto _4_val = Unsorted::LeptonsPerCell / gcem::sqrt(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _4_val = Unsorted::LeptonsPerCell / (double)gcem::sqrt(2 * _base_1);
 		// 0.5333964609104418418483761938761 ->
-		COMPILETIMEEVAL auto _5_val = Unsorted::CellHeight / gcem::sqrt(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _5_val = Unsorted::CellHeight / (double)gcem::sqrt(2 * _base_2);
 		// 0.6564879518897745745826168540013 ->
-		COMPILETIMEEVAL auto _6_val = Unsorted::LeptonsPerCell / gcem::sqrt(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _6_val = Unsorted::LeptonsPerCell / (double)gcem::sqrt(2 * _base_2);
 
 		if (index <= 4)
 			factor = Vector2D<double> { _1_val, _2_val };
@@ -1133,9 +1135,9 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 		}
 
 		// 0.4472135954999579392818347337463 ->
-		COMPILETIMEEVAL auto val_7 = 1 / gcem::sqrt(5);
+		COMPILETIMEEVAL auto val_7 = (float)(1 / gcem::sqrt(5));
 		// 0.8944271909999158785636694674925 ->
-		COMPILETIMEEVAL auto val_8 = 2 / gcem::sqrt(5);
+		COMPILETIMEEVAL auto val_8 = (float)(2 / gcem::sqrt(5));
 
 		if (index == 1)
 			return { val_8 * reverseSgnX, val_7 * reverseSgnY, 0.0 };
@@ -1143,7 +1145,7 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 			return { val_7 * reverseSgnX, val_8 * reverseSgnY, 0.0 };
 
 		// 0.7071067811865475244008443621049 ->
-		COMPILETIMEEVAL auto val_9 = 1 / gcem::sqrt(2);
+		COMPILETIMEEVAL auto val_9 = (float)(1 / gcem::sqrt(2));
 		return { val_9 * reverseSgnX, val_9 * reverseSgnY, 0.0 };
 	}
 
@@ -1185,7 +1187,7 @@ bool ParabolaTrajectory::BulletDetonatePreCheck()
 
 		if (horizontalVelocity > 1e-10)
 		{
-			if ((pBullet->Velocity.Z / horizontalVelocity) < Math::tan(pType->DetonationAngle.Get() * Math::Pi / 180))
+			if ((pBullet->Velocity.Z / horizontalVelocity) < std::tan(pType->DetonationAngle.Get() * Math::Pi / 180))
 				return true;
 		}
 		else if (pType->DetonationAngle.Get() > 1e-10 || pBullet->Velocity.Z < 1e-10)

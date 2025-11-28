@@ -151,7 +151,7 @@ Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matri
 			break;
 		default:break;
 		}
-		ret->ScaleX((float)Math::cos(theta));// I know it's ugly
+		ret->ScaleX((float)std::cos(theta));// I know it's ugly
 	}
 	return ret;
 }

@@ -168,18 +168,23 @@ class EventClass
 public:
 	static COMPILETIMEEVAL size_t EventLength_Max = 128;
 
-	static COMPILETIMEEVAL reference<const char*, 0x82091C, 18> const EventNames {};
-	static COMPILETIMEEVAL reference<const char*, 0x82091C, 27> const AddEventNames {};
+	static COMPILETIMEEVAL reference<const char*, 0x82091C, 18u> const EventNames {};
+	static COMPILETIMEEVAL reference<const char*, 0x82091C, 27u> const AddEventNames {};
 	static COMPILETIMEEVAL reference<uint8_t, 0x8208ECu, 46u> const EventLength {};
 
-	static COMPILETIMEEVAL reference<QueueClass<EventClass, EventLength_Max>, 0xA802C8> OutList {};
+	static COMPILETIMEEVAL reference<QueueClass<EventClass, 128u>, 0xA802C8> OutList {};
 
 	// If the event is a MegaMission, then add it to this list
-	static COMPILETIMEEVAL reference<QueueClass<EventClass,0x100>, 0xA83ED0> MegaMissionList {};
+	static COMPILETIMEEVAL reference<QueueClass<EventClass, 256u>, 0xA83ED0> MegaMissionList {};
+
+	// 8 houses, 8-time cache targets
+	static COMPILETIMEEVAL reference<DWORD, 0xAC50FC, 16u> MegaMissionTargetNum {};
+	static COMPILETIMEEVAL reference2D<TargetClass, 0xAFA468, 16u, 128u> MegaMissionTargets{};
+
 	static COMPILETIMEEVAL reference<QueueClass<EventClass,0x4000>, 0x8B41F8> DoList {};
 
 	// this points to CRCs from 0x100 last frames
-	static COMPILETIMEEVAL reference<DWORD, 0xB04474, 256> const LatestFramesCRC {};
+	static COMPILETIMEEVAL reference<DWORD, 0xB04474, 256u> const LatestFramesCRC {};
 	static COMPILETIMEEVAL reference<DWORD, 0xAC51FC> const CurrentFrameCRC {};
 
 	static bool AddEvent(EventClass* pEvent) {

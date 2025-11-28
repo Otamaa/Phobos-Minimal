@@ -91,7 +91,7 @@ ASMJIT_PATCH(0x466705, BulletClass_AI, 0x6) //8
 		TrailsManager::AI(pThis->_AsBullet());
 	}
 	//if (!pThis->Type->Inviso && pBulletExt->InitialBulletDir.has_value())
-	//	pBulletExt->InitialBulletDir = DirStruct((-1) * Math::atan2(pThis->Velocity.Y, pThis->Velocity.X));
+	//	pBulletExt->InitialBulletDir = DirStruct((-1) * std::atan2(pThis->Velocity.Y, pThis->Velocity.X));
 
 	return 0;
 }

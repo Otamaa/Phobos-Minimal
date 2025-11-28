@@ -372,17 +372,17 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 	if (!pType->LeadTimeCalculate && theTargetCoords == theSourceCoords && pBullet->Owner) // For disperse.
 	{
 		const auto theOwnerCoords = pBullet->Owner->GetCoords();
-		rotateAngle = Math::atan2((double)(theTargetCoords.Y - theOwnerCoords.Y), (double)(theTargetCoords.X - theOwnerCoords.X));
+		rotateAngle = std::atan2((double)(theTargetCoords.Y - theOwnerCoords.Y), (double)(theTargetCoords.X - theOwnerCoords.X));
 	}
 	else
 	{
-		rotateAngle = Math::atan2((double)(theTargetCoords.Y - theSourceCoords.Y), (double)(theTargetCoords.X - theSourceCoords.X));
+		rotateAngle = std::atan2((double)(theTargetCoords.Y - theSourceCoords.Y), (double)(theTargetCoords.X - theSourceCoords.X));
 	}
 
 	if (this->OffsetCoord != CoordStruct::Empty)
 	{
-		theTargetCoords.X += static_cast<int>(this->OffsetCoord.X * Math::cos(rotateAngle) + this->OffsetCoord.Y * Math::sin(rotateAngle));
-		theTargetCoords.Y += static_cast<int>(this->OffsetCoord.X * Math::sin(rotateAngle) - this->OffsetCoord.Y * Math::cos(rotateAngle));
+		theTargetCoords.X += static_cast<int>(this->OffsetCoord.X * std::cos(rotateAngle) + this->OffsetCoord.Y * std::sin(rotateAngle));
+		theTargetCoords.Y += static_cast<int>(this->OffsetCoord.X * std::sin(rotateAngle) - this->OffsetCoord.Y * std::cos(rotateAngle));
 		theTargetCoords.Z += this->OffsetCoord.Z;
 	}
 
@@ -426,8 +426,8 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 
 		VelocityClass rotationAxis
 		{
-			axis.X * Math::cos(rotateAngle) + axis.Y * Math::sin(rotateAngle),
-			axis.X * Math::sin(rotateAngle) - axis.Y * Math::cos(rotateAngle),
+			axis.X * std::cos(rotateAngle) + axis.Y * std::sin(rotateAngle),
+			axis.X * std::sin(rotateAngle) - axis.Y * std::cos(rotateAngle),
 			static_cast<double>(axis.Z)
 		};
 
@@ -450,8 +450,8 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 				extraRotate = Math::Pi * (pType->RotateCoord * (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / 180;
 			}
 
-			const auto cosRotate = Math::cos(extraRotate);
-			pBullet->Velocity = (pBullet->Velocity * cosRotate) + (rotationAxis * ((1 - cosRotate) * (pBullet->Velocity * rotationAxis))) + (rotationAxis.CrossProduct(pBullet->Velocity) * Math::sin(extraRotate));
+			const auto cosRotate = std::cos(extraRotate);
+			pBullet->Velocity = (pBullet->Velocity * cosRotate) + (rotationAxis * ((1 - cosRotate) * (pBullet->Velocity * rotationAxis))) + (rotationAxis.CrossProduct(pBullet->Velocity) * std::sin(extraRotate));
 		}
 	}
 

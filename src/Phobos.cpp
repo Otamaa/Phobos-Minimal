@@ -1247,46 +1247,7 @@ bool Phobos::DetachFromDebugger()
 
 
 #pragma endregion
-#include <Misc/Ares/Hooks/Hooks.MouseCursors.h>
 
-static void __cdecl PatchExit(int uExitCode)
-{
-	Phobos::ExeTerminate();
-#ifdef EXPERIMENTAL_IMGUI
-	PhobosWindowClass::Destroy();
-#endif
-	CRT::exit_returnsomething(uExitCode, 0, 0);
-	Debug::DetachLogger();
-}
-
-static void __cdecl PatchExitB(int uExitCode)
-{
-	Phobos::ExeTerminate();
-#ifdef EXPERIMENTAL_IMGUI
-	PhobosWindowClass::Destroy();
-#endif
-	CRT::exit_returnsomething(uExitCode, 1, 0);
-	Debug::DetachLogger();
-}
-
-DECLARE_PATCH(_set_fp_mode)
-{
-	// Call to "store_fpu_codeword"
-	_asm { mov edx, 0x007C5EE4 };
-	_asm { call edx };
-
-	/**
-	 *  Set the FPU mode to match the game (rounding towards zero [chop mode]).
-	 */
-	_set_controlfp(_RC_CHOP, _MCW_RC);
-
-	/**
-	 *  And this is required for the std c++ lib.
-	 */
-	fesetround(FE_TOWARDZERO);
-
-	JMP(0x6BBFCE);
-}
 
 #include <Misc/Multithread.h>
 
@@ -1359,25 +1320,8 @@ NOINLINE void ApplyEarlyFuncs()
 
 		MH_Initialize();
 
-		Mem::preMainInitMemoryManager();
-
 		const auto time = Debug::GetCurTimeA();
 		Patch::Apply_TYPED<DWORD>(0x7B853C, { 1 });
-		Patch::Apply_CALL(0x6BD718, &PatchExit);
-		Patch::Apply_CALL(0x6BD92F, &PatchExit);
-		Patch::Apply_CALL(0x6BDAF4, &PatchExit);
-		Patch::Apply_CALL(0x6BDC8C, &PatchExit);
-		Patch::Apply_CALL(0x6BDD29, &PatchExit);
-		Patch::Apply_CALL(0x6BE1B0, &PatchExit);
-		Patch::Apply_CALL(0x6BEC51, &PatchExit);
-		Patch::Apply_CALL(0x7CD8F3, &PatchExit);
-
-		Patch::Apply_CALL(0x7CD912, &PatchExitB);
-		Patch::Apply_CALL(0x7CD933, &PatchExitB);
-		Patch::Apply_CALL(0x7D4AD8, &PatchExitB);
-		Patch::Apply_CALL(0x7DC70C, &PatchExitB);
-		Patch::Apply_CALL(0x87C2A0, &PatchExitB);
-
 		Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
 
 		const char* loadMode = saved_lpReserved ? "statically" : "dynamicly";
@@ -1562,6 +1506,139 @@ bool StopPatching()
 }
 
 #include <LaserDrawClass.h>
+#include <gcem/gcem.hpp>
+
+bool InspectMathDetailed()
+{
+	struct MathTest
+	{
+		const char* name;
+		float gcem_value;
+		float fastmath_value;
+	};
+
+	// Collect all test cases
+	std::vector<MathTest> tests;
+
+	tests.emplace_back(
+		"expected : 0.3763770469559380854890894443664",
+		Unsorted::LevelHeight / gcem::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+		Unsorted::LevelHeight / std::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	);
+
+	tests.emplace_back(
+		"expected : 0.9264665771223091335116047861327",
+		Unsorted::LeptonsPerCell / gcem::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+		Unsorted::LeptonsPerCell / std::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	);
+
+	tests.emplace_back(
+		"expected : 0.3522530794922131411764879370407",
+		Unsorted::LevelHeight / gcem::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+		Unsorted::LevelHeight / std::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	);
+
+	tests.emplace_back(
+		"expected : 0.8670845033654477321267395373309",
+		Unsorted::LeptonsPerCell / gcem::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+		Unsorted::LeptonsPerCell / std::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	);
+
+	tests.emplace_back(
+		"expected : 0.5333964609104418418483761938761",
+		Unsorted::CellHeight / gcem::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+		Unsorted::CellHeight / std::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	);
+
+	tests.emplace_back(
+		"expected : 0.6564879518897745745826168540013",
+		Unsorted::LeptonsPerCell / gcem::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+		Unsorted::LeptonsPerCell / std::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	);
+
+	tests.emplace_back(
+		"cos(1.570748388432313f)",
+		(float)gcem::cos(1.570748388432313),   // ← Cast to float
+		std::cos(1.570748388432313f)           // ← Use float version
+	);
+
+	tests.emplace_back(
+		"sin(1.570748388432313f)",
+		(float)gcem::sin(1.570748388432313),   // ← Cast to float
+		std::sin(1.570748388432313f)
+	);
+
+	tests.emplace_back(
+		"cos(0.7853262558535721f)",
+		(float)gcem::cos(0.7853262558535721),  // ← Cast to float
+		std::cos(0.7853262558535721f)
+	);
+
+	tests.emplace_back(
+		"sin(0.7853262558535721f)",
+		(float)gcem::sin(0.7853262558535721),  // ← Cast to float
+		std::sin(0.7853262558535721f)
+	);
+
+	tests.emplace_back(
+		"1 / sqrt(5)",
+		(float)(1.0 / gcem::sqrt(5.0)),         // ← Cast to float
+		1.0f / std::sqrt(5.0f)
+	);
+
+	tests.emplace_back(
+		"2 / sqrt(5)",
+		(float)(2.0 / gcem::sqrt(5.0)),         // ← Cast to float
+		2.0f / std::sqrt(5.0f)
+	);
+
+	// Run all tests
+	int passed = 0;
+	int failed = 0;
+
+	Debug::Log("\n=== Math Validation Report ===\n\n");
+
+	for (const auto& test : tests)
+	{
+		// No need to cast - already float
+		if (*(uint32_t*)&test.gcem_value == *(uint32_t*)&test.fastmath_value)
+		{
+			Debug::Log("[PASS] %s\n", test.name);
+			passed++;
+		}
+		else
+		{
+			Debug::Log("[FAIL] %s\n", test.name);
+			Debug::Log("       GCEM:     %.20f (0x%08X)\n",
+					  test.gcem_value, *(uint32_t*)&test.gcem_value);
+			Debug::Log("       FastMath: %.20f (0x%08X)\n",
+					  test.fastmath_value, *(uint32_t*)&test.fastmath_value);
+			Debug::Log("       Diff:     %.20e\n\n",
+					  test.gcem_value - test.fastmath_value);
+			failed++;
+		}
+	}
+
+	Debug::Log("\n=== Summary ===\n");
+	Debug::Log("Passed: %d\n", passed);
+	Debug::Log("Failed: %d\n", failed);
+	Debug::Log("Total:  %d\n", passed + failed);
+
+	if (failed > 0)
+	{
+		Debug::FatalError(
+			"\n%d math validation(s) failed!\n"
+			"GCEM constexpr != FastMath runtime values\n"
+			"This WILL cause multiplayer desyncs.\n",
+			failed
+		);
+		return false;
+	}
+
+	return true;
+}
+
+#include <Misc/Hooks.CRT.h>
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -1572,42 +1649,17 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 		if (IsGamemdExe(nullptr))
 		{
 			Patch::CurrentProcess = GetCurrentProcess();
+			Phobos::hInstance = hInstance;
+			saved_lpReserved = lpReserved;
 
             if (!StartPatching()) {
                 return FALSE;
             }
 
 			DisableThreadLibraryCalls((HMODULE)hInstance);
-
-			/**
-			 *  Call the games fpmath to make sure we init
-			*/
-			Patch_Jump(0x6BBFC9, &_set_fp_mode);
-
-			Phobos::hInstance = hInstance;
-			saved_lpReserved = lpReserved;
 			IsInitialized = true;
-
-			/**
-			 *  C memory functions.
-			*/
-			Hook_Function(0x7C8E17, &std::malloc);
-			Hook_Function(0x7C8B3D, &std::free);
-			Hook_Function(0x7C93E8, &std::free);
-			Hook_Function(0x7D0F45, &std::realloc);
-			Hook_Function(0x7D3374, &std::calloc);
-
-			/**
-			 *  C++ new and delete.
-			*/
-			Hook_Function(0x7C9430, &std::malloc);
-			Hook_Function(0x7D107D, &_msize);
-
-			/**
-			 *  Standard functions.
-			*/
-			Hook_Function(0x7C9CC2, &std::strtok);
-			Hook_Function(0x7D5408, &strdup);
+			CRTHooks::Apply();
+			
 		}
 	}
 	break;
@@ -1695,6 +1747,10 @@ ASMJIT_PATCH(0x52F639, _YR_CmdLineParse, 0x5)
 
 	Phobos::CmdLineParse(ppArgs, nNumArgs);
 	Debug::LogDeferredFinalize();
+
+#ifdef MATHTEST
+	InspectMathDetailed();
+#endif
 
 	return 0;
 }

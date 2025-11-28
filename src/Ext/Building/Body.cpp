@@ -1247,9 +1247,9 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 
 				// Otamaa : the original calculation seems causing missile to be invisible
 				//auto nCos = 0.00004793836;
-				//auto nCos = Math::cos(1.570748388432313); // Accuracy is different from the game
+				//auto nCos = std::cos(1.570748388432313); // Accuracy is different from the game
 				//auto nSin = 0.99999999885;
-				//auto nSin = Math::sin(1.570748388432313);// Accuracy is different from the game
+				//auto nSin = std::sin(1.570748388432313);// Accuracy is different from the game
 
 				const auto nMult = pCreated->Type->Vertical ? 10.0 : 100.0;
 				//const auto nX = nCos * nCos * nMult;
@@ -1305,8 +1305,8 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 			double angle = 1.570748388432313; // ~90 degrees
 			double speed = 10.0;
 
-			double sinA = Math::sin(angle);
-			double cosA = Math::cos(angle);
+			double sinA = std::sin(angle);
+			double cosA = std::cos(angle);
 
 			velocity.X = cosA * sinA * speed;
 			velocity.Y = sinA * speed;
@@ -1461,7 +1461,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		double targetRadX = (targetCoord.X);
 		double targetRadY = (targetCoord.Y);
 
-		double angleToTarget = Math::atan2(
+		double angleToTarget = std::atan2(
 			((double)flhCoord.Y - targetRadY),
 			(targetRadX - (double)flhCoord.X)
 		);
@@ -1473,10 +1473,10 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		int binaryAngle = (int)(angleToTarget * Math::BINARY_ANGLE_MAGIC);
 
 		// --- Base velocity calculation ---
-		double magnitude = Math::sqrt(10000.0);
+		double magnitude = std::sqrt(10000.0);
 		double radians = (double)(binaryAngle - 16383) * -0.00009587672516830327;
 
-		VelocityClass vel { Math::cos(radians) * magnitude  , -(Math::sin(radians) * magnitude)  , 0.0 };
+		VelocityClass vel { std::cos(radians) * magnitude  , -(std::sin(radians) * magnitude)  , 0.0 };
 		vel.SetIfZeroXYZ();
 
 		// Normalize and scale to projectile speed
@@ -1493,7 +1493,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		double xyDistSq = (bulletPos.X - barrelDir.X) * (bulletPos.X - barrelDir.X) +
 			(bulletPos.Y - barrelDir.Y) * (bulletPos.Y - barrelDir.Y);
 
-		double xyDist = Math::sqrt(xyDistSq);
+		double xyDist = std::sqrt(xyDistSq);
 
 		// Recalculate direction if needed
 		DirStruct legal;
@@ -1507,21 +1507,21 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		}
 
 		// --- Pitch adjustment ---
-		double pitch = Math::atan2(vel.Z, vel.LengthXY()) - Math::DEG90_AS_RAD;
+		double pitch = std::atan2(vel.Z, vel.LengthXY()) - Math::DEG90_AS_RAD;
 		int pitchBinary = (int)(pitch * Math::BINARY_ANGLE_MAGIC) - 0x3FFF;
 		double pitchRad = (double)pitchBinary * -0.00009587672516830327;
 
 		if (pitchRad != 0.0)
 		{
-			vel.X /= Math::cos(pitchRad);
-			vel.Y /= Math::cos(pitchRad);
+			vel.X /= std::cos(pitchRad);
+			vel.Y /= std::cos(pitchRad);
 		}
 
 		// --- Facing adjustment ---
 		double dirRad = ((double)legal.Raw - 0x3FFF) * -0.00009587672516830327;
-		vel.X *= Math::cos(dirRad);
-		vel.Y *= Math::cos(dirRad);
-		vel.Z = Math::sin(dirRad) * speed;
+		vel.X *= std::cos(dirRad);
+		vel.Y *= std::cos(dirRad);
+		vel.Z = std::sin(dirRad) * speed;
 
 
 		auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(bullet->Type);

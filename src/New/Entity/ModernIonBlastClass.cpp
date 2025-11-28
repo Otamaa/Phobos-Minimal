@@ -31,10 +31,10 @@ Vector3D<float> NormalizeVector(const Vector3D<float>& vector)
 {
 	Vector3D normalized = { 0.0f, 0.0f, 0.0f };
 
-	const float magnitude = Math::sqrt(vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
+	const float magnitude = std::sqrt(vector.X * vector.X + vector.Y * vector.Y + vector.Z * vector.Z);
 
 	if (Math::abs(magnitude) > 0.00002) {
-		const double horizontalMagnitude = Math::sqrt(vector.Y * vector.Y + vector.X * vector.X);
+		const double horizontalMagnitude = std::sqrt(vector.Y * vector.Y + vector.X * vector.X);
 
 		if (horizontalMagnitude != 0.0) {
 			normalized.X = vector.X / horizontalMagnitude;
@@ -588,7 +588,7 @@ void ModernIonBlastClass::DrawRealTime()
 			// CRITICAL: Use elliptical distance (4*y*y) to match original
 			// This compensates for isometric projection
 			float distanceSquared = (float)(deltaX * deltaX + 4 * deltaY * deltaY);
-			float distance = Math::sqrt(distanceSquared);
+			float distance = std::sqrt(distanceSquared);
 
 			// Calculate wave intensity using original formula
 			float intensity = CalculateWaveIntensity(distance, state);
@@ -603,7 +603,7 @@ void ModernIonBlastClass::DrawRealTime()
 				continue;
 
 			// Calculate distortion offset
-			float angle = Math::atan2((float)deltaY, (float)deltaX);
+			float angle = std::atan2((float)deltaY, (float)deltaX);
 			Point2D offset = CalculateDistortionOffset(intensity, distance, angle, deltaX, deltaY);
 
 			// Apply offset to get source pixel
@@ -632,7 +632,7 @@ float ModernIonBlastClass::CalculateWaveIntensity(float distance, int frameState
 {
 	// Use configurable wave parameters
 	double wavePhase = distance - (double)frameState * Config.WaveSpeed + Config.WavePhaseOffset;
-	double waveValue = Math::sin(wavePhase * Config.WaveFrequency) * Config.WaveAmplitude + Config.WaveBase;
+	double waveValue = std::sin(wavePhase * Config.WaveFrequency) * Config.WaveAmplitude + Config.WaveBase;
 	double distanceFalloff = distance / Config.DistanceScale + 1.0;
 
 	return (float)(waveValue / distanceFalloff + 0.5);
@@ -733,8 +733,8 @@ Point2D ModernIonBlastClass::CalculateRadialOffset(float intensity, float distan
 	float displacement = intensity * 3.0f;
 
 	return {
-		(int)(Math::cos(angle) * displacement),
-		(int)(Math::sin(angle) * displacement)
+		(int)(std::cos(angle) * displacement),
+		(int)(std::sin(angle) * displacement)
 	};
 }
 
@@ -742,14 +742,14 @@ Point2D ModernIonBlastClass::CalculateWaveOffset(float intensity, float distance
 {
 	// Ripple wave pattern - concentric circular waves
 	float wavePhase = distance * 0.1f - frameState * 0.2f;
-	float waveFactor = Math::sin(wavePhase) * intensity * 2.0f;
+	float waveFactor = std::sin(wavePhase) * intensity * 2.0f;
 
 	// Displacement perpendicular to radius (tangential)
 	float perpAngle = angle + 1.5708f; // +90 degrees
 
 	return {
-		(int)(Math::cos(perpAngle) * waveFactor),
-		(int)(Math::sin(perpAngle) * waveFactor)
+		(int)(std::cos(perpAngle) * waveFactor),
+		(int)(std::sin(perpAngle) * waveFactor)
 	};
 }
 
@@ -933,7 +933,7 @@ void ModernIonBlastClass::ProcessUnitInBlast(FootClass* unit, const Point2D& bla
 	// Calculate distance from blast center
 	int deltaX = unitPixel.X - blastPixel.X;
 	int deltaY = unitPixel.Y - blastPixel.Y;
-	int distance = (int)Math::sqrt((double)(deltaX * deltaX + deltaY * deltaY)) + 8;
+	int distance = (int)std::sqrt((double)(deltaX * deltaX + deltaY * deltaY)) + 8;
 
 	// Only affect units within configurable blast radius
 	if (distance >= maxEffectDistance)
@@ -977,13 +977,13 @@ void ModernIonBlastClass::ApplyRotationEffectsToUnit(FootClass* unit, const Vect
 {
 	// Use configurable wave parameters instead of hardcoded values
 	double wavePhase = distance - (double)state * Config.WaveSpeed + Config.WavePhaseOffset;
-	double waveAmplitude = Math::sin(wavePhase * Config.WaveFrequency) * Config.WaveAmplitude + Config.WaveBase;
-	double waveDerivative = Math::cos(wavePhase * Config.WaveFrequency) * Config.WaveFrequency * Config.DistanceScale * Config.WaveAmplitude;
+	double waveAmplitude = std::sin(wavePhase * Config.WaveFrequency) * Config.WaveAmplitude + Config.WaveBase;
+	double waveDerivative = std::cos(wavePhase * Config.WaveFrequency) * Config.WaveFrequency * Config.DistanceScale * Config.WaveAmplitude;
 
 	// Calculate rotation vectors
 	float rotationFactorX = direction.X * cosFacing + direction.Y * sinFacing;
 	float rotationFactorY = direction.X * sinFacing - direction.Y * cosFacing;
-	float rotationMagnitude = Math::sqrt(rotationFactorY * rotationFactorY +
+	float rotationMagnitude = std::sqrt(rotationFactorY * rotationFactorY +
 										   direction.Z * direction.Z);
 
 	// Validate rotation direction (same validation logic but configurable thresholds)
@@ -1027,7 +1027,7 @@ void ModernIonBlastClass::ApplyPhysicsEffectsToUnit(FootClass* unit, int distanc
 
 	// Calculate physics vectors and rotations
 	Vector3D<float> blastToUnit = CalculateBlastVector(this, unit);
-	float magnitude = Math::sqrt(blastToUnit.X * blastToUnit.X + blastToUnit.Y * blastToUnit.Y + blastToUnit.Z * blastToUnit.Z);
+	float magnitude = std::sqrt(blastToUnit.X * blastToUnit.X + blastToUnit.Y * blastToUnit.Y + blastToUnit.Z * blastToUnit.Z);
 	Vector3D<float> normalizedDirection = NormalizeVector(blastToUnit);
 
 	// Get unit facing direction
@@ -1035,8 +1035,8 @@ void ModernIonBlastClass::ApplyPhysicsEffectsToUnit(FootClass* unit, int distanc
 	double facingAngle = (unitFacing.Raw - 0x3FFF) * -0.00009587672516830327;
 
 	// Calculate rotation effects based on configurable blast wave
-	float sinFacing = Math::sin(facingAngle);
-	float cosFacing = Math::cos(facingAngle);
+	float sinFacing = std::sin(facingAngle);
+	float cosFacing = std::cos(facingAngle);
 
 	ApplyRotationEffectsToUnit(unit, normalizedDirection, sinFacing, cosFacing, magnitude);
 }

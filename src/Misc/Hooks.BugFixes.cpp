@@ -1810,8 +1810,8 @@ ASMJIT_PATCH(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x
 	if (distance > currentSpeed)
 	{
 		REF_STACK(CoordStruct, newLoc, STACK_OFFSET(0x40, -0xC));
-		double angle = -Math::atan2((float)(currLoc.Y - pLoco->_CoordsNow.Y), (float)(pLoco->_CoordsNow.X - currLoc.X));
-		newLoc = currLoc + CoordStruct { int((double)currentSpeed * Math::cos(angle)), int((double)currentSpeed * Math::sin(angle)), 0 };
+		double angle = -std::atan2((float)(currLoc.Y - pLoco->_CoordsNow.Y), (float)(pLoco->_CoordsNow.X - currLoc.X));
+		newLoc = currLoc + CoordStruct { int((double)currentSpeed * std::cos(angle)), int((double)currentSpeed * std::sin(angle)), 0 };
 		return 0x7298D3;
 	}
 	return 0x7295CE;

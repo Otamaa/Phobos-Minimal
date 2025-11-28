@@ -169,6 +169,7 @@
     <ClCompile Include="src\Misc\CustomMemoryManager.cpp" />
     <ClCompile Include="src\Misc\Hook.CommandButtons.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
+    <ClCompile Include="src\Misc\Hooks.CRT.cpp" />
     <ClCompile Include="src\Misc\Hooks.GlobalLoadGame.cpp" />
     <ClCompile Include="src\Misc\Hooks.GlobalSaveGame.cpp" />
     <ClCompile Include="src\Misc\Hooks.LoadOptionClass.cpp" />
@@ -795,6 +796,7 @@
     <ClInclude Include="src\Lib\Zydis\Zydis.h" />
     <ClInclude Include="src\Misc\BuildingFoundations.h" />
     <ClInclude Include="src\Misc\CustomMemoryManager.h" />
+    <ClInclude Include="src\Misc\Hooks.CRT.h" />
     <ClInclude Include="src\Misc\Spawner\SavedGamesInSubdir.h" />
     <ClInclude Include="src\New\AnonymousType\BlockTypeClass.h" />
     <ClInclude Include="src\New\AnonymousType\CreateUnitTypeClass.h" />
@@ -1108,6 +1110,7 @@
     <ClInclude Include="src\New\Entity\LaserTrailClass.h" />
     <ClInclude Include="src\New\Type\TheaterTypeClass.h" />
     <ClInclude Include="src\Phobos.Ext.h" />
+    <ClInclude Include="src\Phobos.Math.h" />
     <ClInclude Include="src\Phobos.UI.h" />
     <ClInclude Include="src\PhobosSaveVersionInfo.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />
@@ -1295,7 +1298,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointModel>Strict</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>

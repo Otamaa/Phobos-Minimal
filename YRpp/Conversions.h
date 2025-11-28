@@ -1,10 +1,10 @@
 #pragma once
 
-#include <CRT.h>
 #include <sstream>
 #include <WarheadFlags.h>
 #include <Helpers/Macro.h>
 #include <YRMath.h>
+#include <Phobos.CRT.h>
 
 // converters
 struct Conversions
@@ -12,7 +12,7 @@ struct Conversions
 	static double Str2Armor(const char *buf, WarheadFlags *whFlags) {
 
 		double val = 0.0;
-		if(strchr(buf, '%')) { // convert to double
+		if(PhobosCRT::fast_strchr_simd(buf, '%')) { // convert to double
 			val = atoi(buf) * 0.01;
 		} else {
 			val = atof(buf);
@@ -68,7 +68,7 @@ struct Conversions
 		if (!strlen(buf))
 			return false;
 
-		if (CRT::strchr(buf, '%')) {
+		if (PhobosCRT::fast_strchr_simd(buf, '%')) {
 			return true ;
 		}
 		else if(IsValidFloat(buf)) {

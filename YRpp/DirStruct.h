@@ -92,10 +92,10 @@ public:
 	{ }
 
 	explicit DirStruct(double Y, double X) noexcept : Raw { 0 }
-	{ SetRadian<65536>(Math::atan2(Y, X)); }
+	{ SetRadian<65536>(std::atan2(Y, X)); }
 
 	explicit DirStruct(int x1, int y1, int x2, int y2) noexcept : Raw { 0 }
-	{ SetRadian<65536>(Math::atan2((double)y2 - y1, (double)x2 - x1)); }
+	{ SetRadian<65536>(std::atan2((double)y2 - y1, (double)x2 - x1)); }
 
 
 	COMPILETIMEEVAL FORCEDINLINE bool operator==(const DirStruct& another) const

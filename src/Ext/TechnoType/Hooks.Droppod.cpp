@@ -128,8 +128,8 @@ struct DroppodProperties_
 		const int speed = std::max(maxspeed, pLinked->GetHeight() / 10 + 2);
 
 		CoordStruct coords = pLinked->Location;
-		coords.X += int(Math::cos(angle) * speed * (pLoco->OutOfMap ? 1 : -1));
-		coords.Z -= int(Math::sin(angle) * speed);
+		coords.X += int(std::cos(angle) * speed * (pLoco->OutOfMap ? 1 : -1));
+		coords.Z -= int(std::sin(angle) * speed);
 
 		if (pLinked->GetHeight() > 0)
 		{
@@ -255,10 +255,10 @@ struct DroppodProperties_
 		if (!MapClass::Instance->IsWithinUsableArea(coord))
 		{
 			pLoco->OutOfMap = true;
-			coord.X -= int(height / Math::tan(angle));
+			coord.X -= int(height / std::tan(angle));
 		}
 		else
-			coord.X += int(height / Math::tan(angle));
+			coord.X += int(height / std::tan(angle));
 
 		pLoco->LinkedTo->SetLocation(coord);
 

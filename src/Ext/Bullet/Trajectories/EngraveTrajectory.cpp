@@ -187,19 +187,19 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 		pBullet->Target = MapClass::Instance->TryGetCellAt(TheSourceCoords);
 	}
 
-	double RotateAngle = Math::atan2(float(TheTargetCoords.Y - TheSourceCoords.Y), float(TheTargetCoords.X - TheSourceCoords.X));
+	double RotateAngle = std::atan2(float(TheTargetCoords.Y - TheSourceCoords.Y), float(TheTargetCoords.X - TheSourceCoords.X));
 	if (this->SourceCoord.X != 0 || this->SourceCoord.Y != 0)
 	{
 		TheSourceCoords = TheTargetCoords;
-		TheSourceCoords.X += static_cast<int>(this->SourceCoord.X * Math::cos(RotateAngle) + this->SourceCoord.Y * Math::sin(RotateAngle));
-		TheSourceCoords.Y += static_cast<int>(this->SourceCoord.X * Math::sin(RotateAngle) - this->SourceCoord.Y * Math::cos(RotateAngle));
+		TheSourceCoords.X += static_cast<int>(this->SourceCoord.X * std::cos(RotateAngle) + this->SourceCoord.Y * std::sin(RotateAngle));
+		TheSourceCoords.Y += static_cast<int>(this->SourceCoord.X * std::sin(RotateAngle) - this->SourceCoord.Y * std::cos(RotateAngle));
 	}
 
 	TheSourceCoords.Z = GetFloorCoordHeight(TheSourceCoords);
 	pBullet->SetLocation(TheSourceCoords);
 
-	TheTargetCoords.X += static_cast<int>(this->TargetCoord.X * Math::cos(RotateAngle) + this->TargetCoord.Y * Math::sin(RotateAngle));
-	TheTargetCoords.Y += static_cast<int>(this->TargetCoord.X * Math::sin(RotateAngle) - this->TargetCoord.Y * Math::cos(RotateAngle));
+	TheTargetCoords.X += static_cast<int>(this->TargetCoord.X * std::cos(RotateAngle) + this->TargetCoord.Y * std::sin(RotateAngle));
+	TheTargetCoords.Y += static_cast<int>(this->TargetCoord.X * std::sin(RotateAngle) - this->TargetCoord.Y * std::cos(RotateAngle));
 
 	pBullet->SourceCoords = TheSourceCoords;
 	pBullet->TargetCoords = TheTargetCoords;
@@ -311,8 +311,8 @@ bool EngraveTrajectory::OnAI()
 			else
 				RotateAngle = static_cast<float>(-(pTechno->PrimaryFacing.Current().GetRadian<32>()));
 
-			FireCoord.X += static_cast<int>(this->FLHCoord.X * Math::cos(RotateAngle) + this->FLHCoord.Y * Math::sin(RotateAngle));
-			FireCoord.Y += static_cast<int>(this->FLHCoord.X * Math::sin(RotateAngle) - this->FLHCoord.Y * Math::cos(RotateAngle));
+			FireCoord.X += static_cast<int>(this->FLHCoord.X * std::cos(RotateAngle) + this->FLHCoord.Y * std::sin(RotateAngle));
+			FireCoord.Y += static_cast<int>(this->FLHCoord.X * std::sin(RotateAngle) - this->FLHCoord.Y * std::cos(RotateAngle));
 
 			if (const auto pBuildingType = static_cast<BuildingTypeClass*>(pTechno->GetTechnoType()))
 				FireCoord.Z += this->FLHCoord.Z + 30 * (pBuildingType->GetFoundationWidth() + pBuildingType->GetFoundationHeight(false) + 2);

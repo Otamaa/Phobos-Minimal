@@ -211,7 +211,7 @@ ASMJIT_PATCH(0x468B72, BulletClass_Unlimbo_Trajectories, 0x5)
 
 	PhobosTrajectory::CreateInstance(pThis, pCoord, pOriginalVelocity);
 	//if (WarheadTypeExtContainer::Instance.Find(pThis->WH)->DirectionalArmor) {
-	//	BulletExtContainer::Instance.Find(pThis)->InitialBulletDir = DirStruct(Math::atan2(static_cast<double>(pThis->SourceCoords.Y - pThis->TargetCoords.Y), static_cast<double>(pThis->TargetCoords.X - pThis->SourceCoords.X)));
+	//	BulletExtContainer::Instance.Find(pThis)->InitialBulletDir = DirStruct(std::atan2(static_cast<double>(pThis->SourceCoords.Y - pThis->TargetCoords.Y), static_cast<double>(pThis->TargetCoords.X - pThis->SourceCoords.X)));
 	//}
 
 	return 0;

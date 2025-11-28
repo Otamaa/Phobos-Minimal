@@ -5,6 +5,7 @@
 #include "Patch.h"
 
 #define NAKED __declspec(naked)
+static constexpr inline int addressoffset = 5;
 
 #define DECLARE_PATCH(name) \
     [[ noreturn ]] static NOINLINE NAKED void name() noexcept
@@ -31,7 +32,7 @@ struct _LJMP
 	COMPILETIMEEVAL
 		_LJMP(DWORD offset, DWORD pointer) :
 		command(LJMP_LETTER),
-		pointer(pointer - offset - 5)
+		pointer(pointer - offset - addressoffset)
 	{
 	};
 
@@ -57,7 +58,7 @@ struct _CALL
 	COMPILETIMEEVAL
 		_CALL(DWORD offset, DWORD pointer) :
 		command(CALL_LETTER),
-		pointer(pointer - offset - 5)
+		pointer(pointer - offset - addressoffset)
 	{
 	};
 
@@ -76,7 +77,7 @@ struct _CALL6
 	COMPILETIMEEVAL
 		_CALL6(DWORD offset, DWORD pointer) :
 		command(CALL_LETTER),
-		pointer(pointer - offset - 5),
+		pointer(pointer - offset - addressoffset),
 		nop(NOP_LETTER)
 	{
 	};
@@ -257,65 +258,6 @@ struct MiscTools
 		return reinterpret_cast<DWORD>(((void*&)new_address));
 	}
 };
-
-template<typename T>
-void FORCEDINLINE Patch_Jump(uintptr_t address, T new_address)
-{
-	static_assert(sizeof(_LJMP) == 5, "Jump struct not expected size!");
-
-	SIZE_T bytes_written { 0u };
-	_LJMP cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
-	DWORD oldprotect;
-	VirtualProtect((LPVOID)address, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
-	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
-	VirtualProtect((LPVOID)address, sizeof(uint32_t), oldprotect, &oldprotect);
-}
-
-template<typename T>
-void FORCEDINLINE Patch_Call(uintptr_t address, T new_address)
-{
-	static_assert(sizeof(_CALL) == 5, "Call struct not expected size!");
-
-	SIZE_T bytes_written { 0u };
-	_CALL cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
-	DWORD oldprotect;
-	VirtualProtect((LPVOID)address, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
-	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_CALL), &bytes_written);
-	VirtualProtect((LPVOID)address, sizeof(uint32_t), oldprotect, &oldprotect);
-}
-
-template<typename T>
-void FORCEDINLINE Hook_Function(uintptr_t address, T new_address) {
-    Patch_Jump(address, reinterpret_cast<uintptr_t>((void *&)new_address));
-}
-
-template<typename T>
-void FORCEDINLINE Patch_Call6(uintptr_t address, T new_address)
-{
-	static_assert(sizeof(_CALL6) == 6, "Call6 struct not expected size!");
-
-	SIZE_T bytes_written { 0u };
-	_CALL6 cmd { address, reinterpret_cast<uintptr_t>((void*&)new_address) };
-	cmd.command = LJMP_LETTER;
-	DWORD oldprotect;
-	VirtualProtect((LPVOID)address, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
-	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_LJMP), &bytes_written);
-	VirtualProtect((LPVOID)address, sizeof(uint32_t), oldprotect, &oldprotect);
-}
-
-template<typename T>
-void FORCEDINLINE Patch_Vtable(uintptr_t address, T new_address)
-{
-	static_assert(sizeof(_VTABLE) == 4, "Vtable struct not expected size!");
-
-	SIZE_T bytes_written { 0u };
-
-	_VTABLE cmd { address  , reinterpret_cast<uintptr_t>((void*&)new_address) };
-	DWORD oldprotect;
-	VirtualProtect((LPVOID)address, sizeof(uint32_t), PAGE_EXECUTE_READWRITE, &oldprotect);
-	WriteProcessMemory(Patch::CurrentProcess, (LPVOID)address, &cmd, sizeof(_VTABLE), &bytes_written);
-	VirtualProtect((LPVOID)address, sizeof(uint32_t), oldprotect, &oldprotect);
-}
 
 #pragma endregion Macros
 #pragma endregion Patch Macros

@@ -238,7 +238,7 @@ ASMJIT_PATCH(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 	const auto nFrame = (Unsorted::CurrentFrame + pThis->Fetch_ID()) % 15;
 	const double nMissileROTVar = pThis->_GetTypeExtData()->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
 
-	R->EAX(int(Math::sin(static_cast<double>(nFrame) *
+	R->EAX(int(std::sin(static_cast<double>(nFrame) *
 		0.06666666666666667 *
 		6.283185307179586) *
 		nMissileROTVar + nMissileROTVar + 1.0) *

@@ -32,22 +32,7 @@
 
 #pragma once
 
-OPTIONALINLINE bool Parse_vanilla_double(const char* pValue, double* outValue)
-{
-	// Game doesn't use double precision when parsing, using double here would create inconsistency.
-	float buffer = 0.0f;
-	// Use game's sscanf function, the C library one has different precision/rounding.
-	if (CRT::sscanf(pValue, "%f", &buffer) == 1) {
-		if (strchr(pValue, '%')) {
-			buffer *= 0.01f;
-		}
-
-		*outValue = buffer;
-		return true;
-	}
-
-	return false;
-};
+#include <Phobos.CRT.h>
 
 //! Parses strings into one or more elements of another type.
 /*!
@@ -254,29 +239,35 @@ OPTIONALINLINE bool Parser<int>::TryParse(const char* pValue, OutType* outValue)
 template<>
 OPTIONALINLINE bool Parser<double>::TryParse(const char* pValue, OutType* outValue) {
 
-	//if (Phobos::Config::UseNewInheritance)
-	//	return Parse_vanilla_double(pValue, outValue);
-	//
-	//double buffer = 0.0;
-	//if (sscanf_s(pValue, "%lf", &buffer) == 1) {
-	//	if (strchr(pValue, '%')) {
-	//		buffer *= 0.01;
-	//	}
-	//
-	//	*outValue = buffer;
-	//	return true;
-	//}
-	//
-	//return false;
+	errno = 0;
+	char* end = nullptr;
 
-	return Parse_vanilla_double(pValue, outValue);
+	// Nov 23, 2025 - Starkku: strtod() + cast result to float produces results
+	// more similar to game's CRT functions than using sscanf_s.
+	double value = strtod(pValue, &end);
+
+	if (pValue == end || errno == ERANGE || !std::isfinite(value))
+		return false;
+
+	float floatValue = static_cast<float>(value);
+
+	if (PhobosCRT::fast_strchr_simd(pValue, '%')) {
+		floatValue *= 0.01f;
+	}
+
+	if (outValue) {
+		*outValue = floatValue;
+	}
+	return true;
 };
 
 template<>
 OPTIONALINLINE bool Parser<float>::TryParse(const char* pValue, OutType* outValue) {
 	double buffer = 0.0;
 	if (Parser<double>::TryParse(pValue, &buffer)) {
-		*outValue = static_cast<float>(buffer);
+		if (outValue) {
+			*outValue = static_cast<float>(buffer);
+		}
 		return true;
 	}
 	return false;
@@ -313,10 +304,7 @@ OPTIONALINLINE bool Parser<short>::TryParse(const char* pValue, OutType* outValu
 	if (!Parser<int>::TryParse(pValue, &buffer))
 		return false;
 
-	if (buffer > std::numeric_limits<short>::max())
-		return false;
-
-	if (buffer < std::numeric_limits<short>::min())
+	if (buffer > std::numeric_limits<short>::max() || buffer < std::numeric_limits<short>::min())
 		return false;
 
 	*outValue = static_cast<short>(buffer);

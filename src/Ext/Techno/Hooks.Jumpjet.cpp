@@ -353,9 +353,9 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 			double scalex = linked->GetTechnoType()->VoxelScaleX;
 			double scaley = linked->GetTechnoType()->VoxelScaleY;
 			Matrix3D pre = Matrix3D::GetIdentity();
-			pre.TranslateZ(float(Math::abs(Math::sin(ars)) * scalex + Math::abs(Math::sin(arf)) * scaley));
-			ret->TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
-			ret->TranslateY(float(Math::signum(-ars) * (scalex * (1 - Math::cos(ars)))));
+			pre.TranslateZ(float(Math::abs(std::sin(ars)) * scalex + Math::abs(std::sin(arf)) * scaley));
+			ret->TranslateX(float(Math::signum(arf) * (scaley * (1 - std::cos(arf)))));
+			ret->TranslateY(float(Math::signum(-ars) * (scalex * (1 - std::cos(ars)))));
 			ret->RotateX(ars);
 			ret->RotateY(arf);
 			*ret = pre * *ret;
@@ -537,7 +537,7 @@ ASMJIT_PATCH(0x54D326, JumpjetLocomotionClass_MovementAI_CrashSpeedFix, 0x6)
 //		{
 //			CoordStruct& source = pThis->Location;
 //			CoordStruct target = pTarget->GetCoords();
-//			DirStruct tgtDir = DirStruct(Math::atan2(source.Y - target.Y, target.X - source.X));
+//			DirStruct tgtDir = DirStruct(std::atan2(source.Y - target.Y, target.X - source.X));
 //
 //			if (pThis->GetRealFacing().Current().GetFacing<32>() != tgtDir.GetFacing<32>())
 //				pLoco->Facing.Set_Desired(tgtDir);
@@ -630,7 +630,7 @@ int JumpjetRushHelpers::JumpjetLocomotionPredictHeight(JumpjetLocomotionClass* p
 			? Unsorted::LeptonsPerCell
 			: MinImpl((Unsorted::LeptonsPerCell * 5), pFoot->DistanceFrom(pFoot->Destination)); // Predict the distance of 5 cells ahead
 		const double angle = -pThis->Facing.Current().GetRadian<65536>();
-		const auto checkCoord = Point2D { static_cast<int>(checkLength * Math::cos(angle) + 0.5), static_cast<int>(checkLength * Math::sin(angle) + 0.5) };
+		const auto checkCoord = Point2D { static_cast<int>(checkLength * std::cos(angle) + 0.5), static_cast<int>(checkLength * std::sin(angle) + 0.5) };
 		const int largeStep = MaxImpl(Math::abs(checkCoord.X), Math::abs(checkCoord.Y));
 		const int checkSteps = (largeStep > Unsorted::LeptonsPerCell) ? (largeStep / Unsorted::LeptonsPerCell + 1) : 1;
 		const auto stepCoord = Point2D { (checkCoord.X / checkSteps), (checkCoord.Y / checkSteps) };

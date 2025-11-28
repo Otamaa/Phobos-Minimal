@@ -351,8 +351,8 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 								int rand = Math::abs(ScenarioClass::Instance->Random.RandomRanged((int)nMin, (int)nMax));
 								double randDouble = ScenarioClass::Instance->Random.RandomDouble() * rad + start_distance;
 								CoordStruct dest {
-									InitialCoord.X + int(rand * Math::cos(randDouble)),
-									InitialCoord.Y - int(Math::sin(randDouble) * rand),
+									InitialCoord.X + int(rand * std::cos(randDouble)),
+									InitialCoord.Y - int(std::sin(randDouble) * rand),
 									nCoord.Z
 								};
 

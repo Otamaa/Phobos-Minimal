@@ -6,7 +6,6 @@
 #include <Unsorted.h>
 #include <YRCom.h>
 #include <Helpers/ComPtr.h>
-#include <Matrix3D.h>
 #include "CLSIDs.h"
 
 struct LocoIdent
@@ -17,6 +16,7 @@ struct LocoIdent
 	const char* s_CLSID;
 };
 
+class Matrix3D;
 class NOVTABLE LocomotionClass : public IPersistStream, public ILocomotion
 {
 public:

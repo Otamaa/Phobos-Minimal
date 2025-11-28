@@ -19,7 +19,7 @@ WORD GetFacingVal(CoordStruct a2, CoordStruct a3)
 		return 0;
 
 	return (WORD)(DWORD)(
-		(__int64)((Math::atan2(double(a2.Y - a3.Y), double(a2.X - a3.X))
+		(__int64)((std::atan2(double(a2.Y - a3.Y), double(a2.X - a3.X))
 			- Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC));
 }
 
@@ -64,7 +64,7 @@ void LevitateLocomotionClass::ProcessHovering()
 	const auto nFrame = Unsorted::CurrentFrame + 2 * pTechWhat;
 	const auto nHoverBob = dMult * RulesClass::Instance->HoverBob * 900.0;
 	const auto nVal2 = (nFrame % int(nHoverBob)) * Math::TwoPi / nHoverBob;
-	const auto nVal3 = Math::sin((float)nVal2);
+	const auto nVal3 = std::sin((float)nVal2);
 	int nDampenResult = (int)(nVal3 + nVal3 + nDampen);
 
 	if (nDampenResult < 0)
@@ -248,8 +248,8 @@ void LevitateLocomotionClass::CalculateDir_Close(CoordStruct nTarget)
 	CoordStruct _remaining = Coord - TCoord;
 	DirStruct _dirCoord { (double)_remaining.Y , (double)_remaining.X };
 	const auto nMath_2 = _dirCoord.GetRadian<65536>();
-	const auto nMath_3 = Math::sin((float)nMath_2);
-	const auto nMath_4 = Math::cos((float)nMath_2);
+	const auto nMath_3 = std::sin((float)nMath_2);
+	const auto nMath_4 = std::cos((float)nMath_2);
 
 	this->CurrentSpeed = 0.0;
 	this->AccelerationDurationNegSinus = 0.0;
@@ -278,8 +278,8 @@ void LevitateLocomotionClass::DirtoSomething(double dValue)
 	AccelerationDuration = Characteristic.Accel_Dur;
 	const auto nAccel = Characteristic.Accel;
 	const auto nInitboost = Characteristic.Initial_Boost;
-	const auto nSin = Math::sin((float)dValue);
-	const auto nCos = Math::cos((float)dValue);
+	const auto nSin = std::sin((float)dValue);
+	const auto nCos = std::cos((float)dValue);
 	AccelerationDurationCosinus = nAccel * nCos;
 	AccelerationDurationNegSinus = -(nAccel * nCos);
 	Delta.X = nInitboost * nCos + Delta.X;
@@ -458,7 +458,7 @@ void LevitateLocomotionClass::DoPhase5(CoordStruct coord)
 		if (this->IsLessSameThanProximityDistance(coord))
 		{
 			const auto nCoord = LinkedTo->GetCenterCoords();
-			const auto atan = Math::atan2(double(nCoord.Y - coord.Y), double(nCoord.X - coord.X));
+			const auto atan = std::atan2(double(nCoord.Y - coord.Y), double(nCoord.X - coord.X));
 			const auto nDir = (double)((__int16)(__int64)((atan - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC) - 0x3FFF) *
 				-0.00009587672516830327;
 			this->DirtoSomething(nDir);
@@ -466,10 +466,10 @@ void LevitateLocomotionClass::DoPhase5(CoordStruct coord)
 		else
 		{
 			const auto Coord = LinkedTo->GetCenterCoords();
-			const auto atan2 = Math::atan2((double)(Coord.Y - coord.Y), (double)(Coord.X - coord.X));
+			const auto atan2 = std::atan2((double)(Coord.Y - coord.Y), (double)(Coord.X - coord.X));
 			const auto nMath_2 = (double)((__int16)(__int64)((atan2 - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC) - 0x3FFF) * -0.00009587672516830327;;
-			const auto nMath_3 = Math::sin((float)nMath_2);
-			const auto nMath_4 = Math::cos((float)nMath_2);
+			const auto nMath_3 = std::sin((float)nMath_2);
+			const auto nMath_4 = std::cos((float)nMath_2);
 
 			this->CurrentSpeed = 0.0;
 			this->AccelerationDurationNegSinus = 0.0;
@@ -587,7 +587,7 @@ void LevitateLocomotionClass::DoPhase7()
 				const auto nCoord_diff = nTargetCoord - LinkedTo->GetCenterCoords();
 				const auto nFaceRaw = LinkedTo->PathDirections[0] != 0 ?
 					(int)LinkedTo->PathDirections[0] << 13 :
-					(unsigned short)(((Math::atan2(double(nCoord_diff.Y), double(nCoord_diff.X))) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
+					(unsigned short)(((std::atan2(double(nCoord_diff.Y), double(nCoord_diff.X))) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
 
 				const auto nFace_Value = float((double)(nFaceRaw - 0x3FFF) * -0.00009587672516830327);
 				const auto nSin = std::sinf(nFace_Value);
@@ -628,7 +628,7 @@ void LevitateLocomotionClass::DoPhase7()
 			const auto nCoord_diff = nTargetCoord - LinkedTo->GetRenderCoords();
 			const auto nFaceRaw = LinkedTo->PathDirections[0] != 0 ?
 				(int)LinkedTo->PathDirections[0] << 13 :
-				(unsigned short)(((Math::atan2(double(nCoord_diff.Y), double(nCoord_diff.X))) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
+				(unsigned short)(((std::atan2(double(nCoord_diff.Y), double(nCoord_diff.X))) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
 
 			const auto nFace_Value = (double)(nFaceRaw - 0x3FFF) * -0.00009587672516830327;
 			const auto nSin = std::sinf(float(nFace_Value));
@@ -714,7 +714,7 @@ void LevitateLocomotionClass::ProcessSomething()
 		this->Delta.Y = this->AccelerationDurationNegSinus + this->Delta.Y;
 	}
 
-	this->CurrentVelocity = Math::sqrt(this->Delta.Y * this->Delta.Y + this->Delta.X * this->Delta.X);
+	this->CurrentVelocity = std::sqrt(this->Delta.Y * this->Delta.Y + this->Delta.X * this->Delta.X);
 
 	const CoordStruct nDelta = { (int)this->Delta.X , (int)this->Delta.Y , 0 };
 	const CoordStruct nRender = LinkedTo->GetCenterCoords();
