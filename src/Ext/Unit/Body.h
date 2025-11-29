@@ -114,6 +114,7 @@ public:
 	void _ClearOccupyBit(CoordStruct* pCrd);
 
 	void _Detach(AbstractClass* target, bool all);
+	DamageState _Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 
 	FORCEDINLINE UnitExtData* _GetExtData() {
 		return *reinterpret_cast<UnitExtData**>(((DWORD)this) + AbstractExtOffset);

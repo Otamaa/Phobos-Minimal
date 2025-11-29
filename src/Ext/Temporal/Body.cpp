@@ -105,38 +105,32 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 
 	pTargetExt->RadarJammer.reset();
 
-	if (target && target->IsAlive)
-	{
+	if (target && target->IsAlive) {
 		AresAE::UpdateTempoal(&pTargetExt->AeData, target);
 
-		if (target && target->IsAlive)
-		{
-			for (auto& ae : pTargetExt->PhobosAE)
-			{
-				if (ae)
-				{
+		if (target && target->IsAlive) {
+			for (auto& ae : pTargetExt->PhobosAE) {
+				if (ae) {
 					ae->AI_Temporal();
 				}
 			}
 
-			if (target && target->IsAlive)
-			{
+			if (target && target->IsAlive) {
 				pTargetExt->UpdateRearmInTemporal();
 
 				auto pBuilding = cast_to<BuildingClass*>(target);
-				bool continue_func = true;
+				bool erase = true;
 
-				if (pBuilding)
-					HandleBuildingDestruction(pTemporal, pBuilding);
-				else if (!pBuilding && pWeaponExt->Abductor_Temporal) {
-					continue_func = !AresWPWHExt::conductAbduction(pWeapon, pTemporal->Owner, target, CoordStruct::Empty);
-				}
+				if (!pBuilding && pWeaponExt->Abductor_Temporal)
+					erase = !AresWPWHExt::conductAbduction(pWeapon, pTemporal->Owner, target, CoordStruct::Empty);
 
-				if (continue_func)
-				{
+				if (erase) {
+					if (pBuilding) {
+						HandleBuildingDestruction(pTemporal, pBuilding);
+					}
+
 					// Handle bunker connections for target
-					if (auto pBunker = cast_to<BuildingClass*>(target->BunkerLinkedItem))
-					{
+					if (auto pBunker = cast_to<BuildingClass*>(target->BunkerLinkedItem)) {
 						pBunker->UnloadBunker();
 					}
 
@@ -197,10 +191,13 @@ void FakeTemporalClass::_Update()
 	if (shouldProcessMainLogic) {
 		this->WarpRemaining -= TechnoExt_ExtData::GetWarpPerStep(this, 0);
 
-		if (!this->Owner)
+		if (!this->Owner) {
+			this->Detach();
 			return;
+		}
 
 		if(this->WarpRemaining <= 0) {
+			this->WarpRemaining = 0;//lets reset the warp remaning
 			int WeaponIdx = TechnoExtContainer::Instance.Find(this->Owner)->idxSlot_Warp;
 			auto pWpStruct = this->Owner->GetWeapon(WeaponIdx);
 			auto pWeapon = pWpStruct->WeaponType;
@@ -212,10 +209,10 @@ void FakeTemporalClass::_Update()
 					HandleDestruction(this, pTarget, pWeapon);
 				}
 			}
-		}
 
-		this->ResetTemporalState();
-		this->Owner->EnterIdleMode(false, 1);
+			this->ResetTemporalState();
+			this->Owner->EnterIdleMode(false, 1);
+		}
 	}
 }
 

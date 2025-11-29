@@ -1557,39 +1557,39 @@ bool InspectMathDetailed()
 	);
 
 	tests.emplace_back(
-		"cos(1.570748388432313f)",
-		(float)gcem::cos(1.570748388432313),   // ← Cast to float
-		std::cos(1.570748388432313f)           // ← Use float version
+		"cos(1.570748388432313)",
+		gcem::cos(1.570748388432313),
+		std::cos(1.570748388432313)
 	);
 
 	tests.emplace_back(
-		"sin(1.570748388432313f)",
-		(float)gcem::sin(1.570748388432313),   // ← Cast to float
-		std::sin(1.570748388432313f)
+		"sin(1.570748388432313)",
+		gcem::sin(1.570748388432313),
+		std::sin(1.570748388432313)
 	);
 
 	tests.emplace_back(
-		"cos(0.7853262558535721f)",
-		(float)gcem::cos(0.7853262558535721),  // ← Cast to float
-		std::cos(0.7853262558535721f)
+		"cos(0.7853262558535721)",
+		gcem::cos(0.7853262558535721),
+		std::cos(0.7853262558535721)
 	);
 
 	tests.emplace_back(
-		"sin(0.7853262558535721f)",
-		(float)gcem::sin(0.7853262558535721),  // ← Cast to float
-		std::sin(0.7853262558535721f)
+		"sin(0.7853262558535721)",
+		gcem::sin(0.7853262558535721),
+		std::sin(0.7853262558535721)
 	);
 
 	tests.emplace_back(
 		"1 / sqrt(5)",
-		(float)(1.0 / gcem::sqrt(5.0)),         // ← Cast to float
-		1.0f / std::sqrt(5.0f)
+		1.0 / gcem::sqrt(5.0),
+		1.0 / std::sqrt(5.0)
 	);
 
 	tests.emplace_back(
 		"2 / sqrt(5)",
-		(float)(2.0 / gcem::sqrt(5.0)),         // ← Cast to float
-		2.0f / std::sqrt(5.0f)
+		2.0 / gcem::sqrt(5.0),         // ← Cast to float
+		2.0 / std::sqrt(5.0)
 	);
 
 	// Run all tests
@@ -1609,9 +1609,9 @@ bool InspectMathDetailed()
 		else
 		{
 			Debug::Log("[FAIL] %s\n", test.name);
-			Debug::Log("       GCEM:     %.20f (0x%08X)\n",
+			Debug::Log("       gcem:     %.20f (0x%08X)\n",
 					  test.gcem_value, *(uint32_t*)&test.gcem_value);
-			Debug::Log("       FastMath: %.20f (0x%08X)\n",
+			Debug::Log("       std: %.20f (0x%08X)\n",
 					  test.fastmath_value, *(uint32_t*)&test.fastmath_value);
 			Debug::Log("       Diff:     %.20e\n\n",
 					  test.gcem_value - test.fastmath_value);
@@ -1628,7 +1628,7 @@ bool InspectMathDetailed()
 	{
 		Debug::FatalError(
 			"\n%d math validation(s) failed!\n"
-			"GCEM constexpr != FastMath runtime values\n"
+			"gcem constexpr != std runtime values\n"
 			"This WILL cause multiplayer desyncs.\n",
 			failed
 		);

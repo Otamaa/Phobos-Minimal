@@ -358,8 +358,8 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 	double const radians_fromXY = dir_fromXY.GetRadian();
 	double const sin_rad = std::sin(radians_fromXY);
 	double const cos_rad = std::cos(radians_fromXY);
-	COMPILETIMEEVAL double nMult_Cos = (float)gcem::cos(0.7853262558535721);
-	COMPILETIMEEVAL double nMult_Sin = (float)gcem::sin(0.7853262558535721);
+	COMPILETIMEEVAL double nMult_Cos = gcem::cos(0.7853262558535721);
+	COMPILETIMEEVAL double nMult_Sin = gcem::sin(0.7853262558535721);
 
 	velocity.X = cos_rad * nFirstMag;
 	velocity.Y -= sin_rad * nFirstMag;

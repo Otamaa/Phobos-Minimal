@@ -27,11 +27,14 @@ static void __cdecl PatchExitB(int uExitCode)
 	Debug::DetachLogger();
 }
 
-DECLARE_PATCH(_set_fp_mode)
+void __cdecl store_fpu_codeword() {
+	JMP_STD(0x007C5EE4);
+}
+
+void __cdecl _set_fp_mode()
 {
 	// Call to "store_fpu_codeword"
-	_asm { mov edx, 0x007C5EE4 };
-	_asm { call edx };
+	store_fpu_codeword();
 
 	/**
 	 *  Set the FPU mode to match the game (rounding towards zero [chop mode]).
@@ -57,7 +60,6 @@ DECLARE_PATCH(_set_fp_mode)
 				 _EM_OVERFLOW | _EM_UNDERFLOW | _EM_INEXACT, _MCW_EM);
 
 	CRTHooks::Initializeftol();
-	JMP(0x6BBFCE);
 }
 
 //optimization , call our memory management direcly than using jump throught crt
@@ -7694,26 +7696,43 @@ extern "C" __declspec(naked) int64_t __cdecl ftol_truncate()
 	}
 }
 
-extern "C" __declspec(naked) int64_t __cdecl ftol_ww()
+extern "C" __declspec(naked) int64_t __cdecl ww_ftol()
 {
 	__asm {
+		// stack frame: reserve 0Ch bytes
 		sub     esp, 0Ch
-		fnstcw  word ptr[esp + 0Ah]
 
-		// If we have FPU codeword source, use its rounding mode
-		mov     eax, dword ptr[pFPU_Codeword]
-		test    eax, eax
-		jz      do_fistp
+		// save current FPU control word
+		fnstcw  word ptr[esp]        // codeword at [esp]
 
-		movzx   ecx, word ptr[eax]            // game CW
-		mov     word ptr[esp + 8], cx
-		fldcw   word ptr[esp + 8]
+		// eax = &doublevalue (which is [esp+4])
+		lea     eax, [esp + 4]
 
-		do_fistp:
-		fistp   qword ptr[esp]               // convert
+		// edx = codeword (masked to 16 bit)
+		mov     edx, [esp]
+		and edx, 0FFFFh
 
-			mov     edx, [esp + 4]
-			mov     eax, [esp]
+		// compare lower 16 bits with FPU_Codeword
+		cmp     dx, word ptr ds : [pFPU_Codeword]
+		jne     use_game_cw
+
+		// === fast path, CW matches, use current CW ===
+		fistp   qword ptr[eax]       // convert ST(0) → [eax]
+		mov     edx, [eax + 4]
+		mov     eax, [eax]
+		add     esp, 0Ch
+		ret
+
+		use_game_cw :
+		// use game's preferred control word
+		mov     dx, word ptr ds : [pFPU_Codeword] // load FPU_Codeword
+			mov[esp], dx                      // overwrite saved codeword
+			fldcw   word ptr[esp]                 // load game's CW
+
+			fistp   qword ptr[eax]                // convert using new CW
+			mov     edx, [eax + 4]
+			mov     eax, [eax]
+
 			add     esp, 0Ch
 			ret
 	}
@@ -11576,7 +11595,7 @@ void CRTHooks::Apply()
 	/**
 	*  Call the games fpmath to make sure we init
 	*/
-	Patch::Apply_LJMP(0x6BBFC9, _set_fp_mode);
+	Patch::Apply_CALL(0x6BBFC9, _set_fp_mode);
 
 	/**
 	 *  C memory functions.
@@ -11608,11 +11627,10 @@ void CRTHooks::Apply()
 	Patch::Apply_LJMP(0x7CB302, std::vfprintf);
 	Patch::Apply_LJMP(0x7C8EF4, std::sprintf);
 	Patch::Apply_LJMP(0x7CB7BA, std::vsprintf);
-	Patch::Apply_LJMP(0x7CB302, std::vprintf);
-	//Patch::Apply_LJMP(0x7CA858,vswprintf);
+	Patch::Apply_LJMP(0x7DD4F4, _cwprintf);
+	Patch::Apply_LJMP(0x7CA858, _vswprintf);
 	Patch::Apply_LJMP(0x7C85EA, wsprintfA);
-	//Patch::Apply_LJMP(0x7CA564,swprintf);
-	Patch::Apply_LJMP(0x7CA858, wsprintfW);
+	Patch::Apply_LJMP(0x7CA564, _swprintf);
 	Patch::Apply_LJMP(0x7C9D66, std::atof);
 	Patch::Apply_LJMP(0x7C9BFD, std::atoi);
 	Patch::Apply_LJMP(0x7C9B72, std::atol);

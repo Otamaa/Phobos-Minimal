@@ -280,6 +280,237 @@ int FakeUnitClass::_Mission_AreaGuard()
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7F5E90 , FakeUnitClass::_Mission_AreaGuard)
 DEFINE_FUNCTION_JUMP(CALL , 0x744100, FakeUnitClass::_Mission_AreaGuard)
 
+#include <Ext/WarheadType/Body.h>
+#include <Ext/AnimType/Body.h>
+
+#include <Misc/Ares/Hooks/Header.h>
+
+#include <RadarEventClass.h>
+
+DamageState FakeUnitClass::_Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse)
+{
+	DamageState _res = DamageState::Unaffected;
+	if (this->DeathFrameCounter > 0) {
+		return _res;
+	}
+
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
+	bool isPlayerControlled = this->Owner->ControlledByCurrentPlayer();
+	bool selected = this->IsSelected && isPlayerControlled;
+
+	if (!ignoreDefenses) {
+		if (auto pRadio = this->GetRadioContact()) {
+			if (auto pBld = cast_to<BuildingClass*, false>(pRadio)) {
+				// #895584: ships not taking damage when repaired in a shipyard. bug
+				// was that the logic that prevented units from being damaged when
+				// exiting a war factory applied here, too. added the Naval check.
+				if (pBld->Type->WeaponsFactory
+					&& !pBld->Type->Naval
+					&& MapClass::Instance->TryGetCellAt(this->Location)->GetBuilding() == pBld) {
+					return _res;
+				}
+			}
+		}
+	}
+
+	_res = this->FootClass::ReceiveDamage(damage, distance, warhead, source, ignoreDefenses, PreventsPassengerEscape, sourceHouse);
+
+	// Immediately release locomotor warhead's hold on a crashable unit if it dies while attacked by one.
+	if (_res == DamageState::NowDead)
+	{
+		if (this->IsAttackedByLocomotor && this->Type->Crashable)
+			this->IsAttackedByLocomotor = false;
+
+		//this cause desync ?
+		if (!this->Type->Voxel && this->Type->Strength > 0)
+		{
+			if (this->Type->MaxDeathCounter > 0
+				&& !this->InLimbo
+				&& !this->IsCrashing
+				&& !this->IsSinking
+				&& !this->TemporalTargetingMe
+				&& !this->IsInAir()
+				&& this->DeathFrameCounter <= 0
+				)
+			{
+
+				this->Stun();
+				const auto loco = this->Locomotor.GetInterfacePtr();
+
+				if (loco->Is_Moving_Now())
+					loco->Stop_Moving();
+
+				this->DeathFrameCounter = 1;
+			}
+		}
+	}
+
+	if (_res != DamageState::PostMortem && this->DeathFrameCounter > 0) {
+		return DamageState::PostMortem;
+	}
+
+	auto _CurCoord = this->GetCoords();
+	auto _CurCell = CellClass::Coord2Cell(_CurCoord);
+	auto pType = this->Type;
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pExt = TechnoExtContainer::Instance.Find(this);
+
+	if (_res != DamageState::PostMortem)
+	{
+		if (_res != DamageState::NowDead)
+		{
+			if (_res != DamageState::Unaffected)
+			{
+
+				if (this->Type->Harvester
+					&& pWHExt->Malicious
+					&& !pWHExt->Nonprovocative
+					&& this->Owner == HouseClass::CurrentPlayer()
+					&& !this->Owner->IsObserver())
+				{
+					if (RadarEventClass::Create(RadarEventType::HarvesterAttacked, _CurCell))
+					{
+						VoxClass::Play(GameStrings::EVA_OreMinerUnderAttack());
+					}
+				}
+
+				if (!this->HaveAttackMoveTarget
+					&& source
+					&& source->IsAlive
+					&& !source->IsSinking
+					&& !source->IsCrashing
+					&& !source->TemporalTargetingMe
+					&& !this->IsTethered
+					&& this->Owner->IsAlliedWith(source->Owner)
+					&& isPlayerControlled) {
+
+					if (this->ShouldCrushIt(source)) {
+						this->SetDestination(source, true);
+						this->QueueMission(Mission::Move, false);
+						return _res;
+					}
+
+					if ((pType->Harvester || pType->Weeder)
+						&& this->GetPipFillLevel() > 0
+						&& this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+					{
+						TechnoClass* pDock = nullptr;
+						for (int i = 0; i < pType->Dock.Count; ++i) {
+							pDock = this->FindDockingBay(pType->Dock.Items[i], 0, false);
+							if (pDock)
+								break;
+						}
+
+						if (pType->Dock.Count > 0 && !pDock)
+						{
+							return _res;
+						}
+
+						if (!this->ContainsLink(pDock) && this->SendCommand(RadioCommand::RequestLink, pDock) == RadioCommand::AnswerPositive) {
+							this->QueueMission(Mission::Enter, false);
+						}
+					}
+				}
+			}
+
+			return _res;
+		}
+
+		if (auto pBunker = cast_to<BuildingClass*>(this->BunkerLinkedItem)) {
+			pBunker->ClearBunker();
+		}
+
+		if (pType->DeathFrames <= 0)
+		{
+			bool ShouldSink = pType->Weight > RulesClass::Instance->ShipSinkingWeight && pType->Naval && !pType->Underwater && !pType->Organic;
+
+			if (!pTypeExt->Sinkable.Get(ShouldSink)
+			   || this->GetCell()->LandType != LandType::Water
+			   || this->WarpingOut
+			   || this->OnBridge
+			   || this->GetHeight() > 0)
+			{
+				this->Destroyed(source);
+
+				if (this->GetHeight() <= 10
+				  && this->IsABomb
+				  && (this->GetCell()->LandType == LandType::Water))
+				{
+					GameCreate<AnimClass>(RulesClass::Instance->Wake, this->Location, 0, 1, AnimFlag(0x600), 0, 0);
+					auto coord_splash = this->Location;
+					coord_splash += CoordStruct(0, 0, 5);
+					GameCreate<AnimClass>(RulesClass::Instance->SplashList.Items[RulesClass::Instance->SplashList.Count - 1], this->Location, 0, 1, AnimFlag(0x600), 0, 0);
+				} else {
+
+					pExt->ReceiveDamage = true;
+					AnimTypeExtData::ProcessDestroyAnims(this, source, warhead);
+					this->Explode();
+				}
+			} else {
+				this->Destroyed(source);
+				this->Health = 1;
+				this->IsAlive = 1;
+				this->IsSinking = 1;
+				this->Stun();
+			}
+		} else {
+			if (this->DeathFrameCounter == -1) {
+				this->DeathFrameCounter = 0;
+				this->Destroyed(source);
+			}
+
+			this->Health = 1;
+			this->IsAlive = 1;
+		}
+
+		this->Mark(MarkType::Remove);
+
+		if (this->Passengers.NumPassengers > 0 && this->Passengers.GetFirstPassenger()) {
+			if (pTypeExt->Passengers_SyncOwner && pTypeExt->Passengers_SyncOwner_RevertOnExit) {
+				auto pPassenger = this->Passengers.GetFirstPassenger();
+				auto pPassengerExt = TechnoExtContainer::Instance.Find(pPassenger);
+
+				if (pPassengerExt->OriginalPassengerOwner)
+					pPassenger->SetOwningHouse(pPassengerExt->OriginalPassengerOwner, false);
+
+				while (pPassenger->NextObject)
+				{
+					pPassenger = flag_cast_to<FootClass*, false>(pPassenger->NextObject);
+					pPassengerExt = TechnoExtContainer::Instance.Find(pPassenger);
+
+					if (pExt->OriginalPassengerOwner)
+						pPassenger->SetOwningHouse(pExt->OriginalPassengerOwner, false);
+				}
+			}
+		}
+
+		if (pType->OpenTopped)
+			this->MarkPassengersAsExited();
+
+		TechnoExt_ExtData::SpawnSurvivors(this, source, selected, ignoreDefenses, PreventsPassengerEscape);
+
+		if (GameModeOptionsClass::Instance->Crates)
+		{
+			if (pType->CrateGoodie
+			  && (ScenarioClass::Instance->TruckCrate && !pType->IsTrain
+				  || ScenarioClass::Instance->TrainCrate && pType->IsTrain))
+			{
+
+				const auto crate_cell = MapClass::Instance->NearByLocation(this->GetMapCoords(), SpeedType::Track, ZoneType::None, MovementZone::Normal, 0, 1, 1, true, false, false, true, CellStruct::Empty, false, false);
+				if (crate_cell.IsValid())
+				{
+					MapClass::Instance->Place_Crate(crate_cell, PowerupEffects(0x14));
+				}
+			}
+		}
+
+		if ((!pType->Crashable || !this->Crash(source)) && !this->IsSinking)
+			this->UnInit();
+	}
+
+	return _res;
+}
+
 ASMJIT_PATCH(0x73544D, UnitClass_CTOR, 0x7)
 {
 	GET(UnitClass*, pItem, ESI);

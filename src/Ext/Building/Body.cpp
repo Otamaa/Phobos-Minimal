@@ -11,6 +11,9 @@
 #include <New/Entity/FlyingStrings.h>
 
 #include <Misc/Hooks.Otamaa.h>
+
+#include <Lib/gcem/gcem.hpp>
+
 BuildingExtData::~BuildingExtData()
 {
 
@@ -1473,7 +1476,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		int binaryAngle = (int)(angleToTarget * Math::BINARY_ANGLE_MAGIC);
 
 		// --- Base velocity calculation ---
-		double magnitude = std::sqrt(10000.0);
+		COMPILETIMEEVAL double magnitude = gcem::sqrt(10000.0);
 		double radians = (double)(binaryAngle - 16383) * -0.00009587672516830327;
 
 		VelocityClass vel { std::cos(radians) * magnitude  , -(std::sin(radians) * magnitude)  , 0.0 };

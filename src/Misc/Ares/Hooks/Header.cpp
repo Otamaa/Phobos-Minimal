@@ -6675,8 +6675,8 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 	if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nLoc), nullptr, pFind->Damage, pFind->Warhead, 20, false))
 	{
 		pBullet->SetWeaponType(pFind);
-		COMPILETIMEEVAL float nSin = (float)gcem::sin(1.570748388432313);
-		COMPILETIMEEVAL float nCos = (float)gcem::cos(-0.00009587672516830327);
+		COMPILETIMEEVAL float nSin = gcem::sin(1.570748388432313);
+		COMPILETIMEEVAL float nCos = gcem::cos(-0.00009587672516830327);
 
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);

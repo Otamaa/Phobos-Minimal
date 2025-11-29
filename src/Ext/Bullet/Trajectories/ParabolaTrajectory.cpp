@@ -1036,21 +1036,21 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 	if (const unsigned char index = pCell->SlopeIndex)
 	{
 		Vector2D<double> factor { 0.0, 0.0 };
-		COMPILETIMEEVAL auto _base_1 = float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
-		COMPILETIMEEVAL auto _base_2 = float(Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _base_1 = (Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+		COMPILETIMEEVAL auto _base_2 = (Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 
 		//0.3763770469559380854890894443664 ->
-		COMPILETIMEEVAL auto _1_val = Unsorted::LevelHeight / (double)gcem::sqrt(_base_1);
+		COMPILETIMEEVAL auto _1_val = Unsorted::LevelHeight / gcem::sqrt(_base_1);
 		// 0.9264665771223091335116047861327 ->
-		COMPILETIMEEVAL auto _2_val = Unsorted::LeptonsPerCell / (double)gcem::sqrt(_base_1);
+		COMPILETIMEEVAL auto _2_val = Unsorted::LeptonsPerCell / gcem::sqrt(_base_1);
 		// 0.3522530794922131411764879370407 ->
-		COMPILETIMEEVAL auto _3_val = Unsorted::LevelHeight / (double)gcem::sqrt(2 * _base_1);
+		COMPILETIMEEVAL auto _3_val = Unsorted::LevelHeight / gcem::sqrt(2 * _base_1);
 		// 0.8670845033654477321267395373309 ->
-		COMPILETIMEEVAL auto _4_val = Unsorted::LeptonsPerCell / (double)gcem::sqrt(2 * _base_1);
+		COMPILETIMEEVAL auto _4_val = Unsorted::LeptonsPerCell / gcem::sqrt(2 * _base_1);
 		// 0.5333964609104418418483761938761 ->
-		COMPILETIMEEVAL auto _5_val = Unsorted::CellHeight / (double)gcem::sqrt(2 * _base_2);
+		COMPILETIMEEVAL auto _5_val = Unsorted::CellHeight / gcem::sqrt(2 * _base_2);
 		// 0.6564879518897745745826168540013 ->
-		COMPILETIMEEVAL auto _6_val = Unsorted::LeptonsPerCell / (double)gcem::sqrt(2 * _base_2);
+		COMPILETIMEEVAL auto _6_val = Unsorted::LeptonsPerCell / gcem::sqrt(2 * _base_2);
 
 		if (index <= 4)
 			factor = Vector2D<double> { _1_val, _2_val };
@@ -1135,9 +1135,9 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 		}
 
 		// 0.4472135954999579392818347337463 ->
-		COMPILETIMEEVAL auto val_7 = (float)(1 / gcem::sqrt(5));
+		COMPILETIMEEVAL auto val_7 = (1 / gcem::sqrt(5));
 		// 0.8944271909999158785636694674925 ->
-		COMPILETIMEEVAL auto val_8 = (float)(2 / gcem::sqrt(5));
+		COMPILETIMEEVAL auto val_8 = (2 / gcem::sqrt(5));
 
 		if (index == 1)
 			return { val_8 * reverseSgnX, val_7 * reverseSgnY, 0.0 };
@@ -1145,7 +1145,7 @@ VelocityClass ParabolaTrajectory::GetGroundNormalVector(CellClass* pCell)
 			return { val_7 * reverseSgnX, val_8 * reverseSgnY, 0.0 };
 
 		// 0.7071067811865475244008443621049 ->
-		COMPILETIMEEVAL auto val_9 = (float)(1 / gcem::sqrt(2));
+		COMPILETIMEEVAL auto val_9 = (1 / gcem::sqrt(2));
 		return { val_9 * reverseSgnX, val_9 * reverseSgnY, 0.0 };
 	}
 

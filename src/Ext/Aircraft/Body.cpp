@@ -645,10 +645,11 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			velocity->Y /= std::cos(yawRad);
 		}
 
-		const double pitchRad = -0.00009587672516830327;
-		velocity->X *= std::cos(pitchRad);
-		velocity->Y *= std::cos(pitchRad);
-		velocity->Z = std::sin(pitchRad) * mag;
+		COMPILETIMEEVAL auto _cosPitchRad = gcem::cos(-0.00009587672516830327);
+		COMPILETIMEEVAL auto _sinPitchRad = gcem::sin(-0.00009587672516830327);
+		velocity->X *= _cosPitchRad;
+		velocity->Y *= _cosPitchRad;
+		velocity->Z = _sinPitchRad * mag;
 
 		const DirStruct newFacingDir = pThis->SecondaryFacing.Current();
 
