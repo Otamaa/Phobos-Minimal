@@ -94,6 +94,9 @@ namespace Math
 	// = 1/e = 0.36787944117144233
 	static COMPILETIMEEVAL double INV_E = std::bit_cast<double>(0x3FD78B56362CEF38ull);
 
+	// = 4.656612877414201e-10 (1/INT_MAX)
+	constexpr double INV_INT_MAX = std::bit_cast<double>(0x3E00000000400000ull);
+
 	// = π/(2√2) = 1.1780972450961724
 	static COMPILETIMEEVAL double PI_SQRT_TWO_BY_FOUR = std::bit_cast<double>(0x3FF2D97C7F3321D2ull);
 

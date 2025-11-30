@@ -1,11 +1,7 @@
 #pragma once
 
-#include <Helpers/CompileTime.h>
-
 #include <Point2D.h>
 #include <RandomStruct.h>
-
-#include <bit>
 #include <array>
 
 class RandomClass
@@ -39,10 +35,9 @@ class Random2Class
 public:
 	static COMPILETIMEEVAL reference<Random2Class, 0x886B88u> const NonCriticalRandomNumber{};
 	static COMPILETIMEEVAL reference<Random2Class, 0x886B88u> const Global{}; // For backward compatibility
-	static COMPILETIMEEVAL reference<double, 0x7E3570u> const INT_MAX_GAME {};
-	static COMPILETIMEEVAL reference<DWORD, 0xA8ED94u> const Seed {};
-	static COMPILETIMEEVAL reference<DWORD, 0x839644u, 19u> FirstTable {};
-	static COMPILETIMEEVAL reference<DWORD, 0x839690u, 22u> SecondTable {};
+	static COMPILETIMEEVAL reference<std::uint32_t, 0xA8ED94u> const Seed {};
+	static COMPILETIMEEVAL reference<int, 0x839644u, 19u> FirstTable {};
+	static COMPILETIMEEVAL reference<int, 0x839690u, 22u> SecondTable {};
 
 public:
 
@@ -152,16 +147,10 @@ public:
 	{ return RandomDouble() < dChance; }
 
 	[[nodiscard]] FORCEDINLINE double RandomDouble()
-	{ return RandomRanged(1, INT_MAX) * 4.656612873077393e-10; }
+	{ return RandomRanged(1, INT_MAX) * Math::INV_INT_MAX; }
 
-	[[nodiscard]] FORCEDINLINE double RandomDouble_Closest()
-	{ return RandomRanged(1, INT_MAX) * 4.656612873077393e-10 - 0.5; }
-
-	[[nodiscard]] FORCEDINLINE double GameRandomDouble()
-	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME(); }
-
-	[[nodiscard]] FORCEDINLINE double GameRandomDouble_Closest()
-	{ return RandomRanged(1, INT_MAX) * INT_MAX_GAME() - 0.5; }
+	[[nodiscard]] FORCEDINLINE double RandomDoubleCentered()
+	{ return RandomRanged(1, INT_MAX) * Math::INV_INT_MAX - 0.5; }
 
 	[[nodiscard]] FORCEDINLINE bool ProbabilityOf(double probability) {
 		return ((Math::abs(this->Random()) % 1000000) / 1000000.0) < probability;

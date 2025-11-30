@@ -353,13 +353,13 @@ void  ParticleSystemExtData::UpdateRailgun()
 			Matrix3D::MatrixMultiply(&mtx_mult  , &mtx, &first_);
 
 			const Vector3D<float> PositionPerturbation_ {
-				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->PositionPerturbationCoefficient
 				+ (first_.X * pThis->Type->SpiralRadius))
 
-				,float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				,float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->PositionPerturbationCoefficient
 				+ (first_.Y * pThis->Type->SpiralRadius))
 
-				,float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				,float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->PositionPerturbationCoefficient
 				+ (first_.Z * pThis->Type->SpiralRadius))
 			};
 
@@ -379,9 +379,9 @@ void  ParticleSystemExtData::UpdateRailgun()
 
 			auto Data = &this->OtherParticleData[i]; // .emplace_back();
 			Vector3D<float> MovementPerturbation {
-				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
-				, float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
-				, float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
+				float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->MovementPerturbationCoefficient)
+				, float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->MovementPerturbationCoefficient)
+				, float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->MovementPerturbationCoefficient)
 			};
 
 			mtx_mult += MovementPerturbation;
@@ -439,7 +439,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 	for (auto& movement : this->OtherParticleData)
 	{
 		const auto state = movement.A;
-		movement.A = float(ScenarioClass::Instance->Random.RandomDouble_Closest() * 0.1 + state);
+		movement.A = float(ScenarioClass::Instance->Random.RandomDoubleCentered() * 0.1 + state);
 		const bool IsECdone = --movement.RemainingEC <= 0;
 		const auto copy_velB = movement.velB;
 		const auto copy_vel = movement.vel;
@@ -896,23 +896,23 @@ void ParticleSystemExtData::UpdateRailgun()
 			CoordStruct nDummy_d {
 			int((nTargetLoc.X * val__)
 				+ (nParticleLoc.X * v91)
-				+ (ScenarioClass::Instance->Random.RandomDouble_Closest() * nPositionPerturbationCoefficient + nResult.X * nSpiralRadius))
+				+ (ScenarioClass::Instance->Random.RandomDoubleCentered() * nPositionPerturbationCoefficient + nResult.X * nSpiralRadius))
 			,
 			int((val__ * nTargetLoc.Y)
 				+ (v91 * nParticleLoc.Y)
-				+ (nSpiralRadius * nResult.Y + nPositionPerturbationCoefficient * ScenarioClass::Instance->Random.RandomDouble_Closest()))
+				+ (nSpiralRadius * nResult.Y + nPositionPerturbationCoefficient * ScenarioClass::Instance->Random.RandomDoubleCentered()))
 			,
 			int((nParticleLoc.Z * v91)
 				+ (nTargetLoc.Z * val__)
-				+ (ScenarioClass::Instance->Random.RandomDouble_Closest() * nPositionPerturbationCoefficient + nResult.Z * nSpiralRadius))
+				+ (ScenarioClass::Instance->Random.RandomDoubleCentered() * nPositionPerturbationCoefficient + nResult.Z * nSpiralRadius))
 			};
 			//=====================
 
 			//============= MovementPerturbationCoeff
 			Vector3D<float> nMovementDummy {
-				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.X),
-				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.Y),
-				float((ScenarioClass::Instance->Random.RandomDouble_Closest() * nMovementPerturbationCoefficient) + nResult.Z)
+				float((ScenarioClass::Instance->Random.RandomDoubleCentered() * nMovementPerturbationCoefficient) + nResult.X),
+				float((ScenarioClass::Instance->Random.RandomDoubleCentered() * nMovementPerturbationCoefficient) + nResult.Y),
+				float((ScenarioClass::Instance->Random.RandomDoubleCentered() * nMovementPerturbationCoefficient) + nResult.Z)
 			};
 			//=============
 
@@ -926,7 +926,7 @@ void ParticleSystemExtData::UpdateRailgun()
 				nMovementDummy.Z = idkHere * nMovementDummy.Z;
 			}
 
-			const auto nRand_Double7 = ScenarioClass::Instance->Random.RandomDouble_Closest() + nVal;
+			const auto nRand_Double7 = ScenarioClass::Instance->Random.RandomDoubleCentered() + nVal;
 
 			auto nVelocityPerturbationCoefficient_copy = nVelocityPerturbationCoefficient;
 
@@ -1036,13 +1036,13 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 			Vector3D<float> mtx_mult = Matrix3D::MatrixMultiply(&mtx, first_);
 
 			const Vector3D<float> PositionPerturbation_ {
-				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->PositionPerturbationCoefficient
 				+ (first_.X * pThis->Type->SpiralRadius))
 
-				,float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				,float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->PositionPerturbationCoefficient
 				+ (first_.Y * pThis->Type->SpiralRadius))
 
-				,float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->PositionPerturbationCoefficient
+				,float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->PositionPerturbationCoefficient
 				+ (first_.Z * pThis->Type->SpiralRadius))
 			};
 
@@ -1065,9 +1065,9 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 			Vector3D<float>* vel = &partilce->Spark10C;
 			partilce->Spark10C = mtx_mult;
 			Vector3D<float> MovementPerturbation {
-				float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
-				, float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
-				, float(ScenarioClass::Instance->Random.RandomDouble_Closest() * pThis->Type->MovementPerturbationCoefficient)
+				float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->MovementPerturbationCoefficient)
+				, float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->MovementPerturbationCoefficient)
+				, float(ScenarioClass::Instance->Random.RandomDoubleCentered() * pThis->Type->MovementPerturbationCoefficient)
 			};
 			partilce->Spark10C += MovementPerturbation;
 
@@ -1225,9 +1225,9 @@ ASMJIT_PATCH(0x62FFBB, ParticleSystemClass_Load_OwnerHouse, 0x8)
 
 Vector3D<float> GetRandomPerturbation(float coefficient)
 {
-	const float rand1 = (float)ScenarioClass::Instance->Random.RandomDouble_Closest();
-	const float rand2 = (float)ScenarioClass::Instance->Random.RandomDouble_Closest();
-	const float rand3 = (float)ScenarioClass::Instance->Random.RandomDouble_Closest();
+	const float rand1 = (float)ScenarioClass::Instance->Random.RandomDoubleCentered();
+	const float rand2 = (float)ScenarioClass::Instance->Random.RandomDoubleCentered();
+	const float rand3 = (float)ScenarioClass::Instance->Random.RandomDoubleCentered();
 
 	return {
 		rand1 * coefficient,
@@ -1982,7 +1982,7 @@ void FakeParticleSystemClass::SetupParticleVelocity(ParticleClass* particle, con
 
 float FakeParticleSystemClass::CalculateVelocityPerturbation(float progress) const
 {
-	const float random = (float)ScenarioClass::Instance->Random.RandomDouble_Closest();
+	const float random = (float)ScenarioClass::Instance->Random.RandomDoubleCentered();
 	const float perturbation = (float)((random + progress) * (this->Type->VelocityPerturbationCoefficient * 0.5f));
 
 	// Clamp to coefficient range
