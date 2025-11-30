@@ -85,7 +85,7 @@ void ArcingTrajectory::CalculateVelocity(BulletClass* pBullet, double elevation,
 
 		if (delta < 0)
 		{
-			double Velocity_XY = S / Math::Sqrt2;
+			double Velocity_XY = S / Math::SQRT_TWO;
 			double ratio = Velocity_XY / FullDistance;
 			pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X) * ratio;
 			pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y) * ratio;

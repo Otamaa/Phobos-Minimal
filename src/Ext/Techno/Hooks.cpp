@@ -127,25 +127,25 @@ Matrix3D* __stdcall TunnelLocomotionClass_ShadowMatrix(ILocomotion* iloco, Matri
 		{
 		case TunnelLocomotionClass::State::DIGGING:
 			if (key)key->Invalidate();
-			theta = Math::HalfPi;
+			theta = Math::PI_BY_TWO_ACCURATE;
 			if (auto total = tLoco->Timer.Rate)
 				theta *= 1.0 - double(tLoco->Timer.GetTimeLeft()) / double(total);
 			break;
 		case TunnelLocomotionClass::State::DUG_IN:
-			theta = Math::HalfPi;
+			theta = Math::PI_BY_TWO_ACCURATE;
 			break;
 		case TunnelLocomotionClass::State::PRE_DIG_OUT:
-			theta = -Math::HalfPi;
+			theta = -Math::PI_BY_TWO_ACCURATE;
 			break;
 		case TunnelLocomotionClass::State::DIGGING_OUT:
 			if (key)key->Invalidate();
-			theta = -Math::HalfPi;
+			theta = -Math::PI_BY_TWO_ACCURATE;
 			if (auto total = tLoco->Timer.Rate)
 				theta *= double(tLoco->Timer.GetTimeLeft()) / double(total);
 			break;
 		case TunnelLocomotionClass::State::DUG_OUT:
 			if (key)key->Invalidate();
-			theta = Math::HalfPi;
+			theta = Math::PI_BY_TWO_ACCURATE;
 			if (auto total = tLoco->Timer.Rate)
 				theta *= double(tLoco->Timer.GetTimeLeft()) / double(total);
 			break;

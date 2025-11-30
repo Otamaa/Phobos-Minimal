@@ -1793,7 +1793,7 @@ void FakeParticleSystemClass::UpdatePositionFromOwner(TechnoClass* owner)
 	DirStruct facing = owner->PrimaryFacing.Current();
 
 	// Calculate offset based on facing
-	const float facingAngle = (facing.Raw - 0x3FFF) * -0.00009587672516830327f;
+	const float facingAngle = (facing.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 	const float offsetX = (float)std::cos(facingAngle) * distance + ownerPos.X;
 	const float offsetY = (float)ownerPos.Y - (float)std::sin(facingAngle) * distance;
 

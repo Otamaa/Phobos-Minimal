@@ -566,7 +566,7 @@ bool AdvancedDriveLocomotionClass::MovingProcess(bool fix)
 		}
 	}
 
-	const auto ratio = static_cast<float>(this->SpeedAccum * 0.1428571428571428);
+	const auto ratio = static_cast<float>(this->SpeedAccum * Math::INV_7);
 	auto newPos = pLinked->Location + AdvancedDriveLocomotionClass::CoordLerp(CoordStruct::Empty, location, ratio);
 
 	const auto pOldCell = MapClass::Instance->GetCellAt(pLinked->Location);
@@ -1392,7 +1392,7 @@ void AdvancedDriveLocomotionClass::UpdateHoverState()
 			const int id = static_cast<int>(pLinked->UniqueID);
 			const double hoverBob = pTypeExt->AdvancedDrive_Hover_Bob.Get(RulesClass::Instance->HoverBob);
 			const double bobDelay = ((id & 1) ? 1.0 : 1.1) * hoverBob * 900.0;
-			const double bobHeight = std::sin(((Unsorted::CurrentFrame + 2 * id) % static_cast<int>(bobDelay)) / bobDelay * Math::TwoPi);
+			const double bobHeight = std::sin(((Unsorted::CurrentFrame + 2 * id) % static_cast<int>(bobDelay)) / bobDelay * Math::GAME_TWOPI);
 			newHeight = static_cast<int>(2 * bobHeight) + static_cast<int>(oldHeight + this->Wobbles);
 
 			if (newHeight >= 0)

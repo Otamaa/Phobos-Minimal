@@ -22,7 +22,7 @@ CoordStruct BulletTypeExtData::CalculateInaccurate(BulletTypeClass* pBulletType)
 		const int scatterMin = pTypeExt->BallisticScatterMin.isset() ? (int)(pTypeExt->BallisticScatterMin.Get()) : (scatterMax / 2);
 
 		const double random = ScenarioClass::Instance()->Random.RandomRanged(scatterMin, scatterMax);
-		const double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
+		const double theta = ScenarioClass::Instance()->Random.RandomDouble() * Math::GAME_TWOPI;
 
 		CoordStruct offset
 		{

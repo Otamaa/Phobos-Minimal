@@ -244,7 +244,7 @@ public:
 		double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
 		if (r > 0)
 		{
-			double theta = ScenarioClass::Instance->Random.RandomDouble() * Math::TwoPi;
+			double theta = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI;
 			CoordStruct offset { static_cast<int>(r * std::cos(theta)), static_cast<int>(r * std::sin(theta)), 0 };
 			return offset;
 		}
@@ -373,7 +373,7 @@ public:
 	static COMPILETIMEEVAL OPTIONALINLINE double Pade2_2(double in)
 	{
 		const double s = in - static_cast<int>(in);
-		return GeneralUtils::FastPow(0.36787944117144233, static_cast<int>(in))
+		return GeneralUtils::FastPow(Math::INV_E, static_cast<int>(in))
 			* (12. - 6 * s + s * s) / (12. + 6 * s + s * s);
 	}
 
@@ -505,7 +505,7 @@ public:
 		int deltaY = targetCoords.Y - currentCoords.Y;
 
 		double atan = std::atan2((double)deltaY, (double)deltaX);
-		double radians = (((atan - Math::HalfPi) * (1.0 / Math::BINARY_ANGLE_MAGIC)) - Math::GameDegrees90) * Math::BINARY_ANGLE_MAGIC;
+		double radians = (((atan - Math::PI_BY_TWO_ACCURATE) * (1.0 / Math::BINARY_ANGLE_MAGIC)) - 0X3FFF) * Math::BINARY_ANGLE_MAGIC;
 		int x = static_cast<int>(targetCoords.X + std::cos(radians) * distance);
 		int y = static_cast<int>(targetCoords.Y - std::sin(radians) * distance);
 
@@ -547,8 +547,8 @@ public:
 	static const DirStruct Coord2DirSTruct(CoordStruct Loc1, CoordStruct Loc2)
 	{
 		auto angle = std::atan2((double)(Loc2.X - Loc1.X), (double)(Loc2.Y - Loc1.Y));
-		auto theta = angle * (180 / Math::Pi);
-		return DirStruct(theta);
+		COMPILETIMEEVAL double DEG_180_BY_PI = 180.0 / Math::GAME_PI;
+		return DirStruct(angle * (DEG_180_BY_PI));
 	}
 
 	static OPTIONALINLINE COMPILETIMEEVAL Leptons PixelToLeptons(int pixel)

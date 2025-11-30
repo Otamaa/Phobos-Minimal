@@ -1000,7 +1000,7 @@ void ModernIonBlastClass::ApplyRotationEffectsToUnit(FootClass* unit, const Vect
 		(totalDistance * totalDistance);
 
 	// Scale rotation effects based on wave amplitude
-	float rotationScale = (Config.WaveAmplitude / 3.5f) * 6.283185307179586; // Scale relative to original
+	float rotationScale = (Config.WaveAmplitude / 3.5f) * Math::GAME_TWOPI; // Scale relative to original
 
 	unit->AngleRotatedSideways = rotationMagnitude * rotationIntensity * rotationScale;
 	unit->AngleRotatedForwards = -(rotationFactorX * rotationIntensity * rotationScale);
@@ -1032,7 +1032,7 @@ void ModernIonBlastClass::ApplyPhysicsEffectsToUnit(FootClass* unit, int distanc
 
 	// Get unit facing direction
 	const DirStruct unitFacing = unit->PrimaryFacing.Current();
-	double facingAngle = (unitFacing.Raw - 0x3FFF) * -0.00009587672516830327;
+	double facingAngle = (unitFacing.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 
 	// Calculate rotation effects based on configurable blast wave
 	float sinFacing = std::sin(facingAngle);

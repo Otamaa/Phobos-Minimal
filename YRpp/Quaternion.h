@@ -290,7 +290,7 @@ public:
 		float angle = Angle(to);
 		if (angle == 0.0f)
 			return to;
-		maxRadiansDelta = (float)fmax(maxRadiansDelta, angle - Math::Pi);
+		maxRadiansDelta = (float)fmax(maxRadiansDelta, angle - Math::GAME_PI);
 		float t = static_cast<float>(fmin(1, maxRadiansDelta / angle));
 		return SlerpUnclamped(to, t);
 	}

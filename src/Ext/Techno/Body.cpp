@@ -1264,8 +1264,8 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 
 bool TechnoExtData::IsHealthInThreshold(ObjectClass* pObject, double min, double max) {
 
-	if (!pObject->Health && !pObject->GetType()->Strength)
-		return true;
+	if (!pObject->Health || !pObject->IsAlive)
+		return false;
 
 	double hp = pObject->GetHealthPercentage();
 	return (hp > 0 ? hp > min : hp >= min) && hp <= max;
@@ -3706,7 +3706,7 @@ void TechnoExtData::UpdateMCOverloadDamage(TechnoClass* pOwner)
 
 			if (nCurIdx > 0 && pOwner->IsAlive)
 			{
-				double const nBase = (nCurIdx != 1) ? 0.015 : 0.029999999;
+				double const nBase = (nCurIdx != 1) ? Math::flt_2 : Math::flt_1;
 				double const nCopied_base = (ScenarioClass::Instance->Random.RandomFromMax(100) < 50) ? -nBase : nBase;
 				pOwner->RockingSidewaysPerFrame = static_cast<float>(nCopied_base);
 			}
@@ -6303,9 +6303,10 @@ void TechnoExtData::TransformFLHForTurret(TechnoClass* pThis, Matrix3D& mtx, boo
 	// turret offset and rotation
 	if (isOnTurret && pThis->HasTurret())
 	{
+		static COMPILETIMEEVAL double PI_BY_SIXTEEN = Math::GAME_PI / 16;
 		TechnoTypeExtContainer::Instance.Find(pType)->ApplyTurretOffset(&mtx, TechnoTypeExtData::TurretMultiOffsetDefaultMult);
-		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(Math::Pi / 16);
-		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(Math::Pi / 16);
+		double turretRad = (pThis->TurretFacing().GetFacing<32>() - 8) * -(PI_BY_SIXTEEN);
+		double bodyRad = (pThis->PrimaryFacing.Current().GetFacing<32>() - 8) * -(PI_BY_SIXTEEN);
 		float angle = (float)(turretRad - bodyRad);
 
 		mtx.RotateZ(angle);
@@ -6926,7 +6927,7 @@ void TechnoExtData::UpdateGattlingOverloadDamage()
 
 			if (pThis->WhatAmI() == UnitClass::AbsID && pThis->IsAlive && pThis->IsVoxel())
 			{
-				double const nBase = ScenarioClass::Instance->Random.RandomBool() ? 0.015 : 0.029999999;
+				double const nBase = ScenarioClass::Instance->Random.RandomBool() ? Math::flt_2 : Math::flt_1;
 				double const nCopied_base = (ScenarioClass::Instance->Random.RandomFromMax(100) < 50) ? -nBase : nBase;
 				pThis->RockingSidewaysPerFrame = (float)nCopied_base;
 			}
@@ -7336,7 +7337,7 @@ void TechnoExtData::ApplyIdleAction()
 		const double extraRadian = ScenarioClass::Instance->Random.RandomDouble() - 0.5;
 
 		DirStruct unitIdleFacingDirection;
-		unitIdleFacingDirection.SetRadian<32>(pThis->PrimaryFacing.Current().GetRadian<32>() + (noNeedTurnForward ? extraRadian * Math::TwoPi : extraRadian));
+		unitIdleFacingDirection.SetRadian<32>(pThis->PrimaryFacing.Current().GetRadian<32>() + (noNeedTurnForward ? extraRadian * Math::GAME_TWOPI : extraRadian));
 
 		this->StopRotateWithNewROT(ScenarioClass::Instance->Random.RandomRanged(2, 4) >> 1);
 		turret->Set_Desired(unitIdleFacingDirection);
@@ -7357,7 +7358,7 @@ void TechnoExtData::ApplyIdleAction()
 			const double extraRadian = ScenarioClass::Instance->Random.RandomDouble() - 0.5;
 
 			DirStruct unitIdleFacingDirection;
-			unitIdleFacingDirection.SetRadian<32>(pThis->PrimaryFacing.Current().GetRadian<32>() + (noNeedTurnForward ? extraRadian * Math::TwoPi : extraRadian));
+			unitIdleFacingDirection.SetRadian<32>(pThis->PrimaryFacing.Current().GetRadian<32>() + (noNeedTurnForward ? extraRadian * Math::GAME_TWOPI : extraRadian));
 
 			this->StopRotateWithNewROT(ScenarioClass::Instance->Random.RandomRanged(2, 4) >> 1);
 			turret->Set_Desired(unitIdleFacingDirection);

@@ -138,6 +138,8 @@ struct Game
 	static COMPILETIMEEVAL reference<bool, 0xA8B8B4u> const EnableMPDebug{};
 	static COMPILETIMEEVAL reference<bool, 0xA8B8B5u> const DrawMPDebugStats{};
 	static COMPILETIMEEVAL reference<bool, 0xB04880u> const EnableMPSyncDebug{};
+	static COMPILETIMEEVAL reference<bool, 0xA8B8B8u> const LoadGame{};
+	static COMPILETIMEEVAL reference<bool, 0xA8B8BCu> const SaveGame{};
 
 	static COMPILETIMEEVAL reference<Vector3D<float>, 0x887470> const VoxelLightSource { };
 	static COMPILETIMEEVAL reference<Vector3D<float>, 0x887420> const VoxelShadowLightSource { };
@@ -248,7 +250,7 @@ struct Game
 
 	//ZDepth_Adjust_For_Height
 	static COMPILETIMEEVAL int FORCEDINLINE AdjustHeight(int height)  {
-		return int((double)height * Unsorted::GameMagicNumbr_ + ((double)(height >= Unsorted::HeightMax)) + 0.5);
+		return int((double)height * Math::TWO_BY_PI + ((double)(height >= Unsorted::HeightMax)) + 0.5);
 	}
 
 	[[noreturn]] static void __stdcall RaiseError(HRESULT err)

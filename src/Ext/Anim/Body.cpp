@@ -343,7 +343,7 @@ bool AnimExtData::OnMiddle(AnimClass* pThis)
 
 						if (nMin || nMax) {
 
-							double rad = 6.283185307179586 / numParticle;
+							double rad = Math::GAME_TWOPI / numParticle;
 							double start_distance = 0.0;
 
 							for (; numParticle > 0; --numParticle) {

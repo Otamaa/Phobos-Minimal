@@ -199,7 +199,7 @@ struct _RocketLocomotionClass
 		auto pRocket = static_cast<RocketLocomotionClass*>(pThis);
 		const auto pAir = pRocket->Owner;
 
-		double angle = double((int)(pAir->PrimaryFacing.Current().GetFacing<32>() - 8) * -0.1963495408493621);
+		double angle = double((int)(pAir->PrimaryFacing.Current().GetFacing<32>() - 8) * Math::DIRECTION_FIXED_MAGIC);
 		result->RotateZ((float)angle);
 
 		if (pRocket->CurrentPitch != 0.0)

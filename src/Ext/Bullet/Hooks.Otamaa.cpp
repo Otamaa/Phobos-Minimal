@@ -239,8 +239,8 @@ ASMJIT_PATCH(0x466BAF, BulletClass_AI_MissileROTVar, 0x6)
 	const double nMissileROTVar = pThis->_GetTypeExtData()->MissileROTVar.Get(RulesClass::Instance->MissileROTVar);
 
 	R->EAX(int(std::sin(static_cast<double>(nFrame) *
-		0.06666666666666667 *
-		6.283185307179586) *
+		Math::ONE_FIFTEENTH *
+		Math::GAME_TWOPI) *
 		nMissileROTVar + nMissileROTVar + 1.0) *
 		static_cast<double>(pThis->Type->ROT)
 	);

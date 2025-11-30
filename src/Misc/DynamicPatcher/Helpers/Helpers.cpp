@@ -261,7 +261,7 @@ DirStruct Helpers_DP::Point2Dir(CoordStruct& sourcePos, CoordStruct& targetPos)
 	// get angle
 	double radians = std::atan2(static_cast<double>(sourcePos.Y - targetPos.Y), static_cast<double>(targetPos.X - sourcePos.X));
 	// Magic form tomsons26
-	radians -= Math::deg2rad_Alternate(90);
+	radians -= Math::deg2rad(90);
 	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC));
 }
 
@@ -383,7 +383,7 @@ double Helpers_DP::GetDamageMult(TechnoClass* pTechno, double damageIn)
 
 DirStruct Helpers_DP::DirNormalized(int index, int facing)
 {
-	double radians = Math::deg2rad_Alternate((double)(-360 / facing * index));
+	double radians = Math::deg2rad((double)(-360 / facing * index));
 	return DirStruct(static_cast<short>(radians / Math::BINARY_ANGLE_MAGIC));
 }
 
@@ -398,7 +398,7 @@ CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruc
 	if (y == 0)
 	{
 		offset.Y = 0;
-		if (angle < Math::Pi)
+		if (angle < Math::GAME_PI)
 		{
 			offset.X = 256;
 		}
@@ -437,7 +437,7 @@ CoordStruct Helpers_DP::OneCellOffsetToTarget(CoordStruct& sourcePos, CoordStruc
 		else
 		{
 			offset.Y = y;
-			if (Math::abs(angle) < 0.5 * Math::Pi)
+			if (Math::abs(angle) < 0.5 * Math::GAME_PI)
 			{
 				offset.X = 256;
 			}
@@ -846,7 +846,7 @@ CoordStruct Helpers_DP::RandomOffset(int min, int max)
 	const double r = ScenarioClass::Instance->Random.RandomRanged(min, max);
 
 	if (r > 0) {
-		const double theta = ScenarioClass::Instance->Random.RandomDouble() * 2 * Math::PI;
+		const double theta = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI;
 		return { (int)(r * std::cos(theta)) ,(int)(r * std::sin(theta)) , 0 };
 	}
 

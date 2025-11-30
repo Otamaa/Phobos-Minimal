@@ -155,7 +155,6 @@ public:
 class LightningStorm
 {
 public:
-	static COMPILETIMEEVAL reference<double, 0xB0CDD8u> const CloudHeightFactor{};
 	static COMPILETIMEEVAL reference<CellStruct, 0xA9F9CCu> const Coords{};
 	static COMPILETIMEEVAL reference<HouseClass*, 0xA9FACCu> const Owner{};
 	static COMPILETIMEEVAL reference<int, 0xA9FAB8u> const Deferment{};

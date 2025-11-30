@@ -35,6 +35,13 @@ public:
 		);
 	}
 
+	static int __stdcall Dialog(HWND hwnd , int WM , int event , wchar_t* message ) {
+		JMP_STD(0x5D36A0);
+	}
+
+	static DWORD *__fastcall OnCommand(HWND hWnd, signed int WM, int unused, int unk) {
+		JMP_STD(0x5D3760);
+	}
 private:
 	const wchar_t* Captain;
 };

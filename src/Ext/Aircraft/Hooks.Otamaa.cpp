@@ -117,8 +117,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //
 //			DirStruct dir;
 //			velocity->GetDirectionFromXY(&dir);
-//			int facingOffset = dir.Raw - 0x3FFF;
-//			double yawRad = facingOffset * -0.00009587672516830327;
+//			int facingOffset = dir.Raw - Math::BINARY_ANGLE_MASK;
+//			double yawRad = facingOffset * Math::DIRECTION_FIXED_MAGIC;
 //
 //			double mag = velocity->Length();
 //
@@ -128,7 +128,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //				velocity->Y /= std::cos(yawRad);
 //			}
 //
-//			double pitchRad = -0.00009587672516830327;
+//			double pitchRad = Math::DIRECTION_FIXED_MAGIC;
 //			velocity->X *= std::cos(pitchRad);
 //			velocity->Y *= std::cos(pitchRad);
 //			velocity->Z = std::sin(pitchRad) * mag;
@@ -138,8 +138,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //			velocity->SetIfZeroXY();
 //
 //			double dist2D = velocity->LengthXY();
-//			int newFacing = newFacingDir.Raw- 0x3FFF;
-//			double newRad = newFacing * -0.00009587672516830327;
+//			int newFacing = newFacingDir.Raw- Math::BINARY_ANGLE_MASK;
+//			double newRad = newFacing * Math::DIRECTION_FIXED_MAGIC;
 //
 //			velocity->X = std::cos(newRad) * dist2D;
 //			velocity->Y = -std::sin(newRad) * dist2D;
@@ -168,8 +168,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //			VelocityClass::set_if_zero_2(velocity);
 //
 //			double dist2D = VelocityClass::Distance2(velocity);
-//			int facingOffset = facingAngle - 0x3FFF;
-//			double yawRad = facingOffset * -0.00009587672516830327;
+//			int facingOffset = facingAngle - Math::BINARY_ANGLE_MASK;
+//			double yawRad = facingOffset * Math::DIRECTION_FIXED_MAGIC;
 //
 //			if (yawRad != 0.0)
 //			{
@@ -185,8 +185,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //			double pitchAngle = FastMath::Atan2(rawVec.z, horizDist) - DEG90_AS_RAD;
 //			int pitchFacing = static_cast<int>(pitchAngle * BINARY_ANGLE_MAGIC);
 //
-//			int rotOffset = pitchFacing - 0x3FFF;
-//			double pitchRad = rotOffset * -0.00009587672516830327;
+//			int rotOffset = pitchFacing - Math::BINARY_ANGLE_MASK;
+//			double pitchRad = rotOffset * Math::DIRECTION_FIXED_MAGIC;
 //			double pitchMag = VelocityClass::Distance_xyz(velocity);
 //
 //			velocity->z = FastMath::Sin(pitchRad) * pitchMag;

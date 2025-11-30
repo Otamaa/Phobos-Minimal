@@ -1,18 +1,12 @@
 #pragma once
 
-#include <Base/Always.h>
-
-//Syringe interaction header - also includes <windows.h>
 #include <Syringe.h>
+#include <Helpers/CompileTime.h>
 
 #include <Fundamentals.h>
-
-
-//Assembly macros
 #include <ASMMacros.h>
+#include <bit>
 
-#include <wchar.h>
-#include <cstdio>
 
 //control key flags
 typedef DWORD eControlKeyFlags;

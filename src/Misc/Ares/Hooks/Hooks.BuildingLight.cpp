@@ -17,7 +17,7 @@ ASMJIT_PATCH(0x436459, BuildingLightClass_Update, 6)
 		const FacingClass* Facing = pTypeData->Spot_AttachedTo == SpotlightAttachment::Turret ?
 			&Owner->SecondaryFacing : &Owner->PrimaryFacing;
 
-		const double angle = double((int16_t)Facing->Current().Raw - 0x3FFF) * -0.00009587526218325454;
+		const double angle = double((int16_t)Facing->Current().Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 		const double distance = pTypeData->Spot_Distance;
 		Loc.Y = Loc.Y - (static_cast<int>(std::sin(angle) * distance));
 		Loc.X = static_cast<int>(std::cos(angle) * distance) + Loc.X;
@@ -100,7 +100,7 @@ public:
 					this_center = this->Location;
 					CoordStruct difference = this_center - caster_center;
 					difference_sqrt = (int)difference.Length();
-					int radius_2 = RulesClass::Instance->SpotlightRadius + (int)(this->GetMovementRadius() * 5.973333333333333);
+					int radius_2 = RulesClass::Instance->SpotlightRadius + (int)(this->GetMovementRadius() * Math::BUILDINGLIGHT_SCALLING_FACTOR);
 					if (difference_sqrt >= radius_2)
 					{
 						auto asin = std::asin((double)radius_2 / (double)difference_sqrt);

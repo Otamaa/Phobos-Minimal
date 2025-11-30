@@ -6646,8 +6646,8 @@ bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, Objec
 	//	pBullet->SetWeaponType(pFind);
 	//	VelocityClass nVel {};
 	//
-	//	double nSin = std::sin(1.570748388432313);
-	//	double nCos = std::cos(1.570748388432313);
+	//	double nSin = std::sin(Math::Math::PI_BY_TWO_APPROX);
+	//	double nCos = std::cos(Math::Math::PI_BY_TWO_APPROX);
 	//
 	//	double nX = nCos * nCos * -100.0;
 	//	double nY = nCos * nSin * -100.0;
@@ -6675,8 +6675,8 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 	if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nLoc), nullptr, pFind->Damage, pFind->Warhead, 20, false))
 	{
 		pBullet->SetWeaponType(pFind);
-		COMPILETIMEEVAL float nSin = gcem::sin(1.570748388432313);
-		COMPILETIMEEVAL float nCos = gcem::cos(-0.00009587672516830327);
+		COMPILETIMEEVAL float nSin = gcem::sin(Math::PI_BY_TWO_ACCURATE);
+		COMPILETIMEEVAL float nCos = gcem::cos(Math::DIRECTION_FIXED_MAGIC);
 
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);

@@ -26,7 +26,7 @@ WORD GetFacingVal(CoordStruct a2, CoordStruct a3)
 void JumpTo4(LevitateLocomotionClass* pThis, float a2)
 {
 
-	const auto v6 = (float)((__int16)(a2 - 0x3FFF) * -0.00009587672516830327);
+	const auto v6 = (float)((__int16)(a2 - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
 	const auto v5 = std::sinf(v6);
 	const auto v3 = std::cosf(v6);
 	pThis->CurrentSpeed = 0.0;
@@ -63,7 +63,7 @@ void LevitateLocomotionClass::ProcessHovering()
 	const double dMult = (pTechWhat & 1) ? 1.1 : 1.0;
 	const auto nFrame = Unsorted::CurrentFrame + 2 * pTechWhat;
 	const auto nHoverBob = dMult * RulesClass::Instance->HoverBob * 900.0;
-	const auto nVal2 = (nFrame % int(nHoverBob)) * Math::TwoPi / nHoverBob;
+	const auto nVal2 = (nFrame % int(nHoverBob)) * Math::PI_BY_TWO_APPROX / nHoverBob;
 	const auto nVal3 = std::sin((float)nVal2);
 	int nDampenResult = (int)(nVal3 + nVal3 + nDampen);
 
@@ -145,7 +145,7 @@ void LevitateLocomotionClass::DoPhase1()
 			if (Mission != Mission::Sticky && Mission != Mission::Sleep)
 			{
 				if (ScenarioClass::Instance->Random.RandomDouble() < 0.01) {
-					DirtoSomething(ScenarioClass::Instance->Random.RandomDouble() * Math::TwoPi);
+					DirtoSomething(ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI);
 				}
 			}
 
@@ -191,7 +191,7 @@ void LevitateLocomotionClass::DoPhase1()
 	auto Mission = LinkedTo->GetCurrentMission();
 	if (Mission != Mission::Sticky && Mission != Mission::Sleep) {
 		if (ScenarioClass::Instance->Random.RandomDouble() < 0.01) {
-			DirtoSomething(ScenarioClass::Instance->Random.RandomDouble() * Math::TwoPi);
+			DirtoSomething(ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI);
 		}
 	}
 
@@ -356,7 +356,7 @@ void LevitateLocomotionClass::DoPhase3()
 			ScenarioClass::Instance->Random.RandomDouble() < Characteristic.Accel_Prob)
 		{
 			this->DirtoSomething(ScenarioClass::Instance->Random.RandomDouble()
-				* Math::TwoPi);
+				* Math::GAME_TWOPI);
 		}
 
 	}
@@ -441,7 +441,7 @@ void LevitateLocomotionClass::DoPhase4()
 
 		if (this->IsLessSameThanProximityDistance(nDist_Loc))
 		{
-			const auto nDouble = (double)((__int16)GetFacingVal(LinkedTo->GetCoords(), nDist_Loc) - 0x3FFF) * -0.00009587672516830327;;
+			const auto nDouble = (double)((__int16)GetFacingVal(LinkedTo->GetCoords(), nDist_Loc) - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;;
 			this->DirtoSomething(nDouble);
 			return;
 		}
@@ -459,15 +459,15 @@ void LevitateLocomotionClass::DoPhase5(CoordStruct coord)
 		{
 			const auto nCoord = LinkedTo->GetCenterCoords();
 			const auto atan = std::atan2(double(nCoord.Y - coord.Y), double(nCoord.X - coord.X));
-			const auto nDir = (double)((__int16)(__int64)((atan - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC) - 0x3FFF) *
-				-0.00009587672516830327;
+			const auto nDir = (double)((__int16)(__int64)((atan - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC) - Math::BINARY_ANGLE_MASK) *
+				Math::DIRECTION_FIXED_MAGIC;
 			this->DirtoSomething(nDir);
 		}
 		else
 		{
 			const auto Coord = LinkedTo->GetCenterCoords();
 			const auto atan2 = std::atan2((double)(Coord.Y - coord.Y), (double)(Coord.X - coord.X));
-			const auto nMath_2 = (double)((__int16)(__int64)((atan2 - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC) - 0x3FFF) * -0.00009587672516830327;;
+			const auto nMath_2 = (double)((__int16)(__int64)((atan2 - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC) - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;;
 			const auto nMath_3 = std::sin((float)nMath_2);
 			const auto nMath_4 = std::cos((float)nMath_2);
 
@@ -589,7 +589,7 @@ void LevitateLocomotionClass::DoPhase7()
 					(int)LinkedTo->PathDirections[0] << 13 :
 					(unsigned short)(((std::atan2(double(nCoord_diff.Y), double(nCoord_diff.X))) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
 
-				const auto nFace_Value = float((double)(nFaceRaw - 0x3FFF) * -0.00009587672516830327);
+				const auto nFace_Value = float((double)(nFaceRaw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
 				const auto nSin = std::sinf(nFace_Value);
 				const auto nCos = std::cosf(nFace_Value);
 				this->CurrentSpeed = 0.0;
@@ -630,7 +630,7 @@ void LevitateLocomotionClass::DoPhase7()
 				(int)LinkedTo->PathDirections[0] << 13 :
 				(unsigned short)(((std::atan2(double(nCoord_diff.Y), double(nCoord_diff.X))) - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC);
 
-			const auto nFace_Value = (double)(nFaceRaw - 0x3FFF) * -0.00009587672516830327;
+			const auto nFace_Value = (double)(nFaceRaw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 			const auto nSin = std::sinf(float(nFace_Value));
 			const auto nCos = std::cosf(float(nFace_Value));
 			this->CurrentSpeed = 0.0;

@@ -31,35 +31,55 @@ void __cdecl store_fpu_codeword() {
 	JMP_STD(0x007C5EE4);
 }
 
-void __cdecl _set_fp_mode()
+static constexpr reference<unsigned short, 0x822D80> FPU_Codeword;
+
+unsigned int __cdecl Game_controlfp(unsigned int NewValue, unsigned int Mask) {
+	JMP_STD(0x7CBF49);
+}
+
+void __cdecl CRTHooks::_set_fp_mode()
 {
 	// Call to "store_fpu_codeword"
-	store_fpu_codeword();
+	unsigned int old_cw = 0;
 
-	/**
-	 *  Set the FPU mode to match the game (rounding towards zero [chop mode]).
-	 */
-	_set_controlfp(_RC_CHOP, _MCW_RC);
+	Game_controlfp(_RC_CHOP, _MCW_RC);
 
-	/**
-	 *  And this is required for the std c++ lib.
-	 */
-	fesetround(FE_TOWARDZERO);
-
-	// Match game's FPU settings EXACTLY
-	unsigned int old_cw;
-
-	// Set precision to 53-bit (double precision)
+	// set double precision (53-bit)
 	_controlfp_s(&old_cw, _PC_53, _MCW_PC);
 
-	// Set rounding to CHOP (toward zero) - CRITICAL!
+	// set x87 rounding to chop (toward zero)
 	_controlfp_s(nullptr, _RC_CHOP, _MCW_RC);
 
-	// Disable SSE exceptions if needed
-	_controlfp_s(nullptr, _EM_INVALID | _EM_DENORMAL | _EM_ZERODIVIDE |
-				 _EM_OVERFLOW | _EM_UNDERFLOW | _EM_INEXACT, _MCW_EM);
+	// mask all x87 exceptions (invalid/denorm/zerodiv/overflow/underflow/inexact)
+	// _MCW_EM masks exception enables; pass at once
+	_controlfp_s(nullptr,
+				  (_EM_INVALID | _EM_DENORMAL | _EM_ZERODIVIDE | _EM_OVERFLOW | _EM_UNDERFLOW | _EM_INEXACT),
+				  _MCW_EM);
 
-	CRTHooks::Initializeftol();
+	// Also set C runtime rounding (for std lib)
+	fesetround(FE_TOWARDZERO);
+
+	// 2) Update MXCSR to match: mask SSE exceptions and set rounding to toward-zero
+	const unsigned int MXCSR_MASK_EXCEPTIONS = ((1u << 7) | (1u << 8) | (1u << 9) |
+												 (1u << 10) | (1u << 11) | (1u << 12)); // bits 7..12 mask exceptions
+	const unsigned int MXCSR_ROUND_TOWARD_ZERO = (3u << 13); // bits 13..14 = 11 for round-toward-zero
+
+	unsigned int mxcsr = _mm_getcsr();
+	mxcsr |= MXCSR_MASK_EXCEPTIONS;
+	mxcsr = (mxcsr & ~(3u << 13)) | MXCSR_ROUND_TOWARD_ZERO; // set rounding
+	_mm_setcsr(mxcsr);
+
+	// 3) Now *store* the FPU control word value the game uses.
+	// Call the existing function that does fnstcw -> store into your pFPU_Codeword_ variable.
+	// Important: call this AFTER we've set x87/MXCSR as above.
+	store_fpu_codeword();
+
+	// 4) Safety: ensure pFPU_Codeword_ has precision (inexact) masked bit set (bit 5 = 0x0020)
+   // This prevents a later fistp from generating an exception even if someone changes CW between calls.
+	FPU_Codeword = static_cast<unsigned short>(FPU_Codeword | 0x0020u);
+
+	// 5) If the game creates threads (likely), ensure new threads also apply the same config.
+	// Best place: in DllMain -> DLL_THREAD_ATTACH call a function that sets the same x87 and MXCSR state.
 }
 
 //optimization , call our memory management direcly than using jump throught crt
@@ -7630,13 +7650,8 @@ void CRTHooks::ApplyFreeHooks()
 
 //≠======================================================
 
-static constexpr reference<unsigned short, 0x822D80> FPU_Codeword;
 unsigned short* pFPU_Codeword = (unsigned short*)0x00822D80;
 
-
-void CRTHooks::Initializeftol() {
-	Print_FPUMode();
-}
 
 #include <cstdint>
 #include <limits>
@@ -7645,8 +7660,7 @@ void CRTHooks::Initializeftol() {
 
 // This function signature matches Westwood's original _ftol
 // Can be used as a direct replacement in patched code
-extern "C" __declspec(naked) int64_t __cdecl ftol_truncate()
-{
+extern "C" __declspec(naked) int64_t __cdecl ftol_truncate() {
 	// The original _ftol expects the float/double value on the FPU stack (ST(0))
 	// We need to pop it and convert using SSE2
 
@@ -9799,7 +9813,7 @@ void CRTHooks::ApplyftolHooks() {
 }
 
 void CRTHooks::ApplyMathHooks()
-{	
+{
 	//FastMath__Acos
 	Patch::Apply_LJMP(0x4CADB0, PhobosMath::acosd);
 	Patch::Apply_CALL(0x48AAFB, PhobosMath::acosd);
@@ -9808,17 +9822,17 @@ void CRTHooks::ApplyMathHooks()
 	Patch::Apply_CALL(0x761DA9, PhobosMath::acosd);
 	Patch::Apply_CALL(0x76282A, PhobosMath::acosd);
 
-	//FastMath__Acos_Float				
+	//FastMath__Acos_Float
 	Patch::Apply_LJMP(0x4CB290, PhobosMath::acosf);
 
-	//FastMath__Asin	
+	//FastMath__Asin
 	Patch::Apply_LJMP(0x4CAD80, PhobosMath::asind);
 	Patch::Apply_CALL(0x435ED1, PhobosMath::asind);
 	Patch::Apply_CALL(0x43EACE, PhobosMath::asind);
 	Patch::Apply_CALL(0x62F35F, PhobosMath::asind);
 	Patch::Apply_CALL(0x64634A, PhobosMath::asind);
 
-	//FastMath__Asin_Float				
+	//FastMath__Asin_Float
 	Patch::Apply_LJMP(0x4CB260, PhobosMath::asinf);
 
 	//FastMath__Atan
@@ -10335,7 +10349,7 @@ void CRTHooks::ApplyMathHooks()
 	Patch::Apply_CALL(0x7B2CC2, PhobosMath::atand);
 	Patch::Apply_CALL(0x7B2CFD, PhobosMath::atand);
 
-	//FastMath__Atan2				
+	//FastMath__Atan2
 	Patch::Apply_LJMP(0x4CAE30, PhobosMath::atan2d);
 	Patch::Apply_CALL(0x416168, PhobosMath::atan2d);
 	Patch::Apply_CALL(0x416200, PhobosMath::atan2d);
@@ -10413,13 +10427,13 @@ void CRTHooks::ApplyMathHooks()
 	Patch::Apply_CALL(0x75BC6D, PhobosMath::atan2d);
 	Patch::Apply_CALL(0x75C008, PhobosMath::atan2d);
 
-	//FastMath__Atan2_Float				
+	//FastMath__Atan2_Float
 	Patch::Apply_LJMP(0x4CB3D0, PhobosMath::atan2f);
 
-	//FastMath__Atan_Float				
+	//FastMath__Atan_Float
 	Patch::Apply_LJMP(0x4CB480, PhobosMath::atanf);
 
-	//FastMath__Cos				
+	//FastMath__Cos
 	Patch::Apply_LJMP(0x4CAD00, PhobosMath::cosd);
 	Patch::Apply_CALL(0x415D47, PhobosMath::cosd);
 	Patch::Apply_CALL(0x415FE1, PhobosMath::cosd);
@@ -10587,13 +10601,13 @@ void CRTHooks::ApplyMathHooks()
 	Patch::Apply_CALL(0x75C0B6, PhobosMath::cosd);
 	Patch::Apply_CALL(0x75F268, PhobosMath::cosd);
 
-	//FastMath__Cos_Float				
+	//FastMath__Cos_Float
 	Patch::Apply_LJMP(0x4CB1A0, PhobosMath::cosf);
 	Patch::Apply_CALL(0x53BD5C, PhobosMath::cosf);
 	Patch::Apply_CALL(0x53BF4A, PhobosMath::cosf);
 	Patch::Apply_CALL(0x53C14C, PhobosMath::cosf);
 
-	//FastMath__Sin				
+	//FastMath__Sin
 	Patch::Apply_LJMP(0x4CACB0, PhobosMath::sind);
 	Patch::Apply_CALL(0x415D29, PhobosMath::sind);
 	Patch::Apply_CALL(0x416030, PhobosMath::sind);
@@ -10748,13 +10762,13 @@ void CRTHooks::ApplyMathHooks()
 	Patch::Apply_CALL(0x75F0E0, PhobosMath::sind);
 	Patch::Apply_CALL(0x75F255, PhobosMath::sind);
 
-	//FastMath__Sin_Float				
+	//FastMath__Sin_Float
 	Patch::Apply_LJMP(0x4CB150, PhobosMath::sinf);
 	Patch::Apply_CALL(0x53BD65, PhobosMath::sinf);
 	Patch::Apply_CALL(0x53BF56, PhobosMath::sinf);
 	Patch::Apply_CALL(0x53C155, PhobosMath::sinf);
 
-	//FastMath__Sqrt				
+	//FastMath__Sqrt
 	Patch::Apply_LJMP(0x4CAC40, PhobosMath::sqrtd);
 	Patch::Apply_CALL(0x403CF9, PhobosMath::sqrtd);
 	Patch::Apply_CALL(0x406939, PhobosMath::sqrtd);
@@ -11325,10 +11339,10 @@ void CRTHooks::ApplyMathHooks()
 	Patch::Apply_CALL(0x7B17E9, PhobosMath::sqrtd);
 	Patch::Apply_CALL(0x7B2BB9, PhobosMath::sqrtd);
 
-	//FastMath__Sqrt_Float				
+	//FastMath__Sqrt_Float
 	Patch::Apply_LJMP(0x4CB060, PhobosMath::sqrtf);
 
-	//FastMath__Tan				
+	//FastMath__Tan
 	Patch::Apply_LJMP(0x4CAD50, PhobosMath::tand);
 	Patch::Apply_CALL(0x403DC2, PhobosMath::tand);
 	Patch::Apply_CALL(0x406A02, PhobosMath::tand);
@@ -11586,7 +11600,7 @@ void CRTHooks::ApplyMathHooks()
 	Patch::Apply_CALL(0x7B18B2, PhobosMath::tand);
 	Patch::Apply_CALL(0x7B2C82, PhobosMath::tand);
 
-	//FastMath__Tan_Float				
+	//FastMath__Tan_Float
 	Patch::Apply_LJMP(0x4CB320, PhobosMath::tanf);
 }
 
@@ -11595,7 +11609,7 @@ void CRTHooks::Apply()
 	/**
 	*  Call the games fpmath to make sure we init
 	*/
-	Patch::Apply_CALL(0x6BBFC9, _set_fp_mode);
+	Patch::Apply_LJMP(0x6BBFB7, 0x6BBFD3);
 
 	/**
 	 *  C memory functions.
@@ -11634,7 +11648,13 @@ void CRTHooks::Apply()
 	Patch::Apply_LJMP(0x7C9D66, std::atof);
 	Patch::Apply_LJMP(0x7C9BFD, std::atoi);
 	Patch::Apply_LJMP(0x7C9B72, std::atol);
-
+	//Patch::Apply_LJMP(0x7CAFF4, _tolower);
+	//Patch::Apply_LJMP(0x7C97D3, _toupper);
+	Patch::Apply_LJMP(0x7CB12E, _putws);
+	/*Patch::Apply_LJMP(0x7CA4B0, (decltype(&::strstr)) ::strstr);*/
+	Patch::Apply_LJMP(0x7DCFC4, strupr);
+	Patch::Apply_LJMP(0x7DDCD6, wcsupr);
+	Patch::Apply_LJMP(0x7C8D20, _strcmpi);
 	//
 	ApplyftolHooks();
 	ApplyMathHooks();

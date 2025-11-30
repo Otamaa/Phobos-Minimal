@@ -503,8 +503,11 @@ public:
 	Valueable<bool> GiveMoneyIfStorageFull { false }; // vanilla behaviour
 
 	struct ProneSpeedData {
-		Valueable<double> Crawls { 0.33333334 };
-		Valueable<double> NoCrawls { 1.5 };
+		static COMPILETIMEEVAL double CRAWLING_SPEED_MULTIPLIER = std::bit_cast<double>(0x3FF5555555555555ull);
+		static COMPILETIMEEVAL double PRONE_SPEED_MULTIPLIER = std::bit_cast<double>(0x3FF8000000000000ull);
+
+		Valueable<double> Crawls { CRAWLING_SPEED_MULTIPLIER };
+		Valueable<double> NoCrawls { PRONE_SPEED_MULTIPLIER };
 
 		COMPILETIMEEVAL OPTIONALINLINE double getSpeed(bool crawls) const {
 			return (crawls ? Crawls : NoCrawls).Get();

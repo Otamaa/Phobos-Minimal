@@ -635,8 +635,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 		velocity->Z *= scale;
 
 		DirStruct dir = velocity->GetDirectionFromXY();
-		const int facingOffset = dir.Raw - 0x3FFF;
-		const double yawRad = facingOffset * -0.00009587672516830327;
+		const int facingOffset = dir.Raw - Math::BINARY_ANGLE_MASK;
+		const double yawRad = facingOffset * Math::DIRECTION_FIXED_MAGIC;
 		const double mag = velocity->Length();
 
 		if (yawRad != 0.0)
@@ -645,8 +645,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			velocity->Y /= std::cos(yawRad);
 		}
 
-		COMPILETIMEEVAL auto _cosPitchRad = gcem::cos(-0.00009587672516830327);
-		COMPILETIMEEVAL auto _sinPitchRad = gcem::sin(-0.00009587672516830327);
+		COMPILETIMEEVAL auto _cosPitchRad = gcem::cos(Math::DIRECTION_FIXED_MAGIC);
+		COMPILETIMEEVAL auto _sinPitchRad = gcem::sin(Math::DIRECTION_FIXED_MAGIC);
 		velocity->X *= _cosPitchRad;
 		velocity->Y *= _cosPitchRad;
 		velocity->Z = _sinPitchRad * mag;
@@ -656,8 +656,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 		velocity->SetIfZeroXY();
 
 		const double dist2D = velocity->LengthXY();
-		const int newFacing = newFacingDir.Raw - 0x3FFF;
-		const double newRad = newFacing * -0.00009587672516830327;
+		const int newFacing = newFacingDir.Raw - Math::BINARY_ANGLE_MASK;
+		const double newRad = newFacing * Math::DIRECTION_FIXED_MAGIC;
 
 		velocity->X = std::cos(newRad) * dist2D;
 		velocity->Y = -std::sin(newRad) * dist2D;
@@ -681,8 +681,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			// Calculate yaw angle to face the target in XY plane
 			double yawRadians = std::atan2(-aimVector.Y, aimVector.X) - Math::DEG90_AS_RAD;
 			int yawBinaryAngle = static_cast<int>(yawRadians * Math::BINARY_ANGLE_MAGIC);
-			int adjustedYaw = yawBinaryAngle - 0x3FFF;
-			double adjustedYawRad = adjustedYaw * -0.00009587672516830327;
+			int adjustedYaw = yawBinaryAngle - Math::BINARY_ANGLE_MASK;
+			double adjustedYawRad = adjustedYaw * Math::DIRECTION_FIXED_MAGIC;
 
 			// Prepare bullet velocity (set if all-zero)
 			VelocityClass* velocity = &pBullet->Velocity;
@@ -699,13 +699,13 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			double horizontalDistance = aimVector.LengthXY();
 			double pitchRadians = std::atan2(aimVector.Z, horizontalDistance) - Math::DEG90_AS_RAD;
 			int pitchBinaryAngle = static_cast<int>(pitchRadians * Math::BINARY_ANGLE_MAGIC);
-			int adjustedPitch = pitchBinaryAngle - 0x3FFF;
-			double adjustedPitchRad = adjustedPitch * -0.00009587672516830327;
+			int adjustedPitch = pitchBinaryAngle - Math::BINARY_ANGLE_MASK;
+			double adjustedPitchRad = adjustedPitch * Math::DIRECTION_FIXED_MAGIC;
 
 			// Re-calculate current yaw from bullet velocity
 			DirStruct currentFacing = velocity->GetDirectionFromXY();
-			int currentFacingOffset = currentFacing.Raw - 0x3FFF;
-			double currentYawRad = currentFacingOffset * -0.00009587672516830327;
+			int currentFacingOffset = currentFacing.Raw - Math::BINARY_ANGLE_MASK;
+			double currentYawRad = currentFacingOffset * Math::DIRECTION_FIXED_MAGIC;
 
 			double currentSpeed3D = velocity->Length();
 

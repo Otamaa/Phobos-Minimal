@@ -249,7 +249,7 @@ CoordStruct BombardTrajectory::CalculateMiddleCoords()
 
 	if (!pType->FallScatter_Linear)
 	{
-		const double angel = ScenarioClass::Instance->Random.RandomDouble() * Math::TwoPi;
+		const double angel = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI;
 		scatterX = length * std::cos(angel);
 		scatterY = length * std::sin(angel);
 	}
@@ -422,11 +422,11 @@ void BombardTrajectory::CalculateDisperseBurst()
 				if (this->CurrentBurst % 2 == 1)
 					rotationAxis *= -1;
 
-				extraRotate = Math::Pi * (pType->RotateCoord * ((this->CurrentBurst / 2) / (this->CountOfBurst - 1.0) - 0.5)) / (this->IsFalling ? 90 : 180);
+				extraRotate = Math::GAME_PI * (pType->RotateCoord * ((this->CurrentBurst / 2) / (this->CountOfBurst - 1.0) - 0.5)) / (this->IsFalling ? 90 : 180);
 			}
 			else
 			{
-				extraRotate = Math::Pi * (pType->RotateCoord * (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / (this->IsFalling ? 90 : 180);
+				extraRotate = Math::GAME_PI * (pType->RotateCoord * (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / (this->IsFalling ? 90 : 180);
 			}
 
 			const double cosRotate = std::cos(extraRotate);

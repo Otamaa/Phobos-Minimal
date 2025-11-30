@@ -275,11 +275,11 @@ void DisperseTrajectory::InitializeBulletNotCurve(bool facing)
 			if (this->CurrentBurst % 2 == 1)
 				rotationAxis *= -1;
 
-			extraRotate = Math::Pi * (pType->RotateCoord * ((this->CurrentBurst / 2) / (pBullet->WeaponType->Burst - 1.0) - 0.5)) / 180;
+			extraRotate = Math::GAME_PI * (pType->RotateCoord * ((this->CurrentBurst / 2) / (pBullet->WeaponType->Burst - 1.0) - 0.5)) / 180;
 		}
 		else
 		{
-			extraRotate = Math::Pi * (pType->RotateCoord * (this->CurrentBurst / (pBullet->WeaponType->Burst - 1.0) - 0.5)) / 180;
+			extraRotate = Math::GAME_PI * (pType->RotateCoord * (this->CurrentBurst / (pBullet->WeaponType->Burst - 1.0) - 0.5)) / 180;
 		}
 
 		pBullet->Velocity = this->RotateAboutTheAxis(pBullet->Velocity, rotationAxis, extraRotate);
@@ -1274,11 +1274,11 @@ void DisperseTrajectory::DisperseBurstSubstitution(CoordStruct axis, double rota
 		if (curBurst % 2 == 1)
 			rotationAxis *= -1;
 
-		extraRotate = Math::Pi * (rotateCoord * ((curBurst / 2) / (maxBurst - 1.0) - 0.5)) / 180;
+		extraRotate = Math::GAME_PI * (rotateCoord * ((curBurst / 2) / (maxBurst - 1.0) - 0.5)) / 180;
 	}
 	else
 	{
-		extraRotate = Math::Pi * (rotateCoord * (curBurst / (maxBurst - 1.0) - 0.5)) / 180;
+		extraRotate = Math::GAME_PI * (rotateCoord * (curBurst / (maxBurst - 1.0) - 0.5)) / 180;
 	}
 
 	pBullet->Velocity = this->RotateAboutTheAxis(pBullet->Velocity, rotationAxis, extraRotate);

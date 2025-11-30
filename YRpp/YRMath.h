@@ -3,8 +3,6 @@
 #include <YRPPCore.h>
 #include <cmath>
 #include <algorithm>
-#include <Base/Always.h>
-#include <Helpers/CompileTime.h>
 
 #define MATH_FUNC(ret ,arg ,name, address)\
 	OPTIONALINLINE NAKED ret __cdecl name(arg value) noexcept\
@@ -45,68 +43,103 @@ namespace Math
 	static COMPILETIMEEVAL reference<float, 0x859094u, 4096u> const FastMath_asin_Table {};
 	static COMPILETIMEEVAL reference<float, 0x84F084u, 4096u> const FastMath_sin_Table {};
 
-	COMPILETIMEEVAL auto const WWMATH_PI = 3.14159265358979323846f;
-	COMPILETIMEEVAL auto const Pif = 3.1415927f;
-	COMPILETIMEEVAL auto const SMALL_FLOAT = 0.0000001f;
-	COMPILETIMEEVAL auto const HalfPiF = 1.57079632f;
-	COMPILETIMEEVAL auto const Pi = 3.1415926535897932384626433832795;
-	COMPILETIMEEVAL auto const C_Sharp_Pi = 3.1415926535897931;
-	COMPILETIMEEVAL auto const TwoPi = 6.283185307179586476925286766559;
-	COMPILETIMEEVAL auto const HalfPi = 1.5707963267948966192313216916398;
-	COMPILETIMEEVAL auto const Sqrt2 = 1.4142135623730950488016887242097;
-	COMPILETIMEEVAL auto const Sqrt3 = 1.73205080756887719318;
-	COMPILETIMEEVAL auto const Sqrtoo2 = 0.7071067811865475244008442;
-	COMPILETIMEEVAL auto const Sqrtoo3 = 0.5773502691896257645091489;
-	COMPILETIMEEVAL auto const Sqrtoo6 = 0.4082482904638630163662140;
-	COMPILETIMEEVAL auto const epsilon = 0.0001f;
-	COMPILETIMEEVAL auto const EPSILON = 1.0E-6;
-	COMPILETIMEEVAL auto const short_epsilon = 0.1f;
-	COMPILETIMEEVAL auto const float_max = FLT_MAX;
-	COMPILETIMEEVAL auto const float_min = FLT_MIN;
-	COMPILETIMEEVAL auto const float_tiny = 1.0e-37f;
-	COMPILETIMEEVAL auto const E = 2.71828182845904523536; // Holds the value for "e": Euler's number or Napier's constant, to 15 significant figures. This is a mathematically useful number.
-	COMPILETIMEEVAL auto const LOG2E = 1.44269504088896340736;
-	COMPILETIMEEVAL auto const LOG10E = 0.434294481903251827651;
-	COMPILETIMEEVAL auto const LN2 = 0.693147180559945309417;
-	COMPILETIMEEVAL auto const LN10 = 2.30258509299404568402;
-	COMPILETIMEEVAL auto const P4 = 0.785398163397448309616;// Holds the value for PI / 4 OR 45 degrees. Only up to 16 significant figures.
-	COMPILETIMEEVAL auto const P8 = 0.39269908169872413; // Holds the value for PI / 8 OR 22.5 degrees. Only up to 17 significant figures.
-	COMPILETIMEEVAL auto const P16 = 0.19634954084936206; // Holds the value for PI / 16 OR 11.25 degrees. Only up to 17 significant figures.
-	COMPILETIMEEVAL auto const PI = 0.318309886183790671538;
-	COMPILETIMEEVAL auto const _2_PI = 0.636619772367581343076;
-	COMPILETIMEEVAL auto const _1_SQRTPI = 0.564189583547756286948;
-	COMPILETIMEEVAL auto const _2_SQRTPI = 1.12837916709551257390;
-	COMPILETIMEEVAL auto const THREE_PI_2 = 4.7123889803846895f; // Holds the value for 3 * PI_2 OR 270 degrees. Only up to 17 significant figures.
-	COMPILETIMEEVAL auto const TIGHT_CORNER_RADIUS = 0.5f;
-	COMPILETIMEEVAL const double RAD_TO_DEG = 57.295779513082325225835265587527; // Holds the value for 180 / PI which is used to convert radians to degrees.
-	COMPILETIMEEVAL const double DEG_TO_RAD = 0.017453292519943294444444444444444; // Holds the value for PI / 180 which is used to convert degrees to radians.
-	COMPILETIMEEVAL const double DEG90_AS_RAD = 1.570796326794897;
-	COMPILETIMEEVAL const double BINARY_ANGLE_MAGIC = -10430.06004058427;
-	//COMPILETIMEEVAL const float ZERO = (float)1e-7;
-	//COMPILETIMEEVAL const float PI_HALVES = 0.50f * Math::PI;
-	//COMPILETIMEEVAL const float PI_THIRDS = Math::PI * 0.3333333333333f;
-	//COMPILETIMEEVAL const float PI_FOURTHS = 0.25f * Math::PI;
-	//COMPILETIMEEVAL const float PI_SIXTHS = Math::PI * 0.6666666666667f;
-	//COMPILETIMEEVAL const float PI_2 = 2.00f * Math::PI;
-	//COMPILETIMEEVAL const float PI_DIV180 = Math::PI / 180.0f;
-	//COMPILETIMEEVAL const float PI_INVx180 = 180.0f / Math::PI;
-	//COMPILETIMEEVAL const float PI_INV = 1.0f / Math::PI;
-	//COMPILETIMEEVAL const double DEG_TO_RAD_Double = Math::Pi / 180;
-	//COMPILETIMEEVAL const double DEG_TO_RAD_ALTERNATE = C_Sharp_Pi / 180;
-	//COMPILETIMEEVAL const double BINARY_ANGLE_MAGIC_ALTERNATE = -(360.0 / (65535 - 1)) * DEG_TO_RAD_ALTERNATE;
-	//COMPILETIMEEVAL const double PI_BYSIXTEEN = Math::Pi / 16;
-	//COMPILETIMEEVAL const double BinaryAngleMagic = -(360.0 / (65535 - 1)) * Pi / 180.0;
-	//COMPILETIMEEVAL const double radToIndex = 2607.5945;
-	//COMPILETIMEEVAL const double gameval_ = 651.8986469044033;
-	//COMPILETIMEEVAL const double ATANTABLEEND = 0.024413355;
+	static COMPILETIMEEVAL float radToIndex = std::bit_cast<float>(0x4522F983u);
 
-	// Game degrees to radians coefficient, called 'binary angle magic' by some.
-	//COMPILETIMEEVAL auto const GameDegreesToRadiansCoefficient = -(360.0 / (65535 - 1)) * Pi / 180.0;
-	COMPILETIMEEVAL auto const GameDegrees90 = 0X3FFF;
+	//-0.00009587672516830327
+	static COMPILETIMEEVAL double DIRECTION_FIXED_MAGIC = std::bit_cast<double>(uint64_t { 0xBF19222D989F5E57ull });
+
+	//-10430.06004058427
+	static COMPILETIMEEVAL double BINARY_ANGLE_MAGIC = std::bit_cast<double>(uint64_t { 0xC0C45F07AF68ECEFull });
+
+	//1.570796326794897
+	static COMPILETIMEEVAL double DEG90_AS_RAD = std::bit_cast<double>(uint64_t { 0x3FF921FB54442D18ull });
+
+	//0.017453292519943294444444444444444
+	static COMPILETIMEEVAL double DEG_TO_RAD = std::bit_cast<double>(uint64_t { 0x3F91DF46A2529D39ull });
+
+	static COMPILETIMEEVAL double TWO_BY_PI = std::bit_cast<double>(uint64_t { 0x3FC25E5374344960ull });
+
+	//0.78532625585357209119199168682098
+	static COMPILETIMEEVAL double PI_BY_FOUR_APPROX = std::bit_cast<double>(0x3FE921648732995Cull);
+
+	//1.5707963267948965580592013981729
+	static COMPILETIMEEVAL double PI_BY_TWO_APPROX = std::bit_cast<double>(0x3FF921C90FE8FBDAull);
+
+	// = 0.7853981633974483 (π/4, 45 degrees)
+	static COMPILETIMEEVAL float PI_BY_FOUR_F = std::bit_cast<float>(0x3F490FDBu);
+
+	//-1.5707963267948966
+	static COMPILETIMEEVAL double NEGA_PI_BY_TWO = std::bit_cast<double>(0xBFF921FB54442D18ull);
+
+	// True π/2
+	static COMPILETIMEEVAL double PI_BY_TWO_ACCURATE = std::bit_cast<double>(0x3FF921FB54442D18ull);
+
+	// True π/4
+	static COMPILETIMEEVAL double PI_BY_FOUR_ACCURATE = std::bit_cast<double>(0x3FE921FB54442D18ull);
+
+	// = 4.7123889802303795... (approx 3π/2, 270 degrees)
+	static COMPILETIMEEVAL double THREE_PI_BY_TWO_APPROX = std::bit_cast<double>(0x4012D9891049EE22ull);
+
+	// = 4.71238898038469... (true 3π/2, 270 degrees)
+	static COMPILETIMEEVAL double THREE_PI_BY_TWO = std::bit_cast<double>(0x4012D97C7F3321D2ull);
+
+	// = π/8 = 0.39269908169872414 (22.5 degrees)
+	static COMPILETIMEEVAL double PI_BY_EIGHT = std::bit_cast<double>(0x3FD921FB54442D18ull);
+
+	static COMPILETIMEEVAL double ONE_FIFTEENTH = std::bit_cast<double>(0x3FB1111111111111ull);
+
+	// = 0.14285714285714285 = 1/7
+	static COMPILETIMEEVAL double INV_7 = std::bit_cast<double>(0x3FC2492492492492ull);
+
+	// = 1/e = 0.36787944117144233
+	static COMPILETIMEEVAL double INV_E = std::bit_cast<double>(0x3FD78B56362CEF38ull);
+
+	// = π/(2√2) = 1.1780972450961724
+	static COMPILETIMEEVAL double PI_SQRT_TWO_BY_FOUR = std::bit_cast<double>(0x3FF2D97C7F3321D2ull);
+
+	// = 3.141592653589793 (180 degrees)
+	static COMPILETIMEEVAL double GAME_PI = std::bit_cast<double>(0x400921FB54442D18ULL);
+
+	// = 6.283185307179586 (360 degrees)
+	static COMPILETIMEEVAL double GAME_TWOPI = std::bit_cast<double>(0x401921FB54442D18ULL);
+
+	// = 12.566370614359172 (720 degrees)
+	static COMPILETIMEEVAL double GAME_FOURPI = std::bit_cast<double>(0x402921FB54442D18ULL);
+
+	static COMPILETIMEEVAL double CloudHeightFactor = std::bit_cast<double>(0x401BDFB59E463B4Eull);
+
+	// = 0.029999999329447746 ≈ 0.03 = 3/100
+	static COMPILETIMEEVAL float flt_1 = std::bit_cast<float>(0x3CF5C28Fu);
+
+	// = 0.014999999664723873 ≈ 0.015 = 15/1000 = 3/200
+	static COMPILETIMEEVAL float flt_2 = std::bit_cast<float>(0x3C75C28Fu);
+
+	static COMPILETIMEEVAL double BUILDINGLIGHT_SCALLING_FACTOR = std::bit_cast<double>(0x4017E4B17E4B17E4ull);
+
+	static COMPILETIMEEVAL float ONE_TWENTIETH_F = std::bit_cast<float>(0x3D4CCCCDu); // ≈ 0.05 (best float representation)
+
+	static COMPILETIMEEVAL double ONE_HALF = // or HALF
+		std::bit_cast<double>(uint64_t { 0x3FE0000000000000ull }); // = 0.5
+
+	//Ares
+
+	// = -0.00009587526218325454
+	static COMPILETIMEEVAL double APPROX_CORRECTION_TERM_1 = std::bit_cast<double>(0xBF19221476583A71ull);
+
+	// = -2.44921270764e-16
+	static COMPILETIMEEVAL double APPROX_CORRECTION_TERM_2 = std::bit_cast<double>(0xBCB1A5FFFFFFDA55ull);
+
+	//sqrt(2)
+	static COMPILETIMEEVAL double SQRT_TWO = std::bit_cast<double>(0x3FF6A09E667F3BCDull);
+
+	//~360° (wraps back to 0)
+	static COMPILETIMEEVAL  uint16_t BINARY_ANGLE_MASK = 0x3FFF;
+
+	static OPTIONALINLINE COMPILETIMEEVAL double rad2deg(double rad) { return rad * 180.0 / GAME_PI; }
+	static OPTIONALINLINE COMPILETIMEEVAL double deg2rad(double deg) { return deg * GAME_PI / 180.0; }
 
 	template<typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
-	static COMPILETIMEEVAL float DEG_TO_RADF(T val) { return (((float)val) * WWMATH_PI / 180.0f); }
-
+	static COMPILETIMEEVAL float DEG_TO_RADF(T val) { return (((float)val) * GAME_PI / 180.0f); }
 	MATH_FUNC(float, double, sqrt, 0x4CAC40);
 	MATH_FUNC(float, double, sin, 0x4CACB0);
 	MATH_FUNC(float, double, cos, 0x4CAD00);
@@ -144,12 +177,6 @@ namespace Math
 
 		return y;
 	}
-
-	OPTIONALINLINE COMPILETIMEEVAL double rad2deg(double rad) { return rad * 180.0 / Pi; }
-	OPTIONALINLINE COMPILETIMEEVAL double rad2deg_Alternate(double rad) { return rad * 180.0 / C_Sharp_Pi; }
-	OPTIONALINLINE double sqrt(int val) { return sqrt(static_cast<double>(val)); }
-	OPTIONALINLINE COMPILETIMEEVAL double deg2rad(double deg) { return deg * Pi / 180.0; }
-	OPTIONALINLINE COMPILETIMEEVAL double deg2rad_Alternate(double deg) { return deg * C_Sharp_Pi / 180.0; }
 
 	template <typename T>
 	[[nodiscard]] OPTIONALINLINE COMPILETIMEEVAL auto signum(T x)noexcept

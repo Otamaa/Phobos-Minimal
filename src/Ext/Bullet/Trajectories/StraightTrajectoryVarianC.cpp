@@ -443,11 +443,11 @@ void StraightTrajectoryVarianC::PrepareForOpenFire()
 				if (this->CurrentBurst % 2 == 1)
 					rotationAxis *= -1;
 
-				extraRotate = Math::Pi * (pType->RotateCoord * ((this->CurrentBurst / 2) / (this->CountOfBurst - 1.0) - 0.5)) / 180;
+				extraRotate = Math::GAME_PI * (pType->RotateCoord * ((this->CurrentBurst / 2) / (this->CountOfBurst - 1.0) - 0.5)) / 180;
 			}
 			else
 			{
-				extraRotate = Math::Pi * (pType->RotateCoord * (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / 180;
+				extraRotate = Math::GAME_PI * (pType->RotateCoord * (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / 180;
 			}
 
 			const auto cosRotate = std::cos(extraRotate);

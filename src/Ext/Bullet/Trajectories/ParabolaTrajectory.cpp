@@ -348,13 +348,13 @@ void ParabolaTrajectory::PrepareForOpenFire()
 				if (pBullet->Owner && pBullet->Owner->CurrentBurstIndex % 2 == 1)
 					rotationAxis *= -1;
 
-				extraRotate = Math::Pi *
+				extraRotate = Math::GAME_PI *
 					(pType->RotateCoord.Get() *
 					(double(this->CurrentBurst / 2) / (this->CountOfBurst - 1.0) - 0.5)) / 180;
 			}
 			else
 			{
-				extraRotate = Math::Pi * (pType->RotateCoord.Get()
+				extraRotate = Math::GAME_PI * (pType->RotateCoord.Get()
 							* (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / 180;
 			}
 
@@ -401,8 +401,8 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		}
 		case ParabolaFireMode::Angle:
 		{
-			double radian = pType->LaunchAngle * Math::Pi / 180.0;
-			radian = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? (Math::HalfPi / 3) : radian;
+			double radian = pType->LaunchAngle * Math::GAME_PI / 180.0;
+			radian = (radian >= Math::PI_BY_TWO_ACCURATE || radian <= -Math::PI_BY_TWO_ACCURATE) ? (Math::PI_BY_TWO_ACCURATE / 3) : radian;
 			const double factor = std::cos(radian);
 
 			// Check if the angle is appropriate
@@ -476,8 +476,8 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 	case ParabolaFireMode::Angle: // Fixed fire angle and aim at the target
 	{
 		// Step 1: Read the appropriate fire angle
-		double radian = pType->LaunchAngle * Math::Pi / 180.0;
-		radian = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? (Math::HalfPi / 3) : radian;
+		double radian = pType->LaunchAngle * Math::GAME_PI / 180.0;
+		radian = (radian >= Math::PI_BY_TWO_ACCURATE || radian <= -Math::PI_BY_TWO_ACCURATE) ? (Math::PI_BY_TWO_ACCURATE / 3) : radian;
 
 		// Step 2: Using Newton Iteration Method to determine the time of encounter between the projectile and the target
 		const double meetTime = this->SearchFixedAngleMeetTime(pSourceCoords, &targetCoords, &offsetCoords, radian, gravity);
@@ -561,8 +561,8 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		pBullet->Velocity.Z = std::sqrt(2 * gravity * (maxHeight - sourceHeight)) + gravity / 2;
 
 		// Step 6: Read the appropriate fire angle
-		double radian = pType->LaunchAngle * Math::Pi / 180.0;
-		radian = (radian >= Math::HalfPi || radian <= 1e-10) ? (Math::HalfPi / 3) : radian;
+		double radian = pType->LaunchAngle * Math::GAME_PI / 180.0;
+		radian = (radian >= Math::PI_BY_TWO_ACCURATE || radian <= 1e-10) ? (Math::PI_BY_TWO_ACCURATE / 3) : radian;
 
 		// Step 7: Calculate the ratio of horizontal velocity to horizontal distance
 		const double horizontalDistance = Point2D { destinationCoords.X, destinationCoords.Y }.Length();
@@ -604,8 +604,8 @@ void ParabolaTrajectory::CalculateBulletVelocityLeadTime(CoordStruct* pSourceCoo
 		const double horizontalVelocity = horizontalDistance * mult;
 
 		// Step 8: Read the appropriate fire angle
-		double radian = pType->LaunchAngle * Math::Pi / 180.0;
-		radian = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? (Math::HalfPi / 3) : radian;
+		double radian = pType->LaunchAngle * Math::GAME_PI / 180.0;
+		radian = (radian >= Math::PI_BY_TWO_ACCURATE || radian <= -Math::PI_BY_TWO_ACCURATE) ? (Math::PI_BY_TWO_ACCURATE / 3) : radian;
 
 		// Step 9: Calculate the vertical component of the projectile velocity
 		pBullet->Velocity.Z = horizontalVelocity * std::tan(radian) + gravity / 2;
@@ -693,10 +693,10 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 	case ParabolaFireMode::Angle: // Fixed fire angle and aim at the target
 	{
 		// Step 1: Read the appropriate fire angle
-		double radian = pType->LaunchAngle * Math::Pi / 180.0;
+		double radian = pType->LaunchAngle * Math::GAME_PI / 180.0;
 
 		// Step 2: Using Newton Iteration Method to determine the projectile velocity
-		double velocity = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? 100.0 : this->SearchVelocity(horizontalDistance, distanceCoords.Z, radian, gravity);
+		double velocity = (radian >= Math::PI_BY_TWO_ACCURATE || radian <= -Math::PI_BY_TWO_ACCURATE) ? 100.0 : this->SearchVelocity(horizontalDistance, distanceCoords.Z, radian, gravity);
 
 		// Step 3: Calculate the vertical component of the projectile velocity
 		pBullet->Velocity.Z = velocity * std::sin(radian);
@@ -740,8 +740,8 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 		pBullet->Velocity.Z = std::sqrt(2 * gravity * (maxHeight - sourceHeight));
 
 		// Step 3: Read the appropriate fire angle
-		double radian = pType->LaunchAngle * Math::Pi / 180.0;
-		radian = (radian >= Math::HalfPi || radian <= 1e-10) ? (Math::HalfPi / 3) : radian;
+		double radian = pType->LaunchAngle * Math::GAME_PI / 180.0;
+		radian = (radian >= Math::PI_BY_TWO_ACCURATE || radian <= 1e-10) ? (Math::PI_BY_TWO_ACCURATE / 3) : radian;
 
 		// Step 4: Calculate the ratio of horizontal velocity to horizontal distance
 		const double mult = (pBullet->Velocity.Z / std::tan(radian)) / horizontalDistance;
@@ -764,8 +764,8 @@ void ParabolaTrajectory::CalculateBulletVelocityRightNow(CoordStruct* pSourceCoo
 		pBullet->Velocity.Y = distanceCoords.Y * mult;
 
 		// Step 4: Read the appropriate fire angle
-		double radian = pType->LaunchAngle * Math::Pi / 180.0;
-		radian = (radian >= Math::HalfPi || radian <= -Math::HalfPi) ? (Math::HalfPi / 3) : radian;
+		double radian = pType->LaunchAngle * Math::GAME_PI / 180.0;
+		radian = (radian >= Math::PI_BY_TWO_ACCURATE || radian <= -Math::PI_BY_TWO_ACCURATE) ? (Math::PI_BY_TWO_ACCURATE / 3) : radian;
 
 		// Step 5: Calculate the vertical component of the projectile velocity
 		pBullet->Velocity.Z = horizontalSpeed * std::tan(radian);
@@ -1187,7 +1187,7 @@ bool ParabolaTrajectory::BulletDetonatePreCheck()
 
 		if (horizontalVelocity > 1e-10)
 		{
-			if ((pBullet->Velocity.Z / horizontalVelocity) < std::tan(pType->DetonationAngle.Get() * Math::Pi / 180))
+			if ((pBullet->Velocity.Z / horizontalVelocity) < std::tan(pType->DetonationAngle.Get() * Math::GAME_PI / 180))
 				return true;
 		}
 		else if (pType->DetonationAngle.Get() > 1e-10 || pBullet->Velocity.Z < 1e-10)

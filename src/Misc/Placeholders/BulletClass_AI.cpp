@@ -42,7 +42,7 @@ class BulletClass_patch : public BulletClass
 
 			InitialVelocity.GetDirectionFromXY(&_dummy);
 
-			double angle = double(((int16_t)_dummy.Raw - 0x3FFF) * -0.00009587672516830327);
+			double angle = double(((int16_t)_dummy.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
 			//	double length_XYZ = InitialVelocity.Length();
 
 			if (angle != 0.0)
@@ -51,7 +51,7 @@ class BulletClass_patch : public BulletClass
 				InitialVelocity.Y /= std::sin(angle);
 			}
 
-			double angle_XY = double(((int16_t)XY.Raw - 0x3FFF) * -0.00009587672516830327);
+			double angle_XY = double(((int16_t)XY.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
 
 			InitialVelocity.X *= std::cos(angle_XY);
 			InitialVelocity.Y *= std::cos(angle_XY);

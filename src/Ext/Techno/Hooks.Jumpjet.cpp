@@ -315,12 +315,12 @@ ASMJIT_PATCH(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 
 namespace JumpjetTiltReference
 {
-	constexpr auto BaseSpeed = 32;
-	constexpr auto BaseTilt = Math::HalfPi / 4;
-	constexpr auto BaseTurnRaw = 32768;
-	constexpr auto MaxTilt = static_cast<float>(Math::HalfPi);
-	constexpr auto ForwardBaseTilt = BaseTilt / BaseSpeed;
-	constexpr auto SidewaysBaseTilt = BaseTilt / (BaseTurnRaw * BaseSpeed);
+	COMPILETIMEEVAL auto BaseSpeed = 32;
+	COMPILETIMEEVAL auto BaseTilt = Math::PI_BY_TWO_ACCURATE / 4;
+	COMPILETIMEEVAL auto BaseTurnRaw = 32768;
+	COMPILETIMEEVAL auto MaxTilt = static_cast<float>(Math::PI_BY_TWO_ACCURATE);
+	COMPILETIMEEVAL auto ForwardBaseTilt = BaseTilt / BaseSpeed;
+	COMPILETIMEEVAL auto SidewaysBaseTilt = BaseTilt / (BaseTurnRaw * BaseSpeed);
 }
 
 // Just rewrite this completely to avoid headache
@@ -371,9 +371,9 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 	else if (pTypeExt->JumpjetTilt.Get(RulesExtData::Instance()->JumpjetTilt)
 		&& !onGround && linked->IsAlive && linked->Health > 0 && !linked->IsAttackedByLocomotor)
 	{
-		constexpr auto maxTilt = static_cast<float>(Math::HalfPi);
-		constexpr auto baseSpeed = 32;
-		constexpr auto baseTilt = Math::HalfPi / 4;
+		COMPILETIMEEVAL auto maxTilt = static_cast<float>(Math::PI_BY_TWO_ACCURATE);
+		COMPILETIMEEVAL auto baseSpeed = 32;
+		COMPILETIMEEVAL auto baseTilt = Math::PI_BY_TWO_ACCURATE / 4;
 
 		if (pThis->__currentSpeed > 0.0)
 		{

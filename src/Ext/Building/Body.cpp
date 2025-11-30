@@ -1249,10 +1249,8 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 				pThis->GetFLH(&nFLH, 0, CoordStruct::Empty);
 
 				// Otamaa : the original calculation seems causing missile to be invisible
-				//auto nCos = 0.00004793836;
-				//auto nCos = std::cos(1.570748388432313); // Accuracy is different from the game
-				//auto nSin = 0.99999999885;
-				//auto nSin = std::sin(1.570748388432313);// Accuracy is different from the game
+				//auto nCos = std::cos(Math::Math::PI_BY_TWO_ACCURATE);
+				//auto nSin = std::sin(Math::Math::PI_BY_TWO_ACCURATE);
 
 				const auto nMult = pCreated->Type->Vertical ? 10.0 : 100.0;
 				//const auto nX = nCos * nCos * nMult;
@@ -1305,7 +1303,7 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 			pThis->GetFLH(&coord, 0, CoordStruct::Empty);
 
 			VelocityClass velocity {};
-			double angle = 1.570748388432313; // ~90 degrees
+			double angle = Math::Math::PI_BY_TWO_ACCURATE;
 			double speed = 10.0;
 
 			double sinA = std::sin(angle);
@@ -1477,7 +1475,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 
 		// --- Base velocity calculation ---
 		COMPILETIMEEVAL double magnitude = gcem::sqrt(10000.0);
-		double radians = (double)(binaryAngle - 16383) * -0.00009587672516830327;
+		double radians = (double)(binaryAngle - 16383) * Math::DIRECTION_FIXED_MAGIC;
 
 		VelocityClass vel { std::cos(radians) * magnitude  , -(std::sin(radians) * magnitude)  , 0.0 };
 		vel.SetIfZeroXYZ();
@@ -1511,8 +1509,8 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 
 		// --- Pitch adjustment ---
 		double pitch = std::atan2(vel.Z, vel.LengthXY()) - Math::DEG90_AS_RAD;
-		int pitchBinary = (int)(pitch * Math::BINARY_ANGLE_MAGIC) - 0x3FFF;
-		double pitchRad = (double)pitchBinary * -0.00009587672516830327;
+		int pitchBinary = (int)(pitch * Math::BINARY_ANGLE_MAGIC) - Math::BINARY_ANGLE_MASK;
+		double pitchRad = (double)pitchBinary * Math::DIRECTION_FIXED_MAGIC;
 
 		if (pitchRad != 0.0)
 		{
@@ -1521,7 +1519,7 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		}
 
 		// --- Facing adjustment ---
-		double dirRad = ((double)legal.Raw - 0x3FFF) * -0.00009587672516830327;
+		double dirRad = ((double)legal.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 		vel.X *= std::cos(dirRad);
 		vel.Y *= std::cos(dirRad);
 		vel.Z = std::sin(dirRad) * speed;

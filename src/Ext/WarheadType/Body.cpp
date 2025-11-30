@@ -2207,7 +2207,7 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 
 		// Reverse the direction and convert it into radians
 
-		const double radian = -(((dir - 4) / 16.0) * Math::TwoPi);
+		const double radian = -(((dir - 4) / 16.0) * Math::GAME_TWOPI);
 
 
 		// Base on a location about 14 grids away

@@ -281,7 +281,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 					auto const sin_rad = std::sin(radians);
 					auto const cos_rad = std::cos(radians);
-					auto const cos_factor = -2.44921270764e-16;
+					auto const cos_factor = Math::APPROX_CORRECTION_TERM_1;
 					auto const flatSpeed = cos_factor * pBullet->Speed;
 
 					pBullet->MoveTo(pThis->Location,
@@ -358,8 +358,8 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 	double const radians_fromXY = dir_fromXY.GetRadian();
 	double const sin_rad = std::sin(radians_fromXY);
 	double const cos_rad = std::cos(radians_fromXY);
-	COMPILETIMEEVAL double nMult_Cos = gcem::cos(0.7853262558535721);
-	COMPILETIMEEVAL double nMult_Sin = gcem::sin(0.7853262558535721);
+	COMPILETIMEEVAL double nMult_Cos = gcem::cos(Math::PI_BY_FOUR_ACCURATE);
+	COMPILETIMEEVAL double nMult_Sin = gcem::sin(Math::PI_BY_FOUR_ACCURATE);
 
 	velocity.X = cos_rad * nFirstMag;
 	velocity.Y -= sin_rad * nFirstMag;
@@ -964,11 +964,11 @@ void BulletExtData::SimulatedFiringAnim(BulletClass* pBullet, HouseClass* pHouse
 
 	const auto pFirer = pBullet->Owner;
 	const auto pAnimType = pWeapon->Anim[(animCounts % 8 == 0) // Have direction
-		? (static_cast<int>((std::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) / Math::TwoPi + 1.5) * animCounts - (animCounts / 8) + 0.5) % animCounts) // Calculate direction
+		? (static_cast<int>((std::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) / Math::GAME_TWOPI + 1.5) * animCounts - (animCounts / 8) + 0.5) % animCounts) // Calculate direction
 		: ScenarioClass::Instance->Random.RandomRanged(0, animCounts - 1)]; // Simple random;
 	/*
 		const auto velocityRadian = std::atan2(pBullet->Velocity.Y , pBullet->Velocity.X);
-		const auto ratioOfRotateAngle = velocityRadian / Math::TwoPi;
+		const auto ratioOfRotateAngle = velocityRadian / Math::GAME_TWOPI;
 		const auto correctRatioOfRotateAngle = ratioOfRotateAngle + 1.5; // Correct the Y-axis in reverse and ensure that the ratio is a positive number
 		const auto animIndex = correctRatioOfRotateAngle * animCounts;
 		const auto correctAnimIndex = animIndex - (animCounts / 8); // A multiple of 8 greater than 8 will have an additional offset

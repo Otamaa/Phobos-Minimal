@@ -34,7 +34,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	{ // DiskLaser_Radius
 		this->DiskLaser_Radius.Read(exINI, pSection, "DiskLaser.Radius");
-		this->DiskLaser_Circumference = (int)(this->DiskLaser_Radius * Math::Pi * 2);
+		this->DiskLaser_Circumference = (int)(this->DiskLaser_Radius * Math::GAME_TWOPI);
 	}
 
 #ifdef _Enable
@@ -139,8 +139,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->RockerPitch.Read(exINI, pSection, "RockerPitch");
 
 	if (this->RockerPitch > 0.0f) {
-		COMPILETIMEEVAL auto halfpi = (Math::PI / 2);
-		this->RockerPitch = float(1.0f * halfpi);
+		this->RockerPitch = float(1.0f * Math::PI_BY_TWO_ACCURATE);
 	}
 
 	this->MyAttachFireDatas.Read(exINI, pSection);

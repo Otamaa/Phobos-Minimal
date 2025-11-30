@@ -555,7 +555,7 @@ ASMJIT_PATCH(0x4157D3, AircraftClass_Mission_SpyPlaneOverfly_MaxCount, 0x6)
 static inline int GetTurningRadius(AircraftClass* pThis)
 {
 	constexpr double epsilon = 1e-10;
-	constexpr double raw2Radian = Math::TwoPi / 65536;
+	constexpr double raw2Radian = Math::GAME_TWOPI / 65536;
 	// GetRadian<65536>() is an incorrect method
 	const double rotRadian = Math::abs(static_cast<double>(pThis->PrimaryFacing.ROT.Raw) * raw2Radian);
 	return rotRadian > epsilon ? static_cast<int>(static_cast<double>(pThis->Type->Speed) / rotRadian) : 0;
@@ -675,7 +675,7 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 	if (!pTypeExt->ExtendedAircraftMissions_SmoothMoving.Get(extendedMissions))
 		return 0;
 
-	const auto rotRadian = Math::abs(pThis->PrimaryFacing.ROT.Raw * (Math::TwoPi / 65536)); // GetRadian<65536>() is an incorrect method
+	const auto rotRadian = Math::abs(pThis->PrimaryFacing.ROT.Raw * (Math::GAME_TWOPI / 65536)); // GetRadian<65536>() is an incorrect method
 	const auto turningRadius = rotRadian > 1e-10 ? static_cast<int>(pType->Speed / rotRadian) : 0;
 	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
 

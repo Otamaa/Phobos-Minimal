@@ -373,7 +373,6 @@ protected:
 class CloneableLighningStormStateMachine : public SWStateMachine
 {
 public:
-	static COMPILETIMEEVAL double CloudHeightFactor { 6.968466256176567 };
 
 	CloneableLighningStormStateMachine()
 		: SWStateMachine(), ActualDuration(0), StartTime(0), Deferment(0), IsActive(false), TimeToEnd(false) , Invoker(nullptr)

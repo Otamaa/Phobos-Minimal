@@ -235,7 +235,7 @@ public:
 
 		size_t value = GetValue<Bits>();
 		int dir = static_cast<int>(value) - FacingCount / 4; // LRotate 90 degrees
-		return dir * (-Math::TwoPi / FacingCount);
+		return dir * (-Math::GAME_TWOPI / FacingCount);
 	}
 
 	template <size_t FacingCount = 16>
@@ -246,7 +246,7 @@ public:
 		COMPILETIMEEVAL size_t Bits = std::bit_width(FacingCount - 1);
 		COMPILETIMEEVAL size_t Max = (1 << Bits) - 1;
 
-		int dir = static_cast<int>(rad / (-Math::TwoPi / FacingCount));
+		int dir = static_cast<int>(rad / (-Math::GAME_TWOPI / FacingCount));
 		size_t value = dir + FacingCount / 4; // RRotate 90 degrees
 		SetValue<Bits>(value & Max);
 	}

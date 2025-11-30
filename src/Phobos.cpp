@@ -794,6 +794,7 @@ void Phobos::PassiveSaveGame()
 		GeneralUtils::PrintMessage(StringTable::FetchString(GameStrings::TXT_ERROR_SAVING_GAME));
 }
 
+
 void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 {
 	DWORD_PTR processAffinityMask = 1; // limit to first processor
@@ -1318,11 +1319,8 @@ NOINLINE void ApplyEarlyFuncs()
 		if (!IsInitialized)
 			exit(ERROR);
 
-		MH_Initialize();
-
 		const auto time = Debug::GetCurTimeA();
-		Patch::Apply_TYPED<DWORD>(0x7B853C, { 1 });
-		Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
+
 
 		const char* loadMode = saved_lpReserved ? "statically" : "dynamicly";
 
@@ -1508,88 +1506,189 @@ bool StopPatching()
 #include <LaserDrawClass.h>
 #include <gcem/gcem.hpp>
 
+float WWMath_Sin(double radians)
+{
+	COMPILETIMEEVAL float radToIndex = std::bit_cast<float>(0x4522F983u);
+
+	// Convert angle to fixed-point table index
+	const long long idx64 = static_cast<long long>(radians * radToIndex);
+
+	const bool isOdd = (idx64 & 1) != 0;               // v2
+	int idx = static_cast<int>((idx64 / 2) & 0x80001FFF); // v3
+
+	// Sign-extend the 13-bit index (because &0x80001FFF keeps only certain bits)
+	if (idx < 0) {
+		int t = (idx - 1) | 0xFFFFE000;
+		idx = t + 1 + ((t + 1) < 0 ? 0x2000 : 0);
+	}
+
+	// Odd-bit correction (round up if necessary)
+	if (isOdd && idx < 8191) {
+		idx++;
+	}
+
+
+	return Math::FastMath_sin_Table[idx];
+}
+
+float WWMath_Cos(double radians)
+{
+	COMPILETIMEEVAL float radToIndex = std::bit_cast<float>(0x4522F983u);
+
+	int64_t t = (int64_t)(radians * radToIndex);
+
+	int bit = t & 1;
+	int idx = (t >> 1) & 0x80001FFF;
+
+	if (idx < 0) {
+		idx = ((idx - 1) | 0xFFFFE000) + 1;
+		idx += (idx < 0) ? 0x2800 : 0x0800; // 10240 or 2048
+	} else {
+		idx += 2048;
+	}
+
+	if (bit && idx < 10239)
+		idx++;
+
+	return Math::FastMath_sin_Table[idx];
+}
+
+float WWMath_sqrt(double n)
+{
+	union FastMathUnion {
+		float f;
+		unsigned int i;
+	};
+
+	// Handle zero early
+	if (n == 0.0)
+		return 0.0f;
+
+	// Use absolute value, but only via their original codepath
+	double v = n;
+	if (n < 0.0)
+		v = -n;
+
+	// Reinterpret bits as IEEE754 float
+	FastMathUnion num;
+	num.f = static_cast<float>(v);
+
+	// Extract mantissa (lower 23 bits)
+	uint32_t mant = num.i & 0x7FFFFF;
+
+	// Extract unbiased exponent
+	int exp = (num.i >> 23) - 127;
+
+	// If exponent is odd, normalize the mantissa
+	if (exp & 1)
+		mant |= 0x800000u;
+
+	// Build the result float from:
+	//   - new exponent: (exp >> 1) + 127
+	//   - table lookup from mantissa
+	uint32_t out_bits =
+		(((exp >> 1) + 127) << 23) |
+		Math::FastMath_sqrt_Table[mant >> 10];
+
+	FastMathUnion out;
+	out.i = out_bits;
+	return out.f;
+}
+
 bool InspectMathDetailed()
 {
-	struct MathTest
-	{
+	struct MathTest {
 		const char* name;
-		float gcem_value;
-		float fastmath_value;
+	};
+
+	struct FloatMathTest : public MathTest {
+		float first;
+		float second;
+		FloatMathTest(const char* testName, float firstRes, float secondRes)
+			: MathTest{ testName }, first { firstRes }, second { secondRes } {}
+	};
+
+	struct IntMathTest : public MathTest {
+		int first;
+		int second;
+		IntMathTest(const char* testName, int firstRes, int secondRes)
+			: MathTest{ testName }, first { firstRes }, second { secondRes } {}
 	};
 
 	// Collect all test cases
-	std::vector<MathTest> tests;
+	std::vector<FloatMathTest> testsfloat;
+	std::vector<IntMathTest> testsint;
 
-	tests.emplace_back(
-		"expected : 0.3763770469559380854890894443664",
-		Unsorted::LevelHeight / gcem::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
-		Unsorted::LevelHeight / std::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
-	);
+	//tests.emplace_back(
+	//	"expected : 0.3763770469559380854890894443664",
+	//	Unsorted::LevelHeight / gcem::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+	//	Unsorted::LevelHeight / std::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	//);
 
-	tests.emplace_back(
-		"expected : 0.9264665771223091335116047861327",
-		Unsorted::LeptonsPerCell / gcem::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
-		Unsorted::LeptonsPerCell / std::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
-	);
+	//tests.emplace_back(
+	//	"expected : 0.9264665771223091335116047861327",
+	//	Unsorted::LeptonsPerCell / gcem::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+	//	Unsorted::LeptonsPerCell / std::sqrt(float(Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	//);
 
-	tests.emplace_back(
-		"expected : 0.3522530794922131411764879370407",
-		Unsorted::LevelHeight / gcem::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
-		Unsorted::LevelHeight / std::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
-	);
+	//tests.emplace_back(
+	//	"expected : 0.3522530794922131411764879370407",
+	//	Unsorted::LevelHeight / gcem::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+	//	Unsorted::LevelHeight / std::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	//);
 
-	tests.emplace_back(
-		"expected : 0.8670845033654477321267395373309",
-		Unsorted::LeptonsPerCell / gcem::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
-		Unsorted::LeptonsPerCell / std::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
-	);
+	//tests.emplace_back(
+	//	"expected : 0.8670845033654477321267395373309",
+	//	Unsorted::LeptonsPerCell / gcem::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+	//	Unsorted::LeptonsPerCell / std::sqrt(float(2 * Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	//);
 
-	tests.emplace_back(
-		"expected : 0.5333964609104418418483761938761",
-		Unsorted::CellHeight / gcem::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
-		Unsorted::CellHeight / std::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
-	);
+	//tests.emplace_back(
+	//	"expected : 0.5333964609104418418483761938761",
+	//	Unsorted::CellHeight / gcem::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+	//	Unsorted::CellHeight / std::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	//);
 
-	tests.emplace_back(
-		"expected : 0.6564879518897745745826168540013",
-		Unsorted::LeptonsPerCell / gcem::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
-		Unsorted::LeptonsPerCell / std::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
-	);
+	//tests.emplace_back(
+	//	"expected : 0.6564879518897745745826168540013",
+	//	Unsorted::LeptonsPerCell / gcem::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell)),
+	//	Unsorted::LeptonsPerCell / std::sqrt(float(2 * Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell))
+	//);
 
-	tests.emplace_back(
+	testsfloat.emplace_back(
 		"cos(1.570748388432313)",
-		gcem::cos(1.570748388432313),
-		std::cos(1.570748388432313)
+		WWMath_Cos(1.570748388432313),
+		(float)std::cos(1.570748388432313)
 	);
 
-	tests.emplace_back(
+	testsfloat.emplace_back(
 		"sin(1.570748388432313)",
-		gcem::sin(1.570748388432313),
-		std::sin(1.570748388432313)
+		WWMath_Sin(1.570748388432313),
+		(float)std::sin(1.570748388432313)
 	);
 
-	tests.emplace_back(
+	testsfloat.emplace_back(
 		"cos(0.7853262558535721)",
-		gcem::cos(0.7853262558535721),
-		std::cos(0.7853262558535721)
+		WWMath_Cos(0.7853262558535721),
+		(float)std::cos(0.7853262558535721)
 	);
 
-	tests.emplace_back(
+	testsfloat.emplace_back(
 		"sin(0.7853262558535721)",
-		gcem::sin(0.7853262558535721),
-		std::sin(0.7853262558535721)
+		WWMath_Sin(0.7853262558535721),
+		(float)std::sin(0.7853262558535721)
 	);
 
-	tests.emplace_back(
+	testsfloat.emplace_back(
 		"1 / sqrt(5)",
-		1.0 / gcem::sqrt(5.0),
-		1.0 / std::sqrt(5.0)
+		1.0 / WWMath_sqrt(5.0),
+		1.0 / (float)std::sqrt(5.0)
 	);
 
-	tests.emplace_back(
+	testsfloat.emplace_back(
 		"2 / sqrt(5)",
-		2.0 / gcem::sqrt(5.0),         // ← Cast to float
-		2.0 / std::sqrt(5.0)
+		2.0 / WWMath_sqrt(5.0),
+		2.0 / (float)std::sqrt(5.0)
 	);
 
 	// Run all tests
@@ -1598,23 +1697,36 @@ bool InspectMathDetailed()
 
 	Debug::Log("\n=== Math Validation Report ===\n\n");
 
-	for (const auto& test : tests)
+	for (const auto& test : testsfloat)
 	{
-		// No need to cast - already float
-		if (*(uint32_t*)&test.gcem_value == *(uint32_t*)&test.fastmath_value)
+		if (*(uint32_t*)&test.first == *(uint32_t*)&test.second) {
+			Debug::Log("[PASS] %s\n", test.name);
+			passed++;
+		} else {
+			Debug::Log("[FAIL] %s\n", test.name);
+			Debug::Log("       wwmath:    %.20f (0x%08X)\n",
+					  test.first, *(uint32_t*)&test.first);
+			Debug::Log("       std:       %.20f (0x%08X)\n",
+					  test.second, *(uint32_t*)&test.second);
+			Debug::Log("       Diff:     %.20e\n\n",
+					  test.first - test.second);
+			failed++;
+		}
+	}
+
+	for (const auto& test : testsint) {
+		if (*(uint32_t*)&test.first == *(uint32_t*)&test.second)
 		{
 			Debug::Log("[PASS] %s\n", test.name);
 			passed++;
-		}
-		else
-		{
+		} else {
 			Debug::Log("[FAIL] %s\n", test.name);
-			Debug::Log("       gcem:     %.20f (0x%08X)\n",
-					  test.gcem_value, *(uint32_t*)&test.gcem_value);
-			Debug::Log("       std: %.20f (0x%08X)\n",
-					  test.fastmath_value, *(uint32_t*)&test.fastmath_value);
-			Debug::Log("       Diff:     %.20e\n\n",
-					  test.gcem_value - test.fastmath_value);
+			Debug::Log("       wwmath:     %d (0x%08X)\n",
+					  test.first, *(uint32_t*)&test.first);
+			Debug::Log("       std: %d (0x%08X)\n",
+					  test.second, *(uint32_t*)&test.second);
+			Debug::Log("       Diff:     %d\n\n",
+					  test.first - test.second);
 			failed++;
 		}
 	}
@@ -1639,6 +1751,43 @@ bool InspectMathDetailed()
 }
 
 #include <Misc/Hooks.CRT.h>
+typedef DWORD(__stdcall* FP_GetVersion)();
+static COMPILETIMEEVAL referencefunc<FP_GetVersion, 0x7E1288> const Game_GetVersion {};
+
+DWORD __stdcall GetVersion_Wrapper() {
+	auto ver = Game_GetVersion.invoke()();
+	CRTHooks::_set_fp_mode();
+	ApplyEarlyFuncs();
+	//LuaData::ApplyCoreHooks();
+	Phobos::ExeRun();
+	return ver;
+}
+
+bool __fastcall Parse_Command_Line(int argc, char* argv[]) {
+	JMP_STD(0x52F620);
+}
+
+bool __fastcall Phobos_Parse_Command_Line(int argc, char* argv[]) {
+	if (argc > 1)
+	{
+		Debug::LogDeferred("Parsing command line arguments...\n");
+	}
+
+	if (!Parse_Command_Line(argc, argv))
+	{
+		return false;
+	}
+
+	Phobos::CmdLineParse(argv, argc);
+
+	Debug::LogDeferredFinalize();
+
+#ifdef MATHTEST
+	InspectMathDetailed();
+#endif
+
+	return true;
+}
 
 BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -1651,6 +1800,9 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::CurrentProcess = GetCurrentProcess();
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;
+			CRTHooks::_set_fp_mode();
+
+			CRTHooks::Print_FPUMode();
 
             if (!StartPatching()) {
                 return FALSE;
@@ -1658,8 +1810,15 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 
 			DisableThreadLibraryCalls((HMODULE)hInstance);
 			IsInitialized = true;
-			CRTHooks::Apply();
 			
+			MH_Initialize();
+
+			CRTHooks::Apply();
+
+			Patch::Apply_CALL(0x6BC08C, Phobos_Parse_Command_Line);
+			Patch::Apply_CALL6(0x7CD835, GetVersion_Wrapper);
+			Patch::Apply_TYPED<DWORD>(0x7B853C, { 1 });
+			Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
 		}
 	}
 	break;
@@ -1730,28 +1889,4 @@ ASMJIT_PATCH(0x52FE55, Scenario_Start, 0x6)
 	return 0;
 }ASMJIT_PATCH_AGAIN(0x52FEB7, Scenario_Start, 0x6)
 
-DEFINE_HOOK(0x7CD810, Game_ExeRun, 0x9)
-{
-
-	ApplyEarlyFuncs();
-	//LuaData::ApplyCoreHooks();
-	Phobos::ExeRun();
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x52F639, _YR_CmdLineParse, 0x5)
-{
-	GET(char**, ppArgs, ESI);
-	GET(int, nNumArgs, EDI);
-
-	Phobos::CmdLineParse(ppArgs, nNumArgs);
-	Debug::LogDeferredFinalize();
-
-#ifdef MATHTEST
-	InspectMathDetailed();
-#endif
-
-	return 0;
-}
 #pragma endregion

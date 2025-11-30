@@ -22,7 +22,7 @@
 #include "ProtocolZero.h"
 
 #include <GameOptionsClass.h>
-#include <MessageBox.h>
+#include <WWMessageBox.h>
 #include <BeaconManagerClass.h>
 
 #pragma region defines
@@ -862,7 +862,7 @@ bool SpawnerMain::GameConfigs::StartScenario(const char* pScenarioName) {
 	{
 		Debug::LogInfo("[Spawner] Failed Read Scenario [{}]", pScenarioName);
 
-		MessageBox::Show(
+		WWMessageBox::Instance->Process(
 			StringTable::FetchString(GameStrings::TXT_UNABLE_READ_SCENARIO),
 			StringTable::FetchString(GameStrings::TXT_OK),
 			0);
@@ -1064,7 +1064,7 @@ bool SpawnerMain::GameConfigs::LoadSavedGame(const char* saveGameName) {
 	{
 		Debug::LogInfo("[Spawner] Failed Load Game [{}]", saveGameName);
 
-		MessageBox::Show(
+		WWMessageBox::Instance->Process(
 			StringTable::FetchString(GameStrings::TXT_ERROR_LOADING_GAME),
 			StringTable::FetchString(GameStrings::TXT_OK),
 			0);

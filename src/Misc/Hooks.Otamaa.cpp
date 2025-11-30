@@ -6951,7 +6951,7 @@ public:
 										const auto& facing_ = unit->PrimaryFacing;
 										const auto facing_Current = facing_.Current();
 
-										const float facingAngle = (facing_Current.Raw - 0x3FFF) * -0.0000958767f;
+										const float facingAngle = (facing_Current.Raw - Math::BINARY_ANGLE_MASK) * -0.0000958767f;
 										const float sinA = std::sin((double)facingAngle);
 										const float cosA = std::cos((double)facingAngle);
 
@@ -6972,8 +6972,8 @@ public:
 										const float blastFactor = std::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
 										const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
 
-										unit->AngleRotatedSideways = proj * curve * 6.2831853f;
-										unit->AngleRotatedForwards = -ux * curve * 6.2831853f;
+										unit->AngleRotatedSideways = proj * curve * Math::GAME_TWOPIf;
+										unit->AngleRotatedForwards = -ux * curve * Math::GAME_TWOPIf;
 									}
 								}
 							}

@@ -422,9 +422,9 @@ ASMJIT_PATCH(0x4147F9, AircraftClass_Draw_Shadow, 0x6)
 struct JumpjetTiltReference
 {
 	static COMPILETIMEEVAL OPTIONALINLINE int BaseSpeed = 32 ;
-	static COMPILETIMEEVAL OPTIONALINLINE double BaseTilt { Math::HalfPi / 4 };
+	static COMPILETIMEEVAL OPTIONALINLINE double BaseTilt { Math::PI_BY_TWO_ACCURATE / 4 };
 	static COMPILETIMEEVAL OPTIONALINLINE int BaseTurnRaw { 32768 };
-	static COMPILETIMEEVAL OPTIONALINLINE float MaxTilt { static_cast<float>(Math::HalfPi) };
+	static COMPILETIMEEVAL OPTIONALINLINE float MaxTilt { static_cast<float>(Math::PI_BY_TWO_ACCURATE) };
 	static COMPILETIMEEVAL OPTIONALINLINE float ForwardBaseTilt { (float)(BaseTilt / (float)BaseSpeed) };
 	static COMPILETIMEEVAL OPTIONALINLINE float SidewaysBaseTilt { (float)(BaseTilt / float(BaseTurnRaw * BaseSpeed)) };
 };

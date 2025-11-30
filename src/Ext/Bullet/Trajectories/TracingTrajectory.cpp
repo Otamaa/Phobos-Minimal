@@ -382,7 +382,7 @@ void TracingTrajectory::ChangeFacing()
 {
 	auto const pType = this->GetTrajectoryType();
 	auto pBullet = this->AttachedTo;
-	constexpr double ratio = Math::TwoPi / 256;
+	constexpr double ratio = Math::GAME_TWOPI / 256;
 
 	if (!pType->BulletSpin)
 	{
@@ -410,8 +410,8 @@ void TracingTrajectory::ChangeFacing()
 		const bool dir1 = differenceP > 0;
 		const auto delta = dir1 ? differenceP : -differenceP;
 
-		const bool dir2 = delta > Math::Pi;
-		const auto differenceR = dir2 ? (Math::TwoPi - delta) : delta;
+		const bool dir2 = delta > Math::GAME_PI;
+		const auto differenceR = dir2 ? (Math::GAME_TWOPI - delta) : delta;
 		const bool dirR = dir1 ^ dir2;
 
 		if (differenceR <= rotate)

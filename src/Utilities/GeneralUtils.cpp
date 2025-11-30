@@ -321,7 +321,7 @@ int GeneralUtils::GetLSAnimHeightFactor(AnimTypeClass* pType, CellClass* pCell, 
 		ImageHeignt = pImage->Height;
 
 	const auto Height = int(((double)ImageHeignt) / 2);
-	const auto LSFactor = (Height - 0.5) * LightningStorm::CloudHeightFactor();
+	const auto LSFactor = (Height - 0.5) * Math::CloudHeightFactor;
 
 	return int(checklevel ? LSFactor + (double)Unsorted::LevelHeight * (double)pCell->Level : LSFactor);
 }

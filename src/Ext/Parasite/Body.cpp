@@ -285,8 +285,8 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Calculate sideways angle (negative direction)
-		float angleRadians = this->GrappleAnimFrame * -1.0f * 3.141592653589793f;
-		this->Victim->AngleRotatedSideways = std::sin(angleRadians) * 0.78539819f;
+		float angleRadians = this->GrappleAnimFrame * -1.0f * Math::GAME_PI;
+		this->Victim->AngleRotatedSideways = std::sin(angleRadians) * Math::PI_BY_FOUR_F;
 		break;
 	}
 
@@ -301,8 +301,8 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Calculate sideways angle (positive direction)
-		float angleRadians = this->GrappleAnimFrame * 1.0f * 3.141592653589793f;
-		this->Victim->AngleRotatedSideways = std::sin(angleRadians) * 0.78539819f;
+		float angleRadians = this->GrappleAnimFrame * 1.0f * Math::GAME_PI;
+		this->Victim->AngleRotatedSideways = std::sin(angleRadians) * Math::PI_BY_FOUR_F;
 		break;
 	}
 
@@ -317,7 +317,7 @@ void FakeParasiteClass::__Grapple_AI()
 		if(AnimType) {
 
 			DirStruct facingDir = this->Victim->PrimaryFacing.Current();
-			float facingAngle = -((facingDir.Raw - 0x3FFF) * -0.00009587672516830327);
+			float facingAngle = -((facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
 			float cosAngle = std::cos(facingAngle);
 			float sinAngle = std::sin(facingAngle);
 
@@ -519,7 +519,7 @@ void FakeParasiteClass::__AI()
 	int randomOffset = ScenarioClass::Instance->Random.RandomBool() ? -4 : 2;
 	randomOffset = (randomOffset & 0xFC) + 2;
 
-	float facingRadians = (facingDir.Raw - 0x3FFF) * -0.00009587672516830327;
+	float facingRadians = (facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 	float cosAngle = std::cos(facingRadians);
 	float sinAngle = std::sin(facingRadians);
 
@@ -672,9 +672,9 @@ void FakeParasiteClass::__Uninfect()
 
 	// Choose opposite direction if facing forward
 	if (facingIndex > 2) {
-		exitDirection.Raw = victimFacing.Raw - 0x3FFF;
+		exitDirection.Raw = victimFacing.Raw - Math::BINARY_ANGLE_MASK;
 	} else {
-		exitDirection.Raw = victimFacing.Raw + 0x3FFF;
+		exitDirection.Raw = victimFacing.Raw + Math::BINARY_ANGLE_MASK;
 	}
 
 	CellStruct targetCell;

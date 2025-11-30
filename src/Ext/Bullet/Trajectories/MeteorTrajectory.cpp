@@ -49,7 +49,7 @@ void MeteorTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 	auto const type = this->GetTrajectoryType();
 	auto const pBullet = this->AttachedTo;
 	int range = static_cast<int>(type->Range.Get() * Unsorted::d_LeptonsPerCell);
-	double angel = ScenarioClass::Instance()->Random.RandomDouble() * Math::TwoPi;
+	double angel = ScenarioClass::Instance()->Random.RandomDouble() * Math::GAME_TWOPI;
 	double length = ScenarioClass::Instance()->Random.RandomRanged(-range, range);
 
 	CoordStruct SourceLocation {
