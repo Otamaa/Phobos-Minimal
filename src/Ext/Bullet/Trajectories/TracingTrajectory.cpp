@@ -266,8 +266,8 @@ void TracingTrajectory::SetSourceLocation()
 		const auto& theTarget = pBullet->TargetCoords;
 		const auto rotateAngle = std::atan2(double(theTarget.Y - theSource.Y), double(theTarget.X - theSource.X));
 
-		theOffset.X = static_cast<int>(pType->CreateCoord->X * std::cos(rotateAngle) + pType->CreateCoord->Y * std::sin(rotateAngle));
-		theOffset.Y = static_cast<int>(pType->CreateCoord->X * std::sin(rotateAngle) - pType->CreateCoord->Y * std::cos(rotateAngle));
+		theOffset.X = static_cast<int>(pType->CreateCoord->X * Math::cos(rotateAngle) + pType->CreateCoord->Y * Math::sin(rotateAngle));
+		theOffset.Y = static_cast<int>(pType->CreateCoord->X * Math::sin(rotateAngle) - pType->CreateCoord->Y * Math::cos(rotateAngle));
 	}
 
 	if (pType->CreateAtTarget)
@@ -421,15 +421,15 @@ void TracingTrajectory::ChangeFacing()
 		}
 
 		const auto facing = current + (dirR ? rotate : -rotate);
-		pBullet->Velocity.X = std::cos(facing);
-		pBullet->Velocity.Y = std::sin(facing);
+		pBullet->Velocity.X = Math::cos(facing);
+		pBullet->Velocity.Y = Math::sin(facing);
 		pBullet->Velocity.Z = 0;
 	}
 	else
 	{
 		const auto radian = std::atan2(pBullet->Velocity.Y, pBullet->Velocity.X) + (pType->ROT * ratio);
-		pBullet->Velocity.X = std::cos(radian);
-		pBullet->Velocity.Y = std::sin(radian);
+		pBullet->Velocity.X = Math::cos(radian);
+		pBullet->Velocity.Y = Math::sin(radian);
 		pBullet->Velocity.Z = 0;
 	}
 }
@@ -473,8 +473,8 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 			{
 				const auto rotateAngle = -(pTechno->PrimaryFacing.Current().GetRadian<32>());
 
-				theOffset.X = static_cast<int>(pType->OffsetCoord->X * std::cos(rotateAngle) + pType->OffsetCoord->Y * std::sin(rotateAngle));
-				theOffset.Y = static_cast<int>(pType->OffsetCoord->X * std::sin(rotateAngle) - pType->OffsetCoord->Y * std::cos(rotateAngle));
+				theOffset.X = static_cast<int>(pType->OffsetCoord->X * Math::cos(rotateAngle) + pType->OffsetCoord->Y * Math::sin(rotateAngle));
+				theOffset.Y = static_cast<int>(pType->OffsetCoord->X * Math::sin(rotateAngle) - pType->OffsetCoord->Y * Math::cos(rotateAngle));
 			}
 			else
 			{
@@ -490,8 +490,8 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 			{
 				const auto rotateAngle = (pTechno->HasTurret() ? -(pTechno->TurretFacing().GetRadian<32>()) : -(pTechno->PrimaryFacing.Current().GetRadian<32>()));
 
-				theOffset.X = static_cast<int>(pType->OffsetCoord->X * std::cos(rotateAngle) + pType->OffsetCoord->Y * std::sin(rotateAngle));
-				theOffset.Y = static_cast<int>(pType->OffsetCoord->X * std::sin(rotateAngle) - pType->OffsetCoord->Y * std::cos(rotateAngle));
+				theOffset.X = static_cast<int>(pType->OffsetCoord->X * Math::cos(rotateAngle) + pType->OffsetCoord->Y * Math::sin(rotateAngle));
+				theOffset.Y = static_cast<int>(pType->OffsetCoord->X * Math::sin(rotateAngle) - pType->OffsetCoord->Y * Math::cos(rotateAngle));
 			}
 			else
 			{
@@ -513,8 +513,8 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 				if (Math::abs(radius) > 1e-10)
 					rotateAngle += float(pType->Trajectory_Speed / radius);
 
-				theOffset.X = static_cast<int>(radius * std::cos(rotateAngle));
-				theOffset.Y = static_cast<int>(radius * std::sin(rotateAngle));
+				theOffset.X = static_cast<int>(radius * Math::cos(rotateAngle));
+				theOffset.Y = static_cast<int>(radius * Math::sin(rotateAngle));
 			}
 			else
 			{
@@ -536,8 +536,8 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 				if (Math::abs(radius) > 1e-10)
 					rotateAngle -= float(pType->Trajectory_Speed / radius);
 
-				theOffset.X = static_cast<int>(radius * std::cos(rotateAngle));
-				theOffset.Y = static_cast<int>(radius * std::sin(rotateAngle));
+				theOffset.X = static_cast<int>(radius * Math::cos(rotateAngle));
+				theOffset.Y = static_cast<int>(radius * Math::sin(rotateAngle));
 			}
 			else
 			{
@@ -554,8 +554,8 @@ VelocityClass TracingTrajectory::ChangeVelocity()
 
 			const auto rotateAngle = std::atan2(double(theTarget.Y - theSource.Y), double(theTarget.X - theSource.X));
 
-			theOffset.X = static_cast<int>(pType->OffsetCoord->X * std::cos(rotateAngle) + pType->OffsetCoord->Y * std::sin(rotateAngle));
-			theOffset.Y = static_cast<int>(pType->OffsetCoord->X * std::sin(rotateAngle) - pType->OffsetCoord->Y * std::cos(rotateAngle));
+			theOffset.X = static_cast<int>(pType->OffsetCoord->X * Math::cos(rotateAngle) + pType->OffsetCoord->Y * Math::sin(rotateAngle));
+			theOffset.Y = static_cast<int>(pType->OffsetCoord->X * Math::sin(rotateAngle) - pType->OffsetCoord->Y * Math::cos(rotateAngle));
 			break;
 		}
 		}
@@ -676,8 +676,8 @@ CoordStruct TracingTrajectory::GetWeaponFireCoord(TechnoClass* pTechno)
 	const auto rotateRadian = std::atan2(double(pBullet->TargetCoords.Y - pBullet->Location.Y), double(pBullet->TargetCoords.X - pBullet->Location.X));
 	CoordStruct fireOffsetCoord
 	{
-		static_cast<int>(weaponCoord.X * std::cos(rotateRadian) + weaponCoord.Y * std::sin(rotateRadian)),
-		static_cast<int>(weaponCoord.X * std::sin(rotateRadian) - weaponCoord.Y * std::cos(rotateRadian)),
+		static_cast<int>(weaponCoord.X * Math::cos(rotateRadian) + weaponCoord.Y * Math::sin(rotateRadian)),
+		static_cast<int>(weaponCoord.X * Math::sin(rotateRadian) - weaponCoord.Y * Math::cos(rotateRadian)),
 		weaponCoord.Z
 	};
 

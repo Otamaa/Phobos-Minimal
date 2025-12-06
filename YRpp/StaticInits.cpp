@@ -208,7 +208,7 @@ const Point3D Point3D::Empty = {};
 const RectangleStruct RectangleStruct::Empty = {};
 const HSVClass BlackColor = { 0, 0, 0 };
 
-std::array< ColorStruct, (size_t)DefaultColorList::count> Drawing::DefaultColors
+std::array< ColorStruct, (size_t)DefaultColorList::Black + 1> Drawing::DefaultColors
 {
 {
 		// gery  , red , green
@@ -1304,7 +1304,7 @@ void Game::Unselect_All_Except(ObjectClass* object)
 			for (short offsetX = -radius; offsetX <= radius; offsetX++) {
 				// Calculate distance from center using Pythagorean theorem
 				// Only process cells within circular radius
-				if ((int)std::sqrt((double)(offsetX * offsetX) + (double)(offsetY * offsetY)) <= radius) {
+				if ((int)Math::sqrt((double)(offsetX * offsetX) + (double)(offsetY * offsetY)) <= radius) {
 					// Calculate target cell position
 					const CellStruct targetCell {
 						this->MapCoords.X + offsetX , this->MapCoords.Y + offsetY

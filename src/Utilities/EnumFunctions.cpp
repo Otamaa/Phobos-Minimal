@@ -35,7 +35,7 @@ std::array<const char*, 6u>  EnumFunctions::ExpireWeaponCondition_to_strings {
  }
 };
 
-std::array<const char* const, 6u> EnumFunctions::DisplayShowType_ToStrings {
+std::array<const char*, 6u> EnumFunctions::DisplayShowType_ToStrings {
 {
 	{ "none" } ,
 	{ "cursorhover" } ,
@@ -46,17 +46,7 @@ std::array<const char* const, 6u> EnumFunctions::DisplayShowType_ToStrings {
 }
 };
 
-std::array<const char* const, (size_t)FullMapDetonateResult::count> EnumFunctions::FullMapDetonateResult_ToStrings {
- {
-	{ "TargetNotDamageable" } ,
-	{ "TargetNotEligible" } ,
-	{ "TargetHouseNotEligible" } ,
-	{ "TargetRestricted" } ,
-	{ "TargetValid" }
- }
-};
-
-std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosAbilityType_ToStrings {
+std::array<const char*, (size_t)PhobosAbilityType::count> EnumFunctions::PhobosAbilityType_ToStrings {
  {
 	{ "INTERCEPTOR" } ,
 	{ "CHRONODELAYIMMUNE" } ,
@@ -79,48 +69,7 @@ std::array<const char* const, (size_t)PhobosAbilityType::count> EnumFunctions::P
  }
 };
 
-std::array<const char* const, 3u> EnumFunctions::Rank_ToStrings {
- {
-	{ "Elite" } ,
-	{ "Veteran" } ,
-	{ "Rookie" }
- }
-};
-
-std::array<const char* const, (size_t)TargetZoneScanType::count> EnumFunctions::TargetZoneScanType_ToStrings
-{
-{
-	{ "same" } ,
-	{ "any" } ,
-	{ "inrange" }
-}
-};
-
-std::array<const char* const, (size_t)DefaultColorList::count> EnumFunctions::DefaultGameColor_ToStrings
-{
-{
-	{ "Grey" } ,
-	{ "Red" } ,
-	{ "Green" } ,
-	{ "Blue" } ,
-	{ "Yellow" } ,
-	{ "White" } ,
-	{ "AresPCXTransparent" } ,
-	{ "Black" } ,
-}
-};
-
-
-std::array<const char* const, (size_t)DamageDelayTargetFlag::count> EnumFunctions::DamageDelayTargetFlag_ToStrings
-{
-{
-	{ "Cell" } ,
-	{ "AttachedObject" } ,
-	{ "Invoker" }
-}
-};
-
-std::array<const char* const, 6u> EnumFunctions::MouseCursorData_ToStrings
+std::array<const char*, 6u> EnumFunctions::MouseCursorData_ToStrings
 {
 {
 	{ ".Frame" } ,
@@ -132,16 +81,7 @@ std::array<const char* const, 6u> EnumFunctions::MouseCursorData_ToStrings
 }
 };
 
-std::array<const char* const, 3u> EnumFunctions::HealthCondition_ToStrings
-{
-{
-	{ "ConditionGreen" } ,
-	{ "ConditionYellow" } ,
-	{ "ConditionRed" }
-}
-};
-
-std::array<const char* const, 21u> EnumFunctions::TileType_ToStrings
+std::array<const char*, 21u> EnumFunctions::TileType_ToStrings
 {
 {
 	{"Unknown"} ,
@@ -202,26 +142,7 @@ std::array<std::pair<const wchar_t*, const wchar_t*>, 11u> EnumFunctions::Locomo
 }
 };
 
-std::array<const char* const, 3u> EnumFunctions::VerticalPosition_ToStrings
-{
-{
-	{ "top" },
-	{ "center" },
-	{ "bottom" }
-}
-};
-
-std::array<std::pair<const char* const, BannerNumberType>, 4> EnumFunctions::BannerNumberType_ToStrings
-{
-{
-	{"none" , BannerNumberType::None} ,
-	{"variable" , BannerNumberType::Variable } ,
-	{"prefixed" , BannerNumberType::Prefixed } ,
-	{"suffixed" , BannerNumberType::Suffixed }
-}
-};
-
-std::array<std::pair<const char* const, SpotlightFlags>, 5u> EnumFunctions::SpotlightFlags_ToStrings
+std::array<std::pair<const char*, SpotlightFlags>, 5u> EnumFunctions::SpotlightFlags_ToStrings
 {
 {
 	{"none" , SpotlightFlags::None},
@@ -232,16 +153,7 @@ std::array<std::pair<const char* const, SpotlightFlags>, 5u> EnumFunctions::Spot
 }
 };
 
-std::array<std::pair<const char* const, HorizontalPosition>, 3u> EnumFunctions::HorizontalPosition_ToStrings
-{
-{
-	{ "left", HorizontalPosition::Left },
-	{ "center", HorizontalPosition::Center },
-	{ "right", HorizontalPosition::Right }
-}
-};
-
-std::array<std::pair<const char* const, MouseHotSpotX>, 3u> EnumFunctions::MouseHotSpotX_ToStrings
+std::array<std::pair<const char*, MouseHotSpotX>, 3u> EnumFunctions::MouseHotSpotX_ToStrings
 {
 {
 	{ "left", MouseHotSpotX::Left },
@@ -250,7 +162,7 @@ std::array<std::pair<const char* const, MouseHotSpotX>, 3u> EnumFunctions::Mouse
 }
 };
 
-std::array<std::pair<const char* const, MouseHotSpotY>, 3u> EnumFunctions::MouseHotSpotY_ToStrings
+std::array<std::pair<const char*, MouseHotSpotY>, 3u> EnumFunctions::MouseHotSpotY_ToStrings
 {
 {
 	{ "top", MouseHotSpotY::Top },
@@ -259,7 +171,7 @@ std::array<std::pair<const char* const, MouseHotSpotY>, 3u> EnumFunctions::Mouse
 }
 };
 
-std::array<std::pair<const char* const, TextAlign>, 4u> EnumFunctions::TextAlign_ToStrings
+std::array<std::pair<const char*, TextAlign>, 4u> EnumFunctions::TextAlign_ToStrings
 {
 {
 	{"none" , TextAlign::None} ,
@@ -269,16 +181,7 @@ std::array<std::pair<const char* const, TextAlign>, 4u> EnumFunctions::TextAlign
 }
 };
 
-std::array<const char* const, 3u> EnumFunctions::AreaFireTarget_ToStrings
-{
-{
-	{"base"} ,
-	{"self"} ,
-	{"random"}
-}
-};
-
-std::array<std::pair<const char* const, AttachedAnimFlag>, 5u>  EnumFunctions::AttachedAnimFlag_ToStrings
+std::array<std::pair<const char*, AttachedAnimFlag>, 5u>  EnumFunctions::AttachedAnimFlag_ToStrings
 {
 {
 	{"none" , AttachedAnimFlag::None} ,
@@ -289,7 +192,7 @@ std::array<std::pair<const char* const, AttachedAnimFlag>, 5u>  EnumFunctions::A
 }
 };
 
-std::array<std::pair<const char* const, AffectedHouse>, 11u> EnumFunctions::AffectedHouse_ToStrings
+std::array<std::pair<const char*, AffectedHouse>, 11u> EnumFunctions::AffectedHouse_ToStrings
 {
 {
 	{"none" , AffectedHouse::None} ,
@@ -306,7 +209,7 @@ std::array<std::pair<const char* const, AffectedHouse>, 11u> EnumFunctions::Affe
 }
 };
 
-std::array<std::pair<const char* const, AffectedTarget>, 15u> EnumFunctions::AffectedTarget_ToStrings
+std::array<std::pair<const char*, AffectedTarget>, 15u> EnumFunctions::AffectedTarget_ToStrings
 {
 {
 	{"none" , AffectedTarget::None} ,
@@ -327,76 +230,7 @@ std::array<std::pair<const char* const, AffectedTarget>, 15u> EnumFunctions::Aff
 }
 };
 
-std::array<std::pair<const char* const, SuperWeaponAITargetingMode>, 24u> EnumFunctions::SuperWeaponAITargetingMode_ToStrings
-{
-{
-	{"none" , SuperWeaponAITargetingMode::None} ,
-	{"nuke", SuperWeaponAITargetingMode::Nuke },
-	{"lightningstorm", SuperWeaponAITargetingMode::LightningStorm },
-	{"psychicdominator", SuperWeaponAITargetingMode::PsychicDominator },
-	{"paradrop", SuperWeaponAITargetingMode::ParaDrop },
-	{"geneticmutator", SuperWeaponAITargetingMode::GeneticMutator },
-	{"forceshield", SuperWeaponAITargetingMode::ForceShield },
-	{"notarget", SuperWeaponAITargetingMode::NoTarget },
-	{"offensive", SuperWeaponAITargetingMode::Offensive },
-	{"stealth", SuperWeaponAITargetingMode::Stealth },
-	{"self", SuperWeaponAITargetingMode::Self },
-	{"base", SuperWeaponAITargetingMode::Base },
-	{"multimissile", SuperWeaponAITargetingMode::MultiMissile },
-	{"hunterseeker", SuperWeaponAITargetingMode::HunterSeeker },
-	{"enemybase", SuperWeaponAITargetingMode::EnemyBase } ,
-	{"ironcurtain", SuperWeaponAITargetingMode::IronCurtain },
-	{"attack", SuperWeaponAITargetingMode::Attack } ,
-	{"lowpower", SuperWeaponAITargetingMode::LowPower },
-	{"lowpowerattack", SuperWeaponAITargetingMode::LowPowerAttack } ,
-	{"droppod", SuperWeaponAITargetingMode::DropPod } ,
-	{"lightningrandom", SuperWeaponAITargetingMode::LightningRandom } ,
-	{"launchsite", SuperWeaponAITargetingMode::LauchSite },
-	{"findauxtechno", SuperWeaponAITargetingMode::FindAuxTechno },
-	{"ioncannon", SuperWeaponAITargetingMode::IonCannon }
-}
-};
-
-std::array<std::pair<const char* const, IronCurtainFlag>, 6u>  EnumFunctions::IronCurtainFlag_ToStrings
-{
-{
-	{"none", IronCurtainFlag::Default},
-	{"Default" , IronCurtainFlag::Default} ,
-	{"Kill" , IronCurtainFlag::Kill } ,
-	{"Invulnerable" , IronCurtainFlag::Invulnerable } ,
-	{"Ignore" , IronCurtainFlag::Ignore } ,
-	{"random" , IronCurtainFlag::Random }
-}
-};
-
-std::array<std::pair<const char* const, KillMethod>, 6u> EnumFunctions::KillMethod_ToStrings
-{
-{
-	{"none" , KillMethod::None} ,
-	{"explode" , KillMethod::Explode } ,
-	{"kill" , KillMethod::Explode } ,
-	{"vanish" , KillMethod::Vanish } ,
-	{"sell" , KillMethod::Sell } ,
-	{"random" , KillMethod::Random }
-}
-};
-
-std::array<std::pair<const char* const, SlaveReturnTo>, 9u>  EnumFunctions::SlaveReturnTo_ToStrings
-{
-{
-	{"killer" , SlaveReturnTo::Killer} ,
-	{"master", SlaveReturnTo::Master } ,
-	{"suicide", SlaveReturnTo::Suicide } ,
-	{"explode", SlaveReturnTo::Suicide } ,
-	{"kill", SlaveReturnTo::Suicide } ,
-	{"neutral", SlaveReturnTo::Neutral } ,
-	{"civilian", SlaveReturnTo::Civilian } ,
-	{"special", SlaveReturnTo::Special } ,
-	{"random", SlaveReturnTo::Random }
-}
-};
-
-std::array<std::pair<const char* const, TargetingConstraints>, 10u> EnumFunctions::TargetingConstraints_ToStrings
+std::array<std::pair<const char*, TargetingConstraints>, 10u> EnumFunctions::TargetingConstraints_ToStrings
 {
 {
 	{"none" , TargetingConstraints::None } ,
@@ -412,25 +246,7 @@ std::array<std::pair<const char* const, TargetingConstraints>, 10u> EnumFunction
 }
 };
 
-std::array<const char* const, 3u> EnumFunctions::TargetingPreference_ToStrings
-{
-{
-	{"none"} ,
-	{"defensive"} ,
-	{"offensive"}
-}
-};
-
-std::array<const char* const, 3u> EnumFunctions::SelfHealGainType_ToStrings
-{
-{
-	{ "none" },
-	{ "Infantry" },
-	{ "Units" }
-}
-};
-
-std::array<std::pair<const char* const, ChronoSparkleDisplayPosition>, 5u> EnumFunctions::ChronoSparkleDisplayPosition_ToStrings
+std::array<std::pair<const char*, ChronoSparkleDisplayPosition>, 5u> EnumFunctions::ChronoSparkleDisplayPosition_ToStrings
 {
 {
 	{ "none" , ChronoSparkleDisplayPosition::None},
@@ -448,77 +264,6 @@ std::array<std::pair<const char* ,AffectPlayerType>, 5u> EnumFunctions::AffectPl
 	{ "player" ,AffectPlayerType::Player },
 	{ "observer" ,AffectPlayerType::Observer },
 	{ "all" , AffectPlayerType::Computer | AffectPlayerType::Player | AffectPlayerType::Observer }
-}
-};
-
-std::array<const char*, 3u> EnumFunctions::SpotlightAttachment_ToStrings
-{
-{
-	{ "Body" },
-	{ "Turret" },
-	{ "Barrel" }
-}
-};
-
-std::array<const char*, 3u> EnumFunctions::ShowTimerType_ToStrings
-{
-{
-	{ "Hour" },
-	{ "Minute" },
-	{ "Second" }
-}
-};
-
-std::array<const char*, (size_t)BountyValueOption::count> EnumFunctions::BountyValueOption_ToStrings
-{
-{
-	{ "value" },
-	{ "valuepercentofcost" },
-	{ "valuepercentofsoylent" },
-	{ "cost" },
-	{ "soylent" }
-}
-};
-
-std::array<const char*, (size_t)BuildingSelectBracketPosition::count> EnumFunctions::BuildingSelectBracketPosition_ToStrings
-{
-{
-	{ "top" },
-	{ "lefttop" },
-	{ "leftbottom" },
-	{ "bottom" },
-	{ "rightbottom" },
-	{ "righttop" },
-}
-};
-
-std::array<const char*, (size_t)DisplayInfoType::count> EnumFunctions::DisplayInfoType_ToStrings
-{
-{	{ "health" },
-	{ "shield" },
-	{ "ammo" },
-	{ "mindcontrol" },
-	{ "spawns" },
-	{ "passengers" },
-	{ "tiberium" },
-	{ "experience" },
-	{ "occupants" },
-	{ "gattlingstage" },
-	{ "ironcurtain" } ,
-	{ "disableweapon" },
-	{ "cloakdisable" } ,
-	{ "gattlingcount" },
-	{ "rof" },
-	{ "reload" },
-	{ "spawntimer" },
-	{ "gattlingtimer" },
-	{ "producecash" },
-	{ "passengerkill" },
-	{ "autodeath" },
-	{ "superweapon" },
-	{ "temporallife" },
-	{ "factoryprocess" },
-	{ "selfhealcombatdelay" }
 }
 };
 
@@ -543,14 +288,6 @@ std::array<const char*, 8u> EnumFunctions::FacingType_to_strings
 {
 {
 	"N" , "NE", "E" , "SE", "S", "SW", "W", "NW",
-}
-};
-
-std::array<std::pair<const char* const, InterpolationMode>, 2u> EnumFunctions::InterpolationMode_ToStrings
-{
-{
-	{ "none"  , InterpolationMode::None} ,
-	{ "linear" , InterpolationMode::Linear } ,
 }
 };
 

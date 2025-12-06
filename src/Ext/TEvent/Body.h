@@ -57,6 +57,8 @@ enum class PhobosTriggerEvent : int
 
 	AttachedIsUnderAttachedEffect = 606,
 
+	ForceSequentialEvents = 1000,
+
 	EnteredByByID = 19001,
 	SpiedByByID = 19002,
 	HouseDiscoveredByID = 19005,

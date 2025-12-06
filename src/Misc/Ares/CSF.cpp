@@ -41,7 +41,7 @@ void CSFLoader::LoadAdditionalCSF(const char* pFileName, bool ignoreLanguage)
 					const bool succeeded = StringTable::ReadFile(pFileName); //must be modified to do the rest ;)
 
 					if(succeeded){
-						std::sort(StringTable::Labels(), StringTable::Labels() + StringTable::LabelCount(),
+						pdqsort(StringTable::Labels(), StringTable::Labels() + StringTable::LabelCount(),
 							[](const CSFLabel& lhs, const CSFLabel& rhs) {
 							return IMPL_STRCMPI(lhs.Name, rhs.Name) < 0;
 						});

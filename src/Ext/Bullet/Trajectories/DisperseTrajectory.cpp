@@ -238,8 +238,8 @@ void DisperseTrajectory::InitializeBulletNotCurve(bool facing)
 	{
 		CoordStruct theAimCoord
 		{
-			static_cast<int>(this->PreAimCoord.X * std::cos(rotateAngle) + this->PreAimCoord.Y * std::sin(rotateAngle)),
-			static_cast<int>(this->PreAimCoord.X * std::sin(rotateAngle) - this->PreAimCoord.Y * std::cos(rotateAngle)),
+			static_cast<int>(this->PreAimCoord.X * Math::cos(rotateAngle) + this->PreAimCoord.Y * Math::sin(rotateAngle)),
+			static_cast<int>(this->PreAimCoord.X * Math::sin(rotateAngle) - this->PreAimCoord.Y * Math::cos(rotateAngle)),
 			this->PreAimCoord.Z
 		};
 
@@ -252,8 +252,8 @@ void DisperseTrajectory::InitializeBulletNotCurve(bool facing)
 	}
 	else
 	{
-		pBullet->Velocity.X = this->PreAimCoord.X * std::cos(rotateAngle) + this->PreAimCoord.Y * std::sin(rotateAngle);
-		pBullet->Velocity.Y = this->PreAimCoord.X * std::sin(rotateAngle) - this->PreAimCoord.Y * std::cos(rotateAngle);
+		pBullet->Velocity.X = this->PreAimCoord.X * Math::cos(rotateAngle) + this->PreAimCoord.Y * Math::sin(rotateAngle);
+		pBullet->Velocity.Y = this->PreAimCoord.X * Math::sin(rotateAngle) - this->PreAimCoord.Y * Math::cos(rotateAngle);
 		pBullet->Velocity.Z = this->PreAimCoord.Z;
 	}
 
@@ -263,8 +263,8 @@ void DisperseTrajectory::InitializeBulletNotCurve(bool facing)
 
 		VelocityClass rotationAxis
 		{
-			axis.X * std::cos(rotateAngle) + axis.Y * std::sin(rotateAngle),
-			axis.X * std::sin(rotateAngle) - axis.Y * std::cos(rotateAngle),
+			axis.X * Math::cos(rotateAngle) + axis.Y * Math::sin(rotateAngle),
+			axis.X * Math::sin(rotateAngle) - axis.Y * Math::cos(rotateAngle),
 			static_cast<double>(axis.Z)
 		};
 
@@ -293,10 +293,10 @@ inline VelocityClass DisperseTrajectory::RotateAboutTheAxis(VelocityClass theSpe
 	if (Math::abs(theAxisLengthSquared) < 1e-10)
 		return theSpeed;
 
-	theAxis *= 1 / std::sqrt(theAxisLengthSquared);
-	const auto cosRotate = std::cos(theRadian);
+	theAxis *= 1 / Math::sqrt(theAxisLengthSquared);
+	const auto cosRotate = Math::cos(theRadian);
 
-	return ((theSpeed * cosRotate) + (theAxis * ((1 - cosRotate) * (theSpeed * theAxis))) + (theAxis.CrossProduct(theSpeed) * std::sin(theRadian)));
+	return ((theSpeed * cosRotate) + (theAxis * ((1 - cosRotate) * (theSpeed * theAxis))) + (theAxis.CrossProduct(theSpeed) * Math::sin(theRadian)));
 }
 
 bool DisperseTrajectory::CalculateBulletVelocity(double trajectorySpeed)
@@ -535,7 +535,7 @@ bool DisperseTrajectory::CurveVelocityChange()
 			auto horizonMult = Math::abs(pBullet->Velocity.Z / 64.0) / horizonDistance;
 			pBullet->Velocity.X += horizonMult * horizonVelocity.X;
 			pBullet->Velocity.Y += horizonMult * horizonVelocity.Y;
-			const auto horizonLength = std::sqrt(pBullet->Velocity.X * pBullet->Velocity.X + pBullet->Velocity.Y * pBullet->Velocity.Y);
+			const auto horizonLength = Math::sqrt(pBullet->Velocity.X * pBullet->Velocity.X + pBullet->Velocity.Y * pBullet->Velocity.Y);
 
 			if (horizonLength > 64.0)
 			{
@@ -705,8 +705,8 @@ bool DisperseTrajectory::ChangeBulletVelocity(CoordStruct targetLocation, double
 	const auto bulletSquared = moveToVelocity.Length();
 	const auto futureSquared = futureVelocity.Length();
 
-	const auto targetSide = std::sqrt(targetSquared);
-	const auto bulletSide = std::sqrt(bulletSquared);
+	const auto targetSide = Math::sqrt(targetSquared);
+	const auto bulletSide = Math::sqrt(bulletSquared);
 
 	const auto reviseMult = (targetSquared + bulletSquared - futureSquared);
 	const auto reviseBase = 2 * targetSide * bulletSide;
@@ -1262,8 +1262,8 @@ void DisperseTrajectory::DisperseBurstSubstitution(CoordStruct axis, double rota
 
 	VelocityClass rotationAxis
 	{
-		axis.X * std::cos(rotateAngle) + axis.Y * std::sin(rotateAngle),
-		axis.X * std::sin(rotateAngle) - axis.Y * std::cos(rotateAngle),
+		axis.X * Math::cos(rotateAngle) + axis.Y * Math::sin(rotateAngle),
+		axis.X * Math::sin(rotateAngle) - axis.Y * Math::cos(rotateAngle),
 		static_cast<double>(axis.Z)
 	};
 

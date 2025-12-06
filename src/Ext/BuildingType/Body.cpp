@@ -1017,7 +1017,7 @@ int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* 
 		if (pExt->PowerPlantEnhancer_Buildings.empty() || !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
 			continue;
 
-		fFactor *= std::powf(pExt->PowerPlantEnhancer_Factor, static_cast<float>(nCount));
+		fFactor *= float(Math::pow((double)pExt->PowerPlantEnhancer_Factor, (double)nCount));
 		nAmount += pExt->PowerPlantEnhancer_Amount * nCount;
 	}
 
@@ -1107,7 +1107,7 @@ double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat, Hou
 			if (nBonus == 0.000)
 				continue;
 
-			fFactor *= std::pow(nBonus, nCount);
+			fFactor *= Math::pow(nBonus, (double)nCount);
 		}
 	}
 
@@ -1158,7 +1158,7 @@ double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoTypeClass* pWhat,
 			if (nBonus == 0.000)
 				continue;
 
-			fFactor *= std::pow(nBonus, nCount);
+			fFactor *= Math::pow(nBonus, (double)nCount);
 		}
 	}
 

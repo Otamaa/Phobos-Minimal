@@ -37,18 +37,13 @@
 #include <MapClass.h>
 
 
-FORCEDINLINE int cell_Distance_Squared(CoordStruct& our_coord, CoordStruct& their_coord)
+FORCEDINLINE COMPILETIMEEVAL int cell_Distance_Squared(CoordStruct& our_coord, CoordStruct& their_coord)
 {
-	int our_cell_x = our_coord.X / Unsorted::LeptonsPerCell;
-	int their_cell_x = their_coord.X / Unsorted::LeptonsPerCell;
-	int our_cell_y = our_coord.Y / Unsorted::LeptonsPerCell;
-	int their_cell_y = their_coord.Y / Unsorted::LeptonsPerCell;
+	const int64_t dx = int64_t(our_coord.X) - int64_t(their_coord.X);
+    const int64_t dy = int64_t(our_coord.Y) - int64_t(their_coord.Y);
+    const int64_t d2 = dx * dx + dy * dy;
 
-	int x_distance = Math::abs(our_cell_x - their_cell_x);
-	int y_distance = Math::abs(our_cell_y - their_cell_y);
-	return (x_distance * x_distance) + (y_distance * y_distance);
-
-	//return int(Point2D { our_coord.X - their_coord.X, our_coord.Y - their_coord.Y }.Length());
+    return d2 > INT_MAX ? INT_MAX : int(d2);
 }
 
 //limited usability

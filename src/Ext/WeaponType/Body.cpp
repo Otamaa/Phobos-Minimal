@@ -11,7 +11,27 @@
 
 #pragma region defines
 int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
+std::array<double, 16> WeaponTypeExtData::cosLUT {};
+std::array<double, 16> WeaponTypeExtData::sinLUT {};
+bool WeaponTypeExtData::LutsInitialized = false;
 #pragma endregion
+
+void WeaponTypeExtData::calculateCircuferences() {
+	constexpr double _pi_by_108 = (Math::GAME_PI / 180.0);
+
+	if (!WeaponTypeExtData::LutsInitialized) {
+		for (int i = 0; i < 16; ++i)
+		{
+			double deg = std::fmod(i * 22.5 + 270.0, 360.0);
+			double rad = deg * _pi_by_108;
+
+			WeaponTypeExtData::cosLUT[i] = Math::cos(rad);
+			WeaponTypeExtData::sinLUT[i] = Math::sin(rad);
+		}
+
+		WeaponTypeExtData::LutsInitialized = true;
+	}
+}
 
 void WeaponTypeExtData::Initialize()
 {
@@ -972,6 +992,7 @@ ASMJIT_PATCH(0x771EE0, WeaponTypeClass_CTOR, 0x6)
 {
 	GET(WeaponTypeClass*, pItem, ESI);
 	WeaponTypeExtContainer::Instance.Allocate(pItem);
+	WeaponTypeExtData::calculateCircuferences();
 	return 0;
 }
 

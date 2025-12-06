@@ -122,8 +122,8 @@ public:
 	Matrix3D(const Vector3D<float>* axis, float angle) noexcept
 	{
 		//JMP_THIS(0x5AE750);
-		float c = std::cos((double)angle);
-		double s = std::sin((double)angle);
+		float c = Math::cos((double)angle);
+		double s = Math::sin((double)angle);
 		double v7 = axis->X * axis->X;
 		this->Row[0][0] = static_cast<float>((1.0 - v7) * c + v7);
 		double v8 = 1.0 - c;

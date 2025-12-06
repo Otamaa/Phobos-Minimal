@@ -960,7 +960,7 @@ public:
 	static bool Handled;
 	static SuperClass* TempSuper;
 	static SuperClass* LauchData;
-	static std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> AITargetingModes;
+	static const AITargetingModeInfo AITargetingModes[];
 	static SuperWeaponTypeClass* CurrentSWType;
 
 public:

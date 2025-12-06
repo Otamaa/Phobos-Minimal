@@ -138,11 +138,76 @@ namespace Math
 	//~360° (wraps back to 0)
 	static COMPILETIMEEVAL  uint16_t BINARY_ANGLE_MASK = 0x3FFF;
 
+	//Generating std::cos(Math::DIRECTION_FIXED_MAGIC) : 
+	static COMPILETIMEEVAL double COS_DIRECTION_FIXED_MAGIC = std::bit_cast<double>(0x3FEFFFFFFD884E88ull);
+	//Generating std::sin(Math::DIRECTION_FIXED_MAGIC) : 
+	static COMPILETIMEEVAL double SIN_DIRECTION_FIXED_MAGIC = std::bit_cast<double>(0xBF19222D97F9FC90ull);
+	//Generating std::sqrt(10000.0) :
+	static COMPILETIMEEVAL double SQRT_TENTOUSAND = std::bit_cast<double>(0x4059000000000000ull);
+	//Generating std::sin(Math::PI_BY_FOUR_ACCURATE) : 
+	static COMPILETIMEEVAL double SIN_PI_BY_FOUR_ACCURATE = std::bit_cast<double>(0x3FE6A09E667F3BCCull);
+	//Generating std::cos(Math::PI_BY_FOUR_ACCURATE) : 
+	static COMPILETIMEEVAL double COS_PI_BY_FOUR_ACCURATE = std::bit_cast<double>(0x3FE6A09E667F3BCDull);
+	//Generating std::sin(Math::PI_BY_TWO_ACCURATE) : 
+	static COMPILETIMEEVAL double SIN_PI_BY_TWO_ACCURATE = std::bit_cast<double>(0x3FF0000000000000ull);
+	//Generating std::cos(Math::PI_BY_TWO_ACCURATE) : 
+	static COMPILETIMEEVAL double COS_PI_BY_TWO_ACCURATE = std::bit_cast<double>(0x3C91A60000000000ull);
+	//Generating std::sqrt(5) : 
+	static COMPILETIMEEVAL double SQRT_FIVE = std::bit_cast<double>(0x4001E3779B97F4A8ull);
+	//Generating std::sqrt(8) : 
+	static COMPILETIMEEVAL double SQRT_EIGHT = std::bit_cast<double>(0x4006A09E667F3BCDull);
+
 	static OPTIONALINLINE COMPILETIMEEVAL double rad2deg(double rad) { return rad * 180.0 / GAME_PI; }
 	static OPTIONALINLINE COMPILETIMEEVAL double deg2rad(double deg) { return deg * GAME_PI / 180.0; }
 
 	template<typename T> requires std::is_integral_v<T> || std::is_floating_point_v<T>
 	static COMPILETIMEEVAL float DEG_TO_RADF(T val) { return (((float)val) * GAME_PI / 180.0f); }
+
+	
+
+#ifdef Original
+
+	static OPTIONALINLINE uint64_t F2I64(double val)
+	{
+		double something = val;
+		__asm { fld something };
+		ASM_CALL(0x7C5F00);
+	}
+
+	static OPTIONALINLINE int F2I(double val)
+	{
+		return int(F2I64(val));
+	}
+
+	static OPTIONALINLINE double __cdecl pow(double a, double b)
+	{
+		__asm {
+			push    dword ptr[b + 4]     // High DWORD of b
+			push    dword ptr[b]       // Low DWORD of b
+			push    dword ptr[a + 4]     // High DWORD of a
+			push    dword ptr[a]       // Low DWORD of a
+			mov     eax, 0x7C8FC9         // Load address
+			call    eax                   // Call function
+			add     esp, 16             // Clean up stack
+			// Result already in ST(0), will be returned
+		}
+	}
+
+	static OPTIONALINLINE double powb(double base, double exponent)
+	{
+		double result;
+		__asm {
+			finit                         // Clear FPU
+			fld     qword ptr[base]       // ST(0) = base
+			fld     qword ptr[exponent]   // ST(0) = exp, ST(1) = base
+			mov     eax, 0x7C8FB0
+			call    eax
+			fstp    qword ptr[result]
+			finit                         // Clear FPU again
+		}
+		return result;
+	}
+
 	MATH_FUNC(float, double, sqrt, 0x4CAC40);
 	MATH_FUNC(float, double, sin, 0x4CACB0);
 	MATH_FUNC(float, double, cos, 0x4CAD00);
@@ -164,6 +229,88 @@ namespace Math
 	MATH_FUNC_FLOAT(double, float, acos, 0x4CB290);
 	MATH_FUNC_FLOAT(double, float, atan, 0x4CB480);
 	MATH_FUNC_TWOVAL_FLOAT(atan2, 0x4CB3D0);
+
+	float FORCEDINLINE sqrt(int value) noexcept {
+		return Math::sqrt(static_cast<double>(value));
+	}
+#else 
+
+	float FORCEDINLINE sqrt(int value) noexcept {
+		return (float)std::sqrt((double)value);
+	}
+
+	static FORCEDINLINE double __cdecl acos(double a1) {
+		return std::acos(a1);
+	}
+
+	static FORCEDINLINE double __cdecl asin(double a1) {
+		return std::asin(a1);
+	}
+
+	static FORCEDINLINE double __cdecl atan(double a1) {
+		return std::atan(a1);
+	}
+
+	static FORCEDINLINE double __cdecl atan2(double a1, double a2) {
+		return std::atan2(a1, a2);
+	}
+
+	static FORCEDINLINE float __cdecl cos(double a1) {
+		return (float)std::cos(a1);
+	}
+
+	static FORCEDINLINE float __cdecl sin(double a1) {
+		return (float)std::sin(a1);
+	}
+
+	static FORCEDINLINE float __cdecl sqrt(double a1) {
+		return (float)std::sqrt(a1);
+	}
+
+	static FORCEDINLINE double __cdecl tan(double a1) {
+		return std::tan(a1);
+	}
+
+	//===================================
+
+	static FORCEDINLINE double __cdecl acos(float a1) {
+		return std::acos((double)a1);
+	}
+
+	static FORCEDINLINE double __stdcall asin(float a1) {
+		return std::asin((double)a1);
+	}
+
+	static FORCEDINLINE double __stdcall atan(float a1) {
+		return std::atan((double)a1);
+	}
+
+	static FORCEDINLINE double __stdcall atan2(float a1, float a2) {
+		return std::atan2((double)a1, (double)a2);
+	}
+
+	static FORCEDINLINE double __cdecl cos(float a1) {
+		return std::cos((double)a1);
+	}
+
+	static FORCEDINLINE double __cdecl sin(float a1) {
+		return std::sin((double)a1);
+	}
+
+	static FORCEDINLINE double __cdecl sqr(float a1) {
+		return std::sqrt((double)a1);
+	}
+
+	static FORCEDINLINE double __cdecl tan(float a1) {
+		return std::tan((double)a1);
+	}
+
+	template<typename T>
+	T FORCEDINLINE pow(T a , T b) noexcept {
+		return std::pow(a, b);
+	}
+
+#endif
 
 	//famous Quaqe 3 Fast Inverse Square Root
 	OPTIONALINLINE COMPILETIMEEVAL float Q_invsqrt(float number) noexcept {
@@ -250,3 +397,10 @@ namespace Math
 		return value;
 	}
 };
+
+// float cmp
+#define CLOSE_ENOUGH(x, y) \
+	(Math::abs(x - y) < 0.001)
+
+#define LESS_EQUAL(x, y) \
+	((x - y) <= 0.001)

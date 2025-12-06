@@ -225,7 +225,7 @@ public:
 
 	void DrawEllipse(int CenterX, int CenterY, double CellSpread, RectangleStruct Rect, COLORREF nColor)
 	{
-		double factor = (CellSpread * 2 + 1) / std::sqrt(8);
+		double factor = (CellSpread * 2 + 1) / Math::SQRT_EIGHT;
 
 		int semiMajor = static_cast<int>(factor * Unsorted::CellWidthInPixels);
 		int semiMinor = static_cast<int>(factor * Unsorted::CellHeightInPixels);

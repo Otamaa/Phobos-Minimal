@@ -11,44 +11,15 @@ class PhobosCRT final
 	NO_CONSTRUCT_CLASS(PhobosCRT)
 public:
 
-	static FORCEDINLINE int __builtin_ctz(unsigned int x) {
-		unsigned long index;
-		_BitScanForward(&index, x);
-		return (int)index;
-	}
-
 	 template<typename CharPtr>
-	 static CharPtr __cdecl fast_strchr_simd(CharPtr str, char ch) {
-			static_assert(std::is_same_v<std::remove_cv_t<std::remove_pointer_t<CharPtr>>, char>,
-						  "Must be char* or const char*");
+	 static CharPtr __cdecl strchr_selector(CharPtr str, char ch) {
+		return strchr(str, ch);
+	 }
 
-			using ConstCharPtr = const char*;
-			ConstCharPtr ptr = str;
-
-			const __m128i needle = _mm_set1_epi8(ch);
-			const __m128i zero = _mm_setzero_si128();
-
-			while (true)
-			{
-				__m128i haystack = _mm_loadu_si128(reinterpret_cast<const __m128i*>(ptr));
-				__m128i null_mask = _mm_cmpeq_epi8(haystack, zero);
-				__m128i char_mask = _mm_cmpeq_epi8(haystack, needle);
-
-				int null_bits = _mm_movemask_epi8(null_mask);
-				int char_bits = _mm_movemask_epi8(char_mask);
-
-				if (char_bits)
-				{
-					int pos = __builtin_ctz(char_bits);
-					return const_cast<CharPtr>(ptr + pos);
-				}
-				if (null_bits)
-				{
-					return nullptr;
-				}
-				ptr += 16;
-			}
-	}
+	 template<typename CharPtr ,typename CharRetPtr>
+	 static CharRetPtr __cdecl strstr_selector(CharPtr a1, CharPtr a2) {
+		 return strstr(a1, a2);
+	 }
 
 	static COMPILETIMEEVAL bool is_space(char c) {
 		return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v';

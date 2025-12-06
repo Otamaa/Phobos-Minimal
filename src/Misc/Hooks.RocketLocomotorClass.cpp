@@ -585,20 +585,20 @@ public:
 		const double length = Vector2D<float> { static_cast<float>(left_to_go.X), static_cast<float>(left_to_go.Y) }.Length();
 
 		if (length > 0)
-			return std::atan(double(left_to_go.Z / length));
+			return Math::atan(double(left_to_go.Z / length));
 
 		return -Math::DEG90_AS_RAD;
 	}
 
 	static Coordinate Get_Next_Position(RocketLocomotionClass* pThis, double speed)
 	{
-		const double horizontal_speed = std::cos((double)pThis->CurrentPitch) * speed;
+		const double horizontal_speed = Math::cos((double)pThis->CurrentPitch) * speed;
 		const double horizontal_angle = pThis->Owner->PrimaryFacing.Current().GetRadian<65536>();
 
 		return {
-		int(pThis->Owner->Location.X + std::cos(horizontal_angle) * horizontal_speed)
-		, int(pThis->Owner->Location.Y - std::sin(horizontal_angle) * horizontal_speed)
-		, int(pThis->Owner->Location.Z + std::sin((double)pThis->CurrentPitch) * speed) };
+		int(pThis->Owner->Location.X + Math::cos(horizontal_angle) * horizontal_speed)
+		, int(pThis->Owner->Location.Y - Math::sin(horizontal_angle) * horizontal_speed)
+		, int(pThis->Owner->Location.Z + Math::sin((double)pThis->CurrentPitch) * speed) };
 	}
 };
 

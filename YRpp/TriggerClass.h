@@ -25,14 +25,14 @@ public:
 	virtual HRESULT __stdcall GetClassID(CLSID* pClassID) override R0;
 
 	//IPersistStream
-	virtual HRESULT __stdcall Load(IStream* pStm) override R0;
-	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override R0;
+	virtual HRESULT __stdcall Load(IStream* pStm) override JMP_STD(0x726860);
+	virtual HRESULT __stdcall Save(IStream* pStm,BOOL fClearDirty) override JMP_STD(0x7268D0);
 
 	//Destructor
 	virtual ~TriggerClass() RX;
 
 	//AbstractClass
-	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override RX;
+	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x726690);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
 	virtual int Size() const override R0;
 	virtual void ComputeCRC(CRCEngine& checksum) const override RX;

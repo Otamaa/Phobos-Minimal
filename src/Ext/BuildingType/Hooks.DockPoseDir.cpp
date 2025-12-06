@@ -323,8 +323,8 @@ ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_FlightUpdate_SetFlightLevel, 0x7) // M
 					if (speed > 0)
 					{
 						double const value = pFootPtr->PrimaryFacing.Current().GetRadian();
-						double const cos = std::cos(value);
-						double const sin = std::sin(value);
+						double const cos = Math::cos(value);
+						double const sin = Math::sin(value);
 
 						int maxHeight = 0;
 						int currentHeight = 0;

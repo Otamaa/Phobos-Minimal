@@ -272,7 +272,7 @@ NOINLINE INISection* GetInheritedSection(INIClass* pThis, char* ptr)
 	char* start = cursor;
 
 	// Look for closing bracket
-	char* end = PhobosCRT::fast_strchr_simd(start, ']');
+	char* end = strchr(start, ']');
 	if (!end || end == start)
 		return nullptr;
 

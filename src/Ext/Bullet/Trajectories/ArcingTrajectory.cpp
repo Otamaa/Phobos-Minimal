@@ -65,7 +65,7 @@ void ArcingTrajectory::CalculateVelocity(BulletClass* pBullet, double elevation,
 
 	if (elevation > DBL_EPSILON)
 	{
-		double LifeTime = std::sqrt(2 / g * (elevation * FullDistance - Z));
+		double LifeTime = Math::sqrt(2 / g * (elevation * FullDistance - Z));
 
 
 		double Velocity_XY = FullDistance / LifeTime;
@@ -97,15 +97,15 @@ void ArcingTrajectory::CalculateVelocity(BulletClass* pBullet, double elevation,
 		else
 		{
 			int isLobber = lobber ? 1 : -1;
-			double LifeTimeSquare = (-B + isLobber * std::sqrt(delta)) / (2 * A);
-			double LifeTime = std::sqrt(LifeTimeSquare);
+			double LifeTimeSquare = (-B + isLobber * Math::sqrt(delta)) / (2 * A);
+			double LifeTime = Math::sqrt(LifeTimeSquare);
 
 			double Velocity_XY = FullDistance / LifeTime;
 			double ratio = Velocity_XY / FullDistance;
 			pBullet->Velocity.X = static_cast<double>(pBullet->TargetCoords.X - pBullet->SourceCoords.X) * ratio;
 			pBullet->Velocity.Y = static_cast<double>(pBullet->TargetCoords.Y - pBullet->SourceCoords.Y) * ratio;
 
-			pBullet->Velocity.Z = std::sqrt(S * S - Velocity_XY * Velocity_XY);
+			pBullet->Velocity.Z = Math::sqrt(S * S - Velocity_XY * Velocity_XY);
 		}
 	}
 }

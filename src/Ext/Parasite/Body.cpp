@@ -285,8 +285,8 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Calculate sideways angle (negative direction)
-		float angleRadians = this->GrappleAnimFrame * -1.0f * Math::GAME_PI;
-		this->Victim->AngleRotatedSideways = std::sin(angleRadians) * Math::PI_BY_FOUR_F;
+		double angleRadians = this->GrappleAnimFrame * -1.0f * Math::GAME_PI;
+		this->Victim->AngleRotatedSideways = Math::sin(angleRadians) * Math::PI_BY_FOUR_F;
 		break;
 	}
 
@@ -301,8 +301,8 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Calculate sideways angle (positive direction)
-		float angleRadians = this->GrappleAnimFrame * 1.0f * Math::GAME_PI;
-		this->Victim->AngleRotatedSideways = std::sin(angleRadians) * Math::PI_BY_FOUR_F;
+		double angleRadians = this->GrappleAnimFrame * 1.0f * Math::GAME_PI;
+		this->Victim->AngleRotatedSideways = Math::sin(angleRadians) * Math::PI_BY_FOUR_F;
 		break;
 	}
 
@@ -317,9 +317,10 @@ void FakeParasiteClass::__Grapple_AI()
 		if(AnimType) {
 
 			DirStruct facingDir = this->Victim->PrimaryFacing.Current();
-			float facingAngle = -((facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
-			float cosAngle = std::cos(facingAngle);
-			float sinAngle = std::sin(facingAngle);
+
+			double facingAngle = -((facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
+			float cosAngle = Math::cos(facingAngle);
+			float sinAngle = Math::sin(facingAngle);
 
 			for (int i = 0; i < 3; ++i)
 			{
@@ -519,9 +520,9 @@ void FakeParasiteClass::__AI()
 	int randomOffset = ScenarioClass::Instance->Random.RandomBool() ? -4 : 2;
 	randomOffset = (randomOffset & 0xFC) + 2;
 
-	float facingRadians = (facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
-	float cosAngle = std::cos(facingRadians);
-	float sinAngle = std::sin(facingRadians);
+	double facingRadians = (facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
+	float cosAngle = Math::cos(facingRadians);
+	float sinAngle = Math::sin(facingRadians);
 
 	CoordStruct spreadCoord {
 		.X = int(cosAngle * randomOffset + victimCoord.X),

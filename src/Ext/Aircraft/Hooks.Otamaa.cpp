@@ -24,7 +24,6 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 
 #include <Ext/WeaponType/Body.h>
 #include <Ext/Bullet/Body.h>
-#include <lib/gcem/gcem.hpp>
 
 #include <Locomotor/FlyLocomotionClass.h>
 
@@ -124,14 +123,14 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //
 //			if (yawRad != 0.0)
 //			{
-//				velocity->X /= std::cos(yawRad);
-//				velocity->Y /= std::cos(yawRad);
+//				velocity->X /= Math::cos(yawRad);
+//				velocity->Y /= Math::cos(yawRad);
 //			}
 //
 //			double pitchRad = Math::DIRECTION_FIXED_MAGIC;
-//			velocity->X *= std::cos(pitchRad);
-//			velocity->Y *= std::cos(pitchRad);
-//			velocity->Z = std::sin(pitchRad) * mag;
+//			velocity->X *= Math::cos(pitchRad);
+//			velocity->Y *= Math::cos(pitchRad);
+//			velocity->Z = Math::sin(pitchRad) * mag;
 //
 //			DirStruct newFacingDir = pThis->SecondaryFacing.Current();
 //
@@ -141,8 +140,8 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4CD809, FakeAircraftClass::_Destroyed);
 //			int newFacing = newFacingDir.Raw- Math::BINARY_ANGLE_MASK;
 //			double newRad = newFacing * Math::DIRECTION_FIXED_MAGIC;
 //
-//			velocity->X = std::cos(newRad) * dist2D;
-//			velocity->Y = -std::sin(newRad) * dist2D;
+//			velocity->X = Math::cos(newRad) * dist2D;
+//			velocity->Y = -Math::sin(newRad) * dist2D;
 //
 //
 //		}else

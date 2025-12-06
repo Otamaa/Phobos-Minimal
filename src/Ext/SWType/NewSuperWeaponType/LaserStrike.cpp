@@ -147,9 +147,9 @@ void LaserStrikeStateMachine::Update()
 					CoordStruct pos
 					{
 						center.X + static_cast<int>(
-							this->LaserStrikeRadius * std::cos(angle * Math::GAME_PI / 180)) + ScatterX,
+							this->LaserStrikeRadius * Math::cos(angle * Math::GAME_PI / 180)) + ScatterX,
 						center.Y + static_cast<int>(
-							this->LaserStrikeRadius * std::sin(angle * Math::GAME_PI / 180)) + ScatterY,
+							this->LaserStrikeRadius * Math::sin(angle * Math::GAME_PI / 180)) + ScatterY,
 						0
 					};
 

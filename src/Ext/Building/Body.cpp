@@ -12,8 +12,6 @@
 
 #include <Misc/Hooks.Otamaa.h>
 
-#include <Lib/gcem/gcem.hpp>
-
 BuildingExtData::~BuildingExtData()
 {
 
@@ -319,18 +317,13 @@ void BuildingExtData::UpdatePoweredKillSpawns() const
 {
 	auto const pThis = (BuildingClass*)this->This();
 
-	if (this->Type->Powered_KillSpawns &&
-		pThis->Type->Powered &&
-		!pThis->IsPowerOnline())
-	{
-		if (const auto& pManager = pThis->SpawnManager)
-		{
+	if (this->Type->Powered_KillSpawns && !pThis->IsPowerOnline()) {
+		if (const auto& pManager = pThis->SpawnManager) {
 			pManager->ResetTarget();
 
-			for (const auto& pItem : pManager->SpawnedNodes)
-			{
-				if (pItem->Status == SpawnNodeStatus::Attacking || pItem->Status == SpawnNodeStatus::Returning)
-				{
+			for (const auto& pItem : pManager->SpawnedNodes) {
+				if (pItem->Status == SpawnNodeStatus::Attacking 
+					|| pItem->Status == SpawnNodeStatus::Returning) {
 					if (pItem->Unit && pItem->Unit->IsAlive)
 						pItem->Unit->ReceiveDamage(&pItem->Unit->GetType()->Strength, 0,
 							RulesClass::Instance()->C4Warhead, nullptr, true, true, nullptr);
@@ -1249,8 +1242,8 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 				pThis->GetFLH(&nFLH, 0, CoordStruct::Empty);
 
 				// Otamaa : the original calculation seems causing missile to be invisible
-				//auto nCos = std::cos(Math::Math::PI_BY_TWO_ACCURATE);
-				//auto nSin = std::sin(Math::Math::PI_BY_TWO_ACCURATE);
+				//auto nCos = Math::cos(Math::Math::PI_BY_TWO_ACCURATE);
+				//auto nSin = Math::sin(Math::Math::PI_BY_TWO_ACCURATE);
 
 				const auto nMult = pCreated->Type->Vertical ? 10.0 : 100.0;
 				//const auto nX = nCos * nCos * nMult;
@@ -1306,8 +1299,8 @@ int ProcessNukeSilo(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtData* pL
 			double angle = Math::Math::PI_BY_TWO_ACCURATE;
 			double speed = 10.0;
 
-			double sinA = std::sin(angle);
-			double cosA = std::cos(angle);
+			double sinA = Math::sin(angle);
+			double cosA = Math::cos(angle);
 
 			velocity.X = cosA * sinA * speed;
 			velocity.Y = sinA * speed;
@@ -1474,10 +1467,9 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		int binaryAngle = (int)(angleToTarget * Math::BINARY_ANGLE_MAGIC);
 
 		// --- Base velocity calculation ---
-		COMPILETIMEEVAL double magnitude = gcem::sqrt(10000.0);
 		double radians = (double)(binaryAngle - 16383) * Math::DIRECTION_FIXED_MAGIC;
 
-		VelocityClass vel { std::cos(radians) * magnitude  , -(std::sin(radians) * magnitude)  , 0.0 };
+		VelocityClass vel { Math::cos(radians) * Math::SQRT_TENTOUSAND  , -(Math::sin(radians) * Math::SQRT_TENTOUSAND)  , 0.0 };
 		vel.SetIfZeroXYZ();
 
 		// Normalize and scale to projectile speed
@@ -1490,11 +1482,9 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 		CoordStruct barrelDir {};
 		pThis->vt_entry_300(&barrelDir, pExt->idxSlot_EMPulse);
 		CoordStruct bulletPos = bullet->GetCoords();
-		double dz = bulletPos.Z - barrelDir.Z;
-		double xyDistSq = (bulletPos.X - barrelDir.X) * (bulletPos.X - barrelDir.X) +
-			(bulletPos.Y - barrelDir.Y) * (bulletPos.Y - barrelDir.Y);
-
-		double xyDist = std::sqrt(xyDistSq);
+		CoordStruct xyDiff = bulletPos - barrelDir;
+		double dz = xyDiff.Z;
+		double xyDist = xyDiff.Length();
 
 		// Recalculate direction if needed
 		DirStruct legal;
@@ -1514,15 +1504,15 @@ int ProcessEMPUlseCannon(BuildingClass* pThis, SuperClass* pLinked, SWTypeExtDat
 
 		if (pitchRad != 0.0)
 		{
-			vel.X /= std::cos(pitchRad);
-			vel.Y /= std::cos(pitchRad);
+			vel.X /= Math::cos(pitchRad);
+			vel.Y /= Math::cos(pitchRad);
 		}
 
 		// --- Facing adjustment ---
 		double dirRad = ((double)legal.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
-		vel.X *= std::cos(dirRad);
-		vel.Y *= std::cos(dirRad);
-		vel.Z = std::sin(dirRad) * speed;
+		vel.X *= Math::cos(dirRad);
+		vel.Y *= Math::cos(dirRad);
+		vel.Z = Math::sin(dirRad) * speed;
 
 
 		auto pBulletTypeExt = BulletTypeExtContainer::Instance.Find(bullet->Type);

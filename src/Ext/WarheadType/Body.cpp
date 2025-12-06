@@ -886,7 +886,7 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	const auto range_factor = range / (this->RecalculateDistanceDamage_Add_Factor.Get() * 256);
 	const auto add = (this->RecalculateDistanceDamage_Add.Get() * range_factor);
 
-	const auto multiply = std::pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
+	const auto multiply = Math::pow((this->RecalculateDistanceDamage_Multiply.Get()), range_factor);
 
 	auto nAddDamage = add * multiply;
 	if (this->RecalculateDistanceDamage_ProcessVerses)
@@ -2212,8 +2212,8 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 
 		// Base on a location about 14 grids away
 
-		cell.X -= static_cast<short>(14 * std::cos(radian));
-		cell.Y += static_cast<short>(14 * std::sin(radian));
+		cell.X -= static_cast<short>(14 * Math::cos(radian));
+		cell.Y += static_cast<short>(14 * Math::sin(radian));
 
 
 		// Find a location where the conyard can be deployed

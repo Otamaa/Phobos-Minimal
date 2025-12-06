@@ -245,7 +245,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 	}
 	else
 	{
-		size = (int)((radius + 0.5) / std::sqrt(2.0) * double(Unsorted::CellWidthInPixels)); // should be cell size global?
+		size = (int)((radius + 0.5) / Math::SQRT_TWO *double(Unsorted::CellWidthInPixels)); // should be cell size global?
 	}
 
 	Point2D center_pixel = TacticalClass::Instance->CoordsToClient(center_coord);
@@ -339,8 +339,8 @@ void FakeTacticalClass::__DrawRadialIndicator(
 		{
 
 			double angle_tan = std::tan(angle);
-			double xdist = std::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
-			double ydist = std::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
+			double xdist = Math::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
+			double ydist = Math::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
 
 			if (angle > Math::DEG_TO_RADF(90) && angle < Math::DEG_TO_RADF(270))
 			{

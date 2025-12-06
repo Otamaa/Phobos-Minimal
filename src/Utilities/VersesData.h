@@ -1,7 +1,7 @@
 #pragma once
 
 #include <WarheadFlags.h>
-#include <Helpers/Macro.h>
+#include <YRMath.h>
 
 struct VersesData
 {

@@ -889,7 +889,7 @@ public:
 			return this->ConditionRed;
 		else if (this->ConditionYellow.HasValue() && ratio <= RulesClass::Instance->ConditionYellow)
 			return this->ConditionYellow;
-		else if (this->MaxValue.HasValue() && fabs(ratio - 1.0) < 1e-6)
+		else if (this->MaxValue.HasValue() && Math::abs(ratio - 1.0) < 1e-6)
 			return this->MaxValue;
 
 		return this->BaseValue;

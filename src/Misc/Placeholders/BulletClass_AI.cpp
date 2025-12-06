@@ -47,15 +47,15 @@ class BulletClass_patch : public BulletClass
 
 			if (angle != 0.0)
 			{
-				InitialVelocity.X /= std::cos(angle);
-				InitialVelocity.Y /= std::sin(angle);
+				InitialVelocity.X /= Math::cos(angle);
+				InitialVelocity.Y /= Math::sin(angle);
 			}
 
 			double angle_XY = double(((int16_t)XY.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC);
 
-			InitialVelocity.X *= std::cos(angle_XY);
-			InitialVelocity.Y *= std::cos(angle_XY);
-			InitialVelocity.Z *= std::sin(angle_XY);
+			InitialVelocity.X *= Math::cos(angle_XY);
+			InitialVelocity.Y *= Math::cos(angle_XY);
+			InitialVelocity.Z *= Math::sin(angle_XY);
 
 			const CoordStruct Vel {
 				(int)InitialVelocity.X , (int)InitialVelocity.Y , (int)InitialVelocity.Z

@@ -286,7 +286,7 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 				}
 
 				const size_t recordSize = record.size();
-				std::sort(&record[0], &record[recordSize], [&center](const auto& pairA, const auto& pairB)
+				pdqsort(&record[0], &record[recordSize], [&center](const auto& pairA, const auto& pairB)
 					{
 						const auto coordsA = pairA.first->GetCoords();
 						const double distanceA = Point2D { coordsA.X, coordsA.Y }.DistanceFromSquared(Point2D { center.X, center.Y });

@@ -138,8 +138,7 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 					target->KillPassengers(pTemporal->Owner);
 
 					// Handle slave manager
-					if (auto pSlave = target->SlaveManager)
-					{
+					if (auto pSlave = target->SlaveManager) {
 						pSlave->Killed(pTemporal->Owner, nullptr);
 					}
 
@@ -149,6 +148,7 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 					target->IsAlive = false;
 					target->UnInit();
 					target->Owner->RecheckTechTree = true;
+					target->Owner->RecheckPower = true;
 				}
 			}
 		}
@@ -183,7 +183,7 @@ void FakeTemporalClass::_Update()
 		}
 
 		if (distanceVector.Length() > (disatanceMax << 8)) {
-			this->Detach();
+			this->LetGo();
 			shouldProcessMainLogic = false;
 		}
 	}
@@ -211,7 +211,8 @@ void FakeTemporalClass::_Update()
 			}
 
 			this->ResetTemporalState();
-			this->Owner->EnterIdleMode(false, 1);
+			if(this->Owner)
+				this->Owner->EnterIdleMode(false, 1);
 		}
 	}
 }
@@ -383,6 +384,7 @@ ASMJIT_PATCH(0x71A5FF, TemporalClass_SDDTOR, 0x7)
 }ASMJIT_PATCH_AGAIN(0x71B1DF, TemporalClass_SDDTOR, 0x7)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F51DC, FakeTemporalClass::_Update);
+DEFINE_FUNCTION_JUMP(LJMP, 0x71A760, FakeTemporalClass::_Update);
 DEFINE_FUNCTION_JUMP(LJMP, 0x71AF20, FakeTemporalClass::_Detonate);
 
 //ASMJIT_PATCH(0x71AB68, TemporalClass_Detach, 0x5)

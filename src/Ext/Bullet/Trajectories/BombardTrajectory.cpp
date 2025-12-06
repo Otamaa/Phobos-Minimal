@@ -250,12 +250,12 @@ CoordStruct BombardTrajectory::CalculateMiddleCoords()
 	if (!pType->FallScatter_Linear)
 	{
 		const double angel = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI;
-		scatterX = length * std::cos(angel);
-		scatterY = length * std::sin(angel);
+		scatterX = length * Math::cos(angel);
+		scatterY = length * Math::sin(angel);
 	}
 	else
 	{
-		const double vectorModule = std::sqrt(vectorX * vectorX + vectorY * vectorY);
+		const double vectorModule = Math::sqrt(vectorX * vectorX + vectorY * vectorY);
 		scatterX = vectorY / vectorModule * length;
 		scatterY = -(vectorX / vectorModule * length);
 
@@ -299,8 +299,8 @@ void BombardTrajectory::CalculateTargetCoords()
 
 	if (this->OffsetCoord != CoordStruct::Empty)
 	{
-		pBullet->TargetCoords.X += static_cast<int>(this->OffsetCoord.X * std::cos(this->RotateAngle) + this->OffsetCoord.Y * std::sin(this->RotateAngle));
-		pBullet->TargetCoords.Y += static_cast<int>(this->OffsetCoord.X * std::sin(this->RotateAngle) - this->OffsetCoord.Y * std::cos(this->RotateAngle));
+		pBullet->TargetCoords.X += static_cast<int>(this->OffsetCoord.X * Math::cos(this->RotateAngle) + this->OffsetCoord.Y * Math::sin(this->RotateAngle));
+		pBullet->TargetCoords.Y += static_cast<int>(this->OffsetCoord.X * Math::sin(this->RotateAngle) - this->OffsetCoord.Y * Math::cos(this->RotateAngle));
 		pBullet->TargetCoords.Z += this->OffsetCoord.Z;
 	}
 
@@ -337,20 +337,20 @@ CoordStruct BombardTrajectory::CalculateBulletLeadTime()
 
 				if (pType->FreeFallOnTarget)
 				{
-					travelTime += static_cast<int>(std::sqrt(2 * (this->Height - theTargetCoords.Z) / BulletTypeExtData::GetAdjustedGravity(pBullet->Type)));
+					travelTime += static_cast<int>(Math::sqrt(2 * (this->Height - theTargetCoords.Z) / BulletTypeExtData::GetAdjustedGravity(pBullet->Type)));
 					coords += extraOffsetCoord * (travelTime + 1);
 				}
 				else
 				{
 					const double theDistanceSquared = targetSourceCoord.pow();
 					const double targetSpeedSquared = extraOffsetCoord.pow();
-					const double targetSpeed = std::sqrt(targetSpeedSquared);
+					const double targetSpeed = Math::sqrt(targetSpeedSquared);
 
 					const double crossFactor = lastSourceCoord.CrossProduct(targetSourceCoord).pow();
 					const double verticalDistanceSquared = crossFactor / targetSpeedSquared;
 
 					const double horizonDistanceSquared = theDistanceSquared - verticalDistanceSquared;
-					const double horizonDistance = std::sqrt(horizonDistanceSquared);
+					const double horizonDistance = Math::sqrt(horizonDistanceSquared);
 
 					const double straightSpeed = pType->FreeFallOnTarget ? pType->Trajectory_Speed : pType->FallSpeed;
 					const double straightSpeedSquared = straightSpeed * straightSpeed;
@@ -368,8 +368,8 @@ CoordStruct BombardTrajectory::CalculateBulletLeadTime()
 						}
 						else
 						{
-							const int travelTimeM = static_cast<int>((minusFactor - std::sqrt(squareFactor)) / baseFactor);
-							const int travelTimeP = static_cast<int>((minusFactor + std::sqrt(squareFactor)) / baseFactor);
+							const int travelTimeM = static_cast<int>((minusFactor - Math::sqrt(squareFactor)) / baseFactor);
+							const int travelTimeP = static_cast<int>((minusFactor + Math::sqrt(squareFactor)) / baseFactor);
 
 							if (travelTimeM > 0 && travelTimeP > 0)
 								travelTime = travelTimeM < travelTimeP ? travelTimeM : travelTimeP;
@@ -405,8 +405,8 @@ void BombardTrajectory::CalculateDisperseBurst()
 
 		VelocityClass rotationAxis
 		{
-			axis.X * std::cos(this->RotateAngle) + axis.Y * std::sin(this->RotateAngle),
-			axis.X * std::sin(this->RotateAngle) - axis.Y * std::cos(this->RotateAngle),
+			axis.X * Math::cos(this->RotateAngle) + axis.Y * Math::sin(this->RotateAngle),
+			axis.X * Math::sin(this->RotateAngle) - axis.Y * Math::cos(this->RotateAngle),
 			static_cast<double>(axis.Z)
 		};
 
@@ -415,7 +415,7 @@ void BombardTrajectory::CalculateDisperseBurst()
 		if (Math::abs(rotationAxisLengthSquared) > 1e-10)
 		{
 			double extraRotate = 0.0;
-			rotationAxis *= 1 / std::sqrt(rotationAxisLengthSquared);
+			rotationAxis *= 1 / Math::sqrt(rotationAxisLengthSquared);
 
 			if (pType->MirrorCoord)
 			{
@@ -429,8 +429,8 @@ void BombardTrajectory::CalculateDisperseBurst()
 				extraRotate = Math::GAME_PI * (pType->RotateCoord * (this->CurrentBurst / (this->CountOfBurst - 1.0) - 0.5)) / (this->IsFalling ? 90 : 180);
 			}
 
-			const double cosRotate = std::cos(extraRotate);
-			pBullet->Velocity = (pBullet->Velocity * cosRotate) + (rotationAxis * ((1 - cosRotate) * (pBullet->Velocity * rotationAxis))) + (rotationAxis.CrossProduct(pBullet->Velocity) * std::sin(extraRotate));
+			const double cosRotate = Math::cos(extraRotate);
+			pBullet->Velocity = (pBullet->Velocity * cosRotate) + (rotationAxis * ((1 - cosRotate) * (pBullet->Velocity * rotationAxis))) + (rotationAxis.CrossProduct(pBullet->Velocity) * Math::sin(extraRotate));
 		}
 	}
 }

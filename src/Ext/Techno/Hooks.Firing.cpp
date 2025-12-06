@@ -71,8 +71,8 @@ ASMJIT_PATCH(0x7413DD, UnitClass_Fire_RecoilForce, 0x6)
 
 	const double theta = pThis->GetRealFacing().GetRadian<32>() - pThis->PrimaryFacing.Current().GetRadian<32>();
 
-	pThis->RockingForwardsPerFrame = (float)(-force_result * std::cos(theta));
-	pThis->RockingSidewaysPerFrame = (float)(force_result * std::sin(theta) * std::pow(pThis->Type->VoxelScaleX / pThis->Type->VoxelScaleY, 2));
+	pThis->RockingForwardsPerFrame = (float)(-force_result * Math::cos(theta));
+	pThis->RockingSidewaysPerFrame = (float)(force_result * Math::sin(theta) * Math::pow(pThis->Type->VoxelScaleX / pThis->Type->VoxelScaleY, 2.0));
 
 	return 0;
 }

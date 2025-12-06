@@ -48,6 +48,7 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <ranges>
 
 #include <SuperWeaponTypeClass.h>
 #include <SuperClass.h>
@@ -111,24 +112,47 @@ namespace Helpers {
 				return _set.end();
 			}
 
+			// C++20: Use concepts for better error messages
 			template <typename Func>
-			COMPILETIMEEVAL OPTIONALINLINE auto for_each(Func&& action) const {
-				return std::find_if_not(begin(), end(), action);
+				requires std::invocable<Func, T>
+			OPTIONALINLINE COMPILETIMEEVAL auto for_each(Func&& action) const
+			{
+				return std::find_if_not(begin(), end(), std::forward<Func>(action));
 			}
 
 			template <typename Func>
-			COMPILETIMEEVAL OPTIONALINLINE void apply_function_for_each(Func&& action) const {
-				static_cast<void>(std::find_if_not(begin(), end(), action));
+				requires std::invocable<Func, T>
+			OPTIONALINLINE COMPILETIMEEVAL void apply_function_for_each(Func&& action) const
+			{
+				std::ranges::for_each(_set, std::forward<Func>(action));
 			}
 
 			template <typename Func>
-			COMPILETIMEEVAL OPTIONALINLINE int for_each_count(Func&& action) const {
-				return std::distance(begin(), std::find_if_not(begin(), end(), action));
+				requires std::invocable<Func, T>
+			[[nodiscard]] OPTIONALINLINE COMPILETIMEEVAL int for_each_count(Func&& action) const
+			{
+				return std::ranges::distance(
+					begin(),
+					std::find_if_not(begin(), end(), std::forward<Func>(action))
+				);
 			}
 
 			template <typename Func>
-			COMPILETIMEEVAL OPTIONALINLINE void for_each(Func&& action) {
-				std::for_each(begin(), end(), action);
+				requires std::invocable<Func, T>
+			OPTIONALINLINE COMPILETIMEEVAL void for_each(Func&& action)
+			{
+				std::ranges::for_each(_set, std::forward<Func>(action));
+			}
+
+			// C++20: Add contains() for convenience
+			[[nodiscard]] COMPILETIMEEVAL bool contains(const T& value) const
+			{
+				return _set.contains(value);
+			}
+
+			void clear() noexcept
+			{
+				_set.clear();
 			}
 		};
 
@@ -558,6 +582,36 @@ namespace Helpers {
 			}
 		}
 
+		//! Invokes an action for up to count elements that suffice a predicate.
+		/*!
+			Complexity: linear. Up to distance(first, last) invocations of pred,
+			up to min(distance(first, last), count) invocations of func.
+
+			\param first Input iterator to be beginning.
+			\param last Input iterator to the last.
+			\param count The maximum number of elements to call func with.
+			\param pred The predicate to decide whether to call func with an element.
+			\param func The action to invoke for up to count elements that suffice pred.
+
+			\author AlexB
+			\date 2014-08-27
+		*/
+		template <typename InIt, typename Pred, typename Fn>
+		COMPILETIMEEVAL OPTIONALINLINE void for_each_if_n(InIt first, InIt last, size_t count, Pred pred, Fn func)
+		{
+			if (count)
+			{
+				first = std::find_if(first, last, pred);
+
+				while (count-- && first != last)
+				{
+					func(*first++);
+
+					first = std::find_if(first, last, pred);
+				}
+			}
+		}
+
 		//! Invokes an action for every cell or every object contained on the cells.
 		/*!
 			action is invoked only once per cell. action can be invoked multiple times
@@ -574,27 +628,27 @@ namespace Helpers {
 			\author AlexB
 		*/
 		template <typename T, typename Func>
-		OPTIONALINLINE bool for_each_in_rect(
-			CellStruct const center, float widthOrRange, int height, Func&& action)
+		OPTIONALINLINE bool for_each_in_rect(CellStruct const center, float widthOrRange, int height, Func&& action)
 		{
-			if (height > 0) {
-				auto const width = static_cast<int>(widthOrRange);
-
-				if (width > 0) {
-					// the coords mark the center of the area
-					auto topleft = center;
-					topleft.X -= static_cast<short>(width / 2);
-					topleft.Y -= static_cast<short>(height / 2);
-
-					auto const rect = LTRBStruct{
-						topleft.X, topleft.Y, topleft.X + width, topleft.Y + height };
-
-					CellRectIterator<T>{}(rect, std::forward<Func>(action));
-					return true;
-				}
+			if (height <= 0 || widthOrRange <= 0)
+			{
+				return false;
 			}
 
-			return false;
+			auto const width = static_cast<int>(widthOrRange);
+
+			// the coords mark the center of the area
+			auto topleft = center;
+			topleft.X -= static_cast<short>(width / 2);
+			topleft.Y -= static_cast<short>(height / 2);
+
+			auto const rect = LTRBStruct {
+				topleft.X, topleft.Y,
+				topleft.X + width, topleft.Y + height
+			};
+
+			CellRectIterator<T>{}(rect, std::forward<Func>(action));
+			return true;
 		}
 
 		//! Invokes an action for every cell or every object contained on the cells.
@@ -613,12 +667,15 @@ namespace Helpers {
 			\author AlexB
 		*/
 		template <typename T, typename Func>
-		OPTIONALINLINE bool for_each_in_rect_or_range(CellStruct center, float widthOrRange, int height, Func&& action) {
-			if (for_each_in_rect<T>(center, widthOrRange, height, action)) {
+		OPTIONALINLINE bool for_each_in_rect_or_range(CellStruct center, float widthOrRange, int height, Func&& action)
+		{
+			if (for_each_in_rect<T>(center, widthOrRange, height, std::forward<Func>(action)))
+			{
 				return true;
 			}
 
-			if (height <= 0 && widthOrRange >= 0.0) {
+			if (height <= 0 && widthOrRange >= 0.0f)
+			{
 				CellRangeIterator<T>{}(center, widthOrRange, std::forward<Func>(action));
 				return true;
 			}
@@ -642,16 +699,19 @@ namespace Helpers {
 			\author AlexB
 		*/
 		template <typename T, typename Func>
-		OPTIONALINLINE bool for_each_in_rect_or_spread(CellStruct center, float widthOrRange, int height, Func&& action) {
-			if (for_each_in_rect<T>(center, widthOrRange, height, action)) {
+		OPTIONALINLINE bool for_each_in_rect_or_spread(CellStruct center, float widthOrRange, int height, Func&& action)
+		{
+			if (for_each_in_rect<T>(center, widthOrRange, height, std::forward<Func>(action)))
+			{
 				return true;
 			}
 
-			if (height <= 0) {
-				auto const spread = static_cast<short>(
-					MaxImpl(static_cast<int>(widthOrRange), 0));
+			if (height <= 0)
+			{
+				auto const spread = static_cast<short>(std::max(static_cast<int>(widthOrRange), 0));
 
-				if (spread > 0) {
+				if (spread > 0)
+				{
 					CellSpreadIterator<T>{}(center, spread, std::forward<Func>(action));
 					return true;
 				}
@@ -660,149 +720,69 @@ namespace Helpers {
 			return false;
 		}
 
-
-		template <typename InIt, typename Pred>
-		COMPILETIMEEVAL OPTIONALINLINE auto find_if(InIt first, InIt last, Pred pred)
-		{
-			auto i = first;
-			for (; i != last; ++i) {
-				if (pred(*i)) {
-					break;
-				}
-			}
-
-			return i;
+		template <typename Value, typename... Options>
+		[[nodiscard]] OPTIONALINLINE COMPILETIMEEVAL bool is_any_of(Value&& value, Options&&... options) {
+			return ((value == options) || ...);
 		}
 
-		template <typename Value, typename Option>
-		COMPILETIMEEVAL OPTIONALINLINE bool is_any_of(Value&& value, Option&& option) {
-			return value == option;
-		}
-
-		template <typename Value, typename Option, typename... Options>
-		COMPILETIMEEVAL OPTIONALINLINE bool is_any_of(Value&& value, Option&& first_option, Options&&... other_options) {
-			return value == first_option || is_any_of(std::forward<Value>(value), std::forward<Options>(other_options)...);
-		}
-
-		OPTIONALINLINE void remove_non_paradroppables(std::vector<TechnoTypeClass*>& types, const char* section, const char* key) {
-			// remove all types that aren't either infantry or unit types
-			fast_remove_if(types , [section, key](TechnoTypeClass* pItem) -> bool {
-
-				if(!pItem) {
-					Debug::INIParseFailed(section, key, pItem->ID, "Invalid types are removed.");
+		OPTIONALINLINE void remove_non_paradroppables(std::vector<TechnoTypeClass*>& types,
+									   const char* section, const char* key) {
+			// Use std::erase_if (C++20) if available, otherwise use erase-remove
+			std::erase_if(types, [section, key](TechnoTypeClass* pItem) -> bool {
+				if (!pItem) {
+					Debug::INIParseFailed(section, key, "nullptr", "Invalid types are removed.");
 					return true;
 				}
 
 				if (!is_any_of(pItem->WhatAmI(), AbstractType::InfantryType, AbstractType::UnitType)) {
-					Debug::INIParseFailed(section, key, pItem->ID, "Only InfantryTypes and UnitTypes are supported.");
+					Debug::INIParseFailed(section, key, pItem->ID, 
+										 "Only InfantryTypes and UnitTypes are supported.");
 					return true;
 				}
 
-				if(pItem->Strength <= 0) {
-					Debug::INIParseFailed(section, key, pItem->ID, "0 Strength types are removed.");
+				if (pItem->Strength <= 0) {
+					Debug::INIParseFailed(section, key, pItem->ID, 
+										 "0 Strength types are removed.");
 					return true;
 				}
 
 				return false;
-				});
+			});
 		}
 
-		//! Invokes an action for every element that suffices a predicate.
-		/*!
-			Complexity: linear. distance(first, last) invocations of pred,
-			up to distance(first, last) invocations of func.
-
-			\param first Input iterator to be beginning.
-			\param last Input iterator to the last.
-			\param pred The predicate to decide whether to call func with an element.
-			\param func The action to invoke for each element that suffices pred.
-
-			\author AlexB
-			\date 2014-08-27
-		*/
-		template <typename InIt, typename Pred, typename Fn>
-		COMPILETIMEEVAL OPTIONALINLINE void for_each_if(InIt first, InIt last, Pred pred, Fn func) {
-			first = find_if(first, last, pred);
-
-			while (first != last) {
-				func(*first++);
-
-				first = find_if(first, last, pred);
-			}
-		}
-
-		//! Invokes an action for up to count elements that suffice a predicate.
-		/*!
-			Complexity: linear. Up to distance(first, last) invocations of pred,
-			up to min(distance(first, last), count) invocations of func.
-
-			\param first Input iterator to be beginning.
-			\param last Input iterator to the last.
-			\param count The maximum number of elements to call func with.
-			\param pred The predicate to decide whether to call func with an element.
-			\param func The action to invoke for up to count elements that suffice pred.
-
-			\author AlexB
-			\date 2014-08-27
-		*/
-		template <typename InIt, typename Pred, typename Fn>
-		COMPILETIMEEVAL OPTIONALINLINE void for_each_if_n(InIt first, InIt last, size_t count, Pred pred, Fn func) {
-			if (count) {
-				first = find_if(first, last, pred);
-
-				while (count-- && first != last) {
-					func(*first++);
-
-					first = find_if(first, last, pred);
-				}
-			}
-		}
-
-		//! Stable (partial) selection sort using a predicate or std::less
-		/*!
-			For the overloads not taking middle, assume middle equals last. For
-			the overloads not taking pred, assume pred equals std::less<>.
-
-			After the function returns, std::is_sorted(first, middle, pred)
-			evaluates to true, and [middle, last) contains all the elements
-			that don't compare less than the element at middle according to
-			pred, in unspecified order.
-
-			Complexity: quadratic. Less than distance(first, last) *
-			distance(first, middle) invocations of pred, up to
-			max(distance(first, middle) - 1, 0) swaps.
-
-			\param first Forward iterator to be beginning.
-			\param middle Forward iterator to be end of the sorted range.
-			\param last Forward iterator to the end.
-			\param pred The predicate to compare two elements.
-
-			\author AlexB
-			\date 2015-08-11
-		*/
+		// IMPROVED: Use std::partial_sort instead of custom selection sort
 		template <typename FwdIt>
-		COMPILETIMEEVAL OPTIONALINLINE void selectionsort(FwdIt first, FwdIt last) {
-			// this is a special case of a full partial sort
-			selectionsort(first, last, last);
+		OPTIONALINLINE COMPILETIMEEVAL void selectionsort(FwdIt first, FwdIt last) {
+			// Use standard library's more efficient implementation
+			std::sort(first, last);
 		}
 
 		template <typename FwdIt, typename Pred>
-		COMPILETIMEEVAL OPTIONALINLINE void selectionsort(FwdIt first, FwdIt last, Pred pred) {
-			// this is a special case of a full partial sort
-			selectionsort(first, last, last, pred);
+		OPTIONALINLINE COMPILETIMEEVAL void selectionsort(FwdIt first, FwdIt last, Pred pred) {
+			std::sort(first, last, std::forward<Pred>(pred));
 		}
 
 		template <typename FwdIt>
-		COMPILETIMEEVAL OPTIONALINLINE void selectionsort(FwdIt first, FwdIt middle, FwdIt last) {
-			selectionsort(first, middle, last, std::less<>());
+		OPTIONALINLINE COMPILETIMEEVAL void selectionsort(FwdIt first, FwdIt middle, FwdIt last) {
+			// Use std::partial_sort - much more efficient than selection sort
+			std::partial_sort(first, middle, last);
 		}
 
 		template <typename FwdIt, typename Pred>
-		COMPILETIMEEVAL OPTIONALINLINE void selectionsort(FwdIt first, FwdIt middle, FwdIt last, Pred pred) {
-			while (first != middle) {
-				auto const it = std::min_element(first, last, pred);
-				std::iter_swap(first, it);
-				++first;
+		OPTIONALINLINE COMPILETIMEEVAL void selectionsort(FwdIt first, FwdIt middle, FwdIt last, Pred pred) {
+			std::partial_sort(first, middle, last, std::forward<Pred>(pred));
+		}
+
+		namespace ranges {
+			template <typename T, typename Func>
+				requires std::invocable<Func, T>
+			constexpr void for_each_if(std::ranges::input_range auto&& range,
+									   auto&& pred, Func&& func)
+			{
+				std::ranges::for_each(
+					range | std::views::filter(std::forward<decltype(pred)>(pred)),
+					std::forward<Func>(func)
+				);
 			}
 		}
 	};

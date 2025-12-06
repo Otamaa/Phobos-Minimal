@@ -268,7 +268,7 @@ void NOINLINE FakeAnimClass::_SpreadTiberium(CoordStruct& coords, bool isOnbridg
 
 		for (int x = -_radius; x <= _radius; ++x) {
 			for (int y = -_radius; y <= _radius; y++) {
-				if ((int)std::sqrt((double)x * (double)x + (double)y * (double)y) <= _radius) {
+				if ((int)Math::sqrt((double)x * (double)x + (double)y * (double)y) <= _radius) {
 					CellClass* cellptr = MapClass::Instance->GetCellAt(CellClass::Coord2Cell(coords) + CellSpread::AdjacentCell[(int)x & 7]);
 
 					if (cellptr->CanTiberiumGerminate(nullptr)) {

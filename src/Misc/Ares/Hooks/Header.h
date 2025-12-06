@@ -508,7 +508,7 @@ struct CustomFoundation
 {
 	static DWORD FoundationLength(CellStruct const* const pFoundation);
 	static const std::vector<CellStruct>* GetCoveredCells(BuildingClass* const pThis, CellStruct const mainCoords, int const shadowHeight);
-	static void GetDisplayRect(RectangleStruct& a1, CellStruct* a2);
+	static void GetDisplayRect(RectangleStruct* out, CellStruct* cells);
 };
 
 class MouseClassExt final : public MouseClass

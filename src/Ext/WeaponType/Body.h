@@ -413,6 +413,12 @@ public:
 	//return lepton
 	static int GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback = std::nullopt);
 	static int GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* pFirer, bool isMinimum);
+
+	static std::array<double, 16> cosLUT;
+	static std::array<double, 16> sinLUT;
+	static bool LutsInitialized;
+
+	static void calculateCircuferences();
 };
 
 class WeaponTypeExtContainer final :public Container<WeaponTypeExtData>

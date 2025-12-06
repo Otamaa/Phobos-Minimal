@@ -279,8 +279,8 @@ HouseClass* TEventExtData::GetHouse(int TEvetValue, HouseClass* pEventHouse)
 {
 	if (TEvetValue <= -2)
 		return pEventHouse;
-	else if (TEvetValue >= 0 && size_t(TEvetValue) < HouseClass::Array->size())
-		return HouseClass::Array->Items[TEvetValue];
+	else if (TEvetValue >= 0)
+		return HouseClass::Index_IsMP(TEvetValue) ? HouseClass::FindByIndex(TEvetValue) : HouseClass::FindByCountryIndex(TEvetValue);
 
 	return nullptr;
 }
@@ -392,11 +392,26 @@ bool TEventExtData::HouseOwnsTechnoTypeTEvent(TEventClass* pThis)
 	if (!pType)
 		return false;
 
-	auto pHouse = HouseClass::FindByIndex(pThis->Value);
+	auto pHouse = HouseClass::Index_IsMP(pThis->Value)
+	? HouseClass::FindByIndex(pThis->Value) : HouseClass::FindByCountryIndex(pThis->Value) ;
+
 	if (!pHouse)
 		return false;
 
-	return pHouse->CountOwnedNow(pType) > 0;
+	if (pType->WhatAmI() == AbstractType::BuildingType)
+	{
+		for (auto pBuilding : pHouse->Buildings) {
+			if (pBuilding->Type != pType)
+				continue;
+
+			if (pBuilding->IsAlive && pBuilding->Health > 0 && !pBuilding->InLimbo)
+				return true;
+		}
+
+		return false;
+	} else {
+		return pHouse->CountOwnedNow(pType) > 0;
+	}
 }
 
 bool TEventExtData::HouseDoesntOwnTechnoTypeTEvent(TEventClass* pThis)

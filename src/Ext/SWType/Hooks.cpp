@@ -824,7 +824,7 @@ ASMJIT_PATCH(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
 
 	// use per-SW charge-to-drain ratio.
 	const double ratio = pType->_GetExtData()->GetChargeToDrainRatio();
-	const double percentage = (std::fabs(rechargeTime2 * ratio) > 0.001)  ?
+	const double percentage = (Math::abs(rechargeTime2 * ratio) > 0.001)  ?
 		1.0 - (rechargeTime1 * ratio - timeLeft) / (rechargeTime2 * ratio) : 0.0;
 
 	R->EAX(int(percentage * 54.0));

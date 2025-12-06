@@ -1,4 +1,27 @@
+#include "Body.h"
 
+#include <InfantryClass.h>
+#include <AircraftClass.h>
+#include <UnitClass.h>
+#include <BuildingClass.h>
+
+#include <BombClass.h>
+#include <SlaveManagerClass.h>
+#include <CaptureManagerClass.h>
+#include <SpawnManagerClass.h>
+#include <TacticalClass.h>
+
+#include <ExtraHeaders/StackVector.h>
+#include <Ext/TechnoType/Body.h>
+#include <Ext/Building/Body.h>
+#include <Misc/Ares/Hooks/Header.h>
+#include <New/PhobosAttachedAffect/Functions.h>
+
+#include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
+#include <Misc/DynamicPatcher/Techno/SpawnSupport/SpawnSupportFunctional.h>
+#include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
+
+#define ENABLE_THESE
 
 ASMJIT_PATCH(0x6FA68B, TechnoClass_Update_AttackMovePaused, 0xA) // To make aircrafts not search for targets while resting at the airport, this is designed to adapt to loop waypoint
 {
@@ -82,7 +105,7 @@ ASMJIT_PATCH(0x6FAF0D, TechnoClass_Update_EMPLock, 6)
 			if (!pThis->Deactivated && AresEMPulse::IsDeactivationAdvisable(pThis))
 			{
 				// update the current mission
-				TechnoExtContainer::Instance.Find(pThis)->Get_EMPStateComponent()->LastMission = pThis->CurrentMission;
+				TechnoExtContainer::Instance.Find(pThis)->EMPLastMission = pThis->CurrentMission;
 				pThis->Deactivate();
 			}
 		}
@@ -160,7 +183,11 @@ ASMJIT_PATCH(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
 	// prevent crashing and sinking technos from self-healing
-	if (pType->NoExtraSelfHealOrRepair || pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Get_TechnoStateComponent()->IsDriverKilled)
+	if (pType->NoExtraSelfHealOrRepair 
+		|| pThis->InLimbo 
+		|| pThis->IsCrashing
+		|| pThis->IsSinking 
+		|| TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 	{
 		return DoNotSelfHeal;
 	}
@@ -226,7 +253,7 @@ ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
 
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	if (pExt->Get_TechnoStateComponent()->DelayedFireSequencePaused)
+	if (pExt->DelayedFireSequencePaused)
 		return SkipGameCode;
 
 	return 0;
@@ -300,7 +327,7 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 #endif
 
 	// Update tunnel state on exit, TechnoClass::AI is only called when not in tunnel.
-	auto pState = pExt->Get_TechnoStateComponent();
+	auto pState = pExt;
 
 	if (pState->IsInTunnel)
 	{
@@ -386,7 +413,7 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 		return retDead;
 	}
 
-	DelayFireManager::TechnoClass_Update_CustomWeapon(pThis);
+	pExt->MyWeaponManager.TechnoClass_Update_CustomWeapon(pThis);
 
 	if (!pThis->IsAlive)
 	{
@@ -416,8 +443,7 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 	 return true;
 	});
 
-	if (auto pDSState = pExt->Get_DamageSelfState())
-	{
+	if (auto& pDSState = pExt->DamageSelfState) {
 		pDSState->TechnoClass_Update_DamageSelf(pThis);
 	}
 
@@ -533,4 +559,152 @@ ASMJIT_PATCH(0x6FACD9, TechnoClass_AI_DamageSparks, 6)
 	}
 
 	return 0x6FAF01;
+}
+
+ASMJIT_PATCH(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(Point2D*, pPoint, ECX);
+	GET(RectangleStruct*, pBound, EAX);
+
+	if (const auto pBld = cast_to<BuildingClass*, false>(pThis))
+	{
+		if (BuildingExtContainer::Instance.Find(pBld)->LimboID != -1)
+		{
+			return 0x6FA30C;
+		}
+	}
+
+	if (pThis->InOpenToppedTransport)
+		return 0x6FA30C;
+
+	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if (pType->IsDummy)
+		return 0x6FA30C;
+
+	pThis->DrawBehindMark(pPoint, pBound);
+
+	return 0x6FA30C;
+}
+
+ASMJIT_PATCH(0x6FA4E5, TechnoClass_AI_RecoilUpdate, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	return !pThis->InLimbo ? 0x0 : 0x6FA4FB;
+}
+
+ASMJIT_PATCH(0x6FA232, TechnoClass_AI_LimboSkipRocking, 0xA)
+{
+	return !R->ESI<TechnoClass* const>()->InLimbo ? 0x0 : 0x6FA24A;
+}
+
+ASMJIT_PATCH(0x6F9F42, TechnoClass_AI_Berzerk_SetMissionAfterDone, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+	TechnoExtData::SetMissionAfterBerzerk(pThis);
+	return 0x6F9F6E;
+}
+
+ASMJIT_PATCH(0x6FA167, TechnoClass_AI_DrainMoney, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+	TechnoExtData::ApplyDrainMoney(pThis);
+	return 0x6FA1C5;
+}
+
+// make damage sparks customizable, using game setting as default.
+ASMJIT_PATCH(0x6FACD9, TechnoClass_AI_DamageSparks, 6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if (!pThis->Sys.Spark)
+	{
+		auto _HPRatio = pThis->GetHealthPercentage();
+
+		if (!(_HPRatio >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10))
+		{
+
+			auto pType = pThis->GetTechnoType();
+			const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+			if (pExt->DamageSparks.Get(pType->DamageSparks))
+			{
+
+				StackVector<ParticleSystemTypeClass*, 0x25> Systems {};
+
+				if (auto it = pExt->ParticleSystems_DamageSparks.GetElements(pType->DamageParticleSystems))
+				{
+					auto allowAny = pExt->ParticleSystems_DamageSparks.HasValue();
+
+					for (auto pSystem : it)
+					{
+						if (allowAny || pSystem->BehavesLike == ParticleSystemTypeBehavesLike::Spark)
+						{
+							Systems->push_back(pSystem);
+						}
+					}
+				}
+
+				if (!Systems->empty())
+				{
+
+					const double _probability = _HPRatio >= RulesClass::Instance->ConditionRed ?
+						RulesClass::Instance->ConditionYellowSparkingProbability : RulesClass::Instance->ConditionRedSparkingProbability;
+					const auto _rand = ScenarioClass::Instance->Random.RandomDouble();
+
+					if (_rand < _probability)
+					{
+						CoordStruct _offs = pThis->Location + pType->GetParticleSysOffset();
+						pThis->Sys.Spark =
+							GameCreate<ParticleSystemClass>(Systems[ScenarioClass::Instance->Random.RandomFromMax(Systems->size() - 1)], _offs, nullptr, pThis);
+					}
+				}
+			}
+		}
+	}
+
+	return 0x6FAF01;
+}
+
+ASMJIT_PATCH(0x6FA47C, TechnoClass_Update_Cleartarget, 0x6)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	if ((Unsorted::CurrentFrame() % 16) != 0)
+	{
+		return 0x6FA4D1;
+	}
+
+	if (pThis->WhatAmI() == AbstractType::Aircraft)
+		return 0x6FA4D1;
+
+	RadioClass* radio = pThis->GetRadioContact();
+	const Mission mission = pThis->CurrentMission;
+
+	if (!radio || radio->WhatAmI() != BuildingClass::AbsID || radio->CurrentMission != Mission::Unload)
+	{
+		if (mission != Mission::Capture && mission != Mission::Sabotage)
+		{
+			const int weaponIndex = pThis->SelectWeapon(pThis->Target);
+			const FireError threatResult = pThis->GetFireError(pThis->Target, weaponIndex, false);
+
+			if (threatResult == FireError::ILLEGAL || threatResult == FireError::CANT)
+			{
+				WeaponTypeClass* weapon = pThis->GetWeapon(weaponIndex)->WeaponType;
+				const bool is_firing_particles = weapon && (
+						(weapon->UseFireParticles && pThis->Sys.Fire)
+					|| (weapon->IsRailgun && pThis->Sys.Railgun)
+					|| (weapon->UseSparkParticles && pThis->Sys.Spark)
+					|| (weapon->IsSonic && pThis->Wave));
+
+				if (!is_firing_particles || threatResult == FireError::ILLEGAL || threatResult == FireError::CANT)
+				{
+					pThis->SetTarget(nullptr);
+				}
+			}
+		}
+	}
+
+	return 0x6FA4D1;
 }

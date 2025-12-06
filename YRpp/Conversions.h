@@ -12,7 +12,7 @@ struct Conversions
 	static double Str2Armor(const char *buf, WarheadFlags *whFlags) {
 
 		double val = 0.0;
-		if(PhobosCRT::fast_strchr_simd(buf, '%')) { // convert to double
+		if(strchr(buf, '%')) { // convert to double
 			val = atoi(buf) * 0.01;
 		} else {
 			val = atof(buf);
@@ -68,7 +68,7 @@ struct Conversions
 		if (!strlen(buf))
 			return false;
 
-		if (PhobosCRT::fast_strchr_simd(buf, '%')) {
+		if (strchr(buf, '%')) {
 			return true ;
 		}
 		else if(IsValidFloat(buf)) {

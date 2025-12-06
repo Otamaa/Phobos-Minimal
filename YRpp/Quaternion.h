@@ -31,7 +31,7 @@ public:
 	}
 
 	Quaternion Normalized(Quaternion rotation) { return rotation /= Norm(rotation); }
-	float Norm(const Quaternion& rotation) { return (float)std::sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W); }
+	float Norm(const Quaternion& rotation) { return (float)Math::sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W); }
 	static COMPILETIMEEVAL FORCEDINLINE float Dot(const Quaternion& A, const Quaternion& B) { return A.X * B.X + A.Y * B.Y + A.Z * B.Z + A.W * B.W; }
 
 	COMPILETIMEEVAL FORCEDINLINE void Scale(float s)
@@ -52,7 +52,7 @@ public:
 
 	COMPILETIMEEVAL FORCEDINLINE  void Make_Identity() { Set(); };
 	COMPILETIMEEVAL FORCEDINLINE  float Length2() const { return (X*X + Y*Y + Z*Z + W*W); }
-	OPTIONALINLINE float Length() const { return (float)std::sqrt(Length2()); }
+	OPTIONALINLINE float Length() const { return (float)Math::sqrt(Length2()); }
 
 	//idk
 	Quaternion* Func_645D60(Quaternion* B) const { JMP_THIS(0x645D60); }
@@ -127,20 +127,20 @@ public:
 		float zz = a.Z;
 		float xx = a.X;
 		float x = a.X;
-		double v7 = std::sqrt(zz * zz + y * y + x * x);
+		double v7 = Math::sqrt(zz * zz + y * y + x * x);
 		if (v7 != 0.0) {
 			xx = static_cast<float>(x / v7);
 			y = static_cast<float>(y / v7);
 			zz = static_cast<float>(zz / v7);
 		}
 
-		double s = std::sin(phi * 0.5);
+		double s = Math::sin(phi * 0.5);
 
 		return {
 			static_cast<float>(xx * s) ,
 			static_cast<float>(y * s) ,
 			static_cast<float>(zz * s) ,
-			static_cast<float>(std::cos(phi * 0.5))
+			static_cast<float>(Math::cos(phi * 0.5))
 		};
 	}
 
@@ -263,17 +263,17 @@ public:
 
 	float Angle(Quaternion B) const {
 		double dot = (double)Dot(*this, B);
-		return (float)std::acos(fmin(fabs(dot), 1)) * 2;
+		return (float)Math::acos(fmin(Math::abs(dot), 1)) * 2;
 	}
 
 	Quaternion FromEuler(float x, float y, float z)
 	{
-		float cx = (float)std::cos(x * 0.5f);
-		float cy = (float)std::cos(y * 0.5f);
-		float cz = (float)std::cos(z * 0.5f);
-		float sx = (float)std::cos(x * 0.5f);
-		float sy = (float)std::cos(y * 0.5f);
-		float sz = (float)std::cos(z * 0.5f);
+		float cx = (float)Math::cos(x * 0.5f);
+		float cy = (float)Math::cos(y * 0.5f);
+		float cz = (float)Math::cos(z * 0.5f);
+		float sx = (float)Math::cos(x * 0.5f);
+		float sy = (float)Math::cos(y * 0.5f);
+		float sz = (float)Math::cos(z * 0.5f);
 
 		return {
 			cx* sy* sz + cy * cz * sx ,
@@ -315,10 +315,10 @@ public:
 		}
 		else
 		{
-			float n4 = (float)std::acos(n3);
-			float n5 = 1.0f / (float)std::sin(n4);
-			n2 = (float)std::sin((1 - alpha) * n4) * n5;
-			n1 = flag ? -(float)std::sin(alpha * n4) * n5 : (float)std::sin(alpha * n4) * n5;
+			float n4 = (float)Math::acos(n3);
+			float n5 = 1.0f / (float)Math::sin(n4);
+			n2 = (float)Math::sin((1 - alpha) * n4) * n5;
+			n1 = flag ? -(float)Math::sin(alpha * n4) * n5 : (float)Math::sin(alpha * n4) * n5;
 		}
 
 		Quaternion buffer {

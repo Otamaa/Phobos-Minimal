@@ -4355,7 +4355,7 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 			}
 
 			//Sort, remove dupes, add end marker
-			std::sort(pBldext->CustomData.begin(), itData,
+			pdqsort(pBldext->CustomData.begin(), itData,
 			[](const CellStruct& lhs, const CellStruct& rhs)
 			{
 				if (lhs.Y != rhs.Y)
@@ -4386,20 +4386,16 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 
 			//Set end vector
 			*itOutline = BuildingTypeExtData::FoundationEndMarker;
-
-			if (pBldext->CustomData.begin() == pBldext->CustomData.end())
-			{
-				Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
-			}
-			else
-			{
-				auto iter = pBldext->CustomData.begin();
-				while (iter->X || iter->Y)
-				{
-					if (++iter == pBldext->CustomData.end())
-						Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
-
+			bool hasOrigin = false;
+			for (auto begin = pBldext->CustomData.begin(); begin < pBldext->CustomData.end(); begin++) {
+				if (begin->X == 0 && begin->Y == 0) {
+					hasOrigin = true;
+					break;
 				}
+			}
+
+			if(!hasOrigin){
+				Debug::LogInfo("BuildingType {} has a custom foundation which does not include cell 0,0. This breaks AI base building.", pSection);
 			}
 		}
 	}
@@ -6177,56 +6173,13 @@ ASMJIT_PATCH(0x6FBB35, TechnoClass_CloakingAI_detachsensed, 0x6)
 	return 0x6FBB3D;
 }
 
-class NOVTABLE FakeLayerClass : LayerClass
-{
-public:
+// class NOVTABLE FakeLayerClass : LayerClass
+// {
+// public:
 
-	char _Submit(ObjectClass* object, bool sort)
-	{
-		if (!object)
-			Debug::FatalErrorAndExit("Trying To submit nullptr object to layer !\n");
 
-		if (sort)
-		{
-			auto cap = this->Capacity;
-			if (this->Count >= cap)
-			{
-				if (!this->IsAllocated && cap)
-				{
-					return 0;
-				}
-
-				auto cap_i = this->CapacityIncrement;
-				if (cap_i <= 0 || !this->reserve(cap + cap_i))
-				{
-					return 0;
-				}
-			}
-
-			int index = 0;
-
-			for (; index < this->Count; ++index)
-			{
-				if (this->Items[index]->GetYSort() > object->GetYSort())
-				{
-					break;
-				}
-			}
-
-			for (int i = this->Count - 1; i >= index; this->Items[i + 2] = this->Items[i + 1])
-			{
-				--i;
-			}
-
-			this->Items[index] = object;
-			++this->Count;
-			return 1;
-		}
-
-		return this->push_back(object);
-	}
-};
-static_assert(sizeof(FakeLayerClass) == sizeof(LayerClass), "Invalid Size !");
+// };
+// static_assert(sizeof(FakeLayerClass) == sizeof(LayerClass), "Invalid Size !");
 
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::_Submit);
 //DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::_Submit);
@@ -6654,12 +6607,12 @@ public:
 				{
 					int dx = x;
 					int dy = y;
-					double dist = std::sqrt(dx * dx + 4 * dy * dy);
+(					double dist = Math::sqrt(dx * dx + 4 * dy * dy);
 
 					if (dist >= currentMinRadius && dist <= currentMaxRadius)
 					{
 						double wave = (dist - step * RadiusStep + 38.0) * 0.11;
-						double val = (std::sin(wave) * 3.5 + 3.0) / (dist / 51.0 + 1.0) + 0.5;
+						double val = (Math::sin(wave) * 3.5 + 3.0) / (dist / 51.0 + 1.0) + 0.5;
 
 						// originally IonBlastData_53D960 was used, but this call would always return 0
 						// since a1 == 0 && a2 == 0 → adjust if you have coordinates instead
@@ -6919,7 +6872,7 @@ public:
 
 							int dxPix = unitScreen.X - screenPos.X;
 							int dyPix = unitScreen.Y - screenPos.Y;
-							int dist = static_cast<int>(std::sqrt(dxPix * dxPix + dyPix * dyPix)) + 8;
+							int dist = static_cast<int>(Math::sqrt(dxPix * dxPix + dyPix * dyPix)) + 8;
 
 							if (dist < 256)
 							{
@@ -6940,7 +6893,7 @@ public:
 									float deltax = static_cast<float>(this->Location.X - unit->Location.X);
 									float deltay = static_cast<float>(this->Location.Y - unit->Location.Y);
 									float deltaz = static_cast<float>(this->Location.Z - unit->Location.Z);
-									const float len = std::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
+									const float len = Math::sqrt(deltax * deltax + deltay * deltay + deltaz * deltaz);
 
 									if (Math::abs(len) > 0.00002f)
 									{
@@ -6952,14 +6905,14 @@ public:
 										const auto facing_Current = facing_.Current();
 
 										const float facingAngle = (facing_Current.Raw - Math::BINARY_ANGLE_MASK) * -0.0000958767f;
-										const float sinA = std::sin((double)facingAngle);
-										const float cosA = std::cos((double)facingAngle);
+										const float sinA = Math::sin((double)facingAngle);
+										const float cosA = Math::cos((double)facingAngle);
 
 										const float ux = deltax * cosA + deltay * sinA;
 										const float uz = deltax * sinA - deltay * cosA;
 										const float uy = deltaz;
 
-										float proj = std::sqrt(ux * ux + uz * uz + uy * uy);
+										float proj = Math::sqrtux * ux + uz * uz + uy * uy);
 										const float align = cosA * ux - sinA * proj;
 
 										if (Math::abs(align - deltax) > 0.0002f || Math::abs(cosA * proj + sinA * ux - deltay) > 0.0002f)
@@ -6968,8 +6921,8 @@ public:
 										}
 
 										const float blastDist = len + 51.0f;
-										const float blastOffset = (std::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
-										const float blastFactor = std::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
+										const float blastOffset = (Math::sin(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f) * 3.5f + 3.0f) * 51.0f;
+										const float blastFactor = Math::cos(double(len - static_cast<float>(this->Lifetime) * 7.1125f + 38.0f) * 0.11f);
 										const float curve = (blastFactor * 0.11f * 51.0f * 3.5f * blastDist - blastOffset) / (blastDist * blastDist);
 
 										unit->AngleRotatedSideways = proj * curve * Math::GAME_TWOPIf;
@@ -7275,7 +7228,7 @@ public:
 	 *
 	 * OUTPUT:  OutCode indicating which boundaries the point is outside of
 	 ***********************************************************************************************/
-	int __forceinline Compute_Out_Code(double x, double y, RectangleStruct const* rect)
+	int __forceinline Compute_Out_Code(double x, double y, RectangleStruct* rect)
 	{
 		int code = CODE_INSIDE;
 
@@ -7317,121 +7270,129 @@ public:
 	 * NOTES:   Based on algorithm from "Computer Graphics: Principles and Practice in C"
 	 *          Modified version of: https://en.wikipedia.org/wiki/Cohen–Sutherland_algorithm
 	 ***********************************************************************************************/
-	bool __fastcall Clip_Line(Point2D* pt1, Point2D* pt2, RectangleStruct* rect)
+	bool __fastcall Clip_Line(Point2D& point1, Point2D& point2, RectangleStruct& rect)
 	{
-		int outcodeOut;
-
-		double x0 = pt1->X;
-		double y0 = pt1->Y;
-		double x1 = pt2->X;
-		double y1 = pt2->Y;
-
-		// Pre-calculate slopes to avoid division in the loop
-		double slope_y = (x1 - x0) / (y1 - y0); // slope to use for possibly-vertical lines
-		double slope_x = (y1 - y0) / (x1 - x0); // slope to use for possibly-horizontal lines
-
-		/*
-		 * Compute outcodes for both endpoints
-		 */
-		int outcode0 = Compute_Out_Code(x0, y0, rect);
-		int outcode1 = Compute_Out_Code(x1, y1, rect);
-
+		int outcode0 = Compute_Out_Code(point1.X, point1.Y, &rect);
+		int outcode1 = Compute_Out_Code(point2.X, point2.Y, &rect);
+	
+		double x0 = point1.X;
+		double y0 = point1.Y;
+		double x1 = point2.X;
+		double y1 = point2.Y;
+	
 		while (true)
 		{
+			// Trivial accept
 			if (outcode0 == CODE_INSIDE && outcode1 == CODE_INSIDE)
 			{
-				/*
-				 * Both points inside window; trivially accept and return true.
-				 */
-				pt1->X = (int)x0;
-				pt1->Y = (int)y0;
-				pt2->X = (int)x1;
-				pt2->Y = (int)y1;
+				point1.X = x0; point1.Y = y0;
+				point2.X = x1; point2.Y = y1;
 				return true;
 			}
-
-			/*
-			 * Check to see if the line segment falls outside of the viewing rectangle.
-			 */
+	
+			// Trivial reject
 			if (outcode0 & outcode1)
-			{
-				/*
-				 * Bitwise AND is not 0: both points share an outside zone (LEFT, RIGHT, TOP,
-				 * or BOTTOM), so both must be outside window; exit (result is false).
-				 */
 				return false;
-			}
-
-			/*
-			 * Failed both tests, so calculate the line segment to clip
-			 * from an outside point to an intersection with clip edge.
-			 */
-
-			 /*
-			  * At least one endpoint is outside the clip rectangle; pick it.
-			  */
-			outcodeOut = (outcode0 != CODE_INSIDE) ? outcode0 : outcode1;
-
-			/*
-			 * Now find the intersection point using formulas:
-			 * slope = (y1 - y0) / (x1 - x0)
-			 * x = x0 + (1 / slope) * (ym - y0), where ym is ymin or ymax
-			 * y = y0 + slope * (xm - x0), where xm is xmin or xmax
-			 * No need to worry about divide-by-zero because, in each case, the
-			 * outcode bit being tested guarantees the denominator is non-zero
-			 */
-			double x {};
-			double y {};
-
-			if (outcodeOut & CODE_TOP)
-			{            // point is above the clip window
-				x = (rect->Y - y0) * slope_y + x0;
-				y = rect->Y;
-			}
-			else if (outcodeOut & CODE_BOTTOM)
-			{    // point is below the clip window
-				x = ((rect->Y + rect->Height - 1) - y0) * slope_y + x0;
-				y = (rect->Height + rect->Y - 1);
-			}
-			else if (outcodeOut & CODE_RIGHT)
-			{     // point is to the right of clip window
-				y = ((rect->X + rect->Width - 1) - x0) * slope_x + y0;
-				x = (rect->Width + rect->X - 1);
-			}
-			else if (outcodeOut & CODE_LEFT)
-			{      // point is to the left of clip window
-				y = (rect->X - x0) * slope_x + y0;
-				x = rect->X;
-			}
-
-			/*
-			 * Now we move outside point to intersection point to clip
-			 * and get ready for next pass.
-			 */
-			if (outcodeOut == outcode0)
+	
+			// Choose endpoint outside rect
+			int outcodeOut = (outcode0 != CODE_INSIDE) ? outcode0 : outcode1;
+	
+			double x = 0.0;
+			double y = 0.0;
+	
+			// Find intersection
+			if (outcodeOut & CODE_TOP)           // above clip window
 			{
-				x0 = x;
-				y0 = y;
-				outcode0 = Compute_Out_Code(x0, y0, rect);
+				double dy = y1 - y0;
+				if (dy == 0.0) return false; // horizontal line outside
+				double slope_y = (x1 - x0) / dy;
+				y = rect.Y;
+				x = x0 + (y - y0) * slope_y;
+			}
+			else if (outcodeOut & CODE_BOTTOM)   // below clip window
+			{
+				double dy = y1 - y0;
+				if (dy == 0.0) return false;
+				double slope_y = (x1 - x0) / dy;
+				y = rect.Y + rect.Height - 1;
+				x = x0 + (y - y0) * slope_y;
+			}
+			else if (outcodeOut & CODE_RIGHT)    // to the right of clip window
+			{
+				double dx = x1 - x0;
+				if (dx == 0.0) return false; // vertical line outside
+				double slope_x = (y1 - y0) / dx;
+				x = rect.X + rect.Width - 1;
+				y = y0 + (x - x0) * slope_x;
+			}
+			else if (outcodeOut & CODE_LEFT)     // to the left of clip window
+			{
+				double dx = x1 - x0;
+				if (dx == 0.0) return false;
+				double slope_x = (y1 - y0) / dx;
+				x = rect.X;
+				y = y0 + (x - x0) * slope_x;
 			}
 			else
 			{
-				x1 = x;
-				y1 = y;
-				outcode1 = Compute_Out_Code(x1, y1, rect);
+				// Safety net: outcodeOut has no directional bits? -> break
+				return false;
+			}
+	
+			// Move the outside point to intersection and recalc code
+			if (outcodeOut == outcode0)
+			{
+				x0 = x; y0 = y;
+				outcode0 = Compute_Out_Code(x0, y0, &rect);
+			}
+			else
+			{
+				x1 = x; y1 = y;
+				outcode1 = Compute_Out_Code(x1, y1, &rect);
 			}
 		}
 	}
 
-	DEFINE_FUNCTION_JUMP(LJMP, 0x7BC2B0, Clip_Line)
+DEFINE_FUNCTION_JUMP(LJMP, 0x7BC2B0, Clip_Line)
 
+DEFINE_FUNCTION_JUMP(CALL, 0x436123, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x43617B, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4BBD72, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4BC933, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4BE060, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4BEBA6, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4BF7CD, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4BFDFF, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4C0EAA, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4C27D0, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4C28F4, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x4DC694, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x63D8A3, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x6595F6, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x6598F5, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x659DA0, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x660272, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x6605EB, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x6DAC2B, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x6DACD2, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x6DAD1B, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x6DB0E1, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x6FFB70, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x704BE9, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x704DD4, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x704E14, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x70516F, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x70552E, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x705772, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x7BA689, Clip_Line)
+DEFINE_FUNCTION_JUMP(CALL, 0x7BAC06, Clip_Line)
 
-		ASMJIT_PATCH(0x6B0B81, SlaveManagerClass_FreeSlaves_dead, 0x5)
-	{
-		GET(TechnoClass*, pTech, ESI);
+ASMJIT_PATCH(0x6B0B81, SlaveManagerClass_FreeSlaves_dead, 0x5)
+{
+	GET(TechnoClass*, pTech, ESI);
 
-		return pTech->IsAlive ? 0x0 : 0x6B0C0B;
-	}
+	return pTech->IsAlive ? 0x0 : 0x6B0C0B;
+}
 
 #ifndef CHECK_PTR_VALID
 

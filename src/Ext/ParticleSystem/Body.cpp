@@ -302,8 +302,8 @@ void  ParticleSystemExtData::UpdateRailgun()
 		CoordStruct currentCoords = pThis->Location;
 
 		CoordStruct DifferenceCoords = targetCoords - currentCoords;
-		int differeceCoordsLXYZLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
-		int differeceCoordsLXYLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int differeceCoordsLXYZLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
+		int differeceCoordsLXYLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
 		int Difference_Z = DifferenceCoords.Z;
 		int Difference_X = DifferenceCoords.X;
 
@@ -329,9 +329,9 @@ void  ParticleSystemExtData::UpdateRailgun()
 
 		const auto ParticlePerCoords = differeceCoordsLXYZLength * pThis->Type->ParticlesPerCoord;
 		Matrix3D mtx = Matrix3D::GetIdentity();
-		const auto acos = std::acos((double)Difference_X / (double)differeceCoordsLXYLength);
+		const auto acos = Math::acos((double)Difference_X / (double)differeceCoordsLXYLength);
 		mtx.PreRotateZ(float(acos < 0 ? -acos : acos));
-		const auto theta = std::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
+		const auto theta = Math::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
 		mtx.PreRotateX(float(theta));
 
 		auto pHeldType = this->HeldType;
@@ -346,7 +346,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 			const double radians = curVal * differeceCoordsLXYZLength * pThis->Type->SpiralDeltaPerCoord;
 
 			Vector3D<float> first_ {
-				0 , std::cos(radians) ,std::sin(radians)
+				0 , Math::cos(radians) ,Math::sin(radians)
 			};
 
 			Vector3D<float> mtx_mult {};
@@ -386,7 +386,7 @@ void  ParticleSystemExtData::UpdateRailgun()
 
 			mtx_mult += MovementPerturbation;
 
-			const auto sparkVelLength = std::sqrt(double((mtx_mult.X * mtx_mult.X) + (mtx_mult.Y * mtx_mult.Y) + (mtx_mult.Z * mtx_mult.Z)));
+			const auto sparkVelLength = Math::sqrt(double((mtx_mult.X * mtx_mult.X) + (mtx_mult.Y * mtx_mult.Y) + (mtx_mult.Z * mtx_mult.Z)));
 
 			if (sparkVelLength != 0.0)
 			{
@@ -857,8 +857,8 @@ void ParticleSystemExtData::UpdateRailgun()
 		if (nMaxXYCopy < nMaxXYNeg)
 			nMaxXYCopy = nMaxXYNeg;
 
-		auto nASin = std::asin(double(nMagCopy / nDifferenceLength));
-		auto nACos = std::acos(nMaxXYCopy / nMaxXY);
+		auto nASin = Math::asin(double(nMagCopy / nDifferenceLength));
+		auto nACos = Math::acos(nMaxXYCopy / nMaxXY);
 		Matrix3D mtx {};
 		mtx.MakeIdentity();
 		mtx.RotateZ(nDifferenct.Y > 0 ? nACos : -nACos);
@@ -884,8 +884,8 @@ void ParticleSystemExtData::UpdateRailgun()
 
 			Vector3D<float> nDummy {
 				0.0f,
-				std::cos(radians) ,
-				std::sin(radians)
+				Math::cos(radians) ,
+				Math::sin(radians)
 			};
 
 			Vector3D<float> nResult = Matrix3D::MatrixMultiply(mtx, nDummy);
@@ -991,8 +991,8 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 		CoordStruct currentCoords = pThis->Location;
 
 		CoordStruct DifferenceCoords = targetCoords - currentCoords;
-		int differeceCoordsLXYZLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
-		int differeceCoordsLXYLength = (int)std::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
+		int differeceCoordsLXYZLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y) + (DifferenceCoords.Z * DifferenceCoords.Z)));
+		int differeceCoordsLXYLength = (int)Math::sqrt(double((DifferenceCoords.X * DifferenceCoords.X) + (DifferenceCoords.Y * DifferenceCoords.Y)));
 		int Difference_Z = DifferenceCoords.Z;
 		int Difference_X = DifferenceCoords.X;
 
@@ -1019,9 +1019,9 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 		const auto ParticlePerCoords = differeceCoordsLXYZLength * pThis->Type->ParticlesPerCoord;
 		Matrix3D mtx {};
 		mtx.MakeIdentity();
-		const auto acos = std::acos((double)Difference_X / (double)differeceCoordsLXYLength);
+		const auto acos = Math::acos((double)Difference_X / (double)differeceCoordsLXYLength);
 		mtx.PreRotateZ(acos < 0 ? -acos : acos);
-		const auto theta = std::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
+		const auto theta = Math::asin((double)Difference_Z / (double)differeceCoordsLXYLength);
 		mtx.PreRotateX(theta);
 
 		double var = 0.0;
@@ -1030,7 +1030,7 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 			float curVal = float((double)i / (float)ParticlePerCoords);
 
 			Vector3D<float> first_ {
-				0 , std::cos((double)curVal) ,std::sin((double)curVal)
+				0 , Math::cos((double)curVal) ,Math::sin((double)curVal)
 			};
 
 			Vector3D<float> mtx_mult = Matrix3D::MatrixMultiply(&mtx, first_);
@@ -1071,7 +1071,7 @@ void Railgun_AI_Vanilla_Test(ParticleSystemClass* pThis)
 			};
 			partilce->Spark10C += MovementPerturbation;
 
-			const auto sparkVelLength = std::sqrt(double((partilce->Spark10C.X * partilce->Spark10C.X) + (partilce->Spark10C.Y * partilce->Spark10C.Y) + (partilce->Spark10C.Z * partilce->Spark10C.Z)));
+			const auto sparkVelLength = Math::sqrt(double((partilce->Spark10C.X * partilce->Spark10C.X) + (partilce->Spark10C.Y * partilce->Spark10C.Y) + (partilce->Spark10C.Z * partilce->Spark10C.Z)));
 
 			Vector3D<float> last = partilce->Spark10C;
 			if (sparkVelLength != 0.0)
@@ -1239,15 +1239,15 @@ Vector3D<float> GetRandomPerturbation(float coefficient)
 Matrix3D CreateRotationMatrix(const Vector3D<float>& trajectory, float distance)
 {
 	// Calculate angles for rotation
-	const float horizontalDist = std::sqrt(trajectory.X * trajectory.X +
+	const float horizontalDist = Math::sqrt(trajectory.X * trajectory.X +
 												 trajectory.Y * trajectory.Y);
 
 	// Clamp values for arc functions
 	float clampedZ = std::clamp(trajectory.Z, -distance, distance);
 	float clampedX = std::clamp(trajectory.X, -horizontalDist, horizontalDist);
 
-	const float pitchAngle = (float)std::asin(clampedZ / distance);
-	float yawAngle = (float)std::acos(clampedX / horizontalDist);
+	const float pitchAngle = (float)Math::asin(clampedZ / distance);
+	float yawAngle = (float)Math::acos(clampedX / horizontalDist);
 
 	// Adjust yaw based on Y direction
 	if (trajectory.Y < 0.0f) {
@@ -1370,8 +1370,6 @@ void FakeParticleSystemClass::__Web_AI()
 	this->UpdateAllParticles();
 	this->ProcessParticleLifecycle<&FakeParticleSystemClass::TransitionToNextParticle>();
 }
-
-#include <Ext/Particle/Body.h>
 
 int GetRandomOffset(int range)
 {
@@ -1793,9 +1791,9 @@ void FakeParticleSystemClass::UpdatePositionFromOwner(TechnoClass* owner)
 	DirStruct facing = owner->PrimaryFacing.Current();
 
 	// Calculate offset based on facing
-	const float facingAngle = (facing.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
-	const float offsetX = (float)std::cos(facingAngle) * distance + ownerPos.X;
-	const float offsetY = (float)ownerPos.Y - (float)std::sin(facingAngle) * distance;
+	const double facingAngle = (facing.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
+	const float offsetX = Math::cos(facingAngle) * distance + ownerPos.X;
+	const float offsetY = (float)ownerPos.Y - Math::sin(facingAngle) * distance;
 
 	// Update target and system position
 	CoordStruct newPos { (int)offsetX, (int)offsetY, ownerPos.Z } ;
@@ -1910,8 +1908,8 @@ Vector3D<float> FakeParticleSystemClass::CalculateSpiralOffset(float progress, f
 	// Create spiral circle point
 	const Vector3D<float> circlePoint {
 		0.0f,
-		(float)std::cos(spiralAngle),
-		(float)std::sin(spiralAngle)
+		(float)Math::cos(spiralAngle),
+		(float)Math::sin(spiralAngle)
 	};
 
 	// Rotate to align with trajectory and Scale by spiral radius
@@ -1961,9 +1959,8 @@ void FakeParticleSystemClass::SetupParticleVelocity(ParticleClass* particle, con
 	velocity.Z += movementPert.Z;
 
 	// Normalize direction
-	const float length = std::sqrt(velocity.X * velocity.X +
-									   velocity.Y * velocity.Y +
-									   velocity.Z * velocity.Z);
+	
+	const float length = (float)velocity.Length();
 
 	if (length > 0.0f)
 	{

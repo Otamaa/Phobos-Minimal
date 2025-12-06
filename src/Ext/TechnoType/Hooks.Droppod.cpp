@@ -128,8 +128,8 @@ struct DroppodProperties_
 		const int speed = std::max(maxspeed, pLinked->GetHeight() / 10 + 2);
 
 		CoordStruct coords = pLinked->Location;
-		coords.X += int(std::cos(angle) * speed * (pLoco->OutOfMap ? 1 : -1));
-		coords.Z -= int(std::sin(angle) * speed);
+		coords.X += int(Math::cos(angle) * speed * (pLoco->OutOfMap ? 1 : -1));
+		coords.Z -= int(Math::sin(angle) * speed);
 
 		if (pLinked->GetHeight() > 0)
 		{

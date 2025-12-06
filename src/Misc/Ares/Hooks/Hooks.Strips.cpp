@@ -830,8 +830,7 @@ ASMJIT_PATCH(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 
 	auto& cameos = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex];
 
-	if (CameoIndex >= cameos.size())
-	{
+	if ((size_t)CameoIndex >= cameos.size()) {
 		return 0x6AB94F;
 	}
 
@@ -1092,14 +1091,14 @@ ASMJIT_PATCH(0x6aa600, StripClass_RecheckCameos, 5)
 
 	tabs.erase(iter, tabs.end());
 
-	if (tabs.size() >= pThis->BuildableCount)
+	if ((int)tabs.size() >= pThis->BuildableCount)
 	{
 		R->EAX(0);
 		return 0x6AACAE;
 	}
 
 	pThis->BuildableCount = tabs.size();
-	if (tabs.size() <= 0)
+	if ((int)tabs.size() <= 0)
 	{
 		SidebarClass::ShapeButtons[pThis->TabIndex].Disable();
 

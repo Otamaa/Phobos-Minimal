@@ -12,16 +12,16 @@ ASMJIT_PATCH(0x6D50FB , TacticalClass_DrawPlacement_CustomFoundation, 0x5)
 {
 	RectangleStruct nDispRect {};
 	const bool bOnFB = R->Origin() == 0x6D50FB;
-	CustomFoundation::GetDisplayRect(nDispRect, (!bOnFB ?
+	CustomFoundation::GetDisplayRect(&nDispRect, (!bOnFB ?
 		Unsorted::CursorSizeSecond() : Unsorted::CursorSize()));
 
 	int16_t nX = 0;
 	if (nDispRect.Width - nDispRect.X >= 0)
-		nX = LOWORD(nDispRect.Width) - LOWORD(nDispRect.X);
+		nX = int16_t(nDispRect.Width) - int16_t(nDispRect.X);
 
 	int16_t nY = 0;
 	if (nDispRect.Height - nDispRect.Y >= 0)
-		nY = LOWORD(nDispRect.Height) - LOWORD(nDispRect.Y);
+		nY = int16_t(nDispRect.Height) - int16_t(nDispRect.Y);
 
 	const CellStruct v9res { (nX + 1)  , (nY + 1) };
 	const CellStruct v10res { (int16_t)nDispRect.X , (int16_t)nDispRect.Y };

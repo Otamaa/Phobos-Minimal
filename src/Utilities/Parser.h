@@ -251,7 +251,7 @@ OPTIONALINLINE bool Parser<double>::TryParse(const char* pValue, OutType* outVal
 
 	float floatValue = static_cast<float>(value);
 
-	if (PhobosCRT::fast_strchr_simd(pValue, '%')) {
+	if (strchr(pValue, '%')) {
 		floatValue *= 0.01f;
 	}
 

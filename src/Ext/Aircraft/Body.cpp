@@ -16,8 +16,6 @@
 
 #include <Utilities/Macro.h>
 
-#include <lib/gcem/gcem.hpp>
-
 #include <Locomotor/FlyLocomotionClass.h>
 
 //todo Add the hooks
@@ -641,15 +639,13 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 
 		if (yawRad != 0.0)
 		{
-			velocity->X /= std::cos(yawRad);
-			velocity->Y /= std::cos(yawRad);
+			velocity->X /= Math::cos(yawRad);
+			velocity->Y /= Math::cos(yawRad);
 		}
 
-		COMPILETIMEEVAL auto _cosPitchRad = gcem::cos(Math::DIRECTION_FIXED_MAGIC);
-		COMPILETIMEEVAL auto _sinPitchRad = gcem::sin(Math::DIRECTION_FIXED_MAGIC);
-		velocity->X *= _cosPitchRad;
-		velocity->Y *= _cosPitchRad;
-		velocity->Z = _sinPitchRad * mag;
+		velocity->X *= Math::COS_DIRECTION_FIXED_MAGIC;
+		velocity->Y *= Math::SIN_DIRECTION_FIXED_MAGIC;
+		velocity->Z = Math::SIN_DIRECTION_FIXED_MAGIC * mag;
 
 		const DirStruct newFacingDir = pThis->SecondaryFacing.Current();
 
@@ -659,8 +655,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 		const int newFacing = newFacingDir.Raw - Math::BINARY_ANGLE_MASK;
 		const double newRad = newFacing * Math::DIRECTION_FIXED_MAGIC;
 
-		velocity->X = std::cos(newRad) * dist2D;
-		velocity->Y = -std::sin(newRad) * dist2D;
+		velocity->X = Math::cos(newRad) * dist2D;
+		velocity->Y = -Math::sin(newRad) * dist2D;
 
 	} else if (pBullet->Type->ROT == 1)
 		{
@@ -692,8 +688,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			double originalSpeed2D = velocity->LengthXY();
 
 			// Set initial XY velocity facing target yaw
-			velocity->X = std::cos(adjustedYawRad) * originalSpeed2D;
-			velocity->Y = -std::sin(adjustedYawRad) * originalSpeed2D;
+			velocity->X = Math::cos(adjustedYawRad) * originalSpeed2D;
+			velocity->Y = -Math::sin(adjustedYawRad) * originalSpeed2D;
 
 			// Calculate pitch angle from aim vector
 			double horizontalDistance = aimVector.LengthXY();
@@ -712,15 +708,15 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			// If yaw was altered, rescale velocity
 			if (currentYawRad != 0.0)
 			{
-				double cosYaw = std::cos(currentYawRad);
+				double cosYaw = Math::cos(currentYawRad);
 				velocity->X /= cosYaw;
-				velocity->Y /= std::cos(currentYawRad); // redundant, matches original logic
+				velocity->Y /= Math::cos(currentYawRad); // redundant, matches original logic
 			}
 
 			// Apply pitch to Z velocity
-			velocity->X *= std::cos(adjustedPitchRad);
-			velocity->Y *= std::cos(adjustedPitchRad);
-			velocity->Z = std::sin(adjustedPitchRad) * currentSpeed3D;
+			velocity->X *= Math::cos(adjustedPitchRad);
+			velocity->Y *= Math::cos(adjustedPitchRad);
+			velocity->Z = Math::sin(adjustedPitchRad) * currentSpeed3D;
 
 			// Normalize speed to weapon's max speed
 			WeaponTypeClass* weapon = pThis->GetPrimaryWeapon()->WeaponType;

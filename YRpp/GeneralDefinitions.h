@@ -245,7 +245,7 @@ enum class ZoneType : int
 	West = 4
 };
 
-enum class RGBMode : unsigned int
+enum class RGBMode : uint32_t
 {
 	RGB555 = 0,
 	RGB556 = 1,
@@ -318,7 +318,7 @@ enum class PCPType :int
 	End = 2
 };
 
-enum class AbstractFlags : unsigned int {
+enum class AbstractFlags : uint32_t {
 	None = 0x0,
 	Techno = 0x1,
 	Object = 0x2,
@@ -352,7 +352,7 @@ enum class TileType : int
 	DestroyableCliff
 };
 
-enum class AbstractType : unsigned int {
+enum class AbstractType : uint32_t {
 	None = 0,
 	Unit = 1,
 	Aircraft = 2,
@@ -429,14 +429,14 @@ enum class AbstractType : unsigned int {
 	DiskLaser = 73
 };
 
-enum class RecordFlag : unsigned int
+enum class RecordFlag : uint32_t
 {
 	Write = 0x1, // I am recording the game now
 	Read = 0x2, // I am playing a recorded game now
 	Attract = 0x4 // Recording enabled by commmand line
 };
 
-enum class Action : unsigned int {
+enum class Action : uint32_t {
 	None = 0,
 	Move = 1,
 	NoMove = 2,
@@ -537,7 +537,7 @@ enum class AbilityType : int {
 	count
 };
 
-enum class AIDifficulty : unsigned int {
+enum class AIDifficulty : uint32_t {
 	Hard = 0,
 	Normal = 1,
 	Easy = 2
@@ -575,13 +575,13 @@ enum class TextPrintType : int
 
 MAKE_ENUM_FLAGS(TextPrintType)
 
-enum class TriggerPersistence : unsigned int {
+enum class TriggerPersistence : uint32_t {
 	Volatile = 0, // trigger for the first object whose events fired, then disable
 	SemiPersistant = 1, // trigger after all object's events fired, then disable
 	Persistent = 2 // trigger every time events fire for any object, never disable
 };
 
-enum class TriggerEvent : unsigned int {
+enum class TriggerEvent : uint32_t {
 	None = 0x0,
 	EnteredBy = 0x1,
 	SpiedBy = 0x2,
@@ -648,7 +648,7 @@ enum class TriggerEvent : unsigned int {
 	count
 };
 
-enum class TriggerAction : unsigned int {
+enum class TriggerAction : uint32_t {
 	None = 0x0,
 	Win = 0x1,
 	Lose = 0x2,
@@ -908,7 +908,7 @@ enum class AITriggerHouseType : int {
 	Any = 2
 };
 
-enum class Armor : unsigned int {
+enum class Armor : uint32_t {
 	None = 0,
 	Flak = 1,
 	Plate = 2,
@@ -923,14 +923,14 @@ enum class Armor : unsigned int {
 };
 
 //spotlight behaviour
-enum class SpotlightBehaviour : unsigned int {
+enum class SpotlightBehaviour : uint32_t {
 	None = 0,
 	Sweep = 1,
 	Circle = 2,
 	Follow = 3
 };
 
-enum class SpotlightFlags : unsigned int {
+enum class SpotlightFlags : uint32_t {
 	None = 0x0,
 	NoColor = 0x1,
 	NoRed = 0x2,
@@ -958,7 +958,7 @@ enum class ParticleTypeBehavesLike : int {
 	Railgun = 4
 };
 
-enum class BuildCat : unsigned int {
+enum class BuildCat : uint32_t {
 	DontCare = 0,
 	Tech = 1,
 	Resoure = 2,
@@ -1008,7 +1008,7 @@ enum class Category : int {
 	AirLift = 10
 };
 
-enum class CellFlags : unsigned int
+enum class CellFlags : uint32_t
 {
 	Empty = 0x0,
 	CenterRevealed = 0x1,
@@ -1042,7 +1042,7 @@ enum class CellFlags : unsigned int
 
 MAKE_ENUM_FLAGS(CellFlags)
 
-enum class AltCellFlags : unsigned int
+enum class AltCellFlags : uint32_t
 {
 	Unknown_1 = 0x1, // 487720 check_obstacle?
 	ContainsBuilding = 0x2,
@@ -1111,7 +1111,7 @@ enum class FireError : int {
 	MUST_DEPLOY = 11 // deploy first!
 };
 
-enum class HealthState : unsigned int {
+enum class HealthState : uint32_t {
 	Red = 0,
 	Yellow = 1,
 	Green = 2
@@ -1145,14 +1145,14 @@ enum class Foundation : int
 	count = 22
 };
 
-enum class GameMode : unsigned int {
+enum class GameMode : uint32_t {
 	Campaign = 0x0,
 	LAN = 0x3,
 	Internet = 0x4,
 	Skirmish = 0x5,
 };
 
-enum class InfDeath : unsigned int {
+enum class InfDeath : uint32_t {
 	None = 0,
 	Die1 = 1,
 	Die2 = 2,
@@ -1282,7 +1282,7 @@ enum class MovementZone : int {
 	CrusherAll = 12
 };
 
-enum class PipIndex : unsigned int {
+enum class PipIndex : uint32_t {
 	Empty = 0,
 	Green = 1,
 	Yellow = 2,
@@ -1298,7 +1298,7 @@ enum class PipIndex : unsigned int {
 	PersonPurple = 12
 };
 
-enum class PipScale : unsigned int {
+enum class PipScale : uint32_t {
 	None = 0,
 	Ammo = 1,
 	Tiberium = 2,
@@ -1330,7 +1330,7 @@ enum class PowerupEffects : unsigned char
 	Pod = 18
 };
 
-enum class Powerup : unsigned int {
+enum class Powerup : uint32_t {
 	Money = 0,
 	Unit = 1,
 	HealBase = 2,
@@ -1409,7 +1409,7 @@ enum class RadarEventType : int {
 	Count
 };
 
-enum class PsychicDominatorStatus : unsigned int {
+enum class PsychicDominatorStatus : uint32_t {
 	Inactive = 0,
 	FirstAnim = 1,
 	Fire = 2,
@@ -1418,7 +1418,7 @@ enum class PsychicDominatorStatus : unsigned int {
 	Over = 5
 };
 
-enum class NukeFlashStatus : unsigned int {
+enum class NukeFlashStatus : uint32_t {
 	Inactive = 0,
 	FadeIn = 1,
 	FadeOut = 2
@@ -1449,7 +1449,7 @@ enum class SuperWeaponType : int {
 	count
 };
 
-enum class MouseCursorType : unsigned int {
+enum class MouseCursorType : uint32_t {
 	Default = 0x0,
 	Move_N = 0x1,
 	Move_NE = 0x2,
@@ -1554,7 +1554,7 @@ enum class Rank : int {
 	Rookie = 2,
 };
 
-enum class DefaultColorList : int
+enum class DefaultColorList : BYTE
 {
 	Grey = 0,
 	Red = 1,
@@ -1563,8 +1563,7 @@ enum class DefaultColorList : int
 	Yellow = 4,
 	White = 5,
 	AresPCXTransparent = 6,
-	Black = 7,
-	count
+	Black = 7
 };
 
 enum class DoType : int {
@@ -1649,7 +1648,7 @@ enum class TheaterType : int {
 };
 
 //typedef int eVisualType;
-enum class VisualType : unsigned int {
+enum class VisualType : uint32_t {
 	Normal = 0,
 	Indistinct = 1,
 	Darken = 2,
@@ -1764,7 +1763,7 @@ enum class SoundPriority : int {
 	Critical = 4
 };
 
-enum class SoundType : unsigned int {
+enum class SoundType : uint32_t {
 	Normal = 0x0,
 	Violent = 0x1,
 	Movement = 0x2,
@@ -1781,7 +1780,7 @@ enum class SoundType : unsigned int {
 	Ambient = 0x1000
 };
 
-enum class SoundControl : unsigned int {
+enum class SoundControl : uint32_t {
 	None = 0x0,
 	Loop = 0x1,
 	Random = 0x2,
@@ -1816,7 +1815,7 @@ enum class WaveType : int {
 	Magnetron = 3
 };
 
-enum class QuarryType : unsigned int
+enum class QuarryType : uint32_t
 {
 	None,
 	Anything,						// Attack any enemy (same as "hunt").
@@ -1833,7 +1832,7 @@ enum class QuarryType : unsigned int
 };
 
 
-enum class BlitterFlags : unsigned int {
+enum class BlitterFlags : uint32_t  {
 	None = 0x0,
 	Darken = 0x1,
 	TransLucent25 = 0x2,

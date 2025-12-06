@@ -245,7 +245,7 @@ public:
 		if (r > 0)
 		{
 			double theta = ScenarioClass::Instance->Random.RandomDouble() * Math::GAME_TWOPI;
-			CoordStruct offset { static_cast<int>(r * std::cos(theta)), static_cast<int>(r * std::sin(theta)), 0 };
+			CoordStruct offset { static_cast<int>(r * Math::cos(theta)), static_cast<int>(r * Math::sin(theta)), 0 };
 			return offset;
 		}
 		return CoordStruct::Empty;
@@ -506,8 +506,8 @@ public:
 
 		double atan = std::atan2((double)deltaY, (double)deltaX);
 		double radians = (((atan - Math::PI_BY_TWO_ACCURATE) * (1.0 / Math::BINARY_ANGLE_MAGIC)) - 0X3FFF) * Math::BINARY_ANGLE_MAGIC;
-		int x = static_cast<int>(targetCoords.X + std::cos(radians) * distance);
-		int y = static_cast<int>(targetCoords.Y - std::sin(radians) * distance);
+		int x = static_cast<int>(targetCoords.X + Math::cos(radians) * distance);
+		int y = static_cast<int>(targetCoords.Y - Math::sin(radians) * distance);
 
 		return { x, y, targetCoords.Z };
 	}
@@ -560,7 +560,7 @@ public:
 	//https://noobtuts.com/cpp/compare-float-values
 	static FORCEDINLINE bool cmpf(float A, float B, float epsilon = 0.005f)
 	{
-		return (fabs(A - B) < epsilon);
+		return (Math::abs(A - B) < epsilon);
 	}
 
 	template <typename T>

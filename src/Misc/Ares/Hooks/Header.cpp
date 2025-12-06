@@ -1376,31 +1376,30 @@ bool TechnoExt_ExtData::FindAndTakeVehicle(FootClass* pThis)
 	if (!pInf->Type->VehicleThief && !pExt->CanDrive.Get(RulesExtData::Instance()->CanDrive))
 		return false;
 
-	//const auto nDistanceMax = ScenarioClass::Instance->Random.RandomFromMax(128);
+	double bestDist = std::numeric_limits<double>::max();
+    int bestID = INT_MAX;
+    TechnoClass* best = nullptr;
 
-	//this one iam not really sure how to implement it
-	//it seems Ares one do multiple item comparison before doing hijack ?
-	//cant really get right decomp result or maybe just me that not understand ,..
-	//these should work fine for now ,..
-	auto its = Helpers::Alex::getCellSpreadItems<FootClass>(pThis->Location, (double)pInf->Type->Sight, false, false);
-	auto it = std::ranges::find_if(its, [&](FootClass* pFoot)
-{
-	if (pFoot == pThis || pFoot->WhatAmI() != UnitClass::AbsID)
-		return false;
+    for (auto pUnit : *UnitClass::Array.get()) {
+        if (GetActionHijack(pInf, pUnit) == AresHijackActionResult::None)
+            continue;
 
-	if (GetActionHijack(pInf, pFoot) == AresHijackActionResult::None)
-		return false;
+		const CoordStruct diff = pInf->Location - pUnit->Location;
+		const double dist = diff.pow();
 
-	return true;
-	});
+        if (dist < bestDist ||
+            (dist == bestDist && (int)pUnit->UniqueID < bestID)) {
+            best = pUnit;
+            bestDist = dist;
+            bestID = pUnit->UniqueID;
+        }
+    }
 
-	if (it != its.end())
-	{
+	if (best) {
 		TechnoExtContainer::Instance.Find(pThis)->TakeVehicleMode = true;
 		pThis->ShouldGarrisonStructure = true;
-		if (pThis->Target != *it || pThis->CurrentMission != Mission::Capture)
-		{
-			pThis->SetDestination(*it, true);
+		if (pThis->Target != best || pThis->CurrentMission != Mission::Capture) {
+			pThis->SetDestination(best, true);
 			pThis->QueueMission(Mission::Capture, true);
 			return true;
 		}
@@ -6646,8 +6645,8 @@ bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, Objec
 	//	pBullet->SetWeaponType(pFind);
 	//	VelocityClass nVel {};
 	//
-	//	double nSin = std::sin(Math::Math::PI_BY_TWO_APPROX);
-	//	double nCos = std::cos(Math::Math::PI_BY_TWO_APPROX);
+	//	double nSin = Math::sin(Math::Math::PI_BY_TWO_APPROX);
+	//	double nCos = Math::cos(Math::Math::PI_BY_TWO_APPROX);
 	//
 	//	double nX = nCos * nCos * -100.0;
 	//	double nY = nCos * nSin * -100.0;
@@ -6662,7 +6661,6 @@ bool AresTActionExt::LauchhNuke(TActionClass* pAction, HouseClass* pHouse, Objec
 }
 
 //TODO : re-eval
-#include <lib/gcem/gcem.hpp>
 
 bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* location)
 {
@@ -6675,9 +6673,8 @@ bool AresTActionExt::LauchhChemMissile(TActionClass* pAction, HouseClass* pHouse
 	if (auto pBullet = pFind->Projectile->CreateBullet(MapClass::Instance->GetCellAt(nLoc), nullptr, pFind->Damage, pFind->Warhead, 20, false))
 	{
 		pBullet->SetWeaponType(pFind);
-		COMPILETIMEEVAL float nSin = gcem::sin(Math::PI_BY_TWO_ACCURATE);
-		COMPILETIMEEVAL float nCos = gcem::cos(Math::DIRECTION_FIXED_MAGIC);
-
+		double nSin = Math::SIN_PI_BY_TWO_ACCURATE;
+		double nCos = Math::COS_DIRECTION_FIXED_MAGIC;
 		BulletExtContainer::Instance.Find(pBullet)->Owner = pHouse;
 		auto nCell = MapClass::Instance->Localsize_586AC0(&nLoc, false);
 
@@ -8105,56 +8102,46 @@ const std::vector<CellStruct>* CustomFoundation::GetCoveredCells(
 	return &PhobosGlobal::Instance()->TempCoveredCellsData;
 }
 
-void CustomFoundation::GetDisplayRect(RectangleStruct& a1, CellStruct* a2)
+constexpr int16_t TERMINATOR = static_cast<int16_t>(0x7FFF);
+
+void CustomFoundation::GetDisplayRect(RectangleStruct* out, CellStruct* cells)
 {
-	int v2 = -512;
-	int v3 = -512;
-	int v4 = 512;
-	int v5 = 512;
+	// initial bounds (match assembly: +512 / -512)
+    int minX =  512;
+    int minY =  512;
+    int maxX = -512;
+    int maxY = -512;
 
-	if (*a2 == CellStruct::EOL)
-	{
-		a1.X = 0;
-		a1.Y = 0;
-		a1.Width = 0;
-		a1.Height = 0;
-		return;
-	}
+    // If first X == TERMINATOR and first Y == TERMINATOR -> empty rect
+    if (cells[0].X == TERMINATOR && cells[0].Y == TERMINATOR) {
+        out->X = out->Y = out->Width = out->Height = 0;
+        return;
+    }
 
-	int16_t* v6 = &a2->Y;
+    // iterate pairs until we see X == TERMINATOR and next X == TERMINATOR
+    const CellStruct* p = cells;
+    while (true) {
+        int16_t x = p->X;
+        int16_t y = p->Y;
 
-	while (true)
-	{
-		int16_t v8 = *(v6 - 1);
-		int v12 = v3;
-		int v11 = v5;
-		int v9 = v4;
-		int v10 = v2;
-		if (v8 == 0x7FFF)
-		{
-			v9 = v4;
-			if (*v6 == 0x7FFF)
-				break;
-		}
-		v3 = *v6;
-		v6 += 2;
-		v2 = v8;
-		v5 = v3;
-		v4 = v8;
-		if (v8 >= v9)
-			v4 = v9;
-		if (v8 <= v10)
-			v2 = v10;
-		if (v3 >= v11)
-			v5 = v11;
-		if (v3 <= v12)
-			v3 = v12;
-	}
+        // if current x is sentinel and next x is sentinel -> end
+        if (x == TERMINATOR && p[1].X == TERMINATOR)
+            break;
 
-	a1.X = v4;
-	a1.Y = v5;
-	a1.Width = v2;
-	a1.Height = v3;
+        // update bounds (same effect as the CMOV sequence in assembly)
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+
+        ++p; // move to next pair
+    }
+
+    out->X = minX;
+    out->Y = minY;
+    out->Width  = maxX;
+    out->Height = maxY;
+    return;
 }
 
 #pragma endregion

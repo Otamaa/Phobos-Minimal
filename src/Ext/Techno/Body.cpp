@@ -1037,7 +1037,7 @@ std::vector<double> TechnoExtData::GetBlockChance(TechnoClass* pThis, std::vecto
 			continue;
 
 		for (auto& chance : result) {
-			chance = chance * MaxImpl(pType->Block_ChanceMultiplier, 0);
+			chance *= MaxImpl(pType->Block_ChanceMultiplier, 0.0);
 		}
 
 		extraChance += pType->Block_ExtraChance;

@@ -25,27 +25,6 @@
 
 #define ENABLE_THESE
 
-inline COMPILETIMEEVAL bool IsTimerExpired(const CDTimerClass& timer)
-{
-	if (timer.StartTime == -1)
-	{
-		return timer.TimeLeft == 0;
-	}
-
-	return (timer.CurrentTime - timer.StartTime) >= timer.TimeLeft;
-}
-
-inline COMPILETIMEEVAL int GetRemainingTime(const CDTimerClass& timer)
-{
-	if (timer.StartTime == -1)
-	{
-		return timer.TimeLeft;
-	}
-
-	int elapsed = timer.CurrentTime - timer.StartTime;
-	return (elapsed >= timer.TimeLeft) ? 0 : (timer.TimeLeft - elapsed);
-}
-
 void FakeTechnoClass::__HandleGattlingAudio(TechnoClass* pThis)
 {
 	if (pThis->GetTechnoType()->IsGattling) {
@@ -456,7 +435,7 @@ void FakeTechnoClass::__ClearTargetForInvalidMissions(TechnoClass* pThis)
 
 void FakeTechnoClass::__HandleTargetAcquisition(TechnoClass* pThis)
 {
-	if (!IsTimerExpired(pThis->TargetingTimer)) {
+	if (!pThis->TargetingTimer.Expired()) {
 		return;
 	}
 	auto const

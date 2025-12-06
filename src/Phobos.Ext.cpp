@@ -27,6 +27,7 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/Tiberium/Body.h>
+#include <Ext/Trigger/Body.h>
 #include <Ext/TriggerType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/VoxelAnimType/Body.h>
@@ -456,6 +457,8 @@ unsigned Phobos::GetVersionNumber() {
 
 	version += sizeof(TActionExtData);
 
+	version += sizeof(TriggerExtData);
+
 	version += sizeof(ShieldClass);
 	version += sizeof(SWFirerClass);
 
@@ -507,6 +510,7 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 		hand->detachptr();
 	}
 
+	TriggerExtContainer::Clear();
 	TActionExtData::Clear();
 	CellExtContainer::Clear();
 	PrismForwarding::Array.clear();

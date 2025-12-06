@@ -7661,52 +7661,13 @@ unsigned short* pFPU_Codeword = (unsigned short*)0x00822D80;
 // This function signature matches Westwood's original _ftol
 // Can be used as a direct replacement in patched code
 extern "C" __declspec(naked) int64_t __cdecl ftol_truncate() {
-	// The original _ftol expects the float/double value on the FPU stack (ST(0))
-	// We need to pop it and convert using SSE2
-
 	__asm {
-		// Allocate stack space for the double value
 		sub     esp, 8
-
-		// Pop FPU value to memory
-		fstp    qword ptr[esp]
-
-		// Load into XMM0 and convert
-		movsd   xmm0, qword ptr[esp]
-
-		// Convert with truncation to 64-bit integer
-		// Result goes to EAX:EDX (32-bit calling convention)
-		cvttsd2si eax, xmm0     // Convert to 32-bit (low part)
-
-		// For 64-bit result, we need a different approach on 32-bit
-		// SSE2 doesn't have direct 64-bit conversion on 32-bit mode
-		// Fall back to manual implementation:
-
-		// Check if value is negative
-		pxor    xmm1, xmm1      // Zero XMM1
-		comisd  xmm0, xmm1      // Compare with 0
-		jae     positive        // Jump if >= 0
-
-		// Negative value: use FPU fistp for 64-bit
-		fld     qword ptr[esp]
-		fistp   qword ptr[esp]
-		jmp     done
-
-		positive :
-		// Positive value: can use SSE2
-		cvttsd2si eax, xmm0
-			xor edx, edx        // High 32 bits = 0 for positive
-			mov     dword ptr[esp], eax
-			mov     dword ptr[esp + 4], edx
-
-			done :
-		// Load result into EAX:EDX
+		fistp   qword ptr[esp]     // FPU fistp handles everything correctly
 		mov     eax, dword ptr[esp]
-			mov     edx, dword ptr[esp + 4]
-
-			// Clean up stack
-			add     esp, 8
-			ret
+		mov     edx, dword ptr[esp + 4]
+		add     esp, 8
+		ret
 	}
 }
 
@@ -9812,8 +9773,304 @@ void CRTHooks::ApplyftolHooks() {
 	Patch::Apply_CALL(0x7BC559, ftol_truncate);
 }
 
+double __cdecl dllPow(double a, double b) {
+	return std::pow(a, b);
+}
+
+extern "C" __declspec(naked) void ModernCIPow() {
+	static double base, exponent, result;
+
+	__asm {
+		// Save registers
+		push    ebp
+		mov     ebp, esp
+
+		// _CIpow expects: ST(0) = base, ST(1) = exponent
+		// But it does fxch immediately, so actually: ST(0) = exponent, ST(1) = base
+
+		// Pop from FPU stack into our variables
+		fstp    qword ptr[exponent]   // Pop exponent from ST(0)
+		fstp    qword ptr[base]       // Pop base from ST(0)
+	}
+
+	// Call std::pow with proper arguments
+	result = std::pow(base, exponent);
+
+	__asm {
+		// Push result back to FPU stack
+		fld     qword ptr[result]
+
+		// Restore and return
+		pop     ebp
+		ret
+	}
+}
+
+void CRTHooks::ApplypowHooks(){
+		Patch::Apply_LJMP(0x7C8FC9, dllPow); // __cdecl
+		//Patch::Apply_LJMP(0x7C8FB0, dllPow2); // __fastcall
+
+
+		Patch::Apply_CALL(0x403CEC, ModernCIPow);
+		Patch::Apply_CALL(0x40692C, ModernCIPow);
+		Patch::Apply_CALL(0x40AD9C, ModernCIPow);
+		Patch::Apply_CALL(0x40B35C, ModernCIPow);
+		Patch::Apply_CALL(0x40C59C, ModernCIPow);
+		Patch::Apply_CALL(0x40CFAC, ModernCIPow);
+		Patch::Apply_CALL(0x40DAAC, ModernCIPow);
+		Patch::Apply_CALL(0x40DDCC, ModernCIPow);
+		Patch::Apply_CALL(0x40E58C, ModernCIPow);
+		Patch::Apply_CALL(0x40EC3C, ModernCIPow);
+		Patch::Apply_CALL(0x40F2AC, ModernCIPow);
+		Patch::Apply_CALL(0x40F94C, ModernCIPow);
+		Patch::Apply_CALL(0x40FF6C, ModernCIPow);
+		Patch::Apply_CALL(0x41061C, ModernCIPow);
+		Patch::Apply_CALL(0x41266C, ModernCIPow);
+		Patch::Apply_CALL(0x413ACC, ModernCIPow);
+		Patch::Apply_CALL(0x41C6AC, ModernCIPow);
+		Patch::Apply_CALL(0x41D07C, ModernCIPow);
+		Patch::Apply_CALL(0x41E16C, ModernCIPow);
+		Patch::Apply_CALL(0x4206FC, ModernCIPow);
+		Patch::Apply_CALL(0x421CBC, ModernCIPow);
+		Patch::Apply_CALL(0x42732C, ModernCIPow);
+		Patch::Apply_CALL(0x42901C, ModernCIPow);
+		Patch::Apply_CALL(0x42959C, ModernCIPow);
+		Patch::Apply_CALL(0x42E43C, ModernCIPow);
+		Patch::Apply_CALL(0x42FFAC, ModernCIPow);
+		Patch::Apply_CALL(0x43561C, ModernCIPow);
+		Patch::Apply_CALL(0x43834C, ModernCIPow);
+		Patch::Apply_CALL(0x4394AC, ModernCIPow);
+		Patch::Apply_CALL(0x43A16C, ModernCIPow);
+		Patch::Apply_CALL(0x43AF4C, ModernCIPow);
+		Patch::Apply_CALL(0x45AFAC, ModernCIPow);
+		Patch::Apply_CALL(0x4660DC, ModernCIPow);
+		Patch::Apply_CALL(0x46B9DC, ModernCIPow);
+		Patch::Apply_CALL(0x46C97C, ModernCIPow);
+		Patch::Apply_CALL(0x46D12C, ModernCIPow);
+		Patch::Apply_CALL(0x47154C, ModernCIPow);
+		Patch::Apply_CALL(0x47319C, ModernCIPow);
+		Patch::Apply_CALL(0x47354C, ModernCIPow);
+		Patch::Apply_CALL(0x473FEC, ModernCIPow);
+		Patch::Apply_CALL(0x4789BC, ModernCIPow);
+		Patch::Apply_CALL(0x47B15C, ModernCIPow);
+		Patch::Apply_CALL(0x488F9C, ModernCIPow);
+		Patch::Apply_CALL(0x48BC7C, ModernCIPow);
+		Patch::Apply_CALL(0x48C6BC, ModernCIPow);
+		Patch::Apply_CALL(0x48E29C, ModernCIPow);
+		Patch::Apply_CALL(0x49B18C, ModernCIPow);
+		Patch::Apply_CALL(0x49F0EC, ModernCIPow);
+		Patch::Apply_CALL(0x49FD5C, ModernCIPow);
+		Patch::Apply_CALL(0x4A156C, ModernCIPow);
+		Patch::Apply_CALL(0x4A216C, ModernCIPow);
+		Patch::Apply_CALL(0x4A4EAC, ModernCIPow);
+		Patch::Apply_CALL(0x4A6A6C, ModernCIPow);
+		Patch::Apply_CALL(0x4A844C, ModernCIPow);
+		Patch::Apply_CALL(0x4AF33C, ModernCIPow);
+		Patch::Apply_CALL(0x4B58AC, ModernCIPow);
+		Patch::Apply_CALL(0x4B67AC, ModernCIPow);
+		Patch::Apply_CALL(0x4BA3BC, ModernCIPow);
+		Patch::Apply_CALL(0x4BC796, ModernCIPow);
+		Patch::Apply_CALL(0x4C1B8C, ModernCIPow);
+		Patch::Apply_CALL(0x4C35AC, ModernCIPow);
+		Patch::Apply_CALL(0x4C4D0C, ModernCIPow);
+		Patch::Apply_CALL(0x4C500C, ModernCIPow);
+		Patch::Apply_CALL(0x4C5EEC, ModernCIPow);
+		Patch::Apply_CALL(0x4C636C, ModernCIPow);
+		Patch::Apply_CALL(0x4C81FC, ModernCIPow);
+		Patch::Apply_CALL(0x4C96AC, ModernCIPow);
+		Patch::Apply_CALL(0x4CB9BC, ModernCIPow);
+		Patch::Apply_CALL(0x4CBF1C, ModernCIPow);
+		Patch::Apply_CALL(0x4CC79C, ModernCIPow);
+		Patch::Apply_CALL(0x4D056C, ModernCIPow);
+		Patch::Apply_CALL(0x4D2F5C, ModernCIPow);
+		Patch::Apply_CALL(0x4E0F1C, ModernCIPow);
+		Patch::Apply_CALL(0x4E1B1C, ModernCIPow);
+		Patch::Apply_CALL(0x4E313C, ModernCIPow);
+		Patch::Apply_CALL(0x4E62DC, ModernCIPow);
+		Patch::Apply_CALL(0x4F0EFC, ModernCIPow);
+		Patch::Apply_CALL(0x4F403C, ModernCIPow);
+		Patch::Apply_CALL(0x4F4F0C, ModernCIPow);
+		Patch::Apply_CALL(0x510B0C, ModernCIPow);
+		Patch::Apply_CALL(0x51120C, ModernCIPow);
+		Patch::Apply_CALL(0x513A1C, ModernCIPow);
+		Patch::Apply_CALL(0x51784C, ModernCIPow);
+		Patch::Apply_CALL(0x52349C, ModernCIPow);
+		Patch::Apply_CALL(0x52B7CC, ModernCIPow);
+		Patch::Apply_CALL(0x53911C, ModernCIPow);
+		Patch::Apply_CALL(0x53935C, ModernCIPow);
+		Patch::Apply_CALL(0x53C82C, ModernCIPow);
+		Patch::Apply_CALL(0x53F24C, ModernCIPow);
+		Patch::Apply_CALL(0x53F8AC, ModernCIPow);
+		Patch::Apply_CALL(0x5406EC, ModernCIPow);
+		Patch::Apply_CALL(0x54312C, ModernCIPow);
+		Patch::Apply_CALL(0x543C6C, ModernCIPow);
+		Patch::Apply_CALL(0x54AA3C, ModernCIPow);
+		Patch::Apply_CALL(0x54E05C, ModernCIPow);
+		Patch::Apply_CALL(0x54EC6C, ModernCIPow);
+		Patch::Apply_CALL(0x54FBBC, ModernCIPow);
+		Patch::Apply_CALL(0x5517AC, ModernCIPow);
+		Patch::Apply_CALL(0x55285C, ModernCIPow);
+		Patch::Apply_CALL(0x55443C, ModernCIPow);
+		Patch::Apply_CALL(0x555BBC, ModernCIPow);
+		Patch::Apply_CALL(0x55679C, ModernCIPow);
+		Patch::Apply_CALL(0x55855C, ModernCIPow);
+		Patch::Apply_CALL(0x55A4DC, ModernCIPow);
+		Patch::Apply_CALL(0x55AD5C, ModernCIPow);
+		Patch::Apply_CALL(0x55CA0C, ModernCIPow);
+		Patch::Apply_CALL(0x55F78C, ModernCIPow);
+		Patch::Apply_CALL(0x56171C, ModernCIPow);
+		Patch::Apply_CALL(0x58B13C, ModernCIPow);
+		Patch::Apply_CALL(0x58B34C, ModernCIPow);
+		Patch::Apply_CALL(0x58B53C, ModernCIPow);
+		Patch::Apply_CALL(0x5ADB2C, ModernCIPow);
+		Patch::Apply_CALL(0x5AFCEC, ModernCIPow);
+		Patch::Apply_CALL(0x5B1BAC, ModernCIPow);
+		Patch::Apply_CALL(0x5B1F0C, ModernCIPow);
+		Patch::Apply_CALL(0x5B2B9C, ModernCIPow);
+		Patch::Apply_CALL(0x5B47CC, ModernCIPow);
+		Patch::Apply_CALL(0x5B75FC, ModernCIPow);
+		Patch::Apply_CALL(0x5BBF9C, ModernCIPow);
+		Patch::Apply_CALL(0x5BD7EC, ModernCIPow);
+		Patch::Apply_CALL(0x5BEADC, ModernCIPow);
+		Patch::Apply_CALL(0x5BF5EC, ModernCIPow);
+		Patch::Apply_CALL(0x5C10FC, ModernCIPow);
+		Patch::Apply_CALL(0x5C5AFC, ModernCIPow);
+		Patch::Apply_CALL(0x5C5E9C, ModernCIPow);
+		Patch::Apply_CALL(0x5C91FC, ModernCIPow);
+		Patch::Apply_CALL(0x5C951C, ModernCIPow);
+		Patch::Apply_CALL(0x5CA42C, ModernCIPow);
+		Patch::Apply_CALL(0x5CAC2C, ModernCIPow);
+		Patch::Apply_CALL(0x5CB19C, ModernCIPow);
+		Patch::Apply_CALL(0x5D37EC, ModernCIPow);
+		Patch::Apply_CALL(0x5D58BC, ModernCIPow);
+		Patch::Apply_CALL(0x5D8A6C, ModernCIPow);
+		Patch::Apply_CALL(0x5D8D8C, ModernCIPow);
+		Patch::Apply_CALL(0x5DA4DC, ModernCIPow);
+		Patch::Apply_CALL(0x5DACFC, ModernCIPow);
+		Patch::Apply_CALL(0x5E243C, ModernCIPow);
+		Patch::Apply_CALL(0x5EF2FC, ModernCIPow);
+		Patch::Apply_CALL(0x5F13DC, ModernCIPow);
+		Patch::Apply_CALL(0x5F36FC, ModernCIPow);
+		Patch::Apply_CALL(0x5F6DEC, ModernCIPow);
+		Patch::Apply_CALL(0x5FA0DC, ModernCIPow);
+		Patch::Apply_CALL(0x5FC17C, ModernCIPow);
+		Patch::Apply_CALL(0x5FE06C, ModernCIPow);
+		Patch::Apply_CALL(0x5FEFCC, ModernCIPow);
+		Patch::Apply_CALL(0x60034C, ModernCIPow);
+		Patch::Apply_CALL(0x628F8C, ModernCIPow);
+		Patch::Apply_CALL(0x62B3DC, ModernCIPow);
+		Patch::Apply_CALL(0x62DA4C, ModernCIPow);
+		Patch::Apply_CALL(0x6309AC, ModernCIPow);
+		Patch::Apply_CALL(0x6333DC, ModernCIPow);
+		Patch::Apply_CALL(0x63F4CC, ModernCIPow);
+		Patch::Apply_CALL(0x6404FC, ModernCIPow);
+		Patch::Apply_CALL(0x64279C, ModernCIPow);
+		Patch::Apply_CALL(0x643EBC, ModernCIPow);
+		Patch::Apply_CALL(0x6449FC, ModernCIPow);
+		Patch::Apply_CALL(0x646A8C, ModernCIPow);
+		Patch::Apply_CALL(0x65268C, ModernCIPow);
+		Patch::Apply_CALL(0x658E8C, ModernCIPow);
+		Patch::Apply_CALL(0x65A54C, ModernCIPow);
+		Patch::Apply_CALL(0x65AF5C, ModernCIPow);
+		Patch::Apply_CALL(0x65D6CC, ModernCIPow);
+		Patch::Apply_CALL(0x65F33C, ModernCIPow);
+		Patch::Apply_CALL(0x65F7AC, ModernCIPow);
+		Patch::Apply_CALL(0x661CBC, ModernCIPow);
+		Patch::Apply_CALL(0x6635FC, ModernCIPow);
+		Patch::Apply_CALL(0x664B1C, ModernCIPow);
+		Patch::Apply_CALL(0x67C4AC, ModernCIPow);
+		Patch::Apply_CALL(0x68307C, ModernCIPow);
+		Patch::Apply_CALL(0x68CB3C, ModernCIPow);
+		Patch::Apply_CALL(0x6911BC, ModernCIPow);
+		Patch::Apply_CALL(0x69205C, ModernCIPow);
+		Patch::Apply_CALL(0x69396C, ModernCIPow);
+		Patch::Apply_CALL(0x6954EC, ModernCIPow);
+		Patch::Apply_CALL(0x696D2C, ModernCIPow);
+		Patch::Apply_CALL(0x69EA4C, ModernCIPow);
+		Patch::Apply_CALL(0x6A436C, ModernCIPow);
+		Patch::Apply_CALL(0x6A4A2C, ModernCIPow);
+		Patch::Apply_CALL(0x6AC97C, ModernCIPow);
+		Patch::Apply_CALL(0x6AEF1C, ModernCIPow);
+		Patch::Apply_CALL(0x6B21AC, ModernCIPow);
+		Patch::Apply_CALL(0x6B484C, ModernCIPow);
+		Patch::Apply_CALL(0x6B507C, ModernCIPow);
+		Patch::Apply_CALL(0x6B6A0C, ModernCIPow);
+		Patch::Apply_CALL(0x6B88FC, ModernCIPow);
+		Patch::Apply_CALL(0x6BB07C, ModernCIPow);
+		Patch::Apply_CALL(0x6C68CC, ModernCIPow);
+		Patch::Apply_CALL(0x6C8C8C, ModernCIPow);
+		Patch::Apply_CALL(0x6C93FC, ModernCIPow);
+		Patch::Apply_CALL(0x6CAC1C, ModernCIPow);
+		Patch::Apply_CALL(0x6CE38C, ModernCIPow);
+		Patch::Apply_CALL(0x6CF9BC, ModernCIPow);
+		Patch::Apply_CALL(0x6D183C, ModernCIPow);
+		Patch::Apply_CALL(0x6DCD7C, ModernCIPow);
+		Patch::Apply_CALL(0x6E4B5C, ModernCIPow);
+		Patch::Apply_CALL(0x6E58DC, ModernCIPow);
+		Patch::Apply_CALL(0x6E684C, ModernCIPow);
+		Patch::Apply_CALL(0x6E7C7C, ModernCIPow);
+		Patch::Apply_CALL(0x6E888C, ModernCIPow);
+		Patch::Apply_CALL(0x6F047C, ModernCIPow);
+		Patch::Apply_CALL(0x6F28AC, ModernCIPow);
+		Patch::Apply_CALL(0x6FDADC, ModernCIPow);
+		Patch::Apply_CALL(0x6FDAEB, ModernCIPow);
+		Patch::Apply_CALL(0x7108EC, ModernCIPow);
+		Patch::Apply_CALL(0x717DFC, ModernCIPow);
+		Patch::Apply_CALL(0x71A1CC, ModernCIPow);
+		Patch::Apply_CALL(0x71B5AC, ModernCIPow);
+		Patch::Apply_CALL(0x71D39C, ModernCIPow);
+		Patch::Apply_CALL(0x71E41C, ModernCIPow);
+		Patch::Apply_CALL(0x72023C, ModernCIPow);
+		Patch::Apply_CALL(0x72143C, ModernCIPow);
+		Patch::Apply_CALL(0x723A9C, ModernCIPow);
+		Patch::Apply_CALL(0x7250CC, ModernCIPow);
+		Patch::Apply_CALL(0x725D9C, ModernCIPow);
+		Patch::Apply_CALL(0x726A7C, ModernCIPow);
+		Patch::Apply_CALL(0x727DCC, ModernCIPow);
+		Patch::Apply_CALL(0x7287FC, ModernCIPow);
+		Patch::Apply_CALL(0x72A25C, ModernCIPow);
+		Patch::Apply_CALL(0x72A6BC, ModernCIPow);
+		Patch::Apply_CALL(0x73078C, ModernCIPow);
+		Patch::Apply_CALL(0x73443C, ModernCIPow);
+		Patch::Apply_CALL(0x73518C, ModernCIPow);
+		Patch::Apply_CALL(0x746EEC, ModernCIPow);
+		Patch::Apply_CALL(0x7491AC, ModernCIPow);
+		Patch::Apply_CALL(0x74AB7C, ModernCIPow);
+		Patch::Apply_CALL(0x74C19C, ModernCIPow);
+		Patch::Apply_CALL(0x75011C, ModernCIPow);
+		Patch::Apply_CALL(0x75202C, ModernCIPow);
+		Patch::Apply_CALL(0x75491C, ModernCIPow);
+		Patch::Apply_CALL(0x758F9C, ModernCIPow);
+		Patch::Apply_CALL(0x75A8AC, ModernCIPow);
+		Patch::Apply_CALL(0x75CC9C, ModernCIPow);
+		Patch::Apply_CALL(0x75E74C, ModernCIPow);
+		Patch::Apply_CALL(0x76338C, ModernCIPow);
+		Patch::Apply_CALL(0x76483C, ModernCIPow);
+		Patch::Apply_CALL(0x765D7C, ModernCIPow);
+		Patch::Apply_CALL(0x76711C, ModernCIPow);
+		Patch::Apply_CALL(0x76791C, ModernCIPow);
+		Patch::Apply_CALL(0x767CAC, ModernCIPow);
+		Patch::Apply_CALL(0x76A8AC, ModernCIPow);
+		Patch::Apply_CALL(0x76BCAC, ModernCIPow);
+		Patch::Apply_CALL(0x76C0AC, ModernCIPow);
+		Patch::Apply_CALL(0x76F28C, ModernCIPow);
+		Patch::Apply_CALL(0x76F72C, ModernCIPow);
+		Patch::Apply_CALL(0x77008C, ModernCIPow);
+		Patch::Apply_CALL(0x771A6C, ModernCIPow);
+		Patch::Apply_CALL(0x77326C, ModernCIPow);
+		Patch::Apply_CALL(0x7771DC, ModernCIPow);
+		Patch::Apply_CALL(0x7784FC, ModernCIPow);
+		Patch::Apply_CALL(0x77B09C, ModernCIPow);
+		Patch::Apply_CALL(0x77B69C, ModernCIPow);
+		Patch::Apply_CALL(0x7AF0BC, ModernCIPow);
+		Patch::Apply_CALL(0x7B0BAC, ModernCIPow);
+		Patch::Apply_CALL(0x7B17DC, ModernCIPow);
+		Patch::Apply_CALL(0x7B2BAC, ModernCIPow);
+}
+
 void CRTHooks::ApplyMathHooks()
 {
+
 	//FastMath__Acos
 	Patch::Apply_LJMP(0x4CADB0, PhobosMath::acosd);
 	Patch::Apply_CALL(0x48AAFB, PhobosMath::acosd);
@@ -11629,13 +11886,14 @@ void CRTHooks::Apply()
 	/**
 	 *  Standard functions.
 	*/
+
 	Patch::Apply_LJMP(0x7C9CC2, std::strtok);
 	Patch::Apply_LJMP(0x7D5408, _strdup);
 	Patch::Apply_LJMP(0x7DDCD6, _wcsupr);
 	Patch::Apply_LJMP(0x7DDE13, _wcsdup);
 	Patch::Apply_LJMP(0x7CA530, std::sscanf);
 	Patch::Apply_LJMP(0x7CBBDB, std::swscanf);
-	Patch::Apply_LJMP(0x7CAF30, PhobosCRT::fast_strchr_simd<char*>);
+	Patch::Apply_LJMP(0x7CAF30, PhobosCRT::strchr_selector<char*>);
 
 	Patch::Apply_LJMP(0x7CA7D8, std::fprintf);
 	Patch::Apply_LJMP(0x7CB302, std::vfprintf);
@@ -11651,13 +11909,15 @@ void CRTHooks::Apply()
 	//Patch::Apply_LJMP(0x7CAFF4, _tolower);
 	//Patch::Apply_LJMP(0x7C97D3, _toupper);
 	Patch::Apply_LJMP(0x7CB12E, _putws);
-	/*Patch::Apply_LJMP(0x7CA4B0, (decltype(&::strstr)) ::strstr);*/
-	Patch::Apply_LJMP(0x7DCFC4, strupr);
-	Patch::Apply_LJMP(0x7DDCD6, wcsupr);
+	Patch::Apply_LJMP(0x7CA4B0, PhobosCRT::strstr_selector<char*,char*>);
+	Patch::Apply_LJMP(0x7DCFC4, _strupr);
+	Patch::Apply_LJMP(0x7DDCD6, _wcsupr);
 	Patch::Apply_LJMP(0x7C8D20, _strcmpi);
+
 	//
-	ApplyftolHooks();
-	ApplyMathHooks();
+		ApplypowHooks();
+		ApplyftolHooks();
+		ApplyMathHooks();
 	//
 
 	Patch::Apply_CALL(0x6BD718, PatchExit);

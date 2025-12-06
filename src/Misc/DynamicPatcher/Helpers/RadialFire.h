@@ -57,8 +57,8 @@ struct RadialFireHelper
 		double targetAngle = Degrees + Delta * (index + 1) * (PI_BY_DEG_180);
 
 		// Simple trig is 10x faster than matrix operations
-		double cosAngle = std::cos(targetAngle);
-		double sinAngle = std::sin(targetAngle);
+		double cosAngle = Math::cos(targetAngle);
+		double sinAngle = Math::sin(targetAngle);
 
 		return { cosAngle, -sinAngle, static_cast<double>(DeltaZ * z) };
 	}

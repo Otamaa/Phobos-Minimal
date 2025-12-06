@@ -9,4 +9,5 @@ protected:
 	static void ApplyFreeHooks();
 	static void ApplyMathHooks();
 	static void ApplyftolHooks();
+	static void ApplypowHooks();
 };

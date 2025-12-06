@@ -268,6 +268,8 @@ private:
 public:
 	static COMPILETIMEEVAL Leptons DefaultBulletScatterMin { 256 };
 	static COMPILETIMEEVAL Leptons DefaultBulletScatterMax { 512 };
+	//static COMPILETIMEEVAL int _base_1 = (Unsorted::LevelHeight * Unsorted::LevelHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
+	//static COMPILETIMEEVAL int _base_2 = (Unsorted::CellHeight * Unsorted::CellHeight + Unsorted::LeptonsPerCell * Unsorted::LeptonsPerCell);
 
 };
 

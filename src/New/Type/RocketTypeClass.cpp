@@ -108,9 +108,9 @@ void RocketTypeClass::LoadFromINI(CCINIClass* pINI)
 		this->Raise.SetAll(placeholder);
 	}
 
-	detail::read(this->Raise.Rookie, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]) + "." + flag_raise).c_str());
-	detail::read(this->Raise.Veteran, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]) + "." + flag_raise).c_str());
-	detail::read(this->Raise.Elite, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Elite]) + "." + flag_raise).c_str());
+	detail::read(this->Raise.Rookie, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Rookie + 1].second) + "." + flag_raise).c_str());
+	detail::read(this->Raise.Veteran, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Veteran + 1].second) + "." + flag_raise).c_str());
+	detail::read(this->Raise.Elite, exINI, pSection, (std::string(EnumFunctions::Rank_ToStrings[(int)Rank::Elite + 1].second) + "." + flag_raise).c_str());
 
 	this->Offset.Read(exINI, pSection, "CoordOffset");
 	this->Warhead.Read(exINI, pSection, "Warhead");

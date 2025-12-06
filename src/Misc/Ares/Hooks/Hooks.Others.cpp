@@ -241,6 +241,7 @@ ASMJIT_PATCH(0x472198, CaptureManagerClass_DrawLinks, 0x6)
 	return Draw_Maybe;
 }
 
+#ifdef _old
 ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 {
 	GET(LayerClass*, pThis, ECX);
@@ -254,7 +255,346 @@ ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 
 	return 0x551A84;
 }
+#else 
 
+FORCEDINLINE void fast_ysort(ObjectClass **begin, ObjectClass **end) {
+    size_t n = (size_t)(end - begin);
+    if (n <= 1) return;
+
+    // tiny-range optimization: insertion sort for very small arrays
+    if (n <= 32) {
+        for (size_t i = 1; i < n; ++i) {
+            ObjectClass *key = begin[i];
+            int kval = key->GetYSort();
+            size_t j = i;
+            while (j > 0 && begin[j-1]->GetYSort() > kval) {
+                begin[j] = begin[j-1];
+                --j;
+            }
+            begin[j] = key;
+        }
+        return;
+    }
+
+    // Build key-pointer pairs to avoid virtual calls in comparisons
+    // Also compute min/max while we are at it.
+    std::vector<int> keys;
+    keys.reserve(n);
+    int minv = INT32_MAX, maxv = INT32_MIN;
+    for (size_t i = 0; i < n; ++i) {
+        int k = begin[i]->GetYSort();
+        keys.push_back(k);
+        if (k < minv) minv = k;
+        if (k > maxv) maxv = k;
+    }
+
+    // If keys fit in a reasonably small range, do counting sort (stable).
+    // Tunable: max_range_allowed controls memory usage and speed tradeoff.
+    const int64_t max_range_allowed = 1 << 16; // 65536
+    int64_t range = (int64_t)maxv - (int64_t)minv + 1;
+    if (range > 0 && range <= max_range_allowed) {
+        // counting sort
+        std::vector<uint32_t> counts((size_t)range);
+        for (size_t i = 0; i < n; ++i) counts[(size_t)(keys[i] - minv)]++;
+
+        // prefix sums
+        uint32_t sum = 0;
+        for (size_t i = 0; i < counts.size(); ++i) {
+            uint32_t c = counts[i];
+            counts[i] = sum;
+            sum += c;
+        }
+
+        // output buffer (stable)
+        std::vector<ObjectClass*> out(n);
+        for (size_t i = 0; i < n; ++i) {
+            auto idx = (size_t)(keys[i] - minv);
+            out[counts[idx]++] = begin[i];
+        }
+
+        // copy back
+        std::memcpy(begin, out.data(), n * sizeof(ObjectClass*));
+        return;
+    }
+
+    // Fallback: sort by (key, pointer) pair to avoid repeated GetYSort() calls
+    // (This is typically faster than calling the virtual in comparator repeatedly)
+    struct KP { int key; ObjectClass* ptr; };
+    std::vector<KP> arr;
+    arr.reserve(n);
+    for (size_t i = 0; i < n; ++i) arr.push_back({keys[i], begin[i]});
+
+    std::sort(arr.begin(), arr.end(), [](const KP &a, const KP &b) {
+        return a.key < b.key; // stable-ness not strictly required but ok
+    });
+
+    // copy back
+    for (size_t i = 0; i < n; ++i) begin[i] = arr[i].ptr;
+}
+
+// --- Fixed buffer std::sort wrapper ----------------------------------------
+// Use preallocated index buffer to avoid allocations during sort when building comparators
+
+
+struct YSortComparator{
+	inline bool operator()(ObjectClass* a, ObjectClass* b) const {
+		return a->GetYSort() < b->GetYSort();
+	}
+};
+
+// EXPECTED_MAX_ITEMS should be set to worst-case number of objects to sort.
+// If you're certain the mod won't exceed a given number, set accordingly to save memory.
+#define EXPECTED_MAX_ITEMS 50000
+
+// --- Thread-local buffers & vectors ---------------------------------------
+// Pre-reserved std::vector to avoid allocations during std::sort fallback.
+thread_local ObjectClass* g_tmpRadixA[EXPECTED_MAX_ITEMS];
+thread_local ObjectClass* g_tmpRadixB[EXPECTED_MAX_ITEMS];
+thread_local uint32_t     g_keyBuffer[EXPECTED_MAX_ITEMS];
+thread_local int          g_count[256];
+
+template<typename GetKey>
+static void RadixSort32(ObjectClass** items, int n, GetKey getKey)
+{
+	if (n <= 1) return;
+
+	// Preload all keys – important for performance
+	for (int i = 0; i < n; ++i)
+		g_keyBuffer[i] = getKey(items[i]);
+
+	ObjectClass** src = items;
+	ObjectClass** dst = g_tmpRadixA;
+
+	for (int pass = 0; pass < 4; ++pass)
+	{
+		int shift = pass * 8;
+
+		// zero counts
+		for (int i = 0; i < 256; ++i)
+			g_count[i] = 0;
+
+		// count
+		for (int i = 0; i < n; ++i)
+			g_count[(g_keyBuffer[i] >> shift) & 0xFF]++;
+
+		// prefix sum
+		int sum = 0;
+		for (int i = 0; i < 256; ++i)
+		{
+			int c = g_count[i];
+			g_count[i] = sum;
+			sum += c;
+		}
+
+		// scatter
+		for (int i = 0; i < n; ++i)
+		{
+			uint32_t key = g_keyBuffer[i];
+			int bucket = (key >> shift) & 0xFF;
+			dst[g_count[bucket]++] = src[i];
+		}
+
+		// swap buffers for next pass
+		std::swap(src, dst);
+	}
+
+	// If final output is not items[], copy back
+	if (src != items)
+		std::memcpy(items, src, n * sizeof(ObjectClass*));
+}
+
+class FakeLayerClass : public LayerClass
+{
+public:
+
+	void __short() {
+        const int nCount = this->Count;
+        
+        // Early exit for trivial cases
+        if (nCount <= 1) return;
+        
+        constexpr int NUM_SLICES = 15;
+        const int currentFrame = Unsorted::CurrentFrame % NUM_SLICES;
+        const int chunkSize = nCount / NUM_SLICES;
+        
+        // Calculate slice boundaries
+        const int startIndex = chunkSize * currentFrame;
+        ObjectClass** begin = &this->Items[startIndex];
+        ObjectClass** end;
+        
+        if (currentFrame >= NUM_SLICES - 1) {
+            end = &this->Items[nCount];
+        } else {
+            const int sliceSize = chunkSize + (chunkSize >> 2);  // chunk + chunk/4
+            end = begin + sliceSize;
+            // Clamp to valid range
+            if (end > &this->Items[nCount]) {
+                end = &this->Items[nCount];
+            }
+        }
+        
+        const size_t rangeSize = end - begin;
+        
+        // Skip if nothing to sort
+        if (rangeSize <= 1) return;
+        
+        // Cache structure for sort keys
+        struct SortKey {
+            ObjectClass* obj;
+            int y;
+        };
+        
+        // Use static thread_local for better performance in multithreaded scenarios
+        thread_local static std::vector<SortKey> cache;
+        cache.clear();
+        cache.reserve(rangeSize);
+        
+        // Build cache with prefetching
+        for (auto it = begin; it != end; ++it) {
+            // Prefetch next iteration's data
+            if (it + 1 < end) {
+                _mm_prefetch((const char*)(it + 1), _MM_HINT_T0);
+                // Also prefetch the object we'll be calling GetYSort on
+                if (*(it + 1)) {
+                    _mm_prefetch((const char*)(*(it + 1)), _MM_HINT_T0);
+                }
+            }
+            
+            // Null check (in case of invalid pointers)
+            if (*it) {
+                cache.push_back({ *it, (*it)->GetYSort() });
+            }
+        }
+        
+        // Sort by cached Y values
+        pdqsort(cache.begin(), cache.end(),
+            [](const SortKey& a, const SortKey& b) {
+                return a.y < b.y;
+            }
+        );
+        
+        // Write back sorted pointers with prefetching
+        auto outIt = begin;
+        for (size_t i = 0; i < cache.size(); ++i) {
+            // Prefetch next write location
+            if (i + 1 < cache.size() && outIt + 1 < end) {
+                _mm_prefetch((const char*)(outIt + 1), _MM_HINT_T0);
+            }
+            *outIt++ = cache[i].obj;
+        }
+    }
+
+	bool __sortedadd(ObjectClass* object)
+	{
+		// Grow if needed
+		if (this->Count >= this->Capacity) {
+			if (!this->IsAllocated && this->Capacity != 0) {
+				return false;
+			}
+
+			if (this->CapacityIncrement <= 0) {
+				return false;
+			}
+
+			if (!this->set_capacity(this->Capacity + this->CapacityIncrement, nullptr)) {
+				return false;
+			}
+		}
+
+		// Binary search for insertion index using GameLess
+		int lo = 0;
+		int hi = this->Count; // insertion position in [0..ActiveCount]
+
+
+		// If comparator is broken (always false), fall back to linear find to preserve original
+		bool anyLess = false;
+		for (int i = 0; i < this->Count; ++i) {
+			if (YSortComparator()(this->Items[i], object)) { anyLess = true; break; }
+		}
+
+
+		int index = this->Count; // default append
+		if (!anyLess)
+		{
+			// comparator never returns true for existing < new; behaviour in original code
+			// would have broken out at index=0 (because test was true), but you observed "always false".
+			// To maintain compatibility, we'll fall back to original linear scan.
+			for (index = 0; index < this->Count; ++index)
+			{
+				if (YSortComparator()(this->Items[index], object)) break;
+			}
+		}
+		else
+		{
+			// binary search: find first position where not (existing < object)
+			while (lo < hi)
+			{
+				int mid = (lo + hi) >> 1;
+				if (YSortComparator()(this->Items[mid], object))
+				{
+					lo = mid + 1;
+				}
+				else
+				{
+					hi = mid;
+				}
+			}
+			index = lo;
+		}
+
+
+		// shift elements up by one => Vector_Item[index+1] becomes new value
+		int ac = this->Count;
+		// memmove is safe for overlapping ranges
+		if (index < ac) {
+			std::memmove(&this->Items[index + 1], &this->Items[index], (ac - index) * sizeof(ObjectClass*));
+		}
+
+		this->Items[index] = object;
+		++this->Count;
+		return true;
+	}
+
+	bool __submit(ObjectClass* object, bool sort)
+ 	{
+ 		if (!object)
+ 			Debug::FatalErrorAndExit("Trying To submit nullptr object to layer !\n");
+
+ 		if (sort) {
+ 			return this->__sortedadd(object);
+ 		}
+
+ 		return this->push_back(object);
+ 	}
+};
+
+//DEFINE_FUNCTION_JUMP(VTABLE, 0x7E607C, FakeLayerClass::__submit);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x551A90, FakeLayerClass::__sortedadd);
+//DEFINE_FUNCTION_JUMP(LJMP, 0x5519B0, FakeLayerClass::__submit);
+//DEFINE_FUNCTION_JUMP(CALL, 0x55BABB, FakeLayerClass::__submit);
+//DEFINE_FUNCTION_JUMP(CALL, 0x4A9759, FakeLayerClass::__submit);
+DEFINE_FUNCTION_JUMP(CALL, 0x55DBC8, FakeLayerClass::__short);
+DEFINE_FUNCTION_JUMP(LJMP, 0x551A30, FakeLayerClass::__short);
+
+//ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
+//{
+//    GET(LayerClass*, pThis, ECX);
+//
+//    auto const nCount = pThis->Count;
+//	if (nCount <= 1) return 0;
+//		return 0x551A84;
+//    auto nBegin = &pThis->Items[nCount / 15 * (Unsorted::CurrentFrame % 15)];
+//    auto nEnd = (Unsorted::CurrentFrame % 15 >= 14)
+//        ? (&pThis->Items[nCount])
+//        : (&nBegin[nCount / 15 + nCount / 15 / 4]);
+//
+//	fast_ysort((ObjectClass**)nBegin, (ObjectClass**)nEnd);
+//	// std::sort(nBegin, nEnd, [](const ObjectClass* A, const ObjectClass* B) {
+//	// 	return A->GetYSort() < B->GetYSort();
+//	// });
+//    return 0x551A84;
+//}
+#endif
 //ASMJIT_PATCH(0x5F65F0, ObjectClass_UnUnit_nullptr, 0x6)
 //{
 //	GET(ObjectClass*, pThis, ECX);

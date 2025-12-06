@@ -480,8 +480,8 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 
 		int safeDistance = (RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + nNode->Argument) << 8;
 		double distance = static_cast<double>(safeDistance);
-		double targetX = baseX + std::cos(angleRad) * distance;
-		double targetY = baseY - std::sin(angleRad) * distance;
+		double targetX = baseX + Math::cos(angleRad) * distance;
+		double targetY = baseY - Math::sin(angleRad) * distance;
 
 		CellStruct targetCell { (short)(static_cast<int>(targetX) / 256), (short)(static_cast<int>(targetY) / 256) };
 
@@ -542,8 +542,8 @@ void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
 		int safeDistance = (RulesClass::Instance->AISafeDistance + nNode->Argument) << 8;
 		double distance = static_cast<double>(safeDistance);
 
-		double targetX = enemyBase.X + std::cos(angleRad) * distance;
-		double targetY = enemyBase.Y - std::sin(angleRad) * distance;
+		double targetX = enemyBase.X + Math::cos(angleRad) * distance;
+		double targetY = enemyBase.Y - Math::sin(angleRad) * distance;
 
 		CellStruct targetCell { (short)(static_cast<int>(targetX) / 256) ,  (short)(static_cast<int>(targetY) / 256) };
 
@@ -1574,7 +1574,7 @@ bool FakeTeamClass::_Is_A_Member(FootClass* member) {
 
 void _fastcall FakeTeamClass::_Suspend_Teams(int priority, HouseClass* house) {
 	for (auto& team : *TeamClass::Array) {
-		if (team->OwnerHouse == house && team->Type->Priority < priority) {
+		if (team && team->OwnerHouse == house && team->Type->Priority < priority) {
 			for (auto i = team->FirstUnit; i; i = team->FirstUnit) {
 				((FakeTeamClass*)team)->_Remove(i,-1, false);
 
@@ -1589,15 +1589,12 @@ void _fastcall FakeTeamClass::_Suspend_Teams(int priority, HouseClass* house) {
 
 bool FakeTeamClass::_Is_Leaving_Map() {
 	if (this->IsMoving) {
-		if (this->CurrentScript->HasMissionsRemaining())
-		{
+		if (this->CurrentScript->HasMissionsRemaining()) {
 			auto const&[Current_Mission , val] = this->CurrentScript->GetCurrentAction();
-			if (Current_Mission == TeamMissionType::Move)
-			{
+			if (Current_Mission == TeamMissionType::Move) {
 				CellStruct  Waypoint_Location = ScenarioClass::Instance->GetWaypointCoords(val);
-				if (!MapClass::Instance->IsWithinUsableArea(Waypoint_Location, 1))
-				{
-					return 1;
+				if (!MapClass::Instance->IsWithinUsableArea(Waypoint_Location, 1)) {
+					return true;
 				}
 			}
 		}
@@ -1630,7 +1627,7 @@ bool FakeTeamClass::_has_aircraft() {
 
 	for (int i = 0; i < TaskForce->CountEntries; ++i) {
 		if (TaskForce->Entries[i].Type && TaskForce->Entries[i].Amount > 0) {
-			if (TaskForce->Entries[i].Type->WhatAmI() == AircraftTypeClass::AbsID) {
+			if (TaskForce->Entries[i].Type->WhatAmI() == AircraftTypeClass::AbsID && TaskForce->Entries[i].Type->Passengers > 0) {
 				return true;
 			}
 		}
@@ -1893,8 +1890,7 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 	// Override with origin location if specified
 	CellStruct origin;
 	this->Type->GetWaypoint(&origin);
-	if (origin.IsValid()) // Not default cell
-	{
+	if (origin.IsValid()) {
 		recruitLocation = CellClass::Cell2Coord(origin);
 	}
 
@@ -1947,15 +1943,15 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 	}
 
 	return false;
-
 }
 
 void FakeTeamClass::_TeamClass_6EA080()
 {
-	FootClass* Member = this->FirstUnit;
 	this->IsMoving = true;
 	this->IsHasBeen = true;
-	for (this->IsUnderStrength = false; Member; Member = Member->NextTeamMember) {
+	this->IsUnderStrength = false;
+
+	for (FootClass* Member = this->FirstUnit; Member; Member = Member->NextTeamMember) {
 		if (this->IsReforming || this->IsForcedActive) {
 			Member->IsTeamLeader = 1;
 		}
@@ -1969,7 +1965,7 @@ void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
 {
 	// If the new target is different than current mission target
 
-	if (new_target != this->QueuedFocus && this->QueuedFocus) {
+	if (new_target != this->QueuedFocus && new_target) {
 		FootClass* unit = this->FirstUnit;
 
 		while (unit)
@@ -2436,11 +2432,10 @@ void FakeTeamClass::_Regroup()
 				this->Zone->GetCoords()
 			);
 
-			CellStruct safetyPoint;
-			leader->SafetyPoint(&safetyPoint, &zoneCell, &buildingCell, 2, 4);
+			CellStruct safetyPoint = leader->SafetyPoint(zoneCell, buildingCell, 2, 4);
 
 			// Only use this destination if a valid safety point was found
-			if (safetyPoint.X != -1 && safetyPoint.Y != -1) // Assuming default_cell is (-1, -1)
+			if (safetyPoint.IsValid())
 			{
 				minWeightedDistance = weightedDistance;
 				destCell = safetyPoint;
@@ -4645,39 +4640,23 @@ bool FakeTeamClass::_CoordinateRegroup()
 {
 	bool allMembersRegrouped = true;
 	FootClass* Member = this->FirstUnit;
-	bool hasTeamLeader = false;  // Track if we have a captain
 
 	// If no members exist, mark as regrouped and return true
-	if (!Member)
-	{
+	if (!Member) {
 		this->NeedsReGrouping = 0;
 		return true;
 	}
 
 	int stray = this->_Get_Stray();
 
-	// First pass: Check if we already have a team leader
-	for (FootClass* checkMember = Member; checkMember; checkMember = checkMember->NextTeamMember) {
-		if (checkMember->IsTeamLeader && checkMember->IsAlive && checkMember->Health) {
-			hasTeamLeader = true;
-			break;
-		}
-	}
-
 	// Process each member in the team
-	do
-	{
-		if (Member->IsAlive)
-		{
+	do {
+		if (Member->IsAlive) {
 			// Check if member is valid and ready for regrouping
 			if (Member->Health && (Unsorted::ScenarioInit || !Member->InLimbo) && !Member->IsTeamLeader) {
 				// Check if member is close enough to initiate
-				if (FakeObjectClass::_GetDistanceOfObj(Member , discard_t() , this->Zone) <= stray)
-				{
-					if (!hasTeamLeader) {
-						Member->IsTeamLeader = true;
-						hasTeamLeader = true;
-					}
+				if (FakeObjectClass::_GetDistanceOfObj(Member , discard_t() , this->Zone) <= stray) {
+					Member->IsTeamLeader = true;
 				}
 				else if (!Member->Destination)
 				{

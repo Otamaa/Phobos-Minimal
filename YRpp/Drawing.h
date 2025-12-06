@@ -242,7 +242,7 @@ struct Drawing
 	}
 
 
-	static std::array<ColorStruct, (size_t)DefaultColorList::count> DefaultColors;
+	static std::array<ColorStruct, (size_t)DefaultColorList::Black + 1> DefaultColors;
 
 	static void __stdcall DrawLinesTo(CoordStruct nFrom, CoordStruct nTo, ColorStruct color)
 	{

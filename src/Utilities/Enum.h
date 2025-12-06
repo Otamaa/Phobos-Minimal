@@ -61,6 +61,13 @@ enum class ExtendedThreatType : int
 };
 MAKE_ENUM_FLAGS(ExtendedThreatType);
 
+enum class HealthCondition : BYTE
+{
+	ConditionGreen = 0,
+	ConditionYellow = 1,
+	ConditionRed = 2
+};
+
 enum class PassiveAcquireMode : BYTE
 {
 	Normal = 0,
@@ -68,7 +75,7 @@ enum class PassiveAcquireMode : BYTE
 	Ceasefire = 2,
 };
 
-enum class DisplayShowType : unsigned char
+enum class DisplayShowType : BYTE
 {
 	None = 0x0,
 	CursorHover = 0x1,
@@ -81,7 +88,7 @@ enum class DisplayShowType : unsigned char
 
 MAKE_ENUM_FLAGS(DisplayShowType);
 
-enum class AffectedTechno : unsigned char
+enum class AffectedTechno : BYTE
 {
 	None = 0x0,
 	Infantry = 0x1,
@@ -153,7 +160,7 @@ COMPILETIMEEVAL FORCEDINLINE bool IsLandTypeInFlags(LandTypeFlags flags, LandTyp
 	return (bool)((LandTypeFlags)(1 << (char)type) & flags);
 }
 
-enum class DiscardCondition : unsigned char
+enum class DiscardCondition : BYTE
 {
 	None = 0x0,
 	Entry ,
@@ -169,7 +176,7 @@ enum class DiscardCondition : unsigned char
 
 MAKE_ENUM_FLAGS(DiscardCondition);
 
-enum class ExpireWeaponCondition : unsigned char
+enum class ExpireWeaponCondition : BYTE
 {
 	None = 0x0,
 	Expire = 0x1,
@@ -222,7 +229,7 @@ enum class NewSuperType : int
 	count
 };
 
-enum class DamageDisplayType {
+enum class DamageDisplayType : BYTE {
 	Regular = 0,
 	Shield = 1,
 	Intercept = 2
@@ -276,24 +283,19 @@ enum class AresScripts : int
 	count
 };
 
-enum class BountyValueOption : int
-{
-	Value , ValuePercentOfConst , ValuePercentOfSoylent , Cost , Soylent ,count
+enum class BountyValueOption : BYTE {
+	Value , ValuePercentOfConst , ValuePercentOfSoylent , Cost , Soylent
 };
 
-enum class ShowTimerType : int
-{
-	Hour = 0,
-	Minute = 1,
-	Second = 2,
+enum class ShowTimerType : BYTE {
+	Hour , Minute , Second
 };
 
-enum class SpotlightAttachment : int
-{
+enum class SpotlightAttachment : BYTE {
 	Body, Turret, Barrel
 };
 
-enum class SuperWeaponTarget : unsigned char
+enum class SuperWeaponTarget : BYTE
 {
 	None = 0x0,
 	Land = 0x1,
@@ -327,7 +329,7 @@ MAKE_ENUM_FLAGS(TargetingConstraints);
 
 enum class TargetingPreference : char
 {
-	None = 0, Offensive, Devensive
+	None = 0 , Offensive , Devensive
 };
 
 //TODO HelpText
@@ -429,7 +431,7 @@ enum class PhobosAbilityType : int
 	count
 };
 
-enum class ChronoSparkleDisplayPosition : unsigned char
+enum class ChronoSparkleDisplayPosition : BYTE
 {
 	None = 0x0,
 	Building = 0x1,
@@ -441,22 +443,12 @@ enum class ChronoSparkleDisplayPosition : unsigned char
 
 MAKE_ENUM_FLAGS(ChronoSparkleDisplayPosition);
 
-enum class TargetZoneScanType : int
-{
-	Same = 0,
-	Any = 1,
-	InRange = 2,
-
-	count
+enum class TargetZoneScanType : BYTE {
+	Same, Any, InRange
 };
 
-enum class DamageDelayTargetFlag : int
-{
-	Cell = 0,
-	AttachedObject = 1,
-	Invoker = 2,
-
-	count
+enum class DamageDelayTargetFlag : BYTE {
+	Cell , AttachedObject , Invoker 
 };
 
 enum class FullMapDetonateResult : int
@@ -465,9 +457,7 @@ enum class FullMapDetonateResult : int
 	TargetNotEligible,
 	TargetHouseNotEligible,
 	TargetRestricted,
-	TargetValid,
-
-	count
+	TargetValid
 };
 
 enum class TransactValueType : int
@@ -502,7 +492,7 @@ enum class AirAttackStatusIDB : int
 	AIR_ATT_RETURN_TO_BASE = 0xA,
 };
 
-enum class SuperWeaponAITargetingMode
+enum class SuperWeaponAITargetingMode : BYTE
 {
 	None = 0,
 	Nuke = 1,
@@ -527,11 +517,10 @@ enum class SuperWeaponAITargetingMode
 	LightningRandom = 20 ,
 	LauchSite = 21 ,
 	FindAuxTechno = 22 ,
-	IonCannon = 23,
-	count
+	IonCannon = 23
 };
 
-enum class AffectedTarget : unsigned char {
+enum class AffectedTarget : BYTE {
 	None = 0x0,
 	Land = 0x1,
 	Water = 0x2,
@@ -549,7 +538,7 @@ enum class AffectedTarget : unsigned char {
 
 MAKE_ENUM_FLAGS(AffectedTarget);
 
-enum class AffectedHouse : unsigned char {
+enum class AffectedHouse : BYTE {
 	None = 0x0,
 	Owner = 0x1,
 	Allies = 0x2,
@@ -563,13 +552,13 @@ enum class AffectedHouse : unsigned char {
 
 MAKE_ENUM_FLAGS(AffectedHouse);
 
-enum class AffectPlayerType : unsigned char
+enum class AffectPlayerType : BYTE
 {
 	None = 0x0 , Computer , Player  , Observer
 };
 MAKE_ENUM_FLAGS(AffectPlayerType);
 
-enum class OwnerHouseKind : int {
+enum class OwnerHouseKind : BYTE {
 	Default = 0,
 	Invoker = 1,
 	Killer = 2,
@@ -597,20 +586,20 @@ enum class SuperWeaponFlags : unsigned short {
 
 MAKE_ENUM_FLAGS(SuperWeaponFlags);
 
-enum class AreaFireTarget
+enum class AreaFireTarget : BYTE
 {
 	Base = 0,
 	Self = 1,
 	Random = 2
 };
 
-enum class PhobosAction {
+enum class PhobosAction : BYTE {
 	None = 0,
 	Hijack = 1,
 	Drive = 2
 };
 
-enum class SelfHealGainType
+enum class SelfHealGainType : BYTE
 {
 	None = 0,
 	Infantry = 1,
@@ -646,8 +635,7 @@ enum class FeedBackType : BYTE
 	ReceiveDamage = 2
 };
 
-
-enum class InterceptedStatus : unsigned char
+enum class InterceptedStatus : BYTE
 {
 	None = 0x0,
 	Targeted = 0x1,
@@ -658,17 +646,8 @@ enum class InterceptedStatus : unsigned char
 MAKE_ENUM_FLAGS(InterceptedStatus);
 
 //hexagon
-enum class BuildingSelectBracketPosition :BYTE
-{
-	Top = 0,
-	LeftTop = 1,
-	LeftBottom = 2,
-	Bottom = 3,
-	RightBottom = 4,
-	RightTop = 5,
-
-	count
-
+enum class BuildingSelectBracketPosition : BYTE {
+	Top , LeftTop , LeftBottom , Bottom, RightBottom , RightTop
 };
 
 enum class DisplayInfoType : BYTE
@@ -697,19 +676,11 @@ enum class DisplayInfoType : BYTE
 	SuperWeapon = 21,
 	TemporalLife = 22,
 	FactoryProcess= 23,
-	SelfHealCombatDelay = 24,
-	count
+	SelfHealCombatDelay = 24
 };
 
-enum class SlaveReturnTo : int
-{
-	Killer = 0, //default
-	Master = 1,
-	Suicide = 2,
-	Neutral = 3,
-	Civilian = 4,
-	Special = 5,
-	Random = 6
+enum class SlaveReturnTo : BYTE {
+	Killer , Master , Suicide , Neutral , Civilian , Special , Random
 };
 
 enum class KillMethod : int
@@ -722,7 +693,7 @@ enum class KillMethod : int
 	Random = 4
 };
 
-enum class BannerNumberType : int
+enum class BannerNumberType : BYTE
 {
 	None = 0,
 	Variable = 1,

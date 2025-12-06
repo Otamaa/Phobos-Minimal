@@ -292,13 +292,11 @@ namespace detail
 	template <>
 	OPTIONALINLINE bool getresult<Rank>(Rank& value, const std::string& parser, const char* pSection, const char* pKey, bool bAllocate)
 	{
-		if (!parser.empty())
-		{
-			for (size_t i = 0; i < EnumFunctions::Rank_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.c_str(), EnumFunctions::Rank_ToStrings[i]))
-				{
-					value = Rank(i);
+		if (!parser.empty()) {
+			for (size_t i = 1 ; i < EnumFunctions::Rank_ToStrings.size(); ++i) {
+				const auto&[val , str ] = EnumFunctions::Rank_ToStrings[i];
+				if (IS_SAME_STR_(parser.c_str(), str.data())) {
+					value = val;
 					return true;
 				}
 			}
@@ -988,10 +986,8 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (auto const& [pString , val] : EnumFunctions::HorizontalPosition_ToStrings)
-			{
-				if (IS_SAME_STR_(parser.value(), pString))
-				{
+			for (const auto& [val , str] : EnumFunctions::HorizontalPosition_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
 					value = val;
 					return true;
 				}
@@ -1014,10 +1010,8 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (const auto& [pString, val] : EnumFunctions::BannerNumberType_ToStrings)
-			{
-				if (IS_SAME_STR_(parser.value(), pString))
-				{
+			for (const auto& [val , str] : EnumFunctions::BannerNumberType_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
 					value = val;
 					return true;
 				}
@@ -1034,19 +1028,16 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < EnumFunctions::VerticalPosition_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::VerticalPosition_ToStrings[i]))
-				{
-					value = VerticalPosition(i);
-					return true;
-				}
-			}
-
-			if (IS_SAME_STR_(parser.value(), "centre"))
-			{
+			if (IS_SAME_STR_(parser.value(), "centre")) {
 				value = VerticalPosition::Center;
 				return true;
+			}
+
+			for (const auto& [val , str] : EnumFunctions::VerticalPosition_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
+					return true;
+				}
 			}
 
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Vertical Position can be either Top, Center/Centre or Bottom");
@@ -1058,18 +1049,18 @@ namespace detail
 	template <>
 	OPTIONALINLINE bool read<SelfHealGainType>(SelfHealGainType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (size_t i = 0; i < EnumFunctions::SelfHealGainType_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::SelfHealGainType_ToStrings[i])) {
-					value = SelfHealGainType(i);
-					return true;
-				}
-			}
+		if (parser.ReadString(pSection, pKey)) {
 
 			if (IS_SAME_STR_(parser.value(), "noheal")){
 				value = SelfHealGainType::None;
 				return true;
+			}
+
+			for (const auto& [val, str] : EnumFunctions::SelfHealGainType_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
+					return true;
+				}
 			}
 
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a self heal gain type");
@@ -1083,10 +1074,8 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (const auto& [pString , val] : EnumFunctions::SlaveReturnTo_ToStrings)
-			{
-				if (IS_SAME_STR_(parser.value(), pString))
-				{
+			for (const auto& [val, str] : EnumFunctions::SlaveReturnTo_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
 					value = val;
 					return true;
 				}
@@ -1103,10 +1092,8 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (const auto& [pString, val] : EnumFunctions::KillMethod_ToStrings)
-			{
-				if (IS_SAME_STR_(parser.value(), pString))
-				{
+			for (const auto& [val, str] : EnumFunctions::KillMethod_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
 					value = val;
 					return true;
 				}
@@ -1122,10 +1109,8 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (auto const& [pStrings ,val]: EnumFunctions::IronCurtainFlag_ToStrings)
-			{
-				if (IS_SAME_STR_(parser.value(), pStrings))
-				{
+			for (const auto& [val, str] : EnumFunctions::IronCurtainFlag_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
 					value = val;
 					return true;
 				}
@@ -1170,10 +1155,8 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (const auto& [pStrings, val] : EnumFunctions::SuperWeaponAITargetingMode_ToStrings)
-			{
-				if (IS_SAME_STR_(parser.value(), pStrings))
-				{
+			for (const auto& [val, str] : EnumFunctions::SuperWeaponAITargetingMode_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
 					value = val;
 					return true;
 				}
@@ -1355,10 +1338,10 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < EnumFunctions::TargetingPreference_ToStrings.size(); ++i) {
-				if(IS_SAME_STR_(parser.value(), EnumFunctions::TargetingPreference_ToStrings[i])){
-					value = TargetingPreference(i);
-					return true;
+			for (const auto& [val , str] : EnumFunctions::TargetingPreference_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
+					break;
 				}
 			}
 
@@ -1505,17 +1488,14 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < EnumFunctions::AreaFireTarget_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::AreaFireTarget_ToStrings[i]))
-				{
-					value = AreaFireTarget(i);
-					return true;
+			for (const auto& [val , str] : EnumFunctions::AreaFireTarget_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
+					break;
 				}
 			}
 
 			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected an AreaFire target");
-
 		}
 
 		return false;
@@ -2032,13 +2012,13 @@ void OPTIONALINLINE Promotable<T>::Read(INI_EX& parser, const char* const pSecti
 	}
 
 	// read specific flags
-	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie + 1].second.data());
 	detail::read(this->Rookie, parser, pSection, flagbuffer, allocate);
 
-	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran + 1].second.data());
 	detail::read(this->Veteran, parser, pSection, flagbuffer, allocate);
 
-	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite + 1].second.data());
 	detail::read(this->Elite, parser, pSection, flagbuffer, allocate);
 };
 
@@ -2088,13 +2068,13 @@ void OPTIONALINLINE NullablePromotable<T>::Read(INI_EX& parser, const char* cons
 	}
 
 	// read specific flags
-	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie]);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Rookie + 1].second.data());
 	this->Rookie.Read(parser, pSection, flagbuffer);
 
-	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran]);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Veteran + 1].second.data());
 	this->Veteran.Read(parser, pSection, flagbuffer);
 
-	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite]);
+	IMPL_SNPRNINTF(flagbuffer, sizeof(flagbuffer), pBaseFlag, EnumFunctions::Rank_ToStrings[(int)Rank::Elite + 1].second.data());
 	this->Elite.Read(parser, pSection, flagbuffer);
 };
 
@@ -2250,10 +2230,10 @@ void OPTIONALINLINE Damageable<T>::Read(INI_EX& parser, const char* const pSecti
 
 	this->BaseValue.Read(parser, pSection, flagName , Alloc);
 
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1].second.data());
 	this->ConditionYellow.Read(parser, pSection, flagName, Alloc);
 
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2].second.data());
 	this->ConditionRed.Read(parser, pSection, flagName, Alloc);
 };
 
@@ -2342,10 +2322,10 @@ void OPTIONALINLINE DamageableVector<T>::Read(INI_EX& parser, const char* const 
 
 	this->BaseValue.Read(parser, pSection, flagName);
 
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[1].second.data());
 	this->ConditionYellow.Read(parser, pSection, flagName);
 
-	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2]);
+	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, EnumFunctions::HealthCondition_ToStrings[2].second.data());
 	this->ConditionRed.Read(parser, pSection, flagName);
 
 	IMPL_SNPRNINTF(flagName, sizeof(flagName), pBaseFlag, "MaxValue");

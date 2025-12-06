@@ -226,8 +226,8 @@ ASMJIT_PATCH(0x44CA97, BuildingClass_MI_Missile_State2_NukeBulletCreate, 0x6)
 			pThis->GetFLH(&nFLH, 0, CoordStruct::Empty);
 
 			// Otamaa : the original calculation seems causing missile to be invisible
-			//auto nCos = std::cos(Math::Math::PI_BY_TWO_APPROX); // Accuracy is different from the game
-			//auto nSin = std::sin(Math::Math::PI_BY_TWO_APPROX);// Accuracy is different from the game
+			//auto nCos = Math::cos(Math::Math::PI_BY_TWO_APPROX); // Accuracy is different from the game
+			//auto nSin = Math::sin(Math::Math::PI_BY_TWO_APPROX);// Accuracy is different from the game
 
 			const auto nMult = pCreated->Type->Vertical ? 10.0 : 100.0;
 			//const auto nX = nCos * nCos * nMult;

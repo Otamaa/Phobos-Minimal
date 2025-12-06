@@ -165,6 +165,12 @@ public:
 		JMP_THIS(0x4CBC40);
 	}
 
+	CellStruct SafetyPoint(CellStruct& src, CellStruct& dst, int start, int max) const {
+		CellStruct ret;
+		SafetyPoint(&ret, &src, &dst, start, max);
+		return ret;
+	}
+
 	LPVOID SwapToDroppodLocomotor() const  {
 		JMP_THIS(0x4DB8A0);
 	}

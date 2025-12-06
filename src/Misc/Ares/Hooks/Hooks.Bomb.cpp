@@ -48,46 +48,47 @@ ASMJIT_PATCH(0x725961, AnnounceInvalidPointer_BombCloak, 0x6)
 ASMJIT_PATCH(0x438A00, BombClass_GetCurrentFrame, 6)
 {
 	GET(BombClass*, pThis, ECX);
+    const auto ext = BombExtContainer::Instance.Find(pThis);
+    const auto pData = ext->Weapon;
 
-	const auto pData = BombExtContainer::Instance.Find(pThis)->Weapon;
-	const SHPStruct* pSHP = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
-	int frame = 0;
+    const SHPStruct* shp = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
+    const int frames = shp->Frames;
 
-	if (pSHP->Frames >= 2)
-	{
-		if (pThis->Type == BombType::NormalBomb)
-		{
-			// -1 so that last iteration has room to flicker. order is important
-			const int delay = pData->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
-			const int lifetime = (Unsorted::CurrentFrame - pThis->PlantingFrame);
-			frame = lifetime / (delay / (pSHP->Frames - 1));
+    int result = 0;
 
-			// flicker over a time period
-			const int rate = pData->Ivan_FlickerRate.Get(RulesClass::Instance->IvanIconFlickerRate);
-			const int period = 2 * rate;
-			if (Unsorted::CurrentFrame % period >= rate)
-			{
-				++frame;
-			}
+    if(frames >= 2) {
+        if(pThis->Type != BombType::NormalBomb) {
+            // DeathBomb → last frame
+            result = frames - 1;
+        }  else {
+            const int delay = pData->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
+            const int flickerRate = pData->Ivan_FlickerRate.Get(RulesClass::Instance->IvanIconFlickerRate);
+            const int elapsed = Unsorted::CurrentFrame - pThis->PlantingFrame;
 
-			if (frame >= pSHP->Frames)
-			{
-				frame = pSHP->Frames - 1;
-			}
-			else if (frame == pSHP->Frames - 1)
-			{
-				--frame;
-			}
-		}
-		else
-		{
-			// DeathBombs (that don't exist) use the last frame
-			frame = pSHP->Frames - 1;
-		}
-	}
+            const int half = frames / 2;
+            int capped = half - 1;
 
-	R->EAX(frame);
-	return 0x438A62;
+            if(flickerRate <= 0) {
+                // no flicker: use only half the frames
+                int frame = elapsed / (delay / (2 * half));
+                if(frame > capped) frame = capped;
+                result = frame;
+            }  else  {
+                // flicker: use full even/odd pattern
+                int frame = elapsed / (delay / half);
+                if(frame > capped) frame = capped;
+
+                int even = frame * 2;
+                int odd  = even + 1;
+
+                bool flick = (Unsorted::CurrentFrame % (2 * flickerRate)) < flickerRate;
+                result = flick ? even : odd;
+            }
+        }
+    }
+
+    R->EAX(result);
+    return 0x438A62;
 }
 
 // 6F523C, 5

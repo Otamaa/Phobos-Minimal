@@ -18,8 +18,6 @@
 #include <Utilities/Macro.h>
 #include <Utilities/Helpers.h>
 
-#include <Lib/gcem/gcem.hpp>
-
 #include <New/Entity/FlyingStrings.h>
 
 #include <InfantryClass.h>
@@ -64,7 +62,7 @@ void BulletExtData::ApplyArcingFix(const CoordStruct& sourceCoords, const CoordS
 	// Here, some magic numbers are used to directly simulate its calculation
 	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
 	const double gravity = BulletTypeExtData::GetAdjustedGravity(This()->Type);
-	const double speed = speedMult * std::sqrt(horizontalDistance * gravity * 1.2); // 0x48AB90
+	const double speed = speedMult * Math::sqrt(horizontalDistance * gravity * 1.2); // 0x48AB90
 
 	if (horizontalDistance < 1e-10 || speed< 1e-10)
 	{
@@ -279,8 +277,8 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 					DirStruct const dir(5, random.RandomRangedSpecific<short>(0, 32));
 					auto const radians = dir.GetRadian();
 
-					auto const sin_rad = std::sin(radians);
-					auto const cos_rad = std::cos(radians);
+					auto const sin_rad = Math::sin(radians);
+					auto const cos_rad = Math::cos(radians);
 					auto const cos_factor = Math::APPROX_CORRECTION_TERM_1;
 					auto const flatSpeed = cos_factor * pBullet->Speed;
 
@@ -356,11 +354,11 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 	DirStruct const dir_fromXY((double)(pThis->Location.Y - nCenter.Y), (double)(pThis->Location.X - nCenter.X));
 	double const nFirstMag = velocity.LengthXY();
 	double const radians_fromXY = dir_fromXY.GetRadian();
-	double const sin_rad = std::sin(radians_fromXY);
-	double const cos_rad = std::cos(radians_fromXY);
-	COMPILETIMEEVAL double nMult_Cos = gcem::cos(Math::PI_BY_FOUR_ACCURATE);
-	COMPILETIMEEVAL double nMult_Sin = gcem::sin(Math::PI_BY_FOUR_ACCURATE);
+	double const sin_rad = Math::sin(radians_fromXY);
+	double const cos_rad = Math::cos(radians_fromXY);
 
+	double nMult_Cos = Math::COS_PI_BY_FOUR_ACCURATE;
+	double nMult_Sin = Math::SIN_PI_BY_FOUR_ACCURATE;
 	velocity.X = cos_rad * nFirstMag;
 	velocity.Y -= sin_rad * nFirstMag;
 
@@ -373,8 +371,8 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 
 		if (radians_foZ != 0.0)
 		{
-			velocity.X /= std::cos(radians_foZ);
-			velocity.Y /= std::cos(radians_foZ);
+			velocity.X /= Math::cos(radians_foZ);
+			velocity.Y /= Math::cos(radians_foZ);
 		}
 
 		velocity.X *= (double)nMult_Cos;
@@ -398,8 +396,8 @@ VelocityClass BulletExtData::GenerateVelocity(BulletClass* pThis, AbstractClass*
 
 		if (radians_foZ != 0.0)
 		{
-			velocity.X /= std::cos(radians_foZ);
-			velocity.Y /= std::cos(radians_foZ);
+			velocity.X /= Math::cos(radians_foZ);
+			velocity.Y /= Math::cos(radians_foZ);
 		}
 
 		velocity.X *= nMult_Cos;
@@ -1106,7 +1104,7 @@ void BulletExtData::SimulatedFiringUnlimbo(BulletClass* pBullet, HouseClass* pHo
 	// WW calculates the launch angle (and limits it) before calculating the velocity
 	// Here, some magic numbers are used to directly simulate its calculation
 	const auto speedMult = (lobber ? 0.45 : (distanceCoords.Z > 0 ? 0.68 : 1.0)); // Simulated 0x48A9D0
-	const auto speed = static_cast<int>(speedMult * std::sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
+	const auto speed = static_cast<int>(speedMult * Math::sqrt(horizontalDistance * gravity * 1.2)); // 0x48AB90
 
 	// Simulate firing Arcing bullet
 	if (horizontalDistance < 1e-10 || speed < 1e-10)

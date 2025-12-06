@@ -41,15 +41,6 @@ static OPTIONALINLINE COMPILETIMEEVAL int STACK_OFFSET(int cur_offset , int want
 #define SWIZZLE(var) \
 	SwizzleManagerClass::Instance->Swizzle((void **)&var)
 
-
-#include <cmath>
-// float cmp
-#define CLOSE_ENOUGH(x, y) \
-	(fabs(x - y) < 0.001)
-
-#define LESS_EQUAL(x, y) \
-	((x - y) <= 0.001)
-
 template<typename T>
 __forceinline T &Make_Global(const uintptr_t address)
 {

@@ -36,8 +36,7 @@
 #include <Utilities/Helpers.h>
 
 //TODO re-evaluate these , since the default array seems not contains what the documentation table says,..
-std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count> SWTypeExtData::AITargetingModes =
-{
+const AITargetingModeInfo SWTypeExtData::AITargetingModes[] =
 {
 	{SuperWeaponAITargetingMode::None, SuperWeaponTarget::None, AffectedHouse::None , TargetingConstraints::None , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::Nuke, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies , TargetingConstraints::Enemy, TargetingPreference::Offensive },
@@ -61,9 +60,8 @@ std::array<const AITargetingModeInfo, (size_t)SuperWeaponAITargetingMode::count>
 	{SuperWeaponAITargetingMode::DropPod, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::LightningRandom, SuperWeaponTarget::AllCells, AffectedHouse::All, TargetingConstraints::None, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::LauchSite, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::FindAuxTechno , SuperWeaponTarget::AllTechnos , AffectedHouse::Owner , TargetingConstraints::None , TargetingPreference::None }
-
-}
+	{SuperWeaponAITargetingMode::FindAuxTechno , SuperWeaponTarget::AllTechnos , AffectedHouse::Owner , TargetingConstraints::None , TargetingPreference::None },
+	{SuperWeaponAITargetingMode::IonCannon, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies , TargetingConstraints::Enemy, TargetingPreference::Offensive }
 };
 
 void SWTypeExtData::Initialize()
@@ -120,69 +118,48 @@ Action SWTypeExtData::GetAction(SuperWeaponTypeClass* pSuper, CellStruct* pTarge
 
 SuperWeaponTarget SWTypeExtData::GetAIRequiredTarget() const
 {
-	if (this->SW_AIRequiresTarget.isset())
-	{
+	if (this->SW_AIRequiresTarget.isset()) {
 		return this->SW_AIRequiresTarget;
 	}
 
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
-	if (index < AITargetingModes.size())
-	{
-		return AITargetingModes[index].Target;
-	}
-
-	return SuperWeaponTarget::None;
+	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
+	return AITargetingModes[index].Target;
 }
 
 AffectedHouse SWTypeExtData::GetAIRequiredHouse() const
 {
-	if (this->SW_AIRequiresHouse.isset())
-	{
+	if (this->SW_AIRequiresHouse.isset()) {
 		return this->SW_AIRequiresHouse;
 	}
 
 	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
-	if (index < AITargetingModes.size())
-	{
-		return AITargetingModes[index].House;
-	}
-
-	return AffectedHouse::None;
+	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
+	return AITargetingModes[index].House;
 }
 
 std::pair<TargetingConstraints, bool> SWTypeExtData::GetAITargetingConstraints() const
 {
 	if (this->SW_AITargetingConstrain.isset())
 		return { this->SW_AITargetingConstrain.Get(), false };
-	else
-	{
-		const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
-		if (index < AITargetingModes.size()) {
-			return { AITargetingModes[index].Constraints , false };
-		}
-	}
+	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
-	return { TargetingConstraints::None , true };
+	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
+	return { AITargetingModes[index].Constraints , false };
 }
 
 TargetingPreference SWTypeExtData::GetAITargetingPreference() const
 {
 	if (this->SW_AITargetingPreference.isset())
 		return this->SW_AITargetingPreference.Get();
-	else
-	{
-		const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
-		if (index < AITargetingModes.size())
-		{
-			return AITargetingModes[index].Preference;
-		}
-	}
+	const size_t index = static_cast<size_t>(this->SW_AITargetingMode.Get());
 
-	return TargetingPreference::None;
+	static_assert(std::size(AITargetingModes) <= ((int)SuperWeaponAITargetingMode::IonCannon + 1), "Invalid Size !");
+	return AITargetingModes[index].Preference;
 }
 
 bool SWTypeExtData::IsCellEligible(CellClass* pCell, SuperWeaponTarget allowed)

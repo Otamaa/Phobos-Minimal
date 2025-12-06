@@ -22,6 +22,7 @@
     <ClCompile Include="src\ExtraHeaders\AlignedMemory.cpp" />
     <ClCompile Include="src\ExtraHeaders\MemoryPool.cpp" />
     <ClCompile Include="src\Ext\AircraftType\Body.cpp" />
+    <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.Healthbar.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.Pip.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />
@@ -66,6 +67,7 @@
     <ClCompile Include="src\Ext\TerrainType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TerrainType\Hooks.Passable.cpp" />
     <ClCompile Include="src\Ext\Terrain\Hooks.cpp" />
+    <ClCompile Include="src\Ext\Trigger\Body.cpp" />
     <ClCompile Include="src\Ext\UnitType\Body.cpp" />
     <ClCompile Include="src\Ext\Unit\Body.cpp" />
     <ClCompile Include="src\Ext\Unit\Hooks.cpp" />
@@ -349,7 +351,6 @@
     <ClCompile Include="src\Ext\TechnoType\Hook.Tunnel.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Droppod.cpp" />
-    <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Otamaa.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Teleport.cpp" />
     <ClCompile Include="src\Ext\Terrain\Body.cpp" />
@@ -658,6 +659,7 @@
     <ClInclude Include="src\Ext\ObjectType\Body.h" />
     <ClInclude Include="src\Ext\Object\Body.h" />
     <ClInclude Include="src\Ext\Radio\Body.h" />
+    <ClInclude Include="src\Ext\Trigger\Body.h" />
     <ClInclude Include="src\Ext\UnitType\Body.h" />
     <ClInclude Include="src\Ext\Unit\Body.h" />
     <ClInclude Include="src\Lib\asmjit\asmjit-scope-begin.h" />
@@ -748,6 +750,7 @@
     <ClInclude Include="src\Lib\minhook\hde\table64.h" />
     <ClInclude Include="src\Lib\minhook\MinHook.h" />
     <ClInclude Include="src\Lib\minhook\trampoline.h" />
+    <ClInclude Include="src\Lib\pdqsort\pdqsort.h" />
     <ClInclude Include="src\Lib\Zycore\Allocator.h" />
     <ClInclude Include="src\Lib\Zycore\API\Memory.h" />
     <ClInclude Include="src\Lib\Zycore\API\Process.h" />
@@ -1012,7 +1015,6 @@
     <ClInclude Include="src\Ext\TEvent\Body.h" />
     <ClInclude Include="src\Ext\TriggerType\Body.h" />
     <ClInclude Include="src\Ext\Wave\Body.h" />
-    <ClInclude Include="src\Lib\gcem\gcem.hpp" />
     <ClInclude Include="src\Lib\Lua542\include\lua.hpp" />
     <ClInclude Include="src\Misc\Ares\Audio.h" />
     <ClInclude Include="src\Misc\Ares\CSF.h" />
@@ -1187,7 +1189,6 @@
     <ClInclude Include="src\Utilities\TemplateDef.h" />
     <ClInclude Include="src\Utilities\TemplateDefB.h" />
     <ClInclude Include="src\Utilities\TheaterSpecificSHP.h" />
-    <ClInclude Include="src\Utilities\TranslucencyLevel.h" />
     <ClInclude Include="src\Utilities\VectorHelper.h" />
     <ClInclude Include="src\Utilities\VectorNames.h" />
     <ClInclude Include="src\Utilities\VectorSet.h" />
@@ -1323,7 +1324,7 @@
       <AssemblerListingLocation>$(IntDir)\%(RelativeDir)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)\%(RelativeDir)</ObjectFileName>
       <CallingConvention>StdCall</CallingConvention>
-      <AdditionalOptions>/w14287 /w15038 /w44265 /w44002  /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/w14287 /w15038 /w44265 /w44002  /utf-8 /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4100;4530;4731;4740;4505;4201;26495</DisableSpecificWarnings>
       <EnableModules>false</EnableModules>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>

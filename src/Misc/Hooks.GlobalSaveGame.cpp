@@ -103,6 +103,7 @@
 #include <Ext/Temporal/Body.h>
 #include <Ext/TEvent/Body.h>
 #include <Ext/Tiberium/Body.h>
+#include <Ext/Trigger/Body.h>
 #include <Ext/VoxelAnimType/Body.h>
 #include <Ext/VoxelAnim/Body.h>
 #include <Ext/Wave/Body.h>
@@ -383,6 +384,9 @@ HRESULT SavePhobosEarlyObjects(LPSTREAM pStm)
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<TeamExtContainer>(writer);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Save<TriggerExtContainer>(writer);
 	if (!success) return E_FAIL;
 
 	success = Process_Global_Save<TEventExtContainer>(writer);

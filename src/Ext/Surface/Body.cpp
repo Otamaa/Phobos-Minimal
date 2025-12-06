@@ -28,7 +28,7 @@ void SurfaceExt::BlurRect(const RectangleStruct& rect, float blurSize)
 	// init boxes
 	int box[3] { 0 };
 	{
-		int wl = (int)std::floor(std::sqrt(4 * blurSize * blurSize + 1));
+		int wl = (int)std::floor(Math::sqrt(4 * blurSize * blurSize + 1));
 		if (wl % 2 == 0)
 			--wl;
 		int wu = wl + 2;

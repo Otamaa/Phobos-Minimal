@@ -281,29 +281,22 @@ namespace detail
 	template <>
 	OPTIONALINLINE bool read<ColorStruct>(ColorStruct& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value)))
-		{
-			if (!parser.empty())
-			{
-				if (auto const pColorClass = ColorTypeClass::Find(parser.value()))
-				{
+		if (!parser.Read3Bytes(pSection, pKey, (BYTE*)(&value))) {
+			if (!parser.empty()) {
+				if (auto const pColorClass = ColorTypeClass::Find(parser.value())) {
 					value = pColorClass->ToColor();
 					return true;
 				}
 
-				for (size_t i = 0; i < EnumFunctions::DefaultGameColor_ToStrings.size(); ++i)
-				{
-					if (IS_SAME_STR_(parser.value(), EnumFunctions::DefaultGameColor_ToStrings[i]))
-					{
-						value = Drawing::DefaultColors[i];
+				for(auto&[val, str] : EnumFunctions::SpotlightAttachment_ToStrings) {
+					if (IS_SAME_STR_(parser.value(), str.data())) {
+						value = Drawing::DefaultColors[(BYTE)val];
 						return true;
 					}
 				}
 
-				if (ColorScheme::Array->Count)
-				{
-					if (auto const& nResult = ColorScheme::Find(parser.value()))
-					{
+				if (ColorScheme::Array->Count) {
+					if (auto const& nResult = ColorScheme::Find(parser.value())) {
 						nResult->BaseColor.ToColorStruct(&value);
 						return true;
 					}
@@ -326,11 +319,9 @@ namespace detail
 			if(GameStrings::IsBlank(parser.value()))
 				return false;
 
-			for (size_t i = 0; i < EnumFunctions::DamageDelayTargetFlag_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::DamageDelayTargetFlag_ToStrings[i]))
-				{
-					value = (DamageDelayTargetFlag)i;
+			for(auto&[val, str] : EnumFunctions::DamageDelayTargetFlag_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
 					return true;
 				}
 			}
@@ -369,11 +360,9 @@ namespace detail
 			if(GameStrings::IsBlank(parser.value()))
 				return false;
 
-			for (size_t i = 0; i < EnumFunctions::TargetZoneScanType_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::TargetZoneScanType_ToStrings[i]))
-				{
-					value = (TargetZoneScanType)i;
+			for(auto&[val, str] : EnumFunctions::TargetZoneScanType_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
 					return true;
 				}
 			}
@@ -507,35 +496,13 @@ namespace detail
 		return false;
 	}
 
-	//template <>
-	//OPTIONALINLINE bool read<FacingType>(FacingType& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
-	//{
-	//	int buffer;
-	//
-	//	if (parser.ReadInteger(pSection, pKey, &buffer))
-	//	{
-	//		if (buffer <= (int)FacingType::Count && buffer >= (int)FacingType::None)
-	//		{
-	//			value = static_cast<FacingType>(buffer);
-	//			return true;
-	//		}
-	//
-	//		Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a valid FacingType (0-7 or -1).");
-	//	}
-	//
-	//	return false;
-	//}
-
 	template <>
 	OPTIONALINLINE bool read<SpotlightAttachment>(SpotlightAttachment& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
-		if (parser.ReadString(pSection, pKey))
-		{
-			for (size_t i = 0; i < EnumFunctions::SpotlightAttachment_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::SpotlightAttachment_ToStrings[i]))
-				{
-					value = (SpotlightAttachment)i;
+		if (parser.ReadString(pSection, pKey)) {
+			for(auto&[val, str] : EnumFunctions::SpotlightAttachment_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
 					return true;
 				}
 			}
@@ -551,11 +518,9 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < EnumFunctions::ShowTimerType_ToStrings.size(); ++i)
-			{
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::ShowTimerType_ToStrings[i]))
-				{
-					value = (ShowTimerType)i;
+			for(auto&[val, str] : EnumFunctions::ShowTimerType_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
 					return true;
 				}
 			}
@@ -571,9 +536,9 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			for (size_t i = 0; i < EnumFunctions::AttachmentYSortPosition_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::AttachmentYSortPosition_ToStrings[i].second.data())) {
-					value = EnumFunctions::AttachmentYSortPosition_ToStrings[i].first;
+			for(auto&[val, str] : EnumFunctions::AttachmentYSortPosition_ToStrings) {
+				if (IS_SAME_STR_(parser.value(), str.data())) {
+					value = val;
 					return true;
 				}
 			}
@@ -694,9 +659,9 @@ namespace detail
 		{
 			const auto pVal = parser.value();
 
-			for (size_t i = 0; i < EnumFunctions::BountyValueOption_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(pVal, EnumFunctions::BountyValueOption_ToStrings[i])) {
-					value = (BountyValueOption)i;
+			for(auto&[val, str] : EnumFunctions::BountyValueOption_ToStrings) {
+				if (IS_SAME_STR_(pVal, str.data())) {
+					value = val;
 					return true;
 				}
 			}
@@ -712,16 +677,15 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			const auto str = parser.value();
-
-			for (size_t i = 0; i < EnumFunctions::BuildingSelectBracketPosition_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(str, EnumFunctions::BuildingSelectBracketPosition_ToStrings[i])) {
-					value = BuildingSelectBracketPosition(i);
+			const auto pVal = parser.value();
+			for(auto&[val, str] : EnumFunctions::BuildingSelectBracketPosition_ToStrings) {
+				if (IS_SAME_STR_(pVal, str.data())) {
+					value = val;
 					return true;
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, str, "Expect valid BuildingSelectBracketPosition");
+			Debug::INIParseFailed(pSection, pKey, pVal, "Expect valid BuildingSelectBracketPosition");
 		}
 
 		return false;
@@ -732,16 +696,15 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			auto str = parser.value();
-
-			for (size_t i = 0; i < EnumFunctions::DisplayInfoType_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(str, EnumFunctions::DisplayInfoType_ToStrings[i])) {
-					value = DisplayInfoType(i);
+			const auto pVal = parser.value();
+			for(auto&[val, str] : EnumFunctions::DisplayInfoType_ToStrings) {
+				if (IS_SAME_STR_(pVal, str.data())) {
+					value = val;
 					return true;
 				}
 			}
 
-			Debug::INIParseFailed(pSection, pKey, str, "Expect valid DisplayInfoType");
+			Debug::INIParseFailed(pSection, pKey, pVal, "Expect valid DisplayInfoType");
 		}
 
 		return false;
@@ -754,8 +717,8 @@ namespace detail
 		{
 			auto str = parser.value();
 
-			for (auto& [pString, val] : EnumFunctions::InterpolationMode_ToStrings) {
-				if (IS_SAME_STR_(pString, str)) {
+			for (auto& [val , string] : EnumFunctions::InterpolationMode_ToStrings) {
+				if (IS_SAME_STR_(string.data(), str)) {
 					value = val;
 					return true;
 				}

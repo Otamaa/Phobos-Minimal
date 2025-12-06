@@ -30,12 +30,12 @@ public:
 	static COMPILETIMEEVAL reference<SwizzleManagerClass, 0xB0C110u> const Instance{};
 
 	//IUnknown
-	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj);
-	IFACEMETHOD_(ULONG, AddRef)();
-	IFACEMETHOD_(ULONG, Release)();
+	IFACEMETHOD(QueryInterface)(REFIID riid, LPVOID* ppvObj) JMP_STD(0x6CF430);
+	IFACEMETHOD_(ULONG, AddRef)() JMP_STD(0x6CF4B0);
+	IFACEMETHOD_(ULONG, Release)() JMP_STD(0x6CF4C0);
 
 	//ISwizzle
-	STDMETHOD_(LONG, Reset)()override R0;
+	STDMETHOD_(LONG, Reset)()override JMP_STD(0x6CF230);
 	STDMETHOD_(LONG, Swizzle)(void** pointer) override R0;
 	STDMETHOD_(LONG, Fetch_Swizzle_ID)(void* pointer, LONG* id) override R0;
 	STDMETHOD_(LONG, Here_I_Am)(LONG id, void* pointer)  override R0;

@@ -832,6 +832,8 @@ private:
 		debugProcess(this->ResetLocomotor, "ResetLocomotor");
 		debugProcess(this->JumpjetStraightAscend, "JumpjetStraightAscend");
 		debugProcess(this->CanFireWeaponType, "CanFireWeaponType");
+		debugProcess(this->ExtraTurretRecoil, "ExtraTurretRecoil");
+		debugProcess(this->ExtraBarrelRecoil, "ExtraBarrelRecoil");
 	}
 
 
@@ -1015,6 +1017,9 @@ public:
 
 	WeaponTypeClass* CanFireWeaponType;
 
+	std::vector<RecoilData> ExtraTurretRecoil;
+	std::vector<RecoilData> ExtraBarrelRecoil;
+
 #pragma endregion
 
 public:
@@ -1187,7 +1192,9 @@ public:
 		FallingDownTracked { false },
 		ResetLocomotor { false } ,
 		JumpjetStraightAscend { },
-		CanFireWeaponType {}
+		CanFireWeaponType { },
+		ExtraTurretRecoil { },
+		ExtraBarrelRecoil { }
 	{
 		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
