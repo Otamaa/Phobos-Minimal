@@ -90,34 +90,6 @@ public:
 	}
 };
 
-struct PhysicsState {
-	Vector3D<float> position;
-	Vector3D<float> velocity;
-	CoordStruct coord;
-	int terrainHeight;
-	CellClass* cell;
-};
-
-enum class CollisionType {
-	None,
-	BridgeTop,
-	BridgeBottom,
-	Building
-};
-
-struct Collision {
-	bool occurred = false;
-	bool shouldBounce = false;
-	CollisionType type = CollisionType::None;
-};
-
-struct CollisionState {
-	bool hitbridge = false;
-	bool hitbridgeTop = false;
-	bool hitBuilding = false;
-	bool shouldApplyRotation = false;
-};
-
 class ParticleTypeExtData;
 class NOVTABLE FakeParticleClass : public ParticleClass
 {
@@ -141,45 +113,31 @@ public:
 	void __Railgun_AI();
 	void __Web_AI();
 
-	// fire
-	bool ShouldAdvanceAnimationFrame() const;
-	void UpdateFireMovement();
+	// funcs
 	void AdvanceAnimationState();
 	void UpdateTranslucency();
-	void ApplyFireDamage();
 	ObjectClass* GetCellOccupiers(CellClass* cell) const;
-
-	// smoke
 	void ApplyWindEffect(CoordStruct& pos);
 	void ApplySmokeDrift(CoordStruct& pos);
-	char UpdateStateAndCheckEnd();
-	char ProcessEndState();
-	void ProcessDamage();
-	void UpdateGasHeight();
-	void UpdateGasMovement();
-	CollisionState CheckCollision(CellClass* cell, const CoordStruct& currentPos,
-							   const CoordStruct& nextPos, int terrainHeight,
-							   const Vector3D<float>& velocity);
+	void UpdateStateAndCheckEnd();
+	void ProcessEndState();
 
-	// Railgun
 	void ApplyVelocityWithJitter();
-
-	// Spark
-	PhysicsState UpdatePhysics();
-	void HandleCollisions(PhysicsState& physics);
-	Collision DetectCollision(const PhysicsState& physics) const;
-	Collision CheckBridgeCollision(const PhysicsState& physics) const;
-	Collision CheckBuildingCollision(const PhysicsState& physics) const;
 	void AdvanceColorAnimation();
-
-	// Gas
 	void ProcessGasMovement();
 	void ApplyRandomDrift();
 	void UpdateAnimationFrame();
 	bool ShouldAdvanceFrame() const;
 	void DecelerateIfNeeded();
 
-	//Web
+	//Gas
+	void UpdateGasHeight();
+	void UpdateGasMovement();
+	void ProcessDamage();
+
+	//Fire
+	void ApplyFireDamage();
+	void UpdateFireMovement();
 
 	FORCEDINLINE ParticleClass* _AsParticle() const {
 		return ((ParticleClass*)this);

@@ -201,7 +201,8 @@ public:
 	void __Railgun_AI();
 	void __Web_AI();
 
-	void UpdateAllParticles();
+	void UpdateAllParticlesFront();
+	void UpdateAllParticlesBehind();
 	void UpdateAndCoordAllParticles();
 	void RemoveDeadParticles();
 

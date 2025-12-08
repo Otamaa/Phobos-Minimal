@@ -234,54 +234,6 @@ constexpr Vector3D<float> CoordToVector(const CoordStruct& coord) {
 	return { (float)coord.X , (float)coord.Y , (float)coord.Z };
 }
 
-constexpr float GetCollisionHeight(const Collision& collision, int terrainHeight)
-{
-	switch (collision.type)
-	{
-	case CollisionType::BridgeTop:
-		return static_cast<float>(terrainHeight + (Unsorted::CellHeight * 2));
-	case CollisionType::BridgeBottom:
-		return static_cast<float>(terrainHeight + (Unsorted::CellHeight * 2) - 20);
-	case CollisionType::Building:
-		return static_cast<float>(terrainHeight - 100);
-	default:
-		return static_cast<float>(terrainHeight);
-	}
-}
-
-float GetRandomFloat(float min, float max)
-{
-	const float normalized = (float)ScenarioClass::Instance->Random.RandomDouble(); // Convert to [0,1]
-	return min + normalized * (max - min);
-}
-
-constexpr bool ShouldAdjustForTerrain(float velocityZ, int terrainHeight,
-								const CollisionState& collision) {
-	return velocityZ < terrainHeight || collision.hitbridgeTop ||
-		collision.hitbridge || collision.hitBuilding;
-}
-
-constexpr float AdjustForTerrainHeight(float velocityZ, int terrainHeight,
-							  const CollisionState& collision)
-{
-	if (collision.hitbridgeTop) {
-		return static_cast<float>(terrainHeight + (Unsorted::CellHeight * 2));
-	}
-
-	if (collision.hitbridge) {
-		return static_cast<float>(terrainHeight + (Unsorted::CellHeight * 2) - 20);
-	}
-
-	// Gradual descent to terrain
-	const int adjustedHeight = terrainHeight - 100;
-
-	if (adjustedHeight < velocityZ) {
-		return static_cast<float>(terrainHeight);
-	}
-
-	return velocityZ;
-}
-
 constexpr bool CheckCellBuildingCollision(CellClass* cell, float velocityZ, int terrainHeight)
 {
 	constexpr float COLLISION_RANGE = 150.0f;
@@ -332,13 +284,12 @@ void ReflectOffSurface(CoordStruct& coord, const Vector3D<float>& velocity , Vec
 	}
 }
 
-#pragma region Fire
-
 ObjectClass* FakeParticleClass::GetCellOccupiers(CellClass* cell) const
 {
 	// Check if cell has water
 
-	if (!cell->ContainsBridgeHead()) {
+	if (!cell->ContainsBridgeHead())
+	{
 		return cell->FirstObject;
 	}
 
@@ -348,6 +299,182 @@ ObjectClass* FakeParticleClass::GetCellOccupiers(CellClass* cell) const
 
 	return isAboveWater ? cell->AltObject : cell->FirstObject;
 }
+
+void  FakeParticleClass::ApplyVelocityWithJitter()
+{
+	// Calculate and apply velocity delta
+	const Vector3D<float> delta {
+		this->Spark10C.X * this->Velocity,
+		this->Spark10C.Y * this->Velocity,
+		this->Spark10C.Z * this->Velocity
+	};
+
+	// Add small random perturbation to velocity (-0.05 to +0.05)
+	double rand = ScenarioClass::Instance->Random.RandomDoubleCentered();
+	this->Velocity += (rand * 0.1);
+
+	// Update accumulated position
+	this->vector3_118 += delta;
+
+	// Apply new coordinates
+	const CoordStruct newCoord {
+		static_cast<int>(this->vector3_118.X),
+		static_cast<int>(this->vector3_118.Y),
+		static_cast<int>(this->vector3_118.Z)
+	};
+
+	this->SetLocation(newCoord);
+}
+
+void FakeParticleClass::UpdateTranslucency()
+{
+	const auto* type = this->Type;
+	const char currentState = this->StartStateAI;
+
+	// Check for translucency state transitions
+	if (currentState == type->Translucent25State)
+	{
+		this->Translucency = 25;
+	}
+	else if (currentState == type->Translucent50State)
+	{
+		this->Translucency = 50;
+	}
+}
+
+void FakeParticleClass::AdvanceAnimationState()
+{
+	const auto* type = this->Type;
+
+	// Check if animation is complete
+	if (this->StartStateAI >= type->EndStateAI)
+	{
+		return;
+	}
+
+	// Check if it's time to advance frame
+	if (!this->ShouldAdvanceFrame())
+	{
+		return;
+	}
+
+	// Advance to next frame
+	++this->StartStateAI;
+
+	// Handle translucency state transitions
+	this->UpdateTranslucency();
+
+	// Check if we've reached the end
+	if (this->StartStateAI == type->EndStateAI && type->DeleteOnStateLimit)
+	{
+		this->hasremaining = 1;
+	}
+}
+
+void FakeParticleClass::ProcessEndState()
+{
+	this->ProcessDamage();
+	this->UpdateStateAndCheckEnd();
+}
+
+void FakeParticleClass::UpdateStateAndCheckEnd()
+{
+	const auto* type = this->Type;
+	if (this->StartStateAI >= type->EndStateAI)
+	{
+		return; // Animation complete
+	}
+
+	if (this->ShouldAdvanceFrame())
+	{
+		++this->StartStateAI;
+	}
+
+	if (this->StartStateAI == type->EndStateAI)
+	{
+		if (type->DeleteOnStateLimit)
+		{
+			this->hasremaining = 1;
+		}
+		else
+		{
+			this->StartStateAI = 0;
+		}
+	}
+
+}
+
+void FakeParticleClass::ApplyRandomDrift()
+{
+	// Choose random axis (X or Y) and direction (-1, 0, +1)
+	const bool driftInY = (Math::abs(ScenarioClass::Instance->Random.Random()) & 1) != 0;
+	const int drift = (Math::abs(ScenarioClass::Instance->Random.Random()) % 3) - 1;
+
+	if (driftInY)
+	{
+		this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + drift, -5, 5);
+	}
+	else
+	{
+		this->GasVelocity.X = std::clamp(this->GasVelocity.X + drift, -5, 5);
+	}
+}
+
+void FakeParticleClass::UpdateAnimationFrame()
+{
+	const auto* type = this->Type;
+
+	if (this->StartStateAI >= type->EndStateAI)
+	{
+		return; // Animation complete
+	}
+
+	// Check if it's time to advance to next frame
+	if (this->ShouldAdvanceFrame())
+	{
+		++this->StartStateAI;
+
+		// Mark for deletion if animation ended
+		if (this->StartStateAI == type->EndStateAI && type->DeleteOnStateLimit)
+		{
+			this->hasremaining = 1;
+		}
+	}
+}
+
+bool FakeParticleClass::ShouldAdvanceFrame() const
+{
+	const int id = this->Fetch_ID();
+	const int elapsed = this->Type->MaxEC - this->RemainingEC + id;
+	const int frameDelay = this->Type->StateAIAdvance + (id & 1);
+
+	return frameDelay > 0 && (elapsed % frameDelay) == 0;
+}
+
+void FakeParticleClass::DecelerateIfNeeded()
+{
+	constexpr float DECEL_THRESHOLD = 3.0f;
+
+	if (this->Velocity > DECEL_THRESHOLD)
+	{
+		this->Velocity -= this->Type->Deacc;
+	}
+}
+
+void FakeParticleClass::AdvanceColorAnimation()
+{
+	const double random = ScenarioClass::Instance->Random.RandomDouble();
+	this->ColorSpeedResult += this->Type->ColorSpeed + (random * 0.05);
+
+	if (this->ColorSpeedResult > 1.0)
+	{
+		const bool isLastColor = this->RefCount >= this->Type->ColorList.Count - 2;
+		this->RefCount = isLastColor ? 0 : this->RefCount + 1;
+		this->ColorSpeedResult = isLastColor ? 1.0 : 0.0;
+	}
+}
+
+#pragma region Fire
 
 void FakeParticleClass::ApplyFireDamage()
 {
@@ -403,63 +530,14 @@ void FakeParticleClass::ApplyFireDamage()
 	}
 }
 
-bool FakeParticleClass::ShouldAdvanceAnimationFrame() const
-{
-	const int particleID = this->Fetch_ID();
-	const int elapsed = this->Type->MaxEC - this->RemainingEC + particleID;
-	const int frameDelay = this->StateAIAdvance + (particleID & 1);
-
-	return (elapsed % frameDelay) == 0;
-}
-
-void FakeParticleClass::UpdateTranslucency()
-{
-	const auto* type = this->Type;
-	const char currentState = this->StartStateAI;
-
-	// Check for translucency state transitions
-	if (currentState == type->Translucent25State) {
-		this->Translucency = 25;
-	} else if (currentState == type->Translucent50State) {
-		this->Translucency = 50;
-	}
-}
-
-void FakeParticleClass::AdvanceAnimationState()
-{
-	const auto* type = this->Type;
-
-	// Check if animation is complete
-	if (this->StartStateAI >= type->EndStateAI) {
-		return;
-	}
-
-	// Check if it's time to advance frame
-	if (!this->ShouldAdvanceAnimationFrame()) {
-		return;
-	}
-
-	// Advance to next frame
-	++this->StartStateAI;
-
-	// Handle translucency state transitions
-	this->UpdateTranslucency();
-
-	// Check if we've reached the end
-	if (this->StartStateAI == type->EndStateAI && type->DeleteOnStateLimit) {
-		this->hasremaining = 1;
-	}
-}
-
 void FakeParticleClass::UpdateFireMovement()
 {
 	// Add random directional variation (-5% to +5%)
-	auto rand = Math::abs(ScenarioClass::Instance->Random.Random());
-	const int randomOffset = ((rand) % 10) - 5;
-	const float variationFactor = (randomOffset * 0.02f) + 1.0f;
+	const int randomOffset = (ScenarioClass::Instance->Random.Random() % 10) - 5;
+	const double variationFactor = (randomOffset * 0.02) + 1.0;
 
 	// Apply variation to direction vector and calculate velocity components
-	const Vector3D<float> variedDirection {
+	const Vector3D<double> variedDirection {
 		variationFactor * this->Spark10C.X,
 		variationFactor * this->Spark10C.Y,
 		variationFactor * this->Spark10C.Z
@@ -470,7 +548,6 @@ void FakeParticleClass::UpdateFireMovement()
 	this->Fire100.Y = static_cast<int>(variedDirection.Y * this->Velocity);
 	this->Fire100.Z = static_cast<int>(variedDirection.Z * this->Velocity);
 }
-
 
 void FakeParticleClass::__Fire_AI() {
 	// Check if fire has burned out
@@ -496,42 +573,6 @@ void FakeParticleClass::__Fire_AI() {
 #pragma endregion
 
 #pragma region Smoke
-
-CollisionState  FakeParticleClass::CheckCollision(
-	CellClass* cell,
-	const CoordStruct& currentPos,
-	const CoordStruct& nextPos,
-	int terrainHeight,
-	const Vector3D<float>& velocity
-)
-{
-	CollisionState state;
-
-	// Check for water collision
-	const bool hasBridgeHead = cell->ContainsBridgeHead();
-	const bool nextCellhasBridgeHead = MapClass::Instance->GetCellAt(currentPos)->ContainsBridgeHead();
-
-	if (hasBridgeHead || nextCellhasBridgeHead)
-	{
-		const int waterHeight = (Unsorted::CellHeight * 2) + terrainHeight;
-
-		if (currentPos.X < waterHeight)
-		{
-			state.hitbridge = true;
-		}
-		else if (nextPos.X >= waterHeight)
-		{
-			state.hitbridgeTop = true;
-		}
-	}
-
-	// Check for building collision
-	if (!state.hitbridge && !state.hitbridgeTop) {
-		state.hitBuilding = CheckCellBuildingCollision(cell, velocity.Z, terrainHeight);
-	}
-
-	return state;
-}
 
 void FakeParticleClass::UpdateGasMovement()
 {
@@ -563,39 +604,11 @@ void FakeParticleClass::UpdateGasHeight()
 {
 	const int height = this->GetHeight();
 
-	if (height <= 5 || (Unsorted::CurrentFrame % 2) != 0) {
+	if (height <= 5 || (Unsorted::CurrentFrame % 2)) {
 		this->GasVelocity.Z = std::max(0, this->GasVelocity.Z);
 	} else {
 		this->GasVelocity.Z = std::max(-5, this->GasVelocity.Z - 1);
 	}
-}
-
-char FakeParticleClass::ProcessEndState()
-{
-	this->ProcessDamage();
-	return this->UpdateStateAndCheckEnd();
-}
-
-char FakeParticleClass::UpdateStateAndCheckEnd()
-{
-	const auto* type = this->Type;
-	const int id = this->Fetch_ID();
-	const int cycleOffset = type->MaxEC - this->RemainingEC + id;
-	const int advanceRate = type->StateAIAdvance + (id & 1);
-
-	if ((cycleOffset % advanceRate) == 0) {
-		++this->StartStateAI;
-	}
-
-	if (this->StartStateAI == type->EndStateAI) {
-		if (type->DeleteOnStateLimit) {
-			this->hasremaining = 1;
-		} else {
-			this->StartStateAI = 0;
-		}
-	}
-
-	return this->StartStateAI;
 }
 
 static void ApplyDamageToObject(ObjectClass* pItem, TechnoClass* pAttacker, HouseClass* pOwner, int distance, const CoordStruct& loc, ParticleTypeExtData* pTypeExt, HouseClass* transmoOwner)
@@ -691,34 +704,121 @@ void FakeParticleClass::__Smoke_AI() {
 	// Update gas movement direction randomly
 	this->UpdateGasMovement();
 
-	// Initialize velocity and apply gravity
+	Vector3D<float> position = CoordToVector(this->Location);
 
 	this->SmokeVelocity.X = 0.0f;
 	this->SmokeVelocity.Y = 0.0f;
 	this->SmokeVelocity.Z = -2.0f - RulesClass::Instance->Gravity;
 
-	Vector3D<float> velocity = CoordToVector(this->Location);
-
 	// Calculate current and next positions
-	CoordStruct currentPos = VectorToCoord(velocity);
-				velocity += this->SmokeVelocity;
-	CoordStruct nextPos = VectorToCoord(velocity);
+	CoordStruct currentPos = this->Location;
+			     position += this->SmokeVelocity;
+	CoordStruct nextPos = VectorToCoord(position);
 
 	// Get terrain height and cell info
-	const int terrainHeight = MapClass::Instance->GetZPos(&nextPos);
-	CellClass* cell = MapClass::Instance->GetCellAt(nextPos);
+	const int groundZ = MapClass::Instance->GetZPos(&nextPos);
+	const int bridgeZ = Unsorted::BridgeHeight + groundZ;
 
-	// Check collision conditions
-	const CollisionState collision = this->CheckCollision(cell, currentPos, nextPos, terrainHeight, velocity);
+	CellClass* oldCell = MapClass::Instance->GetCellAt(currentPos);
+	CellClass* newCell = MapClass::Instance->GetCellAt(nextPos);
 
-	// Handle collision and update velocity
-	if (ShouldAdjustForTerrain(velocity.Z, terrainHeight, collision)) {
-		velocity.Z = AdjustForTerrainHeight(velocity.Z, terrainHeight, collision);
+	bool crossingBridgeDown = false;
+	bool crossingBridgeUp = false;
+
+	if (newCell->ContainsBridgeHead() || oldCell->ContainsBridgeHead()) {
+		if (currentPos.Z < bridgeZ) {
+			if (nextPos.Z >= bridgeZ) {
+				crossingBridgeUp = true;
+			}
+		}
+		else if (nextPos.Z < bridgeZ) {
+			crossingBridgeDown = true;
+		}
 	}
 
-	// Apply surface normal rotation if needed
-	if (collision.shouldApplyRotation) {
-		ReflectOffSurface(nextPos, velocity, this->SmokeVelocity);
+	bool hitObstacle = false;
+
+	if (!crossingBridgeDown && !crossingBridgeUp) {
+		float groundZFloat = (float)groundZ;
+
+		if (position.Z >= groundZFloat && position.Z - 150.0f < groundZFloat) {
+			BuildingClass* building = newCell->GetBuilding();
+
+			if (building || newCell->ConnectsToOverlay(-1, -1)) {
+				hitObstacle = true;
+
+				if (building) {
+					if (building->Type->LaserFence) {
+						hitObstacle = building->LaserFenceFrame < 8;
+					}
+
+					if (building->IsStrange()) {
+						hitObstacle = false;
+					}
+				}
+			}
+		}
+	}
+
+	// Adjust Z position based on collisions
+	float groundZFloat = (float)groundZ;
+	bool needsMatrixRotation = true;
+
+	if (position.Z < groundZFloat)
+	{
+		// Below ground level
+		if (crossingBridgeUp)
+		{
+			// Crossing bridge from below
+			position.Z = (float)bridgeZ;
+		}
+		else if (crossingBridgeDown)
+		{
+			// Crossing bridge from above (going under)
+			position.Z = (float)(bridgeZ - 20);
+		}
+		else
+		{
+			// Normal ground collision
+			int adjustedGroundZ = groundZ - 100;
+			if (adjustedGroundZ < position.Z)
+			{
+				position.Z = groundZFloat;
+			}
+		}
+	}
+	else
+	{
+		// At or above ground level
+		if (crossingBridgeUp)
+		{
+			// Crossing bridge from below
+			position.Z = (float)bridgeZ;
+		}
+		else if (crossingBridgeDown)
+		{
+			// Crossing bridge from above
+			position.Z = (float)(bridgeZ - 20);
+		}
+		else if (hitObstacle)
+		{
+			// Hit a building or wall
+			int adjustedGroundZ = groundZ - 100;
+			if (adjustedGroundZ < position.Z)
+			{
+				position.Z = groundZFloat;
+			}
+		}
+		else
+		{
+			// No collision - skip matrix rotation
+			needsMatrixRotation = false;
+		}
+	}
+
+	// Apply ramp matrix rotation if needed
+	if (needsMatrixRotation) {
+		ReflectOffSurface(nextPos, this->SmokeVelocity, this->SmokeVelocity);
 	}
 
 	// Update gas height based on particle height
@@ -728,11 +828,14 @@ void FakeParticleClass::__Smoke_AI() {
 
 #pragma endregion
 
+#pragma region Web
 
 void FakeParticleClass::__Web_AI()
 {
 	this->ProcessEndState();
 }
+
+#pragma endregion
 
 #pragma region Railgun
 
@@ -742,31 +845,6 @@ void FakeParticleClass::__Railgun_AI() {
 
 	// Update color animation
 	this->AdvanceColorAnimation();
-}
-
-void  FakeParticleClass::ApplyVelocityWithJitter() {
-
-	// Calculate and apply velocity delta
-	const Vector3D<float> delta {
-		this->Spark10C.X * this->Velocity,
-		this->Spark10C.Y * this->Velocity,
-		this->Spark10C.Z * this->Velocity
-	};
-
-	// Add small random perturbation to velocity (-0.05 to +0.05)
-	this->Velocity += GetRandomFloat(-0.05f, 0.05f);
-
-	// Update accumulated position
-	this->vector3_118 += delta;
-
-	// Apply new coordinates
-	const CoordStruct newCoord {
-		static_cast<int>(this->vector3_118.X),
-		static_cast<int>(this->vector3_118.Y),
-		static_cast<int>(this->vector3_118.Z)
-	};
-
-	this->SetLocation(newCoord);
 }
 
 #pragma endregion
@@ -782,56 +860,6 @@ void FakeParticleClass::ProcessGasMovement()
 
 	// Gas doesn't drift vertically
 	this->GasVelocity.Z = 0;
-}
-
-void FakeParticleClass::ApplyRandomDrift()
-{
-	// Choose random axis (X or Y) and direction (-1, 0, +1)
-	const bool driftInY = (Math::abs(ScenarioClass::Instance->Random.Random()) & 1) != 0;
-	const int drift = (Math::abs(ScenarioClass::Instance->Random.Random()) % 3) - 1;
-
-	if (driftInY) {
-		this->GasVelocity.Y = std::clamp(this->GasVelocity.Y + drift, -5, 5);
-	} else {
-		this->GasVelocity.X = std::clamp(this->GasVelocity.X + drift, -5, 5);
-	}
-}
-
-void FakeParticleClass::UpdateAnimationFrame()
-{
-	const auto* type = this->Type;
-
-	if (this->StartStateAI >= type->EndStateAI) {
-		return; // Animation complete
-	}
-
-	// Check if it's time to advance to next frame
-	if (this->ShouldAdvanceFrame()) {
-		++this->StartStateAI;
-
-		// Mark for deletion if animation ended
-		if (this->StartStateAI == type->EndStateAI && type->DeleteOnStateLimit) {
-			this->hasremaining = 1;
-		}
-	}
-}
-
-bool FakeParticleClass::ShouldAdvanceFrame() const
-{
-	const int id = this->Fetch_ID();
-	const int elapsed = this->Type->MaxEC - this->RemainingEC + id;
-	const int frameDelay = this->Type->StateAIAdvance + (id & 1);
-
-	return (elapsed % frameDelay) == 0;
-}
-
-void FakeParticleClass::DecelerateIfNeeded()
-{
-	constexpr float DECEL_THRESHOLD = 3.0f;
-
-	if (this->Velocity > DECEL_THRESHOLD) {
-		this->Velocity -= this->Type->Deacc;
-	}
 }
 
 void FakeParticleClass::__Gas_AI() {
@@ -850,119 +878,133 @@ void FakeParticleClass::__Gas_AI() {
 
 #pragma region Spark
 
-PhysicsState FakeParticleClass::UpdatePhysics()
-{
-	PhysicsState state {};
-
-	// Get current position
-	state.position = Vector3D<float> {
-		static_cast<float>(this->Location.X),
-		static_cast<float>(this->Location.Y),
-		static_cast<float>(this->Location.Z)
-	};
-
-	// Apply gravity twice (current + next frame)
-	this->Spark10C.Z -= RulesClass::Instance->Gravity;
-	state.velocity = this->Spark10C;
-	state.velocity.Z -= RulesClass::Instance->Gravity;
-
-	// Calculate next position
-	state.position += state.velocity;
-	state.coord = VectorToCoord(state.position);
-	state.terrainHeight = MapClass::Instance->GetZPos(&state.coord);
-	state.cell = MapClass::Instance->GetCellAt(state.coord);
-
-	return state;
-}
-
-Collision FakeParticleClass::CheckBridgeCollision(const PhysicsState& physics) const
-{
-	const bool hasBridgeHead = (physics.cell->Flags & CellFlags::BridgeHead) != CellFlags::Empty;
-
-	if (!hasBridgeHead) {
-		return {};
-	}
-
-	const int waterHeight = physics.terrainHeight + (Unsorted::CellHeight * 2);
-	const int prevZ = this->Location.Z;
-
-	Collision result { true , true , CollisionType::None };
-
-	if (physics.coord.Z < waterHeight && prevZ >= waterHeight) {
-		result.type = CollisionType::BridgeTop;
-	}
-	else if (prevZ < waterHeight && physics.coord.Z >= waterHeight) {
-		result.type = CollisionType::BridgeBottom;
-	} else {
-		result.occurred = false;
-	}
-
-	return result;
-}
-
-Collision FakeParticleClass::CheckBuildingCollision(const PhysicsState& physics) const
-{
-	if(!CheckCellBuildingCollision(physics.cell, physics.position.Z, physics.terrainHeight))
-		return {};
-
-	return Collision { true, true, CollisionType::Building };
-}
-
-Collision FakeParticleClass::DetectCollision(const PhysicsState& physics) const
-{
-	Collision result;
-
-	// Check water collision
-	if (const auto waterCol = this->CheckBridgeCollision(physics); waterCol.occurred) {
-		return waterCol;
-	}
-
-	// Check building/terrain collision
-	return this->CheckBuildingCollision(physics);
-}
-
-void FakeParticleClass::HandleCollisions(PhysicsState& physics)
-{
-	const auto collision = this->DetectCollision(physics);
-
-	if (!collision.occurred)
-	{
-		// No collision, just update position
-		this->SetLocation(physics.coord);
-		return;
-	}
-
-	// Adjust position for collision
-	physics.position.Z = GetCollisionHeight(collision, physics.terrainHeight);
-	physics.coord = VectorToCoord(physics.position);
-	this->SetLocation(physics.coord);
-
-	// Reflect velocity and mark for deletion
-	if (collision.shouldBounce) {
-		ReflectOffSurface(physics.coord, physics.velocity, this->Spark10C);
-		this->hasremaining = 1;
-	}
-}
-
-void FakeParticleClass::AdvanceColorAnimation()
-{
-	const float random = (float)ScenarioClass::Instance->Random.RandomDouble();
-	this->ColorSpeedResult += this->Type->ColorSpeed + (random * 0.05f);
-
-	if (this->ColorSpeedResult > 1.0)
-	{
-		const bool isLastColor = this->RefCount >= this->Type->ColorList.Count - 2;
-		this->RefCount = isLastColor ? 0 : this->RefCount + 1;
-		this->ColorSpeedResult = isLastColor ? 1.0 : 0.0;
-	}
-}
-
 void FakeParticleClass::__Spark_AI() {
-	// Physics update: gravity and movement
-	PhysicsState physics = this->UpdatePhysics();
 
-	// Collision detection and response
-	this->HandleCollisions(physics);
+	Vector3D<float> position = CoordToVector(this->Location);
+
+	this->Spark10C.Z -= RulesClass::Instance->Gravity;
+
+	// Calculate current and next positions
+	CoordStruct currentPos = this->Location;
+		position += this->Spark10C;
+	CoordStruct nextPos = VectorToCoord(position);
+
+	// Get terrain height and cell info
+	const int groundZ = MapClass::Instance->GetZPos(&nextPos);
+	const int bridgeZ = Unsorted::BridgeHeight + groundZ;
+
+	CellClass* oldCell = MapClass::Instance->GetCellAt(currentPos);
+	CellClass* newCell = MapClass::Instance->GetCellAt(nextPos);
+
+	bool crossingBridgeDown = false;
+	bool crossingBridgeUp = false;
+
+	if (newCell->ContainsBridgeHead() || oldCell->ContainsBridgeHead())
+	{
+		if (currentPos.Z < bridgeZ)
+		{
+			if (nextPos.Z >= bridgeZ)
+			{
+				crossingBridgeUp = true;
+			}
+		}
+		else if (nextPos.Z < bridgeZ)
+		{
+			crossingBridgeDown = true;
+		}
+	}
+
+	bool hitObstacle = false;
+
+	if (!crossingBridgeDown && !crossingBridgeUp)
+	{
+		float groundZFloat = (float)groundZ;
+
+		if (position.Z >= groundZFloat && position.Z - 150.0f < groundZFloat)
+		{
+			BuildingClass* building = newCell->GetBuilding();
+
+			if (building || newCell->ConnectsToOverlay(-1, -1))
+			{
+				hitObstacle = true;
+
+				if (building)
+				{
+					if (building->Type->LaserFence)
+					{
+						hitObstacle = building->LaserFenceFrame < 8;
+					}
+
+					if (building->IsStrange())
+					{
+						hitObstacle = false;
+					}
+				}
+			}
+		}
+	}
+
+	// Adjust Z position based on collisions
+	float groundZFloat = (float)groundZ;
+	bool needsMatrixRotation = true;
+
+	if (position.Z < groundZFloat)
+	{
+		// Below ground level
+		if (crossingBridgeUp)
+		{
+			// Crossing bridge from below
+			position.Z = (float)bridgeZ;
+		}
+		else if (crossingBridgeDown)
+		{
+			// Crossing bridge from above (going under)
+			position.Z = (float)(bridgeZ - 20);
+		}
+		else
+		{
+			// Normal ground collision
+			int adjustedGroundZ = groundZ - 100;
+			if (adjustedGroundZ < position.Z)
+			{
+				position.Z = groundZFloat;
+			}
+		}
+	}
+	else
+	{
+		// At or above ground level
+		if (crossingBridgeUp)
+		{
+			// Crossing bridge from below
+			position.Z = (float)bridgeZ;
+		}
+		else if (crossingBridgeDown)
+		{
+			// Crossing bridge from above
+			position.Z = (float)(bridgeZ - 20);
+		}
+		else if (hitObstacle)
+		{
+			// Hit a building or wall
+			int adjustedGroundZ = groundZ - 100;
+			if (adjustedGroundZ < position.Z)
+			{
+				position.Z = groundZFloat;
+			}
+		}
+		else
+		{
+			// No collision - skip matrix rotation
+			needsMatrixRotation = false;
+		}
+	}
+
+	// Apply ramp matrix rotation if needed
+	if (needsMatrixRotation) {
+		ReflectOffSurface(nextPos, this->SmokeVelocity, this->SmokeVelocity);
+		this->hasremaining = true;
+	}
 
 	// Visual update: color cycling
 	this->AdvanceColorAnimation();
