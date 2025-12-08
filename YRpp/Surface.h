@@ -16,6 +16,7 @@ class ConvertClass;
 struct SHPStruct;
 class ColorScheme;
 class BitFont;
+class BitText;
 class NOVTABLE Surface
 {
 public:
@@ -38,8 +39,8 @@ public:
 	virtual bool Draw_Ellipse(Point2D center, int radius_x, int radius_y, RectangleStruct clip, unsigned color) PURE;
 	virtual bool Put_Pixel(Point2D& point, unsigned color) PURE;
 	virtual unsigned Get_Pixel(Point2D& point) PURE;
-	virtual bool Draw_Line(Point2D& start, Point2D& end, unsigned color) PURE;
 	virtual bool Draw_Line_Rect(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color) PURE;
+	virtual bool Draw_Line(Point2D& start, Point2D& end, unsigned color) PURE;
 
 	virtual bool DrawLineColor_AZ(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color, int a5, int a6, bool z_only = false) PURE;
 	virtual bool DrawMultiplyingLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, int a4, int a5, int a6, bool a7 = false) PURE;
@@ -182,8 +183,8 @@ public:
 	virtual bool Draw_Ellipse(Point2D point, int radius_x, int radius_y, RectangleStruct clip, unsigned color) override JMP_THIS(0x7BB350);
 	virtual bool Put_Pixel(Point2D& point, unsigned color) override JMP_THIS(0x7BAEB0);
 	virtual unsigned Get_Pixel(Point2D& point) override JMP_THIS(0x7BAE60);
-	virtual bool Draw_Line(Point2D& start, Point2D& end, unsigned color) override JMP_THIS(0x7BA5E0);
 	virtual bool Draw_Line_Rect(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color) override JMP_THIS(0x7BA610);
+	virtual bool Draw_Line(Point2D& start, Point2D& end, unsigned color) override JMP_THIS(0x7BA5E0);
 
 	virtual bool DrawLineColor_AZ(RectangleStruct& area, Point2D& start, Point2D& end, unsigned color, int a5, int a6, bool z_only = false) override R0;
 	virtual bool DrawMultiplyingLine_AZ(RectangleStruct& area, Point2D& start, Point2D& end, int a4, int a5, int a6, bool a7 = false) override R0;
@@ -335,60 +336,11 @@ static void __fastcall CC_Draw_Shape(Surface* Surface, ConvertClass* Palette, SH
 	JMP_FAST(0x4AED70);
 }
 
-static Point2D *__fastcall Plain_Text_Print_Wide(
-	Point2D* retstr,
-	wchar_t* text,
-	Surface* surface,
-	RectangleStruct* rect,
-	Point2D* xy,
-	int fore,
-	int back,
-	TextPrintType flag,
-	int scheme,
-	int a9){
-		JMP_FAST(0x4A66D0);
-	}
-
-// this text drawing can accept vargs , so just put the thing here , dont need to do it twice
-static Point2D* __cdecl Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
-	Point2D* Location, unsigned int ForeColor, unsigned int BackColor, TextPrintType Flag, ...)
-{
-	JMP_STD(0x4A60E0);
-}
-
-// this text drawing can accept vargs , so just put the thing here , dont need to do it twice
-static Point2D* __cdecl Fancy_Text_Print_Wide_REF(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
-	Point2D* Location, COLORREF ForeColor, COLORREF BackColor, TextPrintType Flag, ...)
-{
-	JMP_STD(0x4A60E0);
-}
-
-// this text drawing can accept vargs , so just put the thing here , dont need to do it twice
-static Point2D* __cdecl Fancy_Text_Print_Wide(const Point2D& retBuffer, const wchar_t* Text, Surface* Surface, const RectangleStruct& Bounds,
-	const Point2D& Location, ColorScheme* ForeScheme, ColorScheme* BackScheme, TextPrintType Flag, ...)
-{
-	JMP_STD(0x4A61C0);
-}
-
-// this text drawing can accept vargs , so just put the thing here , dont need to do it twice
-static Point2D* __cdecl Fancy_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
-	Point2D* Location, ColorScheme* fore, unsigned int BackColor, TextPrintType Flag, ...)
-{
-	JMP_STD(0x4A61C0);
-}
-
-//
 static Point2D* __fastcall Simple_Text_Print_Wide(Point2D* RetVal, const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
 	Point2D* Location, COLORREF ForeColor, COLORREF BackColor, TextPrintType Flag, bool bUkn)
 {
 	JMP_FAST(0x4A5EB0);
 }
-
-static void __fastcall Draw_Radial_Indicator(bool draw_line, bool adjust_color, CoordStruct coord, ColorStruct rgb, float line_mult, bool a8, bool a9)
-{
-	JMP_FAST(0x456980);
-}
-
 static bool __fastcall Buffer_To_Surface_wrapper(Surface *tosurface, RectangleStruct *torect, Surface *fromsurface, RectangleStruct *fromrect) {
 	JMP_FAST(0x7BC1F0);
 }
@@ -462,26 +414,12 @@ public:
 
 
 	void DSurfaceDrawText(const wchar_t* pText, RectangleStruct* pBounds, Point2D* pLocation,
-		COLORREF ForeColor, COLORREF BackColor, TextPrintType Flag)
-	{
-		Point2D tmp = { 0, 0 };
-
-		Fancy_Text_Print_Wide_REF(&tmp, pText, this, pBounds, pLocation, ForeColor, BackColor, Flag);
-	}
+		COLORREF ForeColor, COLORREF BackColor, TextPrintType Flag);
 
 	void DrawColorSchemeText(const wchar_t* pText, RectangleStruct& pBounds, Point2D& pLocation,
-	ColorScheme* ForeColor, ColorScheme* BackColor, TextPrintType Flag)
-	{
-		Point2D tmp = { 0, 0 };
-		Fancy_Text_Print_Wide(tmp, pText, this, pBounds, pLocation, ForeColor, BackColor, Flag);
-	}
+	ColorScheme* ForeColor, COLORREF BackColor, TextPrintType Flag);
 
-	void DSurfaceDrawText(const wchar_t* pText, Point2D* pLoction, COLORREF Color)
-	{
-		RectangleStruct rect = this->Get_Rect();
-		Point2D tmp{ 0,0 };
-		Fancy_Text_Print_Wide_REF(&tmp, pText, this, &rect, pLoction, Color, 0, TextPrintType::NoShadow);
-	}
+	void DSurfaceDrawText(const wchar_t* pText, Point2D* pLoction, COLORREF Color);
 
 	void DSurfaceDrawText(const wchar_t* pText, int X, int Y, COLORREF Color)
 	{

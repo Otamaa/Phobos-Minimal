@@ -333,7 +333,7 @@ ASMJIT_PATCH(0x48A4F0, CombatAnimSelect, 0x5)
 	return 0x48A615;
 }
 
-#ifdef TODO_for_DamageArea
+#ifndef TODO_for_DamageArea
 
 // Cylinder CellSpread
 ASMJIT_PATCH(0x489430, MapClass_DamageArea_Cylinder_1, 0x7)
@@ -449,6 +449,9 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 	GET(ObjectClass*, pObject, ESI);
 
 	auto pWHExt = pWH->_GetExtData();
+
+	if (pWHExt->AffectsInAir && pWHExt->AffectsOnFloor)
+		return 0;
 
 	if (!pObject ||
 		((pWHExt->AffectsInAir && pObject->IsInAir()) ||

@@ -697,6 +697,9 @@ bool NOINLINE CanRecruitUnit(TeamClass* team, FootClass* unit, int typeIndex, bo
 	if (!unit->RecruitableB && team->Type->Autocreate && !alwaysRecruit)
 		return false;
 
+	//if (!unit->IsInPlayfield)
+	//	return false;
+
 	auto pExt = TechnoExtContainer::Instance.Find(unit);
 
 	// Cannot recruit if unit is trying something
@@ -2633,90 +2636,6 @@ BuildingClass* Find_Own_Building(
 	return bestBuilding;
 }
 
-// Helper function (reused from previous artifacts)
-bool ProcessMemberInitiation(FakeTeamClass* team, FootClass* member)
-{
-	if (!member->IsAlive || !member->Health)
-		return false;
-
-	if (!Unsorted::ScenarioInit && member->InLimbo)
-		return false;
-
-	if (member->IsTeamLeader)
-		return false;
-
-	int strayDistance = team->_Get_Stray();
-
-	// Check if close enough to zone to be initiated
-	if (member->DistanceFrom(team->Zone) <= strayDistance) {
-		member->IsTeamLeader = true;
-	} else if (!member->Destination)
-	{
-		// Send member to zone
-		member->QueueMission(Mission::Move, 0);
-		member->SetTarget(nullptr);
-		member->SetDestination(team->Zone, 1);
-	}
-
-	return true;
-}
-
-// Process transport units after unloading
-void ProcessTransports(FakeTeamClass* team, TeamMissionType nextMission, bool hasAircraftInTaskForce)
-{
-	FootClass* member = team->FirstUnit;
-
-	while (member)
-	{
-		FootClass* next = member->NextTeamMember;
-		TechnoTypeClass* technoType = member->GetTechnoType();
-
-		// Skip non-transport units
-		if (technoType->Passengers <= 0)
-		{
-			member = next;
-			continue;
-		}
-
-		// If task force has aircraft, only process aircraft transports
-		if (hasAircraftInTaskForce)
-		{
-			if (member->WhatAmI() != AircraftClass::AbsID)
-			{
-				member = next;
-				continue;
-			}
-		}
-
-		// Handle transport based on team settings
-		if (team->Type->TransportsReturnOnUnload)
-		{
-			// Transport returns to archived target (usually home base)
-			team->_Remove(member, -1, false);
-			member->SetTarget(nullptr);
-			member->SetDestination(member->ArchiveTarget, 1);
-			member->QueueMission(Mission::Move, 0);
-
-			if (member->ReadyToNextMission()) {
-				member->NextMission();
-			}
-
-			member->ArchiveTarget = nullptr;
-		}
-		else if (nextMission == TeamMissionType::Move ||
-				 nextMission == TeamMissionType::Go_bezerk ||
-				 nextMission == TeamMissionType::Att_waypt)
-		{
-			// Transport stays with team for these missions
-			team->_Remove(member, -1, false);
-			member->SetTarget(nullptr);
-			member->SetDestination(nullptr, 1);
-		}
-
-		member = next;
-	}
-}
-
 void CheckSuperweaponReady(TeamClass* team, SuperClass* super)
 {
 	int timeLeft = super->RechargeTimer.GetTimeLeft();
@@ -2765,6 +2684,1087 @@ bool NOINLINE ShouldFindNearbyLocation(TeamClass* team)
 
 	// None of the conditions met, don't search for nearby
 	return false;
+}
+
+// Helper function (reused from previous artifacts)
+bool ProcessMemberInitiation(FakeTeamClass* team, FootClass* member)
+{
+	if (!member->IsAlive || !member->Health)
+		return false;
+
+	if (!Unsorted::ScenarioInit && member->InLimbo)
+		return false;
+
+	if (member->IsTeamLeader)
+		return false;
+
+	int strayDistance = team->_Get_Stray();
+
+	// Check if close enough to zone to be initiated
+	if (member->DistanceFrom(team->Zone) <= strayDistance)
+	{
+		member->IsTeamLeader = true;
+	}
+	else if (!member->Destination)
+	{
+		// Send member to zone
+		member->QueueMission(Mission::Move, 0);
+		member->SetTarget(nullptr);
+		member->SetDestination(team->Zone, 1);
+	}
+
+	return true;
+}
+
+// Process transport units after unloading
+void ProcessTransports(FakeTeamClass* team, TeamMissionType nextMission, bool hasAircraftInTaskForce)
+{
+	FootClass* member = team->FirstUnit;
+
+	while (member)
+	{
+		FootClass* next = member->NextTeamMember;
+		TechnoTypeClass* technoType = member->GetTechnoType();
+		bool shouldRemove = false;
+
+		// Skip non-transport units
+		if (technoType->Passengers <= 0)
+		{
+			shouldRemove = true;
+		}
+
+		// If task force has aircraft, only process aircraft transports
+		else if (hasAircraftInTaskForce)
+		{
+			if (member->WhatAmI() != AircraftClass::AbsID)
+			{
+				shouldRemove = true;
+			}
+		}
+
+		if (shouldRemove)
+		{
+			if (nextMission == TeamMissionType::Move ||
+				 nextMission == TeamMissionType::Att_waypt)
+			{
+				team->_Remove(member, -1, false);
+				member->SetTarget(nullptr);
+				member->SetDestination(nullptr, 1);
+			}
+		}
+		else
+		{
+			if (technoType->Passengers > 0)
+			{
+				// Handle transport based on team settings
+				if (team->Type->TransportsReturnOnUnload)
+				{
+					// Transport returns to archived target (usually home base)
+					team->_Remove(member, -1, false);
+					member->SetTarget(nullptr);
+					member->SetDestination(member->ArchiveTarget, 1);
+					member->QueueMission(Mission::Move, 0);
+
+					if (member->ReadyToNextMission())
+					{
+						member->NextMission();
+					}
+
+					member->ArchiveTarget = nullptr;
+				}
+
+				else if (nextMission == TeamMissionType::Move ||
+				nextMission == TeamMissionType::Go_bezerk)
+				{
+					team->_Remove(member, -1, false);
+					member->SetTarget(nullptr);
+					member->SetDestination(nullptr, 1);
+				}
+			}
+		}
+
+		member = next;
+	}
+}
+
+void FakeTeamClass::_TMission_Unload(ScriptActionNode* nNode, bool arg3)
+{
+	FootClass* member = this->FirstUnit;
+
+	if (!member) {
+		this->StepCompleted = true;
+		return;
+	}
+
+	bool allUnloaded = true;
+
+	// First pass: Process each member for unloading
+	FootClass* current = member;
+	while (current) {
+		FootClass* next = current->NextTeamMember;
+
+		if (current->IsAlive) {
+			// Initialize uninitiated members
+			ProcessMemberInitiation(this, current);
+
+			// Process initiated members with cargo
+			if (current->IsAlive && current->Health &&
+				(Unsorted::ScenarioInit || !current->InLimbo) &&
+				(current->IsTeamLeader || current->WhatAmI() == AircraftClass::AbsID)) {
+				// Check if member has cargo
+				if (current->Passengers.NumPassengers)
+				{
+					allUnloaded = false;
+
+					// Get member's current cell
+					CellClass* memberCell = current->GetCell();
+
+					// Only unload if not in a building and not already unloading
+					if (!memberCell->GetBuilding() &&
+						current->GetCurrentMission() != Mission::Unload) {
+						// Start unloading
+						current->SetDestination(nullptr, 1);
+						current->SetTarget(nullptr);
+						current->QueueMission(Mission::Unload, 0);
+					}
+				}
+			}
+		}
+
+		current = next;
+	}
+
+	// If all members have unloaded, process transports
+	if (!allUnloaded) {
+		return;
+	}
+
+	bool hasAircraftInTaskForce = this->_has_aircraft();
+
+	// Process transport units
+	ProcessTransports(this, nNode->Action, hasAircraftInTaskForce);
+
+	this->StepCompleted = true;
+}
+
+void FakeTeamClass::_TMission_Load(ScriptActionNode* nNode, bool arg3)
+{
+	// Check if task force has aircraft with cargo capacity
+	bool hasAircraftTransport = false;
+	TaskForceClass* taskForce = this->Type->TaskForce;
+
+	for (int i = 0; i < taskForce->CountEntries; i++)
+	{
+		TechnoTypeClass* technoType = taskForce->Entries[i].Type;
+
+		if (technoType->WhatAmI() == AircraftTypeClass::AbsID &&
+			technoType->Passengers > 0)
+		{
+			hasAircraftTransport = true;
+			break;
+		}
+	}
+
+	FootClass* member = this->FirstUnit;
+	if (!member)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	// Find a transport that needs loading
+	FootClass* transport = nullptr;
+	while (member)
+	{
+		TechnoTypeClass* memberType = member->GetTechnoType();
+
+		// Must be a transport (has passengers)
+		if (memberType->Passengers <= 0)
+		{
+			member = member->NextTeamMember;
+			continue;
+		}
+
+		// Must not be full
+		if (member->Passengers.NumPassengers >= memberType->Passengers)
+		{
+			member = member->NextTeamMember;
+			continue;
+		}
+
+		// If task force has aircraft, only use aircraft transports
+		if (hasAircraftTransport)
+		{
+			if (member->WhatAmI() != AircraftClass::AbsID)
+			{
+				member = member->NextTeamMember;
+				continue;
+			}
+		}
+		else
+		{
+			// Only use ground units for ground transport
+			if (member->WhatAmI() != UnitClass::AbsID)
+			{
+				member = member->NextTeamMember;
+				continue;
+			}
+		}
+
+		// Found a valid transport
+		transport = member;
+		break;
+	}
+
+	if (!transport)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	// If transport is in radio contact, wait
+	if (transport->HasAnyLink())
+	{
+		return;
+	}
+
+	// Load all other team members into the transport
+	bool allLoaded = true;
+	FootClass* unit = this->FirstUnit;
+
+	while (unit)
+	{
+		// Skip if only one member in team (the transport itself)
+		if (this->TotalObjects <= 1)
+			break;
+
+		if (!unit->IsAlive)
+		{
+			unit = unit->NextTeamMember;
+			continue;
+		}
+
+		// Initialize uninitiated members
+		ProcessMemberInitiation(this, unit);
+
+		// Process initiated members
+		if (unit->IsAlive &&
+			unit->Health &&
+			(Unsorted::ScenarioInit || !unit->InLimbo) &&
+			(unit->IsTeamLeader || unit->WhatAmI() == AircraftClass::AbsID))
+		{
+			// Don't load the transport into itself
+			if (unit != transport)
+			{
+				allLoaded = false;
+
+				// Assign ENTER mission if not already entering
+				if (unit->GetCurrentMission() != Mission::Enter)
+				{
+					unit->QueueMission(Mission::Enter, 0);
+					unit->SetTarget(nullptr);
+					unit->SetDestination(transport, 1);
+					return; // Wait for this unit to enter
+				}
+			}
+		}
+
+		unit = unit->NextTeamMember;
+	}
+
+	// All units loaded
+	if (allLoaded)
+	{
+		// If transports should return home, save current location
+		if (this->Type->TransportsReturnOnUnload)
+		{
+			transport->SetArchiveTarget(transport->GetCell());
+		}
+
+		this->StepCompleted = true;
+	}
+}
+
+void FakeTeamClass::_TMission_Deploy(ScriptActionNode* nNode, bool arg3)
+{
+	FootClass* member = this->FirstUnit;
+
+	if (!member)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	bool allDeployed = true;
+
+	do
+	{
+		if (!member->IsAlive)
+		{
+			member = member->NextTeamMember;
+			continue;
+		}
+
+		// Initialize uninitiated members
+		ProcessMemberInitiation(this, member);
+
+		// Process initiated members for deployment
+		if (member->Health && (Unsorted::ScenarioInit || !member->InLimbo) &&
+			(member->IsTeamLeader || member->WhatAmI() == AircraftClass::AbsID))
+		{
+			bool canDeploy = false;
+			bool isUnit = (member->WhatAmI() == UnitClass::AbsID);
+
+			// Check for MCV deployment (unit that deploys into building)
+			if (isUnit)
+			{
+				UnitClass* unit = (UnitClass*)member;
+				if (unit->Type->DeploysInto)
+				{
+					canDeploy = true;
+					allDeployed = false;
+
+					if (member->GetCurrentMission() != Mission::Unload)
+					{
+						// Check if placement is legal
+						member->Mark(MarkType::Up);
+						CellStruct unitCell = member->GetMapCoords();
+
+						if (!unit->Type->DeploysInto->CanCreateHere(unitCell, member->Owner))
+						{
+							// Not legal placement, try to flush area
+							CellStruct currentCell = member->GetMapCoords();
+							unit->Type->DeploysInto->FlushPlacement(&currentCell, member->Owner);
+							member->Mark(MarkType::Down);
+							// Handle searching for free space in Hunt mission handler
+							member->ForceMission(Mission::Hunt);
+							member->MissionStatus = 2; // Tells UnitClass::Mission_Hunt to omit certain checks.
+
+						}
+						else
+						{
+							member->Mark(MarkType::Down);
+							// Legal placement, start deployment
+							member->SetDestination(nullptr, 1);
+							member->SetTarget(nullptr);
+							member->QueueMission(Mission::Unload, 0);
+						}
+					}
+				}
+			}
+
+			// Check for simple deployer (like siege choppers)
+			bool isSimpleDeployer = isUnit && ((UnitClass*)member)->Type->IsSimpleDeployer;
+
+			// Check for engineer/spy deployment
+			bool isInfantryDeployer = false;
+			if (auto pUnit = cast_to<InfantryClass*>(member))
+				isInfantryDeployer = pUnit->Type->Deployer;
+
+			if ((isSimpleDeployer || isInfantryDeployer) && !canDeploy)
+			{
+				if (member->GetMission() != Mission::Unload)
+				{
+					member->QueueMission(Mission::Unload, 0);
+					allDeployed = false;
+				}
+			}
+		}
+
+		member = member->NextTeamMember;
+	}
+	while (member);
+
+	if (allDeployed) {
+		this->StepCompleted = true;
+	}
+}
+
+void FakeTeamClass::_TMission_Scout(ScriptActionNode* nNode, bool arg3)
+{
+	bool shouldContinue = true;
+
+		if (this->TargetHouse)
+		{
+			// Already scouting a house, check if movement is done
+			FootClass* leader = this->_Fetch_A_Leader();
+
+			if (leader &&
+				leader->CurrentMission != Mission::Move &&
+				leader->QueuedMission != Mission::Move)
+			{
+				// Movement complete, mark house as scouted
+				this->OwnerHouse->UpdateScoutNodes(this->TargetHouse);
+				this->TargetHouse = nullptr;
+			}
+		}
+		else
+		{
+			// Find an unscouted house
+			HouseClass* house = this->OwnerHouse;
+			int unscoutedCount = 0;
+
+			// Count unscouted nodes
+			for (int i = 0; i < house->ScoutNodes.Count; i++) {
+				if (!house->ScoutNodes.Items[i].IsPreferred) // Check scouted flag
+				{
+					unscoutedCount++;
+				}
+			}
+
+			if (unscoutedCount <= 0)
+			{
+				shouldContinue = false;
+			}
+			else
+			{
+				// Pick random unscouted house
+				int randomPick = ScenarioClass::Instance->Random.RandomRanged(0, unscoutedCount - 1);
+
+				for (int i = 0; i < house->ScoutNodes.Count; i++) {
+					if (!house->ScoutNodes.Items[i].IsPreferred) {
+						if (randomPick-- == 0) {
+							this->TargetHouse = house->ScoutNodes.Items[i].House;
+							break;
+						}
+					}
+				}
+
+				auto IsValidTarget = [](BuildingClass* pBld) -> bool {
+					if (!pBld->IsAlive)
+						return false;
+
+					const auto pExt = BuildingExtContainer::Instance.Find(pBld);
+					if (pExt->LimboID != -1)
+						return false;
+
+					if (pBld->Type->InvisibleInGame)
+						return false;
+
+					if (pExt->Type->IsDummy)
+						return false;
+
+					return true;
+				};
+
+				// Find a building owned by the scout target house
+				std::vector<BuildingClass*> targetBuildings;
+				targetBuildings.reserve(this->TargetHouse->Buildings.Count);
+
+				for (int i = 0; i < this->TargetHouse->Buildings.Count; i++) {
+					if (IsValidTarget(this->TargetHouse->Buildings.Items[i])) {
+						targetBuildings.push_back(this->TargetHouse->Buildings.Items[i]);
+					}
+				}
+					
+				if (targetBuildings.empty()) {
+					// No buildings found, mark as scouted
+					this->OwnerHouse->UpdateScoutNodes(this->TargetHouse);
+					this->TargetHouse = nullptr;
+				} else {
+					// Pick random building
+					const BuildingClass* target = targetBuildings[ScenarioClass::Instance->Random.RandomRanged(0, targetBuildings.size() - 1)];
+
+					// Find leader and nearby location
+					if (FootClass* leader = this->_Fetch_A_Leader())
+					{
+						CoordStruct targetCoord = target->GetCoords();
+						CellStruct targetCell = CellClass::Coord2Cell(targetCoord);
+
+						TechnoTypeClass* leaderType = leader->GetTechnoType();
+
+						CellStruct result = MapClass::Instance->NearByLocation(
+							targetCell,
+							leaderType->SpeedType,
+							ZoneType::None,
+							MovementZone::Normal,
+							false, 1, 1, 0, 0, 0, 1,
+							CellStruct::Empty,
+							0, 0
+						);
+
+						if (result.IsValid()) {
+							this->_AssignMissionTarget(MapClass::Instance->GetCellAt(result));
+						} else {
+							this->_AssignMissionTarget(nullptr);
+						}
+					}
+				}
+			}
+		}
+
+		this->_CoordinateMove();
+		this->StepCompleted = shouldContinue ? false : true;
+}
+
+void FakeTeamClass::_TMission_Move_To_Own_Building(ScriptActionNode* nNode, bool arg3)
+{
+	if (arg3) {
+		if (!this->QueuedFocus) {
+			FootClass* member = this->FirstUnit;
+
+			if (!member) {
+				this->StepCompleted = true;
+				return;
+			}
+
+			// Unpack argument
+			int packedArg = nNode->Argument;
+			int buildingTypeIndex = packedArg & 0xFFFF;
+			int findMode = packedArg >> 16;
+
+			// Get enemy house
+			HouseClass* enemyHouse = nullptr;
+			int enemyIndex = member->Owner->EnemyHouseIndex;
+			if (enemyIndex != -1) {
+				enemyHouse = HouseClass::Array->Items[enemyIndex];
+			}
+
+			// Find enemy building
+			if (BuildingClass* targetBuilding = Find_Own_Building(
+				buildingTypeIndex,
+				0,
+				member,
+				(BuildingFindType)findMode
+			)) {
+				// Find nearby accessible location
+				CoordStruct buildingCoord = targetBuilding->Location;
+				CellStruct buildingCell = CellClass::Coord2Cell(buildingCoord);
+
+				CoordStruct memberCoord = member->GetCoords();
+				CellStruct memberCell = CellClass::Coord2Cell(memberCoord);
+
+				TechnoTypeClass* memberType = member->GetTechnoType();
+
+				ZoneType memberZone = MapClass::Instance->GetMovementZoneType(
+					&memberCell,
+					memberType->MovementZone,
+					member->OnBridge
+				);
+
+				const CellStruct nearbyCell = MapClass::Instance->NearByLocation(
+					buildingCell,
+					memberType->SpeedType,
+					memberZone,
+					memberType->MovementZone,
+					false, 1, 1, 0, 0, 0, 1,
+					CellStruct::Empty,
+					0, 0
+				);
+
+				if (nearbyCell.IsValid()) {
+					this->_AssignMissionTarget(MapClass::Instance->GetCellAt(nearbyCell));
+				} else {
+					this->_AssignMissionTarget(nullptr);
+				}
+			}
+		} else {
+			this->_CoordinateMove();
+		}
+	}
+
+	if (!this->QueuedFocus) {
+		this->StepCompleted = true;
+		return;
+	}
+
+	this->_CoordinateMove();
+}
+
+void FakeTeamClass::_TMission_Attack_Enemy_Building(ScriptActionNode* nNode, bool arg3)
+{
+	if (arg3)
+	{
+		if (this->QueuedFocus)
+		{
+			if (!this->QueuedFocus || !this->_Does_Any_Member_Have_Ammo())
+			{
+				this->_AssignMissionTarget(nullptr);
+				this->StepCompleted = true;
+				return;
+			}
+
+			this->_Coordinate_Attack();
+			return;
+		}
+
+		FootClass* member = this->FirstUnit;
+		if (!member) {
+			this->_AssignMissionTarget(nullptr);
+			this->StepCompleted = true;
+			return;
+		}
+
+		// Unpack argument: lower 16 bits = building type, upper 16 bits = find mode
+		int packedArg = nNode->Argument;
+		int buildingTypeIndex = packedArg & 0xFFFF;
+		int findMode = packedArg >> 16;
+
+		// Validate building type index
+		if (buildingTypeIndex >= BuildingTypeClass::Array->Count)
+		{
+			Debug::FatalErrorAndExit("Team [%s] TMission_Attack_Enemy_Building: Invalid building type index %d (max: %d)",
+				this->Type->ID, buildingTypeIndex, BuildingTypeClass::Array->Count - 1);
+			this->_AssignMissionTarget(nullptr);
+			this->StepCompleted = true;
+			return;
+		}
+
+		// Get enemy house
+		HouseClass* enemyHouse = nullptr;
+		int enemyIndex = member->Owner->EnemyHouseIndex;
+		if (enemyIndex != -1) {
+			enemyHouse = HouseClass::Array->Items[enemyIndex];
+		}
+
+		// Find enemy building
+		if (BuildingClass* targetBuilding = Find_Enemy_Building(
+			buildingTypeIndex,
+			enemyHouse,
+			member,
+			(BuildingFindType)findMode,
+			this->Type->OnlyTargetHouseEnemy
+		)) {
+			this->_AssignMissionTarget(targetBuilding);
+		}
+	}
+
+	if (!this->QueuedFocus || !this->_Does_Any_Member_Have_Ammo()) {
+		this->_AssignMissionTarget(nullptr);
+		this->StepCompleted = true;
+		return;
+	}
+
+	this->_Coordinate_Attack();
+}
+
+void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool arg3)
+{
+	FootClass* leader = this->_Fetch_A_Leader();
+	if (!leader) {
+		this->StepCompleted = true;
+		return;
+	}
+
+	HouseClass* house = leader->Owner;
+
+	// Find Chronosphere and Chronoshift superweapons
+	SuperClass* chronosphere = nullptr;
+	SuperClass* chronoshift = nullptr;
+
+	for (int i = 0; i < house->Supers.Count; i++) {
+
+		SuperClass* super = house->Supers.Items[i];
+		SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
+
+		if (!pExt->IsAvailable(house))
+			continue;
+
+		if (super->Type->Type == SuperWeaponType::ChronoSphere) // Chronosphere
+			chronosphere = super;
+		
+		if (super->Type->Type == SuperWeaponType::ChronoWarp) // Chronoshift
+			chronoshift = super;
+	}
+
+	if (!chronosphere || !chronoshift) {
+		this->StepCompleted = true;
+		return;
+	}
+
+	// Check if ready
+	if (chronosphere->IsCharged && house->GetPowerPercentage() >= 1.0)
+	{
+		// Find enemy building target
+		HouseClass* enemyHouse = nullptr;
+		int enemyIndex = leader->Owner->EnemyHouseIndex;
+		if (enemyIndex != -1) {
+			enemyHouse = HouseClass::Array->Items[enemyIndex];
+		}
+
+		int packedArg = nNode->Argument;
+		int buildingTypeIndex = packedArg & 0xFFFF;
+		int findMode = packedArg >> 16;
+
+		// Validate building type index
+		if (buildingTypeIndex >= BuildingTypeClass::Array->Count) {
+			Debug::FatalErrorAndExit("Team [%s] TMission_CHRONO_PREP_FOR_ABWP: Invalid building type index %d (max: %d)",
+				this->Type->ID, buildingTypeIndex, BuildingTypeClass::Array->Count - 1);
+			this->StepCompleted = true;
+			return;
+		}
+
+		if (BuildingClass* targetBuilding = Find_Enemy_Building(
+			buildingTypeIndex,
+			enemyHouse,
+			leader,
+			(BuildingFindType)findMode,
+			this->Type->OnlyTargetHouseEnemy
+		)) {
+			// Fire Chronosphere at team zone
+			CoordStruct zoneCoord = this->Zone->GetCoords();
+			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
+			house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+
+			// Fire Chronoshift at target building
+			CoordStruct targetCoord = targetBuilding->GetCoords();
+			CellStruct targetCell = CellClass::Coord2Cell(targetCoord);
+			house->Fire_SW(chronoshift->Type->ArrayIndex, targetCell);
+			this->_AssignMissionTarget(targetBuilding);
+		}
+
+		this->StepCompleted = true;
+	}
+	else {
+		CheckSuperweaponReady(this, chronosphere);
+	}
+}
+
+void FakeTeamClass::_TMission_Play_Animation(ScriptActionNode* nNode, bool arg3)
+{
+	if (!arg3) {
+		this->StepCompleted = true;
+		return;
+	}
+
+	int packedArg = nNode->Argument;
+	int animIndex = packedArg & 0xFFFF;
+	int loopCount = packedArg >> 16;
+
+	// Validate anim index
+	if (animIndex >= AnimTypeClass::Array->Count) {
+		Debug::FatalErrorAndExit("Team [%s] TMission_Play_Animation: Invalid anim type index %d (max: %d)",
+			this->Type->ID, animIndex, BuildingTypeClass::Array->Count - 1);
+
+		this->StepCompleted = true;
+		return;
+	}
+
+	AnimTypeClass* animType = AnimTypeClass::Array->Items[animIndex];
+	FootClass* member = this->FirstUnit;
+
+	if (!member || !animType) {
+		this->StepCompleted = true;
+		return;
+	}
+
+	// Create animation on each team member
+	do
+	{
+		{
+			CoordStruct memberCoord = member->GetCoords();
+			if (AnimClass* created = GameCreate<AnimClass>(animType,
+				memberCoord,
+				0,
+				loopCount,
+				AnimFlag::AnimFlag_600,
+				0,
+				0
+			)) {
+				created->SetOwnerObject(member);
+			}
+		}
+
+		member = member->NextTeamMember;
+	}
+	while (member);
+
+	this->StepCompleted = true;
+}
+
+void FakeTeamClass::_TMission_Iron_Curtain_Me(ScriptActionNode* nNode, bool arg3)
+{
+	const auto pLeader = this->_Fetch_A_Leader();
+
+	if (!pLeader)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+	const auto pOwner = this->OwnerHouse;
+
+	if (pOwner->Supers.Count <= 0)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	const bool havePower = pOwner->HasFullPower();
+	SuperClass* obtain = nullptr;
+	bool found = false;
+
+	for (const auto& pSuper : pOwner->Supers)
+	{
+		const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
+
+		if (!found && pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == nNode->Argument)
+		{
+			if (!pExt->IsAvailable(pOwner))
+				continue;
+
+			// found SW that already charged , just use it and return
+			if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
+			{
+				obtain = pSuper;
+				found = true;
+
+				continue;
+			}
+
+			if (!obtain && pSuper->Granted)
+			{
+				double rechargeTime = (double)pSuper->GetRechargeTime();
+				double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
+
+				if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
+				{
+					obtain = pSuper;
+					found = false;
+					continue;
+				}
+			}
+		}
+	}
+
+	if (found)
+	{
+		auto nCoord = this->Zone->GetCoords();
+		pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
+	}
+
+	this->StepCompleted = true;
+}
+
+void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool arg3)
+{
+	FootClass* leader = _Fetch_A_Leader();
+	if (!leader)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	HouseClass* house = leader->Owner;
+
+	// Find superweapons
+	SuperClass* chronosphere = nullptr;
+	SuperClass* chronoshift = nullptr;
+
+	for (int i = 0; i < house->Supers.Count; i++)
+	{
+		SuperClass* super = (SuperClass*)house->Supers.Items[i];
+		SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
+
+		if (!pExt->IsAvailable(house))
+			continue;
+
+		if (super->Type->Type == SuperWeaponType::ChronoSphere) chronosphere = super;
+		if (super->Type->Type == SuperWeaponType::ChronoWarp) chronoshift = super;
+	}
+
+	if (!chronosphere || !chronoshift)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	if (chronosphere->IsCharged && house->GetPowerPercentage() >= 1.0)
+	{
+		// Find threat target
+		ThreatType threatType = TeamClass::ThreatFromQuarry((QuarryType)nNode->Argument);
+		CoordStruct leaderCoord = leader->Location;
+
+		if (AbstractClass* threat = leader->GreatestThreat(
+			threatType,
+			&leaderCoord,
+			this->Type->OnlyTargetHouseEnemy
+		))
+		{
+			// Fire Chronosphere at zone
+			CoordStruct zoneCoord = this->Zone->GetCoords();
+			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
+			house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+
+			// Fire Chronoshift at threat
+			CoordStruct threatCoord = threat->GetCoords();
+			CellStruct threatCell = CellClass::Coord2Cell(threatCoord);
+			house->Fire_SW(chronoshift->Type->ArrayIndex, threatCell);
+			this->_AssignMissionTarget(threat);
+		}
+
+		this->StepCompleted = true;
+	}
+	else
+	{
+		CheckSuperweaponReady(this, chronosphere);
+	}
+
+}
+
+void FakeTeamClass::_TMission_Enter_Grinder(ScriptActionNode* nNode, bool arg3)
+{
+	FootClass* Member = this->FirstUnit;
+	FootClass* NextMember = nullptr;
+	if (Member)
+	{
+		do
+		{
+			NextMember = Member->NextTeamMember;
+			if (Member->EnterGrinder())
+			{
+				this->_Remove(Member, -1, true);
+			}
+			Member = NextMember;
+		}
+		while (NextMember);
+	}
+
+	this->StepCompleted = 1;
+}
+
+void FakeTeamClass::_TMission_Enter_Bio_Reactor(ScriptActionNode* nNode, bool arg3)
+{
+	FootClass* Member = this->FirstUnit;
+	FootClass* NextMember = nullptr;
+	if (Member)
+	{
+		do
+		{
+			NextMember = Member->NextTeamMember;
+			if (Member->EnterBioReactor())
+			{
+				this->_Remove(Member, -1, true);
+			}
+			Member = NextMember;
+		}
+		while (NextMember);
+	}
+
+	this->StepCompleted = 1;
+}
+
+void FakeTeamClass::_TMission_Occupy_Battle_Bunker(ScriptActionNode* nNode, bool arg3)
+{
+	FootClass* Member = this->FirstUnit;
+	FootClass* NextMember = nullptr;
+	if (Member)
+	{
+		do
+		{
+			NextMember = Member->NextTeamMember;
+			if (Member->EnterBattleBunker())
+			{
+				this->_Remove(Member, -1, true);
+			}
+			Member = NextMember;
+		}
+		while (NextMember);
+	}
+
+	this->StepCompleted = 1;
+}
+
+void FakeTeamClass::_TMission_Occupy_Tank_Bunker(ScriptActionNode* nNode, bool arg3)
+{
+	FootClass* Member = this->FirstUnit;
+	FootClass* NextMember = nullptr;
+	if (Member)
+	{
+		do
+		{
+			NextMember = Member->NextTeamMember;
+			if (Member->EnterTankBunker())
+			{
+				this->_Remove(Member, -1, true);
+			}
+			Member = NextMember;
+		}
+		while (NextMember);
+	}
+
+	this->StepCompleted = 1;
+}
+
+void FakeTeamClass::_TMission_Attack(ScriptActionNode* nNode, bool arg3)
+{
+	if (!this->QueuedFocus) {
+		if (FootClass* pLeader = this->_Fetch_A_Leader()) {
+			const ThreatType tt = ThreatFromQuarry((QuarryType)nNode->Argument);
+			this->_AssignMissionTarget(pLeader->GreatestThreat(tt, &pLeader->Location, this->Type->OnlyTargetHouseEnemy));
+		}
+	}
+
+	if (!this->QueuedFocus || !this->_Does_Any_Member_Have_Ammo()) {
+		this->StepCompleted = true;
+		return;
+	}
+
+	this->_Coordinate_Attack();
+}
+
+void FakeTeamClass::_TMission_Attack_Waypoint(ScriptActionNode* nNode, bool arg3)
+{
+	if (arg3) {
+		CellClass* pWaypCell = ScenarioClass::Instance->GetWaypointCell(nNode->Argument);
+		AbstractClass* pTarget = nullptr;
+
+		if (pWaypCell && pWaypCell->WhatAmI() == CellClass::AbsID) {
+			bool revealed = (pWaypCell->Flags & CellFlags::CenterRevealed) != CellFlags::Empty;
+			if (auto pObj = pWaypCell->GetSomeObject(Point2D::Empty, revealed)) {
+				pTarget = pObj;
+			} else {
+				pTarget = pWaypCell;
+			}
+		}
+
+		this->_AssignMissionTarget(pTarget);
+	}
+
+	if (this->QueuedFocus && this->_Does_Any_Member_Have_Ammo()) {
+		this->_Coordinate_Attack();
+	} else {
+		this->_AssignMissionTarget(nullptr);
+		this->StepCompleted = true;
+	}
+}
+
+void FakeTeamClass::_TMission_Move_To_Cell(ScriptActionNode* nNode, bool arg3)
+{
+	const int nDivisor = ScenarioClass::NewINIFormat() < 4 ? 128 : 1000;
+	CellStruct toCell { 
+		short(nNode->Argument % nDivisor),
+		short(nNode->Argument / nDivisor)
+	};
+	this->_AssignMissionTarget(MapClass::Instance->GetCellAt(toCell));
+	this->_CoordinateMove();
+}
+
+void FakeTeamClass::_TMission_Loop(ScriptActionNode* nNode, bool arg3)
+{
+	this->CurrentScript->SetMission(nNode->Argument - 2); //????
+	this->StepCompleted = true;
+}
+
+void FakeTeamClass::_TMission_Player_wins(ScriptActionNode* nNode, bool arg3)
+{
+	HouseClass::CurrentPlayer->Win(false);
+	this->StepCompleted = true;
+}
+
+void FakeTeamClass::_TMission_Player_loses(ScriptActionNode* nNode, bool arg3)
+{
+	HouseClass::CurrentPlayer->Lose(false);
+	this->StepCompleted = true;
+}
+
+void FakeTeamClass::_TMission_Talk_bubble(ScriptActionNode* nNode, bool arg3)
+{
+	if(arg3){
+		if (this->FirstUnit)
+			this->FirstUnit->CreateTalkBubble(nNode->Argument);
+
+		this->StepCompleted = true;
+	}
 }
 
 void FakeTeamClass::_AI()
@@ -3007,1063 +4007,107 @@ void FakeTeamClass::_AI()
 	{
 	case TeamMissionType::Unload:
 	{
-		FootClass* member = this->FirstUnit;
-
-		if (!member)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		bool allUnloaded = true;
-
-		// First pass: Process each member for unloading
-		FootClass* current = member;
-		while (current)
-		{
-			FootClass* next = current->NextTeamMember;
-
-			if (current->IsAlive)
-			{
-				// Initialize uninitiated members
-				ProcessMemberInitiation(this, current);
-
-				// Process initiated members with cargo
-				if (current->IsAlive &&
-					current->Health &&
-					(Unsorted::ScenarioInit || !current->InLimbo) &&
-					(current->IsTeamLeader || current->WhatAmI() == AircraftClass::AbsID))
-				{
-					// Check if member has cargo
-					if (current->Passengers.NumPassengers)
-					{
-						allUnloaded = false;
-
-						// Get member's current cell
-						CellClass* memberCell = current->GetCell();
-
-						// Only unload if not in a building and not already unloading
-						if (!memberCell->GetBuilding() &&
-							current->GetCurrentMission() != Mission::Unload)
-						{
-							// Start unloading
-							current->SetDestination(nullptr, 1);
-							current->SetTarget(nullptr);
-							current->QueueMission(Mission::Unload, 0);
-							allUnloaded = false;
-						}
-					}
-				}
-			}
-
-			current = next;
-		}
-
-		// If all members have unloaded, process transports
-		if (allUnloaded)
-		{
-			bool hasAircraftInTaskForce = this->_has_aircraft();
-
-			// Process transport units
-			ProcessTransports(this, node.Action, hasAircraftInTaskForce);
-
-			this->StepCompleted = true;
-		}
-
+		this->_TMission_Unload(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Load:
 	{
-		// Check if task force has aircraft with cargo capacity
-		bool hasAircraftTransport = false;
-		TaskForceClass* taskForce = this->Type->TaskForce;
-
-		for (int i = 0; i < taskForce->CountEntries; i++)
-		{
-			TechnoTypeClass* technoType = taskForce->Entries[i].Type;
-
-			if (technoType->WhatAmI() == AircraftTypeClass::AbsID &&
-				technoType->Passengers > 0)
-			{
-				hasAircraftTransport = true;
-				break;
-			}
-		}
-
-		FootClass* member = this->FirstUnit;
-		if (!member)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		// Find a transport that needs loading
-		FootClass* transport = nullptr;
-		while (member)
-		{
-			TechnoTypeClass* memberType = member->GetTechnoType();
-
-			// Must be a transport (has passengers)
-			if (memberType->Passengers <= 0)
-			{
-				member = member->NextTeamMember;
-				continue;
-			}
-
-			// Must not be full
-			if (member->Passengers.NumPassengers >= memberType->Passengers)
-			{
-				member = member->NextTeamMember;
-				continue;
-			}
-
-			// If task force has aircraft, only use aircraft transports
-			if (hasAircraftTransport)
-			{
-				if (member->WhatAmI() != AircraftClass::AbsID)
-				{
-					member = member->NextTeamMember;
-					continue;
-				}
-			}
-			else
-			{
-				// Only use ground units for ground transport
-				if (member->WhatAmI() != UnitClass::AbsID)
-				{
-					member = member->NextTeamMember;
-					continue;
-				}
-			}
-
-			// Found a valid transport
-			transport = member;
-			break;
-		}
-
-		if (!transport)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		// If transport is in radio contact, wait
-		if (transport->HasAnyLink())
-		{
-			return;
-		}
-
-		// Load all other team members into the transport
-		bool allLoaded = true;
-		FootClass* unit = this->FirstUnit;
-
-		while (unit)
-		{
-			// Skip if only one member in team (the transport itself)
-			if (this->TotalObjects <= 1)
-				break;
-
-			if (!unit->IsAlive)
-			{
-				unit = unit->NextTeamMember;
-				continue;
-			}
-
-			// Initialize uninitiated members
-			ProcessMemberInitiation(this, unit);
-
-			// Process initiated members
-			if (unit->IsAlive&&
-				unit->Health &&
-				(Unsorted::ScenarioInit || !unit->InLimbo) &&
-				(unit->IsTeamLeader || unit->WhatAmI() == AircraftClass::AbsID))
-			{
-				// Don't load the transport into itself
-				if (unit != transport)
-				{
-					allLoaded = false;
-
-					// Assign ENTER mission if not already entering
-					if (unit->GetCurrentMission() != Mission::Enter)
-					{
-						unit->QueueMission(Mission::Enter, 0);
-						unit->SetTarget(nullptr);
-						unit->SetDestination(transport, 1);
-						return; // Wait for this unit to enter
-					}
-				}
-			}
-
-			unit = unit->NextTeamMember;
-		}
-
-		// All units loaded
-		if (allLoaded)
-		{
-			// If transports should return home, save current location
-			if (this->Type->TransportsReturnOnUnload)
-			{
-				transport->SetArchiveTarget(transport->GetCell());
-			}
-
-			this->StepCompleted = true;
-		}
+		this->_TMission_Load(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Deploy:
 	{
-		FootClass* member = this->FirstUnit;
-
-		if (!member)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		bool allDeployed = true;
-
-		do
-		{
-			if (!member->IsAlive)
-			{
-				member = member->NextTeamMember;
-				continue;
-			}
-
-			// Initialize uninitiated members
-			ProcessMemberInitiation(this, member);
-
-			// Process initiated members for deployment
-			if (member->IsAlive &&
-				member->Health &&
-				(Unsorted::ScenarioInit || !member->InLimbo) &&
-				(member->IsTeamLeader || member->WhatAmI() == AircraftClass::AbsID))
-			{
-				bool canDeploy = false;
-				bool isUnit = (member->WhatAmI() == UnitClass::AbsID);
-
-				// Check for MCV deployment (unit that deploys into building)
-				if (isUnit)
-				{
-					UnitClass* unit = (UnitClass*)member;
-					if (unit->Type->DeploysInto)
-					{
-						canDeploy = true;
-						allDeployed = false;
-
-						if (member->GetCurrentMission() != Mission::Unload)
-						{
-							// Check if placement is legal
-							member->Mark(MarkType::Up);
-							CellStruct unitCell = member->GetMapCoords();
-
-							if (!unit->Type->DeploysInto->CanCreateHere(unitCell , member->Owner))
-							{
-								// Not legal placement, try to flush area
-								CellStruct currentCell = member->GetMapCoords();
-								unit->Type->DeploysInto->FlushPlacement(&currentCell, member->Owner);
-								member->Mark(MarkType::Down);
-								// Handle searching for free space in Hunt mission handler
-								member->ForceMission(Mission::Hunt);
-								member->MissionStatus = 2; // Tells UnitClass::Mission_Hunt to omit certain checks.
-
-							}
-							else
-							{
-								member->Mark(MarkType::Down);
-								// Legal placement, start deployment
-								member->SetDestination(nullptr, 1);
-								member->SetTarget(nullptr);
-								member->QueueMission(Mission::Unload, 0);
-							}
-						}
-					}
-				}
-
-				// Check for simple deployer (like siege choppers)
-				bool isSimpleDeployer = isUnit && ((UnitClass*)member)->Type->IsSimpleDeployer;
-
-				// Check for engineer/spy deployment
-				bool isInfantryDeployer = false;
-				if(auto pUnit = cast_to<InfantryClass*>(member))
-					isInfantryDeployer = pUnit->Type->Deployer;
-
-				if ((isSimpleDeployer || isInfantryDeployer) && !canDeploy)
-				{
-					if (member->GetMission() != Mission::Unload)
-					{
-						member->QueueMission(Mission::Unload, 0);
-						allDeployed = false;
-					}
-				}
-			}
-
-			member = member->NextTeamMember;
-		}
-		while (member);
-
-		if (allDeployed)
-		{
-			this->StepCompleted = true;
-		}
+		this->_TMission_Deploy(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Scout:
 	{
-		bool shouldContinue = true;
-
-		if (this->TargetHouse)
-		{
-			// Already scouting a house, check if movement is done
-			FootClass* leader = this->_Fetch_A_Leader();
-
-			if (leader &&
-				leader->CurrentMission != Mission::Move &&
-				leader->QueuedMission != Mission::Move)
-			{
-				// Movement complete, mark house as scouted
-				this->OwnerHouse->UpdateScoutNodes(this->TargetHouse);
-				this->TargetHouse = nullptr;
-			}
-		}
-		else
-		{
-			// Find an unscouted house
-			HouseClass* house = this->OwnerHouse;
-			int unscoutedCount = 0;
-
-			// Count unscouted nodes
-			for (int i = 0; i < house->ScoutNodes.Count; i++) {
-				if (!house->ScoutNodes.Items[i].IsPreferred) // Check scouted flag
-				{
-					unscoutedCount++;
-				}
-			}
-
-			if (unscoutedCount <= 0)
-			{
-				shouldContinue = false;
-			}
-			else
-			{
-				// Pick random unscouted house
-				int randomPick = ScenarioClass::Instance->Random.RandomRanged(0, unscoutedCount - 1);
-				int currentUnscouted = 0;
-
-				for (int i = 0; i < house->ScoutNodes.Count; i++)
-				{
-					if (!house->ScoutNodes.Items[i].IsPreferred)
-					{
-						if (currentUnscouted == randomPick)
-						{
-							this->TargetHouse = house->ScoutNodes.Items[i].House;
-							break;
-						}
-						currentUnscouted++;
-					}
-				}
-
-				// Find a building owned by the scout target house
-				std::vector<BuildingClass*> targetBuildings;
-				targetBuildings.reserve(this->TargetHouse->Buildings.Count);
-
-				std::copy_if(
-					  this->TargetHouse->Buildings.begin(), this->TargetHouse->Buildings.end(),
-					  std::back_inserter(targetBuildings),
-					  [](BuildingClass* pBld) {
-						  if (!pBld->IsAlive)
-							  return false;
-
-						  const auto pExt = BuildingExtContainer::Instance.Find(pBld);
-
-						  if (pExt->LimboID != -1)
-							  return false;
-
-						  if (pBld->Type->InvisibleInGame)
-							  return false;
-
-						  if (pExt->Type->IsDummy)
-							  return false;
-
-						  return true;
-					  }
-				);
-
-				if (targetBuildings.empty())
-				{
-					// No buildings found, mark as scouted
-					this->OwnerHouse->UpdateScoutNodes(this->TargetHouse);
-					this->TargetHouse = nullptr;
-				}
-				else
-				{
-					// Pick random building
-					int randomBuilding = ScenarioClass::Instance->Random.RandomRanged(0, targetBuildings.size() - 1);
-					BuildingClass* target = targetBuildings[randomBuilding];
-
-					BuildingExtContainer::Instance.Find(target);
-
-					// Find leader and nearby location
-					FootClass* leader = this->_Fetch_A_Leader();
-					if (leader)
-					{
-						CoordStruct targetCoord = target->Location;
-						CellStruct targetCell = CellClass::Coord2Cell(targetCoord);
-
-						TechnoTypeClass* leaderType = leader->GetTechnoType();
-
-						CellStruct result = MapClass::Instance->NearByLocation(
-							targetCell,
-							leaderType->SpeedType,
-							ZoneType::None,
-							MovementZone::Normal,
-							false, 1, 1, 0, 0, 0, 1,
-							CellStruct::Empty,
-							0, 0
-						);
-
-						if (result.X != -1 && result.Y != -1)
-						{
-							this->_AssignMissionTarget(MapClass::Instance->GetCellAt(result));
-						}
-						else
-						{
-							this->_AssignMissionTarget(nullptr);
-						}
-					}
-				}
-			}
-		}
-
-		this->_CoordinateMove();
-		this->StepCompleted = shouldContinue ? false : true;
+		this->_TMission_Scout(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Move_to_own_building:
 	{
-		//const uint16 lo = node.Argument & 0xFFFF;
-		//const uint16 hi = node.Argument >> 0x10;
-
-		//if (lo >= BuildingTypeClass::Array->Count)
-		//{
-		//	Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
-		//		this, this->get_ID(), node.Action, lo, BuildingTypeClass::Array->Count);
-		//}
-
-		if (!this->QueuedFocus)
-		{
-			FootClass* member = this->FirstUnit;
-			if (!member)
-			{
-				this->StepCompleted = true;
-				return;
-			}
-
-			// Unpack argument
-			int packedArg = node.Argument;
-			int buildingTypeIndex = packedArg & 0xFFFF;
-			int findMode = packedArg >> 16;
-
-			// Get enemy house
-			HouseClass* enemyHouse = nullptr;
-			int enemyIndex = member->Owner->EnemyHouseIndex;
-			if (enemyIndex != -1)
-			{
-				enemyHouse = HouseClass::Array->Items[enemyIndex];
-			}
-
-			// Find enemy building
-			BuildingClass* targetBuilding = Find_Enemy_Building(
-				buildingTypeIndex,
-				enemyHouse,
-				member,
-				(BuildingFindType)findMode,
-				this->Type->OnlyTargetHouseEnemy
-			);
-
-			if (targetBuilding)
-			{
-				// Find nearby accessible location
-				CoordStruct buildingCoord = targetBuilding->Location;
-				CellStruct buildingCell = CellClass::Coord2Cell(buildingCoord);
-
-				CoordStruct memberCoord = member->GetCoords();
-				CellStruct memberCell = CellClass::Coord2Cell(memberCoord);
-
-				TechnoTypeClass* memberType = member->GetTechnoType();
-
-				ZoneType memberZone = MapClass::Instance->GetMovementZoneType(
-					&memberCell,
-					memberType->MovementZone,
-					member->OnBridge
-				);
-
-				CellStruct nearbyCell = MapClass::Instance->NearByLocation(
-					buildingCell,
-					memberType->SpeedType,
-					memberZone,
-					memberType->MovementZone,
-					false, 1, 1, 0, 0, 0, 1,
-					CellStruct::Empty,
-					0, 0
-				);
-
-				if (nearbyCell.X != -1 && nearbyCell.Y != -1) {
-					this->_AssignMissionTarget(MapClass::Instance->GetCellAt(nearbyCell));
-				} else {
-					this->_AssignMissionTarget(nullptr);
-				}
-			}
-
-			if (!this->QueuedFocus)
-			{
-				this->StepCompleted = true;
-			}
-		}
-
-		this->_CoordinateMove();
+		this->_TMission_Move_To_Own_Building(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Attack_enemy_building:
 	{
-		//const uint16 lo = node.Argument & 0xFFFF;
-		//const uint16 hi = node.Argument >> 0x10;
-
-		//if (lo >= BuildingTypeClass::Array->Count)
-		//{
-		//	Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
-		//		this, this->get_ID(), node.Action, lo, BuildingTypeClass::Array->Count);
-		//}
-
-		if (arg4)
-		{
-			if (this->QueuedFocus)
-			{
-				if (!this->QueuedFocus || !this->_Does_Any_Member_Have_Ammo())
-				{
-					this->_AssignMissionTarget(nullptr);
-					this->StepCompleted = true;
-					return;
-				}
-
-				this->_Coordinate_Attack();
-				return;
-			}
-
-			FootClass* member = this->FirstUnit;
-			if (!member)
-			{
-				this->StepCompleted = true;
-				return;
-			}
-
-			// Unpack argument: lower 16 bits = building type, upper 16 bits = find mode
-			int packedArg = node.Argument;
-			int buildingTypeIndex = packedArg & 0xFFFF;
-			int findMode = packedArg >> 16;
-
-			// Validate building type index
-			if (buildingTypeIndex >= BuildingTypeClass::Array->Count)
-			{
-				Debug::FatalErrorAndExit("Team [%s] TMission_Attack_Enemy_Building: Invalid building type index %d (max: %d)",
-					this->Type->ID, buildingTypeIndex, BuildingTypeClass::Array->Count - 1);
-				this->_AssignMissionTarget(nullptr);
-				this->StepCompleted = true;
-				return;
-			}
-
-			// Get enemy house
-			HouseClass* enemyHouse = nullptr;
-			int enemyIndex = member->Owner->EnemyHouseIndex;
-			if (enemyIndex != -1)
-			{
-				enemyHouse = HouseClass::Array->Items[enemyIndex];
-			}
-
-			// Find enemy building
-			BuildingClass* targetBuilding = Find_Enemy_Building(
-				buildingTypeIndex,
-				enemyHouse,
-				member,
-				(BuildingFindType)findMode,
-				this->Type->OnlyTargetHouseEnemy
-			);
-
-			if (targetBuilding)
-			{
-				this->_AssignMissionTarget(targetBuilding);
-			}
-		}
-
-		if (!this->QueuedFocus || !this->_Does_Any_Member_Have_Ammo())
-		{
-			this->_AssignMissionTarget(nullptr);
-			this->StepCompleted = true;
-			return;
-		}
-
-		this->_Coordinate_Attack();
+		this->_TMission_Attack_Enemy_Building(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Chrono_prep_for_abwp:
 	{
-		//const uint16 lo = node.Argument & 0xFFFF;
-		//const uint16 hi = node.Argument >> 0x10;
-
-		//if (lo >= BuildingTypeClass::Array->Count)
-		//{
-		//	Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
-		//		this, this->get_ID(), node.Action, lo, BuildingTypeClass::Array->Count);
-		//}
-
-		FootClass* leader = this->_Fetch_A_Leader();
-		if (!leader)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		HouseClass* house = leader->Owner;
-
-		// Find Chronosphere and Chronoshift superweapons
-		SuperClass* chronosphere = nullptr;
-		SuperClass* chronoshift = nullptr;
-
-		for (int i = 0; i < house->Supers.Count; i++)
-		{
-			SuperClass* super = house->Supers.Items[i];
-			int type = super->Type->ArrayIndex;
-			SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
-
-			if (!pExt->IsAvailable(house))
-				continue;
-
-			if (type == 3) // Chronosphere
-				chronosphere = super;
-			if (type == 4) // Chronoshift
-				chronoshift = super;
-		}
-
-		if (!chronosphere || !chronoshift)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		// Check if ready
-		if (chronosphere->IsCharged && house->GetPowerPercentage() >= 1.0)
-		{
-			// Find enemy building target
-			HouseClass* enemyHouse = nullptr;
-			int enemyIndex = leader->Owner->EnemyHouseIndex;
-			if (enemyIndex != -1)
-			{
-				enemyHouse = HouseClass::Array->Items[enemyIndex];
-			}
-
-			int packedArg = node.Argument;
-			int buildingTypeIndex = packedArg & 0xFFFF;
-			int findMode = packedArg >> 16;
-
-			// Validate building type index
-			if (buildingTypeIndex >= BuildingTypeClass::Array->Count)
-			{
-				Debug::FatalErrorAndExit("Team [%s] TMission_CHRONO_PREP_FOR_ABWP: Invalid building type index %d (max: %d)",
-					this->Type->ID, buildingTypeIndex, BuildingTypeClass::Array->Count - 1);
-				this->StepCompleted = true;
-				return;
-			}
-
-			BuildingClass* targetBuilding = Find_Enemy_Building(
-				buildingTypeIndex,
-				enemyHouse,
-				leader,
-				(BuildingFindType)findMode,
-				this->Type->OnlyTargetHouseEnemy
-			);
-
-			if (targetBuilding)
-			{
-				// Fire Chronosphere at team zone
-				CoordStruct zoneCoord = this->Zone->GetCoords();
-				CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-				house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
-
-				// Fire Chronoshift at target building
-				CoordStruct targetCoord = targetBuilding->GetCoords();
-				CellStruct targetCell = CellClass::Coord2Cell(targetCoord);
-				house->Fire_SW(chronoshift->Type->ArrayIndex, targetCell);
-				this->_AssignMissionTarget(targetBuilding);
-			}
-
-			this->StepCompleted = true;
-		}
-		else
-		{
-			CheckSuperweaponReady(this, chronosphere);
-		}
-		return;
-	}
-	case TeamMissionType::Play_anim:
-	{
-		if (!arg4)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		int packedArg = node.Argument;
-		int animIndex = packedArg & 0xFFFF;
-		int loopCount = packedArg >> 16;
-
-		// Validate anim index
-		if (animIndex >= AnimTypeClass::Array->Count)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		AnimTypeClass* animType = AnimTypeClass::Array->Items[animIndex];
-		FootClass* member = this->FirstUnit;
-
-		if (!member)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		// Create animation on each team member
-		do
-		{
-			{
-				CoordStruct memberCoord = member->GetCoords();
-				if (AnimClass* created = GameCreate<AnimClass>(animType,
-					memberCoord,
-					0,
-					loopCount,
-					AnimFlag::AnimFlag_600,
-					0,
-					0
-				))
-				{
-					created->SetOwnerObject(member);
-				}
-			}
-
-			member = member->NextTeamMember;
-		}
-		while (member);
-
-		this->StepCompleted = true;
-		return;
-	}
-	case TeamMissionType::Iron_curtain_me:
-	{
-		const auto pLeader = this->_Fetch_A_Leader();
-
-		if (!pLeader)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-		const auto pOwner = this->OwnerHouse;
-
-		if (pOwner->Supers.Count <= 0)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		const bool havePower = pOwner->HasFullPower();
-		SuperClass* obtain = nullptr;
-		bool found = false;
-
-		for (const auto& pSuper : pOwner->Supers)
-		{
-			const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
-
-			if (!found && pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == node.Argument)
-			{
-				if (!pExt->IsAvailable(pOwner))
-					continue;
-
-				// found SW that already charged , just use it and return
-				if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
-				{
-					obtain = pSuper;
-					found = true;
-
-					continue;
-				}
-
-				if (!obtain && pSuper->Granted)
-				{
-					double rechargeTime = (double)pSuper->GetRechargeTime();
-					double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
-
-					if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
-					{
-						obtain = pSuper;
-						found = false;
-						continue;
-					}
-				}
-			}
-		}
-
-		if (found)
-		{
-			auto nCoord = this->Zone->GetCoords();
-			pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
-		}
-
-		this->StepCompleted = true;
+		this->_TMission_Chrono_prep_for_abwp(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Chrono_prep_for_aq:
 	{
-		FootClass* leader = _Fetch_A_Leader();
-		if (!leader)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		HouseClass* house = leader->Owner;
-
-		// Find superweapons
-		SuperClass* chronosphere = nullptr;
-		SuperClass* chronoshift = nullptr;
-
-		for (int i = 0; i < house->Supers.Count; i++)
-		{
-			SuperClass* super = (SuperClass*)house->Supers.Items[i];
-			int type = super->Type->ArrayIndex;
-			SWTypeExtData* pExt = SWTypeExtContainer::Instance.Find(super->Type);
-
-			if (!pExt->IsAvailable(house))
-				continue;
-
-			if (type == 3) chronosphere = super;
-			if (type == 4) chronoshift = super;
-		}
-
-		if (!chronosphere || !chronoshift)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		if (chronosphere->IsCharged && house->GetPowerPercentage() >= 1.0)
-		{
-			// Find threat target
-			ThreatType threatType = TeamClass::ThreatFromQuarry((QuarryType)node.Argument);
-			CoordStruct leaderCoord = leader->Location;
-
-			AbstractClass* threat = leader->GreatestThreat(
-				threatType,
-				&leaderCoord,
-				this->Type->OnlyTargetHouseEnemy
-			);
-
-			if (threat)
-			{
-				// Fire Chronosphere at zone
-				CoordStruct zoneCoord = this->Zone->GetCoords();
-				CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-				house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
-
-				// Fire Chronoshift at threat
-				CoordStruct threatCoord = threat->GetCoords();
-				CellStruct threatCell = CellClass::Coord2Cell(threatCoord);
-				house->Fire_SW(chronoshift->Type->ArrayIndex, threatCell);
-				this->_AssignMissionTarget(threat);
-			}
-
-			this->StepCompleted = true;
-		}
-		else
-		{
-			CheckSuperweaponReady(this, chronosphere);
-		}
+		this->_TMission_Chrono_prep_for_aq(&node, arg4);
+		return;
+	}
+	case TeamMissionType::Play_anim:
+	{
+		this->_TMission_Play_Animation(&node, arg4);
+		return;
+	}
+	case TeamMissionType::Iron_curtain_me:
+	{
+		this->_TMission_Iron_Curtain_Me(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Enter_grinder:
 	{
-		FootClass* Member = this->FirstUnit;
-		FootClass* NextMember = nullptr;
-		if (Member)
-		{
-			do
-			{
-				NextMember = Member->NextTeamMember;
-				if (Member->EnterGrinder()) {
-					this->_Remove(Member, -1, true);
-				}
-				Member = NextMember;
-			}
-			while (NextMember);
-		}
-
-		this->StepCompleted = 1;
+		this->_TMission_Enter_Grinder(&node, arg4);
 		return;
 	}
-	case TeamMissionType::Enter_bio_reactor:
+	case TeamMissionType::Enter_bio_reactor: 
 	{
-		FootClass* Member = this->FirstUnit;
-		FootClass* NextMember = nullptr;
-		if (Member)
-		{
-			do
-			{
-				NextMember = Member->NextTeamMember;
-				if (Member->EnterBioReactor()) {
-					this->_Remove(Member, -1, true);
-				}
-				Member = NextMember;
-			}
-			while (NextMember);
-		}
-
-		this->StepCompleted = 1;
+		this->_TMission_Enter_Bio_Reactor(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Occupy_battle_bunker:
 	{
-		FootClass* Member = this->FirstUnit;
-		FootClass* NextMember = nullptr;
-		if (Member)
-		{
-			do
-			{
-				NextMember = Member->NextTeamMember;
-				if (Member->EnterBattleBunker()) {
-					this->_Remove(Member, -1, true);
-				}
-				Member = NextMember;
-			}
-			while (NextMember);
-		}
-
-		this->StepCompleted = 1;
+		this->_TMission_Occupy_Battle_Bunker(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Occupy_tank_bunker:
 	{
-		FootClass* Member = this->FirstUnit;
-		FootClass* NextMember = nullptr;
-		if (Member)
-		{
-			do
-			{
-				NextMember = Member->NextTeamMember;
-				if (Member->EnterTankBunker()) {
-					this->_Remove(Member, -1, true);
-				}
-				Member = NextMember;
-			}
-			while (NextMember);
-		}
-
-		this->StepCompleted = 1;
+		this->_TMission_Occupy_Tank_Bunker(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Attack:
 	{
-		if (!this->QueuedFocus)
-		{
-			FootClass* pLeader = this->_Fetch_A_Leader();
-			if (!pLeader)
-			{
-				this->StepCompleted = true;
-				return;
-			}
-
-			const ThreatType tt = ThreatFromQuarry((QuarryType)node.Argument);
-			AbstractClass* pTarget = pLeader->GreatestThreat(tt, &pLeader->Location, this->Type->OnlyTargetHouseEnemy);
-			this->_AssignMissionTarget(pTarget);
-
-			if (!this->QueuedFocus || !this->_Does_Any_Member_Have_Ammo())
-			{
-				this->StepCompleted = true;
-				return;
-			}
-		}
-		else if (!this->_Does_Any_Member_Have_Ammo())
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		this->_Coordinate_Attack();
+		this->_TMission_Attack(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Att_waypt:
 	{
-		if (arg4) // first time
-		{
-			CellClass* pWaypCell = ScenarioClass::Instance->GetWaypointCell(node.Argument);
-			AbstractClass* pTarget = nullptr;
-			if (pWaypCell && pWaypCell->WhatAmI() == CellClass::AbsID)
-			{
-				bool revealed = (pWaypCell->Flags & CellFlags::CenterRevealed) != CellFlags::Empty;
-				if (auto pObj = pWaypCell->GetSomeObject(Point2D::Empty, revealed))
-				{
-					pTarget = pObj;
-				}
-				else
-				{
-					pTarget = pWaypCell;
-				}
-			}
-
-			this->_AssignMissionTarget(pTarget);
-		}
-
-		if (this->QueuedFocus && this->_Does_Any_Member_Have_Ammo())
-		{
-			this->_Coordinate_Attack();
-		}
-		else
-		{
-			this->_AssignMissionTarget(nullptr);
-			this->StepCompleted = true;
-		}
-
+		this->_TMission_Attack_Waypoint(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Movecell:
 	{
-		const int nDivisor = ScenarioClass::NewINIFormat() < 4 ? 128 : 1000;
-		CellStruct toCell { short(node.Argument % nDivisor), short(node.Argument / nDivisor) };
-		this->_AssignMissionTarget(MapClass::Instance->GetCellAt(toCell));
-		this->_CoordinateMove();
+		this->_TMission_Move_To_Cell(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Loop:
 	{
-		this->CurrentScript->SetMission(node.Argument - 2); //????
-		this->StepCompleted = true;
+		this->_TMission_Loop(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Player_wins:
 	{
-		HouseClass::CurrentPlayer->Win(false);
-		this->StepCompleted = true;
+		this->_TMission_Player_wins(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Player_loses:
 	{
-		HouseClass::CurrentPlayer->Lose(false);
-		this->StepCompleted = true;
+		this->_TMission_Player_loses(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Talk_bubble:
 	{
-		if (this->FirstUnit)
-			this->FirstUnit->CreateTalkBubble(node.Argument);
-
-		this->StepCompleted = true;
+		this->_TMission_Talk_bubble(&node, arg4);
 		return;
 	}
 	case TeamMissionType::Success:
@@ -4623,6 +4667,103 @@ void FakeTeamClass::_AI()
 		}
 
 		this->_CoordinateMove();
+		return;
+	}
+	case TeamMissionType::Moveto_enemy_building:
+	{
+		if (!this->QueuedFocus)
+		{
+			FootClass* member = this->FirstUnit;
+
+			if (member)
+			{
+				// Unpack argument
+				int packedArg = node.Argument;
+				int buildingTypeIndex = packedArg & 0xFFFF;
+				int findMode = packedArg >> 16;
+
+				// Get enemy house
+				HouseClass* enemyHouse = nullptr;
+				int enemyIndex = member->Owner->EnemyHouseIndex;
+				if (enemyIndex != -1) {
+					enemyHouse = HouseClass::Array->Items[enemyIndex];
+				}
+
+				// Find enemy building
+				if (BuildingClass* targetBuilding = Find_Enemy_Building(
+					buildingTypeIndex,
+					enemyHouse,
+					member,
+					(BuildingFindType)findMode,
+					this->Type->OnlyTargetHouseEnemy
+				))
+				{
+					TechnoTypeClass* memberType = member->GetTechnoType();
+					// Find nearby accessible location
+					CoordStruct buildingCoord = targetBuilding->Location;
+					CellStruct buildingCell = CellClass::Coord2Cell(buildingCoord);
+
+					CoordStruct memberCoord = member->GetCoords();
+					CellStruct memberCell = CellClass::Coord2Cell(memberCoord);
+
+					ZoneType memberZone = MapClass::Instance->GetMovementZoneType(
+						&memberCell,
+						memberType->MovementZone,
+						member->OnBridge
+					);
+
+					const CellStruct nearbyCell = MapClass::Instance->NearByLocation(
+						buildingCell,
+						memberType->SpeedType,
+						memberZone,
+						memberType->MovementZone,
+						false, 1, 1, 0, 0, 0, 1,
+						CellStruct::Empty,
+						0, 0
+					);
+
+					if (nearbyCell.IsValid()) {
+						this->_AssignMissionTarget(MapClass::Instance->GetCellAt(nearbyCell));
+					} else {
+						this->_AssignMissionTarget(nullptr);
+					}
+				}
+			}
+		}
+
+		if (!this->QueuedFocus) {
+			this->StepCompleted = true;
+			return;
+		}
+
+		this->_CoordinateMove();
+		return;
+	}
+	case TeamMissionType::Spy:
+	{
+		if (arg4) {
+			CellClass* pWaypCell = ScenarioClass::Instance->GetWaypointCell(node.Argument);
+			this->_AssignMissionTarget(pWaypCell);
+		}
+
+		AbstractClass* pTarget = nullptr;
+
+		if (this->QueuedFocus && this->QueuedFocus->WhatAmI() == CellClass::AbsID) {
+			if (auto pObj = ((CellClass*)this->QueuedFocus)->GetSomeObject(Point2D::Empty, false)) {
+				pTarget = pObj;
+			}
+
+			this->_AssignMissionTarget(pTarget);
+			this->_Coordinate_Attack();
+		} else {
+			if (this->QueuedFocus) {
+				this->_Coordinate_Attack();
+			}
+
+			this->_AssignMissionTarget(nullptr);
+			this->StepCompleted = true;
+		}
+
 		return;
 	}
 	default:

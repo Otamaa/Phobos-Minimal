@@ -268,7 +268,7 @@ class asmjitErrHandler : public asmjit::ErrorHandler
 public:
 	void handle_error(asmjit::Error err, const char* message, asmjit::BaseEmitter* origin) override
 	{
-		Debug::LogDeferred("AsmJit ERROR: %s\n", message);
+		Debug::Log("AsmJit ERROR: %s\n", message);
 	}
 };
 
@@ -323,7 +323,7 @@ void OptimizeProcessForSecurity()
 {
 	if (IsRunningInAppContainer())
 	{
-		Debug::LogDeferred("App Container detected. Optimizing object creation.\n");
+		Debug::Log("App Container detected. Optimizing object creation.\n");
 
 		// Set process mitigations only if available (Windows 8+)
 		typedef BOOL(WINAPI* SetProcessMitigationPolicyFunc)(PROCESS_MITIGATION_POLICY, PVOID, SIZE_T);
@@ -461,11 +461,11 @@ static void CheckHookConflict(unsigned int addr, size_t size)
 	}
 	if (disassemblyResult.contains("jmp") || disassemblyResult.contains("call"))
 	{
-		Debug::LogDeferred("Hook %x seems to be conflicted with other hooks! disassembly: %s \n", (void*)hookAddress, disassemblyResult.c_str());
+		Debug::Log("Hook %x seems to be conflicted with other hooks! disassembly: %s \n", (void*)hookAddress, disassemblyResult.c_str());
 	}
 	if (beforeAddress)
 	{
-		Debug::LogDeferred("Hook %x seems to be conflicted with other hooks! see assembly before address\n", (void*)hookAddress);
+		Debug::Log("Hook %x seems to be conflicted with other hooks! see assembly before address\n", (void*)hookAddress);
 	}
 }
 
@@ -531,7 +531,7 @@ bool SetupTrampoline(unsigned int target_address, size_t hook_size)
 
 	if (!trampoline.trampoline_address)
 	{
-		Debug::LogDeferred("Failed to allocate trampoline for hook at 0x%x\n", target_address);
+		Debug::Log("Failed to allocate trampoline for hook at 0x%x\n", target_address);
 		g_trampolines.erase(target_address);
 		return false;
 	}
@@ -549,7 +549,7 @@ bool SetupTrampoline(unsigned int target_address, size_t hook_size)
 	trampoline_end[0] = 0xE9; // JMP opcode
 	memcpy(trampoline_end + 1, &jump_offset, 4);
 
-	Debug::LogDeferred("Trampoline created for hook at 0x%x -> 0x%p\n",
+	Debug::Log("Trampoline created for hook at 0x%x -> 0x%p\n",
 					  target_address, trampoline.trampoline_address);
 
 	return true;
@@ -565,7 +565,7 @@ void CleanupTrampolines()
 	}
 
 	g_trampolines.clear();
-	Debug::LogDeferred("All trampolines cleaned up\n");
+	Debug::Log("All trampolines cleaned up\n");
 }
 
 // Modified patch function with trampoline support
@@ -577,7 +577,7 @@ void ApplyasmjitPatch()
 
 		if (sm_vec.empty())
 		{
-			Debug::LogDeferred("hook at 0x%x is empty !\n", addr);
+			Debug::Log("hook at 0x%x is empty !\n", addr);
 			continue;
 		}
 
@@ -585,7 +585,7 @@ void ApplyasmjitPatch()
 
 		if (sm_vec.size() > 1)
 		{
-			Debug::LogDeferred("hook at 0x%x , has %d functions registered !\n", addr, sm_vec.size());
+			Debug::Log("hook at 0x%x , has %d functions registered !\n", addr, sm_vec.size());
 		}
 
 		size_t hook_size = sm_vec[0].size;
@@ -595,7 +595,7 @@ void ApplyasmjitPatch()
 		// Setup trampoline BEFORE creating hook code
 		if (!SetupTrampoline(addr, hookSize))
 		{
-			Debug::LogDeferred("Failed to setup trampoline for hook at 0x%x, skipping!\n", addr);
+			Debug::Log("Failed to setup trampoline for hook at 0x%x, skipping!\n", addr);
 			continue;
 		}
 
@@ -674,7 +674,7 @@ void ApplyasmjitPatch()
 		}
 		else
 		{
-			Debug::LogDeferred("remaining hook at 0x%x is ignored !\n", addr);
+			Debug::Log("remaining hook at 0x%x is ignored !\n", addr);
 		}
 
 		assembly.bind(l_origin);
@@ -699,12 +699,12 @@ void ApplyasmjitPatch()
 			case Assembly::JMP: // jmp
 				assembly.jmp(dest);
 				org_vec.erase(org_vec.begin(), org_vec.begin() + 5);
-				Debug::LogDeferred("hook at 0x%x is placed at JMP fixing the relative addr !\n", addr);
+				Debug::Log("hook at 0x%x is placed at JMP fixing the relative addr !\n", addr);
 				break;
 			case Assembly::CALL: // call
 				assembly.call(dest);
 				org_vec.erase(org_vec.begin(), org_vec.begin() + 5);
-				Debug::LogDeferred("hook at 0x%x is placed at CALL fixing the relative addr !\n", addr);
+				Debug::Log("hook at 0x%x is placed at CALL fixing the relative addr !\n", addr);
 				break;
 			}
 		}
@@ -730,7 +730,7 @@ void ApplyasmjitPatch()
 		VirtualProtect(hookAddress, hookSize, protect_flag, &protect_flagb);
 		FlushInstructionCache(Game::hInstance, hookAddress, hookSize);
 
-		Debug::LogDeferred("Hook installed at 0x%x (size: %d bytes)\n", addr, hookSize);
+		Debug::Log("Hook installed at 0x%x (size: %d bytes)\n", addr, hookSize);
 	}
 }
 
@@ -742,7 +742,7 @@ void Initasmjit()
 	int len = Patch::GetSection(Phobos::hInstance, ASMJIT_PATCH_SECTION_NAME, &buffer);
 
 	hookdeclfunc* end = (hookdeclfunc*)((DWORD)buffer + len);
-	Debug::LogDeferred("Applying %d asmjit hooks.\n", std::distance((hookdeclfunc*)buffer, end));
+	Debug::Log("Applying %d asmjit hooks.\n", std::distance((hookdeclfunc*)buffer, end));
 
 	for (hookdeclfunc* begin = (hookdeclfunc*)buffer; begin < end; begin++)
 	{
@@ -801,58 +801,12 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 	bool dontSetExceptionHandler = false;
 
 	// > 1 because the exe path itself counts as an argument, too!
-	std::string args {};
+
 	for (int i = 1; i < nNumArgs; i++)
 	{
 		const auto pArg = ppArgs[i];
-		args += " ";
-		args += pArg;
 
-		if (IS_SAME_STR_I(pArg, "-Icon"))
-		{
-			Phobos::AppIconPath = ppArgs[++i];
-		}
-		else if (IS_SAME_STR_I(pArg, "-LOG"))
-		{
-			Debug::LogEnabled = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-AI-CONTROL"))
-		{
-			Phobos::Otamaa::AllowAIControl = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-LOG-CSF"))
-		{
-			Phobos::Otamaa::OutputMissingStrings = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-LOG-AUDIO"))
-		{
-			Phobos::Otamaa::OutputAudioLogs = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-STRICT"))
-		{
-			Phobos::Otamaa::StrictParser = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-NOLOGO"))
-		{
-			Phobos::Otamaa::NoLogo = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-CD"))
-		{
-			Phobos::Otamaa::NoCD = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-Inheritance"))
-		{
-			Phobos::Config::UseNewInheritance = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-Include"))
-		{
-			Phobos::Config::UseNewIncludes = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-b=" _STR(BUILD_NUMBER)))
-		{
-			Phobos::Config::HideWarning = true;
-		}
-		else if (IS_SAME_STR_I(pArg, "-EXCEPTION") == 0)
+		if (IS_SAME_STR_I(pArg, "-EXCEPTION") == 0)
 		{
 			ExceptionMode = ExceptionHandlerMode::NoRemove;
 		}
@@ -885,17 +839,9 @@ void Phobos::CmdLineParse(char** ppArgs, int nNumArgs)
 		SpawnerMain::CmdLineParse(pArg);
 	}
 
-	if (Debug::LogEnabled)
-	{
-		Debug::InitLogger(); 
-		Debug::Log("DLL injection successful, logging enabled via command line.\n");
-		Debug::Log("Initialized Phobos " PRODUCT_VERSION ".\n");
-		Debug::Log("args %s\n", args.c_str());
-
+	if (Debug::LogEnabled) {
 		SpawnerMain::PrintInitializeLog();
-	}
-	else
-	{
+	} else {
 		Debug::DeactivateLogger();
 		Debug::LogFileRemove();
 		Debug::made = false;// reset
@@ -1146,7 +1092,7 @@ void Phobos::ExeRun()
 
 	for (auto& dlls : Patch::ModuleDatas)
 	{
-		Debug::LogDeferred("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
+		Debug::Log("Module [(%d) %s: Base address = %x]\n", i++, dlls.ModuleName.c_str(), dlls.BaseAddr);
 
 		if (IS_SAME_STR_(dlls.ModuleName.c_str(), "cncnet5.dll"))
 		{
@@ -1163,9 +1109,9 @@ void Phobos::ExeRun()
 	}
 
 	Patch::WindowsVersion = std::move(GetOsVersionQuick());
-	Debug::LogDeferred("Running on %s .\n", Patch::WindowsVersion.c_str());
+	Debug::Log("Running on %s .\n", Patch::WindowsVersion.c_str());
 	GraphicsRuntimeAPI gRuntimeAPI(Patch::ModuleDatas);
-	Debug::LogDeferred("Running on %s API.\n", gRuntimeAPI.GetName());
+	Debug::Log("Running on %s API.\n", gRuntimeAPI.GetName());
 	TheaterTypeClass::AddDefaults();
 	CursorTypeClass::AddDefaults();
 }
@@ -1265,11 +1211,11 @@ NOINLINE void EnableLargeAddressAwareFlag(HANDLE curProc)
 	{
 		*characteristics |= 0x20; // IMAGE_FILE_LARGE_ADDRESS_AWARE
 		VirtualProtect(characteristics, sizeof(WORD), oldProtect, &oldProtect);
-		Debug::LogDeferred("LARGEADDRESSAWARE flag set via injector.\n");
+		Debug::Log("LARGEADDRESSAWARE flag set via injector.\n");
 	}
 	else
 	{
-		Debug::LogDeferred("Failed to change protection for Characteristics.\n");
+		Debug::Log("Failed to change protection for Characteristics.\n");
 	}
 }
 
@@ -1324,11 +1270,7 @@ NOINLINE void ApplyEarlyFuncs()
 
 		const char* loadMode = saved_lpReserved ? "statically" : "dynamicly";
 
-		Debug::GenerateDefaultMessage();
-		Debug::PrepareLogFile(); //prepare directory
-		Debug::LogFileRemove(); //remove previous debug log file if presents
-
-		Debug::LogDeferred("Phobos is being loaded (%s) %s.\n", time.c_str(), loadMode);
+		Debug::Log("Phobos is being loaded (%s) %s.\n", time.c_str(), loadMode);
 		LuaData::LuaDir = std::move(PhobosCRT::WideStringToString(Debug::ApplicationFilePath));
 		LuaData::LuaDir += "\\Resources";
 
@@ -1348,10 +1290,10 @@ NOINLINE void ApplyEarlyFuncs()
 			begin->Apply();
 		}
 
-		Debug::LogDeferred("Applying %d Static Patche(s).\n", std::distance((_patch*)buffer, end));
+		Debug::Log("Applying %d Static Patche(s).\n", std::distance((_patch*)buffer, end));
 
 		len = Patch::GetSection(Phobos::hInstance, SYRINGE_HOOKS_SECTION_NAME, &buffer);
-		Debug::LogDeferred("Applying %d Syringe hook(s).\n", std::distance((hookdecl*)buffer, (hookdecl*)((DWORD)buffer + len)));
+		Debug::Log("Applying %d Syringe hook(s).\n", std::distance((hookdecl*)buffer, (hookdecl*)((DWORD)buffer + len)));
 
 		Initasmjit();
 
@@ -1361,7 +1303,7 @@ NOINLINE void ApplyEarlyFuncs()
 
 		if (GetEnvironmentVariable("__COMPAT_LAYER", buf, sizeof(buf)))
 		{
-			Debug::LogDeferred("Compatibility modes detected : %s .\n", buf);
+			Debug::Log("Compatibility modes detected : %s .\n", buf);
 		}
 	}
 }
@@ -1834,7 +1776,7 @@ bool InspectMathDetailed()
 
 	std::vector<Generate> gens;
 
-	//gens.emplace_back(std::sqrt(8),"sqrt(8)");
+	//gens.emplace_back(std::sqrt(3),"sqrt(3)");
 
 	for (const auto& gen : gens) {
 		uint64_t bits = std::bit_cast<uint64_t>(gen.value);
@@ -1863,7 +1805,7 @@ bool __fastcall Parse_Command_Line(int argc, char* argv[]) {
 bool __fastcall Phobos_Parse_Command_Line(int argc, char* argv[]) {
 	if (argc > 1)
 	{
-		Debug::LogDeferred("Parsing command line arguments...\n");
+		Debug::Log("Parsing command line arguments...\n");
 	}
 
 	if (!Parse_Command_Line(argc, argv))
@@ -1894,9 +1836,10 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::CurrentProcess = GetCurrentProcess();
 			Phobos::hInstance = hInstance;
 			saved_lpReserved = lpReserved;
-			CRTHooks::_set_fp_mode();
+			int argc;
+			LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
-			CRTHooks::Print_FPUMode();
+			CRTHooks::_set_fp_mode();
 
             if (!StartPatching()) {
                 return FALSE;
@@ -1913,6 +1856,77 @@ BOOL APIENTRY DllMain(HANDLE hInstance, DWORD  ul_reason_for_call, LPVOID lpRese
 			Patch::Apply_CALL6(0x7CD835, GetVersion_Wrapper);
 			Patch::Apply_TYPED<DWORD>(0x7B853C, { 1 });
 			Patch::Apply_TYPED<char>(0x82612C + 13, { '\n' });
+
+			static std::wstring args {};
+
+			Debug::GenerateDefaultMessage();
+			Debug::PrepareLogFile(); //prepare directory
+			Debug::LogFileRemove(); //remove previous debug log file if presents
+
+			if (argv) {
+				for (int i = 1; i < argc; i++) {
+
+					args += L" ";
+					args += argv[i];
+
+					if (IS_SAME_WSTR(argv[i], L"-Icon") && i + 1 < argc) {
+						// Convert wide string to narrow string
+						char buffer[MAX_PATH];
+						WideCharToMultiByte(CP_ACP, 0, argv[i + 1], -1, buffer, MAX_PATH, NULL, NULL);
+						Phobos::AppIconPath = buffer;
+					}
+					else  if (IS_SAME_WSTR(argv[i], L"-b=" _STR(BUILD_NUMBER)))
+					{
+						Phobos::Config::HideWarning = true;
+					}
+					else if (IS_SAME_WSTR(argv[i], L"-LOG")) {
+						Debug::LogEnabled = true;
+						Debug::InitLogger();
+					}
+					else  if (IS_SAME_WSTR(argv[i], L"-AI-CONTROL"))
+					{
+						Phobos::Otamaa::AllowAIControl = true;
+					}
+					else if (IS_SAME_WSTR(argv[i], L"-LOG-CSF"))
+					{
+						Phobos::Otamaa::OutputMissingStrings = true;
+					}
+					else if (IS_SAME_WSTR(argv[i], L"-LOG-AUDIO"))
+					{
+						Phobos::Otamaa::OutputAudioLogs = true;
+					}
+					else if (IS_SAME_WSTR(argv[i], L"-STRICT"))
+					{
+						Phobos::Otamaa::StrictParser = true;
+					}
+					else if (IS_SAME_WSTR(argv[i], L"-NOLOGO"))
+					{
+						Phobos::Otamaa::NoLogo = true;
+					}
+					else if (IS_SAME_WSTR(argv[i], L"-CD"))
+					{
+						Phobos::Otamaa::NoCD = true;
+					}
+					else if (IS_SAME_WSTR(argv[i], L"-Inheritance"))
+					{
+						Phobos::Config::UseNewInheritance = true;
+					}
+					else if (IS_SAME_WSTR(argv[i], L"-Include"))
+					{
+						Phobos::Config::UseNewIncludes = true;
+					}
+				}
+				LocalFree(argv);
+			}
+
+			if (Debug::LogEnabled) {
+				Debug::Log("DLL injection successful, logging enabled via command line.\n");
+				Debug::Log("Initialized Phobos " PRODUCT_VERSION ".\n");
+				Debug::Log("args %ls\n", args.c_str());
+
+
+				CRTHooks::Print_FPUMode();
+			}
 		}
 	}
 	break;

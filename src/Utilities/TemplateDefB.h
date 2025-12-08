@@ -289,7 +289,7 @@ namespace detail
 				}
 
 				for(auto&[val, str] : EnumFunctions::SpotlightAttachment_ToStrings) {
-					if (IS_SAME_STR_(parser.value(), str.data())) {
+					if (PhobosCRT::iequals(parser.value(), str)) {
 						value = Drawing::DefaultColors[(BYTE)val];
 						return true;
 					}
@@ -320,7 +320,7 @@ namespace detail
 				return false;
 
 			for(auto&[val, str] : EnumFunctions::DamageDelayTargetFlag_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -361,7 +361,7 @@ namespace detail
 				return false;
 
 			for(auto&[val, str] : EnumFunctions::TargetZoneScanType_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -501,7 +501,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey)) {
 			for(auto&[val, str] : EnumFunctions::SpotlightAttachment_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -519,7 +519,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for(auto&[val, str] : EnumFunctions::ShowTimerType_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -537,7 +537,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for(auto&[val, str] : EnumFunctions::AttachmentYSortPosition_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -564,7 +564,7 @@ namespace detail
 				size_t result = 0;
 				bool found = false;
 				for (const auto& pStrings : EnumFunctions::AffectedTechno_ToStrings) {
-					if (IS_SAME_STR_(cur, pStrings.second.data())) {
+					if (PhobosCRT::iequals(cur, pStrings.second)) {
 						found = true;
 						break;
 					}
@@ -660,7 +660,7 @@ namespace detail
 			const auto pVal = parser.value();
 
 			for(auto&[val, str] : EnumFunctions::BountyValueOption_ToStrings) {
-				if (IS_SAME_STR_(pVal, str.data())) {
+				if (PhobosCRT::iequals(pVal, str)) {
 					value = val;
 					return true;
 				}
@@ -679,7 +679,7 @@ namespace detail
 		{
 			const auto pVal = parser.value();
 			for(auto&[val, str] : EnumFunctions::BuildingSelectBracketPosition_ToStrings) {
-				if (IS_SAME_STR_(pVal, str.data())) {
+				if (PhobosCRT::iequals(pVal, str)) {
 					value = val;
 					return true;
 				}
@@ -698,7 +698,7 @@ namespace detail
 		{
 			const auto pVal = parser.value();
 			for(auto&[val, str] : EnumFunctions::DisplayInfoType_ToStrings) {
-				if (IS_SAME_STR_(pVal, str.data())) {
+				if (PhobosCRT::iequals(pVal, str)) {
 					value = val;
 					return true;
 				}
@@ -718,7 +718,7 @@ namespace detail
 			auto str = parser.value();
 
 			for (auto& [val , string] : EnumFunctions::InterpolationMode_ToStrings) {
-				if (IS_SAME_STR_(string.data(), str)) {
+				if (PhobosCRT::iequals(string, str)) {
 					value = val;
 					return true;
 				}

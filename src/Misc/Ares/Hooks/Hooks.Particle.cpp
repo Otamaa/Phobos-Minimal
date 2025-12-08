@@ -378,25 +378,25 @@ ASMJIT_PATCH(0x6D9427, TacticalClass_DrawUnits_ParticleSystems, 9)
 // Fixed position and layer of info tip and reveal production cameo on selected building
 // Author: Belonit
 // Call DrawInfoTipAndSpiedSelection in new location
-ASMJIT_PATCH(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
-{
-	GET(TechnoClass*, pThis, EBX);
-	GET(Point2D*, pLocation, EAX);
-
-	const auto pBuilding = cast_to<BuildingClass*, false>(pThis);
-
-	if (pBuilding && pBuilding->IsSelected && pBuilding->IsOnMap && BuildingExtContainer::Instance.Find(pBuilding)->LimboID <= -1)
-	{
-		const int foundationHeight = pBuilding->Type->GetFoundationHeight(0);
-		const int typeHeight = pBuilding->Type->Height;
-		const int yOffest = (Unsorted::CellHeightInPixels * (foundationHeight + typeHeight)) >> 2;
-
-		Point2D centeredPoint = { pLocation->X, pLocation->Y - yOffest };
-		pBuilding->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
-	}
-
-	return 0;
-}
+// ASMJIT_PATCH(0x6D9781, Tactical_RenderLayers_DrawInfoTipAndSpiedSelection, 0x5)
+// {
+// 	GET(TechnoClass*, pThis, EBX);
+// 	GET(Point2D*, pLocation, EAX);
+//
+// 	const auto pBuilding = cast_to<BuildingClass*, false>(pThis);
+//
+// 	if (pBuilding && pBuilding->IsSelected && pBuilding->IsOnMap && BuildingExtContainer::Instance.Find(pBuilding)->LimboID <= -1)
+// 	{
+// 		const int foundationHeight = pBuilding->Type->GetFoundationHeight(0);
+// 		const int typeHeight = pBuilding->Type->Height;
+// 		const int yOffest = (Unsorted::CellHeightInPixels * (foundationHeight + typeHeight)) >> 2;
+//
+// 		Point2D centeredPoint = { pLocation->X, pLocation->Y - yOffest };
+// 		pBuilding->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
+// 	}
+//
+// 	return 0;
+// }
 
 ASMJIT_PATCH(0x62E380, ParticleSystemClass_SpawnParticle, 0xA)
 {

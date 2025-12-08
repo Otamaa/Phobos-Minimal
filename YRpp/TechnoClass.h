@@ -694,9 +694,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	//	return *reinterpret_cast<bool*>(reinterpret_cast<DWORD>(this) + 0x3D5);
 	//}
 
-	bool CanThisCloakByDefault() const {
-		return (GetTechnoType()) && (GetTechnoType()->Cloakable || HasAbility(AbilityType::Cloak));
-	}
+	bool CanThisCloakByDefault() const;
 
 	bool InRange(CoordStruct& location, AbstractClass* pTarget, WeaponTypeClass* pWeapon) {
 		JMP_THIS(0x6F7220);

@@ -3,14 +3,14 @@
 #include <MapClass.h>
 #include <Phobos.CRT.h>
 #include <TacticalClass.h>
-#include <ColorScheme.h>
-#include <Drawing.h>
 #include <ScenarioClass.h>
-#include <BitFont.h>
+
 #include <Dimensions.h>
 
 #include <HouseClass.h>
 #include <CellClass.h>
+
+#include <TextDrawing.h>
 
 #include <Utilities/EnumFunctions.h>
 HelperedVector<FlyingStrings::Item> FlyingStrings::Data;
@@ -259,7 +259,6 @@ void FlyingStrings::UpdateAll()
 	Data.remove_all_if([](FlyingStrings::Item& item) {
 		if (!item.Text.empty()) {
 			Point2D pos {};
-			Point2D tmp {};
 
 			if (FlyingStrings::DrawAllowed(item.Location, pos)) {
 				pos += item.PixelOffset;
@@ -270,7 +269,7 @@ void FlyingStrings::UpdateAll()
 						pos.Y -= (Unsorted::CurrentFrame - item.CreationFrame);
 					}
 
-					Simple_Text_Print_Wide(&tmp, item.Text.c_str(), DSurface::Temp(), &bound, &pos, item.Color, item.Back_Color, item.TextPrintType, 1);
+					TextDrawing::Simple_Text_Print_Wide(item.Text , DSurface::Temp(), &bound, &pos, item.Color, item.Back_Color, item.TextPrintType);
 				}
 			}
 

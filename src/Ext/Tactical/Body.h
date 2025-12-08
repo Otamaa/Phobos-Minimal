@@ -50,6 +50,8 @@ public:
 	static void __DrawTimersSW(SuperClass* pSuper , int value, int interval);
 	static void __DrawRadialIndicator(bool draw_indicator, bool animate, Coordinate center_coord, ColorStruct color, float radius, bool concentric, bool round);
 	static void __RenderOverlapForeignMap();
+	
+	static void DrawCollisionDebug();
 
 	// Reversed from Tactical::Select
 	bool IsInSelectionRect(LTRBStruct* pRect, const TacticalSelectableStruct& selectable);
@@ -62,6 +64,11 @@ public:
 	void Tactical_MakeFilteredSelection(callback_type fpCheckCallback);
 
 	void __DrawAllTacticalText(wchar_t* text);
+
+
+	void _Render_Objects_Near_Shroud(bool arg0, Point2D pos, RectangleStruct* a5);
+	void _Draw_Pixel_Effects(RectangleStruct* tactical_rect, RectangleStruct* effect_rect);
+	void _Render_Layer(bool arg);
 
 	//void DrawDebugOverlay();
 	//bool DrawCurrentCell(); //TODO

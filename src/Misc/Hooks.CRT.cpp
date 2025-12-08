@@ -7731,8 +7731,8 @@ void CRTHooks::Print_FPUMode()
 		//use ftol_truncate if using RC_CHOP mode , otherwise use WW ftol implementation
 
 	unsigned int current_cw = _controlfp(0, 0);
-	Debug::LogDeferred("FPU Rounding Mode: %s(0x%04X)\n", mode_name, rounding);
-	Debug::LogDeferred("Current FPU state:   0x%04X\n", current_cw);
+	Debug::Log("FPU Rounding Mode: %s(0x%04X)\n", mode_name, rounding);
+	Debug::Log("Current FPU state:   0x%04X\n", current_cw);
 }
 
 void CRTHooks::ApplyftolHooks() {

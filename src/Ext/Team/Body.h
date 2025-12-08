@@ -187,73 +187,33 @@ public:
 	//
 
 	void _Coordinate_Do(ScriptActionNode* pNode ,CellStruct unused);
-	/*TODO backports all vanilla codes
-	TMissionFunc(Go_bezerk, 0x6EDD90)
-	TMissionFunc(Goto_nearby_shroud, 0x6EC730)
-	TMissionFunc(Movecell, 0x6EC770)
-	TMissionFunc(Move, 0x6EC7D0)
-	TMissionFunc(Att_waypt, 0x6EC9A0)
-	TMissionFunc(Attack_building_at_waypoint, 0x6ECA70)
-	TMissionFunc(Enter_grinder, 0x6ECB50)
-	TMissionFunc(Occupy_tank_bunker, 0x6ECBA0)
-	TMissionFunc(Enter_bio_reactor, 0x6ECBF0)
-	TMissionFunc(Occupy_battle_bunker, 0x6ECC40)
-	TMissionFunc(Garrison_building, 0x6ECC90)
-	TMissionFunc(Patrol, 0x6ECCE0)
-	TMissionFunc(Spy, 0x6ECE60)
-	TMissionFunc(Scatter, 0x6ECF10)
-	TMissionFunc(Change_team, 0x6ECFB0)
-	TMissionFunc(Change_script, 0x6ED030)
-	TMissionFunc(Attack, 0x6ED090)
-	TMissionFunc(Load, 0x6ED200)
-	TMissionFunc(Deploy, 0x6ED4D0)
-	TMissionFunc(Set_global, 0x6EDA90)
-	TMissionFunc(Clear_global, 0x6EDAC0)
-	TMissionFunc(Set_local, 0x6EDAF0)
-	TMissionFunc(Clear_local, 0x6EDB20)
-	TMissionFunc(Hound_dog, 0x6EDB50)
-	TMissionFunc(Unpanic, 0x6EDC70)
-	TMissionFunc(Force_facing, 0x6EDCA0)
-	TMissionFunc(Panic, 0x6EDD60)
-	TMissionFunc(Go_Berzerk, 0x6EDD90)
-	TMissionFunc(Idle_anim, 0x6EDDC0)
-	TMissionFunc(Loop, 0x6EDE10)
-	TMissionFunc(Player_wins, 0x6EDE40)
-	TMissionFunc(Player_loses, 0x6EDE60)
-	TMissionFunc(Play_speech, 0x6EDE80)
-	TMissionFunc(Play_sound, 0x6EDE90)
-	TMissionFunc(Play_movie, 0x6EDEC0)
-	TMissionFunc(Play_music, 0x6EDEF0)
-	TMissionFunc(Reduce_tiberium, 0x6EDF10)
-	TMissionFunc(Begin_production, 0x6EDF90)
-	TMissionFunc(Fire_sale, 0x6EDFB0)
-	TMissionFunc(Self_destruct, 0x6EDFD0)
-	TMissionFunc(Delete_team_members, 0x6EE050)
-	TMissionFunc(Ion_storm_start_in, 0x6EE0A0)
-	TMissionFunc(Ion_storn_end, 0x6EE0E0)
-	TMissionFunc(Center_view_on_team, 0x6EE100)
-	TMissionFunc(Reshroud_map, 0x6EE1B0)
-	TMissionFunc(Reveal_map, 0x6EE1D0)
-	TMissionFunc(Wait_till_fully_loaded, 0x6EE1F0)
-	TMissionFunc(Truck_unload, 0x6EE230)
-	TMissionFunc(Truck_load, 0x6EE2A0)
-	TMissionFunc(Attack_enemy_building, 0x6EE310)
-	TMissionFunc(Moveto_enemy_building, 0x6EE3F0)
-	TMissionFunc(Move_to_own_building, 0x6EE5C0)
-	TMissionFunc(Scout, 0x6EE800)
-	TMissionFunc(Unload, 0x6EF110)
-	TMissionFunc(Success, 0x6EF450)
-	TMissionFunc(Flash, 0x6EF5C0)
-	TMissionFunc(Play_anim, 0x6EF610)
-	TMissionFunc(Talk_bubble, 0x6EF6D0)
-	TMissionFunc(Iron_curtain_me,	0x6EFC70)
-	TMissionFunc(Chrono_prep_for_abwp,	0x6EFE60)
-	TMissionFunc(Chrono_prep_for_aq,	0x6F0130)
-	*/
+
+	void _TMission_Unload(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Load(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Deploy(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Scout(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Move_To_Own_Building(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Attack_Enemy_Building(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Play_Animation(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Iron_Curtain_Me(ScriptActionNode* nNode, bool arg3);
 	void _TMission_Guard(ScriptActionNode* nNode, bool arg3);
 	void _TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3);
 	void _TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3);
 	void _TMission_ChangeHouse(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Enter_Grinder(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Enter_Bio_Reactor(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Occupy_Battle_Bunker(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Occupy_Tank_Bunker(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Attack(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Attack_Waypoint(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Move_To_Cell(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Loop(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Player_wins(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Player_loses(ScriptActionNode* nNode, bool arg3);
+	void _TMission_Talk_bubble(ScriptActionNode* nNode, bool arg3);
+
 	//
 
 	TeamExtData* _GetExtData() {

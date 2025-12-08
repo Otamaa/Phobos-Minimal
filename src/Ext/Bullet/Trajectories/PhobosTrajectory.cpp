@@ -161,7 +161,7 @@ void PhobosTrajectoryType::CreateType(std::unique_ptr<PhobosTrajectoryType>& pTy
 	if(pINI->ReadString(pSection, pKey, Phobos::readDefval, Phobos::readBuffer)  > 0) {
 		if (!GameStrings::IsBlank(Phobos::readBuffer)) {
 			for (size_t i = 0; i < TrajectoryTypeToSrings.size(); ++i) {
-				if (IS_SAME_STR_(Phobos::readBuffer, TrajectoryTypeToSrings[i].second.data())) {
+				if (PhobosCRT::iequals(Phobos::readBuffer, TrajectoryTypeToSrings[i].second)) {
 					nFlag = TrajectoryTypeToSrings[i].first;
 					break;
 				}

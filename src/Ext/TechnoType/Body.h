@@ -574,6 +574,9 @@ public:
 	Nullable<AnimTypeClass*> Promote_Vet_Anim;
 	Nullable<AnimTypeClass*> Promote_Elite_Anim;
 
+	Nullable<bool> Promote_Vet_PlaySpotlight;
+	Nullable<bool> Promote_Elite_PlaySpotlight;
+
 	Valueable<double> Promote_Vet_Exp;
 	Valueable<double> Promote_Elite_Exp;
 	Nullable<FacingType> DeployDir;
@@ -1596,6 +1599,8 @@ public:
 		Promote_Elite_Type(nullptr),
 		Promote_Vet_Anim(),
 		Promote_Elite_Anim(),
+		Promote_Vet_PlaySpotlight(),
+		Promote_Elite_PlaySpotlight(),
 		Promote_Vet_Exp(0.0),
 		Promote_Elite_Exp(0.0),
 		DeployDir(),
@@ -2592,6 +2597,8 @@ private:
 			.Process(this->Promote_Elite_Type)
 			.Process(this->Promote_Vet_Anim)
 			.Process(this->Promote_Elite_Anim)
+			.Process(this->Promote_Vet_PlaySpotlight)
+			.Process(this->Promote_Elite_PlaySpotlight)
 			.Process(this->Promote_Vet_Exp)
 			.Process(this->Promote_Elite_Exp)
 			.Process(this->DeployDir)

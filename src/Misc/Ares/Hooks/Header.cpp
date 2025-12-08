@@ -4672,6 +4672,8 @@ void TechnoExperienceData::GetSpawnerData(TechnoClass*& pSpawnOut, TechnoClass*&
 	}
 }
 
+#include <SpotlightClass.h>
+
 void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bSilent, bool Flash)
 {
 	auto newRank = pExpReceiver->Veterancy.GetRemainingLevel();
@@ -4706,24 +4708,24 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 			double promoteExp = 0.0;
 			auto const pRules = RulesClass::Instance.get();
 			AnimTypeClass* Promoted_PlayAnim = nullptr;
+			bool playSpotlight = false;
 
-			if (newRank == Rank::Veteran)
-			{
+			if (newRank == Rank::Veteran) {
 				flash = pTypeExt->Promote_Vet_Flash.Get(RulesExtData::Instance()->VeteranFlashTimer);
 				sound = pTypeExt->Promote_Vet_Sound.Get(pRules->UpgradeVeteranSound);
 				eva = pTypeExt->Promote_Vet_Eva;
 				pNewType = pTypeExt->Promote_Vet_Type;
 				promoteExp = pTypeExt->Promote_Vet_Exp;
 				Promoted_PlayAnim = pTypeExt->Promote_Vet_Anim.Get(RulesExtData::Instance()->Promote_Vet_Anim);
-			}
-			else if (newRank == Rank::Elite)
-			{
+				playSpotlight = pTypeExt->Promote_Vet_PlaySpotlight.Get(RulesExtData::Instance()->Promote_Vet_PlaySpotlight);
+			} else if (newRank == Rank::Elite) {
 				flash = pTypeExt->Promote_Elite_Flash.Get(pRules->EliteFlashTimer);
 				sound = pTypeExt->Promote_Elite_Sound.Get(pRules->UpgradeEliteSound);
 				eva = pTypeExt->Promote_Elite_Eva;
 				pNewType = pTypeExt->Promote_Elite_Type;
 				promoteExp = pTypeExt->Promote_Elite_Exp;
 				Promoted_PlayAnim = pTypeExt->Promote_Elite_Anim.Get(RulesExtData::Instance()->Promote_Elite_Anim);
+				playSpotlight = pTypeExt->Promote_Vet_PlaySpotlight.Get(RulesExtData::Instance()->Promote_Vet_PlaySpotlight);
 			}
 
 			if (pNewType && TechnoExt_ExtData::ConvertToType(pExpReceiver, pNewType) && promoteExp != 0.0)
@@ -4753,6 +4755,10 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 
 				if (pExpReceiver->WhatAmI() == BuildingClass::AbsID)
 					pAnim->ZAdjust = -1024;
+			}
+
+			if (playSpotlight) {
+				GameCreate<SpotlightClass>(pExpReceiver->Location, 50);
 			}
 
 			AEProperties::Recalculate(pExpReceiver);
@@ -8125,7 +8131,7 @@ void CustomFoundation::GetDisplayRect(RectangleStruct* out, CellStruct* cells)
         int16_t y = p->Y;
 
         // if current x is sentinel and next x is sentinel -> end
-        if (x == TERMINATOR && p[1].X == TERMINATOR)
+        if (x == TERMINATOR && y == TERMINATOR)
             break;
 
         // update bounds (same effect as the CMOV sequence in assembly)

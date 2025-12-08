@@ -567,8 +567,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Shield_SkipHitAnim.Read(exINI, pSection, "Shield.SkipHitAnim");
 	this->CombatAlert_Suppress.Read(exINI, pSection, "CombatAlert.Suppress");
 
-	this->AffectsOnFloor.Read(exINI, pSection, "AffectsOnFloor");
-	this->AffectsInAir.Read(exINI, pSection, "AffectsInAir");
+	this->AffectsOnFloor.Read(exINI, pSection, "AffectsGround");
+	this->AffectsInAir.Read(exINI, pSection, "AffectsAir");
 	this->CellSpread_Cylinder.Read(exINI, pSection, "CellSpread.Cylinder");
 
 	this->DamageSourceHealthMultiplier.Read(exINI, pSection, "DamageSourceHealthMultiplier");

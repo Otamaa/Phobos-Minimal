@@ -61,6 +61,18 @@ public:
 	//TacticalClass
 	virtual bool Tactical_draw_line_6DBB60(RectangleStruct* a2, RectangleStruct* a3, int color, bool bool1) R0;
 
+	//rendering related
+	void Render_Objects_Near_Shroud(bool arg0, Point2D pos, RectangleStruct* a5) {
+		JMP_THIS(0x6D2B60);
+	}
+
+	void Draw_Pixel_Effects(RectangleStruct* tactical_rect, RectangleStruct* effect_rect){
+		JMP_THIS(0x6D7840);
+	}
+
+	void Render_Layer(bool arg)
+		{ JMP_THIS(0x6D8DB0); }
+	//
 	void SetTacticalPosition(CoordStruct* pCoord)
 		{ JMP_THIS(0x6D6070); }
 

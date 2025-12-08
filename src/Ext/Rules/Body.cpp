@@ -289,6 +289,10 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 
 	pData->Promote_Vet_Anim.Read(iniEX, GameStrings::AudioVisual(), "Promote.VeteranAnim");
 	pData->Promote_Elite_Anim.Read(iniEX, GameStrings::AudioVisual(), "Promote.EliteAnim");
+
+	pData->Promote_Vet_PlaySpotlight.Read(iniEX, GameStrings::AudioVisual(), "Promote.VeteranPlaySpotLight");
+	pData->Promote_Elite_PlaySpotlight .Read(iniEX, GameStrings::AudioVisual(), "Promote.ElitePlaySpotLight");
+
 	pData->PrimaryFactoryIndicator.Read(iniEX, GameStrings::AudioVisual(), "PrimaryFactoryIndicator");
 	pData->PrimaryFactoryIndicator_Palette.Read(iniEX, GameStrings::AudioVisual(), "PrimaryFactoryIndicator.Palette");
 
@@ -1648,7 +1652,9 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->Promote_Vet_Anim)
 		.Process(this->Promote_Elite_Anim)
-
+		.Process(this->Promote_Vet_PlaySpotlight)
+		.Process(this->Promote_Elite_PlaySpotlight)
+	
 		.Process(this->DefaultGlobalParticleInstance)
 
 		.Process(this->Shield_ConditionGreen)

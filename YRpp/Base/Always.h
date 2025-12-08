@@ -218,3 +218,8 @@ typedef size_t discard_t;
 #define SET_TO_ALL_BITS_ONE(x) (x = static_cast<std::make_unsigned_t<decltype(x)>>(-1))
 #define SET_MINUS_ONE(x) (x = ~decltype(x)(0))
 #define SET_UNSIGNED_MINUS_ONE(x) (x = (unsigned)-1)
+
+#define BYTE0(x) ((unsigned char)((x) >>  0))
+#define BYTE1(x) ((unsigned char)((x) >>  8))
+#define BYTE2(x) ((unsigned char)((x) >> 16))
+#define BYTE3(x) ((unsigned char)((x) >> 24))

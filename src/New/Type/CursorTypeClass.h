@@ -50,12 +50,12 @@ struct IndexFinder<CursorTypeClass*>{
 		{
 			std::string_view val_(parser.value());
 
-			if (GameStrings::IsBlank(val_.data())) {
+			if (GameStrings::IsBlank(parser.value())) {
 				value = -1;
 				return true;
 			}
 
-			if (int idx = CursorTypeClass::FindIndexById(val_.data());  idx != -1) {
+			if (int idx = CursorTypeClass::FindIndexById(parser.value());  idx != -1) {
 				value = idx;
 				return true;
 			}
@@ -84,13 +84,13 @@ struct IndexFinder<CursorTypeClass*>{
 
 					auto contexes = PhobosCRT::split<7>(val_);
 					auto cursor = pCursor->CursorData.operator->();
-					Parser<int>::Parse(contexes[0].data(), &cursor->StartFrame);
-					Parser<int>::Parse(contexes[1].data(), &cursor->FrameCount);
-					Parser<int>::Parse(contexes[2].data(), &cursor->FrameRate);
-					Parser<int>::Parse(contexes[3].data(), &cursor->SmallFrame);
-					Parser<int>::Parse(contexes[4].data(), &cursor->SmallFrameCount);
-					MouseCursorHotSpotX::Parse(contexes[5].data(), &cursor->X);
-					MouseCursorHotSpotY::Parse(contexes[6].data(), &cursor->Y);
+					Parser<int>::Parse(std::string(contexes[0]).c_str(), &cursor->StartFrame);
+					Parser<int>::Parse(std::string(contexes[1]).c_str(), &cursor->FrameCount);
+					Parser<int>::Parse(std::string(contexes[2]).c_str(), &cursor->FrameRate);
+					Parser<int>::Parse(std::string(contexes[3]).c_str(), &cursor->SmallFrame);
+					Parser<int>::Parse(std::string(contexes[4]).c_str(), &cursor->SmallFrameCount);
+					MouseCursorHotSpotX::Parse(std::string(contexes[5]).c_str(), &cursor->X);
+					MouseCursorHotSpotY::Parse(std::string(contexes[6]).c_str(), &cursor->Y);
 
 					value = outIndex;
 					return true;

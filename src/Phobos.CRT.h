@@ -11,6 +11,11 @@ class PhobosCRT final
 	NO_CONSTRUCT_CLASS(PhobosCRT)
 public:
 
+	static OPTIONALINLINE bool iequals(std::string_view a, std::string_view b) {
+		if (a.size() != b.size()) return false;
+		return _strnicmp(a.data(), b.data(), a.size()) == 0;
+	}
+
 	 template<typename CharPtr>
 	 static CharPtr __cdecl strchr_selector(CharPtr str, char ch) {
 		return strchr(str, ch);

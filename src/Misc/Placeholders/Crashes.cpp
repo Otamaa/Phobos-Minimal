@@ -555,17 +555,17 @@ DWORD WINAPI InitThreadProc(LPVOID)
 
 void InitializeCustomMemorySystem()
 {
-	Debug::LogDeferred("Initializing Custom Memory System...\n");
+	Debug::Log("Initializing Custom Memory System...\n");
 
 	// Run signature safety check
 	// if (!CustomMemoryManager::RunSignatureSafetyCheck())
 	// {
-	// 	Debug::LogDeferred("WARNING: Potential signature conflicts detected!\n");
-	// 	Debug::LogDeferred("Consider using CustomMemoryManager::RegenerateSignatures() if issues occur.\n");
+	// 	Debug::Log("WARNING: Potential signature conflicts detected!\n");
+	// 	Debug::Log("Consider using CustomMemoryManager::RegenerateSignatures() if issues occur.\n");
 	// }
 
 	/*
-		Debug::LogDeferred("Custom Memory System initialization complete!\n");
+		Debug::Log("Custom Memory System initialization complete!\n");
 	*/
 
 

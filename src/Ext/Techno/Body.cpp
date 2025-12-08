@@ -426,6 +426,158 @@ int TechnoExtData::GetDeployingAnimIntensity(FootClass* pThis)
 	return intensity;
 }
 
+// Draws airstrike targeting flare/beam between aircraft and target
+// With Ares/Phobos extensions for custom colors and Z-depth fix
+void __fastcall FakeTechnoClass::__Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct* startCoord, int startZ, int endZ, CoordStruct* endCoord)
+{
+	// [Hook 1: TechnoClass_DrawAirstrikeFlare_SetContext]
+	// Captures TechnoTypeExtData for custom color lookup
+
+	const Point2D startPixel = TacticalClass::Instance->CoordsToClient(*startCoord);
+	const Point2D endPixel =  TacticalClass::Instance->CoordsToClient(*endCoord);
+
+	// Original: Two separate Z-depth values
+	 int startDepth = -32 - Game::AdjustHeight(startZ);
+	 int endDepth = -32 - Game::AdjustHeight(endZ);
+
+	// [Hook 2: TechnoClass_DrawAirstrikeFlare]
+	// Fixed: Use single Z value (minimum) + configurable adjustment
+	const int zValue = MinImpl(startDepth, endDepth) + RulesExtData::Instance()->AirstrikeLineZAdjust;
+	startDepth = zValue;
+	endDepth = zValue;
+	auto pExt = TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType());
+	int deltaX_abs = Math::abs(endPixel.X - startPixel.X);
+	int deltaY_abs = Math::abs(endPixel.Y - startPixel.Y);
+
+	if (!DSurface::Temp->IsDSurface())
+		return;
+
+	// [Hook 2 continued: Custom color instead of random orange]
+	// Original: Random value 190-270, orange-red beam
+	// New: Configurable base color with 74.5%-100% brightness variation
+	const ColorStruct baseColor = pExt->AirstrikeLineColor .Get(RulesExtData::Instance()->AirstrikeLineColor);
+
+	const double percentage = Random2Class::Global->RandomRanged(745, 1000) / 1000.0;
+	ColorStruct beamColor {
+		(BYTE)(baseColor.R * percentage),
+		(BYTE)(baseColor.G * percentage),
+		(BYTE)(baseColor.B * percentage)
+	};
+
+	const WORD crosshairColor = baseColor.ToInit();
+
+	// [Hook 3: TechnoClass_DrawAirstrikeFlare_DotColor]
+	// Original: Only draw crosshair if endPixel.Y < startPixel.Y
+	// New: Always draw crosshair (skip the Y comparison)
+	{
+		// Draw crosshair at target point
+		// Horizontal lines
+		Point2D _hzl_start(endPixel.X - 2, endPixel.Y + 1);
+		Point2D _hzl_end(endPixel.X + 1, endPixel.Y + 1);
+
+		DSurface::Temp->Draw_Line(
+			_hzl_start,
+			_hzl_end,
+			crosshairColor
+		);
+
+		Point2D _hzl2_start(endPixel.X - 2, endPixel.Y);
+		Point2D _hzl2_end(endPixel.X + 1, endPixel.Y);
+
+		DSurface::Temp->Draw_Line(
+			_hzl2_start,
+			_hzl2_end,
+			crosshairColor
+		);
+		// Vertical lines
+		Point2D _vert_start(endPixel.X - 1, endPixel.Y - 1);
+		Point2D _vert_end(endPixel.X - 1, endPixel.Y + 2);
+
+		DSurface::Temp->Draw_Line(
+			_vert_start,
+			_vert_end,
+			crosshairColor
+		);
+
+		Point2D _vert2_start(endPixel.X, endPixel.Y - 1);
+		Point2D _vert2_end(endPixel.X, endPixel.Y + 2);
+		DSurface::Temp->Draw_Line(
+			_vert2_start,
+			_vert2_end,
+			crosshairColor
+		);
+	}
+
+	// Draw 4-segment fading beam
+	int deltaX = endPixel.X - startPixel.X;
+	int deltaY = endPixel.Y - startPixel.Y;
+	int deltaDepth = endDepth - startDepth;  // Now always 0 due to fix
+
+	Point2D currentPos = startPixel;
+	int currentDepth = startDepth;
+
+	int accumX = 0;
+	int accumY = 0;
+	int accumDepth = 0;
+	int accumAlpha = 0;
+	int alpha = 100;
+
+	while (accumAlpha > -765)
+	{
+		Point2D nextPos(currentPos.X + (accumX + deltaX) / 4, currentPos.Y + (accumY + deltaY) / 4);
+
+		const int nextDepth = currentDepth + (accumDepth + deltaDepth) / 4;
+		const int segmentAlpha = (accumAlpha / 4) + 255;
+
+		// Main beam line
+		DSurface::Temp->DrawLineBlit(
+			&DSurface::ViewBounds(),
+			&currentPos, &nextPos,
+			&beamColor,
+			segmentAlpha,
+			currentDepth, nextDepth
+		);
+
+		// Parallel lines for thickness
+		if (deltaX_abs > deltaY_abs)
+		{
+			// Horizontal beam - vertical offset
+			Point2D off1Start = { currentPos.X, currentPos.Y + 1 };
+			Point2D off1End = { nextPos.X, nextPos.Y + 1 };
+			Point2D off2Start = { currentPos.X, currentPos.Y - 1 };
+			Point2D off2End = { nextPos.X, nextPos.Y - 1 };
+
+			DSurface::Temp->DrawLineBlit(&DSurface::ViewBounds(),
+				&off1Start, &off1End, &beamColor, alpha, currentDepth, nextDepth);
+			DSurface::Temp->DrawLineBlit(&DSurface::ViewBounds(),
+				&off2Start, &off2End, &beamColor, alpha, currentDepth, nextDepth);
+		}
+		else
+		{
+			// Vertical beam - horizontal offset
+			Point2D off1Start = { currentPos.X + 1, currentPos.Y };
+			Point2D off1End = { nextPos.X + 1, nextPos.Y };
+			Point2D off2Start = { currentPos.X - 1, currentPos.Y };
+			Point2D off2End = { nextPos.X - 1, nextPos.Y };
+
+			DSurface::Temp->DrawLineBlit(&DSurface::ViewBounds(),
+				&off1Start, &off1End, &beamColor, alpha, currentDepth, nextDepth);
+			DSurface::Temp->DrawLineBlit(&DSurface::ViewBounds(),
+				&off2Start, &off2End, &beamColor, alpha, currentDepth, nextDepth);
+		}
+
+		currentPos = nextPos;
+		currentDepth = nextDepth;
+		accumX += deltaX;
+		accumY += deltaY;
+		accumDepth += deltaDepth;
+		accumAlpha -= 255;
+		alpha -= 25;
+	}
+}
+DEFINE_FUNCTION_JUMP(CALL, 0x6D48F1, FakeTechnoClass::__Draw_Airstrike_Flare);
+DEFINE_FUNCTION_JUMP(LJMP, 0x705860, FakeTechnoClass::__Draw_Airstrike_Flare);
+
 int __fastcall FakeTechnoClass::__AdjustDamage(TechnoClass* pThis, discard_t,TechnoClass* pTarget, WeaponTypeClass* pWeapon)
 {
 	int damage = 0;

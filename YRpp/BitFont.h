@@ -20,6 +20,13 @@ public:
 	bool UnLock(Surface* pSurface) { JMP_THIS(0x434990); }
 	unsigned char* GetCharacterBitmap(wchar_t wch) { JMP_THIS(0x4346C0); }
 
+	COMPILETIMEEVAL FORCEDINLINE bool SetByte41(BYTE s)
+	{
+		auto was = this->field_41;
+		this->field_41 = s;
+		return was;
+	}
+
 	COMPILETIMEEVAL FORCEDINLINE void SetBounds(LTRBStruct* pBound)
 	{
 		if (pBound)
@@ -91,6 +98,8 @@ public:
 
 	static void __fastcall Print(void* pThis, BitFont* font, Surface* surface, wchar_t* string, int xLeft, int yTop, int a6, int a7)
 		{ JMP_FAST(0x434B90); }
+
+public:
 
 	InternalData* InternalPTR;
 	void* Pointer_8;

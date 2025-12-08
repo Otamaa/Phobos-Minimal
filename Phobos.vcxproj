@@ -35,7 +35,6 @@
     <ClCompile Include="src\Ext\SWType\Hooks.LightningStorm.cpp" />
     <ClCompile Include="src\Ext\SWType\Hooks.Strips.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.UpdateFunction.cpp" />
-    <ClCompile Include="src\Ext\Techno\Hooks.AirstrikeFlare.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.ChronoSparkle.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.cpp" />
     <ClCompile Include="src\Ext\Techno\Hooks.Disguise.cpp" />

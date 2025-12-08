@@ -161,11 +161,6 @@ ASMJIT_PATCH(0x50C8F4, HouseClass_Flag_To_Chear_Disable ,0x5)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x6D8640, FakeTacticalClass::__ClampTacticalPos)
 
-ASMJIT_PATCH(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6) {
-	FakeTacticalClass::__RenderOverlapForeignMap();
-	return 0;
-}
-
 // canEnter and ignoreForce should come before GetFireError().
 DEFINE_JUMP(LJMP, 0x70054D, 0x70056C)
 

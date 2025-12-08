@@ -25,17 +25,17 @@ struct PhobosMath
 
 	static float __cdecl cosd(double a1)
 	{
-		return std::cos(a1);
+		return (float)std::cos(a1);
 	}
 
 	static float __cdecl sind(double a1)
 	{
-		return std::sin(a1);
+		return (float)std::sin(a1);
 	}
 
 	static float __cdecl sqrtd(double a1)
 	{
-		return std::sqrt(a1);
+		return (float)std::sqrt(a1);
 	}
 
 	static double __cdecl tand(double a1)

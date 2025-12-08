@@ -10,6 +10,8 @@
 #include <InfantryTypeClass.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <TextDrawing.h>
+
 #pragma region pipDrawings
 
 ASMJIT_PATCH(0x708CD9, TechnoClass_PipCount_GetTotalAmounts, 0x6)
@@ -1006,8 +1008,7 @@ static void DrawGroupNumber(TechnoClass* techno, AbstractType unitType, Point2D*
 		DSurface::Temp->Draw_Rect(boxRect, color);
 
 		// Draw text
-		Point2D retn;
-		Plain_Text_Print_Wide(&retn, numberText.data(), DSurface::Temp, clipRect, &textPos, color, 0, TextPrintType::FullShadow | TextPrintType::Efnt, -1, 1);
+		TextDrawing::Simple_Text_Print_Wide(numberText.data(), DSurface::Temp, clipRect, &textPos, color, 0, TextPrintType::FullShadow | TextPrintType::Efnt);
 	}
 }
 

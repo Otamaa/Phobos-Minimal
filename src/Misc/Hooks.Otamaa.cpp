@@ -45,9 +45,8 @@
 #include <Commands/ToggleRadialIndicatorDrawMode.h>
 
 #include <ExtraHeaders/AStarClass.h>
-#include <BitFont.h>
+#include <TextDrawing.h>
 #include <format>
-
 
 #include <Ext/SWType/Body.h>
 #include <New/Type/CrateTypeClass.h>
@@ -1990,8 +1989,7 @@ ASMJIT_PATCH(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 
 			DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
 			DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
-			Point2D nRet;
-			Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pBound, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+			TextDrawing::Simple_Text_Print_Wide(pFormat, DSurface::Temp.get(), pBound, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt);
 		};
 
 	if (ShowTeamLeaderCommandClass::IsActivated())
@@ -7480,3 +7478,7 @@ ASMJIT_PATCH(0x5F7577, ObjectTypeClass_DTOR_Voxel, 0x6) {
 	Debug::Log("Destroying Voxel for %s ! \n", pThis->ID);
 	return 0x0;
 }
+
+//ASMJIT_PATCH(0x6f4974, TechnoClass_UpdateDiscovered_ByPlayer_Announce, 0x6) {
+//	//play eva , once ?
+//}

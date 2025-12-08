@@ -219,6 +219,7 @@ public:
 	}
 
 	void _OnFireAI();
+	void _DrawExtras(Point2D* pLocation, RectangleStruct* pBounds);
 	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
 	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	int __ExitObject(TechnoClass* object, int exitFlags);

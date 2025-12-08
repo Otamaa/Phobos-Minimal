@@ -2240,10 +2240,12 @@ ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_RequestUntether, 0x7)
 	// - This is because when both parties who are `RadioLink` to each other need to `Unlink`, they need to `Untether` first,
 	//   and this requires ensuring that both parties have `IsTether` flag (0x6F4C50), otherwise `Untether` cannot be successful,
 	//   which may lead to some unexpected situations.
-	for (int i = 0; i < pThis->RadioLinks.Capacity; ++i) {
-		if (const auto pLink = pThis->RadioLinks.Items[i]) {
-			if (pLink->IsTethered) // If there's another tether link, reset flag to true
-				pThis->IsTethered = true; // Ensures that other links can be properly untether afterwards
+	if(!pThis->IsTethered) {
+		for (int i = 0; i < pThis->RadioLinks.Capacity; ++i) {
+			if (const auto pLink = pThis->RadioLinks.Items[i]) {
+				if (pLink->IsTethered) // If there's another tether link, reset flag to true
+					pThis->IsTethered = true; // Ensures that other links can be properly untether afterwards
+			}
 		}
 	}
 

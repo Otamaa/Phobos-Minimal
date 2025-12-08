@@ -190,6 +190,26 @@ namespace CalculatePinch
 // 	return 0x0;
 // }
 
+
+//Gscript 
+//    v_Init((this + 36), &a2, v4, "ScatterChance", 0);
+//	  v_bool((this + 19), &a2, v4, "ScatterOnInfantry", 0);
+AbstractClass* ScatterAgainst(AbstractClass* pTarget , AbstractType abs, int chance){
+	if(pTarget && pTarget->WhatAmI() == abs){
+		if(ScenarioClass::Instance->Random.RandomFromMax(chance)){
+			auto pCell = MapClass::Instance->GetCellAt( pTarget->GetCoords());
+			static constexpr std::array<FacingType, 4> __facing = {
+				FacingType::North, FacingType::East, FacingType::South, FacingType::West
+			};
+
+			FacingType _facing_get = __facing[ScenarioClass::Instance->Random.RandomFromMax(__facing.size() - 1)];
+			return pCell->GetAdjacentCell(_facing_get);
+		}
+	}
+
+	return pTarget;
+}
+
 ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);

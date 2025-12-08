@@ -10,6 +10,8 @@
 
 #include <New/Entity/FlyingStrings.h>
 
+#include <TextDrawing.h>
+
 #include <Misc/Hooks.Otamaa.h>
 
 BuildingExtData::~BuildingExtData()
@@ -1871,6 +1873,21 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 	return;
 }
 
+void FakeBuildingClass::_DrawExtras(Point2D* pLocation, RectangleStruct* pBounds)
+{
+	if (this->IsSelected && this->IsOnMap && this->_GetExtData()->LimboID <= -1) {
+		const int foundationHeight = this->Type->GetFoundationHeight(0);
+		const int typeHeight = this->Type->Height;
+		const int yOffest = (Unsorted::CellHeightInPixels * (foundationHeight + typeHeight)) >> 2;
+
+		Point2D centeredPoint = { pLocation->X, pLocation->Y - yOffest };
+		this->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
+	}
+
+	this->DrawExtras(pLocation, pBounds);
+}
+
+DEFINE_FUNCTION_JUMP(CALL6, 0x6D9789, FakeBuildingClass::_DrawExtras);
 void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect)
 {
 	if (!HouseClass::CurrentPlayer)
@@ -1895,8 +1912,7 @@ void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOrigi
 
 				DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
 				DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
-				Point2D nRet;
-				Simple_Text_Print_Wide(&nRet, pFormat, DSurface::Temp.get(), pRect, &DrawLoca, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, true);
+				TextDrawing::Simple_Text_Print_Wide(pFormat, DSurface::Temp.get(), pRect, &DrawLoca, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt);
 				DrawLoca.Y += (nTextDimension.Height) + 2; //extra number for the background
 			};
 

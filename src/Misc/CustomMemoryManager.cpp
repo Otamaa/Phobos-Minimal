@@ -332,7 +332,7 @@ void* CustomMemoryManager::Malloc(size_t size, int nhFlag)
 	}
 
 	// Still failed - use recreated original nh_malloc logic
-	Debug::LogDeferred("Custom allocation failed for size %u, using recreated nh_malloc\n", (unsigned int)size);
+	Debug::Log("Custom allocation failed for size %u, using recreated nh_malloc\n", (unsigned int)size);
 	return RecreatedNHMalloc(size, nhFlag);
 }
 
@@ -371,7 +371,7 @@ void CustomMemoryManager::Free(void* ptr)
 	else
 	{
 		// Not our allocation - use recreated original free logic
-		Debug::LogDeferred("Freeing non-custom allocation %p using recreated free\n", ptr);
+		Debug::Log("Freeing non-custom allocation %p using recreated free\n", ptr);
 		RecreatedFree(ptr);
 	}
 }
@@ -395,7 +395,7 @@ void* CustomMemoryManager::Realloc(void* pBlock, size_t newSize)
 	if (!header)
 	{
 		// Not our allocation - use recreated original realloc logic
-		Debug::LogDeferred("Reallocating non-custom allocation %p using recreated realloc\n", pBlock);
+		Debug::Log("Reallocating non-custom allocation %p using recreated realloc\n", pBlock);
 		return RecreatedRealloc(pBlock, newSize);
 	}
 
@@ -419,7 +419,7 @@ void* CustomMemoryManager::Realloc(void* pBlock, size_t newSize)
 	}
 
 	// Our allocation failed - use recreated original realloc logic
-	Debug::LogDeferred("Custom realloc failed for size %u, using recreated realloc\n", (unsigned int)newSize);
+	Debug::Log("Custom realloc failed for size %u, using recreated realloc\n", (unsigned int)newSize);
 	return RecreatedRealloc(pBlock, newSize);
 }
 
@@ -439,7 +439,7 @@ void* CustomMemoryManager::Calloc(size_t num, size_t size)
 	{
 		if (totalSize == crtSize)
 		{
-			Debug::LogDeferred("Bypassing CRT allocation of size 0x%X\n", (unsigned int)totalSize);
+			Debug::Log("Bypassing CRT allocation of size 0x%X\n", (unsigned int)totalSize);
 			return RecreatedCalloc(num, size);
 		}
 	}
@@ -455,7 +455,7 @@ void* CustomMemoryManager::Calloc(size_t num, size_t size)
 	}
 
 	// Our allocation failed - use recreated original calloc logic
-	Debug::LogDeferred("Custom calloc failed for %u x %u, using recreated calloc\n", (unsigned int)num, (unsigned int)size);
+	Debug::Log("Custom calloc failed for %u x %u, using recreated calloc\n", (unsigned int)num, (unsigned int)size);
 	return RecreatedCalloc(num, size);
 }
 
@@ -604,7 +604,7 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetCurrentProcessId());
 //	if (hSnapshot == INVALID_HANDLE_VALUE)
 //	{
-//		Debug::LogDeferred("Error: CreateToolhelp32Snapshot failed (Error: %lu)\n", GetLastError());
+//		Debug::Log("Error: CreateToolhelp32Snapshot failed (Error: %lu)\n", GetLastError());
 //		return moduleInfos;
 //	}
 //
@@ -641,7 +641,7 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //			}
 //			__except (EXCEPTION_EXECUTE_HANDLER)
 //			{
-//				Debug::LogDeferred("Warning: Access violation scanning module %s (alternative method)\n", moduleInfo.moduleName.c_str());
+//				Debug::Log("Warning: Access violation scanning module %s (alternative method)\n", moduleInfo.moduleName.c_str());
 //			}
 //
 //			moduleInfos.push_back(moduleInfo);
@@ -651,7 +651,7 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //	}
 //	else
 //	{
-//		Debug::LogDeferred("Error: Module32First failed (Error: %lu)\n", GetLastError());
+//		Debug::Log("Error: Module32First failed (Error: %lu)\n", GetLastError());
 //	}
 //
 //	CloseHandle(hSnapshot);
@@ -711,7 +711,7 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //				}
 //				__except (EXCEPTION_EXECUTE_HANDLER)
 //				{
-//					Debug::LogDeferred("Warning: Access violation scanning module %s\n", moduleInfo.moduleName.c_str());
+//					Debug::Log("Warning: Access violation scanning module %s\n", moduleInfo.moduleName.c_str());
 //				}
 //			}
 //			else
@@ -720,11 +720,11 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //				if (VirtualQuery(hModules[i], &mbi, sizeof(mbi)))
 //				{
 //					moduleInfo.moduleSize = mbi.RegionSize;
-//					Debug::LogDeferred("Warning: GetModuleInformation failed for %s, using VirtualQuery\n", moduleInfo.moduleName.c_str());
+//					Debug::Log("Warning: GetModuleInformation failed for %s, using VirtualQuery\n", moduleInfo.moduleName.c_str());
 //				}
 //				else
 //				{
-//					Debug::LogDeferred("Warning: Could not get size for module %s\n", moduleInfo.moduleName.c_str());
+//					Debug::Log("Warning: Could not get size for module %s\n", moduleInfo.moduleName.c_str());
 //					moduleInfo.moduleSize = 0;
 //				}
 //			}
@@ -734,7 +734,7 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //	}
 //	else
 //	{
-//		Debug::LogDeferred("Error: EnumProcessModules failed (Error: %lu), trying alternative method\n", GetLastError());
+//		Debug::Log("Error: EnumProcessModules failed (Error: %lu), trying alternative method\n", GetLastError());
 //		return ScanModulesAlternative();
 //	}
 //
@@ -746,11 +746,11 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //	std::set<uint32_t> conflictingSignatures;
 //	auto moduleInfos = ScanAllModulesForSignatures();
 //
-//	Debug::LogDeferred("=== Signature Scan Results ===\n");
+//	Debug::Log("=== Signature Scan Results ===\n");
 //
 //	for (const auto& moduleInfo : moduleInfos)
 //	{
-//		Debug::LogDeferred("Module: %s (Size: %u bytes)",
+//		Debug::Log("Module: %s (Size: %u bytes)",
 //			   moduleInfo.moduleName.c_str(), (unsigned int)moduleInfo.moduleSize);
 //
 //		std::vector<std::pair<uint32_t, int>> frequentSignatures;
@@ -777,24 +777,24 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //			else if (sigPair.first == 0xBAADF00D) strcpy(extraInfo, " (BADFOOD - MS debug)\n");
 //			else if (sigPair.first == 0xFDFDFDFD) strcpy(extraInfo, " (FDFDFDFD - freed memory)\n");
 //
-//			Debug::LogDeferred("  0x%08X: %d occurrences%s", sigPair.first, sigPair.second, extraInfo);
+//			Debug::Log("  0x%08X: %d occurrences%s", sigPair.first, sigPair.second, extraInfo);
 //
 //			if (++shown >= 10) break;
 //		}
 //
 //		if (frequentSignatures.empty())
 //		{
-//			Debug::LogDeferred("  No frequent signatures found\n");
+//			Debug::Log("  No frequent signatures found\n");
 //		}
 //	}
 //
-//	Debug::LogDeferred("Total conflicting signatures found: %u", (unsigned int)conflictingSignatures.size());
+//	Debug::Log("Total conflicting signatures found: %u", (unsigned int)conflictingSignatures.size());
 //	return conflictingSignatures;
 //}
 //
 //std::pair<uint32_t, uint32_t> CustomMemoryManager::GenerateSafeSignatures()
 //{
-//	Debug::LogDeferred("Generating safe signatures...\n");
+//	Debug::Log("Generating safe signatures...\n");
 //
 //	std::set<uint32_t> conflicting = GetAllConflictingSignatures();
 //
@@ -828,19 +828,19 @@ void CustomMemoryManager::GetMemoryStats(size_t* totalAllocated, size_t* allocat
 //
 //	if (attempts >= 1000)
 //	{
-//		Debug::LogDeferred("Warning: Could not generate completely safe signatures after 1000 attempts\n");
-//		Debug::LogDeferred("Using fallback signatures...\n");
+//		Debug::Log("Warning: Could not generate completely safe signatures after 1000 attempts\n");
+//		Debug::Log("Using fallback signatures...\n");
 //		signature1 = 0x4D454D41;  // "MEMA"
 //		signature2 = 0x4D454D42;  // "MEMB"
 //	}
 //
-//	Debug::LogDeferred("Generated signatures: 0x%08X, 0x%08X (attempts: %d)",
+//	Debug::Log("Generated signatures: 0x%08X, 0x%08X (attempts: %d)",
 //		   signature1, signature2, attempts);
 //
 //	bool sig1_safe = conflicting.find(signature1) == conflicting.end();
 //	bool sig2_safe = conflicting.find(signature2) == conflicting.end();
 //
-//	Debug::LogDeferred("Signature safety: 0x%08X=%s, 0x%08X=%s",
+//	Debug::Log("Signature safety: 0x%08X=%s, 0x%08X=%s",
 //		   signature1, sig1_safe ? "SAFE" : "CONFLICT",
 //		   signature2, sig2_safe ? "SAFE" : "CONFLICT\n");
 //
@@ -859,20 +859,20 @@ void CustomMemoryManager::InitializeSignatures()
 {
 	if (s_signaturesInitialized) return;
 
-	Debug::LogDeferred("Initializing CustomMemoryManager signatures...\n");
+	Debug::Log("Initializing CustomMemoryManager signatures...\n");
 
 	// Use simple signatures for early init
 	MAGIC_SIGNATURE = 0x4D454D41;   // "MEMA"
 	MAGIC_SIGNATURE2 = 0x4D454D42;  // "MEMB"
 	s_signaturesInitialized = true;
 
-	Debug::LogDeferred("CustomMemoryManager initialized with signatures: 0x%08X, 0x%08X\n",
+	Debug::Log("CustomMemoryManager initialized with signatures: 0x%08X, 0x%08X\n",
 		   MAGIC_SIGNATURE, MAGIC_SIGNATURE2);
 }
 
 //bool CustomMemoryManager::TestSignatureCollisions()
 //{
-//	Debug::LogDeferred("Testing for runtime signature collisions...\n");
+//	Debug::Log("Testing for runtime signature collisions...\n");
 //
 //	std::vector<void*> testPtrs;
 //
@@ -898,7 +898,7 @@ void CustomMemoryManager::InitializeSignatures()
 //				if (*checkAddr == MAGIC_SIGNATURE || *checkAddr == MAGIC_SIGNATURE2)
 //				{
 //					collisions++;
-//					Debug::LogDeferred("COLLISION: Found signature 0x%08X at %p (offset %d from %p)\n",
+//					Debug::Log("COLLISION: Found signature 0x%08X at %p (offset %d from %p)\n",
 //						   *checkAddr, checkAddr, offset, ptr);
 //				}
 //			}
@@ -914,21 +914,21 @@ void CustomMemoryManager::InitializeSignatures()
 //		free(ptr);
 //	}
 //
-//	Debug::LogDeferred("Runtime collision test complete: %d collisions found\n", collisions);
+//	Debug::Log("Runtime collision test complete: %d collisions found\n", collisions);
 //	return collisions == 0;
 //}
 
 // Public interface for signature scanning and testing
 //bool CustomMemoryManager::RunSignatureSafetyCheck()
 //{
-//	Debug::LogDeferred("=== CustomMemoryManager Signature Safety Check ===\n");
+//	Debug::Log("=== CustomMemoryManager Signature Safety Check ===\n");
 //
 //	InitializeSignatures();
 //
 //	bool safe = TestSignatureCollisions();
 //
-//	Debug::LogDeferred("=== Signature Safety Check Complete ===\n");
-//	Debug::LogDeferred("Result: %s", safe ? "SAFE" : "POTENTIAL CONFLICTS DETECTED\n");
+//	Debug::Log("=== Signature Safety Check Complete ===\n");
+//	Debug::Log("Result: %s", safe ? "SAFE" : "POTENTIAL CONFLICTS DETECTED\n");
 //
 //	return safe;
 //}

@@ -619,14 +619,14 @@ ASMJIT_PATCH(0x73F5A7, UnitClass_IsCellOccupied_UnlimboDirection, 0x8)
 }
 
 // Check for any stuck units inside after successful unload each time. If there is, kick it out
-ASMJIT_PATCH(0x44E260, BuildingClass_Mission_Unload_KickOutStuckUnits, 0x7)
-{
-	GET(BuildingClass*, pThis, EBP);
+ ASMJIT_PATCH(0x44E260, BuildingClass_Mission_Unload_KickOutStuckUnits, 0x7)
+ {
+ 	GET(BuildingClass*, pThis, EBP);
 
-	KickOutStuckUnits(pThis);
+ 	KickOutStuckUnits(pThis);
 
-	return 0;
-}
+ 	return 0;
+ }
 
 
 ASMJIT_PATCH(0x449306, BuildingClass_SetOwningHouse_Sell, 0x6)

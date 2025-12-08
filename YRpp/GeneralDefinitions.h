@@ -569,7 +569,7 @@ enum class TextPrintType : int
 	MediumColor = 0x1000,
 	BrightColor = 0x2000,
 	UseGradPal = 0x4000,
-	UnknownColor = 0x8000,
+	TransparentBackgoround = 0x8000,
 	GradAll = 0xF000,
 };
 

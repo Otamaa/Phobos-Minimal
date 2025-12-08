@@ -954,7 +954,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 
 	// Mission and target management
 	__ClearTargetForInvalidMissions(pThis);
-
+	  
 	pThis->MissionAccumulateTime++;
 	pThis->MissionClass::Update();
 

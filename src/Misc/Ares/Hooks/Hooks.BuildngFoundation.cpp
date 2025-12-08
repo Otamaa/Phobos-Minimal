@@ -10,26 +10,30 @@
 
 ASMJIT_PATCH(0x6D50FB , TacticalClass_DrawPlacement_CustomFoundation, 0x5)
 {
-	RectangleStruct nDispRect {};
+	RectangleStruct bounds {};
 	const bool bOnFB = R->Origin() == 0x6D50FB;
-	CustomFoundation::GetDisplayRect(&nDispRect, (!bOnFB ?
+
+	// Get bounding rectangle of foundation cells
+	CustomFoundation::GetDisplayRect(&bounds, (!bOnFB ?
 		Unsorted::CursorSizeSecond() : Unsorted::CursorSize()));
 
-	int16_t nX = 0;
-	if (nDispRect.Width - nDispRect.X >= 0)
-		nX = int16_t(nDispRect.Width) - int16_t(nDispRect.X);
+	// Calculate actual dimensions
+    // bounds.Width is MaxX, bounds.X is MinX
+    // bounds.Height is MaxY, bounds.Y is MinY
+    CellStruct size{
+		.X = (short)std::max(0, bounds.Width - bounds.X) + 1,   // Width = MaxX - MinX + 1
+		.Y = (short)std::max(0, bounds.Height - bounds.Y) + 1  // Height = MaxY - MinY + 1
+	};
 
-	int16_t nY = 0;
-	if (nDispRect.Height - nDispRect.Y >= 0)
-		nY = int16_t(nDispRect.Height) - int16_t(nDispRect.Y);
+    CellStruct origin_cell {
+		.X = (short)bounds.X ,// MinX
+    	.Y = (short)bounds.Y  // MinY
+	};
 
-	const CellStruct v9res { (nX + 1)  , (nY + 1) };
-	const CellStruct v10res { (int16_t)nDispRect.X , (int16_t)nDispRect.Y };
-
-	R->Stack(0x14, v10res.Pack());
-	R->Stack(0x18, v9res.Pack());
-	R->EAX(v9res.Pack());
-	R->ESI(nDispRect.Y);
+	R->Stack(0x14, origin_cell.Pack());
+	R->Stack(0x18, size.Pack());
+	R->EAX(size.Pack());
+	R->ESI(bounds.Y);
 
 	return (!bOnFB) ? 0x6D558F : 0x6D5116 ;
 }ASMJIT_PATCH_AGAIN(0x6D5573, TacticalClass_DrawPlacement_CustomFoundation, 0x6)

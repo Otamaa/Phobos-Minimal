@@ -152,6 +152,8 @@ namespace Math
 	static COMPILETIMEEVAL double SIN_PI_BY_TWO_ACCURATE = std::bit_cast<double>(0x3FF0000000000000ull);
 	//Generating std::cos(Math::PI_BY_TWO_ACCURATE) : 
 	static COMPILETIMEEVAL double COS_PI_BY_TWO_ACCURATE = std::bit_cast<double>(0x3C91A60000000000ull);
+	//Generating std::sqrt(3) :
+	static COMPILETIMEEVAL double SQRT_THREE = std::bit_cast<double>(0x3FFBB67AE8584CAAull);
 	//Generating std::sqrt(5) : 
 	static COMPILETIMEEVAL double SQRT_FIVE = std::bit_cast<double>(0x4001E3779B97F4A8ull);
 	//Generating std::sqrt(8) : 

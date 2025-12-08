@@ -776,7 +776,7 @@ void Phobos::ExecuteLua()
 						if (Phobos::Otamaa::IsAdmin)
 						{
 							std::string copy = PhobosCRT::trim(result->second.c_str());
-							Debug::LogDeferred("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result->second.size(), maxlen);
+							Debug::Log("Patching string [%d] [0x%x - %s (%d) - max %d]\n", i, addr, copy.c_str(), result->second.size(), maxlen);
 						}
 
 						// do not exceed maximum length of the string , otherwise it will broke the .exe file

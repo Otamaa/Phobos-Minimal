@@ -90,70 +90,7 @@ public:
 	bool HouseCredits(HouseClass *CallingHouse, HouseClass *TargetHouse) const
 		{ JMP_THIS(0x41F230); }
 
-	void FormatForSaving(char * buffer, size_t size) const {
-		const char *Team1Name = GameStrings::NoneStr();
-		const char *Team2Name = GameStrings::NoneStr();
-		const char *HouseName = GameStrings::NoneStr();
-		const char *ConditionName = GameStrings::NoneStr();
-
-		TeamTypeClass *T = this->Team1;
-		if(T) {
-			Team1Name = T->get_ID();
-		}
-		T = this->Team2;
-		if(T) {
-			Team2Name = T->get_ID();
-		}
-
-		if(this->OwnerHouseType == AITriggerHouseType::Single) {
-			auto const idxHouse = this->HouseIndex;
-			if(idxHouse != -1) {
-				HouseName = HouseTypeClass::Array->operator[](idxHouse)->get_ID();
-			}
-		} else if(this->OwnerHouseType == AITriggerHouseType::Any) {
-			HouseName = "<all>";
-		}
-
-		TechnoTypeClass *O = this->ConditionObject;
-		if(O) {
-			ConditionName = O->get_ID();
-		}
-
-		char ConditionString[68];
-		int idx = 0;
-		char * condStr = ConditionString;
-		auto buf = reinterpret_cast<const byte*>(&this->Conditions);
-		do {
-			sprintf_s(condStr, 4, "%02x", *buf);
-			++buf;
-			++idx;
-			condStr += 2;
-		} while(idx < 0x20 );
-		*condStr = '\0';
-
-		sprintf_s(buffer, size, "%s = %s,%s,%s,%d,%d,%s,%s,%lf,%lf,%lf,%u,%d,%d,%u,%s,%u,%u,%u\n",
-			this->ID,
-			this->Name,
-			Team1Name,
-			HouseName,
-			this->TechLevel,
-			this->ConditionType,
-			ConditionName,
-			ConditionString,
-			this->Weight_Current,
-			this->Weight_Minimum,
-			this->Weight_Maximum,
-			this->IsForSkirmish,
-			0,
-			this->SideIndex,
-			this->IsForBaseDefense,
-			Team2Name,
-			this->Enabled_Easy,
-			this->Enabled_Normal,
-			this->Enabled_Hard
-		);
-
-	}
+	void FormatForSaving(char* buffer, size_t size) const;
 
 	//Constructor
 	AITriggerTypeClass(const char* pID) noexcept

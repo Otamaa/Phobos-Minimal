@@ -50,32 +50,10 @@
 //  	return continue_func;
 //  }
 
-#pragma region RetintFix
-
 namespace RetintTemp
 {
 	bool UpdateLightSources = false;
 }
-
-// Update light sources if they have been flagged to be updated.
-ASMJIT_PATCH(0x6D4455, Tactical_Render_UpdateLightSources, 0x8)
-{
-	if (ScenarioExtData::UpdateLightSources)
-	{
-		for (auto light : *LightSourceClass::Array){
-			if (light->Activated) {
-				light->Activated = false;
-				light->Activate();
-			}
-		}
-
-		ScenarioExtData::UpdateLightSources = false;
-	}
-
-	return 0;
-}
-
-#pragma endregion
 #include <Misc/Ares/Hooks/Header.h>
 #include <TriggerTypeClass.h>
 

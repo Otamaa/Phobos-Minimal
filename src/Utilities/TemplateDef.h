@@ -295,7 +295,7 @@ namespace detail
 		if (!parser.empty()) {
 			for (size_t i = 1 ; i < EnumFunctions::Rank_ToStrings.size(); ++i) {
 				const auto&[val , str ] = EnumFunctions::Rank_ToStrings[i];
-				if (IS_SAME_STR_(parser.c_str(), str.data())) {
+				if (PhobosCRT::iequals(parser.c_str(), str)) {
 					value = val;
 					return true;
 				}
@@ -890,7 +890,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey)) {
 			for (const auto& [val, name] : EnumFunctions::PassiveAcquireMode_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), name.data())) {
+				if (PhobosCRT::iequals(parser.value(), name)) {
 					value = val;
 					return true;
 				}
@@ -908,7 +908,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (const auto& [val, name] : EnumFunctions::LaserTrailDrawType_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), name.data())) {
+				if (PhobosCRT::iequals(parser.value(), name)) {
 					value = val;
 					return true;
 				}
@@ -925,7 +925,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey)) {
 			for (const auto& [val, name] : EnumFunctions::AttachedAnimPosition_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), name.data())) {
+				if (PhobosCRT::iequals(parser.value(), name)) {
 					value |= val;
 					return true;
 				}
@@ -962,7 +962,7 @@ namespace detail
 		{
 			for (size_t i = 0; i < CellClass::EdgeToStrings.size(); ++i)
 			{
-				if (IS_SAME_STR_(parser.value(), CellClass::EdgeToStrings[i]))
+				if (PhobosCRT::iequals(parser.value(), CellClass::EdgeToStrings[i]))
 				{
 					value = (Edge)i;
 					return true;
@@ -987,7 +987,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (const auto& [val , str] : EnumFunctions::HorizontalPosition_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -1011,7 +1011,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (const auto& [val , str] : EnumFunctions::BannerNumberType_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -1034,7 +1034,7 @@ namespace detail
 			}
 
 			for (const auto& [val , str] : EnumFunctions::VerticalPosition_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -1057,7 +1057,7 @@ namespace detail
 			}
 
 			for (const auto& [val, str] : EnumFunctions::SelfHealGainType_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -1075,7 +1075,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (const auto& [val, str] : EnumFunctions::SlaveReturnTo_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -1092,8 +1092,13 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
+			if (IS_SAME_STR_(parser.value(), "kill")){
+				value = KillMethod::Explode;
+				return true;
+			}
+
 			for (const auto& [val, str] : EnumFunctions::KillMethod_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -1110,7 +1115,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (const auto& [val, str] : EnumFunctions::IronCurtainFlag_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -1127,7 +1132,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey)) {
 			for (size_t i = 0; i < EnumFunctions::OwnerHouseKind_ToStrings.size(); ++i) {
-				if (IS_SAME_STR_(parser.value(), EnumFunctions::OwnerHouseKind_ToStrings[i].second.data())) {
+				if (PhobosCRT::iequals(parser.value(), EnumFunctions::OwnerHouseKind_ToStrings[i].second)) {
 					value = EnumFunctions::OwnerHouseKind_ToStrings[i].first;
 					return true;
 				}
@@ -1156,7 +1161,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (const auto& [val, str] : EnumFunctions::SuperWeaponAITargetingMode_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					return true;
 				}
@@ -1339,7 +1344,7 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (const auto& [val , str] : EnumFunctions::TargetingPreference_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
 					break;
 				}
@@ -1489,9 +1494,9 @@ namespace detail
 		if (parser.ReadString(pSection, pKey))
 		{
 			for (const auto& [val , str] : EnumFunctions::AreaFireTarget_ToStrings) {
-				if (IS_SAME_STR_(parser.value(), str.data())) {
+				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
-					break;
+					return true;
 				}
 			}
 

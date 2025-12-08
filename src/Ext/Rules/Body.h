@@ -322,6 +322,9 @@ public:
 	Valueable<AnimTypeClass*> Promote_Vet_Anim { nullptr };
 	Valueable<AnimTypeClass*> Promote_Elite_Anim { nullptr };
 
+	Valueable<bool> Promote_Vet_PlaySpotlight { false };
+	Valueable<bool> Promote_Elite_PlaySpotlight { false };
+
 	Valueable<ParticleSystemTypeClass*> DefaultGlobalParticleInstance { nullptr };
 
 	Nullable<bool> PlacementGrid_TranslucencyWithPreview {};

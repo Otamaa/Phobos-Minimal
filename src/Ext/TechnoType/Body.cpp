@@ -1303,6 +1303,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Promote_Vet_Anim.Read(exINI, pSection, "Promote.VeteranAnimation");
 		this->Promote_Elite_Anim.Read(exINI, pSection, "Promote.EliteAnimation");
 
+		this->Promote_Vet_PlaySpotlight.Read(exINI, pSection, "Promote.VeteranPlaySpotLight");
+		this->Promote_Elite_PlaySpotlight .Read(exINI, pSection, "Promote.ElitePlaySpotLight");
+
 		this->Promote_Vet_Exp.Read(exINI, pSection, "Promote.VeteranExperience");
 		this->Promote_Elite_Exp.Read(exINI, pSection, "Promote.EliteExperience");
 

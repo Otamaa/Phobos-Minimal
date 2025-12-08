@@ -1570,6 +1570,7 @@ public:
 	static void __fastcall __Draw_Pips(TechnoClass* techno, discard_t, Point2D* position, Point2D* unused, RectangleStruct* clipRect);
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
+	static void __fastcall __Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct* startCoord, int startZ, int endZ, CoordStruct* endCoord);
 
 	//AI
 	static void __HandleGattlingAudio(TechnoClass* pThis);

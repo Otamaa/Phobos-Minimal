@@ -201,23 +201,26 @@ void FakeTacticalClass::__DrawAllTacticalText(wchar_t* text)
 		lastFrameTime = currentFrameTime;
 		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | {:.3f} ms | Avg: {}", FPSCounter::CurrentFrameRate(), frameDuration.count(), (unsigned int)FPSCounter::GetAverageFrameRate());
+		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	case FPSCounterMode::FPSOnly: {
 		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {}", FPSCounter::CurrentFrameRate());
+		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	case FPSCounterMode::FPSandAVG: {
 		buffer.clear();
 		fmt::format_to(std::back_inserter(buffer), L"FPS: {} | Avg: {}", FPSCounter::CurrentFrameRate(), (unsigned int)FPSCounter::GetAverageFrameRate());
+		buffer.push_back(L'\0');
 		DrawText_Helper(buffer.data(), offset, COLOR_WHITE);
 		break;
 	}
 	}
-	buffer.push_back(L'\0');
+
 	this->DrawAllTacticalText(text);
 }
 
@@ -444,7 +447,7 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 		CoordStruct coords = pCurrentTechno->GetCenterCoords();
 		coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
-		Draw_Radial_Indicator(false,
+		FakeTacticalClass::__DrawRadialIndicator(false,
 		true,
 		coords,
 		pCurrentTechno->Owner->Color,

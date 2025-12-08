@@ -407,6 +407,8 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 	return SkipGameCode;
 }
 
+#include <Ext/Tactical/Body.h>
+
 void DistributionModeHoldDownCommandClass::DrawRadialIndicator()
 {
 	if (!DistributionModeHoldDownCommandClass::Enabled && SystemTimer::GetTime() - DistributionModeHoldDownCommandClass::ShowTime > 30)
@@ -421,6 +423,7 @@ void DistributionModeHoldDownCommandClass::DrawRadialIndicator()
 		const auto color = (filterMode > 1)
 			? ((filterMode == 3) ? ColorStruct { 255, 0, 0 } : ColorStruct { 200, 200, 0 })
 			: ((filterMode == 1) ? ColorStruct { 0, 100, 255 } : ColorStruct { 0, 255, 50 });
-		Draw_Radial_Indicator(false, true, pCell->GetCoords(), color, static_cast<float>(spreadMode ? (2 << spreadMode) : 0.5), false, true);
+
+		FakeTacticalClass::__DrawRadialIndicator(false , true , pCell->GetCoords(), color , static_cast<float>(spreadMode ? (2 << spreadMode) : 0.5), false , true);
 	}
 }

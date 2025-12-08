@@ -867,7 +867,7 @@ ASMJIT_PATCH(0x489286, DamageArea, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x489968, DamageAread_PenetratesIronCurtain, 0x5)
+ASMJIT_PATCH(0x489968, DamageArea_PenetratesIronCurtain, 0x5)
 {
 	enum { BypassInvulnerability = 0x48996D };
 	GET_BASE(WarheadTypeClass*, pWarhead, 0xC);
@@ -896,12 +896,49 @@ ASMJIT_PATCH(0x4896EC, DamageAread_DamageSelf, 0x6)
 	return pWarhead->_GetExtData()->AllowDamageOnSelf ? DamageSelf : Continue;
 }
 
+#include <Ext/Scenario/Body.h>
+
 ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 {
 	REF_STACK(DynamicVectorClass<DamageGroup*>, groupvec, 0xE0 - 0xA8);
+	GET_BASE(HouseClass*, pSrcHouse, 0x14);
+	GET_BASE(TechnoClass*, pSrcTechno, 0x8);
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
+	GET_STACK(const bool, isNullified, STACK_OFFSET(0xE0, -0xC9));
+	GET_STACK(bool, hitted, STACK_OFFSET(0xE0, -0xC1));
+	GET_STACK(CoordStruct*, pCrd, STACK_OFFSET(0xE0, -0xB8));
+	GET_STACK(int, damage, STACK_OFFSET(0xE0, -0xBC));
 
 	auto pWHExt = pWarhead->_GetExtData();
+	if(!isNullified && pWHExt->AffectsUnderground){
+		const bool cylinder = pWHExt->CellSpread_Cylinder;
+		const float spread = pWarhead->CellSpread * (float)Unsorted::LeptonsPerCell;
+
+		for (auto const& pTechno : ScenarioExtData::Instance()->UndergroundTracker) {
+			if (pTechno->InWhichLayer() == Layer::Underground // Layer.
+				&& pTechno->IsAlive && !pTechno->IsIronCurtained()
+				&& !pTechno->IsOnMap // Underground is not on map.
+				&& !pTechno->InLimbo)
+			{
+				double dist = 0.0;
+				auto const technoCoords = pTechno->GetCoords();
+
+				if (cylinder)
+					dist = CoordStruct{ technoCoords.X - pCrd->X, technoCoords.Y - pCrd->Y, 0 }.Length();
+				else
+					dist = technoCoords.DistanceFrom(*pCrd);
+
+				if (dist <= spread)
+				{
+					pTechno->ReceiveDamage(&damage, (int)dist, pWarhead, pSrcTechno, false, false, pSrcHouse);
+					hitted = true;
+				}
+			}
+		}
+
+		R->Stack8(STACK_OFFSET(0xE0, -0xC1), true);
+	}
+
 	const int MaxAffect = pWHExt->CellSpread_MaxAffect;
 
 	if (MaxAffect > 0)

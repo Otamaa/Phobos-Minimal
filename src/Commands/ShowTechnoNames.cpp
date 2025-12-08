@@ -1,7 +1,7 @@
 #include "ShowTechnoNames.h"
 
 #include <Drawing.h>
-#include <BitFont.h>
+#include <TextDrawing.h>
 #include <ObjectClass.h>
 
 #include <Ext/Building/Body.h>
@@ -84,11 +84,14 @@ void ShowTechnoNameCommandClass::AI()
 
 			if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
 			{
-				Point2D tmp { 0,0 };
-				ColorStruct _color{};
-				ColorScheme::Array->Items[pResultOwner->ColorSchemeIndex]->BaseColor.ToColorStruct(&_color);
-
-				Simple_Text_Print_Wide(&tmp, pText.c_str(), DSurface::Temp(), &bound, &pos, _color.ToInit() , 0, TextPrintType::Center, 1);
+				TextDrawing::Fancy_Text_Print_Wide_NoFormat(pText.c_str(),
+					DSurface::Temp(),
+					&bound, 
+					&pos,
+					ColorScheme::Array->Items[pResultOwner->ColorSchemeIndex],
+					0,
+					TextPrintType::Center
+				);
 			}
 		}
 	}
