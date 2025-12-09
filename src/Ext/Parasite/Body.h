@@ -76,10 +76,6 @@ public:
 	bool __Update_GrappleAnim_Frame();
 	void __ClearAnim();
 
-private:
-	bool IsSpecialOverlay(int overlayIndex) const;
-	void ResetOwnerMission(FootClass* owner);
-
 	HRESULT __stdcall _Load(IStream* pStm)
 	{
 		return S_OK;
@@ -89,6 +85,10 @@ private:
 	{
 		return S_OK;
 	}
+
+private:
+	bool IsSpecialOverlay(int overlayIndex) const;
+	void ResetOwnerMission(FootClass* owner);
 
 };
 static_assert(sizeof(FakeParasiteClass) == sizeof(ParasiteClass), "FakeParasiteClass size mismatch");
