@@ -363,20 +363,22 @@ void FakeParasiteClass::__Grapple_AI()
 				this->Owner->Veterancy.Add(ownerType->GetActualCost(this->Owner->Owner), victimType->GetCost());
 			}
 
-			auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(this->Victim->GetTechnoType());
+			// Save references before uninfect
+			FootClass* victimToSink = this->Victim;
+			FootClass* ownerSaved = this->Owner;
+			auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(victimToSink->GetTechnoType());
 
 			// Submerge victim
-			FootClass* victimToSink = this->Victim;
 			this->__Uninfect();
 
 			if (pVictimTypeExt->Sinkable_SquidGrab){
 				victimToSink->IsSinking = true;
-				victimToSink->Destroyed(this->Owner);
+				victimToSink->Destroyed(ownerSaved);
 				victimToSink->Stun();
 			}
 			else {
-				auto damage = this->Victim->GetTechnoType()->Strength;
-				this->Victim->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, this->Owner, true, false, this->Owner->Owner);
+				int damage = victimToSink->GetTechnoType()->Strength;
+				victimToSink->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, ownerSaved, true, false, ownerSaved ? ownerSaved->Owner : nullptr);
 			}
 
 			// Clean up grapple animation
@@ -473,10 +475,16 @@ void FakeParasiteClass::__AI()
 		return; // Not time to deliver damage yet
 	}
 
+	// Validate weapon and warhead
+	if (!weaponType || !weaponType->Warhead)
+	{
+		return;
+	}
+
 	const bool isInfantry = this->Victim->WhatAmI() == AbstractType::Infantry;
 
 	// Reset timer with weapon ROF
-	this->DamageDeliveryTimer.Start(0);
+	this->DamageDeliveryTimer.Start(weaponType->ROF);
 
 	// Update victim's paralysis timer
 	victim->ParalysisTimer.Start(weaponType->Warhead->Paralyzes);
@@ -517,8 +525,7 @@ void FakeParasiteClass::__AI()
 	}
 
 	// Calculate spread effect position
-	int randomOffset = ScenarioClass::Instance->Random.RandomBool() ? -4 : 2;
-	randomOffset = (randomOffset & 0xFC) + 2;
+	int randomOffset = ScenarioClass::Instance->Random.RandomBool() ? -64 : 64;
 
 	double facingRadians = (facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 	float cosAngle = Math::cos(facingRadians);
