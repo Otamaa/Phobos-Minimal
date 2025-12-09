@@ -13,6 +13,11 @@
 #include <TaskForceClass.h>
 #include <TubeClass.h>
 
+// Named constants for clarity
+constexpr int RECRUIT_WRONG_GROUP_PENALTY = 12800;  // Distance penalty for recruiting units from wrong group
+constexpr int PATROL_THRESHOLD = 702;  // Mission data threshold for patrol behavior
+constexpr int FACING_DIRECTION_MULTIPLIER = 8192;  // Convert 8-direction facing to 16-bit facing (65536 / 8 = 8192)
+
 template<typename Func, typename... Args>
 concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
 
@@ -36,6 +41,28 @@ void LoopThruMembers(TeamClass* pTeam, Func&& act)
 			pFirst = pNext;
 		}
 		while (pFirst);
+	}
+}
+
+// Helper function for comparator operations
+static bool EvaluateComparator(int counter, int comparatorType, int comparatorOperand)
+{
+	switch (comparatorOperand)
+	{
+	case 0:
+		return counter < comparatorType;
+	case 1:
+		return counter <= comparatorType;
+	case 2:
+		return counter == comparatorType;
+	case 3:
+		return counter >= comparatorType;
+	case 4:
+		return counter > comparatorType;
+	case 5:
+		return counter != comparatorType;
+	default:
+		return false;
 	}
 }
 
@@ -65,7 +92,6 @@ void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list)
 {
-	bool result = false;
 	int counter = 0;
 
 	// Count all objects of the list, like an OR operator
@@ -85,36 +111,11 @@ bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool 
 		}
 	}
 
-	switch (pThis->Conditions[0].ComparatorOperand)
-	{
-	case 0:
-		result = counter < pThis->Conditions[0].ComparatorType;
-		break;
-	case 1:
-		result = counter <= pThis->Conditions[0].ComparatorType;
-		break;
-	case 2:
-		result = counter == pThis->Conditions[0].ComparatorType;
-		break;
-	case 3:
-		result = counter >= pThis->Conditions[0].ComparatorType;
-		break;
-	case 4:
-		result = counter > pThis->Conditions[0].ComparatorType;
-		break;
-	case 5:
-		result = counter != pThis->Conditions[0].ComparatorType;
-		break;
-	default:
-		break;
-	}
-
-	return result;
+	return EvaluateComparator(counter, pThis->Conditions[0].ComparatorType, pThis->Conditions[0].ComparatorOperand);
 }
 
 bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list)
 {
-	bool result = false;
 	int counter = 0;
 
 	if (pEnemy && pHouse->IsAlliedWith(pEnemy) && !onlySelectedEnemy)
@@ -138,36 +139,11 @@ bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, House
 		}
 	}
 
-	switch (pThis->Conditions[0].ComparatorOperand)
-	{
-	case 0:
-		result = counter < pThis->Conditions[0].ComparatorType;
-		break;
-	case 1:
-		result = counter <= pThis->Conditions[0].ComparatorType;
-		break;
-	case 2:
-		result = counter == pThis->Conditions[0].ComparatorType;
-		break;
-	case 3:
-		result = counter >= pThis->Conditions[0].ComparatorType;
-		break;
-	case 4:
-		result = counter > pThis->Conditions[0].ComparatorType;
-		break;
-	case 5:
-		result = counter != pThis->Conditions[0].ComparatorType;
-		break;
-	default:
-		break;
-	}
-
-	return result;
+	return EvaluateComparator(counter, pThis->Conditions[0].ComparatorType, pThis->Conditions[0].ComparatorOperand);
 }
 
 bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list)
 {
-	bool result = false;
 	int counter = 0;
 
 	for (auto pHouse : *HouseClass::Array)
@@ -192,31 +168,7 @@ bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTy
 		}
 	}
 
-	switch (pThis->Conditions[0].ComparatorOperand)
-	{
-	case 0:
-		result = counter < pThis->Conditions[0].ComparatorType;
-		break;
-	case 1:
-		result = counter <= pThis->Conditions[0].ComparatorType;
-		break;
-	case 2:
-		result = counter == pThis->Conditions[0].ComparatorType;
-		break;
-	case 3:
-		result = counter >= pThis->Conditions[0].ComparatorType;
-		break;
-	case 4:
-		result = counter > pThis->Conditions[0].ComparatorType;
-		break;
-	case 5:
-		result = counter != pThis->Conditions[0].ComparatorType;
-		break;
-	default:
-		break;
-	}
-
-	return result;
+	return EvaluateComparator(counter, pThis->Conditions[0].ComparatorType, pThis->Conditions[0].ComparatorOperand);
 }
 
 bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list)
@@ -247,29 +199,7 @@ bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, co
 			}
 		}
 
-		switch (pThis->Conditions[0].ComparatorOperand)
-		{
-		case 0:
-			result = counter < pThis->Conditions[0].ComparatorType;
-			break;
-		case 1:
-			result = counter <= pThis->Conditions[0].ComparatorType;
-			break;
-		case 2:
-			result = counter == pThis->Conditions[0].ComparatorType;
-			break;
-		case 3:
-			result = counter >= pThis->Conditions[0].ComparatorType;
-			break;
-		case 4:
-			result = counter > pThis->Conditions[0].ComparatorType;
-			break;
-		case 5:
-			result = counter != pThis->Conditions[0].ComparatorType;
-			break;
-		default:
-			break;
-		}
+		result = EvaluateComparator(counter, pThis->Conditions[0].ComparatorType, pThis->Conditions[0].ComparatorOperand);
 	}
 
 	return result;
@@ -308,29 +238,7 @@ bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, Ho
 			}
 		}
 
-		switch (pThis->Conditions[0].ComparatorOperand)
-		{
-		case 0:
-			result = counter < pThis->Conditions[0].ComparatorType;
-			break;
-		case 1:
-			result = counter <= pThis->Conditions[0].ComparatorType;
-			break;
-		case 2:
-			result = counter == pThis->Conditions[0].ComparatorType;
-			break;
-		case 3:
-			result = counter >= pThis->Conditions[0].ComparatorType;
-			break;
-		case 4:
-			result = counter > pThis->Conditions[0].ComparatorType;
-			break;
-		case 5:
-			result = counter != pThis->Conditions[0].ComparatorType;
-			break;
-		default:
-			break;
-		}
+		result = EvaluateComparator(counter, pThis->Conditions[0].ComparatorType, pThis->Conditions[0].ComparatorOperand);
 	}
 
 	return result;
@@ -374,29 +282,7 @@ bool TeamExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<Techn
 				}
 			}
 
-			switch (pThis->Conditions[0].ComparatorOperand)
-			{
-			case 0:
-				foundAll = counter < pThis->Conditions[0].ComparatorType;
-				break;
-			case 1:
-				foundAll = counter <= pThis->Conditions[0].ComparatorType;
-				break;
-			case 2:
-				foundAll = counter == pThis->Conditions[0].ComparatorType;
-				break;
-			case 3:
-				foundAll = counter >= pThis->Conditions[0].ComparatorType;
-				break;
-			case 4:
-				foundAll = counter > pThis->Conditions[0].ComparatorType;
-				break;
-			case 5:
-				foundAll = counter != pThis->Conditions[0].ComparatorType;
-				break;
-			default:
-				break;
-			}
+			foundAll = EvaluateComparator(counter, pThis->Conditions[0].ComparatorType, pThis->Conditions[0].ComparatorOperand);
 		}
 
 		if (!foundAll)
@@ -1800,7 +1686,7 @@ FootClass* FindClosestInfantry(TeamClass* team, int memberIndex, const CoordStru
 		// Calculate distance with penalty for wrong group
 		int distance = infantry->DistanceFromSquared(&location);
 		if (infantry->Group != targetGroup)
-			distance += 12800; // Penalty for wrong group
+			distance += RECRUIT_WRONG_GROUP_PENALTY;
 
 		// Check if this is a better candidate
 		if ((minDistance == -1 || distance < minDistance) &&
@@ -1831,7 +1717,7 @@ FootClass* FindClosestAircraft(TeamClass* team, int memberIndex, const CoordStru
 		// Calculate distance with penalty for wrong group
 		int distance = aircraft->DistanceFromSquared(&location);
 		if (aircraft->Group != targetGroup)
-			distance += 12800; // Penalty for wrong group
+			distance += RECRUIT_WRONG_GROUP_PENALTY;
 
 		// Check if this is a better candidate
 		if ((minDistance == -1 || distance < minDistance) &&
@@ -1862,7 +1748,7 @@ FootClass* FindClosestUnit(TeamClass* team, int memberIndex, const CoordStruct& 
 		// Calculate distance with penalty for wrong group
 		int distance = unit->DistanceFromSquared(&location);
 		if (unit->Group != targetGroup)
-			distance += 12800; // Penalty for wrong group
+			distance += RECRUIT_WRONG_GROUP_PENALTY;
 
 		// Check if this unit matches requirements
 		if (unit->Owner == team->OwnerHouse && EligibleToRecruit(team->Type->TaskForce->Entries[memberIndex].Type , unit->Type) &&
@@ -4197,8 +4083,7 @@ void FakeTeamClass::_AI()
 		}
 
 		// Target direction (0-7 facing) converted to internal facing units
-		// Multiply by 8192 (0x2000) to convert 8-direction facing to 16-bit facing (65536 / 8 = 8192)
-		DirType targetFacing = (DirType)(node.Argument << 13);
+		DirType targetFacing = (DirType)(node.Argument * FACING_DIRECTION_MULTIPLIER);
 
 		bool allMembersFacing = true;
 
@@ -4577,8 +4462,8 @@ void FakeTeamClass::_AI()
 		{
 			auto const& [miss, value] = this->CurrentScript->GetCurrentAction();
 
-			// Mission data < 702 is some threshold check (possibly frame-based)
-			if (value < 702) {
+			// Mission data threshold check (possibly frame-based)
+			if (value < PATROL_THRESHOLD) {
 				this->_AssignMissionTarget(waypointCell);
 			}
 		}
