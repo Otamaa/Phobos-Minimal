@@ -112,7 +112,7 @@ int FakeAircraftClass::_Mission_Attack()
 		{
 			auto v13 = this->DistanceFrom(this->Destination);
 
-			if (v13 >= 512)
+			if (v13 >= AircraftConstants::MinDistanceForFacing)
 			{
 				auto v16 = this->Destination->GetCenterCoords();
 				CoordStruct v17;
@@ -122,13 +122,13 @@ int FakeAircraftClass::_Mission_Attack()
 
 				if (v17.X == v16.X && v17.Y == v16.Y) {
 					fac.Raw = 0;
+				} else {
+					auto v18 = std::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X));
+					auto v19 = Math::DEG90_AS_RAD;
+					auto v20 = v18 - v19;
+					auto v21 = Math::BINARY_ANGLE_MAGIC;
+					fac.Raw = static_cast<unsigned short>(v20 * v21);
 				}
-
-				auto v18 = std::atan2(double(v17.Y - v16.Y), double(v16.X - v17.X));
-				auto v19 = Math::DEG90_AS_RAD;
-				auto v20 = v18 - v19;
-				auto v21 = Math::BINARY_ANGLE_MAGIC;
-				fac.Raw = unsigned short(v20 * v21);
 				this->SecondaryFacing.Set_Desired(fac);
 				return 1;
 			}
@@ -136,7 +136,7 @@ int FakeAircraftClass::_Mission_Attack()
 			{
 				this->SecondaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
 
-				if (v13 >= 16)
+				if (v13 >= AircraftConstants::MinDistanceToTarget)
 				{
 					return 1;
 				}
@@ -169,7 +169,9 @@ int FakeAircraftClass::_Mission_Attack()
 			this->SecondaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
 		}
 
-		switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+		const int selectedWeapon = this->SelectWeapon(this->Target);
+
+		switch (this->GetFireError(this->Target, selectedWeapon, true))
 		{
 		case FireError::OK:
 		{
@@ -177,14 +179,14 @@ int FakeAircraftClass::_Mission_Attack()
 
 			int v28 = 0;
 
-			if (this->GetWeapon(this->SelectWeapon(this->Target))->WeaponType->Burst > 0)
+			if (this->GetWeapon(selectedWeapon)->WeaponType->Burst > 0)
 			{
 				do
 				{
-					this->Fire(this->Target, this->SelectWeapon(this->Target));
+					this->Fire(this->Target, selectedWeapon);
 					++v28;
 				}
-				while (v28 < this->GetWeapon(this->SelectWeapon(this->Target))->WeaponType->Burst);
+				while (v28 < this->GetWeapon(selectedWeapon)->WeaponType->Burst);
 			}
 
 			MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
@@ -234,7 +236,7 @@ int FakeAircraftClass::_Mission_Attack()
 					AirAttackStatus::PickAttackLocation : AirAttackStatus::FireAtTarget);
 			}
 
-			return this->Is_Strafe() ? 1 : 45;
+			return this->Is_Strafe() ? 1 : AircraftConstants::FacingErrorTimeout;
 		}
 		case FireError::REARM:
 			return 1;
@@ -267,11 +269,13 @@ int FakeAircraftClass::_Mission_Attack()
 			this->PrimaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
 			this->SecondaryFacing.Set_Desired(this->GetDirectionOverObject(this->Target));
 
-			switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+			const int selectedWeapon = this->SelectWeapon(this->Target);
+
+			switch (this->GetFireError(this->Target, selectedWeapon, true))
 			{
 			case FireError::OK:
 			{
-				this->Fire(this->Target, this->SelectWeapon(this->Target));
+				this->Fire(this->Target, selectedWeapon);
 				MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
 
 				if (!this->Ammo) {
@@ -296,7 +300,7 @@ int FakeAircraftClass::_Mission_Attack()
 					}
 
 					if (this->Is_Strafe()) {
-						return 45;
+						return AircraftConstants::FacingErrorTimeout;
 					}
 				}
 				return get_default_mission_control_return();
@@ -332,7 +336,9 @@ int FakeAircraftClass::_Mission_Attack()
 	{
 		if (this->Target)
 		{
-			switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+			const int selectedWeapon = this->SelectWeapon(this->Target);
+
+			switch (this->GetFireError(this->Target, selectedWeapon, true))
 			{
 			case FireError::OK:
 			case FireError::FACING:
@@ -349,7 +355,7 @@ int FakeAircraftClass::_Mission_Attack()
 				}
 				return 1;
 			}
-			this->Fire(this->Target, this->SelectWeapon(this->Target));
+			this->Fire(this->Target, selectedWeapon);
 			MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
 			this->SetDestination(this->Target, 1);
 			this->MissionStatus = (int)AirAttackStatus::FireAtTarget3_Strafe;
@@ -366,7 +372,9 @@ int FakeAircraftClass::_Mission_Attack()
 	{
 		if (this->Target)
 		{
-			switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+			const int selectedWeapon = this->SelectWeapon(this->Target);
+
+			switch (this->GetFireError(this->Target, selectedWeapon, true))
 			{
 			case FireError::OK:
 			case FireError::FACING:
@@ -384,7 +392,7 @@ int FakeAircraftClass::_Mission_Attack()
 				return 1;
 			}
 
-			this->Fire(this->Target, this->SelectWeapon(this->Target));
+			this->Fire(this->Target, selectedWeapon);
 			MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
 			this->SetDestination(this->Target, 1);
 			this->MissionStatus = (int)AirAttackStatus::FireAtTarget4_Strafe;
@@ -401,7 +409,9 @@ int FakeAircraftClass::_Mission_Attack()
 	{
 		if (this->Target)
 		{
-			switch (this->GetFireError(this->Target, this->SelectWeapon(this->Target), true))
+			const int selectedWeapon = this->SelectWeapon(this->Target);
+
+			switch (this->GetFireError(this->Target, selectedWeapon, true))
 			{
 			case FireError::OK:
 			case FireError::FACING:
@@ -417,7 +427,7 @@ int FakeAircraftClass::_Mission_Attack()
 				}
 				return 1;
 			}
-			this->Fire(this->Target, this->SelectWeapon(this->Target));
+			this->Fire(this->Target, selectedWeapon);
 			MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
 			this->SetDestination(this->Target, 1);
 			this->MissionStatus = (int)AirAttackStatus::FireAtTarget5_Strafe;
@@ -434,16 +444,18 @@ int FakeAircraftClass::_Mission_Attack()
 	{
 		if (this->Target)
 		{
-			switch (this->GetFireError(this->Target,this->SelectWeapon(this->Target),true))
+			const int selectedWeapon = this->SelectWeapon(this->Target);
+
+			switch (this->GetFireError(this->Target, selectedWeapon, true))
 			{
 			case FireError::OK:
 			case FireError::FACING:
 			case FireError::RANGE:
 			case FireError::CLOAKED:
-				this->Fire(this->Target, this->SelectWeapon(this->Target));
+				this->Fire(this->Target, selectedWeapon);
 				MapClass::Instance->GetCellAt(this->Target->GetCoords())->ScatterContent(this->Location, true, false, false);
 				this->MissionStatus = (int)AirAttackStatus::FlyToPosition;
-				return this->GetWeapon(0)->WeaponType->Range + 1024 / this->Type->Speed;
+				return (this->GetWeapon(0)->WeaponType->Range + AircraftConstants::StrafeCalculationOffset) / this->Type->Speed;
 			default:
 				if (!this->Ammo) {
 					this->MissionStatus = (int)AirAttackStatus::ReturnToBase;
@@ -504,11 +516,17 @@ AbstractClass* FakeAircraftClass::_GreatestThreat(ThreatType threatType, CoordSt
 {
 	if (RulesExtData::Instance()->ExpandAircraftMission && !this->Team && this->Ammo && !this->Airstrike && !this->Spawned)
 	{
-		if (WeaponTypeClass* const pPrimaryWeapon = this->GetWeapon(0)->WeaponType)
-			threatType |= pPrimaryWeapon->AllowedThreats();
+		if (auto pWeaponStruct = this->GetWeapon(0))
+		{
+			if (WeaponTypeClass* const pPrimaryWeapon = pWeaponStruct->WeaponType)
+				threatType |= pPrimaryWeapon->AllowedThreats();
+		}
 
-		if (WeaponTypeClass* const pSecondaryWeapon = this->GetWeapon(1)->WeaponType)
-			threatType |= pSecondaryWeapon->AllowedThreats();
+		if (auto pWeaponStruct = this->GetWeapon(1))
+		{
+			if (WeaponTypeClass* const pSecondaryWeapon = pWeaponStruct->WeaponType)
+				threatType |= pSecondaryWeapon->AllowedThreats();
+		}
 	}
 
 	return this->FootClass::GreatestThreat(threatType, pSelectCoords, onlyTargetHouseEnemy); // FootClass_GreatestThreat (Prevent circular calls)
@@ -626,6 +644,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 		velocity->SetIfZeroXYZ();
 
 		const double dist = velocity->Length();
+		if (dist < AircraftConstants::MinVelocityLength)
+			return;
 		const double scale = aircraftSpeed / dist;
 
 		velocity->X *= scale;
@@ -725,6 +745,8 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 			velocity->SetIfZeroXYZ();
 
 			double finalSpeed = velocity->Length();
+			if (finalSpeed < AircraftConstants::MinVelocityLength)
+				return;
 			double speedScale = maxBulletSpeed / finalSpeed;
 
 			velocity->X *= speedScale;
@@ -734,8 +756,13 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 }
 
 BulletClass* FakeAircraftClass::_FireAt(AbstractClass* pTarget, int nWeaponIdx) {
+	if (!pTarget)
+		return nullptr;
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	if (!pTypeExt)
+		return this->TechnoClass::Fire(pTarget, nWeaponIdx);
+
 	bool DropPassengers = pTypeExt->Paradrop_DropPassangers;
 
 	if (this->Passengers.FirstPassenger)
@@ -834,10 +861,10 @@ WeaponStruct* FakeAircraftClass::_GetWeapon(int weaponIndex)
 {
 	auto const pExt = AircraftExtContainer::Instance.Find(this);
 
-	if (pExt->CurrentAircraftWeaponIndex >= 0)
+	if (pExt && pExt->CurrentAircraftWeaponIndex >= 0)
 		return this->TechnoClass::GetWeapon(pExt->CurrentAircraftWeaponIndex);
-	else
-		return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
+	
+	return this->TechnoClass::GetWeapon(this->SelectWeapon(this->Target));
 }
 
 // Spy plane, airstrike etc.
