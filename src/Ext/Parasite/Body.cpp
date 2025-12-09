@@ -253,10 +253,19 @@ void FakeParasiteClass::__ClearAnim()
 
 void FakeParasiteClass::__Grapple_AI()
 {
+	// Validate owner and victim
+	if (!this->Owner || !this->Victim) {
+		return;
+	}
+
 	// Get weapon information
 	TechnoExtData* pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
 	WeaponStruct* weapon = this->Owner->GetWeapon(pOwnerExt->idxSlot_Parasite);
-	WeaponTypeClass* weaponType = weapon->WeaponType;
+	WeaponTypeClass* weaponType = weapon ? weapon->WeaponType : nullptr;
+
+	if (!weaponType) {
+		return;
+	}
 
 	FootClass* victim = this->Victim;
 	CoordStruct victimCoord = victim->Location;
@@ -493,7 +502,8 @@ void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeCla
 
 void FakeParasiteClass::__AI()
 {
-	if (!this->Victim) {
+	// Validate owner and victim
+	if (!this->Owner || !this->Victim) {
 		return;
 	}
 
@@ -509,7 +519,7 @@ void FakeParasiteClass::__AI()
 	TechnoExtData* pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
 	// Get weapon and victim information
 	WeaponStruct* weapon = this->Owner->GetWeapon(pOwnerExt->idxSlot_Parasite);
-	WeaponTypeClass* weaponType = weapon->WeaponType;
+	WeaponTypeClass* weaponType = weapon ? weapon->WeaponType : nullptr;
 
 	FootClass* victim = this->Victim;
 	CoordStruct victimCoord = victim->Location;
@@ -601,6 +611,12 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 			return;
 		}
 
+		// Validate owner before proceeding
+		if (!this->Owner) {
+			this->Victim = nullptr;
+			return;
+		}
+
 		// Check suppression timer
 		// If suppression timer active and owner not iron curtained, destroy owner
 		if (this->SuppressionTimer.GetTimeLeft() > 0 &&
@@ -685,6 +701,11 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 
 void FakeParasiteClass::__Uninfect()
 {
+	// Validate owner and victim
+	if (!this->Owner || !this->Victim) {
+		return;
+	}
+
 	FootClass* owner = this->Owner;
 	TechnoTypeClass* ownerType = owner->GetTechnoType();
 	bool Naval = ownerType->Naval;
@@ -790,6 +811,11 @@ void FakeParasiteClass::__Uninfect()
 
 void FakeParasiteClass::__Infect(FootClass* target)
 {
+	// Validate owner and target
+	if (!this->Owner || !target) {
+		return;
+	}
+
 	// Clean up any existing grapple animation
 	this->__ClearAnim(); // Potentially inlined version of ClearAnim()
 
