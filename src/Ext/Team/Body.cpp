@@ -19,7 +19,6 @@ concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
 template<typename Func>
 void LoopThruMembers(TeamClass* pTeam, Func&& act)
 {
-	FootClass* pCur = nullptr;
 	if (auto pFirst = pTeam->FirstUnit)
 	{
 		do
@@ -130,7 +129,7 @@ bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, House
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+				&& (!pEnemy || !pHouse->IsAlliedWith(pEnemy))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{
@@ -301,7 +300,7 @@ bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, Ho
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+				&& (!pEnemy || !pHouse->IsAlliedWith(pEnemy))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{
@@ -550,7 +549,7 @@ void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
 		TechnoTypeClass* leaderType = bestLeader->GetTechnoType();
 		CellStruct finalCell = MapClass::Instance->NearByLocation(
 			targetCell,
-			leaderType->SpeedType,
+			leaderType ? leaderType->SpeedType : SpeedType::Track,
 			ZoneType::None, MovementZone::Normal,
 			0, 3, 3, 0, 0, 0, 1, CellStruct::Empty, 0, 0
 		);
@@ -1144,6 +1143,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 
 	if (targetCell
 		&& this->FirstUnit
+		&& teamLeader
 		&& teamLeader->WhatAmI() != AircraftClass::AbsID)
 	{
 
@@ -1153,7 +1153,7 @@ void FakeTeamClass::_Coordinate_Attack() {
 	}
 
 	// Check if team leader can fire at target (every 8 frames, on frame 4)
-	if (Unsorted::CurrentFrame % 8 == 4) {
+	if (teamLeader && Unsorted::CurrentFrame % 8 == 4) {
 		const int weaponIndex = teamLeader->SelectWeapon(this->ArchiveTarget);
 
 		if (teamLeader->GetFireError(this->ArchiveTarget, weaponIndex, true) == FireError::ILLEGAL) {
@@ -1345,9 +1345,9 @@ void FakeTeamClass::_CoordinateMove() {
 		{
 			int strayDistance = this->_Get_Stray();
 
-			// Double for airborne units
+			// Triple for airborne units
 			if (unit->IsInAir()){
-				strayDistance *= 2;
+				strayDistance *= 3;
 			}
 
 			found = true;
@@ -3434,7 +3434,7 @@ void FakeTeamClass::_TMission_Play_Animation(ScriptActionNode* nNode, bool arg3)
 	// Validate anim index
 	if (animIndex >= AnimTypeClass::Array->Count) {
 		Debug::FatalErrorAndExit("Team [%s] TMission_Play_Animation: Invalid anim type index %d (max: %d)",
-			this->Type->ID, animIndex, BuildingTypeClass::Array->Count - 1);
+			this->Type->ID, animIndex, AnimTypeClass::Array->Count - 1);
 
 		this->StepCompleted = true;
 		return;
