@@ -10,6 +10,7 @@
 #include <Ext/House/Body.h>
 #include <Ext/Building/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/SWType/NewSuperWeaponType/LightningStorm.h>
 
 #include <Utilities/Macro.h>
 #include <Utilities/EnumFunctions.h>
@@ -1154,6 +1155,72 @@ void WarheadTypeExtData::applyWebby(TechnoClass* pTarget, HouseClass* pKillerHou
 			}
 		}
 	}
+}
+
+AnimTypeClass* __fastcall WarheadTypeExtData::SelectCombatAnim(int damage, WarheadTypeClass* pWarhead, LandType land, CoordStruct& coord)
+{
+	if (pWarhead) {
+
+		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+		pWHExt->Splashed = false;
+
+		//allowing zero damage to pass ,..
+		//hopefully it wont do any harm to these thing , ...
+
+		if ((damage == 0 && pWHExt->AnimList_ShowOnZeroDamage) || damage) {
+
+			if (damage < 0)
+				damage = -damage;
+
+			if (land == LandType::Water
+				&& pWarhead->Conventional
+				&& !MapClass::Instance->GetCellAt(coord)->ContainsBridge()
+				&& coord.Z < (MapClass::Instance->GetCellFloorHeight(coord) + Unsorted::CellHeight)
+				) {
+				pWHExt->Splashed = true;
+
+				if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList)) {
+
+					size_t idx = pWHExt->SplashList_PickRandom ?
+						ScenarioClass::Instance->Random.RandomFromMax(Vec.size() - 1) :
+						MinImpl(Vec.size() * 35 - 1, (size_t)damage) / 35;
+
+					return (Vec[idx < Vec.size() ? idx : 0]);
+				}
+
+				return (nullptr);
+			}
+
+			if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm) {
+				auto const pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
+
+				if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead) {
+					if (auto const pAnimType = pData->Weather_BoltExplosion.Get(
+						RulesClass::Instance->WeatherConBoltExplosion)) {
+						return (pAnimType);
+					}
+				}
+			}
+
+			if (pWHExt->CritActive && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
+				const size_t idx = pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect)) ?
+					ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
+					(MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25);
+
+				return (pWHExt->Crit_AnimList[idx < pWHExt->Crit_AnimList.size() ? idx : 0]);
+			}
+
+			if (!pWarhead->AnimList.Empty()) {
+				const size_t idx = pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect) ?
+					ScenarioClass::Instance->Random.RandomFromMax(pWarhead->AnimList.Count - 1) :
+					MinImpl(pWarhead->AnimList.Count * 25 - 1, damage) / 25;
+
+				return pWarhead->AnimList.Items[idx < pWarhead->AnimList.size() ? idx : 0];
+			}
+		}
+	}
+
+	return nullptr;
 }
 
 bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const

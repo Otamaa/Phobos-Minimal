@@ -255,85 +255,7 @@ ASMJIT_PATCH(0x469AA4, BulletClass_Logics_Extras, 0x5)
 
 #include <Ext/SWType/NewSuperWeaponType/LightningStorm.h>
 
-ASMJIT_PATCH(0x48A4F0, CombatAnimSelect, 0x5)
-{
-	GET(int, damage, ECX);
-	GET(WarheadTypeClass*, pWarhead, EDX);
-	GET_STACK(LandType, land, 0x4);
-	GET_STACK(CoordStruct*, pCoord, 0x8);
-
-	if (pWarhead) {
-
-		const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
-		pWHExt->Splashed = false;
-
-		//allowing zero damage to pass ,..
-		//hopefully it wont do any harm to these thing , ...
-
-		if ((damage == 0 && pWHExt->AnimList_ShowOnZeroDamage) || damage) {
-
-			if (damage < 0)
-				damage = -damage;
-
-			if (land == LandType::Water
-				&& pWarhead->Conventional
-				&& !MapClass::Instance->GetCellAt(pCoord)->ContainsBridge()
-				&& pCoord->Z < (MapClass::Instance->GetCellFloorHeight(pCoord) + Unsorted::CellHeight)
-				) {
-				pWHExt->Splashed = true;
-
-				if (const auto Vec = pWHExt->SplashList.GetElements(RulesClass::Instance->SplashList)) {
-
-					size_t idx = pWHExt->SplashList_PickRandom ?
-						ScenarioClass::Instance->Random.RandomFromMax(Vec.size() - 1) :
-						MinImpl(Vec.size() * 35 - 1, (size_t)damage) / 35;
-
-					R->EAX(Vec[idx < Vec.size() ? idx : 0]);
-					return 0x48A615;
-				}
-
-				R->EAX<AnimTypeClass*>(nullptr);
-				return 0x48A615;
-			}
-
-			if (auto const pSuper = SW_LightningStorm::CurrentLightningStorm) {
-				auto const pData = SWTypeExtContainer::Instance.Find(pSuper->Type);
-
-				if (pData->GetNewSWType()->GetWarhead(pData) == pWarhead) {
-					if (auto const pAnimType = pData->Weather_BoltExplosion.Get(
-						RulesClass::Instance->WeatherConBoltExplosion))
-					{
-						R->EAX(pAnimType);
-						return 0x48A615;
-					}
-				}
-			}
-
-			if (pWHExt->CritActive && !pWHExt->Crit_AnimList.empty() && !pWHExt->Crit_AnimOnAffectedTargets) {
-				const size_t idx = pWHExt->Crit_AnimList_PickRandom.Get(pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect)) ?
-					ScenarioClass::Instance->Random.RandomFromMax(pWHExt->Crit_AnimList.size() - 1) :
-					(MinImpl(pWHExt->Crit_AnimList.size() * 25 - 1, (size_t)damage) / 25);
-
-				R->EAX(pWHExt->Crit_AnimList[idx < pWHExt->Crit_AnimList.size() ? idx : 0]);
-				return 0x48A615;
-			}
-
-			if (!pWarhead->AnimList.Empty()) {
-				const size_t idx = pWHExt->AnimList_PickRandom.Get(pWarhead->EMEffect) ?
-					ScenarioClass::Instance->Random.RandomFromMax(pWarhead->AnimList.Count - 1) :
-					MinImpl(pWarhead->AnimList.Count * 25 - 1, damage) / 25;
-
-				R->EAX(pWarhead->AnimList.Items[idx < pWarhead->AnimList.size() ? idx : 0]);
-				return 0x48A615;
-			}
-		}
-	}
-
-	R->EAX<AnimTypeClass*>(nullptr);
-	return 0x48A615;
-}
-
-#ifndef TODO_for_DamageArea
+DEFINE_FUNCTION_JUMP(LJMP , 0x48A4F0 , WarheadTypeExtData::SelectCombatAnim)
 
 // Cylinder CellSpread
 ASMJIT_PATCH(0x489430, MapClass_DamageArea_Cylinder_1, 0x7)
@@ -462,7 +384,6 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 
 	return SkipThisObject;
 }
-#endif
 
 /*
 void TechnoExt::RemoveParasite(TechnoClass* pThis, HouseClass* sourceHouse, WarheadTypeClass* wh)

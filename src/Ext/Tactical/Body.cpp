@@ -1163,7 +1163,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 
 	static fmt::basic_memory_buffer<wchar_t> buffer;
 	buffer.clear();
-	if (!pTypeExt->ChargeTimer) {
+	if (pTypeExt->ChargeTimer) {
 		 
 		const auto percent = SWTypeExtData::GetSuperChargePercent(pSuper , pTypeExt->ChargeTimer_Backwards);
 

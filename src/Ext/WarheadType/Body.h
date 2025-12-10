@@ -950,6 +950,8 @@ public:
 
 	DamageAreaResult DamageAreaWithTarget(CoordStruct coords, int damage, TechnoClass* pSource, WarheadTypeClass* pWH, bool affectsTiberium, HouseClass* pSourceHouse, TechnoClass* pTarget);
 
+	static AnimTypeClass* __fastcall SelectCombatAnim(int damage, WarheadTypeClass* warhead, LandType land, CoordStruct& coord);
+
 private:
 
 	template <typename T>

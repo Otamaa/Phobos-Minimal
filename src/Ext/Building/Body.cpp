@@ -2185,41 +2185,30 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 		// Default shape offset values (198 = 0xC6, 446 = 0x1BE)
 		Point2D shapeOffset = { 198, 446 };
 
-		if ((curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup)
-		{
+		if ((curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup) {
 			shapeOffset += this->Type->ZShapePointMove;
 		}
 
-		const auto foundationWidth = (this->Type->GetFoundationWidth() << 8) - 256;
-		const auto foundationHeiht = (this->Type->GetFoundationHeight(0) << 8) - 256;
-
-		//Point2D drawpoint = *screenPos;
-		//int height = drawpoint.Y + mainShape->Height / 2;
-
-		//RectangleStruct cliprect = *clipRect;
-		//cliprect.Height = MinImpl(cliprect.Height, height);
+		const auto foundationWidth = this->Type->GetFoundationWidth();
+		const auto foundationHeiht = this->Type->GetFoundationHeight(0);
 
 		// Calculate screen position adjustment
-		Point2D buildingSize(
-			(foundationWidth * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
+		const Point2D buildingSize {
+			.X = (foundationWidth * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
 			,
-			(foundationHeiht * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
-		);
+			.Y = (foundationHeiht * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
+		};
 
 		Point2D screenOffset = TacticalClass::Instance->AdjustForZShapeMove(buildingSize.X, buildingSize.Y);
-
-		shapeOffset -= screenOffset;
+				shapeOffset -= screenOffset;
 
 		// Draw main building if clipping rect has height
-		if (clipRect->Height > 0)
-		{
+		if (clipRect->Height > 0) {
 			SHPStruct* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
 			const int lightLevel = (int16)this->Type->ExtraLight + pCell->Color1.Red;
 			const int depthAdjust = Game::AdjustHeight(this->GetZ());
 
-			if (!pTypeExt->Firestorm_Wall)
-			{
-
+			if (!pTypeExt->Firestorm_Wall) {
 				const int frameCount = mainShape->Frames;
 				const auto currentFrame = this->GetShapeNumber();
 				const int shapeFrame = currentFrame < frameCount / 2 ?
@@ -2242,9 +2231,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 						shapeOffset.Y ,
 						BlitterFlags::None  // flags
 				);
-			}
-			else
-			{
+			} else {
 				this->Draw_Object(mainShape,
 					this->GetShapeNumber(),
 					screenPos,
@@ -2266,8 +2253,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 		}
 
 		//// Draw bib (foundation) if present
-		if (this->Type->BibShape && this->BState != BStateType::Construction && this->ActuallyPlacedOnMap)
-		{
+		if (this->Type->BibShape && this->BState != BStateType::Construction && this->ActuallyPlacedOnMap) {
 			const int lightLevel = (int)(this->Type->ExtraLight + pCell->Color1.Red);
 			const int heightZ = this->GetZ();
 
@@ -2288,10 +2274,8 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 		}
 
 		// Draw special door animations for unload mission
-		if (curMission == Mission::Unload)
-		{
-			if (const auto RoofAnim = isUnloadingAirUnit ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim)
-			{
+		if (curMission == Mission::Unload) {
+			if (const auto RoofAnim = isUnloadingAirUnit ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim) {
 				this->Draw_Object(
 					RoofAnim,
 					this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow,
@@ -2320,7 +2304,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 //	return 0x43DA73;
 //}
 //
-DEFINE_FUNCTION_JUMP(CALL6, 0x43D005 , FakeBuildingClass::_Draw_It)
+//DEFINE_FUNCTION_JUMP(CALL6, 0x43D005 , FakeBuildingClass::_Draw_It)
 
 void FakeBuildingClass::_TechnoClass_Draw_Object(SHPStruct* shapefile,
 	int shapenum,
