@@ -148,7 +148,7 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 		return;
 
 	if (hasTechnoTint)
-		this->Calculate(Drawing::RGB_To_Int(pTypeExt->Tint_Color), static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
+		this->Calculate(pTypeExt->Tint_Color->ToInit(), static_cast<int>(pTypeExt->Tint_Intensity * 1000), pTypeExt->Tint_VisibleToHouses);
 
 	if (pOwnerExt->AE.flags.HasTint)
 	{
@@ -162,14 +162,14 @@ void TintColors::GetTints(int* tintColor, int* intensity)
 			if (!attachEffect->IsActive() || !type->HasTint())
 				continue;
 
-			this->Calculate(Drawing::RGB_To_Int(type->Tint_Color), static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
+			this->Calculate(type->Tint_Color->ToInit(), static_cast<int>(type->Tint_Intensity * 1000), type->Tint_VisibleToHouses);
 		}
 	}
 
 	if (hasShieldTint)
 	{
 		auto const pShieldType = pOwnerExt->Shield->GetType();
-		this->Calculate(Drawing::RGB_To_Int(pShieldType->Tint_Color), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
+		this->Calculate(pShieldType->Tint_Color->ToInit(), static_cast<int>(pShieldType->Tint_Intensity * 1000), pShieldType->Tint_VisibleToHouses);
 	}
 
 	if (pOwner == HouseClass::CurrentPlayer)
@@ -662,7 +662,7 @@ void __fastcall FakeTechnoClass::__DrawAirstrikeFlare(TechnoClass* pThis, discar
 	};
 
 	// Convert to integer format for drawing operations
-	int beamColorInt = Drawing::RGB_To_Int(baseColor);
+	int beamColorInt = baseColor.ToInit();
 
 	// Skip hardcoded crosshair color and use custom colors
 	// Draw crosshair at end point if beam goes upward, using custom color instead of red
@@ -4410,7 +4410,8 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 		if (pSelectBox->GroundLine)
 		{
 			Point2D start = *pLocation; // Copy to prevent be modified
-			const int color = Drawing::RGB_To_Int(pSelectBox->GroundLineColor.Get(healthPercentage , RulesClass::Instance->ConditionYellow , RulesClass::Instance->ConditionRed));
+			ColorStruct clr = pSelectBox->GroundLineColor.Get(healthPercentage, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed);
+			const int color = clr.ToInit();
 
 			if (pSelectBox->GroundLine_Dashed)
 				pSurface->Draw_Dashed_Line(start, outClient, color, nullptr, 0);

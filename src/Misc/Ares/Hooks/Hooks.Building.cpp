@@ -2386,7 +2386,6 @@ ASMJIT_PATCH(0x43FE69, BuildingClass_Update_SensorArray, 0xA)
 
 	pExt->UpdateLaserTrails(); // Mainly for on turret trails
 	pExt->DisplayIncomeString();
-	pExt->UpdatePoweredKillSpawns();
 	pExt->UpdateAutoSellTimer();
 	pExt->UpdateSpyEffecAnimDisplay();
 

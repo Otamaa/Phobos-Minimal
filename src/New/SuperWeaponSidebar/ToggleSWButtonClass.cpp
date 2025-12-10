@@ -35,7 +35,7 @@ bool ToggleSWButtonClass::Draw(bool forced)
 	PCX::Instance->BlitToSurface(&destRect, DSurface::Composite, pTogglePCX);
 
 	if (this->IsHovering) {
-		DSurface::Composite->Draw_Rect(destRect, Drawing::RGB_To_Int(Drawing::TooltipColor()));
+		DSurface::Composite->Draw_Rect(destRect, Drawing::TooltipColor->ToInit());
 	}
 
 	return true;

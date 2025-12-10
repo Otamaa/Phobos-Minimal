@@ -9,13 +9,6 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 #include <Utilities/Macro.h>
-// #896002: darken SW cameo if player can't afford it
-ASMJIT_PATCH(0x6A99B7, StripClass_Draw_SuperDarken, 5)
-{
-	GET(int, idxSW, EDI);
-	R->BL(SWTypeExtData::DrawDarken(HouseClass::CurrentPlayer->Supers.Items[idxSW]));
-	return 0;
-}
 
 // 4AC20C, 7
 // translates SW click to type
@@ -102,104 +95,4 @@ ASMJIT_PATCH(0x712045, TechnoTypeClass_GetCameo, 5)
 	R->EAX(TechnoTypeExt_ExtData::CameoIsElite(pThis, HouseClass::CurrentPlayer)
 		? pThis->AltCameo : pThis->Cameo);
 	return 0x7120C6;
-}
-
-ConvertClass* SWConvert = nullptr;
-BSurface* CameoPCXSurface = nullptr;
-
-ASMJIT_PATCH(0x6A9948, StripClass_Draw_SuperWeapon, 6)
-{
-	GET(SuperWeaponTypeClass*, pSuper, EAX);
-
-	if (auto pManager = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPalette.GetConvert())
-		SWConvert = pManager;
-
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x6A9A2A, StripClass_Draw_Main, 6)
-{
-	GET_STACK(TechnoTypeClass*, pTechno, 0x6C);
-
-	ConvertClass* pResult = nullptr;
-	if (pTechno)
-	{
-		if (auto pPal = TechnoTypeExtContainer::Instance.TryFind(pTechno)->CameoPal.GetConvert())
-		{
-			pResult = pPal;
-		}
-	}
-	else
-		pResult = SWConvert;
-
-	R->EDX(pResult ? pResult : FileSystem::CAMEO_PAL());
-	return 0x6A9A30;
-}
-
-ASMJIT_PATCH(0x6A9952, StripClass_Draw_SuperWeapon_PCX, 6)
-{
-	GET(SuperWeaponTypeClass*, pSuper, EAX);
-	CameoPCXSurface = SWTypeExtContainer::Instance.Find(pSuper)->SidebarPCX.GetSurface();
-	return 0x0;
-}
-
-ASMJIT_PATCH(0x6A980A, StripClass_Draw_TechnoType_PCX, 8)
-{
-	GET(TechnoTypeClass*, pType, EBX);
-
-	CameoPCXSurface = TechnoTypeExt_ExtData::GetPCXSurface(pType, HouseClass::CurrentPlayer);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A99F3, StripClass_Draw_SkipSHPForPCX, 6)
-{
-	if (CameoPCXSurface)
-		return 0x6A9A43;
-
-	GET_STACK(SHPStruct const*, pCameo, STACK_OFFS(0x48C, 0x444));
-
-	if (pCameo)
-	{
-		auto pCameoRef = pCameo->AsReference();
-		char pFilename[0x20];
-		strcpy_s(pFilename, RulesExtData::Instance()->MissingCameo.data());
-		_strlwr_s(pFilename);
-
-		if (!_stricmp(pCameoRef->Filename, GameStrings::XXICON_SHP())
-			&& (strstr(pFilename, ".pcx")))
-		{
-			BSurface* pCXSurf = nullptr;
-
-			if (PCX::Instance->LoadFile(pFilename))
-				pCXSurf = PCX::Instance->GetSurface(pFilename);
-
-			if (pCXSurf)
-			{
-				GET(int, destX, ESI);
-				GET(int, destY, EBP);
-
-				RectangleStruct bounds { destX, destY, 60, 48 };
-				PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, pCXSurf);
-
-				return 0x6A9A43; //skip drawing shp cameo
-			}
-		}
-	}
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A9A43, StripClass_Draw_DrawPCX, 6)
-{
-	if (CameoPCXSurface)
-	{
-		GET(int, TLX, ESI);
-		GET(int, TLY, EBP);
-		RectangleStruct bounds { TLX, TLY, 60, 48 };
-		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, Drawing::ColorStructToWordRGB(Drawing::DefaultColors[6]));
-		CameoPCXSurface = nullptr;
-	}
-
-	return 0;
 }

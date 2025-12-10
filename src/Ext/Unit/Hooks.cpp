@@ -45,3 +45,13 @@ ASMJIT_PATCH(0x7394FF, UnitClass_TryToDeploy_CantDeployVoice, 0x8)
 
 	return 0x73950F;
 }
+
+ASMJIT_PATCH(0x74159F, UnitClass_ApproachTarget_GoAboveTarget, 0x6)
+{
+	GET(UnitClass* const, pThis, ESI);
+	auto pType = pThis->Type;
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	R->AL(pType->BalloonHover || pTypeExt->CanGoAboveTarget);
+	return R->Origin() + 0x6;
+}

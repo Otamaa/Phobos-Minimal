@@ -26,6 +26,30 @@ BuildingExtData::~BuildingExtData()
 	pOwnerExt->RestrictedFactoryPlants.erase(pThis);
 }
 
+//use IsPoweredOnline ?
+bool BuildingExtData::BuildingHasPower(BuildingClass* pThis)
+{
+	//if (pThis->HasPower)
+	//{
+	//	if (pThis->IsDeactivated()) {
+	//		return false;
+	//	}
+
+	//	if (pThis->IsUnderEMP()) {
+	//		return false;
+	//	}
+
+	//	if (!(TechnoExtContainer::Instance.Find(pThis)->Is_Operated || TechnoExt_ExtData::IsOperated(pBld))) {
+	//		return false;
+	//	}
+
+	//	return true;
+	//}
+
+	return false;
+}
+
+
 void BuildingExtData::UpdateMainEvaVoice()
 {
 	auto const pTypeExt = this->Type;
@@ -545,12 +569,9 @@ void BuildingExtData::StoreTiberium(BuildingClass* pThis, float amount, int idxT
 	float depositableTiberiumAmount = 0.0f; // Number of 'bails' that will be stored.
 	auto const pTiberium = TiberiumClass::Array->Items[idxTiberiumType];
 
-	if (amount > 0.0)
-	{
-		if (auto pBuildingType = pThis->Type)
-		{
-			if (BuildingTypeExtContainer::Instance.Find(pBuildingType)->Refinery_UseStorage)
-			{
+	if (amount > 0.0) {
+		if (auto pBuildingType = pThis->Type) {
+			if (BuildingTypeExtContainer::Instance.Find(pBuildingType)->Refinery_UseStorage) {
 				// Store Tiberium in structures
 				depositableTiberiumAmount = (amount * pTiberium->Value) / pDepositableTiberium->Value;
 				((FakeHouseClass*)(pThis->Owner))->_GiveTiberium(depositableTiberiumAmount, idxStorageTiberiumType);
@@ -1881,7 +1902,8 @@ void FakeBuildingClass::_DrawExtras(Point2D* pLocation, RectangleStruct* pBounds
 		const int yOffest = (Unsorted::CellHeightInPixels * (foundationHeight + typeHeight)) >> 2;
 
 		Point2D centeredPoint = { pLocation->X, pLocation->Y - yOffest };
-		this->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
+		this->_DrawVisible(&centeredPoint, pBounds);
+		//this->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
 	}
 
 	this->DrawExtras(pLocation, pBounds);
@@ -2071,216 +2093,217 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 		auto pCenterCell = MapClass::Instance->GetCellAt(this->GetCoords());
 
 		int tintLevel = 0;
-		if (pCenterCell->IsShrouded()) {
+		if (!pCenterCell->IsShrouded()) {
 			tintLevel = TechnoExtData::ApplyTintColor(this, true, true, false);
 			TechnoExtData::ApplyCustomTint(this, &tintLevel, nullptr);
 		}
 
-		if (auto surface = DSurface::ColorMode()) {
-			if (--surface) {
+		int NormalZAdjust = buildingType->NormalZAdjust;
+		auto& door = this->UnloadTimer;
 
-				int NormalZAdjust = buildingType->NormalZAdjust;
-				auto& door = this->UnloadTimer;
+		// Handle gate/door animations
+		if (curMission == Mission::Open && (door.IsOpening() || door.IsClosing() || door.IsOpen()))
+		{
 
-				// Handle gate/door animations
-				if (curMission == Mission::Open && (door.IsOpening() || door.IsClosing() || door.IsOpen()))
+			// Calculate gate frame based on door state
+			int gateFrame = (int)(door.GetCompletePercent()
+						* this->Type->GateStages);
+
+			if (door.IsClosing())
+			{
+				gateFrame = this->Type->GateStages - gateFrame;
+			}
+
+			if (door.IsClosed())
+			{
+				gateFrame = 0;
+			}
+
+			if (door.IsOpen())
+			{
+				gateFrame = this->Type->GateStages - 1;
+			}
+
+			// Clamp frame to valid range
+			gateFrame = MaxImpl(0, MinImpl(gateFrame, this->Type->GateStages - 1));
+
+			// Add damage frame offset if building is damaged
+			if (this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+			{
+				gateFrame += this->Type->GateStages + 1;
+			}
+
+			ZGradient zgrad = ZGradient::Ground;
+
+			if (gateFrame < this->Type->GateStages / 2 || pTypeExt->IsBarGate)
+			{
+				zgrad = ZGradient::Deg90;
+			}
+
+			const int lightLevel = pCell->Color1.Red;
+			const int depthAdjust = Game::AdjustHeight(this->GetZ());
+
+			this->Draw_Object(mainShape,
+				gateFrame,
+				screenPos,
+				clipRect,
+				DirType::North,  // rotation
+				256,  // scale
+				NormalZAdjust - depthAdjust,  // height adjust
+				zgrad,  // ZGradient
+				1,  // useZBuffer
+				lightLevel,
+				tintLevel,
+				0, 0, 0, 0, BlitterFlags::None  // z-shape params
+			);
+
+			return;
+		}
+
+		// Handle special unload animations
+		if (curMission == Mission::Unload)
+		{
+			if (isUnloadingAirUnit)
+			{
+				if (this->Type->RoofDeployingAnim)
 				{
+					mainShape = this->Type->RoofDeployingAnim;
+					NormalZAdjust = -40;
+				}
+			}
+			else
+			{
+				if (this->Type->DeployingAnim)
+				{
+					mainShape = this->Type->DeployingAnim;
+					NormalZAdjust = -20;
+				}
+			}
+		}
 
-					// Calculate gate frame based on door state
-					int gateFrame = (int)(door.GetCompletePercent()
-								* this->Type->GateStages);
+		// Calculate shape positioning
+		// Default shape offset values (198 = 0xC6, 446 = 0x1BE)
+		Point2D shapeOffset = { 198, 446 };
 
-					if (door.IsClosing())
-					{
-						gateFrame = this->Type->GateStages - gateFrame;
-					}
+		if ((curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup)
+		{
+			shapeOffset += this->Type->ZShapePointMove;
+		}
 
-					if (door.IsClosed())
-					{
-						gateFrame = 0;
-					}
+		const auto foundationWidth = (this->Type->GetFoundationWidth() << 8) - 256;
+		const auto foundationHeiht = (this->Type->GetFoundationHeight(0) << 8) - 256;
 
-					if (door.IsOpen())
-					{
-						gateFrame = this->Type->GateStages - 1;
-					}
+		//Point2D drawpoint = *screenPos;
+		//int height = drawpoint.Y + mainShape->Height / 2;
 
-					// Clamp frame to valid range
-					gateFrame = MaxImpl(0, MinImpl(gateFrame, this->Type->GateStages - 1));
+		//RectangleStruct cliprect = *clipRect;
+		//cliprect.Height = MinImpl(cliprect.Height, height);
 
-					// Add damage frame offset if building is damaged
-					if (this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
-					{
-						gateFrame += this->Type->GateStages + 1;
-					}
+		// Calculate screen position adjustment
+		Point2D buildingSize(
+			(foundationWidth * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
+			,
+			(foundationHeiht * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
+		);
 
-					ZGradient zgrad = ZGradient::Ground;
+		Point2D screenOffset = TacticalClass::Instance->AdjustForZShapeMove(buildingSize.X, buildingSize.Y);
 
-					if (gateFrame < this->Type->GateStages / 2 || pTypeExt->IsBarGate)
-					{
-						zgrad = ZGradient::Deg90;
-					}
+		shapeOffset -= screenOffset;
 
-					const int lightLevel = pCell->Color1.Red;
-					const int depthAdjust = Game::AdjustHeight(this->GetZ());
+		// Draw main building if clipping rect has height
+		if (clipRect->Height > 0)
+		{
+			SHPStruct* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
+			const int lightLevel = (int16)this->Type->ExtraLight + pCell->Color1.Red;
+			const int depthAdjust = Game::AdjustHeight(this->GetZ());
 
-					this->Draw_Object(mainShape,
-						gateFrame,
+			if (!pTypeExt->Firestorm_Wall)
+			{
+
+				const int frameCount = mainShape->Frames;
+				const auto currentFrame = this->GetShapeNumber();
+				const int shapeFrame = currentFrame < frameCount / 2 ?
+					currentFrame : frameCount / 2;
+
+				this->Draw_Object(mainShape,
+						shapeFrame,
 						screenPos,
 						clipRect,
 						DirType::North,  // rotation
 						256,  // scale
 						NormalZAdjust - depthAdjust,  // height adjust
-						zgrad,  // ZGradient
-						1,  // useZBuffer
-						lightLevel,
-						tintLevel,
-						0, 0, Point2D::Empty, BlitterFlags::None  // z-shape params
-					);
-
-					return;
-				}
-
-				// Handle special unload animations
-				if (curMission == Mission::Unload)
-				{
-					if (isUnloadingAirUnit)
-					{
-						if (this->Type->RoofDeployingAnim)
-						{
-							mainShape = this->Type->RoofDeployingAnim;
-							NormalZAdjust = -40;
-						}
-					}
-					else
-					{
-						if (this->Type->DeployingAnim)
-						{
-							mainShape = this->Type->DeployingAnim;
-							NormalZAdjust = -20;
-						}
-					}
-				}
-
-				// Calculate shape positioning
-				// Default shape offset values (198 = 0xC6, 446 = 0x1BE)
-				Point2D shapeOffset = { 198, 446 };
-
-				if ((curMission != Mission::Construction && curMission != Mission::Selling) || pTypeExt->ZShapePointMove_OnBuildup)
-				{
-					shapeOffset += this->Type->ZShapePointMove;
-				}
-
-				const auto foundationWidth = this->Type->GetFoundationWidth();
-				const auto foundationHeiht = this->Type->GetFoundationHeight(0);
-
-				//Point2D drawpoint = *screenPos;
-				//int height = drawpoint.Y + mainShape->Height / 2;
-
-				//RectangleStruct cliprect = *clipRect;
-				//cliprect.Height = MinImpl(cliprect.Height, height);
-
-				// Calculate screen position adjustment
-				Point2D buildingSize(
-					(foundationWidth * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
-					,
-					(foundationHeiht * Unsorted::LeptonsPerCell) - Unsorted::LeptonsPerCell
-				);
-
-				Point2D screenOffset;
-				FakeTacticalClassB::Instance->XY_To_Screen_Pixels(&screenOffset, &buildingSize);
-
-				shapeOffset -= screenOffset;
-
-				// Draw main building if clipping rect has height
-				if (clipRect->Height > 0) {
-					SHPStruct* zShape = foundationWidth < 8 ? FileSystem::BUILDINGZ_SHA() : nullptr;
-					const int lightLevel = (int16)this->Type->ExtraLight + pCell->Color1.Red;
-					const int depthAdjust = Game::AdjustHeight(this->GetZ());
-
-					if (!pTypeExt->Firestorm_Wall) {
-
-						const int frameCount = mainShape->Frames;
-						const auto currentFrame = this->GetShapeNumber();
-						const int shapeFrame = currentFrame < frameCount / 2 ?
-							currentFrame : frameCount / 2;
-
-						this->Draw_Object(mainShape,
-								shapeFrame,
-								screenPos,
-								clipRect,
-								DirType::North,  // rotation
-								256,  // scale
-								NormalZAdjust - depthAdjust,  // height adjust
-								ZGradient::Ground,  // ZGradient
-								1,  // useZBuffer
-								lightLevel,
-								tintLevel,
-								zShape,
-								0,
-								shapeOffset,
-								BlitterFlags::None  // flags
-						);
-					}
-					else
-					{
-						this->Draw_Object(mainShape,
-							this->GetShapeNumber(),
-							screenPos,
-							clipRect,
-							DirType::North,  // rotation
-							256,  // scale
-							-1 - depthAdjust,  // height adjust
-							ZGradient::Deg90,  // ZGradient
-							1,  // useZBuffer
-							lightLevel,
-							tintLevel,
-							zShape,
-							0,
-							shapeOffset,
-							BlitterFlags::None  // flags
-						);
-					}
-				}
-
-				//// Draw bib (foundation) if present
-				if (this->Type->BibShape && this->BState != BStateType::Construction && this->ActuallyPlacedOnMap) {
-					const int lightLevel = (int)(this->Type->ExtraLight + pCell->Color1.Red);
-					const int heightZ = this->GetZ();
-
-					this->Draw_Object(
-						this->Type->BibShape,
-						this->GetShapeNumber(),
-						screenPos,
-						clipRect,
-						DirType::North,  // rotation
-						256,  // scale
-						-1 - Game::AdjustHeight(heightZ),  // height adjust
 						ZGradient::Ground,  // ZGradient
 						1,  // useZBuffer
 						lightLevel,
 						tintLevel,
-						0, 0, Point2D::Empty, BlitterFlags::None  // z-shape params
-					);
-				}
+						zShape,
+						0,
+						shapeOffset.X ,
+						shapeOffset.Y ,
+						BlitterFlags::None  // flags
+				);
+			}
+			else
+			{
+				this->Draw_Object(mainShape,
+					this->GetShapeNumber(),
+					screenPos,
+					clipRect,
+					DirType::North,  // rotation
+					256,  // scale
+					-1 - depthAdjust,  // height adjust
+					ZGradient::Deg90,  // ZGradient
+					1,  // useZBuffer
+					lightLevel,
+					tintLevel,
+					zShape,
+					0,
+					shapeOffset.X ,
+					shapeOffset.Y ,
+					BlitterFlags::None  // flags
+				);
+			}
+		}
 
-				// Draw special door animations for unload mission
-				if (curMission == Mission::Unload) {
-					if (const auto RoofAnim = isUnloadingAirUnit ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim) {
-							this->Draw_Object(
-								RoofAnim,
-								this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow,
-								screenPos,
-								clipRect,
-								DirType::North, 256,  // rotation, scale
-								-Game::AdjustHeight(this->GetZ()),  // height adjust
-								ZGradient::Ground, 1,  // ZGradient, useZBuffer
-								 (int16)this->Type->ExtraLight + pCell->Color1.Red,
-								tintLevel,
-								0, 0, Point2D::Empty, BlitterFlags::None  // z-shape params
-						);
-					}
-				}
+		//// Draw bib (foundation) if present
+		if (this->Type->BibShape && this->BState != BStateType::Construction && this->ActuallyPlacedOnMap)
+		{
+			const int lightLevel = (int)(this->Type->ExtraLight + pCell->Color1.Red);
+			const int heightZ = this->GetZ();
+
+			this->Draw_Object(
+				this->Type->BibShape,
+				this->GetShapeNumber(),
+				screenPos,
+				clipRect,
+				DirType::North,  // rotation
+				256,  // scale
+				-1 - Game::AdjustHeight(heightZ),  // height adjust
+				ZGradient::Ground,  // ZGradient
+				1,  // useZBuffer
+				lightLevel,
+				tintLevel,
+				0, 0, 0, 0, BlitterFlags::None  // z-shape params
+			);
+		}
+
+		// Draw special door animations for unload mission
+		if (curMission == Mission::Unload)
+		{
+			if (const auto RoofAnim = isUnloadingAirUnit ? this->Type->UnderRoofDoorAnim : this->Type->UnderDoorAnim)
+			{
+				this->Draw_Object(
+					RoofAnim,
+					this->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow,
+					screenPos,
+					clipRect,
+					DirType::North, 256,  // rotation, scale
+					-Game::AdjustHeight(this->GetZ()),  // height adjust
+					ZGradient::Ground, 1,  // ZGradient, useZBuffer
+					 (int16)this->Type->ExtraLight + pCell->Color1.Red,
+					tintLevel,
+					0, 0, 0, 0, BlitterFlags::None  // z-shape params
+				);
 			}
 		}
 	}
@@ -2297,7 +2320,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 //	return 0x43DA73;
 //}
 //
-//DEFINE_FUNCTION_JUMP(CALL6, 0x43D005 , FakeBuildingClass::_Draw_It)
+DEFINE_FUNCTION_JUMP(CALL6, 0x43D005 , FakeBuildingClass::_Draw_It)
 
 void FakeBuildingClass::_TechnoClass_Draw_Object(SHPStruct* shapefile,
 	int shapenum,
@@ -2312,7 +2335,8 @@ void FakeBuildingClass::_TechnoClass_Draw_Object(SHPStruct* shapefile,
 	int tintLevel,
 	SHPStruct* z_shape,
 	int z_shape_framenum,
-	Point2D z_shape_offs,
+	int z_shape_offs_x,
+	int z_shape_offs_y,
 	BlitterFlags flags)
 {
 	ZGradient zgrad = ZGradient::Ground;
@@ -2321,7 +2345,7 @@ void FakeBuildingClass::_TechnoClass_Draw_Object(SHPStruct* shapefile,
 		zgrad = ZGradient::Deg90;
 	}
 
-	return this->Draw_Object(shapefile, shapenum, xy, rect, rotation, scale, height_adjust, zgrad, useZBuffer, lightLevel, tintLevel, z_shape, z_shape_framenum, z_shape_offs, flags);
+	return this->Draw_Object(shapefile, shapenum, xy, rect, rotation, scale, height_adjust, zgrad, useZBuffer, lightLevel, tintLevel, z_shape, z_shape_framenum, z_shape_offs_x, z_shape_offs_y, flags);
 }
 DEFINE_FUNCTION_JUMP(CALL, 0x43D683, FakeBuildingClass::_TechnoClass_Draw_Object)
 

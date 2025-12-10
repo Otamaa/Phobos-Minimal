@@ -28,79 +28,6 @@
 
 #include <InfantryClass.h>
 
-static COMPILETIMEEVAL int ObserverBackgroundWidth = 121;
-static COMPILETIMEEVAL int ObserverBackgroundHeight = 96;
-
-static COMPILETIMEEVAL int ObserverFlagPCXX = 70;
-static COMPILETIMEEVAL int ObserverFlagPCXY = 70;
-static COMPILETIMEEVAL int ObserverFlagPCXWidth = 45;
-static COMPILETIMEEVAL int ObserverFlagPCXHeight = 21;
-
-ASMJIT_PATCH(0x6AA0CA, StripClass_Draw_DrawObserverBackground, 6)
-{
-	enum { DrawSHP = 0x6AA0ED, DontDraw = 0x6AA159 };
-
-	GET(HouseTypeClass*, pCountry, EAX);
-
-	const auto pData = HouseTypeExtContainer::Instance.Find(pCountry);
-
-	if (pData->ObserverBackgroundSHP)
-	{
-		R->EAX<SHPStruct*>(pData->ObserverBackgroundSHP);
-		return DrawSHP;
-	}
-	else if (auto PCXSurface = pData->ObserverBackground.GetSurface())
-	{
-		GET(int, TLX, EDI);
-		GET(int, TLY, EBX);
-		RectangleStruct bounds = { TLX, TLY, ObserverBackgroundWidth, ObserverBackgroundHeight };
-		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Drawing::ColorStructToWordRGB(Drawing::DefaultColors[6]));
-	}
-
-	return DontDraw;
-}
-
-ASMJIT_PATCH(0x6AA164, StripClass_Draw_DrawObserverFlag, 6)
-{
-	enum { IDontKnowYou = 0x6AA16D, DrawSHP = 0x6AA1DB, DontDraw = 0x6AA2CE };
-
-	GET(HouseTypeClass*, pCountry, EAX);
-
-	const auto idx = pCountry->ParentIdx;
-
-	//special cases
-	if (idx == -2) {
-		R->EAX(idx);
-		return 0x6AA1CD;
-	}
-
-	if (idx == -3) {
-		R->EAX(idx);
-		return 0x6AA17D;
-	}
-
-	const auto pData = HouseTypeExtContainer::Instance.Find(pCountry);
-
-	if (pData->ObserverFlagSHP)
-	{
-		R->ESI<SHPStruct*>(pData->ObserverFlagSHP);
-		R->EAX<int>(pData->ObserverFlagYuriPAL ? 9 : 0);
-		return DrawSHP;
-	}
-	else if (auto PCXSurface = pData->ObserverFlag.GetSurface())
-	{
-		GET(int, TLX, EDI);
-		GET(int, TLY, EBX);
-		RectangleStruct bounds = { TLX + ObserverFlagPCXX , TLY + ObserverFlagPCXY,
-				ObserverFlagPCXWidth, ObserverFlagPCXHeight
-		};
-
-		PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Drawing::ColorStructToWordRGB(Drawing::DefaultColors[6]));
-	}
-
-	return DontDraw;
-}
-
 ASMJIT_PATCH(0x4E3560, Game_GetFlagSurface, 5)
 {
 	GET(int, n, ECX);
@@ -807,81 +734,16 @@ ASMJIT_PATCH(0x4F7870, HouseClass_CanBuild, 7)
 	return 0x4F8361;
 }
 
-// Vanilla and Ares all only hardcoded to find factory with BuildCat::DontCare...
-static inline bool CheckShouldDisableDefensesCameo(HouseClass* pHouse, TechnoTypeClass* pType)
-{
-	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
-	{
-		if (pBuildingType->BuildCat == BuildCat::Combat)
-		{
-			auto count = 0;
-
-			if (const auto pFactory = pHouse->Primary_ForDefenses)
-			{
-				count = pFactory->CountTotal(pBuildingType);
-
-				if (pFactory->Object && pFactory->Object->GetType() == pBuildingType && pBuildingType->BuildLimit > 0)
-					--count;
-			}
-
-			auto buildLimitRemaining = [](HouseClass* pHouse, BuildingTypeClass* pBldType)
-			{
-				const auto BuildLimit = pBldType->BuildLimit;
-
-				if (BuildLimit >= 0)
-					return BuildLimit -  BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBldType, pHouse);
-				else
-					return -BuildLimit - pHouse->CountOwnedEver(pBldType);
-			};
-
-			if (buildLimitRemaining(pHouse, pBuildingType) - count <= 0)
-				return true;
-		}
-	}
-
-	return false;
-}
-
 ASMJIT_PATCH(0x50B370, HouseClass_ShouldDisableCameo, 5)
 {
 	GET(HouseClass*, pThis, ECX);
 	GET_STACK(TechnoTypeClass*, pType, 0x4);
 
-	if(HouseExtData::ShouldDisableCameo(pThis, pType)) {
-		R->EAX(true);
-		return 0x50B669;
-	}
+	GET(int*, pAddress, ESP);
 
-	if(CheckShouldDisableDefensesCameo(pThis, pType) || HouseExtData::ReachedBuildLimit(pThis, pType, false)) {
-		R->EAX(true);
-		return 0x50B669;
-	}
-
-	if (pThis == HouseClass::CurrentPlayer)
-	{
-		GET(int*, pAddress, ESP);
-
-		if (*pAddress == 0x6A5FED || *pAddress == 0x6A97EF || *pAddress == 0x6AB65B)
-		{
-			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-			// The types exist in the list means that they are not buildable now
-			if (pTypeExt->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist))
-			{
-				auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
-
-				if (vec.contains(pType)){
-					R->EAX(true);
-					return 0x50B669;
-				}
-			}
-		}
-	}
-
-	R->EAX(false);
+	R->EAX(HouseExtData::ShouldDisableCameo(pThis , pType , *pAddress == 0x6A5FED || *pAddress == 0x6A97EF || *pAddress == 0x6AB65B));
 	return 0x50B669;
 }
-
 
 // All technos have Cameo_AlwaysExist=true need to change the EVA_NewConstructionOptions playing time
 ASMJIT_PATCH(0x6A640B, SideBarClass_AddCameo_DoNotPlayEVA, 0x5)

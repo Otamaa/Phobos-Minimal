@@ -197,7 +197,6 @@
 
 const CoordStruct CoordStruct::Empty = {};
 const ColorStruct ColorStruct::Empty = {};
-const Color16Struct Color16Struct::Empty = {};
 const CellStruct CellStruct::Empty = {};
 const CellStruct CellStruct::EOL = { 0x7FFF , 0x7FFF };
 const VelocityClass VelocityClass::Empty = {};
@@ -1162,7 +1161,7 @@ bool DSurface::Put_Pixel_Trans(Point2D& point, ColorStruct& rgb, unsigned opacit
 	unsigned int green_max = (unsigned int)(255 >> GreenRight) << GreenLeft;
 	unsigned int blue_max = (unsigned int)(255 >> BlueRight) << BlueLeft;
 
-	unsigned short color = RGBA_To_Pixel(rgb.R, rgb.G, rgb.B);
+	unsigned short color = rgb.ToInit();
 
 	unsigned rscaled = scale * (color & red_max);
 	unsigned gscaled = scale * (color & green_max);
@@ -1799,7 +1798,8 @@ DEFINE_IMPLEMENTATION(void TechnoClass::Draw_Object(SHPStruct*,
 	int,
 	SHPStruct*,
 	int,
-	Point2D,
+	int,
+	int,
 	BlitterFlags), 0x705E00);
 
 void AITriggerTypeClass::FormatForSaving(char* buffer, size_t size) const

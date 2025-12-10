@@ -298,7 +298,6 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 							if (!isNotMoving) {
 								if (pTech->BalloonHover) {
 									// Order BalloonHover jumpjets to ascend.
-									pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 									pJJLoco->IsMoving = true;
 									pJJLoco->HeadToCoord = pGift->GetCoords();
 									TechnoExtContainer::Instance.Find(pGift)->JumpjetStraightAscend = true;

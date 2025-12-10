@@ -111,6 +111,15 @@ ASMJIT_PATCH(0x4555E4, BuildingClass_IsPowerOnline_Overpower, 0x6)
 	return overPower < pThis->_GetTypeExtData()->Overpower_KeepOnline ? LowPower : (R->Origin() == 0x4555E4 ? Continue1 : Continue2);
 }ASMJIT_PATCH_AGAIN(0x45563B, BuildingClass_IsPowerOnline_Overpower, 0x6)
 
+ASMJIT_PATCH(0x43FBEF, BuildingClass_AI_PoweredKillSpawns, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+
+	BuildingExtContainer::Instance.Find(pThis)->UpdatePoweredKillSpawns();
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x483D8E, CellClass_CheckPassability_DestroyableObstacle, 0x6)
 {
 	enum { IsBlockage = 0x483CD4 };
@@ -443,42 +452,6 @@ ASMJIT_PATCH(0x4FAAD8, HouseClass_AbandonProduction_RewriteForBuilding, 0x8)
 	return CheckSame;
 }
 #endif
-ASMJIT_PATCH(0x6A9C54, StripClass_DrawStrip_FindFactoryDehardCode, 0x6)
-{
-	GET(TechnoTypeClass* const, pType, ECX);
-	LEA_STACK(BuildCat*, pBuildCat, STACK_OFFSET(0x490, -0x490));
-
-	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
-		*pBuildCat = pBuildingType->BuildCat;
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x6A9789, StripClass_DrawStrip_NoGreyCameo, 0x6)
-{
-	enum { ContinueCheck = 0x6A9799, SkipGameCode = 0x6A97FB };
-
-	GET(TechnoTypeClass* const, pType, EBX);
-	GET_STACK(bool, clicked, STACK_OFFSET(0x48C, -0x475));
-
-	if (!RulesExtData::Instance()->ExpandBuildingQueue) {
-		if (pType->WhatAmI() == AbstractType::BuildingType && clicked)
-			return SkipGameCode;
-	}
-	else if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
-	{
-		if (const auto pFactory = HouseClass::CurrentPlayer->GetPrimaryFactory(AbstractType::BuildingType, pType->Naval, pBuildingType->BuildCat))
-		{
-			if (const auto pProduct = cast_to<BuildingClass*>(pFactory->Object))
-			{
-				if (pFactory->IsDone() && pProduct->Type != pType && ((pProduct->Type->BuildCat != BuildCat::Combat) ^ (pBuildingType->BuildCat == BuildCat::Combat)))
-					return SkipGameCode;
-			}
-		}
-	}
-
-	return ContinueCheck;
-}
 
 ASMJIT_PATCH(0x4FA612, HouseClass_BeginProduction_ForceRedrawStrip, 0x5)
 {
@@ -582,7 +555,7 @@ ASMJIT_PATCH(0x44E202, BuildingClass_Mission_Unload_CheckStuck, 0x6)
 		if (pUnit->Locomotor->Destination() == CoordStruct::Empty)
 		{
 			// Evacuate the congestion at the entrance
-			reinterpret_cast<void(__thiscall*)(BuildingClass*)>(0x449540)(pThis);
+			pThis->ClearFactoryBib();
 			const auto pType = pThis->Type;
 			const auto cell = pThis->GetMapCoords() + pType->FoundationOutside[10];
 			const auto door = cell - CellStruct { 1, 0 };
@@ -627,7 +600,6 @@ ASMJIT_PATCH(0x73F5A7, UnitClass_IsCellOccupied_UnlimboDirection, 0x8)
 
  	return 0;
  }
-
 
 ASMJIT_PATCH(0x449306, BuildingClass_SetOwningHouse_Sell, 0x6)
 {

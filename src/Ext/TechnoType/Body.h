@@ -460,8 +460,8 @@ public:
 	Valueable<Point2D> HealthBarSHP_PointOffset;
 	Valueable<bool> HealthbarRemap;
 
-	Nullable<SHPStruct*> GClock_Shape;
-	Nullable<int> GClock_Transculency;
+	Valueable<SHPStruct*> GClock_Shape;
+	Valueable<TranslucencyLevel> GClock_Transculency;
 	CustomPalette GClock_Palette; //CustomPalette::PaletteMode::Default
 
 	Valueable<bool> ROF_Random;
@@ -1264,6 +1264,7 @@ public:
 	Vector2D<int> CombatDamages;
 	ValueableVector<TechnoTypeClass*> TeamMember_ConsideredAs;
 	std::vector<PhobosFixedString<0x20>> WeaponGroupAs;
+	Valueable<bool> CanGoAboveTarget;
 
 	int TintColorAirstrike;
 #pragma endregion
@@ -2105,6 +2106,7 @@ public:
 		, CombatDamages(0,0)
 		, TeamMember_ConsideredAs()
 		, WeaponGroupAs {}
+		, CanGoAboveTarget { false }
 		, TintColorAirstrike()
 		{
 			this->InitializeConstant();
@@ -3142,6 +3144,9 @@ private:
 			.Process(this->AIGuardStationaryStray)
 			.Process(this->ThreatTypes)
 			.Process(this->CombatDamages)
+			.Process(this->TeamMember_ConsideredAs)
+			.Process(this->WeaponGroupAs)
+			.Process(this->CanGoAboveTarget)
 			.Process(this->TintColorAirstrike)
 			;
 	}

@@ -368,14 +368,12 @@ static TechnoClass* CreateFoot(
 							if (pType->BalloonHover)
 							{
 								// Order BalloonHover jumpjets to ascend.
-								pJJLoco->NextState = JumpjetLocomotionClass::State::Hovering;
 								pJJLoco->IsMoving = true;
 								pJJLoco->HeadToCoord =  pTechno->GetCoords();
 								TechnoExtContainer::Instance.Find(pTechno)->JumpjetStraightAscend = true;
 
 								if (!inAir)
 									AircraftTrackerClass::Instance->Add(pTechno);
-
 							}
 							else if (inAir)
 							{

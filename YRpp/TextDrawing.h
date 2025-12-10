@@ -139,15 +139,15 @@ struct TextDrawing
 		Point2D* Location, ColorScheme* fore, unsigned int BackColor, TextPrintType Flag)
 	{
 		Point2D ret_;
-		const auto fromFore = fore->BaseColor.ToColorStructInt();
+		const ColorStruct fromFore = fore->BaseColor;
 
 		if (Text)
 		{
-			ret_ = Simple_Text_Print_Wide(Text, Surface, Bounds, Location, fromFore, BackColor, Flag);
+			ret_ = Simple_Text_Print_Wide(Text, Surface, Bounds, Location, fromFore.ToInitGBR(), BackColor, Flag);
 		}
 		else
 		{
-			ret_ = Simple_Text_Print_Wide(L"", Surface, Bounds, Location, fromFore, BackColor, Flag);
+			ret_ = Simple_Text_Print_Wide(L"", Surface, Bounds, Location, fromFore.ToInitGBR(), BackColor, Flag);
 		}
 
 		return ret_;
@@ -171,18 +171,18 @@ struct TextDrawing
 		Point2D* Location, ColorScheme* fore, unsigned int BackColor, TextPrintType Flag, Args... args)
 	{
 		Point2D ret_;
-		const auto fromFore = fore->BaseColor.ToColorStructInt();
+		const ColorStruct fromFore = fore->BaseColor;
 
 		if (Text)
 		{
 			wchar_t buffer[512];
 			swprintf(buffer, std::size(buffer), Text, args...);
 
-			ret_ = Simple_Text_Print_Wide(buffer, Surface, Bounds, Location, fromFore, BackColor, Flag);
+			ret_ = Simple_Text_Print_Wide(buffer, Surface, Bounds, Location, fromFore.ToInitGBR(), BackColor, Flag);
 		}
 		else
 		{
-			ret_ = Simple_Text_Print_Wide(L"", Surface, Bounds, Location, fromFore, BackColor, Flag);
+			ret_ = Simple_Text_Print_Wide(L"", Surface, Bounds, Location, fromFore.ToInitGRB(), BackColor, Flag);
 		}
 
 		return ret_;
@@ -203,5 +203,9 @@ struct TextDrawing
 		{
 			return Simple_Text_Print_Wide(L"", Surface, Bounds, Location, fore, BackColor, Flag);
 		}
+	}
+
+	static void __fastcall Draw_Text_On_Sidebar(const wchar_t* Text, Point2D* Location, RectangleStruct* Bounds, int a5) {
+		JMP_STD(0x6AC480);
 	}
 };

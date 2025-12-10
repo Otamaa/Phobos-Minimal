@@ -673,9 +673,9 @@ void FakeParasiteClass::__Uninfect()
 
 	// Choose opposite direction if facing forward
 	if (facingIndex > 2) {
-		exitDirection.Raw = victimFacing.Raw - Math::BINARY_ANGLE_MASK;
+		exitDirection.Raw -= Math::BINARY_ANGLE_MASK;
 	} else {
-		exitDirection.Raw = victimFacing.Raw + Math::BINARY_ANGLE_MASK;
+		exitDirection.Raw += Math::BINARY_ANGLE_MASK;
 	}
 
 	CellStruct targetCell;

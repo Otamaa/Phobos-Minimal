@@ -620,69 +620,75 @@ void __fastcall FakeTechnoClass::__Draw_Pips(TechnoClass* techno, discard_t, Poi
 		drawState.pos.X += 11;
 	}
 
-	// Draw spawns (drones, etc.)
-	if (!isBuilding || technoTypeClass->PipScale != PipScale::Tiberium)
 	{
-		DrawSpawnPips(techno, isBuilding, technoTypeClass, &drawState, &pipInfo, clipRect);
-
-		bool showTiberium = true;
-		// Draw building occupants
-		if (isBuilding)
-		{
-			const auto pBld = static_cast<BuildingClass*>(techno);
-
-			if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
-			{
-				// show only if this refinery uses storage. otherwise, the original
-				// refineries would show an unused tiberium pip scale
-				showTiberium = pTypeExt->Refinery_UseStorage;
-			}
-
+		if (isBuilding) {
 			DrawBuildingOccupants((BuildingClass*)techno, &drawState, &pipInfo, clipRect);
 		}
 
-		// Draw various pip types based on MaxPassengers
-		if (technoTypeClass->Passengers <= 0)
+		switch (technoTypeClass->PipScale)
 		{
-			switch (technoTypeClass->PipScale)
+		default: { break; }
+		case PipScale::Ammo: {
+			DrawAmmoPip(techno, isBuilding, pips2_SHP, &drawState, &pipInfo, clipRect);
+			break;
+		}
+		case PipScale::Tiberium: {
+			bool showTiberium = true;
+
+			if (isBuilding)
 			{
-			case PipScale::Ammo:
-				DrawAmmoPip(techno, isBuilding, pips2_SHP, &drawState, &pipInfo, clipRect);
-				break;
-			case PipScale::Tiberium:
-				if (showTiberium)
+				const auto pBld = static_cast<BuildingClass*>(techno);
+
+				if ((pBld->Type->Refinery || pBld->Type->ResourceDestination) && pBld->Type->Storage > 0)
 				{
-					Tiberiumpip::DrawTiberiumPip(techno, technoTypeClass, pipInfo.maxPips, pipInfo.shape, pipInfo.convert, &drawState.pos, clipRect, drawState.spacigns_.X, drawState.spacigns_.Y);
+					// show only if this refinery uses storage. otherwise, the original
+					// refineries would show an unused tiberium pip scale
+					showTiberium = pTypeExt->Refinery_UseStorage;
 				}
-				break;
-			case PipScale::MindControl:
-				DrawMindControlPip(techno, &drawState, &pipInfo, clipRect);
-				break;
-			default:
-				break;
 			}
+
+			if (showTiberium) {
+				Tiberiumpip::DrawTiberiumPip(techno, technoTypeClass, pipInfo.maxPips, pipInfo.shape, pipInfo.convert, &drawState.pos, clipRect, drawState.spacigns_.X, drawState.spacigns_.Y);
+			}
+			break;
 		}
-		else
+		case PipScale::MindControl: {
+			DrawMindControlPip(techno, &drawState, &pipInfo, clipRect);
+			break;
+		}
+		case PipScale::Passengers: {
+			if (technoTypeClass->Passengers > 0)
+				DrawPassengerPips(techno, technoTypeClass, &drawState, &pipInfo, clipRect);
+
+			break;
+		}
+		case PipScale::Power: {
+			//none
+		}
+		case PipScale(6):
 		{
-			DrawPassengerPips(techno, technoTypeClass, &drawState, &pipInfo, clipRect);
+			DrawSpawnPips(techno, isBuilding, technoTypeClass, &drawState, &pipInfo, clipRect);
+			break;
 		}
-
-		// Draw self-heal indicator
-		TechnoExtData::DrawSelfHealPips(techno, &drawState.pos, clipRect, pips_SHP, pipInfo.convert);
-
-		// Draw info tip for non-buildings
-		// techno other than buildings has no extra info atm
-		//if (!isBuilding) {
-		//    Point2D infoPos {
-		//        .X = position->X - 10,
-		//        .Y = position->Y + 10
-		//    };
-		//    techno->DrawExtraInfo(&infoPos, position, clipRect);
-		//}
-
-		// Draw group number
-		DrawGroupNumber(techno, technoType, position, clipRect);
+		}
 	}
+
+	// Draw self-heal indicator
+	TechnoExtData::DrawSelfHealPips(techno, &drawState.pos, clipRect, pips_SHP, pipInfo.convert);
+
+	// Draw info tip for non-buildings
+	// techno other than buildings has no extra info atm
+	// moved to different state
+	//if (!isBuilding) {
+	//    Point2D infoPos {
+	//        .X = position->X - 10,
+	//        .Y = position->Y + 10
+	//    };
+	//    techno->DrawExtraInfo(&infoPos, position, clipRect);
+	//}
+
+	// Draw group number
+	DrawGroupNumber(techno, technoType, position, clipRect);
 }
 
 // Draw spawn manager pips (for carriers, etc.)
@@ -1029,4 +1035,10 @@ static void DrawSinglePip(Point2D* position, ConvertClass* pConvert, SHPStruct* 
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x709A90, FakeTechnoClass::__Draw_Pips)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E26F4, FakeTechnoClass::__Draw_Pips)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E430C, FakeTechnoClass::__Draw_Pips)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E90E4, FakeTechnoClass::__Draw_Pips)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB4A8, FakeTechnoClass::__Draw_Pips)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4DB0, FakeTechnoClass::__Draw_Pips)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F60C0, FakeTechnoClass::__Draw_Pips)
 #pragma endregion

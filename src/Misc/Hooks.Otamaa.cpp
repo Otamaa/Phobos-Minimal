@@ -516,7 +516,8 @@ ASMJIT_PATCH(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 
 		if (pTypeExt->CommandLine_Attack_Color.Get() != ColorStruct::Empty)
 		{
-			Drawing::Draw_action_lines_7049C0(nFLH_X, nFLH_Y, nFLH_Z, pMovingDestCoord->X, pMovingDestCoord->Y, pMovingDestCoord->Z, Drawing::RGB2DWORD(pTypeExt->CommandLine_Attack_Color.Get()), false, false);
+			Drawing::Draw_action_lines_7049C0(nFLH_X, nFLH_Y, nFLH_Z, pMovingDestCoord->X, pMovingDestCoord->Y, pMovingDestCoord->Z,
+				pTypeExt->CommandLine_Attack_Color->ToInit(), false, false);
 		}
 
 		return Skip;
@@ -544,7 +545,8 @@ ASMJIT_PATCH(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 
 		if (pTypeExt->CommandLine_Move_Color.Get() != ColorStruct::Empty)
 		{
-			Drawing::Draw_action_lines_7049C0(nLoc_X, nLoc_Y, nLoc_Z, nCooordDest.X, nCooordDest.Y, nCoordDest_Adjusted_Z, Drawing::RGB2DWORD(pTypeExt->CommandLine_Move_Color.Get()), barg3, false);
+			Drawing::Draw_action_lines_7049C0(nLoc_X, nLoc_Y, nLoc_Z, nCooordDest.X, nCooordDest.Y, nCoordDest_Adjusted_Z,
+				pTypeExt->CommandLine_Move_Color->ToInit(), barg3, false);
 		}
 
 		return Skip;

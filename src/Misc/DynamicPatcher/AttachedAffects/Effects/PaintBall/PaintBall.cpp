@@ -31,14 +31,7 @@ void PaintBall::Init()
 		// but this is actually Color16
 		// then need to make it ColorStruct
 		// then convert it to DWORD
-		Color16Struct nColor16 = {
-			Data->Color.R,
-			Data->Color.G,
-			Data->Color.B
-		};
-
-		ColorStruct nColorAgain = ColorStruct { nColor16 };
-		Color = Drawing::RGB2DWORD(nColorAgain);
+		Color = Data->Color.ToRGB16_Quantized();
 	}
 }
 

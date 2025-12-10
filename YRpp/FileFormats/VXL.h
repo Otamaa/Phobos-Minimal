@@ -221,7 +221,7 @@ public:
 	int RemapEnd;
 	int LUTCount;
 	int Unused;
-	RGBClass* Palette;
+	ColorStruct* Palette;
 	char(*LookupTable)[1];
 	DWORD PaletteAllocated;
 	DWORD LUTAllocated;

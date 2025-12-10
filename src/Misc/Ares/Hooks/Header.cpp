@@ -327,51 +327,60 @@ bool TechnoTypeExt_ExtData::CameoIsElite(TechnoTypeClass* pType, HouseClass* pHo
 	{
 	case AbstractType::InfantryType:
 	{
-		if (pHouse->BarracksInfiltrated && !pType->Naval && pType->Trainable)
-		{
+		//special conditions
+		if (pHouse->BarracksInfiltrated && !pType->Naval && pType->Trainable) {
 			return true;
 		}
 
+		//guarantee
 		return pCountry->VeteranInfantry.contains(static_cast<InfantryTypeClass*>(pType));
-
 	}
 	case AbstractType::UnitType:
 	{
-		if (pHouse->WarFactoryInfiltrated && !pType->Naval && pType->Trainable)
-		{
-			return true;
-		}
-		else if (pHouseExt->Is_NavalYardSpied && pType->Naval && pType->Trainable)
-		{
-			return true;
+		//special conditions
+		if(pType->Trainable){
+			if (pHouse->WarFactoryInfiltrated && !pType->Naval) {
+				return true;
+			}
+			else if (pHouseExt->Is_NavalYardSpied && pType->Naval) {
+				return true;
+			}
 		}
 
+		//guaarantee
 		return pCountry->VeteranUnits.contains((UnitTypeClass*)pType);
 	}
 	case AbstractType::AircraftType:
 	{
-		if (pHouseExt->Is_AirfieldSpied && pType->Trainable)
-		{
+		//special conditions
+		if (pHouseExt->Is_AirfieldSpied && pType->Trainable) {
 			return true;
 		}
 
+		//guarantee
 		return pCountry->VeteranAircraft.contains((AircraftTypeClass*)(pType));
 	}
 	case AbstractType::BuildingType:
 	{
-		if (auto const pItem = pType->UndeploysInto)
-		{
-			return pCountry->VeteranUnits.contains((UnitTypeClass*)(pItem));
-		}
-		else if (pHouseExt->Is_ConstructionYardSpied && pType->Trainable)
-		{
-			return true;
+		//special conditions
+		if(pType->Trainable){
+			if (auto const pItem = pType->UndeploysInto){
+				if(pType->Naval && pHouseExt->Is_NavalYardSpied){
+					return true;
+				}
+
+				return pCountry->VeteranUnits.contains((UnitTypeClass*)(pItem));
+			} else if (pHouseExt->Is_ConstructionYardSpied) {
+				return true;
+			}
 		}
 
+		//guarantees
 		return HouseTypeExtContainer::Instance.Find(pCountry)->VeteranBuildings.Contains((BuildingTypeClass*)(pType));
 	}
 	}
 
+	//nope !
 	return false;
 }
 

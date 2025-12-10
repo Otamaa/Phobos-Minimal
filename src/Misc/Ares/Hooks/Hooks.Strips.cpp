@@ -241,14 +241,6 @@ ASMJIT_PATCH(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 		ContinueLoop : BreakLoop;
 }
 
-ASMJIT_PATCH(0x6a96d9, StripClass_Draw_Strip, 7)
-{
-	GET(StripClass*, pThis, EDI);
-	GET(int, idx_first, ECX);
-	GET(int, idx_Second, EDX);
-	R->EAX(&SidebarClass::SelectButtonCombined[idx_Second + 2 * idx_first]);
-	return pThis->IsScrolling ? 0x6A9703 : 0x6A9714;
-}
 #else
 
 static COMPILETIMEEVAL constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
@@ -304,24 +296,6 @@ ASMJIT_PATCH(0x6AC02F, sub_6ABD30_Strip3, 0x8)
 	}
 
 	return 0x6AC0A7;
-}
-
-ASMJIT_PATCH(0x6a9822, StripClass_Draw_Power, 5)
-{
-	GET(FactoryClass*, pFactory, ECX);
-
-	bool IsDone = pFactory->IsDone();
-
-	if (IsDone)
-	{
-		if (auto pBuilding = cast_to<BuildingClass*, false>(pFactory->Object))
-		{
-			IsDone = pBuilding->FindFactory(true, true) != nullptr;
-		}
-	}
-
-	R->EAX(IsDone);
-	return 0x6A9827;
 }
 
 ASMJIT_PATCH(0x6A83E0, StripClass_DisableInput, 6)
@@ -619,87 +593,6 @@ ASMJIT_PATCH(0x6A8F6C, StripClass_MouseMove_GetCameos3, 9)
 	return 0x6A8F7C;
 }
 
-ASMJIT_PATCH(0x6A9747, StripClass_Draw_GetCameo, 6)
-{
-	GET(int, CameoIndex, ECX);
-
-	auto& Item = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex];
-
-	auto ptr = reinterpret_cast<byte*>(&Item);
-	ptr -= 0x58;
-	R->EAX<byte*>(ptr);
-	R->Stack<byte*>(0x30, ptr);
-
-	R->ECX(Item.ItemType);
-
-	return (Item.ItemType == AbstractType::Special)
-		? 0x6A9936
-		: 0x6A9761
-		;
-}
-
-ASMJIT_PATCH(0x6A95C8, StripClass_Draw_Status, 8)
-{
-	GET(int, CameoIndex, EAX);
-
-	R->EDX<DWORD*>(&MouseClassExt::TabCameos
-		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].Status
-	);
-
-	return 0x6A95D3;
-}
-
-ASMJIT_PATCH(0x6A9866, StripClass_Draw_Status_1, 8)
-{
-	GET(int, CameoIndex, ECX);
-
-	return (MouseClassExt::TabCameos
-		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].Status == 1)
-		? 0x6A9874
-		: 0x6A98CF
-		;
-}
-
-ASMJIT_PATCH(0x6A9886, StripClass_Draw_Status_2, 8)
-{
-	GET(int, CameoIndex, EAX);
-
-	auto ptr = reinterpret_cast<byte*>(
-		&MouseClassExt::TabCameos
-		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex]
-	);
-
-	ptr += 0x10;
-	R->EDI<byte*>(ptr);
-
-	auto dwPtr = reinterpret_cast<DWORD*>(ptr);
-	R->EAX<DWORD>(*dwPtr);
-
-	return 0x6A9893;
-}
-
-ASMJIT_PATCH(0x6A9EBA, StripClass_Draw_Status_3, 8)
-{
-	GET(int, CameoIndex, EAX);
-
-	return (MouseClassExt::TabCameos
-		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].Status == 2
-		)
-		? 0x6A9ECC
-		: 0x6AA01C
-		;
-}
-
-ASMJIT_PATCH(0x6A99BE, StripClass_Draw_BreakDrawLoop, 5)
-{
-	R->Stack8(0x12, 0);
-	return 0x6AA01C;
-}
-
 #include <Ext/Rules/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Scenario/Body.h>
@@ -709,119 +602,6 @@ ASMJIT_PATCH(0x4F92DD, HouseClass_Update_RedrawSidebarWhenRecheckTechTree, 0x5)
 {
 	SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 	return 0;
-}
-
-ASMJIT_PATCH(0x6A9B4F, StripClass_Draw_TestFlashFrame, 6)
-{
-	GET(int, CameoIndex, EAX);
-	GET(const bool, greyCameo, EBX);
-	GET(const int, destX, ESI);
-	GET(const int, destY, EBP);
-	GET_STACK(const RectangleStruct, boundingRect, STACK_OFFSET(0x48C, -0x3E0));
-	GET_STACK(TechnoTypeClass* const, pType, STACK_OFFSET(0x48C, -0x458));
-
-	R->EAX(Unsorted::CurrentFrame());
-	if((MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].FlashEndFrame > Unsorted::CurrentFrame
-	)) {
-		return 0x6A9B67;
-	}
-
-	if(pType){
-		//DrawGreyCameoExtraCover
-
-		Point2D position { destX + 30, destY + 24 };
-		const auto pRulesExt = RulesExtData::Instance();
-		const Vector3D<int>& frames = pRulesExt->Cameo_OverlayFrames.Get();
-
-		if (greyCameo) // Only draw extras over grey cameos
-		{
-			auto frame = frames.Y;
-			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-			if (pTypeExt->Cameo_AlwaysExist.Get(pRulesExt->Cameo_AlwaysExist))
-			{
-				auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
-
-				if (vec.contains(pType))
-				{
-					if (const auto CameoPCX = pTypeExt->GreyCameoPCX.GetSurface())
-					{
-						auto drawRect = RectangleStruct { destX, destY, 60, 48 };
-						PCX::Instance->BlitToSurface(&drawRect, DSurface::Sidebar, CameoPCX);
-					}
-
-					frame = frames.Z;
-				}
-			}
-
-			if (frame >= 0)
-			{
-				ConvertClass* pConvert = FileSystem::PALETTE_PAL;
-				if (pRulesExt->Cameo_OverlayPalette.GetConvert())
-					pConvert = pRulesExt->Cameo_OverlayPalette.GetConvert();
-
-				DSurface::Sidebar->DrawSHP(
-					pConvert,
-					pRulesExt->Cameo_OverlayShapes,
-					frame,
-					&position,
-					&boundingRect,
-					BlitterFlags(0x600),
-					0, 0,
-					ZGradient::Ground,
-					1000, 0, 0, 0, 0, 0);
-			}
-		}
-
-		if (const auto pBuildingType = cast_to<BuildingTypeClass* , false>(pType)) // Only count owned buildings
-		{
-			const auto pHouse = HouseClass::CurrentPlayer();
-			auto count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, pHouse);
-
-			if (count == -1)
-				count = pHouse->CountOwnedAndPresent(pBuildingType);
-
-			if (count > 0)
-			{
-				if (frames.X >= 0)
-				{
-					ConvertClass* pConvert = FileSystem::PALETTE_PAL;
-					if (pRulesExt->Cameo_OverlayPalette.GetConvert())
-						pConvert = pRulesExt->Cameo_OverlayPalette.GetConvert();
-
-					DSurface::Sidebar->DrawSHP(
-						pConvert,
-						pRulesExt->Cameo_OverlayShapes,
-						frames.X,
-						&position,
-						&boundingRect,
-						BlitterFlags(0x600),
-						0, 0,
-						ZGradient::Ground,
-						1000, 0, 0, 0, 0, 0);
-				}
-
-				if (Phobos::Config::ShowBuildingStatistics
-					&& BuildingTypeExtContainer::Instance.Find(pBuildingType)->Cameo_ShouldCount.Get(pBuildingType->BuildCat != BuildCat::Combat ||( pBuildingType->BuildLimit != INT_MAX))
-					)
-				{
-					GET_STACK(RectangleStruct, surfaceRect, STACK_OFFSET(0x48C, -0x438));
-
-					const COLORREF color = Drawing::RGB_To_Int(Drawing::TooltipColor);
-					const TextPrintType printType = TextPrintType::Background | TextPrintType::Right | TextPrintType::FullShadow | TextPrintType::Point8;
-					auto textPosition = Point2D { destX , destY + 1 };
-					static fmt::basic_memory_buffer<wchar_t> text;
-					text.clear();
-					fmt::format_to(std::back_inserter(text) , L"{}", count);
-					text.push_back(L'\0');
-					DSurface::Sidebar->DrawText_Old(text.data(), &surfaceRect, &textPosition, color, 0, (DWORD)printType);
-				}
-			}
-		}
-	}
-
-	return 0x6A9BC5;
 }
 
 ASMJIT_PATCH(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
@@ -854,11 +634,11 @@ ASMJIT_PATCH(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
 ASMJIT_PATCH(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
 {
 	GET(int, CameoIndex, ESI);
-
-	R->EAX<DWORD*>(&MouseClassExt::TabCameos
+	DWORD dmm =(DWORD)MouseClassExt::TabCameos
 		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].Status
-	);
+		[CameoIndex].Status;
+
+	R->EAX<DWORD*>(&dmm);
 
 	return 0x6AB0BE;
 }
@@ -884,7 +664,7 @@ ASMJIT_PATCH(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 
 	auto& Item = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex];
 
-	Item.Status = 1;
+	Item.Status = BuildState::Building;
 
 	auto Progress = (Item.CurrentFactory)
 		? Item.CurrentFactory->GetProgress()
@@ -894,7 +674,7 @@ ASMJIT_PATCH(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
 	R->EAX<int>(Progress);
 	R->EBP<void*>(nullptr);
 
-	if (Item.Status == 1)
+	if (Item.Status == BuildState::Building)
 	{
 		if (Item.Progress.Stage > Progress)
 		{
@@ -924,7 +704,7 @@ ASMJIT_PATCH(0x6AB741, SelectClass_ProcessInput_FixOffset5, 7)
 ASMJIT_PATCH(0x6AB802, SelectClass_ProcessInput_FixOffset6, 8)
 {
 	GET(int, CameoIndex, EAX);
-	MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex].Status = 1;
+	MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex].Status = BuildState::Building;
 	return 0x6AB814;
 }
 

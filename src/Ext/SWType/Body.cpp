@@ -325,6 +325,25 @@ bool SWTypeExtData::LauchSuper(SuperClass* pSuper)
 	return false;
 }
 
+double SWTypeExtData::GetSuperChargePercent(SuperClass* pSuper, bool backward)
+{
+	if (!pSuper)
+		return backward ? 100.0 : 0.0;
+
+	int rechargeTime = pSuper->GetRechargeTime();
+	if (rechargeTime <= 0)
+		return backward ? 0.0 : 100.0;
+
+	int timeLeft = pSuper->RechargeTimer.GetTimeLeft();
+	double percent = (1.0 - (double)timeLeft / (double)rechargeTime) * 100.0;
+
+	// Clamp to 0-100
+	if (percent < 0.0) percent = 0.0;
+	if (percent > 100.0) percent = 100.0;
+
+	return backward ? (100.0 - percent) : percent;
+}
+
 bool SWTypeExtData::DrawDarken(SuperClass* pSuper)
 {
 	const auto pSWExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
@@ -1431,9 +1450,13 @@ void SWTypeExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, bool c
 	}
 }
 
-void NOINLINE SWTypeExtData::PreParse(CCINIClass* pINI)
+bool NOINLINE SWTypeExtData::PreParse(CCINIClass* pINI)
 {
 	auto pThis = this->This();
+
+	if (!pINI->GetSection(pThis->ID))
+		return false;
+
 	const char* pSection = pThis->ID;
 
 	INI_EX exINI(pINI);
@@ -1464,6 +1487,7 @@ void NOINLINE SWTypeExtData::PreParse(CCINIClass* pINI)
 	}
 
 	this->LastAction = pThis->Action;
+	return true;
 }
 
 bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
@@ -1564,7 +1588,6 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
 	this->GClock_Palette.Read(exINI, pSection, "GClock.Palette");
 
-	// code disabled , unfinished
 	this->ChargeTimer.Read(exINI, pSection, "Timer.ChargeMode");
 	this->ChargeTimer_Backwards.Read(exINI, pSection, "Timer.ChargeModeBackwards");
 	//
@@ -2892,8 +2915,8 @@ ASMJIT_PATCH(0x6CEFE0, SuperWeaponTypeClass_SDDTOR, 0x8)
 bool FakeSuperWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
 	//read some properties early before
-	SWTypeExtContainer::Instance.Find(this)->PreParse(pINI);
-	bool status = this->SuperWeaponTypeClass::LoadFromINI(pINI);
+	bool status = SWTypeExtContainer::Instance.Find(this)->PreParse(pINI);
+		 status |= this->SuperWeaponTypeClass::LoadFromINI(pINI);
 	SWTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;
 }

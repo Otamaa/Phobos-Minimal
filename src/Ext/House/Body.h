@@ -443,6 +443,9 @@ public:
 	static bool ReachedBuildLimit(HouseClass* pHouse, TechnoTypeClass* pType, bool ignoreQueued);
 
 	static bool ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType);
+	static bool ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType, bool AdditionalCheks);
+
+	static bool CheckShouldDisableDefensesCameo(HouseClass* pHouse, TechnoTypeClass* pType);
 
 	static TunnelData* GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx);
 	static TunnelData* GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse);

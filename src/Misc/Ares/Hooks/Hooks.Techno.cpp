@@ -708,11 +708,11 @@ void __fastcall FakeTechnoClass::__Draw_Stuff_When_Selected(TechnoClass* pThis, 
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x70AA60 , FakeTechnoClass::__Draw_Stuff_When_Selected)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E26FC, FakeBuildingClass::_DrawStuffsWhenSelected)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7E90EC, FakeBuildingClass::_DrawStuffsWhenSelected)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB4B0, FakeBuildingClass::_DrawStuffsWhenSelected)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4DB8, FakeBuildingClass::_DrawStuffsWhenSelected)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F60C8, FakeBuildingClass::_DrawStuffsWhenSelected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E26FC, FakeTechnoClass::__Draw_Stuff_When_Selected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E90EC, FakeTechnoClass::__Draw_Stuff_When_Selected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB4B0, FakeTechnoClass::__Draw_Stuff_When_Selected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4DB8, FakeTechnoClass::__Draw_Stuff_When_Selected)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F60C8, FakeTechnoClass::__Draw_Stuff_When_Selected)
 
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7E4314 , FakeBuildingClass::_DrawStuffsWhenSelected)
 

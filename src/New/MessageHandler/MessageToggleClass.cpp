@@ -72,7 +72,6 @@ void MessageToggleClass::DrawShape() const
 		if (this->Hovering && !this->Clicking)
 			MessageColumnClass::Instance.IncreaseBrightness(color);
 
-		const int drawColor = Drawing::RGB_To_Int(color);
 		constexpr int offset = 4;
 		constexpr int iconSide = MessageToggleClass::ButtonSide - (offset * 2);
 		drawRect.X += offset;
@@ -80,7 +79,7 @@ void MessageToggleClass::DrawShape() const
 		drawRect.Width = iconSide;
 		drawRect.Height = iconSide;
 
-		DSurface::Composite->Fill_Rect(drawRect, drawColor);
+		DSurface::Composite->Fill_Rect(drawRect, color.ToInit());
 	}
 	else
 	{
@@ -91,7 +90,6 @@ void MessageToggleClass::DrawShape() const
 		if (this->Hovering && !this->Clicking)
 			MessageColumnClass::Instance.IncreaseBrightness(color);
 
-		const int drawColor = Drawing::RGB_To_Int(color);
 		constexpr int interval = 2;
 		constexpr int drawCount = 3;
 		constexpr int offset = (MessageToggleClass::ButtonSide - interval * (drawCount * 2 - 1)) / 2;
@@ -99,6 +97,7 @@ void MessageToggleClass::DrawShape() const
 		drawRect.Y += offset;
 		drawRect.Width = MessageToggleClass::ButtonSide - (2 * offset);
 		drawRect.Height = interval;
+		const int drawColor = color.ToInit();
 
 		DSurface::Composite->Fill_Rect(drawRect, drawColor);
 

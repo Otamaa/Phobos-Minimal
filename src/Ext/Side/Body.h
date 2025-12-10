@@ -40,9 +40,9 @@ public:
 	Nullable<ColorStruct> ToolTip_Background_Color;
 	Nullable<int> ToolTip_Background_Opacity;
 	Nullable<float> ToolTip_Background_BlurSize;
-	Nullable<SHPStruct*> GClock_Shape;
-	Nullable<int> GClock_Transculency;
-	//CustomPalette GClock_Palette;
+	Valueable<SHPStruct*> GClock_Shape;
+	Valueable<TranslucencyLevel> GClock_Transculency;
+	CustomPalette GClock_Palette;
 	Nullable<int> SurvivorDivisor;
 	Nullable<InfantryTypeClass*> Crew;
 	Nullable<InfantryTypeClass*> Engineer;

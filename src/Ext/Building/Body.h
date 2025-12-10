@@ -155,6 +155,7 @@ public:
 	static bool ReverseEngineer(BuildingClass* pBuilding, TechnoClass* Victim);
 
 	static const std::vector<CellStruct> GetFoundationCells(BuildingClass* pThis, CellStruct baseCoords, bool includeOccupyHeight = false);
+	static bool BuildingHasPower(BuildingClass* pThis);
 
 private:
 	template <typename T>
@@ -204,7 +205,8 @@ public:
 		int tintLevel,
 		SHPStruct* z_shape,
 		int z_shape_framenum,
-		Point2D z_shape_offs,
+		int z_shape_offs_x,
+		int z_shape_offs_y,
 		BlitterFlags flags);
 
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)

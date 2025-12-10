@@ -111,7 +111,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 		auto const TextFlags = static_cast<TextPrintType>(static_cast<int>(TextPrintType::UseGradPal | TextPrintType::Metal12)
 				| static_cast<int>(pSideExt->Sidebar_BattlePoints_Align.Get()));
 
-		DSurface::Sidebar->DSurfaceDrawText(counter.data(), &vRect, &vPos, Drawing::RGB_To_Int(clrToolTip), 0, TextFlags);
+		DSurface::Sidebar->DSurfaceDrawText(counter.data(), &vRect, &vPos, clrToolTip.ToInit(), 0, TextFlags);
 	}
 
 	if (Phobos::UI::ShowHarvesterCounter && Phobos::Config::ShowHarvesterCounter)
@@ -136,7 +136,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 	 	DSurface::Sidebar->DSurfaceDrawText(
 		Harv.data()
-			, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0,
+			, &vRect, &vPos, clrToolTip.ToInit(), 0,
 	 		TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	 }
 
@@ -176,7 +176,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 
 		DSurface::Sidebar->DSurfaceDrawText(
 		ShowPower.data()
-		, &vRect, &vPos, Drawing::ColorStructToWord(clrToolTip), 0, TextFlags);
+		, &vRect, &vPos, clrToolTip.ToInit(), 0, TextFlags);
 	}
 
 	if (Phobos::UI::WeedsCounter_Show && Phobos::Config::ShowWeedsCounter)
@@ -192,7 +192,7 @@ ASMJIT_PATCH(0x4A25E3, CreditsClass_GraphicLogic_Additionals , 0x8)
 			2 + pSideExt->Sidebar_WeedsCounter_Offset.Get().Y
 		};
 
-		DSurface::Sidebar->DSurfaceDrawText(counter.data(), &vRect, &vPos, Drawing::RGB_To_Int(clrToolTip), 0,
+		DSurface::Sidebar->DSurfaceDrawText(counter.data(), &vRect, &vPos, clrToolTip.ToInit(), 0,
 			TextPrintType::UseGradPal | TextPrintType::Center | TextPrintType::Metal12);
 	}
 	return 0;
@@ -205,10 +205,8 @@ ASMJIT_PATCH(0x715A4D, Replace_XXICON_With_New, 0x7)         //TechnoTypeClass::
 	_strlwr_s(pFilename);
 
 	if (_stricmp(pFilename, GameStrings::XXICON_SHP())
-		&& strstr(pFilename, GameStrings::dot_SHP()))
-	{
-		if (const auto pFile = FakeFileLoader::_Retrieve(RulesExtData::Instance()->MissingCameo.data(), false))
-		{
+		&& strstr(pFilename, GameStrings::dot_SHP())) {
+		if (const auto pFile = FakeFileLoader::_Retrieve(RulesExtData::Instance()->MissingCameo.data(), false)) {
 			R->EAX(pFile);
 			return R->Origin() + 0xC;
 		}

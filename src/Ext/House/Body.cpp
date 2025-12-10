@@ -7,10 +7,11 @@
 #include <Ext/HouseType/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Super/Body.h>
-#include <Misc/Spawner/Main.h>
 #include <Ext/Infantry/Body.h>
+#include <Ext/Scenario/Body.h>
 
 #include <Misc/Hooks.Otamaa.h>
+#include <Misc/Spawner/Main.h>
 
 #include <New/Type/GenericPrerequisite.h>
 #include <New/Type/CrateTypeClass.h>
@@ -2173,6 +2174,67 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, 
 	return false;
 }
 
+// Vanilla and Ares all only hardcoded to find factory with BuildCat::DontCare...
+bool HouseExtData::CheckShouldDisableDefensesCameo(HouseClass* pHouse, TechnoTypeClass* pType)
+{
+	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
+	{
+		if (pBuildingType->BuildCat == BuildCat::Combat)
+		{
+			auto count = 0;
+
+			if (const auto pFactory = pHouse->Primary_ForDefenses)
+			{
+				count = pFactory->CountTotal(pBuildingType);
+
+				if (pFactory->Object && pFactory->Object->GetType() == pBuildingType && pBuildingType->BuildLimit > 0)
+					--count;
+			}
+
+			auto buildLimitRemaining = [](HouseClass* pHouse, BuildingTypeClass* pBldType)
+				{
+					const auto BuildLimit = pBldType->BuildLimit;
+
+					if (BuildLimit >= 0)
+						return BuildLimit - BuildingTypeExtData::CountOwnedNowWithDeployOrUpgrade(pBldType, pHouse);
+					else
+						return -BuildLimit - pHouse->CountOwnedEver(pBldType);
+				};
+
+			if (buildLimitRemaining(pHouse, pBuildingType) - count <= 0)
+				return true;
+		}
+	}
+
+	return false;
+}
+
+bool HouseExtData::ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType, bool AdditionalCheks)
+{
+	if (ShouldDisableCameo(pThis, pType))
+		return true;
+
+	if (CheckShouldDisableDefensesCameo(pThis, pType) || HouseExtData::ReachedBuildLimit(pThis, pType, false))
+		return true;
+
+	if (AdditionalCheks && pThis == HouseClass::CurrentPlayer) {
+
+		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+		// The types exist in the list means that they are not buildable now
+		if (pTypeExt->Cameo_AlwaysExist.Get(RulesExtData::Instance()->Cameo_AlwaysExist))
+		{
+			auto& vec = ScenarioExtData::Instance()->OwnedExistCameoTechnoTypes;
+
+			if (vec.contains(pType)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 bool HouseExtData::ShouldDisableCameo(HouseClass* pThis, TechnoTypeClass* pType)
 {
 	auto ret = false;
@@ -3328,6 +3390,7 @@ void FakeHouseClass::_UpdateRadar() {
 				if (!pExt->RegisteredJammers.empty()) continue;
 				if (building->EMPLockRemaining > 0) continue;
 				if (building->IsBeingWarpedOut()) continue;
+				if (building->Deactivated) continue;
 				if (building->CurrentMission == Mission::Selling) continue;
 				if (building->QueuedMission == Mission::Selling) continue;
 
@@ -3341,7 +3404,7 @@ void FakeHouseClass::_UpdateRadar() {
 						continue;
 
 					const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
-					if(!pTypeExt->Radar_RequirePower || ((*begin)->Powered && building->HasPower)){
+					if(!pTypeExt->Radar_RequirePower || building->IsPowerOnline()){
 						pRadar = (*begin);
 						break;
 					}
@@ -3428,10 +3491,15 @@ void FakeHouseClass::_UpdateSpySat()
 
 			if (pBld->TemporalTargetingMe
 				|| pExt->AboutToChronoshift
+				|| pBld->EMPLockRemaining > 0
+				|| pBld->Deactivated
 				|| pBld->IsBeingWarpedOut())
 				continue;
 
-			//const bool Online = pBld->IsPowerOnline(); // check power
+			if (pBld->CurrentMission == Mission::Selling) continue;
+			if (pBld->QueuedMission == Mission::Selling) continue;
+
+			const bool Online = pBld->IsPowerOnline(); // check power
 			const auto pTypes = pBld->GetTypes(); // building types include upgrades
 			const bool Jammered = !pExt->RegisteredJammers.empty();  // is this building jammed
 
@@ -3440,13 +3508,13 @@ void FakeHouseClass::_UpdateSpySat()
 				const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(*begin);
 				//const auto Powered_ = pBld->IsOverpowered || (!PowerDown && !((*begin)->PowerDrain && LowpOwerHouse));
 
-				const bool IsBattlePointsCollectorPowered = !pTypeExt->BattlePointsCollector_RequirePower || ((*begin)->Powered && pBld->HasPower);
+				const bool IsBattlePointsCollectorPowered = !pTypeExt->BattlePointsCollector_RequirePower || Online;
 				if (pTypeExt->BattlePointsCollector && IsBattlePointsCollectorPowered)
 				{
 					++pHouseExt->BattlePointsCollectors[(*begin)];
 				}
 
-				const bool IsFactoryPowered = !pTypeExt->FactoryPlant_RequirePower || ((*begin)->Powered && pBld->HasPower);
+				const bool IsFactoryPowered = !pTypeExt->FactoryPlant_RequirePower || Online;
 
 				//recalculate the multiplier
 				if ((*begin)->FactoryPlant && IsFactoryPowered)
@@ -3468,7 +3536,7 @@ void FakeHouseClass::_UpdateSpySat()
 					//only pick avaible spysat
 					if (!TechnoExtContainer::Instance.Find(pBld)->AE.flags.DisableSpySat)
 					{
-						const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || ((*begin)->Powered && pBld->HasPower);
+						const bool IsSpySatPowered = !pTypeExt->SpySat_RequirePower || Online;
 						if ((*begin)->SpySat && !Jammered && IsSpySatPowered)
 						{
 							if (IsLimboDelivered || !IsCampaign || pBld->DiscoveredByCurrentPlayer)
@@ -3480,10 +3548,10 @@ void FakeHouseClass::_UpdateSpySat()
 				}
 
 				// add eligible building
-				if (pTypeExt->SpeedBonus.Enabled && pBld->HasPower)
+				if (pTypeExt->SpeedBonus.Enabled && Online)
 					++pHouseExt->Building_BuildSpeedBonusCounter[(*begin)];
 
-				const bool IsPurifierRequirePower = !pTypeExt->PurifierBonus_RequirePower || ((*begin)->Powered && pBld->HasPower);
+				const bool IsPurifierRequirePower = !pTypeExt->PurifierBonus_RequirePower || Online;
 				// add eligible purifier
 				if ((*begin)->OrePurifier && IsPurifierRequirePower)
 					++pHouseExt->Building_OrePurifiersCounter[(*begin)];

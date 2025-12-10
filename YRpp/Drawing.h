@@ -41,6 +41,7 @@ struct Drawing
 	static COMPILETIMEEVAL reference<ColorStruct, 0xB0FA1Cu> const TooltipColor {};
 
 	static COMPILETIMEEVAL reference<RGBMode, 0x8205D0> ColorMode {};
+
 	static COMPILETIMEEVAL reference<int, 0x8A0DD0> const RedShiftLeft {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DD4> const RedShiftRight {};
 	static COMPILETIMEEVAL reference<int, 0x8A0DE0> const GreenShiftLeft {};
@@ -135,37 +136,37 @@ struct Drawing
 		return buffer;
 	}
 
-	// Converts an RGB color to a 16bit color value.
-	static COMPILETIMEEVAL WORD Color16bit(const ColorStruct& color)
-	{
-		return static_cast<WORD>(
-			(color.B >> BlueShiftRight) |
-			((color.G >> 2) << GreenShiftLeft) |
-			((color.R >> RedShiftRight) << 11));
-	}
+	//// Converts an RGB color to a 16bit color value.
+	//static COMPILETIMEEVAL WORD Color16bit(const ColorStruct& color)
+	//{
+	//	return static_cast<WORD>(
+	//		(color.B >> BlueShiftRight) |
+	//		((color.G >> 2) << GreenShiftLeft) |
+	//		((color.R >> RedShiftRight) << 11));
+	//}
 
-	static COMPILETIMEEVAL int __fastcall RGB_To_Int(BYTE red, BYTE green, BYTE blue)
-	{
-		// JMP_STD(0x4355D0);
-		return (red >> RedShiftRight << RedShiftLeft) |
-			(green >> GreenShiftRight << GreenShiftLeft) |
-			(blue >> BlueShiftRight << BlueShiftLeft);
-	}
+	//static COMPILETIMEEVAL int __fastcall RGB_To_Int(BYTE red, BYTE green, BYTE blue)
+	//{
+	//	// JMP_STD(0x4355D0);
+	//	return (red >> RedShiftRight << RedShiftLeft) |
+	//		(green >> GreenShiftRight << GreenShiftLeft) |
+	//		(blue >> BlueShiftRight << BlueShiftLeft);
+	//}
 
-	static int COMPILETIMEEVAL  RGB_To_Int(int red, int green, int blue)
-	{
-		return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);
-	}
+	//static int COMPILETIMEEVAL  RGB_To_Int(int red, int green, int blue)
+	//{
+	//	return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);
+	//}
 
-	static int COMPILETIMEEVAL  RGB_To_Int(const ColorStruct& Color)
-	{
-		return RGB_To_Int(Color.R, Color.G, Color.B);
-	}
+	//static int COMPILETIMEEVAL  RGB_To_Int(const ColorStruct& Color)
+	//{
+	//	return RGB_To_Int(Color.R, Color.G, Color.B);
+	//}
 
-	static int COMPILETIMEEVAL  RGB_To_Int(ColorStruct&& Color)
-	{
-		return RGB_To_Int(Color.R, Color.G, Color.B);
-	}
+	//static int COMPILETIMEEVAL  RGB_To_Int(ColorStruct&& Color)
+	//{
+	//	return RGB_To_Int(Color.R, Color.G, Color.B);
+	//}
 
 	static void COMPILETIMEEVAL  Int_To_RGB(int color, BYTE& red, BYTE& green, BYTE& blue)
 	{
@@ -174,73 +175,73 @@ struct Drawing
 		blue = static_cast<BYTE>(color >> BlueShiftLeft << BlueShiftRight);
 	}
 
-	static void COMPILETIMEEVAL Int_To_RGB(int color, ColorStruct& buffer)
-	{
-		Int_To_RGB(color, buffer.R, buffer.G, buffer.B);
-	}
+	//static void COMPILETIMEEVAL Int_To_RGB(int color, ColorStruct& buffer)
+	//{
+	//	Int_To_RGB(color, buffer.R, buffer.G, buffer.B);
+	//}
 
-	static COMPILETIMEEVAL  ColorStruct Int_To_RGB(int color)
-	{
-		ColorStruct ret;
-		Int_To_RGB(color, ret);
-		return ret;
-	}
+	//static COMPILETIMEEVAL ColorStruct Int_To_RGB(int color)
+	//{
+	//	ColorStruct ret;
+	//	Int_To_RGB(color, ret);
+	//	return ret;
+	//}
+
 	static DWORD __fastcall RGB2DWORD(int red, int green, int blue)
-	{ JMP_FAST(0x4355D0); }
+	{ return (red >> RedShiftRight << RedShiftLeft) | (green >> GreenShiftRight << GreenShiftLeft) | (blue >> BlueShiftRight << BlueShiftLeft);}
 
-	static DWORD RGB2DWORD(const ColorStruct Color) {
-		return RGB2DWORD(Color.R, Color.G, Color.B);
-	}
+	//static DWORD RGB2DWORD(const ColorStruct Color) {
+	//	return RGB2DWORD(Color.R, Color.G, Color.B);
+	//}
 
-	static DWORD RGB2DWORD(const Color16Struct Color) {
-		return RGB2DWORD(Color.R, Color.G, Color.B);
-	}
+	//static DWORD RGB2DWORD(const Color16Struct Color) {
+	//	return RGB2DWORD(Color.R, Color.G, Color.B);
+	//}
 
-	// Converts a 16bit color to an RGB color.
-	static COMPILETIMEEVAL ColorStruct WordColor(WORD bits) {
-		return {
-			static_cast<BYTE>(((bits & 0xF800) >> 11) << 3),
-			static_cast<BYTE>(((bits & 0x07E0) >> 5) << 2),
-			static_cast<BYTE>((bits & 0x001F) << 3)
-		};
-	}
+	//// Converts a 16bit color to an RGB color.
+	//static COMPILETIMEEVAL ColorStruct WordColor(WORD bits) {
+	//	return {
+	//		static_cast<BYTE>(((bits & 0xF800) >> 11) << 3),
+	//		static_cast<BYTE>(((bits & 0x07E0) >> 5) << 2),
+	//		static_cast<BYTE>((bits & 0x001F) << 3)
+	//	};
+	//}
 
-	static ColorStruct RGB888_HEX(const char* pHEX)
-	{
-		ColorStruct res = ColorStruct();
+	//static ColorStruct RGB888_HEX(const char* pHEX)
+	//{
+	//	ColorStruct res = ColorStruct();
 
-		if (strlen(pHEX) != 6U)
-			return res;
+	//	if (strlen(pHEX) != 6U)
+	//		return res;
 
-		char hexRGB[7];
-		strcpy_s(hexRGB, pHEX);
+	//	char hexRGB[7];
+	//	strcpy_s(hexRGB, pHEX);
 
-		for (char& c : hexRGB)
-		{
-			c = static_cast<char>(tolower(c));
-		}
+	//	for (char& c : hexRGB)
+	//	{
+	//		c = static_cast<char>(tolower(c));
+	//	}
 
-		auto toDecimal = [](char high, char low)
-		{
-			return static_cast<BYTE>
-				(
-					(isdigit(high) ? static_cast<int>(high) - '0' : 10 + high - 'a') * 16
-					+ (isdigit(low) ? static_cast<int>(low) - '0' : 10 + low - 'a')
-				);
-		};
+	//	auto toDecimal = [](char high, char low)
+	//	{
+	//		return static_cast<BYTE>
+	//			(
+	//				(isdigit(high) ? static_cast<int>(high) - '0' : 10 + high - 'a') * 16
+	//				+ (isdigit(low) ? static_cast<int>(low) - '0' : 10 + low - 'a')
+	//			);
+	//	};
 
-		res.R = toDecimal(hexRGB[0], hexRGB[1]);
-		res.G = toDecimal(hexRGB[2], hexRGB[3]);
-		res.B = toDecimal(hexRGB[4], hexRGB[5]);
+	//	res.R = toDecimal(hexRGB[0], hexRGB[1]);
+	//	res.G = toDecimal(hexRGB[2], hexRGB[3]);
+	//	res.B = toDecimal(hexRGB[4], hexRGB[5]);
 
-		return res;
-	}
+	//	return res;
+	//}
 
-	static DWORD RGB888_HEX_DWORD(const char* pHEX)
-	{
-		return RGB2DWORD(RGB888_HEX(pHEX));
-	}
-
+	//static DWORD RGB888_HEX_DWORD(const char* pHEX)
+	//{
+	//	return RGB2DWORD(RGB888_HEX(pHEX));
+	//}
 
 	static std::array<ColorStruct, (size_t)DefaultColorList::Black + 1> DefaultColors;
 
@@ -276,30 +277,30 @@ struct Drawing
 		}
 	}
 
-	static void WordToColorStruct(WORD const src, ColorStruct& out)
-	{
-		out.R = (BYTE)(src >> Drawing::RedShiftLeft) << Drawing::RedShiftRight;
-		out.G = (BYTE)(src >> Drawing::GreenShiftLeft) << Drawing::GreenShiftRight;
-		out.B = (BYTE)(src >> Drawing::BlueShiftLeft) << Drawing::BlueShiftRight;
-	}
+	//static void WordToRGB(WORD const src, ColorStruct& out)
+	//{
+	//	out.R = (BYTE)(src >> Drawing::RedShiftLeft) << Drawing::RedShiftRight;
+	//	out.G = (BYTE)(src >> Drawing::GreenShiftLeft) << Drawing::GreenShiftRight;
+	//	out.B = (BYTE)(src >> Drawing::BlueShiftLeft) << Drawing::BlueShiftRight;
+	//}
 
-	static WORD ColorStructToWord(const ColorStruct& modified)
-	{
-		return (
-		   (BYTE)(modified.R >> Drawing::RedShiftRight) << Drawing::RedShiftLeft |
-		   (BYTE)(modified.B >> Drawing::BlueShiftRight) << Drawing::BlueShiftLeft |
-		   (BYTE)(modified.G >> Drawing::GreenShiftRight) << Drawing::GreenShiftLeft
-		   );
-	}
+	//static WORD WordToRBG(const ColorStruct& modified)
+	//{
+	//	return (
+	//	   (BYTE)(modified.R >> Drawing::RedShiftRight) << Drawing::RedShiftLeft |
+	//	   (BYTE)(modified.B >> Drawing::BlueShiftRight) << Drawing::BlueShiftLeft |
+	//	   (BYTE)(modified.G >> Drawing::GreenShiftRight) << Drawing::GreenShiftLeft
+	//	   );
+	//}
 
-	static WORD ColorStructToWordRGB(const ColorStruct& modified)
-	{
-		return (
-		   (BYTE)(modified.R >> Drawing::RedShiftRight) << Drawing::RedShiftLeft |
-		   (BYTE)(modified.G >> Drawing::GreenShiftRight) << Drawing::GreenShiftLeft|
-		   (BYTE)(modified.B >> Drawing::BlueShiftRight) << Drawing::BlueShiftLeft
-		   );
-	}
+	//static WORD ColorStructToWordRGB(const ColorStruct& modified)
+	//{
+	//	return (
+	//	   (BYTE)(modified.R >> Drawing::RedShiftRight) << Drawing::RedShiftLeft |
+	//	   (BYTE)(modified.G >> Drawing::GreenShiftRight) << Drawing::GreenShiftLeft|
+	//	   (BYTE)(modified.B >> Drawing::BlueShiftRight) << Drawing::BlueShiftLeft
+	//	   );
+	//}
 };
 
 struct BufferData

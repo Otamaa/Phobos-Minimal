@@ -356,7 +356,7 @@ ASMJIT_PATCH(0x4894C1, MapClass_DamageArea_Cylinder_2, 0x5)
 	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
 	GET(int, nVictimCrdZ, ESI);
 
-	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+	//auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (pWH->_GetExtData()->CellSpread_Cylinder)
 	{

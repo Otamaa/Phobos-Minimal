@@ -44,7 +44,7 @@ public:
 	}
 
 public:
-	int Stage{ 0 }; // the current value , stage
+	int Stage{ 0 }; // the current value , Value
 	bool HasChanged{ false }; // if the timer expired this frame and the value changed
 	RepeatableTimer Timer{};
 	int Step{ 1 }; // added to value every time the timer expires

@@ -297,7 +297,7 @@ namespace detail
 
 				if (ColorScheme::Array->Count) {
 					if (auto const& nResult = ColorScheme::Find(parser.value())) {
-						nResult->BaseColor.ToColorStruct(&value);
+						value = nResult->BaseColor;
 						return true;
 					}
 				}

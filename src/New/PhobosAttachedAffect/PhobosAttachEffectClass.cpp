@@ -651,10 +651,15 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 
 	const auto pTargetTechnoType = pTarget->GetTechnoType();
 
-	if (!pType->AffectTypes.empty() && !pType->AffectTypes.Contains(pTargetTechnoType))
-		return nullptr;
+	if (pTarget->IsIronCurtained()) {
+		const bool penetrates = pTarget->ProtectType == ProtectTypes::ForceShield
+			? pType->PenetratesForceShield.Get(pType->PenetratesIronCurtain) : pType->PenetratesIronCurtain;
 
-	if (pType->IgnoreTypes.Contains(pTargetTechnoType))
+		if (!penetrates)
+			return nullptr;
+	}
+
+	if (!pType->AffectTypes.empty() && !pType->AffectTypes.Contains(pTargetTechnoType) || pType->IgnoreTypes.Contains(pTargetTechnoType))
 		return nullptr;
 
 	if (!EnumFunctions::IsTechnoEligible(pTarget, pType->AffectTargets, true))
@@ -665,14 +670,6 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 
 	if (pType->AffectBelowPercent.isset() && pTarget->GetHealthPercentage() > pType->AffectBelowPercent)
 		return nullptr;
-
-	if (pTarget->IsIronCurtained()) {
-		const bool penetrates = pTarget->ProtectType == ProtectTypes::ForceShield
-			? pType->PenetratesForceShield.Get(pType->PenetratesIronCurtain) : pType->PenetratesIronCurtain;
-
-		if (!penetrates)
-			return nullptr;
-	}
 
 	int currentTypeCount = 0;
 	const bool cumulative = pType->Cumulative && checkCumulative;
@@ -686,20 +683,21 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 		if (attachEffect->GetType() == pType)
 		{
 			currentTypeCount++;
-			match = attachEffect;
-			if(!cumulative)
-				break;
 
-			if (!attachParams.CumulativeRefreshSameSourceOnly || (attachEffect->Source == pSource && attachEffect->Invoker == pInvoker))
-				cumulativeMatches->push_back(attachEffect);
-
-			if (!match || attachEffect->Duration < match->Duration)
+			if (!cumulative) {
 				attachEffect->RefreshDuration(attachParams.DurationOverride);
 
-			if (auto pTag = pTarget->AttachedTag)
-				pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);
+				if (auto pTag = pTarget->AttachedTag)
+					pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);
 
-			return nullptr;
+				return nullptr;
+			} else if (!attachParams.CumulativeRefreshSameSourceOnly || (attachEffect->Source == pSource && attachEffect->Invoker == pInvoker))
+			{
+				cumulativeMatches->push_back(attachEffect);
+
+				if (!match || attachEffect->Duration < match->Duration)
+					match = attachEffect;
+			}
 		}
 	}
 

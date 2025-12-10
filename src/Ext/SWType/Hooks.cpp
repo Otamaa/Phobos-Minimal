@@ -231,7 +231,7 @@ ASMJIT_PATCH(0x6CC390, SuperClass_Launch, 0x6)
 	GET_STACK(bool const, isPlayer, 0x8);
 
 	//Debug::LogInfo("[%s - %x] Lauch [%s - %x] ", pSuper->Owner->get_ID() , pSuper->Owner, pSuper->Type->ID, pSuper);
-	if ( SWTypeExtData::Activate(pSuper, *pCell, isPlayer) ) {
+	if (SWTypeExtData::Activate(pSuper, *pCell, isPlayer) ) {
 		pSuper->_GetTypeExtData()->FireSuperWeapon(pSuper, pSuper->Owner, pCell, isPlayer);
 	}
 

@@ -29,6 +29,7 @@ private:
 	int LastWritePosition { 0 };
 	int LastReadPosition { -1 };
 	bool HasBeenFilled { true };
+
 public:
 
 	template< class... Args >
@@ -79,8 +80,18 @@ struct RNGCallSyncLogEvent : SyncLogEvent
 	int Min;
 	int Max;
 
-	COMPILETIMEEVAL RNGCallSyncLogEvent() : SyncLogEvent {} { }
-	RNGCallSyncLogEvent(int type, bool isCrititical, unsigned int idx1, unsigned int idx2, unsigned int Caller, unsigned int Frame, int Min, int Max)
+public:
+
+	COMPILETIMEEVAL RNGCallSyncLogEvent() : SyncLogEvent {},
+		Type { },
+		IsCritical { },
+		Index1 { },
+		Index2 { },
+		Min { },
+		Max { }
+	{ }
+
+	COMPILETIMEEVAL RNGCallSyncLogEvent(int type, bool isCrititical, unsigned int idx1, unsigned int idx2, unsigned int Caller, unsigned int Frame, int Min, int Max)
 		: SyncLogEvent { true , Caller, Frame } ,
 		Type { type },
 		IsCritical { isCrititical },
@@ -97,8 +108,10 @@ struct FacingChangeSyncLogEvent : SyncLogEvent
 {
 	unsigned short Facing;
 
-	COMPILETIMEEVAL FacingChangeSyncLogEvent() : SyncLogEvent {} { }
-	FacingChangeSyncLogEvent(unsigned short facing, unsigned int Caller, unsigned int Frame)
+public:
+
+	COMPILETIMEEVAL FacingChangeSyncLogEvent() : SyncLogEvent {}, Facing {} { }
+	COMPILETIMEEVAL FacingChangeSyncLogEvent(unsigned short facing, unsigned int Caller, unsigned int Frame)
 		: SyncLogEvent { true , Caller, Frame },
 		Facing { facing }
 	{
@@ -112,8 +125,16 @@ struct TargetChangeSyncLogEvent : SyncLogEvent
 	AbstractType TargetType;
 	DWORD TargetID;
 
-	COMPILETIMEEVAL TargetChangeSyncLogEvent() : SyncLogEvent {} { }
-	TargetChangeSyncLogEvent(const AbstractType& type, const DWORD& id, const AbstractType& targetType, const DWORD& targetID, unsigned int Caller, unsigned int Frame)
+public:
+
+	COMPILETIMEEVAL TargetChangeSyncLogEvent() : SyncLogEvent {},
+		Type { },
+		ID { },
+		TargetType { },
+		TargetID { }
+	{ }
+
+	COMPILETIMEEVAL TargetChangeSyncLogEvent(const AbstractType& type, const DWORD& id, const AbstractType& targetType, const DWORD& targetID, unsigned int Caller, unsigned int Frame)
 		: SyncLogEvent { true , Caller, Frame },
 		Type { type },
 		ID { id },
@@ -129,8 +150,15 @@ struct MissionOverrideSyncLogEvent : SyncLogEvent
 	DWORD ID;
 	int Mission;
 
-	COMPILETIMEEVAL MissionOverrideSyncLogEvent() : SyncLogEvent {} { }
-	MissionOverrideSyncLogEvent(const AbstractType& type, const DWORD& id, int mission, unsigned int Caller, unsigned int Frame)
+public:
+
+	COMPILETIMEEVAL MissionOverrideSyncLogEvent() : SyncLogEvent {},
+		Type { },
+		ID { },
+		Mission { }
+	{ }
+
+	COMPILETIMEEVAL MissionOverrideSyncLogEvent(const AbstractType& type, const DWORD& id, int mission, unsigned int Caller, unsigned int Frame)
 		: SyncLogEvent { true , Caller, Frame },
 		Type { type },
 		ID { id },
@@ -143,8 +171,13 @@ struct AnimCreationSyncLogEvent : SyncLogEvent
 {
 	CoordStruct Coords;
 
-	COMPILETIMEEVAL AnimCreationSyncLogEvent() : SyncLogEvent {} { }
-	AnimCreationSyncLogEvent(const CoordStruct& coords, unsigned int Caller, unsigned int Frame)
+public:
+
+	COMPILETIMEEVAL AnimCreationSyncLogEvent() : SyncLogEvent {},
+		Coords { }
+	{ }
+
+	COMPILETIMEEVAL AnimCreationSyncLogEvent(const CoordStruct& coords, unsigned int Caller, unsigned int Frame)
 		: SyncLogEvent { true , Caller, Frame }, Coords { coords }
 	{
 	}

@@ -833,7 +833,8 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		int tintLevel,
 		SHPStruct* z_shape,
 		int z_shape_framenum,
-		Point2D z_shape_offs,
+		int z_shape_offs_x,
+		int z_shape_offs_y,
 		BlitterFlags flags);
 
 	//Constructor

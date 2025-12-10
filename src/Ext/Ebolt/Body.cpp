@@ -25,16 +25,12 @@ void EboltExtData::Clear()
 
 void EboltExtData::GetColors(int(&color)[3] , EBolt* pBolt, Nullable<ColorStruct>& clr1, Nullable<ColorStruct>& clr2, Nullable<ColorStruct>& clr3)
 {
-	const int colrIdx = pBolt->AlternateColor != 0 ? 5 : 10;
-	const auto nFirst = FileSystem::PALETTE_PAL()->inline_02(colrIdx);
-	const auto nSec = FileSystem::PALETTE_PAL()->inline_02(15);
+	color[0] = color[1] = FileSystem::PALETTE_PAL()->inline_02(pBolt->AlternateColor != 0 ? 5 : 10);
+	color[2] = FileSystem::PALETTE_PAL()->inline_02(15);
 
-	color[0] = color[1] = nFirst;
-	color[2] = nSec;
-
-	if (clr1.isset()) { color[0] = Drawing::RGB_To_Int(clr1.Get()); }
-	if (clr2.isset()) { color[1] = Drawing::RGB_To_Int(clr2.Get()); }
-	if (clr3.isset()) { color[2] = Drawing::RGB_To_Int(clr3.Get()); }
+	if (clr1.isset()) { color[0] = clr1->ToInit(); }
+	if (clr2.isset()) { color[1] = clr2->ToInit(); }
+	if (clr3.isset()) { color[2] = clr3->ToInit(); }
 }
 
 EBolt* EboltExtData::_CreateOneOf(WeaponTypeClass * pWeapon, TechnoClass * pFirer) {

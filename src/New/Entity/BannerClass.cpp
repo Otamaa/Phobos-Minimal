@@ -152,7 +152,7 @@ void BannerClass::RenderCSF(Point2D position)
 		buffer.data(),
 		&rect,
 		&position,
-		Drawing::RGB_To_Int(this->Type->CSF_Color.Get(Drawing::TooltipColor)),
+		this->Type->CSF_Color.Get(Drawing::TooltipColor).ToInit(),
 		0,
 		textFlags
 	);

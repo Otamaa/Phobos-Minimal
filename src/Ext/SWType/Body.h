@@ -220,8 +220,8 @@ public:
 #pragma endregion
 
 #pragma region Otamaa
-	Nullable<SHPStruct*> GClock_Shape;
-	Nullable<int> GClock_Transculency;
+	Valueable<SHPStruct*> GClock_Shape;
+	Valueable<TranslucencyLevel> GClock_Transculency;
 	CustomPalette GClock_Palette; //CustomPalette::PaletteMode::Default
 	Valueable<bool> ChargeTimer;
 	Valueable<bool> ChargeTimer_Backwards;
@@ -887,7 +887,7 @@ public:
 	void ApplyDetonation(SuperClass* pSW, HouseClass* pHouse, const CellStruct& cell);
 	void ApplySWNext(SuperClass* pSW, const CellStruct& cell, bool IsPlayer);
 
-	void PreParse(CCINIClass* pINI);
+	bool PreParse(CCINIClass* pINI);
 
 	OPTIONALINLINE const char* get_ID(){
 		return this->Name.data();
@@ -972,6 +972,7 @@ public:
 	static void CreateChronoAnim(SuperClass* pThis, const CoordStruct& Coords, AnimTypeClass* pAnimType);
 	static bool ChangeLighting(SuperWeaponTypeClass* pCustom = nullptr);
 	static LightingColor GetLightingColor(SuperWeaponTypeClass* pCustom = nullptr);
+	static double GetSuperChargePercent(SuperClass* pSuper, bool backward = false);
 
 };
 

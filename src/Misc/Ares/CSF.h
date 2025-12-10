@@ -45,4 +45,6 @@ public:
 
 	static void LoadAdditionalCSF(const char* fileName, bool ignoreLanguage = false);
 	static const wchar_t* GetDynamicString(const char* name, const wchar_t* pattern, const char* def , bool isNostr);
+	static const wchar_t* __fastcall FetchStringManager(const char* label, char* speech, const char* file, int line);
+
 };

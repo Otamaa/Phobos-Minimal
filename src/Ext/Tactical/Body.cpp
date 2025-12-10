@@ -632,7 +632,7 @@ void FakeTacticalClass::__DrawRadialIndicator(
 		draw_color.Adjust(50, ColorStruct::Empty);
 	}
 
-	unsigned ellipse_color = DSurface::RGB_To_Pixel(draw_color.R, draw_color.G, draw_color.B);
+	unsigned ellipse_color = draw_color.ToInit();
 
 	/**
 	 *  Draw the main radial ellipse, then draw one slightly smaller to give a thicker impression.
@@ -849,8 +849,7 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 	auto pComposite = DSurface::Composite();
 	auto rect = pComposite->Get_Rect();
 	Point2D _temp {};
-	ColorStruct out {};
-	color->BaseColor.ToColorStruct(&out);
+	ColorStruct out = color->BaseColor;
 
 	TextDrawing::Simple_Text_Print_Wide(
 		&_temp, 
@@ -867,7 +866,6 @@ void __fastcall FakeTacticalClass::__DrawTimersA(int value, ColorScheme* color, 
 	point.X = rect_bound.Width - 3;
 	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
 	rect = pComposite->Get_Rect();
-	fore->BaseColor.ToColorStruct(&out);
 
 	TextDrawing::Simple_Text_Print_Wide(
 	&_temp,
@@ -934,8 +932,7 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 	auto pComposite = DSurface::Composite();
 	auto rect = pComposite->Get_Rect();
 	Point2D _temp {};
-	ColorStruct out {};
-	color->BaseColor.ToColorStruct(&out);
+	ColorStruct out = color->BaseColor;
 
 	TextDrawing::Simple_Text_Print_Wide(
 		&_temp,
@@ -952,7 +949,7 @@ void __fastcall FakeTacticalClass::__DrawTimersB(int value, ColorScheme* color, 
 	point.X = rect_bound.Width - 3;
 	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
 	rect = pComposite->Get_Rect();
-	fore->BaseColor.ToColorStruct(&out);
+	out = fore->BaseColor;
 
 	TextDrawing::Simple_Text_Print_Wide(
 	&_temp,
@@ -1020,8 +1017,7 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 	auto pComposite = DSurface::Composite();
 	auto rect = pComposite->Get_Rect();
 	Point2D _temp {};
-	ColorStruct out {};
-	color->BaseColor.ToColorStruct(&out);
+	ColorStruct out = color->BaseColor;
 
 	TextDrawing::Simple_Text_Print_Wide(
 		&_temp,
@@ -1038,7 +1034,7 @@ void __fastcall FakeTacticalClass::__DrawTimersC(int value, ColorScheme* color, 
 	point.X = rect_bound.Width - 3;
 	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
 	rect = pComposite->Get_Rect();
-	fore->BaseColor.ToColorStruct(&out);
+	out = fore->BaseColor;
 
 	TextDrawing::Simple_Text_Print_Wide(
 	&_temp,
@@ -1155,26 +1151,6 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x6D4B50, FakeTacticalClass::__DrawTimers);
 #include <New/Entity/BannerClass.h>
 #include <Ext/SWType/Body.h>
 
-double GetSuperChargePercent(SuperClass* pSuper, bool backward = false)
-{
-	int rechargeTime = pSuper->GetRechargeTime();
-
-	// Avoid division by zero
-	if (rechargeTime <= 0)
-		return backward ? 0.0 : 100.0;
-
-	int timeLeft = pSuper->RechargeTimer.GetTimeLeft();
-
-	// Already ready
-	if (timeLeft <= 0)
-		return backward ? 0.0 : 100.0;
-
-	double ratio = (double)timeLeft / (double)rechargeTime;
-	double percent = backward ? ratio * 100.0 : (1.0 - ratio) * 100.0;
-
-	return std::clamp(percent, 0.0, 100.0);
-}
-
 void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interval)
 {
 	for (auto& pBanner : BannerClass::Array) {
@@ -1189,7 +1165,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	buffer.clear();
 	if (!pTypeExt->ChargeTimer) {
 		 
-		const auto percent = GetSuperChargePercent(pSuper , pTypeExt->ChargeTimer_Backwards);
+		const auto percent = SWTypeExtData::GetSuperChargePercent(pSuper , pTypeExt->ChargeTimer_Backwards);
 
 		fmt::format_to(std::back_inserter(buffer), L"{:.2f} %", percent);
 
@@ -1240,8 +1216,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	auto pComposite = DSurface::Composite();
 	auto rect = pComposite->Get_Rect();
 	Point2D _temp {};
-	ColorStruct out {};
-	ColorScheme::Array->Items[pSuper->Owner->ColorSchemeIndex]->BaseColor.ToColorStruct(&out);
+	ColorStruct out = ColorScheme::Array->Items[pSuper->Owner->ColorSchemeIndex]->BaseColor;
 
 	TextDrawing::Simple_Text_Print_Wide(
 		&_temp,
@@ -1258,7 +1233,7 @@ void FakeTacticalClass::__DrawTimersSW(SuperClass* pSuper, int value, int interv
 	point.X = rect_bound.Width - 3;
 	point.Y = rect_bound.Height - value_plusone * (pFont->field_1C + 2);
 	rect = pComposite->Get_Rect();
-	fore->BaseColor.ToColorStruct(&out);
+	out = fore->BaseColor;
 
 	TextDrawing::Simple_Text_Print_Wide(
 	&_temp,

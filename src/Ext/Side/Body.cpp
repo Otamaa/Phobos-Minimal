@@ -313,7 +313,7 @@ bool SideExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->GClock_Shape.Read(exINI, pSection, "GClock.Shape");
 	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
-	//this->GClock_Palette.Read(pINI, pSection, "GClock.Palette");
+	this->GClock_Palette.Read(exINI, pSection, "GClock.Palette");
 
 	this->SurvivorDivisor.Read(exINI, pSection, "SurvivorDivisor");
 	this->Crew.Read(exINI, pSection, "Crew", true);
@@ -456,7 +456,7 @@ void SideExtData::Serialize(T& Stm)
 
 		.Process(this->GClock_Shape)
 		.Process(this->GClock_Transculency)
-		//.Process(this->GClock_Palette)
+		.Process(this->GClock_Palette)
 
 
 		.Process(this->SurvivorDivisor)

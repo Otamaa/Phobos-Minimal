@@ -1996,6 +1996,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BlockType->LoadFromINI(pINI, pSection);
 		this->TeamMember_ConsideredAs.Read(exINI, pSection, "TeamMember.ConsideredAs");
 		this->WeaponGroupAs.resize(pThis->WeaponCount);
+		this->CanGoAboveTarget.Read(exINI, pSection, "CanGoAboveTarget");
 
 		for (int idx = 0; idx < pThis->WeaponCount; ++idx) {
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "WeaponGroupAs%d", idx + 1);

@@ -91,9 +91,7 @@ void ShowAnimNameCommandClass::AI()
 
 			if (!(pos.X < 0 || pos.Y < 0 || pos.X > bound.Width || pos.Y > bound.Height))
 			{
-				ColorStruct _color{};
-				ColorScheme::Array->Items[pResultOwner->ColorSchemeIndex]->BaseColor.ToColorStruct(&_color);
-
+				ColorStruct _color = ColorScheme::Array->Items[pResultOwner->ColorSchemeIndex]->BaseColor;
 				TextDrawing::Simple_Text_Print_Wide(pText, DSurface::Temp(), &bound, &pos, _color.ToInit() , 0, TextPrintType::Center);
 			}
 		}

@@ -750,23 +750,22 @@ void ParticleSystemExtData::UpdateInAir_Main(bool allowDraw)
 						if (buff >= 127u)
 						{
 							// Full brightness - use color directly
-							pixelColor = DSurface::RGBA_To_Pixel(finalColor.R, finalColor.G, finalColor.B);
+							pixelColor = finalColor.ToInit();
 						}
 						else
 						{
 							// Dim the color based on alpha buffer value
-							// buff is 0-127, so this darkens the color proportionally
+														// buff is 0-127, so this darkens the color proportionally
 							uint32_t data_r = (buff * finalColor.R) >> 7;  // Divide by 128
 							uint32_t data_g = (buff * finalColor.G) >> 7;
 							uint32_t data_b = (buff * finalColor.B) >> 7;
-							pixelColor = DSurface::RGBA_To_Pixel(data_r, data_g, data_b);
+							pixelColor = DSurface::RGB_To_Pixel(data_r, data_g, data_b);
 						}
 
 						DSurface::Temp->Put_Pixel(outClient, pixelColor);
 					}
 				}
 			}
-
 		}
 	}
 

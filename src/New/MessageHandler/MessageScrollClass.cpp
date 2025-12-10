@@ -135,11 +135,10 @@ void MessageScrollClass::DrawShape() const
 			else if (this->Hovering && onThumb)
 				MessageColumnClass::Instance.IncreaseBrightness(color);
 
-			const int drawColor = Drawing::RGB_To_Int(color);
 			drawRect.Y += thumbPos;
 			drawRect.Height = thumbHeight;
 
-			DSurface::Composite->Fill_Rect(drawRect, drawColor);
+			DSurface::Composite->Fill_Rect(drawRect, color.ToInit());
 		}
 	}
 }

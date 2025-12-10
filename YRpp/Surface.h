@@ -519,33 +519,33 @@ public:
 
 	static DSurface* Create_Primary(DSurface** backbuffer_surface = nullptr) JMP_THIS(0x4BA770);
 
-	static unsigned RGBA_To_Pixel(unsigned r, unsigned g, unsigned b)
+	//static unsigned RGBA_To_Pixel(unsigned r, unsigned g, unsigned b)
+	//{
+	//	return (unsigned((b >> BlueRight) << BlueLeft)
+	//		| unsigned((r >> RedRight) << RedLeft)
+	//		| unsigned((g >> GreenRight) << GreenLeft));
+	//}
+
+	//static void Pixel_To_RGBA(unsigned pixel, unsigned* red, unsigned* green, unsigned* blue)
+	//{
+	//	*red = ((pixel >> RedLeft) << RedRight);
+	//	*green = ((pixel >> GreenLeft) << GreenRight);
+	//	*blue = ((pixel >> BlueLeft) << BlueRight);
+	//}
+
+	static FORCEDINLINE COMPILETIMEEVAL unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
 	{
 		return (unsigned((b >> BlueRight) << BlueLeft)
 			| unsigned((r >> RedRight) << RedLeft)
 			| unsigned((g >> GreenRight) << GreenLeft));
 	}
 
-	static void Pixel_To_RGBA(unsigned pixel, unsigned* red, unsigned* green, unsigned* blue)
-	{
-		*red = ((pixel >> RedLeft) << RedRight);
-		*green = ((pixel >> GreenLeft) << GreenRight);
-		*blue = ((pixel >> BlueLeft) << BlueRight);
-	}
-
-	static unsigned RGB_To_Pixel(unsigned r, unsigned g, unsigned b)
-	{
-		return (unsigned((b >> BlueRight) << BlueLeft)
-			| unsigned((r >> RedRight) << RedLeft)
-			| unsigned((g >> GreenRight) << GreenLeft));
-	}
-
-	static unsigned RGB_To_Pixel(ColorStruct& rgb)
-	{
-		return (unsigned((rgb.R >> BlueRight) << BlueLeft)
-			| unsigned((rgb.G >> RedRight) << RedLeft)
-			| unsigned((rgb.B >> GreenRight) << GreenLeft));
-	}
+	//static unsigned RGB_To_Pixel(ColorStruct& rgb)
+	//{
+	//	return (unsigned((rgb.R >> BlueRight) << BlueLeft)
+	//		| unsigned((rgb.G >> RedRight) << RedLeft)
+	//		| unsigned((rgb.B >> GreenRight) << GreenLeft));
+	//}
 
 	static int Get_RGB_Pixel_Format() { return RGBPixelFormat; }
 

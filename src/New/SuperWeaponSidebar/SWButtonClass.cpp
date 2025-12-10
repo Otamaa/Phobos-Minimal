@@ -67,7 +67,7 @@ bool SWButtonClass::Draw(bool forced)
 	if (this->IsHovering)
 	{
 		RectangleStruct cameoRect = { location.X, location.Y, this->Rect.Width, this->Rect.Height };
-		const COLORREF tooltipColor = Drawing::RGB_To_Int(Drawing::TooltipColor());
+		const COLORREF tooltipColor = Drawing::TooltipColor->ToInit();
 		pSurface->Draw_Rect(cameoRect, tooltipColor);
 	}
 
@@ -95,7 +95,7 @@ bool SWButtonClass::Draw(bool forced)
 			}
 
 			Point2D textLoc = { location.X + this->Rect.Width / 2, location.Y };
-			const COLORREF foreColor = Drawing::RGB_To_Int(Drawing::TooltipColor);
+			const COLORREF foreColor = Drawing::TooltipColor->ToInit();
 			COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
 
 			wchar_t buffer[64];
@@ -114,7 +114,7 @@ bool SWButtonClass::Draw(bool forced)
 		if (const auto buffer = pSuper->NameReadiness())
 		{
 			Point2D textLoc = { location.X + this->Rect.Width / 2, location.Y };
-			const COLORREF foreColor = Drawing::RGB_To_Int(Drawing::TooltipColor);
+			const COLORREF foreColor = Drawing::TooltipColor->ToInit();
 			COMPILETIMEEVAL TextPrintType printType = TextPrintType::FullShadow | TextPrintType::Point8 | TextPrintType::Background | TextPrintType::Center;
 
 			pSurface->DrawText_Old(buffer, &bounds, &textLoc, (DWORD)foreColor, 0, (DWORD)printType);
@@ -124,7 +124,21 @@ bool SWButtonClass::Draw(bool forced)
 	if (pSuper->ShouldDrawProgress())
 	{
 		Point2D loc = { location.X, location.Y };
-		pSurface->DrawSHP(FileSystem::SIDEBAR_PAL, FileSystem::GCLOCK2_SHP, pSuper->GetCameoChargeState() + 1, &loc, &bounds, BlitterFlags::bf_400 | BlitterFlags::TransLucent50, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+		SHPStruct* _GCLOCK_Shape = FileSystem::GCLOCK2_SHP();
+		ConvertClass* _GCLOCK_Convert = FileSystem::CAMEO_PAL();
+		BlitterFlags _GCLOCK_Trans = BlitterFlags::TransLucent50;
+
+		if (pSWExt->GClock_Shape)
+			_GCLOCK_Shape = pSWExt->GClock_Shape;
+
+		if (auto pConvert = pSWExt->GClock_Palette.GetConvert())
+			_GCLOCK_Convert = pConvert;
+
+		if (pSWExt->GClock_Transculency->GetIntValue() > 0)
+			_GCLOCK_Trans = pSWExt->GClock_Transculency->GetBlitterFlags();
+
+
+		pSurface->DrawSHP(_GCLOCK_Convert, _GCLOCK_Shape, pSuper->GetCameoChargeState() + 1, &loc, &bounds, BlitterFlags::bf_400 | _GCLOCK_Trans, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 	}
 
 	return true;

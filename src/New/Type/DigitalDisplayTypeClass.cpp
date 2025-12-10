@@ -136,7 +136,7 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 
 	wbuf.push_back(L'\0');
 	double ratio = static_cast<double>(value) / maxValue;
-	COLORREF color = Drawing::RGB_To_Int(this->Text_Color.Get(ratio , RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed));
+	COLORREF color = this->Text_Color.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed).ToInit();
 	RectangleStruct rect = DSurface::Composite->Get_Rect_WithoutBottomBar();
 	const int textHeight = 12;
 	const int pipsHeight = hasShield ? 4 : 0;

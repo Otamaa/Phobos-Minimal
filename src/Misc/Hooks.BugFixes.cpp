@@ -3070,7 +3070,7 @@ static bool __fastcall AircraftClass_Unlimbo_Wrapper(AircraftClass* pThis, disca
 }
 DEFINE_FUNCTION_JUMP(CALL6, 0x41B39B, AircraftClass_Unlimbo_Wrapper);
 
-DEFINE_HOOK(0x4DEBC4, FootClass_Crash_PreplacedAircraft, 0x7)
+ASMJIT_PATCH(0x4DEBC4, FootClass_Crash_PreplacedAircraft, 0x7)
 {
 	enum { ReturnFromFunction = 0x4DED5B };
 

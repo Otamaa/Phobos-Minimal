@@ -152,7 +152,7 @@ void MessageColumnClass::InitIO()
 
 	// 0x72A4C5
 	if (const auto pScheme = ColorScheme::Array->Items[(color < 0 || color >= ColorScheme::Array->Count) ? 0 : color])
-		pScheme->BaseColor.ToColorStruct(&this->Color);
+		this->Color = pScheme->BaseColor;
 
 	this->Update();
 }
@@ -506,7 +506,7 @@ void MessageColumnClass::DrawAll()
 		const int maxIndex = static_cast<int>(messages.size()) - 1;
 		const int startIndex = MinImpl(this->GetScrollIndex() + (this->MaxRecord - 1), maxIndex);
 		const int endIndex = MaxImpl(0, startIndex - this->MaxRecord + 1);
-		const int color = Drawing::RGB_To_Int(this->GetColor());
+		const int color = this->GetColor().ToInit();
 		constexpr TextPrintType print = TextPrintType::UseGradPal | TextPrintType::FullShadow | TextPrintType::Point6Grad;
 
 		for (int i = startIndex; i >= endIndex; --i)

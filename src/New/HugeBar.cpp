@@ -372,8 +372,8 @@ void HugeBar::DrawHugeBar(int iCurrent, int iMax)
 	}
 	else
 	{
-		COLORREF color1 = Drawing::RGB_To_Int(this->HugeBar_Pips_Color1.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed));
-		COLORREF color2 = Drawing::RGB_To_Int(this->HugeBar_Pips_Color2.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed));
+		COLORREF color1 = this->HugeBar_Pips_Color1.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed).ToInit();
+		COLORREF color2 = this->HugeBar_Pips_Color2.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed).ToInit();
 		Point2D rectWH = this->HugeBar_RectWH;
 
 		if (rectWH.X < 0)
@@ -542,7 +542,7 @@ void HugeBar::HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax)
 		}
 
 		text.push_back(L'\0');
-		COLORREF color = Drawing::RGB_To_Int(this->Value_Text_Color.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed));
+		COLORREF color = this->Value_Text_Color.Get(ratio, RulesClass::Instance->ConditionYellow, RulesClass::Instance->ConditionRed).ToInit();
 		DSurface::Composite->DrawText_Old(text.data(), &rBound, &posDraw, (DWORD)color, COLOR_BLACK, (DWORD)TextPrintType::Center);
 	}
 }

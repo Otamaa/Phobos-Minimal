@@ -18,8 +18,8 @@
 
 //static_assert(sizeof(HSVClass) == 0x3);
 
-struct Color16Struct;
 struct HSVClass;
+#pragma pack(push, 1)
 struct ColorStruct
 {
 	static OPTIONALINLINE COMPILETIMEEVAL BYTE Max = 255;
@@ -50,24 +50,23 @@ struct ColorStruct
 		: R(c.R), G(c.G), B(c.B)
 	{ }
 
-	template<bool WordColor = false >
-	COMPILETIMEEVAL ColorStruct(const int& rgb)
-	{
-		if COMPILETIMEEVAL (!WordColor)
-		{
-			R = GetRValue(rgb);
-			G = GetGValue(rgb);
-			B = GetBValue(rgb);
-		}
-		else
-		{
-			R = static_cast<BYTE>((static_cast<WORD>(rgb) >> RedShiftLeft()) << RedShiftRight());
-			G = static_cast<BYTE>((static_cast<WORD>(rgb) >> GreenShiftLeft()) << GreenShiftRight());
-			B = static_cast<BYTE>((static_cast<WORD>(rgb) >> BlueShiftLeft()) << BlueShiftRight());
-		}
-	}
+	//template<bool WordColor = false >
+	//COMPILETIMEEVAL ColorStruct(const int& rgb)
+	//{
+	//	if COMPILETIMEEVAL(!WordColor)
+	//	{
+	//		R = GetRValue(rgb);
+	//		G = GetGValue(rgb);
+	//		B = GetBValue(rgb);
+	//	}
+	//	else
+	//	{
+	//		R = static_cast<BYTE>((static_cast<WORD>(rgb) >> RedShiftLeft()) << RedShiftRight());
+	//		G = static_cast<BYTE>((static_cast<WORD>(rgb) >> GreenShiftLeft()) << GreenShiftRight());
+	//		B = static_cast<BYTE>((static_cast<WORD>(rgb) >> BlueShiftLeft()) << BlueShiftRight());
+	//	}
+	//}
 
-	OPTIONALINLINE explicit ColorStruct(Color16Struct const color);
 	static const ColorStruct Empty;
 
 	explicit ColorStruct(DWORD const color)
@@ -93,19 +92,17 @@ struct ColorStruct
 
 	//operator HSVClass () const JMP_THIS(0x6613A0);
 
-	explicit operator DWORD() const
-	{
-
-		DWORD ret = 0;
-		memcpy(&ret, this, sizeof(ColorStruct));
-		return ret;
-	}
+	//explicit operator DWORD() const
+	//{
+	//
+	//	DWORD ret = 0;
+	//	memcpy(&ret, this, sizeof(ColorStruct));
+	//	return ret;
+	//}
 
 	FORCEDINLINE DWORD Pack() const noexcept {
 		return (DWORD)(*this);
 	}
-
-	OPTIONALINLINE explicit operator WORD() const;
 
 	static FORCEDINLINE COMPILETIMEEVAL ColorStruct Interpolate(const ColorStruct* from, const ColorStruct* towards, double amount)
 	{
@@ -131,8 +128,51 @@ struct ColorStruct
 		return this;
 	}
 
+	//RGB
 	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToInit() const
-	{ return ((unsigned __int8)this->R >> RedShiftRight << RedShiftLeft) | ((unsigned __int8)this->G >> GreenShiftRight << GreenShiftLeft) | ((unsigned __int8)this->B >> BlueShiftRight << BlueShiftLeft); }
+	{
+		return
+			((uint32_t(this->R) >> RedShiftRight) << RedShiftLeft) |
+			((uint32_t(this->G) >> GreenShiftRight) << GreenShiftLeft) |
+			((uint32_t(this->B) >> BlueShiftRight) << BlueShiftLeft);
+	}
+
+	//GBR
+	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToInitGBR() const
+	{
+		return
+			((uint32_t(this->G) >> GreenShiftRight) << GreenShiftLeft) |
+			((uint32_t(this->B) >> BlueShiftRight) << BlueShiftLeft) |
+			((uint32_t(this->R) >> RedShiftRight) << RedShiftLeft);
+	}
+
+	//GRB
+	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToInitGRB() const
+	{
+		return
+			((uint32_t(this->G) >> GreenShiftRight) << GreenShiftLeft) |
+			((uint32_t(this->R) >> RedShiftRight) << RedShiftLeft) |
+			((uint32_t(this->B) >> BlueShiftRight) << BlueShiftLeft);
+	}
+
+	//BGR 16bit
+	FORCEDINLINE COMPILETIMEEVAL uint16_t ToInitBGR() const
+	{
+		return
+			((uint16_t(this->B) >> BlueShiftRight) << 0) |      // B: 5 bits
+			((uint16_t(this->G) >> GreenShiftLeft) << 5) |      // G: 6 bits
+			((uint16_t(this->R) >> RedShiftRight) << 11);       // R: 5 bits
+	}
+
+	//Color16Struct int
+	FORCEDINLINE COMPILETIMEEVAL uintptr_t ToRGB16_Quantized() const {
+		const ColorStruct rr(
+			(static_cast<BYTE>(R << 3u | R >> 2u)),
+			(static_cast<BYTE>(G << 2u | G >> 4u)),
+			(static_cast<BYTE>(B << 3u | B >> 2u)));
+
+		return rr.ToInit();
+	}
 
 	FORCEDINLINE COMPILETIMEEVAL void Adjust(int adjust, ColorStruct const& rgb)
 	{
@@ -180,8 +220,11 @@ struct ColorStruct
 	HSVClass* ConstructHSV(HSVClass* ret) const
 	{ JMP_THIS(0x6613A0); }
 
+public:
+
 	BYTE R, G, B;
 };
+#pragma pack(pop)
 
 struct HSVClass
 {
@@ -192,67 +235,87 @@ struct HSVClass
 	unsigned char Saturation;
 	unsigned char Value;
 
+	// H (Hue): 0-255 maps to 0-360 degrees (multiplied by 6/255 internally)
+	// S (Saturation): 0-255
+	// V (Value/Brightness): 0-255
 	operator ColorStruct (void) const
 	{
-		unsigned int i;				// Integer part.
-		unsigned int f;				// Fractional or remainder part.  f/HSV_BASE gives fraction.
-		unsigned int tmp;			// Temporary variable to help with calculations.
-		unsigned int values[7];	// Possible rgb values.  Don't use zero.
+		int hue = this->Hue;
+		int sat = this->Saturation;
+		int val = this->Value;
 
-		int hue = Get_Hue();
-		int saturation = Get_Saturation();
-		int value = Get_Value();
-		int red, green, blue;
+		// Scale hue: hue * 6 (to get 6 sectors of the color wheel)
+		// Original uses hue * 3 * 2 = hue * 6
+		int scaledHue = hue * 6;
 
+		// Fractional part of hue within sector (0-255 range)
+		int hueFraction = scaledHue % 255;
 
-		hue *= 2;
-		f = hue % 255;
+		// Sector index (0-5, but can exceed due to scaling)
+		int sector = scaledHue / 255;
 
-		// Set up possible red, green and blue values.
-		values[1] =
-		values[2] = value;
+		// Pre-calculate common color components:
+		// p = val * (255 - sat) / 255              -- minimum brightness
+		// q = val * (255 - sat * fraction) / 255   -- descending
+		// t = val * (255 - sat * (255 - fraction)) / 255  -- ascending
 
-		//
-		// The following lines of code change
-		//	values[3] = (v * (255 - ( (s * f) / 255) )) / 255;
-		//	values[4] = values[5] = (v * (255 - s)) / 255;
-		// values[6] = (v * (255 - (s * (255 - f)) / 255)) / 255;
-		// so that the are rounded divides.
-		//
+		int p = (val * (255 - sat)) / 255;
+		int q = (val * (255 - (sat * hueFraction) / 255)) / 255;
+		int t = (val * (255 - (sat * (255 - hueFraction)) / 255)) / 255;
 
-		tmp = (saturation * f) / 255;
-		values[3] = (value * (255 - tmp)) / 255;
+		// Build lookup table for RGB values based on sector
+		// values[1] = val (V)
+		// values[2] = val (V)  
+		// values[3] = q (descending)
+		// values[4] = p (minimum)
+		// values[5] = p (minimum)
+		// values[6] = t (ascending)
+		int values[7];
+		values[1] = val;  // V
+		values[2] = val;  // V
+		values[3] = q;    // Descending brightness
+		values[4] = p;    // Minimum (desaturated)
+		values[5] = p;    // Minimum (desaturated)
+		values[6] = t;    // Ascending brightness
 
-		values[4] =
-		values[5] = (value * (255 - saturation)) / 255;
+		// Calculate indices for R, G, B based on sector
+		// The pattern cycles through the 6 sectors with wraparound at 4
+		// Sector 0: R=V, G=t, B=p  (Red to Yellow)
+		// Sector 1: R=q, G=V, B=p  (Yellow to Green)
+		// Sector 2: R=p, G=V, B=t  (Green to Cyan)
+		// Sector 3: R=p, G=q, B=V  (Cyan to Blue)
+		// Sector 4: R=t, G=p, B=V  (Blue to Magenta)
+		// Sector 5: R=V, G=p, B=q  (Magenta to Red)
 
-		tmp = 255 - (saturation * (255 - f)) / 255;
-		values[6] = (value * tmp) / 255;
+		// Wraparound logic: if index > 4, subtract 6 (add -4 then +2 = -4, or just +2)
+		// This implements circular indexing through the values array
 
+		unsigned int redIndex = sector;
+		if (redIndex > 4)
+			redIndex -= 4;  // Wrap around (equivalent to: sector > 4 ? sector - 4 : sector + 2, but simplified)
+		else
+			redIndex += 2;
 
-		// This should not be rounded.
-		i = hue / 255;
+		unsigned int greenIndex = redIndex;
+		if (greenIndex > 4)
+			greenIndex -= 4;
+		else
+			greenIndex += 2;
 
-		i += (i > 4) ? -4 : 2;
-		red = values[i];
+		unsigned int blueIndex = greenIndex;
+		if (blueIndex > 4)
+			blueIndex -= 4;
+		else
+			blueIndex += 2;
 
-		i += (i > 4) ? -4 : 2;
-		blue = values[i];
-
-		i += (i > 4) ? -4 : 2;
-		green = values[i];
-
-		return ColorStruct{(unsigned char)red, (unsigned char)green, (unsigned char)blue } ;
+		return ColorStruct{ (unsigned char)values[redIndex]
+			, (unsigned char)values[blueIndex]
+			, (unsigned char)values[greenIndex] 
+		} ;
 	}
 
-
-	uintptr_t ToColorStructInt()
-	{
+	uintptr_t ToColorStructInt() {
 		return this->operator ColorStruct().ToInit();
-	}
-
-	ColorStruct* ToColorStruct(ColorStruct* ret) {
-		JMP_THIS(0x517440);
 	}
 
 	void Adjust(int ratio, HSVClass const & hsv) {
@@ -297,91 +360,6 @@ struct HSVClass
 	void Set_Value(unsigned char value) {Value = value;}
 
 };
-
-#pragma pack(push, 1)
-class RGBClass
-{
-public:
-	static COMPILETIMEEVAL reference<RGBClass, 0xA80220> White {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DD0> const RedShiftLeft {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DD4> const RedShiftRight {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DE0> const GreenShiftLeft {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DE4> const GreenShiftRight {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DD8> const BlueShiftLeft {};
-	static COMPILETIMEEVAL reference<int, 0x8A0DDC> const BlueShiftRight {};
-
-	unsigned char Red;
-	unsigned char Green;
-	unsigned char Blue;
-
-	explicit RGBClass() noexcept
-		: Red { 0 }
-		, Green { 0 }
-		, Blue { 0 }
-	{
-	}
-
-	explicit RGBClass(int r, int g, int b) noexcept
-		: Red { static_cast<unsigned char>(r) }
-		, Green { static_cast<unsigned char>(g) }
-		, Blue { static_cast<unsigned char>(b) }
-	{
-	}
-
-
-	explicit RGBClass(int rgb, bool wordcolor = false) noexcept
-	{
-		if (!wordcolor)
-		{
-			Red = GetRValue(rgb);
-			Green = GetGValue(rgb);
-			Blue = GetBValue(rgb);
-		}
-		else
-		{
-			Red = (unsigned char)((unsigned short)rgb >> RedShiftLeft) << RedShiftRight;
-			Green = (unsigned char)((unsigned short)rgb >> GreenShiftLeft) << GreenShiftRight;
-			Blue = (unsigned char)((unsigned short)rgb >> BlueShiftLeft) << BlueShiftRight;
-		}
-	}
-
-	void Adjust(int ratio, RGBClass const& rgb)
-	{
-		ratio &= 0x00FF;
-
-		int value = (int)rgb.Red - (int)Red;
-		Red = static_cast<unsigned char>((int)Red + (value * ratio) / 256);
-
-		value = (int)rgb.Green - (int)Green;
-		Green = static_cast<unsigned char>((int)Green + (value * ratio) / 256);
-
-		value = (int)rgb.Blue - (int)Blue;
-		Blue = static_cast<unsigned char>((int)Blue + (value * ratio) / 256);
-	}
-
-	int Difference(RGBClass const& rgb) const
-	{
-		int r = (int)Red - (int)rgb.Red;
-		if (r < 0) r = -r;
-
-		int g = (int)Green - (int)rgb.Green;
-		if (g < 0) g = -g;
-
-		int b = (int)Blue - (int)rgb.Blue;
-		if (b < 0) b = -b;
-
-		return(r * r + g * g + b * b);
-	}
-
-	int ToInt()
-	{
-		return
-			(Red >> RedShiftRight << RedShiftLeft) |
-			(Green >> GreenShiftRight << GreenShiftLeft) |
-			(Blue >> BlueShiftRight << BlueShiftLeft);
-	}
-};
-#pragma pack(pop)
 
 struct BytePalette
 {
@@ -487,85 +465,3 @@ struct BytePalette
 public :
 	ColorStruct Entries[EntriesCount];
 };
-
-//16bit colors
-#pragma pack(push, 1)
-struct Color16Struct
-{
-	COMPILETIMEEVAL Color16Struct() = default;
-
-	COMPILETIMEEVAL explicit Color16Struct(ColorStruct const color) :
-		B(static_cast<unsigned short>(color.B >> 3u)),
-		R(static_cast<unsigned short>(color.R >> 3u)),
-		G(static_cast<unsigned short>(color.G >> 2u))
-	{ }
-
-	explicit Color16Struct(WORD const color)
-	{ memcpy(this, &color, sizeof(Color16Struct)); }
-
-	explicit Color16Struct(DWORD const color)
-		: Color16Struct(ColorStruct(color))
-	{ }
-
-	COMPILETIMEEVAL Color16Struct(WORD const r, WORD const g, WORD const b)
-		:B(b) ,R(r) , G(g)
-	{ }
-
-	COMPILETIMEEVAL FORCEDINLINE bool operator == (Color16Struct const rhs) const
-	{ return R == rhs.R && G == rhs.G && B == rhs.B; }
-
-	COMPILETIMEEVAL FORCEDINLINE bool operator != (Color16Struct const rhs) const
-	{ return !(*this == rhs); }
-
-	static const Color16Struct Empty;
-
-	explicit operator WORD() const
-	{
-		WORD ret;
-		memcpy(&ret, this, sizeof(Color16Struct));
-		return ret;
-	}
-
-	FORCEDINLINE explicit operator DWORD() const
-	{ return static_cast<DWORD>(ColorStruct(*this)); }
-
-	uintptr_t ToInit() const
-	{ JMP_THIS(0x63DAD0); }
-
-	unsigned short B : 5;
-	unsigned short R : 5;
-	unsigned short G : 6;
-};
-#pragma pack(pop)
-
-OPTIONALINLINE ColorStruct::ColorStruct(Color16Struct const color) :
-	R(static_cast<BYTE>(color.R << 3u | color.R >> 2u)),
-	G(static_cast<BYTE>(color.G << 2u | color.G >> 4u)),
-	B(static_cast<BYTE>(color.B << 3u | color.B >> 2u))
-{ }
-
-OPTIONALINLINE ColorStruct::ColorStruct(WORD const color) :
-	ColorStruct(Color16Struct(color))
-{ }
-
-ColorStruct::operator WORD() const
-{
-	return static_cast<WORD>(Color16Struct(*this));
-}
-
-struct Byte16Palette
-{
-	Color16Struct Entries[256];
-
-	COMPILETIMEEVAL FORCEDINLINE Color16Struct& operator [](int const idx)
-	{ return this->Entries[idx]; }
-
-	FORCEDINLINE Color16Struct const& operator [](int const idx) const
-	{ return this->Entries[idx]; }
-};
-
-static OPTIONALINLINE Color16Struct ToColor16(ColorStruct const nColor)
-{
-	Color16Struct nRet(nColor);
-	return nRet;
-}

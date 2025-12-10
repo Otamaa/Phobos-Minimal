@@ -77,6 +77,9 @@ public:
 	static COMPILETIMEEVAL reference<SHPStruct*, 0xB0B484u> GCLOCK2_SHP {};
 	static COMPILETIMEEVAL reference<SHPStruct*, 0xB07BC0u> DARKEN_SHP {};
 
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xB0B4A0u> ObserverSideShape_SHP {};
+	static COMPILETIMEEVAL reference<SHPStruct*, 0xB0B49Cu> RandomSideShape_SHP {};
+
 	static COMPILETIMEEVAL reference<BytePalette, 0x885780u> TEMPERAT_PAL{};
 	static COMPILETIMEEVAL reference<BytePalette, 0xABBED0u> ISOx_PAL {};
 	static COMPILETIMEEVAL reference<BytePalette*, 0xA8F790u> GRFXTXT_PAL{};
@@ -91,7 +94,9 @@ public:
 	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6C8u> MOUSE_PAL{};
 	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6CCu> SIDEBAR_PAL{};
 	static COMPILETIMEEVAL reference<ConvertClass*, 0xA8F798u> GRFXTXT_Convert{};
-	static COMPILETIMEEVAL reference<ConvertClass*,0xB1D140u > EightBitVoxelDrawer{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0xB1D140u > EightBitVoxelDrawer{};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0x87F6D0u> ObserverDrawer {};
+	static COMPILETIMEEVAL reference<ConvertClass*, 0xB0FC08> YuriObserverDrawer {};
 
 	static void* __fastcall LoadWholeFileEx(const char* pFilename, bool &outAllocated)
 		{ JMP_FAST(0x4A38D0); }

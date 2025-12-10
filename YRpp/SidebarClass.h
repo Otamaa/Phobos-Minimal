@@ -6,6 +6,13 @@
 #include <ShapeButtonClass.h>
 #include <RectangleStruct.h>
 
+enum class BuildState : uint32_t {
+	Normal = 0,
+	Building = 1,
+	OnHold = 2,
+	Ready = 3
+};
+
 class ColorScheme;
 class FactoryClass;
 struct SHPStruct;
@@ -15,8 +22,8 @@ struct BuildType
 	int               ItemIndex;
 	AbstractType      ItemType;
 	BuildCat		  Cat; // set on buildings that go on tab 2
-	FactoryClass* CurrentFactory;
-	DWORD             Status;
+	FactoryClass*	  CurrentFactory;
+	BuildState             Status;
 	ProgressTimer     Progress; // 0 to 54, how much of this object is constructed (gclock anim level)
 	int               FlashEndFrame;
 
@@ -155,7 +162,7 @@ protected:
 public:
 	StripClass* Strip;
 	int Index;
-	DWORD __MouseOver;
+	bool __MouseOver;
 };
 
 static_assert(sizeof(SelectClass) == 0x38);

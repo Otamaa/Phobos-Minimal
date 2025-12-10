@@ -126,10 +126,10 @@ WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveCol
 		return false;
 
 	ColorStruct modified {};
-	Drawing::WordToColorStruct(src, modified);
+	Drawing::Int_To_RGB(src, modified.R, modified.G, modified.B);
 
 	// ugly hack to fix byte wraparound problems
-	auto const upcolor = [&modified, &colorDatas , &intensity]
+	auto const ApplyIntensityToChannel = [&modified, &colorDatas , &intensity]
 	(int Point3D::* intentmember, BYTE ColorStruct::* member)
 	{
 		auto const component = std::clamp(modified.*member
@@ -139,11 +139,11 @@ WORD const src, WORD& dest, int const intensity, WaveClass* const pWave, WaveCol
 		modified.*member = static_cast<BYTE>(component);
 	};
 
-	upcolor(&Point3D::X, &ColorStruct::R);
-	upcolor(&Point3D::Y, &ColorStruct::G);
-	upcolor(&Point3D::Z, &ColorStruct::B);
+	ApplyIntensityToChannel(&Point3D::X, &ColorStruct::R);
+	ApplyIntensityToChannel(&Point3D::Y, &ColorStruct::G);
+	ApplyIntensityToChannel(&Point3D::Z, &ColorStruct::B);
 
-	dest = Drawing::ColorStructToWord(modified);
+	dest = modified.ToInit();
 
 	return true;
 }

@@ -72,11 +72,10 @@ void MessageButtonClass::DrawShape() const
 	else if (highLight)
 		MessageColumnClass::Instance.IncreaseBrightness(color);
 
-	const int drawColor = Drawing::RGB_To_Int(color);
 	drawRect.X += intervalX;
 	drawRect.Y += intervalY;
 	drawRect.Width -= (intervalX * 2);
 	drawRect.Height = MessageToggleClass::ButtonIconWidth;
 
-	DSurface::Composite->Fill_Rect(drawRect, drawColor);
+	DSurface::Composite->Fill_Rect(drawRect, color.ToInit());
 }

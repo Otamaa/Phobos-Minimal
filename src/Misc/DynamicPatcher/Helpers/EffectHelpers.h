@@ -176,9 +176,9 @@ public:
 		, Color3_disable {}
 	{
 		auto const nDraw = FileSystem::PALETTE_PAL();
-		Color1 = ColorStruct((int)nDraw->inline_02(IsAlternateColor ? 5 : 10));
-		Color2 = ColorStruct((int)nDraw->inline_02(IsAlternateColor ? 5 : 10));
-		Color3 = ColorStruct((int)nDraw->inline_02(15));
+		Color1 = ColorStruct((DWORD)nDraw->inline_02(IsAlternateColor ? 5 : 10));
+		Color2 = ColorStruct((DWORD)nDraw->inline_02(IsAlternateColor ? 5 : 10));
+		Color3 = ColorStruct((DWORD)nDraw->inline_02(15));
 	};
 
 	~BoltType() = default;
