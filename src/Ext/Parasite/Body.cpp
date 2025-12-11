@@ -15,6 +15,50 @@
 
 #include <InfantryClass.h>
 
+bool FakeParasiteClass::IsSpecialOverlay(int overlayIndex) const
+{
+	return (overlayIndex >= ParasiteConstants::SpecialOverlayRangeStart1 && 
+	        overlayIndex <= ParasiteConstants::SpecialOverlayRangeEnd1) ||
+	       (overlayIndex >= ParasiteConstants::SpecialOverlayRangeStart2 && 
+	        overlayIndex <= ParasiteConstants::SpecialOverlayRangeEnd2);
+}
+
+void FakeParasiteClass::ResetOwnerMission(FootClass* owner)
+{
+	if (!owner)
+		return;
+		
+	// Restore player control if applicable
+	if (owner->ShouldBeReselectOnUnlimbo && owner->Owner->ControlledByCurrentPlayer())
+	{
+		auto nCoord = owner->GetCoords();
+		VocClass::PlayIndexAtPos(
+			TechnoTypeExtContainer::Instance.Find(owner->GetTechnoType())->ParasiteExit_Sound.Get(),
+			&nCoord, 
+			false
+		);
+		owner->ShouldBeReselectOnUnlimbo = false;
+		owner->Select();
+	}
+
+	// Rejoin team if applicable
+	if (TeamClass* team = owner->OldTeam)
+	{
+		team->AddMember(owner, false);
+	}
+
+	// Reset mission if not busy
+	if (!owner->HaveMegaMission())
+	{
+		owner->SetArchiveTarget(nullptr);
+		owner->SetTarget(nullptr);
+		owner->SetDestination(nullptr, true);
+	}
+
+	// Enter idle mode
+	owner->EnterIdleMode(false, true);
+}
+
 void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 {
 #ifdef PARASITE_PIPS
@@ -169,17 +213,17 @@ bool FakeParasiteClass::__Update_GrappleAnim_Frame() {
 		++this->GrappleAnimFrame;
 
 		// Check if animation sequence is complete (10 frames)
-		if (this->GrappleAnimFrame >= 10) {
+		if (this->GrappleAnimFrame >= ParasiteConstants::AnimationFrameCount) {
 			return true; // Animation phase complete
 		}
 
 		// Update the actual animation object if it exists
 		if (AnimClass* anim = this->GrappleAnim) {
 
-			anim->Animation.Start(128, 128);
+			anim->Animation.Start(ParasiteConstants::AnimationTimingBase, ParasiteConstants::AnimationTimingBase);
 			// Calculate animation stage based on facing direction
 			const int facingIndex = (((victimFacing.Raw >> 12) + 1) >> 1) & 7;
-			anim->Animation.Stage = baseFrame + this->GrappleAnimFrame + (10 * facingIndex);
+			anim->Animation.Stage = baseFrame + this->GrappleAnimFrame + (ParasiteConstants::AnimationFrameCount * facingIndex);
 		}
 	}
 
@@ -209,10 +253,19 @@ void FakeParasiteClass::__ClearAnim()
 
 void FakeParasiteClass::__Grapple_AI()
 {
+	// Validate owner and victim
+	if (!this->Owner || !this->Victim) {
+		return;
+	}
+
 	// Get weapon information
 	TechnoExtData* pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
 	WeaponStruct* weapon = this->Owner->GetWeapon(pOwnerExt->idxSlot_Parasite);
-	WeaponTypeClass* weaponType = weapon->WeaponType;
+	WeaponTypeClass* weaponType = weapon ? weapon->WeaponType : nullptr;
+
+	if (!weaponType) {
+		return;
+	}
 
 	FootClass* victim = this->Victim;
 	CoordStruct victimCoord = victim->Location;
@@ -363,20 +416,22 @@ void FakeParasiteClass::__Grapple_AI()
 				this->Owner->Veterancy.Add(ownerType->GetActualCost(this->Owner->Owner), victimType->GetCost());
 			}
 
-			auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(this->Victim->GetTechnoType());
+			// Save references before uninfect
+			FootClass* victimToSink = this->Victim;
+			FootClass* ownerSaved = this->Owner;
+			auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(victimToSink->GetTechnoType());
 
 			// Submerge victim
-			FootClass* victimToSink = this->Victim;
 			this->__Uninfect();
 
 			if (pVictimTypeExt->Sinkable_SquidGrab){
 				victimToSink->IsSinking = true;
-				victimToSink->Destroyed(this->Owner);
+				victimToSink->Destroyed(ownerSaved);
 				victimToSink->Stun();
 			}
 			else {
-				auto damage = this->Victim->GetTechnoType()->Strength;
-				this->Victim->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, this->Owner, true, false, this->Owner->Owner);
+				int damage = victimToSink->GetTechnoType()->Strength;
+				victimToSink->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, ownerSaved, true, false, ownerSaved ? ownerSaved->Owner : nullptr);
 			}
 
 			// Clean up grapple animation
@@ -447,7 +502,8 @@ void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeCla
 
 void FakeParasiteClass::__AI()
 {
-	if (!this->Victim) {
+	// Validate owner and victim
+	if (!this->Owner || !this->Victim) {
 		return;
 	}
 
@@ -463,7 +519,7 @@ void FakeParasiteClass::__AI()
 	TechnoExtData* pOwnerExt = TechnoExtContainer::Instance.Find(this->Owner);
 	// Get weapon and victim information
 	WeaponStruct* weapon = this->Owner->GetWeapon(pOwnerExt->idxSlot_Parasite);
-	WeaponTypeClass* weaponType = weapon->WeaponType;
+	WeaponTypeClass* weaponType = weapon ? weapon->WeaponType : nullptr;
 
 	FootClass* victim = this->Victim;
 	CoordStruct victimCoord = victim->Location;
@@ -473,10 +529,16 @@ void FakeParasiteClass::__AI()
 		return; // Not time to deliver damage yet
 	}
 
+	// Validate weapon and warhead
+	if (!weaponType || !weaponType->Warhead)
+	{
+		return;
+	}
+
 	const bool isInfantry = this->Victim->WhatAmI() == AbstractType::Infantry;
 
 	// Reset timer with weapon ROF
-	this->DamageDeliveryTimer.Start(0);
+	this->DamageDeliveryTimer.Start(weaponType->ROF);
 
 	// Update victim's paralysis timer
 	victim->ParalysisTimer.Start(weaponType->Warhead->Paralyzes);
@@ -495,7 +557,7 @@ void FakeParasiteClass::__AI()
 	if (auto pParticle = WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_ParticleSys.Get(RulesClass::Instance->DefaultSparkSystem)) {
 		CoordStruct nLocHere = victimCoord;
 		if (pParticle->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
-			nLocHere.Z += 100;
+			nLocHere.Z += ParasiteConstants::SmokeZOffset;
 
 		GameCreate<ParticleSystemClass>(pParticle, nLocHere, this->Victim, this->Owner, CoordStruct::Empty, this->Owner->Owner);
 	}
@@ -517,8 +579,7 @@ void FakeParasiteClass::__AI()
 	}
 
 	// Calculate spread effect position
-	int randomOffset = ScenarioClass::Instance->Random.RandomBool() ? -4 : 2;
-	randomOffset = (randomOffset & 0xFC) + 2;
+	int randomOffset = ScenarioClass::Instance->Random.RandomBool() ? -64 : 64;
 
 	double facingRadians = (facingDir.Raw - Math::BINARY_ANGLE_MASK) * Math::DIRECTION_FIXED_MAGIC;
 	float cosAngle = Math::cos(facingRadians);
@@ -550,6 +611,12 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 			return;
 		}
 
+		// Validate owner before proceeding
+		if (!this->Owner) {
+			this->Victim = nullptr;
+			return;
+		}
+
 		// Check suppression timer
 		// If suppression timer active and owner not iron curtained, destroy owner
 		if (this->SuppressionTimer.GetTimeLeft() > 0 &&
@@ -572,7 +639,7 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 		}
 
 		if (allowed) {
-			if (this->Owner->GetHeight() > 200) {
+			if (this->Owner->GetHeight() > ParasiteConstants::MaxHeightForFalling) {
 				detachCoord = this->Owner->Location;
 				this->Owner->IsFallingDown = this->Owner->IsABomb = true;
 			}
@@ -612,35 +679,8 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 		}
 
 		// Successfully placed owner back in world
-
-		// Restore player control if applicable
 		FootClass* owner = this->Owner;
-		if (owner->ShouldBeReselectOnUnlimbo 
-			&& owner->Owner->ControlledByCurrentPlayer()) {
-
-			auto nCoord = owner->GetCoords();
-			VocClass::PlayIndexAtPos(TechnoTypeExtContainer::Instance.Find(owner->GetTechnoType())
-				->ParasiteExit_Sound.Get(), &nCoord, false);
-
-			owner->ShouldBeReselectOnUnlimbo = false;
-			owner->Select();
-		}
-
-		// Rejoin team if applicable
-		
-		if (TeamClass* team = owner->OldTeam) {
-			team->AddMember(owner, false);
-		}
-
-		// Reset mission if not busy
-		if (!owner->HaveMegaMission()) {
-			owner->SetArchiveTarget(nullptr);
-			owner->SetTarget(nullptr);
-			owner->SetDestination(nullptr, true);
-		}
-
-		// Enter idle mode
-		owner->EnterIdleMode(false, true);
+		this->ResetOwnerMission(owner);
 		owner->UpdateSight(0, 0, 0, 0, 0);
 
 		// Update map visibility
@@ -661,6 +701,11 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 
 void FakeParasiteClass::__Uninfect()
 {
+	// Validate owner and victim
+	if (!this->Owner || !this->Victim) {
+		return;
+	}
+
 	FootClass* owner = this->Owner;
 	TechnoTypeClass* ownerType = owner->GetTechnoType();
 	bool Naval = ownerType->Naval;
@@ -742,35 +787,8 @@ void FakeParasiteClass::__Uninfect()
 			this->Owner->UnInit();
 		} else {
 			// Successfully placed
-
-			// Restore player control if applicable
 			FootClass* placedOwner = this->Owner;
-			if (placedOwner->ShouldBeReselectOnUnlimbo &&
-				placedOwner->Owner->ControlledByCurrentPlayer()) {
-
-				auto nCoord = placedOwner->GetCoords();
-				VocClass::PlayIndexAtPos(TechnoTypeExtContainer::Instance.Find(placedOwner->GetTechnoType())
-					->ParasiteExit_Sound.Get(), &nCoord, false);
-
-				placedOwner->ShouldBeReselectOnUnlimbo = false;
-				placedOwner->Select();
-			}
-
-			// Rejoin team if applicable 
-			if (TeamClass* team = placedOwner->OldTeam) {
-				team->AddMember(placedOwner, false);
-			}
-
-			// Reset mission if not busy
-			if (!placedOwner->HaveMegaMission())
-			{
-				placedOwner->SetArchiveTarget(nullptr);
-				placedOwner->SetTarget(nullptr);
-				placedOwner->SetDestination(nullptr, true);
-			}
-
-			// Enter idle mode
-			placedOwner->EnterIdleMode(false, true);
+			this->ResetOwnerMission(placedOwner);
 			placedOwner->vt_entry_48C(nullptr, 0u, false, nullptr);
 
 			// Apply paralysis to owner
@@ -793,6 +811,11 @@ void FakeParasiteClass::__Uninfect()
 
 void FakeParasiteClass::__Infect(FootClass* target)
 {
+	// Validate owner and target
+	if (!this->Owner || !target) {
+		return;
+	}
+
 	// Clean up any existing grapple animation
 	this->__ClearAnim(); // Potentially inlined version of ClearAnim()
 
@@ -905,8 +928,7 @@ bool FakeParasiteClass::__Victims_Cell_Valid()
 		if (GroundType::GetCost(landType, owner->GetTechnoType()->SpeedType) <= 0.0) {
 			// Check for specific overlay ranges (ice?)
 			int overlay = victimCell->OverlayTypeIndex;
-			bool hasSpecialOverlay = (overlay >= 74 && overlay <= 99) ||
-				(overlay >= 205 && overlay <= 230);
+			bool hasSpecialOverlay = this->IsSpecialOverlay(overlay);
 
 			// Invalid if it's water without bridge or special overlay
 			if (!victimCell->ContainsBridgeHead() && !hasSpecialOverlay) {
@@ -942,8 +964,7 @@ CoordStruct FakeParasiteClass::__Detach_From_Victim()
 			// Check water/beach/rock terrain
 			if (landType == LandType::Water || landType == LandType::Beach || landType == LandType::Rock) {
 				int overlay = adjacentCell->OverlayTypeIndex;
-				bool hasSpecialOverlay = (overlay >= 74 && overlay <= 99) ||
-					(overlay >= 205 && overlay <= 230);
+				bool hasSpecialOverlay = this->IsSpecialOverlay(overlay);
 
 				// Cannot place on water without bridge or special overlay
 				if (!adjacentCell->ContainsBridgeHead() && !hasSpecialOverlay) {
@@ -972,7 +993,7 @@ CoordStruct FakeParasiteClass::__Detach_From_Victim()
 		// Handle bridge placement
 		if (this->Victim->OnBridge) {
 			if (HasBridgeHead) {
-				result.Z += 410; // Bridge height offset
+				result.Z += ParasiteConstants::BridgeHeightOffset;
 				this->Owner->OnBridge = true;
 			} else {
 				this->Owner->OnBridge = false;
@@ -985,7 +1006,7 @@ CoordStruct FakeParasiteClass::__Detach_From_Victim()
 				if (result.Z >= victimCellCenter.Z) {
 					this->Owner->OnBridge = false;
 				} else {
-					result.Z += 410;
+					result.Z += ParasiteConstants::BridgeHeightOffset;
 					this->Owner->OnBridge = true;
 				}
 			}
@@ -1014,7 +1035,7 @@ CoordStruct FakeParasiteClass::__Detach_From_Victim()
 
 		// Handle bridge height
 		if (this->Victim->OnBridge) {
-			result.Z += 410;
+			result.Z += ParasiteConstants::BridgeHeightOffset;
 		}
 	}
 

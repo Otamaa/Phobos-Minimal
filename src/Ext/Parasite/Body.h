@@ -5,6 +5,21 @@
 #include <Utilities/Container.h>
 #include <Utilities/TemplateDef.h>
 
+namespace ParasiteConstants
+{
+	constexpr int BridgeHeightOffset = 410;
+	constexpr int AnimationFrameCount = 10;
+	constexpr int AnimationTimingBase = 128;
+	constexpr int SmokeZOffset = 100;
+	constexpr int MaxHeightForFalling = 200;
+	
+	// Overlay index ranges for ice/special terrain
+	constexpr int SpecialOverlayRangeStart1 = 74;
+	constexpr int SpecialOverlayRangeEnd1 = 99;
+	constexpr int SpecialOverlayRangeStart2 = 205;
+	constexpr int SpecialOverlayRangeEnd2 = 230;
+}
+
 class ParasiteExtData
 {
 public:
@@ -63,13 +78,17 @@ public:
 
 	HRESULT __stdcall _Load(IStream* pStm)
 	{
-
+		return S_OK;
 	}
 
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty)
 	{
-
+		return S_OK;
 	}
+
+private:
+	bool IsSpecialOverlay(int overlayIndex) const;
+	void ResetOwnerMission(FootClass* owner);
 
 };
 static_assert(sizeof(FakeParasiteClass) == sizeof(ParasiteClass), "FakeParasiteClass size mismatch");
