@@ -566,7 +566,7 @@ TechnoClass* AnimExtData::GetTechnoInvoker(AnimClass* pThis)
 	return nullptr;
 }
 
-Layer __fastcall AnimExtData::GetLayer_patch(AnimClass* pThis, void* _)
+Layer __fastcall AnimExtData::GetLayer_patch(AnimClass* pThis, discard_t)
 {
 	if (!pThis->OwnerObject)
 		return pThis->Type ? pThis->Type->Layer : Layer::Air;

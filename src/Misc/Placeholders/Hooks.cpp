@@ -604,7 +604,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 // Enable This when needed
 
 
-//ASMJIT_PATCH(0x448260, Debug_ChangeOwnership_Building, 0x8)
+//ASMJIT_PATCH(0x448260, Debug_SetOwningHouse_Building, 0x8)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);
@@ -612,7 +612,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 //	return 0x0;
 //}
 //
-//ASMJIT_PATCH(0x4DBED0 , Debug_ChangeOwnership_Foot , 0x5)
+//ASMJIT_PATCH(0x4DBED0 , Debug_SetOwningHouse_Foot , 0x5)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);
@@ -620,7 +620,7 @@ DEFINE_JUMP(LJMP, 0x4869AB, 0x4869CA);
 //	return 0x0;
 //}
 //
-//ASMJIT_PATCH(0x7463A0, Debug_ChangeOwnership_Unit, 0x5)
+//ASMJIT_PATCH(0x7463A0, Debug_SetOwningHouse_Unit, 0x5)
 //{
 //	GET(TechnoClass*, pThis, ECX);
 //	GET_STACK(DWORD, caller, 0x0);

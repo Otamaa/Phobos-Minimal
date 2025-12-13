@@ -2028,10 +2028,11 @@ void SWTypeExtData::FireSuperWeapon(SuperClass* pSW, HouseClass* pHouse, const C
 		{
 			const auto pCellptr = MapClass::Instance->GetCellAt(*pCell);
 			const auto range = this->GetNewSWType()->GetRange(this);
-			Helpers::Alex::ApplyFuncToCellSpreadItems<FootClass>(pCellptr->GetCoordsWithBridge(), range.WidthOrRange ,
-			[=](FootClass* pTarget) {
+			Helpers::Alex::ApplyFuncToCellSpreadItems(pCellptr->GetCoordsWithBridge(), range.WidthOrRange ,
+			true , false , true , true , true , true,
+			[=](TechnoClass* pTarget) {
 				TechnoTypeConvertData::ApplyConvert(this->ConvertsPair, pHouse, pTarget, this->Convert_SucceededAnim);
-			 }, true);
+			});
 		}
 	}
 }

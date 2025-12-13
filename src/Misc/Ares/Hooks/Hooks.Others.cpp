@@ -632,14 +632,8 @@ ASMJIT_PATCH(0x5FED00, OverlayTypeClass_GetRadarColor, 0x6)
 	return 0x5FEDDA;
 }
 
-struct FakeObjectClass : public ObjectClass
-{
-public:
+#include <Misc/Hooks.Otamaa.h>
 
-	CellClass* _GetCell() const{
-		return MapClass::Instance->GetCellAt(this->Location);
-	}
-};
 // bugfix #187: Westwood idiocy
 // ASMJIT_PATCH(0x5F6960, ObjectClass_Getcell, 0xA)
 // {

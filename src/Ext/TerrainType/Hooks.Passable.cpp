@@ -543,53 +543,7 @@ ASMJIT_PATCH(0x47EEBC, CellClass_DrawPlaceGrid_RecordCell, 0x6)
 	return DontDrawAlt;
 }
 
-static inline void ClearPlacingBuildingData(PlacingBuildingStruct* const pPlace)
-{
-	pPlace->Type = nullptr;
-	pPlace->DrawType = nullptr;
-	pPlace->Times = 0;
-	pPlace->TopLeft = CellStruct::Empty;
-	pPlace->Timer.Stop();
-}
-
-static inline void ClearCurrentBuildingData(DisplayClass* const pDisplay)
-{
-	pDisplay->SetActiveFoundation(nullptr);
-	pDisplay->CurrentBuilding = nullptr;
-	pDisplay->CurrentBuildingType = nullptr;
-	pDisplay->CurrentBuildingOwnerArrayIndexCopy = -1;
-
-	if (!Unsorted::ArmageddonMode)
-	{
-		pDisplay->SetCursorShape2(nullptr);
-		pDisplay->CurrentBuildingCopy = nullptr;
-		pDisplay->CurrentBuildingTypeCopy = nullptr;
-	}
-}
-
-template <bool slam = false>
-static inline void PlayConstructionYardAnim(BuildingClass* const pFactory)
-{
-	const auto pFactoryType = pFactory->Type;
-
-	if (pFactoryType->ConstructionYard)
-	{
-		if constexpr (slam)
-			VocClass::PlayGlobal(BuildingTypeExtContainer::Instance.Find(pFactoryType)->SlamSound.
-				Get(RulesClass::Instance->BuildingSlam), Panning::Center, 1.0);
-
-		pFactory->DestroyNthAnim(BuildingAnimSlot::PreProduction);
-		pFactory->DestroyNthAnim(BuildingAnimSlot::Idle);
-
-		const bool damaged = pFactory->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
-		const auto pAnimName = damaged ? pFactoryType->BuildingAnim[8].Damaged : pFactoryType->BuildingAnim[8].Anim;
-
-		if (pAnimName && *pAnimName)
-			pFactory->PlayAnim(pAnimName, BuildingAnimSlot::Production, damaged, false);
-	}
-}
-
-static inline bool CheckBuildingFoundation(BuildingTypeClass* const pBuildingType, const CellStruct topLeftCell, HouseClass* const pHouse, bool& noOccupy)
+bool BuildingExtData::CheckBuildingFoundation(BuildingTypeClass* const pBuildingType, const CellStruct topLeftCell, HouseClass* const pHouse, bool& noOccupy)
 {
 	for (auto pFoundation = pBuildingType->GetFoundationData(false); *pFoundation != CellStruct { 0x7FFF, 0x7FFF }; ++pFoundation)
 	{
@@ -640,9 +594,9 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 		BuildingTypeExtData::CreateLimboBuilding(pBuilding, pBuildingType, pHouse, pTypeExt->LimboBuildID);
 
 		if (pDisplay->CurrentBuilding == pBuilding && HouseClass::CurrentPlayer == pHouse)
-			ClearCurrentBuildingData(pDisplay);
+		BuildingExtData::ClearCurrentBuildingData(pDisplay);
 
-		PlayConstructionYardAnim<true>(pFactory);
+		BuildingExtData::PlayConstructionYardAnim<true>(pFactory);
 		return BuildSucceeded;
 	}
 
@@ -713,7 +667,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 	if (expand)
 	{
 		bool noOccupy = true;
-		bool canBuild = CheckBuildingFoundation(pBuildingType, topLeftCell, pHouse, noOccupy);
+		bool canBuild = BuildingExtData::CheckBuildingFoundation(pBuildingType, topLeftCell, pHouse, noOccupy);
 		const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 		auto& place = pBufferType->BuildCat != BuildCat::Combat ? pHouseExt->Common : pHouseExt->Combat;
 
@@ -742,7 +696,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 						break; // No place for cleaning
 
 					if (pHouse == HouseClass::CurrentPlayer && place.Times == 30)
-						ClearCurrentBuildingData(pDisplay);
+					BuildingExtData::ClearCurrentBuildingData(pDisplay);
 
 					--place.Times;
 					place.Timer.Start(8);
@@ -753,7 +707,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 			}
 
 			revert = place.Times == 30 || !place.Type;
-			ClearPlacingBuildingData(&place);
+			BuildingExtData::ClearPlacingBuildingData(&place);
 
 			if (revert)
 				ProximityTemp::Mouse = true;
@@ -763,7 +717,7 @@ ASMJIT_PATCH(0x4FB1EA, HouseClass_UnitFromFactory_HangUpPlaceEvent, 0x5)
 		while (false);
 
 		revert = !place.Type;
-		ClearPlacingBuildingData(&place);
+		BuildingExtData::ClearPlacingBuildingData(&place);
 	}
 
 	if (pBufferType != pBuildingType)
@@ -890,142 +844,10 @@ ASMJIT_PATCH(0x4CA05B, FactoryClass_AbandonProduction_AbandonCurrentBuilding, 0x
 			return 0;
 
 		auto place = &(pBuilding->Type->BuildCat != BuildCat::Combat ? pHouseExt->Common : pHouseExt->Combat);
-		ClearPlacingBuildingData(place);
+		BuildingExtData::ClearPlacingBuildingData(place);
 	}
 
 	return 0;
-}
-
-// Buildable-upon TechnoTypes Hook #6 -> sub_443C60 - Try to clean up the building space when AI is building
-ASMJIT_PATCH(0x4451F8, BuildingClass_KickOutUnit_CleanUpAIBuildingSpace, 0x6)
-{
-	enum {
-		CanBuild = 0x4452F0,
-		TemporarilyCanNotBuild = 0x445237,
-		CanNotBuild = 0x4454E6,
-		BuildSucceeded = 0x4454D4,
-		BuildFailed = 0x445696
-	};
-
-	GET(BaseNodeClass*, pBaseNode, EBX);
-	GET(BuildingClass*, pBuilding, EDI);
-	GET(BuildingClass*, pFactory, ESI);
-	GET(CellStruct, topLeftCell, EDX);
-
-	const auto pBuildingType = pBuilding->Type;
-
-	if (RulesExtData::Instance()->AIForbidConYard && pBuildingType->ConstructionYard)  {
-		if (pBaseNode)
-		{
-			pBaseNode->Placed = true;
-			pBaseNode->Attempts = 0;
-		}
-		return BuildFailed;
-	}
-
-		// Clean up invalid walls nodes
-	if (RulesExtData::Instance()->AICleanWallNode && pBuildingType->Wall)
-	{
-		auto notValidWallNode = [topLeftCell]() {
-				const auto pCell = MapClass::Instance->GetCellAt(topLeftCell);
-	
-				for (int i = 0; i < 8; ++i) {
-					if (const auto pAdjBuilding = pCell->GetNeighbourCell(static_cast<FacingType>(i))->GetBuilding()) {
-						if (pAdjBuilding->Type->ProtectWithWall)
-							return false;
-					}
-				}
-	
-				return true;
-			};
-	
-		if (notValidWallNode())
-			return CanNotBuild;
-	}
-
-	const auto pHouse = pFactory->Owner;
-	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuildingType);
-
-	if (pTypeExt->LimboBuild)
-	{
-		BuildingTypeExtData::CreateLimboBuilding(pBuilding, pBuildingType, pHouse, pTypeExt->LimboBuildID);
-		if (pBaseNode)
-		{
-			pBaseNode->Placed = true;
-			pBaseNode->Attempts = 0;
-
-			if (pHouse->ProducingBuildingTypeIndex == pBuildingType->ArrayIndex)
-				pHouse->ProducingBuildingTypeIndex = -1;
-		}
-		PlayConstructionYardAnim<true>(pFactory);
-		return BuildSucceeded;
-	}
-
-	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
-		return 0;
-
-	if (topLeftCell != CellStruct::Empty && !pBuildingType->PlaceAnywhere)
-	{
-		if (!pBuildingType->PowersUpBuilding[0])
-		{
-			bool noOccupy = true;
-			bool canBuild = CheckBuildingFoundation(pBuildingType, topLeftCell, pHouse, noOccupy);
-			const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
-			auto& place = pBuildingType->BuildCat != BuildCat::Combat ? pHouseExt->Common : pHouseExt->Combat;
-
-			do
-			{
-				if (canBuild)
-				{
-					if (noOccupy)
-						break; // Can Build
-
-					do
-					{
-						if (topLeftCell != place.TopLeft || pBuildingType != place.Type) // New command
-						{
-							place.Type = pBuildingType;
-							place.DrawType = pBuildingType;
-							place.TopLeft = topLeftCell;
-						}
-
-						if (!place.Timer.HasTimeLeft())
-						{
-							place.Timer.Start(40);
-
-							if (BuildingTypeExtData::CleanUpBuildingSpace(pBuildingType, topLeftCell, pHouse))
-								break; // No place for cleaning
-						}
-
-						return TemporarilyCanNotBuild;
-					}
-					while (false);
-				}
-
-				ClearPlacingBuildingData(&place);
-				return CanNotBuild;
-			}
-			while (false);
-
-			ClearPlacingBuildingData(&place);
-		}
-		else
-		{
-			const auto pCell = MapClass::Instance->GetCellAt(topLeftCell);
-			const auto pCellBuilding = pCell->GetBuilding();
-
-			if (!pCellBuilding || !pCellBuilding->CanUpgrade(pBuildingType, pHouse)) // CanUpgradeBuilding
-				return CanNotBuild;
-		}
-	}
-
-	if (pBuilding->Unlimbo(CoordStruct{ (topLeftCell.X << 8) + 128, (topLeftCell.Y << 8) + 128, 0 }, DirType::North))
-	{
-		PlayConstructionYardAnim(pFactory);
-		return CanBuild;
-	}
-
-	return CanNotBuild;
 }
 
 static inline bool CanDrawGrid(bool draw)
@@ -1106,7 +928,7 @@ ASMJIT_PATCH(0x73946C, UnitClass_TryToDeploy_CleanUpDeploySpace, 0x6)
 	if (!pBuildingType->PlaceAnywhere)
 	{
 		bool noOccupy = true;
-		bool canBuild = CheckBuildingFoundation(pBuildingType, topLeftCell, pUnit->Owner, noOccupy);
+		bool canBuild = BuildingExtData::CheckBuildingFoundation(pBuildingType, topLeftCell, pUnit->Owner, noOccupy);
 
 		do
 		{
@@ -1254,7 +1076,7 @@ ASMJIT_PATCH(0x4F8DB1, HouseClass_Update_CheckHangUpBuilding, 0x6)
 
 		if (currentCanBuild()) // ShouldDisableCameo
 		{
-			ClearPlacingBuildingData(pType->BuildCat != BuildCat::Combat ? &pHouseExt->Common : &pHouseExt->Combat);
+			BuildingExtData::ClearPlacingBuildingData(pType->BuildCat != BuildCat::Combat ? &pHouseExt->Common : &pHouseExt->Combat);
 
 			if (pHouse == HouseClass::CurrentPlayer)
 				VoxClass::Play(GameStrings::EVA_CannotDeployHere);

@@ -24,17 +24,6 @@ ASMJIT_PATCH(0x4FB257, HouseClass_UnitFromFactory_Firewall, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x445355, BuildingClass_KickOutUnit_Firewall, 6)
-{
-	GET(BuildingClass*, Factory, ESI);
-	GET(BuildingClass*, B, EDI);
-	GET_STACK(CellStruct, CenterPos, 0x20);
-
-	FirewallFunctions::BuildLines(B, CenterPos, Factory->Owner);
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x6D5455, TacticalClass_DrawPlacement_IsLInkable, 6)
 {
 	GET(BuildingTypeClass* const, pType, EAX);

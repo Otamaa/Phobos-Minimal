@@ -390,7 +390,7 @@ public:
 	Valueable<bool> Shield_SkipHitAnim;
 	Nullable<bool> CombatAlert_Suppress;
 
-	Valueable<bool> AffectsOnFloor;
+	Valueable<bool> AffectsGround;
 	Valueable<bool> AffectsInAir;
 	Valueable<bool> CellSpread_Cylinder;
 
@@ -765,7 +765,7 @@ public:
 		Shield_HitFlash(true),
 		Shield_SkipHitAnim(false),
 		CombatAlert_Suppress(),
-		AffectsOnFloor(true),
+		AffectsGround(true),
 		AffectsInAir(true),
 		CellSpread_Cylinder(false),
 		PenetratesIronCurtain(false),

@@ -24,6 +24,7 @@
     <ClCompile Include="src\Ext\AircraftType\Body.cpp" />
     <ClCompile Include="src\Ext\Sidebar\Hooks.Drawing.cpp" />
     <ClCompile Include="src\Ext\TechnoType\Hooks.Hover.cpp" />
+    <ClCompile Include="src\Ext\Techno\Hook.ExitObject.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.Healthbar.cpp" />
     <ClCompile Include="src\Ext\Techno\Hook.Pip.cpp" />
     <ClCompile Include="src\Ext\Cell\Body.cpp" />

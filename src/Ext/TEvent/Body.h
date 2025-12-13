@@ -50,6 +50,7 @@ enum class PhobosTriggerEvent : int
 	ShieldBroken = 600,
 	HouseOwnsTechnoType = 601,
 	HouseDoesntOwnTechnoType = 602,
+
 	HousesDestroyed = 603,
 
 	CellHasTechnoType = 604,

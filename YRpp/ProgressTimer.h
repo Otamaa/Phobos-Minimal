@@ -19,6 +19,12 @@ public:
 
 	ProgressTimer(int duration) { this->Start(duration); }
 
+	void Start(int duration, int step, int stage){
+		this->Stage = stage;
+		this->Step = step;
+		this->Start(duration);
+	}
+
 	void Start(int duration) {
 		this->Timer.Start(duration);
 	}

@@ -75,6 +75,11 @@ public:
 		auto nThisCoord = pThis->GetCoords();
 		return cell_Distance_Squared(nThisCoord, *pThat);
 	}
+
+	static CellClass* __fastcall _GetCell(ObjectClass* pThis, discard_t)
+	{
+		return MapClass::Instance->GetCellAt(pThis->Location);
+	}
 };
 //static_assert(sizeof(FakeObjectClass) == sizeof(ObjectClass), "Invalid Size !");
 

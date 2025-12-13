@@ -968,9 +968,8 @@ public:
 	}
 
 	// whether Player is equal to Observer
-	COMPILETIMEEVAL static bool IsCurrentPlayerObserver() {
-		return CurrentPlayer && CurrentPlayer->IsObserver();
-	}
+	COMPILETIMEEVAL static bool IsCurrentPlayerObserver() 
+		{	return CurrentPlayer && CurrentPlayer->IsObserver();	}
 
 	int CalculateCostMultipliers()
 		{ JMP_THIS(0x50BF60); }
@@ -982,7 +981,7 @@ public:
 		{ JMP_THIS(0x4FF550); }
 
 	void AddTracking(TechnoClass* pTechno)
-	{ JMP_THIS(0x4FF700); }
+		{ JMP_THIS(0x4FF700); }
 
 	COMPILETIMEEVAL Edge GetHouseEdge() const
 	{
@@ -1000,9 +999,8 @@ public:
 		return edge;
 	}
 
-	Edge GetCurrentEdge() const {
-		JMP_THIS(0x50DA80);
-	}
+	Edge GetCurrentEdge() const 
+		{ JMP_THIS(0x50DA80); }
 
 	Edge ResolveEdge() const
 		{ JMP_THIS(0x50DAC0); }
@@ -1055,9 +1053,8 @@ public:
 	double GetHouseCostMult(TechnoTypeClass* pType) const
 		{ JMP_THIS(0x50BEB0); }
 
-	CellStruct* RandomCellInZone(CellStruct* pResult, ZoneType zone) const {
-		JMP_THIS(0x501AC0);
-	}
+	CellStruct* RandomCellInZone(CellStruct* pResult, ZoneType zone) const 
+		{ JMP_THIS(0x501AC0); }
 
 	CellStruct RandomCellInZone(ZoneType zone) const
 	{
@@ -1066,13 +1063,11 @@ public:
 		return nBuffer;
 	}
 
-	double GetSpeedMult(TechnoTypeClass* pWho) const {
-		JMP_THIS(0x50C050);
-	}
+	double GetSpeedMult(TechnoTypeClass* pWho) const 
+		{ JMP_THIS(0x50C050); }
 
-	AbandonProductionResult AbandonProduction(AbstractType rtti ,int index ,bool naval ,bool AbandonAll) const {
-		JMP_THIS(0x4FAA10);
-	}
+	AbandonProductionResult AbandonProduction(AbstractType rtti ,int index ,bool naval ,bool AbandonAll) const 
+		{ JMP_THIS(0x4FAA10); }
 
 	COMPILETIMEEVAL bool MakeObserver() const
 	{
@@ -1083,28 +1078,34 @@ public:
 		return true;
 	}
 
-	COMPILETIMEEVAL bool OPTIONALINLINE IsInitiallyObserver() const
-	{
-		return this->IsHumanPlayer && (this->GetSpawnPosition() == -1);
-	}
+	COMPILETIMEEVAL bool OPTIONALINLINE IsInitiallyObserver() const 
+		{	return this->IsHumanPlayer && (this->GetSpawnPosition() == -1);}
 
-	bool HasSpaceFor(BuildingTypeClass* pBld , CellStruct* where) const {
-		JMP_THIS(0x50B760);
-	}
+	bool HasSpaceFor(BuildingTypeClass* pBld , CellStruct* where) const 
+		{ JMP_THIS(0x50B760); }
 
 	typedef int(__fastcall* placement_callback)(int , int);
-	CellStruct* FindBuildLocation(CellStruct* buffer, BuildingTypeClass* pBld, placement_callback, int something) const {
-		JMP_THIS(0x5060B0);
-	}
+	static COMPILETIMEEVAL referencefunc<placement_callback, 0x505F80> const Func_placement_callback {};
 
-	CellStruct* GetPoweups(CellStruct* buffer, BuildingTypeClass* a3) const {
-		JMP_THIS(0x506B90);
-	}
+	CellStruct* FindBuildLocation(CellStruct* buffer, BuildingTypeClass* pBld, placement_callback, int something) const 
+		{ JMP_THIS(0x5060B0); }
+
+	CellStruct* GetPoweups(CellStruct* buffer, BuildingTypeClass* a3) const 
+		{ JMP_THIS(0x506B90); }
 
 	bool ai_replace_node_50CAD0(BaseNodeClass* node) const { JMP_THIS(0x50CAD0); }
 
 	bool ShouldDisableCameo(TechnoTypeClass* pType) { JMP_THIS(0x50B370); }
 	void AssignHandicap(int difficulty) { JMP_THIS(0x4F6EC0); }
+
+	bool Manual_Place(BuildingClass* builder, BuildingClass* object)
+		{ JMP_THIS(0x4FB840);}
+
+	bool IsBusy(AbstractType rtti, bool naval, BuildCat cat) const
+		{ JMP_THIS(0x500700); }
+
+	bool SetBusy(AbstractType rtti, bool naval, BuildCat cat) const
+		{ JMP_THIS(0x5005B0); }
 
 	//Constructor
 	HouseClass(HouseTypeClass* pCountry) noexcept

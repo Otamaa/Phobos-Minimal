@@ -90,6 +90,7 @@ class DECLSPEC_UUID("C1BF99CE-1A8C-11D2-8175-006008055BB5")
 public:
 	static const AbstractType AbsID = AbstractType::Cell;
 	static COMPILETIMEEVAL OPTIONALINLINE DWORD vtable = 0x7E4EEC;
+	static const Point2D SnapCell;
 
 	// Reference, no write permission
 	static COMPILETIMEEVAL reference<Point2D, 0x89F6D8, 8u> const CoordDirections {};
@@ -368,10 +369,6 @@ public:
 	CoordStruct* Get3DCoords2(CoordStruct* result) const
 		{ JMP_THIS(0x486890); }
 
-	// used by ambient waves and stuff
-	CoordStruct* Get3DCoords3(CoordStruct* result) const
-		{ JMP_THIS(0x480A30); }
-
 	int GetFloorHeight(Point2D const& subcoords) const
 		{ JMP_THIS(0x47B3A0); }
 
@@ -380,8 +377,16 @@ public:
 	//CoordStruct* GetCenterCoords(CoordStruct* pOutBuffer) const
 	//	{ JMP_THIS(0x486840); }
 
-	CoordStruct* GetCellCoords(CoordStruct* pOutBuffer) const
-		{ JMP_THIS(0x480A30); }
+	// used by ambient waves and stuff
+	// CoordStruct* Get3DCoords3(CoordStruct* result) const
+	//  	{ JMP_THIS(0x480A30); }
+
+	// CoordStruct* GetCellCoords(CoordStruct* pOutBuffer) const
+	// 	{ JMP_THIS(0x480A30); }
+
+	COMPILETIMEEVAL CoordStruct Cell2Coord() {
+		return CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight(CellClass::SnapCell), true);
+	}
 
 	//CoordStruct GetCenterCoords() const
 	//{
@@ -486,17 +491,17 @@ public:
 
 	static COMPILETIMEEVAL FORCEDINLINE CoordStruct Cell2Coord(const CellStruct &cell, int z = 0 , bool snap = true) {
 		if(snap)
-			return { (cell.X * 256) + 128  , (cell.Y * 256) + 128 ,z };
+			return { (cell.X * Unsorted::LeptonsPerCell) + CellClass::SnapCell.X  , (cell.Y * Unsorted::LeptonsPerCell) + CellClass::SnapCell.Y ,z };
 		else
-			return { (cell.X * 256)  , (cell.Y * 256) ,z };
+			return { (cell.X * Unsorted::LeptonsPerCell)  , (cell.Y * Unsorted::LeptonsPerCell) ,z };
 	}
 
 	static COMPILETIMEEVAL FORCEDINLINE CellStruct Coord2Cell(const CoordStruct &crd) {
-		return { static_cast<short>(crd.X / 256)  , static_cast<short>(crd.Y / 256) };
+		return { static_cast<short>(crd.X / Unsorted::LeptonsPerCell)  , static_cast<short>(crd.Y / Unsorted::LeptonsPerCell) };
 	}
 
 	static COMPILETIMEEVAL FORCEDINLINE CellStruct Coord2Cell(CoordStruct *crd) {
-		return { static_cast<short>(crd->X / 256)  , static_cast<short>(crd->Y / 256) };
+		return { static_cast<short>(crd->X / Unsorted::LeptonsPerCell)  , static_cast<short>(crd->Y / Unsorted::LeptonsPerCell) };
 	}
     COMPILETIMEEVAL CoordStruct FixHeight(CoordStruct crd) const
 	{
@@ -681,7 +686,7 @@ protected:
 
 public:
 
-	CellStruct MapCoords;	//Where on the map does this Cell lie?
+	CellStruct 		   MapCoords;	//Where on the map does this Cell lie?
 	DynamicVectorClass<FoggedObjectClass*>* FoggedObjects;
 	CellClass*         BridgeOwnerCell;
 	DWORD              unknown_30;

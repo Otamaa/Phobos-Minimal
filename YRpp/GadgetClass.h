@@ -10,9 +10,11 @@ enum class KeyModifier : int
 	Ctrl = 2,
 	Alt = 4
 };
+MAKE_ENUM_FLAGS(KeyModifier);
 
 enum class GadgetFlag : int
 {
+	None = 0x0,
 	LeftPress = 0x1,
 	LeftHeld = 0x2,
 	LeftRelease = 0x4,

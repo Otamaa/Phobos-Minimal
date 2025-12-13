@@ -2,40 +2,482 @@
 #include <CoordStruct.h>
 
 #include <HouseClass.h>
+#include <SlaveManagerClass.h>
+#include <SpawnManagerClass.h>
 
 #include <Ext/Building/Body.h>
 
-COMPILETIMEEVAL CoordStruct CellToCoord(const CellStruct& cell, int z = 0, bool snap = true) {
-	int offset = snap ? 128 : 0;
-	return {
-		(cell.X << 8) + offset,
-		(cell.Y << 8) + offset,
-		z
+#include <Misc/Ares/Hooks/Header.h>
+
+#pragma region hooks
+// infantry exiting hospital get their focus reset, but not for armory
+ASMJIT_PATCH(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
+{
+	GET(BuildingTypeClass* const, pType, EDX);
+	R->AL(pType->Hospital || pType->Armory);
+	return 0x444D2C;
+}
+
+// BuildingClass_KickOutUnit_PreventClone
+DEFINE_JUMP(LJMP, 0x4449DF, 0x444A53);
+
+ASMJIT_PATCH(0x4444B3, BuildingClass_KickOutUnit_NoAlternateKickout, 6)
+{
+	GET(FakeBuildingClass*, pThis, ESI);
+	return pThis->Type->Factory == AbstractType::None
+		|| pThis->_GetTypeExtData()->CloningFacility.Get()
+		? 0x4452C5 : 0x0;
+}
+
+ASMJIT_PATCH(0x445355, BuildingClass_KickOutUnit_Firewall, 6)
+{
+	GET(BuildingClass*, Factory, ESI);
+	GET(BuildingClass*, B, EDI);
+	GET_STACK(CellStruct, CenterPos, 0x20);
+
+	FirewallFunctions::BuildLines(B, CenterPos, Factory->Owner);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x444B83, BuildingClass_ExitObject_BarracksExitCell, 0x7)
+{
+	enum { SkipGameCode = 0x444C7C };
+	GET(FakeBuildingClass*, pThis, ESI);
+	GET(int, xCoord, EBP);
+	GET(int, yCoord, EDX);
+	REF_STACK(CoordStruct, resultCoords, STACK_OFFSET(0x140, -0x108));
+
+	if (pThis->_GetTypeExtData()->BarracksExitCell.isset())
+	{
+		auto const exitCoords = pThis->Type->ExitCoord;
+		resultCoords = CoordStruct { xCoord + exitCoords.X, yCoord + exitCoords.Y, exitCoords.Z };
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
+// request radio contact then get land dir
+ASMJIT_PATCH(0x444014, BuildingClass_ExitObject_PoseDir_AirportBound, 0x5)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(AircraftClass*, pAir, ECX);
+
+	pThis->SendCommand(RadioCommand::RequestLink, pAir);
+	pThis->SendCommand(RadioCommand::RequestTether, pAir);
+	pAir->SetLocation(pThis->GetDockCoords(pAir));
+	pAir->DockedTo = pThis;
+	FacingType result = BuildingExtData::GetPoseDir(pAir, pThis);
+	const DirStruct dir { result };
+
+	if (RulesExtData::Instance()->ExpandAircraftMission)
+		pAir->PrimaryFacing.Set_Current(dir);
+
+	pAir->SecondaryFacing.Set_Current(dir);
+
+	//if (pAir->GetHeight() > 0)
+	//	AircraftTrackerClass::Instance->Add(pAir);
+
+	return 0x444053;
+}
+
+// there no radio contact happening here
+// so the result mostlikely building facing
+ASMJIT_PATCH(0x443FD8, BuildingClass_ExitObject_PoseDir_NotAirportBound, 0x8)
+{
+	enum { RetCreationFail = 0x444EDE, RetCreationSucceeded = 0x443FE0 };
+
+	GET(BuildingClass*, pThis, ESI);
+	GET(AircraftClass*, pAir, EBP);
+
+	if (R->AL())
+	{
+		pAir->DockedTo = pThis;
+		const DirStruct dir { ((int)BuildingExtData::GetPoseDir(pAir, pThis) << 13) };
+
+		if (RulesExtData::Instance()->ExpandAircraftMission)
+			pAir->PrimaryFacing.Set_Current(dir);
+
+		pAir->SecondaryFacing.Set_Current(dir);
+
+		//if (pAir->GetHeight() > 0)
+		//	AircraftClass::AircraftTracker_4134A0(pAir);
+
+		return RetCreationSucceeded;
+	}
+
+	return RetCreationFail;
+}
+
+ASMJIT_PATCH(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
+{
+	GET(BuildingClass* const, pThis, ESI);
+	GET(UnitClass* const, pObject, EDI);
+
+	if (pObject->Type->Naval)
+	{
+		HouseExtContainer::Instance.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
+	}
+	else
+	{
+		pThis->Owner->ProducingUnitTypeIndex = -1;
+	}
+
+	return 0x44411F;
+}
+
+ASMJIT_PATCH(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
+{
+	GET(BuildingClass* const, pThis, EDI);
+	R->EDX(pThis->Type);
+	const auto& Nvec = RulesExtData::Instance()->WallTowers;
+	return Nvec.Contains(pThis->Type) ? 0x445424 : 0x4454D4;
+}
+
+ASMJIT_PATCH(0x443CCA, BuildingClass_KickOutUnit_AircraftType_Phobos, 0xA)
+{
+	GET(FakeHouseClass*, pHouse, EDX);
+	GET(BuildingClass*, pThis, ESI);
+
+	auto pExt = pHouse->_GetExtData();
+
+	if (pThis == pExt->Factory_AircraftType)
+		pExt->Factory_AircraftType = nullptr;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x44531F, BuildingClass_KickOutUnit_BuildingType_Phobos, 0xA)
+{
+	GET(FakeHouseClass*, pHouse, EAX);
+	GET(BuildingClass*, pThis, ESI);
+
+	auto pExt = pHouse->_GetExtData();
+
+	if (pThis == pExt->Factory_BuildingType)
+		pExt->Factory_BuildingType = nullptr;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x444131, BuildingClass_KickOutUnit_InfantryType_Phobos, 0x6)
+{
+	GET(FakeHouseClass*, pHouse, EAX);
+	GET(BuildingClass*, pThis, ESI);
+
+	auto pExt = pHouse->_GetExtData();
+
+	if (pThis == pExt->Factory_InfantryType)
+		pExt->Factory_InfantryType = nullptr;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
+{
+	GET(UnitClass*, pUnit, EDI);
+	GET(BuildingClass*, pFactory, ESI);
+
+	auto pHouseExt = HouseExtContainer::Instance.Find(pFactory->Owner);
+
+	if (pUnit->Type->Naval && pHouseExt->Factory_NavyType == pFactory)
+		pHouseExt->Factory_NavyType = nullptr;
+	else if (!pUnit->Type->Naval && pHouseExt->Factory_VehicleType == pFactory)
+		pHouseExt->Factory_VehicleType = nullptr;
+
+	return 0;
+}
+
+// Should not kick out units if the factory building is in construction process
+ASMJIT_PATCH(0x4444A0, BuildingClass_KickOutUnit_NoKickOutInConstruction, 0xA)
+{
+	enum { ThisIsOK = 0x444565, ThisIsNotOK = 0x4444B3 };
+
+	GET(BuildingClass* const, pThis, ESI);
+
+	const auto mission = pThis->GetCurrentMission();
+
+	return (mission == Mission::Unload || mission == Mission::Construction) ? ThisIsNotOK : ThisIsOK;
+}
+
+ASMJIT_PATCH(0x4440B0, BuildingClass_KickOutUnit_CloningFacility, 0x6)
+{
+	enum { CheckFreeLinks = 0x4440BA, ContinueIn = 0x4440D7 };
+
+	GET(BuildingTypeClass*, pFactoryType, EAX);
+
+	if (!pFactoryType->WeaponsFactory
+		|| BuildingTypeExtContainer::Instance.Find(pFactoryType)->CloningFacility)
+		return CheckFreeLinks;
+
+	return ContinueIn;
+}
+
+ASMJIT_PATCH(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(TechnoClass*, pObj, EDI);
+
+	if (!pThis->Type->WeaponsFactory)
+		return 0x4445FB; //not a weapon factory
+
+	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (pExt->RubbleDestroyed)
+	{
+		if (pThis->Type->Factory == pObj->GetTechnoType()->WhatAmI() && pThis->Factory && pThis->Factory->Object == pObj)
+			return 0x444167; //continue check
+
+		if (pObj->WhatAmI() == AbstractType::Infantry)
+			return 0x4445FB; // just eject
+	}
+
+	return 0x444167; //continue check
+}
+
+ASMJIT_PATCH(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
+{
+	GET(BuildingClass*, pThis, ESI);
+	GET(FootClass*, pProduct, EDI);
+	GET(RadioCommand, respond, EAX);
+
+	if (respond == RadioCommand::AnswerPositive)
+	{
+		pThis->SendCommand(RadioCommand::RequestUnload, pProduct);
+
+		if (auto pDest = pProduct->ArchiveTarget)
+		{
+			pProduct->SetDestination(pDest, true);
+			return 0x444971;
+		}
+
+		pProduct->Scatter(CoordStruct::Empty, true, false);
+	}
+
+	return 0x444971;
+}
+
+ASMJIT_PATCH(0x444DBC, BuildingClass_KickOutUnit_Infantry, 5)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	// turn it off
+	--Unsorted::ScenarioInit;
+
+	TechnoExt_ExtData::KickOutClones(Factory, Production);
+
+	// turn it back on so the game can turn it off again
+	++Unsorted::ScenarioInit;
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4445F6, BuildingClass_KickOutUnit_Clone_NonNavalUnit, 5)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	// turn it off
+	--Unsorted::ScenarioInit;
+
+	TechnoExt_ExtData::KickOutClones(Factory, Production);
+
+	// turn it back on so the game can turn it off again
+	++Unsorted::ScenarioInit;
+
+	return 0x444971;
+}
+
+ASMJIT_PATCH(0x44441A, BuildingClass_KickOutUnit_Clone_NavalUnit, 6)
+{
+	GET(TechnoClass*, Production, EDI);
+	GET(BuildingClass*, Factory, ESI);
+
+	TechnoExt_ExtData::KickOutClones(Factory, Production);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4444E2, BuildingClass_KickOutUnit_FindAlternateKickout, 6)
+{
+	GET(BuildingClass*, Src, ESI);
+	GET(BuildingClass*, Tst, EBP);
+	GET(TechnoClass*, Production, EDI);
+
+	if (Src != Tst
+	 && Tst->GetCurrentMission() == Mission::Guard
+	 && Tst->Type->Factory == Src->Type->Factory
+	 && Tst->Type->Naval == Src->Type->Naval
+	 && TechnoTypeExtData::CanBeBuiltAt(Production->GetTechnoType(), Tst->Type)
+	 && !Tst->Factory)
+	{
+		return 0x44451F;
+	}
+
+	return 0x444508;
+}
+
+// Buildable-upon TechnoTypes Hook #6 -> sub_443C60 - Try to clean up the building space when AI is building
+ASMJIT_PATCH(0x4451F8, BuildingClass_KickOutUnit_CleanUpAIBuildingSpace, 0x6)
+{
+	enum
+	{
+		CanBuild = 0x4452F0,
+		TemporarilyCanNotBuild = 0x445237,
+		CanNotBuild = 0x4454E6,
+		BuildSucceeded = 0x4454D4,
+		BuildFailed = 0x445696
 	};
+
+	GET(BaseNodeClass*, pBaseNode, EBX);
+	GET(BuildingClass*, pBuilding, EDI);
+	GET(BuildingClass*, pFactory, ESI);
+	GET(CellStruct, topLeftCell, EDX);
+
+	const auto pBuildingType = pBuilding->Type;
+
+	if (RulesExtData::Instance()->AIForbidConYard && pBuildingType->ConstructionYard)
+	{
+		if (pBaseNode)
+		{
+			pBaseNode->Placed = true;
+			pBaseNode->Attempts = 0;
+		}
+		return BuildFailed;
+	}
+
+	// Clean up invalid walls nodes
+	if (RulesExtData::Instance()->AICleanWallNode && pBuildingType->Wall)
+	{
+		auto notValidWallNode = [topLeftCell]()
+			{
+				const auto pCell = MapClass::Instance->GetCellAt(topLeftCell);
+
+				for (int i = 0; i < 8; ++i)
+				{
+					if (const auto pAdjBuilding = pCell->GetNeighbourCell(static_cast<FacingType>(i))->GetBuilding())
+					{
+						if (pAdjBuilding->Type->ProtectWithWall)
+							return false;
+					}
+				}
+
+				return true;
+			};
+
+		if (notValidWallNode())
+			return CanNotBuild;
+	}
+
+	const auto pHouse = pFactory->Owner;
+	const auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuildingType);
+
+	if (pTypeExt->LimboBuild)
+	{
+		BuildingTypeExtData::CreateLimboBuilding(pBuilding, pBuildingType, pHouse, pTypeExt->LimboBuildID);
+		if (pBaseNode)
+		{
+			pBaseNode->Placed = true;
+			pBaseNode->Attempts = 0;
+
+			if (pHouse->ProducingBuildingTypeIndex == pBuildingType->ArrayIndex)
+				pHouse->ProducingBuildingTypeIndex = -1;
+		}
+		BuildingExtData::PlayConstructionYardAnim<true>(pFactory);
+		return BuildSucceeded;
+	}
+
+	if (!RulesExtData::Instance()->ExtendedBuildingPlacing)
+		return 0;
+
+	if (topLeftCell != CellStruct::Empty && !pBuildingType->PlaceAnywhere)
+	{
+		if (!pBuildingType->PowersUpBuilding[0])
+		{
+			bool noOccupy = true;
+			bool canBuild = BuildingExtData::CheckBuildingFoundation(pBuildingType, topLeftCell, pHouse, noOccupy);
+			const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+			auto& place = pBuildingType->BuildCat != BuildCat::Combat ? pHouseExt->Common : pHouseExt->Combat;
+
+			do
+			{
+				if (canBuild)
+				{
+					if (noOccupy)
+						break; // Can Build
+
+					do
+					{
+						if (topLeftCell != place.TopLeft || pBuildingType != place.Type) // New command
+						{
+							place.Type = pBuildingType;
+							place.DrawType = pBuildingType;
+							place.TopLeft = topLeftCell;
+						}
+
+						if (!place.Timer.HasTimeLeft())
+						{
+							place.Timer.Start(40);
+
+							if (BuildingTypeExtData::CleanUpBuildingSpace(pBuildingType, topLeftCell, pHouse))
+								break; // No place for cleaning
+						}
+
+						return TemporarilyCanNotBuild;
+					}
+					while (false);
+				}
+
+				BuildingExtData::ClearPlacingBuildingData(&place);
+				return CanNotBuild;
+			}
+			while (false);
+
+			BuildingExtData::ClearPlacingBuildingData(&place);
+		}
+		else
+		{
+			const auto pCell = MapClass::Instance->GetCellAt(topLeftCell);
+			const auto pCellBuilding = pCell->GetBuilding();
+
+			if (!pCellBuilding || !pCellBuilding->CanUpgrade(pBuildingType, pHouse)) // CanUpgradeBuilding
+				return CanNotBuild;
+		}
+	}
+
+	if (pBuilding->Unlimbo(CoordStruct { (topLeftCell.X << 8) + 128, (topLeftCell.Y << 8) + 128, 0 }, DirType::North))
+	{
+		BuildingExtData::PlayConstructionYardAnim(pFactory);
+		return CanBuild;
+	}
+
+	return CanNotBuild;
 }
 
-// Helper: Convert world coordinates to cell coordinates
-COMPILETIMEEVAL  CellStruct CoordToCell(const CoordStruct& coord) {
-	return {
-		static_cast<short>(coord.X / 256),
-		static_cast<short>(coord.Y / 256)
-	};
-}
+#pragma endregion
 
-void RemoveNodeFromList(DynamicVectorClass<BaseNodeClass>* nodeList, int index) {
-	nodeList->erase_at(index);
-}
-
-DirType Calculate_Exit_Direction(BuildingClass* pBuilding, const CoordStruct& targetCoord)
+NOINLINE DirType Calculate_Exit_Direction(BuildingClass* pBuilding, const CoordStruct& targetCoord)
 {
 	CoordStruct buildingCenter = pBuilding->GetCoords();
-	float angle = std::atan2(double(targetCoord.Y - buildingCenter.Y), double(targetCoord.X - buildingCenter.X));
+	float angle = Math::atan2(double(targetCoord.Y - buildingCenter.Y), double(targetCoord.X - buildingCenter.X));
 		  angle = (angle - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC;
 
 	return static_cast<DirType>((((static_cast<int>(angle) >> 7) + 1) >> 1));
+	
 }
 
-CellStruct Adjust_Exit_Cell(BuildingClass* pBuilding, const CellStruct& targetCell)
+NOINLINE DirType Calculate_Exit_Direction(BuildingClass* pBuilding, const CellStruct& targetCoord)
+{
+	CellStruct buildingCenter = pBuilding->GetMapCoords();
+	float angle = Math::atan2(double(targetCoord.Y - buildingCenter.Y), double(targetCoord.X - buildingCenter.X));
+		  angle = (angle - Math::DEG90_AS_RAD) * Math::BINARY_ANGLE_MAGIC;
+
+	return static_cast<DirType>(((((static_cast<int>(angle) >> 12) + 1) >> 1) & 7));
+}
+
+NOINLINE CellStruct Adjust_Exit_Cell(BuildingClass* pBuilding, const CellStruct& targetCell)
 {
 	CellStruct buildingCell = pBuilding->GetMapCoords();
 	CellStruct result = targetCell;
@@ -64,7 +506,7 @@ CellStruct Adjust_Exit_Cell(BuildingClass* pBuilding, const CellStruct& targetCe
 	return result;
 }
 
-CoordStruct Apply_Barracks_Exit_Offset(BuildingClass* pBuilding,
+NOINLINE CoordStruct Apply_Barracks_Exit_Offset(BuildingClass* pBuilding,
 													   const CoordStruct& baseCoord,
 													   const CellStruct& exitCell,
 													   const CellStruct& buildingCell)
@@ -99,7 +541,7 @@ CoordStruct Apply_Barracks_Exit_Offset(BuildingClass* pBuilding,
 	return result;
 }
 
-bool Place_And_Configure_Unit(BuildingClass* pFactory ,
+NOINLINE bool Place_And_Configure_Unit(BuildingClass* pFactory ,
 											 FootClass* unit,
 											 const CoordStruct& coord,
 											 DirType direction,
@@ -153,7 +595,7 @@ bool Place_And_Configure_Unit(BuildingClass* pFactory ,
 	return true;
 }
 
-void Handle_Cloning_Vats(BuildingClass* pFactory, TechnoClass* infantry)
+NOINLINE void Handle_Cloning_Vats(BuildingClass* pFactory, TechnoClass* infantry)
 {
 	if (pFactory->Type->Factory != AbstractType::Infantry || pFactory->Type->Cloning) {
 		return;
@@ -163,616 +605,504 @@ void Handle_Cloning_Vats(BuildingClass* pFactory, TechnoClass* infantry)
 	HouseClass* house = pFactory->Owner;
 
 	// Duplicate infantry in all cloning vats
-	for (int i = 0; i < house->CloningVats.Count; ++i) {
-
-		BuildingClass* cloningVat = house->CloningVats.Items[i];
+	house->CloningVats.for_each([infantryType](BuildingClass* cloningVat) {
 		TechnoClass* clone = (TechnoClass*)infantryType->CreateObject(cloningVat->Owner);
-
 		cloningVat->KickOutUnit(clone, CellStruct::Empty);
-	}
+	});
 }
 
-int Exit_Aircraft(AircraftClass* aircraft)
+NOINLINE KickOutResult Exit_Aircraft(BuildingClass* pThis, AircraftClass* aircraft)
 {
 	// Mark aircraft as down (on ground)
-	ObjectClass_isdown_markdown_set_z_5F6060(&aircraft->f.t.r.m.o, 0);
+	aircraft->MarkDownSetZ(0);
 
-	++ScenarioInit;
+	++Unsorted::ScenarioInit;
 
 	bool placed = false;
-	DirType exitDirection = AircraftClass::Pose_Dir(aircraft);
+	DirType exitDirection = (DirType)RulesClass::Instance->PoseDir;
 
 	// Check if in radio contact or if ion storm is active
-	if (RadioClass::In_Radio_Contact(&this->t.r, &aircraft->f.t.r) ||
-		IonStormClass_53A130() && !aircraft->Type->AirportBound)
-	{
+	if (pThis->ContainsLink(aircraft) ||
+		pThis->Owner->IonSensitivesShouldBeOffline() && !aircraft->Type->AirportBound) {
 
-		if (IonStormClass_53A130())
-		{
-			// Ion storm active - place at nearby location
-			CellStruct nearbyCell = *TechnoClass::Nearby_Location(&aircraft->f.t, nullptr, this);
-			CoordStruct exitCoord = CellToCoord(nearbyCell);
+		if (pThis->Owner->IonSensitivesShouldBeOffline()) {
+			// Ion storm active - place at nearby location	
+			CellStruct nearbyCell;
+			aircraft->NearbyLocation(&nearbyCell,pThis);
+			CoordStruct exitCoord = CellClass::Cell2Coord(nearbyCell);
+			placed = aircraft->Unlimbo(exitCoord, exitDirection);
+		} else {
+			// Normal exit - place at docking coordinate		
+			CoordStruct dockCoord = pThis->GetDockCoords(aircraft);
 
-			placed = aircraft->f.Unlimbo(&aircraft->f.t.r.m.o,
-																	 &exitCoord, exitDirection);
-		}
-		else
-		{
-			// Normal exit - place at docking coordinate
-			CoordStruct dockCoord = *this->t.r.m.o.a.vftable->t.r.m.o.Docking_Coord(this, nullptr,
-																					 aircraft, exitDirection);
+			placed = aircraft->Unlimbo(dockCoord, exitDirection);
 
-			placed = aircraft->f.Unlimbo(&aircraft->f.t.r.m.o,
-																	 &dockCoord, exitDirection);
-
-			if (placed)
-			{
+			if (placed) {
 				// Establish radio contact with building
-				this->t.r.m.o.a.vftable->t.r.Transmit_Message__MSG__PTR(&this->t.r, RADIO_HELLO, &aircraft->f);
-				this->t.r.m.o.a.vftable->t.r.Transmit_Message__MSG__PTR(&this->t.r, RADIO_TETHER, &aircraft->f);
+				pThis->SendCommand(RadioCommand::RequestLink, aircraft);
+				pThis->SendCommand(RadioCommand::RequestTether, aircraft);
 
 				// Set aircraft position precisely
-				CoordStruct finalDockCoord = *this->t.r.m.o.a.vftable->t.r.m.o.Docking_Coord(this, nullptr, aircraft);
-				aircraft->f.t.r.m.o.a.vftable->t.r.m.o.Set_Coord(&aircraft->f.t, &finalDockCoord);
-
-				aircraft->dock_technopointer6CC = &this->t;
+				CoordStruct finalDockCoord = pThis->GetDockCoords(aircraft);
+				aircraft->SetLocation(finalDockCoord);
+				aircraft->DockedTo = pThis;
 
 				// Assign destination if not airport-bound
-				TechnoClass* target = this->t.ArchiveTarget;
-				if (target && !aircraft->Type->AirportBound)
-				{
-					aircraft->f.t.r.m.o.a.vftable->t.Assign_Destination(aircraft, target, true);
-					aircraft->f.t.r.m.o.a.vftable->t.r.m.Assign_Mission__framenumber(aircraft, Mission::Move, 0);
+				AbstractClass* target = pThis->ArchiveTarget;
+
+				if (target && !aircraft->Type->AirportBound) {
+					aircraft->SetDestination(target, true);
+					aircraft->QueueMission(Mission::Move, 0);
 				}
 			}
 		}
-	}
-	else
-	{
+	} else {
+
 		// Not in radio contact - must be non-airport-bound aircraft
-		if (aircraft->Type->AirportBound)
-		{
-			--ScenarioInit;
-			return 0; // Airport-bound aircraft need radio contact
+		if (aircraft->Type->AirportBound) {
+			--Unsorted::ScenarioInit;
+			return KickOutResult::Failed; // Airport-bound aircraft need radio contact
 		}
 
 		// Calculate edge of map exit position
-		CoordStruct buildingCenter;
-		this->t.r.m.o.a.vftable->t.r.m.o.a.Center_Coord(this, &buildingCenter);
+		CoordStruct buildingCenter = pThis->GetCoords();
+		CellStruct centerCell = CellClass::Coord2Cell(buildingCenter);
 
-		CellStruct centerCell = CoordToCell(buildingCenter);
-
-		int mapLocalX = MapClass_MapLocalSize.X;
-		int mapLocalY = MapClass_MapLocalSize.Y;
-		int mapWidth = MapClass_MapSize.Width;
+		int mapLocalX = MapClass::MapLocalSize->X;
+		int mapLocalY = MapClass::MapLocalSize->Y;
+		int mapWidth = MapClass::MapLocalSize->Width;
+		int mapHeight = MapClass::MapLocalSize->Height;
 
 		// Determine which map edge to exit from
 		CellStruct exitCell;
 		int diagonal1 = (mapLocalX + 1) + mapLocalY;
 		int diagonal2 = (mapWidth - mapLocalX) + mapLocalY;
 
-		if ((centerCell.X - diagonal1) - (centerCell.Y - diagonal2) <= MapClass_MapLocalSize.Width)
-		{
+		if ((centerCell.X - diagonal1) - (centerCell.Y - diagonal2) <= mapWidth) {
 			// Exit from one diagonal edge
 			exitCell.X = diagonal1 - 1;
 			exitCell.Y = diagonal2;
-		}
-		else
-		{
+		} else {
 			// Exit from opposite diagonal edge
-			exitCell.X = MapClass_MapLocalSize.Width + diagonal1 - 1;
-			exitCell.Y = diagonal2 - MapClass_MapLocalSize.Width;
+			exitCell.X = mapWidth + diagonal1 - 1;
+			exitCell.Y = diagonal2 - mapWidth;
 		}
 
 		// Add random offset along edge
-		int randomOffset = Random2Class::operator()(&Scen->RandomNumber, 0, MapClass_MapLocalSize.Height);
+		int randomOffset = ScenarioClass::Instance->Random.RandomFromMax(mapHeight);
 		exitCell.X += randomOffset;
 		exitCell.Y += randomOffset;
 
-		CoordStruct exitCoord = CellToCoord(exitCell);
+		CoordStruct exitCoord = CellClass::Cell2Coord(exitCell);
 
-		placed = aircraft->f.Unlimbo(&aircraft->f.t.r.m.o,
-																 &exitCoord, DIR_MIN);
+		placed = aircraft->Unlimbo(exitCoord, DirType::Min);
 
-		if (placed)
-		{
-			TechnoClass* target = this->t.ArchiveTarget;
-			if (target)
-			{
-				aircraft->f.t.r.m.o.a.vftable->t.Assign_Destination(&aircraft->f.t.r.m.o, target);
-				aircraft->f.t.r.m.o.a.vftable->t.r.m.Set_Mission__Bullet_Unlimbo_BulletMoveTo_YRPP(aircraft, 2);
-			}
-			else
-			{
+		if (placed) {
+			if (AbstractClass* target = pThis->ArchiveTarget) {
+				aircraft->SetDestination(target, true);
+				aircraft->QueueMission(Mission::Move, 0);
+			} else {
 				// Find nearby location for non-targeted aircraft
-				CellStruct nearbyCell = *TechnoClass::Nearby_Location(&aircraft->f.t, nullptr, this);
+				CellStruct nearbyCell;
+				aircraft->NearbyLocation(&nearbyCell, pThis);
 
-				if (nearbyCell == default_cell)
-				{
-					aircraft->f.t.r.m.o.a.vftable->t.Assign_Destination(&aircraft->f.t.r.m.o, nullptr);
-					aircraft->f.t.r.m.o.a.vftable->t.r.m.Set_Mission__Bullet_Unlimbo_BulletMoveTo_YRPP(aircraft, 2);
-				}
-				else
-				{
-					CellClass* destCell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &nearbyCell);
-					aircraft->f.t.r.m.o.a.vftable->t.Assign_Destination(&aircraft->f.t.r.m.o, destCell, true);
-					aircraft->f.t.r.m.o.a.vftable->t.r.m.Set_Mission__Bullet_Unlimbo_BulletMoveTo_YRPP(aircraft, 2);
+				if (!nearbyCell.IsValid()) {
+					aircraft->SetDestination(nullptr, true);
+					aircraft->QueueMission(Mission::Move, 0);
+				} else {
+					aircraft->SetDestination(MapClass::Instance->GetCellAt(nearbyCell), true);
+					aircraft->QueueMission(Mission::Move, 0);
 				}
 			}
 		}
 	}
 
-	--ScenarioInit;
+	--Unsorted::ScenarioInit;
 
-	return placed ? 2 : 0;
+	return placed ? KickOutResult::Succeeded : KickOutResult::Failed;
 }
 
-int Exit_Building(BuildingClass* building)
-{
+NOINLINE KickOutResult Exit_Building(BuildingClass* pThis, BuildingClass* building) {
 	// Player cannot use this function
-	if (HouseClass::IsControlledByHuman(this->t.House)) {
-		return 0;
+	if (pThis->Owner->IsControlledByHuman()) {
+		return KickOutResult::Failed;
 	}
 
-	HouseClass_whimp_on_money(this->t.House, RTTI_BUILDING);
-	this->t.House->BuildStructure = -1;
+	pThis->Owner->WhimpOnMoney(AbstractType::Building);
+	pThis->Owner->ProducingBuildingTypeIndex = -1;
 
-	BuildingTypeClass* buildingType = building->Type;
-	BaseNodeClass* baseNode = BaseClass::Next_Buildable(&this->t.House->Base.vtable, buildingType->Type);
-
-	CoordStruct placementCoord = building_defaultcoord;
+	BaseNodeClass* baseNode = pThis->Owner->Base.NextBuildable(building->Type->ArrayIndex);
+	CoordStruct placementCoord = CoordStruct::Empty;
 
 	// Determine placement location
-	if (baseNode && (baseNode->Cell.X != 0 || baseNode->Cell.Y != 0))
-	{
+	if (baseNode && baseNode->MapCoords.IsValid()) {
 		// Has a predefined base location
-		CellStruct targetCell = baseNode->Cell;
+		CellStruct targetCell = baseNode->MapCoords;
 
-		if (buildingType->PowersUpBuilding[0] ||
-			HouseClass::Base_Spacer(this->t.House, buildingType, &targetCell))
-		{
+		if (building->Type->PowersUpBuilding[0] ||
+			pThis->Owner->HasSpaceFor(building->Type, &targetCell)) {		
 			// Use the base node location directly
-			placementCoord = CellToCoord(targetCell);
-		}
-		else
-		{
+			placementCoord = CellClass::Cell2Coord(targetCell);
+		} else {
 			// Find a suitable build location
-			CellStruct buildCell = *HouseClass::Find_Build_Location(this->t.House, nullptr,
-																	 buildingType, placement_callback, -1);
+			CellStruct buildCell;
+			pThis->Owner->FindBuildLocation(&buildCell, building->Type, *reinterpret_cast<HouseClass::placement_callback*>(0x505F80), -1);
 
-			placementCoord = CellToCoord(buildCell);
+			placementCoord = CellClass::Cell2Coord(buildCell);
 
-			if (placementCoord == building_defaultcoord)
-			{
-				return 0; // No valid location found
+			if (placementCoord == CoordStruct::Empty) {
+				return KickOutResult::Failed; // No valid location found
 			}
 
 			// Update base node with found location
-			baseNode->Cell = CoordToCell(placementCoord);
+			baseNode->MapCoords = CellClass::Coord2Cell(placementCoord);
 		}
-	}
-	else
-	{
+	} else {
 		// No base node - find location dynamically
-		if (buildingType->PowersUpBuilding[0])
-		{
+		if (building->Type->PowersUpBuilding[0]) {
 			// Find power-up location
-			CellStruct powerUpCell = *HouseClass_powerups_506B90(this->t.House, nullptr, buildingType);
+			CellStruct powerUpCell;
+			pThis->Owner->GetPoweups(&powerUpCell, building->Type);
 
-			if (powerUpCell != default_cell)
-			{
-				placementCoord = CellToCoord(powerUpCell);
+			if (powerUpCell != CellStruct::Empty) {
+				placementCoord = CellClass::Cell2Coord(powerUpCell);
 			}
-		}
-		else
-		{
+		} else {
 			// Find general build location
-			CellStruct buildCell = *HouseClass::Find_Build_Location(this->t.House, nullptr,
-																	 buildingType, placement_callback, -1);
-			placementCoord = CellToCoord(buildCell);
+			CellStruct buildCell;
+			pThis->Owner->FindBuildLocation(&buildCell, building->Type, *reinterpret_cast<HouseClass::placement_callback*>(0x505F80), -1);
+
+			placementCoord = CellClass::Cell2Coord(buildCell);
 		}
 
 		// Update base node if exists
-		if (baseNode && placementCoord != building_defaultcoord)
-		{
-			baseNode->Cell = CoordToCell(placementCoord);
+		if (baseNode && placementCoord != CoordStruct::Empty) {
+			baseNode->MapCoords = CellClass::Coord2Cell(placementCoord);
 		}
 	}
 
 	// Validate placement location
-	if (placementCoord == building_defaultcoord)
-	{
+	if (placementCoord == CoordStruct::Empty) {
 		// Failed to find location - handle power-up building special case
-		if (buildingType->PowersUpBuilding[0])
-		{
-			if (BaseClass::Next_Buildable(&this->t.House->Base.vtable, -1) == baseNode)
-			{
-				int nodeIndex = BaseClass::Next_Buildable_Index(&this->t.House->Base, -1);
-				RemoveNodeFromList(&this->t.House->Base.Nodes, nodeIndex);
+		if (building->Type->PowersUpBuilding[0]) {
+			if (pThis->Owner->Base.NextBuildable(-1) == baseNode) {
+				pThis->Owner->Base.BaseNodes.erase_at(pThis->Owner->Base.NextBuildableIdx(-1));
 			}
 		}
-		return 0;
+
+		return KickOutResult::Failed;
 	}
 
 	// Try to flush any obstacles at placement site
-	CellStruct placementCell = CoordToCell(placementCoord);
+	CellStruct placementCell = CellClass::Coord2Cell(placementCoord);
+	const int flushResult = building->Type->FlushPlacement(&placementCell, pThis->Owner);
 
-	int flushResult = BuildingTypeClass::Flush_For_Placement(
-		building->t.r.m.o.a.vftable->t.r.m.o.Class_Of(&building->t.r.m.o),
-		&placementCell, this->t.House);
-
-	if (flushResult == 1)
-	{
+	if (flushResult == 1) {
 		// Temporary blockage - increment failure counter
-		int failureCount = BaseNodeClass::Increase_Attempts(&this->t.House->Base, baseNode);
+		int failureCount = pThis->Owner->Base.FailedToPlaceNode(baseNode);
 
-		if (Session.Type && failureCount > Rule->MaximumBuildingPlacementFailures)
-		{
+		if (SessionClass::Instance->GameMode != GameMode::Campaign && failureCount > RulesClass::Instance->MaximumBuildingPlacementFailures) {
 			// Too many failures - remove from build queue
-			if (baseNode)
-			{
-				int nodeIndex = this->t.House->Base.Nodes.vftble->ID2(&this->t.House->Base.Nodes, baseNode);
-				RemoveNodeFromList(&this->t.House->Base.Nodes, nodeIndex);
+			if (baseNode) {
+				pThis->Owner->Base.BaseNodes.erase_at(pThis->Owner->Base.BaseNodes.index_of(baseNode));
 			}
 		}
-		return 1; // Temporary failure
+
+		return KickOutResult::Busy; // Temporary failure
 	}
 
-	if (flushResult == 2)
-	{
-		return 0; // Permanent blockage
+	if (flushResult == 2) {
+		return KickOutResult::Failed; // Permanent blockage
 	}
 
 	// Try to place building
-	if (!building->Unlimbo(&building->t.r.m.o, &placementCoord, DIR_MIN))
-	{
+	if (!building->Unlimbo(placementCoord, DirType::Min)) {
 		// Placement failed - update base node for walls/gates
-		if (buildingType->IsWall || buildingType->IsGate)
-		{
-			if (baseNode)
-			{
-				int nodeIndex = this->t.House->Base.Nodes.vftble->ID2(&this->t.House->Base.Nodes, baseNode);
-				RemoveNodeFromList(&this->t.House->Base.Nodes, nodeIndex);
+		if (building->Type->Wall || building->Type->Gate) {
+			if (baseNode) {
+				pThis->Owner->Base.BaseNodes.erase_at(pThis->Owner->Base.BaseNodes.index_of(baseNode));
 			}
-		}
-		else
-		{
+		} else {
 			// For other buildings, clear the cell in base nodes
-			HouseClass* house = this->t.House;
-			CellStruct failedCell = CoordToCell(placementCoord);
+			CellStruct failedCell = CellClass::Coord2Cell(placementCoord);
 
-			for (int i = 0; i < house->Base.Nodes.ActiveCount; ++i)
-			{
-				BaseNodeClass* node = house->Base.Nodes.Vector_Item[i];
-				if (node->Cell.X == failedCell.X && node->Cell.Y == failedCell.Y)
-				{
-					node->Cell.X = 0;
-					node->Cell.Y = 0;
+			pThis->Owner->Base.BaseNodes.for_each([&](BaseNodeClass& node) {
+				if (node.MapCoords.IsValid() &&
+					node.MapCoords == failedCell) {
+					node.MapCoords = CellStruct::Empty;
 				}
-			}
+			});
 		}
-		return 0;
+
+		return KickOutResult::Failed;
 	}
 
 	// Successfully placed building
 
 	// Deploy slave miners if applicable
-	SlaveManagerClass* slaveManager = building->t.__SlaveManager;
-	if (slaveManager)
-	{
-		SlaveManagerClass::Deploy2(slaveManager);
+	if (SlaveManagerClass* slaveManager = building->SlaveManager) {
+		slaveManager->Deploy2();
 	}
 
 	// Clear build structure flag if this was the building being built
-	if (baseNode && buildingType->Type == this->t.House->BuildStructure)
-	{
-		this->t.House->BuildStructure = -1;
+	if (baseNode && building->Type->ArrayIndex == pThis->Owner->ProducingBuildingTypeIndex) {
+		pThis->Owner->ProducingBuildingTypeIndex = -1;
 	}
 
 	// Commence construction if queued
-	if (building->t.r.m.Mission == MISSION_NONE &&
-		building->t.r.m.MissionQueue == MISSION_CONSTRUCTION)
-	{
-		building->t.r.m.o.a.vftable->t.r.m.Commence(&building->t.r.m);
+	if (building->CurrentMission == Mission::Move &&
+		building->QueuedMission == Mission::Construction) {
+		building->NextMission();
 	}
 
 	// Handle special wall placement
-	if (building->t.r.m.o.a.vftable->t.r.m.o.a.Kind_Of(&building->t.r.m.o.a) == RTTI_BUILDING)
 	{
-		if (buildingType->FirestormWall)
-		{
-			CellStruct wallCell = CoordToCell(placementCoord);
-			MapClass::Place_Firestorm_Wall_Building(&Map.sc.t.sb.p.r.d.m, &wallCell,
-													this->t.House, buildingType);
-		}
-		else if (buildingType->ToOverlay && buildingType->ToOverlay->IsWall)
-		{
-			CellStruct wallCell = CoordToCell(placementCoord);
-			MapClass::Place_Wall_Building(&Map.sc.t.sb.p.r.d.m, &wallCell,
-										 this->t.House, buildingType);
+		if (building->Type->FirestormWall) {
+			CellStruct wallCell = CellClass::Coord2Cell(placementCoord);
+			MapClass::Instance->BuildingToFirestormWall(wallCell,pThis->Owner, building->Type);
+		} else if (building->Type->ToOverlay && building->Type->ToOverlay->Wall) {
+			CellStruct wallCell = CellClass::Coord2Cell(placementCoord);
+			MapClass::Instance->BuildingToWall(wallCell, pThis->Owner, building->Type);
 		}
 	}
 
 	// Handle wall tower special logic
-	if (buildingType == Rule->WallTower)
+	if (building->Type == RulesClass::Instance->WallTower)
 	{
-		int nodeIndex = this->t.House->Base.Nodes.vftble->ID2(&this->t.House->Base.Nodes, baseNode);
+		int nodeIndex = pThis->Owner->Base.BaseNodes.index_of(baseNode);
 		int nextIndex = nodeIndex + 1;
 
 		// Find next base defense building in the list
-		if (nextIndex < this->t.House->Base.Nodes.ActiveCount)
-		{
-			for (int i = nextIndex; i < this->t.House->Base.Nodes.ActiveCount; ++i)
-			{
-				BaseNodeClass* nextNode = this->t.House->Base.Nodes.Vector_Item[i];
-				int buildingTypeIndex = nextNode->Type;
+		if (nextIndex < pThis->Owner->Base.BaseNodes.Count) {
+			for (int i = nextIndex; i < pThis->Owner->Base.BaseNodes.Count; ++i) {
+				BaseNodeClass* nextNode = &pThis->Owner->Base.BaseNodes.Items[i];
 
-				if (buildingTypeIndex >= 0 && (*(&BuildingTypes + 1))[buildingTypeIndex]->IsBaseDefense)
-				{
+				if (nextNode->BuildingTypeIndex >= 0 && BuildingTypeClass::Array->Items[nextNode->BuildingTypeIndex]->IsBaseDefense) {
 					// Update next defense building's cell to this tower's location
-					nextNode->Cell = CoordToCell(building->t.r.m.o.Coord);
+					nextNode->MapCoords = CellClass::Coord2Cell(building->Location);
 					break;
 				}
 			}
 		}
 	}
 
-	return 2; // Successfully placed
+	return KickOutResult::Succeeded; // Successfully placed
 }
 
-int Exit_Naval_Vehicle(FootClass* ship)
+NOINLINE KickOutResult Exit_Naval_Vehicle(BuildingClass* pThis, FootClass* ship)
 {
 	// Check if building is already in radio contact
-	if (!RadioClass::Is_In_Radio_Contact(&this->t.r))
-	{
-		this->t.r.m.o.a.vftable->t.r.m.Assign_Mission__framenumber(this, MISSION_UNLOAD, 0);
+	if (!pThis->HasAnyLink()) {
+		pThis->QueueMission(Mission::Unload, 0);
 	}
 
 	// Get building center
-	CoordStruct buildingCenter;
-	this->t.r.m.o.a.vftable->t.r.m.o.a.Center_Coord(this, &buildingCenter);
-
-	CellStruct exitCell = CoordToCell(buildingCenter);
+	CoordStruct buildingCenter = pThis->GetCoords();
+	CellStruct exitCell = CellClass::Coord2Cell(buildingCenter);
 
 	// If there's an archive target, calculate direction towards it
-	TechnoClass* archiveTarget = this->t.ArchiveTarget;
-	if (archiveTarget)
+	if (AbstractClass* archiveTarget = pThis->ArchiveTarget)
 	{
-		CoordStruct targetCoord;
-		archiveTarget->r.m.o.a.vftable->t.r.m.o.a.Center_Coord(archiveTarget, &targetCoord);
-
-		CellStruct targetCell = CoordToCell(targetCoord);
-		CellStruct buildingCell = *this->t.r.m.o.a.vftable->t.r.m.o.Coord_Cell(this);
+		CoordStruct targetCoord = archiveTarget->GetCoords();
+		CellStruct targetCell = CellClass::Coord2Cell(targetCoord);
 
 		// Calculate direction angle
-		float angle = FastMath::Atan2(buildingCell.Y - targetCell.Y, targetCell.X - buildingCell.X);
-		angle = (angle - DEG90_AS_RAD) * BINARY_ANGLE_MAGIC;
-		int dirIndex = ((static_cast<int>(angle) >> 12) + 1) >> 1) & 7;
+		int dirIndex= (int)Calculate_Exit_Direction(pThis, targetCoord);
 
 		// Move exit cell in calculated direction until clear of building
-		CellClass* cell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &exitCell);
-		while (CellClass::Cell_Building(cell) == this)
+		CellClass* cell = MapClass::Instance->GetCellAt(exitCell);
+
+		while (cell->GetBuilding() == pThis)
 		{
-			exitCell.X += AdjacentCell[dirIndex].X;
-			exitCell.Y += AdjacentCell[dirIndex].Y;
-			cell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &exitCell);
+			exitCell += CellSpread::AdjacentCell[dirIndex];
+			cell = MapClass::Instance->GetCellAt(exitCell);
 		}
 	}
 
 	// Validate exit cell
-	CellClass* exitCellClass = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &exitCell);
+	CellClass* exitCellClass = MapClass::Instance->GetCellAt(exitCell);
 
 	// Check if we need to find a better location
-	if (!this->t.ArchiveTarget ||
-		exitCellClass->Land != LAND_WATER ||
-		CellClass::Cell_Techno(exitCellClass, nullptr, 0, 0) ||
-		!MapClass::In_Radar(&Map.sc.t.sb.p.r.d.m, &exitCell, true))
-	{
+	if (!pThis->ArchiveTarget ||
+		exitCellClass->LandType != LandType::Water ||
+		exitCellClass->FindTechnoNearestTo(Point2D::Empty, 0, 0) ||
+		!MapClass::Instance->IsWithinUsableArea(exitCell, true)) {
 
 		// Find nearby valid water location
-		CellStruct searchCell = CoordToCell(buildingCenter);
-		TechnoTypeClass* shipType = ship->t.r.m.o.a.vftable->t.r.m.o.Techno_Type_Class(&ship->t);
+		CellStruct searchCell = CellClass::Coord2Cell(buildingCenter);
+		TechnoTypeClass* shipType = ship->GetTechnoType();
 
-		exitCell = *MapClass::Nearby_Location(&Map.sc.t.sb.p.r.d.m, nullptr, &searchCell,
-											  shipType->Speed, -1, MZONE_NORMAL,
+		exitCell = MapClass::Instance->NearByLocation(searchCell,
+											  shipType->SpeedType, ZoneType::None, MovementZone::Normal,
 											  false, true, true, false, false, false, true,
-											  nullptr, false, false);
+											  CellStruct::Empty, false, false);
 	}
 
 	// Get final exit coordinates
-	CellClass* finalCell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &exitCell);
-	CoordStruct exitCoord = *finalCell->a.vftable->t.r.m.o.a.Center_Coord(finalCell);
+	CellClass* finalCell = MapClass::Instance->GetCellAt(exitCell);
+	CoordStruct exitCoord = finalCell->GetCoords();
 
 	// Try to place ship
-	if (!ship->Unlimbo(&ship->t.r.m.o, &exitCoord, DIR_E))
-	{
-		return 0; // Failed to place
+	if (!ship->Unlimbo(exitCoord, DirType::East)) {
+		return KickOutResult::Failed; // Failed to place
 	}
 
 	// Configure ship after placement
-	TechnoClass* target = this->t.ArchiveTarget;
-	if (target)
-	{
-		ship->t.r.m.o.a.vftable->t.Assign_Destination(ship, target, true);
-		ship->t.r.m.o.a.vftable->t.r.m.Assign_Mission__framenumber(ship, Mission::Move, 0);
+	if (AbstractClass* target = pThis->ArchiveTarget) {
+		ship->SetDestination(target, true);
+		ship->QueueMission(Mission::Move, 0);
 	}
 
 	// Update ship position
-	ship->t.r.m.o.a.vftable->t.r.m.o.Mark(ship, MARK_UP);
-	CoordStruct* cellCenter = CellClass::Cell_Coord(finalCell);
-	ship->t.r.m.o.a.vftable->t.r.m.o.Set_Coord(&ship->t, cellCenter);
-	ship->t.r.m.o.a.vftable->t.r.m.o.Mark(ship, MARK_DOWN);
+	ship->Mark(MarkType::Up);
+	ship->SetLocation(finalCell->Cell2Coord());
+	ship->Mark(MarkType::Down);
 
-	return 2; // Successfully exited
+	return KickOutResult::Succeeded; // Successfully exited
 }
 
-int Exit_Ground_Vehicle(FootClass* unit)
+NOINLINE KickOutResult Exit_Ground_Vehicle(BuildingClass* pThis, FootClass* unit)
 {
-	TechnoClass::Set_Archive(&unit->t, this->t.ArchiveTarget);
+	unit->SetArchiveTarget(pThis->ArchiveTarget);
 
 	// Get exit cell from building
-	CellStruct exitCell = *this->t.r.m.o.a.vftable->Enter_Transport_4D4(this, nullptr, unit, default_cell);
+	CellStruct exitCell = pThis->FindBuildingExitCell(unit, CellStruct::Empty);
 
-	if (exitCell == default_cell)
-	{
-		return 0; // No valid exit
+	if (exitCell == CellStruct::Empty) {
+		return KickOutResult::Failed; // No valid exit
 	}
 
 	// Convert cell to coordinates (centered)
-	CoordStruct exitCoord = CellToCoord(exitCell);
+	CoordStruct exitCoord = CellClass::Cell2Coord(exitCell);
 
 	// Calculate exit direction
-	DirType exitDirection = Calculate_Exit_Direction(exitCoord);
+	DirType exitDirection = Calculate_Exit_Direction(pThis, exitCoord);
 
 	// Adjust exit cell based on building dimensions
-	CellStruct adjustedCell = Adjust_Exit_Cell(exitCell);
+	CellStruct adjustedCell = Adjust_Exit_Cell(pThis, exitCell);
 
 	// Convert adjusted cell to coordinates (centered)
-	CoordStruct adjustedCoord = CellToCoord(adjustedCell);
+	CoordStruct adjustedCoord = CellClass::Cell2Coord(adjustedCell);
 
 	// Apply faction-specific barracks offsets (also used for some vehicle factories)
-	CellStruct buildingCell = *this->t.r.m.o.a.vftable->t.r.m.o.Coord_Cell(this);
-	adjustedCoord = Apply_Barracks_Exit_Offset(adjustedCoord, exitCell, buildingCell);
+	CellStruct buildingCell = pThis->GetMapCoords();
+	adjustedCoord = Apply_Barracks_Exit_Offset(pThis, adjustedCoord, exitCell, buildingCell);
 
-	++ScenarioInit;
+	++Unsorted::ScenarioInit;
 
-	bool placed = unit->Unlimbo(&unit->t.r.m.o, &adjustedCoord, exitDirection);
+	bool placed = unit->Unlimbo(adjustedCoord, exitDirection);
 
-	--ScenarioInit;
+	--Unsorted::ScenarioInit;
 
-	if (!placed)
-	{
-		return 0; // Failed to place
+	if (!placed) {
+		return KickOutResult::Failed; // Failed to place
 	}
 
 	// Assign move mission to exit destination
-	unit->t.r.m.o.a.vftable->t.r.m.Assign_Mission__framenumber(unit, Mission::Move, 0);
-	CellClass* destCell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &exitCell);
-	unit->t.r.m.o.a.vftable->t.Assign_Destination(&unit->t.r.m.o, destCell, true);
+	unit->QueueMission(Mission::Move, 0);
+	CellClass* destCell = MapClass::Instance->GetCellAt(exitCell);
+	unit->SetDestination(destCell, true);
 
 	// Handle AI unit behavior
-	if (!HouseClass::IsControlledByHuman(this->t.House))
+	if (!pThis->Owner->IsControlledByHuman())
 	{
-		unit->t.r.m.o.a.vftable->t.r.m.Assign_Mission__framenumber(unit, Mission::GuardArea, 0);
-
-		CellStruct rallyPoint = *HouseClass::Where_To_Go(this->t.House, nullptr, unit);
-
-		if (rallyPoint == default_cell || !this->Type->Factory)
-		{
-			TechnoClass::Set_Archive(&unit->t, nullptr);
-		}
-		else
-		{
-			CellClass* rallyCell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &rallyPoint);
-			TechnoClass::Set_Archive(&unit->t, rallyCell);
+		unit->QueueMission(Mission::Area_Guard, 0);
+		CellStruct rallyPoint;
+		pThis->Owner->WhereToGo(&rallyPoint, unit);
+		if (rallyPoint == CellStruct::Empty || pThis->Type->Factory == AbstractType::None) {
+			unit->SetArchiveTarget(nullptr);
+		} else {
+			unit->SetArchiveTarget(MapClass::Instance->GetCellAt(rallyPoint));
 		}
 	}
 
-	return 2; // Successfully exited
+	return KickOutResult::Succeeded; // Successfully exited
 }
 
-int Exit_Harvester(FootClass* harvester)
+NOINLINE KickOutResult Exit_Harvester(BuildingClass* pThis, FootClass* harvester)
 {
 	// Get building center and calculate exit position (adjacent cell to the south)
-	CoordStruct buildingCenter;
-	this->t.r.m.o.a.vftable->t.r.m.o.a.Center_Coord(this, &buildingCenter);
+	CoordStruct buildingCenter = pThis->GetCoords();
 
-	CellStruct exitCell = CoordToCell(buildingCenter);
-	exitCell.X += AdjacentCell[5].X;
-	exitCell.Y += AdjacentCell[5].Y;
+	CellStruct exitCell = CellClass::Coord2Cell(buildingCenter);
+	exitCell += CellSpread::AdjacentCell[5];
 
 	// Calculate final exit position (one cell further south)
-	exitCell.X += AdjacentCell[4].X;
-	exitCell.Y += AdjacentCell[4].Y;
+	exitCell += CellSpread::AdjacentCell[4];
 
-	CoordStruct exitCoord = CellToCoord(exitCell);
+	CoordStruct exitCoord = CellClass::Cell2Coord(exitCell);
 
-	++ScenarioInit;
+	++Unsorted::ScenarioInit;
+	bool placed = harvester->Unlimbo(exitCoord, DirType::SouthWest);
+	--Unsorted::ScenarioInit;
 
-	bool placed = harvester->Unlimbo(&harvester->t.r.m.o, &exitCoord, 160);
-
-	--ScenarioInit;
-
-	if (!placed)
-	{
-		return 0; // Failed to place
+	if (!placed) {
+		return KickOutResult::Failed; // Failed to place
 	}
 
 	// Set harvester facing south
-	DirStruct facing;
-	facing.un.Facing = 0x8000;
-	FacingClass::Set(&harvester->t.PrimaryFacing, &facing);
-
+	DirStruct facing(0x8000);
+	harvester->PrimaryFacing.Set_Current(facing);
+	
 	// Assign harvest mission
-	harvester->t.r.m.o.a.vftable->t.r.m.Assign_Mission__framenumber(harvester, MISSION_HARVEST, 0);
+	harvester->QueueMission(Mission::Harvest, 0);
 
-	return 2; // Successfully exited
+	return KickOutResult::Succeeded; // Successfully exited
 }
 
-int Exit_Infantry_Type(FootClass* unit)
+NOINLINE KickOutResult Exit_Infantry_Type(BuildingClass* pThis, FootClass* unit)
 {
-	TechnoClass::Set_Archive(&unit->t, this->t.ArchiveTarget);
+	unit->SetArchiveTarget(pThis->ArchiveTarget);
 
 	// Get exit cell from building
-	CellStruct exitCell = *this->t.r.m.o.a.vftable->Enter_Transport_4D4(this, nullptr, &unit->t, default_cell);
+	CellStruct exitCell = pThis->FindBuildingExitCell(unit, CellStruct::Empty);
 
-	if (exitCell == default_cell)
-	{
-		return 0; // No valid exit
+	if (exitCell == CellStruct::Empty) {
+		return KickOutResult::Failed; // No valid exit
 	}
 
 	// Handle cloning vats if applicable
-	Handle_Cloning_Vats(&unit->t);
+	Handle_Cloning_Vats(pThis, unit);
 
 	// Convert cell to coordinates (centered)
-	CoordStruct exitCoord = CellToCoord(exitCell);
+	CoordStruct exitCoord = CellClass::Cell2Coord(exitCell);
 
 	// Calculate exit direction
-	DirType exitDirection = Calculate_Exit_Direction(exitCoord);
+	DirType exitDirection = Calculate_Exit_Direction(pThis, exitCoord);
 
 	// Adjust exit cell based on building dimensions
-	CellStruct adjustedCell = Adjust_Exit_Cell(exitCell);
+	CellStruct adjustedCell = Adjust_Exit_Cell(pThis, exitCell);
 
 	// Convert adjusted cell to coordinates (centered)
-	CoordStruct adjustedCoord = CellToCoord(adjustedCell);
+	CoordStruct adjustedCoord = CellClass::Cell2Coord(adjustedCell);
 
 	// Apply faction-specific barracks offsets
-	CellStruct buildingCell = *this->t.r.m.o.a.vftable->t.r.m.o.Coord_Cell(this);
-	adjustedCoord = Apply_Barracks_Exit_Offset(adjustedCoord, exitCell, buildingCell);
+	CellStruct buildingCell = pThis->GetMapCoords();
+	adjustedCoord = Apply_Barracks_Exit_Offset(pThis, adjustedCoord, exitCell, buildingCell);
 
 	// Try to place unit at exit
-	if (Place_And_Configure_Unit(unit, adjustedCoord, exitDirection, exitCell))
-	{
-		return 2; // Successfully exited
+	if (Place_And_Configure_Unit(pThis, unit, adjustedCoord, exitDirection, exitCell)) {
+		return KickOutResult::Succeeded; // Successfully exited
 	}
 
-	return 0; // Failed to place
+	return KickOutResult::Failed; // Failed to place
 }
 
-int FakeBuildingClass::__ExitObject(TechnoClass* object, int exitFlags)
+KickOutResult FakeBuildingClass::__ExitObject(TechnoClass* object, int exitFlags)
 {
-	if (!object)
-	{
-		return 0;
+	if (!object) {
+		return KickOutResult::Failed;
 	}
 
 	// Lock the building during exit operations
-	this->t.IsLocked = true;
-
-	// Determine object type
-	RTTIType objectType = object->r.m.o.a.vftable->t.r.m.o.a.Kind_Of(&object->r.m.o.a);
-	AircraftClass* aircraft = nullptr;
-
-	if (objectType == RTTI_AIRCRAFT)
-	{
-		aircraft = static_cast<AircraftClass*>(object);
-	}
+	object->IsInPlayfield = true;
+	AbstractType objectType = object->WhatAmI();
 
 	// Route to appropriate exit handler based on object type
 	switch (objectType)
 	{
-	case RTTI_UNIT:
-	case RTTI_INFANTRY:
+	case AbstractType::Unit:
+	case AbstractType::Infantry:
 	{
 		BuildingTypeClass* buildingType = this->Type;
 
@@ -780,81 +1110,71 @@ int FakeBuildingClass::__ExitObject(TechnoClass* object, int exitFlags)
 		if (!buildingType->Hospital &&
 			!buildingType->Armory &&
 			!buildingType->WeaponsFactory &&
-			!RadioClass::Has_Free_Slots(&this->t.r))
-		{
-			return 1; // Building is full
+			!this->HasFreeLink()) {
+			return KickOutResult::Busy; // Building is full
 		}
 
 		// Handle production buildings
-		if (!buildingType->Hospital && !buildingType->Armory)
-		{
-			// Deduct money for production
-			HouseClass_whimp_on_money(this->t.House, objectType);
+		if (!buildingType->Hospital && !buildingType->Armory) {
 
-			if (objectType == RTTI_UNIT)
-			{
-				this->t.House->BuildUnit = -1;
+			// Deduct money for production
+			this->Owner->WhimpOnMoney(objectType);
+	
+			if (objectType == AbstractType::Unit) {
+				this->Owner->ProducingUnitTypeIndex = -1;
 			}
-			if (objectType == RTTI_INFANTRY)
-			{
-				this->t.House->BuildInfantry = -1;
+
+			if (objectType == AbstractType::Infantry) {
+				this->Owner->ProducingInfantryTypeIndex = -1;
 			}
 		}
 
 		// Check for special building types
-		if (buildingType->Refinery || buildingType->Weeder)
-		{
+		if (buildingType->Refinery || buildingType->Weeder) {
 			// Harvester exit
-			if (objectType != RTTI_UNIT)
-			{
-				object->r.m.o.a.vftable->t.r.m.o.Scatter(object, &building_defaultcoord, true, false);
-				return 0;
+			if (objectType != AbstractType::Unit) {
+				object->Scatter(CoordStruct::Empty, true, false);
+				return KickOutResult::Failed;
 			}
-			return Exit_Harvester(static_cast<FootClass*>(object));
+
+			return Exit_Harvester(this, static_cast<FootClass*>(object));
 		}
 
 		if (!buildingType->WeaponsFactory)
 		{
 			// Infantry/healing facility exit
-			if (buildingType->Factory == RTTI_INFANTRYTYPE ||
+			if (buildingType->Factory == AbstractType::InfantryType ||
 				buildingType->Hospital ||
 				buildingType->Armory ||
 				buildingType->Cloning)
 			{
-				return Exit_Infantry_Type(static_cast<FootClass*>(object));
+				return Exit_Infantry_Type(this, static_cast<FootClass*>(object));
 			}
 
 			// Non-infantry unit exit (regular ground vehicles)
-			return Exit_Ground_Vehicle(static_cast<FootClass*>(object));
+			return Exit_Ground_Vehicle(this, static_cast<FootClass*>(object));
 		}
 
 		// War factory exit
-		if (!buildingType->tt.IsNaval)
-		{
+		if (!buildingType->Naval) {
 			// Ground vehicle factory
-			TechnoClass::Set_Archive(&object->t, this->t.ArchiveTarget);
-
+			object->SetArchiveTarget(this->ArchiveTarget);
+	
 			// Check if unloading and try to delegate to another factory
-			if (this->t.r.m.o.a.vftable->t.r.m.o.Get_Mission(&this->t.r.m) == MISSION_UNLOAD)
-			{
-				HouseClass* house = this->t.House;
+			if (this->GetMission() == Mission::Unload) {
+				HouseClass* house = this->Owner;
+				for (int i = 0; i < house->Buildings.Count; ++i) {
+					BuildingClass* otherFactory = house->Buildings.Items[i];
 
-				for (int i = 0; i < house->__Buildings.ActiveCount; ++i)
-				{
-					BuildingClass* otherFactory = house->__Buildings.Vector_Item[i];
-
-					if (otherFactory->Type == this->Type && otherFactory != this)
-					{
-						if (otherFactory->t.r.m.o.a.vftable->t.r.m.o.Get_Mission(otherFactory) == MISSION_GUARD &&
-							!otherFactory->Factory)
-						{
+					if (otherFactory->Type == this->Type && otherFactory != this) {
+						if (otherFactory->GetMission() == Mission::Guard && !otherFactory->Factory) {
 
 							// Transfer factory to other building temporarily
 							FactoryClass* tempFactory = this->Factory;
 							otherFactory->Factory = tempFactory;
 							this->Factory = nullptr;
 
-							int result = otherFactory->Exit_Object(object, default_cell);
+							KickOutResult result = otherFactory->KickOutUnit(object, CellStruct::Empty);
 
 							// Restore factory ownership
 							otherFactory->Factory = nullptr;
@@ -864,52 +1184,52 @@ int FakeBuildingClass::__ExitObject(TechnoClass* object, int exitFlags)
 						}
 					}
 				}
-				return 1; // No available factory found
+				return KickOutResult::Busy; // No available factory found
 			}
 
 			// Standard ground vehicle exit through war factory
-			++ScenarioInit;
+			++Unsorted::ScenarioInit;
 
-			CoordStruct exitCoord = *this->t.r.m.o.a.vftable->t.r.m.o.Exit_Coord(this, nullptr, 0);
-			bool placed = object->r.m.o.a.vftable->t.r.m.o.Unlimbo(&object->r.m.o, &exitCoord, DIR_E);
+			
+			CoordStruct exitCoord;
+			this->GetExitCoords(&exitCoord, 0);
+
+			bool placed = object->Unlimbo(exitCoord, DirType::East);
 
 			if (placed)
 			{
-				object->r.m.o.a.vftable->t.r.m.o.Mark(object, MARK_UP);
-				CoordStruct* finalCoord = this->t.r.m.o.a.vftable->t.r.m.o.Exit_Coord(this, nullptr, 0);
-				object->r.m.o.a.vftable->t.r.m.o.Set_Coord(&object->r.m.o, finalCoord);
-				object->r.m.o.a.vftable->t.r.m.o.Mark(object, MARK_DOWN);
+				object->Mark(MarkType::Up);
+				CoordStruct finalCoord;
+				this->GetExitCoords(&finalCoord, 0);
+				object->SetLocation(finalCoord);
+				object->Mark(MarkType::Down);
+				this->SendCommand(RadioCommand::RequestLink, object);
+				this->SendCommand(RadioCommand::RequestTether, object);
+				this->QueueMission(Mission::Unload, 0);
 
-				this->t.r.m.o.a.vftable->t.r.Transmit_Message__MSG__PTR(&this->t.r, RADIO_HELLO, object);
-				this->t.r.m.o.a.vftable->t.r.Transmit_Message__MSG__PTR(&this->t.r, RADIO_TETHER, object);
-				this->t.r.m.o.a.vftable->t.r.m.Assign_Mission__framenumber(&this->t, MISSION_UNLOAD, 0);
-
-				--ScenarioInit;
-				return 2;
+				--Unsorted::ScenarioInit;
+				return KickOutResult::Succeeded;
 			}
 
-			--ScenarioInit;
-			return 0;
+			--Unsorted::ScenarioInit;
+			return KickOutResult::Failed;
 		}
 
 		// Naval yard exit
-		return Exit_Naval_Vehicle(static_cast<FootClass*>(object));
+		return Exit_Naval_Vehicle(this, static_cast<FootClass*>(object));
 	}
-
-	case RTTI_AIRCRAFT:
+	case AbstractType::Aircraft:
 	{
-		HouseClass_whimp_on_money(this->t.House, RTTI_AIRCRAFT);
-		this->t.House->BuildAircraft = -1;
+		this->Owner->WhimpOnMoney(AbstractType::Aircraft);
+		this->Owner->ProducingAircraftTypeIndex = -1;
 
-		return Exit_Aircraft(aircraft);
+		return Exit_Aircraft(this, static_cast<AircraftClass*>(object));
 	}
-
-	case RTTI_BUILDING:
+	case AbstractType::Building:
 	{
-		return Exit_Building(static_cast<BuildingClass*>(object));
+		return Exit_Building(this, static_cast<BuildingClass*>(object));
 	}
-
 	default:
-		return 0;
+		return KickOutResult::Failed;
 	}
 }

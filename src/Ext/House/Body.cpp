@@ -2810,6 +2810,8 @@ void HouseExtData::Serialize(T& Stm)
 	debugProcess(this->SuspendedEMPulseSWs, "SuspendedEMPulseSWs");
 	debugProcess(this->ForceEnemyIndex, "ForceEnemyIndex");
 	debugProcess(this->BattlePoints, "BattlePoints");
+	debugProcess(this->TeamDelay, "TeamDelay");
+	debugProcess(this->FreeRadar, "FreeRadar");
 	debugProcess(this->Productions, "Productions");
 	debugProcess(this->BestChoicesNaval, "BestChoicesNaval");
 }
@@ -2873,6 +2875,8 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->SuspendedEMPulseSWs)
 		.Process(this->ForceEnemyIndex)
 		.Process(this->BattlePoints)
+		.Process(this->TeamDelay)
+		.Process(this->FreeRadar)
 		.Process(this->Productions)
 		.Process(this->BestChoicesNaval)
 		;
@@ -3348,7 +3352,11 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6E3228, FakeHouseClass::_BlowUpAllBuildings)
 DEFINE_FUNCTION_JUMP(LJMP, 0x4FC790, FakeHouseClass::_BlowUpAllBuildings)
 
 void FakeHouseClass::_UpdateRadar() {
-	bool radarAvailable = ScenarioClass::Instance->FreeRadar || !this->_GetExtData()->Batteries.empty();
+	auto pExt = this->_GetExtData();
+
+	bool radarAvailable = pExt->FreeRadar
+						|| !this->_GetExtData()->Batteries.empty();
+
     this->RecheckRadar = 0;
 
 	if (this != HouseClass::CurrentPlayer()) {
@@ -3385,9 +3393,9 @@ void FakeHouseClass::_UpdateRadar() {
 				if (!building->IsOnMap) continue;
 				if (TechnoExtContainer::Instance.Find(building)->AE.flags.DisableRadar) continue;
 
-				const auto pExt = building->_GetExtData();
+				const auto pBldExt = building->_GetExtData();
 
-				if (!pExt->RegisteredJammers.empty()) continue;
+				if (!pBldExt->RegisteredJammers.empty()) continue;
 				if (building->EMPLockRemaining > 0) continue;
 				if (building->IsBeingWarpedOut()) continue;
 				if (building->Deactivated) continue;
@@ -3412,7 +3420,7 @@ void FakeHouseClass::_UpdateRadar() {
 
 				if (pRadar) {
 
-					if	(pExt->LimboID != -1) {
+					if	(pBldExt->LimboID != -1) {
 						radarAvailable = true;
 						break;
 					}

@@ -193,60 +193,6 @@ ASMJIT_PATCH(0x4401BB, BuildingClass_AI_PickWithFreeDocks, 0x6) //was C
 //	return 0x0;
 //}
 
-ASMJIT_PATCH(0x443CCA, BuildingClass_KickOutUnit_AircraftType_Phobos, 0xA)
-{
-	GET(FakeHouseClass*, pHouse, EDX);
-	GET(BuildingClass*, pThis, ESI);
-
-	auto pExt = pHouse->_GetExtData();
-
-	if (pThis == pExt->Factory_AircraftType)
-		pExt->Factory_AircraftType = nullptr;
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x44531F, BuildingClass_KickOutUnit_BuildingType_Phobos, 0xA)
-{
-	GET(FakeHouseClass*, pHouse, EAX);
-	GET(BuildingClass*, pThis, ESI);
-
-	auto pExt = pHouse->_GetExtData();
-
-	if (pThis == pExt->Factory_BuildingType)
-		pExt->Factory_BuildingType = nullptr;
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x444131, BuildingClass_KickOutUnit_InfantryType_Phobos, 0x6)
-{
-	GET(FakeHouseClass*, pHouse, EAX);
-	GET(BuildingClass*, pThis, ESI);
-
-	auto pExt = pHouse->_GetExtData();
-
-	if (pThis == pExt->Factory_InfantryType)
-		pExt->Factory_InfantryType = nullptr;
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x444119, BuildingClass_KickOutUnit_UnitType_Phobos, 0x6)
-{
-	GET(UnitClass*, pUnit, EDI);
-	GET(BuildingClass*, pFactory, ESI);
-
-	auto pHouseExt = HouseExtContainer::Instance.Find(pFactory->Owner);
-
-	if (pUnit->Type->Naval && pHouseExt->Factory_NavyType == pFactory)
-		pHouseExt->Factory_NavyType = nullptr;
-	else if (!pUnit->Type->Naval && pHouseExt->Factory_VehicleType == pFactory)
-		pHouseExt->Factory_VehicleType = nullptr;
-
-	return 0;
-}
-
 ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 {
 	GET(FactoryClass*, pFactory, ESI);

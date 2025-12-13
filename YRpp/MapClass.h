@@ -199,6 +199,7 @@ public:
 	//static COMPILETIMEEVAL reference<int, 0x87F914u> const MapCellWidth{};
 	//static COMPILETIMEEVAL reference<int, 0x87F918u> const MapCellHeight{};
 	static COMPILETIMEEVAL reference<Dimensions, 0x87F914u> const MapCellDimension {};
+	static COMPILETIMEEVAL reference<RectangleStruct, 0x87F8E4> MapLocalSize {};
 
 	static COMPILETIMEEVAL constant_ptr<MapClass, 0x87F7E8u> const Instance {};
 	static COMPILETIMEEVAL reference<CellClass, 0xABDC50u> const InvalidCell {};

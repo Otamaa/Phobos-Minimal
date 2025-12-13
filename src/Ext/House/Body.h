@@ -184,6 +184,8 @@ public:
 	PhobosMap<SuperClass*, std::vector<SuperClass*>> SuspendedEMPulseSWs;
 	int ForceEnemyIndex;
 	int BattlePoints;
+	int TeamDelay;
+	bool FreeRadar;
 	struct ProductionData
 	{
 		std::vector<int> CreationFrames;
@@ -268,6 +270,8 @@ public:
 		SuspendedEMPulseSWs(),
 		ForceEnemyIndex(-1),
 		BattlePoints(0),
+		TeamDelay(-1),
+		FreeRadar(false),
 		Productions(),
 		BestChoicesNaval()
 	{

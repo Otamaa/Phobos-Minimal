@@ -171,7 +171,7 @@ void BulletExtData::ApplyAirburst(BulletClass* pThis)
 
 			// this thing , i hope compiler optimized properly ,..
 			// if not i will make another variant of the function that pass the vector referece instead of doing this
-			targets = Helpers::Alex::getCellTechnoRangeItems(crdDest, pExt->Splits_Range, true, [pThis, pWeapon ,pWHExt, pExt , pBulletOwner , pBulletHouseOwner](AbstractClass* pTech){
+			targets = Helpers::Alex::getCellTechnoRangeItems(crdDest, pExt->Splits_Range, true, true, [pThis, pWeapon ,pWHExt, pExt , pBulletOwner , pBulletHouseOwner](AbstractClass* pTech){
 				auto pTechno = static_cast<TechnoClass*>(pTech);
 					if(!pExt->Splits_UseWeaponTargeting) {
 						if(!pWHExt->CanDealDamage(pTechno, false, !pExt->Splits_TargetingUseVerses.Get()))

@@ -315,87 +315,65 @@ bool TActionExtData::ResetHateValue(TActionClass* pThis, HouseClass* pHouse, Obj
 
 bool TActionExtData::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	AbstractClass* pCell = MapClass::Instance->TryGetCellAt(ScenarioExtData::Instance()->Waypoints[pThis->Param5]);
+	const auto& nCell = ScenarioExtData::Instance()->Waypoints[pThis->Waypoint];
+	AbstractClass* pCell = MapClass::Instance->TryGetCellAt(nCell);
 
-	if (!pCell)
-	{
+	if (!pCell) {
 		return true;
 	}
 
 	bool allHouse = false;
 	HouseClass* vHouse = nullptr;
+	const int houseIndex = pThis->Param3;
 
-	if (pThis->Param4 < 0) {
-		if (pThis->Param4 == -1) {
-			vHouse = pHouse;
-		} else if (pThis->Param4 == -2) {
-			allHouse = true;
-		}
-	} else {
-		vHouse = AresTEventExt::ResolveHouseParam(pThis->Value, nullptr);
+	if (houseIndex >= 0) {
+		vHouse = HouseClass::Index_IsMP(houseIndex) ?
+			HouseClass::FindByIndex(houseIndex) : HouseClass::FindByCountryIndex(houseIndex);
+	}
+	else if (houseIndex == -1) {
+		allHouse = true;
 	}
 
 	if (!allHouse && !vHouse) {
 		return true;
 	}
 
+	const char* buildingName = pThis->TechnoID;
 	bool allBuilding = false;
-	BuildingTypeClass* pBldType = nullptr;
+	BuildingTypeClass* pBuildingType = nullptr;
 
-	if (strcmp(pThis->Text, GameStrings::AllStr) == 0)
-	{
+	if (strcmp(pThis->Text, GameStrings::AllStr) == 0) {
 		allBuilding = true;
-	}
-	else
-	{
-		pBldType = BuildingTypeClass::Find(pThis->Text);
-		if (!pBldType)
-		{
-			pBldType = BuildingTypeClass::Array()->Items[atoi(pThis->Text)];
-		}
+	} else {
+		pBuildingType = BuildingTypeClass::Find(buildingName);
 	}
 
-	if (!allBuilding && !pBldType)
-	{
+	if (!allBuilding && !pBuildingType) {
 		return true;
 	}
 
 	// Thanks to chaserli for the relevant code!
 	// There should be a more perfect way to do this, but I don't know how.
-	auto canUndeploy = [pThis, pTrigger, allBuilding, allHouse, pBldType, vHouse](BuildingClass* pBld)
+	auto canUndeploy = [pThis, pTrigger, allBuilding, allHouse, pBuildingType, vHouse](BuildingClass* pBuilding)
 		{
-			if (!allHouse && pBld->Owner != vHouse)
-			{
-				return false;
-			}
+			auto const pType = pBuilding->Type;
 
-			const auto pType = pBld->Type;
-			if (!pType)
-			{
-				return false;
-			}
-
-			if (!allBuilding && pType != pBldType)
-			{
-				return false;
-			}
-
-			if (!pType->UndeploysInto)
+			if (!pType->UndeploysInto ||
+				(!allBuilding && pType != pBuildingType) ||
+				(!allHouse && pBuilding->Owner != vHouse) ||
+				!pBuilding->IsAlive || pBuilding->Health <= 0 || pBuilding->InLimbo)
 			{
 				return false;
 			}
 
 			if (pType->ConstructionYard)
 			{
-				if (!GameModeOptionsClass::Instance->MCVRedeploy || pBld->MindControlledBy || pBld->Owner->IsControlledByHuman())
+				// Conyards can't undeploy if MCVRedeploy=no
+				if (!GameModeOptionsClass::Instance->MCVRedeploy)
 					return false;
-			}
-
-			if (pThis->Param3 &&
-				(!pBld->AttachedTag ||
-					!pBld->AttachedTag->ContainsTrigger(pTrigger)))
-			{
-				return false;
+				// or MindControlledBy YURIX (why? for balance?)
+				if (!RulesExtData::Instance()->AllowDeployControlledMCV && pBuilding->MindControlledBy)
+					return false;
 			}
 
 			return true;
@@ -408,8 +386,10 @@ bool TActionExtData::UndeployToWaypoint(TActionClass* pThis, HouseClass* pHouse,
 
 		// Why does having this allow it to undeploy?
 		// Why don't vehicles move when waypoints are placed off the map?
+		const auto old = std::exchange(VocClass::VoicesEnabled(), false);
 		pBld->SetArchiveTarget(pCell);
 		pBld->Sell(true);
+		VocClass::VoicesEnabled = old;
 	}
 
 	return true;
@@ -861,7 +841,12 @@ bool NOINLINE TActionExtData::Occured(TActionClass* pThis, ActionArgs const& arg
 	case PhobosTriggerAction::SetForceEnemy:
 		ret = TActionExtData::SetForceEnemy(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
-
+	case PhobosTriggerAction::SetFreeRadar:
+		ret = TActionExtData::SetFreeRadar(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
+	case PhobosTriggerAction::SetTeamDelay:
+		ret = TActionExtData::SetTeamDelay(pThis, pHouse, pObject, pTrigger, args.plocation);
+		break;
 	case PhobosTriggerAction::CreateBannerGlobal:
 		ret = TActionExtData::CreateBannerGlobal(pThis, pHouse, pObject, pTrigger, args.plocation);
 		break;
@@ -1882,6 +1867,33 @@ bool TActionExtData::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, 
 	return true;
 }
 
+bool TActionExtData::SetFreeRadar(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	if (pHouse->IsControlledByHuman() && (!SessionClass::Instance->IsCampaign() || pHouse == HouseClass::CurrentPlayer)) {
+		HouseExtContainer::Instance.Find(pHouse)->FreeRadar = pThis->Param3 != 0;
+		pHouse->RecheckRadar = true;
+	}
+
+	return true;
+}
+
+bool TActionExtData::SetTeamDelay(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
+{
+	const int timer = MaxImpl(pThis->Param3, 0);
+	HouseExtContainer::Instance.Find(pHouse)->TeamDelay = timer;
+
+	auto& Timer = pHouse->TeamDelayTimer;
+	const int time = MinImpl(Timer.TimeLeft, timer);
+
+	if (Timer.StartTime == -1 && Timer.TimeLeft != 0 && time > 0) {
+		Timer.TimeLeft = time;
+	} else if (Timer.InProgress() || time >= 0) {
+		Timer.Start(time);
+	}
+
+	return true;
+}
+
 // =============================
 // container hooks
 //
@@ -2324,6 +2336,8 @@ NOINLINE std::string PhobosTriggerAction_ToString(PhobosTriggerAction action)
 	case PhobosTriggerAction::EditAngerNode: return "EditAngerNode";
 	case PhobosTriggerAction::ClearAngerNode: return "ClearAngerNode";
 	case PhobosTriggerAction::SetForceEnemy: return "SetForceEnemy";
+	case PhobosTriggerAction::SetTeamDelay: return "SetTeamDelay";
+	case PhobosTriggerAction::SetFreeRadar: return "SetFreeRadar";
 	case PhobosTriggerAction::CreateBannerGlobal: return "CreateBannerGlobal";
 	case PhobosTriggerAction::CreateBannerLocal: return "CreateBannerLocal";
 	case PhobosTriggerAction::DeleteBanner: return "DeleteBanner";

@@ -432,38 +432,6 @@ ASMJIT_PATCH(0x4DACDD, FootClass_CrashingVoice, 0x6)
 	return 0x4DADC8;
 }
 
-ASMJIT_PATCH(0x456776, BuildingClass_DrawRadialIndicator_Visibility, 0x6)
-{
-	enum { ContinueDraw = 0x456789, DoNotDraw = 0x456962 };
-	GET(BuildingClass* const, pThis, ESI);
-
-	if (HouseExtData::IsObserverPlayer())
-	{
-		return ContinueDraw;
-	}
-
-	if (BuildingExtContainer::Instance.Find(pThis)->LimboID != -1)
-	{
-		return DoNotDraw;
-	}
-
-	const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pBldTypeExt->RadialIndicator_Visibility.isset())
-	{
-		if (EnumFunctions::CanTargetHouse(pBldTypeExt->RadialIndicator_Visibility.Get(), pThis->Owner, HouseClass::CurrentPlayer()))
-			return ContinueDraw;
-	}
-	else
-	{
-		if (pThis->Owner && pThis->Owner == HouseClass::CurrentPlayer())
-			return ContinueDraw;
-
-	}
-
-	return DoNotDraw;
-}
-
 // Bugfix: TAction 7,80,107.
 ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
 {
@@ -2107,18 +2075,6 @@ DEFINE_JUMP(LJMP, 0x65B3F7, 0x65B416);//RadSite, no effect
 
 #pragma endregion
 
-// Should not kick out units if the factory building is in construction process
-ASMJIT_PATCH(0x4444A0, BuildingClass_KickOutUnit_NoKickOutInConstruction, 0xA)
-{
-	enum { ThisIsOK = 0x444565, ThisIsNotOK = 0x4444B3};
-
-	GET(BuildingClass* const, pThis, ESI);
-
-	const auto mission = pThis->GetCurrentMission();
-
-	return (mission == Mission::Unload || mission == Mission::Construction) ? ThisIsNotOK : ThisIsOK;
-}
-
 // ASMJIT_PATCH(0x6B7CC1, SpawnManagerClass_Detach_ExitGame, 0x7)
 // {
 // 	GET(SpawnManagerClass*, pThis, ESI);
@@ -3032,25 +2988,11 @@ ASMJIT_PATCH(0x70D4FD, AbstractClass_ClearTargetToMe_ClearLastTarget, 0x6)
 
 #pragma endregion
 
-ASMJIT_PATCH(0x4440B0, BuildingClass_KickOutUnit_CloningFacility, 0x6)
-{
-	enum { CheckFreeLinks = 0x4440BA, ContinueIn = 0x4440D7 };
-
-	GET(BuildingTypeClass*, pFactoryType, EAX);
-
-	if (!pFactoryType->WeaponsFactory
-		|| BuildingTypeExtContainer::Instance.Find(pFactoryType)->CloningFacility)
-		return CheckFreeLinks;
-
-	return ContinueIn;
-}
-
 // Nov 22, 2025 - Starkku: Fixes an issue that causes preplaced aircraft placed outside visible map to be flagged as crashing even if
 // there are preplaced docks, due to parsing order (preplaced aircraft go before buildings) as well as outside visible map aircraft
 // being instantly elevated to FlightLevel on Unlimbo which makes it bypass a height check in FootClass::Crash().
 // This fix makes preplaced aircraft immediately return from FootClass::Crash() during unlimbo process.
 // Related GitHub issue: https://github.com/Phobos-developers/Phobos/issues/1958
-
 
 #pragma region PrePlacedAircraftFix
 

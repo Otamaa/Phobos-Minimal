@@ -255,7 +255,7 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 				const auto pType = pTechno->GetTechnoType();
 				const int range = (2 << spreadMode);
 				const auto center = pTechno->GetCoords();
-				const auto pItems = Helpers::Alex::getCellSpreadItems(center, range);
+				const auto pItems = Helpers::Alex::getCellSpreadItems(center, range, false, false , false , true , false);
 
 				std::vector<std::pair<TechnoClass*, int>> record;
 				const size_t maxSize = pItems.size();

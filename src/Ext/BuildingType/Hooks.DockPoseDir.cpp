@@ -5,8 +5,9 @@
 #include <AircraftTrackerClass.h>
 #include <Locomotor/FlyLocomotionClass.h>
 #include <Misc/DamageArea.h>
+#include <Ext/Building/Body.h>
 
-FacingType NOINLINE GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
+FacingType NOINLINE BuildingExtData::GetPoseDir(AircraftClass* pAir , BuildingClass* pBld)
 {
 	FacingType ret = (FacingType)TechnoTypeExtContainer::Instance.Find(pAir->Type)->LandingDir.Get(RulesClass::Instance->PoseDir);
 
@@ -52,7 +53,7 @@ ASMJIT_PATCH(0x41B760, IFlyControl_LandDirection, 0x6)
 {
 	GET_STACK(IFlyControl*, pThis, 0x4);
 
-	const FacingType result = GetPoseDir(static_cast<AircraftClass*>(pThis), nullptr);
+	const FacingType result =  BuildingExtData::GetPoseDir(static_cast<AircraftClass*>(pThis), nullptr);
 	R->EAX(result);
 	return 0x41B7C1;
 }
@@ -63,7 +64,7 @@ ASMJIT_PATCH(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
 	GET(BuildingClass*, pThis, EBP);
 	GET(AircraftClass*, pAir, ESI);
 	pThis->SendCommand(RadioCommand::RequestTether, pAir);
-	const DirStruct dir { GetPoseDir(pAir, pThis) };
+	const DirStruct dir {  BuildingExtData::GetPoseDir(pAir, pThis) };
 
 	if (RulesExtData::Instance()->ExpandAircraftMission)
 		pAir->PrimaryFacing.Set_Current(dir);
@@ -74,58 +75,6 @@ ASMJIT_PATCH(0x446FA2, BuildingClass_GrandOpening_PoseDir, 0x6)
 //		AircraftTrackerClass::Instance->Add(pThis);
 
 	return 0x446FB0;
-}
-
-// request radio contact then get land dir
-ASMJIT_PATCH(0x444014, BuildingClass_ExitObject_PoseDir_AirportBound, 0x5)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(AircraftClass*, pAir, ECX);
-
-	pThis->SendCommand(RadioCommand::RequestLink, pAir);
-	pThis->SendCommand(RadioCommand::RequestTether, pAir);
-	pAir->SetLocation(pThis->GetDockCoords(pAir));
-	pAir->DockedTo = pThis;
-	FacingType result = GetPoseDir(pAir, pThis);
-	const DirStruct dir { result };
-
-	if (RulesExtData::Instance()->ExpandAircraftMission)
-		pAir->PrimaryFacing.Set_Current(dir);
-
-	pAir->SecondaryFacing.Set_Current(dir);
-
-	//if (pAir->GetHeight() > 0)
-	//	AircraftTrackerClass::Instance->Add(pAir);
-
-	return 0x444053;
-}
-
-// there no radio contact happening here
-// so the result mostlikely building facing
-ASMJIT_PATCH(0x443FD8, BuildingClass_ExitObject_PoseDir_NotAirportBound, 0x8)
-{
-	enum { RetCreationFail = 0x444EDE, RetCreationSucceeded = 0x443FE0 };
-
-	GET(BuildingClass*, pThis, ESI);
-	GET(AircraftClass*, pAir, EBP);
-
-	if (R->AL())
-	{
-		pAir->DockedTo = pThis;
-		const DirStruct dir { ((int)GetPoseDir(pAir, pThis) << 13) };
-
-		if (RulesExtData::Instance()->ExpandAircraftMission)
-			pAir->PrimaryFacing.Set_Current(dir);
-
-		pAir->SecondaryFacing.Set_Current(dir);
-
-		//if (pAir->GetHeight() > 0)
-		//	AircraftClass::AircraftTracker_4134A0(pAir);
-
-		return RetCreationSucceeded;
-	}
-
-	return RetCreationFail;
 }
 
 ASMJIT_PATCH(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
@@ -139,7 +88,7 @@ ASMJIT_PATCH(0x687AF4, CCINIClass_InitializeStuffOnMap_AdjustAircrafts, 0x5)
 						pBuilding->SendCommand(RadioCommand::RequestTether, pThis);
 						pThis->SetLocation(pBuilding->GetDockCoords(pThis));
 						pThis->DockedTo = pBuilding;
-						const DirStruct dir { ((int)GetPoseDir(pThis, pBuilding) << 13) };
+						const DirStruct dir { ((int) BuildingExtData::GetPoseDir(pThis, pBuilding) << 13) };
 						pThis->SecondaryFacing.Set_Current(dir);
 
 						if (pThis->GetHeight() > 0)
@@ -170,7 +119,7 @@ ASMJIT_PATCH(0x4CF31C, FlyLocomotionClass_FlightUpdate_LandingDir, 0x9)
 			return SkipGameCode;
 
 		if (const auto pAircraft = cast_to<AircraftClass*, true>(pFoot))
-			dir = DirStruct(GetPoseDir(pAircraft, nullptr)).Raw;
+			dir = DirStruct( BuildingExtData::GetPoseDir(pAircraft, nullptr)).Raw;
 		else
 			dir = (iFly->Landing_Direction() << 13);
 	}
@@ -215,7 +164,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 		{
 
 			const auto footCoords = pAircraft->GetCoords();
-			const auto landingDir = DirStruct(GetPoseDir(pAircraft , nullptr));
+			const auto landingDir = DirStruct( BuildingExtData::GetPoseDir(pAircraft , nullptr));
 
 			// Try to land from the rear
 			if (pAircraft->Destination && (pAircraft->DockedTo == pAircraft->Destination || pAircraft->SpawnOwner == pAircraft->Destination))

@@ -404,14 +404,15 @@ NOINLINE bool CountConditionMet(AITriggerTypeClass* pThis, int nObjects)
 
 #include <TriggerTypeClass.h>
 
-NOINLINE bool UpdateTeam(HouseClass* pHouse)
+NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 {
 	if (!RulesExtData::Instance()->NewTeamsSelector)
 		return false;
 
 	auto pHouseTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
+
 	// Reset Team selection countdown
-	pHouse->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pHouse->AIDifficulty]);
+	pHouse->TeamDelayTimer.Start(delay);
 
 	HelperedVector<TriggerElementWeight> validTriggerCandidates;
 	validTriggerCandidates.reserve(TriggerTypeClass::Array->Count);
@@ -1288,9 +1289,13 @@ TeamTypeClass *__fastcall Suggested_New_Team(TypeList<TeamTypeClass*> *possible_
 }
 
 ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
-	GET(HouseClass* , pThis , ESI);
+	GET(FakeHouseClass* , pThis , ESI);
 
-	if(!UpdateTeam(pThis)){
+	auto pHouseExt = pThis->_GetExtData();
+	const int delay = pHouseExt->TeamDelay >=0 ?
+		pHouseExt->TeamDelay : RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty];
+
+	if(!UpdateTeam(pThis, delay)){
 
 		TypeList<TeamTypeClass*> possible_teams {};
 		Suggested_New_Team(&possible_teams,pThis, false);
@@ -1300,7 +1305,7 @@ ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
 			possible_teams[i]->CreateTeam(pThis);
 		}
 
-		pThis->TeamDelayTimer.Start(RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty]);
+		pThis->TeamDelayTimer.Start(delay);
 	}
 
 	return 0x4F8B08;

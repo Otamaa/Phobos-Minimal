@@ -120,14 +120,17 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 	{
 		// set of affected objects. every object can be here only once.
 		// affect each object
-		for (auto curTechno : Helpers::Alex::getCellSpreadItems(coords, this->This()->CellSpread, true))
+		for (auto curTechno : Helpers::Alex::getCellSpreadItems(coords, this->This()->CellSpread,
+			true,
+			this->CellSpread_Cylinder,
+			this->AffectsInAir,
+			this->AffectsGround,
+			false
+		))
 		{
-			if(!curTechno->IsAlive || curTechno->IsCrashing || curTechno->IsSinking)
-				continue;
 
 			// affects enemies or allies respectively?
-			if (!this->CanAffectHouse(curTechno->Owner, Owner))
-			{
+			if (!this->CanAffectHouse(curTechno->Owner, Owner)) {
 				continue;
 			}
 
@@ -651,7 +654,13 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		//if the warhead itself has cellspread
 		if (Math::abs(cellSpread) >= 0.1f)
 		{
-			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(coords, cellSpread, true);
+			std::vector<TechnoClass*> pTargetv = Helpers::Alex::getCellSpreadItems(coords, cellSpread,
+				true,
+				this->CellSpread_Cylinder,
+				this->AffectsInAir,
+				this->AffectsGround,
+				false
+				);
 
 			std::ranges::for_each(pTargetv, [&](TechnoClass* pTarget) {
 				this->DetonateOnOneUnit(pHouse, pTarget, coords , damage, pOwner, pBullet, ThisbulletWasIntercepted);

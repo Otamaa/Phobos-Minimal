@@ -367,6 +367,10 @@ ASMJIT_PATCH(0x68AD2F, ScenarioClass_LoadFromINI_AfterPlayerDataInit, 0x5)
 		GameModeOptionsClass::Instance->MCVRedeploy = pINI->ReadBool(GameStrings::Basic(), GameStrings::MCVRedeploys(), RulesExtData::Instance()->MCVRedeploysInCampaign);
 	}
 
+	HouseClass::Array->for_each([](HouseClass* pHouse){
+		HouseExtContainer::Instance.Find(pHouse)->FreeRadar = ScenarioClass::Instance->FreeRadar;
+	});
+
 	return 0x0;
 }
 

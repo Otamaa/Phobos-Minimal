@@ -7,7 +7,7 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/Side/Body.h>
-
+#include <Ext/Tactical/Body.h>
 #include <New/Entity/FlyingStrings.h>
 
 #include <TextDrawing.h>
@@ -2305,6 +2305,144 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 //}
 //
 //DEFINE_FUNCTION_JUMP(CALL6, 0x43D005 , FakeBuildingClass::_Draw_It)
+
+int FakeBuildingClass::_BuildingClass_GetRangeOfRadial()
+{
+	BuildingTypeClass* pType = this->Type;
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pTypeExt->RadialIndicatorRadius.isset())
+		return pTypeExt->RadialIndicatorRadius.Get();
+
+	if (pType->PsychicDetectionRadius <= 0) {
+		if (pType->GapGenerator) {
+			if (this->GapSuperCharged) {
+				return pTypeExt->SuperGapRadiusInCells;
+			} else {
+				return pTypeExt->GapRadiusInCells;
+			}
+		} else if (pType->CloakGenerator) {
+			return pType->CloakRadiusInCells;
+		} else if (pType->SensorArray) {
+			return pType->SensorsSight;
+		} else {
+			auto pWeapon = this->GetPrimaryWeapon();
+			if (pWeapon && pWeapon->WeaponType) {
+				const int range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon->WeaponType, this);
+				if(range > 0)
+					return range / 256;
+			} else {
+				return 0;
+			}
+		}
+	}
+
+	return pType->PsychicDetectionRadius;
+}
+
+DEFINE_FUNCTION_JUMP(CALL, 0x6DBEA5, FakeBuildingClass::_BuildingClass_GetRangeOfRadial)
+DEFINE_FUNCTION_JUMP(CALL, 0x6DBF76, FakeBuildingClass::_BuildingClass_GetRangeOfRadial)
+
+bool CanDrawRadialIndicator(FakeBuildingClass* pThis) {
+	auto pBldTypeExt = pThis->_GetTypeExtData();
+
+	if (HouseExtData::IsObserverPlayer())
+		return true;
+
+	if (!pBldTypeExt->AlwayDrawRadialIndicator.Get(pThis->HasPower))
+		return false;
+
+	if (pBldTypeExt->RadialIndicator_Visibility.isset()) {
+		if (EnumFunctions::CanTargetHouse(pBldTypeExt->RadialIndicator_Visibility.Get(), pThis->Owner, HouseClass::CurrentPlayer()))
+			return true;
+	} else {
+		if (pThis->Owner == HouseClass::CurrentPlayer())
+			return true;
+	}
+
+	return false;
+}
+
+void FakeBuildingClass::_DrawRadialIndicator(int val)
+{
+	if (!CanDrawRadialIndicator(this))
+		return;
+
+	const int radius = this->_BuildingClass_GetRangeOfRadial();
+
+	if (radius <= 0)
+		return;
+
+	const bool concentricMode = this->Type->ConcentricRadialIndicator;
+	const ColorStruct laserColor = this->Owner->LaserColor;
+	CoordStruct center = this->GetCoords();
+
+	// ------------------------------------------------------------------------------------
+	// CASE 1: Concentric radial indicator
+	// ------------------------------------------------------------------------------------
+	if (concentricMode) {
+		// Color modulated by time-based sine-wave rhythm
+		DWORD timeMs = timeGetTime();
+		DWORD t = (timeMs >> 1);
+		int wave = t & 0x3FF;     // 0..1023 pattern
+
+		// Copy color into a working variable
+		ColorStruct colorMod = laserColor;
+
+		// If inside first 512 frames…
+		if ((t & 0x200) == 0) {
+			if ((t & 0x100) == 0) {
+				// Adjust color depending on inverted time mask (Ares algorithm)
+				colorMod.Adjust(~t, ColorStruct::Empty);
+			}
+
+			FakeTacticalClass::__DrawRadialIndicator(
+				/*unknown_a*/ 0,
+				/*unknown_b*/ 0,
+				center,
+				colorMod,
+				static_cast<float>(radius),
+				/*drawBack?*/ 0,
+				/*something*/ 1);
+		}
+
+		// second ring: scaled pulse effect
+		const float amplitude =
+			(static_cast<float>(radius) + 0.5f) / Math::SQRT_TWO * 60.0f;
+
+		unsigned scaled = (wave * static_cast<unsigned>(amplitude)) >> 10;
+
+		if (scaled > 0x20)
+		{
+			FakeTacticalClass::__DrawRadialIndicator(
+				0,
+				0,
+				center,
+				laserColor,
+				static_cast<float>(scaled),
+				1,
+				1);
+		}
+	}
+	// ------------------------------------------------------------------------------------
+	// CASE 2: Simple radial indicator (no concentric animation)
+	// ------------------------------------------------------------------------------------
+	else
+	{
+		FakeTacticalClass::__DrawRadialIndicator(
+			/*overrideColor*/ val,
+			/*unknown_b*/ 1,
+			center,
+			laserColor,
+			static_cast<float>(radius),
+			/*drawBack*/ 0,
+			/*something*/ 1
+		);
+	}
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FEC , FakeBuildingClass::_DrawRadialIndicator)
+DEFINE_FUNCTION_JUMP(LJMP, 0x456750, FakeBuildingClass::_DrawRadialIndicator)
 
 void FakeBuildingClass::_TechnoClass_Draw_Object(SHPStruct* shapefile,
 	int shapenum,

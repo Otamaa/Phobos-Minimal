@@ -10,6 +10,7 @@
 #include <unknwn.h>
 
 struct TacticalSelectableStruct;
+class AbstractClass;
 class SideClass;
 class HouseClass;
 class WeaponTypeClass;
@@ -167,66 +168,52 @@ struct Game
 	};
 
 	static void __fastcall GetKeyboardKeyString(unsigned short key, wchar_t* buffer)
-		{ JMP_FAST(0x61EF70); }
+	{ JMP_FAST(0x61EF70); }
 
-	static bool __fastcall File_Finder_Start(char* filename) {
-		JMP_FAST(0x47AF70);
-	}
+	static bool __fastcall File_Finder_Start(char* filename)
+	{ JMP_FAST(0x47AF70); }
 
-	static BuildingTypeClass* __fastcall Set_Sidebar_Tab_Object(BuildingClass* pThis) {
-		JMP_FAST(0x734250);
-	}
+	static BuildingTypeClass* __fastcall Set_Sidebar_Tab_Object(BuildingClass* pThis)
+	{ JMP_FAST(0x734250); }
 
-	static bool __fastcall File_Finder_Next_Name(char* filename) {
-		JMP_FAST(0x47B0C0);
-	}
+	static bool __fastcall File_Finder_Next_Name(char* filename)
+	{ JMP_FAST(0x47B0C0); }
 
-	static void __cdecl File_Finder_End() {
-		JMP_STD(0x47B130);
-	}
+	static void __cdecl File_Finder_End()
+	{ JMP_STD(0x47B130); }
 
 	static bool __cdecl MainLoop()
-		{ JMP_STD(0x55D360); }
+	{ JMP_STD(0x55D360); }
 
-	static int __fastcall Get_Volume_Index(int timeout) {
-		JMP_FAST(0x4790A0);
-	}
+	static int __fastcall Get_Volume_Index(int timeout)
+	{ JMP_FAST(0x4790A0); }
 
-	static void __fastcall DestroyVoxelCaches() {
-		JMP_FAST(0x755C50);
-	}
+	static void __fastcall DestroyVoxelCaches()
+	{ JMP_FAST(0x755C50); }
 
-	static bool __fastcall Prep_For_Side(int house) {
-		JMP_FAST(0x534FA0);
-	}
+	static bool __fastcall Prep_For_Side(int house)
+	{ JMP_FAST(0x534FA0); }
 
-	static RectangleStruct* __fastcall Get_Sidebar_Clip_Bounds(RectangleStruct* ree) {
-		JMP_FAST(0x72AD20);
-	}
+	static RectangleStruct* __fastcall Get_Sidebar_Clip_Bounds(RectangleStruct* ree)
+	{ JMP_FAST(0x72AD20); }
 
-	static HRESULT __fastcall Save_Misc_Values(LPSTREAM a1) {
-		JMP_FAST(0x67F7E0);
-	}
+	static HRESULT __fastcall Save_Misc_Values(LPSTREAM a1) 
+	{ JMP_FAST(0x67F7E0); }
 
-	static HRESULT __fastcall Load_Misc_Values(LPSTREAM a1) {
-		JMP_FAST(0x67F9C0);
-	}
+	static HRESULT __fastcall Load_Misc_Values(LPSTREAM a1)
+	{ JMP_FAST(0x67F9C0); }
 
-	static void __fastcall UnlockImput() {
-		JMP_FAST(0x684290);
-	}
+	static void __fastcall UnlockImput() 
+	{ JMP_FAST(0x684290); }
 
-	static void __fastcall UIStuffs_MenuStuffs() {
-		JMP_FAST(0x72DDB0);
-	}
+	static void __fastcall UIStuffs_MenuStuffs()
+	{ JMP_FAST(0x72DDB0); }
 
-	static void __fastcall PlayMovie(int id, int theme, bool clrscreen_aft, bool stretch, bool clrscreen_before) {
-		JMP_FAST(0x5BF260);
-	}
+	static void __fastcall PlayMovie(int id, int theme, bool clrscreen_aft, bool stretch, bool clrscreen_before)
+	{ JMP_FAST(0x5BF260); }
 
-	static void __fastcall Reset_SomeShapes_Post_Movie() {
-		JMP_FAST(0x72DEF0);
-	}
+	static void __fastcall Reset_SomeShapes_Post_Movie()
+	{ JMP_FAST(0x72DEF0); }
 
 #ifdef deprecated
 
@@ -254,13 +241,10 @@ struct Game
 	}
 
 	[[noreturn]] static void __stdcall RaiseError(HRESULT err)
-	{
-		JMP_STD(0x7DC720);
-	}
+	{ JMP_STD(0x7DC720); }
 
-	static void ClearScenario() {
-		ASM_CALL(0x6851F0);
-	}
+	static void ClearScenario() 
+	{ ASM_CALL(0x6851F0); }
 
 	// // actually is SessionClass::Callback
 	// static void SetProgress(int progress)
@@ -337,9 +321,7 @@ struct Game
 		char use_hidden_surface2 = -1,
 		char set_state_1 = -1
 	)
-	{
-		JMP_FAST(0x5BED40);
-	}
+	{ JMP_FAST(0x5BED40); }
 
 	static AbstractType __fastcall WhichTab(AbstractType Type, int heapId, int a3 = 0)
 	{ JMP_FAST(0x6ABC60); }
@@ -351,13 +333,11 @@ struct Game
 	static void __fastcall WriteMapFiles(const char* pFilename, int bArgs = false)
 	{ JMP_FAST(0x687CE0); }
 
-	static CoordStruct* __fastcall Coord_Move(CoordStruct* revtal, CoordStruct* start, DirStruct* dir, int distance) {
-		JMP_FAST(0x50E3A0);
-	}
+	static CoordStruct* __fastcall Coord_Move(CoordStruct* revtal, CoordStruct* start, DirStruct* dir, int distance) 
+	{ JMP_FAST(0x50E3A0); }
 
-	static int __fastcall Spot_Index(CoordStruct* coord) {
-		JMP_FAST(0x4810A0);
-	}
+	static int __fastcall Spot_Index(CoordStruct* coord) 
+	{ JMP_FAST(0x4810A0); }
 
 	static bool __fastcall func_007BBE20(RectangleStruct* torect, const RectangleStruct* toarea, RectangleStruct* fromrect, const RectangleStruct* fromarea)
 	{ JMP_FAST(0x7BBE20); }
@@ -383,50 +363,45 @@ struct Game
 	static void Unselect_All_Except(ObjectClass* object);
 
 	static void __fastcall Compute_All_CRC()
-	{
-		JMP_FAST(0x64DAB0);
-	}
+	{ JMP_FAST(0x64DAB0); }
 
 	static bool __fastcall WillItReachTargetInTime(int speed, int distance, int heignt, double gravity)
-	{
-		JMP_FAST(0x48ABC0);
-	}
+	{ JMP_FAST(0x48ABC0); }
 
 	static CellClass* __fastcall GetCellOfFirstObstacle(CoordStruct* start, CoordStruct* end, BulletTypeClass* bullet, HouseClass* house)
-	{
-		JMP_FAST(0x4CC100);
-	}
+	{ JMP_FAST(0x4CC100); }
 
 	static CellClass* __fastcall Get_Cell_Of_First_Obstacle_0(CoordStruct* start, CoordStruct* end, WeaponTypeClass* weapon, HouseClass* house)
-	{
-		JMP_FAST(0x4CC310);
-	}
+	{ JMP_FAST(0x4CC310); }
 
 	static void __fastcall Init_Voxel_Light(float theta) { JMP_FAST(0x754C00); }
 	static void __fastcall Init_Voxel_Projections() { JMP_FAST(0x754CB0); }
 
 	static Matrix3D* __fastcall GetRampMtx(Matrix3D* pRet, int nRampIdx)
-	{
-		JMP_FAST(0x7559B0);
-	}
+	{ JMP_FAST(0x7559B0); }
 
 	// fastcall 48AB90
 	static int __fastcall AdjustRangeWithGravity(int nRange, double Gravity)
-	{
-		JMP_FAST(0x48AB90);
-	}
+	{ JMP_FAST(0x48AB90); }
 
 	// fastcall 48A8D0
 	static bool __fastcall func_48A8D0_Legal(bool InRange, int x , int y , int z , double something, DirStruct* pDir)
-	{
-		JMP_FAST(0x48A8D0);
-	}
+	{ JMP_FAST(0x48A8D0); }
 
 	static void __fastcall ComputeFrameCRC()
 	{ JMP_FAST(0x64DAB0); }
 
 	static void __fastcall LogFrameCRC(int frameIndex)
 	{ JMP_FAST(0x650A90); }
+
+	static void RegisterGameStartTime()
+	{ JMP_STD(0x6C87F0); }
+
+	static void RegisterGameEndTime()
+	{ JMP_STD(0x6C8820); }
+
+	static void SendStatisticsPacket()
+	{ JMP_STD(0x6C6F50); }
 };
 
 // this fake class contains the IIDs used by the game
@@ -979,6 +954,7 @@ namespace Unsorted
 	COMPILETIMEEVAL reference<DWORD , 0x880994> const unknown_11AC {};
 	COMPILETIMEEVAL reference<void*, 0x880990> const CurrentBuildingType {};
 	COMPILETIMEEVAL reference<void*, 0x88098C> const CurrentBuilding {};
+	COMPILETIMEEVAL reference<AbstractClass*, 0x88098C> const PendingObject {};
 
 	COMPILETIMEEVAL const int except_txt_length = 0xFFFF;
 	COMPILETIMEEVAL constant_ptr<char, 0x8A3A08> const except_txt_content {};

@@ -156,7 +156,55 @@ public:
 
 	static const std::vector<CellStruct> GetFoundationCells(BuildingClass* pThis, CellStruct baseCoords, bool includeOccupyHeight = false);
 	static bool BuildingHasPower(BuildingClass* pThis);
+	static FacingType GetPoseDir(AircraftClass* pAir, BuildingClass* pBld);
 
+	static void ClearPlacingBuildingData(PlacingBuildingStruct* const pPlace)
+	{
+		pPlace->Type = nullptr;
+		pPlace->DrawType = nullptr;
+		pPlace->Times = 0;
+		pPlace->TopLeft = CellStruct::Empty;
+		pPlace->Timer.Stop();
+	}
+
+	static void ClearCurrentBuildingData(DisplayClass* const pDisplay)
+	{
+		pDisplay->SetActiveFoundation(nullptr);
+		pDisplay->CurrentBuilding = nullptr;
+		pDisplay->CurrentBuildingType = nullptr;
+		pDisplay->CurrentBuildingOwnerArrayIndexCopy = -1;
+
+		if (!Unsorted::ArmageddonMode)
+		{
+			pDisplay->SetCursorShape2(nullptr);
+			pDisplay->CurrentBuildingCopy = nullptr;
+			pDisplay->CurrentBuildingTypeCopy = nullptr;
+		}
+	}
+
+	template <bool slam = false>
+	static inline void PlayConstructionYardAnim(BuildingClass* const pFactory)
+	{
+		const auto pFactoryType = pFactory->Type;
+
+		if (pFactoryType->ConstructionYard)
+		{
+			if constexpr (slam)
+				VocClass::PlayGlobal(BuildingTypeExtContainer::Instance.Find(pFactoryType)->SlamSound.
+					Get(RulesClass::Instance->BuildingSlam), Panning::Center, 1.0);
+
+			pFactory->DestroyNthAnim(BuildingAnimSlot::PreProduction);
+			pFactory->DestroyNthAnim(BuildingAnimSlot::Idle);
+
+			const bool damaged = pFactory->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow;
+			const auto pAnimName = damaged ? pFactoryType->BuildingAnim[8].Damaged : pFactoryType->BuildingAnim[8].Anim;
+
+			if (pAnimName && *pAnimName)
+				pFactory->PlayAnim(pAnimName, BuildingAnimSlot::Production, damaged, false);
+		}
+	}
+
+	static bool CheckBuildingFoundation(BuildingTypeClass* const pBuildingType, const CellStruct topLeftCell, HouseClass* const pHouse, bool& noOccupy);
 private:
 	template <typename T>
 	void Serialize(T& Stm);
@@ -209,13 +257,23 @@ public:
 		int z_shape_offs_y,
 		BlitterFlags flags);
 
+	void _DrawRadialIndicator(int val);
+	int _BuildingClass_GetRangeOfRadial();
+
 	bool _SetOwningHouse(HouseClass* pHouse, bool announce)
 	{
 		const bool res = this->BuildingClass::SetOwningHouse(pHouse, announce);
 
+		// If we're supposed to be playing buildup during/after owner change reset any changes to mission or BState made during owner change.
+		if (res && this->CurrentMission == Mission::Construction && this->BState == BStateType::Construction) {
+			this->IsReadyToCommence = false;
+			this->QueueBState = BStateType::None;
+			this->QueuedMission = Mission::None;
+		}
+	
 		// Fix : update powered anims
-		if (res && (this->Type->Powered || this->Type->PoweredSpecial))
-			this->UpdatePowerDown();
+		//if (res && (this->Type->Powered || this->Type->PoweredSpecial))
+		//	this->UpdatePowerDown();
 
 		return res;
 	}
@@ -224,7 +282,7 @@ public:
 	void _DrawExtras(Point2D* pLocation, RectangleStruct* pBounds);
 	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
 	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
-	int __ExitObject(TechnoClass* object, int exitFlags);
+	KickOutResult __ExitObject(TechnoClass* object, int exitFlags);
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);

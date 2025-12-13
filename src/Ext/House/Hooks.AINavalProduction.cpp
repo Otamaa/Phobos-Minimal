@@ -27,35 +27,21 @@ ASMJIT_PATCH(0x4FB6FC, HouseClass_JustBuilt_NavalProductionFix, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
-{
-	enum { Occured = 0x71F014, Skip = 0x71F163 };
-
-	GET(TEventClass* const, pThis, EBP);
-	GET(FakeHouseClass* const, pHouse, EAX);
-
-	if (pHouse->LastBuiltVehicleType != pThis->Value &&
-		pHouse->_GetExtData()->LastBuiltNavalVehicleType != pThis->Value)
-	{
-		return Skip;
-	}
-
-	return Occured;
-}
-
-ASMJIT_PATCH(0x444113, BuildingClass_ExitObject_NavalProductionFix1, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-	GET(UnitClass* const, pObject, EDI);
-
-	if (pObject->Type->Naval) {
-		HouseExtContainer::Instance.Find(pThis->Owner)->ProducingNavalUnitTypeIndex = -1;
-	} else {
-		pThis->Owner->ProducingUnitTypeIndex = -1;
-	}
-
-	return 0x44411F;
-}
+// ASMJIT_PATCH(0x71F003, TEventClass_Execute_NavalProductionFix, 0x6)
+// {
+// 	enum { Occured = 0x71F014, Skip = 0x71F163 };
+//
+// 	GET(TEventClass* const, pThis, EBP);
+// 	GET(FakeHouseClass* const, pHouse, EAX);
+//
+// 	if (pHouse->LastBuiltVehicleType != pThis->Value &&
+// 		pHouse->_GetExtData()->LastBuiltNavalVehicleType != pThis->Value)
+// 	{
+// 		return Skip;
+// 	}
+//
+// 	return Occured;
+// }
 
 //ASMJIT_PATCH(0x444137, BuildingClass_ExitObject_NavalProductionFix2, 0x6)
 //{

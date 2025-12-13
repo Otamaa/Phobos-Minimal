@@ -32,6 +32,8 @@ ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	GET_BASE(int, weapon_idx, 0xC);
 	GET_BASE(AbstractClass*, pTarget, 0x8);
 
+	auto pExtType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
 	if(pThis->CanOccupyFire()) {
 		if (auto const Building = cast_to<BuildingClass*, false>(pThis)) {
 			nDamage = int(nDamage * BuildingTypeExtContainer::Instance.Find(Building->Type)->BuildingOccupyDamageMult.Get(RulesClass::Instance->OccupyDamageMultiplier));
@@ -41,13 +43,13 @@ ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	}
 
 	if (pThis->InOpenToppedTransport) {
+		nDamage = int(nDamage * pExtType->OpenTransport_DamageMultiplier);
+
 		if (auto const  pTransport = pThis->Transporter) {
 			float nDamageMult = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->OpenTopped_DamageMultiplier
 				.Get(RulesClass::Instance->OpenToppedDamageMultiplier);
 			nDamage = int(nDamage * nDamageMult);
-		}
-		else
-		{
+		} else {
 			nDamage = int(nDamage * RulesClass::Instance->OpenToppedDamageMultiplier);
 		}
 	}

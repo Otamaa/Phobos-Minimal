@@ -10,99 +10,6 @@
 #include <Misc/PhobosToolTip.h>
 #include <Ext/SWType/Body.h>
 
-ASMJIT_PATCH(0x6A9304, StripClass_GetTip_Handle, 9)
-{
-	//GET(StripClass*, pThis, ECX);
-	GET(int, buildableCount, EAX);
-
-	auto& cameo = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][buildableCount];
-	PhobosToolTip::Instance.IsCameo = true;
-
-	if (Phobos::UI::ExtendedToolTips)
-	{
-		PhobosToolTip::Instance.HelpText(&cameo);
-		R->EAX(L"X");
-		return 0x6A93DE;
-	}
-
-	if (cameo.ItemType == AbstractType::Special)
-	{
-
-		auto pSW = SuperWeaponTypeClass::Array->Items[cameo.ItemIndex];
-		const auto pData = SWTypeExtContainer::Instance.Find(pSW);
-
-		if (pData->Money_Amount < 0)
-		{
-
-			// account for no-name SWs
-			if (CCToolTip::HideName() || !wcslen(pSW->UIName))
-			{
-				const wchar_t* pFormat = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1);
-				_snwprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipLength - 1, pFormat, -pData->Money_Amount);
-			}
-			else
-			{
-				// then, this must be brand SWs
-				const wchar_t* pFormat = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2);
-				_snwprintf_s(SidebarClass::TooltipBuffer(), SidebarClass::TooltipLength - 1, pFormat, pSW->UIName, -pData->Money_Amount);
-			}
-
-			SidebarClass::TooltipBuffer[SidebarClass::TooltipBuffer.size() - 1] = 0;
-
-			// replace space by new line
-			for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i)
-			{
-				if (SidebarClass::TooltipBuffer[i] == 0x20)
-				{
-					SidebarClass::TooltipBuffer[i] = 0xA;
-					break;
-				}
-			}
-
-			R->EAX(SidebarClass::TooltipBuffer());
-			return 0x6A93DE;
-		}
-		else
-		{
-			R->EAX(pSW->UIName);
-		}
-
-		return 0x6A93DE;
-	}
-	else if (auto pTechnoType = TechnoTypeClass::GetByTypeAndIndex(cameo.ItemType, cameo.ItemIndex))
-	{
-		const int Cost = pTechnoType->GetActualCost(HouseClass::CurrentPlayer);
-
-		if (CCToolTip::HideName || !wcslen(pTechnoType->UIName))
-		{
-			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_1);
-			_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, Cost);
-		}
-		else
-		{
-			const wchar_t* UIName = pTechnoType->UIName;
-			const wchar_t* Format = StringTable::FetchString(GameStrings::TXT_MONEY_FORMAT_2);
-			_snwprintf_s(SidebarClass::TooltipBuffer, SidebarClass::TooltipLength, SidebarClass::TooltipLength - 1, Format, UIName, Cost);
-		}
-
-		SidebarClass::TooltipBuffer[SidebarClass::TooltipBuffer.size() - 1] = 0;
-		// replace space by new line
-		for (int i = wcslen(SidebarClass::TooltipBuffer()); i >= 0; --i)
-		{
-			if (SidebarClass::TooltipBuffer[i] == 0x20)
-			{
-				SidebarClass::TooltipBuffer[i] = 0xA;
-				break;
-			}
-		}
-
-		R->EAX(SidebarClass::TooltipBuffer());
-		return 0x6A93DE;
-	}
-
-	return 0x6A93E2;
-}
-
 #ifndef STRIPS
 
 #ifndef _newIpml
@@ -225,7 +132,7 @@ int __fastcall SidebarClass_6AC430(SidebarClass*)
 //	}
 //}
 
-ASMJIT_PATCH(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
+ASMJIT_PATCH(0x6ABFB2, SidebarClass_InitGUI_Strip2, 0x6)
 {
 	enum
 	{
@@ -246,7 +153,7 @@ ASMJIT_PATCH(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
 static COMPILETIMEEVAL constant_ptr<SelectClass, 0xB07E80> const ButtonsPtr {};
 static COMPILETIMEEVAL constant_ptr<SelectClass, 0xB0B300> const Buttons_endPtr {};
 
-ASMJIT_PATCH(0x6ABFB2, sub_6ABD30_Strip2, 0x6)
+ASMJIT_PATCH(0x6ABFB2, SidebarClass_InitGUI_Strip2, 0x6)
 {
 	enum
 	{
@@ -274,7 +181,7 @@ ASMJIT_PATCH(0x6a96d9, StripClass_Draw_Strip, 7)
 
 #endif
 
-ASMJIT_PATCH(0x6AC02F, sub_6ABD30_Strip3, 0x8)
+ASMJIT_PATCH(0x6AC02F, SidebarClass_InitGUI_Strip3, 0x8)
 {
 	GET_STACK(size_t, nCurIdx, 0x14);
 	COMPILETIMEEVAL int Offset = 0x3E8;
@@ -326,20 +233,20 @@ ASMJIT_PATCH(0x6A8330, StripClass_EnableInput, 5)
 	return 0x6A83DA;
 }
 
-ASMJIT_PATCH(0x6ABF44, sub_6ABD30_Strip1, 0x5)
+ASMJIT_PATCH(0x6ABF44, SidebarClass_InitGUI_Strip1, 0x5)
 {
 	R->ESI(SidebarClass::SelectButtonCombined.begin());
 	return 0x6ABF49;
 }
 
-ASMJIT_PATCH(0x6A7EEE, sub_6A7D70_Strip1, 0x6)
+ASMJIT_PATCH(0x6A7EEE, SidebarClass_Active_Strip1, 0x6)
 {
 	GET(SidebarClass*, pThis, ESI);
 	pThis->Tabs[pThis->ActiveTabIndex].Func_6A93F0_GScreenAddButton();
 	return 0x6A7F9F;
 }
 
-ASMJIT_PATCH(0x6A801C, sub_6A7D70_Strip2, 0x6)
+ASMJIT_PATCH(0x6A801C, SidebarClass_Active_Strip2, 0x6)
 {
 	GET(SidebarClass*, pThis, ESI);
 	pThis->Tabs[pThis->ActiveTabIndex].Deactivate();
@@ -406,7 +313,9 @@ ASMJIT_PATCH(0x6A4EA5, SidebarClass_CameosList, 6)
 {
 	MouseClassExt::ClearCameos();
 	return 0;
-}ASMJIT_PATCH_AGAIN(0x6A4FD8, SidebarClass_CameosList, 6)
+}
+
+ASMJIT_PATCH_AGAIN(0x6A4FD8, SidebarClass_CameosList, 6)
 
 ASMJIT_PATCH(0x6A6140, SidebarClass_FactoryLink_handle, 0x5)
 {
@@ -602,130 +511,6 @@ ASMJIT_PATCH(0x4F92DD, HouseClass_Update_RedrawSidebarWhenRecheckTechTree, 0x5)
 {
 	SidebarClass::Instance->SidebarBackgroundNeedsRedraw = true;
 	return 0;
-}
-
-ASMJIT_PATCH(0x6AAD2F, SelectClass_ProcessInput_LoadCameo1, 7)
-{
-	GET(int, CameoIndex, ESI);
-
-	auto& cameos = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex];
-
-	if ((size_t)CameoIndex >= cameos.size()) {
-		return 0x6AB94F;
-	}
-
-	MouseClass::Instance->UpdateCursor(MouseCursorType::Default, false);
-
-	R->Stack(0x2C, CameoIndex);
-
-	auto& Item = cameos[CameoIndex];
-	R->Stack(0x14, Item.ItemIndex);
-	R->Stack(0x18, Item.CurrentFactory);
-	R->Stack(0x24, Item.Cat);
-	R->EBP(Item.ItemType);
-
-	auto ptr = reinterpret_cast<byte*>(&Item);
-	ptr -= 0x58;
-	R->EBX<byte*>(ptr);
-
-	return 0x6AAD66;
-}
-
-ASMJIT_PATCH(0x6AB0B0, SelectClass_ProcessInput_LoadCameo2, 8)
-{
-	GET(int, CameoIndex, ESI);
-	DWORD dmm =(DWORD)MouseClassExt::TabCameos
-		[MouseClass::Instance->ActiveTabIndex]
-		[CameoIndex].Status;
-
-	R->EAX<DWORD*>(&dmm);
-
-	return 0x6AB0BE;
-}
-
-ASMJIT_PATCH(0x6AB49D, SelectClass_ProcessInput_FixOffset1, 7)
-{
-	R->EDI<void*>(nullptr);
-	R->ECX<void*>(nullptr);
-	return 0x6AB4A4;
-}
-
-ASMJIT_PATCH(0x6AB4E8, SelectClass_ProcessInput_FixOffset2, 7)
-{
-	R->ECX<int>(R->Stack<int>(0x14));
-	R->EDX<void*>(nullptr);
-	return 0x6AB4EF;
-}
-
-ASMJIT_PATCH(0x6AB577, SelectClass_ProcessInput_FixOffset3, 7)
-{
-	GET(int, CameoIndex, ESI);
-	GET_STACK(FactoryClass*, SavedFactory, 0x18);
-
-	auto& Item = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex];
-
-	Item.Status = BuildState::Building;
-
-	auto Progress = (Item.CurrentFactory)
-		? Item.CurrentFactory->GetProgress()
-		: 0
-		;
-
-	R->EAX<int>(Progress);
-	R->EBP<void*>(nullptr);
-
-	if (Item.Status == BuildState::Building)
-	{
-		if (Item.Progress.Stage > Progress)
-		{
-			Progress = (Item.Progress.Stage + Progress) / 2;
-		}
-	}
-
-	Item.Progress.Stage = Progress;
-	R->EAX<int>(SavedFactory->GetBuildTimeFrames());
-	R->ECX<void*>(nullptr);
-
-	return 0x6AB5C6;
-}
-
-ASMJIT_PATCH(0x6AB620, SelectClass_ProcessInput_FixOffset4, 7)
-{
-	R->ECX<void*>(nullptr);
-	return 0x6AB627;
-}
-
-ASMJIT_PATCH(0x6AB741, SelectClass_ProcessInput_FixOffset5, 7)
-{
-	R->EDX<void*>(nullptr);
-	return 0x6AB748;
-}
-
-ASMJIT_PATCH(0x6AB802, SelectClass_ProcessInput_FixOffset6, 8)
-{
-	GET(int, CameoIndex, EAX);
-	MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][CameoIndex].Status = BuildState::Building;
-	return 0x6AB814;
-}
-
-ASMJIT_PATCH(0x6AB825, SelectClass_ProcessInput_FixOffset7, 5)
-{
-	R->ECX<int>(R->EBP<int>());
-	R->EDX<void*>(nullptr);
-
-	return 0x6AB82A;
-}
-
-ASMJIT_PATCH(0x6AB920, SelectClass_ProcessInput_FixOffset8, 7)
-{
-	R->ECX<void*>(nullptr);
-	return 0x6AB927;
-}
-
-ASMJIT_PATCH(0x6AB92F, SelectClass_ProcessInput_FixOffset9, 7)
-{
-	R->EBX<byte*>(R->EBX<byte*>() + 0x6C);
-	return 0x6AB936;
 }
 
 ASMJIT_PATCH(0x6ABBCB, StripClass_AbandonCameosFromFactory_GetPointer1, 7)

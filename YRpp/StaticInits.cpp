@@ -31,7 +31,6 @@
 
 #include <WWKeyboardClass.h>
 #include <DisplayClass.h>
-#include <MapClass.h>
 
 #include <array>
 #include <Windows.h>
@@ -206,6 +205,7 @@ const Point2DBYTE Point2DBYTE::Empty = {};
 const Point3D Point3D::Empty = {};
 const RectangleStruct RectangleStruct::Empty = {};
 const HSVClass BlackColor = { 0, 0, 0 };
+const Point2D CellClass::SnapCell = { 128 , 128 };
 
 std::array< ColorStruct, (size_t)DefaultColorList::Black + 1> Drawing::DefaultColors
 {

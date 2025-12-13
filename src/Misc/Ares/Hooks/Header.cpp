@@ -5228,18 +5228,21 @@ int FirewallFunctions::GetImageFrameIndex(BuildingClass* pThis)
 
 void AresEMPulse::CreateEMPulse(WarheadTypeClass* pWarhead, const CoordStruct& Target, TechnoClass* Firer)
 {
-	if (!pWarhead)
-	{
+	if (!pWarhead) {
 		return;
 	}
 
-	// set of affected objects. every object can be here only once.
-	auto const items = Helpers::Alex::getCellSpreadItems(
-		Target, pWarhead->CellSpread, true);
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
 
+	// set of affected objects. every object can be here only once.
 	// affect each object
-	for (const auto& pItem : items)
-	{
+	for (const auto& pItem : Helpers::Alex::getCellSpreadItems(
+		Target, pWarhead->CellSpread, true,
+		pWHExt->CellSpread_Cylinder,
+		pWHExt->AffectsInAir,
+		pWHExt->AffectsGround,
+		false
+		)) {
 		AresEMPulse::deliverEMPDamage(pItem, Firer, pWarhead);
 	}
 }

@@ -140,14 +140,6 @@ ASMJIT_PATCH(0x440F66, BuildingClass_Unlimbo_WallTowers_B, 0x6)
 	return Nvec.Contains(pThis->Type) ? 0x440F78 : 0x44104D;
 }
 
-ASMJIT_PATCH(0x44540D, BuildingClass_ExitObject_WallTowers, 0x5)
-{
-	GET(BuildingClass* const, pThis, EDI);
-	R->EDX(pThis->Type);
-	const auto& Nvec = RulesExtData::Instance()->WallTowers;
-	return Nvec.Contains(pThis->Type) ? 0x445424 : 0x4454D4;
-}
-
 ASMJIT_PATCH(0x445ADB, BuildingClass_Limbo_WallTowers, 0x9)
 {
 	GET(BuildingClass* const, pThis, ESI);
@@ -1863,6 +1855,10 @@ ASMJIT_PATCH(0x73B0C5, UnitClass_Render_nullptrradio, 0x6)
 	return !pContact ? 0x73B124 : 0x0;
 }
 
+void __fastcall Draw_Radial_Indicator(bool draw_line, bool adjust_color, CoordStruct coord, ColorStruct rgb, float line_mult, bool a8, bool a9) {
+	JMP_STD(0x456980);
+}
+
 void __fastcall FakeObjectClass::_DrawRadialIndicator(ObjectClass* pThis, discard_t, int val)
 {
 	if (auto pTechno = flag_cast_to<TechnoClass*, false>(pThis))
@@ -1907,14 +1903,6 @@ void __fastcall FakeObjectClass::_DrawRadialIndicator(ObjectClass* pThis, discar
 			}
 		}
 	}
-}
-
-ASMJIT_PATCH(0x456724, BuildingClass_GetRangeOfRadial_WeaponRange, 0x6)
-{
-	GET(WeaponTypeClass*, pWeapon, EAX);
-	GET(BuildingClass*, pThis, ESI);
-	R->EAX(WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis));
-	return 0x45672A;
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5DA0, FakeObjectClass::_DrawRadialIndicator)
@@ -4165,28 +4153,6 @@ ASMJIT_PATCH(0x457DAD, BuildingClass_CanBeOccupied_Assaulter, 0x6)
 }
 #pragma endregion
 
-ASMJIT_PATCH(0x444159, BuildingClass_KickoutUnit_WeaponFactory_Rubble, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(TechnoClass*, pObj, EDI);
-
-	if (!pThis->Type->WeaponsFactory)
-		return 0x4445FB; //not a weapon factory
-
-	const auto pExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (pExt->RubbleDestroyed)
-	{
-		if (pThis->Type->Factory == pObj->GetTechnoType()->WhatAmI() && pThis->Factory && pThis->Factory->Object == pObj)
-			return 0x444167; //continue check
-
-		if (pObj->WhatAmI() == InfantryClass::AbsID)
-			return 0x4445FB; // just eject
-	}
-
-	return 0x444167; //continue check
-}
-
 // ASMJIT_PATCH(0x4580CB, BuildingClass_KickAllOccupants_HousePointerMissing, 0x6)
 // {
 // 	GET(BuildingClass*, pThis, ESI);
@@ -5218,28 +5184,6 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D58, FakeUnitClass::_Paradrop);
-
-ASMJIT_PATCH(0x444DC9, BuildingClass_KickOutUnit_Barracks, 0x9)
-{
-	GET(BuildingClass*, pThis, ESI);
-	GET(FootClass*, pProduct, EDI);
-	GET(RadioCommand, respond, EAX);
-
-	if (respond == RadioCommand::AnswerPositive)
-	{
-		pThis->SendCommand(RadioCommand::RequestUnload, pProduct);
-
-		if (auto pDest = pProduct->ArchiveTarget)
-		{
-			pProduct->SetDestination(pDest, true);
-			return 0x444971;
-		}
-
-		pProduct->Scatter(CoordStruct::Empty, true, false);
-	}
-
-	return 0x444971;
-}
 
 #include <Notifications.h>
 
@@ -7407,15 +7351,15 @@ ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
 
 	if (pTarget) {
 
-		if(flag_cast_to<TechnoClass*>(pTarget)){
-			if ((VTable::Get(pTarget) != AircraftClass::vtable &&
-				VTable::Get(pTarget) != BuildingClass::vtable &&
-				VTable::Get(pTarget) != UnitClass::vtable &&
-				VTable::Get(pTarget) != InfantryClass::vtable))
-			{
-				Debug::FatalError("Missing valid vtable %x , caller %x", pTarget, caller);
-			}
-		}
+		//if(flag_cast_to<TechnoClass*>(pTarget)){
+		//	if ((VTable::Get(pTarget) != AircraftClass::vtable &&
+		//		VTable::Get(pTarget) != BuildingClass::vtable &&
+		//		VTable::Get(pTarget) != UnitClass::vtable &&
+		//		VTable::Get(pTarget) != InfantryClass::vtable))
+		//	{
+		//		Debug::FatalError("Missing valid vtable %x , caller %x", pTarget, caller);
+		//	}
+		//}
 
 		auto pTargetOwner = pTarget->GetOwningHouse();
 		result = pThis->IsAlliedWith(pTargetOwner);

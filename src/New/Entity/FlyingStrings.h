@@ -11,6 +11,7 @@ By AlexB and Joshy
 #include <CoordStruct.h>
 #include <Utilities/Enum.h>
 #include <Utilities/VectorHelper.h>
+#include <Unsorted.h>
 #include <string>
 
 class WarheadTypeClass;
@@ -69,11 +70,25 @@ public:
 	static COMPILETIMEEVAL size_t ItemSize = sizeof(Item);
 	static OPTIONALINLINE COMPILETIMEEVAL void Clear() { Data.clear(); };
 
-	static void Add(std::wstring text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
-	static void Add(const wchar_t* text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
-	static void Add(std::wstring_view text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
-	static void Add(const fmt::basic_memory_buffer<wchar_t>& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
-	static void Add(fmt::basic_memory_buffer<wchar_t>&& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty);
+	static void FORCEDINLINE Add(std::wstring text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::move(text));
+	}
+
+	static void FORCEDINLINE Add(const wchar_t* text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, text);
+	}
+
+	static void FORCEDINLINE Add(std::wstring_view text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::move(std::wstring(text)));
+	}
+
+	static void FORCEDINLINE Add(const fmt::basic_memory_buffer<wchar_t>& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::wstring(buffer.data(), buffer.size()));
+	}
+
+	static void FORCEDINLINE Add(fmt::basic_memory_buffer<wchar_t>&& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::wstring(buffer.data(), buffer.size()));
+	}
 
 	static void AddMoneyString(bool Display, int amount, TechnoClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , ColorStruct nOverrideColor = ColorStruct::Empty);
 	static void AddMoneyString(bool Display, int amount, HouseClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty, ColorStruct nOverrideColor = ColorStruct::Empty);

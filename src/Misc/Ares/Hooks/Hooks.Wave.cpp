@@ -80,10 +80,8 @@ ASMJIT_PATCH(0x760F50, WaveClass_Update, 0x6)
 	const auto pData = WaveExtContainer::Instance.Find(pThis);
 
 	if (pData->Weapon && pData->Weapon->AmbientDamage) {
-		CoordStruct coords;
 		for (auto const& pCell : pThis->Cells) {
-			pCell->Get3DCoords3(&coords);
-			pThis->DamageArea(coords);
+			pThis->DamageArea(pCell->Cell2Coord());
 		}
 	}
 

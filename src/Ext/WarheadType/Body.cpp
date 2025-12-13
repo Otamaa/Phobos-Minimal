@@ -158,6 +158,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Reveal = -1;
 
 	this->BigGap.Read(exINI, pSection, "BigGap");
+
 	this->CreateGap.Read(exINI, pSection, "CreateGap");
 	this->TransactMoney.Read(exINI, pSection, "TransactMoney");
 	this->SplashList.Read(exINI, pSection, GameStrings::SplashList());
@@ -208,9 +209,15 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AllowZeroDamage.Read(exINI, pSection, "AllowZeroDamage");
 
 	// Shields
+
+	this->Shield_Penetrate.Read(exINI, pSection, "PenetratesShield");
 	this->Shield_Penetrate.Read(exINI, pSection, "Shield.Penetrate");
+
 	this->Shield_RemoveAll.Read(exINI, pSection, "Shield.RemoveAll");
+
+	this->Shield_Break.Read(exINI, pSection, "BreaksShield");
 	this->Shield_Break.Read(exINI, pSection, "Shield.Break");
+
 	this->Shield_BreakAnim.Read(exINI, pSection, "Shield.BreakAnim");
 	this->Shield_HitAnim.Read(exINI, pSection, "Shield.HitAnim");
 	this->Shield_BreakWeapon.Read(exINI, pSection, "Shield.BreakWeapon", true);
@@ -568,7 +575,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Shield_SkipHitAnim.Read(exINI, pSection, "Shield.SkipHitAnim");
 	this->CombatAlert_Suppress.Read(exINI, pSection, "CombatAlert.Suppress");
 
-	this->AffectsOnFloor.Read(exINI, pSection, "AffectsGround");
+	this->AffectsGround.Read(exINI, pSection, "AffectsGround");
 	this->AffectsInAir.Read(exINI, pSection, "AffectsAir");
 	this->CellSpread_Cylinder.Read(exINI, pSection, "CellSpread.Cylinder");
 
@@ -1954,7 +1961,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->Shield_SkipHitAnim)
 		.Process(this->CombatAlert_Suppress)
 
-		.Process(this->AffectsOnFloor)
+		.Process(this->AffectsGround)
 		.Process(this->AffectsInAir)
 		.Process(this->CellSpread_Cylinder)
 
@@ -2214,7 +2221,7 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 	{
 
 		const auto pHouse = pBuilding->Owner;
-		const auto pItems = Helpers::Alex::getCellSpreadItems(pBuilding->GetCoords(), 20);
+		const auto pItems = Helpers::Alex::getCellSpreadItems(pBuilding->GetCoords(), 20, false, false , false , true , false);
 
 
 		// Divide the surrounding units into 16 directions and record their costs

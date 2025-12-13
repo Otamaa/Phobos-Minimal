@@ -586,14 +586,18 @@ AbstractClass* TracingTrajectory::GetBulletTarget(TechnoClass* pTechno, HouseCla
 
 	if (pType->Synchronize)
 		return pBullet->Target;
-
-	const auto vec = Helpers::Alex::getCellSpreadItems(pBullet->Location, (pWeapon->Range / 256.0), pWeapon->Projectile->AA);
+	auto pWHExt = pWeapon->Warhead ? WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead) : nullptr;
+ 
+	const auto vec = Helpers::Alex::getCellSpreadItems(pBullet->Location, (pWeapon->Range / 256.0),
+		true,
+		pWHExt ? pWHExt->CellSpread_Cylinder : false,
+		pWHExt ? pWHExt->AffectsInAir : pWeapon->Projectile->AA,
+		pWHExt ? pWHExt->AffectsGround : pWeapon->Projectile->AG,
+		false
+	);
 
 	for (const auto& pOpt : vec)
 	{
-		if (!pOpt->IsAlive || !pOpt->IsOnMap || pOpt->InLimbo || pOpt->IsSinking || pOpt->Health <= 0)
-			continue;
-
 		const auto pOptType = pOpt->GetTechnoType();
 
 		if (!pOptType->LegalTarget || pOpt == pTechno)

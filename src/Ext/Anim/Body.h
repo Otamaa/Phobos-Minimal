@@ -116,7 +116,7 @@ public:
 	static void OnInit(AnimClass* pThis, CoordStruct* pCoord);
 	static void CreateRandomAnim(Iterator<AnimTypeClass*> AnimList, CoordStruct coords, TechnoClass* pTechno = nullptr, HouseClass* pHouse = nullptr, bool ownedObject = false);
 
-	static Layer __fastcall GetLayer_patch(AnimClass* pThis, void* _);
+	static Layer __fastcall GetLayer_patch(AnimClass* pThis, discard_t);
 
 	static void SpawnFireAnims(AnimClass* pThis);
 

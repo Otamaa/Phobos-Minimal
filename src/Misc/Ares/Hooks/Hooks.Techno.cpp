@@ -785,7 +785,7 @@ ASMJIT_PATCH(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 
 
 // Radar Jammers (#305) unjam all on owner change
-ASMJIT_PATCH(0x7014D5, TechnoClass_ChangeOwnership_Additional, 6)
+ASMJIT_PATCH(0x7014D5, TechnoClass_SetOwningHouse_Additional, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	//Debug::LogInfo("ChangeOwnershipFor [%s]" , pThis->get_ID());
@@ -1445,7 +1445,7 @@ ASMJIT_PATCH(0x4DF3A6, FootClass_UpdateAttackMove_Follow, 0x6)
 	if (pTypeExt->AttackMove_Follow || pTypeExt->AttackMove_Follow_IfMindControlIsFull && pThis->CaptureManager && pThis->CaptureManager->CannotControlAnyMore())
 	{
 		auto const& pTechnoVectors = Helpers::Alex::getCellSpreadItems(pThis->GetCoords(),
-			pThis->GetGuardRange(2) / Unsorted::LeptonsPerCell, pTypeExt->AttackMove_Follow_IncludeAir);
+			pThis->GetGuardRange(2) / Unsorted::LeptonsPerCell, pTypeExt->AttackMove_Follow_IncludeAir,false , true , true , false);
 
 		TechnoClass* pClosestTarget = nullptr;
 		int closestRange = 65536;

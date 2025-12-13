@@ -578,29 +578,6 @@ ASMJIT_PATCH(0x4463F0, BuildingClass_Place_SuperWeaponAnimsA, 6)
 	return 0x446580;
 }
 
-ASMJIT_PATCH(0x450F9E, BuildingClass_ProcessAnims_SuperWeaponsA, 6)
-{
-	GET(BuildingClass*, pThis, ESI);
-	const auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis);
-
-	if (!pSuper)
-		return 0x451145;
-
-	const auto miss = pThis->GetCurrentMission();
-	if (miss == Mission::Construction || miss == Mission::Selling || pThis->Type->ChargedAnimTime > 990.0)
-		return 0x451145;
-
-	// Do not advance SuperAnim for buildings with superweapons if the recharge timer hasn't actually started at any point yet.
-	if (pSuper->RechargeTimer.StartTime == 0
-		&& pSuper->RechargeTimer.TimeLeft == 0
-		&& !SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_InitialReady)
-		return 0x451048;
-
-	R->EDI(pThis->Type);
-	R->EAX(pSuper);
-	return 0x451030;
-}
-
 ASMJIT_PATCH(0x4468F4, BuildingClass_Place_AnnounceDetected, 6)
 {
 	GET(BuildingClass*, pThis, EBP);

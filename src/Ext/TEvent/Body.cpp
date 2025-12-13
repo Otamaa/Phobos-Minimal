@@ -634,13 +634,18 @@ bool HandleHouseEvents(TEventClass* evt, HouseClass* house, bool* bool1)
 		break;
 
 	case TriggerEvent::BuildUnitType:
-		if (house->LastBuiltVehicleType == evt->Value)
+	{
+		auto pHouseExt = HouseExtContainer::Instance.Find(house);
+
+		if (house->LastBuiltVehicleType == evt->Value 
+			|| pHouseExt->LastBuiltNavalVehicleType == evt->Value)
 		{
 			*bool1 = 1;
 			return true;
 		}
-		break;
 
+		break;
+	}
 	case TriggerEvent::BuildInfantryType:
 		if (house->LastBuiltInfantryType == evt->Value)
 		{

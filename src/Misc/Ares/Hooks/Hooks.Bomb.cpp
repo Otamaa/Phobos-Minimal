@@ -199,25 +199,23 @@ ASMJIT_PATCH(0x46934D, IvanBombs_Spread, 6)
 	if (const auto pWeapon = pBullet->WeaponType)
 	{
 		// single target or spread switch
-		if (pBullet->WH->CellSpread < 0.5f)
-		{
+		if (pBullet->WH->CellSpread < 0.5f) {
 			if(!pBullet->Target || !(pBullet->Target->AbstractFlags & AbstractFlags::Object))
 				return 0x469AA4;
 
 			// single target
 			TechnoExt_ExtData::PlantBomb(pBullet->Owner, (ObjectClass*)pBullet->Target, pWeapon);
-		}
-		else
-		{
+		} else {
 			// cell spread
 			CoordStruct tgtCoords = pBullet->GetTargetCoords();
-			Helpers::Alex::ApplyFuncToCellSpreadItems(tgtCoords, pBullet->WH->CellSpread, [=](TechnoClass* pTarget) {
+			auto pWHExt = WarheadTypeExtContainer::Instance.Find(pBullet->WH);
+
+			Helpers::Alex::ApplyFuncToCellSpreadItems(tgtCoords, pBullet->WH->CellSpread,
+				true, pWHExt->CellSpread_Cylinder , false , pWHExt->AffectsInAir, pWHExt->AffectsGround , false, [=](TechnoClass* pTarget) {
 				TechnoExt_ExtData::PlantBomb(pBullet->Owner, pTarget, pWeapon);
-			}, false, false);
+			});
 		}
-	}
-	else
-	{
+	} else {
 		Debug::LogInfo("IvanBomb bullet without attached WeaponType.");
 	}
 

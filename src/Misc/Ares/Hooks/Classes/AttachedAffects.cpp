@@ -16,14 +16,13 @@ void AresAE::applyAttachedEffect(WarheadTypeClass* pWH, const CoordStruct& coord
 	if (pWHExt->AttachedEffect.Duration != 0)
 	{
 		// set of affected objects. every object can be here only once.
-		const auto items = Helpers::Alex::getCellSpreadItems(coords, pWH->CellSpread, true);
-
 		// affect each object
-		for (const auto curTechno : items)
+		for (const auto curTechno : Helpers::Alex::getCellSpreadItems(coords, pWH->CellSpread, true,
+			pWHExt->CellSpread_Cylinder,
+			pWHExt->AffectsInAir,
+			pWHExt->AffectsGround,
+			false))
 		{
-			if(!curTechno->IsAlive || curTechno->IsCrashing || curTechno->IsSinking)
-				continue;
-
 			if (Source && !pWHExt->CanAffectHouse(curTechno->Owner, Source))
 			{
 				continue;

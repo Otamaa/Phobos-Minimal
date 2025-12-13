@@ -4384,19 +4384,20 @@ void TechnoExtData::DrawSelectBox(TechnoClass* pThis,Point2D* pLocation,Rectangl
 	const auto flags = (drawBefore ? BlitterFlags::Flat | BlitterFlags::Alpha : BlitterFlags::Nonzero | BlitterFlags::MultiPass) | BlitterFlags::Centered | pSelectBox->Translucency;
 	const int zAdjust = drawBefore ? pThis->GetZAdjustment() - 2 : 0;
 	const auto pGroundShape = pSelectBox->GroundShape.Get();
+	const auto pFoot = flag_cast_to<FootClass*, false>(pThis);
 
 	if ((pGroundShape || pSelectBox->GroundLine)
 	&& pSelectBox->Grounded && whatAmI != BuildingClass::AbsID
 	&& (pSelectBox->Ground_AlwaysDraw || pThis->IsInAir()))
 	{
 		CoordStruct coords = pThis->GetCenterCoords();
-		coords.Z = MapClass::Instance->GetCellFloorHeight(coords);
-
 		auto[outClient, visible] = TacticalClass::Instance->GetCoordsToClientSituation(coords);
 
-		if(whatAmI != BuildingClass::AbsID)
-			outClient += ((FootClass*)pThis)->Locomotor->Shadow_Point();
-
+		if(pThis->WhatAmI() == AbstractType::Aircraft)
+			outClient.Y += Game::AdjustHeight(pThis->GetHeight());
+		else
+			outClient += pFoot->Locomotor->Shadow_Point();
+			
 		if (visible && pGroundShape)
 		{
 			const auto pPalette = pSelectBox->GroundPalette.GetOrDefaultConvert(FileSystem::PALETTE_PAL);

@@ -16,6 +16,29 @@
 template<typename Func, typename... Args>
 concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
 
+
+// Helper function for comparator operations
+static NOINLINE COMPILETIMEEVAL bool EvaluateComparator(int counter, AITriggerConditionComparator comp, bool ret)
+{
+	switch (comp.ComparatorOperand)
+	{
+	case 0:
+		return counter < comp.ComparatorType;
+	case 1:
+		return counter <= comp.ComparatorType;
+	case 2:
+		return counter == comp.ComparatorType;
+	case 3:
+		return counter >= comp.ComparatorType;
+	case 4:
+		return counter > comp.ComparatorType;
+	case 5:
+		return counter != comp.ComparatorType;
+	default:
+		return ret;
+	}
+}
+
 template<typename Func>
 void LoopThruMembers(TeamClass* pTeam, Func&& act)
 {
@@ -66,7 +89,6 @@ void TeamExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 
 bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, const Iterator<TechnoTypeClass*>& list)
 {
-	bool result = false;
 	int counter = 0;
 
 	// Count all objects of the list, like an OR operator
@@ -86,36 +108,11 @@ bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool 
 		}
 	}
 
-	switch (pThis->Conditions[0].ComparatorOperand)
-	{
-	case 0:
-		result = counter < pThis->Conditions[0].ComparatorType;
-		break;
-	case 1:
-		result = counter <= pThis->Conditions[0].ComparatorType;
-		break;
-	case 2:
-		result = counter == pThis->Conditions[0].ComparatorType;
-		break;
-	case 3:
-		result = counter >= pThis->Conditions[0].ComparatorType;
-		break;
-	case 4:
-		result = counter > pThis->Conditions[0].ComparatorType;
-		break;
-	case 5:
-		result = counter != pThis->Conditions[0].ComparatorType;
-		break;
-	default:
-		break;
-	}
-
-	return result;
+	return EvaluateComparator(counter, pThis->Conditions[0] , false);
 }
 
 bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseClass* pEnemy, bool onlySelectedEnemy, const Iterator<TechnoTypeClass*>& list)
 {
-	bool result = false;
 	int counter = 0;
 
 	if (pEnemy && pHouse->IsAlliedWith(pEnemy) && !onlySelectedEnemy)
@@ -130,7 +127,7 @@ bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, House
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+				&& (!pEnemy || !pHouse->IsAlliedWith(pEnemy))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& pObject->GetTechnoType() == pItem)
 			{
@@ -139,36 +136,11 @@ bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, House
 		}
 	}
 
-	switch (pThis->Conditions[0].ComparatorOperand)
-	{
-	case 0:
-		result = counter < pThis->Conditions[0].ComparatorType;
-		break;
-	case 1:
-		result = counter <= pThis->Conditions[0].ComparatorType;
-		break;
-	case 2:
-		result = counter == pThis->Conditions[0].ComparatorType;
-		break;
-	case 3:
-		result = counter >= pThis->Conditions[0].ComparatorType;
-		break;
-	case 4:
-		result = counter > pThis->Conditions[0].ComparatorType;
-		break;
-	case 5:
-		result = counter != pThis->Conditions[0].ComparatorType;
-		break;
-	default:
-		break;
-	}
-
-	return result;
+	return  EvaluateComparator(counter, pThis->Conditions[0], false);
 }
 
 bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTypeClass*>& list)
 {
-	bool result = false;
 	int counter = 0;
 
 	for (auto pHouse : *HouseClass::Array)
@@ -193,31 +165,7 @@ bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTy
 		}
 	}
 
-	switch (pThis->Conditions[0].ComparatorOperand)
-	{
-	case 0:
-		result = counter < pThis->Conditions[0].ComparatorType;
-		break;
-	case 1:
-		result = counter <= pThis->Conditions[0].ComparatorType;
-		break;
-	case 2:
-		result = counter == pThis->Conditions[0].ComparatorType;
-		break;
-	case 3:
-		result = counter >= pThis->Conditions[0].ComparatorType;
-		break;
-	case 4:
-		result = counter > pThis->Conditions[0].ComparatorType;
-		break;
-	case 5:
-		result = counter != pThis->Conditions[0].ComparatorType;
-		break;
-	default:
-		break;
-	}
-
-	return result;
+	return EvaluateComparator(counter, pThis->Conditions[0], false);
 }
 
 bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, const Iterator<TechnoTypeClass*>& list)
@@ -234,7 +182,6 @@ bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, co
 			break;
 
 		int counter = 0;
-		result = true;
 
 		for (auto pObject : *TechnoClass::Array)
 		{
@@ -248,29 +195,7 @@ bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, co
 			}
 		}
 
-		switch (pThis->Conditions[0].ComparatorOperand)
-		{
-		case 0:
-			result = counter < pThis->Conditions[0].ComparatorType;
-			break;
-		case 1:
-			result = counter <= pThis->Conditions[0].ComparatorType;
-			break;
-		case 2:
-			result = counter == pThis->Conditions[0].ComparatorType;
-			break;
-		case 3:
-			result = counter >= pThis->Conditions[0].ComparatorType;
-			break;
-		case 4:
-			result = counter > pThis->Conditions[0].ComparatorType;
-			break;
-		case 5:
-			result = counter != pThis->Conditions[0].ComparatorType;
-			break;
-		default:
-			break;
-		}
+		result = EvaluateComparator(counter, pThis->Conditions[0], true);
 	}
 
 	return result;
@@ -293,7 +218,6 @@ bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, Ho
 			break;
 
 		int counter = 0;
-		result = true;
 
 		for (auto pObject : *TechnoClass::Array)
 		{
@@ -308,30 +232,7 @@ bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, Ho
 				counter++;
 			}
 		}
-
-		switch (pThis->Conditions[0].ComparatorOperand)
-		{
-		case 0:
-			result = counter < pThis->Conditions[0].ComparatorType;
-			break;
-		case 1:
-			result = counter <= pThis->Conditions[0].ComparatorType;
-			break;
-		case 2:
-			result = counter == pThis->Conditions[0].ComparatorType;
-			break;
-		case 3:
-			result = counter >= pThis->Conditions[0].ComparatorType;
-			break;
-		case 4:
-			result = counter > pThis->Conditions[0].ComparatorType;
-			break;
-		case 5:
-			result = counter != pThis->Conditions[0].ComparatorType;
-			break;
-		default:
-			break;
-		}
+		result = EvaluateComparator(counter, pThis->Conditions[0], true);
 	}
 
 	return result;
@@ -375,29 +276,7 @@ bool TeamExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<Techn
 				}
 			}
 
-			switch (pThis->Conditions[0].ComparatorOperand)
-			{
-			case 0:
-				foundAll = counter < pThis->Conditions[0].ComparatorType;
-				break;
-			case 1:
-				foundAll = counter <= pThis->Conditions[0].ComparatorType;
-				break;
-			case 2:
-				foundAll = counter == pThis->Conditions[0].ComparatorType;
-				break;
-			case 3:
-				foundAll = counter >= pThis->Conditions[0].ComparatorType;
-				break;
-			case 4:
-				foundAll = counter > pThis->Conditions[0].ComparatorType;
-				break;
-			case 5:
-				foundAll = counter != pThis->Conditions[0].ComparatorType;
-				break;
-			default:
-				break;
-			}
+			foundAll = EvaluateComparator(counter, pThis->Conditions[0], true);
 		}
 
 		if (!foundAll)
@@ -1137,7 +1016,11 @@ void FakeTeamClass::_Coordinate_Attack() {
 		this->ArchiveTarget = this->QueuedFocus;
 	}
 
-	FootClass* teamLeader = this->_Fetch_A_Leader();;
+	FootClass* teamLeader = this->_Fetch_A_Leader();
+	if (!teamLeader) {
+		this->StepCompleted = 1;
+		return;
+	}
 
 	// If target is a cell and team has non-aircraft members, try to find actual object in cell
 	CellClass* targetCell = cast_to<CellClass*>(this->ArchiveTarget);
@@ -3434,7 +3317,7 @@ void FakeTeamClass::_TMission_Play_Animation(ScriptActionNode* nNode, bool arg3)
 	// Validate anim index
 	if (animIndex >= AnimTypeClass::Array->Count) {
 		Debug::FatalErrorAndExit("Team [%s] TMission_Play_Animation: Invalid anim type index %d (max: %d)",
-			this->Type->ID, animIndex, BuildingTypeClass::Array->Count - 1);
+			this->Type->ID, animIndex, AnimTypeClass::Array->Count - 1);
 
 		this->StepCompleted = true;
 		return;
@@ -3974,8 +3857,10 @@ void FakeTeamClass::_AI()
 	//dont prematurely finish the `Script` ,...
 	//bailout the script if the `Action` already -1
 	//this will free the Member and allow them to be recuited
-	if ((TeamMissionType)node.Action >= TeamMissionType::count && (AresScripts)node.Action >= AresScripts::count && (PhobosScripts)node.Action >= PhobosScripts::count)
-	{
+	if (node.Action == TeamMissionType::none || (TeamMissionType)node.Action >= TeamMissionType::count && 
+		(AresScripts)node.Action >= AresScripts::count && 
+		(PhobosScripts)node.Action >= PhobosScripts::count
+	) {
 		// Unknown action. This action finished
 		this->StepCompleted = true;
 		this->NeedsToDisappear = true;

@@ -504,7 +504,7 @@ bool AdvancedDriveLocomotionClass::MovingProcess(bool fix)
 
 			const auto nextCell = pTube->EnterCell + CellSpread::GetNeighbourOffset(pTube->Faces[0] & 7);
 			const auto pNextCell = MapClass::Instance->GetCellAt(nextCell);
-			pNextCell->GetCellCoords(&pLinked->CurrentTunnelCoords);
+			pLinked->CurrentTunnelCoords = pNextCell->Cell2Coord();
 
 			const auto currentHeight = MapClass::Instance->GetCellFloorHeight(pLinked->Location);
 			const auto exitHeight = MapClass::Instance->GetCellFloorHeight(this->HeadToCoord);
@@ -1032,9 +1032,7 @@ bool AdvancedDriveLocomotionClass::PassableCheck(bool* pStop, bool force, bool c
 	if (pLinked->WhatAmI() == AbstractType::Unit)
 	{
 		int currentHeight = MapClass::Instance->GetCellFloorHeight(pLinked->Location);
-		CoordStruct cellCoords;
-		pNextCell->GetCellCoords(&cellCoords);
-
+		CoordStruct cellCoords = pNextCell->Cell2Coord();
 		int nextHeight = MapClass::Instance->GetCellFloorHeight(cellCoords);
 
 		if (nextHeight > currentHeight)

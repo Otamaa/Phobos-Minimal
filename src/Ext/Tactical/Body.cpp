@@ -591,37 +591,34 @@ void FakeTacticalClass::__DrawRadialIndicator(
 	bool concentric,
 	bool round)
 {
-	if (round)
-	{
+	if (round) {
 		radius = std::round(radius);
 	}
 
 	int size;
 
-	if (concentric)
-	{
+	if (concentric) {
 		size = (int)radius;
-	}
-	else
-	{
-		size = (int)((radius + 0.5) / Math::SQRT_TWO *double(Unsorted::CellWidthInPixels)); // should be cell size global?
+	} else {
+		size = int((double)radius + 0.5) / Math::SQRT_TWO * double(Unsorted::CellWidthInPixels); // should be cell size global?
 	}
 
 	Point2D center_pixel = TacticalClass::Instance->CoordsToClient(center_coord);
+
+	int halfSize = (size >= 0) ? (size / 2) : ((size - 1) / 2);
 
 	center_pixel.X += DSurface::ViewBounds().X;
 	center_pixel.Y += DSurface::ViewBounds().Y;
 
 	RectangleStruct draw_area(
 		center_pixel.X - size,
-		center_pixel.Y - size / 2,
+		center_pixel.Y - halfSize,
 		size * 2,
 		size
 	);
 
 	RectangleStruct intersect = draw_area.IntersectWith(DSurface::ViewBounds());
-	if (!intersect.IsValid())
-	{
+	if (intersect.Width <= 0 || intersect.Height <= 0) {
 		return;
 	}
 
@@ -637,106 +634,119 @@ void FakeTacticalClass::__DrawRadialIndicator(
 	/**
 	 *  Draw the main radial ellipse, then draw one slightly smaller to give a thicker impression.
 	 */
-	DSurface::Temp->Draw_Ellipse(center_pixel, size, size / 2, DSurface::ViewBounds(), ellipse_color);
-	DSurface::Temp->Draw_Ellipse(center_pixel, size - 1, size / 2 - 1, DSurface::ViewBounds(), ellipse_color);
+	DSurface::Temp->Draw_Ellipse(center_pixel, size, halfSize, DSurface::ViewBounds(), ellipse_color);
+	DSurface::Temp->Draw_Ellipse(center_pixel, size - 1, halfSize - 1, DSurface::ViewBounds(), ellipse_color);
 
 	/**
 	 *  Draw the sweeping indicator line.
 	 */
-	if (!draw_indicator)
-	{
+	if (!draw_indicator) {
 		return;
 	}
 
-	double d_size = (double)size;
-	double size_half = (double)size / 2;
-
 	/**
-	   *  The alpha values for the lines (producing the fall-off effect).
-	   */
+	  *  The alpha values for the lines (producing the fall-off effect).
+	**/
 	static constexpr double _line_alpha[] = {
 		//0.05, 0.20, 0.40, 1.0                     // original values.
 		0.05, 0.10, 0.20, 0.40, 0.60, 0.80, 1.0     // new values.
+
 	};
 
-	static constexpr int _rate = 50;
+	constexpr double ANGLE_STEP_MULT = 0.05;
+	constexpr double WWMATH_INV_TWO_PI = 0.15915494309189533577;  // 1/(2*PI)
+	constexpr double ANGLE_EPSILON = 0.0001;                       // dbl_7E3818
+	double sizeD = static_cast<double>(size);
+	double halfsizeD = static_cast<double>(halfSize);
 
-	for (size_t i = 0; i < ARRAY_SIZE(_line_alpha); ++i)
-	{
+	for (size_t i = 0; i < ARRAY_SIZE(_line_alpha); ++i) {
+		// Calculate animated angle based on current game frame
+		int frameValue = Unsorted::CurrentFrame + i;
+		double angle = static_cast<double>(frameValue) * ANGLE_STEP_MULT;
 
-		static int _offset = 0;
-		static MSTimerClass sweep_rate(_rate);
+		// Normalize angle to [0, 2*PI)
+		int fullRotations = static_cast<int>(angle * WWMATH_INV_TWO_PI);
+		angle -= static_cast<double>(fullRotations) * Math::SIN_PI_BY_TWO_ACCURATE;
 
-		if (sweep_rate.Expired())
-		{
-			sweep_rate.Start(_rate);
-			++_offset;
+		// Calculate endpoint on ellipse perimeter
+		int endX, endY;
+
+		// Special case: near 90 degrees (avoid tan singularity)
+		double diff90 = Math::abs(angle - Math::DEG90_AS_RAD);
+		if (diff90 < ANGLE_EPSILON) {
+			// Straight down (in screen coords)
+			endX = center_pixel.X;
+			endY = center_pixel.Y + static_cast<int>(-halfsizeD);
 		}
+		// Special case: near 270 degrees
+		else if (Math::abs(angle - Math::THREE_PI_BY_TWO) < ANGLE_EPSILON) {
+			// Straight up
+			endX = center_pixel.X;
+			endY = center_pixel.Y + static_cast<int>(halfsizeD);
+		} else {
+			// General case: calculate point on ellipse using tan
+			double tanAngle = Math::tan(angle);
+			double tanSq = tanAngle * tanAngle;
 
-		float angle_offset = float((_offset + i) * 0.05);
-		int angle_increment = int(angle_offset / Math::DEG_TO_RADF(360));
-		float angle = angle_offset - (angle_increment * Math::DEG_TO_RADF(360));
+			// Ellipse semi-axes squared
+			double aSq = halfsizeD * halfsizeD;  // Vertical (b² in standard form)
+			double bSq = sizeD * sizeD;          // Horizontal (a² in standard form)
 
-		Point2D line_start {};
-		Point2D line_end {};
+			// Point on ellipse where y = x * tan(angle)
+			// Substituting into ellipse equation: x²/b² + (x*tan)²/a² = 1
+			// x² * (1/b² + tan²/a²) = 1
+			// x = sqrt(1 / (1/b² + tan²/a²))
+			double denom = (tanSq / aSq) + (1.0 / bSq);
+			double xAbs = Math::sqrt(1.0 / denom);
 
-		if (Math::abs(angle - Math::DEG_TO_RADF(90)) < 0.001)
-		{
+			// Calculate Y from ellipse equation
+			// y² = a² * (1 - x²/b²)
+			double yAbs = Math::sqrt((1.0 - (xAbs * xAbs) / bSq) * aSq);
 
-			line_start = center_pixel;
-			line_end = Point2D(center_pixel.X, int(center_pixel.Y + (-size_half)));
+			// Apply quadrant signs based on angle
+			double xCoord = xAbs;
+			double yCoord = yAbs;
 
-		}
-		else if (Math::abs(angle - Math::DEG_TO_RADF(270)) < 0.001)
-		{
 
-			line_start = center_pixel;
-			line_end = Point2D(center_pixel.X, int(center_pixel.Y + size_half));
-
-		}
-		else
-		{
-
-			double angle_tan = std::tan(angle);
-			double xdist = Math::sqrt(1.0 / ((angle_tan * angle_tan) / (size_half * size_half) + 1.0 / (d_size * d_size)));
-			double ydist = Math::sqrt((1.0 - (xdist * xdist) / (d_size * d_size)) * (size_half * size_half));
-
-			if (angle > Math::DEG_TO_RADF(90) && angle < Math::DEG_TO_RADF(270))
-			{
-				xdist = -xdist;
+			// Left half of ellipse (90° < angle < 270°): negate X
+			if (angle > Math::DEG90_AS_RAD && angle < Math::THREE_PI_BY_TWO) {
+				xCoord = -xCoord;
 			}
 
-			if (angle < Math::DEG_TO_RADF(180))
-			{
-				ydist = -ydist;
+			// Bottom half of ellipse (angle >= 180°): negate Y
+			if (angle >= Math::GAME_PI) {
+				yCoord = -yCoord;
 			}
 
-			line_start = center_pixel;
-			line_end = Point2D(int(center_pixel.X + xdist), int(center_pixel.Y + ydist));
+			endX = center_pixel.X + static_cast<int>(xCoord);
+			endY = center_pixel.Y + static_cast<int>(yCoord);
 
 		}
 
-		line_start.X -= DSurface::ViewBounds().X;
-		line_start.Y -= DSurface::ViewBounds().Y;
+		// Convert to viewport-relative coordinates for line drawing
+		Point2D lineStart = {
+			center_pixel.X - DSurface::ViewBounds->X,
+			center_pixel.Y - DSurface::ViewBounds->Y
+		};
 
-		line_end.X -= DSurface::ViewBounds().X;
-		line_end.Y -= DSurface::ViewBounds().Y;
+		Point2D lineEnd = {
+			endX - DSurface::ViewBounds->X,
+			endY - DSurface::ViewBounds->Y
+		};
 
-		bool enable_red_channel = true;
-		bool enable_green_channel = true;
-		bool enable_blue_channel = true;
+		float thickness = static_cast<float>(_line_alpha[i]);
 
 		DSurface::Temp->DrawSubtractiveLine_AZ(DSurface::ViewBounds(),
-										line_start,
-										line_end,
+										lineStart,
+										lineEnd,
 										draw_color,
 										-500,
 										-500,
 										false,
-										enable_red_channel,
-										enable_green_channel,
-										enable_blue_channel,
-										(float)_line_alpha[i]);
+										false,
+										false,
+										false,
+										thickness);
 
 	}
 }

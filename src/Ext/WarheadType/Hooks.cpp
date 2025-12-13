@@ -343,7 +343,7 @@ ASMJIT_PATCH(0x4898BF, MapClass_DamageArea_Cylinder_6, 0x5)
 	return 0;
 }
 
-// AffectsInAir and AffectsOnFloor
+// AffectsInAir and AffectsGround
 ASMJIT_PATCH(0x489416, MapClass_DamageArea_CheckHeight_AircraftTarcker, 0x6)
 {
 	enum { SkipThisObject = 0x489547 };
@@ -355,7 +355,7 @@ ASMJIT_PATCH(0x489416, MapClass_DamageArea_CheckHeight_AircraftTarcker, 0x6)
 
 	if (!pObject ||
 		((pWHExt->AffectsInAir && pObject->IsInAir()) ||
-			(pWHExt->AffectsOnFloor && !pObject->IsInAir())))
+			(pWHExt->AffectsGround && !pObject->IsInAir())))
 	{
 		return 0;
 	}
@@ -372,12 +372,12 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 
 	auto pWHExt = pWH->_GetExtData();
 
-	if (pWHExt->AffectsInAir && pWHExt->AffectsOnFloor)
+	if (pWHExt->AffectsInAir && pWHExt->AffectsGround)
 		return 0;
 
 	if (!pObject ||
 		((pWHExt->AffectsInAir && pObject->IsInAir()) ||
-			(pWHExt->AffectsOnFloor && !pObject->IsInAir())))
+			(pWHExt->AffectsGround && !pObject->IsInAir())))
 	{
 		return 0;
 	}

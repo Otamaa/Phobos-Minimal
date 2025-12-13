@@ -31,65 +31,6 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 	return false;
 }
 
-void FlyingStrings::Add(std::wstring text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset) {
-	Data.emplace_back(Item {
-		.Location = coords,
-		.PixelOffset = pixelOffset,
-		.CreationFrame = Unsorted::CurrentFrame,
-		.Color = color.ToInit(),
-		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
-		.Text = std::move(text),
-	});
-}
-
-void FlyingStrings::Add(const wchar_t* text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset)
-{
-	Data.emplace_back(Item {
-		.Location = coords,
-		.PixelOffset = pixelOffset,
-		.CreationFrame = Unsorted::CurrentFrame,
-		.Color = color.ToInit(),
-		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
-		.Text = text,
-	});
-}
-
-void FlyingStrings::Add(std::wstring_view text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset)
-{
-	Data.emplace_back(Item {
-		.Location = coords,
-		.PixelOffset = pixelOffset,
-		.CreationFrame = Unsorted::CurrentFrame,
-		.Color = color.ToInit(),
-		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
-		.Text = std::wstring(text),
-	});
-}
-
-void FlyingStrings::Add(const fmt::basic_memory_buffer<wchar_t>& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset)
-{
-	Data.emplace_back(Item {
-		.Location = coords,
-		.PixelOffset = pixelOffset,
-		.CreationFrame = Unsorted::CurrentFrame,
-		.Color = color.ToInit(),
-		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
-		.Text = std::wstring(buffer.data(), buffer.size()),
-	});
-}
-
-void FlyingStrings::Add(fmt::basic_memory_buffer<wchar_t>&& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset)
-{
-	Data.emplace_back(Item {
-		.Location = coords,
-		.PixelOffset = pixelOffset,
-		.CreationFrame = Unsorted::CurrentFrame,
-		.Color = color.ToInit(),
-		.TextPrintType = TextPrintType::Center | TextPrintType::NoShadow,
-		.Text = std::wstring(buffer.data(), buffer.size()),
-	});
-}
-
 void FlyingStrings::AddMoneyString(bool Display, int amount, TechnoClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset, ColorStruct nOverrideColor)
 {
 	if (!coords.IsValid() || !Display || !owner)

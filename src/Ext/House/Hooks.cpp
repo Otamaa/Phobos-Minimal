@@ -302,7 +302,7 @@ ASMJIT_PATCH(0x6F6D85, TechnoClass_Unlimbo_RemoveTracking, 0x6)
 
 HouseClass* OldOwner = nullptr;
 
-ASMJIT_PATCH(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
+ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	auto pNewOwner= pThis->Owner;
@@ -356,7 +356,7 @@ ASMJIT_PATCH(0x70173B , TechnoClass_ChangeOwnership_AfterHouseWasSet, 0x5)
 }
 
 
-ASMJIT_PATCH(0x7015EB, TechnoClass_ChangeOwnership_UpdateTracking, 0x7)
+ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 {
 	GET(TechnoClass* const, pThis, ESI);
 	GET(HouseClass* const, pNewOwner, EBP);

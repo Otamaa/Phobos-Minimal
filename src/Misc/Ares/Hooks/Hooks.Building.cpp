@@ -269,67 +269,6 @@ ASMJIT_PATCH(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 	return 0x44C968;
 }
 
-ASMJIT_PATCH(0x444DBC, BuildingClass_KickOutUnit_Infantry, 5)
-{
-	GET(TechnoClass*, Production, EDI);
-	GET(BuildingClass*, Factory, ESI);
-
-	// turn it off
-	--Unsorted::ScenarioInit;
-
-	TechnoExt_ExtData::KickOutClones(Factory, Production);
-
-	// turn it back on so the game can turn it off again
-	++Unsorted::ScenarioInit;
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x4445F6, BuildingClass_KickOutUnit_Clone_NonNavalUnit, 5)
-{
-	GET(TechnoClass*, Production, EDI);
-	GET(BuildingClass*, Factory, ESI);
-
-	// turn it off
-	--Unsorted::ScenarioInit;
-
-	TechnoExt_ExtData::KickOutClones(Factory, Production);
-
-	// turn it back on so the game can turn it off again
-	++Unsorted::ScenarioInit;
-
-	return 0x444971;
-}
-
-ASMJIT_PATCH(0x44441A, BuildingClass_KickOutUnit_Clone_NavalUnit, 6)
-{
-	GET(TechnoClass*, Production, EDI);
-	GET(BuildingClass*, Factory, ESI);
-
-	TechnoExt_ExtData::KickOutClones(Factory, Production);
-
-	return 0;
-}
-
-ASMJIT_PATCH(0x4444E2, BuildingClass_KickOutUnit_FindAlternateKickout, 6)
-{
-	GET(BuildingClass*, Src, ESI);
-	GET(BuildingClass*, Tst, EBP);
-	GET(TechnoClass*, Production, EDI);
-
-	if (Src != Tst
-	 && Tst->GetCurrentMission() == Mission::Guard
-	 && Tst->Type->Factory == Src->Type->Factory
-	 && Tst->Type->Naval == Src->Type->Naval
-	 && TechnoTypeExtData::CanBeBuiltAt(Production->GetTechnoType(), Tst->Type)
-	 && !Tst->Factory)
-	{
-		return 0x44451F;
-	}
-
-	return 0x444508;
-}
-
 // copy the remaining EMP duration to the unit when undeploying a building.
 ASMJIT_PATCH(0x44A04C, BuildingClass_Destruction_CopyEMPDuration, 6)
 {
@@ -534,16 +473,6 @@ ASMJIT_PATCH(0x44e2b0, BuildingClass_Mi_Unload_LargeGap, 6)
 	return 0x44E371;
 }
 
-ASMJIT_PATCH(0x4566d5, BuildingClass_GetRangeOfRadial_LargeGap, 6)
-{
-	GET(BuildingClass*, pBld, ESI);
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
-	R->EAX((pBld->GapSuperCharged ? pTypeExt->SuperGapRadiusInCells : pTypeExt->GapRadiusInCells).Get());
-	return 0x456745;
-}
-
-
 bool Bld_ChangeOwnerAnnounce;
 ASMJIT_PATCH(0x448260, BuildingClass_SetOwningHouse_ContextSet, 0x8)
 {
@@ -575,7 +504,7 @@ ASMJIT_PATCH(0x448BE3, BuildingClass_SetOwningHouse_FixArgs, 0x5)
 	return 0x448BED;
 }
 
-ASMJIT_PATCH(0x4483FB, BuildingClass_ChangeOwnership_Tech, 6)
+ASMJIT_PATCH(0x4483FB, BuildingClass_SetOwningHouse_Tech, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(HouseClass*, pNewOwner, EBX);
@@ -874,7 +803,7 @@ ASMJIT_PATCH(0x4409F4, BuildingClass_Put_ProduceCash, 6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4482BD, BuildingClass_ChangeOwnership_ProduceCash, 6)
+ASMJIT_PATCH(0x4482BD, BuildingClass_SetOwningHouse_ProduceCash, 6)
 {
 	GET(BuildingClass*, pThis, ESI);
 	GET(HouseClass*, pNewOwner, EBX);
@@ -989,7 +918,7 @@ ASMJIT_PATCH(0x442CE0, BuildingClass_Init_Cloakable, 0x6)
 }
 
 // if this is a radar, drop the new owner from the bitfield
-ASMJIT_PATCH(0x448D95, BuildingClass_ChangeOwnership_OldSpy2, 0x8)
+ASMJIT_PATCH(0x448D95, BuildingClass_SetOwningHouse_OldSpy2, 0x8)
 {
 	GET(HouseClass* const, newOwner, EDI);
 	GET(BuildingClass*, pThis, ESI);
@@ -1022,7 +951,7 @@ ASMJIT_PATCH(0x455923, BuildingClass_SensorArray_BuildingRedraw, 0x6)
 
 // capture and mind-control support: deactivate the array for the original
 // owner, then activate it a few instructions later for the new owner.
-ASMJIT_PATCH(0x448B70, BuildingClass_ChangeOwnership_SensorArrayA, 0x6)
+ASMJIT_PATCH(0x448B70, BuildingClass_SetOwningHouse_SensorArrayA, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
 
@@ -1034,7 +963,7 @@ ASMJIT_PATCH(0x448B70, BuildingClass_ChangeOwnership_SensorArrayA, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x448C3E, BuildingClass_ChangeOwnership_SensorArrayB, 0x6)
+ASMJIT_PATCH(0x448C3E, BuildingClass_SetOwningHouse_SensorArrayB, 0x6)
 {
 	GET(BuildingClass*, pBld, ESI);
 
@@ -1057,20 +986,6 @@ ASMJIT_PATCH(0x4416A2, BuildingClass_Destroy_SensorArray, 0x6)
 	}
 
 	return 0;
-}
-
-// sensor arrays show SensorsSight instead of CloakRadiusInCells
-ASMJIT_PATCH(0x4566F9, BuildingClass_GetRangeOfRadial_SensorArray, 0x6)
-{
-	GET(BuildingClass* const, pThis, ESI);
-
-	if (pThis->Type->SensorArray)
-	{
-		R->EAX(pThis->Type->SensorsSight);
-		return 0x45674B;
-	}
-
-	return 0x456703;
 }
 
 // #1156943: they check for type, and for the instance, yet
@@ -1165,17 +1080,6 @@ ASMJIT_PATCH(0x44D755, BuildingClass_GetPipFillLevel_Tiberium, 0x6)
 // 	MouseClass::Instance->SidebarNeedsRepaint();
 // 	return R->Origin() + 6;
 // }
-
-// infantry exiting hospital get their focus reset, but not for armory
-ASMJIT_PATCH(0x444D26, BuildingClass_KickOutUnit_ArmoryExitBug, 0x6)
-{
-	GET(BuildingTypeClass* const, pType, EDX);
-	R->AL(pType->Hospital || pType->Armory);
-	return 0x444D2C;
-}
-
-// BuildingClass_KickOutUnit_PreventClone
-DEFINE_JUMP(LJMP, 0x4449DF, 0x444A53);
 
 ASMJIT_PATCH(0x4586D6, BuildingClass_KillOccupiers, 0x9)
 {
@@ -1982,7 +1886,7 @@ ASMJIT_PATCH(0x44161C, BuildingClass_Destroy_OldSpy1, 6)
 }
 
 // if this is a radar, change the owner's house bitfields responsible for radar reveals
-ASMJIT_PATCH(0x448312, BuildingClass_ChangeOwnership_OldSpy1, 0xA)
+ASMJIT_PATCH(0x448312, BuildingClass_SetOwningHouse_OldSpy1, 0xA)
 {
 	GET(HouseClass*, newOwner, EBX);
 	GET(BuildingClass*, B, ESI);
@@ -2007,14 +1911,6 @@ ASMJIT_PATCH(0x455DA0, BuildingClass_IsFactory_CloningFacility, 6)
 		return 0x455DCD;
 
 	return 0x0;
-}
-
-ASMJIT_PATCH(0x4444B3, BuildingClass_KickOutUnit_NoAlternateKickout, 6)
-{
-	GET(FakeBuildingClass*, pThis, ESI);
-	return pThis->Type->Factory == AbstractType::None
-		||pThis->_GetTypeExtData()->CloningFacility.Get()
-		? 0x4452C5 : 0x0;
 }
 
 ASMJIT_PATCH(0x446366, BuildingClass_Place_Academy, 6)
@@ -2053,7 +1949,7 @@ ASMJIT_PATCH(0x445905, BuildingClass_Remove_Academy, 6)
 	return 0x445946;
 }
 
-ASMJIT_PATCH(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 6)
+ASMJIT_PATCH(0x448AB2, BuildingClass_SetOwningHouse_UnregisterFunction, 6)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 
@@ -2068,7 +1964,7 @@ ASMJIT_PATCH(0x448AB2, BuildingClass_ChangeOwnership_UnregisterFunction, 6)
 	return 0x448AC8;
 }
 
-ASMJIT_PATCH(0x4491D5, BuildingClass_ChangeOwnership_RegisterFunction, 6)
+ASMJIT_PATCH(0x4491D5, BuildingClass_SetOwningHouse_RegisterFunction, 6)
 {
 	GET(FakeBuildingClass*, pThis, ESI);
 
@@ -2162,35 +2058,6 @@ ASMJIT_PATCH(0x4521C8, BuildingClass_Disable_Temporal_Factories, 6)
 	}
 	return 0;
 }
-
-ASMJIT_PATCH(0x4566B0, BuildingClass_GetRangeOfRadial_Radius, 6)
-{
-	enum
-	{
-		SetVal = 0x45674E
-		, Nothing = 0x0
-	};
-
-	GET(BuildingClass*, pThis, ECX);
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	if (!pExt->RadialIndicatorRadius.isset())
-		return Nothing;
-
-	R->EAX(pExt->RadialIndicatorRadius.Get());
-	return SetVal;
-}
-
-ASMJIT_PATCH(0x456768, BuildingClass_DrawRadialIndicator_Always, 0x6)
-{
-	GET(BuildingClass*, pThis, ESI);
-
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
-
-	return pExt->AlwayDrawRadialIndicator.Get(pThis->HasPower) ?
-		0x456776 : 0x456962;
-}
-
 
 ASMJIT_PATCH(0x4581CD, BuildingClass_HandleOccupants, 6) //UnloadOccupants_AllOccupantsHaveLeft
 {

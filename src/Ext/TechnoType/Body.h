@@ -1266,6 +1266,9 @@ public:
 	std::vector<PhobosFixedString<0x20>> WeaponGroupAs;
 	Valueable<bool> CanGoAboveTarget;
 
+	Valueable<int> OpenTransport_RangeBonus;
+	Valueable<float> OpenTransport_DamageMultiplier;
+
 	int TintColorAirstrike;
 #pragma endregion
 
@@ -2107,6 +2110,8 @@ public:
 		, TeamMember_ConsideredAs()
 		, WeaponGroupAs {}
 		, CanGoAboveTarget { false }
+		, OpenTransport_RangeBonus { 0 }
+		, OpenTransport_DamageMultiplier { 1.0 }
 		, TintColorAirstrike()
 		{
 			this->InitializeConstant();
@@ -3147,6 +3152,8 @@ private:
 			.Process(this->TeamMember_ConsideredAs)
 			.Process(this->WeaponGroupAs)
 			.Process(this->CanGoAboveTarget)
+			.Process(this->OpenTransport_RangeBonus)
+			.Process(this->OpenTransport_DamageMultiplier)
 			.Process(this->TintColorAirstrike)
 			;
 	}

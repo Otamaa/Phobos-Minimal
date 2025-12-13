@@ -71,22 +71,6 @@ ASMJIT_PATCH(0x653B3A, RadarClass_GetMouseAction_CustomSWAction, 7)
 	return CheckOtherCases;
 }
 
-ASMJIT_PATCH(0x6AAEDF, SidebarClass_ProcessCameoClick_SuperWeapons, 6)
-{
-	enum
-	{
-		RetImpatientClick = 0x6AAFB1,
-		SendSWLauchEvent = 0x6AAF10,
-		ClearDisplay = 0x6AAF46,
-		ControlClassAction = 0x6AB95A
-	};
-
-	GET(int, idxSW, ESI);
-	//impatient voice is implemented inside
-	SWTypeExtData::LauchSuper(HouseClass::CurrentPlayer->Supers.Items[idxSW]);
-	return ControlClassAction;
-}
-
 // bugfix #277 revisited: VeteranInfantry and friends don't show promoted cameos
 ASMJIT_PATCH(0x712045, TechnoTypeClass_GetCameo, 5)
 {

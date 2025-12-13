@@ -1,7 +1,8 @@
 #include "Body.h"
 
-#include "Ext/Bullet/Body.h"
-#include "Ext/ParticleType/Body.h"
+#include <Ext/Bullet/Body.h>
+#include <Ext/ParticleType/Body.h>
+#include <Ext/WarheadType/Body.h>
 #include <Utilities/Macro.h>
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
@@ -674,13 +675,17 @@ void FakeParticleClass::ProcessDamage()
 	else
 	{
 
-		const auto pVec = Helpers::Alex::getCellSpreadItems(this->Location, std::ceil(pTypeExt->DamageRange.Get()));
+		auto pWH = pTypeExt->This()->Warhead;
+		auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-		for (const auto pItem : pVec)
-		{
-			if (!pItem->IsAlive || pItem->Health <= 0)
-				continue;
 
+		for (const auto pItem : Helpers::Alex::getCellSpreadItems(this->Location, std::ceil(pTypeExt->DamageRange.Get()),
+			true,
+			pWHExt->CellSpread_Cylinder,
+			pWHExt->AffectsInAir,
+			pWHExt->AffectsGround,
+			false
+		)) {
 			if (pItem->IsSinking || pItem->IsCrashing || pItem->TemporalTargetingMe)
 				continue;
 

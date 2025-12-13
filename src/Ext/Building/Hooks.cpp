@@ -274,23 +274,43 @@ ASMJIT_PATCH(0x445FD6, BuildingTypeClass_GrandOpening_StorageActiveAnimations, 0
 	return 0x446183;
 }
 
-ASMJIT_PATCH(0x450D9C, BuildingTypeClass_AI_Anims_IncludeWeeder_1, 0x6)
+#include <Ext/SWType/Body.h>
+
+ASMJIT_PATCH(0x450D9C, BuildingClass_AI_Anims_IncludeWeeder_1, 0x6)
 {
-	GET(FakeBuildingClass*, pBuilding, ESI);
+	GET(FakeBuildingClass*, pThis, ESI);
 
-	const auto pTypeExt = pBuilding->_GetTypeExtData();
+	const auto pTypeExt = pThis->_GetTypeExtData();
 
-	if (pTypeExt->Storage_ActiveAnimations.Get(pBuilding->Type->Refinery || pBuilding->Type->Weeder))
+	if (pTypeExt->Storage_ActiveAnimations.Get(pThis->Type->Refinery || pThis->Type->Weeder))
 	{
-		R->EAX(pBuilding->Type->Weeder ?
-			int(4 * pBuilding->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
-			int(4 * TechnoExtContainer::Instance.Find(pBuilding)->TiberiumStorage.GetAmounts() / pBuilding->Type->Storage)
+		R->EAX(pThis->Type->Weeder ?
+			int(4 * pThis->Owner->OwnedWeed.GetTotalAmount() / RulesClass::Instance->WeedCapacity) :
+			int(4 * TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage.GetAmounts() / pThis->Type->Storage)
 		);
 
 		return 0x450DDC;
 	}
 
-	return 0x450F9E;
+	const auto pSuper = BuildingExtData::GetFirstSuperWeapon(pThis);
+
+	if (!pSuper)
+		return 0x451145;
+
+	const auto miss = pThis->GetCurrentMission();
+	if (miss == Mission::Construction || miss == Mission::Selling || pThis->Type->ChargedAnimTime > 990.0)
+		return 0x451145;
+
+	R->EDI(pThis->Type);
+	// Do not advance SuperAnim for buildings with superweapons if the recharge timer hasn't actually started at any point yet.
+	if (pSuper->RechargeTimer.StartTime == 0
+		&& pSuper->RechargeTimer.TimeLeft == 0
+		&& !SWTypeExtContainer::Instance.Find(pSuper->Type)->SW_InitialReady)
+		return 0x451048;
+
+
+	R->EAX(pSuper);
+	return 0x451030;
 }
 
 // ASMJIT_PATCH(0x450E12, BuildingTypeClass_AI_Anims_IncludeWeede_2, 0x7)
@@ -341,30 +361,7 @@ ASMJIT_PATCH(0x44EFD8, BuildingClass_FindExitCell_BarracksExitCell, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x444B83, BuildingClass_ExitObject_BarracksExitCell, 0x7)
-{
-	enum { SkipGameCode = 0x444C7C };
-	GET(FakeBuildingClass*, pThis, ESI);
-	GET(int, xCoord, EBP);
-	GET(int, yCoord, EDX);
-	REF_STACK(CoordStruct, resultCoords, STACK_OFFSET(0x140, -0x108));
-
-	if (pThis->_GetTypeExtData()->BarracksExitCell.isset()) {
-		auto const exitCoords = pThis->Type->ExitCoord;
-		resultCoords = CoordStruct { xCoord + exitCoords.X, yCoord + exitCoords.Y, exitCoords.Z };
-		return SkipGameCode;
-	}
-
-	return 0;
-}
-
 #pragma region EnableBuildingProductionQueue
-
-ASMJIT_PATCH(0x6AB689, SelectClass_Action_SkipBuildingProductionCheck, 0x5)
-{
-	enum { SkipGameCode = 0x6AB6CE };
-	return RulesExtData::Instance()->ExpandBuildingQueue ? SkipGameCode : 0;
-}
 
 ASMJIT_PATCH(0x4FA520, HouseClass_BeginProduction_SkipBuilding, 0x5)
 {
@@ -469,7 +466,6 @@ ASMJIT_PATCH(0x6AA88D, StripClass_RecheckCameo_FindFactoryDehardCode, 0x6)
 
 	return 0;
 }
-
 
 #pragma endregion
 #include <PlanningTokenClass.h>

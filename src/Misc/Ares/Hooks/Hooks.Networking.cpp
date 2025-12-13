@@ -11,18 +11,6 @@
 
 #include <EventClass.h>
 
-ASMJIT_PATCH(0x6ab773, SelectClass_ProcessInput_ProduceUnsuspended, 0xA)
-{
-	GET(EventClass*, pEvent, EAX);
-	GET_STACK(DWORD, flag, 0xB8);
-
-	for (int i = ((4 * (flag & 1)) | 1); i > 0; --i) {
-		EventClass::AddEvent(pEvent);
-	}
-
-	return 0x6AB7CC;
-}
-
 ASMJIT_PATCH(0x64C314, Breakup_Receive_Packet_PayloadSize2, 0x8)
 {
 	GET(EventType, eventType, ESI);

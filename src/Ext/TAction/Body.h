@@ -52,12 +52,14 @@ enum class PhobosTriggerAction : unsigned int
 	SetDropCrate = 600, // Only change this number if the PR is merged into develop!
 
 	//#1549
-	ResetHateValue = 606,
+	ResetHateValue = 605,
 
 	//
-	EditAngerNode = 607,
-	ClearAngerNode = 608,
-	SetForceEnemy = 609,
+	EditAngerNode = 606,
+	ClearAngerNode = 607,
+	SetForceEnemy = 608,
+	SetFreeRadar = 609,
+	SetTeamDelay = 610,
 
 	//ES
 	SetTriggerTechnoVeterancy = 700,
@@ -149,6 +151,8 @@ public:
 	ACTION_FUNC(EditAngerNode);
 	ACTION_FUNC(ClearAngerNode);
 	ACTION_FUNC(SetForceEnemy);
+	ACTION_FUNC(SetFreeRadar);
+	ACTION_FUNC(SetTeamDelay);
 
 	ACTION_FUNC(CreateBannerGlobal);
 	ACTION_FUNC(CreateBannerLocal);

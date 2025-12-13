@@ -86,11 +86,16 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 
 
 	if (pThis->InOpenToppedTransport) {
-		if(auto pTrans = pThis->Transporter)
-			range += TechnoTypeExtContainer::Instance.Find(pTrans->GetTechnoType())
-				->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus) * Unsorted::LeptonsPerCell;
-		  else
-		  	range += (RulesClass::Instance->OpenToppedRangeBonus* Unsorted::LeptonsPerCell);
+		int OpetoppedBonus = pThisTypeExt->OpenTransport_RangeBonus;
+
+		if(auto pTrans = pThis->Transporter){
+			OpetoppedBonus += TechnoTypeExtContainer::Instance.Find(pTrans->GetTechnoType())
+				->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus);
+		} else{
+		  OpetoppedBonus += RulesClass::Instance->OpenToppedRangeBonus;
+		}
+
+		range += int(OpetoppedBonus * Unsorted::LeptonsPerCell);
 	}
 
 	R->EDI(range);

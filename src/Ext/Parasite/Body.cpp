@@ -129,6 +129,42 @@ void TechnoExtData::DrawParasitedPips(TechnoClass* pThis, Point2D* pLocation, Re
 #include <ParticleSystemClass.h>
 #include <ParticleSystemTypeClass.h>
 
+void ResetOwnerMission(FootClass* owner)
+{
+	if (!owner)
+		return;
+
+	// Restore player control if applicable
+	if (owner->ShouldBeReselectOnUnlimbo && owner->Owner->ControlledByCurrentPlayer())
+	{
+		auto nCoord = owner->GetCoords();
+		VocClass::PlayIndexAtPos(
+			TechnoTypeExtContainer::Instance.Find(owner->GetTechnoType())->ParasiteExit_Sound.Get(),
+			&nCoord,
+			false
+		);
+		owner->ShouldBeReselectOnUnlimbo = false;
+		owner->Select();
+	}
+
+	// Rejoin team if applicable
+	if (TeamClass* team = owner->OldTeam)
+	{
+		team->AddMember(owner, false);
+	}
+
+	// Reset mission if not busy
+	if (!owner->HaveMegaMission())
+	{
+		owner->SetArchiveTarget(nullptr);
+		owner->SetTarget(nullptr);
+		owner->SetDestination(nullptr, true);
+	}
+
+	// Enter idle mode
+	owner->EnterIdleMode(false, true);
+}
+
 bool FakeParasiteClass::__Update_GrappleAnim_Frame() {
 
 	DirStruct victimFacing = this->Victim->PrimaryFacing.Current();
@@ -476,7 +512,7 @@ void FakeParasiteClass::__AI()
 	const bool isInfantry = this->Victim->WhatAmI() == AbstractType::Infantry;
 
 	// Reset timer with weapon ROF
-	this->DamageDeliveryTimer.Start(0);
+	this->DamageDeliveryTimer.Start(weaponType->ROF);
 
 	// Update victim's paralysis timer
 	victim->ParalysisTimer.Start(weaponType->Warhead->Paralyzes);
@@ -613,39 +649,12 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 
 		// Successfully placed owner back in world
 
-		// Restore player control if applicable
-		FootClass* owner = this->Owner;
-		if (owner->ShouldBeReselectOnUnlimbo 
-			&& owner->Owner->ControlledByCurrentPlayer()) {
-
-			auto nCoord = owner->GetCoords();
-			VocClass::PlayIndexAtPos(TechnoTypeExtContainer::Instance.Find(owner->GetTechnoType())
-				->ParasiteExit_Sound.Get(), &nCoord, false);
-
-			owner->ShouldBeReselectOnUnlimbo = false;
-			owner->Select();
-		}
-
-		// Rejoin team if applicable
-		
-		if (TeamClass* team = owner->OldTeam) {
-			team->AddMember(owner, false);
-		}
-
-		// Reset mission if not busy
-		if (!owner->HaveMegaMission()) {
-			owner->SetArchiveTarget(nullptr);
-			owner->SetTarget(nullptr);
-			owner->SetDestination(nullptr, true);
-		}
-
-		// Enter idle mode
-		owner->EnterIdleMode(false, true);
-		owner->UpdateSight(0, 0, 0, 0, 0);
+		ResetOwnerMission(this->Owner);
+		this->Owner->UpdateSight(0, 0, 0, 0, 0);
 
 		// Update map visibility
-		CoordStruct ownerCoord = owner->Location;
-		MapClass::Instance->RevealArea3(&ownerCoord, owner->LastSightRange - 3, owner->LastSightRange + 3, 0);
+		CoordStruct ownerCoord = this->Owner->Location;
+		MapClass::Instance->RevealArea3(&ownerCoord, this->Owner->LastSightRange - 3, this->Owner->LastSightRange + 3, 0);
 
 		this->Victim = nullptr;
 		return;
@@ -745,32 +754,7 @@ void FakeParasiteClass::__Uninfect()
 
 			// Restore player control if applicable
 			FootClass* placedOwner = this->Owner;
-			if (placedOwner->ShouldBeReselectOnUnlimbo &&
-				placedOwner->Owner->ControlledByCurrentPlayer()) {
-
-				auto nCoord = placedOwner->GetCoords();
-				VocClass::PlayIndexAtPos(TechnoTypeExtContainer::Instance.Find(placedOwner->GetTechnoType())
-					->ParasiteExit_Sound.Get(), &nCoord, false);
-
-				placedOwner->ShouldBeReselectOnUnlimbo = false;
-				placedOwner->Select();
-			}
-
-			// Rejoin team if applicable 
-			if (TeamClass* team = placedOwner->OldTeam) {
-				team->AddMember(placedOwner, false);
-			}
-
-			// Reset mission if not busy
-			if (!placedOwner->HaveMegaMission())
-			{
-				placedOwner->SetArchiveTarget(nullptr);
-				placedOwner->SetTarget(nullptr);
-				placedOwner->SetDestination(nullptr, true);
-			}
-
-			// Enter idle mode
-			placedOwner->EnterIdleMode(false, true);
+			ResetOwnerMission(placedOwner);
 			placedOwner->vt_entry_48C(nullptr, 0u, false, nullptr);
 
 			// Apply paralysis to owner
