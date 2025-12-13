@@ -569,7 +569,12 @@ const wchar_t* FakeStripClass::__Help_Text(int index)
 	if (!Game::IsActive())
 		return nullptr;
 
-	auto& cameo = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex][index + 2 * this->TopRowIndex];
+	const auto& tab = MouseClassExt::TabCameos[MouseClass::Instance->ActiveTabIndex];
+
+	if(tab.empty())
+		return nullptr;
+
+	auto& cameo = tab[index + 2 * this->TopRowIndex];
 
 	if (cameo.ItemType == AbstractType::None)
 	{

@@ -936,8 +936,14 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			}
 		}
 
-		R->Stack8(STACK_OFFSET(0xE0, -0xC1), true);
+		for (int i = 0; i < groupvec.Count; ++i) {
+			if (groupvec.Items[i] && (!groupvec.Items[i]->Target->IsAlive || groupvec.Items[i]->Target->Health <= 0 || !groupvec.Items[i]->Target)) {
+				GameDelete(std::exchange(groupvec.Items[i], nullptr));
+				groupvec.erase_at(i);
+			}
+		}
 	}
+
 
 	const int MaxAffect = pWHExt->CellSpread_MaxAffect;
 
@@ -999,7 +1005,74 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		Handled.clear();
 	}
 
+	if(pWHExt->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage)){
+		// Because during the process of causing damage, fragments may be generated that need to continue causing damage, resulting in nested calls
+		// to this function. Therefore, a single global variable cannot be used to store this data.
+		std::unordered_map<BuildingClass*, double> MapBuildings;
+
+		{
+			const auto cellSpread = int(pWarhead->CellSpread * Unsorted::LeptonsPerCell);
+			const auto percentDifference = 1.0 - pWarhead->PercentAtMax; // Vanilla will first multiply the damage and round it up, but we don't need to.
+
+			for (const auto& group : groupvec) {
+				if (const auto pBuilding = cast_to<BuildingClass* , true>(group->Target)) {
+					if (group->Distance > cellSpread)
+						continue;
+
+					// Calculate the distance damage ratio in advance
+					const auto multiplier = (cellSpread && percentDifference) ? 1.0 - (percentDifference * group->Distance / cellSpread) : 1.0;
+					MapBuildings[pBuilding] += multiplier > 0 ? multiplier : 0;
+				}
+			}
+		}
+
+		for (const auto& group : groupvec) // Causing damage to the building alone and avoiding repeated injuries later.
+		{
+			if (const auto pBuilding = cast_to<BuildingClass* , true>(group->Target))
+			{
+				if (pBuilding->IsAlive
+					&& !pBuilding->Type->InvisibleInGame
+					&& (!isNullified || pBuilding->IsIronCurtained())
+					&& pBuilding->Health > 0
+					&& pBuilding->IsOnMap
+					&& !pBuilding->InLimbo
+					&& MapBuildings.contains(pBuilding))
+				{
+					auto receiveDamage = int(damage * MapBuildings[pBuilding]);
+					MapBuildings.erase(pBuilding);
+
+					if (!receiveDamage && damage)
+						receiveDamage = Math::signum(damage);
+
+					// Set the distance coefficient to 0
+					pBuilding->ReceiveDamage(&receiveDamage, 0, pWarhead, pSrcTechno, false, false, pSrcHouse);
+					hitted = true;
+				}
+			}
+		}
+
+		for (int i = 0; i < groupvec.Count; ++i){
+			if(groupvec.Items[i] && (!groupvec.Items[i]->Target->IsAlive || groupvec.Items[i]->Target->Health <= 0|| !groupvec.Items[i]->Target)) {
+				GameDelete(std::exchange(groupvec.Items[i], nullptr));
+				groupvec.erase_at(i);
+			}
+		}
+	}
+
+
+	if (hitted)
+		R->Stack8(STACK_OFFSET(0xE0, -0xC1), true);
+
 	return 0;
+}
+
+ASMJIT_PATCH(0x489A1B, DamageArea_DamageBuilding_SkipVanillaBuildingDamage, 0x6)
+{
+	enum { SkipGameCode = 0x489AC1 };
+
+	GET_BASE(FakeWarheadTypeClass*, pWH, 0x0C);
+	return pWH->_GetExtData()->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage) ?
+	SkipGameCode : 0;
 }
 
 ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
@@ -1292,4 +1365,133 @@ ASMJIT_PATCH(0x489562, DamageArea_DestroyCliff, 9)
 
 	return 0;
 }
+
+// Cylinder CellSpread
+ASMJIT_PATCH(0x489430, MapClass_DamageArea_Cylinder_1, 0x7)
+{
+	//GET(int, nDetoCrdZ, EDX);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
+	GET_STACK(int, nVictimCrdZ, STACK_OFFSET(0xE0, -0x5C));
+
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
+	{
+		R->EDX(nVictimCrdZ);
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4894C1, MapClass_DamageArea_Cylinder_2, 0x5)
+{
+	//GET(int, nDetoCrdZ, EDX);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
+	GET(int, nVictimCrdZ, ESI);
+
+	//auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
+	{
+		R->EDX(nVictimCrdZ);
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x48979C, MapClass_DamageArea_Cylinder_3, 0x8)
+{
+	//GET(int, nDetoCrdZ, ECX);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
+	GET(int, nVictimCrdZ, EDX);
+
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
+	{
+		R->ECX(nVictimCrdZ);
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4897C3, MapClass_DamageArea_Cylinder_4, 0x5)
+{
+	//GET(int, nDetoCrdZ, ECX);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
+	GET(int, nVictimCrdZ, EDX);
+
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
+	{
+		R->ECX(nVictimCrdZ);
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x48985A, MapClass_DamageArea_Cylinder_5, 0x5)
+{
+	//GET(int, nDetoCrdZ, ECX);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
+	GET(int, nVictimCrdZ, EDX);
+
+	if (pWH->_GetExtData()->CellSpread_Cylinder)
+	{
+		R->ECX(nVictimCrdZ);
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x4898BF, MapClass_DamageArea_Cylinder_6, 0x5)
+{
+	//GET(int, nDetoCrdZ, EDX);
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
+	GET(int, nVictimCrdZ, ECX);
+
+	if (pWH->_GetExtData()->CellSpread_Cylinder) {
+		R->EDX(nVictimCrdZ);
+	}
+
+	return 0;
+}
+
+// AffectsInAir and AffectsGround
+ASMJIT_PATCH(0x489416, MapClass_DamageArea_CheckHeight_AircraftTarcker, 0x6)
+{
+	enum { SkipThisObject = 0x489547 };
+
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
+	GET(ObjectClass*, pObject, EBX);
+
+	auto pWHExt = pWH->_GetExtData();
+
+	if (!pObject ||
+		((pWHExt->AffectsInAir && pObject->IsInAir()) ||
+			(pWHExt->AffectsGround && !pObject->IsInAir())))
+	{
+		return 0;
+	}
+
+	return SkipThisObject;
+}
+
+ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
+{
+	enum { SkipThisObject = 0x4899B3 };
+
+	GET_BASE(FakeWarheadTypeClass* const, pWH, 0x0C);
+	GET(ObjectClass*, pObject, ESI);
+
+	auto pWHExt = pWH->_GetExtData();
+
+	if (pWHExt->AffectsInAir && pWHExt->AffectsGround)
+		return 0;
+
+	if (!pObject ||
+		((pWHExt->AffectsInAir && pObject->IsInAir()) ||
+			(pWHExt->AffectsGround && !pObject->IsInAir())))
+	{
+		return 0;
+	}
+
+	return SkipThisObject;
+}
+
 #endif
