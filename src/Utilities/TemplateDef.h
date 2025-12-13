@@ -145,7 +145,7 @@ namespace detail
 
 				if (!found)
 				{
-					Debug::INIParseFailed(pSection, pKey, parser.c_str(), "Expected a affected house");
+					Debug::INIParseFailed(pSection, pKey, pCur, "Expected a affected house");
 				}
 			}
 
@@ -1197,7 +1197,7 @@ namespace detail
 
 				if (!found)
 				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a affected target");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected a affected target");
 					return false;
 				}
 			}
@@ -1232,7 +1232,7 @@ namespace detail
 				}
 
 				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a chrono sparkle position type");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected a chrono sparkle position type");
 				}
 			}
 
@@ -1269,7 +1269,7 @@ namespace detail
 
 				if (!found || result == 9)
 				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a SW target");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected a SW target");
 					return false;
 				}
 				else
@@ -1327,7 +1327,7 @@ namespace detail
 				}
 
 				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a targeting constraint");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected a targeting constraint");
 					return false;
 				}
 			}
@@ -1381,7 +1381,7 @@ namespace detail
 
 				if (!found)
 				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DiscardCondition");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected a DiscardCondition");
 					return false;
 				}
 				else
@@ -1429,7 +1429,7 @@ namespace detail
 
 				if (!found)
 				{
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a ExpireWeaponCondition");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected a ExpireWeaponCondition");
 					return false;
 				}
 				else

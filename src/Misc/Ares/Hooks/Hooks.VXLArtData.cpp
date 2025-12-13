@@ -94,8 +94,9 @@ ASMJIT_PATCH(0x5F887B, ObjectTypeClass_Load3DArt_Barrels, 6)
 		ImageStatusses nPairStatus = ImageStatusses::ReadVoxel(_buffer.c_str());
 
 		if (!nPairStatus.Loaded) {
-			Debug::LogInfo("{} Techno Barrel [{}] at[{}] cannot be loaded , breaking the loop ! ", pThis->ID, _buffer.c_str(), i);
-			break;
+			Debug::LogInfo("{} Techno Barrel [{}] at[{}] cannot be loaded ! ", pThis->ID, _buffer.c_str(), i);
+			Debug::RegisterParserError();
+			continue;
 		}
 
 		nPairStatus.swap(nArr);
@@ -140,7 +141,8 @@ ASMJIT_PATCH(0x5F865F, ObjectTypeClass_Load3DArt_Turrets, 6)
 
 		if (!nPairStatus.Loaded) {
 			Debug::LogInfo("{} Techno Turret [{}] at[{}] cannot be loaded , breaking the loop ! ", pThis->ID, _buffer.c_str(), i);
-			break;
+			Debug::RegisterParserError();
+			continue;
 		}
 
 		nPairStatus.swap(nArr);

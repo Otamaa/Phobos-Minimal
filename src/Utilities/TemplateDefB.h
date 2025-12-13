@@ -232,7 +232,7 @@ namespace detail
 				}
 
 				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid AffectPlayerType value");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected valid AffectPlayerType value");
 				}
 			}
 
@@ -267,7 +267,7 @@ namespace detail
 				}
 
 				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected valid SpotlightFlags value");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected valid SpotlightFlags value");
 				}
 			}
 
@@ -579,7 +579,7 @@ namespace detail
 				}
 
 				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AffectedTechno");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected a AffectedTechno");
 					return false;
 				}
 				else
@@ -627,7 +627,7 @@ namespace detail
 				}
 
 				if (!found) {
-					Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a DisplayShowType");
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected a DisplayShowType");
 					return false;
 				}
 				else
