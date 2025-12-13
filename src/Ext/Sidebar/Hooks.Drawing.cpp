@@ -904,37 +904,30 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 							//       RulesExtData::Instance()->ExpandBuildingQueue is enabled
 							// ==========================================================================
 
-							if (!RulesExtData::Instance()->ExpandBuildingQueue)
-							{
-								if (pTechnoType->WhatAmI() == AbstractType::BuildingType && hasActiveProduction)
-								{
+							if (!RulesExtData::Instance()->ExpandBuildingQueue){
+								if (pTechnoType->WhatAmI() == AbstractType::BuildingType && hasActiveProduction) {
 									shouldDisable = true;
 								}
 							}
-							else if (const auto pBuildingType = cast_to<BuildingTypeClass*, false>(pTechnoType))
-							{
-								if (const auto pFactory = HouseClass::CurrentPlayer->GetPrimaryFactory(AbstractType::BuildingType, pTechnoType->Naval, pBuildingType->BuildCat))
-								{
-									if (const auto pProduct = cast_to<BuildingClass*>(pFactory->Object))
-									{
+							else if (const auto pBuildingType = cast_to<BuildingTypeClass*, false>(pTechnoType)) {
+								if (const auto pFactory = pPlayer->GetPrimaryFactory(AbstractType::BuildingType, pTechnoType->Naval, pBuildingType->BuildCat)) {
+									if (const auto pProduct = cast_to<BuildingClass*>(pFactory->Object)) {
 										if (pFactory->IsDone() && pProduct->Type != pTechnoType && ((pProduct->Type->BuildCat != BuildCat::Combat) ^ (pBuildingType->BuildCat == BuildCat::Combat)))
 											shouldDisable = true;
 									}
 								}
-							}
-
-							// 006A978C-006A97B2: Check if cameo should be disabled
-							if (!pTechnoType->FindFactory(true, true, true, pPlayer))
-							{
-								shouldDisable = true;
-							}
-							else
-							{
-								// 006A97B4-006A97F9: Check Can_Build and ShouldDisableCameo
-								pFactoryType = TechnoTypeClass::FetchTechnoType(pBuildable->ItemType, pBuildable->ItemIndex);
-
-								if (pPlayer->CanBuild(pFactoryType, false, false) == CanBuildResult::TemporarilyUnbuildable || HouseExtData::ShouldDisableCameo(pPlayer, pFactoryType, true))
+							} 
+							
+							{// 006A978C-006A97B2: Check if cameo should be disabled			
+								if (!pTechnoType->FindFactory(true, true, true, pPlayer)) {
 									shouldDisable = true;
+								} else {
+									// 006A97B4-006A97F9: Check Can_Build and ShouldDisableCameo
+									pFactoryType = TechnoTypeClass::FetchTechnoType(pBuildable->ItemType, pBuildable->ItemIndex);
+
+									if (pPlayer->CanBuild(pFactoryType, false, false) == CanBuildResult::TemporarilyUnbuildable || HouseExtData::ShouldDisableCameo(pPlayer, pFactoryType, true))
+										shouldDisable = true;
+								}
 							}
 
 							// ==========================================================================
