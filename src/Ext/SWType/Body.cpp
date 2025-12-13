@@ -1431,6 +1431,8 @@ void SWTypeExtData::Deactivate(SuperClass* pSuper, CellStruct const cell, bool c
 
 	auto pNewSWType = SWTypeHandler::get_Handler(pData->HandledType);
 
+	pData->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
+	pData->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
 
 	pNewSWType->Deactivate(pSuper, cell, isPlayer);
 

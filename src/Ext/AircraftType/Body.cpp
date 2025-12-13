@@ -111,6 +111,7 @@ ASMJIT_PATCH(0x41CA46,AircraftTypeClass_DTOR, 0x6)
 
 bool FakeAircraftTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
+	AircraftTypeExtContainer::Instance.Find(this)->Initialize();
 	bool status = this->AircraftTypeClass::LoadFromINI(pINI);
 	AircraftTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

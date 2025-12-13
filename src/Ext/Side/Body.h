@@ -119,6 +119,7 @@ public:
 		ToolTip_Background_BlurSize(),
 		GClock_Shape(),
 		GClock_Transculency(),
+		GClock_Palette(CustomPalette::PaletteMode::Default),
 		SurvivorDivisor(),
 		Crew(),
 		Engineer(),

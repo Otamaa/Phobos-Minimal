@@ -1999,7 +1999,6 @@ void FakeRulesClass::_ReadGeneral(CCINIClass* pINI)
 	RulesExtData::LoadBeforeGeneralData(this, pINI);
 	this->Read_General(pINI);
 
-
 	RocketTypeClass::AddDefaults();
 	RocketTypeClass::ReadListFromINI(pINI);
 

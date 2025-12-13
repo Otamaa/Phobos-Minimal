@@ -377,14 +377,13 @@ void TechnoTypeExtData::Initialize()
 	this->SellSound = RulesClass::Instance->SellSound;
 	auto Eva_ready = GameStrings::EVA_ConstructionComplete();
 	auto Eva_sold = GameStrings::EVA_StructureSold() ;
-	this->AttachtoType = This()->WhatAmI();
 
-	if (this->AttachtoType != BuildingTypeClass::AbsID)
+	if (this->AbsType != BuildingTypeClass::AbsID)
 	{
 		Eva_ready = GameStrings::EVA_UnitReady();
 		Eva_sold = GameStrings::EVA_UnitSold();
 
-		if (this->AttachtoType == AircraftTypeClass::AbsID)
+		if (this->AbsType == AircraftTypeClass::AbsID)
 		{
 			this->CustomMissileTrailerAnim = AnimTypeClass::Find(GameStrings::V3TRAIL());
 			this->CustomMissileTakeoffAnim = AnimTypeClass::Find(GameStrings::V3TAKEOFF());
@@ -1732,7 +1731,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Tiberium_PipShapes.Read(exINI, pSection, "StoragePipShapes");
 		this->Tiberium_PipShapes_Palette.Read(exINI, pSection, "StoragePipShapesPalette");
 
-		if (this->AttachtoType != AbstractType::BuildingType)
+		if (this->AbsType != AbstractType::BuildingType)
 		{
 			this->Untrackable.Read(exINI, pSection, "Untrackable");
 			this->LargeVisceroid.Read(exINI, pSection, "Visceroid.Large");
@@ -2254,7 +2253,7 @@ void TechnoTypeExtData::AdjustCrushProperties()
 			this->CrushLevel.Elite = this->CrushLevel.Veteran;
 	}
 	if (!pThis->Crusher && (this->CrushLevel.Rookie > 0 || this->CrushLevel.Veteran > 0 || this->CrushLevel.Elite > 0) &&
-		this->AttachtoType == UnitTypeClass::AbsID)
+		this->AbsType == UnitTypeClass::AbsID)
 		pThis->Crusher = true;
 
 	if (this->CrushableLevel.Rookie <= 0)

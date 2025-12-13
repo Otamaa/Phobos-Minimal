@@ -167,7 +167,6 @@ public:
 public:
 #pragma region ClassMembers
 
-	AbstractType AttachtoType;
 	Valueable<bool> HealthBar_Hide;
 	Valueable<bool> HealthBar_HidePips;
 	Valueable<bool> HealthBar_Permanent;
@@ -1275,7 +1274,6 @@ public:
 public:
 
 	TechnoTypeExtData(TechnoTypeClass* pObj) : ObjectTypeExtData(pObj),
-		AttachtoType(AbstractType::None),
 		HealthBar_Hide(false),
 		HealthBar_HidePips(false),
 		HealthBar_Permanent(false),
@@ -2114,8 +2112,6 @@ public:
 		, OpenTransport_DamageMultiplier { 1.0 }
 		, TintColorAirstrike()
 		{
-			this->InitializeConstant();
-			this->Initialize();
 		}
 
 	void InitializeConstant();
@@ -2188,7 +2184,6 @@ private:
 	void Serialize(T& Stm)
 	{
 		Stm
-			.Process(this->AttachtoType)
 			.Process(this->HealthBar_Hide)
 			.Process(this->HealthBar_HidePips)
 			.Process(this->HealthBar_Permanent)

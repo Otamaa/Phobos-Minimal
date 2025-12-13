@@ -814,9 +814,6 @@ public:
 		Music_Duration(0),
 		Music_AffectedHouses(AffectedHouse::All)
 	{
-			this->EVA_InsufficientFunds = VoxClass::FindIndexById(GameStrings::EVA_InsufficientFunds);
-			this->EVA_SelectTarget = VoxClass::FindIndexById(GameStrings::EVA_SelectTarget);
-
 			this->AbsType = SuperWeaponTypeClass::AbsID;
 			this->Text_Ready = GameStrings::TXT_READY();
 			this->Text_Hold = GameStrings::TXT_HOLD();

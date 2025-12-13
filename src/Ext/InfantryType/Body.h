@@ -213,7 +213,7 @@ public:
 		InfantryAutoDeploy()
 	{
 		this->AbsType = InfantryTypeClass::AbsID;
-
+		this->Initialize();
 		this->Is_Deso = IS_SAME_STR_(pObj->ID, GameStrings::DESO());
 		this->Is_Cow = IS_SAME_STR_(pObj->ID, GameStrings::COW());
 	}

@@ -120,8 +120,6 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		);
 	}
 
-	this->Initialize();
-
 	if (parseFailAddr)
 	{
 		return false;
@@ -2363,6 +2361,7 @@ ASMJIT_PATCH(0x75E5C8, WarheadTypeClass_SDDTOR, 0x6)
 
 bool FakeWarheadTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
+	WarheadTypeExtContainer::Instance.Find(this)->Initialize();
 	bool status = this->WarheadTypeClass::LoadFromINI(pINI);
 	WarheadTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

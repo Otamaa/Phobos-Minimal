@@ -3,7 +3,6 @@
 
 void VoxelAnimTypeExtData::Initialize(){
 	LaserTrail_Types.reserve(1);
-	SplashList.reserve(RulesClass::Instance->SplashList.Count);
 }
 
 bool VoxelAnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
@@ -89,6 +88,7 @@ ASMJIT_PATCH(0x74BA66, VoxelAnimTypeClass_DTOR, 0x7)
 
 bool FakeVoxelAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
+	VoxelAnimTypeExtContainer::Instance.Find(this)->SplashList.reserve(RulesClass::Instance->SplashList.Count);
 	bool status = this->VoxelAnimTypeClass::LoadFromINI(pINI);
 	VoxelAnimTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

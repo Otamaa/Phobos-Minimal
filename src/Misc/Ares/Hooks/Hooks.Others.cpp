@@ -241,7 +241,7 @@ ASMJIT_PATCH(0x472198, CaptureManagerClass_DrawLinks, 0x6)
 	return Draw_Maybe;
 }
 
-#ifdef _old
+#ifndef _old
 ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 {
 	GET(LayerClass*, pThis, ECX);

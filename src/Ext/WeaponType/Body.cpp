@@ -36,7 +36,6 @@ void WeaponTypeExtData::calculateCircuferences() {
 void WeaponTypeExtData::Initialize()
 {
 	Burst_Delays.reserve(10);
-	this->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 }
 
 // =============================
@@ -1005,6 +1004,7 @@ ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 
 bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
+	WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
 	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

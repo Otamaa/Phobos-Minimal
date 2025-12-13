@@ -2433,6 +2433,15 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4610, FakeBuildingTypeClass::_CanUseWaypoint)
 
 bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
+	auto pExt = BuildingTypeExtContainer::Instance.Find(this);
+
+	pExt->InitializeConstant();
+
+	pExt->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
+	pExt->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());
+	pExt->EVA_Offline = VoxClass::FindIndexById(GameStrings::EVA_BuildingOffLine());
+	pExt->PrismForwarding.Initialize(this);
+
 	bool status = this->BuildingTypeClass::LoadFromINI(pINI);
 	BuildingTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;
