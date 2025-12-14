@@ -263,7 +263,7 @@ ASMJIT_PATCH(0x524B53, InfantryTypeClass_Load_Suffix, 0x5)
 
 bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	InfantryTypeExtContainer::Instance.Find(this)->InitializeConstant();
+	InfantryTypeExtContainer::Instance.Find(this)->Initialize();
 	bool status = this->InfantryTypeClass::LoadFromINI(pINI);
 	InfantryTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

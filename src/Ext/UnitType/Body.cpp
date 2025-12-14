@@ -37,7 +37,7 @@ ASMJIT_PATCH(0x747316, UnitTypeClass_DTOR, 0x6)
 
 bool FakeUnitTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	UnitTypeExtContainer::Instance.Find(this)->InitializeConstant();
+	UnitTypeExtContainer::Instance.Find(this)->Initialize();
 	bool status = this->UnitTypeClass::LoadFromINI(pINI);
 	UnitTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

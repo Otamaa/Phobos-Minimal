@@ -2435,7 +2435,7 @@ bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
 	auto pExt = BuildingTypeExtContainer::Instance.Find(this);
 
-	pExt->InitializeConstant();
+	pExt->Initialize();
 
 	pExt->LostEvaEvent = VoxClass::FindIndexById(GameStrings::EVA_TechBuildingLost());
 	pExt->EVA_Online = VoxClass::FindIndexById(GameStrings::EVA_BuildingOnLine());

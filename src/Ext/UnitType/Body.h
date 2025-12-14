@@ -11,7 +11,7 @@ public:
 
 	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj) {
 		this->AbsType = UnitTypeClass::AbsID;
-		this->Initialize();
+		this->InitializeConstant();
 	}
 	UnitTypeExtData(UnitTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 

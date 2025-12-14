@@ -491,7 +491,7 @@ public:
 		IsHideDuringSpecialAnim(false),
 		AISellCapturedBuilding()
 	{
-		this->Initialize();
+		this->InitializeConstant();
 		this->NextBuilding_CurrentHeapId = pObj->ArrayIndex;
 		this->AbsType = BuildingTypeClass::AbsID;
 
