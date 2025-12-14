@@ -125,7 +125,7 @@ bool SWButtonClass::Draw(bool forced)
 	{
 		Point2D loc = { location.X, location.Y };
 		SHPStruct* _GCLOCK_Shape = FileSystem::GCLOCK2_SHP();
-		ConvertClass* _GCLOCK_Convert = FileSystem::CAMEO_PAL();
+		ConvertClass* _GCLOCK_Convert = FileSystem::SIDEBAR_PAL();
 		BlitterFlags _GCLOCK_Trans = BlitterFlags::TransLucent50;
 
 		if (pSWExt->GClock_Shape)
