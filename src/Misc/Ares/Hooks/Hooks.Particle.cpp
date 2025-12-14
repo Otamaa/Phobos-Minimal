@@ -23,7 +23,7 @@
 //	for (int i = pThis->Particles.Count - 1; i > 0; --i) {
 //		auto particle = pThis->Particles[i];
 //
-//		if (pThis->Particles[i]->hasremaining)
+//		if (pThis->Particles[i]->TimeToDelete)
 //		{
 //			if (particle->Type->NextParticle != -1)
 //			{
@@ -68,7 +68,7 @@
 //
 //	if (pThis->StartStateAI == pThis->Type->EndStateAI) {
 //		if (pThis->Type->DeleteOnStateLimit)
-//			pThis->hasremaining = false;
+//			pThis->TimeToDelete = false;
 //		else
 //			pThis->StartStateAI = 0;
 //	}

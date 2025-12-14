@@ -46,6 +46,26 @@ public:
 	//ParticleClass
 	virtual int vt_entry_1E8() JMP_THIS(0x62D830);
 
+	void UpdateGas() {
+		JMP_THIS(0x62C540);
+	}
+
+	void UpdateSmoke() {
+		JMP_THIS(0x62BD50);
+	}
+
+	void UpdateFire() {
+		JMP_THIS(0x62CB10);
+	}
+
+	void UpdateSpark() {
+		JMP_THIS(0x62C6E0);
+	}
+
+	void UpdateRailgun() {
+		JMP_THIS(0x62C3A0);
+	}
+
 	void BehaviourUpdate() const {
 		JMP_THIS(0x62CE40);
 	}
@@ -85,7 +105,6 @@ public:
 
 	ParticleTypeClass* Type;
 	DECLARE_PROPERTY(ColorStruct, byteB0);
-	PROTECTED_PROPERTY(BYTE, align_B3);
 	int RefCount;
 	double ColorSpeedResult;
 	DECLARE_PROPERTY(CoordStruct, GasVelocity);
@@ -105,7 +124,7 @@ public:
 	BYTE StartStateAI;
 	BYTE Translucency;
 	BYTE byte130;
-	BYTE hasremaining;
+	BYTE TimeToDelete; //hasremaining
 	BYTE field_132;
 	BYTE field_133;
 	PROTECTED_PROPERTY(DWORD, align_134);

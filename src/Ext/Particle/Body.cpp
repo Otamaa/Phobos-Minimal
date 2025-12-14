@@ -7,6 +7,23 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
+#define DIRECT_CALL_THIS(address) \
+    _asm { mov ecx, this } \
+    _asm { mov eax, address } \
+    _asm { call eax }
+
+class NOVTABLE FkaeParticleClass2 : public ParticleClass
+{
+public:
+	void UpdateGasBehaviour() {
+		DIRECT_CALL_THIS(0x62C540);
+	}
+
+	void UpdateSmokeBehaviour() {
+		DIRECT_CALL_THIS(0x62BD50);
+	}
+};
+
 void FakeParticleClass::__AI(){
 	bool Update = true;
 
@@ -56,8 +73,9 @@ void FakeParticleClass::__AI(){
 		TrailsManager::AI(this->_AsParticle());
 	}
 
-	if (!--this->RemainingEC) {
-		this->hasremaining = 1;
+	--this->RemainingEC;
+	if (!this->RemainingEC) {
+		this->TimeToDelete = 1;
 	}
 }
 
@@ -103,7 +121,7 @@ void FakeParticleClass::__Gas_Wind()
 
 	// Check if gas particle is underwater at a bridge
 	if (IsUnderwaterAtBridge(currentPos, newPos.Z)) {
-		this->hasremaining = 1; // Remove particle
+		this->TimeToDelete = 1; // Remove particle
 		return;
 	}
 
@@ -125,7 +143,7 @@ void FakeParticleClass::__Fire_Coord_AI()
 		if (newTerrainHeight > currentTerrainHeight) {
 			// Hit ground - mark for removal
 			this->CoordChange = 1;
-			this->hasremaining = 1;
+			this->TimeToDelete = 1;
 		}
 	}
 
@@ -368,7 +386,7 @@ void FakeParticleClass::AdvanceAnimationState()
 	// Check if we've reached the end
 	if (this->StartStateAI == type->EndStateAI && type->DeleteOnStateLimit)
 	{
-		this->hasremaining = 1;
+		this->TimeToDelete = 1;
 	}
 }
 
@@ -395,7 +413,7 @@ void FakeParticleClass::UpdateStateAndCheckEnd()
 	{
 		if (type->DeleteOnStateLimit)
 		{
-			this->hasremaining = 1;
+			this->TimeToDelete = 1;
 		}
 		else
 		{
@@ -431,15 +449,13 @@ void FakeParticleClass::UpdateAnimationFrame()
 	}
 
 	// Check if it's time to advance to next frame
-	if (this->ShouldAdvanceFrame())
-	{
+	if (this->ShouldAdvanceFrame()) {
 		++this->StartStateAI;
+	}
 
-		// Mark for deletion if animation ended
-		if (this->StartStateAI == type->EndStateAI && type->DeleteOnStateLimit)
-		{
-			this->hasremaining = 1;
-		}
+	// Mark for deletion if animation ended
+	if (this->StartStateAI == type->EndStateAI && type->DeleteOnStateLimit) {
+		this->TimeToDelete = 1;
 	}
 }
 
@@ -449,7 +465,7 @@ bool FakeParticleClass::ShouldAdvanceFrame() const
 	const int elapsed = this->Type->MaxEC - this->RemainingEC + id;
 	const int frameDelay = this->Type->StateAIAdvance + (id & 1);
 
-	return frameDelay > 0 && (elapsed % frameDelay) == 0;
+	return (elapsed % frameDelay) == 0;
 }
 
 void FakeParticleClass::DecelerateIfNeeded()
@@ -554,7 +570,7 @@ void FakeParticleClass::__Fire_AI() {
 	// Check if fire has burned out
 	if (this->Velocity <= 0.0f) {
 		this->Velocity = 0.0f;
-		this->hasremaining = 1; // Mark for deletion
+		this->TimeToDelete = 1; // Mark for deletion
 		return;
 	}
 
@@ -1008,7 +1024,7 @@ void FakeParticleClass::__Spark_AI() {
 	// Apply ramp matrix rotation if needed
 	if (needsMatrixRotation) {
 		ReflectOffSurface(nextPos, this->SmokeVelocity, this->SmokeVelocity);
-		this->hasremaining = true;
+		this->TimeToDelete = true;
 	}
 
 	// Visual update: color cycling
@@ -1017,7 +1033,7 @@ void FakeParticleClass::__Spark_AI() {
 
 #pragma endregion
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x62CE40, FakeParticleClass::__AI)
+//DEFINE_FUNCTION_JUMP(LJMP, 0x62CE40, FakeParticleClass::BehaviourUpdate)
 DEFINE_FUNCTION_JUMP(CALL, 0x62E6ED, FakeParticleClass::__AI)
 DEFINE_FUNCTION_JUMP(CALL, 0x62ECFE, FakeParticleClass::__AI)
 DEFINE_FUNCTION_JUMP(CALL, 0x62EDD0, FakeParticleClass::__AI)

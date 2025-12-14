@@ -32,7 +32,7 @@ public:
 		if (this->CheckGroundImpact())
 		{
 			this->CreateImpactEffect();
-			this->hasremaining = 1; // Remove particle
+			this->TimeToDelete = 1; // Remove particle
 		}
 
 		// Update color/translucency for fade effect
@@ -296,7 +296,7 @@ private:
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
 			ParticleClass* particle = this->particles.Vector_Item[i];
-			if (particle->hasremaining)
+			if (particle->TimeToDelete)
 			{
 				particle->o.a.vftable->t.r.m.o.Remove_This_deletethis(&particle->o.a);
 			}
@@ -553,7 +553,7 @@ private:
 		}
 
 		// Mark this particle for removal (it transformed into arc)
-		this->hasremaining = 1;
+		this->TimeToDelete = 1;
 	}
 
 	void TryCreateBranch()
@@ -720,7 +720,7 @@ private:
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
 			ParticleClass* particle = this->particles.Vector_Item[i];
-			if (particle->hasremaining)
+			if (particle->TimeToDelete)
 			{
 				particle->o.a.vftable->t.r.m.o.Remove_This_deletethis(&particle->o.a);
 			}
@@ -789,7 +789,7 @@ public:
 		if (this->CheckLiquidImpact())
 		{
 			this->CreateSplashEffect();
-			this->hasremaining = 1;
+			this->TimeToDelete = 1;
 		}
 
 		// Apply damage if harmful liquid (acid/lava)
@@ -1052,7 +1052,7 @@ private:
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
 			ParticleClass* particle = this->particles.Vector_Item[i];
-			if (particle->hasremaining)
+			if (particle->TimeToDelete)
 			{
 				particle->o.a.vftable->t.r.m.o.Remove_This_deletethis(&particle->o.a);
 			}
@@ -1157,7 +1157,7 @@ public:
 		{
 			// Extension: Check if it sticks
 			// if (this->Ext->SticksToGround) {
-			this->hasremaining = 1;
+			this->TimeToDelete = 1;
 			// }
 		}
 	}
@@ -1213,7 +1213,7 @@ private:
 	{
 		// Extension: Check bounce count
 		// if (this->Ext->BounceCount <= 0) {
-		//     this->hasremaining = 1;
+		//     this->TimeToDelete = 1;
 		//     return;
 		// }
 		// this->Ext->BounceCount--;
@@ -1441,7 +1441,7 @@ private:
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
 			ParticleClass* particle = this->particles.Vector_Item[i];
-			if (particle->hasremaining)
+			if (particle->TimeToDelete)
 			{
 				particle->o.a.vftable->t.r.m.o.Remove_This_deletethis(&particle->o.a);
 			}
@@ -1628,7 +1628,7 @@ public:
 
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
-			if (this->particles.Vector_Item[i]->hasremaining)
+			if (this->particles.Vector_Item[i]->TimeToDelete)
 			{
 				this->particles.Vector_Item[i]->o.a.vftable->t.r.m.o.Remove_This_deletethis(
 					&this->particles.Vector_Item[i]->o.a);
@@ -1693,7 +1693,7 @@ public:
 		// Remove when fully cooled
 		if (this->Translucency >= 100)
 		{
-			this->hasremaining = 1;
+			this->TimeToDelete = 1;
 		}
 	}
 
@@ -1777,7 +1777,7 @@ public:
 
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
-			if (this->particles.Vector_Item[i]->hasremaining)
+			if (this->particles.Vector_Item[i]->TimeToDelete)
 			{
 				this->particles.Vector_Item[i]->o.a.vftable->t.r.m.o.Remove_This_deletethis(
 					&this->particles.Vector_Item[i]->o.a);
@@ -1892,7 +1892,7 @@ private:
 			}
 		}
 
-		this->hasremaining = 1;
+		this->TimeToDelete = 1;
 	}
 
 	void ApplyBuoyancy()
@@ -1929,7 +1929,7 @@ public:
 
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
-			if (this->particles.Vector_Item[i]->hasremaining)
+			if (this->particles.Vector_Item[i]->TimeToDelete)
 			{
 				this->particles.Vector_Item[i]->o.a.vftable->t.r.m.o.Remove_This_deletethis(
 					&this->particles.Vector_Item[i]->o.a);
@@ -2164,7 +2164,7 @@ public:
 
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
-			if (this->particles.Vector_Item[i]->hasremaining)
+			if (this->particles.Vector_Item[i]->TimeToDelete)
 			{
 				this->particles.Vector_Item[i]->o.a.vftable->t.r.m.o.Remove_This_deletethis(
 					&this->particles.Vector_Item[i]->o.a);
@@ -2238,7 +2238,7 @@ public:
 		// Remove when fully dissipated
 		if (this->Translucency >= 100 || this->Velocity <= 0.0f)
 		{
-			this->hasremaining = 1;
+			this->TimeToDelete = 1;
 		}
 	}
 
@@ -2315,7 +2315,7 @@ public:
 
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
-			if (this->particles.Vector_Item[i]->hasremaining)
+			if (this->particles.Vector_Item[i]->TimeToDelete)
 			{
 				this->particles.Vector_Item[i]->o.a.vftable->t.r.m.o.Remove_This_deletethis(
 					&this->particles.Vector_Item[i]->o.a);
@@ -2379,7 +2379,7 @@ public:
 		// Very short lifetime - quick fade
 		if (--this->RemainingEC <= 0)
 		{
-			this->hasremaining = 1;
+			this->TimeToDelete = 1;
 			return;
 		}
 
@@ -2400,7 +2400,7 @@ public:
 		const int terrainHeight = MapClass::Get_Z_Pos(&Map.sc.t.sb.p.r.d.m, &newPos);
 		if (newPos.Z <= terrainHeight)
 		{
-			this->hasremaining = 1;
+			this->TimeToDelete = 1;
 			return;
 		}
 
@@ -2439,7 +2439,7 @@ public:
 
 		for (int i = this->particles.ActiveCount - 1; i >= 0; --i)
 		{
-			if (this->particles.Vector_Item[i]->hasremaining)
+			if (this->particles.Vector_Item[i]->TimeToDelete)
 			{
 				this->particles.Vector_Item[i]->o.a.vftable->t.r.m.o.Remove_This_deletethis(
 					&this->particles.Vector_Item[i]->o.a);

@@ -95,7 +95,7 @@ static CoordStruct GetFLHAbsoluteCoords(CoordStruct nFLH, CoordStruct nCurLoc)
 //			return 0;
 //	}
 //
-//	pThis->hasremaining = 1;
+//	pThis->TimeToDelete = 1;
 //	//GameDelete<true,false>(pThis);
 //	pThis->UnInit();
 //	return 0x62C394;

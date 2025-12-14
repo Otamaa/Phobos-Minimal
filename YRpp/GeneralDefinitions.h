@@ -948,11 +948,30 @@ enum class ParticleSystemTypeBehavesLike : int {
 	Railgun = 4
 };
 
-//ParticleSystemTypeClass->HoldsWhat, almost, but not entirely, unlike eBehavesLike above
+// ==========================================================================
+// IMPORTANT: BehavesLike enum values vs INI parser
+// ==========================================================================
+// The original game has a bug where the INI parser string table at 0x8370BC
+// has Gas and Smoke swapped:
+//
+//   Parser string table:     Game code behavior:
+//   [0] = "Gas"              case 0 → Smoke_AI
+//   [1] = "Smoke"            case 1 → Gas_AI
+//   [2] = "Fire"             case 2 → Fire_AI
+//   [3] = "Spark"            case 3 → Spark_AI
+//   [4] = "Railgun"          case 4 → Railgun_AI
+//
+// This means:
+//   - INI "BehavesLike=Gas" → value 0 → Smoke behavior
+//   - INI "BehavesLike=Smoke" → value 1 → Gas behavior
+//
+// All game code treats 0=Smoke, 1=Gas, so we follow that.
+// The enum is named after BEHAVIOR, not INI string!
+// ==========================================================================
 enum class ParticleTypeBehavesLike : int {
 	None = -1,
-	Gas = 0,
-	Smoke = 1,
+	Smoke = 0,
+	Gas = 1,
 	Fire = 2,
 	Spark = 3,
 	Railgun = 4

@@ -981,6 +981,15 @@ Matrix3D CreateRotationMatrix(const Vector3D<float>& trajectory, float distance)
 	return matrix;
 }
 
+class NOVTABLE FakeParticleSystemClass2 : public ParticleSystemClass
+{
+public:
+
+	void UpdateSmoke() {
+		JMP_THIS(0x62ED40);
+	}
+};
+
 void FakeParticleSystemClass::__AI()
 {
 	auto pTypeExt = this->_GetTypeExtData();
@@ -1033,21 +1042,33 @@ void FakeParticleSystemClass::__AI()
 		default:
 			break;
 		}
+
+		if (!this->Lifetime--)
+			this->UnInit();
+
+		if (this->IsAlive && this->TimeToDie && !this->Particles.Count)
+		{
+			this->Limbo();
+			this->IsAlive = false;
+			AbstractClass::Array2->push_back(this);
+		}
+	} else {
+
+		if (this->Lifetime-- == 1)
+			this->TimeToDie = true;
+
+		if (this->IsAlive
+			&& this->TimeToDie
+			&& !this->Particles.Count
+			&& pExt->OtherParticleData.empty()
+			&& pExt->SmokeData.empty())
+		{
+			this->Limbo();
+			this->IsAlive = false;
+			AbstractClass::Array2->push_back(this);
+		}
 	}
 
-	if (this->Lifetime-- == 1)
-		this->TimeToDie = true;
-
-	if (this->IsAlive
-		&& this->TimeToDie
-		&& !this->Particles.Count
-		&& pExt->OtherParticleData.empty()
-		&& pExt->SmokeData.empty())
-	{
-		this->Limbo();
-		this->IsAlive = false;
-		AbstractClass::Array2->push_back(this);
-	}
 }
 
 ParticleClass* FakeParticleSystemClass::CreateHoldsWhatParticle(const CoordStruct& position, const CoordStruct& target)
@@ -1069,7 +1090,7 @@ void FakeParticleSystemClass::ProcessParticleLifecycle()
 	{
 		ParticleClass* particle = this->Particles[i];
 
-		if (!particle->hasremaining)
+		if (!particle->TimeToDelete)
 		{
 			// Particle still alive - update coordinates
 			((FakeParticleClass*)this->Particles[i])->__Coord_AI();
@@ -1131,7 +1152,7 @@ void FakeParticleSystemClass::RemoveDeadParticles()
 
 		ParticleClass* particle = this->Particles[i];
 
-		if (particle->hasremaining)
+		if (particle->TimeToDelete)
 		{
 			particle->UnInit();
 		}
@@ -1385,7 +1406,7 @@ void FakeParticleSystemClass::SpawnChildParticle(ParticleClass* parent, Particle
 void FakeParticleSystemClass::SpawnSmokeParticles()
 {
 	// Check spawn timing
-	if ((Unsorted::CurrentFrame % (int)this->SpawnFrames) != 0)
+	if ((Unsorted::CurrentFrame % (int)this->SpawnFrames))
 	{
 		return;
 	}
@@ -1422,7 +1443,8 @@ void FakeParticleSystemClass::SpawnSmokeParticles()
 		}
 
 		// Adjust velocity based on spawn delay
-		const float velocityReduction = (this->SpawnFrames - this->Type->SpawnFrames) * 0.35f;
+		static constexpr float velocityReductionPerFrame = std::bit_cast<float>(0x3EB33333);
+		const float velocityReduction = (this->SpawnFrames - this->Type->SpawnFrames) * velocityReductionPerFrame;
 		particle->Velocity = std::max(2.0f, particle->Velocity - velocityReduction);
 	}
 }
@@ -1450,11 +1472,7 @@ void FakeParticleSystemClass::UpdateSmokeAttachedPosition()
 	CoordStruct ownerCenter = owner->GetCoords();
 
 	// Apply spawn offset
-	const CoordStruct newPos {
-		ownerCenter.X + this->SpawnDistanceToOwner.X,
-		ownerCenter.Y + this->SpawnDistanceToOwner.Y,
-		ownerCenter.Z + this->SpawnDistanceToOwner.Z
-	};
+	CoordStruct newPos = ownerCenter  + this->SpawnDistanceToOwner;
 
 	this->SetLocation(newPos);
 }
@@ -1801,3 +1819,4 @@ void FakeParticleSystemClass::CreateLaserBeam()
 
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBF8, FakeParticleSystemClass::__AI)
+DEFINE_FUNCTION_JUMP(LJMP, 0x62FD60, FakeParticleSystemClass::__AI)

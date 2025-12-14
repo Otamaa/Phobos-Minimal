@@ -477,44 +477,46 @@ ASMJIT_PATCH(0x4F8EBD, HouseClass_Update_HasBeenDefeated, 5)
 
 	if (GameModeOptionsClass::Instance->ShortGame)
 	{
-		for (auto pBaseUnit : RulesClass::Instance->BaseUnit)
-		{
-			if (pThis->OwnedUnitTypes[pBaseUnit->ArrayIndex])
-			{
+		if (pThis->OwnedBuildingTypes.Total > 0) {
+			for (auto const& pBld : pThis->Buildings) {
+
+				if (!pBld->Type->UndeploysInto)
+					continue;
+
+				for (auto const pBaseUnit : RulesClass::Instance->BaseUnit) {
+					if (pBld->Type->UndeploysInto == pBaseUnit)
+						return 0x4F8F87;
+				}
+			}
+		}
+
+		for (auto pBaseUnit : RulesClass::Instance->BaseUnit) {
+			if (pThis->OwnedUnitTypes[pBaseUnit->ArrayIndex]) {
 				return 0x4F8F87;
 			}
 		}
 	}
 	else
 	{
-		if (pThis->ActiveUnitTypes.Total)
-		{
-			for (auto pTechno : *UnitClass::Array)
-			{
-				if (IsEligible(pTechno))
-				{
+		if (pThis->OwnedUnitTypes.Total) {
+			for (auto pTechno : *UnitClass::Array) {
+				if (IsEligible(pTechno)) {
 					return 0x4F8F87;
 				}
 			}
 		}
 
-		if (pThis->ActiveInfantryTypes.Total)
-		{
-			for (auto pTechno : *InfantryClass::Array)
-			{
-				if (IsEligible(pTechno))
-				{
+		if (pThis->OwnedInfantryTypes.Total) {
+			for (auto pTechno : *InfantryClass::Array) {
+				if (IsEligible(pTechno)) {
 					return 0x4F8F87;
 				}
 			}
 		}
 
-		if (pThis->ActiveAircraftTypes.Total)
-		{
-			for (auto pTechno : *AircraftClass::Array)
-			{
-				if (IsEligible(pTechno))
-				{
+		if (pThis->OwnedAircraftTypes.Total) {
+			for (auto pTechno : *AircraftClass::Array) {
+				if (IsEligible(pTechno)) {
 					return 0x4F8F87;
 				}
 			}
