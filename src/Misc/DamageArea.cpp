@@ -256,7 +256,574 @@ static void NOINLINE Damage_Overlay(CellClass* pCurCell,
 	}
 }
 
-static PhobosMap<BuildingClass*, double> MergedDamage {};
+/*
+void __fastcall Explosion_Damage(CoordStruct* coord, int damage, TechnoClass* source, WarheadTypeClass* warhead, bool tibbool, HouseClass* house)
+{
+	if (!damage || (Scen->Specials.Bitfield & 0x20) != 0 || !warhead)
+	{
+		return;
+	}
+
+	std::vector<DamageGroup*> dmgroups;
+
+	int spreadFactorPixels = static_cast<int>(warhead->SpreadFactor * 256.0);
+	bool crush = (warhead == Rule->CrushWarhead);
+
+	CellStruct cellPos;
+	cellPos.X = coord->X / 256;
+	cellPos.Y = coord->Y / 256;
+
+	CellClass* cell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &cellPos);
+	float spreadFactor = warhead->SpreadFactor;
+	bool isSmallSpread = (spreadFactor <= 0.5f);
+	bool isAboveGround = false;
+	bool hasIronCurtainTarget = false;
+
+	CoordStruct cellCenter;
+	cellCenter.X = (cellPos.X << 8) + 128;
+	cellCenter.Y = (cellPos.Y << 8) + 128;
+	cellCenter.Z = 0;
+
+	// Check aircraft if explosion is above ground
+	if (MapClass::Get_Z_Pos(&Map.sc.t.sb.p.r.d.m, &cellCenter) < coord->Z)
+	{
+		AircraftTrackerClass_logics_412B40(&AircraftTracker, cell, warhead->SpreadFactor);
+
+		for (auto entry = AircraftTrackerClass::Get_Entry(&AircraftTracker); entry; entry = AircraftTrackerClass::Get_Entry(&AircraftTracker))
+		{
+			if (!entry->f.t.r.m.o.IsActive || !entry->f.t.r.m.o.IsDown || entry->f.t.r.m.o.Strength <= 0)
+			{
+				continue;
+			}
+
+			CoordStruct delta;
+			delta.X = coord->X - entry->f.t.r.m.o.Coord.X;
+			delta.Y = coord->Y - entry->f.t.r.m.o.Coord.Y;
+			delta.Z = coord->Z - entry->f.t.r.m.o.Coord.Z;
+
+			int distance = CoordStruct::Length(&delta);
+
+			if (distance > spreadFactorPixels)
+			{
+				continue;
+			}
+
+			if (isSmallSpread && distance < 85 &&
+				entry->f.t.r.m.o.a.vftable->t.r.m.o.mAbstractClass_IsIronCurtained(entry) &&
+				!entry->f.t.__ForceShielded)
+			{
+				hasIronCurtainTarget = true;
+			}
+
+			auto dmg = new DamageGroup();
+			dmg->Techno = &entry->f.t;
+			dmg->distance = distance;
+			dmgroups.push_back(dmg);
+		}
+	}
+
+	// Check if coord is above bridge
+	if ((*cell->Bitfield2 & 0x100) != 0 &&
+		coord->Z > dword_89E864 / 2 + MapClass::Get_Z_Pos(&Map.sc.t.sb.p.r.d.m, coord))
+	{
+		isAboveGround = true;
+	}
+
+	// Process cells in spread range
+	int cellSpreadCount = dword_7ED3D0[static_cast<int>(warhead->SpreadFactor + 0.99f)];
+
+	for (int cellIdx = 0; cellIdx < cellSpreadCount; ++cellIdx)
+	{
+		CellStruct targetCellPos;
+		targetCellPos.X = cellPos.X + CellSpread::CellArray[cellIdx].X;
+		targetCellPos.Y = cellPos.Y + CellSpread::CellArray[cellIdx].Y;
+
+		CellClass* targetCell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &targetCellPos);
+
+		// Process overlay
+		int overlay = targetCell->Overlay;
+		if (overlay != -1)
+		{
+			auto overlayType = (*(&OverlayTypes + 1))[overlay];
+
+			if (overlayType->ChainReaction && (!overlayType->IsTiberium || warhead->IsTiberiumDestroyer) && tibbool)
+			{
+				CellClass::Reduce_Tiberium(targetCell, damage / 10);
+			}
+
+			if (overlayType->IsWall)
+			{
+				if (warhead->WallAbsoluteDestroyer)
+				{
+					CellClass::Reduce_Wall(targetCell, -1);
+				}
+				else if (warhead->IsWallDestroyer || (warhead->IsWoodDestroyer && overlayType->ot.Armor == 6))
+				{
+					CellClass::Reduce_Wall(targetCell, damage);
+				}
+			}
+
+			if (targetCell->Overlay == -1)
+			{
+				TechnoClass::target_stuff(targetCell);
+			}
+		}
+
+		// Process occupiers
+		ObjectClass* occupier = isAboveGround ? targetCell->AltOccupierPtr : targetCell->OccupierPtr;
+
+		for (; occupier; occupier = occupier->f.t.r.m.o.Next)
+		{
+			// Skip self-damage check
+			if (occupier == source && !source->r.m.o.a.vftable->t.r.m.o.Techno_Type_Class(source)->DamageSelf && !crush)
+			{
+				continue;
+			}
+
+			if (!occupier->f.t.r.m.o.IsActive)
+			{
+				continue;
+			}
+
+			// Skip harvesters if special flag set
+			if (occupier->f.t.r.m.o.a.vftable->t.r.m.o.a.Kind_Of(&occupier->f.t.r.m.o.a) == RTTI_UNIT &&
+				(Scen->Specials.Bitfield & 0x800) != 0)
+			{
+				auto classOf = occupier->f.t.r.m.o.a.vftable->t.r.m.o.Class_Of(&occupier->f.t.r.m.o);
+				bool isHarvester = false;
+
+				for (int i = 0; i < Rule->HarvesterUnit.dvc.ActiveCount; ++i)
+				{
+					if (Rule->HarvesterUnit.dvc.Vector_Item[i] == classOf)
+					{
+						isHarvester = true;
+						break;
+					}
+				}
+
+				if (isHarvester)
+				{
+					continue;
+				}
+			}
+
+			// Create damage group entry
+			auto dmg = new DamageGroup();
+			dmg->Techno = &occupier->f.t;
+
+			// Calculate distance
+			if (occupier->f.t.r.m.o.a.vftable->t.r.m.o.a.Kind_Of(&occupier->f.t.r.m.o.a) == RTTI_BUILDING)
+			{
+				if (cellIdx == 0)
+				{
+					auto centerCoord = targetCell->a.vftable->t.r.m.o.a.Center_Coord(targetCell);
+
+					if (coord->Z - centerCoord->Z <= 2 * dword_89E870)
+					{
+						dmg->distance = 0;
+					}
+					else
+					{
+						CoordStruct delta;
+						delta.X = coord->X - centerCoord->X;
+						delta.Y = coord->Y - centerCoord->Y;
+						delta.Z = coord->Z - centerCoord->Z;
+						dmg->distance = static_cast<int>(FastMath::Sqrt(
+							delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z)) - 2 * dword_89E870;
+					}
+
+					// Check iron curtain
+					if (isSmallSpread)
+					{
+						bool isOnMap = (occupier->f.t.r.m.o.a.TargetBitfield[0] & 1) != 0;
+						if (isOnMap &&
+							occupier->f.t.r.m.o.a.vftable->t.r.m.o.mAbstractClass_IsIronCurtained(&occupier->f.t) &&
+							!occupier->f.t.__ForceShielded &&
+							dmg->distance < 85)
+						{
+							hasIronCurtainTarget = true;
+						}
+					}
+				}
+				else
+				{
+					auto centerCoord = targetCell->a.vftable->t.r.m.o.a.Center_Coord(targetCell);
+					CoordStruct delta;
+					delta.X = coord->X - centerCoord->X;
+					delta.Y = coord->Y - centerCoord->Y;
+					delta.Z = coord->Z - centerCoord->Z;
+					dmg->distance = static_cast<int>(FastMath::Sqrt(
+						delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z));
+				}
+			}
+			else
+			{
+				CoordStruct headCoord;
+				occupier->f.t.r.m.o.a.vftable->t.r.m.o.mTarget_Coord__Head_To_Coord(occupier, &headCoord);
+				CoordStruct delta;
+				delta.X = coord->X - headCoord.X;
+				delta.Y = coord->Y - headCoord.Y;
+				delta.Z = coord->Z - headCoord.Z;
+				dmg->distance = static_cast<int>(FastMath::Sqrt(
+					delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z));
+			}
+
+			dmgroups.push_back(dmg);
+		}
+	}
+
+	// Apply damage to all collected targets
+	bool damageApplied = false;
+
+	for (auto dmg : dmgroups)
+	{
+		auto techno = dmg->Techno;
+		int distance = dmg->distance;
+
+		if (!techno->r.m.o.IsActive)
+		{
+			continue;
+		}
+
+		if (techno->t.r.m.o.a.vftable->t.r.m.o.a.Kind_Of(&techno->t.r.m.o.a) == RTTI_BUILDING &&
+			techno->Class->InvisibleInGame)
+		{
+			continue;
+		}
+
+		if (hasIronCurtainTarget)
+		{
+			bool isOnMap = (techno->t.r.m.o.a.TargetBitfield[0] & 1) != 0;
+			if (!techno || !isOnMap || !techno->t.r.m.o.a.vftable->t.r.m.o.mAbstractClass_IsIronCurtained(techno))
+			{
+				continue;
+			}
+		}
+
+		if (techno->t.r.m.o.a.vftable->t.r.m.o.a.Kind_Of(&techno->t.r.m.o.a) == RTTI_AIRCRAFT &&
+			techno->t.r.m.o.a.vftable->t.r.m.o.a.In_Air(techno))
+		{
+			distance /= 2;
+		}
+
+		if (techno->t.r.m.o.Strength > 0 && techno->t.r.m.o.IsDown &&
+			!techno->t.r.m.o.IsInLimbo && distance <= spreadFactorPixels)
+		{
+			techno->t.r.m.o.a.vftable->ApplyDamage(techno, damage);
+			damageApplied = true;
+		}
+	}
+
+	// Cleanup damage groups
+	for (auto dmg : dmgroups)
+	{
+		delete dmg;
+	}
+	dmgroups.clear();
+
+	// Early exit if iron curtain target was hit
+	if (hasIronCurtainTarget)
+	{
+		return;
+	}
+
+	// Calculate rock factor
+	float rockFactor = damage * 0.01f;
+	if (rockFactor >= 4.0f)
+	{
+		rockFactor = 4.0f;
+	}
+
+	// Apply rocker effect
+	if (warhead->Rocker && rockFactor > 0.3f)
+	{
+		for (int x = cellPos.X - 3; x <= cellPos.X + 3; ++x)
+		{
+			for (int y = cellPos.Y - 3; y <= cellPos.Y + 3; ++y)
+			{
+				CellStruct rockCellPos = { static_cast<short>(x), static_cast<short>(y) };
+				ObjectClass* rockOccupier = isAboveGround
+					? MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &rockCellPos)->AltOccupierPtr
+					: MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &rockCellPos)->OccupierPtr;
+
+				for (; rockOccupier; rockOccupier = rockOccupier->dword30_pointermaybe)
+				{
+					auto techno = AbstractClass::As_Techno_0(&rockOccupier->a);
+					if (!techno)
+					{
+						continue;
+					}
+
+					if (x == cellPos.X && y == cellPos.Y && source)
+					{
+						CoordStruct technoCoord = techno->r.m.o.Coord;
+						CoordStruct delta;
+						delta.X = source->r.m.o.Coord.X - technoCoord.X;
+						delta.Y = source->r.m.o.Coord.Y - technoCoord.Y;
+						delta.Z = source->r.m.o.Coord.Z - technoCoord.Z;
+
+						float length = FastMath::Sqrt(
+							delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z);
+
+						CoordStruct normalized;
+						if (length == 0.0f)
+						{
+							normalized = delta;
+						}
+						else
+						{
+							normalized.X = static_cast<int>(delta.X / length);
+							normalized.Y = static_cast<int>(delta.Y / length);
+							normalized.Z = static_cast<int>(delta.Z / length);
+						}
+
+						CoordStruct rockCoord;
+						rockCoord.X = technoCoord.X + static_cast<int>(normalized.X * 10.0f);
+						rockCoord.Y = technoCoord.Y + static_cast<int>(normalized.Y * 10.0f);
+						rockCoord.Z = technoCoord.Z + static_cast<int>(normalized.Z * 10.0f);
+
+						techno->r.m.o.a.vftable->t.msub_70B280_spread(techno, &rockCoord.X, rockFactor, 0);
+					}
+					else if (warhead->SpreadFactor > 0.0f)
+					{
+						techno->r.m.o.a.vftable->t.msub_70B280_spread(techno, &coord->X, rockFactor, 0);
+					}
+				}
+			}
+		}
+	}
+
+	// Bridge damage handling
+	bool isIonCannon = (warhead == Rule->IonCannonWarhead);
+	CellClass* mainCell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &cellPos);
+
+	if ((BYTE1(Scen->Specials.Bitfield) & 0x80u) != 0 && warhead->IsWallDestroyer)
+	{
+		int bridgeTileOffset = mainCell->TileType - BridgeSet + 1;
+		CellClass* bridgeOwnerCell = nullptr;
+
+		if ((*mainCell->Bitfield2 & 0x100) != 0)
+		{
+			CellStruct bridgeCellPos;
+			if ((*mainCell->Bitfield2 & 0x80) == 0)
+			{
+				bridgeCellPos = mainCell->BridgeOwnerCell->Position;
+			}
+			else
+			{
+				bridgeCellPos = mainCell->Position;
+			}
+
+			bridgeOwnerCell = MapClass::operator[](&Map.sc.t.sb.p.r.d.m, &bridgeCellPos);
+
+			if (bridgeOwnerCell)
+			{
+				int bridgeOverlay = bridgeOwnerCell->Overlay;
+				if (bridgeOverlay != 24 && bridgeOverlay != 25)
+				{
+					bridgeOwnerCell = nullptr;
+				}
+			}
+		}
+
+		// Check bridge middle tiles
+		bool isBridgeMiddle1 = (bridgeTileOffset == BridgeMiddle1 ||
+								bridgeTileOffset == BridgeMiddle1 + 1 ||
+								bridgeTileOffset == BridgeMiddle1 + 2 ||
+								bridgeTileOffset == BridgeMiddle1 + 3);
+
+		bool isBridgeMiddle2 = (bridgeTileOffset == BridgeMiddle2 ||
+								bridgeTileOffset == BridgeMiddle2 + 1 ||
+								bridgeTileOffset == BridgeMiddle2 + 2 ||
+								bridgeTileOffset == BridgeMiddle2 + 3);
+
+		if (isBridgeMiddle1 || isBridgeMiddle2 || bridgeOwnerCell)
+		{
+			// Process bridge damage
+			if (CanDamageBridge(mainCell, coord))
+			{
+				if (warhead->IsWallDestroyer)
+				{
+					if (isIonCannon || Random2Class::operator()(&Scen->RandomNumber, 1, Rule->BridgeStrength) < damage)
+					{
+						int attempts = 3;
+						bool destroyed = MapClass_findsoemthing_587180(&Map.sc.t.sb.p.r.d.m, &cellPos);
+
+						while (!destroyed && isIonCannon && attempts > 0)
+						{
+							--attempts;
+							destroyed = MapClass_findsoemthing_587180(&Map.sc.t.sb.p.r.d.m, &cellPos);
+						}
+
+						if (destroyed)
+						{
+							TechnoClass::target_stuff(mainCell);
+						}
+
+						Point2D pixel;
+						Tactical::Coord_To_Pixel_Adjusted_To_Viewport(TacticalMap, coord, &pixel);
+						RectangleStruct redrawRect;
+						redrawRect.X = pixel.X - 128;
+						redrawRect.Y = pixel.Y - 128;
+						redrawRect.Width = 256;
+						redrawRect.Height = 256;
+						Tactical::Redraw_Area(TacticalMap, redrawRect, 0);
+					}
+				}
+			}
+		}
+
+		// Check wood bridge tiles
+		int woodBridgeTileOffset = mainCell->TileType - WoodBridgeSet + 1;
+
+		bool isWoodBridgeMiddle1 = (woodBridgeTileOffset == BridgeMiddle1 ||
+									woodBridgeTileOffset == BridgeMiddle1 + 1 ||
+									woodBridgeTileOffset == BridgeMiddle1 + 2 ||
+									woodBridgeTileOffset == BridgeMiddle1 + 3);
+
+		bool isWoodBridgeMiddle2 = (woodBridgeTileOffset == BridgeMiddle2 ||
+									woodBridgeTileOffset == BridgeMiddle2 + 1 ||
+									woodBridgeTileOffset == BridgeMiddle2 + 2 ||
+									woodBridgeTileOffset == BridgeMiddle2 + 3);
+
+		bool hasWoodBridgeOverlay = bridgeOwnerCell &&
+			(bridgeOwnerCell->Overlay == 237 || bridgeOwnerCell->Overlay == 238);
+
+		if (isWoodBridgeMiddle1 || isWoodBridgeMiddle2 || hasWoodBridgeOverlay)
+		{
+			if (CanDamageBridge(mainCell, coord))
+			{
+				if (warhead->IsWallDestroyer)
+				{
+					if (isIonCannon || Random2Class::operator()(&Scen->RandomNumber, 1, Rule->BridgeStrength) < damage)
+					{
+						int attempts = 3;
+						bool destroyed = MapClass_findsoemthing_587180(&Map.sc.t.sb.p.r.d.m, &cellPos);
+
+						while (!destroyed && isIonCannon && attempts > 0)
+						{
+							--attempts;
+							destroyed = MapClass_findsoemthing_587180(&Map.sc.t.sb.p.r.d.m, &cellPos);
+						}
+
+						if (destroyed)
+						{
+							TechnoClass::target_stuff(mainCell);
+						}
+
+						Point2D pixel;
+						Tactical::Coord_To_Pixel_Adjusted_To_Viewport(TacticalMap, coord, &pixel);
+						RectangleStruct redrawRect;
+						redrawRect.X = pixel.X - 96;
+						redrawRect.Y = pixel.Y - 96;
+						redrawRect.Width = 192;
+						redrawRect.Height = 192;
+						Tactical::Redraw_Area(TacticalMap, redrawRect, 0);
+					}
+				}
+			}
+		}
+
+		// Check overlay bridges
+		int mainOverlay = mainCell->Overlay;
+		if (mainOverlay >= 74 && mainOverlay <= 99)
+		{
+			if (isIonCannon || Random2Class::operator()(&Scen->RandomNumber, 1, Rule->BridgeStrength) < damage)
+			{
+				if (MapClass_checkcells_57BAA0(&Map.sc.t.sb.p.r.d.m, &cellPos))
+				{
+					TechnoClass::target_stuff(mainCell);
+				}
+			}
+		}
+
+		mainOverlay = mainCell->Overlay;
+		if (mainOverlay >= 205 && mainOverlay <= 230)
+		{
+			if (isIonCannon || Random2Class::operator()(&Scen->RandomNumber, 1, Rule->BridgeStrength) < damage)
+			{
+				if (MapClass_57CCF0(&Map.sc.t.sb.p.r.d.m, &cellPos))
+				{
+					TechnoClass::target_stuff(mainCell);
+				}
+			}
+		}
+	}
+
+	// Exploding barrel handling
+	int cellOverlay = mainCell->Overlay;
+	if (cellOverlay != -1 && (*(&OverlayTypes + 1))[cellOverlay]->Explodes)
+	{
+		CellClass_flag_area(mainCell);
+		mainCell->Overlay = -1;
+		CellClass::Recalc_Attributes(mainCell, -1);
+		MapClass_Zone_Reset_56D460(&Map.sc.t.sb.p.r.d.m, &mainCell->Position);
+		MapClass_subzone_Zone_Reset_584550(&Map.sc.t.sb.p.r.d.m, &mainCell->Position);
+		TechnoClass::target_stuff(mainCell);
+
+		if (auto anim = new AnimClass())
+		{
+			AnimClass::AnimClass(anim, Rule->BarrelExplode, coord, 0, 1, AnimFlag_400 | AnimFlag_200, 0, 0);
+		}
+
+		// Recursive explosion
+		Explosion_Damage(coord, Rule->AmmoCrateDamage, nullptr, Rule->C4Warhead, true, house);
+
+		// Spawn debris
+		for (int i = 0; i < Rule->BarrelDebris.dvc.ActiveCount; ++i)
+		{
+			if (Random2Class::operator()(&Scen->RandomNumber, 0, 99) < 15)
+			{
+				if (auto voxelAnim = new VoxelAnimClass())
+				{
+					VoxelAnimClass::VoxelAnimClass(voxelAnim, Rule->BarrelDebris.dvc.Vector_Item[i], coord, 0);
+				}
+				break;
+			}
+		}
+
+		// Spawn particle system
+		if (Random2Class::operator()(&Scen->RandomNumber, 0, 99) < 25)
+		{
+			auto particleSystem = new ParticleSystemClass();
+			if (particleSystem)
+			{
+				ParticleSystemClass::ParticleSystemClass(particleSystem, Rule->BarrelParticle, coord, 0, 0, &stru_89E830, 0);
+			}
+			ParticleSystemClass_addtovector(particleSystem, coord, coord);
+		}
+	}
+
+	// Spawn warhead particle
+	if (warhead->Particle)
+	{
+		auto particleSystem = new ParticleSystemClass();
+		if (particleSystem)
+		{
+			ParticleSystemClass::ParticleSystemClass(particleSystem, warhead->Particle, coord, 0, 0, &stru_89E830, house);
+		}
+		ParticleSystemClass_addtovector(particleSystem, coord, coord);
+	}
+}
+
+// Helper function for bridge damage checks
+static bool CanDamageBridge(CellClass* cell, CoordStruct* coord)
+{
+	if ((*cell->Bitfield2 & 0x100) == 0)
+	{
+		return true;
+	}
+
+	int level = cell->Level;
+	int z = coord->Z;
+	int upperBound = dword_89E864 + dword_89E870 * (level + 1);
+	int lowerBound = dword_89E864 + dword_89E870 * (level - 2);
+
+	return (z <= upperBound && z > lowerBound);
+}
+*/
+
+//static PhobosMap<BuildingClass*, double> MergedDamage {};
 static HelperedVector<ObjectClass*> Targets;
 static HelperedVector<DamageGroup*> Handled;
 

@@ -1,6 +1,7 @@
 #include <Ext/Scenario/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Techno/Body.h>
+#include <Ext/Rules/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -196,7 +197,7 @@ bool ShouldInfantryAttackAlly(TechnoClass* techno, bool canHealOrRepair, bool is
 }
 
 // Helper function to add target to distributed fire lists
-void AddToDistributedFireLists(TechnoClass* techno, AbstractClass* target, int threatValue)
+void NOINLINE AddToDistributedFireLists(TechnoClass* techno, AbstractClass* target, int threatValue)
 {
 	techno->CurrentTargets.push_back(target);
 	techno->CurrentTargetThreatValues.push_back(threatValue);
@@ -503,10 +504,8 @@ AbstractClass* ScanAreaThreats(TechnoClass* techno, ThreatType method, int bigth
 				&& (!a4 || pCurrent->Owner->ArrayIndex == pOwner->EnemyHouseIndex)
 				&& techno->CanAutoTargetObject(method, bigthreatbitfield, range, pCurrent, &threatBuffer, ZoneType::None, &tempCrd))
 			{
-				if (technoType->DistributedFire)
-				{
-					techno->CurrentTargets.push_back(pCurrent);
-					techno->CurrentTargetThreatValues.push_back(threatBuffer);
+				if (technoType->DistributedFire) {
+					AddToDistributedFireLists(techno, pCurrent, threatBuffer);
 				}
 
 				if (threatBuffer > *maxThreat)
@@ -616,10 +615,8 @@ AbstractClass* ScanAreaAirThreats(TechnoClass* techno, ThreatType method, int bi
 			&& (!a4 || pCurrent->Owner->ArrayIndex == techno->Owner->EnemyHouseIndex)
 			&& techno->CanAutoTargetObject(method, bigthreatbitfield, range, pCurrent, &threatBuffer, ZoneType::None, &tempCrd))
 		{
-			if (technoType->DistributedFire)
-			{
-				techno->CurrentTargets.push_back(pCurrent);
-				techno->CurrentTargetThreatValues.push_back(threatBuffer);
+			if (technoType->DistributedFire) {
+				AddToDistributedFireLists(techno, pCurrent, threatBuffer);
 			}
 
 			if (threatBuffer > *maxThreat)
@@ -768,8 +765,8 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* techno
 	if(!RulesExtData::Instance()->AIAirTargetingFix){
 		// Process aircraft in area
 		const bool shouldSearchAir = ((method & ThreatType::Air) != ThreatType::Normal);
-		if (shouldSearchAir)
-		{
+
+		if (shouldSearchAir) {
 			bestTarget = ProcessAircraftInArea(
 				techno, method, bigthreatbitfield, range,
 				&centerCell, realOwner, a4, &maxThreat
@@ -785,9 +782,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* techno
 
 	// Early exit for air-only search
 	bool isAirOnlySearch = (method == (ThreatType::Air | ThreatType::Range));
-	if (isAirOnlySearch)
-	{
-
+	if (RulesExtData::Instance()->FallingDownTargetingFix && isAirOnlySearch) {
 		AbstractClass* areaTarget = ScanAreaAirThreats(
 		techno, method, bigthreatbitfield, scanRadius,
 		range, &centerCell, zone, a4, &maxThreat, realOwner, AU, canHealOrRepair);
@@ -798,7 +793,8 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* techno
 		}
 
 		return bestTarget;
-	}
+	}else if(!isAirOnlySearch)
+		return bestTarget ;
 
 	// Scan area for ground threats
 	if (scanRadius > 0)

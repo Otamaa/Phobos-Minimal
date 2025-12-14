@@ -42,7 +42,6 @@ void FakeTechnoClass::__HandleVoicePlayback(TechnoClass* pThis)
 		int voiceToPlay = pThis->QueuedVoiceIndex;
 		pThis->__LastVoicePlayed = voiceToPlay;
 		VocClass::PlayGlobal(voiceToPlay, Panning::Center, 1.0, &pThis->Audio6);
-		pThis->QueuedVoiceIndex = -1;
 	} else if (pThis->__LastVoicePlayed == pThis->QueuedVoiceIndex) {
 		pThis->QueuedVoiceIndex = -1;
 	}
@@ -50,8 +49,7 @@ void FakeTechnoClass::__HandleVoicePlayback(TechnoClass* pThis)
 
 void FakeTechnoClass::__HandleBerzerkState(TechnoClass* pThis)
 {
-	if (!pThis->Berzerk)
-	{
+	if (!pThis->Berzerk) {
 		return;
 	}
 
@@ -82,7 +80,7 @@ void FakeTechnoClass::__HandleStrengthSmoothing(TechnoClass* pThis)
 			if (pThis->EstimatedHealth + 30 < 0) {
 				pThis->EstimatedHealth = -30;
 			}
-			pThis->EstimatedHealth++;
+			++pThis->EstimatedHealth;
 		}
 	}
 }
@@ -788,8 +786,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	if (!pThis->IsAlive)
 		return;
 
-	if (!IsBuilding)
-	{
+	if (!IsBuilding) {
 		pExt->UpdateLaserTrails();
 		TrailsManager::AI((FootClass*)pThis);
 	}
@@ -955,7 +952,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	// Mission and target management
 	__ClearTargetForInvalidMissions(pThis);
 	  
-	pThis->MissionAccumulateTime++;
+	++pThis->MissionAccumulateTime;
 	pThis->MissionClass::Update();
 
 	__HandleTargetAcquisition(pThis);
