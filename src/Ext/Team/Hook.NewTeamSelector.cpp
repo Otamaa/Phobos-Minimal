@@ -1288,28 +1288,141 @@ TeamTypeClass *__fastcall Suggested_New_Team(TypeList<TeamTypeClass*> *possible_
 	JMP_FAST(0x6F0AB0)
 }
 
-ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
-	GET(FakeHouseClass* , pThis , ESI);
+#include <DiscreteDistributionClass.h>
+#include <DiscreteSelectionClass.h>
 
-	auto pHouseExt = pThis->_GetExtData();
-	const int delay = pHouseExt->TeamDelay >=0 ?
-		pHouseExt->TeamDelay : RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty];
+std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, bool alerted)
+{
+	std::vector<TeamTypeClass*> suggestedTeams;
 
-	if(!UpdateTeam(pThis, delay)){
-
-		TypeList<TeamTypeClass*> possible_teams {};
-		Suggested_New_Team(&possible_teams,pThis, false);
-		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.Count);
-
-		for(int i = 0; i < possible_teams.Count; ++i){
-			possible_teams[i]->CreateTeam(pThis);
-		}
-
-		pThis->TeamDelayTimer.Start(delay);
+	HouseClass* pEnemy = nullptr;
+	if (forHouse_->EnemyHouseIndex != -1) {
+		pEnemy = HouseClass::Array->Items[forHouse_->EnemyHouseIndex];
 	}
 
-	return 0x4F8B08;
+	int Difficulty = (int)forHouse_->AIDifficulty;
+	int teamCapValue = RulesClass::Instance->TotalAITeamCap.Items[Difficulty];
+	suggestedTeams.reserve(teamCapValue);
+
+	if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= forHouse_->RatioAITriggerTeam 
+		&& forHouse_->AITriggersActive) {
+		int counter = 0;
+		int baseDefenseCount = 0;
+
+		for (int i = 0; i < TeamClass::Array->Count; ++i) {
+			auto team = TeamClass::Array->Items[i];
+			if (team->OwnerHouse == forHouse_) {
+				++counter;
+				if (team->Type->IsBaseDefense) {
+					++baseDefenseCount;
+				}
+			}
+		}
+
+		bool skip = false;
+
+		if (counter < teamCapValue || baseDefenseCount < counter / 2) {
+			if (baseDefenseCount > RulesClass::Instance->MaximumAIDefensiveTeams.Items[Difficulty]) {
+				skip = true;
+			}
+		}
+		else {
+			TeamClass* oldestDefenseTeam = nullptr;
+			int oldestCreationFrame = 0x7FFFFFFF;
+
+			for (int i = 0; i < TeamClass::Array->Count; ++i) {
+				auto team = TeamClass::Array->Items[i];
+				if (team->OwnerHouse == forHouse_ && team->Type->IsBaseDefense && team->CreationFrame < oldestCreationFrame) {
+					oldestDefenseTeam = team;
+					oldestCreationFrame = team->CreationFrame;
+				}
+			}
+
+			if (oldestDefenseTeam) {
+				--counter;
+				skip = true;
+				oldestDefenseTeam->_scalar_dtor(1);
+			}
+		}
+
+		if (counter < teamCapValue) {
+			DiscreteDistribution<AITriggerTypeClass*> triggerDistribution;
+			bool foundMaxWeight = false;
+
+			for (int i = 0; i < AITriggerTypeClass::Array->Count; ++i) {
+				auto triggerType = AITriggerTypeClass::Array->Items[i];
+				if (!triggerType || triggerType->ConditionMet(forHouse_, pEnemy, skip) != 1) {
+					continue;
+				}
+
+				unsigned int weight = triggerType->Weight_Current;
+
+				if (weight == 5000) {
+					if (!foundMaxWeight) {
+						foundMaxWeight = true;
+						triggerDistribution.clear();
+					}
+				}
+				else if (foundMaxWeight) {
+					continue;
+				}
+
+				triggerDistribution.add(triggerType, weight);
+			}
+
+			if (auto selectedTrigger = triggerDistribution.select(ScenarioClass::Instance->Random.Random())) {
+				if (auto teamType1 = (*selectedTrigger)->Team1) {
+					suggestedTeams.push_back(teamType1);
+				}
+
+				if (auto teamType2 = (*selectedTrigger)->Team2) {
+					suggestedTeams.push_back(teamType2);
+				}
+			}
+		}
+	}
+
+	// Check if any existing team matches our suggestions
+	for (int i = 0; i < TeamClass::Array->Count; ++i) {
+		auto team = TeamClass::Array->Items[i];
+		if (team->OwnerHouse == forHouse_ && (team->IsReforming || !team->IsMoving)) {
+			for (auto suggested : suggestedTeams) {
+				if (team->Type == suggested) {
+					suggestedTeams.clear();
+					return suggestedTeams;
+				}
+			}
+		}
+	}
+
+	for (auto suggested : suggestedTeams) {
+		suggested->Autocreate = 1;
+	}
+
+	return suggestedTeams;
 }
+
+ ASMJIT_PATCH(0x4F8A63, HouseClass_AI_Team , 7) {
+ 	GET(FakeHouseClass* , pThis , ESI);
+
+ 	auto pHouseExt = pThis->_GetExtData();
+ 	const int delay = pHouseExt->TeamDelay >=0 ?
+ 		pHouseExt->TeamDelay : RulesClass::Instance->TeamDelays[(int)pThis->AIDifficulty];
+
+ 	if(!UpdateTeam(pThis, delay)){
+
+ 		std::vector<TeamTypeClass*> possible_teams = Suggested_New_Team(pThis, false);
+ 		Debug::LogInfo("[{} - {}] Able to use {} team !", pThis->Type->ID, (void*)pThis, possible_teams.size());
+
+ 		for(int i = 0; i < possible_teams.size(); ++i){
+ 			possible_teams[i]->CreateTeam(pThis);
+ 		}
+
+ 		pThis->TeamDelayTimer.Start(delay);
+ 	}
+
+ 	return 0x4F8B08;
+ }
 
 #include <ExtraHeaders/StackVector.h>
 

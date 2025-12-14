@@ -3857,30 +3857,30 @@ void FakeTeamClass::_AI()
 	//dont prematurely finish the `Script` ,...
 	//bailout the script if the `Action` already -1
 	//this will free the Member and allow them to be recuited
-	if (node.Action == TeamMissionType::none || (TeamMissionType)node.Action >= TeamMissionType::count && 
-		(AresScripts)node.Action >= AresScripts::count && 
-		(PhobosScripts)node.Action >= PhobosScripts::count
-	) {
-		// Unknown action. This action finished
-		this->StepCompleted = true;
-		this->NeedsToDisappear = true;
-
-		auto const pAction = this->CurrentScript->GetCurrentAction();
-		Debug::LogInfo("AI Scripts : [{}] Team [{}][{}]  ( {} CurrentScript {} / {} line {}): Unknown Script Action: {} (action={}, arg={})",
-			(void*)this,
-			this->Type->ID,
-			this->Type->Name,
-
-			(void*)this->CurrentScript,
-			this->CurrentScript->Type->ID,
-			this->CurrentScript->Type->Name,
-			this->CurrentScript->CurrentMission,
-
-			(int)pAction.Action, (int)node.Action, node.Argument);
-
-		((TeamClass*)this)->_scalar_dtor(1);
-		return;
-	}
+	//if (node.Action == TeamMissionType::none || (TeamMissionType)node.Action >= TeamMissionType::count && 
+	//	(AresScripts)node.Action >= AresScripts::count && 
+	//	(PhobosScripts)node.Action >= PhobosScripts::count
+	//) {
+	//	// Unknown action. This action finished
+	//	this->StepCompleted = true;
+	//	this->NeedsToDisappear = true;
+	//
+	//	auto const pAction = this->CurrentScript->GetCurrentAction();
+	//	Debug::LogInfo("AI Scripts : [{}] Team [{}][{}]  ( {} CurrentScript {} / {} line {}): Unknown Script Action: {} (action={}, arg={})",
+	//		(void*)this,
+	//		this->Type->ID,
+	//		this->Type->Name,
+	//
+	//		(void*)this->CurrentScript,
+	//		this->CurrentScript->Type->ID,
+	//		this->CurrentScript->Type->Name,
+	//		this->CurrentScript->CurrentMission,
+	//
+	//		(int)pAction.Action, (int)node.Action, node.Argument);
+	//
+	//	((TeamClass*)this)->_scalar_dtor(1);
+	//	return;
+	//}
 
 	std::string first = GameStrings::NoneStr();
 	if (this->FirstUnit)

@@ -924,19 +924,35 @@ namespace detail
 	inline bool read<AttachedAnimPosition>(AttachedAnimPosition& value, INI_EX& parser, const char* pSection, const char* pKey, bool allocate)
 	{
 		if (parser.ReadString(pSection, pKey)) {
-			for (const auto& [val, name] : EnumFunctions::AttachedAnimPosition_ToStrings) {
-				if (PhobosCRT::iequals(parser.value(), name)) {
-					value |= val;
-					return true;
+
+			char* context = nullptr;
+			auto resultData = AttachedAnimPosition::Default;
+
+			for (auto cur = strtok_s(parser.value(), Phobos::readDelims, &context);
+				cur;
+				cur = strtok_s(nullptr, Phobos::readDelims, &context))
+			{
+				bool found = false;
+				for (const auto& [val, name] : EnumFunctions::AttachedAnimPosition_ToStrings) {
+					if (PhobosCRT::iequals(parser.value(), name)) {
+						resultData |= val;
+						found = true;
+						break;
+					}
+				}
+
+				if(!found && IS_SAME_STR_(parser.value(), "centre")) {
+					value |= AttachedAnimPosition::Center;
+					found = true;
+				}
+
+				if (!found) {
+					Debug::INIParseFailed(pSection, pKey, cur, "Expected aAttachedAnimPosition type");
+					return false;
 				}
 			}
 
-			if(IS_SAME_STR_(parser.value(), "centre")) {
-				value |= AttachedAnimPosition::Center;
-				return true;
-			}
-
-			Debug::INIParseFailed(pSection, pKey, parser.value(), "Expected a AttachedAnimPosition type");
+			return true;
 		}
 
 		return false;
@@ -1346,7 +1362,7 @@ namespace detail
 			for (const auto& [val , str] : EnumFunctions::TargetingPreference_ToStrings) {
 				if (PhobosCRT::iequals(parser.value(), str)) {
 					value = val;
-					break;
+					return true;
 				}
 			}
 
