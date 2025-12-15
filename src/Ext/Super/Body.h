@@ -134,6 +134,8 @@ public:
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
+	int _GetAnimStage();
+
 	SuperExtData* _GetExtData() {
 		return *reinterpret_cast<SuperExtData**>((DWORD)this + AbstractExtOffset);
 	}

@@ -217,5 +217,83 @@ HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, BOOL clearDirty)
 	return hr;
 }
 
+int FakeSuperClass::_GetAnimStage()
+{
+	if (!this->Granted) {
+		return 0;
+	}
+
+	auto pType = this->Type;
+
+	// Get effective recharge time
+	int customRechargeTime = this->CustomChargeTime;
+	int rechargeTime = (customRechargeTime == -1) ? pType->RechargeTime : customRechargeTime;
+
+	// Calculate remaining delay time
+	int delayTime = this->RechargeTimer.TimeLeft;
+	int started = this->RechargeTimer.StartTime;
+
+	if (started != -1) {
+		int elapsed = Unsorted::CurrentFrame - started;
+		if (elapsed >= delayTime) {
+			delayTime = 0;
+		} else {
+			delayTime -= elapsed;
+		}
+	}
+
+	// Calculate progress ratio
+	double progress = 0.0;
+
+	if (pType->UseChargeDrain) {
+		if (this->ChargeDrainState == ChargeDrainState::Draining) {
+			// Draining state - reverse progress
+			// [HOOK APPLIED: 0x6CBF5B - SuperClass_GetCameoChargeStage_ChargeDrainRatio]
+			int rechargeTime1 = rechargeTime;
+			int rechargeTime2 = (customRechargeTime == -1) ? pType->RechargeTime : customRechargeTime;
+			int timeLeft = delayTime;
+
+			// Use per-SW charge-to-drain ratio instead of Rule->ChargeToDrainRatio
+			auto pTypeExt = SWTypeExtContainer::Instance.Find(pType);
+			const double ratio = pTypeExt->GetChargeToDrainRatio();
+
+			if (Math::abs(rechargeTime2 * ratio) > 0.001) {
+				progress = 1.0 - (rechargeTime1 * ratio - timeLeft) / (rechargeTime2 * ratio);
+			} else {
+				progress = 0.0;
+			}
+		} else {
+			// Charging state
+			int divisor = (customRechargeTime == -1) ? pType->RechargeTime : customRechargeTime;
+			progress = (double)(rechargeTime - delayTime) / divisor;
+		}
+	}
+	else
+	{
+		// Non-ChargeDrain mode
+		if (this->IsCharged) {
+			return 54;
+		}
+
+		// Normal charging
+		int divisor = (customRechargeTime == -1) ? pType->RechargeTime : customRechargeTime;
+		progress = (double)(rechargeTime - delayTime) / divisor;
+	}
+
+	// Convert to stage
+	// [HOOK APPLIED: 0x6CC053 - SuperClass_GetCameoChargeStage_FixFullyCharged]
+	int stage = (int)(progress * 54.0);
+
+	// Clamp to 0-54 (original clamped to 53, hook fixes to 54)
+	if (stage > 54) {
+		stage = 54;
+	}
+
+	return stage;
+}
+DEFINE_FUNCTION_JUMP(LJMP, 0x6CBEE0, FakeSuperClass::_GetAnimStage)
+DEFINE_FUNCTION_JUMP(CALL, 0x6CBE7E, FakeSuperClass::_GetAnimStage)
+DEFINE_FUNCTION_JUMP(CALL, 0x6CBE8A, FakeSuperClass::_GetAnimStage)
+
 // DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
 // DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)

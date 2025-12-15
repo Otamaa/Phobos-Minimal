@@ -2814,6 +2814,7 @@ void HouseExtData::Serialize(T& Stm)
 	debugProcess(this->FreeRadar, "FreeRadar");
 	debugProcess(this->Productions, "Productions");
 	debugProcess(this->BestChoicesNaval, "BestChoicesNaval");
+	debugProcess(this->AITriggers_ValidList, "AITriggers_ValidList");
 }
 
 #else
@@ -2879,6 +2880,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->FreeRadar)
 		.Process(this->Productions)
 		.Process(this->BestChoicesNaval)
+		.Process(this->AITriggers_ValidList)
 		;
 }
 #endif

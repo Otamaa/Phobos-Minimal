@@ -318,12 +318,12 @@ public:
 		return Indexes;
 	}
 
-	COMPILETIMEEVAL void Append(const char* pFileBase) {
+	void Append(const char* pFileBase) {
 		std::lock_guard<std::mutex> lock(luggageMutex);  // Lock here
 		this->Bags.emplace_back(pFileBase);
 	}
 
-	COMPILETIMEEVAL std::optional<FileStruct> GetFileStruct(int idx) {
+	std::optional<FileStruct> GetFileStruct(int idx) {
 		std::lock_guard<std::mutex> lock(luggageMutex);  // Lock here
 
 		const auto& files = this->Files;
@@ -338,7 +338,7 @@ public:
 		return {};
 	}
 
-	COMPILETIMEEVAL size_t TotalSampleSizes() const {
+	size_t TotalSampleSizes() const {
 		std::lock_guard<std::mutex> lock(luggageMutex);  // Lock here
 		return this->Files.size();
 	}

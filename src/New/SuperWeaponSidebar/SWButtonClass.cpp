@@ -1,5 +1,6 @@
 #include "SWButtonClass.h"
 
+#include <Ext/Super/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
@@ -138,7 +139,7 @@ bool SWButtonClass::Draw(bool forced)
 			_GCLOCK_Trans = pSWExt->GClock_Transculency->GetBlitterFlags();
 
 
-		pSurface->DrawSHP(_GCLOCK_Convert, _GCLOCK_Shape, pSuper->GetCameoChargeState() + 1, &loc, &bounds, BlitterFlags::bf_400 | _GCLOCK_Trans, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
+		pSurface->DrawSHP(_GCLOCK_Convert, _GCLOCK_Shape, ((FakeSuperClass*)pSuper)->_GetAnimStage() + 1, &loc, &bounds, BlitterFlags::bf_400 | _GCLOCK_Trans, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0);
 	}
 
 	return true;

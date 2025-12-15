@@ -343,7 +343,7 @@ ASMJIT_PATCH(0x6CBD2C, SuperClass_AI_UseWeeds, 0x6)
 		pSuper->RechargeTimer.Start(RechargerValue);
 
 
-		int animStage = pSuper->GetCameoChargeState();
+		int animStage = pSuper->_GetAnimStage();
 		if (pSuper->CameoChargeState != animStage)
 		{
 			pSuper->CameoChargeState = animStage;
@@ -792,29 +792,6 @@ ASMJIT_PATCH(0x4F9004 ,HouseClass_Update_TrySWFire, 7)
 	}
 
 	return Continue;
-}
-
-ASMJIT_PATCH(0x6CBF5B, SuperClass_GetCameoChargeStage_ChargeDrainRatio, 9)
-{
-	GET_STACK(int, rechargeTime1, 0x10);
-	GET_STACK(int, rechargeTime2, 0x14);
-	GET_STACK(int, timeLeft, 0xC);
-
-	GET(FakeSuperWeaponTypeClass*, pType, EBX);
-
-	// use per-SW charge-to-drain ratio.
-	const double ratio = pType->_GetExtData()->GetChargeToDrainRatio();
-	const double percentage = (Math::abs(rechargeTime2 * ratio) > 0.001)  ?
-		1.0 - (rechargeTime1 * ratio - timeLeft) / (rechargeTime2 * ratio) : 0.0;
-
-	R->EAX(int(percentage * 54.0));
-	return 0x6CC053;
-}
-
-ASMJIT_PATCH(0x6CC053, SuperClass_GetCameoChargeStage_FixFullyCharged, 5)
-{
-	R->EAX<int>(R->EAX<int>() > 54 ? 54 : R->EAX<int>());
-	return 0x6CC066;
 }
 
 // a ChargeDrain SW expired - fire it to trigger status update

@@ -4,6 +4,7 @@
 
 #include <Ext/TechnoType/Body.h>
 #include <Ext/BuildingType/Body.h>
+#include <Ext/Super/Body.h>
 #include <Ext/SWType/Body.h>
 #include <Ext/Scenario/Body.h>
 #include <Ext/HouseType/Body.h>
@@ -871,7 +872,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 						// 006A9966-006A99B1: Get super weapon state
 						isCompleted = !pSuper->ShouldDrawProgress();
 						statusText = pSuper->NameReadiness();
-						progressFrame = pSuper->GetCameoChargeState();
+						progressFrame = ((FakeSuperClass*)pSuper)->_GetAnimStage();
 
 						// ==========================================================================
 						// HOOK: 0x6A99B7 - StripClass_Draw_SuperDarken (5 bytes)

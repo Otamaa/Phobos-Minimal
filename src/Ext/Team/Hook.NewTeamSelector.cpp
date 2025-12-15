@@ -409,6 +409,13 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 	if (!RulesExtData::Instance()->NewTeamsSelector)
 		return false;
 
+	bool houseIsHuman = pHouse->IsHumanPlayer;
+	bool isCampaign = SessionClass::IsCampaign();
+
+	if (isCampaign) houseIsHuman = pHouse->IsHumanPlayer || pHouse->IsInPlayerControl;
+	if (houseIsHuman || pHouse->Type->MultiplayPassive || !pHouse->AITriggersActive) return false;
+
+	auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	auto pHouseTypeExt = HouseTypeExtContainer::Instance.Find(pHouse->Type);
 
 	// Reset Team selection countdown
@@ -539,9 +546,10 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 		HelperedVector<TeamClass*> activeTeamsList;
 		activeTeamsList.reserve(TeamClass::Array->size());
 
-		for (auto const pRunningTeam : *TeamClass::Array) {
+		for (auto const pRunningTeam : *TeamClass::Array)
+		{
 
-			if(HouseClass::Array->Items[houseIdx] != pRunningTeam->OwnerHouse)
+			if (HouseClass::Array->Items[houseIdx] != pRunningTeam->OwnerHouse)
 				continue;
 
 			activeTeamsList.push_back(pRunningTeam);
@@ -595,6 +603,12 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 		int destroyedBridgesCount = 0;
 		int undamagedBridgesCount = 0;
 		PhobosMap<TechnoTypeClass*, int> ownedRecruitables;
+		bool hasInfantryFactory = false;
+		bool hasUnitFactory = false;
+		bool hasNavalFactory = false;
+		bool hasAircraftFactory = false;
+		bool canAutocreate = false;
+		double maxPriority = 5000.0;
 
 		for (auto const pTechno : *TechnoClass::Array)
 		{
@@ -603,6 +617,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 			if (pTechno->WhatAmI() == AbstractType::Building)
 			{
 				auto const pBuilding = static_cast<BuildingClass*>(pTechno);
+				auto const pBuildingType = pBuilding->Type;
 				if (pBuilding && pBuilding->Type->BridgeRepairHut)
 				{
 
@@ -614,7 +629,29 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 						undamagedBridgesCount++;
 				}
 
+				if (pBuilding->Owner == pHouse)
+				{
+					switch (pBuildingType->Factory)
+					{
+					case AbstractType::InfantryType:
+						hasInfantryFactory = true;
+						break;
 
+					case AbstractType::AircraftType:
+						hasAircraftFactory = true;
+						break;
+
+					case AbstractType::UnitType:
+						if (pBuildingType->Naval)
+							hasNavalFactory = true;
+						else
+							hasUnitFactory = true;
+						break;
+
+					default:
+						break;
+					}
+				}
 			}
 			else
 			{
@@ -622,12 +659,16 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 				auto const pFoot = static_cast<FootClass*>(pTechno);
 
 				bool  allow = true;
-				if (auto pContact = pFoot->GetRadioContact()) {
-					if (auto pBldC = cast_to<BuildingClass*, false>(pContact)) {
+				if (auto pContact = pFoot->GetRadioContact())
+				{
+					if (auto pBldC = cast_to<BuildingClass*, false>(pContact))
+					{
 						if (pBldC->Type->Bunker)
 							allow = false;
 					}
-				} else if (auto pBld = pFoot->GetCell()->GetBuilding()) {
+				}
+				else if (auto pBld = pFoot->GetCell()->GetBuilding())
+				{
 					if (pBld->Type->Bunker)
 						allow = false;
 				}
@@ -649,6 +690,9 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 			}
 		}
 
+		if (hasInfantryFactory || hasUnitFactory || hasAircraftFactory || hasNavalFactory)
+			canAutocreate = true;
+
 		HouseClass* targetHouse = nullptr;
 		if (pHouse->EnemyHouseIndex >= 0)
 			targetHouse = HouseClass::Array->operator[](pHouse->EnemyHouseIndex);
@@ -656,8 +700,10 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 		bool onlyCheckImportantTriggers = false;
 
 		// Gather all the trigger candidates into one place for posterior fast calculations
-		for (auto const pTrigger : *AITriggerTypeClass::Array)
+		for (auto const trig : pHouseExt->AITriggers_ValidList)
 		{
+			auto pTrigger = AITriggerTypeClass::Array->Items[trig];
+
 			if (!pTrigger || ScenarioClass::Instance->IgnoreGlobalAITriggers == (bool)pTrigger->IsGlobal || !pTrigger->Team1)
 				continue;
 
@@ -671,7 +717,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 			// Ignore the deactivated triggers
 			if (pTrigger->IsEnabled)
 			{
-					//pTrigger->OwnerHouseType;
+				//pTrigger->OwnerHouseType;
 				if (pTrigger->Team1->TechLevel > pHouse->StaticData.TechLevel)
 					continue;
 
@@ -935,11 +981,14 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 							//Debug::LogInfo("DEBUG: MIXED category forced to work as category {}.", mergeUnclassifiedCategoryWith);
 							teamIsCategory = (TeamCategory)mergeUnclassifiedCategoryWith;
 						}
+						if (validCategory != teamIsCategory)
+							continue;
+
 					}
 
 					bool allObjectsCanBeBuiltOrRecruited = true;
 
-					if (pTriggerTeam1Type->Autocreate)
+					if (pTriggerTeam1Type->Autocreate && canAutocreate)
 					{
 						for (const auto& entry : pTriggerTeam1Type->TaskForce->Entries)
 						{
@@ -978,8 +1027,10 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 							if (allObjectsCanBeBuiltOrRecruited && entry.Type && entry.Amount > 0)
 							{
 								auto iter = ownedRecruitables.get_key_iterator(entry.Type);
-								if(iter != ownedRecruitables.end()){
-									if ((iter->second) < entry.Amount) {
+								if (iter != ownedRecruitables.end())
+								{
+									if ((iter->second) < entry.Amount)
+									{
 										allObjectsCanBeBuiltOrRecruited = false;
 										break;
 									}
@@ -994,7 +1045,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 
 					// Special case: triggers become very important if they reach the max priority (value 5000).
 					// They get stored in a elitist list and all previous triggers are discarded
-					if (pTrigger->Weight_Current >= 5000 && !onlyCheckImportantTriggers)
+					if (pTrigger->Weight_Current >= maxPriority && !onlyCheckImportantTriggers)
 					{
 						// First time only
 						if (validTriggerCandidates.size() > 0)
@@ -1122,7 +1173,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
-					break;
+					//break;
 				}
 			}
 			break;
@@ -1146,7 +1197,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
-					break;
+					//break;
 				}
 			}
 			break;
@@ -1170,7 +1221,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
-					break;
+					//break;
 				}
 			}
 			break;
@@ -1194,7 +1245,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 				{
 					selectedTrigger = element.Trigger;
 					found = true;
-					break;
+					//break;
 				}
 			}
 			break;
@@ -1426,35 +1477,44 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 
 #include <ExtraHeaders/StackVector.h>
 
-ASMJIT_PATCH(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
-{
-	// For each house save a list with only AI Triggers that can be used
-	bool ignoreGlobalAITriggers = ScenarioClass::Instance->IgnoreGlobalAITriggers;
+ ASMJIT_PATCH(0x687C9B, ReadScenarioINI_AITeamSelector_PreloadValidTriggers, 0x7)
+ {
+	 // For each house save a list with only AI Triggers that can be used
+	 bool ignoreGlobalAITriggers = ScenarioClass::Instance->IgnoreGlobalAITriggers;
 
-	for (HouseClass* pHouse : *HouseClass::Array)
-	{
-		StackVector<int , 256> list {};
-		const int houseIdx = pHouse->ArrayIndex;
-		const int sideIdx = pHouse->SideIndex + 1;
+	 for (HouseClass* pHouse : *HouseClass::Array)
+	 {
+		 int parentCountryTypeIdx = pHouse->Type->FindParentCountryIndex(); // ParentCountry can change the House in a SP map
+		 int houseTypeIdx = parentCountryTypeIdx >= 0 ? parentCountryTypeIdx : pHouse->Type->ArrayIndex; // Indexes in AITriggers section are 1-based
+		 int houseIdx = pHouse->ArrayIndex;
 
-		for (int i = 0; i < AITriggerTypeClass::Array->Count; i++)
-		{
-			if (auto pTrigger = AITriggerTypeClass::Array->Items[i])
-			{
-				if (!pTrigger || (ignoreGlobalAITriggers && pTrigger->IsGlobal) || !pTrigger->Team1)
-					continue;
+		 int parentCountrySideTypeIdx = parentCountryTypeIdx >= 0 ? pHouse->Type->FindParentCountry()->SideIndex : pHouse->Type->SideIndex;
+		 int sideTypeIdx = parentCountrySideTypeIdx >= 0 ? parentCountrySideTypeIdx + 1 : pHouse->Type->SideIndex + 1; // Side indexes in AITriggers section are 1-based
+		 int sideIdx = pHouse->SideIndex + 1; // Side indexes in AITriggers section are 1-based -> unused variable!!
+		 auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
-				const int triggerHouse = pTrigger->HouseIndex;
-				const int triggerSide = pTrigger->SideIndex;
+		 pHouseExt->AITriggers_ValidList.clear();
+		 pHouseExt->AITriggers_ValidList.reserve(AITriggerTypeClass::Array->Count);
 
-				// The trigger must be compatible with the owner
-				if ((triggerHouse == -1 || houseIdx == triggerHouse) && (triggerSide == 0 || sideIdx == triggerSide))
-					list->push_back(i);
-			}
-		}
+		 for (int i = 0; i < AITriggerTypeClass::Array->Count; i++)
+		 {
+			 if (auto pTrigger = AITriggerTypeClass::Array->Items[i])
+			 {
+				 if (!pTrigger || (ignoreGlobalAITriggers && pTrigger->IsGlobal && !pTrigger->IsEnabled) || !pTrigger->Team1)
+					 continue;
 
-		Debug::LogInfo("House {} [{}] could use {} AI triggers in this map.", pHouse->ArrayIndex, pHouse->Type->ID, list->size());
-	}
+				 const int triggerHouse = pTrigger->HouseIndex;
+				 const int triggerSide = pTrigger->SideIndex;
 
-	return 0;
-}
+				 // The trigger must be compatible with the owner
+				 //if ((triggerHouse == -1 || houseIdx == triggerHouse) && (triggerSide == 0 || sideIdx == triggerSide))
+				 if ((triggerHouse == -1 || houseTypeIdx == triggerHouse) && (triggerSide == 0 || sideTypeIdx == triggerSide))
+					 pHouseExt->AITriggers_ValidList.push_back(i);
+			 }
+		 }
+
+		 Debug::Log("AITeamsSelector - The house %d [%s](%s) should be able to use %d AI triggers in this map.\n", pHouse->ArrayIndex, pHouse->Type->ID, pHouse->PlainName, pHouseExt->AITriggers_ValidList.size());
+	 }
+
+	 return 0;
+ }

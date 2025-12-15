@@ -211,6 +211,8 @@ public:
 		}
 	}; std::array<ProductionData, 3u> Productions;
 	std::vector<int> BestChoicesNaval;
+
+	std::vector<int> AITriggers_ValidList;
 #pragma endregion
 
 public:
@@ -273,7 +275,8 @@ public:
 		TeamDelay(-1),
 		FreeRadar(false),
 		Productions(),
-		BestChoicesNaval()
+		BestChoicesNaval(),
+		AITriggers_ValidList()
 	{
 		// resize after initialization
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
