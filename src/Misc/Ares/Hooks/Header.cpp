@@ -6508,11 +6508,34 @@ bool AresWPWHExt::applyOccupantDamage(BulletClass* pThis)
 	return true;
 }
 
+void AresWPWHExt::applyKillDriver(WarheadTypeClass* pWH, HouseClass* pKillerOwner, TechnoClass* pVictim)
+{
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
+
+	if (!pKillerOwner || !pWHExt->KillDriver || !pVictim || !pVictim->IsAlive)
+		return;
+
+	if (!pWHExt->CanAffectHouse(pKillerOwner, pVictim->Owner))
+		return;
+
+	if (!TechnoExt_ExtData::IsDriverKillable(pVictim, pWHExt->KillDriver_KillBelowPercent))
+		return;
+
+	if (ScenarioClass::Instance->Random.RandomDouble() <= pWHExt->KillDriver_Chance)
+	{
+		HouseClass* Owner = HouseExtData::GetHouseKind(pWHExt->KillDriver_Owner, false, nullptr, pKillerOwner, pVictim->Owner);
+		if (!Owner)
+			Owner = HouseExtData::FindSpecial();
+
+		TechnoExt_ExtData::ApplyKillDriver(pVictim, nullptr, Owner, pWHExt->KillDriver_ResetVeterancy, Mission::Harmless);
+	}
+}
+
 void AresWPWHExt::applyKillDriver(WarheadTypeClass* pWH, TechnoClass* pKiller, TechnoClass* pVictim)
 {
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
-	if (!pKiller || !pWHExt->KillDriver || !pVictim)
+	if (!pKiller || !pWHExt->KillDriver || !pVictim || !pVictim->IsAlive)
 		return;
 
 	if (!pWHExt->CanAffectHouse(pKiller->Owner, pVictim->Owner))

@@ -426,6 +426,7 @@ struct AresWPWHExt
 
 	static bool applyOccupantDamage(BulletClass* pThis);
 	static void applyKillDriver(WarheadTypeClass* pWH , TechnoClass* pKiller, TechnoClass* pVictim);
+	static void applyKillDriver(WarheadTypeClass* pWH, HouseClass* pKillerOwner, TechnoClass* pVictim);
 };
 
 struct AresTActionExt

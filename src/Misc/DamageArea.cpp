@@ -1722,6 +1722,9 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 
 					for (auto object1 = _PcellHere->FirstObject; object1; object1 = object1->NextObject)
 					{
+						if (!object1->IsAlive)
+							continue;
+
 						if (FootClass* techno = flag_cast_to<FootClass*, false>(object1))
 						{
 							if (xpos == pCell->X && ypos == pCell->Y && pSource)
@@ -1741,6 +1744,9 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 
 					for (auto object2 = _PcellHere->AltObject; object2; object2 = object2->NextObject)
 					{
+						if (!object2->IsAlive)
+							continue;
+
 						if (FootClass* techno = flag_cast_to<FootClass*, false>(object2))
 						{
 							if (xpos == pCell->X && ypos == pCell->Y && pSource)
@@ -1917,7 +1923,7 @@ ASMJIT_PATCH(0x4893BA, DamageArea_DamageAir, 0x9)
 	return heightAboveGround > pExt->DamageAirThreshold ? 0x4893C3u : 0x48955Eu;
 }
 
-ASMJIT_PATCH(0x489562, DamageArea_DestroyCliff, 9)
+ASMJIT_PATCH(0x489562, DamageArea_DestroyCliff, 6)
 {
 	GET(CellClass* const, pCell, EAX);
 
