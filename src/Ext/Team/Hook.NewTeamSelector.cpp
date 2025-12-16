@@ -1335,304 +1335,122 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 	return true;
 }
 
-/**
- * @brief Original function jump for debugging/comparison purposes
- *
- * Original: FUN_006f0ab0 at 0x6F0AB0
- */
-TeamTypeClass* __fastcall Suggested_New_Team_Original(TypeList<TeamTypeClass*>* possible_teams, HouseClass* house, bool alerted)
-{
+TeamTypeClass *__fastcall Suggested_New_Team(TypeList<TeamTypeClass*> *possible_teams, HouseClass *house, bool alerted){
 	JMP_FAST(0x6F0AB0)
 }
 
 #include <DiscreteDistributionClass.h>
 #include <DiscreteSelectionClass.h>
 
-/**
- * @brief Complete backport of HouseClass::Suggested_New_Team (0x6F0AB0)
- *
- * This function suggests new team types for AI houses to create based on
- * AI trigger conditions, weights, and current team status.
- *
- * Original function: FUN_006f0ab0 at address 0x6F0AB0
- *
- * ============================================================================
- * SWOT ANALYSIS
- * ============================================================================
- *
- * STRENGTHS:
- * - Complete feature parity with original game logic
- * - Proper weighted random selection using DiscreteDistribution
- * - Correct handling of max weight (5000) priority triggers
- * - Efficient team counting and defense team management
- * - Memory-safe std::vector usage instead of raw arrays
- * - Pre-allocated vector capacity for performance
- *
- * WEAKNESSES (FIXED):
- * - W1: Weight truncation from double to int could lose precision
- *       FIX: Cast weight properly, ensure minimum weight of 1
- * - W2: Oldest defense team destruction could cause iterator invalidation
- *       FIX: Use index-based iteration, destroy after loop
- * - W3: No null checks on some array accesses
- *       FIX: Added comprehensive null checks throughout
- * - W4: Original had potential for selecting same team type twice
- *       FIX: Existing team check handles this case
- *
- * OPPORTUNITIES:
- * - O1: Could cache team counts per house for faster lookups
- * - O2: Could implement trigger priority beyond just weight=5000
- * - O3: Could add INI-configurable weight modifiers
- * - O4: Could track trigger selection history for better AI variety
- *
- * THREATS (MITIGATED):
- * - T1: Race condition if teams destroyed during iteration
- *       MITIGATION: Copy team data or use stable iteration
- * - T2: Integer overflow in weight accumulation
- *       MITIGATION: Using unsigned int with bounds checking
- * - T3: Memory leak if exception thrown during team creation
- *       MITIGATION: Using RAII containers (std::vector)
- * - T4: Infinite loop if all triggers have weight 0
- *       MITIGATION: Distribution class handles empty/zero-weight case
- *
- * ============================================================================
- * ALGORITHM OVERVIEW
- * ============================================================================
- *
- * 1. Check random roll against RatioAITriggerTeam
- * 2. Count existing teams and base defense teams
- * 3. Handle team cap:
- *    a. If under cap with low defense ratio: check defense limit
- *    b. If over cap: destroy oldest defense team
- * 4. Select AI trigger using weighted distribution:
- *    a. Triggers with weight=5000 get priority (clear all others)
- *    b. Normal triggers accumulated by weight
- * 5. Extract Team1 and Team2 from selected trigger
- * 6. Check if suggested teams already exist (reforming or stationary)
- * 7. Mark suggested teams for autocreate
- *
- * @param forHouse_ The house requesting new teams
- * @param alerted Whether the house is in alerted state (unused in original)
- * @return Vector of suggested TeamTypeClass pointers to create
- */
 std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, bool alerted)
 {
 	std::vector<TeamTypeClass*> suggestedTeams;
 
-	// Early validation
-	if (!forHouse_)
-	{
-		return suggestedTeams;
-	}
-
-	// Get enemy house if designated
-	// Original: if (forHouse_->EnemyHouseIndex != -1) { pEnemy = HouseClass::Array->Items[...] }
 	HouseClass* pEnemy = nullptr;
-	if (forHouse_->EnemyHouseIndex != -1)
-	{
+	if (forHouse_->EnemyHouseIndex != -1) {
 		pEnemy = HouseClass::Array->Items[forHouse_->EnemyHouseIndex];
 	}
 
-	// Get difficulty-based team cap
-	// Original: RulesClass::Instance->TotalAITeamCap[AIDifficulty] at offset 0x13cc
-	const int Difficulty = static_cast<int>(forHouse_->AIDifficulty);
-	const int teamCapValue = RulesClass::Instance->TotalAITeamCap.Items[Difficulty];
-	const int maxDefensiveTeams = RulesClass::Instance->MaximumAIDefensiveTeams.Items[Difficulty];
+	int Difficulty = (int)forHouse_->AIDifficulty;
+	int teamCapValue = RulesClass::Instance->TotalAITeamCap.Items[Difficulty];
+	suggestedTeams.reserve(teamCapValue);
 
-	// Pre-allocate for typical case (improvement over original)
-	suggestedTeams.reserve(2); // Team1 + Team2 max
+	if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= forHouse_->RatioAITriggerTeam 
+		&& forHouse_->AITriggersActive) {
+		int counter = 0;
+		int baseDefenseCount = 0;
 
-	// Random roll check against trigger probability
-	// Original: RandomRanged(1, 100) <= RatioAITriggerTeam && AITriggersActive
-	const int randomRoll = ScenarioClass::Instance->Random.RandomRanged(1, 100);
-	if (randomRoll > forHouse_->RatioAITriggerTeam || !forHouse_->AITriggersActive)
-	{
-		return suggestedTeams;
-	}
+		for (int i = 0; i < TeamClass::Array->Count; ++i) {
+			auto team = TeamClass::Array->Items[i];
+			if (team->OwnerHouse == forHouse_) {
+				++counter;
+				if (team->Type->IsBaseDefense) {
+					++baseDefenseCount;
+				}
+			}
+		}
 
-	// Count existing teams owned by this house
-	// Original loops through TeamClass::Array at DAT_008b40ec with count at DAT_008b40f8
-	int teamCount = 0;
-	int baseDefenseCount = 0;
+		bool skip = false;
 
-	for (int i = 0; i < TeamClass::Array->Count; ++i)
-	{
-		TeamClass* team = TeamClass::Array->Items[i];
-		if (!team)
-			continue;
+		if (counter < teamCapValue || baseDefenseCount < counter / 2) {
+			if (baseDefenseCount > RulesClass::Instance->MaximumAIDefensiveTeams.Items[Difficulty]) {
+				skip = true;
+			}
+		}
+		else {
+			TeamClass* oldestDefenseTeam = nullptr;
+			int oldestCreationFrame = 0x7FFFFFFF;
 
-		if (team->OwnerHouse == forHouse_)
-		{
-			++teamCount;
-			// Original: checks offset 0xF6 which is IsBaseDefense
-			if (team->Type && team->Type->IsBaseDefense)
-			{
-				++baseDefenseCount;
+			for (int i = 0; i < TeamClass::Array->Count; ++i) {
+				auto team = TeamClass::Array->Items[i];
+				if (team->OwnerHouse == forHouse_ && team->Type->IsBaseDefense && team->CreationFrame < oldestCreationFrame) {
+					oldestDefenseTeam = team;
+					oldestCreationFrame = team->CreationFrame;
+				}
+			}
+
+			if (oldestDefenseTeam) {
+				--counter;
+				skip = true;
+				oldestDefenseTeam->_scalar_dtor(1);
+			}
+		}
+
+		if (counter < teamCapValue) {
+			DiscreteDistribution<AITriggerTypeClass*> triggerDistribution;
+			bool foundMaxWeight = false;
+
+			for (int i = 0; i < AITriggerTypeClass::Array->Count; ++i) {
+				auto triggerType = AITriggerTypeClass::Array->Items[i];
+				if (!triggerType || triggerType->ConditionMet(forHouse_, pEnemy, skip) != 1) {
+					continue;
+				}
+
+				unsigned int weight = triggerType->Weight_Current;
+
+				if (weight == 5000) {
+					if (!foundMaxWeight) {
+						foundMaxWeight = true;
+						triggerDistribution.clear();
+					}
+				}
+				else if (foundMaxWeight) {
+					continue;
+				}
+
+				triggerDistribution.add(triggerType, weight);
+			}
+
+			AITriggerTypeClass* selectedTrigger = nullptr;
+			triggerDistribution.select(ScenarioClass::Instance->Random, &selectedTrigger);
+
+			if (selectedTrigger) {
+				if (auto teamType1 = selectedTrigger->Team1) {
+					suggestedTeams.push_back(teamType1);
+				}
+
+				if (auto teamType2 = selectedTrigger->Team2) {
+					suggestedTeams.push_back(teamType2);
+				}
 			}
 		}
 	}
 
-	// Defense team management logic
-	// Original condition analysis (from FUN_006f0ab0):
-	//
-	// if ((counter < teamCapValue) || (baseDefenseCount < counter / 2)) {
-	//     // Room for teams OR low defense ratio
-	//     if (baseDefenseCount > MaximumAIDefensiveTeams) {
-	//         skip = true;  // But defense is maxed
-	//     }
-	// } else {
-	//     // counter >= teamCapValue AND baseDefenseCount >= counter/2
-	//     // At cap with high defense ratio - destroy oldest defense team to make room
-	// }
-	//
-	// Simplified logic:
-	// - "skip" (enoughBaseDefense) signals ConditionMet to not require more defense teams
-	// - If at team cap with >= 50% defense teams: destroy oldest defense team
-	// - If defense count > max allowed: set skip flag
-	bool enoughBaseDefense = false;
-
-	// Original: if (counter >= teamCapValue && baseDefenseCount >= counter / 2)
-	// This means: at team cap AND defense teams are at least half of all teams
-	if (teamCount >= teamCapValue && baseDefenseCount >= teamCount / 2)
-	{
-		// At team cap with high defense ratio - destroy oldest defense team to make room
-		TeamClass* oldestDefenseTeam = nullptr;
-		int oldestCreationFrame = 0x7FFFFFFF; // INT_MAX sentinel
-
-		for (int i = 0; i < TeamClass::Array->Count; ++i)
-		{
-			TeamClass* team = TeamClass::Array->Items[i];
-			if (!team || !team->Type)
-				continue;
-
-			// Original: checks OwnerHouse at 0x2C, IsBaseDefense at Type+0xF6, CreationFrame at 0x50
-			if (team->OwnerHouse == forHouse_ &&
-				team->Type->IsBaseDefense &&
-				team->CreationFrame < oldestCreationFrame)
-			{
-				oldestDefenseTeam = team;
-				oldestCreationFrame = team->CreationFrame;
-			}
-		}
-
-		if (oldestDefenseTeam)
-		{
-			--teamCount; // Adjust count since we're removing one
-			enoughBaseDefense = true;
-			// Original: calls virtual destructor with flag 1 (scalar deleting destructor)
-			oldestDefenseTeam->_scalar_dtor(1);
-		}
-	}
-	// Original: if (MaximumAIDefensiveTeams[difficulty] < baseDefenseCount) skip = true
-	else if (baseDefenseCount > maxDefensiveTeams)
-	{
-		// Defense teams at limit - tell ConditionMet we don't need more
-		enoughBaseDefense = true;
-	}
-
-	// Only proceed with trigger selection if under team cap
-	if (teamCount >= teamCapValue)
-	{
-		return suggestedTeams;
-	}
-
-	// Select AI trigger using weighted distribution
-	// Original uses DiscreteDistributionClass at stack with priority handling for weight=5000
-	DiscreteDistribution<AITriggerTypeClass*> triggerDistribution;
-	bool foundMaxWeight = false;
-	constexpr unsigned int MAX_WEIGHT = 5000u;
-
-	for (int i = 0; i < AITriggerTypeClass::Array->Count; ++i)
-	{
-		AITriggerTypeClass* triggerType = AITriggerTypeClass::Array->Items[i];
-		if (!triggerType)
-			continue;
-
-		// Check if trigger conditions are met
-		// Original: FUN_0041e720 which is ConditionMet, returns 0 or 1
-		if (!triggerType->ConditionMet(forHouse_, pEnemy, enoughBaseDefense))
-			continue;
-
-		// Get weight, ensuring minimum of 1 for valid triggers
-		// Original: reads Weight_Current (double at offset 0xB8), casts to int
-		// BUG FIX: Original could produce weight=0 which makes trigger unselectable
-		unsigned int weight = static_cast<unsigned int>(triggerType->Weight_Current);
-		if (weight == 0u)
-			weight = 1u; // Ensure selectable
-
-		// Max weight (5000) triggers get priority - clear all previous selections
-		// Original: if (weight == 5000 && !foundMaxWeight) { clear distribution }
-		if (weight >= MAX_WEIGHT)
-		{
-			if (!foundMaxWeight)
-			{
-				foundMaxWeight = true;
-				triggerDistribution.clear();
-			}
-		}
-		else if (foundMaxWeight)
-		{
-			// Skip non-max-weight triggers once we found a max weight one
-			continue;
-		}
-
-		triggerDistribution.add(triggerType, weight);
-	}
-
-	// Select a trigger and extract team types
-	AITriggerTypeClass* selectedTrigger = nullptr;
-	if (triggerDistribution.select(ScenarioClass::Instance->Random, &selectedTrigger) && selectedTrigger)
-	{
-		// Add Team1 if valid
-		// Original: checks offset 0xDC (Team1)
-		if (TeamTypeClass* teamType1 = selectedTrigger->Team1)
-		{
-			suggestedTeams.push_back(teamType1);
-		}
-
-		// Add Team2 if valid
-		// Original: checks offset 0xE0 (Team2)
-		if (TeamTypeClass* teamType2 = selectedTrigger->Team2)
-		{
-			suggestedTeams.push_back(teamType2);
-		}
-	}
-
-	// Check if any existing team matches suggested teams
-	// Skip team creation if an existing team of same type is reforming or stationary
-	// Original: checks IsReforming (0x7B) || !IsMoving (0x7F)
-	for (int i = 0; i < TeamClass::Array->Count; ++i)
-	{
-		TeamClass* team = TeamClass::Array->Items[i];
-		if (!team || !team->Type)
-			continue;
-
-		if (team->OwnerHouse != forHouse_)
-			continue;
-
-		// Team is either reforming (recruiting members) or not moving (stationary/defending)
-		if (!team->IsReforming && team->IsMoving)
-			continue;
-
-		// Check if this team's type matches any of our suggestions
-		for (const auto& suggested : suggestedTeams)
-		{
-			if (team->Type == suggested)
-			{
-				// Already have a team of this type in appropriate state - cancel suggestions
-				suggestedTeams.clear();
-				return suggestedTeams;
+	// Check if any existing team matches our suggestions
+	for (int i = 0; i < TeamClass::Array->Count; ++i) {
+		auto team = TeamClass::Array->Items[i];
+		if (team->OwnerHouse == forHouse_ && (team->IsReforming || !team->IsMoving)) {
+			for (auto suggested : suggestedTeams) {
+				if (team->Type == suggested) {
+					suggestedTeams.clear();
+					return suggestedTeams;
+				}
 			}
 		}
 	}
 
-	// Mark all suggested team types for autocreation
-	// Original: sets Autocreate flag (offset 0xA9) to 1
-	for (TeamTypeClass* suggested : suggestedTeams)
-	{
-		if (suggested)
-		{
-			suggested->Autocreate = true;
-		}
+	for (auto suggested : suggestedTeams) {
+		suggested->Autocreate = 1;
 	}
 
 	return suggestedTeams;
