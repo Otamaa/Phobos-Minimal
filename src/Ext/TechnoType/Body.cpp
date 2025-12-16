@@ -1702,6 +1702,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->Convert_HumanToComputer.Read(exINI, pSection, "Convert.HumanToComputer");
 		this->Convert_ComputerToHuman.Read(exINI, pSection, "Convert.ComputerToHuman");
 
+		this->AutoDeath_OnOwnerChange.Read(exINI, pSection, "AutoDeath.OnOwnerChange");
+		this->AutoDeath_OnOwnerChange_HumanToComputer.Read(exINI, pSection, "AutoDeath.OnOwnerChange.HumanToComputer");
+		this->AutoDeath_OnOwnerChange_ComputerToHuman.Read(exINI, pSection, "AutoDeath.OnOwnerChange.ComputerToHuman");
+
 		this->ShadowSizeCharacteristicHeight.Read(exINI, pSection, "ShadowSizeCharacteristicHeight");
 
 		if(auto pTalkBuble = FileSystem::TALKBUBL_SHP()){

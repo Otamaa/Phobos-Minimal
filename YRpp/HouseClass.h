@@ -608,7 +608,7 @@ public:
 	// using it on wrong function can cause desyncs !
 	bool IsControlledByHuman() const  { JMP_THIS(0x50B730); }
 
-    //ControlledByCurrentPlayer , IsControlledByHuman
+    //ControlledByCurrentPlayer , IsControlledByHuman , Is_Player_Control
 	//bool IsControlledByCurrentPlayer() const { JMP_THIS(0x50B730); }
 	//{
 	//	bool result = CurrentPlayer;

@@ -467,7 +467,7 @@ public:
         }
         
         // Sort by cached Y values
-        pdqsort(cache.begin(), cache.end(),
+        std::sort(cache.begin(), cache.end(),
             [](const SortKey& a, const SortKey& b) {
                 return a.y < b.y;
             }

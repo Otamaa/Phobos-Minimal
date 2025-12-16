@@ -367,6 +367,30 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 	//auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
+	if (pTypeExt->Death_Method != KillMethod::None) {
+		const bool humanToComputer = pTypeExt->AutoDeath_OnOwnerChange_HumanToComputer.Get(pTypeExt->AutoDeath_OnOwnerChange);
+		const bool computerToHuman = pTypeExt->AutoDeath_OnOwnerChange_ComputerToHuman.Get(pTypeExt->AutoDeath_OnOwnerChange);
+
+		if (humanToComputer && computerToHuman)
+		{
+			TechnoExtData::KillSelf(pThis
+				, pTypeExt->Death_Method
+				, pTypeExt->AutoDeath_VanishAnimation );
+			return 0x70188C;
+		} else if (humanToComputer || computerToHuman) {
+			const bool I_am_human = pThis->Owner->IsControlledByHuman();
+
+			if (I_am_human != pNewOwner->IsControlledByHuman()) {
+				if ((I_am_human && humanToComputer) || (!I_am_human && computerToHuman)) {
+					TechnoExtData::KillSelf(pThis
+						, pTypeExt->Death_Method
+						, pTypeExt->AutoDeath_VanishAnimation);
+					return 0x70188C;
+				}
+			}
+		}
+	}
+
 	if (!pNewOwner->Type->MultiplayPassive &&  pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;

@@ -824,8 +824,8 @@ static bool CanDamageBridge(CellClass* cell, CoordStruct* coord)
 */
 
 //static PhobosMap<BuildingClass*, double> MergedDamage {};
-static HelperedVector<ObjectClass*> Targets;
-static HelperedVector<DamageGroup*> Handled;
+static DynamicVectorClass<ObjectClass*> Targets;
+static DynamicVectorClass<DamageGroup*> Handled;
 
 // inline int Distance_Level_Snap(const Coordinate& coord1, const Coordinate& coord2)
 // {
@@ -1524,10 +1524,10 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			DamageGroup* group = *g_begin;
 			// group could have been cleared by previous iteration.
 			// only handle if has not been handled already.
-			if (group && Targets.push_back_unique(group->Target))
+			if (group && Targets.insert_unique(group->Target))
 			{
 
-				Handled.clear();
+				Handled.reset();
 
 				// collect all slots containing damage groups for this target
 				std::for_each(g_begin, g_end, [group](DamageGroup* item)
@@ -1559,8 +1559,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		// move all the empty ones to the back, then remove them
 		groupvec.erase_if([](DamageGroup* pGroup)
  {
-	 if (!pGroup->Target)
-	 {
+	 if (!pGroup->Target || !pGroup->Target->IsAlive) {
 		 GameDelete<false, false>(pGroup);
 		 return true;
 	 }
@@ -1568,8 +1567,8 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 	 return false;
 		});
 
-		Targets.clear();
-		Handled.clear();
+		Targets.reset();
+		Handled.reset();
 	}
 
 	if(pWHExt->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage)){
@@ -2062,3 +2061,17 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 }
 
 #endif
+
+DamageState __fastcall TT_ReceiveDamage(TechnoClass* pThis, discard_t,
+	int* Damage,
+	int DistanceToEpicenter,
+	WarheadTypeClass* WH,
+	TechnoClass* Attacker,
+	bool IgnoreDefenses,
+	bool PreventsPassengerEscape,
+	HouseClass* SourceHouse)
+{
+	return pThis->ReceiveDamage(Damage, DistanceToEpicenter, WH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
+}
+
+DEFINE_FUNCTION_JUMP(CALL6, 0x489AB6, TT_ReceiveDamage);

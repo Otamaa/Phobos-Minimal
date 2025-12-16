@@ -984,6 +984,10 @@ public:
 	Valueable<TechnoTypeClass*> Convert_HumanToComputer;
 	Valueable<TechnoTypeClass*> Convert_ComputerToHuman;
 
+	Valueable<bool> AutoDeath_OnOwnerChange;
+	Nullable<bool> AutoDeath_OnOwnerChange_HumanToComputer;
+	Nullable<bool> AutoDeath_OnOwnerChange_ComputerToHuman;
+
 	Nullable<bool> TurretShadow;
 	Valueable<int> ShadowIndex_Frame;
 	PhobosMap<int, int> ShadowIndices;
@@ -1894,6 +1898,9 @@ public:
 		Infantry_DimWhenDisabled(),
 		Convert_HumanToComputer(),
 		Convert_ComputerToHuman(),
+		AutoDeath_OnOwnerChange(false),
+		AutoDeath_OnOwnerChange_HumanToComputer(),
+		AutoDeath_OnOwnerChange_ComputerToHuman(),
 		TurretShadow(),
 		ShadowIndex_Frame(0),
 		ShadowIndices(),
@@ -2911,6 +2918,9 @@ private:
 			.Process(this->Infantry_DimWhenDisabled)
 			.Process(this->Convert_HumanToComputer)
 			.Process(this->Convert_ComputerToHuman)
+			.Process(this->AutoDeath_OnOwnerChange)
+			.Process(this->AutoDeath_OnOwnerChange_HumanToComputer)
+			.Process(this->AutoDeath_OnOwnerChange_ComputerToHuman)
 			.Process(this->TalkbubbleVoices)
 			.Process(this->HarvesterDumpAmount)
 			.Process(this->HarvesterScanAfterUnload)
