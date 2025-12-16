@@ -329,7 +329,7 @@ MAKE_ENUM_FLAGS(TargetingConstraints);
 
 enum class TargetingPreference : char
 {
-	None = 0 , Offensive , Devensive
+	None = 0 , Offensive , Defensive
 };
 
 //TODO HelpText
@@ -515,7 +515,7 @@ enum class SuperWeaponAITargetingMode : BYTE
 	LowPowerAttack = 18,
 	DropPod = 19,
 	LightningRandom = 20 ,
-	LauchSite = 21 ,
+	LaunchSite = 21 ,
 	FindAuxTechno = 22 ,
 	IonCannon = 23
 };
