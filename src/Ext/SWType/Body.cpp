@@ -44,7 +44,7 @@ const AITargetingModeInfo SWTypeExtData::AITargetingModes[] =
 	{SuperWeaponAITargetingMode::PsychicDominator, SuperWeaponTarget::Infantry | SuperWeaponTarget::Unit, AffectedHouse::All, TargetingConstraints::Enemy | TargetingConstraints::DominatorInactive | TargetingConstraints::OffensiveCellClear , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::ParaDrop, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None, TargetingPreference::Offensive },
 	{SuperWeaponAITargetingMode::GeneticMutator, SuperWeaponTarget::Infantry, AffectedHouse::All, TargetingConstraints::OffensiveCellClear , TargetingPreference::None},
-	{SuperWeaponAITargetingMode::ForceShield, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::Enemy , TargetingPreference::Devensive},
+	{SuperWeaponAITargetingMode::ForceShield, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::Defensive},
 	{SuperWeaponAITargetingMode::NoTarget, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::Offensive, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraints::Enemy , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::Stealth, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies, TargetingConstraints::None, TargetingPreference::None },
@@ -59,7 +59,7 @@ const AITargetingModeInfo SWTypeExtData::AITargetingModes[] =
 	{SuperWeaponAITargetingMode::LowPowerAttack, SuperWeaponTarget::None, AffectedHouse::Owner, TargetingConstraints::Attacked | TargetingConstraints::LowPower, TargetingPreference::None },
 	{SuperWeaponAITargetingMode::DropPod, SuperWeaponTarget::None, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::LightningRandom, SuperWeaponTarget::AllCells, AffectedHouse::All, TargetingConstraints::None, TargetingPreference::None },
-	{SuperWeaponAITargetingMode::LauchSite, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
+	{SuperWeaponAITargetingMode::LaunchSite, SuperWeaponTarget::Building, AffectedHouse::None, TargetingConstraints::None , TargetingPreference::None},
 	{SuperWeaponAITargetingMode::FindAuxTechno , SuperWeaponTarget::AllTechnos , AffectedHouse::Owner , TargetingConstraints::None , TargetingPreference::None },
 	{SuperWeaponAITargetingMode::IonCannon, SuperWeaponTarget::AllTechnos, AffectedHouse::Enemies , TargetingConstraints::Enemy, TargetingPreference::Offensive }
 };
@@ -988,7 +988,7 @@ TargetResult SWTypeExtData::PickSuperWeaponTarget(SWTypeHandler* pNewType , cons
 			break;
 
 		return { pSuper->Owner->PreferredTargetCell ,SWTargetFlags::AllowEmpty };
-	case TargetingPreference::Devensive:
+	case TargetingPreference::Defensive:
 
 		if (!pSuper->Owner->PreferredDefensiveCell2.IsValid())
 			break;
@@ -1047,7 +1047,7 @@ TargetResult SWTypeExtData::PickSuperWeaponTarget(SWTypeHandler* pNewType , cons
 	{
 		return TargetingFuncs::GetOwnerBuildingAsTarget(pNewType, pTargeting);
 	}
-	case SuperWeaponAITargetingMode::LauchSite:
+	case SuperWeaponAITargetingMode::LaunchSite:
 	{
 		return TargetingFuncs::GetOwnerBuildingAsTarget(pNewType, pTargeting, true);
 	}
