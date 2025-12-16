@@ -7631,7 +7631,9 @@ void AEProperties::Recalculate(TechnoClass* pTechno) {
 	double Armor_Mult = _AEProp->ArmorMultiplier;
 	double Speed_Mult = _AEProp->SpeedMultiplier;
 
-	bool Cloak = pTechno->GetTechnoType()->Cloakable || pTechno->HasAbility(AbilityType::Cloak);
+	bool Cloak = pTechno->GetTechnoType()->Cloakable 
+		|| pTechno->HasAbility(AbilityType::Cloak)
+		|| pExt->AE.flags.Cloakable;
 
 	bool forceDecloak = false;
 	bool disableWeapons = false;

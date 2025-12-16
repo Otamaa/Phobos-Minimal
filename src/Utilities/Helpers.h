@@ -187,6 +187,9 @@ namespace Helpers {
 					bool isCenter = pCell->MapCoords == cellCoords;
 					for (NextObject obj(pCell->GetContent()); obj; ++obj)
 					{
+						if (!obj->IsAlive || obj->Health <= 0)
+							continue;
+
 						if (auto const pTechno = flag_cast_to<TechnoClass*, false>(*obj))
 						{
 
@@ -328,6 +331,9 @@ namespace Helpers {
 				bool isCenter = pCell->MapCoords == cellCoords;
 				for (NextObject obj(pCell->GetContent()); obj; ++obj)
 				{
+					if (!obj->IsAlive || obj->Health <= 0)
+						continue;
+
 					if (auto const pTechno = flag_cast_to<TechnoClass*, false>(*obj))
 					{
 
@@ -421,6 +427,9 @@ namespace Helpers {
 					bool isCenter = pCell->MapCoords == cellCoords;
 					for (NextObject obj(pCell->GetContent()); obj; ++obj)
 					{
+						if (!obj->IsAlive || obj->Health <= 0)
+							continue;
+
 						if (auto const pTechno = flag_cast_to<TechnoClass*, false>(*obj))
 						{
 

@@ -1421,12 +1421,15 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 				triggerDistribution.add(triggerType, weight);
 			}
 
-			if (auto selectedTrigger = triggerDistribution.select(ScenarioClass::Instance->Random.Random())) {
-				if (auto teamType1 = (*selectedTrigger)->Team1) {
+			AITriggerTypeClass* selectedTrigger = nullptr;
+			triggerDistribution.select(ScenarioClass::Instance->Random, &selectedTrigger);
+
+			if (selectedTrigger) {
+				if (auto teamType1 = selectedTrigger->Team1) {
 					suggestedTeams.push_back(teamType1);
 				}
 
-				if (auto teamType2 = (*selectedTrigger)->Team2) {
+				if (auto teamType2 = selectedTrigger->Team2) {
 					suggestedTeams.push_back(teamType2);
 				}
 			}

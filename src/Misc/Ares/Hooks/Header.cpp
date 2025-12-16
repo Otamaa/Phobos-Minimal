@@ -897,7 +897,7 @@ bool NOINLINE TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassi
 	}
 
 	// check for active cloak
-	if (pThis->IsCloakable() || pThis->HasAbility(AbilityType::Cloak))
+	if (pThis->Cloakable || pThis->HasAbility(AbilityType::Cloak))
 	{
 		if (TechnoExt_ExtData::CanSelfCloakNow(pThis))
 		{
