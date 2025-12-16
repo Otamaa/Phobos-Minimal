@@ -22,13 +22,7 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 			const auto pHouseExt = HouseExtContainer::Instance.Find(HouseOwner);
 
 			auto const nWhere = CellClass::Coord2Cell(Where);
-			bool const lauch = !nData.LaunchWaitcharge || pSuper->IsCharged;
 			bool const bIsCurrentPlayer = HouseOwner->IsCurrentPlayer();
-			bool const MoneyEligible = nData.LauchSW_IgnoreMoney || HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
-			bool const BattleDataEligible = nData.LauchSW_IgnoreBattleData || pHouseExt->CanTransactBattlePoints(pSWExt->BattlePoints_Amount);
-
-			bool const InhibitorEligible = nData.LaunchSW_IgnoreInhibitors || !pSWExt->HasInhibitor(HouseOwner, nWhere);
-			bool const DesignatorEligible = nData.LaunchSW_IgnoreDesignators || pSWExt->HasDesignator(HouseOwner, nWhere);
 
 			if (nData.LaunchGrant || nData.LaunchSW_Manual) {
 				if (pSuper->Grant(nData.LaunchGrant_OneTime, !bIsCurrentPlayer, nData.LaunchGrant_OnHold)) {
@@ -40,7 +34,16 @@ bool Helpers::Otamaa::LauchSW(const LauchSWData& nData,
 				}
 			}
 
-			auto const mostCheckPasses = !nData.LaunchSW_RealLauch || pSuper->Granted && lauch && !pSuper->IsOnHold && MoneyEligible && BattleDataEligible && InhibitorEligible && DesignatorEligible;
+			// check these after grant
+			bool const chargeStae = !nData.LaunchWaitcharge || pSuper->IsCharged;
+			bool const MoneyEligible = nData.LauchSW_IgnoreMoney || HouseOwner->CanTransactMoney(pSWExt->Money_Amount.Get());
+			bool const BattleDataEligible = nData.LauchSW_IgnoreBattleData || pHouseExt->CanTransactBattlePoints(pSWExt->BattlePoints_Amount);
+
+			bool const InhibitorEligible = nData.LaunchSW_IgnoreInhibitors || !pSWExt->HasInhibitor(HouseOwner, nWhere);
+			bool const DesignatorEligible = nData.LaunchSW_IgnoreDesignators || pSWExt->HasDesignator(HouseOwner, nWhere);
+
+			auto const mostCheckPasses = !nData.LaunchSW_RealLauch || 
+				pSuper->Granted && chargeStae && !pSuper->IsOnHold && MoneyEligible && BattleDataEligible && InhibitorEligible && DesignatorEligible;
 
 			if (mostCheckPasses && !nData.LaunchSW_Manual) {
 
