@@ -34,7 +34,7 @@ struct HelperedVector : public std::vector<T , A>
 
 	template <typename Func>
 	void FORCEDINLINE remove_all_duplicates(Func&& act) {
-		pdqsort(this->begin(), this->end(), std::forward<Func>(act));
+		std::sort(this->begin(), this->end(), std::forward<Func>(act));
 		this->erase(std::unique(this->begin(), this->end()), this->end());
 	}
 

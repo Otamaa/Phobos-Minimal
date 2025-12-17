@@ -137,7 +137,7 @@ ASMJIT_PATCH(0x71ECE1, TriggerClass_SpyAsInfantryOrHouse, 0x8)			// SpyAsInfantr
 // TriggerClass::RegisterEvent(...) rewrite
 ASMJIT_PATCH(0x7264C0, TriggerClass_RegisterEvent_ForceSequentialEvents, 0x7)
 {
-	enum { SkipGameCode = 0x7265B1 };
+	enum { SkipGameCode = 0x7265B8 };
 
 	GET(TriggerClass*, pThis, ECX);
 	GET_STACK(TriggerEvent, nEvent, 0x4);

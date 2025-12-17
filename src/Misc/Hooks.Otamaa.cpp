@@ -4321,7 +4321,7 @@ ASMJIT_PATCH(0x461225, BuildingTypeClass_ReadFromINI_Foundation, 0x6)
 			}
 
 			//Sort, remove dupes, add end marker
-			pdqsort(pBldext->CustomData.begin(), itData,
+			std::sort(pBldext->CustomData.begin(), itData,
 			[](const CellStruct& lhs, const CellStruct& rhs)
 			{
 				if (lhs.Y != rhs.Y)
@@ -7427,4 +7427,18 @@ ASMJIT_PATCH(0x5F7577, ObjectTypeClass_DTOR_Voxel, 0x6) {
 
 //ASMJIT_PATCH(0x6f4974, TechnoClass_UpdateDiscovered_ByPlayer_Announce, 0x6) {
 //	//play eva , once ?
+//}
+
+//ASMJIT_PATCH(0x5F6360, ObjectClass_Distance, 0x5)
+//{
+//	GET_STACK(DWORD, caller, 0x0);
+//	GET_STACK(ObjectClass*, pTarget, 0x4);
+//
+//	if (!pTarget || !pTarget->IsAlive && pTarget->AbstractFlags != AbstractFlags::None) {
+//		Debug::Log("Caller %x\n", caller);
+//		R->EAX(0);
+//		return 0x5F6376;
+//	}
+//
+//	return 0x0;
 //}

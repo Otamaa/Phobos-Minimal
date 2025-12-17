@@ -771,14 +771,14 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 }
 
 //https://github.com/Phobos-developers/Phobos/issues/629
-void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const
+void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSource, HouseClass* pSourceHouse,  int* pDamage) const
 {
 	//auto const pExt = TechnoExtContainer::Instance.Find(pVictim);
 
 	// AffectsAbove/BelowPercent & AffectsNeutral can ignore IgnoreDefenses like AffectsAllies/Enmies/Owner
 	// They should be checked here to cover all cases that directly use ReceiveDamage to deal damage
 	if (!this->IsHealthInThreshold(pVictim) || (!this->AffectsNeutral && pVictim->Owner->IsNeutral())) {
-		*pArgs->Damage = 0;
+		*pDamage = 0;
 		return;
 	}
 
@@ -791,31 +791,31 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	auto const& nAllyMod = AffectAlly_Damage_Mod;
 	auto const& nOwnerMod = AffectOwner_Damage_Mod;
 	auto const& nEnemyMod = AffectEnemies_Damage_Mod;
-	auto const pVictimHouse = pVictim->GetOwningHouse();
+	auto const pVictimHouse = pVictim->Owner;
 
 	if ((nAllyMod.isset() && nOwnerMod.isset() && nEnemyMod.isset()))
 	{
-		auto const pHouse = pArgs->SourceHouse ? pArgs->SourceHouse : pArgs->Attacker ? pArgs->Attacker->GetOwningHouse() : HouseExtData::FindFirstCivilianHouse();
+		auto const pHouse = pSourceHouse ? pSourceHouse :pSource ? pSource->Owner : HouseExtData::FindFirstCivilianHouse();
 
 		if (pHouse && pVictimHouse)
 		{
 			auto const pWH = This();
-			const int nDamage = *pArgs->Damage;
+			const int nDamage = *pDamage;
 
 			if (pVictimHouse != pHouse)
 			{
 				if (pVictimHouse->IsAlliedWith(pHouse) && pWH->AffectsAllies && nAllyMod.isset())
 				{
-					*pArgs->Damage = static_cast<int>(nDamage * nAllyMod.Get());
+					*pDamage = static_cast<int>(nDamage * nAllyMod.Get());
 				}
 				else if (AffectsEnemies.Get() && nEnemyMod.isset())
 				{
-					*pArgs->Damage = static_cast<int>(nDamage * nEnemyMod.Get());
+					*pDamage = static_cast<int>(nDamage * nEnemyMod.Get());
 				}
 			}
 			else if (AffectsOwner.Get() && nOwnerMod.isset())
 			{
-				*pArgs->Damage = static_cast<int>(nDamage * nOwnerMod.Get());
+				*pDamage = static_cast<int>(nDamage * nOwnerMod.Get());
 			}
 		}
 	}
@@ -824,9 +824,8 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	//this abomination is always active
 	const auto pRulesExt = RulesExtData::Instance();
 	double multiplier = 1.0;
-	auto pSourceHouse = pArgs->SourceHouse;
 
-	if (pArgs->Attacker && pArgs->Attacker->Berzerk)
+	if (pSource && pSource->Berzerk)
 	{
 		if (!pSourceHouse || !pVictimHouse || !pSourceHouse->IsAlliedWith(pVictimHouse))
 			multiplier = this->DamageEnemiesMultiplier_Berzerk.Get(pRulesExt->DamageEnemiesMultiplier_Berzerk.Get(pRulesExt->DamageEnemiesMultiplier));
@@ -846,9 +845,9 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamag
 	}
 
 	if (multiplier != 1.0) {
-		const auto sgnDamage = *pArgs->Damage > 0 ? 1 : -1;
-		const auto calculateDamage = static_cast<int>(*pArgs->Damage * multiplier);
-		*pArgs->Damage = calculateDamage ? calculateDamage : sgnDamage;
+		const auto sgnDamage = *pDamage > 0 ? 1 : -1;
+		const auto calculateDamage = static_cast<int>(*pDamage * multiplier);
+		*pDamage = calculateDamage ? calculateDamage : sgnDamage;
 	}
 }
 

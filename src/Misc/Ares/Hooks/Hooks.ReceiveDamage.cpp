@@ -599,11 +599,752 @@ static bool IsTechnoImmuneToAffects(TechnoClass* pTechno, Rank rank, WarheadType
 }
 
 #include <Utilities/DebrisSpawners.h>
+#ifndef _enable
+
+DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis, 
+	discard_t,
+	int* damage, 
+	int distance, 
+	WarheadTypeClass* warhead,
+	TechnoClass* source,
+	bool ignoreDefenses,
+	bool PreventsPassengerEscape,
+	HouseClass* sourceHouse)
+{
+
+    DamageState _res = DamageState::Unaffected;
+	bool _isNegativeDamage = *damage < 0;
+	auto pType = pThis->GetTechnoType();
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pSourceHouse = source ? source->Owner : sourceHouse;
+
+	 //Repair/Destroy bridges at Bridge Repair Huts buildings
+	 if (pWHExt->FakeEngineer_CanRepairBridges || pWHExt->FakeEngineer_CanDestroyBridges) {
+		const bool isBridgeDestroyed = MapClass::Instance->IsLinkedBridgeDestroyed(CellClass::Coord2Cell(pThis->GetCenterCoords()));
+		const bool destroyBridge = !isBridgeDestroyed && pWHExt->FakeEngineer_CanRepairBridges ? false : pWHExt->FakeEngineer_CanDestroyBridges;
+		WarheadTypeExtData::DetonateAtBridgeRepairHut(pThis, nullptr, pSourceHouse, destroyBridge);
+	 }
+
+	 // Capture enemy buildings
+	 auto const pBuilding = cast_to<BuildingClass*, false>(pThis);
+
+	 if (pBuilding && pWHExt->FakeEngineer_CanCaptureBuildings
+	 	&& !pSourceHouse->IsAlliedWith(pThis->Owner)
+	 	&& (pBuilding->Type->Capturable || pBuilding->Type->NeedsEngineer)) {
+
+			// Send engineer's "enter" event
+			auto const pTag = pBuilding->AttachedTag;
+			if (source && pTag)
+				pTag->RaiseEvent(TriggerEvent::EnteredBy, source, CellStruct::Empty);
+
+	 		pBuilding->SetOwningHouse(pSourceHouse);
+	 }
+
+	 // Disarm bomb
+	 if (pThis->AttachedBomb && pWHExt->FakeEngineer_BombDisarm)
+	 	pThis->AttachedBomb->Disarm();
+
+	 args_ReceiveDamage args {}; {
+		args.Damage = damage;
+		args.DistanceToEpicenter = distance;
+		args.WH = warhead;
+		args.Attacker = source;
+		args.IgnoreDefenses = ignoreDefenses;
+		args.PreventsPassengerEscape = PreventsPassengerEscape;
+		args.SourceHouse = sourceHouse;
+	 };
+
+	pWHExt->ApplyDamageMult(pThis, source, sourceHouse, damage);
+	applyCombatAlert(pThis, &args);
+
+	if (source && (!source->IsAlive || source->Health <= 0) && !source->Owner)
+		source = nullptr; //clean up;
+
+	const bool canTergetHouse = pWHExt->CanTargetHouse(pSourceHouse, pThis);
+
+	if (!canTergetHouse) {
+		*damage = 0;
+		return DamageState::Unaffected;
+	} else
+		pExt->LastHurtFrame = Unsorted::CurrentFrame;
+
+	if (!pThis || !pThis->IsAlive || pThis->Health <= 0) {
+		return DamageState::NowDead;
+	}
+
+	const bool unkillable =
+		!pWHExt->CanKill || pExt->AE.flags.Unkillable;
+
+	if (!ignoreDefenses) {
+		*damage = TechnoExtData::CalculateBlockDamage(pThis, source, damage, warhead);
+
+		if (auto pShieldData = pExt->GetShield()) {
+			pShieldData->OnReceiveDamage(&args);
+		}
+	}
+
+	if (!ignoreDefenses && *damage >= 0) {
+		*damage = (int)TechnoExtData::GetArmorMult(pThis, (double)(*damage), warhead);
+
+		if (pExt->SkipLowDamageCheck) {
+			pExt->SkipLowDamageCheck = false;
+		} else {
+			// Restore overridden instructions
+			if (*damage < 1)
+				*damage = 1;
+		}
+
+		if (source && pType->TypeImmune) {
+			auto pAttackerType = source->GetTechnoType();
+			if (pType == pAttackerType && pThis->Owner == source->Owner) {
+				return DamageState::Unaffected;
+			}
+		}
+	}
+
+	if (pThis->IsIronCurtained() && !ignoreDefenses && !_isNegativeDamage) {
+		if (!(pThis->ProtectType == ProtectTypes::ForceShield ? pWHExt->PenetratesForceShield.Get(pWHExt->PenetratesIronCurtain) : pWHExt->PenetratesIronCurtain)) {
+			if (pThis->ProtectType == ProtectTypes::ForceShield)
+				MapClass::FlashbangWarheadAt(2 * (*damage), warhead, pThis->Location, true, SpotlightFlags::NoRed | SpotlightFlags::NoGreen);
+			else if (pWHExt->IC_Flash.Get(RulesExtData::Instance()->IC_Flash.Get()))
+				MapClass::FlashbangWarheadAt(2 * (*damage), warhead, pThis->Location, true, SpotlightFlags::NoColor);
+
+			*damage = 0;
+			return DamageState::Unaffected;
+		}
+	}
+
+	if ((pThis->IsBeingWarpedOut() && !ignoreDefenses && TechnoExtData::IsChronoDelayDamageImmune(flag_cast_to<FootClass*, false>(pThis))))
+	{
+		*damage = 0;
+		return DamageState::Unaffected;
+	}
+
+	if (pType->DamageReducesReadiness) {
+		const double v111 = pType->ReadinessReductionMultiplier * ((double)*damage / (double)pType->Strength);
+		const int _ammo = (int)((double)pThis->Ammo - (double)pType->Ammo * v111);
+		pThis->Ammo = MaxImpl(_ammo, 0);
+		pThis->StartReloading();
+	}
+
+	const auto nRank = pThis->Veterancy.GetRemainingLevel();
+
+	if (pThis->BunkerLinkedItem && !ignoreDefenses) {
+		if (auto pBld = cast_to<BuildingClass*, false>(pThis)) {
+			if (warhead->PenetratesBunker) {
+				*damage = 0;
+				return DamageState::Unaffected;
+			}
+		} else {
+			if (!warhead->PenetratesBunker && pThis->GetCell()->GetBuilding() == pThis->BunkerLinkedItem) {
+				*damage = 0;
+				return DamageState::Unaffected;
+			}
+		}
+	}
+
+	if (IsTechnoImmuneToAffects(pThis, nRank, warhead)) {
+		*damage = 0;
+		return DamageState::Unaffected;
+	}
+
+	if (warhead->Psychedelic)
+	{
+		if (TechnoExtData::IsPsionicsImmune(nRank, pThis) || TechnoExtData::IsBerserkImmune(nRank, pThis)) {
+			return DamageState::Unchanged;
+		}
+
+		if (pThis->Owner->IsAlliedWith(sourceHouse)) {
+			return DamageState::Unchanged;
+		}
+
+		if (pThis->WhatAmI() == AbstractType::Building) {
+			return DamageState::Unchanged;
+		}
+
+		if (!pWHExt->GoBerzerkFor((FootClass*)pThis, damage)) {
+			return DamageState::Unchanged;
+		}
+	}
+	else
+	{
+		// restoring TS berzerk cyborg
+		//this will happen regardless the immunity i guess
+		if (auto pInf = cast_to<InfantryClass*, false>(pThis))
+		{
+			if (RulesClass::Instance->BerzerkAllowed && pInf->Type->Cyborg && pThis->IsYellowHP())
+			{
+				if (!pInf->Berzerk)
+				{
+					pInf->Berzerk = true;
+					pInf->GoBerzerkFor(10);
+				}
+			}
+		}
+	}
+
+	PhobosAEFunctions::ApplyReflectDamage(pThis, damage, source, pSourceHouse, warhead);
+
+	if (source && !source->IsAlive)
+		source = nullptr;
+
+	// Check if the warhead can not kill targets
+	//we dont want to kill the thing , dont return
+	bool isActuallyAffected = false;
+	if (!ignoreDefenses && pThis->Health > 0 && unkillable && damage != 0 && *damage >= pThis->Health)
+	{
+		*damage = 0;
+		pThis->Health = 1;
+		pThis->EstimatedHealth = 1;
+		isActuallyAffected = true;
+	}
+	_res = pThis->ObjectClass::ReceiveDamage(damage, distance, warhead, source,ignoreDefenses, PreventsPassengerEscape, pSourceHouse);
+
+	const bool Show = Phobos::Otamaa::IsAdmin || *damage;
+
+	if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && Show)
+		FlyingStrings::DisplayDamageNumberString(*damage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset, Phobos::Debug_DisplayDamageNumbers, warhead);
+
+	if (!pThis->Health)
+	{
+		int nSelectedPowerup = -1;
+
+		if (pExt->DropCrate >= 0 && pExt->DropCrate == 1)
+		{
+			nSelectedPowerup = static_cast<int>(pExt->DropCrateType);
+		}
+		else if (pTypeExt->DropCrate.isset())
+		{
+			nSelectedPowerup = pTypeExt->DropCrate.Get();
+		}
+
+		if (nSelectedPowerup >= 0) {
+			TechnoExtData::TryToCreateCrate(pThis->Location, static_cast<PowerupEffects>(nSelectedPowerup));
+		}
+	}
+
+	GiftBoxFunctional::TakeDamage(pExt, pTypeExt, warhead, _res);
+
+	if (source && !pWHExt->Nonprovocative) {
+		pThis->Owner->UpdateAngerNodes((int)(pType->GetCost() * ((double)*damage / pType->Strength)),sourceHouse);
+	}
+
+	if (_res != DamageState::PostMortem && !pThis->IsAlive) {
+		return DamageState::NowDead;
+	}
+
+	if (_res == DamageState::PostMortem) {
+		return DamageState::PostMortem;
+	}
+
+	if (_res != DamageState::NowDead && _res != DamageState::Unaffected)
+	{
+		pThis->RadarFlashTimer.Start(RulesClass::Instance->RadarCombatFlashTime);
+		auto pBld = cast_to<BuildingClass*, false>(pThis);
+
+		if (warhead->CausesDelayKill && pBld && pBld->Type->EligibleForDelayKill)
+		{
+			const int v22 = (int)(((double)warhead->DelayKillAtMax * (double)warhead->DelayKillFrames - (double)warhead->DelayKillFrames)
+				 / (double)((int)warhead->CellSpread << 8)
+				 * (double)distance
+				 + (double)warhead->DelayKillFrames);
+
+			if (pBld->IsGoingToBlow)
+			{
+				int Started = pBld->GoingToBlowTimer.StartTime;
+				int DelayTime = pBld->GoingToBlowTimer.TimeLeft;
+
+				if (Started != -1)
+				{
+
+					if (Unsorted::CurrentFrame - Started >= DelayTime)
+						DelayTime = 0;
+					else
+						DelayTime -= Unsorted::CurrentFrame - Started;
+
+				}
+
+				if ((int)v22 < DelayTime)
+				{
+					pBld->IsGoingToBlow = 1;
+					pBld->GoingToBlowTimer.Start(v22);
+				}
+			}
+			else
+			{
+				pBld->IsGoingToBlow = 1;
+				pBld->GoingToBlowTimer.Start(v22);
+			}
+
+			_res = DamageState::PostMortem;
+		}
+
+		if (pType->CanDisguise && !pType->PermaDisguise )
+		{
+
+			if (pThis->IsDisguised()) {
+				pThis->ClearDisguise();
+			}
+
+			pThis->InfantryBlinkTimer.Start(2 * *damage);
+		}
+	}
+
+	if (!pThis->Health) {
+		_res = DamageState::NowDead;
+	}
+
+	switch (_res)
+	{
+	case DamageState::Unaffected:
+	case DamageState::NowRed:
+		break;
+	case DamageState::Unchanged:
+	{
+		VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
+
+		if (!pWHExt->Malicious && source && source->IsAlive && !pWHExt->Nonprovocative) {
+			if ((pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman()) {
+				pThis->BaseIsAttacked(source);
+			}
+		}
+
+		break;
+	}
+	case DamageState::NowYellow:
+	{
+		if (pType->VoiceFeedback.Count > 0
+			&& Random2Class::NonCriticalRandomNumber->RandomRanged(0, 99) < 30
+			 && pThis->Owner->ControlledByCurrentPlayer())
+		{
+			const int feedbackIndex = pType->VoiceFeedback.Count > 1 ? Random2Class::NonCriticalRandomNumber->RandomRanged(0, pType->VoiceFeedback.Count - 1) : 0;
+			VocClass::SafeImmedietelyPlayAt(pType->VoiceFeedback.Items[feedbackIndex], &pThis->Location, 0);
+		}
+
+		break;
+	}
+	case DamageState::NowDead:
+	{
+		if (pWHExt->Supress_LostEva.Get())
+			pExt->SupressEVALost = true;
+
+		GiftBoxFunctional::Destroy(pExt, pTypeExt);
+
+		if(!pExt->PhobosAE.empty()){
+			std::vector<std::pair<WeaponTypeClass*, TechnoClass*>> expireWeapons {};
+			std::set<PhobosAttachEffectTypeClass*> cumulativeTypes {};
+
+			for (auto const& attachEffect : pExt->PhobosAE) {
+
+				auto const pAEType = attachEffect->GetType();
+
+				if (pAEType->ExpireWeapon && (pAEType->ExpireWeapon_TriggerOn & ExpireWeaponCondition::Death) != ExpireWeaponCondition::None) {
+					if (!pAEType->Cumulative || !pAEType->ExpireWeapon_CumulativeOnlyOnce || !cumulativeTypes.contains(pAEType)) {
+						if (pAEType->Cumulative && pAEType->ExpireWeapon_CumulativeOnlyOnce)
+							cumulativeTypes.insert(pAEType);
+
+						if (pAEType->ExpireWeapon_UseInvokerAsOwner) {
+							if (auto const pInvoker = attachEffect->GetInvoker())
+								expireWeapons.emplace_back(pAEType->ExpireWeapon, pInvoker);
+						} else {
+							expireWeapons.emplace_back(pAEType->ExpireWeapon, pThis);
+						}
+					}
+				}
+			}
+
+			PhobosAttachEffectClass::DetonateExpireWeapon(expireWeapons);
+		}
+
+		if (!pThis->IsAlive)
+			return DamageState::NowDead;
+
+		if (auto pManager = pThis->SlaveManager) {
+			pManager->Killed(source);
+		}
+
+		if (pThis->DrainTarget)
+		{
+			if (auto DrainAnim = std::exchange(pThis->DrainAnim, nullptr))
+			{
+				DrainAnim->RemainingIterations = 0;
+				DrainAnim->UnInit();
+				DrainAnim = nullptr;;
+			}
+
+			pThis->DrainTarget->DrainingMe = 0;
+			if (auto pDrainingTargetOwn = pThis->DrainTarget->Owner)
+			{
+				pDrainingTargetOwn->RecheckPower = true;
+			}
+
+			pThis->DrainTarget = 0;
+		}
+
+		if (auto pDrainer = pThis->DrainingMe)
+		{
+			if (auto DrainAnim = std::exchange(pDrainer->DrainAnim, nullptr))
+			{
+				DrainAnim->RemainingIterations = 0;
+				DrainAnim->UnInit();
+				DrainAnim = nullptr;;
+			}
+
+			if (pDrainer->DrainTarget)
+			{
+				pDrainer->DrainTarget->DrainingMe = 0;
+				if (auto pDrainingTargetOwn = pDrainer->DrainTarget->Owner)
+				{
+					pDrainingTargetOwn->RecheckPower = true;
+				}
+
+				pDrainer->DrainTarget = 0;
+			}
+		}
+
+		if (auto pManager = pThis->CaptureManager)
+		{
+			pManager->FreeAll();
+		}
+
+		if (pType->VoiceDie.Count > 0 && pThis->Owner->ControlledByCurrentPlayer())
+		{
+			auto const& nSound = pWHExt->DieSound_Override;
+
+			if (nSound.isset())
+			{
+				VocClass::SafeImmedietelyPlayAt(nSound, &pThis->Location);
+			}
+			else
+			{
+				VocClass::SafeImmedietelyPlayAt(pType->VoiceDie[pType->VoiceDie.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->VoiceDie.Count - 1)], &pThis->Location);
+			}
+		}
+
+		if (pType->DieSound.Count > 0)
+		{
+			auto const& nSound = pWHExt->VoiceSound_Override;
+
+			if (nSound.isset())
+			{
+				VocClass::SafeImmedietelyPlayAt(nSound, &pThis->Location);
+			}
+			else
+			{
+				VocClass::SafeImmedietelyPlayAt(pType->DieSound[pType->DieSound.Count == 1 ? 0 : Random2Class::NonCriticalRandomNumber->RandomFromMax(pType->DieSound.Count - 1)], &pThis->Location);
+			}
+		}
+
+		if (TechnoTypeExtContainer::Instance.Find(pType)->TiberiumSpill)
+		{
+			const auto pBld = cast_to<BuildingClass*, false>(pThis);
+
+			if (pBld && !pBld->Type->Weeder)
+			{
+				auto storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
+				double stored = storage->GetAmounts();
+
+				if (stored > 0.0
+					&& !ScenarioClass::Instance->SpecialFlags.StructEd.HarvesterImmune)
+				{
+					// don't spill more than we can hold
+					double max = 9.0;
+					if (max > pType->Storage)
+					{
+						max = pType->Storage;
+					}
+
+					const int nIdx = storage->GetHighestStorageIdx();
+
+					// assume about half full, recalc if possible
+					int value = static_cast<int>(max / 2);
+					if (pType->Storage > 0)
+					{
+						value = int(stored / pType->Storage * max);
+					}
+
+					// get the spill center
+					TechnoClass::SpillTiberium(value, nIdx, MapClass::Instance->GetCellAt(pThis->GetCoords()), { 0,2 });
+				}
+			}
+		}
+
+		pThis->SendToEachLink(RadioCommand::NotifyUnlink);
+		pThis->Stun();
+
+		if (pTypeExt->TiberiumRemains.Get(pType->TiberiumHeal && RulesExtData::Instance()->Tiberium_HealEnabled))
+		{
+			int nIdx = pExt->TiberiumStorage.GetHighestStorageIdx();
+			const CellClass* pCenter = MapClass::Instance->GetCellAt(pThis->Location);
+
+			// increase the tiberium for the four neighbours and center.
+			// center is retrieved by getting a neighbour cell index >= 8
+			for (int i = 0; i < 8; i += 2)
+			{
+				pCenter->GetNeighbourCell((FacingType)i)->IncreaseTiberium(nIdx, ScenarioClass::Instance->Random.RandomFromMax(2));
+			}
+		}
+
+		if (auto& pParticleZero = pThis->Sys.Fire) {
+			pParticleZero->UnInit();
+		}
+
+		if (pThis->GetHeight() > 0 || !pThis->IsABomb || pThis->GetCell()->LandType != LandType::Water)
+		{
+			std::optional<bool> limited {};
+			if (pTypeExt->DebrisTypes_Limit.isset()) {
+				limited = pTypeExt->DebrisTypes_Limit.Get();
+			}
+
+			auto spawn_coords = pThis->GetCoords();
+			DebrisSpawners::Spawn(pType->MinDebris,pType->MaxDebris,
+			spawn_coords, pType->DebrisTypes,
+			pType->DebrisAnims ,pType->DebrisMaximums, pTypeExt->DebrisMinimums, limited, source, source ? source->Owner : sourceHouse, pThis->Owner);
+
+			auto pWeapon = pThis->GetWeapon(pThis->CurrentWeaponNumber)->WeaponType;
+			if (pType->Explodes || pThis->HasAbility(AbilityType::Explodes) || (pWeapon && pWeapon->Suicide))
+			{
+				const bool refuseToExplode = pThis->WhatAmI() == AbstractType::Building
+					&& !BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup
+					&& (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling);
+
+				if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers)
+				{
+
+					while (pThis->Passengers.FirstPassenger)
+					{
+						auto pPassenger = pThis->Passengers.GetFirstPassenger();
+						if (auto pTeam = pPassenger->Team)
+						{
+							pTeam->RemoveMember(pPassenger);
+						}
+
+						if (auto pPassengerremoved = pThis->Passengers.RemoveFirstPassenger())
+						{
+							pPassengerremoved->RegisterDestruction(source);
+							TechnoExtData::HandleRemove(pPassengerremoved, source, false, false);
+						}
+					}
+				}
+
+				if (!refuseToExplode && !pWHExt->ApplySuppressDeathWeapon(pThis))
+					pThis->FireDeathWeapon(0);
+			}
+
+			if (source && source->IsAlive) {
+				auto SourCoords = source->Location;
+
+				if (!pWHExt->SuppressRevengeWeapons)
+				{
+					if (pTypeExt->RevengeWeapon &&
+						EnumFunctions::CanTargetHouse(pTypeExt->RevengeWeapon_AffectsHouses, pThis->Owner, source->Owner) &&
+						(pWHExt->SuppressRevengeWeapons_Types.empty() || !pWHExt->SuppressRevengeWeapons_Types.Contains(pTypeExt->RevengeWeapon)))
+					{
+						WeaponTypeExtData::DetonateAt1(pTypeExt->RevengeWeapon.Get(), source, pThis, true, nullptr);
+					}
+
+					if (source->IsAlive) {
+						for (const auto& weapon : pExt->RevengeWeapons) {
+							if (EnumFunctions::CanTargetHouse(weapon.ApplyToHouses, pThis->Owner, source->Owner) && (pWHExt->SuppressRevengeWeapons_Types.empty() || !pWHExt->SuppressRevengeWeapons_Types.Contains(weapon.Value)))
+								WeaponTypeExtData::DetonateAt1(weapon.Value, source, pThis, true, nullptr);
+						}
+					}
+				}
+
+				if (source->IsAlive)
+					TechnoExtData::ApplyKillWeapon(pThis, source, warhead);
+
+				if (source->IsAlive)
+					PhobosAEFunctions::ApplyRevengeWeapon(pThis, source, warhead);
+			}
+
+			if (auto pBomb = pThis->AttachedBomb)
+			{
+				pBomb->Detonate();
+			}
+
+			return _res;
+		} else {
+
+			VocClass::SafeImmedietelyPlayAt(pType->DamageSound, &pThis->Location, 0);
+
+			if (source && source->IsAlive && (pType->ToProtect || pThis->__ProtectMe_3CF) && !pThis->Owner->IsControlledByHuman()) {
+				pThis->BaseIsAttacked(source);
+			}
+		}
+	}
+		break;
+	case DamageState::PostMortem:
+	{
+		pThis->IsAlive = true;
+		pThis->Health = 1;
+		return DamageState::PostMortem;
+	}
+	default:
+		break;
+	}
+
+	if (source && !pThis->Owner->IsAlliedWith(source)) {
+		pThis->IsTickedOff = 1;
+	}
+
+	bool IsAffected = _res != DamageState::Unaffected || isActuallyAffected;
+	bool bAffected = false;
+	if (IsAffected || ignoreDefenses || _isNegativeDamage || *damage) {
+		if (IsAffected && !_isNegativeDamage) {
+			const auto rank = pThis->Veterancy.GetRemainingLevel();
+			const auto fromTechno = pTypeExt->SelfHealing_CombatDelay.GetFromSpecificRank(rank);
+			const int amount = pWHExt->SelfHealing_CombatDelay.GetFromSpecificRank(rank)
+				->Get(fromTechno);
+
+			//the timer will always restart
+			//not accumulated
+			if (amount > 0) {
+				pExt->SelfHealing_CombatDelay.Start(amount);
+			}
+		}
+	}
+	else { bAffected = true; }
+
+	//const auto pHouse = args.Attacker ? args.Attacker->Owner : args.SourceHouse;
+
+	if (IsAffected && pWHExt->DecloakDamagedTargets.Get())
+		pThis->Reveal();
+
+	const auto bCond1 = (!bAffected || !pWHExt->EffectsRequireDamage);
+	const auto bCond2 = (!pWHExt->EffectsRequireVerses || (pWHExt->GetVerses(TechnoExtData::GetTechnoArmor(pThis, warhead)).Verses >= 0.0001));
+
+	if (bCond1 && bCond2)
+	{
+		AresWPWHExt::applyKillDriver(args.WH, pSourceHouse, pThis);
+
+		if (pWHExt->Sonar_Duration > 0)
+		{
+			auto& nSonarTime = TechnoExtContainer::Instance.Find(pThis)->CloakSkipTimer;
+			if (pWHExt->Sonar_Duration > nSonarTime.GetTimeLeft())
+			{
+				nSonarTime.Start(pWHExt->Sonar_Duration);
+
+				if (pThis->CloakState != CloakState::Uncloaked)
+				{
+					pThis->Uncloak(true);
+					pThis->NeedsRedraw = true;
+				}
+			}
+		}
+
+		if (pWHExt->DisableWeapons_Duration > 0)
+		{
+			auto& nTimer = TechnoExtContainer::Instance.Find(pThis)->DisableWeaponTimer;
+			if (pWHExt->DisableWeapons_Duration > nTimer.GetTimeLeft())
+			{
+				nTimer.Start(pWHExt->DisableWeapons_Duration);
+			}
+		}
+	}
+
+	if (pThis->GetHealthPercentage() <= RulesClass::Instance->ConditionYellow)
+	{
+		if (_res == DamageState::NowYellow || _res == DamageState::NowRed)
+		{
+			StackVector<ParticleSystemTypeClass*, 15u> _Particles {};
+			const auto allowAny = pTypeExt->ParticleSystems_DamageSmoke.HasValue();
+
+			for (const auto pSystem : pTypeExt->ParticleSystems_DamageSmoke.GetElements(pType->DamageParticleSystems))
+			{
+				if (allowAny || pSystem->BehavesLike == ParticleSystemTypeBehavesLike::Smoke)
+				{
+					_Particles->push_back(pSystem);
+				}
+			}
+
+			if (!pThis->Sys.Damage && !_Particles->empty() && pThis->GetHeight() > -10)
+			{
+				CoordStruct _offs = pThis->Location + pType->GetParticleSysOffset();
+				pThis->Sys.Damage =
+					GameCreate<ParticleSystemClass>(
+						_Particles[ScenarioClass::Instance->Random.RandomFromMax(_Particles->size() - 1)],
+						_offs,
+						nullptr,
+						pThis);
+			}
+		}
+	}
+	else
+	{
+		if (auto& pPart = pThis->Sys.Damage) {
+			pPart->UnInit();
+		}
+	}
+
+	if (_isNegativeDamage)
+	{
+		return _res;
+	}
+
+	const auto pFoot = flag_cast_to<FootClass*, false>(pThis);
+	auto Toretalitate = source;
+	if (source && source->InOpenToppedTransport && source->Transporter) {
+		Toretalitate = source->Transporter;
+	}
+
+	bool retaliate = false;
+	if (pThis->AllowToRetaliate(Toretalitate, warhead)) {
+		if (pThis->IsCloseEnough(source, pThis->SelectWeapon(source))
+			|| !pThis->Owner->IsControlledByHuman()
+			|| (((pType->Sight + 0.5) * 256.0) >= (Toretalitate->Location - pThis->Location).Length()))
+		{
+			pThis->Override_Mission(Mission::Attack, Toretalitate);
+		}
+
+		retaliate = true;
+	}
+
+	if (!pWHExt->PreventScatter) {
+		if (pFoot) {
+			if (!pFoot->Target && !pFoot->Destination) {
+				if (retaliate && (RulesClass::Instance->PlayerScatter || pFoot->HasAbility(AbilityType::Scatter))) {
+					pFoot->Scatter(CoordStruct::Empty, true, false);
+				} else if (!pFoot->IsTethered && pFoot->WhatAmI() != AircraftClass::AbsID && pThis->GetCurrentMissionControl()->Scatter) {
+					const bool IsMoving = pFoot->Locomotor.GetInterfacePtr()->Is_Moving();
+
+					if (!IsMoving) {
+						const bool IsHuman = pFoot->Owner->IsControlledByHuman();
+						const bool IsScatter = RulesClass::Instance->PlayerScatter;
+						const bool IscatterAbility = pFoot->HasAbility(AbilityType::Scatter);
+						if (!IsHuman || IsScatter || IscatterAbility)
+						{
+							pFoot->Scatter(CoordStruct::Empty, true, false);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return _res;
+}
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x701900 , FakeTechnoClass::__Take_Damage)
+DEFINE_FUNCTION_JUMP(CALL, 0x4D742C, FakeTechnoClass::__Take_Damage)
+DEFINE_FUNCTION_JUMP(CALL, 0x442425 , FakeTechnoClass::__Take_Damage)
+#else
 
 ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
+	GET_STACK(DWORD , caller , 0x0);
 	REF_STACK(args_ReceiveDamage, args, 0x4);
+
+	Debug::LogInfo("Last Techno {} : {} received damage is {} caller {} frame {}",
+		(void*)pThis,
+		pThis->GetTechnoType()->ID,
+		pThis->GetThisClassName(),
+		caller,
+		Unsorted::CurrentFrame()
+	);
 
 	DamageState _res = DamageState::Unaffected;
 	//int damage_ = *args.Damage;
@@ -1249,7 +1990,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 
 	if (bCond1 && bCond2)
 	{
-		AresWPWHExt::applyKillDriver(args.WH, args.Attacker, pThis);
+		//AresWPWHExt::applyKillDriver(args.WH, args.Attacker, pThis);
 
 		if (pWHExt->Sonar_Duration > 0)
 		{
@@ -1373,7 +2114,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	R->EAX(_res);
 	return 0x702D1F;
 }
-
+#endif
 #pragma endregion
 
 #pragma region Building

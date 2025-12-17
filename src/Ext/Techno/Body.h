@@ -1307,7 +1307,7 @@ public:
 	static void GetLevelIntensity(TechnoClass* pThis, int level, int& levelIntensity, int& cellIntensity, double levelMult, double cellMult, bool applyBridgeBonus = false);
 	static int GetDeployingAnimIntensity(FootClass* pThis);
 
-	static int CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* args);
+	static int CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource,  int* pDamage, WarheadTypeClass* WH);
 	static std::vector<double> GetBlockChance(TechnoClass* pThis, std::vector<double>& blockChance);
 
 protected:
@@ -1571,6 +1571,8 @@ public:
 	static void __fastcall  __Draw_Stuff_When_Selected(TechnoClass* pThis, discard_t, Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	static void __fastcall __DrawHealthBar_Selection(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect, bool unused);
 	static void __fastcall __Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct* startCoord, int startZ, int endZ, CoordStruct* endCoord);
+
+	static DamageState __fastcall __Take_Damage(TechnoClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 
 	//AI
 	static void __HandleGattlingAudio(TechnoClass* pThis);

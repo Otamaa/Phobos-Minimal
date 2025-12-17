@@ -924,7 +924,7 @@ public:
 	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false , bool checkImmune = true , bool checkLimbo = true) const;
 	bool CanAffectInvulnerable(TechnoClass* pTarget) const;
 	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const;
-	void ApplyDamageMult(TechnoClass* pVictim, args_ReceiveDamage* pArgs) const;
+	void ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSource, HouseClass* pSourceHouse,  int* pDamage) const;
 	void ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs) const;
 	void ApplyRevengeWeapon(TechnoClass* pTarget) const;
 	bool applyCulling(TechnoClass* pSource, ObjectClass* pTarget) const;

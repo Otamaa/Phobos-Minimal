@@ -912,10 +912,10 @@ int __fastcall FakeTechnoClass::_EvaluateJustCell(TechnoClass* pThis , discard_t
 	return int((double)pThis->GetWeaponRange(pSelectedWeapon) - distance);
 }
 
-int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* args)
+int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, TechnoClass* pSource,  int* pDamage, WarheadTypeClass* WH)
 {
-	int damage = *args->Damage;
-	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
+	int damage = *pDamage;
+	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(WH);
 
 	if (pWHExt->ImmuneToBlock)
 		return damage;
@@ -1026,11 +1026,9 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* 
 			}
 		}
 
-		const auto pFirer = args->Attacker;
-
-		if (pFirer)
+		if (pSource)
 		{
-			if (pFirer->Owner && !EnumFunctions::CanTargetHouse(blockAffectsHouses, pFirer->Owner, pThis->Owner))
+			if (pSource->Owner && !EnumFunctions::CanTargetHouse(blockAffectsHouses, pSource->Owner, pThis->Owner))
 				return damage;
 		}
 		else if (!blockCanActiveNoFirer)
@@ -1116,11 +1114,11 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* 
 					flags |= SpotlightFlags::NoBlue;
 			}
 
-			MapClass::FlashbangWarheadAt(size, args->WH, pThis->Location, true, flags);
+			MapClass::FlashbangWarheadAt(size, WH, pThis->Location, true, flags);
 		}
 
 		if (blockReflectDamage && blockReflectDamageChance >= ScenarioClass::Instance->Random.RandomDouble()
-			&& damage > 0 && pFirer && !pWHExt->SuppressReflectDamage && !pWHExt->Reflected)
+			&& damage > 0 && pSource && !pWHExt->SuppressReflectDamage && !pWHExt->Reflected)
 		{
 			auto pWHRef = pBlockType->Block_ReflectDamage_Warhead.Get(RulesClass::Instance->C4Warhead);
 			auto blockReflectDamageAffectsHouses = pBlockType->Block_ReflectDamage_AffectsHouses.Get(blockAffectsHouses);
@@ -1142,15 +1140,15 @@ int TechnoExtData::CalculateBlockDamage(TechnoClass* pThis, args_ReceiveDamage* 
 			if(overrider_2 && overrider_2->isset())
 				damageRef = overrider_2->Get();
 
-			if (EnumFunctions::CanTargetHouse(blockReflectDamageAffectsHouses, pThis->Owner, pFirer->Owner))
+			if (EnumFunctions::CanTargetHouse(blockReflectDamageAffectsHouses, pThis->Owner, pSource->Owner))
 			{
 				auto const pWHExtRef = WarheadTypeExtContainer::Instance.Find(pWHRef);
 				pWHExtRef->Reflected = true;
 
 				if (blockReflectDamageWHDetonate)
-					WarheadTypeExtData::DetonateAt(pWHRef, pFirer, pThis, damageRef, pThis->Owner);
-				else
-					pFirer->ReceiveDamage(&damage, 0, pWHRef, pThis, false, false, pThis->Owner);
+					WarheadTypeExtData::DetonateAt(pWHRef, pSource, pThis, damageRef, pThis->Owner);
+				else if(pSource->IsAlive && pSource->Health > 0)
+					pSource->ReceiveDamage(&damage, 0, pWHRef, pThis, false, false, pThis->Owner);
 
 				pWHExtRef->Reflected = false;
 			}
