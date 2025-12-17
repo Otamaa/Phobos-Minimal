@@ -428,17 +428,17 @@ int TechnoExtData::GetDeployingAnimIntensity(FootClass* pThis)
 
 // Draws airstrike targeting flare/beam between aircraft and target
 // With Ares/Phobos extensions for custom colors and Z-depth fix
-void __fastcall FakeTechnoClass::__Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct* startCoord, int startZ, int endZ, CoordStruct* endCoord)
+void __fastcall FakeTechnoClass::__Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct startCoord, CoordStruct endCoord)
 {
 	// [Hook 1: TechnoClass_DrawAirstrikeFlare_SetContext]
 	// Captures TechnoTypeExtData for custom color lookup
 
-	const Point2D startPixel = TacticalClass::Instance->CoordsToClient(*startCoord);
-	const Point2D endPixel =  TacticalClass::Instance->CoordsToClient(*endCoord);
+	const Point2D startPixel = TacticalClass::Instance->CoordsToClient(startCoord);
+	const Point2D endPixel =  TacticalClass::Instance->CoordsToClient(endCoord);
 
 	// Original: Two separate Z-depth values
-	 int startDepth = -32 - Game::AdjustHeight(startZ);
-	 int endDepth = -32 - Game::AdjustHeight(endZ);
+	 int startDepth = -32 - Game::AdjustHeight(startCoord.Z);
+	 int endDepth = -32 - Game::AdjustHeight(endCoord.Z);
 
 	// [Hook 2: TechnoClass_DrawAirstrikeFlare]
 	// Fixed: Use single Z value (minimum) + configurable adjustment
