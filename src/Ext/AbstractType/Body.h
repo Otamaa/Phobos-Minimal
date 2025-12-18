@@ -36,6 +36,6 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) = 0;
 	virtual bool WriteToINI(CCINIClass* pINI) const = 0;
 
-	virtual AbstractTypeClass* This() const override { return reinterpret_cast<AbstractTypeClass*>(this->AbstractExtended::This()); }
-	virtual const AbstractTypeClass* This_Const() const override { return reinterpret_cast<const AbstractTypeClass*>(this->AbstractExtended::This_Const()); }
+	AbstractTypeClass* This() const override { return reinterpret_cast<AbstractTypeClass*>(this->AttachedToObject); }
+	const AbstractTypeClass* This_Const() const override { return reinterpret_cast<const AbstractTypeClass*>(this->AttachedToObject); }
 };

@@ -74,8 +74,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	virtual TerrainClass* This() const override { return reinterpret_cast<TerrainClass*>(this->ObjectExtData::This()); }
-	virtual const TerrainClass* This_Const() const override { return reinterpret_cast<const TerrainClass*>(this->ObjectExtData::This_Const()); }
+	TerrainClass* This() const override { return reinterpret_cast<TerrainClass*>(this->AttachedToObject); }
+	const TerrainClass* This_Const() const override { return reinterpret_cast<const TerrainClass*>(this->AttachedToObject); }
 
 public:
 

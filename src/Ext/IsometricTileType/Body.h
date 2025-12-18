@@ -72,8 +72,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual IsometricTileTypeClass* This() const override { return reinterpret_cast<IsometricTileTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const IsometricTileTypeClass* This_Const() const override { return reinterpret_cast<const IsometricTileTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	IsometricTileTypeClass* This() const override { return reinterpret_cast<IsometricTileTypeClass*>(this->AttachedToObject); }
+	const IsometricTileTypeClass* This_Const() const override { return reinterpret_cast<const IsometricTileTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }

@@ -209,8 +209,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual BulletTypeClass* This() const override { return reinterpret_cast<BulletTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const BulletTypeClass* This_Const() const override { return reinterpret_cast<const BulletTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	BulletTypeClass* This() const override { return reinterpret_cast<BulletTypeClass*>(this->AttachedToObject); }
+	const BulletTypeClass* This_Const() const override { return reinterpret_cast<const BulletTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }

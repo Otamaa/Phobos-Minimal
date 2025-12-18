@@ -43,8 +43,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual BombClass* This() const override { return reinterpret_cast<BombClass*>(this->AbstractExtended::This()); }
-	virtual const BombClass* This_Const() const override { return reinterpret_cast<const BombClass*>(this->AbstractExtended::This_Const()); }
+	BombClass* This() const override { return reinterpret_cast<BombClass*>(this->AttachedToObject); }
+	const BombClass* This_Const() const override { return reinterpret_cast<const BombClass*>(this->AttachedToObject); }
 
 private:
 	template <typename T>

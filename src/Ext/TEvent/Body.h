@@ -130,8 +130,8 @@ public:
 	{
 	}
 
-	virtual TEventClass* This() const override { return reinterpret_cast<TEventClass*>(this->AbstractExtended::This()); }
-	virtual const TEventClass* This_Const() const override { return reinterpret_cast<const TEventClass*>(this->AbstractExtended::This_Const()); }
+	TEventClass* This() const override { return reinterpret_cast<TEventClass*>(this->AttachedToObject); }
+	const TEventClass* This_Const() const override { return reinterpret_cast<const TEventClass*>(this->AttachedToObject); }
 
 public:
 

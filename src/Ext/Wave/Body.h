@@ -62,8 +62,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	virtual WaveClass* This() const override { return reinterpret_cast<WaveClass*>(this->ObjectExtData::This()); }
-	virtual const WaveClass* This_Const() const override { return reinterpret_cast<const WaveClass*>(this->ObjectExtData::This_Const()); }
+	WaveClass* This() const override { return reinterpret_cast<WaveClass*>(this->AttachedToObject); }
+	const WaveClass* This_Const() const override { return reinterpret_cast<const WaveClass*>(this->AttachedToObject); }
 
 public:
 

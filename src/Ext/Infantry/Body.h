@@ -62,8 +62,8 @@ public:
 		this->FootExtData::CalculateCRC(crc);
 	}
 
-	virtual InfantryClass* This() const override { return reinterpret_cast<InfantryClass*>(this->FootExtData::This()); }
-	virtual const InfantryClass* This_Const() const override { return reinterpret_cast<const InfantryClass*>(this->FootExtData::This_Const()); }
+	InfantryClass* This() const override { return reinterpret_cast<InfantryClass*>(this->AttachedToObject); }
+	const InfantryClass* This_Const() const override { return reinterpret_cast<const InfantryClass*>(this->AttachedToObject); }
 
 private:
 	template <typename T>

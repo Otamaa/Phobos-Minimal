@@ -40,8 +40,8 @@ public:
 		this->TechnoTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual UnitTypeClass* This() const override { return reinterpret_cast<UnitTypeClass*>(this->TechnoTypeExtData::This()); }
-	virtual const UnitTypeClass* This_Const() const override { return reinterpret_cast<const UnitTypeClass*>(this->TechnoTypeExtData::This_Const()); }
+	UnitTypeClass* This() const override { return reinterpret_cast<UnitTypeClass*>(this->AttachedToObject); }
+	const UnitTypeClass* This_Const() const override { return reinterpret_cast<const UnitTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	{

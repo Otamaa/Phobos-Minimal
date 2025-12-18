@@ -40,8 +40,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual TemporalClass* This() const override { return reinterpret_cast<TemporalClass*>(this->AbstractExtended::This()); }
-	virtual const TemporalClass* This_Const() const override { return reinterpret_cast<const TemporalClass*>(this->AbstractExtended::This_Const()); }
+	TemporalClass* This() const override { return reinterpret_cast<TemporalClass*>(this->AttachedToObject); }
+	const TemporalClass* This_Const() const override { return reinterpret_cast<const TemporalClass*>(this->AttachedToObject); }
 
 private:
 	template <typename T>

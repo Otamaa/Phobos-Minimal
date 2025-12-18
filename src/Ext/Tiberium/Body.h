@@ -129,8 +129,8 @@ public:
 		this->AbstractTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual TiberiumClass* This() const override { return reinterpret_cast<TiberiumClass*>(this->AbstractTypeExtData::This()); }
-	virtual const TiberiumClass* This_Const() const override { return reinterpret_cast<const TiberiumClass*>(this->AbstractTypeExtData::This_Const()); }
+	TiberiumClass* This() const override { return reinterpret_cast<TiberiumClass*>(this->AttachedToObject); }
+	const TiberiumClass* This_Const() const override { return reinterpret_cast<const TiberiumClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

@@ -59,8 +59,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual ParticleSystemTypeClass* This() const override { return reinterpret_cast<ParticleSystemTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const ParticleSystemTypeClass* This_Const() const override { return reinterpret_cast<const ParticleSystemTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	ParticleSystemTypeClass* This() const override { return reinterpret_cast<ParticleSystemTypeClass*>(this->AttachedToObject); }
+	const ParticleSystemTypeClass* This_Const() const override { return reinterpret_cast<const ParticleSystemTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }

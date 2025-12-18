@@ -30,8 +30,8 @@ public:
 	AircraftExtData(AircraftClass * pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 	virtual ~AircraftExtData() = default;
 
-	virtual AircraftClass* This() const override { return reinterpret_cast<AircraftClass*>(this->FootExtData::This()); }
-	virtual const AircraftClass* This_Const() const override { return reinterpret_cast<const AircraftClass*>(this->FootExtData::This_Const()); }
+	AircraftClass* This() const override { return reinterpret_cast<AircraftClass*>(this->AttachedToObject); }
+	const AircraftClass* This_Const() const override { return reinterpret_cast<const AircraftClass*>(this->AttachedToObject); }
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
 	virtual int GetSize() const { return sizeof(*this); };

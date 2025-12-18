@@ -1225,8 +1225,8 @@ public:
 
 	virtual int GetSize() const { return sizeof(*this); };
 
-	virtual TechnoClass* This() const override { return reinterpret_cast<TechnoClass*>(RadioExtData::This()); }
-	virtual const TechnoClass* This_Const() const override { return reinterpret_cast<const TechnoClass*>(RadioExtData::This_Const()); }
+	TechnoClass* This() const override { return reinterpret_cast<TechnoClass*>(AttachedToObject); }
+	const TechnoClass* This_Const() const override { return reinterpret_cast<const TechnoClass*>(AttachedToObject); }
 
 	virtual void CalculateCRC(CRCEngine& crc) const override {
 		this->RadioExtData::CalculateCRC(crc);
