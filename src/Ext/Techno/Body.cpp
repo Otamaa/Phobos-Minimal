@@ -2569,6 +2569,9 @@ void TechnoExtData::StoreLastTargetAndMissionAfterWebbed(InfantryClass* pThis)
 
 //https://blueprints.launchpad.net/ares/+spec/elite-armor
 Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
+	if(!pThis->IsAlive)
+		Debug::Log("Death Techno used for GetArmor !\n");
+
 	const auto pType = pThis->GetType();
 	Armor res = pType->Armor;
 

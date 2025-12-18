@@ -118,7 +118,7 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 			if (target && target->IsAlive) {
 				pTargetExt->UpdateRearmInTemporal();
 
-				auto pBuilding = cast_to<BuildingClass*>(target);
+				auto pBuilding = cast_to<BuildingClass*,false>(target);
 				bool erase = true;
 
 				if (!pBuilding && pWeaponExt->Abductor_Temporal)

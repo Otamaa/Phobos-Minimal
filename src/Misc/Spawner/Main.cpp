@@ -1342,8 +1342,8 @@ ASMJIT_PATCH(0x700594, TechnoClass_WhatAction_AllowAlliesRepair, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	GET(ObjectClass*, pObject, EDI);
 
-	if(auto const pBuilding = (FakeBuildingClass*)cast_to<BuildingClass* const>(pObject)){
-		if (pBuilding->_GetTypeExtData()->AllowAlliesRepair) {
+	if(auto const pBuilding = cast_to<BuildingClass* const, false>(pObject)){
+		if (((FakeBuildingClass*)pBuilding)->_GetTypeExtData()->AllowAlliesRepair) {
 			return (pBuilding->Owner->IsAlliedWith(pThis))
 				? Allow
 				: DisAllow;

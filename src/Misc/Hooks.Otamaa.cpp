@@ -4702,7 +4702,6 @@ ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 // END 42CB3F 5 , 42CCCB
 #include <Misc/PhobosGlobal.h>
 
-#ifdef _aaa
 ASMJIT_PATCH(0x42D197, AStarClass_Attempt_Entry, 0x5)
 {
 	GET_STACK(TechnoClass*, pTech, 0x24);
@@ -4727,6 +4726,199 @@ ASMJIT_PATCH(0x42C8ED, AStarClass_FindHierarcial_Exit, 0x5)
 
 static COMPILETIMEEVAL constant_ptr<float, 0x7E3794> _pathfind_adjusment {};
 
+template<typename T, typename Pr = std::less<T>>
+class SafePriorityQueueClass
+{
+public:
+	SafePriorityQueueClass(int capacity) :
+		Count(0),
+		Capacity(capacity),
+		MaxPointer(nullptr),
+		MinPointer(reinterpret_cast<T*>(~0ULL))
+	{
+		if (capacity <= 0)
+		{
+			Debug::FatalError("PriorityQueue created with invalid capacity: %d\n", capacity);
+			capacity = 1;
+		}
+
+		Nodes = static_cast<T**>(YRMemory::AllocateChecked(sizeof(T*) * (capacity + 1)));
+		std::memset(Nodes, 0, sizeof(T*) * (capacity + 1));
+	}
+
+	~SafePriorityQueueClass()
+	{
+		Clear();
+		YRMemory::Deallocate(Nodes);
+		Nodes = nullptr;
+	}
+
+	bool Push(T* pValue)
+	{
+		// Null check
+		if (!pValue)
+		{
+			Debug::Log("Attempt to push null into PriorityQueue\n");
+			return false;
+		}
+
+		// Capacity check
+		if (Count >= Capacity)
+		{
+			Debug::Log("PriorityQueue overflow: Count=%d, Capacity=%d\n", Count, Capacity);
+			return false;
+		}
+
+		// Insert at end
+		Nodes[++Count] = pValue;
+
+		// Bubble up
+		int current = Count;
+		while (current > 1)
+		{
+			int parent = current / 2;
+
+			// Null safety
+			if (!Nodes[current] || !Nodes[parent])
+			{
+				Debug::Log("Null node during bubble-up at index %d\n", current);
+				break;
+			}
+
+			if (!Comp(Nodes[current], Nodes[parent]))
+				break;
+
+			std::swap(Nodes[current], Nodes[parent]);
+			current = parent;
+		}
+
+		// Update bounds
+		UpdatePointerBounds(pValue);
+
+		return true;
+	}
+
+	T* Pop()
+	{
+		if (Count <= 0)
+			return nullptr;
+
+		T* result = Nodes[1];
+
+		// Move last to root
+		Nodes[1] = Nodes[Count];
+		Nodes[Count] = nullptr;
+		--Count;
+
+		// Heapify down
+		if (Count > 0)
+			HeapifyDown(1);
+
+		return result;
+	}
+
+	T* Top() const
+	{
+		return (Count > 0) ? Nodes[1] : nullptr;
+	}
+
+	void Clear()
+	{
+		int clearCount = std::min(Count + 1, Capacity + 1);
+		for (int i = 0; i < clearCount; ++i)
+		{
+			Nodes[i] = nullptr;
+		}
+		Count = 0;
+		MaxPointer = nullptr;
+		MinPointer = reinterpret_cast<T*>(~0ULL);
+	}
+
+	bool IsEmpty() const { return Count <= 0; }
+	int GetCount() const { return Count; }
+	int GetCapacity() const { return Capacity; }
+
+	// Debug validation
+	bool ValidateHeap() const
+	{
+		for (int i = 1; i <= Count; ++i)
+		{
+			if (!Nodes[i])
+			{
+				Debug::Log("Null node at index %d (Count=%d)\n", i, Count);
+				return false;
+			}
+
+			int left = i * 2;
+			int right = left + 1;
+
+			if (left <= Count && Nodes[left] && Comp(Nodes[left], Nodes[i]))
+			{
+				Debug::Log("Heap property violated: left child %d < parent %d\n", left, i);
+				return false;
+			}
+
+			if (right <= Count && Nodes[right] && Comp(Nodes[right], Nodes[i]))
+			{
+				Debug::Log("Heap property violated: right child %d < parent %d\n", right, i);
+				return false;
+			}
+		}
+		return true;
+	}
+
+private:
+	void HeapifyDown(int index)
+	{
+		while (true)
+		{
+			int smallest = index;
+			int left = index * 2;
+			int right = left + 1;
+
+			if (left <= Count && left <= Capacity)
+			{
+				if (Nodes[left] && Nodes[smallest] && Comp(Nodes[left], Nodes[smallest]))
+					smallest = left;
+			}
+
+			if (right <= Count && right <= Capacity)
+			{
+				if (Nodes[right] && Nodes[smallest] && Comp(Nodes[right], Nodes[smallest]))
+					smallest = right;
+			}
+
+			if (smallest == index)
+				break;
+
+			std::swap(Nodes[index], Nodes[smallest]);
+			index = smallest;
+		}
+	}
+
+	bool Comp(T* p1, T* p2) const
+	{
+		if (!p1 || !p2)
+			return p1 < p2;
+		return Pr()(*p1, *p2);
+	}
+
+	void UpdatePointerBounds(T* pValue)
+	{
+		if (pValue > MaxPointer)
+			MaxPointer = pValue;
+		if (pValue < MinPointer)
+			MinPointer = pValue;
+	}
+
+public:
+	int Count;
+	int Capacity;
+	T** Nodes;
+	T* MaxPointer;
+	T* MinPointer;
+};
+
 class NOVTABLE FakeAStarPathFinderClass : public AStarPathFinderClass
 {
 public:
@@ -4743,277 +4935,697 @@ public:
 
 		return this->AStarClass__Find_Path(a2, dest, a4, path, max_count, a7, cellPath);
 	}
-#pragma optimize("", off )
-#ifdef _WIP
-	bool Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone mzone, FootClass* foot)
+
+	bool __Find_Path_Hierarchical(CellStruct* from, CellStruct* to, MovementZone mzone, FootClass* foot);
+
+};
+
+static bool PriorityQueue_Insert_Safe(
+	PriorityQueueClass_AStarHierarchical* queue,
+	AStarQueueNodeHierarchical* element);
+
+static AStarQueueNodeHierarchical* PriorityQueue_Pop_Safe(
+	PriorityQueueClass_AStarHierarchical* queue);
+
+static void PriorityQueue_HeapifyDown_Safe(
+	PriorityQueueClass_AStarHierarchical* queue,
+	int index);
+
+// Safe insert into priority queue
+static bool PriorityQueue_Insert_Safe(
+	PriorityQueueClass_AStarHierarchical* queue,
+	AStarQueueNodeHierarchical* element)
+{
+	// Null checks
+	if (!queue || !element)
 	{
-		const double threat = foot ? foot->GetThreatAvoidance() : 0.0;
-		const bool avaible = !foot || threat <= 0.00001 ? false : true;
-		HouseClass* pHouse = foot ? foot->Owner : nullptr;
-		bool continueOP = true;
+		Debug::Log("[A* Queue] Insert failed: null queue or element\n");
+		return false;
+	}
 
-		for (int idx_star = 2; idx_star >= 0; --idx_star)
+	if (!queue->Heap)
+	{
+		Debug::Log("[A* Queue] Insert failed: null heap array\n");
+		return false;
+	}
+
+	// Capacity check
+	int newPos = queue->Count + 1;
+	if (newPos >= queue->Capacity)
+	{
+		Debug::Log("[A* Queue] Insert failed: overflow (Count=%d, Capacity=%d)\n",
+			queue->Count, queue->Capacity);
+		return false;
+	}
+
+	// Bubble up
+	unsigned int insertPos = static_cast<unsigned int>(newPos);
+	unsigned int parentPos = insertPos >> 1;
+
+	while (insertPos > 1)
+	{
+		// Bounds check for parent
+		if (parentPos < 1 || parentPos > static_cast<unsigned int>(queue->Count))
+			break;
+
+		auto* parent = queue->Heap[parentPos];
+
+		// Null check for parent
+		if (!parent)
 		{
-			for (int i = 0; i < this->HierarchicalQueue->Count; ++i)
+			Debug::Log("[A* Queue] Insert: null parent at index %u\n", parentPos);
+			break;
+		}
+
+		// Compare scores (min-heap: parent should be <= child)
+		if (parent->Score <= element->Score)
+			break;
+
+		// Move parent down
+		queue->Heap[insertPos] = parent;
+		insertPos = parentPos;
+		parentPos >>= 1;
+	}
+
+	// Place element
+	queue->Heap[insertPos] = element;
+	++queue->Count;
+
+	// Update bounds pointers
+	if (element > queue->MaxNodePointer)
+		queue->MaxNodePointer = element;
+	if (element < queue->MinNodePointer)
+		queue->MinNodePointer = element;
+
+	return true;
+}
+
+// Safe pop from priority queue
+static AStarQueueNodeHierarchical* PriorityQueue_Pop_Safe(
+	PriorityQueueClass_AStarHierarchical* queue)
+{
+	// Null checks
+	if (!queue || !queue->Heap)
+	{
+		Debug::Log("[A* Queue] Pop failed: null queue or heap\n");
+		return nullptr;
+	}
+
+	if (queue->Count <= 0)
+		return nullptr;
+
+	// Bounds validation
+	if (queue->Count > queue->Capacity)
+	{
+		Debug::Log("[A* Queue] Pop: Count(%d) > Capacity(%d), resetting\n",
+			queue->Count, queue->Capacity);
+		queue->Count = 0;
+		return nullptr;
+	}
+
+	// Get root element
+	auto* result = queue->Heap[1];
+	if (!result)
+	{
+		Debug::Log("[A* Queue] Pop: root is null but Count=%d\n", queue->Count);
+		queue->Count = 0;
+		return nullptr;
+	}
+
+	// Move last element to root
+	queue->Heap[1] = queue->Heap[queue->Count];
+	queue->Heap[queue->Count] = nullptr;
+	--queue->Count;
+
+	// Heapify down if elements remain
+	if (queue->Count > 0)
+	{
+		PriorityQueue_HeapifyDown_Safe(queue, 1);
+	}
+
+	return result;
+}
+
+// Safe heapify down
+static void PriorityQueue_HeapifyDown_Safe(
+	PriorityQueueClass_AStarHierarchical* queue,
+	int index)
+{
+	if (!queue || !queue->Heap || queue->Count <= 0)
+		return;
+
+	const int count = queue->Count;
+	auto** heap = queue->Heap;
+
+	while (true)
+	{
+		int smallest = index;
+		int leftChild = index * 2;
+		int rightChild = leftChild + 1;
+
+		// Check left child
+		if (leftChild <= count && leftChild <= queue->Capacity)
+		{
+			auto* leftNode = heap[leftChild];
+			auto* currentNode = heap[smallest];
+
+			if (leftNode && currentNode && leftNode->Score < currentNode->Score)
 			{
-				this->HierarchicalQueue->Heap[i] = 0;
+				smallest = leftChild;
 			}
-			this->HierarchicalQueue->Count = 0;
+		}
 
-			auto zone_from = MapClass::Instance->MapClass_zone_56D3F0(from);
-			auto passabilityDataFrom = MapClass::GlobalPassabilityDatas() + zone_from;
-			auto pPassabilityFrom = passabilityDataFrom->data[idx_star];
-			auto zone_to = MapClass::Instance->MapClass_zone_56D3F0(from);
-			auto passabilityDataTo = MapClass::GlobalPassabilityDatas() + zone_to;
-			auto pPassabilityTo = passabilityDataTo->data[idx_star];
+		// Check right child
+		if (rightChild <= count && rightChild <= queue->Capacity)
+		{
+			auto* rightNode = heap[rightChild];
+			auto* currentNode = heap[smallest];
 
-			const bool isFirst = idx_star == 2;
-			const auto next_cost_ptr = !isFirst ? nullptr : this->ints_40_costs[idx_star + 1];
-			const auto cur_cost_ptr = this->ints_40_costs[idx_star];
-			const auto cur_const_ptr_b = this->ints_4C_costs[idx_star];
-			const auto cur_cost_hirarcial_ptr = this->HierarchicalCosts[idx_star];
-
-			cur_cost_ptr[pPassabilityFrom] = this->initedcount;
-			cur_cost_ptr[pPassabilityTo] = this->initedcount;
-
-			if (pPassabilityFrom == pPassabilityTo)
+			if (rightNode && currentNode && rightNode->Score < currentNode->Score)
 			{
-
-				if (!idx_star)
-				{
-					this->BufferForHierarchicalQueue->Number = 0;
-					this->BufferForHierarchicalQueue->Index = pPassabilityFrom;
-				}
-
-				this->somearray_BC[500 * idx_star] = pPassabilityFrom;
-				this->maxvalues_field_C74[idx_star] = 1;
-
-				if (--idx_star >= 0)
-				{
-					continue;
-				}
-
-				return 1;
+				smallest = rightChild;
 			}
+		}
 
-			//reset
-			this->BufferForHierarchicalQueue->BufferDelta = -1;
-			this->BufferForHierarchicalQueue->Index = pPassabilityFrom;
-			this->BufferForHierarchicalQueue->Score = 0.0f;
-			this->BufferForHierarchicalQueue->Number = 0;
+		// If no swap needed, we're done
+		if (smallest == index)
+			break;
 
-			int ele = this->HierarchicalQueue->Count + 1;
-			int ele_shift = ele >> 1;
+		// Swap
+		auto* temp = heap[index];
+		heap[index] = heap[smallest];
+		heap[smallest] = temp;
 
-			if (ele < this->HierarchicalQueue->Capacity)
+		index = smallest;
+	}
+}
+
+// Safe priority queue clear
+static void PriorityQueue_Clear_Safe(PriorityQueueClass_AStarHierarchical* queue)
+{
+	if (!queue || !queue->Heap)
+		return;
+
+	int clearCount = std::min(queue->Count + 1, queue->Capacity);
+	for (int i = 0; i <= clearCount; ++i)
+	{
+		queue->Heap[i] = nullptr;
+	}
+	queue->Count = 0;
+}
+
+// Helper to convert CellStruct to linear index for zone lookup
+static int CellToIndex(const CellStruct* cell)
+{
+	if (!cell)
+		return -1;
+
+	// Validate cell coordinates
+	if (cell->X < 0 || cell->Y < 0)
+		return -1;
+
+	// Convert to linear index: Y * MapWidth + X
+	// Or use MapClass method if available
+	return cell->Y * MapClass::Instance->MapCoordBounds.Right + cell->X;
+}
+
+bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
+	CellStruct* startCell,
+	CellStruct* destCell,
+	MovementZone mzone,
+	FootClass* foot)
+{
+	// Validate this pointer
+	if (!this)
+	{
+		Debug::Log("[A*] Null this pointer\n");
+		return false;
+	}
+
+	// Validate cell pointers
+	if (!startCell || !destCell)
+	{
+		Debug::Log("[A*] Null cell pointer\n");
+		return false;
+	}
+
+	// Validate critical members
+	if (!this->HierarchicalQueue || !this->BufferForHierarchicalQueue)
+	{
+		Debug::Log("[A*] Null queue or buffer\n");
+		return false;
+	}
+
+	// Validate movement zone
+	const int mzoneIndex = static_cast<int>(mzone);
+	if (mzoneIndex < 0 || mzoneIndex >= (static_cast<int>(MovementZone::CrusherAll)))
+	{
+		Debug::Log("[A*] Invalid MovementZone: %d\n", mzoneIndex);
+		return false;
+	}
+	auto moveZoneArray = MapClass::MovementAdjustArray[mzoneIndex];
+
+	// Initialize threat avoidance
+	double threatAvoidance = 0.0;
+	HouseClass* ownerHouse = nullptr;
+	bool useThreatAvoidance = false;
+
+	if (foot)
+	{
+		threatAvoidance = foot->GetThreatAvoidance();
+		ownerHouse = foot->Owner;
+
+		if (threatAvoidance > 0.00001)
+			useThreatAvoidance = true;
+	}
+
+	// Get zone raw values from cells
+	// MapClass::GetZone takes CellStruct* and returns index into GlobalPassabilityData array
+	int startZoneRaw = MapClass::Instance->MapClass_zone_56D3F0(startCell);
+	int destZoneRaw = MapClass::Instance->MapClass_zone_56D3F0(destCell);
+
+	if (startZoneRaw < 0 || destZoneRaw < 0)
+	{
+		Debug::Log("[A*] Invalid zone: start=%d, dest=%d\n", startZoneRaw, destZoneRaw);
+		return false;
+	}
+
+	// Process hierarchy levels 2, 1, 0 (coarse to fine)
+	for (int level = 2; level >= 0; --level)
+	{
+		// Validate level arrays
+		if (!this->ints_40_costs[level] || !this->ints_4C_costs[level] || !this->HierarchicalCosts[level])
+		{
+			Debug::Log("[A*] Null array at level %d\n", level);
+			return false;
+		}
+
+		// Clear priority queue
+		PriorityQueue_Clear_Safe(this->HierarchicalQueue);
+
+		// Get subzone indices from GlobalPassabilityData
+		// data[0] = level 0, data[1] = level 1, data[2] = level 2
+		GlobalPassabilityData* startPassability = &MapClass::GlobalPassabilityDatas[startZoneRaw];
+		GlobalPassabilityData* destPassability = &MapClass::GlobalPassabilityDatas[destZoneRaw];
+
+		short startZone = static_cast<short>(startPassability->data[level]);
+		short destZone = static_cast<short>(destPassability->data[level]);
+
+		const bool isTopLevel = (level == 2);
+
+		// Parent level visited array
+		int* parentLevelVisited = isTopLevel ? nullptr : this->ints_40_costs[level + 1];
+
+		// Current level arrays
+		int* visitedArray = this->ints_40_costs[level];
+		int* openSetArray = this->ints_4C_costs[level];
+		float* costArray = this->HierarchicalCosts[level];
+
+		// Validate zone indices
+		if (startZone < 0 || destZone < 0)
+		{
+			Debug::Log("[A*] Negative zone: start=%d, dest=%d at level %d\n",
+				startZone, destZone, level);
+			return false;
+		}
+
+		// Mark start and dest as visited
+		visitedArray[startZone] = this->initedcount;
+		visitedArray[destZone] = this->initedcount;
+
+		// Early exit: start equals destination
+		if (startZone == destZone)
+		{
+			if (level == 0)
 			{
-				for (; ele > 1; ele_shift >>= 1)
-				{
-					auto pEle = this->HierarchicalQueue->Heap;
-					if (pEle[ele_shift]->Score <= 0.0f)
-					{
-						break;
-					}
-
-					this->HierarchicalQueue->Heap[ele] = this->HierarchicalQueue->Heap[ele_shift];
-					ele = ele_shift;
-				}
-
-				this->HierarchicalQueue->Heap[ele] = this->BufferForHierarchicalQueue;
-				++this->HierarchicalQueue->Count;
-				if (this->BufferForHierarchicalQueue > this->HierarchicalQueue->MaxNodePointer)
-					this->HierarchicalQueue->MaxNodePointer = this->BufferForHierarchicalQueue;
-				if (this->BufferForHierarchicalQueue < this->HierarchicalQueue->MinNodePointer)
-					this->HierarchicalQueue->MinNodePointer = this->BufferForHierarchicalQueue;
+				auto* buffer = this->BufferForHierarchicalQueue;
+				buffer->Number = 0;
+				buffer->Index = static_cast<DWORD>(startZone);
 			}
 
-			int _idxstart_here = 1;
-			cur_const_ptr_b[pPassabilityFrom] = this->initedcount;
-			cur_cost_hirarcial_ptr[pPassabilityFrom] = 0.0;
-			AStarQueueNodeHierarchical* first = nullptr;
+			this->somearray_BC[level * 500] = startZone;
+			this->maxvalues_field_C74[level] = 1;
+			continue;
+		}
 
-			if (this->HierarchicalQueue->Count)
+		// Initialize first element
+		auto* firstElement = this->BufferForHierarchicalQueue;
+		firstElement->BufferDelta = -1;
+		firstElement->Index = static_cast<DWORD>(startZone);
+		firstElement->Score = 0.0f;
+		firstElement->Number = 0;
+
+		if (!PriorityQueue_Insert_Safe(this->HierarchicalQueue, firstElement))
+		{
+			Debug::Log("[A*] Failed to insert start node at level %d\n", level);
+			return false;
+		}
+
+		int elementCount = 1;
+		openSetArray[startZone] = this->initedcount;
+		costArray[startZone] = 0.0f;
+
+		auto* currentElement = PriorityQueue_Pop_Safe(this->HierarchicalQueue);
+		if (!currentElement)
+		{
+			Debug::Log("[A*] Failed to pop start node at level %d\n", level);
+			return false;
+		}
+
+		// Get SubzoneTracking for this level
+		auto& subzoneTrackingArray = SubzoneTrackingStruct::Array[level];
+		if (!subzoneTrackingArray.Items)
+		{
+			Debug::Log("[A*] Null SubzoneTracking at level %d\n", level);
+			return false;
+		}
+
+		const bool noBlockedPairs = (this->CellIndexesVector[level].Count == 0);
+
+		constexpr int MAX_ITERATIONS = 100000;
+		int iterations = 0;
+
+		// Main A* loop
+		while (true)
+		{
+			if (++iterations > MAX_ITERATIONS)
 			{
-				first = this->HierarchicalQueue->Heap[1];
-				this->HierarchicalQueue->Heap[1] = this->HierarchicalQueue->Heap[this->HierarchicalQueue->Count];
-				this->HierarchicalQueue->Heap[this->HierarchicalQueue->Count--] = 0;
-				this->HierarchicalQueue->Heapify();
-			}
-
-			if (!first)
+				Debug::Log("[A*] Max iterations exceeded at level %d\n", level);
 				return false;
+			}
 
-			int cell_IndexesVecIsEmpty = this->CellIndexesVector[idx_star].Count == 0;
+			int currentNode = static_cast<int>(currentElement->Index);
 
-			while (1)
+			// Reached destination?
+			if (currentNode == destZone)
+				break;
+
+			// Bounds check for subzone tracking access
+			if (currentNode < 0 || currentNode >= subzoneTrackingArray.Count)
 			{
-				int _first_idx = first->Index;
-				if (_first_idx == pPassabilityTo)
+				Debug::Log("[A*] Node %d out of bounds (max=%d)\n",
+					currentNode, subzoneTrackingArray.Count);
+				return false;
+			}
+
+			// Get neighbors from SubzoneTrackingStruct
+			SubzoneTrackingStruct& currentSubzone = subzoneTrackingArray.Items[currentNode];
+			auto& connections = currentSubzone.SubzoneConnections;
+			int neighborCount = connections.Count;
+
+			if (neighborCount < 0 || neighborCount > 1000)
+			{
+				Debug::Log("[A*] Invalid neighbor count %d for node %d\n",
+					neighborCount, currentNode);
+				neighborCount = 0;
+			}
+
+			if (neighborCount > 0 && connections.Items)
+			{
+				int bufferOffset = elementCount * 16;
+
+				constexpr int MAX_BUFFER_ELEMENTS = 65536;
+				if (elementCount >= MAX_BUFFER_ELEMENTS)
 				{
+					Debug::Log("[A*] Buffer overflow: elementCount=%d\n", elementCount);
 					break;
 				}
 
-				auto sub_zone = SubzoneTrackingStruct::Array[0].Items + (24 * idx_star);
-				auto conn_begin = sub_zone[_first_idx].SubzoneConnections.Items;
-				auto conn_count = sub_zone[_first_idx].SubzoneConnections.Count;
-				if (conn_count > 0)
+				for (int n = 0; n < neighborCount; ++n)
 				{
-					do
+					SubzoneConnectionStruct& connection = connections.Items[n];
+
+					int neighborNode = connection.unknown_dword_0;
+					char connectionFlag = connection.unknown_byte_4;
+
+					// Validate neighbor index
+					if (neighborNode < 0 || neighborNode >= subzoneTrackingArray.Count)
+						continue;
+
+					// Get neighbor's data
+					SubzoneTrackingStruct& neighborSubzone = subzoneTrackingArray.Items[neighborNode];
+					unsigned short parentZone = neighborSubzone.unknown_word_18;
+					int movementType = static_cast<int>(neighborSubzone.unknown_dword_1C);
+
+					// Validate movement type
+					if (movementType < 0 || movementType >= 32)
+						continue;
+
+					// Calculate threat cost
+					int threatCost = 0;
+					if (useThreatAvoidance && ownerHouse)
 					{
-						auto _conn_ = SubzoneTrackingStruct::Array[0].Items + idx_star;
-						auto __conn__first = _conn_[conn_begin->unknown_dword_0].unknown_word_18;
-						auto __conn__next = _conn_[conn_begin->unknown_dword_0].unknown_dword_1C;
-						int zone_ = 0;
-						if (avaible)
-						{
-							zone_ = int(MapClass::Instance->subZone_585F40(pHouse, idx_star, _first_idx, conn_begin->unknown_dword_0) * threat);
-						}
-
-						double score = conn_begin->unknown_byte_4 ? 0.001 : 0.0;
-						int _vala = conn_begin->unknown_dword_0;
-						double adj__ = _pathfind_adjusment[__conn__next] + first->Score + zone_ + score;
-						if ((cur_const_ptr_b[conn_begin->unknown_dword_0] != this->initedcount
-							|| cur_cost_hirarcial_ptr[conn_begin->unknown_dword_0] > adj__)
-							 && (isFirst || next_cost_ptr[__conn__first] == this->initedcount || __conn__next == 1)
-							 && MapClass::MovementAdjustArray[(int)mzone][__conn__next] == 1)
-						{
-							if (cell_IndexesVecIsEmpty)
-							{
-								goto LABEL_49;
-							}
-
-							int ___first_idx = _first_idx;
-
-							if (_vala < _first_idx)
-							{
-								___first_idx = _vala;
-								_vala = _first_idx;
-							}
-
-							int idxx_ = _first_idx | (_vala << 16);
-							int countxx_ = this->CellIndexesVector[idx_star].Count;
-							if (countxx_ < 0)
-							{
-							LABEL_49:
-								auto pBuffer = this->BufferForHierarchicalQueue;
-								pBuffer[_idxstart_here].Index = _vala;
-								pBuffer[_idxstart_here].BufferDelta = first - pBuffer;
-								pBuffer[_idxstart_here].Score = adj__;
-								pBuffer[_idxstart_here].Number = first->Number + 1;
-
-								int ele_B = this->HierarchicalQueue->Count + 1;
-								int ele_shift_B = ele_B >> 1;
-
-								if (ele_B < this->HierarchicalQueue->Capacity)
-								{
-									for (; ele_B > 1; ele_shift_B >>= 1)
-									{
-										auto pEle_B = this->HierarchicalQueue->Heap;
-										if (pEle_B[ele_shift_B]->Score <= adj__)
-										{
-											break;
-										}
-
-										this->HierarchicalQueue->Heap[ele_B] = this->HierarchicalQueue->Heap[ele_shift_B];
-										ele_B = ele_shift_B;
-									}
-
-									this->HierarchicalQueue->Heap[ele_B] = pBuffer;
-									++this->HierarchicalQueue->Count;
-									if (pBuffer > this->HierarchicalQueue->MaxNodePointer)
-										this->HierarchicalQueue->MaxNodePointer = pBuffer;
-									if (pBuffer < this->HierarchicalQueue->MinNodePointer)
-										this->HierarchicalQueue->MinNodePointer = pBuffer;
-
-								}
-
-								cur_const_ptr_b[_vala] = this->initedcount;
-								cur_cost_hirarcial_ptr[_vala] = adj__;
-								++_idxstart_here;
-							}
-							else
-							{
-								auto v36 = &this->CellIndexesVector[idx_star].Items[countxx_];
-								while (*v36 != CellStruct::UnPack(idxx_))
-								{
-									--countxx_;
-									--v36;
-									if (countxx_ < 0)
-									{
-										goto LABEL_49;
-									}
-								}
-							}
-						}
-
-						continueOP = conn_count == 1;
-						++conn_begin;
-						--conn_count;
+						int rawThreat = MapClass::Instance->subZone_585F40(ownerHouse, level, currentNode, neighborNode);
+						threatCost = static_cast<int>(rawThreat * threatAvoidance);
 					}
-					while (!continueOP);
-				}
 
-				if (this->HierarchicalQueue->Count == 0)
-					return false;
+					// Connection penalty
+					float connectionPenalty = connectionFlag ? 0.001f : 0.0f;
+					static constexpr int adjustments_7E3794[] = {
+						1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0 , 2.0 , 10.0 , 4.0 , 1.009
+					};
 
-				first = this->HierarchicalQueue->Heap[1];
-				this->HierarchicalQueue->Heap[1] = this->HierarchicalQueue->Heap[this->HierarchicalQueue->Count];
-				this->HierarchicalQueue->Heap[this->HierarchicalQueue->Count] = 0;
-				--this->HierarchicalQueue->Count;
-				this->HierarchicalQueue->Heapify();
+					constexpr size_t adjustmentsSize = sizeof(adjustments_7E3794) / sizeof(adjustments_7E3794[0]);
+					static_assert(adjustmentsSize < 13,
+						"Adjustments array size insufficient");
 
-				if (!first)
-				{
-					return 0;
+					// Calculate new cost
+					float newCost = adjustments_7E3794[movementType]
+						+ currentElement->Score
+						+ static_cast<float>(threatCost)
+						+ connectionPenalty;
+
+					// Validate cost
+					if (!std::isfinite(newCost) || newCost < 0.0f)
+						continue;
+
+					// Check 1: Not visited or better path?
+					bool notVisitedOrBetter = (openSetArray[neighborNode] != this->initedcount)
+						|| (costArray[neighborNode] > newCost);
+
+					if (!notVisitedOrBetter)
+						continue;
+
+					// Check 2: Parent level connectivity
+					if (!isTopLevel && parentLevelVisited)
+					{
+						bool parentValid = (parentLevelVisited[parentZone] == this->initedcount)
+							|| (movementType == 1);
+						if (!parentValid)
+							continue;
+					}
+
+					// Check 3: Movement zone passability
+					if (moveZoneArray[movementType] != 1)
+						continue;
+
+					// Check 4: Blocked pairs
+					if (!noBlockedPairs)
+					{
+						unsigned short node1, node2;
+						if (static_cast<unsigned short>(neighborNode) < static_cast<unsigned short>(currentNode))
+						{
+							node1 = static_cast<unsigned short>(currentNode);
+							node2 = static_cast<unsigned short>(neighborNode);
+						}
+						else
+						{
+							node1 = static_cast<unsigned short>(neighborNode);
+							node2 = static_cast<unsigned short>(currentNode);
+						}
+
+						int pairKey = (node2 << 16) | node1;
+
+						auto& blockedVector = this->CellIndexesVector[level];
+						bool isBlocked = false;
+
+						if (blockedVector.Items && blockedVector.Count > 0)
+						{
+							for (int searchIdx = blockedVector.Count - 1; searchIdx >= 0; --searchIdx)
+							{
+								// CellStruct is {short X, Y} = 4 bytes, compare as int
+								CellStruct& blockedCell = blockedVector.Items[searchIdx];
+								int blockedKey = *reinterpret_cast<int*>(&blockedCell);
+								if (blockedKey == pairKey)
+								{
+									isBlocked = true;
+									break;
+								}
+							}
+						}
+
+						if (isBlocked)
+							continue;
+					}
+
+					// Add neighbor to open set
+					if (elementCount >= MAX_BUFFER_ELEMENTS)
+					{
+						Debug::Log("[A*] Buffer full\n");
+						continue;
+					}
+
+					auto* buffer = reinterpret_cast<char*>(this->BufferForHierarchicalQueue);
+					auto* newElement = reinterpret_cast<AStarQueueNodeHierarchical*>(buffer + bufferOffset);
+
+					int parentIndex = (reinterpret_cast<char*>(currentElement) - buffer) >> 4;
+
+					if (parentIndex < 0 || parentIndex >= elementCount)
+					{
+						Debug::Log("[A*] Invalid parent index: %d\n", parentIndex);
+						continue;
+					}
+
+					newElement->BufferDelta = parentIndex;
+					newElement->Index = static_cast<DWORD>(neighborNode);
+					newElement->Score = newCost;
+					newElement->Number = currentElement->Number + 1;
+
+					if (!PriorityQueue_Insert_Safe(this->HierarchicalQueue, newElement))
+					{
+						Debug::Log("[A*] Insert failed for neighbor %d\n", neighborNode);
+						continue;
+					}
+
+					openSetArray[neighborNode] = this->initedcount;
+					costArray[neighborNode] = newCost;
+
+					++elementCount;
+					bufferOffset += 16;
 				}
 			}
 
-			if (!first)
-			{
-				return 0;
-			}
-
-			auto _copyFirst = first;
-			if (first->BufferDelta != -1)
-			{
-				do
-				{
-					cur_cost_ptr[first->Index] = this->initedcount;
-					first = &this->BufferForHierarchicalQueue[first->BufferDelta];
-				}
-				while (first->BufferDelta != -1);
-			}
-
-			int num__ = _copyFirst->Number + 1;
-			this->maxvalues_field_C74[idx_star] = num__;
-			int _num__ = num__ - 1;
-			if (_num__ > 0)
-			{
-				auto __ff = &this->somearray_BC[500 * idx_star + num__];
-				do
-				{
-					*__ff-- = _copyFirst->Index;
-					_copyFirst = &this->BufferForHierarchicalQueue[_copyFirst->BufferDelta];
-					--_num__;
-				}
-				while (_num__);
-			}
-
-			this->somearray_BC[500 * idx_star] = _copyFirst->Index;
+			// Pop next element
+			currentElement = PriorityQueue_Pop_Safe(this->HierarchicalQueue);
+			if (!currentElement)
+				return false;
 		}
 
-		return 1;
+		// Path reconstruction
+		if (!currentElement)
+		{
+			Debug::Log("[A*] Null element at reconstruction, level %d\n", level);
+			return false;
+		}
+
+		auto* pathNode = currentElement;
+		auto* pathStart = currentElement;
+
+		constexpr int MAX_RECONSTRUCT = 10000;
+		int reconstructCount = 0;
+
+		// Mark path nodes as visited for parent level validation
+		if (pathNode->BufferDelta != -1)
+		{
+			do
+			{
+				if (++reconstructCount > MAX_RECONSTRUCT)
+				{
+					Debug::Log("[A*] Reconstruction loop exceeded\n");
+					return false;
+				}
+
+				int nodeId = static_cast<int>(pathNode->Index);
+				if (nodeId < 0 || nodeId > 65535)
+				{
+					Debug::Log("[A*] Invalid node ID: %d\n", nodeId);
+					return false;
+				}
+
+				visitedArray[nodeId] = this->initedcount;
+
+				int delta = pathNode->BufferDelta;
+				if (delta < 0 || delta >= elementCount)
+				{
+					Debug::Log("[A*] Invalid delta: %d\n", delta);
+					return false;
+				}
+
+				pathNode = reinterpret_cast<AStarQueueNodeHierarchical*>(
+					reinterpret_cast<char*>(this->BufferForHierarchicalQueue) + delta * 16);
+
+				if (!pathNode)
+				{
+					Debug::Log("[A*] Null pathNode\n");
+					return false;
+				}
+
+			}
+			while (pathNode->BufferDelta != -1);
+		}
+
+		// Store path
+		int pathLength = pathStart->Number + 1;
+		if (pathLength <= 0 || pathLength > 500)
+		{
+			Debug::Log("[A*] Invalid path length: %d\n", pathLength);
+			return false;
+		}
+
+		this->maxvalues_field_C74[level] = pathLength;
+
+		int pathIdx = pathLength - 1;
+		pathNode = pathStart;
+
+		int arrayBase = level * 500;
+		if (arrayBase + pathIdx >= 1500)
+		{
+			Debug::Log("[A*] Array overflow: %d + %d\n", arrayBase, pathIdx);
+			return false;
+		}
+
+		reconstructCount = 0;
+
+		if (pathIdx > 0)
+		{
+			short* resultPtr = &this->somearray_BC[arrayBase + pathIdx];
+
+			while (pathIdx > 0)
+			{
+				if (++reconstructCount > MAX_RECONSTRUCT)
+				{
+					Debug::Log("[A*] Path copy loop exceeded\n");
+					return false;
+				}
+
+				if (!pathNode)
+				{
+					Debug::Log("[A*] Null pathNode during copy\n");
+					return false;
+				}
+
+				*resultPtr = static_cast<short>(pathNode->Index);
+				--resultPtr;
+
+				int delta = pathNode->BufferDelta;
+				if (delta < 0 || delta >= elementCount)
+				{
+					Debug::Log("[A*] Invalid delta during copy: %d\n", delta);
+					return false;
+				}
+
+				pathNode = reinterpret_cast<AStarQueueNodeHierarchical*>(
+					reinterpret_cast<char*>(this->BufferForHierarchicalQueue) + delta * 16);
+				--pathIdx;
+			}
+		}
+
+		if (pathNode)
+		{
+			this->somearray_BC[arrayBase] = static_cast<short>(pathNode->Index);
+		}
+		else
+		{
+			Debug::Log("[A*] Null pathNode at final\n");
+			return false;
+		}
 	}
 
-#endif
-#pragma optimize("", on )
-};
+	return true;
+}
 
 DEFINE_FUNCTION_JUMP(CALL, 0x4CBC31, FakeAStarPathFinderClass::__AStarClass__Find_Path)
-
-#ifdef _WIP
-DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::Find_Path_Hierarchical)
-#endif
+DEFINE_FUNCTION_JUMP(LJMP, 0x42C290, FakeAStarPathFinderClass::__Find_Path_Hierarchical)
 
 ASMJIT_PATCH(0x42C2A7, AStarClass_FindHierarcial_Entry, 0x5)
 {
@@ -5044,7 +5656,6 @@ ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
-#endif
 
 ASMJIT_PATCH(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
 {
