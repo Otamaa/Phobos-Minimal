@@ -221,7 +221,7 @@ public:
 	/// <summary>
 	/// Some sort of hardcoded constant lookup matrix with rows (0-8) representing CellClass Passability(Type) and columns are MovementZones, used to determine pathfinding behaviour.
 	/// </summary>
-	static COMPILETIMEEVAL reference<int[13u], 0x82A594u, 8u> const MovementAdjustArray { };
+	static COMPILETIMEEVAL reference<std::array<int,8u>, 0x82A594u, 13u> const MovementAdjustArray { };
 
 	//IGameMap
 	virtual BOOL __stdcall Is_Visible(CellStruct cell) override R0;
