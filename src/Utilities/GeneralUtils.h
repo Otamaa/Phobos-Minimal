@@ -618,6 +618,9 @@ public:
 	template<typename T>
 	static COMPILETIMEEVAL T GetItemForDirection(std::vector<T> const& items, DirStruct const& direction)
 	{
+		if(items.empty())
+			return T {};
+
 		// Log base 2
 		unsigned int bitsTo = Conversions::Int2Highest(static_cast<int>(items.size()));
 

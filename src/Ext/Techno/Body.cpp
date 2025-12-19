@@ -6877,10 +6877,9 @@ void TechnoExtData::HandleOnDeployAmmoChange(TechnoClass* pThis, int maxAmmoOver
 			maxAmmo = maxAmmoOverride;
 
 		int originalAmmo = pThis->Ammo;
-		pThis->Ammo = std::clamp(pThis->Ammo + add, 0, maxAmmo);
+		pThis->Ammo = std::clamp(originalAmmo + add, 0, maxAmmo);
 
-		if (originalAmmo != pThis->Ammo)
-		{
+		if (originalAmmo != pThis->Ammo) {
 			pThis->StartReloading();
 			pThis->Mark(MarkType::Change);
 		}

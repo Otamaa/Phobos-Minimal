@@ -2068,16 +2068,16 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 
 #endif
 
-DamageState __fastcall TT_ReceiveDamage(TechnoClass* pThis, discard_t,
-	int* Damage,
-	int DistanceToEpicenter,
-	WarheadTypeClass* WH,
-	TechnoClass* Attacker,
-	bool IgnoreDefenses,
-	bool PreventsPassengerEscape,
-	HouseClass* SourceHouse)
-{
-	return pThis->ReceiveDamage(Damage, DistanceToEpicenter, WH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
-}
+// DamageState __fastcall TT_ReceiveDamage(TechnoClass* pThis, discard_t,
+// 	int* Damage,
+// 	int DistanceToEpicenter,
+// 	WarheadTypeClass* WH,
+// 	TechnoClass* Attacker,
+// 	bool IgnoreDefenses,
+// 	bool PreventsPassengerEscape,
+// 	HouseClass* SourceHouse)
+// {
+// 	return pThis->ReceiveDamage(Damage, DistanceToEpicenter, WH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
+// }
 
-DEFINE_FUNCTION_JUMP(CALL6, 0x489AB6, TT_ReceiveDamage);
+// DEFINE_FUNCTION_JUMP(CALL6, 0x489AB6, TT_ReceiveDamage);
