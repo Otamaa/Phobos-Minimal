@@ -5381,7 +5381,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 
 					// Connection penalty
 					float connectionPenalty = connectionFlag ? 0.001f : 0.0f;
-					static constexpr int adjustments_7E3794[] = {
+					static constexpr double adjustments_7E3794[] = {
 						1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0 , 2.0 , 10.0 , 4.0 , 1.009
 					};
 
