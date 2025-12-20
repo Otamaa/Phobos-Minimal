@@ -626,6 +626,11 @@ bool FakeTeamClass::_Can_Add(FootClass* unit, int* outTypeIndex, bool ignoreQuan
 	if (!unit || !unit->IsAlive || !unit->Health || unit->IsCrashing || unit->IsSinking)
 		return false;
 
+	auto pExt = TechnoExtContainer::Instance.Find(unit);
+
+	if (pExt->Is_DriverKilled)
+		return false;
+
 	if (!Unsorted::ScenarioInit && unit->InLimbo)
 		return false;
 
