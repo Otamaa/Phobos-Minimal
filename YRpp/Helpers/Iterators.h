@@ -53,6 +53,22 @@ struct CellRectIterator<ObjectClass>
 };
 
 template <>
+struct CellRectIterator<InfantryClass>
+{
+	template <typename Func>
+	void operator () (LTRBStruct bounds, Func&& action) const {
+		CellRectIterator<ObjectClass>{}(bounds, [&action](ObjectClass* const pObject) {
+			 if (auto const pItem = cast_to<InfantryClass*>(pObject)) {
+				 if (!action(pItem)) {
+					 return false;
+				 }
+			 }
+			 return true;
+		});
+	}
+};
+
+template <>
 struct CellRectIterator<CellClass> {
 	template <typename Func>
 	void operator () (LTRBStruct bounds, Func&& action) const {
@@ -106,6 +122,22 @@ struct CellRangeIterator<ObjectClass>
 				}
 			}
 			return true;
+		});
+	}
+};
+
+template <>
+struct CellRangeIterator<InfantryClass>
+{
+	template <typename Func>
+	void operator () (CellStruct const center, double radius, Func&& action) const {
+		CellRangeIterator<ObjectClass>{}(center, radius, [&action](ObjectClass* const pObject) {
+			 if (auto const pItem = cast_to<InfantryClass*>(pObject)) {
+				 if (!action(pItem)) {
+					 return false;
+				 }
+			 }
+		  return true;
 		});
 	}
 };

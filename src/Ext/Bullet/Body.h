@@ -99,8 +99,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	virtual BulletClass* This() const override { return reinterpret_cast<BulletClass*>(this->ObjectExtData::This()); }
-	virtual const BulletClass* This_Const() const override { return reinterpret_cast<const BulletClass*>(this->ObjectExtData::This_Const()); }
+	BulletClass* This() const override { return reinterpret_cast<BulletClass*>(this->AttachedToObject); }
+	const BulletClass* This_Const() const override { return reinterpret_cast<const BulletClass*>(this->AttachedToObject); }
 
 public:
 

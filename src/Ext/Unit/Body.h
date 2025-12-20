@@ -67,8 +67,9 @@ public:
 	{
 		this->FootExtData::CalculateCRC(crc);
 	}
-	virtual UnitClass* This() const override { return reinterpret_cast<UnitClass*>(this->FootExtData::This()); }
-	virtual const UnitClass* This_Const() const override { return reinterpret_cast<const UnitClass*>(this->FootExtData::This_Const()); }
+
+	UnitClass* This() const override { return reinterpret_cast<UnitClass*>(this->AttachedToObject); }
+	const UnitClass* This_Const() const override { return reinterpret_cast<const UnitClass*>(this->AttachedToObject); }
 
 public:
 

@@ -76,8 +76,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual VoxelAnimTypeClass* This() const override { return reinterpret_cast<VoxelAnimTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const VoxelAnimTypeClass* This_Const() const override { return reinterpret_cast<const VoxelAnimTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	VoxelAnimTypeClass* This() const override { return reinterpret_cast<VoxelAnimTypeClass*>(this->AttachedToObject); }
+	const VoxelAnimTypeClass* This_Const() const override { return reinterpret_cast<const VoxelAnimTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

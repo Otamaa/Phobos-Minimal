@@ -63,8 +63,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual RadSiteClass* This() const override { return reinterpret_cast<RadSiteClass*>(this->AbstractExtended::This()); }
-	virtual const RadSiteClass* This_Const() const override { return reinterpret_cast<const RadSiteClass*>(this->AbstractExtended::This_Const()); }
+	RadSiteClass* This() const override { return reinterpret_cast<RadSiteClass*>(this->AttachedToObject); }
+	const RadSiteClass* This_Const() const override { return reinterpret_cast<const RadSiteClass*>(this->AttachedToObject); }
 
 public:
 

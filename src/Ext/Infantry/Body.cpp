@@ -464,6 +464,7 @@ void HandleInfantryDeath(FakeInfantryClass* pThis, WarheadTypeClass* warhead,
 		ProcessInfantryDeathAnimation(pThis, warhead, source, sourceHouse, isCyborgDeath);
 	}
 }
+#include <Misc/Hooks.Otamaa.h>
 
 DamageState FakeInfantryClass::_Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse) {
 
@@ -487,7 +488,7 @@ DamageState FakeInfantryClass::_Take_Damage(int* damage, int distance, WarheadTy
 	}
 
 	// Call parent damage handler
-	DamageState result = this->FootClass::ReceiveDamage(
+	DamageState result = FakeFootClass::__Take_Damage(this, discard_t(), 
 		damage,
 		distance,
 		warhead,

@@ -326,25 +326,6 @@ ASMJIT_PATCH(0x70CF45, TechnoClass_EvalThreatRating_ThisWeaponWarhead_Verses, 0x
 //	return vsData_Primary->Verses != 0.0 ? ContinueCheck : UseSecondary;
 //}
 
-ASMJIT_PATCH(0x708AF7, TechnoClass_ShouldRetaliate_Verses, 0x7)
-{
-	enum { Retaliate = 0x708B0B, DoNotRetaliate = 0x708B17 };
-
-	GET(TechnoClass* , pSource , EBP);
-	GET(FakeWarheadTypeClass*, pWH, ECX);
-	//GET(WeaponTypeClass*, pWeapon, ESI);
-	//GET(int, nArmor, EAX);
-
-	if(pWH->_GetExtData()->Nonprovocative)
-		return DoNotRetaliate;
-
-	Armor armor = TechnoExtData::GetTechnoArmor(pSource , pWH);
-	return pWH->GetVersesData(armor)->Flags.Retaliate //|| !(vsData->Verses <= 0.0099999998)
-		? Retaliate
-		: DoNotRetaliate
-		;
-}
-
 ASMJIT_PATCH(0x4753F0, ArmorType_FindIndex, 0xA)
 {
 	GET(CCINIClass*, pINI, ECX);

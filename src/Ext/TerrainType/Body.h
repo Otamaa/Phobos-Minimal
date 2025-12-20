@@ -109,8 +109,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual TerrainTypeClass* This() const override { return reinterpret_cast<TerrainTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const TerrainTypeClass* This_Const() const override { return reinterpret_cast<const TerrainTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	TerrainTypeClass* This() const override { return reinterpret_cast<TerrainTypeClass*>(this->AttachedToObject); }
+	const TerrainTypeClass* This_Const() const override { return reinterpret_cast<const TerrainTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

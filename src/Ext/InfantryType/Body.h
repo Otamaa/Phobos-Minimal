@@ -247,8 +247,8 @@ public:
 		this->TechnoTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual InfantryTypeClass* This() const override { return reinterpret_cast<InfantryTypeClass*>(this->TechnoTypeExtData::This()); }
-	virtual const InfantryTypeClass* This_Const() const override { return reinterpret_cast<const InfantryTypeClass*>(this->TechnoTypeExtData::This_Const()); }
+	InfantryTypeClass* This() const override { return reinterpret_cast<InfantryTypeClass*>(this->AttachedToObject); }
+	const InfantryTypeClass* This_Const() const override { return reinterpret_cast<const InfantryTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }

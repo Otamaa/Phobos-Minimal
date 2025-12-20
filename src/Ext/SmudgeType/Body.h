@@ -47,8 +47,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual SmudgeTypeClass* This() const override { return reinterpret_cast<SmudgeTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const SmudgeTypeClass* This_Const() const override { return reinterpret_cast<const SmudgeTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	SmudgeTypeClass* This() const override { return reinterpret_cast<SmudgeTypeClass*>(this->AttachedToObject); }
+	const SmudgeTypeClass* This_Const() const override { return reinterpret_cast<const SmudgeTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

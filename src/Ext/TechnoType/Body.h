@@ -2152,8 +2152,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual TechnoTypeClass* This() const override { return reinterpret_cast<TechnoTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const TechnoTypeClass* This_Const() const override { return reinterpret_cast<const TechnoTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	TechnoTypeClass* This() const override { return reinterpret_cast<TechnoTypeClass*>(this->AttachedToObject); }
+	const TechnoTypeClass* This_Const() const override { return reinterpret_cast<const TechnoTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

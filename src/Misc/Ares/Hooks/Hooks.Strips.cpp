@@ -10,6 +10,8 @@
 #include <Misc/PhobosToolTip.h>
 #include <Ext/SWType/Body.h>
 
+#include <Utilities/Cast.h>
+
 #ifndef STRIPS
 
 #ifndef _newIpml
@@ -604,7 +606,7 @@ bool NOINLINE RemoveCameo(BuildType* item)
 	{
 		const auto pBldType = static_cast<BuildingTypeClass*>(TechnoType);
 		const auto pDisplay = DisplayClass::Instance();
-		const auto pCurType = cast_to<BuildingTypeClass*>(pDisplay->CurrentBuildingType);
+		const auto pCurType = type_cast<BuildingTypeClass*>(pDisplay->CurrentBuildingType);
 
 		if (!RulesExtData::Instance()->ExtendedBuildingPlacing || !pCurType
 			|| BuildingTypeExtData::IsSameBuildingType(pBldType, pCurType))

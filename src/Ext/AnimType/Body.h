@@ -202,8 +202,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual AnimTypeClass* This() const override { return reinterpret_cast<AnimTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const AnimTypeClass* This_Const() const override { return reinterpret_cast<const AnimTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	AnimTypeClass* This() const override { return reinterpret_cast<AnimTypeClass*>(this->AttachedToObject); }
+	const AnimTypeClass* This_Const() const override { return reinterpret_cast<const AnimTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const {  return true; }

@@ -99,8 +99,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	virtual AnimClass* This() const override { return reinterpret_cast<AnimClass*>(this->ObjectExtData::This()); }
-	virtual const AnimClass* This_Const() const override { return reinterpret_cast<const AnimClass*>(this->ObjectExtData::This_Const()); }
+	AnimClass* This() const override { return reinterpret_cast<AnimClass*>(this->AttachedToObject); }
+	const AnimClass* This_Const() const override { return reinterpret_cast<const AnimClass*>(this->AttachedToObject); }
 
 public:
 

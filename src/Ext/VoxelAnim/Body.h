@@ -67,9 +67,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	virtual VoxelAnimClass* This() const override { return reinterpret_cast<VoxelAnimClass*>(this->ObjectExtData::This()); }
-	virtual const VoxelAnimClass* This_Const() const override { return reinterpret_cast<const VoxelAnimClass*>(this->ObjectExtData::This_Const()); }
-
+	VoxelAnimClass* This() const override { return reinterpret_cast<VoxelAnimClass*>(this->AttachedToObject); }
+	const VoxelAnimClass* This_Const() const override { return reinterpret_cast<const VoxelAnimClass*>(this->AttachedToObject); }
 
 public:
 

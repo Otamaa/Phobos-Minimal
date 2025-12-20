@@ -186,14 +186,14 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 		{
 			auto techno = TechnoClass::Array->Items[i];
 
-			const bool canTarget = !pOwner->IsAlliedWith(techno)
+			const bool canTarget1 = !pOwner->IsAlliedWith(techno)
 				|| combatDamage < 0
 				|| (!isTechnoPlayerControlled && what == AbstractType::Infantry && ((InfantryTypeClass*)pType)->Engineer)
 				|| pType->AttackFriendlies
 				|| pThis->Berzerk
 				|| hasRealOwner;
 
-			if (!canTarget)
+			if (!canTarget1)
 				continue;
 
 			if (!RulesExtData::Instance()->AIAirTargetingFix)
@@ -205,10 +205,10 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 			}
 			else
 			{
-				const bool canTarget = ((method & ThreatType::Air) != ThreatType::Normal) ?
+				const bool canTarget2 = ((method & ThreatType::Air) != ThreatType::Normal) ?
 					techno->LastLayer != Layer::Underground : techno->LastLayer == Layer::Ground;
 
-				if (!canTarget)
+				if (!canTarget2)
 					continue;
 			}
 
@@ -303,12 +303,12 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 		for (auto aircraft = AircraftTrackerClass::Instance->Get(); aircraft; aircraft = AircraftTrackerClass::Instance->Get())
 		{
 
-			const bool canTarget = !pOwner->IsAlliedWith(aircraft)
+			const bool canTarget3 = !pOwner->IsAlliedWith(aircraft)
 				|| pType->AttackFriendlies
 				|| pThis->Berzerk
 				|| hasRealOwner;
 
-			if (!canTarget)
+			if (!canTarget3)
 				continue;
 
 			// FIXED: test ah, 40h = method & 0x4000 = ThreatType_4000, NOT Tiberium!

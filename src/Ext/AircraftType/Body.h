@@ -43,8 +43,8 @@ public:
 		this->TechnoTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual AircraftTypeClass* This() const override { return reinterpret_cast<AircraftTypeClass*>(this->TechnoTypeExtData::This()); }
-	virtual const AircraftTypeClass* This_Const() const override { return reinterpret_cast<const AircraftTypeClass*>(this->TechnoTypeExtData::This_Const()); }
+	AircraftTypeClass* This() const override { return reinterpret_cast<AircraftTypeClass*>(this->AttachedToObject); }
+	const AircraftTypeClass* This_Const() const override { return reinterpret_cast<const AircraftTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) override;
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

@@ -868,8 +868,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual WarheadTypeClass* This() const override { return reinterpret_cast<WarheadTypeClass*>(this->AbstractTypeExtData::This()); }
-	virtual const WarheadTypeClass* This_Const() const override { return reinterpret_cast<const WarheadTypeClass*>(this->AbstractTypeExtData::This_Const()); }
+	WarheadTypeClass* This() const override { return reinterpret_cast<WarheadTypeClass*>(this->AttachedToObject); }
+	const WarheadTypeClass* This_Const() const override { return reinterpret_cast<const WarheadTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

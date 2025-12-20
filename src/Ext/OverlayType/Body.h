@@ -56,8 +56,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual OverlayTypeClass* This() const override { return reinterpret_cast<OverlayTypeClass*>(this->ObjectTypeExtData::This()); }
-	virtual const OverlayTypeClass* This_Const() const override { return reinterpret_cast<const OverlayTypeClass*>(this->ObjectTypeExtData::This_Const()); }
+	OverlayTypeClass* This() const override { return reinterpret_cast<OverlayTypeClass*>(this->AttachedToObject); }
+	const OverlayTypeClass* This_Const() const override { return reinterpret_cast<const OverlayTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
