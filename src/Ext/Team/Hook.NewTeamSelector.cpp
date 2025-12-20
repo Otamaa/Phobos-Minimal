@@ -6,6 +6,8 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
+#include <Utilities/Cast.h>
+
 #include <AITriggerTypeClass.h>
 
 // TODO :
@@ -134,7 +136,7 @@ COMPILETIMEEVAL void ModifyOperand(bool& result, int counter, AITriggerCondition
 }
 
 bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list) {
-	if (auto pItemUnit = cast_to<UnitTypeClass*, false>(pItem)) {
+	if (auto pItemUnit = type_cast<UnitTypeClass*, false>(pItem)) {
 		if (auto pListBld = cast_to<BuildingClass*, false>(list))
 		{
 			if (pItemUnit->DeploysInto == pListBld->Type)
@@ -145,7 +147,7 @@ bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list) {
 		}
 	}
 
-	if (auto pItemUnit = cast_to<BuildingTypeClass*, false>(pItem))
+	if (auto pItemUnit = type_cast<BuildingTypeClass*, false>(pItem))
 	{
 		if (auto pListBld = cast_to<UnitClass*, false>(list))
 		{

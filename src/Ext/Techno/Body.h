@@ -1573,6 +1573,7 @@ public:
 	static void __fastcall __Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct startCoord , CoordStruct endCoord);
 
 	static DamageState __fastcall __Take_Damage(TechnoClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
+	static bool __fastcall __Is_Allowed_To_Retaliate(TechnoClass* pThis, discard_t, TechnoClass* pSource, WarheadTypeClass* pWarhead);
 
 	//AI
 	static void __HandleGattlingAudio(TechnoClass* pThis);

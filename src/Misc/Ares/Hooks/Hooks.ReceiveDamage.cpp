@@ -29,6 +29,7 @@
 #include <Ext/Terrain/Body.h>
 #include <Ext/TerrainType/Body.h>
 #include <Ext/AircraftType/Body.h>
+#include <Ext/Aircraft/Body.h>
 
 #include <Ext/SWType/NewSuperWeaponType/Firewall.h>
 
@@ -36,6 +37,7 @@
 
 #include "Header.h"
 
+#include <Misc/Hooks.Otamaa.h>
 #include <Misc/DamageArea.h>
 #include <Misc/DynamicPatcher/Techno/GiftBox/GiftBoxFunctional.h>
 
@@ -170,7 +172,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 			auto pExt = TerrainExtContainer::Instance.Find(pThis);
 			double PriorHealthRatio = pThis->GetHealthPercentage();
 
-			_res = pThis->ObjectClass::ReceiveDamage(Damage, DistanceToEpicenter, pWH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
+			_res = FakeObjectClass::__Take_Damage(pThis, discard_t(), Damage, DistanceToEpicenter, pWH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
 
 			if (!pThis->IsBurning && *Damage > 0 && WH->Sparky)
 			{
@@ -292,11 +294,17 @@ DEFINE_FUNCTION_JUMP(VTABLE , 0x7F5398,FakeTerrainClass::__TakeDamage)
 #pragma endregion
 
 #pragma region Object
-
-ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
+DamageState __fastcall FakeObjectClass::__Take_Damage(ObjectClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse)
 {
-	GET(ObjectClass*, pThis, ECX);
-	REF_STACK(args_ReceiveDamage, args, 0x4);
+	args_ReceiveDamage args {
+	.Damage = damage,
+	.DistanceToEpicenter = distance ,
+	.WH = warhead,
+	.Attacker = source,
+	.IgnoreDefenses = ignoreDefenses,
+	.PreventsPassengerEscape = PreventsPassengerEscape,
+	.SourceHouse = sourceHouse
+	};
 
 	int oldstrength = pThis->Health;
 
@@ -304,8 +312,7 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 	// To avoid units dying when they are already dead.
 	if (oldstrength <= 0 || !pThis->IsAlive)
 	{
-		R->EAX(DamageState::PostMortem);
-		return 0x5F584A;
+		return DamageState::PostMortem;
 	}
 
 	DamageState _res = DamageState::Unaffected;
@@ -314,8 +321,7 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 
 	if (!*args.Damage || (!args.IgnoreDefenses && pObjType->Immune))
 	{
-		R->EAX(_res);
-		return 0x5F584A;
+		return _res;
 	}
 
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
@@ -347,9 +353,8 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 	}
 
 	if (!*args.Damage)
-	{
-		R->EAX(_res);//unaffected
-		return 0x5F584A;
+	{	//unaffected
+		return _res;
 	}
 
 	if (*args.Damage > 0)
@@ -416,8 +421,7 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 
 			if (!pThis->IsAlive)
 			{
-				R->EAX(DamageState::PostMortem);
-				return 0x5F584A;
+				return DamageState::PostMortem;
 			}
 
 			if (pThis->AttachedTag)
@@ -437,8 +441,7 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 
 				if (!pThis->IsAlive)
 				{
-					R->EAX(DamageState::PostMortem);
-					return 0x5F584A;
+					return DamageState::PostMortem;
 				}
 
 				if (pThis->AttachedTag)
@@ -463,8 +466,7 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 
 					if (!pThis->IsAlive)
 					{
-						R->EAX(DamageState::PostMortem);
-						return 0x5F584A;
+						return DamageState::PostMortem;
 					}
 
 					if (pThis->AttachedTag && args.Attacker)
@@ -535,14 +537,12 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 						}
 					}
 
-					R->EAX(_res);
-					return 0x5F584A;
+					return _res;
 				}
 			}
 		}
 
-		R->EAX(DamageState::PostMortem);
-		return 0x5F584A;
+		return DamageState::PostMortem;
 	}
 
 	const int flash = Math::abs(pWHExt->Flash_Duration.Get(7));
@@ -551,8 +551,10 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 
 	pThis->Health = MinImpl(_adj, maxstrength);
 
-	if(flash > 0){
-		if (auto pTechno = flag_cast_to<TechnoClass*>(pThis)) {
+	if (flash > 0)
+	{
+		if (auto pTechno = flag_cast_to<TechnoClass*>(pThis))
+		{
 
 			if ((_oldStr != pThis->Health || pWHExt->Flash_Duration.isset())
 				&& flash > pTechno->Flashing.DurationRemaining)
@@ -562,10 +564,25 @@ ASMJIT_PATCH(0x5F5390, ObjectClass_ReveiveDamage_Handled, 0x5)
 		}
 	}
 
-
-	R->EAX(_res);
-	return 0x5F584A;
+	return _res;
 }
+
+
+DEFINE_FUNCTION_JUMP(CALL, 0x74D5D0, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(LJMP, 0x5F5390, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E34C0, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3C3C, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4850, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EC3C4, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EDE2C, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF1CC, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF540, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFAC0, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFD08, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0674, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3468, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6484, FakeObjectClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6D60, FakeObjectClass::__Take_Damage);
 
 #pragma endregion
 
@@ -800,7 +817,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		pThis->EstimatedHealth = 1;
 		isActuallyAffected = true;
 	}
-	_res = pThis->ObjectClass::ReceiveDamage(damage, distance, warhead, source,ignoreDefenses, PreventsPassengerEscape, pSourceHouse);
+	_res = FakeObjectClass::__Take_Damage(pThis, discard_t(), damage, distance, warhead, source,ignoreDefenses, PreventsPassengerEscape, pSourceHouse);
 
 	const bool Show = Phobos::Otamaa::IsAdmin || *damage;
 
@@ -1286,16 +1303,20 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 
 	const auto pFoot = flag_cast_to<FootClass*, false>(pThis);
 	auto Toretalitate = source;
-	if (source && source->InOpenToppedTransport && source->Transporter) {
+	if (source && source->InOpenToppedTransport && source->Transporter && source->Transporter->IsAlive) {
 		Toretalitate = source->Transporter;
 	}
 
 	bool retaliate = false;
-	if (pThis->AllowToRetaliate(Toretalitate, warhead)) {
-		if (pThis->IsCloseEnough(source, pThis->SelectWeapon(source))
-			|| !pThis->Owner->IsControlledByHuman()
-			|| (((pType->Sight + 0.5) * 256.0) >= (Toretalitate->Location - pThis->Location).Length()))
-		{
+	if (FakeTechnoClass::__Is_Allowed_To_Retaliate(pThis, discard_t() , Toretalitate, warhead)) {
+		int weaponIdx = pThis->SelectWeapon(Toretalitate);
+		bool isCloseEnough = pThis->IsCloseEnough(source, weaponIdx);
+		bool isNotHumanControlled = !pThis->Owner->IsControlledByHuman();
+		bool isSightEligible = (((pType->Sight + 0.5) * 256.0) >= (Toretalitate->Location - pThis->Location).Length());
+
+		if (isCloseEnough
+			|| !isNotHumanControlled
+			|| isSightEligible) {
 			pThis->Override_Mission(Mission::Attack, Toretalitate);
 		}
 
@@ -1327,9 +1348,12 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	return _res;
 }
 
+DEFINE_FUNCTION_JUMP(LJMP, 0x7087C0, FakeTechnoClass::__Is_Allowed_To_Retaliate)
+
 DEFINE_FUNCTION_JUMP(LJMP, 0x701900 , FakeTechnoClass::__Take_Damage)
 DEFINE_FUNCTION_JUMP(CALL, 0x4D742C, FakeTechnoClass::__Take_Damage)
 DEFINE_FUNCTION_JUMP(CALL, 0x442425 , FakeTechnoClass::__Take_Damage)
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4ACC, FakeTechnoClass::__Take_Damage)
 #else
 
 ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
@@ -2184,7 +2208,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 	}
 	else
 	{
-		_res = pThis->TechnoClass::ReceiveDamage(Damage, DistanceToEpicenter, WH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
+		_res = FakeTechnoClass::__Take_Damage(pThis, discard_t() , Damage, DistanceToEpicenter, WH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
 
 		if (!pThis->IsAlive)
 		{
@@ -2429,10 +2453,18 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4028, FakeBuildingClass::_ReceiveDamage)
 #pragma region Foot
 #include <TeamTypeClass.h>
 
-ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
+DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse)
 {
-	GET(FootClass*, pThis, ECX);
-	REF_STACK(args_ReceiveDamage, args, 0x4);
+	args_ReceiveDamage args {
+		.Damage = damage, 
+		.DistanceToEpicenter = distance , 
+		.WH = warhead,
+		.Attacker = source,
+		.IgnoreDefenses = ignoreDefenses,
+		.PreventsPassengerEscape = PreventsPassengerEscape,
+		.SourceHouse  =sourceHouse
+	};
+
 	DamageState _res = DamageState::Unaffected;
 
 	if (args.WH->Sonic)
@@ -2461,13 +2493,11 @@ ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 		pThis->ParasiteEatingMe->ParasiteImUsing->ExitUnit();
 	}
 
-	_res = pThis->TechnoClass::ReceiveDamage(args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
+	_res = FakeTechnoClass::__Take_Damage(pThis , discard_t(), args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
 
 	if (_res == DamageState::NowDead || _res == DamageState::Unaffected)
 	{
-		R->EAX(_res);
-		return 0x4D74D6;
-
+		return _res;
 	}
 	else if (_res != DamageState::PostMortem)
 	{
@@ -2482,8 +2512,7 @@ ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 			if (auto pTeam = pThis->Team)
 			{
 				pTeam->TookDamage(pThis, _res, args.Attacker);
-				R->EAX(_res);
-				return 0x4D74D6;
+				return _res;
 			}
 		}
 
@@ -2493,8 +2522,7 @@ ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 			{
 				if (!args.Attacker || !args.Attacker->IsAlive)
 				{
-					R->EAX(_res);
-					return 0x4D74D6;
+					return _res;
 				}
 
 				if (!pWHExt->Nonprovocative)
@@ -2512,57 +2540,69 @@ ASMJIT_PATCH(0x4D7330, FootClass_ReceiveDamage_Handle, 0x8)
 		}
 	}
 
-	R->EAX(_res);
-	return 0x4D74D6;
+	return _res;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x4D7330, FakeFootClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8E00, FakeFootClass::__Take_Damage);
+
 #pragma endregion
 
 #pragma region Aircraft
 
-ASMJIT_PATCH(0x4165C0, AircraftClass_ReceiveDamage_Handle, 0x7)
+DamageState FakeAircraftClass::__Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse)
 {
-	GET(AircraftClass*, pThis, ECX);
-	REF_STACK(args_ReceiveDamage, args, 0x4);
+	args_ReceiveDamage args {
+		.Damage = damage,
+		.DistanceToEpicenter = distance ,
+		.WH = warhead,
+		.Attacker = source,
+		.IgnoreDefenses = ignoreDefenses,
+		.PreventsPassengerEscape = PreventsPassengerEscape,
+		.SourceHouse = sourceHouse
+	};
 
-	const DamageState _res = pThis->FootClass::ReceiveDamage(args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
+	DamageState _res = FakeFootClass::__Take_Damage(this, discard_t(), args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);
 
 	if (_res == DamageState::NowDead)
 	{
-		pThis->Destroyed(args.Attacker);
-		if (pThis->Type->Explosion.Count > 0)
+		this->Destroyed(args.Attacker);
+		if (this->Type->Explosion.Count > 0)
 		{
-			if (auto pExp = pThis->Type->Explosion
-				[ScenarioClass::Instance->Random.RandomFromMax(pThis->Type->Explosion.Count - 1)])
+			if (auto pExp = this->Type->Explosion
+				[ScenarioClass::Instance->Random.RandomFromMax(this->Type->Explosion.Count - 1)])
 			{
-				auto nCoord = pThis->GetTargetCoords();
+				auto nCoord = this->GetTargetCoords();
 				// if (pInvoker && !Is_House(pInvoker))
 				// 	pInvoker = nullptr;
 
 				AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pExp, nCoord),
 					args.Attacker ? args.Attacker->Owner : (args.SourceHouse ? args.SourceHouse : nullptr),
-					pThis->Owner,
+					this->Owner,
 					true
 				);
 			}
 		}
 
 		// bugfix #297: Crewed=yes AircraftTypes spawn parachuting infantry on death
-		const bool bSelected = pThis->IsSelected && pThis->Owner->ControlledByCurrentPlayer();
-		TechnoExt_ExtData::SpawnSurvivors(pThis,
+		const bool bSelected = this->IsSelected && this->Owner->ControlledByCurrentPlayer();
+		TechnoExt_ExtData::SpawnSurvivors(this,
 			args.Attacker,
 			bSelected,
 			args.IgnoreDefenses,
 			args.PreventsPassengerEscape);
 
-		const auto& crashable = TechnoTypeExtContainer::Instance.Find(pThis->Type)->Crashable;
-		if ((crashable.isset() && !crashable.Get()) || !pThis->Crash(args.Attacker))
-			pThis->UnInit();
+		const auto& crashable = TechnoTypeExtContainer::Instance.Find(this->Type)->Crashable;
+		if ((crashable.isset() && !crashable.Get()) || !this->Crash(args.Attacker))
+			this->UnInit();
 
 	}
 
-	R->EAX(_res);
-	return 0x4166B0;
+	return _res;
 }
+
+DEFINE_FUNCTION_JUMP(LJMP, 0x4165C0, FakeAircraftClass::__Take_Damage);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2410, FakeAircraftClass::__Take_Damage);
 
 #pragma endregion
 
@@ -2572,6 +2612,7 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x517FA0, FakeInfantryClass::_Take_Damage);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB1C4, FakeInfantryClass::_Take_Damage);
 
 #pragma endregion
+
 #include <Ext/Unit/Body.h>
 
 #pragma region Unit
@@ -2644,9 +2685,9 @@ DamageResultType __thiscall VeinholeMonsterClass::Take_Damage(
 
 ASMJIT_PATCH(0x718B29, LocomotionClass_SomethingWrong_ReceiveDamage_UseCurrentHP, 0x6)
 {
-	GET(FootClass* const, pLinked, ECX);
-	R->ECX(pLinked->GetType()->Strength);
-	return R->Origin() + 0x6;
+	GET(TechnoTypeClass* const, pLinkedType, EAX);
+	R->EAX(pLinkedType->Strength);
+	return 0x718B2F;
 }
 
 #pragma region placeholder

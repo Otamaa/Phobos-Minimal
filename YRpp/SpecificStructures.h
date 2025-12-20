@@ -14,13 +14,7 @@ struct args_ReceiveDamage
 	WarheadTypeClass* WH;
 	TechnoClass* Attacker;
 	bool IgnoreDefenses;
-private:
-	bool padding_11[3];
-public:
 	bool PreventsPassengerEscape;
-private:
-	bool padding_15[3];
-public:
 	HouseClass* SourceHouse;
 };
 

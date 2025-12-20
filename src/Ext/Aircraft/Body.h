@@ -98,6 +98,7 @@ public:
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
 	int _Mission_Sleep();
 	void _FootClass_Update_Wrapper();
+	DamageState __Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 
 	BulletClass* _FireAt(AbstractClass* target, int which);
 	int _Mission_Attack();

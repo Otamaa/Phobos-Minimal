@@ -225,7 +225,7 @@ static FORCEDINLINE void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger
 }
 
 void TechnoExtData::Fastenteraction(FootClass* pThis) {
-	if (const auto pDest = flag_cast_to<UnitClass*>(pThis->CurrentMission == Mission::Enter ? pThis->GetNthLink() : pThis->QueueUpToEnter))
+	if (const auto pDest = cast_to<UnitClass*>(pThis->CurrentMission == Mission::Enter ? pThis->GetNthLink() : pThis->QueueUpToEnter))
 	{
 		const auto pType = pDest->Type;
 

@@ -426,6 +426,156 @@ int TechnoExtData::GetDeployingAnimIntensity(FootClass* pThis)
 	return intensity;
 }
 
+bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , discard_t , TechnoClass* pSource, WarheadTypeClass* pWarhead)
+{
+	if (!pSource || !pSource->IsAlive || pSource->IsCrashing || pSource->IsSinking)
+		return false;
+
+	auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWarhead);
+
+	if (pExt->Is_DriverKilled || pWHExt->Nonprovocative)
+		return false;
+
+	// HOOK: 0x7087DD - TechnoClass_CanRetaliateToAttacker_CeasefireMode (0x6 bytes)
+	// Checks CanRetaliate, DriverKilled, and CeasefireMode
+	// Returns to 0x7087E3 after setting CL, or jumps to 0x708B17 if driver killed
+	const auto pType = pThis->GetTechnoType();
+	const bool canRetaliate = pType->CanRetaliate && (pExt->GetPassiveAcquireMode() != PassiveAcquireMode::Ceasefire);
+
+	if (!canRetaliate)
+		return false;
+
+	if (pThis->SlaveOwner)
+		return false;
+
+	if (pThis->SlaveManager)
+		return false;
+
+	if (pThis->DrainTarget && !pThis->Owner->IsHumanPlayer)
+		return false;
+
+	if (const auto pCaptureManager = pThis->CaptureManager) {
+		if (pCaptureManager->CannotControlAnyMore())
+			return false;
+	}
+
+	if (pThis->SpawnManager)
+		return false;
+
+	const bool bIsPlayerControl = pThis->Owner->IsControlledByHuman();
+
+	if (bIsPlayerControl && pThis->Target)
+		return false;
+
+	if (!pThis->GetCurrentMissionControl()->Retaliate)
+		return false;
+
+	if (pThis->Owner->IsAlliedWith(pSource))
+		return false;
+
+	if (pSource->CantTarget(pThis->Owner))
+		return false;
+
+	if (pThis->CombatDamage() <= 0)
+		return false;
+
+	if (!pThis->IsArmed())
+		return false;
+
+	const int nWeaponIdx = pThis->SelectWeapon(pSource);
+	UnitClass* pThisUnit = cast_to<UnitClass*, false>(pThis);
+	FootClass* pThisFoot = flag_cast_to<FootClass*, false>(pThis);
+	InfantryClass* pThisInf = cast_to<InfantryClass*, false>(pThis);
+	BuildingClass* pThisBld = cast_to<BuildingClass*, false>(pThis);
+
+	bool ignoreRange = false;
+	// HOOK: 0x7088E3 - TechnoClass_ShouldRetaliate_DisallowMoving (0x6 bytes)
+	// For units that cannot move, calls GetFireError with different parameters
+	// Returns to 0x7088F3 after setting EAX, or continues normally if not applicable
+	if (pThisUnit && TechnoExtData::CannotMove(pThisUnit)) {
+		ignoreRange = true;
+	}
+
+	FireError nFireError = pThis->GetFireError(pSource, nWeaponIdx, ignoreRange);
+
+	if (nFireError == FireError::ILLEGAL || nFireError == FireError::CANT)
+		return false;
+
+	// Player-controlled units vs buildings - C4 logic
+	if (bIsPlayerControl) {
+		if (auto pSourceBuilding = cast_to<BuildingClass*, false>(pSource)) {
+			if (pThisInf && pThisInf->Type->C4)
+				return false;
+
+			const bool bIsVeteran = pThis->Veterancy.IsVeteran();
+			const bool bIsElite = pThis->Veterancy.IsElite();
+
+			if (bIsVeteran || bIsElite) {
+				if (bIsVeteran && pType->VeteranAbilities.C4)
+					return false;
+				
+				if (bIsElite && (pType->VeteranAbilities.C4 || pType->EliteAbilities.C4))
+					return false;
+			}
+		}
+	}
+
+	// Player-controlled artillery units should not retaliate
+	if (bIsPlayerControl && pThisUnit && pThisUnit->Type->DeploysInto && pThisUnit->Type->DeploysInto->Artillary) {
+		return false;
+	}
+
+	// Player-controlled units without SmartDefense should only retaliate in guard missions
+	if (bIsPlayerControl && !RulesClass::Instance->Scatter && !pThisBld) {
+		if (pThis->CurrentMission != Mission::Area_Guard 
+			&& pThis->CurrentMission != Mission::Guard 
+			&& pThis->CurrentMission != Mission::Patrol){
+			return false;
+		}
+	}
+
+	// Units in suicide teams should not retaliate
+	if (pThisFoot && pThisFoot->Team && pThisFoot->Team->Type->Suicide) {
+		return false;
+	}
+
+	// AI units should not switch targets if current target is closer
+	if (!bIsPlayerControl) {
+		if (auto pTargetFoot = flag_cast_to<FootClass*>(pThis->Target)) {
+			auto emptyCoords = CoordStruct::Empty;
+			const double dCurrentTargetCoeff = pThis->GetCoefficient(pTargetFoot, emptyCoords);
+			const double dSourceCoeff = pThis->GetCoefficient(pSource, emptyCoords);
+
+			if (dSourceCoeff < dCurrentTargetCoeff)
+				return false;
+		}
+	}
+
+	// Units should not retaliate against the parasite eating them
+	if (pThisFoot) {
+		if (pSource == pThisFoot->ParasiteEatingMe)
+			return false;
+	}
+
+	// HOOK: 0x708AF7 - TechnoClass_ShouldRetaliate_Verses (0x7 bytes)
+	// Checks Nonprovocative warhead flag and custom armor/verses retaliation logic
+	// Jumps to 0x708B0B (Retaliate/return true) or 0x708B17 (DoNotRetaliate/return false)
+	// At this point: EBP = pSource, ECX = pWarhead->WarheadPtr, ESI = pWeapon
+	if (const auto pWeapon = pThis->GetWeapon(nWeaponIdx)->WeaponType) {
+		if (const auto pWarheadPtr = pWeapon->Warhead) {
+			Armor armor = TechnoExtData::GetTechnoArmor(pSource, pWarheadPtr);
+			auto pCurWeaponWHExt = WarheadTypeExtContainer::Instance.Find(pWarheadPtr);
+			auto& verses = pCurWeaponWHExt->GetVerses(armor);
+			
+			if (!verses.Flags.Retaliate && verses.Verses <= 0.0099999998)
+				return false;
+		}
+	}
+
+	return true;
+}
+
 // Draws airstrike targeting flare/beam between aircraft and target
 // With Ares/Phobos extensions for custom colors and Z-depth fix
 void __fastcall FakeTechnoClass::__Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct startCoord, CoordStruct endCoord)
@@ -2142,7 +2292,7 @@ void TechnoExtData::ProcessDigitalDisplays(TechnoClass* pThis)
 
 void GetDigitalDisplayFakeHealth(TechnoClass* pThis, int& value, int& maxValue) {
 	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->DigitalDisplay_Health_FakeAtDisguise) {
-		if(auto pType = cast_to<TechnoTypeClass*>(pThis->Disguise)){
+		if(auto pType = type_cast<TechnoTypeClass*>(pThis->Disguise)){
 			const int newMaxValue = pType->Strength;
 			const double ratio = static_cast<double>(value) / maxValue;
 			value = static_cast<int>(ratio * newMaxValue);
@@ -2572,10 +2722,9 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 	if(!pThis->IsAlive)
 		Debug::Log("Death Techno used for GetArmor !\n");
 
-	const auto pType = pThis->GetType();
-	Armor res = pType->Armor;
-
 	if(pThis->AbstractFlags & AbstractFlags::Techno){
+		const auto pType = pThis->GetTechnoType();
+		Armor res = pType->Armor;
 
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pType);
 
@@ -2593,7 +2742,7 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 
 	//Debug::LogInfo("{} Armor [{} = {}]", pType->ID, res, ArmorTypeClass::Array[(int)res]->Name.data());
 
-	return res;
+	return pThis->GetType()->Armor;
 }
 
 void TechnoExtData::StoreHijackerLastDisguiseData(InfantryClass* pThis, FootClass* pVictim)
@@ -7131,7 +7280,7 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 	{
 		if (auto const pCell = cast_to<CellClass*>(pTarget))
 			pTargetCell = pCell;
-		else if (auto const pObject = cast_to<ObjectClass*>(pTarget)) {
+		else if (auto const pObject = flag_cast_to<ObjectClass*>(pTarget)) {
 			if (!pObject->IsAlive)
 				pTargetCell = MapClass::Instance->TryGetCellAt(pObject->Location);
 			else
@@ -7254,7 +7403,7 @@ CoordStruct TechnoExtData::GetPutLocation(CoordStruct current, int distance)
 
 bool TechnoExtData::EjectSurvivor(FootClass* Survivor, CoordStruct loc, bool Select, std::optional<bool> InAir)
 {
-	const CellClass* pCell = MapClass::Instance->TryGetCellAt(loc);
+	const CellClass* pCell = MapClass::Instance->GetCellAt(loc);
 	//auto pType = Survivor->GetTechnoType();
 
 	if (const auto pBld = pCell->GetBuilding())

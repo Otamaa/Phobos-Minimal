@@ -30,6 +30,33 @@
 // 	return pThis->Owner->IsAlliedWith(pObject->GetOwningHouse()) ? 0x70059D : 0x7005E6;
 // }
 
+
+ASMJIT_PATCH(0x692686, DisplayClass_DecideAction_Cloak, 0x6)
+{
+	GET(TechnoClass*, pTechno, EDI);
+	enum { ProceedCloakCheck = 0x692690, ShouldNotCheck = 0x6926DB };
+
+	if (pTechno->IsOwnedByCurrentPlayer || HouseClass::IsCurrentPlayerObserver())
+		return ShouldNotCheck;
+
+	if (HouseExtData::IsMutualAllies(pTechno->Owner, HouseClass::CurrentPlayer))
+		return ShouldNotCheck;
+
+	return ProceedCloakCheck;
+}
+
+// Allow showing the select cursor on the object
+ASMJIT_PATCH(0x700594, TechnoClass_WhatAction__AllowAllies, 0x5)
+{
+	GET(TechnoClass*, pThis, ESI);
+	GET(ObjectClass*, pObject, EDI);
+
+	return pThis->Owner->IsAlliedWith(pObject) ? 0x70059D : 0x7005E6;
+}
+
+// Fixed the issue where non-repairer units needed sensors to attack cloaked friendly units.
+DEFINE_JUMP(LJMP, 0x6FC278, 0x6FC289);
+
 ASMJIT_PATCH(0x703A09, TechnoClass_VisualCharacter_CloakVisibility, 0x7)
 {
 	enum { UseShadowyVisual = 0x703A5A, CheckMutualAlliance = 0x703A16 };

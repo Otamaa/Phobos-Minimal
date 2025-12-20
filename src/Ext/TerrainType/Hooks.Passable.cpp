@@ -6,6 +6,7 @@
 #include <EventClass.h>
 
 #include <Utilities/GeneralUtils.h>
+#include <Utilities/Cast.h>
 
 #include <Ext/Terrain/Body.h>
 #include <Ext/Techno/Body.h>
@@ -531,7 +532,7 @@ ASMJIT_PATCH(0x47EEBC, CellClass_DrawPlaceGrid_RecordCell, 0x6)
 			R->EDX<BlitterFlags>(flags | (zero ? BlitterFlags::Zero : BlitterFlags::Nonzero));
 			return DrawVanillaAlt;
 		}
-		else if (BuildingTypeClass* const pType = cast_to<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingTypeCopy))
+		else if (BuildingTypeClass* const pType = type_cast<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingTypeCopy))
 		{
 			R->Stack<bool>(STACK_OFFSET(0x30, -0x1D), pCell->CanThisExistHere(pType->SpeedType, pType, HouseClass::CurrentPlayer));
 			R->EDX<BlitterFlags>(flags | BlitterFlags::TransLucent75);
@@ -800,7 +801,7 @@ ASMJIT_PATCH(0x4FB339, HouseClass_UnitFromFactory_SkipMouseClear, 0x6)
 	{
 		if (const auto pBuilding = cast_to<BuildingClass*>(pTechno))
 		{
-			if (const auto pCurrentType = cast_to<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingType))
+			if (const auto pCurrentType = type_cast<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingType))
 			{
 				if (!BuildingTypeExtData::IsSameBuildingType(pBuilding->Type, pCurrentType))
 					return SkipGameCode;
@@ -820,7 +821,7 @@ ASMJIT_PATCH(0x4FAB83, HouseClass_AbandonProductionOf_SkipMouseClear, 0x7)
 
 	if (RulesExtData::Instance()->ExtendedBuildingPlacing && index >= 0)
 	{
-		if (const auto pCurrentBuildingType = cast_to<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingType))
+		if (const auto pCurrentBuildingType = type_cast<BuildingTypeClass*>(DisplayClass::Instance->CurrentBuildingType))
 		{
 			if (!BuildingTypeExtData::IsSameBuildingType(BuildingTypeClass::Array->Items[index], pCurrentBuildingType))
 				return SkipGameCode;
@@ -1193,7 +1194,7 @@ ASMJIT_PATCH(0x6D504C, TacticalClass_DrawPlacement_DrawPlacingPreview, 0x6)
 		{
 			const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
-			if (const auto pType = cast_to<BuildingTypeClass*>(pDisplay->CurrentBuildingTypeCopy))
+			if (const auto pType = type_cast<BuildingTypeClass*>(pDisplay->CurrentBuildingTypeCopy))
 				drawImage(pType, pHouse, (pDisplay->CurrentFoundationCopy_TopLeftOffset + pDisplay->CurrentFoundationCopy_CenterCell));
 
 			if (const auto pType = pHouseExt->Common.Type)

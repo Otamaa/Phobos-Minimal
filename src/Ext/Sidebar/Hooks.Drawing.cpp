@@ -11,6 +11,7 @@
 #include <Ext/Side/Body.h>
 #include <Misc/PhobosToolTip.h>
 #include <Misc/Ares/CSF.h>
+#include <Utilities/Cast.h>
 
 #include <TechnoTypeClass.h>
 #include <TextDrawing.h>
@@ -910,7 +911,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 									shouldDisable = true;
 								}
 							}
-							else if (const auto pBuildingType = cast_to<BuildingTypeClass*, false>(pTechnoType)) {
+							else if (const auto pBuildingType = type_cast<BuildingTypeClass*, false>(pTechnoType)) {
 								if (const auto pFactory = pPlayer->GetPrimaryFactory(AbstractType::BuildingType, pTechnoType->Naval, pBuildingType->BuildCat)) {
 									if (const auto pProduct = cast_to<BuildingClass*>(pFactory->Object)) {
 										if (pFactory->IsDone() && pProduct->Type != pTechnoType && ((pProduct->Type->BuildCat != BuildCat::Combat) ^ (pBuildingType->BuildCat == BuildCat::Combat)))
@@ -1213,7 +1214,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 						}
 
 						//TODO : check bounding rect
-						if (const auto pBuildingType = cast_to<BuildingTypeClass*, false>(pTechnoType)) // Only count owned buildings
+						if (const auto pBuildingType = type_cast<BuildingTypeClass*, false>(pTechnoType)) // Only count owned buildings
 						{
 							const auto pHouse = HouseClass::CurrentPlayer();
 							auto count = BuildingTypeExtData::GetUpgradesAmount(pBuildingType, pHouse);
@@ -1291,7 +1292,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 						AbstractType rtti = pTechnoType->WhatAmI();
 
 						BuildCat cat = BuildCat::DontCare;
-						if (const auto pBuildingType = cast_to<BuildingTypeClass*, false>(pTechnoType))
+						if (const auto pBuildingType = type_cast<BuildingTypeClass*, false>(pTechnoType))
 							cat = pBuildingType->BuildCat;
 
 						if (FactoryClass* pHouseFactory = pPlayer->GetPrimaryFactory(rtti, isNaval, cat))
