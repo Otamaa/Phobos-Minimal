@@ -30,8 +30,8 @@ public:
 	AircraftExtData(AircraftClass * pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 	virtual ~AircraftExtData() = default;
 
-	virtual AircraftClass* This() const override { return reinterpret_cast<AircraftClass*>(this->FootExtData::This()); }
-	virtual const AircraftClass* This_Const() const override { return reinterpret_cast<const AircraftClass*>(this->FootExtData::This_Const()); }
+	AircraftClass* This() const override { return reinterpret_cast<AircraftClass*>(this->AttachedToObject); }
+	const AircraftClass* This_Const() const override { return reinterpret_cast<const AircraftClass*>(this->AttachedToObject); }
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
 	virtual int GetSize() const { return sizeof(*this); };
@@ -98,6 +98,7 @@ public:
 	AbstractClass* _GreatestThreat(ThreatType threatType, CoordStruct* pSelectCoords, bool onlyTargetHouseEnemy);
 	int _Mission_Sleep();
 	void _FootClass_Update_Wrapper();
+	DamageState __Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 
 	BulletClass* _FireAt(AbstractClass* target, int which);
 	int _Mission_Attack();

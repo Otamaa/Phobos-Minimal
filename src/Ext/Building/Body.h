@@ -132,8 +132,8 @@ public:
 		this->TechnoExtData::CalculateCRC(crc);
 	}
 
-	virtual BuildingClass* This() const override { return reinterpret_cast<BuildingClass*>(this->TechnoExtData::This()); }
-	virtual const BuildingClass* This_Const() const override { return reinterpret_cast<const BuildingClass*>(this->TechnoExtData::This_Const()); }
+	BuildingClass* This() const override { return reinterpret_cast<BuildingClass*>(this->AttachedToObject); }
+	const BuildingClass* This_Const() const override { return reinterpret_cast<const BuildingClass*>(this->AttachedToObject); }
 
 public:
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);

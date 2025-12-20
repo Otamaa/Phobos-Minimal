@@ -162,8 +162,8 @@ public:
 		this->AbstractTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual HouseTypeClass* This() const override { return reinterpret_cast<HouseTypeClass*>(this->AbstractTypeExtData::This()); }
-	virtual const HouseTypeClass* This_Const() const override { return reinterpret_cast<const HouseTypeClass*>(this->AbstractTypeExtData::This_Const()); }
+	HouseTypeClass* This() const override { return reinterpret_cast<HouseTypeClass*>(this->AttachedToObject); }
+	const HouseTypeClass* This_Const() const override { return reinterpret_cast<const HouseTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }

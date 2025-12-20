@@ -646,10 +646,12 @@ void FakeRadSiteClass::__AI()
 
 	ForEachCellInRadiationArea([this](CellClass* pCell, double radiationAmount, int distance) {
 		if (auto pObj = pCell->Cell_Occupier()) {
-			if (auto pFoot = flag_cast_to<FootClass*, false>(pObj))
-				ApplyRadDamage(this, pFoot, pCell, distance);
-			else if (auto pBld = cast_to<BuildingClass*, false>(pObj))
-				ApplyRadDamage(this, pBld, pCell, distance);
+			if(pObj->IsAlive) {
+				if (auto pFoot = flag_cast_to<FootClass*, false>(pObj))
+					ApplyRadDamage(this, pFoot, pCell, distance);
+				else if (auto pBld = cast_to<BuildingClass*, false>(pObj))
+					ApplyRadDamage(this, pBld, pCell, distance);
+			}
 		}
 	});
 }

@@ -97,8 +97,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual SuperClass* This() const override { return reinterpret_cast<SuperClass*>(this->AbstractExtended::This()); }
-	virtual const SuperClass* This_Const() const override { return reinterpret_cast<const SuperClass*>(this->AbstractExtended::This_Const()); }
+	SuperClass* This() const override { return reinterpret_cast<SuperClass*>(this->AttachedToObject); }
+	const SuperClass* This_Const() const override { return reinterpret_cast<const SuperClass*>(this->AttachedToObject); }
 
 public:
 

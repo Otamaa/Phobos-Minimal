@@ -60,8 +60,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual TriggerClass* This() const override { return reinterpret_cast<TriggerClass*>(this->AbstractExtended::This()); }
-	virtual const TriggerClass* This_Const() const override { return reinterpret_cast<const TriggerClass*>(this->AbstractExtended::This_Const()); }
+	TriggerClass* This() const override { return reinterpret_cast<TriggerClass*>(this->AttachedToObject); }
+	const TriggerClass* This_Const() const override { return reinterpret_cast<const TriggerClass*>(this->AttachedToObject); }
 
 private:
 	template <typename T>

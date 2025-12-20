@@ -264,15 +264,12 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
 }
 //DEFINE_SKIP_HOOK(0x4690D4 , BulletClass_Logics_Shake_Handled ,0x6 , 469130);
 
-ASMJIT_PATCH(0x469A75, BulletClass_Logics_DamageHouse, 0x7)
+ASMJIT_PATCH(0x469A69, BulletClass_Logics_DamageHouse, 0x6)
 {
 	GET(FakeBulletClass*, pThis, ESI);
 	GET(HouseClass*, pHouse, ECX);
-
-	if (!pHouse)
-		R->ECX(pThis->_GetExtData()->Owner);
-
-	return 0;
+	R->ECX(pThis->Owner ? pThis->Owner->Owner : pThis->_GetExtData()->Owner);
+	return 0x469A75;
 }
 
 // Inviso bullets behave differently in BulletClass::AI when their target is bullet and

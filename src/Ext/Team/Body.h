@@ -109,8 +109,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual TeamClass* This() const override { return reinterpret_cast<TeamClass*>(this->AbstractExtended::This()); }
-	virtual const TeamClass* This_Const() const override { return reinterpret_cast<const TeamClass*>(this->AbstractExtended::This_Const()); }
+	TeamClass* This() const override { return reinterpret_cast<TeamClass*>(this->AttachedToObject); }
+	const TeamClass* This_Const() const override { return reinterpret_cast<const TeamClass*>(this->AttachedToObject); }
 
 public:
 

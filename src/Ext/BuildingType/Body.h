@@ -527,8 +527,8 @@ public:
 		this->TechnoTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual BuildingTypeClass* This() const override { return reinterpret_cast<BuildingTypeClass*>(this->TechnoTypeExtData::This()); }
-	virtual const BuildingTypeClass* This_Const() const override { return reinterpret_cast<const BuildingTypeClass*>(this->TechnoTypeExtData::This_Const()); }
+	BuildingTypeClass* This() const override { return reinterpret_cast<BuildingTypeClass*>(this->AttachedToObject); }
+	const BuildingTypeClass* This_Const() const override { return reinterpret_cast<const BuildingTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const {  return true; }

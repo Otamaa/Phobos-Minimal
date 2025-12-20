@@ -819,6 +819,12 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
     void ImbueLocomotor(FootClass* target, CLSID clsid)
 	{ JMP_THIS(0x710000); }
 
+	double GetCoefficient(TechnoClass* a2, CoordStruct& coord)
+	{ JMP_THIS(0x70CD10); }
+
+	bool CantTarget(HouseClass* house)
+	{ JMP_THIS(0x746750); }
+
 	void Draw_Object(
 		SHPStruct* shapefile,
 		int shapenum,

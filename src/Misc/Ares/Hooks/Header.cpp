@@ -4109,7 +4109,10 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	TrailsManager::Construct(static_cast<TechnoClass*>(pThis), true);
 
 	// Adjust ammo
-	int ammoLeft = MinImpl(pThis->Ammo, pToType->Ammo);
+	const int originalAmmo = pThis->Ammo;
+	const int maxAmmo = pToType->Ammo;
+
+	int ammoLeft = MinImpl(originalAmmo, maxAmmo);
 	pThis->Ammo = ammoLeft;
 	if (ammoLeft < 0 || ammoLeft >= pToType->Ammo)
 	{
@@ -4141,6 +4144,9 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 			pThis->ReloadTimer.Start(reload);
 		}
 	}
+
+	if (originalAmmo != pThis->Ammo)
+		pThis->Mark(MarkType::Change);
 
 	BuildingLightClass* pSpot = nullptr;
 

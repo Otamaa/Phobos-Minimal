@@ -201,8 +201,9 @@ public:
 	virtual int GetSize() const { return sizeof(*this); };
 
 	virtual void CalculateCRC(CRCEngine& crc) const { };
-	virtual SideClass* This() const override { return reinterpret_cast<SideClass*>(this->AbstractTypeExtData::This()); }
-	virtual const SideClass* This_Const() const override { return reinterpret_cast<const SideClass*>(this->AbstractTypeExtData::This_Const()); }
+
+	SideClass* This() const override { return reinterpret_cast<SideClass*>(this->AttachedToObject); }
+	const SideClass* This_Const() const override { return reinterpret_cast<const SideClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

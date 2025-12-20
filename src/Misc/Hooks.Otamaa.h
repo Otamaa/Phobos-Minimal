@@ -80,6 +80,9 @@ public:
 	{
 		return MapClass::Instance->GetCellAt(pThis->Location);
 	}
+
+	static DamageState __fastcall __Take_Damage(ObjectClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
+
 };
 //static_assert(sizeof(FakeObjectClass) == sizeof(ObjectClass), "Invalid Size !");
 
@@ -90,6 +93,9 @@ public:
 class NOVTABLE FakeFootClass //: public FootClass
 {
 public:
+
+	static DamageState __fastcall __Take_Damage(FootClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
+
 };
 //static_assert(sizeof(FakeFootClass) == sizeof(FootClass), "Invalid Size !");
 //===================================================================================

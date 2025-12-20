@@ -307,8 +307,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual HouseClass* This() const override { return reinterpret_cast<HouseClass*>(this->AbstractExtended::This()); }
-	virtual const HouseClass* This_Const() const override { return reinterpret_cast<const HouseClass*>(this->AbstractExtended::This_Const()); }
+	HouseClass* This() const override { return reinterpret_cast<HouseClass*>(this->AttachedToObject); }
+	const HouseClass* This_Const() const override { return reinterpret_cast<const HouseClass*>(this->AttachedToObject); }
 
 public:
 

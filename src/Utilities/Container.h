@@ -15,11 +15,10 @@ struct UuidFirstPart {
 	static constexpr unsigned int value = __uuidof(T).Data1;
 };
 
-
 struct AbstractExtended {
-private:
-	AbstractClass* AttachedToObject;
 public:
+
+	AbstractClass* AttachedToObject;
 	FixedString<0x24> Name;
 	AbstractType AbsType;
 	InitState Initialized;
@@ -43,8 +42,8 @@ public:
 
 public:
 
-	virtual AbstractType WhatIam() const { return AbstractType::Abstract; }
-	virtual int GetSize() const { return sizeof(AbstractExtended); };
+	//virtual AbstractType WhatIam() const { return AbstractType::Abstract; }
+	//virtual int GetSize() const { return sizeof(AbstractExtended); };
 
 	virtual AbstractClass* This() const { return const_cast<AbstractClass*>(AttachedToObject); }
 	virtual const AbstractClass* This_Const() const { return AttachedToObject; }

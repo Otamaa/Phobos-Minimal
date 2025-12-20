@@ -57,6 +57,7 @@
 #include <ExtraHeaders/StackVector.h>
 
 #include <Ext/RadSite/Body.h>
+#include <Misc/PhobosGlobal.h>
 
 #pragma endregion
 
@@ -4682,8 +4683,6 @@ ASMJIT_PATCH(0x467C2E, BulletClass_AI_FuseCheck, 0x7)
 	return 0x467C3A;
 }
 
-#include <SlaveManagerClass.h>
-
 ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 {
 	GET(Mission, setTo, EBX);
@@ -4698,9 +4697,10 @@ ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 	return 0x0;
 }
 
+#ifdef ASTAR_HOOKS
+
 // ENTRY  , 42C954 , stack 3C TECHNO , size 7 , return 0
 // END 42CB3F 5 , 42CCCB
-#include <Misc/PhobosGlobal.h>
 
 ASMJIT_PATCH(0x42D197, AStarClass_Attempt_Entry, 0x5)
 {
@@ -5183,7 +5183,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 		Debug::Log("[A*] Invalid MovementZone: %d\n", mzoneIndex);
 		return false;
 	}
-	auto moveZoneArray = MapClass::MovementAdjustArray[mzoneIndex];
+	auto& moveZoneArray = MapClass::MovementAdjustArray[mzoneIndex];
 
 	// Initialize threat avoidance
 	double threatAvoidance = 0.0;
@@ -5656,6 +5656,8 @@ ASMJIT_PATCH(0x42CCC8, AStarClass_FindPath_Exit, 0x6)
 	PhobosGlobal::Instance()->PathfindTechno.Clear();
 	return 0x0;
 }ASMJIT_PATCH_AGAIN(0x42CB3C, AStarClass_FindPath_Exit, 0x6)
+
+#endif
 
 ASMJIT_PATCH(0x7410D6, UnitClass_CanFire_Tethered, 0x7)
 {
@@ -7962,15 +7964,15 @@ ASMJIT_PATCH(0x4F9A90, HouseClass_IsAlly_ObjectClass, 0x7)
 
 	if (pTarget) {
 
-		//if(flag_cast_to<TechnoClass*>(pTarget)){
-		//	if ((VTable::Get(pTarget) != AircraftClass::vtable &&
-		//		VTable::Get(pTarget) != BuildingClass::vtable &&
-		//		VTable::Get(pTarget) != UnitClass::vtable &&
-		//		VTable::Get(pTarget) != InfantryClass::vtable))
-		//	{
-		//		Debug::FatalError("Missing valid vtable %x , caller %x", pTarget, caller);
-		//	}
-		//}
+		if(flag_cast_to<TechnoClass*>(pTarget)){
+			if ((VTable::Get(pTarget) != AircraftClass::vtable &&
+				VTable::Get(pTarget) != BuildingClass::vtable &&
+				VTable::Get(pTarget) != UnitClass::vtable &&
+				VTable::Get(pTarget) != InfantryClass::vtable))
+			{
+				Debug::FatalError("Missing valid vtable %x , caller %x", pTarget, caller);
+			}
+		}
 
 		auto pTargetOwner = pTarget->GetOwningHouse();
 		result = pThis->IsAlliedWith(pTargetOwner);

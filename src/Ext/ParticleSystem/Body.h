@@ -145,8 +145,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	virtual ParticleSystemClass* This() const override { return reinterpret_cast<ParticleSystemClass*>(this->ObjectExtData::This()); }
-	virtual const ParticleSystemClass* This_Const() const override { return reinterpret_cast<const ParticleSystemClass*>(this->ObjectExtData::This_Const()); }
+	ParticleSystemClass* This() const override { return reinterpret_cast<ParticleSystemClass*>(this->AttachedToObject); }
+	const ParticleSystemClass* This_Const() const override { return reinterpret_cast<const ParticleSystemClass*>(this->AttachedToObject); }
 
 public:
 

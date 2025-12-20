@@ -81,8 +81,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	virtual CellClass* This() const override { return reinterpret_cast<CellClass*>(this->AbstractExtended::This()); }
-	virtual const CellClass* This_Const() const override { return reinterpret_cast<const CellClass*>(this->AbstractExtended::This_Const()); }
+	CellClass* This() const override { return reinterpret_cast<CellClass*>(this->AttachedToObject); }
+	const CellClass* This_Const() const override { return reinterpret_cast<const CellClass*>(this->AttachedToObject); }
 
 public:
 

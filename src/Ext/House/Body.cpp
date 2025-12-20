@@ -2177,7 +2177,7 @@ bool HouseExtData::ReachedBuildLimit(HouseClass* pHouse,TechnoTypeClass* pType, 
 // Vanilla and Ares all only hardcoded to find factory with BuildCat::DontCare...
 bool HouseExtData::CheckShouldDisableDefensesCameo(HouseClass* pHouse, TechnoTypeClass* pType)
 {
-	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
+	if (const auto pBuildingType = type_cast<BuildingTypeClass*>(pType))
 	{
 		if (pBuildingType->BuildCat == BuildCat::Combat)
 		{

@@ -9,6 +9,8 @@
 #include <Ext/WarheadType/Body.h>
 #include <Ext/House/Body.h>
 
+#include <Utilities/Cast.h>
+
 #include <GameOptionsClass.h>
 
 ASMJIT_PATCH(0x44955D, BuildingClass_WeaponFactoryOutsideBusy_WeaponFactoryCell, 0x6)
@@ -461,7 +463,7 @@ ASMJIT_PATCH(0x6AA88D, StripClass_RecheckCameo_FindFactoryDehardCode, 0x6)
 	GET(TechnoTypeClass* const, pType, EBX);
 	LEA_STACK(BuildCat*, pBuildCat, STACK_OFFSET(0x158, -0x158));
 
-	if (const auto pBuildingType = cast_to<BuildingTypeClass*>(pType))
+	if (const auto pBuildingType = type_cast<BuildingTypeClass*>(pType))
 		*pBuildCat = pBuildingType->BuildCat;
 
 	return 0;

@@ -1225,8 +1225,8 @@ public:
 
 	virtual int GetSize() const { return sizeof(*this); };
 
-	virtual TechnoClass* This() const override { return reinterpret_cast<TechnoClass*>(RadioExtData::This()); }
-	virtual const TechnoClass* This_Const() const override { return reinterpret_cast<const TechnoClass*>(RadioExtData::This_Const()); }
+	TechnoClass* This() const override { return reinterpret_cast<TechnoClass*>(AttachedToObject); }
+	const TechnoClass* This_Const() const override { return reinterpret_cast<const TechnoClass*>(AttachedToObject); }
 
 	virtual void CalculateCRC(CRCEngine& crc) const override {
 		this->RadioExtData::CalculateCRC(crc);
@@ -1573,6 +1573,7 @@ public:
 	static void __fastcall __Draw_Airstrike_Flare(TechnoClass* techno, discard_t, CoordStruct startCoord , CoordStruct endCoord);
 
 	static DamageState __fastcall __Take_Damage(TechnoClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
+	static bool __fastcall __Is_Allowed_To_Retaliate(TechnoClass* pThis, discard_t, TechnoClass* pSource, WarheadTypeClass* pWarhead);
 
 	//AI
 	static void __HandleGattlingAudio(TechnoClass* pThis);

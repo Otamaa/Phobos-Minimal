@@ -370,8 +370,8 @@ public:
 		this->AbstractTypeExtData::CalculateCRC(crc);
 	}
 
-	virtual WeaponTypeClass* This() const override { return reinterpret_cast<WeaponTypeClass*>(this->AbstractTypeExtData::This()); }
-	virtual const WeaponTypeClass* This_Const() const override { return reinterpret_cast<const WeaponTypeClass*>(this->AbstractTypeExtData::This_Const()); }
+	WeaponTypeClass* This() const override { return reinterpret_cast<WeaponTypeClass*>(this->AttachedToObject); }
+	const WeaponTypeClass* This_Const() const override { return reinterpret_cast<const WeaponTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

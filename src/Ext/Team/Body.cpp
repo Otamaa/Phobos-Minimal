@@ -1851,7 +1851,7 @@ void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
 {
 	// If the new target is different than current mission target
 
-	if (new_target != this->QueuedFocus && new_target) {
+	if (new_target && new_target != this->QueuedFocus) {
 		FootClass* unit = this->FirstUnit;
 
 		while (unit)
@@ -3186,7 +3186,7 @@ void FakeTeamClass::_TMission_Attack_Enemy_Building(ScriptActionNode* nNode, boo
 		// Validate building type index
 		if (buildingTypeIndex >= BuildingTypeClass::Array->Count)
 		{
-			Debug::FatalErrorAndExit("Team [%s] TMission_Attack_Enemy_Building: Invalid building type index %d (max: %d)",
+			Debug::FatalError("Team [%s] TMission_Attack_Enemy_Building: Invalid building type index %d (max: %d)",
 				this->Type->ID, buildingTypeIndex, BuildingTypeClass::Array->Count - 1);
 			this->_AssignMissionTarget(nullptr);
 			this->StepCompleted = true;
@@ -3271,7 +3271,7 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 
 		// Validate building type index
 		if (buildingTypeIndex >= BuildingTypeClass::Array->Count) {
-			Debug::FatalErrorAndExit("Team [%s] TMission_CHRONO_PREP_FOR_ABWP: Invalid building type index %d (max: %d)",
+			Debug::FatalError("Team [%s] TMission_CHRONO_PREP_FOR_ABWP: Invalid building type index %d (max: %d)",
 				this->Type->ID, buildingTypeIndex, BuildingTypeClass::Array->Count - 1);
 			this->StepCompleted = true;
 			return;

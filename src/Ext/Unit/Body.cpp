@@ -284,6 +284,7 @@ DEFINE_FUNCTION_JUMP(CALL , 0x744100, FakeUnitClass::_Mission_AreaGuard)
 #include <Ext/AnimType/Body.h>
 
 #include <Misc/Ares/Hooks/Header.h>
+#include <Misc/Hooks.Otamaa.h>
 
 #include <RadarEventClass.h>
 
@@ -299,21 +300,19 @@ DamageState FakeUnitClass::_Take_Damage(int* damage, int distance, WarheadTypeCl
 	bool selected = this->IsSelected && isPlayerControlled;
 
 	if (!ignoreDefenses) {
-		if (auto pRadio = this->GetRadioContact()) {
-			if (auto pBld = cast_to<BuildingClass*, false>(pRadio)) {
-				// #895584: ships not taking damage when repaired in a shipyard. bug
-				// was that the logic that prevented units from being damaged when
-				// exiting a war factory applied here, too. added the Naval check.
-				if (pBld->Type->WeaponsFactory
-					&& !pBld->Type->Naval
-					&& MapClass::Instance->TryGetCellAt(this->Location)->GetBuilding() == pBld) {
-					return _res;
-				}
+		if (auto pBld = cast_to<BuildingClass*>(this->GetRadioContact())) {
+			// #895584: ships not taking damage when repaired in a shipyard. bug
+			// was that the logic that prevented units from being damaged when
+			// exiting a war factory applied here, too. added the Naval check.
+			if (pBld->Type->WeaponsFactory
+				&& !pBld->Type->Naval
+				&& MapClass::Instance->TryGetCellAt(this->Location)->GetBuilding() == pBld) {
+				return _res;
 			}
 		}
 	}
 
-	_res = this->FootClass::ReceiveDamage(damage, distance, warhead, source, ignoreDefenses, PreventsPassengerEscape, sourceHouse);
+	_res = FakeFootClass::__Take_Damage(this, discard_t(), damage, distance, warhead, source, ignoreDefenses, PreventsPassengerEscape, sourceHouse);
 
 	// Immediately release locomotor warhead's hold on a crashable unit if it dies while attacked by one.
 	if (_res == DamageState::NowDead)

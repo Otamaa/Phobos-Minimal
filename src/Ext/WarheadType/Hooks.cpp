@@ -147,7 +147,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 
 	PhobosGlobal::Instance()->DetonateDamageArea = true;
 
-	if (pThis->Owner && pThis->Owner->InLimbo && !pWH->Parasite && pWHExt->UnlimboDetonate)
+	if (pThis->Owner && pThis->Owner->IsAlive && pThis->Owner->InLimbo && !pWH->Parasite && pWHExt->UnlimboDetonate)
 	{
 		CoordStruct location = *coords;
 		const auto pTarget = pThis->Target;
