@@ -1869,8 +1869,30 @@ bool TActionExtData::ToggleMCVRedeploy(TActionClass* pThis, HouseClass* pHouse, 
 
 bool TActionExtData::SetFreeRadar(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	if (pHouse->IsControlledByHuman() && (!SessionClass::Instance->IsCampaign() || pHouse == HouseClass::CurrentPlayer)) {
-		HouseExtContainer::Instance.Find(pHouse)->FreeRadar = pThis->Param3 != 0;
+	if (pHouse->IsControlledByHuman())
+	{
+		auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+
+		switch (pThis->Param3)
+		{
+		case 1:
+			pHouseExt->FreeRadar = true;
+			pHouseExt->ForceRadar = false;
+			break;
+		case 2:
+			pHouseExt->FreeRadar = true;
+			pHouseExt->ForceRadar = true;
+			break;
+		case 3:
+			pHouseExt->FreeRadar = false;
+			pHouseExt->ForceRadar = true;
+			break;
+		default:
+			pHouseExt->FreeRadar = false;
+			pHouseExt->ForceRadar = false;
+			break;
+		}
+
 		pHouse->RecheckRadar = true;
 	}
 

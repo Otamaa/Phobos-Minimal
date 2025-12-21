@@ -343,7 +343,7 @@ void NOINLINE DrawLines()
 void FakeTacticalClass::_Render_Layer(bool arg)
 {
 	this->Render_Layer(arg);
-	/*this->DrawCollisionDebug();*/
+	this->DrawCollisionDebug();
 }
 DEFINE_FUNCTION_JUMP(CALL, 0x6D465F, FakeTacticalClass::_Render_Layer)
 

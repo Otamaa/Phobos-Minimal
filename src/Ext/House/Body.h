@@ -186,6 +186,7 @@ public:
 	int BattlePoints;
 	int TeamDelay;
 	bool FreeRadar;
+	bool ForceRadar;
 	struct ProductionData
 	{
 		std::vector<int> CreationFrames;

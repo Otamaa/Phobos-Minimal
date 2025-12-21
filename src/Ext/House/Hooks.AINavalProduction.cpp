@@ -3,6 +3,8 @@
 #include <FactoryClass.h>
 #include <TEventClass.h>
 
+#include <Ext/Building/Body.h>
+
 // AI Naval queue bugfix hooks
 
 namespace ExitObjectTemp
@@ -61,7 +63,7 @@ ASMJIT_PATCH(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 {
 	enum { SkipGameCode = 0x450332 };
 
-	GET(BuildingClass* const, pThis, ESI);
+	GET(BuildingClass*, pThis, ESI);
 
 	auto pHouse = pThis->Owner;
 	TechnoTypeClass* pTechnoType = nullptr;
@@ -74,8 +76,12 @@ ASMJIT_PATCH(0x450319, BuildingClass_AI_Factory_NavalProductionFix, 0x6)
 	{
 		index = pHouse->ProducingAircraftTypeIndex;
 
-		if (index >= 0)
-			pTechnoType = AircraftTypeClass::Array->Items[index];
+		if (index >= 0){
+			const auto pAircraftType = AircraftTypeClass::Array->Items[index];
+
+			if (!pAircraftType->AirportBound || BuildingExtData::HasFreeDocks(pThis))
+				pTechnoType = pAircraftType;
+		}
 
 		break;
 	}

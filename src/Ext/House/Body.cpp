@@ -2812,6 +2812,7 @@ void HouseExtData::Serialize(T& Stm)
 	debugProcess(this->BattlePoints, "BattlePoints");
 	debugProcess(this->TeamDelay, "TeamDelay");
 	debugProcess(this->FreeRadar, "FreeRadar");
+	debugProcess(this->ForceRadar, "ForceRadar");
 	debugProcess(this->Productions, "Productions");
 	debugProcess(this->BestChoicesNaval, "BestChoicesNaval");
 	debugProcess(this->AITriggers_ValidList, "AITriggers_ValidList");
@@ -2878,6 +2879,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->BattlePoints)
 		.Process(this->TeamDelay)
 		.Process(this->FreeRadar)
+		.Process(this->ForceRadar)
 		.Process(this->Productions)
 		.Process(this->BestChoicesNaval)
 		.Process(this->AITriggers_ValidList)
@@ -3356,20 +3358,19 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x4FC790, FakeHouseClass::_BlowUpAllBuildings)
 void FakeHouseClass::_UpdateRadar() {
 	auto pExt = this->_GetExtData();
 
-	bool radarAvailable = pExt->FreeRadar
-						|| !this->_GetExtData()->Batteries.empty();
+	bool radarAvailable = pExt->ForceRadar ? pExt->FreeRadar: !pExt->Batteries.empty();
 
     this->RecheckRadar = 0;
 
-	if (this != HouseClass::CurrentPlayer()) {
+	if (this != HouseClass::CurrentPlayer() || !pExt->Batteries.empty()) {
     	return;
     }
 
     // If blackout still has time remaining,
 	// just update tactical map availability and exit
     if (this->RadarBlackoutTimer.GetTimeLeft() > 0) {
-        if (RadarClass::Instance->IsAvailableNow != 0) {
-            RadarClass::Instance->UpdateRadarStatus(0);
+        if (RadarClass::Instance->IsAvailableNow != radarAvailable) {
+            RadarClass::Instance->UpdateRadarStatus(radarAvailable);
         }
         return;
     }
