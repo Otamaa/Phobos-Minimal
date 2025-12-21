@@ -1410,7 +1410,7 @@ ASMJIT_PATCH(0x489286, DamageArea, 0x6)
 		GET_BASE(TechnoClass*, pOwner, 0x08);
 		GET_BASE(HouseClass*, pHouse, 0x14);
 
-		if(!Phobos::Config::HideShakeEffects){
+		if (!Phobos::Config::HideShakeEffects) {
 			if (!pWHExt->ShakeIsLocal || TacticalClass::Instance->IsCoordsToClientVisible(*pCoords))
 			{
 				if (pWH->ShakeXhi || pWH->ShakeXlo)
@@ -1477,7 +1477,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 	GET_STACK(int, damage, STACK_OFFSET(0xE0, -0xBC));
 
 	auto pWHExt = pWarhead->_GetExtData();
-	if(!isNullified && pWHExt->AffectsUnderground){
+	if (!isNullified && pWHExt->AffectsUnderground) {
 		const bool cylinder = pWHExt->CellSpread_Cylinder;
 		const float spread = pWarhead->CellSpread * (float)Unsorted::LeptonsPerCell;
 
@@ -1491,7 +1491,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 				auto const technoCoords = pTechno->GetCoords();
 
 				if (cylinder)
-					dist = CoordStruct{ technoCoords.X - pCrd->X, technoCoords.Y - pCrd->Y, 0 }.Length();
+					dist = CoordStruct { technoCoords.X - pCrd->X, technoCoords.Y - pCrd->Y, 0 }.Length();
 				else
 					dist = technoCoords.DistanceFrom(*pCrd);
 
@@ -1503,11 +1503,15 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			}
 		}
 
-		for (int i = 0; i < groupvec.Count; ++i) {
-			if (groupvec.Items[i] && (!groupvec.Items[i]->Target->IsAlive || groupvec.Items[i]->Target->Health <= 0 || !groupvec.Items[i]->Target)) {
-				GameDelete(std::exchange(groupvec.Items[i], nullptr));
+		for (int i = 0; i < groupvec.Count; ++i)
+		{
+			if (groupvec.Items[i] && (!groupvec.Items[i]->Target || !groupvec.Items[i]->Target->IsAlive || groupvec.Items[i]->Target->Health <= 0))
+			{
+				GameDelete<false, false>(groupvec.Items[i]);
 				groupvec.erase_at(i);
 			}
+			else if (!groupvec.Items[i])
+				groupvec.erase_at(i);
 		}
 	}
 
@@ -1571,7 +1575,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 		Handled.reset();
 	}
 
-	if(pWHExt->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage)){
+	if (pWHExt->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage)) {
 		// Because during the process of causing damage, fragments may be generated that need to continue causing damage, resulting in nested calls
 		// to this function. Therefore, a single global variable cannot be used to store this data.
 		std::unordered_map<BuildingClass*, double> MapBuildings;
@@ -1581,7 +1585,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			const auto percentDifference = 1.0 - pWarhead->PercentAtMax; // Vanilla will first multiply the damage and round it up, but we don't need to.
 
 			for (const auto& group : groupvec) {
-				if (const auto pBuilding = cast_to<BuildingClass* , true>(group->Target)) {
+				if (const auto pBuilding = cast_to<BuildingClass*, true>(group->Target)) {
 					if (group->Distance > cellSpread)
 						continue;
 
@@ -1594,8 +1598,7 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 
 		for (const auto& group : groupvec) // Causing damage to the building alone and avoiding repeated injuries later.
 		{
-			if (const auto pBuilding = cast_to<BuildingClass* , true>(group->Target))
-			{
+			if (const auto pBuilding = cast_to<BuildingClass*, true>(group->Target)) {
 				if (pBuilding->IsAlive
 					&& !pBuilding->Type->InvisibleInGame
 					&& (!isNullified || pBuilding->IsIronCurtained())
@@ -1617,11 +1620,15 @@ ASMJIT_PATCH(0x4899DA, DamageArea_Damage_MaxAffect, 7)
 			}
 		}
 
-		for (int i = 0; i < groupvec.Count; ++i){
-			if(groupvec.Items[i] && (!groupvec.Items[i]->Target->IsAlive || groupvec.Items[i]->Target->Health <= 0|| !groupvec.Items[i]->Target)) {
-				GameDelete(std::exchange(groupvec.Items[i], nullptr));
+		for (int i = 0; i < groupvec.Count; ++i)
+		{
+			if (groupvec.Items[i] && (!groupvec.Items[i]->Target || !groupvec.Items[i]->Target->IsAlive || groupvec.Items[i]->Target->Health <= 0))
+			{
+				GameDelete<false, false>(groupvec.Items[i]);
 				groupvec.erase_at(i);
 			}
+			else if (!groupvec.Items[i])
+				groupvec.erase_at(i);
 		}
 	}
 
@@ -1638,7 +1645,7 @@ ASMJIT_PATCH(0x489A1B, DamageArea_DamageBuilding_SkipVanillaBuildingDamage, 0x6)
 
 	GET_BASE(FakeWarheadTypeClass*, pWH, 0x0C);
 	return pWH->_GetExtData()->MergeBuildingDamage.Get(RulesExtData::Instance()->MergeBuildingDamage) ?
-	SkipGameCode : 0;
+		SkipGameCode : 0;
 }
 
 ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
@@ -2068,7 +2075,6 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 
 #endif
 
-<<<<<<< HEAD
 //DamageState __fastcall TT_ReceiveDamage(TechnoClass* pThis, discard_t,
 //	int* Damage,
 //	int DistanceToEpicenter,
@@ -2082,18 +2088,3 @@ ASMJIT_PATCH(0x489710, MapClass_DamageArea_CheckHeight_2, 0x7)
 //}
 //
 //DEFINE_FUNCTION_JUMP(CALL6, 0x489AB6, TT_ReceiveDamage);
-=======
-// DamageState __fastcall TT_ReceiveDamage(TechnoClass* pThis, discard_t,
-// 	int* Damage,
-// 	int DistanceToEpicenter,
-// 	WarheadTypeClass* WH,
-// 	TechnoClass* Attacker,
-// 	bool IgnoreDefenses,
-// 	bool PreventsPassengerEscape,
-// 	HouseClass* SourceHouse)
-// {
-// 	return pThis->ReceiveDamage(Damage, DistanceToEpicenter, WH, Attacker, IgnoreDefenses, PreventsPassengerEscape, SourceHouse);
-// }
-
-// DEFINE_FUNCTION_JUMP(CALL6, 0x489AB6, TT_ReceiveDamage);
->>>>>>> origin/Adjusment_for_scorpionModCrash

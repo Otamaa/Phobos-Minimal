@@ -149,7 +149,7 @@ static bool NOINLINE IsTemporalptrValid(TemporalClass* pThis)
 	return VTable::Get(pThis) == TemporalClass::vtable;
 }
 
-static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
+static NOINLINE void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 {
 	if (pThis->TemporalTargetingMe)
 	{
@@ -157,7 +157,9 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 		if (IsTemporalptrValid(pThis->TemporalTargetingMe)) // TemporalClass::`vtable`
 		{
 			if (pThis->TemporalTargetingMe->Owner == pThis->TemporalTargetingMe->Target) {
+				pThis->BeingWarpedOut = false;
 				pThis->TemporalTargetingMe->Detach();
+				pThis->TemporalTargetingMe = nullptr;
 				return;
 			}
 			pThis->TemporalTargetingMe->Update();
@@ -169,6 +171,8 @@ static void IsTechnoShouldBeAliveAfterTemporal(TechnoClass* pThis)
 			//Debug::LogInfo(__FUNCTION__" Called ");
 			TechnoExtData::HandleRemove(pThis, nullptr, true, false);
 		}
+	} else if (!pThis->TemporalTargetingMe && pThis->BeingWarpedOut) {
+		pThis->BeingWarpedOut = false;
 	}
 }
 
