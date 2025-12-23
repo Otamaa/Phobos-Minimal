@@ -212,15 +212,20 @@ private:
 	// mere presence "fixes" C2100: illegal indirection
 	COMPILETIMEEVAL referencefunc(noinit_t) noexcept {}
 public:
-	COMPILETIMEEVAL DWORD getAddrs() const noexcept {
+
+	COMPILETIMEEVAL FORCEDINLINE DWORD getAddrs() const noexcept {
 		return Address;
+	}
+
+	FORCEDINLINE value_type asT() const noexcept {
+		return reinterpret_cast<value_type>(Address);
 	}
 
 	FORCEDINLINE value_type invoke() const noexcept {
 		return *reinterpret_cast<value_type*>(Address);
 	}
 
-	FORCEDINLINE uintptr_t getAddress() {
+	COMPILETIMEEVAL FORCEDINLINE uintptr_t getAddress() {
 		return Address;
 	}
 

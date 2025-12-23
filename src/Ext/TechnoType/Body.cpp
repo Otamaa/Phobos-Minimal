@@ -1867,7 +1867,8 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AdvancedDrive_Hover_Dampen.Read(exINI, pSection, "AdvancedDrive.Hover.Dampen");
 		this->AdvancedDrive_Hover_Bob.Read(exINI, pSection, "AdvancedDrive.Hover.Bob");
 		this->Harvester_CanGuardArea.Read(exINI, pSection, "Harvester.CanGuardArea");
-
+		this->Harvester_CanGuardArea_RequireTarget.Read(exINI, pSection, "Harvester.CanGuardArea.RequireTarget");
+	
 		Nullable<int> transDelay {};
 		transDelay.Read(exINI, pSection, "TiberiumEater.TransDelay");
 
@@ -2633,6 +2634,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamReader& Stm)
 	debugProcess(this->AdvancedDrive_Hover_Dampen, "AdvancedDrive_Hover_Dampen");
 	debugProcess(this->AdvancedDrive_Hover_Bob, "AdvancedDrive_Hover_Bob");
 	debugProcess(this->Harvester_CanGuardArea, "Harvester_CanGuardArea");
+	debugProcess(this->Harvester_CanGuardArea_RequireTarget, "Harvester_CanGuardArea_RequireTarget");
 	debugProcess(this->TiberiumEaterType, "TiberiumEaterType");
 	debugProcess(this->Spawner_DelayFrames, "Spawner_DelayFrames");
 	debugProcess(this->Harvester_Counted, "Harvester_Counted");

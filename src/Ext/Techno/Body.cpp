@@ -7123,7 +7123,7 @@ void TechnoExtData::DepletedAmmoActions()
 
 void TechnoExtData::UpdateLaserTrails()
 {
-	auto const pThis = (FootClass*)This();
+	auto const pThis = (FootClass*)this->This();
 
 	if (LaserTrails.empty())
 		return;

@@ -282,7 +282,7 @@ public:
 	void _DrawExtras(Point2D* pLocation, RectangleStruct* pBounds);
 	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
 	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
-	KickOutResult __ExitObject(TechnoClass* object, int exitFlags);
+	KickOutResult __ExitObject(TechnoClass* object, CellStruct exitCell);
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
