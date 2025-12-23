@@ -1179,6 +1179,7 @@ public:
 	Nullable<double> AdvancedDrive_Hover_Bob;
 
 	Valueable<bool> Harvester_CanGuardArea;
+	Valueable<bool> Harvester_CanGuardArea_RequireTarget;
 
 	std::unique_ptr<TiberiumEaterTypeClass> TiberiumEaterType;
 
@@ -2045,6 +2046,7 @@ public:
 		AdvancedDrive_Hover_Dampen(),
 		AdvancedDrive_Hover_Bob(),
 		Harvester_CanGuardArea(false),
+		Harvester_CanGuardArea_RequireTarget(false),
 		TiberiumEaterType(),
 		BattlePoints(),
 		ForceWeapon_Check(false),
@@ -2249,6 +2251,7 @@ private:
 			.Process(this->AdvancedDrive_Hover_Bob)
 
 			.Process(this->Harvester_CanGuardArea)
+			.Process(this->Harvester_CanGuardArea_RequireTarget)
 			.Process(this->TiberiumEaterType)
 			.Process(this->Spawner_DelayFrames)
 			.Process(this->Harvester_Counted)

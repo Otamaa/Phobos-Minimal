@@ -1254,7 +1254,13 @@ ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Harvester, 0x5)
 	GET(FootClass*, pThis, ESI);
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	return pTypeExt->Harvester_CanGuardArea && pThis->Owner->IsControlledByHuman() ? GoGuardArea : 0;
+
+	if (pTypeExt->Harvester_CanGuardArea && pThis->Owner->IsControlledByHuman()) {
+		if (!pTypeExt->Harvester_CanGuardArea_RequireTarget || pThis->TargetAndEstimateDamage(&pThis->Location, ThreatType::Area))
+		return GoGuardArea;
+	}
+
+	return 0;
 }
 
 DEFINE_JUMP(LJMP, 0x741406, 0x741427);

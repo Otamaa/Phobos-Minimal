@@ -1084,10 +1084,10 @@ public:
 	bool HasSpaceFor(BuildingTypeClass* pBld , CellStruct* where) const 
 		{ JMP_THIS(0x50B760); }
 
-	typedef int(__fastcall* placement_callback)(int , int);
+	typedef int(__fastcall* placement_callback)(HouseClass* , CellStruct*, int, int);
 	static COMPILETIMEEVAL referencefunc<placement_callback, 0x505F80> const Func_placement_callback {};
-
-	CellStruct* FindBuildLocation(CellStruct* buffer, BuildingTypeClass* pBld, placement_callback, int something) const 
+	
+	CellStruct* FindBuildLocation(CellStruct* buffer, BuildingTypeClass* pBld, placement_callback callback, int something) const
 		{ JMP_THIS(0x5060B0); }
 
 	CellStruct* GetPoweups(CellStruct* buffer, BuildingTypeClass* a3) const 
