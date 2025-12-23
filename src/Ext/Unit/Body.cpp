@@ -405,7 +405,7 @@ DamageState FakeUnitClass::_Take_Damage(int* damage, int distance, WarheadTypeCl
 							return _res;
 						}
 
-						if (!this->ContainsLink(pDock) && this->SendCommand(RadioCommand::RequestLink, pDock) == RadioCommand::AnswerPositive) {
+						if (!this->HasLinkOrFreeSlot(pDock) && this->SendCommand(RadioCommand::RequestLink, pDock) == RadioCommand::AnswerPositive) {
 							this->QueueMission(Mission::Enter, false);
 						}
 					}

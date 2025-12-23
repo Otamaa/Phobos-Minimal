@@ -15,6 +15,7 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 {
 	enum {
 		ReturnStatic = 0x43C31A,
+		ReturnCant = 0x43C3F0,
 		ReturnNegative = 0x43CB68,
 		ReturnRoger = 0x43CCF2,
 		ContineCheck = 0x43C506,
@@ -64,7 +65,7 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 
 	if (!IsAbsorber && !IsTunnel)
 	{
-		if (!pThis->HasFreeLink(pFrom) && !Unsorted::ScenarioInit())
+		if (!pThis->HasLinkOrFreeSlot(pFrom) && !Unsorted::ScenarioInit())
 			return ReturnNegative;
 
 		R->EBX(pThis->Type);
@@ -95,7 +96,7 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 	if(IsAbsorber) {
 
 		if ((IsUnitAbsorber && whatRept == UnitClass::AbsID) || (IsInfAbsorber && whatRept == InfantryClass::AbsID)) {
-			if (pThis->Passengers.NumPassengers >= pThis->Type->Passengers
+			if (pThis->Passengers.NumPassengers + 1 > pThis->Type->Passengers
 				|| pThis->Type->SizeLimit < pFromTechnoType->Size) {
 				R->EBX(pThis->Type);
 				return ContineCheck;

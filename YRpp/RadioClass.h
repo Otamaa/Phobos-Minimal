@@ -41,28 +41,28 @@ public:
 	COMPILETIMEEVAL FORCEDINLINE TechnoClass* const GetRadioContact(int idx = 0) const {
 		return this->RadioLinks.Items[idx];
 	}
-	// whether any link is pLink
-	//bool ContainsLink(TechnoClass const* pLink) const
-	//	{ JMP_THIS(0x65AD50); }
-
-	COMPILETIMEEVAL bool ContainsLink(TechnoClass const* pLink) const {
-		const int count = this->RadioLinks.Capacity;
-		if (!pLink || count <= 0)
-			return false;
-
-		int tot = 0;
-		for (auto i = this->RadioLinks.Items; *i != pLink; ++i)
-		{
-			if (++tot >= count)
-				return false;
+	// Strict check - only returns true if pLink is actually in the list
+	COMPILETIMEEVAL	bool ContainsLink(TechnoClass const* pLink) const {
+    	if (!pLink) return false;
+		const int capacity = this->RadioLinks.Capacity;
+		for (int i = 0; i < capacity; ++i) {
+			if (this->RadioLinks.Items[i] == pLink)
+				return true;
 		}
+    return false;
+}
 
-		return true;
+	// Original game behavior - true if linked OR has free slot
+	COMPILETIMEEVAL bool HasLinkOrFreeSlot(TechnoClass const* pLink) const {
+		const int capacity = this->RadioLinks.Capacity;
+		for (int i = 0; i < capacity; ++i)
+		{
+			auto slot = this->RadioLinks.Items[i];
+			if (!slot || slot == pLink)
+				return true;
+		}
+		return false;
 	}
-
-	// note: null pointers will always return -1
-	//int FindLinkIndex(TechnoClass const* pLink) const
-	//	{ JMP_THIS(0x65AD90); }
 
 	COMPILETIMEEVAL int FindLinkIndex(TechnoClass const* pLink) const {
 		const int count = this->RadioLinks.Capacity;
@@ -70,18 +70,13 @@ public:
 			return -1;
 
 		int tot = 0;
-		for (auto i = this->RadioLinks.Items; *i != pLink; ++i)
-		{
+		for (auto i = this->RadioLinks.Items; *i != pLink; ++i) {
 			if (++tot >= count)
 				return -1;
 		}
 
 		return tot;
 	}
-
-	// iow: not full
-	//bool HasFreeLink() const
-	//	{ JMP_THIS(0x65ADC0); }
 
 	COMPILETIMEEVAL bool HasFreeLink() const {
 		const int count = this->RadioLinks.Capacity;
@@ -96,10 +91,6 @@ public:
 
 		return true;
 	}
-
-	// iow: not full; consider pIgnore's link empty
-	bool HasFreeLink(TechnoClass const* pIgnore) const
-		{ JMP_THIS(0x65ADF0); }
 
 	// iow. at least one link used
 	COMPILETIMEEVAL bool HasAnyLink() const {

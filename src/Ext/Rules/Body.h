@@ -124,7 +124,7 @@ public:
 	Valueable<WarheadTypeClass*> IronCurtain_KillOrganicsWarhead { nullptr };
 	Valueable<IronCurtainFlag> ForceShield_EffectOnOrganics { IronCurtainFlag::Ignore };
 	Valueable<WarheadTypeClass*> ForceShield_KillOrganicsWarhead { nullptr };
-
+	Valueable<bool> AllowWeaponSelectAgainstWalls { false };
 	Valueable<PartialVector2D<int>> ROF_RandomDelay { { 0, 2 } };
 
 	Valueable<ColorStruct> ToolTip_Background_Color { {0, 0, 0} };
