@@ -1246,8 +1246,8 @@ KickOutResult FakeBuildingClass::__ExitObject(TechnoClass* pObject, CellStruct e
 		// --- END HOOK ---
 
 		if (flushResult == 0) {
-			Debug::Log("Unlimbo attempt: Coord={%d,%d,%d}\n",
-				placeCoord.X, placeCoord.Y, placeCoord.Z);
+			//Debug::Log("Unlimbo attempt: Coord={%d,%d,%d}\n",
+			//	placeCoord.X, placeCoord.Y, placeCoord.Z);
 
 			if (pBuilding->Unlimbo(placeCoord, DirType::North)) {
 			PlacementSucceeded:
