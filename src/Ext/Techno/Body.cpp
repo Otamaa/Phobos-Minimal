@@ -7330,10 +7330,10 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
 			const bool firstAllowedAE = pFirstExt->HasRequiredAttachedEffects(pTargetTechno, pThis);
 
-			if (!allowFallback 
+			if (!allowFallback
 					&& (!allowAAFallback || !secondaryIsAA)
-					&& firstAllowedAE
-					&& !TechnoExtData::CanFireNoAmmoWeapon(pThis, 1))
+					&& !TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)
+					&& firstAllowedAE)
 				return weaponIndexOne;
 
 			if(!pFirstExt->SkipWeaponPicking){
