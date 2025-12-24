@@ -262,6 +262,7 @@ void RulesExtData::LoadAfterTypeData(RulesClass* pThis, CCINIClass* pINI)
 	if (!pData->ForceShield_KillOrganicsWarhead)
 		pData->ForceShield_KillOrganicsWarhead = pThis->C4Warhead;
 
+		pData->AllowWeaponSelectAgainstWalls.Read(iniEX, GameStrings::CombatDamage, "AllowWeaponSelectAgainstWalls");
 	pData->IronCurtain_KillOrganicsWarhead.Read(iniEX, GameStrings::CombatDamage(), "IronCurtain.KillOrganicsWarhead");
 
 	if (!pData->IronCurtain_KillOrganicsWarhead)
@@ -1468,6 +1469,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ForceShield_KeptOnDeploy)
 		.Process(this->ForceShield_EffectOnOrganics)
 		.Process(this->ForceShield_KillOrganicsWarhead)
+		.Process(this->AllowWeaponSelectAgainstWalls)
 		.Process(this->IronCurtain_EffectOnOrganics)
 		.Process(this->IronCurtain_KillOrganicsWarhead)
 		.Process(this->ROF_RandomDelay)

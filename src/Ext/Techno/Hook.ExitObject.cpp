@@ -485,11 +485,11 @@ KickOutResult FakeBuildingClass::__ExitObject(TechnoClass* pObject, CellStruct e
 
 		this->Owner->ProducingAircraftTypeIndex = -1;
 
-		const bool inRadioContact = this->ContainsLink(pObject);
+		const bool inRadioContact = this->HasLinkOrFreeSlot(pObject);
 		const bool ionStormActive = this->Owner->IonSensitivesShouldBeOffline();
 		DirType facing = (DirType)RulesClass::Instance->PoseDir;
 
-		if (inRadioContact || (ionStormActive && !pAircraft->Type->AirportBound)) {
+		if (inRadioContact || ionStormActive && !pAircraft->Type->AirportBound) {
 			pAircraft->MarkDownSetZ(0);
 
 			++Unsorted::ScenarioInit;

@@ -3563,8 +3563,13 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 	auto const pTechnoType = pThis->GetTechnoType();
 	int weaponIndex = -1;
 	auto pWeapon = TechnoExtData::GetCurrentWeapon(pThis, weaponIndex);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
-	if ((pTechnoType->TurretCount > 0 && !pTechnoType->IsGattling) || !pWallOverlayType || !pWallOverlayType->Wall)
+	if ((pTechnoType->TurretCount > 0 && !pTechnoType->IsGattling) 
+			|| !pWallOverlayType 
+			|| !pWallOverlayType->Wall
+			|| !pTypeExt->AllowWeaponSelectAgainstWalls.Get(RulesExtData::Instance()->AllowWeaponSelectAgainstWalls)
+		)
 		return weaponIndex;
 	else if (weaponIndex == -1)
 		return 0;
@@ -3582,7 +3587,7 @@ int TechnoExtData::GetWeaponIndexAgainstWall(TechnoClass * pThis, OverlayTypeCla
 		&& !pSecondaryWeaponExt->SkipWeaponPicking && !pSecondaryWeaponExt->HasRequiredAttachedEffects(pThis, pThis);
 
 		if (pSecondaryWeapon && (pSecondaryWeapon->Warhead->Wall || (pSecondaryWeapon->Warhead->Wood && pWallOverlayType->Armor == Armor::Wood)
-			&& (!TechnoTypeExtContainer::Instance.Find(pTechnoType)->NoSecondaryWeaponFallback || aeForbidsPrimary)) && !aeForbidsSecondary)
+			&& (!pTypeExt->NoSecondaryWeaponFallback || aeForbidsPrimary)) && !aeForbidsSecondary)
 		{
 			return weaponIndexSec;
 		}
@@ -7325,8 +7330,10 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 			const bool secondaryIsAA = pTargetTechno && pTargetTechno->IsInAir() && pWeaponTwo->Projectile->AA;
 			const bool firstAllowedAE = pFirstExt->HasRequiredAttachedEffects(pTargetTechno, pThis);
 
-			if (!allowFallback && (!allowAAFallback || !secondaryIsAA)
-					&& !TechnoExtData::CanFireNoAmmoWeapon(pThis, 1) && firstAllowedAE)
+			if (!allowFallback 
+					&& (!allowAAFallback || !secondaryIsAA)
+					&& firstAllowedAE
+					&& !TechnoExtData::CanFireNoAmmoWeapon(pThis, 1))
 				return weaponIndexOne;
 
 			if(!pFirstExt->SkipWeaponPicking){
