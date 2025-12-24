@@ -59,10 +59,10 @@ protected:
 public:
 
 	TechnoClass* Owner;
-	TechnoClass* Target;
+	AbstractClass* Target;
 	WeaponTypeClass* Weapon;
 	int DrawRateCounter;//dec per update
-	DWORD Facing;//0-15
+	int Facing;//0-15
 	int DrawCounter;//inc per draw
 	int Damage;
 };

@@ -77,6 +77,8 @@ public:
 	}
 
 	void _Detach(AbstractClass* target, bool all) { };
+	void __Detonate();
+	int __GetBombFrame();
 
 	HRESULT __stdcall _Load(IStream* pStm);
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);

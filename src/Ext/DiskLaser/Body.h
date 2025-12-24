@@ -35,3 +35,11 @@ public:
 	static ExtContainer ExtMap;
 	*/
 };
+
+class NOVTABLE FakeDiskLaserClass : public DiskLaserClass
+{
+public:
+
+	void __AI();
+	void __Fire(TechnoClass* firer, AbstractClass* target, WeaponTypeClass* weapon, int damage_multiplier);
+};

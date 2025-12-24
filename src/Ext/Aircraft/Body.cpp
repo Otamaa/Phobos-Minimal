@@ -17,6 +17,7 @@
 #include <Utilities/Macro.h>
 
 #include <Locomotor/FlyLocomotionClass.h>
+#include "Body.h"
 
 //todo Add the hooks
 int FakeAircraftClass::_Mission_Attack()

@@ -827,12 +827,11 @@ void ParticleSystemExtData::UpdateInAir()
 		if (Unsorted::ArmageddonMode() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
 			StopDrawing = true;
 
-		for (auto pSys : *ParticleSystemClass::Array)
-		{
-			auto pExt = ParticleSystemExtContainer::Instance.Find(pSys);
+		for (auto pSys : *ParticleSystemClass::Array) {
+			auto pExt = ParticleSystemExtContainer::Instance.TryFind(pSys);
 
 			if (!pExt)
-				Debug::FatalError("ParticleSystem without Ext[%x]", pSys);
+				continue;
 
 			pExt->UpdateInAir_Main(StopDrawing);
 		}

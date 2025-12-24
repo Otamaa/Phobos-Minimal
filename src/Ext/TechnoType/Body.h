@@ -382,6 +382,7 @@ public:
 
 	Valueable<bool> DontShake;
 	NullableIdx<VocClass>DiskLaserChargeUp;
+	Valueable<bool> DiskLaserDetonate;
 
 	Nullable<AnimTypeClass*>DrainAnimationType;
 	Nullable<int> DrainMoneyFrameDelay;
@@ -1453,6 +1454,7 @@ public:
 		FacingRotation_DisableOnDriverKilled(true),
 		DontShake(true),
 		DiskLaserChargeUp(),
+		DiskLaserDetonate(false),
 		DrainAnimationType(),
 		DrainMoneyFrameDelay(),
 		DrainMoneyAmount(),
@@ -2411,6 +2413,7 @@ private:
 			.Process(this->DontShake)
 
 			.Process(this->DiskLaserChargeUp)
+			.Process(this->DiskLaserDetonate)
 
 			.Process(this->DrainAnimationType)
 			.Process(this->DrainMoneyFrameDelay)

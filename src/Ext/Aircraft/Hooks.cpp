@@ -755,7 +755,6 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7E2668, FakeAircraftClass::_GreatestThreat);
 
 // Sleep: return to airbase if in incorrect sleep status
 
-
 int FakeAircraftClass::_Mission_Sleep()
 {
 	if (!this->Destination || this->Destination == this->DockedTo)

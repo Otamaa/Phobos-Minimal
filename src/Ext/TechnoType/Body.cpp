@@ -967,6 +967,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 #pragma region Otamaa
 		this->DontShake.Read(exINI, pSection, "DontShakeScreen");
 		this->DiskLaserChargeUp.Read(exINI, pSection, GameStrings::DiskLaserChargeUp());
+		this->DiskLaserDetonate.Read(exINI, pSection, "DiskLaser.Detonate");
 
 		this->DrainMoneyFrameDelay.Read(exINI, pSection, GameStrings::DrainMoneyFrameDelay());
 		this->DrainMoneyAmount.Read(exINI, pSection, GameStrings::DrainMoneyAmount());
@@ -2517,6 +2518,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamWriter& Stm)
 	debugProcess(this->FacingRotation_DisableOnDriverKilled, "FacingRotation_DisableOnDriverKilled");
 	debugProcess(this->DontShake, "DontShake");
 	debugProcess(this->DiskLaserChargeUp, "DiskLaserChargeUp");
+	debugProcess(this->DiskLaserDetonate, "DiskLaserDetonate");
 	debugProcess(this->DrainAnimationType, "DrainAnimationType");
 	debugProcess(this->DrainMoneyFrameDelay, "DrainMoneyFrameDelay");
 	debugProcess(this->DrainMoneyAmount, "DrainMoneyAmount");
@@ -2776,6 +2778,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamReader& Stm)
 	debugProcess(this->FacingRotation_DisableOnDriverKilled, "FacingRotation_DisableOnDriverKilled");
 	debugProcess(this->DontShake, "DontShake");
 	debugProcess(this->DiskLaserChargeUp, "DiskLaserChargeUp");
+	debugProcess(this->DiskLaserDetonate, "DiskLaserDetonate");
 	debugProcess(this->DrainAnimationType, "DrainAnimationType");
 	debugProcess(this->DrainMoneyFrameDelay, "DrainMoneyFrameDelay");
 	debugProcess(this->DrainMoneyAmount, "DrainMoneyAmount");
