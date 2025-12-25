@@ -1654,6 +1654,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AggressiveModeExempt.Read(exINI, pSection, "AggressiveModeExempt");
 		this->IsBarGate.Read(exINI, pSection, "IsBarGate");
 		this->AISellCapturedBuilding.Read(exINI, pSection, "AISellCapturedBuilding");
+		this->BuildingRadioLink_SyncOwner.Read(exINI, pSection, "BuildingRadioLink.SyncOwner");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2103,6 +2104,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->IsHideDuringSpecialAnim)
 		.Process(this->HasPowerUpAnim)
 		.Process(this->AISellCapturedBuilding)
+		.Process(this->BuildingRadioLink_SyncOwner)
 		;
 }
 #else

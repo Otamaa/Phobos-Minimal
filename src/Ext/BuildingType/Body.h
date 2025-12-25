@@ -260,7 +260,7 @@ public:
 	Valueable<bool> IsHideDuringSpecialAnim;
 
 	Nullable<bool> AISellCapturedBuilding;
-
+	Nullable<bool> BuildingRadioLink_SyncOwner;
 #pragma endregion
 
 public:
@@ -489,7 +489,8 @@ public:
 		AggressiveModeExempt(false),
 		IsBarGate(false),
 		IsHideDuringSpecialAnim(false),
-		AISellCapturedBuilding()
+		AISellCapturedBuilding(),
+		BuildingRadioLink_SyncOwner()
 	{
 		this->InitializeConstant();
 		this->NextBuilding_CurrentHeapId = pObj->ArrayIndex;
