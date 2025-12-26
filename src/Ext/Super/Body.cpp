@@ -7,6 +7,9 @@
 
 #include <Utilities/Macro.h>
 
+#include <Phobos.SaveGame.h>
+
+
 // This function controls the availability of super weapons. If a you want to
 // add to or change the way the game thinks a building provides a super weapon,
 // change the lambda UpdateStatus. Available means this super weapon exists at
@@ -127,6 +130,7 @@ template <typename T>
 void SuperExtData::Serialize(T& Stm) {
 
 	Stm
+		.Process(this->Name)
 		.Process(this->Type, true)
 		.Process(this->Temp_CellStruct)
 		.Process(this->Temp_IsPlayer)
@@ -143,21 +147,66 @@ void SuperExtData::Serialize(T& Stm) {
 // =============================
 // container
 SuperExtContainer SuperExtContainer::Instance;
-std::vector<SuperExtData*> Container<SuperExtData>::Array;
 
-void Container<SuperExtData>::Clear()
+bool SuperExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(SuperExtContainer::ClassName))
+	{
+		auto& container = root[SuperExtContainer::ClassName];
+
+		for (auto& entry : container[SuperExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, SuperExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool SuperExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool SuperExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[SuperExtContainer::ClassName];
 
-bool SuperExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : SuperExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[SuperExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -198,24 +247,6 @@ ASMJIT_PATCH(0x6CB1BD, SuperClass_SDDTOR, 0x7)
 //	pThis->SuperClass::PointerExpired(target , all);
 //}
 //DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4010, GET_OFFSET(SuperClass_Detach_Wrapper))
-
-HRESULT __stdcall FakeSuperClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->SuperClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = SuperExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeSuperClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->SuperClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = SuperExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
 
 int FakeSuperClass::_GetAnimStage()
 {
@@ -294,6 +325,3 @@ int FakeSuperClass::_GetAnimStage()
 DEFINE_FUNCTION_JUMP(LJMP, 0x6CBEE0, FakeSuperClass::_GetAnimStage)
 DEFINE_FUNCTION_JUMP(CALL, 0x6CBE7E, FakeSuperClass::_GetAnimStage)
 DEFINE_FUNCTION_JUMP(CALL, 0x6CBE8A, FakeSuperClass::_GetAnimStage)
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F3FFC, FakeSuperClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4000, FakeSuperClass::_Save)

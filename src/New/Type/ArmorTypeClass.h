@@ -7,6 +7,10 @@
 class ArmorTypeClass final : public Enumerable<ArmorTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "ArmorTypes";
+	static COMPILETIMEEVAL const char* ClassName = "ArmorTypeClass";
+
+public:
 
 	int DefaultTo;
 	std::string DefaultString;

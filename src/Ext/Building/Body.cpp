@@ -14,6 +14,8 @@
 
 #include <Misc/Hooks.Otamaa.h>
 
+#include <Phobos.SaveGame.h>
+
 BuildingExtData::~BuildingExtData()
 {
 
@@ -327,7 +329,7 @@ void BuildingExtData::DisplayIncomeString()
 			return;
 		}
 
-		FlyingStrings::AddMoneyString(
+		FlyingStrings::Instance.AddMoneyString(
 			this->AccumulatedIncome,
 			this->AccumulatedIncome,
 			This(),
@@ -895,7 +897,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 		pBuildingExt->MyWeaponManager.Clear();
 		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
 
-		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
+		if (!HouseExtContainer::Instance.AutoDeathObjects.contains(pBuilding))
 		{
 			KillMethod nMethod = pBuildingExt->Type->Death_Method.Get();
 
@@ -905,7 +907,7 @@ void BuildingExtData::LimboDeliver(BuildingTypeClass* pType, HouseClass* pOwner,
 				if (pBuildingExt->Type->Death_Countdown > 0)
 					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
 
-				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
+				HouseExtContainer::Instance.AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
 		}
 	}
@@ -2568,23 +2570,66 @@ void BuildingExtData::Serialize(T& Stm)
 // =============================
 // container
 BuildingExtContainer BuildingExtContainer::Instance;
-std::vector<BuildingExtData*> Container<BuildingExtData>::Array;
 
-void Container<BuildingExtData>::Clear()
+bool BuildingExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(BuildingExtContainer::ClassName))
+	{
+		auto& container = root[BuildingExtContainer::ClassName];
+
+		for (auto& entry : container[BuildingExtData::ClassName])
+		{
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, BuildingExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
-bool BuildingExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool BuildingExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[BuildingExtContainer::ClassName];
 
-bool BuildingExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
-}
+	json _extRoot = json::array();
+	for (auto& _extData : BuildingExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
 
+		_extData->SaveToStream(writer); // write all data to stream
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[BuildingExtData::ClassName] = std::move(_extRoot);
+	return true;
+}
 // =============================
 // container hooks
 
@@ -2604,7 +2649,8 @@ ASMJIT_PATCH(0x43C022, BuildingClass_DTOR, 0x6)
 
 void FakeBuildingClass::_Detach(AbstractClass* target, bool all)
 {
-	BuildingExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 	this->BuildingClass::PointerExpired(target, all);
 }
 
@@ -2622,24 +2668,3 @@ void FakeBuildingClass::_DetachAnim(AnimClass* pAnim)
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F1C, FakeBuildingClass::_DetachAnim)
-
-HRESULT __stdcall FakeBuildingClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->BuildingClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = BuildingExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeBuildingClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->BuildingClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = BuildingExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED0, FakeBuildingClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3ED4, FakeBuildingClass::_Save)

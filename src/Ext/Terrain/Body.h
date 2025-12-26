@@ -15,7 +15,10 @@ class TerrainExtData final : public ObjectExtData
 {
 public:
 	using base_type = TerrainClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "TerrainExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "TerrainClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -74,8 +77,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	TerrainClass* This() const override { return reinterpret_cast<TerrainClass*>(this->AttachedToObject); }
-	const TerrainClass* This_Const() const override { return reinterpret_cast<const TerrainClass*>(this->AttachedToObject); }
+	TerrainClass* This() const { return reinterpret_cast<TerrainClass*>(this->AttachedToObject); }
+	const TerrainClass* This_Const() const { return reinterpret_cast<const TerrainClass*>(this->AttachedToObject); }
 
 public:
 
@@ -97,18 +100,14 @@ public:
 class TerrainExtContainer final : public Container<TerrainExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "TerrainExtContainer";
+
+public:
 	static TerrainExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
 };
 
 class TerrainTypeExtData;
@@ -118,9 +117,6 @@ public:
 
 	void _Detach(AbstractClass* target, bool all);
 	void _AI();
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	DamageState __TakeDamage(
 		int* Damage,

@@ -118,7 +118,7 @@ public:
 	// pre-allocate all keys and read them later
 	static void FindOrAllocateKeysFromINI(CCINIClass* pINI, bool bDebug = false)
 	{
-		const char* section = GetMainSection();
+		const char* section = T::MainSection;
 
 		if (!pINI->GetSection(section))
 			return;
@@ -141,7 +141,7 @@ public:
 
 	static void LoadFromINIOnlyTheList(CCINIClass* pINI, bool bDebug = false)
 	{
-		const char* section = GetMainSection();
+		const char* section = T::MainSection;
 
 		if (!pINI->GetSection(section))
 			return;
@@ -168,7 +168,7 @@ public:
 
 	static void LoadFromINIList(CCINIClass* pINI, bool bDebug = false)
 	{
-		const char* section = GetMainSection();
+		const char* section = T::MainSection;
 
 		if (!pINI->GetSection(section))
 			return;
@@ -189,8 +189,7 @@ public:
 				Phobos::readDefval, Phobos::readBuffer) > 0)
 			{
 
-				if (auto const pFind = FindOrAllocate(Phobos::readBuffer))
-				{
+				if (auto const pFind = FindOrAllocate(Phobos::readBuffer)) {
 					pFind->LoadFromINI(pINI);
 				}
 			}
@@ -205,7 +204,6 @@ public:
 		if (Stm.Load(Count)) {
 			if (Count > 0) {
 				Array.reserve(Count);
-				const auto className = PhobosCRT::GetTypeIDName<T>();
 				for (int i = 0; i < Count; ++i) {
 					long oldPtr = 0l;
 
@@ -217,7 +215,7 @@ public:
 						return false;
 
 					auto newPtr = FindOrAllocate(name.data());
-					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, className.data())
+					PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, newPtr, T::ClassName)
 					newPtr->LoadFromStream(Stm);
 				}
 			}
@@ -233,10 +231,9 @@ public:
 		//save it as int instead of size_t
 		const int Count = (int)Array.size();
 		Stm.Save(Count);
-		const auto name = PhobosCRT::GetTypeIDName<T>();
 
 		for (int i = 0; i < Count; ++i) {
-			Debug::Log("Saving %s [%s - %x] to stream\n", name.c_str(), Array[i]->Name.data(), (long)Array[i].get());
+			Debug::Log("Saving %s [%s - %x] to stream\n", T::ClassName, Array[i]->Name.data(), (long)Array[i].get());
 			Stm.Save((long)Array[i].get());
 			Stm.Process(Array[i]->Name);
 			Array[i]->SaveToStream(Stm);
@@ -244,8 +241,6 @@ public:
 
 		return true;
 	}
-
-	static const char* GetMainSection();
 
 	PhobosFixedString<0x18> Name {};
 

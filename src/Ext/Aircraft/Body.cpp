@@ -17,7 +17,7 @@
 #include <Utilities/Macro.h>
 
 #include <Locomotor/FlyLocomotionClass.h>
-#include "Body.h"
+#include <Phobos.SaveGame.h>
 
 //todo Add the hooks
 int FakeAircraftClass::_Mission_Attack()
@@ -938,22 +938,65 @@ bool AircraftExtData::IsValidLandingZone(AircraftClass* pThis)
 
 }
 
-std::vector<AircraftExtData*> Container<AircraftExtData>::Array;
 AircraftExtContainer AircraftExtContainer::Instance;
 
-void Container<AircraftExtData>::Clear()
+bool AircraftExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	//first layer
+	if (root.contains(AircraftExtContainer::ClassName))
+	{
+		auto& container = root[AircraftExtContainer::ClassName];
+
+		for (auto& entry : container[AircraftExtData::ClassName]) {
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();	
+			AircraftExtData* buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AircraftExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
-bool AircraftExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool AircraftExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[AircraftExtContainer::ClassName];
 
-bool AircraftExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : AircraftExtContainer::Array) {
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[AircraftExtData::ClassName] = std::move(_extRoot);
+	return true;
 }
 
 ASMJIT_PATCH(0x413DB1, AircraftClass_CTOR, 0x6)
@@ -970,30 +1013,10 @@ ASMJIT_PATCH(0x41426F, AircraftClass_DTOR, 0x7)
 	return 0;
 }
 
-HRESULT __stdcall FakeAircraftClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->AircraftClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = AircraftExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeAircraftClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->AircraftClass::Save(pStm,clearDirty);
-	if (SUCCEEDED(hr))
-		hr = AircraftExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22B8, FakeAircraftClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E22BC, FakeAircraftClass::_Save)
-
 void FakeAircraftClass::_Detach(AbstractClass* target, bool all)
 {
-	AircraftExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 	//will detach type pointer
 	this->AircraftClass::PointerExpired(target, all);
 }

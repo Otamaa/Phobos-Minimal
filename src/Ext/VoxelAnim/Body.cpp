@@ -12,6 +12,8 @@
 #include <UnitClass.h>
 #include <InfantryClass.h>
 
+#include <Phobos.SaveGame.h>
+
 TechnoClass* VoxelAnimExtData::GetTechnoOwner(VoxelAnimClass* pThis)
 {
 	auto const pTypeExt = VoxelAnimTypeExtContainer::Instance.TryFind(pThis->Type);
@@ -75,21 +77,66 @@ void VoxelAnimExtData::Serialize(T& Stm)
 // =============================
 // container
 VoxelAnimExtContainer VoxelAnimExtContainer::Instance;
-std::vector<VoxelAnimExtData*> Container<VoxelAnimExtData>::Array;
 
-void Container<VoxelAnimExtData>::Clear()
+bool VoxelAnimExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(VoxelAnimExtContainer::ClassName))
+	{
+		auto& container = root[VoxelAnimExtContainer::ClassName];
+
+		for (auto& entry : container[VoxelAnimExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, VoxelAnimExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool VoxelAnimExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool VoxelAnimExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[VoxelAnimExtContainer::ClassName];
 
-bool VoxelAnimExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : VoxelAnimExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[VoxelAnimExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =================================
@@ -124,28 +171,9 @@ ASMJIT_PATCH(0x749B02, VoxelAnimClass_DTOR, 0xA)
 void FakeVoxelAnimClass::_Detach(AbstractClass* pTarget, bool bRemoved)
 {
 	this->ObjectClass::PointerExpired(pTarget, bRemoved);
-	VoxelAnimExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemoved);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(pTarget, bRemoved);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7F6340 , FakeVoxelAnimClass::_Detach)
 
-HRESULT __stdcall FakeVoxelAnimClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->VoxelAnimClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = VoxelAnimExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeVoxelAnimClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->VoxelAnimClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = VoxelAnimExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F632C, FakeVoxelAnimClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6330, FakeVoxelAnimClass::_Save)

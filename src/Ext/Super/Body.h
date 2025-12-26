@@ -2,6 +2,7 @@
 #include <SuperClass.h>
 
 #include <Utilities/Container.h>
+#include <Utilities/PhobosFixedString.h>
 
 // cache all super weapon statuses
 struct SWStatus
@@ -44,11 +45,15 @@ class SuperExtData final : public AbstractExtended
 {
 public:
 	using base_type = SuperClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "SuperExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "SuperClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
 #pragma region ClassMembers
+	PhobosFixedString<0x18> Name;
 	SWTypeExtData* Type;
 	bool Temp_IsPlayer;
 	CellStruct Temp_CellStruct;
@@ -61,6 +66,7 @@ public:
 
 public:
 	SuperExtData(SuperClass* pObj) : AbstractExtended(pObj)
+		, Name()
 		, Type(nullptr)
 		, Temp_IsPlayer(false)
 		, Temp_CellStruct()
@@ -97,8 +103,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	SuperClass* This() const override { return reinterpret_cast<SuperClass*>(this->AttachedToObject); }
-	const SuperClass* This_Const() const override { return reinterpret_cast<const SuperClass*>(this->AttachedToObject); }
+	SuperClass* This() const { return reinterpret_cast<SuperClass*>(this->AttachedToObject); }
+	const SuperClass* This_Const() const { return reinterpret_cast<const SuperClass*>(this->AttachedToObject); }
 
 public:
 
@@ -112,18 +118,12 @@ private:
 class SuperExtContainer final : public Container<SuperExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "SuperExtContainer";
+public:
 	static SuperExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
 };
 
@@ -131,8 +131,6 @@ class SWTypeExtData;
 class NOVTABLE FakeSuperClass : public SuperClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	int _GetAnimStage();
 

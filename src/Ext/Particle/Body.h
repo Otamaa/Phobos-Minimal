@@ -15,7 +15,10 @@ class ParticleExtData : public ObjectExtData
 {
 public:
 	using base_type = ParticleClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "ParticleExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "ParticleClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region ClassMembers
@@ -61,8 +64,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	ParticleClass* This() const override { return reinterpret_cast<ParticleClass*>(this->AttachedToObject); }
-	const ParticleClass* This_Const() const override { return reinterpret_cast<const ParticleClass*>(this->AttachedToObject); }
+	ParticleClass* This() const { return reinterpret_cast<ParticleClass*>(this->AttachedToObject); }
+	const ParticleClass* This_Const() const { return reinterpret_cast<const ParticleClass*>(this->AttachedToObject); }
 
 public:
 
@@ -76,18 +79,13 @@ private:
 class ParticleExtContainer final : public Container<ParticleExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "ParticleExtContainer";
+
+public:
 	static ParticleExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class ParticleTypeExtData;

@@ -18,7 +18,10 @@ class BulletExtData final : public ObjectExtData
 {
 public:
 	using base_type = BulletClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "BulletExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "BulletClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region ClassMembers
@@ -99,8 +102,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	BulletClass* This() const override { return reinterpret_cast<BulletClass*>(this->AttachedToObject); }
-	const BulletClass* This_Const() const override { return reinterpret_cast<const BulletClass*>(this->AttachedToObject); }
+	BulletClass* This() const { return reinterpret_cast<BulletClass*>(this->AttachedToObject); }
+	const BulletClass* This_Const() const { return reinterpret_cast<const BulletClass*>(this->AttachedToObject); }
 
 public:
 
@@ -145,16 +148,15 @@ public:
 class BulletExtContainer final : public Container<BulletExtData>
 {
 public:
+
+	static COMPILETIMEEVAL const char* ClassName = "BulletExtContainer";
+
+public:
 	static BulletExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved) {
-		for (auto& ext : Array) {
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
 };
 
 class FakeWarheadTypeClass;
@@ -170,9 +172,6 @@ public:
 	{
 		this->ObjectClass::AnimPointerExpired(pTarget);
 	}
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 

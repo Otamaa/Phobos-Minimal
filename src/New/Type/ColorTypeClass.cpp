@@ -5,17 +5,12 @@
 
 Enumerable<ColorTypeClass>::container_t Enumerable<ColorTypeClass>::Array;
 
-const char* Enumerable<ColorTypeClass>::GetMainSection()
-{
-	return GameStrings::Colors();
-}
-
 void ColorTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pName = this->Name.c_str();
 
 	INI_EX exINI(pINI);
-	this->Colors.Read(exINI, GetMainSection(), pName, false);
+	this->Colors.Read(exINI, ColorTypeClass::MainSection, pName, false);
 
 	Point3D nColors = this->Colors.Get();
 	nColors.X = std::clamp(nColors.X, 0, 255);
@@ -29,7 +24,7 @@ void ColorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	if (!pINI)
 		return;
 
-	const char* pSection = GetMainSection();
+	const char* pSection = ColorTypeClass::MainSection;
 
 	if (!pINI->GetSection(pSection))
 		return;

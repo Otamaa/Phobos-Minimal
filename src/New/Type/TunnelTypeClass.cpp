@@ -4,11 +4,6 @@
 
 Enumerable<TunnelTypeClass>::container_t Enumerable<TunnelTypeClass>::Array;
 
-const char* Enumerable<TunnelTypeClass>::GetMainSection()
-{
-	return "TunnelTypes";
-}
-
 void TunnelTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name.data();

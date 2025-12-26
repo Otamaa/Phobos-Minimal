@@ -6,6 +6,10 @@
 class InsigniaTypeClass final : public Enumerable<InsigniaTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "InsigniaTypes";
+	static COMPILETIMEEVAL const char* ClassName = "InsigniaTypeClass";
+
+public:
 	Promotable<SHPStruct*> Insignia;
 	Promotable<int> InsigniaFrame;
 

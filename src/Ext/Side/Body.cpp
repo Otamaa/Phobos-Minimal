@@ -4,6 +4,8 @@
 #include <Utilities/Helpers.h>
 #include <Utilities/Macro.h>
 
+#include <Phobos.SaveGame.h>
+
 SHPStruct* SideExtData::s_GraphicalTextImage = nullptr;
 CustomPalette SideExtData::s_GraphicalTextConvert;
 
@@ -522,36 +524,118 @@ void SideExtData::Serialize(T& Stm)
 // =============================
 // container
 SideExtContainer SideExtContainer::Instance;
-std::vector<SideExtData*> Container<SideExtData>::Array;
 
-void Container<SideExtData>::Clear()
+bool SideExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(SideExtContainer::ClassName))
+	{
+		auto& container = root[SideExtContainer::ClassName];
+
+		for (auto& entry : container[SideExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, SideExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		size_t dataSize = container["Container_datasize"].get<size_t>();
+		std::string encoded = container["Container_data"].get<std::string>();
+
+		PhobosByteStream loader(dataSize);
+		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+		PhobosStreamReader reader(loader);
+
+		reader.Process(SideExtData::CurrentLoadTextColor);
+
+		if (!reader.ExpectEndOfBlock())
+			return false;
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool SideExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool SideExtContainer::SaveAll(json& root)
 {
-	auto ret = LoadGlobalArrayData(Stm);
+	auto& first_layer = root[SideExtContainer::ClassName];
 
-	ret &= Stm
-		.Process(SideExtData::CurrentLoadTextColor)
-		.Success();
+	json _extRoot = json::array();
+	for (auto& _extData : SideExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
 
-	return ret;
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[SideExtData::ClassName] = std::move(_extRoot);
+
+	PhobosByteStream saver(0);
+	PhobosStreamWriter writer(saver);
+
+	writer.Process(SideExtData::CurrentLoadTextColor);
+
+	first_layer["Container_datasize"] = saver.data.size();
+	first_layer["Container_data"] = Base64Handler::encodeBase64(saver.data);
+
+	return true;
 }
 
-bool SideExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+void SideExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
 {
-	auto ret = SaveGlobalArrayData(Stm);
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
 
-		ret &=  Stm
-		.Process(SideExtData::CurrentLoadTextColor)
-		.Success();
-
-	return ret;
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
 
 }
 
+void SideExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
+}
 // =============================
 // container hooks
 

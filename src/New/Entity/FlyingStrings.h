@@ -14,11 +14,13 @@ By AlexB and Joshy
 #include <Unsorted.h>
 #include <string>
 
+#include <Utilities/Interfaces.h>
+
 class WarheadTypeClass;
 class TechnoClass;
 class HouseClass;
 class CellClass;
-class FlyingStrings
+class FlyingStrings : public GlobalSaveable
 {
 private:
 
@@ -61,58 +63,49 @@ private:
 	};
 
 	static COMPILETIMEEVAL int Duration = 75;
-	static HelperedVector<Item> Data;
+	HelperedVector<Item> Data;
 
 	static bool DrawAllowed(CoordStruct const& nCoords , Point2D& outPoint);
 
 public:
 
+	static FlyingStrings Instance;
 	static COMPILETIMEEVAL size_t ItemSize = sizeof(Item);
-	static OPTIONALINLINE COMPILETIMEEVAL void Clear() { Data.clear(); };
 
-	static void FORCEDINLINE Add(std::wstring text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+	void FORCEDINLINE Add(std::wstring text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
 		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::move(text));
 	}
 
-	static void FORCEDINLINE Add(const wchar_t* text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+	void FORCEDINLINE Add(const wchar_t* text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
 		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, text);
 	}
 
-	static void FORCEDINLINE Add(std::wstring_view text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+	void FORCEDINLINE Add(std::wstring_view text, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
 		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::move(std::wstring(text)));
 	}
 
-	static void FORCEDINLINE Add(const fmt::basic_memory_buffer<wchar_t>& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+	void FORCEDINLINE Add(const fmt::basic_memory_buffer<wchar_t>& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
 		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::wstring(buffer.data(), buffer.size()));
 	}
 
-	static void FORCEDINLINE Add(fmt::basic_memory_buffer<wchar_t>&& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
+	void FORCEDINLINE Add(fmt::basic_memory_buffer<wchar_t>&& buffer, const CoordStruct& coords, ColorStruct color, Point2D pixelOffset = Point2D::Empty) {
 		Data.emplace_back(coords, pixelOffset, Unsorted::CurrentFrame(), color.ToInit(), 0, TextPrintType::Center | TextPrintType::NoShadow, std::wstring(buffer.data(), buffer.size()));
 	}
 
-	static void AddMoneyString(bool Display, int amount, TechnoClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , ColorStruct nOverrideColor = ColorStruct::Empty);
-	static void AddMoneyString(bool Display, int amount, HouseClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty, ColorStruct nOverrideColor = ColorStruct::Empty);
-	static void AddString(const std::wstring& text, bool Display, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor);
-	static void AddNumberString(int amount, HouseClass* owner, AffectedHouse const&  displayToHouses, ColorStruct const& color, CoordStruct const& coords, Point2D pixelOffset, bool sign, const wchar_t* prefix);
-	static void UpdateAll();
+	void AddMoneyString(bool Display, int amount, TechnoClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty , ColorStruct nOverrideColor = ColorStruct::Empty);
+	void AddMoneyString(bool Display, int amount, HouseClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset = Point2D::Empty, ColorStruct nOverrideColor = ColorStruct::Empty);
+	void AddString(const std::wstring& text, bool Display, TechnoClass* owner, AffectedHouse const& displayToHouses, CoordStruct coords, Point2D pixelOffset, const ColorStruct& nOverrideColor);
+	void AddNumberString(int amount, HouseClass* owner, AffectedHouse const&  displayToHouses, ColorStruct const& color, CoordStruct const& coords, Point2D pixelOffset, bool sign, const wchar_t* prefix);
+	void UpdateAll();
 
-	static void DisplayDamageNumberString(int damage, DamageDisplayType type, const CoordStruct coords, int& offset, DrawDamageMode mode, WarheadTypeClass* pWH = nullptr);
+	void DisplayDamageNumberString(int damage, DamageDisplayType type, const CoordStruct coords, int& offset, DrawDamageMode mode, WarheadTypeClass* pWH = nullptr);
 
 public:
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return Stm
-			.Process(Data)
-			.Success()
-			;
-	}
+	FlyingStrings() = default;
+	virtual ~FlyingStrings() = default;
 
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return Stm
-			.Process(Data)
-			.Success()
-			;
-	}
+	virtual bool SaveGlobal(json& root);
+	virtual bool LoadGlobal(const json& root);
+	virtual void Clear();
 };

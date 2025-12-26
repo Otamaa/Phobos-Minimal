@@ -16,7 +16,10 @@ class AnimExtData : public ObjectExtData
 {
 public:
 	using base_type = AnimClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "AnimExData";
+	static COMPILETIMEEVAL const char* BaseClassName = "AnimClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -64,7 +67,7 @@ public:
 		this->AbsType = AnimClass::AbsID;
 	}
 
-	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
+	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) {}
 
 	virtual ~AnimExtData() = default;
 	//{
@@ -99,8 +102,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	AnimClass* This() const override { return reinterpret_cast<AnimClass*>(this->AttachedToObject); }
-	const AnimClass* This_Const() const override { return reinterpret_cast<const AnimClass*>(this->AttachedToObject); }
+	AnimClass* This() const { return reinterpret_cast<AnimClass*>(this->AttachedToObject); }
+	const AnimClass* This_Const() const { return reinterpret_cast<const AnimClass*>(this->AttachedToObject); }
 
 public:
 
@@ -136,18 +139,22 @@ private:
 class AnimExtContainer final : public Container<AnimExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "AnimExtContainer";
+	using base_container_t = Container<AnimExtData>;
+
+public:
+
+	std::list<AnimClass*> AnimsWithAttachedParticles;
+
+public:
+
 	static AnimExtContainer Instance;
-	static std::list<AnimClass*> AnimsWithAttachedParticles;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+public:
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array) {
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
+	virtual void Clear();
 };
 
 class AnimTypeExtData;
@@ -159,9 +166,6 @@ public:
 	FORCEDINLINE HouseClass* _GetOwningHouse() {
 		return this->Owner;
 	}
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Middle();
 	void _Start();

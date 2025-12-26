@@ -27,6 +27,12 @@
 
 #pragma warning( pop )
 
+#define JSON_USE_IMPLICIT_CONVERSIONS 0
+//#define JSON_DIAGNOSTICS 0
+//#define JSON_NOEXCEPTION
+#include <Lib/nlohmann/json.hpp>
+
+using json = nlohmann::ordered_json;
 
 enum class DrawDamageMode : BYTE
 {
@@ -49,7 +55,7 @@ enum class ExceptionHandlerMode {
 
 class PhobosStreamWriter;
 class PhobosStreamReader;
-struct Phobos final : public IPersistStream
+struct Phobos final
 {
 public:
 

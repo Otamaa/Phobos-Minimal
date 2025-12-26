@@ -8,7 +8,10 @@ class VoxelAnimTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = VoxelAnimTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "VoxelAnimTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region ClassMember
@@ -76,8 +79,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	VoxelAnimTypeClass* This() const override { return reinterpret_cast<VoxelAnimTypeClass*>(this->AttachedToObject); }
-	const VoxelAnimTypeClass* This_Const() const override { return reinterpret_cast<const VoxelAnimTypeClass*>(this->AttachedToObject); }
+	VoxelAnimTypeClass* This() const { return reinterpret_cast<VoxelAnimTypeClass*>(this->AttachedToObject); }
+	const VoxelAnimTypeClass* This_Const() const { return reinterpret_cast<const VoxelAnimTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -88,28 +91,26 @@ private:
 };
 
 class VoxelAnimTypeExtContainer final : public Container<VoxelAnimTypeExtData>
+	, public ReadWriteContainerInterfaces<VoxelAnimTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimTypeExtContainer";
+	using base_t = Container<VoxelAnimTypeExtData>;
+	using ext_t = VoxelAnimTypeExtData;
+
 public:
 	static VoxelAnimTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeVoxelAnimTypeClass : public VoxelAnimTypeClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

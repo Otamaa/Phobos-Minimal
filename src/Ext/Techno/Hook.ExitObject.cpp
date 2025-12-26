@@ -616,7 +616,7 @@ static KickOutResult HandleAircraftMapEdgeSpawn(
 		spawnCell.X--;
 	}
 
-	int randomOffset = ScenarioClass::Instance->Random.RandomFromMax(mapLocalHeight);
+	short randomOffset = (short)ScenarioClass::Instance->Random.RandomFromMax(mapLocalHeight);
 	spawnCell.X += randomOffset;
 	spawnCell.Y += randomOffset;
 

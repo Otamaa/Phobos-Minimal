@@ -369,7 +369,7 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 		VocClass::SafeImmedietelyPlayAt(pTypeExt->SellSound, &loc);
 	}
 
-	FlyingStrings::AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, loc, Point2D::Empty, ColorStruct::Empty);
+	FlyingStrings::Instance.AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, loc, Point2D::Empty, ColorStruct::Empty);
 
 	//this thing may already death , just
 	return pThis->IsAlive  ? 0x4D9FCB : 0x4D9FE9;

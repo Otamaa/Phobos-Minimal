@@ -7,6 +7,10 @@
 class ThemeTypeClass final : public Enumerable<ThemeTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "Themes";
+	static COMPILETIMEEVAL const char* ClassName = "ThemeTypeClass";
+
+public:
 
 	PhobosFixedString<64U> NextText;
 	PhobosFixedString<100U> HousesText;

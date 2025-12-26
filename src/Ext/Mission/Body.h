@@ -29,8 +29,8 @@ public:
 
 	virtual int GetSize() const { return sizeof(*this); };
 
-	MissionClass* This() const override { return reinterpret_cast<MissionClass*>(AttachedToObject); }
-	const MissionClass* This_Const() const override { return reinterpret_cast<const MissionClass*>(AttachedToObject); }
+	MissionClass* This() const { return reinterpret_cast<MissionClass*>(AttachedToObject); }
+	const MissionClass* This_Const() const { return reinterpret_cast<const MissionClass*>(AttachedToObject); }
 
 	virtual void CalculateCRC(CRCEngine& crc) const override {
 		this->ObjectExtData::CalculateCRC(crc);

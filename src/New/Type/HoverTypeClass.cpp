@@ -2,11 +2,6 @@
 
 Enumerable<HoverTypeClass>::container_t Enumerable<HoverTypeClass>::Array;
 
-const char* Enumerable<HoverTypeClass>::GetMainSection()
-{
-	return "HoverCharacteristic";
-}
-
 void HoverTypeClass::LoadFromINI(CCINIClass * pINI)
 {
 	const char* pSection = this->Name.c_str();

@@ -72,7 +72,7 @@ ASMJIT_PATCH(0x6D4684, TacticalClass_Draw_Addition, 6)
 		}
 	}*/
 
-	FlyingStrings::UpdateAll();
+	FlyingStrings::Instance.UpdateAll();
 	ShowTechnoNameCommandClass::AI();
 	ShowAnimNameCommandClass::AI();
 	return 0;

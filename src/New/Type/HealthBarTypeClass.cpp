@@ -2,12 +2,6 @@
 
 Enumerable<HealthBarTypeClass>::container_t Enumerable<HealthBarTypeClass>::Array;
 
-template<>
-const char* Enumerable<HealthBarTypeClass>::GetMainSection()
-{
-	return "HealthBarTypes";
-}
-
 void HealthBarTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name;

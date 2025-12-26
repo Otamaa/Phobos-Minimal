@@ -7,6 +7,10 @@
 class GenericPrerequisite final : public Enumerable<GenericPrerequisite>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "GenericPrerequisites";
+	static COMPILETIMEEVAL const char* ClassName = "GenericPrerequisite";
+
+public:
 	GenericPrerequisite(const char* pTitle);
 
 	void LoadFromINI(CCINIClass* pINI);

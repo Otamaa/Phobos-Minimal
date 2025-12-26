@@ -6,6 +6,8 @@
 #include <Ext/Tiberium/Body.h>
 #include <TacticalClass.h>
 
+#include <Phobos.SaveGame.h>
+
 int FakeCellClass::_Reduce_Tiberium(int levels)
 {
 	RectangleStruct dirty = RectangleStruct::Union(this->Overlay_Render_Rect(), this->Overlay_Shadow_Render_Rect());
@@ -324,20 +326,66 @@ void CellExtData::Serialize(T& Stm) {
 // container
 
 CellExtContainer CellExtContainer::Instance;
-std::vector<CellExtData*> Container<CellExtData>::Array;
-void Container<CellExtData>::Clear()
+
+bool CellExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(CellExtContainer::ClassName))
+	{
+		auto& container = root[CellExtContainer::ClassName];
+
+		for (auto& entry : container[CellExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, CellExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool CellExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool CellExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[CellExtContainer::ClassName];
 
-bool CellExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : CellExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[CellExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -359,24 +407,3 @@ ASMJIT_PATCH(0x47BB60, CellClass_DTOR, 0x6) {
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F14, FakeCellClass::_Invalidate);
-
-HRESULT __stdcall FakeCellClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->CellClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = CellExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeCellClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->CellClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = CellExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F00, FakeCellClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4F04, FakeCellClass::_Save)

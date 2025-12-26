@@ -10,11 +10,6 @@
 
 Enumerable<TheaterTypeClass>::container_t Enumerable<TheaterTypeClass>::Array;
 
-const char* Enumerable<TheaterTypeClass>::GetMainSection()
-{
-	return "TheaterTypes";
-}
-
 void TheaterTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name.data();
@@ -80,7 +75,7 @@ void TheaterTypeClass::LoadAllTheatersToArray()
 	GameConfig _conf { "Theaters.ini" };
 
 	_conf.OpenINIAction([](CCINIClass* pINI) {
-		const char* pSection = TheaterTypeClass::GetMainSection();
+		const char* pSection = TheaterTypeClass::MainSection;
 
 		if (pINI->GetSection(pSection)) {
 			for (int i = 0; i < pINI->GetKeyCount(pSection); ++i) {

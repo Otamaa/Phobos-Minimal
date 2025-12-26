@@ -6,6 +6,10 @@
 class TunnelTypeClass final : public Enumerable<TunnelTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "TunnelTypes";
+	static COMPILETIMEEVAL const char* ClassName = "TunnelTypeClass";
+
+public:
 
 	Valueable<int> Passengers;
 	Valueable<double> MaxSize;

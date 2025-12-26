@@ -18,7 +18,10 @@ class IsometricTileTypeExtData final : public ObjectTypeExtData
 public:
 
 	using base_type = IsometricTileTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "IsometricTileTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "IsometricTileTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public :
 
@@ -72,8 +75,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	IsometricTileTypeClass* This() const override { return reinterpret_cast<IsometricTileTypeClass*>(this->AttachedToObject); }
-	const IsometricTileTypeClass* This_Const() const override { return reinterpret_cast<const IsometricTileTypeClass*>(this->AttachedToObject); }
+	IsometricTileTypeClass* This() const { return reinterpret_cast<IsometricTileTypeClass*>(this->AttachedToObject); }
+	const IsometricTileTypeClass* This_Const() const { return reinterpret_cast<const IsometricTileTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
@@ -88,46 +91,32 @@ private:
 };
 
 class IsometricTileTypeExtContainer final : public Container<IsometricTileTypeExtData>
+	, public ReadWriteContainerInterfaces<IsometricTileTypeExtData>
 {
 public:
+
+	static COMPILETIMEEVAL const char* ClassName = "IsometricTileTypeExtContainer";
+	using base_t = Container<IsometricTileTypeExtData>;
+
+public:
 	static IsometricTileTypeExtContainer Instance;
-	static std::map<std::string, std::map<TintStruct, LightConvertClass*>> LightConvertEntities;
-	static int CurrentTileset;
+	std::map<std::string, std::map<TintStruct, LightConvertClass*>> LightConvertEntities;
+	int CurrentTileset;
 
-	void Clear() {
-		Array.clear();
-		LightConvertEntities.clear();
+	virtual bool LoadAll(const json& root) { return true; }
+	virtual bool SaveAll(json& root) { return true; }
+	virtual void Clear() { 
+		this->base_t::Clear();
+		this->LightConvertEntities.clear();
+		this->CurrentTileset = -1;
 	}
 
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return Stm
-			.Process(CurrentTileset)
-			.Success()
-			;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return Stm
-			.Process(CurrentTileset)
-			.Success()
-			;
-	}
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(IsometricTileTypeClass* key, CCINIClass* pINI, bool parseFailAddr) { }
+	virtual void WriteToINI(IsometricTileTypeClass* key, CCINIClass* pINI) { }
 };
 
 class FakeIsometricTileTypeClass : public IsometricTileTypeClass
 {
 public:
 
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 };

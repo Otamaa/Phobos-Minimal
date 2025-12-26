@@ -2158,8 +2158,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	TechnoTypeClass* This() const override { return reinterpret_cast<TechnoTypeClass*>(this->AttachedToObject); }
-	const TechnoTypeClass* This_Const() const override { return reinterpret_cast<const TechnoTypeClass*>(this->AttachedToObject); }
+	TechnoTypeClass* This() const { return reinterpret_cast<TechnoTypeClass*>(this->AttachedToObject); }
+	const TechnoTypeClass* This_Const() const { return reinterpret_cast<const TechnoTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -3206,13 +3206,14 @@ public:
 
 };
 
-class NOVTABLE FakeTechnoTypeClass : public TechnoTypeClass
+class NOVTABLE FakeTechnoTypeClass
+//: public TechnoTypeClass
 {
 public:
 	//TODO : replace bigger hook with LJMP patch
-	WeaponStruct* GetWeapon(int which);
-	WeaponStruct* GetEliteWeapon(int which);
-	int GetWeaponTurretIndex(int which);
+	static WeaponStruct* __fastcall __GetWeapon(TechnoTypeClass* pThis , discard_t , int which);
+	static WeaponStruct* __fastcall __GetEliteWeapon(TechnoTypeClass* pThis , discard_t ,int which);
+	static int  __fastcall __GetWeaponTurretIndex(TechnoTypeClass* pThis , discard_t ,int which);
 };
 
 class TechnoTypeExtContainer final //: public Container<TechnoTypeExtData>

@@ -32,8 +32,8 @@ public:
 
 	virtual int GetSize() const { return sizeof(*this); };
 
-	RadioClass* This() const override { return reinterpret_cast<RadioClass*>(AttachedToObject); }
-	const RadioClass* This_Const() const override { return reinterpret_cast<const RadioClass*>(AttachedToObject); }
+	RadioClass* This() const { return reinterpret_cast<RadioClass*>(AttachedToObject); }
+	const RadioClass* This_Const() const { return reinterpret_cast<const RadioClass*>(AttachedToObject); }
 
 	virtual void CalculateCRC(CRCEngine& crc) const override
 	{

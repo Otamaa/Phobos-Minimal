@@ -6,6 +6,10 @@
 class ImmunityTypeClass final : public Enumerable<ImmunityTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "ImmunityTypes";
+	static COMPILETIMEEVAL const char* ClassName = "ImmunityTypeClass";
+
+public:
 
 	ImmunityTypeClass(const char* const pTitle) : Enumerable<ImmunityTypeClass>(pTitle)
 	{ }

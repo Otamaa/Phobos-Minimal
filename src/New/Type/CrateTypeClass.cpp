@@ -2,8 +2,6 @@
 
 Enumerable<CrateTypeClass>::container_t Enumerable<CrateTypeClass>::Array;
 
-const char * Enumerable<CrateTypeClass>::GetMainSection() { return "CrateTypes"; }
-
 void CrateTypeClass::ReadListFromINI(CCINIClass* pINI) {
 
 	for (size_t i = 0; i < Array.size(); ++i) {

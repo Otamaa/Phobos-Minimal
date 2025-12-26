@@ -9,7 +9,10 @@ class TerrainTypeExtData final : public ObjectTypeExtData
 public:
 
 	using base_type = TerrainTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "TerrainTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "TerrainTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region ClassMember
@@ -109,8 +112,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	TerrainTypeClass* This() const override { return reinterpret_cast<TerrainTypeClass*>(this->AttachedToObject); }
-	const TerrainTypeClass* This_Const() const override { return reinterpret_cast<const TerrainTypeClass*>(this->AttachedToObject); }
+	TerrainTypeClass* This() const { return reinterpret_cast<TerrainTypeClass*>(this->AttachedToObject); }
+	const TerrainTypeClass* This_Const() const { return reinterpret_cast<const TerrainTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -151,28 +154,26 @@ public:
 };
 
 class TerrainTypeExtContainer final : public Container<TerrainTypeExtData>
+	, public ReadWriteContainerInterfaces<TerrainTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "TerrainTypeExtContainer";
+	using base_t = Container<TerrainTypeExtData>;
+	using ext_t = TerrainTypeExtData;
+
 public:
 	static TerrainTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeTerrainTypeClass : public TerrainTypeClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

@@ -10,13 +10,17 @@ class TemporalExtData final : public AbstractExtended
 {
 public:
 	 using base_type = TemporalClass;
-	 static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	 static COMPILETIMEEVAL const char* ClassName = "TemporalExtData";
+	 static COMPILETIMEEVAL const char* BaseClassName = "TemporalClass";
+	 static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	 static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
+
 	TemporalExtData(TemporalClass* pObj) : AbstractExtended(pObj) {
-		this->Name = "TemporalClass";
 		this->AbsType = TemporalClass::AbsID;
 	}
+
 	TemporalExtData(TemporalClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~TemporalExtData() = default;
@@ -40,8 +44,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	TemporalClass* This() const override { return reinterpret_cast<TemporalClass*>(this->AttachedToObject); }
-	const TemporalClass* This_Const() const override { return reinterpret_cast<const TemporalClass*>(this->AttachedToObject); }
+	TemporalClass* This() const { return reinterpret_cast<TemporalClass*>(this->AttachedToObject); }
+	const TemporalClass* This_Const() const { return reinterpret_cast<const TemporalClass*>(this->AttachedToObject); }
 
 private:
 	template <typename T>
@@ -51,26 +55,18 @@ private:
 class TemporalExtContainer final : public Container<TemporalExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "TemporalExtContainer";
+
+public:
 	static TemporalExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class NOVTABLE FakeTemporalClass : public TemporalClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void CreateWarpAwayAnimation(WeaponTypeClass* pWeapon);
 

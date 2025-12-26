@@ -23,75 +23,115 @@
 
 #include <ScenarioClass.h>
 
-#pragma region defines
-PhobosMap<TechnoClass*, KillMethod> HouseExtData::AutoDeathObjects;
-HelperedVector<TechnoClass*> HouseExtData::LimboTechno;
+#include <Phobos.SaveGame.h>
 
-int HouseExtData::LastGrindingBlanceUnit;
-int HouseExtData::LastGrindingBlanceInf;
-int HouseExtData::LastHarvesterBalance;
-int HouseExtData::LastSlaveBalance;
-
-CDTimerClass HouseExtData::CloakEVASpeak;
-CDTimerClass HouseExtData::SubTerraneanEVASpeak;
-
-bool HouseExtData::IsAnyFirestormActive;
-
-HouseClass* HouseExtContainer::Civilian = nullptr;
-SideClass* HouseExtContainer::CivilianSide = nullptr;
-HouseClass* HouseExtContainer::Special = nullptr;
-HouseClass* HouseExtContainer::Neutral = nullptr;
-
-#pragma endregion
-
-bool HouseExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool HouseExtContainer::LoadAll(const json& root)
 {
-	auto ret = LoadGlobalArrayData(Stm);
+	this->Clear();
 
-		ret &= Stm
-		.Process(HouseExtData::LimboTechno)
-		.Process(HouseExtData::AutoDeathObjects)
-		.Process(HouseExtData::LastGrindingBlanceUnit)
-		.Process(HouseExtData::LastGrindingBlanceInf)
-		.Process(HouseExtData::LastHarvesterBalance)
-		.Process(HouseExtData::LastSlaveBalance)
-		.Process(HouseExtData::IsAnyFirestormActive)
-		.Process(HouseExtData::CloakEVASpeak)
-		.Process(HouseExtData::SubTerraneanEVASpeak)
+	if (root.contains(HouseExtContainer::ClassName))
+	{
+		auto& container = root[HouseExtContainer::ClassName];
 
-		.Process(HouseExtContainer::Civilian)
-		.Process(HouseExtContainer::Special)
-		.Process(HouseExtContainer::Neutral)
-		.Process(HouseExtContainer::CivilianSide)
+		for (auto& entry : container[HouseExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
 
-		.Success();
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
 
-	return ret;
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, HouseExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		size_t dataSize = container["ContainerCombined_datasize"].get<size_t>();
+		std::string encoded = container["ContainerCombined_data"].get<std::string>();
+
+		PhobosByteStream loader(dataSize);
+		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+		PhobosStreamReader reader(loader);
+
+		reader
+			.Process(HouseExtContainer::LimboTechno)
+			.Process(HouseExtContainer::AutoDeathObjects)
+			.Process(HouseExtContainer::LastGrindingBlanceUnit)
+			.Process(HouseExtContainer::LastGrindingBlanceInf)
+			.Process(HouseExtContainer::LastHarvesterBalance)
+			.Process(HouseExtContainer::LastSlaveBalance)
+			.Process(HouseExtContainer::IsAnyFirestormActive)
+			.Process(HouseExtContainer::CloakEVASpeak)
+			.Process(HouseExtContainer::SubTerraneanEVASpeak)
+
+			.Process(HouseExtContainer::Civilian)
+			.Process(HouseExtContainer::Special)
+			.Process(HouseExtContainer::Neutral)
+			.Process(HouseExtContainer::CivilianSide);
+
+		if (!reader.ExpectEndOfBlock())
+			return false;
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool HouseExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+bool HouseExtContainer::SaveAll(json& root)
 {
-	auto ret = SaveGlobalArrayData(Stm);
+	auto& first_layer = root[HouseExtContainer::ClassName];
 
-		ret &= Stm
-		.Process(HouseExtData::LimboTechno)
-		.Process(HouseExtData::AutoDeathObjects)
-		.Process(HouseExtData::LastGrindingBlanceUnit)
-		.Process(HouseExtData::LastGrindingBlanceInf)
-		.Process(HouseExtData::LastHarvesterBalance)
-		.Process(HouseExtData::LastSlaveBalance)
-		.Process(HouseExtData::IsAnyFirestormActive)
-		.Process(HouseExtData::CloakEVASpeak)
-		.Process(HouseExtData::SubTerraneanEVASpeak)
+	json _extRoot = json::array();
+	for (auto& _extData : HouseExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[HouseExtData::ClassName] = std::move(_extRoot);
+
+	PhobosByteStream saver(0);
+	PhobosStreamWriter writer(saver);
+
+	writer
+		.Process(HouseExtContainer::LimboTechno)
+		.Process(HouseExtContainer::AutoDeathObjects)
+		.Process(HouseExtContainer::LastGrindingBlanceUnit)
+		.Process(HouseExtContainer::LastGrindingBlanceInf)
+		.Process(HouseExtContainer::LastHarvesterBalance)
+		.Process(HouseExtContainer::LastSlaveBalance)
+		.Process(HouseExtContainer::IsAnyFirestormActive)
+		.Process(HouseExtContainer::CloakEVASpeak)
+		.Process(HouseExtContainer::SubTerraneanEVASpeak)
 
 		.Process(HouseExtContainer::Civilian)
 		.Process(HouseExtContainer::Special)
 		.Process(HouseExtContainer::Neutral)
-		.Process(HouseExtContainer::CivilianSide)
+		.Process(HouseExtContainer::CivilianSide);
 
-		.Success();
+	first_layer["ContainerCombined_datasize"] = saver.data.size();
+	first_layer["ContainerCombined_data"] = Base64Handler::encodeBase64(saver.data);
 
-	return ret;
+	return true;
 }
 
 void HouseExtData::InitializeTrackers(HouseClass* pHouse)
@@ -1583,87 +1623,87 @@ CellClass* HouseExtData::GetEnemyBaseGatherCell(HouseClass* pTargetHouse, HouseC
 
 HouseClass* HouseExtData::FindFirstCivilianHouse()
 {
-	if (!HouseExtContainer::Civilian) {
+	if (!HouseExtContainer::Instance.Civilian) {
 
 		auto idx = SideClass::FindIndexById(GameStrings::Civilian);
 
 		if (RulesExtData::Instance()->CivilianSideIndex == -1 || RulesExtData::Instance()->CivilianSideIndex != idx)
 			RulesExtData::Instance()->CivilianSideIndex = idx;
 
-		if (!HouseExtContainer::Civilian) {
-			HouseExtContainer::CivilianSide = SideClass::Array->Items[idx];
+		if (!HouseExtContainer::Instance.Civilian) {
+			HouseExtContainer::Instance.CivilianSide = SideClass::Array->Items[idx];
 
 			for (auto pHouse : *HouseClass::Array) {
 				if (pHouse->Type->SideIndex == idx) {
-					HouseExtContainer::Civilian = pHouse;
+					HouseExtContainer::Instance.Civilian = pHouse;
 					break;
 				}
 			}
 		}
 
-		if (!HouseExtContainer::Civilian) {
+		if (!HouseExtContainer::Instance.Civilian) {
 			Debug::FatalErrorAndExit("Failed to find Civilian House !!");
 		}
 	}
 
-	return HouseExtContainer::Civilian;
+	return HouseExtContainer::Instance.Civilian;
 }
 
 HouseClass* HouseExtData::FindSpecial()
 {
-	if (!HouseExtContainer::Special) {
+	if (!HouseExtContainer::Instance.Special) {
 
 		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Special);
 
 		if (RulesExtData::Instance()->SpecialCountryIndex == -1 || RulesExtData::Instance()->SpecialCountryIndex != idx)
 			RulesExtData::Instance()->SpecialCountryIndex = idx;
 
-		if (!HouseExtContainer::Special) {
+		if (!HouseExtContainer::Instance.Special) {
 			for (auto pHouse : *HouseClass::Array) {
 				if (pHouse->Type->ArrayIndex == idx|| pHouse->Type->ParentIdx == idx) {
-					HouseExtContainer::Special = pHouse;
+					HouseExtContainer::Instance.Special = pHouse;
 					break;
 				}
 			}
 		}
 
-		if (!HouseExtContainer::Special) {
+		if (!HouseExtContainer::Instance.Special) {
 			//HouseExtContainer::Special = GameCreate<HouseClass>(HouseTypeClass::Array->Items[idx]);
 			Debug::FatalErrorAndExit("Cannot Find House with Special Country !");
 		}
 	}
 
-	return HouseExtContainer::Special;
+	return HouseExtContainer::Instance.Special;
 }
 
 HouseClass* HouseExtData::FindNeutral()
 {
-	if(!HouseExtContainer::Neutral){
+	if(!HouseExtContainer::Instance.Neutral){
 		auto idx = HouseTypeClass::FindIndexByIdAndName(GameStrings::Neutral);
 
 		if (RulesExtData::Instance()->NeutralCountryIndex == -1 || RulesExtData::Instance()->NeutralCountryIndex != idx)
 			RulesExtData::Instance()->NeutralCountryIndex = idx;
 
-		if (!HouseExtContainer::Neutral) {
+		if (!HouseExtContainer::Instance.Neutral) {
 			for (auto pHouse : *HouseClass::Array) {
 				//Debug::LogInfo("House [{} - {}/{}] , side {} country {} parent {}/{}", (void*)pHouse , pHouse->Type->ID , pHouse->Type->Name
 				 ///,	pHouse->Type->SideIndex , pHouse->Type->ArrayIndex, pHouse->Type->ParentIdx , pHouse->Type->ParentCountry.data()
 				//);
 
 				if (pHouse->Type->ArrayIndex == idx || pHouse->Type->ParentIdx == idx) {
-					HouseExtContainer::Neutral = pHouse;
+					HouseExtContainer::Instance.Neutral = pHouse;
 					break;
 				}
 			}
 		}
 
-		if (!HouseExtContainer::Neutral) {
+		if (!HouseExtContainer::Instance.Neutral) {
 			//HouseExtContainer::Neutral = GameCreate<HouseClass>(HouseTypeClass::Array->Items[idx]);
 			Debug::FatalErrorAndExit("Cannot Find House with Neutral Country !");
 		}
 	}
 
-	return HouseExtContainer::Neutral;
+	return HouseExtContainer::Instance.Neutral;
 }
 
 void HouseExtData::ForceOnlyTargetHouseEnemy(HouseClass* pThis, int mode = -1)
@@ -1968,7 +2008,7 @@ bool HouseExtData::IsDisabledFromShell(
 
 void HouseExtData::UpdateAutoDeathObjects()
 {
-	 HouseExtData::AutoDeathObjects.erase_all_if([](auto& item) {
+	HouseExtContainer::Instance.AutoDeathObjects.erase_all_if([](auto& item) {
 		if (!item.first || item.second == KillMethod::None || !item.first->IsAlive) {
 			return true;
 		}
@@ -2538,7 +2578,7 @@ int HouseExtData::CountOwnedNowTotal(
 
 void HouseExtData::UpdateTransportReloaders()
 {
-	HouseExtData::LimboTechno.remove_all_if([](TechnoClass* pTech) {
+	HouseExtContainer::Instance.LimboTechno.remove_all_if([](TechnoClass* pTech) {
 		if (!pTech || !pTech->IsAlive)
 			return true;
 
@@ -2823,6 +2863,7 @@ template <typename T>
 void HouseExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Name)
 		.Process(this->Degrades)
 		.Process(this->PowerPlantEnhancerBuildings)
 		.Process(this->Building_BuildSpeedBonusCounter)
@@ -2891,27 +2932,26 @@ void HouseExtData::Serialize(T& Stm)
 // container
 
 HouseExtContainer HouseExtContainer::Instance;
-std::vector<HouseExtData*> Container<HouseExtData>::Array;
 
-void Container<HouseExtData>::Clear()
+void HouseExtContainer::Clear()
 {
-	Array.clear();
+	this->base_t::Clear();
 
-	HouseExtData::LastGrindingBlanceUnit = 0;
-	HouseExtData::LastGrindingBlanceInf = 0;
-	HouseExtData::LastHarvesterBalance = 0;
-	HouseExtData::LastSlaveBalance = 0;
+	this->LastGrindingBlanceUnit = 0;
+	this->LastGrindingBlanceInf = 0;
+	this->LastHarvesterBalance = 0;
+	this->LastSlaveBalance = 0;
 
-	HouseExtData::CloakEVASpeak.Stop();
-	HouseExtData::SubTerraneanEVASpeak.Stop();
+	this->CloakEVASpeak.Stop();
+	this->SubTerraneanEVASpeak.Stop();
 
-	HouseExtContainer::Civilian = 0;
-	HouseExtContainer::Special = 0;
-	HouseExtContainer::Neutral = 0;
-	HouseExtContainer::CivilianSide = 0;
+	this->Civilian = 0;
+	this->Special = 0;
+	this->Neutral = 0;
+	this->CivilianSide = 0;
 
-	HouseExtData::LimboTechno.clear();
-	HouseExtData::AutoDeathObjects.clear();
+	this->LimboTechno.clear();
+	this->AutoDeathObjects.clear();
 }
 
 /**
@@ -3728,34 +3768,9 @@ ASMJIT_PATCH(0x4F7186, HouseClass_DTOR, 0x8)
 }
 
 void FakeHouseClass::_Detach(AbstractClass* target, bool all) {
-	HouseExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 	this->HouseClass::PointerExpired(target, all);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8C8,  FakeHouseClass::_Detach)
-
-
-HRESULT __stdcall FakeHouseClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->HouseClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = HouseExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeHouseClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	//temporarely remove it
-	auto ext = this->_GetExtData();
-	HouseExtContainer::Instance.ClearExtAttribute(this);
-	HRESULT hr = this->HouseClass::Save(pStm, clearDirty);
-	HouseExtContainer::Instance.SetExtAttribute(this, ext);
-	if (SUCCEEDED(hr))
-		hr = HouseExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
- //DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B4, FakeHouseClass::_Load)
- //DEFINE_FUNCTION_JUMP(VTABLE, 0x7EA8B8, FakeHouseClass::_Save)

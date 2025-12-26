@@ -7,6 +7,8 @@
 
 #include <Misc/DynamicPatcher/Trails/TrailsManager.h>
 
+#include <Phobos.SaveGame.h>
+
 #define DIRECT_CALL_THIS(address) \
     _asm { mov ecx, this } \
     _asm { mov eax, address } \
@@ -1085,21 +1087,66 @@ void ParticleExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleExtContainer ParticleExtContainer::Instance;
-std::vector<ParticleExtData*> Container<ParticleExtData>::Array;
 
-void Container<ParticleExtData>::Clear()
+bool ParticleExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(ParticleExtContainer::ClassName))
+	{
+		auto& container = root[ParticleExtContainer::ClassName];
+
+		for (auto& entry : container[ParticleExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, ParticleExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool ParticleExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool ParticleExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[ParticleExtContainer::ClassName];
 
-bool ParticleExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : ParticleExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[ParticleExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -1148,24 +1195,3 @@ void FakeParticleClass::_Detach(AbstractClass* pTarget, bool bRemove)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF97C, FakeParticleClass::_Detach)
-
-HRESULT __stdcall FakeParticleClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->ParticleClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = ParticleExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeParticleClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->ParticleClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = ParticleExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF968, FakeParticleClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EF96C, FakeParticleClass::_Save)

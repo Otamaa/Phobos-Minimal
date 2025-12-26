@@ -2,12 +2,6 @@
 
 Enumerable<RocketTypeClass>::container_t Enumerable<RocketTypeClass>::Array;
 
-// pretty nice, eh
-const char* Enumerable<RocketTypeClass>::GetMainSection()
-{
-	return "RocketTypes";
-}
-
 void RocketTypeClass::ReadListFromINI(CCINIClass* pINI, bool bDebug) {
 	size_t i = 0;
 	for (auto& pItem : Array) {

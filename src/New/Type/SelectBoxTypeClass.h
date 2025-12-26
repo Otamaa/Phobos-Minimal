@@ -6,8 +6,11 @@
 #include <New/Type/PaletteManager.h>
 
 class SelectBoxTypeClass final : public Enumerable<SelectBoxTypeClass>
-
 {
+public:
+	static COMPILETIMEEVAL const char* MainSection = "SelectBoxTypes";
+	static COMPILETIMEEVAL const char* ClassName = "SelectBoxTypeClass";
+
 public:
 	Valueable<SHPStruct*> Shape;
 	CustomPalette Palette;

@@ -39,6 +39,10 @@ struct GroupData
 class PhobosAttachEffectTypeClass final : public Enumerable<PhobosAttachEffectTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "AttachEffectTypes";
+	static COMPILETIMEEVAL const char* ClassName = "PhobosAttachEffectTypeClass";
+
+public:
 	Valueable<int> Duration;
 	Valueable<bool> Duration_ApplyFirepowerMult;
 	Valueable<bool> Duration_ApplyArmorMultOnTarget;
@@ -285,6 +289,10 @@ public:
 
 	static bool LoadGlobals(PhobosStreamReader& Stm);
 	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	static OPTIONALINLINE COMPILETIMEEVAL void Clear() {
+		Array.clear();
+		GroupsMap.clear();
+	}
 
 private:
 	template <typename T>

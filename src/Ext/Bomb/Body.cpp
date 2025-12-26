@@ -8,8 +8,7 @@
 
 #include <Utilities/Macro.h>
 
-// =============================
-// load / save
+#include <Phobos.SaveGame.h>
 
 template <typename T>
 void BombExtData::Serialize(T& Stm) {
@@ -22,23 +21,66 @@ void BombExtData::Serialize(T& Stm) {
 // =============================
 // container
 BombExtContainer BombExtContainer::Instance;
-std::vector<BombExtData*>  Container<BombExtData>::Array;
 
-void Container<BombExtData>::Clear()
+bool BombExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(BombExtContainer::ClassName))
+	{
+		auto& container = root[BombExtContainer::ClassName];
+
+		for (auto& entry : container[BombExtData::ClassName])
+		{
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, BombExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
-bool BombExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool BombExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[BombExtContainer::ClassName];
 
-bool BombExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
-}
+	json _extRoot = json::array();
+	for (auto& _extData : BombExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
 
+		_extData->SaveToStream(writer); // write all data to stream
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[BombExtData::ClassName] = std::move(_extRoot);
+	return true;
+}
 // =============================
 // container hooks
 
@@ -200,24 +242,3 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4C7849, FakeBombClass::__Detonate)
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x438A00, FakeBombClass::__GetBombFrame)
 DEFINE_FUNCTION_JUMP(CALL, 0x6F5230, FakeBombClass::__GetBombFrame)
-
-HRESULT __stdcall FakeBombClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->BombClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = BombExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeBombClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->BombClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = BombExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D24, FakeBombClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D28, FakeBombClass::_Save)

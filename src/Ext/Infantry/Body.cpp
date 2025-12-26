@@ -5,6 +5,8 @@
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 
+#include <Phobos.SaveGame.h>
+
 WeaponStruct* FakeInfantryClass::_GetDeployWeapon()
 {
 	int deployFireWeapon = this->Type->DeployFireWeapon;
@@ -554,21 +556,66 @@ void InfantryExtData::Serialize(T& Stm)
 // container
 
 InfantryExtContainer InfantryExtContainer::Instance;
-std::vector<InfantryExtData*> Container<InfantryExtData>::Array;
 
-void Container<InfantryExtData>::Clear()
+bool InfantryExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(InfantryExtContainer::ClassName))
+	{
+		auto& container = root[InfantryExtContainer::ClassName];
+
+		for (auto& entry : container[InfantryExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, InfantryExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool InfantryExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool InfantryExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[InfantryExtContainer::ClassName];
 
-bool InfantryExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : InfantryExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[InfantryExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -594,32 +641,12 @@ ASMJIT_PATCH(0x517F83, InfantryClass_DTOR, 0x6)
 
 void FakeInfantryClass::_Detach(AbstractClass* target, bool all)
 {
-	InfantryExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 	this->InfantryClass::PointerExpired(target, all);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB080, FakeInfantryClass::_Detach)
-
-HRESULT __stdcall FakeInfantryClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->InfantryClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = InfantryExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeInfantryClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->InfantryClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = InfantryExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB06C, FakeInfantryClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB070, FakeInfantryClass::_Save)
 
 ASMJIT_PATCH(0x51A002, InfantryClass_UpdatePosition_InfiltrateBuilding, 0x6)
 {

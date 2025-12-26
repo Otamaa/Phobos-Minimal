@@ -16,7 +16,10 @@ class ParticleTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = ParticleTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "ParticleTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "ParticleTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -85,8 +88,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	ParticleTypeClass* This() const override { return reinterpret_cast<ParticleTypeClass*>(this->AttachedToObject); }
-	const ParticleTypeClass* This_Const() const override { return reinterpret_cast<const ParticleTypeClass*>(this->AttachedToObject); }
+	ParticleTypeClass* This() const { return reinterpret_cast<ParticleTypeClass*>(this->AttachedToObject); }
+	const ParticleTypeClass* This_Const() const { return reinterpret_cast<const ParticleTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -97,28 +100,25 @@ private:
 };
 
 class ParticleTypeExtContainer final : public Container<ParticleTypeExtData>
+	, public ReadWriteContainerInterfaces<ParticleTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "ParticleTypeExtContainer";
+	using ext_t = ParticleTypeExtData;
+
 public:
 	static ParticleTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeParticleTypeClass : public ParticleTypeClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

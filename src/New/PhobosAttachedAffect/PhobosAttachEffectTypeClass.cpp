@@ -10,12 +10,6 @@ void PhobosAttachEffectTypeClass::AddToGroupsMap()
     }
 }
 
-template<>
-const char* Enumerable<PhobosAttachEffectTypeClass>::GetMainSection()
-{
-	return "AttachEffectTypes";
-}
-
 std::vector<PhobosAttachEffectTypeClass*> PhobosAttachEffectTypeClass::GetTypesFromGroups(std::vector<std::string>& groupIDs)
 {
 	std::vector<PhobosAttachEffectTypeClass*> types;

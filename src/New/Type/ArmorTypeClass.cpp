@@ -37,11 +37,6 @@ ArmorTypeClass::ArmorTypeClass(const char* const pTitle) : Enumerable<ArmorTypeC
 	PA_Tag = BaseTag + ".PassiveAcquire";
 }
 
-const char* Enumerable<ArmorTypeClass>::GetMainSection()
-{
-	return "ArmorTypes";
-}
-
 bool ArmorTypeClass::IsDefault(const char* pName)
 {
 	for (auto const& nDefault : Unsorted::ArmorNameArray)
@@ -63,7 +58,7 @@ void ArmorTypeClass::LoadFromINI(CCINIClass* pINI)
 		INI_EX exINI(pINI);
 
 		char buffer[0x64];
-		pINI->ReadString(Enumerable<ArmorTypeClass>::GetMainSection(), pName, Phobos::readDefval, buffer);
+		pINI->ReadString(ArmorTypeClass::MainSection, pName, Phobos::readDefval, buffer);
 
 		if (!this->DefaultVersesValue.Parse(buffer))
 		{
@@ -105,7 +100,7 @@ void ArmorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	if (!pINI)
 		return;
 
-	const char* pSection = GetMainSection();
+	const char* pSection = ArmorTypeClass::MainSection;
 
 	if (!pINI->GetSection(pSection))
 		return;

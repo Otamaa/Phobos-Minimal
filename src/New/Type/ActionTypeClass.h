@@ -4,6 +4,12 @@
 
 class ActionTypeClass final : public Enumerable<ActionTypeClass>
 {
+public:
+	static COMPILETIMEEVAL const char* MainSection = "ActionTypes";
+	static COMPILETIMEEVAL const char* ClassName = "ActionTypeClass";
+
+public:
+
 	ValueableIdx<CursorTypeClass> Cursor;
 	ValueableIdx<CursorTypeClass> ShroudedCursor;
 	Valueable<bool> AllowShrouded;

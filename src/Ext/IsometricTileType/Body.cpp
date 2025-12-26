@@ -6,9 +6,6 @@
 
 #include <Utilities/Macro.h>
 
-int IsometricTileTypeExtContainer::CurrentTileset = -1;
-std::map<std::string, std::map<TintStruct, LightConvertClass*>> IsometricTileTypeExtContainer::LightConvertEntities;
-
 LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeClass* pOvrl, int r, int g, int b)
 {
 	if (!DSurface::Primary())
@@ -25,7 +22,7 @@ LightConvertClass* IsometricTileTypeExtData::GetLightConvert(IsometricTileTypeCl
 		}
 	}
 
-	auto& entities = IsometricTileTypeExtContainer::LightConvertEntities[ConverName];
+	auto& entities = IsometricTileTypeExtContainer::Instance.LightConvertEntities[ConverName];
 
 	ScenarioClass::Instance->ScenarioLighting(&r, &g, &b);
 	TintStruct tint(r, g, b);
@@ -83,12 +80,12 @@ bool IsometricTileTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr))
 		return false;
 
-	this->Tileset = IsometricTileTypeExtContainer::CurrentTileset;
+	this->Tileset = IsometricTileTypeExtContainer::Instance.CurrentTileset;
 
 	INI_EX exINI(pINI);
 
 	this->TileSetName.clear();
-	fmt::format_to(std::back_inserter(this->TileSetName) ,"Tileset{:04}" ,IsometricTileTypeExtContainer::CurrentTileset);
+	fmt::format_to(std::back_inserter(this->TileSetName) ,"Tileset{:04}" , IsometricTileTypeExtContainer::Instance.CurrentTileset);
 	//this->Palette.Read(exINI, buffer.data() , "CustomPalette");
 
 	this->AllowedTiberiums.Read(exINI, this->TileSetName.c_str(), "AllowedTiberiums");
@@ -114,7 +111,6 @@ void IsometricTileTypeExtData::Serialize(T& Stm)
 // container
 
 IsometricTileTypeExtContainer IsometricTileTypeExtContainer::Instance;
-std::vector<IsometricTileTypeExtData*> Container<IsometricTileTypeExtData>::Array;
 
 // =============================
 // container hooks

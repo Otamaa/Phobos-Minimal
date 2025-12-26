@@ -11,9 +11,13 @@ class AircraftExtData : public FootExtData
 {
 public:
 	using base_type = AircraftClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "AircraftExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "AircraftClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
+
 	int Strafe_BombsDroppedThisRound;
 	int CurrentAircraftWeaponIndex;
 	CellClass* Strafe_TargetCell;
@@ -30,8 +34,8 @@ public:
 	AircraftExtData(AircraftClass * pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 	virtual ~AircraftExtData() = default;
 
-	AircraftClass* This() const override { return reinterpret_cast<AircraftClass*>(this->AttachedToObject); }
-	const AircraftClass* This_Const() const override { return reinterpret_cast<const AircraftClass*>(this->AttachedToObject); }
+	AircraftClass* This() const { return reinterpret_cast<AircraftClass*>(this->AttachedToObject); }
+	const AircraftClass* This_Const() const { return reinterpret_cast<const AircraftClass*>(this->AttachedToObject); }
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }
 	virtual int GetSize() const { return sizeof(*this); };
@@ -72,26 +76,20 @@ public :
 class AircraftExtContainer final : public Container<AircraftExtData>
 {
 public:
+
+	static COMPILETIMEEVAL const char* ClassName = "AircraftExtContainer";
+
+public:
 	static AircraftExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array) {
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class AbstractClass;
 class NOVTABLE FakeAircraftClass : public AircraftClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
-
 	WeaponStruct* _GetWeapon(int weaponIndex);
 	void _SetTarget(AbstractClass* pTarget);
 	void _Destroyed(int mult);

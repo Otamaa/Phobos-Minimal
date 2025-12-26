@@ -38,8 +38,7 @@ public:
 		return *this;
 	}
 
-	~AresAE() {
-	}
+	~AresAE() = default;
 
 	void OPTIONALINLINE InvalidateAnimPointer(AnimClass* ptr) {
 		if (this->Anim && ptr == this->Anim.get()) {

@@ -31,7 +31,10 @@ class BuildingTypeExtData final : public TechnoTypeExtData
 {
 public:
 	using base_type = BuildingTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "BuildingTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "BuildingTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -528,8 +531,8 @@ public:
 		this->TechnoTypeExtData::CalculateCRC(crc);
 	}
 
-	BuildingTypeClass* This() const override { return reinterpret_cast<BuildingTypeClass*>(this->AttachedToObject); }
-	const BuildingTypeClass* This_Const() const override { return reinterpret_cast<const BuildingTypeClass*>(this->AttachedToObject); }
+	BuildingTypeClass* This() const { return reinterpret_cast<BuildingTypeClass*>(this->AttachedToObject); }
+	const BuildingTypeClass* This_Const() const { return reinterpret_cast<const BuildingTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const {  return true; }
@@ -613,36 +616,36 @@ private:
 
 public:
 
-	static std::vector<std::string> trenchKinds; //!< Vector of strings associating known trench names with IsTrench IDs. \sa IsTrench
 	static const DirStruct DefaultJuggerFacing;
 	static const Foundation CustomFoundation = static_cast<Foundation>(0x7F);
 	static const CellStruct FoundationEndMarker;
 };
 
 class BuildingTypeExtContainer final : public Container<BuildingTypeExtData>
+	, public ReadWriteContainerInterfaces<BuildingTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "BuildingTypeExtContainer";
+	using base_container_t = Container<BuildingTypeExtData>;
+
+public:
+
+	std::vector<std::string> trenchKinds;
+
 public:
 	static BuildingTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
+	virtual void Clear();
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
-
+	virtual void LoadFromINI(BuildingTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(BuildingTypeClass* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeBuildingTypeClass : public BuildingTypeClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _CanUseWaypoint();
 

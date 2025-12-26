@@ -23,6 +23,8 @@
 #include <InfantryClass.h>
 #include <TerrainClass.h>
 
+#include <Phobos.SaveGame.h>
+
 #pragma region defines
 PhobosMap<IonBlastClass*, WarheadTypeExtData*> WarheadTypeExtData::IonBlastExt;
 
@@ -910,7 +912,7 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	if (this->RecalculateDistanceDamage_Display)
 	{
 		TechnoClass* pOwner = this->RecalculateDistanceDamage_Display_AtFirer ? pArgs->Attacker : pVictimTechno;
-		FlyingStrings::AddNumberString(*pArgs->Damage, pOwner->Owner,
+		FlyingStrings::Instance.AddNumberString(*pArgs->Damage, pOwner->Owner,
 			AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::Yellow], pOwner->Location,
 			this->RecalculateDistanceDamage_Display_Offset, true, L"");
 	}
@@ -2309,37 +2311,124 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 // =============================
 // container
 WarheadTypeExtContainer WarheadTypeExtContainer::Instance;
-std::vector<WarheadTypeExtData*> Container<WarheadTypeExtData>::Array;
 
-bool WarheadTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+void WarheadTypeExtContainer::Clear()
 {
-	auto ret = LoadGlobalArrayData(Stm);
-
-	ret &= Stm
-		.Process(WarheadTypeExtData::IonBlastExt)
-		.Success();
-
-	return ret;
-}
-
-bool WarheadTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	auto ret = SaveGlobalArrayData(Stm);
-
-	ret &=  Stm
-		.Process(WarheadTypeExtData::IonBlastExt)
-		.Success();
-
-	return ret;
-}
-
-void Container<WarheadTypeExtData>::Clear()
-{
-	Array.clear();
+	this->base_t::Clear();
 	WarheadTypeExtData::IonBlastExt.clear();
 }
 
-//void WarheadTypeExtData::ExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
+bool WarheadTypeExtContainer::LoadAll(const json& root)
+{
+	this->Clear();
+
+	if (root.contains(WarheadTypeExtContainer::ClassName))
+	{
+		auto& container = root[WarheadTypeExtContainer::ClassName];
+
+		for (auto& entry : container[WarheadTypeExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, WarheadTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		size_t dataSize = container["IonBlastExt_datasize"].get<size_t>();
+		std::string encoded = container["IonBlastExt_data"].get<std::string>();
+
+		PhobosByteStream loader(dataSize);
+		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+		PhobosStreamReader reader(loader);
+
+		reader.Process(WarheadTypeExtData::IonBlastExt);
+
+		if (!reader.ExpectEndOfBlock())
+			return false;
+
+		return true;
+	}
+
+	return false;
+
+}
+
+bool WarheadTypeExtContainer::SaveAll(json& root)
+{
+	auto& first_layer = root[WarheadTypeExtContainer::ClassName];
+
+	json _extRoot = json::array();
+	for (auto& _extData : WarheadTypeExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[WarheadTypeExtData::ClassName] = std::move(_extRoot);
+
+	PhobosByteStream saver(0);
+	PhobosStreamWriter writer(saver);
+
+	writer.Process(WarheadTypeExtData::IonBlastExt);
+
+	first_layer["IonBlastExt_datasize"] = saver.data.size();
+	first_layer["IonBlastExt_data"] = Base64Handler::encodeBase64(saver.data);
+
+	return true;
+}
+
+void WarheadTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
+{
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void WarheadTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
+}
 
 // =============================
 // container hooks

@@ -120,7 +120,10 @@ class SWTypeExtData final :public AbstractTypeExtData
 public:
 
 	using base_type = SuperWeaponTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "SWTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "SuperWeaponTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region ClassMembers
@@ -859,8 +862,8 @@ public:
 		this->AbstractTypeExtData::CalculateCRC(crc);
 	}
 
-	SuperWeaponTypeClass* This() const override { return reinterpret_cast<SuperWeaponTypeClass*>(this->AttachedToObject); }
-	const SuperWeaponTypeClass* This_Const() const override { return reinterpret_cast<const SuperWeaponTypeClass*>(this->AttachedToObject); }
+	SuperWeaponTypeClass* This() const { return reinterpret_cast<SuperWeaponTypeClass*>(this->AttachedToObject); }
+	const SuperWeaponTypeClass* This_Const() const { return reinterpret_cast<const SuperWeaponTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -974,22 +977,32 @@ public:
 };
 
 class SWTypeExtContainer final : public Container<SWTypeExtData>
+	, public ReadWriteContainerInterfaces<SWTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "SWTypeExtContainer";
+	using base_t = Container<SWTypeExtData>;
+	using ext_t = SWTypeExtData;
+
 public:
 	static SWTypeExtContainer Instance;
 
 public:
 
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
+	virtual void Clear();
+
+	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(ext_t::base_type * key, CCINIClass* pINI);
+
 	static void InvalidatePointer(AbstractClass* ptr, bool bRemoved);
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+
 };
 
 class NOVTABLE FakeSuperWeaponTypeClass : public SuperWeaponTypeClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

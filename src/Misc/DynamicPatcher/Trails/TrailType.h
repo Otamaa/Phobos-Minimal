@@ -19,6 +19,10 @@ enum class TrailMode : int
 class TrailType final : public Enumerable<TrailType>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "TrailTypes";
+	static COMPILETIMEEVAL const char* ClassName = "TrailType";
+
+public:
 
 	TrailMode Mode;
 	Valueable<int> Distance;

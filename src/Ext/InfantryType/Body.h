@@ -3,6 +3,8 @@
 
 #include <Ext/TechnoType/Body.h>
 
+#include <Phobos.SaveGame.h>
+
 static COMPILETIMEEVAL const char* Sequences_ident[] = {
 		"Ready",
 		"Guard",
@@ -152,7 +154,10 @@ class InfantryTypeExtData final : public TechnoTypeExtData
 {
 public:
 	using base_type = InfantryTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "InfantryTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "InfantryTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -247,8 +252,8 @@ public:
 		this->TechnoTypeExtData::CalculateCRC(crc);
 	}
 
-	InfantryTypeClass* This() const override { return reinterpret_cast<InfantryTypeClass*>(this->AttachedToObject); }
-	const InfantryTypeClass* This_Const() const override { return reinterpret_cast<const InfantryTypeClass*>(this->AttachedToObject); }
+	InfantryTypeClass* This() const { return reinterpret_cast<InfantryTypeClass*>(this->AttachedToObject); }
+	const InfantryTypeClass* This_Const() const { return reinterpret_cast<const InfantryTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
@@ -259,26 +264,24 @@ private:
 };
 
 class InfantryTypeExtContainer final : public Container<InfantryTypeExtData>
+	, public ReadWriteContainerInterfaces<InfantryTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "InfantryTypeExtContainer";
+
 public:
 	static InfantryTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved) {
-		for (auto& ext : Array) {
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(InfantryTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(InfantryTypeClass* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeInfantryTypeClass : public InfantryTypeClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

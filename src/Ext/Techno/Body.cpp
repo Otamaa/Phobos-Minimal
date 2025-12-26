@@ -51,6 +51,8 @@ UnitClass* TechnoExtData::Deployer { nullptr };
 
 #include <Misc/PhobosGlobal.h>
 
+#include <Phobos.SaveGame.h>
+
 void TintColors::Calculate(const int color, const int intensity, const AffectedHouse affectedHouse)
 {
 	if ((affectedHouse & AffectedHouse::Owner) != AffectedHouse::None)
@@ -614,7 +616,7 @@ void __fastcall FakeTechnoClass::__Draw_Airstrike_Flare(TechnoClass* techno, dis
 		(BYTE)(baseColor.B * percentage)
 	};
 
-	const WORD crosshairColor = baseColor.ToInit();
+	const WORD crosshairColor = (WORD)baseColor.ToInit();
 
 	// [Hook 3: TechnoClass_DrawAirstrikeFlare_DotColor]
 	// Original: Only draw crosshair if endPixel.Y < startPixel.Y
@@ -4907,7 +4909,7 @@ void TechnoExtData::DisplayDamageNumberString(TechnoClass* pThis, int damage, bo
 		{
 			if (pThis->VisualCharacter(0, HouseClass::CurrentPlayer()) != VisualType::Hidden)
 			{
-				FlyingStrings::Add(damageStr, coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
+				FlyingStrings::Instance.Add(damageStr, coords, color, Point2D { pExt->DamageNumberOffset - (width / 2), 0 });
 			}
 		}
 	}
@@ -5242,7 +5244,7 @@ void TechnoExtData::UpdateTiberiumEater()
 			{
 				auto cellCoords = pCell->GetCoords();
 				cellCoords.Z = std::max(pThis->Location.Z, cellCoords.Z);
-				FlyingStrings::AddMoneyString(true, value, pOwner, pEaterType->DisplayToHouse, cellCoords, pEaterType->DisplayOffset, ColorStruct::Empty);
+				FlyingStrings::Instance.AddMoneyString(true, value, pOwner, pEaterType->DisplayToHouse, cellCoords, pEaterType->DisplayOffset, ColorStruct::Empty);
 			}
 
 			const auto& anims = pEaterType->Anims_Tiberiums[tiberiumIdx].GetElements(pEaterType->Anims);
@@ -5621,7 +5623,7 @@ void TechnoExtData::UpdateEatPassengers()
 
 							if (pDelType->DisplaySoylent)
 							{
-								FlyingStrings::AddMoneyString(true, nMoneyToGive, pThis,
+								FlyingStrings::Instance.AddMoneyString(true, nMoneyToGive, pThis,
 									pDelType->DisplaySoylentToHouses, pThis->Location, pDelType->DisplaySoylentOffset, ColorStruct::Empty);
 							}
 						}
@@ -6047,7 +6049,7 @@ bool TechnoExtData::CheckDeathConditions()
 			if(affectedHouse == AffectedHouse::Owner)
 			{
 				if(allowLimbo) {
-					for (const auto& limbo : HouseExtData::LimboTechno) {
+					for (const auto& limbo : HouseExtContainer::Instance.LimboTechno) {
 						if (!limbo->IsAlive || limbo->Owner != pThis->Owner)
 							continue;
 
@@ -6066,7 +6068,7 @@ bool TechnoExtData::CheckDeathConditions()
 					if (EnumFunctions::CanTargetHouse(affectedHouse, pThis->Owner, pHouse))
 					{
 						if(allowLimbo) {
-							for (const auto& limbo : HouseExtData::LimboTechno) {
+							for (const auto& limbo : HouseExtContainer::Instance.LimboTechno) {
 								if (!limbo->IsAlive || limbo->Owner != pHouse)
 									continue;
 
@@ -6124,7 +6126,7 @@ bool TechnoExtData::CheckDeathConditions()
 		if (!Death_Countdown.HasStarted())
 		{
 			Death_Countdown.Start(pTypeExt->Death_Countdown);
-			HouseExtData::AutoDeathObjects.insert(pThis, nMethod);
+			HouseExtContainer::Instance.AutoDeathObjects.insert(pThis, nMethod);
 		}
 		else if (Death_Countdown.Completed())
 		{
@@ -6331,7 +6333,7 @@ void TechnoExtData::ApplyGainedSelfHeal(TechnoClass* pThis , bool wasDamaged)
 					amount = healthDeficit;
 
 				if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count )
-					FlyingStrings::AddNumberString(amount, pThis->Owner, AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::White], pThis->Location, Point2D::Empty, false, L"");
+					FlyingStrings::Instance.AddNumberString(amount, pThis->Owner, AffectedHouse::All, Drawing::DefaultColors[(int)DefaultColorList::White], pThis->Location, Point2D::Empty, false, L"");
 
 				pThis->Health += amount;
 			}
@@ -6459,7 +6461,7 @@ void TechnoExtData::ApplyDrainMoney(TechnoClass* pThis)
 			if (pTypeExt->DrainMoney_Display)
 			{
 				auto const pDest = pTypeExt->DrainMoney_Display_AtFirer.Get() ? pSource : pThis;
-				FlyingStrings::AddMoneyString(true, nDrainAmount, pDest,
+				FlyingStrings::Instance.AddMoneyString(true, nDrainAmount, pDest,
 					pTypeExt->DrainMoney_Display_Houses, pDest->Location,
 					pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
 			}
@@ -8008,11 +8010,11 @@ TechnoExtData::~TechnoExtData()
 
 	this->ClearElectricBolts();
 
-	HouseExtData::AutoDeathObjects.erase_all_if([pThis](std::pair<TechnoClass*, KillMethod>& item) {
+	HouseExtContainer::Instance.AutoDeathObjects.erase_all_if([pThis](std::pair<TechnoClass*, KillMethod>& item) {
 		return item.first == pThis;
 	});
 
-	HouseExtData::LimboTechno.remove(pThis);
+	HouseExtContainer::Instance.LimboTechno.remove(pThis);
 
 	pOwnerExt->OwnedCountedHarvesters.erase(pThis);
 

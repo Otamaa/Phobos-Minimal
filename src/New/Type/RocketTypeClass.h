@@ -7,6 +7,10 @@
 class RocketTypeClass final : public Enumerable<RocketTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "RocketTypes";
+	static COMPILETIMEEVAL const char* ClassName = "RocketTypeClass";
+
+public:
 
 	RocketStruct RocketData;
 	Valueable<WarheadTypeClass*> Warhead;

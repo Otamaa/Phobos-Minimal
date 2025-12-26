@@ -8,7 +8,10 @@ class BombExtData final : public AbstractExtended
 {
 public:
 	using base_type = BombClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "BombExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "BombClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -17,9 +20,9 @@ public:
 public:
 
 	BombExtData(BombClass* pObj) : AbstractExtended(pObj) , Weapon(nullptr) {
-		this->Name = "BombClass";
 		this->AbsType = BombClass::AbsID;
 	}
+
 	BombExtData(BombClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 
 	virtual ~BombExtData() = default;
@@ -43,8 +46,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	BombClass* This() const override { return reinterpret_cast<BombClass*>(this->AttachedToObject); }
-	const BombClass* This_Const() const override { return reinterpret_cast<const BombClass*>(this->AttachedToObject); }
+	BombClass* This() const { return reinterpret_cast<BombClass*>(this->AttachedToObject); }
+	const BombClass* This_Const() const { return reinterpret_cast<const BombClass*>(this->AttachedToObject); }
 
 private:
 	template <typename T>
@@ -54,18 +57,14 @@ private:
 class BombExtContainer final : public Container<BombExtData>
 {
 public:
+
+	static COMPILETIMEEVAL const char* ClassName = "BombExtContainer";
+
+public:
 	static BombExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class NOVTABLE FakeBombClass : public BombClass
@@ -79,9 +78,6 @@ public:
 	void _Detach(AbstractClass* target, bool all) { };
 	void __Detonate();
 	int __GetBombFrame();
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	BombExtData* _GetExtData() {
 		return *reinterpret_cast<BombExtData**>(((DWORD)this) + AbstractExtOffset);

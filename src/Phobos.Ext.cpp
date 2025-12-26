@@ -111,211 +111,14 @@
 #include <LoadOptionsClass.h>
 #include <BeaconManagerClass.h>
 
-#pragma region Implementation details
-
-#pragma region Concepts
-
-// a hack to check if some type can be used as a specialization of a template
-template <template <class...> class Template, class... Args>
-void DerivedFromSpecialization(const Template<Args...>&);
-
-template <class T, template <class...> class Template>
-concept DerivedFromSpecializationOf =
-	requires(const T & t) { DerivedFromSpecialization<Template>(t); };
-
-template<typename TExt>
-concept HasInstance = requires { { TExt::Instance } -> DerivedFromSpecializationOf<Container>; };
-
-template <typename T>
-concept Clearable = requires { T::Clear(); };
-
-template <typename T>
-concept GlobalSaveLoadable = requires
-{
-	T::LoadGlobals(std::declval<PhobosStreamReader&>());
-	T::SaveGlobals(std::declval<PhobosStreamWriter&>());
-};
-
-template <typename TAction, typename TProcessed, typename... ArgTypes>
-concept DispatchesAction =
-	requires (ArgTypes... args) { TAction::template Process<TProcessed>(args...); };
-
-	template<typename TExt>
-concept HasExtMap = requires { { TExt::Instance } -> DerivedFromSpecializationOf<Container>; };
-
-#pragma endregion
-
-struct ClearAction
-{
-	template <typename T>
-	static void Process()
-	{
-		if COMPILETIMEEVAL (Clearable<T>)
-			T::Clear();
-		else if COMPILETIMEEVAL (HasExtMap<T>)
-			T::ExtMap.Clear();
-	}
-};
-
-// calls:
-// T::PointerGotInvalid(AbstractClass*, bool)
-// T::ExtMap.PointerGotInvalid(AbstractClass*, bool)
-struct InvalidatePointerAction
-{
-	template <typename T>
-	static void Process(AbstractClass* ptr, bool removed)
-	{
-		if COMPILETIMEEVAL (HasExtMap<T> && PointerInvalidationSubscribable<T>) {
-			T::ExtMap::PointerGotInvalid(ptr, removed);
-		}
-		else if COMPILETIMEEVAL(PointerInvalidationSubscribable<T>)
-		{
-			T::PointerGotInvalid(ptr, removed);
-		}
-	}
-};
-
-// calls:
-// T::LoadGlobals(PhobosStreamReader&)
-struct LoadGlobalsAction
-{
-	template <typename T>
-	static bool Process(IStream* pStm)
-	{
-		if COMPILETIMEEVAL (GlobalSaveLoadable<T>)
-		{
-			PhobosByteStream stm(0);
-			stm.ReadFromStream(pStm);
-			PhobosStreamReader reader(stm);
-			Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-			return T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
-		}
-		else
-		{
-			return true;
-		}
-	}
-};
-
-// calls:
-// T::SaveGlobals(PhobosStreamWriter&)
-struct SaveGlobalsAction
-{
-	template <typename T>
-	static bool Process(IStream* pStm)
-	{
-		if COMPILETIMEEVAL (GlobalSaveLoadable<T>)
-		{
-			PhobosByteStream stm;
-			PhobosStreamWriter writer(stm);
-			Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-			return T::SaveGlobals(writer) && stm.WriteToStream(pStm);
-		}
-		else
-		{
-			return true;
-		}
-	}
-};
-
-#ifdef _fixMe
-// this is a complicated thing that calls methods on classes. add types to the
-// instantiation of this type, and the most appropriate method for each type
-// will be called with no overhead of virtual functions.
-template <typename... RegisteredTypes>
-struct TypeRegistry
-{
-	COMPILETIMEEVAL FORCEDINLINE static void Clear()
-	{
-		dispatch_void_mass_action<ClearAction>();
-	}
-
-	FORCEDINLINE static void InvalidatePointer(AbstractClass* ptr, bool removed)
-	{
-		dispatch_void_mass_action<InvalidatePointerAction>(ptr, removed);
-	}
-
-	FORCEDINLINE static bool LoadGlobals(IStream* pStm)
-	{
-		return dispatch_bool_mass_action<LoadGlobalsAction>(pStm);
-	}
-
-	FORCEDINLINE static bool SaveGlobals(IStream* pStm)
-	{
-		return dispatch_bool_mass_action<SaveGlobalsAction>(pStm);
-	}
-
-	// return array of sizeof(T) for each RegisteredType
-	COMPILETIMEEVAL FORCEDINLINE static auto Sizes()
-	{
-		return std::array { sizeof(RegisteredTypes)... };
-	}
-
-	// return sum of sizeof(T) for all RegisteredTypes
-	COMPILETIMEEVAL FORCEDINLINE static std::size_t TotalSize()
-	{
-		return (sizeof(RegisteredTypes) + ...);
-	}
-
-	// return the largest sizeof(T) among RegisteredTypes
-	COMPILETIMEEVAL FORCEDINLINE static std::size_t MaxSize()
-	{
-		return std::max({ sizeof(RegisteredTypes)... });
-	}
-
-private:
-	// TAction: the method dispatcher class to call with each type
-	// ArgTypes: the argument types to call the method dispatcher's Process() method
-	template <typename TAction, typename... ArgTypes>
-		requires (DispatchesAction<TAction, RegisteredTypes, ArgTypes...> && ...)
-	FORCEDINLINE static void dispatch_void_mass_action(ArgTypes... args)
-	{
-		// (pack expression op ...) is a fold expression which
-		// unfolds the parameter pack into a full expression
-		(TAction::template Process<RegisteredTypes>(args...) ...);
-	}
-
-	template <typename TAction, typename... ArgTypes>
-		requires (DispatchesAction<TAction, RegisteredTypes, ArgTypes...> && ...)
-	FORCEDINLINE static bool dispatch_bool_mass_action(ArgTypes... args)
-	{
-		// (pack expression op ...) is a fold expression which
-		// unfolds the parameter pack into a full expression
-		return (TAction::template Process<RegisteredTypes>(args...) && ...);
-	}
-
-};
-
-
-using PhobosTypeRegistry = TypeRegistry <> ;
-PhobosTypeRegistry::InvalidatePointer(pInvalid, removed);
-PhobosTypeRegistry::Clear();
-PhobosTypeRegistry::SaveGlobals(pStm);
-PhobosTypeRegistry::LoadGlobals(pStm);
-#endif
-
-#pragma endregion
-
 HRESULT Phobos::SaveGameDataAfter(IStream* pStm)
 {
-	if (!PhobosExt::SaveGlobal(pStm)) {
-		Debug::LogInfo("[Phobos] Global SaveGame Failed !");
-		return E_FAIL;
-	}
-
-
 	Debug::LogInfo("[Phobos] Finished saving the game");
 	return S_OK;
 }
 
 HRESULT Phobos::LoadGameDataAfter(IStream* pStm)
 {
-	if (!PhobosExt::LoadGlobal(pStm)) {
-		Debug::LogInfo("[Phobos] Global LoadGame Failed !");
-		return E_FAIL;
-
-	}
-
 	//clear the loadgame flag
 	Phobos::Otamaa::DoingLoadGame = false;
 
@@ -330,21 +133,6 @@ HRESULT Phobos::LoadGameDataAfter(IStream* pStm)
 	return S_OK;
 }
 
-#pragma region Hooks
-// Global Pointer Invalidation Hooks
-
-template<typename T>
-FORCEDINLINE void Process_InvalidatePtr(AbstractClass* pInvalid, bool const removed)
-{
-	if COMPILETIMEEVAL (HasExtMap<T>)
-	{
-		T::ExtMap.InvalidatePointer(pInvalid, removed);
-	}
-	else
-	{
-		T::InvalidatePointer(pInvalid, removed);
-	}
-}
 
 ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 {
@@ -374,11 +162,11 @@ ASMJIT_PATCH(0x7258DE, AnnounceInvalidPointer_PhobosGlobal, 0x7)
 		ScenarioExtData::Instance()->UndergroundTracker.erase((TechnoClass*)pInvalid);
 		ScenarioExtData::Instance()->FallingDownTracker.erase((TechnoClass*)pInvalid);
 
-		HouseExtData::AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
+		HouseExtContainer::Instance.AutoDeathObjects.erase_all_if([pInvalid](std::pair<TechnoClass*, KillMethod>& item) {
 			return item.first == pInvalid;
 		});
 
-		HouseExtData::LimboTechno.remove((TechnoClass*)pInvalid);
+		HouseExtContainer::Instance.LimboTechno.remove((TechnoClass*)pInvalid);
 
 		if (type == AnimClass::AbsID) {
 
@@ -472,13 +260,13 @@ unsigned Phobos::GetVersionNumber() {
 	version += sizeof(StaticVars);
 
 	version += sizeof(BannerClass);
+	version += sizeof(BannerManagerClass);
+
 	version += sizeof(FlyingStrings);
 	version += sizeof(FlyingStrings::ItemSize);
-	//version += sizeof(AttachmentClass);
 
 #define AddTypeOf(cccc) version += sizeof(cccc##TypeClass);
 		AddTypeOf(Armor)
-	//	AddTypeOf(Attachment)
 		AddTypeOf(Banner)
 		AddTypeOf(Bar)
 		AddTypeOf(Color)
@@ -499,8 +287,22 @@ unsigned Phobos::GetVersionNumber() {
 		AddTypeOf(Theme)
 		AddTypeOf(Tunnel)
 #undef AddTypeOf
+
 	return version;
 }
+
+#include <Ext/AircraftType/Body.h>
+
+#include <Ext/Unit/Body.h>
+#include <Ext/UnitType/Body.h>
+
+#include <New/Type/ActionTypeClass.h>
+
+#define CLEAR_CONTAIER_CLASS_AND_TYPE(CC) 	CC##ExtContainer::Instance.Clear(); CC##TypeExtContainer::Instance.Clear()
+#define CLEAR_CONTAIER_CLASS(CC) 	CC::Instance.Clear()
+#define CLEAR_CLASS(CC) 	CC::Clear()
+#define CLEAR_TYPE_CLASS(CC) 	CC##TypeClass::Clear()
+#define CLEAR_CLASS_NONSTATIC(CC) 	CC.Clear()
 
 // Clear static data from respective classes
 // this function is executed after all game classes already cleared
@@ -510,258 +312,80 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 		hand->detachptr();
 	}
 
-	TriggerExtContainer::Clear();
-	TActionExtData::Clear();
-	CellExtContainer::Clear();
-	PrismForwarding::Array.clear();
-	MouseClassExt::ClearCameos();
-	AnimExtContainer::Clear();
-	BulletTypeExtContainer::Clear();
-	BuildingTypeExtContainer::Clear();
-	HouseTypeExtContainer::Clear();
-	OverlayTypeExtContainer::Clear();
-	TiberiumExtContainer::Clear();
-	PhobosGlobal::Clear();
-	SWStateMachine::Clear();
-	ArmorTypeClass::Clear();
-	BannerTypeClass::Clear();
-	ColorTypeClass::Clear();
-	DigitalDisplayTypeClass::Clear();
-	ImmunityTypeClass::Clear();
-	CursorTypeClass::Clear();
-	//ElectricBoltManager::Clear();
-	FlyingStrings::Clear();
-	//PaletteManager::Clear();
-	RadTypeClass::Clear();
-	RulesExtData::Clear();
-	ScenarioExtData::Clear();
-	SWTypeExtContainer::Clear();
-	SidebarExtData::Clear();
-	ShieldTypeClass::Clear();
-	TacticalExtData::Clear();
-	TrailType::Clear();
-	HoverTypeClass::Clear();
-	LaserTrailTypeClass::Clear();
-	//TActionExt::ExtMap.Clear();
-	HouseExtContainer::Clear();
-	TunnelTypeClass::Clear();
-	WeaponTypeExtContainer::Clear();
-	EboltExtData::Clear();
-	WarheadTypeExtContainer::Clear();
-	GenericPrerequisite::Clear();
-	CrateTypeClass::Clear();
-	StaticVars::Clear();
-	PhobosAttachEffectTypeClass::Clear();
-	PhobosAttachEffectTypeClass::GroupsMap.clear();
-	TechTreeTypeClass::Clear();
-	HugeBar::Clear();
-	RocketTypeClass::Clear();
-	BarTypeClass::Clear();
-	SWFirerClass::Clear();
-	ShieldClass::Array.clear();
-	InsigniaTypeClass::Clear();
-	SelectBoxTypeClass::Clear();
-	BannerClass::Clear();
-	//AttachmentClass::Array.clear();
-	//AttachmentTypeClass::Clear();
+	CLEAR_CONTAIER_CLASS_AND_TYPE(Aircraft);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(Anim);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(Building);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(Bullet);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(House);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(Infantry);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(Particle);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(ParticleSystem);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(Terrain);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(VoxelAnim);
+	CLEAR_CONTAIER_CLASS_AND_TYPE(Unit);
+	CLEAR_CONTAIER_CLASS(SuperExtContainer);
+	CLEAR_CONTAIER_CLASS(SWTypeExtContainer);
+	CLEAR_CONTAIER_CLASS(TeamExtContainer);
+	CLEAR_CONTAIER_CLASS(BombExtContainer);
+	CLEAR_CONTAIER_CLASS(CellExtContainer);
+	CLEAR_CONTAIER_CLASS(IsometricTileTypeExtContainer);
+	CLEAR_CONTAIER_CLASS(OverlayTypeExtContainer);
+	CLEAR_CONTAIER_CLASS(RadSiteExtContainer);
+	CLEAR_CONTAIER_CLASS(ScriptExtContainer);
+	CLEAR_CONTAIER_CLASS(SideExtContainer);
+	CLEAR_CONTAIER_CLASS(SmudgeTypeExtContainer);
+	CLEAR_CONTAIER_CLASS(TemporalExtContainer);
+	CLEAR_CONTAIER_CLASS(TiberiumExtContainer);
+	CLEAR_CONTAIER_CLASS(TEventExtContainer);
+	CLEAR_CONTAIER_CLASS(TriggerExtContainer);
+	CLEAR_CONTAIER_CLASS(WarheadTypeExtContainer);
+	CLEAR_CONTAIER_CLASS(WeaponTypeExtContainer);
+	CLEAR_CONTAIER_CLASS(WaveExtContainer);
+
+	CLEAR_CLASS(EboltExtData);
+	CLEAR_CLASS(TActionExtData);
+	CLEAR_CLASS(HugeBar);
 
 	PhobosPCXFile::LoadedMap.clear();
 	Handles::Array.clear();
+	PrismForwarding::Array.clear();
+	ShieldClass::Array.clear();
+
+	CLEAR_CLASS_NONSTATIC(FlyingStrings::Instance);
+	CLEAR_CLASS_NONSTATIC(BannerManagerClass::Instance);
+	CLEAR_CLASS_NONSTATIC(SWFirerManagerClass::Instance);
+
+	CLEAR_TYPE_CLASS(PhobosAttachEffect);
+	CLEAR_CLASS(TrailType);
+	CLEAR_TYPE_CLASS(Armor);
+	CLEAR_TYPE_CLASS(Action);
+	CLEAR_TYPE_CLASS(Banner);
+	CLEAR_TYPE_CLASS(Bar);
+	CLEAR_TYPE_CLASS(Color);
+	CLEAR_TYPE_CLASS(Cursor);
+	CLEAR_TYPE_CLASS(DigitalDisplay);
+	CLEAR_CLASS(GenericPrerequisite);
+	CLEAR_TYPE_CLASS(HealthBar);
+	CLEAR_TYPE_CLASS(Hover);
+	CLEAR_TYPE_CLASS(Immunity);
+	CLEAR_TYPE_CLASS(Insignia);
+	CLEAR_TYPE_CLASS(LaserTrail);
+	CLEAR_CLASS(PaletteManager);
+	CLEAR_TYPE_CLASS(Rad);
+	CLEAR_TYPE_CLASS(Rocket);
+	CLEAR_TYPE_CLASS(SelectBox);
+	CLEAR_TYPE_CLASS(Shield);
+	CLEAR_TYPE_CLASS(Theme);
+	CLEAR_TYPE_CLASS(Tunnel);
+
+	CLEAR_CLASS(PhobosGlobal);
+	CLEAR_CLASS(StaticVars);
+
+	MouseClassExt::ClearCameos();
+	MouseClassExt::ClearMappedAction();
+
 
 	return 0;
-}
-
-#undef LogPool
-
-template<typename T>
-FORCEDINLINE bool Process_Load(PhobosStreamReader& reader)
-{
-	Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-
-	if COMPILETIMEEVAL (HasInstance<T>)
-		return T::Instance.LoadGlobals(reader);
-	else
-		return T::LoadGlobals(reader);
-}
-
-bool PhobosExt::LoadGlobal(LPSTREAM pStm)
-{
-	PhobosByteStream stm(0);
-	stm.ReadFromStream(pStm);
-	PhobosStreamReader reader(stm);
-
-	bool succeeded = Process_Load<RadTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<ShieldTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<HoverTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<BannerTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<TrailType>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<SWStateMachine>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<PhobosGlobal>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<GenericPrerequisite>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<CrateTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<PhobosAttachEffectTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<TechTreeTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<StaticVars>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<HugeBar>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<RocketTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<BarTypeClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<SWFirerClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<ShieldClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<BannerClass>(reader);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Load<FlyingStrings>(reader);
-	if (!succeeded)
-		return false;
-
-	return reader.ExpectEndOfBlock();
-}
-
-template<typename T>
-FORCEDINLINE bool Process_Save(PhobosStreamWriter& writer)
-{
-	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-
-	if COMPILETIMEEVAL(HasInstance<T>)
-		return T::Instance.SaveGlobals(writer);
-	else
-		return T::SaveGlobals(writer);
-}
-
-bool PhobosExt::SaveGlobal(LPSTREAM pStm)
-{
-	PhobosByteStream stm;
-	PhobosStreamWriter writer(stm);
-
-	bool succeeded = Process_Save<RadTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<ShieldTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<HoverTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<BannerTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<TrailType>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<SWStateMachine>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<PhobosGlobal>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<GenericPrerequisite>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<CrateTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<PhobosAttachEffectTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<TechTreeTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<StaticVars>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<HugeBar>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<RocketTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<BarTypeClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<SWFirerClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<ShieldClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<BannerClass>(writer);
-	if (!succeeded)
-		return false;
-
-	succeeded = Process_Save<FlyingStrings>(writer);
-	if (!succeeded)
-		return false;
-
-	return stm.WriteToStream(pStm);
 }
 
 #pragma endregion

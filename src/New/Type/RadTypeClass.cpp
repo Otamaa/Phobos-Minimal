@@ -6,12 +6,6 @@
 
 Enumerable<RadTypeClass>::container_t Enumerable<RadTypeClass>::Array;
 
-// pretty nice, eh
-const char* Enumerable<RadTypeClass>::GetMainSection()
-{
-	return "RadiationTypes";
-}
-
 void RadTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* section = this->Name.c_str();

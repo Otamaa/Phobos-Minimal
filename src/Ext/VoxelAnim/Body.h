@@ -16,7 +16,10 @@ class VoxelAnimExtData final : public ObjectExtData
 {
 public:
 	using base_type = VoxelAnimClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "VoxelAnimClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -67,8 +70,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	VoxelAnimClass* This() const override { return reinterpret_cast<VoxelAnimClass*>(this->AttachedToObject); }
-	const VoxelAnimClass* This_Const() const override { return reinterpret_cast<const VoxelAnimClass*>(this->AttachedToObject); }
+	VoxelAnimClass* This() const { return reinterpret_cast<VoxelAnimClass*>(this->AttachedToObject); }
+	const VoxelAnimClass* This_Const() const { return reinterpret_cast<const VoxelAnimClass*>(this->AttachedToObject); }
 
 public:
 
@@ -86,27 +89,19 @@ public:
 class VoxelAnimExtContainer final : public Container<VoxelAnimExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "VoxelAnimExtContainer";
+
+public:
 	static VoxelAnimExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class VoxelAnimTypeExtData;
 class NOVTABLE FakeVoxelAnimClass : public VoxelAnimClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 	void _RemoveThis()

@@ -6,6 +6,10 @@
 class HealthBarTypeClass final : public Enumerable<HealthBarTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "HealthBarTypes";
+	static COMPILETIMEEVAL const char* ClassName = "HealthBarTypeClass";
+
+public:
 
 	Nullable<Point3D> Pips;
 	Nullable<Point3D> Pips_Building;

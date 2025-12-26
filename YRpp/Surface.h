@@ -10,6 +10,60 @@
 #include <Helpers/VTable.h>
 
 #include <ddraw.h>
+#include <d3d9.h>
+
+struct D3DTriangleVertex
+{
+	float x, y, z;
+	DWORD color;
+	float u, v;
+};
+
+struct CD3DTriangle
+{
+	D3DTriangleVertex v[3];
+
+	void Set_Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255)
+	{
+		DWORD c = D3DCOLOR_ARGB(a, r, g, b);
+		v[0].color = c;
+		v[1].color = c;
+		v[2].color = c;
+	}
+
+	void Set_Coords(
+		int index,
+		float x, float y, float z,
+		float u, float vcoord)
+	{
+		auto& vert = v[index];
+		vert.x = x;
+		vert.y = y;
+		vert.z = z;
+		vert.u = u;
+		vert.v = vcoord;
+	}
+};
+
+struct CD3DTriangleBuffer
+{
+	CD3DTriangle Buffer[1024];
+	DWORD Count;
+
+	bool Add(CD3DTriangle* info)
+	{
+		int v3; // ecx
+
+		v3 = this->Count;
+		if (v3 == 1024)
+		{
+			return 1;
+		}
+		memcpy(&this->Buffer[v3], info, sizeof(this->Buffer[v3]));
+		++this->Count;
+		return 0;
+	}
+};
 
 class Blitter;
 class ConvertClass;
@@ -371,6 +425,7 @@ public:
 	static COMPILETIMEEVAL reference<int, 0x8205D0u> const RGBMode{};
 
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886F90u> const SidebarBounds{};
+	//ViewportBounds_TacPixel
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FA0u> const ViewBounds{};
 	static COMPILETIMEEVAL reference<RectangleStruct, 0x886FB0u> const WindowBounds{};
 
@@ -386,6 +441,8 @@ public:
 	static COMPILETIMEEVAL reference<bool, 0x8205D4u> const AllowHardwareBlitFills {};
 
 	static COMPILETIMEEVAL reference<bool*, 0x84310C> const PatternData {};
+
+	static COMPILETIMEEVAL reference<CD3DTriangleBuffer*, 0x8A0E10u> const CD3DTriangleInstance {};
 
 	static int __fastcall ColorMode() { JMP_STD(0x4BBC90); }
 

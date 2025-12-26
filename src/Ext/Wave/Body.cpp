@@ -8,7 +8,7 @@
 
 #include <InfantryClass.h>
 
-WaveExtData::~WaveExtData() { };
+#include <Phobos.SaveGame.h>
 
 void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
 	if(auto pOwner = this->Owner) {
@@ -221,21 +221,65 @@ void WaveExtData::Serialize(T& Stm)
 // =============================
 // container
 WaveExtContainer WaveExtContainer::Instance;
-std::vector<WaveExtData*> Container<WaveExtData>::Array;
-
- void Container<WaveExtData>::Clear()
+bool WaveExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(WaveExtContainer::ClassName))
+	{
+		auto& container = root[WaveExtContainer::ClassName];
+
+		for (auto& entry : container[WaveExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, WaveExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool WaveExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool WaveExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[WaveExtContainer::ClassName];
 
-bool WaveExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : WaveExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[WaveExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -279,31 +323,10 @@ ASMJIT_PATCH(0x763226, WaveClass_DTOR, 0x6)
 
 #include <Misc/Hooks.Otamaa.h>
 
-void FakeWaveClass::_Detach(AbstractClass* target , bool all)\
+void FakeWaveClass::_Detach(AbstractClass* target , bool all)
 {
 	//WaveExtContainer::Instance.InvalidatePointerFor(pThis , target , all);
 	this->WaveClass::PointerExpired(target , all);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C1C, FakeWaveClass::_Detach)
-
-HRESULT __stdcall FakeWaveClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->WaveClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = WaveExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeWaveClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->WaveClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = WaveExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C08, FakeWaveClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F6C0C, FakeWaveClass::_Save)
