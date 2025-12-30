@@ -253,7 +253,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 	{
 		auto nPassableDamageAnountCopy = PassableDamageAnount;
 		if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && (nPassableDamageAnountCopy) != 0)
-			FlyingStrings::DisplayDamageNumberString(nPassableDamageAnountCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset, Phobos::Debug_DisplayDamageNumbers);
+			FlyingStrings::Instance.DisplayDamageNumberString(nPassableDamageAnountCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset, Phobos::Debug_DisplayDamageNumbers);
 
 		nDamageResult = PassableDamageAnount;
 	}
@@ -297,7 +297,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			); //only absord percentage damage
 
 			if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && (nHPCopy) != 0)
-				FlyingStrings::DisplayDamageNumberString(nHPCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset ,Phobos::Debug_DisplayDamageNumbers);
+				FlyingStrings::Instance.DisplayDamageNumberString(nHPCopy, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset ,Phobos::Debug_DisplayDamageNumbers);
 
 			this->BreakShield(pWHExt->Shield_BreakAnim, pWHExt->Shield_BreakWeapon.Get(nullptr));
 
@@ -308,7 +308,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 			// that mean the damage can be sustained with the sield
 		{
 			if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && (-DamageToShield) != 0)
-				FlyingStrings::DisplayDamageNumberString((-DamageToShield), DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset,Phobos::Debug_DisplayDamageNumbers);
+				FlyingStrings::Instance.DisplayDamageNumberString((-DamageToShield), DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset,Phobos::Debug_DisplayDamageNumbers);
 
 			if (this->Type->HitFlash && pWHExt->Shield_HitFlash)
 			{
@@ -357,7 +357,7 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 				auto nDamageCopy = DamageToShieldAfterMinMax;
 
 				if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && DamageToShieldAfterMinMax != 0)
-					FlyingStrings::DisplayDamageNumberString(DamageToShieldAfterMinMax, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset , Phobos::Debug_DisplayDamageNumbers);
+					FlyingStrings::Instance.DisplayDamageNumberString(DamageToShieldAfterMinMax, DamageDisplayType::Shield, this->Techno->GetRenderCoords(), TechnoExtContainer::Instance.Find(this->Techno)->DamageNumberOffset , Phobos::Debug_DisplayDamageNumbers);
 
 				this->HP = std::clamp(this->HP + (-nDamageCopy), 0, this->Type->Strength.Get());
 				this->UpdateIdleAnim();

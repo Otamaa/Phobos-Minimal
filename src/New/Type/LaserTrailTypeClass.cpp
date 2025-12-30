@@ -5,11 +5,6 @@
 
 Enumerable<LaserTrailTypeClass>::container_t Enumerable<LaserTrailTypeClass>::Array;
 
-const char* Enumerable<LaserTrailTypeClass>::GetMainSection()
-{
-	return "LaserTrailTypes";
-}
-
 void LaserTrailTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* section = this->Name.c_str();

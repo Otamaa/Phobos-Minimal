@@ -13,11 +13,15 @@ class RadSiteExtData final : public AbstractExtended
 {
 public:
 	using base_type = RadSiteClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "RadSiteExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "RadSiteClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
 #pragma region ClassMembers
+	PhobosFixedString<0x18> Name;
 	RadTypeClass* Type;
 	WeaponTypeClass* Weapon;
 	TechnoClass* TechOwner;
@@ -29,6 +33,7 @@ public:
 
 public:
 	RadSiteExtData(RadSiteClass* pObj) : AbstractExtended(pObj),
+		Name(),
 		Type(nullptr),
 		Weapon(nullptr),
 		TechOwner(nullptr),
@@ -36,7 +41,7 @@ public:
 		NoOwner(true),
 		CreationFrame(0)
 	{
-		this->Name = "RadSiteClass";
+		this->Name = GameStrings::NoneStr();
 		this->AbsType = RadSiteClass::AbsID;
 	}
 
@@ -63,8 +68,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	RadSiteClass* This() const override { return reinterpret_cast<RadSiteClass*>(this->AttachedToObject); }
-	const RadSiteClass* This_Const() const override { return reinterpret_cast<const RadSiteClass*>(this->AttachedToObject); }
+	RadSiteClass* This() const { return reinterpret_cast<RadSiteClass*>(this->AttachedToObject); }
+	const RadSiteClass* This_Const() const { return reinterpret_cast<const RadSiteClass*>(this->AttachedToObject); }
 
 public:
 
@@ -93,19 +98,13 @@ private:
 class RadSiteExtContainer final : public Container<RadSiteExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "RadSiteExtContainer";
+
+public:
 	static RadSiteExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
-
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class NOVTABLE FakeRadSiteClass : public RadSiteClass
@@ -127,9 +126,6 @@ public:
 	void __Increase_In_Area();
 	void __Reduce_Radiation();
 	double __Radiation_At(CellStruct* cell) const;
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	RadSiteExtData* _GetExtData() {
 		return *reinterpret_cast<RadSiteExtData**>(((DWORD)this) + AbstractExtOffset);

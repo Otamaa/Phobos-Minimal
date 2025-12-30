@@ -5,6 +5,10 @@
 
 class HoverTypeClass final : public Enumerable<HoverTypeClass>
 {
+public:
+	static COMPILETIMEEVAL const char* MainSection = "HoverCharacteristic";
+	static COMPILETIMEEVAL const char* ClassName = "HoverTypeClass";
+
 private:
 
 	Nullable<AnimTypeClass*> AboveWaterAnim;

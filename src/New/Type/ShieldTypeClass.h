@@ -11,6 +11,10 @@
 class ShieldTypeClass final : public Enumerable<ShieldTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "ShieldTypes";
+	static COMPILETIMEEVAL const char* ClassName = "ShieldTypeClass";
+
+public:
 	Valueable<int> Strength;
 	Nullable<int> InitialStrength;
 

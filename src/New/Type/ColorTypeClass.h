@@ -7,6 +7,10 @@
 class ColorTypeClass final : public Enumerable<ColorTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "Colors";
+	static COMPILETIMEEVAL const char* ClassName = "ColorTypeClass";
+
+public:
 
 	Valueable<Point3D> Colors { };
 

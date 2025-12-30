@@ -606,3 +606,11 @@ ASMJIT_PATCH(0x449306, BuildingClass_SetOwningHouse_Sell, 0x6)
 	return pThis->_GetTypeExtData()->AISellCapturedBuilding
 			.Get(RulesExtData::Instance()->AISellCapturedBuilding) ? 0 : NoSell;
 }
+
+ASMJIT_PATCH(0x4485DB, BuildingClass_SetOwningHouse_SyncLinkedOwner, 0x6)
+{
+	enum { SkipGameCode = 0x4486C8 };
+	GET(FakeBuildingClass*, pThis, ESI);
+	return pThis->_GetTypeExtData()->BuildingRadioLink_SyncOwner
+			.Get(RulesExtData::Instance()->BuildingRadioLink_SyncOwner) ? 0 : SkipGameCode;
+}

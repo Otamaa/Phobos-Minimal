@@ -11,24 +11,69 @@
 #include <ScenarioClass.h>
 #include <GameOptionsClass.h>
 
+#include <Phobos.SaveGame.h>
+
 UnitExtContainer UnitExtContainer::Instance;
-std::vector<UnitExtData*> Container<UnitExtData>::Array;
-//
 
-//======================================================================================
-void Container<UnitExtData>::Clear()
+bool UnitExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(UnitExtContainer::ClassName))
+	{
+		auto& container = root[UnitExtContainer::ClassName];
+
+		for (auto& entry : container[UnitExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, UnitExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool UnitExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool UnitExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[UnitExtContainer::ClassName];
 
-bool UnitExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : UnitExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[UnitExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 bool UnitExtContainer::HasDeployingAnim(TechnoTypeClass* pUnitType) {
@@ -526,29 +571,9 @@ ASMJIT_PATCH(0x7359DC, UnitClass_DTOR, 0x7)
 
 void FakeUnitClass::_Detach(AbstractClass* target, bool all)
 {
-	UnitExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 	this->UnitClass::PointerExpired(target, all);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C98, FakeUnitClass::_Detach)
-
-HRESULT __stdcall FakeUnitClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->UnitClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = UnitExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeUnitClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->UnitClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = UnitExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C84, FakeUnitClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5C88, FakeUnitClass::_Save)

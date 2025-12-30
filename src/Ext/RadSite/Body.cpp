@@ -9,6 +9,8 @@
 #include <Utilities/Macro.h>
 #include <Notifications.h>
 
+#include <Phobos.SaveGame.h>
+
 void RadSiteExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 {
 	AnnounceInvalidPointer(TechOwner, ptr , bRemoved);
@@ -33,6 +35,8 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	{
 		pRadExt->Type = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 	}
+
+	pRadExt->Name = pRadExt->Type->Name;
 
 	if (pTech && pRadExt->Type->GetHasInvoker() && !pRadExt->NoOwner && pRadExt->Type->GetHasOwner())
 	{
@@ -205,6 +209,7 @@ template <typename T>
 void RadSiteExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Name)
 		.Process(this->Weapon, true)
 		.Process(this->Type, true)
 		.Process(this->TechOwner, true)
@@ -218,21 +223,66 @@ void RadSiteExtData::Serialize(T& Stm)
 // =============================
 // container
 RadSiteExtContainer RadSiteExtContainer::Instance;
-std::vector<RadSiteExtData*> Container<RadSiteExtData>::Array;
 
-void Container<RadSiteExtData>::Clear()
+bool RadSiteExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(RadSiteExtContainer::ClassName))
+	{
+		auto& container = root[RadSiteExtContainer::ClassName];
+
+		for (auto& entry : container[RadSiteExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, RadSiteExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool RadSiteExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool RadSiteExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[RadSiteExtContainer::ClassName];
 
-bool RadSiteExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : RadSiteExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[RadSiteExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -269,7 +319,8 @@ ASMJIT_PATCH(0x65B344, RadSiteClass_DTOR, 0x6)
 
 void FakeRadSiteClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
-	RadSiteExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemove);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(pTarget, bRemove);
 	//this->RadSiteClass::PointerExpired(pTarget, bRemove);
 }
 
@@ -282,26 +333,6 @@ HouseClass* FakeRadSiteClass::_GetOwningHouse()
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F084C, FakeRadSiteClass::_GetOwningHouse);
 
-HRESULT __stdcall FakeRadSiteClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->RadSiteClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = RadSiteExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeRadSiteClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->RadSiteClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = RadSiteExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeRadSiteClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeRadSiteClass::_Save)
 template<bool reduce = false>
 void PopulateCellRadVector(FakeRadSiteClass* pRad, CellStruct* cell, int distance, int timeParam)
 {

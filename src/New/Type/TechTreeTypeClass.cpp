@@ -7,12 +7,6 @@
 
 Enumerable<TechTreeTypeClass>::container_t Enumerable<TechTreeTypeClass>::Array;
 
-template<>
-const char* Enumerable<TechTreeTypeClass>::GetMainSection()
-{
-	return "TechTreeTypes";
-}
-
 void TechTreeTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* section = this->Name.c_str();

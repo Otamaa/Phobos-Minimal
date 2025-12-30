@@ -29,11 +29,11 @@ ASMJIT_PATCH(0x422FCC, AnimClass_Draw_Details, 5)
 	return details ? 0x422FECu : 0x422FD9u;
 }
 
-ASMJIT_PATCH(0x550BCA, LaserDrawClass_Draw_InHouseColor_Details, 5)
-{
-	const auto details = RulesExtData::DetailsCurrentlyEnabled();
-	return details ? 0x550BD7u : 0x550BE5u;
-}
+// ASMJIT_PATCH(0x550BCA, LaserDrawClass_Draw_InHouseColor_Details, 5)
+// {
+// 	const auto details = RulesExtData::DetailsCurrentlyEnabled();
+// 	return details ? 0x550BD7u : 0x550BE5u;
+// }
 
 ASMJIT_PATCH(0x62CEC9, ParticleClass_Draw_Details, 5)
 {

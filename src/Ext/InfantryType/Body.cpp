@@ -181,21 +181,97 @@ void InfantryTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 InfantryTypeExtContainer InfantryTypeExtContainer::Instance;
-std::vector<InfantryTypeExtData*> Container<InfantryTypeExtData>::Array;
 
-void Container<InfantryTypeExtData>::Clear()
+bool InfantryTypeExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(InfantryTypeExtContainer::ClassName))
+	{
+		auto& container = root[InfantryTypeExtContainer::ClassName];
+
+		for (auto& entry : container[InfantryTypeExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, InfantryTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool InfantryTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool InfantryTypeExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
+	auto& first_layer = root[InfantryTypeExtContainer::ClassName];
+
+	json _extRoot = json::array();
+	for (auto& _extData : InfantryTypeExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[InfantryTypeExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
-bool InfantryTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+void InfantryTypeExtContainer::LoadFromINI(InfantryTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
 {
-	return SaveGlobalArrayData(Stm);
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void InfantryTypeExtContainer::WriteToINI(InfantryTypeClass* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
 }
 
 // =============================
@@ -270,6 +346,3 @@ bool FakeInfantryTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB674, FakeInfantryTypeClass::_ReadFromINI)
-
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB624, FakeInfantryTypeClass::_Load)
-//DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB628, FakeInfantryTypeClass::_Save)

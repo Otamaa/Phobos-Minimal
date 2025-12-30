@@ -34,7 +34,10 @@ class CellExtData final : public AbstractExtended
 {
 public:
 	using base_type = CellClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "CellExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "CellClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -56,7 +59,6 @@ public:
 		, RadLevels()
 
 	{
-		this->Name = "CellClass";
 		this->AbsType = CellClass::AbsID;
 	}
 
@@ -81,8 +83,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	CellClass* This() const override { return reinterpret_cast<CellClass*>(this->AttachedToObject); }
-	const CellClass* This_Const() const override { return reinterpret_cast<const CellClass*>(this->AttachedToObject); }
+	CellClass* This() const { return reinterpret_cast<CellClass*>(this->AttachedToObject); }
+	const CellClass* This_Const() const { return reinterpret_cast<const CellClass*>(this->AttachedToObject); }
 
 public:
 
@@ -104,18 +106,13 @@ public:
 class CellExtContainer final : public Container<CellExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "CellExtContainer";
+
+public:
 	static CellExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class NOVTABLE FakeCellClass : public CellClass
@@ -128,9 +125,6 @@ public:
 	bool _CanTiberiumGerminate(TiberiumClass* tiberium);
 	bool _CanPlaceVeins();
 	int _Reduce_Tiberium(int levels_reducer);
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE CellClass* _AsCell() const
 	{

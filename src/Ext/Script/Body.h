@@ -353,25 +353,12 @@ private:
 class ScriptExtContainer final : public Container<ScriptExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "ScriptExtContainer";
+
+public:
 	static ScriptExtContainer Instance;
 
-	static void Clear()
-	{
-		Array.clear();
-	}
-
-	static bool LoadGlobals(PhobosStreamReader& Stm)
-	{
-		return true;
-	}
-
-	static bool SaveGlobals(PhobosStreamWriter& Stm)
-	{
-		return true;
-	}
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-	}
+	virtual bool LoadAll(const json& root) { return true;  };
+	virtual bool SaveAll(json& root) { return true;  };
 
 };

@@ -22,6 +22,8 @@
 
 #include <InfantryClass.h>
 
+#include <Phobos.SaveGame.h>
+
 static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, WeaponTypeClass* pWeapon, TechnoClass* pTarget , bool useverses)
 {
 	auto const pWH = pWeapon->Warhead;
@@ -821,7 +823,7 @@ void BulletExtData::InterceptBullet(BulletClass* pThis, TechnoClass* pSource, Bu
 				const int damage = static_cast<int>(pInterceptor->Health * pWHExt->GetVerses(pTypeExt->Armor.Get()).Verses);
 				pExt->CurrentStrength -= damage;
 
-				FlyingStrings::DisplayDamageNumberString(damage, DamageDisplayType::Intercept, pThis->GetRenderCoords(), pExt->DamageNumberOffset , Phobos::Debug_DisplayDamageNumbers);
+				FlyingStrings::Instance.DisplayDamageNumberString(damage, DamageDisplayType::Intercept, pThis->GetRenderCoords(), pExt->DamageNumberOffset , Phobos::Debug_DisplayDamageNumbers);
 
 				if (pExt->CurrentStrength <= 0)
 				{
@@ -1204,21 +1206,65 @@ void BulletExtData::Serialize(T& Stm)
 // =============================
 // container
 BulletExtContainer BulletExtContainer::Instance;
-std::vector<BulletExtData*> Container<BulletExtData>::Array;
 
-void Container<BulletExtData>::Clear()
+bool BulletExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(BulletExtContainer::ClassName))
+	{
+		auto& container = root[BulletExtContainer::ClassName];
+
+		for (auto& entry : container[BulletExtData::ClassName])
+		{
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, BulletExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
-bool BulletExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool BulletExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[BulletExtContainer::ClassName];
 
-bool BulletExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : BulletExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer); // write all data to stream
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[BulletExtData::ClassName] = std::move(_extRoot);
+	return true;
 }
 
 // =============================
@@ -1247,30 +1293,10 @@ ASMJIT_PATCH(0x4665E9, BulletClass_DTOR, 0xA)
 
 void FakeBulletClass::_Detach(AbstractClass* target , bool all)
 {
-	BulletExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 	this->BulletClass::PointerExpired(target , all);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E470C, FakeBulletClass::_Detach)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E4744, FakeBulletClass::_AnimPointerExpired)
-
-HRESULT __stdcall FakeBulletClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->BulletClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = BulletExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeBulletClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->BulletClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = BulletExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
- //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46F8, FakeBulletClass::_Load)
- //DEFINE_FUNCTION_JUMP(VTABLE, 0x7E46FC, FakeBulletClass::_Save)

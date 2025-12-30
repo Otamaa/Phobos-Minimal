@@ -580,23 +580,36 @@ struct AEProperties
 
 	public:
 
+		//load bit from int and flip the bits from it saved state
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange) {
-			return Serialize(Stm);
+			for (int i = 0; i < BitCount; ++i) {
+				bool bit = (bits >> i) & 1;
+
+				if (!Stm.Process(bit).Success()) {
+					return false;
+				}
+
+				bits = (bits & ~(1u << i)) | (uint32_t(bit) << i);
+			}
+
+			return true;
 		}
 
+		//write each bit as integer on .Process to ensure compatibility
 		bool Save(PhobosStreamWriter& Stm) const {
-			return const_cast<AEFlags*>(this)->Serialize(Stm);
+			for (int i = 0; i < BitCount; ++i) {
+				bool bit = (bits >> i) & 1;
+
+				if (!Stm.Process(bit).Success()) {
+					return false;
+				}
+			}
+
+			return true;
 		}
 
 	private:
-
-		template <typename T>
-		bool Serialize(T& Stm) {
-			return Stm
-				.Process(this->bits)
-				.Success()
-				;
-		}
+		static constexpr size_t BitCount = sizeof(bits) * CHAR_BIT;
 
 	} flags;
 
@@ -1225,8 +1238,8 @@ public:
 
 	virtual int GetSize() const { return sizeof(*this); };
 
-	TechnoClass* This() const override { return reinterpret_cast<TechnoClass*>(AttachedToObject); }
-	const TechnoClass* This_Const() const override { return reinterpret_cast<const TechnoClass*>(AttachedToObject); }
+	TechnoClass* This() const { return reinterpret_cast<TechnoClass*>(AttachedToObject); }
+	const TechnoClass* This_Const() const { return reinterpret_cast<const TechnoClass*>(AttachedToObject); }
 
 	virtual void CalculateCRC(CRCEngine& crc) const override {
 		this->RadioExtData::CalculateCRC(crc);
@@ -1560,7 +1573,7 @@ class NOVTABLE FakeTechnoClass //final: TechnoClass
 {
 public:
 
-	virtual TechnoTypeClass* GetTechnoType() { JMP_THIS(0x6F3270); }
+	//virtual TechnoTypeClass* GetTechnoType() { JMP_THIS(0x6F3270); }
 
 	static int __fastcall _EvaluateJustCell(TechnoClass* pThis , discard_t, CellStruct* where);
 	static bool __fastcall __TargetSomethingNearby(TechnoClass* pThis, discard_t, CoordStruct* coord, ThreatType threat);

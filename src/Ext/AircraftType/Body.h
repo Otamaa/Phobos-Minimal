@@ -9,7 +9,10 @@ class AircraftTypeExtData final : public TechnoTypeExtData
 {
 public:
 	using base_type = AircraftTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "AircraftTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "AircraftTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -17,6 +20,7 @@ public:
 		this->AbsType = AircraftTypeClass::AbsID;
 		this->InitializeConstant();
 	}
+
 	AircraftTypeExtData(AircraftTypeClass* pObj, noinit_t nn) : TechnoTypeExtData(pObj, nn) { }
 
 	virtual ~AircraftTypeExtData() = default;
@@ -43,34 +47,32 @@ public:
 		this->TechnoTypeExtData::CalculateCRC(crc);
 	}
 
-	AircraftTypeClass* This() const override { return reinterpret_cast<AircraftTypeClass*>(this->AttachedToObject); }
-	const AircraftTypeClass* This_Const() const override { return reinterpret_cast<const AircraftTypeClass*>(this->AttachedToObject); }
+	AircraftTypeClass* This() const { return reinterpret_cast<AircraftTypeClass*>(this->AttachedToObject); }
+	const AircraftTypeClass* This_Const() const { return reinterpret_cast<const AircraftTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) override;
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
 };
 
 class AircraftTypeExtContainer final : public Container<AircraftTypeExtData>
+	, public ReadWriteContainerInterfaces<AircraftTypeExtData>
 {
+public:
+
+	static COMPILETIMEEVAL const char* ClassName = "AircraftTypeExtContainer";
+
 public:
 	static AircraftTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array) {
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(AircraftTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(AircraftTypeClass* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeAircraftTypeClass : public AircraftTypeClass {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
-
 	bool _CanAttackMove() { return RulesExtData::Instance()->ExpandAircraftMission; };
 	bool _ReadFromINI(CCINIClass* pINI);
 };

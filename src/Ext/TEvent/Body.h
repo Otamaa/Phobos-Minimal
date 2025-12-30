@@ -92,7 +92,10 @@ class TEventExtData final : public AbstractExtended
 {
 public:
 	using base_type = TEventClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "TEventExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "TEventClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -130,8 +133,8 @@ public:
 	{
 	}
 
-	TEventClass* This() const override { return reinterpret_cast<TEventClass*>(this->AttachedToObject); }
-	const TEventClass* This_Const() const override { return reinterpret_cast<const TEventClass*>(this->AttachedToObject); }
+	TEventClass* This() const { return reinterpret_cast<TEventClass*>(this->AttachedToObject); }
+	const TEventClass* This_Const() const { return reinterpret_cast<const TEventClass*>(this->AttachedToObject); }
 
 public:
 
@@ -301,26 +304,18 @@ public:
 class TEventExtContainer final : public Container<TEventExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "TEventExtContainer";
+
+public:
 	static TEventExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class NOVTABLE FakeTEventClass : public TEventClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _Occured(TriggerEvent event, HouseClass* house, ObjectClass* obj, CDTimerClass* td, bool* bool1, AbstractClass* source);
 

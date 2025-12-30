@@ -591,6 +591,7 @@ public:
 	Valueable<bool> SortCameoByName { false };
 	Valueable<bool> AllowDeployControlledMCV { false };
 	Valueable<bool> TypeSelectUseIFVMode { false };
+	Valueable<bool> BuildingRadioLink_SyncOwner { true };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

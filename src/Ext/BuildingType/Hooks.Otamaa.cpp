@@ -21,6 +21,7 @@
 #include <DiskLaserClass.h>
 
 #include <Ext/Infantry/Body.h>
+#include <Ext/DiskLaser/Body.h>
 
 #pragma region Otamaa
 
@@ -67,7 +68,7 @@ ASMJIT_PATCH(0x6FE3E3, TechnoClass_FireAt_OccupyDamageBonus, 0xA) //B
 	TechnoExtData::SetChargeTurretDelay(pThis, rearm, pWeapon);
 	pThis->RearmTimer.Start(rearm);
 	pThis->CurrentBurstIndex %= pWeapon->Burst;
-	pDiskLaser->Fire(pThis, pTarget, pWeapon, nDamage);
+	((FakeDiskLaserClass*)pDiskLaser)->__Fire(pThis, pTarget, pWeapon, nDamage);
 
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 

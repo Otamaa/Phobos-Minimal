@@ -6,6 +6,10 @@
 class LaserTrailTypeClass final : public Enumerable<LaserTrailTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "LaserTrailTypes";
+	static COMPILETIMEEVAL const char* ClassName = "LaserTrailTypeClass";
+
+public:
 	Valueable<bool> IsHouseColor;
 	Valueable<ColorStruct> Color;
 	Nullable<int> FadeDuration;

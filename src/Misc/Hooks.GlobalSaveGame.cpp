@@ -178,295 +178,13 @@ HRESULT SaveSimpleArray(LPSTREAM pStm, DynamicVectorClass<T>& collection)
 
 #include <Utilities/StreamUtils.h>
 #include <Ext/SWType/NewSuperWeaponType/SWTypeHandler.h>
-
-//dummy objects to trigger `CONTENTS` writing
-class DECLSPEC_UUID("EE8D505F-12BB-4313-AEDC-4AEA30A5BA03")
-DummyPersist : public IPersistStream
-{
-public:
-	STDMETHODIMP QueryInterface(REFIID riid, void** ppv) override
-	{
-		if (ppv == nullptr)
-		{
-			return E_POINTER;
-		}
-		*ppv = nullptr;
-
-		if (riid == __uuidof(IUnknown))
-		{
-			*ppv = reinterpret_cast<IUnknown*>(this);
-		}
-
-		if (riid == __uuidof(IStream))
-		{
-			*ppv = reinterpret_cast<IStream*>(this);
-		}
-
-		if (riid == __uuidof(IPersistStream))
-		{
-			*ppv = static_cast<IPersistStream*>(this);
-		}
-
-		if (*ppv == nullptr)
-		{
-			return E_NOINTERFACE;
-		}
-
-		reinterpret_cast<IUnknown*>(*ppv)->AddRef();
-		return S_OK;
-	}
-
-	STDMETHODIMP_(ULONG) AddRef() override { return 1; }
-	STDMETHODIMP_(ULONG) Release() override { return 1; }
-
-	STDMETHODIMP GetClassID(CLSID* pClassID) override
-	{
-		if (pClassID == nullptr) {
-			return E_POINTER;
-		}
-
-		*pClassID = __uuidof(this);
-
-		return S_OK;
-	}
-
-	STDMETHOD(IsDirty)() override { return S_OK; }
-
-	STDMETHOD(Load)(IStream* pStm) override {
-
-		if (!pStm) {
-			return E_POINTER;
-		}
-
-		HRESULT hr = pStm->Read(this, sizeof(*this), nullptr);
-
-		if (FAILED(hr)) {
-			return hr;
-		}
-
-		return hr;
-	}
-
-	STDMETHOD(Save)(IStream* pStm, BOOL fClearDirty) override {
-
-		if (!pStm) {
-			return E_POINTER;
-		}
-
-		HRESULT hr = pStm->Write(this, sizeof(*this), nullptr);
-
-		if (FAILED(hr)) {
-			return hr;
-		}
-
-		return hr;
-	}
-
-	STDMETHOD(GetSizeMax)(ULARGE_INTEGER* pSize) override {
-	   if (!pSize) {
-		 return E_POINTER;
-	   }
-
-	   pSize->LowPart = sizeof(*this); // Add size of swizzle "id".
-	   pSize->HighPart = 0;
-
-		return S_OK;
-	}
-
-private:
-	int data;
-};
-
-template<typename T>
-bool Process_Global_SaveB(LPSTREAM pStm) {
-	PhobosByteStream stm;
-	PhobosStreamWriter writer(stm);
-
-	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-	return T::SaveGlobals(writer) && stm.WriteToStream(pStm);
-}
-
-template<typename T>
-bool Process_Global_Save(PhobosStreamWriter& writer)
-{
-	Debug::LogInfo("[Process_Save] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-	return T::SaveGlobals(writer);
-}
-
 #include <Ext/Scenario/Body.h>
-
-HRESULT SavePhobosEarlyObjects(LPSTREAM pStm)
-{
-	PhobosAppendedStream stm;
-	PhobosStreamWriter writer(stm);
-
-	HRESULT hr = S_OK;
-
-	bool success = Process_Global_Save<Phobos>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<CursorTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<ColorTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<SideExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TheaterTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<MouseClassExt>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<CellExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<DigitalDisplayTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<ArmorTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<ImmunityTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<LaserTrailTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TunnelTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<InsigniaTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<SelectBoxTypeClass>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TiberiumExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<HouseTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<HouseExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<UnitTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<UnitExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<InfantryTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<InfantryExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<BuildingTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<BuildingExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<AircraftTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<AircraftExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<AnimTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<AnimExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TeamExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TriggerExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TEventExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<VoxelAnimTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<VoxelAnimExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<WarheadTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<WeaponTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<ParticleTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<ParticleExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<ParticleSystemTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<ParticleSystemExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<BulletTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<BulletExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TActionExtData>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<SmudgeTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<OverlayTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<SWTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<SuperExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TerrainTypeExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<TerrainExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<WaveExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<BombExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Save<RadSiteExtContainer>(writer);
-	if (!success) return E_FAIL;
-
-	if (!stm.WriteToStream(pStm))
-		hr = E_FAIL;
-
-	return hr;
-
-}
 
 HRESULT Put_All_Pointers(LPSTREAM pStm)
 {
 	HRESULT hr = S_OK;
 
 	hr = ScenarioClass::Instance->Save(pStm);
-	if (!SUCCEEDED(hr)) return hr;
-
-	hr = SavePhobosEarlyObjects(pStm);
 	if (!SUCCEEDED(hr)) return hr;
 
 	hr = SaveObjectVector(pStm, *SideClass::Array);
@@ -691,8 +409,7 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	// Game options section (known problematic area)
 	if (SessionClass::Instance->GameMode == GameMode::Skirmish) {
 		Debug::Log("Writing Skirmish Session.Options\n");
-		if (!GameOptionsType::Instance->Save(pStm))
-		{
+		if (!GameOptionsType::Instance->Save(pStm)){
 			Debug::Log("\t***** GameOptionsType SAVE FAILED!\n");
 			return E_FAIL;
 		}
@@ -717,6 +434,8 @@ HRESULT Put_All_Pointers(LPSTREAM pStm)
 	return hr;
 }
 
+#include <Phobos.SaveGame.h>
+
 bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool)
 {
 	WCHAR wide_file_name[PATH_MAX];
@@ -728,6 +447,11 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	}
 
 	Debug::Log("\nSAVING GAME [%s - %ls]\n", file_name, descr);
+
+	if (!ExtensionSaveJson::Save(wide_file_name)){
+		Debug::FatalError("Cannot Save dll datas !");
+		return false;
+	}
 
 	Debug::Log("Creating DocFile\n");
 
@@ -798,38 +522,36 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 	}
 
 
-	//disable compression so it can be read on hex editor
-	//Debug::Log("Linking content stream to compressor.\n");
-	//IUnknown* pUnknown = nullptr;
-	//ATL::CComPtr<ILinkStream> linkstream;
-	//hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-	//if (SUCCEEDED(hr)) {
-	//	hr = OleRun(pUnknown);
-	//	if (SUCCEEDED(hr)) {
-	//		pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
-	//	}
-	//	pUnknown->Release();
-	//}
+	IUnknown* pUnknown = nullptr;
+	ATL::CComPtr<ILinkStream> linkstream;
+	hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
+	if (SUCCEEDED(hr)) {
+		hr = OleRun(pUnknown);
+		if (SUCCEEDED(hr)) {
+			pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
+		}
+		pUnknown->Release();
+	}
 
-	//hr = linkstream->Link_Stream(docfile);
-	//if (FAILED(hr)) {
-	//	Debug::FatalError("Failed to link stream to compressor.\n");
-	//	return false;
-	//}
+	hr = linkstream->Link_Stream(docfile);
+	if (FAILED(hr)) {
+		Debug::FatalError("Failed to link stream to compressor.\n");
+		return false;
+	}
 
-	//ATL::CComPtr<IStream> stream;
-	//linkstream->QueryInterface(__uuidof(IStream), (void**)&stream
+	ATL::CComPtr<IStream> stream;
+	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
 
 	Debug::Log("Calling Put_All_Pointers().\n");
 
-	bool result = SUCCEEDED(Put_All_Pointers(docfile));
+	bool result = SUCCEEDED(Put_All_Pointers(stream));
 
-	//Debug::Log("Unlinking content stream from compressor.\n");
-	//hr = linkstream->Unlink_Stream(nullptr);
-	//if (FAILED(hr)) {
-	//	Debug::FatalError("Failed to link unstream from compressor.\n");
-	//	return false;
-	//}
+	Debug::Log("Unlinking content stream from compressor.\n");
+	hr = linkstream->Unlink_Stream(nullptr);
+	if (FAILED(hr)) {
+		Debug::FatalError("Failed to link unstream from compressor.\n");
+		return false;
+	}
 
 	Debug::Log("Releasing content stream.\n");
 	docfile.Release();
@@ -846,11 +568,3 @@ bool __fastcall Make_Save_Game(const char* file_name, const wchar_t* descr, bool
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x67CEF0, Make_Save_Game)
-
-
-//const DLGTEMPLATE* __fastcall Show_Message_With_Cancel_Only(LPARAM lParam, LPARAM a2, LONG dwNewLong)
-//{
-//	return nullptr;
-//}
-//
-//DEFINE_FUNCTION_JUMP(CALL ,0x559E5E, Show_Message_With_Cancel_Only)

@@ -10,7 +10,10 @@ class WaveExtData final : public ObjectExtData
 {
 public:
 	using base_type = WaveClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "WaveExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "WaveClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region ClassMembers
@@ -35,7 +38,7 @@ public:
 
 	WaveExtData(WaveClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
-	virtual ~WaveExtData();
+	virtual ~WaveExtData() = default;
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool bRemoved) override
 	{
@@ -62,8 +65,8 @@ public:
 		this->ObjectExtData::CalculateCRC(crc);
 	}
 
-	WaveClass* This() const override { return reinterpret_cast<WaveClass*>(this->AttachedToObject); }
-	const WaveClass* This_Const() const override { return reinterpret_cast<const WaveClass*>(this->AttachedToObject); }
+	WaveClass* This() const { return reinterpret_cast<WaveClass*>(this->AttachedToObject); }
+	const WaveClass* This_Const() const { return reinterpret_cast<const WaveClass*>(this->AttachedToObject); }
 
 public:
 
@@ -87,26 +90,18 @@ public:
 class WaveExtContainer final : public Container<WaveExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "WaveExtContainer";
+
+public:
 	static WaveExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class NOVTABLE FakeWaveClass : public WaveClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 	void _DamageCell(CoordStruct* pLoc);

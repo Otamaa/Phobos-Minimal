@@ -18,7 +18,10 @@ class BulletTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = BulletTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "BulletTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -209,8 +212,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	BulletTypeClass* This() const override { return reinterpret_cast<BulletTypeClass*>(this->AttachedToObject); }
-	const BulletTypeClass* This_Const() const override { return reinterpret_cast<const BulletTypeClass*>(this->AttachedToObject); }
+	BulletTypeClass* This() const { return reinterpret_cast<BulletTypeClass*>(this->AttachedToObject); }
+	const BulletTypeClass* This_Const() const { return reinterpret_cast<const BulletTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
@@ -220,7 +223,7 @@ public:
 	COMPILETIMEEVAL bool FORCEDINLINE HasSplitBehavior() const
 	{
 		// behavior in FS: Splits defaults to Airburst.
-		return This()->Airburst || this->Splits;
+		return  ((BulletTypeClass*)this->AttachedToObject)->Airburst || this->Splits;
 	}
 
 	COMPILETIMEEVAL double FORCEDINLINE GetMissileROTVar(const RulesClass* const pRules) const
@@ -274,20 +277,19 @@ public:
 };
 
 class BulletTypeExtContainer final : public Container<BulletTypeExtData>
+	, public ReadWriteContainerInterfaces<BulletTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "BulletTypeExtContainer";
+
 public:
 	static BulletTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(BulletTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(BulletTypeClass* key, CCINIClass* pINI);
 };
 
 double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
@@ -298,9 +300,10 @@ double BulletTypeExtData::GetAdjustedGravity(BulletTypeClass* pType)
 class NOVTABLE FakeBulletTypeClass : public BulletTypeClass
 {
 public:
+		static COMPILETIMEEVAL const char* ClassName = "FakeBulletTypeClass";
 
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+public:
+
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	BulletTypeExtData* _GetExtData() {

@@ -13,6 +13,10 @@
 class CursorTypeClass final : public Enumerable<CursorTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "MouseCursors";
+	static COMPILETIMEEVAL const char* ClassName = "CursorTypeClass";
+
+public:
 
 	Valueable<MouseCursor> CursorData;
 

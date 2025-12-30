@@ -11,6 +11,10 @@
 class TechTreeTypeClass final : public Enumerable<TechTreeTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "TechTreeTypes";
+	static COMPILETIMEEVAL const char* ClassName = "TechTreeTypeClass";
+
+public:
 	enum class BuildType
 	{
 		BuildPower,

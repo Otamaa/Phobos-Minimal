@@ -4,6 +4,7 @@
 
 #include <Utilities/Iterator.h>
 #include <Utilities/MapPathCellElement.h>
+#include <Utilities/PhobosFixedString.h>
 
 #include <TeamTypeClass.h>
 
@@ -16,11 +17,15 @@ class TeamExtData final : public AbstractExtended
 {
 public:
 	using base_type = TeamClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "TeamExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "TeamClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
 #pragma region ClassMembers
+	PhobosFixedString<0x18> Name;
 	int WaitNoTargetAttempts;
 	double NextSuccessWeightAward;
 	int IdxSelectedObjectFromAIList;
@@ -53,6 +58,7 @@ public:
 
 public:
 	TeamExtData(TeamClass* pObj) : AbstractExtended(pObj),
+		Name(),
 		WaitNoTargetAttempts(0),
 		NextSuccessWeightAward(0.0),
 		IdxSelectedObjectFromAIList(-1),
@@ -109,8 +115,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	TeamClass* This() const override { return reinterpret_cast<TeamClass*>(this->AttachedToObject); }
-	const TeamClass* This_Const() const override { return reinterpret_cast<const TeamClass*>(this->AttachedToObject); }
+	TeamClass* This() const { return reinterpret_cast<TeamClass*>(this->AttachedToObject); }
+	const TeamClass* This_Const() const { return reinterpret_cast<const TeamClass*>(this->AttachedToObject); }
 
 public:
 
@@ -132,26 +138,19 @@ private:
 class TeamExtContainer final : public Container<TeamExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "TeamExtContainer";
+
+public:
 	static TeamExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
 };
 
 class NOVTABLE FakeTeamClass : public TeamClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Detach(AbstractClass* target, bool all);
 

@@ -35,6 +35,8 @@
 
 #include <Utilities/Helpers.h>
 
+#include <Phobos.SaveGame.h>
+
 //TODO re-evaluate these , since the default array seems not contains what the documentation table says,..
 const AITargetingModeInfo SWTypeExtData::AITargetingModes[] =
 {
@@ -2849,7 +2851,6 @@ void SWTypeExtData::ApplyLinkedSW(SuperClass* pSW)
 // container
 
 SWTypeExtContainer SWTypeExtContainer::Instance;
-std::vector<SWTypeExtData*> Container<SWTypeExtData>::Array;
 SuperWeaponTypeClass* SWTypeExtData::CurrentSWType;
 SuperClass* SWTypeExtData::TempSuper;
 bool SWTypeExtData::Handled;
@@ -2861,37 +2862,129 @@ void SWTypeExtContainer::InvalidatePointer(AbstractClass* ptr, bool bRemoved)
 	AnnounceInvalidPointer(SWTypeExtData::LauchData, ptr);
 }
 
-bool SWTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool SWTypeExtContainer::LoadAll(const json& root)
 {
-	auto result = LoadGlobalArrayData(Stm);;
+	this->Clear();
 
-	result &= Stm
+	if (root.contains(SWTypeExtContainer::ClassName))
+	{
+		auto& container = root[SWTypeExtContainer::ClassName];
+
+		for (auto& entry : container[SWTypeExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, SWTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+
+		size_t dataSize = container["Container_datasize"].get<size_t>();
+		std::string encoded = container["Container_data"].get<std::string>();
+
+		PhobosByteStream loader(dataSize);
+		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+		PhobosStreamReader reader(loader);
+
+		reader
+			.Process(SWTypeExtData::CurrentSWType)
+			.Process(SWTypeExtData::TempSuper)
+			.Process(SWTypeExtData::Handled)
+			.Process(SWTypeExtData::LauchData);
+
+		if (!reader.ExpectEndOfBlock())
+			return false;
+
+		return true;
+	}
+
+	return false;
+
+}
+
+bool SWTypeExtContainer::SaveAll(json& root)
+{
+	auto& first_layer = root[SWTypeExtContainer::ClassName];
+
+	json _extRoot = json::array();
+	for (auto& _extData : SWTypeExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[SWTypeExtData::ClassName] = std::move(_extRoot);
+	PhobosByteStream saver(0);
+	PhobosStreamWriter writer(saver);
+
+	writer
 		.Process(SWTypeExtData::CurrentSWType)
 		.Process(SWTypeExtData::TempSuper)
 		.Process(SWTypeExtData::Handled)
-		.Process(SWTypeExtData::LauchData)
-		.Success();
+		.Process(SWTypeExtData::LauchData);
 
-	return result;
+	first_layer["Container_datasize"] = saver.data.size();
+	first_layer["Container_data"] = Base64Handler::encodeBase64(saver.data);
+
+	return true;
 }
 
-bool SWTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+void SWTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
 {
-	auto result = SaveGlobalArrayData(Stm);;
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
 
-		result &= Stm
-		.Process(SWTypeExtData::CurrentSWType)
-		.Process(SWTypeExtData::TempSuper)
-		.Process(SWTypeExtData::Handled)
-		.Process(SWTypeExtData::LauchData)
-		.Success();
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
 
-	return result;
 }
 
-void Container<SWTypeExtData>::Clear()
+void SWTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI)
 {
-	Array.clear();
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
+}
+
+void SWTypeExtContainer::Clear()
+{
+	this->base_t::Clear();
 	SWTypeExtData::LauchData = nullptr;
 	SWTypeExtData::TempSuper = nullptr;
 }

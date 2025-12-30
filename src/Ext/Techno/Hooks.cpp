@@ -442,14 +442,12 @@ ASMJIT_PATCH(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 	GET(FootClass*, pParasiteOwner, EAX);
 	GET(bool, bRemoved, EBX);
 
-	if (pParasiteOwner == pAbstract && (!pParasiteOwner->Health || !Game::InScenario2()))
-	{
+	if (pParasiteOwner == pAbstract && (!pParasiteOwner->Health || !Game::InScenario2())) {
 		pThis->ParasiteEatingMe = nullptr;
 		return SkipGameCode;
 	}
 
-	if (!bRemoved)
-	{
+	if (!bRemoved && pThis->IsAlive) {
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 		bRemoved = pTypeExt->Cloak_KickOutParasite.Get(RulesExtData::Instance()->Cloak_KickOutParasite);
 	}

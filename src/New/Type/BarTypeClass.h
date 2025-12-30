@@ -7,6 +7,10 @@
 class BarTypeClass final : public Enumerable<BarTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "BarTypes";
+	static COMPILETIMEEVAL const char* ClassName = "BarTypeClass";
+
+public:
 
 	BarTypeClass(const char* pTitle = GameStrings::NoneStr()) : Enumerable<BarTypeClass>(pTitle)
 	{ }

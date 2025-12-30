@@ -8,11 +8,6 @@
 
 Enumerable<GenericPrerequisite>::container_t Enumerable<GenericPrerequisite>::Array;
 
-const char* Enumerable<GenericPrerequisite>::GetMainSection()
-{
-	return "GenericPrerequisites";
-}
-
 GenericPrerequisite::GenericPrerequisite(const char* const pTitle)
 	: Enumerable<GenericPrerequisite>(pTitle)
 { }
@@ -78,7 +73,7 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 
 void GenericPrerequisite::LoadFromINI(CCINIClass* pINI)
 {
-	const char* section = GenericPrerequisite::GetMainSection();
+	const char* section = GenericPrerequisite::MainSection;
 	INI_EX iniEx { pINI };
 
 	//char generalbuf[0x80];
@@ -120,7 +115,7 @@ void GenericPrerequisite::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 		defaultItem->LoadFromINI(pINI);
 	}
 
-	const char* pSection = GetMainSection();
+	const char* pSection = GenericPrerequisite::MainSection;
 
 	if (!pINI->GetSection(pSection))
 		return;

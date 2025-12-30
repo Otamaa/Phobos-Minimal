@@ -29,8 +29,8 @@ public:
 
 	virtual int GetSize() const { return sizeof(*this); };
 
-	FootClass* This() const override { return reinterpret_cast<FootClass*>(AttachedToObject); }
-	const FootClass* This_Const() const override { return reinterpret_cast<const FootClass*>(AttachedToObject); }
+	FootClass* This() const { return reinterpret_cast<FootClass*>(AttachedToObject); }
+	const FootClass* This_Const() const { return reinterpret_cast<const FootClass*>(AttachedToObject); }
 
 	virtual void CalculateCRC(CRCEngine& crc) const override {
 		this->TechnoExtData::CalculateCRC(crc);

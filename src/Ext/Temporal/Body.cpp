@@ -21,6 +21,8 @@
 
 #include <Misc/Ares/Hooks/Header.h>
 
+#include <Phobos.SaveGame.h>
+
 void FakeTemporalClass::CreateWarpAwayAnimation(WeaponTypeClass* pWeapon)
 {
 	if (auto pAnimType = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead)->Temporal_WarpAway.Get(RulesClass::Instance()->WarpAway)) {
@@ -349,21 +351,66 @@ void TemporalExtData::Serialize(T& Stm) {
 // =============================
 // container
 TemporalExtContainer TemporalExtContainer::Instance;
-std::vector<TemporalExtData*> Container<TemporalExtData>::Array;
 
-void Container<TemporalExtData>::Clear()
+bool TemporalExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(TemporalExtContainer::ClassName))
+	{
+		auto& container = root[TemporalExtContainer::ClassName];
+
+		for (auto& entry : container[TemporalExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TemporalExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool TemporalExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool TemporalExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[TemporalExtContainer::ClassName];
 
-bool TemporalExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : TemporalExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[TemporalExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -397,24 +444,3 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x71AF20, FakeTemporalClass::_Detonate);
 //
 //	return 0x0;
 //}
-
-HRESULT __stdcall FakeTemporalClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->TemporalClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = TemporalExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeTemporalClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->TemporalClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = TemporalExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5194, FakeTemporalClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5198, FakeTemporalClass::_Save)

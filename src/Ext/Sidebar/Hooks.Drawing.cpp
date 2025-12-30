@@ -87,13 +87,13 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 		EPILOGUE();
 	}
 
-	if (buildableIdx < cameos.size() && buildableIdx < strip->BuildableCount) {
+	if (buildableIdx < (int)cameos.size() && buildableIdx < strip->BuildableCount) {
 	
 		if (pBuild->ItemIndex >= 0) {
 			auto pCurrentFactory = pBuild->CurrentFactory;
 
 			if (pBuild->ItemType != AbstractType::Special) {
-				if (auto Techno_Type = FakeTechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex)) {
+				if (auto Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex)) {
 
 					flags &=  ~GadgetFlag::LeftUp;
 
@@ -182,7 +182,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 
 					if (flags & GadgetFlag::LeftPress) {
 						if (!pCurrentFactory || pCurrentFactory->Production.Timer.Rate && !pCurrentFactory->IsSuspended) {
-							Techno_Type = FakeTechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
+							Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
 							auto pHouseFactory = PlayerPtr->GetPrimaryFactory(pBuild->ItemType, Techno_Type->Naval, pBuild->Cat);
 							bool ShouldDisableCameo = PlayerPtr->ShouldDisableCameo(Techno_Type);
 							bool unable_to_comply = false;
@@ -226,7 +226,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 									if (!unable_to_comply && !ShouldDisableCameo) {
 										pBuild->Status = BuildState::Building;
 										strip->NeedsRedraw = true;
-										Techno_Type = FakeTechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);								
+										Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);								
 
 										if (Techno_Type) {
 											const double divisor = 53.822631;
@@ -239,7 +239,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 												if (Techno_Type->FindFactory(true, false, false, PlayerPtr)) {
 													int time = Techno_Type->GetBuildSpeed();
 													if (pBuild->ItemType == AbstractType::BuildingType && static_cast<BuildingTypeClass*>(Techno_Type)->Wall) {
-														time = (time * RulesClass::Instance->WallBuildSpeedCoefficient);
+														time = int(time * RulesClass::Instance->WallBuildSpeedCoefficient);
 													}
 
 													if (time <= maxAhead + 15) {
@@ -272,7 +272,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 								if (!unable_to_comply && !ShouldDisableCameo) {
 									pBuild->Status = BuildState::Building;
 									strip->NeedsRedraw = true;
-									Techno_Type = FakeTechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
+									Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
 
 									if (Techno_Type) {
 										const double divisor = 53.822631;
@@ -327,7 +327,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 						if (!pCurrentFactory->IsDone()) {
 							VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
 							VoxClass::Play(pBuild->ItemType == AbstractType::InfantryType ? "EVA_Training" : "EVA_Building");
-							Techno_Type = FakeTechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
+							Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
 							PlayerPtr->SetBusy(pBuild->ItemType, Techno_Type->Naval, pBuild->Cat);
 							VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
 							EventClass Event {
@@ -1093,7 +1093,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 				if (CameoPCXSurface)
 				{
 					RectangleStruct bounds { screenX, screenY, 60, 48 };
-					PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, Drawing::DefaultColors[6].ToInit());
+					PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, CameoPCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 					CameoPCXSurface = nullptr;
 				}
 				else
@@ -1459,7 +1459,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 				else if (auto PCXSurface = pData->ObserverBackground.GetSurface())
 				{
 					RectangleStruct bounds = { panelX, panelY, ObserverBackgroundWidth, ObserverBackgroundHeight };
-					PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Drawing::DefaultColors[6].ToInit());
+					PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 				}
 			}
 
@@ -1497,7 +1497,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 								ObserverFlagPCXWidth, ObserverFlagPCXHeight
 						};
 
-						PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, Drawing::DefaultColors[6].ToInit());
+						PCX::Instance->BlitToSurface(&bounds, DSurface::Sidebar, PCXSurface, (WORD)Drawing::DefaultColors[6].ToInit());
 					}
 				}
 

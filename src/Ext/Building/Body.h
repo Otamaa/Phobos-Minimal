@@ -18,7 +18,10 @@ class BuildingExtData : public TechnoExtData
 {
 public:
 	using base_type = BuildingClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "BuildingExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "BuildingClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -132,8 +135,8 @@ public:
 		this->TechnoExtData::CalculateCRC(crc);
 	}
 
-	BuildingClass* This() const override { return reinterpret_cast<BuildingClass*>(this->AttachedToObject); }
-	const BuildingClass* This_Const() const override { return reinterpret_cast<const BuildingClass*>(this->AttachedToObject); }
+	BuildingClass* This() const { return reinterpret_cast<BuildingClass*>(this->AttachedToObject); }
+	const BuildingClass* This_Const() const { return reinterpret_cast<const BuildingClass*>(this->AttachedToObject); }
 
 public:
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);
@@ -213,17 +216,14 @@ private:
 class BuildingExtContainer final : public Container<BuildingExtData>
 {
 public:
+
+	static COMPILETIMEEVAL const char* ClassName = "BuildingExtContainer";
+
+public:
 	static BuildingExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array) {
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class NOVTABLE FakeBuildingClass : public BuildingClass
@@ -283,9 +283,6 @@ public:
 	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
 	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	KickOutResult __ExitObject(TechnoClass* object, CellStruct exitCell);
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	FORCEDINLINE BuildingClass* _AsBuilding() const {
 		return (BuildingClass*)this;

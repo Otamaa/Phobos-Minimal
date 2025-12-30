@@ -5,6 +5,7 @@
 #include <Helpers/Macro.h>
 #include <Utilities/PooledContainer.h>
 #include <Utilities/TemplateDef.h>
+#include <Utilities/PhobosFixedString.h>
 
 #include <TriggerTypeClass.h>
 
@@ -13,10 +14,13 @@ class TriggerExtData final : public AbstractExtended
 {
 public:
 	using base_type = TriggerClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "TriggerExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "TriggerClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
-
+	PhobosFixedString<0x18> Name;
 	std::vector<TEventClass*> SortedEventsList;
 	PhobosMap<int, CDTimerClass> SequentialTimers;
 	PhobosMap<int, int> SequentialTimersOriginalValue;
@@ -26,6 +30,7 @@ public:
 
 public:
 	TriggerExtData(TriggerClass* pObj) : AbstractExtended(pObj)
+		, Name {}
 		, SortedEventsList {}
 		, SequentialTimers {}
 		, SequentialTimersOriginalValue {}
@@ -60,8 +65,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	TriggerClass* This() const override { return reinterpret_cast<TriggerClass*>(this->AttachedToObject); }
-	const TriggerClass* This_Const() const override { return reinterpret_cast<const TriggerClass*>(this->AttachedToObject); }
+	TriggerClass* This() const { return reinterpret_cast<TriggerClass*>(this->AttachedToObject); }
+	const TriggerClass* This_Const() const { return reinterpret_cast<const TriggerClass*>(this->AttachedToObject); }
 
 private:
 	template <typename T>
@@ -71,18 +76,13 @@ private:
 class TriggerExtContainer final : public Container<TriggerExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "TriggerExtContainer";
+
+public:
 	static TriggerExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
 };
 
@@ -91,9 +91,6 @@ class NOVTABLE FakeTriggerClass : public TriggerClass
 public:
 	void _Detach(AbstractClass* target, bool all);
 	
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
-
 	TriggerExtData* _GetExtData()
 	{
 		return *reinterpret_cast<TriggerExtData**>(((DWORD)this) + AbstractExtOffset);

@@ -13,6 +13,8 @@
 #include <TaskForceClass.h>
 #include <TubeClass.h>
 
+#include <Phobos.SaveGame.h>
+
 template<typename Func, typename... Args>
 concept ReturnsBool = std::same_as<std::invoke_result_t<Func, Args...>, bool>;
 
@@ -321,126 +323,261 @@ void FakeTeamClass::_TMission_Guard(ScriptActionNode* nNode, bool arg3)
 
 void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 {
-	if (arg3)
-	{
-		TechnoClass* bestLeader = this->_Fetch_A_Leader();
-
-		if (!bestLeader) {
-			this->StepCompleted = true;
-			return;
-		}
-
-		HouseClass* enemyHouse = nullptr;
-		if (bestLeader->Owner->EnemyHouseIndex != -1)
-		{
-			enemyHouse = HouseClass::Array->Items[bestLeader->Owner->EnemyHouseIndex];
-		}
-
-		CoordStruct baseCenter { };
-		this->OwnerHouse->GetBaseCenterCoords(&baseCenter);
-		int baseX = baseCenter.X;
-		int baseY = baseCenter.Y;
-
-		double angleRad = 0.0;
-		if (enemyHouse)
-		{
-			CoordStruct enemyBase {};
-			enemyHouse->GetBaseCenterCoords(&enemyBase);
-			int dx = enemyBase.X - baseX;
-			int dy = enemyBase.Y - baseY;
-
-			angleRad = std::atan2((double)-dy, (double)dx) - Math::DEG90_AS_RAD;
-		}
-		else
-		{
-			int randomAngle = ScenarioClass::Instance->Random.RandomFromMax(256);
-			angleRad = ((randomAngle - 127) * 256) * Math::BINARY_ANGLE_MAGIC; // assuming BINARY_ANGLE_MAGIC == 256 and angle centered at 0
-		}
-
-		int safeDistance = (RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + nNode->Argument) << 8;
-		double distance = static_cast<double>(safeDistance);
-		double targetX = baseX + Math::cos(angleRad) * distance;
-		double targetY = baseY - Math::sin(angleRad) * distance;
-
-		CellStruct targetCell { (short)(static_cast<int>(targetX) / 256), (short)(static_cast<int>(targetY) / 256) };
-
-		TechnoTypeClass* leaderType = bestLeader->GetTechnoType();
-		CellStruct finalCell = MapClass::Instance->NearByLocation(
-			targetCell,
-			leaderType ? leaderType->SpeedType : SpeedType::Track,
-			ZoneType::None, MovementZone::Normal,
-			0, 3, 3, 0, 0, 0, 1, CellStruct::Empty, 0, 0
-		);
-
-		this->_AssignMissionTarget(MapClass::Instance->GetCellAt(finalCell));
+	// ------------------------------------------------------------
+   // Early exit - just coordinate movement
+   // ------------------------------------------------------------
+	if (!arg3) {
+		this->_CoordinateMove();
+		return;
 	}
+
+	// ------------------------------------------------------------
+	// Find team leader (highest leadership rating)
+	// ------------------------------------------------------------
+	TechnoClass* pLeader = this->_Fetch_A_Leader();
+
+	// ------------------------------------------------------------
+	// Get enemy house (optional - may be null)
+	// ------------------------------------------------------------
+	HouseClass* pEnemyHouse = nullptr;
+
+	if (pLeader) {
+		int enemyIndex = pLeader->Owner->EnemyHouseIndex;
+		if (enemyIndex != -1) {
+			pEnemyHouse = HouseClass::Array->Items[enemyIndex];
+		}
+	}
+
+	// ------------------------------------------------------------
+	// Get our base center
+	// ------------------------------------------------------------
+	CoordStruct ourBase;
+	pLeader->Owner->GetBaseCenterCoords(&ourBase);
+
+	// ------------------------------------------------------------
+	// Calculate gather direction
+	// ------------------------------------------------------------
+	short binaryAngle;
+
+	if (pEnemyHouse)
+	{
+		// Direction away from enemy base
+		CoordStruct enemyBase;
+		pEnemyHouse->GetBaseCenterCoords(&enemyBase);
+
+		int deltaX = enemyBase.X - ourBase.X;
+		int deltaY = enemyBase.Y - ourBase.Y;
+
+		double angleRadians = Math::atan2(double(-deltaY), double(deltaX));
+		angleRadians -= Math::DEG90_AS_RAD;
+
+		binaryAngle = static_cast<short>(angleRadians * Math::BINARY_ANGLE_MAGIC);
+	}
+	else
+	{
+		// Random direction
+		unsigned char randomAngle = ScenarioClass::Instance->Random.RandomRanged(0, 255);
+		binaryAngle = static_cast<short>(randomAngle << 8);
+	}
+
+	// ------------------------------------------------------------
+	// Calculate offset position from our base
+	// ------------------------------------------------------------
+	int adjustedAngle = static_cast<short>(binaryAngle) - 0x3FFF;
+	double radians = adjustedAngle * Math::DIRECTION_FIXED_MAGIC;
+
+	int safeDistance = (RulesExtData::Instance()->AIFriendlyDistance.Get(RulesClass::Instance->AISafeDistance) + nNode->Argument) << 8;
+
+	int targetY = static_cast<int>(ourBase.Y - Math::sin(radians) * safeDistance);
+	int targetX = static_cast<int>(ourBase.X + Math::cos(radians) * safeDistance);
+
+	// ------------------------------------------------------------
+	// Convert to cell coordinates (signed division with rounding)
+	// ------------------------------------------------------------
+	int signX = targetX >> 31;
+	int cellX = (targetX + (signX & 0xFF)) >> 8;
+
+	int signY = targetY >> 31;
+	int cellY = (targetY + (signY & 0xFF)) >> 8;
+
+	CellStruct targetCell { static_cast<short>(cellX)  , static_cast<short>(cellY) };
+
+	// ------------------------------------------------------------
+	// Find nearby valid location
+	// ------------------------------------------------------------
+	SpeedType speed = pLeader->GetTechnoType()->SpeedType;
+	CellStruct searchParams = { 0, 0 };
+
+	targetCell = MapClass::Instance->NearByLocation(targetCell, speed,
+		ZoneType::None,
+		MovementZone::Normal,
+		false,
+		3,
+		3,
+		false,
+		false,
+		false,
+		true,
+		searchParams,
+		false,
+		false
+	);
+
+	// ------------------------------------------------------------
+	// Assign target
+	// ------------------------------------------------------------
+	CellClass* pTargetCell = MapClass::Instance->GetCellAt(targetCell);
+	this->_AssignMissionTarget(pTargetCell);
+
+	// ------------------------------------------------------------
+	// Execute coordinated movement
+	// ------------------------------------------------------------
 	this->_CoordinateMove();
 }
 
 void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
 {
-	if (arg3)
-	{
-		TechnoClass* bestLeader = this->_Fetch_A_Leader();
-
-		if (!bestLeader) {
-			this->StepCompleted = true;
-			return;
-		}
-
-		int enemyID = bestLeader->Owner->EnemyHouseIndex;
-		if (enemyID == -1)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		HouseClass* enemyHouse = HouseClass::Array->Items[enemyID];
-		CoordStruct enemyBase {};
-		enemyHouse->GetBaseCenterCoords(&enemyBase);
-
-		if (enemyBase == CoordStruct::Empty)
-		{
-			this->StepCompleted = true;
-			return;
-		}
-
-		// Get own base center, fallback to unit center if no base
-		CoordStruct ownBase {};
-		this->OwnerHouse->GetBaseCenterCoords(&ownBase);
-		if (ownBase == CoordStruct::Empty)
-		{
-			bestLeader->Owner->GetBaseCenterCoords(&ownBase);
-		}
-
-		int dx = ownBase.X - enemyBase.X;
-		int dy = ownBase.Y - enemyBase.Y;
-
-		double angleRad = std::atan2((double)dy, (double)dx) - Math::DEG90_AS_RAD;
-
-		int safeDistance = (RulesClass::Instance->AISafeDistance + nNode->Argument) << 8;
-		double distance = static_cast<double>(safeDistance);
-
-		double targetX = enemyBase.X + Math::cos(angleRad) * distance;
-		double targetY = enemyBase.Y - Math::sin(angleRad) * distance;
-
-		CellStruct targetCell { (short)(static_cast<int>(targetX) / 256) ,  (short)(static_cast<int>(targetY) / 256) };
-
-		TechnoTypeClass* leaderType = bestLeader->GetTechnoType();
-		CellStruct finalCell = MapClass::Instance->NearByLocation(
-			targetCell,
-			leaderType->SpeedType,
-			ZoneType::None, MovementZone::Normal,
-			0, 3, 3, 0, 0, 0, 1, CellStruct::Empty, 0, 0
-		);
-
-		this->_AssignMissionTarget(MapClass::Instance->GetCellAt(finalCell));
-
-		Debug::LogInfo("[{}][{}] Team with Owner '{}' has chosen ({} , {}) for its GatherAtEnemy cell.",
-			(void*)this, this->Type->ID, bestLeader->Owner ? bestLeader->Owner->get_ID() : GameStrings::NoneStrb(), finalCell.X, finalCell.Y);
-
+	// ------------------------------------------------------------
+// Early exit - just coordinate movement
+// ------------------------------------------------------------
+	if (!arg3) {
+		this->_CoordinateMove();
+		return;
 	}
 
+	// ------------------------------------------------------------
+	// Find team leader (highest leadership rating)
+	// ------------------------------------------------------------
+	TechnoClass* pLeader = this->_Fetch_A_Leader();
+
+	// ------------------------------------------------------------
+	// Validate leader exists
+	// ------------------------------------------------------------
+	if (!pLeader)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	// ------------------------------------------------------------
+	// Get and validate enemy house
+	// ------------------------------------------------------------
+	int enemyIndex = pLeader->Owner->EnemyHouseIndex;
+	if (enemyIndex == -1)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	HouseClass* pEnemyHouse = HouseClass::Array->Items[enemyIndex];
+	if (!pEnemyHouse)
+	{
+		this->StepCompleted = true;
+		return;
+	}
+
+	// ------------------------------------------------------------
+	// Get and validate enemy base center
+	// ------------------------------------------------------------
+	CoordStruct enemyBase;
+	pEnemyHouse->GetBaseCenterCoords(&enemyBase);
+
+	if (!enemyBase.IsValid()) {
+		this->StepCompleted = true;
+		return;
+	}
+
+	// ------------------------------------------------------------
+	// Get our base center (fallback to leader position if invalid)
+	// ------------------------------------------------------------
+	CoordStruct ourBase;
+	pLeader->Owner->GetBaseCenterCoords(&ourBase);
+
+	if (!ourBase.IsValid()) {
+		ourBase = pLeader->GetCoords();
+	}
+
+	// ------------------------------------------------------------
+	// Calculate direction from enemy base toward our position
+	// ------------------------------------------------------------
+	int deltaX = ourBase.X - enemyBase.X;
+	int deltaY = enemyBase.Y - ourBase.Y;
+
+	double angleRadians = Math::atan2(double(-deltaY), double(deltaX));
+	angleRadians -= Math::DEG90_AS_RAD;
+
+	short binaryAngle = static_cast<short>(angleRadians * Math::BINARY_ANGLE_MAGIC);
+
+	// ------------------------------------------------------------
+	// Calculate offset position from enemy base
+	// ------------------------------------------------------------
+	int adjustedAngle = static_cast<short>(binaryAngle) - 0x3FFF;
+	double radians = adjustedAngle * Math::DIRECTION_FIXED_MAGIC;
+
+	int safeDistance = RulesClass::Instance->AISafeDistance << 8;
+
+	int rawY = static_cast<int>(enemyBase.Y - Math::sin(radians) * safeDistance);
+	int rawX = static_cast<int>(Math::cos(radians) * safeDistance + enemyBase.X);
+
+	// ------------------------------------------------------------
+	// Apply coordinate transformation
+	// ------------------------------------------------------------
+	CoordStruct transformedCoord(rawX , rawY , enemyBase.Z);
+
+	// ------------------------------------------------------------
+	// Convert to cell coordinates (signed division with rounding)
+	// ------------------------------------------------------------
+	int cellX = transformedCoord.X;
+	int signX = cellX >> 31;
+	cellX = (cellX + (signX & 0xFF)) >> 8;
+
+	int cellY = transformedCoord.Y;
+	int signY = cellY >> 31;
+	cellY = (cellY + (signY & 0xFF)) >> 8;
+
+	CellStruct targetCell;
+	targetCell.X = static_cast<short>(cellX);
+	targetCell.Y = static_cast<short>(cellY);
+
+	// ------------------------------------------------------------
+	// Find nearby valid location
+	// ------------------------------------------------------------
+	SpeedType speed = pLeader->GetTechnoType()->SpeedType;
+	CellStruct searchParams = { 0, 0 };
+
+	targetCell = MapClass::Instance->NearByLocation(
+		targetCell,
+		speed,
+		ZoneType::None,
+		MovementZone::Normal,
+		false,
+		3,
+		3,
+		false,
+		false,
+		false,
+		true,
+		searchParams,
+		false,
+		false
+	);
+
+	// ------------------------------------------------------------
+	// Assign target and log
+	// ------------------------------------------------------------
+	CellClass* pTargetCell = MapClass::Instance->GetCellAt(targetCell);
+	this->_AssignMissionTarget(pTargetCell);
+
+	Debug::Log(
+		"A %s Team has chosen ( %d, %d) for its GatherAtEnemy cell.\n",
+		this->Type->Name,
+		targetCell.X,
+		targetCell.Y
+	);
+
+	// ------------------------------------------------------------
+	// Execute coordinated movement
+	// ------------------------------------------------------------
 	this->_CoordinateMove();
 }
 
@@ -4791,6 +4928,7 @@ template <typename T>
 void TeamExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Name)
 		.Process(this->WaitNoTargetAttempts)
 		.Process(this->NextSuccessWeightAward)
 		.Process(this->IdxSelectedObjectFromAIList)
@@ -4829,21 +4967,66 @@ void TeamExtData::Serialize(T& Stm)
 // =============================
 // container
 TeamExtContainer TeamExtContainer::Instance;
-std::vector<TeamExtData*> Container<TeamExtData>::Array;
 
-void Container<TeamExtData>::Clear()
+bool TeamExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(TeamExtContainer::ClassName))
+	{
+		auto& container = root[TeamExtContainer::ClassName];
+
+		for (auto& entry : container[TeamExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TeamExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool TeamExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool TeamExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[TeamExtContainer::ClassName];
 
-bool TeamExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : TeamExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[TeamExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -4867,29 +5050,9 @@ ASMJIT_PATCH(0x6E8ECB, TeamClass_DTOR, 0x7)
 
 void FakeTeamClass::_Detach(AbstractClass* target, bool all)
 {
-	TeamExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 	this->TeamClass::PointerExpired(target, all);
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4758, FakeTeamClass::_Detach)
-
-HRESULT __stdcall FakeTeamClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->TeamClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = TeamExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeTeamClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->TeamClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = TeamExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4744, FakeTeamClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4748, FakeTeamClass::_Save)

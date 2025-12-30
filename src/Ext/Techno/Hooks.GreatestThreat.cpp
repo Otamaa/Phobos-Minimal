@@ -484,15 +484,11 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 		for (int x = -radius; x <= radius; ++x)
 		{
 			// Top edge
-			CellStruct topCell;
-			topCell.X = centerCell.X + x;
-			topCell.Y = centerCell.Y - radius;
+			CellStruct topCell((short)(centerCell.X + x), (short)(centerCell.Y - radius));
 			EvaluateCellAndUpdate(&topCell);
 
 			// Bottom edge
-			CellStruct bottomCell;
-			bottomCell.X = centerCell.X + x;
-			bottomCell.Y = centerCell.Y + radius;
+			CellStruct bottomCell((short)(centerCell.X + x), (short)(centerCell.Y + radius));
 			EvaluateCellAndUpdate(&bottomCell);
 		}
 
@@ -500,15 +496,11 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 		for (int y = 1 - radius; y < radius; ++y)
 		{
 			// Left edge
-			CellStruct leftCell;
-			leftCell.X = centerCell.X - radius;
-			leftCell.Y = centerCell.Y + y;
+			CellStruct leftCell((short)(centerCell.X - radius), (short)(centerCell.Y + y));
 			EvaluateCellAndUpdate(&leftCell);
 
 			// Right edge
-			CellStruct rightCell;
-			rightCell.X = centerCell.X + radius;
-			rightCell.Y = centerCell.Y + y;
+			CellStruct rightCell((short)(centerCell.X + radius), (short)(centerCell.Y + y));
 			EvaluateCellAndUpdate(&rightCell);
 		}
 

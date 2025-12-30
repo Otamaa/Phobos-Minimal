@@ -12,7 +12,10 @@ class TiberiumExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = TiberiumClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "TiberiumExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "TiberiumClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region ClassMember
@@ -129,8 +132,8 @@ public:
 		this->AbstractTypeExtData::CalculateCRC(crc);
 	}
 
-	TiberiumClass* This() const override { return reinterpret_cast<TiberiumClass*>(this->AttachedToObject); }
-	const TiberiumClass* This_Const() const override { return reinterpret_cast<const TiberiumClass*>(this->AttachedToObject); }
+	TiberiumClass* This() const { return reinterpret_cast<TiberiumClass*>(this->AttachedToObject); }
+	const TiberiumClass* This_Const() const { return reinterpret_cast<const TiberiumClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -185,13 +188,25 @@ private:
 };
 
 class TiberiumExtContainer final : public Container<TiberiumExtData>
+				, public ReadWriteContainerInterfaces<TiberiumExtData>
 {
 public:
-	static TiberiumExtContainer Instance;
-	static PhobosMap<OverlayTypeClass* , TiberiumClass*> LinkedType;
+	static COMPILETIMEEVAL const char* ClassName = "TiberiumExtContainer";
+	using base_t = Container<TiberiumExtData>;
+public:
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	PhobosMap<OverlayTypeClass*, TiberiumClass*> LinkedType;
+
+public:
+
+	static TiberiumExtContainer Instance;
+
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
+	virtual void Clear();
+
+	virtual void LoadFromINI(TiberiumClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(TiberiumClass* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeTiberiumClass : public TiberiumClass

@@ -6,11 +6,6 @@
 
 Enumerable<ThemeTypeClass>::container_t Enumerable<ThemeTypeClass>::Array;
 
-const char* Enumerable<ThemeTypeClass>::GetMainSection()
-{
-	return "Themes";
-}
-
 void ThemeTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	this->NextText.Read(pINI, this->Name.data(), "Next");

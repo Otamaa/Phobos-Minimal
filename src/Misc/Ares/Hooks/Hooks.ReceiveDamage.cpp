@@ -273,7 +273,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 					if (pAttackerHoue && pAttackerHoue->CanTransactMoney(nBounty))
 					{
 						pAttackerHoue->TransactMoney(nBounty);
-						FlyingStrings::AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords, Point2D::Empty, ColorStruct::Empty);
+						FlyingStrings::Instance.AddMoneyString(true, nBounty, pAttackerHoue, AffectedHouse::All, nCoords, Point2D::Empty, ColorStruct::Empty);
 					}
 				}
 
@@ -822,7 +822,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 	const bool Show = Phobos::Otamaa::IsAdmin || *damage;
 
 	if (bool(Phobos::Debug_DisplayDamageNumbers > DrawDamageMode::disabled) && Phobos::Debug_DisplayDamageNumbers < DrawDamageMode::count && Show)
-		FlyingStrings::DisplayDamageNumberString(*damage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset, Phobos::Debug_DisplayDamageNumbers, warhead);
+		FlyingStrings::Instance.DisplayDamageNumberString(*damage, DamageDisplayType::Regular, pThis->GetRenderCoords(), TechnoExtContainer::Instance.Find(pThis)->DamageNumberOffset, Phobos::Debug_DisplayDamageNumbers, warhead);
 
 	if (!pThis->Health)
 	{

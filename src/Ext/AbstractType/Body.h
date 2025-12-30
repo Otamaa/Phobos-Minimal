@@ -7,6 +7,8 @@ class CCINIClass;
 class AbstractTypeExtData : public AbstractExtended
 {
 public:
+	PhobosFixedString<0x18> Name;
+public:
 
 	AbstractTypeExtData(AbstractTypeClass* pObj) : AbstractExtended(pObj) {
 		this->Name = pObj->ID;
@@ -20,11 +22,13 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->AbstractExtended::Internal_LoadFromStream(Stm);
+		Stm.Process(Name);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		this->AbstractExtended::Internal_SaveToStream(Stm);
+		Stm.Process(Name);
 	}
 
 	virtual int GetSize() const { return sizeof(*this); };
@@ -36,6 +40,6 @@ public:
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) = 0;
 	virtual bool WriteToINI(CCINIClass* pINI) const = 0;
 
-	AbstractTypeClass* This() const override { return reinterpret_cast<AbstractTypeClass*>(this->AttachedToObject); }
-	const AbstractTypeClass* This_Const() const override { return reinterpret_cast<const AbstractTypeClass*>(this->AttachedToObject); }
+	AbstractTypeClass* This() const { return reinterpret_cast<AbstractTypeClass*>(this->AttachedToObject); }
+	const AbstractTypeClass* This_Const() const { return reinterpret_cast<const AbstractTypeClass*>(this->AttachedToObject); }
 };

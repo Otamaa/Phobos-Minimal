@@ -394,9 +394,9 @@ void WarheadTypeExtData::applyStealMoney(TechnoClass* const Owner, TechnoClass* 
 					if (pBulletOwnerHouse->CanTransactMoney(nStealAmout) && pBulletTargetHouse->CanTransactMoney(-nStealAmout))
 					{
 						pBulletOwnerHouse->TransactMoney(nStealAmout);
-						FlyingStrings::AddMoneyString(Steal_Display.Get(), nStealAmout, Owner, Steal_Display_Houses.Get(), Owner->GetCoords(), Steal_Display_Offset.Get(), ColorStruct::Empty);
+						FlyingStrings::Instance.AddMoneyString(Steal_Display.Get(), nStealAmout, Owner, Steal_Display_Houses.Get(), Owner->GetCoords(), Steal_Display_Offset.Get(), ColorStruct::Empty);
 						pBulletTargetHouse->TransactMoney(-nStealAmout);
-						FlyingStrings::AddMoneyString(Steal_Display.Get(), -nStealAmout, Target, Steal_Display_Houses.Get(), Target->GetCoords(), Steal_Display_Offset.Get(), ColorStruct::Empty);
+						FlyingStrings::Instance.AddMoneyString(Steal_Display.Get(), -nStealAmout, Target, Steal_Display_Houses.Get(), Target->GetCoords(), Steal_Display_Offset.Get(), ColorStruct::Empty);
 
 					}
 				}
@@ -483,7 +483,7 @@ void WarheadTypeExtData::applyTransactMoney(TechnoClass* pOwner, HouseClass* pHo
 		auto displayCoord = TransactMoney_Display_AtFirer ? (pOwner ? pOwner->Location : coords) : (!bForSelf ? pBullet && pBullet->Target ? pBullet->Target->GetCoords() : coords : coords);
 		auto pDrawOwner = TransactMoney_Display_AtFirer ? (pOwner ? pOwner : nullptr) : (!bForSelf ? (pBullet && pBullet->Target ? flag_cast_to<TechnoClass*>(pBullet->Target) : nullptr) : nullptr);
 
-		FlyingStrings::AddMoneyString(true, nTransactVal, pDrawOwner, TransactMoney_Display_Houses.Get(), displayCoord, TransactMoney_Display_Offset.Get(), ColorStruct::Empty);
+		FlyingStrings::Instance.AddMoneyString(true, nTransactVal, pDrawOwner, TransactMoney_Display_Houses.Get(), displayCoord, TransactMoney_Display_Offset.Get(), ColorStruct::Empty);
 	}
 }
 

@@ -66,7 +66,7 @@ ASMJIT_PATCH(0x5880A0, MapClass_FindFirstFirestorm, 6)
 
 	*pOutBuffer = CoordStruct::Empty;
 
-	if (HouseExtData::IsAnyFirestormActive && *pStart != *pEnd)
+	if (HouseExtContainer::Instance.IsAnyFirestormActive && *pStart != *pEnd)
 	{
 		auto const start = CellClass::Coord2Cell(*pStart);
 		auto const end = CellClass::Coord2Cell(*pEnd);
@@ -265,7 +265,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 		}
 	}
 
-	if (HouseExtData::IsAnyFirestormActive) {
+	if (HouseExtContainer::Instance.IsAnyFirestormActive) {
 		if (pThis->IsAlive && !pThis->InLimbo && !pThis->InOpenToppedTransport && !pType->IgnoresFirestorm) {
 			if (auto const pBld = pThis->GetCell()->GetBuilding()) {
 				if (FirewallFunctions::IsActiveFirestormWall(pBld, nullptr)) {
@@ -410,7 +410,7 @@ ASMJIT_PATCH(0x467B94, BulletClass_Update_Ranged, 7)
 	pThis->SetLocation(CrdNew);
 
 	// firestorm wall check
-	if (HouseExtData::IsAnyFirestormActive && !pThis->Type->IgnoresFirestorm)
+	if (HouseExtContainer::Instance.IsAnyFirestormActive && !pThis->Type->IgnoresFirestorm)
 	{
 		auto const pCell = MapClass::Instance->GetCellAt(CrdNew);
 
@@ -515,7 +515,7 @@ ASMJIT_PATCH(0x6FF008, TechnoClass_Fire_FSW, 8)
 		}
 	}
 
-	if (!HouseExtData::IsAnyFirestormActive || !Bullet->Type->IgnoresFirestorm) {
+	if (!HouseExtContainer::Instance.IsAnyFirestormActive || !Bullet->Type->IgnoresFirestorm) {
 		return 0;
 	}
 

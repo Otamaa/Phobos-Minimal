@@ -32,8 +32,8 @@ public:
 		this->AbstractTypeExtData::CalculateCRC(crc);
 	}
 
-	ObjectTypeClass* This() const override { return reinterpret_cast<ObjectTypeClass*>(this->AttachedToObject); }
-	const ObjectTypeClass* This_Const() const override { return reinterpret_cast<const ObjectTypeClass*>(this->AttachedToObject); }
+	ObjectTypeClass* This() const { return reinterpret_cast<ObjectTypeClass*>(this->AttachedToObject); }
+	const ObjectTypeClass* This_Const() const { return reinterpret_cast<const ObjectTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr) { return parseFailAddr ? false : true; }
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }

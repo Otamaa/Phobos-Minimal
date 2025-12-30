@@ -13,6 +13,8 @@
 #include <GameOptionsClass.h>
 #include <TacticalClass.h>
 
+#include <Phobos.SaveGame.h>
+
 ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj),
 What(Behave::None),
 HeldType(nullptr),
@@ -827,12 +829,11 @@ void ParticleSystemExtData::UpdateInAir()
 		if (Unsorted::ArmageddonMode() || !Game::hInstance() || ((ScenarioClass::Instance->SpecialFlags.RawFlags + 1) & 16) == 0)
 			StopDrawing = true;
 
-		for (auto pSys : *ParticleSystemClass::Array)
-		{
-			auto pExt = ParticleSystemExtContainer::Instance.Find(pSys);
+		for (auto pSys : *ParticleSystemClass::Array) {
+			auto pExt = ParticleSystemExtContainer::Instance.TryFind(pSys);
 
 			if (!pExt)
-				Debug::FatalError("ParticleSystem without Ext[%x]", pSys);
+				continue;
 
 			pExt->UpdateInAir_Main(StopDrawing);
 		}
@@ -856,21 +857,66 @@ void ParticleSystemExtData::Serialize(T& Stm)
 // =============================
 // container
 ParticleSystemExtContainer ParticleSystemExtContainer::Instance;
-std::vector<ParticleSystemExtData*> Container<ParticleSystemExtData>::Array;
 
-void Container<ParticleSystemExtData>::Clear()
+bool ParticleSystemExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(ParticleSystemExtContainer::ClassName))
+	{
+		auto& container = root[ParticleSystemExtContainer::ClassName];
+
+		for (auto& entry : container[ParticleSystemExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, ParticleSystemExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool ParticleSystemExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool ParticleSystemExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[ParticleSystemExtContainer::ClassName];
 
-bool ParticleSystemExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : ParticleSystemExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[ParticleSystemExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================
@@ -891,7 +937,7 @@ ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 
 	if (pItem->Owner && pItem->Owner->WhatAmI() == AnimClass::AbsID)
 	{
-		for (AnimClass* anim : AnimExtContainer::AnimsWithAttachedParticles)
+		for (AnimClass* anim : AnimExtContainer::Instance.AnimsWithAttachedParticles)
 		{
 			auto pAnimExt = AnimExtContainer::Instance.Find(anim);
 
@@ -905,31 +951,6 @@ ASMJIT_PATCH(0x62E26B, ParticleSystemClass_DTOR, 0x6)
 	ParticleSystemExtContainer::Instance.Remove(pItem);
 	return 0;
 }
-
-HRESULT __stdcall FakeParticleSystemClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->ParticleSystemClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = ParticleSystemExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeParticleSystemClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->ParticleSystemClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = ParticleSystemExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB0, FakeParticleSystemClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7EFBB4, FakeParticleSystemClass::_Save)
-
-// Vanilla won't swizzle owner house of Particle System when loading, which was fine before
-// But now it might trigger a crash since DamageAllies/Enemies/OwnerMultiplier will check its house
-// Fix it at here for now. If we extend ParticleSystemClass in the future this should be moved to there
 
 ASMJIT_PATCH(0x62FFBB, ParticleSystemClass_Load_OwnerHouse, 0x8)
 {

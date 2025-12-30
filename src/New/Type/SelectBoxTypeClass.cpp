@@ -3,11 +3,6 @@
 
 Enumerable<SelectBoxTypeClass>::container_t Enumerable<SelectBoxTypeClass>::Array;
 
-const char* Enumerable<SelectBoxTypeClass>::GetMainSection()
-{
-	return "SelectBoxTypes";
-}
-
 void SelectBoxTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name;

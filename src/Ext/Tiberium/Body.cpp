@@ -4,6 +4,8 @@
 
 #include <InfantryClass.h>
 
+#include <Phobos.SaveGame.h>
+
 int TiberiumExtData::Map_Cell_Index(CellStruct const& cell)
 {
 	return ((cell.X - cell.Y + MapClass::Instance->MapRect.Width - 1) >> 1) +
@@ -313,13 +315,13 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			if (i == 0) {
 				first = pOverlay;
 
-				auto iter = TiberiumExtContainer::LinkedType.get_key_iterator(pOverlay);
+				auto iter = TiberiumExtContainer::Instance.LinkedType.get_key_iterator(pOverlay);
 
-				if (iter != TiberiumExtContainer::LinkedType.end()) {
+				if (iter != TiberiumExtContainer::Instance.LinkedType.end()) {
 					if (iter->second != this->This())
 						Debug::FatalErrorAndExit("OverlayType[%s] already assigned to [%s] Tiberium! ", pOverlay->ID, iter->second->ID);
 				} else {
-					TiberiumExtContainer::LinkedType.emplace_unchecked(pOverlay, this->This());
+					TiberiumExtContainer::Instance.LinkedType.emplace_unchecked(pOverlay, this->This());
 				}
 			}
 			else if (first && pOverlay->ArrayIndex != (first->ArrayIndex + i)) {
@@ -690,34 +692,122 @@ void TiberiumExtData::Serialize(T& Stm)
 }
 
 TiberiumExtContainer TiberiumExtContainer::Instance;
-PhobosMap<OverlayTypeClass*, TiberiumClass*> TiberiumExtContainer::LinkedType;
-std::vector<TiberiumExtData*> Container<TiberiumExtData>::Array;
 
-bool TiberiumExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool TiberiumExtContainer::LoadAll(const json& root)
 {
-	auto ret = LoadGlobalArrayData(Stm);
+	this->Clear();
 
-	ret &= Stm
-		.Process(LinkedType)
-		.Success();
+	if (root.contains(TiberiumExtContainer::ClassName))
+	{
+		auto& container = root[TiberiumExtContainer::ClassName];
 
-	return ret;
+		for (auto& entry : container[TiberiumExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TiberiumExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		size_t dataSize = container["LinkedType_datasize"].get<size_t>();
+		std::string encoded = container["LinkedType_data"].get<std::string>();
+
+		PhobosByteStream loader(dataSize);
+		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+		PhobosStreamReader reader(loader);
+
+		reader.Process(this->LinkedType);
+
+		if (!reader.ExpectEndOfBlock())
+			return false;
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool TiberiumExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+bool TiberiumExtContainer::SaveAll(json& root)
 {
-	auto ret = SaveGlobalArrayData(Stm);
+	auto& first_layer = root[TiberiumExtContainer::ClassName];
 
-	ret &= Stm
-		.Process(LinkedType)
-		.Success();
+	json _extRoot = json::array();
+	for (auto& _extData : TiberiumExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
 
-	return ret;
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[TiberiumExtData::ClassName] = std::move(_extRoot);
+
+	PhobosByteStream saver(0);
+	PhobosStreamWriter writer(saver);
+
+	writer.Process(this->LinkedType);
+
+	first_layer["LinkedType_datasize"] = saver.data.size();
+	first_layer["LinkedType_data"] = Base64Handler::encodeBase64(saver.data);
+
+	return true;
 }
 
-void Container<TiberiumExtData>::Clear()
+void TiberiumExtContainer::LoadFromINI(TiberiumClass* key, CCINIClass* pINI, bool parseFailAddr)
 {
-	Array.clear();
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void TiberiumExtContainer::WriteToINI(TiberiumClass* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
+}
+
+void TiberiumExtContainer::Clear()
+{
+	this->base_t::Clear();
 	TiberiumExtContainer::LinkedType.clear();
 }
 

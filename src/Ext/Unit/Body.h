@@ -7,7 +7,10 @@ class UnitExtData : public FootExtData
 {
 public:
 	using base_type = UnitClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "UnitExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "UnitClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region classMembers
@@ -68,8 +71,8 @@ public:
 		this->FootExtData::CalculateCRC(crc);
 	}
 
-	UnitClass* This() const override { return reinterpret_cast<UnitClass*>(this->AttachedToObject); }
-	const UnitClass* This_Const() const override { return reinterpret_cast<const UnitClass*>(this->AttachedToObject); }
+	UnitClass* This() const { return reinterpret_cast<UnitClass*>(this->AttachedToObject); }
+	const UnitClass* This_Const() const { return reinterpret_cast<const UnitClass*>(this->AttachedToObject); }
 
 public:
 
@@ -78,18 +81,13 @@ public:
 class UnitExtContainer final : public Container<UnitExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "UnitExtContainer";
+
+public:
 	static UnitExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
 	static bool HasDeployingAnim(TechnoTypeClass* pUnitType);
 	static bool CheckDeployRestrictions(FootClass* pUnit, bool isDeploying);
@@ -100,9 +98,6 @@ class UnitTypeExtData;
 class NOVTABLE FakeUnitClass : public UnitClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
-
 	bool _Paradrop(CoordStruct* pCoords);
 	CoordStruct* _GetFLH(CoordStruct* buffer, int wepon, CoordStruct base);
 	int _Mission_Attack();

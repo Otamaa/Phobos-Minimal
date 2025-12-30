@@ -2,9 +2,6 @@
 
 Enumerable<InsigniaTypeClass>::container_t Enumerable<InsigniaTypeClass>::Array;
 
-template<>
-const char* Enumerable<InsigniaTypeClass>::GetMainSection() { return "InsigniaTypes"; }
-
 void InsigniaTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* section = this->Name.data();

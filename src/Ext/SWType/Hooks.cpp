@@ -85,7 +85,7 @@ ASMJIT_PATCH(0x55AFB3, LogicClass_Update, 0x6) //_Early
 	lastFrameTime = std::chrono::high_resolution_clock::now();
 
 	HarmlessCommandClass::AI();
-	SWFirerClass::Update();
+	SWFirerManagerClass::Instance.Update();
 	SWStateMachine::UpdateAll();
 	HouseExtData::UpdateAutoDeathObjects();
 	HouseExtData::UpdateTransportReloaders();

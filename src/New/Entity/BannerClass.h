@@ -5,12 +5,13 @@
 
 #include <Point2D.h>
 
+#include <Utilities/Interfaces.h>
+
 class BannerTypeClass;
 
 class BannerClass
 {
 public:
-	static HelperedVector<BannerClass> Array;
 
 	BannerTypeClass* Type {};
 	int ID {};
@@ -35,12 +36,8 @@ public:
 
 	void Render();
 
-	static void Clear();
 	bool Load(PhobosStreamReader& Stm, bool RegisterForChange);
 	bool Save(PhobosStreamWriter& Stm) const;
-
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
 
 private:
 	template <typename T>
@@ -50,3 +47,21 @@ private:
 	void RenderSHP(Point2D position);
 	void RenderCSF(Point2D position);
 };
+
+struct BannerManagerClass : public GlobalSaveable
+{
+	HelperedVector<BannerClass> Array;
+
+public:
+	BannerManagerClass() = default;
+	virtual ~BannerManagerClass() = default;
+
+	virtual bool SaveGlobal(json& root);
+	virtual bool LoadGlobal(const json& root);
+	virtual void Clear();
+
+public:
+
+	static BannerManagerClass Instance;
+};
+

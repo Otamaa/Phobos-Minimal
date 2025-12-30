@@ -1,9 +1,11 @@
 #pragma once
 
-#include <SuperClass.h>
 #include <Utilities/SavegameDef.h>
 #include <Utilities/VectorHelper.h>
+#include <Utilities/Interfaces.h>
 
+
+class SuperClass;
 class SWFirerClass
 {
 public:
@@ -26,37 +28,8 @@ public:
 
 	SWFirerClass() = default;
 
-	SWFirerClass(SuperClass* SW, int deferment, CellStruct cell, bool playerControl, int oldstart, int oldleft) :
-		SW { SW },
-		deferment {},
-		cell { cell },
-		playerControl { playerControl },
-		oldstart { oldstart },
-		oldleft { MaxImpl(oldleft - deferment, 0) }
-	{
-		this->SW->Reset();
-		this->deferment.Start(deferment);
-	}
-
+	SWFirerClass(SuperClass* SW, int deferment, CellStruct cell, bool playerControl, int oldstart, int oldleft);
 	~SWFirerClass() = default;
-
-public:
-	static HelperedVector<SWFirerClass> Array;
-
-	static void Clear() { Array.clear(); }
-	static void Update();
-
-	static bool SaveGlobals(PhobosStreamWriter& stm) {
-		return stm
-			.Process(Array)
-			.Success();
-	}
-
-	static bool LoadGlobals(PhobosStreamReader& stm) {
-		return stm
-			.Process(Array)
-			.Success();
-	}
 
 private:
 	template <typename T>
@@ -71,4 +44,21 @@ private:
 			.Process(this->oldleft)
 			.Success();
 	}
+};
+
+struct SWFirerManagerClass : public GlobalSaveable
+{
+	HelperedVector<SWFirerClass> Array;
+
+public:
+	SWFirerManagerClass() = default;
+	virtual ~SWFirerManagerClass() = default;
+
+	virtual bool SaveGlobal(json& root);
+	virtual bool LoadGlobal(const json& root);
+	virtual void Clear();
+
+	void Update();
+public:
+	static SWFirerManagerClass Instance;
 };

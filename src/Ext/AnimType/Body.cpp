@@ -17,8 +17,7 @@
 
 #include <AircraftTrackerClass.h>
 
-// AnimType Class is readed before Unit and weapon
-// so it is safe to `allocate` them before
+#include <Phobos.SaveGame.h>
 
 bool AnimTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
@@ -647,21 +646,96 @@ void AnimTypeExtData::Serialize(T& Stm)
 }
 
 AnimTypeExtContainer AnimTypeExtContainer::Instance;
-std::vector<AnimTypeExtData*> Container<AnimTypeExtData>::Array;
 
-void Container<AnimTypeExtData>::Clear()
+bool AnimTypeExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(AnimTypeExtContainer::ClassName))
+	{
+		auto& container = root[AnimTypeExtContainer::ClassName];
+
+		for (auto& entry : container[AnimTypeExtData::ClassName])
+		{
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AnimTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
-bool AnimTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool AnimTypeExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
+	auto& first_layer = root[AnimTypeExtContainer::ClassName];
+
+	json _extRoot = json::array();
+	for (auto& _extData : AnimTypeExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer); // write all data to stream
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[AnimTypeExtData::ClassName] = std::move(_extRoot);
+	return true;
 }
 
-bool AnimTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+void AnimTypeExtContainer::LoadFromINI(AnimTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
 {
-	return SaveGlobalArrayData(Stm);
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void AnimTypeExtContainer::WriteToINI(AnimTypeClass* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
 }
 
 ASMJIT_PATCH(0x42784B, AnimTypeClass_CTOR, 0x5)
@@ -689,29 +763,3 @@ bool FakeAnimTypeClass::_ReadFromINI(CCINIClass* pINI)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E366C, FakeAnimTypeClass::_ReadFromINI)
-
-
-HRESULT __stdcall FakeAnimTypeClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->AnimTypeClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = AnimTypeExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeAnimTypeClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	//temporarely remove it
-	auto ext = this->_GetExtData();
-	AnimTypeExtContainer::Instance.ClearExtAttribute(this);
-	HRESULT hr = this->AnimTypeClass::Save(pStm, clearDirty);
-	AnimTypeExtContainer::Instance.SetExtAttribute(this, ext);
-	if (SUCCEEDED(hr))
-		hr = AnimTypeExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E361C, FakeAnimTypeClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3620, FakeAnimTypeClass::_Save)

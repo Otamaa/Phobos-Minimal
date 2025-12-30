@@ -70,11 +70,6 @@ void CursorTypeClass::AddDefaults()
 	}
 }
 
-const char* Enumerable<CursorTypeClass>::GetMainSection()
-{
-	return "MouseCursors";
-}
-
 void CursorTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	auto const pKey = this->Name.c_str();
@@ -83,7 +78,7 @@ void CursorTypeClass::LoadFromINI(CCINIClass* pINI)
 		return;
 
 	INI_EX exINI { pINI };
-	auto const pSection = this->GetMainSection();
+	auto const pSection = CursorTypeClass::MainSection;
 
 	this->CursorData.Read(exINI, pSection, pKey);
 }
@@ -103,7 +98,7 @@ void CursorTypeClass::LoadFromINIList_New(CCINIClass* pINI, bool bDebug)
 	if (!pINI)
 		return;
 
-	const char* section = GetMainSection();
+	const char* section = CursorTypeClass::MainSection;
 
 	if (!pINI->GetSection(section))
 		return;

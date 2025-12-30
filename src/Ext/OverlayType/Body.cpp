@@ -5,6 +5,8 @@
 
 #include <Helpers\Macro.h>
 
+#include <Phobos.SaveGame.h>
+
 bool OverlayTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
 	if (!this->ObjectTypeExtData::LoadFromINI(pINI, parseFailAddr) || parseFailAddr)
@@ -38,22 +40,97 @@ void OverlayTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 OverlayTypeExtContainer OverlayTypeExtContainer::Instance;
-std::vector<OverlayTypeExtData*> Container< OverlayTypeExtData>::Array;
 
-void  Container< OverlayTypeExtData>::Clear()
+bool OverlayTypeExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
-}
-bool OverlayTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
-{
-	return LoadGlobalArrayData(Stm);
+	this->Clear();
+
+	if (root.contains(OverlayTypeExtContainer::ClassName))
+	{
+		auto& container = root[OverlayTypeExtContainer::ClassName];
+
+		for (auto& entry : container[OverlayTypeExtData::ClassName])
+		{
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, OverlayTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
-bool OverlayTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+bool OverlayTypeExtContainer::SaveAll(json& root)
 {
-	return SaveGlobalArrayData(Stm);
+	auto& first_layer = root[OverlayTypeExtContainer::ClassName];
+
+	json _extRoot = json::array();
+	for (auto& _extData : OverlayTypeExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer); // write all data to stream
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[OverlayTypeExtData::ClassName] = std::move(_extRoot);
+	return true;
 }
 
+void OverlayTypeExtContainer::LoadFromINI(OverlayTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
+{
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void OverlayTypeExtContainer::WriteToINI(OverlayTypeClass* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
+}
 // =============================
 // container hooks
 

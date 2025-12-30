@@ -8,6 +8,10 @@
 class PaletteManager final : public Enumerable<PaletteManager>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "Palettes";
+	static COMPILETIMEEVAL const char* ClassName = "PaletteManager";
+
+public:
 	enum class Mode : unsigned int
 	{
 		Default = 0,

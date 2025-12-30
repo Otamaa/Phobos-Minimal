@@ -2753,7 +2753,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						if (pCollectorOwner->ControlledByCurrentPlayer())
 						{
 							auto loc_fly = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
-							FlyingStrings::AddMoneyString(true, soloCrateMoney, pHouseDest, AffectedHouse::Owner, loc_fly, Point2D::Empty, ColorStruct::Empty);
+							FlyingStrings::Instance.AddMoneyString(true, soloCrateMoney, pHouseDest, AffectedHouse::Owner, loc_fly, Point2D::Empty, ColorStruct::Empty);
 						}
 						PlaySoundAffect(Powerup::Money);
 						PlayAnimAffect(Powerup::Money);
@@ -3518,7 +3518,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 
 	auto unit_storage = &TechnoExtContainer::Instance.Find(pThis)->TiberiumStorage;
 	if (!pBld->Type->Weeder)
-		HouseExtData::LastHarvesterBalance = pBld->GetOwningHouse()->Available_Money();// Available_Money takes silos into account
+		HouseExtContainer::Instance.LastHarvesterBalance = pBld->GetOwningHouse()->Available_Money();// Available_Money takes silos into account
 
 	const  auto pType = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 	const int idxTiberium = unit_storage->GetFirstSlotUsed();
@@ -3562,7 +3562,7 @@ ASMJIT_PATCH(0x73E3BF, UnitClass_Mi_Unload_replace, 0x6)
 			pThis->Animation.Stage = 0;
 
 			BuildingExtContainer::Instance.Find(pBld)->AccumulatedIncome +=
-				pBld->Owner->Available_Money() - HouseExtData::LastHarvesterBalance;
+				pBld->Owner->Available_Money() - HouseExtContainer::Instance.LastHarvesterBalance;
 
 		}
 
@@ -3736,7 +3736,7 @@ ASMJIT_PATCH(0x522D50, InfantryClass_StorageAI_Handle, 0x5)
 				{
 					if (pThis->Owner->IsControlledByHuman() || RulesExtData::Instance()->DisplayIncome_AllowAI)
 					{
-						FlyingStrings::AddMoneyString(
+						FlyingStrings::Instance.AddMoneyString(
 						money,
 						money,
 						pThis,

@@ -11,6 +11,10 @@ class WeaponTypeClass;
 class CrateTypeClass final : public Enumerable<CrateTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "CrateTypes";
+	static COMPILETIMEEVAL const char* ClassName = "CrateTypeClass";
+
+public:
 
 	Valueable<int> Weight;
 	Valueable<AnimTypeClass*> Anim;

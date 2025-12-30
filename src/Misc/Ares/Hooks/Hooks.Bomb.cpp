@@ -45,51 +45,51 @@ ASMJIT_PATCH(0x725961, AnnounceInvalidPointer_BombCloak, 0x6)
 	return remove ? 0 : 0x72596C;
 }
 
-ASMJIT_PATCH(0x438A00, BombClass_GetCurrentFrame, 6)
-{
-	GET(BombClass*, pThis, ECX);
-    const auto ext = BombExtContainer::Instance.Find(pThis);
-    const auto pData = ext->Weapon;
+// ASMJIT_PATCH(0x438A00, BombClass_GetCurrentFrame, 6)
+// {
+// 	GET(BombClass*, pThis, ECX);
+//     const auto ext = BombExtContainer::Instance.Find(pThis);
+//     const auto pData = ext->Weapon;
 
-    const SHPStruct* shp = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
-    const int frames = shp->Frames;
+//     const SHPStruct* shp = pData->Ivan_Image.Get(RulesClass::Instance->BOMBCURS_SHP);
+//     const int frames = shp->Frames;
 
-    int result = 0;
+//     int result = 0;
 
-    if(frames >= 2) {
-        if(pThis->Type != BombType::NormalBomb) {
-            // DeathBomb → last frame
-            result = frames - 1;
-        }  else {
-            const int delay = pData->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
-            const int flickerRate = pData->Ivan_FlickerRate.Get(RulesClass::Instance->IvanIconFlickerRate);
-            const int elapsed = Unsorted::CurrentFrame - pThis->PlantingFrame;
+//     if(frames >= 2) {
+//         if(pThis->Type != BombType::NormalBomb) {
+//             // DeathBomb → last frame
+//             result = frames - 1;
+//         }  else {
+//             const int delay = pData->Ivan_Delay.Get(RulesClass::Instance->IvanTimedDelay);
+//             const int flickerRate = pData->Ivan_FlickerRate.Get(RulesClass::Instance->IvanIconFlickerRate);
+//             const int elapsed = Unsorted::CurrentFrame - pThis->PlantingFrame;
 
-            const int half = frames / 2;
-            int capped = half - 1;
+//             const int half = frames / 2;
+//             int capped = half - 1;
 
-            if(flickerRate <= 0) {
-                // no flicker: use only half the frames
-                int frame = elapsed / (delay / (2 * half));
-                if(frame > capped) frame = capped;
-                result = frame;
-            }  else  {
-                // flicker: use full even/odd pattern
-                int frame = elapsed / (delay / half);
-                if(frame > capped) frame = capped;
+//             if(flickerRate <= 0) {
+//                 // no flicker: use only half the frames
+//                 int frame = elapsed / (delay / (2 * half));
+//                 if(frame > capped) frame = capped;
+//                 result = frame;
+//             }  else  {
+//                 // flicker: use full even/odd pattern
+//                 int frame = elapsed / (delay / half);
+//                 if(frame > capped) frame = capped;
 
-                int even = frame * 2;
-                int odd  = even + 1;
+//                 int even = frame * 2;
+//                 int odd  = even + 1;
 
-                bool flick = (Unsorted::CurrentFrame % (2 * flickerRate)) < flickerRate;
-                result = flick ? even : odd;
-            }
-        }
-    }
+//                 bool flick = (Unsorted::CurrentFrame % (2 * flickerRate)) < flickerRate;
+//                 result = flick ? even : odd;
+//             }
+//         }
+//     }
 
-    R->EAX(result);
-    return 0x438A62;
-}
+//     R->EAX(result);
+//     return 0x438A62;
+// }
 
 // 6F523C, 5
 // custom ivan bomb drawing
@@ -140,40 +140,40 @@ ASMJIT_PATCH(0x51E488, InfantryClass_GetCursorOverObject2, 5)
 		? 0x51E49E : 0x0;
 }
 
-ASMJIT_PATCH(0x438761, BombClass_Detonate_Handle, 0x7)
-{
-	GET(BombClass*, pThis, ESI);
-	GET(ObjectClass*, pTarget, ECX);
+// ASMJIT_PATCH(0x438761, BombClass_Detonate_Handle, 0x7)
+// {
+// 	GET(BombClass*, pThis, ESI);
+// 	GET(ObjectClass*, pTarget, ECX);
 
-	pTarget->BombVisible = false;
-	pThis->State = BombState::Removed;
-	// Also adjust detonation coordinate.
-	const auto pExt = BombExtContainer::Instance.Find(pThis);
+// 	pTarget->BombVisible = false;
+// 	pThis->State = BombState::Removed;
+// 	// Also adjust detonation coordinate.
+// 	const auto pExt = BombExtContainer::Instance.Find(pThis);
 
-	CoordStruct coords = pExt->Weapon->Ivan_AttachToCenter.Get(RulesExtData::Instance()->IvanBombAttachToCenter) ?
-		pTarget->GetCenterCoords() : pTarget->Location;
+// 	CoordStruct coords = pExt->Weapon->Ivan_AttachToCenter.Get(RulesExtData::Instance()->IvanBombAttachToCenter) ?
+// 		pTarget->GetCenterCoords() : pTarget->Location;
 
-	const auto pBombWH = pExt->Weapon->Ivan_WH.Get(RulesClass::Instance->IvanWarhead);
-	const auto nDamage = pExt->Weapon->Ivan_Damage.Get(RulesClass::Instance->IvanDamage);
-	const auto OwningHouse = pThis->GetOwningHouse();
+// 	const auto pBombWH = pExt->Weapon->Ivan_WH.Get(RulesClass::Instance->IvanWarhead);
+// 	const auto nDamage = pExt->Weapon->Ivan_Damage.Get(RulesClass::Instance->IvanDamage);
+// 	const auto OwningHouse = pThis->GetOwningHouse();
 
-	/*WarheadTypeExtData::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
-	DamageArea::Apply(&coords, nDamage, pThis->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
-	MapClass::Instance->FlashbangWarheadAt(nDamage, pBombWH, coords);
-	const auto pCell = MapClass::Instance->GetCellAt(coords);
+// 	/*WarheadTypeExtData::DetonateAt(pBombWH, pTarget, coords, pThis->Owner, nDamage);*/
+// 	DamageArea::Apply(&coords, nDamage, pThis->Owner, pBombWH, pBombWH->Tiberium, OwningHouse);
+// 	MapClass::Instance->FlashbangWarheadAt(nDamage, pBombWH, coords);
+// 	const auto pCell = MapClass::Instance->GetCellAt(coords);
 
-	if (auto pAnimType = MapClass::Instance->SelectDamageAnimation(nDamage, pBombWH, pCell->LandType, coords))
-	{
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag::AnimFlag_2600, -15, false),
-			OwningHouse,
-			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
-			pThis->Owner,
-			false, false
-		);
-	}
+// 	if (auto pAnimType = MapClass::Instance->SelectDamageAnimation(nDamage, pBombWH, pCell->LandType, coords))
+// 	{
+// 		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, coords, 0, 1, AnimFlag::AnimFlag_2600, -15, false),
+// 			OwningHouse,
+// 			pThis->Target ? pThis->Target->GetOwningHouse() : nullptr,
+// 			pThis->Owner,
+// 			false, false
+// 		);
+// 	}
 
-	return pExt->Weapon->Ivan_KillsBridges ? 0x438857 : 0x438989;
-}
+// 	return pExt->Weapon->Ivan_KillsBridges ? 0x438857 : 0x438989;
+// }
 
 //new
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3D4C, FakeBombClass::_GetOwningHouse);
@@ -369,7 +369,7 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 		VocClass::SafeImmedietelyPlayAt(pTypeExt->SellSound, &loc);
 	}
 
-	FlyingStrings::AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, loc, Point2D::Empty, ColorStruct::Empty);
+	FlyingStrings::Instance.AddMoneyString(RulesExtData::Instance()->DisplayIncome  , money, pThis->Owner, RulesExtData::Instance()->DisplayIncome_Houses, loc, Point2D::Empty, ColorStruct::Empty);
 
 	//this thing may already death , just
 	return pThis->IsAlive  ? 0x4D9FCB : 0x4D9FE9;

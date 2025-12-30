@@ -12,11 +12,6 @@
 
 Enumerable<DigitalDisplayTypeClass>::container_t Enumerable<DigitalDisplayTypeClass>::Array;
 
-const char* Enumerable<DigitalDisplayTypeClass>::GetMainSection()
-{
-	return "DigitalDisplayTypes";
-}
-
 void DigitalDisplayTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* section = this->Name.c_str();

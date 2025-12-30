@@ -3020,7 +3020,7 @@ void TechnoExt_ExtData::InfiltratedBy(BuildingClass* EnteredBuilding, HouseClass
 	{
 		CoordStruct coord {};
 		EnteredBuilding->GetRenderCoords(&coord);
-		FlyingStrings::AddMoneyString(true,
+		FlyingStrings::Instance.AddMoneyString(true,
 				pBldExt->AccumulatedIncome,
 				EnteredBuilding,
 				pTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses.Get()),
@@ -4099,7 +4099,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 	if (pExt->Death_Countdown.HasStarted() && pToTypeExt->Death_Countdown <= 0) {
 		pExt->Death_Countdown.Stop();
 
-		HouseExtData::AutoDeathObjects.erase(pThis);
+		HouseExtContainer::Instance.AutoDeathObjects.erase(pThis);
 	}
 
 	if (pExt->PassengerDeletionTimer.HasStarted()
@@ -4559,7 +4559,7 @@ void TechnoExt_ExtData::Ares_AddMoneyStrings(TechnoClass* pThis, bool forcedraw)
 				loc.Z += 256;
 			}
 
-			FlyingStrings::Add(moneyStr, loc, color, {});
+			FlyingStrings::Instance.Add(moneyStr, loc, color, {});
 		}
 	}
 }
@@ -5078,7 +5078,7 @@ void FirewallFunctions::UpdateFirewallLinks(BuildingClass* pThis)
 
 bool FirewallFunctions::IsActiveFirestormWall(BuildingClass* const pBuilding, HouseClass const* const pIgnore)
 {
-	if (HouseExtData::IsAnyFirestormActive && pBuilding && pBuilding->Owner != pIgnore && pBuilding->Owner->FirestormActive)
+	if (HouseExtContainer::Instance.IsAnyFirestormActive && pBuilding && pBuilding->Owner != pIgnore && pBuilding->Owner->FirestormActive)
 	{
 		if (!pBuilding->InLimbo && pBuilding->IsAlive)
 		{
@@ -7962,7 +7962,7 @@ void AresHouseExt::UpdateTogglePower(HouseClass* pThis)
 
 bool AresHouseExt::UpdateAnyFirestormActive(bool const lastChange)
 {
-	HouseExtData::IsAnyFirestormActive = lastChange;
+	HouseExtContainer::Instance.IsAnyFirestormActive = lastChange;
 
 	// if last change activated one, there is at least one. else...
 	if (!lastChange)
@@ -7971,13 +7971,13 @@ bool AresHouseExt::UpdateAnyFirestormActive(bool const lastChange)
 		{
 			if (pHouse->FirestormActive)
 			{
-				HouseExtData::IsAnyFirestormActive = true;
+				HouseExtContainer::Instance.IsAnyFirestormActive = true;
 				break;
 			}
 		}
 	}
 
-	return HouseExtData::IsAnyFirestormActive;
+	return HouseExtContainer::Instance.IsAnyFirestormActive;
 }
 
 void AresHouseExt::SetFirestormState(HouseClass* pHouse, bool const active)

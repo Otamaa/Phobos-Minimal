@@ -11,7 +11,10 @@ class OverlayTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = OverlayTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "OverlayTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "OverlayTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -56,8 +59,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	OverlayTypeClass* This() const override { return reinterpret_cast<OverlayTypeClass*>(this->AttachedToObject); }
-	const OverlayTypeClass* This_Const() const override { return reinterpret_cast<const OverlayTypeClass*>(this->AttachedToObject); }
+	OverlayTypeClass* This() const { return reinterpret_cast<OverlayTypeClass*>(this->AttachedToObject); }
+	const OverlayTypeClass* This_Const() const { return reinterpret_cast<const OverlayTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -68,27 +71,22 @@ private:
 };
 
 class OverlayTypeExtContainer final : public Container<OverlayTypeExtData>
+	, public ReadWriteContainerInterfaces<OverlayTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "OverlayTypeExtContainer";
 public:
 	static OverlayTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(OverlayTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(OverlayTypeClass* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeOverlayTypeClass : public OverlayTypeClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
-
 	bool _ReadFromINI(CCINIClass* pINI);
 };

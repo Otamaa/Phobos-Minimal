@@ -377,18 +377,35 @@ public:
 			* (12. - 6 * s + s * s) / (12. + 6 * s + s * s);
 	}
 
+	// ============================================================================
+	// Fast Power: O(log n) exponentiation by squaring
+	// ============================================================================
+	// Calculates x^n efficiently using binary decomposition of the exponent
+	//
+	// Example: x^13 where 13 = 1101 in binary (8 + 4 + 1)
+	//   x^13 = x^8 * x^4 * x^1
+	//
+	// Algorithm trace for x^13:
+	//   n=13 (1101): result *= x^1,  base = x^2
+	//   n=6  (0110): skip,           base = x^4
+	//   n=3  (0011): result *= x^4,  base = x^8
+	//   n=1  (0001): result *= x^8,  base = x^16
+	//   n=0: done, result = x^1 * x^4 * x^8 = x^13
+	// ============================================================================
 	template<typename T>
-	static COMPILETIMEEVAL OPTIONALINLINE T SecsomeFastPow(T x, size_t n)
+	static constexpr inline T SecsomeFastPow(T x, size_t n)
 	{
-		// Real fast pow calc x^n in O(log(n))
 		T result = 1;
 		T base = x;
+
 		while (n)
 		{
-			if (n & 1) result *= base;
-			base *= base;
-			n >>= 1;
+			if (n & 1)          // If lowest bit is set
+				result *= base; // Multiply into result
+			base *= base;       // Square the base
+			n >>= 1;            // Shift to next bit
 		}
+
 		return result;
 	}
 

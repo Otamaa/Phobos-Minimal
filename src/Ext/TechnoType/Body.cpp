@@ -402,7 +402,7 @@ void TechnoTypeExtData::Initialize()
 
 void TechnoTypeExtData::CalculateSpawnerRange()
 {
-	auto pTechnoType = (FakeTechnoTypeClass*)This();
+	auto pTechnoType = This();
 	int weaponRangeExtra = this->Spawn_LimitedExtraRange * Unsorted::LeptonsPerCell;
 
 	auto setWeaponRange = [](int& weaponRange, WeaponTypeClass* pWeaponType)
@@ -413,8 +413,8 @@ void TechnoTypeExtData::CalculateSpawnerRange()
 
 	const int wpCount = pTechnoType->IsGattling ? pTechnoType->WeaponCount : 2;
 	for (int i = 0; i < wpCount ; i++) {
-			setWeaponRange(this->SpawnerRange, pTechnoType->GetWeapon(i)->WeaponType);
-			setWeaponRange(this->EliteSpawnerRange, pTechnoType->GetEliteWeapon(i)->WeaponType);
+			setWeaponRange(this->SpawnerRange, FakeTechnoTypeClass::__GetWeapon(pTechnoType, discard_t(), i)->WeaponType);
+			setWeaponRange(this->EliteSpawnerRange, FakeTechnoTypeClass::__GetEliteWeapon(pTechnoType, discard_t(),i)->WeaponType);
 	}
 
 	this->SpawnerRange += weaponRangeExtra;
@@ -967,6 +967,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 #pragma region Otamaa
 		this->DontShake.Read(exINI, pSection, "DontShakeScreen");
 		this->DiskLaserChargeUp.Read(exINI, pSection, GameStrings::DiskLaserChargeUp());
+		this->DiskLaserDetonate.Read(exINI, pSection, "DiskLaser.Detonate");
 
 		this->DrainMoneyFrameDelay.Read(exINI, pSection, GameStrings::DrainMoneyFrameDelay());
 		this->DrainMoneyAmount.Read(exINI, pSection, GameStrings::DrainMoneyAmount());
@@ -2517,6 +2518,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamWriter& Stm)
 	debugProcess(this->FacingRotation_DisableOnDriverKilled, "FacingRotation_DisableOnDriverKilled");
 	debugProcess(this->DontShake, "DontShake");
 	debugProcess(this->DiskLaserChargeUp, "DiskLaserChargeUp");
+	debugProcess(this->DiskLaserDetonate, "DiskLaserDetonate");
 	debugProcess(this->DrainAnimationType, "DrainAnimationType");
 	debugProcess(this->DrainMoneyFrameDelay, "DrainMoneyFrameDelay");
 	debugProcess(this->DrainMoneyAmount, "DrainMoneyAmount");
@@ -2776,6 +2778,7 @@ void TechnoTypeExtData::Serialize(PhobosStreamReader& Stm)
 	debugProcess(this->FacingRotation_DisableOnDriverKilled, "FacingRotation_DisableOnDriverKilled");
 	debugProcess(this->DontShake, "DontShake");
 	debugProcess(this->DiskLaserChargeUp, "DiskLaserChargeUp");
+	debugProcess(this->DiskLaserDetonate, "DiskLaserDetonate");
 	debugProcess(this->DrainAnimationType, "DrainAnimationType");
 	debugProcess(this->DrainMoneyFrameDelay, "DrainMoneyFrameDelay");
 	debugProcess(this->DrainMoneyAmount, "DrainMoneyAmount");

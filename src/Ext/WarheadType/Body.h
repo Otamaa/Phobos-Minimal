@@ -31,7 +31,10 @@ class WarheadTypeExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = WarheadTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "WarheadTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "WarheadTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -868,8 +871,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	WarheadTypeClass* This() const override { return reinterpret_cast<WarheadTypeClass*>(this->AttachedToObject); }
-	const WarheadTypeClass* This_Const() const override { return reinterpret_cast<const WarheadTypeClass*>(this->AttachedToObject); }
+	WarheadTypeClass* This() const { return reinterpret_cast<WarheadTypeClass*>(this->AttachedToObject); }
+	const WarheadTypeClass* This_Const() const { return reinterpret_cast<const WarheadTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -993,21 +996,28 @@ public:
 };
 
 class WarheadTypeExtContainer final : public Container<WarheadTypeExtData>
+	, public ReadWriteContainerInterfaces<WarheadTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "WarheadTypeExtContainer";
+	using base_t = Container<WarheadTypeExtData>;
+	using ext_t = WarheadTypeExtData;
+
 public:
 	static WarheadTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
+	virtual void Clear();
+
+	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 
 };
 
 class NOVTABLE FakeWarheadTypeClass : public WarheadTypeClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

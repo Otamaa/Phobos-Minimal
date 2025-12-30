@@ -9,6 +9,8 @@
 #include <Utilities/Macro.h>
 #include <Notifications.h>
 
+#include <Phobos.SaveGame.h>
+
 void TriggerExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) { }
 
 // =============================
@@ -18,6 +20,7 @@ template <typename T>
 void TriggerExtData::Serialize(T& Stm)
 {
 	Stm
+		.Process(this->Name)
 		.Process(this->SortedEventsList)
 		.Process(this->SequentialTimers)
 		.Process(this->SequentialTimersOriginalValue)
@@ -30,21 +33,65 @@ void TriggerExtData::Serialize(T& Stm)
 // =============================
 // container
 TriggerExtContainer TriggerExtContainer::Instance;
-std::vector<TriggerExtData*> Container<TriggerExtData>::Array;
 
-void Container<TriggerExtData>::Clear()
+bool TriggerExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(TriggerExtContainer::ClassName))
+	{
+		auto& container = root[TriggerExtContainer::ClassName];
+
+		for (auto& entry : container[TriggerExtData::ClassName])
+		{
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TriggerExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
-bool TriggerExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool TriggerExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[TriggerExtContainer::ClassName];
 
-bool TriggerExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : TriggerExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer); // write all data to stream
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[TriggerExtData::ClassName] = std::move(_extRoot);
+	return true;
 }
 
 // =============================
@@ -129,28 +176,10 @@ ASMJIT_PATCH(0x72617D, TriggerClass_DTOR, 0xF)
 
 void FakeTriggerClass::_Detach(AbstractClass* pTarget, bool bRemove)
 {
-	TriggerExtContainer::Instance.InvalidatePointerFor(this, pTarget, bRemove);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(pTarget, bRemove);
+
 	this->TriggerClass::PointerExpired(pTarget, bRemove);
 }
 
-HRESULT __stdcall FakeTriggerClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->TriggerClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = TriggerExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeTriggerClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->TriggerClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = TriggerExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0824, FakeTriggerClass::_Load)
-DEFINE_FUNCTION_JUMP(VTABLE, 0x7F0828, FakeTriggerClass::_Save)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5880, FakeTriggerClass::_Detach)

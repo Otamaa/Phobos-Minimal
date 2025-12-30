@@ -1,13 +1,9 @@
 #include "Body.h"
 #include <Utilities/Macro.h>
 
-std::vector<AircraftTypeExtData*> Container<AircraftTypeExtData>::Array;
-AircraftTypeExtContainer AircraftTypeExtContainer::Instance;
+#include <Phobos.SaveGame.h>
 
-void Container<AircraftTypeExtData>::Clear()
-{
-	Array.clear();
-}
+AircraftTypeExtContainer AircraftTypeExtContainer::Instance;
 
 bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
@@ -83,24 +79,99 @@ bool AircraftTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	return true;
 }
 
-bool AircraftTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool AircraftTypeExtContainer::LoadAll(const json& root)
 {
-	return LoadGlobalArrayData(Stm);
+	this->Clear();
+
+	if (root.contains(AircraftTypeExtContainer::ClassName))
+	{
+		auto& container = root[AircraftTypeExtContainer::ClassName];
+
+		for (auto& entry : container[AircraftTypeExtData::ClassName]) {
+
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AircraftTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
-bool AircraftTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+bool AircraftTypeExtContainer::SaveAll(json& root)
 {
-	return SaveGlobalArrayData(Stm);
+	auto& first_layer = root[AircraftTypeExtContainer::ClassName];
+
+	json _extRoot = json::array();
+	for (auto& _extData : AircraftTypeExtContainer::Array) {
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer); // write all data to stream
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[AircraftTypeExtData::ClassName] = std::move(_extRoot);
+	return true;
 }
 
-ASMJIT_PATCH(0x41C91F,AircraftTypeClass_CTOR, 0x5)
+void AircraftTypeExtContainer::LoadFromINI(AircraftTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
+{
+	if (auto ptr = this->Find(key)) {
+		if (!pINI) {
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void AircraftTypeExtContainer::WriteToINI(AircraftTypeClass* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key)) {
+		if (!pINI) {
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
+}
+
+ASMJIT_PATCH(0x41C91F, AircraftTypeClass_CTOR, 0x5)
 {
 	GET(AircraftTypeClass*, pItem, ESI);
 	AircraftTypeExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 
-ASMJIT_PATCH(0x41CA46,AircraftTypeClass_DTOR, 0x6)
+ASMJIT_PATCH(0x41CA46, AircraftTypeClass_DTOR, 0x6)
 {
 	GET(AircraftTypeClass*, pItem, ESI);
 

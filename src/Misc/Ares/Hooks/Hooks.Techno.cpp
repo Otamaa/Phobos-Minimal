@@ -352,10 +352,10 @@ ASMJIT_PATCH(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 		switch (detect)
 		{
 		case 1:
-			PlayEva("EVA_CloakedUnitDetected", HouseExtData::CloakEVASpeak, RulesExtData::Instance()->StealthSpeakDelay);
+			PlayEva("EVA_CloakedUnitDetected", HouseExtContainer::Instance.CloakEVASpeak, RulesExtData::Instance()->StealthSpeakDelay);
 			break;
 		case 2:
-			PlayEva("EVA_SubterraneanUnitDetected", HouseExtData::SubTerraneanEVASpeak, RulesExtData::Instance()->SubterraneanSpeakDelay);
+			PlayEva("EVA_SubterraneanUnitDetected", HouseExtContainer::Instance.SubTerraneanEVASpeak, RulesExtData::Instance()->SubterraneanSpeakDelay);
 			break;
 		}
 

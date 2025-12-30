@@ -2,14 +2,9 @@
 
 Enumerable<ImmunityTypeClass>::container_t Enumerable<ImmunityTypeClass>::Array;
 
-const char* Enumerable<ImmunityTypeClass>::GetMainSection()
-{
-	return "ImmunityTypes";
-}
-
 void ImmunityTypeClass::LoadFromINIList(CCINIClass * pINI, bool bDebug)
 {
-	const char* section = ImmunityTypeClass::GetMainSection();
+	const char* section = ImmunityTypeClass::MainSection;
 
 	if (!pINI->GetSection(section))
 		return;

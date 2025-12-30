@@ -8,6 +8,7 @@
 #include <Ext/Techno/Body.h>
 
 #include <EBolt.h>
+#include <Phobos.SaveGame.h>
 
 #pragma region defines
 int WeaponTypeExtData::nOldCircumference { DiskLaserClass::Radius };
@@ -954,33 +955,118 @@ void WeaponTypeExtData::DetonateAt5(WeaponTypeClass* pThis, const CoordStruct& c
 // =============================
 // container
 WeaponTypeExtContainer WeaponTypeExtContainer::Instance;
-std::vector<WeaponTypeExtData*> Container<WeaponTypeExtData>::Array;
 
-bool WeaponTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool WeaponTypeExtContainer::LoadAll(const json& root)
 {
-	auto ret = LoadGlobalArrayData(Stm);
+	this->Clear();
 
-	ret &=  Stm
-			.Process(WeaponTypeExtData::nOldCircumference)
-			.Success();
+	if (root.contains(WeaponTypeExtContainer::ClassName))
+	{
+		auto& container = root[WeaponTypeExtContainer::ClassName];
 
-	return ret;
+		for (auto& entry : container[WeaponTypeExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, WeaponTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		size_t dataSize = container["OldCircumference_datasize"].get<size_t>();
+		std::string encoded = container["OldCircumference_data"].get<std::string>();
+
+		PhobosByteStream loader(dataSize);
+		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+		PhobosStreamReader reader(loader);
+
+		reader.Process(WeaponTypeExtData::nOldCircumference);
+
+		if (!reader.ExpectEndOfBlock())
+			return false;
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool WeaponTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+bool WeaponTypeExtContainer::SaveAll(json& root)
 {
-	auto ret = SaveGlobalArrayData(Stm);
+	auto& first_layer = root[WeaponTypeExtContainer::ClassName];
 
-	ret &= Stm
-		.Process(WeaponTypeExtData::nOldCircumference)
-		.Success();
+	json _extRoot = json::array();
+	for (auto& _extData : WeaponTypeExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
 
-	return ret;
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[WeaponTypeExtData::ClassName] = std::move(_extRoot);
+
+
+	PhobosByteStream saver(0);
+	PhobosStreamWriter writer(saver);
+
+	writer.Process(WeaponTypeExtData::nOldCircumference);
+
+	first_layer["OldCircumference_datasize"] = saver.data.size();
+	first_layer["OldCircumference_data"] = Base64Handler::encodeBase64(saver.data);
+
+	return true;
 }
 
-void Container<WeaponTypeExtData>::Clear()
+void WeaponTypeExtContainer::LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr)
 {
-	Array.clear();
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void WeaponTypeExtContainer::WriteToINI(ext_t::base_type* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
 }
 
 // =============================

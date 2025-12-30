@@ -5,12 +5,6 @@
 
 Enumerable<BannerTypeClass>::container_t Enumerable<BannerTypeClass>::Array;
 
-template<>
-const char* Enumerable<BannerTypeClass>::GetMainSection()
-{
-	return "BannerTypes";
-}
-
 void BannerTypeClass::LoadFromINI(CCINIClass* pINI)
 {
 	const char* section = this->Name;

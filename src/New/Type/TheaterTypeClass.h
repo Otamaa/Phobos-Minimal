@@ -11,6 +11,10 @@ class CCINIClass;
 class TheaterTypeClass final : public Enumerable<TheaterTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "TheaterTypes";
+	static COMPILETIMEEVAL const char* ClassName = "TheaterTypeClass";
+
+public:
 	TheaterTypeClass(const char* const pTitle) :
 		Enumerable<TheaterTypeClass>(pTitle),
 		UIName(),

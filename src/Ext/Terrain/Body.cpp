@@ -6,6 +6,8 @@
 
 #include <Utilities/Macro.h>
 
+#include <Phobos.SaveGame.h>
+
 bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 	const auto pExt = TerrainTypeExtContainer::Instance.Find(pTerrain->Type);
 
@@ -113,21 +115,65 @@ void TerrainExtData::Serialize(T& Stm)
 // =============================
 // container
 TerrainExtContainer TerrainExtContainer::Instance;
-std::vector<TerrainExtData*> Container<TerrainExtData>::Array;
-
-void Container<TerrainExtData>::Clear()
+bool TerrainExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(TerrainExtContainer::ClassName))
+	{
+		auto& container = root[TerrainExtContainer::ClassName];
+
+		for (auto& entry : container[TerrainExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TerrainExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool TerrainExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool TerrainExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[TerrainExtContainer::ClassName];
 
-bool TerrainExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : TerrainExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[TerrainExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // container hooks
@@ -237,7 +283,8 @@ void FakeTerrainClass::_AI()
 
 void FakeTerrainClass::_Detach(AbstractClass* target, bool all)
 {
-	TerrainExtContainer::Instance.InvalidatePointerFor(this, target, all);
+	if(auto pExt = this->_GetExtData())
+		pExt->InvalidatePointer(target, all);
 	this->TerrainClass::PointerExpired(target, all);
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5254, FakeTerrainClass::_Detach);
@@ -252,24 +299,3 @@ void FakeTerrainClass::_AnimPointerExpired(AnimClass* pAnim) {
 	}
 }
 DEFINE_FUNCTION_JUMP(VTABLE ,0x7F528C, FakeTerrainClass::_AnimPointerExpired)
-
-HRESULT __stdcall FakeTerrainClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->TerrainClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = TerrainExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeTerrainClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->TerrainClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = TerrainExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5240, FakeTerrainClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5244, FakeTerrainClass::_Save)

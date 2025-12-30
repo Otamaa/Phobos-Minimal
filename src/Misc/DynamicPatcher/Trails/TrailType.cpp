@@ -2,11 +2,6 @@
 
 Enumerable<TrailType>::container_t Enumerable<TrailType>::Array;
 
-const char* Enumerable<TrailType>::GetMainSection()
-{
-	return "TrailTypes";
-}
-
 void TrailType::LoadFromINI(CCINIClass* pINI)
 {
 	const char* pSection = this->Name.c_str();

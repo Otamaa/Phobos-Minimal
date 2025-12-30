@@ -21,7 +21,10 @@ class WeaponTypeExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = WeaponTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "WeaponTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "WeaponTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -370,8 +373,8 @@ public:
 		this->AbstractTypeExtData::CalculateCRC(crc);
 	}
 
-	WeaponTypeClass* This() const override { return reinterpret_cast<WeaponTypeClass*>(this->AttachedToObject); }
-	const WeaponTypeClass* This_Const() const override { return reinterpret_cast<const WeaponTypeClass*>(this->AttachedToObject); }
+	WeaponTypeClass* This() const { return reinterpret_cast<WeaponTypeClass*>(this->AttachedToObject); }
+	const WeaponTypeClass* This_Const() const { return reinterpret_cast<const WeaponTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -422,12 +425,21 @@ public:
 };
 
 class WeaponTypeExtContainer final :public Container<WeaponTypeExtData>
+	, public ReadWriteContainerInterfaces<WeaponTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "WeaponTypeExtContainer";
+	using base_t = Container<WeaponTypeExtData>;
+	using ext_t = WeaponTypeExtData;
+
 public:
 	static WeaponTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
+
+	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
 
 class BulletTypeExtData;

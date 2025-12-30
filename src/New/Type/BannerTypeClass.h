@@ -9,6 +9,10 @@
 class BannerTypeClass final : public Enumerable<BannerTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "BannerTypes";
+	static COMPILETIMEEVAL const char* ClassName = "BannerTypeClass";
+
+public:
 
 	//PCX
 	PhobosPCXFile PCX;

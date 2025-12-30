@@ -119,22 +119,6 @@
 #include <LoadOptionsClass.h>
 
 template<typename T>
-bool Process_Global_LoadB(LPSTREAM pStm)
-{
-	PhobosByteStream stm;
-	PhobosStreamReader reader(stm);
-	Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-	return stm.ReadFromStream(pStm) && T::LoadGlobals(reader) && reader.ExpectEndOfBlock();
-}
-
-template<typename T>
-bool Process_Global_Load(PhobosStreamReader& reader)
-{
-	Debug::LogInfo("[Process_Load] For object {} Start", PhobosCRT::GetTypeIDName<T>());
-	return T::LoadGlobals(reader);
-}
-
-template<typename T>
 HRESULT LoadObjectVector(LPSTREAM stream, DynamicVectorClass<T>& collection)
 {
 	HRESULT hr;
@@ -247,170 +231,6 @@ HRESULT PrepareDisplaySurfaces()
 #include <Utilities/StreamUtils.h>
 #include <Ext/Scenario/Body.h>
 
-HRESULT LoadPhobosEarlyObjects(LPSTREAM pStm)
-{
-	PhobosAppendedStream stm;
-	PhobosStreamReader reader(stm);
-
-	if (!stm.ReadFromStream(pStm))
-		return E_FAIL;
-
-	bool success = Process_Global_Load<Phobos>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<CursorTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<ColorTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<SideExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TheaterTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<MouseClassExt>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<CellExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<DigitalDisplayTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<ArmorTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<ImmunityTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<LaserTrailTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TunnelTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<InsigniaTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<SelectBoxTypeClass>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TiberiumExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<HouseTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<HouseExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<UnitTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<UnitExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<InfantryTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<InfantryExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<BuildingTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<BuildingExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<AircraftTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<AircraftExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<AnimTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<AnimExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TeamExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TriggerExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TEventExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<VoxelAnimTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<VoxelAnimExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<WarheadTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<WeaponTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<ParticleTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<ParticleExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<ParticleSystemTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<ParticleSystemExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<BulletTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<BulletExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TActionExtData>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<SmudgeTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<OverlayTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<SWTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<SuperExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TerrainTypeExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<TerrainExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<WaveExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<BombExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	success = Process_Global_Load<RadSiteExtContainer>(reader);
-	if (!success) return E_FAIL;
-
-	if (!reader.ExpectEndOfBlock())
-		return E_FAIL;
-
-	return S_OK;
-}
-
 HRESULT Decode_All_Pointers(LPSTREAM stream)
 {
 	HRESULT hr = S_OK;
@@ -422,9 +242,6 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	if (!SUCCEEDED(hr)) return hr;
 
 	ScenarioClass::IsUserInputLocked = ScenarioClass::Instance->UserInputLocked;
-
-	hr = LoadPhobosEarlyObjects(stream);
-	if (!SUCCEEDED(hr)) return hr;
 
 	hr = LoadObjectVector(stream, *SideClass::Array);
 	if (!SUCCEEDED(hr)) return hr;
@@ -662,12 +479,10 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	if (!SUCCEEDED(hr)) return hr;
 
 	// Game options section (known problematic area)
-	if (SessionClass::Instance->GameMode == GameMode::Skirmish)
-	{
+	if (SessionClass::Instance->GameMode == GameMode::Skirmish) {
 		Debug::Log("Reading Skirmish Session.Options\n");
 		const bool save_GameOptionsType = GameOptionsType::Instance->Load(stream);
-		if (!save_GameOptionsType)
-		{
+		if (!save_GameOptionsType) {
 			Debug::Log("\t***** GameOptionsType LOAD FAILED!\n");
 			return E_FAIL;
 		}
@@ -716,6 +531,8 @@ HRESULT Decode_All_Pointers(LPSTREAM stream)
 	return S_OK;
 }
 
+#include <Phobos.SaveGame.h>
+
 bool __fastcall Load_Saved_Game(const char* file_name)
 {
 	WCHAR wide_file_name[PATH_MAX];
@@ -728,10 +545,14 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 
 	Debug::Log("\nLOADING GAME [%s]\n", file_name);
 
+	if (!ExtensionSaveJson::Load(wide_file_name)) {
+		Debug::FatalError("Cannot Load dll datas !");
+		return false;
+	}
+
 	/**
 	 *  Convert the file name to a wide string.
 	 */
-
 	Debug::Log("Opening DocFile\n");
 	ATL::CComPtr<IStorage> storage;
 	HRESULT hr = StgOpenStorage(wide_file_name, nullptr, STGM_READWRITE | STGM_SHARE_EXCLUSIVE, nullptr, 0, &storage);
@@ -776,37 +597,41 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 		return false;
 	}
 
-	//Debug::Log("Linking content stream to decompressor.\n");
-	//IUnknown* pUnknown = nullptr;
-	//ATL::CComPtr<ILinkStream> linkstream;
-	//hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
-	//if (SUCCEEDED(hr)) {
-	//	hr = OleRun(pUnknown);
-	//	if (SUCCEEDED(hr)) {
-	//		pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
-	//	}
-	//	pUnknown->Release();
-	//}
+	Debug::Log("Linking content stream to decompressor.\n");
+	IUnknown* pUnknown = nullptr;
+	ATL::CComPtr<ILinkStream> linkstream;
+	hr = CoCreateInstance(__uuidof(CStreamClass), nullptr, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER, IID_IUnknown, (void**)&pUnknown);
+	if (SUCCEEDED(hr)) {
+		hr = OleRun(pUnknown);
+		if (SUCCEEDED(hr)) {
+			pUnknown->QueryInterface(__uuidof(ILinkStream), (void**)&linkstream);
+		}
+		pUnknown->Release();
+	}
 
-	//hr = linkstream->Link_Stream(docfile);
-	//if (FAILED(hr)) {
-	//	Debug::FatalError("Failed to link stream to decompressor.\n");
-	//	return false;
-	//}
+	hr = linkstream->Link_Stream(docfile);
+	if (FAILED(hr)) {
+		Debug::FatalError("Failed to link stream to decompressor.\n");
+		return false;
+	}
 
-	//ATL::CComPtr<IStream> stream;
-	//linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
-	//Debug::Log("Creating stream wrapper for tracking.\n");
+	ATL::CComPtr<IStream> stream;
+	linkstream->QueryInterface(__uuidof(IStream), (void**)&stream);
+	Debug::Log("Creating stream wrapper for tracking.\n");
 
 	Debug::Log("Calling Decode_All_Pointers().\n");
 
-	if (FAILED(Decode_All_Pointers(docfile))) {
+	if (FAILED(Decode_All_Pointers(stream))) {
 		Debug::FatalErrorAndExit("Error loading save game \"%s\"!\n", file_name);
 		return false;
 	}
 
-	//Debug::Log("Unlinking content stream from decompressor.\n");
-	//linkstream->Unlink_Stream(nullptr);
+	Debug::Log("Unlinking content stream from decompressor.\n");
+	hr = linkstream->Unlink_Stream(nullptr);
+	if (FAILED(hr)) {
+		Debug::FatalError("Unlinking content stream from decompressor.\n");
+		return false;
+	}
 
 	SwizzleManagerClass::Instance->Reset();
 	ScenarioClass::InitScenariostuff();
@@ -827,19 +652,3 @@ bool __fastcall Load_Saved_Game(const char* file_name)
 }
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x67E440, Load_Saved_Game)
-
-
-//ASMJIT_PATCH(0x07169D9, BuildingTypeClass_Load_PrereqCrash, 0x6)
-//{
-//	GET(BuildingTypeClass*, pThis, EBP);
-//	GET_STACK(LPSTREAM, pStm, 0x220 - (-0x20C));
-//	GET(int, vecCount, EAX);
-//
-//	for (int i = 0; i < vecCount; ++i) {
-//		int read;
-//		pStm->Read(&read, sizeof(int), nullptr);
-//		pThis->Prerequisites.AddItem(read);
-//	}
-//
-//	return 0x716A05;
-//}

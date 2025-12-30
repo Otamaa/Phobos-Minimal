@@ -188,7 +188,7 @@ ASMJIT_PATCH(0x739FBC, UnitClass_PerCellProcess_Grinding, 0x6)
 		PlayDieSounds(pThis);
 	}
 
-	HouseExtData::LastGrindingBlanceUnit = pBuilding->Owner->Available_Money();
+	HouseExtContainer::Instance.LastGrindingBlanceUnit = pBuilding->Owner->Available_Money();
 	pBuilding->Owner->TransactMoney(pThis->GetRefund());
 
 	const bool pParentReverseEngineered = pBuilding->Type->Grinding && BuildingExtData::ReverseEngineer(pBuilding, pThis);
@@ -234,7 +234,7 @@ ASMJIT_PATCH(0x739FBC, UnitClass_PerCellProcess_Grinding, 0x6)
 	}
 
 	// Calculated like this because it is easier than tallying up individual refunds for passengers and parasites.
-	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtData::LastGrindingBlanceUnit;
+	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtContainer::Instance.LastGrindingBlanceUnit;
 
 	return BuildingExtData::DoGrindingExtras(pBuilding, pThis, totalRefund) ? PlayAnim : Continue;
 }
@@ -298,7 +298,7 @@ ASMJIT_PATCH(0x519790, InfantryClass_PerCellProcess_Grinding, 0xA)
 		PlayDieSounds(pThis);
 	}
 
-	HouseExtData::LastGrindingBlanceInf = pBuilding->Owner->Available_Money();
+	HouseExtContainer::Instance.LastGrindingBlanceInf = pBuilding->Owner->Available_Money();
 
 	pBuilding->Owner->TransactMoney(pThis->GetRefund());
 
@@ -335,7 +335,7 @@ ASMJIT_PATCH(0x519790, InfantryClass_PerCellProcess_Grinding, 0xA)
 		}
 	}
 
-	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtData::LastGrindingBlanceInf;
+	const int totalRefund = pBuilding->Owner->Available_Money() - HouseExtContainer::Instance.LastGrindingBlanceInf;
 
 	// Calculated like this because it is easier than tallying up individual refunds for passengers and parasites.
 	return BuildingExtData::DoGrindingExtras(pBuilding, pThis , totalRefund) ? PlayAnims : Continue;

@@ -19,7 +19,10 @@ class HouseTypeExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = HouseTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "HouseTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "HouseTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -162,8 +165,8 @@ public:
 		this->AbstractTypeExtData::CalculateCRC(crc);
 	}
 
-	HouseTypeClass* This() const override { return reinterpret_cast<HouseTypeClass*>(this->AttachedToObject); }
-	const HouseTypeClass* This_Const() const override { return reinterpret_cast<const HouseTypeClass*>(this->AttachedToObject); }
+	HouseTypeClass* This() const { return reinterpret_cast<HouseTypeClass*>(this->AttachedToObject); }
+	const HouseTypeClass* This_Const() const { return reinterpret_cast<const HouseTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true;  }
@@ -187,28 +190,25 @@ private:
 };
 
 class HouseTypeExtContainer final : public Container<HouseTypeExtData>
+	, public ReadWriteContainerInterfaces<HouseTypeExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "HouseTypeExtContainer";
+
 public:
 	static HouseTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
-
+	virtual void LoadFromINI(HouseTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(HouseTypeClass* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeHouseTypeClass : public HouseTypeClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
+
 	bool _ReadFromINI(CCINIClass* pINI);
 
 	HouseTypeExtData* _GetExtData() {

@@ -21,6 +21,8 @@
 
 #include <TeamTypeClass.h>
 
+#include <Phobos.SaveGame.h>
+
 // =============================
 // load / save
 
@@ -974,20 +976,66 @@ DEFINE_FUNCTION_JUMP(CALL , 0x726540, FakeTEventClass::_Occured)
 // =============================
 // container
 TEventExtContainer TEventExtContainer::Instance;
-std::vector<TEventExtData*> Container<TEventExtData>::Array;
-void Container<TEventExtData>::Clear()
+
+bool TEventExtContainer::LoadAll(const json& root)
 {
-	Array.clear();
+	this->Clear();
+
+	if (root.contains(TEventExtContainer::ClassName))
+	{
+		auto& container = root[TEventExtContainer::ClassName];
+
+		for (auto& entry : container[TEventExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, TEventExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool TEventExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool TEventExtContainer::SaveAll(json& root)
 {
-	return LoadGlobalArrayData(Stm);
-}
+	auto& first_layer = root[TEventExtContainer::ClassName];
 
-bool TEventExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	return SaveGlobalArrayData(Stm);
+	json _extRoot = json::array();
+	for (auto& _extData : TEventExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[TEventExtData::ClassName] = std::move(_extRoot);
+
+	return true;
 }
 
 // =============================

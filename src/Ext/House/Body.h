@@ -125,11 +125,15 @@ class HouseExtData final : public AbstractExtended
 {
 public:
 	using base_type = HouseClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "HouseExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "HouseClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
 #pragma region ClassMembers
+	PhobosFixedString<0x18> Name;
 	Nullable<bool> Degrades;
 	PhobosMap<BuildingTypeClass*, int> PowerPlantEnhancerBuildings;
 	PhobosMap<BuildingTypeClass*, int> Building_BuildSpeedBonusCounter;
@@ -219,6 +223,7 @@ public:
 public:
 	HouseExtData(HouseClass* pObj)
 		: AbstractExtended(pObj),
+		Name(),
 		Degrades(),
 		PowerPlantEnhancerBuildings(),
 		Building_BuildSpeedBonusCounter(),
@@ -308,8 +313,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { }
 
-	HouseClass* This() const override { return reinterpret_cast<HouseClass*>(this->AttachedToObject); }
-	const HouseClass* This_Const() const override { return reinterpret_cast<const HouseClass*>(this->AttachedToObject); }
+	HouseClass* This() const { return reinterpret_cast<HouseClass*>(this->AttachedToObject); }
+	const HouseClass* This_Const() const { return reinterpret_cast<const HouseClass*>(this->AttachedToObject); }
 
 public:
 
@@ -485,44 +490,46 @@ private:
 	template <typename T>
 	void Serialize(T& Stm);
 
-public:
-	static PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
-	static HelperedVector<TechnoClass*> LimboTechno;
-
-	static int LastGrindingBlanceUnit;
-	static int LastGrindingBlanceInf;
-	static int LastHarvesterBalance;
-	static int LastSlaveBalance;
-
-	static CDTimerClass CloakEVASpeak;
-	static CDTimerClass SubTerraneanEVASpeak;
-
-	static bool IsAnyFirestormActive;
 };
 
 class HouseExtContainer final : public Container<HouseExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "HouseExtContainer";
+	using base_t = Container<HouseExtData>;
+
+public:
 	static HouseExtContainer Instance;
 
-	static HouseClass* Civilian;
-	static HouseClass* Special;
-	static HouseClass* Neutral;
-	static SideClass* CivilianSide;
+public:
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	HouseClass* Civilian;
+	HouseClass* Special;
+	HouseClass* Neutral;
+	SideClass* CivilianSide;
+	PhobosMap<TechnoClass*, KillMethod> AutoDeathObjects;
+	HelperedVector<TechnoClass*> LimboTechno;
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved);
+	int LastGrindingBlanceUnit;
+	int LastGrindingBlanceInf;
+	int LastHarvesterBalance;
+	int LastSlaveBalance;
+
+	CDTimerClass CloakEVASpeak;
+	CDTimerClass SubTerraneanEVASpeak;
+	bool IsAnyFirestormActive;
+
+public:
+
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
+	virtual void Clear();
 };
 
 class HouseTypeExtData;
 class NOVTABLE FakeHouseClass : public HouseClass
 {
 public:
-
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	bool _IsAlliedWith(HouseClass* pOther);
 	void _Detach(AbstractClass* target, bool all);

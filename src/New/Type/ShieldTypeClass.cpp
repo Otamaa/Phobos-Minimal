@@ -2,11 +2,6 @@
 
 Enumerable<ShieldTypeClass>::container_t Enumerable<ShieldTypeClass>::Array;
 
-const char* Enumerable<ShieldTypeClass>::GetMainSection()
-{
-	return "ShieldTypes";
-}
-
 AnimTypeClass* ShieldTypeClass::GetIdleAnimType(bool isDamaged, double healthRatio)
 {
 	const double condYellow = this->GetConditionYellow();

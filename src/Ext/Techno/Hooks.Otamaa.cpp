@@ -263,18 +263,6 @@ ASMJIT_PATCH(0x4D42C4, FootClass_Mission_Patrol_IsCow, 0x6) //8
 // 	return 0x51CEAA;
 // }
 
-ASMJIT_PATCH(0x4A7755, DiskLaserClass_Update_ChargedUpSound, 0x6) //B
-{
-	GET(DiskLaserClass* const, pThis, ESI);
-
-	if (pThis && pThis->Owner)
-	{
-		R->ECX(TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType())->DiskLaserChargeUp.Get(RulesClass::Instance->DiskLaserChargeUp));
-		return 0x4A7760;
-	}
-
-	return 0x0;
-}
 
 ASMJIT_PATCH(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 {

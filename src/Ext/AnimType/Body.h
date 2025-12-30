@@ -16,7 +16,11 @@ class AnimTypeExtData final : public ObjectTypeExtData
 {
 public:
 	using base_type = AnimTypeClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "AnimTypeExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "AnimTypeClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
+
 
 public:
 #pragma region ClassMembers
@@ -202,8 +206,8 @@ public:
 		this->ObjectTypeExtData::CalculateCRC(crc);
 	}
 
-	AnimTypeClass* This() const override { return reinterpret_cast<AnimTypeClass*>(this->AttachedToObject); }
-	const AnimTypeClass* This_Const() const override { return reinterpret_cast<const AnimTypeClass*>(this->AttachedToObject); }
+	AnimTypeClass* This() const { return reinterpret_cast<AnimTypeClass*>(this->AttachedToObject); }
+	const AnimTypeClass* This_Const() const { return reinterpret_cast<const AnimTypeClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const {  return true; }
@@ -259,33 +263,29 @@ public:
 private:
 	template <typename T>
 	void Serialize(T& Stm);
-
 };
 
 class AnimClass;
 class AnimTypeExtContainer final : public Container<AnimTypeExtData>
+	, public ReadWriteContainerInterfaces<AnimTypeExtData>
 {
+public:
+
+	static COMPILETIMEEVAL const char* ClassName = "AnimTypeExtContainer";
+
 public:
 	static AnimTypeExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual void LoadFromINI(AnimTypeClass* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(AnimTypeClass* key, CCINIClass* pINI);
 };
 
 class NOVTABLE FakeAnimTypeClass : public AnimTypeClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
-
 
 	bool _ReadFromINI(CCINIClass* pINI);
 

@@ -1364,33 +1364,6 @@ ASMJIT_PATCH(0x4ABFBE, DisplayClass_LeftMouseButtonUp_ExecPowerToggle, 7)
 		;
 }
 
-ASMJIT_PATCH(0x4A76ED, DiskLaserClass_Update_Anim, 7)
-{
-	GET(DiskLaserClass* const, pThis, ESI);
-	REF_STACK(CoordStruct, coords, STACK_OFFS(0x54, 0x1C));
-
-	auto const pWarhead = pThis->Weapon->Warhead;
-
-	if (RulesExtData::Instance()->DiskLaserAnimEnabled)
-	{
-		auto const pType = MapClass::SelectDamageAnimation(
-			pThis->Damage, pWarhead, LandType::Clear, coords);
-
-		if (pType)
-		{
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pType, coords),
-				pThis->Owner ? pThis->Owner->Owner : nullptr,
-				pThis->Target ? pThis->Target->Owner : nullptr,
-				pThis->Owner, false, false
-			);
-		}
-	}
-
-	MapClass::FlashbangWarheadAt(pThis->Damage, pWarhead, coords);
-
-	return 0;
-}
-
 // ASMJIT_PATCH(0x48a4f9, SelectDamageAnimation_FixNegatives, 6)
 // {
 // 	GET(int, Damage, EDI);

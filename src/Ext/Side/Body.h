@@ -17,7 +17,10 @@ class SideExtData final : public AbstractTypeExtData
 {
 public:
 	using base_type = SideClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "SideExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "SideClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 #pragma region ClassMembers
@@ -202,8 +205,8 @@ public:
 
 	virtual void CalculateCRC(CRCEngine& crc) const { };
 
-	SideClass* This() const override { return reinterpret_cast<SideClass*>(this->AttachedToObject); }
-	const SideClass* This_Const() const override { return reinterpret_cast<const SideClass*>(this->AttachedToObject); }
+	SideClass* This() const { return reinterpret_cast<SideClass*>(this->AttachedToObject); }
+	const SideClass* This_Const() const { return reinterpret_cast<const SideClass*>(this->AttachedToObject); }
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
@@ -270,21 +273,20 @@ private:
 };
 
 class SideExtContainer final : public Container<SideExtData>
+	, public ReadWriteContainerInterfaces<SideExtData>
 {
+public:
+	static COMPILETIMEEVAL const char* ClassName = "SideExtContainer";
+	using ext_t = SideExtData;
+
 public:
 	static SideExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
-
+	virtual void LoadFromINI(ext_t::base_type* key, CCINIClass* pINI, bool parseFailAddr);
+	virtual void WriteToINI(ext_t::base_type* key, CCINIClass* pINI);
 };
 
 class FakeSideClass final : public SideClass

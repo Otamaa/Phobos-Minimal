@@ -10,13 +10,14 @@
 #include <Utilities/EnumFunctions.h>
 #include <Utilities/Macro.h>
 
-std::vector<std::string> BuildingTypeExtData::trenchKinds;
 const DirStruct  BuildingTypeExtData::DefaultJuggerFacing = DirStruct { 0x7FFF };
 const CellStruct BuildingTypeExtData::FoundationEndMarker = { 0x7FFF, 0x7FFF };
 
 #include <Locomotor/Cast.h>
 #include <ExtraHeaders/StackVector.h>
 #include <EventClass.h>
+
+#include <Phobos.SaveGame.h>
 
 bool FakeBuildingTypeClass::_CanUseWaypoint() {
 	return RulesExtData::Instance()->BuildingWaypoint;
@@ -603,7 +604,7 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 		pBuildingExt->MyWeaponManager.Clear();
 		pBuildingExt->MyWeaponManager.CWeaponManager.Clear();
 
-		if (!HouseExtData::AutoDeathObjects.contains(pBuilding))
+		if (!HouseExtContainer::Instance.AutoDeathObjects.contains(pBuilding))
 		{
 			KillMethod nMethod = pBuildingExt->Type->Death_Method.Get();
 
@@ -612,7 +613,7 @@ void BuildingTypeExtData::CreateLimboBuilding(BuildingClass* pBuilding, Building
 				if(pBuildingExt->Type->Death_Countdown > 0)
 					pBuildingExt->Death_Countdown.Start(pBuildingExt->Type->Death_Countdown);
 
-				HouseExtData::AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
+				HouseExtContainer::Instance.AutoDeathObjects.emplace_unchecked(pBuilding, nMethod);
 			}
 		}
 	}
@@ -1231,13 +1232,12 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			grows so long that the search through all kinds takes up significant time is very low, and
 			vectors are far simpler to use in this situation.
 		*/
-		const auto it = std::ranges::find_if(trenchKinds, [](auto const& pItem)
+		const auto it = std::ranges::find_if(BuildingTypeExtContainer::Instance.trenchKinds, [](auto const& pItem)
 						{ return pItem == Phobos::readBuffer; });
 
-		this->IsTrench = std::distance(trenchKinds.begin(), it);
-		if (it == std::ranges::end(trenchKinds))
-		{
-			trenchKinds.emplace_back(Phobos::readBuffer);
+		this->IsTrench = std::distance(BuildingTypeExtContainer::Instance.trenchKinds.begin(), it);
+		if (it == std::ranges::end(BuildingTypeExtContainer::Instance.trenchKinds)) {
+			BuildingTypeExtContainer::Instance.trenchKinds.emplace_back(Phobos::readBuffer);
 		}
 	}
 
@@ -1654,6 +1654,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->AggressiveModeExempt.Read(exINI, pSection, "AggressiveModeExempt");
 		this->IsBarGate.Read(exINI, pSection, "IsBarGate");
 		this->AISellCapturedBuilding.Read(exINI, pSection, "AISellCapturedBuilding");
+		this->BuildingRadioLink_SyncOwner.Read(exINI, pSection, "BuildingRadioLink.SyncOwner");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2103,6 +2104,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->IsHideDuringSpecialAnim)
 		.Process(this->HasPowerUpAnim)
 		.Process(this->AISellCapturedBuilding)
+		.Process(this->BuildingRadioLink_SyncOwner)
 		;
 }
 #else
@@ -2404,12 +2406,123 @@ void BuildingTypeExtData::Serialize(T& Stm)
 // =============================
 // container
 BuildingTypeExtContainer BuildingTypeExtContainer::Instance;
-std::vector<BuildingTypeExtData*> Container<BuildingTypeExtData>::Array;
 
-void Container<BuildingTypeExtData>::Clear()
+void BuildingTypeExtContainer::Clear()
 {
-	Array.clear();
-	BuildingTypeExtData::trenchKinds.clear();
+	this->base_container_t::Clear();
+	this->trenchKinds.clear();
+}
+
+bool BuildingTypeExtContainer::LoadAll(const json& root)
+{
+	this->Clear();
+
+	if (root.contains(BuildingTypeExtContainer::ClassName))
+	{
+		auto& container = root[BuildingTypeExtContainer::ClassName];
+
+		for (auto& entry : container[BuildingTypeExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, BuildingTypeExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		size_t dataSize = container["TrenchKinds_datasize"].get<size_t>();
+		std::string encoded = container["TrenchKinds_data"].get<std::string>();
+
+		PhobosByteStream loader(dataSize);
+		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+		PhobosStreamReader reader(loader);
+
+		reader.Process(this->trenchKinds);
+
+		if (!reader.ExpectEndOfBlock())
+			return false;
+
+		return true;
+	}
+
+	return false;
+
+}
+
+bool BuildingTypeExtContainer::SaveAll(json& root)
+{
+	auto& first_layer = root[BuildingTypeExtContainer::ClassName];
+
+	json _extRoot = json::array();
+	for (auto& _extData : BuildingTypeExtContainer::Array)
+	{
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[BuildingTypeExtData::ClassName] = std::move(_extRoot);
+
+	PhobosByteStream saver(0);
+	PhobosStreamWriter writer(saver);
+
+	writer.Process(this->trenchKinds);
+
+	first_layer["TrenchKinds_datasize"] = saver.data.size();
+	first_layer["TrenchKinds_data"] = Base64Handler::encodeBase64(saver.data);
+
+	return true;
+}
+
+void BuildingTypeExtContainer::LoadFromINI(BuildingTypeClass* key, CCINIClass* pINI, bool parseFailAddr)
+{
+	if (auto ptr = this->Find(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		//load anywhere other than rules
+		ptr->LoadFromINI(pINI, parseFailAddr);
+		//this function can be called again multiple time but without need to re-init the data
+		ptr->SetInitState(InitState::Ruled);
+	}
+
+}
+
+void BuildingTypeExtContainer::WriteToINI(BuildingTypeClass* key, CCINIClass* pINI)
+{
+
+	if (auto ptr = this->TryFind(key))
+	{
+		if (!pINI)
+		{
+			return;
+		}
+
+		ptr->WriteToINI(pINI);
+	}
 }
 
 // =============================
@@ -2449,24 +2562,3 @@ bool FakeBuildingTypeClass::_ReadFromINI(CCINIClass* pINI)
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E45D4, FakeBuildingTypeClass::_ReadFromINI)
 
-bool BuildingTypeExtContainer::LoadGlobals(PhobosStreamReader& Stm)
-{
-	auto ret = LoadGlobalArrayData(Stm);
-	ret &= Stm
-		.Process(BuildingTypeExtData::trenchKinds)
-		.Success()
-		;
-
-	return ret;
-}
-
-bool BuildingTypeExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
-{
-	auto ret =  SaveGlobalArrayData(Stm);
-	ret &= Stm
-		.Process(BuildingTypeExtData::trenchKinds)
-		.Success()
-		;
-
-	return ret;
-}

@@ -6,6 +6,10 @@
 class DigitalDisplayTypeClass final : public Enumerable<DigitalDisplayTypeClass>
 {
 public:
+	static COMPILETIMEEVAL const char* MainSection = "DigitalDisplayTypes";
+	static COMPILETIMEEVAL const char* ClassName = "DigitalDisplayTypeClass";
+
+public:
 	Damageable<ColorStruct> Text_Color;
 	Valueable<bool> Text_Background;
 	Valueable<Point2D> Offset;

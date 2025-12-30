@@ -21,7 +21,8 @@
 
 #include <Misc/DamageArea.h>
 
-//std::vector<CellClass*> AnimExtData::AnimCellUpdater::Marked;
+#include <Phobos.SaveGame.h>
+
 void AnimExtData::OnInit(AnimClass* pThis, CoordStruct* pCoord)
 {
 	if (!pThis->Type)
@@ -447,7 +448,7 @@ void AnimExtData::InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
 
 	if (this->AttachedSystem == ptr)
 	{
-		AnimExtContainer::AnimsWithAttachedParticles.remove((FakeAnimClass*)this->This());
+		AnimExtContainer::Instance.AnimsWithAttachedParticles.remove((FakeAnimClass*)this->This());
 		this->AttachedSystem.detachptr();
 	}
 }
@@ -474,7 +475,7 @@ void AnimExtData::CreateAttachedSystem()
 		pThis->GetOwningHouse()
 	));
 
-	AnimExtContainer::AnimsWithAttachedParticles.push_back((FakeAnimClass*)pThis);
+	AnimExtContainer::Instance.AnimsWithAttachedParticles.push_back((FakeAnimClass*)pThis);
 }
 
 //Modified from Ares
@@ -768,28 +769,90 @@ void AnimExtData::Serialize(T& Stm)
 
 AnimExtContainer AnimExtContainer::Instance;
 
-std::list<AnimClass*> AnimExtContainer::AnimsWithAttachedParticles;
-std::vector<AnimExtData*> Container<AnimExtData>::Array;
-
-void Container<AnimExtData>::Clear()
+void AnimExtContainer::Clear()
 {
-	Array.clear();
-	AnimExtContainer::AnimsWithAttachedParticles.clear();
+	this->base_container_t::Clear();
+	this->AnimsWithAttachedParticles.clear();
 }
 
-bool AnimExtContainer::LoadGlobals(PhobosStreamReader& Stm)
+bool AnimExtContainer::LoadAll(const json& root)
 {
-	auto ret = LoadGlobalArrayData(Stm);
-		ret &= Stm.Process(AnimsWithAttachedParticles);
-	return ret;
+	this->Clear();
+
+	if (root.contains(AnimExtContainer::ClassName))
+	{
+		auto& container = root[AnimExtContainer::ClassName];
+
+		for (auto& entry : container[AnimExtData::ClassName])
+		{
+			uint32_t oldPtr = 0;
+			if (!ExtensionSaveJson::ReadHex(entry, "OldPtr", oldPtr))
+				return false;
+
+			size_t dataSize = entry["datasize"].get<size_t>();
+			std::string encoded = entry["data"].get<std::string>();
+			auto buffer = this->AllocateNoInit();
+
+			PhobosByteStream loader(dataSize);
+			loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+			PhobosStreamReader reader(loader);
+
+			PHOBOS_SWIZZLE_REGISTER_POINTER(oldPtr, buffer, AnimExtData::ClassName);
+
+			buffer->LoadFromStream(reader);
+
+			if (!reader.ExpectEndOfBlock())
+				return false;
+		}
+
+		size_t dataSize = container["AnimsWithAttachedParticles_datasize"].get<size_t>();
+		std::string encoded = container["AnimsWithAttachedParticles_data"].get<std::string>();
+
+		PhobosByteStream loader(dataSize);
+		loader.data = std::move(Base64Handler::decodeBase64(encoded, dataSize));
+		PhobosStreamReader reader(loader);
+
+		reader.Process(this->AnimsWithAttachedParticles);
+
+		if (!reader.ExpectEndOfBlock())
+			return false;
+
+		return true;
+	}
+
+	return false;
+
 }
 
-bool AnimExtContainer::SaveGlobals(PhobosStreamWriter& Stm)
+bool AnimExtContainer::SaveAll(json& root)
 {
-	auto ret = SaveGlobalArrayData(Stm);
+	auto& first_layer = root[AnimExtContainer::ClassName];
 
-	ret &= Stm.Process(AnimsWithAttachedParticles);
-		return ret;
+	json _extRoot = json::array();
+	for (auto& _extData : AnimExtContainer::Array) {
+		PhobosByteStream saver(sizeof(*_extData));
+		PhobosStreamWriter writer(saver);
+
+		_extData->SaveToStream(writer);
+
+		json entry;
+		ExtensionSaveJson::WriteHex(entry, "OldPtr", (uint32_t)_extData);
+		entry["datasize"] = saver.data.size();
+		entry["data"] = Base64Handler::encodeBase64(saver.data);
+		_extRoot.push_back(std::move(entry));
+	}
+
+	first_layer[AnimExtData::ClassName] = std::move(_extRoot);
+
+	PhobosByteStream saver(0);
+	PhobosStreamWriter writer(saver);
+
+	writer.Process(this->AnimsWithAttachedParticles);
+
+	first_layer["AnimsWithAttachedParticles_datasize"] = saver.data.size();
+	first_layer["AnimsWithAttachedParticles_data"] = Base64Handler::encodeBase64(saver.data);
+
+	return true;
 }
 
 // =============================
@@ -859,8 +922,7 @@ ASMJIT_PATCH(0x422058, AnimClass_CTOR, 0x5)
 ASMJIT_PATCH(0x422A52, AnimClass_DTOR, 0x6)
 {
 	GET(AnimClass*, pItem, ESI);
-	AnimExtContainer::AnimsWithAttachedParticles.remove((FakeAnimClass*)pItem);
-
+	AnimExtContainer::Instance.AnimsWithAttachedParticles.remove((FakeAnimClass*)pItem);
 	AnimExtContainer::Instance.Remove(pItem);
 	return 0;
 }
@@ -897,24 +959,3 @@ ASMJIT_PATCH(0x425164, AnimClass_Detach, 0x6)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3390, FakeAnimClass::_GetOwningHouse);
-
-HRESULT __stdcall FakeAnimClass::_Load(IStream* pStm)
-{
-	HRESULT hr = this->AnimClass::Load(pStm);
-	if (SUCCEEDED(hr))
-		hr = AnimExtContainer::Instance.LoadKey(this, pStm);
-
-	return hr;
-}
-
-HRESULT __stdcall FakeAnimClass::_Save(IStream* pStm, BOOL clearDirty)
-{
-	HRESULT hr = this->AnimClass::Save(pStm, clearDirty);
-	if (SUCCEEDED(hr))
-		hr = AnimExtContainer::Instance.SaveKey(this, pStm);
-
-	return hr;
-}
-
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3368, FakeAnimClass::_Load)
-// DEFINE_FUNCTION_JUMP(VTABLE, 0x7E336C, FakeAnimClass::_Save)

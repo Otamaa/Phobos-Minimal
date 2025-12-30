@@ -13,7 +13,9 @@
 #include <TextDrawing.h>
 
 #include <Utilities/EnumFunctions.h>
-HelperedVector<FlyingStrings::Item> FlyingStrings::Data;
+#include <Phobos.SaveGame.h>
+
+FlyingStrings FlyingStrings::Instance;
 
 bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 {
@@ -29,6 +31,75 @@ bool FlyingStrings::DrawAllowed(CoordStruct const& nCoords, Point2D& outPoint)
 	}
 
 	return false;
+}
+
+void FlyingStrings::Clear()
+{
+	Data.clear();
+}
+
+bool FlyingStrings::LoadGlobal(const json& root)
+{
+	this->Clear();
+
+	if (root.contains("FlyingStrings")) {
+		size_t dataSize = root["collectionsize"].get<size_t>();
+		Debug::Log("[ExtSave] Loading FlyingStrings %d\n", dataSize);
+
+		if (dataSize > 0) {
+			Data.reserve(dataSize);
+
+			for (auto& _item : root["collection"]) {
+				auto& newPtr = Data.emplace_back();
+				size_t itemdatasize = _item["itemdatasize"].get<size_t>();
+				std::string encoded = _item["itemdata"].get<std::string>();
+
+				PhobosByteStream loader(itemdatasize);
+				loader.data = std::move(Base64Handler::decodeBase64(encoded, itemdatasize));
+				PhobosStreamReader reader(loader);
+
+				if (!newPtr.Load(reader, false) || !reader.ExpectEndOfBlock())
+					return false;
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool FlyingStrings::SaveGlobal(json& root)
+{
+	Debug::Log("[ExtSave] Saving FlyingStrings: %d\n", Data.size());
+
+	json entry_first;
+
+	entry_first["collectionsize"] = Data.size();
+
+	if (!Data.empty()) {
+
+		entry_first["collection"] = json::array();
+		auto& _arrayOfData = entry_first["collection"];
+
+		for (auto& _item : Data)
+		{
+			json entry_sec;
+			PhobosByteStream _saver(0);
+			PhobosStreamWriter writer(_saver);
+
+			if (!_item.Save(writer))
+				return false;
+
+			entry_sec["itemdatasize"] = _saver.data.size();
+			entry_sec["itemdata"] = Base64Handler::encodeBase64(_saver.data);
+
+			_arrayOfData.push_back(std::move(entry_sec));
+		}
+	}
+
+	root["FlyingStrings"] = std::move(entry_first);
+	return true;
 }
 
 void FlyingStrings::AddMoneyString(bool Display, int amount, TechnoClass* owner, AffectedHouse displayToHouses, CoordStruct coords, Point2D pixelOffset, ColorStruct nOverrideColor)
@@ -63,7 +134,7 @@ void FlyingStrings::AddMoneyString(bool Display, int amount, TechnoClass* owner,
 		else
 			coords.Z += 256;
 
-		FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
+		this->Add(moneyStr, coords, color, pixelOffset);
 	}
 }
 
@@ -95,7 +166,7 @@ void FlyingStrings::AddMoneyString(bool Display, int amount, HouseClass* owner, 
 		pixelOffset.X -= (nDim.Width / 2);
 		coords.Z += 256;
 
-		FlyingStrings::Add(moneyStr, coords, color, pixelOffset);
+		this->Add(moneyStr, coords, color, pixelOffset);
 	}
 }
 
@@ -124,7 +195,7 @@ void FlyingStrings::AddString(const std::wstring& text, bool Display, TechnoClas
 		else
 			coords.Z += 256;
 
-		FlyingStrings::Add(text, coords, color, pixelOffset);
+		this->Add(text, coords, color, pixelOffset);
 	}
 }
 
@@ -144,7 +215,7 @@ void FlyingStrings::AddNumberString(int amount, HouseClass* owner, AffectedHouse
 		Dimensions nDim {};
 		BitFont::Instance->GetTextDimension(buffer.data(), &nDim.Width, &nDim.Height, 120);
 		pixelOffset.X -= (nDim.Width / 2);
-		FlyingStrings::Add(buffer, coords, color, pixelOffset);
+		this->Add(buffer, coords, color, pixelOffset);
 	}
 }
 
@@ -190,7 +261,7 @@ void FlyingStrings::DisplayDamageNumberString(int damage, DamageDisplayType type
 	if (offset >= maxOffset || offset == INT32_MIN)
 		offset = -maxOffset;
 
-	FlyingStrings::Add(damagestr, coords, color, Point2D { offset - (width / 2), 0 });
+	this->Add(damagestr, coords, color, Point2D { offset - (width / 2), 0 });
 
 	offset = offset + width;
 }

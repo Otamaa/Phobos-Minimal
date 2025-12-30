@@ -94,54 +94,54 @@ ASMJIT_PATCH(0x7128C0, TechnoTypeClass_LoadFromINI_Weapons1, 6)
 	return 0x712A8F;
 }
 
-WeaponStruct* FakeTechnoTypeClass::GetWeapon(int which) {
+WeaponStruct* __fastcall FakeTechnoTypeClass::__GetWeapon(TechnoTypeClass* pThis , discard_t ,int which) {
 	if (which < TechnoTypeClass::MaxWeapons)
-		return this->Weapon + which;
+		return pThis->Weapon + which;
 
 	which -= TechnoTypeClass::MaxWeapons;
-	const auto pExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)this);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis);
 	const auto Vectors = &pExt->AdditionalWeaponDatas;
 
 	if ((size_t)which < Vectors->size())
 		return Vectors->data() + which;
 
-	Debug::LogInfo("Techno[{}] Trying to get AdditionalWeapon with out of bound index[{}]", this->ID, which);
+	Debug::LogInfo("Techno[{}] Trying to get AdditionalWeapon with out of bound index[{}]", pThis->ID, which);
 	return nullptr;
 }
 
-WeaponStruct* FakeTechnoTypeClass::GetEliteWeapon(int which) {
+WeaponStruct* __fastcall FakeTechnoTypeClass::__GetEliteWeapon(TechnoTypeClass* pThis , discard_t ,int which) {
 	if (which < TechnoTypeClass::MaxWeapons)
-		return this->EliteWeapon + which;
+		return pThis->EliteWeapon + which;
 
 	which -= TechnoTypeClass::MaxWeapons;
-	const auto pExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)this);
+	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis);
 	const auto Vectors = &pExt->AdditionalEliteWeaponDatas;
 
 	if ((size_t)which < Vectors->size())
 		return Vectors->data() + which;
 
-	Debug::LogInfo("Techno[{}] Trying to get AdditionalEliteWeapon with out of bound index[{}]", this->ID, which);
+	Debug::LogInfo("Techno[{}] Trying to get AdditionalEliteWeapon with out of bound index[{}]", pThis->ID, which);
 	return nullptr;
 }
 
-int FakeTechnoTypeClass::GetWeaponTurretIndex(int which) {
+int __fastcall FakeTechnoTypeClass::__GetWeaponTurretIndex(TechnoTypeClass* pThis , discard_t ,int which) {
 	if (which < TechnoTypeClass::MaxWeapons) {
-		return *(this->TurretWeapon + which);
+		return *(pThis->TurretWeapon + which);
 	}
 
 	which -= TechnoTypeClass::MaxWeapons;
-	const auto& vec = &TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)this)->AdditionalTurrentWeapon;
+	const auto& vec = &TechnoTypeExtContainer::Instance.Find(pThis)->AdditionalTurrentWeapon;
 
 	if ((size_t)which < vec->size())
 		return *(vec->data() + which);
 
-	Debug::LogInfo("Techno[{}] Trying to get AdditionalTurretWeaponIndex with out of bound index[{}]", this->ID, which);
+	Debug::LogInfo("Techno[{}] Trying to get AdditionalTurretWeaponIndex with out of bound index[{}]", pThis->ID, which);
 	return 0;
 }
 
-DEFINE_FUNCTION_JUMP(LJMP, 0x7177C0, FakeTechnoTypeClass::GetWeapon);
-DEFINE_FUNCTION_JUMP(LJMP, 0x7177E0, FakeTechnoTypeClass::GetEliteWeapon);
-DEFINE_FUNCTION_JUMP(LJMP, 0x7178B0, FakeTechnoTypeClass::GetWeaponTurretIndex);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7177C0, FakeTechnoTypeClass::__GetWeapon);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7177E0, FakeTechnoTypeClass::__GetEliteWeapon);
+DEFINE_FUNCTION_JUMP(LJMP, 0x7178B0, FakeTechnoTypeClass::__GetWeaponTurretIndex);
 
 ASMJIT_PATCH(0x747BCF, UnitTypeClass_LoadFromINI_Turrets, 5)
 {

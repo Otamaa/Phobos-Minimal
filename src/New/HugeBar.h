@@ -59,13 +59,14 @@ public:
 	void HugeBar_DrawValue(Point2D& posDraw, int iCurrent, int iMax);
 
 	static void InvalidatePointer(void* ptr, bool removed);
-	static void Clear();
+
 
 	bool Load(PhobosStreamReader& stm, bool registerForChange);
 	bool Save(PhobosStreamWriter& stm) const;
 
 	static bool LoadGlobals(PhobosStreamReader& stm);
 	static bool SaveGlobals(PhobosStreamWriter& stm);
+	static void Clear();
 
 private:
 

@@ -9,6 +9,10 @@ class WarheadTypeClass;
 
 class RadTypeClass final : public Enumerable<RadTypeClass>
 {
+public:
+	static COMPILETIMEEVAL const char* MainSection = "RadiationTypes";
+	static COMPILETIMEEVAL const char* ClassName = "RadTypeClass";
+
 private:
 	Nullable<int> DurationMultiple;
 	Nullable<int> ApplicationDelay;

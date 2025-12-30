@@ -4,20 +4,6 @@
 
 PhobosMap<EBolt*, EboltExtData> EboltExtData::Container;
 
-//bool EboltExtData::LoadGlobals(PhobosStreamReader& Stm)
-//{
-//	return Stm
-//		.Process(EboltExtData::Container)
-//		.Success();
-//}
-//
-//bool EboltExtData::SaveGlobals(PhobosStreamWriter& Stm)
-//{
-//	return Stm
-//		.Process(EboltExtData::Container)
-//		.Success();
-//}
-
 void EboltExtData::Clear()
 {
 	EboltExtData::Container.clear();

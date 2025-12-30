@@ -226,7 +226,7 @@ bool TActionExtData::CreateBannerGlobal(TActionClass* pThis, HouseClass* pHouse,
 	if (!pBannerType)
 		return true;
 
-	auto& banners = BannerClass::Array;
+	auto& banners = BannerManagerClass::Instance.Array;
 
 	bool foundAny = false;
 
@@ -259,7 +259,7 @@ bool TActionExtData::CreateBannerLocal(TActionClass* pThis, HouseClass* pHouse, 
 	if (!pBannerType)
 		return true;
 
-	auto& banners = BannerClass::Array;
+	auto& banners = BannerManagerClass::Instance.Array;
 
 	bool foundAny = false;
 
@@ -286,7 +286,7 @@ bool TActionExtData::CreateBannerLocal(TActionClass* pThis, HouseClass* pHouse, 
 
 bool TActionExtData::DeleteBanner(TActionClass* pThis, HouseClass* pHouse, ObjectClass* pObject, TriggerClass* pTrigger, CellStruct* plocation)
 {
-	BannerClass::Array.remove_all_if([pThis](const BannerClass& pBanner) {
+	BannerManagerClass::Instance.Array.remove_all_if([pThis](const BannerClass& pBanner) {
 		 return pBanner.ID == pThis->Value;
 	});
 

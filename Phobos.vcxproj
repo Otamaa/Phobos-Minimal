@@ -174,7 +174,6 @@
     <ClCompile Include="src\Misc\Ares\Hooks\Hooks.Techno.cpp" />
     <ClCompile Include="src\Misc\BuildingFoundations.h.cpp" />
     <ClCompile Include="src\Misc\CustomMemoryManager.cpp" />
-    <ClCompile Include="src\Misc\Hook.CommandButtons.cpp" />
     <ClCompile Include="src\Misc\Hooks.BugFixes.cpp" />
     <ClCompile Include="src\Misc\Hooks.CRT.cpp" />
     <ClCompile Include="src\Misc\Hooks.GlobalLoadGame.cpp" />
@@ -515,7 +514,6 @@
     <ClCompile Include="src\Misc\Vinifera\BlowfishEngine.cpp" />
     <ClCompile Include="src\New\AnonymousType\BuildSpeedBonus.cpp" />
     <ClCompile Include="src\New\AnonymousType\MultipleFactoryCaps.cpp" />
-    <ClCompile Include="src\New\Entity\NewSpawnManager.cpp" />
     <ClCompile Include="src\New\Entity\SWFirerClass.cpp" />
     <ClCompile Include="src\New\HugeBar.cpp" />
     <ClCompile Include="src\New\Interfaces\LevitateLocomotionClass.cpp" />
@@ -606,6 +604,7 @@
     <ClCompile Include="src\Phobos.Config.cpp" />
     <ClCompile Include="src\Phobos.Ext.cpp" />
     <ClCompile Include="src\Phobos.Lua.cpp" />
+    <ClCompile Include="src\Phobos.SaveGame.cpp" />
     <ClCompile Include="src\Phobos.UI.cpp" />
     <ClCompile Include="src\PhobosSaveVersionInfo.cpp" />
     <ClCompile Include="src\Utilities\Anchor.cpp" />
@@ -907,8 +906,6 @@
     <ClInclude Include="src\Misc\PhobosToolTip.h" />
     <ClInclude Include="src\Misc\SyncLogging.h" />
     <ClInclude Include="src\Misc\Vinifera\BlowfishEngine.h" />
-    <ClInclude Include="src\New\Entity\MissingCameoData.h" />
-    <ClInclude Include="src\New\Entity\NewSpawnManager.h" />
     <ClInclude Include="src\New\Entity\NewTiberiumStorageClass.h" />
     <ClInclude Include="src\New\Entity\SWFirerClass.h" />
     <ClInclude Include="src\New\Entity\TrackerClass.h" />
@@ -1118,6 +1115,7 @@
     <ClInclude Include="src\New\Type\TheaterTypeClass.h" />
     <ClInclude Include="src\Phobos.Ext.h" />
     <ClInclude Include="src\Phobos.Math.h" />
+    <ClInclude Include="src\Phobos.SaveGame.h" />
     <ClInclude Include="src\Phobos.UI.h" />
     <ClInclude Include="src\PhobosSaveVersionInfo.h" />
     <ClInclude Include="src\Utilities\Anchor.h" />
@@ -1148,6 +1146,7 @@
     <ClInclude Include="src\Utilities\GameConfig.h" />
     <ClInclude Include="src\Utilities\GameUniquePointers.h" />
     <ClInclude Include="src\Utilities\Handle.h" />
+    <ClInclude Include="src\Utilities\Interfaces.h" />
     <ClInclude Include="src\Utilities\Interpolation.h" />
     <ClInclude Include="src\Utilities\LambdaFunctionArgCount.h" />
     <ClInclude Include="src\Utilities\LocationMark.h" />

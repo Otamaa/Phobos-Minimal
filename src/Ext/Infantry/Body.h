@@ -11,7 +11,10 @@ class InfantryExtData : public FootExtData
 {
 public:
 	using base_type = InfantryClass;
-	static constexpr unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL const char* ClassName = "InfantryExtData";
+	static COMPILETIMEEVAL const char* BaseClassName = "InfantryClass";
+	static COMPILETIMEEVAL unsigned Marker = UuidFirstPart<base_type>::value;
+	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
 
@@ -62,8 +65,8 @@ public:
 		this->FootExtData::CalculateCRC(crc);
 	}
 
-	InfantryClass* This() const override { return reinterpret_cast<InfantryClass*>(this->AttachedToObject); }
-	const InfantryClass* This_Const() const override { return reinterpret_cast<const InfantryClass*>(this->AttachedToObject); }
+	InfantryClass* This() const { return reinterpret_cast<InfantryClass*>(this->AttachedToObject); }
+	const InfantryClass* This_Const() const { return reinterpret_cast<const InfantryClass*>(this->AttachedToObject); }
 
 private:
 	template <typename T>
@@ -73,26 +76,19 @@ private:
 class InfantryExtContainer final : public Container<InfantryExtData>
 {
 public:
+	static COMPILETIMEEVAL const char* ClassName = "InfantryExtContainer";
+
+public:
 	static InfantryExtContainer Instance;
 
-	static bool LoadGlobals(PhobosStreamReader& Stm);
-	static bool SaveGlobals(PhobosStreamWriter& Stm);
-
-	static void InvalidatePointer(AbstractClass* const ptr, bool bRemoved)
-	{
-		for (auto& ext : Array)
-		{
-			ext->InvalidatePointer(ptr, bRemoved);
-		}
-	}
+	virtual bool LoadAll(const json& root);
+	virtual bool SaveAll(json& root);
 };
 
 class InfantryTypeExtData;
 class NOVTABLE FakeInfantryClass : public InfantryClass
 {
 public:
-	HRESULT __stdcall _Load(IStream* pStm);
-	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty);
 
 	void _Dummy(Mission, bool) RX;
 	void _DummyScatter(const CoordStruct& crd, bool ignoreMission, bool ignoreDestination) RX;

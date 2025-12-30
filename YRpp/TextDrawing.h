@@ -67,7 +67,7 @@ struct TextDrawing
 
 		pFont->SetByte41(true);
 		pFont->SetBounds_Rect(&textrect);
-		pFont->SetColor(fore);
+		pFont->SetColor((WORD)fore);
 		BitText::Instance->Print(pFont, surface, text, xpos, ypos, 0, 0);
 		return { xpos  , ypos };
 	}
