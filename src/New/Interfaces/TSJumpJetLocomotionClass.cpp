@@ -1,5 +1,7 @@
 #include "TSJumpJetLocomotionClass.h"
 
+#include <Ext/Techno/Body.h>
+
 #include <RulesClass.h>
 #include <SuperClass.h>
 #include <MapClass.h>
@@ -155,7 +157,7 @@ IFACEMETHODIMP_(void) TSJumpJetLocomotionClass::Move_To(Coordinate to)
 	{
 		CellStruct cell = MapClass::Instance->NearByLocation(
 							CellClass::Coord2Cell(to),
-							LinkedTo->GetTechnoType()->SpeedType,
+							GET_TECHNOTYPE(LinkedTo)->SpeedType,
 							ZoneType::None,
 							MovementZone::Fly,
 							MapClass::Instance->GetCellAt(to)->ContainsBridge(),0,

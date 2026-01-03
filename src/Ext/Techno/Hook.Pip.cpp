@@ -592,7 +592,7 @@ void __fastcall FakeTechnoClass::__Draw_Pips(TechnoClass* techno, discard_t, Poi
 	const AbstractType technoType = techno->WhatAmI();
 	const bool isBuilding = (technoType == AbstractType::Building);
 	const bool isInfantry = (technoType == AbstractType::Infantry);
-	TechnoTypeClass* technoTypeClass = techno->GetTechnoType();
+	TechnoTypeClass* technoTypeClass = GET_TECHNOTYPE(techno);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoTypeClass);
 	SHPStruct* pips_SHP = pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP());
 	SHPStruct* pips2_SHP = pTypeExt->PipShapes02.Get(FileSystem::PIPS2_SHP());
@@ -811,7 +811,7 @@ static void DrawMindControlPip(TechnoClass* techno, PipDrawState* drawState, Pip
 //using PIPS2_SHP exclusively
 static void DrawAmmoPip(TechnoClass* techno, bool isBuilding, SHPStruct* pipShape, PipDrawState* drawState, PipDrawInfo* pipInfo, RectangleStruct* clipRect)
 {
-	TechnoTypeClass* technoType = techno->GetTechnoType();
+	TechnoTypeClass* technoType = GET_TECHNOTYPE(techno);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoType);
 
 	const Point2D pipSize = pTypeExt->AmmoPipSize.Get((isBuilding ?

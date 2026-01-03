@@ -27,7 +27,7 @@
 static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, WeaponTypeClass* pWeapon, TechnoClass* pTarget , bool useverses)
 {
 	auto const pWH = pWeapon->Warhead;
-	auto const pType = pTarget->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pTarget);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (!pType->LegalTarget || !pWHExt->CanDealDamage(pTarget,false,!useverses))
@@ -644,7 +644,6 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 	if(!pTarget || !pTarget->IsAlive)
 		return false;
 
-	//const auto pTargetType = pTarget->GetTechnoType();
 	const double currentHealthPerc = pTarget->GetHealthPercentage();
 	const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
 	double nTreshold = pWarheadExt->MindControl_Threshold;

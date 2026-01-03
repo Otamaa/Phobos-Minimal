@@ -124,7 +124,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override { return AbstractType::Cell; }
-	virtual int Size() const override R0;
+	virtual int ClassSize() const override R0;
 
 	//virtual CoordStruct* GetAltCoords(CoordStruct* pCrd) const override JMP_THIS(0x486890); //GetCoords__
 
@@ -287,7 +287,7 @@ public:
 		{ JMP_THIS(0x4834A0); }
 
 	FORCEDINLINE bool IsClearToMove(SpeedType speedType, MovementZone movementZone, bool ignoreInfantry = false, bool ignoreVehicles = false, int level = -1) {
-		return IsClearToMove(speedType, ignoreInfantry, ignoreInfantry, ZoneType::None, movementZone, level, (bool)(this->Flags & CellFlags::CenterRevealed));
+		return IsClearToMove(speedType, ignoreInfantry, ignoreVehicles, ZoneType::None, movementZone, level, (bool)(this->Flags & CellFlags::CenterRevealed));
 	}
 	// those unks are passed to TechnoClass::Scatter in that same order
 	void ScatterContent(const CoordStruct &crd, bool ignoreMission, bool ignoreDestination, bool alt) const
@@ -534,11 +534,11 @@ public:
 	void MarkForRedraw() const
 		{ JMP_THIS(0x486E70); }
 
-	void ChainReaction() {
-		CellStruct* cell = &this->MapCoords;
-		SET_REG32(ecx, cell);
-		ASM_CALL(0x489270);
-	}
+	// void ChainReaction() {
+	// 	CellStruct* cell = &this->MapCoords;
+	// 	SET_REG32(ecx, cell);
+	// 	ASM_CALL(0x489270);
+	// }
 
 	CoordStruct* FindInfantrySubposition(CoordStruct* pOutBuffer, const CoordStruct& coords, bool ignoreContents, bool alt, bool useCellCoords)
 		{ JMP_THIS(0x481180); }

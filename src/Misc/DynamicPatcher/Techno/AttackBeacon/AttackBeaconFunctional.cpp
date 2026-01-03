@@ -31,7 +31,7 @@ void AttackBeaconFunctional::AI(TechnoExtData* pExt , TechnoTypeExtData* pTypeEx
 				(pTarget->Owner->IsAlliedWith(pHouse) ? !BeaconTypeData.AffectsAllies : !BeaconTypeData.AffectsEnemies)))
 		{ continue; }
 
-		auto const pTargetType = pTarget->GetTechnoType();
+		auto const pTargetType = GET_TECHNOTYPE(pTarget);
 		
 		if ((BeaconTypeData.Types.size() <= 0 || BeaconTypeData.Types.Contains(pTargetType))
 			&& BeaconTypeData.Force ? true : BeaconData.EligibleMissions.Contains(pTarget->GetCurrentMission()))

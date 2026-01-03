@@ -66,7 +66,7 @@ void AresAE::Update(AresAEData* ae, TechnoClass* pTechno)
 	if (pTechno->InLimbo || pTechno->IsImmobilized || pTechno->Transporter)
 		return;
 
-	const auto pType = pTechno->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pTechno);
 
 	if (!ae->Data.empty())
 	{

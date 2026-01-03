@@ -316,8 +316,8 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 
 	auto pTechno = pFirer;
 
-	if (pTechno->Transporter && pTechno->Transporter->IsAlive && pTechno->Transporter->GetTechnoType()->OpenTopped) {
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->Transporter->GetTechnoType());
+	if (pTechno->Transporter && pTechno->Transporter->IsAlive && GET_TECHNOTYPE(pTechno)->OpenTopped) {
+		auto const pTypeExt = GET_TECHNOTYPEEXT(pTechno->Transporter);
 
 		if (pTypeExt->OpenTopped_UseTransportRangeModifiers)
 			pTechno = pTechno->Transporter;
@@ -367,7 +367,7 @@ int WeaponTypeExtData::GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* p
 		if (!spawnManager || spawnManager->Status != SpawnManagerStatus::CoolDown)
 			return 0;
 
-		const auto spawnsNumber = pFirer->GetTechnoType()->SpawnsNumber;
+		const auto spawnsNumber = GET_TECHNOTYPE(pFirer)->SpawnsNumber;
 
 		for (int i = 0; i < spawnsNumber; i++)
 		{

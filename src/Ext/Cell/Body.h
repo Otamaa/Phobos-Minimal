@@ -115,9 +115,15 @@ public:
 	virtual bool SaveAll(json& root);
 };
 
+enum class CollectResult : char {
+	cannot, can
+};
+
 class NOVTABLE FakeCellClass : public CellClass
 {
 public:
+
+	CollectResult _CollecCrate(FootClass* pCollector);
 	bool _SpreadTiberium(bool force);
 	bool _SpreadTiberium_2(TerrainClass* pTerrain, bool force);
 	void _Invalidate(AbstractClass* ptr, bool removed);
@@ -125,6 +131,8 @@ public:
 	bool _CanTiberiumGerminate(TiberiumClass* tiberium);
 	bool _CanPlaceVeins();
 	int _Reduce_Tiberium(int levels_reducer);
+
+	static void __fastcall _ChainReaction(CellStruct* coords);
 
 	FORCEDINLINE CellClass* _AsCell() const
 	{

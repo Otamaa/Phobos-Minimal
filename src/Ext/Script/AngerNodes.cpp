@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/Techno/Body.h>
 #include <Ext/Team/Body.h>
 #include <Ext/Rules/Body.h>
 #include <Ext/House/Body.h>
@@ -700,7 +701,7 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 					// mask > 0 : Threat based on the new types in the new attack actions
 					if (ScriptExtData::EvaluateObjectWithMask(pTechno, mask, -1, -1, pLeaderUnit))
 					{
-						auto pTechnoType = pTechno->GetTechnoType();
+						auto pTechnoType = GET_TECHNOTYPE(pTechno);
 
 						enemyThreatValue[pTechno->Owner->ArrayIndex] += pTechnoType->ThreatPosed;
 

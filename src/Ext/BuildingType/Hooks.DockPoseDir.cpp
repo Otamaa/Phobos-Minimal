@@ -211,7 +211,7 @@ ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_FlightUpdate_SetFlightLevel, 0x7) // M
 	GET_STACK(FlyLocomotionClass* const, pThis, STACK_OFFSET(0x48, -0x28));
 
 	auto const pFootPtr = pThis->LinkedTo;
-	const auto pType = pFootPtr->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pFootPtr);
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	// Ares hook

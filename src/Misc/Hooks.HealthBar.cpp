@@ -80,9 +80,9 @@ bool HideBar(TechnoClass* pTechno, TechnoTypeClass* pType,  bool isAllied)
 
 namespace DrawHeathData
 {
-	void DrawNumber(const TechnoClass* const pThis, Point2D* pLocation, RectangleStruct* pBounds)
+	void DrawNumber(TechnoClass* pThis, Point2D* pLocation, RectangleStruct* pBounds)
 	{
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 		if (!pTypeExt->HealthNumber_Show.Get() || !pThis->IsAlive)
 			return;
@@ -94,7 +94,7 @@ namespace DrawHeathData
 
 		Point2D nCurrentDistance { 0,0 };
 		auto const nLocation = *pLocation;
-		auto const pType = pThis->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pThis);
 		int XOffset = 0;
 		int	YOffset = 0;
 
@@ -147,7 +147,7 @@ namespace DrawHeathData
 
 		//char nBuffer[0x100];
 		std::string _buffer = !pTypeExt->HealthNumber_Percent.Get() ?
-			fmt::format("{}/{}", pThis->Health, pThis->GetTechnoType()->Strength)
+			fmt::format("{}/{}", pThis->Health, GET_TECHNOTYPE(pThis)->Strength)
 			:
 			fmt::format("{}%", (int)(pThis->GetHealthPercentage() * 100.0));
 
@@ -284,7 +284,7 @@ namespace DrawHeathData
 	void DrawBar_Building(TechnoClass* pThis, int iLength, Point2D* pLocation, RectangleStruct* pBound, int frame, int empty_frame, int bracket_delta)
 	{
 		CoordStruct vCoords = { 0, 0, 0 };
-		pThis->GetTechnoType()->Dimension2(&vCoords);
+		GET_TECHNOTYPE(pThis)->Dimension2(&vCoords);
 		CoordStruct vCoords2 = { -vCoords.X / 2, vCoords.Y / 2,vCoords.Z };
 		Point2D vPos2 = TacticalClass::Instance->CoordsToScreen(vCoords2);
 
@@ -335,7 +335,7 @@ namespace DrawHeathData
 		Point2D nLoc = *pLocation;
 		Point2D vLoc = *pLocation;
 		int frame, XOffset, YOffset;
-		YOffset = pThis->GetTechnoType()->PixelSelectionBracketDelta + bracket_delta;
+		YOffset = GET_TECHNOTYPE(pThis)->PixelSelectionBracketDelta + bracket_delta;
 		vLoc.Y -= 5;
 
 		if (iLength == 8)

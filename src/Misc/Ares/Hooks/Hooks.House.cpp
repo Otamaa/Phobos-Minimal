@@ -224,7 +224,7 @@ ASMJIT_PATCH(0x508D32, HouseClass_UpdatePower_LocalDrain1, 5)
 	if (output > 0)
 	{
 		auto pBldTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->Type);
-		auto pDrainTypeExt = TechnoTypeExtContainer::Instance.Find(pBld->DrainingMe->GetTechnoType());
+		auto pDrainTypeExt = GET_TECHNOTYPEEXT(pBld->DrainingMe);
 
 		// local, if any of the participants in the drain is local
 		if (pBldTypeExt->Drain_Local || pDrainTypeExt->Drain_Local)
@@ -696,7 +696,7 @@ ASMJIT_PATCH(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
 	GET(TechnoClass*, pFactoryObject, ESI);
 
 	const auto nBuffer = HouseExtData::HasFactory(
-		pFactoryObject->GetOwningHouse(), pFactoryObject->GetTechnoType(), false, true, false, true);
+		pFactoryObject->GetOwningHouse(), GET_TECHNOTYPE(pFactoryObject), false, true, false, true);
 
 	if (nBuffer.first == NewFactoryState::Unpowered)
 		return 0x6AB95A;

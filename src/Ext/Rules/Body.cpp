@@ -472,30 +472,41 @@ ASMJIT_PATCH(0x687C16, INIClass_ReadScenario_ValidateThings, 6)
 
 		if (pExt->Fake_Of && pExt->Fake_Of->WhatAmI() != what)
 		{
-			Debug::LogInfo("[{} - {}] has FakeOf [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->Fake_Of->ID , pExt->Fake_Of->GetThisClassName());
+			Debug::LogInfo("[{} - {}] has FakeOf [{} - {}] but it different ClassType from it!"
+				, pItem->ID, myClassName , pExt->Fake_Of->ID , pExt->Fake_Of->GetThisClassName());
 			pExt->Fake_Of = nullptr;
 			Debug::RegisterParserError();
 		}
 
 		if (pExt->RecuitedAs.isset()) {
 			if (pExt->RecuitedAs && pExt->RecuitedAs->WhatAmI() != what) {
-				Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName, pExt->ClonedAs->ID, pExt->ClonedAs->GetThisClassName());
+				Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!"
+					, pItem->ID, myClassName, pExt->RecuitedAs->ID, pExt->RecuitedAs->GetThisClassName());
 				Debug::RegisterParserError();
 			}
 			else if (!pExt->RecuitedAs || pExt->RecuitedAs == pItem) {
 				pExt->RecuitedAs.Reset();
+				Debug::RegisterParserError();
 			}
 		}
 
-		if (pExt->ClonedAs && pExt->ClonedAs->WhatAmI() != what)
-		{
+		if(!pExt->TeamMember_ConsideredAs.empty()){
+			for(auto& cc : pExt->TeamMember_ConsideredAs){
+				if(cc && cc->WhatAmI() != what){
+					Debug::LogInfo("[{} - {}] has TeamMember.ConsideredAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName, cc->ID, cc->GetThisClassName());
+					Debug::RegisterParserError();
+					cc = nullptr;
+				}
+			}
+		}
+
+		if (pExt->ClonedAs && pExt->ClonedAs->WhatAmI() != what) {
 			Debug::LogInfo("[{} - {}] has ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->ClonedAs->ID , pExt->ClonedAs->GetThisClassName());
 			pExt->ClonedAs = nullptr;
 			Debug::RegisterParserError();
 		}
 
-		if (pExt->AI_ClonedAs && pExt->AI_ClonedAs->WhatAmI() != what)
-		{
+		if (pExt->AI_ClonedAs && pExt->AI_ClonedAs->WhatAmI() != what) {
 			Debug::LogInfo("[{} - {}] has AI.ClonedAs [{} - {}] but it different ClassType from it!", pItem->ID, myClassName , pExt->AI_ClonedAs->ID , pExt->AI_ClonedAs->GetThisClassName());
 			pExt->AI_ClonedAs = nullptr;
 			Debug::RegisterParserError();
@@ -984,6 +995,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AllowDeployControlledMCV.Read(exINI, GameStrings::General, "AllowDeployControlledMCV");
 	this->TypeSelectUseIFVMode.Read(exINI, GameStrings::General, "TypeSelectUseIFVMode");
 	this->BuildingRadioLink_SyncOwner.Read(exINI, GameStrings::General, "BuildingRadioLink.SyncOwner");
+	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, GameStrings::CombatDamage, "ApplyPerTargetEffectsOnDetonate");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");

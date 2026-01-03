@@ -110,7 +110,7 @@ ASMJIT_PATCH(0x7461C5, UnitClass_BallooonHoverExplode_OverrideCheck, 0x6)
 ASMJIT_PATCH(0x73D81C, UnitClass_Mi_Unload_LastPassenger, 0x7)
 {
 	GET(UnitClass*, pThis, ESI);
-	R->EAX(pThis->GetTechnoType()->Gunner);
+	R->EAX(pThis->Type->Gunner);
 	return 0x73D823;
 }
 
@@ -290,14 +290,14 @@ ASMJIT_PATCH(0x74653C, UnitClass_RemoveGunner, 0xA)
 
 ASMJIT_PATCH(0x73769E, UnitClass_ReceivedRadioCommand_SpecificPassengers, 8)
 {
-	GET(UnitClass* const, pThis, ESI);
-	GET(TechnoClass const* const, pSender, EDI);
-	GET(TechnoClass* const, pCall, EDI);
+	GET(UnitClass*, pThis, ESI);
+	GET(TechnoClass*, pSender, EDI);
+	GET(TechnoClass*, pCall, EDI);
 
 	if(pThis->OnBridge && pCall->OnBridge)
 		return 0x73780F;
 
-	auto const pSenderType = pSender->GetTechnoType();
+	auto const pSenderType = GET_TECHNOTYPE(pSender);
 
 	return TechnoTypeExtData::PassangersAllowed(pThis->Type, pSenderType) ? 0u : 0x73780Fu;
 }
@@ -367,9 +367,18 @@ ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 	};
 
 	GET(TechnoClass*, pThis, ESI);
+	GET(AbstractClass*, pTarget, EBX);
 	GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
+	// Force weapon check
+	const int newIndex = pTypeExt->SelectPhobosWeapon(pThis, pTarget);
+
+	if (newIndex >= 0) {
+		weaponIndex = newIndex;
+	}
 
 	pExt->CanFireWeaponType = pThis->GetWeapon(weaponIndex)->WeaponType;
 
@@ -416,7 +425,7 @@ ASMJIT_PATCH(0x70DEBA, TechnoClass_UpdateGattling_Cycle, 6)
 	GET(int, lastStageValue, EAX);
 	GET_STACK(int, a2, 0x24);
 
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 
 	if (pThis->GattlingValue < lastStageValue)
 	{
@@ -610,7 +619,7 @@ ASMJIT_PATCH(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 {
 	GET(TechnoClass*, pSlaveOwner, ECX);
 
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlaveOwner->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(pSlaveOwner);
 
 	R->EAX(pTypeExt->Harvester_ShortScan.Get(RulesClass::Instance->SlaveMinerShortScan));
 	return R->Origin() + 0x6;
@@ -620,7 +629,7 @@ ASMJIT_PATCH(0x6B006D, SlaveManagerClass_UpdateMiner_ShortScan, 6)
 ASMJIT_PATCH(0x6B01A3, SlaveManagerClass_UpdateMiner_ScanCorrection, 6)
 {
 	GET(SlaveManagerClass*, pThis, ESI);
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(pThis->Owner);
 
 	R->EAX(pTypeExt->Harvester_ScanCorrection.Get(RulesClass::Instance->SlaveMinerScanCorrection));
 	return 0x6B01A9;
@@ -630,7 +639,7 @@ ASMJIT_PATCH(0x6B01A3, SlaveManagerClass_UpdateMiner_ScanCorrection, 6)
 ASMJIT_PATCH(0x6AFDFC, SlaveManagerClass_UpdateMiner_LongScan, 6)
 {
 	GET(TechnoClass*, pSlaveOwner, ECX);
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pSlaveOwner->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(pSlaveOwner);
 
 	R->EAX(pTypeExt->Harvester_LongScan.Get(RulesClass::Instance->SlaveMinerLongScan));
 	return R->Origin() + 0x6;
@@ -641,7 +650,7 @@ ASMJIT_PATCH(0x6B1065, SlaveManagerClass_ShouldWakeUp_ShortScan, 5)
 {
 	GET(SlaveManagerClass*, pThis, ESI);
 
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(pThis->Owner);
 	auto nKickFrameDelay = pTypeExt->Harvester_KickDelay.Get(RulesClass::Instance->SlaveMinerKickFrameDelay);
 
 	if (nKickFrameDelay < 0 || nKickFrameDelay + pThis->LastScanFrame >= Unsorted::CurrentFrame)
@@ -894,8 +903,9 @@ ASMJIT_PATCH(0x73D800, UnitClass_MI_Unload_NoManualUnload, 0x5){
 
 ASMJIT_PATCH(0x700EEC, TechnoClass_CanDeploySlashUnload_NoManualUnload, 6)
 {
-	GET(TechnoClass const* const, pThis, ESI);
-	const bool disallowed = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoManualUnload
+	GET(TechnoClass*, pThis, ESI);
+	const bool disallowed = 
+		GET_TECHNOTYPEEXT(pThis)->NoManualUnload
 		|| pThis->BunkerLinkedItem
 		|| pThis->OnBridge;
 
@@ -918,11 +928,10 @@ ASMJIT_PATCH(0x53C450, TechnoClass_CanBePermaMC, 5)
 	BYTE bDisaalow = 0;
 
 	if (pThis && pThis->WhatAmI() != AbstractType::Building
-		&& !pThis->IsIronCurtained() && !pThis->IsInAir())
-	{
+		&& !pThis->IsIronCurtained() && !pThis->IsInAir()) {
 
-		if (!TechnoExtData::IsPsionicsImmune(pThis) && !pThis->GetTechnoType()->BalloonHover)
-		{
+		if (!TechnoExtData::IsPsionicsImmune(pThis)
+			&& !GET_TECHNOTYPE(pThis)->BalloonHover) {
 			// KillDriver check
 			if (!TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
 			{
@@ -937,9 +946,8 @@ ASMJIT_PATCH(0x53C450, TechnoClass_CanBePermaMC, 5)
 
 ASMJIT_PATCH(0x7008D4, TechnoClass_GetCursorOverCell_NoManualFire, 6)
 {
-	GET(TechnoClass const* const, pThis, ESI);
-	auto const pType = pThis->GetTechnoType();
-	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualFire ? 0x700AB7u : 0u;
+	GET(TechnoClass*, pThis, ESI);
+	return GET_TECHNOTYPEEXT(pThis)->NoManualFire ? 0x700AB7u : 0u;
 }
 
 ASMJIT_PATCH(0x74031A, UnitClass_GetActionOnObject_NoManualEnter, 6)
@@ -1092,7 +1100,7 @@ ASMJIT_PATCH(0x51E710, InfantryClass_GetActionOnObject_Heal, 7)
 		return NextCheck;
 
 	const auto pWeapon = pThis->GetWeapon(pThis->SelectWeapon(pThatTechno))->WeaponType;
-	const auto pThatType = pThatTechno->GetTechnoType();
+	const auto pThatType = GET_TECHNOTYPE(pThatTechno);
 	const auto& [ret, nCursorShield] = HealActionProhibited<true>(pThatTechno, pWeapon);
 
 	if (ret)
@@ -1417,9 +1425,7 @@ ASMJIT_PATCH(0x4D7221, FootClass_Put_Prereqs, 6)
 {
 	GET(FootClass* const, pThis, ESI);
 
-	auto const pType = pThis->GetTechnoType();
-
-	if (TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
+	if (GET_TECHNOTYPEEXT(pThis)->IsGenericPrerequisite())
 	{
 		pThis->Owner->RecheckTechTree = true;
 	}
@@ -1431,7 +1437,7 @@ ASMJIT_PATCH(0x6F4A1D, TechnoClass_DiscoveredBy_Prereqs, 6)
 {
 	GET(TechnoClass* const, pThis, ESI);
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 
 	if (pThis->WhatAmI() != BuildingClass::AbsID && TechnoTypeExtContainer::Instance.Find(pType)->IsGenericPrerequisite())
 	{
@@ -1455,7 +1461,7 @@ ASMJIT_PATCH(0x7418E1, UnitClass_CrushCell_DeathWeapon, 0xA)
 
 	if (auto const pVictimTechno = flag_cast_to<TechnoClass*>(pVictim))
 	{
-		const auto pExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
+		const auto pExt = GET_TECHNOTYPEEXT(pVictimTechno);
 
 		const auto nChance = abs(pExt->CrushFireDeathWeapon.Get(pVictimTechno));
 
@@ -1479,7 +1485,7 @@ ASMJIT_PATCH(0x74192E, UnitClass_CrushCell_CrushDecloak, 0x5)
 
 static void WhenCrushedBy(UnitClass* pCrusher, TechnoClass* pVictim)
 {
-	auto pExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
+	auto pExt = GET_TECHNOTYPEEXT(pVictim);
 
 	if (auto pWeapon = pExt->WhenCrushed_Weapon.Get(pVictim))
 	{
@@ -1503,7 +1509,7 @@ static void CrushAffect(UnitClass* pThis, ObjectClass* pVictim, bool victimIsTec
 	if (victimIsTechno)
 	{
 		auto const pVictimTechno = static_cast<TechnoClass*>(pVictim);
-		const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
+		const auto pVictimTypeExt = GET_TECHNOTYPEEXT(pVictimTechno);
 		const auto pExt = TechnoExtContainer::Instance.Find(pVictimTechno);
 		const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
 		auto damage = pVictimTypeExt->CrushDamage.Get(pVictimTechno);
@@ -1605,7 +1611,7 @@ ASMJIT_PATCH(0x72929A, TunnelLocomotionClass_sub_7291F0_Dig, 6)
 {
 	GET(TunnelLocomotionClass*, pThis, ESI);
 
-	auto const pType = pThis->LinkedTo->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis->LinkedTo);
 	int time_left = (int(64.0 / pType->ROT /
 		TechnoTypeExtContainer::Instance.Find(pType)->Tunnel_Speed.Get(RulesClass::Instance->TunnelSpeed)
 		));
@@ -1659,7 +1665,7 @@ ASMJIT_PATCH(0x7090A8, TechnoClass_SelectFiringVoice, 5)
 	GET(TechnoClass*, pThis, ESI);
 	GET(TechnoClass*, pTarget, ECX);
 
-	TechnoTypeClass* pType = pThis->GetTechnoType();
+	TechnoTypeClass* pType = GET_TECHNOTYPE(pThis);
 	TechnoTypeExtData* pData = TechnoTypeExtContainer::Instance.Find(pType);
 
 	int idxVoice = -1;

@@ -138,7 +138,7 @@ ASMJIT_PATCH(0x4CD9C8, FlyLocomotionClass_sub_4CD600_HunterSeeker_UpdateTarget, 
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
 	const auto pObject = pThis->LinkedTo;
-	const auto pType = pObject->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pObject);
 
 	if (pType->HunterSeeker) {
 
@@ -183,7 +183,7 @@ ASMJIT_PATCH(0x4CE85A, FlyLocomotionClass_UpdateLanding, 0x8)
 {
 	GET(FlyLocomotionClass*, pThis, ESI);
 	const auto pObject = pThis->LinkedTo;
-	const auto pType = pObject->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pObject);
 
 	if (pType->HunterSeeker) {
 		if (!pObject->Target) {
@@ -213,7 +213,7 @@ ASMJIT_PATCH(0x4CCB84, FlyLocomotionClass_ILocomotion_Process_HunterSeeker, 0x6)
 	GET(ILocomotion* const, pThis, ESI);
 	auto const pLoco = static_cast<FlyLocomotionClass*>(pThis);
 	const auto pObject = pLoco->Owner ? pLoco->Owner : pLoco->LinkedTo;
-	const auto pType = pObject->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pObject);
 
 	if (pType->HunterSeeker) {
 		if (!pObject->Target) {
@@ -326,7 +326,7 @@ ASMJIT_PATCH(0x4CDE64, FlyLocomotionClass_sub_4CD600_HunterSeeker_Ascent, 6)
 	GET(FlyLocomotionClass* const, pThis, ESI);
 	GET(int const, unk, EDI);
 	auto const pObject = pThis->LinkedTo;
-	auto const pType = pObject->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pObject);
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	auto ret = pThis->FlightLevel - unk;
@@ -368,7 +368,7 @@ ASMJIT_PATCH(0x4CDF54, FlyLocomotionClass_sub_4CD600_HunterSeeker_Descent, 5)
 	GET(FlyLocomotionClass* const, pThis, ESI);
 	GET(int const, max, EDI);
 	auto const pObject = pThis->LinkedTo;
-	auto const pType = pObject->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pObject);
 	auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pType->HunterSeeker) {

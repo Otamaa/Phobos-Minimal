@@ -386,7 +386,7 @@ bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget
 				return (allowed & AffectedTarget::Infantry) != AffectedTarget::None;
 			case UnitClass::AbsID:
 			{
-				if(!pTechno->GetTechnoType()->ConsideredAircraft)
+				if(!((UnitClass*)pTechno)->Type->ConsideredAircraft)
 					return (allowed & AffectedTarget::Unit) != AffectedTarget::None;
 
 				return (allowed & AffectedTarget::Aircraft) != AffectedTarget::None;

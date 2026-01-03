@@ -90,7 +90,7 @@ ASMJIT_PATCH(0x6B6D44, SpawnManagerClass_Init_Spawns, 0x5)
 
 	GET_STACK(size_t, i, STACK_OFFSET(0x1C, 0x4));
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis->Owner);
 
 	if ((int)i >= pTypeExt->InitialSpawnsNumber.Get(pThis->SpawnCount)) {
 
@@ -114,7 +114,7 @@ ASMJIT_PATCH(0x6B6D44, SpawnManagerClass_Init_Spawns, 0x5)
 ASMJIT_PATCH(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
 {
 	GET(SpawnManagerClass*, pThis, ESI);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis->Owner);
 
 	if (pTypeExt->Spawns_Queue.empty())
 		return 0;
@@ -123,7 +123,7 @@ ASMJIT_PATCH(0x6B78D3, SpawnManagerClass_Update_Spawns, 0x6)
 
 	for (auto& pNode : pThis->SpawnedNodes) {
 		if (pNode->Unit) {
-			fast_remove_if(vec, [=](auto pType) { return pType == pNode->Unit->GetTechnoType(); });
+			fast_remove_if(vec, [=](auto pType) { return pType == pNode->Unit->Type; });
 		}
 	}
 

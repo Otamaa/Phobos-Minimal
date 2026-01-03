@@ -310,7 +310,7 @@ ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 	if(OldOwner){
 		if (auto pMe = flag_cast_to<FootClass* , false>(pThis))
 		{
-			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pMe->GetTechnoType());
+			const auto pTypeExt = GET_TECHNOTYPEEXT(pMe);
 			bool I_am_human = OldOwner->IsControlledByHuman();
 			bool You_are_human = pNewOwner->IsControlledByHuman();
 			TechnoTypeClass* pConvertTo = (I_am_human && !You_are_human) ? pTypeExt->Convert_HumanToComputer.Get() :
@@ -334,7 +334,7 @@ ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 
 		if (RulesExtData::Instance()->ExtendedBuildingPlacing
 			&& pThis->WhatAmI() == AbstractType::Unit
-			&& pThis->GetTechnoType()->DeploysInto)
+			&& ((UnitClass*)pThis)->Type->DeploysInto)
 		{
 			HouseExtContainer::Instance.Find(OldOwner)->OwnedDeployingUnits.remove((UnitClass*)pThis);
 		}
@@ -342,7 +342,7 @@ ASMJIT_PATCH(0x70173B , TechnoClass_SetOwningHouse_AfterHouseWasSet, 0x5)
 		OldOwner = nullptr;
 	}
 
-	if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Passengers_SyncOwner && pThis->Passengers.NumPassengers > 0) {
+	if (GET_TECHNOTYPEEXT(pThis)->Passengers_SyncOwner && pThis->Passengers.NumPassengers > 0) {
 		for (NextObject j(pThis->Passengers.GetFirstPassenger());
 			j && ((*j)->AbstractFlags & AbstractFlags::Foot);
 			++j)
@@ -361,7 +361,7 @@ ASMJIT_PATCH(0x7015EB, TechnoClass_SetOwningHouse_UpdateTracking, 0x7)
 	GET(TechnoClass* const, pThis, ESI);
 	GET(HouseClass* const, pNewOwner, EBP);
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto pOldOwnerExt = HouseExtContainer::Instance.Find(pThis->Owner);
 	auto pNewOwnerExt = HouseExtContainer::Instance.Find(pNewOwner);
 	//auto pExt = TechnoExtContainer::Instance.Find(pThis);

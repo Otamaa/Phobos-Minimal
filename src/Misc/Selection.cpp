@@ -1,6 +1,7 @@
 
 #include <Ext/Tactical/Body.h>
 #include <Ext/Rules/Body.h>
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
 #include <Utilities/Macro.h>
@@ -20,11 +21,8 @@ ASMJIT_PATCH(0x73298D, TypeSelectExecute_UseIFVMode, 0x5) {
 	TacticalExtData::IFVGroups.clear();
 
 	for (const auto pObject : ObjectClass::CurrentObjects()) {
-
-		const auto pTechno = flag_cast_to<TechnoClass*, true>(pObject);
-
-		if (pTechno){
-			auto pType = pTechno->GetTechnoType();
+		if (const auto pTechno = flag_cast_to<TechnoClass*, true>(pObject)){
+			auto pType = GET_TECHNOTYPE(pTechno);
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 			if (!pType->Gunner || (size_t)pTechno->CurrentWeaponNumber >= pTypeExt->WeaponGroupAs.size())

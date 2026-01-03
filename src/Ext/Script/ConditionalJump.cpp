@@ -233,6 +233,8 @@ void ScriptExtData::ConditionalJump_ManageResetIfJump(TeamClass* pTeam, int enab
 	pTeam->StepCompleted = true;
 }
 
+#include <Ext/TechnoType/Body.h>
+
 // Count objects from [AITargetTypes] lists
 void ScriptExtData::ConditionalJump_CheckObjects(TeamClass* pTeam)
 {
@@ -260,8 +262,10 @@ void ScriptExtData::ConditionalJump_CheckObjects(TeamClass* pTeam)
 			{
 				for (size_t i = 0; i < objectsList.size(); i++)
 				{
-					if (objectsList[i] == pTechno->GetTechnoType()
-						|| objectsList[i] == TechnoExtContainer::Instance.Find(pTechno)->Type
+					if (TeamExtData::IsEligible(objectsList[i], GET_TECHNOTYPE(pTechno))
+						//objectsList[i] == pTechno->GetTechnoType()
+						//|| objectsList[i] == TechnoExtContainer::Instance.Find(pTechno)->Type
+						//|| objectsList[i] == TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->count
 						//|| TeamExtData::GroupAllowed(objectsList[i] , pTechno->GetTechnoType())
 						//||TeamExtData::GroupAllowed(objectsList[i] , TechnoExtContainer::Instance.Find(pTechno)->Type)
 						) {

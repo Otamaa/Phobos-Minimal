@@ -252,7 +252,7 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 			{
 				VocClass::PlayGlobal(RulesExtData::Instance()->AddDistributionModeCommandSound, Panning::Center, 1.0);
 				const bool targetIsNeutral = pTechno->Owner->IsNeutral();
-				const auto pType = pTechno->GetTechnoType();
+				const auto pType = GET_TECHNOTYPE(pTechno);
 				const int range = (2 << spreadMode);
 				const auto center = pTechno->GetCoords();
 				const auto pItems = Helpers::Alex::getCellSpreadItems(center, range, false, false , false , true , false);
@@ -314,7 +314,7 @@ ASMJIT_PATCH(0x4AE7B3, DisplayClass_ActiveClickWith_Iterate, 0x0)
 
 						if (filterMode)
 						{
-							const auto pItemType = pItem->GetTechnoType();
+							const auto pItemType = GET_TECHNOTYPE(pItem);
 
 							if (!pItemType)
 								continue;

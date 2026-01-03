@@ -33,7 +33,7 @@ void TrailsManager::Construct(TechnoClass* pOwner, bool IsConverted)
 	if (pOwner->WhatAmI() == BuildingClass::AbsID || TrailType::Array.empty())
 		return;
 
-	const auto pClassType = pOwner->GetTechnoType();
+	const auto pClassType = GET_TECHNOTYPE(pOwner);
 
 	if (pClassType->Invisible)
 		return;

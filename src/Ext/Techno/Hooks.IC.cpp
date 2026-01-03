@@ -36,7 +36,7 @@ ASMJIT_PATCH(0x4DEAEE, FootClass_IronCurtain, 0x6)
 {
 	GET(FootClass*, pThis, ECX);
 	GET_STACK(HouseClass*, pSource, STACK_OFFS(0x10, -0x8));
-	const TechnoTypeClass* pType = pThis->GetTechnoType();
+	const TechnoTypeClass* pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	IronCurtainAffects ironAffect = IronCurtainAffects::Affect;

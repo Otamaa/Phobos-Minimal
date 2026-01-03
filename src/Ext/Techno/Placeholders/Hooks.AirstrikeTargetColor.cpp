@@ -17,7 +17,7 @@ ASMJIT_PATCH(0x7058F6, Sub_705860_AitrstrikeTargetLaser, 0x5)
 	GET(int, zDest, EBX);
 	REF_STACK(ColorStruct, color, STACK_OFFSET(0x70, -0x60));
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(Sub_705860_Aitrstrike_pThis->Airstrike->Owner->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(Sub_705860_Aitrstrike_pThis->Airstrike->Owner);
 	const int colorIndex = pTypeExt->LaserTargetColor.Get(RulesClass::Instance->LaserTargetColor);
 	Sub_705860_Aitrstrike_Color = GeneralUtils::GetColorFromColorAdd(colorIndex);
 	color = Drawing::Int_To_RGB(Sub_705860_Aitrstrike_Color);
@@ -53,7 +53,7 @@ ASMJIT_PATCH(0x43DC36, BuildingClass_DrawFogged_LaserTargetColor, 0x6)
 
 	GET(BuildingClass*, pThis, EBP);
 	GET(RulesClass*, pRules, ECX);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis->Airstrike->Owner);
 	R->EAX(pTypeExt->LaserTargetColor.Get(pRules->LaserTargetColor));
 
 	return SkipGameCode;
@@ -65,7 +65,7 @@ ASMJIT_PATCH(0x42343C, AnimClass_Draw_LaserTargetColor, 0x6)
 
 	GET(BuildingClass*, pThis, ECX);
 	const auto pRules = RulesClass::Instance();
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Airstrike->Owner->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis->Airstrike->Owner);
 	R->ECX(pRules);
 	R->EAX(pTypeExt->LaserTargetColor.Get(pRules->LaserTargetColor));
 

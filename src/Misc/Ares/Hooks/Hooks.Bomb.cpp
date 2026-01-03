@@ -304,7 +304,7 @@ ASMJIT_PATCH(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 		return 0x7005EF;
 	}
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -314,19 +314,19 @@ ASMJIT_PATCH(0x6FFEC0, TechnoClass_GetActionOnObject_Additionals, 5)
 	// Cursor NoMove
 	MouseCursorFuncs::SetMouseCursorAction(pTypeExt->Cursor_NoMove.Get(), Action::NoMove, false);
 
-	if(!pObject)
-		return 0x0;
+	if(auto pTech = flag_cast_to<TechnoClass*>(pObject)) {
+		const auto pTargetType = GET_TECHNOTYPE(pTech);
 
-	if (const auto pTargetType = pObject->GetTechnoType())
-	{
-		auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
-		// Cursor Enter
-		MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Repair, false);
-		MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Enter, false);
-		//
+		{
+			auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
+			// Cursor Enter
+			MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Repair, false);
+			MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_Enter.Get(), Action::Enter, false);
+			//
 
-		// Cursor NoEnter
-		MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
+			// Cursor NoEnter
+			MouseCursorFuncs::SetMouseCursorAction(pTargetTypeExt->Cursor_NoEnter.Get(), Action::NoEnter, false);
+		}
 	}
 
 	return 0x0;
@@ -362,7 +362,7 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 
 	if (pThis->Owner->ControlledByCurrentPlayer())
 	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 		VoxClass::PlayIndex(pTypeExt->EVA_Sold);
 		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?

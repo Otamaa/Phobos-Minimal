@@ -7,8 +7,9 @@
 #include <Ext/Anim/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
-#include <Utilities/EnumFunctions.h>
 #include <Ext/TechnoType/Body.h>
+#include <Ext/Infantry/Body.h>
+#include <Ext/Unit/Body.h>
 
 #include <Locomotor/Cast.h>
 #include <TerrainTypeClass.h>
@@ -17,6 +18,7 @@
 #include <Misc/DynamicPatcher/Techno/Passengers/PassengersFunctional.h>
 
 #include <Utilities/Macro.h>
+#include <Utilities/EnumFunctions.h>
 
 #include <TerrainClass.h>
 
@@ -176,18 +178,6 @@ ASMJIT_PATCH(0x51B20E, InfantryClass_AssignTarget_FireOnce, 0x6)
 // 	return 0;
 // }
 
-// Skips bridge-related coord checks to allow AA to target air units on bridges over water.
-ASMJIT_PATCH(0x6FCBE6, TechnoClass_CanFire_BridgeAAFix, 0x6)
-{
-	enum { SkipChecks = 0x6FCCBD };
-
-	GET(TechnoClass*, pTarget, EBP);
-
-	if (pTarget->IsInAir())
-		return SkipChecks;
-
-	return 0;
-}
 
 ASMJIT_PATCH(0x6FC3FE, TechnoClass_CanFire_Immunities, 0x6)
 {
@@ -225,6 +215,18 @@ ASMJIT_PATCH(0x772AA2, WeaponTypeClass_AllowedThreats_AAOnly, 0x5)
 	return 0;
 }
 
+ASMJIT_PATCH(0x51CAD1, InfantryClass_CanFire_Sync , 0x6){
+	GET(FakeInfantryClass*, pInf , EBX);
+	R->ESI(pInf->_GetExtData()->CanFireWeaponType);
+	return 0x51CAE2;
+}
+
+ASMJIT_PATCH(0x7410EC, UnitClass_CanFire_Sync , 0x5){
+	GET(FakeUnitClass*, pUnit , ESI);
+	R->EBX(pUnit->_GetExtData()->CanFireWeaponType);
+	return 0x7410F9;
+}
+
 // Pre-Firing Checks
 ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 {
@@ -239,6 +241,7 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 
 	auto const pObjectT = flag_cast_to<ObjectClass*, false>(pTarget);
 	auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget);
+	auto const pFootT = flag_cast_to<FootClass*, false>(pTarget);
 	auto const pWeaponExt = pWeapon->_GetExtData();
 
 	R->EDI(pThisExt->CanFireWeaponType);
@@ -257,7 +260,7 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 			return FireIllegal;
 
 	if (pWeapon->Warhead->MakesDisguise && pObjectT) {
-		if (!DisguiseAllowed(TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()), pObjectT->GetDisguise(true)))
+		if (!DisguiseAllowed(GET_TECHNOTYPEEXT(pThis), pObjectT->GetDisguise(true)))
 			return FireIllegal;
 	}
 
@@ -266,7 +269,7 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	// takes away the TemporalImUsing from the infantry, and thus it is missing
 	// when the infantry fires out of the opentopped vehicle
 	if (pWeapon->Warhead->Temporal && pThis->Transporter) {
-		auto const pType = pThis->Transporter->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pThis->Transporter);
 		if (pType->Gunner && pType->OpenTopped) {
 			if(!pThis->TemporalImUsing)
 				return FireCant;
@@ -291,7 +294,7 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 	auto const& [pTargetTechno, targetCell] = TechnoExtData::GetTargets(pObjectT, pTarget);
 
 	// AAOnly doesn't need to be checked if LandTargeting=1.
-	if (pThis->GetTechnoType()->LandTargeting != LandTargetingType::Land_not_okay && pWeapon->Projectile->AA && pTarget && !pTarget->IsInAir()) {
+	if (GET_TECHNOTYPE(pThis)->LandTargeting != LandTargetingType::Land_not_okay && pWeapon->Projectile->AA && pTarget && !pTarget->IsInAir()) {
 		if (BulletTypeExtContainer::Instance.Find(pWeapon->Projectile)->AAOnly)
 			return FireIllegal;
 	}
@@ -324,9 +327,7 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 			if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets))
 				return FireIllegal;
 
-			if (!TechnoTypeExtContainer::Instance.Find(
-					pTargetTechno->GetTechnoType())->AllowAirstrike.Get(
-						pTargetTechno->AbstractFlags & AbstractFlags::Foot || static_cast<BuildingClass*>(pTargetTechno)->Type->CanC4))
+			if (!GET_TECHNOTYPEEXT(pTargetTechno)->AllowAirstrike.Get(pFootT || cast_to<BuildingClass*, false>(pTargetTechno)->Type->CanC4))
 				return FireIllegal;
 		}
 	}
@@ -390,7 +391,7 @@ ASMJIT_PATCH(0x6FC5C7, TechnoClass_CanFire_OpenTopped, 0x6)
 	GET(TechnoClass*, pTransport, EAX);
 	//GET_STACK(int, weaponIndex, STACK_OFFSET(0x20, 0x8));
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pTransport);
 
 	if (pTransport->Transporter || (pTransport->Deactivated && !pTypeExt->OpenTopped_AllowFiringIfDeactivated))
 		return Illegal;
@@ -412,7 +413,7 @@ ASMJIT_PATCH(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 	GET_STACK(int, weaponIndex, 0x4);
 
 	int result = 0;
-	auto const pThisType = pThis->GetTechnoType();
+	auto const pThisType = GET_TECHNOTYPE(pThis);
 
 	if (const auto pWeapon = pThis->GetWeapon(weaponIndex)->WeaponType)
 	{
@@ -426,7 +427,7 @@ ASMJIT_PATCH(0x7012C0, TechnoClass_WeaponRange, 0x8) //4
 
 			while (pPassenger && (pPassenger->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
 			{
-				int openTWeaponIndex = pPassenger->GetTechnoType()->OpenTransportWeapon;
+				int openTWeaponIndex = GET_TECHNOTYPE(pPassenger)->OpenTransportWeapon;
 				int tWeaponIndex = 0;
 
 				if (openTWeaponIndex != -1)
@@ -473,7 +474,7 @@ ASMJIT_PATCH(0x6FC689, TechnoClass_CanFire_LandNavalTarget, 0x6)
 	//GET_STACK(int, nWeaponIdx, STACK_OFFSET(0x20, 0x8));
 	GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x20, 0x4));
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	auto pCell = cast_to<CellClass*, false>(pTarget);
 
 	if (pCell)
@@ -517,7 +518,7 @@ ASMJIT_PATCH(0x6FC815, TechnoClass_CanFire_CellTargeting, 0x7)
 	if (pCell->ContainsBridge())
 		return LandTargetingCheck;
 
-	if (pCell->LandType == LandType::Water && pThis->GetTechnoType()->NavalTargeting == NavalTargetingType::Naval_none)
+	if (pCell->LandType == LandType::Water && GET_TECHNOTYPE(pThis)->NavalTargeting == NavalTargetingType::Naval_none)
 		return LandTargetingCheck;
 
 	return pCell->LandType == LandType::Beach || pCell->LandType == LandType::Water ?
@@ -619,7 +620,7 @@ ASMJIT_PATCH(0x6FDDC0, TechnoClass_FireAt_Early, 0x6)
 			auto const rtti = pThis->WhatAmI();
 
 			if (pWeaponExt->DelayedFire_PauseFiringSequence && (rtti == AbstractType::Infantry
-				|| (rtti == AbstractType::Unit && !pThis->HasTurret() && !pThis->GetTechnoType()->Voxel)))
+				|| (rtti == AbstractType::Unit && !pThis->HasTurret() && !GET_TECHNOTYPE(pThis)->Voxel)))
 			{
 				return 0;
 			}
@@ -711,7 +712,7 @@ ASMJIT_PATCH(0x6FDD7D, TechnoClass_FireAt_UpdateWeaponType, 0x5) {
 
 	const auto pWH = pWeapon->Warhead;
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 	auto pWHExt =  WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (pWeapon->LimboLaunch) {

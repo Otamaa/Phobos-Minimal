@@ -38,7 +38,7 @@ ASMJIT_PATCH(0x6FA67D, TechnoClass_Update_DistributeTargetingFrame, 0xA)
 	GET(TechnoClass* const, pThis, ESI);
 
 	auto const pRulesExt = RulesExtData::Instance();
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if ((!pThis->Owner->IsControlledByHuman() || !pRulesExt->DistributeTargetingFrame_AIOnly) && pTypeExt->DistributeTargetingFrame.Get(pRulesExt->DistributeTargetingFrame))
 	{
@@ -135,7 +135,7 @@ ASMJIT_PATCH(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 		}
 	}
 
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 
 	if (!pThis->Berzerk && pType->AttackFriendlies && IsAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack)
 	{
@@ -176,7 +176,7 @@ ASMJIT_PATCH(0x6FA726, TechnoClass_AI_MCOverload, 0x6)
 	if (!pThis->IsAlive)
 		return ReturnFunc;
 
-	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pType = GET_TECHNOTYPEEXT(pThis);
 
 	// prevent crashing and sinking technos from self-healing
 	if (pType->NoExtraSelfHealOrRepair || pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled)
@@ -218,7 +218,7 @@ ASMJIT_PATCH(0x6FA540, TechnoClass_AI_ChargeTurret, 0x6)
 		return SkipGameCode;
 	}
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 	int timeLeft = pThis->RearmTimer.GetTimeLeft();
 
@@ -254,7 +254,7 @@ ASMJIT_PATCH(0x6FABC4, TechnoClass_AI_AnimationPaused, 0x6)
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
 ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
-	return TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())->Passengers_SyncOwner.Get() ?  ret : 0; }
+	return GET_TECHNOTYPEEXT(pThis->Transporter)->Passengers_SyncOwner.Get() ?  ret : 0; }
 
 SET_THREATEVALS(0x6FA33C, ESI, TechnoClass_AI_ThreatEvals_OpenToppedOwner, 0x6, 0x6FA37A)
 
@@ -298,7 +298,7 @@ ASMJIT_PATCH(0x6F9E5B, TechnoClass_AI_Early, 0x6)
 		return retDead;
 
 	//type may already change ,..
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 
 	//auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -466,7 +466,7 @@ ASMJIT_PATCH(0x6FA2CF, TechnoClass_AI_DrawBehindAnim, 0x9) //was 4
 	if (pThis->InOpenToppedTransport)
 		return 0x6FA30C;
 
-	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pType = GET_TECHNOTYPEEXT(pThis);
 
 	if (pType->IsDummy)
 		return 0x6FA30C;
@@ -513,7 +513,7 @@ ASMJIT_PATCH(0x6FACD9, TechnoClass_AI_DamageSparks, 6)
 		if (!(_HPRatio >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10))
 		{
 
-			auto pType = pThis->GetTechnoType();
+			auto pType = GET_TECHNOTYPE(pThis);
 			const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 			if (pExt->DamageSparks.Get(pType->DamageSparks))

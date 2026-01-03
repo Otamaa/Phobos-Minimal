@@ -1,5 +1,6 @@
 #include "AresTrajectoryHelper.h"
 
+#include <Ext/Techno/Body.h>
 #include <Ext/BuildingType/Body.h>
 #include <Ext/BulletType/Body.h>
 
@@ -314,7 +315,7 @@ CoordStruct PhobosBulletObstacleHelper::AddFLHToSourceCoords(
 	// Offset of turret, directly substitute because it is impossible to predict the orientation of the techno when it reaches this position
 	// Only predict the situation when the techno is facing the target directly
 	if (pTechno->HasTurret())
-		TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->ApplyTurretOffset(&mtx, 1.0);
+		GET_TECHNOTYPEEXT(pTechno)->ApplyTurretOffset(&mtx, 1.0);
 
 	// FLH of weapon, not use independent firing positions
 	// Because this will result in different results due to the current burst, causing the techno to constantly move

@@ -139,7 +139,7 @@ void ResetOwnerMission(FootClass* owner)
 	{
 		auto nCoord = owner->GetCoords();
 		VocClass::PlayIndexAtPos(
-			TechnoTypeExtContainer::Instance.Find(owner->GetTechnoType())->ParasiteExit_Sound.Get(),
+			GET_TECHNOTYPEEXT(owner)->ParasiteExit_Sound.Get(),
 			&nCoord,
 			false
 		);
@@ -392,14 +392,15 @@ void FakeParasiteClass::__Grapple_AI()
 			->applyCulling(this->Owner, this->Victim);
 
 		if (culling) {
+			auto pOwnerType = GET_TECHNOTYPE(this->Owner);
+			auto pVictimType =  GET_TECHNOTYPE(this->Victim);
+
 			// Award experience if trainable
-			if (this->Owner->GetTechnoType()->Trainable && !this->Owner->Owner->IsAlliedWith(this->Victim)) {
-				TechnoTypeClass* victimType = this->Victim->GetTechnoType();
-				TechnoTypeClass* ownerType = this->Owner->GetTechnoType();
-				this->Owner->Veterancy.Add(ownerType->GetActualCost(this->Owner->Owner), victimType->GetCost());
+			if (pOwnerType->Trainable && !this->Owner->Owner->IsAlliedWith(this->Victim)) {
+				this->Owner->Veterancy.Add(pOwnerType->GetActualCost(this->Owner->Owner), pVictimType->GetCost());
 			}
 
-			auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(this->Victim->GetTechnoType());
+			auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictimType);
 
 			// Submerge victim
 			FootClass* victimToSink = this->Victim;
@@ -411,7 +412,7 @@ void FakeParasiteClass::__Grapple_AI()
 				victimToSink->Stun();
 			}
 			else {
-				auto damage = this->Victim->GetTechnoType()->Strength;
+				auto damage = pVictimType->Strength;
 				this->Victim->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, this->Owner, true, false, this->Owner->Owner);
 			}
 
@@ -488,7 +489,7 @@ void FakeParasiteClass::__AI()
 	}
 
 	// Check if this is a naval organic unit (uses grapple AI)
-	TechnoTypeClass* ownerType = this->Owner->GetTechnoType();
+	TechnoTypeClass* ownerType = GET_TECHNOTYPE(this->Owner);
 	auto const pOwnerTypeExt = TechnoTypeExtContainer::Instance.Find(ownerType);
 
 	if (pOwnerTypeExt->GrapplingAttack.Get(ownerType->Naval && ownerType->Organic)) {
@@ -602,7 +603,7 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 
 		bool allowed = false;
 		if (pWhat == UnitClass::AbsID) {
-			allowed = !this->Owner->GetTechnoType()->Naval;
+			allowed = !((UnitClass*)this->Owner)->Type->Naval;
 		} else if (pWhat == AbstractType::Infantry) {
 			allowed = true;
 		}
@@ -671,7 +672,7 @@ void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent)
 void FakeParasiteClass::__Uninfect()
 {
 	FootClass* owner = this->Owner;
-	TechnoTypeClass* ownerType = owner->GetTechnoType();
+	TechnoTypeClass* ownerType = GET_TECHNOTYPE(owner);
 	bool Naval = ownerType->Naval;
 	auto pOwnerExt = TechnoExtContainer::Instance.Find(owner);
 
@@ -803,7 +804,7 @@ void FakeParasiteClass::__Infect(FootClass* target)
 			if (!this->Owner)
 				return;
 
-			auto pType = this->Owner->GetTechnoType();
+			auto pType = GET_TECHNOTYPE(this->Owner);
 
 			auto cell = MapClass::Instance->NearByLocation(this->Owner->LastMapCoords,
 				pType->SpeedType, ZoneType::None, pType->MovementZone, false, 1, 1, false,
@@ -853,8 +854,10 @@ bool FakeParasiteClass::__Victims_Cell_Valid()
 		return false;
 	}
 
+	auto pOwnerType = GET_TECHNOTYPE(this->Owner);
+
 	// Naval parasites have different rules
-	if (this->Owner->GetTechnoType()->Naval) {
+	if (pOwnerType->Naval) {
 		// Naval parasites work on water - check for buildings
 		return victim->GetCell()->GetBuilding() == nullptr;
 	}
@@ -886,7 +889,7 @@ bool FakeParasiteClass::__Victims_Cell_Valid()
 	// Check water/beach/rock terrain
 	if (landType == LandType::Water || landType == LandType::Beach || landType == LandType::Rock) {
 
-		if (GroundType::GetCost(landType, owner->GetTechnoType()->SpeedType) <= 0.0) {
+		if (GroundType::GetCost(landType, pOwnerType->SpeedType) <= 0.0) {
 			// Check for specific overlay ranges (ice?)
 			int overlay = victimCell->OverlayTypeIndex;
 			bool hasSpecialOverlay = (overlay >= 74 && overlay <= 99) ||
@@ -920,7 +923,7 @@ CoordStruct FakeParasiteClass::__Detach_From_Victim()
 		CellClass* adjacentCell = victimCell->GetAdjacentCell((FacingType)facingIndex);
 
 		// Check if non-naval unit can use this cell
-		if (!this->Owner->GetTechnoType()->Naval) {
+		if (!GET_TECHNOTYPE(this->Owner)->Naval) {
 			LandType landType = adjacentCell->LandType;
 
 			// Check water/beach/rock terrain

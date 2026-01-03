@@ -35,7 +35,7 @@ Matrix3D* AdvancedDriveLocomotionClass::Draw_Matrix(Matrix3D*  buff, VoxelIndexK
 	// Completely rewrite
 
 	const auto pLinked = this->LinkedTo;
-	const auto pType = pLinked->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinked);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const bool shouldTilt = !pTypeExt->AdvancedDrive_Hover || pTypeExt->AdvancedDrive_Hover_Tilt;
 	const double rate = this->SlopeTimer.GetRatePassed();
@@ -116,7 +116,7 @@ Matrix3D* AdvancedDriveLocomotionClass::Shadow_Matrix(Matrix3D* mtx , VoxelIndex
 	// Completely rewrite
 
 	const auto pLinked = this->LinkedTo;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinked->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinked);
 	const bool shouldTilt = !pTypeExt->AdvancedDrive_Hover || pTypeExt->AdvancedDrive_Hover_Tilt;
 
 	if ((shouldTilt && this->SlopeTimer.GetRatePassed() != 1.0)
@@ -135,7 +135,7 @@ bool AdvancedDriveLocomotionClass::Process()
 {
 	const auto pLinked = this->LinkedTo;
 	const auto slopeIndex = pLinked->GetCell()->SlopeIndex;
-	const auto pType = pLinked->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinked);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (slopeIndex != this->CurrentRamp)
@@ -197,7 +197,7 @@ void AdvancedDriveLocomotionClass::Stop_Moving()
 {
 	const auto pLinked = this->LinkedTo;
 
-	if (this->HeadToCoord != CoordStruct::Empty && pLinked->GetTechnoType()->IsTrain)
+	if (this->HeadToCoord != CoordStruct::Empty && GET_TECHNOTYPE(pLinked)->IsTrain)
 	{
 		const auto pUnit = static_cast<UnitClass*>(pLinked);
 
@@ -216,7 +216,7 @@ void AdvancedDriveLocomotionClass::Stop_Moving()
 	}
 
 	// I think no body want to see slowly~ slowly~ moving, so I change this one
-	if (pLinked->GetTechnoType()->Accelerates)
+	if (GET_TECHNOTYPE(pLinked)->Accelerates)
 	{
 		if (pLinked->Location.DistanceFromSquared(this->HeadToCoord) < 16384)
 		{
@@ -235,7 +235,7 @@ void AdvancedDriveLocomotionClass::Stop_Moving()
 bool AdvancedDriveLocomotionClass::Power_Off()
 {
 	const auto pLinked = this->LinkedTo;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinked->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinked);
 
 	if (pTypeExt->AdvancedDrive_Hover)
 	{
@@ -264,7 +264,7 @@ bool AdvancedDriveLocomotionClass::Is_Powered()
 		return true;
 
 	const auto pLinked = this->LinkedTo;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinked->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinked);
 	return pTypeExt->AdvancedDrive_Hover && pLinked->GetHeight() > 0;
 }
 
@@ -386,7 +386,7 @@ bool AdvancedDriveLocomotionClass::Will_Jump_Tracks()
 bool AdvancedDriveLocomotionClass::MovingProcess(bool fix)
 {
 	const auto pLinked = this->LinkedTo;
-	const auto pType = pLinked->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinked);
 
 	if ((!this->IsDriving || this->TrackNumber == -1) && pLinked->PathDirections[0] != 8
 		|| this->IsRotating && !pType->Turret)
@@ -627,7 +627,7 @@ bool AdvancedDriveLocomotionClass::PassableCheck(bool* pStop, bool force, bool c
 	if (pLinked->IsUnderEMP() || pLinked->IsParalyzed())
 		return true;
 
-	const auto pType = pLinked->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinked);
 
 	do
 	{
@@ -1358,7 +1358,7 @@ CoordStruct AdvancedDriveLocomotionClass::GetTrackOffset(const Point2D& base, in
 void AdvancedDriveLocomotionClass::UpdateHoverState()
 {
 	const auto pLinked = this->LinkedTo;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinked->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinked);
 	const int hoverHeight = pTypeExt->AdvancedDrive_Hover_Height.Get(RulesClass::Instance->HoverHeight);
 	const int oldHeight = pLinked->GetHeight();
 	int adjustHeight = oldHeight;
@@ -1474,7 +1474,7 @@ CoordStruct AdvancedDriveLocomotionClass::CoordLerp(const CoordStruct& crd1, con
 inline void AdvancedDriveLocomotionClass::UpdateSituation()
 {
 	const auto pLinked = this->LinkedTo;
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinked->GetTechnoType());;
+	auto pTypeExt = GET_TECHNOTYPEEXT(pLinked);
 
 	if (const auto pTarget = pLinked->MegaMissionIsAttackMove() ? nullptr : pLinked->Target)
 	{
@@ -1653,7 +1653,7 @@ inline bool AdvancedDriveLocomotionClass::InMotion()
 		else if (mission == Mission::Unload)
 		{
 			// Unload stuck fix
-			if (pLinked->GetTechnoType()->Passengers <= 0 || !pLinked->Passengers.GetFirstPassenger())
+			if (GET_TECHNOTYPE(pLinked)->Passengers <= 0 || !pLinked->Passengers.GetFirstPassenger())
 				return true;
 		}
 
@@ -1708,7 +1708,7 @@ inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 	bool dirChanged = pathDir != 8 && pathDir != -1
 		&& static_cast<int>(DirStruct(pTrackData->Face << 8).GetValue<3>()) != pathDir;
 
-	const auto pType = pLinked->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinked);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	while (true)
@@ -1758,7 +1758,7 @@ inline int AdvancedDriveLocomotionClass::UpdateSpeedAccum(int& speedAccum)
 			const auto pNewCell = MapClass::Instance->GetCellAt(newPos);
 			this->UpdateOnBridge(pNewCell, MapClass::Instance->GetCellAt(previousCell));
 
-			if (pLinked->GetTechnoType()->IsTrain && !static_cast<UnitClass*>(pLinked)->IsFollowerCar)
+			if (pType->IsTrain && !static_cast<UnitClass*>(pLinked)->IsFollowerCar)
 			{
 				auto pObject = (pLinked->OnBridge || (pLinked->Location.Z >= (CellClass::BridgeHeight
 						+ MapClass::Instance->GetCellFloorHeight(pLinked->Location))))

@@ -48,7 +48,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
-	virtual int Size() const override R0;
+	virtual int ClassSize() const override R0;
 
 	static bool __fastcall LoadFromINIList(CCINIClass *pINI, bool Global)
 		{ JMP_FAST(0x41F2E0); }

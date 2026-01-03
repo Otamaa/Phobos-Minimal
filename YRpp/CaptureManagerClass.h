@@ -55,7 +55,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override { return AbstractType::CaptureManager; }
-	virtual int Size() const override { return 0x50; }
+	virtual int ClassSize() const override { return 0x50; }
 
 	//non-virtual
 	bool CaptureUnit(TechnoClass* pTarget) const

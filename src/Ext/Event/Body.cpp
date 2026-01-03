@@ -59,7 +59,7 @@ void EventExt::ManualReload::Respond(EventClass* Event)
 	{
 		if (pTechno->Ammo > 0 && pTechno->IsAlive && !pTechno->Berzerk)
 		{
-			const auto pType = pTechno->GetTechnoType();
+			const auto pType = GET_TECHNOTYPE(pTechno);
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 			if (pTechno->Ammo != pType->Ammo && pTypeExt->CanManualReload)

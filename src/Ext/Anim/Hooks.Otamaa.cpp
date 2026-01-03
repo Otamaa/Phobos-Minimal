@@ -230,7 +230,7 @@ void NOINLINE FakeAnimClass::_ApplyVeinsDamage()
 
 				if (auto pTechno = flag_cast_to<TechnoClass*, false>(pFirst))
 				{
-					const auto pType = pTechno->GetTechnoType();
+					const auto pType = GET_TECHNOTYPE(pTechno);
 					if (!TechnoTypeExtContainer::Instance.Find(pType)->IsDummy && pTechno->IsAlive && pTechno->Health > 0 && !pTechno->InLimbo)
 					{
 						if (pTechno->WhatAmI() != UnitClass::AbsID || ((UnitClass*)pTechno)->DeathFrameCounter <= 0)

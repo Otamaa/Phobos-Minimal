@@ -4,12 +4,14 @@
 #include <Utilities/Debug.h>
 #include <AnimClass.h>
 
+#include <Ext/Techno/Body.h>
+
 void TechnoTypeConvertData::ApplyConvert(const std::vector<TechnoTypeConvertData>& nPairs , HouseClass * pHouse, TechnoClass * pTarget, AnimTypeClass* SucceededAnim)
 {
 	if (nPairs.empty())
 		return;
 
-	const auto pCurType = pTarget->GetTechnoType();
+	const auto pCurType = GET_TECHNOTYPE(pTarget);
 
 	for (auto const& [pFrom, pTo, nAffect] : nPairs)
 	{

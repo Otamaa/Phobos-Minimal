@@ -375,7 +375,6 @@ ASMJIT_PATCH(0x685659, Scenario_ClearClasses_PhobosGlobal, 0xA)
 	CLEAR_TYPE_CLASS(Rocket);
 	CLEAR_TYPE_CLASS(SelectBox);
 	CLEAR_TYPE_CLASS(Shield);
-	CLEAR_TYPE_CLASS(Theme);
 	CLEAR_TYPE_CLASS(Tunnel);
 
 	CLEAR_CLASS(PhobosGlobal);

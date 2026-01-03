@@ -2,6 +2,8 @@
 
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Rules/Body.h>
+#include <Ext/Techno/Body.h>
+#include <Ext/Cell/Body.h>
 
 #include <Utilities/Macro.h>
 
@@ -206,7 +208,7 @@ static void NOINLINE Damage_Overlay(CellClass* pCurCell,
 		auto pOvelay = OverlayTypeClass::Array->Items[pCurCell->OverlayTypeIndex];
 		if (pOvelay->ChainReaction && (!pOvelay->Tiberium || pWarhead->Tiberium) && do_chain_reaction)
 		{// hook up the area damage delivery with chain reactions
-			pCurCell->ChainReaction();
+			FakeCellClass::_ChainReaction(&pCurCell->MapCoords);
 			pCurCell->ReduceTiberium(damage / 10);
 		}
 
@@ -1452,7 +1454,7 @@ ASMJIT_PATCH(0x48947F, MapClass_DamageArea_AirDamageSelfFix, 0x6)
 	GET_BASE(FakeWarheadTypeClass*, pWarhead, 0xC);
 
 	return (pAirTechno != pSourceTechno) || (pWarhead->_GetExtData()->AllowDamageOnSelf
-			|| pAirTechno->GetTechnoType()->DamageSelf) ? DamageSelf : Continue;
+			|| GET_TECHNOTYPE(pAirTechno)->DamageSelf) ? DamageSelf : Continue;
 }
 
 ASMJIT_PATCH(0x4896EC, DamageAread_DamageSelf, 0x6)
@@ -1782,7 +1784,7 @@ ASMJIT_PATCH(0x489AD6, DamageArea_Damage_AfterLoop, 6)
 ASMJIT_PATCH(0x48964F, DamageArea_CellChainReaction, 5)
 {
 	GET(CellClass*, pCell, EBX);
-	pCell->ChainReaction();
+	FakeCellClass::_ChainReaction(&pCell->MapCoords);
 	return 0;
 }
 

@@ -159,7 +159,7 @@ void EngraveTrajectory::OnUnlimbo(CoordStruct* pCoord, VelocityClass* pVelocity)
 					}
 				}
 
-				if (const auto pTransporterTypeExt = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType()))
+				if (const auto pTransporterTypeExt = GET_TECHNOTYPEEXT(pTransporter))
 				{
 					if ((size_t)WeaponIndex < pTransporterTypeExt->AlternateFLHs.size())
 						this->FLHCoord = pTransporterTypeExt->AlternateFLHs[WeaponIndex];
@@ -284,11 +284,13 @@ bool EngraveTrajectory::OnAI()
 	{
 		LaserDrawClass* pLaser;
 		CoordStruct FireCoord = pTechno->GetCoords();
+		BuildingClass* pBulding = cast_to<BuildingClass*, false>(pTechno);
+
 		if (this->NotMainWeapon)
 		{
 			FireCoord = this->FLHCoord;
 		}
-		else if (pTechno->WhatAmI() != AbstractType::Building)
+		else if (!pBulding)
 		{
 			if (this->TechnoInLimbo)
 			{
@@ -302,7 +304,7 @@ bool EngraveTrajectory::OnAI()
 				FireCoord = TechnoExtData::GetFLHAbsoluteCoords(pTechno, this->FLHCoord, pTechno->HasTurret());
 			}
 		}
-		else //Not accurate, just got the similar FLH.
+		else if(pBulding)
 		{
 			float RotateAngle = 0.0;
 
@@ -313,9 +315,8 @@ bool EngraveTrajectory::OnAI()
 
 			FireCoord.X += static_cast<int>(this->FLHCoord.X * Math::cos(RotateAngle) + this->FLHCoord.Y * Math::sin(RotateAngle));
 			FireCoord.Y += static_cast<int>(this->FLHCoord.X * Math::sin(RotateAngle) - this->FLHCoord.Y * Math::cos(RotateAngle));
-
-			if (const auto pBuildingType = static_cast<BuildingTypeClass*>(pTechno->GetTechnoType()))
-				FireCoord.Z += this->FLHCoord.Z + 30 * (pBuildingType->GetFoundationWidth() + pBuildingType->GetFoundationHeight(false) + 2);
+			FireCoord.Z += this->FLHCoord.Z + 30 * (
+				pBulding->Type->GetFoundationWidth() + pBulding->Type->GetFoundationHeight(false) + 2);
 		}
 
 		if (pType->IsHouseColor)

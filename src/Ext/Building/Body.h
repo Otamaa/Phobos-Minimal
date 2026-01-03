@@ -106,6 +106,8 @@ public:
 		FreeUnitDone(false),
 		SeparateRepair(false)
 	{
+		this->CurrentType = pObj->Type;
+		this->Type = BuildingTypeExtContainer::Instance.Find(pObj->Type);
 		this->Name = pObj->Type->ID;
 		this->AbsType = BuildingClass::AbsID;
 	}
@@ -283,6 +285,8 @@ public:
 	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
 	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	KickOutResult __ExitObject(TechnoClass* object, CellStruct exitCell);
+
+	InfantryTypeClass* __GetCrew();
 
 	FORCEDINLINE BuildingClass* _AsBuilding() const {
 		return (BuildingClass*)this;

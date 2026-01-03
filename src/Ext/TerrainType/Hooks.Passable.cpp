@@ -87,7 +87,7 @@ static inline bool CheckCanNotExistHere(FootClass* pTechno, HouseClass* const pO
 		return false;
 	}
 
-	const auto pTechnoType = pTechno->GetTechnoType();
+	const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
 	if (pTypeExt->CanBeBuiltOn)
@@ -270,7 +270,7 @@ ASMJIT_PATCH(0x5684B1, MapClass_PlaceDown_BuildableTerrain, 0x6)
 			const auto absType = pObject->WhatAmI();
 
 			if (const auto pTechno = flag_cast_to<TechnoClass* , false>(pObject)) {
-				const auto pType = pTechno->GetTechnoType();
+				const auto pType = GET_TECHNOTYPE(pTechno);
 
 				//TODO: this function can cause bug , since not all stuffs were handled properly
 				if (TechnoTypeExtContainer::Instance.Find(pType)->CanBeBuiltOn) {
@@ -475,7 +475,7 @@ ASMJIT_PATCH(0x47C640, CellClass_CanThisExistHere_IgnoreSomething, 0x6)
 			if (absType == AbstractType::Aircraft || absType == AbstractType::Building)
 			{
 				const auto pTechno = static_cast<TechnoClass*>(pObject);
-				const auto pTechnoType = pTechno->GetTechnoType();
+				const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 				const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
 				if (pTypeExt && pTypeExt->CanBeBuiltOn)

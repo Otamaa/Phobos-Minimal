@@ -789,7 +789,7 @@ static KickOutResult TryDeferToAnotherFactory(FakeBuildingClass* pBuilding, Tech
 			&& (pOtherBuilding->GetCurrentMission() == Mission::Guard)
 			&& (pOtherBuilding->Type->Factory == pBuilding->Type->Factory)
 			&& (pOtherBuilding->Type->Naval == pBuilding->Type->Naval)
-			&& TechnoTypeExtData::CanBeBuiltAt(pObject->GetTechnoType(), pOtherBuilding->Type)
+			&& TechnoTypeExtData::CanBeBuiltAt(GET_TECHNOTYPE(pObject), pOtherBuilding->Type)
 			&& !pOtherBuilding->Factory;
 
 		if (!canUseOther)
@@ -905,7 +905,7 @@ static KickOutResult HandleNavalFactoryExit(
 	{
 		CoordStruct coord = pBuilding->GetCoords();
 		CellStruct searchCell = CellClass::Coord2Cell(coord);
-		TechnoTypeClass* pTechnoType = pObject->GetTechnoType();
+		TechnoTypeClass* pTechnoType = GET_TECHNOTYPE(pObject);
 
 		MapClass::Instance->NearByLocation(
 			targetCell,
@@ -1020,7 +1020,7 @@ static KickOutResult HandleBarracksExit(
 	// Handle navigation
 	if (auto pNavcom = static_cast<FootClass*>(pObject)->Destination)
 	{
-		TechnoTypeClass* pTechnoType = pObject->GetTechnoType();
+		TechnoTypeClass* pTechnoType = GET_TECHNOTYPE(pObject);
 
 		if (!pTechnoType->JumpJet && !pTechnoType->Teleporter)
 		{
@@ -1173,7 +1173,7 @@ static KickOutResult HandleWeaponsFactoryExit(
 	// Check if this is a rubble-destroyed building needing barracks-style exit
 	if (pTypeExt->RubbleDestroyed)
 	{
-		bool isFactoryProduct = (pType->Factory == pObject->GetTechnoType()->WhatAmI())
+		bool isFactoryProduct = (pType->Factory == GET_TECHNOTYPE(pObject)->WhatAmI())
 			&& pBuilding->Factory
 			&& pBuilding->Factory->Object == pObject;
 

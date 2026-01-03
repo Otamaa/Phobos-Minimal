@@ -581,7 +581,7 @@ struct TargetingFuncs
 
 					if (!MapClass::Instance->IsWithinUsableArea(cell, true)) { return -1; }
 
-					const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+					const auto pTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
 					int value = 0;
 					bool RandomiedCloaked = false; // avoid the early AIIonCannnonValue
@@ -964,7 +964,7 @@ struct TargetingFuncs
 					if (nLoc == CoordStruct::Empty || nLocCell == CellStruct::Empty)
 						continue;
 
-					if (pTargeting->TypeExt->Aux_Techno.Contains(pTech->GetTechnoType())) {
+					if (pTargeting->TypeExt->Aux_Techno.Contains(GET_TECHNOTYPE(pTech))) {
 						if (pNewType->CanTargetingFireAt(pTargeting ,nLocCell , false)) {
 							return { nLocCell , SWTargetFlags::AllowEmpty };
 						}

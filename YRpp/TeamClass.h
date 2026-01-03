@@ -35,7 +35,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override JMP_THIS(0x6F0430);
-	virtual int Size() const override JMP_THIS(0x6F0440);
+	virtual int ClassSize() const override JMP_THIS(0x6F0440);
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x6EAE60);
 
 	void DTOR_IMPL() {

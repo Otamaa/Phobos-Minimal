@@ -728,6 +728,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->BlockType->LoadFromINI(pINI, pSection);
 	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
+	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
 
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
@@ -888,7 +889,6 @@ void WarheadTypeExtData::ApplyRecalculateDistanceDamage(ObjectClass* pVictim, ar
 	if (!this->RecalculateDistanceDamage_IgnoreMaxDamage && *pArgs->Damage == RulesClass::Instance->MaxDamage)
 		return;
 
-	//const auto pThisType = pVictimTechno->GetTechnoType();
 	const auto range = pArgs->Attacker->DistanceFrom(pVictim);
 	const auto range_factor = range / (this->RecalculateDistanceDamage_Add_Factor.Get() * 256);
 	const auto add = (this->RecalculateDistanceDamage_Add.Get() * range_factor);
@@ -952,7 +952,7 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 			)
 			return false;
 
-		const auto pType = pTechno->GetTechnoType();
+		const auto pType = GET_TECHNOTYPE(pTechno);
 
 		if (CheckImmune && pType->Immune)
 			return false;
@@ -1048,7 +1048,7 @@ FullMapDetonateResult WarheadTypeExtData::EligibleForFullMapDetonation(TechnoCla
 	if (!this->CanDealDamage(pTechno, false, !this->DetonateOnAllMapObjects_RequireVerses.Get()))
 		return FullMapDetonateResult::TargetNotDamageable;
 
-	auto const pType = pTechno->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pTechno);
 
 	if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
 		return FullMapDetonateResult::TargetHouseNotEligible;
@@ -1331,7 +1331,7 @@ void WarheadTypeExtData::applyRelativeDamage(ObjectClass* pTarget, args_ReceiveD
 bool WarheadTypeExtData::GoBerzerkFor(FootClass* pVictim, int* damage) const
 {
 	int nDur = this->Berzerk_dur.Get(*damage);
-	auto const pType = pVictim->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pVictim);
 
 	if (nDur != 0)
 	{
@@ -1521,7 +1521,7 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 	if (!passenger)
 		return;
 
-	const auto pTargetType = pTarget->GetTechnoType();
+	const auto pTargetType = GET_TECHNOTYPE(pTarget);
 	const auto pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTargetType);
 
 	if (this->PenetratesTransport_Level <= pTargetTypeExt->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
@@ -1549,7 +1549,8 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 			{
 				const auto nextPassenger = flag_cast_to<FootClass*>(passenger->NextObject);
 
-				if (this->PenetratesTransport_Level > TechnoTypeExtContainer::Instance.Find(passenger->GetTechnoType())->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+				if (this->PenetratesTransport_Level > 
+					GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
 				{
 					if (passenger->ReceiveDamage(&passenger->Health, distance, pWH, pInvoker, false, true, pInvokerHouse) == DamageState::NowDead && isFirst && pTargetType->Gunner && pTargetFoot)
 					{
@@ -1570,7 +1571,8 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 			{
 				const auto nextPassenger = flag_cast_to<FootClass*>(passenger->NextObject);
 
-				if (this->PenetratesTransport_Level > TechnoTypeExtContainer::Instance.Find(passenger->GetTechnoType())->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+				if (this->PenetratesTransport_Level > 
+					GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
 				{
 					int applyDamage = adjustedDamage;
 
@@ -1597,7 +1599,8 @@ void WarheadTypeExtData::ApplyPenetratesTransport(TechnoClass* pTarget, TechnoCl
 			--poorBastardIdx;
 		}
 
-		if (this->PenetratesTransport_Level <= TechnoTypeExtContainer::Instance.Find(passenger->GetTechnoType())->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
+		if (this->PenetratesTransport_Level <= 
+			GET_TECHNOTYPEEXT(passenger)->PenetratesTransport_Level.Get(RulesExtData::Instance()->PenetratesTransport_Level))
 			return;
 
 		if (fatal)
@@ -2045,6 +2048,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->IsCellSpreadWH)
 		.Process(this->IsFakeEngineer)
 		.Process(this->AnimZAdjust)
+		.Process(this->ApplyPerTargetEffectsOnDetonate)
 		;
 
 	PaintBallData.Serialize(Stm);
@@ -2158,7 +2162,7 @@ bool WarheadTypeExtData::IsHealthInThreshold(ObjectClass* pTarget) const
 bool WarheadTypeExtData::ApplySuppressDeathWeapon(TechnoClass* pVictim) const
 {
 	auto const absType = pVictim->WhatAmI();
-	auto const pVictimType = pVictim->GetTechnoType();
+	auto const pVictimType = GET_TECHNOTYPE(pVictim);
 
 	if (!this->SuppressDeathWeapon_Exclude.Contains(pVictimType)) {
 
@@ -2232,7 +2236,8 @@ void WarheadTypeExtData::ApplyBuildingUndeploy(TechnoClass* pTarget) {
 			// Only armed units that are not considered allies will be recorded
 
 			if ((!pHouse || !pHouse->IsAlliedWith(pItem)) && pItem->IsArmed())
-				record[pBuilding->GetDirectionOverObject(pItem).GetValue<4>()] += pItem->GetTechnoType()->Cost;
+				record[pBuilding->GetDirectionOverObject(pItem).GetValue<4>()] 
+				+= GET_TECHNOTYPE(pItem)->Cost;
 
 		}
 

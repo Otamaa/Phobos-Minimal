@@ -69,8 +69,6 @@ ASMJIT_PATCH(0x442C43, BuildingClass_Init, 0x5)
 
 	auto const pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pThis->Type);
 
-	pBldExt->Type = pBldTypeExt;
-
 	R->EAX(pThis->Type);
 	R->ECX(pBldTypeExt->InitialStrength.Get(pThis->Type->Strength));
 	return 0x442C7B;

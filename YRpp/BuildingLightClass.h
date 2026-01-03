@@ -27,7 +27,7 @@ public:
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x436A00);
 	virtual AbstractType WhatAmI() const override JMP_THIS(0x4370B0);
-	virtual int	Size() const override JMP_THIS(0x436900);
+	virtual int	ClassSize() const override JMP_THIS(0x436900);
 	virtual void ComputeCRC(CRCEngine& crc) const override JMP_THIS(0x436F40);
 	virtual void Update() override JMP_THIS(0x4361D0);
 

@@ -24,7 +24,7 @@ ASMJIT_PATCH(0x44955D, BuildingClass_WeaponFactoryOutsideBusy_WeaponFactoryCell,
 	if (!pLink)
 		return NotBusy;
 
-	const auto pLinkType = pLink->GetTechnoType();
+	const auto pLinkType = GET_TECHNOTYPE(pLink);
 
 	if (pLinkType->JumpJet && pLinkType->BalloonHover)
 		return NotBusy;

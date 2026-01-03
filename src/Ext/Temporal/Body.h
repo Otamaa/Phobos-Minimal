@@ -78,6 +78,8 @@ public:
 		this->unknown_pointer_38 = 0;
 	}
 
+	void ResetTemporalStateAndIdle();
+
 	void _Update();
 	void _Detonate(TechnoClass* pTarget);
 

@@ -25,6 +25,7 @@
 
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -257,7 +258,7 @@ void OwnFunc::ApplyHitAnim(ObjectClass* pTarget, args_ReceiveDamage* args)
 
 			if (pTechno)
 			{
-				auto const pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+				auto const pTechnoTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
 				if (!pTechnoTypeExt->HitCoordOffset.empty())
 				{
@@ -594,7 +595,7 @@ void TechnoExt_ExtData::AddPassengers(BuildingClass* const Grinder, FootClass* V
 			if (nPass->InOpenToppedTransport)
 				Vic->MarkPassengersAsExited();
 
-			if (Vic->GetTechnoType()->Gunner)
+			if (GET_TECHNOTYPE(Vic)->Gunner)
 				Vic->RemoveGunner(nPass);
 
 			nPass->Transporter = nullptr;
@@ -712,7 +713,7 @@ Action TechnoExt_ExtData::GetiInfiltrateActionResult(InfantryClass* pInf, Buildi
 
 bool TechnoExt_ExtData::IsOperated(TechnoClass* pThis)
 {
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pExt->Operators.empty())
 	{
@@ -744,9 +745,9 @@ bool TechnoExt_ExtData::IsOperatedB(TechnoClass* pThis)
 
 bool TechnoExt_ExtData::IsPowered(TechnoClass* pThis)
 {
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 
-	if (pType && pType->PoweredUnit)
+	if (pType->PoweredUnit)
 	{
 		for (const auto& pBuilding : pThis->Owner->Buildings)
 		{
@@ -846,7 +847,7 @@ bool NOINLINE  TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
 	}
 
 	const auto what = pThis->WhatAmI();
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (what == BuildingClass::AbsID)
@@ -879,7 +880,7 @@ bool NOINLINE  TechnoExt_ExtData::CanSelfCloakNow(TechnoClass* pThis)
 //confirmed
 bool NOINLINE TechnoExt_ExtData::IsCloakable(TechnoClass* pThis, bool allowPassive)
 {
-	TechnoTypeClass* pType = pThis->GetTechnoType();
+	TechnoTypeClass* pType = GET_TECHNOTYPE(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
@@ -954,7 +955,7 @@ bool NOINLINE TechnoExt_ExtData::CloakAllowed(TechnoClass* pThis)
 		return false;
 	}
 
-	if (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Cloakable_IgnoreArmTimer
+	if (!GET_TECHNOTYPEEXT(pThis)->Cloakable_IgnoreArmTimer
 		 && pThis->RearmTimer.InProgress())
 	{
 		return false;
@@ -997,7 +998,7 @@ InfantryTypeClass* TechnoExt_ExtData::GetBuildingCrew(BuildingClass* pThis, int 
 		return HouseExtData::GetEngineer(pThis->Owner);
 	}
 
-	return pThis->TechnoClass::GetCrew();
+	return FakeTechnoClass::__GetCrew(pThis);
 }
 
 void TechnoExt_ExtData::UpdateFactoryQueues(BuildingClass const* const pBuilding)
@@ -1031,8 +1032,8 @@ bool TechnoExt_ExtData::IsBaseNormal(BuildingClass* pBuilding)
 int TechnoExt_ExtData::GetVictimBountyValue(TechnoClass* pVictim, TechnoClass* pKiller)
 {
 	int Value = 0;
-	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pKiller->GetTechnoType());
-	const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVictim->GetTechnoType());
+	const auto pKillerTypeExt = GET_TECHNOTYPEEXT(pKiller);
+	const auto pVictimTypeExt = GET_TECHNOTYPEEXT(pVictim);
 
 	switch (pKillerTypeExt->Bounty_Value_Option.Get(RulesExtData::Instance()->Bounty_Value_Option))
 	{
@@ -1072,8 +1073,8 @@ bool TechnoExt_ExtData::KillerAllowedToEarnBounty(TechnoClass* pKiller, TechnoCl
 	if (pHouseTypeExt && !pHouseTypeExt->GivesBounty)
 		return false;
 
-	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pKiller->GetTechnoType());
-	const auto pVictimType = pVictim->GetTechnoType();
+	const auto pKillerTypeExt = GET_TECHNOTYPEEXT(pKiller);
+	const auto pVictimType = GET_TECHNOTYPE(pVictim);
 
 	if (!pKillerTypeExt->BountyAllow.Eligible(pVictimType))
 		return false;
@@ -1101,7 +1102,7 @@ void TechnoExt_ExtData::GiveBounty(TechnoClass* pVictim, TechnoClass* pKiller)
 	if (!TechnoExt_ExtData::KillerAllowedToEarnBounty(pKiller, pVictim))
 		return;
 
-	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pKiller->GetTechnoType());
+	const auto pKillerTypeExt = GET_TECHNOTYPEEXT(pKiller);
 	const int nValueResult = TechnoExt_ExtData::GetVictimBountyValue(pVictim, pKiller);
 
 	if (nValueResult != 0 && pKiller->Owner->AbleToTransactMoney(nValueResult))
@@ -1136,7 +1137,7 @@ AresHijackActionResult TechnoExt_ExtData::GetActionHijack(InfantryClass* pThis, 
 		return AresHijackActionResult::None;
 	}
 
-	const auto pTargetType = pTarget->GetTechnoType();
+	const auto pTargetType = GET_TECHNOTYPE(pTarget);
 	const auto absTarget = pTarget->WhatAmI();
 	const auto pTargetUnit = absTarget == UnitClass::AbsID ? static_cast<UnitClass*>(pTarget) : nullptr;
 
@@ -1270,7 +1271,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		}
 
 		bool asPassenger = false;
-		const auto pDestTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
+		const auto pDestTypeExt = GET_TECHNOTYPEEXT(pTarget);
 		auto pTargetExt = TechnoExtContainer::Instance.Find(pTarget);
 
 		if (action == AresHijackActionResult::Drive && (!pDestTypeExt->Operators.empty() || pDestTypeExt->Operator_Any))
@@ -1307,10 +1308,10 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 
 		// if the hijacker is mind-controlled, free it,
 		// too, and attach to the new target. #762
-		const auto controller = pThis->MindControlledBy;
+		const auto controller = (FakeCaptureManagerClass*)pThis->MindControlledBy;
 		if (controller)
 		{
-			CaptureExtData::FreeUnit(controller->CaptureManager, pThis, true);
+			controller->__FreeUnit(pThis, true);
 		}
 
 		// let's make a steal
@@ -1334,7 +1335,7 @@ bool TechnoExt_ExtData::PerformActionHijack(TechnoClass* pFrom, TechnoClass* con
 		// hook up the original mind-controller with the target #762
 		if (controller)
 		{
-			CaptureExtData::CaptureUnit(controller->CaptureManager, pThis, true, 0);
+			controller->__CaptureUnit(pThis, true, 0);
 		}
 
 		// reboot the slave manager
@@ -1496,7 +1497,7 @@ void TechnoExt_ExtData::KickOutClones(BuildingClass* pFactory, TechnoClass* cons
 		return;
 	}
 
-	const auto ProductionType = Production->GetTechnoType();
+	const auto ProductionType = GET_TECHNOTYPE(Production);
 	const auto ProductionTypeData = TechnoTypeExtContainer::Instance.Find(ProductionType);
 
 	if (!ProductionTypeData->Cloneable)
@@ -1639,7 +1640,7 @@ InfantryClass* TechnoExt_ExtData::RecoverHijacker(FootClass* const pThis)
 
 void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* const pKiller, const bool Select, const bool IgnoreDefenses, const bool PreventPassengersEscape)
 {
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pOwner = pThis->Owner;
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
@@ -1673,10 +1674,10 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 			else
 			{
 				// the hijacker will now be controlled instead of the unit
-				if (auto const pController = pThis->MindControlledBy)
+				if (auto const pController = (FakeCaptureManagerClass*)pThis->MindControlledBy)
 				{
-					CaptureExtData::FreeUnit(pController->CaptureManager, pThis, true);
-					CaptureExtData::CaptureUnit(pController->CaptureManager, pHijacker, true, 0);
+					pController->__FreeUnit(pThis, true);
+					pController->__CaptureUnit(pHijacker, true, 0);
 					pHijacker->QueueMission(Mission::Guard, true); // override the fate the AI decided upon
 				}
 
@@ -1702,7 +1703,7 @@ void TechnoExt_ExtData::SpawnSurvivors(FootClass* const pThis, TechnoClass* cons
 
 				for (int i = 0; i < pilotCount; ++i)
 				{
-					if (auto pPilotType = pThis->GetCrew())
+					if (auto pPilotType = FakeTechnoClass::__GetCrew(pThis))
 					{
 						if (ScenarioClass::Instance->Random.RandomRanged(1, 100) <= pilotChance)
 						{
@@ -1844,7 +1845,7 @@ void TechnoExt_ExtData::DepositTiberium(TechnoClass* pThis, HouseClass* pHouse, 
 	// also add the normal tiberium to the global account?
 	if (amount > 0.0)
 	{
-		auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		auto const pExt = GET_TECHNOTYPEEXT(pThis);
 		if (!pExt->Refinery_UseStorage)
 		{
 			value += int(amount * pTiberium->Value * pHouse->Type->IncomeMult);
@@ -1967,12 +1968,12 @@ TechnoTypeClass* TechnoExt_ExtData::GetImage(FootClass* pThis)
 		return Image;
 	}
 
-	return pThis->GetTechnoType();
+	return GET_TECHNOTYPE(pThis);
 }
 
 void TechnoExt_ExtData::HandleTunnelLocoStuffs(FootClass* pOwner, bool DugIN, bool PlayAnim)
 {
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
+	const auto pExt = GET_TECHNOTYPEEXT(pOwner);
 	const auto pRules = RulesClass::Instance();
 	const auto nSound = (DugIN ? pExt->DigInSound : pExt->DigOutSound).Get(pRules->DigSound);
 
@@ -2114,7 +2115,7 @@ bool TechnoExt_ExtData::AcquireHunterSeekerTarget(TechnoClass* pThis)
 			}
 
 			// type prevents this being a target
-			auto const pType = i->GetTechnoType();
+			auto const pType = GET_TECHNOTYPE(i);
 
 			// is type to be ignored?
 			auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -2302,7 +2303,7 @@ int TechnoExt_ExtData::GetAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapo
 
 void TechnoExt_ExtData::DecreaseAmmo(TechnoClass* const pThis, WeaponTypeClass* pWeapon)
 {
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (GetAmmo(pThis, pWeapon) > 0)
@@ -3236,7 +3237,7 @@ bool TechnoExt_ExtData::IsDriverKillable(TechnoClass* pThis, double KillBelowPer
 	if (pThis->BeingWarpedOut || pThis->IsIronCurtained() || TechnoExtData::IsInWarfactory(pThis, false))
 		return false;
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 
 	if (pType->Natural || pType->Organic)
 		return false;
@@ -3267,7 +3268,7 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 
 	TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled = pToOwner->Type->MultiplayPassive;
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTarget->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pTarget);
 
 	if (pTarget->Passengers.GetFirstPassenger())
 	{
@@ -3286,7 +3287,7 @@ void TechnoExt_ExtData::ApplyKillDriver(TechnoClass* pTarget, TechnoClass* pKill
 			{
 				auto const pPassenger = static_cast<FootClass*>(*passenger);
 
-				if (pTypeExt->Operators.Contains(pPassenger->GetTechnoType()))
+				if (pTypeExt->Operators.Contains(GET_TECHNOTYPE(pPassenger)))
 				{
 					pTarget->Passengers.RemovePassenger(pPassenger);
 					pPassenger->RegisterDestruction(pKiller);
@@ -3710,7 +3711,7 @@ void UpdateTypeData(TechnoClass* pThis, TechnoTypeClass* pOldType, TechnoTypeCla
 		}
 		else if (pOldTypeExt->Convert_ResetMindControl)
 		{
-			if (!infiniteCapture && pCaptureManager->ControlNodes.Count > maxCapture)
+			if (!infiniteCapture && ((FakeCaptureManagerClass*)pCaptureManager)->__GetControlledCount() > maxCapture)
 			{
 				// Remove excess nodes.
 				for (int index = pCaptureManager->ControlNodes.Count - 1; index >= maxCapture; --index)
@@ -4259,7 +4260,7 @@ bool NOINLINE TechnoExt_ExtData::ConvertToType(TechnoClass* pThis, TechnoTypeCla
 
 int TechnoExt_ExtData::GetSelfHealAmount(TechnoClass* pThis)
 {
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pType->SelfHealing || pThis->HasAbility(AbilityType::SelfHeal))
@@ -4496,7 +4497,7 @@ void NOINLINE UpdateRadarJammer(TechnoExtData* pData, TechnoTypeExtData* pTypeDa
 
 void TechnoExt_ExtData::Ares_technoUpdate(TechnoClass* pThis)
 {
-	const auto pOldType = pThis->GetTechnoType();
+	const auto pOldType = GET_TECHNOTYPE(pThis);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	auto pOldTypeExt = TechnoTypeExtContainer::Instance.Find(pOldType);
@@ -4575,7 +4576,7 @@ void TechnoExperienceData::AddAirstrikeFactor(TechnoClass*& pKiller, double& d_f
 	{
 		if (const auto pDesignator = pKiller->Airstrike->Owner)
 		{
-			const auto pDesignatorExt = TechnoTypeExtContainer::Instance.Find(pDesignator->GetTechnoType());
+			const auto pDesignatorExt = GET_TECHNOTYPEEXT(pDesignator);
 
 			if (pDesignatorExt->ExperienceFromAirstrike)
 			{
@@ -4592,7 +4593,7 @@ bool TechnoExperienceData::KillerInTransporterFactor(TechnoClass* pKiller, Techn
 	if (!pTransporter)
 		return false;
 
-	const auto pTTransporterData = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType());
+	const auto pTTransporterData = GET_TECHNOTYPEEXT(pTransporter);
 	const auto TransporterAndKillerAllied = pTransporter->Owner->IsAlliedWith(pKiller);
 
 	if (pKiller->InOpenToppedTransport)
@@ -4604,9 +4605,10 @@ bool TechnoExperienceData::KillerInTransporterFactor(TechnoClass* pKiller, Techn
 
 		// if passengers can get promoted and this transport is already elite,
 		// don't promote this transport in favor of the real killer.
-		const TechnoTypeClass* pTTransporter = pTransporter->GetTechnoType();
+		const TechnoTypeClass* pTTransporter = GET_TECHNOTYPE(pTransporter);
 
-		if ((!pTTransporter->Trainable || pTTransporterData->PassengersGainExperience) && (pTransporter->Veterancy.IsElite() || !TransporterAndKillerAllied) && pKiller->GetTechnoType()->Trainable)
+		if ((!pTTransporter->Trainable || pTTransporterData->PassengersGainExperience) && (pTransporter->Veterancy.IsElite() || !TransporterAndKillerAllied)
+				&& GET_TECHNOTYPE(pKiller)->Trainable)
 		{
 			// the passenger gets experience
 			pExpReceiver = pKiller;
@@ -4626,8 +4628,8 @@ bool TechnoExperienceData::KillerInTransporterFactor(TechnoClass* pKiller, Techn
 
 void TechnoExperienceData::AddExperience(TechnoClass* pExtReceiver, TechnoClass* pVictim, int victimCost, double factor)
 {
-	const auto pExpReceiverType = pExtReceiver->GetTechnoType();
-	const auto pVinctimType = pVictim->GetTechnoType();
+	const auto pExpReceiverType = GET_TECHNOTYPE(pExtReceiver);
+	const auto pVinctimType = GET_TECHNOTYPE(pVictim);
 	const auto TechnoCost = pExpReceiverType->GetActualCost(pExtReceiver->Owner);
 	const auto pVictimTypeExt = TechnoTypeExtContainer::Instance.Find(pVinctimType);
 	const auto pKillerTypeExt = TechnoTypeExtContainer::Instance.Find(pExpReceiverType);
@@ -4650,7 +4652,7 @@ void TechnoExperienceData::MCControllerGainExperince(TechnoClass* pExpReceiver, 
 		{
 
 			// get the mind controllers extended properties
-			const auto pTController = pController->GetTechnoType();
+			const auto pTController = GET_TECHNOTYPE(pController);
 			const auto pTControllerData = TechnoTypeExtContainer::Instance.Find(pTController);
 
 			// promote the mind-controller
@@ -4670,7 +4672,7 @@ void TechnoExperienceData::GetSpawnerData(TechnoClass*& pSpawnOut, TechnoClass*&
 {
 	if (const auto pSpawner = pExpReceiver->SpawnOwner)
 	{
-		const auto pTSpawner = pSpawner->GetTechnoType();
+		const auto pTSpawner = GET_TECHNOTYPE(pSpawner);
 		if (!pTSpawner->MissileSpawn && pTSpawner->Trainable)
 		{
 			const auto pTSpawnerData = TechnoTypeExtContainer::Instance.Find(pTSpawner);
@@ -4697,7 +4699,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 	{
 		if (pExpReceiver->CurrentRanking != Rank::Invalid)
 		{
-			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pExpReceiver->GetTechnoType());
+			auto const pTypeExt = GET_TECHNOTYPEEXT(pExpReceiver);
 
 			if (pTypeExt->Promote_IncludePassengers)
 			{
@@ -4707,7 +4709,7 @@ void TechnoExperienceData::PromoteImmedietely(TechnoClass* pExpReceiver, bool bS
 				{
 					if (auto const pFoot = flag_cast_to<FootClass*>(*object))
 					{
-						if (!pFoot->GetTechnoType()->Trainable)
+						if (!GET_TECHNOTYPE(pFoot)->Trainable)
 							continue;
 
 						pFoot->Veterancy = nCur;// sync veterancy with the Transporter
@@ -4822,7 +4824,7 @@ void TechnoExperienceData::UpdateVeterancy(TechnoClass*& pExpReceiver, TechnoCla
 
 void TechnoExperienceData::EvaluateExtReceiverData(TechnoClass*& pExpReceiver, TechnoClass* pKiller, double& d_factor, bool& promoteImmediately)
 {
-	const auto pKillerTechnoType = pKiller->GetTechnoType();
+	const auto pKillerTechnoType = GET_TECHNOTYPE(pKiller);
 	const auto pKillerTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pKillerTechnoType);
 
 	if (!KillerInTransporterFactor(pKiller, pExpReceiver, d_factor, promoteImmediately))
@@ -4840,7 +4842,7 @@ void TechnoExperienceData::EvaluateExtReceiverData(TechnoClass*& pExpReceiver, T
 			}
 			else if (pGunner
 				&& (nKillerVet.IsElite() || !pKillerTechnoTypeExt->ExperienceFromPassengers)
-				&& pGunner->GetTechnoType()->Trainable && pKillerTechnoTypeExt->PassengersGainExperience)
+				&& GET_TECHNOTYPE(pGunner)->Trainable && pKillerTechnoTypeExt->PassengersGainExperience)
 			{
 
 				pExpReceiver = pGunner;
@@ -4862,7 +4864,8 @@ void TechnoExperienceData::EvaluateExtReceiverData(TechnoClass*& pExpReceiver, T
 			// unchanged game logic
 			if (TechnoClass* pSpawner = pKiller->SpawnOwner)
 			{
-				TechnoTypeClass* pTSpawner = pSpawner->GetTechnoType();
+				TechnoTypeClass* pTSpawner = GET_TECHNOTYPE(pSpawner);
+
 				if (pTSpawner->Trainable)
 				{
 					pExpReceiver = pSpawner;
@@ -5269,9 +5272,9 @@ void AresEMPulse::Destroy(TechnoClass* pTechno, TechnoClass* pKiller, HouseClass
 	pTechno->ReceiveDamage(&health, 0, pWarhead, pKiller, true, false, pKillerHouse);
 }
 
-AnimTypeClass* AresEMPulse::GetSparkleAnimType(TechnoClass const* const pTechno)
+AnimTypeClass* AresEMPulse::GetSparkleAnimType(TechnoClass* pTechno)
 {
-	auto const pType = pTechno->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pTechno);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	return pTypeExt->EMP_Sparkles.Get(RulesClass::Instance->EMPulseSparkles);
 }
@@ -5379,7 +5382,7 @@ void AresEMPulse::updateRadarBlackout(BuildingClass* const pBuilding)
 bool AresEMPulse::IsTypeEMPProne(TechnoClass* pTechno)
 {
 
-	auto const pType = pTechno->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pTechno);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (!pTypeExt->ImmuneToEMP.isset())
@@ -5487,9 +5490,9 @@ bool AresEMPulse::isEMPImmune(TechnoClass* Target, HouseClass* SourceHouse)
 
 bool AresEMPulse::isEMPTypeImmune(TechnoClass* Target)
 {
-	auto pType = Target->GetTechnoType();
-	if (!pType->TypeImmune)
-	{
+	auto pType = GET_TECHNOTYPE(Target);
+
+	if (!pType->TypeImmune){
 		return false;
 	}
 
@@ -5559,7 +5562,7 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pFrom, TechnoClass* pTo)
 
 void AresEMPulse::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
 {
-	if (TechnoTypeExtContainer::Instance.Find(pWho->GetTechnoType())->IsDummy)
+	if (GET_TECHNOTYPEEXT(pWho)->IsDummy)
 		return;
 
 	auto& Anim = TechnoExtContainer::Instance.Find(pWho)->EMPSparkleAnim;
@@ -5593,7 +5596,7 @@ void AresEMPulse::UpdateSparkleAnim(TechnoClass* pWho, AnimTypeClass* pAnim)
 
 bool AresEMPulse::thresholdExceeded(TechnoClass* Victim)
 {
-	auto const pData = TechnoTypeExtContainer::Instance.Find(Victim->GetTechnoType());
+	auto const pData = GET_TECHNOTYPEEXT(Victim);
 	if (pData->EMP_Threshold != 0 && Victim->EMPLockRemaining > (Math::abs(pData->EMP_Threshold)))
 	{
 		if (pData->EMP_Threshold > 0)
@@ -5636,7 +5639,7 @@ void AresEMPulse::deliverEMPDamage(TechnoClass* const pTechno, TechnoClass* cons
 
 	if (AresEMPulse::isEligibleEMPTarget(pTechno, pHouse, pWarhead))
 	{
-		auto const pType = pTechno->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pTechno);
 		const auto armor = TechnoExtData::GetTechnoArmor(pTechno, pWarhead);
 		auto const& Verses = pWHExt->GetVerses(armor).Verses;
 
@@ -6192,7 +6195,7 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 			auto pNext = pFirst->NextTeamMember;
 			do
 			{
-				const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pFirst->GetTechnoType());
+				const auto pTypeExt = GET_TECHNOTYPEEXT(pFirst);
 				if (pTypeExt->Convert_Script)
 				{
 					const auto& pConvertReq = pTypeExt->Convert_Scipt_Prereq;
@@ -6293,7 +6296,7 @@ bool AresWPWHExt::conductAbduction(WeaponTypeClass* pWeapon, TechnoClass* pOwner
 
 	const auto Attacker = pOwner;
 	//const auto pTargetType = Target->GetTechnoType();
-	const auto AttackerType = Attacker->GetTechnoType();
+	const auto AttackerType = GET_TECHNOTYPE(Attacker);
 
 	if (!pWHExt->CanAffectHouse(Attacker->Owner, Target->GetOwningHouse()))
 	{
@@ -7185,7 +7188,7 @@ bool AresTEventExt::FindTechnoType(TEventClass* pThis, int args, HouseClass* pWh
 				if (pWho && pWho != (*walk)->Owner)
 					continue;
 
-				if ((*walk)->GetTechnoType() == pType)
+				if (GET_TECHNOTYPE((*walk)) == pType)
 				{
 					i--;
 
@@ -7373,7 +7376,7 @@ bool AresTEventExt::HasOccured(TEventClass* pThis, EventArgs& Args, bool& result
 		}
 		case AresTriggerEvents::ReverseEngineerType:
 		{
-			result = ((TechnoClass*)Args.Source)->GetTechnoType() == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
+			result = GET_TECHNOTYPE(((TechnoClass*)Args.Source)) == TEventExtContainer::Instance.Find(pThis)->GetTechnoType();
 			return true;
 		}
 		case AresTriggerEvents::HouseOwnTechnoType:
@@ -7565,7 +7568,7 @@ bool TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* 
 				pPassenger;
 				pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject))
 			{
-				const auto pPassengerType = pPassenger->GetTechnoType();
+				const auto pPassengerType = GET_TECHNOTYPE(pPassenger);
 
 				auto nSize = !Absorber ? (int)pPassengerType->Size : 1;
 				if (nSize <= 0)
@@ -7629,7 +7632,7 @@ bool TunnelFuncs::PopulatePassangerPIPData(TechnoClass* pThis, TechnoTypeClass* 
 			pPassenger;
 			pPassenger = flag_cast_to<FootClass*>(pPassenger->NextObject))
 		{
-			const auto pPassengerType = pPassenger->GetTechnoType();
+			const auto pPassengerType = GET_TECHNOTYPE(pPassenger);
 
 			auto nSize = pTypeExt->Passengers_BySize.Get() ? (int)pPassengerType->Size : 1;
 			if (nSize <= 0)
@@ -7723,7 +7726,7 @@ bool TunnelFuncs::UnloadOnce(FootClass* pFoot, BuildingClass* pTunnel, bool sile
 			return false;
 	}
 
-	const auto pFootType = pFoot->GetTechnoType();
+	const auto pFootType = GET_TECHNOTYPE(pFoot);
 	++Unsorted::ScenarioInit();
 
 	CoordStruct nResultC = CellClass::Cell2Coord(nResult);
@@ -8512,7 +8515,7 @@ Action MouseClassExt::ValidateShroudedAction(Action nAction)
 		{
 			if (auto T = flag_cast_to<TechnoClass*>(nObjDvc[0]))
 			{
-				if (T->GetTechnoType()->MoveToShroud)
+				if (GET_TECHNOTYPE(T)->MoveToShroud)
 				{
 					return Action::Move;
 				}

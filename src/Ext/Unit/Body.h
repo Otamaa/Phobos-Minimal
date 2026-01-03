@@ -32,6 +32,7 @@ public:
 		UnitAutoDeployTimer(),
 		Convert_Deploy_Delay()
 	{
+		this->CurrentType = pObj->Type;
 		this->Name = pObj->Type->ID;
 		this->AbsType = UnitClass::AbsID;
 	}

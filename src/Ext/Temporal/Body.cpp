@@ -157,6 +157,13 @@ void HandleDestruction(TemporalClass* pTemporal , TechnoClass* target , WeaponTy
 	}
 }
 
+void FakeTemporalClass::ResetTemporalStateAndIdle() {
+	this->ResetTemporalState();
+	if (auto pOwner = this->Owner) {
+		pOwner->EnterIdleMode(false, 1);
+	}
+}
+
 void FakeTemporalClass::_Update()
 {
 	if (this->Target && this->Target->TemporalTargetingMe == this && this->NextTemporal) {
@@ -177,7 +184,7 @@ void FakeTemporalClass::_Update()
 
 		if (auto const pTransport = this->Owner->Transporter) {
 			if (pTransport->IsAlive) {
-				const auto& _cDiscance = TechnoTypeExtContainer::Instance.Find(pTransport->GetTechnoType())->OpenTopped_WarpDistance;
+				const auto& _cDiscance = GET_TECHNOTYPEEXT(pTransport)->OpenTopped_WarpDistance;
 				if (_cDiscance.isset()) {
 					disatanceMax = _cDiscance.Get();
 				}
@@ -212,9 +219,7 @@ void FakeTemporalClass::_Update()
 				}
 			}
 
-			this->ResetTemporalState();
-			if(this->Owner)
-				this->Owner->EnterIdleMode(false, 1);
+			this->ResetTemporalStateAndIdle();
 		}
 	}
 }
@@ -241,9 +246,9 @@ void FakeTemporalClass::_Detonate(TechnoClass* pTarget) 	{
 	}
 
 	this->Target = pTarget;
-	auto pTargetType = pTarget->GetTechnoType();
-	auto pUnit = cast_to<UnitClass*>(pTarget);
-	auto pBuilding = cast_to<BuildingClass*>(pTarget);
+	auto pTargetType = GET_TECHNOTYPE(pTarget);
+	auto pUnit = cast_to<UnitClass*, false>(pTarget);
+	auto pBuilding = cast_to<BuildingClass*, false>(pTarget);
 	int wpIdx = TechnoExtContainer::Instance.Find(this->Owner)->idxSlot_Warp;
 	auto pWeapon = this->Owner->GetWeapon(wpIdx)->WeaponType;
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);

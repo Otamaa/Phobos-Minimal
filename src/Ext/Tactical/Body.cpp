@@ -472,7 +472,7 @@ bool FakeTacticalClass::IsHighPriorityInRect(LTRBStruct* rect)
 		if (this->IsInSelectionRect(rect, selected) && ObjectClass_IsSelectable(selected.Object))
 		{
 			//auto const pExt = TechnoExtContainer::Instance.Find(static_cast<TechnoClass*>(selected.Object));
-			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(selected.Object->GetTechnoType());
+			auto const pTypeExt = GET_TECHNOTYPEEXT((TechnoClass*)selected.Object);
 
 			return !pTypeExt->LowSelectionPriority;
 		}
@@ -1262,7 +1262,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4B2B, FakeTacticalClass::__DrawAllTacticalText)
 
 bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, DynamicVectorClass<const char*>& names)
 {
-	const auto pTechnoType = pTechno->GetTechnoType();
+	const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	const char* id = pTypeExt->GetSelectionGroupID(pTechnoType);
 

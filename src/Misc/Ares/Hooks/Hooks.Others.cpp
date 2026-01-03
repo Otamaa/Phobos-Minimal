@@ -222,25 +222,6 @@ ASMJIT_PATCH(0x730DB0, GuardCommandClass_Execute, 0xA)
 		;
 }
 
-/* #367 - do we need to draw a link to this victim */
-ASMJIT_PATCH(0x472198, CaptureManagerClass_DrawLinks, 0x6)
-{
-	enum { Draw_Maybe = 0, Draw_Yes = 0x4721E6, Draw_No = 0x472287 };
-
-	GET(CaptureManagerClass*, Controlled, EDI);
-	//GET(TechnoClass *, Item, ECX);
-
-	if (FootClass* F = flag_cast_to<FootClass*>(Controlled->Owner))
-	{
-		if (F->ParasiteImUsing && F->InLimbo)
-		{
-			return Draw_No;
-		}
-	}
-
-	return Draw_Maybe;
-}
-
 #ifndef _old
 ASMJIT_PATCH(0x551A30, LayerClass_YSortReorder, 0x5)
 {
@@ -761,26 +742,6 @@ ASMJIT_PATCH(0x4CA437, FactoryClass_GetCRC, 0x8)
 	return 0x4CA501;
 }
 
-ASMJIT_PATCH(0x47243F, CaptureManagerClass_DecideUnitFate_BuildingFate, 0x6)
-{
-	GET(TechnoClass*, pVictim, EBX);
-
-	//Neutral techno should not do anything after get freed/captured
-	if(pVictim->Owner->IsNeutral()) {
-		pVictim->Override_Mission(Mission::Sleep);
-		return 0x472604;
-	} else {
-		if (pVictim->WhatAmI() == BuildingClass::AbsID) {
-			// 1. add to team and other fates don't really make sense for buildings
-			// 2. BuildingClass::Mission_Hunt() implementation is to do nothing!
-			pVictim->QueueMission(Mission::Guard, 0);
-			return 0x472604;
-		}
-	}
-
-	return 0;
-}
-
 // PrismSupportModifier repair
 ASMJIT_PATCH(0x671152, RulesClass_Addition_General_PrismSupportModifier, 0x6)
 {
@@ -816,9 +777,9 @@ ASMJIT_PATCH(0x731E08, Select_By_Units_Text_FakeOf, 0x6)
 
 	for (const auto pObj : ObjectClass::CurrentObjects())
 	{
-		if (const auto pTechno = flag_cast_to<const TechnoClass*>(pObj))
+		if (const auto pTechno = flag_cast_to<TechnoClass*>(pObj))
 		{
-			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+			const auto pTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
 			TechnoTypeClass* pType = pTypeExt->This();
 			if (pTypeExt->Fake_Of)
@@ -856,20 +817,18 @@ ASMJIT_PATCH(0x716D98, TechnoTypeClass_Load_Palette, 0x5)
 
 // this was only a leftover stub from TS. reimplemented
 // using the same mechanism.
-ASMJIT_PATCH(0x489270, CellChainReact, 5)
+void __fastcall FakeCellClass::_ChainReaction(CellStruct* cell)
 {
-	GET(CellStruct*, cell, ECX);
-
 	const auto pCell = (FakeCellClass*)MapClass::Instance->GetCellAt(cell);
 	TiberiumClass* pTib = TiberiumClass::Array->get_or_default(pCell->_GetTiberiumType());
 
 	if (!pTib)
-		return 0x0;
+		return;
 
 	OverlayTypeClass* pOverlay = OverlayTypeClass::Array->get_or_default(pCell->OverlayTypeIndex);
 
 	if (!pOverlay || !pOverlay->ChainReaction || pCell->OverlayData <= 1u)
-		return 0x0;
+		return;
 
 	if (ScenarioClass::Instance->Random.RandomFromMax(99) <
 		(RulesExtData::Instance()->ChainReact_Multiplier * pCell->OverlayData))
@@ -925,7 +884,7 @@ ASMJIT_PATCH(0x489270, CellChainReact, 5)
 		}
 	}
 
-	return 0;
+	return;
 }
 
 // ASMJIT_PATCH(0x424DD3, AnimClass_ReInit_TiberiumChainReaction_Chance, 6)
@@ -1172,7 +1131,7 @@ ASMJIT_PATCH(0x5F3FB2, ObjectClass_Update_MaxFallRate, 6)
 				if (ratio < 0.0)
 					damage = int(pThis->Health * Math::abs(ratio));
 				else if (ratio >= 0.0 && ratio <= 1.0)
-					damage = int(pThis->GetTechnoType()->Strength * ratio);
+					damage = int(pTechnoType->Strength * ratio);
 				else
 					damage = int(ratio);
 
@@ -1274,14 +1233,14 @@ ASMJIT_PATCH(0x41D940, AirstrikeClass_Fire_AirstrikeAttackVoice, 5)
 	int index = RulesClass::Instance->AirstrikeAttackVoice;
 
 	// get from aircraft
-	const auto pAircraftExt = TechnoTypeExtContainer::Instance.Find(pAirstrike->FirstObject->GetTechnoType());
+	const auto pAircraftExt = GET_TECHNOTYPEEXT(pAirstrike->FirstObject);
 	if (pAircraftExt->VoiceAirstrikeAttack.isset())
 		index = pAircraftExt->VoiceAirstrikeAttack.Get();
 
 	// get from designator
 	if (const auto pOwner = pAirstrike->Owner)
 	{
-		auto pOwnerExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
+		auto pOwnerExt = GET_TECHNOTYPEEXT(pOwner);
 
 		if (pOwnerExt->VoiceAirstrikeAttack.isset())
 			index = pOwnerExt->VoiceAirstrikeAttack.Get();
@@ -1313,14 +1272,14 @@ ASMJIT_PATCH(0x41D5AE, AirstrikeClass_PointerGotInvalid_AirstrikeAbortSound, 9)
 	int index = RulesClass::Instance->AirstrikeAbortSound;
 
 	// get from aircraft
-	const auto pAircraftExt = TechnoTypeExtContainer::Instance.Find(pAirstrike->FirstObject->GetTechnoType());
+	const auto pAircraftExt = GET_TECHNOTYPEEXT(pAirstrike->FirstObject);
 	if (pAircraftExt->VoiceAirstrikeAbort.isset())
 		index = pAircraftExt->VoiceAirstrikeAbort.Get();
 
 	// get from designator
 	if (const auto pOwner = pAirstrike->Owner)
 	{
-		auto pOwnerExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
+		auto pOwnerExt = GET_TECHNOTYPEEXT(pOwner);
 		if (pOwnerExt->VoiceAirstrikeAbort.isset())
 			index = pOwnerExt->VoiceAirstrikeAbort.Get();
 	}

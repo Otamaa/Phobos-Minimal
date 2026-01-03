@@ -129,6 +129,7 @@ public:
 	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
 
 	static bool IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement);
+	static bool IsEligible(TechnoTypeClass* pGoing, TechnoTypeClass* reinfocement);
 
 private:
 	template <typename T>

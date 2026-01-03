@@ -7,7 +7,7 @@
 #include <Misc/Ares/Hooks/AresTrajectoryHelper.h>
 
 // Hooks
-
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
 
@@ -51,7 +51,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 	if (range == -512)
 		return RetTrue;
 
-	const auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pThisTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if(pThisTypeExt->NavalRangeBonus.isset()){
 		if (auto const pFoot = flag_cast_to<FootClass* const>(pTarget)) {
@@ -89,7 +89,7 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 		int OpetoppedBonus = pThisTypeExt->OpenTransport_RangeBonus;
 
 		if(auto pTrans = pThis->Transporter){
-			OpetoppedBonus += TechnoTypeExtContainer::Instance.Find(pTrans->GetTechnoType())
+			OpetoppedBonus += GET_TECHNOTYPEEXT(pTrans)
 				->OpenTopped_RangeBonus.Get(RulesClass::Instance->OpenToppedRangeBonus);
 		} else{
 		  OpetoppedBonus += RulesClass::Instance->OpenToppedRangeBonus;

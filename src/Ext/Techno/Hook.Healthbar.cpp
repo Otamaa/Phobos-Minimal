@@ -192,7 +192,7 @@ void __fastcall FakeTechnoClass::__DrawHealthBar_Selection(TechnoClass* techno, 
 		return;
 
 	AbstractType technoType = techno->WhatAmI();
-	TechnoTypeClass* technoTypeClass = techno->GetTechnoType();
+	TechnoTypeClass* technoTypeClass = GET_TECHNOTYPE(techno);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoTypeClass);
 	SHPStruct* pips_SHP = pTypeExt->PipShapes01.Get(FileSystem::PIPS_SHP());
 	pips_SHP = pTypeExt->HealthBarSHP.Get(pips_SHP);
@@ -354,7 +354,7 @@ static void DrawBuildingHealthBar(TechnoClass* techno, Point2D* position, Rectan
 // Draw health bar for units and infantry (horizontal bar)
 static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2D* position, RectangleStruct* clipRect, const HealthBarAssets* assets)
 {
-	TechnoTypeClass* technoType = techno->GetTechnoType();
+	TechnoTypeClass* technoType = GET_TECHNOTYPE(techno);
 	bool isInfantry = (unitType == AbstractType::Infantry);
 	const auto pExt = TechnoExtContainer::Instance.Find(techno);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoType);
@@ -442,7 +442,7 @@ static void DrawUnitHealthBar(TechnoClass* techno, AbstractType unitType, Point2
 // Check if pips should be drawn
 static bool ShouldDrawPips(TechnoClass* techno)
 {
-	TechnoTypeClass* technoType = techno->GetTechnoType();
+	TechnoTypeClass* technoType = GET_TECHNOTYPE(techno);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(technoType);
 
 	if (pTypeExt->HealthBar_HidePips)

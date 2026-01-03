@@ -1,3 +1,4 @@
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 
 #include "Header.h"
@@ -159,7 +160,7 @@ ASMJIT_PATCH(0x70DC70, TechnoClass_SwitchGunner, 6)
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(int, nWeaponIdx, 0x4);
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 
 	if (!pType->IsChargeTurret)
 	{

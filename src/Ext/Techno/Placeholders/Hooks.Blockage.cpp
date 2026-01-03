@@ -14,7 +14,7 @@ public:
 
 	static bool CanTargetObject(TechnoClass* pThis, ObjectClass* pTarget)
 	{
-		int primaryWeaponIndex = pThis->GetTechnoType()->TurretCount > 0 ? pThis->CurrentWeaponNumber : 0;
+		int primaryWeaponIndex = GET_TECHNOTYPE(pThis)->TurretCount > 0 ? pThis->CurrentWeaponNumber : 0;
 		auto const pWeaponPrimary = pThis->GetWeapon(primaryWeaponIndex)->WeaponType;
 
 		if (!pWeaponPrimary || !PathfindingBlockageHelper::CanDealDamageToObject(pWeaponPrimary, pTarget) || pThis->GetFireError(pTarget, primaryWeaponIndex, true) == FireError::ILLEGAL)

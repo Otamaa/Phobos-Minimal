@@ -75,8 +75,8 @@ ASMJIT_PATCH(0x416E37, AircraftClass_Mi_MoveCarryall_CanTote, 5)
 
 ASMJIT_PATCH(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassengers, 6)
 {
-	GET(AircraftClass* const, pThis, ESI);
-	GET_STACK(TechnoClass const* const, pSender, 0x14);
+	GET(AircraftClass*, pThis, ESI);
+	GET_STACK(TechnoClass*, pSender, 0x14);
 
 	enum { Allowed = 0x41945Fu, Disallowed = 0x41951Fu };
 
@@ -87,7 +87,7 @@ ASMJIT_PATCH(0x41949F, AircraftClass_ReceivedRadioCommand_SpecificPassengers, 6)
 		return Disallowed;
 	}
 
-	auto const pSenderType = pSender->GetTechnoType();
+	auto const pSenderType = GET_TECHNOTYPE(pSender);
 
 	return TechnoTypeExtData::PassangersAllowed(pType, pSenderType) ? Allowed : Disallowed;
 }
@@ -262,7 +262,7 @@ ASMJIT_PATCH(0x416C3A, AircraftClass_Carryall_Unload_Facing, 0x5)
 	if (!pCargo->Unlimbo(*pCoord, (DirType)(((nFacing.Raw >> 7) + 1) >> 1)))
 		return RetFailed;
 
-	const auto pCargoType = pCargo->GetTechnoType();
+	const auto pCargoType = GET_TECHNOTYPE(pCargo);
 	const auto pCorgoTypeExt = TechnoTypeExtContainer::Instance.Find(pCargoType);
 	const auto nRot = pCargoType->ROT;
 

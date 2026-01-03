@@ -27,7 +27,7 @@
 
 void FakeTechnoClass::__HandleGattlingAudio(TechnoClass* pThis)
 {
-	if (pThis->GetTechnoType()->IsGattling) {
+	if (GET_TECHNOTYPE(pThis)->IsGattling) {
 		VocClass::PlayIfInRange(pThis->Location, &pThis->Audio3);
 	}
 }
@@ -87,7 +87,7 @@ void FakeTechnoClass::__HandleStrengthSmoothing(TechnoClass* pThis)
 
 void FakeTechnoClass::__HandleTurretAudio(TechnoClass* pThis)
 {
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 
 	if (!pType->Turret) {
 		return;
@@ -147,7 +147,7 @@ void FakeTechnoClass::__HandleMoneyDrain(TechnoClass* pThis)
 		return;
 	}
 
-	TechnoTypeClass* techType = pThis->GetTechnoType();
+	TechnoTypeClass* techType = GET_TECHNOTYPE(pThis);
 
 	if (!techType->ResourceDestination) {
 		return;
@@ -196,7 +196,7 @@ void FakeTechnoClass::__HandleHiddenState(TechnoClass* pThis)
 	if (pThis->InOpenToppedTransport)
 		return;
 
-	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pType = GET_TECHNOTYPEEXT(pThis);
 	if (pType->IsDummy)
 		return;
 
@@ -210,7 +210,7 @@ void FakeTechnoClass::__HandleHiddenState(TechnoClass* pThis)
 	CellStruct cellPos = CellClass::Coord2Cell(centerCoord);
 	CellClass* cell = MapClass::Instance->GetCellAt(cellPos);
 
-	TechnoTypeClass* techType = pThis->GetTechnoType();
+	TechnoTypeClass* techType = GET_TECHNOTYPE(pThis);
 
 	bool shouldBeHidden = techType->CanBeHidden
 		&& cell->IsCovered()
@@ -252,9 +252,9 @@ void FakeTechnoClass::__ClearInvalidAllyTarget(TechnoClass* pThis)
 
 	// Check if in open-topped transport with different owner
 	if (TechnoClass* transport = pThis->Transporter) {
-		TechnoTypeClass* transportType = transport->GetTechnoType();
+		TechnoTypeClass* transportType = GET_TECHNOTYPE(transport);
 
-		if(TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())
+		if(TechnoTypeExtContainer::Instance.Find(transportType)
 			->Passengers_SyncOwner.Get()){
 			if (transportType->OpenTopped && transport->MindControlledBy) {
 				controllingHouse = transport->MindControlledBy->Owner;
@@ -279,7 +279,7 @@ void FakeTechnoClass::__ClearInvalidAllyTarget(TechnoClass* pThis)
 		}
 	}
 
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 
 	if (!pThis->Berzerk && pType->AttackFriendlies && isTargetAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack) {
 		return;
@@ -350,7 +350,7 @@ void FakeTechnoClass::__CheckTargetInRange(TechnoClass* pThis)
 
 void FakeTechnoClass::__HandleTurretRecoil(TechnoClass* pThis)
 {
-	if (pThis->InLimbo || !pThis->GetTechnoType()->TurretRecoil) {
+	if (pThis->InLimbo || !GET_TECHNOTYPE(pThis)->TurretRecoil) {
 		return;
 	}
 
@@ -360,7 +360,7 @@ void FakeTechnoClass::__HandleTurretRecoil(TechnoClass* pThis)
 
 void FakeTechnoClass::__HandleChargeTurret(TechnoClass* pThis)
 {
-	TechnoTypeClass* techType = pThis->GetTechnoType();
+	TechnoTypeClass* techType = GET_TECHNOTYPE(pThis);
 
 	if (!techType->IsChargeTurret) {
 		return;
@@ -375,7 +375,7 @@ void FakeTechnoClass::__HandleChargeTurret(TechnoClass* pThis)
 		return;
 	}
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	int timeLeft = pThis->RearmTimer.GetTimeLeft();
@@ -438,7 +438,7 @@ void FakeTechnoClass::__HandleTargetAcquisition(TechnoClass* pThis)
 	}
 	auto const
 		pRulesExt = RulesExtData::Instance();
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
 
 	if ((!pThis->Owner->IsControlledByHuman() || !pRulesExt->DistributeTargetingFrame_AIOnly) && pTypeExt->DistributeTargetingFrame.Get(pRulesExt->DistributeTargetingFrame)) {
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
@@ -509,7 +509,7 @@ void FakeTechnoClass::__HandleManagers(TechnoClass* pThis)
 
 void FakeTechnoClass::__HandleSelfHealing(TechnoClass* pThis)
 {
-	const auto pType = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pType = TechnoTypeExtContainer::Instance.Find(GET_TECHNOTYPE(pThis));
 
 	// prevent crashing and sinking technos from self-healing
 	if (pType->NoExtraSelfHealOrRepair || pThis->InLimbo || pThis->IsCrashing || pThis->IsSinking || TechnoExtContainer::Instance.Find(pThis)->Is_DriverKilled) {
@@ -704,7 +704,7 @@ void FakeTechnoClass::__HandleDamageSparks(TechnoClass* pThis)
 		if (!(_HPRatio >= RulesClass::Instance->ConditionYellow || pThis->GetHeight() <= -10))
 		{
 
-			auto pType = pThis->GetTechnoType();
+			auto pType = GET_TECHNOTYPE(pThis);
 			const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 			if (pExt->DamageSparks.Get(pType->DamageSparks))
@@ -798,7 +798,7 @@ void __fastcall FakeTechnoClass::__AI(TechnoClass* pThis)
 	if (!pThis->IsAlive)
 		return;
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	bool IsInLimboDelivered = false;
 
 	if (IsBuilding) {

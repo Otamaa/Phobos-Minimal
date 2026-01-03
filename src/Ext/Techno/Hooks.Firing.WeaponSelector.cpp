@@ -23,7 +23,7 @@ ASMJIT_PATCH(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(const AbstractClass*, pTarget, STACK_OFFS(0x18, -0x4));
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTarget) {
 		if (TechnoExtContainer::Instance.Find(pThis)->IsInterceptor() && pTarget->WhatAmI() == BulletClass::AbsID) {
@@ -59,7 +59,7 @@ ASMJIT_PATCH(0x6F33CD, TechnoClass_WhatWeaponShouldIUse_ForceFire, 0x6)
 		if (pWeaponSecondary && !pPrimaryExt->SkipWeaponPicking 
 			&& (!EnumFunctions::IsCellEligible(pCell, pPrimaryExt->CanTarget, true, true)
 			|| (pPrimaryExt->AttachEffect_CheckOnFirer && !pPrimaryExt->HasRequiredAttachedEffects(pThis, pThis)))
-			&& (!TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoSecondaryWeaponFallback
+			&& (!GET_TECHNOTYPEEXT(pThis)->NoSecondaryWeaponFallback
 			|| TechnoExtData::CanFireNoAmmoWeapon(pThis, 1)))
 		{
 			R->EAX(1);
@@ -92,22 +92,12 @@ ASMJIT_PATCH(0x6F3428, TechnoClass_WhatWeaponShouldIUse_ForceWeapon, 0x6)
 	//GET(WeaponTypeClass* , pSecondary , EBX);
 
 	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pThisTechnoType);
+	const int phobosWeapon = pTechnoTypeExt->SelectMultiWeapon(pThis, pAbsTarget);
 
-	const int forceWeaponIndex = pTechnoTypeExt->SelectForceWeapon(pThis, pAbsTarget);
-
-	if (forceWeaponIndex >= 0)
-	{
-		R->EAX(forceWeaponIndex);
-		return 0x6F37AF;
-	}
-
-	 const int multiWeaponIndex = pTechnoTypeExt->SelectMultiWeapon(pThis, pAbsTarget);
-
-	 if (multiWeaponIndex >= 0)
-	 {
- 		R->EAX(multiWeaponIndex);
+	if (phobosWeapon >= 0) {
+ 		R->EAX(phobosWeapon);
  		return 0x6F37AF;
-	 }
+	}
 
 	return 0;
 }
@@ -250,7 +240,7 @@ ASMJIT_PATCH(0x6F36DB, TechnoClass_WhatWeaponShouldIUse, 0x8)
 		OriginalCheck = 0x6F36E3
 	};
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	bool allowFallback = !pTypeExt->NoSecondaryWeaponFallback;
 	bool allowAAFallback = allowFallback ? true : pTypeExt->NoSecondaryWeaponFallback_AllowAA;
@@ -413,7 +403,7 @@ ASMJIT_PATCH(0x6F3432, TechnoClass_WhatWeaponShouldIUse_Gattling, 0xA)
 						chosenWeaponIndex = evenWeaponIndex;
 				}
 				else if ((pTargetTechno->IsInAir() && !pWeaponOdd->Projectile->AA && pWeaponEven->Projectile->AA) ||
-					!pTargetTechno->IsInAir() && pThis->GetTechnoType()->LandTargeting == LandTargetingType::Land_secondary)
+					!pTargetTechno->IsInAir() && GET_TECHNOTYPE(pThis)->LandTargeting == LandTargetingType::Land_secondary)
 				{
 					chosenWeaponIndex = evenWeaponIndex;
 				}
@@ -475,7 +465,7 @@ ASMJIT_PATCH(0x70E1A0, TechnoClass_GetTurretWeapon_LaserWeapon, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6FC749, TechnoClass_GetFireError_AntiUnderground, 0x5)
+ASMJIT_PATCH(0x6FC749, TechnoClass_CanFire_AntiUnderground, 0x5)
 {
 	enum { Illegal = 0x6FC86A, GoOtherChecks = 0x6FC762 };
 

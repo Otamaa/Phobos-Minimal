@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/Techno/Body.h>
 
 // =============================
 // load / save
@@ -200,7 +201,7 @@ void FakeDiskLaserClass::__AI()
 	auto pTarget = this->Target;
 	auto pWeapon = this->Weapon;
 
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pFirer->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(pFirer);
 
 	// Get firer center coordinates
 	CoordStruct firerCoords = pFirer->GetCoords();

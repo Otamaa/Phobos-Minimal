@@ -34,6 +34,7 @@ public:
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = InfantryClass::AbsID;
+		this->CurrentType = pObj->Type;
 	}
 	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 

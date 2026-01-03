@@ -649,7 +649,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 	if (!pType || !pTarget)
 		return nullptr;
 
-	const auto pTargetTechnoType = pTarget->GetTechnoType();
+	const auto pTargetTechnoType = GET_TECHNOTYPE(pTarget);
 
 	if (pTarget->IsIronCurtained()) {
 		const bool penetrates = pTarget->ProtectType == ProtectTypes::ForceShield
@@ -878,10 +878,11 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 		}
 
 		auto const type = attachEffect->GetType();
+		auto pTargetType = GET_TECHNOTYPE(pTarget);
 
 		const bool isValid = EnumFunctions::IsTechnoEligible(pTarget, type->AffectTargets, true)
-		&& (type->AffectTypes.empty() || type->AffectTypes.Contains(pTarget->GetTechnoType()))
-		&& !type->IgnoreTypes.Contains(pTarget->GetTechnoType());
+		&& (type->AffectTypes.empty() || type->AffectTypes.Contains(pTargetType))
+		&& !type->IgnoreTypes.Contains(pTargetType);
 
 		if (!isValid) {
 			it = pSourceExt->PhobosAE.erase(it);

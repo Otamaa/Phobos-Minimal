@@ -12,7 +12,7 @@
 alternative to C stdio and C++ iostreams.
 
 If you like this project, please consider donating to one of the funds
-that help victims of the war in Ukraine: <https://www.stopputin.net/>.
+that help victims of the war in Ukraine: <https://u24.gov.ua/>.
 
 [Documentation](https://fmt.dev)
 
@@ -150,8 +150,8 @@ int main() {
 }
 ```
 
-This can be [5 to 9 times faster than
-fprintf](http://www.zverovich.net/2020/08/04/optimal-file-buffer-size.html).
+This can be [up to 9 times faster than `fprintf`](
+http://www.zverovich.net/2020/08/04/optimal-file-buffer-size.html).
 
 **Print with colors and text styles**
 

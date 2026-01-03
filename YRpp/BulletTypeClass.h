@@ -55,7 +55,7 @@ public:
 	//AbstractClass
 	//virtual void PointerExpired(AbstractClass* pAbstract, bool removed) override JMP_THIS(0x46C820);
 	virtual AbstractType WhatAmI() const override { return AbstractType::BulletType; }
-	virtual int Size() const override { return 0x2F8; }
+	virtual int ClassSize() const override { return 0x2F8; }
 
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x46BEE0);

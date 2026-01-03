@@ -8,7 +8,7 @@
 
 bool PoweredUnitClass::IsPoweredBy(HouseClass* const pOwner) const
 {
-	auto const pType = this->Techno->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(this->Techno);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	auto const& PoweredBy = pTypeExt->PoweredBy;
@@ -46,7 +46,7 @@ bool PoweredUnitClass::PowerDown()
 	{
 		// destroy if EMP.Threshold would crash this unit when in air
 		if (AresEMPulse::EnableEMPEffect2(pTechno)
-			|| (TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->EMP_Threshold
+			|| (GET_TECHNOTYPEEXT(pTechno)->EMP_Threshold
 				&& pTechno->IsInAir()))
 		{
 			return false;

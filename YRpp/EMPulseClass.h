@@ -27,7 +27,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
-	virtual int Size() const override R0;
+	virtual int ClassSize() const override R0;
 	virtual void ComputeCRC(CRCEngine& checksum) const override JMP_THIS(0x4C59A0);
 
 	void SetCoordBitfieldInRange() const { JMP_THIS(0x4C58C0);}

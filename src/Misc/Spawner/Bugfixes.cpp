@@ -177,9 +177,9 @@ ASMJIT_PATCH(0x700536, TechnoClass_WhatAction_Object_AllowAttack, 0x6)
 
 	GET_STACK(bool, canEnter, STACK_OFFSET(0x1C, 0x4));
 	GET_STACK(bool, ignoreForce, STACK_OFFSET(0x1C, 0x8));
-	GET(TechnoClass const* const, pThis, ESI);
+	GET(TechnoClass*, pThis, ESI);
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 
 	if(TechnoTypeExtContainer::Instance.Find(pType)
 		->NoManualFire)

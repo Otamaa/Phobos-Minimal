@@ -266,7 +266,6 @@
     <ClCompile Include="src\Ext\Bullet\Trajectories\VerticalTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\WaveTrajectory.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Body.cpp" />
-    <ClCompile Include="src\Ext\CaptureManager\Hook.McOverload.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.GetTiberiumType.cpp" />

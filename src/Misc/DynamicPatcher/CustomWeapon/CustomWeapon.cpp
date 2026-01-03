@@ -83,7 +83,7 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 				auto nIdx = pTransporter->Passengers.IndexOf((FootClass*)pAttacker);
 				nIdx = nIdx >= TechnoTypeClass::MaxWeapons ? TechnoTypeClass::MaxWeapons - 1 : nIdx;
 
-				fireFLH = pTransporter->GetTechnoType()->Weapon[nIdx].FLH;
+				fireFLH = GET_TECHNOTYPE(pTransporter)->Weapon[nIdx].FLH;
 			}
 		}
 		else if (fireData.OnlyFireInTransport)
@@ -96,7 +96,7 @@ bool CustomWeaponManager::FireCustomWeapon(TechnoClass* pShooter,
 		int range = pWeapon->Range;
 		if (pTarget->IsInAir())
 		{
-			range += pShooter->GetTechnoType()->AirRangeBonus;
+			range += GET_TECHNOTYPE(pShooter)->AirRangeBonus;
 		}
 
 		if (burst > 1 && fireData.SimulateBurst)

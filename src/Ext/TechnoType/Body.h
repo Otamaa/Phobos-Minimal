@@ -191,6 +191,8 @@ public:
 	Nullable<int> AttractorRange;
 
 	Valueable<Leptons> MindControlRangeLimit;
+	Valueable<bool> MindControl_IgnoreSize;
+	Valueable<int> MindControlSize;
 
 	MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_EliteAbilities;
 	MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_VeteranAbilities;
@@ -1298,6 +1300,8 @@ public:
 		SuppressorRange(),
 		AttractorRange(),
 		MindControlRangeLimit(),
+		MindControl_IgnoreSize (true),
+		MindControlSize (1),
 		Phobos_EliteAbilities(),
 		Phobos_VeteranAbilities(),
 		E_ImmuneToType(),
@@ -2204,6 +2208,8 @@ private:
 			.Process(this->UIDescription)
 			.Process(this->LowSelectionPriority)
 			.Process(this->MindControlRangeLimit)
+			.Process(this->MindControl_IgnoreSize)
+			.Process(this->MindControlSize)
 			.Process(this->Phobos_EliteAbilities)
 			.Process(this->Phobos_VeteranAbilities)
 			.Process(this->E_ImmuneToType)
@@ -3199,7 +3205,8 @@ public:
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
 
 	int SelectForceWeapon(TechnoClass* pThis, AbstractClass* pTarget);
-	int SelectMultiWeapon(TechnoClass* const pThis, AbstractClass* const pTarget);
+	int SelectMultiWeapon(TechnoClass* pThis, AbstractClass* pTarget);
+	int SelectPhobosWeapon(TechnoClass* pThis, AbstractClass* pTarget);
 
 	void ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSection, ValueableVector<int>& n, ValueableVector<int>& nE);
 	void ParseCombatDamageAndThreatType(CCINIClass* const pINI);

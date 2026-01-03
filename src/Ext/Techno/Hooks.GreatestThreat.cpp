@@ -20,7 +20,7 @@ namespace SelectAutoTarget_Context
 AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis, discard_t, ThreatType method, CoordStruct* coord, bool onlyEnemy)
 {
 	++TechnoClass::TargetScanCounter();
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pOwner = pThis->Owner;
 	const bool isTechnoPlayerControlled = pOwner->IsControlledByHuman();
 
@@ -129,7 +129,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 	bool hasRealOwner = false;
 	if (auto transport = pThis->Transporter)
 	{
-		auto pTransportType = transport->GetTechnoType();
+		auto pTransportType = GET_TECHNOTYPE(transport);
 
 		if (pTransportType->OpenTopped && !TechnoTypeExtContainer::Instance.Find(pTransportType)->Passengers_SyncOwner)
 		{

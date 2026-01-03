@@ -65,217 +65,15 @@ ASMJIT_PATCH(0x7032B0, TechnoClass_RegisterLoss_Trigger, 0x6)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6F47A0, TechnoClass_GetBuildTime, 5)
-{
-	GET(TechnoClass*, pThis, ECX);
-
-	const auto pType = pThis->GetTechnoType();
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-	const auto what = pThis->WhatAmI();
-	const bool isNaval = what == UnitClass::AbsID && pType->Naval;
-	int finalSpeed = 0;
-
-	if (const auto pOwner = pThis->Owner)
-	{
-		const int cap = RulesExtData::Instance()->MultipleFactoryCap.Get(what, isNaval);
-		const double nFactorySpeed = pTypeExt->BuildTime_MultipleFactory.Get(RulesClass::Instance->MultipleFactory);
-		finalSpeed = (int)(pType->BuildTimeMultiplier * pOwner->GetBuildTimeMult(pType) * (double)pType->GetBuildSpeed());
-
-		//Power
-		const double nPowerPercentage = pOwner->GetPowerPercentage();
-
-		//if the house dont have power at all disable all the penalties
-		{
-
-			const double nLowPowerPenalty = pTypeExt->BuildTime_LowPowerPenalty.Get(RulesClass::Instance->LowPowerPenaltyModifier);
-			const double nMinLowPoweProductionSpeed = pTypeExt->BuildTime_MinLowPower.Get(RulesClass::Instance->MinLowPowerProductionSpeed);
-			const double nMaxLowPowerProductionSpeed = pTypeExt->BuildTime_MaxLowPower.Get(RulesClass::Instance->MaxLowPowerProductionSpeed);
-			double powerdivisor = 1.0 - nLowPowerPenalty * (1.0 - nPowerPercentage);
-
-			if (powerdivisor <= nMinLowPoweProductionSpeed)
-			{
-				powerdivisor = nMinLowPoweProductionSpeed;
-			}
-
-			if (nPowerPercentage < 1.0 && powerdivisor >= nMaxLowPowerProductionSpeed)
-			{
-				powerdivisor = nMaxLowPowerProductionSpeed;
-			}
-
-			if (powerdivisor < 0.01) {
-				powerdivisor = 0.01;
-			}
-
-			finalSpeed = int((double)finalSpeed / powerdivisor);
-		}
-
-		if (nFactorySpeed > 0)
-		{//Multiple Factory
-
-			const int factoryCount = pOwner->FactoryCount(what, isNaval);
-			const int divisor = (cap > 0 && factoryCount >= cap) ? cap : factoryCount;
-
-			for (int i = divisor - 1; i > 0 ; --i) {
-				finalSpeed = int(finalSpeed * nFactorySpeed);
-			}
-		}
-
-		const auto bonus = BuildingTypeExtData::GetExternalFactorySpeedBonus(pThis);
-		if(bonus > 0.0)
-			finalSpeed = int((double)finalSpeed * bonus);
-	}
-
-	{ //Exception
-		if (what == BuildingClass::AbsID && !pTypeExt->BuildTime_Speed.isset() && static_cast<BuildingTypeClass*>(pType)->Wall)
-			finalSpeed = int((double)finalSpeed * RulesClass::Instance->WallBuildSpeedCoefficient);
-	}
-
-	R->EAX(finalSpeed);
-	return 0x6F4955;
-}
-
-//The stack is messed up here , idk
-// i cant properly catch them , it is just return garbages
-//ASMJIT_PATCH(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
-//{
-//	GET(TechnoClass*, pThis, ESI);
-//	GET(WeaponTypeClass*, pWeapon, EBX);
-//
-//	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-//
-//	if(pWeaponExt->IsDetachedRailgun || (pWeapon->IsRailgun && !pThis->RailgunParticleSystem))
-//	{
-//		GET_BASE(AbstractClass* , pTarget, 0x8);
-//		LEA_STACK(CoordStruct* , pTo, 0xB4 - 0x74);
-//		LEA_STACK(CoordStruct* , pFrom, 0xB4 - 0x1C);
-//		LEA_STACK(CoordStruct* , pBuffer, 0xB4 - 0x80);
-//
-//		Debug::LogInfo("Railgun[%s]  From [%d %d %d] To [%d %d %d]", pWeapon->ID,
-//			pFrom->X,
-//			pFrom->Y,
-//			pFrom->Z,
-//			pTo->X,
-//			pTo->Y,
-//			pTo->Z
-//		);
-//
-//		pBuffer = pThis->DealthParticleDamage(pFrom , pTo , pTarget , pWeapon);
-//		const auto pParticle = GameCreate<ParticleSystemClass>(pWeapon->AttachedParticleSystem, pTo, nullptr, pThis, pBuffer, pThis->Owner);
-//
-//		if(!pWeaponExt->IsDetachedRailgun)
-//			pThis->RailgunParticleSystem = pParticle;
-//	}
-//
-//	return 0x6FF274;
-//}
-//
-//DEFINE_DISABLE_HOOK(0x6FF26E, TechnoClass_Fire_DetachedRailgun2_ares)
-
-// ASMJIT_PATCH(0x6FF1FB, TechnoClass_Fire_DetachedRailgun, 0x6)
-// {
-// 	//GET(TechnoClass*, pThis, ESI);
-// 	GET(WeaponTypeClass*, pWeapon, EBX);
-//
-// 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-// 	//const bool IsRailgun = pWeapon->IsRailgun || pWeaponExt->IsDetachedRailgun;
-//
-// 	//if (IsRailgun && Is_Aircraft(pThis))
-// 	//{
-// 		//Debug::LogInfo("TechnoClass_FireAt Aircraft[%s] attempting to fire Railgun !", pThis->get_ID());
-// 		//return 0x6FF274;
-// /	//}
-//
-// 	//return pWeaponExt->IsDetachedRailgun
-// 		? 0x6FF20F : 0x0;
-// }
-//
-// ASMJIT_PATCH(0x6FF26E, TechnoClass_Fire_DetachedRailgun2, 0x6)
-// {
-// 	GET(WeaponTypeClass*, pWeapon, EBX);
-//
-// 	return WeaponTypeExtContainer::Instance.Find(pWeapon)->IsDetachedRailgun
-// 		? 0x6FF274 : 0x0;
-// }
-
-ASMJIT_PATCH(0x70BE80, TechnoClass_ShouldSelfHealOneStep, 5)
-{
-	GET(TechnoClass* const, pThis, ECX);
-	auto const nAmount = TechnoExt_ExtData::GetSelfHealAmount(pThis);
-	R->EAX(nAmount > 0 || nAmount != 0);
-	return 0x70BF46;
-}
-
-// customizable cloaking stages
-ASMJIT_PATCH(0x7036EB, TechnoClass_Uncloak_CloakingStages, 6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	R->ECX(pTypeExt->CloakStages.Get(RulesClass::Instance->CloakingStages));
-	return 0x7036F1;
-}
-
 ASMJIT_PATCH(0x703A79, TechnoClass_VisualCharacter_CloakingStages, 0xA)
 {
 	GET(TechnoClass*, pThis, ESI);
-	int stages = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CloakStages.Get(RulesClass::Instance->CloakingStages);
+	int stages = GET_TECHNOTYPEEXT(pThis)->CloakStages.Get(RulesClass::Instance->CloakingStages);
 	R->EAX(int(pThis->CloakProgress.Stage * 256.0 / stages));
 	return 0x703A94;
 }
 
 #include <ExtraHeaders/StackVector.h>
-
-ASMJIT_PATCH(0x70380A, TechnoClass_Cloak_CloakSound, 6)
-{
-	GET(TechnoClass*, pThis, ESI);
-	const auto pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-	R->ECX(pExt->CloakSound.Get(RulesClass::Instance->CloakSound));
-
-	if (const auto pAnimType = pExt->CloakAnim.Get(RulesExtData::Instance()->CloakAnim)) {
-			AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
-			pThis->Owner,
-			nullptr,
-			false
-		);
-	}
-	return 0x703810;
-}
-
-ASMJIT_PATCH(0x70375B, TechnoClass_Uncloak_DecloakSound, 6)
-{
-	GET(int, ptr, ESI);
-	const TechnoClass* pThis = reinterpret_cast<TechnoClass*>(ptr - 0x9C);
-	const int nDefault = RulesExtData::Instance()->DecloakSound.Get(RulesClass::Instance->CloakSound);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
-
-	R->ECX(pTypeExt->DecloakSound.Get(nDefault));
-
-	if (const auto pAnimType = pTypeExt->DecloakAnim.Get(RulesExtData::Instance()->DecloakAnim)) {
-		AnimExtData::SetAnimOwnerHouseKind(GameCreate<AnimClass>(pAnimType, pThis->GetCoords()),
-			pThis->Owner,
-			nullptr,
-			false
-		);
-	}
-
-	return 0x703761;
-}
-
-ASMJIT_PATCH(0x6F3950, TechnoClass_GetCrewCount, 8)
-{
-	GET(TechnoClass*, pThis, ECX);
-	auto pType = pThis->GetTechnoType();
-
-	// previous default for crew count was -1
-	int count = TechnoTypeExtContainer::Instance.Find(pType)->Survivors_PilotCount.Get();
-	// default to original formula
-	if (count < 0)
-	{
-		count = pType->Crewed ? 1 : 0;
-	}
-
-	R->EAX(count);
-	return 0x6F3967;
-}
 
 // Support per unit modification of Iron Curtain effect duration
 ASMJIT_PATCH(0x70E2B0, TechnoClass_IronCurtain, 5)
@@ -286,7 +84,7 @@ ASMJIT_PATCH(0x70E2B0, TechnoClass_IronCurtain, 5)
 	GET_STACK(bool, force, STACK_OFFS(0x0, -0xC));
 
 	// if it's no force shield then it's the iron curtain.
-	const auto pData = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pData =  GET_TECHNOTYPEEXT(pThis);
 	const auto modifier = (force ? pData->ForceShield_Modifier : pData->IronCurtain_Modifier).Get();
 
 	pThis->IronCurtainTimer.Start(int(duration * modifier));
@@ -302,7 +100,7 @@ ASMJIT_PATCH(0x7327AA, TechnoClass_PlayerOwnedAliveAndNamed_GroupAs, 8)
 	GET(TechnoClass*, pThis, ESI);
 	GET(const char*, pID, EDI);
 
-	R->EAX<int>(TechnoTypeExtData::HasSelectionGroupID(pThis->GetTechnoType(), pID));
+	R->EAX<int>(TechnoTypeExtData::HasSelectionGroupID(GET_TECHNOTYPE(pThis), pID));
 	return 0x7327B2;
 }
 
@@ -332,7 +130,7 @@ ASMJIT_PATCH(0x707B09, TechnoClass_PointerGotInvalid_SpawnCloakOwner, 6)
 	return 0x707B29;
 }
 
-void PlayEva(const char* pEva, CDTimerClass& nTimer, double nRate) {
+static void PlayEva(const char* pEva, CDTimerClass& nTimer, double nRate) {
 	if (!nTimer.GetTimeLeft()) {
 		nTimer.Start(GameOptionsClass::Instance->GetAnimSpeed(static_cast<int>(nRate * 900.0)));
 		VoxClass::Play(pEva);
@@ -344,7 +142,7 @@ ASMJIT_PATCH(0x70DA95, TechnoClass_RadarTrackingUpdate_AnnounceDetected, 6)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(int, detect, 0x10);
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (detect && pTypeExt->SensorArray_Warn)
@@ -438,7 +236,7 @@ ASMJIT_PATCH(0x6FBDC0, TechnoClass_ShouldBeCloaked, 5)
 	return 0x6FBF93;
 }
 
-ASMJIT_PATCH(0x6F6AC9, TechnoClass_Remove_Early, 6)
+ASMJIT_PATCH(0x6F6AC9, TechnoClass_Limbo_Early, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
@@ -458,12 +256,12 @@ ASMJIT_PATCH(0x6F6AC9, TechnoClass_Remove_Early, 6)
 	return pThis->InLimbo ? 0x6F6C93u : 0x6F6AD5u;
 }
 
-ASMJIT_PATCH(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
+ASMJIT_PATCH(0x6F6F20, TechnoClass_Unlimbo_BuildingLight, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
 	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if(R->Origin() == 0x6F6F20){
 		HugeBar::InitializeHugeBar(pThis);
@@ -480,125 +278,7 @@ ASMJIT_PATCH(0x6F6F20, TechnoClass_Put_BuildingLight, 6)
 	}
 
 	return 0x0;
-}ASMJIT_PATCH_AGAIN(0x6F6D0E, TechnoClass_Put_BuildingLight, 7)
-
-
-ASMJIT_PATCH(0x707D20, TechnoClass_GetCrew, 5)
-{
-	GET(TechnoClass*, pThis, ECX);
-	auto pType = pThis->GetTechnoType();
-	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	auto pHouse = pThis->Owner;
-	InfantryTypeClass* pCrewType = nullptr;
-
-	// YR defaults to 15 for armed objects,
-	// Ares < 0.5 defaulted to 0 for non-buildings.
-	const int TechnicianChance = pExt->Crew_TechnicianChance.Get(
-		(pThis->AbstractFlags & AbstractFlags::Foot) ?
-		0 :
-		pThis->IsArmed() ? 15 : 0
-	);
-
-	if (pType->Crewed)
-	{
-		// for civilian houses always technicians. random for others
-		const bool isTechnician = pHouse->Type->SideIndex == -1 ? true :
-			TechnicianChance > 0 && ScenarioClass::Instance->Random.RandomFromMax(99) < TechnicianChance
-			? true : false;
-
-		// chose the appropriate type
-		if (!isTechnician)
-		{
-			// customize with this techno's pilot type
-			// only use it if non-null, as documented
-
-			const auto& nVec = pExt->Survivors_Pilots;
-
-			if ((size_t)pHouse->SideIndex >= nVec.size())
-			{
-				pCrewType = HouseExtData::GetCrew(pHouse);
-			}
-			else if (auto pPilotType = nVec[pHouse->SideIndex])
-			{
-				pCrewType = pPilotType;
-			}
-			else
-			{
-				pCrewType = HouseExtData::GetCrew(pHouse);
-			}
-		}
-		else
-		{
-			// either civilian side or chance
-			pCrewType = HouseExtData::GetTechnician(pHouse);
-		}
-	}
-
-	R->EAX(pCrewType);
-	return 0x707DCF;
-}
-
-// complete replacement
-ASMJIT_PATCH(0x70FBE0, TechnoClass_Activate_AresReplace, 6)
-{
-	GET(TechnoClass* const, pThis, ECX);
-
-	const auto pType = pThis->GetTechnoType();
-
-	if (pType->PoweredUnit && pThis->Owner)
-	{
-		pThis->Owner->RecheckPower = true;
-	}
-
-	/* Check abort conditions:
-		- Is the object currently EMP'd?
-		- Does the object need an operator, but doesn't have one?
-		- Does the object need a powering structure that is offline?
-		If any of the above conditions, bail out and don't activate the object.
-	*/
-
-	if (pThis->IsUnderEMP() || !TechnoExt_ExtData::IsPowered(pThis))
-	{
-		return 0x70FC85;
-	}
-
-	if (TechnoExt_ExtData::IsOperatedB(pThis))
-	{
-		pThis->Guard();
-
-		if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
-		{
-			pFoot->Locomotor.GetInterfacePtr()->Power_On();
-		}
-
-		if (auto const wasDeactivated = std::exchange(pThis->Deactivated, false))
-		{
-			// change: don't play sound when mutex active
-			if (!Unsorted::ScenarioInit)
-			{
-				VocClass::SafeImmedietelyPlayAt(pType->ActivateSound, &pThis->Location, nullptr);
-			}
-
-			// change: add spotlight
-			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-			if (pTypeExt->HasSpotlight)
-			{
-				++Unsorted::ScenarioInit;
-				TechnoExt_ExtData::SetSpotlight(pThis, GameCreate<BuildingLightClass>(pThis));
-				--Unsorted::ScenarioInit;
-			}
-
-			// change: update factories
-			if (auto const pBld = cast_to<BuildingClass*, false>(pThis))
-			{
-				TechnoExt_ExtData::UpdateFactoryQueues(pBld);
-			}
-		}
-	}
-
-	return 0x70FC85;
-}
+}ASMJIT_PATCH_AGAIN(0x6F6D0E, TechnoClass_Unlimbo_BuildingLight, 7)
 
 ASMJIT_PATCH(0x6FD438, TechnoClass_FireLaser, 6)
 {
@@ -716,64 +396,6 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F60C8, FakeTechnoClass::__Draw_Stuff_When_Select
 
 DEFINE_FUNCTION_JUMP(VTABLE , 0x7E4314 , FakeBuildingClass::_DrawStuffsWhenSelected)
 
-// complete replacement
-ASMJIT_PATCH(0x70FC90, TechnoClass_Deactivate_AresReplace, 6)
-{
-	GET(TechnoClass* const, pThis, ECX);
-
-	const auto pType = pThis->GetTechnoType();
-
-	if (pType->PoweredUnit && pThis->Owner)
-	{
-		pThis->Owner->RecheckPower = true;
-	}
-
-	// don't deactivate when inside/on the linked building
-	if (pThis->IsTethered)
-	{
-		auto const pLink = pThis->GetNthLink(0);
-
-		if (pLink && pThis->GetCell()->GetBuilding() == pLink)
-		{
-			return 0x70FD6E;
-		}
-	}
-
-	pThis->Guard();
-	pThis->Deselect();
-
-	if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
-	{
-		pFoot->Locomotor.GetInterfacePtr()->Power_Off();
-	}
-
-	auto const wasDeactivated = std::exchange(pThis->Deactivated, true);
-
-	if (!wasDeactivated)
-	{
-		// change: don't play sound when mutex active
-		if (!Unsorted::ScenarioInit)
-		{
-			VocClass::SafeImmedietelyPlayAt(pType->DeactivateSound, &pThis->Location, nullptr);
-		}
-
-		// change: remove spotlight
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-		if (pTypeExt->HasSpotlight)
-		{
-			TechnoExt_ExtData::SetSpotlight(pThis, nullptr);
-		}
-
-		// change: update factories
-		if (auto const pBld = cast_to<BuildingClass*, false>(pThis))
-		{
-			TechnoExt_ExtData::UpdateFactoryQueues(pBld);
-		}
-	}
-
-	return 0x70FD6E;
-}
-
 ASMJIT_PATCH(0x6FB1B5, TechnoClass_CreateGap_LargeGap, 7)
 {
 	GET(TechnoClass*, pThis, ESI);
@@ -846,13 +468,11 @@ ASMJIT_PATCH(0x6F3F43, TechnoClass_Init, 6)
 {
 	GET(TechnoClass* , pThis, ESI);
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 
 	if(pType)
 	{
 		auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-
-		pExt->Type = pType;
 
 		pExt->TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
 		HouseExtData* pHouseExt = nullptr;
@@ -1322,7 +942,8 @@ static inline bool CheckAttackMoveCanResetTarget(FootClass* pThis)
 
 	const auto pNewTarget = flag_cast_to<TechnoClass*>(pThis->GreatestThreat(ThreatType::Range, &pThis->Location, false));
 
-	if (!pNewTarget || pNewTarget->GetTechnoType() == pTargetTechno->GetTechnoType())
+	if (!pNewTarget 
+		|| GET_TECHNOTYPE(pNewTarget) == GET_TECHNOTYPE(pTargetTechno))
 		return false;
 
 	const auto pSecondaryWeapon = pThis->GetWeapon(1)->WeaponType;
@@ -1338,7 +959,7 @@ ASMJIT_PATCH(0x4DF3A0, FootClass_UpdateAttackMove_SelectNewTarget, 0x6)
 	GET(FootClass* const, pThis, ECX);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTypeExt->AttackMove_UpdateTarget.Get(RulesExtData::Instance()->AttackMove_UpdateTarget)
 		&& CheckAttackMoveCanResetTarget(pThis))
@@ -1358,7 +979,7 @@ ASMJIT_PATCH(0x4DF4DB, FootClass_RefreshMegaMission_CheckMissionFix, 0xA)
 	enum { ClearMegaMission = 0x4DF4F9, ContinueMegaMission = 0x4DF4CF };
 	GET(FootClass*, pThis, ESI);
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const mission = pThis->GetCurrentMission();
 	bool stopWhenTargetAcquired = pTypeExt->AttackMove_StopWhenTargetAcquired.Get(RulesExtData::Instance()->AttackMove_StopWhenTargetAcquired.Get(!pType->OpportunityFire));
@@ -1374,7 +995,7 @@ ASMJIT_PATCH(0x4DF410, FootClass_UpdateAttackMove_TargetAcquired, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pThis->IsCloseEnoughToAttack(pThis->Target)
@@ -1440,7 +1061,7 @@ ASMJIT_PATCH(0x4DF3A6, FootClass_UpdateAttackMove_Follow, 0x6)
 
 	}
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTypeExt->AttackMove_Follow || pTypeExt->AttackMove_Follow_IfMindControlIsFull && pThis->CaptureManager && pThis->CaptureManager->CannotControlAnyMore())
 	{
@@ -1463,7 +1084,7 @@ ASMJIT_PATCH(0x4DF3A6, FootClass_UpdateAttackMove_Follow, 0x6)
 				if (pTargetExt->AttackMoveFollowerTempCount >= 6)
 					continue;
 
-				auto const pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+				auto const pTargetTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
 				if (!pTargetTypeExt->AttackMove_Follow)
 				{

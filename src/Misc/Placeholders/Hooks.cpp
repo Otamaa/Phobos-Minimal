@@ -57,7 +57,7 @@ static Point2D CalculateRankPipPosition(TechnoClass* techno, Point2D* basePositi
 
 void __fastcall FakeTechnoClass::__Draw_Rank_Pips(TechnoClass* techno, discard_t, Point2D* position, RectangleStruct* clipRect)
 {
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(techno);
 
 	// Determine which rank pip to show
 	RankPipIndex pipIndex = GetRankPipIndex(techno);

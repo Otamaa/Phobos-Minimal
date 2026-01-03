@@ -30,7 +30,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override { return AbstractType::LightSource; }
-	virtual int Size() const override { return 0x4C; }
+	virtual int ClassSize() const override { return 0x4C; }
 
 	//non-virtual
 	//static

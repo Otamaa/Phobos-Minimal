@@ -28,7 +28,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
-	virtual int	Size() const override R0;
+	virtual int	ClassSize() const override R0;
 
 	//non-virtual
 	void StartMission(ObjectClass* pTarget) { JMP_THIS(0x41D830); }

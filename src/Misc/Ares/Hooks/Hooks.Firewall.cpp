@@ -251,7 +251,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	GET(FootClass* , pThis, ESI);
 
 	pThis->isidle_6B3 = false;
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pExt->HasRemainingWarpInDelay) {
@@ -329,14 +329,14 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	 if(!pThis->IsAlive)
 	 	return SkipEverything;
 
-	const bool IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pExt->Type ||
-	 pExt->Type  == RulesClass::Instance->DMisl.Type || pExt->Type  == RulesClass::Instance->CMisl.Type
-	 || TechnoTypeExtContainer::Instance.Find(pExt->Type)->IsCustomMissile);
+	const bool IsMissisleSpawn = (RulesClass::Instance->V3Rocket.Type == pType ||
+	 pType == RulesClass::Instance->DMisl.Type || pType == RulesClass::Instance->CMisl.Type
+	 || TechnoTypeExtContainer::Instance.Find(pType)->IsCustomMissile);
 
 	if (pThis->SpawnOwner && !IsMissisleSpawn
 		)
 	{
-		auto pSpawnTechnoType = pThis->SpawnOwner->GetTechnoType();
+		auto pSpawnTechnoType = GET_TECHNOTYPE(pThis->SpawnOwner);
 		auto pSpawnTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pSpawnTechnoType);
 
 		if (const auto pTargetTech = flag_cast_to<TechnoClass*>(pThis->Target))
@@ -376,7 +376,7 @@ ASMJIT_PATCH(0x4DA54E, FootClass_Update_AresAddition, 6)
 	if (pThis->IsInAir())
 		return (CheckOtherState);
 
-	if (pThis->GetTechnoType()->Immune)
+	if (GET_TECHNOTYPE(pThis)->Immune)
 		return (CheckOtherState);
 
 	if (pThis->IsBeingWarpedOut() || TechnoExtData::IsChronoDelayDamageImmune(pThis))

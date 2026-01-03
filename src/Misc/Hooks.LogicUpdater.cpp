@@ -233,7 +233,7 @@ ASMJIT_PATCH(0x4DA63B, FootClass_AI_IsMovingNow, 0x6)
 {
 	GET(FootClass*, pThis, ESI);
 
-	if(!pThis->IsOnMap && pThis->GetTechnoType()->BalloonHover){
+	if(!pThis->IsOnMap && GET_TECHNOTYPE(pThis)->BalloonHover){
 		if(MapClass::Instance->IsWithinUsableArea(pThis->GetCell(), true))
 			pThis->IsOnMap = true;
 	}

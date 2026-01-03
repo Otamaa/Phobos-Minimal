@@ -12,6 +12,7 @@
 #include <Misc/PhobosToolTip.h>
 #include <Misc/Ares/CSF.h>
 #include <Utilities/Cast.h>
+#include <Ext/Techno/Body.h>
 
 #include <TechnoTypeClass.h>
 #include <TextDrawing.h>
@@ -1309,7 +1310,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 								}
 								else
 								{
-									TechnoTypeClass* pFactoryObjType = pFactoryObject->GetTechnoType();
+									TechnoTypeClass* pFactoryObjType = GET_TECHNOTYPE(pFactoryObject);
 									if (pFactoryObjType && pFactoryObjType != pTechnoType)
 										shouldDrawCount = true;
 								}

@@ -1,6 +1,9 @@
 #include "Body.h"
 
+
 #include <Ext/Cell/Body.h>
+#include <Ext/Techno/Body.h>
+
 
 #include <InfantryClass.h>
 
@@ -342,7 +345,7 @@ bool TiberiumExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 int TiberiumExtData::GetHealStep(TechnoClass* pTechno) const
 {
-	const auto pType = pTechno->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pTechno);
 	const Nullable<int>* look = &this->Heal_Step;
 
 	switch (pTechno->WhatAmI())

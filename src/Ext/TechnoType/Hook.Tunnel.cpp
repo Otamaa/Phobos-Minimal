@@ -1,11 +1,13 @@
 #include "Body.h"
 #include <Locomotor/Cast.h>
 
+#include <Ext/Techno/Body.h>
+
 ASMJIT_PATCH(0x7294E0,TunnelLocomotionClass_7294E0_Handle, 0x6){
 	GET(TunnelLocomotionClass* const, pLoco, ECX);
 
 	const auto pLinkedTo = pLoco->LinkedTo;
-	const auto pType = pLinkedTo->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinkedTo);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	CoordStruct nCoord = pLinkedTo->Location;
 	const auto _height = pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight);
@@ -40,7 +42,7 @@ ASMJIT_PATCH(0x72994F, TunnelLocomotionClass_7298F0_Speed, 0x8)
 	GET(RulesClass*, pRules, ECX);
 	GET(int, nCurrentMovementSpeed, EAX);
 	R->EAX(int((nCurrentMovementSpeed) *
-	TechnoTypeExtContainer::Instance.Find(pLoco->LinkedTo->GetTechnoType())->Tunnel_Speed.Get(pRules->TunnelSpeed)
+		GET_TECHNOTYPEEXT(pLoco->LinkedTo)->Tunnel_Speed.Get(pRules->TunnelSpeed)
 	));
 	return 0x72995F;
 }
@@ -54,7 +56,7 @@ ASMJIT_PATCH(0x728F89, TunnelLocomotionClass_Process_SubterraneanHeight1, 0x5)
 	GET(TechnoClass*, pLinkedTo, ECX);
 	GET(int, height, EAX);
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
 	if (height == pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight))
 		return Continue;
@@ -69,7 +71,7 @@ ASMJIT_PATCH(0x728FC6, TunnelLocomotionClass_Process_SubterraneanHeight2, 0x5)
 	GET(TechnoClass*, pLinkedTo, ECX);
 	GET(int, height, EAX);
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
 	if (height <= pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight))
 		return Continue;
@@ -85,7 +87,7 @@ ASMJIT_PATCH(0x728FF2, TunnelLocomotionClass_Process_SubterraneanHeight3, 0x6)
 	GET(int, heightOffset, EAX);
 	REF_STACK(int, height, 0x14);
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 	int subtHeight = pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight);
 	height -= heightOffset;
 
@@ -102,7 +104,7 @@ ASMJIT_PATCH(0x7295E2, TunnelLocomotionClass_ProcessStateDigging_SubterraneanHei
 	GET(TechnoClass*, pLinkedTo, EAX);
 	REF_STACK(int, height, STACK_OFFSET(0x44, -0x8));
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 	height = pTypeExt->SubterraneanHeight.Get(RulesExtData::Instance()->SubterraneanHeight);
 
 	return SkipGameCode;

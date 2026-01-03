@@ -75,7 +75,7 @@ ASMJIT_PATCH(0x70D690, TechnoClass_FireDeathWeapon_Replace, 0x5) //4
 	if (!pThis)
 		return 0x0;
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	GET_STACK(int, nMult, 0x4);
 
 	// Using Promotable<WeaponTypeClass*>
@@ -123,7 +123,7 @@ ASMJIT_PATCH(0x4DABBC, ObjectClass_WasFallingDown, 0x6)
 	auto const pTechno = static_cast<TechnoClass*>(pThis);
 
 	{
-		auto const pExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+		auto const pExt = GET_TECHNOTYPEEXT(pTechno);
 
 		{
 			auto const GetLandingAnim = [pExt, pTechno]()
@@ -225,7 +225,7 @@ ASMJIT_PATCH(0x4DECBB, FootClass_Destroy_SpinSpeed, 0x5) //A
 {
 	GET(FootClass* const, pThis, ESI);
 
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pExt = GET_TECHNOTYPEEXT(pThis);
 
 	pThis->RockingSidewaysPerFrame = static_cast<float>((ScenarioClass::Instance->Random.RandomDouble() * 0.15 + 0.1) * pExt->CrashSpinLevelRate.Get());
 
@@ -271,7 +271,8 @@ ASMJIT_PATCH(0x70FDC2, TechnoClass_Drain_LocalDrainAnim, 0x5) //A
 
 	if (Drainer && pVictim)
 	{
-		if (auto const pAnimType = TechnoTypeExtContainer::Instance.Find(Drainer->GetTechnoType())->DrainAnimationType.Get(RulesClass::Instance->DrainAnimationType))
+		if (auto const pAnimType =
+			GET_TECHNOTYPEEXT(Drainer)->DrainAnimationType.Get(RulesClass::Instance->DrainAnimationType))
 		{
 			auto const nCoord = Drainer->GetCoords();
 			auto const pDrainAnimCreated = GameCreate<AnimClass>(pAnimType, nCoord, 0, 1, AnimFlag::AnimFlag_600, 0, false);

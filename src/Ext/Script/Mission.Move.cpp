@@ -70,7 +70,7 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 				pTeam->RemoveMember(pFirst, -1, 1);
 			else
 			{
-				auto const pTechnoType = pFirst->GetTechnoType();
+				auto const pTechnoType = GET_TECHNOTYPE(pFirst);
 
 				if (pFirst->WhatAmI() == AbstractType::Aircraft
 					&& !pFirst->IsInAir()
@@ -167,7 +167,7 @@ void ScriptExtData::Mission_Move(TeamClass* pTeam, DistanceMode calcThreatMode, 
 			{
 				if (ScriptExtData::IsUnitAvailable(pFoot, false))
 				{
-					auto const pTechnoType = pFoot->GetTechnoType();
+					auto const pTechnoType = GET_TECHNOTYPE(pFoot);
 
 					if (pTechnoType->Underwater && pTechnoType->LandTargeting == LandTargetingType::Land_not_okay && selectedTarget->GetCell()->LandType != LandType::Water) // Land not OK for the Naval unit
 					{
@@ -273,7 +273,7 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 	TechnoClass* bestObject = nullptr;
 	double bestVal = -1;
 	HouseClass* enemyHouse = nullptr;
-	auto pTechnoType = pTechno->GetTechnoType();
+	auto pTechnoType = GET_TECHNOTYPE(pTechno);
 
 	// Favorite Enemy House case. If set, AI will focus against that House
 	if (!pickAllies && pTechno->BelongsToATeam())
@@ -301,7 +301,7 @@ TechnoClass* ScriptExtData::FindBestObject(TechnoClass* pTechno, int method, Dis
 		// Don't pick underground units
 		if (pObj->InWhichLayer() == Layer::Underground)
 			return;
-		auto objectType = pObj->GetTechnoType();
+		auto objectType = GET_TECHNOTYPE(pObj);
 
 		{
 			if (objectType->Naval)
@@ -472,7 +472,7 @@ void ScriptExtData::Mission_Move_List1Random(TeamClass* pTeam, DistanceMode calc
 				//if (pTechno->Spawned)
 				//	return;
 
-				auto pTechnoType = pTechno->GetTechnoType();
+				auto pTechnoType = GET_TECHNOTYPE(pTechno);
 				bool found = false;
 
 				for (auto j = 0u; j < RulesExtData::Instance()->AITargetTypesLists[attackAITargetType].size() && !found; j++)

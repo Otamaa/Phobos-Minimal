@@ -98,7 +98,7 @@ bool SWTypeHandler::IsDesignator(const SWTypeExtData* pData, HouseClass* pOwner,
 			return false;
 
 		return pData->SW_AnyDesignator
-			|| pData->SW_Designators.Contains(pTechno->GetTechnoType());
+			|| pData->SW_Designators.Contains(GET_TECHNOTYPE(pTechno));
 	}
 
 	return false;
@@ -122,7 +122,7 @@ bool SWTypeHandler::IsDesignatorEligible(const SWTypeExtData* pData, HouseClass*
 {
 	if (IsDesignator(pData, pOwner, pTechno))
 	{
-		const auto pType = pTechno->GetTechnoType();
+		const auto pType = GET_TECHNOTYPE(pTechno);
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// get the designator's center
@@ -154,7 +154,7 @@ bool SWTypeHandler::IsInhibitor(const SWTypeExtData* pData, HouseClass* pOwner, 
 		}
 
 		return pData->SW_AnyInhibitor
-				|| pData->SW_Inhibitors.Contains(pTechno->GetTechnoType());
+				|| pData->SW_Inhibitors.Contains(GET_TECHNOTYPE(pTechno));
 
 	}
 
@@ -178,7 +178,7 @@ bool SWTypeHandler::IsInhibitorEligible(const SWTypeExtData* pData, HouseClass* 
 {
 	if (IsInhibitor(pData, pOwner, pTechno)) {
 
-		const auto pType = pTechno->GetTechnoType();
+		const auto pType = GET_TECHNOTYPE(pTechno);
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// get the inhibitor's center
@@ -200,7 +200,7 @@ bool SWTypeHandler::IsAttractor(const SWTypeExtData* pData, HouseClass* pOwner, 
 	if (pTechno->Owner != pOwner && pTechno->IsAlive && pTechno->Health && !pTechno->InLimbo)
 	{
 		return pData->SW_AnyAttractor
-			|| pData->SW_Attractors.Contains(pTechno->GetTechnoType());
+			|| pData->SW_Attractors.Contains(GET_TECHNOTYPE(pTechno));
 	}
 
 	return false;
@@ -224,7 +224,7 @@ bool SWTypeHandler::IsAttractorEligible(const SWTypeExtData* pData, HouseClass* 
 {
 	if (IsAttractor(pData, pOwner, pTechno))
 	{
-		const auto pType = pTechno->GetTechnoType();
+		const auto pType = GET_TECHNOTYPE(pTechno);
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// get the Attractor's center
@@ -256,7 +256,7 @@ bool SWTypeHandler::IsSuppressor(const SWTypeExtData* pData, HouseClass* pOwner,
 		}
 
 		return pData->SW_AnySuppressor
-				|| pData->SW_Suppressors.Contains(pTechno->GetTechnoType());
+				|| pData->SW_Suppressors.Contains(GET_TECHNOTYPE(pTechno));
 	}
 
 	return false;
@@ -323,7 +323,7 @@ bool SWTypeHandler::IsSuppressorEligible(const SWTypeExtData* pData, HouseClass*
 {
 	if (IsSuppressor(pData, pOwner, pTechno))
 	{
-		const auto pType = pTechno->GetTechnoType();
+		const auto pType = GET_TECHNOTYPE(pTechno);
 		const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// get the Suppressor's center
@@ -474,7 +474,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 					isPoweOffline = !pBuilding->IsPowerOnline();
 				}
 
-				const auto pType = pTechno->GetTechnoType();
+				const auto pType = GET_TECHNOTYPE(pTechno);
 				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 				const auto pTechnoOwner = pTechno->GetOwningHouse();
 
@@ -530,7 +530,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 					center = BuildingExtData::GetCenterCoords(pBuilding);
 				}
 
-				const auto pType = pTechno->GetTechnoType();
+				const auto pType = GET_TECHNOTYPE(pTechno);
 				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 				auto const range = pExt->DesignatorRange.Get(pType->Sight);
 
@@ -557,7 +557,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 					center = BuildingExtData::GetCenterCoords(pBuilding);
 				}
 
-				const auto pType = pTechno->GetTechnoType();
+				const auto pType = GET_TECHNOTYPE(pTechno);
 				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 				auto const range = pExt->AttractorRange.Get(pType->Sight);
 
@@ -584,7 +584,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 					center = BuildingExtData::GetCenterCoords(pBuilding);
 				}
 
-				const auto pType = pTechno->GetTechnoType();
+				const auto pType = GET_TECHNOTYPE(pTechno);
 				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 				auto const range = pExt->InhibitorRange.Get(pType->Sight);
 
@@ -611,7 +611,7 @@ std::unique_ptr<TargetingData> SWTypeHandler::GetTargetingData(SWTypeExtData* pD
 					center = BuildingExtData::GetCenterCoords(pBuilding);
 				}
 
-				const auto pType = pTechno->GetTechnoType();
+				const auto pType = GET_TECHNOTYPE(pTechno);
 				const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 				auto const range = pExt->SuppressorRange.Get(pType->Sight);
 

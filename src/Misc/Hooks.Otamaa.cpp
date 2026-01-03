@@ -307,7 +307,7 @@ ASMJIT_PATCH(0x4B07CA, DriveLocomotionClass_Process_WakeAnim, 0x5)
 {
 	GET(ILocomotion* const, pLoco, ESI);
 	const auto pDrive = static_cast<DriveLocomotionClass* const>(pLoco);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pDrive->LinkedTo->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pDrive->LinkedTo);
 	TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pDrive->LinkedTo);
 	return 0x4B0828;
 }
@@ -316,7 +316,7 @@ ASMJIT_PATCH(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 {
 	GET(ILocomotion* const, pLoco, ESI);
 	const auto pShip = static_cast<ShipLocomotionClass* const>(pLoco);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pShip->LinkedTo->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pShip->LinkedTo);
 	TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pShip->LinkedTo);
 	return 0x69FEF0;
 }
@@ -418,12 +418,12 @@ ASMJIT_PATCH(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x6FC22A, TechnoClass_GetFireError_AttackICUnit, 0x6)
+ASMJIT_PATCH(0x6FC22A, TechnoClass_CanFire_AttackICUnit, 0x6)
 {
 	enum { ContinueCheck = 0x6FC23A, BypassCheck = 0x6FC24D };
 	GET(TechnoClass* const, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 	//TODO : re-eval check below  , i if desync/the behaviour is not good , change it to pThis->Owner->IsControlledByCurrentPlayer()
 	const bool Allow = RulesExtData::Instance()->AutoAttackICedTarget.Get() || pThis->Owner->IsControlledByHuman();
 	return pTypeExt->AllowFire_IroncurtainedTarget.Get(Allow)
@@ -498,7 +498,7 @@ ASMJIT_PATCH(0x4DC0E4, FootClass_DrawActionLines_Attack, 0x8)
 
 	GET(FootClass* const, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTypeExt->CommandLine_Attack_Color.isset())
 	{
@@ -525,7 +525,7 @@ ASMJIT_PATCH(0x4DC280, FootClass_DrawActionLines_Move, 0x5)
 
 	GET(FootClass* const, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTypeExt->CommandLine_Move_Color.isset())
 	{
@@ -650,7 +650,7 @@ ASMJIT_PATCH(0x70D219, TechnoClass_IsRadarVisible_Dummy, 0x6)
 	}
 
 	return
-		TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->IsDummy ?
+		GET_TECHNOTYPEEXT(pThis)->IsDummy ?
 		DoNotDrawRadar :
 		Continue;
 }
@@ -858,7 +858,8 @@ CoordStruct* FakeUnitClass::_GetFLH(CoordStruct* outBuffer, int weaponIdx, Coord
 	{
 		const auto pTransporter = pThis->Transporter;
 
-		if (pThis->InOpenToppedTransport && pTransporter && TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType())->AlternateFLH_ApplyVehicle)
+		if (pThis->InOpenToppedTransport && pTransporter 
+			&& GET_TECHNOTYPEEXT(pTransporter)->AlternateFLH_ApplyVehicle)
 		{
 			if (const int idx = pTransporter->Passengers.IndexOf(pThis)) {
 				pTransporter->GetFLH(outBuffer , -idx, CoordStruct::Empty);
@@ -943,25 +944,6 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D64, FakeUnitClass::_ClearOccupyBit);
 DEFINE_FUNCTION_JUMP(LJMP, 0x7441B0, FakeUnitClass::_SetOccupyBit);
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D60, FakeUnitClass::_SetOccupyBit);
 
-ASMJIT_PATCH(0x47257C, CaptureManagerClass_TeamChooseAction_Random, 0x6)
-{
-	GET(FootClass* const, pFoot, EAX);
-
-	if (const auto pTeam = pFoot->Team)
-	{
-		if (auto nTeamDecision = pTeam->Type->MindControlDecision)
-		{
-			if (nTeamDecision > 5)
-				nTeamDecision = ScenarioClass::Instance->Random.RandomRanged(1, 5);
-
-			R->EAX(nTeamDecision);
-			return 0x47258F;
-		}
-	}
-
-	return 0x4725B0;
-}
-
 ASMJIT_PATCH(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 {
 	GET(ObjectClass* const, pThis, ECX);
@@ -973,7 +955,7 @@ ASMJIT_PATCH(0x5F6CD0, ObjectClass_IsCrushable, 0x6)
 ASMJIT_PATCH(0x4FB63A, HouseClass_PlaceObject_EVA_UnitReady, 0x5)
 {
 	GET(TechnoClass* const, pProduct, ESI);
-	VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pProduct->GetTechnoType())->Eva_Complete.Get());
+	VoxClass::PlayIndex(GET_TECHNOTYPEEXT(pProduct)->Eva_Complete.Get());
 	return 0x4FB649;
 }
 
@@ -986,7 +968,7 @@ ASMJIT_PATCH(0x4FB7CA, HouseClass_RegisterJustBuild_CreateSound_PlayerOnly, 0x6)
 
 	if (pTechno)
 	{
-		const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+		const auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
 		if (pTechnoTypeExt->VoiceCreate >= 0)
 		{
@@ -1019,7 +1001,7 @@ ASMJIT_PATCH(0x6A8E25, SidebarClass_StripClass_AI_Building_EVA_ConstructionCompl
 
 	if (pTech->WhatAmI() == BuildingClass::AbsID)
 	{
-		VoxClass::PlayIndex(TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->Eva_Complete.Get());
+		VoxClass::PlayIndex(GET_TECHNOTYPEEXT(pTech)->Eva_Complete.Get());
 		return 0x6A8E34;
 	}
 
@@ -1088,7 +1070,8 @@ ASMJIT_PATCH(0x70FB50, TechnoClass_Bunkerable, 0x5)
 	if (const auto pFoot = flag_cast_to<FootClass*, false>(pThis))
 	{
 
-		const auto pType = pFoot->GetTechnoType();
+		const auto pType = GET_TECHNOTYPE(pFoot);
+
 		if (pType->Bunkerable)
 		{
 			const auto nSpeedType = pType->SpeedType;
@@ -1176,25 +1159,25 @@ ASMJIT_PATCH(0x437C29, sub_437A10_Lock_Bound_Fix, 7)
 }
 
 //TechnoClass_GetWeaponState
-ASMJIT_PATCH(0x6FCA30, TechnoClass_GetFireError_DecloakToFire, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(WeaponTypeClass* const, pWeapon, EBX);
+// ASMJIT_PATCH(0x6FCA30, TechnoClass_CanFire_DecloakToFire, 6)
+// {
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(WeaponTypeClass* const, pWeapon, EBX);
 
-	const auto pTransporter = pThis->Transporter;
+// 	const auto pTransporter = pThis->Transporter;
 
-	if (pTransporter && pTransporter->CloakState != CloakState::Uncloaked)
-		return 0x6FCA4F;
+// 	if (pTransporter && pTransporter->CloakState != CloakState::Uncloaked)
+// 		return 0x6FCA4F;
 
-	if (pThis->CloakState == CloakState::Uncloaked)
-		return 0x6FCA5E;
+// 	if (pThis->CloakState == CloakState::Uncloaked)
+// 		return 0x6FCA5E;
 
-	if (!pWeapon->DecloakToFire && pThis->WhatAmI() == AircraftClass::AbsID)
-		return 0x6FCA4F;
+// 	if (!pWeapon->DecloakToFire && pThis->WhatAmI() == AircraftClass::AbsID)
+// 		return 0x6FCA4F;
 
-	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
-	//return 0x0;
-}
+// 	return pThis->CloakState == CloakState::Cloaked ? 0x6FCA4F : 0x6FCA5E;
+// 	//return 0x0;
+// }
 
 ASMJIT_PATCH(0x741554, UnitClass_ApproachTarget_CrushRange, 0x6)
 {
@@ -1322,8 +1305,9 @@ ASMJIT_PATCH(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 			pThis->ShouldLoseTargetNow = false;
 			pThis->ShouldGarrisonStructure = false;
 			pThis->CurrentTargets.clear();
+			auto pThisType = GET_TECHNOTYPE(pThis);
 
-			if (pThis->HasAnyLink() || pThis->GetTechnoType()->ResourceGatherer) // Don't want miners to stop
+			if (pThis->HasAnyLink() || pThisType->ResourceGatherer) // Don't want miners to stop
 				return 0x4DBF13;
 
 			switch (pThis->GetCurrentMission())
@@ -1335,7 +1319,7 @@ ASMJIT_PATCH(0x4DBF01, FootClass_SetOwningHouse_FixArgs, 0x6)
 				return 0x4DBF13;
 			}
 
-			pThis->Override_Mission(pThis->GetTechnoType()->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
+			pThis->Override_Mission(pThisType->DefaultToGuardArea ? Mission::Area_Guard : Mission::Guard, nullptr, nullptr); // I don't even know what this is, just clear the target and destination for me
 		}
 
 		result = true;
@@ -1745,7 +1729,7 @@ ASMJIT_PATCH(0x6F6BD6, TechnoClass_Limbo_UpdateAfterHouseCounter, 0xA)
 	GET(TechnoClass*, pThis, ESI);
 
 	//const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	//only update the SW once the techno is really not present
 	if (pThis->Owner && pThis->WhatAmI() != BuildingClass::AbsID && !pTypeExt->Linked_SW.empty() && pThis->Owner->CountOwnedAndPresent(pTypeExt->This()) <= 0)
@@ -1864,7 +1848,7 @@ void __fastcall FakeObjectClass::_DrawRadialIndicator(ObjectClass* pThis, discar
 {
 	if (auto pTechno = flag_cast_to<TechnoClass*, false>(pThis))
 	{
-		auto pType = pTechno->GetTechnoType();
+		auto pType = GET_TECHNOTYPE(pTechno);
 		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		if (pType->HasRadialIndicator && pTypeExt->AlwayDrawRadialIndicator.Get(!pTechno->Deactivated))
@@ -2335,13 +2319,13 @@ ASMJIT_PATCH(0x737BFB, UnitClass_Unlimbo_SmallVisceroid_DontMergeImmedietely, 0x
 // 	return 0x6FDD35;
 // }
 
-ASMJIT_PATCH(0x6FE354, TechnoClass_FireAt_DamageMult, 0x6)
+ASMJIT_PATCH(0x6FE337, TechnoClass_FireAt_DamageMult, 0x6)
 {
 	GET(int, damage, EDI);
 	GET(TechnoClass*, pThis, ESI);
 
 	int _damage = (int)TechnoExtData::GetDamageMult(pThis, (double)damage);
-	R->Stack(0x28, pThis->GetTechnoType());
+	R->Stack(0x28, GET_TECHNOTYPE(pThis));
 	R->EDI(_damage);
 	R->EAX(_damage);
 	return 0x6FE3DF;
@@ -2379,7 +2363,7 @@ ASMJIT_PATCH(0x4CA682, FactoryClass_Total_Techno_Queued_CompareType, 0x8)
 	GET(TechnoClass*, pObject, ECX);
 	GET(TechnoTypeClass*, pTypeCompare, EBX);
 
-	return pObject->GetTechnoType() == pTypeCompare || TechnoExtContainer::Instance.Find(pObject)->Type == pTypeCompare ?
+	return pObject->GetTechnoType() == pTypeCompare || GET_TECHNOTYPE(pObject) == pTypeCompare ?
 		0x4CA68E : 0x4CA693;
 }
 
@@ -2388,7 +2372,7 @@ ASMJIT_PATCH(0x4FA5B8, HouseClass_BeginProduction_CompareType, 0x8)
 	GET(TechnoClass*, pObject, ECX);
 	GET(TechnoTypeClass*, pTypeCompare, EBP);
 
-	return pObject->GetTechnoType() == pTypeCompare || TechnoExtContainer::Instance.Find(pObject)->Type == pTypeCompare ?
+	return pObject->GetTechnoType() == pTypeCompare || GET_TECHNOTYPE(pObject) == pTypeCompare ?
 		0x4FA5C4 : 0x4FA5C8;
 }
 
@@ -2397,7 +2381,7 @@ ASMJIT_PATCH(0x4FAB4D, HouseClass_AbandonProduction_GetObjectType, 0x8)
 	GET(TechnoClass*, pObject, ECX);
 
 	// use cached type instead of `->GetTechnoType()` the pointer was changed !
-	R->EAX(TechnoExtContainer::Instance.Find(pObject)->Type);
+	R->EAX(GET_TECHNOTYPE(pObject));
 	return R->Origin() + 0x8;
 }
 
@@ -2407,7 +2391,7 @@ ASMJIT_PATCH(0x4CA00D, FactoryClass_AbandonProduction_GetObjectType, 0x9)
 	GET(TechnoClass*, pObject, ECX);
 
 	// use cached type instead of `->GetTechnoType()` the pointer was changed !
-	const auto pType = TechnoExtContainer::Instance.Find(pObject)->Type;
+	const auto pType = TechnoExtContainer::Instance.Find(pObject)->CurrentType;
 	//Debug::LogInfo("[{}]Factory with owner [{} - {}] abandoning production of [{}({}) - {}]",
 	//	(void*)pThis,
 	//	pThis->Owner->get_ID(), (void*)pThis->Owner,
@@ -2448,7 +2432,7 @@ ASMJIT_PATCH(0x4DB37C, FootClass_Limbo_ClearCellJumpjet, 0x6)
 	GET(FootClass*, pThis, EDI);
 	auto pCell = pThis->GetCell();
 
-	if (pThis->GetTechnoType()->JumpJet)
+	if (GET_TECHNOTYPE(pThis)->JumpJet)
 	{
 		if (pCell->Jumpjet == pThis)
 		{
@@ -2494,17 +2478,13 @@ ASMJIT_PATCH(0x62E430, ParticleSystemClass_AddTovector_nullptrParticle, 0x9)
 #include <VoxClass.h>
 
 #ifndef CRATE_HOOKS
-enum class MoveResult : char
-{
-	cannot, can
-};
 
 // what is the boolean return for , heh
-static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
+CollectResult FakeCellClass::_CollecCrate(FootClass* pCollector)
 {
-	if (pCollector && pCell->OverlayTypeIndex > -1)
+	if (pCollector && this->OverlayTypeIndex > -1)
 	{
-		const auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
+		const auto pOverlay = OverlayTypeClass::Array->Items[this->OverlayTypeIndex];
 
 		if (pOverlay->Crate)
 		{
@@ -2516,10 +2496,10 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 			{
 				if (pOverlay->CrateTrigger && pCollector->AttachedTag)
 				{
-					Debug::LogInfo("Springing trigger on crate at {},{}", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Springing trigger on crate at {},{}", this->MapCoords.X, this->MapCoords.Y);
 					pCollector->AttachedTag->SpringEvent(TriggerEvent::PickupCrate, pCollector, CellStruct::Empty);
 					if (!pCollector->IsAlive)
-						return MoveResult::cannot;
+						return CollectResult::cannot;
 
 					ScenarioClass::Instance->PickedUpAnyCrate = true;
 				}
@@ -2527,8 +2507,8 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				Powerup data = Powerup::Money;
 
 #pragma region DetermineTheRewardType
-				if (pCell->OverlayData < CrateTypeClass::Array.size())
-					data = (Powerup)pCell->OverlayData;
+				if (this->OverlayData < CrateTypeClass::Array.size())
+					data = (Powerup)this->OverlayData;
 				else
 				{
 					int total_shares = 0;
@@ -2539,12 +2519,12 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					{
 						auto crate = CrateTypeClass::Array[i].get();
 
-						if (pCell->LandType == LandType::Water && !crate->Naval)
+						if (this->LandType == LandType::Water && !crate->Naval)
 						{
 							continue;
 						}
 
-						if (!pCell->IsClearToMove(crate->Speed,
+						if (!this->IsClearToMove(crate->Speed,
 							true, true,
 							ZoneType::None,
 							MovementZone::Normal, -1, true)) continue;
@@ -2584,7 +2564,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						data = Powerup::Unit;
 						force_mcv = true;
 					}
-					const auto landType = pCell->LandType;
+					const auto landType = this->LandType;
 
 #pragma region EVALUATE_FIST_TIME
 					switch ((Powerup)data)
@@ -2606,7 +2586,9 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					case Powerup::Cloak:
 					{
 
-						if (!TechnoTypeExtContainer::Instance.Find(pCollector->GetTechnoType())->CloakAllowed || pCollector->CanICloakByDefault() || TechnoExtContainer::Instance.Find(pCollector)->AE.flags.Cloakable)
+						if (!GET_TECHNOTYPEEXT(pCollector)->CloakAllowed 
+							|| pCollector->CanICloakByDefault() 
+							|| TechnoExtContainer::Instance.Find(pCollector)->AE.flags.Cloakable)
 							data = Powerup::Money;
 
 						break;
@@ -2651,7 +2633,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 					case Powerup::Veteran:
 					{
-						if (!pCollector->GetTechnoType()->Trainable || pCollector->Veterancy.IsElite())
+						if (!GET_TECHNOTYPE(pCollector)->Trainable || pCollector->Veterancy.IsElite())
 						{
 							data = Powerup::Money;
 						}
@@ -2675,29 +2657,29 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					HouseExtData::IncremetCrateTracking(pCollectorOwner, data);
 
 				}
-				else if (!pCell->OverlayData)
+				else if (!this->OverlayData)
 				{
 					soloCrateMoney = RulesClass::Instance->SoloCrateMoney;
 
 					if (pOverlay == RulesClass::Instance->CrateImg)
 					{
-						pCell->OverlayData = (unsigned char)RulesClass::Instance->SilverCrate;
+						this->OverlayData = (unsigned char)RulesClass::Instance->SilverCrate;
 					}
 
 					if (pOverlay == RulesClass::Instance->WoodCrateImg)
 					{
-						pCell->OverlayData = (unsigned char)RulesClass::Instance->WoodCrate;
+						this->OverlayData = (unsigned char)RulesClass::Instance->WoodCrate;
 					}
 
 					if (pOverlay == RulesClass::Instance->WaterCrateImg)
 					{
-						pCell->OverlayData = (unsigned char)RulesClass::Instance->WaterCrate;
+						this->OverlayData = (unsigned char)RulesClass::Instance->WaterCrate;
 					}
 
-					data = (Powerup)pCell->OverlayData;
+					data = (Powerup)this->OverlayData;
 				}
 
-				MapClass::Instance->Remove_Crate(&pCell->MapCoords);
+				MapClass::Instance->Remove_Crate(&this->MapCoords);
 
 				if (SessionClass::Instance->GameMode != GameMode::Campaign && GameModeOptionsClass::Instance->Crates)
 				{
@@ -2708,24 +2690,24 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				const auto something = CrateTypeClass::Array[(int)data]->Argument;
 				//not always get used same way ?
 
-				auto PlayAnimAffect = [pCell, pCollector, pCollectorOwner](Powerup idx)
+				auto PlayAnimAffect = [this, pCollector, pCollectorOwner](Powerup idx)
 					{
 						if (const auto pAnimType = CrateTypeClass::Array[(int)idx]->Anim)
 						{
-							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }) + 200);
+							auto loc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }) + 200);
 
 							GameCreate<AnimClass>(pAnimType, loc, 0, 1, 0x600, 0, 0);
 						}
 					};
 
-				auto PlaySoundAffect = [pCell, pCollector, pCollectorOwner](Powerup idx)
+				auto PlaySoundAffect = [this, pCollector, pCollectorOwner](Powerup idx)
 					{
 						if (CrateTypeClass::Array[(int)idx]->Sound <= -1)
 							return;
 
 						if (pCollectorOwner->ControlledByCurrentPlayer())
 						{
-							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+							auto loc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 							VocClass::SafeImmedietelyPlayAt(CrateTypeClass::Array[(int)idx]->Sound, &loc, nullptr);
 						}
 					};
@@ -2733,7 +2715,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				auto GeiveMoney = [&]()
 					{
 
-						Debug::LogInfo("Crate at {},{} contains money", pCell->MapCoords.X, pCell->MapCoords.Y);
+						Debug::LogInfo("Crate at {},{} contains money", this->MapCoords.X, this->MapCoords.Y);
 
 						if (!soloCrateMoney)
 						{
@@ -2752,7 +2734,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						pHouseDest->TransactMoney(soloCrateMoney);
 						if (pCollectorOwner->ControlledByCurrentPlayer())
 						{
-							auto loc_fly = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+							auto loc_fly = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 							FlyingStrings::Instance.AddMoneyString(true, soloCrateMoney, pHouseDest, AffectedHouse::Owner, loc_fly, Point2D::Empty, ColorStruct::Empty);
 						}
 						PlaySoundAffect(Powerup::Money);
@@ -2770,7 +2752,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				// this thing confusing !
 				case Powerup::Unit:
 				{
-					Debug::LogInfo("Crate at {},{} contains a unit", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains a unit", this->MapCoords.X, this->MapCoords.Y);
 					UnitTypeClass* Given = nullptr;
 					if (force_mcv)
 					{
@@ -2824,7 +2806,8 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 
 								currentPlayer = pCollectorOwner->ControlledByCurrentPlayer();
 							}
-							while (!Given->CrateGoodie || TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance > 0.0 && TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance < ScenarioClass::Instance->Random.RandomDouble());
+							while (!Given->CrateGoodie || TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance > 0.0 
+								&& TechnoTypeExtContainer::Instance.Find(Given)->CrateGoodie_RerollChance < ScenarioClass::Instance->Random.RandomDouble());
 
 							if (GameModeOptionsClass::Instance->Bases)
 								break;
@@ -2838,21 +2821,22 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					{
 						if (auto pCreatedUnit = Given->CreateObject(pCollectorOwner))
 						{
-							auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+							auto loc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 							if (pCreatedUnit->Unlimbo(loc, DirType::Min))
 							{
 								PlaySoundAffect(Powerup::Unit);
-								return MoveResult::cannot;
+								return CollectResult::cannot;
 							}
 
-							auto alternative_loc = MapClass::Instance->NearByLocation(pCell->MapCoords, Given->SpeedType, ZoneType::None, Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
+							auto alternative_loc = MapClass::Instance->NearByLocation(this->MapCoords, Given->SpeedType, ZoneType::None
+											, Given->MovementZone, 0, 1, 1, 0, 0, 0, 1, CellStruct::Empty, false, false);
 
 							if (alternative_loc.IsValid())
 							{
 								if (pCreatedUnit->Unlimbo(CellClass::Cell2Coord(alternative_loc), DirType::Min))
 								{
 									PlaySoundAffect(Powerup::Unit);
-									return MoveResult::cannot;
+									return CollectResult::cannot;
 								}
 							}
 
@@ -2863,13 +2847,13 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						else
 						{
 							PlayAnimAffect(Powerup::Unit);
-							return MoveResult::can;
+							return CollectResult::can;
 						}
 					}
 				}
 				case Powerup::HealBase:
 				{
-					Debug::LogInfo("Crate at {},{} contains base healing", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains base healing", this->MapCoords.X, this->MapCoords.Y);
 					PlaySoundAffect(Powerup::HealBase);
 					for (int i = 0; i < MapClass::Logics->Count; ++i)
 					{
@@ -2877,7 +2861,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						{
 							if (pTechno->IsAlive && pTechno->GetOwningHouse() == pCollectorOwner)
 							{
-								int heal = pTechno->Health - pTechno->GetTechnoType()->Strength;
+								int heal = pTechno->Health - GET_TECHNOTYPE(pTechno)->Strength;
 								pTechno->ReceiveDamage(&heal, 0, RulesClass::Instance->C4Warhead, 0, 1, 1, nullptr);
 							}
 						}
@@ -2887,13 +2871,13 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Explosion:
 				{
-					Debug::LogInfo("Crate at {},{} contains explosives", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains explosives", this->MapCoords.X, this->MapCoords.Y);
 					int damage = (int)something;
 					pCollector->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, 0, 1, 0, 0);
 					for (int i = 5; i > 0; --i)
 					{
 						int scatterDistance = ScenarioClass::Instance->Random.RandomFromMax(512);
-						auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+						auto loc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 						auto randomCoords = MapClass::GetRandomCoordsNear(loc, scatterDistance, false);
 						DamageArea::Apply(&randomCoords, damage, nullptr, RulesClass::Instance->C4Warhead, true, nullptr);
 						if (auto pAnim = MapClass::SelectDamageAnimation(damage, RulesClass::Instance->C4Warhead, LandType::Clear, randomCoords))
@@ -2907,8 +2891,8 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Napalm:
 				{
-					Debug::LogInfo("Crate at {},{} contains napalm", pCell->MapCoords.X, pCell->MapCoords.Y);
-					auto loc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+					Debug::LogInfo("Crate at {},{} contains napalm", this->MapCoords.X, this->MapCoords.Y);
+					auto loc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 					auto Collector_loc = (pCollector->GetCoords() + loc) / 2;
 
 					GameCreate<AnimClass>(AnimTypeClass::Array->Items[0], Collector_loc, 0, 1, 0x600, 0, 0);
@@ -2917,26 +2901,26 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					DamageArea::Apply(&Collector_loc, damage, nullptr, RulesClass::Instance->FlameDamage, true, nullptr);
 
 					PlayAnimAffect(Powerup::Napalm);
-					return MoveResult::can;
+					return CollectResult::can;
 				}
 				case Powerup::Darkness:
 				{
-					Debug::LogInfo("Crate at {},{} contains 'shroud'", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains 'shroud'", this->MapCoords.X, this->MapCoords.Y);
 					MapClass::Instance->Reshroud(pCollectorOwner);
 					PlayAnimAffect(Powerup::Darkness);
 					break;
 				}
 				case Powerup::Reveal:
 				{
-					Debug::LogInfo("Crate at {},{} contains 'reveal'", pCell->MapCoords.X, pCell->MapCoords.Y);
-					MapClass::Instance->Reveal(pCollectorOwner);
+					Debug::LogInfo("Crate at {},{} contains 'reveal'", this->MapCoords.X, this->MapCoords.Y);
+					MapClass::Instance->Reveal(pCollectorOwner->IsControlledByHuman() ? HouseClass::CurrentPlayer : pCollectorOwner);
 					PlaySoundAffect(Powerup::Reveal);
 					PlayAnimAffect(Powerup::Reveal);
 					break;
 				}
 				case Powerup::Armor:
 				{
-					Debug::LogInfo("Crate at {},{} contains armor", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains armor", this->MapCoords.X, this->MapCoords.Y);
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
@@ -2945,7 +2929,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pTechno->IsAlive)
 							{
 								auto LayersCoords = pTechno->GetCoords();
-								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+								auto cellLoc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.ArmorMultiplier == 1.0)
 								{
@@ -2967,7 +2951,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Speed:
 				{
-					Debug::LogInfo("Crate at {},{} contains speed", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains speed", this->MapCoords.X, this->MapCoords.Y);
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
@@ -2976,7 +2960,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pTechno->IsAlive && pTechno->WhatAmI() != AbstractType::Aircraft)
 							{
 								auto LayersCoords = pTechno->GetCoords();
-								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+								auto cellLoc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius && TechnoExtContainer::Instance.Find(pCollector)->AE.SpeedMultiplier == 1.0)
 								{
@@ -2998,7 +2982,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Firepower:
 				{
-					Debug::LogInfo("Crate at {},{} contains firepower", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains firepower", this->MapCoords.X, this->MapCoords.Y);
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
@@ -3007,7 +2991,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pTechno->IsAlive)
 							{
 								auto LayersCoords = pTechno->GetCoords();
-								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+								auto cellLoc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius
 									&& TechnoExtContainer::Instance.Find(pCollector)->AE.FirepowerMultiplier == 1.0)
@@ -3030,7 +3014,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Cloak:
 				{
-					Debug::LogInfo("Crate at {},{} contains cloaking device", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains cloaking device", this->MapCoords.X, this->MapCoords.Y);
 
 					for (int i = 0; i < MapClass::ObjectsInLayers[2].Count; ++i)
 					{
@@ -3039,7 +3023,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 							if (pTechno->IsAlive && pTechno->IsOnMap)
 							{
 								auto LayersCoords = pTechno->GetCoords();
-								auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+								auto cellLoc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 								auto place = cellLoc - LayersCoords;
 
 								if ((int)place.Length() < RulesClass::Instance->CrateRadius)
@@ -3056,7 +3040,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::ICBM:
 				{
-					Debug::LogInfo("Crate at {},{} contains ICBM", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains ICBM", this->MapCoords.X, this->MapCoords.Y);
 
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
 					{
@@ -3072,11 +3056,11 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlayAnimAffect(Powerup::ICBM);
-					return MoveResult::can;
+					return CollectResult::can;
 				}
 				case Powerup::Veteran:
 				{
-					Debug::LogInfo("Crate at {},{} contains veterancy(TM)", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains veterancy(TM)", this->MapCoords.X, this->MapCoords.Y);
 					const int MaxPromotedCount = (int)something;
 
 					if (MaxPromotedCount > 0)
@@ -3085,10 +3069,10 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 						{
 							if (auto pTechno = flag_cast_to<TechnoClass*>(MapClass::ObjectsInLayers[2].Items[i]))
 							{
-								if (pTechno->IsAlive && pTechno->IsOnMap && pTechno->GetTechnoType()->Trainable)
+								if (pTechno->IsAlive && pTechno->IsOnMap && GET_TECHNOTYPE(pTechno)->Trainable)
 								{
 									auto LayersCoords = pTechno->GetCoords();
-									auto cellLoc = CellClass::Cell2Coord(pCell->MapCoords, pCell->GetFloorHeight({ 128,128 }));
+									auto cellLoc = CellClass::Cell2Coord(this->MapCoords, this->GetFloorHeight({ 128,128 }));
 									auto place = cellLoc - LayersCoords;
 
 									if ((int)place.Length() < RulesClass::Instance->CrateRadius)
@@ -3123,23 +3107,23 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Gas:
 				{
-					Debug::LogInfo("Crate at {},{} contains poison gas", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains poison gas", this->MapCoords.X, this->MapCoords.Y);
 
 					if (auto WH = WarheadTypeClass::Array->get_or_default(WarheadTypeClass::FindIndexById("GAS")))
 					{
 
 						bool randomizeCoord = true;
-						auto collector_loc = pCell->GetCoords();
+						auto collector_loc = this->GetCoords();
 
 						DamageArea::Apply(&collector_loc, (int)something, nullptr, WH, true, nullptr);
 
 						for (int i = 0; i < 8;)
 						{
-							CellClass* pDestCell = pCell;
+							CellClass* pDestCell = this;
 							if (randomizeCoord)
 							{
 								CellStruct dest {};
-								MapClass::GetAdjacentCell(&dest, &pCell->MapCoords, (FacingType)i);
+								MapClass::GetAdjacentCell(&dest, &this->MapCoords, (FacingType)i);
 								pDestCell = MapClass::Instance->GetCellAt(dest);
 							}
 
@@ -3155,17 +3139,17 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Tiberium:
 				{
-					Debug::LogInfo("Crate at {},{} contains tiberium", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains tiberium", this->MapCoords.X, this->MapCoords.Y);
 					int tibToSpawn = ScenarioClass::Instance->Random.RandomFromMax(TiberiumClass::Array->Count - 1);
 					if (tibToSpawn == 1)
 						tibToSpawn = 0;
 
-					pCell->IncreaseTiberium(tibToSpawn, 1);
+					this->IncreaseTiberium(tibToSpawn, 1);
 
 					for (int i = ScenarioClass::Instance->Random.RandomRanged(10, 20); i > 0; --i)
 					{
 						int distance = ScenarioClass::Instance->Random.RandomFromMax(300);
-						auto center = pCell->GetCoords();
+						auto center = this->GetCoords();
 						auto destLoc = MapClass::GetRandomCoordsNear(center, distance, true);
 						MapClass::Instance->GetCellAt(destLoc)->IncreaseTiberium(tibToSpawn, 1);
 					}
@@ -3175,7 +3159,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Squad:
 				{
-					Debug::LogInfo("Crate at {},{} contains Squad", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains Squad", this->MapCoords.X, this->MapCoords.Y);
 
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
  {
@@ -3200,7 +3184,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Invulnerability:
 				{
-					Debug::LogInfo("Crate at {},{} contains Invulnerability", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains Invulnerability", this->MapCoords.X, this->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
 					{
 						return pSuper->Type->Type == SuperWeaponType::IronCurtain && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -3219,7 +3203,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::IonStorm:
 				{
-					Debug::LogInfo("Crate at {},{} contains IonStorm", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains IonStorm", this->MapCoords.X, this->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
 					{
 						return pSuper->Type->Type == SuperWeaponType::LightningStorm && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -3238,7 +3222,7 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 				}
 				case Powerup::Pod:
 				{
-					Debug::LogInfo("Crate at {},{} contains Pod", pCell->MapCoords.X, pCell->MapCoords.Y);
+					Debug::LogInfo("Crate at {},{} contains Pod", this->MapCoords.X, this->MapCoords.Y);
 					auto iter = pCollectorOwner->Supers.find_if([](SuperClass* pSuper)
  {
 	 return (NewSuperType)pSuper->Type->Type == NewSuperType::DropPod && !pSuper->Granted && SWTypeExtContainer::Instance.Find(pSuper->Type)->CrateGoodies;
@@ -3253,11 +3237,11 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 					}
 
 					PlayAnimAffect(Powerup::Pod);
-					return MoveResult::can;
+					return CollectResult::can;
 				}
 				default:
 					//TODO :: the affects
-					Debug::LogInfo("Crate at {},{} contains {}", pCell->MapCoords.X, pCell->MapCoords.Y, CrateTypeClass::Array[(int)data]->Name.data());
+					Debug::LogInfo("Crate at {},{} contains {}", this->MapCoords.X, this->MapCoords.Y, CrateTypeClass::Array[(int)data]->Name.data());
 					PlaySoundAffect(data);
 					PlayAnimAffect(data);
 					break;
@@ -3267,16 +3251,25 @@ static MoveResult CollecCrate(CellClass* pCell, FootClass* pCollector)
 		}
 	}
 
-	return MoveResult::can;
+	return CollectResult::can;
 }
 
-ASMJIT_PATCH(0x481A00, CellClass_CollectCrate_Handle, 0x6)
-{
-	GET(CellClass*, pThis, ECX);
-	GET_STACK(FootClass*, pCollector, 0x4);
-	R->EAX(CollecCrate(pThis, pCollector));
-	return 0x483391;
-}
+DEFINE_FUNCTION_JUMP(LJMP, 0x481A00,FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x4B0D1B, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x4B0E88, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x4B1DBE, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x4B405D, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x4B46E6, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x5153E9, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x54C9F6, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x5B1894, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x6A03EB, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x6A0558, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x6A1401, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x6A3689, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x6A3D15, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x71972E, FakeCellClass::_CollecCrate)
+DEFINE_FUNCTION_JUMP(CALL, 0x75C56C, FakeCellClass::_CollecCrate)
 
 ASMJIT_PATCH(0x56BFC2, MapClass_PlaceCrate_MaxVal, 0x5)
 {
@@ -3573,7 +3566,8 @@ ASMJIT_PATCH(0x708BC0, TechnoClass_GetStoragePercentage_GetTotalAmounts, 0x6)
 {
 	GET(TechnoClass*, pThis, ECX);
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
+
 	double result = 0.0;
 	if (pType->Storage > 0)
 	{
@@ -3928,7 +3922,8 @@ ASMJIT_PATCH(0x6F5EAC, TechnoClass_Talkbuble_playVoices, 0x5)
 {
 	GET(TechnoClass*, pThis, EBP);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+
 	if (pTypeExt->TalkbubbleVoices.empty())
 		return 0x0;
 
@@ -4031,12 +4026,6 @@ ASMJIT_PATCH(0x50157C, HouseClass_IsAllowedToAlly_CivilianHouse, 0x5)
 	HouseExtData::FindFirstCivilianHouse();
 	R->EAX(RulesExtData::Instance()->CivilianSideIndex);
 	return 0x501586;
-}
-
-ASMJIT_PATCH(0x47233C, CaptureManagerClass_SetOwnerToCivilianHouse, 0x5)
-{
-	R->ECX(HouseExtData::FindFirstCivilianHouse());
-	return 0x472382;
 }
 
 ASMJIT_PATCH(0x6B0AFE, SlaveManagerClass_FreeSlaves_ToCivilianHouse, 0x5)
@@ -4543,7 +4532,7 @@ ASMJIT_PATCH(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 		pPas = flag_cast_to<FootClass*>(pPas->NextObject))
 	{
 
-		powertotal += abs(TechnoTypeExtContainer::Instance.Find(pPas->GetTechnoType())
+		powertotal += Math::abs(GET_TECHNOTYPEEXT(pPas)
 			->ExtraPower_Amount.Get(pThis->Type->ExtraPowerBonus));
 	}
 
@@ -4583,7 +4572,7 @@ ASMJIT_PATCH(0x6F7EFE, TechnoClass_EvaluateObject_AttackFriendliesWeapon, 6)
 	GET_STACK(int const, nWeapon, 0x14);
 	GET(TechnoClass* const, pThis, EDI);
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 
 	if (!pType->AttackFriendlies)
 		return ContinueCheck;
@@ -4617,7 +4606,8 @@ ASMJIT_PATCH(0x44DBBC, BuildingClass_Mission_Unload_Leave_Bio_Readtor_Sound, 0x7
 	GET(FootClass* const, pPassenger, ESI);
 	LEA_STACK(CoordStruct*, pBuffer, 0x40);
 
-	int sound = pPassenger->GetTechnoType()->LeaveBioReactorSound;
+	int sound = GET_TECHNOTYPE(pPassenger)->LeaveBioReactorSound;
+
 	if (sound == -1)
 		sound = RulesClass::Instance->LeaveBioReactorSound;
 
@@ -6064,7 +6054,7 @@ ASMJIT_PATCH(0x5F5A56, ObjectClass_ParachuteAnim, 0x7)
 
 		if (const auto pTechno = flag_cast_to<TechnoClass*, false>(pThis))
 		{
-			auto pType = pTechno->GetTechnoType();
+			auto pType = GET_TECHNOTYPE(pTechno);
 			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 			if (pTypeExt->IsBomb)
@@ -6905,7 +6895,7 @@ WeaponTypeClass* GetWeaponType(TechnoClass* pThis, int which)
 
 	if (which == -1)
 	{
-		auto const pType = pThis->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pThis);
 
 		if (pType->TurretCount > 0 || pType->WeaponCount > 2)
 		{

@@ -871,7 +871,7 @@ bool AircraftExtData::PlaceReinforcementAircraft(AircraftClass* pThis, CellStruc
 
 void AircraftExtData::TriggerCrashWeapon(AircraftClass* pThis, int nMult)
 {
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto pCrashWeapon = pTypeExt->CrashWeapon.Get(pThis);
 	if (!pCrashWeapon)
@@ -929,7 +929,8 @@ bool AircraftExtData::IsValidLandingZone(AircraftClass* pThis)
 		{
 			const auto pDestCell = MapClass::Instance->GetCellAt(pDest->GetCoords());
 
-			return pDestCell->IsClearToMove(pPassanger->GetTechnoType()->SpeedType, false, false, ZoneType::None, pPassanger->GetTechnoType()->MovementZone, -1, false)
+			return pDestCell->IsClearToMove(GET_TECHNOTYPE(pPassanger)->SpeedType, 
+			false, false, ZoneType::None, GET_TECHNOTYPE(pPassanger)->MovementZone, -1, false)
 				&& pDestCell->OverlayTypeIndex == -1;
 		}
 	}

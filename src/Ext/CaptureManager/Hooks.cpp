@@ -5,51 +5,12 @@
 #include <Utilities/Macro.h>
 #include <SlaveManagerClass.h>
 
-ASMJIT_PATCH(0x4721E6, CaptureManagerClass_DrawLinkToVictim, 0x6) //C
-{
-	GET(CaptureManagerClass*, pThis, EDI);
-	GET(TechnoClass*, pVictim, ECX);
-	GET_STACK(int, nNodeCount, STACK_OFFS(0x30, 0x1C));
-
-	const auto pAttacker = pThis->Owner;
-	const auto pAttackerType = pAttacker->GetTechnoType();
-	if (CaptureExtData::AllowDrawLink(pAttacker, pAttackerType)) {
-		CoordStruct nVictimCoord = pVictim->Location;
-		nVictimCoord.Z += pAttackerType->LeptonMindControlOffset;
-		CoordStruct nFLH {};
-		pAttacker->GetFLH(&nFLH ,-1 - nNodeCount % 5, CoordStruct::Empty);
-		Drawing::DrawLinesTo(nFLH, nVictimCoord, pAttacker->Owner->Color);
-	}
-
-	R->EBP(nNodeCount);
-	return 0x472287;
-}
-
-ASMJIT_PATCH(0x471D40, CaptureManagerClass_CaptureUnit_ReplaceVanillaFunc, 0x7)
-{
-	GET(CaptureManagerClass*, pThis, ECX);
-	GET_STACK(AbstractClass*, pTechno, 0x4);
-
-	R->AL(CaptureExtData::CaptureUnit(pThis, flag_cast_to<TechnoClass*>(pTechno), false , 0));
-
-	return 0x471D5A;
-}
-
-ASMJIT_PATCH(0x471FF0, CaptureManagerClass_FreeUnit, 0x8)
-{
-	GET(CaptureManagerClass*, pThis, ECX);
-	GET_STACK(TechnoClass*, pTechno, 0x4);
-
-	R->AL(CaptureExtData::FreeUnit(pThis, pTechno));
-
-	return 0x472006;
-}
-
-// ASMJIT_PATCH(0x6FCB34, TechnoClass_CanFire_CanCapture, 0x6)
-// {
-// 	GET(TechnoClass*, pThis, ESI);
-// 	GET(TechnoClass*, pTarget, EBP);
-//
-// 	return pThis->CaptureManager->CanCapture(pTarget) ?
-// 	 0x6FCB53  : 0x6FCB44 ;
-// }
+DEFINE_FUNCTION_JUMP(LJMP, 0x4723B0, FakeCaptureManagerClass::__DecideUnitFate_Wrap)
+DEFINE_FUNCTION_JUMP(LJMP, 0x472330, FakeCaptureManagerClass::__SetOwnerToCivilian)
+DEFINE_FUNCTION_JUMP(LJMP, 0x472160, FakeCaptureManagerClass::__DrawControlLinks)
+DEFINE_FUNCTION_JUMP(LJMP, 0x472640, FakeCaptureManagerClass::__Should_Draw_Link)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4722A0, FakeCaptureManagerClass::__CanControlMore)
+DEFINE_FUNCTION_JUMP(LJMP, 0x4726C0, FakeCaptureManagerClass::__IsOverloading)
+DEFINE_FUNCTION_JUMP(LJMP, 0x471D40, FakeCaptureManagerClass::__CaptureUnit_Wrap)
+DEFINE_FUNCTION_JUMP(LJMP, 0x471FF0, FakeCaptureManagerClass::__FreeUnit_Wrap)
+DEFINE_FUNCTION_JUMP(LJMP, 0x471C90, FakeCaptureManagerClass::__CanCapture)

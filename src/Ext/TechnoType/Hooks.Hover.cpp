@@ -1,5 +1,5 @@
 #include <New/Type/HoverTypeClass.h>
-
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/AnimType/Body.h>
@@ -22,7 +22,7 @@ static const HoverTypeClass* GetHover(TechnoClass* pThis)
 		HoverTypeClass::Allocate(DEFAULT_STR2) : HoverTypeClass::Array.begin()->get();
 
 	if (pThis) {
-		auto const pTechnoType = pThis->GetTechnoType();
+		auto const pTechnoType = GET_TECHNOTYPE(pThis);
 		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 
 		if (pTypeExt->HoverType)

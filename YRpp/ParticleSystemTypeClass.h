@@ -60,7 +60,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override { return AbstractType::ParticleSystemType; }
-	virtual int Size() const override { return 0x310; }
+	virtual int ClassSize() const override { return 0x310; }
 
 	//AbstractTypeClass
 	virtual bool LoadFromINI(CCINIClass* pINI) override JMP_THIS(0x6442D0);

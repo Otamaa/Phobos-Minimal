@@ -30,7 +30,7 @@ ASMJIT_PATCH(0x6F7E24, TechnoClass_EvaluateObject_MapZone, 0x6)
 	GET(WeaponTypeClass*, pWeapon, EBP);
 	GET_STACK(ZoneType, zone, STACK_OFFSET(0x3C ,0x18));
 
-	auto pThisTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto pThisTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (!TechnoExtData::AllowedTargetByZone(pThis, pTarget, pThisTypeExt->TargetZoneScanType, pWeapon, zone))
 		return DisallowedObject;

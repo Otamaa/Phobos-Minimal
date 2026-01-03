@@ -226,7 +226,8 @@ ASMJIT_PATCH(0x70EFE0, TechnoClass_GetMaxSpeed, 0x8) //6
 
 	int maxSpeed = 0;
 
-	if (auto pType = pThis->GetTechnoType() )
+	auto pType = GET_TECHNOTYPE(pThis);
+
 	{
 		if (TechnoTypeExtContainer::Instance.Find(pType)->UseDisguiseMovementSpeed)
 			pType = TechnoExtData::GetSimpleDisguiseType(pThis, false, false);
@@ -300,7 +301,7 @@ ASMJIT_PATCH(0x6FD054, TechnoClass_RearmDelay_ForceFullDelay, 0x6)
 
 	TechnoExtContainer::Instance.Find(pThis)->LastRearmWasFullDelay = true;
 	int nResult = 0;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTypeExt->ROF_Random.Get())
 	{
@@ -447,8 +448,8 @@ ASMJIT_PATCH(0x4D9992, FootClass_PointerGotInvalid_Parasite, 0x7)
 		return SkipGameCode;
 	}
 
-	if (!bRemoved && pThis->IsAlive) {
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	if (pThis->IsAlive && !bRemoved ) {
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 		bRemoved = pTypeExt->Cloak_KickOutParasite.Get(RulesExtData::Instance()->Cloak_KickOutParasite);
 	}
 
@@ -488,7 +489,7 @@ ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 
 	auto const mission = static_cast<Mission>(pThis->Data.MegaMission.Mission);
 	auto const pExt = TechnoExtContainer::Instance.Find(pTechno);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
 	if ((mission == Mission::Move) && pTypeExt->KeepTargetOnMove && pTechno->Target && !pTarget)
 	{
@@ -506,7 +507,7 @@ ASMJIT_PATCH(0x4C7462, EventClass_Execute_KeepTargetOnMove, 0x5)
 
 void UpdateKeepTargetOnMove(TechnoClass* pThis)
 {	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (!pExt->KeepTargetOnMove)
 		return;
@@ -575,7 +576,7 @@ ASMJIT_PATCH(0x6B7600, SpawnManagerClass_AI_InitDestination, 0x6)
 	GET(SpawnManagerClass* const, pThis, ESI);
 	GET(AircraftClass* const, pSpawnee, EDI);
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Owner->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis->Owner);
 
 	if (pTypeExt->Spawner_AttackImmediately)
 	{
@@ -782,7 +783,7 @@ ASMJIT_PATCH(0x6B7793, SpawnManagerClass_Update_RecycleSpawned, 0x7)
 	auto CarrierMapCrd = pThis->Owner->GetMapCoords();
 
 	auto const pCarrier = pThis->Owner;
-	auto const pCarrierTypeExt = TechnoTypeExtContainer::Instance.Find(pCarrier->GetTechnoType());
+	auto const pCarrierTypeExt = GET_TECHNOTYPEEXT(pCarrier);
 	auto const spawnerCrd = pSpawned->GetCoords();
 
 	auto shouldRecycleSpawned = [&]()
@@ -826,11 +827,11 @@ ASMJIT_PATCH(0x4D962B, FootClass_SetDestination_RecycleFLH, 0x5)
 	GET(CoordStruct*, pDestCrd, EAX);
 
 	auto pCarrier = pThis->SpawnOwner;
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 
 	if (pCarrier && pCarrier == pThis->Destination) // This is a spawner returning to its carrier.
 	{
-		auto pCarrierTypeExt = TechnoTypeExtContainer::Instance.Find(pCarrier->GetTechnoType());
+		auto pCarrierTypeExt = GET_TECHNOTYPEEXT(pCarrier);
 
 		if (pCarrierTypeExt->Spawner_RecycleFLH->IsValid())
 			*pDestCrd += TechnoExtData::GetFLHAbsoluteCoords(pCarrier, pCarrierTypeExt->Spawner_RecycleFLH, pCarrierTypeExt->Spawner_RecycleOnTurret) - pCarrier->GetCoords();
@@ -885,7 +886,7 @@ ASMJIT_PATCH(0x521D94, InfantryClass_CurrentSpeed_ProneSpeed, 0x6)
 ASMJIT_PATCH(0x4B3DF0, LocomotionClass_Process_DamagedSpeedMultiplier, 0x6)// Drive
 {
 	GET(FootClass*, pLinkedTo, ECX);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
 	const double multiplier = pTypeExt->DamagedSpeed.Get(RulesExtData::Instance()->DamagedSpeed);
 	__asm fmul multiplier;
@@ -905,7 +906,7 @@ ASMJIT_PATCH(0x655DDD, RadarClass_ProcessPoint_RadarInvisible, 0x6)
 		if (isInShrouded && !pTechno->Owner->IsControlledByHuman())
 			return Invisible;
 
-		auto pType = pTechno->GetTechnoType();
+		auto pType = GET_TECHNOTYPE(pTechno);
 
 		if (pType->RadarInvisible)
 		{
@@ -978,7 +979,7 @@ ASMJIT_PATCH(0x6B74F0, SpawnManagerClass_AI_UseTurretFacing, 0x5)
 
 	auto const pTechno = pThis->Owner;
 
-	if (pTechno->HasTurret() && TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->Spawner_UseTurretFacing)
+	if (pTechno->HasTurret() && GET_TECHNOTYPEEXT(pTechno)->Spawner_UseTurretFacing)
 		R->EAX(pTechno->SecondaryFacing.Current().Raw);
 
 	return 0;
@@ -1004,7 +1005,7 @@ ASMJIT_PATCH(0x6F348F, TechnoClass_WhatWeaponShouldIUse_Airstrike, 0x7)
 	if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets))
 		return Primary;
 
-	const auto pTargetType = pTargetTechno->GetTechnoType();
+	const auto pTargetType = GET_TECHNOTYPE(pTargetTechno);
 
 	if (pTargetTechno->AbstractFlags & AbstractFlags::Foot)
 	{
@@ -1147,7 +1148,7 @@ ASMJIT_PATCH(0x51EAE0, TechnoClass_WhatAction_AllowAirstrike, 0x7)
 
 	if (const auto pTechno = flag_cast_to<TechnoClass*>(pObject))
 	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
 		if (const auto pBuilding = cast_to<BuildingClass* , false>(pTechno))
 		{
@@ -1251,7 +1252,7 @@ ASMJIT_PATCH(0x4D6D34, FootClass_MissionAreaGuard_Harvester, 0x5)
 
 	GET(FootClass*, pThis, ESI);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTypeExt->Harvester_CanGuardArea && pThis->Owner->IsControlledByHuman()) {
 		if (!pTypeExt->Harvester_CanGuardArea_RequireTarget || pThis->TargetAndEstimateDamage(&pThis->Location, ThreatType::Area))
@@ -1404,7 +1405,7 @@ ASMJIT_PATCH(0x70E01E, TechnoClass_GattlingRateDown_GattlingRateDownDelay, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTypeExt->RateDown_Delay < 0)
 		return SkipGameCode;
@@ -1676,31 +1677,31 @@ ASMJIT_PATCH(0x51F179, InfantryClass_WhatAction_Immune_FakeEngineer, 0x5)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_ForceWeapon, 0xF)
-{
-	enum { UseWeaponIndex = 0x0 };
+// ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_ForceWeapon, 0xF)
+// {
+// 	enum { UseWeaponIndex = 0x0 };
 
-	GET(TechnoClass* const, pThis, ESI);
-	GET(AbstractClass* const, pTarget, EBX);
-	REF_STACK(int, nWeaponIdx, STACK_OFFSET(0x10, 0xC));
+// 	GET(TechnoClass* const, pThis, ESI);
+// 	GET(AbstractClass* const, pTarget, EBX);
+// 	REF_STACK(int, nWeaponIdx, STACK_OFFSET(0x10, 0xC));
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+// 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
-	// Force weapon check
-	int newIndex = pTypeExt->SelectForceWeapon(pThis, pTarget);
+// 	// Force weapon check
+// 	int newIndex = pTypeExt->SelectForceWeapon(pThis, pTarget);
 
-	if (newIndex >= 0) {
-		nWeaponIdx = newIndex;
-	} else {
-		// Multi weapon check
-		newIndex = pTypeExt->SelectMultiWeapon(pThis, pTarget);
+// 	if (newIndex >= 0) {
+// 		nWeaponIdx = newIndex;
+// 	} else {
+// 		// Multi weapon check
+// 		newIndex = pTypeExt->SelectMultiWeapon(pThis, pTarget);
 
-		if (newIndex >= 0)
-			nWeaponIdx = newIndex;
-	}
+// 		if (newIndex >= 0)
+// 			nWeaponIdx = newIndex;
+// 	}
 
-	return 0;
-}
+// 	return 0;
+// }
 #endif
 
 #include <Locomotor/TunnelLocomotionClass.h>
@@ -1749,7 +1750,7 @@ ASMJIT_PATCH(0x4D6E83, FootClass_MissionAreaGuard_FollowStray, 0x6)
 	GET(FootClass* const, pThis, ESI);
 
 	int range = RulesClass::Instance->GuardModeStray;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	R->EDI(range = pThis->Owner->IsControlledByHuman() ? pTypeExt->PlayerGuardModeStray.Get(Leptons(range)) : pTypeExt->AIGuardModeStray.Get(Leptons(range)));
 	return SkipGameCode;
@@ -1763,7 +1764,7 @@ ASMJIT_PATCH(0x4D6E97, FootClass_MissionAreaGuard_Pursuit, 0x6)
 	GET(int, range, EDI);
 	GET(AbstractClass* const, pFocus, EAX);
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 	const bool isPlayer = pThis->Owner->IsControlledByHuman();
 
 	if ((pFocus->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
@@ -1791,7 +1792,7 @@ ASMJIT_PATCH(0x707F08, TechnoClass_GetGuardRange_AreaGuardRange, 0x5)
 
 	const bool isPlayer = pThis->Owner->IsControlledByHuman();
 	const auto pRulesExt =RulesExtData::Instance();
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	const auto& [multiplier, addend, max] = isPlayer
 		? std::make_tuple(pTypeExt->PlayerGuardModeGuardRangeMultiplier.Get(pRulesExt->PlayerGuardModeGuardRangeMultiplier), pTypeExt->PlayerGuardModeGuardRangeAddend.Get(pRulesExt->PlayerGuardModeGuardRangeAddend), pRulesExt->PlayerGuardModeGuardRangeMax.Get())

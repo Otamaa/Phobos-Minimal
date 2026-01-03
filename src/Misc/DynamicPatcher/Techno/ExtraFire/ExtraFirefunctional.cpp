@@ -10,12 +10,12 @@
 
 static Iterator<WeaponTypeClass*> GetWeaponAndFLH(TechnoClass* pThis, const ExtraFireData& nExtraFireData, int nWeaponIdx , CoordStruct& selectedFLh)
 {
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 
 	ExtraFireData::FLHData* ptrFlhData = nullptr;
 
 	if (auto pTransporter = pThis->Transporter) {
-		ptrFlhData = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType())->MyExtraFireData.AttachedFLH.AsPointer();
+		ptrFlhData = GET_TECHNOTYPEEXT(pTransporter)->MyExtraFireData.AttachedFLH.AsPointer();
 	} else {
 		ptrFlhData = nExtraFireData.AttachedFLH.AsPointer();
 	}
@@ -95,7 +95,7 @@ void ExtraFirefunctional::GetWeapon(TechnoClass* pThis, AbstractClass* pTarget, 
 	if (!pTarget)
 		return;
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);

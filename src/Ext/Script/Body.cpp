@@ -993,7 +993,7 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 	// Collect available transports
 	for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 	{
-		auto const pType = pUnit->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pUnit);
 
 		if (pType->Passengers > 0
 			&& pUnit->Passengers.NumPassengers < pType->Passengers
@@ -1017,15 +1017,15 @@ void ScriptExtData::LoadIntoTransports(TeamClass* pTeam)
 	{
 		for (auto pUnit = pTeam->FirstUnit; pUnit; pUnit = pUnit->NextTeamMember)
 		{
-			auto const pTransportType = pTransport->GetTechnoType();
-			auto const pUnitType = pUnit->GetTechnoType();
+			auto const pTransportType = GET_TECHNOTYPE(pTransport);
+			auto const pUnitType = GET_TECHNOTYPE(pUnit);
 
 			if (pTransport != pUnit
 				&& pUnitType->WhatAmI() != AbstractType::AircraftType
 				&& !pUnit->InLimbo && !pUnitType->ConsideredAircraft
 				&& pUnit->Health > 0)
 			{
-				if (pUnit->GetTechnoType()->Size > 0
+				if (pUnitType->Size > 0
 					&& pUnitType->Size <= pTransportType->SizeLimit
 					&& pUnitType->Size <= pTransportType->Passengers - pTransport->Passengers.GetTotalSize())
 				{
@@ -1070,7 +1070,7 @@ void ScriptExtData::WaitUntilFullAmmoAction(TeamClass* pTeam)
 	{
 		if (ScriptExtData::IsUnitAvailable(pUnit, false))
 		{
-			const auto pType = pUnit->GetTechnoType();
+			const auto pType = GET_TECHNOTYPE(pUnit);
 
 			if (pType->Ammo > 0 && pUnit->Ammo < pType->Ammo)
 			{
@@ -1198,7 +1198,7 @@ void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown
 		{
 			if (ScriptExtData::IsUnitAvailable(pUnit, true))
 			{
-				auto pTypeUnit = pUnit->GetTechnoType();
+				auto pTypeUnit = GET_TECHNOTYPE(pUnit);
 
 				if (pUnit == pLeaderUnit)
 				{
@@ -1206,10 +1206,12 @@ void ScriptExtData::Mission_Gather_NearTheLeader(TeamClass* pTeam, int countdown
 					continue;
 				}
 
+				auto pAir_ = cast_to<AircraftClass*, false>(pUnit);
+
 				// Aircraft case
-				if (pTypeUnit->WhatAmI() == AbstractType::AircraftType && pUnit->Ammo <= 0 && pTypeUnit->Ammo > 0)
+				if (pAir_ && pUnit->Ammo <= 0 && pTypeUnit->Ammo > 0)
 				{
-					auto pAircraft = static_cast<AircraftTypeClass*>(pUnit->GetTechnoType());
+					auto pAircraft = pAir_->Type;
 
 					if (pAircraft->AirportBound)
 					{
@@ -1911,7 +1913,12 @@ void ScriptExtData::ChronoshiftToEnemyBase(TeamClass* pTeam, int extraDistance)
 		return;
 	}
 
-	auto const pTargetCell = HouseExtData::GetEnemyBaseGatherCell(pEnemy, pLeader->Owner, pLeader->GetCoords(), pLeader->GetTechnoType()->SpeedType, extraDistance);
+	auto const pTargetCell = HouseExtData::GetEnemyBaseGatherCell(pEnemy, 
+		pLeader->Owner, 
+		pLeader->GetCoords(), 
+		GET_TECHNOTYPE(pLeader)->SpeedType,
+		extraDistance
+	);
 
 	if (!pTargetCell)
 	{

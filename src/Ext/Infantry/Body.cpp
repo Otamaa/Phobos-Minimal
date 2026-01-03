@@ -98,7 +98,7 @@ void ProcessStandardDeathType(FakeInfantryClass* pThis, WarheadTypeClass* warhea
 			int resultSequence = Die(1);
 
 			if (!whSequence.isset()
-				&& TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NotHuman_RandomDeathSequence.Get())
+				&& GET_TECHNOTYPEEXT(pThis)->NotHuman_RandomDeathSequence.Get())
 			{
 				resultSequence = ScenarioClass::Instance->Random.RandomRanged(Die(1), Die(5));
 			}

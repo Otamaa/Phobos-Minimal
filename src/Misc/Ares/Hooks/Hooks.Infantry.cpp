@@ -58,68 +58,6 @@ ASMJIT_PATCH(0x519D9C, InfantryClass_UpdatePosition_MultiEngineer, 5)
 	return 0x519EAA;
 }
 
-ASMJIT_PATCH(0x471C96, CaptureManagerClass_CanCapture, 0xA)
-{
-	// this is a complete rewrite, because it might be easier to change
-	// this in a central place than spread all over the source code.
-	enum
-	{
-		Allowed = 0x471D2E, // this can be captured
-		Disallowed = 0x471D35 // can't be captured
-	};
-
-	GET(CaptureManagerClass*, pThis, ECX);
-	GET(TechnoClass*, pTarget, ESI);
-	TechnoClass* pCapturer = pThis->Owner;
-
-	// target exists and doesn't belong to capturing player
-	if (!pTarget || pTarget->Owner == pCapturer->Owner)
-	{
-		return Disallowed;
-	}
-
-	// generally not capturable
-	if (TechnoExtData::IsPsionicsImmune(pTarget))
-	{
-		return Disallowed;
-	}
-
-	// disallow capturing bunkered units
-	if (pTarget->BunkerLinkedItem)
-	{
-		return Disallowed;
-	}
-
-	// TODO: extend this for mind-control priorities
-	if (pTarget->IsMindControlled() || pTarget->MindControlledByHouse)
-	{
-		return Disallowed;
-	}
-
-	// free slot? (move on if infinite or single slot which will be freed if used)
-	if (!pThis->InfiniteMindControl && pThis->MaxControlNodes != 1 && pThis->ControlNodes.Count >= pThis->MaxControlNodes
-		&& !TechnoTypeExtContainer::Instance.Find(pCapturer->GetTechnoType())->MultiMindControl_ReleaseVictim)
-	{
-		return Disallowed;
-	}
-
-	// currently disallowed
-	auto mission = pTarget->CurrentMission;
-	if (pTarget->IsIronCurtained() || mission == Mission::Selling || mission == Mission::Construction)
-	{
-		return Disallowed;
-	}
-
-	// driver killed. has no mind.
-	if (TechnoExtContainer::Instance.Find(pTarget)->Is_DriverKilled)
-	{
-		return Disallowed;
-	}
-
-	// passed all tests
-	return Allowed;
-}
-
 ASMJIT_PATCH(0x51DF38, InfantryClass_Remove, 0xA)
 {
 	GET(FakeInfantryClass*, pThis, ESI);
@@ -176,7 +114,7 @@ ASMJIT_PATCH(0x51E7BF, InfantryClass_GetActionOnObject_CanCapture, 6)
 		&& !TechnoTypeExtContainer::Instance.Find(pSelectedType)->CanDrive.Get(RulesExtData::Instance()->CanDrive))
 		return DontCapture;
 
-	if (pTechnoTarget->GetTechnoType()->IsTrain)
+	if (GET_TECHNOTYPE(pTechnoTarget)->IsTrain)
 		return Select;
 
 	//const auto nResult = (AresHijackActionResult)AresData::TechnoExt_GetActionHijack(pSelected, pTechnoTarget);

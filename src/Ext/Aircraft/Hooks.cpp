@@ -695,7 +695,7 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
  	GET(FootClass* const, pThis, EBP);
  	GET_STACK(CellStruct, cell, STACK_OFFSET(0x20, 0x4));
 
- 	const auto pType = pThis->GetTechnoType();
+ 	const auto pType = GET_TECHNOTYPE(pThis);
 
  	// In vanilla, only aircrafts or `foots with fly locomotion` will call this virtual function
  	// So I don't know why WW use hard-coded `SpeedType::Track` and `MovementZone::Normal` to check this

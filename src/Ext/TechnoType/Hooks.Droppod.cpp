@@ -58,7 +58,7 @@ struct DroppodProperties_
 
 	static SHPStruct* GetPodImage(FootClass* pFoot)
 	{
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pFoot->GetTechnoType());
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pFoot);
 		const auto pExt = TechnoExtContainer::Instance.Find(pFoot);
 		SHPStruct* result = pTypeExt->DropPodProp.Droppod_PodImage_Infantry.Get(RulesExtData::Instance()->Droppod_ImageInfantry);
 
@@ -118,7 +118,7 @@ struct DroppodProperties_
 	static bool Process_(DropPodLocomotionClass* pLoco)
 	{
 		auto pLinked = pLoco->LinkedTo;
-		auto tType = pLinked->GetTechnoType();
+		auto tType = GET_TECHNOTYPE(pLinked);
 		CoordStruct oldLoc = pLinked->Location;
 		auto pLinkedExt = TechnoExtContainer::Instance.Find(pLinked);
 		const auto pLinkedSW = pLinkedExt->LinkedSW;
@@ -244,7 +244,7 @@ struct DroppodProperties_
 
 		pLoco->CoordDest = *pCoord;
 		pLoco->CoordDest.Z = MapClass::Instance->GetCellFloorHeight(pCoord);
-		auto tType = pLoco->LinkedTo->GetTechnoType();
+		auto tType = GET_TECHNOTYPE(pLoco->LinkedTo);
 		const auto pLinkedSW = TechnoExtContainer::Instance.Find(pLoco->LinkedTo)->LinkedSW;
 		const bool condition = pLinkedSW && (int)pLinkedSW->Type->Type == (int)NewSuperType::DropPod;
 		const int height = DroppodProperties_::GetHeight(tType, pLoco->LinkedTo, condition);
