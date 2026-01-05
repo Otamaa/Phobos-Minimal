@@ -289,6 +289,8 @@ public:
 	KickOutResult __ExitObject(TechnoClass* object, CellStruct exitCell);
 
 	InfantryTypeClass* __GetCrew();
+	int  __GetCrewCount();
+	const wchar_t* __GetUIName();
 
 	FORCEDINLINE BuildingClass* _AsBuilding() const {
 		return (BuildingClass*)this;

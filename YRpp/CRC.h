@@ -16,6 +16,10 @@ public:
 		Buffer.Composite = 0;
 	}
 
+	COMPILETIMEEVAL uint32_t Updata_external(const void* data, int length) {
+		return Update(data, length);
+	}
+
 	COMPILETIMEEVAL uint32_t operator()(const void* data, int length) {
 		return Update(data, length);
 	}

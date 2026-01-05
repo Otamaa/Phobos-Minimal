@@ -905,19 +905,19 @@ void __fastcall FakeCellClass::_ChainReaction(CellStruct* cell)
 //
 // 	return 0x424ECB;
 // }
-
-ASMJIT_PATCH(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
-{
-	GET(BuildingTypeClass* const, pBuildingProduct, ESI);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingProduct);
-
-	bool IsAWall = pBuildingProduct->Wall;
-	if (pBuildingProduct->Wall && pTypeExt->BuildTime_Speed.isset())
-		IsAWall = false;
-
-	R->AL(IsAWall);
-	return 0x6AB8C1;
-}
+//
+//ASMJIT_PATCH(0x6AB8BB, SelectClass_ProcessInput_BuildTime, 6)
+//{
+//	GET(BuildingTypeClass* const, pBuildingProduct, ESI);
+//	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pBuildingProduct);
+//
+//	bool IsAWall = pBuildingProduct->Wall;
+//	if (pBuildingProduct->Wall && pTypeExt->BuildTime_Speed.isset())
+//		IsAWall = false;
+//
+//	R->AL(IsAWall);
+//	return 0x6AB8C1;
+//}
 
 //DEFINE_SKIP_HOOK(0x715857, TechnoTypeClass_LoadFromINI_LimitPalettes, 5, 715876)
 DEFINE_JUMP(LJMP, 0x715857, 0x715876);

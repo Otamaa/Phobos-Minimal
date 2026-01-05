@@ -239,7 +239,20 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 											if (PlayerPtr->Available_Money() >= corrected) {
 												if (Techno_Type->FindFactory(true, false, false, PlayerPtr)) {
 													int time = Techno_Type->GetBuildSpeed();
-													if (pBuild->ItemType == AbstractType::BuildingType && static_cast<BuildingTypeClass*>(Techno_Type)->Wall) {
+													
+													bool IsAWall = false;
+
+													if (pBuild->ItemType == AbstractType::BuildingType) {
+														auto pBuildingProduct = static_cast<BuildingTypeClass*>(Techno_Type);
+														const auto pBuildingProductExt = TechnoTypeExtContainer::Instance.Find(pBuildingProduct);
+
+														bool IsAWall = pBuildingProduct->Wall;
+
+														if (IsAWall && pBuildingProductExt->BuildTime_Speed.isset())
+															IsAWall = false;
+													}
+
+													if(IsAWall) {
 														time = int(time * RulesClass::Instance->WallBuildSpeedCoefficient);
 													}
 
@@ -361,7 +374,21 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 						} else {
 							if(auto Object = pCurrentFactory->GetFactoryObject()) {
 								VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
-								if(auto v23 = Object->FindFactory(0, 0)) {
+								const auto nBuffer = HouseExtData::HasFactory(
+													Object->GetOwningHouse(), 
+									GET_TECHNOTYPE(Object),
+									false,
+									true, 
+									false,
+									true
+								);
+								
+								if (nBuffer.first == NewFactoryState::Unpowered) {
+									this->ControlClass::Action(flags, key, KeyModifier::None);
+									return 1;
+								}
+
+								if(auto v23 = nBuffer.second) {
 									if (auto pBld = cast_to<BuildingClass*, false>(Object)) {
 										PlayerPtr->Manual_Place(v23, pBld);
 									} else {

@@ -411,13 +411,11 @@ ASMJIT_PATCH(0x4F8B08, HouseClass_Update_DamageDelay, 6)
 	return pThis->IsCurrentPlayer() ? 0x4F8B14u : 0x4F8DB1u;
 }
 
-static std::vector<BuildingTypeClass*> Eligible;
-
 ASMJIT_PATCH(0x4FE782, HouseClass_AI_BaseConstructionUpdate_PickPowerplant, 6)
 {
 	GET(HouseClass* const, pThis, EBP);
 	auto const pExt = HouseTypeExtContainer::Instance.Find(pThis->Type);
-	Eligible.clear();
+	std::vector<BuildingTypeClass*> Eligible;
 
 	const auto it = pExt->GetPowerplants();
 
@@ -689,20 +687,6 @@ ASMJIT_PATCH(0x5F7900, ObjectTypeClass_FindFactory, 5)
 		nBuffer.second : nullptr);
 
 	return 0x5F7A89;
-}
-
-ASMJIT_PATCH(0x6AB312, SidebarClass_ProcessCameoClick_Power, 6)
-{
-	GET(TechnoClass*, pFactoryObject, ESI);
-
-	const auto nBuffer = HouseExtData::HasFactory(
-		pFactoryObject->GetOwningHouse(), GET_TECHNOTYPE(pFactoryObject), false, true, false, true);
-
-	if (nBuffer.first == NewFactoryState::Unpowered)
-		return 0x6AB95A;
-
-	R->EAX(nBuffer.second);
-	return 0x6AB320;
 }
 
 ASMJIT_PATCH(0x4F7870, HouseClass_CanBuild, 7)

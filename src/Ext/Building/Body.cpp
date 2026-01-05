@@ -2452,8 +2452,62 @@ InfantryTypeClass* FakeBuildingClass::__GetCrew()
 	return TechnoExt_ExtData::GetBuildingCrew(this, TechnoTypeExtContainer::Instance.Find(this->Type)->
 		Crew_EngineerChance.Get((this->Type->Factory == BuildingTypeClass::AbsID) ? 25 : 0));
 }
+
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E41C8, FakeBuildingClass::__GetCrew)
 DEFINE_FUNCTION_JUMP(LJMP, 0x44EB10, FakeBuildingClass::__GetCrew)
+
+int FakeBuildingClass::__GetCrewCount()
+{
+	int count = 0;
+
+	if (!this->NoCrew && this->Type->Crewed)
+	{
+		auto pHouse = this->Owner;
+
+		// get the divisor
+		int divisor = HouseExtData::GetSurvivorDivisor(pHouse);
+
+		if (divisor > 0)
+		{
+			// if captured, less survivors
+			if (this->HasBeenCaptured)
+			{
+				divisor *= 2;
+			}
+
+			// value divided by "cost per survivor"
+			// clamp between 1 and 5
+			count = std::clamp(this->Type->GetRefund(pHouse, 0) / divisor, 1, 5);
+		}
+	}
+
+	return count;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E418C, FakeBuildingClass::__GetCrewCount)
+DEFINE_FUNCTION_JUMP(LJMP, 0x451330, FakeBuildingClass::__GetCrewCount)
+
+const wchar_t* FakeBuildingClass::__GetUIName()
+{
+	if (HouseClass::CurrentPlayer) {
+		const auto pBldOWner = this->Owner;
+		if (HouseClass::CurrentPlayer->IsObserver()
+			|| HouseClass::CurrentPlayer == pBldOWner
+			|| HouseClass::CurrentPlayer->IsAlliedWith(pBldOWner)
+			|| this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer->ArrayIndex))
+		{
+			return this->Type->UIName;
+		}
+	}
+
+	auto Type = this->Type;
+	if (TechnoTypeExtContainer::Instance.Find(this->Type)->Fake_Of)
+		Type = (BuildingTypeClass*)TechnoTypeExtContainer::Instance.Find(this->Type)->Fake_Of.Get();
+
+	return Type->UIName;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F4C, FakeBuildingClass::__GetUIName)
+DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
 
 void FakeBuildingClass::_TechnoClass_Draw_Object(SHPStruct* shapefile,
 	int shapenum,

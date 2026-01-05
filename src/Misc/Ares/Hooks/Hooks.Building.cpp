@@ -65,37 +65,6 @@ ASMJIT_PATCH(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 	return 0x44D7C9;
 }
 
-ASMJIT_PATCH(0x451330, BuildingClass_GetCrewCount, 0xA)
-{
-	GET(BuildingClass*, pThis, ECX);
-
-	int count = 0;
-
-	if (!pThis->NoCrew && pThis->Type->Crewed)
-	{
-		auto pHouse = pThis->Owner;
-
-		// get the divisor
-		int divisor = HouseExtData::GetSurvivorDivisor(pHouse);
-
-		if (divisor > 0)
-		{
-			// if captured, less survivors
-			if (pThis->HasBeenCaptured)
-			{
-				divisor *= 2;
-			}
-
-			// value divided by "cost per survivor"
-			// clamp between 1 and 5
-			count = std::clamp(pThis->Type->GetRefund(pHouse, 0) / divisor, 1, 5);
-		}
-	}
-
-	R->EAX(count);
-	return 0x4513CD;
-}
-
 #include <Ext/SWType/Body.h>
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x43E7B0, FakeBuildingClass::_DrawVisible)
@@ -411,31 +380,6 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 
 	//0x51A010 eats the Engineer, 0x51A65D hopefully does not
 	return 0x51A010;
-}
-
-ASMJIT_PATCH(0x459ed0, BuildingClass_GetUIName, 6)
-{
-	GET(BuildingClass*, pBld, ECX);
-
-	if (HouseClass::CurrentPlayer)
-	{
-		const auto pBldOWner = pBld->Owner;
-		if (HouseClass::CurrentPlayer->IsObserver()
-			|| HouseClass::CurrentPlayer == pBldOWner
-			|| HouseClass::CurrentPlayer->IsAlliedWith(pBldOWner)
-			|| pBld->DisplayProductionTo.Contains(HouseClass::CurrentPlayer->ArrayIndex))
-		{
-			R->EAX(pBld->Type->UIName);
-			return 0x459ED9;
-		}
-	}
-
-	auto Type = pBld->Type;
-	if (TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of)
-		Type = (BuildingTypeClass*)TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of.Get();
-
-	R->EAX(Type->UIName);
-	return 0x459ED9;
 }
 
 ASMJIT_PATCH(0x44e2b0, BuildingClass_Mi_Unload_LargeGap, 6)
