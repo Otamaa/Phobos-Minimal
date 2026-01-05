@@ -10,6 +10,7 @@
 #include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/WeaponType/Body.h>
+#include <Ext/Building/Body.h>
 
 #include <InfantryClass.h>
 #include <AircraftClass.h>
@@ -32,21 +33,116 @@ ASMJIT_PATCH(0x6F737F, TechnoClass_InRange_WeaponMinimumRange, 0x6)
 	return 0;
 }
 
+static bool IsChasing(TechnoClass* pThis, AbstractClass* pTarget)
+{
+	if ((pThis->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
+		return false;
+
+	auto pFootTarget = flag_cast_to<FootClass*>(pTarget);
+	if (!pFootTarget)
+		return false;
+
+	if (!pFootTarget->Locomotor.GetInterfacePtr()->Is_Moving_Now())
+		return false;
+
+	return true;
+}
+
+static bool IsPrefiring(TechnoClass* pThis, WeaponTypeClass* pWeapon)
+{
+	auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	bool includeBurst = pTypeExt->PrefiringExtraRange_IncludeBurst.Get(RulesExtData::Instance()->PrefiringExtraRange_IncludeBurst);
+
+	if (includeBurst && pThis->CurrentBurstIndex % pWeapon->Burst != 0)
+		return true;
+
+	auto pTechnoExt = TechnoExtContainer::Instance.Find(pThis);
+
+	if (pTechnoExt->DelayedFireTimer.InProgress())
+		return true;
+
+	switch (pThis->WhatAmI())
+	{
+	case AbstractType::Unit:
+	{
+		auto pUnit = static_cast<UnitClass*>(pThis);
+		auto currentBurst = pThis->CurrentBurstIndex % pWeapon->Burst;
+		auto syncFrame = -1;
+
+		if (currentBurst == 0)
+			syncFrame = pUnit->Type->FiringSyncFrame0;
+		else if (currentBurst == 1)
+			syncFrame = pUnit->Type->FiringSyncFrame1;
+
+		if (syncFrame == -1)
+			return false;
+
+		return pUnit->CurrentFiringFrame >= syncFrame;
+	}
+	case AbstractType::Aircraft:
+	{
+		auto pAircraft = static_cast<AircraftClass*>(pThis);
+		auto status = (AirAttackStatus)pAircraft->MissionStatus;
+		return status == AirAttackStatus::FireAtTarget
+			|| status == AirAttackStatus::FireAtTarget2
+			|| status == AirAttackStatus::FireAtTarget2_Strafe
+			|| status == AirAttackStatus::FireAtTarget3_Strafe
+			|| status == AirAttackStatus::FireAtTarget4_Strafe
+			|| status == AirAttackStatus::FireAtTarget5_Strafe;
+	}
+	case AbstractType::Building:
+	{
+		auto pBuilding = static_cast<BuildingClass*>(pThis);
+		auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
+		return pBuilding->DelayBeforeFiring || pExt->IsFiringNow;
+	}
+	case AbstractType::Infantry:
+	{
+		auto pInfantry = static_cast<InfantryClass*>(pThis);
+		return pInfantry->IsFiring;
+	}
+	default:
+		return false;
+	}
+}
+
 ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 {
 	enum { ContinueCheck = 0x6F72E3, RetTrue = 0x6F7256, RetFalse = 0x6F7655 };
 
+	GET_BASE(AbstractClass*, pTarget, 0xC);
 	GET(TechnoClass*, pThis, ESI);
-	GET(AbstractClass*, pTarget, ECX);
 	GET(WeaponTypeClass*, pWeapon, EBX);
 
 	InRangeTemp::Techno = pThis;
 
 	int range = 0;
 	if (const auto keepRange = WeaponTypeExtData::GetTechnoKeepRange(pWeapon, pThis, false))
-	range = keepRange;
-	else
-	range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
+		range = keepRange;
+	else {	
+		range = WeaponTypeExtData::GetRangeWithModifiers(pWeapon, pThis);
+
+		if (range != -512)
+		{
+			auto pRulesExt = RulesExtData::Instance();
+			auto pTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+			auto prefiringExtraRange = pTypeExt->PrefiringExtraRange.Get(pRulesExt->PrefiringExtraRange);
+
+			if (prefiringExtraRange
+				&& IsPrefiring(pThis, pWeapon))
+			{
+				range += prefiringExtraRange;
+			}
+
+			auto chasingExtraRange = pTypeExt->ChasingExtraRange.Get(pThis->GetTechnoType()->CloseRange || !pRulesExt->ChasingExtraRange_CloseRangeOnly ? pRulesExt->ChasingExtraRange : Leptons(0));
+
+			if (chasingExtraRange
+				&& IsChasing(pThis, pTarget))
+			{
+				range += chasingExtraRange;
+			}
+		}
+	}
 
 	if (range == -512)
 		return RetTrue;

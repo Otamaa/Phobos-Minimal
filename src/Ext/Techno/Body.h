@@ -1629,5 +1629,5 @@ public:
 	static void __fastcall __AI(TechnoClass* pThis);
 };
 
-#define GET_TECHNOTYPE(techno) TechnoExtContainer::Instance.Find(techno)->CurrentType
-#define GET_TECHNOTYPEEXT(techno) TechnoTypeExtContainer::Instance.Find(TechnoExtContainer::Instance.Find(techno)->CurrentType)
+#define GET_TECHNOTYPE(techno) techno->GetTechnoType()
+#define GET_TECHNOTYPEEXT(techno) TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType())

@@ -7,7 +7,7 @@ class StraightTrajectoryType : public PhobosTrajectoryType
 public:
 	Valueable<bool> SnapOnTarget { true };
 	Nullable<Leptons> SnapThreshold { };
-	Valueable<Leptons> TargetSnapDistance { Leptons(0) };
+	Valueable<Leptons> TargetSnapDistance {};
 	Valueable<bool> PassThrough { false };
 	Valueable<bool> DetonationDistance_ApplyRangeModifiers { false };
 

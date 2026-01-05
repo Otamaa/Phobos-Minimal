@@ -472,7 +472,7 @@ bool FakeTacticalClass::IsHighPriorityInRect(LTRBStruct* rect)
 		if (this->IsInSelectionRect(rect, selected) && ObjectClass_IsSelectable(selected.Object))
 		{
 			//auto const pExt = TechnoExtContainer::Instance.Find(static_cast<TechnoClass*>(selected.Object));
-			auto const pTypeExt = GET_TECHNOTYPEEXT((TechnoClass*)selected.Object);
+			auto const pTypeExt = GET_TECHNOTYPEEXT(((TechnoClass*)selected.Object));
 
 			return !pTypeExt->LowSelectionPriority;
 		}

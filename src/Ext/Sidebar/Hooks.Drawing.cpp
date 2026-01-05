@@ -185,7 +185,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 						if (!pCurrentFactory || pCurrentFactory->Production.Timer.Rate && !pCurrentFactory->IsSuspended) {
 							Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
 							auto pHouseFactory = PlayerPtr->GetPrimaryFactory(pBuild->ItemType, Techno_Type->Naval, pBuild->Cat);
-							bool ShouldDisableCameo = PlayerPtr->ShouldDisableCameo(Techno_Type);
+							bool ShouldDisableCameo = HouseExtData::ShouldDisableCameo(PlayerPtr,Techno_Type ,true);
 							bool unable_to_comply = false;
 							if (pHouseFactory && (pHouseFactory->Production.Timer.Rate && !pHouseFactory->IsSuspended || pHouseFactory->Object || pHouseFactory->QueuedObjects.Count > 0)) {
 								unable_to_comply = 1;

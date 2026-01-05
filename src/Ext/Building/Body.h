@@ -58,6 +58,7 @@ public:
 	std::vector<BuildingClass*> airFactoryBuilding;
 	bool FreeUnitDone;
 	bool SeparateRepair;
+	bool IsFiringNow;
 #pragma endregion
 
 	bool HasSuperWeapon(int index, bool withUpgrades) const;
@@ -104,7 +105,8 @@ public:
 		FactoryBuildingMe(nullptr),
 		airFactoryBuilding(),
 		FreeUnitDone(false),
-		SeparateRepair(false)
+		SeparateRepair(false),
+		IsFiringNow(false)
 	{
 		this->CurrentType = pObj->Type;
 		this->Type = BuildingTypeExtContainer::Instance.Find(pObj->Type);

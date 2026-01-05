@@ -2643,7 +2643,7 @@ bool BuildingExtContainer::SaveAll(json& root)
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x43BAD6, BuildingClass_CTOR, 0x5)
+ASMJIT_PATCH(0x43B75C, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
 	BuildingExtContainer::Instance.Allocate(pItem);

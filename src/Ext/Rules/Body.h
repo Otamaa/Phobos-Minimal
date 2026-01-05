@@ -430,7 +430,7 @@ public:
 	Valueable<int> UnitIdleActionIntervalMax { 450 };
 
 	Valueable<bool> ExpandAircraftMission {};
-	Valueable<int> ExtendedAircraftMissions_UnlandDamage {};
+	Valueable<int> ExtendedAircraftMissions_UnlandDamage { - 1};
 
 	Valueable<bool> AssignUnitMissionAfterParadropped { false };
 
@@ -575,12 +575,12 @@ public:
 
 	Valueable<bool> PlayerGuardModePursuit { true };
 	Valueable<double> PlayerGuardModeGuardRangeMultiplier { 2.0 };
-	Valueable<Leptons> PlayerGuardModeGuardRangeAddend { Leptons(0) };
+	Valueable<Leptons> PlayerGuardModeGuardRangeAddend {};
 	Valueable<Leptons> PlayerGuardModeGuardRangeMax { Leptons(4096) };
 	Valueable<Leptons> PlayerGuardStationaryStray { Leptons(-256) };
     Valueable<bool> AIGuardModePursuit { true };
 	Valueable<double> AIGuardModeGuardRangeMultiplier { 2.0 };
-	Valueable<Leptons> AIGuardModeGuardRangeAddend { Leptons(0) };
+	Valueable<Leptons> AIGuardModeGuardRangeAddend {};
 	Valueable<Leptons> AIGuardModeGuardRangeMax { Leptons(4096) };
 	Valueable<Leptons> AIGuardStationaryStray { Leptons(-256) };
 	Valueable<bool> IgnoreCenterMinorRadarEvent { false };
@@ -593,6 +593,11 @@ public:
 	Valueable<bool> TypeSelectUseIFVMode { false };
 	Valueable<bool> BuildingRadioLink_SyncOwner { true };
 	Valueable<bool> ApplyPerTargetEffectsOnDetonate { true };
+
+	Valueable<Leptons> ChasingExtraRange {};
+	Valueable<bool> ChasingExtraRange_CloseRangeOnly{ true };
+	Valueable<Leptons> PrefiringExtraRange {};
+	Valueable<bool> PrefiringExtraRange_IncludeBurst{ true };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

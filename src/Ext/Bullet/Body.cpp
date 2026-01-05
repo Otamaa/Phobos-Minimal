@@ -729,12 +729,18 @@ void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 		this->AttachedSystem.detachptr();
  }
 
+ static RadTypeClass* default_rad;
+
 void BulletExtData::ApplyRadiationToCell(CellClass* pCell, int Spread, int RadLevel)
 {
+	if(!default_rad) {
+ 		default_rad = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
+	}
+
 	const auto pThis = This();
 	const auto pWeapon = pThis->GetWeaponType();
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::FindOrAllocate(GameStrings::Radiation()));
+	const auto pRadType = pWeaponExt->RadType.Get(default_rad);
 	auto const pCellExt = CellExtContainer::Instance.Find(pCell);
 
 	auto const it = pCellExt->RadSites.find_if([=](RadSiteClass* const pSite) {

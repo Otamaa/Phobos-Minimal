@@ -274,6 +274,10 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->OnlyAttacker.Read(exINI, pSection, "OnlyAttacker");
 
+	this->ChasingExtraRange.Read(exINI, pSection, "ChasingExtraRange");
+	this->PrefiringExtraRange.Read(exINI, pSection, "PrefiringExtraRange");
+	this->PrefiringExtraRange_IncludeBurst.Read(exINI, pSection, "PrefiringExtraRange.IncludeBurst");
+
 	this->SkipWeaponPicking = true;
 	if (this->CanTarget != AffectedTarget::All ||
 		this->CanTargetHouses != AffectedHouse::All
@@ -610,7 +614,11 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_AnimOffset)
 		.Process(this->DelayedFire_AnimOnTurret)
 		.Process(this->OnlyAttacker)
+		.Process(this->ChasingExtraRange)
+		.Process(this->PrefiringExtraRange)
+		.Process(this->PrefiringExtraRange_IncludeBurst)
 		.Process(this->MyAttachFireDatas)
+		
 		;
 };
 #else
@@ -1090,7 +1098,7 @@ ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 
 bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
+	//WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
 	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

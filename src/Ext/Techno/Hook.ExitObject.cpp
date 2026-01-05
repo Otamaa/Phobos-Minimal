@@ -676,7 +676,7 @@ static int CalculateFacingToCell(const CoordStruct& fromCoord, const CellStruct&
 // HELPER: Calculate Intermediate Cell (one step closer to building)
 // ============================================================================
 
-static CellStruct CalculateIntermediateCell(
+static CellStruct NOINLINE CalculateIntermediateCell(
 	const CellStruct& exitCell,
 	const CellStruct& buildingCell,
 	int buildingWidth,
@@ -684,15 +684,31 @@ static CellStruct CalculateIntermediateCell(
 {
 	CellStruct result = exitCell;
 
+	// X-axis adjustment
 	if (exitCell.X >= buildingCell.X + buildingWidth)
+	{
+		// Exit cell is past building width - move back one
 		result.X = exitCell.X - 1;
+	}
 	else if (exitCell.X < buildingCell.X)
+	{
+		// Exit cell is before building starts - move forward one
 		result.X = exitCell.X + 1;
+	}
+	// else: within building bounds (including edges) - no change
 
+	// Y-axis adjustment  
 	if (exitCell.Y >= buildingCell.Y + buildingHeight)
+	{
+		// Exit cell is past building height - move back one
 		result.Y = exitCell.Y - 1;
+	}
 	else if (exitCell.Y < buildingCell.Y)
+	{
+		// Exit cell is before building starts - move forward one
 		result.Y = exitCell.Y + 1;
+	}
+	// else: within building bounds (including edges) - no change
 
 	return result;
 }
@@ -701,7 +717,7 @@ static CellStruct CalculateIntermediateCell(
 // HELPER: Apply Barracks Exit Coord Offset
 // ============================================================================
 
-static void ApplyBarracksExitOffset(
+static void NOINLINE ApplyBarracksExitOffset(
 	CoordStruct& unlimboCoord,
 	BuildingTypeClass* pBuildingType,
 	const CellStruct& exitCell,
@@ -736,9 +752,7 @@ static void ApplyBarracksExitOffset(
 	{
 		if (exitCell.X == buildingCell.X + 2 && exitCell.Y == buildingCell.Y + 2)
 		{
-			unlimboCoord.X += pBuildingType->ExitCoord.X;
-			unlimboCoord.Y += pBuildingType->ExitCoord.Y;
-			unlimboCoord.Z += pBuildingType->ExitCoord.Z;
+			unlimboCoord += pBuildingType->ExitCoord;
 			return;
 		}
 	}
@@ -748,9 +762,7 @@ static void ApplyBarracksExitOffset(
 	{
 		if (exitCell.X == buildingCell.X + 2 && exitCell.Y == buildingCell.Y + 1)
 		{
-			unlimboCoord.X += pBuildingType->ExitCoord.X;
-			unlimboCoord.Y += pBuildingType->ExitCoord.Y;
-			unlimboCoord.Z += pBuildingType->ExitCoord.Z;
+			unlimboCoord += pBuildingType->ExitCoord;
 		}
 	}
 }
@@ -975,9 +987,6 @@ static KickOutResult HandleLandVehicleFactoryExit(
 
 	--Unsorted::ScenarioInit;
 	TechnoExt_ExtData::KickOutClones(pBuilding, pObject);
-	++Unsorted::ScenarioInit;
-
-	--Unsorted::ScenarioInit;
 	return KickOutResult::Succeeded;
 }
 
@@ -987,35 +996,56 @@ static KickOutResult HandleLandVehicleFactoryExit(
 
 static KickOutResult HandleBarracksExit(
 	FakeBuildingClass* pBuilding,
-	TechnoClass* pObject)
+	TechnoClass* pObject,
+	const CellStruct& requestedExitCell)
 {
 	pObject->SetArchiveTarget(pBuilding->ArchiveTarget);
 
-	CellStruct exitCell = pBuilding->FindExitCell(pObject, CellStruct::Empty);
+	CellStruct exitCell = pBuilding->FindBuildingExitCell(pObject, requestedExitCell);
+	//Debug::Log("1. FindBuildingExitCell returned: (%d, %d)\n", exitCell.X, exitCell.Y);
+
 	if (exitCell == CellStruct::Empty)
 		return KickOutResult::Failed;
-
-	CoordStruct centerCoord = pBuilding->GetCoords();
-	int facing = CalculateFacingToCell(centerCoord, exitCell);
 
 	CellStruct buildingCell = pBuilding->GetMapCoords();
 	int buildingWidth = pBuilding->Type->GetFoundationWidth();
 	int buildingHeight = pBuilding->Type->GetFoundationHeight(false);
 
+	//Debug::Log("2. Building at: (%d, %d), size: %dx%d\n",
+	//	buildingCell.X, buildingCell.Y, buildingWidth, buildingHeight);
+
 	CellStruct intermediateCell = CalculateIntermediateCell(
 		exitCell, buildingCell, buildingWidth, buildingHeight);
 
+	//Debug::Log("3. IntermediateCell: (%d, %d)\n", intermediateCell.X, intermediateCell.Y);
+
 	CoordStruct unlimboCoord = CellClass::Cell2Coord(intermediateCell);
+	//Debug::Log("4. Unlimbo coord BEFORE offset: (%d, %d, %d)\n",
+	//	unlimboCoord.X, unlimboCoord.Y, unlimboCoord.Z);
 
 	ApplyBarracksExitOffset(unlimboCoord, pBuilding->Type, exitCell, buildingCell);
+	//Debug::Log("5. Unlimbo coord AFTER offset: (%d, %d, %d)\n",
+	//	unlimboCoord.X, unlimboCoord.Y, unlimboCoord.Z);
+
+	CoordStruct centerCoord = pBuilding->GetCoords();
+	int facing = CalculateFacingToCell(centerCoord, exitCell);
+	Debug::Log("6. Facing: %d\n", facing);
 
 	++Unsorted::ScenarioInit;
 
-	if (!pObject->Unlimbo(unlimboCoord, static_cast<DirType>(facing)))
-	{
+	const bool unlimboSuccess = pObject->Unlimbo(unlimboCoord, static_cast<DirType>(facing));
+	//Debug::Log("7. Unlimbo result: %s\n", unlimboSuccess ? "SUCCESS" : "FAILED");
+
+	if (!unlimboSuccess) {
 		--Unsorted::ScenarioInit;
 		return KickOutResult::Failed;
 	}
+
+	// Get actual position after unlimbo
+	CoordStruct actualPos = pObject->GetCoords();
+	CellStruct actualCell = CellClass::Coord2Cell(actualPos);
+	//Debug::Log("8. Actual position after unlimbo: coord=(%d, %d, %d), cell=(%d, %d)\n",
+		//actualPos.X, actualPos.Y, actualPos.Z, actualCell.X, actualCell.Y);
 
 	// Handle navigation
 	if (auto pNavcom = static_cast<FootClass*>(pObject)->Destination)
@@ -1052,10 +1082,6 @@ static KickOutResult HandleBarracksExit(
 		}
 	}
 
-	--Unsorted::ScenarioInit;
-	TechnoExt_ExtData::KickOutClones(pBuilding, pObject);
-	++Unsorted::ScenarioInit;
-
 	// Final radio commands
 	RadioCommand respond = pBuilding->SendCommand(RadioCommand::RequestLink, pObject);
 
@@ -1070,6 +1096,8 @@ static KickOutResult HandleBarracksExit(
 	}
 
 	--Unsorted::ScenarioInit;
+	TechnoExt_ExtData::KickOutClones(pBuilding, pObject);
+
 	return KickOutResult::Succeeded;
 }
 
@@ -1082,7 +1110,7 @@ static KickOutResult HandleGenericUnitExit(
 	TechnoClass* pObject,
 	const CellStruct& requestedExitCell)
 {
-	CellStruct exitCell = pBuilding->FindExitCell(pObject, requestedExitCell);
+	CellStruct exitCell = pBuilding->FindBuildingExitCell(pObject, requestedExitCell);
 	if (exitCell == CellStruct::Empty)
 		return KickOutResult::Failed;
 
@@ -1165,7 +1193,8 @@ static KickOutResult HandleGenericUnitExit(
 static KickOutResult HandleWeaponsFactoryExit(
 	FakeBuildingClass* pBuilding,
 	TechnoClass* pObject,
-	AbstractType absType)
+	AbstractType absType,
+	const CellStruct& exitCell)
 {
 	BuildingTypeClass* pType = pBuilding->Type;
 	auto pTypeExt = BuildingTypeExtContainer::Instance.Find(pType);
@@ -1178,7 +1207,7 @@ static KickOutResult HandleWeaponsFactoryExit(
 			&& pBuilding->Factory->Object == pObject;
 
 		if (!isFactoryProduct && absType == AbstractType::Infantry)
-			return HandleBarracksExit(pBuilding, pObject);
+			return HandleBarracksExit(pBuilding, pObject, exitCell);
 	}
 
 	// Naval factory path
@@ -1267,7 +1296,7 @@ static KickOutResult HandleGroundUnitExit(
 	// Check if we can even exit
 	if (!pType->Hospital && !pType->Armory)
 	{
-		if (!pType->WeaponsFactory || BuildingTypeExtContainer::Instance.Find(pType)->CloningFacility)
+		if (!pType->WeaponsFactory && !BuildingTypeExtContainer::Instance.Find(pType)->CloningFacility)
 		{
 			if (!pBuilding->HasFreeLink())
 				return KickOutResult::Busy;
@@ -1287,7 +1316,7 @@ static KickOutResult HandleGroundUnitExit(
 	// Weapons Factory
 	// -----------------------------------------------------------------------
 	if (pType->WeaponsFactory)
-		return HandleWeaponsFactoryExit(pBuilding, pObject, absType);
+		return HandleWeaponsFactoryExit(pBuilding, pObject, absType, exitCell);
 
 	// -----------------------------------------------------------------------
 	// Barracks / Infantry Production / Hospital / Armory / Cloning
@@ -1298,7 +1327,7 @@ static KickOutResult HandleGroundUnitExit(
 		|| pType->Cloning;
 
 	if (isBarracksStyle)
-		return HandleBarracksExit(pBuilding, pObject);
+		return HandleBarracksExit(pBuilding, pObject, exitCell);
 
 	// -----------------------------------------------------------------------
 	// Generic Unit Exit

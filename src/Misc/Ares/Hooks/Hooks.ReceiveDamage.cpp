@@ -2477,32 +2477,32 @@ DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t,
 	};
 
 	DamageState _res = DamageState::Unaffected;
+	auto pParasiteEating = pThis->ParasiteEatingMe;
 
 	if (args.WH->Sonic)
 	{
-		if (auto pParasite = pThis->ParasiteEatingMe)
-		{
-			pParasite->ParasiteImUsing->ExitUnit();
+		if (pParasiteEating) {
+			pParasiteEating->ParasiteImUsing->ExitUnit();
 
-			if (args.Attacker)
-			{
+			if (args.Attacker) {
 				args.Attacker->SetTarget(nullptr);
 			}
 		}
 	}
 
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
-	auto pParasiteOwnerType = GET_TECHNOTYPE(pThis->ParasiteEatingMe);
 
-	if (pThis->ParasiteEatingMe && args.Attacker != pThis->ParasiteEatingMe && *args.Damage > pParasiteOwnerType->SuppressionThreshold)
-	{
-		pThis->ParasiteEatingMe->ParasiteImUsing->SuppressionTimer.Start((2 * *args.Damage) - pParasiteOwnerType->SuppressionThreshold);
-	}
+	if (pParasiteEating){
+		auto pParasiteOwnerType = GET_TECHNOTYPE(pParasiteEating);
 
-	if (pThis->ParasiteEatingMe && pWHExt->RemoveParasites.Get(*args.Damage < 0))
-	{
-		pThis->ParasiteEatingMe->ParasiteImUsing->SuppressionTimer.Start(50);
-		pThis->ParasiteEatingMe->ParasiteImUsing->ExitUnit();
+		if (args.Attacker != pParasiteEating && *args.Damage > pParasiteOwnerType->SuppressionThreshold) {
+			pParasiteEating->ParasiteImUsing->SuppressionTimer.Start((2 * *args.Damage) - pParasiteOwnerType->SuppressionThreshold);
+		}
+
+		if (pWHExt->RemoveParasites.Get(*args.Damage < 0)) {
+			pParasiteEating->ParasiteImUsing->SuppressionTimer.Start(50);
+			pParasiteEating->ParasiteImUsing->ExitUnit();
+		}
 	}
 
 	_res = FakeTechnoClass::__Take_Damage(pThis , discard_t(), args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);

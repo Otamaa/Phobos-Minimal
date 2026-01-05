@@ -165,6 +165,7 @@ void RulesExtData::s_LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	SelectBoxTypeClass::LoadFromINIList(pINI);
 
 	PhobosAttachEffectTypeClass::LoadFromINIOnlyTheList(pINI);
+
 	TechTreeTypeClass::LoadFromINIOnlyTheList(pINI);
 
 	BannerTypeClass::LoadFromINIList(pINI);
@@ -996,6 +997,10 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->TypeSelectUseIFVMode.Read(exINI, GameStrings::General, "TypeSelectUseIFVMode");
 	this->BuildingRadioLink_SyncOwner.Read(exINI, GameStrings::General, "BuildingRadioLink.SyncOwner");
 	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, GameStrings::CombatDamage, "ApplyPerTargetEffectsOnDetonate");
+	this->ChasingExtraRange.Read(exINI, GameStrings::General, "ChasingExtraRange");
+	this->ChasingExtraRange_CloseRangeOnly.Read(exINI, GameStrings::General, "ChasingExtraRange.CloseRangeOnly");
+	this->PrefiringExtraRange.Read(exINI, GameStrings::General, "PrefiringExtraRange");
+	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General, "PrefiringExtraRange.IncludeBurst");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -1866,6 +1871,11 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AllowDeployControlledMCV)
 		.Process(this->TypeSelectUseIFVMode)
 		.Process(this->BuildingRadioLink_SyncOwner)
+		.Process(this->ApplyPerTargetEffectsOnDetonate)
+		.Process(this->ChasingExtraRange)
+		.Process(this->ChasingExtraRange_CloseRangeOnly)
+		.Process(this->PrefiringExtraRange)
+		.Process(this->PrefiringExtraRange_IncludeBurst)
 		;
 }
 

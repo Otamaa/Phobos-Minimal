@@ -28,7 +28,7 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	if (pWeaponExt)
 	{
 		pRadExt->Weapon = pWeaponExt->This();
-		pRadExt->Type = pWeaponExt->RadType.Get(0);
+		pRadExt->Type = pWeaponExt->RadType.Get(RadTypeClass::FindOrAllocate(GameStrings::Radiation()));
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
 	else

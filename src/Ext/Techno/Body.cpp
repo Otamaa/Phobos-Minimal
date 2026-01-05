@@ -685,7 +685,7 @@ DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5F04, FakeTechnoClass::__ShouldSelfHealOneStep)
 
 int __fastcall FakeTechnoClass::__TimeToBuild(TechnoClass* pThis)
 {
-	const auto pType = GET_TECHNOTYPE(pThis);
+	const auto pType = pThis->GetTechnoType();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto what = pThis->WhatAmI();
 	const bool isNaval = what == UnitClass::AbsID && pType->Naval;
@@ -3055,7 +3055,7 @@ Armor TechnoExtData::GetArmor(ObjectClass* pThis) {
 		Debug::Log("Death Techno used for GetArmor !\n");
 
 	if(pThis->AbstractFlags & AbstractFlags::Techno){
-		const auto pType = GET_TECHNOTYPE((TechnoClass*)pThis);
+		const auto pType = GET_TECHNOTYPE(((TechnoClass*)pThis));
 		Armor res = pType->Armor;
 
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find((TechnoTypeClass*)pType);
