@@ -42,7 +42,17 @@ static bool IsChasing(TechnoClass* pThis, AbstractClass* pTarget)
 	if (!pFootTarget)
 		return false;
 
-	if (!pFootTarget->Locomotor.GetInterfacePtr()->Is_Moving_Now())
+	if (!pFootTarget->Locomotor.GetInterfacePtr()->Is_Really_Moving_Now())
+		return false;
+
+	return true;
+}
+
+static bool IsMovingFire(TechnoClass* pThis)
+{
+	const auto pFoot = flag_cast_to<FootClass*, false>(pThis);
+
+	if (!pFoot || !pFoot->Locomotor.GetInterfacePtr()->Is_Really_Moving_Now())
 		return false;
 
 	return true;
@@ -141,6 +151,11 @@ ASMJIT_PATCH(0x6F7248, TechnoClass_InRange_Additionals, 0x6)
 			{
 				range += chasingExtraRange;
 			}
+
+			const auto firerMovingExtraRange = pTypeExt->ExtraRange_FirerMoving.Get(RulesExtData::Instance ()->ExtraRange_FirerMoving);
+
+			if (firerMovingExtraRange && IsMovingFire(pThis))
+				range += firerMovingExtraRange;
 		}
 	}
 

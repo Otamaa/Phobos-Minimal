@@ -267,7 +267,7 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
 ASMJIT_PATCH(0x469A69, BulletClass_Logics_DamageHouse, 0x6)
 {
 	GET(FakeBulletClass*, pThis, ESI);
-	GET(HouseClass*, pHouse, ECX);
+	//GET(HouseClass*, pHouse, ECX);
 	R->ECX(pThis->Owner ? pThis->Owner->Owner : pThis->_GetExtData()->Owner);
 	return 0x469A75;
 }

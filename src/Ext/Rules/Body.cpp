@@ -1001,6 +1001,9 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ChasingExtraRange_CloseRangeOnly.Read(exINI, GameStrings::General, "ChasingExtraRange.CloseRangeOnly");
 	this->PrefiringExtraRange.Read(exINI, GameStrings::General, "PrefiringExtraRange");
 	this->PrefiringExtraRange_IncludeBurst.Read(exINI, GameStrings::General, "PrefiringExtraRange.IncludeBurst");
+	this->ExtraRange_FirerMoving.Read(exINI, GameStrings::General, "ExtraRange.FirerMoving");
+	this->FiringAnim_Update.Read(exINI, GameStrings::AudioVisual, "FiringAnim.Update");
+	this->ExtendedPlayerRepair.Read(exINI, GameStrings::General, "ExtendedPlayerRepair");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -1876,6 +1879,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ChasingExtraRange_CloseRangeOnly)
 		.Process(this->PrefiringExtraRange)
 		.Process(this->PrefiringExtraRange_IncludeBurst)
+		.Process(this->ExtraRange_FirerMoving)
+		.Process(this->FiringAnim_Update)
+		.Process(this->ExtendedPlayerRepair)
 		;
 }
 

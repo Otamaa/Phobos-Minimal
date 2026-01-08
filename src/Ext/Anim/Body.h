@@ -44,6 +44,10 @@ public:
 
 	StageClass	DamagingState;
 	Point2D AEDrawOffset;
+
+	WeaponTypeClass* FromWeapon;
+	int FromWeaponIdx;
+	int FromBurstIdx;
 #pragma endregion
 
 public:
@@ -62,6 +66,10 @@ public:
 		, DelayedFireRemoveOnNoDelay { false }
 		, DamagingState { }
 		, AEDrawOffset {}
+
+		, FromWeapon {}
+		, FromWeaponIdx {}
+		, FromBurstIdx {}
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = AnimClass::AbsID;
@@ -174,6 +182,7 @@ public:
 	void _ApplyVeinsDamage();
 	void _ApplyDeformTerrrain();
 	void _ApplyHideIfNoOre();
+	void UpdateAsFiringAnim();
 	void _ApplySpawns(CoordStruct& coord);
 
 	void _CreateFootApplyOccupyBits();

@@ -277,6 +277,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ChasingExtraRange.Read(exINI, pSection, "ChasingExtraRange");
 	this->PrefiringExtraRange.Read(exINI, pSection, "PrefiringExtraRange");
 	this->PrefiringExtraRange_IncludeBurst.Read(exINI, pSection, "PrefiringExtraRange.IncludeBurst");
+	this->Anim_Update.Read(exINI, pSection, "Anim.Update");
 
 	this->SkipWeaponPicking = true;
 	if (this->CanTarget != AffectedTarget::All ||
@@ -617,6 +618,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->ChasingExtraRange)
 		.Process(this->PrefiringExtraRange)
 		.Process(this->PrefiringExtraRange_IncludeBurst)
+		.Process(this->Anim_Update)
 		.Process(this->MyAttachFireDatas)
 		
 		;

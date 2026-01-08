@@ -246,7 +246,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 														auto pBuildingProduct = static_cast<BuildingTypeClass*>(Techno_Type);
 														const auto pBuildingProductExt = TechnoTypeExtContainer::Instance.Find(pBuildingProduct);
 
-														bool IsAWall = pBuildingProduct->Wall;
+														IsAWall = pBuildingProduct->Wall;
 
 														if (IsAWall && pBuildingProductExt->BuildTime_Speed.isset())
 															IsAWall = false;

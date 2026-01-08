@@ -116,32 +116,23 @@ static int Calculate_Intensity_Ratio(const LaserDrawClass* laser)
 // --------------------------------------------------------------------------------
 // Helper: Prepare draw color (unchanged)
 // --------------------------------------------------------------------------------
-struct DrawColorInfo
-{
-	ColorStruct color;
-	unsigned char blue_component;
-};
 
-static DrawColorInfo Prepare_Draw_Color(const LaserDrawClass* laser)
+static ColorStruct Prepare_Draw_Color(const LaserDrawClass* laser)
 {
-	DrawColorInfo info;
-
 	if (laser->IsSupported) {
 		unsigned int r = static_cast<unsigned int>(laser->InnerColor.R) * 2;
 		unsigned int g = static_cast<unsigned int>(laser->InnerColor.G) * 2;
 		unsigned int b = static_cast<unsigned int>(laser->InnerColor.B) * 2;
 
-		info.color.R = static_cast<unsigned char>(std::min(r, 255u));
-		info.color.G = static_cast<unsigned char>(std::min(g, 255u));
-		info.color.B = static_cast<unsigned char>(std::min(b, 255u));
+		return {
+		static_cast<unsigned char>(std::min(r, 255u)),
+		static_cast<unsigned char>(std::min(g, 255u)),
+		static_cast<unsigned char>(std::min(b, 255u))
+		};
 	} else {
-		info.color.R = laser->InnerColor.R >> 1;
-		info.color.G = laser->InnerColor.G >> 1;
-		info.color.B = laser->InnerColor.B >> 1;
+		return { laser->InnerColor.R >> 1  , laser->InnerColor.G >> 1 , laser->InnerColor.B >> 1 };
 	}
 
-	info.blue_component = info.color.B;
-	return info;
 }
 
 // --------------------------------------------------------------------------------
@@ -187,7 +178,7 @@ static void Apply_Direction_Offset(
 // [HOOK ADDITION] Smooth exponential falloff calculation
 // Replaces the harsh halving (>>1) with gradual falloff
 // ============================================================================
-static double Calculate_Smooth_Falloff(int thickness, int current_layer)
+static COMPILETIMEEVAL double Calculate_Smooth_Falloff(int thickness, int current_layer)
 {
 	if (thickness <= 1)
 		return 1.0;
@@ -287,8 +278,8 @@ void FakeLaserDrawClaass::__DrawInHouseColor()
 	// ------------------------------------------------------------------------
 	// Prepare colors
 	// ------------------------------------------------------------------------
-	DrawColorInfo draw_info = Prepare_Draw_Color(this);
-	ColorStruct working_color = draw_info.color;
+	ColorStruct draw_info = Prepare_Draw_Color(this);
+	ColorStruct working_color = draw_info;
 
 	// ========================================================================
 	// [HOOK 0x550D1F] Capture max color for falloff calculations
@@ -343,7 +334,7 @@ void FakeLaserDrawClaass::__DrawInHouseColor()
 				else
 				{
 					ColorStruct rgb_work = working_color;
-					ColorStruct white { 255, 255, 255 };
+					static constexpr ColorStruct white { 255, 255, 255 };
 					rgb_work.Adjust(ratio, white);
 
 					const unsigned int packed = rgb_work.ToInit();

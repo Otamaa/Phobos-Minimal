@@ -413,6 +413,39 @@ void NOINLINE FakeAnimClass::_ApplyHideIfNoOre()
 		<= Math::abs(this->_GetTypeExtData()->HideIfNoOre_Threshold.Get());
 }
 
+void FakeAnimClass::UpdateAsFiringAnim()
+{
+	auto pOwner = flag_cast_to<TechnoClass*>(this->OwnerObject);
+	auto pExt = this->_GetExtData();
+
+	if (pExt->FromWeapon && pOwner && !pExt->FromWeapon->Anim.empty())
+	{
+		AnimTypeClass* pNewType = nullptr;
+		auto pWeapon = pExt->FromWeapon;
+
+		auto highest = Conversions::Int2Highest(pWeapon->Anim.Count);
+
+		// 2^highest is the frame count, 3 means 8 frames
+		if (highest >= 3)
+		{
+			auto offset = 1u << (highest - 3);
+			auto index = TranslateFixedPoint::Normal(16, highest, static_cast<WORD>((pOwner)->GetRealFacing().GetValue<16>()), offset);
+			pNewType = pWeapon->Anim.get_or_default(index);
+		} else {
+			pNewType = pWeapon->Anim.get_or_default(0);
+		}
+
+		this->Type = pNewType;
+
+		auto burstIdx = pOwner->CurrentBurstIndex;
+		pOwner->CurrentBurstIndex = pExt->FromBurstIdx;
+		CoordStruct flh;
+		pOwner->GetFLH(&flh , pExt->FromWeaponIdx, CoordStruct::Empty);
+		pOwner->CurrentBurstIndex = burstIdx;
+		this->SetLocation(flh - pOwner->GetCoords());
+	}
+}
+
 void NOINLINE FakeAnimClass::_CreateFootApplyOccupyBits()
 {
 	if (!this->Location.IsValid())
@@ -576,6 +609,7 @@ void FakeAnimClass::_AI()
 		}
 
 		this->_ApplyHideIfNoOre();
+		this->UpdateAsFiringAnim();
 		this->_CreateFootApplyOccupyBits();
 
 		if (this->Unpaused && this->PausedAnimFrame == this->Animation.Stage) {

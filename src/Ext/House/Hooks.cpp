@@ -521,3 +521,58 @@ ASMJIT_PATCH(0x4F9BFC, HouseClass_ClearForceEnemy, 0xA)	// HouseClass_MakeAlly
 	pThis->UpdateAngerNodes(0u,nullptr);
 	return R->Origin() + 0xA;
 }
+
+#include <Ext/Event/Body.h>
+
+ASMJIT_PATCH(0x536FA0, ToggleRepariModeCommandClass_Execute_PlayerAutoRepair, 0x7)
+{
+	if (Phobos::Config::TogglePowerInsteadOfRepair)
+		SidebarClass::Instance->SetTogglePowerMode(-1);
+	else if (!RulesExtData::Instance()->ExtendedPlayerRepair)
+		SidebarClass::Instance->SetRepairMode(-1);
+	else
+		EventExt::TogglePlayerAutoRepair::Raise();
+
+	return 0x536FAC;
+}
+
+DEFINE_HOOK(0x6A78F6, SidebarClass_Update_ToggleRepair, 0x9)
+{
+	GET(SidebarClass* const, pThis, ESI);
+
+	if (Phobos::Config::TogglePowerInsteadOfRepair)
+		pThis->SetTogglePowerMode(-1);
+	else if(!RulesExtData::Instance()->ExtendedPlayerRepair)
+		pThis->SetRepairMode(-1);
+	else 
+		EventExt::TogglePlayerAutoRepair::Raise();
+
+	return 0x6A78FF;
+}
+
+DEFINE_HOOK(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
+{
+	GET(SidebarClass* const, pThis, ESI);
+
+	return Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode :
+		!RulesExtData::Instance()->ExtendedPlayerRepair ? pThis->RepairMode :
+		HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer)->PlayerAutoRepair ?
+		0x6A7AFE : 0x6A7AE7;
+}
+
+DEFINE_HOOK(0x45063F, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x6)
+{
+	enum { CanAutoRepair = 0x450659, CanNotAutoRepair = 0x450813 };
+
+	if (!RulesExtData::Instance()->ExtendedPlayerRepair)
+		return 0;
+
+	GET(BuildingClass*, pThis, ESI);
+
+	if (HouseExtContainer::Instance.Find(pThis->Owner)->PlayerAutoRepair) {
+		return CanAutoRepair;
+	} else {
+		pThis->SetRepairState(0);
+		return CanNotAutoRepair;
+	}
+}

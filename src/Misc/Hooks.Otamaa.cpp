@@ -577,28 +577,6 @@ ASMJIT_PATCH(0x5D3ADE, MessageListClass_Init_MessageMax, 0x6)
 	return 0x0;
 }
 
-// replace the repair button fucntion to toggle power
-ASMJIT_PATCH(0x6A78F6, SidebarClass_AI_RepairMode_ToggelPowerMode, 0x9)
-{
-	GET(SidebarClass* const, pThis, ESI);
-
-	if (Phobos::Config::TogglePowerInsteadOfRepair)
-		pThis->SetTogglePowerMode(-1);
-	else
-		pThis->SetRepairMode(-1);
-
-	return 0x6A78FF;
-}
-
-// replace the repair button fucntion to toggle power
-ASMJIT_PATCH(0x6A7AE1, SidebarClass_AI_DisableRepairButton_TogglePowerMode, 0x6)
-{
-	GET(SidebarClass* const, pThis, ESI);
-
-	return Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode : pThis->RepairMode ?
-		0x6A7AFE : 0x6A7AE7;
-}
-
 ASMJIT_PATCH(0x508CE6, HouseClass_UpdatePower_LimboDeliver, 0x6)
 {
 	GET(BuildingClass*, pBld, EDI);
@@ -6504,12 +6482,10 @@ ASMJIT_PATCH(0x7084E9, HouseClass_BaseIsAttacked_StopRecuiting, 0x6)
 
 int FakeUnitClass::_Mission_Attack()
 {
-	if (this->BunkerLinkedItem && this->Target)
-	{
+	if (this->BunkerLinkedItem && this->Target) {
 		auto err = this->GetFireError(this->Target, this->SelectWeapon(this->Target), false);
 
-		if (err == FireError::CANT || err == FireError::RANGE)
-		{
+		if (err == FireError::CANT || err == FireError::RANGE) {
 
 			this->SetTarget(nullptr);
 			this->EnterIdleMode(false, 1u);
@@ -6530,19 +6506,15 @@ static void ProcessColorAdd(CCINIClass* pINI)
 {
 	const int count = pINI->GetKeyCount(GameStrings::ColorAdd);
 
-	if (count > 0)
-	{
-		struct temp_rgb
-		{
+	if (count > 0) {
+		struct temp_rgb {
 			byte r, g, b;
 
-			operator ColorStruct()
-			{
+			operator ColorStruct() {
 				return *reinterpret_cast<ColorStruct*>(this);
 			}
 
-			operator byte* ()
-			{
+			operator byte* () {
 				return reinterpret_cast<byte*>(this);
 			}
 		};
@@ -6551,28 +6523,23 @@ static void ProcessColorAdd(CCINIClass* pINI)
 		//the code below can be simplified
 		std::vector<temp_rgb> v_buffer(count);
 
-		for (size_t i = 0; i < v_buffer.size(); ++i)
-		{
+		for (size_t i = 0; i < v_buffer.size(); ++i) {
 			pINI->Read3Bytes((v_buffer[i]).operator unsigned char* ()
 				, GameStrings::ColorAdd
 				, pINI->GetKeyName(GameStrings::ColorAdd, i)
 				, (v_buffer[i]).operator unsigned char* ());
 		}
 
-		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size())
-		{
+		if (v_buffer.size() >= RulesClass::Instance->ColorAdd.size()) {
 			Debug::LogInfo("Attempt to read ColorAdd more than array size {}", count);
 			Debug::RegisterParserError();
 		}
 
-		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a)
-		{
+		for (size_t a = 0; a < RulesClass::Instance->ColorAdd.size(); ++a) {
 			RulesClass::Instance->ColorAdd[a] = v_buffer[a];
 		}
 
-	}
-	else
-	{
+	} else {
 		Debug::FatalErrorAndExit("Empty ColorAdd\n");
 	}
 }

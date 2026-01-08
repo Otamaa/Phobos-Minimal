@@ -434,10 +434,18 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	{
 		auto pFiring = GameCreate<AnimClass>(pFiringAnim, crdSrc, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 		AnimExtData::SetAnimOwnerHouseKind(pFiring, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false, false);
-		if (pThis->WhatAmI() != BuildingClass::AbsID)
+		auto pAnimExt = AnimExtContainer::Instance.Find(pFiring);
+
+		if (pWeapon->_GetExtData()->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update)) {
+			pAnimExt->FromWeapon = pWeapon;
+			pAnimExt->FromWeaponIdx = weaponIdx;
+			pAnimExt->FromBurstIdx = pThis->CurrentBurstIndex;
+		}
+		// if (pThis->WhatAmI() != BuildingClass::AbsID)
+		// {
+		// 	pFiring->SetOwnerObject(pThis);
+		// } else
 		{
-			pFiring->SetOwnerObject(pThis);
-		} else {
 			if (pThis->GetOccupantCount() > 0) {
 				pFiring->ZAdjust = -200;
 			} else {

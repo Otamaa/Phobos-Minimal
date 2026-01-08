@@ -2926,6 +2926,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->Productions)
 		.Process(this->BestChoicesNaval)
 		.Process(this->AITriggers_ValidList)
+		.Process(this->PlayerAutoRepair)
 		;
 }
 #endif

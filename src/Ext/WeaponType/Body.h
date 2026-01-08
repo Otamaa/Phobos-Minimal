@@ -207,6 +207,9 @@ public:
 	Nullable<Leptons> ChasingExtraRange;
 	Nullable<Leptons> PrefiringExtraRange;
 	Nullable<bool> PrefiringExtraRange_IncludeBurst;
+	Nullable<Leptons> ExtraRange_FirerMoving;
+
+	Nullable<bool> Anim_Update;
 #pragma endregion
 
 public:
@@ -346,7 +349,9 @@ public:
 		OnlyAttacker(false),
 		ChasingExtraRange (),
 		PrefiringExtraRange (),
-		PrefiringExtraRange_IncludeBurst ()
+		PrefiringExtraRange_IncludeBurst (),
+		ExtraRange_FirerMoving (),
+		Anim_Update ()
 	{
 		this->AbsType = WeaponTypeClass::AbsID;
 		this->Initialize();

@@ -227,3 +227,33 @@ void EventExt::FirewallToggle::Respond(EventClass* Event)
 		AresHouseExt::SetFirestormState(pSourceHouse, !pSourceHouse->FirestormActive);
 	}
 }
+
+void EventExt::TogglePlayerAutoRepair::Raise()
+{
+	EventClass Event {};
+
+	Event.Type = AsEventType();
+	Event.HouseIndex = byte(HouseClass::CurrentPlayer->ArrayIndex);
+
+	EventExt::AddToEvent<true, false, TogglePlayerAutoRepair>(Event);
+}
+
+void EventExt::TogglePlayerAutoRepair::Respond(EventClass* Event)
+{
+	if (HouseClass* pSourceHouse = HouseClass::Array->get_or_default(Event->HouseIndex))
+	{
+		auto pExt = HouseExtContainer::Instance.Find(pSourceHouse);
+
+		pExt->PlayerAutoRepair = !pExt->PlayerAutoRepair;
+
+		if (HouseClass::CurrentPlayer == pSourceHouse && !Phobos::Config::TogglePowerInsteadOfRepair) {
+			SidebarClass::Instance->SidebarNeedsRedraw = true;
+			auto pButton = &Make_Global<ShapeButtonClass>(0xB0B3A0);
+
+			if (pExt->PlayerAutoRepair)
+				pButton->TurnOn();
+			else
+				pButton->TurnOff();
+		}
+	}
+}
