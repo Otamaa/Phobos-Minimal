@@ -3034,3 +3034,17 @@ ASMJIT_PATCH(0x4DEBC4, FootClass_Crash_PreplacedAircraft, 0x7)
 
 #pragma endregion
 
+ASMJIT_PATCH(0x6FBFA3, TechnoClass_Select_SkipLimboDelivery, 0x6)
+{
+	enum { SkipSelect = 0x6FC029 };
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	if (auto const pBuilding = cast_to<BuildingClass*, false>(pThis)){
+		auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
+		if(pExt->LimboID != -1)
+		   return SkipSelect;
+	}
+
+	return 0;
+}
