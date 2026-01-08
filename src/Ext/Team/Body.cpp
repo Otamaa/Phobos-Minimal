@@ -330,7 +330,7 @@ void FakeTeamClass::_TMission_Guard(ScriptActionNode* nNode, bool arg3)
 
 	this->_CoordinateRegroup();
 
-	if (!this->GuardAreaTimer.IsTicking() || this->GuardAreaTimer.GetTimeLeft() <= 0)
+	if (!this->GuardAreaTimer.HasTimeLeft())
 		this->StepCompleted = true;
 
 	//Debug::LogInfo("Script {} GuardAreaTimer Left {}", this->CurrentScript->Type->ID, );
@@ -351,16 +351,19 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 	// ------------------------------------------------------------
 	TechnoClass* pLeader = this->_Fetch_A_Leader();
 
+	if (!pLeader) {
+		this->StepCompleted = true;
+		return;
+	}
+
 	// ------------------------------------------------------------
 	// Get enemy house (optional - may be null)
 	// ------------------------------------------------------------
 	HouseClass* pEnemyHouse = nullptr;
 
-	if (pLeader) {
-		int enemyIndex = pLeader->Owner->EnemyHouseIndex;
-		if (enemyIndex != -1) {
-			pEnemyHouse = HouseClass::Array->Items[enemyIndex];
-		}
+	int enemyIndex = pLeader->Owner->EnemyHouseIndex;
+	if (enemyIndex != -1) {
+		pEnemyHouse = HouseClass::Array->Items[enemyIndex];
 	}
 
 	// ------------------------------------------------------------
@@ -384,7 +387,7 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 		int deltaY = enemyBase.Y - ourBase.Y;
 
 		double angleRadians = Math::atan2(double(-deltaY), double(deltaX));
-		angleRadians -= Math::DEG90_AS_RAD;
+			   angleRadians -= Math::DEG90_AS_RAD;
 
 		binaryAngle = static_cast<short>(angleRadians * Math::BINARY_ANGLE_MAGIC);
 	}
@@ -417,7 +420,8 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 	SpeedType speed = GET_TECHNOTYPE(pLeader)->SpeedType;
 	CellStruct searchParams = { 0, 0 };
 
-	CellStruct resulttargetCell = MapClass::Instance->NearByLocation(targetCell, speed,
+	CellStruct resulttargetCell = MapClass::Instance->NearByLocation(targetCell,
+		speed,
 		ZoneType::None,
 		MovementZone::Normal,
 		false,

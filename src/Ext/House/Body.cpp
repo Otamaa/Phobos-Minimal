@@ -3401,11 +3401,12 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x4FC790, FakeHouseClass::_BlowUpAllBuildings)
 void FakeHouseClass::_UpdateRadar() {
 	auto pExt = this->_GetExtData();
 
-	bool radarAvailable = pExt->ForceRadar ? pExt->FreeRadar: !pExt->Batteries.empty();
+	bool radarAvailable = this == HouseClass::Observer() ?
+		true : pExt->ForceRadar ? pExt->FreeRadar: !pExt->Batteries.empty();
 
     this->RecheckRadar = 0;
 
-	if (this != HouseClass::CurrentPlayer() || !pExt->Batteries.empty()) {
+	if (this != HouseClass::CurrentPlayer()) {
     	return;
     }
 

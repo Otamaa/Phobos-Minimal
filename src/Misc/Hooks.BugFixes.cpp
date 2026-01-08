@@ -2682,14 +2682,11 @@ ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (const auto pInfantry = cast_to<InfantryClass*>(pThis))
-	{
+	if (const auto pInfantry = cast_to<InfantryClass*, false>(pThis)) {
 		const int deployFireWeapon = pInfantry->Type->DeployFireWeapon;
 
 		R->EAX(deployFireWeapon == -1 ? pInfantry->SelectWeapon(pInfantry->Target) : deployFireWeapon);
-	}
-	else
-	{
+	} else {
 		R->EAX(pThis->IsNotSprayAttack());
 	}
 
@@ -2947,27 +2944,25 @@ ASMJIT_PATCH(0x44939F, BuildingClass_Captured_BuildupFix, 0x7)
 #pragma endregion
 
 #pragma region ClearTargetOnOwnerChanged
+#include <AirstrikeClass.h>
 
 ASMJIT_PATCH(0x70D4A0, AbstractClass_ClearTargetToMe_ClearManagerTarget, 0x5)
 {
 	GET(AbstractClass*, pThis, ECX);
 
-	for (const auto pTemporal : *TemporalClass::Array)
-	{
+	for (const auto pTemporal : *TemporalClass::Array) {
 		if (pTemporal->Target == pThis)
 			pTemporal->LetGo();
 	}
 
 	// WW don't clear target if the techno has airstrike manager.
 	// No idea why, but for now we respect it and don't handle the airstrike target.
-	//for (const auto pAirstrike : AirstrikeClass::Array)
-	//{
-	//	if (pAirstrike->Target == pThis)
-	//		pAirstrike->ClearTarget();
-	//}
+	for (const auto pAirstrike : *AirstrikeClass::Array) {
+		if (pAirstrike->Target == pThis)
+			pAirstrike->ResetTarget();
+	}
 
-	for (const auto pSpawn : *SpawnManagerClass::Array)
-	{
+	for (const auto pSpawn : *SpawnManagerClass::Array) {
 		if (pSpawn->Target == pThis)
 			pSpawn->ResetTarget();
 	}
@@ -3030,8 +3025,6 @@ ASMJIT_PATCH(0x4DEBC4, FootClass_Crash_PreplacedAircraft, 0x7)
 
 }
 
-
-
 #pragma endregion
 
 ASMJIT_PATCH(0x6FBFA3, TechnoClass_Select_SkipLimboDelivery, 0x6)
@@ -3041,8 +3034,7 @@ ASMJIT_PATCH(0x6FBFA3, TechnoClass_Select_SkipLimboDelivery, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 
 	if (auto const pBuilding = cast_to<BuildingClass*, false>(pThis)){
-		auto pExt = BuildingExtContainer::Instance.Find(pBuilding);
-		if(pExt->LimboID != -1)
+		if(BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
 		   return SkipSelect;
 	}
 
