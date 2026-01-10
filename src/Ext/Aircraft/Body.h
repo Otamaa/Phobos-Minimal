@@ -7,6 +7,15 @@
 class AbstractClass;
 class AircraftClass;
 class WeaponTypeClass;
+
+namespace AircraftConstants {
+	constexpr int MinDistanceForFacing = 512;
+	constexpr int MinDistanceToTarget = 16;
+	constexpr int FacingErrorTimeout = 45;
+	constexpr int LandingProximity = 768;
+	constexpr int StrafeCalculationOffset = 1024;
+	constexpr double MinVelocityLength = 0.001;
+}
 class AircraftExtData : public FootExtData
 {
 public:

@@ -1,6 +1,7 @@
 #include "Body.h"
 
 #include <AircraftClass.h>
+#include <Ext/Aircraft/Body.h>
 
 #include <AircraftTrackerClass.h>
 #include <Locomotor/FlyLocomotionClass.h>
@@ -154,7 +155,7 @@ ASMJIT_PATCH(0x4CF190, FlyLocomotionClass_FlightUpdate_SetPrimaryFacing, 0x6) //
 			const auto footCoords = pFoot->GetCoords();
 			const auto desired = DirStruct(std::atan2((double)(footCoords.Y - destination.Y), (double)(destination.X - footCoords.X)));
 
-			if (!iFly || !iFly->Is_Strafe() || horizontalDistance(footCoords) > 768 // I don't know why it's 3 cells' length, but its vanilla, keep it
+			if (!iFly || !iFly->Is_Strafe() || horizontalDistance(footCoords) > AircraftConstants::LandingProximity // I don't know why it's 3 cells' length, but its vanilla, keep it
 				|| Math::abs(static_cast<short>(static_cast<short>(desired.Raw) - static_cast<short>(pFoot->PrimaryFacing.Current().Raw))) >= 8192)
 			{
 				pFoot->PrimaryFacing.Set_Desired(desired);
@@ -357,7 +358,7 @@ ASMJIT_PATCH(0x4CF3D0, FlyLocomotionClass_FlightUpdate_SetFlightLevel, 0x7) // M
 			R->EBP(pThis);
 
 			// Same as vanilla
-			if (pThis->IsElevating && distance < 768)
+			if (pThis->IsElevating && distance < AircraftConstants::LandingProximity)
 			{
 				// Fast descent
 				const auto floorHeight = MapClass::Instance->GetCellFloorHeight(pThis->MovingDestination);
