@@ -2007,12 +2007,26 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 	{
 	case InfantryTypeClass::AbsID:
 		recruitedUnit = FindClosestInfantry(this, memberIndex, recruitLocation, targetGroup);
-		if (recruitedUnit)
-		{
-			recruitedUnit->SetTarget(nullptr);
-			this->_Add2(recruitedUnit, false);
+		break;
+	case AircraftTypeClass::AbsID:
+		recruitedUnit = FindClosestAircraft(this, memberIndex, recruitLocation, targetGroup);
+		break;
+	case UnitTypeClass::AbsID:
+		recruitedUnit = FindClosestUnit(this, memberIndex, recruitLocation, targetGroup);
+		break;
+	default:
+		return false;
+	}
 
-			// For infantry with cargo/passengers, also add them
+	// Add recruited unit to team
+	if (recruitedUnit)
+	{
+		recruitedUnit->SetTarget(nullptr);
+		this->_Add2(recruitedUnit, false);
+
+		// For units with cargo, also add attached objects
+		if (unitKind == UnitTypeClass::AbsID)
+		{
 			FootClass* cargo = recruitedUnit->Passengers.GetFirstPassenger();
 			while (cargo)
 			{
@@ -2024,28 +2038,8 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 
 				cargo = (FootClass*)cargo->NextObject;
 			}
-
-			return true;
 		}
-		return false;
 
-	case AircraftTypeClass::AbsID:
-		recruitedUnit = FindClosestAircraft(this, memberIndex, recruitLocation, targetGroup);
-		break;
-
-	case UnitTypeClass::AbsID:
-		recruitedUnit = FindClosestUnit(this, memberIndex, recruitLocation, targetGroup);
-		break;
-
-	default:
-		return false;
-	}
-
-	// Add recruited unit to team (for Aircraft and Units)
-	if (recruitedUnit)
-	{
-		recruitedUnit->SetTarget(nullptr);
-		this->_Add2(recruitedUnit, false);
 		return true;
 	}
 
