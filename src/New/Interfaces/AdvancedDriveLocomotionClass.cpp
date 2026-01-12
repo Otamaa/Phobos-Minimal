@@ -307,11 +307,10 @@ bool AdvancedDriveLocomotionClass::Is_Moving_Now()
 	if (this->LinkedTo->PrimaryFacing.Is_Rotating())
 		return true;
 
-	return (this->TargetCoord != CoordStruct::Empty
-			|| this->HeadToCoord.X != this->LinkedTo->Location.X
-			|| this->HeadToCoord.Y != this->LinkedTo->Location.Y)
-		&& this->HeadToCoord != CoordStruct::Empty
-		&& this->LinkedTo->GetCurrentSpeed() > 0;
+	if (this->Is_Moving())
+		return this->HeadToCoord != CoordStruct::Empty && this->LinkedTo->GetCurrentSpeed() > 0;
+
+	return false;
 }
 
 void AdvancedDriveLocomotionClass::Mark_All_Occupation_Bits(int mark)

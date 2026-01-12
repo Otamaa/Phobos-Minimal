@@ -640,8 +640,12 @@ NOINLINE void CalculateVelocity(AircraftClass* pThis , BulletClass* pBullet , Ab
 
 		if (yawRad != 0.0)
 		{
-			velocity->X /= Math::cos(yawRad);
-			velocity->Y /= Math::cos(yawRad);
+			const double cosYaw = Math::cos(yawRad);
+			if (Math::abs(cosYaw) > 0.001) // Prevent division by zero when cosine is near zero
+			{
+				velocity->X /= cosYaw;
+				velocity->Y /= cosYaw;
+			}
 		}
 
 		velocity->X *= Math::COS_DIRECTION_FIXED_MAGIC;
