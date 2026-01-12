@@ -1187,7 +1187,8 @@ void FakeTeamClass::_Coordinate_Attack() {
 		// Handle unit initialization (bringing units to formation zone)
 		if (unitToProcess->Health
 			&& (Unsorted::ScenarioInit || !unitToProcess->InLimbo)
-			&& !unitToProcess->IsTeamLeader)
+			&& !unitToProcess->IsTeamLeader
+			&& this->Zone)  // Need Zone to be set
 		{
 			int allowedStrayDistance = this->_Get_Stray();
 
@@ -1303,19 +1304,29 @@ void FakeTeamClass::_CoordinateMove() {
 		{
 			const int strayDistance = this->_Get_Stray();
 
-			if (pUnit->DistanceFrom(this->Zone) <= strayDistance)
+			// Need Zone to be set for uninitiated units to move to it
+			if (this->Zone)
 			{
-				pUnit->IsTeamLeader = true;
+				if (pUnit->DistanceFrom(this->Zone) <= strayDistance)
+				{
+					pUnit->IsTeamLeader = true;
+				}
+				else
+				{
+					if (!pUnit->Destination)
+					{
+						pUnit->QueueMission(Mission::Move, false);
+						pUnit->SetTarget(nullptr);
+						pUnit->SetDestination(this->Zone, true);
+					}
+
+					finished = false;
+				}
 			}
 			else
 			{
-				if (!pUnit->Destination)
-				{
-					pUnit->QueueMission(Mission::Move, false);
-					pUnit->SetTarget(nullptr);
-					pUnit->SetDestination(this->Zone, true);
-				}
-
+				// If Zone is not set, can't determine if unit is close enough
+				// Leave unit as uninitiated and mark as not finished
 				finished = false;
 			}
 		}
@@ -1556,6 +1567,10 @@ bool FakeTeamClass::_Coordinate_Conscript(FootClass* a2) {
 		return 0;
 	}
 
+	// Cannot conscript if Zone is not set
+	if (!this->Zone)
+		return 1;
+
 	int strayDistance = this->_Get_Stray();
 	if (a2->DistanceFrom(this->Zone) <= strayDistance)
 	{
@@ -1578,6 +1593,10 @@ bool FakeTeamClass::_Coordinate_Conscript(FootClass* a2) {
 
 void FakeTeamClass::_Coordinate_Do(ScriptActionNode* pNode, CellStruct unused) {
 	auto const& [miss, value] = *pNode;
+
+	// Cannot coordinate without Zone
+	if (!this->Zone)
+		return;
 
 	for (auto i = this->FirstUnit; i; i = i->NextTeamMember) {
 		if (i->IsAlive)
