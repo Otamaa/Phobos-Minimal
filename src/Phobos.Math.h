@@ -23,19 +23,19 @@ struct PhobosMath
 		return std::atan2(a1, a2);
 	}
 
-	static float __cdecl cosd(double a1)
+	static double __cdecl cosd(double a1)
 	{
-		return (float)std::cos(a1);
+		return std::cos(a1);
 	}
 
-	static float __cdecl sind(double a1)
+	static double __cdecl sind(double a1)
 	{
-		return (float)std::sin(a1);
+		return std::sin(a1);
 	}
 
-	static float __cdecl sqrtd(double a1)
+	static double __cdecl sqrtd(double a1)
 	{
-		return (float)std::sqrt(a1);
+		return std::sqrt(a1);
 	}
 
 	static double __cdecl tand(double a1)
@@ -44,43 +44,43 @@ struct PhobosMath
 	}
 
 	//===================================
-	static double __cdecl acosf(float a1)
+	static float __cdecl acosf(float a1)
 	{
-		return std::acos(a1);
+		return (float)std::acos(a1);
 	}
 
-	static double __stdcall asinf(float a1)
+	static float __cdecl asinf(float a1)
 	{
-		return std::asin(a1);
+		return (float)std::asin(a1);
 	}
 
-	static double __stdcall atanf(float a1)
+	static float __cdecl atanf(float a1)
 	{
-		return std::atan(a1);
+		return (float)std::atan(a1);
 	}
 
-	static double __stdcall atan2f(float a1, float a2)
+	static float __cdecl atan2f(float a1, float a2)
 	{
-		return std::atan2(a1, a2);
+		return (float)std::atan2(a1, a2);
 	}
 
-	static double __cdecl cosf(float a1)
+	static float __cdecl cosf(float a1)
 	{
-		return std::cos(a1);
+		return (float)std::cos(a1);
 	}
 
-	static double __cdecl sinf(float a1)
+	static float __cdecl sinf(float a1)
 	{
-		return std::sin(a1);
+		return (float)std::sin(a1);
 	}
 
-	static double __cdecl sqrtf(float a1)
+	static float __cdecl sqrtf(float a1)
 	{
-		return std::sqrt(a1);
+		return (float)std::sqrt(a1);
 	}
 
-	static double __cdecl tanf(float a1)
+	static float __cdecl tanf(float a1)
 	{
-		return std::tan(a1);
+		return (float)std::tan(a1);
 	}
 };
