@@ -1878,7 +1878,9 @@ FootClass* FindClosestInfantry(TeamClass* team, int memberIndex, const CoordStru
 			distance += 12800; // Penalty for wrong group
 
 		// Check if this is a better candidate
-		if ((minDistance == -1 || distance < minDistance) &&
+		if (team->OwnerHouse == infantry->Owner && 
+			TeamExtData::IsEligible(team->Type->TaskForce->Entries[memberIndex].Type, infantry->Type) &&
+			(minDistance == -1 || distance < minDistance) &&
 			((FakeTeamClass*)team)->_Can_Add(infantry, &memberIndex, 0))
 		{
 			closestInfantry = infantry;
@@ -1909,7 +1911,9 @@ FootClass* FindClosestAircraft(TeamClass* team, int memberIndex, const CoordStru
 			distance += 12800; // Penalty for wrong group
 
 		// Check if this is a better candidate
-		if ((minDistance == -1 || distance < minDistance) &&
+		if (team->OwnerHouse == aircraft->Owner && 
+			TeamExtData::IsEligible(team->Type->TaskForce->Entries[memberIndex].Type, aircraft->Type) &&
+			(minDistance == -1 || distance < minDistance) &&
 			((FakeTeamClass*)team)->_Can_Add(aircraft, &memberIndex, 0))
 		{
 			closestAircraft = aircraft;
@@ -1984,39 +1988,45 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 	{
 	case InfantryTypeClass::AbsID:
 		recruitedUnit = FindClosestInfantry(this, memberIndex, recruitLocation, targetGroup);
-		break;
-	case AircraftTypeClass::AbsID:
-		recruitedUnit = FindClosestAircraft(this, memberIndex, recruitLocation, targetGroup);
-		break;
-	case UnitTypeClass::AbsID:
-		recruitedUnit = FindClosestUnit(this, memberIndex, recruitLocation, targetGroup);
-		break;
-	default:
-		return false;
-	}
-
-	// Add recruited unit to team
-	if (recruitedUnit)
-	{
-		recruitedUnit->SetTarget(nullptr);
-		this->_Add2(recruitedUnit, false);
-
-		// For units with cargo, also add attached objects
-		if (unitKind == UnitTypeClass::AbsID)
+		if (recruitedUnit)
 		{
+			recruitedUnit->SetTarget(nullptr);
+			this->_Add2(recruitedUnit, false);
+
+			// For infantry with cargo/passengers, also add them
 			FootClass* cargo = recruitedUnit->Passengers.GetFirstPassenger();
 			while (cargo)
 			{
 				this->_Add2(cargo, false);
 
-				// Check if next cargo item is still attached (bit 2 of TargetBitfield)
+				// Check if next cargo item is still attached (Foot flag)
 				if ((cargo->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
 					break;
 
 				cargo = (FootClass*)cargo->NextObject;
 			}
-		}
 
+			return true;
+		}
+		return false;
+
+	case AircraftTypeClass::AbsID:
+		recruitedUnit = FindClosestAircraft(this, memberIndex, recruitLocation, targetGroup);
+		break;
+
+	case UnitTypeClass::AbsID:
+		recruitedUnit = FindClosestUnit(this, memberIndex, recruitLocation, targetGroup);
+		break;
+
+	default:
+		return false;
+	}
+
+	// Add recruited unit to team (for Aircraft and Units)
+	if (recruitedUnit)
+	{
+		recruitedUnit->SetTarget(nullptr);
+		this->_Add2(recruitedUnit, false);
 		return true;
 	}
 
