@@ -7426,7 +7426,7 @@ public:
 										const float uz = deltax * sinA - deltay * cosA;
 										const float uy = deltaz;
 
-										float proj = Math::sqrtux * ux + uz * uz + uy * uy);
+										float proj = Math::sqrt(ux * ux + uz * uz + uy * uy);
 										const float align = cosA * ux - sinA * proj;
 
 										if (Math::abs(align - deltax) > 0.0002f || Math::abs(cosA * proj + sinA * ux - deltay) > 0.0002f)
