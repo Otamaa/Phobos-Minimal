@@ -3507,9 +3507,11 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 			this->Type->OnlyTargetHouseEnemy
 		)) {
 			// Fire Chronosphere at team zone
-			CoordStruct zoneCoord = this->Zone->GetCoords();
-			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-			house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+			if (this->Zone) {
+				CoordStruct zoneCoord = this->Zone->GetCoords();
+				CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
+				house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+			}
 
 			// Fire Chronoshift at target building
 			CoordStruct targetCoord = targetBuilding->GetCoords();
@@ -3631,7 +3633,7 @@ void FakeTeamClass::_TMission_Iron_Curtain_Me(ScriptActionNode* nNode, bool arg3
 		}
 	}
 
-	if (found)
+	if (found && this->Zone)
 	{
 		auto nCoord = this->Zone->GetCoords();
 		pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
@@ -3686,9 +3688,11 @@ void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool a
 		))
 		{
 			// Fire Chronosphere at zone
-			CoordStruct zoneCoord = this->Zone->GetCoords();
-			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-			house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+			if (this->Zone) {
+				CoordStruct zoneCoord = this->Zone->GetCoords();
+				CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
+				house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+			}
 
 			// Fire Chronoshift at threat
 			CoordStruct threatCoord = threat->GetCoords();
@@ -4893,6 +4897,12 @@ bool FakeTeamClass::_CoordinateRegroup()
 	if (!Member) {
 		this->NeedsReGrouping = 0;
 		return true;
+	}
+
+	// Cannot regroup without Zone
+	if (!this->Zone) {
+		this->NeedsReGrouping = 0;
+		return false;
 	}
 
 	int stray = this->_Get_Stray();
