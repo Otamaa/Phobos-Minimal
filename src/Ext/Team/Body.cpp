@@ -2283,7 +2283,11 @@ void StopScript(FakeTeamClass* pTeam) {
 	// 1. Team reaches full strength (IsFullStrength)
 	// 2. Team is forced active (IsForcedActive)  
 	// 3. Team has had full strength before (IsHasBeen) - allows under-strength teams to advance
-	if (pTeam->IsFullStrength || pTeam->IsForcedActive || pTeam->IsHasBeen) {
+	// 4. Team has never been started (!IsHasBeen) AND has at least one member - start fresh teams
+	const bool hasMembers = pTeam->FirstUnit != nullptr;
+	const bool shouldStart = pTeam->IsFullStrength || pTeam->IsForcedActive || pTeam->IsHasBeen || (!pTeam->IsHasBeen && hasMembers);
+	
+	if (shouldStart) {
 		pTeam->_TeamClass_6EA080();
 	}
 }
