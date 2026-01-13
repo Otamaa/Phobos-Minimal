@@ -63,7 +63,7 @@ public:
 	{
 		// Convert coord to cell, and back again to get the absolute position.
 		const CellStruct cell = this->TocellStruct();
-		CoordStruct tmp {cell.X * 256 , cell.Y * 256};
+		CoordStruct tmp {cell.X * 256 , cell.Y * 256, 0};
 
 		// Snap coord to cell center.
 		tmp.X += 256 / 2;
