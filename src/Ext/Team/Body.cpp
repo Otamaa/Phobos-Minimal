@@ -1557,6 +1557,7 @@ void FakeTeamClass::_CoordinateMove() {
 	// ============================================================
 	if (found && finished && this->IsMoving)
 	{
+		this->IsMoving = false;
 		this->StepCompleted = true;
 	}
 }
