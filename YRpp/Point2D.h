@@ -64,10 +64,10 @@ public:
 	COMPILETIMEEVAL Point2D operator/(int factor) const { return {X / factor, Y / factor};}
 	COMPILETIMEEVAL Point2D& operator/=(int factor) { X /= factor; Y /= factor; return *this; }
 
-	COMPILETIMEEVAL Point2D operator%(const Point2D& that) const { return {X / that.X, Y / that.Y};}
-	COMPILETIMEEVAL Point2D operator%=(const Point2D& that) { X /= that.X; Y /= that.Y; return *this; }
-	COMPILETIMEEVAL Point2D operator%(int factor) const { return {X / factor, Y / factor};}
-	COMPILETIMEEVAL Point2D& operator%=(int factor) { X /= factor; Y /= factor; return *this; }
+	COMPILETIMEEVAL Point2D operator%(const Point2D& that) const { return {X % that.X, Y % that.Y};}
+	COMPILETIMEEVAL Point2D operator%=(const Point2D& that) { X %= that.X; Y %= that.Y; return *this; }
+	COMPILETIMEEVAL Point2D operator%(int factor) const { return {X % factor, Y % factor};}
+	COMPILETIMEEVAL Point2D& operator%=(int factor) { X %= factor; Y %= factor; return *this; }
 
 	COMPILETIMEEVAL Point2D operator&(const Point2D& that) const { return {X & that.X, Y & that.Y};}
 	COMPILETIMEEVAL Point2D operator&=(const Point2D& that) { X &= that.X; Y &= that.Y; return *this; }

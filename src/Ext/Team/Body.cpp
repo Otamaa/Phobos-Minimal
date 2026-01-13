@@ -566,7 +566,7 @@ void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
 		false,
 		false,
 		true,
-		searchParams,
+		targetCell,
 		false,
 		false
 	);
@@ -1187,7 +1187,8 @@ void FakeTeamClass::_Coordinate_Attack() {
 		// Handle unit initialization (bringing units to formation zone)
 		if (unitToProcess->Health
 			&& (Unsorted::ScenarioInit || !unitToProcess->InLimbo)
-			&& !unitToProcess->IsTeamLeader)
+			&& !unitToProcess->IsTeamLeader
+			&& this->Zone)  // Need Zone to be set
 		{
 			int allowedStrayDistance = this->_Get_Stray();
 
@@ -1303,19 +1304,29 @@ void FakeTeamClass::_CoordinateMove() {
 		{
 			const int strayDistance = this->_Get_Stray();
 
-			if (pUnit->DistanceFrom(this->Zone) <= strayDistance)
+			// Need Zone to be set for uninitiated units to move to it
+			if (this->Zone)
 			{
-				pUnit->IsTeamLeader = true;
+				if (pUnit->DistanceFrom(this->Zone) <= strayDistance)
+				{
+					pUnit->IsTeamLeader = true;
+				}
+				else
+				{
+					if (!pUnit->Destination)
+					{
+						pUnit->QueueMission(Mission::Move, false);
+						pUnit->SetTarget(nullptr);
+						pUnit->SetDestination(this->Zone, true);
+					}
+
+					finished = false;
+				}
 			}
 			else
 			{
-				if (!pUnit->Destination)
-				{
-					pUnit->QueueMission(Mission::Move, false);
-					pUnit->SetTarget(nullptr);
-					pUnit->SetDestination(this->Zone, true);
-				}
-
+				// If Zone is not set, can't determine if unit is close enough
+				// Leave unit as uninitiated and mark as not finished
 				finished = false;
 			}
 		}
@@ -1544,8 +1555,9 @@ void FakeTeamClass::_CoordinateMove() {
 	// ============================================================
 	// All units processed - check if mission complete
 	// ============================================================
-	if (found && finished && this->IsMoving)
+	if (found && finished)
 	{
+		this->IsMoving = false;
 		this->StepCompleted = true;
 	}
 }
@@ -1555,6 +1567,10 @@ bool FakeTeamClass::_Coordinate_Conscript(FootClass* a2) {
 	{
 		return 0;
 	}
+
+	// Cannot conscript if Zone is not set
+	if (!this->Zone)
+		return 1;
 
 	int strayDistance = this->_Get_Stray();
 	if (a2->DistanceFrom(this->Zone) <= strayDistance)
@@ -1578,6 +1594,10 @@ bool FakeTeamClass::_Coordinate_Conscript(FootClass* a2) {
 
 void FakeTeamClass::_Coordinate_Do(ScriptActionNode* pNode, CellStruct unused) {
 	auto const& [miss, value] = *pNode;
+
+	// Cannot coordinate without Zone
+	if (!this->Zone)
+		return;
 
 	for (auto i = this->FirstUnit; i; i = i->NextTeamMember) {
 		if (i->IsAlive)
@@ -1878,7 +1898,9 @@ FootClass* FindClosestInfantry(TeamClass* team, int memberIndex, const CoordStru
 			distance += 12800; // Penalty for wrong group
 
 		// Check if this is a better candidate
-		if ((minDistance == -1 || distance < minDistance) &&
+		if (team->OwnerHouse == infantry->Owner && 
+			TeamExtData::IsEligible(team->Type->TaskForce->Entries[memberIndex].Type, infantry->Type) &&
+			(minDistance == -1 || distance < minDistance) &&
 			((FakeTeamClass*)team)->_Can_Add(infantry, &memberIndex, 0))
 		{
 			closestInfantry = infantry;
@@ -1909,7 +1931,9 @@ FootClass* FindClosestAircraft(TeamClass* team, int memberIndex, const CoordStru
 			distance += 12800; // Penalty for wrong group
 
 		// Check if this is a better candidate
-		if ((minDistance == -1 || distance < minDistance) &&
+		if (team->OwnerHouse == aircraft->Owner && 
+			TeamExtData::IsEligible(team->Type->TaskForce->Entries[memberIndex].Type, aircraft->Type) &&
+			(minDistance == -1 || distance < minDistance) &&
 			((FakeTeamClass*)team)->_Can_Add(aircraft, &memberIndex, 0))
 		{
 			closestAircraft = aircraft;
@@ -2009,7 +2033,7 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 			{
 				this->_Add2(cargo, false);
 
-				// Check if next cargo item is still attached (bit 2 of TargetBitfield)
+				// Check if next cargo item is still attached (Foot flag)
 				if ((cargo->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
 					break;
 
@@ -2255,7 +2279,15 @@ bool FakeTeamClass::_Recalculate() {
 }
 
 void StopScript(FakeTeamClass* pTeam) {
-	if (pTeam->IsFullStrength || pTeam->IsForcedActive) {
+	// Trigger script advancement when:
+	// 1. Team reaches full strength (IsFullStrength)
+	// 2. Team is forced active (IsForcedActive)  
+	// 3. Team has had full strength before (IsHasBeen) - allows under-strength teams to advance
+	// 4. Team has never been started (!IsHasBeen) AND has at least one member - start fresh teams
+	const bool hasMembers = pTeam->FirstUnit != nullptr;
+	const bool shouldStart = pTeam->IsFullStrength || pTeam->IsForcedActive || pTeam->IsHasBeen || (!pTeam->IsHasBeen && hasMembers);
+	
+	if (shouldStart) {
 		pTeam->_TeamClass_6EA080();
 	}
 }
@@ -3478,9 +3510,11 @@ void FakeTeamClass::_TMission_Chrono_prep_for_abwp(ScriptActionNode* nNode, bool
 			this->Type->OnlyTargetHouseEnemy
 		)) {
 			// Fire Chronosphere at team zone
-			CoordStruct zoneCoord = this->Zone->GetCoords();
-			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-			house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+			if (this->Zone) {
+				CoordStruct zoneCoord = this->Zone->GetCoords();
+				CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
+				house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+			}
 
 			// Fire Chronoshift at target building
 			CoordStruct targetCoord = targetBuilding->GetCoords();
@@ -3602,7 +3636,7 @@ void FakeTeamClass::_TMission_Iron_Curtain_Me(ScriptActionNode* nNode, bool arg3
 		}
 	}
 
-	if (found)
+	if (found && this->Zone)
 	{
 		auto nCoord = this->Zone->GetCoords();
 		pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
@@ -3657,9 +3691,11 @@ void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool a
 		))
 		{
 			// Fire Chronosphere at zone
-			CoordStruct zoneCoord = this->Zone->GetCoords();
-			CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
-			house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+			if (this->Zone) {
+				CoordStruct zoneCoord = this->Zone->GetCoords();
+				CellStruct zoneCell = CellClass::Coord2Cell(zoneCoord);
+				house->Fire_SW(chronosphere->Type->ArrayIndex, zoneCell);
+			}
 
 			// Fire Chronoshift at threat
 			CoordStruct threatCoord = threat->GetCoords();
@@ -4864,6 +4900,12 @@ bool FakeTeamClass::_CoordinateRegroup()
 	if (!Member) {
 		this->NeedsReGrouping = 0;
 		return true;
+	}
+
+	// Cannot regroup without Zone
+	if (!this->Zone) {
+		this->NeedsReGrouping = 0;
+		return false;
 	}
 
 	int stray = this->_Get_Stray();
