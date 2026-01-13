@@ -566,7 +566,7 @@ void FakeTeamClass::_TMission_GatherAtEnemy(ScriptActionNode* nNode, bool arg3)
 		false,
 		false,
 		true,
-		searchParams,
+		targetCell,
 		false,
 		false
 	);
