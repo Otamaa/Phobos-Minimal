@@ -355,7 +355,7 @@ public:
 		X -= v.X;
 		Y -= v.Y;
 		Z -= v.Z;
-		W += v.W;
+		W -= v.W;
 		return *this;
 	}
 
@@ -399,7 +399,7 @@ public:
 		};
 	}
 
-	COMPILETIMEEVAL Vector4D& operator-(const Vector4D& v) const
+	COMPILETIMEEVAL Vector4D operator-(const Vector4D& v) const
 	{
 		return Vector4D {
 			X - v.X,

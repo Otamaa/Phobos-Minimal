@@ -43,10 +43,10 @@ public:
 	COMPILETIMEEVAL Point3D operator*(int factor) const { return {X * factor, Y * factor, Z * factor};}
 	COMPILETIMEEVAL Point3D& operator*=(int factor) { X *= factor; Y *= factor; Z *= factor; return *this; }
 
-	COMPILETIMEEVAL Point3D operator%(const Point3D& that) const { return {X / that.X, Y / that.Y, Z / that.Z};}
-	COMPILETIMEEVAL Point3D operator%=(const Point3D& that) { X /= that.X; Y /= that.Y; Z /= that.Z; return *this; }
-	COMPILETIMEEVAL Point3D operator%(int factor) const { return {X / factor, Y / factor, Z / factor};}
-	COMPILETIMEEVAL Point3D& operator%=(int factor) { X /= factor; Y /= factor; Z /= factor; return *this; }
+	COMPILETIMEEVAL Point3D operator%(const Point3D& that) const { return {X % that.X, Y % that.Y, Z % that.Z};}
+	COMPILETIMEEVAL Point3D operator%=(const Point3D& that) { X %= that.X; Y %= that.Y; Z %= that.Z; return *this; }
+	COMPILETIMEEVAL Point3D operator%(int factor) const { return {X % factor, Y % factor, Z % factor};}
+	COMPILETIMEEVAL Point3D& operator%=(int factor) { X %= factor; Y %= factor; Z %= factor; return *this; }
 
 	COMPILETIMEEVAL Point3D operator&(const Point3D& that) const { return {X & that.X, Y & that.Y, Z & that.Z};}
 	COMPILETIMEEVAL Point3D operator&=(const Point3D& that) { X &= that.X; Y &= that.Y; Z &= that.Z; return *this; }
