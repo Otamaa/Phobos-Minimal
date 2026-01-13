@@ -1555,7 +1555,7 @@ void FakeTeamClass::_CoordinateMove() {
 	// ============================================================
 	// All units processed - check if mission complete
 	// ============================================================
-	if (found && finished && this->IsMoving)
+	if (found && finished)
 	{
 		this->IsMoving = false;
 		this->StepCompleted = true;
