@@ -1037,6 +1037,9 @@ public:
 	Nullable<bool> AllowAirstrike;
 
 	Nullable<bool> ForbidParallelAIQueues;
+	
+	Valueable<bool> IgnoreForBaseCenter;
+
 	Nullable<AnimTypeClass*> Wake;
 	Valueable<bool> Spawner_AttackImmediately;
 	Valueable<bool> Spawner_UseTurretFacing;
@@ -1943,6 +1946,7 @@ public:
 		KeepTargetOnMove_NoMorePursuit(true),
 		AllowAirstrike(),
 		ForbidParallelAIQueues(),
+		IgnoreForBaseCenter(false),
 		Wake(),
 		Spawner_AttackImmediately(false),
 		Spawner_UseTurretFacing(false),
@@ -2967,7 +2971,7 @@ private:
 			.Process(this->KeepTargetOnMove_NoMorePursuit)
 			.Process(this->AllowAirstrike)
 			.Process(this->ForbidParallelAIQueues)
-
+			.Process(this->IgnoreForBaseCenter)
 			.Process(this->EVA_Combat)
 			.Process(this->CombatAlert)
 			.Process(this->CombatAlert_UseFeedbackVoice)

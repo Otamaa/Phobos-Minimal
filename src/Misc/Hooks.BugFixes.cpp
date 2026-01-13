@@ -564,6 +564,7 @@ ASMJIT_PATCH(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 	GET(BuildingClass* const, pBuilding, ESI);
 
 	if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1
+	 || TechnoTypeExtContainer::Instance.Find(pBuilding->Type)->IgnoreForBaseCenter
 	 || !MapClass::Instance->CoordinatesLegal(pBuilding->GetMapCoords()))
 		return R->Origin() == 0x4FD1CD ? SkipBuilding1 : SkipBuilding2;
 
@@ -580,7 +581,8 @@ ASMJIT_PATCH(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
 
 	GET(TechnoClass* const, pTechno, ECX);
 
-	if (!MapClass::Instance->CoordinatesLegal(pTechno->GetMapCoords()))
+	if (!MapClass::Instance->CoordinatesLegal(pTechno->GetMapCoords()) 
+		|| TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->IgnoreForBaseCenter)
 		return SkipTechno;
 
 

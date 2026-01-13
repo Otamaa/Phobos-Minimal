@@ -31,7 +31,7 @@ int GeneralUtils::GetColorFromColorAdd(int colorIndex)
 
 bool GeneralUtils::IsValidString(const char* str)
 {
-	if (str == nullptr || strlen(str) == 0 || GameStrings::IsBlank(str))
+	if (str == nullptr || strlen(str) == 0 || GameStrings::IsNone(str))
 		return false;
 
 	if (IS_SAME_STR_(str , DEFAULT_STR) || IS_SAME_STR_(str, DEFAULT_STR2))

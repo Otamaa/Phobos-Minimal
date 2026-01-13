@@ -100,6 +100,7 @@ public:
 	Valueable<bool> Vertical_AircraftFix;
 	Nullable<bool> VerticalInitialFacing;
 	Valueable<bool> AU;
+	Nullable<bool> UpdateImmediately;
 #pragma endregion
 
 public:
@@ -178,7 +179,8 @@ public:
 		Parachuted_Remap(true),
 		Vertical_AircraftFix(true),
 		VerticalInitialFacing(),
-		AU(false)
+		AU(false),
+		UpdateImmediately()
 	{
 		this->AbsType = BulletTypeClass::AbsID;
 	}

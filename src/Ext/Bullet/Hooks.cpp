@@ -292,3 +292,22 @@ ASMJIT_PATCH(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
 
 	return pThis->_GetWarheadTypeExtData()->Conventional_IgnoreUnits ? SkipChecks : 0;
 }
+
+ASMJIT_PATCH(0x468B72, BulletClass_MoveTo_End, 0x5)
+{
+	GET(FakeBulletClass*, pThis, EBX);
+
+	auto pType = pThis->Type;
+	auto pTypeExt = pThis->_GetTypeExtData();
+
+	// Parasite=yes will make the bullet MoveTo twice, and may cause some issue.
+	// Before we know how to deal with it, just exclude it.
+	if ((!pThis->WeaponType || !pThis->WeaponType->Warhead->Parasite)
+		&& !pThis->WH->Parasite
+		&& pTypeExt->UpdateImmediately.Get(pType->Inviso && RulesExtData::Instance()->UpdateInvisoImmediately))
+	{
+		pThis->Update();
+	}
+
+	return 0;
+}

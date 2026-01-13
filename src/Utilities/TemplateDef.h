@@ -78,7 +78,7 @@ struct IndexFinder
 		{
 			const char* val = parser.value();
 
-			if (GameStrings::IsBlank(val))
+			if (GameStrings::IsNone(val))
 			{
 				value = -1;
 				return true;
@@ -186,7 +186,7 @@ namespace detail
 
 					if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer))
 						value.From.push_back(buffer);
-					else if (!allocate && !GameStrings::IsBlank(pCur))
+					else if (!allocate && !GameStrings::IsNone(pCur))
 						Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 				}
 
@@ -205,7 +205,7 @@ namespace detail
 
 					if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer))
 						value.From.push_back(buffer);
-					else if (!allocate && !GameStrings::IsBlank(pCur))
+					else if (!allocate && !GameStrings::IsNone(pCur))
 						Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 				}
 
@@ -223,7 +223,7 @@ namespace detail
 	{
 		if (!parser.empty()) {
 
-			if (GameStrings::IsBlank(parser.c_str())) {
+			if (GameStrings::IsNone(parser.c_str())) {
 				value = TileType::ClearToSandLAT;
 				return true;
 			}
@@ -245,7 +245,7 @@ namespace detail
 	{
 		if (!parser.empty()) {
 
-			if (GameStrings::IsBlank(parser.c_str())) {
+			if (GameStrings::IsNone(parser.c_str())) {
 				value = LandType::Clear;
 				return true;
 			}
@@ -336,7 +336,7 @@ namespace detail
 			const auto pValue = parser.value();
 			auto const parsed = (allocate ? base_type::FindOrAllocate : base_type::Find)(pValue);
 
-			if (parsed || GameStrings::IsBlank(pValue))
+			if (parsed || GameStrings::IsNone(pValue))
 			{
 				value = parsed;
 				return true;
@@ -388,7 +388,7 @@ namespace detail
 			const auto pValue = parser.value();
 			const auto parsed = TechnoTypeClass::Find(pValue);
 
-			if (parsed || GameStrings::IsBlank(pValue))
+			if (parsed || GameStrings::IsNone(pValue))
 			{
 				value = parsed;
 				return true;
@@ -1553,7 +1553,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if(GameStrings::IsBlank(parser.value()))
+			if(GameStrings::IsNone(parser.value()))
 				return false;
 
 			for (size_t i = 0; i < CellClass::LayerToStrings.size(); ++i)
@@ -1698,7 +1698,7 @@ namespace detail
 
 			if (Parser<T>::Parse(pCur, &buffer))
 				vector.push_back(std::move(buffer));
-			else if (!allocate && !GameStrings::IsBlank(pCur))
+			else if (!allocate && !GameStrings::IsNone(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}
 	}
@@ -1732,7 +1732,7 @@ namespace detail
 
 			if (parseSucceeded)
 				vector.push_back(buffer);
-			else if (!GameStrings::IsBlank(pCur))
+			else if (!GameStrings::IsNone(pCur))
 				Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
 		}
 	}
@@ -1872,7 +1872,7 @@ namespace detail
 				idx = base_type::FindIndexById(pCur);
 			} else { idx = Lookuper::FindIndexById(pCur); }
 
-			if (idx != -1 || GameStrings::IsBlank(pCur))
+			if (idx != -1 || GameStrings::IsNone(pCur))
 			{
 				vector.push_back(idx);
 			}
@@ -1977,7 +1977,7 @@ void OPTIONALINLINE NullableIdx<Lookuper, mode>::Read(INI_EX& parser, const char
 			const char* val = parser.value();
 
 			if COMPILETIMEEVAL (mode != EnumCheckMode::disable){
-				if (GameStrings::IsBlank(val)) {
+				if (GameStrings::IsNone(val)) {
 					this->Value = -1;
 					this->HasValue = true;
 					return;

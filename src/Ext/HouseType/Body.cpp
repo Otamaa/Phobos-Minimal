@@ -325,7 +325,7 @@ void HouseTypeExtData::LoadFromRulesFile(CCINIClass* pINI) {
 		if (pINI->ReadString(pSection, key, Pcx.GetFilename(), Phobos::readBuffer))
 		{
 			// parse the value
-			if (GameStrings::IsBlank(Phobos::readBuffer))
+			if (GameStrings::IsNone(Phobos::readBuffer))
 			{
 					// explicitly set to no image
 				if (ppShp)

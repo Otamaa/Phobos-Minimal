@@ -110,7 +110,7 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 							pCur = strtok_s(nullptr, Phobos::readDelims, &contexthere)) {
 						TechnoTypeClass* buffer = nullptr;
 
-						if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer) || GameStrings::IsBlank(pCur))
+						if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer) || GameStrings::IsNone(pCur))
 							list_value->From.push_back(buffer);
 						else
 							Debug::INIParseFailed(pSection, pKey, pCur, nullptr);
@@ -131,7 +131,7 @@ void TechnoTypeConvertData::Parse(bool useDevelopversion, std::vector<TechnoType
 					{
 						TechnoTypeClass* buffer = nullptr;
 
-						if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer) || GameStrings::IsBlank(pCur))
+						if (Parser<TechnoTypeClass*>::Parse(pCur, &buffer) || GameStrings::IsNone(pCur))
 							list_value->From.push_back(buffer);
 						else
 							Debug::INIParseFailed(pSection, pKey, pCur, nullptr);

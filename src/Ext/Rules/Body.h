@@ -597,12 +597,13 @@ public:
 	Valueable<Leptons> ChasingExtraRange {};
 	Valueable<bool> ChasingExtraRange_CloseRangeOnly{ true };
 	Valueable<Leptons> PrefiringExtraRange {};
-	Valueable<bool> PrefiringExtraRange_IncludeBurst{ true };
+	Valueable<bool> PrefiringExtraRange_IncludeBurst { true };
 	Valueable<Leptons> ExtraRange_FirerMoving {};
 	
 	Valueable<bool> FiringAnim_Update { false };
 
 	Valueable<bool> ExtendedPlayerRepair { false };
+	Valueable<bool> UpdateInvisoImmediately { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

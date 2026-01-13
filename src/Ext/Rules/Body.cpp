@@ -1004,6 +1004,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->ExtraRange_FirerMoving.Read(exINI, GameStrings::General, "ExtraRange.FirerMoving");
 	this->FiringAnim_Update.Read(exINI, GameStrings::AudioVisual, "FiringAnim.Update");
 	this->ExtendedPlayerRepair.Read(exINI, GameStrings::General, "ExtendedPlayerRepair");
+	this->UpdateInvisoImmediately.Read(exINI, GameStrings::General, "UpdateInvisoImmediately");
 	this->BerzerkTargeting.Read(exINI, GameStrings::CombatDamage, "BerzerkTargeting");
 	this->Infantry_IgnoreBuildingSizeLimit.Read(exINI, GameStrings::CombatDamage, "InfantryIgnoreBuildingSizeLimit");
 	this->HarvesterDumpAmount.Read(exINI, GameStrings::General, "HarvesterDumpAmount");
@@ -1882,6 +1883,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->ExtraRange_FirerMoving)
 		.Process(this->FiringAnim_Update)
 		.Process(this->ExtendedPlayerRepair)
+		.Process(this->UpdateInvisoImmediately)
 		;
 }
 

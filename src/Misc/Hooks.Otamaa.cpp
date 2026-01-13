@@ -1536,7 +1536,7 @@ ASMJIT_PATCH(0x474964, CCINIClass_ReadPipScale_add, 0x6)
 		}
 	}
 
-	if (!GameStrings::IsBlank(buffer))
+	if (!GameStrings::IsNone(buffer))
 		Debug::INIParseFailed(pSection, pKey, buffer, "Expect Valid PipScaleType !");
 
 	return retzero;

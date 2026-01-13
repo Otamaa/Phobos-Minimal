@@ -548,6 +548,7 @@ struct GameStrings
 	// so
 	static COMPILETIMEEVAL reference<char[16],0x825000 ,8u> const PlayerAt {};
 	static bool IsBlank(const char* pValue);
+	static bool IsNone(const char* pValue);
 };
 
 #undef GAMEMD_STR

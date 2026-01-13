@@ -1171,7 +1171,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			signed int idx = TheaterTypeClass::FindIndexById(cur);
 			if(idx != -1) {
 				this->Prerequisite_RequiredTheaters |= (1 << idx);
-			} else if (!GameStrings::IsBlank(cur)) {
+			} else if (!GameStrings::IsNone(cur)) {
 				Debug::INIParseFailed(pSection, _Prerequisite_ReqTheater_key.c_str(), cur);
 			}
 		}

@@ -251,7 +251,7 @@ OPTIONALINLINE void ParseVector_loc(DynamicVectorClass<T>& List, INI_EX& IniEx, 
 					List.AddUnique(buffer);
 				}
 			}
-			else if (!GameStrings::IsBlank(cur))
+			else if (!GameStrings::IsNone(cur))
 			{
 				Debug::INIParseFailed(section, key, cur, message);
 			}
