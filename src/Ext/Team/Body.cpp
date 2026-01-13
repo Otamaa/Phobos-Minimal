@@ -2279,7 +2279,11 @@ bool FakeTeamClass::_Recalculate() {
 }
 
 void StopScript(FakeTeamClass* pTeam) {
-	if (pTeam->IsFullStrength || pTeam->IsForcedActive) {
+	// Trigger script advancement when:
+	// 1. Team reaches full strength (IsFullStrength)
+	// 2. Team is forced active (IsForcedActive)  
+	// 3. Team has had full strength before (IsHasBeen) - allows under-strength teams to advance
+	if (pTeam->IsFullStrength || pTeam->IsForcedActive || pTeam->IsHasBeen) {
 		pTeam->_TeamClass_6EA080();
 	}
 }
