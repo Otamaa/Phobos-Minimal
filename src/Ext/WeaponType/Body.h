@@ -208,7 +208,9 @@ public:
 	Nullable<Leptons> PrefiringExtraRange;
 	Nullable<bool> PrefiringExtraRange_IncludeBurst;
 	Nullable<Leptons> ExtraRange_FirerMoving;
-
+	Nullable<bool> AttackFriendlies;
+	Nullable<bool> AttackCursorOnFriendlies;
+	Nullable<bool> AttackNoThreatBuildings;
 	Nullable<bool> Anim_Update;
 #pragma endregion
 
@@ -351,6 +353,9 @@ public:
 		PrefiringExtraRange (),
 		PrefiringExtraRange_IncludeBurst (),
 		ExtraRange_FirerMoving (),
+		AttackFriendlies(),
+		AttackCursorOnFriendlies(),
+		AttackNoThreatBuildings(),			
 		Anim_Update ()
 	{
 		this->AbsType = WeaponTypeClass::AbsID;

@@ -664,3 +664,38 @@ ASMJIT_PATCH(0x51A002, InfantryClass_UpdatePosition_InfiltrateBuilding, 0x6)
 
 	return 0;
 }
+
+ASMJIT_PATCH(0x51F663, InfantryClass_Mission_Move_DisallowMoving, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	if (pThis->Type->Speed <= 0)
+	{
+		pThis->QueueMission(Mission::Guard, 0);
+		return 0x51F69D;
+	}
+	
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x51D0D0, InfantryClass_Scatter_DisallowMoving, 0x5)
+{
+	GET(InfantryClass*, pThis, ECX);
+
+	if (pThis->Type->Speed <= 0) {
+		return 0x51D6ED;
+	}
+
+	return 0x0;
+}
+
+ASMJIT_PATCH(0x522352, InfantryClass_Approach_Target_DisallowMoving, 0x6)
+{
+	GET(InfantryClass*, pThis, ESI);
+
+	if (pThis->Type->Speed <= 0) {
+		return 0x5224C2;
+	}
+
+	return 0x0;
+}

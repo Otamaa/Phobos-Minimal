@@ -7,6 +7,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/WeaponType/Body.h>
 
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
@@ -21,7 +22,7 @@
 
 bool TechnoTypeExtData::SelectWeaponMutex = false;
 
-void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
+void TechnoTypeExtData::UpdateAdditionalAttributes(CCINIClass* const pINI)
 {
 	int Num = 0;
 	int EliteNum = 0;
@@ -31,12 +32,44 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 
 	const auto pThis = this->This();
 	int Count = 2;
+	const bool attackFriendlies = pThis->AttackFriendlies;
+	this->AttackFriendlies = { attackFriendlies ,attackFriendlies };
 
 	if (this->MultiWeapon
 		&& (!pThis->IsGattling && (!pThis->HasMultipleTurrets() || !pThis->Gunner)))
 	{
 		Count = pThis->WeaponCount;
 	}
+
+	auto WeaponCheck = [&](WeaponTypeClass* const pWeapon, const bool isElite) {
+		if (!pWeapon)
+			return;
+
+		if (isElite) {
+			if (pWeapon->Projectile)
+				this->ThreatTypes.Y |= pWeapon->AllowedThreats();
+
+			this->CombatDamages.Y += (pWeapon->Damage + pWeapon->AmbientDamage);
+			EliteNum++;
+
+			if (!this->AttackFriendlies.Y
+				&& WeaponTypeExtContainer::Instance.Find(pWeapon)->AttackFriendlies.Get(false)) {
+				this->AttackFriendlies.Y = true;
+			}
+		} else {
+			if (pWeapon->Projectile)
+				this->ThreatTypes.X |= pWeapon->AllowedThreats();
+
+			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
+			Num++;
+
+			if (!this->AttackFriendlies.X
+				&& WeaponTypeExtContainer::Instance.Find(pWeapon)->AttackFriendlies.Get(false)) {
+				this->AttackFriendlies.X = true;
+			}
+		}
+
+	};
 
 	for (int index = 0; index < Count; index++)
 	{
@@ -46,23 +79,8 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 		if (!pEliteWeapon)
 			pEliteWeapon = pWeapon;
 
-		if (pWeapon)
-		{
-			if (pWeapon->Projectile)
-				this->ThreatTypes.X |= pWeapon->AllowedThreats();
-
-			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
-			Num++;
-		}
-
-		if (pEliteWeapon)
-		{
-			if (pEliteWeapon->Projectile)
-				this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
-
-			this->CombatDamages.Y += (pEliteWeapon->Damage + pEliteWeapon->AmbientDamage);
-			EliteNum++;
-		}
+		WeaponCheck(pWeapon, false);
+		WeaponCheck(pEliteWeapon, true);
 	}
 
 	if (Num > 0)
@@ -1945,7 +1963,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 		this->DefaultVehicleDisguise.Read(exINI, pSection, "DefaultVehicleDisguise");
 		this->TurretResponse.Read(exINI, pSection, "TurretResponse");
-
+		this->Unload_SkipPassengers.Read(exINI, pSection, "Unload.SkipPassengers");
+		this->Unload_NoPassengers.Read(exINI, pSection, "Unload.NoPassengers");
+		this->Unload_SkipHarvester.Read(exINI, pSection, "Unload.SkipHarvester");
+		this->Unload_NoTiberiums.Read(exINI, pSection, "Unload.NoTiberiums");
 		this->PlayerGuardModePursuit.Read(exINI, pSection, "PlayerGuardModePursuit");
 		this->PlayerGuardModeStray.Read(exINI, pSection, "PlayerGuardModeStray");
 		this->PlayerGuardModeGuardRangeMultiplier.Read(exINI, pSection, "PlayerGuardModeGuardRangeMultiplier");

@@ -477,7 +477,7 @@ public:
 	Valueable<bool>ExpandBuildingQueue { false };
 
 	Valueable<bool> AutoBuilding { false };
-	Valueable<bool> AIAngerOnAlly { true };
+	Valueable<bool> AIAngerOnAlly { false };
 
 	Valueable<bool> BuildingTypeSelectable {};
 	Valueable<bool> BuildingWaypoint {};
@@ -604,6 +604,10 @@ public:
 
 	Valueable<bool> ExtendedPlayerRepair { false };
 	Valueable<bool> UpdateInvisoImmediately { false };
+
+	Valueable<bool> AutoTarget_NoThreatBuildings { false };
+	Valueable<bool> AutoTargetAI_NoThreatBuildings { true };
+
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

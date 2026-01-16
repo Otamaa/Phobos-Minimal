@@ -21,8 +21,10 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 {
 	++TechnoClass::TargetScanCounter();
 	const auto pType = GET_TECHNOTYPE(pThis);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pOwner = pThis->Owner;
 	const bool isTechnoPlayerControlled = pOwner->IsControlledByHuman();
+	const bool attackFriendlies = pThis->Veterancy.IsElite() ? pTypeExt->AttackFriendlies.Y : pTypeExt->AttackFriendlies.X;
 
 	// Early exit for NoAutoFire units under player control
 	if (pType->NoAutoFire && isTechnoPlayerControlled)
@@ -149,7 +151,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 				auto aircraft = AircraftClass::Array->Items[i];
 
 				const bool canTarget = !pOwner->IsAlliedWith(aircraft)
-					|| pType->AttackFriendlies
+					|| attackFriendlies
 					|| pThis->Berzerk
 					|| hasRealOwner;
 
@@ -189,7 +191,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 			const bool canTarget1 = !pOwner->IsAlliedWith(techno)
 				|| combatDamage < 0
 				|| (!isTechnoPlayerControlled && what == AbstractType::Infantry && ((InfantryTypeClass*)pType)->Engineer)
-				|| pType->AttackFriendlies
+				|| attackFriendlies
 				|| pThis->Berzerk
 				|| hasRealOwner;
 
@@ -304,7 +306,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 		{
 
 			const bool canTarget3 = !pOwner->IsAlliedWith(aircraft)
-				|| pType->AttackFriendlies
+				|| attackFriendlies
 				|| pThis->Berzerk
 				|| hasRealOwner;
 
@@ -361,7 +363,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 			threatBitfield |= 1 << (int)AircraftClass::AbsID;
 		}
 
-		const bool targetFriendly = pType->AttackFriendlies || pThis->Berzerk || hasRealOwner || combatDamage < 0;
+		const bool targetFriendly = attackFriendlies || pThis->Berzerk || hasRealOwner || combatDamage < 0;
 		int threatBuffer = 0;
 		auto tempCrd = CoordStruct::Empty;
 
@@ -393,7 +395,7 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 
 	if (AU)
 	{
-		const bool targetFriendly = pType->AttackFriendlies || pThis->Berzerk || hasRealOwner || combatDamage < 0;
+		const bool targetFriendly = attackFriendlies || pThis->Berzerk || hasRealOwner || combatDamage < 0;
 		int threatBuffer = 0;
 		auto tempCrd = CoordStruct::Empty;
 
@@ -539,7 +541,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x4D9942, FakeTechnoClass::__Greatest_Threat);//foot
 DEFINE_FUNCTION_JUMP(CALL, 0x445F68, FakeTechnoClass::__Greatest_Threat);//building
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4D24, FakeTechnoClass::__Greatest_Threat);//technoVtable
 
-DEFINE_HOOK(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
+ASMJIT_PATCH(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
 {
 	GET(int, nVal1, EDI);
 	GET(int, nVal2, EAX);
@@ -548,8 +550,8 @@ DEFINE_HOOK(0x6F90F8, TechnoClass_SelectAutoTarget_Demacroize, 6)
 	return 0x6F9116;
 }
 
-DEFINE_HOOK_AGAIN(0x6F8F1F, TechnoClass_SelectAutoTarget_Heal, 6)
-DEFINE_HOOK(0x6F8EE3, TechnoClass_SelectAutoTarget_Heal, 6)
+ASMJIT_PATCH_AGAIN(0x6F8F1F, TechnoClass_SelectAutoTarget_Heal, 6)
+ASMJIT_PATCH(0x6F8EE3, TechnoClass_SelectAutoTarget_Heal, 6)
 {
 	GET(unsigned int, nVal, EBX);
 

@@ -1867,22 +1867,29 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	if (pThisType->BarrelVoxel.VXL && pThisType->BarrelVoxel.HVA)
 		return 0;
 
-	GET(UnitTypeClass*, pType, ECX);
+	GET(FakeUnitTypeClass*, pType, ECX);
 	GET(SHPStruct*, pShape, EDI);
 	GET(const int, bodyFrameIdx, EBX);
 	REF_STACK(Point2D, location, STACK_OFFSET(0x128, 0x4));
 	REF_STACK(RectangleStruct, bounds, STACK_OFFSET(0x128, 0xC));
 	GET_STACK(const int, extraLight, STACK_OFFSET(0x128, 0x1C));
 
+	const auto pTurretShape = pType->_GetExtData()->TurretShape;
+	const int StartFrame = pTurretShape ? 0 : (pType->WalkFrames * pType->Facings);
+
 	const bool tooBigToFitUnderBridge = pType->TooBigToFitUnderBridge
 		&& pThis->sub_703B10() && !pThis->sub_703E70();
+
+	if (pTurretShape)
+		pShape = pTurretShape;
+
 	const int zAdjust = tooBigToFitUnderBridge ? -16 : 0;
 	const ZGradient zGradient = tooBigToFitUnderBridge ? ZGradient::Ground : pThis->GetZGradient();
 
 	pThis->Draw_A_SHP(pShape, bodyFrameIdx, &location, &bounds, 0, 256, zAdjust, zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
 
 	const auto secondaryDir = pThis->SecondaryFacing.Current();
-	const int frameIdx = secondaryDir.GetFacing<32>(4) + pType->WalkFrames * pType->Facings;
+	const int frameIdx = secondaryDir.GetFacing<32>(4) + StartFrame;
 
 	const auto primaryDir = pThis->PrimaryFacing.Current();
 	const double bodyRad = primaryDir.GetRadian<32>();
@@ -1903,4 +1910,47 @@ ASMJIT_PATCH(0x73C7AC, UnitClass_DrawAsSHP_DrawTurret_TintFix, 0x6)
 	pThis->Draw_A_SHP(pShape, frameIdx, &drawPoint, &bounds, 0, 256, static_cast<DWORD>(-32), zGradient, 0, extraLight, 0, 0, 0, 0, 0, 0);
 	Game::bDrawShadow = originalDrawShadow;
 	return SkipDrawCode;
+}
+
+ASMJIT_PATCH(0x73CCF4, UnitClass_DrawSHP_FacingsB_TurretShape, 0xA)
+{
+	enum { SkipGameCode = 0x73CD06 };
+
+	GET(UnitClass*, pThis, EBP);
+	GET(FakeUnitTypeClass*, pType, ECX);
+
+	const auto pTurretShape = pType->_GetExtData()->TurretShape;
+	const int StartFrame = pTurretShape ? 0 : (pType->WalkFrames * pType->Facings);
+	const int frameIdx = pThis->SecondaryFacing.Current().GetFacing<32>(4) + StartFrame;
+
+	if (pTurretShape)
+		R->EDI(pTurretShape);
+
+	R->ECX(pThis);
+	R->EAX(frameIdx);
+	return 0x73CD06;
+}
+
+
+ASMJIT_PATCH(0x747A2E, UnitTypeClass_ReadINI_TurretShape, 0x6)
+{
+	GET(FakeUnitTypeClass*, pType, EDI);
+
+	if (!pType->Voxel && pType->Turret) {
+		char nameBuffer[0x19];
+		char Buffer[260];
+		const auto pArtSection = pType->ImageFile;
+
+		if (Phobos::Config::ArtImageSwap &&
+			CCINIClass::INI_Art->ReadString(pArtSection, "Image", 0, nameBuffer, 0x19) != 0) {
+			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", nameBuffer);
+		} else {
+			_snprintf_s(Buffer, sizeof(Buffer), "%sTUR.SHP", pArtSection);
+		}
+
+		if (const auto pShape = FileSystem::LoadSHPFile(Buffer))
+			pType->_GetExtData()->TurretShape = pShape;
+	}
+
+	return 0;
 }

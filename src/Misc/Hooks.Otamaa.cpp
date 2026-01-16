@@ -4520,48 +4520,6 @@ ASMJIT_PATCH(0x44E809, BuildingClass_PowerOutput_Absorber, 0x6)
 
 DEFINE_JUMP(LJMP, 0x4417A7, 0x44180A)
 
-ASMJIT_PATCH(0x700391, TechnoClass_GetCursorOverObject_AttackFriendies, 6)
-{
-	GET(TechnoClass* const, pThis, ESI);
-	GET(TechnoTypeClass* const, pType, EAX);
-	GET(WeaponTypeClass* const, pWeapon, EBP);
-
-	if (!pType->AttackFriendlies)
-		return 0x70039B;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	if (pTypeExt->AttackFriendlies_WeaponIdx != -1)
-	{
-		const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
-		if (!pWeapons || pWeapon != pWeapons->WeaponType)
-		{
-			return 0x70039B;
-		}
-	}
-
-	return 0x7003BB;
-}
-
-//EvalObject
-ASMJIT_PATCH(0x6F7EFE, TechnoClass_EvaluateObject_AttackFriendliesWeapon, 6)
-{
-	enum { AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
-	GET_STACK(int const, nWeapon, 0x14);
-	GET(TechnoClass* const, pThis, EDI);
-
-	const auto pType = GET_TECHNOTYPE(pThis);
-
-	if (!pType->AttackFriendlies)
-		return ContinueCheck;
-
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
-
-	return pTypeExt->AttackFriendlies_WeaponIdx <= -1
-		|| pTypeExt->AttackFriendlies_WeaponIdx == nWeapon
-		? AllowAttack : ContinueCheck;
-}
-
 ASMJIT_PATCH(0x51A2EF, InfantryClass_UpdatePosition_Bio_Reactor_Sound, 0x6)
 {
 	//GET(BuildingClass* const, pBuilding, EDI);

@@ -1652,8 +1652,8 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->IsBarGate.Read(exINI, pSection, "IsBarGate");
 		this->AISellCapturedBuilding.Read(exINI, pSection, "AISellCapturedBuilding");
 		this->BuildingRadioLink_SyncOwner.Read(exINI, pSection, "BuildingRadioLink.SyncOwner");
-		this->ApplyPerTargetEffectsOnDetonate.Read(exINI, GameStrings::CombatDamage, "ApplyPerTargetEffectsOnDetonate");
-	
+		this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
+		this->RevealToAll_Radius.Read(exINI, pSection, "RevealToAll.Radius");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2105,6 +2105,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->AISellCapturedBuilding)
 		.Process(this->BuildingRadioLink_SyncOwner)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
+		.Process(this->RevealToAll_Radius)
 		;
 }
 #else

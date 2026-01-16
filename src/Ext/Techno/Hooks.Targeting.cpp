@@ -9,11 +9,14 @@ ASMJIT_PATCH(0x6F7CE2, TechnoClass_CanAutoTargetObject_DisallowMoving, 0x6)
 	GET(AbstractClass* const, pTarget, ESI);
 	GET(const int, WeaponIndex, EBX);
 
-	if (const auto pUnit = cast_to<UnitClass*,false>(pThis))
-	{
-		if (TechnoExtData::CannotMove(pUnit))
-		{
+	if (const auto pUnit = cast_to<UnitClass*,false>(pThis)) {
+		if (TechnoExtData::CannotMove(pUnit)) {
 			R->EAX(pUnit->GetFireError(pTarget, WeaponIndex, true));
+			return 0x6F7CEE;
+		}
+	}else if (const auto pInf = cast_to<InfantryClass*,false>(pThis)) {
+		if (pInf->Type->Speed <= 0) {
+			R->EAX(pInf->GetFireError(pTarget, WeaponIndex, true));
 			return 0x6F7CEE;
 		}
 	}

@@ -265,6 +265,8 @@ public:
 	Nullable<bool> AISellCapturedBuilding;
 	Nullable<bool> BuildingRadioLink_SyncOwner;
 	Valueable<bool> ApplyPerTargetEffectsOnDetonate;
+
+	Nullable<int> RevealToAll_Radius;
 #pragma endregion
 
 public:
@@ -495,7 +497,8 @@ public:
 		IsHideDuringSpecialAnim(false),
 		AISellCapturedBuilding(),
 		BuildingRadioLink_SyncOwner(),
-		ApplyPerTargetEffectsOnDetonate(true)
+		ApplyPerTargetEffectsOnDetonate(true),
+		RevealToAll_Radius()
 	{
 		this->InitializeConstant();
 		this->NextBuilding_CurrentHeapId = pObj->ArrayIndex;

@@ -6072,51 +6072,28 @@ bool AresScriptExt::Handle(TeamClass* pTeam, ScriptActionNode* pTeamMission, boo
 	//}else
 	//	Debug::LogInfo("Team[%x - %s] Executing [(Action)%d - (Argument)%d] " , pTeam , pTeam->get_ID() , pTeamMission->Action , pTeamMission->Argument);
 
-	switch (pTeamMission->Action)
-	{
-	case TeamMissionType::Garrison_building:
-	{
-		FootClass* pCur = nullptr;
-		if (auto pFirst = pTeam->FirstUnit)
-		{
-			auto pNext = pFirst->NextTeamMember;
-			do
-			{
-				TechnoExtContainer::Instance.Find(pFirst)->TakeVehicleMode = false;
-
-				if (pFirst->GarrisonStructure())
-					pTeam->RemoveMember(pFirst, -1, 1);
-
-				pCur = pNext;
-
-				if (pNext)
-					pNext = pNext->NextTeamMember;
-
-				pFirst = pCur;
-
-			}
-			while (pCur);
-		}
-
-		pTeam->StepCompleted = true;
-		return true;
-	}
-
-	//case TeamMissionType::Move_to_own_building:
-	//case TeamMissionType::Attack_enemy_building:
-	//case TeamMissionType::Chrono_prep_for_abwp:
+	//switch (pTeamMission->Action)
 	//{
-	//	const uint16 lo = pTeamMission->Argument & 0xFFFF;
+	//case TeamMissionType::Garrison_building:
+	//{
 
-	//	if (lo >= BuildingTypeClass::Array->Count)
-	//	{
-	//		Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
-	//			pTeam, pTeam->get_ID(), pTeamMission->Action, lo, BuildingTypeClass::Array->Count);
-	//	}
-	//}break;
-	default:
-		break;
-	}
+	//}
+
+	////case TeamMissionType::Move_to_own_building:
+	////case TeamMissionType::Attack_enemy_building:
+	////case TeamMissionType::Chrono_prep_for_abwp:
+	////{
+	////	const uint16 lo = pTeamMission->Argument & 0xFFFF;
+
+	////	if (lo >= BuildingTypeClass::Array->Count)
+	////	{
+	////		Debug::FatalError("Team[%x - %s] Executing %d but the BuildingType Index is too big(%d of %d) !",
+	////			pTeam, pTeam->get_ID(), pTeamMission->Action, lo, BuildingTypeClass::Array->Count);
+	////	}
+	////}break;
+	//default:
+	//	break;
+	//}
 
 
 	switch ((AresScripts)pTeamMission->Action)

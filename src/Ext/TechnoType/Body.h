@@ -1247,6 +1247,11 @@ public:
 	Valueable<UnitTypeClass*> DefaultVehicleDisguise;
 	Nullable<bool> TurretResponse;
 
+	Valueable<bool> Unload_SkipPassengers;
+	Valueable<bool> Unload_NoPassengers;
+	Valueable<bool> Unload_SkipHarvester;
+	Valueable<bool> Unload_NoTiberiums;
+
 	std::unique_ptr<BlockTypeClass> BlockType;
 	Valueable<bool> CanBlock;
 
@@ -1273,6 +1278,8 @@ public:
 
 	Vector2D<ThreatType> ThreatTypes;
 	Vector2D<int> CombatDamages;
+	Vector2D<bool> AttackFriendlies;
+
 	ValueableVector<TechnoTypeClass*> TeamMember_ConsideredAs;
 	std::vector<PhobosFixedString<0x20>> WeaponGroupAs;
 	Valueable<bool> CanGoAboveTarget;
@@ -2104,6 +2111,10 @@ public:
 		VoiceEliteWeaponAttacks(),
 		DefaultVehicleDisguise(),
 		TurretResponse(),
+		Unload_SkipPassengers(false),
+		Unload_NoPassengers(false),
+		Unload_SkipHarvester(false),
+		Unload_NoTiberiums(false),
 		BlockType(),
 		CanBlock(false),
 		IsSimpleDeployer_ConsiderPathfinding(false),
@@ -2125,7 +2136,8 @@ public:
 		, AIGuardModeGuardRangeAddend()
 		, AIGuardStationaryStray()
 		, ThreatTypes(ThreatType::Normal,ThreatType::Normal )
-		, CombatDamages(0,0)
+		, CombatDamages()
+		, AttackFriendlies()
 		, TeamMember_ConsideredAs()
 		, WeaponGroupAs {}
 		, CanGoAboveTarget { false }
@@ -3142,7 +3154,10 @@ private:
 			.Process(this->VoiceEliteWeaponAttacks)
 			.Process(this->DefaultVehicleDisguise)
 			.Process(this->TurretResponse)
-
+			.Process(this->Unload_SkipPassengers)
+			.Process(this->Unload_NoPassengers)
+			.Process(this->Unload_SkipHarvester)
+			.Process(this->Unload_NoTiberiums)
 			.Process(this->BlockType)
 			.Process(this->CanBlock)
 
@@ -3213,7 +3228,7 @@ public:
 	int SelectPhobosWeapon(TechnoClass* pThis, AbstractClass* pTarget);
 
 	void ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSection, ValueableVector<int>& n, ValueableVector<int>& nE);
-	void ParseCombatDamageAndThreatType(CCINIClass* const pINI);
+	void UpdateAdditionalAttributes(CCINIClass* const pINI);
 
 };
 

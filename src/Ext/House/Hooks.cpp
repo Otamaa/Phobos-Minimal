@@ -536,7 +536,7 @@ ASMJIT_PATCH(0x536FA0, ToggleRepariModeCommandClass_Execute_PlayerAutoRepair, 0x
 	return 0x536FAC;
 }
 
-DEFINE_HOOK(0x6A78F6, SidebarClass_Update_ToggleRepair, 0x9)
+ASMJIT_PATCH(0x6A78F6, SidebarClass_Update_ToggleRepair, 0x9)
 {
 	GET(SidebarClass* const, pThis, ESI);
 
@@ -550,7 +550,7 @@ DEFINE_HOOK(0x6A78F6, SidebarClass_Update_ToggleRepair, 0x9)
 	return 0x6A78FF;
 }
 
-DEFINE_HOOK(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
+ASMJIT_PATCH(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
 {
 	GET(SidebarClass* const, pThis, ESI);
 
@@ -560,7 +560,7 @@ DEFINE_HOOK(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
 		0x6A7AFE : 0x6A7AE7;
 }
 
-DEFINE_HOOK(0x45063F, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x6)
+ASMJIT_PATCH(0x45063F, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x6)
 {
 	enum { CanAutoRepair = 0x450659, CanNotAutoRepair = 0x450813 };
 

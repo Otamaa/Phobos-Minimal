@@ -494,7 +494,7 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	// HOOK: 0x7088E3 - TechnoClass_ShouldRetaliate_DisallowMoving (0x6 bytes)
 	// For units that cannot move, calls GetFireError with different parameters
 	// Returns to 0x7088F3 after setting EAX, or continues normally if not applicable
-	if (pThisUnit && TechnoExtData::CannotMove(pThisUnit)) {
+	if (pThisUnit && TechnoExtData::CannotMove(pThisUnit) || pThisInf && pThisInf->Type->Speed <= 0) {
 		ignoreRange = true;
 	}
 

@@ -140,8 +140,9 @@ ASMJIT_PATCH(0x6FA361, TechnoClass_Update_LoseTarget, 5)
 	}
 
 	auto pType = GET_TECHNOTYPE(pThis);
+	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
-	if (!pThis->Berzerk && pType->AttackFriendlies && IsAlly && TechnoTypeExtContainer::Instance.Find(pType)->AttackFriendlies_AutoAttack)
+	if (!pThis->Berzerk && (pThis->Veterancy.IsElite() ? pTypeExt->AttackFriendlies.Y : pTypeExt->AttackFriendlies.X) && IsAlly && pTypeExt->AttackFriendlies_AutoAttack)
 	{
 		return ForceAttack;
 	}

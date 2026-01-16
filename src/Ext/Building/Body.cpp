@@ -2500,11 +2500,11 @@ const wchar_t* FakeBuildingClass::__GetUIName()
 		}
 	}
 
-	auto Type = this->Type;
+	auto selectType = this->Type;
 	if (TechnoTypeExtContainer::Instance.Find(this->Type)->Fake_Of)
-		Type = (BuildingTypeClass*)TechnoTypeExtContainer::Instance.Find(this->Type)->Fake_Of.Get();
+		selectType = (BuildingTypeClass*)TechnoTypeExtContainer::Instance.Find(this->Type)->Fake_Of.Get();
 
-	return Type->UIName;
+	return selectType->UIName;
 }
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F4C, FakeBuildingClass::__GetUIName)
 DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)

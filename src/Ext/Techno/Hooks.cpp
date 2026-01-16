@@ -96,6 +96,19 @@ ASMJIT_PATCH(0x51AA40, InfantryClass_Assign_Destination_DisallowMoving, 0x5)
 	//	return 0x51B1DE;
 	//}
 
+	if (pThis->Type->Speed <= 0) {
+		pThis->AbortMotion();
+
+		if (pThis->Target) {
+			pThis->SetTarget(nullptr);
+			pThis->FootClass::SetDestination(nullptr, false);
+			pThis->QueueMission(Mission::Sleep, false);
+		}
+
+		return 0x51B1DE;
+	}
+
+
 	return 0;
 }
 
@@ -1705,22 +1718,72 @@ ASMJIT_PATCH(0x51F179, InfantryClass_WhatAction_Immune_FakeEngineer, 0x5)
 #endif
 
 #include <Locomotor/TunnelLocomotionClass.h>
+#include <Locomotor/Cast.h>
 
 // Prevent subterranean units from deploying while underground.
 ASMJIT_PATCH(0x73D6E6, UnitClass_Unload_Subterranean, 0x6)
 {
-	enum { ReturnFromFunction = 0x73DFB0 };
+	enum { ReturnFromFunction = 0x73DFB0, SkipPassengers = 0x73DCD3, DeployFireAfter = 0x73D672 };
 
-	GET(UnitClass*, pThis, ESI);
+	GET(UnitClass* const, pThis, ESI);
 
-	if (pThis->Type->Locomotor == TunnelLocomotionClass::ClassGUID) {
-		auto const pLoco = static_cast<TunnelLocomotionClass*>(pThis->Locomotor.GetInterfacePtr());
-
+	if (auto const pLoco = locomotion_cast<TunnelLocomotionClass*>(pThis->Locomotor)) {
 		if (pLoco->State != TunnelLocomotionClass::State::IDLE)
 			return ReturnFromFunction;
 	}
 
+	auto const pType = pThis->Type;
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	// Miners should not be hindered by other deployment actions while unloading minerals.
+	if ((pType->Harvester || pType->Weeder)
+		&& (pThis->HasAnyLink() || pThis->Unloading))
+	{
+		return DeployFireAfter;
+	}
+
+	if (pTypeExt->Unload_SkipPassengers) {
+		R->EAX(pType);
+		return SkipPassengers;
+	}
+	else if (pTypeExt->Unload_NoPassengers
+		&& pThis->Passengers.NumPassengers <= 0 && pThis->MissionStatus == 0) {
+		R->EAX(pType);
+		return SkipPassengers;
+	}
+
 	return 0;
+}
+
+ASMJIT_PATCH(0x73DEEB, UnitClass_Mi_Unload_SkipHarvester, 0x5)
+{
+	GET(UnitClass* const, pThis, ESI);
+	enum { SkipHarvester = 0x73D694 };
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+	if (!pThis->Unloading
+		&& (pTypeExt->Unload_SkipHarvester || (pTypeExt->Unload_NoTiberiums && pThis->Tiberium.GetTotalValue() == 0)))
+	{
+		R->EAX(pThis->Type);
+		return SkipHarvester;
+	}
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x740015, UnitClass_MouseOverObject_SkipPassengers, 0x6)
+{
+	enum { SkipPassengers = 0x7400F0 };
+
+	GET(UnitClass* const, pThis, ESI);
+	GET(UnitTypeClass* const, pType, EAX);
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	return pTypeExt->Unload_SkipPassengers
+		|| (pTypeExt->Unload_NoPassengers && pThis->Passengers.NumPassengers <= 0)
+		? SkipPassengers : 0;
 }
 
 ASMJIT_PATCH(0x74312A, UnitClass_SetDestination_ReplaceWithHarvestMission, 0x5)
@@ -1944,3 +2007,45 @@ ASMJIT_PATCH(0x4D6874, FootClass_ApproachTarget_NextRadius, 0xC)
 	R->Stack(STACK_OFFSET(0x158, -0xF4), searchRadius);
 	return searchRadius <= ApproachTargetTemp::SearchRange ? ContinueNextRadius : BreakOut;
 }
+
+ASMJIT_PATCH(0x700358, TechnoClass_MouseOverObject_AttackFriendlies, 0x6)
+{
+	enum { CanAttack = 0x700381, Continue = 0x700385 , CannotAttack = 0x70039B };
+
+	GET(TechnoClass*, pThis, ESI);
+	GET(WeaponTypeClass*, pWeapon, EBP);
+	GET_STACK(const bool, IvanBomb, STACK_OFFSET(0x1C, -0xC));
+
+	const auto pType = pThis->GetTechnoType();
+	const auto pWeaponTypeExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+
+	if (pWeaponTypeExt->AttackFriendlies.Get(pType->AttackFriendlies)
+		|| (pWeaponTypeExt->AttackCursorOnFriendlies.Get(pType->AttackCursorOnFriendlies) && !IvanBomb))
+	{
+
+		if (pTypeExt->AttackFriendlies_WeaponIdx != -1) {
+			const auto pWeapons = pThis->GetWeapon(pTypeExt->AttackFriendlies_WeaponIdx);
+			if (!pWeapons || pWeapon != pWeapons->WeaponType) {
+				return CannotAttack;
+			}
+		}
+
+		return CanAttack;
+	}
+
+	return Continue;
+}
+
+ASMJIT_PATCH(0x6F8A92, TechnoClass_CheckAutoTarget_AttackFriendlies, 0xA)
+{
+	GET(TechnoClass*, pThis, ESI);
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	R->CL(pThis->Veterancy.IsElite() ? pTypeExt->AttackFriendlies.Y : pTypeExt->AttackFriendlies.X);
+	return R->Origin() + 0x10;
+}ASMJIT_PATCH_AGAIN(0x6F8BBC, TechnoClass_CheckAutoTarget_AttackFriendlies, 0xA)	// TechnoClass::TryAutoTargetObject
+
+#include <Ext/WeaponType/Body.h>
+
