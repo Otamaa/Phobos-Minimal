@@ -4971,6 +4971,33 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 
 		return;
 	}
+	case TeamMissionType::Garrison_building:
+	{
+		FootClass* pCur = nullptr;
+		if (auto pFirst = this->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+				TechnoExtContainer::Instance.Find(pFirst)->TakeVehicleMode = false;
+
+				if (pFirst->GarrisonStructure())
+					this->_Remove(pFirst, -1, 1);
+
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
+			}
+			while (pCur);
+		}
+
+		this->StepCompleted = true;
+		break;
+	}
 	default:
 
 		if (AresScriptExt::Handle(this, &node, missionChanged) || ScriptExtData::ProcessScriptActions(this, &node, missionChanged))

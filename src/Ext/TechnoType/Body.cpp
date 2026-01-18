@@ -748,6 +748,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->HealthBar_Permanent_PipScale.Read(exINI, pSection, "HealthBar.Permanent.PipScale");
 		this->UIDescription.Read(exINI, pSection, "UIDescription");
 		this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
+		this->LowDeployPriority.Read(exINI, pSection, "LowDeployPriority");
 		this->MindControlRangeLimit.Read(exINI, pSection, "MindControlRangeLimit");
 		this->MindControl_IgnoreSize.Read(exINI, pSection, "MindControl.IgnoreSize");
 		this->MindControlSize.Read(exINI, pSection, "MindControlSize");

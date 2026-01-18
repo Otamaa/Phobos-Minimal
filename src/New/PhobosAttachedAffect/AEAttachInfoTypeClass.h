@@ -18,6 +18,7 @@ public:
 	std::vector<std::string> RemoveGroups {};
 	ValueableVector<int> CumulativeRemoveMinCounts {};
 	ValueableVector<int> CumulativeRemoveMaxCounts {};
+	Valueable<int> CumulativeSourceMaxCount {};
 	ValueableVector<int> DurationOverrides {};
 	ValueableVector<int> Delays {};
 	ValueableVector<int> InitialDelays {};
@@ -48,6 +49,7 @@ public:
 		}
 		else
 		{
+			info.CumulativeSourceMaxCount = this->CumulativeSourceMaxCount;
 			info.CumulativeRefreshAll = this->CumulativeRefreshAll;
 			info.CumulativeRefreshAll_OnAttach = this->CumulativeRefreshAll_OnAttach;
 			info.CumulativeRefreshSameSourceOnly = this->CumulativeRefreshSameSourceOnly;
@@ -68,6 +70,7 @@ private:
 			.Process(this->RemoveGroups)
 			.Process(this->CumulativeRemoveMinCounts)
 			.Process(this->CumulativeRemoveMaxCounts)
+			.Process(this->CumulativeSourceMaxCount)
 			.Process(this->DurationOverrides)
 			.Process(this->Delays)
 			.Process(this->InitialDelays)

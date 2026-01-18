@@ -173,6 +173,7 @@ public:
 	Valueable<bool> HealthBar_Permanent_PipScale;
 	Valueable<CSFText> UIDescription;
 	Valueable<bool> LowSelectionPriority;
+	Valueable<bool> LowDeployPriority;
 	PhobosFixedString<0x20> GroupAs;
 
 	Valueable<int> RadarJamRadius;
@@ -1298,7 +1299,8 @@ public:
 		HealthBar_Permanent(false),
 		HealthBar_Permanent_PipScale(false),
 		UIDescription(),
-		LowSelectionPriority(false),
+		LowSelectionPriority(false), 
+		LowDeployPriority(false), 
 		GroupAs(),
 		RadarJamRadius(0),
 		RadarJamHouses(AffectedHouse::Enemies),
@@ -2223,6 +2225,7 @@ private:
 			.Process(this->HealthBar_Permanent_PipScale)
 			.Process(this->UIDescription)
 			.Process(this->LowSelectionPriority)
+			.Process(this->LowDeployPriority)
 			.Process(this->MindControlRangeLimit)
 			.Process(this->MindControl_IgnoreSize)
 			.Process(this->MindControlSize)

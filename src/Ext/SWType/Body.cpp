@@ -647,6 +647,58 @@ struct TargetingFuncs
 		return { nTarget , flag };
 	}
 
+	static bool IsEligibleDominatorTarget(const TargetingData* pTargeting,FootClass* pTarget)
+	{
+		auto const pTechnoType = pTarget->GetTechnoType();
+
+		// Always ignore Insignificant or civilian-house owned targets - change from Ares and vanilla behaviour.
+		if (pTechnoType->Insignificant || pTarget->Owner->Type->MultiplayPassive)
+			return false;
+
+		{
+			auto const pTypeExt = pTargeting->TypeExt;
+			auto const pOwner = pTargeting->Owner;
+			auto const pTargetHouse = pTarget->Owner;
+
+			// If SW.AIRequiresHouse is explicitly set use that instead of restricting to enemies only.
+			if (pTypeExt->SW_AIRequiresHouse.isset())
+			{
+				if (!EnumFunctions::CanTargetHouse(pTypeExt->SW_AIRequiresHouse, pOwner, pTargetHouse))
+					return false;
+			}
+			else if (pOwner->IsAlliedWith(pTargetHouse))
+			{
+				return false;
+			}
+
+			// If SW.AIRequiresTarget is explicitly set check that here as well.
+			if (pTypeExt->SW_AIRequiresTarget.isset() && !pTypeExt->IsTechnoEligible(pTarget, pTypeExt->SW_AIRequiresTarget))
+				return false;
+
+			if (pTypeExt->SW_AITargeting_PsyDom_AllowTypes.size() > 0 && !pTypeExt->SW_AITargeting_PsyDom_AllowTypes.Contains(pTechnoType))
+				return false;
+
+			if (pTypeExt->SW_AITargeting_PsyDom_DisallowTypes.size() > 0 && pTypeExt->SW_AITargeting_PsyDom_DisallowTypes.Contains(pTechnoType))
+				return false;
+
+			// Skip normal MC immunity etc. checks and only check air & invulnerability separately with toggles to turn them off.
+			if (pTypeExt->SW_AITargeting_PsyDom_SkipChecks)
+			{
+				if (pTarget->IsInAir() && !pTypeExt->SW_AITargeting_PsyDom_AllowAir)
+					return false;
+
+				if (pTarget->IsIronCurtained() && !pTypeExt->SW_AITargeting_PsyDom_AllowInvulnerable)
+					return false;
+			}
+
+			// original game does not consider cloak
+			if (pTarget->CloakState != CloakState::Cloaked && !pTypeExt->SW_AITargeting_PsyDom_AllowCloak)
+				return false;
+		}
+
+		return pTarget->CanBePermaMindControlled();
+	}
+
 	static TargetResult GetDominatorTarget(SWTypeHandler* pNewType, const TargetingData* pTargeting)
 	{
 		std::vector<TechnoClass*> targets {};
@@ -667,13 +719,9 @@ struct TargetingFuncs
 				 {
 					 const auto pFoot = static_cast<FootClass*>(*j);
 
-					 if (pFoot->IsAlive && !pTargeting->Owner->IsAlliedWith(pFoot) && !pFoot->IsInAir())
-					 {
-						  // original game does not consider cloak
-						 if (pFoot->CanBePermaMindControlled() && (pFoot->CloakState != CloakState::Cloaked))
-						 {
-							 ++value;
-						 }
+					 if (pFoot->IsAlive && IsEligibleDominatorTarget(pTargeting, pFoot)) {
+						
+						++value;
 					 }
 				 }
 			}
@@ -1580,6 +1628,12 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->SW_AITargetingPreference.Read(exINI, pSection, "SW.AITargeting.Preference");
 	this->SW_FireToShroud.Read(exINI, pSection, "SW.FireIntoShroud");
 	this->SW_UseAITargeting.Read(exINI, pSection, "SW.UseAITargeting");
+	this->SW_AITargeting_PsyDom_SkipChecks.Read(exINI, pSection, "SW.AITargeting.PsyDom.SkipChecks");
+	this->SW_AITargeting_PsyDom_AllowAir.Read(exINI, pSection, "SW.AITargeting.PsyDom.AllowAir");
+	this->SW_AITargeting_PsyDom_AllowInvulnerable.Read(exINI, pSection, "SW.AITargeting.PsyDom.AllowInvulnerable");
+	this->SW_AITargeting_PsyDom_AllowCloak.Read(exINI, pSection, "SW.AITargeting.PsyDom.AllowCloak");
+	this->SW_AITargeting_PsyDom_AllowTypes.Read(exINI, pSection, "SW.AITargeting.PsyDom.AllowTypes");
+	this->SW_AITargeting_PsyDom_DisallowTypes.Read(exINI, pSection, "SW.AITargeting.PsyDom.DisallowTypes");
 	this->SW_RequiresTarget.Read(exINI, pSection, "SW.RequiresTarget");
 	this->SW_RequiresHouse.Read(exINI, pSection, "SW.RequiresHouse");
 
@@ -2453,6 +2507,12 @@ void SWTypeExtData::Serialize(T& Stm)
 		.Process(this->SW_AITargetingPreference)
 		.Process(this->SW_FireToShroud)
 		.Process(this->SW_UseAITargeting)
+		.Process(this->SW_AITargeting_PsyDom_SkipChecks)
+		.Process(this->SW_AITargeting_PsyDom_AllowAir)
+		.Process(this->SW_AITargeting_PsyDom_AllowInvulnerable)
+		.Process(this->SW_AITargeting_PsyDom_AllowCloak)
+		.Process(this->SW_AITargeting_PsyDom_AllowTypes)
+		.Process(this->SW_AITargeting_PsyDom_DisallowTypes)
 		.Process(this->Message_CannotFire)
 		.Process(this->SW_RequiresTarget)
 		.Process(this->SW_RequiresHouse)

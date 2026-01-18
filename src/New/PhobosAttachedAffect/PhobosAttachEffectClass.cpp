@@ -672,6 +672,7 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 		return nullptr;
 
 	int currentTypeCount = 0;
+	int currentSourceCount = 0;
 	const bool cumulative = pType->Cumulative && checkCumulative;
 	PhobosAttachEffectClass* match = nullptr;
 	StackVector<PhobosAttachEffectClass* , 256> cumulativeMatches;
@@ -691,19 +692,25 @@ PhobosAttachEffectClass* PhobosAttachEffectClass::CreateAndAttach(
 					pTag->RaiseEvent((TriggerEvent)PhobosTriggerEvent::AttachedIsUnderAttachedEffect, pTarget, CellStruct::Empty);
 
 				return nullptr;
-			} else if (!attachParams.CumulativeRefreshSameSourceOnly || (attachEffect->Source == pSource && attachEffect->Invoker == pInvoker))
+			} else
 			{
-				cumulativeMatches->push_back(attachEffect);
+				if (attachEffect->IsFromSource(pInvoker, pSource))
+					currentSourceCount++;
 
-				if (!match || attachEffect->Duration < match->Duration)
-					match = attachEffect;
+				if (!attachParams.CumulativeRefreshSameSourceOnly || attachEffect->IsFromSource(pInvoker, pSource)) {
+					cumulativeMatches->push_back(attachEffect);
+
+					if (!match || attachEffect->Duration < match->Duration)
+						match = attachEffect;
+				}
 			}
 		}
 	}
 
 	if (cumulative)
 	{
-		if (pType->Cumulative_MaxCount >= 0 && currentTypeCount >= pType->Cumulative_MaxCount)
+		if ((pType->Cumulative_MaxCount >= 0 && currentTypeCount >= pType->Cumulative_MaxCount)
+			|| (attachParams.CumulativeSourceMaxCount >= 0 && currentSourceCount >= attachParams.CumulativeSourceMaxCount))
 		{
 			if (attachParams.CumulativeRefreshAll)
 			{
@@ -908,7 +915,7 @@ void PhobosAttachEffectClass::TransferAttachedEffects(TechnoClass* pSource, Tech
 				if (!cumulative) {
 					match = targetAttachEffect;
 					break;
-				} else if (targetAttachEffect->Source == attachEffect->Source && targetAttachEffect->Invoker == attachEffect->Invoker) {
+				} else if (targetAttachEffect->IsFromSource(attachEffect->Invoker, attachEffect->Source)) {
 					if (!match || targetAttachEffect->Duration < match->Duration)
 						sourceMatch = targetAttachEffect;
 				}

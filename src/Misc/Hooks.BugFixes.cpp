@@ -905,6 +905,32 @@ ASMJIT_PATCH(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 	return 0x0;
 }
 
+ASMJIT_PATCH(0x730D0F, ProcessDeployCommand_LowDeployPriority, 0x6)
+{
+	enum { SkipDeploy = 0x730D24 };
+
+	GET_STACK(const int, selectedObjectCount, STACK_OFFSET(0x18, -0x4));
+
+	if (Phobos::Config::PriorityDeployFiltering && selectedObjectCount > 1) {
+		GET(TechnoClass* const, pTechno, ESI);
+
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+
+		if (pExt->LowDeployPriority) {
+			for (const auto pObject : *ObjectClass::CurrentObjects) {
+				if ((pObject->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+					if (!TechnoTypeExtContainer::Instance.Find(static_cast<TechnoClass*>(pObject)->GetTechnoType())->LowDeployPriority)
+						return SkipDeploy;
+				}
+			}
+		}
+	}
+
+	return 0;
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x730D1F, DeployCommandClass_Execute_VoiceDeploy, 0x5)
 {
 	GET_STACK(const int, unitsToDeploy, STACK_OFFSET(0x18, -0x4));
