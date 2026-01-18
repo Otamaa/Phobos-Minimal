@@ -917,7 +917,7 @@ ASMJIT_PATCH(0x730D0F, ProcessDeployCommand_LowDeployPriority, 0x6)
 		auto const pExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
 
 		if (pExt->LowDeployPriority) {
-			for (const auto pObject : *ObjectClass::CurrentObjects) {
+			for (const auto pObject : ObjectClass::CurrentObjects.get()) {
 				if ((pObject->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
 					if (!TechnoTypeExtContainer::Instance.Find(static_cast<TechnoClass*>(pObject)->GetTechnoType())->LowDeployPriority)
 						return SkipDeploy;
