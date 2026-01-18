@@ -183,6 +183,8 @@ public:
 	int _Get_Stray();
 	bool _Does_Any_Member_Have_Ammo();
 
+	void ExecuteTMissions(bool missionChanged);
+
 	static void _fastcall _Suspend_Teams(int priority, HouseClass* house);
 	//
 

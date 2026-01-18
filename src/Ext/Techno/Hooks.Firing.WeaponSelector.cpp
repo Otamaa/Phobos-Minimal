@@ -9,6 +9,28 @@
 #include <Utilities/EnumFunctions.h>
 #include <Locomotor/Cast.h>
 
+ASMJIT_PATCH(0x6F3528, TechnoClass_WhatWeaponShouldIUse_IsLocomotor, 0x6)
+{
+	enum { ContinueAfter = 0x6F3558, Primary = 0x6F37AD, Secondary = 0x6F3549 };
+
+	GET(TechnoClass*, pTargetTechno, EBP);
+
+	if (pTargetTechno && pTargetTechno->WhatAmI() == AbstractType::Building)
+	{
+		GET(WeaponTypeClass*, pPrimary, EBX);
+
+		if (pPrimary->Warhead->IsLocomotor)
+			return Secondary;
+
+		GET_STACK(WeaponTypeClass*, pSecondary, STACK_OFFSET(0x18, -0x8));
+
+		if (pSecondary->Warhead->IsLocomotor)
+			return Primary;
+	}
+
+	return ContinueAfter;
+}
+
 // Weapon Selection
 // TODO : check
 ASMJIT_PATCH(0x6F3339, TechnoClass_WhatWeaponShouldIUse_Interceptor, 0x8)

@@ -106,7 +106,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->ReflectDamage_Warhead_Detonate.Read(exINI, pSection, "ReflectDamage.Warhead.Detonate");
 	this->ReflectDamage_Multiplier.Read(exINI, pSection, "ReflectDamage.Multiplier");
 	this->ReflectDamage_AffectsHouses.Read(exINI, pSection, "ReflectDamage.AffectsHouses");
-
+	this->ReflectDamage_AffectsHouses.Read(exINI, pSection, "ReflectDamage.AffectsHouse");
 	this->ReflectDamage_Chance.Read(exINI, pSection, "ReflectDamage.Chance");
 	this->ReflectDamage_Override.Read(exINI, pSection, "ReflectDamage.Override");
 
@@ -138,6 +138,7 @@ void PhobosAttachEffectTypeClass::LoadFromINI(CCINIClass* pINI)
 	this->AffectTypes.Read(exINI, pSection, "AffectTypes");
 	this->IgnoreTypes.Read(exINI, pSection, "IgnoreTypes");
 	this->AffectTargets.Read(exINI, pSection, "AffectTargets");
+	this->AffectTargets.Read(exINI, pSection, "AffectsTarget");
 
 	// Animation draw offsets.
 	for (int i = 0; i < INT32_MAX; i++) {

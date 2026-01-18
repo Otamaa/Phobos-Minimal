@@ -1543,6 +1543,7 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	}
 
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
+	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.AffectsHouse");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
 
 	// inhibitor related

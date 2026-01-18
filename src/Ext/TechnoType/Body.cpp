@@ -904,7 +904,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->OpenTopped_CheckTransportDisableWeapons.Read(exINI, pSection, "OpenTopped.CheckTransportDisableWeapons");
 
 		this->AutoFire.Read(exINI, pSection, "AutoFire");
+		this->AutoFire.Read(exINI, pSection, "AutoTargetOwnPosition");
 		this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoFire.TargetSelf");
+		this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoTargetOwnPosition.Self");
 
 		this->NoSecondaryWeaponFallback.Read(exINI, pSection, "NoSecondaryWeaponFallback");
 		this->NoSecondaryWeaponFallback_AllowAA.Read(exINI, pSection, "NoSecondaryWeaponFallback.AllowAA");
@@ -991,6 +993,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->DeployFireWeapon.Read(exINI, pSection, "DeployFireWeapon");
 		this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
 		this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
+		this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouse");
 		this->TargetZoneScanType.Read(exINI, pSection, "TargetZoneScanType");
 
 		this->GrapplingAttack.Read(exINI, pSection, "Parasite.GrapplingAttack");

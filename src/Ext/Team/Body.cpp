@@ -712,10 +712,10 @@ bool NOINLINE CanRecruitUnit(TeamClass* team, FootClass* unit, int typeIndex, bo
 	//if (!unit->IsInPlayfield)
 	//	return false;
 
-	auto pExt = TechnoExtContainer::Instance.Find(unit);
+	//auto pExt = TechnoExtContainer::Instance.Find(unit);
 
 	// Cannot recruit if unit is trying something
-	if (unit->To_Try_Something() || pExt->Is_DriverKilled)
+	if (unit->To_Try_Something())
 		return false;
 
 	// Cannot recruit if unit has drain target (mind control, etc)
@@ -761,7 +761,7 @@ bool FakeTeamClass::_Can_Add(FootClass* unit, int* outTypeIndex, bool ignoreQuan
 
 	auto pExt = TechnoExtContainer::Instance.Find(unit);
 
-	if (pExt->Is_DriverKilled)
+	if (pExt->Is_DriverKilled || unit->GetTechnoType()->Speed <= 0)
 		return false;
 
 	if (!Unsorted::ScenarioInit && unit->InLimbo)
@@ -2043,7 +2043,7 @@ void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
 {
 	// If the new target is different than current mission target
 
-	if (new_target && new_target != this->QueuedFocus) {
+	if (new_target != this->QueuedFocus) {
 		FootClass* unit = this->FirstUnit;
 
 		while (unit)
@@ -2239,11 +2239,12 @@ bool FakeTeamClass::_Recalculate() {
     // */
     if (this->IsLeavingMap) {
 		for(int i = TagClass::Array->Count -1; i >= 0; --i) {
-			TagClass::Array->operator[](i)->SpringEvent(TriggerEvent::TeamLeavesMap,
-				nullptr ,
+			if (TagClass::Array->operator[](i)->SpringEvent(TriggerEvent::TeamLeavesMap,
+				nullptr,
 				CellStruct::Empty,
-				false ,
-				nullptr);
+				false,
+				nullptr) && !TagClass::Array->Count)
+				break;
 		}
     }
 
@@ -2351,12 +2352,7 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 		// Iterate through all team members
 		while (member)
 		{
-			if (!member->IsAlive || !member->Health)
-			{
-				member = member->NextTeamMember;
-				continue;
-			}
-			if (!Unsorted::ScenarioInit && member->InLimbo)
+			if (!IsTechnoMemberEligible(member, this))
 			{
 				member = member->NextTeamMember;
 				continue;
@@ -2393,7 +2389,7 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 
 			if (!isTransport)
 			{
-				int distToTarget = member->DistanceFrom(this->ArchiveTarget);
+				int distToTarget = (member->GetCoords() - this->ArchiveTarget->GetCoords()).pow();
 				if (!closestToTarget || distToTarget < minDistanceToTarget)
 				{
 					minDistanceToTarget = distToTarget;
@@ -2408,6 +2404,7 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 		if (memberCount > 0)
 		{
 			CoordStruct centerCoord = tatalXYZ / memberCount;
+			centerCoord.Z = 0;
 			CellClass* centerCell = MapClass::Instance->GetCellAt(centerCoord);
 			*outCell = centerCell;
 
@@ -3766,7 +3763,8 @@ void FakeTeamClass::_TMission_Attack(ScriptActionNode* nNode, bool arg3)
 	if (!this->QueuedFocus) {
 		if (FootClass* pLeader = this->_Fetch_A_Leader()) {
 			const ThreatType tt = ThreatFromQuarry((QuarryType)nNode->Argument);
-			this->_AssignMissionTarget(pLeader->GreatestThreat(tt, &pLeader->Location, this->Type->OnlyTargetHouseEnemy));
+			CoordStruct copyLoc = pLeader->Location;
+			this->_AssignMissionTarget(pLeader->GreatestThreat(tt, &copyLoc, this->Type->OnlyTargetHouseEnemy));
 		}
 	}
 
@@ -3896,11 +3894,12 @@ void FakeTeamClass::_AI()
 	}
 
 	FootClass* pFirstUnit = this->FirstUnit;
+	bool isBeingWarped = false;
 
 	if (!pFirstUnit)
 	{
 		bool shouldDissolve = this->IsHasBeen;
-		if (!shouldDissolve && SessionClass::Instance->GameMode != GameMode::Campaign) {
+		if (SessionClass::Instance->GameMode != GameMode::Campaign) {
 			int elapsed = Unsorted::CurrentFrame - this->CreationFrame;
 			if (elapsed > RulesClass::Instance->DissolveUnfilledTeamDelay) {
 				shouldDissolve = true;
@@ -3930,9 +3929,9 @@ void FakeTeamClass::_AI()
 		// Fall through to coordinate move
 		this->_CoordinateMove();
 		return;
+	} else {
+		isBeingWarped = pFirstUnit->IsBeingWarpedOut();
 	}
-
-	bool isBeingWarped = pFirstUnit->IsBeingWarpedOut();
 
 	if (!this->IsMoving)
 	{
@@ -3940,7 +3939,7 @@ void FakeTeamClass::_AI()
 		return;
 	}
 
-	if (this->IsReforming || this->IsUnderStrength || !isBeingWarped)
+	if (this->IsReforming || this->IsUnderStrength || isBeingWarped)
 	{
 		this->IsReforming = !this->_CoordinateRegroup();
 		return;
@@ -4045,7 +4044,95 @@ void FakeTeamClass::_AI()
 	}
 #pragma endregion
 
+	this->ExecuteTMissions(missionChanged);
+
+	//this->ExecuteTMission(node.Action, &node, arg4);
+}
+
+bool FakeTeamClass::_CoordinateRegroup()
+{
+	bool allMembersRegrouped = true;
+	FootClass* Member = this->FirstUnit;
+
+	// If no members exist, mark as regrouped and return true
+	if (!Member) {
+		this->NeedsReGrouping = 0;
+		return true;
+	}
+
+	int stray = this->_Get_Stray();
+
+	// Process each member in the team
+	do {
+		if (Member->IsAlive) {
+			// Check if member is valid and ready for regrouping
+			if (Member->Health && (Unsorted::ScenarioInit || !Member->InLimbo) && !Member->IsTeamLeader) {
+				// Check if member is close enough to initiate
+				if (FakeObjectClass::_GetDistanceOfObj(Member , discard_t() , this->Zone) <= stray) {
+					Member->IsTeamLeader = true;
+				}
+				else if (!Member->Destination)
+				{
+					// Send member to regroup location
+					Member->QueueMission(Mission::Move, 0);
+					Member->SetTarget(nullptr);
+					Member->SetDestination(this->Zone, 1);
+				}
+			}
+
+			// Process initiated members or aircraft
+			if (Member->IsAlive
+				&& Member->Health
+				&& (Unsorted::ScenarioInit || !Member->InLimbo)
+				&& (Member->IsTeamLeader || Member->WhatAmI() == AbstractType::Aircraft))
+			{
+				// Check if member is in position or guarding with target
+				if (FakeObjectClass::_GetDistanceOfObj(Member, discard_t(), this->Zone) <= stray
+					|| (Member->GetCurrentMission()  == Mission::Area_Guard && Member->Target))
+				{
+					// Set to guard mission if not already guarding
+					if (Member->GetCurrentMission() != Mission::Area_Guard)
+					{
+						Member->QueueMission(Mission::Guard, false);
+						Member->SetDestination(0, 1);
+					}
+				}
+				else if (!Member->Destination)
+				{
+					// Member needs to move to regroup - mark regrouping as incomplete
+					allMembersRegrouped = false;
+					Member->QueueMission(Mission::Move, 0);
+
+					// Calculate destination coordinates
+					CoordStruct centerCoord = this->Zone->GetCoords();
+					CellStruct targetCell = CellClass::Coord2Cell(centerCoord);
+					Member->SetDestination(MapClass::Instance->GetCellAt(targetCell), 1);
+				}
+			}
+		}
+		Member = Member->NextTeamMember;
+	}
+	while (Member);
+
+	// If all members are regrouped, clear the regrouping flag
+	if (allMembersRegrouped)
+	{
+		this->NeedsReGrouping = 0;
+	}
+
+	return allMembersRegrouped;
+}
+
+#define ADDTMISSIONCASE(tt)\
+case TeamMissionType::##tt##:{\
+pThis->TMission_##tt##(pNode, something);\
+break;}
+
+void FakeTeamClass::ExecuteTMissions(bool missionChanged)
+{
 	ScriptActionNode node = this->CurrentScript->GetCurrentAction();
+
+#ifndef _UseNew	
 
 	//dont prematurely finish the `Script` ,...
 	//bailout the script if the `Action` already -1
@@ -4138,7 +4225,7 @@ void FakeTeamClass::_AI()
 		this->_TMission_Enter_Grinder(&node, missionChanged);
 		return;
 	}
-	case TeamMissionType::Enter_bio_reactor: 
+	case TeamMissionType::Enter_bio_reactor:
 	{
 		this->_TMission_Enter_Bio_Reactor(&node, missionChanged);
 		return;
@@ -4196,8 +4283,10 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Flash:
 	{
-		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember) {
-			if (f->Health > 0 && f->IsAlive && !f->IsCrashing && !f->IsSinking && !f->InLimbo) {
+		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember)
+		{
+			if (f->Health > 0 && f->IsAlive && !f->IsCrashing && !f->IsSinking && !f->InLimbo)
+			{
 				f->Flashing.DurationRemaining = node.Argument;
 			}
 		}
@@ -4213,7 +4302,8 @@ void FakeTeamClass::_AI()
 			do
 			{
 				auto pFirstType = GET_TECHNOTYPE(pFirst);
-				if (IS_SAME_STR_(pFirstType->ID, "TRUCKB")) {
+				if (IS_SAME_STR_(pFirstType->ID, "TRUCKB"))
+				{
 					TechnoExt_ExtData::ConvertToType(pFirst, UnitTypeClass::Find("TRUCKA"));
 				}
 
@@ -4240,7 +4330,8 @@ void FakeTeamClass::_AI()
 			do
 			{
 				auto pFirstType = GET_TECHNOTYPE(pFirst);
-				if (IS_SAME_STR_(pFirstType->ID, "TRUCKA")) {
+				if (IS_SAME_STR_(pFirstType->ID, "TRUCKA"))
+				{
 					TechnoExt_ExtData::ConvertToType(pFirst, UnitTypeClass::Find("TRUCKB"));
 				}
 
@@ -4260,7 +4351,7 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Wait_till_fully_loaded:
 	{
-		if(!this->FirstUnit)
+		if (!this->FirstUnit)
 			this->StepCompleted = true;
 
 		return;
@@ -4269,7 +4360,8 @@ void FakeTeamClass::_AI()
 	{
 		FootClass* member = this->FirstUnit;
 
-		if (!member) {
+		if (!member)
+		{
 			this->StepCompleted = true;
 			return;
 		}
@@ -4284,15 +4376,19 @@ void FakeTeamClass::_AI()
 		while (member)
 		{
 			// Check if member is currently moving
-			if (member->Locomotor->Is_Moving()) {
+			if (member->Locomotor->Is_Moving())
+			{
 				// Member is moving, can't complete facing yet
 				allMembersFacing = false;
-			} else {
+			}
+			else
+			{
 				// Get member's current facing
 				DirStruct currentDir = member->PrimaryFacing.Current();
 
 				// Check if already facing the correct direction
-				if (currentDir.GetDir() != targetFacing) {
+				if (currentDir.GetDir() != targetFacing)
+				{
 					// Not facing correct direction, turn the unit
 					member->Locomotor->Do_Turn(DirStruct(targetFacing));
 					allMembersFacing = false;
@@ -4303,7 +4399,8 @@ void FakeTeamClass::_AI()
 		}
 
 		// Mission complete when all members are facing the target direction
-		if (allMembersFacing) {
+		if (allMembersFacing)
+		{
 			this->StepCompleted = true;
 		}
 
@@ -4346,7 +4443,8 @@ void FakeTeamClass::_AI()
 					&& pFirst->IsAlive
 					&& !pFirst->IsCrashing
 					&& !pFirst->IsSinking
-					&& !pFirst->InLimbo) {
+					&& !pFirst->InLimbo)
+				{
 					pFirst->Limbo();
 					pFirst->UnInit();
 				}
@@ -4379,19 +4477,21 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Ion_storm_start_in:
 	{
-		if (!LightningStorm::IsActive()) {
+		if (!LightningStorm::IsActive())
+		{
 			LightningStorm::Start(
 				node.Argument,
 				RulesClass::Instance->LightningDeferment,
 				CellStruct::Empty, nullptr
-				);
+			);
 		}
 		this->StepCompleted = true;
 		return;
 	}
 	case TeamMissionType::Ion_storn_end:
 	{
-		if (LightningStorm::IsActive()) {
+		if (LightningStorm::IsActive())
+		{
 			LightningStorm::RequestStop();
 		}
 		this->StepCompleted = true;
@@ -4399,7 +4499,8 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Center_view_on_team:
 	{
-		if (this->Zone) {
+		if (this->Zone)
+		{
 			CoordStruct place = this->Zone->GetCoords();
 			auto pCell = MapClass::Instance->GetCellAt(place);
 			place.Z = pCell->ContainsBridgeEx() ? place.Z + CellClass::BridgeHeight : 0;
@@ -4456,7 +4557,8 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Reduce_tiberium:
 	{
-		if (this->FirstUnit) {
+		if (this->FirstUnit)
+		{
 			this->FirstUnit->GetCell()->ReduceTiberiumWithinCircularArea();
 		}
 
@@ -4465,7 +4567,8 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Goto_nearby_shroud:
 	{
-		if (missionChanged) {
+		if (missionChanged)
+		{
 			AbstractClass* pTarget = this->Zone;
 			if (!this->Zone)
 				pTarget = this->FirstUnit;
@@ -4500,7 +4603,8 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Panic:
 	{
-		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember) {
+		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember)
+		{
 			f->Panic();
 		}
 		this->StepCompleted = true;
@@ -4508,7 +4612,8 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Unpanic:
 	{
-		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember) {
+		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember)
+		{
 			f->UnPanic();
 		}
 
@@ -4531,7 +4636,8 @@ void FakeTeamClass::_AI()
 				  && (i->IsTeamLeader || i->WhatAmI() == AircraftClass::AbsID))
 				{
 
-					if (i->Target && i->Target != pTechno->Target) {
+					if (i->Target && i->Target != pTechno->Target)
+					{
 						i->SetTarget(0);
 					}
 
@@ -4557,7 +4663,8 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Idle_anim:
 	{
-		for (auto f = this->FirstUnit; f; f = f->NextTeamMember) {
+		for (auto f = this->FirstUnit; f; f = f->NextTeamMember)
+		{
 			f->PlayIdleAnim(node.Argument);
 		}
 
@@ -4571,12 +4678,14 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Change_script:
 	{
-		if (node.Argument < 0) {
+		if (node.Argument < 0)
+		{
 			this->StepCompleted = true;
 			return;
 		}
 
-		if (this->CurrentScript) {
+		if (this->CurrentScript)
+		{
 			GameDelete<true, false>(this->CurrentScript);
 		}
 
@@ -4588,13 +4697,15 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Change_team:
 	{
-		if (node.Argument < 0 || !this->FirstUnit) {
+		if (node.Argument < 0 || !this->FirstUnit)
+		{
 			this->StepCompleted = true;
 			return;
 		}
 
 		auto pNewTeam = GameCreate<TeamClass>(TeamTypeClass::Array->operator[](node.Argument), this->OwnerHouse, 0);
-		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember) {
+		for (FootClass* f = this->FirstUnit; f; f = f->NextTeamMember)
+		{
 			this->_Remove(f, -1, false);
 			pNewTeam->AddMember(f);
 		}
@@ -4612,7 +4723,8 @@ void FakeTeamClass::_AI()
 		this->_TMission_GatherAtBase(&node, missionChanged);
 		return;
 	}
-	case TeamMissionType::Play_speech:{
+	case TeamMissionType::Play_speech:
+	{
 		ScriptExtData::PlaySpeech(this);
 		return;
 	}
@@ -4624,7 +4736,7 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Play_movie:
 	{
-		Game::PlayMovie(node.Argument, -1,1, 1, 0);
+		Game::PlayMovie(node.Argument, -1, 1, 1, 0);
 		this->StepCompleted = 1;
 		return;
 	}
@@ -4636,7 +4748,7 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Do:
 	{
-		this->_Coordinate_Do(&node,CellStruct::Empty);
+		this->_Coordinate_Do(&node, CellStruct::Empty);
 		return;
 	}
 	case TeamMissionType::Patrol:
@@ -4646,7 +4758,8 @@ void FakeTeamClass::_AI()
 		CellClass* waypointCell = ScenarioClass::Instance->GetWaypointCell(waypointIndex);
 
 		// On first call, set waypoint as initial target
-		if (missionChanged) {
+		if (missionChanged)
+		{
 			this->_AssignMissionTarget(waypointCell);
 		}
 
@@ -4656,7 +4769,8 @@ void FakeTeamClass::_AI()
 			auto const& [miss, value] = this->CurrentScript->GetCurrentAction();
 
 			// Mission data < 702 is some threshold check (possibly frame-based)
-			if (value < 702) {
+			if (value < 702)
+			{
 				this->_AssignMissionTarget(waypointCell);
 			}
 		}
@@ -4709,8 +4823,10 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Move:
 	{
-		if (missionChanged) {
-			if (FootClass* pLeader = this->_Fetch_A_Leader()) {
+		if (missionChanged)
+		{
+			if (FootClass* pLeader = this->_Fetch_A_Leader())
+			{
 
 				CellStruct wp = ScenarioClass::Instance->GetWaypointCoords(node.Argument);
 				CellClass* pCell = MapClass::Instance->GetCellAt(wp);
@@ -4763,7 +4879,8 @@ void FakeTeamClass::_AI()
 				// Get enemy house
 				HouseClass* enemyHouse = nullptr;
 				int enemyIndex = member->Owner->EnemyHouseIndex;
-				if (enemyIndex != -1) {
+				if (enemyIndex != -1)
+				{
 					enemyHouse = HouseClass::Array->Items[enemyIndex];
 				}
 
@@ -4800,16 +4917,20 @@ void FakeTeamClass::_AI()
 						0, 0
 					);
 
-					if (nearbyCell.IsValid()) {
+					if (nearbyCell.IsValid())
+					{
 						this->_AssignMissionTarget(MapClass::Instance->GetCellAt(nearbyCell));
-					} else {
+					}
+					else
+					{
 						this->_AssignMissionTarget(nullptr);
 					}
 				}
 			}
 		}
 
-		if (!this->QueuedFocus) {
+		if (!this->QueuedFocus)
+		{
 			this->StepCompleted = true;
 			return;
 		}
@@ -4819,22 +4940,28 @@ void FakeTeamClass::_AI()
 	}
 	case TeamMissionType::Spy:
 	{
-		if (missionChanged) {
+		if (missionChanged)
+		{
 			CellClass* pWaypCell = ScenarioClass::Instance->GetWaypointCell(node.Argument);
 			this->_AssignMissionTarget(pWaypCell);
 		}
 
 		AbstractClass* pTarget = nullptr;
 
-		if (this->QueuedFocus && this->QueuedFocus->WhatAmI() == CellClass::AbsID) {
-			if (auto pObj = ((CellClass*)this->QueuedFocus)->GetSomeObject(Point2D::Empty, false)) {
+		if (this->QueuedFocus && this->QueuedFocus->WhatAmI() == CellClass::AbsID)
+		{
+			if (auto pObj = ((CellClass*)this->QueuedFocus)->GetSomeObject(Point2D::Empty, false))
+			{
 				pTarget = pObj;
 			}
 
 			this->_AssignMissionTarget(pTarget);
 			this->_Coordinate_Attack();
-		} else {
-			if (this->QueuedFocus) {
+		}
+		else
+		{
+			if (this->QueuedFocus)
+			{
 				this->_Coordinate_Attack();
 			}
 
@@ -4851,82 +4978,244 @@ void FakeTeamClass::_AI()
 
 		break;
 	}
+#else 
+	FakeTeamClass* pThis = this;
+	ScriptActionNode* pNode = &node;
+	bool something = missionChanged;
 
-	//this->ExecuteTMission(node.Action, &node, arg4);
+	switch (pNode->Action)
+	{
+			case TeamMissionType::Attack:
+			{
+				this->_TMission_Attack(&node, missionChanged);
+				return;
+			}
+			ADDTMISSIONCASE(Att_waypt)
+			ADDTMISSIONCASE(Go_bezerk)
+			ADDTMISSIONCASE(Move)
+			ADDTMISSIONCASE(Movecell)
+			ADDTMISSIONCASE(Loop)
+			ADDTMISSIONCASE(Player_wins)
+			ADDTMISSIONCASE(Unload)
+			ADDTMISSIONCASE(Deploy)
+			ADDTMISSIONCASE(Hound_dog)
+			ADDTMISSIONCASE(Do)
+			ADDTMISSIONCASE(Set_global)
+			ADDTMISSIONCASE(Idle_anim)
+			ADDTMISSIONCASE(Load)
+			ADDTMISSIONCASE(Spy)
+			ADDTMISSIONCASE(Patrol)
+			ADDTMISSIONCASE(Change_script)
+			ADDTMISSIONCASE(Change_team)
+			ADDTMISSIONCASE(Panic)
+			ADDTMISSIONCASE(Change_house)
+			ADDTMISSIONCASE(Scatter)
+			ADDTMISSIONCASE(Goto_nearby_shroud)
+			ADDTMISSIONCASE(Player_loses)
+			ADDTMISSIONCASE(Play_speech)
+			ADDTMISSIONCASE(Play_sound)
+			ADDTMISSIONCASE(Play_movie)
+			ADDTMISSIONCASE(Play_music)
+			ADDTMISSIONCASE(Reduce_tiberium)
+			ADDTMISSIONCASE(Begin_production)
+			ADDTMISSIONCASE(Fire_sale)
+			ADDTMISSIONCASE(Self_destruct)
+			ADDTMISSIONCASE(Ion_storm_start_in)
+			ADDTMISSIONCASE(Ion_storn_end)
+			ADDTMISSIONCASE(Center_view_on_team)
+			ADDTMISSIONCASE(Reshroud_map)
+			ADDTMISSIONCASE(Reveal_map)
+			ADDTMISSIONCASE(Delete_team_members)
+			ADDTMISSIONCASE(Clear_global)
+			ADDTMISSIONCASE(Set_local)
+			ADDTMISSIONCASE(Clear_local)
+			ADDTMISSIONCASE(Unpanic)
+			ADDTMISSIONCASE(Force_facing)
+			ADDTMISSIONCASE(Wait_till_fully_loaded)
+			ADDTMISSIONCASE(Truck_unload)
+			ADDTMISSIONCASE(Truck_load)
+			ADDTMISSIONCASE(Attack_enemy_building)
+			ADDTMISSIONCASE(Moveto_enemy_building)
+			ADDTMISSIONCASE(Scout)
+			case TeamMissionType::Success:
+			{
+				this->AchievedGreatSuccess = true;
+				this->StepCompleted = true;
+				return;
+			}
+			ADDTMISSIONCASE(Flash)
+			ADDTMISSIONCASE(Play_anim)
+			ADDTMISSIONCASE(Talk_bubble)
+			case TeamMissionType::Gather_at_enemy:
+			{
+				this->_TMission_GatherAtEnemy(&node, missionChanged);
+				return;
+			}
+			case TeamMissionType::Gather_at_base:
+			{
+				this->_TMission_GatherAtBase(&node, missionChanged);
+				return;
+			}
+			//ADDTMISSIONCASE(Gather_at_base)
+			ADDTMISSIONCASE(Iron_curtain_me)
+			ADDTMISSIONCASE(Chrono_prep_for_abwp)
+			ADDTMISSIONCASE(Chrono_prep_for_aq)
+			ADDTMISSIONCASE(Move_to_own_building)
+			ADDTMISSIONCASE(Attack_building_at_waypoint)
+			ADDTMISSIONCASE(Enter_grinder)
+			ADDTMISSIONCASE(Occupy_tank_bunker)
+			ADDTMISSIONCASE(Enter_bio_reactor)
+			ADDTMISSIONCASE(Occupy_battle_bunker)
+	case TeamMissionType::Garrison_building:
+		{
+			FootClass* pCur = nullptr;
+			if (auto pFirst = pThis->FirstUnit)
+			{
+				auto pNext = pFirst->NextTeamMember;
+				do
+				{
+					TechnoExtContainer::Instance.Find(pFirst)->TakeVehicleMode = false;
+
+					if (pFirst->GarrisonStructure())
+						pThis->RemoveMember(pFirst, -1, 1);
+
+					pCur = pNext;
+
+					if (pNext)
+						pNext = pNext->NextTeamMember;
+
+					pFirst = pCur;
+
+				}
+				while (pCur);
+			}
+
+			pThis->StepCompleted = true;
+			break;
+		}
+	default:
+
+		if (AresScriptExt::Handle(pThis, pNode, something))
+			return;
+
+		if (ScriptExtData::ProcessScriptActions(pThis, pNode, something))
+			return;
+
+		break;
+	}
+#endif
+
 }
 
-bool FakeTeamClass::_CoordinateRegroup()
+DEFINE_HOOK(0x6E944B, TeamClass_AI_test, 0x6)
 {
-	bool allMembersRegrouped = true;
-	FootClass* Member = this->FirstUnit;
+	GET(FakeTeamClass*, pThis, ESI);
+	GET(ScriptActionNode*, pNode, ECX);
+	GET_STACK(bool, something, STACK_OFFSET(0x38,-0x28));
 
-	// If no members exist, mark as regrouped and return true
-	if (!Member) {
-		this->NeedsReGrouping = 0;
-		return true;
-	}
-
-	int stray = this->_Get_Stray();
-
-	// Process each member in the team
-	do {
-		if (Member->IsAlive) {
-			// Check if member is valid and ready for regrouping
-			if (Member->Health && (Unsorted::ScenarioInit || !Member->InLimbo) && !Member->IsTeamLeader) {
-				// Check if member is close enough to initiate
-				if (FakeObjectClass::_GetDistanceOfObj(Member , discard_t() , this->Zone) <= stray) {
-					Member->IsTeamLeader = true;
-				}
-				else if (!Member->Destination)
-				{
-					// Send member to regroup location
-					Member->QueueMission(Mission::Move, 0);
-					Member->SetTarget(nullptr);
-					Member->SetDestination(this->Zone, 1);
-				}
-			}
-
-			// Process initiated members or aircraft
-			if (Member->IsAlive
-				&& Member->Health
-				&& (Unsorted::ScenarioInit || !Member->InLimbo)
-				&& (Member->IsTeamLeader || Member->WhatAmI() == AbstractType::Aircraft))
-			{
-				// Check if member is in position or guarding with target
-				if (FakeObjectClass::_GetDistanceOfObj(Member, discard_t(), this->Zone) <= stray
-					|| (Member->GetCurrentMission()  == Mission::Area_Guard && Member->Target))
-				{
-					// Set to guard mission if not already guarding
-					if (Member->GetCurrentMission() != Mission::Area_Guard)
-					{
-						Member->QueueMission(Mission::Guard, false);
-						Member->SetDestination(0, 1);
-					}
-				}
-				else if (!Member->Destination)
-				{
-					// Member needs to move to regroup - mark regrouping as incomplete
-					allMembersRegrouped = false;
-					Member->QueueMission(Mission::Move, 0);
-
-					// Calculate destination coordinates
-					CoordStruct centerCoord = this->Zone->GetCoords();
-					CellStruct targetCell = CellClass::Coord2Cell(centerCoord);
-					Member->SetDestination(MapClass::Instance->GetCellAt(targetCell), 1);
-				}
-			}
-		}
-		Member = Member->NextTeamMember;
-	}
-	while (Member);
-
-	// If all members are regrouped, clear the regrouping flag
-	if (allMembersRegrouped)
+	switch (pNode->Action)
 	{
-		this->NeedsReGrouping = 0;
-	}
+	ADDTMISSIONCASE(Attack)
+	ADDTMISSIONCASE(Att_waypt)
+	ADDTMISSIONCASE(Go_bezerk)
+	ADDTMISSIONCASE(Move)
+	ADDTMISSIONCASE(Movecell)
+	ADDTMISSIONCASE(Loop)
+	ADDTMISSIONCASE(Player_wins)
+	ADDTMISSIONCASE(Unload)
+	ADDTMISSIONCASE(Deploy)
+	ADDTMISSIONCASE(Hound_dog)
+	ADDTMISSIONCASE(Do)
+	ADDTMISSIONCASE(Set_global)
+	ADDTMISSIONCASE(Idle_anim)
+	ADDTMISSIONCASE(Load)
+	ADDTMISSIONCASE(Spy)
+	ADDTMISSIONCASE(Patrol)
+	ADDTMISSIONCASE(Change_script)
+	ADDTMISSIONCASE(Change_team)
+	ADDTMISSIONCASE(Panic)
+	ADDTMISSIONCASE(Change_house)
+	ADDTMISSIONCASE(Scatter)
+	ADDTMISSIONCASE(Goto_nearby_shroud)
+	ADDTMISSIONCASE(Player_loses)
+	ADDTMISSIONCASE(Play_speech)
+	ADDTMISSIONCASE(Play_sound)
+	ADDTMISSIONCASE(Play_movie)
+	ADDTMISSIONCASE(Play_music)
+	ADDTMISSIONCASE(Reduce_tiberium)
+	ADDTMISSIONCASE(Begin_production)
+	ADDTMISSIONCASE(Fire_sale)
+	ADDTMISSIONCASE(Self_destruct)
+	ADDTMISSIONCASE(Ion_storm_start_in)
+	ADDTMISSIONCASE(Ion_storn_end)
+	ADDTMISSIONCASE(Center_view_on_team)
+	ADDTMISSIONCASE(Reshroud_map)
+	ADDTMISSIONCASE(Reveal_map)
+	ADDTMISSIONCASE(Delete_team_members)
+	ADDTMISSIONCASE(Clear_global)
+	ADDTMISSIONCASE(Set_local)
+	ADDTMISSIONCASE(Clear_local)
+	ADDTMISSIONCASE(Unpanic)
+	ADDTMISSIONCASE(Force_facing)
+	ADDTMISSIONCASE(Wait_till_fully_loaded)
+	ADDTMISSIONCASE(Truck_unload)
+	ADDTMISSIONCASE(Truck_load)
+	ADDTMISSIONCASE(Attack_enemy_building)
+	ADDTMISSIONCASE(Moveto_enemy_building)
+	ADDTMISSIONCASE(Scout)
+	ADDTMISSIONCASE(Success)
+	ADDTMISSIONCASE(Flash)
+	ADDTMISSIONCASE(Play_anim)
+	ADDTMISSIONCASE(Talk_bubble)
+	ADDTMISSIONCASE(Gather_at_enemy)
+	ADDTMISSIONCASE(Gather_at_base)
+	ADDTMISSIONCASE(Iron_curtain_me)
+	ADDTMISSIONCASE(Chrono_prep_for_abwp)
+	ADDTMISSIONCASE(Chrono_prep_for_aq)
+	ADDTMISSIONCASE(Move_to_own_building)
+	ADDTMISSIONCASE(Attack_building_at_waypoint)
+	ADDTMISSIONCASE(Enter_grinder)
+	ADDTMISSIONCASE(Occupy_tank_bunker)
+	ADDTMISSIONCASE(Enter_bio_reactor)
+	ADDTMISSIONCASE(Occupy_battle_bunker)
+	case TeamMissionType::Garrison_building:
+	{
+		FootClass* pCur = nullptr;
+		if (auto pFirst = pThis->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+				TechnoExtContainer::Instance.Find(pFirst)->TakeVehicleMode = false;
 
-	return allMembersRegrouped;
+				if (pFirst->GarrisonStructure())
+					pThis->RemoveMember(pFirst, -1, 1);
+
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
+			}
+			while (pCur);
+		}
+
+		pThis->StepCompleted = true;
+		break;
+	}
+	default:
+
+		if (AresScriptExt::Handle(pThis, pNode, something))
+			return 0x6E9F4A;
+
+		if (ScriptExtData::ProcessScriptActions(pThis, pNode, something))
+			return 0x6E9F4A;
+
+		break;
+	}
+	return 0x6E9F4A;
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F478C, FakeTeamClass::_AI)

@@ -188,14 +188,18 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->Crit_Warhead.Read(exINI, pSection, "Crit.Warhead", true);
 	this->Crit_Warhead_FullDetonation.Read(exINI, pSection, "Crit.Warhead.FullDetonation");
 	this->Crit_Affects.Read(exINI, pSection, "Crit.Affects");
+	this->Crit_Affects.Read(exINI, pSection, "Crit.AffectsTarget");
 	this->Crit_AffectsHouses.Read(exINI, pSection, "Crit.AffectsHouses");
+	this->Crit_AffectsHouses.Read(exINI, pSection, "Crit.AffectsHouse");
 	this->Crit_AnimList.Read(exINI, pSection, "Crit.AnimList");
 	this->Crit_AnimList_PickRandom.Read(exINI, pSection, "Crit.AnimList.PickRandom");
 	this->Crit_AnimList_CreateAll.Read(exINI, pSection, "Crit.AnimList.CreateAll");
 	this->Crit_ActiveChanceAnims.Read(exINI, pSection, "Crit.ActiveChanceAnims");
 	this->Crit_AnimOnAffectedTargets.Read(exINI, pSection, "Crit.AnimOnAffectedTargets");
 	this->Crit_AffectBelowPercent.Read(exINI, pSection, "Crit.AffectBelowPercent");
+	this->Crit_AffectBelowPercent.Read(exINI, pSection, "Crit.AffectsBelowPercent");
 	this->Crit_AffectAbovePercent.Read(exINI, pSection, "Crit.AffectAbovePercent");
+	this->Crit_AffectAbovePercent.Read(exINI, pSection, "Crit.AffectsAbovePercent");
 	this->Crit_SuppressWhenIntercepted.Read(exINI, pSection, "Crit.SuppressWhenIntercepted");
 
 	this->MindControl_Anim.Read(exINI, pSection, "MindControl.Anim");
@@ -317,6 +321,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
 	this->RevengeWeapon_GrantDuration.Read(exINI, pSection, "RevengeWeapon.GrantDuration");
 	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
+	this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouse");
 	this->RevengeWeapon_Cumulative.Read(exINI, pSection, "RevengeWeapon.Cumulative");
 	this->RevengeWeapon_MaxCount.Read(exINI, pSection, "RevengeWeapon.MaxCount");
 
@@ -486,6 +491,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->DetonatesWeapons.Read(exINI, pSection, "DetonatesWeapons");
 	this->LimboKill_IDs.Read(exINI, pSection, "LimboKill.IDs");
 	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.Affected");
+	this->LimboKill_Affected.Read(exINI, pSection, "LimboKill.AffectsHouse");
 	this->InfDeathAnim.Read(exINI, pSection, "InfDeathAnim");
 	this->Culling_BelowHP.Read(exINI, pSection, "Culling.%sBelowHealth");
 	this->Culling_Chance.Read(exINI, pSection, "Culling.%sChance");
@@ -663,7 +669,9 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->KillWeapon.Read(exINI, pSection, "KillWeapon");
 	this->KillWeapon_OnFirer.Read(exINI, pSection, "KillWeapon.OnFirer");
 	this->KillWeapon_AffectsHouses.Read(exINI, pSection, "KillWeapon.AffectsHouses");
+	this->KillWeapon_AffectsHouses.Read(exINI, pSection, "KillWeapon.AffectsHouse");
 	this->KillWeapon_OnFirer_AffectsHouses.Read(exINI, pSection, "KillWeapon.OnFirer.AffectsHouses");
+	this->KillWeapon_OnFirer_AffectsHouses.Read(exINI, pSection, "KillWeapon.OnFirer.AffectsHouse");
 	this->KillWeapon_Affects.Read(exINI, pSection, "KillWeapon.Affects");
 	this->KillWeapon_OnFirer_Affects.Read(exINI, pSection, "KillWeapon.OnFirer.Affects");
 
