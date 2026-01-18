@@ -673,7 +673,9 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->KillWeapon_OnFirer_AffectsHouses.Read(exINI, pSection, "KillWeapon.OnFirer.AffectsHouses");
 	this->KillWeapon_OnFirer_AffectsHouses.Read(exINI, pSection, "KillWeapon.OnFirer.AffectsHouse");
 	this->KillWeapon_Affects.Read(exINI, pSection, "KillWeapon.Affects");
+	this->KillWeapon_Affects.Read(exINI, pSection, "KillWeapon.AffectsTarget");
 	this->KillWeapon_OnFirer_Affects.Read(exINI, pSection, "KillWeapon.OnFirer.Affects");
+	this->KillWeapon_OnFirer_Affects.Read(exINI, pSection, "KillWeapon.OnFirer.AffectsTarget");
 
 	this->MindControl_ThreatDelay.Read(exINI, pSection, "MindControl.ThreatDelay");
 	this->MergeBuildingDamage.Read(exINI, pSection, "MergeBuildingDamage");
