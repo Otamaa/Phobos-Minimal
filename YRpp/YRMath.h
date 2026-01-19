@@ -299,7 +299,7 @@ namespace Math
 		return std::sin((double)a1);
 	}
 
-	static FORCEDINLINE double __cdecl sqr(float a1) {
+	static FORCEDINLINE double __cdecl sqrt(float a1) {
 		return std::sqrt((double)a1);
 	}
 
@@ -358,7 +358,7 @@ namespace Math
 		else if constexpr (std::is_same<T, float>::value)
 			return static_cast<T>(std::fabs(x));
 		else
-			static_assert("Not supported");
+			static_assert(!sizeof(T), "Not supported");
 	}
 
 	template <typename T>

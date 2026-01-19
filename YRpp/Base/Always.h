@@ -115,7 +115,7 @@ typedef union {
 #define MinImpl(a,b) (((a) < (b)) ? (a) : (b))
 #define MaxImpl(a,b) (((a) > (b)) ? (a) : (b))
 #else
-#define MinImp std::min
+#define MinImpl std::min
 #define MaxImpl std::max
 #endif
 
