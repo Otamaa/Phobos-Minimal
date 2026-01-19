@@ -1647,6 +1647,7 @@ bool SWTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->GClock_Transculency.Read(exINI, pSection, "GClock.Transculency");
 	this->GClock_Palette.Read(exINI, pSection, "GClock.Palette");
 
+	this->ChargeTimer.Read(exINI, pSection, "ShowTimer.Percentage");
 	this->ChargeTimer.Read(exINI, pSection, "Timer.ChargeMode");
 	this->ChargeTimer_Backwards.Read(exINI, pSection, "Timer.ChargeModeBackwards");
 	//

@@ -927,8 +927,6 @@ ASMJIT_PATCH(0x730D0F, ProcessDeployCommand_LowDeployPriority, 0x6)
 	}
 
 	return 0;
-
-	return 0;
 }
 
 ASMJIT_PATCH(0x730D1F, DeployCommandClass_Execute_VoiceDeploy, 0x5)
@@ -3067,4 +3065,25 @@ ASMJIT_PATCH(0x6FBFA3, TechnoClass_Select_SkipLimboDelivery, 0x6)
 	}
 
 	return 0;
+}
+
+// Enable InGameMovie TAction in non-campaign mode.
+DEFINE_JUMP(LJMP, 0x5BF3B0, 0x5BF3BD);
+
+ASMJIT_PATCH(0x46954C, BulletClass_Logics_IsLocomotor_Bunker, 0x6)
+{
+	enum { CannotImbue = 0x4695E6 };
+
+	GET(UnitClass*, pTarget, ECX);
+
+	return pTarget->BunkerLinkedItem ? CannotImbue : 0;
+}
+
+ASMJIT_PATCH(0x6FC3AE, TechnoClass_CanFire_TankInBunker_LocomotorWarhead, 0x6)
+{
+	enum { Illegal = 0x6FC86A };
+
+	GET(WeaponTypeClass*, pWeapon, EDI);
+
+	return pWeapon->Warhead && pWeapon->Warhead->IsLocomotor ? Illegal : 0;
 }

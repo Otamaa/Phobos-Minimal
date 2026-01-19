@@ -4998,6 +4998,56 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 		this->StepCompleted = true;
 		break;
 	}
+	case TeamMissionType::Go_bezerk:
+	{
+		FootClass* pCur = nullptr;
+		if (auto pFirst = this->FirstUnit)
+		{
+			auto pNext = pFirst->NextTeamMember;
+			do
+			{
+				pFirst->GoBerzerk();
+				pCur = pNext;
+
+				if (pNext)
+					pNext = pNext->NextTeamMember;
+
+				pFirst = pCur;
+
+			}
+			while (pCur);
+		}
+
+		this->StepCompleted = true;
+		return;
+	}
+	case TeamMissionType::Attack_building_at_waypoint:
+	{
+		if (missionChanged)
+		{
+			AbstractClass* pTarget = nullptr; ;
+
+			if (auto pWaypointCell = ScenarioClass::Instance->GetWaypointCell(node.Argument)) {
+				if (auto pObj = pWaypointCell->GetSomeObject({}, pWaypointCell->ContainsBridge())) {
+					pTarget = cast_to<BuildingClass*, false>(pObj);
+				}
+			}
+			this->_AssignMissionTarget(pTarget);
+		}
+		
+		auto pirst = this->FirstUnit;
+
+		if (this->QueuedFocus && this->_Does_Any_Member_Have_Ammo()) {
+			this->_Coordinate_Attack();
+			break;
+			
+		}
+
+		this->_AssignMissionTarget(nullptr);
+		this->StepCompleted = true;
+		
+		break;
+	}
 	default:
 
 		if (AresScriptExt::Handle(this, &node, missionChanged) || ScriptExtData::ProcessScriptActions(this, &node, missionChanged))
