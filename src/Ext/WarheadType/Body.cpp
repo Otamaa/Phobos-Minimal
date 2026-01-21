@@ -740,6 +740,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
 	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
 
+	this->CanTargetIronCurtained.Read(exINI, pSection, "CanTargetIronCurtained");
+
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
 		this->RemoveMindControl ||
@@ -2059,6 +2061,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->IsFakeEngineer)
 		.Process(this->AnimZAdjust)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
+		.Process(this->CanTargetIronCurtained)
 		;
 
 	PaintBallData.Serialize(Stm);

@@ -418,17 +418,24 @@ ASMJIT_PATCH(0x441D1F, BuildingClass_Destroy_DestroyAnim, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x6FC22A, TechnoClass_CanFire_AttackICUnit, 0x6)
-{
-	enum { ContinueCheck = 0x6FC23A, BypassCheck = 0x6FC24D };
-	GET(TechnoClass* const, pThis, ESI);
-
-	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-	//TODO : re-eval check below  , i if desync/the behaviour is not good , change it to pThis->Owner->IsControlledByCurrentPlayer()
-	const bool Allow = RulesExtData::Instance()->AutoAttackICedTarget.Get() || pThis->Owner->IsControlledByHuman();
-	return pTypeExt->AllowFire_IroncurtainedTarget.Get(Allow)
-		? BypassCheck : ContinueCheck;
-}
+// ASMJIT_PATCH(0x6FC22A, TechnoClass_CanFire_AttackICUnit, 0x6)
+// {
+// 	enum { ContinueCheck = 0x6FC23A, BypassCheck = 0x6FC24D };
+// 	GET(TechnoClass* const, pThis, ESI);
+//
+// 	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+//
+// 	if(!pWHExt->CanTargetIronCurtained)
+// 	//TODO : re-eval check below  , i if desync/the behaviour is not good , change it to pThis->Owner->IsControlledByCurrentPlayer()
+//
+// 	const bool IsHuman = pThis->Owner->IsControlledByHuman();
+// 	const bool AllowAI = !pWHExt->CanTargetIronCurtained.Get(pTypeExt->AllowFire_IroncurtainedTarget.Get(RulesExtData::Instance()->AutoAttackICedTarget));
+// 	const bool Allow = pTypeExt->AllowFire_IroncurtainedTarget.Get(RulesExtData::Instance()->AutoAttackICedTarget);
+//
+// 	return IsHuman &&  Allow || !IsHuman && AllowAI
+// 		? BypassCheck : ContinueCheck;
+// }
+DEFINE_JUMP(LJMP, 0x6FC22A, 0x6FC24D) // Skip IronCurtain check
 
 static_assert(offsetof(HouseClass, IsHumanPlayer) == 0x1EC, "ClassMember Shifted !");
 static_assert(offsetof(HouseClass, IsInPlayerControl) == 0x1ED, "ClassMember Shifted !");

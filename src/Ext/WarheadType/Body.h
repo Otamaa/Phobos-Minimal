@@ -486,6 +486,8 @@ public:
 	Nullable<bool> AnimZAdjust;
 	Nullable<bool> ApplyPerTargetEffectsOnDetonate;
 
+	Nullable<bool> CanTargetIronCurtained;
+
 	bool IsCellSpreadWH;
 	bool IsFakeEngineer;
 #pragma endregion
@@ -841,6 +843,7 @@ public:
 		PlayAnimAboveSurface(false),
 		AnimZAdjust(),
 		ApplyPerTargetEffectsOnDetonate(),
+		CanTargetIronCurtained(),
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false)
 		{

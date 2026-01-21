@@ -358,6 +358,23 @@ ASMJIT_PATCH(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 		0x7379E8 : 0x737AFC;
 }
 
+bool NOINLINE CanFireICUnit(TechnoClass* pThis , FakeWarheadTypeClass* pWH , TechnoClass* pTarget){
+
+	auto pWHExt = pWH->_GetExtData();
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	if(pWHExt->CanTargetIronCurtained.isset() && !pWHExt->CanTargetIronCurtained)
+		return false;
+
+	const bool IsHuman = pThis->Owner->IsControlledByHuman();
+
+	if(!IsHuman) {
+		return pTypeExt->AllowFire_IroncurtainedTarget.Get(RulesExtData::Instance()->AutoAttackICedTarget);
+	}
+
+	return true;
+}
+
 ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 {
 	enum {
@@ -389,10 +406,16 @@ ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 		if (pExt->AE.flags.DisableWeapons)
 			return FireRange;
 
+		if(pExt->CanFireWeaponType->Warhead){
+			auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget);
+			if(!CanFireICUnit(pThis, (FakeWarheadTypeClass*)pExt->CanFireWeaponType->Warhead, pTechnoT))
+				return FireIllegal;
+		}
+
 		return ContinueCheck;
 	}
 
-	//early bail
+
 	return FireIllegal;
 }
 

@@ -1222,6 +1222,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 #pragma region Otamaa
 	this->AI_SpyMoneyStealPercent.Read(exINI, GameStrings::General(), "AI.SpyMoneyStealPercent");
 	this->AutoAttackICedTarget.Read(exINI, GameStrings::CombatDamage(), "Firing.AllowICedTargetForAI");
+	this->AutoAttackICedTarget.Read(exINI, GameStrings::CombatDamage, "CanAITargetIronCurtained");
 	this->NukeWarheadName.Read(exINI.GetINI(), GameStrings::SpecialWeapons(), "NukeWarhead");
 	this->AI_AutoSellHealthRatio.Read(exINI, GameStrings::General(), "AI.AutoSellHealthRatio");
 
