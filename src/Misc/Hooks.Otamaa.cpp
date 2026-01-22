@@ -1196,11 +1196,11 @@ ASMJIT_PATCH(0x73D6EC, UnitClass_Unload_NoManualEject, 0x6)
 	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualEject.Get() ? 0x73DCD3 : 0x0;
 }
 
-ASMJIT_PATCH(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
-{
-	GET(TechnoTypeClass* const, pType, EAX);
-	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualEject.Get() ? 0x7400F0 : 0x0;
-}
+// ASMJIT_PATCH(0x740015, UnitClass_WhatAction_NoManualEject, 0x6)
+// {
+// 	GET(TechnoTypeClass* const, pType, EAX);
+// 	return TechnoTypeExtContainer::Instance.Find(pType)->NoManualEject.Get() ? 0x7400F0 : 0x0;
+// }
 
 DEFINE_JUMP(LJMP, 0x422A59, 0x422A5F);
 

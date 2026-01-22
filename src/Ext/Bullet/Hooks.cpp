@@ -296,9 +296,13 @@ ASMJIT_PATCH(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
 ASMJIT_PATCH(0x468B72, BulletClass_MoveTo_End, 0x5)
 {
 	GET(FakeBulletClass*, pThis, EBX);
-
+	GET_STACK(CoordStruct*, pCoord, STACK_OFFS(0x54, -0x4));
+	GET_STACK(VelocityClass*, pOriginalVelocity, STACK_OFFS(0x54, -0x8));
+	
 	auto pType = pThis->Type;
 	auto pTypeExt = pThis->_GetTypeExtData();
+
+	PhobosTrajectory::CreateInstance(pThis, pCoord, pOriginalVelocity);
 
 	// Parasite=yes will make the bullet MoveTo twice, and may cause some issue.
 	// Before we know how to deal with it, just exclude it.

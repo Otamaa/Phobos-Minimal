@@ -1781,6 +1781,9 @@ ASMJIT_PATCH(0x740015, UnitClass_MouseOverObject_SkipPassengers, 0x6)
 
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
+	if(pTypeExt->NoManualEject)
+		return 0x7400F0;
+
 	return pTypeExt->Unload_SkipPassengers
 		|| (pTypeExt->Unload_NoPassengers && pThis->Passengers.NumPassengers <= 0)
 		? SkipPassengers : 0;

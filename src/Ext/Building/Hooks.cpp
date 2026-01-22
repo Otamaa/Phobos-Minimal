@@ -51,6 +51,8 @@ ASMJIT_PATCH(0x4400F9, BuildingClass_AI_UpdateOverpower, 0x6)
 
 	GET(FakeBuildingClass*, pThis, ESI);
 
+	pThis->_GetExtData()->IsFiringNow = false;
+
 	if (!pThis->Type->Overpowerable)
 		return SkipGameCode;
 
@@ -624,12 +626,12 @@ ASMJIT_PATCH(0x440042, BuildingClass_UpdateDelayedFiring_PrefiringMark1, 0x9)
 	return 0;
 }
 
-ASMJIT_PATCH(0x4400F9, BuildingClass_UpdateDelayedFiring_PrefiringMar2, 0x7)
-{
-	GET(FakeBuildingClass*, pThis, ESI);
-	pThis->_GetExtData()->IsFiringNow = false;
-	return 0;
-}
+// ASMJIT_PATCH(0x4400F9, BuildingClass_UpdateDelayedFiring_PrefiringMar2, 0x7)
+// {
+// 	GET(FakeBuildingClass*, pThis, ESI);
+// 	pThis->_GetExtData()->IsFiringNow = false;
+// 	return 0;
+// }
 
 ASMJIT_PATCH(0x446816, BuildingClass_Place_RevealToAll_UpdateSight, 0x5)
 {
