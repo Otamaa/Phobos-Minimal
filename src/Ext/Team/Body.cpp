@@ -431,7 +431,7 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 		false,
 		false,
 		true,
-		targetCell,
+		searchParams,
 		false,
 		false
 	);
