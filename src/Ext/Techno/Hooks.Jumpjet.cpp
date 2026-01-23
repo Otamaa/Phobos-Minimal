@@ -191,7 +191,7 @@ ASMJIT_PATCH(0x54C036, JumpjetLocomotionClass_State3_UpdateSensors, 0x7)
 	GET(FootClass* const, pLinkedTo, ECX);
 	GET(CellStruct const, currentCell, EAX);
 
-	const auto pType = pLinkedTo->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinkedTo);
 
 	if (pType->Sensors && pType->SensorsSight > 0){
 		const auto pExt = TechnoExtContainer::Instance.Find(pLinkedTo);
@@ -213,7 +213,7 @@ ASMJIT_PATCH(0x54D06F, JumpjetLocomotionClass_ProcessCrashing_RemoveSensors, 0x5
 {
 	GET(FootClass*, pLinkedTo, EAX);
 
-	const auto pType = pLinkedTo->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinkedTo);
 
 	if (pType->Sensors && pType->SensorsSight > 0)
 	{
@@ -232,7 +232,7 @@ ASMJIT_PATCH(0x4CD64E , FlyLocomotionClass_MovementAI_UpdateSensors, 0xA)
 	GET(CellStruct, currentCell, EDI);
 
 	const auto pLinkedTo = pThis->LinkedTo;
-	const auto pType = pLinkedTo->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pLinkedTo);
 
 	if (pType->Sensors && pType->SensorsSight > 0) {
 		pLinkedTo->RemoveSensorsAt(pLinkedTo->LastFlightMapCoords);
@@ -270,7 +270,7 @@ ASMJIT_PATCH(0x54D138, JumpjetLocomotionClass_Movement_AI_SpeedModifiers, 0x6)
 	if (auto const pLinked = pThis->LinkedTo ? pThis->LinkedTo : pThis->Owner) {
 		if (TechnoExtData::IsReallyTechno(pLinked) && pLinked->IsAlive) {
 			const double multiplier = TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
-			pThis->Speed = int(pLinked->GetTechnoType()->JumpJetData.Speed * multiplier);
+			pThis->Speed = int(GET_TECHNOTYPE(pLinked)->JumpJetData.Speed * multiplier);
 		}
 	}
 
@@ -284,7 +284,7 @@ ASMJIT_PATCH(0x54CB0E, JumpjetLocomotionClass_State5_CrashRotation, 0x7)
 	bool bRotate = RulesExtData::Instance()->JumpjetCrash_Rotate;
 
 	if (const auto pOwner = pLoco->LinkedTo ? pLoco->LinkedTo : pLoco->Owner) {
-		bRotate = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType())->JumpjetCrash_Rotate.Get(bRotate);
+		bRotate = GET_TECHNOTYPEEXT(pOwner)->JumpjetCrash_Rotate.Get(bRotate);
 	}
 
 	return bRotate ? 0 : 0x54CB3E;
@@ -298,7 +298,9 @@ ASMJIT_PATCH(0x70B649, TechnoClass_RigidBodyDynamics_NoTiltCrashBlyat, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (flag_cast_to<FootClass*, false>(pThis) && locomotion_cast<JumpjetLocomotionClass*>(((FootClass*)pThis)->Locomotor) && !pThis->GetTechnoType()->TiltCrashJumpjet)
+	if (flag_cast_to<FootClass*, false>(pThis) 
+		&& locomotion_cast<JumpjetLocomotionClass*>(((FootClass*)pThis)->Locomotor) 
+		&& !GET_TECHNOTYPE(pThis)->TiltCrashJumpjet)
 		return 0x70BCA4;
 
 	return 0;
@@ -334,7 +336,7 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 	auto slope_idx = MapClass::Instance->GetCellAt(linked->Location)->SlopeIndex;
 	// Only use LocomotionFacing for general Jumpjet to avoid the problem that ground units being lifted will turn to attacker weirdly.
 	auto curf = linked->IsAttackedByLocomotor ? &linked->PrimaryFacing : &pThis->Facing;
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(linked->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(linked);
 
 	*ret = Game::VoxelRampMatrix[onGround ? slope_idx : 0];
 	ret->RotateZ((float)curf->Current().GetRadian<32>());
@@ -350,8 +352,10 @@ Matrix3D* __stdcall JumpjetLocomotionClass_Draw_Matrix(ILocomotion* iloco, Matri
 
 		if (onGround)
 		{
-			double scalex = linked->GetTechnoType()->VoxelScaleX;
-			double scaley = linked->GetTechnoType()->VoxelScaleY;
+			auto pLinkedType = GET_TECHNOTYPE(linked);
+
+			double scalex = pLinkedType->VoxelScaleX;
+			double scaley = pLinkedType->VoxelScaleY;
 			Matrix3D pre = Matrix3D::GetIdentity();
 			pre.TranslateZ(float(Math::abs(Math::sin(ars)) * scalex + Math::abs(Math::sin(arf)) * scaley));
 			ret->TranslateX(float(Math::signum(arf) * (scaley * (1 - Math::cos(arf)))));
@@ -693,7 +697,7 @@ int JumpjetRushHelpers::JumpjetLocomotionPredictHeight(JumpjetLocomotionClass* p
 		if (checkStepHeight())
 		{
 			// The forward cell is not so high, keep moving
-			if ((pLocation->Z - maxHeight) >= pFoot->GetTechnoType()->JumpJetData.Height)
+			if ((pLocation->Z - maxHeight) >= GET_TECHNOTYPE(pFoot)->JumpJetData.Height)
 				JumpjetRushHelpers::Skip = true;
 
 			// Check further
@@ -730,7 +734,7 @@ ASMJIT_PATCH(0x54D4C0, JumpjetLocomotionClass_sub_54D0F0_NoStuck, 0x6)
 ASMJIT_PATCH(0x54DAC4, JumpjetLocomotionClass_EndPiggyback_Blyat, 0x6)
 {
 	GET(FootClass*, pLinked, EAX);
-	auto const* pType = pLinked->GetTechnoType();
+	auto const* pType = GET_TECHNOTYPE(pLinked);
 
 	pLinked->PrimaryFacing.Set_ROT(pType->ROT);
 

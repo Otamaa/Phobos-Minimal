@@ -33,7 +33,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
-	virtual int Size() const override R0;
+	virtual int ClassSize() const override R0;
 
 	//non-virtual
 	void Fire(TechnoClass* pOwner, AbstractClass* pTarget, WeaponTypeClass* pWeapon, int nDamage)

@@ -41,10 +41,26 @@ public:
 	static ExtContainer ExtMap;
 	*/
 
-	static bool FreeUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bSilent = false);
-	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTarget, bool bRemoveFirst, bool bSilent , AnimTypeClass* pControlledAnimType, int threatDelay);
-	static bool CaptureUnit(CaptureManagerClass* pManager, TechnoClass* pTechno, bool bSilent, int threatDelay);
-	static void DecideUnitFate(CaptureManagerClass* pManager, FootClass* pFoot , bool Captured);
 	static AnimTypeClass* GetMindcontrollAnimType(TechnoClass* pController, TechnoClass* pTarget, AnimTypeClass* pFallback);
-	static bool AllowDrawLink(TechnoClass* pTechno , TechnoTypeClass* pType);
+};
+
+
+class NOVTABLE FakeCaptureManagerClass : public CaptureManagerClass
+{
+public:
+	bool __FreeUnit(TechnoClass* pTarget, bool bSilent);
+	bool __FreeUnit_Wrap(TechnoClass* pTarget);
+	bool __CanCapture(TechnoClass* pTarget);
+	bool __CaptureUnit(TechnoClass* pTarget, bool bRemoveFirst, bool bSilent, AnimTypeClass* pControlledAnimType, int threatDelay);
+	bool __CaptureUnit(TechnoClass* pTechno, bool bSilent, int threatDelay);
+	bool __CaptureUnit_Wrap(AbstractClass* pTechno);
+	void __DecideUnitFate(TechnoClass* pTechno, bool Captured);
+	void __DecideUnitFate_Wrap(TechnoClass* pTechno);
+	int __GetControlledCount();
+	int __GetControlledTotalSize();
+	bool __IsOverloading(bool* isIt);
+	bool __CanControlMore();
+	bool __Should_Draw_Link();
+	void __DrawControlLinks();
+	bool __SetOwnerToCivilian(TechnoClass* pTarget);
 };

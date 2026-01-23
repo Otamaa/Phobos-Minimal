@@ -159,7 +159,9 @@ bool OwnStuffs(TechnoTypeClass* pItem, TechnoClass* list) {
 		}
 	}
 
-	return TechnoExtContainer::Instance.Find(list)->Type == pItem || list->GetTechnoType() == pItem;
+	//check type
+	//return TechnoExtContainer::Instance.Find(list)->CurrentType == pItem || list->GetTechnoType() == pItem;
+	return TeamExtData::IsEligible(GET_TECHNOTYPE(list), pItem);
 }
 
 NOINLINE bool HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool allies, std::vector<TechnoTypeClass*>& list)
@@ -298,7 +300,7 @@ NOINLINE bool NeutralOwns(AITriggerTypeClass* pThis, TechnoTypeClass* pItem)
 	{
 		if (!IsValidTechno(pObject)) continue;
 
-		if (pObject->Owner == pCiv && pObject->GetTechnoType() == pItem)
+		if (pObject->Owner == pCiv && GET_TECHNOTYPE(pObject) == pItem)
 			counter++;
 	}
 
@@ -323,7 +325,7 @@ NOINLINE bool HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, std::v
 		{
 			if (!IsValidTechno(pObject)) continue;
 
-			if (pObject->Owner == pHouse && pObject->GetTechnoType() == pItem)
+			if (pObject->Owner == pHouse && GET_TECHNOTYPE(pObject) == pItem)
 				counter++;
 		}
 
@@ -356,7 +358,7 @@ NOINLINE bool EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, HouseC
 			if (pObject->Owner != pHouse
 				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
 				&& !pObject->Owner->Type->MultiplayPassive
-				&& pObject->GetTechnoType() == pItem)
+				&& GET_TECHNOTYPE(pObject) == pItem)
 			{
 				counter++;
 			}
@@ -383,7 +385,7 @@ NOINLINE bool NeutralOwnsAll(AITriggerTypeClass* pThis, std::vector<TechnoTypeCl
 		{
 			if (!IsValidTechno(pObject)) continue;
 
-			if (pObject->Owner == pCiv && pObject->GetTechnoType() == pItem)
+			if (pObject->Owner == pCiv && GET_TECHNOTYPE(pObject) == pItem)
 				counter++;
 		}
 
@@ -688,7 +690,7 @@ NOINLINE bool UpdateTeam(FakeHouseClass* pHouse, int delay)
 					continue;
 				}
 
-				++ownedRecruitables[pTechno->GetTechnoType()];
+				++ownedRecruitables[GET_TECHNOTYPE(pTechno)];
 			}
 		}
 
@@ -1491,11 +1493,11 @@ std::vector<TeamTypeClass*> NOINLINE Suggested_New_Team(HouseClass* forHouse_, b
 	 {
 		 int parentCountryTypeIdx = pHouse->Type->FindParentCountryIndex(); // ParentCountry can change the House in a SP map
 		 int houseTypeIdx = parentCountryTypeIdx >= 0 ? parentCountryTypeIdx : pHouse->Type->ArrayIndex; // Indexes in AITriggers section are 1-based
-		 int houseIdx = pHouse->ArrayIndex;
+		 //int houseIdx = pHouse->ArrayIndex;
 
 		 int parentCountrySideTypeIdx = parentCountryTypeIdx >= 0 ? pHouse->Type->FindParentCountry()->SideIndex : pHouse->Type->SideIndex;
 		 int sideTypeIdx = parentCountrySideTypeIdx >= 0 ? parentCountrySideTypeIdx + 1 : pHouse->Type->SideIndex + 1; // Side indexes in AITriggers section are 1-based
-		 int sideIdx = pHouse->SideIndex + 1; // Side indexes in AITriggers section are 1-based -> unused variable!!
+		 //int sideIdx = pHouse->SideIndex + 1; // Side indexes in AITriggers section are 1-based -> unused variable!!
 		 auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
 		 pHouseExt->AITriggers_ValidList.clear();

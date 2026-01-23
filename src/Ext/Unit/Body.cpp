@@ -101,7 +101,7 @@ bool UnitExtContainer::CheckDeployRestrictions(FootClass* pUnit, bool isDeployin
 	}
 
 	// Facing restrictions.
-	auto const pType = pUnit->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pUnit);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const defaultFacing = (FacingType)(RulesClass::Instance->DeployDir >> 5);
 	auto const facing = pTypeExt->DeployDir.Get(defaultFacing);

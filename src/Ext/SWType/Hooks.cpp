@@ -426,7 +426,7 @@ ASMJIT_PATCH(0x6DBE74, Tactical_SuperLinesCircles_ShowDesignatorRange, 0x7)
 
 	for (const auto pCurrentTechno : *TechnoClass::Array)
 	{
-		const auto pCurrentTechnoType = pCurrentTechno->GetTechnoType();
+		const auto pCurrentTechnoType = GET_TECHNOTYPE(pCurrentTechno);
 		const auto pOwner = pCurrentTechno->Owner;
 		const auto IsCurrentPlayer = pOwner->IsCurrentPlayer();
 

@@ -12,7 +12,7 @@ ASMJIT_PATCH(0x436459, BuildingLightClass_Update, 6)
 
 	if (Owner && (Owner->AbstractFlags & AbstractFlags::Foot) != AbstractFlags::None)
 	{
-		TechnoTypeExtData* pTypeData = TechnoTypeExtContainer::Instance.Find(Owner->GetTechnoType());
+		TechnoTypeExtData* pTypeData = GET_TECHNOTYPEEXT(Owner);
 		CoordStruct Loc = Owner->Location;
 		const FacingClass* Facing = pTypeData->Spot_AttachedTo == SpotlightAttachment::Turret ?
 			&Owner->SecondaryFacing : &Owner->PrimaryFacing;
@@ -181,7 +181,7 @@ ASMJIT_PATCH(0x435bfa, BuildingLightClass_Draw_Start, 6)
 		return 0x4361BC;
 	}
 
-	Height = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType())->Spot_Height;
+	Height = GET_TECHNOTYPEEXT(pOwner)->Spot_Height;
 	return 0x435C52;
 }
 
@@ -191,7 +191,7 @@ ASMJIT_PATCH(0x435cd3, BuildingLightClass_Draw_Spotlight, 6)
 	GET(BuildingLightClass*, BL, ESI);
 
 	TechnoClass* Owner = BL->OwnerObject;
-	TechnoTypeExtData* pTypeData = TechnoTypeExtContainer::Instance.Find(Owner->GetTechnoType());
+	TechnoTypeExtData* pTypeData = GET_TECHNOTYPEEXT(Owner);
 
 	SpotlightFlags Flags = SpotlightFlags::None;
 	if (pTypeData->Spot_DisableColor) {

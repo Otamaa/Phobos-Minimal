@@ -293,7 +293,8 @@ ASMJIT_PATCH(0x4CDA6F, FlyLocomotionClass_MovementAI_SpeedModifiers, 0x9)
 
 	if (const auto pLinked = pThis->LinkedTo)
 	{
-		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
+		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed 
+			* pThis->CurrentSpeed *
 			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 
 		R->EAX(int(currentSpeed));
@@ -309,7 +310,8 @@ ASMJIT_PATCH(0x4CE4B3, FlyLocomotionClass_4CE4B0_SpeedModifiers, 0x6)
 
 	if (const auto pLinked = pThis->LinkedTo)
 	{
-		const double currentSpeed = pLinked->GetTechnoType()->Speed * pThis->CurrentSpeed *
+		const double currentSpeed = GET_TECHNOTYPE(pLinked)->Speed 
+			* pThis->CurrentSpeed *
 			TechnoExtData::GetCurrentSpeedMultiplier(pLinked);
 
 		R->EAX(int(currentSpeed));
@@ -414,7 +416,7 @@ ASMJIT_PATCH(0x4DACDD, FootClass_CrashingVoice, 0x6)
 
 			if (!pThis->IsAttackedByLocomotor)
 			{
-				const auto pType = pThis->GetTechnoType();
+				const auto pType = GET_TECHNOTYPE(pThis);
 
 				if (pThis->Owner->IsControlledByHuman())
 					VocClass::SafeImmedietelyPlayAt(pType->VoiceCrashing, &nCoord);
@@ -459,7 +461,7 @@ ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
 	if (!pPayload || !pThis->Full)
 		return 0x65E004;
 
-	const bool isTransportOpenTopped = pTransport->GetTechnoType()->OpenTopped;
+	const bool isTransportOpenTopped = GET_TECHNOTYPE(pTransport)->OpenTopped;
 	FootClass* pGunner = nullptr;
 
 	for (auto pNext = pPayload; pNext; pNext = flag_cast_to<FootClass*>(pNext->NextObject))
@@ -480,7 +482,7 @@ ASMJIT_PATCH(0x65DF67, TeamTypeClass_CreateMembers_LoadOntoTransport, 0x6)
 	pTransport->Passengers.AddPassenger(pPayload);
 
 	// Handle gunner change - this is the 'last' passenger because of reverse order
-	if (pTransport->GetTechnoType()->Gunner && pGunner)
+	if (GET_TECHNOTYPE(pTransport)->Gunner && pGunner)
 		pTransport->ReceiveGunner(pGunner);
 
 	// Ares' CreateInitialPayload doesn't work here
@@ -562,6 +564,7 @@ ASMJIT_PATCH(0x4FD1CD, HouseClass_RecalcCenter_LimboDelivery, 0x6)
 	GET(BuildingClass* const, pBuilding, ESI);
 
 	if (BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1
+	 || TechnoTypeExtContainer::Instance.Find(pBuilding->Type)->IgnoreForBaseCenter
 	 || !MapClass::Instance->CoordinatesLegal(pBuilding->GetMapCoords()))
 		return R->Origin() == 0x4FD1CD ? SkipBuilding1 : SkipBuilding2;
 
@@ -578,7 +581,8 @@ ASMJIT_PATCH(0x4AC534, DisplayClass_ComputeStartPosition_IllegalCoords, 0x6)
 
 	GET(TechnoClass* const, pTechno, ECX);
 
-	if (!MapClass::Instance->CoordinatesLegal(pTechno->GetMapCoords()))
+	if (!MapClass::Instance->CoordinatesLegal(pTechno->GetMapCoords()) 
+		|| TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType())->IgnoreForBaseCenter)
 		return SkipTechno;
 
 
@@ -780,7 +784,7 @@ ASMJIT_PATCH(0x688F8C, ScenarioClass_ScanPlaceUnit_CheckMovement, 0x5)
 		return 0;
 
 	const auto pCell = MapClass::Instance->GetCellAt(*pHomeCoords);
-	const auto pTechnoType = pTechno->GetTechnoType();
+	const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 	if (!pCell->IsClearToMove(pTechnoType->SpeedType, pTechno->WhatAmI() == InfantryClass::AbsID, 0, ZoneType::None, pTechnoType->MovementZone, -1, 1))
 	{
 		if (Phobos::Otamaa::IsAdmin)
@@ -801,7 +805,7 @@ ASMJIT_PATCH(0x68927B, ScenarioClass_ScanPlaceUnit_CheckMovement2, 0x5)
 		return 0;
 
 	const auto pCell = MapClass::Instance->GetCellAt(*pCellCoords);
-	const auto pTechnoType = pTechno->GetTechnoType();
+	const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 	if (!pCell->IsClearToMove(pTechnoType->SpeedType, pTechno->WhatAmI() == InfantryClass::AbsID, 0, ZoneType::None, pTechnoType->MovementZone, -1, 1))
 	{
 		if (Phobos::Otamaa::IsAdmin)
@@ -899,6 +903,30 @@ ASMJIT_PATCH(0x4C780A, EventClass_Execute_DeployEvent_NoVoiceFix, 0x6)
 	GET(TechnoClass* const, pThis, ESI);
 	pThis->VoiceDeploy();
 	return 0x0;
+}
+
+ASMJIT_PATCH(0x730D0F, ProcessDeployCommand_LowDeployPriority, 0x6)
+{
+	enum { SkipDeploy = 0x730D24 };
+
+	GET_STACK(const int, selectedObjectCount, STACK_OFFSET(0x18, -0x4));
+
+	if (Phobos::Config::PriorityDeployFiltering && selectedObjectCount > 1) {
+		GET(TechnoClass* const, pTechno, ESI);
+
+		auto const pExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+
+		if (pExt->LowDeployPriority) {
+			for (const auto pObject : ObjectClass::CurrentObjects.get()) {
+				if ((pObject->AbstractFlags & AbstractFlags::Techno) != AbstractFlags::None) {
+					if (!TechnoTypeExtContainer::Instance.Find(static_cast<TechnoClass*>(pObject)->GetTechnoType())->LowDeployPriority)
+						return SkipDeploy;
+				}
+			}
+		}
+	}
+
+	return 0;
 }
 
 ASMJIT_PATCH(0x730D1F, DeployCommandClass_Execute_VoiceDeploy, 0x5)
@@ -1768,7 +1796,7 @@ ASMJIT_PATCH(0x72958E, TunnelLocomotionClass_ProcessDigging_SlowdownDistance, 0x
 	auto& currLoc = pLoco->LinkedTo->Location;
 	int distance = (int) CoordStruct{currLoc.X - pLoco->_CoordsNow.X, currLoc.Y - pLoco->_CoordsNow.Y,0}.Length() ;
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLoco->LinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pLoco->LinkedTo);
 	int currentSpeed = pTypeExt->SubterraneanSpeed >= 0 ?
 			pTypeExt->SubterraneanSpeed : RulesExtData::Instance()->SubterraneanSpeed;
 
@@ -2003,7 +2031,8 @@ ASMJIT_PATCH(0x4C75DA, EventClass_RespondToEvent_Stop, 0x6)
 		if (!pTechno->vt_entry_2B0() || pTechno->OnBridge || pTechno->IsInAir() || pTechno->GetCell()->SlopeIndex)
 		{
 			// To avoid foots stuck in Mission::Area_Guard
-			if (pTechno->CurrentMission == Mission::Area_Guard && !pTechno->GetTechnoType()->DefaultToGuardArea)
+			if (pTechno->CurrentMission == Mission::Area_Guard 
+					&& !GET_TECHNOTYPE(pTechno)->DefaultToGuardArea)
 				pTechno->QueueMission(Mission::Guard, true);
 
 			// Check Jumpjets
@@ -2177,7 +2206,7 @@ ASMJIT_PATCH(0x6F4C50, TechnoClass_ReceiveCommand_NotifyUnlink, 0x6)
 		&& pCall->CurrentMission == Mission::Enter // Is entering
 		&& static_cast<FootClass*>(pCall)->Destination == pThis // Is entering techno B
 		&& pCall->WhatAmI() != AbstractType::Aircraft // Not aircraft
-		&& pThis->GetTechnoType()->Passengers > 0) // Have passenger seats
+		&& GET_TECHNOTYPE(pThis)->Passengers > 0) // Have passenger seats
 	{
 		pCall->SetDestination(pThis->GetCell(), false); // Set the destination at its feet
 		pCall->QueueMission(Mission::Move, false); // Replace entering with moving
@@ -2212,7 +2241,7 @@ ASMJIT_PATCH(0x6F4BB3, TechnoClass_ReceiveCommand_RequestUntether, 0x7)
 	return 0;
 }
 
-ASMJIT_PATCH(0x6FC617, TechnoClass_GetFireError_AirCarrierSkipCheckNearBridge, 0x8)
+ASMJIT_PATCH(0x6FC617, TechnoClass_CanFire_AirCarrierSkipCheckNearBridge, 0x8)
 {
 	enum { ContinueCheck = 0x6FC61F, TemporaryCannotFire = 0x6FCD0E };
 
@@ -2416,21 +2445,21 @@ ASMJIT_PATCH(0x64D592, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal1, 0
 {
 	enum { SkipTargetCrdRecal = 0x64D598 };
 	GET(TechnoClass*, pTechno, EBP);
-	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
+	return GET_TECHNOTYPE(pTechno)->BalloonHover ? SkipTargetCrdRecal : 0;
 }
 
 ASMJIT_PATCH(0x64D575, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal2, 0x6)
 {
 	enum { SkipTargetCrdRecal = 0x64D598 };
 	GET(TechnoClass*, pTechno, EBP);
-	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
+	return GET_TECHNOTYPE(pTechno)->BalloonHover ? SkipTargetCrdRecal : 0;
 }
 
 ASMJIT_PATCH(0x64D5C5, Game_PreProcessMegaMissionList_CheckForTargetCrdRecal3, 0x6)
 {
 	enum { SkipTargetCrdRecal = 0x64D659 };
 	GET(TechnoClass*, pTechno, EBP);
-	return pTechno->GetTechnoType()->BalloonHover ? SkipTargetCrdRecal : 0;
+	return GET_TECHNOTYPE(pTechno)->BalloonHover ? SkipTargetCrdRecal : 0;
 }
 
 ASMJIT_PATCH(0x51BFA2, InfantryClass_IsCellOccupied_Start, 0x6)
@@ -2679,14 +2708,11 @@ ASMJIT_PATCH(0x70E126, TechnoClass_GetDeployWeapon_InfantryDeployFireWeapon, 0x6
 {
 	GET(TechnoClass*, pThis, ESI);
 
-	if (const auto pInfantry = cast_to<InfantryClass*>(pThis))
-	{
+	if (const auto pInfantry = cast_to<InfantryClass*, false>(pThis)) {
 		const int deployFireWeapon = pInfantry->Type->DeployFireWeapon;
 
 		R->EAX(deployFireWeapon == -1 ? pInfantry->SelectWeapon(pInfantry->Target) : deployFireWeapon);
-	}
-	else
-	{
+	} else {
 		R->EAX(pThis->IsNotSprayAttack());
 	}
 
@@ -2944,27 +2970,25 @@ ASMJIT_PATCH(0x44939F, BuildingClass_Captured_BuildupFix, 0x7)
 #pragma endregion
 
 #pragma region ClearTargetOnOwnerChanged
+#include <AirstrikeClass.h>
 
 ASMJIT_PATCH(0x70D4A0, AbstractClass_ClearTargetToMe_ClearManagerTarget, 0x5)
 {
 	GET(AbstractClass*, pThis, ECX);
 
-	for (const auto pTemporal : *TemporalClass::Array)
-	{
+	for (const auto pTemporal : *TemporalClass::Array) {
 		if (pTemporal->Target == pThis)
 			pTemporal->LetGo();
 	}
 
 	// WW don't clear target if the techno has airstrike manager.
 	// No idea why, but for now we respect it and don't handle the airstrike target.
-	//for (const auto pAirstrike : AirstrikeClass::Array)
-	//{
-	//	if (pAirstrike->Target == pThis)
-	//		pAirstrike->ClearTarget();
-	//}
+	for (const auto pAirstrike : *AirstrikeClass::Array) {
+		if (pAirstrike->Target == pThis)
+			pAirstrike->ResetTarget();
+	}
 
-	for (const auto pSpawn : *SpawnManagerClass::Array)
-	{
+	for (const auto pSpawn : *SpawnManagerClass::Array) {
 		if (pSpawn->Target == pThis)
 			pSpawn->ResetTarget();
 	}
@@ -3027,7 +3051,39 @@ ASMJIT_PATCH(0x4DEBC4, FootClass_Crash_PreplacedAircraft, 0x7)
 
 }
 
-
-
 #pragma endregion
 
+ASMJIT_PATCH(0x6FBFA3, TechnoClass_Select_SkipLimboDelivery, 0x6)
+{
+	enum { SkipSelect = 0x6FC029 };
+
+	GET(TechnoClass* const, pThis, ESI);
+
+	if (auto const pBuilding = cast_to<BuildingClass*, false>(pThis)){
+		if(BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1)
+		   return SkipSelect;
+	}
+
+	return 0;
+}
+
+// Enable InGameMovie TAction in non-campaign mode.
+DEFINE_JUMP(LJMP, 0x5BF3B0, 0x5BF3BD);
+
+ASMJIT_PATCH(0x46954C, BulletClass_Logics_IsLocomotor_Bunker, 0x6)
+{
+	enum { CannotImbue = 0x4695E6 };
+
+	GET(UnitClass*, pTarget, ECX);
+
+	return pTarget->BunkerLinkedItem ? CannotImbue : 0;
+}
+
+ASMJIT_PATCH(0x6FC3AE, TechnoClass_CanFire_TankInBunker_LocomotorWarhead, 0x6)
+{
+	enum { Illegal = 0x6FC86A };
+
+	GET(WeaponTypeClass*, pWeapon, EDI);
+
+	return pWeapon->Warhead && pWeapon->Warhead->IsLocomotor ? Illegal : 0;
+}

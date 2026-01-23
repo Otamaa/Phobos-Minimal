@@ -212,6 +212,12 @@ void NOINLINE DrawCollisionBox(FootClass* obj, DSurface* surface,
 	// Offset by viewport
 	Point2D screen = outClient + Point2D(bounds.X, bounds.Y);
 
+	//if (!obj->Spawned && !obj->InLimbo && 
+	//	(!MapClass::Instance->IsWithinUsableArea(tech_loc) || !MapClass::Instance->CoordinatesLegal(CellClass::Coord2Cell(tech_loc))))
+	//{
+	//	Debug::FatalError("Something[%s] not spawned is outside area !", obj->GetTechnoType()->ID);
+	//}
+
 	// Draw target line with arrow (red)
 	DrawTargetLine(obj, surface, bounds, screen, red);
 
@@ -472,7 +478,7 @@ bool FakeTacticalClass::IsHighPriorityInRect(LTRBStruct* rect)
 		if (this->IsInSelectionRect(rect, selected) && ObjectClass_IsSelectable(selected.Object))
 		{
 			//auto const pExt = TechnoExtContainer::Instance.Find(static_cast<TechnoClass*>(selected.Object));
-			auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(selected.Object->GetTechnoType());
+			auto const pTypeExt = GET_TECHNOTYPEEXT(((TechnoClass*)selected.Object));
 
 			return !pTypeExt->LowSelectionPriority;
 		}
@@ -1262,7 +1268,7 @@ DEFINE_FUNCTION_JUMP(CALL, 0x6D4B2B, FakeTacticalClass::__DrawAllTacticalText)
 
 bool __fastcall FakeTacticalClass::TypeSelectFilter(TechnoClass* pTechno, DynamicVectorClass<const char*>& names)
 {
-	const auto pTechnoType = pTechno->GetTechnoType();
+	const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	const char* id = pTypeExt->GetSelectionGroupID(pTechnoType);
 

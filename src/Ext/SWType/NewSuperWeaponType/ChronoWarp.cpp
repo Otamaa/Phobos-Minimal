@@ -98,7 +98,7 @@ bool SW_ChronoWarp::Activate(SuperClass* pThis, const CellStruct& Coords, bool I
 			return true;
 		}
 
-		auto const pType = pTechno->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pTechno);
 		auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// can this techno be chronoshifted?

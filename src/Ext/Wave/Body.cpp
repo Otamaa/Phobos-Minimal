@@ -1,5 +1,6 @@
 #include "Body.h"
 
+#include <Ext/Cell/Body.h>
 #include <Ext/WarheadType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/WeaponType/Body.h>
@@ -48,7 +49,7 @@ void FakeWaveClass::_DamageCell(CoordStruct* pLoc){
 		if(pCell->OverlayTypeIndex != -1){
 			auto pOverlay = OverlayTypeClass::Array->Items[pCell->OverlayTypeIndex];
 			if(pOverlay->ChainReaction){
-				pCell->ChainReaction();
+				FakeCellClass::_ChainReaction(&pCell->MapCoords);
 			}
 
 			if(pOverlay->Wall && pWH->Wall) {

@@ -274,6 +274,15 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->OnlyAttacker.Read(exINI, pSection, "OnlyAttacker");
 
+	this->ChasingExtraRange.Read(exINI, pSection, "ChasingExtraRange");
+	this->PrefiringExtraRange.Read(exINI, pSection, "PrefiringExtraRange");
+	this->PrefiringExtraRange_IncludeBurst.Read(exINI, pSection, "PrefiringExtraRange.IncludeBurst");
+	this->AttackFriendlies.Read(exINI, pSection, "AttackFriendlies");
+	this->AttackCursorOnFriendlies.Read(exINI, pSection, "AttackCursorOnFriendlies");
+	this->AttackNoThreatBuildings.Read(exINI, pSection, "AttackNoThreatBuildings");
+	this->ExtraRange_FirerMoving.Read(exINI, pSection, "ExtraRange.FirerMoving");
+	this->Anim_Update.Read(exINI, pSection, "Anim.Update");
+
 	this->SkipWeaponPicking = true;
 	if (this->CanTarget != AffectedTarget::All ||
 		this->CanTargetHouses != AffectedHouse::All
@@ -316,8 +325,8 @@ int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass
 
 	auto pTechno = pFirer;
 
-	if (pTechno->Transporter && pTechno->Transporter->IsAlive && pTechno->Transporter->GetTechnoType()->OpenTopped) {
-		auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->Transporter->GetTechnoType());
+	if (pTechno->Transporter && pTechno->Transporter->IsAlive && GET_TECHNOTYPE(pTechno)->OpenTopped) {
+		auto const pTypeExt = GET_TECHNOTYPEEXT(pTechno->Transporter);
 
 		if (pTypeExt->OpenTopped_UseTransportRangeModifiers)
 			pTechno = pTechno->Transporter;
@@ -367,7 +376,7 @@ int WeaponTypeExtData::GetTechnoKeepRange(WeaponTypeClass* pThis, TechnoClass* p
 		if (!spawnManager || spawnManager->Status != SpawnManagerStatus::CoolDown)
 			return 0;
 
-		const auto spawnsNumber = pFirer->GetTechnoType()->SpawnsNumber;
+		const auto spawnsNumber = GET_TECHNOTYPE(pFirer)->SpawnsNumber;
 
 		for (int i = 0; i < spawnsNumber; i++)
 		{
@@ -610,7 +619,16 @@ void WeaponTypeExtData::Serialize(T& Stm)
 		.Process(this->DelayedFire_AnimOffset)
 		.Process(this->DelayedFire_AnimOnTurret)
 		.Process(this->OnlyAttacker)
+		.Process(this->ChasingExtraRange)
+		.Process(this->PrefiringExtraRange)
+		.Process(this->PrefiringExtraRange_IncludeBurst)
+		.Process(this->ExtraRange_FirerMoving)
+		.Process(this->AttackFriendlies)
+		.Process(this->AttackCursorOnFriendlies)
+		.Process(this->AttackNoThreatBuildings)
+		.Process(this->Anim_Update)
 		.Process(this->MyAttachFireDatas)
+		
 		;
 };
 #else
@@ -1090,7 +1108,7 @@ ASMJIT_PATCH(0x77311D, WeaponTypeClass_SDDTOR, 0x6)
 
 bool FakeWeaponTypeClass::_ReadFromINI(CCINIClass* pINI)
 {
-	WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
+	//WeaponTypeExtContainer::Instance.Find(this)->RadType = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
 	bool status = this->WeaponTypeClass::LoadFromINI(pINI);
 	WeaponTypeExtContainer::Instance.LoadFromINI(this, pINI, !status);
 	return status;

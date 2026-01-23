@@ -19,6 +19,12 @@ concept LocoHasILocoVtbl = std::is_base_of_v<LocomotionClass, std::remove_cvref_
 };
 
 template<typename T>
+concept LocoHasLocoVtbl = std::is_base_of_v<LocomotionClass, std::remove_cvref_t<T>>&& requires
+{
+	{ T::vtable }->std::convertible_to<uintptr_t>;
+};
+
+template<typename T>
 concept LocoHasClassGUID = std::is_base_of_v<LocomotionClass, std::remove_cvref_t<T>>&&
 std::is_same_v<std::remove_reference_t<decltype(T::ClassGUID.get())>, CLSID>;
 
@@ -26,7 +32,7 @@ template<typename Base>
 concept LocoIsDerived = std::derived_from<Base, LocomotionClass> && !std::is_same_v<LocomotionClass, Base>;
 
 template <typename T, bool check = false>
-__forceinline T locomotion_cast(ILocomotion* iLoco)
+FORCEDINLINE T locomotion_cast(ILocomotion* iLoco)
 {
 	static_assert(std::is_pointer<T>::value, "locomotion_cast: Pointer is required.");
 
@@ -54,8 +60,38 @@ __forceinline T locomotion_cast(ILocomotion* iLoco)
 	}
 }
 
+template <typename T, bool check = false>
+FORCEDINLINE T locomotion_cast(LocomotionClass* pLoco)
+{
+	static_assert(std::is_pointer<T>::value, "locomotion_cast: Pointer is required.");
+
+	using Base = std::remove_cvref_t<std::remove_const_t<std::remove_pointer_t<T>>>;
+
+	static_assert(LocoIsDerived<Base>,
+		"T needs to point to a class derived from LocomotionClass");
+
+	if COMPILETIMEEVAL(check) {
+		if (!pLoco) {
+			return static_cast<T>(nullptr);
+		}
+	}
+
+	if COMPILETIMEEVAL(LocoHasLocoVtbl<Base>) {
+		return (VTable::Get(pLoco) == Base::vtable) ? static_cast<T>(pLoco) : nullptr;
+	}
+	else if COMPILETIMEEVAL(LocoHasClassGUID<Base>) {
+		CLSID locoCLSID;
+		return (SUCCEEDED(static_cast<LocomotionClass*>(pLoco)->GetClassID(&locoCLSID)) && locoCLSID == Base::ClassGUID()) ?
+			static_cast<T>(pLoco) : nullptr;
+	} else {
+		CLSID locoCLSID;
+		return (SUCCEEDED(static_cast<LocomotionClass*>(pLoco)->GetClassID(&locoCLSID)) && locoCLSID == __uuidof(Base)) ?
+			static_cast<T>(pLoco) : nullptr;
+	}
+}
+
 template<typename T , bool check = false>
-__forceinline T locomotion_cast(ILocomotionPtr& comLoco)
+FORCEDINLINE T locomotion_cast(ILocomotionPtr& comLoco)
 {
 	static_assert(std::is_pointer<T>::value, "locomotion_cast: Pointer is required.");
 	using Base = std::remove_const_t<std::remove_pointer_t<T>>;

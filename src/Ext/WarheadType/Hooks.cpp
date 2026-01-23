@@ -156,7 +156,7 @@ void ApplyLogics(WarheadTypeClass* pWH , WeaponTypeClass*pWeapon ,BulletClass * 
 
 		if (!pWHExt->UnlimboDetonate_Force)
 		{
-			const auto pType = pThis->Owner->GetTechnoType();
+			const auto pType = GET_TECHNOTYPE(pThis->Owner);
 			const auto nCell = MapClass::Instance->NearByLocation(CellClass::Coord2Cell(location),
 									pType->SpeedType, ZoneType::None, pType->MovementZone, false, 1, 1, true,
 									false, false, true, CellStruct::Empty, false, false);

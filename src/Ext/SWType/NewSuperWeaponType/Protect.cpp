@@ -1,5 +1,6 @@
 #include "Protect.h"
 
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Ext/SWType/Body.h>
 
@@ -15,7 +16,7 @@ bool SW_Protect::CanTargetingFireAt(const TargetingData* pTargeting, const CellS
 		auto pCell = MapClass::Instance->GetCellAt(cell);
 		if (auto pBld = pCell->GetBuilding())
 		{
-			auto pExt = TechnoTypeExtContainer::Instance.Find(pBld->GetTechnoType());
+			auto pExt = GET_TECHNOTYPEEXT(pBld);
 			if (pExt->ForceShield_Modifier <= 0.0)
 			{
 				ret = false;

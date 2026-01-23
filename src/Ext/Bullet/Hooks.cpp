@@ -127,9 +127,9 @@ ASMJIT_PATCH(0x469276, BulletClass_Logics_ApplyMindControl , 0xA)
 	const auto pTechno = flag_cast_to<TechnoClass*>(pThis->Target);
 	auto const threatDelay = pThis->_GetWarheadTypeExtData()->MindControl_ThreatDelay.Get(RulesExtData::Instance()->AttackMindControlledDelay);
 
-	R->AL(CaptureExtData::CaptureUnit(payback->CaptureManager,
+	R->AL(((FakeCaptureManagerClass*)payback->CaptureManager)->__CaptureUnit(
 		pTechno,
-		TechnoTypeExtContainer::Instance.Find(payback->GetTechnoType())->MultiMindControl_ReleaseVictim,
+		GET_TECHNOTYPEEXT(payback)->MultiMindControl_ReleaseVictim,
 		false,
 		pControlledAnimType,
 		threatDelay));
@@ -267,7 +267,7 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
 ASMJIT_PATCH(0x469A69, BulletClass_Logics_DamageHouse, 0x6)
 {
 	GET(FakeBulletClass*, pThis, ESI);
-	GET(HouseClass*, pHouse, ECX);
+	//GET(HouseClass*, pHouse, ECX);
 	R->ECX(pThis->Owner ? pThis->Owner->Owner : pThis->_GetExtData()->Owner);
 	return 0x469A75;
 }
@@ -291,4 +291,27 @@ ASMJIT_PATCH(0x469B44, BulletClass_Logics_LandTypeCheck, 0x6)
 	GET(FakeBulletClass*, pThis, ESI);
 
 	return pThis->_GetWarheadTypeExtData()->Conventional_IgnoreUnits ? SkipChecks : 0;
+}
+
+ASMJIT_PATCH(0x468B72, BulletClass_MoveTo_End, 0x5)
+{
+	GET(FakeBulletClass*, pThis, EBX);
+	GET_STACK(CoordStruct*, pCoord, STACK_OFFS(0x54, -0x4));
+	GET_STACK(VelocityClass*, pOriginalVelocity, STACK_OFFS(0x54, -0x8));
+	
+	auto pType = pThis->Type;
+	auto pTypeExt = pThis->_GetTypeExtData();
+
+	PhobosTrajectory::CreateInstance(pThis, pCoord, pOriginalVelocity);
+
+	// Parasite=yes will make the bullet MoveTo twice, and may cause some issue.
+	// Before we know how to deal with it, just exclude it.
+	if ((!pThis->WeaponType || !pThis->WeaponType->Warhead->Parasite)
+		&& !pThis->WH->Parasite
+		&& pTypeExt->UpdateImmediately.Get(pType->Inviso && RulesExtData::Instance()->UpdateInvisoImmediately))
+	{
+		pThis->Update();
+	}
+
+	return 0;
 }

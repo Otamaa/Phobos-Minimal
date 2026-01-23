@@ -58,6 +58,7 @@ public:
 	std::vector<BuildingClass*> airFactoryBuilding;
 	bool FreeUnitDone;
 	bool SeparateRepair;
+	bool IsFiringNow;
 #pragma endregion
 
 	bool HasSuperWeapon(int index, bool withUpgrades) const;
@@ -104,8 +105,11 @@ public:
 		FactoryBuildingMe(nullptr),
 		airFactoryBuilding(),
 		FreeUnitDone(false),
-		SeparateRepair(false)
+		SeparateRepair(false),
+		IsFiringNow(false)
 	{
+		this->CurrentType = pObj->Type;
+		this->Type = BuildingTypeExtContainer::Instance.Find(pObj->Type);
 		this->Name = pObj->Type->ID;
 		this->AbsType = BuildingClass::AbsID;
 	}
@@ -283,6 +287,10 @@ public:
 	void _DrawVisible(Point2D* pLocation , RectangleStruct* pBounds);
 	void _DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect);
 	KickOutResult __ExitObject(TechnoClass* object, CellStruct exitCell);
+
+	InfantryTypeClass* __GetCrew();
+	int  __GetCrewCount();
+	const wchar_t* __GetUIName();
 
 	FORCEDINLINE BuildingClass* _AsBuilding() const {
 		return (BuildingClass*)this;

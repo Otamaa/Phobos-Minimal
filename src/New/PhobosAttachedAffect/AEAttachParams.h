@@ -9,6 +9,7 @@ struct AEAttachParams
 	int Delay { 0 };
 	int InitialDelay { 0 };
 	int RecreationDelay { -1 };
+	int CumulativeSourceMaxCount { -1 };
 	bool CumulativeRefreshAll { false };
 	bool CumulativeRefreshAll_OnAttach { false };
 	bool CumulativeRefreshSameSourceOnly { true };
@@ -30,6 +31,7 @@ private:
 			.Process(this->Delay)
 			.Process(this->InitialDelay)
 			.Process(this->RecreationDelay)
+			.Process(this->CumulativeSourceMaxCount)
 			.Process(this->CumulativeRefreshAll)
 			.Process(this->CumulativeRefreshAll_OnAttach)
 			.Process(this->CumulativeRefreshSameSourceOnly)

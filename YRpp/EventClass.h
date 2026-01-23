@@ -170,7 +170,7 @@ public:
 
 	static COMPILETIMEEVAL reference<const char*, 0x82091C, 18u> const EventNames {};
 	static COMPILETIMEEVAL reference<const char*, 0x82091C, 27u> const AddEventNames {};
-	static COMPILETIMEEVAL reference<uint8_t, 0x8208ECu, 46u> const EventLength {};
+	static COMPILETIMEEVAL reference<uint8_t, 0x8208ECu, 44u> const EventLength {};
 
 	static COMPILETIMEEVAL reference<QueueClass<EventClass, 128u>, 0xA802C8> OutList {};
 

@@ -316,7 +316,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if(GameStrings::IsBlank(parser.value()))
+			if(GameStrings::IsNone(parser.value()))
 				return false;
 
 			for(auto&[val, str] : EnumFunctions::DamageDelayTargetFlag_ToStrings) {
@@ -357,7 +357,7 @@ namespace detail
 	{
 		if (parser.ReadString(pSection, pKey))
 		{
-			if(GameStrings::IsBlank(parser.value()))
+			if(GameStrings::IsNone(parser.value()))
 				return false;
 
 			for(auto&[val, str] : EnumFunctions::TargetZoneScanType_ToStrings) {
@@ -769,7 +769,7 @@ namespace detail
 
 				if (buffer) {
 					nVecDest[i].push_back(buffer);
-				}else if (bDebug && !GameStrings::IsBlank(cur)) {
+				}else if (bDebug && !GameStrings::IsNone(cur)) {
 					Debug::LogInfo("ParseVector DEBUG: [{}][{}]: Error parsing [{}]", pSection, i, res.c_str());
 				}
 			}
@@ -878,7 +878,7 @@ namespace detail
 							List.insert_unique(buffer);
 						}
 					}
-					else if(!GameStrings::IsBlank(cur))
+					else if(!GameStrings::IsNone(cur))
 					{
 						Debug::INIParseFailed(section, key, cur, message);
 					}
@@ -901,7 +901,7 @@ namespace detail
 							List.insert_unique(buffer);
 						}
 					}
-					else if (!GameStrings::IsBlank(cur))
+					else if (!GameStrings::IsNone(cur))
 					{
 						Debug::INIParseFailed(section, key, cur, message);
 					}

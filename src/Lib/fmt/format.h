@@ -493,8 +493,8 @@ template <typename OutputIt,
 #if FMT_CLANG_VERSION >= 307 && !FMT_ICC_VERSION
 __attribute__((no_sanitize("undefined")))
 #endif
-FMT_CONSTEXPR20 inline auto
-reserve(OutputIt it, size_t n) -> typename OutputIt::value_type* {
+FMT_CONSTEXPR20 inline auto reserve(OutputIt it, size_t n) ->
+    typename OutputIt::value_type* {
   auto& c = get_container(it);
   size_t size = c.size();
   c.resize(size + n);
@@ -736,12 +736,8 @@ using fast_float_t = conditional_t<sizeof(T) == sizeof(double), double, float>;
 template <typename T>
 using is_double_double = bool_constant<std::numeric_limits<T>::digits == 106>;
 
-#ifndef FMT_USE_FULL_CACHE_DRAGONBOX
-#  define FMT_USE_FULL_CACHE_DRAGONBOX 0
-#endif
-
 // An allocator that uses malloc/free to allow removing dependency on the C++
-// standard libary runtime. std::decay is used for back_inserter to be found by
+// standard library runtime. std::decay is used for back_inserter to be found by
 // ADL when applied to memory_buffer.
 template <typename T> struct allocator : private std::decay<void> {
   using value_type = T;
@@ -1031,9 +1027,9 @@ using uint64_or_128_t = conditional_t<num_bits<T>() <= 64, uint64_t, uint128_t>;
       (factor) * 100000, (factor) * 1000000, (factor) * 10000000, \
       (factor) * 100000000, (factor) * 1000000000
 
-// Converts value in the range [0, 100) to a string.
-// GCC generates slightly better code when value is pointer-size.
-inline auto digits2(size_t value) -> const char* {
+// Converts value in the range [0, 100) to a string. GCC generates a bit better
+// code when value is pointer-size (https://www.godbolt.org/z/5fEPMT1cc).
+inline auto digits2(size_t value) noexcept -> const char* {
   // Align data since unaligned access may be slower when crossing a
   // hardware-specific boundary.
   alignas(2) static const char data[] =
@@ -1042,6 +1038,22 @@ inline auto digits2(size_t value) -> const char* {
       "4041424344454647484950515253545556575859"
       "6061626364656667686970717273747576777879"
       "8081828384858687888990919293949596979899";
+  return &data[value * 2];
+}
+
+// Given i in [0, 100), let x be the first 7 digits after
+// the decimal point of i / 100 in base 2, the first 2 bytes
+// after digits2_i(x) is the string representation of i.
+inline auto digits2_i(size_t value) noexcept -> const char* {
+  alignas(2) static const char data[] =
+      "00010203  0405060707080910  1112"
+      "131414151617  18192021  222324  "
+      "25262728  2930313232333435  3637"
+      "383939404142  43444546  474849  "
+      "50515253  5455565757585960  6162"
+      "636464656667  68697071  727374  "
+      "75767778  7980818282838485  8687"
+      "888989909192  93949596  979899  ";
   return &data[value * 2];
 }
 
@@ -1213,6 +1225,16 @@ FMT_CONSTEXPR20 FMT_INLINE void write2digits(Char* out, size_t value) {
   *out = static_cast<Char>('0' + value % 10);
 }
 
+template <typename Char>
+FMT_INLINE void write2digits_i(Char* out, size_t value) {
+  if (std::is_same<Char, char>::value && !FMT_OPTIMIZE_SIZE) {
+    memcpy(out, digits2_i(value), 2);
+    return;
+  }
+  *out++ = static_cast<Char>(digits2_i(value)[0]);
+  *out = static_cast<Char>(digits2_i(value)[1]);
+}
+
 // Formats a decimal unsigned integer value writing to out pointing to a buffer
 // of specified size. The caller must ensure that the buffer is large enough.
 template <typename Char, typename UInt>
@@ -1221,12 +1243,19 @@ FMT_CONSTEXPR20 auto do_format_decimal(Char* out, UInt value, int size)
   FMT_ASSERT(size >= count_digits(value), "invalid digit count");
   unsigned n = to_unsigned(size);
   while (value >= 100) {
-    // Integer division is slow so do it for a group of two digits instead
-    // of for every digit. The idea comes from the talk by Alexandrescu
-    // "Three Optimization Tips for C++". See speed-test for a comparison.
     n -= 2;
-    write2digits(out + n, static_cast<unsigned>(value % 100));
-    value /= 100;
+    if (!is_constant_evaluated() && sizeof(UInt) == 4) {
+      auto p = value * static_cast<uint64_t>((1ull << 39) / 100 + 1);
+      write2digits_i(out + n, p >> (39 - 7) & ((1 << 7) - 1));
+      value = static_cast<UInt>(p >> 39) +
+              (static_cast<UInt>(value >= (100u << 25)) << 25);
+    } else {
+      // Integer division is slow so do it for a group of two digits instead
+      // of for every digit. The idea comes from the talk by Alexandrescu
+      // "Three Optimization Tips for C++". See speed-test for a comparison.
+      write2digits(out + n, static_cast<unsigned>(value % 100));
+      value /= 100;
+    }
   }
   if (value >= 10) {
     n -= 2;
@@ -4151,6 +4180,14 @@ template <typename T, typename Char = char> struct nested_formatter {
 
 inline namespace literals {
 #if FMT_USE_NONTYPE_TEMPLATE_ARGS
+/**
+ * User-defined literal equivalent of `fmt::arg`, but with compile-time checks.
+ *
+ * **Example**:
+ *
+ *     using namespace fmt::literals;
+ *     fmt::print("The answer is {answer}.", "answer"_a=42);
+ */
 template <detail::fixed_string S> constexpr auto operator""_a() {
   using char_t = remove_cvref_t<decltype(*S.data)>;
   return detail::udl_arg<char_t, sizeof(S.data) / sizeof(char_t), S>();

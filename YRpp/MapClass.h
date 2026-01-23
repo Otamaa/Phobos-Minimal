@@ -103,7 +103,7 @@ struct SubzoneTrackingStruct
 
 	//need to define a == operator so it can be used in array classes
 	bool operator==(const SubzoneTrackingStruct &other) const {
-		return (unknown_word_18 != other.unknown_word_18
+		return (unknown_word_18 == other.unknown_word_18
 			&& unknown_dword_1C == other.unknown_dword_1C
 			&& unknown_dword_20 == other.unknown_dword_20);
 	}
@@ -281,11 +281,11 @@ public:
 		return (idx >= 0 && idx < Cells.Capacity) ? Cells.Items[idx] : nullptr;
 	}
 	// ??
-	COMPILETIMEEVAL CellClass* TryGetCellAtB(const CellStruct& MapCoords) const
-	{
-		int idx = GetCellIndex(MapCoords);
-		return (idx >= 0 && idx < MaxCells) ? Cells.Items[idx] : nullptr;
-	}
+	// COMPILETIMEEVAL CellClass* TryGetCellAtB(const CellStruct& MapCoords) const
+	// {
+	// 	int idx = GetCellIndex(MapCoords);
+	// 	return (idx >= 0 && idx < MaxCells) ? Cells.Items[idx] : nullptr;
+	// }
 	// Get cellclasspointer with coords but it will return nullptr if invalid !
 	COMPILETIMEEVAL CellClass* TryGetCellAt(const CoordStruct& Crd) const
 	{

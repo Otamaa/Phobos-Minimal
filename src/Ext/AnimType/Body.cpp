@@ -489,7 +489,7 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 	if (!MapClass::Instance->IsWithinUsableArea(location))
 		return;
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	Iterator pDestroyAnim = make_iterator(pType->DestroyAnim);
 

@@ -26,7 +26,7 @@
 //weapons can take more than one round of ammo
 ASMJIT_PATCH(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 {
-	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA26u };
+	enum { FireErrAmmo = 0x6FCA17u, Continue = 0x6FCA5Eu, FireErrorCloaked = 0x6FCA4Fu };
 	GET(TechnoClass* const, pThis, ESI);
 	GET(WeaponTypeClass* const, pWeapon, EBX);
 
@@ -34,9 +34,25 @@ ASMJIT_PATCH(0x6FCA0D, TechnoClass_CanFire_Ammo, 6)
 	if (nAmmo < 0)
 		return Continue;
 
-	return (nAmmo >= WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo)
-	  ? Continue : FireErrAmmo;
+	if(!(nAmmo >= WeaponTypeExtContainer::Instance.Find(pWeapon)->Ammo))
+	 	return FireErrAmmo;
 
+	if(pWeapon->DecloakToFire){
+		const auto pTransporter = pThis->Transporter;
+
+		if (pTransporter && pTransporter->CloakState != CloakState::Uncloaked)
+			return FireErrorCloaked;
+
+		if (pThis->CloakState == CloakState::Uncloaked)
+			return Continue;
+
+		if (!pWeapon->DecloakToFire && pThis->WhatAmI() == AircraftClass::AbsID)
+			return FireErrorCloaked;
+
+		return pThis->CloakState == CloakState::Cloaked ? FireErrorCloaked : Continue;
+	}
+
+	return Continue;
     /*const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 	const bool IsDisabled = pTypeExt->NoAmmoWeapon == -1;
 
@@ -85,7 +101,7 @@ ASMJIT_PATCH(0x51DF8C, InfantryClass_Fire_Ammo, 6)
 ASMJIT_PATCH(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	int amount = pExt->ReloadAmount;
@@ -103,7 +119,7 @@ ASMJIT_PATCH(0x6FB05B, TechnoClass_Reload_ReloadAmount, 6)
 ASMJIT_PATCH(0x6F3410, TechnoClass_SelectWeapon_NoAmmoWeapon, 5)
 {
 	GET(TechnoClass*, pThis, ESI);
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 
 	if (pType->Ammo < 0)
 		return 0x0;

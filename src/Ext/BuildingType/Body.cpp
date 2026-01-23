@@ -66,7 +66,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 				if (absType == AbstractType::Infantry || absType == AbstractType::Unit)
 				{
 					const auto pCellTechno = static_cast<TechnoClass*>(pObject);
-					const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pCellTechno->GetTechnoType());
+					const auto pTypeExt = GET_TECHNOTYPEEXT(pCellTechno);
 
 					if (!pTypeExt->CanBeBuiltOn && pCellTechno != pExceptTechno) // No need to check house
 					{
@@ -180,7 +180,7 @@ bool BuildingTypeExtData::CleanUpBuildingSpace(BuildingTypeClass* pBuildingType,
 			{
 				const auto location = pCheckedTechno->GetMapCoords();
 				const bool isInfantry = pCheckedTechno->WhatAmI() == AbstractType::Infantry;
-				const auto pCheckedType = pCheckedTechno->GetTechnoType();
+				const auto pCheckedType = GET_TECHNOTYPE(pCheckedTechno);
 
 				if (isInfantry) // Try to maximizing cells utilization
 				{
@@ -1070,10 +1070,7 @@ double BuildingTypeExtData::GetExternalFactorySpeedBonus(TechnoClass* pWhat, Hou
 	if (!pWhat || !pOwner || pOwner->Defeated || pOwner->IsNeutral() || HouseExtData::IsObserverPlayer(pOwner))
 		return fFactor;
 
-	const auto pType = pWhat->GetTechnoType();
-	if (!pType)
-		return fFactor;
-
+	const auto pType = GET_TECHNOTYPE(pWhat);
 	auto pHouseExt = HouseExtContainer::Instance.Find(pOwner);
 	if (pHouseExt->Building_BuildSpeedBonusCounter.empty())
 		return fFactor;
@@ -1655,6 +1652,8 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->IsBarGate.Read(exINI, pSection, "IsBarGate");
 		this->AISellCapturedBuilding.Read(exINI, pSection, "AISellCapturedBuilding");
 		this->BuildingRadioLink_SyncOwner.Read(exINI, pSection, "BuildingRadioLink.SyncOwner");
+		this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
+		this->RevealToAll_Radius.Read(exINI, pSection, "RevealToAll.Radius");
 	}
 #pragma endregion
 	if (pArtINI->GetSection(pArtSection))
@@ -2105,6 +2104,8 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->HasPowerUpAnim)
 		.Process(this->AISellCapturedBuilding)
 		.Process(this->BuildingRadioLink_SyncOwner)
+		.Process(this->ApplyPerTargetEffectsOnDetonate)
+		.Process(this->RevealToAll_Radius)
 		;
 }
 #else

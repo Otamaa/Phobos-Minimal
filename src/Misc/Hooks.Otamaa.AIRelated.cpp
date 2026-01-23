@@ -30,7 +30,7 @@ ASMJIT_PATCH(0x6EBE69, TeamClass_MoveToFocus_SetDestination, 0xA)
 {
 	GET(FootClass*, pFoot, ESI);
 
-	auto const pType = pFoot->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pFoot);
 
 	return (pType->BalloonHover
 		|| (pType->WhatAmI() == UnitTypeClass::AbsID
@@ -43,7 +43,7 @@ ASMJIT_PATCH(0x6EBEDB, TeamClass_MoveToFocus_BalloonHover, 0xA)
 {
 	GET(FootClass*, pFoot, ESI);
 
-	auto const pType = pFoot->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pFoot);
 
 	return (pType->BalloonHover
 		|| (pType->WhatAmI() == UnitTypeClass::AbsID

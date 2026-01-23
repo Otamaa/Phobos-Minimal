@@ -54,7 +54,7 @@ struct IndexFinder<CursorTypeClass*>{
 		{
 			std::string_view val_(parser.value());
 
-			if (GameStrings::IsBlank(parser.value())) {
+			if (GameStrings::IsNone(parser.value())) {
 				value = -1;
 				return true;
 			}

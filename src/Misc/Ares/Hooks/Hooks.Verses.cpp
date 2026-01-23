@@ -143,6 +143,7 @@ ASMJIT_PATCH(0x6F7D3D, TechnoClass_EvaluateObject_Verses, 0x7)
 	GET(ObjectClass*, pTarget, ESI);
 	GET(FakeWarheadTypeClass*, pWH, ECX);
 	GET(WeaponTypeClass*, pWeapon , EBP);
+	//GET_STACK(int const, nWeapon, 0x14);
 	//GET(int, nArmor, EAX);
 
 	LastWeapon = pWeapon;
@@ -154,18 +155,66 @@ ASMJIT_PATCH(0x6F7D3D, TechnoClass_EvaluateObject_Verses, 0x7)
 		;
 }
 
+ASMJIT_PATCH(0x6F7EF4, TechnoClass_EvaluateObject_AttackFriendlies, 0xA)
+{
+	enum { SkipGameCode = 0x6F7F04 , AllowAttack = 0x6F7FE9, ContinueCheck = 0x6F7F0C };
+
+	GET(TechnoClass*, pThis, EDI);
+	GET_STACK(int const, nWeapon, 0x14);
+
+	bool attackFriendlies = pThis->GetTechnoType()->AttackFriendlies;
+
+	if (LastWeapon) {
+		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(LastWeapon);
+		attackFriendlies = pWeaponExt->AttackFriendlies.Get(attackFriendlies);
+	}
+
+	if (!attackFriendlies)
+		return ContinueCheck;
+
+	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+
+	return pTypeExt->AttackFriendlies_WeaponIdx <= -1
+		|| pTypeExt->AttackFriendlies_WeaponIdx == nWeapon
+		? AllowAttack : ContinueCheck;
+}
+
+ASMJIT_PATCH(0x6F85CF, TechnoClass_EvaluateObject_AttackNoThreatBuildings, 0xA)
+{
+	enum { CanAttack = 0x6F8604, Continue = 0x6F85D9 };
+
+	GET(TechnoClass*, pThis, EDI);
+	GET(BuildingClass*, pTarget, ESI);
+
+	bool canAttack = pThis->Owner->IsControlledByHuman() ? RulesExtData::Instance()->AutoTarget_NoThreatBuildings :
+															RulesExtData::Instance()->AutoTargetAI_NoThreatBuildings;
+
+	if (LastWeapon) {
+		const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(LastWeapon);
+		canAttack = pWeaponExt->AttackNoThreatBuildings.Get(canAttack);
+	}
+
+	if (canAttack)
+		return CanAttack;
+
+	R->EAX(pTarget->GetTurrentWeapon());
+	return Continue;
+}
+
+DEFINE_JUMP(LJMP, 0x700387, 0x7003BD)
+
 ASMJIT_PATCH(0x6F85AB, TechnoClass_EvaluateObject_AggressiveAttackMove, 0x6)
 {
 	enum { ContinueCheck = 0x6F85E2, CanTarget = 0x6F8604 };
 
-	GET(TechnoClass* const, pThis, EDI);
+	GET(TechnoClass*, pThis, EDI);
 	GET(TechnoClass*, pTarget, ESI);
 
-	if (!pThis->Owner->IsControlledByHuman())
-		return CanTarget;
+	// if (!pThis->Owner->IsControlledByHuman())
+	// 	return CanTarget;
 
 	if (pThis->MegaMissionIsAttackMove()) {
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 		if(pTypeExt->AttackMove_Aggressive.Get(RulesExtData::Instance()->AttackMove_UpdateTarget))
 			return CanTarget;
@@ -187,21 +236,43 @@ ASMJIT_PATCH(0x6F85AB, TechnoClass_EvaluateObject_AggressiveAttackMove, 0x6)
 	return ContinueCheck;
 }
 
-ASMJIT_PATCH(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
+#include <Ext/CaptureManager/Body.h>
+
+ASMJIT_PATCH(0x6FCAFA, TechnoClass_CanFire_Verses, 0x8)
 {
 	enum {
 		FireIllegal = 0x6FCB7E,
 		ContinueCheck = 0x6FCBCD,
+		ContinueCheckB = 0x6FCCBD,
 		ForceNewValue = 0x6FCBA6,
+		TargetIsNotTechno = 0x6FCCBD
 	};
 
 	GET(TechnoClass*, pThis , ESI);
-	GET(ObjectClass*, pTarget, EBP);
-	GET(FakeWarheadTypeClass*, pWH, EDI);
+	GET(TechnoClass*, pTarget, EBP);
 	GET(WeaponTypeClass*, pWeapon, EBX);
-	//GET(int, nArmor, EAX);
 
-	//const auto pData = WarheadTypeExtContainer::Instance.Find(pWH);
+	if(!pTarget){
+		return TargetIsNotTechno;
+	}
+
+	if(pTarget->IsSinking)
+		return FireIllegal;
+
+	auto pWH = (FakeWarheadTypeClass*)pWeapon->Warhead;
+
+	if(pWH->Parasite && pTarget->IsIronCurtained()) {
+		return FireIllegal;
+	}
+
+	if(pWH->MindControl){
+		if(auto pManager = (FakeCaptureManagerClass*)pThis->CaptureManager) {
+			if(!pManager->__CanCapture(pTarget)){
+				return FireIllegal;
+			}
+		}
+	}
+
 	Armor armor = TechnoExtData::GetTechnoArmor(pTarget, pWH);
 	const auto vsData = pWH->GetVersesData(armor);
 
@@ -254,6 +325,12 @@ ASMJIT_PATCH(0x6FCB6A, TechnoClass_CanFire_Verses, 0x7)
 		if (pWH->IvanBomb && pTarget->AttachedBomb)
 			return FireIllegal;
 
+		// Skips bridge-related coord checks to allow AA to target air units on bridges over water.
+		if(pTarget->IsInAir()){
+			return ContinueCheckB;
+		}
+
+		//elevation related checks
 		return  ContinueCheck;
 	}
 

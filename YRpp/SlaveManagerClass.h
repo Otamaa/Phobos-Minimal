@@ -55,7 +55,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
-	virtual int Size() const override R0;
+	virtual int ClassSize() const override R0;
 	virtual void Update() override JMP_THIS(0x6AF5F0);
 
 	// non-virtual

@@ -24,7 +24,7 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 	GET(BuildingClass*, pThis, ESI);
 	GET(TechnoClass*, pFrom, EDI);
 
-	auto const pFromTechnoType = pFrom->GetTechnoType();
+	auto const pFromTechnoType = GET_TECHNOTYPE(pFrom);
 	const bool isAmphibious = pFromTechnoType->MovementZone == MovementZone::Amphibious
 	|| pFromTechnoType->MovementZone == MovementZone::AmphibiousCrusher
 	|| pFromTechnoType->MovementZone == MovementZone::AmphibiousDestroyer;
@@ -58,7 +58,7 @@ ASMJIT_PATCH(0x43C30A, BuildingClass_ReceiveMessage_Grinding, 0x6)
 	if (pFrom->CaptureManager && pFrom->CaptureManager->IsControllingSomething())
 		return ReturnNegative;
 
-	const bool IsTunnel = pBldTypeExt->TunnelType >= 0;
+	const bool IsTunnel = (size_t)pBldTypeExt->TunnelType < TunnelTypeClass::Array.size();
 	const bool IsUnitAbsorber = pThis->Type->UnitAbsorb;
 	const bool IsInfAbsorber = pThis->Type->InfantryAbsorb;
 	const bool IsAbsorber = IsUnitAbsorber || IsInfAbsorber;
@@ -157,7 +157,7 @@ ASMJIT_PATCH(0x51F0AF, InfantryClass_WhatAction_Grinding, 0x5)
 
 void PlayDieSounds(TechnoClass* pTechno) {
 
-	auto pTechnoType = pTechno->GetTechnoType();
+	auto pTechnoType = GET_TECHNOTYPE(pTechno);
 
 	if (pTechnoType->VoiceDie.Count > 0 && pTechno->Owner->ControlledByCurrentPlayer())
 	{
@@ -258,7 +258,7 @@ ASMJIT_PATCH(0x740134, UnitClass_WhatAction_Grinding, 0x9) //0
 		{
 			if (pThis->SendCommand(RadioCommand::QueryCanEnter, pTarget) == RadioCommand::AnswerPositive)
 			{
-				const bool isFlying = pThis->GetTechnoType()->MovementZone == MovementZone::Fly;
+				const bool isFlying = GET_TECHNOTYPE(pThis)->MovementZone == MovementZone::Fly;
 				const bool canBeGrinded = BuildingExtData::CanGrindTechno(pBuilding, pThis);
 				action = pBuilding->Type->Grinding ? canBeGrinded && !isFlying ? Action::Repair : Action::NoEnter :
 

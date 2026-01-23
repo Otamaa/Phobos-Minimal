@@ -254,6 +254,12 @@ public:
 	Nullable<TargetingPreference> SW_AITargetingPreference;
 	Valueable<bool> SW_FireToShroud;
 	Valueable<bool> SW_UseAITargeting;
+	Valueable<bool> SW_AITargeting_PsyDom_SkipChecks;
+	Valueable<bool> SW_AITargeting_PsyDom_AllowAir;
+	Valueable<bool> SW_AITargeting_PsyDom_AllowInvulnerable;
+	Valueable<bool> SW_AITargeting_PsyDom_AllowCloak;
+	ValueableVector<TechnoTypeClass*> SW_AITargeting_PsyDom_AllowTypes;
+	ValueableVector<TechnoTypeClass*> SW_AITargeting_PsyDom_DisallowTypes;
 	Valueable<SuperWeaponTarget> SW_RequiresTarget;
 	Valueable<AffectedHouse> SW_RequiresHouse;
 	Nullable<WarheadTypeClass*> SW_Warhead;
@@ -624,6 +630,12 @@ public:
 		SW_AITargetingPreference(),
 		SW_FireToShroud(true),
 		SW_UseAITargeting(false),
+		SW_AITargeting_PsyDom_SkipChecks (false),
+		SW_AITargeting_PsyDom_AllowAir(false),
+		SW_AITargeting_PsyDom_AllowInvulnerable(false),
+		SW_AITargeting_PsyDom_AllowCloak(false),
+		SW_AITargeting_PsyDom_AllowTypes(),
+		SW_AITargeting_PsyDom_DisallowTypes(),
 		SW_RequiresTarget(SuperWeaponTarget::None),
 		SW_RequiresHouse(AffectedHouse::None),
 		SW_Warhead(),

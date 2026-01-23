@@ -928,7 +928,7 @@ VelocityClass Helpers_DP::GetBulletArcingVelocity(const CoordStruct& sourcePos, 
 CoordStruct Helpers_DP::GetFLHAbsoluteCoords(TechnoClass* pTechno, CoordStruct& flh, bool isOnTurret, int flipY, bool nextFrame)
 {
 	CoordStruct turretOffset {};
-	auto const pType = pTechno->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pTechno);
 
 	if (isOnTurret)
 	{

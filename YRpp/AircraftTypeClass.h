@@ -32,7 +32,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override { return AbstractType::AircraftType; }
-	virtual int	Size() const override { return 0xE10; }
+	virtual int	ClassSize() const override { return 0xE10; }
 	virtual int GetArrayIndex() const { return this->ArrayIndex; }
 
 	//AbstractTypeClass

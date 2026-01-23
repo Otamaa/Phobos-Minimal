@@ -209,6 +209,21 @@ bool SuperExtContainer::SaveAll(json& root)
 	return true;
 }
 
+SuperExtData::SuperExtData(SuperClass* pObj) : AbstractExtended(pObj)
+	, Name()
+	, Type(nullptr)
+	, Temp_IsPlayer(false)
+	, Temp_CellStruct()
+	, CameoFirstClickDone(false)
+	, FirstClickAutoFireDone(false)
+	, Statusses()
+	, MusicTimer()
+	, MusicActive(false)
+{
+	this->Type = SWTypeExtContainer::Instance.Find(pObj->Type);
+	this->Name = pObj->Type->ID;
+	this->AbsType = SuperClass::AbsID;
+}
 // =============================
 // container hooks
 
@@ -216,10 +231,7 @@ ASMJIT_PATCH(0x6CB10E, SuperClass_CTOR, 0x7)
 {
 	GET(SuperClass*, pItem, ESI);
 
-	if (auto pExt = SuperExtContainer::Instance.Allocate(pItem)) {
-		pExt->Type = SWTypeExtContainer::Instance.Find(pItem->Type);
-	}
-
+	SuperExtContainer::Instance.Allocate(pItem);
 	return 0;
 }
 

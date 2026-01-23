@@ -28,7 +28,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override JMP_THIS(0x691EC0);
-	virtual int Size() const override JMP_THIS(0x691ED0);
+	virtual int ClassSize() const override JMP_THIS(0x691ED0);
 
 	ScriptActionNode* GetCurrentAction(ScriptActionNode *buffer) const
 		{ JMP_THIS(0x691500); }

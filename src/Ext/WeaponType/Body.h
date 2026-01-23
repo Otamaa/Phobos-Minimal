@@ -203,6 +203,15 @@ public:
 	Valueable<bool> DelayedFire_AnimOnTurret;
 
 	Valueable<bool> OnlyAttacker;
+
+	Nullable<Leptons> ChasingExtraRange;
+	Nullable<Leptons> PrefiringExtraRange;
+	Nullable<bool> PrefiringExtraRange_IncludeBurst;
+	Nullable<Leptons> ExtraRange_FirerMoving;
+	Nullable<bool> AttackFriendlies;
+	Nullable<bool> AttackCursorOnFriendlies;
+	Nullable<bool> AttackNoThreatBuildings;
+	Nullable<bool> Anim_Update;
 #pragma endregion
 
 public:
@@ -339,7 +348,15 @@ public:
 		DelayedFire_InitialBurstSymmetrical(false),
 		DelayedFire_AnimOffset(),
 		DelayedFire_AnimOnTurret(true),
-		OnlyAttacker(false)
+		OnlyAttacker(false),
+		ChasingExtraRange (),
+		PrefiringExtraRange (),
+		PrefiringExtraRange_IncludeBurst (),
+		ExtraRange_FirerMoving (),
+		AttackFriendlies(),
+		AttackCursorOnFriendlies(),
+		AttackNoThreatBuildings(),			
+		Anim_Update ()
 	{
 		this->AbsType = WeaponTypeClass::AbsID;
 		this->Initialize();

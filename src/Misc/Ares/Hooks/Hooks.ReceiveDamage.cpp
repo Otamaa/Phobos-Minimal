@@ -16,6 +16,7 @@
 
 #include <Utilities/Debug.h>
 
+#include <Ext/Cell/Body.h>
 #include <Ext/AnimType/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
@@ -86,7 +87,7 @@ static bool AllowedToCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 	//const auto pWH = args->WH;
 	const auto pHouse = pThis->Owner;
 	const auto pSourceHouse = args->SourceHouse;
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
 	const auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
@@ -124,7 +125,7 @@ static void applyCombatAlert(TechnoClass* pThis, args_ReceiveDamage* args)
 	if (AllowedToCombatAlert(pThis, args))
 	{
 		const auto pHouse = pThis->Owner;
-		const auto pType = pThis->GetTechnoType();
+		const auto pType = GET_TECHNOTYPE(pThis);
 		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 		const auto pRules = RulesExtData::Instance();
 		//const auto pWHExt = WarheadTypeExtContainer::Instance.Find(args->WH);
@@ -225,7 +226,7 @@ DamageState FakeTerrainClass::__TakeDamage(int* Damage,
 						MapClass::FlashbangWarheadAt(_damagingDamage, _adamagingWarhead, pThis->Location);
 					}
 
-					_thisCell->ChainReaction();
+					FakeCellClass::_ChainReaction(&_thisCell->MapCoords);
 				}
 				else if (pThis->IsBurning)
 				{
@@ -631,7 +632,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 
     DamageState _res = DamageState::Unaffected;
 	bool _isNegativeDamage = *damage < 0;
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(warhead);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -672,6 +673,16 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		args.PreventsPassengerEscape = PreventsPassengerEscape;
 		args.SourceHouse = sourceHouse;
 	 };
+
+	 	// Apply warhead effects
+	if (damage && !pWHExt->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate))
+		pWHExt->DetonateOnOneUnit(pSourceHouse, pThis, pThis->Location, *damage, source);
+
+	if (source && (!source->IsAlive || source->Health <= 0) && !source->Owner)
+		source = nullptr; //clean up;
+
+	if(!pThis->IsAlive)
+		return DamageState::NowDead;
 
 	pWHExt->ApplyDamageMult(pThis, source, sourceHouse, damage);
 	applyCombatAlert(pThis, &args);
@@ -714,7 +725,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 		}
 
 		if (source && pType->TypeImmune) {
-			auto pAttackerType = source->GetTechnoType();
+			auto pAttackerType = GET_TECHNOTYPE(source);
 			if (pType == pAttackerType && pThis->Owner == source->Owner) {
 				return DamageState::Unaffected;
 			}
@@ -1127,7 +1138,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 					&& !BuildingTypeExtContainer::Instance.Find(((BuildingClass*)pThis)->Type)->Explodes_DuringBuildup
 					&& (pThis->CurrentMission == Mission::Construction || pThis->CurrentMission == Mission::Selling);
 
-				if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Explodes_KillPassengers)
+				if (GET_TECHNOTYPEEXT(pThis)->Explodes_KillPassengers)
 				{
 
 					while (pThis->Passengers.FirstPassenger)
@@ -1373,7 +1384,7 @@ ASMJIT_PATCH(0x701900, TechnoClass_ReceiveDamage_Handle, 0x6)
 	DamageState _res = DamageState::Unaffected;
 	//int damage_ = *args.Damage;
 	bool _isNegativeDamage = *args.Damage < 0;
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
@@ -2327,7 +2338,7 @@ DamageState FakeBuildingClass::_ReceiveDamage(int* Damage, int DistanceToEpicent
 				(pThis->Type->Helipad && pAir &&
 					!AircraftTypeExtContainer::Instance.Find(pAir->Type)->ExtendedAircraftMissions_FastScramble.Get(RulesExtData::Instance()->ExpandAircraftMission)))
 				{
-					int _damage = CachedRadio[i]->GetTechnoType()->Strength;
+					int _damage = GET_TECHNOTYPE(CachedRadio[i])->Strength;
 					CachedRadio[i]->ReceiveDamage(&_damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
 				}
 				else
@@ -2466,15 +2477,14 @@ DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t,
 	};
 
 	DamageState _res = DamageState::Unaffected;
+	auto pParasiteEating = pThis->ParasiteEatingMe;
 
 	if (args.WH->Sonic)
 	{
-		if (auto pParasite = pThis->ParasiteEatingMe)
-		{
-			pParasite->ParasiteImUsing->ExitUnit();
+		if (pParasiteEating) {
+			pParasiteEating->ParasiteImUsing->ExitUnit();
 
-			if (args.Attacker)
-			{
+			if (args.Attacker) {
 				args.Attacker->SetTarget(nullptr);
 			}
 		}
@@ -2482,15 +2492,17 @@ DamageState __fastcall FakeFootClass::__Take_Damage(FootClass* pThis, discard_t,
 
 	auto pWHExt = WarheadTypeExtContainer::Instance.Find(args.WH);
 
-	if (pThis->ParasiteEatingMe && args.Attacker != pThis->ParasiteEatingMe && *args.Damage > pThis->ParasiteEatingMe->GetTechnoType()->SuppressionThreshold)
-	{
-		pThis->ParasiteEatingMe->ParasiteImUsing->SuppressionTimer.Start((2 * *args.Damage) - pThis->ParasiteEatingMe->GetTechnoType()->SuppressionThreshold);
-	}
+	if (pParasiteEating){
+		auto pParasiteOwnerType = GET_TECHNOTYPE(pParasiteEating);
 
-	if (pThis->ParasiteEatingMe && pWHExt->RemoveParasites.Get(*args.Damage < 0))
-	{
-		pThis->ParasiteEatingMe->ParasiteImUsing->SuppressionTimer.Start(50);
-		pThis->ParasiteEatingMe->ParasiteImUsing->ExitUnit();
+		if (args.Attacker != pParasiteEating && *args.Damage > pParasiteOwnerType->SuppressionThreshold) {
+			pParasiteEating->ParasiteImUsing->SuppressionTimer.Start((2 * *args.Damage) - pParasiteOwnerType->SuppressionThreshold);
+		}
+
+		if (pWHExt->RemoveParasites.Get(*args.Damage < 0)) {
+			pParasiteEating->ParasiteImUsing->SuppressionTimer.Start(50);
+			pParasiteEating->ParasiteImUsing->ExitUnit();
+		}
 	}
 
 	_res = FakeTechnoClass::__Take_Damage(pThis , discard_t(), args.Damage, args.DistanceToEpicenter, args.WH, args.Attacker, args.IgnoreDefenses, args.PreventsPassengerEscape, args.SourceHouse);

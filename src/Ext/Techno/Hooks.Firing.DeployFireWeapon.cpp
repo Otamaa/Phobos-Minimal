@@ -208,7 +208,7 @@ ASMJIT_PATCH(0x6F7666, TechnoClass_TriggersCellInset_DeployWeapon, 0x8)
 	if (const auto pInfantry = cast_to<InfantryClass*>(pThis))
 	{
 		GET_STACK(AbstractClass*, pTarget, STACK_OFFSET(0x28, 0x4));
-		const int deployWeaponIdx = pThis->GetTechnoType()->DeployFireWeapon;
+		const int deployWeaponIdx = pInfantry->Type->DeployFireWeapon;
 		weaponIdx = deployWeaponIdx >= 0 ? deployWeaponIdx : pThis->SelectWeapon(pTarget);
 	}
 	else

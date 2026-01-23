@@ -10,7 +10,7 @@
 
 void SpawnSupportFunctional::Construct(TechnoClass* pThis)
 {
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto const& pSupportWeapon = pThis->Veterancy.IsElite() ?
 		pTypeExt->MySpawnSupportDatas.EliteSupportWeapon : pTypeExt->MySpawnSupportDatas.SupportWeapon;
@@ -30,7 +30,7 @@ void SpawnSupportFunctional::FireSupportWeaponToSpawn(TechnoClass* pThis, Abstra
 
 	//if (!pSpawnOwner)
 	//	return;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pTypeExt->MySpawnSupportDatas.Enable)
 	{

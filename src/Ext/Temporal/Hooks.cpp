@@ -102,7 +102,7 @@ ASMJIT_PATCH(0x71AC50, TemporalClass_LetItGo_ExpireEffect, 0x5)
 				}
 
 				if (peWHext->TemporalExpiredApplyDamage.Get() && pThis->WarpRemaining > 0 && pTarget->IsAlive && !pTarget->IsSinking && !pTarget->IsCrashing) {
-					auto const pTargetStreght = pTarget->GetTechnoType()->Strength;
+					auto const pTargetStreght = GET_TECHNOTYPE(pTarget)->Strength;
 					auto damage = int((pTargetStreght * ((((double)pThis->WarpRemaining) / 10.0 / pTargetStreght)
 							* (pWeapon->Damage * peWHext->TemporalDetachDamageFactor.Get()) / 100)));
 

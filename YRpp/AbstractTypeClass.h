@@ -20,35 +20,33 @@ enum class AbstractBaseType : int
 
 #define IMPL_Find(Type)\
 static NOINLINE Type##* __fastcall Find(const char* pID) {\
-if (GameStrings::IsBlank(pID)) return nullptr; \
+if (GameStrings::IsBlank(pID) || GameStrings::IsNone(pID)) return nullptr; \
 for(auto nPos = Type##::Array->begin(); nPos != Type##::Array->end(); ++nPos) \
 if(CRT::strcmpi((*nPos)->ID, pID) == 0) return (*nPos); \
 return nullptr; }
 
 #define IMPL_FindByName(Type)\
 static NOINLINE Type##* __fastcall FindByName(const char* pName) {\
-if (GameStrings::IsBlank(pName)) return nullptr; \
+if (GameStrings::IsBlank(pName) || GameStrings::IsNone(pName)) return nullptr; \
 for(auto nPos = Type##::Array->begin(); nPos != Type##::Array->end(); ++nPos) \
 if(CRT::strcmpi((*nPos)->Name, pName) == 0) return (*nPos); \
 return nullptr; }
 
 #define IMPL_FindOrAllocate(Type)\
 static NOINLINE Type##* __fastcall FindOrAllocate(const char* pID) {\
-if (GameStrings::IsBlank(pID)) return nullptr; \
+if (GameStrings::IsBlank(pID) || GameStrings::IsNone(pID)) return nullptr; \
 for(auto nPos = Type##::Array->begin(); nPos != Type##::Array->end(); ++nPos) \
 if(CRT::strcmpi((*nPos)->ID, pID) == 0) return (*nPos); \
 return GameCreate<Type##>(pID); }
 
 #define IMPL_FindIndexById(Type)\
 static NOINLINE int __fastcall FindIndexById(const char* pID) {\
-if(Type##::Array->Count <= 0) return -1; \
 for (int i = 0; i <  Type##::Array->Count; ++i)\
 if (!CRT::strcmpi(Type##::Array->Items[i]->ID, pID)) return i;\
 return -1;}
 
 #define IMPL_FindIndexByName(Type)\
 static NOINLINE int __fastcall FindIndexByName(const char* pName) {\
-if(Type##::Array->Count <= 0) return -1; \
 for (int i = 0; i < Type##::Array->Count; ++i)\
 if (!CRT::strcmpi(Type##::Array->Items[i]->Name, pName)) return i; \
 return -1;}

@@ -88,7 +88,7 @@ void GiftBoxFunctional::AI(TechnoExtData* pExt, TechnoTypeExtData* pTypeExt)
 		if (pTypeExt->MyGiftBoxData.Destroy)
 		{
 			//take damage from the new type just in case the health is acttually more then old
-			auto nDamage = (pExt->This()->GetTechnoType()->Strength);
+			auto nDamage = (pExt->CurrentType->Strength);
 			pExt->This()->ReceiveDamage(&nDamage, 0, RulesClass::Instance->C4Warhead, nullptr, false,
 				!pTypeExt->This()->Crewed, nullptr);
 
@@ -264,7 +264,7 @@ void GiftBox::Release(TechnoClass* pOwner, GiftBoxData& nData)
 			{
 				if (auto pOwnerHouse = pGift->GetOwningHouse())
 				{
-					if (!pOwnerHouse->IsNeutral() && !pGift->GetTechnoType()->Insignificant)
+					if (!pOwnerHouse->IsNeutral() && !GET_TECHNOTYPE(pGift)->Insignificant)
 					{
 						pOwnerHouse->RegisterGain(pGift, false);
 						pOwnerHouse->AddTracking(pGift);

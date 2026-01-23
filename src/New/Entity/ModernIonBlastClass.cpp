@@ -1008,7 +1008,7 @@ void ModernIonBlastClass::ApplyRotationEffectsToUnit(FootClass* unit, const Vect
 
 void ModernIonBlastClass::ApplyPhysicsEffectsToUnit(FootClass* unit, int distance)
 {
-	TechnoTypeClass* unitType = unit->GetTechnoType();
+	TechnoTypeClass* unitType = GET_TECHNOTYPE(unit);
 
 	// Check if unit has voxel model for physics simulation
 	if (!unitType->MainVoxel.VXL || unitType->MainVoxel.VXL->LoadFailed)

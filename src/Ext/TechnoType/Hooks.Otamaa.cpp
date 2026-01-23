@@ -21,7 +21,7 @@ ASMJIT_PATCH(0x6B0C2C, SlaveManagerClass_FreeSlaves_Sound, 0x5) // C
 
 	VocClass::SafeImmedietelyPlayAt
 	(
-		TechnoTypeExtContainer::Instance.Find(pSlave->GetTechnoType())->SlaveFreeSound.Get(RulesClass::Instance->SlavesFreeSound)
+		GET_TECHNOTYPEEXT(pSlave)->SlaveFreeSound.Get(RulesClass::Instance->SlavesFreeSound)
 		, &pSlave->Location
 	);
 

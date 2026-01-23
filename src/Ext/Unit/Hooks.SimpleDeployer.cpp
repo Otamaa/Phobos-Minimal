@@ -41,37 +41,41 @@ ASMJIT_PATCH(0x54C767, JumpjetLocomotionClass_Descending_DeployDir, 0x6)
 
 // Disable DeployToLand=no forcing landing when idle due to what appears to be
 // a code oversight and no need for DeployToLand=no to work in vanilla game.
-ASMJIT_PATCH(0x54BED4, JumpjetLocomotionClass_Hovering_DeployToLand, 0x7)
-{
-	GET(JumpjetLocomotionClass*, pThis, ESI);
-	GET(FootClass*, pLinkedTo, ECX);
+// ASMJIT_PATCH(0x54BED4, JumpjetLocomotionClass_Hovering_DeployToLand, 0x7)
+// {
+// 	GET(JumpjetLocomotionClass*, pThis, ESI);
+// 	GET(FootClass*, pLinkedTo, ECX);
 
-	auto const pType = pLinkedTo->GetTechnoType();
+// 	auto const pType = GET_TECHNOTYPE(pLinkedTo);
 
-	if (!pType->BalloonHover || pType->DeployToLand) {
-		pThis->NextState = JumpjetLocomotionClass::State::Descending;
-	}
+// 	if (!pType->BalloonHover || pType->DeployToLand) {
+// 		pThis->NextState = JumpjetLocomotionClass::State::Descending;
+// 	}
 
-	pLinkedTo->TryNextPlanningTokenNode();
-	return 0x54BEE0;
-}
+// 	pLinkedTo->TryNextPlanningTokenNode();
+// 	return 0x54BEE0;
+// }
+// Skip DeployToLand check for IsSimpleDeployer jumpjet units, the desired behaviour here
+// should be same for both (hover in place if not deploying)
+DEFINE_JUMP(LJMP, 0x54BDDE, 0x54BDF2);
 
 // Same as above but at a different state.
-ASMJIT_PATCH(0x54C2DF, JumpjetLocomotionClass_Cruising_DeployToLand, 0xA)
-{
-	GET(JumpjetLocomotionClass*, pThis, ESI);
-	GET(FootClass*, pLinkedTo, ECX);
+// ASMJIT_PATCH(0x54C2DF, JumpjetLocomotionClass_Cruising_DeployToLand, 0xA)
+// {
+// 	GET(JumpjetLocomotionClass*, pThis, ESI);
+// 	GET(FootClass*, pLinkedTo, ECX);
 
-	auto const pType = pLinkedTo->GetTechnoType();
+// 	auto const pType = GET_TECHNOTYPE(pLinkedTo);
 
-	if (!pType->BalloonHover || pType->DeployToLand) {
-		pThis->__currentHeight = 0;
-		pThis->NextState = JumpjetLocomotionClass::State::Descending;
-	}
+// 	if (!pType->BalloonHover || pType->DeployToLand) {
+// 		pThis->__currentHeight = 0;
+// 		pThis->NextState = JumpjetLocomotionClass::State::Descending;
+// 	}
 
-	pLinkedTo->TryNextPlanningTokenNode();
-	return 0x54C4FD;
-}
+// 	pLinkedTo->TryNextPlanningTokenNode();
+// 	return 0x54C4FD;
+// }
+DEFINE_JUMP(LJMP, 0x54C212, 0x54C22A);
 #pragma endregion
 
 #pragma region HOVER
@@ -121,7 +125,7 @@ ASMJIT_PATCH(0x514A2A, HoverLocomotionClass_Process_DeployToLand, 0x8)
 
 	if (pLinkedTo->InAir)
 	{
-		auto const pType = pLinkedTo->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pLinkedTo);
 
 		if (pType->DeployToLand)
 		{
@@ -163,7 +167,7 @@ ASMJIT_PATCH(0x514E05, HoverLocomotionClass_MoveTo_DeployToLand, 0x5)
 
 	auto const pLinkedTo = static_cast<LocomotionClass*>(pThis)->LinkedTo;
 
-	if (pLinkedTo->GetTechnoType()->DeployToLand)
+	if (GET_TECHNOTYPE(pLinkedTo)->DeployToLand)
 		pLinkedTo->InAir = false;
 
 	return 0;
@@ -186,7 +190,7 @@ ASMJIT_PATCH(0x4DA9F3, FootClass_AI_DeployToLand, 0x6)
 
 	GET(FootClass*, pThis, ESI);
 
-	if (pThis->GetTechnoType()->Locomotor == HoverLocomotionClass::ClassGUID())
+	if (GET_TECHNOTYPE(pThis)->Locomotor == HoverLocomotionClass::ClassGUID())
 		return SkipGameCode;
 
 	return 0;

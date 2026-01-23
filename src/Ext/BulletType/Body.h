@@ -100,6 +100,7 @@ public:
 	Valueable<bool> Vertical_AircraftFix;
 	Nullable<bool> VerticalInitialFacing;
 	Valueable<bool> AU;
+	Nullable<bool> UpdateImmediately;
 #pragma endregion
 
 public:
@@ -170,15 +171,16 @@ public:
 		SubjectToGround(false),
 		Airburst_TargetAsSource(false),
 		Airburst_TargetAsSource_SkipHeight(false),
-		AirburstWeapon_SourceScatterMin(Leptons(0)),
-		AirburstWeapon_SourceScatterMax(Leptons(0)),
+		AirburstWeapon_SourceScatterMin(),
+		AirburstWeapon_SourceScatterMax(),
 		EMPulseCannon_InaccurateRadius(0),
 		Parachuted_FallRate(1),
 		Parachuted_MaxFallRate(),
 		Parachuted_Remap(true),
 		Vertical_AircraftFix(true),
 		VerticalInitialFacing(),
-		AU(false)
+		AU(false),
+		UpdateImmediately()
 	{
 		this->AbsType = BulletTypeClass::AbsID;
 	}

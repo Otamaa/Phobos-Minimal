@@ -677,39 +677,48 @@ ASMJIT_PATCH(0x64CCBF, DoList_ReplaceReconMessage, 6)
 	//return 0x64CD11;
 }
 
-LONG __fastcall ExceptionHandler(int code, PEXCEPTION_POINTERS const pExs)
+namespace ExceptionStatics
 {
+	static char g_reason_buffer[256];
+	static char g_violation_buffer[512];
+	static char g_message_buffer[4096];
+	static char g_suffix_buffer[128];
+}
 
+bool HANDLE_COMMON_CRASH(LONG& exc, PEXCEPTION_POINTERS const pExs)
+{
 	DWORD* eip_pointer = reinterpret_cast<DWORD*>(&pExs->ContextRecord->Eip);
-	std::string reason = "Unknown";
-	const auto hwnd = IsWindow(Game::hWnd()) ? Game::hWnd() : nullptr;
 
 	switch (*eip_pointer)
 	{
 	case 0x7BC806:
 	{
 		*eip_pointer = 0x7BC80F;
-		return EXCEPTION_CONTINUE_EXECUTION;
+		exc = EXCEPTION_CONTINUE_EXECUTION;
+		return true;
 	}
 	case 0x5D6C21:
 	{
 		// This bug most likely happens when a map Doesn't have Waypoint 90
 		*eip_pointer = 0x5D6C36;
-		return EXCEPTION_CONTINUE_EXECUTION;
+		exc = EXCEPTION_CONTINUE_EXECUTION;
+		return true;
 	}
 	case 0x7BAEA1:
 	{
 		// A common crash in DSurface::GetPixel
 		*eip_pointer = 0x7BAEA8;
 		pExs->ContextRecord->Ebx = 0;
-		return EXCEPTION_CONTINUE_EXECUTION;
+		exc = EXCEPTION_CONTINUE_EXECUTION;
+		return true;
 	}
 	case 0x535DBC:
 	{
 		// Common crash in keyboard command class
 		*eip_pointer = 0x535DCE;
 		pExs->ContextRecord->Esp += 12;
-		return EXCEPTION_CONTINUE_EXECUTION;
+		exc = EXCEPTION_CONTINUE_EXECUTION;
+		return true;
 	}
 	case 0x42C554:
 	case 0x42C53E:
@@ -721,12 +730,12 @@ LONG __fastcall ExceptionHandler(int code, PEXCEPTION_POINTERS const pExs)
 		//MovementZone movementZone = (MovementZone)(ExceptionInfo->ContextRecord->Ebp + 0x10);
 
 		//AstarClass , broken ptr
-		reason = ("PathfindingCrash");
-		break;
+		sprintf(ExceptionStatics::g_reason_buffer, "%s" , "PathfindingCrash");
+		return false;
 	}
 	case 0x584DF7:
-		reason = ("SubzoneTrackingCrash");
-		break;
+		sprintf(ExceptionStatics::g_reason_buffer, "%s", "SubzoneTrackingCrash");
+		return false;
 		//case 0x755C7F:
 		//{
 		//	Debug::LogInfo("BounceAnimError ");
@@ -738,15 +747,29 @@ LONG __fastcall ExceptionHandler(int code, PEXCEPTION_POINTERS const pExs)
 			// A common crash that seems to happen when yuri prime mind controls a building and then dies while the user is pressing hotkeys
 			*eip_pointer = 0x55E018;
 			pExs->ContextRecord->Esp += 8;
-			return EXCEPTION_CONTINUE_EXECUTION;
+			exc = EXCEPTION_CONTINUE_EXECUTION;
+			return true;
 		}
-		break;
+		return false;
 	default:
-		break;
+		sprintf(ExceptionStatics::g_reason_buffer, "%s", "Unknown");
+		return false;
 	}
+}
+
+LONG __fastcall ExceptionHandler(int code, PEXCEPTION_POINTERS const pExs)
+{
+
+	DWORD* eip_pointer = reinterpret_cast<DWORD*>(&pExs->ContextRecord->Eip);
+	std::string reason = "Unknown";
+	const auto hwnd = IsWindow(Game::hWnd()) ? Game::hWnd() : nullptr;
+
+	LONG exc;
+	if (HANDLE_COMMON_CRASH(exc, pExs))
+		return exc;
 
 	Debug::FreeMouse();
-	Debug::LogInfo("Exception handler fired reason {} !", reason);
+	Debug::Log("Exception handler fired reason %s !\n", ExceptionStatics::g_reason_buffer);
 	Debug::Log("Exception 0x%x at 0x%x\n", pExs->ExceptionRecord->ExceptionCode, pExs->ExceptionRecord->ExceptionAddress);
 	Game::StreamerThreadFlush();
 

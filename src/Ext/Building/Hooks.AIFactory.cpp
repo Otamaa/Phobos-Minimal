@@ -207,7 +207,7 @@ ASMJIT_PATCH(0x4CA07A, FactoryClass_AbandonProduction, 0x8)
 			pData->Factory_BuildingType = nullptr;
 			break;
 		case UnitClass::AbsID:
-			if (!pFactory->Object->GetTechnoType()->Naval)
+			if (!((UnitClass*)pFactory->Object)->Type->Naval)
 				pData->Factory_VehicleType = nullptr;
 			else
 				pData->Factory_NavyType = nullptr;

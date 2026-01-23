@@ -23,6 +23,7 @@ public:
 		FirewallToggle = 0x62,
 		ManualReload = 0x63,
 		TogglePassiveAcquireMode = 0x64,
+		TogglePlayerAutoRepair = 0x65,
 
 		First = TrenchRedirectClick,
 		Last = TogglePassiveAcquireMode
@@ -117,9 +118,17 @@ public:
 		TargetClass dummy; //not really used actually
 	};
 
+	struct TogglePlayerAutoRepair
+	{
+		SET_DEFAULT_PROP(TogglePlayerAutoRepair)
+
+		static void Raise();
+
+	};
+
 	static COMPILETIMEEVAL size_t GetDataSize(EventType type)
 	{
-		if (type <= EventType::ABANDON_ALL) // default event
+		if (type < (EventType)EventClass::EventLength.size())
 			return EventClass::EventLength[(uint8_t)type];
 
 #define GET_SIZE_EV(ev) case Events::##ev##: return ev##::size();
@@ -130,6 +139,7 @@ public:
 			GET_SIZE_EV(FirewallToggle)
 			GET_SIZE_EV(ManualReload)
 			GET_SIZE_EV(TogglePassiveAcquireMode)
+			GET_SIZE_EV(TogglePlayerAutoRepair)
 		default:
 			return 0;
 		}
@@ -147,6 +157,7 @@ public:
 			GET_NAME_EV(FirewallToggle)
 			GET_NAME_EV(ManualReload)
 			GET_NAME_EV(TogglePassiveAcquireMode)
+			GET_NAME_EV(TogglePlayerAutoRepair)
 		default:
 			return "Unknown";
 		}
@@ -163,6 +174,7 @@ public:
 			RESPOND_TO_EV(FirewallToggle)
 			RESPOND_TO_EV(ManualReload)
 			RESPOND_TO_EV(TogglePassiveAcquireMode)
+			RESPOND_TO_EV(TogglePlayerAutoRepair)
 		default:
 			break;
 		}

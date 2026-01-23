@@ -46,13 +46,13 @@ ASMJIT_PATCH(0x692686, DisplayClass_DecideAction_Cloak, 0x6)
 }
 
 // Allow showing the select cursor on the object
-ASMJIT_PATCH(0x700594, TechnoClass_WhatAction__AllowAllies, 0x5)
-{
-	GET(TechnoClass*, pThis, ESI);
-	GET(ObjectClass*, pObject, EDI);
+// ASMJIT_PATCH(0x700594, TechnoClass_WhatAction__AllowAllies, 0x5)
+// {
+// 	GET(TechnoClass*, pThis, ESI);
+// 	GET(ObjectClass*, pObject, EDI);
 
-	return pThis->Owner->IsAlliedWith(pObject) ? 0x70059D : 0x7005E6;
-}
+// 	return pThis->Owner->IsAlliedWith(pObject) ? 0x70059D : 0x7005E6;
+// }
 
 // Fixed the issue where non-repairer units needed sensors to attack cloaked friendly units.
 DEFINE_JUMP(LJMP, 0x6FC278, 0x6FC289);

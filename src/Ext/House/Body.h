@@ -218,6 +218,7 @@ public:
 	std::vector<int> BestChoicesNaval;
 
 	std::vector<int> AITriggers_ValidList;
+	bool PlayerAutoRepair;
 #pragma endregion
 
 public:
@@ -282,7 +283,8 @@ public:
 		FreeRadar(false),
 		Productions(),
 		BestChoicesNaval(),
-		AITriggers_ValidList()
+		AITriggers_ValidList(),
+		PlayerAutoRepair(false)
 	{
 		// resize after initialization
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);

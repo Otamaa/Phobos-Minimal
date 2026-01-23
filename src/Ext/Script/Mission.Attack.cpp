@@ -131,7 +131,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 	{
 			if (ScriptExtData::IsUnitAvailable(pFoot, true)) {
 
-				auto const pTechnoType = pFoot->GetTechnoType();
+				auto const pTechnoType = GET_TECHNOTYPE(pFoot);
 
 				if (pFoot->WhatAmI() == AbstractType::Aircraft
 					&& !pFoot->IsInAir()
@@ -187,7 +187,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		return;
 	}
 
-	auto pLeaderUnitType = pTeamData->TeamLeader->GetTechnoType();
+	auto pLeaderUnitType = GET_TECHNOTYPE(pTeamData->TeamLeader);
 	bool leaderWeaponsHaveAG = false;
 	bool leaderWeaponsHaveAA = false;
 	ScriptExtData::CheckUnitTargetingCapabilities(pTeamData->TeamLeader, leaderWeaponsHaveAG, leaderWeaponsHaveAA, agentMode);
@@ -243,7 +243,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 			{
 				if (ScriptExtData::IsUnitAvailable(pFoot, false) && ScriptExtData::IsUnitAvailable(selectedTarget, true))
 				{
-					auto const pTechnoType = pFoot->GetTechnoType();
+					auto const pTechnoType = GET_TECHNOTYPE(pFoot);
 
 					if (pFoot != selectedTarget && pFoot->Target != selectedTarget)
 					{
@@ -359,7 +359,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 		bool isAirOK = pFocus->IsInAir() && leaderWeaponsHaveAA;
 		bool isGroundOK = !pFocus->IsInAir() && leaderWeaponsHaveAG;
 
-		if ( !pFocus->GetTechnoType()->Immune
+		if ( !GET_TECHNOTYPE(pFocus)->Immune
 			&& (isAirOK || isGroundOK)
 			&& (!pTeamData->TeamLeader->Owner->IsAlliedWith(pFocus) || ScriptExtData::IsUnitMindControlledFriendly(pTeamData->TeamLeader->Owner, pFocus)))
 		{
@@ -369,7 +369,7 @@ void ScriptExtData::Mission_Attack(TeamClass* pTeam, bool repeatAction, Distance
 			{
 				if (ScriptExtData::IsUnitAvailable(pFoot, true))
 				{
-					auto const pTechnoType = pFoot->GetTechnoType();
+					auto const pTechnoType = GET_TECHNOTYPE(pFoot);
 
 					// Aircraft case 1
 					if ((pFoot->WhatAmI() == AbstractType::Aircraft
@@ -480,7 +480,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 		return nullptr;
 
 	const bool leaderArmed = pTechno->IsArmed();
-	auto pTechnoType = pTechno->GetTechnoType();
+	auto pTechnoType = GET_TECHNOTYPE(pTechno);
 	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	auto const AIDifficulty = static_cast<int>(pTechno->Owner->GetAIDifficultyIndex());
 	auto const DisguiseDetectionValue = pTypeExt->DetectDisguise_Percent.GetEx(RulesExtData::Instance()->AIDetectDisguise_Percent)->at(AIDifficulty);
@@ -496,7 +496,7 @@ TechnoClass* ScriptExtData::GreatestThreat(TechnoClass* pTechno, int method, Dis
 		if (object->Spawned)
 			continue;
 
-		auto objectType = object->GetTechnoType();
+		auto objectType = GET_TECHNOTYPE(object);
 		auto pObjectTypeExt = TechnoTypeExtContainer::Instance.Find(objectType);
 
 		if (pTypeExt->AI_LegalTarget.isset() && !pTechno->Owner->IsControlledByHuman() && !pObjectTypeExt->AI_LegalTarget.Get()) {
@@ -683,7 +683,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 	//if (pTechno->Spawned)
 	//	return false;
 
-	TechnoTypeClass* pTechnoType = pTechno->GetTechnoType();
+	TechnoTypeClass* pTechnoType = GET_TECHNOTYPE(pTechno);
 	auto const pTargetTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
 	bool buildingIsConsideredVehicle = false;
 
@@ -838,12 +838,13 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 			}
 
 			// Then check if this possible target is too near of the Team Leader
+			auto pLeaderType = GET_TECHNOTYPE(pTeamLeader);
 			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / 256.0;
 			const auto pWeaponPrimary = TechnoExtData::GetCurrentWeapon(pTechno);
 			const auto pWeaponSecondary = TechnoExtData::GetCurrentWeapon(pTechno , true);
 			const bool primaryCheck = pWeaponPrimary && distanceToTarget <= (WeaponTypeExtData::GetRangeWithModifiers(pWeaponPrimary, pTechno) / 256.0 * 4.0);
 			const bool secondaryCheck = pWeaponSecondary && distanceToTarget <= (WeaponTypeExtData::GetRangeWithModifiers(pWeaponSecondary, pTechno) / 256.0 * 4.0);
-			const bool guardRangeCheck = pTeamLeader->GetTechnoType()->GuardRange > 0 && distanceToTarget <= (pTeamLeader->GetTechnoType()->GuardRange / 256.0 * 2.0);
+			const bool guardRangeCheck = pLeaderType->GuardRange > 0 && distanceToTarget <= (pLeaderType->GuardRange / 256.0 * 2.0);
 
 			return primaryCheck
 				|| secondaryCheck
@@ -1232,7 +1233,7 @@ bool ScriptExtData::EvaluateObjectWithMask(TechnoClass* pTechno, int mask, int a
 		{
 			// Inside the Area Guard of the Team Leader
 			const auto distanceToTarget = pTeamLeader->DistanceFrom(pTechno) / 256.0; // Caution, DistanceFrom() return leptons
-			const auto pLEaderType = pTeamLeader->GetTechnoType();
+			const auto pLEaderType = GET_TECHNOTYPE(pTeamLeader);
 
 			return (pLEaderType->GuardRange > 0
 					&& distanceToTarget <= ((pLEaderType->GuardRange / 256.0) * 2.0));
@@ -1391,7 +1392,8 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 				//if (pTechno->Spawned)
 				//	return;
 
-				if (auto pTechnoType = pTechno->GetTechnoType())
+				auto pTechnoType = GET_TECHNOTYPE(pTechno);
+
 				{
 					bool found = false;
 

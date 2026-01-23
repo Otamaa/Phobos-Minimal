@@ -366,13 +366,13 @@ bool DisperseTrajectory::BulletRetargetTechno()
 
 				while (pObject)
 				{
-					const auto pTechno = flag_cast_to<TechnoClass*>(pObject);
+					const auto pTechno = flag_cast_to<TechnoClass*,false>(pObject);
 					pObject = pObject->NextObject;
 
 					if (!pTechno || this->CheckTechnoIsInvalid(pTechno))
 						continue;
 
-					const auto pTechnoType = pTechno->GetTechnoType();
+					const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 
 					if (!pTechnoType->LegalTarget)
 						continue;
@@ -439,7 +439,7 @@ bool DisperseTrajectory::BulletRetargetTechno()
 			if (this->CheckTechnoIsInvalid(pTechno))
 				continue;
 
-			const auto pTechnoType = pTechno->GetTechnoType();
+			const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 
 			if (!pTechnoType->LegalTarget)
 				continue;
@@ -915,7 +915,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 							if (!checkTechnos || this->CheckTechnoIsInvalid(pTechno))
 								continue;
 
-							const auto pTechnoType = pTechno->GetTechnoType();
+							const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 
 							if (!pTechnoType->LegalTarget)
 								continue;
@@ -975,7 +975,7 @@ bool DisperseTrajectory::PrepareDisperseWeapon()
 					if (this->CheckTechnoIsInvalid(pTechno))
 						continue;
 
-					const auto pTechnoType = pTechno->GetTechnoType();
+					const auto pTechnoType = GET_TECHNOTYPE(pTechno);
 
 					if (!pTechnoType->LegalTarget)
 						continue;

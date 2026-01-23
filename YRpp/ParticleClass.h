@@ -37,7 +37,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override { return AbstractType::Particle; }
-	virtual int Size() const override { return 0x138; }
+	virtual int ClassSize() const override { return 0x138; }
 
 	virtual Layer InWhichLayer() const override JMP_THIS(0x62D770);
 	virtual CellStruct const* GetFoundationData(bool includeBib = false) const override JMP_THIS(0x62D710);

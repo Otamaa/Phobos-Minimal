@@ -1790,7 +1790,7 @@ bool TActionExtData::PrintMessageRemainingTechnos(TActionClass* pThis, HouseClas
 
 		for (const auto pTechno : *TechnoClass::Array)
 		{
-			if (!IsUnitAvailable(pTechno, false) || pTechno->GetTechnoType() != pType)
+			if (!IsUnitAvailable(pTechno, false) || GET_TECHNOTYPE(pTechno) != pType)
 				continue;
 
 			for (const auto& pCont : pHousesList.container()) {

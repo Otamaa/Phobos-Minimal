@@ -74,6 +74,214 @@
         } \
     } while(0)
 
+struct Saver { };
+struct Loader { };
+
+template <typename T, typename Container>
+static bool Serialize(json& root) {
+
+	if COMPILETIMEEVAL(std::is_same<T,Saver>::value) {
+		if (!Container::Instance.SaveAll(root)) {
+			Debug::Log("[ExtSave] Failed to create file\n");
+			return false;
+		}
+
+	} else {
+		if (!Container::Instance.LoadAll(root)) {
+			Debug::Log("[ExtLoad] Deserialization failed\n");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+template <typename T, typename Container>
+static bool SerializeB(json& root)
+{
+
+	if COMPILETIMEEVAL(std::is_same<T, Saver>::value)
+	{
+		if (!Container::Instance.SaveAll(root))
+		{
+			Debug::Log("[ExtSave] Failed to create file\n");
+			return false;
+		}
+
+	}
+	else
+	{
+		if (!Container::Instance.LoadAll(root))
+		{
+			Debug::Log("[ExtLoad] Deserialization failed\n");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+#ifdef _WIP
+template <typename Y>
+bool ProcessPhobosObjects(json& root)
+{
+	if (!SerializeB<T, Phobos>(root) 
+		return false;
+
+	if (!SerializeB<T, CursorTypeClass>(root))
+		return false;
+
+	success = Process_Global_Load<ColorTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SideExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TheaterTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<MouseClassExt>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<CellExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<DigitalDisplayTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ArmorTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ImmunityTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<LaserTrailTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TunnelTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<InsigniaTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SelectBoxTypeClass>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TiberiumExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<HouseTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<HouseExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<UnitTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<UnitExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<InfantryTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<InfantryExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BuildingTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BuildingExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<AircraftTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<AircraftExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<AnimTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<AnimExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TeamExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TriggerExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TEventExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<VoxelAnimTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<VoxelAnimExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<WarheadTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<WeaponTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ParticleTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ParticleExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ParticleSystemTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<ParticleSystemExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BulletTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BulletExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TActionExtData>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SmudgeTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<OverlayTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SWTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<SuperExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TerrainTypeExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<TerrainExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<WaveExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<BombExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	success = Process_Global_Load<RadSiteExtContainer>(reader);
+	if (!success) return E_FAIL;
+
+	if (!reader.ExpectEndOfBlock())
+		return E_FAIL;
+
+	return S_OK;
+}
+#endif
+
 bool ExtensionSaveJson::Save(const wchar_t* baseSave)
 {
 	try
@@ -103,7 +311,8 @@ bool ExtensionSaveJson::Save(const wchar_t* baseSave)
 		};
 
 		SaveHeader::WriteSaveHeader(root, _header);
-		if (!AnimExtContainer::Instance.SaveAll(root)) {
+
+		if (!Serialize<Saver,SideExtContainer>(root)) {
 			Debug::FatalErrorAndExit("[ExtSave] Failed to create file\n");
 		}
 
@@ -187,7 +396,7 @@ bool ExtensionSaveJson::Load(const wchar_t* baseSave)
 
 		Debug::Log("[ExtLoad] Header OK\n");
 
-		if (!AnimExtContainer::Instance.LoadAll(root)) {
+		if (!Serialize<Loader,AnimExtContainer>(root)) {
 			Debug::Log("[ExtLoad] Deserialization failed\n");
 			return false;
 		}

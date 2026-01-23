@@ -119,7 +119,7 @@ public:
 		if (Drawing::ColorMode() == RGBMode::RGB565)
 			colorValue |= blue | (32 * (green | (red << 6)));
 
-		if (Drawing::ColorMode() != RGBMode::RGB655)
+		else if (Drawing::ColorMode() != RGBMode::RGB655)
 			colorValue |= blue | (((32 * red) | (green >> 1)) << 6);
 
 		colorValue |= blue | (32 * ((32 * red) | (green >> 1)));
@@ -199,17 +199,24 @@ public:
 	{
 		std::string sDigits;
 
+
 		if (num == 0)
 		{
 			sDigits.push_back('0');
 			return sDigits;
 		}
 
+		bool negative = num < 0;
+		if (negative) num = -num;
+
 		while (num)
 		{
 			sDigits.push_back(static_cast<char>(num % 10) + '0');
 			num /= 10;
 		}
+
+		if(negative)
+			sDigits.push_back('-');
 
 		std::ranges::reverse(sDigits);
 		return sDigits;

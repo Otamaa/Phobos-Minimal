@@ -56,9 +56,9 @@ int WarheadTypeExtData::TransactGetValue(TechnoClass* pTarget, TechnoClass* pOwn
 	if (!CLOSE_ENOUGH(percent, 0.0))
 	{
 		if (calcFromTarget)
-			percentValue = pTarget ? (int)(pTarget->GetTechnoType()->GetActualCost(pTarget->Owner) * percent):0;
+			percentValue = pTarget ? (int)(GET_TECHNOTYPE(pTarget)->GetActualCost(pTarget->Owner) * percent):0;
 		else if (!calcFromTarget)
-			percentValue = pOwner ? (int)(pOwner->GetTechnoType()->GetActualCost(pOwner->Owner) * percent):0;
+			percentValue = pOwner ? (int)(GET_TECHNOTYPE(pOwner)->GetActualCost(pOwner->Owner) * percent):0;
 	}
 
 	return Math::abs(percentValue) > Math::abs(flatValue) ? percentValue : flatValue;
@@ -87,7 +87,7 @@ TransactData WarheadTypeExtData::TransactGetSourceAndTarget(TechnoClass* pTarget
 		if (!pTarget)
 			return DisablepTargetCheck;
 
-		if (!pTarget->GetTechnoType()->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
+		if (!GET_TECHNOTYPE(pTarget)->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
 			return false;
 
 		return true;
@@ -118,8 +118,8 @@ TransactData WarheadTypeExtData::TransactGetSourceAndTarget(TechnoClass* pTarget
 
 void WarheadTypeExtData::TransactOnOneUnit(TechnoClass* pTarget, TechnoClass* pOwner, int targets)
 {
-	auto const pTargetType = pTarget ? pTarget->GetTechnoType() : nullptr;
-	auto const pOwnerType = pOwner ? pOwner->GetTechnoType() : nullptr;
+	auto const pTargetType = pTarget ? GET_TECHNOTYPE(pTarget) : nullptr;
+	auto const pOwnerType = pOwner ? GET_TECHNOTYPE(pOwner) : nullptr;
 
 	TransactData allValues = this->TransactGetSourceAndTarget(pTarget, pTargetType, pOwner, pOwnerType, targets);
 
@@ -170,7 +170,7 @@ void WarheadTypeExtData::TransactOnAllUnits(std::vector<TechnoClass*>& nVec, Hou
 		if (!CanDealDamage(pTech))
 			return true;
 
-		if (!pTech->GetTechnoType()->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
+		if (!GET_TECHNOTYPE(pTech)->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
 			return true;
 
 		return !CanTargetHouse(pHouse, pTech);

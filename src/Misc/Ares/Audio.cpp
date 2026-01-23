@@ -512,13 +512,12 @@ ASMJIT_PATCH(0x4064A0, VocClassData_AddSample, 6) // Complete rewrite of VocClas
 			}
 
 			if (Phobos::Otamaa::OutputAudioLogs && idxSample == -1) {
-				Debug::LogInfo("Cannot Find [{}] sample!.", pSampleName);
+				Debug::Log("[Developer warning] VocClass [%s] has missing sample '%s'\n", pVoc->Name, pSampleName);
 				pVoc->SamplesOK = false;
 			} else {
 				// Set sample index or string pointer
 				pVoc->SampleIndex[pVoc->NumSamples++] = idxSample;
 			}
-			// return true
 			R->EAX(1);
 		}
 	}

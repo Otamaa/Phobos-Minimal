@@ -53,7 +53,7 @@ public:
 	virtual void Init() override RX;
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override RX;
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
-	virtual int Size() const override R0;
+	virtual int ClassSize() const override R0;
 
 	bool ReadDescription(CCINIClass *pINI) const {
 		JMP_THIS(0x46CCD0);

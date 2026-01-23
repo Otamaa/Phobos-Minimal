@@ -34,6 +34,8 @@ void BlockTypeClass::LoadFromINI(CCINIClass* pINI, const char* pSection)
 	this->Block_ReflectDamage_Multiplier.Read(exINI, pSection, "Block.ReflectDamage.Multiplier");
 	this->Block_ReflectDamage_Override.Read(exINI, pSection, "Block.ReflectDamage.Override");
 	this->Block_ReflectDamage_AffectsHouses.Read(exINI, pSection, "Block.ReflectDamage.AffectsHouses");
+	this->Block_ReflectDamage_AffectsHouses.Read(exINI, pSection, "Block.ReflectDamage.AffectsHouse");
+	this->Block_ReflectDamage_AffectsHouses.Read(exINI, pSection, "Block.ReflectDamage.AffectsHouse");
 }
 
 #pragma region(save/load)

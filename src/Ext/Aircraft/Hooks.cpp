@@ -695,7 +695,7 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
  	GET(FootClass* const, pThis, EBP);
  	GET_STACK(CellStruct, cell, STACK_OFFSET(0x20, 0x4));
 
- 	const auto pType = pThis->GetTechnoType();
+ 	const auto pType = GET_TECHNOTYPE(pThis);
 
  	// In vanilla, only aircrafts or `foots with fly locomotion` will call this virtual function
  	// So I don't know why WW use hard-coded `SpeedType::Track` and `MovementZone::Normal` to check this
@@ -803,4 +803,25 @@ ASMJIT_PATCH(0x4C72F2, EventClass_Execute__AircraftAreaGuard_Untether, 0x6)
 	}
 
 	return 0;
+}
+
+#include <Locomotor/RocketLocomotionClass.h>
+#include <Locomotor/Cast.h>
+
+ASMJIT_PATCH(0x66295A, RocketLocomotionClass_Process_IsHighEnoughForCruise, 0x8)
+{
+	GET(AircraftClass*, pLinkedTo, ECX);
+	GET(ILocomotion*, pThis, ESI);
+
+	auto pLoco = locomotion_cast<RocketLocomotionClass*>(pThis);
+	auto heightThis = pLinkedTo->GetHeight();
+	auto heightTarget = pLinkedTo->Location.Z - pLoco->MovingDestination.Z;
+
+	if (MapClass::Instance->GetCellAt(pLoco->MovingDestination)->ContainsBridge())
+		heightTarget -= CellClass::BridgeHeight;
+
+	R->EAX(MinImpl(heightThis, heightTarget));
+	//R->EAX(pLinkedTo->GetHeight()); Vanilla behavior
+
+	return R->Origin() + 0x8;
 }

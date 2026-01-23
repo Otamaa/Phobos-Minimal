@@ -311,7 +311,7 @@ bool TEventExtData::CellHasAnyTechnoTypeFromListTEvent(TEventClass* pThis, Objec
 	bool found = false;
 
 	if (auto const pTechno = flag_cast_to<TechnoClass*, false>(pObject)) {
-		auto const pTechnoType = pTechno->GetTechnoType();
+		auto const pTechnoType = GET_TECHNOTYPE(pTechno);
 
 		for (const auto& pDesiredItem : RulesExtData::Instance()->AITargetTypesLists[desiredListIdx]) {
 			if (pDesiredItem == pTechnoType) {
@@ -344,7 +344,7 @@ bool TEventExtData::CellHasTechnoTypeTEvent(TEventClass* pThis, ObjectClass* pOb
 		}
 
 		if (auto const pTechno = flag_cast_to<TechnoClass*, false>(pObject)) {
-			auto const pTechnoType = pTechno->GetTechnoType();
+			auto const pTechnoType = GET_TECHNOTYPE(pTechno);
 
 			if (pTypeAttached == pTechnoType) {
 				if (HouseClass* pHouse = GetHouse(pThis->Value, pEventHouse)) {
@@ -479,7 +479,7 @@ bool CheckTechTypeExists(TEventClass* evt, bool shouldExist)
 
 	for (int i = technoCount - 1; i >= 0; --i) {
 		TechnoClass* techno = TechnoClass::Array->Items[i];
-		if (techno->GetTechnoType() == targetType) {
+		if (GET_TECHNOTYPE(techno) == targetType) {
 			foundCount++;
 			if (shouldExist && foundCount >= evt->Value) {
 				return true;

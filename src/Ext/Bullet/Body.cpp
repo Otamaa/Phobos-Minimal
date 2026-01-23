@@ -27,7 +27,7 @@
 static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, WeaponTypeClass* pWeapon, TechnoClass* pTarget , bool useverses)
 {
 	auto const pWH = pWeapon->Warhead;
-	auto const pType = pTarget->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pTarget);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWH);
 
 	if (!pType->LegalTarget || !pWHExt->CanDealDamage(pTarget,false,!useverses))
@@ -644,7 +644,6 @@ bool BulletExtData::ApplyMCAlternative(BulletClass* pThis)
 	if(!pTarget || !pTarget->IsAlive)
 		return false;
 
-	//const auto pTargetType = pTarget->GetTechnoType();
 	const double currentHealthPerc = pTarget->GetHealthPercentage();
 	const bool flipComparations = pWarheadExt->MindControl_Threshold_Inverse;
 	double nTreshold = pWarheadExt->MindControl_Threshold;
@@ -730,12 +729,18 @@ void BulletExtData::InvalidatePointer(AbstractClass* ptr, bool bRemoved) {
 		this->AttachedSystem.detachptr();
  }
 
+ static RadTypeClass* default_rad;
+
 void BulletExtData::ApplyRadiationToCell(CellClass* pCell, int Spread, int RadLevel)
 {
+	if(!default_rad) {
+ 		default_rad = RadTypeClass::FindOrAllocate(GameStrings::Radiation());
+	}
+
 	const auto pThis = This();
 	const auto pWeapon = pThis->GetWeaponType();
 	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-	const auto pRadType = pWeaponExt->RadType.Get(RadTypeClass::FindOrAllocate(GameStrings::Radiation()));
+	const auto pRadType = pWeaponExt->RadType.Get(default_rad);
 	auto const pCellExt = CellExtContainer::Instance.Find(pCell);
 
 	auto const it = pCellExt->RadSites.find_if([=](RadSiteClass* const pSite) {

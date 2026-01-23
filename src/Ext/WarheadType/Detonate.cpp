@@ -134,7 +134,7 @@ void WarheadTypeExtData::applyIronCurtain(const CoordStruct& coords, HouseClass*
 				continue;
 			}
 
-			auto pType = curTechno->GetTechnoType();
+			auto pType = GET_TECHNOTYPE(curTechno);
 			// respect verses the boolean way
 			if (Math::abs(this->GetVerses(TechnoExtData::GetTechnoArmor(curTechno , this->This())).Verses) < 0.001)
 			{
@@ -225,7 +225,7 @@ void WarheadTypeExtData::applyIronCurtain(TechnoClass* curTechno, HouseClass* Ow
 			// duration modifier
 			int duration = this->IC_Duration;
 
-			auto pType = curTechno->GetTechnoType();
+			auto pType = GET_TECHNOTYPE(curTechno);
 
 			// modify good durations only
 			if (duration > 0)
@@ -282,7 +282,7 @@ void WarheadTypeExtData::ApplyAttachTag(TechnoClass* pTarget) const
 	if (!this->AttachTag)
 		return;
 
-	const auto pType = pTarget->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pTarget);
 	bool AllowType = true;
 	bool IgnoreType = false;
 
@@ -325,7 +325,7 @@ bool WarheadTypeExtData::applyPermaMC(HouseClass* const Owner, AbstractClass* co
 	if (TechnoExtContainer::Instance.Find(pTargetTechno)->Is_DriverKilled)
 		return false;
 
-	const auto pType = pTargetTechno->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pTargetTechno);
 
 	if (auto const pController = pTargetTechno->MindControlledBy)
 	{
@@ -635,7 +635,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
-	if (this->IsCellSpreadWH || this->CritCurrentChance > 0.0)
+	if ((this->IsCellSpreadWH || this->CritCurrentChance > 0.0) && this->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate))
 	{
 		if (this->Crit_ActiveChanceAnims.size() > 0 && this->CritCurrentChance > 0.0)
 		{
@@ -687,7 +687,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 							{
 								if (CanDealDamage(pTech) &&
 								CanTargetHouse(pHouse, pTech) &&
-								pTech->GetTechnoType()->Trainable
+								GET_TECHNOTYPE(pTech)->Trainable
 								) return pTech;
 
 								return static_cast<TechnoClass* const>(nullptr);
@@ -713,6 +713,11 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 		}
 		else if (auto pIntended = this->IntendedTarget)
 		{
+			if(!this->IntendedTarget->IsAlive){
+				this->IntendedTarget = nullptr;
+				return;
+			}
+
 			if (coords.DistanceFrom(pIntended->GetCoords()) < double(Unsorted::LeptonsPerCell / 4)) {
 				this->DetonateOnOneUnit(pHouse, pIntended, coords , damage, pOwner, pBullet, ThisbulletWasIntercepted);
 
@@ -723,7 +728,7 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 							if (!CanDealDamage(pTech))
 								return true;
 
-							if (!pTech->GetTechnoType()->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
+							if (!GET_TECHNOTYPE(pTech)->Trainable && this->Transact_Experience_IgnoreNotTrainable.Get())
 								return true;
 
 							return !CanTargetHouse(pHouse, pTech);
@@ -1019,7 +1024,7 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 	double dice;
 
-	if (this->Crit_ApplyChancePerTarget)
+	if (this->Crit_ApplyChancePerTarget|| !this->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate))
 		dice = ScenarioClass::Instance->Random.RandomDouble();
 	else
 		dice = this->CritRandomBuffer;
@@ -1090,7 +1095,8 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 
 void WarheadTypeExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage) const
 {
-	auto pData = pTarget->GetTechnoType();
+	auto pData = GET_TECHNOTYPE(pTarget);
+
 	if (pData->IsGattling)
 	{
 		// if exceeds, pick the largest stage
@@ -1117,7 +1123,8 @@ void WarheadTypeExtData::ApplyGattlingStage(TechnoClass* pTarget, int Stage) con
 
 void WarheadTypeExtData::ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp) const
 {
-	auto pData = pTarget->GetTechnoType();
+	auto pData = GET_TECHNOTYPE(pTarget);
+
 	if (pData->IsGattling)
 	{
 		auto curValue = pTarget->GattlingValue + RateUp;
@@ -1159,7 +1166,8 @@ void WarheadTypeExtData::ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp) c
 
 void WarheadTypeExtData::ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount) const
 {
-	auto pData = pTarget->GetTechnoType();
+	auto pData = GET_TECHNOTYPE(pTarget);
+
 	if (pData->Ammo > 0)
 	{
 		auto const ammo = pTarget->Ammo + ReloadAmount;

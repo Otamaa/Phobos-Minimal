@@ -45,7 +45,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const RT(AbstractType);
-	virtual int	Size() const R0;
+	virtual int	ClassSize() const R0;
 
 	virtual CellStruct* GetMapCoords(CellStruct* pUCell) const R0;
 

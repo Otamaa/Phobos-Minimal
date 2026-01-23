@@ -14,7 +14,7 @@ bool RadarJammerClass::IsEligible(BuildingClass* TargetBuilding)
 		- not an ally (includes ourselves)
 		- either a radar or a spysat
 	*/
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject->GetTechnoType());
+	auto const pExt = GET_TECHNOTYPEEXT(this->AttachedToObject);
 	if (EnumFunctions::CanTargetHouse(pExt->RadarJamHouses, this->AttachedToObject->Owner, TargetBuilding->Owner)) {
 		if(pExt->RadarJamIgnore.Contains(TargetBuilding->Type)
 				|| (!pExt->RadarJamAffect.empty() && !pExt->RadarJamAffect.Contains(TargetBuilding->Type)))
@@ -40,7 +40,7 @@ bool RadarJammerClass::IsEligible(BuildingClass* TargetBuilding)
 
 void RadarJammerClass::Update()
 {	
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject->GetTechnoType());
+	auto const pExt = GET_TECHNOTYPEEXT(this->AttachedToObject);
 
 	// we don't want to scan & crunch numbers every frame - this limits it to ScanInterval frames
 	if ((Unsorted::CurrentFrame - this->LastScan) < pExt->RadarJamDelay) {
@@ -72,7 +72,7 @@ void RadarJammerClass::Update()
 //! \param TargetBuilding The building to check the distance to.
 bool RadarJammerClass::InRangeOf(BuildingClass* TargetBuilding)
 {
-	auto const pExt = TechnoTypeExtContainer::Instance.Find(this->AttachedToObject->GetTechnoType());
+	auto const pExt = GET_TECHNOTYPEEXT(this->AttachedToObject);
 	auto const& JammerLocation = this->AttachedToObject->Location;
 	auto const JamRadiusInLeptons = 256.0 * pExt->RadarJamRadius;
 

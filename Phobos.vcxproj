@@ -266,7 +266,6 @@
     <ClCompile Include="src\Ext\Bullet\Trajectories\VerticalTrajectory.cpp" />
     <ClCompile Include="src\Ext\Bullet\Trajectories\WaveTrajectory.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Body.cpp" />
-    <ClCompile Include="src\Ext\CaptureManager\Hook.McOverload.cpp" />
     <ClCompile Include="src\Ext\CaptureManager\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.cpp" />
     <ClCompile Include="src\Ext\Cell\Hooks.GetTiberiumType.cpp" />
@@ -1253,7 +1252,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Build|Win32'">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
     <XPDeprecationWarning>false</XPDeprecationWarning>
   </PropertyGroup>
@@ -1330,7 +1329,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <LanguageStandard>stdcpplatest</LanguageStandard>

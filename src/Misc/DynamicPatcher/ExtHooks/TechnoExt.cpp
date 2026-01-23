@@ -102,7 +102,7 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
  	{
  		//if ((*pFLH) == CoordStruct::Empty)
  		{
- 			auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType());
+ 			auto pTypeExt = GET_TECHNOTYPEEXT(pOwner);
 
  			if (pTypeExt->MySpawnSupportDatas.Enable)
  			{
@@ -111,7 +111,7 @@ ASMJIT_PATCH(0x6FC339, TechnoClass_CanFire_DP, 0x6) //8
  				SpawnSupportFLHData nFLHData = pTypeExt->MySpawnSupportFLH;
  				if (auto const pTransporter = pOwner->Transporter)
  				{
- 					if (auto const pTransportExt = TechnoTypeExtContainer::Instance.Find(pTransporter->GetTechnoType()))
+ 					if (auto const pTransportExt = GET_TECHNOTYPEEXT(pTransporter))
  					{
  						nFLHData = pTransportExt->MySpawnSupportFLH;
  					}
@@ -225,7 +225,7 @@ ASMJIT_PATCH(0x6FDD50, TechnoClass_FireAt_PreFire, 0x6)
 	//if ()
 	//{
 		pExt->CurrentWeaponIdx = nWeapon;
-		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 		{
 			AircraftDiveFunctional::OnFire(pExt, pTypeExt, pTarget, nWeapon);
 			//AttackBeaconFunctional::OnFire(pExt, pTarget, nWeapon);
@@ -247,7 +247,7 @@ DEFINE_FUNCTION_JUMP(CALL6, 0x6FDD69, GetWeapon_);
  	//GET_STACK(DirType, faceDir, (0x8));
 
 	auto pExt = TechnoExtContainer::Instance.Find(pThis); {
-		auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType()); {
+		auto pTypeExt = GET_TECHNOTYPEEXT(pThis); {
  			DamageSelfState::OnPut(pExt->DamageSelfState, pTypeExt->DamageSelfData);
  			GiftBoxFunctional::Init(pExt, pTypeExt);
  			AircraftPutDataFunctional::OnPut(pExt, pTypeExt, pCoord);

@@ -173,6 +173,7 @@ public:
 	Valueable<bool> HealthBar_Permanent_PipScale;
 	Valueable<CSFText> UIDescription;
 	Valueable<bool> LowSelectionPriority;
+	Valueable<bool> LowDeployPriority;
 	PhobosFixedString<0x20> GroupAs;
 
 	Valueable<int> RadarJamRadius;
@@ -191,6 +192,8 @@ public:
 	Nullable<int> AttractorRange;
 
 	Valueable<Leptons> MindControlRangeLimit;
+	Valueable<bool> MindControl_IgnoreSize;
+	Valueable<int> MindControlSize;
 
 	MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_EliteAbilities;
 	MultiBoolFixedArray<(int)PhobosAbilityType::count> Phobos_VeteranAbilities;
@@ -1035,6 +1038,9 @@ public:
 	Nullable<bool> AllowAirstrike;
 
 	Nullable<bool> ForbidParallelAIQueues;
+	
+	Valueable<bool> IgnoreForBaseCenter;
+
 	Nullable<AnimTypeClass*> Wake;
 	Valueable<bool> Spawner_AttackImmediately;
 	Valueable<bool> Spawner_UseTurretFacing;
@@ -1242,6 +1248,11 @@ public:
 	Valueable<UnitTypeClass*> DefaultVehicleDisguise;
 	Nullable<bool> TurretResponse;
 
+	Valueable<bool> Unload_SkipPassengers;
+	Valueable<bool> Unload_NoPassengers;
+	Valueable<bool> Unload_SkipHarvester;
+	Valueable<bool> Unload_NoTiberiums;
+
 	std::unique_ptr<BlockTypeClass> BlockType;
 	Valueable<bool> CanBlock;
 
@@ -1268,6 +1279,8 @@ public:
 
 	Vector2D<ThreatType> ThreatTypes;
 	Vector2D<int> CombatDamages;
+	Vector2D<bool> AttackFriendlies;
+
 	ValueableVector<TechnoTypeClass*> TeamMember_ConsideredAs;
 	std::vector<PhobosFixedString<0x20>> WeaponGroupAs;
 	Valueable<bool> CanGoAboveTarget;
@@ -1286,7 +1299,8 @@ public:
 		HealthBar_Permanent(false),
 		HealthBar_Permanent_PipScale(false),
 		UIDescription(),
-		LowSelectionPriority(false),
+		LowSelectionPriority(false), 
+		LowDeployPriority(false), 
 		GroupAs(),
 		RadarJamRadius(0),
 		RadarJamHouses(AffectedHouse::Enemies),
@@ -1298,6 +1312,8 @@ public:
 		SuppressorRange(),
 		AttractorRange(),
 		MindControlRangeLimit(),
+		MindControl_IgnoreSize (true),
+		MindControlSize (1),
 		Phobos_EliteAbilities(),
 		Phobos_VeteranAbilities(),
 		E_ImmuneToType(),
@@ -1939,6 +1955,7 @@ public:
 		KeepTargetOnMove_NoMorePursuit(true),
 		AllowAirstrike(),
 		ForbidParallelAIQueues(),
+		IgnoreForBaseCenter(false),
 		Wake(),
 		Spawner_AttackImmediately(false),
 		Spawner_UseTurretFacing(false),
@@ -2096,6 +2113,10 @@ public:
 		VoiceEliteWeaponAttacks(),
 		DefaultVehicleDisguise(),
 		TurretResponse(),
+		Unload_SkipPassengers(false),
+		Unload_NoPassengers(false),
+		Unload_SkipHarvester(false),
+		Unload_NoTiberiums(false),
 		BlockType(),
 		CanBlock(false),
 		IsSimpleDeployer_ConsiderPathfinding(false),
@@ -2117,7 +2138,8 @@ public:
 		, AIGuardModeGuardRangeAddend()
 		, AIGuardStationaryStray()
 		, ThreatTypes(ThreatType::Normal,ThreatType::Normal )
-		, CombatDamages(0,0)
+		, CombatDamages()
+		, AttackFriendlies()
 		, TeamMember_ConsideredAs()
 		, WeaponGroupAs {}
 		, CanGoAboveTarget { false }
@@ -2203,7 +2225,10 @@ private:
 			.Process(this->HealthBar_Permanent_PipScale)
 			.Process(this->UIDescription)
 			.Process(this->LowSelectionPriority)
+			.Process(this->LowDeployPriority)
 			.Process(this->MindControlRangeLimit)
+			.Process(this->MindControl_IgnoreSize)
+			.Process(this->MindControlSize)
 			.Process(this->Phobos_EliteAbilities)
 			.Process(this->Phobos_VeteranAbilities)
 			.Process(this->E_ImmuneToType)
@@ -2961,7 +2986,7 @@ private:
 			.Process(this->KeepTargetOnMove_NoMorePursuit)
 			.Process(this->AllowAirstrike)
 			.Process(this->ForbidParallelAIQueues)
-
+			.Process(this->IgnoreForBaseCenter)
 			.Process(this->EVA_Combat)
 			.Process(this->CombatAlert)
 			.Process(this->CombatAlert_UseFeedbackVoice)
@@ -3132,7 +3157,10 @@ private:
 			.Process(this->VoiceEliteWeaponAttacks)
 			.Process(this->DefaultVehicleDisguise)
 			.Process(this->TurretResponse)
-
+			.Process(this->Unload_SkipPassengers)
+			.Process(this->Unload_NoPassengers)
+			.Process(this->Unload_SkipHarvester)
+			.Process(this->Unload_NoTiberiums)
 			.Process(this->BlockType)
 			.Process(this->CanBlock)
 
@@ -3199,10 +3227,11 @@ public:
 	static bool CanBeBuiltAt(TechnoTypeClass* pProduct, BuildingTypeClass* pFactoryType);
 
 	int SelectForceWeapon(TechnoClass* pThis, AbstractClass* pTarget);
-	int SelectMultiWeapon(TechnoClass* const pThis, AbstractClass* const pTarget);
+	int SelectMultiWeapon(TechnoClass* pThis, AbstractClass* pTarget);
+	int SelectPhobosWeapon(TechnoClass* pThis, AbstractClass* pTarget);
 
 	void ParseVoiceWeaponAttacks(INI_EX& exINI, const char* pSection, ValueableVector<int>& n, ValueableVector<int>& nE);
-	void ParseCombatDamageAndThreatType(CCINIClass* const pINI);
+	void UpdateAdditionalAttributes(CCINIClass* const pINI);
 
 };
 

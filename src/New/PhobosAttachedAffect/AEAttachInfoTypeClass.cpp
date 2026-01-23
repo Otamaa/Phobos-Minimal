@@ -14,6 +14,7 @@ void AEAttachInfoTypeClass::LoadFromINI(CCINIClass* pINI, const char* pSection)
 	exINI.ParseList(this->RemoveGroups, pSection, "AttachEffect.RemoveGroups");
 	this->CumulativeRemoveMinCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMinCounts");
 	this->CumulativeRemoveMaxCounts.Read(exINI, pSection, "AttachEffect.CumulativeRemoveMaxCounts");
+	this->CumulativeSourceMaxCount.Read(exINI, pSection, "AttachEffect.CumulativeSourceMaxCount");
 	this->DurationOverrides.Read(exINI, pSection, "AttachEffect.DurationOverrides");
 	this->Delays.Read(exINI, pSection, "AttachEffect.Delays");
 	this->InitialDelays.Read(exINI, pSection, "AttachEffect.InitialDelays");

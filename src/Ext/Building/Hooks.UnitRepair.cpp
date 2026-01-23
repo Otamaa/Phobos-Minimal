@@ -51,7 +51,7 @@ ASMJIT_PATCH(0x44C836, BuildingClass_Mission_Repair_UnitReload, 0x6)
 				{
 					if (auto const pLink = pThis->GetNthLink(i))
 					{
-						if (!pLink->IsInAir()  && pLink->Health < pLink->GetTechnoType()->Strength && pThis->SendCommand(RadioCommand::QueryMoving, pLink) == RadioCommand::AnswerPositive)
+						if (!pLink->IsInAir()  && pLink->Health < GET_TECHNOTYPE(pLink)->Strength && pThis->SendCommand(RadioCommand::QueryMoving, pLink) == RadioCommand::AnswerPositive)
 							pThis->SendCommand(RadioCommand::RequestRepair, pLink);
 					}
 				}
@@ -71,7 +71,7 @@ ASMJIT_PATCH(0x6F4CF0, TechnoClass_ReceiveCommand_Repair, 0x5)
 	GET(TechnoClass*, pThis, ESI);
 	GET_STACK(TechnoClass*, pFrom, STACK_OFFSET(0x18, 0x4));
 
-	auto const pType = pThis->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pThis);
 	int repairStep = pType->GetRepairStep();
 	int repairCost = pType->GetRepairStepCost();
 

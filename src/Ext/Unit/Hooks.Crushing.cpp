@@ -2,6 +2,7 @@
 #include <Locomotor/ShipLocomotionClass.h>
 #include <UnitClass.h>
 
+#include <Ext/Techno/Body.h>
 #include <Ext/TechnoType/Body.h>
 #include <Utilities/Macro.h>
 #include <Utilities/TemplateDef.h>
@@ -64,7 +65,7 @@ ASMJIT_PATCH(0x4B1150, DriveLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
 
 	GET(DriveLocomotionClass*, pThis, EBP);
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->LinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis->LinkedTo);
 	auto slowdownCoefficient = pThis->movementspeed_50;
 
 	if (slowdownCoefficient > pTypeExt->CrushSlowdownMultiplier)
@@ -83,7 +84,7 @@ ASMJIT_PATCH(0x4B19F7, DriveLocomotionClass_WhileMoving_CrushTilt, 0xD)
 	GET(DriveLocomotionClass*, pThis, EBP);
 
 	auto const pLinkedTo = pThis->LinkedTo;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
 	pLinkedTo->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get(-0.05));
 	return R->Origin() == 0x4B19F7 ? SkipGameCode1 : SkipGameCode2;
@@ -96,7 +97,7 @@ ASMJIT_PATCH(0x6A0813, ShipLocomotionClass_WhileMoving_CrushSlowdown, 0x9)
 
 	GET(ShipLocomotionClass*, pThis, EBP);
 
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->LinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis->LinkedTo);
 	auto slowdownCoefficient = pThis->movementspeed_50;
 
 	if (slowdownCoefficient > pTypeExt->CrushSlowdownMultiplier)
@@ -114,7 +115,7 @@ ASMJIT_PATCH(0x6A108D, ShipLocomotionClass_WhileMoving_CrushTilt, 0xD)
 	GET(ShipLocomotionClass*, pThis, EBP);
 
 	auto const pLinkedTo = pThis->LinkedTo;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 
 	if (pTypeExt->CrushForwardTiltPerFrame.isset()) {
 		pLinkedTo->RockingForwardsPerFrame = static_cast<float>(pTypeExt->CrushForwardTiltPerFrame.Get());
@@ -127,7 +128,7 @@ ASMJIT_PATCH(0x6A108D, ShipLocomotionClass_WhileMoving_CrushTilt, 0xD)
 ASMJIT_PATCH(0x4B1146, SomeLocomotionClass_WhileMoving_SkipCrushSlowDown, 0x6) // Drive
 {
 	GET(FootClass*, pLinkedTo, ECX);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pLinkedTo->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
 	return pTypeExt->SkipCrushSlowdown ? R->Origin() + 0x3C : 0;
 }
 ASMJIT_PATCH_AGAIN(0x6A0809, SomeLocomotionClass_WhileMoving_SkipCrushSlowDown, 0x6) // Ship

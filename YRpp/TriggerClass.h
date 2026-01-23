@@ -34,7 +34,7 @@ public:
 	//AbstractClass
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x726690);
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
-	virtual int Size() const override R0;
+	virtual int ClassSize() const override R0;
 	virtual void ComputeCRC(CRCEngine& checksum) const override RX;
 
 	// contains at least one Crosses Horizontal Line event

@@ -14,7 +14,7 @@
 	GET(ILocomotion*, Loco, reg_Loco); \
 	TeleportLocomotionClass* pLocomotor = static_cast<TeleportLocomotionClass*>(Loco); \
 	TechnoClass* pOwner =  pLocomotor->LinkedTo ? pLocomotor->LinkedTo : pLocomotor->Owner; \
-	TechnoTypeClass* pType = pOwner->GetTechnoType(); \
+	TechnoTypeClass* pType = GET_TECHNOTYPE(pOwner); \
 	TechnoTypeExtData *pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x5)
@@ -22,7 +22,7 @@ ASMJIT_PATCH(0x7197DF, TeleportLocomotionClass_Process_ChronospherePreDelay, 0x5
 	//GET(TeleportLocomotionClass*, pThis, ESI);
 	GET(FootClass*, pLinked, ECX);
 
-	auto pTypeExtData = TechnoTypeExtContainer::Instance.Find(pLinked->GetTechnoType());
+	auto pTypeExtData = GET_TECHNOTYPEEXT(pLinked);
 	R->ECX(pTypeExtData->ChronoSpherePreDelay.Get(RulesExtData::Instance()->ChronoSpherePreDelay));
 	return 0x7197E4;
 }
@@ -36,7 +36,7 @@ ASMJIT_PATCH(0x719BD9, TeleportLocomotionClass_Process_ChronosphereDelay2, 0x6)
 	if (!pExt->IsBeingChronoSphered)
 		return 0;
 
-	auto pTypeExtData = TechnoTypeExtContainer::Instance.Find(pExt->Type);
+	auto pTypeExtData = GET_TECHNOTYPEEXT(pThis->Owner);
 	int delay = pTypeExtData->ChronoSphereDelay.Get(RulesExtData::Instance()->ChronoSphereDelay);
 
 	if (delay > 0)
@@ -182,8 +182,9 @@ Matrix3D* __stdcall LocomotionClass_Draw_Matrix(ILocomotion* pThis, Matrix3D* re
 		if (pIndex)
 			*(int*)pIndex = -1;
 
-		double scalex = loco->Owner->GetTechnoType()->VoxelScaleX;
-		double scaley = loco->Owner->GetTechnoType()->VoxelScaleY;
+		auto pOwnerType = GET_TECHNOTYPE(loco->Owner);
+		double scalex = pOwnerType->VoxelScaleX;
+		double scaley = pOwnerType->VoxelScaleY;
 
 		Matrix3D pre = Matrix3D::GetIdentity();
 		pre.TranslateZ(float(Math::abs(Math::sin(ars)) * scalex + Math::abs(Math::sin(arf)) * scaley));

@@ -9,7 +9,7 @@
 #define SET_THREATEVALS(addr , techreg , name ,size , ret)\
 ASMJIT_PATCH(addr, name, size) {\
 GET(TechnoClass* , pThis , techreg);\
-	return TechnoTypeExtContainer::Instance.Find(pThis->Transporter->GetTechnoType())->Passengers_SyncOwner.Get() ?  ret : 0; }
+	return GET_TECHNOTYPEEXT(pThis->Transporter)->Passengers_SyncOwner.Get() ?  ret : 0; }
 
 SET_THREATEVALS(0x6F89F4, ESI, TechnoClass_EvaluateCell_ThreatEvals_OpenToppedOwner, 0x6, 0x6F8A0F)
 //SET_THREATEVALS(0x6F8FD7, ESI, TechnoClass_GreatestThreat_ThreatEvals_OpenToppedOwner, 0x5, 0x6F8FDC)
@@ -66,7 +66,7 @@ ASMJIT_PATCH(0x71067B, TechnoClass_EnterTransport_ApplyChanges, 0x7)
 
 	if (pPassenger)
 	{
-		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		auto const pTransTypeExt = GET_TECHNOTYPEEXT(pThis);
 		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
 		//auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
@@ -92,7 +92,7 @@ ASMJIT_PATCH(0x4DE722, FootClass_LeaveTransport, 0x6)
 
 	if (pPassenger)
 	{
-		auto const pTransTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		auto const pTransTypeExt = GET_TECHNOTYPEEXT(pThis);
 		auto pPassExt = TechnoExtContainer::Instance.Find(pPassenger);
 		//auto const pPassTypeExt = TechnoTypeExtContainer::Instance.Find(pPassenger->GetTechnoType());
 
@@ -113,7 +113,7 @@ ASMJIT_PATCH(0x710552, TechnoClass_SetOpenTransportCargoTarget_ShareTarget, 0x6)
 	GET(TechnoClass* const, pThis, ECX);
 	GET_STACK(AbstractClass* const, pTarget, STACK_OFFSET(0x8, 0x4));
 
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 	return pTarget && !pTypeExt->OpenTopped_ShareTransportTarget
 		? ReturnFromFunction : Continue;
 }
@@ -160,7 +160,7 @@ static FORCEDINLINE bool CanEnterNow(UnitClass* pTransport, FootClass* pPassenge
 		return false;
 
 	const bool bySize = TechnoTypeExtContainer::Instance.Find(pTransportType)->Passengers_BySize;
-	const int passengerSize = static_cast<int>(pPassenger->GetTechnoType()->Size);
+	const int passengerSize = static_cast<int>(GET_TECHNOTYPE(pPassenger)->Size);
 
 	if (passengerSize > static_cast<int>(pTransportType->SizeLimit))
 		return false;
@@ -173,10 +173,12 @@ static FORCEDINLINE bool CanEnterNow(UnitClass* pTransport, FootClass* pPassenge
 	// When the most important passenger is close, need to prevent overlap
 	if (needCalculate)
 	{
-		if (IsCloseEnoughToEnter(pTransport, pLink))
-			return (predictSize <= (maxSize - (bySize ? static_cast<int>(pLink->GetTechnoType()->Size) : 1)));
+		auto pLinkType = GET_TECHNOTYPE(pLink);
 
-		if (predictSize > (maxSize - (bySize ? static_cast<int>(pLink->GetTechnoType()->Size) : 1)))
+		if (IsCloseEnoughToEnter(pTransport, pLink))
+			return (predictSize <= (maxSize - (bySize ? static_cast<int>(pLinkType->Size) : 1)));
+
+		if (predictSize > (maxSize - (bySize ? static_cast<int>(pLinkType->Size) : 1)))
 		{
 			pLink->QueueMission(Mission::None, false);
 			pLink->SetDestination(nullptr, true);
@@ -209,7 +211,7 @@ static FORCEDINLINE void DoEnterNow(UnitClass* pTransport, FootClass* pPassenger
 	pPassenger->FrozenStill = true; // Added, to prevent the vehicles from stacking together when unloading
 	pPassenger->SetSpeedPercentage(0.0); // Added, to stop the passengers and let OpenTopped work normally
 
-	const auto pPassengerType = pPassenger->GetTechnoType();
+	const auto pPassengerType = GET_TECHNOTYPE(pPassenger);
 
 	pTransport->AddPassenger(pPassenger); // Don't swap order casually, very very important
 	pPassenger->Transporter = pTransport;
@@ -259,7 +261,8 @@ void TechnoExtData::Fastenteraction(FootClass* pThis) {
 static FORCEDINLINE bool CanUnloadNow(UnitClass* pTransport, FootClass* pPassenger)
 {
 	if (TechnoTypeExtContainer::Instance.Find(pTransport->Type)->AmphibiousUnload.Get(RulesExtData::Instance()->AmphibiousUnload))
-		return GroundType::Array[static_cast<int>(pTransport->GetCell()->LandType)].Cost[static_cast<int>(pPassenger->GetTechnoType()->SpeedType)] != 0.0;
+		return GroundType::Array[static_cast<int>(pTransport->GetCell()->LandType)]
+		.Cost[static_cast<int>(GET_TECHNOTYPE(pPassenger)->SpeedType)] != 0.0;
 
 	return pTransport->GetCell()->LandType != LandType::Water;
 }
@@ -410,7 +413,7 @@ ASMJIT_PATCH(0x7196BB, TeleportLocomotionClass_Process_MarkDown, 0xA)
 
 			const auto pEnter = pLinkedTo->GetNthLink();
 
-			return (!pEnter || pEnter->GetTechnoType()->Passengers <= 0);
+			return (!pEnter || GET_TECHNOTYPE(pEnter)->Passengers <= 0);
 		};
 
 	if (shouldMarkDown())
@@ -435,7 +438,8 @@ ASMJIT_PATCH(0x4B08EF, DriveLocomotionClass_Process_CheckUnload, 0x5)
 	if (pFoot->GetCurrentMission() != Mission::Unload)
 		return ContinueProcess;
 
-	return (pFoot->GetTechnoType()->Passengers > 0 && pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
+	return (GET_TECHNOTYPE(pFoot)->Passengers > 0 
+	&& pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
 }
 
 ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
@@ -449,7 +453,8 @@ ASMJIT_PATCH(0x69FFB6, ShipLocomotionClass_Process_CheckUnload, 0x5)
 	if (pFoot->GetCurrentMission() != Mission::Unload)
 		return ContinueProcess;
 
-	return (pFoot->GetTechnoType()->Passengers > 0 && pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
+	return (GET_TECHNOTYPE(pFoot)->Passengers > 0 
+	&& pFoot->Passengers.GetFirstPassenger()) ? ContinueProcess : SkipGameCode;
 }
 
 // Rewrite from 0x718505
@@ -568,7 +573,7 @@ ASMJIT_PATCH(0x740C9C, UnitClass_GetUnloadDirection_CheckUnloadPosition, 0x7)
 		if (const auto pPassenger = pThis->Passengers.GetFirstPassenger())
 		{
 			GET(const int, speedType, EDX);
-			R->EDX(speedType + static_cast<int>(pPassenger->GetTechnoType()->SpeedType)); // Replace hard code SpeedType::Foot
+			R->EDX(speedType + static_cast<int>(GET_TECHNOTYPE(pPassenger)->SpeedType)); // Replace hard code SpeedType::Foot
 		}
 	}
 
@@ -583,7 +588,7 @@ ASMJIT_PATCH(0x73DAD8, UnitClass_Mission_Unload_PassengerLeavePosition, 0x5)
 	{
 		GET(FootClass* const, pPassenger, EDI);
 		REF_STACK(MovementZone, movementZone, STACK_OFFSET(0xBC, -0xAC));
-		movementZone = pPassenger->GetTechnoType()->MovementZone; // Replace hard code MovementZone::Normal
+		movementZone = GET_TECHNOTYPE(pPassenger)->MovementZone; // Replace hard code MovementZone::Normal
 	}
 
 	return 0;

@@ -31,7 +31,7 @@ void GenericPrerequisite::Parse(CCINIClass* pINI, const char* section, const cha
 				if (idx > -1) {
 					Vec.push_back(-1 - idx);
 				}
-				else if (!GameStrings::IsBlank(cur)) {
+				else if (!GameStrings::IsNone(cur)) {
 					Debug::INIParseFailed(section, key, cur , "Expect valid GenericPrerequisite data");
 				}
 			}

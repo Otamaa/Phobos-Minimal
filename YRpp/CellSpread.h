@@ -27,7 +27,7 @@ public:
 	}
 
 	static COMPILETIMEEVAL CellStruct GetNeighbourOffset(size_t direction) {
-		if(direction > AdjacentCell.size()) {
+		if(direction >= AdjacentCell.size()) {
 			return CellStruct::Empty;
 		}
 
@@ -36,8 +36,7 @@ public:
 
 	static COMPILETIMEEVAL Point2D GetNeighbourPointOffset(size_t direction)
 	{
-		if (direction > AdjacentPoint.size())
-		{
+		if (direction >= AdjacentPoint.size()) {
 			return Point2D::Empty;
 		}
 
@@ -46,8 +45,7 @@ public:
 
 	static COMPILETIMEEVAL Point2D GetNeighbourPointOffset(FacingType direction)
 	{
-		if ((size_t)direction > AdjacentPoint.size())
-		{
+		if ((size_t)direction >= AdjacentPoint.size()) {
 			return Point2D::Empty;
 		}
 
@@ -56,7 +54,7 @@ public:
 
 	static COMPILETIMEEVAL CellStruct GetNeighbourOffset(FacingType direction)
 	{
-		if ((size_t)direction > AdjacentCell.size()) {
+		if ((size_t)direction >= AdjacentCell.size()) {
 			return CellStruct::Empty;
 		}
 

@@ -59,7 +59,7 @@ void EventExt::ManualReload::Respond(EventClass* Event)
 	{
 		if (pTechno->Ammo > 0 && pTechno->IsAlive && !pTechno->Berzerk)
 		{
-			const auto pType = pTechno->GetTechnoType();
+			const auto pType = GET_TECHNOTYPE(pTechno);
 			const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 			if (pTechno->Ammo != pType->Ammo && pTypeExt->CanManualReload)
@@ -225,5 +225,35 @@ void EventExt::FirewallToggle::Respond(EventClass* Event)
 	if (HouseClass* pSourceHouse = HouseClass::Array->get_or_default(Event->HouseIndex))
 	{
 		AresHouseExt::SetFirestormState(pSourceHouse, !pSourceHouse->FirestormActive);
+	}
+}
+
+void EventExt::TogglePlayerAutoRepair::Raise()
+{
+	EventClass Event {};
+
+	Event.Type = AsEventType();
+	Event.HouseIndex = byte(HouseClass::CurrentPlayer->ArrayIndex);
+
+	EventExt::AddToEvent<true, false, TogglePlayerAutoRepair>(Event);
+}
+
+void EventExt::TogglePlayerAutoRepair::Respond(EventClass* Event)
+{
+	if (HouseClass* pSourceHouse = HouseClass::Array->get_or_default(Event->HouseIndex))
+	{
+		auto pExt = HouseExtContainer::Instance.Find(pSourceHouse);
+
+		pExt->PlayerAutoRepair = !pExt->PlayerAutoRepair;
+
+		if (HouseClass::CurrentPlayer == pSourceHouse && !Phobos::Config::TogglePowerInsteadOfRepair) {
+			SidebarClass::Instance->SidebarNeedsRedraw = true;
+			auto pButton = &Make_Global<ShapeButtonClass>(0xB0B3A0);
+
+			if (pExt->PlayerAutoRepair)
+				pButton->TurnOn();
+			else
+				pButton->TurnOff();
+		}
 	}
 }

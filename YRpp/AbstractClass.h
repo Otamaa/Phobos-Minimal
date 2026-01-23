@@ -203,7 +203,7 @@ public:
 	virtual void Init() RX;
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) RX;
 	virtual AbstractType WhatAmI() const RX;
-	virtual int Size() const RX;
+	virtual int ClassSize() const RX;
 	virtual void ComputeCRC(CRCEngine& checksum) const RX;
 	virtual int GetOwningHouseIndex() const R0;
 	virtual HouseClass* GetOwningHouse() const R0;

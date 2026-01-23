@@ -129,6 +129,7 @@ public:
 	static bool NOINLINE GroupAllowed(TechnoTypeClass* pThis, TechnoTypeClass* pThat);
 
 	static bool IsEligible(TechnoClass* pGoing, TechnoTypeClass* reinfocement);
+	static bool IsEligible(TechnoTypeClass* pGoing, TechnoTypeClass* reinfocement);
 
 private:
 	template <typename T>
@@ -181,6 +182,8 @@ public:
 	void _Flash_For(int a2);
 	int _Get_Stray();
 	bool _Does_Any_Member_Have_Ammo();
+
+	void ExecuteTMissions(bool missionChanged);
 
 	static void _fastcall _Suspend_Teams(int priority, HouseClass* house);
 	//

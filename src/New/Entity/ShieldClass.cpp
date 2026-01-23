@@ -69,7 +69,7 @@ ShieldClass::ShieldClass(TechnoClass* pTechno, bool isAttached) : Techno { pTech
 {
 	this->UpdateType();
 	this->SetHP(this->Type->InitialStrength.Get(this->Type->Strength));
-	this->CurTechnoType = pTechno->GetTechnoType();
+	this->CurTechnoType = GET_TECHNOTYPE(pTechno);
 
 	Array.push_back(this);
 }
@@ -120,13 +120,29 @@ bool ShieldClass::Save(PhobosStreamWriter& Stm) const
 	return const_cast<ShieldClass*>(this)->Serialize(Stm);
 }
 
+Armor ShieldClass::GetArmor(Armor inherit) const
+{
+	const auto pShieldType = this->Type;
+
+	if (pShieldType->InheritArmorFromTechno)
+	{
+		const auto pTechnoType = GET_TECHNOTYPE(this->Techno);
+
+		if (pShieldType->InheritArmor_Allowed.empty() || pShieldType->InheritArmor_Allowed.Contains(pTechnoType)
+			&& (pShieldType->InheritArmor_Disallowed.empty() || !pShieldType->InheritArmor_Disallowed.Contains(pTechnoType)))
+			return inherit;
+	}
+
+	return pShieldType->Armor.Get();
+}
+
 Armor ShieldClass::GetOrInheritArmor() const
 {
 	const auto pShieldType = this->Type;
 
 	if (pShieldType->InheritArmorFromTechno)
 	{
-		const auto pTechnoType = this->Techno->GetTechnoType();
+		const auto pTechnoType = GET_TECHNOTYPE(this->Techno);
 
 		if (pShieldType->InheritArmor_Allowed.empty() || pShieldType->InheritArmor_Allowed.Contains(pTechnoType)
 			&& (pShieldType->InheritArmor_Disallowed.empty() || !pShieldType->InheritArmor_Disallowed.Contains(pTechnoType)))
@@ -141,7 +157,7 @@ void ShieldClass::SyncShieldToAnother(TechnoClass* pFrom, TechnoClass* pTo)
 {
 	const auto pFromExt = TechnoExtContainer::Instance.Find(pFrom);
 	const auto pToExt = TechnoExtContainer::Instance.Find(pTo);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTo->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pTo);
 
 	if (!pToExt || !pFromExt || !pFromExt->Shield)
 		return;
@@ -385,7 +401,8 @@ int ShieldClass::OnReceiveDamage(args_ReceiveDamage* args)
 
 void ShieldClass::ResponseAttack(WarheadTypeClass* pWarhead) const
 {
-	if (this->Techno->Owner != HouseClass::CurrentPlayer || this->Techno->GetTechnoType()->Insignificant)
+	if (this->Techno->Owner != HouseClass::CurrentPlayer 
+		|| GET_TECHNOTYPE(this->Techno)->Insignificant)
 		return;
 
 	const auto pWhat = Techno->WhatAmI();
@@ -678,13 +695,13 @@ void ShieldClass::UpdateTint(bool forceUpdate)
 // Is used for DeploysInto/UndeploysInto and DeploysInto/UndeploysInto
 bool ShieldClass::ConvertCheck()
 {
-	const auto newID = this->Techno->GetTechnoType();
+	const auto newID = GET_TECHNOTYPE(this->Techno);
 	// If there has been no actual TechnoType conversion then we bail out early.
 	if (this->CurTechnoType == newID)
 		return false;
 
 	const auto pTechnoExt = TechnoExtContainer::Instance.Find(this->Techno);
-	const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(this->Techno->GetTechnoType());
+	const auto pTechnoTypeExt = GET_TECHNOTYPEEXT(this->Techno);
 	const auto pOldType = this->Type;
 	bool allowTransfer = this->Type->AllowTransfer.Get(Attached);
 
@@ -1110,7 +1127,7 @@ void ShieldClass::DrawShieldBar_Other(int iLength, Point2D* pLocation, Rectangle
 
 	auto position = TechnoExtData::GetFootSelectBracketPosition(Techno, Anchor(HorizontalPosition::Left, VerticalPosition::Top));
 	position.X -= 1;
-	position.Y += this->Techno->GetTechnoType()->PixelSelectionBracketDelta + this->Type->BracketDelta - 3;
+	position.Y += GET_TECHNOTYPE(this->Techno)->PixelSelectionBracketDelta + this->Type->BracketDelta - 3;
 	int frame = pipBoard->Frames > 2 ? 2 : 0;
 
 	if (this->Techno->IsSelected)

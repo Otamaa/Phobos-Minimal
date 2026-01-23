@@ -28,7 +28,7 @@ void RadSiteExtData::CreateInstance(CellClass* pCell , int spread, int amount, W
 	if (pWeaponExt)
 	{
 		pRadExt->Weapon = pWeaponExt->This();
-		pRadExt->Type = pWeaponExt->RadType.Get(0);
+		pRadExt->Type = pWeaponExt->RadType.Get(RadTypeClass::FindOrAllocate(GameStrings::Radiation()));
 		pRadExt->NoOwner = pWeaponExt->Rad_NoOwner.Get();
 	}
 	else
@@ -398,7 +398,7 @@ static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, FootClass* pObj, CellCla
 			|| (Unsorted::CurrentFrame % RadApplicationDelay))
 			return;
 
-		if (pObj->GetTechnoType()->Immune || !pRadType->GetWarhead())
+		if (GET_TECHNOTYPE(pObj)->Immune || !pRadType->GetWarhead())
 			return;
 
 		auto it = CellExtContainer::Instance.Find(pCell)->RadLevels.find_if([pRad](auto& pair) { return pair.Rad == pRad; });
@@ -503,7 +503,7 @@ static NOINLINE void ApplyRadDamage(RadSiteClass* pRad, BuildingClass* pObj, Cel
 		if ((delay <= 0) || (Unsorted::CurrentFrame % delay))
 			return;
 
-		if (pObj->GetTechnoType()->Immune || !pRadType->GetWarhead() || pObj->IsBeingWarpedOut())
+		if (GET_TECHNOTYPE(pObj)->Immune || !pRadType->GetWarhead() || pObj->IsBeingWarpedOut())
 			return;
 
 		auto& damageCount = pRadExt->damageCounts[pObj];

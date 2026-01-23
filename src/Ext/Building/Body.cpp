@@ -739,7 +739,7 @@ bool BuildingExtData::CanGrindTechno(BuildingClass* pBuilding, TechnoClass* pTec
 		if (pBuilding->Owner != pTechno->Owner && !pExt->Grinding_AllowAllies.Get())
 			return false;
 
-		auto const pTechnoType = pTechno->GetTechnoType();
+		auto const pTechnoType = GET_TECHNOTYPE(pTechno);
 
 		if (!pExt->Grinding_AllowTypes.empty() && !pExt->Grinding_AllowTypes.Contains(pTechnoType))
 			return false;
@@ -775,7 +775,7 @@ bool BuildingExtData::CanGrindTechnoSimplified(BuildingClass* pBuilding, TechnoC
 	if (pBuilding->Owner != pTechno->Owner && !pExt->Grinding_AllowAllies.Get())
 		return false;
 
-	auto const pTechnoType = pTechno->GetTechnoType();
+	auto const pTechnoType = GET_TECHNOTYPE(pTechno);
 
 	if (!pExt->Grinding_AllowTypes.empty() && !pExt->Grinding_AllowTypes.Contains(pTechnoType))
 		return false;
@@ -1693,8 +1693,7 @@ void FakeBuildingClass::_OnFireAI()
 
 	auto const& pFire = pTypeext->DamageFireTypes.GetElements(RulesClass::Instance->DamageFireTypes);
 
-	if (!pFire.empty() &&
-		!pTypeext->DamageFire_Offs.empty())
+	if (!pFire.empty())
 	{
 		pExt->DamageFireAnims.resize(pTypeext->DamageFire_Offs.size());
 		const auto render_coords = this->GetRenderCoords();
@@ -1779,7 +1778,7 @@ void FakeBuildingClass::_DrawVisible(Point2D* pLocation, RectangleStruct* pBound
 
 			if (pFactory && pFactory->Object)
 			{
-				auto pProdType = TechnoExtContainer::Instance.Find(pFactory->Object)->Type;
+				auto pProdType = GET_TECHNOTYPE(pFactory->Object);
 				//const int nTotal = pFactory->CountTotal(pProdType);
 				Point2D DrawCameoLoc = { pLocation->X , pLocation->Y + 45 };
 				const auto pProdTypeExt = TechnoTypeExtContainer::Instance.Find(pProdType);
@@ -2083,7 +2082,7 @@ void FakeBuildingClass::_Draw_It(Point2D* screenPos, RectangleStruct* clipRect)
 		bool isUnloadingAirUnit = false;
 		if (curMission == Mission::Unload) {
 			if (TechnoClass* contactUnit = this->GetRadioContact()) {
-				TechnoTypeClass* unitType = contactUnit->GetTechnoType();
+				TechnoTypeClass* unitType = GET_TECHNOTYPE(contactUnit);
 				if (unitType->JumpJet || unitType->BalloonHover)
 				{
 					isUnloadingAirUnit = true;
@@ -2446,6 +2445,70 @@ void FakeBuildingClass::_DrawRadialIndicator(int val)
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FEC , FakeBuildingClass::_DrawRadialIndicator)
 DEFINE_FUNCTION_JUMP(LJMP, 0x456750, FakeBuildingClass::_DrawRadialIndicator)
 
+
+InfantryTypeClass* FakeBuildingClass::__GetCrew()
+{
+	// YR defaults to 25 for buildings producing buildings
+	return TechnoExt_ExtData::GetBuildingCrew(this, TechnoTypeExtContainer::Instance.Find(this->Type)->
+		Crew_EngineerChance.Get((this->Type->Factory == BuildingTypeClass::AbsID) ? 25 : 0));
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E41C8, FakeBuildingClass::__GetCrew)
+DEFINE_FUNCTION_JUMP(LJMP, 0x44EB10, FakeBuildingClass::__GetCrew)
+
+int FakeBuildingClass::__GetCrewCount()
+{
+	int count = 0;
+
+	if (!this->NoCrew && this->Type->Crewed)
+	{
+		auto pHouse = this->Owner;
+
+		// get the divisor
+		int divisor = HouseExtData::GetSurvivorDivisor(pHouse);
+
+		if (divisor > 0)
+		{
+			// if captured, less survivors
+			if (this->HasBeenCaptured)
+			{
+				divisor *= 2;
+			}
+
+			// value divided by "cost per survivor"
+			// clamp between 1 and 5
+			count = std::clamp(this->Type->GetRefund(pHouse, 0) / divisor, 1, 5);
+		}
+	}
+
+	return count;
+}
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E418C, FakeBuildingClass::__GetCrewCount)
+DEFINE_FUNCTION_JUMP(LJMP, 0x451330, FakeBuildingClass::__GetCrewCount)
+
+const wchar_t* FakeBuildingClass::__GetUIName()
+{
+	if (HouseClass::CurrentPlayer) {
+		const auto pBldOWner = this->Owner;
+		if (HouseClass::CurrentPlayer->IsObserver()
+			|| HouseClass::CurrentPlayer == pBldOWner
+			|| HouseClass::CurrentPlayer->IsAlliedWith(pBldOWner)
+			|| this->DisplayProductionTo.Contains(HouseClass::CurrentPlayer->ArrayIndex))
+		{
+			return this->Type->UIName;
+		}
+	}
+
+	auto selectType = this->Type;
+	if (TechnoTypeExtContainer::Instance.Find(this->Type)->Fake_Of)
+		selectType = (BuildingTypeClass*)TechnoTypeExtContainer::Instance.Find(this->Type)->Fake_Of.Get();
+
+	return selectType->UIName;
+}
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3F4C, FakeBuildingClass::__GetUIName)
+DEFINE_FUNCTION_JUMP(LJMP, 0x459ED0, FakeBuildingClass::__GetUIName)
+
 void FakeBuildingClass::_TechnoClass_Draw_Object(SHPStruct* shapefile,
 	int shapenum,
 	Point2D* xy,
@@ -2524,6 +2587,7 @@ ASMJIT_PATCH(0x43D874, BuildingClass_Draw_BuildupBibShape, 0x6)
 
  	return BuildingExtContainer::Instance.Find(pBuilding)->LimboID != -1 ? 0x43D9D5 : 0x0;
  }
+
 
 // =============================
 // load / save
@@ -2633,7 +2697,7 @@ bool BuildingExtContainer::SaveAll(json& root)
 // =============================
 // container hooks
 
-ASMJIT_PATCH(0x43BAD6, BuildingClass_CTOR, 0x5)
+ASMJIT_PATCH(0x43B75C, BuildingClass_CTOR, 0x6)
 {
 	GET(BuildingClass*, pItem, ESI);
 	BuildingExtContainer::Instance.Allocate(pItem);

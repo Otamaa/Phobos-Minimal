@@ -29,7 +29,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override { return AbstractType::Temporal; }
-	virtual int Size() const override { return 0x50; }
+	virtual int ClassSize() const override { return 0x50; }
 
 
 	//non-virtual

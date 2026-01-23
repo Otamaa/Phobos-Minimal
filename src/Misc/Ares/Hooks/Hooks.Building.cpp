@@ -65,48 +65,6 @@ ASMJIT_PATCH(0x44D760, BuildingClass_Destroyed_UnitLost, 7)
 	return 0x44D7C9;
 }
 
-ASMJIT_PATCH(0x451330, BuildingClass_GetCrewCount, 0xA)
-{
-	GET(BuildingClass*, pThis, ECX);
-
-	int count = 0;
-
-	if (!pThis->NoCrew && pThis->Type->Crewed)
-	{
-		auto pHouse = pThis->Owner;
-
-		// get the divisor
-		int divisor = HouseExtData::GetSurvivorDivisor(pHouse);
-
-		if (divisor > 0)
-		{
-			// if captured, less survivors
-			if (pThis->HasBeenCaptured)
-			{
-				divisor *= 2;
-			}
-
-			// value divided by "cost per survivor"
-			// clamp between 1 and 5
-			count = std::clamp(pThis->Type->GetRefund(pHouse, 0) / divisor, 1, 5);
-		}
-	}
-
-	R->EAX(count);
-	return 0x4513CD;
-}
-
-ASMJIT_PATCH(0x44EB10, BuildingClass_GetCrew, 9)
-{
-	GET(BuildingClass*, pThis, ECX);
-
-	// YR defaults to 25 for buildings producing buildings
-	R->EAX(TechnoExt_ExtData::GetBuildingCrew(pThis, TechnoTypeExtContainer::Instance.Find(pThis->Type)->
-		Crew_EngineerChance.Get((pThis->Type->Factory == BuildingTypeClass::AbsID) ? 25 : 0)));
-
-	return 0x44EB5B;
-}
-
 #include <Ext/SWType/Body.h>
 
 DEFINE_FUNCTION_JUMP(LJMP, 0x43E7B0, FakeBuildingClass::_DrawVisible)
@@ -196,7 +154,7 @@ ASMJIT_PATCH(0x44C844, BuildingClass_MissionRepair_Reload, 6)
 				};
 
 			// check if reloaded and repaired already
-			auto const pLinkType = pLink->GetTechnoType();
+			auto const pLinkType = GET_TECHNOTYPE(pLink);
 			auto done = SendCommand(RadioCommand::QueryReadiness)
 				&& pLink->Health == pLinkType->Strength;
 
@@ -422,31 +380,6 @@ ASMJIT_PATCH(0x519FAF, InfantryClass_UpdatePosition_EngineerRepairsFriendly, 6)
 
 	//0x51A010 eats the Engineer, 0x51A65D hopefully does not
 	return 0x51A010;
-}
-
-ASMJIT_PATCH(0x459ed0, BuildingClass_GetUIName, 6)
-{
-	GET(BuildingClass*, pBld, ECX);
-
-	if (HouseClass::CurrentPlayer)
-	{
-		const auto pBldOWner = pBld->Owner;
-		if (HouseClass::CurrentPlayer->IsObserver()
-			|| HouseClass::CurrentPlayer == pBldOWner
-			|| HouseClass::CurrentPlayer->IsAlliedWith(pBldOWner)
-			|| pBld->DisplayProductionTo.Contains(HouseClass::CurrentPlayer->ArrayIndex))
-		{
-			R->EAX(pBld->Type->UIName);
-			return 0x459ED9;
-		}
-	}
-
-	auto Type = pBld->Type;
-	if (TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of)
-		Type = (BuildingTypeClass*)TechnoTypeExtContainer::Instance.Find(pBld->Type)->Fake_Of.Get();
-
-	R->EAX(Type->UIName);
-	return 0x459ED9;
 }
 
 ASMJIT_PATCH(0x44e2b0, BuildingClass_Mi_Unload_LargeGap, 6)
@@ -1121,7 +1054,7 @@ ASMJIT_PATCH(0x44A8A2, BuildingClass_Mi_Selling_Crew, 0xA)
 // even if it isn't, they build a possible infinite loop.
 ASMJIT_PATCH(0x44A5F0, BuildingClass_Mi_Selling_EngineerFreeze, 0x6)
 {
-	GET(BuildingClass* const, pThis, EBP);
+	GET(FakeBuildingClass* const, pThis, EBP);
 	GET(InfantryTypeClass*, pType, ESI);
 	LEA_STACK(bool*, pEngineerSpawned, 0x13);
 
@@ -1131,7 +1064,7 @@ ASMJIT_PATCH(0x44A5F0, BuildingClass_Mi_Selling_EngineerFreeze, 0x6)
 		// for only the Engineer tag being returned.
 		for (int i = 9; i >= 0; --i)
 		{
-			pType = !i ? nullptr : pThis->GetCrew();
+			pType = !i ? nullptr : pThis->__GetCrew();
 
 			if (!pType || !pType->Engineer)
 			{

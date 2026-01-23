@@ -362,11 +362,11 @@ ASMJIT_PATCH(0x6FF48D, TechnoClass_Fire_IsLaser, 0xA)
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 	if (pType->TargetLaser && pThis->Owner->ControlledByCurrentPlayer())
 	{
 
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 		if (pTypeExt->TargetLaser_WeaponIdx.empty()
 			|| pTypeExt->TargetLaser_WeaponIdx.Contains(idxWeapon))

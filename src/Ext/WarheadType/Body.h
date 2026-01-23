@@ -484,6 +484,9 @@ public:
 	Valueable<bool> PlayAnimAboveSurface;
 
 	Nullable<bool> AnimZAdjust;
+	Nullable<bool> ApplyPerTargetEffectsOnDetonate;
+
+	Nullable<bool> CanTargetIronCurtained;
 
 	bool IsCellSpreadWH;
 	bool IsFakeEngineer;
@@ -839,6 +842,8 @@ public:
 		PlayAnimUnderground(true),
 		PlayAnimAboveSurface(false),
 		AnimZAdjust(),
+		ApplyPerTargetEffectsOnDetonate(),
+		CanTargetIronCurtained(),
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false)
 		{

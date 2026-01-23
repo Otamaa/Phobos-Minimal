@@ -36,7 +36,7 @@ public:
 
 	//AbstractClass
 	virtual AbstractType WhatAmI() const override RT(AbstractType);
-	virtual int Size() const override R0;
+	virtual int ClassSize() const override R0;
 
 	WaypointClass* GetWaypoint(int idx) const
 	{ JMP_THIS(0x763980); }

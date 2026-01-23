@@ -53,7 +53,7 @@ public:
 	virtual void Init() override JMP_THIS(0x442C40);
 	virtual void PointerExpired(AbstractClass* pAbstract, bool bremoved) override JMP_THIS(0x44E8F0);
 	virtual AbstractType WhatAmI() const override { return AbstractType::Building; }
-	virtual int	Size() const override { return 0x720; }
+	virtual int	ClassSize() const override { return 0x720; }
 	virtual void Update() override JMP_THIS(0x43FB20);
 
 	//ObjectClass

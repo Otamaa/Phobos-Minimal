@@ -14,12 +14,10 @@ bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 	if (pExt->IsPassable)
 		return true;
 
-	if (pThis->WhatAmI() == UnitClass::AbsID)
-	{
-		if (pTerrain->Type->Crushable)
-		{
-			if (TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CrushLevel.Get(pThis) > pExt->CrushableLevel)
-			{
+	if (auto pUnit = cast_to<UnitClass*, false>(pThis)) {
+		if (pTerrain->Type->Crushable) {
+			if (TechnoTypeExtContainer::Instance.Find(pUnit->Type)
+					->CrushLevel.Get(pThis) > pExt->CrushableLevel) {
 				return true;
 			}
 		}

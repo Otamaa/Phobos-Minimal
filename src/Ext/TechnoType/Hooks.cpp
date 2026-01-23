@@ -414,7 +414,7 @@ ASMJIT_PATCH(0x6B7282, SpawnManagerClass_AI_PromoteSpawns, 0x5)
 	GET(SpawnManagerClass*, pThis, ESI);
 
 	if(auto pOwner = pThis->Owner) {
-		if (TechnoTypeExtContainer::Instance.Find(pOwner->GetTechnoType())->Promote_IncludeSpawns) {
+		if (GET_TECHNOTYPEEXT(pOwner)->Promote_IncludeSpawns) {
 			for (const auto& i : pThis->SpawnedNodes) {
 				if (i->Unit && i->Unit->Veterancy.Veterancy < pOwner->Veterancy.Veterancy)
 					i->Unit->Veterancy.Add(pOwner->Veterancy.Veterancy - i->Unit->Veterancy.Veterancy);
@@ -435,7 +435,7 @@ ASMJIT_PATCH(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 	LEA_STACK(Point2D*, pLocation, STACK_OFFS(0x50, 0x18));
 	GET_STACK(int, nBrightness, STACK_OFFS(0x50, -0x4));
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 
 	ConvertClass* pDrawer = FileSystem::ANIM_PAL;
 	SHPStruct* pSHP = FileSystem::OREGATH_SHP;
@@ -481,7 +481,7 @@ ASMJIT_PATCH(0x73D223, UnitClass_DrawIt_OreGath, 0x6)
 ASMJIT_PATCH(0x700C58, TechnoClass_CanPlayerMove_NoManualMove, 0x6)
 {
 	GET(TechnoClass*, pThis, ESI);
-	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->NoManualMove.Get() ? 0x700C62 : 0;
+	return GET_TECHNOTYPEEXT(pThis)->NoManualMove.Get() ? 0x700C62 : 0;
 }
 
 ASMJIT_PATCH(0x4437B3, BuildingClass_CellClickedAction_NoManualMove, 0x6)
@@ -796,7 +796,7 @@ ASMJIT_PATCH(0x4AE670, DisplayClass_GetToolTip_EnemyUIName, 0x8)
 				{
 					if (!pOwnerHouse->IsNeutral() && !pOwnerHouse->IsAlliedWith(HouseClass::CurrentPlayer))
 					{
-						const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pFoot->GetTechnoType());
+						const auto pTechnoTypeExt = GET_TECHNOTYPEEXT(pFoot);
 						{
 							if (!pTechnoTypeExt->EnemyUIName.Get().empty())
 							{
@@ -820,7 +820,7 @@ ASMJIT_PATCH(0x6FDFA8, TechnoClass_FireAt_SprayOffsets, 0x5)
 	GET(WeaponTypeClass*, pWeapon, EBX);
 	LEA_STACK(CoordStruct*, pCoord, 0xB0 - 0x28);
 
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 	auto pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (pType->SprayAttack) {
@@ -906,7 +906,7 @@ ASMJIT_PATCH(0x7090A0, TechnoClass_VoiceAttack, 0x7)
 	GET(TechnoClass*, pThis, ECX);
 	GET_STACK(AbstractClass*, pTarget, 0x4);
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const int WeaponIndex = pThis->SelectWeapon(pTarget);
 	int VoiceAttack = GetVoiceAttack(pType, WeaponIndex, pThis->Veterancy.IsElite(), pThis->GetWeapon(WeaponIndex)->WeaponType);
 
@@ -938,7 +938,7 @@ ASMJIT_PATCH(0x7431C9, FootClass_SelectAutoTarget_MultiWeapon, 0x7)				// UnitCl
 	enum { InfantryReturn = 0x51E31B, UnitReturn = 0x74324F, UnitGunner = 0x7431E4 };
 
 	const bool isUnit = R->Origin() == 0x7431C9;
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (isUnit
@@ -982,7 +982,7 @@ ASMJIT_PATCH(0x6F398E, TechnoClass_CombatDamage_MultiWeapon, 0x7)
 			return Continue;
 	}
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 	if (rtti == AbstractType::Unit
@@ -1002,7 +1002,7 @@ ASMJIT_PATCH(0x707ED0, TechnoClass_GetGuardRange_MultiWeapon, 0x6)
 
 	GET(TechnoClass*, pThis, ESI);
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const bool specialWeapon = !pType->IsGattling && (!pType->HasMultipleTurrets() || !pType->Gunner);
 
 	if (!pType->IsGattling && pType->TurretCount > 0

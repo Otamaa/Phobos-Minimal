@@ -329,7 +329,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	int ROF = pThis->GetROF(weaponIdx);
 
 	if (pThis->Berzerk) {
-		const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 		const double multiplier = pTypeExt->BerserkROFMultiplier.Get(RulesExtData::Instance()->BerserkROFMultiplier);
 		ROF = static_cast<int>(ROF * multiplier);
 	}
@@ -398,7 +398,7 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 		}
 	}
 
-	if (pWeapon->Report.Count > 0 && !pThis->GetTechnoType()->IsGattling) {
+	if (pWeapon->Report.Count > 0 && !GET_TECHNOTYPE(pThis)->IsGattling) {
 		if (pWeapon->Report.Count == 1) {
 			VocClass::SafeImmedietelyPlayAt(pWeapon->Report[0], &crdSrc, nullptr);
 		} else {
@@ -434,10 +434,18 @@ ASMJIT_PATCH(0x6FF15F, TechnoClass_FireAt_Additionals_Start, 6)
 	{
 		auto pFiring = GameCreate<AnimClass>(pFiringAnim, crdSrc, 0, 1, AnimFlag::AnimFlag_600, 0, 0);
 		AnimExtData::SetAnimOwnerHouseKind(pFiring, pThis->GetOwningHouse(), pThis->Target ? pThis->Target->GetOwningHouse() : nullptr, pThis, false, false);
-		if (pThis->WhatAmI() != BuildingClass::AbsID)
+		auto pAnimExt = AnimExtContainer::Instance.Find(pFiring);
+
+		if (pWeapon->_GetExtData()->Anim_Update.Get(RulesExtData::Instance()->FiringAnim_Update)) {
+			pAnimExt->FromWeapon = pWeapon;
+			pAnimExt->FromWeaponIdx = weaponIdx;
+			pAnimExt->FromBurstIdx = pThis->CurrentBurstIndex;
+		}
+		// if (pThis->WhatAmI() != BuildingClass::AbsID)
+		// {
+		// 	pFiring->SetOwnerObject(pThis);
+		// } else
 		{
-			pFiring->SetOwnerObject(pThis);
-		} else {
 			if (pThis->GetOccupantCount() > 0) {
 				pFiring->ZAdjust = -200;
 			} else {
@@ -559,7 +567,7 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 	//remove ammo rounds depending on weapon
 	TechnoExt_ExtData::DecreaseAmmo(pThis, pWeaponType);
 	auto const pExt = TechnoExtContainer::Instance.Find(pThis);
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 #ifndef PERFORMANCE_HEAVY
 	// Restore original target & coords
@@ -605,7 +613,7 @@ ASMJIT_PATCH(0x6FF656, TechnoClass_FireAt_Additionals_End, 0xA)
 
 			const auto pBulletExt = BulletExtContainer::Instance.Find(pBullet);
 
-			pBulletExt->InterceptorTechnoType = pThis->GetTechnoType();
+			pBulletExt->InterceptorTechnoType = GET_TECHNOTYPE(pThis);
 			pBulletExt->InterceptedStatus |= InterceptedStatus::Targeted;
 
 			if (!pTypeExt->Interceptor_ApplyFirepowerMult)

@@ -753,7 +753,7 @@ void HouseExtData::ApplyAcademy(HouseClass* pHouse, TechnoClass* pTechno, Abstra
 void HouseExtData::ApplyAcademyWithoutMutexCheck(
 	TechnoClass* const pTechno, AbstractType const considerAs) const
 {
-	auto const pType = pTechno->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pTechno);
 	if (pType->Trainable)
 	{
 		// get the academy data for this type
@@ -818,7 +818,7 @@ void HouseExtData::ApplyAcademy(
 		return;
 	}
 
-	auto const pType = pTechno->GetTechnoType();
+	auto const pType = GET_TECHNOTYPE(pTechno);
 	if (pType->Trainable)
 	{
 		// get the academy data for this type
@@ -922,10 +922,12 @@ bool HouseExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	return true;
 }
 
-TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
+NOINLINE TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
 {
-	if (!pHouse || nTunnelIdx >= TunnelTypeClass::Array.size())
+	if (!pHouse || nTunnelIdx >= TunnelTypeClass::Array.size()){
+		//Debug::Log("Failed to get tunned Index at %d the Array count is %d \n" , nTunnelIdx ,TunnelTypeClass::Array.size());
 		return nullptr;
+	}
 
 	auto pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
@@ -937,7 +939,7 @@ TunnelData* HouseExtData::GetTunnelVector(HouseClass* pHouse, size_t nTunnelIdx)
 	return pHouseExt->Tunnels.data() + nTunnelIdx;
 }
 
-TunnelData* HouseExtData::GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse)
+NOINLINE TunnelData* HouseExtData::GetTunnelVector(BuildingTypeClass* pBld, HouseClass* pHouse)
 {
 	return HouseExtData::GetTunnelVector(pHouse, BuildingTypeExtContainer::Instance.Find(pBld)->TunnelType);
 }
@@ -2591,7 +2593,7 @@ void HouseExtData::UpdateTransportReloaders()
 			return true;
 
 		if (pTech->Transporter && pTech->Transporter->IsAlive && pTech->Transporter->IsInLogic) {
-			if (TechnoTypeExtContainer::Instance.Find(pTech->GetTechnoType())->ReloadInTransport) {
+			if (GET_TECHNOTYPEEXT(pTech)->ReloadInTransport) {
 				pTech->Reload();
 			}
 		}
@@ -2712,7 +2714,7 @@ bool HouseExtData::CanTransactBattlePoints(int amount) {
 
 int HouseExtData::CalculateBattlePoints(TechnoClass* pTechno)
 {
-	return pTechno ? CalculateBattlePoints(pTechno->GetTechnoType(), pTechno->Owner) : 0;
+	return pTechno ? CalculateBattlePoints(GET_TECHNOTYPE(pTechno), pTechno->Owner) : 0;
 }
 
 int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pOwner)
@@ -2736,7 +2738,7 @@ int HouseExtData::CalculateBattlePoints(TechnoTypeClass* pTechno, HouseClass* pO
 }
 
 bool HouseExtData::ReverseEngineer(TechnoClass* Victim) {
-	auto VictimType = Victim->GetTechnoType();
+	auto VictimType = GET_TECHNOTYPE(Victim);
 	auto pVictimData = TechnoTypeExtContainer::Instance.Find(VictimType);
 
 	if (!pVictimData->CanBeReversed)
@@ -2924,6 +2926,7 @@ void HouseExtData::Serialize(T& Stm)
 		.Process(this->Productions)
 		.Process(this->BestChoicesNaval)
 		.Process(this->AITriggers_ValidList)
+		.Process(this->PlayerAutoRepair)
 		;
 }
 #endif
@@ -3281,7 +3284,7 @@ void FakeHouseClass::_BlowUpAll() {
 		}
 
 		if (!skipDoingDamage) {
-			int damage = techno->GetTechnoType()->Strength;
+			int damage = GET_TECHNOTYPE(techno)->Strength;
 			techno->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
 		}
 	}
@@ -3386,7 +3389,7 @@ void FakeHouseClass::_BlowUpAllBuildings() {
 
 		if (!skipDoingDamage)
 		{
-			int damage = pBld->GetTechnoType()->Strength;
+			int damage = pBld->Type->Strength;
 			pBld->ReceiveDamage(&damage, 0, RulesClass::Instance->C4Warhead, nullptr, true, true, nullptr);
 		}
 	}
@@ -3398,11 +3401,12 @@ DEFINE_FUNCTION_JUMP(LJMP, 0x4FC790, FakeHouseClass::_BlowUpAllBuildings)
 void FakeHouseClass::_UpdateRadar() {
 	auto pExt = this->_GetExtData();
 
-	bool radarAvailable = pExt->ForceRadar ? pExt->FreeRadar: !pExt->Batteries.empty();
+	bool radarAvailable = this == HouseClass::Observer() ?
+		true : pExt->ForceRadar ? pExt->FreeRadar: !pExt->Batteries.empty();
 
     this->RecheckRadar = 0;
 
-	if (this != HouseClass::CurrentPlayer() || !pExt->Batteries.empty()) {
+	if (this != HouseClass::CurrentPlayer()) {
     	return;
     }
 

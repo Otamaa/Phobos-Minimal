@@ -718,7 +718,7 @@ private:
 			}
 		};
 
-		debugProcess(this->Type, "Type");
+		debugProcess(this->CurrentType, "CurrentType");
 		debugProcess(this->AE, "AE");
 		debugProcess(this->idxSlot_EMPulse, "idxSlot_EMPulse");
 		debugProcess(this->idxSlot_Wave, "idxSlot_Wave");
@@ -855,7 +855,7 @@ public:
 	using base_type = TechnoClass;
 public:
 #pragma region ClassMembers
-	TechnoTypeClass* Type; //original Type pointer
+	TechnoTypeClass* CurrentType; //original Type pointer
 
 	AEProperties AE;
 	BYTE idxSlot_EMPulse;
@@ -1038,7 +1038,7 @@ public:
 public:
 
 	TechnoExtData(TechnoClass* abs) : RadioExtData(abs),
-		Type(nullptr),
+		CurrentType(nullptr),
 
 		AE(),
 		idxSlot_EMPulse(0),
@@ -1325,7 +1325,7 @@ public:
 
 protected:
 	std::pair<const std::vector<WeaponTypeClass*>*, const std::vector<int>*> GetFireSelfData();
-	int GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData, FootClass const* pPassenger);
+	int GetEatPassangersTotalTime(TechnoTypeClass* pTransporterData, FootClass* pPassenger);
 
 public:
 	static bool IsActive(TechnoClass* pThis, bool bCheckEMP = true, bool bCheckDeactivated = false, bool bIgnoreLimbo = false, bool bIgnoreIsOnMap = false, bool bIgnoreAbsorb = false);
@@ -1588,6 +1588,16 @@ public:
 	static DamageState __fastcall __Take_Damage(TechnoClass* pThis, discard_t, int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse);
 	static bool __fastcall __Is_Allowed_To_Retaliate(TechnoClass* pThis, discard_t, TechnoClass* pSource, WarheadTypeClass* pWarhead);
 
+	static void __fastcall __DoUncloak(TechnoClass* pThis, discard_t, char quiet);
+	static void __fastcall __DoCloak(TechnoClass* pThis, discard_t, char quiet);
+	static int __fastcall __HowManySurvivors(TechnoClass* pThis);
+	static bool __fastcall __ShouldSelfHealOneStep(TechnoClass* pThis);
+	static int __fastcall __TimeToBuild(TechnoClass* pThis);
+
+	static InfantryTypeClass* __fastcall __GetCrew(TechnoClass* pThis);
+
+	static void __fastcall __Activate(TechnoClass* pThis);
+	static void __fastcall __Deactivate(TechnoClass* pThis);
 	//AI
 	static void __HandleGattlingAudio(TechnoClass* pThis);
 	static void __HandleVoicePlayback(TechnoClass* pThis);
@@ -1618,3 +1628,6 @@ public:
 	static void __HandleEMPEffect(TechnoClass* pThis);
 	static void __fastcall __AI(TechnoClass* pThis);
 };
+
+#define GET_TECHNOTYPE(techno) techno->GetTechnoType()
+#define GET_TECHNOTYPEEXT(techno) TechnoTypeExtContainer::Instance.Find(techno->GetTechnoType())

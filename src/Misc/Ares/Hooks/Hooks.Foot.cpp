@@ -53,7 +53,7 @@ ASMJIT_PATCH(0x4D98C0, FootClass_Destroyed_PlayEvent, 0xA)
 	GET(FootClass*, pThis, ECX);
 	//GET_STACK(ObjectClass*, pKiller, 0x4);
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
 	if (pExt->SupressEVALost
@@ -139,7 +139,7 @@ ASMJIT_PATCH(0x4D8D95, FootClass_UpdatePosition_HunterSeeker, 0xA)
 	GET(FootClass* const, pThis, ESI);
 
 	// ensure the target won't get away
-	if (pThis->GetTechnoType()->HunterSeeker) {
+	if (GET_TECHNOTYPE(pThis)->HunterSeeker) {
 		if (auto const pTarget = flag_cast_to<TechnoClass*>(pThis->Target)) {
 
 			const auto pWpS = pThis->GetWeapon(0);
@@ -172,7 +172,7 @@ ASMJIT_PATCH(0x4DAA68, FootClass_Update_MoveSound, 0x6)
 {
 	GET(FootClass* const, pThis, ESI);
 
-	const auto pType = pThis->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pThis);
 
 	if(pType->IdleRate && TechnoTypeExtContainer::Instance.Find(pType)->NoIdleSound) {
 		if(!pThis->Locomotor->Is_Moving_Now()) {
@@ -212,7 +212,7 @@ ASMJIT_PATCH(0x4D9920, FootClass_SelectAutoTarget_Cloaked, 9)
 	if (pThis->Owner->IsControlledByHuman()
 		&& pThis->GetCurrentMission() == Mission::Guard)
 	{
-		auto const pType = pThis->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pThis);
 		auto const pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		auto allowAquire = true;
@@ -247,7 +247,7 @@ ASMJIT_PATCH(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
 	GET(TechnoClass*, pDocker, ESI);
 
 	const auto nUnitRepair = BuildingTypeExtContainer::Instance.Find(pBld->Type)->UnitSell.Get(pBld->Type->UnitRepair);
-	const auto nSellable = TechnoTypeExtContainer::Instance.Find(pDocker->GetTechnoType())->Unsellable.Get(RulesExtData::Instance()->Units_UnSellable);
+	const auto nSellable = GET_TECHNOTYPEEXT(pDocker)->Unsellable.Get(RulesExtData::Instance()->Units_UnSellable);
 
 	if (!nUnitRepair || !nSellable)
 	{
@@ -267,7 +267,7 @@ ASMJIT_PATCH(0x4D9EBD, FootClass_CanBeSold_SellUnit, 6)
 ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 {
 	GET(FootClass*, pThis, ESI);
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
 	auto pExt = TechnoExtContainer::Instance.Find(pThis);
 
@@ -318,7 +318,7 @@ ASMJIT_PATCH(0x4DA8B2, FootClass_Update_AnimRate, 6)
 ASMJIT_PATCH(0x4DECAE, FootClass_Crash_Spin, 5)
 {
 	GET(FootClass*, pThis, ESI);
-	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->CrashSpin ? 0u : 0x4DED4Bu;
+	return GET_TECHNOTYPEEXT(pThis)->CrashSpin ? 0u : 0x4DED4Bu;
 }
 
 #include <Ext/Cell/Body.h>
@@ -336,7 +336,7 @@ ASMJIT_PATCH(0x4D85E4, FootClass_UpdatePosition_TiberiumDamage, 9)
 
 	if (RulesExtData::Instance()->Tiberium_DamageEnabled && pThis->GetHeight() <= RulesClass::Instance->HoverHeight)
 	{
-		TechnoTypeClass* pType = pThis->GetTechnoType();
+		TechnoTypeClass* pType = GET_TECHNOTYPE(pThis);
 		TechnoTypeExtData* pExt = TechnoTypeExtContainer::Instance.Find(pType);
 
 		// default is: infantry can be damaged, others cannot

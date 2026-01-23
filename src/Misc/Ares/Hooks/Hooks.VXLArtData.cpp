@@ -221,7 +221,7 @@ ASMJIT_PATCH(0x73B6E3, UnitClass_DrawVXL_NoSpawnAlt, 6)
 
 int ChooseFrame(FootClass* pThis, int shadow_index_now, VoxelStruct* pVXL)
 {
-	auto pType = pThis->GetTechnoType();
+	auto pType = GET_TECHNOTYPE(pThis);
 
 	// Turret or Barrel
 	if (pVXL != &pType->MainVoxel)
@@ -288,7 +288,7 @@ ASMJIT_PATCH(0x7072A1, suka707280_ChooseTheGoddamnMatrix, 0x7)
 	if (l2 < 0.03) R->Stack(STACK_OFFSET(0xE8, 0x20), true);
 
 	// Recover vanilla instructions
-	if (pThis->GetTechnoType()->UseBuffer)
+	if (GET_TECHNOTYPE(pThis)->UseBuffer)
 		*reinterpret_cast<DWORD*>(0xB43180) = 1;
 
 	REF_STACK(Matrix3D, b, STACK_OFFSET(0xE8, -0x90));

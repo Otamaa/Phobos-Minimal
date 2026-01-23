@@ -103,7 +103,7 @@ ASMJIT_PATCH(0x6F6AC4, TechnoClass_Limbo_AfterRadioClassRemove, 0x5)
 	GET(TechnoClass*, pThis, ECX);
 
 	const auto pExt = TechnoExtContainer::Instance.Find(pThis);
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	if (pThis->Owner && pThis->Owner->CountOwnedAndPresent(pTypeExt->This()) <= 0 && !pTypeExt->Linked_SW.empty())
 		pThis->Owner->UpdateSuperWeaponsOwned();

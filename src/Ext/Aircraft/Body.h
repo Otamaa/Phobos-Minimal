@@ -29,6 +29,7 @@ public:
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = AircraftClass::AbsID;
+		this->CurrentType = pObj->Type;
 	}
 
 	AircraftExtData(AircraftClass * pObj, noinit_t nn) : FootExtData(pObj, nn) { }

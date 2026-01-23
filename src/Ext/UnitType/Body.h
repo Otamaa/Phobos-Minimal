@@ -11,8 +11,11 @@ public:
 	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
+	SHPStruct* TurretShape;
 
-	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj) {
+	UnitTypeExtData(UnitTypeClass* pObj) : TechnoTypeExtData(pObj)
+		, TurretShape { nullptr }
+	{
 		this->AbsType = UnitTypeClass::AbsID;
 		this->InitializeConstant();
 	}
@@ -27,11 +30,15 @@ public:
 
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
+		Stm.Process(this->TurretShape)
+			;
 		this->TechnoTypeExtData::LoadFromStream(Stm);
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
+		Stm.Process(this->TurretShape)
+			;
 		const_cast<UnitTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
 	}
 
@@ -79,4 +86,9 @@ class NOVTABLE FakeUnitTypeClass : public UnitTypeClass
 {
 public:
 	bool _ReadFromINI(CCINIClass* pINI);
+
+	
+	UnitTypeExtData* _GetExtData() {
+		return *reinterpret_cast<UnitTypeExtData**>(((DWORD)this) + AbstractExtOffset);
+	}
 };

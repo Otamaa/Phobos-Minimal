@@ -7,6 +7,7 @@
 #include <Ext/BulletType/Body.h>
 #include <Ext/Techno/Body.h>
 #include <Ext/House/Body.h>
+#include <Ext/WeaponType/Body.h>
 
 #include <New/Type/TheaterTypeClass.h>
 #include <New/Type/GenericPrerequisite.h>
@@ -21,7 +22,7 @@
 
 bool TechnoTypeExtData::SelectWeaponMutex = false;
 
-void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
+void TechnoTypeExtData::UpdateAdditionalAttributes(CCINIClass* const pINI)
 {
 	int Num = 0;
 	int EliteNum = 0;
@@ -31,12 +32,44 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 
 	const auto pThis = this->This();
 	int Count = 2;
+	const bool attackFriendlies = pThis->AttackFriendlies;
+	this->AttackFriendlies = { attackFriendlies ,attackFriendlies };
 
 	if (this->MultiWeapon
 		&& (!pThis->IsGattling && (!pThis->HasMultipleTurrets() || !pThis->Gunner)))
 	{
 		Count = pThis->WeaponCount;
 	}
+
+	auto WeaponCheck = [&](WeaponTypeClass* const pWeapon, const bool isElite) {
+		if (!pWeapon)
+			return;
+
+		if (isElite) {
+			if (pWeapon->Projectile)
+				this->ThreatTypes.Y |= pWeapon->AllowedThreats();
+
+			this->CombatDamages.Y += (pWeapon->Damage + pWeapon->AmbientDamage);
+			EliteNum++;
+
+			if (!this->AttackFriendlies.Y
+				&& WeaponTypeExtContainer::Instance.Find(pWeapon)->AttackFriendlies.Get(false)) {
+				this->AttackFriendlies.Y = true;
+			}
+		} else {
+			if (pWeapon->Projectile)
+				this->ThreatTypes.X |= pWeapon->AllowedThreats();
+
+			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
+			Num++;
+
+			if (!this->AttackFriendlies.X
+				&& WeaponTypeExtContainer::Instance.Find(pWeapon)->AttackFriendlies.Get(false)) {
+				this->AttackFriendlies.X = true;
+			}
+		}
+
+	};
 
 	for (int index = 0; index < Count; index++)
 	{
@@ -46,23 +79,8 @@ void TechnoTypeExtData::ParseCombatDamageAndThreatType(CCINIClass* const pINI)
 		if (!pEliteWeapon)
 			pEliteWeapon = pWeapon;
 
-		if (pWeapon)
-		{
-			if (pWeapon->Projectile)
-				this->ThreatTypes.X |= pWeapon->AllowedThreats();
-
-			this->CombatDamages.X += (pWeapon->Damage + pWeapon->AmbientDamage);
-			Num++;
-		}
-
-		if (pEliteWeapon)
-		{
-			if (pEliteWeapon->Projectile)
-				this->ThreatTypes.Y |= pEliteWeapon->AllowedThreats();
-
-			this->CombatDamages.Y += (pEliteWeapon->Damage + pEliteWeapon->AmbientDamage);
-			EliteNum++;
-		}
+		WeaponCheck(pWeapon, false);
+		WeaponCheck(pEliteWeapon, true);
 	}
 
 	if (Num > 0)
@@ -94,7 +112,7 @@ bool TechnoTypeExtData::IsSecondary(int nWeaponIndex)
 int ApplyForceWeaponInRange(TechnoClass* pThis, AbstractClass* pTarget)
 {
 	int forceWeaponIndex = -1;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
+	auto const pTypeExt = GET_TECHNOTYPEEXT(pThis);
 
 	const bool useAASetting = !pTypeExt->ForceAAWeapon_InRange.empty() && pTarget->IsInAir();
 	auto const& weaponIndices = useAASetting ? pTypeExt->ForceAAWeapon_InRange : pTypeExt->ForceWeapon_InRange;
@@ -149,18 +167,34 @@ int ApplyForceWeaponInRange(TechnoClass* pThis, AbstractClass* pTarget)
 	return forceWeaponIndex;
 }
 
+int TechnoTypeExtData::SelectPhobosWeapon(TechnoClass* pThis, AbstractClass* pTarget){
+	const int forceWeaponIndex = this->SelectForceWeapon(pThis, pTarget);
+
+	if (forceWeaponIndex >= 0) {
+		return forceWeaponIndex;
+	}
+
+	 const int multiWeaponIndex = this->SelectMultiWeapon(pThis, pTarget);
+
+	if (multiWeaponIndex >= 0)  {
+ 		return multiWeaponIndex;
+	}
+
+	return -1;
+}
+
 int TechnoTypeExtData::SelectForceWeapon(TechnoClass* pThis, AbstractClass* pTarget)
 {
 	if (TechnoTypeExtData::SelectWeaponMutex || !this->ForceWeapon_Check || !pTarget) // In theory, pTarget must exist
 		return -1;
 
 	int forceWeaponIndex = -1;
-	const auto pTargetTechno = flag_cast_to<TechnoClass*>(pTarget);
+	const auto pTargetTechno = flag_cast_to<TechnoClass*,false>(pTarget);
 	TechnoTypeClass* pTargetType = nullptr;
 
 	if (pTargetTechno)
 	{
-		pTargetType = pTargetTechno->GetTechnoType();
+		pTargetType = GET_TECHNOTYPE(pTargetTechno);
 
 		if (this->ForceWeapon_Naval_Decloaked >= 0
 			&& pTargetType->Cloakable
@@ -248,7 +282,7 @@ int TechnoTypeExtData::SelectForceWeapon(TechnoClass* pThis, AbstractClass* pTar
 	return forceWeaponIndex;
 }
 
-int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* const pThis, AbstractClass* const pTarget)
+int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* pThis, AbstractClass* pTarget)
 {
 	if (!pTarget || !this->MultiWeapon.Get())
 		return -1;
@@ -306,7 +340,7 @@ int TechnoTypeExtData::SelectMultiWeapon(TechnoClass* const pThis, AbstractClass
 						secondaryPriority = !this->NoSecondaryWeaponFallback_AllowAA.Get();
 					}
 					else if (pWeapon->DrainWeapon
-						&& pTargetTechno->GetTechnoType()->Drainable
+						&& GET_TECHNOTYPE(pTargetTechno)->Drainable
 						&& !pThis->DrainTarget && !isAllies)
 					{
 						secondaryPriority = !noSecondary;
@@ -436,12 +470,12 @@ void  TechnoTypeExtData::ApplyTurretOffset(Matrix3D* mtx, double factor)
 
 AnimTypeClass* TechnoTypeExtData::GetSinkAnim(TechnoClass* pThis)
 {
-	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->SinkAnim.Get(RulesClass::Instance->Wake);
+	return GET_TECHNOTYPEEXT(pThis)->SinkAnim.Get(RulesClass::Instance->Wake);
 }
 
 double TechnoTypeExtData::GetTunnelSpeed(TechnoClass* pThis, RulesClass* pRules)
 {
-	return TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType())->Tunnel_Speed.Get(pRules->TunnelSpeed);
+	return GET_TECHNOTYPEEXT(pThis)->Tunnel_Speed.Get(pRules->TunnelSpeed);
 }
 
 VoxelStruct* TechnoTypeExtData::GetBarrelsVoxel(TechnoTypeClass* const pThis, int const nIdx)
@@ -714,7 +748,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->HealthBar_Permanent_PipScale.Read(exINI, pSection, "HealthBar.Permanent.PipScale");
 		this->UIDescription.Read(exINI, pSection, "UIDescription");
 		this->LowSelectionPriority.Read(exINI, pSection, "LowSelectionPriority");
+		this->LowDeployPriority.Read(exINI, pSection, "LowDeployPriority");
 		this->MindControlRangeLimit.Read(exINI, pSection, "MindControlRangeLimit");
+		this->MindControl_IgnoreSize.Read(exINI, pSection, "MindControl.IgnoreSize");
+		this->MindControlSize.Read(exINI, pSection, "MindControlSize");
 
 		this->Phobos_EliteAbilities.Read(exINI, pSection, GameStrings::EliteAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
 		this->Phobos_VeteranAbilities.Read(exINI, pSection, GameStrings::VeteranAbilities(), EnumFunctions::PhobosAbilityType_ToStrings);
@@ -868,7 +905,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->OpenTopped_CheckTransportDisableWeapons.Read(exINI, pSection, "OpenTopped.CheckTransportDisableWeapons");
 
 		this->AutoFire.Read(exINI, pSection, "AutoFire");
+		this->AutoFire.Read(exINI, pSection, "AutoTargetOwnPosition");
 		this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoFire.TargetSelf");
+		this->AutoFire_TargetSelf.Read(exINI, pSection, "AutoTargetOwnPosition.Self");
 
 		this->NoSecondaryWeaponFallback.Read(exINI, pSection, "NoSecondaryWeaponFallback");
 		this->NoSecondaryWeaponFallback_AllowAA.Read(exINI, pSection, "NoSecondaryWeaponFallback.AllowAA");
@@ -955,6 +994,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->DeployFireWeapon.Read(exINI, pSection, "DeployFireWeapon");
 		this->RevengeWeapon.Read(exINI, pSection, "RevengeWeapon", true);
 		this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouses");
+		this->RevengeWeapon_AffectsHouses.Read(exINI, pSection, "RevengeWeapon.AffectsHouse");
 		this->TargetZoneScanType.Read(exINI, pSection, "TargetZoneScanType");
 
 		this->GrapplingAttack.Read(exINI, pSection, "Parasite.GrapplingAttack");
@@ -1153,7 +1193,7 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 			signed int idx = TheaterTypeClass::FindIndexById(cur);
 			if(idx != -1) {
 				this->Prerequisite_RequiredTheaters |= (1 << idx);
-			} else if (!GameStrings::IsBlank(cur)) {
+			} else if (!GameStrings::IsNone(cur)) {
 				Debug::INIParseFailed(pSection, _Prerequisite_ReqTheater_key.c_str(), cur);
 			}
 		}
@@ -1927,7 +1967,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 		this->DefaultVehicleDisguise.Read(exINI, pSection, "DefaultVehicleDisguise");
 		this->TurretResponse.Read(exINI, pSection, "TurretResponse");
-
+		this->Unload_SkipPassengers.Read(exINI, pSection, "Unload.SkipPassengers");
+		this->Unload_NoPassengers.Read(exINI, pSection, "Unload.NoPassengers");
+		this->Unload_SkipHarvester.Read(exINI, pSection, "Unload.SkipHarvester");
+		this->Unload_NoTiberiums.Read(exINI, pSection, "Unload.NoTiberiums");
 		this->PlayerGuardModePursuit.Read(exINI, pSection, "PlayerGuardModePursuit");
 		this->PlayerGuardModeStray.Read(exINI, pSection, "PlayerGuardModeStray");
 		this->PlayerGuardModeGuardRangeMultiplier.Read(exINI, pSection, "PlayerGuardModeGuardRangeMultiplier");
@@ -2311,515 +2354,6 @@ WeaponStruct* TechnoTypeExtData::GetWeaponStruct(TechnoTypeClass* pThis, int nWe
 	return isElite ? pThis->GetEliteWeapon(nWeaponIndex) : pThis->GetWeapon(nWeaponIndex);
 }
 
-#ifdef _Track
-void TechnoTypeExtData::Serialize(PhobosStreamWriter& Stm)
-{
-	auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto&
-	{
-			size_t beforeSize = Stm.Getstream()->Size();
-			auto& result = Stm.Process(field);
-			size_t afterSize = Stm.Getstream()->Size();
-			GameDebugLog::Log("[TechnoTypeExtData] SAVE %s: size %zu -> %zu (+%zu)\n",
-					fieldName, beforeSize, afterSize, afterSize - beforeSize);
-			return result;
-	};
-
-	// Convert your original .Process() calls to debugProcess() calls
-	debugProcess(this->AttachtoType, "AttachtoType");
-	debugProcess(this->HealthBar_Hide, "HealthBar_Hide");
-	debugProcess(this->HealthBar_HidePips, "HealthBar_HidePips");
-	debugProcess(this->HealthBar_Permanent, "HealthBar_Permanent");
-	debugProcess(this->HealthBar_Permanent_PipScale, "HealthBar_Permanent_PipScale");
-	debugProcess(this->UIDescription, "UIDescription");
-	debugProcess(this->LowSelectionPriority, "LowSelectionPriority");
-	debugProcess(this->MindControlRangeLimit, "MindControlRangeLimit");
-	debugProcess(this->Phobos_EliteAbilities, "Phobos_EliteAbilities");
-	debugProcess(this->Phobos_VeteranAbilities, "Phobos_VeteranAbilities");
-	debugProcess(this->E_ImmuneToType, "E_ImmuneToType");
-	debugProcess(this->V_ImmuneToType, "V_ImmuneToType");
-	debugProcess(this->R_ImmuneToType, "R_ImmuneToType");
-	debugProcess(this->Interceptor, "Interceptor");
-	debugProcess(this->Interceptor_CanTargetHouses, "Interceptor_CanTargetHouses");
-	debugProcess(this->Interceptor_GuardRange, "Interceptor_GuardRange");
-	debugProcess(this->Interceptor_MinimumGuardRange, "Interceptor_MinimumGuardRange");
-	debugProcess(this->Interceptor_Weapon, "Interceptor_Weapon");
-	debugProcess(this->Interceptor_DeleteOnIntercept, "Interceptor_DeleteOnIntercept");
-	debugProcess(this->Interceptor_WeaponOverride, "Interceptor_WeaponOverride");
-	debugProcess(this->Interceptor_WeaponReplaceProjectile, "Interceptor_WeaponReplaceProjectile");
-	debugProcess(this->Interceptor_WeaponCumulativeDamage, "Interceptor_WeaponCumulativeDamage");
-	debugProcess(this->Interceptor_KeepIntact, "Interceptor_KeepIntact");
-	debugProcess(this->Interceptor_ConsiderWeaponRange, "Interceptor_ConsiderWeaponRange");
-	debugProcess(this->Interceptor_OnlyTargetBullet, "Interceptor_OnlyTargetBullet");
-	debugProcess(this->Interceptor_ApplyFirepowerMult, "Interceptor_ApplyFirepowerMult");
-	debugProcess(this->GroupAs, "GroupAs");
-	debugProcess(this->RadarJamRadius, "RadarJamRadius");
-	debugProcess(this->InhibitorRange, "InhibitorRange");
-	debugProcess(this->DesignatorRange, "DesignatorRange");
-	debugProcess(this->TurretOffset, "TurretOffset");
-	debugProcess(this->TurretShadow, "TurretShadow");
-	debugProcess(this->ShadowIndices, "ShadowIndices");
-	debugProcess(this->ShadowIndex_Frame, "ShadowIndex_Frame");
-	debugProcess(this->ShadowSizeCharacteristicHeight, "ShadowSizeCharacteristicHeight");
-	debugProcess(this->Powered_KillSpawns, "Powered_KillSpawns");
-	debugProcess(this->Spawn_LimitedRange, "Spawn_LimitedRange");
-	debugProcess(this->Spawn_LimitedExtraRange, "Spawn_LimitedExtraRange");
-	debugProcess(this->AdvancedDrive_Reverse, "AdvancedDrive_Reverse");
-	debugProcess(this->AdvancedDrive_Reverse_FaceTarget, "AdvancedDrive_Reverse_FaceTarget");
-	debugProcess(this->AdvancedDrive_Reverse_FaceTargetRange, "AdvancedDrive_Reverse_FaceTargetRange");
-	debugProcess(this->AdvancedDrive_Reverse_MinimumDistance, "AdvancedDrive_Reverse_MinimumDistance");
-	debugProcess(this->AdvancedDrive_Reverse_RetreatDuration, "AdvancedDrive_Reverse_RetreatDuration");
-	debugProcess(this->AdvancedDrive_Reverse_Speed, "AdvancedDrive_Reverse_Speed");
-	debugProcess(this->AdvancedDrive_Hover, "AdvancedDrive_Hover");
-	debugProcess(this->AdvancedDrive_Hover_Sink, "AdvancedDrive_Hover_Sink");
-	debugProcess(this->AdvancedDrive_Hover_Spin, "AdvancedDrive_Hover_Spin");
-	debugProcess(this->AdvancedDrive_Hover_Tilt, "AdvancedDrive_Hover_Tilt");
-	debugProcess(this->AdvancedDrive_Hover_Height, "AdvancedDrive_Hover_Height");
-	debugProcess(this->AdvancedDrive_Hover_Dampen, "AdvancedDrive_Hover_Dampen");
-	debugProcess(this->AdvancedDrive_Hover_Bob, "AdvancedDrive_Hover_Bob");
-	debugProcess(this->Harvester_CanGuardArea, "Harvester_CanGuardArea");
-	debugProcess(this->TiberiumEaterType, "TiberiumEaterType");
-	debugProcess(this->Spawner_DelayFrames, "Spawner_DelayFrames");
-	debugProcess(this->Harvester_Counted, "Harvester_Counted");
-	debugProcess(this->Promote_IncludeSpawns, "Promote_IncludeSpawns");
-	debugProcess(this->ImmuneToCrit, "ImmuneToCrit");
-	debugProcess(this->MultiMindControl_ReleaseVictim, "MultiMindControl_ReleaseVictim");
-	debugProcess(this->CameoPriority, "CameoPriority");
-	debugProcess(this->NoManualMove, "NoManualMove");
-	debugProcess(this->InitialStrength, "InitialStrength");
-	debugProcess(this->Death_NoAmmo, "Death_NoAmmo");
-	debugProcess(this->Death_Countdown, "Death_Countdown");
-	debugProcess(this->Death_Method, "Death_Method");
-	debugProcess(this->AutoDeath_Nonexist, "AutoDeath_Nonexist");
-	debugProcess(this->AutoDeath_Nonexist_House, "AutoDeath_Nonexist_House");
-	debugProcess(this->AutoDeath_Nonexist_Any, "AutoDeath_Nonexist_Any");
-	debugProcess(this->AutoDeath_Nonexist_AllowLimboed, "AutoDeath_Nonexist_AllowLimboed");
-	debugProcess(this->AutoDeath_Exist, "AutoDeath_Exist");
-	debugProcess(this->AutoDeath_Exist_House, "AutoDeath_Exist_House");
-	debugProcess(this->AutoDeath_Exist_Any, "AutoDeath_Exist_Any");
-	debugProcess(this->AutoDeath_Exist_AllowLimboed, "AutoDeath_Exist_AllowLimboed");
-	debugProcess(this->AutoDeath_VanishAnimation, "AutoDeath_VanishAnimation");
-	debugProcess(this->Convert_AutoDeath, "Convert_AutoDeath");
-	debugProcess(this->Death_WithMaster, "Death_WithMaster");
-	debugProcess(this->AutoDeath_MoneyExceed, "AutoDeath_MoneyExceed");
-	debugProcess(this->AutoDeath_MoneyBelow, "AutoDeath_MoneyBelow");
-	debugProcess(this->AutoDeath_LowPower, "AutoDeath_LowPower");
-	debugProcess(this->AutoDeath_FullPower, "AutoDeath_FullPower");
-	debugProcess(this->AutoDeath_PassengerExceed, "AutoDeath_PassengerExceed");
-	debugProcess(this->AutoDeath_PassengerBelow, "AutoDeath_PassengerBelow");
-	debugProcess(this->AutoDeath_ContentIfAnyMatch, "AutoDeath_ContentIfAnyMatch");
-	debugProcess(this->AutoDeath_OwnedByPlayer, "AutoDeath_OwnedByPlayer");
-	debugProcess(this->AutoDeath_OwnedByAI, "AutoDeath_OwnedByAI");
-	debugProcess(this->Slaved_ReturnTo, "Slaved_ReturnTo");
-	debugProcess(this->Death_IfChangeOwnership, "Death_IfChangeOwnership");
-	debugProcess(this->ShieldType, "ShieldType");
-	debugProcess(this->WarpOut, "WarpOut");
-	debugProcess(this->WarpIn, "WarpIn");
-	debugProcess(this->WarpAway, "WarpAway");
-	debugProcess(this->ChronoTrigger, "ChronoTrigger");
-	debugProcess(this->ChronoDistanceFactor, "ChronoDistanceFactor");
-	debugProcess(this->ChronoMinimumDelay, "ChronoMinimumDelay");
-	debugProcess(this->ChronoRangeMinimum, "ChronoRangeMinimum");
-	debugProcess(this->ChronoDelay, "ChronoDelay");
-	debugProcess(this->WarpInWeapon, "WarpInWeapon");
-	debugProcess(this->WarpInMinRangeWeapon, "WarpInMinRangeWeapon");
-	debugProcess(this->WarpOutWeapon, "WarpOutWeapon");
-	debugProcess(this->WarpInWeapon_UseDistanceAsDamage, "WarpInWeapon_UseDistanceAsDamage");
-	debugProcess(this->OreGathering_Anims, "OreGathering_Anims");
-	debugProcess(this->OreGathering_Tiberiums, "OreGathering_Tiberiums");
-	debugProcess(this->OreGathering_FramesPerDir, "OreGathering_FramesPerDir");
-	debugProcess(this->LaserTrailData, "LaserTrailData");
-	debugProcess(this->DestroyAnim_Random, "DestroyAnim_Random");
-	debugProcess(this->DestroyAnimSpecific, "DestroyAnimSpecific");
-	debugProcess(this->NotHuman_RandomDeathSequence, "NotHuman_RandomDeathSequence");
-	debugProcess(this->DefaultDisguise, "DefaultDisguise");
-	debugProcess(this->PassengerDeletionType, "PassengerDeletionType");
-	debugProcess(this->OpenTopped_RangeBonus, "OpenTopped_RangeBonus");
-	debugProcess(this->OpenTopped_DamageMultiplier, "OpenTopped_DamageMultiplier");
-	debugProcess(this->OpenTopped_WarpDistance, "OpenTopped_WarpDistance");
-	debugProcess(this->OpenTopped_IgnoreRangefinding, "OpenTopped_IgnoreRangefinding");
-	debugProcess(this->OpenTopped_AllowFiringIfDeactivated, "OpenTopped_AllowFiringIfDeactivated");
-	debugProcess(this->OpenTopped_ShareTransportTarget, "OpenTopped_ShareTransportTarget");
-	debugProcess(this->OpenTopped_UseTransportRangeModifiers, "OpenTopped_UseTransportRangeModifiers");
-	debugProcess(this->OpenTopped_CheckTransportDisableWeapons, "OpenTopped_CheckTransportDisableWeapons");
-	debugProcess(this->AutoFire, "AutoFire");
-	debugProcess(this->AutoFire_TargetSelf, "AutoFire_TargetSelf");
-	debugProcess(this->NoSecondaryWeaponFallback, "NoSecondaryWeaponFallback");
-	debugProcess(this->NoSecondaryWeaponFallback_AllowAA, "NoSecondaryWeaponFallback_AllowAA");
-	debugProcess(this->NoAmmoWeapon, "NoAmmoWeapon");
-	debugProcess(this->NoAmmoAmount, "NoAmmoAmount");
-	debugProcess(this->JumpjetAllowLayerDeviation, "JumpjetAllowLayerDeviation");
-	debugProcess(this->JumpjetTurnToTarget, "JumpjetTurnToTarget");
-	debugProcess(this->JumpjetCrash_Rotate, "JumpjetCrash_Rotate");
-	debugProcess(this->DeployingAnims, "DeployingAnims");
-	debugProcess(this->DeployingAnim_KeepUnitVisible, "DeployingAnim_KeepUnitVisible");
-	debugProcess(this->DeployingAnim_ReverseForUndeploy, "DeployingAnim_ReverseForUndeploy");
-	debugProcess(this->DeployingAnim_UseUnitDrawer, "DeployingAnim_UseUnitDrawer");
-	debugProcess(this->SelfHealGainType, "SelfHealGainType");
-	debugProcess(this->EnemyUIName, "EnemyUIName");
-	debugProcess(this->ForceWeapon_Naval_Decloaked, "ForceWeapon_Naval_Decloaked");
-	debugProcess(this->ForceWeapon_UnderEMP, "ForceWeapon_UnderEMP");
-	debugProcess(this->ForceWeapon_Cloaked, "ForceWeapon_Cloaked");
-	debugProcess(this->ForceWeapon_Disguised, "ForceWeapon_Disguised");
-	debugProcess(this->ImmuneToEMP, "ImmuneToEMP");
-	debugProcess(this->Ammo_Shared, "Ammo_Shared");
-	debugProcess(this->Ammo_Shared_Group, "Ammo_Shared_Group");
-	debugProcess(this->Passengers_SyncOwner, "Passengers_SyncOwner");
-	debugProcess(this->Passengers_SyncOwner_RevertOnExit, "Passengers_SyncOwner_RevertOnExit");
-	debugProcess(this->Aircraft_DecreaseAmmo, "Aircraft_DecreaseAmmo");
-	debugProcess(this->UseDisguiseMovementSpeed, "UseDisguiseMovementSpeed");
-	debugProcess(this->Insignia, "Insignia");
-	debugProcess(this->InsigniaFrames, "InsigniaFrames");
-	debugProcess(this->InsigniaFrame, "InsigniaFrame");
-	debugProcess(this->Insignia_ShowEnemy, "Insignia_ShowEnemy");
-	debugProcess(this->Insignia_Weapon, "Insignia_Weapon");
-	debugProcess(this->Insignia_Passengers, "Insignia_Passengers");
-	debugProcess(this->InsigniaFrame_Passengers, "InsigniaFrame_Passengers");
-	debugProcess(this->InsigniaFrames_Passengers, "InsigniaFrames_Passengers");
-	debugProcess(this->InitialStrength_Cloning, "InitialStrength_Cloning");
-	debugProcess(this->SelectBox, "SelectBox");
-	debugProcess(this->HideSelectBox, "HideSelectBox");
-	debugProcess(this->Explodes_KillPassengers, "Explodes_KillPassengers");
-	debugProcess(this->DeployFireWeapon, "DeployFireWeapon");
-	debugProcess(this->RevengeWeapon, "RevengeWeapon");
-	debugProcess(this->RevengeWeapon_AffectsHouses, "RevengeWeapon_AffectsHouses");
-	debugProcess(this->TargetZoneScanType, "TargetZoneScanType");
-	debugProcess(this->GrapplingAttack, "GrapplingAttack");
-	debugProcess(this->PronePrimaryFireFLH, "PronePrimaryFireFLH");
-	debugProcess(this->ProneSecondaryFireFLH, "ProneSecondaryFireFLH");
-	debugProcess(this->DeployedPrimaryFireFLH, "DeployedPrimaryFireFLH");
-	debugProcess(this->DeployedSecondaryFireFLH, "DeployedSecondaryFireFLH");
-	debugProcess(this->E_PronePrimaryFireFLH, "E_PronePrimaryFireFLH");
-	debugProcess(this->E_ProneSecondaryFireFLH, "E_ProneSecondaryFireFLH");
-	debugProcess(this->E_DeployedPrimaryFireFLH, "E_DeployedPrimaryFireFLH");
-	debugProcess(this->E_DeployedSecondaryFireFLH, "E_DeployedSecondaryFireFLH");
-	debugProcess(this->WeaponBurstFLHs, "WeaponBurstFLHs");
-	debugProcess(this->CrouchedWeaponBurstFLHs, "CrouchedWeaponBurstFLHs");
-	debugProcess(this->DeployedWeaponBurstFLHs, "DeployedWeaponBurstFLHs");
-	debugProcess(this->IronCurtain_KeptOnDeploy, "IronCurtain_KeptOnDeploy");
-	debugProcess(this->ForceShield_KeptOnDeploy, "ForceShield_KeptOnDeploy");
-	debugProcess(this->IronCurtain_Effect, "IronCurtain_Effect");
-	debugProcess(this->IronCurtain_KillWarhead, "IronCurtain_KillWarhead");
-	debugProcess(this->ForceShield_Effect, "ForceShield_Effect");
-	debugProcess(this->ForceShield_KillWarhead, "ForceShield_KillWarhead");
-	debugProcess(this->SellSound, "SellSound");
-	debugProcess(this->EVA_Sold, "EVA_Sold");
-	debugProcess(this->AlternateFLHs, "AlternateFLHs");
-	debugProcess(this->Spawner_SpawnOffsets, "Spawner_SpawnOffsets");
-	debugProcess(this->Spawner_SpawnOffsets_OverrideWeaponFLH, "Spawner_SpawnOffsets_OverrideWeaponFLH");
-
-	// Continue the pattern for the remaining fields...
-	// Due to space constraints, I'm showing the pattern with a representative sample.
-	// You would continue this for all the remaining fields in your original function.
-
-		// The Otamaa pragma region fields
-	debugProcess(this->FacingRotation_Disable, "FacingRotation_Disable");
-	debugProcess(this->FacingRotation_DisalbeOnEMP, "FacingRotation_DisalbeOnEMP");
-	debugProcess(this->FacingRotation_DisalbeOnDeactivated, "FacingRotation_DisalbeOnDeactivated");
-	debugProcess(this->FacingRotation_DisableOnDriverKilled, "FacingRotation_DisableOnDriverKilled");
-	debugProcess(this->DontShake, "DontShake");
-	debugProcess(this->DiskLaserChargeUp, "DiskLaserChargeUp");
-	debugProcess(this->DiskLaserDetonate, "DiskLaserDetonate");
-	debugProcess(this->DrainAnimationType, "DrainAnimationType");
-	debugProcess(this->DrainMoneyFrameDelay, "DrainMoneyFrameDelay");
-	debugProcess(this->DrainMoneyAmount, "DrainMoneyAmount");
-	debugProcess(this->DrainMoney_Display, "DrainMoney_Display");
-	debugProcess(this->DrainMoney_Display_Houses, "DrainMoney_Display_Houses");
-	debugProcess(this->DrainMoney_Display_AtFirer, "DrainMoney_Display_AtFirer");
-	debugProcess(this->DrainMoney_Display_Offset, "DrainMoney_Display_Offset");
-	// ... continue for all remaining Otamaa fields
-
-	// Final extension data fields
-	debugProcess(this->MyExtraFireData, "MyExtraFireData");
-	debugProcess(this->MyDiveData, "MyDiveData");
-	debugProcess(this->MyPutData, "MyPutData");
-	debugProcess(this->MyGiftBoxData, "MyGiftBoxData");
-	debugProcess(this->MyPassangersData, "MyPassangersData");
-	debugProcess(this->MySpawnSupportFLH, "MySpawnSupportFLH");
-	debugProcess(this->MySpawnSupportDatas, "MySpawnSupportDatas");
-	debugProcess(this->Trails, "Trails");
-	debugProcess(this->DamageSelfData, "DamageSelfData");
-	debugProcess(this->AttachedEffect, "AttachedEffect");
-	debugProcess(this->NoAmmoEffectAnim, "NoAmmoEffectAnim");
-	debugProcess(this->AttackFriendlies_WeaponIdx, "AttackFriendlies_WeaponIdx");
-	debugProcess(this->AttackFriendlies_AutoAttack, "AttackFriendlies_AutoAttack");
-	debugProcess(this->PipScaleIndex, "PipScaleIndex");
-	debugProcess(this->AmmoPip, "AmmoPip");
-	debugProcess(this->AmmoPip_Palette, "AmmoPip_Palette");
-	debugProcess(this->AmmoPipOffset, "AmmoPipOffset");
-	debugProcess(this->AmmoPip_Offset, "AmmoPip_Offset");
-	debugProcess(this->AmmoPip_shape, "AmmoPip_shape");
-	debugProcess(this->ShowSpawnsPips, "ShowSpawnsPips");
-	debugProcess(this->SpawnsPip, "SpawnsPip");
-	debugProcess(this->EmptySpawnsPip, "EmptySpawnsPip");
-	debugProcess(this->SpawnsPipSize, "SpawnsPipSize");
-	debugProcess(this->SpawnsPipOffset, "SpawnsPipOffset");
-	debugProcess(this->Secret_RequiredHouses, "Secret_RequiredHouses");
-	debugProcess(this->Secret_ForbiddenHouses, "Secret_ForbiddenHouses");
-	debugProcess(this->RequiredStolenTech, "RequiredStolenTech");
-	debugProcess(this->ReloadInTransport, "ReloadInTransport");
-	// ... continue for all remaining fields following the same pattern
-}
-
-void TechnoTypeExtData::Serialize(PhobosStreamReader& Stm)
-{
-	auto debugProcess = [&Stm](auto& field, const char* fieldName) -> auto& {
-		{
-				size_t beforeOffset = Stm.Getstream()->Offset();
-				bool beforeSuccess = Stm.Success();
-				auto& result = Stm.Process(field);
-				size_t afterOffset = Stm.Getstream()->Offset();
-				bool afterSuccess = Stm.Success();
-
-				GameDebugLog::Log("[TechnoTypeExtData] LOAD %s: offset %zu -> %zu (+%zu), success: %s -> %s\n",
-					fieldName, beforeOffset, afterOffset, afterOffset - beforeOffset,
-					beforeSuccess ? "true" : "false", afterSuccess ? "true" : "false");
-
-				if (!afterSuccess && beforeSuccess)
-				{
-					GameDebugLog::Log("[TechnoTypeExtData] ERROR: %s caused stream failure!\n", fieldName);
-				}
-				return result;
-		}
-	};
-
-
-	// Convert your original .Process() calls to debugProcess() calls
-	debugProcess(this->AttachtoType, "AttachtoType");
-	debugProcess(this->HealthBar_Hide, "HealthBar_Hide");
-	debugProcess(this->HealthBar_HidePips, "HealthBar_HidePips");
-	debugProcess(this->HealthBar_Permanent, "HealthBar_Permanent");
-	debugProcess(this->HealthBar_Permanent_PipScale, "HealthBar_Permanent_PipScale");
-	debugProcess(this->UIDescription, "UIDescription");
-	debugProcess(this->LowSelectionPriority, "LowSelectionPriority");
-	debugProcess(this->MindControlRangeLimit, "MindControlRangeLimit");
-	debugProcess(this->Phobos_EliteAbilities, "Phobos_EliteAbilities");
-	debugProcess(this->Phobos_VeteranAbilities, "Phobos_VeteranAbilities");
-	debugProcess(this->E_ImmuneToType, "E_ImmuneToType");
-	debugProcess(this->V_ImmuneToType, "V_ImmuneToType");
-	debugProcess(this->R_ImmuneToType, "R_ImmuneToType");
-	debugProcess(this->Interceptor, "Interceptor");
-	debugProcess(this->Interceptor_CanTargetHouses, "Interceptor_CanTargetHouses");
-	debugProcess(this->Interceptor_GuardRange, "Interceptor_GuardRange");
-	debugProcess(this->Interceptor_MinimumGuardRange, "Interceptor_MinimumGuardRange");
-	debugProcess(this->Interceptor_Weapon, "Interceptor_Weapon");
-	debugProcess(this->Interceptor_DeleteOnIntercept, "Interceptor_DeleteOnIntercept");
-	debugProcess(this->Interceptor_WeaponOverride, "Interceptor_WeaponOverride");
-	debugProcess(this->Interceptor_WeaponReplaceProjectile, "Interceptor_WeaponReplaceProjectile");
-	debugProcess(this->Interceptor_WeaponCumulativeDamage, "Interceptor_WeaponCumulativeDamage");
-	debugProcess(this->Interceptor_KeepIntact, "Interceptor_KeepIntact");
-	debugProcess(this->Interceptor_ConsiderWeaponRange, "Interceptor_ConsiderWeaponRange");
-	debugProcess(this->Interceptor_OnlyTargetBullet, "Interceptor_OnlyTargetBullet");
-	debugProcess(this->Interceptor_ApplyFirepowerMult, "Interceptor_ApplyFirepowerMult");
-	debugProcess(this->GroupAs, "GroupAs");
-	debugProcess(this->RadarJamRadius, "RadarJamRadius");
-	debugProcess(this->InhibitorRange, "InhibitorRange");
-	debugProcess(this->DesignatorRange, "DesignatorRange");
-	debugProcess(this->TurretOffset, "TurretOffset");
-	debugProcess(this->TurretShadow, "TurretShadow");
-	debugProcess(this->ShadowIndices, "ShadowIndices");
-	debugProcess(this->ShadowIndex_Frame, "ShadowIndex_Frame");
-	debugProcess(this->ShadowSizeCharacteristicHeight, "ShadowSizeCharacteristicHeight");
-	debugProcess(this->Powered_KillSpawns, "Powered_KillSpawns");
-	debugProcess(this->Spawn_LimitedRange, "Spawn_LimitedRange");
-	debugProcess(this->Spawn_LimitedExtraRange, "Spawn_LimitedExtraRange");
-	debugProcess(this->AdvancedDrive_Reverse, "AdvancedDrive_Reverse");
-	debugProcess(this->AdvancedDrive_Reverse_FaceTarget, "AdvancedDrive_Reverse_FaceTarget");
-	debugProcess(this->AdvancedDrive_Reverse_FaceTargetRange, "AdvancedDrive_Reverse_FaceTargetRange");
-	debugProcess(this->AdvancedDrive_Reverse_MinimumDistance, "AdvancedDrive_Reverse_MinimumDistance");
-	debugProcess(this->AdvancedDrive_Reverse_RetreatDuration, "AdvancedDrive_Reverse_RetreatDuration");
-	debugProcess(this->AdvancedDrive_Reverse_Speed, "AdvancedDrive_Reverse_Speed");
-	debugProcess(this->AdvancedDrive_Hover, "AdvancedDrive_Hover");
-	debugProcess(this->AdvancedDrive_Hover_Sink, "AdvancedDrive_Hover_Sink");
-	debugProcess(this->AdvancedDrive_Hover_Spin, "AdvancedDrive_Hover_Spin");
-	debugProcess(this->AdvancedDrive_Hover_Tilt, "AdvancedDrive_Hover_Tilt");
-	debugProcess(this->AdvancedDrive_Hover_Height, "AdvancedDrive_Hover_Height");
-	debugProcess(this->AdvancedDrive_Hover_Dampen, "AdvancedDrive_Hover_Dampen");
-	debugProcess(this->AdvancedDrive_Hover_Bob, "AdvancedDrive_Hover_Bob");
-	debugProcess(this->Harvester_CanGuardArea, "Harvester_CanGuardArea");
-	debugProcess(this->Harvester_CanGuardArea_RequireTarget, "Harvester_CanGuardArea_RequireTarget");
-	debugProcess(this->TiberiumEaterType, "TiberiumEaterType");
-	debugProcess(this->Spawner_DelayFrames, "Spawner_DelayFrames");
-	debugProcess(this->Harvester_Counted, "Harvester_Counted");
-	debugProcess(this->Promote_IncludeSpawns, "Promote_IncludeSpawns");
-	debugProcess(this->ImmuneToCrit, "ImmuneToCrit");
-	debugProcess(this->MultiMindControl_ReleaseVictim, "MultiMindControl_ReleaseVictim");
-	debugProcess(this->CameoPriority, "CameoPriority");
-	debugProcess(this->NoManualMove, "NoManualMove");
-	debugProcess(this->InitialStrength, "InitialStrength");
-	debugProcess(this->Death_NoAmmo, "Death_NoAmmo");
-	debugProcess(this->Death_Countdown, "Death_Countdown");
-	debugProcess(this->Death_Method, "Death_Method");
-	debugProcess(this->AutoDeath_Nonexist, "AutoDeath_Nonexist");
-	debugProcess(this->AutoDeath_Nonexist_House, "AutoDeath_Nonexist_House");
-	debugProcess(this->AutoDeath_Nonexist_Any, "AutoDeath_Nonexist_Any");
-	debugProcess(this->AutoDeath_Nonexist_AllowLimboed, "AutoDeath_Nonexist_AllowLimboed");
-	debugProcess(this->AutoDeath_Exist, "AutoDeath_Exist");
-	debugProcess(this->AutoDeath_Exist_House, "AutoDeath_Exist_House");
-	debugProcess(this->AutoDeath_Exist_Any, "AutoDeath_Exist_Any");
-	debugProcess(this->AutoDeath_Exist_AllowLimboed, "AutoDeath_Exist_AllowLimboed");
-	debugProcess(this->AutoDeath_VanishAnimation, "AutoDeath_VanishAnimation");
-	debugProcess(this->Convert_AutoDeath, "Convert_AutoDeath");
-	debugProcess(this->Death_WithMaster, "Death_WithMaster");
-	debugProcess(this->AutoDeath_MoneyExceed, "AutoDeath_MoneyExceed");
-	debugProcess(this->AutoDeath_MoneyBelow, "AutoDeath_MoneyBelow");
-	debugProcess(this->AutoDeath_LowPower, "AutoDeath_LowPower");
-	debugProcess(this->AutoDeath_FullPower, "AutoDeath_FullPower");
-	debugProcess(this->AutoDeath_PassengerExceed, "AutoDeath_PassengerExceed");
-	debugProcess(this->AutoDeath_PassengerBelow, "AutoDeath_PassengerBelow");
-	debugProcess(this->AutoDeath_ContentIfAnyMatch, "AutoDeath_ContentIfAnyMatch");
-	debugProcess(this->AutoDeath_OwnedByPlayer, "AutoDeath_OwnedByPlayer");
-	debugProcess(this->AutoDeath_OwnedByAI, "AutoDeath_OwnedByAI");
-	debugProcess(this->Slaved_ReturnTo, "Slaved_ReturnTo");
-	debugProcess(this->Death_IfChangeOwnership, "Death_IfChangeOwnership");
-	debugProcess(this->ShieldType, "ShieldType");
-	debugProcess(this->WarpOut, "WarpOut");
-	debugProcess(this->WarpIn, "WarpIn");
-	debugProcess(this->WarpAway, "WarpAway");
-	debugProcess(this->ChronoTrigger, "ChronoTrigger");
-	debugProcess(this->ChronoDistanceFactor, "ChronoDistanceFactor");
-	debugProcess(this->ChronoMinimumDelay, "ChronoMinimumDelay");
-	debugProcess(this->ChronoRangeMinimum, "ChronoRangeMinimum");
-	debugProcess(this->ChronoDelay, "ChronoDelay");
-	debugProcess(this->WarpInWeapon, "WarpInWeapon");
-	debugProcess(this->WarpInMinRangeWeapon, "WarpInMinRangeWeapon");
-	debugProcess(this->WarpOutWeapon, "WarpOutWeapon");
-	debugProcess(this->WarpInWeapon_UseDistanceAsDamage, "WarpInWeapon_UseDistanceAsDamage");
-	debugProcess(this->OreGathering_Anims, "OreGathering_Anims");
-	debugProcess(this->OreGathering_Tiberiums, "OreGathering_Tiberiums");
-	debugProcess(this->OreGathering_FramesPerDir, "OreGathering_FramesPerDir");
-	debugProcess(this->LaserTrailData, "LaserTrailData");
-	debugProcess(this->DestroyAnim_Random, "DestroyAnim_Random");
-	debugProcess(this->DestroyAnimSpecific, "DestroyAnimSpecific");
-	debugProcess(this->NotHuman_RandomDeathSequence, "NotHuman_RandomDeathSequence");
-	debugProcess(this->DefaultDisguise, "DefaultDisguise");
-	debugProcess(this->PassengerDeletionType, "PassengerDeletionType");
-	debugProcess(this->OpenTopped_RangeBonus, "OpenTopped_RangeBonus");
-	debugProcess(this->OpenTopped_DamageMultiplier, "OpenTopped_DamageMultiplier");
-	debugProcess(this->OpenTopped_WarpDistance, "OpenTopped_WarpDistance");
-	debugProcess(this->OpenTopped_IgnoreRangefinding, "OpenTopped_IgnoreRangefinding");
-	debugProcess(this->OpenTopped_AllowFiringIfDeactivated, "OpenTopped_AllowFiringIfDeactivated");
-	debugProcess(this->OpenTopped_ShareTransportTarget, "OpenTopped_ShareTransportTarget");
-	debugProcess(this->OpenTopped_UseTransportRangeModifiers, "OpenTopped_UseTransportRangeModifiers");
-	debugProcess(this->OpenTopped_CheckTransportDisableWeapons, "OpenTopped_CheckTransportDisableWeapons");
-	debugProcess(this->AutoFire, "AutoFire");
-	debugProcess(this->AutoFire_TargetSelf, "AutoFire_TargetSelf");
-	debugProcess(this->NoSecondaryWeaponFallback, "NoSecondaryWeaponFallback");
-	debugProcess(this->NoSecondaryWeaponFallback_AllowAA, "NoSecondaryWeaponFallback_AllowAA");
-	debugProcess(this->NoAmmoWeapon, "NoAmmoWeapon");
-	debugProcess(this->NoAmmoAmount, "NoAmmoAmount");
-	debugProcess(this->JumpjetAllowLayerDeviation, "JumpjetAllowLayerDeviation");
-	debugProcess(this->JumpjetTurnToTarget, "JumpjetTurnToTarget");
-	debugProcess(this->JumpjetCrash_Rotate, "JumpjetCrash_Rotate");
-	debugProcess(this->DeployingAnims, "DeployingAnims");
-	debugProcess(this->DeployingAnim_KeepUnitVisible, "DeployingAnim_KeepUnitVisible");
-	debugProcess(this->DeployingAnim_ReverseForUndeploy, "DeployingAnim_ReverseForUndeploy");
-	debugProcess(this->DeployingAnim_UseUnitDrawer, "DeployingAnim_UseUnitDrawer");
-	debugProcess(this->SelfHealGainType, "SelfHealGainType");
-	debugProcess(this->EnemyUIName, "EnemyUIName");
-	debugProcess(this->ForceWeapon_Naval_Decloaked, "ForceWeapon_Naval_Decloaked");
-	debugProcess(this->ForceWeapon_UnderEMP, "ForceWeapon_UnderEMP");
-	debugProcess(this->ForceWeapon_Cloaked, "ForceWeapon_Cloaked");
-	debugProcess(this->ForceWeapon_Disguised, "ForceWeapon_Disguised");
-	debugProcess(this->ImmuneToEMP, "ImmuneToEMP");
-	debugProcess(this->Ammo_Shared, "Ammo_Shared");
-	debugProcess(this->Ammo_Shared_Group, "Ammo_Shared_Group");
-	debugProcess(this->Passengers_SyncOwner, "Passengers_SyncOwner");
-	debugProcess(this->Passengers_SyncOwner_RevertOnExit, "Passengers_SyncOwner_RevertOnExit");
-	debugProcess(this->Aircraft_DecreaseAmmo, "Aircraft_DecreaseAmmo");
-	debugProcess(this->UseDisguiseMovementSpeed, "UseDisguiseMovementSpeed");
-	debugProcess(this->Insignia, "Insignia");
-	debugProcess(this->InsigniaFrames, "InsigniaFrames");
-	debugProcess(this->InsigniaFrame, "InsigniaFrame");
-	debugProcess(this->Insignia_ShowEnemy, "Insignia_ShowEnemy");
-	debugProcess(this->Insignia_Weapon, "Insignia_Weapon");
-	debugProcess(this->Insignia_Passengers, "Insignia_Passengers");
-	debugProcess(this->InsigniaFrame_Passengers, "InsigniaFrame_Passengers");
-	debugProcess(this->InsigniaFrames_Passengers, "InsigniaFrames_Passengers");
-	debugProcess(this->InitialStrength_Cloning, "InitialStrength_Cloning");
-	debugProcess(this->SelectBox, "SelectBox");
-	debugProcess(this->HideSelectBox, "HideSelectBox");
-	debugProcess(this->Explodes_KillPassengers, "Explodes_KillPassengers");
-	debugProcess(this->DeployFireWeapon, "DeployFireWeapon");
-	debugProcess(this->RevengeWeapon, "RevengeWeapon");
-	debugProcess(this->RevengeWeapon_AffectsHouses, "RevengeWeapon_AffectsHouses");
-	debugProcess(this->TargetZoneScanType, "TargetZoneScanType");
-	debugProcess(this->GrapplingAttack, "GrapplingAttack");
-	debugProcess(this->PronePrimaryFireFLH, "PronePrimaryFireFLH");
-	debugProcess(this->ProneSecondaryFireFLH, "ProneSecondaryFireFLH");
-	debugProcess(this->DeployedPrimaryFireFLH, "DeployedPrimaryFireFLH");
-	debugProcess(this->DeployedSecondaryFireFLH, "DeployedSecondaryFireFLH");
-	debugProcess(this->E_PronePrimaryFireFLH, "E_PronePrimaryFireFLH");
-	debugProcess(this->E_ProneSecondaryFireFLH, "E_ProneSecondaryFireFLH");
-	debugProcess(this->E_DeployedPrimaryFireFLH, "E_DeployedPrimaryFireFLH");
-	debugProcess(this->E_DeployedSecondaryFireFLH, "E_DeployedSecondaryFireFLH");
-	debugProcess(this->WeaponBurstFLHs, "WeaponBurstFLHs");
-	debugProcess(this->CrouchedWeaponBurstFLHs, "CrouchedWeaponBurstFLHs");
-	debugProcess(this->DeployedWeaponBurstFLHs, "DeployedWeaponBurstFLHs");
-	debugProcess(this->IronCurtain_KeptOnDeploy, "IronCurtain_KeptOnDeploy");
-	debugProcess(this->ForceShield_KeptOnDeploy, "ForceShield_KeptOnDeploy");
-	debugProcess(this->IronCurtain_Effect, "IronCurtain_Effect");
-	debugProcess(this->IronCurtain_KillWarhead, "IronCurtain_KillWarhead");
-	debugProcess(this->ForceShield_Effect, "ForceShield_Effect");
-	debugProcess(this->ForceShield_KillWarhead, "ForceShield_KillWarhead");
-	debugProcess(this->SellSound, "SellSound");
-	debugProcess(this->EVA_Sold, "EVA_Sold");
-	debugProcess(this->AlternateFLHs, "AlternateFLHs");
-	debugProcess(this->Spawner_SpawnOffsets, "Spawner_SpawnOffsets");
-	debugProcess(this->Spawner_SpawnOffsets_OverrideWeaponFLH, "Spawner_SpawnOffsets_OverrideWeaponFLH");
-
-	// Continue the pattern for the remaining fields...
-	// Due to space constraints, I'm showing the pattern with a representative sample.
-	// You would continue this for all the remaining fields in your original function.
-
-		// The Otamaa pragma region fields
-	debugProcess(this->FacingRotation_Disable, "FacingRotation_Disable");
-	debugProcess(this->FacingRotation_DisalbeOnEMP, "FacingRotation_DisalbeOnEMP");
-	debugProcess(this->FacingRotation_DisalbeOnDeactivated, "FacingRotation_DisalbeOnDeactivated");
-	debugProcess(this->FacingRotation_DisableOnDriverKilled, "FacingRotation_DisableOnDriverKilled");
-	debugProcess(this->DontShake, "DontShake");
-	debugProcess(this->DiskLaserChargeUp, "DiskLaserChargeUp");
-	debugProcess(this->DiskLaserDetonate, "DiskLaserDetonate");
-	debugProcess(this->DrainAnimationType, "DrainAnimationType");
-	debugProcess(this->DrainMoneyFrameDelay, "DrainMoneyFrameDelay");
-	debugProcess(this->DrainMoneyAmount, "DrainMoneyAmount");
-	debugProcess(this->DrainMoney_Display, "DrainMoney_Display");
-	debugProcess(this->DrainMoney_Display_Houses, "DrainMoney_Display_Houses");
-	debugProcess(this->DrainMoney_Display_AtFirer, "DrainMoney_Display_AtFirer");
-	debugProcess(this->DrainMoney_Display_Offset, "DrainMoney_Display_Offset");
-	// ... continue for all remaining Otamaa fields
-
-	// Final extension data fields
-	debugProcess(this->MyExtraFireData, "MyExtraFireData");
-	debugProcess(this->MyDiveData, "MyDiveData");
-	debugProcess(this->MyPutData, "MyPutData");
-	debugProcess(this->MyGiftBoxData, "MyGiftBoxData");
-	debugProcess(this->MyPassangersData, "MyPassangersData");
-	debugProcess(this->MySpawnSupportFLH, "MySpawnSupportFLH");
-	debugProcess(this->MySpawnSupportDatas, "MySpawnSupportDatas");
-	debugProcess(this->Trails, "Trails");
-	debugProcess(this->DamageSelfData, "DamageSelfData");
-	debugProcess(this->AttachedEffect, "AttachedEffect");
-	debugProcess(this->NoAmmoEffectAnim, "NoAmmoEffectAnim");
-	debugProcess(this->AttackFriendlies_WeaponIdx, "AttackFriendlies_WeaponIdx");
-	debugProcess(this->AttackFriendlies_AutoAttack, "AttackFriendlies_AutoAttack");
-	debugProcess(this->PipScaleIndex, "PipScaleIndex");
-	debugProcess(this->AmmoPip, "AmmoPip");
-	debugProcess(this->AmmoPip_Palette, "AmmoPip_Palette");
-	debugProcess(this->AmmoPipOffset, "AmmoPipOffset");
-	debugProcess(this->AmmoPip_Offset, "AmmoPip_Offset");
-	debugProcess(this->AmmoPip_shape, "AmmoPip_shape");
-	debugProcess(this->ShowSpawnsPips, "ShowSpawnsPips");
-	debugProcess(this->SpawnsPip, "SpawnsPip");
-	debugProcess(this->EmptySpawnsPip, "EmptySpawnsPip");
-	debugProcess(this->SpawnsPipSize, "SpawnsPipSize");
-	debugProcess(this->SpawnsPipOffset, "SpawnsPipOffset");
-	debugProcess(this->Secret_RequiredHouses, "Secret_RequiredHouses");
-	debugProcess(this->Secret_ForbiddenHouses, "Secret_ForbiddenHouses");
-	debugProcess(this->RequiredStolenTech, "RequiredStolenTech");
-	debugProcess(this->ReloadInTransport, "ReloadInTransport");
-	// ... continue for all remaining fields following the same pattern
-}
-#endif
 
 // =============================
 // container

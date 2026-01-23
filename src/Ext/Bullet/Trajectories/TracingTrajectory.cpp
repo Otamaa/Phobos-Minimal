@@ -598,7 +598,7 @@ AbstractClass* TracingTrajectory::GetBulletTarget(TechnoClass* pTechno, HouseCla
 
 	for (const auto& pOpt : vec)
 	{
-		const auto pOptType = pOpt->GetTechnoType();
+		const auto pOptType = GET_TECHNOTYPE(pOpt);
 
 		if (!pOptType->LegalTarget || pOpt == pTechno)
 			continue;

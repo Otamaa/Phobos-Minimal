@@ -214,7 +214,8 @@ ASMJIT_PATCH(0x762B62, WaveClass_WaveAI , 0x6)
 		{
 			auto nFirerCoord = pData->SourceCoord;
 			auto nTargetCoord = Target->GetCoords();
-			int range = WeaponTypeExtData::GetRangeWithModifiers(pData->Weapon, Firer , Firer->GetTechnoType()->GuardRange);
+			int range = WeaponTypeExtData::GetRangeWithModifiers(pData->Weapon, Firer ,
+				GET_TECHNOTYPE(Firer)->GuardRange);
 			if (range < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / Math::SQRT_TWO))
 			{
 				return 0x762C40;
@@ -226,7 +227,8 @@ ASMJIT_PATCH(0x762B62, WaveClass_WaveAI , 0x6)
 	{
 		auto nFirerCoord = pData->WeaponIdx != -1 ? Firer->GetCoords() : pData->SourceCoord;
 		auto nTargetCoord = Target->GetCoords();
-		int range = WeaponTypeExtData::GetRangeWithModifiers(pData->Weapon, Firer , Firer->GetTechnoType()->GuardRange);
+		int range = WeaponTypeExtData::GetRangeWithModifiers(pData->Weapon, Firer , 
+			GET_TECHNOTYPE(Firer)->GuardRange);
 		if (range < (int)(nFirerCoord.DistanceFrom(nTargetCoord) / Math::SQRT_TWO))
 		{
 			return 0x762C40;

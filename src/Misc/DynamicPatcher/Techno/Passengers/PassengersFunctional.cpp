@@ -24,7 +24,8 @@ void PassengersFunctional::AI(TechnoClass* pThis)
 				return;
 			}
 
-			if (auto const pTransportExt = TechnoTypeExtContainer::Instance.Find(pTranporter->GetTechnoType()))
+			auto const pTransportExt = GET_TECHNOTYPEEXT(pTranporter);
+
 			{
 				if (!pTransportExt->MyPassangersData.PassiveAcquire)
 				{
@@ -44,7 +45,7 @@ bool PassengersFunctional::CanFire(TechnoClass* pThis)
 {
 	if (auto const pTranporter = pThis->Transporter)
 	{
-		auto const pType = pTranporter->GetTechnoType();
+		auto const pType = GET_TECHNOTYPE(pTranporter);
 		if (pThis->InOpenToppedTransport) {
 			auto const pTransportExt = TechnoTypeExtContainer::Instance.Find(pType);
 

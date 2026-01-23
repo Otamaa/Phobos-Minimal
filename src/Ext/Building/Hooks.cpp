@@ -24,7 +24,7 @@ ASMJIT_PATCH(0x44955D, BuildingClass_WeaponFactoryOutsideBusy_WeaponFactoryCell,
 	if (!pLink)
 		return NotBusy;
 
-	const auto pLinkType = pLink->GetTechnoType();
+	const auto pLinkType = GET_TECHNOTYPE(pLink);
 
 	if (pLinkType->JumpJet && pLinkType->BalloonHover)
 		return NotBusy;
@@ -50,6 +50,8 @@ ASMJIT_PATCH(0x4400F9, BuildingClass_AI_UpdateOverpower, 0x6)
 	enum { SkipGameCode = 0x44019D };
 
 	GET(FakeBuildingClass*, pThis, ESI);
+
+	pThis->_GetExtData()->IsFiringNow = false;
 
 	if (!pThis->Type->Overpowerable)
 		return SkipGameCode;
@@ -614,3 +616,31 @@ ASMJIT_PATCH(0x4485DB, BuildingClass_SetOwningHouse_SyncLinkedOwner, 0x6)
 	return pThis->_GetTypeExtData()->BuildingRadioLink_SyncOwner
 			.Get(RulesExtData::Instance()->BuildingRadioLink_SyncOwner) ? 0 : SkipGameCode;
 }
+
+#pragma region PrefiringMark
+
+ASMJIT_PATCH(0x440042, BuildingClass_UpdateDelayedFiring_PrefiringMark1, 0x9)
+{
+	GET(FakeBuildingClass*, pThis, ESI);
+	pThis->_GetExtData()->IsFiringNow = (int)pThis->PrismStage && pThis->DelayBeforeFiring <= 1;
+	return 0;
+}
+
+// ASMJIT_PATCH(0x4400F9, BuildingClass_UpdateDelayedFiring_PrefiringMar2, 0x7)
+// {
+// 	GET(FakeBuildingClass*, pThis, ESI);
+// 	pThis->_GetExtData()->IsFiringNow = false;
+// 	return 0;
+// }
+
+ASMJIT_PATCH(0x446816, BuildingClass_Place_RevealToAll_UpdateSight, 0x5)
+{
+	enum { SkipGameCode = 0x44682F };
+
+	GET(FakeBuildingClass*, pThis, EBP);
+	const int radius = pThis->_GetTypeExtData()->RevealToAll_Radius.Get(pThis->Type->Sight);
+	pThis->UpdateSight(false, false, true, HouseClass::CurrentPlayer, radius);
+	return SkipGameCode;
+}
+
+#pragma endregion

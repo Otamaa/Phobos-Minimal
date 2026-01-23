@@ -85,7 +85,7 @@ template<typename T>
 void PrintFoots(T& buffer, FootClass* pFoot)
 {
 	Append(buffer, "[Phobos] Dump ObjectInfo runs.\n");
-	const auto pType = pFoot->GetTechnoType();
+	const auto pType = GET_TECHNOTYPE(pFoot);
 	const auto nFootMapCoords = pFoot->InlineMapCoords();
 	Append(buffer, "ID = %s, ", pType->get_ID());
 	Append(buffer, "Owner = %s (%s), ", pFoot->Owner->get_ID(), pFoot->Owner->PlainName);

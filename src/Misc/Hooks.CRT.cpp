@@ -9,8 +9,6 @@
 #include <Phobos.Math.h>
 #include <Phobos.h>
 
-#pragma fenv_access(on)
-
 #include <Misc/Ares/Hooks/Hooks.MouseCursors.h>
 
 static void __cdecl PatchExit(int uExitCode)

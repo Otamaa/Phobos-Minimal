@@ -40,7 +40,7 @@ public:
  * trap! most schemes are duplicated - ShadeCount 1 and ShadeCount 53
 */
 	static NOINLINE ColorScheme* __fastcall Find(const char* pID, int ShadeCount = 1) {
-		if (GameStrings::IsBlank(pID))
+		if (GameStrings::IsBlank(pID) || GameStrings::IsNone(pID))
 			return nullptr;
 
 		for (auto pItem : *Array) {

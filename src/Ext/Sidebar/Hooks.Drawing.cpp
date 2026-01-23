@@ -12,6 +12,7 @@
 #include <Misc/PhobosToolTip.h>
 #include <Misc/Ares/CSF.h>
 #include <Utilities/Cast.h>
+#include <Ext/Techno/Body.h>
 
 #include <TechnoTypeClass.h>
 #include <TextDrawing.h>
@@ -184,7 +185,7 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 						if (!pCurrentFactory || pCurrentFactory->Production.Timer.Rate && !pCurrentFactory->IsSuspended) {
 							Techno_Type = TechnoTypeClass::FetchTechnoType(pBuild->ItemType, pBuild->ItemIndex);
 							auto pHouseFactory = PlayerPtr->GetPrimaryFactory(pBuild->ItemType, Techno_Type->Naval, pBuild->Cat);
-							bool ShouldDisableCameo = PlayerPtr->ShouldDisableCameo(Techno_Type);
+							bool ShouldDisableCameo = HouseExtData::ShouldDisableCameo(PlayerPtr,Techno_Type ,true);
 							bool unable_to_comply = false;
 							if (pHouseFactory && (pHouseFactory->Production.Timer.Rate && !pHouseFactory->IsSuspended || pHouseFactory->Object || pHouseFactory->QueuedObjects.Count > 0)) {
 								unable_to_comply = 1;
@@ -238,7 +239,20 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 											if (PlayerPtr->Available_Money() >= corrected) {
 												if (Techno_Type->FindFactory(true, false, false, PlayerPtr)) {
 													int time = Techno_Type->GetBuildSpeed();
-													if (pBuild->ItemType == AbstractType::BuildingType && static_cast<BuildingTypeClass*>(Techno_Type)->Wall) {
+													
+													bool IsAWall = false;
+
+													if (pBuild->ItemType == AbstractType::BuildingType) {
+														auto pBuildingProduct = static_cast<BuildingTypeClass*>(Techno_Type);
+														const auto pBuildingProductExt = TechnoTypeExtContainer::Instance.Find(pBuildingProduct);
+
+														IsAWall = pBuildingProduct->Wall;
+
+														if (IsAWall && pBuildingProductExt->BuildTime_Speed.isset())
+															IsAWall = false;
+													}
+
+													if(IsAWall) {
 														time = int(time * RulesClass::Instance->WallBuildSpeedCoefficient);
 													}
 
@@ -360,7 +374,21 @@ int FakeSelectClass::__Action(GadgetFlag flags,
 						} else {
 							if(auto Object = pCurrentFactory->GetFactoryObject()) {
 								VocClass::PlayGlobal(RulesClass::Instance->GUIBuildSound, Panning::Center, 1.0, 0);
-								if(auto v23 = Object->FindFactory(0, 0)) {
+								const auto nBuffer = HouseExtData::HasFactory(
+													Object->GetOwningHouse(), 
+									GET_TECHNOTYPE(Object),
+									false,
+									true, 
+									false,
+									true
+								);
+								
+								if (nBuffer.first == NewFactoryState::Unpowered) {
+									this->ControlClass::Action(flags, key, KeyModifier::None);
+									return 1;
+								}
+
+								if(auto v23 = nBuffer.second) {
 									if (auto pBld = cast_to<BuildingClass*, false>(Object)) {
 										PlayerPtr->Manual_Place(v23, pBld);
 									} else {
@@ -1309,7 +1337,7 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 								}
 								else
 								{
-									TechnoTypeClass* pFactoryObjType = pFactoryObject->GetTechnoType();
+									TechnoTypeClass* pFactoryObjType = GET_TECHNOTYPE(pFactoryObject);
 									if (pFactoryObjType && pFactoryObjType != pTechnoType)
 										shouldDrawCount = true;
 								}

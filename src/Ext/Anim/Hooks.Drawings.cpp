@@ -523,7 +523,7 @@ ASMJIT_PATCH(0x423122, AnimClass_DrawIt_DrawOffset, 0x6)
 		}
 		else if (pTechno)
 		{
-			auto const pType = pTechno->GetTechnoType();
+			auto const pType = GET_TECHNOTYPE(pTechno);
 
 			if ((pType->PixelSelectionBracketDelta <= 0 && !inverse) || (pType->PixelSelectionBracketDelta > 0 && inverse))
 			{

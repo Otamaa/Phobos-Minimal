@@ -199,7 +199,7 @@ bool HugeBar::SaveGlobals(PhobosStreamWriter& stm)
 
 void HugeBar::InitializeHugeBar(TechnoClass* pTechno)
 {
-	auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pTechno->GetTechnoType());
+	auto pTypeExt = GET_TECHNOTYPEEXT(pTechno);
 
 	if (pTypeExt->HugeBar)
 	{
@@ -234,7 +234,7 @@ void HugeBar::ProcessHugeBar()
 					HouseClass::CurrentPlayer))
 				continue;
 
-			const auto pTmpTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTmpTechno->GetTechnoType());
+			const auto pTmpTechnoTypeExt = GET_TECHNOTYPEEXT(pTmpTechno);
 
 			if (pTmpTechnoTypeExt->HugeBar_Priority > priority)
 			{

@@ -63,7 +63,7 @@ ASMJIT_PATCH(0x53B080, PsyDom_Fire, 5)
 			Helpers::Alex::for_each_in_rect_or_spread<TechnoClass>(cell, widthORange, Height, items);
 			items.apply_function_for_each([pData, pFirer](TechnoClass* pTechno)
 			{
-				TechnoTypeClass* pType = pTechno->GetTechnoType();
+				TechnoTypeClass* pType = GET_TECHNOTYPE(pTechno);
 
 				// don't even try.
 				if (pTechno->IsIronCurtained())
@@ -156,7 +156,7 @@ ASMJIT_PATCH(0x53B080, PsyDom_Fire, 5)
 				if (FootClass* pFoot = flag_cast_to<FootClass*, false>(pTechno))
 				{
 					// the AI sends all new minions to hunt
-					const auto nMission = pFoot->GetTechnoType()->ResourceGatherer ? Mission::Harvest :
+					const auto nMission = GET_TECHNOTYPE(pFoot)->ResourceGatherer ? Mission::Harvest :
 						!PsyDom::Owner->IsControlledByHuman() ? Mission::Hunt : Mission::Guard;
 
 					pFoot->QueueMission(nMission, false);
