@@ -81,13 +81,13 @@ static_assert(sizeof(ZoneConnectionClass) == 0x10, "Invalid Size !");
 
 struct SubzoneConnectionStruct
 {
-	DWORD unknown_dword_0;
-	BYTE unknown_byte_4;
+	DWORD NeighborSubzoneIndex;  // Index of connected subzone (was unknown_dword_0)
+	BYTE ConnectionPenaltyFlag;   // If set, adds 0.001 penalty to path cost (was unknown_byte_4)
 
 	//need to define a == operator so it can be used in array classes
 	bool operator==(const SubzoneConnectionStruct &other) const {
-		return (unknown_dword_0 == other.unknown_dword_0
-			&& unknown_byte_4 == other.unknown_byte_4);
+		return (NeighborSubzoneIndex == other.NeighborSubzoneIndex
+			&& ConnectionPenaltyFlag == other.ConnectionPenaltyFlag);
 	}
 };
 static_assert(sizeof(SubzoneConnectionStruct) == 0x8, "Invalid Size !");
@@ -97,14 +97,14 @@ struct SubzoneTrackingStruct
 	static COMPILETIMEEVAL reference<DynamicVectorClass<SubzoneTrackingStruct>, 0x87F874 ,3u> const Array {};
 
 	DynamicVectorClass<SubzoneConnectionStruct> SubzoneConnections;
-	WORD unknown_word_18;
-	DWORD unknown_dword_1C;
+	WORD ParentZoneIndex;          // Index into parent hierarchy level (was unknown_word_18)
+	DWORD MovementCostType;        // Index into adjustments_7E3794 array for movement cost (was unknown_dword_1C)
 	DWORD unknown_dword_20;
 
 	//need to define a == operator so it can be used in array classes
 	bool operator==(const SubzoneTrackingStruct &other) const {
-		return (unknown_word_18 == other.unknown_word_18
-			&& unknown_dword_1C == other.unknown_dword_1C
+		return (ParentZoneIndex == other.ParentZoneIndex
+			&& MovementCostType == other.MovementCostType
 			&& unknown_dword_20 == other.unknown_dword_20);
 	}
 };
@@ -207,6 +207,10 @@ public:
 	static COMPILETIMEEVAL reference<LogicClass, 0x87F778u> const Logics {};
 	static OPTIONALINLINE COMPILETIMEEVAL int const MaxCells = 0x40000;
 
+	// WARNING: This is DEPRECATED - use MapClass::Instance->LevelAndPassabilityStruct2pointer_70 instead!
+	// The address 0x87F858 contains a POINTER, not the array itself.
+	// constant_ptr returns (GlobalPassabilityData*)0x87F858 which is wrong - it should dereference the pointer.
+	// Correct usage: MapClass::Instance->LevelAndPassabilityStruct2pointer_70[index]
 	static COMPILETIMEEVAL constant_ptr<GlobalPassabilityData, 0x87F858u> const GlobalPassabilityDatas {};
 
 	// this actually points to 5 vectors, one for each layer
