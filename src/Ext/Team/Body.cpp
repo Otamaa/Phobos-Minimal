@@ -2567,7 +2567,7 @@ int CalculateBuildingScore(BuildingClass* building, TechnoClass* searcher, Build
 		CoordStruct diff = buildingPos - searcherPos;
 
 		int distance = (int)diff.Length();
-		return 0x7FFFFFFF - distance;
+		return distance;  // Higher distance = higher score = farthest
 	}
 
 	case BuildingFindType::FIND_CLOSEST:
@@ -2578,7 +2578,7 @@ int CalculateBuildingScore(BuildingClass* building, TechnoClass* searcher, Build
 		CoordStruct diff = buildingPos - searcherPos;;
 
 		int distance = (int)diff.Length();
-		return distance;
+		return 0x7FFFFFFF - distance;  // Invert: lower distance = higher score = closest
 	}
 
 	default:
