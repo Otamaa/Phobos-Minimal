@@ -521,7 +521,7 @@ void FakeParasiteClass::__AI()
 		.Get(static_cast<InfantryClass*>(this->Victim)->Type->Cyborg);
 
 	// Handle infantry differently (direct damage to health)
-	if (WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_DisableRocking.Get() || InfantryInstantKill) {
+	if ((!isInfantry &&  WarheadTypeExtContainer::Instance.Find(weaponType->Warhead)->Parasite_DisableRocking.Get()) || InfantryInstantKill) {
 		TakeDamage(this->Victim, this->Owner, weaponType);
 		return;
 	}
