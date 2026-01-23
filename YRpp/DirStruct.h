@@ -146,7 +146,7 @@ public:
 		{
 			if ((pDir2.Raw - this->Raw) >= 0)
 			{
-				this->Raw += this->Raw + pDir3.Raw;
+				this->Raw += pDir3.Raw;
 			}
 			else
 			{

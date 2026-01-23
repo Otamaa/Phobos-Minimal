@@ -63,8 +63,8 @@ public:
 
 	COMPILETIMEEVAL bool operator!=(const RectangleStruct &that) const
 	{
-		return (that.X != X) && (that.Width != Width)
-			&& (that.Y != Y) && (that.Height != Height);
+		return (that.X != X) || (that.Width != Width)
+			|| (that.Y != Y) || (that.Height != Height);
 	}
 
 	COMPILETIMEEVAL RectangleStruct &operator|=(const RectangleStruct &that) { *this = Union(*this, that); return *this; }

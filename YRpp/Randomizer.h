@@ -208,7 +208,7 @@ public:
 		JMP_THIS(0x65C910);
 	}
 
-	template<typename T> T operator()(T minval, T maxval) { return T(*this)(int(minval), int(maxval)); }
+	template<typename T> T operator()(T minval, T maxval) { return (T)(*this)(int(minval), int(maxval)); }
 
 protected:
 	int Seed;
@@ -302,7 +302,7 @@ public:
 		return Pick_Random_Number(*this, minval, maxval);
 	}
 
-	template<typename T> T operator()(T minval, T maxval) { return T(*this)(int(minval), int(maxval)); }
+	template<typename T> T operator()(T minval, T maxval) { return (T)(*this)(int(minval), int(maxval)); }
 
 	COMPILETIMEEVAL float Get_Float()
 	{

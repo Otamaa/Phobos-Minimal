@@ -37,7 +37,7 @@ public:
 	bool RemoveIndex(TKey id);
 	bool IsPresent(TKey id, bool Lowerbound = false) const;
 	int Count() const;
-	const TValue& FetchIndex(TKey id) const;
+	TValue FetchIndex(TKey id) const;
 	TValue& FetchIndex(TKey id);
 	void Clear();
 	bool Reverse(int nAmount);
@@ -194,7 +194,7 @@ auto IndexClass<TKey, TValue>::FetchItem(TKey id, bool Lowerbound) const
 }
 
 template<typename TKey, typename TValue>
-const TValue& IndexClass<TKey, TValue>::FetchIndex(TKey id) const
+TValue IndexClass<TKey, TValue>::FetchIndex(TKey id) const
 {
 	return this->IsPresent(id) ? this->Archive->Data : TValue();
 }
