@@ -360,6 +360,9 @@ ASMJIT_PATCH(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 
 bool NOINLINE CanFireICUnit(TechnoClass* pThis , FakeWarheadTypeClass* pWH , TechnoClass* pTarget){
 
+	if(!pTarget->IsIronCurtained())
+		return true;
+
 	auto pWHExt = pWH->_GetExtData();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
@@ -407,9 +410,11 @@ ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 			return FireRange;
 
 		if(pExt->CanFireWeaponType->Warhead){
-			auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget);
-			if(!CanFireICUnit(pThis, (FakeWarheadTypeClass*)pExt->CanFireWeaponType->Warhead, pTechnoT))
+
+			if(auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget)) {
+				if(!CanFireICUnit(pThis, (FakeWarheadTypeClass*)pExt->CanFireWeaponType->Warhead, pTechnoT))
 				return FireIllegal;
+			}
 		}
 
 		return ContinueCheck;
