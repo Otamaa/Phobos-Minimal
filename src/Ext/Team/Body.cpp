@@ -3139,7 +3139,7 @@ void FakeTeamClass::_TMission_Deploy(ScriptActionNode* nNode, bool arg3)
 		if (member->Health && (Unsorted::ScenarioInit || !member->InLimbo) &&
 			(member->IsTeamLeader || member->WhatAmI() == AircraftClass::AbsID))
 		{
-			bool canDeploy = false;
+			bool handledDeployment = false;
 			bool isUnit = (member->WhatAmI() == UnitClass::AbsID);
 
 			// Check for MCV deployment (unit that deploys into building)
@@ -3148,7 +3148,7 @@ void FakeTeamClass::_TMission_Deploy(ScriptActionNode* nNode, bool arg3)
 				UnitClass* unit = (UnitClass*)member;
 				if (unit->Type->DeploysInto)
 				{
-					canDeploy = true;
+					handledDeployment = true;
 					allDeployed = false;
 
 					if (member->GetCurrentMission() != Mission::Unload)
@@ -3181,19 +3181,88 @@ void FakeTeamClass::_TMission_Deploy(ScriptActionNode* nNode, bool arg3)
 			}
 
 			// Check for simple deployer (like siege choppers)
-			bool isSimpleDeployer = isUnit && ((UnitClass*)member)->Type->IsSimpleDeployer;
-
-			// Check for engineer/spy deployment
-			bool isInfantryDeployer = false;
-			if (auto pUnit = cast_to<InfantryClass*>(member))
-				isInfantryDeployer = pUnit->Type->Deployer;
-
-			if ((isSimpleDeployer || isInfantryDeployer) && !canDeploy)
+			if (isUnit && !handledDeployment)
 			{
-				if (member->GetCurrentMission() != Mission::Unload)
+				UnitClass* unit = (UnitClass*)member;
+				if (unit->Type->IsSimpleDeployer)
 				{
-					member->QueueMission(Mission::Unload, 0);
-					allDeployed = false;
+					handledDeployment = true;
+
+					// Check if already deployed
+					if (unit->Deployed)
+					{
+						// Already deployed, set to Area_Guard so they pick targets and retaliate
+						if (member->GetCurrentMission() != Mission::Area_Guard)
+						{
+							member->QueueMission(Mission::Area_Guard, false);
+						}
+					}
+					else if (unit->Deploying || unit->DeployAnim)
+					{
+						// Currently deploying, wait for it
+						allDeployed = false;
+					}
+					else
+					{
+						// Need to deploy
+						allDeployed = false;
+
+						// For JumpJets, check if unit needs to land first
+						bool isJumpJet = unit->Type->JumpJet;
+						bool isInAir = member->IsInAir();
+
+						if (isJumpJet && isInAir)
+						{
+							// JumpJet is in the air - need to trigger landing
+							// The JumpJet locomotor will handle descent when Mission::Unload is set
+							// and SimpleDeployerAllowedToDeploy checks pass in the locomotor hooks
+							if (member->GetCurrentMission() != Mission::Unload)
+							{
+								member->SetDestination(nullptr, true);
+								member->SetTarget(nullptr);
+								member->QueueMission(Mission::Unload, false);
+							}
+						}
+						else
+						{
+							// Ground unit or JumpJet already landed
+							if (member->GetCurrentMission() != Mission::Unload)
+							{
+								// Check if we can deploy here
+								if (unit->CanDeploySlashUnload())
+								{
+									member->SetDestination(nullptr, true);
+									member->SetTarget(nullptr);
+									member->QueueMission(Mission::Unload, false);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Check for engineer/spy deployment (infantry deployers)
+			if (!handledDeployment)
+			{
+				if (auto pInf = cast_to<InfantryClass*>(member))
+				{
+					if (pInf->Type->Deployer)
+					{
+						handledDeployment = true;
+
+						if (pInf->IsDeployed())
+						{
+							// Already deployed
+						}
+						else
+						{
+							allDeployed = false;
+							if (member->GetCurrentMission() != Mission::Unload)
+							{
+								member->QueueMission(Mission::Unload, false);
+							}
+						}
+					}
 				}
 			}
 		}
