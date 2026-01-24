@@ -314,16 +314,16 @@ namespace Math
 
 #endif
 
-	//famous Quaqe 3 Fast Inverse Square Root
+	//famous Quake 3 Fast Inverse Square Root
 	OPTIONALINLINE COMPILETIMEEVAL float Q_invsqrt(float number) noexcept {
 		static_assert(std::numeric_limits<float>::is_iec559, "Float Must be IEC559 !");
 		COMPILETIMEEVAL float threehalfs = 1.5F;
 
 		float x2 = number * 0.5F;
 		float y = number;
-		long i = *(long *)&y;						  // evil floating point bit level hacking
+		int32_t i = std::bit_cast<int32_t>(y);   // type-safe bit level hacking
 		i = 0x5f3759df - (i >> 1);               // what the fuck?
-		y = *(float *)&i;
+		y = std::bit_cast<float>(i);
 		y = y * (threehalfs - (x2 * y * y));   // 1st iteration
 	 // y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration,this can be removed
 

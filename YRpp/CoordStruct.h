@@ -117,8 +117,11 @@ public:
 		return *this;
 	}
 
-	COMPILETIMEEVAL CoordStruct operator+=(const double nThat) {
-		return { static_cast<int>(X + nThat) ,static_cast<int>(Y + nThat) ,static_cast<int>(Z + nThat) };
+	COMPILETIMEEVAL CoordStruct& operator+=(const double nThat) {
+		X = static_cast<int>(X + nThat);
+		Y = static_cast<int>(Y + nThat);
+		Z = static_cast<int>(Z + nThat);
+		return *this;
 	}
 
 	COMPILETIMEEVAL CoordStruct operator-(const CoordStruct& nThat) const

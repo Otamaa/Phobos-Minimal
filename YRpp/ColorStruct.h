@@ -122,9 +122,9 @@ struct ColorStruct
 
 	FORCEDINLINE COMPILETIMEEVAL ColorStruct* Lerp(ColorStruct* lower, ColorStruct* upper, float adjust) {
 		auto adj = (1.0 - adjust);
-		this->R = (BYTE)std::clamp((double)(upper->R * adj) + (double)(lower->R * adj), 0.0, 255.0);
-		this->G = (BYTE)std::clamp((double)(upper->G * adj) + (double)(lower->G * adj), 0.0, 255.0);
-		this->B = (BYTE)std::clamp((double)(upper->B * adj) + (double)(lower->B * adj), 0.0, 255.0);
+		this->R = (BYTE)std::clamp((double)(lower->R * adj) + (double)(upper->R * adjust), 0.0, 255.0);
+		this->G = (BYTE)std::clamp((double)(lower->G * adj) + (double)(upper->G * adjust), 0.0, 255.0);
+		this->B = (BYTE)std::clamp((double)(lower->B * adj) + (double)(upper->B * adjust), 0.0, 255.0);
 		return this;
 	}
 
