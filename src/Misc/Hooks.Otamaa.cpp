@@ -4630,7 +4630,7 @@ ASMJIT_PATCH(0x6EDA50, Team_DoMission_Harvest, 0x5)
 	return 0x0;
 }
 
-#ifdef ASTAR_HOOKS
+#ifndef ASTAR_HOOKS
 
 // ENTRY  , 42C954 , stack 3C TECHNO , size 7 , return 0
 // END 42CB3F 5 , 42CCCB
@@ -5095,6 +5095,10 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 		return false;
 	}
 
+	// Increment epoch counter to invalidate previous visited marks
+	// This avoids the need to clear the visited arrays between calls
+	++this->initedcount;
+
 	// Validate cell pointers
 	if (!startCell || !destCell)
 	{
@@ -5102,16 +5106,48 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 		return false;
 	}
 
+	// Validate cell coordinates are within map bounds
+	const auto& mapBounds = MapClass::Instance->MapCoordBounds;
+	if (startCell->X < mapBounds.Left || startCell->X > mapBounds.Right ||
+		startCell->Y < mapBounds.Top || startCell->Y > mapBounds.Bottom)
+	{
+		Debug::Log("[A*] Start cell (%d,%d) outside map bounds [%d-%d, %d-%d]\n",
+			startCell->X, startCell->Y,
+			mapBounds.Left, mapBounds.Right, mapBounds.Top, mapBounds.Bottom);
+		return false;
+	}
+
+	if (destCell->X < mapBounds.Left || destCell->X > mapBounds.Right ||
+		destCell->Y < mapBounds.Top || destCell->Y > mapBounds.Bottom)
+	{
+		Debug::Log("[A*] Dest cell (%d,%d) outside map bounds [%d-%d, %d-%d]\n",
+			destCell->X, destCell->Y,
+			mapBounds.Left, mapBounds.Right, mapBounds.Top, mapBounds.Bottom);
+		return false;
+	}
+
 	// Validate critical members
-	if (!this->HierarchicalQueue || !this->BufferForHierarchicalQueue)
+	if (!this->HierarchicalQueue || !this->HierarchicalNodeBuffer)
 	{
 		Debug::Log("[A*] Null queue or buffer\n");
 		return false;
 	}
 
+	// Validate GlobalPassabilityDatas pointer
+	// Note: MapClass::GlobalPassabilityDatas points to the address of the pointer,
+	// we need to access MapClass::Instance->LevelAndPassabilityStruct2pointer_70 which is the actual pointer
+	GlobalPassabilityData* globalPassabilityArray = MapClass::Instance->LevelAndPassabilityStruct2pointer_70;
+	if (!globalPassabilityArray)
+	{
+		Debug::Log("[A*] Null GlobalPassabilityDatas (LevelAndPassabilityStruct2pointer_70)\n");
+		return false;
+	}
+
 	// Validate movement zone
+	// MovementZone valid range is 0-12 (CrusherAll is 12, the last valid value)
+	// MoveZones_AStarMoveAdjustArray has 13 rows (0-12)
 	const int mzoneIndex = static_cast<int>(mzone);
-	if (mzoneIndex < 0 || mzoneIndex >= (static_cast<int>(MovementZone::CrusherAll)))
+	if (mzoneIndex < 0 || mzoneIndex > static_cast<int>(MovementZone::CrusherAll))
 	{
 		Debug::Log("[A*] Invalid MovementZone: %d\n", mzoneIndex);
 		return false;
@@ -5137,9 +5173,19 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 	int startZoneRaw = MapClass::Instance->MapClass_zone_56D3F0(startCell);
 	int destZoneRaw = MapClass::Instance->MapClass_zone_56D3F0(destCell);
 
-	if (startZoneRaw < 0 || destZoneRaw < 0)
+	// Validate zone indices against map bounds
+	const int maxValidCells = MapClass::Instance->ValidMapCellCount;
+	if (startZoneRaw < 0 || startZoneRaw >= maxValidCells)
 	{
-		Debug::Log("[A*] Invalid zone: start=%d, dest=%d\n", startZoneRaw, destZoneRaw);
+		Debug::Log("[A*] Start zone %d out of bounds (max=%d) for cell (%d,%d)\n",
+			startZoneRaw, maxValidCells, startCell->X, startCell->Y);
+		return false;
+	}
+
+	if (destZoneRaw < 0 || destZoneRaw >= maxValidCells)
+	{
+		Debug::Log("[A*] Dest zone %d out of bounds (max=%d) for cell (%d,%d)\n",
+			destZoneRaw, maxValidCells, destCell->X, destCell->Y);
 		return false;
 	}
 
@@ -5147,7 +5193,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 	for (int level = 2; level >= 0; --level)
 	{
 		// Validate level arrays
-		if (!this->ints_40_costs[level] || !this->ints_4C_costs[level] || !this->HierarchicalCosts[level])
+		if (!this->HierarchicalVisited[level] || !this->HierarchicalOpenSet[level] || !this->HierarchicalCosts[level])
 		{
 			Debug::Log("[A*] Null array at level %d\n", level);
 			return false;
@@ -5158,8 +5204,8 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 
 		// Get subzone indices from GlobalPassabilityData
 		// data[0] = level 0, data[1] = level 1, data[2] = level 2
-		GlobalPassabilityData* startPassability = &MapClass::GlobalPassabilityDatas[startZoneRaw];
-		GlobalPassabilityData* destPassability = &MapClass::GlobalPassabilityDatas[destZoneRaw];
+		GlobalPassabilityData* startPassability = &globalPassabilityArray[startZoneRaw];
+		GlobalPassabilityData* destPassability = &globalPassabilityArray[destZoneRaw];
 
 		short startZone = static_cast<short>(startPassability->data[level]);
 		short destZone = static_cast<short>(destPassability->data[level]);
@@ -5167,18 +5213,33 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 		const bool isTopLevel = (level == 2);
 
 		// Parent level visited array
-		int* parentLevelVisited = isTopLevel ? nullptr : this->ints_40_costs[level + 1];
+		int* parentLevelVisited = isTopLevel ? nullptr : this->HierarchicalVisited[level + 1];
 
 		// Current level arrays
-		int* visitedArray = this->ints_40_costs[level];
-		int* openSetArray = this->ints_4C_costs[level];
+		int* visitedArray = this->HierarchicalVisited[level];
+		int* openSetArray = this->HierarchicalOpenSet[level];
 		float* costArray = this->HierarchicalCosts[level];
 
-		// Validate zone indices
-		if (startZone < 0 || destZone < 0)
+		// Get SubzoneTracking for this level early for bounds checking
+		auto& subzoneTrackingArray = SubzoneTrackingStruct::Array[level];
+		if (!subzoneTrackingArray.Items)
 		{
-			Debug::Log("[A*] Negative zone: start=%d, dest=%d at level %d\n",
-				startZone, destZone, level);
+			Debug::Log("[A*] Null SubzoneTracking at level %d\n", level);
+			return false;
+		}
+
+		// Validate zone indices against subzone tracking array bounds
+		if (startZone < 0 || startZone >= subzoneTrackingArray.Count)
+		{
+			Debug::Log("[A*] Start zone %d out of SubzoneTracking bounds (max=%d) at level %d for cell (%d,%d)\n",
+				startZone, subzoneTrackingArray.Count, level, startCell->X, startCell->Y);
+			return false;
+		}
+
+		if (destZone < 0 || destZone >= subzoneTrackingArray.Count)
+		{
+			Debug::Log("[A*] Dest zone %d out of SubzoneTracking bounds (max=%d) at level %d for cell (%d,%d)\n",
+				destZone, subzoneTrackingArray.Count, level, destCell->X, destCell->Y);
 			return false;
 		}
 
@@ -5191,18 +5252,18 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 		{
 			if (level == 0)
 			{
-				auto* buffer = this->BufferForHierarchicalQueue;
+				auto* buffer = this->HierarchicalNodeBuffer;
 				buffer->Number = 0;
 				buffer->Index = static_cast<DWORD>(startZone);
 			}
 
-			this->somearray_BC[level * 500] = startZone;
-			this->maxvalues_field_C74[level] = 1;
+			this->HierarchicalPath[level * 500] = startZone;
+			this->HierarchicalPathLength[level] = 1;
 			continue;
 		}
 
 		// Initialize first element
-		auto* firstElement = this->BufferForHierarchicalQueue;
+		auto* firstElement = this->HierarchicalNodeBuffer;
 		firstElement->BufferDelta = -1;
 		firstElement->Index = static_cast<DWORD>(startZone);
 		firstElement->Score = 0.0f;
@@ -5225,15 +5286,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 			return false;
 		}
 
-		// Get SubzoneTracking for this level
-		auto& subzoneTrackingArray = SubzoneTrackingStruct::Array[level];
-		if (!subzoneTrackingArray.Items)
-		{
-			Debug::Log("[A*] Null SubzoneTracking at level %d\n", level);
-			return false;
-		}
-
-		const bool noBlockedPairs = (this->CellIndexesVector[level].Count == 0);
+		const bool noBlockedPairs = (this->BlockedCellPairs[level].Count == 0);
 
 		constexpr int MAX_ITERATIONS = 100000;
 		int iterations = 0;
@@ -5288,8 +5341,8 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 				{
 					SubzoneConnectionStruct& connection = connections.Items[n];
 
-					int neighborNode = connection.unknown_dword_0;
-					char connectionFlag = connection.unknown_byte_4;
+					int neighborNode = connection.NeighborSubzoneIndex;
+					char connectionFlag = connection.ConnectionPenaltyFlag;
 
 					// Validate neighbor index
 					if (neighborNode < 0 || neighborNode >= subzoneTrackingArray.Count)
@@ -5297,8 +5350,8 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 
 					// Get neighbor's data
 					SubzoneTrackingStruct& neighborSubzone = subzoneTrackingArray.Items[neighborNode];
-					unsigned short parentZone = neighborSubzone.unknown_word_18;
-					int movementType = static_cast<int>(neighborSubzone.unknown_dword_1C);
+					unsigned short parentZone = neighborSubzone.ParentZoneIndex;
+					int movementType = static_cast<int>(neighborSubzone.MovementCostType);
 
 					// Validate movement type
 					if (movementType < 0 || movementType >= 32)
@@ -5314,13 +5367,21 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 
 					// Connection penalty
 					float connectionPenalty = connectionFlag ? 0.001f : 0.0f;
-					static constexpr double adjustments_7E3794[] = {
-						1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0 , 2.0 , 10.0 , 4.0 , 1.009
-					};
 
-					constexpr size_t adjustmentsSize = sizeof(adjustments_7E3794) / sizeof(adjustments_7E3794[0]);
-					static_assert(adjustmentsSize < 13,
-						"Adjustments array size insufficient");
+					// Movement adjustment costs - matches game's adjustments_7E3794 at 0x7E3794
+					// Index corresponds to MovementCostType from SubzoneTrackingStruct
+					// These are NOT direction costs - they're zone connection type costs
+					static constexpr float adjustments_7E3794[] = {
+						1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f
+					};
+					static constexpr size_t adjustmentsSize = sizeof(adjustments_7E3794) / sizeof(adjustments_7E3794[0]);
+
+					// Bounds check for movement type
+					if (static_cast<size_t>(movementType) >= adjustmentsSize)
+					{
+						Debug::Log("[A*] Invalid movementType: %d (max=%zu)\n", movementType, adjustmentsSize - 1);
+						continue;
+					}
 
 					// Calculate new cost
 					float newCost = adjustments_7E3794[movementType]
@@ -5342,14 +5403,26 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 					// Check 2: Parent level connectivity
 					if (!isTopLevel && parentLevelVisited)
 					{
+						// Validate parentZone against parent level's subzone tracking array bounds
+						auto& parentSubzoneTracking = SubzoneTrackingStruct::Array[level + 1];
+						if (parentZone >= static_cast<unsigned short>(parentSubzoneTracking.Count))
+						{
+							// Invalid parent zone - skip this neighbor
+							continue;
+						}
+
 						bool parentValid = (parentLevelVisited[parentZone] == this->initedcount)
-							|| (movementType == 1);
+							|| (movementType == 1);  // movementType == 1 means always passable
 						if (!parentValid)
 							continue;
 					}
 
 					// Check 3: Movement zone passability
-					if (moveZoneArray[movementType] != 1)
+					// MovementAdjustArray has 8 columns (0-7)
+					// MovementCostType should be 0-7, values >= 8 are invalid
+					// Original game checks == 1 (primary passability only)
+					// Values: 0 = blocked, 1 = primary passable, 2/3 = secondary (not used in hierarchical)
+					if (movementType >= 8 || moveZoneArray[movementType] != 1)
 						continue;
 
 					// Check 4: Blocked pairs
@@ -5369,7 +5442,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 
 						int pairKey = (node2 << 16) | node1;
 
-						auto& blockedVector = this->CellIndexesVector[level];
+						auto& blockedVector = this->BlockedCellPairs[level];
 						bool isBlocked = false;
 
 						if (blockedVector.Items && blockedVector.Count > 0)
@@ -5398,7 +5471,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 						continue;
 					}
 
-					auto* buffer = reinterpret_cast<char*>(this->BufferForHierarchicalQueue);
+					auto* buffer = reinterpret_cast<char*>(this->HierarchicalNodeBuffer);
 					auto* newElement = reinterpret_cast<AStarQueueNodeHierarchical*>(buffer + bufferOffset);
 
 					int parentIndex = (reinterpret_cast<char*>(currentElement) - buffer) >> 4;
@@ -5431,7 +5504,12 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 			// Pop next element
 			currentElement = PriorityQueue_Pop_Safe(this->HierarchicalQueue);
 			if (!currentElement)
+			{
+				Debug::Log("[A*] No path found at level %d: start(%d,%d)->dest(%d,%d) zones %d->%d, iterations=%d\n",
+					level, startCell->X, startCell->Y, destCell->X, destCell->Y,
+					static_cast<int>(startZone), static_cast<int>(destZone), iterations);
 				return false;
+			}
 		}
 
 		// Path reconstruction
@@ -5475,7 +5553,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 				}
 
 				pathNode = reinterpret_cast<AStarQueueNodeHierarchical*>(
-					reinterpret_cast<char*>(this->BufferForHierarchicalQueue) + delta * 16);
+					reinterpret_cast<char*>(this->HierarchicalNodeBuffer) + delta * 16);
 
 				if (!pathNode)
 				{
@@ -5495,7 +5573,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 			return false;
 		}
 
-		this->maxvalues_field_C74[level] = pathLength;
+		this->HierarchicalPathLength[level] = pathLength;
 
 		int pathIdx = pathLength - 1;
 		pathNode = pathStart;
@@ -5511,7 +5589,7 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 
 		if (pathIdx > 0)
 		{
-			short* resultPtr = &this->somearray_BC[arrayBase + pathIdx];
+			short* resultPtr = &this->HierarchicalPath[arrayBase + pathIdx];
 
 			while (pathIdx > 0)
 			{
@@ -5538,14 +5616,14 @@ bool __thiscall FakeAStarPathFinderClass::__Find_Path_Hierarchical(
 				}
 
 				pathNode = reinterpret_cast<AStarQueueNodeHierarchical*>(
-					reinterpret_cast<char*>(this->BufferForHierarchicalQueue) + delta * 16);
+					reinterpret_cast<char*>(this->HierarchicalNodeBuffer) + delta * 16);
 				--pathIdx;
 			}
 		}
 
 		if (pathNode)
 		{
-			this->somearray_BC[arrayBase] = static_cast<short>(pathNode->Index);
+			this->HierarchicalPath[arrayBase] = static_cast<short>(pathNode->Index);
 		}
 		else
 		{

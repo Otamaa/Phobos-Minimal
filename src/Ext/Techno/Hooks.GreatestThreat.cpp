@@ -98,7 +98,8 @@ AbstractClass* __fastcall FakeTechnoClass::__Greatest_Threat(TechnoClass* pThis,
 		| ThreatType::Factories
 		| ThreatType::PowerFacilties
 		| ThreatType::Tiberium
-		| ThreatType::Buildings))
+		| ThreatType::Buildings
+		| ThreatType::Capture))
 	{
 		threatBitfield |= 0x40;
 	}
