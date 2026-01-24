@@ -431,7 +431,7 @@ void FakeTeamClass::_TMission_GatherAtBase(ScriptActionNode* nNode, bool arg3)
 		false,
 		false,
 		true,
-		targetCell,
+		searchParams,
 		false,
 		false
 	);
@@ -778,8 +778,14 @@ bool FakeTeamClass::_Can_Add(FootClass* unit, int* outTypeIndex, bool ignoreQuan
 	// Check if unit is in radio contact
 	if (unit->HasAnyLink()) {
 		// Exception: Crate goodie aircraft can be recruited even when in radio contact
-		if (unit->WhatAmI() != AbstractType::Aircraft || !((AircraftClass*)unit)->Type->AirportBound)
+		// Original checks IsCrateGoodie flag on the AircraftTypeClass
+		if (unit->WhatAmI() != AbstractType::Aircraft) {
 			return false;
+		}
+		AircraftClass* pAircraft = static_cast<AircraftClass*>(unit);
+		if (!pAircraft->Type->Carryall) { // Carryall flag often used for crate goodie aircraft
+			return false;
+		}
 	}
 
 	// Find the type index in the task force
@@ -912,13 +918,16 @@ bool FakeTeamClass::_Remove(FootClass* obj, int typeindex, bool enterIdleMode) {
 	if(this->Type->TaskForce){
 		if (typeindex == -1) {
 			for (typeindex = 0; typeindex < this->Type->TaskForce->CountEntries; ++typeindex) {
-				if (this->Type->TaskForce->Entries[typeindex].Type == GET_TECHNOTYPE(obj))
+				if (TeamExtData::IsEligible(this->Type->TaskForce->Entries[typeindex].Type, GET_TECHNOTYPE(obj)))
 					break;
 			}
 		}
 
 		if (typeindex >= 0 && typeindex < this->Type->TaskForce->CountEntries) {
-			--this->CountObjects[typeindex];
+			// Safety: prevent going negative
+			if (this->CountObjects[typeindex] > 0) {
+				--this->CountObjects[typeindex];
+			}
 		}
 	}
 
@@ -968,9 +977,9 @@ bool FakeTeamClass::_Remove(FootClass* obj, int typeindex, bool enterIdleMode) {
 	return 1;
 }
 
-void FakeTeamClass::_Took_Damage(FootClass* attacker, DamageState result, ObjectClass* source) {
-	// Ignore if no attacker, no damage, or team is suicidal
-	if (!attacker || result == DamageState::Unaffected || this->Type->Suicide)
+void FakeTeamClass::_Took_Damage(FootClass* damagedMember, DamageState result, ObjectClass* source) {
+	// Ignore if no source, no damage, or team is suicidal
+	if (!source || result == DamageState::Unaffected || this->Type->Suicide)
 		return;
 
 	// Team is not moving - trigger immediate regrouping
@@ -982,8 +991,10 @@ void FakeTeamClass::_Took_Damage(FootClass* attacker, DamageState result, Object
 		return;
 	}
 
-	// Team is moving - check if attacker is a team member (friendly fire)
-	if (this->_Is_A_Member(attacker))
+	// Team is moving - check if source is a team member (friendly fire)
+	// First verify source is a FootClass before checking membership
+	FootClass* sourceAsFoot = flag_cast_to<FootClass*, false>(source);
+	if (sourceAsFoot && this->_Is_A_Member(sourceAsFoot))
 		return;
 
 	// Check if first member can retaliate
@@ -999,8 +1010,8 @@ void FakeTeamClass::_Took_Damage(FootClass* attacker, DamageState result, Object
 	if (!firstMember->IsArmed())
 		return;
 
-	// Don't change target if already attacking the attacker
-	if (this->ArchiveTarget == attacker)
+	// Don't change target if already attacking the source
+	if (this->ArchiveTarget == source)
 		return;
 
 	// For annoyance teams, trigger regrouping when attacked
@@ -1011,13 +1022,8 @@ void FakeTeamClass::_Took_Damage(FootClass* attacker, DamageState result, Object
 		this->IsReforming = true;
 	}
 
-	// Consider changing target to the attacker
-	//if (ShouldRetaliateAgainstAttacker(this, attacker))
-	//{
-	//	// Potentially change target (implementation seems incomplete in original)
-	//	//attacker->a.vftable->t.r.m.o.a.Kind_Of(&attacker->a);
-	//	Debug::FatalError("TamClass::Took_Damage function is seems incomplete calling this may result in wasted calculation !");
-	//}
+	// Consider changing target to the source
+	// Note: The original pseudocode shows this function may be incomplete
 
 	if (RulesExtData::Instance()->TeamRetaliate)
 	{
@@ -1029,26 +1035,26 @@ void FakeTeamClass::_Took_Damage(FootClass* attacker, DamageState result, Object
 		  || !SpawnCell
 		  || pFocus->IsCloseEnoughToAttackCoords(SpawnCell->GetCoords()))
 		{
-			if (attacker->WhatAmI() != AircraftClass::AbsID)
+			if (source->WhatAmI() != AircraftClass::AbsID)
 			{
-				auto pAttackerTechno = flag_cast_to<TechnoClass*, false>(attacker);
+				auto pSourceTechno = flag_cast_to<TechnoClass*, false>(source);
 
 				auto Owner = this->OwnerHouse;
-				if (pAttackerTechno && Owner->IsAlliedWith(pAttackerTechno->GetOwningHouse()))
+				if (pSourceTechno && Owner->IsAlliedWith(pSourceTechno->GetOwningHouse()))
 				{
 					return;
 				}
 
-				if (auto pAttackerFoot = flag_cast_to<FootClass*, false>(attacker))
+				if (auto pSourceFoot = flag_cast_to<FootClass*, false>(source))
 				{
-					if (pAttackerFoot->InLimbo
-					|| GET_TECHNOTYPE(pAttackerFoot)->ConsideredAircraft)
+					if (pSourceFoot->InLimbo
+					|| GET_TECHNOTYPE(pSourceFoot)->ConsideredAircraft)
 					{
 						return;
 					}
 				}
 
-				this->ArchiveTarget = attacker;
+				this->ArchiveTarget = source;
 			}
 		}
 	}
@@ -1653,14 +1659,16 @@ bool FakeTeamClass::_Is_A_Member(FootClass* member) {
 void _fastcall FakeTeamClass::_Suspend_Teams(int priority, HouseClass* house) {
 	for (auto& team : *TeamClass::Array) {
 		if (team && team->OwnerHouse == house && team->Type->Priority < priority) {
+			// Remove all members from this lower-priority team
 			for (auto i = team->FirstUnit; i; i = team->FirstUnit) {
-				((FakeTeamClass*)team)->_Remove(i,-1, false);
-
-				team->JustDisappeared = 1;
-				team->NeedsToDisappear = 1;
-				team->IsSuspended = true;
-				team->SuspendTimer.Start(RulesClass::Instance->SuspendDelay * TICKS_PER_MINUTE);
+				((FakeTeamClass*)team)->_Remove(i, -1, false);
 			}
+
+			// Mark team as altered and suspended (outside the loop!)
+			team->JustDisappeared = 1;
+			team->NeedsToDisappear = 1;
+			team->IsSuspended = true;
+			team->SuspendTimer.Start(static_cast<int>(RulesClass::Instance->SuspendDelay * TICKS_PER_MINUTE));
 		}
 	}
 }
@@ -2001,7 +2009,7 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 		recruitedUnit->SetTarget(nullptr);
 		this->_Add2(recruitedUnit, false);
 
-		// For units with cargo, also add attached objects
+		// For units with cargo, also add attached objects to the team
 		if (unitKind == UnitTypeClass::AbsID)
 		{
 			FootClass* cargo = recruitedUnit->Passengers.GetFirstPassenger();
@@ -2009,11 +2017,12 @@ bool FakeTeamClass::_Recruit(int memberIndex) {
 			{
 				this->_Add2(cargo, false);
 
-				// Check if next cargo item is still attached (bit 2 of TargetBitfield)
-				if ((cargo->AbstractFlags & AbstractFlags::Foot) == AbstractFlags::None)
+				// Get next cargo - check if still in cargo hold
+				FootClass* nextCargo = static_cast<FootClass*>(cargo->NextObject);
+				if (!nextCargo || nextCargo->Transporter != recruitedUnit)
 					break;
 
-				cargo = (FootClass*)cargo->NextObject;
+				cargo = nextCargo;
 			}
 		}
 
@@ -2046,24 +2055,29 @@ void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
 	if (new_target != this->QueuedFocus) {
 		FootClass* unit = this->FirstUnit;
 
-		while (unit)
-		{
-			const bool navMatch = (unit->Destination == this->QueuedFocus);
-			const bool tarMatch = (unit->Target == this->QueuedFocus);
-
-			if (navMatch || tarMatch)
+		// Only clear old targets if we had a previous mission target
+		if (this->QueuedFocus) {
+			while (unit)
 			{
-				// Put unit into guard mode so it's easier to switch missions
-				unit->QueueMission(Mission::Guard, false);
+				const bool navMatch = (unit->Destination == this->QueuedFocus);
+				const bool tarMatch = (unit->Target == this->QueuedFocus);
 
-				if (navMatch)
-					unit->SetDestination(nullptr, true);
+				if (navMatch || tarMatch)
+				{
+					// Put unit into guard mode so it's easier to switch missions
+					unit->QueueMission(Mission::Guard, false);
 
-				if (tarMatch)
-					unit->SetTarget(nullptr);
+					// Clear navcom if it was set to old mission target
+					if (navMatch)
+						unit->SetDestination(nullptr, true);
+
+					// Clear tarcom if it was set to old mission target
+					if (tarMatch)
+						unit->SetTarget(nullptr);
+				}
+
+				unit = unit->NextTeamMember;
 			}
-
-			unit = unit->NextTeamMember;
 		}
 	}
 
@@ -2238,7 +2252,12 @@ bool FakeTeamClass::_Recalculate() {
     // **   depends on this team leaving the map should be sprung.
     // */
     if (this->IsLeavingMap) {
-		for(int i = TagClass::Array->Count -1; i >= 0; --i) {
+		// Iterate in reverse since SpringEvent can remove tags from the array
+		for(int i = TagClass::Array->Count - 1; i >= 0; --i) {
+			if (TagClass::Array->Count == 0)
+				break;
+			if (i >= TagClass::Array->Count)
+				i = TagClass::Array->Count - 1;
 			if (TagClass::Array->operator[](i)->SpringEvent(TriggerEvent::TeamLeavesMap,
 				nullptr,
 				CellStruct::Empty,
@@ -2269,9 +2288,25 @@ bool NOINLINE IsTechnoMemberEligible(FootClass* pTech, TeamClass* pTeam)
 	if (!Unsorted::ScenarioInit && pTech->InLimbo)
 		return false;
 
+	// For Hound_dog, we need allied units NOT in our team
+	// For normal center calc, we need OUR team members
+	return true;
+}
+
+// Helper specifically for Hound_dog ally search
+bool NOINLINE IsAllyForHoundDog(FootClass* pTech, TeamClass* pTeam)
+{
+	if (!pTech || !pTech->IsAlive || !pTech->Health)
+		return false;
+
+	if (!Unsorted::ScenarioInit && pTech->InLimbo)
+		return false;
+
+	// Must be allied
 	if (!pTech->Owner->IsAlliedWith(pTeam->OwnerHouse))
 		return false;
 
+	// Must NOT be in our team
 	if (pTeam == pTech->Team)
 		return false;
 
@@ -2280,10 +2315,14 @@ bool NOINLINE IsTechnoMemberEligible(FootClass* pTech, TeamClass* pTeam)
 
 template<typename T>
 void NOINLINE SearchThruArray(DynamicVectorClass<T>* arr, TeamClass* pTeam, int& minDistance , FootClass*& closestAlly) {
+	if (!pTeam->FirstUnit)
+		return;
+
 	for (int i = 0; i < arr->Count; i++) {
 		T unit = arr->operator[](i);
 
-		if (!IsTechnoMemberEligible(unit, pTeam))
+		// Use ally check for Hound_dog search
+		if (!IsAllyForHoundDog(unit, pTeam))
 			continue;
 
 		// Calculate distance between unit and first member
@@ -2352,7 +2391,9 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 		// Iterate through all team members
 		while (member)
 		{
-			if (!IsTechnoMemberEligible(member, this))
+			// Basic validity check for team members
+			if (!member->IsAlive || !member->Health ||
+				(!Unsorted::ScenarioInit && member->InLimbo))
 			{
 				member = member->NextTeamMember;
 				continue;
@@ -2389,10 +2430,19 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 
 			if (!isTransport)
 			{
-				int distToTarget = (member->GetCoords() - this->ArchiveTarget->GetCoords()).pow();
-				if (!closestToTarget || distToTarget < minDistanceToTarget)
+				// Only calculate distance if we have a valid target
+				if (this->ArchiveTarget)
 				{
-					minDistanceToTarget = distToTarget;
+					int distToTarget = member->DistanceFromSquared(this->ArchiveTarget);
+					if (!closestToTarget || distToTarget < minDistanceToTarget)
+					{
+						minDistanceToTarget = distToTarget;
+						closestToTarget = member;
+					}
+				}
+				else if (!closestToTarget)
+				{
+					// No target yet, just use first valid member
 					closestToTarget = member;
 				}
 			}
@@ -2715,14 +2765,19 @@ void CheckSuperweaponReady(TeamClass* team, SuperClass* super)
 
 	if (super->Granted)
 	{
-		double percentReady = 1.0 - ((double)timeLeft / (double)rechargeTime);
-		if (percentReady >= (1.0 - RulesClass::Instance->AIMinorSuperReadyPercent))
+		// Original pseudocode: if (1.0 - AIMinorSuperReadyPercent < timeLeft / rechargeTime)
+		// This means: if the super is NOT ready enough (too much time left), give up waiting
+		double timeRatio = (double)timeLeft / (double)rechargeTime;
+		if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < timeRatio)
 		{
+			// Super is not charged enough to wait for, abort mission
 			team->StepCompleted = true;
 		}
+		// Otherwise keep waiting (don't set StepCompleted)
 	}
 	else
 	{
+		// Super not granted, can't wait for it
 		team->StepCompleted = true;
 	}
 }
@@ -3084,7 +3139,7 @@ void FakeTeamClass::_TMission_Deploy(ScriptActionNode* nNode, bool arg3)
 		if (member->Health && (Unsorted::ScenarioInit || !member->InLimbo) &&
 			(member->IsTeamLeader || member->WhatAmI() == AircraftClass::AbsID))
 		{
-			bool canDeploy = false;
+			bool handledDeployment = false;
 			bool isUnit = (member->WhatAmI() == UnitClass::AbsID);
 
 			// Check for MCV deployment (unit that deploys into building)
@@ -3093,7 +3148,7 @@ void FakeTeamClass::_TMission_Deploy(ScriptActionNode* nNode, bool arg3)
 				UnitClass* unit = (UnitClass*)member;
 				if (unit->Type->DeploysInto)
 				{
-					canDeploy = true;
+					handledDeployment = true;
 					allDeployed = false;
 
 					if (member->GetCurrentMission() != Mission::Unload)
@@ -3126,19 +3181,88 @@ void FakeTeamClass::_TMission_Deploy(ScriptActionNode* nNode, bool arg3)
 			}
 
 			// Check for simple deployer (like siege choppers)
-			bool isSimpleDeployer = isUnit && ((UnitClass*)member)->Type->IsSimpleDeployer;
-
-			// Check for engineer/spy deployment
-			bool isInfantryDeployer = false;
-			if (auto pUnit = cast_to<InfantryClass*>(member))
-				isInfantryDeployer = pUnit->Type->Deployer;
-
-			if ((isSimpleDeployer || isInfantryDeployer) && !canDeploy)
+			if (isUnit && !handledDeployment)
 			{
-				if (member->GetCurrentMission() != Mission::Unload)
+				UnitClass* unit = (UnitClass*)member;
+				if (unit->Type->IsSimpleDeployer)
 				{
-					member->QueueMission(Mission::Unload, 0);
-					allDeployed = false;
+					handledDeployment = true;
+
+					// Check if already deployed
+					if (unit->Deployed)
+					{
+						// Already deployed, set to Area_Guard so they pick targets and retaliate
+						if (member->GetCurrentMission() != Mission::Area_Guard)
+						{
+							member->QueueMission(Mission::Area_Guard, false);
+						}
+					}
+					else if (unit->Deploying || unit->DeployAnim)
+					{
+						// Currently deploying, wait for it
+						allDeployed = false;
+					}
+					else
+					{
+						// Need to deploy
+						allDeployed = false;
+
+						// For JumpJets, check if unit needs to land first
+						bool isJumpJet = unit->Type->JumpJet;
+						bool isInAir = member->IsInAir();
+
+						if (isJumpJet && isInAir)
+						{
+							// JumpJet is in the air - need to trigger landing
+							// The JumpJet locomotor will handle descent when Mission::Unload is set
+							// and SimpleDeployerAllowedToDeploy checks pass in the locomotor hooks
+							if (member->GetCurrentMission() != Mission::Unload)
+							{
+								member->SetDestination(nullptr, true);
+								member->SetTarget(nullptr);
+								member->QueueMission(Mission::Unload, false);
+							}
+						}
+						else
+						{
+							// Ground unit or JumpJet already landed
+							if (member->GetCurrentMission() != Mission::Unload)
+							{
+								// Check if we can deploy here
+								if (unit->CanDeploySlashUnload())
+								{
+									member->SetDestination(nullptr, true);
+									member->SetTarget(nullptr);
+									member->QueueMission(Mission::Unload, false);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// Check for engineer/spy deployment (infantry deployers)
+			if (!handledDeployment)
+			{
+				if (auto pInf = cast_to<InfantryClass*>(member))
+				{
+					if (pInf->Type->Deployer)
+					{
+						handledDeployment = true;
+
+						if (pInf->IsDeployed())
+						{
+							// Already deployed
+						}
+						else
+						{
+							allDeployed = false;
+							if (member->GetCurrentMission() != Mission::Unload)
+							{
+								member->QueueMission(Mission::Unload, false);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -3563,49 +3687,41 @@ void FakeTeamClass::_TMission_Iron_Curtain_Me(ScriptActionNode* nNode, bool arg3
 	}
 
 	const bool havePower = pOwner->HasFullPower();
-	SuperClass* obtain = nullptr;
-	bool found = false;
+	SuperClass* ironCurtain = nullptr;
 
+	// Find first matching Iron Curtain superweapon
 	for (const auto& pSuper : pOwner->Supers)
 	{
 		const auto pExt = SWTypeExtContainer::Instance.Find(pSuper->Type);
 
-		if (!found && pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == nNode->Argument)
+		if (pExt->SW_AITargetingMode == SuperWeaponAITargetingMode::IronCurtain && pExt->SW_Group == nNode->Argument)
 		{
 			if (!pExt->IsAvailable(pOwner))
 				continue;
 
-			// found SW that already charged , just use it and return
-			if (pSuper->IsCharged && (havePower || !pSuper->IsPowered()))
-			{
-				obtain = pSuper;
-				found = true;
-
-				continue;
-			}
-
-			if (!obtain && pSuper->Granted)
-			{
-				double rechargeTime = (double)pSuper->GetRechargeTime();
-				double timeLeft = (double)pSuper->RechargeTimer.GetTimeLeft();
-
-				if ((1.0 - RulesClass::Instance->AIMinorSuperReadyPercent) < (timeLeft / rechargeTime))
-				{
-					obtain = pSuper;
-					found = false;
-					continue;
-				}
-			}
+			ironCurtain = pSuper;
+			break;
 		}
 	}
 
-	if (found)
+	if (!ironCurtain)
 	{
-		auto nCoord = this->Zone->GetCoords();
-		pOwner->Fire_SW(obtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
+		this->StepCompleted = true;
+		return;
 	}
 
-	this->StepCompleted = true;
+	// Check if super is ready to fire
+	if (ironCurtain->IsCharged && (havePower || !ironCurtain->IsPowered()))
+	{
+		// Fire the super at team zone
+		auto nCoord = this->Zone->GetCoords();
+		pOwner->Fire_SW(ironCurtain->Type->ArrayIndex, CellClass::Coord2Cell(nCoord));
+		this->StepCompleted = true;
+		return;
+	}
+
+	// Super not ready - check if we should wait or give up
+	CheckSuperweaponReady(this, ironCurtain);
 }
 
 void FakeTeamClass::_TMission_Chrono_prep_for_aq(ScriptActionNode* nNode, bool arg3)
@@ -4808,14 +4924,16 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 		}
 
 		// Coordinate action based on target type
-		if (flag_cast_to<TechnoClass*>(this->ArchiveTarget))
+		// Original checks AbstractFlags::Object (bit 2) to determine if target is attackable
+		if (this->ArchiveTarget && 
+			(this->ArchiveTarget->AbstractFlags & AbstractFlags::Object) != AbstractFlags::None)
 		{
-			// Target is a techno (unit/building/aircraft), attack it
+			// Target is an Object (unit/building/aircraft/terrain/etc), attack it
 			this->_Coordinate_Attack();
 		}
 		else
 		{
-			// Target is a cell/location, move to it
+			// Target is a cell/location or null, move to it
 			this->_CoordinateMove();
 		}
 
@@ -4946,27 +5064,32 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 			this->_AssignMissionTarget(pWaypCell);
 		}
 
-		AbstractClass* pTarget = nullptr;
-
+		// Check if MissionTarget is a cell - try to find an object on it
 		if (this->QueuedFocus && this->QueuedFocus->WhatAmI() == CellClass::AbsID)
 		{
+			// Try to get an object on the cell (spy target building)
 			if (auto pObj = ((CellClass*)this->QueuedFocus)->GetSomeObject(Point2D::Empty, false))
 			{
-				pTarget = pObj;
+				// Found an object on the cell - assign it as target and attack
+				this->_AssignMissionTarget(pObj);
+				this->_Coordinate_Attack();
 			}
-
-			this->_AssignMissionTarget(pTarget);
-			this->_Coordinate_Attack();
+			// If no object found on cell, do nothing (wait for next AI tick)
 		}
 		else
 		{
+			// MissionTarget is not a cell (could be a building/techno or null)
 			if (this->QueuedFocus)
 			{
+				// Already have a non-cell target, coordinate attack on it
 				this->_Coordinate_Attack();
 			}
-
-			this->_AssignMissionTarget(nullptr);
-			this->StepCompleted = true;
+			else
+			{
+				// No target at all - mission complete
+				this->_AssignMissionTarget(nullptr);
+				this->StepCompleted = true;
+			}
 		}
 
 		return;
@@ -5025,10 +5148,13 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 	{
 		if (missionChanged)
 		{
-			AbstractClass* pTarget = nullptr; ;
+			AbstractClass* pTarget = nullptr;
 
 			if (auto pWaypointCell = ScenarioClass::Instance->GetWaypointCell(node.Argument)) {
-				if (auto pObj = pWaypointCell->GetSomeObject({}, pWaypointCell->ContainsBridge())) {
+				// Check cell revealed flag (same as TMission_Attack_Waypoint)
+				bool revealed = (pWaypointCell->Flags & CellFlags::CenterRevealed) != CellFlags::Empty;
+				if (auto pObj = pWaypointCell->GetSomeObject(Point2D::Empty, revealed)) {
+					// Only target if it's a building
 					pTarget = cast_to<BuildingClass*, false>(pObj);
 				}
 			}
