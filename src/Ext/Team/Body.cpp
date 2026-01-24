@@ -778,14 +778,8 @@ bool FakeTeamClass::_Can_Add(FootClass* unit, int* outTypeIndex, bool ignoreQuan
 	// Check if unit is in radio contact
 	if (unit->HasAnyLink()) {
 		// Exception: Crate goodie aircraft can be recruited even when in radio contact
-		// Original checks IsCrateGoodie flag on the AircraftTypeClass
-		if (unit->WhatAmI() != AbstractType::Aircraft) {
+		if (unit->WhatAmI() != AbstractType::Aircraft || !((AircraftClass*)unit)->Type->AirportBound)
 			return false;
-		}
-		AircraftClass* pAircraft = static_cast<AircraftClass*>(unit);
-		if (!pAircraft->Type->Carryall) { // Carryall flag often used for crate goodie aircraft
-			return false;
-		}
 	}
 
 	// Find the type index in the task force
@@ -2055,8 +2049,8 @@ void FakeTeamClass::_AssignMissionTarget(AbstractClass* new_target)
 	if (new_target != this->QueuedFocus) {
 		FootClass* unit = this->FirstUnit;
 
-		// Only clear old targets if we had a previous mission target
-		if (this->QueuedFocus) {
+		//if (this->QueuedFocus) 
+		{
 			while (unit)
 			{
 				const bool navMatch = (unit->Destination == this->QueuedFocus);
@@ -2430,19 +2424,10 @@ void FakeTeamClass::_Calc_Center(AbstractClass** outCell, FootClass** outClosest
 
 			if (!isTransport)
 			{
-				// Only calculate distance if we have a valid target
-				if (this->ArchiveTarget)
+				const int distToTarget = FakeObjectClass::_GetDistanceOfObj(member, discard_t(), this->ArchiveTarget);
+				if (!closestToTarget || distToTarget < minDistanceToTarget)
 				{
-					int distToTarget = member->DistanceFromSquared(this->ArchiveTarget);
-					if (!closestToTarget || distToTarget < minDistanceToTarget)
-					{
-						minDistanceToTarget = distToTarget;
-						closestToTarget = member;
-					}
-				}
-				else if (!closestToTarget)
-				{
-					// No target yet, just use first valid member
+					minDistanceToTarget = distToTarget;
 					closestToTarget = member;
 				}
 			}
@@ -4925,8 +4910,7 @@ void FakeTeamClass::ExecuteTMissions(bool missionChanged)
 
 		// Coordinate action based on target type
 		// Original checks AbstractFlags::Object (bit 2) to determine if target is attackable
-		if (this->ArchiveTarget && 
-			(this->ArchiveTarget->AbstractFlags & AbstractFlags::Object) != AbstractFlags::None)
+		if (flag_cast_to<ObjectClass*>(this->ArchiveTarget))
 		{
 			// Target is an Object (unit/building/aircraft/terrain/etc), attack it
 			this->_Coordinate_Attack();
