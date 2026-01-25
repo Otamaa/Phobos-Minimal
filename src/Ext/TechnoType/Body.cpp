@@ -1967,9 +1967,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 		this->DefaultVehicleDisguise.Read(exINI, pSection, "DefaultVehicleDisguise");
 		this->TurretResponse.Read(exINI, pSection, "TurretResponse");
-		this->Deploy_SkipPassengerUnload.Read(exINI, pSection, "Deploy.SkipPassengerUnload");
-		this->Deploy_NoPassenger.Read(exINI, pSection, "Deploy.NoPassenger");
-		this->Deploy_NoTiberium.Read(exINI, pSection, "Deploy.NoTiberium");
+		this->Unload_SkipPassengers.Read(exINI, pSection, "Deploy.SkipPassengerUnload");
+		this->Unload_NoPassengers.Read(exINI, pSection, "Deploy.NoPassenger");
+		this->Unload_SkipHarvester.Read(exINI, pSection, "Deploy.NoTiberium");
 		this->Unload_NoTiberiums.Read(exINI, pSection, "Unload.NoTiberiums");
 		this->PlayerGuardModePursuit.Read(exINI, pSection, "PlayerGuardModePursuit");
 		this->PlayerGuardModeStray.Read(exINI, pSection, "PlayerGuardModeStray");
