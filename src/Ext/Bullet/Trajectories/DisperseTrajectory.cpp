@@ -503,7 +503,7 @@ inline bool DisperseTrajectory::CheckWeaponCanTarget(WeaponTypeClass* pWeapon, T
 
 	auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
-	return EnumFunctions::IsTechnoEligible(pTarget, pExt->CanTarget) && pExt->HasRequiredAttachedEffects(pTarget, pFirer);
+	return EnumFunctions::IsTechnoEligible(pTarget, pExt->CanTarget, false) && pExt->HasRequiredAttachedEffects(pTarget, pFirer);
 }
 
 bool DisperseTrajectory::CurveVelocityChange()

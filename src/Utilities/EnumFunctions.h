@@ -58,6 +58,7 @@ public:
 	static std::array<const char*, 8u> FacingType_to_strings;
 	static std::array<const char*, 6u> ExpireWeaponCondition_to_strings;
 
+	static std::array<std::pair<const char*, AffectedVeterancy>, 5u> AffectedVeterancy_ToStrings;
 	static std::array<std::pair<const char*, TextAlign>, 4u> TextAlign_ToStrings;
 	static std::array<std::pair<const char*, AttachedAnimFlag>, 5u> AttachedAnimFlag_ToStrings;
 	static std::array<std::pair<const char*, AffectedHouse>, 11u> AffectedHouse_ToStrings;
@@ -75,15 +76,16 @@ public:
 
 public:
 
-	static bool CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse);
-	static bool IsCellEligible(CellClass* const pCell, AffectedTarget const&  allowed, bool explicitEmptyCells = false, bool considerBridgesLand = false);
-	static bool IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget  const& allowed, bool considerAircraftSeparately = false);
-	static bool IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget const& allowed);
+	static bool CanTargetVeterancy(AffectedVeterancy flags, TechnoClass* pTechno);
+	static bool CanTargetHouse(AffectedHouse flags, HouseClass* ownerHouse, HouseClass* targetHouse);
+	static bool IsCellEligible(CellClass* const pCell, AffectedTarget allowed, bool explicitEmptyCells = false, bool considerBridgesLand = false);
+	static bool IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget allowed, bool considerAircraftSeparately = false);
+	static bool IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget allowed);
 	static bool CanAffectTechnoResult(AbstractType type, AffectedTechno allowed);
-	static bool AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse  const& allowedHouses, HouseClass* owner, bool explicitEmptyCells = false, bool considerAircraftSeparately = false, bool allowBridges = false);
-	static BlitterFlags GetTranslucentLevel(int const& nInt);
-	static TextPrintType CastAlignToFlags(HorizontalPosition const& pos);
-	static IronCurtainFlag GetICFlagResult(IronCurtainFlag const& Input);
+	static bool AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget allowed, AffectedHouse allowedHouses, HouseClass* owner, bool explicitEmptyCells = false, bool considerAircraftSeparately = false, bool allowBridges = false);
+	static BlitterFlags GetTranslucentLevel(int nInt);
+	static TextPrintType CastAlignToFlags(HorizontalPosition pos);
+	static IronCurtainFlag GetICFlagResult(IronCurtainFlag Input);
 	static std::pair<const char*, const char*>* locomotion_toSring(LocomotionClass* ptr);
 	static bool IsPlayerTypeEligible(AffectPlayerType flags, HouseClass* pFor);
 

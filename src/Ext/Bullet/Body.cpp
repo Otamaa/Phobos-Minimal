@@ -39,8 +39,9 @@ static bool IsAllowedSplitsTarget(TechnoClass* pSource, HouseClass* pOwner, Weap
 		return true;
 
 	if (!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pOwner, pTarget->Owner)
-			|| !EnumFunctions::IsCellEligible(pTarget->GetCell(), pWeaponExt->CanTarget, true, true)
-			|| !EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget))
+		|| !EnumFunctions::IsCellEligible(pTarget->GetCell(), pWeaponExt->CanTarget, true, true)
+		|| !EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget, false)
+		|| !pWeaponExt->IsVeterancyInThreshold(pTarget))
 	{
 		return false;
 	}
@@ -483,7 +484,10 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pT
 					return false;
 
 				if(!pWeaponExt->SkipWeaponPicking){
-					if (!EnumFunctions::IsTechnoEligible(static_cast<TechnoClass*>(pTargetObj), pWeaponExt->CanTarget))
+					if (!EnumFunctions::IsTechnoEligible(static_cast<TechnoClass*>(pTargetObj), pWeaponExt->CanTarget, false))
+						return false;
+
+					if(!pWeaponExt->IsVeterancyInThreshold(static_cast<TechnoClass*>(pTargetObj)))
 						return false;
 
 					if (!pWeaponExt->HasRequiredAttachedEffects(static_cast<TechnoClass*>(pTargetObj), pThis->Owner))
@@ -511,7 +515,8 @@ bool BulletExtData::ShrapnelTargetEligible(BulletClass* pThis, AbstractClass* pT
 			}
 		}
 		else if (pTarget->WhatAmI() == CellClass::AbsID) {
-			if (!pWeaponExt->SkipWeaponPicking && !EnumFunctions::IsCellEligible((CellClass*)pTarget, pWeaponExt->CanTarget, true, true)) {
+			if (!pWeaponExt->SkipWeaponPicking && !EnumFunctions::IsCellEligible((CellClass*)pTarget, pWeaponExt->CanTarget, true, true))
+			{
 				return false;
 			}
 		}

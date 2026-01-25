@@ -142,6 +142,17 @@ std::array<std::pair<const wchar_t*, const wchar_t*>, 11u> EnumFunctions::Locomo
 }
 };
 
+std::array<std::pair<const char*, AffectedVeterancy>, 5u> EnumFunctions::AffectedVeterancy_ToStrings
+{
+{
+	{"none" , AffectedVeterancy::None} ,
+	{"rookie" , AffectedVeterancy::Rookie } ,
+	{"veteran" , AffectedVeterancy::Veteran } ,
+	{"elite" , AffectedVeterancy::Elite } ,
+	{"all" , AffectedVeterancy::All }
+}
+};
+
 std::array<std::pair<const char*, SpotlightFlags>, 5u> EnumFunctions::SpotlightFlags_ToStrings
 {
 {
@@ -291,7 +302,23 @@ std::array<const char*, 8u> EnumFunctions::FacingType_to_strings
 }
 };
 
-bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* ownerHouse, HouseClass* targetHouse)
+bool EnumFunctions::CanTargetVeterancy(AffectedVeterancy flags, TechnoClass* pTechno)
+{
+	if (flags == AffectedVeterancy::All)
+		return true;
+
+	switch (pTechno->Veterancy.GetRemainingLevel())
+	{
+	case Rank::Elite:
+		return (flags & AffectedVeterancy::Elite) != AffectedVeterancy::None;
+	case Rank::Veteran:
+		return (flags & AffectedVeterancy::Veteran) != AffectedVeterancy::None;
+	default:
+		return (flags & AffectedVeterancy::Rookie) != AffectedVeterancy::None;
+	}
+}
+
+bool EnumFunctions::CanTargetHouse(AffectedHouse flags, HouseClass* ownerHouse, HouseClass* targetHouse)
 {
 	if(flags != AffectedHouse::None) {
 
@@ -314,7 +341,7 @@ bool EnumFunctions::CanTargetHouse(AffectedHouse const &flags, HouseClass* owner
 	return false;
 }
 
-bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const& allowed, bool explicitEmptyCells, bool considerBridgesLand)
+bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget allowed, bool explicitEmptyCells, bool considerBridgesLand)
 {
 	if (allowed == AffectedTarget::All)
 		return true;
@@ -338,7 +365,7 @@ bool EnumFunctions::IsCellEligible(CellClass* const pCell, AffectedTarget const&
 	return allowed != AffectedTarget::None;
 }
 
-bool EnumFunctions::IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget  const& allowed, bool considerAircraftSeparately)
+bool EnumFunctions::IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget allowed, bool considerAircraftSeparately)
 {
 	if (allowed == AffectedTarget::All)
 		return true;
@@ -374,7 +401,7 @@ bool EnumFunctions::IsTechnoEligible(TechnoClass* const pTechno, AffectedTarget 
 	return allowed != AffectedTarget::None;
 }
 
-bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget const& allowed)
+bool EnumFunctions::IsTechnoEligibleB(TechnoClass* const pTechno, AffectedTarget allowed)
 {
 	if (allowed & AffectedTarget::AllContents)
 	{
@@ -425,7 +452,7 @@ bool EnumFunctions::CanAffectTechnoResult(AbstractType type, AffectedTechno allo
 	return false;
 }
 
-bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget  const& allowed, AffectedHouse const&  allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately, bool allowBridges)
+bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTarget allowed, AffectedHouse allowedHouses, HouseClass* owner, bool explicitEmptyCells, bool considerAircraftSeparately, bool allowBridges)
 {
 	if(!EnumFunctions::IsCellEligible(pCell, allowed, explicitEmptyCells , allowBridges))
 		return false;
@@ -446,7 +473,7 @@ bool EnumFunctions::AreCellAndObjectsEligible(CellClass* const pCell, AffectedTa
 	return true;
 }
 
-BlitterFlags EnumFunctions::GetTranslucentLevel(int const& nInt)
+BlitterFlags EnumFunctions::GetTranslucentLevel(int nInt)
 {
 	switch (nInt)
 	{
@@ -461,7 +488,7 @@ BlitterFlags EnumFunctions::GetTranslucentLevel(int const& nInt)
 	return BlitterFlags::None;
 }
 
-TextPrintType EnumFunctions::CastAlignToFlags(HorizontalPosition const& pos)
+TextPrintType EnumFunctions::CastAlignToFlags(HorizontalPosition pos)
 {
 	if (pos == HorizontalPosition::Center)
 		return TextPrintType::Center;
@@ -471,7 +498,7 @@ TextPrintType EnumFunctions::CastAlignToFlags(HorizontalPosition const& pos)
 	return (TextPrintType)0x0; // TextPrintType::Left that doesn't exist and is assumed by default
 }
 
-IronCurtainFlag EnumFunctions::GetICFlagResult(IronCurtainFlag const& Input)
+IronCurtainFlag EnumFunctions::GetICFlagResult(IronCurtainFlag Input)
 {
 	if (Input == IronCurtainFlag::Random)
 		return (IronCurtainFlag)ScenarioClass::Instance->Random.RandomRanged((int)IronCurtainFlag::Kill, (int)IronCurtainFlag::Ignore);

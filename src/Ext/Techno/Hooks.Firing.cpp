@@ -324,7 +324,7 @@ ASMJIT_PATCH(0x6FC31C, TechnoClass_CanFire_PreFiringChecks, 0x6) //8
 		if (pWeapon->Warhead->Airstrike)
 		{
 			const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pWeapon->Warhead);
-			if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets))
+			if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets, false))
 				return FireIllegal;
 
 			if (!GET_TECHNOTYPEEXT(pTargetTechno)->AllowAirstrike.Get(pFootT || cast_to<BuildingClass*, false>(pTargetTechno)->Type->CanC4))

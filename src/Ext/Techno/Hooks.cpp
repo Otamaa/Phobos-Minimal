@@ -1015,7 +1015,7 @@ ASMJIT_PATCH(0x6F348F, TechnoClass_WhatWeaponShouldIUse_Airstrike, 0x7)
 	GET(WarheadTypeClass*, pSecondaryWH, ECX);
 	const auto pWHExt = WarheadTypeExtContainer::Instance.Find(pSecondaryWH);
 
-	if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets))
+	if (!EnumFunctions::IsTechnoEligible(pTargetTechno, pWHExt->AirstrikeTargets, false))
 		return Primary;
 
 	const auto pTargetType = GET_TECHNOTYPE(pTargetTechno);

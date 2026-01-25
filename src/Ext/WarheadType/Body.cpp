@@ -106,6 +106,13 @@ void WarheadTypeExtData::Initialize()
 	}
 }
 
+bool WarheadTypeExtData::IsVeterancyInThreshold(TechnoClass* pTarget) const {
+	if (!this->VeterancyCheck)
+		return true;
+
+	return EnumFunctions::CanTargetVeterancy(this->AffectsVeterancy, pTarget);
+}
+
 bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 {
 	auto pThis = This();
@@ -700,6 +707,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->AffectsBelowPercent.Read(exINI, pSection, "AffectsBelowPercent");
 	this->AffectsAbovePercent.Read(exINI, pSection, "AffectsAbovePercent");
+	this->AffectsVeterancy.Read(exINI, pSection, "AffectsVeterancy");
 	this->AffectsNeutral.Read(exINI, pSection, "AffectsNeutral");
 
 	this->ElectricAssault_Requireverses.Read(exINI, pSection, "ElectricAssault.Requireverses");
@@ -741,6 +749,8 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
 
 	this->CanTargetIronCurtained.Read(exINI, pSection, "CanTargetIronCurtained");
+
+	this->VeterancyCheck = this->AffectsVeterancy != AffectedVeterancy::All;
 
 	this->IsCellSpreadWH =
 		this->RemoveDisguise ||
@@ -792,7 +802,7 @@ void WarheadTypeExtData::ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSou
 
 	// AffectsAbove/BelowPercent & AffectsNeutral can ignore IgnoreDefenses like AffectsAllies/Enmies/Owner
 	// They should be checked here to cover all cases that directly use ReceiveDamage to deal damage
-	if (!this->IsHealthInThreshold(pVictim) || (!this->AffectsNeutral && pVictim->Owner->IsNeutral())) {
+	if (!this->IsHealthInThreshold(pVictim) || !this->IsVeterancyInThreshold(pVictim) || (!this->AffectsNeutral && pVictim->Owner->IsNeutral())) {
 		*pDamage = 0;
 		return;
 	}
@@ -969,6 +979,9 @@ bool WarheadTypeExtData::CanDealDamage(TechnoClass* pTechno, bool Bypass, bool S
 		if (CheckImmune && pType->Immune)
 			return false;
 
+		if (!IsVeterancyInThreshold(pTechno))
+			return false;
+	
 		if (auto const pBld = cast_to<BuildingClass*, false>(pTechno))
 		{
 			auto const pBldExt = BuildingExtContainer::Instance.Find(pBld);
@@ -1065,6 +1078,9 @@ FullMapDetonateResult WarheadTypeExtData::EligibleForFullMapDetonation(TechnoCla
 	if (!EnumFunctions::CanTargetHouse(this->DetonateOnAllMapObjects_AffectHouses, pOwner, pTechno->Owner))
 		return FullMapDetonateResult::TargetHouseNotEligible;
 
+	if (!this->IsVeterancyInThreshold(pTechno))
+		return FullMapDetonateResult::TargetRestricted;
+	
 	if (!this->DetonateOnAllMapObjects_AffectTypes.empty()
 		&& !this->DetonateOnAllMapObjects_AffectTypes.Contains(pType))
 		return FullMapDetonateResult::TargetRestricted;
@@ -1253,7 +1269,7 @@ bool WarheadTypeExtData::applyCulling(TechnoClass* pSource, ObjectClass* pTarget
 		if (TechnoExtData::IsCullingImmune(pTargetTechno))
 			return false;
 
-		if (this->Culling_Target.isset() && !EnumFunctions::IsTechnoEligible(pTargetTechno, this->Culling_Target.Get()))
+		if (this->Culling_Target.isset() && !EnumFunctions::IsTechnoEligible(pTargetTechno, this->Culling_Target.Get(), false))
 			return false;
 	}
 
@@ -2027,6 +2043,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 
 		.Process(this->AffectsBelowPercent)
 		.Process(this->AffectsAbovePercent)
+		.Process(this->AffectsVeterancy)
 		.Process(this->AffectsNeutral)
 
 		.Process(this->PenetratesTransport_Level)
@@ -2062,6 +2079,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AnimZAdjust)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
 		.Process(this->CanTargetIronCurtained)
+		.Process(this->VeterancyCheck)
 		;
 
 	PaintBallData.Serialize(Stm);

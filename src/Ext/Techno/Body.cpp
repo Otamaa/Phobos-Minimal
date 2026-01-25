@@ -1793,7 +1793,7 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 
 		if (pTechno)
 		{
-			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget)
+			if (!EnumFunctions::IsTechnoEligible(pTechno, pWeaponExt->CanTarget, false)
 				|| !EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pOwner, pTechnoOwner)
 				|| !TechnoExtData::ObjectHealthAllowFiring(pTechno, pWeaponType)
 				|| !pWeaponExt->HasRequiredAttachedEffects(pTechno, pThis))
@@ -1857,7 +1857,7 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 
 		if (pWH->Airstrike)
 		{
-			if (!EnumFunctions::IsTechnoEligible(pTechno, WarheadTypeExtContainer::Instance.Find(pWH)->AirstrikeTargets))
+			if (!EnumFunctions::IsTechnoEligible(pTechno, WarheadTypeExtContainer::Instance.Find(pWH)->AirstrikeTargets, false))
 				return false;
 
 			const auto pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
@@ -2280,14 +2280,16 @@ void TechnoExtData::ApplyKillWeapon(TechnoClass* pThis, TechnoClass* pSource, Wa
 
 	// KillWeapon can be triggered without the source
 	if (pWHExt->KillWeapon && (!pSource || EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_AffectsHouses, pSource->Owner, pThis->Owner))) {
-		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)) {
+		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects, false))
+		{
 			WeaponTypeExtData::DetonateAt2(pWHExt->KillWeapon, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
 		}
 	}
 
 	// KillWeapon.OnFirer must have a source
 	if (pWHExt->KillWeapon_OnFirer && pSource && EnumFunctions::CanTargetHouse(pWHExt->KillWeapon_OnFirer_AffectsHouses, pSource->Owner, pThis->Owner)) {
-		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon_OnFirer)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects)){
+		if ((filter.empty() || !filter.Contains(pWHExt->KillWeapon_OnFirer)) && EnumFunctions::IsTechnoEligible(pThis, pWHExt->KillWeapon_Affects, false))
+		{
 			WeaponTypeExtData::DetonateAt2(pWHExt->KillWeapon_OnFirer, pThis, pSource, pWHExt->KillWeapon->Damage, false, nullptr);
 		}
 	}
@@ -3818,7 +3820,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 			CellClass* const tgtCell = MapClass::Instance->GetCellAt(tgtPos);
 			bool allowBridges = tgtCell && tgtCell->ContainsBridge() && (pThis->OnBridge || (tgtCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
-			if (pExt->SkipWeaponPicking || EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true , allowBridges))
+			if (pExt->SkipWeaponPicking || EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true, allowBridges, false))
 			{
 				pTargetCell = tgtCell;
 				return AreaFireReturnFlag::Continue;
@@ -3832,7 +3834,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 		if(pExt->SkipWeaponPicking)
 			return AreaFireReturnFlag::SkipSetTarget;
 
-		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false, pThis->OnBridge))
+		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false, pThis->OnBridge, false))
 			return AreaFireReturnFlag::DoNotFire;
 
 		return AreaFireReturnFlag::SkipSetTarget;
@@ -3842,7 +3844,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 		auto pCell = pTargetCell;
 		bool allowBridges = pCell && pCell->ContainsBridge() && (pThis->OnBridge || (pCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
-		if (!pExt->SkipWeaponPicking && !EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false , allowBridges))
+		if (!pExt->SkipWeaponPicking && !EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false, allowBridges, false))
 			return AreaFireReturnFlag::DoNotFire;
 	}
 	}
@@ -3999,7 +4001,7 @@ bool TechnoExtData::CheckCellAllowFiring(TechnoClass* pThis, CellClass* pCell, W
 {	const auto pWeaponExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
 
 	if(!pWeaponExt->SkipWeaponPicking && pCell) {
-		if (!EnumFunctions::IsCellEligible(pCell, pWeaponExt->CanTarget, true , true)
+		if (!EnumFunctions::IsCellEligible(pCell, pWeaponExt->CanTarget, true, true)
 		|| (pWeaponExt->AttachEffect_CheckOnFirer && !pWeaponExt->HasRequiredAttachedEffects(pThis, pThis)) ) {
 			return false;
 		}
@@ -4014,8 +4016,9 @@ bool TechnoExtData::TechnoTargetAllowFiring(TechnoClass* pThis, TechnoClass* pTa
 	if(pWeaponExt->SkipWeaponPicking)
 		return true;
 
-	if (!EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget) ||
+	if (!EnumFunctions::IsTechnoEligible(pTarget, pWeaponExt->CanTarget, false) ||
 		!EnumFunctions::CanTargetHouse(pWeaponExt->CanTargetHouses, pThis->Owner, pTarget->Owner) ||
+		pWeaponExt->IsVeterancyInThreshold(pTarget) ||
 		!pWeaponExt->HasRequiredAttachedEffects(pThis, pTarget))
 	{
 		return false;
@@ -7649,15 +7652,16 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 	if (auto const pSecondExt = WeaponTypeExtContainer::Instance.TryFind(pWeaponTwo))
 	{
 		if(!pSecondExt->SkipWeaponPicking){
-			if(pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true , true))
+			if (pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pSecondExt->CanTarget, true, true))
 				return weaponIndexOne;
 
 			if (
-				(pTargetTechno &&
+				(pTargetTechno && 
 					(
-						!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget) ||
+						!EnumFunctions::IsTechnoEligible(pTargetTechno, pSecondExt->CanTarget, false) ||
 						!EnumFunctions::CanTargetHouse(pSecondExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner) ||
 						!TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponTwo) ||
+						!pSecondExt->IsVeterancyInThreshold(pTargetTechno) ||
 						!pSecondExt->HasRequiredAttachedEffects(pTargetTechno, pThis)
 					)))
 			{
@@ -7677,12 +7681,14 @@ int TechnoExtData::PickWeaponIndex(TechnoClass* pThis, TechnoClass* pTargetTechn
 				return weaponIndexOne;
 
 			if(!pFirstExt->SkipWeaponPicking){
-				if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true , true)) ||
-					(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget) ||
-						!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner)
-						|| !firstAllowedAE
-						|| !TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponOne)
-						)))
+				if ((pTargetCell && !EnumFunctions::IsCellEligible(pTargetCell, pFirstExt->CanTarget, true, true)) ||
+					(pTargetTechno && (!EnumFunctions::IsTechnoEligible(pTargetTechno, pFirstExt->CanTarget, false) ||
+						!EnumFunctions::CanTargetHouse(pFirstExt->CanTargetHouses, pThis->Owner, pTargetTechno->Owner) ||
+						!TechnoExtData::ObjectHealthAllowFiring(pTargetTechno, pWeaponOne) ||
+						!pFirstExt->IsVeterancyInThreshold(pTargetTechno) ||
+						!firstAllowedAE
+						)
+					))
 					{
 					return weaponIndexTwo;
 				}

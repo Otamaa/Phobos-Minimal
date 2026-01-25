@@ -451,6 +451,7 @@ public:
 
 	Valueable<double> AffectsBelowPercent;
 	Valueable<double> AffectsAbovePercent;
+	Valueable<AffectedVeterancy> AffectsVeterancy;
 	Valueable<bool> AffectsNeutral;
 
 	Valueable<int> PenetratesTransport_Level;
@@ -490,6 +491,7 @@ public:
 
 	bool IsCellSpreadWH;
 	bool IsFakeEngineer;
+	bool VeterancyCheck;
 #pragma endregion
 
 public:
@@ -815,6 +817,7 @@ public:
 		DamageTargetHealthMultiplier(0.0),
 		AffectsBelowPercent(1.0),
 		AffectsAbovePercent(0.0),
+		AffectsVeterancy(AffectedVeterancy::All),
 		AffectsNeutral(true),
 		PenetratesTransport_Level(0),
 		PenetratesTransport_PassThrough(1.0),
@@ -845,7 +848,8 @@ public:
 		ApplyPerTargetEffectsOnDetonate(),
 		CanTargetIronCurtained(),
 		IsCellSpreadWH(false),
-		IsFakeEngineer(false)
+		IsFakeEngineer(false),
+		VeterancyCheck(false)
 		{
 			this->AbsType = WarheadTypeClass::AbsID;
 			this->InitializeConstant();
@@ -931,6 +935,7 @@ public:
 	bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false) const;
 	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false , bool checkImmune = true , bool checkLimbo = true) const;
 	bool CanAffectInvulnerable(TechnoClass* pTarget) const;
+	bool IsVeterancyInThreshold(TechnoClass* pTarget) const;
 	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const;
 	void ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSource, HouseClass* pSourceHouse,  int* pDamage) const;
 	void ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs) const;

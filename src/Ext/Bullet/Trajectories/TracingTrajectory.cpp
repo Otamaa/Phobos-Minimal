@@ -623,7 +623,7 @@ AbstractClass* TracingTrajectory::GetBulletTarget(TechnoClass* pTechno, HouseCla
 			continue;
 
 		auto pExt = WeaponTypeExtContainer::Instance.Find(pWeapon);
-		if ((!EnumFunctions::IsTechnoEligible(pOpt, pExt->CanTarget) || !pExt->HasRequiredAttachedEffects(pOpt, pTechno)))
+		if ((!EnumFunctions::IsTechnoEligible(pOpt, pExt->CanTarget, false) || !pExt->HasRequiredAttachedEffects(pOpt, pTechno)))
 			continue;
 
 		return pOpt;
