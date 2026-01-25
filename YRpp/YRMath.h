@@ -167,7 +167,7 @@ namespace Math
 
 	
 
-#ifdef Original
+#ifndef Original
 
 	static OPTIONALINLINE uint64_t F2I64(double val)
 	{
