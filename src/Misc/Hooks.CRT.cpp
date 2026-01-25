@@ -11953,9 +11953,9 @@ void CRTHooks::Apply()
 	Patch::Apply_LJMP(0x7C8D20, _strcmpi);
 
 	//
-		ApplypowHooks();
+		//ApplypowHooks();
 		//ApplyftolHooks();
-		ApplyMathHooks();
+		//ApplyMathHooks();
 	//
 
 	Patch::Apply_CALL(0x6BD718, PatchExit);

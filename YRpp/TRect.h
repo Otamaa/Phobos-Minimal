@@ -28,8 +28,8 @@ public:
 
 	COMPILETIMEEVAL bool operator!=(const TRect &that) const
 	{
-		return (that.X != X) && (that.Width != Width)
-			&& (that.Y != Y) && (that.Height != Height);
+		return (that.X != X) || (that.Width != Width)
+			|| (that.Y != Y) || (that.Height != Height);
 	}
 
 public:
@@ -52,9 +52,9 @@ template<typename T>
 bool operator!=(const TRect<T> &left, const TRect<T> &right)
 {
 	return (left.X != right.X)
-		&& (left.Width != right.Width)
-		&& (left.Y != right.Y)
-		&& (left.Height != right.Height);
+		|| (left.Width != right.Width)
+		|| (left.Y != right.Y)
+		|| (left.Height != right.Height);
 }
 
 template<typename T>

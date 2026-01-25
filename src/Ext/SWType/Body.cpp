@@ -692,7 +692,7 @@ struct TargetingFuncs
 			}
 
 			// original game does not consider cloak
-			if (pTarget->CloakState != CloakState::Cloaked && !pTypeExt->SW_AITargeting_PsyDom_AllowCloak)
+			if (pTarget->CloakState == CloakState::Cloaked && !pTypeExt->SW_AITargeting_PsyDom_AllowCloak)
 				return false;
 		}
 

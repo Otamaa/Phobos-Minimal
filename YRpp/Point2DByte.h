@@ -18,7 +18,7 @@ public:
 	//}
 
 	COMPILETIMEEVAL bool operator==(const Point2DBYTE& that) const { return X == that.X && Y == that.Y; }
-	COMPILETIMEEVAL bool operator!=(const Point2DBYTE& that) const { return X != that.X && Y != that.Y; }
+	COMPILETIMEEVAL bool operator!=(const Point2DBYTE& that) const { return X != that.X || Y != that.Y; }
 
 	COMPILETIMEEVAL bool operator>(const Point2DBYTE& that) const { return X > that.X || X == that.X && Y > that.Y; }
 	COMPILETIMEEVAL bool operator>=(const Point2DBYTE& that) const { return X >= that.X || X == that.X && Y >= that.Y; }

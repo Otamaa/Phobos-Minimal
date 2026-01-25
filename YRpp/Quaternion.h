@@ -23,10 +23,11 @@ public:
 
 		if (0.0 != len2)
 		{
-			this->X = this->X / len2;
-			this->Y = this->Y / len2;
-			this->Z = this->Z / len2;
-			this->W = this->W / len2;
+			auto len = (float)Math::sqrt(len2);
+			this->X = this->X / len;
+			this->Y = this->Y / len;
+			this->Z = this->Z / len;
+			this->W = this->W / len;
 		}
 	}
 
@@ -83,10 +84,11 @@ public:
 
 		if (0.0 != len2)
 		{
-			x.X = static_cast<float>(x.X / len2);
-			x.Y = static_cast<float>(x.Y / len2);
-			x.Z = static_cast<float>(x.Z / len2);
-			x.W = static_cast<float>(x.W / len2);
+			double len = Math::sqrt(len2);
+			x.X = static_cast<float>(x.X / len);
+			x.Y = static_cast<float>(x.Y / len);
+			x.Z = static_cast<float>(x.Z / len);
+			x.W = static_cast<float>(x.W / len);
 		}
 
 		return x;
@@ -271,9 +273,9 @@ public:
 		float cx = (float)Math::cos(x * 0.5f);
 		float cy = (float)Math::cos(y * 0.5f);
 		float cz = (float)Math::cos(z * 0.5f);
-		float sx = (float)Math::cos(x * 0.5f);
-		float sy = (float)Math::cos(y * 0.5f);
-		float sz = (float)Math::cos(z * 0.5f);
+		float sx = (float)Math::sin(x * 0.5f);
+		float sy = (float)Math::sin(y * 0.5f);
+		float sz = (float)Math::sin(z * 0.5f);
 
 		return {
 			cx* sy* sz + cy * cz * sx ,

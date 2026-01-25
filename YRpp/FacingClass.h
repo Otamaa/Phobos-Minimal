@@ -149,7 +149,7 @@ public:
 private:
 	int NumSteps() const
 	{
-		return Math::abs(Difference_Raw()) / ROT.Raw;
+		return ROT.Raw != 0 ? Math::abs(Difference_Raw()) / ROT.Raw : 0;
 	}
 
 public:
