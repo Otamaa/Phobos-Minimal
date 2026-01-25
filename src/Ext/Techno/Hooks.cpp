@@ -1721,38 +1721,53 @@ ASMJIT_PATCH(0x51F179, InfantryClass_WhatAction_Immune_FakeEngineer, 0x5)
 #include <Locomotor/Cast.h>
 
 // Prevent subterranean units from deploying while underground.
-ASMJIT_PATCH(0x73D6E6, UnitClass_Unload_Subterranean, 0x6)
+// Prevent subterranean units from deploying while underground.
+ASMJIT_PATCH(0x73D63B, UnitClass_Mi_Unload_Subterranean, 0x6)
 {
-	enum { ReturnFromFunction = 0x73DFB0, SkipPassengers = 0x73DCD3, DeployFireAfter = 0x73D672 };
+	enum { ReturnFromFunction = 0x73DFB0, SkipHarvester = 0x73D694, SkipPassengers = 0x73DCD3, Harvester = 0x73DEE7, Continue = 0x73D6EC };
 
 	GET(UnitClass* const, pThis, ESI);
 
-	if (auto const pLoco = locomotion_cast<TunnelLocomotionClass*>(pThis->Locomotor)) {
+	if (auto const pLoco = locomotion_cast<TunnelLocomotionClass*>(pThis->Locomotor))
+	{
 		if (pLoco->State != TunnelLocomotionClass::State::IDLE)
 			return ReturnFromFunction;
 	}
 
 	auto const pType = pThis->Type;
-	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->Type);
+
+	// It should be the highest priority.
+	if (pThis->BunkerLinkedItem)
+	{
+		if (auto const pBuilding = pThis->GetCell()->GetBuilding())
+			pBuilding->EmptyBunker();
+
+		// It can fix the issue where mining carts cannot move.
+		R->EAX(pType);
+		return SkipHarvester;
+	}
 
 	// Miners should not be hindered by other deployment actions while unloading minerals.
-	if ((pType->Harvester || pType->Weeder)
-		&& (pThis->HasAnyLink() || pThis->Unloading))
+	if (pType->Harvester || pType->Weeder)
 	{
-		return DeployFireAfter;
+		const bool hasAnyLink = pThis->HasAnyLink();
+
+		if (hasAnyLink || pThis->Unloading)
+		{
+			R->AL(hasAnyLink);
+			return Harvester;
+		}
 	}
 
-	if (pTypeExt->Unload_SkipPassengers) {
-		R->EAX(pType);
-		return SkipPassengers;
-	}
-	else if (pTypeExt->Unload_NoPassengers
-		&& pThis->Passengers.NumPassengers <= 0 && pThis->MissionStatus == 0) {
-		R->EAX(pType);
-		return SkipPassengers;
-	}
+	R->EAX(pType);
 
-	return 0;
+	if (pTypeExt->Unload_SkipPassengers)
+		return SkipPassengers;
+	else if (pTypeExt->Unload_NoPassengers && pThis->Passengers.NumPassengers <= 0 && pThis->MissionStatus == 0)
+		return SkipPassengers;
+
+	return Continue;
 }
 
 ASMJIT_PATCH(0x73DEEB, UnitClass_Mi_Unload_SkipHarvester, 0x5)
