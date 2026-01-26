@@ -321,6 +321,23 @@ ASMJIT_PATCH(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 	return 0x69FEF0;
 }
 
+ASMJIT_PATCH(0x75AC93, WalkLocomotionClass_Process_Wake, 0x6)
+{
+	if (!RulesExtData::Instance()->WalkLocomotorMakesWake)
+		return 0;
+
+	GET(ILocomotion* const, pThis, ESI);
+
+	const auto pLinkedTo = static_cast<LocomotionClass*>(pThis)->LinkedTo;
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
+
+	if (pThis->Is_Moving_Now() && !(Unsorted::CurrentFrame % 10) && !pLinkedTo->OnBridge && pLinkedTo->GetCell()->LandType == LandType::Water) {
+		TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pLinkedTo);
+	}
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 {
 	GET(AnimClass*, pAnim, EAX);

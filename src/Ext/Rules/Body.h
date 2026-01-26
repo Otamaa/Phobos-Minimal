@@ -608,6 +608,7 @@ public:
 	Valueable<bool> AutoTarget_NoThreatBuildings { false };
 	Valueable<bool> AutoTargetAI_NoThreatBuildings { true };
 
+	Valueable<bool> WalkLocomotorMakesWake { false };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);
