@@ -45,6 +45,7 @@ class BulletClass;
 class TechnoTypeClass;
 class REGISTERS;
 struct BurstFLHBundle;
+class FakeWeaponTypeClass;
 
 struct TintColors
 {
@@ -1526,6 +1527,8 @@ public:
 
 	static void Fastenteraction(FootClass* pThis);
 
+	static bool CanRetaliateICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget);
+	static bool CanTargetICUnit(TechnoClass* pThis, FakeWeaponTypeClass* pWP, TechnoClass* pTarget);
 public:
 	static UnitClass* Deployer;
 

@@ -213,7 +213,8 @@ public:
 	Nullable<bool> AttackCursorOnFriendlies;
 	Nullable<bool> AttackNoThreatBuildings;
 	Nullable<bool> Anim_Update;
-
+	Nullable<bool> CanTarget_IronCurtained;
+	Nullable<bool> AutoTarget_IronCurtained;
 #pragma endregion
 
 public:
@@ -358,8 +359,10 @@ public:
 		ExtraRange_FirerMoving (),
 		AttackFriendlies(),
 		AttackCursorOnFriendlies(),
-		AttackNoThreatBuildings(),			
-		Anim_Update ()
+		AttackNoThreatBuildings(),
+		Anim_Update (),
+		CanTarget_IronCurtained {},
+		AutoTarget_IronCurtained {}
 	{
 		this->AbsType = WeaponTypeClass::AbsID;
 		this->Initialize();

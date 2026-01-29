@@ -797,6 +797,7 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 
 	bool TryNextPlanningTokenNode() const { JMP_THIS(0x6385C0); }
 	bool AllowToRetaliate(TechnoClass* source, WarheadTypeClass* warhead) const { JMP_THIS(0x7087C0); }
+	bool CanRetaliateToAttacker(TechnoClass* pAttacker, WarheadTypeClass* pWH) const { JMP_THIS(0x7087C0); }
 
 	// returns the house that controls this techno (replaces the ID with player's ID if needed)
 	int GetControllingHouse() const {
@@ -823,8 +824,8 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
     void ImbueLocomotor(FootClass* target, CLSID clsid)
 	{ JMP_THIS(0x710000); }
 
-	double GetCoefficient(TechnoClass* a2, CoordStruct& coord)
-	{ JMP_THIS(0x70CD10); }
+	double GetCoefficient(ObjectClass* a2, CoordStruct& coord) { JMP_THIS(0x70CD10); }
+	double ThreatCoeffients(const ObjectClass* pTarget, const CoordStruct* pLocation) const { JMP_THIS(0x70CD10); }
 
 	bool CantTarget(HouseClass* house)
 	{ JMP_THIS(0x746750); }

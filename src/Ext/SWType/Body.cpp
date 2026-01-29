@@ -689,6 +689,8 @@ struct TargetingFuncs
 
 				if (pTarget->IsIronCurtained() && !pTypeExt->SW_AITargeting_PsyDom_AllowInvulnerable)
 					return false;
+
+				return true;
 			}
 
 			// original game does not consider cloak

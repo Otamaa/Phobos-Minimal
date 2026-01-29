@@ -358,24 +358,19 @@ ASMJIT_PATCH(0x737994, UnitClass_ReceivedRadioCommand_BySize4, 6)
 		0x7379E8 : 0x737AFC;
 }
 
-bool NOINLINE CanFireICUnit(TechnoClass* pThis , FakeWarheadTypeClass* pWH , TechnoClass* pTarget){
+bool NOINLINE TechnoExtData::CanTargetICUnit(TechnoClass* pThis , FakeWeaponTypeClass* pWP , TechnoClass* pTarget){
 
 	if(!pTarget->IsIronCurtained())
 		return true;
-
-	auto pWHExt = pWH->_GetExtData();
+	auto pWPExt = pWP->_GetExtData();
 	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pThis->GetTechnoType());
 
-	if(pWHExt->CanTargetIronCurtained.isset() && !pWHExt->CanTargetIronCurtained)
+	if(pWPExt->CanTarget_IronCurtained.isset() && !pWPExt->CanTarget_IronCurtained)
 		return false;
 
 	const bool IsHuman = pThis->Owner->IsControlledByHuman();
 
-	if(!IsHuman) {
-		return pTypeExt->AllowFire_IroncurtainedTarget.Get(RulesExtData::Instance()->AutoAttackICedTarget);
-	}
-
-	return true;
+	return pTypeExt->AllowFire_IroncurtainedTarget.Get(IsHuman ? RulesExtData::Instance()->CanTarget_IronCurtained : RulesExtData::Instance()->CanTargetAI_IronCurtained);
 }
 
 ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
@@ -409,12 +404,10 @@ ASMJIT_PATCH(0x6FC0D3, TechnoClass_CanFire_DisableWeapons, 8)
 		if (pExt->AE.flags.DisableWeapons)
 			return FireRange;
 
-		if(pExt->CanFireWeaponType->Warhead){
 
-			if(auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget)) {
-				if(!CanFireICUnit(pThis, (FakeWarheadTypeClass*)pExt->CanFireWeaponType->Warhead, pTechnoT))
-				return FireIllegal;
-			}
+		if(auto const pTechnoT = flag_cast_to<TechnoClass*, false>(pTarget)) {
+			if(!TechnoExtData::CanTargetICUnit(pThis, (FakeWeaponTypeClass*)pExt->CanFireWeaponType, pTechnoT))
+			return FireIllegal;
 		}
 
 		return ContinueCheck;

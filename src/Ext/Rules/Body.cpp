@@ -1103,6 +1103,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AIAllInOnLastLegs.Read(exINI, GameStrings::General, "AIAllToHunt");
 	this->RepairBaseNodes.Read(exINI, GameStrings::General, "RepairBaseNodes");
 	this->MCVRedeploysInCampaign.Read(exINI, GameStrings::General, "MCVRedeploysInCampaign");
+	this->UnitsUnsellable.Read(exINI, GameStrings::General, "UnitsUnsellable");
 	#pragma endregion
 
 	#pragma region CombatDamage
@@ -1132,8 +1133,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->HunterSeeker_Damage.Read(exINI, GameStrings::CombatDamage(), "HunterSeekerDamage");
 	this->AutoRepelAI.Read(exINI, GameStrings::CombatDamage(), "AutoRepel");
 	this->AutoRepelPlayer.Read(exINI, GameStrings::CombatDamage(), "PlayerAutoRepel");
-	this->AutoAttackICedTarget.Read(exINI, GameStrings::CombatDamage(), "Firing.AllowICedTargetForAI");
-	this->AutoAttackICedTarget.Read(exINI, GameStrings::CombatDamage, "CanAITargetIronCurtained");
+
+	this->CanTargetAI_IronCurtained.Read(exINI, GameStrings::CombatDamage, "CanTargetAI.IronCurtained");
+	this->CanTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "CanTarget.IronCurtained");
+	this->AutoTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "AutoTarget.IronCurtained");
+
 	this->EMPAIRecoverMission.Read(exINI, GameStrings::CombatDamage(), "EMPAIRecoverMission");
 	#pragma endregion
 
@@ -1494,7 +1498,9 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->NeutralCountryIndex)
 
 		.Process(this->WallTowers)
-		.Process(this->AutoAttackICedTarget)
+		.Process(this->CanTargetAI_IronCurtained)
+		.Process(this->CanTarget_IronCurtained)
+		.Process(this->AutoTarget_IronCurtained)
 		.Process(this->AI_SpyMoneyStealPercent)
 		.Process(this->DoggiePanicMax)
 		.Process(this->HunterSeeker_Damage)
@@ -1840,6 +1846,7 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->AutoTargetAI_NoThreatBuildings)
 		.Process(this->WalkLocomotorMakesWake)
 		.Process(this->AllowBerzerkOnAllies)
+		.Process(this->UnitsUnsellable)
 		;
 }
 
