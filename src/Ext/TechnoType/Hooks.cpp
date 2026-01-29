@@ -35,33 +35,33 @@ ASMJIT_PATCH(0x71532B, TechnoTypeClass_LoadFromINI_BarrelAnimData_Fix, 0x8)
 	return 0x7153DA;
 }
 
-// ASMJIT_PATCH(0x711F39, TechnoTypeClass_CostOf_FactoryPlant, 0x8)
-// {
-// 	GET(TechnoTypeClass*, pThis, ESI);
-// 	GET(HouseClass*, pHouse, EDI);
-// 	REF_STACK(float, mult, STACK_OFFSET(0x10, -0x8));
-//
-// 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
-//
-// 	if (!pHouseExt->RestrictedFactoryPlants.empty())
-// 		mult *= pHouseExt->GetRestrictedFactoryPlantMult(pThis);
+ASMJIT_PATCH(0x711F39, TechnoTypeClass_CostOf_FactoryPlant, 0x8)
+{
+	GET(TechnoTypeClass*, pThis, ESI);
+	GET(HouseClass*, pHouse, EDI);
+	REF_STACK(float, mult, STACK_OFFSET(0x10, -0x8));
 
-// 	return 0;
-// }
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 
-// ASMJIT_PATCH(0x711FDF, TechnoTypeClass_RefundAmount_FactoryPlant, 0x8)
-// {
-// 	GET(TechnoTypeClass*, pThis, ESI);
-// 	GET(HouseClass*, pHouse, EDI);
-// 	REF_STACK(float, mult, STACK_OFFSET(0x10, -0x4));
-//
-// 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
-//
-// 	if (!pHouseExt->RestrictedFactoryPlants.empty())
-// 		mult *= pHouseExt->GetRestrictedFactoryPlantMult(pThis);
-//
-// 	return 0;
-// }
+	if (!pHouseExt->RestrictedFactoryPlants.empty())
+		mult *= pHouseExt->GetRestrictedFactoryPlantMult(pThis);
+
+	return 0;
+}
+
+ASMJIT_PATCH(0x711FDF, TechnoTypeClass_RefundAmount_FactoryPlant, 0x8)
+{
+	GET(TechnoTypeClass*, pThis, ESI);
+	GET(HouseClass*, pHouse, EDI);
+	REF_STACK(float, mult, STACK_OFFSET(0x10, -0x4));
+
+	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
+
+	if (!pHouseExt->RestrictedFactoryPlants.empty())
+		mult *= pHouseExt->GetRestrictedFactoryPlantMult(pThis);
+
+	return 0;
+}
 
 ASMJIT_PATCH(0x707319, TechnoClass_CalcVoxelShadow_ShadowScale, 0x6)
 {

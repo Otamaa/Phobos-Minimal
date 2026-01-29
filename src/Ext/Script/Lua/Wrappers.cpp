@@ -156,6 +156,8 @@ struct PairOfNumbers {
 };
 //static std::vector<PairOfNumbers> SriptNumbers {};
 PairOfNumbers SriptNumbers[] = {
+
+	        {150,14004},
 			{71,10100},
 			{72,10103},
 			{73,10101},

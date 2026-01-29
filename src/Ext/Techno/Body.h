@@ -855,367 +855,354 @@ public:
 	using base_type = TechnoClass;
 public:
 #pragma region ClassMembers
-	TechnoTypeClass* CurrentType; //original Type pointer
+	// ============================================================
+	// 8-byte aligned: Pointers
+	// ============================================================
+	TechnoTypeClass* CurrentType;
+	BuildingLightClass* BuildingLight;
+	HouseTypeClass* OriginalHouseType;
+	HouseClass* HijackerOwner;
+	HouseClass* OriginalPassengerOwner;
+	ShieldTypeClass* CurrentShieldType;
+	AnimTypeClass* MindControlRingAnimType;
+	AbstractClass* WebbyLastTarget;
+	CellClass* FiringObstacleCell;
+	CellClass* SubterraneanHarvRallyPoint;
+	TemporalClass* MyOriginalTemporal;
+	SuperClass* LinkedSW;
+	InfantryTypeClass* HijackerLastDisguiseType;
+	HouseClass* HijackerLastDisguiseHouse;
+	WarheadTypeClass* LastDamageWH;
+	WeaponTypeClass* LastWeaponType;
+	WeaponTypeClass* CanFireWeaponType;
+	AirstrikeClass* AirstrikeTargetingMe;
 
-	AEProperties AE;
-	BYTE idxSlot_EMPulse;
-	BYTE idxSlot_Wave; //5
-	BYTE idxSlot_Beam; //6
-	BYTE idxSlot_Warp; //7
-	BYTE idxSlot_Parasite; //8
-
-	Handle<AnimClass*, UninitAnim> EMPSparkleAnim;
-	Mission EMPLastMission; //
-
+	// ============================================================
+	// 8-byte aligned: std::unique_ptr
+	// ============================================================
 	std::unique_ptr<PoweredUnitClass> PoweredUnit;
 	std::unique_ptr<RadarJammerClass> RadarJammer;
+	std::unique_ptr<ShieldClass> Shield;
+	std::unique_ptr<GiftBox> MyGiftBox;
+	std::unique_ptr<DamageSelfState> DamageSelfState;
 
-	BuildingLightClass* BuildingLight;
+	// ============================================================
+	// 8-byte aligned: Handle wrappers (pointer-sized)
+	// ============================================================
+	Handle<AnimClass*, UninitAnim> EMPSparkleAnim;
+	Handle<AnimClass*, UninitAnim> WebbedAnim;
+	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim;
 
-	HouseTypeClass* OriginalHouseType;
-	CDTimerClass CloakSkipTimer; //
+	// ============================================================
+	// 8-byte aligned: OptionalStruct (int + bool + padding)
+	// ============================================================
+	OptionalStruct<int, true> CurrentLaserWeaponIndex;
+	OptionalStruct<int, true> AdditionalRange;
+
+	// ============================================================
+	// 8-byte aligned: std::optional
+	// ============================================================
+	std::optional<CoordStruct> CustomFiringOffset;
+
+	// ============================================================
+	// Large aggregates: Vectors (typically 24 bytes on x64)
+	// ============================================================
+	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
+	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
+	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
+	HelperedVector<EBolt*> ElectricBolts;
+	HelperedVector<OnlyAttackStruct> OnlyAttackData;
+	std::vector<RecoilData> ExtraTurretRecoil;
+	std::vector<RecoilData> ExtraBarrelRecoil;
+
+	// ============================================================
+	// Large aggregates: Maps
+	// ============================================================
+	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
+	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
+
+	// ============================================================
+	// Large aggregates: Custom compound types
+	// (order these by their internal alignment requirements if known)
+	// ============================================================
+	AEProperties AE;
+	AresAEData AeData;
+	NewTiberiumStorageClass TiberiumStorage;
+	FireWeaponManager MyWeaponManager;
+	DriveData MyDriveData;
+	AircraftDive MyDiveData;
+	SpawnSupport MySpawnSuport;
+	TintColors Tints;
+
+	// ============================================================
+	// CDTimerClass instances (group together for cache locality)
+	// ============================================================
+	CDTimerClass CloakSkipTimer;
+	CDTimerClass PassengerDeletionTimer;
+	CDTimerClass Death_Countdown;
+	CDTimerClass DeployFireTimer;
+	CDTimerClass DisableWeaponTimer;
+	CDTimerClass EngineerCaptureDelay;
+	CDTimerClass WarpedOutDelay;
+	CDTimerClass SelfHealing_CombatDelay;
+	CDTimerClass MergePreventionTimer;
+	CDTimerClass TiberiumEaterTimer;
+	CDTimerClass ChargeTurretTimer;
+	CDTimerClass DelayedFireTimer;
+	CDTimerClass UnitIdleActionTimer;
+	CDTimerClass UnitIdleActionGapTimer;
+
+	// ============================================================
+	// CellStruct instances (likely 4-8 bytes each)
+	// ============================================================
+	CellStruct SuperTarget;
+	CellStruct RandomEMPTarget;
+	CellStruct LastSensorsMapCoords;
+
+	// ============================================================
+	// 4-byte aligned: int, DWORD, float, enums
+	// ============================================================
 	int HijackerHealth;
-	HouseClass* HijackerOwner;
+	int TechnoValueAmount;
+	int Pos;
+	int LastWarpDistance;
+	int DamageNumberOffset;
+	int GattlingDmageDelay;
+	int CurrentWeaponIdx;
+	int WHAnimRemainingCreationInterval;
+	int LastWarpInDelay;
+	int MyTargetingFrame;
+	int DropCrate;
+	int LastBeLockedFrame;
+	int BeControlledThreatFrame;
+	int AccumulatedGattlingValue;
+	int DelayedFireWeaponIndex;
+	int LastHurtFrame;
+	int AttackMoveFollowerTempCount;
+
+	DWORD LastTargetID;
+
 	float HijackerVeterancy;
+
+	Mission EMPLastMission;
+	Mission WebbyLastMission;
+	PowerupEffects DropCrateType;
+	PassiveAcquireMode PassiveAquireMode;
+
+	// ============================================================
+	// 1-byte aligned: BYTE (group to fill padding)
+	// ============================================================
+	BYTE idxSlot_EMPulse;
+	BYTE idxSlot_Wave;
+	BYTE idxSlot_Beam;
+	BYTE idxSlot_Warp;
+	BYTE idxSlot_Parasite;
 	BYTE Is_SurvivorsDone;
 	BYTE Is_DriverKilled;
 	BYTE Is_Operated;
 	BYTE Is_UnitLostMuted;
 	BYTE TakeVehicleMode;
-	int TechnoValueAmount;
-	int Pos;
-	std::unique_ptr<ShieldClass> Shield;
-	HelperedVector<std::unique_ptr<LaserTrailClass>> LaserTrails;
+
+	// ============================================================
+	// 1-byte aligned: bool (pack together to minimize padding)
+	// ============================================================
 	bool ReceiveDamage;
 	bool LastKillWasTeamTarget;
-	CDTimerClass PassengerDeletionTimer;
-	ShieldTypeClass* CurrentShieldType;
-	int LastWarpDistance;
-	CDTimerClass Death_Countdown;
-	AnimTypeClass* MindControlRingAnimType;
-	int DamageNumberOffset;
-	OptionalStruct<int, true> CurrentLaserWeaponIndex;
-
-	// Used for Passengers.SyncOwner.RevertOnExit instead of TechnoClass::InitialOwner / OriginallyOwnedByHouse,
-	// as neither is guaranteed to point to the house the TechnoClass had prior to entering transport and cannot be safely overridden.
-	HouseClass* OriginalPassengerOwner;
-
 	bool IsInTunnel;
 	bool IsBurrowed;
-	CDTimerClass DeployFireTimer;
-	CDTimerClass DisableWeaponTimer;
-
-	HelperedVector<TimedWarheadValue<WeaponTypeClass*>> RevengeWeapons;
-
-	int GattlingDmageDelay;
 	bool GattlingDmageSound;
 	bool AircraftOpentoppedInitEd;
-
-	CDTimerClass EngineerCaptureDelay;
-
 	bool FlhChanged;
-	//OptionalStruct<double, true> ReceiveDamageMultiplier;
 	bool SkipLowDamageCheck;
-
 	bool aircraftPutOffsetFlag;
 	bool aircraftPutOffset;
 	bool SkipVoice;
-
-	PhobosMap<WeaponTypeClass*, CDTimerClass> ExtraWeaponTimers;
-
-	HelperedVector<std::unique_ptr<UniversalTrail>> Trails;
-	std::unique_ptr<GiftBox> MyGiftBox;
-	PhobosMap<WarheadTypeClass*, PaintBall> PaintBallStates;
-	std::unique_ptr<DamageSelfState> DamageSelfState;
-
-	int CurrentWeaponIdx;
-
-	FireWeaponManager MyWeaponManager;
-	DriveData MyDriveData;
-	AircraftDive MyDiveData;
-
-	SpawnSupport MySpawnSuport;
-
-	CDTimerClass WarpedOutDelay;
-
-	TemporalClass* MyOriginalTemporal;
-
 	bool SupressEVALost;
-	CDTimerClass SelfHealing_CombatDelay;
 	bool PayloadCreated;
 	bool PayloadTriggered;
-	SuperClass* LinkedSW;
-	CellStruct SuperTarget;
-
-	InfantryTypeClass* HijackerLastDisguiseType;
-	HouseClass* HijackerLastDisguiseHouse;
-
-	int WHAnimRemainingCreationInterval;
-
-	//====
 	bool IsWebbed;
-	Handle<AnimClass*, UninitAnim> WebbedAnim;
-	AbstractClass* WebbyLastTarget;
-	Mission WebbyLastMission;
-
-	AresAEData AeData;
-
-	CDTimerClass MergePreventionTimer;
-
-	NewTiberiumStorageClass TiberiumStorage;
-
-	HelperedVector<std::unique_ptr<PhobosAttachEffectClass>> PhobosAE;
-
-	CellClass* FiringObstacleCell; // Set on firing if there is an obstacle cell between target and techno, used for updating WaveClass target etc.
-	OptionalStruct<int, true> AdditionalRange;
-	bool IsDetachingForCloak; // After TechnoClass::Cloak() has been called but before detaching everything from the object & before CloakState has been updated.
-
-	bool HasRemainingWarpInDelay; // Converted from object with Teleport Locomotor to one with a different Locomotor while still phasing in.
-	int LastWarpInDelay;          // Last-warp in delay for this unit, used by HasRemainingWarpInDelay
-	bool IsBeingChronoSphered; // Set to true on units currently being ChronoSphered, does not apply to Ares-ChronoSphere'd buildings or Chrono reinforcements.
-
-	CellClass* SubterraneanHarvRallyPoint;
-
-	CDTimerClass TiberiumEaterTimer;
-	WarheadTypeClass* LastDamageWH;
-
-	int MyTargetingFrame;
-
-	CDTimerClass ChargeTurretTimer;// Used for charge turrets instead of RearmTimer if weapon has ChargeTurret.Delays set.
+	bool IsDetachingForCloak;
+	bool HasRemainingWarpInDelay;
+	bool IsBeingChronoSphered;
 	bool LastRearmWasFullDelay;
-
-	int DropCrate; // Drop crate on death, modified by map action
-	PowerupEffects DropCrateType;
-
-	int LastBeLockedFrame;
-	int BeControlledThreatFrame;
-
-	DWORD LastTargetID;
-	int AccumulatedGattlingValue;
 	bool ShouldUpdateGattlingValue;
-
 	bool KeepTargetOnMove;
-	CellStruct LastSensorsMapCoords;
 	bool DelayedFireSequencePaused;
-	int DelayedFireWeaponIndex;
-	CDTimerClass DelayedFireTimer;
-	Handle<AnimClass*, UninitAnim> CurrentDelayedFireAnim;
-	std::optional<CoordStruct> CustomFiringOffset; // If set any calls to GetFLH() will use this coordinate as
-
-	WeaponTypeClass* LastWeaponType;
-	HelperedVector<EBolt*> ElectricBolts;
-	int LastHurtFrame;
-
-	AirstrikeClass* AirstrikeTargetingMe;
-	CellStruct RandomEMPTarget;
-
 	bool ForceFullRearmDelay;
-	int AttackMoveFollowerTempCount;
-	HelperedVector<OnlyAttackStruct> OnlyAttackData;
 	bool IsSelected;
-
 	bool UndergroundTracked;
-	PassiveAcquireMode PassiveAquireMode;
-
 	bool UnitIdleAction;
 	bool UnitIdleActionSelected;
 	bool UnitIdleIsSelected;
-	CDTimerClass UnitIdleActionTimer;
-	CDTimerClass UnitIdleActionGapTimer;
-	TintColors Tints;
-
 	bool FallingDownTracked;
 	bool ResetLocomotor;
 	bool JumpjetStraightAscend;
-
-	WeaponTypeClass* CanFireWeaponType;
-
-	std::vector<RecoilData> ExtraTurretRecoil;
-	std::vector<RecoilData> ExtraBarrelRecoil;
+	// 31 bools = 31 bytes, add 1 padding byte for 32 (4-byte alignment)
 
 #pragma endregion
 
 public:
 
 	TechnoExtData(TechnoClass* abs) : RadioExtData(abs),
+		// Pointers
 		CurrentType(nullptr),
+		BuildingLight(nullptr),
+		OriginalHouseType(nullptr),
+		HijackerOwner(nullptr),
+		OriginalPassengerOwner(nullptr),
+		CurrentShieldType(nullptr),
+		MindControlRingAnimType(nullptr),
+		WebbyLastTarget(nullptr),
+		FiringObstacleCell(nullptr),
+		SubterraneanHarvRallyPoint(nullptr),
+		MyOriginalTemporal(nullptr),
+		LinkedSW(nullptr),
+		HijackerLastDisguiseType(nullptr),
+		HijackerLastDisguiseHouse(nullptr),
+		LastDamageWH(nullptr),
+		LastWeaponType(nullptr),
+		CanFireWeaponType(nullptr),
+		AirstrikeTargetingMe(nullptr),
 
+		// unique_ptr
+		PoweredUnit(nullptr),
+		RadarJammer(nullptr),
+		Shield(nullptr),
+		MyGiftBox(nullptr),
+		DamageSelfState(nullptr),
+
+		// Handle wrappers
+		EMPSparkleAnim(nullptr),
+		WebbedAnim(nullptr),
+		CurrentDelayedFireAnim(nullptr),
+
+		// OptionalStruct
+		CurrentLaserWeaponIndex(),
+		AdditionalRange(),
+
+		// std::optional
+		CustomFiringOffset(),
+
+		// Vectors
+		LaserTrails(),
+		RevengeWeapons(),
+		Trails(),
+		PhobosAE(),
+		ElectricBolts(),
+		OnlyAttackData(),
+		ExtraTurretRecoil(),
+		ExtraBarrelRecoil(),
+
+		// Maps
+		ExtraWeaponTimers(),
+		PaintBallStates(),
+
+		// Custom compound types
 		AE(),
+		AeData(),
+		TiberiumStorage(),
+		MyWeaponManager(),
+		MyDriveData(),
+		MyDiveData(),
+		MySpawnSuport(),
+		Tints(),
+
+		// CDTimerClass
+		CloakSkipTimer(),
+		PassengerDeletionTimer(),
+		Death_Countdown(),
+		DeployFireTimer(),
+		DisableWeaponTimer(),
+		EngineerCaptureDelay(),
+		WarpedOutDelay(),
+		SelfHealing_CombatDelay(),
+		MergePreventionTimer(),
+		TiberiumEaterTimer(),
+		ChargeTurretTimer(),
+		DelayedFireTimer(),
+		UnitIdleActionTimer(),
+		UnitIdleActionGapTimer(),
+
+		// CellStruct
+		SuperTarget(),
+		RandomEMPTarget(),
+		LastSensorsMapCoords(),
+
+		// int, DWORD, float
+		HijackerHealth(0),
+		TechnoValueAmount(0),
+		Pos(0),
+		LastWarpDistance(0),
+		DamageNumberOffset(INT32_MIN),
+		GattlingDmageDelay(-1),
+		CurrentWeaponIdx(-1),
+		WHAnimRemainingCreationInterval(0),
+		LastWarpInDelay(0),
+		MyTargetingFrame(0),
+		DropCrate(-1),
+		LastBeLockedFrame(0),
+		BeControlledThreatFrame(0),
+		AccumulatedGattlingValue(0),
+		DelayedFireWeaponIndex(-1),
+		LastHurtFrame(0),
+		AttackMoveFollowerTempCount(0),
+		LastTargetID(0xFFFFFFFF),
+		HijackerVeterancy(0.0f),
+
+		// enums
+		EMPLastMission(Mission::Sleep),
+		WebbyLastMission(Mission::Sleep),
+		DropCrateType(PowerupEffects::Money),
+		PassiveAquireMode(PassiveAcquireMode::Normal),
+
+		// BYTE
 		idxSlot_EMPulse(0),
 		idxSlot_Wave(0),
 		idxSlot_Beam(0),
 		idxSlot_Warp(0),
 		idxSlot_Parasite(0),
-
-		EMPSparkleAnim(nullptr),
-		EMPLastMission(Mission::Sleep),
-
-		PoweredUnit(nullptr),
-		RadarJammer(nullptr),
-
-		BuildingLight(nullptr),
-
-		OriginalHouseType(nullptr),
-		CloakSkipTimer(),
-		HijackerHealth(0),
-		HijackerOwner(nullptr),
-		HijackerVeterancy(0.0f),
 		Is_SurvivorsDone(0),
 		Is_DriverKilled(0),
 		Is_Operated(0),
 		Is_UnitLostMuted(0),
 		TakeVehicleMode(0),
-		TechnoValueAmount(0),
-		Pos(0),
-		Shield(nullptr),
-		LaserTrails(),
+
+		// bool
 		ReceiveDamage(false),
 		LastKillWasTeamTarget(false),
-		PassengerDeletionTimer(),
-		CurrentShieldType(nullptr),
-		LastWarpDistance(0),
-		Death_Countdown(),
-		MindControlRingAnimType(nullptr),
-		DamageNumberOffset(INT32_MIN),
-		CurrentLaserWeaponIndex(),
-		OriginalPassengerOwner(nullptr),
-
 		IsInTunnel(false),
 		IsBurrowed(false),
-		DeployFireTimer(),
-		DisableWeaponTimer(),
-
-		RevengeWeapons(),
-
-		GattlingDmageDelay(-1),
 		GattlingDmageSound(false),
 		AircraftOpentoppedInitEd(false),
-
-		EngineerCaptureDelay(),
-
 		FlhChanged(false),
-		//ReceiveDamageMultiplier(),
 		SkipLowDamageCheck(false),
-
 		aircraftPutOffsetFlag(false),
 		aircraftPutOffset(false),
 		SkipVoice(false),
-
-		ExtraWeaponTimers(),
-
-		Trails(),
-		MyGiftBox(nullptr),
-		PaintBallStates(),
-		DamageSelfState(nullptr),
-
-		CurrentWeaponIdx(-1),
-
-		MyWeaponManager(),
-		MyDriveData(),
-		MyDiveData(),
-
-		MySpawnSuport(),
-
-		WarpedOutDelay(),
-
-		MyOriginalTemporal(nullptr),
-
 		SupressEVALost(false),
-		SelfHealing_CombatDelay(),
 		PayloadCreated(false),
 		PayloadTriggered(false),
-		LinkedSW(nullptr),
-		SuperTarget(),
-
-		HijackerLastDisguiseType(nullptr),
-		HijackerLastDisguiseHouse(nullptr),
-
-		WHAnimRemainingCreationInterval(0),
-
 		IsWebbed(false),
-		WebbedAnim(nullptr),
-		WebbyLastTarget(nullptr),
-		WebbyLastMission(Mission::Sleep),
-
-		AeData(),
-
-		MergePreventionTimer(),
-
-		TiberiumStorage(),
-
-		PhobosAE(),
-
-		FiringObstacleCell(nullptr),
-		AdditionalRange(),
 		IsDetachingForCloak(false),
-
 		HasRemainingWarpInDelay(false),
-		LastWarpInDelay(0),
 		IsBeingChronoSphered(false),
-
-		SubterraneanHarvRallyPoint(nullptr),
-
-		TiberiumEaterTimer(),
-		LastDamageWH(nullptr),
-
-		MyTargetingFrame(0),
-
-		ChargeTurretTimer(),
 		LastRearmWasFullDelay(false),
-
-		DropCrate(-1),
-		DropCrateType(PowerupEffects::Money),
-
-		LastBeLockedFrame(0),
-		BeControlledThreatFrame(0),
-
-		LastTargetID(0xFFFFFFFF),
-		AccumulatedGattlingValue(0),
 		ShouldUpdateGattlingValue(false),
-
 		KeepTargetOnMove(false),
-		LastSensorsMapCoords(),
 		DelayedFireSequencePaused(false),
-		DelayedFireWeaponIndex(-1),
-		DelayedFireTimer(),
-		CurrentDelayedFireAnim(nullptr),
-		CustomFiringOffset(),
-
-		LastWeaponType(nullptr),
-		ElectricBolts(),
-		LastHurtFrame(0),
-
-		AirstrikeTargetingMe(nullptr),
-		RandomEMPTarget(),
-
 		ForceFullRearmDelay(false),
-		AttackMoveFollowerTempCount(0),
-		OnlyAttackData(),
 		IsSelected(false),
-
 		UndergroundTracked(false),
-		PassiveAquireMode(PassiveAcquireMode::Normal),
-
 		UnitIdleAction(false),
 		UnitIdleActionSelected(false),
 		UnitIdleIsSelected(false),
-		UnitIdleActionTimer(),
-		UnitIdleActionGapTimer(),
-		Tints(),
-		FallingDownTracked { false },
-		ResetLocomotor { false } ,
-		JumpjetStraightAscend { },
-		CanFireWeaponType { },
-		ExtraTurretRecoil { },
-		ExtraBarrelRecoil { }
+		FallingDownTracked(false),
+		ResetLocomotor(false),
+		JumpjetStraightAscend(false)
 	{
-		// ensure tib storage sized properly
 		TiberiumStorage.m_values.resize(TiberiumClass::Array->Count);
-
-		// randomized initial targeting frame
 		MyTargetingFrame = ScenarioClass::Instance->Random.RandomRanged(0, 15);
-
-		// set tint owner
 		Tints.SetOwner(abs);
 	}
 
@@ -1595,7 +1582,7 @@ public:
 	static int __fastcall __TimeToBuild(TechnoClass* pThis);
 
 	static InfantryTypeClass* __fastcall __GetCrew(TechnoClass* pThis);
-
+	static void __fastcall __DrawExtras(TechnoClass* pThis, discard_t, Point2D* pLocation, RectangleStruct* pBounds);
 	static void __fastcall __Activate(TechnoClass* pThis);
 	static void __fastcall __Deactivate(TechnoClass* pThis);
 	//AI

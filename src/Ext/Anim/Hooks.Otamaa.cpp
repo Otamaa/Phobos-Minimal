@@ -372,7 +372,7 @@ void NOINLINE FakeAnimClass::_DrawTrailerAnim() {
 CoordStruct* FakeAnimClass::__GetCenterCoords(CoordStruct* pBuffer) {
 
 	if (auto pObj = this->OwnerObject) {
-		pObj->GetRenderCoords(pBuffer);
+		pObj->GetCoords(pBuffer);
 		*pBuffer = pBuffer->operator+(this->Location);
 
 		if (this->Type) {

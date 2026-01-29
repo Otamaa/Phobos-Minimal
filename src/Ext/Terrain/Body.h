@@ -23,23 +23,27 @@ public:
 public:
 
 #pragma region ClassMember
-	Handle<LightSourceClass*, UninitLightSource> LighSource;
+
+	Handle<LightSourceClass*, UninitLightSource> LightSource;
 	Handle<AnimClass*, UninitAnim> AttachedAnim;
 	Handle<AnimClass*, UninitAnim> AttachedFireAnim;
-	std::vector<CellStruct> Adjencentcells;
+
+	std::vector<CellStruct> AdjacentCells;
+
 #pragma endregion
 
 public:
+
 	TerrainExtData(TerrainClass* pObj) : ObjectExtData(pObj)
-		, LighSource(nullptr)
+		, LightSource(nullptr)
 		, AttachedAnim(nullptr)
 		, AttachedFireAnim(nullptr)
-		, Adjencentcells()
+		, AdjacentCells()
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = TerrainClass::AbsID;
-
 	}
+
 	TerrainExtData(TerrainClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 
 	virtual ~TerrainExtData() = default;
@@ -48,8 +52,8 @@ public:
 	{
 		this->ObjectExtData::InvalidatePointer(ptr, bRemoved);
 
-		if (this->LighSource.get() == ptr) {
-			this->LighSource.release();
+		if (this->LightSource.get() == ptr) {
+			this->LightSource.release();
 		}
 
 		if (this->AttachedAnim.get() == ptr) {

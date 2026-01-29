@@ -6167,6 +6167,13 @@ void TechnoExtData::KillSelf(TechnoClass* pThis, const KillMethod& deathOption, 
 	}break;
 	case KillMethod::Vanish:
 	{
+		if (pWhat == BuildingClass::vtable) {		
+			const auto pBld = static_cast<BuildingClass*>(pThis);
+
+			if (pThis->BunkerLinkedItem)
+				pBld->UnloadBunker();
+		}
+
 		// this shit is not really good idea to pull off
 		// some stuffs doesnt really handled properly , wtf
 

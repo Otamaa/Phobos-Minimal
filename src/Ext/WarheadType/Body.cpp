@@ -750,6 +750,15 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->CanTargetIronCurtained.Read(exINI, pSection, "CanTargetIronCurtained");
 
+	// Return warhead
+	this->ReturnWarhead.Read(exINI, pSection, "ReturnWarhead");
+	this->ReturnWarhead_Damage.Read(exINI, pSection, "ReturnWarhead.Damage");
+	this->ReturnWarhead_Chance.Read(exINI, pSection, "ReturnWarhead.Chance");
+	this->ReturnWarhead_ApplyChancePerTarget.Read(exINI, pSection, "ReturnWarhead.ApplyChancePerTarget");
+	this->ReturnWarhead_FullDetonation.Read(exINI, pSection, "ReturnWarhead.FullDetonation");
+	this->ReturnWarhead_AffectsTarget.Read(exINI, pSection, "ReturnWarhead.AffectsTarget");
+	this->ReturnWarhead_AffectsHouse.Read(exINI, pSection, "ReturnWarhead.AffectsHouse");
+
 	this->VeterancyCheck = this->AffectsVeterancy != AffectedVeterancy::All;
 
 	this->IsCellSpreadWH =
@@ -784,6 +793,7 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->BuildingSell
 		|| this->BuildingUndeploy
 		|| this->ReverseEngineer
+		|| this->ReturnWarhead
 		;
 
 	this->IsFakeEngineer =
@@ -1724,7 +1734,7 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->CritActive)
 		.Process(this->CritRandomBuffer)
 		.Process(this->CritCurrentChance)
-
+		.Process(this->ReturnWarhead_RandomBuffer)
 		.Process(this->MindControl_Anim)
 
 		// Ares tags
@@ -2074,11 +2084,20 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->AffectsUnderground)
 		.Process(this->PlayAnimUnderground)
 		.Process(this->PlayAnimAboveSurface)
-		.Process(this->IsCellSpreadWH)
-		.Process(this->IsFakeEngineer)
 		.Process(this->AnimZAdjust)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
 		.Process(this->CanTargetIronCurtained)
+
+		.Process(this->ReturnWarhead)
+		.Process(this->ReturnWarhead_Damage)
+		.Process(this->ReturnWarhead_Chance)
+		.Process(this->ReturnWarhead_ApplyChancePerTarget)
+		.Process(this->ReturnWarhead_FullDetonation)
+		.Process(this->ReturnWarhead_AffectsTarget)
+		.Process(this->ReturnWarhead_AffectsHouse)
+
+		.Process(this->IsCellSpreadWH)
+		.Process(this->IsFakeEngineer)
 		.Process(this->VeterancyCheck)
 		;
 

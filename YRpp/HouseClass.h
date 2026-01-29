@@ -971,7 +971,7 @@ public:
 	COMPILETIMEEVAL static bool IsCurrentPlayerObserver() 
 		{	return CurrentPlayer && CurrentPlayer->IsObserver();	}
 
-	int CalculateCostMultipliers()
+	void CalculateCostMultipliers()
 		{ JMP_THIS(0x50BF60); }
 
 	void WhimpOnMoney(AbstractType nAbsType)

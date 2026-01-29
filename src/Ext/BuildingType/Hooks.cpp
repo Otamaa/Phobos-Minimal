@@ -91,12 +91,17 @@ bool FORCEDINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, 
 		return true;
 	}
 
+	auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBld);
+	auto const& pBuildingsDisallowed = pTypeExt->Adjacent_Disallowed;
+	auto const& pBuildingsAllowed = pTypeExt->Adjacent_Allowed;
+	auto adjplus1 = pBld->Adjacent + pTypeExt->Adjacent_Disallowed_ExtraDistance + 1;
+
 	auto height = pBld->GetFoundationHeight(false);
 	auto width = pBld->GetFoundationWidth();
 	auto cellx = pTry->X;
 	auto celly = pTry->Y;
 	auto width_1 = width;
-	auto adjplus1 = pBld->Adjacent + 1;
+	
 	auto width_2 = width_1;
 	auto celly_1 = celly;
 	auto xmax = cellx - adjplus1 + width_1 + 2 * adjplus1;
@@ -104,42 +109,33 @@ bool FORCEDINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, 
 	auto retval = 0;
 	auto xpos = cellx - adjplus1;
 	auto xmax_org = xmax;
-	if (cellx - adjplus1 < xmax)
-	{
+
+	if (cellx - adjplus1 < xmax) {
 		auto ymax1 = (char*)height + 2 * adjplus1 + cellyminadj;
 		auto ymax = ymax1;
-		do
-		{
+		do {
 			auto ypos = cellyminadj;
-			if (cellyminadj < (int)ymax1)
-			{
-				do
-				{
+			if (cellyminadj < (int)ymax1) {
+				do {
 					CellStruct coord { (short)xpos  , (short)ypos };
 
 					if ((short)xpos < cellx
 					  || (short)xpos >= cellx + width_2
 					  || (short)ypos < celly_1
-					  || (short)ypos >= (int)height + celly_1)
-					{
+					  || (short)ypos >= (int)height + celly_1) {
 
-						auto cellofcoord = MapClass::Instance->GetCellAt(coord);
-						if (auto base = cellofcoord->GetBuilding())
+						if (auto base = MapClass::Instance->GetCellAt(coord)->GetBuilding())
 						{
-							auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(base->Type);
+							auto const pCellBldTypeExt = BuildingTypeExtContainer::Instance.Find(base->Type);
 
-							if (pTypeExt->NoBuildAreaOnBuildup && base->CurrentMission == Mission::Construction)
+							if (pCellBldTypeExt->NoBuildAreaOnBuildup && base->CurrentMission == Mission::Construction)
 								goto continue_bld;
-
-							auto const& pBuildingsAllowed = BuildingTypeExtContainer::Instance.Find(pBld)->Adjacent_Allowed;
 
 							if (!pBuildingsAllowed.empty() && !pBuildingsAllowed.Contains(base->Type))
 								goto continue_bld;
 
-							auto const& pBuildingsDisallowed = BuildingTypeExtContainer::Instance.Find(pBld)->Adjacent_Disallowed;
-
 							if (!pBuildingsDisallowed.empty() && pBuildingsDisallowed.Contains(base->Type))
-								goto continue_bld;
+								return false;
 
 							auto owner = base->Owner;
 							if (owner->ArrayIndex == nHouse && base->Type->BaseNormal && !BuildingExtContainer::Instance.Find(base)->IsFromSW) {
@@ -148,9 +144,9 @@ bool FORCEDINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, 
 
 							if (GameModeOptionsClass::Instance->BuildOffAlly && owner->IsAlliedWith(HouseClass::Array->Items[nHouse])) {
 								if (base->Type->EligibileForAllyBuilding) {
-									retval = 1;
+								  retval = 1;
 								}
-							}
+							}				
 						}
 					}
 				continue_bld:

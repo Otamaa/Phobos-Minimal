@@ -15,34 +15,53 @@ public:
 
 public:
 #pragma region ClassMember
+
+	// =====================================================
+	// Containers / complex structs
+	// =====================================================
+
 	ValueableIdxVector<LaserTrailTypeClass> LaserTrail_Types;
+	NullableVector<AnimTypeClass*> SplashList;
+	TrailsReader Trails;
+
+	// =====================================================
+	// Pointers / nullable pointers
+	// =====================================================
+
+	Nullable<AnimTypeClass*> WakeAnim;
+	Nullable<WeaponTypeClass*> Weapon;
+
+	// =====================================================
+	// Integers
+	// =====================================================
+
+	Valueable<int> TrailerAnim_SpawnDelay;
+
+	// =====================================================
+	// Booleans / flags
+	// =====================================================
+
 	Valueable<bool> Warhead_Detonate;
-#pragma region Otamaa
-	NullableVector <AnimTypeClass*> SplashList;//
 	Valueable<bool> SplashList_Pickrandom;
-	Nullable<AnimTypeClass*> WakeAnim; //
 	Valueable<bool> ExplodeOnWater;
 	Valueable<bool> Damage_DealtByOwner;
-	Nullable<WeaponTypeClass*> Weapon;
 	Valueable<bool> ExpireDamage_ConsiderInvokerVet;
-	TrailsReader Trails;
-	Valueable<int> TrailerAnim_SpawnDelay;
-#pragma endregion
+
 #pragma endregion
 
 public:
 	VoxelAnimTypeExtData(VoxelAnimTypeClass* pObj) : ObjectTypeExtData(pObj)
 		, LaserTrail_Types()
-		, Warhead_Detonate(false)
 		, SplashList()
-		, SplashList_Pickrandom(true)
+		, Trails()
 		, WakeAnim()
+		, Weapon()
+		, TrailerAnim_SpawnDelay(2)
+		, Warhead_Detonate(false)
+		, SplashList_Pickrandom(true)
 		, ExplodeOnWater(false)
 		, Damage_DealtByOwner(false)
-		, Weapon()
 		, ExpireDamage_ConsiderInvokerVet(false)
-		, Trails()
-		, TrailerAnim_SpawnDelay(2)
 	{
 		this->AbsType = VoxelAnimTypeClass::AbsID;
 		this->Initialize();

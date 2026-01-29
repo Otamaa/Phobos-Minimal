@@ -2004,12 +2004,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
 		this->Convert_ResetMindControl.Read(exINI, pSection, "Convert.ResetMindControl");
 
-		this->ExtendedAircraftMissions_SmoothMoving.Read(exINI, pSection, "ExtendedAircraftMissions.SmoothMoving");
-		this->ExtendedAircraftMissions_EarlyDescend.Read(exINI, pSection, "ExtendedAircraftMissions.EarlyDescend");
-		this->ExtendedAircraftMissions_RearApproach.Read(exINI, pSection, "ExtendedAircraftMissions.RearApproach");
-		this->ExtendedAircraftMissions_FastScramble.Read(exINI, pSection, "ExtendedAircraftMissions.FastScramble");
-		this->ExtendedAircraftMissions_UnlandDamage.Read(exINI, pSection, "ExtendedAircraftMissions.UnlandDamage");
-
 		this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, pSection, "DigitalDisplay.Health.FakeAtDisguise");
 		this->EngineerRepairAmount.Read(exINI, pSection, "EngineerRepairAmount");
 

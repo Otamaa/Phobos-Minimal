@@ -1332,3 +1332,18 @@ ASMJIT_PATCH(0x6D5815, TacticalClass_DrawLaserFenceGrid_SkipDrawLaserFence, 0x6)
 	// Have used CurrentBuilding->Type yet, so simply use static_cast
 	return IsMatchedPostType(static_cast<BuildingClass*>(DisplayClass::Instance->CurrentBuilding)->Type, pPostType) ? 0 : SkipGameCode;
 }
+
+// Buildable-upon TerrainTypes Hook #5 -> Ignore when flushing building foundations for placement.
+ASMJIT_PATCH(0x45EF3A, BuildingTypeClass_FlushForPlacement_BuildableTerrain, 0x7)
+{
+	enum { Disallow = 0x45F00B, Continue = 0x45EF4A };
+
+	GET(ObjectClass* const, pObject, ESI);
+
+	if (auto const pTerrain = cast_to<TerrainClass*>(pObject)) {
+		if (!TerrainTypeExtContainer::Instance.Find(pTerrain->Type)->CanBeBuiltOn)
+			return Disallow;
+	}
+
+	return Continue;
+}

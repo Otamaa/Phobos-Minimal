@@ -27,110 +27,146 @@ public:
 public:
 
 #pragma region ClassMembers
-	bool SettingsInherited;
-	Valueable<int> SurvivorDivisor;
+	// ============================================================
+	// Large aggregates (strings, fixed-size buffers)
+	// ============================================================
+	PhobosFixedString<0x20> LoadScreenBackground;
+	PhobosFixedString<0x20> LoadScreenPalette;
+	Valueable<std::string> TauntFileName;
+	Valueable<CSFText> LoadScreenName;
+	Valueable<CSFText> LoadScreenSpecialName;
+	Valueable<CSFText> LoadScreenBrief;
+	Valueable<CSFText> StatusText;
+	PhobosPCXFile FlagFile;
+	PhobosPCXFile ObserverFlag;
+	PhobosPCXFile ObserverBackground;
+
+	// ============================================================
+	// 24-byte aligned: Vectors
+	// ============================================================
+	ValueableVector<TechnoTypeClass*> ParaDropTypes;
+	ValueableVector<int> ParaDropNum;
+	ValueableVector<BuildingTypeClass*> Powerplants;
+	ValueableVector<BuildingTypeClass*> VeteranBuildings;
+	ValueableVector<std::string> TauntFile;
+	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types;
+
+	// ============================================================
+	// 8-byte aligned: Pointers
+	// ============================================================
+	SHPStruct* ObserverFlagSHP;
+	SHPStruct* ObserverBackgroundSHP;
+
+	// ============================================================
+	// Valueable<pointer> (8 bytes each)
+	// ============================================================
 	Valueable<InfantryTypeClass*> Crew;
 	Valueable<InfantryTypeClass*> Engineer;
 	Valueable<InfantryTypeClass*> Technician;
 	Valueable<AircraftTypeClass*> ParaDropPlane;
 	Valueable<AircraftTypeClass*> SpyPlane;
 	Valueable<UnitTypeClass*> HunterSeeker;
-	ValueableVector<TechnoTypeClass*> ParaDropTypes;
-	ValueableVector<int> ParaDropNum;
-	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
+	Valueable<AnimTypeClass*> ParachuteAnim;
+	Valueable<InfantryTypeClass*> Disguise;
+
+	// ============================================================
+	// Nullable<double> (double + bool + padding ≈ 16 bytes)
+	// ============================================================
 	Nullable<double> NewTeamsSelector_UnclassifiedCategoryPercentage;
 	Nullable<double> NewTeamsSelector_GroundCategoryPercentage;
 	Nullable<double> NewTeamsSelector_NavalCategoryPercentage;
 	Nullable<double> NewTeamsSelector_AirCategoryPercentage;
-	Valueable<bool> GivesBounty;
+
+	// ============================================================
+	// Nullable<int> (int + bool + padding ≈ 8 bytes)
+	// ============================================================
+	Nullable<int> NewTeamsSelector_MergeUnclassifiedCategoryWith;
+
+	// ============================================================
+	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
+	// ============================================================
 	Nullable<bool> CanBeDriven;
-	Valueable<AnimTypeClass*> ParachuteAnim;
-	Valueable<bool> StartInMultiplayer_WithConst;
-	ValueableVector<BuildingTypeClass*> Powerplants;
-	ValueableVector<BuildingTypeClass*> VeteranBuildings;
-	ValueableVector<std::string> TauntFile; //Taunt filename format (should contain %d !!!)
-	Valueable<std::string> TauntFileName;
 	Nullable<bool> Degrades;
-	Valueable<InfantryTypeClass*> Disguise;
-	NullableVector<TechnoTypeClass*> StartInMultiplayer_Types;
-	PhobosFixedString<0x20> LoadScreenBackground;
-	PhobosFixedString<0x20> LoadScreenPalette;
-	ValueableIdx<ColorScheme> LoadTextColor; //The text color used for non-Campaign modes
+
+	// ============================================================
+	// Valueable<int> / ValueableIdx (4 bytes each)
+	// ============================================================
+	Valueable<int> SurvivorDivisor;
+	ValueableIdx<ColorScheme> LoadTextColor;
 	Valueable<unsigned int> RandomSelectionWeight;
-	Valueable<CSFText> LoadScreenName;
-	Valueable<CSFText> LoadScreenSpecialName;
-	Valueable<CSFText> LoadScreenBrief;
-	Valueable<CSFText> StatusText;
-	PhobosPCXFile FlagFile; //Flag
-	PhobosPCXFile ObserverFlag;
-	SHPStruct* ObserverFlagSHP;
+
+	// ============================================================
+	// Valueable<bool> (1 byte each, packed together)
+	// ============================================================
+	Valueable<bool> GivesBounty;
+	Valueable<bool> StartInMultiplayer_WithConst;
 	Valueable<bool> ObserverFlagYuriPAL;
-	PhobosPCXFile ObserverBackground;
-	SHPStruct* ObserverBackgroundSHP;
 	Valueable<bool> BattlePoints;
 	Valueable<bool> BattlePoints_CanUseStandardPoints;
+
+	// ============================================================
+	// Plain bool (1 byte, at the very end)
+	// ============================================================
+	bool SettingsInherited;
+	// 6 bools = 6 bytes, pads to 8 for alignment
+
 #pragma endregion
 
 public:
-	HouseTypeExtData(HouseTypeClass* pObj) :
-		AbstractTypeExtData(pObj),
-
-		SettingsInherited(false),
-
-		SurvivorDivisor(-1),
-		Crew(nullptr),
-		Engineer(nullptr),
-		Technician(nullptr),
-
-		ParaDropPlane(nullptr),
-		SpyPlane(nullptr),
-		HunterSeeker(nullptr),
-
-		ParaDropTypes(),
-		ParaDropNum(),
-
-		NewTeamsSelector_MergeUnclassifiedCategoryWith(),
-		NewTeamsSelector_UnclassifiedCategoryPercentage(),
-		NewTeamsSelector_GroundCategoryPercentage(),
-		NewTeamsSelector_NavalCategoryPercentage(),
-		NewTeamsSelector_AirCategoryPercentage(),
-
-		GivesBounty(true),
-		CanBeDriven(),
-		ParachuteAnim(nullptr),
-
-		StartInMultiplayer_WithConst(false),
-		Powerplants(),
-		VeteranBuildings(),
-
-		TauntFile(),
-		TauntFileName(""),
-
-		Degrades(),
-		Disguise(nullptr),
-		StartInMultiplayer_Types(),
-
-		LoadScreenBackground(""),
-		LoadScreenPalette(""),
-
-		LoadTextColor(-1),
-		RandomSelectionWeight(1),
-
-		LoadScreenName(),
-		LoadScreenSpecialName(),
-		LoadScreenBrief(),
-		StatusText(),
-
-		FlagFile(),
-		ObserverFlag(),
-		ObserverFlagSHP(nullptr),
-		ObserverFlagYuriPAL(false),
-
-		ObserverBackground(),
-		ObserverBackgroundSHP(nullptr),
-
-		BattlePoints(false),
-		BattlePoints_CanUseStandardPoints(false)
+	HouseTypeExtData(HouseTypeClass* pObj)
+		: AbstractTypeExtData(pObj)
+		// Large aggregates
+		, LoadScreenBackground("")
+		, LoadScreenPalette("")
+		, TauntFileName("")
+		, LoadScreenName()
+		, LoadScreenSpecialName()
+		, LoadScreenBrief()
+		, StatusText()
+		, FlagFile()
+		, ObserverFlag()
+		, ObserverBackground()
+		// Vectors
+		, ParaDropTypes()
+		, ParaDropNum()
+		, Powerplants()
+		, VeteranBuildings()
+		, TauntFile()
+		, StartInMultiplayer_Types()
+		// Pointers
+		, ObserverFlagSHP(nullptr)
+		, ObserverBackgroundSHP(nullptr)
+		// Valueable<pointer>
+		, Crew(nullptr)
+		, Engineer(nullptr)
+		, Technician(nullptr)
+		, ParaDropPlane(nullptr)
+		, SpyPlane(nullptr)
+		, HunterSeeker(nullptr)
+		, ParachuteAnim(nullptr)
+		, Disguise(nullptr)
+		// Nullable<double>
+		, NewTeamsSelector_UnclassifiedCategoryPercentage()
+		, NewTeamsSelector_GroundCategoryPercentage()
+		, NewTeamsSelector_NavalCategoryPercentage()
+		, NewTeamsSelector_AirCategoryPercentage()
+		// Nullable<int>
+		, NewTeamsSelector_MergeUnclassifiedCategoryWith()
+		// Nullable<bool>
+		, CanBeDriven()
+		, Degrades()
+		// Valueable<int>
+		, SurvivorDivisor(-1)
+		, LoadTextColor(-1)
+		, RandomSelectionWeight(1)
+		// Valueable<bool>
+		, GivesBounty(true)
+		, StartInMultiplayer_WithConst(false)
+		, ObserverFlagYuriPAL(false)
+		, BattlePoints(false)
+		, BattlePoints_CanUseStandardPoints(false)
+		// Plain bool
+		, SettingsInherited(false)
 	{
 		this->AbsType = HouseTypeClass::AbsID;
 		this->Initialize();

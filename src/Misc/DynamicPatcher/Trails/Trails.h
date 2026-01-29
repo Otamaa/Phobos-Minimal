@@ -15,47 +15,52 @@ class UniversalTrail
 {
 public:
 
+	HelperedVector<LandType> OnLandTypes;
+	HelperedVector<TileType> OnTileTypes;
+
+	CoordStruct FLH;
+	CDTimerClass DelayTimer;
+
 	TrailType* Type;
 	OptionalStruct<CoordStruct,true> LastLocation;
-	CDTimerClass DelayTimer;
-	CoordStruct FLH;
 	int initialDelay;
+
 	bool canDraw;
 	bool forceDraw;
 	bool IsOnTurret;
 	bool Visible;
 	DrivingState drivingState;
-	HelperedVector<LandType> OnLandTypes;
-	HelperedVector<TileType> OnTileTypes;
 
 	UniversalTrail(TrailType* type ,CoordStruct flh, bool onturret) :
-		Type { type }
-		, LastLocation { }
-		, DelayTimer { }
+		OnLandTypes { }
+		, OnTileTypes { }
 		, FLH { flh }
+		, DelayTimer { }
+		, Type { type }
+		, LastLocation { }
 		, initialDelay { type->InitialDelay > 0 ? type->InitialDelay:0 }
 		, canDraw { !(type->InitialDelay > 0) }
 		, forceDraw { false }
 		, IsOnTurret { onturret }
 		, Visible { true }
 		, drivingState { DrivingState::Moving }
-		, OnLandTypes { }
-		, OnTileTypes { }
+
 	{ }
 
 	UniversalTrail() :
-		Type { nullptr }
-		, LastLocation { }
-		, DelayTimer { }
+		OnLandTypes { }
+		, OnTileTypes { }
 		, FLH { CoordStruct::Empty }
+		, DelayTimer { }
+		, Type { nullptr }
+		, LastLocation { }
 		, initialDelay { 0 }
 		, canDraw { false }
 		, forceDraw { false }
 		, IsOnTurret { false }
 		, Visible { true }
 		, drivingState { DrivingState::Stop }
-		, OnLandTypes { }
-		, OnTileTypes { }
+
 	{ }
 
 	~UniversalTrail() = default;

@@ -24,57 +24,83 @@ public:
 public:
 
 #pragma region ClassMembers
-
-	OptionalStruct<CoordStruct, true> BackupCoords;
-	OptionalStruct<DirType, true> DeathUnitFacing;
-	OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
+	// ============================================================
+	// 8-byte aligned: Pointers
+	// ============================================================
 	TechnoClass* Invoker;
+	BuildingClass* ParentBuilding;
+	WeaponTypeClass* FromWeapon;
+	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem;
+
+	// ============================================================
+	// OptionalStruct (ordered by inner type size, largest first)
+	// CoordStruct = 12 bytes, DirStruct = 8 bytes, DirType = 1 byte
+	// ============================================================
+	OptionalStruct<CoordStruct, true> BackupCoords;
+	OptionalStruct<DirStruct, true> DeathUnitTurretFacing;
+	OptionalStruct<DirType, true> DeathUnitFacing;
+
+	// ============================================================
+	// Compound types
+	// ============================================================
+	StageClass DamagingState;
+
+	// ============================================================
+	// 12-byte struct (3 ints)
+	// ============================================================
+	CoordStruct CreateUnitLocation;
+
+	// ============================================================
+	// 8-byte struct (2 ints)
+	// ============================================================
+	Point2D AEDrawOffset;
+
+	// ============================================================
+	// 4-byte aligned: int
+	// ============================================================
+	int FromWeaponIdx;
+	int FromBurstIdx;
+
+	// ============================================================
+	// 1-byte aligned: bool (packed together)
+	// ============================================================
 	bool OwnerSet;
 	bool AllowCreateUnit;
 	bool WasOnBridge;
-
-	// This is a failsafe that is only set if this is a building animation
-	// and the building is not on same cell as the animation.
-	BuildingClass* ParentBuilding;
-
-	Handle<ParticleSystemClass*, MarkForDeathDeleterB<ParticleSystemClass>> AttachedSystem;
-	CoordStruct CreateUnitLocation;
-
 	bool DelayedFireRemoveOnNoDelay;
+	// 4 bools = 4 bytes, naturally aligns to next 4-byte boundary
 
-	StageClass	DamagingState;
-	Point2D AEDrawOffset;
-
-	WeaponTypeClass* FromWeapon;
-	int FromWeaponIdx;
-	int FromBurstIdx;
 #pragma endregion
 
 public:
-
 	AnimExtData(AnimClass* pObj) : ObjectExtData(pObj)
-		, BackupCoords {}
-		, DeathUnitFacing {}
-		, DeathUnitTurretFacing {}
+		// Pointers
 		, Invoker { nullptr }
+		, ParentBuilding { nullptr }
+		, FromWeapon { nullptr }
+		, AttachedSystem { nullptr }
+		// OptionalStruct
+		, BackupCoords {}
+		, DeathUnitTurretFacing {}
+		, DeathUnitFacing {}
+		// Compound
+		, DamagingState {}
+		// CoordStruct
+		, CreateUnitLocation {}
+		// Point2D
+		, AEDrawOffset {}
+		// ints
+		, FromWeaponIdx { 0 }
+		, FromBurstIdx { 0 }
+		// bools
 		, OwnerSet { false }
 		, AllowCreateUnit { false }
 		, WasOnBridge { false }
-		, ParentBuilding { nullptr }
-		, AttachedSystem { nullptr }
-		, CreateUnitLocation {}
 		, DelayedFireRemoveOnNoDelay { false }
-		, DamagingState { }
-		, AEDrawOffset {}
-
-		, FromWeapon {}
-		, FromWeaponIdx {}
-		, FromBurstIdx {}
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = AnimClass::AbsID;
 	}
-
 	AnimExtData(AnimClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) {}
 
 	virtual ~AnimExtData() = default;

@@ -99,6 +99,7 @@ public:
 	bool CritActive;
 	double CritRandomBuffer;
 	double CritCurrentChance;
+	double ReturnWarhead_RandomBuffer;
 
 	Nullable<AnimTypeClass*> MindControl_Anim;
 
@@ -489,6 +490,14 @@ public:
 
 	Nullable<bool> CanTargetIronCurtained;
 
+	Valueable<WarheadTypeClass*> ReturnWarhead;
+	Valueable<int> ReturnWarhead_Damage;
+	Valueable<double> ReturnWarhead_Chance;
+	Valueable<bool> ReturnWarhead_ApplyChancePerTarget;
+	Valueable<bool> ReturnWarhead_FullDetonation;
+	Valueable<AffectedTarget> ReturnWarhead_AffectsTarget;
+	Valueable<AffectedHouse> ReturnWarhead_AffectsHouse;
+
 	bool IsCellSpreadWH;
 	bool IsFakeEngineer;
 	bool VeterancyCheck;
@@ -549,6 +558,7 @@ public:
 		CritActive(false),
 		CritRandomBuffer(0.0),
 		CritCurrentChance(0.0),
+		ReturnWarhead_RandomBuffer(0.0),
 		MindControl_Anim(),
 		AffectsEnemies(true),
 		AffectsOwner(),
@@ -847,6 +857,15 @@ public:
 		AnimZAdjust(),
 		ApplyPerTargetEffectsOnDetonate(),
 		CanTargetIronCurtained(),
+
+		ReturnWarhead {},
+		ReturnWarhead_Damage { 0 },
+		ReturnWarhead_Chance { 1.0 },
+		ReturnWarhead_ApplyChancePerTarget { false },
+		ReturnWarhead_FullDetonation { true },
+		ReturnWarhead_AffectsTarget { AffectedTarget::All },
+		ReturnWarhead_AffectsHouse { AffectedHouse::All },
+
 		IsCellSpreadWH(false),
 		IsFakeEngineer(false),
 		VeterancyCheck(false)
@@ -907,7 +926,7 @@ public:
 
 	void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
 	void ApplyShieldModifiers(TechnoClass* pTarget);
-
+	void ApplyReturnWarhead(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
 	void ApplyGattlingStage(TechnoClass* pTarget, int Stage) const;
 	void ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp) const;
 	void ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount) const;

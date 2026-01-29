@@ -19,23 +19,40 @@ public:
 public:
 
 #pragma region ClassMembers
-	bool IsUsingDeathSequence;
+	// ============================================================
+	// 8-byte aligned: Pointer
+	// ============================================================
+	BuildingClass* GarrisonedIn;
+
+	// ============================================================
+	// 4-byte aligned: int
+	// ============================================================
 	int CurrentDoType;
+
+	// ============================================================
+	// 1-byte aligned: bool (packed together at the end)
+	// ============================================================
+	bool IsUsingDeathSequence;
 	bool SkipTargetChangeResetSequence;
-	BuildingClass* GarrisonedIn; //C
+	// 2 bools = 2 bytes, pads to 4 for alignment
+
 #pragma endregion
 
 public:
-	InfantryExtData(InfantryClass* pObj) : FootExtData(pObj),
-		IsUsingDeathSequence(false),
-		CurrentDoType(-1),
-		SkipTargetChangeResetSequence(false),
-		GarrisonedIn(nullptr)
+	InfantryExtData(InfantryClass* pObj) : FootExtData(pObj)
+		// Pointer
+		, GarrisonedIn(nullptr)
+		// int
+		, CurrentDoType(-1)
+		// bools
+		, IsUsingDeathSequence(false)
+		, SkipTargetChangeResetSequence(false)
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = InfantryClass::AbsID;
 		this->CurrentType = pObj->Type;
 	}
+
 	InfantryExtData(InfantryClass* pObj, noinit_t nn) : FootExtData(pObj, nn) { }
 
 	virtual ~InfantryExtData() = default;

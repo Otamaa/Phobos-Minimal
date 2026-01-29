@@ -4,14 +4,13 @@
 
 struct AttachFireData
 {
-
+	Valueable<int> SimulateBurstDelay { 7 };
+	Valueable<int> SimulateBurstMode { 0 };
+	Valueable<int> RadialAngle { 180 };
 	Valueable<bool> UseROF { true };
 	Valueable<bool> CheckRange { false };
 	Valueable<bool> RadialFire { false };
-	Valueable<int> RadialAngle { 180 };
 	Valueable<bool> SimulateBurst { false };
-	Valueable<int> SimulateBurstDelay { 7 };
-	Valueable<int> SimulateBurstMode { 0 };
 	Valueable<bool> OnlyFireInTransport { false };
 	Valueable<bool> UseAlternateFLH { false };
 

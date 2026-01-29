@@ -162,60 +162,90 @@ public:
 public:
 
 #pragma region ClassMembers
-	Valueable<bool> Is_Deso;
-	Valueable<bool> Is_Cow;
-	Nullable<double> C4Delay;
-	Nullable<int> C4ROF;
-	Nullable<WarheadTypeClass*> C4Warhead;
-	Valueable<bool> HideWhenDeployAnimPresent;
-	Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
+	// ============================================================
+	// Large aggregates (array of structs)
+	// ============================================================
 	WeaponStruct CrawlingWeaponDatas[4];
-	//std::vector<DoInfoStruct> Sequences;
-	ValueableIdxVector<VocClass> VoiceGarrison;
-	Valueable<bool> OnlyUseLandSequences;
-	std::vector<int> SquenceRates;
-	// When infiltrates: detonates a weapon or damage
+
+	// ============================================================
+	// Promotable types (likely contain multiple values per veterancy level)
+	// ============================================================
 	Promotable<WarheadTypeClass*> WhenInfiltrate_Warhead;
 	Promotable<WeaponTypeClass*> WhenInfiltrate_Weapon;
 	Promotable<int> WhenInfiltrate_Damage;
-	Valueable<bool> WhenInfiltrate_Warhead_Full;
-	Valueable<bool> AllSequnceEqualRates;
-	Valueable<bool> AllowReceiveSpeedBoost;
+
+	// ============================================================
+	// 24-byte aligned: Vectors
+	// ============================================================
+	ValueableIdxVector<VocClass> VoiceGarrison;
+	std::vector<int> SquenceRates;  // typo: should be "SequenceRates"
+
+	// ============================================================
+	// Nullable<pointer> (pointer + bool + padding ≈ 16 bytes)
+	// ============================================================
+	Nullable<WarheadTypeClass*> C4Warhead;
+
+	// ============================================================
+	// Nullable<double> (double + bool + padding ≈ 16 bytes)
+	// ============================================================
+	Nullable<double> C4Delay;
 	Nullable<double> ProneSpeed;
+
+	// ============================================================
+	// Nullable<int> (int + bool + padding ≈ 8 bytes)
+	// ============================================================
+	Nullable<int> C4ROF;
+
+	// ============================================================
+	// Nullable<bool> (bool + bool ≈ 2-4 bytes)
+	// ============================================================
 	Nullable<bool> InfantryAutoDeploy;
+
+	// ============================================================
+	// Valueable<bool> (1 byte each, packed together at the end)
+	// ============================================================
+	Valueable<bool> Is_Deso;
+	Valueable<bool> Is_Cow;
+	Valueable<bool> HideWhenDeployAnimPresent;
+	Valueable<bool> DeathBodies_UseDieSequenceAsIndex;
+	Valueable<bool> OnlyUseLandSequences;
+	Valueable<bool> WhenInfiltrate_Warhead_Full;
+	Valueable<bool> AllSequnceEqualRates;  // typo: should be "AllSequenceEqualRates"
+	Valueable<bool> AllowReceiveSpeedBoost;
+	// 8 Valueable<bool> = 8 bytes, naturally aligned
+
 #pragma endregion
 
 public:
-	InfantryTypeExtData(InfantryTypeClass* pObj) :
-		TechnoTypeExtData(pObj),
-
-		Is_Deso(false),
-		Is_Cow(false),
-
-		C4Delay(),
-		C4ROF(),
-		C4Warhead(),
-
-		HideWhenDeployAnimPresent(false),
-		DeathBodies_UseDieSequenceAsIndex(false),
-
-		CrawlingWeaponDatas(),
-
-		VoiceGarrison(),
-		OnlyUseLandSequences(false),
-
-		SquenceRates(),
-
-		WhenInfiltrate_Warhead(nullptr),
-		WhenInfiltrate_Weapon(nullptr),
-		WhenInfiltrate_Damage(0),
-
-		WhenInfiltrate_Warhead_Full(true),
-		AllSequnceEqualRates(false),
-		AllowReceiveSpeedBoost(false),
-
-		ProneSpeed(),
-		InfantryAutoDeploy()
+	InfantryTypeExtData(InfantryTypeClass* pObj)
+		: TechnoTypeExtData(pObj)
+		// Large aggregates
+		, CrawlingWeaponDatas()
+		// Promotable
+		, WhenInfiltrate_Warhead(nullptr)
+		, WhenInfiltrate_Weapon(nullptr)
+		, WhenInfiltrate_Damage(0)
+		// Vectors
+		, VoiceGarrison()
+		, SquenceRates()
+		// Nullable<pointer>
+		, C4Warhead()
+		// Nullable<double>
+		, C4Delay()
+		, ProneSpeed()
+		// Nullable<int>
+		, C4ROF()
+		// Nullable<bool>
+		, InfantryAutoDeploy()
+		// Valueable<bool>
+		, Is_Deso(false)
+		, Is_Cow(false)
+		, HideWhenDeployAnimPresent(false)
+		, DeathBodies_UseDieSequenceAsIndex(false)
+		, OnlyUseLandSequences(false)
+		, WhenInfiltrate_Warhead_Full(true)
+		, AllSequnceEqualRates(false)
+		, AllowReceiveSpeedBoost(false)
 	{
 		this->AbsType = InfantryTypeClass::AbsID;
 		this->InitializeConstant();

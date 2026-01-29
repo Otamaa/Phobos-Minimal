@@ -209,15 +209,20 @@ bool SuperExtContainer::SaveAll(json& root)
 	return true;
 }
 
+// .cpp file
 SuperExtData::SuperExtData(SuperClass* pObj) : AbstractExtended(pObj)
+	// Large aggregates
 	, Name()
-	, Type(nullptr)
-	, Temp_IsPlayer(false)
-	, Temp_CellStruct()
-	, CameoFirstClickDone(false)
-	, FirstClickAutoFireDone(false)
 	, Statusses()
 	, MusicTimer()
+	// Pointer
+	, Type(nullptr)
+	// CellStruct
+	, Temp_CellStruct()
+	// bools
+	, Temp_IsPlayer(false)
+	, CameoFirstClickDone(false)
+	, FirstClickAutoFireDone(false)
 	, MusicActive(false)
 {
 	this->Type = SWTypeExtContainer::Instance.Find(pObj->Type);

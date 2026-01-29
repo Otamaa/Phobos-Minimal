@@ -28,7 +28,7 @@ bool TerrainExtData::CanMoveHere(TechnoClass* pThis, TerrainClass* pTerrain) {
 
 void TerrainExtData::InitializeLightSource()
 {
-	if (!this->LighSource && This()->Type)
+	if (!this->LightSource && This()->Type)
 	{
 		auto const TypeData = TerrainTypeExtContainer::Instance.Find(This()->Type);
 
@@ -44,7 +44,7 @@ void TerrainExtData::InitializeLightSource()
 		auto Coords = This()->GetCoords();
 		const auto light = GameCreate<LightSourceClass>(Coords, nVisibility, TypeData->GetLightIntensity(), Tint);
 		light->Activate();
-		this->LighSource.reset(light);
+		this->LightSource.reset(light);
 	}
 }
 
@@ -103,10 +103,10 @@ template <typename T>
 void TerrainExtData::Serialize(T& Stm)
 {
 	Stm
-		.Process(this->LighSource, true)
+		.Process(this->LightSource, true)
 		.Process(this->AttachedAnim, true)
 		.Process(this->AttachedFireAnim, true)
-		.Process(this->Adjencentcells)
+		.Process(this->AdjacentCells)
 		;
 }
 
@@ -201,7 +201,7 @@ ASMJIT_PATCH(0x71BCA5, TerrainClass_CTOR_MoveAndAllocate, 0x5)
 		}
 
 		if(pItem->Type){
-			GeneralUtils::AdjacentCellsInRange(pExt->Adjencentcells, (short)TerrainTypeExtContainer::Instance.Find(pItem->Type)->SpawnsTiberium_Range);
+			GeneralUtils::AdjacentCellsInRange(pExt->AdjacentCells, (short)TerrainTypeExtContainer::Instance.Find(pItem->Type)->SpawnsTiberium_Range);
 		}
 	}
 

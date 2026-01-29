@@ -1015,7 +1015,7 @@ int BuildingTypeExtData::GetEnhancedPower(BuildingClass* pBuilding, HouseClass* 
 	auto const pHouseExt = HouseExtContainer::Instance.Find(pHouse);
 	for (const auto& [pBldType, nCount] : pHouseExt->PowerPlantEnhancerBuildings) {
 		const auto pExt = BuildingTypeExtContainer::Instance.Find(pBldType);
-		if (pExt->PowerPlantEnhancer_Buildings.empty() || !pExt->PowerPlantEnhancer_Buildings.Contains(pBuilding->Type))
+		if (!pExt->PowerPlantEnhancer_Buildings.empty() && (pExt->PowerPlantEnhancer_Amount != 0 || pExt->PowerPlantEnhancer_Factor != 1.0f))
 			continue;
 
 		fFactor *= float(Math::pow((double)pExt->PowerPlantEnhancer_Factor, (double)nCount));
@@ -1247,6 +1247,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->PowerPlantEnhancer_Buildings.Read(exINI, pSection, "PowerPlantEnhancer.PowerPlants");
 		this->PowerPlantEnhancer_Amount.Read(exINI, pSection, "PowerPlantEnhancer.Amount");
 		this->PowerPlantEnhancer_Factor.Read(exINI, pSection, "PowerPlantEnhancer.Factor");
+		this->PowerPlantEnhancer_MaxCount.Read(exINI, pSection, "PowerPlantEnhancer.MaxCount");
 
 		if (pThis->PowersUpBuilding[0] == NULL && !this->PowersUp_Buildings.empty())
 			PhobosCRT::strCopy(pThis->PowersUpBuilding, this->PowersUp_Buildings[0]->ID);
@@ -1616,7 +1617,7 @@ bool BuildingTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->NoBuildAreaOnBuildup.Read(exINI, pSection, "NoBuildAreaOnBuildup");
 		this->Adjacent_Allowed.Read(exINI, pSection, "Adjacent.Allowed");
 		this->Adjacent_Disallowed.Read(exINI, pSection, "Adjacent.Disallowed");
-
+		this->Adjacent_Disallowed_ExtraDistance.Read(exINI, pSection, "Adjacent.Disallowed.ExtraDistance");
 		this->BarracksExitCell.Read(exINI, pSection, "BarracksExitCell");
 
 		this->Units_RepairRate.Read(exINI, pSection, "Units.RepairRate");
@@ -2057,6 +2058,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NoBuildAreaOnBuildup)
 		.Process(this->Adjacent_Allowed)
 		.Process(this->Adjacent_Disallowed)
+		.Process(this->Adjacent_Disallowed_ExtraDistance)
 
 		.Process(this->BarracksExitCell)
 
@@ -2090,6 +2092,7 @@ void BuildingTypeExtData::Serialize(T& Stm)
 		.Process(this->NewEvaVoice)
 		.Process(this->NewEvaVoice_Index)
 		.Process(this->NewEvaVoice_Priority)
+		.Process(this->PowerPlantEnhancer_MaxCount)
 		.Process(this->NewEvaVoice_RecheckOnDeath)
 		.Process(this->NewEvaVoice_InitialMessage)
 

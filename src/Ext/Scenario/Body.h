@@ -46,49 +46,52 @@ public:
 
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
+
 public:
-
-#pragma region
-
-	Valueable<std::string> OriginalFilename {};
-	PhobosMap<int, CellStruct> Waypoints { };
-	PhobosMap<int, ExtendedVariable> Local_Variables { }; // 0 for local, 1 for global
-	PhobosMap<int, ExtendedVariable> Global_Variables { };
-	PhobosMap<int, int> TriggerTypePlayerAtXOwners {}; // TriggerTypeClass ArrayIndex -> Player slot index
-	std::vector<CellStruct> DefinedAudioWaypoints {};
-
-	Nullable<FixedString<0x1F>> ParTitle { };
-	Nullable<FixedString<0x1F>> ParMessage { };
-
-	Nullable<FixedString<0x20>> ScoreCampaignTheme { };
-	Nullable<FixedString<0x104>> NextMission { };
-
-	//LightingStruct DefaultNormalLighting { {1000,1000,1000},0,0 };
-	//int DefaultAmbientOriginal { 0 };
-	//int DefaultAmbientCurrent { 0 };
-	//int DefaultAmbientTarget { 0 };
-	//TintStruct CurrentTint_Tiles { -1,-1,-1 };
-	//TintStruct CurrentTint_Schemes { -1,-1,-1 };
-	//TintStruct CurrentTint_Hashes { -1,-1,-1 };
-	bool AdjustLightingFix { false };
-
-	Valueable<bool> ShowBriefing { false };
-	int BriefingTheme { -1 };
-
-	HelperedVector<TechnoTypeClass*> OwnedExistCameoTechnoTypes {};
-	bool SWSidebar_Enable { true };
-	VectorSet<int> SWSidebar_Indices {};
-
-	std::vector<std::wstring> RecordMessages {};
-
+#pragma region ClassMembers
+	// ============================================================
+	// Large aggregates (fixed-size strings, Nullable<FixedString>)
+	// ============================================================
+	Nullable<FixedString<0x104>> NextMission {};
+	Nullable<FixedString<0x20>> ScoreCampaignTheme {};
+	Nullable<FixedString<0x1F>> ParTitle {};
+	Nullable<FixedString<0x1F>> ParMessage {};
 	PhobosFixedString<64u> DefaultLS640BkgdName {};
 	PhobosFixedString<64u> DefaultLS800BkgdName {};
 	PhobosFixedString<64u> DefaultLS800BkgdPal {};
+	Valueable<std::string> OriginalFilename {};
 
+	// ============================================================
+	// Maps (large containers)
+	// ============================================================
+	PhobosMap<int, CellStruct> Waypoints {};
+	PhobosMap<int, ExtendedVariable> Local_Variables {};
+	PhobosMap<int, ExtendedVariable> Global_Variables {};
+	PhobosMap<int, int> TriggerTypePlayerAtXOwners {};
+
+	// ============================================================
+	// Vectors / VectorSets (24+ bytes each)
+	// ============================================================
+	std::vector<CellStruct> DefinedAudioWaypoints {};
+	HelperedVector<TechnoTypeClass*> OwnedExistCameoTechnoTypes {};
+	VectorSet<int> SWSidebar_Indices {};
+	std::vector<std::wstring> RecordMessages {};
 	VectorSet<TechnoClass*> LimboLaunchers {};
-
 	VectorSet<TechnoClass*> UndergroundTracker {};
 	VectorSet<TechnoClass*> FallingDownTracker {};
+
+	// ============================================================
+	// 4-byte aligned: int
+	// ============================================================
+	int BriefingTheme { -1 };
+
+	// ============================================================
+	// 1-byte aligned: Valueable<bool> and plain bool (packed at the end)
+	// ============================================================
+	Valueable<bool> ShowBriefing { false };
+	bool AdjustLightingFix { false };
+	bool SWSidebar_Enable { true };
+	// 3 bools = 3 bytes, pads to 4 for alignment
 
 #pragma endregion
 

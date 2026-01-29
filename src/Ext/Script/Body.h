@@ -32,8 +32,6 @@ enum class PhobosScripts : int
 	FollowFriendlyByGroup = 116,
 	RallyUnitWithSameGroup = 117,
 
-	ForceGlobalOnlyTargetHouseEnemy = 150,
-
 	// Range 10000-10999 are team (aka ingame) actions
 	// Sub-range 10000-10049 is for "attack" actions
 	RepeatAttackCloser = 10000,
@@ -86,7 +84,7 @@ enum class PhobosScripts : int
 	DecreaseCurrentAITriggerWeight = 14002,
 	UnregisterGreatSuccess = 14003,
 
-
+	ForceGlobalOnlyTargetHouseEnemy = 14004,
 	OverrideOnlyTargetHouseEnemy = 14005,
 	SetHouseAngerModifier = 14006,
 	ModifyHateHouseIndex = 14007,

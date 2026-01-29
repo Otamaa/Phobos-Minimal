@@ -67,6 +67,11 @@ ASMJIT_PATCH(0x465201, BuildingTypeClass_LoadFromStream_Foundation, 0x6)
 ASMJIT_PATCH(0x45eca0, BuildingTypeClass_GetFoundationHeight, 6)
 {
 	GET(BuildingTypeClass*, pThis, ECX);
+	GET_STACK(DWORD, caller, 0x0);
+
+	if (((int)pThis) == -1) {
+		Debug::FatalError("What %d\n", caller);
+	}
 
 	if (pThis->Foundation == BuildingTypeExtData::CustomFoundation) {
 		const bool bIncludeBib = (R->Stack8(0x4) != 0);

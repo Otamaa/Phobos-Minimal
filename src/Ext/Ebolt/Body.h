@@ -6,13 +6,26 @@
 class WeaponTypeClass;
 class TechnoClass;
 class ParticleSystemTypeClass;
-struct EboltExtData {
+struct EboltExtData
+{
+	// ============================================================
+	// 8-byte aligned: Pointer
+	// ============================================================
+	ParticleSystemTypeClass* pSys { nullptr };
+
+	// ============================================================
+	// 4-byte aligned: int arrays and ints
+	// ============================================================
 	int Color[3] {};
-	bool Disable[3] { false };
 	int Arcs { 8 };
 	int BurstIndex { 0 };
+
+	// ============================================================
+	// 1-byte aligned: bool (packed at the end)
+	// ============================================================
+	bool Disable[3] { false };
 	bool ParticleSysEnabled { true };
-	ParticleSystemTypeClass* pSys { nullptr };
+	// 4 bools = 4 bytes, naturally aligned
 
 	OPTIONALINLINE bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 	{

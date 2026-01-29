@@ -60,7 +60,7 @@ ASMJIT_PATCH(0x71CA15, TerrainClass_Limbo_Light, 0x6)
 	{
 		auto pExt = TerrainExtContainer::Instance.Find(pThis);
 
-		pExt->LighSource.reset(nullptr);
+		pExt->LightSource.reset(nullptr);
 		pExt->AttachedAnim.reset(nullptr);
 		pExt->AttachedFireAnim.reset(nullptr);
 	}

@@ -91,6 +91,23 @@ ASMJIT_PATCH(0x4232E2, AnimClass_DrawIt_AltPalette, 0x6)
 //	return RetLayerAir;
 //}
 
+ASMJIT_PATCH(0x424C3D, AnimClass_AttachTo_AttachedAnimPosition, 0x6)
+{
+	enum { SkipGameCode = 0x424C76 };
+
+	GET(FakeAnimClass*, pThis, ESI);
+
+	auto pExt = pThis->_GetTypeExtData();
+
+	if (pExt->AttachedAnimPosition != AttachedAnimPosition::Default)
+	{
+		pThis->SetLocation(CoordStruct::Empty);
+		return SkipGameCode;
+	}
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x424CB0, AnimClass_InWhichLayer_AttachedObjectLayer, 0x6)
 {
 	enum { ReturnValue = 0x424CBF };

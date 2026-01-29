@@ -29,19 +29,18 @@ public:
 		Railgun = 2,
 		Smoke = 3
 	};
-	Behave What;
-	ParticleTypeClass* HeldType;
-	//everything else use this
+
 	struct Movement
 	{
 		Vector3D<float> vel;
 		Vector3D<float> velB;
 		float A;
 		float ColorFactor;
-		int C; //counter for the color change update
+		int C;
 		int RemainingEC;
-		BYTE Empty; //state counter
+		BYTE Empty;
 		ColorStruct Colors;
+
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
 			return Serialize(Stm);
@@ -63,26 +62,24 @@ public:
 				.Process(RemainingEC)
 				.Process(Empty)
 				.Process(Colors)
-				.Success()
-				//&& Stm.RegisterChange(this)
-				;
+				.Success();
 		}
 	};
 	static_assert(sizeof(Movement) == 0x2C, "Invalid Size");
-	HelperedVector<Movement> OtherParticleData;
-	//used for smoke state
+
 	struct Draw
 	{
-		CoordStruct vel; //0 4 8
-		Vector3D<float> velB; //C 10 14
-		int StateAdvance;//18
-		int ImageFrame; //1C
-		int RemainingEC; //20
-		ParticleTypeClass* LinkedParticleType; //24
-		BYTE Translucency; //28
-		BYTE DeleteOnStateLimit; //state counter //29
-		BYTE byte30; //2A
-		BYTE byte31;//2B
+		CoordStruct vel;
+		Vector3D<float> velB;
+		int StateAdvance;
+		int ImageFrame;
+		int RemainingEC;
+		ParticleTypeClass* LinkedParticleType;
+		BYTE Translucency;
+		BYTE DeleteOnStateLimit;
+		BYTE byte30;
+		BYTE byte31;
+
 		bool Load(PhobosStreamReader& Stm, bool RegisterForChange)
 		{
 			return Serialize(Stm);
@@ -106,18 +103,36 @@ public:
 				.Process(DeleteOnStateLimit)
 				.Process(byte30)
 				.Process(byte31)
-				.Success()
-				//&& Stm.RegisterChange(this)
-				;
+				.Success();
 		}
 	};
 	static_assert(sizeof(Draw) == 0x2C, "Invalid Size");
+
+	// ============================================================
+	// 8-byte aligned: Pointer
+	// ============================================================
+	ParticleTypeClass* HeldType;
+
+	// ============================================================
+	// 24-byte aligned: Vectors
+	// ============================================================
+	HelperedVector<Movement> OtherParticleData;
 	HelperedVector<Draw> SmokeData;
+
+	// ============================================================
+	// 4-byte aligned: enum (int-based)
+	// ============================================================
+	Behave What;
+
+	// ============================================================
+	// 1-byte aligned: bool (at the end)
+	// ============================================================
 	bool AlphaIsLightFlash;
+	// 1 byte + 3 bytes padding for alignment
+
 #pragma endregion
 
 public:
-
 	ParticleSystemExtData(ParticleSystemClass* pObj);
 	ParticleSystemExtData(ParticleSystemClass* pObj, noinit_t nn) : ObjectExtData(pObj, nn) { }
 

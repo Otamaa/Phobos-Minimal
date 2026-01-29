@@ -482,7 +482,7 @@ void AnimTypeExtData::ValidateData()
 
 #include <Ext/WarheadType/Body.h>
 
-void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller, WarheadTypeClass* pWH)
+void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, HouseClass* pKiller, WarheadTypeClass* pWH)
 {
 	const auto location = pThis->GetCoords();
 
@@ -521,8 +521,7 @@ void AnimTypeExtData::ProcessDestroyAnims(FootClass* pThis, TechnoClass* pKiller
 	auto pAnim = GameCreate<AnimClass>(pAnimType, location);
 	const auto pAnimTypeExt = AnimTypeExtContainer::Instance.Find(pAnimType);
 	auto pAnimExt = ((FakeAnimClass*)pAnim)->_GetExtData();
-	HouseClass* const pInvoker = pKiller ? pKiller->Owner : nullptr;
-	AnimExtData::SetAnimOwnerHouseKind(pAnim, pInvoker, pThis->Owner, pThis, true, false);
+	AnimExtData::SetAnimOwnerHouseKind(pAnim, pKiller, pThis->Owner, pThis, true, false);
 
 	if(auto& c_type = pAnimTypeExt->CreateUnitType){
 		if (c_type->InheritDeathFacings.Get())
