@@ -89,7 +89,7 @@ void IonCannonStateMachine::Update()
 		{
 			auto pCreated = GameCreate<AnimClass>(pAnimType, coords);
 			pCreated->SetHouse(this->Owner);
-			this->Anim = pCreated;
+			this->Anim.reset(pCreated);
 		}
 
 		if (pData->SW_ActivationSound.isset()) {
@@ -156,7 +156,7 @@ void IonCannonStateMachine::Update()
 
 		this->Status = IonCannonStatus::Over;
 		this->Coords = CellStruct::Empty;
-		this->Anim = nullptr;
+		this->Anim.reset();
 		return;
 	}
 	case IonCannonStatus::Over:
@@ -213,7 +213,7 @@ void IonCannonStateMachine::Fire()
 	}
 
 	// anim
-	this->Anim = nullptr;
+	this->Anim.reset();
 
 	if (AnimTypeClass* pAnimType = pData->IonCannon_Blast.Get())
 	{
@@ -221,7 +221,7 @@ void IonCannonStateMachine::Fire()
 		animCoords.Z += pData->IonCannon_BlastHeight;
 		auto pCreated = GameCreate<AnimClass>(pAnimType, animCoords);
 		pCreated->SetHouse(this->Owner);
-		this->Anim = pCreated;
+		this->Anim.reset(pCreated);
 	}
 
 	// kill
@@ -238,5 +238,7 @@ void IonCannonStateMachine::InvalidatePointer(AbstractClass* ptr, bool remove)
 {
 	AnnounceInvalidPointer(this->Firer, ptr , remove);
 	AnnounceInvalidPointer(this->Owner, ptr);
-	AnnounceInvalidPointer(this->Anim, ptr);
+	if (this->Anim.get() == this->Anim) {
+		this->Anim.release();
+	}
 }

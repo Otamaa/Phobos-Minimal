@@ -224,8 +224,9 @@ ASMJIT_PATCH(0x508C30, HouseClass_UpdatePower_UpdateCounter, 0x5)
 				const auto pExt = BuildingTypeExtContainer::Instance.Find(pType);
 
 				if(HasPower) {
-					if (!pExt->PowerPlantEnhancer_Buildings.empty() &&
-						(pExt->PowerPlantEnhancer_Amount != 0 || pExt->PowerPlantEnhancer_Factor != 1.0f))
+					if (pExt->PowerPlantEnhancer_Buildings.size()
+						&& (pExt->PowerPlantEnhancer_Amount != 0 || pExt->PowerPlantEnhancer_Factor != 1.0f)
+						&& (pExt->PowerPlantEnhancer_MaxCount < 0 || pHouseExt->PowerPlantEnhancerBuildings[pType] < pExt->PowerPlantEnhancer_MaxCount))
 					{
 						++pHouseExt->PowerPlantEnhancerBuildings[pType];
 					}
@@ -547,27 +548,32 @@ ASMJIT_PATCH(0x6A78F6, SidebarClass_Update_ToggleRepair, 0x9)
 	else 
 		EventExt::TogglePlayerAutoRepair::Raise();
 
-	return 0x6A78FF;
+	return 0x6A7A82;
 }
 
 ASMJIT_PATCH(0x6A7AE1, SidebarClass_Update_RepairButton, 0x6)
 {
 	GET(SidebarClass* const, pThis, ESI);
+	enum { Continue = 0x6A7AFE, TurnOffButton = 0x6A7AF4 };
 
-	return Phobos::Config::TogglePowerInsteadOfRepair ? pThis->PowerToggleMode :
-		!RulesExtData::Instance()->ExtendedPlayerRepair ? pThis->RepairMode :
-		HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer)->PlayerAutoRepair ?
-		0x6A7AFE : 0x6A7AE7;
+	auto pButton = &Make_Global<ShapeButtonClass>(0xB0B3A0);
+
+	if (Phobos::Config::TogglePowerInsteadOfRepair)
+		return !pThis->PowerToggleMode && pButton->IsOn ? TurnOffButton : Continue;
+
+	if(!RulesExtData::Instance()->ExtendedPlayerRepair)
+		return !pThis->RepairMode && pButton->IsOn ? TurnOffButton : Continue;
+
+	return !HouseExtContainer::Instance.Find(HouseClass::CurrentPlayer)->PlayerAutoRepair && pButton->IsOn ? TurnOffButton : Continue;
 }
 
-ASMJIT_PATCH(0x45063F, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x6)
+ASMJIT_PATCH(0x450651, BuildingClass_UpdateRepairSell_PlayerAutoRepair, 0x8)
 {
 	enum { CanAutoRepair = 0x450659, CanNotAutoRepair = 0x450813 };
+	GET(BuildingClass*, pThis, ESI);
 
 	if (!RulesExtData::Instance()->ExtendedPlayerRepair)
-		return 0;
-
-	GET(BuildingClass*, pThis, ESI);
+		return pThis->Owner->IQLevel2 >= RulesClass::Instance->RepairSell ? CanAutoRepair : CanNotAutoRepair;
 
 	if (HouseExtContainer::Instance.Find(pThis->Owner)->PlayerAutoRepair) {
 		return CanAutoRepair;

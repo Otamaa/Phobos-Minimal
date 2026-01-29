@@ -18,27 +18,38 @@ public:
 	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
+
 #pragma region ClassMember
+
+	// ---- Visual / presentation ----
 	CustomPalette Palette; //
 	Nullable<AnimTypeClass*> OreTwinkle;
 	Nullable<int> OreTwinkleChance;
 	Nullable<int> Ore_TintLevel;
 	Nullable<ColorStruct> MinimapColor;
+
 	Valueable<bool> EnableLighningFix;
 	Valueable<bool> UseNormalLight;
 	Valueable<bool> EnablePixelFXAnim;
+
+	// ---- Damage / healing logic ----
 	Nullable<int> Damage;
 	Nullable<WarheadTypeClass*> Warhead;
+
 	Nullable<int> Heal_Step;
 	Nullable<int> Heal_IStep;
 	Nullable<int> Heal_UStep;
 	Nullable<double> Heal_Delay;
+
 	Nullable<WarheadTypeClass*> ExplosionWarhead;
 	Nullable<int> ExplosionDamage;
+
+	// ---- Misc config ----
 	Valueable<int> DebrisChance;
 	Valueable<std::string> LinkedOverlayType;
 	Valueable<int> PipIndex;
 
+	// ---- Runtime spread / growth state ----
 	using QueueItem = std::pair<float, CellStruct>;
 
 	struct CompareQueueItem
@@ -51,30 +62,13 @@ public:
 
 	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> SpreadQueue;
 	std::vector<bool> SpreadState;
+
 	std::priority_queue<QueueItem, std::vector<QueueItem>, CompareQueueItem> GrowthQueue;
 	std::vector<bool> GrowthState;
 
 #pragma endregion
 
-
-	void Spread_AI(void);
-	void Initialize_Spread(void);
-	void Recalc_Spread(void);
-	void Clear_Spread(void);
-	void Queue_Spread(CellStruct const& cell);
-
-	void Growth_AI(void);
-	void Initialize_Growth(void);
-	void Recalc_Growth(void);
-	void Clear_Growth(void);
-	void Queue_Growth(CellStruct const& cell);
-
-	static void Clear_Tiberium_Spread_State(CellStruct const& cell);
-	static int Map_Cell_Index(CellStruct const& cell);
-	static int Map_Cell_Count();
-
 public:
-
 	TiberiumExtData(TiberiumClass* pObj) : AbstractTypeExtData(pObj),
 		Palette(CustomPalette::PaletteMode::Temperate),
 		OreTwinkle(),
@@ -137,6 +131,24 @@ public:
 
 	virtual bool LoadFromINI(CCINIClass* pINI, bool parseFailAddr);
 	virtual bool WriteToINI(CCINIClass* pINI) const { return true; }
+
+public:
+
+	void Spread_AI(void);
+	void Initialize_Spread(void);
+	void Recalc_Spread(void);
+	void Clear_Spread(void);
+	void Queue_Spread(CellStruct const& cell);
+
+	void Growth_AI(void);
+	void Initialize_Growth(void);
+	void Recalc_Growth(void);
+	void Clear_Growth(void);
+	void Queue_Growth(CellStruct const& cell);
+
+	static void Clear_Tiberium_Spread_State(CellStruct const& cell);
+	static int Map_Cell_Index(CellStruct const& cell);
+	static int Map_Cell_Count();
 
 public:
 

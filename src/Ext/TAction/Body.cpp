@@ -1432,7 +1432,7 @@ void TActionExtData::RecreateLightSources()
  {
 	 if (nPair->IsAlive && !nPair->InLimbo)
 	 {
-		 TerrainExtContainer::Instance.Find(nPair)->LighSource.reset(nullptr);
+		 TerrainExtContainer::Instance.Find(nPair)->LightSource.reset(nullptr);
 		 TerrainExtContainer::Instance.Find(nPair)->InitializeLightSource();
 	 }
 	});

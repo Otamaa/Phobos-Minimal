@@ -15,49 +15,67 @@ public:
 	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
+
 #pragma region ClassMember
+
+	// ---- Visual / palette ----
 	CustomPalette CustomPalette; //
+	Nullable<ColorStruct> MinimapColor;
+
+	// ---- Tiberium spawning ----
 	Valueable<int> SpawnsTiberium_Type;
 	Valueable<int> SpawnsTiberium_Range;
 	Valueable<PartialVector2D<int>> SpawnsTiberium_GrowthStage;
 	Valueable<PartialVector2D<int>> SpawnsTiberium_CellsPerAnim;
 	Valueable<float> SpawnsTiberium_StageFalloff;
+	ValueableIdx<ParticleTypeClass*> SpawnsTiberium_Particle;
 
+	// ---- Destruction / damage ----
 	Valueable<AnimTypeClass*> DestroyAnim;
 	ValueableIdx<VocClass> DestroySound;
-	Nullable<ColorStruct> MinimapColor;
+	Nullable<WarheadTypeClass*> Warhead;
+	Nullable<int> Damage;
+	Valueable<bool> AreaDamage;
+	Valueable<int> Bounty;
+
+	// ---- Terrain interaction ----
 	Valueable<bool> IsPassable;
 	Valueable<bool> CanBeBuiltOn;
 	Valueable<int> CrushableLevel;
+
+	// ---- Lighting ----
 	Valueable<bool> LightEnabled;
 	Nullable<int> LightVisibility;
 	Nullable<double> LightIntensity;
 	Nullable<double> LightRedTint;
 	Nullable<double> LightGreenTint;
 	Nullable<double> LightBlueTint;
+
+	// ---- Animation state ----
 	ValueableVector<AnimTypeClass*> AttachedAnim;
-	Nullable<WarheadTypeClass*> Warhead;
-	Nullable<int> Damage;
-	Valueable<bool> AreaDamage;
-	Valueable<int> Bounty;
 	Valueable<bool> HasDamagedFrames;
 	Valueable<bool> HasCrumblingFrames;
 	ValueableIdx<VocClass> CrumblingSound;
 	Nullable<int> AnimationLength;
 	NullableVector<AnimTypeClass*> TreeFires;
-	ValueableIdx<ParticleTypeClass*> SpawnsTiberium_Particle;
+
 #pragma endregion
 
 	TerrainTypeExtData(TerrainTypeClass* pObj) : ObjectTypeExtData(pObj),
 		CustomPalette(CustomPalette::PaletteMode::Temperate),
+		MinimapColor(),
 		SpawnsTiberium_Type(-1),
 		SpawnsTiberium_Range(1),
 		SpawnsTiberium_GrowthStage({ 3, 0 }),
 		SpawnsTiberium_CellsPerAnim({ 1, 0 }),
 		SpawnsTiberium_StageFalloff(),
+		SpawnsTiberium_Particle(),
 		DestroyAnim(),
 		DestroySound(-1),
-		MinimapColor(),
+		Warhead(),
+		Damage(),
+		AreaDamage(),
+		Bounty(0),
 		IsPassable(),
 		CanBeBuiltOn(),
 		CrushableLevel(0),
@@ -68,16 +86,11 @@ public:
 		LightGreenTint(),
 		LightBlueTint(),
 		AttachedAnim(),
-		Warhead(),
-		Damage(),
-		AreaDamage(),
-		Bounty(0),
 		HasDamagedFrames(),
 		HasCrumblingFrames(),
 		CrumblingSound(-1),
 		AnimationLength(),
-		TreeFires(),
-		SpawnsTiberium_Particle()
+		TreeFires()
 	{
 		this->AbsType = TerrainTypeClass::AbsID;
 		this->Initialize();

@@ -62,6 +62,20 @@ public:
 	void Push_Cell(CellStruct* a2)JMP_THIS(0x6551C0);
 
 	void UpdateRadarStatus(bool status) { JMP_THIS(0x656DF0); }
+
+	Point2D* GetCrdOnRadar(Point2D* pOutBuffer, CoordStruct* pCrd, bool bRestrictToBound) {
+		JMP_THIS(0x6557F0);
+	}
+
+	Point2D GetCrdOnRadar(CoordStruct crd, bool bRestrictToBound = true) {
+		auto pOutBuffer = new Point2D();
+		return *GetCrdOnRadar(pOutBuffer, &crd, bRestrictToBound);
+	}
+
+	void RefreshCrd(Point2D* pCrd) {
+		JMP_THIS(0x6562D0);
+	}
+
 	//Non-virtual
 protected:
 	//Constructor

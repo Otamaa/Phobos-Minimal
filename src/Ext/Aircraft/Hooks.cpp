@@ -670,12 +670,12 @@ ASMJIT_PATCH(0x416A0A, AircraftClass_Mission_Move_SmoothMoving, 0x5)
 		return 0;
 
 	const auto extendedMissions = RulesExtData::Instance()->ExpandAircraftMission;
-	const auto pTypeExt = TechnoTypeExtContainer::Instance.Find(pType);
+	const auto pTypeExt = AircraftTypeExtContainer::Instance.Find(pType);
 
 	if (!pTypeExt->ExtendedAircraftMissions_SmoothMoving.Get(extendedMissions))
 		return 0;
 
-	const auto rotRadian = Math::abs(pThis->PrimaryFacing.ROT.Raw * (Math::GAME_TWOPI / 65536)); // GetRadian<65536>() is an incorrect method
+	const auto rotRadian = Math::abs(pThis->PrimaryFacing.ROT.Raw * (Math::GAME_TWOPI / 65536)); // GetRadian<65536>() is an incorrect methodw
 	const auto turningRadius = rotRadian > 1e-10 ? static_cast<int>(pType->Speed / rotRadian) : 0;
 	const int distance = int(Point2D { pCoords->X, pCoords->Y }.DistanceFrom(Point2D { pThis->Location.X, pThis->Location.Y }));
 

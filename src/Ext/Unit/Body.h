@@ -15,22 +15,21 @@ public:
 public:
 #pragma region classMembers
 
-	OptionalStruct<bool, true> AltOccupation; // if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
-
-
-	// Replaces use of TechnoClass->Animation StageClass timer for IsSimpleDeployer to simplify
-	// the deploy animation timer calcs and eliminate possibility of outside interference.
 	CDTimerClass SimpleDeployerAnimationTimer;
 	CDTimerClass UnitAutoDeployTimer;
 	CDTimerClass Convert_Deploy_Delay;
 
+	// if the unit marks cell occupation flags, this is set to whether it uses the "high" occupation members
+	OptionalStruct<bool, true> AltOccupation;
+
 #pragma endregion
 
+public:
 	UnitExtData(UnitClass* pObj) : FootExtData(pObj),
-		AltOccupation(),
 		SimpleDeployerAnimationTimer(),
 		UnitAutoDeployTimer(),
-		Convert_Deploy_Delay()
+		Convert_Deploy_Delay(),
+		AltOccupation()
 	{
 		this->CurrentType = pObj->Type;
 		this->Name = pObj->Type->ID;

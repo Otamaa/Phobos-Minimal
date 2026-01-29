@@ -333,7 +333,14 @@ DEFINE_FUNCTION_JUMP(CALL , 0x744100, FakeUnitClass::_Mission_AreaGuard)
 
 #include <RadarEventClass.h>
 
-DamageState FakeUnitClass::_Take_Damage(int* damage, int distance, WarheadTypeClass* warhead, TechnoClass* source, bool ignoreDefenses, bool PreventsPassengerEscape, HouseClass* sourceHouse)
+DamageState FakeUnitClass::_Take_Damage(int* damage, 
+	int distance,
+	WarheadTypeClass* warhead, 
+	TechnoClass* source,
+	bool ignoreDefenses,
+	bool PreventsPassengerEscape,
+	HouseClass* sourceHouse
+	)
 {
 	DamageState _res = DamageState::Unaffected;
 	if (this->DeathFrameCounter > 0) {
@@ -487,7 +494,7 @@ DamageState FakeUnitClass::_Take_Damage(int* damage, int distance, WarheadTypeCl
 				} else {
 
 					pExt->ReceiveDamage = true;
-					AnimTypeExtData::ProcessDestroyAnims(this, source, warhead);
+					AnimTypeExtData::ProcessDestroyAnims(this, source ? source->Owner : sourceHouse, warhead);
 					this->Explode();
 				}
 			} else {

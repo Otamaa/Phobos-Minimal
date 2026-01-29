@@ -15,8 +15,19 @@ public:
 	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
+	Nullable<bool> ExtendedAircraftMissions_SmoothMoving;
+	Nullable<bool> ExtendedAircraftMissions_EarlyDescend;
+	Nullable<bool> ExtendedAircraftMissions_RearApproach;
+	Nullable<bool> ExtendedAircraftMissions_FastScramble;
+	Nullable<int> ExtendedAircraftMissions_UnlandDamage;
 
-	AircraftTypeExtData(AircraftTypeClass* pObj) : TechnoTypeExtData(pObj) {
+	AircraftTypeExtData(AircraftTypeClass* pObj) : TechnoTypeExtData(pObj),
+		ExtendedAircraftMissions_SmoothMoving(),
+		ExtendedAircraftMissions_EarlyDescend(),
+		ExtendedAircraftMissions_RearApproach(),
+		ExtendedAircraftMissions_FastScramble(),
+		ExtendedAircraftMissions_UnlandDamage()
+	{
 		this->AbsType = AircraftTypeClass::AbsID;
 		this->InitializeConstant();
 	}
@@ -33,11 +44,26 @@ public:
 	virtual void LoadFromStream(PhobosStreamReader& Stm) override
 	{
 		this->TechnoTypeExtData::LoadFromStream(Stm);
+		Stm
+			.Process(this->ExtendedAircraftMissions_SmoothMoving)
+			.Process(this->ExtendedAircraftMissions_EarlyDescend)
+			.Process(this->ExtendedAircraftMissions_RearApproach)
+			.Process(this->ExtendedAircraftMissions_FastScramble)
+			.Process(this->ExtendedAircraftMissions_UnlandDamage)
+			;
 	}
 
 	virtual void SaveToStream(PhobosStreamWriter& Stm)
 	{
 		const_cast<AircraftTypeExtData*>(this)->TechnoTypeExtData::SaveToStream(Stm);
+
+		Stm
+			.Process(this->ExtendedAircraftMissions_SmoothMoving)
+			.Process(this->ExtendedAircraftMissions_EarlyDescend)
+			.Process(this->ExtendedAircraftMissions_RearApproach)
+			.Process(this->ExtendedAircraftMissions_FastScramble)
+			.Process(this->ExtendedAircraftMissions_UnlandDamage)
+			;
 	}
 
 	virtual AbstractType WhatIam() const { return base_type::AbsID; }

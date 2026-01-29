@@ -93,9 +93,19 @@ public:
 	base_type* AttachedToObject {};
 	InitState Initialized { InitState::Blank };
 
-	bool IsPendingScreenFlash {};
-	ColorStruct ScreenFlashColor { 255,255,255 };
+#pragma region ClassMembers
+	// ============================================================
+	// 4-byte aligned: unsigned / enum
+	// ============================================================
 	unsigned ScreenFlashTrans { 100 };
+
+	// ============================================================
+	// 1-byte aligned: ColorStruct (3 bytes) + bool (packed at end)
+	// ============================================================
+	ColorStruct ScreenFlashColor { 255, 255, 255 };
+	bool IsPendingScreenFlash {};
+
+#pragma endregion
 
 public:
 

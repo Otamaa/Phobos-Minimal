@@ -53,15 +53,32 @@ public:
 public:
 
 #pragma region ClassMembers
+	// ============================================================
+	// Large aggregates
+	// ============================================================
 	PhobosFixedString<0x18> Name;
-	SWTypeExtData* Type;
-	bool Temp_IsPlayer;
-	CellStruct Temp_CellStruct;
-	bool CameoFirstClickDone;
-	bool FirstClickAutoFireDone;
 	SWStatus Statusses;
 	CDTimerClass MusicTimer;
+
+	// ============================================================
+	// 8-byte aligned: Pointer
+	// ============================================================
+	SWTypeExtData* Type;
+
+	// ============================================================
+	// 4-byte aligned: CellStruct (2 shorts = 4 bytes)
+	// ============================================================
+	CellStruct Temp_CellStruct;
+
+	// ============================================================
+	// 1-byte aligned: bool (packed together at the end)
+	// ============================================================
+	bool Temp_IsPlayer;
+	bool CameoFirstClickDone;
+	bool FirstClickAutoFireDone;
 	bool MusicActive;
+	// 4 bools = 4 bytes, naturally aligned
+
 #pragma endregion
 
 public:

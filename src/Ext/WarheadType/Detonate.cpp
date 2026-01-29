@@ -633,6 +633,9 @@ void WarheadTypeExtData::Detonate(TechnoClass* pOwner, HouseClass* pHouse, Bulle
 	 if (!this->Crit_ApplyChancePerTarget)
 		this->CritRandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
 
+	if (!this->ReturnWarhead_ApplyChancePerTarget)
+			this->ReturnWarhead_RandomBuffer = ScenarioClass::Instance->Random.RandomDouble();
+
 	//const bool ISPermaMC = this->PermaMC && !pBullet;
 
 	if ((this->IsCellSpreadWH || this->CritCurrentChance > 0.0) && this->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate))
@@ -820,6 +823,9 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 
 	this->ApplyShieldModifiers(pTarget);
 
+	if (this->ReturnWarhead)
+		this->ApplyReturnWarhead(pHouse, pTarget, pOwner);
+
 	if (!this->PhobosAttachEffects.AttachTypes.empty()
 	|| !this->PhobosAttachEffects.RemoveTypes.empty()
 	|| !this->PhobosAttachEffects.RemoveGroups.empty()
@@ -876,6 +882,35 @@ void WarheadTypeExtData::DetonateOnOneUnit(HouseClass* pHouse, TechnoClass* pTar
 //		this->DetonateOnOneUnit(pHouse, pTarget, pOwner);
 //	}
 //}
+
+void WarheadTypeExtData::ApplyReturnWarhead(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* pOwner)
+{
+	const double dice = this->ReturnWarhead_ApplyChancePerTarget || !this->ApplyPerTargetEffectsOnDetonate.Get(RulesExtData::Instance()->ApplyPerTargetEffectsOnDetonate) ? ScenarioClass::Instance->Random.RandomDouble() : this->ReturnWarhead_RandomBuffer;
+
+	if (this->ReturnWarhead_Chance < dice)
+		return;
+
+	if (pHouse && !EnumFunctions::CanTargetHouse(this->ReturnWarhead_AffectsHouse, pHouse, pTarget->Owner))
+		return;
+
+	const bool isAlive = pTarget->IsAlive;
+
+	if (!isAlive)
+		return;
+
+	if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), this->ReturnWarhead_AffectsTarget))
+		return;
+
+	if (!EnumFunctions::IsTechnoEligible(pTarget, this->ReturnWarhead_AffectsTarget))
+		return;
+
+	if (this->ReturnWarhead_FullDetonation)
+		WarheadTypeExtData::DetonateAt(this->ReturnWarhead, pOwner, pTarget, this->ReturnWarhead_Damage, false, pTarget->Owner);
+	else {
+		int damage = this->ReturnWarhead_Damage;
+		pOwner->ReceiveDamage(&damage, 0, this->ReturnWarhead, pTarget, false, false, pTarget->Owner);
+	}
+}
 
 void WarheadTypeExtData::ApplyShieldModifiers(TechnoClass* pTarget)
 {
@@ -1045,10 +1080,10 @@ void WarheadTypeExtData::ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, Tec
 	if (pHouse && !EnumFunctions::CanTargetHouse(this->Crit_AffectsHouses, pHouse, pTarget->Owner))
 		return;
 
-	if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), this->Crit_Affects))
+	if (!EnumFunctions::IsCellEligible(pTarget->GetCell(), this->Crit_Affects, false, false))
 		return;
 
-	if (!EnumFunctions::IsTechnoEligible(pTarget, this->Crit_Affects))
+	if (!EnumFunctions::IsTechnoEligible(pTarget, this->Crit_Affects, false))
 		return;
 
 	this->CritActive = true;

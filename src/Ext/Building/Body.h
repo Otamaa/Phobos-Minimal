@@ -24,89 +24,119 @@ public:
 	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
-
 #pragma region ClassMember
+	// ============================================================
+	// 8-byte aligned: Pointers
+	// ============================================================
 	BuildingTypeExtData* Type;
-	std::unique_ptr<PrismForwarding> MyPrismForwarding;
-	bool DeployedTechno;
-	int LimboID;
-	int GrindingWeapon_LastFiredFrame;
 	BuildingClass* CurrentAirFactory;
-	int AccumulatedIncome;
-	bool IsCreatedFromMapFile;
-	std::vector<AnimClass*> DamageFireAnims;
-	CDTimerClass AutoSellTimer;
-	bool LighningNeedUpdate;
-	bool TogglePower_HasPower;
-	bool Silent;
 	HouseClass* C4Owner;
 	WarheadTypeClass* C4Warhead;
-	std::vector<int> DockReloadTimers;
 	HouseClass* OwnerBeforeRaid;
+	FactoryClass* FactoryBuildingMe;
+
+	// ============================================================
+	// 8-byte aligned: unique_ptr
+	// ============================================================
+	std::unique_ptr<PrismForwarding> MyPrismForwarding;
+
+	// ============================================================
+	// 8-byte aligned: Handle wrapper
+	// ============================================================
+	Handle<AnimClass*, UninitAnim> SpyEffectAnim;
+
+	// ============================================================
+	// 24-byte aligned: Vectors (grouped together)
+	// ============================================================
+	std::vector<AnimClass*> DamageFireAnims;
+	std::vector<int> DockReloadTimers;
+	HelperedVector<TechnoClass*> RegisteredJammers;
+	std::vector<BuildingClass*> airFactoryBuilding;
+
+	// ============================================================
+	// Large compound: std::array of CDTimerClass
+	// ============================================================
 	std::array<CDTimerClass, 3u> CashUpgradeTimers;
+
+	// ============================================================
+	// CDTimerClass
+	// ============================================================
+	CDTimerClass AutoSellTimer;
+
+	// ============================================================
+	// 4-byte aligned: int
+	// ============================================================
+	int LimboID;
+	int GrindingWeapon_LastFiredFrame;
+	int AccumulatedIncome;
 	int SensorArrayActiveCounter;
+	int GrindingWeapon_AccumulatedCredits;
+	int LastFlameSpawnFrame;
+	int SpyEffectAnimDuration;
+	int PoweredUpToLevel;
+
+	// ============================================================
+	// 1-byte aligned: bool (packed together at the end)
+	// ============================================================
+	bool DeployedTechno;
+	bool IsCreatedFromMapFile;
+	bool LighningNeedUpdate;  // typo: should be "LightningNeedUpdate"
+	bool TogglePower_HasPower;
+	bool Silent;
 	bool SecretLab_Placed;
 	bool AboutToChronoshift;
 	bool IsFromSW;
-	HelperedVector<TechnoClass*> RegisteredJammers;
-	int GrindingWeapon_AccumulatedCredits;
-	int LastFlameSpawnFrame;
-	Handle<AnimClass*, UninitAnim> SpyEffectAnim;
-	int SpyEffectAnimDuration;
-	int PoweredUpToLevel;
-	FactoryClass* FactoryBuildingMe;
-	std::vector<BuildingClass*> airFactoryBuilding;
 	bool FreeUnitDone;
 	bool SeparateRepair;
 	bool IsFiringNow;
+	// 11 bools = 11 bytes, pads to 12 for 4-byte alignment
+
 #pragma endregion
 
-	bool HasSuperWeapon(int index, bool withUpgrades) const;
-	bool RubbleYell(bool beingRepaired) const;
-
-	void DisplayIncomeString();
-	void UpdatePoweredKillSpawns() const;
-	void UpdateAutoSellTimer();
-	void UpdateSpyEffecAnimDisplay();
-	void UpdateMainEvaVoice();
-
 public:
-
 	BuildingExtData(BuildingClass* pObj)
-		: TechnoExtData(pObj),
-		Type(nullptr),
-		MyPrismForwarding(nullptr),
-		DeployedTechno(false),
-		LimboID(-1),
-		GrindingWeapon_LastFiredFrame(0),
-		CurrentAirFactory(nullptr),
-		AccumulatedIncome(0),
-		IsCreatedFromMapFile(false),
-		DamageFireAnims(),
-		AutoSellTimer(),
-		LighningNeedUpdate(false),
-		TogglePower_HasPower(true),
-		Silent(false),
-		C4Owner(nullptr),
-		C4Warhead(nullptr),
-		DockReloadTimers(),
-		OwnerBeforeRaid(nullptr),
-		CashUpgradeTimers(),
-		SensorArrayActiveCounter(0),
-		SecretLab_Placed(false),
-		AboutToChronoshift(false),
-		IsFromSW(false),
-		RegisteredJammers(),
-		GrindingWeapon_AccumulatedCredits(0),
-		LastFlameSpawnFrame(0),
-		SpyEffectAnim(nullptr),
-		SpyEffectAnimDuration(0),
-		PoweredUpToLevel(0),
-		FactoryBuildingMe(nullptr),
-		airFactoryBuilding(),
-		FreeUnitDone(false),
-		SeparateRepair(false),
-		IsFiringNow(false)
+		: TechnoExtData(pObj)
+		// Pointers
+		, Type(nullptr)
+		, CurrentAirFactory(nullptr)
+		, C4Owner(nullptr)
+		, C4Warhead(nullptr)
+		, OwnerBeforeRaid(nullptr)
+		, FactoryBuildingMe(nullptr)
+		// unique_ptr
+		, MyPrismForwarding(nullptr)
+		// Handle
+		, SpyEffectAnim(nullptr)
+		// Vectors
+		, DamageFireAnims()
+		, DockReloadTimers()
+		, RegisteredJammers()
+		, airFactoryBuilding()
+		// std::array
+		, CashUpgradeTimers()
+		// CDTimerClass
+		, AutoSellTimer()
+		// ints
+		, LimboID(-1)
+		, GrindingWeapon_LastFiredFrame(0)
+		, AccumulatedIncome(0)
+		, SensorArrayActiveCounter(0)
+		, GrindingWeapon_AccumulatedCredits(0)
+		, LastFlameSpawnFrame(0)
+		, SpyEffectAnimDuration(0)
+		, PoweredUpToLevel(0)
+		// bools
+		, DeployedTechno(false)
+		, IsCreatedFromMapFile(false)
+		, LighningNeedUpdate(false)
+		, TogglePower_HasPower(true)
+		, Silent(false)
+		, SecretLab_Placed(false)
+		, AboutToChronoshift(false)
+		, IsFromSW(false)
+		, FreeUnitDone(false)
+		, SeparateRepair(false)
+		, IsFiringNow(false)
 	{
 		this->CurrentType = pObj->Type;
 		this->Type = BuildingTypeExtContainer::Instance.Find(pObj->Type);
@@ -141,6 +171,14 @@ public:
 
 	BuildingClass* This() const { return reinterpret_cast<BuildingClass*>(this->AttachedToObject); }
 	const BuildingClass* This_Const() const { return reinterpret_cast<const BuildingClass*>(this->AttachedToObject); }
+	bool HasSuperWeapon(int index, bool withUpgrades) const;
+	bool RubbleYell(bool beingRepaired) const;
+
+	void DisplayIncomeString();
+	void UpdatePoweredKillSpawns() const;
+	void UpdateAutoSellTimer();
+	void UpdateSpyEffecAnimDisplay();
+	void UpdateMainEvaVoice();
 
 public:
 	static void StoreTiberium(BuildingClass* pThis, float amount, int idxTiberiumType, int idxStorageTiberiumType);

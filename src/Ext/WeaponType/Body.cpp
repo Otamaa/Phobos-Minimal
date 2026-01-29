@@ -258,6 +258,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 	this->CanTarget_MaxHealth.Read(exINI, pSection, "CanTarget.MaxHealth");
 	this->CanTarget_MinHealth.Read(exINI, pSection, "CanTarget.MinHealth");
+	this->CanTargetVeterancy.Read(exINI, pSection, "CanTargetVeterancy");
 
 	this->DelayedFire_Duration.Read(exINI, pSection, "DelayedFire.Duration");
 	this->DelayedFire_AnimOnTurret.Read(exINI, pSection, "DelayedFire.AnimOnTurret");
@@ -292,12 +293,18 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		|| this->AttachEffect_DisallowedTypes.size()
 		|| this->AttachEffect_DisallowedGroups.size()
 		|| this->CanTarget_MaxHealth < 1.0 || this->CanTarget_MinHealth > 0.0
+		|| this->CanTargetVeterancy != AffectedVeterancy::All
 		)
 	{
 		this->SkipWeaponPicking = false;
 	}
 
 	return true;
+}
+
+bool WeaponTypeExtData::IsVeterancyInThreshold(TechnoClass* pTarget) const
+{
+	return EnumFunctions::CanTargetVeterancy(this->CanTargetVeterancy, pTarget);
 }
 
 int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)
@@ -605,6 +612,7 @@ void WeaponTypeExtData::Serialize(T& Stm)
 
 		.Process(this->CanTarget_MaxHealth)
 		.Process(this->CanTarget_MinHealth)
+		.Process(this->CanTargetVeterancy)
 
 		.Process(this->DelayedFire_Duration)
 		.Process(this->DelayedFire_SkipInTransport)

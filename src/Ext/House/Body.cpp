@@ -231,10 +231,16 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 {
 	float mult = 1.0;
 	auto const pTechnoTypeExt = TechnoTypeExtContainer::Instance.Find(pTechnoType);
+	std::unordered_map<int, int> counts;
 
 	for (auto const& pBuilding : this->RestrictedFactoryPlants)
 	{
 		auto const pTypeExt = BuildingTypeExtContainer::Instance.Find(pBuilding->Type);
+
+		int max = pTypeExt->FactoryPlant_MaxCount;
+
+		if (max > -1 && counts[pBuilding->Type->ArrayIndex] >= max)
+			continue;
 
 		if (!pTypeExt->FactoryPlant_AllowTypes.empty() && !pTypeExt->FactoryPlant_AllowTypes.Contains(pTechnoType))
 			continue;
@@ -242,6 +248,7 @@ float HouseExtData::GetRestrictedFactoryPlantMult(TechnoTypeClass* pTechnoType) 
 		if (!pTypeExt->FactoryPlant_DisallowTypes.empty()&& pTypeExt->FactoryPlant_DisallowTypes.Contains(pTechnoType))
 			continue;
 
+		counts[pBuilding->Type->ArrayIndex]++;
 		float currentMult = 1.0f;
 
 		switch (pTechnoType->WhatAmI())
@@ -3534,6 +3541,8 @@ void FakeHouseClass::_UpdateSpySat()
 		return;
 	}
 
+	std::unordered_map<int, int> Factorycounts;
+	
 	for (auto const& pBld : this->Buildings)
 	{
 		if (pBld && pBld->IsAlive && !pBld->InLimbo && pBld->IsOnMap)
@@ -3574,16 +3583,22 @@ void FakeHouseClass::_UpdateSpySat()
 				//recalculate the multiplier
 				if ((*begin)->FactoryPlant && IsFactoryPowered)
 				{
-					if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0)
-					{
-						pHouseExt->RestrictedFactoryPlants.emplace(pBld);
-					}
+					int max = pTypeExt->FactoryPlant_MaxCount;
 
-					this->CostDefensesMult *= (*begin)->DefensesCostBonus;
-					this->CostUnitsMult *= (*begin)->UnitsCostBonus;
-					this->CostInfantryMult *= (*begin)->InfantryCostBonus;
-					this->CostBuildingsMult *= (*begin)->BuildingsCostBonus;
-					this->CostAircraftMult *= (*begin)->AircraftCostBonus;
+					if (max <= -1 || Factorycounts[(*begin)->ArrayIndex] < max){
+
+						Factorycounts[(*begin)->ArrayIndex]++;
+
+						if (pTypeExt->FactoryPlant_AllowTypes.size() > 0 || pTypeExt->FactoryPlant_DisallowTypes.size() > 0) {
+							pHouseExt->RestrictedFactoryPlants.emplace(pBld);
+						}
+
+						this->CostDefensesMult *= (*begin)->DefensesCostBonus;
+						this->CostUnitsMult *= (*begin)->UnitsCostBonus;
+						this->CostInfantryMult *= (*begin)->InfantryCostBonus;
+						this->CostBuildingsMult *= (*begin)->BuildingsCostBonus;
+						this->CostAircraftMult *= (*begin)->AircraftCostBonus;
+					}
 				}
 
 				if (IsSpysatActulallyAllowed && !Spysat)

@@ -321,6 +321,23 @@ ASMJIT_PATCH(0x69FE92, ShipLocomotionClass_Process_WakeAnim, 0x5)
 	return 0x69FEF0;
 }
 
+ASMJIT_PATCH(0x75AC93, WalkLocomotionClass_Process_Wake, 0x6)
+{
+	if (!RulesExtData::Instance()->WalkLocomotorMakesWake)
+		return 0;
+
+	GET(ILocomotion* const, pThis, ESI);
+
+	const auto pLinkedTo = static_cast<LocomotionClass*>(pThis)->LinkedTo;
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pLinkedTo);
+
+	if (pThis->Is_Moving_Now() && !(Unsorted::CurrentFrame % 10) && !pLinkedTo->OnBridge && pLinkedTo->GetCell()->LandType == LandType::Water) {
+		TechnoExtData::PlayAnim(pTypeExt->Wake.Get(RulesClass::Instance->Wake), pLinkedTo);
+	}
+
+	return 0;
+}
+
 ASMJIT_PATCH(0x414EAA, AircraftClass_IsSinking_SinkAnim, 0x6)
 {
 	GET(AnimClass*, pAnim, EAX);
@@ -1932,36 +1949,33 @@ ASMJIT_PATCH(0x6D47A6, TacticalClass_Render_Techno, 0x6)
 	return 0x0;
 }
 
-ASMJIT_PATCH(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
+//Aircraft 7E23B4
+//Building 7E3FCC
+//foot 7E8DA4
+//infantry 7EB168
+//techno 7F4A70
+//unit 7F5D80
+void __fastcall FakeTechnoClass::__DrawExtras(TechnoClass* pThis, discard_t, Point2D* pLocation, RectangleStruct* pBounds)
 {
-	GET(TechnoClass*, pThis, ECX);
-	GET_STACK(Point2D*, pLocation, 0x4);
-	GET_STACK(RectangleStruct*, pBound, 0x8);
-
-	auto DrawTheStuff = [&pLocation, &pThis, &pBound](const wchar_t* pFormat)
+	auto DrawTheStuff = [&pLocation, &pThis, &pBounds](const wchar_t* pFormat)
 		{
 			auto nPoint = *pLocation;
 			//DrawingPart
 			RectangleStruct nTextDimension;
 			Drawing::GetTextDimensions(&nTextDimension, pFormat, nPoint, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt, 4, 2);
-			auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBound, nullptr, nullptr);
+			auto nIntersect = RectangleStruct::Intersect(nTextDimension, *pBounds, nullptr, nullptr);
 			auto nColorInt = pThis->Owner->Color.ToInit();//0x63DAD0
 
 			DSurface::Temp->Fill_Rect(nIntersect, (COLORREF)0);
 			DSurface::Temp->Draw_Rect(nIntersect, (COLORREF)nColorInt);
-			TextDrawing::Simple_Text_Print_Wide(pFormat, DSurface::Temp.get(), pBound, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt);
+			TextDrawing::Simple_Text_Print_Wide(pFormat, DSurface::Temp.get(), pBounds, &nPoint, (COLORREF)nColorInt, (COLORREF)0, TextPrintType::Center | TextPrintType::FullShadow | TextPrintType::Efnt);
 		};
 
-	if (ShowTeamLeaderCommandClass::IsActivated())
-	{
-		if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis))
-		{
-			if (auto pTeam = pFoot->Team)
-			{
-				if (auto const pTeamLeader = pTeam->FetchLeader())
-				{
-					if (pTeamLeader == pThis)
-					{
+	if (ShowTeamLeaderCommandClass::IsActivated()) {
+		if (auto const pFoot = flag_cast_to<FootClass*, false>(pThis)) {
+			if (auto pTeam = pFoot->Team) {
+				if (auto const pTeamLeader = pTeam->FetchLeader()) {
+					if (pTeamLeader == pThis) {
 						DrawTheStuff(L"Team Leader");
 					}
 				}
@@ -1969,11 +1983,15 @@ ASMJIT_PATCH(0x6F5190, TechnoClass_DrawIt_Add, 0x6)
 		}
 	}
 
-	//if(pThis->IsTethered)
-	//	DrawTheStuff(L"IsTethered");
-
-	return 0x0;
+	pThis->DrawTechnoExtras(pLocation, pBounds);
 }
+
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E23B4, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E8DA4, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB168, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F4A70, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D80, FakeTechnoClass::__DrawExtras);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7E3FCC, FakeBuildingClass::_DrawExtras);
 
 ASMJIT_PATCH(0x40A5B3, AudioDriverStart_AnnoyingBufferLogDisable_A, 0x6)
 {

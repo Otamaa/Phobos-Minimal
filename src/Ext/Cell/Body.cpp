@@ -256,12 +256,12 @@ bool FakeCellClass::_SpreadTiberium_2(TerrainClass* pTerrain, bool force)
 
 	auto pTib = TiberiumClass::Array->Items[tib_];
 	auto pTerrainExt = TerrainExtContainer::Instance.Find(pTerrain);
-	size_t size = pTerrainExt->Adjencentcells.size();
+	size_t size = pTerrainExt->AdjacentCells.size();
 
 	for (int i = 0; i < (int)size; i++)
 	{
 		const int rand = ScenarioClass::Instance->Random.RandomFromMax(size - 1);
-		CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->Adjencentcells[(i + rand) % size]);
+		CellClass* tgtCell = MapClass::Instance->GetCellAt(this->MapCoords + pTerrainExt->AdjacentCells[(i + rand) % size]);
 		int growth = pTerrainTypeExt->GetTiberiumGrowthStage();
 		growth -= int(pTerrainTypeExt->SpawnsTiberium_StageFalloff * i);
 		growth = std::clamp(growth, 0, pTib->NumFrames - 1);

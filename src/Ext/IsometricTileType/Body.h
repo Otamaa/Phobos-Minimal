@@ -26,22 +26,43 @@ public:
 public :
 
 #pragma region ClassMembers
+	// ============================================================
+	// Large aggregates
+	// ============================================================
 	std::string TileSetName;
-	Valueable<int> Tileset;
 	CustomPalette Palette;
-	Valueable<bool> AllowVeins;
+
+	// ============================================================
+	// 24-byte aligned: Vectors
+	// ============================================================
 	ValueableVector<TiberiumClass*> AllowedTiberiums;
 	ValueableVector<SmudgeTypeClass*> AllowedSmudges;
+
+	// ============================================================
+	// 4-byte aligned: Valueable<int>
+	// ============================================================
+	Valueable<int> Tileset;
+
+	// ============================================================
+	// 1-byte aligned: Valueable<bool> (at the end)
+	// ============================================================
+	Valueable<bool> AllowVeins;
+	// 1 byte, pads to 4 for alignment
+
 #pragma endregion
 
 public:
 	IsometricTileTypeExtData(IsometricTileTypeClass* pObj) : ObjectTypeExtData(pObj)
+		// Large aggregates
 		, TileSetName("")
-		, Tileset(-1)
 		, Palette()
-		, AllowVeins()
+		// Vectors
 		, AllowedTiberiums()
 		, AllowedSmudges()
+		// Valueable<int>
+		, Tileset(-1)
+		// Valueable<bool>
+		, AllowVeins()
 	{
 		this->AbsType = IsometricTileTypeClass::AbsID;
 	}

@@ -99,6 +99,7 @@ public:
 	bool CritActive;
 	double CritRandomBuffer;
 	double CritCurrentChance;
+	double ReturnWarhead_RandomBuffer;
 
 	Nullable<AnimTypeClass*> MindControl_Anim;
 
@@ -451,6 +452,7 @@ public:
 
 	Valueable<double> AffectsBelowPercent;
 	Valueable<double> AffectsAbovePercent;
+	Valueable<AffectedVeterancy> AffectsVeterancy;
 	Valueable<bool> AffectsNeutral;
 
 	Valueable<int> PenetratesTransport_Level;
@@ -488,8 +490,17 @@ public:
 
 	Nullable<bool> CanTargetIronCurtained;
 
+	Valueable<WarheadTypeClass*> ReturnWarhead;
+	Valueable<int> ReturnWarhead_Damage;
+	Valueable<double> ReturnWarhead_Chance;
+	Valueable<bool> ReturnWarhead_ApplyChancePerTarget;
+	Valueable<bool> ReturnWarhead_FullDetonation;
+	Valueable<AffectedTarget> ReturnWarhead_AffectsTarget;
+	Valueable<AffectedHouse> ReturnWarhead_AffectsHouse;
+
 	bool IsCellSpreadWH;
 	bool IsFakeEngineer;
+	bool VeterancyCheck;
 #pragma endregion
 
 public:
@@ -547,6 +558,7 @@ public:
 		CritActive(false),
 		CritRandomBuffer(0.0),
 		CritCurrentChance(0.0),
+		ReturnWarhead_RandomBuffer(0.0),
 		MindControl_Anim(),
 		AffectsEnemies(true),
 		AffectsOwner(),
@@ -815,6 +827,7 @@ public:
 		DamageTargetHealthMultiplier(0.0),
 		AffectsBelowPercent(1.0),
 		AffectsAbovePercent(0.0),
+		AffectsVeterancy(AffectedVeterancy::All),
 		AffectsNeutral(true),
 		PenetratesTransport_Level(0),
 		PenetratesTransport_PassThrough(1.0),
@@ -844,8 +857,18 @@ public:
 		AnimZAdjust(),
 		ApplyPerTargetEffectsOnDetonate(),
 		CanTargetIronCurtained(),
+
+		ReturnWarhead {},
+		ReturnWarhead_Damage { 0 },
+		ReturnWarhead_Chance { 1.0 },
+		ReturnWarhead_ApplyChancePerTarget { false },
+		ReturnWarhead_FullDetonation { true },
+		ReturnWarhead_AffectsTarget { AffectedTarget::All },
+		ReturnWarhead_AffectsHouse { AffectedHouse::All },
+
 		IsCellSpreadWH(false),
-		IsFakeEngineer(false)
+		IsFakeEngineer(false),
+		VeterancyCheck(false)
 		{
 			this->AbsType = WarheadTypeClass::AbsID;
 			this->InitializeConstant();
@@ -903,7 +926,7 @@ public:
 
 	void ApplyCrit(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
 	void ApplyShieldModifiers(TechnoClass* pTarget);
-
+	void ApplyReturnWarhead(HouseClass* pHouse, TechnoClass* pTarget, TechnoClass* Owner);
 	void ApplyGattlingStage(TechnoClass* pTarget, int Stage) const;
 	void ApplyGattlingRateUp(TechnoClass* pTarget, int RateUp) const;
 	void ApplyReloadAmmo(TechnoClass* pTarget, int ReloadAmount) const;
@@ -931,6 +954,7 @@ public:
 	bool CanDealDamage(TechnoClass* pTechno, int damageIn, int distanceFromEpicenter, int& DamageResult, bool effectsRequireDamage = false) const;
 	bool CanDealDamage(TechnoClass* pTechno, bool Bypass = false, bool SkipVerses = false , bool checkImmune = true , bool checkLimbo = true) const;
 	bool CanAffectInvulnerable(TechnoClass* pTarget) const;
+	bool IsVeterancyInThreshold(TechnoClass* pTarget) const;
 	FullMapDetonateResult EligibleForFullMapDetonation(TechnoClass* pTechno, HouseClass* pOwner) const;
 	void ApplyDamageMult(TechnoClass* pVictim, TechnoClass* pSource, HouseClass* pSourceHouse,  int* pDamage) const;
 	void ApplyRecalculateDistanceDamage(ObjectClass* pVictim, args_ReceiveDamage* pArgs) const;

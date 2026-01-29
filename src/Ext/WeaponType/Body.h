@@ -188,6 +188,7 @@ public:
 
 	Valueable<double> CanTarget_MaxHealth;
 	Valueable<double> CanTarget_MinHealth;
+	Valueable<AffectedVeterancy> CanTargetVeterancy;
 
 	Nullable<PartialVector2D<int>> DelayedFire_Duration;
 	Valueable<bool> DelayedFire_SkipInTransport;
@@ -212,6 +213,7 @@ public:
 	Nullable<bool> AttackCursorOnFriendlies;
 	Nullable<bool> AttackNoThreatBuildings;
 	Nullable<bool> Anim_Update;
+
 #pragma endregion
 
 public:
@@ -336,6 +338,7 @@ public:
 		TurretRecoil_Suppress(false),
 		CanTarget_MaxHealth(1.0),
 		CanTarget_MinHealth(0.0),
+		CanTargetVeterancy(AffectedVeterancy::All),
 		DelayedFire_Duration(),
 		DelayedFire_SkipInTransport(false),
 		DelayedFire_Animation(nullptr),
@@ -429,6 +432,8 @@ public:
 
 	static void FireRadBeam(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target);
 	static void FireEbolt(TechnoClass* pFirer, WeaponTypeClass* pWeapon, CoordStruct& source, CoordStruct& target, int idx);
+
+	bool IsVeterancyInThreshold(TechnoClass* pTarget) const;
 
 	//return lepton
 	static int GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback = std::nullopt);

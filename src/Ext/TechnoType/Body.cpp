@@ -1967,9 +1967,9 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->BattlePoints.Read(exINI, pSection, "BattlePoints");
 		this->DefaultVehicleDisguise.Read(exINI, pSection, "DefaultVehicleDisguise");
 		this->TurretResponse.Read(exINI, pSection, "TurretResponse");
-		this->Unload_SkipPassengers.Read(exINI, pSection, "Unload.SkipPassengers");
-		this->Unload_NoPassengers.Read(exINI, pSection, "Unload.NoPassengers");
-		this->Unload_SkipHarvester.Read(exINI, pSection, "Unload.SkipHarvester");
+		this->Unload_SkipPassengers.Read(exINI, pSection, "Deploy.SkipPassengerUnload");
+		this->Unload_NoPassengers.Read(exINI, pSection, "Deploy.NoPassenger");
+		this->Unload_SkipHarvester.Read(exINI, pSection, "Deploy.NoTiberium");
 		this->Unload_NoTiberiums.Read(exINI, pSection, "Unload.NoTiberiums");
 		this->PlayerGuardModePursuit.Read(exINI, pSection, "PlayerGuardModePursuit");
 		this->PlayerGuardModeStray.Read(exINI, pSection, "PlayerGuardModeStray");
@@ -2003,12 +2003,6 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 		this->FiringForceScatter.Read(exINI, pSection, "FiringForceScatter");
 		this->Convert_ResetMindControl.Read(exINI, pSection, "Convert.ResetMindControl");
-
-		this->ExtendedAircraftMissions_SmoothMoving.Read(exINI, pSection, "ExtendedAircraftMissions.SmoothMoving");
-		this->ExtendedAircraftMissions_EarlyDescend.Read(exINI, pSection, "ExtendedAircraftMissions.EarlyDescend");
-		this->ExtendedAircraftMissions_RearApproach.Read(exINI, pSection, "ExtendedAircraftMissions.RearApproach");
-		this->ExtendedAircraftMissions_FastScramble.Read(exINI, pSection, "ExtendedAircraftMissions.FastScramble");
-		this->ExtendedAircraftMissions_UnlandDamage.Read(exINI, pSection, "ExtendedAircraftMissions.UnlandDamage");
 
 		this->DigitalDisplay_Health_FakeAtDisguise.Read(exINI, pSection, "DigitalDisplay.Health.FakeAtDisguise");
 		this->EngineerRepairAmount.Read(exINI, pSection, "EngineerRepairAmount");

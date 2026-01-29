@@ -15,21 +15,23 @@
 
 #include <Phobos.SaveGame.h>
 
-ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj),
-What(Behave::None),
-HeldType(nullptr),
-OtherParticleData(),
-SmokeData(),
-AlphaIsLightFlash(true)
+ParticleSystemExtData::ParticleSystemExtData(ParticleSystemClass* pObj) : ObjectExtData(pObj)
+// Pointer
+, HeldType(nullptr)
+// Vectors
+, OtherParticleData()
+, SmokeData()
+// enum
+, What(Behave::None)
+// bool
+, AlphaIsLightFlash(true)
 {
 	this->Name = pObj->Type->ID;
 	this->AbsType = ParticleSystemClass::AbsID;
-
 	auto pType = pObj->Type;
 	{
 		if (!ParticleSystemTypeExtContainer::Instance.Find(pType)->ApplyOptimization || (size_t)pType->HoldsWhat >= ParticleTypeClass::Array->size())
 			return;
-
 		this->HeldType = ParticleTypeClass::Array->Items[pType->HoldsWhat];
 		if (!this->HeldType->UseLineTrail && !this->HeldType->AlphaImage)
 		{
@@ -45,38 +47,17 @@ AlphaIsLightFlash(true)
 					return;
 				}
 				auto v11 = nBehave - 3;
-				if (!v11)                       // 0
+				if (!v11)
 				{
 					this->What = Behave::Spark;
 					return;
 				}
-				if (v11 == 1)                   // // 1
+				if (v11 == 1)
 				{
 					this->What = Behave::Railgun;
 					return;
 				}
 			}
-			//else
-			//{
-			//	if (this->HeldType->ColorList.Count < 3) {
-			//		return;
-			//	}
-			//
-			//	switch (pType->BehavesLike)
-			//	{
-			//	case ParticleSystemTypeBehavesLike::Smoke:
-			//		this->What = Behave::Smoke;
-			//		return;
-			//	case ParticleSystemTypeBehavesLike::Spark:
-			//		this->What = Behave::Spark;
-			//		return;
-			//	case ParticleSystemTypeBehavesLike::Railgun:
-			//		this->What = Behave::Railgun;
-			//		return;
-			//	default:
-			//		break;
-			//	}
-			//}
 		}
 	}
 }

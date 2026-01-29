@@ -20,15 +20,26 @@ public:
 	static COMPILETIMEEVAL auto Marker_str = to_hex_string<Marker>();
 
 public:
+
+#pragma region ClassMember
+
 	PhobosFixedString<0x18> Name;
+
 	std::vector<TEventClass*> SortedEventsList;
+
 	PhobosMap<int, CDTimerClass> SequentialTimers;
-	PhobosMap<int, int> SequentialTimersOriginalValue;
+	PhobosMap<int, int>          SequentialTimersOriginalValue;
+
 	PhobosMap<int, CDTimerClass> ParallelTimers;
-	PhobosMap<int, int> ParallelTimersOriginalValue;
-	int SequentialSwitchModeIndex = -1;
+	PhobosMap<int, int>          ParallelTimersOriginalValue;
+
+	int SequentialSwitchModeIndex;
+
+#pragma endregion
+
 
 public:
+
 	TriggerExtData(TriggerClass* pObj) : AbstractExtended(pObj)
 		, Name {}
 		, SortedEventsList {}
@@ -36,11 +47,12 @@ public:
 		, SequentialTimersOriginalValue {}
 		, ParallelTimers {}
 		, ParallelTimersOriginalValue {}
-		, SequentialSwitchModeIndex { -1 }
+		, SequentialSwitchModeIndex(-1)
 	{
 		this->Name = pObj->Type->ID;
 		this->AbsType = TriggerClass::AbsID;
 	}
+
 
 	TriggerExtData(TriggerClass* pObj, noinit_t nn) : AbstractExtended(pObj, nn) { }
 

@@ -246,9 +246,15 @@ ASMJIT_PATCH(0x4690D4, BulletClass_Logics_ApplyAdditionals, 0x6)
 		}
 	}
 
+
 	if (auto pTarget = flag_cast_to<ObjectClass*>(pBullet->Target)) {
 		// Check if the WH should affect the techno target or skip it
 		if (!pWarhead->_GetExtData()->IsHealthInThreshold(pTarget))
+			return GoToExtras;
+
+		auto const pTargetTech = flag_cast_to<TechnoClass*>(pBullet->Target);
+
+		if (pTargetTech && !pWarhead->_GetExtData()->IsVeterancyInThreshold(pTargetTech))
 			return GoToExtras;
 
 		const auto pBulletExt = pBullet->_GetExtData();

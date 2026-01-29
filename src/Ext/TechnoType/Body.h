@@ -165,6 +165,7 @@ public:
 	using base_type = TechnoTypeClass;
 
 public:
+
 #pragma region ClassMembers
 
 	Valueable<bool> HealthBar_Hide;
@@ -1199,12 +1200,6 @@ public:
 	Valueable<int> FireUp;
 	Valueable<bool> FireUp_ResetInRetarget;
 
-	Nullable<bool> ExtendedAircraftMissions_SmoothMoving;
-	Nullable<bool> ExtendedAircraftMissions_EarlyDescend;
-	Nullable<bool> ExtendedAircraftMissions_RearApproach;
-	Nullable<bool> ExtendedAircraftMissions_FastScramble;
-	Nullable<int> ExtendedAircraftMissions_UnlandDamage;
-
 	Valueable<bool> DigitalDisplay_Health_FakeAtDisguise;
 
 	Valueable<int> EngineerRepairAmount;
@@ -2074,11 +2069,6 @@ public:
 		FiringForceScatter(true),
 		FireUp(-1),
 		FireUp_ResetInRetarget(true),
-		ExtendedAircraftMissions_SmoothMoving(),
-		ExtendedAircraftMissions_EarlyDescend(),
-		ExtendedAircraftMissions_RearApproach(),
-		ExtendedAircraftMissions_FastScramble(),
-		ExtendedAircraftMissions_UnlandDamage(),
 		DigitalDisplay_Health_FakeAtDisguise(true),
 		EngineerRepairAmount(0),
 		DebrisTypes_Limit(),
@@ -3114,12 +3104,6 @@ private:
 
 			.Process(this->FireUp)
 			.Process(this->FireUp_ResetInRetarget)
-
-			.Process(this->ExtendedAircraftMissions_SmoothMoving)
-			.Process(this->ExtendedAircraftMissions_EarlyDescend)
-			.Process(this->ExtendedAircraftMissions_RearApproach)
-			.Process(this->ExtendedAircraftMissions_FastScramble)
-			.Process(this->ExtendedAircraftMissions_UnlandDamage)
 
 			.Process(this->DigitalDisplay_Health_FakeAtDisguise)
 			.Process(this->EngineerRepairAmount)

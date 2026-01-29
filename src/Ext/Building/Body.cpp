@@ -1907,10 +1907,9 @@ void FakeBuildingClass::_DrawExtras(Point2D* pLocation, RectangleStruct* pBounds
 		//this->DrawInfoTipAndSpiedSelection(&centeredPoint, &DSurface::ViewBounds);
 	}
 
-	this->DrawExtras(pLocation, pBounds);
+	this->DrawTechnoExtras(pLocation, pBounds);
 }
 
-DEFINE_FUNCTION_JUMP(CALL6, 0x6D9789, FakeBuildingClass::_DrawExtras);
 void FakeBuildingClass::_DrawStuffsWhenSelected(Point2D* pPoint, Point2D* pOriginalPoint, RectangleStruct* pRect)
 {
 	if (!HouseClass::CurrentPlayer)

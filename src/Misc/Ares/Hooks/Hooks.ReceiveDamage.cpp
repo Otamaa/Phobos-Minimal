@@ -784,7 +784,7 @@ DamageState __fastcall FakeTechnoClass::__Take_Damage(TechnoClass* pThis,
 			return DamageState::Unchanged;
 		}
 
-		if (pThis->Owner->IsAlliedWith(sourceHouse)) {
+		if (!RulesExtData::Instance()->AllowBerzerkOnAllies && pThis->Owner->IsAlliedWith(sourceHouse)) {
 			return DamageState::Unchanged;
 		}
 

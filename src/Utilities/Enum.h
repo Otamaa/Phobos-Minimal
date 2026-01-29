@@ -34,6 +34,18 @@
 
 #include <GeneralDefinitions.h>
 
+enum class AffectedVeterancy : unsigned char
+{
+	None = 0x0,
+	Rookie = 0x1,
+	Veteran = 0x2,
+	Elite = 0x4,
+
+	All = Rookie | Veteran | Elite
+};
+
+MAKE_ENUM_FLAGS(AffectedVeterancy);
+
 enum class CommandBarTypes
 {
 	none = -1,

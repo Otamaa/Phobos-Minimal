@@ -771,6 +771,10 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 		JMP_THIS(0x70F1D0);
 	}
 
+	void DrawTechnoExtras(Point2D* pos, RectangleStruct* rect) const {
+		JMP_THIS(0x6F5190);
+	}
+
 	void SwitchTurretWeapon(int idx) const {
 		JMP_THIS(0x70DC70);
 	}
