@@ -3087,3 +3087,14 @@ ASMJIT_PATCH(0x6FC3AE, TechnoClass_CanFire_TankInBunker_LocomotorWarhead, 0x6)
 
 	return pWeapon->Warhead && pWeapon->Warhead->IsLocomotor ? Illegal : 0;
 }
+
+// Fixed the bug that building with Explodes=yes use Ares's rubble logic will cause it's owner cannot defeat normally
+ASMJIT_PATCH(0x441C76, BuildingClass_Destroy_Explode_RubbleFix, 0x5)
+{
+	enum { AfterSetC4Timer = 0x441C8F };
+
+	GET(BuildingClass*, pThis, ESI);
+
+	pThis->GoingToBlowTimer.Start(pThis->Type->Explodes);
+	return AfterSetC4Timer;
+}

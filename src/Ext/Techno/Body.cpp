@@ -548,7 +548,7 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 			const double dCurrentTargetCoeff = pThis->GetCoefficient(pTargetFoot, emptyCoords);
 			const double dSourceCoeff = pThis->GetCoefficient(pSource, emptyCoords);
 
-			if (dSourceCoeff < dCurrentTargetCoeff)
+			if (dSourceCoeff <= dCurrentTargetCoeff)
 				return false;
 		}
 	}
