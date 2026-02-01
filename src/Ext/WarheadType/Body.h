@@ -488,8 +488,6 @@ public:
 	Nullable<bool> AnimZAdjust;
 	Nullable<bool> ApplyPerTargetEffectsOnDetonate;
 
-	Nullable<bool> CanTargetIronCurtained;
-
 	Valueable<WarheadTypeClass*> ReturnWarhead;
 	Valueable<int> ReturnWarhead_Damage;
 	Valueable<double> ReturnWarhead_Chance;
@@ -856,8 +854,6 @@ public:
 		PlayAnimAboveSurface(false),
 		AnimZAdjust(),
 		ApplyPerTargetEffectsOnDetonate(),
-		CanTargetIronCurtained(),
-
 		ReturnWarhead {},
 		ReturnWarhead_Damage { 0 },
 		ReturnWarhead_Chance { 1.0 },

@@ -474,7 +474,9 @@ public:
 	Valueable<bool> Bounty_Display { false };
 	Valueable<bool> Building_PlacementPreview { true };
 	Valueable<bool> DisablePathfindFailureLog { false };
-	Valueable<bool> AutoAttackICedTarget { false };
+	Valueable<bool> CanTargetAI_IronCurtained { false };
+	Valueable<bool> CanTarget_IronCurtained { true };
+	Valueable<bool> AutoTarget_IronCurtained { true };
 	Valueable<bool> AutoRepelAI { true };
 	Valueable<bool> AutoRepelPlayer { true };
 	Valueable<bool> TeamRetaliate { false };
@@ -586,6 +588,7 @@ public:
 	Valueable<bool> CombatAlert_SuppressIfAllyDamage { true };
 	Valueable<int> CombatAlert_Interval { 150 };
 	Valueable<bool> AllowBerzerkOnAllies { false };
+	Valueable<bool> UnitsUnsellable { false };
 	// ============================================================
 	// Plain bool arrays and plain bools (at the very end)
 	// ============================================================

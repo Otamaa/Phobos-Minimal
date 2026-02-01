@@ -748,8 +748,6 @@ bool WarheadTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 	this->AnimZAdjust.Read(exINI, pSection, "AnimZAdjust");
 	this->ApplyPerTargetEffectsOnDetonate.Read(exINI, pSection, "ApplyPerTargetEffectsOnDetonate");
 
-	this->CanTargetIronCurtained.Read(exINI, pSection, "CanTargetIronCurtained");
-
 	// Return warhead
 	this->ReturnWarhead.Read(exINI, pSection, "ReturnWarhead");
 	this->ReturnWarhead_Damage.Read(exINI, pSection, "ReturnWarhead.Damage");
@@ -2086,8 +2084,6 @@ void WarheadTypeExtData::Serialize(T& Stm)
 		.Process(this->PlayAnimAboveSurface)
 		.Process(this->AnimZAdjust)
 		.Process(this->ApplyPerTargetEffectsOnDetonate)
-		.Process(this->CanTargetIronCurtained)
-
 		.Process(this->ReturnWarhead)
 		.Process(this->ReturnWarhead_Damage)
 		.Process(this->ReturnWarhead_Chance)

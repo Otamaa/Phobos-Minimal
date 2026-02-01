@@ -548,7 +548,7 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 			const double dCurrentTargetCoeff = pThis->GetCoefficient(pTargetFoot, emptyCoords);
 			const double dSourceCoeff = pThis->GetCoefficient(pSource, emptyCoords);
 
-			if (dSourceCoeff < dCurrentTargetCoeff)
+			if (dSourceCoeff <= dCurrentTargetCoeff)
 				return false;
 		}
 	}
@@ -563,12 +563,17 @@ bool __fastcall FakeTechnoClass::__Is_Allowed_To_Retaliate(TechnoClass* pThis , 
 	// Checks Nonprovocative warhead flag and custom armor/verses retaliation logic
 	// Jumps to 0x708B0B (Retaliate/return true) or 0x708B17 (DoNotRetaliate/return false)
 	// At this point: EBP = pSource, ECX = pWarhead->WarheadPtr, ESI = pWeapon
-	if (const auto pWeapon = pThis->GetWeapon(nWeaponIdx)->WeaponType) {
+	const auto pWeapon = pThis->GetWeapon(nWeaponIdx)->WeaponType;
+
+	if (!TechnoExtData::CanRetaliateICUnit(pThis, (FakeWeaponTypeClass*)pWeapon, pSource))
+		return false;
+
+	if (pWeapon) {
 		if (const auto pWarheadPtr = pWeapon->Warhead) {
 			Armor armor = TechnoExtData::GetTechnoArmor(pSource, pWarheadPtr);
 			auto pCurWeaponWHExt = WarheadTypeExtContainer::Instance.Find(pWarheadPtr);
 			auto& verses = pCurWeaponWHExt->GetVerses(armor);
-			
+
 			if (!verses.Flags.Retaliate && verses.Verses <= 0.0099999998)
 				return false;
 		}
@@ -1824,6 +1829,10 @@ bool TechnoExtData::MultiWeaponCanFire(TechnoClass* const pThis, AbstractClass* 
 		if (pTechnoType->Immune && !pWHExt->IsFakeEngineer) {
 			return false;
 		}
+
+		if (pTechno->IsIronCurtained()
+			&& !pWeaponExt->CanTarget_IronCurtained.Get(pThis->Owner->IsControlledByHuman() ? RulesExtData::Instance()->CanTarget_IronCurtained : RulesExtData::Instance()->CanTargetAI_IronCurtained))
+			return false;
 
 		if (pThis->Berzerk && !EnumFunctions::CanTargetHouse(RulesExtData::Instance()->BerzerkTargeting, pThis->Owner, pTechno->Owner))
 			return false;

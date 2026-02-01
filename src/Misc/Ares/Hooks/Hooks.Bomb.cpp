@@ -351,7 +351,11 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 	GET(FootClass* const, pThis, ESI);
 
 	const auto& loc = pThis->Location;
-	int money = pThis->GetRefund();
+	const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
+	const auto pUnit = cast_to<UnitClass* , false>(pThis);
+	const int money = pUnit && RulesExtData::Instance()->UnitsUnsellable ? 0 : pThis->GetRefund();
+
+	//distribute the money
 	pThis->Owner->GiveMoney(money);
 
 	if (const auto pBomb = pThis->AttachedBomb) {
@@ -360,10 +364,7 @@ ASMJIT_PATCH(0x4D9F7B, FootClass_Sell_Detonate, 6)
 			// so this can possibly causing some weird crashes if that happening
 	}
 
-	if (pThis->Owner->ControlledByCurrentPlayer())
-	{
-		const auto pTypeExt = GET_TECHNOTYPEEXT(pThis);
-
+	if (pThis->Owner->ControlledByCurrentPlayer()) {
 		VoxClass::PlayIndex(pTypeExt->EVA_Sold);
 		//WW used VocClass::PlayGlobal to play the SellSound, why did they do that?
 		VocClass::SafeImmedietelyPlayAt(pTypeExt->SellSound, &loc);

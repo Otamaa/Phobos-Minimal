@@ -188,6 +188,26 @@ struct TextDrawing
 		return ret_;
 	}
 
+	template<size_t N , typename... Args>
+	static Point2D Fancy_Text_Print_Wide_externalBuffer(wchar_t(&buffer)[N], const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
+		Point2D* Location, ColorScheme* fore, unsigned int BackColor, TextPrintType Flag, Args... args)
+	{
+		Point2D ret_;
+		const ColorStruct fromFore = fore->BaseColor;
+
+		if (Text) {
+			swprintf_s(buffer, N, Text, std::forward<Args>(args)...);
+
+			ret_ = Simple_Text_Print_Wide(buffer, Surface, Bounds, Location, fromFore.ToInitGBR(), BackColor, Flag);
+		}
+		else
+		{
+			ret_ = Simple_Text_Print_Wide(L"", Surface, Bounds, Location, fromFore.ToInitGRB(), BackColor, Flag);
+		}
+
+		return ret_;
+	}
+
 	template<typename... Args>
 	static Point2D Fancy_Text_Print_Wide(const wchar_t* Text, Surface* Surface, RectangleStruct* Bounds,
 		Point2D* Location, unsigned int fore, unsigned int BackColor, TextPrintType Flag, Args... args)
