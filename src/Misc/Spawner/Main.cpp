@@ -1401,3 +1401,6 @@ ASMJIT_PATCH(0x4E20BA, GameControlsClass__SomeDialog_GameSpeedSlider, 0x5)
 
 	return 0;
 }
+
+// Set cncnet.fnt instead of game.fnt
+DEFINE_PATCH(/* GameStrings::GAME_FNT */ 0x818B98, "cncnet.fnt");

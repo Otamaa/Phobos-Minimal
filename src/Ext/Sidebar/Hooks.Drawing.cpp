@@ -1466,6 +1466,22 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 				break;
 
 			HouseTypeClass* pHouseType = pObservedHouse->Type;
+			const wchar_t* diff = nullptr;
+
+			if(!pObservedHouse->ControlledByCurrentPlayer()){
+				switch (pObservedHouse->AIDifficulty)
+				{
+				case AIDifficulty::Hard:
+					diff = CSFLoader::FetchStringManager(GameStrings::TXT_HARD, NULL, NULL, 0);
+					break;
+				case AIDifficulty::Easy:
+					diff = CSFLoader::FetchStringManager(GameStrings::TXT_EASY, NULL, NULL, 0);
+				case AIDifficulty::Normal:
+					diff = CSFLoader::FetchStringManager(GameStrings::TXT_NORMAL, NULL, NULL, 0);
+				default:
+					break;
+				}
+			}
 
 			// --------------------------------------------------------------------
 			// Draw faction shape (Allied/Soviet/Yuri)
@@ -1554,8 +1570,6 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 			// --------------------------------------------------------------------
 			// Draw stats text
 			// --------------------------------------------------------------------
-			wcscpy(Sidebar_UIName(), pObservedHouse->UIName);
-
 			constexpr int TextPadding = 17;
 
 			ColorScheme* pColorScheme = Sidebar_Converts_[houseIndex];
@@ -1568,8 +1582,12 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 			Point2D textPos = { panelX + 8, adjustedPanelY + 4 };
 
 			// Draw house name
-			TextDrawing::Fancy_Text_Print_Wide_NoFormat(Sidebar_UIName(), SidebarSurface, &clipRect, &textPos,
-								  pColorScheme, 0, TextPrintType::FullShadow | TextPrintType::Point8);
+			if(diff)
+			TextDrawing::Fancy_Text_Print_Wide_externalBuffer(Sidebar_UIName.get(), L"%ls (%ls)", SidebarSurface, &clipRect, &textPos,
+								  pColorScheme, 0, TextPrintType::FullShadow | TextPrintType::Point8, pObservedHouse->UIName , diff);
+			else
+			TextDrawing::Fancy_Text_Print_Wide_externalBuffer(Sidebar_UIName.get(), L"%ls", SidebarSurface, &clipRect, &textPos,
+								  pColorScheme, 0, TextPrintType::FullShadow | TextPrintType::Point8, pObservedHouse->UIName);
 
 			wchar_t textBuffer[64];
 			wchar_t rankStr[16], killsStr[16], unitsStr[16], creditsStr[16];

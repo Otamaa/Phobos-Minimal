@@ -450,6 +450,46 @@ bool FakeTacticalClass::__ClampTacticalPos(Point2D* tacticalPos) {
 	return isUpdated;
 }
 
+ASMJIT_PATCH(0x6D4934, Tactical_Render_OverlapForeignMap, 0x6)
+{
+	auto pMapVisibleRect = &MapClass::Instance->VisibleRect;
+	auto pSurfaceViewBounds = &DSurface::ViewBounds;
+
+	{
+		const int maxWidth = pSurfaceViewBounds->Width - pMapVisibleRect->Width * Unsorted::CellWidthInPixels;
+
+		if (maxWidth > 0)
+		{
+			RectangleStruct rect = {
+				pSurfaceViewBounds->Width - maxWidth,
+				0,
+				maxWidth,
+				pSurfaceViewBounds->Height
+			};
+
+			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+		}
+	}
+
+	{
+		const int maxHeight = pSurfaceViewBounds->Height - (Unsorted::CellHeightInPixels * pMapVisibleRect->Height) - int(Unsorted::CellHeightInPixels * paddingBottomInCell);
+
+		if (maxHeight > 0)
+		{
+			RectangleStruct rect = {
+				0,
+				pSurfaceViewBounds->Height - maxHeight,
+				pSurfaceViewBounds->Width,
+				maxHeight
+			};
+
+			DSurface::Composite->Fill_Rect(rect, COLOR_BLACK);
+		}
+	}
+
+	return 0;
+}
+
 bool FakeTacticalClass::IsInSelectionRect(LTRBStruct* pRect, const TacticalSelectableStruct& selectable)
 {
 	if (selectable.Object
