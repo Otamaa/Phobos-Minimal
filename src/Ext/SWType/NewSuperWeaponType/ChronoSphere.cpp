@@ -42,7 +42,7 @@ bool SW_ChronoSphere::Activate(SuperClass* const pThis, const CellStruct& Coords
 
 			if (!Types.valid_index(idxWarp) || Types[idxWarp]->Type != SuperWeaponType::ChronoWarp) {
 				for (int aI = 0; aI < Types.Count; ++aI) {
-					if (Types[aI]->Type == SuperWeaponType::ChronoWarp) {
+					if (Types.valid_index(aI) && Types[aI] && Types[aI]->Type == SuperWeaponType::ChronoWarp) {
 						idxWarp = aI;
 						break;
 					}

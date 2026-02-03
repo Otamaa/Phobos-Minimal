@@ -48,7 +48,7 @@ void ScriptExtData::ModifyHateHouses_List(TeamClass* pTeam, int idxHousesList = 
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
 
-	if (idxHousesList <= 0)
+	if (idxHousesList < 0)
 		idxHousesList = curArgs;
 
 	const auto& houseLists = RulesExtData::Instance()->AIHousesLists;
@@ -104,7 +104,7 @@ void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHouses
 	auto pScript = pTeam->CurrentScript;
 	const auto& [curAct, curArgs] = pScript->GetCurrentAction();
 
-	if (idxHousesList <= 0)
+	if (idxHousesList < 0)
 		idxHousesList = curArgs;
 
 	const auto& houseLists = RulesExtData::Instance()->AIHousesLists;
@@ -113,6 +113,12 @@ void ScriptExtData::ModifyHateHouses_List1Random(TeamClass* pTeam, int idxHouses
 	{
 		if (auto const objectsList = Iterator(houseLists[idxHousesList]))
 		{
+			if (objectsList.empty())
+			{
+				pTeam->StepCompleted = true;
+				return;
+			}
+
 			int IdxSelectedObject = ScenarioClass::Instance->Random.RandomFromMax(objectsList.size() - 1);
 
 			for (auto& angerNode : pTeam->OwnerHouse->AngerNodes)
@@ -278,7 +284,10 @@ HouseClass* ScriptExtData::GetTheMostHatedHouse(TeamClass* pTeam, int mask = 0, 
 	if (!pLeaderUnit)
 	{
 		pTeamData->TeamLeader = pTeam->FetchLeader();
-		pTeamData->TeamLeader->IsTeamLeader= true;
+		pLeaderUnit = pTeamData->TeamLeader;
+		
+		if (pLeaderUnit)
+			pLeaderUnit->IsTeamLeader = true;
 	}
 
 	double objectDistance = -1;

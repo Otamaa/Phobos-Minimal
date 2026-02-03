@@ -252,13 +252,18 @@ void ScriptExtData::ConditionalJump_CheckObjects(TeamClass* pTeam)
 			return;
 		}
 
+		if (!pTeam->FirstUnit) {
+			pTeam->StepCompleted = true;
+			return;
+		}
+
 		for (auto pTechno : *TechnoClass::Array)
 		{
 			if(!ScriptExtData::IsUnitAvailable(pTechno , true))
 				continue;
 
-			if(!pTeam->FirstUnit->Owner->IsAlliedWith(pTechno) ||
-				ScriptExtData::IsUnitMindControlledFriendly(pTeam->FirstUnit->Owner, pTechno))
+			if(!pTeam->FirstUnit->Owner->IsAlliedWith(pTechno) &&
+				!ScriptExtData::IsUnitMindControlledFriendly(pTeam->FirstUnit->Owner, pTechno))
 			{
 				for (size_t i = 0; i < objectsList.size(); i++)
 				{
@@ -414,7 +419,7 @@ void ScriptExtData::ConditionalJump_CheckAliveHumans(TeamClass* pTeam, int mode 
 					pTeamData->ConditionalJump_Evaluation = true;
 					break;
 				}
-				else if (mode == 2 && !pHouse->IsAlliedWith(pNode.House)) // Mode 2: Friendly humans
+				else if (mode == 2 && pHouse->IsAlliedWith(pNode.House)) // Mode 2: Friendly humans
 				{
 					pTeamData->ConditionalJump_Evaluation = true;
 					break;

@@ -1401,7 +1401,7 @@ void ScriptExtData::Mission_Attack_List1Random(TeamClass* pTeam, bool repeatActi
 					{
 						auto const pFirstUnit = pTeam->FirstUnit;
 
-						if (pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
+						if (pFirstUnit && pTechnoType == RulesExtData::Instance()->AITargetTypesLists[attackAITargetType][j] && (!pFirstUnit->Owner->IsAlliedWith(pTechno)
 								|| ScriptExtData::IsUnitMindControlledFriendly(pFirstUnit->Owner, pTechno)))
 						{
 							Mission_Attack_List1Random_validIndexes.push_back(j);
