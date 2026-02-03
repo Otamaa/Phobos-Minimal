@@ -1476,8 +1476,10 @@ void __thiscall FakeStripClass::__Draw_It(bool forceRedraw)
 					break;
 				case AIDifficulty::Easy:
 					diff = CSFLoader::FetchStringManager(GameStrings::TXT_EASY, NULL, NULL, 0);
+					break;
 				case AIDifficulty::Normal:
 					diff = CSFLoader::FetchStringManager(GameStrings::TXT_NORMAL, NULL, NULL, 0);
+					break;
 				default:
 					break;
 				}

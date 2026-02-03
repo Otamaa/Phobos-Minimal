@@ -266,7 +266,7 @@ void FakeParasiteClass::__Grapple_AI()
 	}
 
 	// Update victim's paralysis timer
-	this->Owner->ParalysisTimer.Start(weaponType->Warhead->Paralyzes);
+	this->Victim->ParalysisTimer.Start(weaponType->Warhead->Paralyzes);
 
 	// State machine for grapple animation
 	switch (this->GrappleState)
@@ -321,7 +321,7 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Calculate sideways angle (negative direction)
-		double angleRadians = this->GrappleAnimFrame * -1.0f * Math::GAME_PI;
+		double angleRadians = this->GrappleAnimFrame * -1.0 * (Math::GAME_PI / 10.0);
 		this->Victim->AngleRotatedSideways = Math::sin(angleRadians) * Math::PI_BY_FOUR_F;
 		break;
 	}
@@ -337,7 +337,7 @@ void FakeParasiteClass::__Grapple_AI()
 		}
 
 		// Calculate sideways angle (positive direction)
-		double angleRadians = this->GrappleAnimFrame * 1.0f * Math::GAME_PI;
+		double angleRadians = this->GrappleAnimFrame * 1.0 * (Math::GAME_PI / 10.0);
 		this->Victim->AngleRotatedSideways = Math::sin(angleRadians) * Math::PI_BY_FOUR_F;
 		break;
 	}
@@ -424,7 +424,7 @@ void FakeParasiteClass::__Grapple_AI()
 		} else {
 			// Damage victim instead of submerging
 			int damage = weaponType->Damage; // Weapon damage
-			this->Victim->ReceiveDamage(&damage, 0, weaponType->Warhead, this->Owner, 0, 1, 0);
+			this->Victim->ReceiveDamage(&damage, 0, weaponType->Warhead, this->Owner, false, true, this->Owner->Owner);
 
 			if (this->Victim)
 			{
@@ -479,7 +479,7 @@ void NOINLINE TakeDamage(FootClass* pVictiom , FootClass* pOwner , WeaponTypeCla
 	}
 
 	int weaponDamage = pVictiom->Health;
-	pVictiom->ReceiveDamage(&weaponDamage, 0, pWeapon->Warhead, pOwner, 1, 1, pOwner->Owner);
+	pVictiom->ReceiveDamage(&weaponDamage, 0, pWeapon->Warhead, pOwner, true, true, pOwner->Owner);
 }
 
 void FakeParasiteClass::__AI()
@@ -571,6 +571,11 @@ void FakeParasiteClass::__AI()
 
 	// Apply weapon damage
 	TakeDamage(this->Victim, this->Owner, weaponType);
+	
+	// Victim might have died from damage
+	if (!this->Victim) {
+		return;
+	}
 }
 
 void FakeParasiteClass::__Detach(AbstractClass* detachingObject, bool permanent) {
@@ -679,7 +684,7 @@ void FakeParasiteClass::__Uninfect()
 	// Calculate exit direction based on victim facing
 	DirStruct victimFacing = this->Victim->PrimaryFacing.Current();
 	int facingIndex = (((victimFacing.Raw >> 12) + 1) >> 1) & 7;
-	DirStruct exitDirection;
+	DirStruct exitDirection = victimFacing;
 
 	// Choose opposite direction if facing forward
 	if (facingIndex > 2) {
