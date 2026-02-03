@@ -107,10 +107,13 @@ void DigitalDisplayTypeClass::Draw(Point2D position, int length, int value, int 
 
 void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
+	if (maxValue <= 0)
+		return;
+
 	static fmt::basic_memory_buffer<wchar_t> wbuf;
 	wbuf.clear();
 
-	if (!ValueAsTimer) {
+	if (ValueAsTimer) {
 		const int minute = value / 60;
 
 		if (const int hour = minute / 60)
@@ -121,7 +124,7 @@ void DigitalDisplayTypeClass::DisplayText(Point2D& position, int length, int val
 	else
 	{
 		if (Percentage){
-			fmt::format_to(std::back_inserter(wbuf), L"%{}", static_cast<int>(static_cast<double>(value) / maxValue * 100));
+			fmt::format_to(std::back_inserter(wbuf), L"{}%", static_cast<int>(static_cast<double>(value) / maxValue * 100));
 		} else if (!HideMaxValue.Get(isInfantry)) {
 			fmt::format_to(std::back_inserter(wbuf), L"{}/{}", value, maxValue);
 		} else {
@@ -161,12 +164,37 @@ struct FrameData
 
 void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
+	if (maxValue <= 0 || !Shape)
+		return;
+
 	double ratio = static_cast<double>(value) / maxValue;
 	std::string valueString("");
 
 	if (!Shape_PercentageFrame)
 	{
-		if (!ValueAsTimer)
+		if (ValueAsTimer)
+		{
+			const int minute = value / 60;
+			const int hour = minute / 60;
+
+			if (hour)
+				valueString += std::move(GeneralUtils::IntToDigits(hour)) + ':';
+
+			const int min = minute % 60;
+
+			if (!(min / 10) && hour)
+				valueString += '0';
+
+			valueString += std::move(GeneralUtils::IntToDigits(min)) + ':';
+
+			const int sec = value % 60;
+
+			if (!(sec / 10))
+				valueString += '0';
+
+			valueString += std::move(GeneralUtils::IntToDigits(sec));
+		}
+		else
 		{
 			if (Percentage)
 
@@ -175,28 +203,6 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 				valueString += std::move(GeneralUtils::IntToDigits(value));
 			else
 				valueString += std::move(GeneralUtils::IntToDigits(value)) + '/' + std::move(GeneralUtils::IntToDigits(maxValue));
-		}
-		else
-		{
-			const int minute = value / 60;
-			const int hour = minute / 60;
-
-			if (hour)
-				valueString += std::move(GeneralUtils::IntToDigits(hour)) + '%';
-
-			const int min = minute % 60;
-
-			if (!(min / 10) && hour)
-				valueString += '0';
-
-			valueString += std::move(GeneralUtils::IntToDigits(min)) + '%';
-
-			const int sec = value % 60;
-
-			if (!(sec / 10))
-				valueString += '0';
-
-			valueString += std::move(GeneralUtils::IntToDigits(sec));
 		}
 	}
 
@@ -261,7 +267,7 @@ void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int va
 		(
 			pPal,
 			Shape.Get(),
-			static_cast<int>(std::clamp((int)ratio, 0, 1) * (Shape->Frames - 1) + 0.5),
+			static_cast<int>(std::clamp(ratio, 0.0, 1.0) * (Shape->Frames - 1) + 0.5),
 			&position, &rect, BlitterFlags::None, 0, 0, ZGradient::Ground, 1000, 0, nullptr, 0, 0, 0
 		);
 	}

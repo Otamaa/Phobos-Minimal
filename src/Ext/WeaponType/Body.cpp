@@ -306,7 +306,7 @@ bool WeaponTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 
 bool WeaponTypeExtData::IsVeterancyInThreshold(TechnoClass* pTarget) const
 {
-	return EnumFunctions::CanTargetVeterancy(this->CanTargetVeterancy, pTarget);
+	return !EnumFunctions::CanTargetVeterancy(this->CanTargetVeterancy, pTarget);
 }
 
 int WeaponTypeExtData::GetRangeWithModifiers(WeaponTypeClass* pThis, TechnoClass* pFirer, std::optional<int> fallback)

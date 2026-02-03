@@ -35,7 +35,7 @@ public:
 	DigitalDisplayTypeClass(const char* pTitle) : Enumerable<DigitalDisplayTypeClass>(pTitle)
 		, Text_Color({ 0, 255, 0 }, { 255,255,0 }, { 255,0,0 })
 		, Text_Background(false)
-		, Offset({ 0, 0 })
+		, Offset({ Point2D::Empty })
 		, Offset_ShieldDelta()
 		, Align(TextAlign::Right)
 		, AnchorType(HorizontalPosition::Right, VerticalPosition::Top)

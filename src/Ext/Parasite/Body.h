@@ -63,12 +63,12 @@ public:
 
 	HRESULT __stdcall _Load(IStream* pStm)
 	{
-
+		return S_OK;
 	}
 
 	HRESULT __stdcall _Save(IStream* pStm, BOOL clearDirty)
 	{
-
+		return S_OK;
 	}
 
 };
