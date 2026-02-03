@@ -5805,20 +5805,17 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 	if (pExt->Is_DriverKilled || !RulesExtData::Instance()->AssignUnitMissionAfterParadropped)
 		return true;
 
-	if (this->Type->ResourceGatherer || this->Type->Harvester)
-	{
+    auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+
+	if(pTypeExt->ParadropMission.Get(RulesExtData::Instance()->ParadropMission) != Mission::None){
+			this->QueueMission(pTypeExt->ParadropMission.Get(RulesExtData::Instance()->ParadropMission), false);
+	}else if (this->Type->ResourceGatherer || this->Type->Harvester) {
 		this->QueueMission(Mission::Harvest, false);
-	}
-	else if (this->IsArmed())
-	{
+	} else if (this->IsArmed()) {
 		this->QueueMission(Mission::Hunt, false);
-	}
-	else if (this->Owner->IsControlledByHuman())
-	{
-		this->QueueMission(Mission::Guard, false);
-	}
-	else
-	{
+	} else if (this->Owner->IsControlledByHuman()) {
+		this->QueueMission(pTypeExt->AIParadropMission.Get(RulesExtData::Instance()->AIParadropMission), false);
+	} else {
 		this->QueueMission(Mission::Area_Guard, false);
 	}
 
@@ -5826,6 +5823,7 @@ bool FakeUnitClass::_Paradrop(CoordStruct* pCoords)
 }
 
 DEFINE_FUNCTION_JUMP(VTABLE, 0x7F5D58, FakeUnitClass::_Paradrop);
+DEFINE_FUNCTION_JUMP(VTABLE, 0x7EB140, FakeInfantryClass::_Paradrop)
 
 #include <Notifications.h>
 

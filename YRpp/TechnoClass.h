@@ -830,6 +830,9 @@ ObjectClass* Attacker, bool IgnoreDefenses, bool PreventPassengerEscape, HouseCl
 	bool CantTarget(HouseClass* house)
 	{ JMP_THIS(0x746750); }
 
+	bool TargetingTimerFinished()
+		{ JMP_THIS(0x70F7E0); }
+
 	void Draw_Object(
 		SHPStruct* shapefile,
 		int shapenum,

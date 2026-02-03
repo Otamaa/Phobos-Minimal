@@ -17,6 +17,7 @@
 #include <Ext/Aircraft/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/CaptureManager/Body.h>
@@ -6815,12 +6816,22 @@ void TechnoExtData::ApplyDrainMoney(TechnoClass* pThis)
 			pThis->Owner->TransactMoney(-nDrainAmount);
 			pSource->Owner->TransactMoney(nDrainAmount);
 
-			if (pTypeExt->DrainMoney_Display)
-			{
-				auto const pDest = pTypeExt->DrainMoney_Display_AtFirer.Get() ? pSource : pThis;
-				FlyingStrings::Instance.AddMoneyString(true, nDrainAmount, pDest,
-					pTypeExt->DrainMoney_Display_Houses, pDest->Location,
-					pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
+			if (pTypeExt->DrainMoney_Display.Get(RulesExtData::Instance()->DrainMoneyDisplay)) {
+				const auto displayTo = pTypeExt->DrainMoney_Display_Houses.Get(RulesExtData::Instance()->DrainMoneyDisplay_Houses);
+				FlyingStrings::Instance.AddMoneyString(true, nDrainAmount, pSource, displayTo, pSource->Location, pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
+			}
+
+			if (pTypeExt->DrainMoney_Display_OnTarget.Get(RulesExtData::Instance()->DrainMoneyDisplay_OnTarget) && pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
+				if (!pTypeExt->DrainMoney_Display_OnTarget_UseDisplayIncome.Get(RulesExtData::Instance()->DrainMoneyDisplay_OnTarget_UseDisplayIncome)) {
+					const auto displayTo = pTypeExt->DrainMoney_Display_Houses.Get(RulesExtData::Instance()->DrainMoneyDisplay_Houses);
+					// use firer for owner check
+					FlyingStrings::Instance.AddMoneyString(false, -nDrainAmount, pThis, displayTo, pThis->GetRenderCoords(), pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
+				} else if (const auto pBld = cast_to<BuildingClass*, false>(pThis)) {
+					const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+					const auto displayTo = pBldTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses);
+					// use target for owner check
+					FlyingStrings::Instance.AddMoneyString(false, -nDrainAmount, pThis, displayTo, pThis->GetRenderCoords(), pBldTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
+				}
 			}
 		}
 	}

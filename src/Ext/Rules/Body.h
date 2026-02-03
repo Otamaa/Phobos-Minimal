@@ -289,7 +289,7 @@ public:
 	Nullable<int> AISuperWeaponDelay {};
 	Nullable<int> BattlePoints_DefaultFriendlyValue {};
 	Nullable<int> AIAdjacentMax_Campaign {};
-
+	Valueable<int> PowerSurplus_ScaleToDrainAmount {};
 	// ============================================================
 	// Nullable<float> (float + bool + padding ≈ 8 bytes)
 	// ============================================================
@@ -420,6 +420,9 @@ public:
 	Valueable<AffectedHouse> DisplayIncome_Houses { AffectedHouse::All };
 	Valueable<AffectedHouse> BerzerkTargeting { AffectedHouse::All };
 	FPSCounterMode FPSCounter { FPSCounterMode::disabled };
+
+	Valueable<Mission> ParadropMission { Mission::None };
+	Valueable<Mission> AIParadropMission { Mission::Hunt };
 
 	// ============================================================
 	// Plain int (4 bytes each)
@@ -589,12 +592,17 @@ public:
 	Valueable<int> CombatAlert_Interval { 150 };
 	Valueable<bool> AllowBerzerkOnAllies { false };
 	Valueable<bool> UnitsUnsellable { false };
+
 	// ============================================================
 	// Plain bool arrays and plain bools (at the very end)
 	// ============================================================
 	bool AllowBypassBuildLimit[3] = { false };
 	bool CampaignAllowHarvesterScanUnderShroud[3] {};
 
+	Valueable<bool> DrainMoneyDisplay { false };
+	Valueable<AffectedHouse> DrainMoneyDisplay_Houses { AffectedHouse::All };
+	Valueable<bool> DrainMoneyDisplay_OnTarget  { false };
+	Valueable<bool> DrainMoneyDisplay_OnTarget_UseDisplayIncome { true };
 #pragma endregion
 
 	void LoadFromINIFile(CCINIClass* pINI, bool parseFailAddr);

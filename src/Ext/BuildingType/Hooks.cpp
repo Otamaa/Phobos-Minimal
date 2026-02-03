@@ -176,6 +176,7 @@ bool FORCEDINLINE CanBePlacedHere(DisplayClass* pThis, BuildingTypeClass* pBld, 
 
 template<typename Arr>
 void CountPowerOf(HouseClass*pHouse ,CounterClass& counter){
+	
 	 if(counter.IsAllocated) {
 		 for (int a = 0; a < counter.Capacity; ++a)  {
 			 if (counter.Items[a] > 0) {
@@ -205,6 +206,26 @@ ASMJIT_PATCH(0x502A80, HouseClass_RegisterGain, 0x8)
 	 return 0;
  }ASMJIT_PATCH_AGAIN(0x5025F0, HouseClass_RegisterGain, 0x5) // RegisterLoss
 
+ void CalculatePowerSurplus(HouseClass* pThis)
+{
+	auto const pRulesExt = RulesExtData::Instance();
+
+	if (!pRulesExt->EnablePowerSurplus)
+		return;
+
+	int scaleToDrainAmount = pRulesExt->PowerSurplus_ScaleToDrainAmount;
+
+	if (scaleToDrainAmount <= 0)
+	{
+		pThis->PowerSurplus = RulesClass::Instance->PowerSurplus;
+	}
+	else
+	{
+		double factor = pThis->PowerDrain / static_cast<double>(scaleToDrainAmount);
+		pThis->PowerSurplus = static_cast<int>(RulesClass::Instance->PowerSurplus * factor);
+	}
+}
+
 ASMJIT_PATCH(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
 {
 	GET(HouseClass*, pThis, ESI);
@@ -214,6 +235,9 @@ ASMJIT_PATCH(0x508D8D, HouseClass_UpdatePower_Techno, 0x6)
 		CountPowerOf<InfantryTypeClass>(pThis, pThis->ActiveInfantryTypes);
 		CountPowerOf<UnitTypeClass>(pThis, pThis->ActiveUnitTypes);
 	}
+
+
+	CalculatePowerSurplus(pThis);
 
 	return 0x0;
 }

@@ -1012,10 +1012,15 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->DrainMoneyFrameDelay.Read(exINI, pSection, GameStrings::DrainMoneyFrameDelay());
 		this->DrainMoneyAmount.Read(exINI, pSection, GameStrings::DrainMoneyAmount());
 		this->DrainMoney_Display.Read(exINI, pSection, "DrainMoney.Display");
+		this->DrainMoney_Display.Read(exINI, pSection, "DrainMoneyDisplay");
 		this->DrainMoney_Display_Houses.Read(exINI, pSection, "DrainMoney.Display.Houses");
-		this->DrainMoney_Display_AtFirer.Read(exINI, pSection, "DrainMoney.Display.AtFirer");
+		this->DrainMoney_Display_OnTarget.Read(exINI, pSection, "DrainMoney.Display.OnTarget");
+		this->DrainMoney_Display_OnTarget_UseDisplayIncome.Read(exINI, pSection, "DrainMoney.Display.OnTarget.UseDisplayIncome");
+		this->DrainMoney_Display_Houses.Read(exINI, pSection, "DrainMoneyDisplay.Houses");
+		this->DrainMoney_Display_Offset.Read(exINI, pSection, "DrainMoneyDisplay.Offset");
 		this->DrainMoney_Display_Offset.Read(exINI, pSection, "DrainMoney.Display.Offset");
 		this->DrainAnimationType.Read(exINI, pSection, GameStrings::DrainAnimationType());
+	this-
 
 		this->TalkBubbleTime.Read(exINI, pSection, GameStrings::TalkBubbleTime());
 
@@ -2041,6 +2046,10 @@ bool TechnoTypeExtData::LoadFromINI(CCINIClass* pINI, bool parseFailAddr)
 		this->CanGoAboveTarget.Read(exINI, pSection, "CanGoAboveTarget");
 		this->OpenTransport_RangeBonus.Read(exINI, pSection, "OpenTransport.RangeBonus");
 		this->OpenTransport_DamageMultiplier.Read(exINI, pSection, "OpenTransport.DamageMultiplier");
+
+		this->ParadropMission.Read(exINI, pSection, "ParadropMission");
+		this->AIParadropMission.Read(exINI, pSection, "AIParadropMission");
+
 		for (int idx = 0; idx < pThis->WeaponCount; ++idx) {
 			_snprintf_s(tempBuffer, sizeof(tempBuffer), "WeaponGroupAs%d", idx + 1);
 			this->WeaponGroupAs[idx].Read(pINI, pSection, tempBuffer);
