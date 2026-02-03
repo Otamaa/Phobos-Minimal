@@ -238,6 +238,11 @@ public:
 		return Read<float, 3>(pSection, pKey, nBuffer);
 	}
 
+	size_t Read3FloatAndCount(const char* pSection, const char* pKey, float* nBuffer)
+	{
+		return ReadAndCount<float, 3>(pSection, pKey, nBuffer);
+	}
+
 	bool ReadShort(const char* pSection, const char* pKey, short* nBuffer)
 	{
 		return Read<short, 1>(pSection, pKey, nBuffer);
