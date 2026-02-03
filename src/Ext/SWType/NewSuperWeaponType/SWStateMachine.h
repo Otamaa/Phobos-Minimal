@@ -500,7 +500,9 @@ public:
 
 	virtual bool Finished() override
 	{
-		return ActualDuration <= -1 ? false : Clock.Completed() && !Deferment && TimeToEnd;
+		// Finished when: storm has ended (was active, now inactive) and all clouds are gone
+		// Don't finish if still deferred (waiting to start) or never started
+		return ActualDuration <= -1 ? false : !IsActive && !TimeToEnd && !Deferment && CloudsPresent.empty() && CloudsManifest.empty();
 	}
 
 	virtual void InvalidatePointer(AbstractClass* ptr, bool remove) override;

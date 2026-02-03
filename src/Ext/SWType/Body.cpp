@@ -25,6 +25,7 @@
 #include "NewSuperWeaponType/NuclearMissile.h"
 #include "NewSuperWeaponType/LightningStorm.h"
 #include "NewSuperWeaponType/Dominator.h"
+#include "NewSuperWeaponType/SWStateMachine.h"
 #include <New/Type/GenericPrerequisite.h>
 //#include <ExtraHeaders/DiscreteSelectionClass_s.h>
 //#include <ExtraHeaders/DiscreteDistributionClass_s.h>
@@ -2350,7 +2351,31 @@ LightingColor SWTypeExtData::GetLightingColor(SuperWeaponTypeClass* pCustom)
 			pType = pSuper->Type;
 		}
 	}
-	else if (PsyDom::Status != PsychicDominatorStatus::Inactive && PsyDom::Status != PsychicDominatorStatus::Over)
+	else
+	{
+		// Check for separate state lightning storms
+		for (auto& pStateMachine : SWStateMachine::Array)
+		{
+			if (pStateMachine && pStateMachine->GetIdentifier() == SWStateMachineIdentifier::CloneableLighningStorm)
+			{
+				auto pLightningMachine = static_cast<CloneableLighningStormStateMachine*>(pStateMachine.get());
+				if (pLightningMachine->IsActive && !pLightningMachine->TimeToEnd)
+				{
+					// lightning storm with separate state
+					ret.Ambient = scen->IonAmbient;
+					ret.Red = scen->IonLighting.Tint.Red * 10;
+					ret.Green = scen->IonLighting.Tint.Green * 10;
+					ret.Blue = scen->IonLighting.Tint.Blue * 10;
+					ret.HasValue = true;
+
+					pType = pLightningMachine->GetTypeExtData()->This();
+					break;
+				}
+			}
+		}
+	}
+
+	if (PsyDom::Status != PsychicDominatorStatus::Inactive && PsyDom::Status != PsychicDominatorStatus::Over)
 	{
 		// psychic dominator
 		ret.Ambient = scen->DominatorAmbient;

@@ -391,9 +391,10 @@ public:
 	Nullable<AnimTypeClass*>DrainAnimationType;
 	Nullable<int> DrainMoneyFrameDelay;
 	Nullable<int> DrainMoneyAmount;
-	Valueable<bool> DrainMoney_Display;
-	Valueable<AffectedHouse> DrainMoney_Display_Houses;
-	Valueable<bool> DrainMoney_Display_AtFirer;
+	Nullable<bool> DrainMoney_Display;
+	Nullable<AffectedHouse> DrainMoney_Display_Houses;
+	Nullable<bool> DrainMoney_Display_OnTarget;
+	Nullable<bool> DrainMoney_Display_OnTarget_UseDisplayIncome;
 	Valueable<Point2D> DrainMoney_Display_Offset;
 
 	Nullable<float> TalkBubbleTime;
@@ -1283,6 +1284,9 @@ public:
 	Valueable<int> OpenTransport_RangeBonus;
 	Valueable<float> OpenTransport_DamageMultiplier;
 
+	Nullable<Mission> ParadropMission;
+	Nullable<Mission> AIParadropMission;
+
 	int TintColorAirstrike;
 #pragma endregion
 
@@ -1469,9 +1473,10 @@ public:
 		DrainAnimationType(),
 		DrainMoneyFrameDelay(),
 		DrainMoneyAmount(),
-		DrainMoney_Display(false),
-		DrainMoney_Display_Houses(AffectedHouse::All),
-		DrainMoney_Display_AtFirer(true),
+		DrainMoney_Display(),
+		DrainMoney_Display_Houses(),
+		DrainMoney_Display_OnTarget {},
+		DrainMoney_Display_OnTarget_UseDisplayIncome {},
 		DrainMoney_Display_Offset({ 0, 0 }),
 		TalkBubbleTime(),
 		AttackingAircraftSightRange(),
@@ -2135,6 +2140,8 @@ public:
 		, CanGoAboveTarget { false }
 		, OpenTransport_RangeBonus { 0 }
 		, OpenTransport_DamageMultiplier { 1.0 }
+		, ParadropMission {}
+		, AIParadropMission {}
 		, TintColorAirstrike()
 		{
 		}
@@ -2435,7 +2442,8 @@ private:
 			.Process(this->DrainMoneyAmount)
 			.Process(this->DrainMoney_Display)
 			.Process(this->DrainMoney_Display_Houses)
-			.Process(this->DrainMoney_Display_AtFirer)
+			.Process(this->DrainMoney_Display_OnTarget)
+			.Process(this->DrainMoney_Display_OnTarget_UseDisplayIncome)
 			.Process(this->DrainMoney_Display_Offset)
 
 			.Process(this->TalkBubbleTime)
@@ -3180,6 +3188,8 @@ private:
 			.Process(this->CanGoAboveTarget)
 			.Process(this->OpenTransport_RangeBonus)
 			.Process(this->OpenTransport_DamageMultiplier)
+			.Process(this->ParadropMission)
+			.Process(this->AIParadropMission)
 			.Process(this->TintColorAirstrike)
 			;
 	}

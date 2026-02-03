@@ -1104,6 +1104,8 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->RepairBaseNodes.Read(exINI, GameStrings::General, "RepairBaseNodes");
 	this->MCVRedeploysInCampaign.Read(exINI, GameStrings::General, "MCVRedeploysInCampaign");
 	this->UnitsUnsellable.Read(exINI, GameStrings::General, "UnitsUnsellable");
+	this->ParadropMission.Read(exINI, GameStrings::General, "ParadropMission");
+	this->AIParadropMission.Read(exINI, GameStrings::General, "AIParadropMission");
 	#pragma endregion
 
 	#pragma region CombatDamage
@@ -1139,6 +1141,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->AutoTarget_IronCurtained.Read(exINI, GameStrings::CombatDamage, "AutoTarget.IronCurtained");
 
 	this->EMPAIRecoverMission.Read(exINI, GameStrings::CombatDamage(), "EMPAIRecoverMission");
+
 	#pragma endregion
 
 	#pragma region AI
@@ -1159,6 +1162,7 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->NewTeamsSelector_GroundCategoryPercentage.Read(exINI,  GameStrings::AI, "NewTeamsSelector.GroundCategoryPercentage");
 	this->NewTeamsSelector_AirCategoryPercentage.Read(exINI,  GameStrings::AI, "NewTeamsSelector.AirCategoryPercentage");
 	this->NewTeamsSelector_NavalCategoryPercentage.Read(exINI,  GameStrings::AI, "NewTeamsSelector.NavalCategoryPercentage");
+	this->PowerSurplus_ScaleToDrainAmount.Read(exINI, GameStrings::AI, "PowerSurplus.ScaleToDrainAmount");
 	#pragma endregion
 
 	#pragma region Radiation
@@ -1292,6 +1296,11 @@ void RulesExtData::LoadBeforeTypeData(RulesClass* pThis, CCINIClass* pINI)
 	this->WarheadParticleAlphaImageIsLightFlash.Read(exINI, GameStrings::AudioVisual, "WarheadParticleAlphaImageIsLightFlash");
 	this->CombatLightDetailLevel.Read(exINI, GameStrings::AudioVisual, "CombatLightDetailLevel");
 	this->LightFlashAlphaImageDetailLevel.Read(exINI, GameStrings::AudioVisual, "LightFlashAlphaImageDetailLevel");
+
+	this->DrainMoneyDisplay.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay");
+	this->DrainMoneyDisplay_Houses.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay.Houses");
+	this->DrainMoneyDisplay_OnTarget.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay.OnTarget");
+	this->DrainMoneyDisplay_OnTarget_UseDisplayIncome.Read(exINI, GameStrings::AudioVisual, "DrainMoneyDisplay.OnTarget.UseDisplayIncome");
 	#pragma endregion
 
 	#pragma region CrateRules
@@ -1798,7 +1807,8 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->SuperWeaponSidebar_AllowByDefault)
 		.Process(this->CampaignAllowHarvesterScanUnderShroud)
 		.Process(this->BerzerkTargeting)
-
+		.Process(this->ParadropMission)
+		.Process(this->AIParadropMission)
 		.Process(this->AttackMove_IgnoreWeaponCheck)
 		.Process(this->AttackMove_StopWhenTargetAcquired)
 		.Process(this->PenetratesTransport_Level)
@@ -1813,7 +1823,7 @@ void RulesExtData::Serialize(T& Stm)
 
 		.Process(this->AIAdjacentMax)
 		.Process(this->AIAdjacentMax_Campaign)
-
+		.Process(this->PowerSurplus_ScaleToDrainAmount)
 		.Process(this->PlayerGuardModePursuit)
 		.Process(this->PlayerGuardModeGuardRangeMultiplier)
 		.Process(this->PlayerGuardModeGuardRangeAddend)
@@ -1847,6 +1857,11 @@ void RulesExtData::Serialize(T& Stm)
 		.Process(this->WalkLocomotorMakesWake)
 		.Process(this->AllowBerzerkOnAllies)
 		.Process(this->UnitsUnsellable)
+
+		.Process(this->DrainMoneyDisplay)
+		.Process(this->DrainMoneyDisplay_Houses)
+		.Process(this->DrainMoneyDisplay_OnTarget)
+		.Process(this->DrainMoneyDisplay_OnTarget_UseDisplayIncome)
 		;
 }
 

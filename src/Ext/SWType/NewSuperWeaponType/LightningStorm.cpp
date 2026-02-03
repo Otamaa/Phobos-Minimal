@@ -243,6 +243,8 @@ void CloneableLighningStormStateMachine::Update()
 				Coords = CellStruct::Empty;
 			}
 			TimeToEnd = false;
+			// Update lighting after all state changes to ensure proper cleanup
+			ScenarioClass::Instance->UpdateLighting();
 		}
 	}
 	else
@@ -353,10 +355,12 @@ void CloneableLighningStormStateMachine::Update()
 				// if a lightning rod is next to this, hit that instead. naive.
 				if (auto const pObj = pCell->FindTechnoNearestTo(
 					Point2D::Empty, false, pCellBld)) {
-					if (auto const pBld = cast_to<BuildingClass*, false>(pObj)) {
-						if(pBld->IsAlive && pBld->Type->LightningRod) {
-							if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type)) {
-								return pBld->GetMapCoords();
+					if (pObj->IsAlive) {
+						if (auto const pBld = cast_to<BuildingClass*, false>(pObj)) {
+							if (pBld->Type->LightningRod) {
+								if (nRodTypes.empty() || nRodTypes.Contains(pBld->Type)) {
+									return pBld->GetMapCoords();
+								}
 							}
 						}
 					}
@@ -392,7 +396,7 @@ void CloneableLighningStormStateMachine::Update()
 			for (int k = pExt->Weather_ScatterCount; k > 0; --k)
 			{
 				auto const cell = GetRandomCoords();
-				if (cell != CellStruct::Empty)
+				if (cell.IsValid())
 				{
 					// found a valid position. strike there.
 					this->Strike(cell);
@@ -623,6 +627,9 @@ bool CloneableLighningStormStateMachine::Start(CellStruct& cell, int nDuration, 
 			{
 				HouseClass::CurrentPlayer->RecheckRadar = true;
 			}
+
+			// let there be light
+			ScenarioClass::Instance->UpdateLighting();
 
 			// activation stuff
 			if (pData->Weather_PrintText.Get(

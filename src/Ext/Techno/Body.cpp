@@ -17,6 +17,7 @@
 #include <Ext/Aircraft/Body.h>
 #include <Ext/Anim/Body.h>
 #include <Ext/Building/Body.h>
+#include <Ext/BuildingType/Body.h>
 #include <Ext/Bullet/Body.h>
 #include <Ext/BulletType/Body.h>
 #include <Ext/CaptureManager/Body.h>
@@ -3829,7 +3830,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 			CellClass* const tgtCell = MapClass::Instance->GetCellAt(tgtPos);
 			bool allowBridges = tgtCell && tgtCell->ContainsBridge() && (pThis->OnBridge || (tgtCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
-			if (pExt->SkipWeaponPicking || EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true, allowBridges, false))
+			if (pExt->SkipWeaponPicking || EnumFunctions::AreCellAndObjectsEligible(tgtCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, true, false, allowBridges))
 			{
 				pTargetCell = tgtCell;
 				return AreaFireReturnFlag::Continue;
@@ -3843,7 +3844,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 		if(pExt->SkipWeaponPicking)
 			return AreaFireReturnFlag::SkipSetTarget;
 
-		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false, pThis->OnBridge, false))
+		if (!EnumFunctions::AreCellAndObjectsEligible(pThis->GetCell(), pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, false, false, pThis->OnBridge))
 			return AreaFireReturnFlag::DoNotFire;
 
 		return AreaFireReturnFlag::SkipSetTarget;
@@ -3853,7 +3854,7 @@ AreaFireReturnFlag TechnoExtData::ApplyAreaFire(TechnoClass* pThis, CellClass*& 
 		auto pCell = pTargetCell;
 		bool allowBridges = pCell && pCell->ContainsBridge() && (pThis->OnBridge || (pCell->Level + Unsorted::BridgeLevels) == pThis->GetCell()->Level);
 
-		if (!pExt->SkipWeaponPicking && !EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), nullptr, false, allowBridges, false))
+		if (!pExt->SkipWeaponPicking && !EnumFunctions::AreCellAndObjectsEligible(pTargetCell, pExt->CanTarget.Get(), pExt->CanTargetHouses.Get(), pThis->Owner, false, false, allowBridges))
 			return AreaFireReturnFlag::DoNotFire;
 	}
 	}
@@ -6815,12 +6816,22 @@ void TechnoExtData::ApplyDrainMoney(TechnoClass* pThis)
 			pThis->Owner->TransactMoney(-nDrainAmount);
 			pSource->Owner->TransactMoney(nDrainAmount);
 
-			if (pTypeExt->DrainMoney_Display)
-			{
-				auto const pDest = pTypeExt->DrainMoney_Display_AtFirer.Get() ? pSource : pThis;
-				FlyingStrings::Instance.AddMoneyString(true, nDrainAmount, pDest,
-					pTypeExt->DrainMoney_Display_Houses, pDest->Location,
-					pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
+			if (pTypeExt->DrainMoney_Display.Get(RulesExtData::Instance()->DrainMoneyDisplay)) {
+				const auto displayTo = pTypeExt->DrainMoney_Display_Houses.Get(RulesExtData::Instance()->DrainMoneyDisplay_Houses);
+				FlyingStrings::Instance.AddMoneyString(true, nDrainAmount, pSource, displayTo, pSource->Location, pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
+			}
+
+			if (pTypeExt->DrainMoney_Display_OnTarget.Get(RulesExtData::Instance()->DrainMoneyDisplay_OnTarget) && pThis->IsClearlyVisibleTo(HouseClass::CurrentPlayer)) {
+				if (!pTypeExt->DrainMoney_Display_OnTarget_UseDisplayIncome.Get(RulesExtData::Instance()->DrainMoneyDisplay_OnTarget_UseDisplayIncome)) {
+					const auto displayTo = pTypeExt->DrainMoney_Display_Houses.Get(RulesExtData::Instance()->DrainMoneyDisplay_Houses);
+					// use firer for owner check
+					FlyingStrings::Instance.AddMoneyString(false, -nDrainAmount, pThis, displayTo, pThis->GetRenderCoords(), pTypeExt->DrainMoney_Display_Offset, ColorStruct::Empty);
+				} else if (const auto pBld = cast_to<BuildingClass*, false>(pThis)) {
+					const auto pBldTypeExt = BuildingTypeExtContainer::Instance.Find(pBld->Type);
+					const auto displayTo = pBldTypeExt->DisplayIncome_Houses.Get(RulesExtData::Instance()->DisplayIncome_Houses);
+					// use target for owner check
+					FlyingStrings::Instance.AddMoneyString(false, -nDrainAmount, pThis, displayTo, pThis->GetRenderCoords(), pBldTypeExt->DisplayIncome_Offset, ColorStruct::Empty);
+				}
 			}
 		}
 	}
