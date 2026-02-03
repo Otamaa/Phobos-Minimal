@@ -113,7 +113,7 @@ bool TeamExtData::HouseOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, bool 
 	{
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!TechnoExtData::IsAlive(pObject))
+			if (!TechnoExtData::IsAlive(pObject) || !pObject->Owner)
 				continue;
 
 			if (((!allies && pObject->Owner == pHouse) || (allies && pHouse != pObject->Owner && pHouse->IsAlliedWith(pObject->Owner)))
@@ -140,11 +140,11 @@ bool TeamExtData::EnemyOwns(AITriggerTypeClass* pThis, HouseClass* pHouse, House
 	{
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!TechnoExtData::IsAlive(pObject))
+			if (!TechnoExtData::IsAlive(pObject) || !pObject->Owner)
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || !pHouse->IsAlliedWith(pEnemy))
+				&& (!pEnemy || !pHouse->IsAlliedWith(pObject->Owner))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& TeamExtData::IsEligible(GET_TECHNOTYPE(pObject), pItem))
 			{
@@ -170,7 +170,7 @@ bool TeamExtData::NeutralOwns(AITriggerTypeClass* pThis, const Iterator<TechnoTy
 		{
 			for (auto pObject : *TechnoClass::Array)
 			{
-				if (!TechnoExtData::IsAlive(pObject))
+				if (!TechnoExtData::IsAlive(pObject) || !pObject->Owner)
 					continue;
 
 				if (pObject->Owner == pHouse
@@ -202,7 +202,7 @@ bool TeamExtData::HouseOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, co
 
 		for (auto pObject : *TechnoClass::Array)
 		{
-			if (!TechnoExtData::IsAlive(pObject))
+			if (!TechnoExtData::IsAlive(pObject) || !pObject->Owner)
 				continue;
 
 			if (pObject->Owner == pHouse &&
@@ -242,7 +242,7 @@ bool TeamExtData::EnemyOwnsAll(AITriggerTypeClass* pThis, HouseClass* pHouse, Ho
 				continue;
 
 			if (pObject->Owner != pHouse
-				&& (!pEnemy || (pEnemy && !pHouse->IsAlliedWith(pEnemy)))
+				&& (!pEnemy || !pHouse->IsAlliedWith(pObject->Owner))
 				&& !pObject->Owner->Type->MultiplayPassive
 				&& TeamExtData::IsEligible(GET_TECHNOTYPE(pObject), pItem))
 			{
@@ -283,7 +283,7 @@ bool TeamExtData::NeutralOwnsAll(AITriggerTypeClass* pThis, const Iterator<Techn
 
 			for (auto pObject : *TechnoClass::Array)
 			{
-				if (!TechnoExtData::IsAlive(pObject))
+				if (!TechnoExtData::IsAlive(pObject) || !pObject->Owner)
 					continue;
 
 				if (pObject->Owner == pHouse &&
