@@ -110,7 +110,7 @@ void FlyingStrings::AddMoneyString(bool Display, int amount, TechnoClass* owner,
 	static fmt::basic_memory_buffer<wchar_t> moneyStr;
 	if (EnumFunctions::CanTargetHouse(displayToHouses, owner->GetOwningHouse(), HouseClass::CurrentPlayer()))
 	{
-		if (owner->VisualCharacter(0, HouseClass::CurrentPlayer()) == VisualType::Hidden)
+		if (!owner->IsClearlyVisibleTo(HouseClass::CurrentPlayer))
 			return;
 
 		moneyStr.clear();

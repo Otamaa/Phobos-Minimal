@@ -7,6 +7,34 @@
 
 #include <Phobos.SaveGame.h>
 
+bool FakeInfantryClass::_Paradrop(CoordStruct* pCoords)
+{
+	if (!this->ObjectClass::SpawnParachuted(*pCoords))
+		return false;
+
+	auto const pTypeExt = TechnoTypeExtContainer::Instance.Find(this->Type);
+	Mission mission;
+
+	if (!this->Owner->IsControlledByHuman())
+		mission = pTypeExt->AIParadropMission.Get(RulesExtData::Instance()->AIParadropMission);
+	else
+	{
+		const auto assign = pTypeExt->ParadropMission.Get(RulesExtData::Instance()->ParadropMission);
+
+		if(assign != Mission::None ){
+			mission = assign;
+		}
+		else{
+			mission = Mission::Guard;
+		}
+	}
+
+	this->QueueMission(mission, false);
+
+	this->PlayAnim(DoType::Paradrop, true, false);
+	return true;
+}
+
 WeaponStruct* FakeInfantryClass::_GetDeployWeapon()
 {
 	int deployFireWeapon = this->Type->DeployFireWeapon;

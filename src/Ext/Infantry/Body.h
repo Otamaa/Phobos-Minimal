@@ -107,7 +107,7 @@ class InfantryTypeExtData;
 class NOVTABLE FakeInfantryClass : public InfantryClass
 {
 public:
-
+	bool _Paradrop(CoordStruct* pCoords);
 	void _Dummy(Mission, bool) RX;
 	void _DummyScatter(const CoordStruct& crd, bool ignoreMission, bool ignoreDestination) RX;
 	bool _Unlimbo(const CoordStruct& Crd, DirType dFaceDir);
