@@ -164,9 +164,6 @@ struct FrameData
 
 void DigitalDisplayTypeClass::DisplayShape(Point2D& position, int length, int value, int maxValue, bool isBuilding, bool isInfantry, bool hasShield)
 {
-	if (maxValue <= 0 || !Shape)
-		return;
-
 	double ratio = static_cast<double>(value) / maxValue;
 	std::string valueString("");
 

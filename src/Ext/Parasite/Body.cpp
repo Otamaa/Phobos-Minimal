@@ -350,7 +350,7 @@ void FakeParasiteClass::__Grapple_AI()
 
 		auto const AnimType = WarheadTypeExtContainer::Instance.Find(weapon->WeaponType->Warhead)->SquidSplash.GetElements(RulesClass::Instance->SplashList);
 
-		if(AnimType && AnimType.size() > 0) {
+		if(AnimType) {
 
 			DirStruct facingDir = this->Victim->PrimaryFacing.Current();
 
